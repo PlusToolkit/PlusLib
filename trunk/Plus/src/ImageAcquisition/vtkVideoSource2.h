@@ -325,7 +325,7 @@ public:
   // Description:
   // Add generated html report from video data acquisition to the existing html report
   // htmlReport and plotter arguments has to be defined by the caller function
-  // Solution should build with VTK_PRINT_VIDEO_TIMESTAMP_DEBUG_INFO to generate this report
+  // Solution should build with PLUS_PRINT_VIDEO_TIMESTAMP_DEBUG_INFO to generate this report
   virtual void GenerateVideoDataAcquisitionReport( vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter, const char* gnuplotScriptsFolder); 
 
 protected:

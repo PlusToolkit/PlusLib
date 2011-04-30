@@ -1,7 +1,7 @@
 
 # --------------------------------------------------------------------------
 # Options 
-OPTION (VTK_PRINT_SYNC_DEBUG_INFO "Print synchronizer debugging info to file in gnuplot data format" OFF)
+OPTION (PLUS_PRINT_SYNC_DEBUG_INFO "Print synchronizer debugging info to file in gnuplot data format" OFF)
 
 # --------------------------------------------------------------------------
 # Sources
