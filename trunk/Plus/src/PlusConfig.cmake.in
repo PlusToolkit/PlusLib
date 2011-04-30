@@ -1,0 +1,15 @@
+# - Config file for the Plus package
+# It defines the following variables
+#  PLUS_INCLUDE_DIRS - include directories for Plus
+#  PLUS_LIBRARY_DIRS - library directories for Plus (normally not used!)
+ 
+# Tell the user project where to find our headers and libraries
+SET(PLUS_INCLUDE_DIRS "@PLUS_INCLUDE_DIRS@")
+SET(PLUS_LIBRARY_DIRS "@PLUS_LIBRARY_DIRS@")
+
+# Tell the user project where to find Plus use file
+SET(PLUS_USE_FILE "@CMAKE_CURRENT_BINARY_DIR@/UsePlus.cmake" )
+ 
+# Our library dependencies (contains definitions for IMPORTED targets)
+include("@CMAKE_CURRENT_BINARY_DIR@/PlusLibraryDepends.cmake")
+ 

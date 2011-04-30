@@ -1,15 +1,18 @@
 PROJECT(PLUS)
 
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 2.8)
 if(COMMAND cmake_policy)
 	cmake_policy(SET CMP0003 NEW)
 endif(COMMAND cmake_policy)
 
+# ------------------------------------------------------------------------
+# Set project version number 
 SET(PLUS_VERSION_MAJOR "1")
 SET(PLUS_VERSION_MINOR "1")
 SET(PLUS_VERSION_PATCH "1")
+SET(PLUS_VERSION ${PLUS_VERSION_MAJOR}.${PLUS_VERSION_MINOR}.${PLUS_VERSION_PATCH})
 
-MESSAGE(STATUS "Plus version: ${PLUS_VERSION_MAJOR}.${PLUS_VERSION_MINOR}.${PLUS_VERSION_PATCH}" )
+MESSAGE(STATUS "Plus version: ${PLUS_VERSION}" )
 
 # --------------------------------------------------------------------------
 # User options

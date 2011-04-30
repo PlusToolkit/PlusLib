@@ -7,18 +7,22 @@ ENDIF(COMMAND CMAKE_POLICY)
 
 # ------------------------------------------------------------------------
 # Find Plus use file
-FIND_PATH( PLUS_BUILD_DIR UsePlus.cmake)
-IF ( PLUS_BUILD_DIR )
-	INCLUDE (${PLUS_BUILD_DIR}/src/UsePlus.cmake)
-ELSE ( PLUS_BUILD_DIR )
-	MESSAGE(FATAL_ERROR "Please set Plus BUILD directory.")
-ENDIF ( PLUS_BUILD_DIR )
 
+FIND_PACKAGE (PLUS REQUIRED)
+IF ( PLUS_FOUND)
+	INCLUDE( ${PLUS_USE_FILE} )
+ELSE( PLUS_FOUND )
+    MESSAGE( FATAL_ERROR "This project requires PLUS. One of these components is missing. Please verify configuration")
+ENDIF( PLUS_FOUND )
+
+# ------------------------------------------------------------------------
+# Set project version number: PlusApp version should identical to Plus version 
 SET(PLUSAPP_VERSION_MAJOR ${PLUS_VERSION_MAJOR})
 SET(PLUSAPP_VERSION_MINOR ${PLUS_VERSION_MINOR})
 SET(PLUSAPP_VERSION_PATCH ${PLUS_VERSION_PATCH})
+SET(PLUSAPP_VERSION ${PLUSAPP_VERSION_MAJOR}.${PLUSAPP_VERSION_MINOR}.${PLUSAPP_VERSION_PATCH})
 
-MESSAGE(STATUS "PlusApp version: ${PLUSAPP_VERSION_MAJOR}.${PLUSAPP_VERSION_MINOR}.${PLUSAPP_VERSION_PATCH}" )
+MESSAGE(STATUS "PlusApp version: ${PLUSAPP_VERSION}" )
 
 # --------------------------------------------------------------------------
 # Find SVN for revision information status

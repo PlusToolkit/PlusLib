@@ -4,7 +4,7 @@
 # 
 IF(NOT PLUS_INSTALL_BIN_DIR)
 
-  cmake_minimum_required(VERSION 2.6)
+  cmake_minimum_required(VERSION 2.8)
   if(COMMAND cmake_policy)
 	 cmake_policy(SET CMP0003 NEW)
   endif(COMMAND cmake_policy)
@@ -15,21 +15,29 @@ IF(NOT PLUS_INSTALL_BIN_DIR)
   
 ENDIF(NOT PLUS_INSTALL_BIN_DIR)
 
+#include(${CMAKE_ROOT}/Modules/ExternalProject.cmake)
+
 #
 # Try to find VTK and include its settings (otherwise complain)
 #
 
 FIND_PACKAGE(VTK REQUIRED)
+IF ( VTK_FOUND )
 INCLUDE(${VTK_USE_FILE})
+ELSE ( VTK_FOUND )
+    MESSAGE( FATAL_ERROR "This application requires VTK. One of these components is missing. Please verify configuration")
+ENDIF ( VTK_FOUND )
 
 #
 # Try to find ITK and include its settings (otherwise complain)
 #
 
-FIND_PACKAGE (ITK)
-IF ( ITK_FOUND)
-	INCLUDE( ${USE_ITK_FILE} )
-ENDIF( ITK_FOUND)
+FIND_PACKAGE (ITK REQUIRED)
+IF ( ITK_FOUND )
+	INCLUDE( ${ITK_USE_FILE} )
+ELSE ( ITK_FOUND )
+    MESSAGE( FATAL_ERROR "This application requires ITK. One of these components is missing. Please verify configuration")
+ENDIF( ITK_FOUND )
 
 
 #
@@ -53,11 +61,11 @@ ENDIF(PLUS_USE_OpenIGTLink)
 # Configure output paths for libraries and executables.
 #
  
-SET( LIBRARY_OUTPUT_PATH  ${CMAKE_BINARY_DIR}/bin CACHE PATH 
-    "Single output directory for building all libraries." FORCE)
-SET(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin CACHE PATH 
-    "Single output directory for building all executables." FORCE)
-MARK_AS_ADVANCED(LIBRARY_OUTPUT_PATH EXECUTABLE_OUTPUT_PATH)
+SET(LIBRARY_OUTPUT_PATH  ${CMAKE_BINARY_DIR}/lib CACHE PATH "Single output directory for building all libraries." FORCE)
+SET(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin CACHE PATH "Single output directory for building all executables." FORCE)
+SET(INCLUDES_OUTPUT_PATH ${CMAKE_BINARY_DIR}/inc CACHE PATH "Single output directory for all include files" FORCE)
+
+MARK_AS_ADVANCED(LIBRARY_OUTPUT_PATH EXECUTABLE_OUTPUT_PATH INCLUDES_OUTPUT_PATH)
 
 #
 # gnuplot binary directory path.
@@ -149,6 +157,50 @@ file(GLOB headers
 	"${CMAKE_CURRENT_SOURCE_DIR}/*.h"
 	)
 
+# --------------------------------------------------------------------------
+# Create Plus target list 
+SET( PLUS_TARGETS 
+        vtkImageAcquisition 
+        vtkTrusCalibration 
+        vtkTrusCalibrationCommon 
+        vtkSignaling 
+        vtkPlusCommon 
+        UsFidSegAlgo 
+        vtkTracking 
+        vtkDataCollection 
+        vtkVolumeReconstruction 
+        )
+
+IF ( PLUS_USE_AMS_TRACKER )
+    SET( PLUS_TARGETS ${PLUS_TARGETS} vtkAMSStepper )
+ENDIF ( PLUS_USE_AMS_TRACKER )
+
+IF ( PLUS_USE_CERTUS OR PLUS_USE_POLARIS )
+    SET( PLUS_TARGETS ${PLUS_TARGETS} vtkndicapi )
+ENDIF ( PLUS_USE_CERTUS OR PLUS_USE_POLARIS )
+
+IF ( PLUS_USE_FLOCK )
+    SET( PLUS_TARGETS ${PLUS_TARGETS} vtkflock )
+ENDIF ( PLUS_USE_FLOCK )
+
+IF ( PLUS_USE_MICRONTRACKER )
+    SET( PLUS_TARGETS ${PLUS_TARGETS} vtkMicrontrackerfiles )
+ENDIF ( PLUS_USE_MICRONTRACKER )
+
+# Add all targets to the build-tree export set
+export(TARGETS ${PLUS_TARGETS}
+  FILE "${CMAKE_CURRENT_BINARY_DIR}/PlusLibraryDepends.cmake")    
+ 
+# Export the package for use from the build-tree
+# (this registers the build-tree with a global CMake-registry)
+export(PACKAGE Plus)
+
+# Create a PlusConfig.cmake file for the use from the build tree
+configure_file(PlusConfig.cmake.in
+  "${CMAKE_CURRENT_BINARY_DIR}/PlusConfig.cmake" @ONLY)
+configure_file(PlusConfigVersion.cmake.in
+  "${CMAKE_CURRENT_BINARY_DIR}/PlusConfigVersion.cmake" @ONLY)
+  
 IF (BUILD_SLICER_MODULE)
 	
 	# --------------------------------------------------------------------------
