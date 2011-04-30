@@ -5,7 +5,7 @@ OPTION (PLUS_USE_SONIX_VIDEO "Provide support for the SonixRP video source" OFF)
 OPTION (PLUS_USE_ICCAPTURING_VIDEO "Provide support for the IC framegrabber device" OFF)
 OPTION (PLUS_USE_VFW_VIDEO "Provide support for the Video-for-Windows video digitizer" OFF)
 OPTION (PLUS_PRINT_VIDEO_TIMESTAMP_DEBUG_INFO "Print video timestamp filtering debug info to file in gnuplot data format" OFF)
-SET (ULTERIUS_MAJOR_VERSION 1 CACHE STRING "Set Ultrasonix Ulterius SDK major version")
+SET (ULTERIUS_MAJOR_VERSION 5 CACHE STRING "Set Ultrasonix Ulterius SDK major version")
 
 # --------------------------------------------------------------------------
 # Sources
@@ -64,8 +64,8 @@ IF (PLUS_USE_SONIX_VIDEO)
 			SonixVideo/vtkSonixVideoSource.h
 			SonixVideo/vtkSonixVideoSource2.h
 			SonixVideo/vtkSonixVolumeReader.h
-      SonixVideo/itkUlteriusImageIO.h
-      SonixVideo/itkUlteriusImageIOFactory.h       
+            SonixVideo/itkUlteriusImageIO.h
+            SonixVideo/itkUlteriusImageIOFactory.h       
 			)
 	endif (WIN32)	
 
@@ -200,12 +200,18 @@ ENDIF (PLUS_USE_VFW_VIDEO)
 
 INCLUDE_DIRECTORIES( ${PLUS_INCLUDE_DIRS} )
 
-SET (ImageAcquisition_LIBS vtkPlusCommon ${ImageAcquisition_LIBS} ${SONIX_LIBRARY} ${VFW_LIBRARY} ${ICCapturing_LIBRARY} )
+SET (ImageAcquisition_LIBS 
+        vtkCommon 
+        vtkHybrid 
+        ITKIO
+        vtkPlusCommon 
+        ${SONIX_LIBRARY} 
+        ${VFW_LIBRARY} 
+        ${ICCapturing_LIBRARY} 
+        )
 
 ADD_LIBRARY(vtkImageAcquisition ${ImageAcquisition_SRCS} ${ImageAcquisition_HDRS})
-
-TARGET_LINK_LIBRARIES(vtkImageAcquisition vtkCommon vtkHybrid ITKIO
-				${ImageAcquisition_LIBS})
+TARGET_LINK_LIBRARIES(vtkImageAcquisition ${ImageAcquisition_LIBS})
 
 # --------------------------------------------------------------------------
 # Install
