@@ -9,7 +9,7 @@ ENDIF(COMMAND CMAKE_POLICY)
 # Find Plus use file
 FIND_PATH( PLUS_BUILD_DIR UsePlus.cmake)
 IF ( PLUS_BUILD_DIR )
-	INCLUDE (${PLUS_BUILD_DIR}/UsePlus.cmake)
+	INCLUDE (${PLUS_BUILD_DIR}/src/UsePlus.cmake)
 ELSE ( PLUS_BUILD_DIR )
 	MESSAGE(FATAL_ERROR "Please set Plus BUILD directory.")
 ENDIF ( PLUS_BUILD_DIR )
