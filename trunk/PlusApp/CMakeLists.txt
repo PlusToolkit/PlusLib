@@ -30,6 +30,12 @@ if(Subversion_FOUND)
   set(PLUSAPP_REVISION ${PLUSAPP_SVN_INFO_WC_REVISION})
 endif(Subversion_FOUND) 
 
+# Standard CMake option for building libraries shared or static by default.
+OPTION(BUILD_SHARED_LIBS
+       "Build with shared libraries."
+       ${VTK_BUILD_SHARED_LIBS}
+	   ${ITK_BUILD_SHARED_LIBS})    
+
 # --------------------------------------------------------------------------
 # Configure output paths for libraries and executables.
 #
