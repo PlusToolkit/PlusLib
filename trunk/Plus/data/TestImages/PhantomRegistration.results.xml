@@ -1,0 +1,10 @@
+<PhantomRegistration version="1.0">
+  <PhantomReferenceToPhantomTransform Transform="
+	1 0 0 50.0
+	0 1 0 -75.0
+	0 0 1 -150.0
+	0 0 0 1">
+    
+  </PhantomReferenceToPhantomTransform>
+  
+</PhantomRegistration>

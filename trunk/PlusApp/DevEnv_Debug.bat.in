@@ -1,0 +1,22 @@
+@ECHO off
+REM Hide all your directories from users
+SET DIRCMD=0 
+SET PATH=${VTK_DIR}/bin/Debug;${ITK_DIR}/bin/Debug;%PATH%
+SET PATH=${PLUS_DIR}/bin/Debug;%PATH%
+IF "${PLUS_USE_CERTUS}"=="ON" SET PATH=${NDIOAPI_BINARY_DIR};%PATH% ELSE ( 
+    IF "${PLUS_USE_POLARIS}"=="ON" SET PATH=${NDIOAPI_BINARY_DIR};%PATH% )
+IF "${PLUS_USE_ICCAPTURING_VIDEO}"=="ON" SET PATH=${ICCAPTURING_BIN_DIR}/debug;%PATH%
+IF "${ULTERIUS_MAJOR_VERSION}"=="1" SET PATH=${ULTERIUS_BINARY_DIR}/d;%PATH% ELSE (
+  SET PATH=${ULTERIUS_BINARY_DIR};%PATH%)
+IF "${PLUS_USE_OpenIGTLink}"=="ON" SET PATH=${OpenIGTLink_DIR}/bin/Debug;%PATH%
+SET PATH=${QT_BINARY_DIR};%PATH%
+SET PATH=c:/cygwin/bin;%PATH%
+SET SVNCOMMAND=svn.exe
+REM Emptying SVN_SSH variable is needed so that AnkhSVN Visual Studio plugin work (without this unset command, it cannot commit)
+SET SVN_SSH=
+
+if "%1" == "no-sln" goto End
+
+PLUSAPP.sln
+
+:End

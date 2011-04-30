@@ -1,0 +1,44 @@
+<USDataCollection version="1.0">
+	<ImageAcqusition Type="None" BufferSize="200" FrameSize="640 480 1" FrameRate="30" SmoothingFactor="0.001" LocalTimeOffset="0.0">
+		<SonixVideo IP="127.0.0.1" ImagingMode="0" AcquisitionDataType="4" Depth="-1" Sector="-1" Gain="-1" DynRange="-1" Zoom="-1" Frequency="-1" Timeout="-1" CompressionStatus="0" />
+		<SonixVolume FileName="" />
+		<ICCapturing DeviceName="DFG/USB2-lt" VideoNorm="NTSC_M" VideoFormat="Y800 (640x480)" InputChannel="01 Video: SVideo" LicenseKey="ISB3200016679" ICBufferSize="50" />
+		<SavedDataset SequenceMetafile=""/>
+		<MatroxImaging />
+		<VFWVideo />
+		<NoiseVideo />
+		<LinuxVideo VideoDevice="" VideoChannel="3" VideoMode="1" />
+	</ImageAcqusition>
+
+	<Tracker Type="FakeTracker" BufferSize="1000" Frequency="25" LocalTimeOffset="0.0">
+		<AMSTracker	SerialPort="COM3" BaudRate="19200" >
+			<ModelInformation Name="Burdette Medical Systems Digital Stepper" Number="4012A18-a" Version="" SerialNumber="00-50-113" />
+			<Calibration AlgorithmVersion="1.0.0" Date="" ProbeTranslationAxisOrientation="0.004635 -0.053440 1" TemplateTranslationAxisOrientation="-0.003557 0.031474 1" Rx="" Ry="" Rx0="" Ry0="" ProbeRotationEncoderScale="1.0" /> 			
+		</AMSTracker>
+		<CertusTracker ReferenceToolNumber="1" MainToolNumber="3"/>
+		<PolarisTracker />
+		<AuroraTracker />
+		<FlockTracker />
+		<MicronTracker />
+		<SavedDataset SequenceMetafile=""/>
+		<FakeTracker ReferenceToolNumber="0" MainToolNumber="1" Mode="PivotCalibration" />
+			<!-- Mode: PivotCalibration, RecordPhantomLandmarks -->
+	</Tracker>
+	
+	<Synchronization>
+		<Synchronizer 
+            SynchronizationTimeLength="30" 
+            MinNumOfSyncSteps="5" 
+            ThresholdMultiplier="5"
+            
+            NumberOfAveragedTransforms="20" 
+            MinTransformThreshold="2.0" 
+            MaxTransformDifference="2.0" 
+            
+            NumberOfAveragedFrames="6" 
+            MinFrameThreshold="200.0" 
+            MaxFrameDifference="10.0" 
+             />
+	</Synchronization>
+	
+</USDataCollection>

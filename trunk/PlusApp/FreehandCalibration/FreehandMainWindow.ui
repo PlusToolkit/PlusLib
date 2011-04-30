@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>FreehandClass</class>
+ <widget class="QMainWindow" name="FreehandClass">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>856</width>
+    <height>620</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Freehand Ultrasound Calibration</string>
+  </property>
+  <widget class="QWidget" name="centralWidget">
+   <layout class="QHBoxLayout" name="horizontalLayout">
+    <property name="spacing">
+     <number>0</number>
+    </property>
+    <property name="margin">
+     <number>0</number>
+    </property>
+    <item>
+     <widget class="QTabWidget" name="tabWidgetToolbox">
+      <property name="minimumSize">
+       <size>
+        <width>212</width>
+        <height>600</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>212</width>
+        <height>16777215</height>
+       </size>
+      </property>
+      <property name="tabPosition">
+       <enum>QTabWidget::West</enum>
+      </property>
+      <property name="currentIndex">
+       <number>0</number>
+      </property>
+      <widget class="QWidget" name="tab_StylusCalibration">
+       <attribute name="title">
+        <string>Stylus Calibration</string>
+       </attribute>
+      </widget>
+      <widget class="QWidget" name="tab_PhantomRegistration">
+       <attribute name="title">
+        <string>Phantom Registration</string>
+       </attribute>
+      </widget>
+      <widget class="QWidget" name="tab_FreehandCalibration">
+       <attribute name="title">
+        <string>Freehand Calibration</string>
+       </attribute>
+      </widget>
+      <widget class="QWidget" name="tab_VolumeReconstruction">
+       <attribute name="title">
+        <string>Volume Reconstruction</string>
+       </attribute>
+      </widget>
+     </widget>
+    </item>
+    <item>
+     <widget class="QVTKWidget" name="canvas" native="true">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+        <horstretch>1</horstretch>
+        <verstretch>1</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="minimumSize">
+       <size>
+        <width>600</width>
+        <height>600</height>
+       </size>
+      </property>
+      <property name="sizeIncrement">
+       <size>
+        <width>4</width>
+        <height>3</height>
+       </size>
+      </property>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QStatusBar" name="statusBar"/>
+ </widget>
+ <layoutdefault spacing="6" margin="11"/>
+ <customwidgets>
+  <customwidget>
+   <class>QVTKWidget</class>
+   <extends>QWidget</extends>
+   <header location="global">QVTKWidget.h</header>
+  </customwidget>
+ </customwidgets>
+ <resources>
+  <include location="FreehandMainWindow.qrc"/>
+ </resources>
+ <connections/>
+</ui>
