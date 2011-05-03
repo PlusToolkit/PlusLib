@@ -1,0 +1,287 @@
+# --------------------------------------------------------------------------
+# Options
+OPTION (PLUS_USE_POLARIS "Provide support for the NDI POLARIS and AURORA" OFF)
+OPTION (PLUS_USE_CERTUS "Provide support for the NDI Certus" OFF)
+OPTION (PLUS_USE_FLOCK "Provide support for the Ascension Flock of Birds" OFF)
+OPTION (PLUS_USE_MICRONTRACKER "Provide support for the Claron MicronTracker" OFF)
+OPTION (PLUS_USE_AMS_TRACKER "Provide support for the AMS Stepper tracking device" ON)
+OPTION (PLUS_USE_Ascension3DG "Provide support for the Ascension 3DG Tracker" OFF)
+OPTION (PLUS_PRINT_TRACKER_TIMESTAMP_DEBUG_INFO "Print tracker timestamp filtering debug info to file in gnuplot data format" OFF)
+
+# --------------------------------------------------------------------------
+# Sources
+SET (Tracking_SRCS
+	vtkFakeTracker.cxx 
+	vtkFrameToTimeConverter.cxx 
+	vtkTracker.cxx 
+	vtkTrackerBuffer.cxx 
+	vtkTrackerTool.cxx 
+	vtkBufferedTracker.cxx 
+    vtkSavedDataTracker.cxx 
+	)
+
+SET (Tracking_HDRS)
+if (WIN32)	
+	SET (Tracking_HDRS
+		vtkFakeTracker.h
+		vtkFrameToTimeConverter.h 
+		vtkTracker.h 
+		vtkTrackerBuffer.h 
+		vtkTrackerTool.h 
+		vtkBufferedTracker.h
+        vtkSavedDataTracker.h
+		)
+endif (WIN32)	
+
+IF (PLUS_USE_CERTUS OR PLUS_USE_POLARIS)
+	ADD_SUBDIRECTORY(ndicapi)
+ENDIF (PLUS_USE_CERTUS OR PLUS_USE_POLARIS)
+
+SET (External_Libraries_Install)
+
+# --------------------------------------------------------------------------
+# NDICertus support
+SET (CERTUS_LIBRARY)
+IF (PLUS_USE_CERTUS)
+	SET (Tracking_SRCS
+		${Tracking_SRCS}
+		NDICertusTracking/vtkNDICertusTracker.cxx
+	)
+	
+	if (WIN32)	
+		SET (Tracking_HDRS
+			${Tracking_HDRS}
+			NDICertusTracking/vtkNDICertusTracker.h
+			)
+	endif (WIN32)
+	
+	FIND_PATH(NDIOAPI_INCLUDE_DIR ndopto.h)
+	FIND_PATH(NDIOAPI_BINARY_DIR oapi.dll)
+
+    SET (PLUS_INCLUDE_DIRS 
+            ${PLUS_INCLUDE_DIRS} 
+            ${VTKNDICAPI_SOURCE_DIR} 
+            ${VTKNDICAPI_BINARY_DIR}
+			${NDIOAPI_INCLUDE_DIR}
+            CACHE INTERNAL ""
+            )
+
+	SET (CERTUS_LIBRARY ${CERTUS_LIBRARY} 
+		vtkndicapi
+		${NDIOAPI_BINARY_DIR}/oapi${CMAKE_STATIC_LIBRARY_SUFFIX}
+		)
+	
+	SET ( External_Libraries_Install ${External_Libraries_Install}
+		${NDIOAPI_BINARY_DIR}/oapi${CMAKE_SHARED_LIBRARY_SUFFIX}
+		)
+
+ENDIF (PLUS_USE_CERTUS)
+
+
+#--------------------------------------------------------------------------
+# POLARIS support
+SET (POLARIS_LIBRARY)
+IF (PLUS_USE_POLARIS)
+	SET (Tracking_SRCS
+		${Tracking_SRCS}
+		PolarisTracking/vtkPOLARISTracker.cxx
+		PolarisTracking/vtkNDITracker.cxx
+	)
+	
+	if (WIN32)	
+		SET (Tracking_HDRS
+			${Tracking_HDRS}
+			PolarisTracking/vtkPOLARISTracker.h
+			PolarisTracking/vtkNDITracker.h
+			)
+	endif (WIN32)
+
+    SET (PLUS_INCLUDE_DIRS 
+            ${PLUS_INCLUDE_DIRS} 
+            ${VTKNDICAPI_SOURCE_DIR}
+            ${VTKNDICAPI_BINARY_DIR}
+            CACHE INTERNAL ""
+			)
+					  
+	SET (POLARIS_LIBRARY vtkndicapi)
+	SET ( External_Libraries_Install ${External_Libraries_Install}
+		
+		)
+ENDIF (PLUS_USE_POLARIS)
+
+#--------------------------------------------------------------------------
+# FLOCK support
+SET (FLOCK_LIBRARY)
+IF (PLUS_USE_FLOCK)
+	SET (Tracking_SRCS
+		${Tracking_SRCS}
+		FlockTracking/vtkFlockTracker.cxx
+	)
+	
+	if (WIN32)	
+		SET (Tracking_HDRS
+			${Tracking_HDRS}
+			FlockTracking/vtkFlockTracker.h
+			)
+	endif (WIN32)
+	
+	ADD_SUBDIRECTORY(FlockTracking/Utils)
+    SET (PLUS_INCLUDE_DIRS 
+                ${PLUS_INCLUDE_DIRS} 
+                ${VTKFLOCK_SOURCE_DIR}
+                ${VTKFLOCK_BINARY_DIR}
+                CACHE INTERNAL ""
+				)
+					  
+	SET (FLOCK_LIBRARY vtkflock)
+	SET ( External_Libraries_Install ${External_Libraries_Install}
+		
+		)
+ENDIF (PLUS_USE_FLOCK)
+
+
+#--------------------------------------------------------------------------
+# MICRONTRACKER support
+SET (MICRONTRACKER_LIBRARY)
+IF (PLUS_USE_MICRONTRACKER)
+	SET (Tracking_SRCS
+		${Tracking_SRCS}
+		MicronTracking/vtkMicronTracker.cxx
+	)
+	
+	if (WIN32)	
+		SET (Tracking_HDRS
+			${Tracking_HDRS}
+			MicronTracking/vtkMicronTracker.h
+			)
+	endif (WIN32)
+	
+	ADD_SUBDIRECTORY(MicronTracking/Utils)
+
+    SET (PLUS_INCLUDE_DIRS 
+                ${PLUS_INCLUDE_DIRS} 
+                ${MICRONTRACKERFILES_SOURCE_DIR}
+				${MICRONTRACKERFILES_BINARY_DIR}
+                CACHE INTERNAL ""
+				)
+	INCLUDE (${CMAKE_ROOT}/Modules/FindOpenGL.cmake)
+  
+  SET (MICRONTRACKER_LIBRARY vtkMicrontrackerfiles)
+  SET ( External_Libraries_Install ${External_Libraries_Install}
+		
+		)
+ENDIF (PLUS_USE_MICRONTRACKER)
+
+
+#--------------------------------------------------------------------------
+# AMSTRACKER support
+SET (AMSTRACKER_LIBRARY)
+IF (PLUS_USE_AMS_TRACKER)
+	SET (Tracking_SRCS
+		${Tracking_SRCS}
+		AMSTracking/vtkAMSTracker.cxx
+	)
+	
+	if (WIN32)	
+		SET (Tracking_HDRS
+			${Tracking_HDRS}
+			AMSTracking/vtkAMSTracker.h
+			)
+	endif (WIN32)
+	
+	ADD_SUBDIRECTORY(AMSTracking/Utils)
+	
+    SET (PLUS_INCLUDE_DIRS 
+                ${PLUS_INCLUDE_DIRS} 
+                ${AMSStepper_SOURCE_DIR}
+                ${AMSStepper_BINARY_DIR}
+                CACHE INTERNAL ""
+				)
+ 
+  SET (AMSTRACKER_LIBRARY vtkAMSStepper)
+ENDIF (PLUS_USE_AMS_TRACKER)
+
+
+#--------------------------------------------------------------------------
+# Ascension 3DG support
+IF( PLUS_USE_Ascension3DG )
+  OPTION( Ascension3DG_MedSafe "Use MedSafe version of the tracker" OFF )
+  IF( Ascension3DG_MedSafe ) # Use MedSafe version
+    FIND_PATH( ATC_INCLUDE_DIRECTORY ATC3DGm.h
+      "C:/Program Files/Ascension/3D Guidance medSAFE (Rev F)/3D Guidance API"
+      DOC "Directory where the ATC3DGm.h file is located")
+    FIND_LIBRARY( ATC_LIBRARY 
+      NAMES ATC3DGm ATC3DGm.dll
+      PATHS "C:/Program Files/Ascension/3D Guidance medSAFE (Rev F)/3D Guidance API"
+      DOC "Full path to the ATC3DG.dll file"
+      )
+  ELSE( Ascension3DG_MedSafe ) # Use non MedSafe version
+    FIND_PATH( ATC_INCLUDE_DIRECTORY ATC3DG.h
+      "C:/Program Files/Ascension/3D Guidance (Rev D)/3D Guidance API"
+      DOC "Directory where the ATC3DG.h file is located")
+    FIND_LIBRARY( ATC_LIBRARY 
+      NAMES ATC3DG ATC3DG.dll
+      PATHS "C:/Program Files/Ascension/3D Guidance (Rev D)/3D Guidance API"
+      DOC "Full path to the ATC3DG.dll file"
+      )
+  ENDIF( Ascension3DG_MedSafe )
+  
+  
+  SET (PLUS_INCLUDE_DIRS 
+            ${PLUS_INCLUDE_DIRS} 
+            ${ATC_INCLUDE_DIRECTORY}
+            ${CMAKE_CURRENT_SOURCE_DIR}/Ascension3DGTracking
+            CACHE INTERNAL ""
+            )
+  
+  SET (Tracking_SRCS
+    ${Tracking_SRCS}
+    Ascension3DGTracking/vtkAscension3DGTracker.cxx
+    )
+	if (WIN32)	
+		SET (Tracking_HDRS
+      ${Tracking_HDRS}
+      Ascension3DGTracking/vtkAscension3DGTracker.h
+      )
+	endif (WIN32)
+	
+  GET_FILENAME_COMPONENT( ATC_LIBRARY_DIRS ${ATC_LIBRARY} PATH )
+  LINK_DIRECTORIES( ${ATC_LIBRARY_DIRS} )
+ENDIF( PLUS_USE_Ascension3DG )
+
+INCLUDE_DIRECTORIES( ${PLUS_INCLUDE_DIRS} )
+
+IF (BUILD_TESTING)
+	ADD_SUBDIRECTORY(Testing)
+ENDIF (BUILD_TESTING)
+
+# --------------------------------------------------------------------------
+# Build the library
+
+SET (Tracking_LIBS 	vtkPlusCommon ${Tracking_LIBS} ${CERTUS_LIBRARY} ${POLARIS_LIBRARY} ${FLOCK_LIBRARY} ${MICRONTRACKER_LIBRARY} ${AMSTRACKER_LIBRARY} )
+
+IF( PLUS_USE_Ascension3DG )
+  SET( Tracking_LIBS ${Tracking_LIBS} ${ATC_LIBRARY} )
+ENDIF( PLUS_USE_Ascension3DG )
+
+ADD_LIBRARY(vtkTracking ${Tracking_SRCS} ${Tracking_HDRS})
+
+TARGET_LINK_LIBRARIES(	vtkTracking vtkImageAcquisition vtkCommon vtkHybrid vtkFiltering 
+						${Tracking_LIBS}
+						)
+
+# --------------------------------------------------------------------------
+# Install
+#
+
+INSTALL(FILES 
+	${External_Libraries_Install}
+	DESTINATION bin
+	COMPONENT Runtime
+	)
+	
+INSTALL(TARGETS vtkTracking
+  DESTINATION bin
+  COMPONENT Runtime)
+
+

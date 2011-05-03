@@ -1,0 +1,52 @@
+srcdir=@srcdir@
+VPATH=@srcdir@
+
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+bindir=@bindir@
+libdir=@libdir@
+includedir = @includedir@
+mandir=@mandir@
+INSTALLCMD=@INSTALL@
+
+CC=@CC@
+CFLAGS=@CFLAGS@ -I.
+SHLIB_CFLAGS=@SHLIB_CFLAGS@
+SHLIB_LD=@SHLIB_LD@
+SHLIB_SUFFIX=@SHLIB_SUFFIX@
+SHLIB_LD_LIBS=@SHLIB_LD_LIBS@
+
+RANLIB=@RANLIB@
+
+FLOCKOBJS = flock.o 
+FLOCKLIB = libflock.a
+FLOCKSHLIB = libflock${SHLIB_SUFFIX}
+FLOCKHEADERS = flock.h
+LIBS = @THREAD_LIBS@ -lm
+
+OBJS = ${FLOCKOBJS} flocktest.o
+
+all: flocktest ${FLOCKLIB} ${FLOCKSHLIB}
+
+${FLOCKLIB}: ${FLOCKOBJS} ${HEADERS}
+	ar r ${FLOCKLIB} ${FLOCKOBJS}
+	${RANLIB} ${FLOCKLIB}
+
+${FLOCKSHLIB}: ${FLOCKOBJS} ${HEADERS}
+	${SHLIB_LD} ${SHLIB_CFLAGS} ${SHLIB_LD_LIBS} -o $@ ${FLOCKOBJS} ${LIBS}
+
+flocktest: flocktest.o ${FLOCKLIB} ${HEADERS}
+	${CC} ${CFLAGS} -o $@ flocktest.o ${FLOCKLIB} ${LIBS}
+
+install:
+	${INSTALLCMD} -m 644 ${FLOCKHEADERS} ${includedir}
+	${INSTALLCMD} -m 755 ${FLOCKLIB} ${libdir}
+	${INSTALLCMD} -m 755 ${FLOCKSHLIB} ${libdir}
+	${INSTALLCMD} -m 755 flocktest ${bindir}
+
+clean:
+	/bin/rm -f ${OBJS} ${FLOCKLIB} ${FLOCKSHLIB} *~ flocktest
+
+distclean: clean
+	/bin/rm -f Makefile config.cache config.h config.sub config.log build-stamp config.status
+

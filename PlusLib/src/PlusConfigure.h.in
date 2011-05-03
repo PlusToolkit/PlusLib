@@ -1,0 +1,106 @@
+/*==========================================================================
+
+Portions (c) Copyright 2008 Brigham and Women's Hospital (BWH) All Rights Reserved.
+
+See Doc/copyright/copyright.txt
+or http://www.slicer.org/copyright/copyright.txt for details.
+
+Program:   3D Slicer
+Module:    $HeadURL: $
+Date:      $Date: $
+Version:   $Revision: $
+
+==========================================================================*/
+
+/* 
+ * Here is where system computed values get stored.
+ * These values should only change when the target compile platform changes.
+ */
+
+
+#ifndef __PlusConfigure_h
+#define __PlusConfigure_h
+
+// disable warnings for sprintf
+#define _CRT_SECURE_NO_WARNINGS
+// disable warnings for std::copy
+#define _SCL_SECURE_NO_WARNINGS
+
+#if defined(WIN32) && !defined(VTKSLICER_STATIC)
+  #pragma warning ( disable : 4275 )
+#endif
+
+#if defined(_MSC_VER)
+  #pragma warning ( disable : 4786 )
+#endif
+
+#cmakedefine PLUS_USE_OpenIGTLink
+
+#cmakedefine BUILD_SHARED_LIBS
+
+#ifndef BUILD_SHARED_LIBS
+	
+  #define VTKSLICER_STATIC
+
+#endif
+
+#include <strstream>
+#include <iostream>
+#include "vtkSmartPointer.h"
+#include "vtkAccurateTimer.h"
+#include "PlusCommon.h"
+#include "PlusLogger.h"
+
+#cmakedefine DATA_PATH "${DATA_PATH}"
+
+#cmakedefine PLUS_USE_FAKE_TRACKER
+#cmakedefine PLUS_USE_POLARIS
+#cmakedefine PLUS_USE_CERTUS	
+#cmakedefine PLUS_USE_FLOCK
+#cmakedefine PLUS_USE_MICRONTRACKER
+#cmakedefine PLUS_USE_AMS_TRACKER
+#cmakedefine PLUS_USE_Ascension3DG
+
+#cmakedefine PLUS_USE_MATROX_IMAGING
+#cmakedefine VTK_VFW_SUPPORTS_CAPTURE
+#cmakedefine PLUS_USE_SONIX_VIDEO
+#cmakedefine PLUS_USE_VIDEO_LINUX
+#cmakedefine PLUS_USE_ICCAPTURING_VIDEO
+#cmakedefine ULTERIUS_MAJOR_VERSION @ULTERIUS_MAJOR_VERSION@
+
+#cmakedefine PLUS_USE_HEARTSIGNALBOX
+#cmakedefine PLUS_USE_USBECGBOX 
+
+#cmakedefine PLUS_PRINT_SYNC_DEBUG_INFO
+#cmakedefine PLUS_PRINT_VIDEO_TIMESTAMP_DEBUG_INFO
+#cmakedefine PLUS_PRINT_TRACKER_TIMESTAMP_DEBUG_INFO
+
+#undef DO_CALIBRATION_FILE_CALCULATIONS
+
+#define ERRORTOLERANCE 10
+
+#define DATACOLLECTOR 1
+#define DATAPROCESSOR 2
+#define DATASENDER 3
+
+//Data Collector
+#define ERRORCOLLECTOR
+#define DEBUGCOLLECTOR
+#define TIMINGCOLLECTOR
+
+//Data Processor
+#define ERRORPROCESSOR
+#define DEBUGPROCESSOR
+#define TIMINGPROCESSOR
+
+//Data Sender
+#define ERRORSENDER
+#define DEBUGSENDER
+#define TIMINGSENDER
+
+//Instrument Tracker
+//#define ERROR_INST_TRACKER
+//#define DEBUG_INST_TRACKER
+//#define TIMING_INST_TRACKER
+ 
+#endif // __PlusConfigure_h
