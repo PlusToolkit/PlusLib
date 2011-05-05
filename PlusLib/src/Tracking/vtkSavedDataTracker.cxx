@@ -32,6 +32,7 @@ vtkSavedDataTracker::vtkSavedDataTracker()
 	this->SequenceMetafile = NULL; 
 	this->StartTimestamp = 0.0; 
 	this->Tracking = 0;
+	this->Initialized = false;
 }
 
 //----------------------------------------------------------------------------
@@ -55,7 +56,10 @@ void vtkSavedDataTracker::PrintSelf(ostream& os, vtkIndent indent)
 	vtkTracker::PrintSelf(os,indent);
 }
 
-//-----------------------------------------------------------------------------
+
+/**
+ * @returns 1 on success, 0 on failure.
+ */
 int vtkSavedDataTracker::Connect()
 {
 	LOG_TRACE("vtkSavedDataTracker::Connect"); 
@@ -65,7 +69,13 @@ int vtkSavedDataTracker::Connect()
 	{
 		return 0; 
 	}
-
+  
+  if ( this->Initialized )
+    {
+    return 1;
+    }
+  
+  
 	// Read metafile
 	savedDataBuffer->ReadFromSequenceMetafile(this->GetSequenceMetafile()); 
 	
@@ -145,7 +155,8 @@ int vtkSavedDataTracker::Connect()
 
 		LocalTrackerBuffer->AddItem(defaultTransformMatrix, status, frameNumber, unfilteredTimestamp, timestamp); 
 	}
-
+  
+  this->Initialized = true;
 	return 1; 
 }
 
