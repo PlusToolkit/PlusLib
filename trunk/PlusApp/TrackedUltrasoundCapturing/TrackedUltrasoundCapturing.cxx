@@ -157,6 +157,7 @@ void TrackedUltrasoundCapturing::Initialize()
 
 	this->DataCollector->ReadConfiguration(this->GetInputConfigFileName());
 	this->DataCollector->Initialize(); 
+	this->DataCollector->Start();
 
 	if ( !this->DataCollector->GetInitialized() )
 	{

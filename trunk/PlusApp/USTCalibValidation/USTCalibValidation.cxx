@@ -250,6 +250,7 @@ int main(int argc, char* argv[])
 	dataCollector = vtkDataCollector::New(); 
 	dataCollector->ReadConfiguration(inputConfigFileName.c_str());
 	dataCollector->Initialize(); 
+  dataCollector->Start();
 
 	// Transformations
 	TransformProbeToTracker = vtkTransform::New();

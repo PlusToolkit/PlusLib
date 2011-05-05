@@ -71,6 +71,7 @@ int main(int argc, char **argv)
 	vtkSmartPointer<vtkDataCollector> dataCollector = vtkSmartPointer<vtkDataCollector>::New(); 
 	dataCollector->ReadConfiguration(inputConfigFileName.c_str());
 	dataCollector->Initialize(); 
+	dataCollector->Start();
 
 	const int mainToolNumber = dataCollector->GetMainToolNumber(); 
 	const double acqStartTime = vtkTimerLog::GetUniversalTime(); 
