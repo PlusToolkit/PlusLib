@@ -72,6 +72,9 @@ protected:
 
 	vtkTrackerBuffer* LocalTrackerBuffer; 
 	
+	bool Initialized;
+	
+	
 private:
 	vtkSavedDataTracker(const vtkSavedDataTracker&);
 	void operator=(const vtkSavedDataTracker&);  
