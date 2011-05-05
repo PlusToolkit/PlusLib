@@ -99,20 +99,13 @@
                 SearchRegionX="50 550"
                 SearchRegionY="140 300"
                 
-                MaxLineLenMm="42.0" 
-                MinLineLenMm="38.0" 
-                MaxLinePairDistMm="22.0" 
-                MinLinePairDistMm="18.0"  
+				MaxLineLengthErrorPercent="5.0"
+				MaxLinePairDistanceErrorPercent="10.0"
                 MaxLineErrorMm="2.0"
-                
-                MaxUsideLineDiff="30.0"
-                MinUsideLineLength="320.0"
-                MaxUsideLineLength="350.0"
-                
-                MaxAngleDiffInRad="0.191986"
-                MinThetaInRad="0.349065"
-                MaxThetaInRad="2.792526"
-                MaxUangleDiffInRad="0.174532"
+                                
+                MaxAngleDifferenceDegrees="11"
+                MinThetaDegrees="20"
+                MaxThetaDegrees="160"
                 
                 ThresholdImageTop="10.0"
                 ThresholdImageBottom="10.0"
@@ -120,7 +113,8 @@
                 FindLines3PtDist="5.3"
                 
                 UseOriginalImageIntensityForDotIntensityScore="0"
-                FiducialGeometry="CALIBRATION_PHANTOM_6_POINT" 
+				
+                PhantomDefinition="d:\devel\Plus-bin\bin\config\PhantomDefinition_iCal_1.0.xml" 
                 >
         </SegmentationParameters>
     </CalibrationController>

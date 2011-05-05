@@ -1,0 +1,39 @@
+<PhantomDefinition version="1.0">
+	<!-- Supported types are: Double-N, U-Shaped-N -->
+	<Description
+		Name="iCAL"
+		Type="Double-N"
+		Version="1.0"
+		Institution="Queen's University PerkLab"
+	/>
+	
+	<!-- ModelToPhantomOriginTransform - transforming model into phantom origin coordinate system for proper visualization -->
+	<Model
+		File="?"
+		ModelToPhantomOriginTransform="
+			1 0 0 0.0
+			0 1 0 0.0
+			0 0 1 0.0
+			0 0 0 1"
+	/>
+
+	<Geometry>
+		<!-- N wire definitions -->
+		<!-- Phantom origin is the inner end of the hole that is on the side of the templete holder, on the side of the triangle shaped hole on the inner part, and closest to the probe -->
+		<NWire>
+			<Wire Name="A1_a1" EndPointFront="0.0 0.0 0.0" EndPointBack="0.0 80.0 0.0" />
+			<Wire Name="D1_b1" EndPointFront="30.0 0.0 0.0" EndPointBack="10.0 80.0 0.0" />
+			<Wire Name="E1_e1" EndPointFront="40.0 0.0 0.0" EndPointBack="40.0 80.0 0.0" />
+		</NWire>
+		<NWire>
+			<Wire Name="A3_a3" EndPointFront="0.0 0.0 20.0" EndPointBack="0.0 80.0 20.0" />
+			<Wire Name="B3_d3" EndPointFront="10.0 0.0 20.0" EndPointBack="30.0 80.0 20.0" />
+			<Wire Name="E3_e3" EndPointFront="40.0 0.0 20.0" EndPointBack="40.0 80.0 20.0" />
+		</NWire>
+
+		<!-- Landmark list for registration -->
+		<Landmarks>
+			<Landmark Name="?" Position="0.0 0.0 0.0" />
+		</Landmarks>
+	</Geometry>
+</PhantomDefinition>

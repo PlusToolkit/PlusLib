@@ -774,9 +774,6 @@ bool PhantomRegistrationController::LoadPhantomDefinitionFromFile(std::string aF
 	}
 
 	// Initialize geometry objects
-	//m_FrontPoints.clear(); TODO
-	//m_BackPoints.clear();
-
 	m_LandmarkNames.clear();
 
 	if (m_DefinedLandmarks != NULL) {
@@ -798,7 +795,7 @@ bool PhantomRegistrationController::LoadPhantomDefinitionFromFile(std::string aF
 
 		return false;
 	} else {
-		// Read landmarks
+		// Read landmarks (NWires are not interesting at this point, it is only parsed if segmentation is needed)
 		vtkSmartPointer<vtkXMLDataElement> landmarks = geometry->FindNestedElementWithName("Landmarks"); 
 		if (landmarks == NULL) {
 			LOG_ERROR("Landmarks not found, registration is not possible!");
@@ -841,55 +838,6 @@ bool PhantomRegistrationController::LoadPhantomDefinitionFromFile(std::string aF
 		// Highlight first landmark
 		m_RequestedLandmarkPolyData->GetPoints()->InsertPoint(0, m_DefinedLandmarks->GetPoint(0));
 		m_RequestedLandmarkPolyData->GetPoints()->Modified();
-
-		// Finding of NWires and extracting the endpoints - unused code, to be used in segmentation TODO
-		int numberOfGeometryChildren = geometry->GetNumberOfNestedElements();
-		for (int i=0; i<numberOfGeometryChildren; ++i) {
-			vtkSmartPointer<vtkXMLDataElement> nWire = geometry->GetNestedElement(i);
-
-			if ((nWire == NULL) || (STRCASECMP("NWire", nWire->GetName()))) {
-				continue;
-			}
-
-			int numberOfWires = nWire->GetNumberOfNestedElements();
-
-			if (numberOfWires != 3) {
-				LOG_WARNING("NWire contains unexpected number of wires - skipped");
-			}
-
-			for (int j=0; j<numberOfWires; ++j) {
-				vtkSmartPointer<vtkXMLDataElement> wire = nWire->GetNestedElement(i);
-
-				if (wire == NULL) {
-					continue;
-				}
-
-				double frontPoint[3];
-				double backPoint[3];
-
-				if (! wire->GetVectorAttribute("EndPointFront", 3, frontPoint)) {
-					LOG_WARNING("Wrong wire end point detected - skipped");
-					continue;
-				}
-				if (! wire->GetVectorAttribute("EndPointBack", 3, backPoint)) {
-					LOG_WARNING("Wrong wire end point detected - skipped");
-					continue;
-				}
-
-				//vtkVector3d frontVector(frontPoint[0], frontPoint[1], frontPoint[2]);
-				//vtkVector3d backVector(backPoint[0], backPoint[1], backPoint[2]);
-
-				//m_FrontPoints.insert(frontVector);
-				//m_BackPoints.insert(backVector);
-			}
-		}
-
-		//if (m_FrontPoints.size() != m_BackPoints.size()) {
-		//	LOG_ERROR("Front and back wire endpoint counts do not match!");
-
-		//	m_FrontPoints.clear();
-		//	m_BackPoints.clear();
-		//}
 	}
 
 	return true;

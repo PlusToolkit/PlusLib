@@ -1,6 +1,8 @@
 <PhantomDefinition version="1.0">
+	<!-- Supported types are: Double-N, U-Shaped-N -->
 	<Description
 		Name="fCAL"
+		Type="Double-N"
 		Version="1.0"
 		Institution="Queen's University PerkLab"
 	/>
