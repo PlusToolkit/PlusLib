@@ -81,6 +81,7 @@ void vtkFreehandController::Initialize()
 
 	this->DataCollector->ReadConfiguration(this->InputConfigFileName);
 	this->DataCollector->Initialize();
+	this->DataCollector->Start();
 
 	if (this->DataCollector->GetTracker()->GetNumberOfTools() < 1) {
 		LOG_ERROR("Unable to initialize Tracker!"); 

@@ -122,6 +122,7 @@ int main(int argc, char **argv)
 	}
 
 	dataCollector->Initialize(); 
+	dataCollector->Start();
 
 	if (renderingOff)
 	{

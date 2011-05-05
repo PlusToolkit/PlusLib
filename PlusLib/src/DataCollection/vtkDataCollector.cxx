@@ -156,7 +156,7 @@ void vtkDataCollector::Initialize()
 	this->Connect(); 
 	
 	// Start data collection 
-	this->Start(); 
+	// this->Start(); 
 
 	this->InitializedOn(); 
 }
