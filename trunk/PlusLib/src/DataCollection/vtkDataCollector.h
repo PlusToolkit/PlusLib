@@ -234,6 +234,9 @@ public:
 	// Set/get the Video only flag
 	vtkGetMacro(VideoOnly,bool);
 	void SetVideoOnly(bool);
+	
+	int GetNumberOfTools();
+	
 
 protected:
 	vtkDataCollector();

@@ -1855,3 +1855,16 @@ void vtkDataCollector::SetVideoOnly(bool videoOnly)
 		}
 	}
 }
+
+
+int
+vtkDataCollector
+::GetNumberOfTools()
+{
+  int ret = 0;
+  if ( this->GetTracker() != NULL )
+    {
+    ret = this->GetTracker()->GetNumberOfTools();
+    }
+  return ret;
+}
