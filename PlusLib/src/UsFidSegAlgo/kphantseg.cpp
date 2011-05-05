@@ -732,65 +732,70 @@ void SegImpl::uscseg( pixel *image, const SegmentationParameters &segParams, Seg
 
 	switch (m_SegParams.mFiducialGeometry)
 	{
-	case SegmentationParameters::TAB2_6_POINT: 	
+	case SegmentationParameters::TAB2_6_POINT:
+		LOG_WARNING("Unsupported phantom geometry - skipped"); 
+		break;
 	case SegmentationParameters::CALIBRATION_PHANTOM_6_POINT:
-		{
-			find_pairs();
-			if ( npairs > 0 ) {
-				LinePair *pair = pairs;
-				sort_top_to_bottom( pair );
-
-				Line *line1 = &lines[pair->l1];
-				Line *line2 = &lines[pair->l2];
-
-				sort_right_to_left( line1 );
-				sort_right_to_left( line2 );
-			}
-			if ( npairs < 1 ) 
-			{
-				LOG_DEBUG("Segmentation was NOT successful! (Number of dots found: " << segResult.m_FoundDotsCoordinateValue.size() << " Number of possible fiducial points: " << segResult.m_NumDots << ")"); 
-				segResult.m_DotsFound = false;				
-				return;
-			}
-
-			segResult.m_DotsFound = true;
-
-			LinePair *pair = pairs;
-			Line *line1 = &lines[pair->l1];
-			Line *line2 = &lines[pair->l2];
-
-			std::vector<double> dotCoords;
-			for (int i=0; i<3; i++)
-			{
-				dotCoords.push_back(dots[line1->b[i]].c);
-				dotCoords.push_back(dots[line1->b[i]].r);
-				segResult.m_FoundDotsCoordinateValue.push_back(dotCoords);
-				dotCoords.clear();
-			}
-			for (int i=0; i<3; i++)
-			{
-				dotCoords.push_back(dots[line2->b[i]].c);
-				dotCoords.push_back(dots[line2->b[i]].r);
-				segResult.m_FoundDotsCoordinateValue.push_back(dotCoords);
-				dotCoords.clear();
-			}
-			std::vector<std::vector<double>> sortedFiducials = KPhantomSeg::sortInAscendingOrder(segResult.m_FoundDotsCoordinateValue); 
-			segResult.m_FoundDotsCoordinateValue = sortedFiducials; 					
-
-			segResult.m_Angles = pair->angle_conf;
-			segResult.m_Intensity = pair->intensity;
-			segResult.m_NumDots= ndots; 
-		}
+		find_double_n_lines(segResult);
 		break;
 	case SegmentationParameters::TAB2_5_POINT:
 		find_u_shape_line_triad(segResult); 
 		break;
 	default:
-		// :TODO: report error
+		LOG_ERROR("Segmentation error: invalid phantom geometry identifier!"); 
 		break;
 	}
 }
 
+
+void SegImpl::find_double_n_lines(SegmentationResults &segResult)
+{	
+	find_pairs();
+	if ( npairs > 0 ) {
+		LinePair *pair = pairs;
+		sort_top_to_bottom( pair );
+
+		Line *line1 = &lines[pair->l1];
+		Line *line2 = &lines[pair->l2];
+
+		sort_right_to_left( line1 );
+		sort_right_to_left( line2 );
+	}
+	else if ( npairs < 1 ) 
+	{
+		LOG_DEBUG("Segmentation was NOT successful! (Number of dots found: " << segResult.m_FoundDotsCoordinateValue.size() << " Number of possible fiducial points: " << segResult.m_NumDots << ")"); 
+		segResult.m_DotsFound = false;				
+		return;
+	}
+
+	segResult.m_DotsFound = true;
+
+	LinePair *pair = pairs;
+	Line *line1 = &lines[pair->l1];
+	Line *line2 = &lines[pair->l2];
+
+	std::vector<double> dotCoords;
+	for (int i=0; i<3; i++)
+	{
+		dotCoords.push_back(dots[line1->b[i]].c);
+		dotCoords.push_back(dots[line1->b[i]].r);
+		segResult.m_FoundDotsCoordinateValue.push_back(dotCoords);
+		dotCoords.clear();
+	}
+	for (int i=0; i<3; i++)
+	{
+		dotCoords.push_back(dots[line2->b[i]].c);
+		dotCoords.push_back(dots[line2->b[i]].r);
+		segResult.m_FoundDotsCoordinateValue.push_back(dotCoords);
+		dotCoords.clear();
+	}
+	std::vector<std::vector<double>> sortedFiducials = KPhantomSeg::sortInAscendingOrder(segResult.m_FoundDotsCoordinateValue); 
+	segResult.m_FoundDotsCoordinateValue = sortedFiducials; 					
+
+	segResult.m_Angles = pair->angle_conf;
+	segResult.m_Intensity = pair->intensity;
+	segResult.m_NumDots= ndots; 
+}
 
 
 void SegImpl::find_u_shape_line_triad(SegmentationResults &segResult)

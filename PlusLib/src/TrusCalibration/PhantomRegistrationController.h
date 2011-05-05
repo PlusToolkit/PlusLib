@@ -188,10 +188,7 @@ protected:
 	//! Phantom model to phantom origin transform (from phantom definition file)
 	vtkTransform*							m_PhantomToModelTransform;
 
-	//! TODO
-	//std::vector<double*>					m_FrontPoints;
-	//std::vector<double*>					m_BackPoints;
-
+	//! Names of the phantom landmarks
 	std::vector<std::string>				m_LandmarkNames;
 
 	//! Stylus position as string

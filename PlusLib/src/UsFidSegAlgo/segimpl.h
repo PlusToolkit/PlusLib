@@ -71,36 +71,58 @@ struct LinePair
 	float angle_conf;
 };
 
+struct Wire
+{
+	char name[128];
+	double endPointFront[3];
+	double endPointBack[3];
+};
+
+struct NWire
+{
+	Wire wires[3];
+};
+
 class SegmentationParameters
 {
 public:
 	enum FiducialGeometryType
 	{
-		CALIBRATION_PHANTOM_6_POINT, //:TODO: replace it with the phantom name (Kingston?)
-		TAB2_5_POINT,// Tissue Ablation Box version 2, with 5 visible fiducials
-		TAB2_6_POINT// Tissue Ablation Box version 2, with 2 horizontal 3 point lines 
-	}; 
+		CALIBRATION_PHANTOM_6_POINT, //PerkLab Double-N phantom
+		TAB2_5_POINT, // Tissue Ablation Box version 2, with 5 visible fiducials
+		TAB2_6_POINT // Tissue Ablation Box version 2, with 2 horizontal 3 point lines 
+	};
 
 	SegmentationParameters::SegmentationParameters() :
 		mThresholdImageTop( 10.0 ),
 		mThresholdImageBottom( 10.0 ),
-		mMaxLineLenMm ( 42.0 ), 
-		mMinLineLenMm ( 38.0 ),
-		mMaxLinePairDistMm ( 22.0 ),
-		mMinLinePairDistMm ( 18.0 ),
-		mFindLines3PtDist ( 5.3f ),
+
+		mMaxLineLenMm ( -1.0 ), 
+		mMinLineLenMm ( -1.0 ),
+		mMaxLinePairDistMm ( -1.0 ),
+		mMinLinePairDistMm ( -1.0 ),
+
+		mMaxLineLengthErrorPercent( 5.0 ),
+		mMaxLinePairDistanceErrorPercent( 10.0 ),
 		mMaxLineErrorMm ( 2.0 ),
-		mMaxAngleDiff ( 11.0*M_PI/180 ),
-		mMinTheta(20.0*M_PI/180), //( 20.0*M_PI/180 ),
-		mMaxTheta (160.0*M_PI/180),//( 160.0*M_PI/180 ),
-		mMaxUangleDiff( 10.0*M_PI/180.0),
+
+		mFindLines3PtDist ( 5.3f ),
+
+		mMaxAngleDiff ( 11.0 * M_PI / 180.0 ),
+		mMinTheta( 20.0 * M_PI / 180.0 ),
+		mMaxTheta( 160.0 * M_PI / 180.0 ),
+
+		mMaxUangleDiff( 10.0 * M_PI / 180.0 ),
 		mMaxUsideLineDiff (30), 
 		mMinUsideLineLength (280),//320
 		mMaxUsideLineLength (300),//350
+
 		mMorphologicalOpeningBarSizeMm(2.0), 
 		mMorphologicalOpeningCircleRadiusMm(0.55), 
 		mScalingEstimation(0.2), 
-		mFiducialGeometry (CALIBRATION_PHANTOM_6_POINT),
+
+		mFiducialGeometry(CALIBRATION_PHANTOM_6_POINT),
+
 		mUseOriginalImageIntensityForDotIntensityScore (false) 
 	{
 		this->UpdateParameters(); 
@@ -128,17 +150,20 @@ public:
 	double mThresholdImageTop;  // segmentation threshold (in percentage, minimum is 0, maximum is 100 at the top half of the image
 	double mThresholdImageBottom;  // segmentation threshold (in percentage, minimum is 0, maximum is 100 at the bottom half of the image
 
-	// max length of 3pt line (mm)
+	// line length and line pair distance errors in percent - read from phantom definition
+	double mMaxLineLengthErrorPercent;
+	double mMaxLinePairDistanceErrorPercent;
+
+	// min and max length of 3pt line (mm) - computed from input error percent and NWire definitions
+	double mMinLineLenMm;
 	double mMaxLineLenMm;
 
-	// min length of 3pt line (mm)
-	double mMinLineLenMm;
-
-	// The maximum distance bewteen two detected parallel lines
-	// added to control the segmenation flexibility
+	// min and max distance between two detected parallel lines - computed from input error percent and NWire definitions
 	// NOTE: This parameter should be adjusted w.r.t phantom design specs (e.g., distance between N-wires).
-	double mMaxLinePairDistMm; 
 	double mMinLinePairDistMm; 	
+	double mMaxLinePairDistMm;
+
+
 	double mMaxLineErrorMm;
 
 	double mFindLines3PtDist; 
@@ -156,6 +181,7 @@ public:
 	double mScalingEstimation; 
 	
 	FiducialGeometryType mFiducialGeometry;
+	std::vector<NWire> mNWires;
 	
 	std::vector<Item> mMorphologicalCircle; 
 };
@@ -235,8 +261,11 @@ struct SegImpl
 	inline void trypos( pixel *image, int r, int c );
 	void suppress( pixel *image, float percent_thresh_top, float percent_thresh_bottom ); // a different threshold can be applied on the top and the bottom of the image
 	void WritePossibleFiducialOverlayImage(Dot *fiducials, pixel *unalteredImage); 
+
 	void find_u_shape_line_triad(SegmentationResults &segResult);
-	 bool accept_line( const Line &line );  
+	void find_double_n_lines(SegmentationResults &segResult);
+
+	bool accept_line( const Line &line );  
 
 	static void WritePng(pixel *modifiedImage, std::string outImageName, int cols, int rows); // addition to write out intermediate files
 

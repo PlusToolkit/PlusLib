@@ -16,6 +16,8 @@
 #include <itkImageDuplicator.h>
 #include "vtkTransform.h"
 #include "vtkMath.h"
+#include "vtkTriangle.h"
+#include "vtkPlane.h"
 #include "vtksys/SystemTools.hxx"
 
 vtkCxxRevisionMacro(vtkCalibrationController, "$Revision: 1.0 $");
@@ -733,28 +735,16 @@ void vtkCalibrationController::ReadSegmentationParametersConfiguration( vtkXMLDa
 		this->GetSegParameters()->mThresholdImageBottom = thresholdImageBottom; 
 	}
 
-	double maxLineLenMm(0.0); 
-	if ( segmentationParameters->GetScalarAttribute("MaxLineLenMm", maxLineLenMm) )
+	double maxLineLengthErrorPercent(0.0); 
+	if ( segmentationParameters->GetScalarAttribute("MaxLineLengthErrorPercent", maxLineLengthErrorPercent) )
 	{
-		this->GetSegParameters()->mMaxLineLenMm = maxLineLenMm; 
+		this->GetSegParameters()->mMaxLineLengthErrorPercent = maxLineLengthErrorPercent; 
 	}
 
-	double minLineLenMm(0.0); 
-	if ( segmentationParameters->GetScalarAttribute("MinLineLenMm", minLineLenMm) )
+	double maxLinePairDistanceErrorPercent(0.0); 
+	if ( segmentationParameters->GetScalarAttribute("MaxLinePairDistanceErrorPercent", maxLinePairDistanceErrorPercent) )
 	{
-		this->GetSegParameters()->mMinLineLenMm = minLineLenMm; 
-	}
-
-	double maxLinePairDistMm(0.0); 
-	if ( segmentationParameters->GetScalarAttribute("MaxLinePairDistMm", maxLinePairDistMm) )
-	{
-		this->GetSegParameters()->mMaxLinePairDistMm = maxLinePairDistMm; 
-	}
-
-	double minLinePairDistMm(0.0); 
-	if ( segmentationParameters->GetScalarAttribute("MinLinePairDistMm", minLinePairDistMm) )
-	{
-		this->GetSegParameters()->mMinLinePairDistMm = minLinePairDistMm; 
+		this->GetSegParameters()->mMaxLinePairDistanceErrorPercent = maxLinePairDistanceErrorPercent; 
 	}
 
 	double findLines3PtDist(0.0); 
@@ -769,24 +759,25 @@ void vtkCalibrationController::ReadSegmentationParametersConfiguration( vtkXMLDa
 		this->GetSegParameters()->mMaxLineErrorMm = maxLineErrorMm; 
 	}
 
-	double maxAngleDiffInRad(0.0); 
-	if ( segmentationParameters->GetScalarAttribute("MaxAngleDiffInRad", maxAngleDiffInRad) )
+	double maxAngleDifferenceDegrees(0.0); 
+	if ( segmentationParameters->GetScalarAttribute("MaxAngleDifferenceDegrees", maxAngleDifferenceDegrees) )
 	{
-		this->GetSegParameters()->mMaxAngleDiff = maxAngleDiffInRad; 
+		this->GetSegParameters()->mMaxAngleDiff = maxAngleDifferenceDegrees * M_PI / 180.0; 
 	}
 
-	double minThetaInRad(0.0); 
-	if ( segmentationParameters->GetScalarAttribute("MinThetaInRad", minThetaInRad) )
+	double minThetaDegrees(0.0); 
+	if ( segmentationParameters->GetScalarAttribute("MinThetaDegrees", minThetaDegrees) )
 	{
-		this->GetSegParameters()->mMinTheta = minThetaInRad; 
+		this->GetSegParameters()->mMinTheta = minThetaDegrees * M_PI / 180.0; 
 	}
 
-	double maxThetaInRad(0.0); 
-	if ( segmentationParameters->GetScalarAttribute("MaxThetaInRad", maxThetaInRad) )
+	double maxThetaDegrees(0.0); 
+	if ( segmentationParameters->GetScalarAttribute("MaxThetaDegrees", maxThetaDegrees) )
 	{
-		this->GetSegParameters()->mMaxTheta = maxThetaInRad; 
+		this->GetSegParameters()->mMaxTheta = maxThetaDegrees * M_PI / 180.0; 
 	}
 
+	/* Temporarily removed (also from config file) - these are the parameters for the U shaped ablation phantom
 	double maxUangleDiffInRad(0.0); 
 	if ( segmentationParameters->GetScalarAttribute("MaxUangleDiffInRad", maxUangleDiffInRad) )
 	{
@@ -810,6 +801,7 @@ void vtkCalibrationController::ReadSegmentationParametersConfiguration( vtkXMLDa
 	{
 		this->GetSegParameters()->mMaxUsideLineLength = maxUsideLineLength; 
 	}
+	*/
 
 	int useOriginalImageIntensityForDotIntensityScore(0); 
 	if ( segmentationParameters->GetScalarAttribute("UseOriginalImageIntensityForDotIntensityScore", useOriginalImageIntensityForDotIntensityScore) )
@@ -817,22 +809,166 @@ void vtkCalibrationController::ReadSegmentationParametersConfiguration( vtkXMLDa
 		this->GetSegParameters()->mUseOriginalImageIntensityForDotIntensityScore = (useOriginalImageIntensityForDotIntensityScore?true:false); 
 	}
 
-	const char* fiducialGeometry =  segmentationParameters->GetAttribute("FiducialGeometry"); 
-	if ( fiducialGeometry != NULL )
+	// Read and parse phantom definition file
+	const char* phantomDefinitionFile =  segmentationParameters->GetAttribute("PhantomDefinition"); 
+	if ( phantomDefinitionFile != NULL )
 	{
-		if ( STRCASECMP("CALIBRATION_PHANTOM_6_POINT", fiducialGeometry) == 0 ) 
-		{
-			this->GetSegParameters()->mFiducialGeometry = SegmentationParameters::CALIBRATION_PHANTOM_6_POINT; 
+		vtkSmartPointer<vtkXMLDataElement> phantomDefinition = vtkXMLUtilities::ReadElementFromFile(phantomDefinitionFile);
+
+		if (phantomDefinition == NULL) { //TODO if file does not exist then try concatenating the directory from this->ConfigurationFileName and the last part of phantomDefinitionFile
+			LOG_ERROR("Unable to read the phantom definition file: " << phantomDefinitionFile); 
+			return;
 		}
-		else if ( STRCASECMP("TAB2_5_POINT", fiducialGeometry) == 0 ) 
-		{
-			this->GetSegParameters()->mFiducialGeometry = SegmentationParameters::TAB2_5_POINT; 
+
+		// Load type
+		vtkSmartPointer<vtkXMLDataElement> description = phantomDefinition->FindNestedElementWithName("Description"); 
+		if (description == NULL) {
+			LOG_ERROR("Phantom description not found!");
+			return;
+		} else {
+			const char* type =  description->GetAttribute("Type"); 
+			if ( type != NULL ) {
+				if (STRCASECMP("Double-N", type) == 0) {
+					this->GetSegParameters()->mFiducialGeometry = SegmentationParameters::CALIBRATION_PHANTOM_6_POINT;
+				} else if (STRCASECMP("U-Shaped-N", type) == 0) {
+					this->GetSegParameters()->mFiducialGeometry = SegmentationParameters::TAB2_5_POINT;
+				}
+			} else {
+				LOG_ERROR("Phantom type not found!");
+			}
 		}
-		else if ( STRCASECMP("TAB2_6_POINT", fiducialGeometry) == 0 ) 
-		{
-			this->GetSegParameters()->mFiducialGeometry = SegmentationParameters::TAB2_6_POINT; 
+
+		// Load geometry
+		vtkSmartPointer<vtkXMLDataElement> geometry = phantomDefinition->FindNestedElementWithName("Geometry"); 
+		if (geometry == NULL) {
+			LOG_ERROR("Phantom geometry information not found!");
+			return;
+		} else {
+			this->GetSegParameters()->mNWires.clear();
+
+			// Finding of NWires and extracting the endpoints
+			int numberOfGeometryChildren = geometry->GetNumberOfNestedElements();
+			for (int i=0; i<numberOfGeometryChildren; ++i) {
+				vtkSmartPointer<vtkXMLDataElement> nWireElement = geometry->GetNestedElement(i);
+
+				if ((nWireElement == NULL) || (STRCASECMP("NWire", nWireElement->GetName()))) {
+					continue;
+				}
+
+				NWire nWire;
+
+				int numberOfWires = nWireElement->GetNumberOfNestedElements();
+
+				if (numberOfWires != 3) {
+					LOG_WARNING("NWire contains unexpected number of wires - skipped");
+					continue;
+				}
+
+				for (int j=0; j<numberOfWires; ++j) {
+					vtkSmartPointer<vtkXMLDataElement> wireElement = nWireElement->GetNestedElement(j);
+
+					if (wireElement == NULL) {
+						LOG_WARNING("Invalid Wire description in NWire - skipped");
+						break;
+					}
+
+					Wire wire;
+
+					const char* wireName =  wireElement->GetAttribute("Name"); 
+					if ( wireName != NULL )
+					{
+						strcpy_s(wire.name, 128, wireName);
+					}
+					if (! wireElement->GetVectorAttribute("EndPointFront", 3, wire.endPointFront)) {
+						LOG_WARNING("Wrong wire end point detected - skipped");
+						continue;
+					}
+					if (! wireElement->GetVectorAttribute("EndPointBack", 3, wire.endPointBack)) {
+						LOG_WARNING("Wrong wire end point detected - skipped");
+						continue;
+					}
+
+					nWire.wires[j] = wire;
+				}
+				
+				this->GetSegParameters()->mNWires.push_back(nWire);
+			}
 		}
 	}
+
+	// Compute error boundaries based on error percents and the NWire definition (supposing that the NWire is regular - parallel sides)
+	// Line length of an N-wire: the maximum distance between its wires' front endpoints
+	double maxLineLengthSquared = -1.0;
+	double minLineLengthSquared = FLT_MAX;
+	std::vector<NWire> nWires = this->GetSegParameters()->mNWires;
+
+	for (std::vector<NWire>::iterator it = nWires.begin(); it != nWires.end(); ++it) {
+		Wire wire0 = it->wires[0];
+		Wire wire1 = it->wires[1];
+		Wire wire2 = it->wires[2];
+
+		double distance01Squared = vtkMath::Distance2BetweenPoints(wire0.endPointFront, wire1.endPointFront);
+		double distance02Squared = vtkMath::Distance2BetweenPoints(wire0.endPointFront, wire2.endPointFront);
+		double distance12Squared = vtkMath::Distance2BetweenPoints(wire1.endPointFront, wire2.endPointFront);
+		double lineLengthSquared = std::max( std::max(distance01Squared, distance02Squared), distance12Squared );
+
+		if (maxLineLengthSquared < lineLengthSquared) {
+			maxLineLengthSquared = lineLengthSquared;
+		}
+		if (minLineLengthSquared > lineLengthSquared) {
+			minLineLengthSquared = lineLengthSquared;
+		}
+	}
+
+	this->GetSegParameters()->mMaxLineLenMm = sqrt(maxLineLengthSquared) * (1.0 + (maxLineLengthErrorPercent / 100.0));
+	this->GetSegParameters()->mMinLineLenMm = sqrt(minLineLengthSquared) * (1.0 - (maxLineLengthErrorPercent / 100.0));
+	LOG_DEBUG("Line length - computed min: " << sqrt(minLineLengthSquared) << " , max: " << sqrt(maxLineLengthSquared) << ";  allowed min: " << this->GetSegParameters()->mMinLineLenMm << ", max: " << this->GetSegParameters()->mMaxLineLenMm);
+
+	// Distance between lines (= distance between planes of the N-wires)
+	double maxNPlaneDistance = -1.0;
+	double minNPlaneDistance = FLT_MAX;
+	int numOfNWires = nWires.size();
+	double epsilon = 0.001;
+
+	// Compute normal of each NWire and evaluate the other wire endpoints if they are on the computed plane
+	std::vector<vtkSmartPointer<vtkPlane>> planes;
+	for (int i=0; i<numOfNWires; ++i) {
+		double normal[3];
+		vtkTriangle::ComputeNormal(nWires.at(i).wires[0].endPointFront, nWires.at(i).wires[0].endPointBack, nWires.at(i).wires[2].endPointFront, normal);
+
+		vtkSmartPointer<vtkPlane> plane = vtkSmartPointer<vtkPlane>::New();
+		plane->SetNormal(normal);
+		plane->SetOrigin(nWires.at(i).wires[0].endPointFront);
+		planes.push_back(plane);
+
+		double distance1F = plane->DistanceToPlane(nWires.at(i).wires[1].endPointFront);
+		double distance1B = plane->DistanceToPlane(nWires.at(i).wires[1].endPointBack);
+		double distance2B = plane->DistanceToPlane(nWires.at(i).wires[2].endPointBack);
+
+		if (distance1F > epsilon || distance1B > epsilon || distance2B > epsilon) {
+			LOG_ERROR("NWire number " << i << " is invalid: the endpoints are not on the same plane");
+		}
+	}
+
+	// Compute distances between each NWire pairs and determine the smallest and the largest distance
+	for (int i=numOfNWires-1; i>0; --i) {
+		for (int j=i-1; j>=0; --j) {
+			double distance = planes.at(i)->DistanceToPlane(planes.at(j)->GetOrigin());
+
+			if (maxNPlaneDistance < distance) {
+				maxNPlaneDistance = distance;
+			}
+			if (minNPlaneDistance > distance) {
+				minNPlaneDistance = distance;
+			}
+		}
+	}
+
+	this->GetSegParameters()->mMaxLinePairDistMm = maxNPlaneDistance * (1.0 + (maxLinePairDistanceErrorPercent / 100.0));
+	this->GetSegParameters()->mMinLinePairDistMm = minNPlaneDistance * (1.0 - (maxLinePairDistanceErrorPercent / 100.0));
+	LOG_DEBUG("Line pair distance - computed min: " << minNPlaneDistance << " , max: " << maxNPlaneDistance << ";  allowed min: " << this->GetSegParameters()->mMinLinePairDistMm << ", max: " << this->GetSegParameters()->mMaxLinePairDistMm);
+
+	//TODO Test if it matches the predefined errors in case of iCal phantom (create phantom definition for it)
 
 	this->GetSegParameters()->UpdateParameters(); 
 }
