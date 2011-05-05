@@ -8,6 +8,7 @@
 #include "vtkTransform.h"
 #include "vtkSmartPointer.h"
 #include "vtkMath.h"
+#include "vtkTrackedFrameList.h"
 
 #include "itkMetaImageSequenceIO.h"
 #include "itkImage.h"
@@ -53,17 +54,6 @@ typedef std::pair<std::string, std::string> CustomFieldPair;
 ///////////////////////////////////////////////////////////////////
 
 
-
-struct TrackedFrame
-{
-	std::string DefaultFrameTransformName; 
-	std::vector<CustomFrameFieldPair> CustomFrameFieldList; 
-	std::vector<CustomFieldPair> CustomFieldList; 
-	ImageType* ImageData;
-};
-
-typedef std::vector<TrackedFrame> TrackedFrameList;
-
 enum SAVING_METHOD
 {
 	METAFILE=1, 
@@ -87,15 +77,14 @@ void ConvertFromBitmap(SAVING_METHOD savingMethod);
 void ConvertFromSequenceMetafile(std::vector<std::string> inputImageSequenceFileNames, SAVING_METHOD savingMethod ); 
 void ConvertFromOldSequenceMetafile(std::vector<std::string> inputImageSequenceFileNames, SAVING_METHOD savingMethod); 
 
-void SaveImages( TrackedFrameList &trackedFrameList, SAVING_METHOD savingMethod, int numberOfImagesWritten ); 
-void SaveImageToMetaFile( TrackedFrame trackedFrame, std::string metaFileName, bool useCompression ); 
-void SaveImageToSequenceMetaFile( TrackedFrameList &trackedFrameList, std::string sequenceDataFileName, bool useCompression ); 
+void SaveImages( vtkTrackedFrameList* trackedFrameList, SAVING_METHOD savingMethod, int numberOfImagesWritten ); 
+void SaveImageToMetaFile( TrackedFrame* trackedFrame, std::string metaFileName, bool useCompression ); 
 void SaveImageToBitmap( ImageType* image, std::string bitmapFileName, int savingMethod ); 
 
-void SaveTransformToFile(TrackedFrame trackedFrame, std::string imageFileName); 
+void SaveTransformToFile(TrackedFrame* trackedFrame, std::string imageFileName, std::string toolToReferenceTransformName, std::string referenceToTrackerTransformName); 
 
 void ReadTransformFile( const std::string TransformFileNameWithPath, double* transformUSProbe2StepperFrame ); 
-void ReadDRBTransformFile( const std::string TransformFileNameWithPath, std::vector<CustomFrameFieldPair> &customFrameFieldList, std::string &defaultFrameTransformName ); 
+void ReadDRBTransformFile( const std::string TransformFileNameWithPath, TrackedFrame* trackedFrame); 
 
 void PrintProgressBar( int percent ); 
 
@@ -106,6 +95,7 @@ std::string inputTransformSuffix(".transforms");
 std::string outputSequenceFileName("SeqMetafile");
 std::string outputFolder("./");
 bool inputUseCompression(false); 
+std::string inputToolToReferenceName, inputReferenceToTrackerName; 
 
 
 //-------------------------------------------------------------------------------
@@ -121,26 +111,38 @@ int main (int argc, char* argv[])
 
 	std::vector<std::string> inputImageSequenceFileNames;
 
+	
+
 	std::string verboseLevel("INFO");
 
 	vtksys::CommandLineArguments cmdargs;
 	cmdargs.Initialize(argc, argv);
 
 	cmdargs.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");	
-	cmdargs.AddArgument("--use-compression", vtksys::CommandLineArguments::NO_ARGUMENT, &inputUseCompression, "Compress metafile and sequence metafile images.");	
 	
 	cmdargs.AddArgument("--saving-method", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputSavingMethod, "Saving method ( Default: SEQUENCE_METAFILE; METAFILE, SEQUENCE_METAFILE, BMP24, BMP8, PNG, JPG)" );
 	cmdargs.AddArgument("--convert-method", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConvertMethod, "Convert method ( Default: FROM_BMP24; FROM_BMP24, FROM_METAFILE, FROM_OLD_SEQUENCE_METAFILE, FROM_SEQUENCE_METAFILE)" );
 
-	cmdargs.AddArgument("--input-data-dir", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputDataDir, "Input data directory (default: ./)");
+	// convert from BMP24 arguments
+	cmdargs.AddArgument("--input-data-dir", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputDataDir, "Input data directory for image files with transforms (default: ./)");
+
+	// convert from SEQUENCE_METAFILE arguments
 	cmdargs.AddArgument("--input-img-seq-file-names", vtksys::CommandLineArguments::MULTI_ARGUMENT, &inputImageSequenceFileNames, "Filenames of meta image sequences (e.g. sequence_1.mhd sequence_2.mhd).");
+	
+	// convert from FROM_BMP24 and saving to BMP24, BMP8, PNG, JPG arguments
 	cmdargs.AddArgument("--input-bitmap-prefix", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputBitmapPrefix, "Prefix of bitmap images (default: CapturedImageID_NO_).");
 	cmdargs.AddArgument("--input-bitmap-suffix", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputBitmapSuffix, "Suffix of bitmap images.");
 	cmdargs.AddArgument("--input-transform-suffix", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputTransformSuffix, "Suffix of transform files (default: .transforms).");
+	
+	// Saving to BMP24, BMP8, PNG, JPG arguments
+	cmdargs.AddArgument("--tool-to-reference-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputToolToReferenceName, "Tool to reference transform name in sequence metafile (e.g. ToolToReference)");
+	cmdargs.AddArgument("--reference-to-tracker-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputReferenceToTrackerName, "Reference to tracker transform name in sequence metafile (e.g. ReferenceToTracker)");
 
-	cmdargs.AddArgument("--output-folder", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputFolder, "Output folder name (Default: ./Output).");
-	cmdargs.AddArgument("--output-sequence-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputSequenceFileName, "Output sequence file name. (Default: SeqMetafile)");
+	// Saving to SEQUENCE_METAFILE arguments
+	cmdargs.AddArgument("--output-sequence-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputSequenceFileName, "Output sequence file name of saving method SEQUENCE_METAFILE. (Default: SeqMetafile)");
+	cmdargs.AddArgument("--use-compression", vtksys::CommandLineArguments::NO_ARGUMENT, &inputUseCompression, "Compress metafile and sequence metafile images.");	
 
+	cmdargs.AddArgument("--output-folder", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputFolder, "Path to the output folder where to save the converted files (Default: ./Output).");
 	cmdargs.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (Default: INFO; ERROR, WARNING, INFO, DEBUG)");	
 
 	if ( STRCASECMP("ERROR", verboseLevel.c_str())==0 )
@@ -172,19 +174,11 @@ int main (int argc, char* argv[])
 	{
 		std::cout << "MetaSequenceFileConverter help: " << cmdargs.GetHelp() << std::endl;
 		exit(EXIT_SUCCESS); 
-
 	}
 
 	////////////////////////////////////////////////////
 
 	VTK_LOG_TO_CONSOLE_ON; 
-
-	vtkSmartPointer<vtkDirectory> dir = vtkSmartPointer<vtkDirectory>::New(); 
-	if ( dir->Open(outputFolder.c_str()) == 0 ) 
-	{	
-		dir->MakeDirectory(outputFolder.c_str()); 
-	}
-
 
 	if ( STRCASECMP("METAFILE", inputSavingMethod.c_str())==0 )
 	{
@@ -239,6 +233,46 @@ int main (int argc, char* argv[])
 	}
 
 
+	if ( convertMethod == FROM_BMP24 )
+	{
+		if ( inputDataDir.empty() )
+		{
+			LOG_ERROR("Need to set input-data-dir argument to convert from BMP24"); 
+			exit(EXIT_FAILURE); 
+		}
+	}
+
+	if ( convertMethod == FROM_SEQUENCE_METAFILE )
+	{
+		if ( inputImageSequenceFileNames.size() == 0 )
+		{
+			LOG_ERROR("Need to set input-img-seq-file-names argument to convert from SEQUENCE_METAFILE"); 
+			exit(EXIT_FAILURE); 
+		}
+	}
+	
+
+	if ( savingMethod == BMP24 || savingMethod == BMP8 || savingMethod == PNG || savingMethod == JPG )
+	{
+		if ( inputToolToReferenceName.empty() )
+		{
+			LOG_ERROR("Need to set tool-to-reference-name argument for to BMP24, BMP8, PNG, JPG"); 
+			exit(EXIT_FAILURE); 
+		}
+
+		if ( inputReferenceToTrackerName.empty() )
+		{
+			LOG_ERROR("Need to set reference-to-tracker-name argument for to BMP24, BMP8, PNG, JPG"); 
+			exit(EXIT_FAILURE); 
+		}
+	}
+
+	vtkSmartPointer<vtkDirectory> dir = vtkSmartPointer<vtkDirectory>::New(); 
+	if ( dir->Open(outputFolder.c_str()) == 0 ) 
+	{	
+		dir->MakeDirectory(outputFolder.c_str()); 
+	}
+
 	switch (convertMethod)
 	{
 	case FROM_SEQUENCE_METAFILE: 
@@ -273,115 +307,21 @@ int main (int argc, char* argv[])
 void ConvertFromSequenceMetafile(std::vector<std::string> inputImageSequenceFileNames, SAVING_METHOD savingMethod)
 {
 	LOG_INFO("Converting sequence metafile images..."); 
-	TrackedFrameList trackedFrameContainer; 
+	vtkSmartPointer<vtkTrackedFrameList> trackedFrameContainer = vtkSmartPointer<vtkTrackedFrameList>::New(); 
 	int numberOfImagesWritten(0); 
 
 	for ( int i = 0; i < inputImageSequenceFileNames.size(); i++) 
 	{
-		itk::MetaImageSequenceIO::Pointer readerMetaImageSequenceIO = itk::MetaImageSequenceIO::New(); 
-		ImageSequenceReaderType::Pointer reader = ImageSequenceReaderType::New(); 
-
-		// Set the image IO 
-		reader->SetImageIO(readerMetaImageSequenceIO); 
-		reader->SetFileName(inputImageSequenceFileNames[i].c_str());
-
-		try
-		{
-			reader->Update(); 
-		}
-		catch (itk::ExceptionObject & err) 
-		{		
-			LOG_ERROR( "Sequence image reader couldn't update: " <<  err); 
-			exit(EXIT_FAILURE);
-		}	
-
-		ImageSequenceType::Pointer imageSeq = reader->GetOutput();
-
-		const unsigned long imageWidthInPixels = imageSeq->GetLargestPossibleRegion().GetSize()[0]; 
-		const unsigned long imageHeightInPixels = imageSeq->GetLargestPossibleRegion().GetSize()[1]; 
-		const unsigned long numberOfFrames = imageSeq->GetLargestPossibleRegion().GetSize()[2];	
-		unsigned int frameSizeInBytes = imageWidthInPixels * imageHeightInPixels * sizeof(PixelType);
-
-		PixelType* imageSeqData = imageSeq->GetBufferPointer(); 
-		for ( int imgNumber = 0; imgNumber < numberOfFrames; imgNumber++ )
-		{
-			PrintProgressBar( (100.0 * imgNumber) / numberOfFrames ); 
-
-			ImageType::Pointer frame = ImageType::New(); 
-			ImageType::SizeType size = {imageWidthInPixels, imageHeightInPixels};
-			ImageType::IndexType start = {0,0};
-			ImageType::RegionType region;
-			region.SetSize(size);
-			region.SetIndex(start);
-			frame->SetRegions(region);
-			frame->Allocate();
-
-			PixelType* currentFrameImageData = imageSeqData + imgNumber * frameSizeInBytes;
-
-			memcpy(frame->GetBufferPointer() , currentFrameImageData , frameSizeInBytes);
-
-			TrackedFrame trackedFrame;
-			
-			// Get Default transform name 
-			std::string defaultFrameTransformName = readerMetaImageSequenceIO->GetDefaultFrameTransformName(); 
-			trackedFrame.DefaultFrameTransformName = defaultFrameTransformName; 
-
-			// Get custom fields 
-			std::vector<std::string> customFieldNames = readerMetaImageSequenceIO->GetCustomFieldNames(); 
-			for ( int i = 0; i < customFieldNames.size(); i++ )
-			{
-				CustomFieldPair field; 
-				field.first = customFieldNames[i]; 
-				field.second = readerMetaImageSequenceIO->GetCustomString(customFieldNames[i].c_str()); 
-				trackedFrame.CustomFieldList.push_back(field); 
-			}
-
-			// Get custom frame fields 
-			std::vector<std::string> customFrameFieldNames = readerMetaImageSequenceIO->GetCustomFrameFieldNames(); 
-			for ( int i = 0; i < customFrameFieldNames.size(); i++ )
-			{
-				CustomFrameFieldPair field; 
-				field.first = customFrameFieldNames[i]; 
-				field.second = readerMetaImageSequenceIO->GetCustomFrameString(imgNumber,customFrameFieldNames[i].c_str()); 
-				trackedFrame.CustomFrameFieldList.push_back(field); 
-			}
-
-			frame->Register();
-			trackedFrame.ImageData = frame;
-			trackedFrameContainer.push_back(trackedFrame);
-
-			if ( savingMethod != SEQUENCE_METAFILE )
-			{
-				SaveImages(trackedFrameContainer, savingMethod, numberOfImagesWritten++); 
-
-				for ( int i = 0; i < trackedFrameContainer.size(); i++)
-				{
-					trackedFrameContainer[i].ImageData->UnRegister(); 
-				}
-				trackedFrameContainer.clear(); 
-			}
-		}
-
-		PrintProgressBar(100); 
-		if ( savingMethod == SEQUENCE_METAFILE )
-		{
+			trackedFrameContainer->ReadFromSequenceMetafile(inputImageSequenceFileNames[i].c_str()); 
 			SaveImages(trackedFrameContainer, savingMethod, numberOfImagesWritten++); 
-
-			for ( int i = 0; i < trackedFrameContainer.size(); i++)
-			{
-				trackedFrameContainer[i].ImageData->UnRegister(); 
-			}
-			trackedFrameContainer.clear(); 
-		}
 	}
-
 }
 
 //-------------------------------------------------------------------------------
 void ConvertFromOldSequenceMetafile(std::vector<std::string> inputImageSequenceFileNames, SAVING_METHOD savingMethod)
 {
 	LOG_INFO("Converting old sequence metafile images..."); 
-	TrackedFrameList trackedFrameContainer; 
+	vtkSmartPointer<vtkTrackedFrameList> trackedFrameContainer = vtkSmartPointer<vtkTrackedFrameList>::New(); 
 	int numberOfImagesWritten(0); 
 
 	for ( int i = 0; i < inputImageSequenceFileNames.size(); i++) 
@@ -418,10 +358,10 @@ void ConvertFromOldSequenceMetafile(std::vector<std::string> inputImageSequenceF
 		{
 			PrintProgressBar( (100.0 * imgNumber) / numberOfFrames ); 
 
-			ImageType::Pointer frame = ImageType::New(); 
-			ImageType::SizeType size = {imageWidthInPixels, imageHeightInPixels};
-			ImageType::IndexType start = {0,0};
-			ImageType::RegionType region;
+			TrackedFrame::ImageType::Pointer frame = TrackedFrame::ImageType::New(); 
+			TrackedFrame::ImageType::SizeType size = {imageWidthInPixels, imageHeightInPixels};
+			TrackedFrame::ImageType::IndexType start = {0,0};
+			TrackedFrame::ImageType::RegionType region;
 			region.SetSize(size);
 			region.SetIndex(start);
 			frame->SetRegions(region);
@@ -451,45 +391,28 @@ void ConvertFromOldSequenceMetafile(std::vector<std::string> inputImageSequenceF
 				transform[transformElement++] = transformItem; 
 			}
 
-			// Copy transform to the custom frame list 
-			std::vector<CustomFrameFieldPair> customFrameFieldList; 
+			// Copy offset and transform value to the default transform matrix
 			std::string defaultFrameTransformName = "ToolToTrackerTransform"; 
-
-			std::ostringstream strTool2Tracker; 
-			strTool2Tracker 
-				<< transform[0]  << " " << transform[1]  << " " << transform[2]  << " " << offset[0]  << " " 
-				<< transform[3]  << " " << transform[4]  << " " << transform[5]  << " " << offset[1]  << " " 
-				<< transform[6]  << " " << transform[7]  << " " << transform[8]  << " " << offset[2]  << " " 
-				<< 0			 << " " << 0			 << " " << 0			 << " " << 1		  << " "; 
-
-
-			CustomFrameFieldPair toolToTrackerField; 
-			toolToTrackerField.first = "ToolToTrackerTransform"; 
-			toolToTrackerField.second = strTool2Tracker.str(); 
-
-			customFrameFieldList.push_back(toolToTrackerField); 
+			double defaultTransformMatrix[16] = {
+				transform[0], transform[1], transform[2], offset[0], 
+				transform[3], transform[4], transform[5], offset[1], 
+				transform[6], transform[7], transform[8], offset[2], 
+				0, 0, 0, 1
+			}; 
 
 			// Create tracked frame struct
 			TrackedFrame trackedFrame;
-			frame->Register();
 			trackedFrame.ImageData = frame;
-			trackedFrame.CustomFrameFieldList = customFrameFieldList; 
+			trackedFrame.ImageData->Register(); 
+			trackedFrame.SetCustomFrameTransform(defaultFrameTransformName, defaultTransformMatrix); 
 			trackedFrame.DefaultFrameTransformName = defaultFrameTransformName; 
 
-			trackedFrameContainer.push_back(trackedFrame);
+			trackedFrameContainer->AddTrackedFrame(&trackedFrame);
 		}
 
 		PrintProgressBar(100); 
 
 		SaveImages(trackedFrameContainer, savingMethod, ++numberOfImagesWritten); 
-
-		for ( int i = 0; i < trackedFrameContainer.size(); i++)
-		{
-			trackedFrameContainer[i].ImageData->UnRegister(); 
-		}
-		trackedFrameContainer.clear(); 
-
-		
 	}
 }
 
@@ -497,11 +420,11 @@ void ConvertFromOldSequenceMetafile(std::vector<std::string> inputImageSequenceF
 void ConvertFromBitmap(SAVING_METHOD savingMethod)
 {
 	LOG_INFO("Converting bitmap images..."); 
-	TrackedFrameList trackedFrameContainer; 
+	vtkSmartPointer<vtkTrackedFrameList> trackedFrameContainer = vtkSmartPointer<vtkTrackedFrameList>::New(); 
 	int numberOfImagesWritten(0); 
 	int frameNumber(0); 
   
-  LOG_INFO( "Opening directory" );
+	LOG_INFO( "Opening directory" );
 	vtkSmartPointer<vtkDirectory> dir = vtkSmartPointer<vtkDirectory>::New(); 
 	dir->Open(inputDataDir.c_str()); 
 	int totalNumberOfImages = dir->GetNumberOfFiles() / 2; 
@@ -573,17 +496,12 @@ void ConvertFromBitmap(SAVING_METHOD savingMethod)
 		}
 
 		
-		std::vector<CustomFrameFieldPair> customFrameFieldList; 
-		std::string defaultFrameTransformName; 
-		ReadDRBTransformFile( transformFileNameWithPath.str(), customFrameFieldList, defaultFrameTransformName ); 
-
+		
 		TrackedFrame trackedFrame;
-		trackedFrame.DefaultFrameTransformName = defaultFrameTransformName; 
-		trackedFrame.CustomFrameFieldList = customFrameFieldList; 
-		imageData->Register();
 		trackedFrame.ImageData = imageData;
-
-		trackedFrameContainer.push_back(trackedFrame);
+		trackedFrame.ImageData->Register(); 
+		ReadDRBTransformFile( transformFileNameWithPath.str(), &trackedFrame); 
+		trackedFrameContainer->AddTrackedFrame(&trackedFrame);
 
 		imageFileNameWithPath.str(""); 
 		imageFileNameWithPath << inputDataDir << "/" << inputBitmapPrefix << std::setfill('0') << std::setw(4) << ++frameNumber << inputBitmapSuffix << ".bmp"; 
@@ -592,18 +510,12 @@ void ConvertFromBitmap(SAVING_METHOD savingMethod)
 	PrintProgressBar(100); 
 
 	SaveImages(trackedFrameContainer, savingMethod, numberOfImagesWritten); 
-
-	for ( int i = 0; i < trackedFrameContainer.size(); i++)
-	{
-		trackedFrameContainer[i].ImageData->UnRegister(); 
-	}
-	trackedFrameContainer.clear(); 
 }
 
 //-------------------------------------------------------------------------------
-void SaveImages( TrackedFrameList &trackedFrameList, SAVING_METHOD savingMethod, int numberOfImagesWritten)
+void SaveImages( vtkTrackedFrameList* trackedFrameList, SAVING_METHOD savingMethod, int numberOfImagesWritten)
 {
-	const int numberOfFrames = trackedFrameList.size(); 
+	const int numberOfFrames = trackedFrameList->GetNumberOfTrackedFrames(); 
 
 	switch ( savingMethod ) 
 	{
@@ -640,8 +552,8 @@ void SaveImages( TrackedFrameList &trackedFrameList, SAVING_METHOD savingMethod,
 					fileName << ".png"; 					
 				}
 
-				SaveImageToBitmap(trackedFrameList[imgNumber].ImageData, fileName.str(), savingMethod); 
-				SaveTransformToFile(trackedFrameList[imgNumber], fileName.str()); 
+				SaveImageToBitmap(trackedFrameList->GetTrackedFrame(imgNumber)->ImageData, fileName.str(), savingMethod); 
+				SaveTransformToFile(trackedFrameList->GetTrackedFrame(imgNumber), fileName.str(), inputToolToReferenceName, inputReferenceToTrackerName); 
 
 			} 
 
@@ -668,7 +580,7 @@ void SaveImages( TrackedFrameList &trackedFrameList, SAVING_METHOD savingMethod,
 				std::ostringstream fileName; 
 				fileName << outputFolder << "/Frame" << std::setfill('0') << std::setw(4) << numberOfImagesWritten + imgNumber << ".mha" << std::ends;
         
-				SaveImageToMetaFile(trackedFrameList[imgNumber], fileName.str(), inputUseCompression ); 
+				SaveImageToMetaFile(trackedFrameList->GetTrackedFrame(imgNumber), fileName.str(), inputUseCompression ); 
 			}
 
 			if ( numberOfFrames > 1 )
@@ -683,95 +595,11 @@ void SaveImages( TrackedFrameList &trackedFrameList, SAVING_METHOD savingMethod,
 			{
 				LOG_INFO("Saving sequence meta file..."); 
 			}
-
-			std::ostringstream sequenceDataFileName; 
-			// sequenceDataFileName << outputFolder << "/" << outputSequenceFileName << std::setfill('0') << std::setw(2) << numberOfImagesWritten << ".mha" << std::ends; 
-			sequenceDataFileName << outputFolder << "/" << outputSequenceFileName << std::ends; 
-			SaveImageToSequenceMetaFile(trackedFrameList, sequenceDataFileName.str(), inputUseCompression); 
+			trackedFrameList->SaveToSequenceMetafile(outputFolder.c_str(), outputSequenceFileName.c_str(), vtkTrackedFrameList::SEQ_METAFILE_MHA, inputUseCompression); 
 		}
 	}
 
 }
-
-
-//-------------------------------------------------------------------------------
-void SaveImageToSequenceMetaFile( TrackedFrameList &trackedFrameList, std::string sequenceDataFileName, bool useCompression ) 
-{
-	const int numberOfFrames = trackedFrameList.size(); 
-	if ( numberOfFrames == 0 )
-	{
-		LOG_WARNING("There is no frame to write into sequence meta file!"); 
-		return; 
-	}
-
-	const unsigned long imageWidthInPixels = trackedFrameList[0].ImageData->GetLargestPossibleRegion().GetSize()[0]; 
-	const unsigned long imageHeightInPixels = trackedFrameList[0].ImageData->GetLargestPossibleRegion().GetSize()[1]; 
-
-	ImageSequenceType::Pointer imageDataSequence = ImageSequenceType::New();
-	ImageSequenceType::SizeType size = {imageWidthInPixels, imageHeightInPixels, numberOfFrames };
-	ImageSequenceType::IndexType start = {0,0,0};
-	ImageSequenceType::RegionType region;
-	region.SetSize(size);
-	region.SetIndex(start);
-	imageDataSequence->SetRegions(region);
-	imageDataSequence->Allocate();
-
-	itk::MetaImageSequenceIO::Pointer writerMetaImageSequenceIO = itk::MetaImageSequenceIO::New();
-
-	PixelType* imageData = imageDataSequence->GetBufferPointer(); // pointer to the image pixel buffer
-
-	unsigned int frameSizeInBytes=imageWidthInPixels*imageHeightInPixels*sizeof(PixelType);
-	
-	for ( int i = 0 ; i < numberOfFrames; i++ ) 
-	{
-		if ( numberOfFrames > 1 )
-		{
-			PrintProgressBar(i*100 / numberOfFrames ); 
-		}
-
-		PixelType *currentFrameImageData = imageData + i * frameSizeInBytes;
-		memcpy(currentFrameImageData, trackedFrameList[i].ImageData->GetBufferPointer(), frameSizeInBytes); 
-		
-		// Write custom fields only once 
-		if ( i == 0 )
-		{
-			writerMetaImageSequenceIO->SetDefaultFrameTransformName( trackedFrameList[i].DefaultFrameTransformName ); 
-
-			for( int field = 0; field < trackedFrameList[i].CustomFieldList.size(); field++ )
-			{
-				writerMetaImageSequenceIO->SetCustomString(trackedFrameList[i].CustomFieldList[field].first.c_str(), trackedFrameList[i].CustomFieldList[field].second.c_str() ); 
-			}
-		}
-
-		for( int field = 0; field < trackedFrameList[i].CustomFrameFieldList.size(); field++ )
-		{
-			writerMetaImageSequenceIO->SetCustomFrameString(i, trackedFrameList[i].CustomFrameFieldList[field].first.c_str(), trackedFrameList[i].CustomFrameFieldList[field].second.c_str() ); 
-		}
-	}
-
-	if ( numberOfFrames > 1 )
-	{
-		PrintProgressBar(100); 
-	}
-
-	ImageSequenceWriterType::Pointer writer = ImageSequenceWriterType::New(); 
-
-	writer->SetFileName(sequenceDataFileName);
-	writer->SetInput(imageDataSequence); 
-	writer->SetImageIO(writerMetaImageSequenceIO); 
-	writer->SetUseCompression(useCompression); 
-
-	try
-	{
-		writer->Update(); 
-	}
-	catch (itk::ExceptionObject & err) 
-	{		
-		LOG_ERROR(" Unable to update sequence writer: " << err);
-	}	
-
-}
-
 
 //-------------------------------------------------------------------------------
 void SaveImageToBitmap( ImageType* image, std::string bitmapFileName, int savingMethod) 
@@ -829,35 +657,37 @@ void SaveImageToBitmap( ImageType* image, std::string bitmapFileName, int saving
 
 
 //-------------------------------------------------------------------------------
-void SaveTransformToFile(TrackedFrame trackedFrame, std::string imageFileName)
+void SaveTransformToFile(TrackedFrame* trackedFrame, std::string imageFileName, std::string toolToReferenceTransformName, std::string referenceToTrackerTransformName)
 {
-	// Find default frame transform 
-    std::vector<CustomFrameFieldPair>::iterator defaultFrameTransform; 
-	for ( defaultFrameTransform = trackedFrame.CustomFrameFieldList.begin(); defaultFrameTransform != trackedFrame.CustomFrameFieldList.end(); defaultFrameTransform++ )
+	double toolToReferenceMatrix[16]; 
+	if ( !trackedFrame->GetCustomFrameTransform(toolToReferenceTransformName.c_str(), toolToReferenceMatrix) )
 	{
-		if ( defaultFrameTransform->first.find(trackedFrame.DefaultFrameTransformName) != std::string::npos )
-		{
-			break; 
-		}
-	}
-	
-	if ( defaultFrameTransform == trackedFrame.CustomFrameFieldList.end() )
-	{
-		LOG_ERROR("Unable to find default transform in sequence metafile!"); 
+		LOG_ERROR("Unable to find tool to reference transform with name: " << toolToReferenceTransformName); 
 		return; 
 	}
 
-	std::istringstream transformFieldValue(defaultFrameTransform->second); 
-
-	double item, transform[16]; 
-	int i = 0; 
-	while ( transformFieldValue >> item )
+	double referenceToTrackerMatrix[16]; 
+	if ( !trackedFrame->GetCustomFrameTransform(referenceToTrackerTransformName.c_str(), referenceToTrackerMatrix) )
 	{
-		transform[i++] = item; 
+		LOG_ERROR("Unable to find reference to tracker transform with name: " << referenceToTrackerTransformName); 
+		return;
 	}
+	
+	vtkSmartPointer<vtkTransform> tToolToReference = vtkSmartPointer<vtkTransform>::New(); 
+	tToolToReference->SetMatrix(toolToReferenceMatrix); 
 
-	vtkSmartPointer<vtkMatrix4x4> transMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
-	transMatrix->DeepCopy(transform); 
+	vtkSmartPointer<vtkTransform> tReferenceToTracker = vtkSmartPointer<vtkTransform>::New(); 
+	tReferenceToTracker->SetMatrix(referenceToTrackerMatrix); 
+
+	vtkSmartPointer<vtkTransform> tUsProbeToTracker = vtkSmartPointer<vtkTransform>::New(); 
+	tUsProbeToTracker->PostMultiply(); 
+	tUsProbeToTracker->Identity(); 
+	tUsProbeToTracker->Concatenate(tToolToReference); 
+	tUsProbeToTracker->Concatenate(tReferenceToTracker); 
+	tUsProbeToTracker->Update(); 
+
+	double usprobeToTrackerMatrix[16]; 
+	vtkMatrix4x4::DeepCopy(usprobeToTrackerMatrix, tUsProbeToTracker->GetMatrix()); 
 
 	std::ostringstream transformFileName; 
 	transformFileName << imageFileName << inputTransformSuffix << std::ends; 
@@ -878,35 +708,28 @@ void SaveTransformToFile(TrackedFrame trackedFrame, std::string imageFileName)
 	if (transformFile != NULL)
 	{
 		double wxyz[4], xyz[3]; 
-		vtkstd::ostringstream os; 
+		vtkstd::ostringstream os;
+		vtkSmartPointer<vtkTransform> helperTransform = vtkSmartPointer<vtkTransform>::New(); 
 
-		os  << "# --------------------------------------------------------------- #\n"
-			<< "# TRANSFORMATION FROM TRACKING DEVICE\n"
+		// # TRANSFORM: FROM THE US PROBE FRAME TO THE TRACKER FRAME
+		helperTransform->SetMatrix(usprobeToTrackerMatrix); 
+		helperTransform->GetOrientationWXYZ(wxyz); 
+		helperTransform->GetPosition(xyz); 
+		os  << "# TRANSFORM: FROM THE US PROBE FRAME TO THE TRACKER FRAME\n"
+			<< wxyz[0] << "\t" << wxyz[1] << "\t" << wxyz[2] << "\t" << wxyz[3] << "\t"
+			<<  xyz[0] << "\t" <<  xyz[1] << "\t" <<  xyz[2] << "\n" 
 			<< std::endl; 
 
-		vtkSmartPointer<vtkTransform> helperTransform = vtkSmartPointer<vtkTransform>::New(); 
-		helperTransform->SetMatrix(transMatrix); 
+
+		// # TRANSFORM: FROM THE DRB REFERENCE FRAME TO THE TRACKER FRAME
+		helperTransform->SetMatrix(referenceToTrackerMatrix); 
 		helperTransform->GetOrientationWXYZ(wxyz); 
 		helperTransform->GetPosition(xyz); 
 
-		//os  << "# [TRANSFORM_QUATERNIONS_USPROBE_TO_WORLD]\n"
-		os	<< "# [TRANSFORM_QUATERNIONS_USPROBE_TO_STEPPER_FRAME]\n"
+		os  << "# TRANSFORM: FROM THE DRB REFERENCE FRAME TO THE TRACKER FRAME\n" 
 			<< wxyz[0] << "\t" << wxyz[1] << "\t" << wxyz[2] << "\t" << wxyz[3] << "\t"
 			<<  xyz[0] << "\t" <<  xyz[1] << "\t" <<  xyz[2] << "\n" 
-			<< "\n"
-			//<< "# [TRANSFORM_HOMOGENEOUS4x4_USPROBE_TO_WORLD]\n"
-			<< "# [TRANSFORM_HOMOGENEOUS4x4_USPROBE_TO_STEPPER_FRAME]\n"
-			<< transMatrix->GetElement(0,0) << "\t" << transMatrix->GetElement(0,1) << "\t" 
-			<< transMatrix->GetElement(0,2) << "\t" << transMatrix->GetElement(0,3) << "\n"
-			<< transMatrix->GetElement(1,0) << "\t" << transMatrix->GetElement(1,1) << "\t" 
-			<< transMatrix->GetElement(1,2) << "\t" << transMatrix->GetElement(1,3) << "\n"
-			<< transMatrix->GetElement(2,0) << "\t" << transMatrix->GetElement(2,1) << "\t" 
-			<< transMatrix->GetElement(2,2) << "\t" << transMatrix->GetElement(2,3) << "\n"
-			<< transMatrix->GetElement(3,0) << "\t" << transMatrix->GetElement(3,1) << "\t" 
-			<< transMatrix->GetElement(3,2) << "\t" << transMatrix->GetElement(3,3) << "\n"
 			<< std::endl; 
-
-		os << "# --------------------------------------------------------------- #\n\n"; 
 
 		os << std::ends; 
 
@@ -918,9 +741,9 @@ void SaveTransformToFile(TrackedFrame trackedFrame, std::string imageFileName)
 
 
 //-------------------------------------------------------------------------------
-void SaveImageToMetaFile( TrackedFrame trackedFrame, std::string metaFileName, bool useCompression)
+void SaveImageToMetaFile( TrackedFrame* trackedFrame, std::string metaFileName, bool useCompression)
 {
-	ImageType* image = trackedFrame.ImageData; 
+	ImageType* image = trackedFrame->ImageData; 
 
 	const unsigned long imageWidthInPixels = image->GetLargestPossibleRegion().GetSize()[0]; 
 	const unsigned long imageHeightInPixels = image->GetLargestPossibleRegion().GetSize()[1]; 
@@ -937,30 +760,9 @@ void SaveImageToMetaFile( TrackedFrame trackedFrame, std::string metaFileName, b
 
 	memcpy(frame->GetBufferPointer() , image->GetBufferPointer() , frameSizeInBytes);
 
-	// Find default frame transform 
-    std::vector<CustomFrameFieldPair>::iterator defaultFrameTransform; 
-	for ( defaultFrameTransform = trackedFrame.CustomFrameFieldList.begin(); defaultFrameTransform != trackedFrame.CustomFrameFieldList.end(); defaultFrameTransform++ )
-	{
-		if ( defaultFrameTransform->first.find(trackedFrame.DefaultFrameTransformName) != std::string::npos )
-		{
-			break; 
-		}
-	}
-	
-	if ( defaultFrameTransform == trackedFrame.CustomFrameFieldList.end() )
-	{
-		LOG_ERROR("Unable to find default transform in sequence metafile!"); 
-		return; 
-	}
+	double transformMatrix[16]; 
+	trackedFrame->GetDefaultFrameTransform(transformMatrix); 
 
-	std::istringstream transformFieldValue(defaultFrameTransform->second); 
-
-	double item, transformMatrix[16]; 
-	int i = 0; 
-	while ( transformFieldValue >> item )
-	{
-		transformMatrix[i++] = item; 
-	}
 
 	double *offset = new double[3]; 
 	double *transform = new double[9]; 
@@ -1075,7 +877,7 @@ void ReadTransformFile( const std::string TransformFileNameWithPath, double* tra
 
 
 //-------------------------------------------------------------------------------
-void ReadDRBTransformFile( const std::string TransformFileNameWithPath, std::vector<CustomFrameFieldPair> &customFrameFieldList, std::string &defaultFrameTransformName )
+void ReadDRBTransformFile( const std::string TransformFileNameWithPath, TrackedFrame* trackedFrame )
 {
 	std::ifstream TransformsFile( TransformFileNameWithPath.c_str(), ios::in );
 	if( !TransformsFile.is_open() )
@@ -1086,11 +888,11 @@ void ReadDRBTransformFile( const std::string TransformFileNameWithPath, std::vec
 
 
 	//********** Read the probe-to-tracker transform parameters from file *******
-	
+
 	// Note: In old transform file, the first four rotations parameters are
 	// called quaternions, although actually they are
 	// [ rotation angle, axis x, axis y, axis z ] parameters.
-	
+
 	std::string SectionName("");
 	std::string ThisConfiguration("");
 
@@ -1114,9 +916,9 @@ void ReadDRBTransformFile( const std::string TransformFileNameWithPath, std::vec
 	TransformsFile.ignore(1024, '\n');
 	vnl_vector<double> pToolToTracker(7); 
 	TransformsFile >> pToolToTracker;
-  
-  
-  
+
+
+
 	// # TRANSFORM: FROM THE DRB REFERENCE FRAME TO THE TRACKER FRAME
 	SectionName= ""; 
 	ThisConfiguration = "TRANSFORM:";
@@ -1137,112 +939,76 @@ void ReadDRBTransformFile( const std::string TransformFileNameWithPath, std::vec
 
 	// Close the file for reading
 	TransformsFile.close();
-  
-  
+
+
 	//***********************************************************************
-  
+
 	// Convert transform parameters to 4x4 matrix.
 	// Note: first four parameters are not really quaternions!
-	
+
 	// FROM THE US PROBE FRAME TO THE TRACKER FRAME
-	
+
 	vtkSmartPointer< vtkTransform > tToolToTracker = vtkSmartPointer< vtkTransform >::New();
-    tToolToTracker->PostMultiply(); // Transform order as written.
-    tToolToTracker->Identity();
-    tToolToTracker->RotateWXYZ( pToolToTracker[ 0 ], pToolToTracker[ 1 ],
-                                pToolToTracker[ 2 ], pToolToTracker[ 3 ] );
-      
-      // Convert from meters to millimeters.
-      // .transforms files use meters. Sequence metafiles uses millimeters.
-    
-    tToolToTracker->Translate( pToolToTracker[ 4 ] * 1000.0, pToolToTracker[ 5 ] * 1000.0, pToolToTracker[ 6 ] * 1000.0 );
-    tToolToTracker->Update();
-  
-  
-  double dToolToTracker[ 16 ]; 
-  vtkMatrix4x4::DeepCopy( dToolToTracker, tToolToTracker->GetMatrix() ); 
-  
-  std::ostringstream strToolToTracker;
-  for ( int i = 0; i < 16; ++ i ) strToolToTracker << dToolToTracker[ i ] << " ";
-	
-  
-  CustomFrameFieldPair toolToTrackerField; 
-    toolToTrackerField.first  = "ToolToTrackerTransform"; 
-    toolToTrackerField.second = strToolToTracker.str(); 
-  
-  customFrameFieldList.push_back( toolToTrackerField ); 
-	
-	
-	  // FROM THE DRB REFERENCE FRAME TO THE TRACKER FRAME
-	
+	tToolToTracker->PostMultiply(); // Transform order as written.
+	tToolToTracker->Identity();
+	tToolToTracker->RotateWXYZ( pToolToTracker[ 0 ], pToolToTracker[ 1 ],
+		pToolToTracker[ 2 ], pToolToTracker[ 3 ] );
+
+	// Convert from meters to millimeters.
+	// .transforms files use meters. Sequence metafiles uses millimeters.
+
+	tToolToTracker->Translate( pToolToTracker[ 4 ] * 1000.0, pToolToTracker[ 5 ] * 1000.0, pToolToTracker[ 6 ] * 1000.0 );
+	tToolToTracker->Update();
+
+	trackedFrame->SetCustomFrameTransform("ToolToTrackerTransform", tToolToTracker->GetMatrix() ); 
+
+
+	// FROM THE DRB REFERENCE FRAME TO THE TRACKER FRAME
+
 	vtkSmartPointer< vtkTransform > tReferenceToTracker = vtkSmartPointer< vtkTransform >::New();
-	  tReferenceToTracker->PostMultiply();
-	  tReferenceToTracker->Identity();
-	
-	  // All zeros indicate (in some files) that the transform is not given.
-	
+	tReferenceToTracker->PostMultiply();
+	tReferenceToTracker->Identity();
+
+	// All zeros indicate (in some files) that the transform is not given.
+
 	if ( pReferenceToTracker[ 0 ] != 0.0 || pReferenceToTracker[ 1 ] != 0 ||
-	     pReferenceToTracker[ 2 ] != 0.0 || pReferenceToTracker[ 3 ] != 0 )
-	  {
-	  tReferenceToTracker->RotateWXYZ( pReferenceToTracker[ 0 ], pReferenceToTracker[ 1 ],
-	                                   pReferenceToTracker[ 2 ], pReferenceToTracker[ 3 ] );
-	    
-      // Convert from meters to millimeters.
-      // .transforms files use meters. Sequence metafiles uses millimeters.
-    
-    tReferenceToTracker->Translate( pReferenceToTracker[ 4 ] * 1000.0,
-	                                  pReferenceToTracker[ 5 ] * 1000.0,
-	                                  pReferenceToTracker[ 6 ] * 1000.0 );
-	  }
-	
+		pReferenceToTracker[ 2 ] != 0.0 || pReferenceToTracker[ 3 ] != 0 )
+	{
+		tReferenceToTracker->RotateWXYZ( pReferenceToTracker[ 0 ], pReferenceToTracker[ 1 ],
+			pReferenceToTracker[ 2 ], pReferenceToTracker[ 3 ] );
+
+		// Convert from meters to millimeters.
+		// .transforms files use meters. Sequence metafiles uses millimeters.
+
+		tReferenceToTracker->Translate( pReferenceToTracker[ 4 ] * 1000.0,
+			pReferenceToTracker[ 5 ] * 1000.0,
+			pReferenceToTracker[ 6 ] * 1000.0 );
+	}
+
 	tReferenceToTracker->Update();
-  
-  
-  std::ostringstream strReferenceToTracker; 
-  double dReferenceToTracker[ 16 ];
-  vtkMatrix4x4::DeepCopy( dReferenceToTracker, tReferenceToTracker->GetMatrix() );
-  for ( int i = 0; i < 16; ++ i ) strReferenceToTracker << dReferenceToTracker[ i ] << " ";
-  
-  
-  CustomFrameFieldPair referenceToTrackerField; 
-    referenceToTrackerField.first  = "ReferenceToTrackerTransform"; 
-    referenceToTrackerField.second = strReferenceToTracker.str(); 
-  
-  customFrameFieldList.push_back( referenceToTrackerField );
-  
-  
-	  // tToolToReference = inv( tReferenceToTracker ) * tProbeToTracker
-	  // This is matrix multiplication. In post-multiply mode, the * order is reversed.
-	
+
+	trackedFrame->SetCustomFrameTransform("ReferenceToTrackerTransform", tReferenceToTracker->GetMatrix() ); 
+
+
+	// tToolToReference = inv( tReferenceToTracker ) * tProbeToTracker
+	// This is matrix multiplication. In post-multiply mode, the * order is reversed.
+
 	vtkSmartPointer< vtkTransform > tTrackerToReference = vtkSmartPointer< vtkTransform >::New();
-	  tTrackerToReference->PostMultiply();
-	  tTrackerToReference->SetInput( tReferenceToTracker );
-	  tTrackerToReference->Inverse();
-	  tTrackerToReference->Update();
-	
+	tTrackerToReference->PostMultiply();
+	tTrackerToReference->SetInput( tReferenceToTracker );
+	tTrackerToReference->Inverse();
+	tTrackerToReference->Update();
+
 	vtkSmartPointer< vtkTransform > tToolToReference = vtkSmartPointer< vtkTransform >::New(); 
-	  tToolToReference->PostMultiply();
-	  tToolToReference->Identity();
-	  tToolToReference->Concatenate( tToolToTracker );
-	  tToolToReference->Concatenate( tTrackerToReference);
-	  tToolToReference->Update();
-	
-	
-	// Copy transform to the custom frame field list
-  
-  double dToolToReference[ 16 ]; 
-  vtkMatrix4x4::DeepCopy( dToolToReference, tToolToReference->GetMatrix() ); 
-  
-  std::ostringstream strToolToReference; 
-  for ( int i = 0; i < 16; ++ i ) strToolToReference << dToolToReference[ i ] << " ";
-  
-  CustomFrameFieldPair toolToReferenceField; 
-    toolToReferenceField.first = "ToolToReferenceTransform"; 
-    toolToReferenceField.second = strToolToReference.str(); 
-  
-  customFrameFieldList.push_back( toolToReferenceField );
-  
-  defaultFrameTransformName = "ToolToReferenceTransform"; 
+	tToolToReference->PostMultiply();
+	tToolToReference->Identity();
+	tToolToReference->Concatenate( tToolToTracker );
+	tToolToReference->Concatenate( tTrackerToReference);
+	tToolToReference->Update();
+
+	trackedFrame->SetCustomFrameTransform("ToolToReferenceTransform", tToolToReference->GetMatrix() ); 
+
+	trackedFrame->DefaultFrameTransformName = "ToolToReferenceTransform"; 
 }
 
 
