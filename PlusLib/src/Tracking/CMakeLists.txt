@@ -55,8 +55,13 @@ IF (PLUS_USE_CERTUS)
 			)
 	endif (WIN32)
 	
-	FIND_PATH(NDIOAPI_INCLUDE_DIR ndopto.h)
-	FIND_PATH(NDIOAPI_BINARY_DIR oapi.dll)
+    IF(PLUS_USE_PLTools)
+       SET(NDIOAPI_INCLUDE_DIR ${PLTOOLS_DIR}/NDI/Certus/NDIoapi-3.0.0.66/include CACHE PATH "Path to the NDI oapi SDK include directory." FORCE)
+       SET(NDIOAPI_BINARY_DIR ${PLTOOLS_DIR}/NDI/Certus/NDIoapi-3.0.0.66/bin CACHE PATH "Path to the NDI oapi SDK binary directory." FORCE)
+    ELSE(PLUS_USE_PLTools)
+        FIND_PATH(NDIOAPI_INCLUDE_DIR ndopto.h DOC "Path to the NDI oapi SDK include directory.")
+        FIND_PATH(NDIOAPI_BINARY_DIR oapi.dll DOC "Path to the NDI oapi SDK binary directory.")
+    ENDIF(PLUS_USE_PLTools)
 
     SET (PLUS_INCLUDE_DIRS 
             ${PLUS_INCLUDE_DIRS} 
@@ -204,32 +209,30 @@ ENDIF (PLUS_USE_AMS_TRACKER)
 
 #--------------------------------------------------------------------------
 # Ascension 3DG support
+SET(ATC_LIBRARY CACHE INTERNAL FORCE)
 IF( PLUS_USE_Ascension3DG )
-  OPTION( Ascension3DG_MedSafe "Use MedSafe version of the tracker" OFF )
-  IF( Ascension3DG_MedSafe ) # Use MedSafe version
-    FIND_PATH( ATC_INCLUDE_DIRECTORY ATC3DGm.h
-      "C:/Program Files/Ascension/3D Guidance medSAFE (Rev F)/3D Guidance API"
-      DOC "Directory where the ATC3DGm.h file is located")
-    FIND_LIBRARY( ATC_LIBRARY 
-      NAMES ATC3DGm ATC3DGm.dll
-      PATHS "C:/Program Files/Ascension/3D Guidance medSAFE (Rev F)/3D Guidance API"
-      DOC "Full path to the ATC3DG.dll file"
-      )
-  ELSE( Ascension3DG_MedSafe ) # Use non MedSafe version
-    FIND_PATH( ATC_INCLUDE_DIRECTORY ATC3DG.h
-      "C:/Program Files/Ascension/3D Guidance (Rev D)/3D Guidance API"
-      DOC "Directory where the ATC3DG.h file is located")
-    FIND_LIBRARY( ATC_LIBRARY 
-      NAMES ATC3DG ATC3DG.dll
-      PATHS "C:/Program Files/Ascension/3D Guidance (Rev D)/3D Guidance API"
-      DOC "Full path to the ATC3DG.dll file"
-      )
-  ENDIF( Ascension3DG_MedSafe )
   
+    # MedSafe version
+    IF(PLUS_USE_PLTools)
+        SET(ATCM_INCLUDE_DIRECTORY ${PLTOOLS_DIR}/Ascension/... CACHE PATH "Directory where the ATC3DGm.h file is located" FORCE)
+        SET(ATCM_LIBRARY_DIRECTORY ${PLTOOLS_DIR}/Ascension/... CACHE PATH "Path to the Ascension 3D Guidance medSAFE library folder" FORCE)
+    ELSE(PLUS_USE_PLTools)
+         FIND_PATH( ATCM_INCLUDE_DIRECTORY ATC3DGm.h PATHS "C:/Program Files/Ascension/3D Guidance medSAFE (Rev F)/3D Guidance API" DOC "Directory where the ATC3DGm.h file is located")
+         FIND_PATH( ATCM_LIBRARY_DIRECTORY ATC3DGm${CMAKE_STATIC_LIBRARY_SUFFIX} PATHS "C:/Program Files/Ascension/3D Guidance medSAFE (Rev F)/3D Guidance API" DOC "Path to the Ascension 3D Guidance medSAFE library folder" )
+    ENDIF(PLUS_USE_PLTools)
+    # Use non MedSafe version
+    IF(PLUS_USE_PLTools)
+        SET(ATC_INCLUDE_DIRECTORY ${PLTOOLS_DIR}/Ascension/... CACHE PATH "Directory where the ATC3DG.h file is located" FORCE)
+        SET(ATC_LIBRARY_DIRECTORY ${PLTOOLS_DIR}/Ascension/... CACHE PATH "Path to the Ascension 3D Guidance library folder" FORCE)
+    ELSE(PLUS_USE_PLTools)
+         FIND_PATH( ATC_INCLUDE_DIRECTORY ATC3DG.h PATHS "C:/Program Files/Ascension/3D Guidance (Rev D)/3D Guidance API" DOC "Directory where the ATC3DGm.h file is located")
+         FIND_PATH( ATC_LIBRARY_DIRECTORY ATC3DG${CMAKE_STATIC_LIBRARY_SUFFIX} PATHS "C:/Program Files/Ascension/3D Guidance (Rev D)/3D Guidance API" DOC "Path to the Ascension 3D Guidance library folder" )
+    ENDIF(PLUS_USE_PLTools)
   
   SET (PLUS_INCLUDE_DIRS 
             ${PLUS_INCLUDE_DIRS} 
             ${ATC_INCLUDE_DIRECTORY}
+            ${ATCM_INCLUDE_DIRECTORY}
             ${CMAKE_CURRENT_SOURCE_DIR}/Ascension3DGTracking
             CACHE INTERNAL ""
             )
@@ -245,8 +248,17 @@ IF( PLUS_USE_Ascension3DG )
       )
 	endif (WIN32)
 	
-  GET_FILENAME_COMPONENT( ATC_LIBRARY_DIRS ${ATC_LIBRARY} PATH )
-  LINK_DIRECTORIES( ${ATC_LIBRARY_DIRS} )
+  SET ( ATC_LIBRARY 
+        ${ATC_LIBRARY}
+        ${ATCM_LIBRARY_DIRECTORY}/ATC3DGm${CMAKE_STATIC_LIBRARY_SUFFIX}
+        ${ATC_LIBRARY_DIRECTORY}/ATC3DG${CMAKE_STATIC_LIBRARY_SUFFIX}
+        )
+  
+  SET ( External_Libraries_Install ${External_Libraries_Install}
+		${ATCM_LIBRARY_DIRECTORY}/ATC3DGm${CMAKE_SHARED_LIBRARY_SUFFIX}
+        ${ATC_LIBRARY_DIRECTORY}/ATC3DG${CMAKE_SHARED_LIBRARY_SUFFIX}
+        )
+        
 ENDIF( PLUS_USE_Ascension3DG )
 
 INCLUDE_DIRECTORIES( ${PLUS_INCLUDE_DIRS} )
@@ -258,11 +270,7 @@ ENDIF (BUILD_TESTING)
 # --------------------------------------------------------------------------
 # Build the library
 
-SET (Tracking_LIBS 	vtkPlusCommon ${Tracking_LIBS} ${CERTUS_LIBRARY} ${POLARIS_LIBRARY} ${FLOCK_LIBRARY} ${MICRONTRACKER_LIBRARY} ${AMSTRACKER_LIBRARY} )
-
-IF( PLUS_USE_Ascension3DG )
-  SET( Tracking_LIBS ${Tracking_LIBS} ${ATC_LIBRARY} )
-ENDIF( PLUS_USE_Ascension3DG )
+SET (Tracking_LIBS 	vtkPlusCommon ${Tracking_LIBS} ${CERTUS_LIBRARY} ${POLARIS_LIBRARY} ${FLOCK_LIBRARY} ${MICRONTRACKER_LIBRARY} ${AMSTRACKER_LIBRARY} ${ATC_LIBRARY} )
 
 ADD_LIBRARY(vtkTracking ${Tracking_SRCS} ${Tracking_HDRS})
 

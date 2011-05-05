@@ -15,13 +15,13 @@ IF(NOT PLUS_INSTALL_BIN_DIR)
   
 ENDIF(NOT PLUS_INSTALL_BIN_DIR)
 
-#include(${CMAKE_ROOT}/Modules/ExternalProject.cmake)
 
-#
+
+# --------------------------------------------------------------------------
 # Try to find VTK and include its settings (otherwise complain)
 #
 
-FIND_PACKAGE(VTK REQUIRED)
+FIND_PACKAGE(VTK REQUIRED PATHS ${VTK_DIR})
 IF ( VTK_FOUND )
 INCLUDE(${VTK_USE_FILE})
 ELSE ( VTK_FOUND )
@@ -32,20 +32,21 @@ ENDIF ( VTK_FOUND )
 # Try to find ITK and include its settings (otherwise complain)
 #
 
-FIND_PACKAGE (ITK REQUIRED)
+FIND_PACKAGE (ITK REQUIRED PATHS ${ITK_DIR})
 IF ( ITK_FOUND )
+    MESSAGE("ITK_USE_FILE: ${ITK_USE_FILE}")
 	INCLUDE( ${ITK_USE_FILE} )
 ELSE ( ITK_FOUND )
     MESSAGE( FATAL_ERROR "This application requires ITK. One of these components is missing. Please verify configuration")
 ENDIF( ITK_FOUND )
 
 
-#
+# --------------------------------------------------------------------------
 # Use OpenIGTLink protocol
 # 
 OPTION(PLUS_USE_OpenIGTLink "Use the OpenIGTLink protocol" OFF)
 IF(PLUS_USE_OpenIGTLink)
-  FIND_PACKAGE(OpenIGTLink)
+  FIND_PACKAGE(OpenIGTLink PATHS ${OpenIGTLink_DIR})
   IF (OpenIGTLink_USE_FILE)
     INCLUDE (${OpenIGTLink_USE_FILE})
   ELSE (OpenIGTLink_USE_FILE)
@@ -75,23 +76,12 @@ FIND_PATH(GNUPLOT_BIN_DIR "Gnuplot/binary/gnuplot.exe")
 
 
 # The project library directories.
-SET(PLUS_LIBRARY_DIRS ${LIBRARY_OUTPUT_PATH})
+SET(PLUS_LIBRARY_DIRS ${LIBRARY_OUTPUT_PATH} CACHE INTERNAL "Path to the Plus library directory" FORCE)
 
 #
-# Build shared libs ?
+# Build shared libs - Defaults to the same VTK setting.
 #
-# Defaults to the same VTK setting.
-#
-
-# Standard CMake option for building libraries shared or static by default.
-OPTION(BUILD_SHARED_LIBS
-       "Build with shared libraries."
-       ${VTK_BUILD_SHARED_LIBS}
-	   ${ITK_BUILD_SHARED_LIBS})     
-# Copy the CMake option to a setting with SYNCHROGRAB4D_ prefix for use in
-# our project.  This name is used in vtkmyConfigure.h.in.
-# SET(SYNCHROGRAB4D_BUILD_SHARED_LIBS ${BUILD_SHARED_LIBS})
-
+OPTION(BUILD_SHARED_LIBS "Build with shared libraries." ${VTK_BUILD_SHARED_LIBS} ${ITK_BUILD_SHARED_LIBS})     
 
 OPTION (BUILD_SLICER_MODULE "Build project as Slicer module" OFF)
 #
@@ -135,7 +125,7 @@ SET (PLUS_INCLUDE_DIRS
 	${CMAKE_CURRENT_SOURCE_DIR}/TrusCalibration/TrusCalibrationCommon  
 	${CMAKE_CURRENT_SOURCE_DIR}/UsFidSegAlgo
 	${CMAKE_CURRENT_SOURCE_DIR}/VolumeReconstruction 
-	CACHE INTERNAL ""
+	CACHE INTERNAL "" FORCE
 	)
 
 

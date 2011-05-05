@@ -4,7 +4,7 @@
 OPTION (PLUS_USE_SONIX_VIDEO "Provide support for the SonixRP video source" OFF)
 OPTION (PLUS_USE_ICCAPTURING_VIDEO "Provide support for the IC framegrabber device" OFF)
 OPTION (PLUS_USE_VFW_VIDEO "Provide support for the Video-for-Windows video digitizer" OFF)
-OPTION (PLUS_PRINT_VIDEO_TIMESTAMP_DEBUG_INFO "Print video timestamp filtering debug info to file in gnuplot data format" OFF)
+OPTION (PLUS_PRINT_VIDEO_TIMESTAMP_DEBUG_INFO "Print video timestamp filtering debug info to file in gnuplot data format" ON)
 SET (ULTERIUS_MAJOR_VERSION 5 CACHE STRING "Set Ultrasonix Ulterius SDK major version")
 
 # --------------------------------------------------------------------------
@@ -69,18 +69,21 @@ IF (PLUS_USE_SONIX_VIDEO)
 			)
 	endif (WIN32)	
 
-	FIND_PATH(ULTERIUS_INCLUDE_DIR "ulterius.h")
-	FIND_PATH(ULTERIUS_BINARY_DIR "ulterius${CMAKE_SHARED_LIBRARY_SUFFIX}" )
-    
-    SET (PLUS_INCLUDE_DIRS ${PLUS_INCLUDE_DIRS} ${ULTERIUS_INCLUDE_DIR} CACHE INTERNAL "" )
-	
 	IF (ULTERIUS_MAJOR_VERSION EQUAL 1)
 		# Look for SonixRP Ulterius SDK 1.2
-		FIND_PATH(ULTERIUS_LIB "d/ulterius.lib")
+        IF(PLUS_USE_PLTools)
+            SET(ULTERIUS_INCLUDE_DIR ${PLTOOLS_DIR}/Ultrasonix/Ulterius-1.2/inc CACHE PATH "Path to the Ulterius SDK include directory." FORCE)
+            SET(ULTERIUS_BINARY_DIR ${PLTOOLS_DIR}/Ultrasonix/Ulterius-1.2/bin CACHE PATH "Path to the Ulterius SDK binary directory." FORCE)
+            SET(ULTERIUS_LIB_DIR ${PLTOOLS_DIR}/Ultrasonix/Ulterius-1.2/lib CACHE PATH "Path to the Ulterius SDK library directory." FORCE)
+        ELSE(PLUS_USE_PLTools)
+            FIND_PATH(ULTERIUS_INCLUDE_DIR "ulterius.h" DOC "Path to the Ulterius SDK include directory.")
+            FIND_PATH(ULTERIUS_LIB_DIR "d/ulterius${CMAKE_STATIC_LIBRARY_SUFFIX}" DOC "Path to the Ulterius SDK library directory.")
+            FIND_PATH(ULTERIUS_BINARY_DIR "d/ulterius${CMAKE_SHARED_LIBRARY_SUFFIX}" DOC "Path to the Ulterius SDK binary directory.")
+        ENDIF(PLUS_USE_PLTools)
 		
 		SET (SONIX_LIBRARY 
-			optimized ${ULTERIUS_LIB}/r/ulterius.lib
-			debug ${ULTERIUS_LIB}/d/ulterius.lib
+			optimized ${ULTERIUS_LIB_DIR}/r/ulterius.lib
+			debug ${ULTERIUS_LIB_DIR}/d/ulterius.lib
 			)
 
 		SET ( External_Libraries_Install ${External_Libraries_Install}
@@ -88,11 +91,19 @@ IF (PLUS_USE_SONIX_VIDEO)
 			${ULTERIUS_BINARY_DIR}/r/utx_utils${CMAKE_SHARED_LIBRARY_SUFFIX}
 			)
 	ELSEIF (ULTERIUS_MAJOR_VERSION EQUAL 2)
-		# Look for SonixRP Ulterius SDK 2.0
-		FIND_PATH(ULTERIUS_LIB "ulterius.lib")
+    
+        IF(PLUS_USE_PLTools)
+            SET(ULTERIUS_INCLUDE_DIR ${PLTOOLS_DIR}/Ultrasonix/Ulterius-2.0/inc CACHE PATH "Path to the Ulterius SDK include directory." FORCE)
+            SET(ULTERIUS_BINARY_DIR ${PLTOOLS_DIR}/Ultrasonix/Ulterius-2.0/bin CACHE PATH "Path to the Ulterius SDK binary directory." FORCE)
+            SET(ULTERIUS_LIB_DIR ${PLTOOLS_DIR}/Ultrasonix/Ulterius-2.0/lib CACHE PATH "Path to the Ulterius SDK library directory." FORCE)
+        ELSE(PLUS_USE_PLTools)
+            FIND_PATH(ULTERIUS_INCLUDE_DIR "ulterius.h" DOC "Path to the Ulterius SDK include directory.")
+            FIND_PATH(ULTERIUS_LIB_DIR "ulterius${CMAKE_STATIC_LIBRARY_SUFFIX}" DOC "Path to the Ulterius SDK library directory.")
+            FIND_PATH(ULTERIUS_BINARY_DIR "ulterius${CMAKE_SHARED_LIBRARY_SUFFIX}" DOC "Path to the Ulterius SDK binary directory.")
+        ENDIF(PLUS_USE_PLTools)
 		
 		SET (SONIX_LIBRARY
-			${ULTERIUS_LIB}/ulterius.lib
+			${ULTERIUS_LIB_DIR}/ulterius.lib
 			)
 		SET ( External_Libraries_Install ${External_Libraries_Install}
 			${ULTERIUS_BINARY_DIR}/ulterius${CMAKE_SHARED_LIBRARY_SUFFIX}
@@ -103,11 +114,19 @@ IF (PLUS_USE_SONIX_VIDEO)
 			${ULTERIUS_BINARY_DIR}/xerces-c_2_7_u_vc6${CMAKE_SHARED_LIBRARY_SUFFIX}
 			)
 	ELSEIF (ULTERIUS_MAJOR_VERSION EQUAL 5)
-		# Look for SonixRP Ulterius SDK 5.6.4
-		FIND_PATH(ULTERIUS_LIB "ulterius.lib")
+		# Look for SonixRP Ulterius SDK 5.6.5
+        IF(PLUS_USE_PLTools)
+            SET(ULTERIUS_INCLUDE_DIR ${PLTOOLS_DIR}/Ultrasonix/Ulterius-5.6.5/inc CACHE PATH "Path to the Ulterius SDK include directory." FORCE)
+            SET(ULTERIUS_BINARY_DIR ${PLTOOLS_DIR}/Ultrasonix/Ulterius-5.6.5/bin CACHE PATH "Path to the Ulterius SDK binary directory." FORCE)
+            SET(ULTERIUS_LIB_DIR ${PLTOOLS_DIR}/Ultrasonix/Ulterius-5.6.5/lib CACHE PATH "Path to the Ulterius SDK library directory." FORCE)
+        ELSE(PLUS_USE_PLTools)
+            FIND_PATH(ULTERIUS_INCLUDE_DIR "ulterius.h" DOC "Path to the Ulterius SDK include directory.")
+            FIND_PATH(ULTERIUS_LIB_DIR "ulterius${CMAKE_STATIC_LIBRARY_SUFFIX}" DOC "Path to the Ulterius SDK library directory.")
+            FIND_PATH(ULTERIUS_BINARY_DIR "ulterius${CMAKE_SHARED_LIBRARY_SUFFIX}" DOC "Path to the Ulterius SDK binary directory.")
+        ENDIF(PLUS_USE_PLTools)
 		
 		SET (SONIX_LIBRARY 
-			${ULTERIUS_LIB}/ulterius.lib
+			${ULTERIUS_LIB_DIR}/ulterius.lib
 			)
 		SET ( External_Libraries_Install ${External_Libraries_Install}
 			${ULTERIUS_BINARY_DIR}/ulterius${CMAKE_SHARED_LIBRARY_SUFFIX}
@@ -120,6 +139,8 @@ IF (PLUS_USE_SONIX_VIDEO)
 			)
 			
 	ENDIF (ULTERIUS_MAJOR_VERSION EQUAL 1)
+    
+    SET (PLUS_INCLUDE_DIRS ${PLUS_INCLUDE_DIRS} ${ULTERIUS_INCLUDE_DIR} CACHE INTERNAL "" )
     
 ENDIF (PLUS_USE_SONIX_VIDEO)
 
@@ -144,9 +165,22 @@ IF (PLUS_USE_ICCAPTURING_VIDEO)
 			)
 	endif (WIN32)	
 	# Look for ICCapturing libraries
-	FIND_PATH(ICCAPTURING_INCLUDE_DIR "tisudshl.h")
+    IF(PLUS_USE_PLTools)
+        SET(ICCAPTURING_INCLUDE_DIR ${PLTOOLS_DIR}/ImagingControl/ImagingControl-3.1/include CACHE PATH "Path to the ImagingControl frame grabber include directory." FORCE)
+        IF ( WIN32 )
+            SET(ICCAPTURING_BIN_DIR ${PLTOOLS_DIR}/ImagingControl/ImagingControl-3.1/win32 CACHE PATH "Path to the ImagingControl frame grabber binary directory." FORCE)
+        ENDIF ( WIN32 )
+        IF ( CMAKE_HOST_WIN32 AND CMAKE_CL_64 )
+            SET(ICCAPTURING_BIN_DIR ${PLTOOLS_DIR}/ImagingControl/ImagingControl-3.1/x64 CACHE PATH "Path to the ImagingControl frame grabber binary directory." FORCE)
+        ENDIF ( CMAKE_HOST_WIN32 AND CMAKE_CL_64 )
+    ELSE(PLUS_USE_PLTools)
+        FIND_PATH(ICCAPTURING_INCLUDE_DIR "tisudshl.h" DOC "Path to the ImagingControl frame grabber include directory.")
+        FIND_PATH(ICCAPTURING_BIN_DIR "release/TIS_DShowLib08.dll" DOC "Path to the ImagingControl frame grabber binary directory.")
+    ENDIF(PLUS_USE_PLTools)
+        
+	
 	SET (PLUS_INCLUDE_DIRS ${PLUS_INCLUDE_DIRS} ${ICCAPTURING_INCLUDE_DIR} CACHE INTERNAL "" )
-	FIND_PATH(ICCAPTURING_BIN_DIR "win32/release/TIS_DShowLib08.dll")
+	
 
 	SET( SUFFIX_TIS_UDSHL08 "_vc9")
 	IF ( ${CMAKE_GENERATOR} MATCHES "Visual Studio 7" )
