@@ -21,7 +21,7 @@ public:
 
 	TrackedFrame()
 	{
-		this->Status = false; 
+		this->Status = 0; 
 		this->Timestamp = 0; 
 		this->ImageData = NULL; 
 	}
