@@ -4,17 +4,17 @@
 #include <sstream>
 
 
-#ifdef Ascension3DG_MedSafe
+#ifdef PLUS_USE_Ascension3DGm
 namespace atc
 {
 #include "ATC3DGm.h"
 }
-#else /* Ascension3DG_MedSafe */
+#else /* PLUS_USE_Ascension3DGm */
 namespace atc
 {
 #include "ATC3DG.h"
 }
-#endif /* Ascension3DG_MedSafe */
+#endif /* PLUS_USE_Ascension3DGm */
 
 
 #include "vtkMatrix4x4.h"

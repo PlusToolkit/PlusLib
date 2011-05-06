@@ -1,0 +1,48 @@
+<USDataCollection version="1.0">
+	<ImageAcqusition
+    Type="SavedDataset"
+    BufferSize="200"
+    FrameSize="640 480 1"
+    FrameRate="10"
+    SmoothingFactor="0.001"
+    LocalTimeOffset="0.0"
+    >
+		<SonixVideo
+      IP="127.0.0.1"
+      ImagingMode="0"
+      AcquisitionDataType="4"
+      Depth="-1"
+      Sector="-1"
+      Gain="-1"
+      DynRange="-1"
+      Zoom="-1"
+      Frequency="-1"
+      Timeout="-1"
+      CompressionStatus="0"
+      />
+		<SonixVolume FileName="" />
+		<SavedDataset SequenceMetafile=""/>
+	</ImageAcqusition>
+
+	<Tracker Type="SavedDataset" BufferSize="200" Frequency="50">
+		<AuroraTracker />
+		<SavedDataset SequenceMetafile=""/>
+	</Tracker>
+	
+	<Synchronization>
+		<Synchronizer 
+      SynchronizationTimeLength="30" 
+      MinNumOfSyncSteps="5" 
+      ThresholdMultiplier="5"
+      
+      NumberOfAveragedTransforms="20" 
+      MinTransformThreshold="2.0" 
+      MaxTransformDifference="2.0" 
+      
+      NumberOfAveragedFrames="6" 
+      MinFrameThreshold="200.0" 
+      MaxFrameDifference="10.0" 
+      />
+	</Synchronization>
+	
+</USDataCollection>
