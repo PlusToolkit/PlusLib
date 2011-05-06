@@ -25,27 +25,25 @@ ENDIF()
 
 SET (PLUS_VTK_DIR ${CMAKE_BINARY_DIR}/vtk CACHE INTERNAL "Path to store vtk sources.")
 ExternalProject_Add( vtk
-            TMP_DIR "${PLUS_VTK_DIR}/tmp"
+            SOURCE_DIR "${PLUS_VTK_DIR}" 
+            BINARY_DIR "vtk-bin"
             #--Download step--------------
-            DOWNLOAD_DIR "${PLUS_VTK_DIR}/download"
-            URL http://www.vtk.org/files/release/5.6/vtk-5.6.1.tar.gz
+            #URL http://www.vtk.org/files/release/5.6/vtk-5.6.1.tar.gz
+            GIT_REPOSITORY "${git_protocol}://vtk.org/VTK.git"
+            GIT_TAG "v5.6.1"
             #--Configure step-------------
-            SOURCE_DIR "${PLUS_VTK_DIR}/src" 
             CMAKE_ARGS 
-                -DBUILD_SHARED_LIBS:BOOL=ON 
+                -DBUILD_SHARED_LIBS:BOOL=${PLUSBUILD_BUILD_SHARED_LIBS} 
                 -DBUILD_TESTING:BOOL=OFF 
-                -DVTK_USE_PARALELL:BOOL=ON 
+                -DVTK_USE_PARALLEL:BOOL=ON
                 -DBUILD_EXAMPLES:BOOL=OFF
                 ${VTK_QT_ARGS}
                 -DCMAKE_CXX_FLAGS:STRING=${ep_common_cxx_flags}
                 -DCMAKE_C_FLAGS:STRING=${ep_common_c_flags}
             #--Build step-----------------
-            BINARY_DIR "${PLUS_VTK_DIR}/bin"
-            INSTALL_DIR "${PLUS_VTK_DIR}/bin"
-            STAMP_DIR "${PLUS_VTK_DIR}/stamp"
             #--Install step-----------------
             INSTALL_COMMAND ""
             DEPENDS ${VTK_DEPENDENCIES}
             )
-SET(VTK_DIR ${PLUS_VTK_DIR}/bin CACHE PATH "The directory containing a CMake configuration file for VTK" FORCE)
-#SET(VTK_SOURCE_DIR ${PLUS_VTK_DIR}/src)            
+SET(VTK_DIR ${CMAKE_BINARY_DIR}/vtk-bin CACHE PATH "The directory containing a CMake configuration file for VTK" FORCE)
+SET(VTK_SOURCE_DIR ${PLUS_VTK_DIR})            

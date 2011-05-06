@@ -3,16 +3,15 @@
 # ITK 
 SET (PLUS_ITK_DIR ${CMAKE_BINARY_DIR}/itk CACHE INTERNAL "Path to store itk sources.")
 ExternalProject_Add( itk
-            TMP_DIR "${PLUS_ITK_DIR}/tmp"
+            SOURCE_DIR "${PLUS_ITK_DIR}" 
+            BINARY_DIR "itk-bin"
             #--Download step--------------
-            DOWNLOAD_DIR "${PLUS_ITK_DIR}/download"
-            GIT_REPOSITORY git://itk.org/ITK.git
+            GIT_REPOSITORY "${git_protocol}://itk.org/ITK.git"
             GIT_TAG "v3.16.0"
             #SVN_REPOSITORY http://svn.github.com/Kitware/ITK.git/
             #--Configure step-------------
-            SOURCE_DIR "${PLUS_ITK_DIR}/src" 
             CMAKE_ARGS 
-                -DBUILD_SHARED_LIBS:BOOL=ON 
+                -DBUILD_SHARED_LIBS:BOOL=${PLUSBUILD_BUILD_SHARED_LIBS} 
                 -DBUILD_TESTING:BOOL=OFF 
                 -DBUILD_EXAMPLES:BOOL=OFF
                 -DITK_LEGACY_REMOVE:BOOL=ON
@@ -27,12 +26,9 @@ ExternalProject_Add( itk
                 -DITK_LEGACY_REMOVE:BOOL=ON
                 -DKWSYS_USE_MD5:BOOL=ON
             #--Build step-----------------
-            BINARY_DIR "${PLUS_ITK_DIR}/bin"
-            INSTALL_DIR "${PLUS_ITK_DIR}/bin"
-            STAMP_DIR "${PLUS_ITK_DIR}/stamp"
             #--Install step-----------------
             INSTALL_COMMAND ""
             DEPENDS ${ITK_DEPENDENCIES}
             )
 
-SET(ITK_DIR ${PLUS_ITK_DIR}/bin CACHE PATH "The directory containing a CMake configuration file for ITK" FORCE)
+SET(ITK_DIR ${CMAKE_BINARY_DIR}/itk-bin CACHE PATH "The directory containing a CMake configuration file for ITK" FORCE)

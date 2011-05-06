@@ -14,7 +14,7 @@ ENDIF(COMMAND cmake_policy)
 # Need subversion for the automatic update of the repository
 MARK_AS_ADVANCED(CLEAR Subversion_SVN_EXECUTABLE)
 FIND_FILE(Subversion_SVN_EXECUTABLE svn${CMAKE_EXECUTABLE_SUFFIX} PATHS "C:/cygwin/bin/" )
-find_package(Subversion REQUIRED)
+FIND_PACKAGE(Subversion REQUIRED)
 
 SET(PLUSBUILD_ASSEMBLA_USERNAME "PLUSBUILD_ASSEMBLA_USERNAME-NOT-FOUND" CACHE STRING "Username for Plus assembla server: https://subversion.assembla.com/svn/plus/" )
 SET(PLUSBUILD_ASSEMBLA_PASSWORD "PLUSBUILD_ASSEMBLA_PASSWORD-NOT-FOUND" CACHE STRING "Password for Plus assembla server: https://subversion.assembla.com/svn/plus/" )
@@ -23,6 +23,14 @@ SET(PLUSBUILD_ASSEMBLA_PASSWORD "PLUSBUILD_ASSEMBLA_PASSWORD-NOT-FOUND" CACHE ST
 # GIT - Let's check if a valid version of GIT is available
 #-----------------------------------------------------------------------------
 # Need Git for the automatic update of the repository
+
+OPTION(PLUSBUILD_USE_GIT_PROTOCOL "If behind a firewall turn this off to use http instead." ON)
+
+SET(GIT_PROTOCOL "git")
+IF(NOT PLUSBUILD_USE_GIT_PROTOCOL)
+  SET(GIT_PROTOCOL "http")
+ENDIF()
+
 MARK_AS_ADVANCED(CLEAR GIT_EXECUTABLE)
 FIND_FILE(GIT_EXECUTABLE git${CMAKE_EXECUTABLE_SUFFIX} PATHS "C:/cygwin/bin/" )
 FIND_PACKAGE(Git)
@@ -38,16 +46,33 @@ FIND_PACKAGE(Qt4 REQUIRED)
 SET(QT_USE_QT3SUPPORT TRUE) 
 INCLUDE(${QT_USE_FILE})
 
-#INCLUDE(SlicerBlockFindQtAndCheckVersion)
-
-
+#-----------------------------------------------------------------------------
+# Options to control build process
+#-----------------------------------------------------------------------------
 OPTION(PLUSBUILD_USE_PLTools "Use the PLTools repository" ON)
 OPTION(PLUSBUILD_USE_OpenIGTLink "Use OpenIGTLink" ON)
+OPTION(PLUSBUILD_BUILD_SHARED_LIBS "Build shared libs" ON)
+OPTION(PLUSBUILD_BUILD_PLUSAPP "Build PlusApp applications" ON)
 
+OPTION(PLUS_USE_SONIX_VIDEO "Provide support for the Sonix video source with the Ulterius SDK" ON)
+OPTION(PLUS_USE_ICCAPTURING_VIDEO "Provide support for the IC framegrabber device" ON)
+OPTION(PLUS_USE_VFW_VIDEO "Provide support for the Video-for-Windows video digitizer" OFF)
+
+OPTION(PLUS_USE_POLARIS "Provide support for the NDI POLARIS and AURORA" OFF)
+OPTION(PLUS_USE_CERTUS "Provide support for the NDI Certus" ON)
+OPTION(PLUS_USE_FLOCK "Provide support for the Ascension Flock of Birds" OFF)
+OPTION(PLUS_USE_MICRONTRACKER "Provide support for the Claron MicronTracker" OFF)
+OPTION(PLUS_USE_AMS_TRACKER "Provide support for the AMS Stepper tracking device" ON)
+OPTION(PLUS_USE_Ascension3DG "Provide support for the Ascension 3DG Tracker" OFF)
+
+OPTION(PLUS_USE_HEARTSIGNALBOX "Enable Heart Signal Box" OFF)
+OPTION(PLUS_USE_USBECGBOX "Enable USB ECG Signal Box" OFF)
 #-----------------------------------------------------------------------------
 # Enable and setup External project global properties
 #-----------------------------------------------------------------------------
 INCLUDE(${CMAKE_ROOT}/Modules/ExternalProject.cmake)
+
+SET(ep_base        "${CMAKE_BINARY_DIR}")
 
 SET(ep_common_args
   #-DCMAKE_INSTALL_PREFIX:PATH=${ep_install_dir}
@@ -82,7 +107,9 @@ ENDIF(PLUSBUILD_USE_OpenIGTLink)
 
 IF(PLUSBUILD_USE_PLTools)
     LIST(APPEND PlusLib_DEPENDENCIES PLTools)
-ENDIF(PLUSBUILD_USE_PLTools) 
+ELSE()
+    MESSAGE("TODO: Need to set third party libraries...")
+ENDIF() 
 
 SET(PlusApp_DEPENDENCIES PlusLib)
 
