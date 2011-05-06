@@ -68,3 +68,13 @@ TARGET_LINK_LIBRARIES(vtkDataCollectorVideoAcqTest vtkDataCollection )
 	  # --verbose=2
 	  # )
 # ENDIF (PLUS_USE_SONIX_VIDEO)
+
+
+ADD_EXECUTABLE( qtOpenIGTLinkBroadcasterTest1 qtOpenIGTLinkBroadcasterTest1.cxx)
+TARGET_LINK_LIBRARIES( qtOpenIGTLinkBroadcasterTest1 vtkDataCollection ${QT_LIBRARIES} )
+IF (PLUS_USE_OpenIGTLink )
+  ADD_TEST( qtOpenIGTLinkBroadcasterTest1
+    ${EXECUTABLE_OUTPUT_PATH}/qtOpenIGTLinkBroadcasterTest1
+    --input-config-file=${ConifgFilesDir}/USDataCollectionConfig_SavedDataset_OpenIGTLink.xml
+    )
+ENDIF (PLUS_USE_OpenIGTLink )
