@@ -145,6 +145,7 @@ IF (PLUS_USE_SONIX_VIDEO)
 ENDIF (PLUS_USE_SONIX_VIDEO)
 
 
+
 # --------------------------------------------------------------------------
 # ICCapturing support
 SET (ICCapturing_LIBRARY)
@@ -206,6 +207,7 @@ IF (PLUS_USE_ICCAPTURING_VIDEO)
 		)
 ENDIF (PLUS_USE_ICCAPTURING_VIDEO)
 
+    
 # --------------------------------------------------------------------------
 # Video-for-Windows video digitizer support
 
