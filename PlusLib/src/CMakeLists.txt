@@ -21,7 +21,7 @@ ENDIF(NOT PLUS_INSTALL_BIN_DIR)
 # Try to find VTK and include its settings (otherwise complain)
 #
 
-FIND_PACKAGE(VTK REQUIRED PATHS ${VTK_DIR})
+FIND_PACKAGE(VTK REQUIRED PATHS ${VTK_DIR} NO_DEFAULT_PATH)
 IF ( VTK_FOUND )
 INCLUDE(${VTK_USE_FILE})
 ELSE ( VTK_FOUND )
@@ -32,9 +32,8 @@ ENDIF ( VTK_FOUND )
 # Try to find ITK and include its settings (otherwise complain)
 #
 
-FIND_PACKAGE (ITK REQUIRED PATHS ${ITK_DIR})
+FIND_PACKAGE (ITK REQUIRED PATHS ${ITK_DIR} NO_DEFAULT_PATH)
 IF ( ITK_FOUND )
-    MESSAGE("ITK_USE_FILE: ${ITK_USE_FILE}")
 	INCLUDE( ${ITK_USE_FILE} )
 ELSE ( ITK_FOUND )
     MESSAGE( FATAL_ERROR "This application requires ITK. One of these components is missing. Please verify configuration")
@@ -46,7 +45,7 @@ ENDIF( ITK_FOUND )
 # 
 OPTION(PLUS_USE_OpenIGTLink "Use the OpenIGTLink protocol" OFF)
 IF(PLUS_USE_OpenIGTLink)
-  FIND_PACKAGE(OpenIGTLink PATHS ${OpenIGTLink_DIR})
+  FIND_PACKAGE(OpenIGTLink PATHS ${OpenIGTLink_DIR} NO_DEFAULT_PATH)
   IF (OpenIGTLink_USE_FILE)
     INCLUDE (${OpenIGTLink_USE_FILE})
   ELSE (OpenIGTLink_USE_FILE)
@@ -62,9 +61,9 @@ ENDIF(PLUS_USE_OpenIGTLink)
 # Configure output paths for libraries and executables.
 #
  
-SET(LIBRARY_OUTPUT_PATH  ${CMAKE_BINARY_DIR}/lib CACHE PATH "Single output directory for building all libraries." FORCE)
+SET(LIBRARY_OUTPUT_PATH  ${CMAKE_BINARY_DIR}/bin CACHE PATH "Single output directory for building all libraries." FORCE)
 SET(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin CACHE PATH "Single output directory for building all executables." FORCE)
-SET(INCLUDES_OUTPUT_PATH ${CMAKE_BINARY_DIR}/inc CACHE PATH "Single output directory for all include files" FORCE)
+SET(INCLUDES_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin CACHE PATH "Single output directory for all include files" FORCE)
 
 MARK_AS_ADVANCED(LIBRARY_OUTPUT_PATH EXECUTABLE_OUTPUT_PATH INCLUDES_OUTPUT_PATH)
 
