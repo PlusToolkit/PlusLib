@@ -29,7 +29,7 @@ ExternalProject_Add( vtk
             BINARY_DIR "vtk-bin"
             #--Download step--------------
             #URL http://www.vtk.org/files/release/5.6/vtk-5.6.1.tar.gz
-            GIT_REPOSITORY "${git_protocol}://vtk.org/VTK.git"
+            GIT_REPOSITORY "${GIT_PROTOCOL}://vtk.org/VTK.git"
             GIT_TAG "v5.6.1"
             #--Configure step-------------
             CMAKE_ARGS 

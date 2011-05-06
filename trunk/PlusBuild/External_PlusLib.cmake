@@ -51,6 +51,7 @@ ExternalProject_Add(PlusLib
                 -DPLUS_USE_Ascension3DG:BOOL=${PLUS_USE_Ascension3DG}
                 -DPLUS_USE_HEARTSIGNALBOX:BOOL=${PLUS_USE_HEARTSIGNALBOX}
                 -DPLUS_USE_USBECGBOX:BOOL=${PLUS_USE_USBECGBOX}
+                -DULTERIUS_MAJOR_VERSION=${PLUS_ULTERIUS_MAJOR_VERSION}
                 -DCMAKE_CXX_FLAGS:STRING=${ep_common_cxx_flags}
                 -DCMAKE_C_FLAGS:STRING=${ep_common_c_flags}
             #--Build step-----------------

@@ -6,7 +6,7 @@ ExternalProject_Add( itk
             SOURCE_DIR "${PLUS_ITK_DIR}" 
             BINARY_DIR "itk-bin"
             #--Download step--------------
-            GIT_REPOSITORY "${git_protocol}://itk.org/ITK.git"
+            GIT_REPOSITORY "${GIT_PROTOCOL}://itk.org/ITK.git"
             GIT_TAG "v3.16.0"
             #SVN_REPOSITORY http://svn.github.com/Kitware/ITK.git/
             #--Configure step-------------
