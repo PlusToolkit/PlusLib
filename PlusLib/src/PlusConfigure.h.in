@@ -60,6 +60,7 @@ Version:   $Revision: $
 #cmakedefine PLUS_USE_MICRONTRACKER
 #cmakedefine PLUS_USE_AMS_TRACKER
 #cmakedefine PLUS_USE_Ascension3DG
+#cmakedefine PLUS_USE_Ascension3DGm
 
 #cmakedefine PLUS_USE_MATROX_IMAGING
 #cmakedefine VTK_VFW_SUPPORTS_CAPTURE

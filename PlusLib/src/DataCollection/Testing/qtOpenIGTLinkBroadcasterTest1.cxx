@@ -1,9 +1,22 @@
 
+#include <ctime>
 #include <iostream>
 
-#include <QTest>
-
+#include "vtkSmartPointer.h"
 #include "vtksys/CommandLineArguments.hxx"
+
+#include "vtkDataCollector.h"
+#include "vtkSavedDataTracker.h"
+#include "vtkSavedDataVideoSource.h"
+
+
+
+void wait( double seconds )
+{
+  clock_t endwait;
+  endwait = clock () + seconds * CLOCKS_PER_SEC;
+  while (clock() < endwait) {}
+}
 
 
 
@@ -73,7 +86,7 @@ int main( int argc, char** argv )
   
   for ( int i = 0; i < 10; ++ i )
     {
-    
+    wait( 0.5 );
     }
   
   dataCollector->Stop();
