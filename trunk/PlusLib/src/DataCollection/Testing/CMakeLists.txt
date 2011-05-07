@@ -71,7 +71,7 @@ TARGET_LINK_LIBRARIES(vtkDataCollectorVideoAcqTest vtkDataCollection )
 
 
 ADD_EXECUTABLE( qtOpenIGTLinkBroadcasterTest1 qtOpenIGTLinkBroadcasterTest1.cxx)
-TARGET_LINK_LIBRARIES( qtOpenIGTLinkBroadcasterTest1 vtkDataCollection ${QT_LIBRARIES} )
+TARGET_LINK_LIBRARIES( qtOpenIGTLinkBroadcasterTest1 vtkDataCollection ${QT_LIBRARIES} vtkCommon )
 IF (PLUS_USE_OpenIGTLink )
   ADD_TEST( qtOpenIGTLinkBroadcasterTest1
     ${EXECUTABLE_OUTPUT_PATH}/qtOpenIGTLinkBroadcasterTest1
