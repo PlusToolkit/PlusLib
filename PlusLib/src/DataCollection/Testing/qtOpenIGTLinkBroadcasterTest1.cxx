@@ -52,7 +52,7 @@ int main( int argc, char** argv )
   
 	  // Prepare data collector object.
 	
-	vtkSmartPointer< vtkDataCollector > dataCollector = vtkSmartPointer< vtkDataCollector >::New();
+	vtkDataCollector* dataCollector = vtkDataCollector::New();
 	  dataCollector->ReadConfiguration( inputConfigFileName.c_str() );
   
   if ( dataCollector->GetAcquisitionType() == ACQUISITION_TYPE::SYNCHRO_VIDEO_SAVEDDATASET )
@@ -96,6 +96,9 @@ int main( int argc, char** argv )
   dataCollector->Stop();
   std::cout << "Done." << std::endl;
   
-  wait( 0.5 );
+  std::cout << "Deleting data collector... ";
+  dataCollector->Delete();
+  std::cout << "Done." << std::endl;
+  
   return 0;
 }
