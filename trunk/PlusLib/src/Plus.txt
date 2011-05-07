@@ -1,2 +1,2 @@
-Name: Plus
-GUIName: Plus
+Name: PlusLib
+GUIName: PlusLib
