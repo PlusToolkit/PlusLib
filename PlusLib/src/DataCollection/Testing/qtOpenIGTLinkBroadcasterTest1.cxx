@@ -2,6 +2,7 @@
 #include <ctime>
 #include <iostream>
 
+#include "vtkMatrix4x4.h"
 #include "vtkSmartPointer.h"
 #include "vtksys/CommandLineArguments.hxx"
 
@@ -90,6 +91,39 @@ int main( int argc, char** argv )
     {
     std::cout << "Iteration: " << i << std::endl;
     wait( 0.5 );
+    
+		std::ostringstream ss;
+		ss.precision( 2 ); 
+		vtkSmartPointer<vtkMatrix4x4> tFrame2Tracker = vtkSmartPointer<vtkMatrix4x4>::New(); 
+		if ( dataCollector->GetTracker()->IsTracking())
+		{
+			double timestamp(0); 
+			long flags(0); 
+			dataCollector->GetTransformWithTimestamp(tFrame2Tracker, timestamp, flags, dataCollector->GetMainToolNumber()); 
+
+			if (flags & (TR_MISSING | TR_OUT_OF_VIEW )) 
+			{
+				ss	<< "Tracker out of view..."; 
+			}
+			else if ( flags & (TR_REQ_TIMEOUT) ) 
+			{
+				ss	<< "Tracker request timeout..."; 
+			}
+			else
+			{
+				ss	<< std::fixed 
+					<< tFrame2Tracker->GetElement(0,0) << "   " << tFrame2Tracker->GetElement(0,1) << "   " << tFrame2Tracker->GetElement(0,2) << "   " << tFrame2Tracker->GetElement(0,3) << "\n"
+					<< tFrame2Tracker->GetElement(1,0) << "   " << tFrame2Tracker->GetElement(1,1) << "   " << tFrame2Tracker->GetElement(1,2) << "   " << tFrame2Tracker->GetElement(1,3) << "\n"
+					<< tFrame2Tracker->GetElement(2,0) << "   " << tFrame2Tracker->GetElement(2,1) << "   " << tFrame2Tracker->GetElement(2,2) << "   " << tFrame2Tracker->GetElement(2,3) << "\n"
+					<< tFrame2Tracker->GetElement(3,0) << "   " << tFrame2Tracker->GetElement(3,1) << "   " << tFrame2Tracker->GetElement(3,2) << "   " << tFrame2Tracker->GetElement(3,3) << "\n"; 
+			}
+		}
+		else
+		{
+			ss << "Unable to connect to tracker...";		
+		}
+    
+    std::cout << ss.str() << std::endl;
     }
   
   std::cout << "Stop data collector... ";
