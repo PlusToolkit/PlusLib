@@ -8,6 +8,7 @@ OPTION (PLUS_PRINT_SYNC_DEBUG_INFO "Print synchronizer debugging info to file in
 SET (DataCollection_SRCS
 	vtkDataCollector.cxx 
 	vtkDataCollectorSynchronizer.cxx 
+  vtkOpenIGTLinkBroadcaster.cxx
 	)
 
 SET (DataCollection_HDRS)
@@ -15,6 +16,7 @@ if (WIN32)
 	SET (DataCollection_HDRS
 		vtkDataCollector.h 
 		vtkDataCollectorSynchronizer.h
+    vtkOpenIGTLinkBroadcaster.h
 		)
 endif (WIN32)	
 
@@ -33,6 +35,7 @@ SET (DataCollection_LIBS
         vtkPlusCommon 
         vtkTracking 
         vtkSignaling
+        OpenIGTLink
     )
 
 INCLUDE_DIRECTORIES( ${PLUS_INCLUDE_DIRS} )
