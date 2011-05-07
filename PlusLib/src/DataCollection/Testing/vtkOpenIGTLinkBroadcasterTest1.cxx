@@ -2,6 +2,8 @@
 #include <ctime>
 #include <iostream>
 
+#include "PlusConfigure.h"
+
 #include "vtkMatrix4x4.h"
 #include "vtkSmartPointer.h"
 #include "vtksys/CommandLineArguments.hxx"
@@ -10,14 +12,7 @@
 #include "vtkSavedDataTracker.h"
 #include "vtkSavedDataVideoSource.h"
 
-
-
-void wait( double seconds )
-{
-  clock_t endwait;
-  endwait = clock () + seconds * CLOCKS_PER_SEC;
-  while (clock() < endwait) {}
-}
+#include "vtkOpenIGTLinkBroadcaster.h"
 
 
 
@@ -56,7 +51,7 @@ int main( int argc, char** argv )
 	vtkDataCollector* dataCollector = vtkDataCollector::New();
 	  dataCollector->ReadConfiguration( inputConfigFileName.c_str() );
   
-  if ( dataCollector->GetAcquisitionType() == ACQUISITION_TYPE::SYNCHRO_VIDEO_SAVEDDATASET )
+  if ( dataCollector->GetAcquisitionType() == SYNCHRO_VIDEO_SAVEDDATASET )
     {
     if ( inputVideoBufferMetafile.empty() )
       {
@@ -68,7 +63,7 @@ int main( int argc, char** argv )
     videoSource->SetSequenceMetafile( inputVideoBufferMetafile.c_str() );
     }
   
-  if ( dataCollector->GetTrackerType() == TRACKER_TYPE::TRACKER_SAVEDDATASET )
+  if ( dataCollector->GetTrackerType() == TRACKER_SAVEDDATASET )
     {
     if ( inputTrackerBufferMetafile.empty() )
       {
@@ -81,16 +76,23 @@ int main( int argc, char** argv )
   
   std::cout << "Initializing data collector... ";
   dataCollector->Initialize();
-  std::cout << "Done." << std::endl;
+  
+  
+    // Prepare the OpenIGTLink broadcaster.
+  
+  vtkSmartPointer< vtkOpenIGTLinkBroadcaster > broadcaster = vtkSmartPointer< vtkOpenIGTLinkBroadcaster >::New();
+    broadcaster->AddSocket( "localhost", 18944 );
+    broadcaster->SetDataCollector( dataCollector );
+  
   
   std::cout << "Start data collector... ";
   dataCollector->Start();
-  std::cout << "Done." << std::endl;
+  
   
   for ( int i = 0; i < 10; ++ i )
     {
     std::cout << "Iteration: " << i << std::endl;
-    wait( 0.5 );
+    vtkAccurateTimer::Delay( 0.5 );
     
 		std::ostringstream ss;
 		ss.precision( 2 ); 
@@ -124,6 +126,7 @@ int main( int argc, char** argv )
 		}
     
     std::cout << ss.str() << std::endl;
+    broadcaster->SendMessages();
     }
   
   std::cout << "Stop data collector... ";

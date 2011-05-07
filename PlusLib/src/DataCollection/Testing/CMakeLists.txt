@@ -70,11 +70,11 @@ TARGET_LINK_LIBRARIES(vtkDataCollectorVideoAcqTest vtkDataCollection )
 # ENDIF (PLUS_USE_SONIX_VIDEO)
 
 
-ADD_EXECUTABLE( qtOpenIGTLinkBroadcasterTest1 qtOpenIGTLinkBroadcasterTest1.cxx)
-TARGET_LINK_LIBRARIES( qtOpenIGTLinkBroadcasterTest1 vtkDataCollection ${QT_LIBRARIES} vtkCommon )
+ADD_EXECUTABLE( vtkOpenIGTLinkBroadcasterTest1 vtkOpenIGTLinkBroadcasterTest1.cxx)
+TARGET_LINK_LIBRARIES( vtkOpenIGTLinkBroadcasterTest1 vtkDataCollection vtkCommon )
 IF (PLUS_USE_OpenIGTLink )
-  ADD_TEST( qtOpenIGTLinkBroadcasterTest1
-    ${EXECUTABLE_OUTPUT_PATH}/qtOpenIGTLinkBroadcasterTest1
+  ADD_TEST( vtkOpenIGTLinkBroadcasterTest1
+    ${EXECUTABLE_OUTPUT_PATH}/vtkOpenIGTLinkBroadcasterTest1
     --input-config-file=${ConifgFilesDir}/OpenIGTLinkTest.xml
     --input-video-buffer-metafile=${TestDataDir}/DataCollectorSyncVideoBuffer.mha 
     --input-tracker-buffer-metafile=${TestDataDir}/DataCollectorSyncTrackerBuffer.mha 

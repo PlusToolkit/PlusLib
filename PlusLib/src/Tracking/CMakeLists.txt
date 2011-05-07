@@ -215,11 +215,13 @@ IF( PLUS_USE_Ascension3DG )
 
     # Use non MedSafe version
     IF( PLUS_USE_PLTools )
-      SET( ATC_INCLUDE_DIRECTORY ${PLTOOLS_DIR}/Ascension/... CACHE PATH "Directory where the ATC3DG.h file is located" FORCE )
-      SET( ATC_LIBRARY_DIRECTORY ${PLTOOLS_DIR}/Ascension/... CACHE PATH "Path to the Ascension 3D Guidance library folder" FORCE )
+      SET( ATC_INCLUDE_DIRECTORY ${PLTOOLS_DIR}/Ascension/Ascension3DG/inc CACHE PATH "Directory where the ATC3DG.h file is located" FORCE )
+      SET( ATC_LIBRARY_DIRECTORY ${PLTOOLS_DIR}/Ascension/Ascension3DG/lib CACHE PATH "Path to the Ascension 3D Guidance library folder" FORCE )
+      SET( ATC_BINARY_DIRECTORY ${PLTOOLS_DIR}/Ascension/Ascension3DG/bin CACHE PATH "Path to the Ascension 3D Guidance dll folder" FORCE )
     ELSE( PLUS_USE_PLTools )
       FIND_PATH( ATC_INCLUDE_DIRECTORY ATC3DG.h PATHS "C:/Program Files/Ascension/3D Guidance (Rev D)/3D Guidance API" DOC "Directory where the ATC3DG.h file is located")
       FIND_PATH( ATC_LIBRARY_DIRECTORY ATC3DG${CMAKE_STATIC_LIBRARY_SUFFIX} PATHS "C:/Program Files/Ascension/3D Guidance (Rev D)/3D Guidance API" DOC "Path to the Ascension 3D Guidance library folder" )
+      FIND_PATH( ATC_BINARY_DIRECTORY ATC3DG${CMAKE_SHARED_LIBRARY_SUFFIX} PATHS "C:/Program Files/Ascension/3D Guidance (Rev D)/3D Guidance API" DOC "Path to the Ascension 3D Guidance library folder" )
     ENDIF( PLUS_USE_PLTools )
   
   SET (PLUS_INCLUDE_DIRS ${PLUS_INCLUDE_DIRS} 
@@ -236,7 +238,7 @@ IF( PLUS_USE_Ascension3DG )
   SET ( ATC_LIBRARY ${ATC_LIBRARY} ${ATC_LIBRARY_DIRECTORY}/ATC3DG${CMAKE_STATIC_LIBRARY_SUFFIX} )
   
   SET ( External_Libraries_Install ${External_Libraries_Install}
-        ${ATC_LIBRARY_DIRECTORY}/ATC3DG${CMAKE_SHARED_LIBRARY_SUFFIX} )
+        ${ATC_BINARY_DIRECTORY}/ATC3DG${CMAKE_SHARED_LIBRARY_SUFFIX} )
         
 ENDIF( PLUS_USE_Ascension3DG )
 
@@ -253,8 +255,8 @@ IF( PLUS_USE_Ascension3DGm )
   
     # MedSafe version
     IF(PLUS_USE_PLTools)
-        SET(ATCM_INCLUDE_DIRECTORY ${PLTOOLS_DIR}/Ascension/... CACHE PATH "Directory where the ATC3DGm.h file is located" FORCE)
-        SET(ATCM_LIBRARY_DIRECTORY ${PLTOOLS_DIR}/Ascension/... CACHE PATH "Path to the Ascension 3D Guidance medSAFE library folder" FORCE)
+        SET(ATCM_INCLUDE_DIRECTORY ${PLTOOLS_DIR}/Ascension/Ascension3DGm/inc CACHE PATH "Directory where the ATC3DGm.h file is located" FORCE)
+        SET(ATCM_LIBRARY_DIRECTORY ${PLTOOLS_DIR}/Ascension/Ascension3DGm/lib CACHE PATH "Path to the Ascension 3D Guidance medSAFE library folder" FORCE)
     ELSE(PLUS_USE_PLTools)
          FIND_PATH( ATCM_INCLUDE_DIRECTORY ATC3DGm.h PATHS "C:/Program Files/Ascension/3D Guidance medSAFE (Rev F)/3D Guidance API" DOC "Directory where the ATC3DGm.h file is located")
          FIND_PATH( ATCM_LIBRARY_DIRECTORY ATC3DGm${CMAKE_STATIC_LIBRARY_SUFFIX} PATHS "C:/Program Files/Ascension/3D Guidance medSAFE (Rev F)/3D Guidance API" DOC "Path to the Ascension 3D Guidance medSAFE library folder" )
