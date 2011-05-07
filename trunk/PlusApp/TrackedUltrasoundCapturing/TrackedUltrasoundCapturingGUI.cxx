@@ -348,13 +348,17 @@ void TrackedUltrasoundCapturingGUI::UpdateRequestCallback()
 void TrackedUltrasoundCapturingGUI::UpdateWidgets()
 {
 	LOG_TRACE("TrackedUltrasoundCapturingGUI::UpdateWidgets");
+
+	// Update renderer window
 	if ( this->GetRenderer(this->currentId()) != NULL )
 	{
 		this->GetRenderer(this->currentId())->update(); 
 	}
 
+	// Update recorded frame numbers
 	this->RecordedFrames->setText(QString::number(this->m_USCapturing->GetNumberOfRecordedFrames())); 
 
+	// Update transform matrix 
 	if ( this->m_USCapturing->GetDataCollector() != NULL )
 	{
 		const int mainToolNumber = this->m_USCapturing->GetDataCollector()->GetMainToolNumber(); 
@@ -596,9 +600,11 @@ void TrackedUltrasoundCapturingGUI::RecordButtonClicked()
 	this->SnapshotButton->setEnabled(false); 
 	this->SaveButton->setEnabled(false); 
 	this->SaveAsButton->setEnabled(false); 
+	this->ResetBufferButton->setEnabled(false); 
 	this->StopButton->setEnabled(true); 
 	this->RecordButton->hide(); 
 	this->StopButton->show();
+	this->StopButton->setFocus();
 	this->DisableWizardButtons(); 
 	this->UpdateWidgets(); 
 
@@ -626,6 +632,8 @@ void TrackedUltrasoundCapturingGUI::StopButtonClicked()
 	this->StopButton->setEnabled(true); 
 	this->SaveButton->setEnabled(true); 
 	this->SaveAsButton->setEnabled(true); 
+	this->ResetBufferButton->setEnabled(true); 
+	this->RecordButton->setFocus(); 
 	QApplication::restoreOverrideCursor(); 
 	this->EnableWizardButtons(); 
 	this->UpdateWidgets(); 
@@ -1005,3 +1013,20 @@ void TrackedUltrasoundCapturingGUI::SaveSyncDataClicked()
 	}
 }
 
+//----------------------------------------------------------------------
+void TrackedUltrasoundCapturingGUI::ResetBufferButtonClicked()
+{
+	LOG_TRACE("TrackedUltrasoundCapturingGUI::ResetBufferButtonClicked");
+
+	int reset = QMessageBox::question (this, tr("Tracked Ultrasound Capturing"),
+		tr("Dou you want to discard recorded frames from the buffer?"),
+		QMessageBox::Yes | QMessageBox::No,
+		QMessageBox::No);
+
+	if ( reset == QMessageBox::No )
+	{
+		return; 
+	}
+
+	this->m_USCapturing->ClearTrackedFrameContainer(); 
+}

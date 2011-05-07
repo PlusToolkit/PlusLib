@@ -191,6 +191,12 @@ void TrackedUltrasoundCapturing::Initialize()
 	}
 }; 
 
+//----------------------------------------------------------------------------
+void TrackedUltrasoundCapturing::ClearTrackedFrameContainer()
+{
+	LOG_TRACE("TrackedUltrasoundCapturing::ClearTrackedFrameContainer"); 
+	this->TrackedFrameContainer->Clear(); 
+}
 
 //----------------------------------------------------------------------------
 int TrackedUltrasoundCapturing::GetNumberOfRecordedFrames()

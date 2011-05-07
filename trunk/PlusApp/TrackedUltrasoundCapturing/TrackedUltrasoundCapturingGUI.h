@@ -104,6 +104,8 @@ protected slots:
 
 	void DisconnectButtonClicked(); 
 
+	void ResetBufferButtonClicked(); 
+
 	void ChangeLogLevel(); 
 
 	void ChangeMainToolID(); 

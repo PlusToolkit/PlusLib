@@ -60,6 +60,10 @@ public:
 	
 	// Description:
 	virtual void AddTrackedFrame( TrackedFrame* trackedFrame ); 
+
+	// Description:
+	// Clear frames from tracked frame container
+	virtual void ClearTrackedFrameContainer(); 
 	
 	// Description:
 	virtual void SynchronizeFrameToTracker(); 

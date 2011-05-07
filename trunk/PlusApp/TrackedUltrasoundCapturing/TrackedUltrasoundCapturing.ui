@@ -1044,6 +1044,25 @@
            </widget>
           </item>
           <item>
+           <widget class="QPushButton" name="ResetBufferButton">
+            <property name="minimumSize">
+             <size>
+              <width>150</width>
+              <height>25</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>150</width>
+              <height>25</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>Reset Buffer</string>
+            </property>
+           </widget>
+          </item>
+          <item>
            <widget class="QPushButton" name="SaveButton">
             <property name="minimumSize">
              <size>
@@ -1566,10 +1585,31 @@
   </customwidget>
  </customwidgets>
  <tabstops>
+  <tabstop>SettingsConfigFileName</tabstop>
+  <tabstop>OpenConfigFileButton</tabstop>
+  <tabstop>SettingsOutputFolderName</tabstop>
+  <tabstop>OpenOutputFolderButton</tabstop>
+  <tabstop>SettingsOutputImageSequenceFileName</tabstop>
+  <tabstop>DisconnectButton</tabstop>
+  <tabstop>ConnectToDevicesButton</tabstop>
+  <tabstop>MainToolComboBox</tabstop>
+  <tabstop>MainToolTransformName</tabstop>
+  <tabstop>ReferenceToolComboBox</tabstop>
+  <tabstop>ReferenceToolTransformName</tabstop>
+  <tabstop>LogLevelComboBox</tabstop>
+  <tabstop>SynchronizeButton</tabstop>
+  <tabstop>CancelSyncButton</tabstop>
+  <tabstop>ZeroOffsetButton</tabstop>
+  <tabstop>SaveSyncDataCheckBox</tabstop>
+  <tabstop>SyncTrackerMatrix</tabstop>
   <tabstop>SnapshotButton</tabstop>
   <tabstop>RecordButton</tabstop>
   <tabstop>StopButton</tabstop>
+  <tabstop>ResetBufferButton</tabstop>
   <tabstop>SaveButton</tabstop>
+  <tabstop>SaveAsButton</tabstop>
+  <tabstop>RecordingFrameRateSlider</tabstop>
+  <tabstop>CapturingTrackerMatrix</tabstop>
  </tabstops>
  <resources/>
  <connections>
@@ -1612,8 +1652,8 @@
    <slot>SaveButtonClicked()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>123</x>
-     <y>182</y>
+     <x>144</x>
+     <y>213</y>
     </hint>
     <hint type="destinationlabel">
      <x>451</x>
@@ -1628,8 +1668,8 @@
    <slot>SetFrameRate()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>41</x>
-     <y>278</y>
+     <x>61</x>
+     <y>334</y>
     </hint>
     <hint type="destinationlabel">
      <x>580</x>
@@ -1644,8 +1684,8 @@
    <slot>SaveAsButtonClicked()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>163</x>
-     <y>213</y>
+     <x>170</x>
+     <y>244</y>
     </hint>
     <hint type="destinationlabel">
      <x>486</x>
@@ -1788,8 +1828,8 @@
    <slot>ChangeMainToolID()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>224</x>
-     <y>326</y>
+     <x>349</x>
+     <y>346</y>
     </hint>
     <hint type="destinationlabel">
      <x>386</x>
@@ -1845,6 +1885,22 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>ResetBufferButton</sender>
+   <signal>clicked()</signal>
+   <receiver>Wizard</receiver>
+   <slot>ResetBufferButtonClicked()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>99</x>
+     <y>175</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>193</x>
+     <y>40</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>SnapshotButtonClicked()</slot>
@@ -1865,5 +1921,6 @@
   <slot>ChangeMainToolID()</slot>
   <slot>ChangeReferenceToolID()</slot>
   <slot>SaveSyncDataClicked()</slot>
+  <slot>ResetBufferButtonClicked()</slot>
  </slots>
 </ui>
