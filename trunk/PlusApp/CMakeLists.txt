@@ -7,12 +7,12 @@ ENDIF(COMMAND CMAKE_POLICY)
 
 # ------------------------------------------------------------------------
 # Find Plus use file
-FIND_PACKAGE (PLUS REQUIRED ${PLUS_DIR} NO_DEFAULT_PATH)
-IF ( PLUS_FOUND)
+FIND_PACKAGE (Plus REQUIRED PATHS "${PLUS_DIR}/src" NO_DEFAULT_PATH)
+IF ( Plus_FOUND)
 	INCLUDE( ${PLUS_USE_FILE} )
 ELSE( PLUS_FOUND )
     MESSAGE( FATAL_ERROR "This project requires PLUS. One of these components is missing. Please verify configuration")
-ENDIF( PLUS_FOUND )
+ENDIF( Plus_FOUND )
 
 # ------------------------------------------------------------------------
 # Set project version number: PlusApp version should identical to Plus version 
