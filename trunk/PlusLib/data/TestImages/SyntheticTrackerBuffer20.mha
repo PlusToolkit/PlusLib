@@ -111,6 +111,7 @@ Seq_Frame0019_Status = OK
 Seq_Frame0019_Timestamp = 10.5
 Seq_Frame0019_ToolToTrackerTransform = 1 0 0 10  0 1 0 20  0 0 1 31  0 0 0 1 
 Seq_Frame0019_UnfilteredTimestamp = 10.5
-DimSize = 0 0 20
+DimSize = 1 1 20
 ElementType = MET_UCHAR
 ElementDataFile = LOCAL
+00000000000000000000
