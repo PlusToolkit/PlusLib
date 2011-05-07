@@ -82,14 +82,20 @@ int main( int argc, char** argv )
   dataCollector->Initialize();
   std::cout << "Done." << std::endl;
   
+  std::cout << "Start data collector... ";
   dataCollector->Start();
+  std::cout << "Done." << std::endl;
   
   for ( int i = 0; i < 10; ++ i )
     {
+    std::cout << "Iteration: " << i << std::endl;
     wait( 0.5 );
     }
   
+  std::cout << "Stop data collector... ";
   dataCollector->Stop();
+  std::cout << "Done." << std::endl;
   
-  return EXIT_SUCCESS;
+  wait( 0.5 );
+  return 0;
 }
