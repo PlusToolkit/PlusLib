@@ -79,41 +79,41 @@ TARGET_LINK_LIBRARIES( UsFidSegTest
 	vtkImageAcquisition
   ) 
  
-ADD_TEST(UsFidSegTest_CALIBRATION_PHANTOM_6_POINT
-	${EXECUTABLE_OUTPUT_PATH}/UsFidSegTest
-	--input-test-data-dir=${TestDataDir}
-	--input-img-seq-file=UsTestSeqBaselineThomasShortened.mha
-	--input-testcase-name=UsTestSeqBaselineThomasShortened
-	--input-baseline-file=${TestDataDir}/baselineTestWithThomasData.xml
-	--output-result-file=testcomparisons.xml
-	)
+# ADD_TEST(UsFidSegTest_CALIBRATION_PHANTOM_6_POINT
+	# ${EXECUTABLE_OUTPUT_PATH}/UsFidSegTest
+	# --input-test-data-dir=${TestDataDir}
+	# --input-img-seq-file=UsTestSeqBaselineThomasShortened.mha
+	# --input-testcase-name=UsTestSeqBaselineThomasShortened
+	# --input-baseline-file=${TestDataDir}/baselineTestWithThomasData.xml
+	# --output-result-file=testcomparisons.xml
+	# )
 
-ADD_TEST(UsFidSegTest_TAB2_5_POINT_1
-	${EXECUTABLE_OUTPUT_PATH}/UsFidSegTest
-	--input-test-data-dir=${TestDataDir}
-	--input-img-seq-file=UsFidSegTestNov19_01.mha
-	--input-testcase-name=Nov19_01
-	--input-baseline-file=${TestDataDir}/UsTestSeqNov19_01ManualFidSeg.xml
-	--output-result-file=${TestDataDir}/UsFidSegTest_01comparisons.xml
-	)
+# ADD_TEST(UsFidSegTest_TAB2_5_POINT_1
+	# ${EXECUTABLE_OUTPUT_PATH}/UsFidSegTest
+	# --input-test-data-dir=${TestDataDir}
+	# --input-img-seq-file=UsFidSegTestNov19_01.mha
+	# --input-testcase-name=Nov19_01
+	# --input-baseline-file=${TestDataDir}/UsTestSeqNov19_01ManualFidSeg.xml
+	# --output-result-file=${TestDataDir}/UsFidSegTest_01comparisons.xml
+	# )
 
-ADD_TEST(UsFidSegTest_TAB2_5_POINT_2
-	${EXECUTABLE_OUTPUT_PATH}/UsFidSegTest
-	--input-test-data-dir=${TestDataDir}
-	--input-img-seq-file=UsFidSegTestNov19_02.mha
-	--input-testcase-name=Nov19_02
-	--input-baseline-file=${TestDataDir}/UsTestSeqNov19_02ManualFidSeg.xml
-	--output-result-file=${TestDataDir}/UsFidSegTest_02comparisons.xml
-	)
+# ADD_TEST(UsFidSegTest_TAB2_5_POINT_2
+	# ${EXECUTABLE_OUTPUT_PATH}/UsFidSegTest
+	# --input-test-data-dir=${TestDataDir}
+	# --input-img-seq-file=UsFidSegTestNov19_02.mha
+	# --input-testcase-name=Nov19_02
+	# --input-baseline-file=${TestDataDir}/UsTestSeqNov19_02ManualFidSeg.xml
+	# --output-result-file=${TestDataDir}/UsFidSegTest_02comparisons.xml
+	# )
 
-ADD_TEST(UsFidSegTest_TAB2_5_POINT_3
-	${EXECUTABLE_OUTPUT_PATH}/UsFidSegTest
-	--input-test-data-dir=${TestDataDir}
-	--input-img-seq-file=UsFidSegTestNov19_03.mha
-	--input-testcase-name=Nov19_03
-	--input-baseline-file=${TestDataDir}/UsTestSeqNov19_03ManualFidSeg.xml
-	--output-result-file=${TestDataDir}/UsFidSegTest_03comparisons.xml
-	)
+# ADD_TEST(UsFidSegTest_TAB2_5_POINT_3
+	# ${EXECUTABLE_OUTPUT_PATH}/UsFidSegTest
+	# --input-test-data-dir=${TestDataDir}
+	# --input-img-seq-file=UsFidSegTestNov19_03.mha
+	# --input-testcase-name=Nov19_03
+	# --input-baseline-file=${TestDataDir}/UsTestSeqNov19_03ManualFidSeg.xml
+	# --output-result-file=${TestDataDir}/UsFidSegTest_03comparisons.xml
+	# )
 
 ###################################################
 ADD_EXECUTABLE( vtkSegmentedWiresPositionsTest
