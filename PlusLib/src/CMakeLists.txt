@@ -1,26 +1,21 @@
-#
+# --------------------------------------------------------------------------
 # Configure the build to work (although with limited functionalities) if only
 # src directory of the repository is available
 # 
 IF(NOT PLUS_INSTALL_BIN_DIR)
-
-  cmake_minimum_required(VERSION 2.8)
-  if(COMMAND cmake_policy)
+  CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
+  IF(COMMAND cmake_policy)
 	 cmake_policy(SET CMP0003 NEW)
-  endif(COMMAND cmake_policy)
+  ENDIF(COMMAND cmake_policy)
 
   MESSAGE("The library is not configured using the root CMakeList.txt file, installation and automatic testing is not supported.")
- 
-  # SET(PLUS_DATA_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../data)
-  
 ENDIF(NOT PLUS_INSTALL_BIN_DIR)
 
 
 
 # --------------------------------------------------------------------------
 # Try to find VTK and include its settings (otherwise complain)
-#
-
+# 
 FIND_PACKAGE(VTK REQUIRED PATHS ${VTK_DIR} NO_DEFAULT_PATH)
 IF ( VTK_FOUND )
 INCLUDE(${VTK_USE_FILE})
@@ -30,8 +25,7 @@ ENDIF ( VTK_FOUND )
 
 #
 # Try to find ITK and include its settings (otherwise complain)
-#
-
+# 
 FIND_PACKAGE (ITK REQUIRED PATHS ${ITK_DIR} NO_DEFAULT_PATH)
 IF ( ITK_FOUND )
 	INCLUDE( ${ITK_USE_FILE} )
@@ -56,37 +50,33 @@ ENDIF(PLUS_USE_OpenIGTLink)
 
 # --------------------------------------------------------------------------
 # Options
+OPTION(BUILD_SHARED_LIBS "Build with shared libraries." ${VTK_BUILD_SHARED_LIBS} ${ITK_BUILD_SHARED_LIBS})     
+# OPTION (BUILD_SLICER_MODULE "Build project as Slicer module" OFF)
 
-#
+# --------------------------------------------------------------------------
 # Configure output paths for libraries and executables.
-#
- 
+# 
 SET(LIBRARY_OUTPUT_PATH  ${CMAKE_BINARY_DIR}/bin CACHE PATH "Single output directory for building all libraries." FORCE)
 SET(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin CACHE PATH "Single output directory for building all executables." FORCE)
 SET(INCLUDES_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin CACHE PATH "Single output directory for all include files" FORCE)
-
 MARK_AS_ADVANCED(LIBRARY_OUTPUT_PATH EXECUTABLE_OUTPUT_PATH INCLUDES_OUTPUT_PATH)
 
-#
+# --------------------------------------------------------------------------
 # gnuplot binary directory path.
-#
+# 
+IF(PLUS_USE_PLTools)
+    SET(GNUPLOT_BIN_DIR ${PLTOOLS_DIR}/Gnuplot/binary/ CACHE PATH "Path to the Gnuplot binary directory." FORCE)
+ELSE(PLUS_USE_PLTools)
+    FIND_PATH(GNUPLOT_BIN_DIR "Gnuplot/binary/" DOC "Path to the Gnuplot binary directory." )
+ENDIF(PLUS_USE_PLTools) 
 
-FIND_PATH(GNUPLOT_BIN_DIR "Gnuplot/binary/gnuplot.exe")
-
-
+# --------------------------------------------------------------------------
 # The project library directories.
 SET(PLUS_LIBRARY_DIRS ${LIBRARY_OUTPUT_PATH} CACHE INTERNAL "Path to the Plus library directory" FORCE)
 
-#
-# Build shared libs - Defaults to the same VTK setting.
-#
-OPTION(BUILD_SHARED_LIBS "Build with shared libraries." ${VTK_BUILD_SHARED_LIBS} ${ITK_BUILD_SHARED_LIBS})     
-
-OPTION (BUILD_SLICER_MODULE "Build project as Slicer module" OFF)
-#
+# --------------------------------------------------------------------------
 # Configure include file
-#
-
+# 
 configure_file(
 	${CMAKE_CURRENT_SOURCE_DIR}/PlusConfigure.h.in 
 	${CMAKE_CURRENT_BINARY_DIR}/PlusConfigure.h
@@ -190,78 +180,78 @@ configure_file(PlusConfig.cmake.in
 configure_file(PlusConfigVersion.cmake.in
   "${CMAKE_CURRENT_BINARY_DIR}/PlusConfigVersion.cmake" @ONLY)
   
-IF (BUILD_SLICER_MODULE)
+# IF (BUILD_SLICER_MODULE)
 	
 	# --------------------------------------------------------------------------
 	# Find Slicer3
 	
-	if(NOT Slicer3_SOURCE_DIR)
-		find_package(Slicer3 REQUIRED)
-		include(${Slicer3_USE_FILE})
-		slicer3_set_default_install_prefix_for_external_projects()
-	endif(NOT Slicer3_SOURCE_DIR)
+	# if(NOT Slicer3_SOURCE_DIR)
+		# find_package(Slicer3 REQUIRED)
+		# include(${Slicer3_USE_FILE})
+		# slicer3_set_default_install_prefix_for_external_projects()
+	# endif(NOT Slicer3_SOURCE_DIR)
 
-	include_directories(
-	  ${Slicer3_Libs_INCLUDE_DIRS}
-	  ${Slicer3_Base_INCLUDE_DIRS}
-	  )
+	# include_directories(
+	  # ${Slicer3_Libs_INCLUDE_DIRS}
+	  # ${Slicer3_Base_INCLUDE_DIRS}
+	  # )
 
-	install(FILES 
-		${headers} 
-		"${CMAKE_CURRENT_BINARY_DIR}/vtkPlusConfigure.h"
-		DESTINATION ${Slicer3_INSTALL_MODULES_INCLUDE_DIR}/${PROJECT_NAME} COMPONENT Development
-	)
+	# install(FILES 
+		# ${headers} 
+		# "${CMAKE_CURRENT_BINARY_DIR}/vtkPlusConfigure.h"
+		# DESTINATION ${Slicer3_INSTALL_MODULES_INCLUDE_DIR}/${PROJECT_NAME} COMPONENT Development
+	# )
 	
 	# --------------------------------------------------------------------------
 	# Sources
 
-	set(PLUS_SRCS 
-		vtkPlusLogic.cxx
-		vtkPlusGUI.cxx
-		vtkMRMLPlusNode.cxx
-		)
+	# set(PLUS_SRCS 
+		# vtkPlusLogic.cxx
+		# vtkPlusGUI.cxx
+		# vtkMRMLPlusNode.cxx
+		# )
 
 	# --------------------------------------------------------------------------
 	# Wrapping
 	
-	include("${VTK_CMAKE_DIR}/vtkWrapTcl.cmake")
-	vtk_wrap_tcl3(Plus PLUS_TCL_SRCS "${PLUS_SRCS}" "")
+	# include("${VTK_CMAKE_DIR}/vtkWrapTcl.cmake")
+	# vtk_wrap_tcl3(Plus PLUS_TCL_SRCS "${PLUS_SRCS}" "")
 	
 	#---------------------------------------------------------------------------
 	# Add Loadable Module support
 	
-	generatelm(PLUS_SRCS Plus.txt)
+	# generatelm(PLUS_SRCS Plus.txt)
 	
 	# --------------------------------------------------------------------------
 	# Build and install the library
 	
-	set(lib_name Plus)
-	add_library(${lib_name}
-	${PLUS_SRCS} 
-	${PLUS_TCL_SRCS}
-	)
+	# set(lib_name Plus)
+	# add_library(${lib_name}
+	# ${PLUS_SRCS} 
+	# ${PLUS_TCL_SRCS}
+	# )
 	
-	slicer3_set_modules_output_path(${lib_name})
+	# slicer3_set_modules_output_path(${lib_name})
 	
 	#LINK_DIRECTORIES("c:/devel/Slicer3/STABLE/Slicer3-build/bin/Debug")
 	
-	target_link_libraries(${lib_name}
-	${Slicer3_Libs_LIBRARIES}
-	${Slicer3_Base_LIBRARIES}
-	${KWWidgets_LIBRARIES}
-	vtkDataCollection
-	vtkImageAcquisition
-	)
+	# target_link_libraries(${lib_name}
+	# ${Slicer3_Libs_LIBRARIES}
+	# ${Slicer3_Base_LIBRARIES}
+	# ${KWWidgets_LIBRARIES}
+	# vtkDataCollection
+	# vtkImageAcquisition
+	# )
 	
-	install(TARGETS ${lib_name}
-	RUNTIME DESTINATION ${Slicer3_INSTALL_MODULES_BIN_DIR} COMPONENT RuntimeLibraries 
-	LIBRARY DESTINATION ${Slicer3_INSTALL_MODULES_LIB_DIR} COMPONENT RuntimeLibraries
-	ARCHIVE DESTINATION ${Slicer3_INSTALL_MODULES_LIB_DIR} COMPONENT Development
-	)
+	# install(TARGETS ${lib_name}
+	# RUNTIME DESTINATION ${Slicer3_INSTALL_MODULES_BIN_DIR} COMPONENT RuntimeLibraries 
+	# LIBRARY DESTINATION ${Slicer3_INSTALL_MODULES_LIB_DIR} COMPONENT RuntimeLibraries
+	# ARCHIVE DESTINATION ${Slicer3_INSTALL_MODULES_LIB_DIR} COMPONENT Development
+	# )
 	
-	slicer3_install_modules(${lib_name})
+	# slicer3_install_modules(${lib_name})
 
-ENDIF (BUILD_SLICER_MODULE)
+# ENDIF (BUILD_SLICER_MODULE)
 
 #-----------------------------------------------------------------------------
 # Generate include file for projects that use this library 
