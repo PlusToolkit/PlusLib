@@ -75,6 +75,8 @@ TARGET_LINK_LIBRARIES( qtOpenIGTLinkBroadcasterTest1 vtkDataCollection ${QT_LIBR
 IF (PLUS_USE_OpenIGTLink )
   ADD_TEST( qtOpenIGTLinkBroadcasterTest1
     ${EXECUTABLE_OUTPUT_PATH}/qtOpenIGTLinkBroadcasterTest1
-    --input-config-file=${ConifgFilesDir}/USDataCollectionConfig_SavedDataset_OpenIGTLink.xml
+    --input-config-file=${ConifgFilesDir}/OpenIGTLinkTest.xml
+    --input-video-buffer-metafile=${TestDataDir}/DataCollectorSyncVideoBuffer.mha 
+    --input-tracker-buffer-metafile=${TestDataDir}/DataCollectorSyncTrackerBuffer.mha 
     )
 ENDIF (PLUS_USE_OpenIGTLink )
