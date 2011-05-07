@@ -2,7 +2,7 @@
 	<ImageAcqusition
     Type="SavedDataset"
     BufferSize="200"
-    FrameSize="640 480 1"
+    FrameSize="320 240 1"
     FrameRate="10"
     SmoothingFactor="0.001"
     LocalTimeOffset="0.0"
