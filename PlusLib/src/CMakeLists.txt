@@ -50,7 +50,7 @@ ENDIF(PLUS_USE_OpenIGTLink)
 
 # --------------------------------------------------------------------------
 # Options
-OPTION(BUILD_SHARED_LIBS "Build with shared libraries." ${VTK_BUILD_SHARED_LIBS} ${ITK_BUILD_SHARED_LIBS})     
+OPTION(BUILD_SHARED_LIBS "Build with shared libraries." ${VTK_BUILD_SHARED_LIBS} ${ITK_BUILD_SHARED_LIBS} )     
 # OPTION (BUILD_SLICER_MODULE "Build project as Slicer module" OFF)
 
 # --------------------------------------------------------------------------
