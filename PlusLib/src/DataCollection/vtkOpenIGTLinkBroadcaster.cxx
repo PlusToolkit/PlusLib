@@ -4,6 +4,7 @@
 
 #include "PlusConfigure.h"
 
+#include "vtkBMPWriter.h" // debug
 #include "vtkImageData.h"
 #include "vtkMatrix4x4.h"
 #include "vtkObjectFactory.h"
@@ -127,8 +128,9 @@ vtkOpenIGTLinkBroadcaster
   double frameTime = 0.0;
   vtkSmartPointer< vtkImageData > frameImage = vtkSmartPointer< vtkImageData >::New();
     frameImage->SetDimensions( this->DataCollector->GetVideoSource()->GetFrameSize() );
-    frameImage->SetOrigin( 0, 0, 0 ); // TODO: Where to get this?
-    frameImage->SetSpacing( 0.2, 0.2, 0.2 ); // TODO: Where to get this?
+    frameImage->SetOrigin( this->DataCollector->GetVideoSource()->GetDataOrigin() );
+    frameImage->SetSpacing( this->DataCollector->GetVideoSource()->GetDataSpacing() );
+    frameImage->SetScalarTypeToUnsignedChar();
     frameImage->AllocateScalars();
   
   this->DataCollector->GetFrameWithTimestamp( frameImage, frameTime );
@@ -143,8 +145,6 @@ vtkOpenIGTLinkBroadcaster
   frameImage->GetSpacing( imageSpacingMm );
   frameImage->GetDimensions( svSizePixels );
   
-  // debug
-  std::cout << "Dimensions: " << svSizePixels[ 0 ] << " " << svSizePixels[ 1 ] << " " << svSizePixels[ 2 ] << std::endl;
   
   float spacingFloat[ 3 ];
   for ( int i = 0; i < 3; ++ i ) spacingFloat[ i ] = (float)imageSpacingMm[ i ];
@@ -160,23 +160,14 @@ vtkOpenIGTLinkBroadcaster
   unsigned char* igtlImagePointer = (unsigned char*)( imageMessage->GetScalarPointer() );
   unsigned char* vtkImagePointer = (unsigned char*)( frameImage->GetScalarPointer() );
   
-  // debug
-  unsigned char min = 255;
-  unsigned char max = 0;
   
   for ( int i = 0; i < imageMessage->GetImageSize(); ++ i )
     {
-    
-    //debug
-    unsigned char v = *vtkImagePointer;
-    if ( v < min ) min = v;
-    if ( v > max ) max = v;
-    
     *igtlImagePointer = *vtkImagePointer;
+    ++ igtlImagePointer;
+    ++ vtkImagePointer;
     }
   
-  //debug
-  std::cout << "Intensity range: " << (int)min << " -- " << (int)max << std::endl;
   
   imageMessage->SetMatrix( igtlMatrix );
   imageMessage->Pack();

@@ -4,6 +4,8 @@
 
 #include "PlusConfigure.h"
 
+#include "vtkBMPWriter.h" // debug
+#include "vtkImageData.h"
 #include "vtkMatrix4x4.h"
 #include "vtkSmartPointer.h"
 #include "vtksys/CommandLineArguments.hxx"
@@ -89,7 +91,7 @@ int main( int argc, char** argv )
   dataCollector->Start();
   
   
-  for ( int i = 0; i < 10; ++ i )
+  for ( int i = 0; i < 3; ++ i )
     {
     std::cout << "Iteration: " << i << std::endl;
     vtkAccurateTimer::Delay( 0.5 );
@@ -119,6 +121,24 @@ int main( int argc, char** argv )
 					<< tFrame2Tracker->GetElement(2,0) << "   " << tFrame2Tracker->GetElement(2,1) << "   " << tFrame2Tracker->GetElement(2,2) << "   " << tFrame2Tracker->GetElement(2,3) << "\n"
 					<< tFrame2Tracker->GetElement(3,0) << "   " << tFrame2Tracker->GetElement(3,1) << "   " << tFrame2Tracker->GetElement(3,2) << "   " << tFrame2Tracker->GetElement(3,3) << "\n"; 
 			}
+			
+			/*
+			// Debug image content.
+			std::ostringstream wss;
+			wss << i << ".bmp";
+		  double frameTime = 0.0;
+		  vtkSmartPointer< vtkImageData > frameImage = vtkSmartPointer< vtkImageData >::New();
+        frameImage->SetDimensions( dataCollector->GetVideoSource()->GetFrameSize() );
+        frameImage->SetOrigin( 0, 0, 0 );
+        frameImage->SetSpacing( 0.2, 0.2, 0.2 );
+        frameImage->SetScalarTypeToUnsignedChar();
+        frameImage->AllocateScalars();
+		  dataCollector->GetFrameWithTimestamp( frameImage, frameTime );
+		  vtkSmartPointer< vtkBMPWriter > writer = vtkSmartPointer< vtkBMPWriter >::New();
+		    writer->SetInput( frameImage );
+		    writer->SetFileName( wss.str().c_str() );
+		    writer->Update();
+		  */
 		}
 		else
 		{
