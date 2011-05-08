@@ -46,6 +46,7 @@ private:
   
   std::vector< igtl::ClientSocket::Pointer > Sockets;
   vtkDataCollector* DataCollector;
+  
 };
 
 

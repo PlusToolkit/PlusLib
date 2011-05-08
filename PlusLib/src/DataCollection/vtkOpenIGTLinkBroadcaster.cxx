@@ -4,10 +4,12 @@
 
 #include "PlusConfigure.h"
 
+#include "vtkImageData.h"
 #include "vtkMatrix4x4.h"
 #include "vtkObjectFactory.h"
 #include "vtkSmartPointer.h"
 
+#include "igtlImageMessage.h"
 #include "igtlTransformMessage.h"
 
 
@@ -120,12 +122,73 @@ vtkOpenIGTLinkBroadcaster
   transformMessage->Pack();
   
   
-    // Send the OpenIGTLink transform message to all hosts.
+    // Read the image from the DataCollector.
+  
+  double frameTime = 0.0;
+  vtkSmartPointer< vtkImageData > frameImage = vtkSmartPointer< vtkImageData >::New();
+    frameImage->SetDimensions( this->DataCollector->GetVideoSource()->GetFrameSize() );
+    frameImage->SetOrigin( 0, 0, 0 ); // TODO: Where to get this?
+    frameImage->SetSpacing( 0.2, 0.2, 0.2 ); // TODO: Where to get this?
+    frameImage->AllocateScalars();
+  
+  this->DataCollector->GetFrameWithTimestamp( frameImage, frameTime );
+  
+  int imageSizePixels[ 3 ] = { 0, 0, 0 };
+  double imageSpacingMm[ 3 ] = { 0, 0, 0 };
+  int svSizePixels[ 3 ] = { 0, 0, 0 };
+  int svOffset[ 3 ] = { 0, 0, 0 };
+  int scalarType = igtl::ImageMessage::TYPE_UINT8;
+  
+  frameImage->GetDimensions( imageSizePixels );
+  frameImage->GetSpacing( imageSpacingMm );
+  frameImage->GetDimensions( svSizePixels );
+  
+  // debug
+  std::cout << "Dimensions: " << svSizePixels[ 0 ] << " " << svSizePixels[ 1 ] << " " << svSizePixels[ 2 ] << std::endl;
+  
+  float spacingFloat[ 3 ];
+  for ( int i = 0; i < 3; ++ i ) spacingFloat[ i ] = (float)imageSpacingMm[ i ];
+  
+  igtl::ImageMessage::Pointer imageMessage = igtl::ImageMessage::New();
+    imageMessage->SetDimensions( imageSizePixels );
+    imageMessage->SetSpacing( spacingFloat );
+    imageMessage->SetScalarType( scalarType );
+    imageMessage->SetDeviceName( "Ultrasound" );
+    imageMessage->SetSubVolume( svSizePixels, svOffset );
+    imageMessage->AllocateScalars();
+  
+  unsigned char* igtlImagePointer = (unsigned char*)( imageMessage->GetScalarPointer() );
+  unsigned char* vtkImagePointer = (unsigned char*)( frameImage->GetScalarPointer() );
+  
+  // debug
+  unsigned char min = 255;
+  unsigned char max = 0;
+  
+  for ( int i = 0; i < imageMessage->GetImageSize(); ++ i )
+    {
+    
+    //debug
+    unsigned char v = *vtkImagePointer;
+    if ( v < min ) min = v;
+    if ( v > max ) max = v;
+    
+    *igtlImagePointer = *vtkImagePointer;
+    }
+  
+  //debug
+  std::cout << "Intensity range: " << (int)min << " -- " << (int)max << std::endl;
+  
+  imageMessage->SetMatrix( igtlMatrix );
+  imageMessage->Pack();
+  
+  
+    // Send the OpenIGTLink transform and image message to all hosts.
   
   std::vector< igtl::ClientSocket::Pointer >::iterator it;
   for ( it = this->Sockets.begin(); it != this->Sockets.end(); ++ it )
     {
     (*it)->Send( transformMessage->GetPackPointer(), transformMessage->GetPackSize() );
+    (*it)->Send( imageMessage->GetPackPointer(), imageMessage->GetPackSize() );
     }
   
 }
