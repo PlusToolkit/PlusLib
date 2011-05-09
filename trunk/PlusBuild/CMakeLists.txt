@@ -13,11 +13,24 @@ ENDIF(COMMAND cmake_policy)
 #-----------------------------------------------------------------------------
 # Need subversion for the automatic update of the repository
 MARK_AS_ADVANCED(CLEAR Subversion_SVN_EXECUTABLE)
-FIND_FILE(Subversion_SVN_EXECUTABLE svn${CMAKE_EXECUTABLE_SUFFIX} PATHS "C:/cygwin/bin/" )
+FIND_FILE(Subversion_SVN_EXECUTABLE svn${CMAKE_EXECUTABLE_SUFFIX} 
+  PATHS 
+    "C:/cygwin/bin/" 
+    "../cygwin/bin/" 
+    "../../cygwin/bin/")
 FIND_PACKAGE(Subversion REQUIRED)
 
 SET(PLUSBUILD_ASSEMBLA_USERNAME "PLUSBUILD_ASSEMBLA_USERNAME-NOT-FOUND" CACHE STRING "Username for Plus assembla server: https://subversion.assembla.com/svn/plus/" )
 SET(PLUSBUILD_ASSEMBLA_PASSWORD "PLUSBUILD_ASSEMBLA_PASSWORD-NOT-FOUND" CACHE STRING "Password for Plus assembla server: https://subversion.assembla.com/svn/plus/" )
+
+IF("${PLUSBUILD_ASSEMBLA_USERNAME}" STREQUAL "PLUSBUILD_ASSEMBLA_USERNAME-NOT-FOUND")
+  MESSAGE(WARNING "Cannot download necessary files from the Plus repository if PLUSBUILD_ASSEMBLA_USERNAME is not defined.")
+ENDIF() 
+
+IF("${PLUSBUILD_ASSEMBLA_PASSWORD}" STREQUAL "PLUSBUILD_ASSEMBLA_PASSWORD-NOT-FOUND")
+  MESSAGE(WARNING "Cannot download necessary files from the Plus repository if PLUSBUILD_ASSEMBLA_PASSWORD is not defined.")
+ENDIF() 
+
 
 #-----------------------------------------------------------------------------
 # GIT - Let's check if a valid version of GIT is available
@@ -32,7 +45,12 @@ IF(NOT PLUSBUILD_USE_GIT_PROTOCOL)
 ENDIF()
 
 MARK_AS_ADVANCED(CLEAR GIT_EXECUTABLE)
-FIND_FILE(GIT_EXECUTABLE git${CMAKE_EXECUTABLE_SUFFIX} PATHS "C:/cygwin/bin/" )
+FIND_FILE(GIT_EXECUTABLE git${CMAKE_EXECUTABLE_SUFFIX} 
+  PATHS 
+    "C:/cygwin/bin/" 
+    "../cygwin/bin/" 
+    "../../cygwin/bin/"
+  )
 FIND_PACKAGE(Git)
 IF(NOT GIT_FOUND)
   MESSAGE(FATAL_ERROR "error: Install Git and try to re-configure")
@@ -41,7 +59,13 @@ ENDIF()
 #-----------------------------------------------------------------------------
 # Qt - Let's check if a valid version of Qt is available
 #-----------------------------------------------------------------------------
-FIND_FILE(QT_QMAKE_EXECUTABLE qmake${CMAKE_EXECUTABLE_SUFFIX} $ENV{QTDIR} )
+FIND_FILE(QT_QMAKE_EXECUTABLE qmake${CMAKE_EXECUTABLE_SUFFIX} 
+  PATH
+    $ENV{QTDIR}
+    "C:/Qt/4.7.3/bin"
+    "../Qt/4.7.3/bin"
+    "../../Qt/4.7.3/bin"
+  )
 FIND_PACKAGE(Qt4 REQUIRED)
 SET(QT_USE_QT3SUPPORT TRUE) 
 INCLUDE(${QT_USE_FILE})
