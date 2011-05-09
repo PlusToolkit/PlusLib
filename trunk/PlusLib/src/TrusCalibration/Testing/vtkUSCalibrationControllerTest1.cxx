@@ -34,6 +34,7 @@ int main (int argc, char* argv[])
 
 	std::string inputConfigFileName;
 	std::string inputTemplateModelConfigFileName; 
+	std::string inputPhantomDefinitionXmlFileName;
 	std::string inputBaselineFileName;
 	double inputTranslationErrorThreshold(0); 
 	double inputRotationErrorThreshold(0); 
@@ -52,6 +53,7 @@ int main (int argc, char* argv[])
 
 	cmdargs.AddArgument("--input-config-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "Configuration file name");
 	cmdargs.AddArgument("--input-template-model-config-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputTemplateModelConfigFileName, "Template model configuration file name");
+	cmdargs.AddArgument("--input-phantom-definition-xml-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputPhantomDefinitionXmlFileName, "Phantom definition file name");
 	
 	cmdargs.AddArgument("--input-baseline-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputBaselineFileName, "Name of file storing baseline calibration results");
 	cmdargs.AddArgument("--translation-error-threshold", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputTranslationErrorThreshold, "Translation error threshold in mm.");	
@@ -101,7 +103,8 @@ int main (int argc, char* argv[])
 
 	// Initialize the stepper calibration controller 
 	vtkSmartPointer<vtkProbeCalibrationController> probeCal = vtkSmartPointer<vtkProbeCalibrationController>::New(); 
-	probeCal->SetProgramFolderPath(programPath.c_str()); 
+	probeCal->SetProgramFolderPath(programPath.c_str());
+	probeCal->SetPhantomDefinitionFileName(inputPhantomDefinitionXmlFileName.c_str());
 	probeCal->ReadConfiguration(inputConfigFileName.c_str()); 
 	probeCal->SetTemplateModelConfigFileName(inputTemplateModelConfigFileName.c_str()); 
 
