@@ -26,8 +26,8 @@ int main (int argc, char* argv[])
 	std::string inputConfigFileName;
 	std::string inputBaselineFileName;
 
-	std::string stylusCalibrationXmlFileName;
-	std::string phantomDefinitionXmlFileName;
+	std::string inputStylusCalibrationXmlFileName;
+	std::string inputPhantomDefinitionXmlFileName;
 
 	int verboseLevel=PlusLogger::LOG_LEVEL_INFO;
 
@@ -36,8 +36,8 @@ int main (int argc, char* argv[])
 
 	cmdargs.AddArgument("--input-config-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "Configuration file name");
 	cmdargs.AddArgument("--input-baseline-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputBaselineFileName, "Name of file storing baseline calibration results");
-	cmdargs.AddArgument("--stylus-calibration-xml-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &stylusCalibrationXmlFileName, "Name of file storing stylus calibration transform");
-	cmdargs.AddArgument("--phantom-definition-xml-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &phantomDefinitionXmlFileName, "Phantom definition file name");
+	cmdargs.AddArgument("--input-stylus-calibration-xml-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputStylusCalibrationXmlFileName, "Name of file storing stylus calibration transform");
+	cmdargs.AddArgument("--input-phantom-definition-xml-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputPhantomDefinitionXmlFileName, "Phantom definition file name");
 	cmdargs.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug)");	
 
 	if ( !cmdargs.Parse() )
@@ -67,11 +67,11 @@ int main (int argc, char* argv[])
 	controller->TrackingOnlyOn();
 
 	StylusCalibrationController* stylusCalibrationController = StylusCalibrationController::GetInstance();
-	stylusCalibrationController->LoadStylusCalibrationFromFile(stylusCalibrationXmlFileName);
+	stylusCalibrationController->LoadStylusCalibrationFromFile(inputStylusCalibrationXmlFileName);
 
 	PhantomRegistrationController* phantomRegistrationController = PhantomRegistrationController::GetInstance();
 	phantomRegistrationController->Initialize();
-	phantomRegistrationController->LoadPhantomDefinitionFromFile(phantomDefinitionXmlFileName);
+	phantomRegistrationController->LoadPhantomDefinitionFromFile(inputPhantomDefinitionXmlFileName);
 	phantomRegistrationController->Start();
 	
 	// Acquire landmarks

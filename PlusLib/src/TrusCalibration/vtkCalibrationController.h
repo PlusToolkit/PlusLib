@@ -178,6 +178,11 @@ public:
 	vtkSetStringMacro(ConfigurationFileName); 
 	vtkGetStringMacro(ConfigurationFileName); 
 
+	//! Description 
+	// Set/get the phantom definition file name
+	vtkSetStringMacro(PhantomDefinitionFileName); 
+	vtkGetStringMacro(PhantomDefinitionFileName); 
+
 	//! Attribute: Flag to enable the Segmentation Analysis
 	vtkGetMacro(EnableSegmentationAnalysis, bool);
 	vtkSetMacro(EnableSegmentationAnalysis, bool);
@@ -250,6 +255,10 @@ protected:
 	//! Description 
 	// Read RealtimeCalibration data element
 	virtual void ReadRealtimeCalibrationConfiguration( vtkXMLDataElement* realtimeCalibration );
+
+	//! Description 
+	// Read Phantom definition from XML
+	virtual void ReadPhantomDefinition();
 	
 
 protected:
@@ -302,6 +311,9 @@ protected:
 
 	//! Attributes: config file name
 	char* ConfigurationFileName;
+
+	//! Attributes: phantom definition file name
+	char* PhantomDefinitionFileName;
 
 	//! Pointer to the callback function that is executed each time a segmentation is finished
     SegmentationProgressPtr SegmentationProgressCallbackFunction;

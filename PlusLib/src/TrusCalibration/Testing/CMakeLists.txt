@@ -15,6 +15,7 @@ ADD_TEST(vtkUSCalibrationControllerTest-Exact
 		--input-probe-translation-sequence-metafile=${TestDataDir}/USTC_Ulterius_ProbeTranslationData.mha 
 		--input-template-translation-sequence-metafile=${TestDataDir}/USTC_Ulterius_TemplateTranslationData.mha 
 		--input-config-file-name=${ConfigFilesDir}/USCalibrationConfig.xml
+		--input-phantom-definition-xml-file-name=${ConfigFilesDir}/PhantomDefinition_iCal_1.0.xml
 		--input-template-model-config-file-name=${ConfigFilesDir}/TemplateModel.xml 
 		--input-baseline-file-name=${TestDataDir}/UsTemplateCalibration.results.xml 
 		--verbose=1
@@ -29,6 +30,7 @@ ADD_TEST(vtkUSCalibrationControllerTest
 		--input-template-translation-sequence-metafile=${TestDataDir}/USTC_Ulterius_TemplateTranslationData.mha 
 		--input-config-file-name=${ConfigFilesDir}/USCalibrationConfig.xml
 		--input-template-model-config-file-name=${ConfigFilesDir}/TemplateModel.xml 
+		--input-phantom-definition-xml-file-name=${ConfigFilesDir}/PhantomDefinition_iCal_1.0.xml
 		--input-baseline-file-name=${TestDataDir}/UsTemplateCalibration.results.xml 
 		--translation-error-threshold=1.0
 		--rotation-error-threshold=1.0
@@ -44,6 +46,7 @@ ADD_TEST(vtkUSCalibrationControllerTest_FrameGrabber-Exact
 		--input-template-translation-sequence-metafile=${TestDataDir}/USTC_FrameGrabber_TemplateTranslationData.mha 
 		--input-config-file-name=${ConfigFilesDir}/USCalibrationConfig_FrameGrabber.xml
 		--input-template-model-config-file-name=${ConfigFilesDir}/TemplateModel.xml 
+		--input-phantom-definition-xml-file-name=${ConfigFilesDir}/PhantomDefinition_iCal_1.0.xml
 		--input-baseline-file-name=${TestDataDir}/UsTemplateCalibration_FrameGrabber.results.xml 
 		--verbose=1
 		)
@@ -57,6 +60,7 @@ ADD_TEST(vtkUSCalibrationControllerTest_FrameGrabber
 		--input-template-translation-sequence-metafile=${TestDataDir}/USTC_FrameGrabber_TemplateTranslationData.mha 
 		--input-config-file-name=${ConfigFilesDir}/USCalibrationConfig_FrameGrabber.xml
 		--input-template-model-config-file-name=${ConfigFilesDir}/TemplateModel.xml 
+		--input-phantom-definition-xml-file-name=${ConfigFilesDir}/PhantomDefinition_iCal_1.0.xml
 		--input-baseline-file-name=${TestDataDir}/UsTemplateCalibration_FrameGrabber.results.xml 
 		--translation-error-threshold=1.0
 		--rotation-error-threshold=1.0
@@ -112,7 +116,7 @@ ADD_TEST(vtkPhantomRegistrationTest
 		${EXECUTABLE_OUTPUT_PATH}/vtkPhantomRegistrationTest
 		--input-config-file-name=${ConfigFilesDir}/USDataCollectionConfig_FakeTracker_RecordPhantomLandmarks.xml
 		--input-baseline-file-name=${TestDataDir}/PhantomRegistration.results.xml
-		--stylus-calibration-xml-file-name=${TestDataDir}/StylusCalibration.results.xml
-		--phantom-definition-xml-file-name=${ConfigFilesDir}/PhantomDefinition_fCal_1.0.xml
+		--input-stylus-calibration-xml-file-name=${TestDataDir}/StylusCalibration.results.xml
+		--input-phantom-definition-xml-file-name=${ConfigFilesDir}/PhantomDefinition_fCal_1.0.xml
 		--verbose=1
 		)

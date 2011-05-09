@@ -49,7 +49,8 @@ SegmentationProgressCallbackFunction(NULL)
 	this->VisualizationComponent = NULL;
 	this->OutputPath = NULL; 
 	this->ProgramFolderPath = NULL; 
-	this->ConfigurationFileName = NULL; 
+	this->ConfigurationFileName = NULL;
+	this->PhantomDefinitionFileName = NULL;
 	this->SegParameters = NULL; 
 
 	this->SetCalibrationMode(REALTIME); 
@@ -523,6 +524,10 @@ void vtkCalibrationController::ReadCalibrationControllerConfiguration( vtkXMLDat
 	//********************************************************************
 	vtkSmartPointer<vtkXMLDataElement> segmentationParameters = calibrationController->FindNestedElementWithName("SegmentationParameters"); 
 	this->ReadSegmentationParametersConfiguration(segmentationParameters); 
+
+	// Phantom definition
+	//********************************************************************
+	this->ReadPhantomDefinition();
 }
 
 //----------------------------------------------------------------------------
@@ -809,14 +814,25 @@ void vtkCalibrationController::ReadSegmentationParametersConfiguration( vtkXMLDa
 		this->GetSegParameters()->mUseOriginalImageIntensityForDotIntensityScore = (useOriginalImageIntensityForDotIntensityScore?true:false); 
 	}
 
-	// Read and parse phantom definition file
 	const char* phantomDefinitionFile =  segmentationParameters->GetAttribute("PhantomDefinition"); 
-	if ( phantomDefinitionFile != NULL )
-	{
-		vtkSmartPointer<vtkXMLDataElement> phantomDefinition = vtkXMLUtilities::ReadElementFromFile(phantomDefinitionFile);
+	if ( phantomDefinitionFile != NULL ) {
+		this->SetPhantomDefinitionFileName(phantomDefinitionFile);
+	}
 
-		if (phantomDefinition == NULL) { //TODO if file does not exist then try concatenating the directory from this->ConfigurationFileName and the last part of phantomDefinitionFile
-			LOG_ERROR("Unable to read the phantom definition file: " << phantomDefinitionFile); 
+	this->GetSegParameters()->UpdateParameters(); 
+}
+
+//----------------------------------------------------------------------------
+void vtkCalibrationController::ReadPhantomDefinition()
+{
+	LOG_TRACE("vtkCalibrationController::ReadPhantomDefinition");
+
+	if ( this->PhantomDefinitionFileName != NULL )
+	{
+		vtkSmartPointer<vtkXMLDataElement> phantomDefinition = vtkXMLUtilities::ReadElementFromFile(this->PhantomDefinitionFileName);
+
+		if (phantomDefinition == NULL) {
+			LOG_ERROR("Unable to read the phantom definition file: " << this->PhantomDefinitionFileName); 
 			return;
 		}
 
@@ -894,6 +910,9 @@ void vtkCalibrationController::ReadSegmentationParametersConfiguration( vtkXMLDa
 				this->GetSegParameters()->mNWires.push_back(nWire);
 			}
 		}
+	} else {
+		LOG_ERROR("Phantom definition file path is not set!"); 
+		return;
 	}
 
 	// Compute error boundaries based on error percents and the NWire definition (supposing that the NWire is regular - parallel sides)
@@ -920,8 +939,8 @@ void vtkCalibrationController::ReadSegmentationParametersConfiguration( vtkXMLDa
 		}
 	}
 
-	this->GetSegParameters()->mMaxLineLenMm = sqrt(maxLineLengthSquared) * (1.0 + (maxLineLengthErrorPercent / 100.0));
-	this->GetSegParameters()->mMinLineLenMm = sqrt(minLineLengthSquared) * (1.0 - (maxLineLengthErrorPercent / 100.0));
+	this->GetSegParameters()->mMaxLineLenMm = sqrt(maxLineLengthSquared) * (1.0 + (this->GetSegParameters()->mMaxLineLengthErrorPercent / 100.0));
+	this->GetSegParameters()->mMinLineLenMm = sqrt(minLineLengthSquared) * (1.0 - (this->GetSegParameters()->mMaxLineLengthErrorPercent / 100.0));
 	LOG_DEBUG("Line length - computed min: " << sqrt(minLineLengthSquared) << " , max: " << sqrt(maxLineLengthSquared) << ";  allowed min: " << this->GetSegParameters()->mMinLineLenMm << ", max: " << this->GetSegParameters()->mMaxLineLenMm);
 
 	// Distance between lines (= distance between planes of the N-wires)
@@ -964,11 +983,9 @@ void vtkCalibrationController::ReadSegmentationParametersConfiguration( vtkXMLDa
 		}
 	}
 
-	this->GetSegParameters()->mMaxLinePairDistMm = maxNPlaneDistance * (1.0 + (maxLinePairDistanceErrorPercent / 100.0));
-	this->GetSegParameters()->mMinLinePairDistMm = minNPlaneDistance * (1.0 - (maxLinePairDistanceErrorPercent / 100.0));
+	this->GetSegParameters()->mMaxLinePairDistMm = maxNPlaneDistance * (1.0 + (this->GetSegParameters()->mMaxLinePairDistanceErrorPercent / 100.0));
+	this->GetSegParameters()->mMinLinePairDistMm = minNPlaneDistance * (1.0 - (this->GetSegParameters()->mMaxLinePairDistanceErrorPercent / 100.0));
 	LOG_DEBUG("Line pair distance - computed min: " << minNPlaneDistance << " , max: " << maxNPlaneDistance << ";  allowed min: " << this->GetSegParameters()->mMinLinePairDistMm << ", max: " << this->GetSegParameters()->mMaxLinePairDistMm);
 
 	//TODO Test if it matches the predefined errors in case of iCal phantom (create phantom definition for it)
-
-	this->GetSegParameters()->UpdateParameters(); 
 }
