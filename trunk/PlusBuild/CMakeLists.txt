@@ -15,9 +15,8 @@ ENDIF(COMMAND cmake_policy)
 MARK_AS_ADVANCED(CLEAR Subversion_SVN_EXECUTABLE)
 FIND_FILE(Subversion_SVN_EXECUTABLE svn${CMAKE_EXECUTABLE_SUFFIX} 
   PATHS 
-    "C:/cygwin/bin/" 
-    "../cygwin/bin/" 
-    "../../cygwin/bin/")
+    "c:/Program Files/SlikSvn/bin/"
+  )
 FIND_PACKAGE(Subversion REQUIRED)
 
 SET(PLUSBUILD_ASSEMBLA_USERNAME "PLUSBUILD_ASSEMBLA_USERNAME-NOT-FOUND" CACHE STRING "Username for Plus assembla server: https://subversion.assembla.com/svn/plus/" )
@@ -47,9 +46,8 @@ ENDIF()
 MARK_AS_ADVANCED(CLEAR GIT_EXECUTABLE)
 FIND_FILE(GIT_EXECUTABLE git${CMAKE_EXECUTABLE_SUFFIX} 
   PATHS 
-    "C:/cygwin/bin/" 
-    "../cygwin/bin/" 
-    "../../cygwin/bin/"
+    "c:/Program Files/Git/bin/"
+    "c:/Program Files (x86)/Git/bin/"
   )
 FIND_PACKAGE(Git)
 IF(NOT GIT_FOUND)
