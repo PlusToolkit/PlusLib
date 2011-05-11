@@ -717,7 +717,7 @@ void SaveTransformToFile(TrackedFrame* trackedFrame, std::string imageFileName, 
 		helperTransform->GetPosition(xyz); 
 		os  << "# TRANSFORM: FROM THE US PROBE FRAME TO THE TRACKER FRAME\n"
 			<< wxyz[0] << "\t" << wxyz[1] << "\t" << wxyz[2] << "\t" << wxyz[3] << "\t"
-			<<  xyz[0] << "\t" <<  xyz[1] << "\t" <<  xyz[2] << "\n" 
+			<<  xyz[0]/1000.0 << "\t" <<  xyz[1]/1000.0 << "\t" <<  xyz[2]/1000.0 << "\n" 
 			<< std::endl; 
 
 
@@ -728,7 +728,7 @@ void SaveTransformToFile(TrackedFrame* trackedFrame, std::string imageFileName, 
 
 		os  << "# TRANSFORM: FROM THE DRB REFERENCE FRAME TO THE TRACKER FRAME\n" 
 			<< wxyz[0] << "\t" << wxyz[1] << "\t" << wxyz[2] << "\t" << wxyz[3] << "\t"
-			<<  xyz[0] << "\t" <<  xyz[1] << "\t" <<  xyz[2] << "\n" 
+			<<  xyz[0]/1000.0 << "\t" <<  xyz[1]/1000.0 << "\t" <<  xyz[2]/1000.0 << "\n" 
 			<< std::endl; 
 
 		os << std::ends; 
