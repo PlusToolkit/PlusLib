@@ -1,17 +1,3 @@
-# --------------------------------------------------------------------------
-# Configure the build to work (although with limited functionalities) if only
-# src directory of the repository is available
-# 
-IF(NOT PLUS_INSTALL_BIN_DIR)
-  CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
-  IF(COMMAND cmake_policy)
-	 cmake_policy(SET CMP0003 NEW)
-  ENDIF(COMMAND cmake_policy)
-
-  MESSAGE("The library is not configured using the root CMakeList.txt file, installation and automatic testing is not supported.")
-ENDIF(NOT PLUS_INSTALL_BIN_DIR)
-
-
 
 # --------------------------------------------------------------------------
 # Try to find VTK and include its settings (otherwise complain)
@@ -271,6 +257,8 @@ IF(PLUS_INSTALL_SCRIPTS_DIR)
   INSTALL(
     DIRECTORY ${GNUPLOT_BIN_DIR}/
     DESTINATION ${PLUS_INSTALL_GNUPLOT_DIR}
+    CONFIGURATIONS Release
+    COMPONENT Scripts
     PATTERN ".svn" EXCLUDE
   )
 

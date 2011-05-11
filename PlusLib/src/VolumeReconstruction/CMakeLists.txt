@@ -44,7 +44,9 @@ TARGET_LINK_LIBRARIES(	vtkVolumeReconstruction vtkCommon vtkHybrid vtkFiltering
 #
 
 INSTALL(TARGETS vtkVolumeReconstruction
-  DESTINATION bin
-  COMPONENT Runtime)
+    RUNTIME
+    DESTINATION bin
+    CONFIGURATIONS Release
+    COMPONENT RuntimeLibraries)
 
 
