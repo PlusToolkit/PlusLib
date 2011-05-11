@@ -347,7 +347,7 @@ void TrackedUltrasoundCapturingGUI::UpdateRequestCallback()
 //----------------------------------------------------------------------
 void TrackedUltrasoundCapturingGUI::UpdateWidgets()
 {
-	LOG_TRACE("TrackedUltrasoundCapturingGUI::UpdateWidgets");
+	//LOG_TRACE("TrackedUltrasoundCapturingGUI::UpdateWidgets");
 
 	// Update renderer window
 	if ( this->GetRenderer(this->currentId()) != NULL )
@@ -505,7 +505,7 @@ QProgressBar* TrackedUltrasoundCapturingGUI::GetProgressBar( int pageID )
 //----------------------------------------------------------------------
 QVTKWidget* TrackedUltrasoundCapturingGUI::GetRenderer( int pageID )
 {
-	LOG_TRACE("TrackedUltrasoundCapturingGUI::GetRenderer");
+	//LOG_TRACE("TrackedUltrasoundCapturingGUI::GetRenderer");
 	QVTKWidget* renderer = NULL; 
 	if ( this->page(pageID) == this->CapturingPage )
 	{

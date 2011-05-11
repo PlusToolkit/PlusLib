@@ -51,6 +51,10 @@ SET (TrackedUltrasoundCapturing_LIBS
     vtkPlusCommon
     )
 
+IF (PLUS_USE_OpenIGTLink)
+    SET (TrackedUltrasoundCapturing_LIBS ${TrackedUltrasoundCapturing_LIBS} OpenIGTLink)
+ENDIF(PLUS_USE_OpenIGTLink)
+    
 ADD_EXECUTABLE( TrackedUltrasoundCapturing MACOSX_BUNDLE ${TrackedUltrasoundCapturing_SRCS} ${TrackedUltrasoundCapturing_UI_HDRS} ${QT_UI_Sources} ${QT_UI_Headers} ${QT_MOC_Files} ${QT_MOC_UI_Files})
 
 TARGET_LINK_LIBRARIES( TrackedUltrasoundCapturing QVTK ${TrackedUltrasoundCapturing_LIBS} )

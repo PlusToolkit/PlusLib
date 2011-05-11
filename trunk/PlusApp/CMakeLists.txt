@@ -26,12 +26,12 @@ MESSAGE(STATUS "PlusApp version: ${PLUSAPP_VERSION}" )
 # --------------------------------------------------------------------------
 # Find SVN for revision information status
 #
-find_package(Subversion)
-if(Subversion_FOUND)
+FIND_PACKAGE(Subversion)
+IF(Subversion_FOUND)
   Subversion_WC_INFO(${CMAKE_CURRENT_SOURCE_DIR} PLUSAPP_SVN_INFO)
   MESSAGE(STATUS "Current revision is ${PLUSAPP_SVN_INFO_WC_REVISION}") 
-  set(PLUSAPP_REVISION ${PLUSAPP_SVN_INFO_WC_REVISION})
-endif(Subversion_FOUND) 
+  SET(PLUSAPP_REVISION ${PLUSAPP_SVN_INFO_WC_REVISION})
+ENDIF(Subversion_FOUND) 
 
 # Standard CMake option for building libraries shared or static by default.
 OPTION(BUILD_SHARED_LIBS
@@ -48,14 +48,8 @@ SET(EXECUTABLE_OUTPUT_PATH ${PLUSAPP_BINARY_DIR}/bin CACHE PATH
     "Single output directory for building all executables.")
 MARK_AS_ADVANCED(LIBRARY_OUTPUT_PATH EXECUTABLE_OUTPUT_PATH)
 
-SET(CMAKE_INSTALL_PREFIX ${EXECUTABLE_OUTPUT_PATH} )
-
+SET(CMAKE_INSTALL_PREFIX ${PLUSAPP_BINARY_DIR}/Install )
 SET( INSTALL_DESTINATION_DIR "PlusApp_v${PLUSAPP_VERSION_MAJOR}.${PLUSAPP_VERSION_MINOR}.${PLUSAPP_VERSION_PATCH}" )
-
-# --------------------------------------------------------------------------
-# Packaging
-#
-INCLUDE (${CMAKE_CURRENT_SOURCE_DIR}/CPackConfig.cmake)
 
 OPTION (PLUSAPP_BUILD_4DUltrasound "Build the 4DUltrasound application" ON)
 OPTION (PLUSAPP_BUILD_VolumeReconstructor "Build the VolumeReconstructor application" ON)
@@ -65,10 +59,10 @@ OPTION (PLUSAPP_BUILD_SequenceMetaFileConverter "Build the SequenceMetaFileConve
 OPTION (PLUSAPP_BUILD_TrackedUltrasoundCapturing "Build the TrackedUltrasoundCapturing application (Qt version)" ON)
 OPTION (PLUSAPP_BUILD_FreehandCalibration "Build the Freehand Calibration application (Qt)" ON)
 
-
 # --------------------------------------------------------------------------
-# Subdirs
-#
+# Packaging
+# 
+INCLUDE (${CMAKE_CURRENT_SOURCE_DIR}/CPackConfig.cmake) 
 
 # --------------------------------------------------------------------------
 # Build the VolumeReconstructor application
@@ -116,7 +110,7 @@ ENDIF(PLUSAPP_BUILD_OpenIGTLinkBroadcaster)
 
 #-----------------------------------------------------------------------------
 # Generate convenience files for automatic build, test, and packaging
-#
+# 
 configure_file(
 	${CMAKE_CURRENT_SOURCE_DIR}/CreatePackage.bat.in
 	${CMAKE_CURRENT_BINARY_DIR}/CreatePackage.bat

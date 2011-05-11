@@ -201,7 +201,7 @@ void TrackedUltrasoundCapturing::ClearTrackedFrameContainer()
 //----------------------------------------------------------------------------
 int TrackedUltrasoundCapturing::GetNumberOfRecordedFrames()
 { 
-	LOG_TRACE("TrackedUltrasoundCapturing::GetNumberOfRecordedFrames"); 
+	//LOG_TRACE("TrackedUltrasoundCapturing::GetNumberOfRecordedFrames"); 
 	int numOfFrames(0); 
 	if ( this->TrackedFrameContainer )
 	{

@@ -77,9 +77,22 @@ SET (FreehandCalibration_LIBS
     vtkPlusCommon
     )
 
+IF (PLUS_USE_OpenIGTLink)
+    SET (FreehandCalibration_LIBS ${FreehandCalibration_LIBS} OpenIGTLink)
+ENDIF(PLUS_USE_OpenIGTLink)
+
 ADD_EXECUTABLE( FreehandCalibration MACOSX_BUNDLE ${FreehandCalibration_SRCS} ${FreehandCalibration_UI_HDRS} ${QT_UI_Sources} ${QT_UI_Headers} ${QT_MOC_Files} ${QT_MOC_UI_Files} ${QT_RCC_Files})
 
 TARGET_LINK_LIBRARIES( FreehandCalibration QVTK ${FreehandCalibration_LIBS} )
+
+# --------------------------------------------------------------------------
+# Install
+#
+IF(PLUSAPP_INSTALL_BIN_DIR)
+# show up in the Start Menu in Windows
+if( WIN32 AND NOT UNIX )
+    SET(CPACK_PACKAGE_EXECUTABLES "FreehandCalibration" "FreehandCalibration")
+endif()
 
 INSTALL(FILES 
 	${QT_BINARY_DIR}/QtCore4${CMAKE_SHARED_LIBRARY_SUFFIX}
@@ -93,30 +106,20 @@ INSTALL(FILES
 	COMPONENT RuntimeLibraries
   )
 
-# --------------------------------------------------------------------------
-# Install
-#
-IF(PLUSAPP_INSTALL_BIN_DIR)
-
-# show up in the Start Menu in Windows
-if( WIN32 AND NOT UNIX )
-    SET(CPACK_PACKAGE_EXECUTABLES "FreehandCalibration" "FreehandCalibration")
-endif()
-
 INSTALL(FILES 
-	${PLUS_DATA_DIR}/ConfigFiles/PhantomDefinition.xml
+	${PLUS_DATA_DIR}/ConfigFiles/PhantomDefinition_fCal_1.0.xml
 	DESTINATION ${PLUSAPP_INSTALL_CONFIG_DIR}
 	COMPONENT RuntimeLibraries
   )
 
-INSTALL(TARGETS FreehandCalibration
+INSTALL(TARGETS FreehandCalibration 
   DESTINATION ${PLUSAPP_INSTALL_BIN_DIR}
   COMPONENT RuntimeLibraries
   )
   
 ENDIF(PLUSAPP_INSTALL_BIN_DIR)
 
-
+ 
 
   
 	 

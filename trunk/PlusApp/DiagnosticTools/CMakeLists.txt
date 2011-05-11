@@ -9,6 +9,9 @@ SET (DIAGDATA_LIBS
      vtkPlusCommon
     )
 
+IF (PLUS_USE_OpenIGTLink)
+    SET (DIAGDATA_LIBS ${DIAGDATA_LIBS} OpenIGTLink)
+ENDIF(PLUS_USE_OpenIGTLink)    
 # ---------------------- DiagDataCollection ---------------------
 #
 ADD_EXECUTABLE(DiagDataCollection DiagDataCollection.cxx)
