@@ -42,12 +42,6 @@ SET( PLUS_SVN_EXECUTABLE ${Subversion_SVN_EXECUTABLE} )
 INCLUDE(CTest)
 
 # --------------------------------------------------------------------------
-# Packaging
-#
-
-INCLUDE (${CMAKE_CURRENT_SOURCE_DIR}/CPackConfig.cmake)
-
-# --------------------------------------------------------------------------
 # Subdirs
 #
 
@@ -61,10 +55,7 @@ configure_file(
 	${CMAKE_CURRENT_SOURCE_DIR}/BuildAndTest.bat.in 
 	${CMAKE_CURRENT_BINARY_DIR}/BuildAndTest.bat
 	)
-configure_file(
-	${CMAKE_CURRENT_SOURCE_DIR}/CreatePackage.bat.in
-	${CMAKE_CURRENT_BINARY_DIR}/CreatePackage.bat
-	)	
+
 configure_file(
 	${CMAKE_CURRENT_SOURCE_DIR}/DevEnv_Debug.bat.in 
 	${CMAKE_CURRENT_BINARY_DIR}/DevEnv_Debug.bat

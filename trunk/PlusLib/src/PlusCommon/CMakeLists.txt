@@ -48,9 +48,12 @@ TARGET_LINK_LIBRARIES(	vtkPlusCommon vtkCommon vtkHybrid vtkFiltering
 INSTALL(FILES 
 	${External_Libraries_Install}
 	DESTINATION bin
-	COMPONENT Runtime
+    CONFIGURATIONS Release
+	COMPONENT RuntimeLibraries
 	)
 	
 INSTALL(TARGETS vtkPlusCommon
-  DESTINATION bin
-  COMPONENT Runtime)
+    RUNTIME
+    DESTINATION bin
+    CONFIGURATIONS Release
+    COMPONENT RuntimeLibraries)

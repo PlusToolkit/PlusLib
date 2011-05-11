@@ -256,9 +256,12 @@ TARGET_LINK_LIBRARIES(vtkImageAcquisition ${ImageAcquisition_LIBS})
 INSTALL(FILES 
 	${External_Libraries_Install}
 	DESTINATION bin
-	COMPONENT Runtime
+    CONFIGURATIONS Release
+	COMPONENT RuntimeLibraries
 	)
 
 INSTALL(TARGETS vtkImageAcquisition
-  DESTINATION bin
-  COMPONENT Runtime)
+    RUNTIME
+    DESTINATION bin
+    CONFIGURATIONS Release
+    COMPONENT RuntimeLibraries)

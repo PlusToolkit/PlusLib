@@ -42,7 +42,7 @@ TARGET_LINK_LIBRARIES( UsFidSegAlgo itkvnl_algo ${ITK_LIBRARIES} vtkPlusCommon)
 # Install
 #
 
-INSTALL(TARGETS UsFidSegAlgo
-  DESTINATION bin
-  COMPONENT Runtime)
+# INSTALL(TARGETS UsFidSegAlgo
+  # DESTINATION bin
+  # COMPONENT RuntimeLibraries)
   

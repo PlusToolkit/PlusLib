@@ -1402,6 +1402,10 @@ void vtkDataCollector::ReadTrackerProperties(vtkXMLDataElement* trackerConfig)
       this->SetTracker( tracker );
       this->SetMainToolNumber( 0 ); // TODO: Read this from config xml data.
     }
+	else
+	{
+		LOG_WARNING("Unable to read Ascension3DG XML data element"); 
+	}
     
 #endif
 	}

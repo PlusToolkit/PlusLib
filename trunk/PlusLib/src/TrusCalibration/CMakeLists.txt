@@ -60,6 +60,7 @@ TARGET_LINK_LIBRARIES(vtkTrusCalibration
 # Install
 #
 
-INSTALL(TARGETS vtkTrusCalibration
-  DESTINATION bin
-  COMPONENT Runtime)
+# INSTALL(TARGETS vtkTrusCalibration
+  # DESTINATION bin
+  # CONFIGURATIONS Release
+  # COMPONENT RuntimeLibraries)

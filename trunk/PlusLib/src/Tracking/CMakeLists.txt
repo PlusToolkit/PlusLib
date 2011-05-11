@@ -299,11 +299,14 @@ TARGET_LINK_LIBRARIES(	vtkTracking vtkImageAcquisition vtkCommon vtkHybrid vtkFi
 INSTALL(FILES 
 	${External_Libraries_Install}
 	DESTINATION bin
-	COMPONENT Runtime
+    CONFIGURATIONS Release
+	COMPONENT RuntimeLibraries
 	)
 	
 INSTALL(TARGETS vtkTracking
-  DESTINATION bin
-  COMPONENT Runtime)
+    RUNTIME
+    DESTINATION bin
+    CONFIGURATIONS Release
+    COMPONENT RuntimeLibraries)
 
 
