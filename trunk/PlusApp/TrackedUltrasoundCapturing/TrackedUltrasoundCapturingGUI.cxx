@@ -716,7 +716,7 @@ void TrackedUltrasoundCapturingGUI::SynchronizeButtonClicked()
 void TrackedUltrasoundCapturingGUI::CancelSyncButtonClicked()
 {
 	LOG_TRACE("TrackedUltrasoundCapturingGUI::CancelSyncButtonClicked");
-	this->m_USCapturing->CancelRequestOn(); 
+	this->m_USCapturing->GetDataCollector()->CancelSyncRequestOn(); 
 	this->EnableWizardButtons(); 
 	this->GetProgressBar( this->currentId() )->hide(); 
 	this->SynchronizeButton->show();

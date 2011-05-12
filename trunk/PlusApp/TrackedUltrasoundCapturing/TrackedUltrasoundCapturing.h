@@ -113,12 +113,6 @@ public:
 	vtkSetObjectMacro(RealtimeRenderer, vtkRenderer);
 
 	// Description:
-	// Set/get the cancel request flag to cancel the active job 
-	vtkSetMacro(CancelRequest, bool); 
-	vtkGetMacro(CancelRequest, bool); 
-	vtkBooleanMacro(CancelRequest, bool); 
-
-	// Description:
 	// Set/get the synchronizing flag
 	vtkSetMacro(Synchronizing, bool); 
 	vtkGetMacro(Synchronizing, bool); 
@@ -164,7 +158,6 @@ protected:
 	bool Synchronizing; 
 
 	int FrameRate; 
-	bool CancelRequest; 
 	double RecordingStartTime; 
 
 	bool EnableSyncDataSaving; 

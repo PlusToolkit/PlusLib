@@ -119,7 +119,6 @@ TrackedUltrasoundCapturing::TrackedUltrasoundCapturing()
 	this->RealtimeImageActor = NULL; 
 	this->UpdateRequestCallbackFunction = NULL; 
 	this->ProgressBarUpdateCallbackFunction = NULL; 
-	this->CancelRequestOff(); 
 	this->SynchronizingOff(); 
 	this->RecordingOff(); 
 	this->DataCollector = NULL; 
@@ -334,189 +333,19 @@ void TrackedUltrasoundCapturing::RecordTrackedFrame( const double time /*=0*/)
 void TrackedUltrasoundCapturing::SynchronizeFrameToTracker()
 {
 	LOG_TRACE("TrackedUltrasoundCapturing::SynchronizeFrameToTracker");
-	this->CancelRequestOff(); 
 	this->SynchronizingOn(); 
-
-	//************************************************************************************
-	// Save local time offsets before sync
-	const double prevVideoOffset = this->DataCollector->GetVideoSource()->GetBuffer()->GetLocalTimeOffset(); 
-	const double prevTrackerOffset = this->DataCollector->GetTracker()->GetTool(this->GetDataCollector()->GetMainToolNumber())->GetBuffer()->GetLocalTimeOffset(); 
-
-	//************************************************************************************
-	// Set the local timeoffset to 0 before synchronization 
-	this->SetLocalTimeOffset(0, 0); 
-	
-	//************************************************************************************
-	// Set the length of the acquisition 
-	const double syncTimeLength = this->GetDataCollector()->GetSynchronizer()->GetSynchronizationTimeLength(); 
-
-	// Get the realtime tracking frequency
-	this->DataCollector->GetTracker()->GetTool(this->DataCollector->GetMainToolNumber())->GetBuffer()->Lock(); 
-	double trackerFrameRate = this->DataCollector->GetTracker()->GetTool(this->DataCollector->GetMainToolNumber())->GetBuffer()->GetFrameRate(); 
-	this->DataCollector->GetTracker()->GetTool(this->DataCollector->GetMainToolNumber())->GetBuffer()->Unlock(); 
-
-	// Get the realtime video frame rate
-	this->DataCollector->GetVideoSource()->GetBuffer()->Lock();
-	double videoFrameRate = this->DataCollector->GetVideoSource()->GetBuffer()->GetFrameRate(); 
-	this->DataCollector->GetVideoSource()->GetBuffer()->Unlock();
-
-	const int trackerBufferSize = this->DataCollector->GetTracker()->GetTool(this->DataCollector->GetMainToolNumber())->GetBuffer()->GetBufferSize(); 
-	const int videoBufferSize = this->DataCollector->GetVideoSource()->GetBuffer()->GetBufferSize(); 
-	int syncTrackerBufferSize = trackerFrameRate * syncTimeLength + 100; 
-	int syncVideoBufferSize = videoFrameRate * syncTimeLength + 100; 
-
-	//************************************************************************************
-	// Change buffer size to fit the whole acquisition 
-	if ( syncVideoBufferSize > videoBufferSize )
-	{
-		LOG_DEBUG("Change video buffer size to: " << syncVideoBufferSize); 
-		this->DataCollector->GetVideoSource()->SetFrameBufferSize(syncVideoBufferSize);	
-		this->DataCollector->GetVideoSource()->GetBuffer()->Lock(); 
-		this->DataCollector->GetVideoSource()->GetBuffer()->Clear(); 
-		this->DataCollector->GetVideoSource()->GetBuffer()->Unlock();
-	}
-	else
-	{
-		this->DataCollector->GetVideoSource()->GetBuffer()->Lock(); 
-		this->DataCollector->GetVideoSource()->GetBuffer()->Clear(); 
-		this->DataCollector->GetVideoSource()->GetBuffer()->Unlock(); 
-	}
-
-	if ( syncTrackerBufferSize > trackerBufferSize )
-	{
-		LOG_DEBUG("Change tracker buffer size to: " << syncTrackerBufferSize); 
-		for ( int i = 0; i < this->DataCollector->GetTracker()->GetNumberOfTools(); i++ )
-		{
-			this->DataCollector->GetTracker()->GetTool(i)->GetBuffer()->Lock(); 
-			this->DataCollector->GetTracker()->GetTool(i)->GetBuffer()->SetBufferSize(syncTrackerBufferSize); 
-			this->DataCollector->GetTracker()->GetTool(i)->GetBuffer()->Clear(); 
-			this->DataCollector->GetTracker()->GetTool(i)->GetBuffer()->Unlock(); 
-		}
-	}
-	else
-	{
-		for ( int i = 0; i < this->DataCollector->GetTracker()->GetNumberOfTools(); i++ )
-		{
-			this->DataCollector->GetTracker()->GetTool(i)->GetBuffer()->Lock(); 
-			this->DataCollector->GetTracker()->GetTool(i)->GetBuffer()->Clear(); 
-			this->DataCollector->GetTracker()->GetTool(i)->GetBuffer()->Unlock(); 
-		}
-	}
-
-	//************************************************************************************
-	// Acquire data 
-	const double syncStartTime = vtkAccurateTimer::GetSystemTime(); 
-	while ( syncStartTime + syncTimeLength > vtkAccurateTimer::GetSystemTime() )
-	{
-		if ( this->CancelRequest ) 
-		{
-			// we should cancel the job...
-			this->SetLocalTimeOffset(prevVideoOffset, prevTrackerOffset); 
-			this->SynchronizingOff(); 
-			return; 
-		}
-
-		const int percent = floor(100*(vtkAccurateTimer::GetSystemTime() - syncStartTime) / syncTimeLength); 
-
-		if ( this->ProgressBarUpdateCallbackFunction != NULL )
-		{
-			(*ProgressBarUpdateCallbackFunction)(percent); 
-		}
-
-		vtkAccurateTimer::Delay(0.1); 
-	}
-
-	if ( this->ProgressBarUpdateCallbackFunction != NULL )
-	{
-		(*ProgressBarUpdateCallbackFunction)(100); 
-	}
-
-	//************************************************************************************
-	// Copy buffers to local buffer
-	vtkSmartPointer<vtkVideoBuffer2> videobuffer = vtkSmartPointer<vtkVideoBuffer2>::New(); 
-	if ( this->DataCollector->GetVideoSource() != NULL ) 
-	{
-		LOG_DEBUG("Copy video buffer ..."); 
-		this->DataCollector->CopyVideoBuffer(videobuffer); 
-	}
-
-	vtkSmartPointer<vtkTracker> tracker = vtkSmartPointer<vtkTracker>::New(); 
-	if ( this->DataCollector->GetTracker() != NULL )
-	{
-		LOG_DEBUG("Copy tracker ..."); 
-		this->DataCollector->CopyTracker(tracker); 
-	}
-	vtkTrackerBuffer* trackerbuffer = tracker->GetTool(this->DataCollector->GetMainToolNumber())->GetBuffer(); 
-
-	if ( this->GetEnableSyncDataSaving() )
-	{
-		LOG_INFO(">>>>>>>>>>>> Save temporal calibration buffers to file ... "); 
-		this->DataCollector->DumpTrackerBufferToMetafile(trackerbuffer, "./", "DataCollectorSyncTrackerBuffer", false );
-		this->DataCollector->DumpVideoBufferToMetafile(videobuffer, "./", "DataCollectorSyncVideoBuffer", false ); 
-	}
-	
-
-	//************************************************************************************
-	// Start synchronization 
-	this->DataCollector->GetSynchronizer()->SetProgressBarUpdateCallbackFunction(ProgressBarUpdateCallbackFunction); 
-	this->DataCollector->GetSynchronizer()->SetSyncStartTime(syncStartTime); 
-
-	LOG_DEBUG("Tracker buffer size: " << trackerbuffer->GetBufferSize()); 
-	LOG_DEBUG("Tracker buffer elements: " << trackerbuffer->GetNumberOfItems()); 
-	LOG_DEBUG("Video buffer size: " << videobuffer->GetBufferSize()); 
-	LOG_DEBUG("Video buffer elements: " << videobuffer->GetNumberOfItems()); 
-	this->DataCollector->GetSynchronizer()->SetTrackerBuffer(trackerbuffer); 
-	this->DataCollector->GetSynchronizer()->SetVideoBuffer(videobuffer); 
-
-	this->DataCollector->GetSynchronizer()->Synchronize(); 
-
-	//************************************************************************************
-	// Set the local time for buffers if the calibration was done
-	if ( this->DataCollector->GetSynchronizer()->GetSynchronized() )
-	{
-		this->SetLocalTimeOffset(this->DataCollector->GetSynchronizer()->GetVideoOffset(), this->DataCollector->GetSynchronizer()->GetTrackerOffset()); 
-	}
-
-	this->DataCollector->GetSynchronizer()->SetTrackerBuffer(NULL); 
-	this->DataCollector->GetSynchronizer()->SetVideoBuffer(NULL); 
-
-	//************************************************************************************
-	// Change buffer size back to original 
-	LOG_DEBUG("Change video buffer size to: " << videoBufferSize); 
-	this->DataCollector->GetVideoSource()->SetFrameBufferSize(videoBufferSize);
-	this->DataCollector->GetVideoSource()->GetBuffer()->Lock(); 
-	this->DataCollector->GetVideoSource()->GetBuffer()->Clear(); 
-	this->DataCollector->GetVideoSource()->GetBuffer()->Unlock();
-	
-	LOG_DEBUG("Change tracker buffer size to: " << trackerBufferSize); 
-	for ( int i = 0; i < this->DataCollector->GetTracker()->GetNumberOfTools(); i++ )
-	{
-		this->DataCollector->GetTracker()->GetTool(i)->GetBuffer()->Lock(); 
-		this->DataCollector->GetTracker()->GetTool(i)->GetBuffer()->SetBufferSize(trackerBufferSize); 
-		this->DataCollector->GetTracker()->GetTool(i)->GetBuffer()->Clear(); 
-		this->DataCollector->GetTracker()->GetTool(i)->GetBuffer()->Unlock(); 
-	}
-
+	this->DataCollector->SetProgressBarUpdateCallbackFunction( this->ProgressBarUpdateCallbackFunction ); 
+	this->DataCollector->Synchronize(this->GetEnableSyncDataSaving()); 
 	this->SynchronizingOff(); 
-
 }
 
 //----------------------------------------------------------------------------
 void TrackedUltrasoundCapturing::SetLocalTimeOffset(double videoOffset, double trackerOffset)
 {
 	LOG_TRACE("TrackedUltrasoundCapturing::SetLocalTimeOffset");
-	if ( this->DataCollector == NULL )
+	if ( this->DataCollector != NULL )
 	{
-		return; 
-	}
-
-	//********************************
-	// Set the local time for buffers 
-	this->DataCollector->GetVideoSource()->GetBuffer()->SetLocalTimeOffset( videoOffset ); 
-
-	for ( int i = 0; i < this->DataCollector->GetTracker()->GetNumberOfTools(); i++ )
-	{
-		this->DataCollector->GetTracker()->GetTool(i)->GetBuffer()->SetLocalTimeOffset(trackerOffset); 
+		this->DataCollector->SetLocalTimeOffset(videoOffset, trackerOffset); 
 	}
 }
 
