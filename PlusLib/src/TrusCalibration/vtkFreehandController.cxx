@@ -103,21 +103,15 @@ void vtkFreehandController::Initialize()
 	}
 
 	// Set up canvas image actor
-	/*
 	vtkSmartPointer<vtkImageActor> canvasImageActor = vtkSmartPointer<vtkImageActor>::New();
-	canvasImageActor->VisibilityOn(); 
+	//canvasImageActor->VisibilityOn(); 
 	this->SetCanvasImageActor(canvasImageActor); 
-
-	CanvasImageActor->SetInput( this->DataCollector->GetOutput() );
-	*/
+	//CanvasImageActor->SetInput( this->DataCollector->GetOutput() );
 
 	// Set up canvas renderer
 	vtkSmartPointer<vtkRenderer> canvasRenderer = vtkSmartPointer<vtkRenderer>::New(); 
 	canvasRenderer->SetBackground(0.6, 0.6, 0.6);
 	this->SetCanvasRenderer(canvasRenderer);
-
-	// Add image actor to the realtime renderer, and add renderer to Canvas
-	//this->GetCanvasRenderer()->AddActor(this->GetCanvasImageActor());
 
 	// Create directory for the output
 	vtkSmartPointer<vtkDirectory> dir = vtkSmartPointer<vtkDirectory>::New(); 

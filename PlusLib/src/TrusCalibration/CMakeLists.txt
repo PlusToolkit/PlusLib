@@ -10,12 +10,12 @@ SET (TrusCalibration_SRCS
 	vtkProbeCalibrationController.cxx 
 	vtkProbeCalibrationControllerIO.cxx 
 	vtkStepperCalibrationController.cxx 
-	vtkFreehandController.cxx
+    vtkMeanShiftClustering.cxx 
 	StylusCalibrationController.cxx
 	PhantomRegistrationController.cxx
 	FreehandCalibrationController.cxx
 	VolumeReconstructionController.cxx
-    vtkMeanShiftClustering.cxx 
+	vtkFreehandController.cxx
 	)
 
 SET (TrusCalibration_HDRS)	
@@ -29,10 +29,14 @@ IF (WIN32)
 		vtkProbeCalibrationController.h
 		vtkProbeCalibrationControllerIO.h
 		vtkStepperCalibrationController.h 
-		vtkFreehandController.h
+        vtkMeanShiftClustering.h
 		AbstractToolbox.h
 		AbstractToolboxController.h
-        vtkMeanShiftClustering.h
+		StylusCalibrationController.h
+		PhantomRegistrationController.h
+		FreehandCalibrationController.h
+		VolumeReconstructionController.h
+		vtkFreehandController.h
 		)
 ENDIF (WIN32)
 
