@@ -92,28 +92,28 @@
         <!-- SearchRegionY: Y-axis points to the bottom in pixels (there must be at least 8-pixel-wide black border outside of the search region.) -->
         <SegmentationParameters
                 FrameSize="640 480"
-                ScalingEstimation="0.19"
+                ScalingEstimation="0.26"
                 MorphologicalOpeningCircleRadiusMm="0.55"
 				MorphologicalOpeningBarSizeMm="2.0"
-                
-                SearchRegionX="50 550"
-                SearchRegionY="140 300"
-                
+
+                SearchRegionX="100 360"
+                SearchRegionY="170 220"
+
 				MaxLineLengthErrorPercent="5.0"
 				MaxLinePairDistanceErrorPercent="10.0"
                 MaxLineErrorMm="2.0"
-                                
+
                 MaxAngleDifferenceDegrees="11"
                 MinThetaDegrees="20"
                 MaxThetaDegrees="160"
-                
+
                 ThresholdImageTop="10.0"
                 ThresholdImageBottom="10.0"
-                
+
                 FindLines3PtDist="5.3"
-                
+
                 UseOriginalImageIntensityForDotIntensityScore="0"
-				
+
                 PhantomDefinition="d:\devel\Plus-bin\bin\config\PhantomDefinition_iCal_1.0.xml" 
                 >
         </SegmentationParameters>

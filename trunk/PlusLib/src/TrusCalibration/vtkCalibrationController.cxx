@@ -35,7 +35,8 @@ SegmentationProgressCallbackFunction(NULL)
 {
 	this->EnableTrackedSequenceDataSavingOff();
 	this->EnableErroneouslySegmentedDataSavingOff(); 
-	this->EnableSegmentationAnalysisOff(); 
+	this->EnableSegmentationAnalysisOff();
+	this->EnablePathOverrideOn();
 	this->InitializedOff(); 
 
 	// Segmentation parameters
@@ -815,7 +816,7 @@ void vtkCalibrationController::ReadSegmentationParametersConfiguration( vtkXMLDa
 	}
 
 	const char* phantomDefinitionFile =  segmentationParameters->GetAttribute("PhantomDefinition"); 
-	if ( phantomDefinitionFile != NULL ) {
+	if ( (this->GetEnablePathOverride()) && (phantomDefinitionFile != NULL) && (vtksys::SystemTools::FileExists(phantomDefinitionFile, true)) ) {
 		this->SetPhantomDefinitionFileName(phantomDefinitionFile);
 	}
 
@@ -986,6 +987,4 @@ void vtkCalibrationController::ReadPhantomDefinition()
 	this->GetSegParameters()->mMaxLinePairDistMm = maxNPlaneDistance * (1.0 + (this->GetSegParameters()->mMaxLinePairDistanceErrorPercent / 100.0));
 	this->GetSegParameters()->mMinLinePairDistMm = minNPlaneDistance * (1.0 - (this->GetSegParameters()->mMaxLinePairDistanceErrorPercent / 100.0));
 	LOG_DEBUG("Line pair distance - computed min: " << minNPlaneDistance << " , max: " << maxNPlaneDistance << ";  allowed min: " << this->GetSegParameters()->mMinLinePairDistMm << ", max: " << this->GetSegParameters()->mMaxLinePairDistMm);
-
-	//TODO Test if it matches the predefined errors in case of iCal phantom (create phantom definition for it)
 }
