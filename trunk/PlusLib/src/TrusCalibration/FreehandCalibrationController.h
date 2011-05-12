@@ -3,6 +3,8 @@
 
 #include "AbstractToolboxController.h"
 
+#include "vtkProbeCalibrationController.h"
+
 //-----------------------------------------------------------------------------
 
 /*!
@@ -47,6 +49,12 @@ public:
 	*/
 	void Stop();
 
+	//TODO
+	void StartTemporalCalibration();
+	void StartSpatialCalibration();
+	bool IsTemporalCalibrationDone();
+	void SaveCalibrationResults(std::string aFile);
+
 protected:
 	/*!
 	* \brief Constructor
@@ -54,6 +62,9 @@ protected:
 	FreehandCalibrationController();
 
 protected:
+	//TODO
+	vtkProbeCalibrationController* m_ProbeCalibrationController;
+	bool m_TemporalCalibrationDone;
 
 private:
 	//! Instance of the singleton

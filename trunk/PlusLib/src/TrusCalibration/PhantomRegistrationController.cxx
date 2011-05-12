@@ -59,9 +59,6 @@ PhantomRegistrationController::PhantomRegistrationController()
 	,m_CurrentLandmarkIndex(-1)
 	,m_RecordRequested(false)
 {
-	//m_FrontPoints.clear();
-	//m_BackPoints.clear();
-
 	m_LandmarkNames.clear();
 
 	m_PhantomRenderer = vtkRenderer::New();
@@ -736,16 +733,16 @@ bool PhantomRegistrationController::LoadPhantomDefinitionFromFile(std::string aF
 				std::string filePath = vtksys::SystemTools::CollapseFullPath(file, vtkFreehandController::GetInstance()->GetConfigDirectory());
 				if (! vtksys::SystemTools::FileExists(filePath.c_str())) {
 					LOG_ERROR("Phantom model file is not found in the specified path: " << filePath);
+				} else {
+					stlReader->SetFileName(filePath.c_str());
+					vtkSmartPointer<vtkPolyDataMapper> stlMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+					stlMapper->SetInputConnection(stlReader->GetOutputPort());
+					m_PhantomBodyActor->SetMapper(stlMapper);
+
+					vtkSmartPointer<vtkPolyDataMapper> stlMapper2 = vtkSmartPointer<vtkPolyDataMapper>::New();
+					stlMapper2->SetInputConnection(stlReader->GetOutputPort());
+					m_RegisteredPhantomBodyActor->SetMapper(stlMapper2);
 				}
-
-				stlReader->SetFileName(filePath.c_str());
-				vtkSmartPointer<vtkPolyDataMapper> stlMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-				stlMapper->SetInputConnection(stlReader->GetOutputPort());
-				m_PhantomBodyActor->SetMapper(stlMapper);
-
-				vtkSmartPointer<vtkPolyDataMapper> stlMapper2 = vtkSmartPointer<vtkPolyDataMapper>::New();
-				stlMapper2->SetInputConnection(stlReader->GetOutputPort());
-				m_RegisteredPhantomBodyActor->SetMapper(stlMapper2);
 			}
 
 			// ModelToPhantomOriginTransform - Transforming input model for proper visualization
