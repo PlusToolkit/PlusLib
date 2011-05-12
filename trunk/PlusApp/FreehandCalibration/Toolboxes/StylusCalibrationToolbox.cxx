@@ -211,5 +211,5 @@ void StylusCalibrationToolbox::SaveResultClicked()
 
 void StylusCalibrationToolbox::RequestDoAcquisition()
 {
-	StylusCalibrationController::GetInstance()->DoAcquisition(); //TODO Singleton AbstractToolboxController? (ugy, hogy meghivja ennek a konstruktorat is! akkor mehetne ez a fgv az abstract-ba)
+	StylusCalibrationController::GetInstance()->DoAcquisition(); //TODO Singleton AbstractToolboxController? (so that it calls the constructor of this class too! then this function could go to abstract)
 }

@@ -1,5 +1,6 @@
 <RCC>
   <qresource prefix="icon_">
     <file>Resources/icon_OpenFile.png</file>
+    <file>Resources/icon_fCal.png</file>
   </qresource>
 </RCC>

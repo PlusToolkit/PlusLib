@@ -50,6 +50,8 @@ PhantomRegistrationToolbox::PhantomRegistrationToolbox(QWidget* aParent, Qt::WFl
 
 PhantomRegistrationToolbox::~PhantomRegistrationToolbox()
 {
+	ui.canvasPhantom->GetRenderWindow()->RemoveRenderer(PhantomRegistrationController::GetInstance()->GetPhantomRenderer());
+
 	PhantomRegistrationController* phantomRegistrationController = PhantomRegistrationController::GetInstance();
 	if (phantomRegistrationController != NULL) {
 		delete phantomRegistrationController;

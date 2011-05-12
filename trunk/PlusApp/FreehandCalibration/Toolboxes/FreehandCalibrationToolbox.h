@@ -45,6 +45,11 @@ public:
 	*/
 	void Clear();
 
+	/*!
+	* \brief Initialize toolbox (load session data) - overridden method
+	*/
+	void Initialize();
+
 signals:
 	/*!
 	* \brief Executes operations needed after stopping the process
@@ -58,8 +63,21 @@ protected slots:
 	*/
 	void RequestDoAcquisition();
 
+	//TODO
+	void OpenPhantomDefinitionClicked();
+	void OpenPhantomRegistrationClicked();
+	void OpenCalibrationConfigurationClicked();
+	void StartTemporalClicked();
+	void ResetTemporalClicked();
+	void StartSpatialClicked();
+	void ResetSpatialClicked();
+	void SaveClicked();
+
 protected:
-	//Ui::FreehandCalibrationToolbox ui;
+	Ui::FreehandCalibrationToolbox ui;
+
+	//! Timer for acquisition
+	QTimer*	m_AcquisitionTimer;
 };
 
 #endif

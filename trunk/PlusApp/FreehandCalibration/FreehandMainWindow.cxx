@@ -109,6 +109,19 @@ void FreehandMainWindow::CreateToolboxes()
 
 		connect( phantomRegistrationToolbox, SIGNAL( SetTabsEnabled(bool) ), this, SLOT( SetTabsEnabled(bool) ) );
 	}
+
+	// Freehand calibration widget
+	FreehandCalibrationToolbox* freehandCalibrationToolbox = new FreehandCalibrationToolbox(ui.tab_FreehandCalibration);
+
+	if (freehandCalibrationToolbox != NULL) {
+		QGridLayout* grid = new QGridLayout(ui.tab_FreehandCalibration, 1, 1, 0, 0, "");
+		grid->addWidget(freehandCalibrationToolbox);
+		ui.tab_FreehandCalibration->setLayout(grid);
+
+		connect( freehandCalibrationToolbox, SIGNAL( SetTabsEnabled(bool) ), this, SLOT( SetTabsEnabled(bool) ) );
+	}
+
+	//TODO Volume reconstruction
 }
 
 //-----------------------------------------------------------------------------
@@ -158,6 +171,9 @@ void FreehandMainWindow::FindConfigurationFiles()
 	std::string configPath = vtksys::SystemTools::CollapseFullPath("../config/USDataCollectionConfig.xml", controller->GetProgramPath()); 
 	if (vtksys::SystemTools::FileExists(configPath.c_str(), true)) {
 		controller->SetInputConfigFileName(configPath.c_str());
+	} else {
+		controller->SetInputConfigFileName("");
+		LOG_WARNING("Configuration file could not be found!");
 	}
 }
 
@@ -252,14 +268,21 @@ void FreehandMainWindow::CurrentTabChanged(int aTabIndex)
 		vtkFreehandController::GetInstance()->TrackingOnlyOn();
 
 		m_ActiveToolbox = ToolboxType_PhantomRegistration;
+
 	} else if (ui.tabWidgetToolbox->tabText(aTabIndex) == "Freehand Calibration") {
-		//TODO
+		// Initialize freehand calibration
+		FreehandCalibrationController::GetInstance()->Initialize();
+		vtkFreehandController::GetInstance()->TrackingOnlyOff();
 
 		m_ActiveToolbox = ToolboxType_FreehandCalibration;
+
 	} else if (ui.tabWidgetToolbox->tabText(aTabIndex) == "Volume Reconstruction") {
-		//TODO
+		// Inialize volume reconstruction
+		VolumeReconstructionController::GetInstance()->Initialize();
+		vtkFreehandController::GetInstance()->TrackingOnlyOff();
 
 		m_ActiveToolbox = ToolboxType_VolumeReconstruction;
+
 	} else {
 		LOG_ERROR("No tab with this title found!");
 	}
@@ -297,8 +320,10 @@ void FreehandMainWindow::ChangeBackTab(int aTabIndex)
 void FreehandMainWindow::UpdateGUI()
 {
 	vtkFreehandController* controller = vtkFreehandController::GetInstance();
-	if ((controller == NULL) || (StylusCalibrationController::GetInstance() == NULL)
-		|| (PhantomRegistrationController::GetInstance() == NULL)) { //TODO kiegesziteni
+	if ((controller == NULL)
+		|| (StylusCalibrationController::GetInstance() == NULL)
+		|| (PhantomRegistrationController::GetInstance() == NULL)
+		|| (FreehandCalibrationController::GetInstance() == NULL)) { //TODO kiegesziteni
 		LOG_ERROR("Some controllers are not initialized!");
 		return;
 	}
