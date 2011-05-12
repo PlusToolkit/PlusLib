@@ -81,7 +81,7 @@ public:
 
 	// Description:
 	// Synchronize the connected devices
-	virtual void Synchronize(); 
+	virtual void Synchronize(const bool saveSyncData = false); 
 
 	// Description:
 	// Copy the current state of the tracker buffer 
@@ -90,10 +90,6 @@ public:
 	// Description:
 	// Copy the current state of the tracker (with each tools and buffers)
 	virtual void CopyTracker( vtkTracker* tracker); 
-
-	// Description:
-	// Dump the current state of the tracker buffer to metafile
-	virtual void DumpTrackerBufferToMetafile( vtkTrackerBuffer* trackerBuffer, const char* outputFolder, const char* metaFileName, bool useCompression = false ); 
 
 	// Description:
 	// Dump the current state of the tracker to metafile (with each tools and buffers)
@@ -190,6 +186,10 @@ public:
 	virtual int GetToolFlags( unsigned int toolNumber/* = 0 */); 
 
 	// Description:
+	// Set video and tracker local time offset 
+	virtual void SetLocalTimeOffset(double videoOffset, double trackerOffset); 
+
+	// Description:
 	// Set/Get the configuration file name
 	vtkSetStringMacro(ConfigFileName); 
 	vtkGetStringMacro(ConfigFileName); 
@@ -234,10 +234,20 @@ public:
 	// Set/get the Video only flag
 	vtkGetMacro(VideoOnly,bool);
 	void SetVideoOnly(bool);
+
+	// Description:
+	// Set/get the cancel sync request flag to cancel the active sync job 
+	vtkSetMacro(CancelSyncRequest, bool); 
+	vtkGetMacro(CancelSyncRequest, bool); 
+	vtkBooleanMacro(CancelSyncRequest, bool); 
 	
 	int GetNumberOfTools();
-	
 
+	//! Description 
+	// Callback function for progress bar refreshing
+	typedef void (*ProgressBarUpdatePtr)(int percent);
+    void SetProgressBarUpdateCallbackFunction(ProgressBarUpdatePtr cb) { ProgressBarUpdateCallbackFunction = cb; } 
+	
 protected:
 	vtkDataCollector();
 	virtual ~vtkDataCollector();
@@ -263,6 +273,9 @@ protected:
 	// Convert vtkImageData to itkImage (TrackedFrame::ImageType)
 	virtual void ConvertVtkImageToItkImage(vtkImageData* inFrame, TrackedFrame::ImageType* outFrame); 
 
+	//! Pointer to the progress bar update callback function 
+	ProgressBarUpdatePtr ProgressBarUpdateCallbackFunction; 
+
 	vtkDataCollectorSynchronizer* Synchronizer; 
 	
 	vtkVideoSource2*	VideoSource; 
@@ -280,11 +293,15 @@ protected:
 	bool Initialized; 
 	
 	int MainToolNumber; 
+
+	int MostRecentFrameBufferIndex; 
 	
 	int DumpBufferSize;
 
 	bool TrackingOnly;
 	bool VideoOnly;
+
+	bool CancelSyncRequest; 
 
 private:
 	vtkDataCollector(const vtkDataCollector&);

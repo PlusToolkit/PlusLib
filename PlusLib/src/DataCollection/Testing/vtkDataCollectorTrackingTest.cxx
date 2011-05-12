@@ -55,14 +55,14 @@ int main(int argc, char **argv)
 	}
 
 
-	LOG_INFO("Copy tracker buffer"); 
-	vtkTrackerBuffer *buffer = vtkTrackerBuffer::New(); 
-	dataCollector->CopyTrackerBuffer(buffer, dataCollector->GetMainToolNumber()); 
+	LOG_INFO("Copy tracker..."); 
+	vtkTracker *tracker = vtkTracker::New(); 
+	dataCollector->CopyTracker(tracker); 
 
-	LOG_INFO("Dump tracker buffer to " << outputTrackerBufferSequenceFileName);
-	dataCollector->DumpTrackerBufferToMetafile( buffer, outputFolder.c_str(), outputTrackerBufferSequenceFileName.c_str(), true); 
+	LOG_INFO("Dump tracker to " << outputTrackerBufferSequenceFileName);
+	dataCollector->DumpTrackerToMetafile( tracker, outputFolder.c_str(), outputTrackerBufferSequenceFileName.c_str(), true); 
 
-	buffer->Delete(); 
+	tracker->Delete(); 
 
 	VTK_LOG_TO_CONSOLE_OFF; 
 

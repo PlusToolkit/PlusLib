@@ -11,6 +11,7 @@
 #include "vtkHTMLGenerator.h"
 #include "vtkGnuplotExecuter.h"
 #include "vtksys/SystemTools.hxx"
+#include "vtkTrackedFrameList.h"
 
 
 #include "itkMetaImageSequenceIO.h"
@@ -18,28 +19,11 @@
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
 
-///////////////////////////////////////////////////////////////////
-// Image type definition
-
-typedef unsigned char          PixelType; // define type for pixel representation
-const unsigned int             imageDimension = 2; 
-const unsigned int             imageSequenceDimension = 3; 
-
-typedef itk::Image< PixelType, imageDimension > ImageType;
-typedef itk::Image< PixelType, imageSequenceDimension > ImageSequenceType;
-
-typedef itk::ImageFileReader< ImageSequenceType > ImageSequenceReaderType;
-typedef itk::ImageFileWriter< ImageSequenceType > ImageSequenceWriterType;
-
-///////////////////////////////////////////////////////////////////
-
-
 int main(int argc, char **argv)
 {
-
+	int numberOfErrors(0); 
 	std::string inputVideoBufferSequenceFileName;
 	std::string inputTrackerBufferSequenceFileName;
-	std::string inputTestDataDir;
 	double inputSyncStartTimestamp(0); 
 	double synchronizationTimeLength(20); 
 	int minNumOfSyncSteps(5); 
@@ -58,7 +42,6 @@ int main(int argc, char **argv)
 	vtksys::CommandLineArguments args;
 	args.Initialize(argc, argv);
 
-	args.AddArgument("--input-test-data-dir", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputTestDataDir, "Test data directory");
 	args.AddArgument("--input-video-buffer-seq-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputVideoBufferSequenceFileName, "Filename of the input video buffer sequence metafile.");
 	args.AddArgument("--input-tracker-buffer-seq-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputTrackerBufferSequenceFileName, "Filename of the input tracker bufffer sequence metafile.");
 	args.AddArgument("--input-number-of-averaged-frames", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &numberOfAveragedFrames, "Number of averaged frames (Default: 15)");
@@ -79,9 +62,9 @@ int main(int argc, char **argv)
 	}
 
 
-	if (inputVideoBufferSequenceFileName.empty() || inputTrackerBufferSequenceFileName.empty() || inputTestDataDir.empty() )
+	if (inputVideoBufferSequenceFileName.empty() || inputTrackerBufferSequenceFileName.empty() )
 	{
-		std::cerr << "input-test-data-dir, input-video-buffer-seq-file-name and input-tracker-buffer-seq-file-name arguments are required!" << std::endl;
+		std::cerr << "input-video-buffer-seq-file-name and input-tracker-buffer-seq-file-name arguments are required!" << std::endl;
 		std::cout << "\nHelp: " << args.GetHelp() << std::endl;
 		exit(EXIT_FAILURE);
 	}
@@ -99,36 +82,19 @@ int main(int argc, char **argv)
 
 
 	// Read tracker buffer 
-	itk::MetaImageSequenceIO::Pointer trackerReaderIO = itk::MetaImageSequenceIO::New(); 
-	ImageSequenceReaderType::Pointer trackerReader = ImageSequenceReaderType::New(); // reader object, pointed to by smart pointer
-
-	// Set the image IO 
-	trackerReader->SetImageIO(trackerReaderIO); 
-				
-	std::string trackerBufferPath = inputTestDataDir + "/" + inputTrackerBufferSequenceFileName;
-	trackerReader->SetFileName(trackerBufferPath); 
-
-	LOG_INFO("Reading tracker buffer meta file: " << trackerBufferPath); 
-
-	try
-	{
-		trackerReader->Update(); 
-	}
-	catch (itk::ExceptionObject & err) 
-	{		
-		LOG_ERROR(" Exception! Tracker reader did not update: " <<  err); 
-		return EXIT_FAILURE;
-	}	
+	LOG_INFO("Reading tracker buffer meta file..."); 
+	vtkSmartPointer<vtkTrackedFrameList> trackerFrameList = vtkSmartPointer<vtkTrackedFrameList>::New(); 
+	trackerFrameList->ReadFromSequenceMetafile(inputTrackerBufferSequenceFileName.c_str()); 
 	
 	LOG_INFO("Copy buffer to tracker buffer..."); 
-	int numberOfFrames = trackerReaderIO->GetDimensions(2);
+	int numberOfFrames = trackerFrameList->GetNumberOfTrackedFrames();
 	vtkSmartPointer<vtkTrackerBuffer> trackerBuffer = vtkSmartPointer<vtkTrackerBuffer>::New(); 
 	trackerBuffer->SetBufferSize(numberOfFrames + 1); 
 
 	for ( int frameNumber = 0; frameNumber < numberOfFrames; frameNumber++ )
 	{
 		PlusLogger::PrintProgressbar( (100.0 * frameNumber) / numberOfFrames ); 
-		const char* strTimestamp = trackerReaderIO->GetCustomFrameString(frameNumber, "Timestamp"); 
+		const char* strTimestamp = trackerFrameList->GetTrackedFrame(frameNumber)->GetCustomFrameField("Timestamp"); 
 		double timestamp(0); 
 		if ( strTimestamp != NULL )
 		{
@@ -137,9 +103,11 @@ int main(int argc, char **argv)
 		else
 		{
 			LOG_WARNING("Unable to read Timestamp field of frame #" << frameNumber); 
+			numberOfErrors++; 
+			continue; 
 		}
 
-		const char* strUnfilteredTimestamp = trackerReaderIO->GetCustomFrameString(frameNumber, "UnfilteredTimestamp"); 
+		const char* strUnfilteredTimestamp = trackerFrameList->GetTrackedFrame(frameNumber)->GetCustomFrameField("UnfilteredTimestamp"); 
 		double unfilteredtimestamp(0); 
 		if ( strUnfilteredTimestamp != NULL )
 		{
@@ -148,9 +116,11 @@ int main(int argc, char **argv)
 		else
 		{
 			LOG_WARNING("Unable to read UnfilteredTimestamp field of frame #" << frameNumber); 
+			numberOfErrors++; 
+			continue; 
 		}
 
-		const char* cFlag = trackerReaderIO->GetCustomFrameString(frameNumber, "Status"); 
+		const char* cFlag = trackerFrameList->GetTrackedFrame(frameNumber)->GetCustomFrameField("Status"); 
 
 		long flag(0);
 		if ( cFlag != NULL )
@@ -180,9 +150,11 @@ int main(int argc, char **argv)
 		else
 		{
 			LOG_WARNING("Unable to read Status field of frame #" << frameNumber); 
+			numberOfErrors++; 
+			continue; 
 		}
 
-		const char* strFrameNumber = trackerReaderIO->GetCustomFrameString(frameNumber, "FrameNumber"); 
+		const char* strFrameNumber = trackerFrameList->GetTrackedFrame(frameNumber)->GetCustomFrameField("FrameNumber"); 
 		unsigned long frmnum(0); 
 		if ( strFrameNumber != NULL )
 		{
@@ -191,47 +163,45 @@ int main(int argc, char **argv)
 		else
 		{
 			LOG_WARNING("Unable to read FrameNumber field of frame #" << frameNumber); 
+			numberOfErrors++; 
+			continue; 
 		}
 
-		vtkSmartPointer<vtkMatrix4x4> matrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
-		if ( !trackerReaderIO->GetFrameTransform(frameNumber, matrix) )
+		
+		double defaultTransform[16]; 
+		if ( !trackerFrameList->GetTrackedFrame(frameNumber)->GetDefaultFrameTransform(defaultTransform) )
 		{
 			LOG_ERROR("Unable to get default frame transform for frame #" << frameNumber); 
+			numberOfErrors++; 
+			continue; 
 		}
+			
+		vtkSmartPointer<vtkMatrix4x4> defaultTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
+		defaultTransformMatrix->DeepCopy(defaultTransform); 
 
-		trackerBuffer->AddItem(matrix, flag, frmnum, unfilteredtimestamp, timestamp); 
+		trackerBuffer->AddItem(defaultTransformMatrix, flag, frmnum, unfilteredtimestamp, timestamp); 
 	}
 	
 	PlusLogger::PrintProgressbar( 100 ); 
 	std::cout << std::endl; 
 
-	LOG_INFO("Reading video buffer meta file..."); 
-	
 	// Read video buffer 
-	itk::MetaImageSequenceIO::Pointer videoReaderIO = itk::MetaImageSequenceIO::New(); 
-	ImageSequenceReaderType::Pointer videoReader = ImageSequenceReaderType::New(); // reader object, pointed to by smart pointer
-
-	// Set the image IO 
-	videoReader->SetImageIO(videoReaderIO); 
-				
-	std::string videoBufferPath = inputTestDataDir + "/" + inputVideoBufferSequenceFileName;
-	videoReader->SetFileName(videoBufferPath); 
-
-	try
-	{
-		videoReader->Update(); 
-	}
-	catch (itk::ExceptionObject & err) 
-	{		
-		LOG_ERROR(" Exception! Video reader did not update: " <<  err); 
-		return EXIT_FAILURE;
-	}	
+	LOG_INFO("Reading video buffer meta file..."); 
+	vtkSmartPointer<vtkTrackedFrameList> videoFrameList = vtkSmartPointer<vtkTrackedFrameList>::New(); 
+	videoFrameList->ReadFromSequenceMetafile(inputVideoBufferSequenceFileName.c_str()); 
 	
-	ImageSequenceType::Pointer imageSeq = videoReader->GetOutput();
-	const unsigned long imageWidthInPixels = imageSeq->GetLargestPossibleRegion().GetSize()[0]; 
-	const unsigned long imageHeightInPixels = imageSeq->GetLargestPossibleRegion().GetSize()[1]; 
-	const unsigned long numberOfVideoFrames = imageSeq->GetLargestPossibleRegion().GetSize()[2];	
-	unsigned int frameSizeInBytes = imageWidthInPixels * imageHeightInPixels * sizeof(PixelType);
+	const int numberOfVideoFrames = videoFrameList->GetNumberOfTrackedFrames(); 
+
+	if ( numberOfVideoFrames == 0 )
+	{
+		LOG_ERROR("There are no video frames in the buffer!"); 
+		return EXIT_FAILURE; 
+	}
+
+	
+	const unsigned long imageWidthInPixels = videoFrameList->GetTrackedFrame(0)->ImageData->GetLargestPossibleRegion().GetSize()[0]; 
+	const unsigned long imageHeightInPixels = videoFrameList->GetTrackedFrame(0)->ImageData->GetLargestPossibleRegion().GetSize()[1]; 
+	unsigned int frameSizeInBytes = imageWidthInPixels * imageHeightInPixels * sizeof(TrackedFrame::PixelType);
 
 	vtkSmartPointer<vtkVideoBuffer2> videoBuffer = vtkSmartPointer<vtkVideoBuffer2>::New(); 
 	videoBuffer->GetFrameFormat()->SetFrameSize(imageWidthInPixels, imageHeightInPixels, 1); 
@@ -248,11 +218,10 @@ int main(int argc, char **argv)
 	}
 
 	LOG_INFO("Copy buffer to video buffer..."); 
-	PixelType* imageSeqData = imageSeq->GetBufferPointer();
 	for ( int frameNumber = 0; frameNumber < numberOfVideoFrames; frameNumber++ )
 	{
 		PlusLogger::PrintProgressbar( (100.0 * frameNumber) / numberOfVideoFrames ); 
-		const char* strTimestamp = videoReaderIO->GetCustomFrameString(frameNumber, "Timestamp"); 
+		const char* strTimestamp = videoFrameList->GetTrackedFrame(frameNumber)->GetCustomFrameField("Timestamp"); 
 		double timestamp(0); 
 		if ( strTimestamp != NULL )
 		{
@@ -261,9 +230,11 @@ int main(int argc, char **argv)
 		else
 		{
 			LOG_WARNING("Unable to read Timestamp field of frame #" << frameNumber); 
+			numberOfErrors++; 
+			continue; 
 		}
 
-		const char* strUnfilteredTimestamp = trackerReaderIO->GetCustomFrameString(frameNumber, "UnfilteredTimestamp"); 
+		const char* strUnfilteredTimestamp = videoFrameList->GetTrackedFrame(frameNumber)->GetCustomFrameField("UnfilteredTimestamp"); 
 		double unfilteredtimestamp(0); 
 		if ( strUnfilteredTimestamp != NULL )
 		{
@@ -272,9 +243,11 @@ int main(int argc, char **argv)
 		else
 		{
 			LOG_WARNING("Unable to read UnfilteredTimestamp field of frame #" << frameNumber); 
+			numberOfErrors++; 
+			continue; 
 		}
 
-		const char* strFrameNumber = videoReaderIO->GetCustomFrameString(frameNumber, "FrameNumber"); 
+		const char* strFrameNumber = videoFrameList->GetTrackedFrame(frameNumber)->GetCustomFrameField("FrameNumber"); 
 		unsigned long frmnum(0); 
 		if ( strFrameNumber != NULL )
 		{
@@ -283,19 +256,19 @@ int main(int argc, char **argv)
 		else
 		{
 			LOG_WARNING("Unable to read FrameNumber field of frame #" << frameNumber ); 
+			numberOfErrors++; 
+			continue; 
 		}
 
 		videoBuffer->Seek(1); 
-		PixelType* currentFrameImageData = imageSeqData + frameNumber * frameSizeInBytes;
 		unsigned char *frameBufferPtr = reinterpret_cast<unsigned char *>(videoBuffer->GetFrame(0)->GetVoidPointer(0));
-		memcpy(frameBufferPtr,currentFrameImageData,frameSizeInBytes);
+
+		memcpy(frameBufferPtr,videoFrameList->GetTrackedFrame(frameNumber)->ImageData->GetBufferPointer(), frameSizeInBytes);
 		videoBuffer->AddItem(videoBuffer->GetFrame(0), unfilteredtimestamp, timestamp, frmnum );
 	}
 
 	PlusLogger::PrintProgressbar( 100 ); 
 	std::cout << std::endl; 
-
-
 
 	LOG_INFO("Initialize synchronizer..."); 
 	vtkSmartPointer<vtkDataCollectorSynchronizer> synchronizer = vtkSmartPointer<vtkDataCollectorSynchronizer>::New(); 
@@ -349,6 +322,11 @@ int main(int argc, char **argv)
 	htmlReport->SaveHtmlPage("iCALTemporalCalibrationReport.html"); 
 	//************************************************************************************
 
+	if ( numberOfErrors != 0 )
+	{
+		return EXIT_FAILURE; 
+	}
+		
 	std::cout << "Test completed successfully!" << std::endl;
 	return EXIT_SUCCESS; 
 
