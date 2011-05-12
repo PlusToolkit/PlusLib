@@ -26,10 +26,9 @@ ADD_EXECUTABLE(vtkDataCollectorSynchronizerTest vtkDataCollectorSynchronizerTest
 TARGET_LINK_LIBRARIES(vtkDataCollectorSynchronizerTest vtkDataCollection )
 ADD_TEST(vtkDataCollectorSynchronizerTest1 
   ${EXECUTABLE_OUTPUT_PATH}/vtkDataCollectorSynchronizerTest
-  --input-test-data-dir=${TestDataDir}
   --input-threshold-multiplier=5
-  --input-video-buffer-seq-file-name=DataCollectorSyncVideoBuffer.mha 
-  --input-tracker-buffer-seq-file-name=DataCollectorSyncTrackerBuffer.mha 
+  --input-video-buffer-seq-file-name=${TestDataDir}/DataCollectorSyncVideoBuffer.mha 
+  --input-tracker-buffer-seq-file-name=${TestDataDir}/DataCollectorSyncTrackerBuffer.mha 
   --input-number-of-averaged-frames=6
   --input-max-frame-difference=10
   --input-min-frame-threshold=200
