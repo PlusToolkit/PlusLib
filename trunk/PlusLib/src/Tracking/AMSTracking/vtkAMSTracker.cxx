@@ -449,7 +449,7 @@ bool vtkAMSTracker::CalibrateStepper( std::string &calibMsg )
 }
 
 //----------------------------------------------------------------------------
-void vtkAMSTracker::GetTrackerToolBufferStringList(const double timestamp, std::vector<std::string> &toolNames, std::vector<std::string> &toolBufferValues, std::vector<std::string> &toolBufferStatuses)
+void vtkAMSTracker::GetTrackerToolBufferStringList(const double timestamp, std::vector<std::string> &toolNames, std::vector<std::string> &toolBufferValues, std::vector<std::string> &toolBufferStatuses, bool calibratedTransform /*= false*/)
 {
 	toolNames.clear(); 
 	toolBufferValues.clear(); 
@@ -458,7 +458,7 @@ void vtkAMSTracker::GetTrackerToolBufferStringList(const double timestamp, std::
 	// PROBEHOME_TO_PROBE_TRANSFORM
 	long probehome2probeFlags(TR_OK); 
 	double probehome2probeMatrix[16]; 
-	vtkMatrix4x4::DeepCopy(probehome2probeMatrix, this->GetProbeHomeToProbeTransform(timestamp, probehome2probeFlags)->GetMatrix()); 
+	vtkMatrix4x4::DeepCopy(probehome2probeMatrix, this->GetProbeHomeToProbeTransform(timestamp, probehome2probeFlags, calibratedTransform)->GetMatrix()); 
 	std::ostringstream strProbeHomeToProbeTransform; 
 	for ( int i = 0; i < 16; ++i )
 	{
@@ -471,7 +471,7 @@ void vtkAMSTracker::GetTrackerToolBufferStringList(const double timestamp, std::
 	// TEMPLATEHOME_TO_TEMPLATE_TRANSFORM
 	long templhome2templFlags(TR_OK); 
 	double templhome2templMatrix[16]; 
-	vtkMatrix4x4::DeepCopy(templhome2templMatrix, this->GetTemplateHomeToTemplateTransform(timestamp, templhome2templFlags)->GetMatrix()); 
+	vtkMatrix4x4::DeepCopy(templhome2templMatrix, this->GetTemplateHomeToTemplateTransform(timestamp, templhome2templFlags, calibratedTransform)->GetMatrix()); 
 	std::ostringstream strTemplHomeToTemplTransform; 
 	for ( int i = 0; i < 16; ++i )
 	{
@@ -606,7 +606,7 @@ double vtkAMSTracker::GetTemplatePosition( double timestamp, long &flags )
 }
 
 //----------------------------------------------------------------------------
-vtkTransform* vtkAMSTracker::GetProbeHomeToProbeTransform( int bufferIndex, long &flags )
+vtkTransform* vtkAMSTracker::GetProbeHomeToProbeTransform( int bufferIndex, long &flags, bool calibratedTransform /*= false*/ )
 {
 	vtkSmartPointer<vtkMatrix4x4> probeHomeToProbeMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
 
@@ -615,7 +615,14 @@ vtkTransform* vtkAMSTracker::GetProbeHomeToProbeTransform( int bufferIndex, long
 	trackerBuffer->Lock(); 
 
 	flags = trackerBuffer->GetFlags(bufferIndex); 
-	trackerBuffer->GetMatrix(probeHomeToProbeMatrix, bufferIndex); 
+	if ( calibratedTransform )
+	{
+		trackerBuffer->GetCalibratedMatrix(probeHomeToProbeMatrix, bufferIndex); 
+	}
+	else
+	{
+		trackerBuffer->GetMatrix(probeHomeToProbeMatrix, bufferIndex); 
+	}
 
 	trackerBuffer->Unlock(); 
 
@@ -625,7 +632,7 @@ vtkTransform* vtkAMSTracker::GetProbeHomeToProbeTransform( int bufferIndex, long
 }
 
 //----------------------------------------------------------------------------
-vtkTransform* vtkAMSTracker::GetProbeHomeToProbeTransform( double timestamp, long &flags )
+vtkTransform* vtkAMSTracker::GetProbeHomeToProbeTransform( double timestamp, long &flags, bool calibratedTransform /*= false*/ )
 {
 	vtkSmartPointer<vtkMatrix4x4> probeHomeToProbeMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
 
@@ -635,7 +642,15 @@ vtkTransform* vtkAMSTracker::GetProbeHomeToProbeTransform( double timestamp, lon
 
 	int bufferIndex = trackerBuffer->GetIndexFromTime(timestamp); 
 	flags = trackerBuffer->GetFlags(bufferIndex); 
-	trackerBuffer->GetMatrix(probeHomeToProbeMatrix, bufferIndex); 
+
+	if ( calibratedTransform )
+	{
+		trackerBuffer->GetCalibratedMatrix(probeHomeToProbeMatrix, bufferIndex); 
+	}
+	else
+	{
+		trackerBuffer->GetMatrix(probeHomeToProbeMatrix, bufferIndex); 
+	}
 
 	trackerBuffer->Unlock(); 
 
@@ -645,7 +660,7 @@ vtkTransform* vtkAMSTracker::GetProbeHomeToProbeTransform( double timestamp, lon
 }
 
 //----------------------------------------------------------------------------
-vtkTransform* vtkAMSTracker::GetTemplateHomeToTemplateTransform( int bufferIndex, long &flags )
+vtkTransform* vtkAMSTracker::GetTemplateHomeToTemplateTransform( int bufferIndex, long &flags, bool calibratedTransform /*= false*/ )
 {
 	vtkSmartPointer<vtkMatrix4x4> templateHomeToTemplateMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
 
@@ -654,7 +669,14 @@ vtkTransform* vtkAMSTracker::GetTemplateHomeToTemplateTransform( int bufferIndex
 	trackerBuffer->Lock(); 
 
 	flags = trackerBuffer->GetFlags(bufferIndex); 
-	trackerBuffer->GetMatrix(templateHomeToTemplateMatrix, bufferIndex); 
+	if ( calibratedTransform )
+	{
+		trackerBuffer->GetCalibratedMatrix(templateHomeToTemplateMatrix, bufferIndex); 
+	}
+	else
+	{
+		trackerBuffer->GetMatrix(templateHomeToTemplateMatrix, bufferIndex); 
+	}
 
 	trackerBuffer->Unlock(); 
 
@@ -664,7 +686,7 @@ vtkTransform* vtkAMSTracker::GetTemplateHomeToTemplateTransform( int bufferIndex
 }
 
 //----------------------------------------------------------------------------
-vtkTransform* vtkAMSTracker::GetTemplateHomeToTemplateTransform( double timestamp, long &flags )
+vtkTransform* vtkAMSTracker::GetTemplateHomeToTemplateTransform( double timestamp, long &flags, bool calibratedTransform /*= false*/ )
 {
 	vtkSmartPointer<vtkMatrix4x4> templateHomeToTemplateMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
 
@@ -674,7 +696,15 @@ vtkTransform* vtkAMSTracker::GetTemplateHomeToTemplateTransform( double timestam
 
 	int bufferIndex = trackerBuffer->GetIndexFromTime(timestamp); 
 	flags = trackerBuffer->GetFlags(bufferIndex); 
-	trackerBuffer->GetMatrix(templateHomeToTemplateMatrix, bufferIndex); 
+	
+	if ( calibratedTransform )
+	{
+		trackerBuffer->GetCalibratedMatrix(templateHomeToTemplateMatrix, bufferIndex); 
+	}
+	else
+	{
+		trackerBuffer->GetMatrix(templateHomeToTemplateMatrix, bufferIndex); 
+	}
 
 	trackerBuffer->Unlock(); 
 

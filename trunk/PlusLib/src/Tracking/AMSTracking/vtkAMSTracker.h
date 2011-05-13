@@ -55,7 +55,7 @@ public:
 
 	// Description:
 	// Get the buffer element values of each tool in a string list by timestamp. 
-	void GetTrackerToolBufferStringList(const double timestamp, std::vector<std::string> &toolNames, std::vector<std::string> &toolBufferValues, std::vector<std::string> &toolBufferStatuses); 
+	void GetTrackerToolBufferStringList(const double timestamp, std::vector<std::string> &toolNames, std::vector<std::string> &toolBufferValues, std::vector<std::string> &toolBufferStatuses, bool calibratedTransform = false); 
 
 	// Description:
 	// Get stepper encoder values from the buffer, where '0' is the most recent and
@@ -100,22 +100,22 @@ public:
 	// Description:
 	// Get probe home to probe transform from the buffer, where '0' is the most recent and
 	// (NumberOfItems-1) is the oldest.
-	vtkTransform* GetProbeHomeToProbeTransform( int bufferIndex, long &flags ); 
+	vtkTransform* GetProbeHomeToProbeTransform( int bufferIndex, long &flags, bool calibratedTransform = false ); 
 
 	// Description:
 	// Get probe home to probe transform in a particular timestamp, where the timestamp is
 	// in system time as returned by vtkAccurateTimer::GetSystemTime().
-	vtkTransform* GetProbeHomeToProbeTransform( double timestamp, long &flags ); 
+	vtkTransform* GetProbeHomeToProbeTransform( double timestamp, long &flags, bool calibratedTransform = false ); 
 
 	// Description:
 	// Get template home to template transform from the buffer, where '0' is the most recent and
 	// (NumberOfItems-1) is the oldest.
-	vtkTransform* GetTemplateHomeToTemplateTransform( int bufferIndex, long &flags ); 
+	vtkTransform* GetTemplateHomeToTemplateTransform( int bufferIndex, long &flags, bool calibratedTransform = false ); 
 
 	// Description:
 	// Get template home to template transform in a particular timestamp, where the timestamp is
 	// in system time as returned by vtkAccurateTimer::GetSystemTime().
-	vtkTransform* GetTemplateHomeToTemplateTransform( double timestamp, long &flags );
+	vtkTransform* GetTemplateHomeToTemplateTransform( double timestamp, long &flags, bool calibratedTransform = false );
 
 	// Description:
 	// Getraw encoder values transform from the buffer, where '0' is the most recent and
