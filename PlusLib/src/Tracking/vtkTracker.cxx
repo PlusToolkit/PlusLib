@@ -974,7 +974,7 @@ std::string vtkTracker::ConvertFlagToString(long flag)
 }
 
 //----------------------------------------------------------------------------
-void vtkTracker::GetTrackerToolBufferStringList(const double timestamp, std::vector<std::string> &toolNames, std::vector<std::string> &toolBufferValues, std::vector<std::string> &toolBufferStatuses)
+void vtkTracker::GetTrackerToolBufferStringList(const double timestamp, std::vector<std::string> &toolNames, std::vector<std::string> &toolBufferValues, std::vector<std::string> &toolBufferStatuses, bool calibratedTransform /*= false*/)
 {
 	toolNames.clear(); 
 	toolBufferValues.clear(); 
@@ -985,9 +985,17 @@ void vtkTracker::GetTrackerToolBufferStringList(const double timestamp, std::vec
 	{
 		if ( this->GetTool(tool)->GetEnabled() )
 		{
-
 			vtkSmartPointer<vtkMatrix4x4> toolMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
-			long toolFlags = this->GetTool(tool)->GetBuffer()->GetFlagsAndMatrixFromTime(toolMatrix, timestamp); 
+			long toolFlags(0); 
+			if ( calibratedTransform )
+			{
+				this->GetTool(tool)->GetBuffer()->GetFlagsAndCalibratedMatrixFromTime(toolMatrix, timestamp); 
+			}
+			else
+			{
+				this->GetTool(tool)->GetBuffer()->GetFlagsAndMatrixFromTime(toolMatrix, timestamp); 
+			}
+
 			double dMatrix[16]; 
 			vtkMatrix4x4::DeepCopy(dMatrix, toolMatrix); 
 			std::ostringstream strToolTransform; 

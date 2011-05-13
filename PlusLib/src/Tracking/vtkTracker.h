@@ -145,7 +145,7 @@ public:
 
   // Description:
   // Get the buffer element values of each tool in a string list by timestamp. 
-  virtual void GetTrackerToolBufferStringList(const double timestamp, std::vector<std::string> &toolNames, std::vector<std::string> &toolBufferValues, std::vector<std::string> &toolBufferStatuses); 
+  virtual void GetTrackerToolBufferStringList(const double timestamp, std::vector<std::string> &toolNames, std::vector<std::string> &toolBufferValues, std::vector<std::string> &toolBufferStatuses, bool calibratedTransform = false); 
 
   // Description:
   // Add generated html report from tracking data acquisition to the existing html report

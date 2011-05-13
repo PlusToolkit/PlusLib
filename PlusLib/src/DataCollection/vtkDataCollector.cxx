@@ -816,7 +816,7 @@ void vtkDataCollector::GetFrameWithTimestamp(vtkImageData* frame, double& frameT
 }
 
 //----------------------------------------------------------------------------
-void vtkDataCollector::GetTransformWithTimestamp(vtkMatrix4x4* toolTransMatrix, double& transformTimestamp, long& flags, int toolNumber/* = 0*/)
+void vtkDataCollector::GetTransformWithTimestamp(vtkMatrix4x4* toolTransMatrix, double& transformTimestamp, long& flags, int toolNumber/* = 0*/, bool calibratedTransform /*= false*/ )
 {
 	//LOG_TRACE("vtkDataCollector::GetTransformWithTimestamp"); 
 	if ( this->GetTracker() == NULL ) 
@@ -827,16 +827,26 @@ void vtkDataCollector::GetTransformWithTimestamp(vtkMatrix4x4* toolTransMatrix, 
 
 	this->GetTracker()->GetTool(toolNumber)->GetBuffer()->Lock(); 
 
-	// Get the most recent frame from the buffer (if the video slower we have a chance to get the right transform)
+	
 	flags = this->GetTracker()->GetTool(toolNumber)->GetBuffer()->GetFlags(this->MostRecentFrameBufferIndex); 
-	this->GetTracker()->GetTool(toolNumber)->GetBuffer()->GetMatrix(toolTransMatrix, this->MostRecentFrameBufferIndex); 
+	
+	// Get the most recent transform from the buffer (if the video slower we have a chance to get the right transform)
+	if (calibratedTransform)
+	{
+		this->GetTracker()->GetTool(toolNumber)->GetBuffer()->GetCalibratedMatrix(toolTransMatrix, this->MostRecentFrameBufferIndex); 
+	}
+	else
+	{
+		this->GetTracker()->GetTool(toolNumber)->GetBuffer()->GetMatrix(toolTransMatrix, this->MostRecentFrameBufferIndex); 
+	}
+	
 	transformTimestamp = this->GetTracker()->GetTool(toolNumber)->GetBuffer()->GetTimeStamp(this->MostRecentFrameBufferIndex); 
 
 	this->GetTracker()->GetTool(toolNumber)->GetBuffer()->Unlock(); 
 }
 
 //----------------------------------------------------------------------------
-void vtkDataCollector::GetTransformByTimestamp(vtkMatrix4x4* toolTransMatrix, long& flags, const double synchronizedTime, int toolNumber/* = 0*/)
+void vtkDataCollector::GetTransformByTimestamp(vtkMatrix4x4* toolTransMatrix, long& flags, const double synchronizedTime, int toolNumber/* = 0*/, bool calibratedTransform /*= false*/)
 {
 	//LOG_TRACE("vtkDataCollector::GetTransformByTimestamp"); 
 	if ( this->GetTracker() == NULL ) 
@@ -847,13 +857,22 @@ void vtkDataCollector::GetTransformByTimestamp(vtkMatrix4x4* toolTransMatrix, lo
 
 	this->GetTracker()->GetTool(toolNumber)->GetBuffer()->Lock(); 
 	int frameBufferIndex = this->GetTracker()->GetTool(toolNumber)->GetBuffer()->GetIndexFromTime(synchronizedTime); 
-	this->GetTracker()->GetTool(toolNumber)->GetBuffer()->GetMatrix(toolTransMatrix, frameBufferIndex); 
+	
+	if (calibratedTransform)
+	{
+		this->GetTracker()->GetTool(toolNumber)->GetBuffer()->GetCalibratedMatrix(toolTransMatrix, frameBufferIndex); 
+	}
+	else
+	{
+		this->GetTracker()->GetTool(toolNumber)->GetBuffer()->GetMatrix(toolTransMatrix, frameBufferIndex); 
+	}
+
 	flags = this->GetTracker()->GetTool(toolNumber)->GetBuffer()->GetFlags(frameBufferIndex); 
 	this->GetTracker()->GetTool(toolNumber)->GetBuffer()->Unlock(); 
 }
 
 //----------------------------------------------------------------------------
-double vtkDataCollector::GetTransformsByTimeInterval(std::vector<vtkMatrix4x4*> &toolTransMatrixVector, std::vector<long> &flagsVector, const double startTime, const double endTime, int toolNumber/* = 0*/)
+double vtkDataCollector::GetTransformsByTimeInterval(std::vector<vtkMatrix4x4*> &toolTransMatrixVector, std::vector<long> &flagsVector, const double startTime, const double endTime, int toolNumber/* = 0*/, bool calibratedTransform /*= false*/)
 {
 	//LOG_TRACE("vtkDataCollector::GetTransformsByTimeInterval"); 
 	if ( this->GetTracker() == NULL ) 
@@ -899,7 +918,16 @@ double vtkDataCollector::GetTransformsByTimeInterval(std::vector<vtkMatrix4x4*> 
 
 	for (int i=frameBufferStartIndex; i<=frameBufferEndIndex; ++i) {
 		vtkMatrix4x4* currentTransform = vtkMatrix4x4::New();
-		buffer->GetMatrix(currentTransform, i);
+		
+		if (calibratedTransform)
+		{
+			buffer->GetCalibratedMatrix(currentTransform, i);
+		}
+		else
+		{
+			buffer->GetMatrix(currentTransform, i);
+		}
+
 		long currentFlags = buffer->GetFlags(i);
 
 		toolTransMatrixVector.push_back(currentTransform);
@@ -912,11 +940,11 @@ double vtkDataCollector::GetTransformsByTimeInterval(std::vector<vtkMatrix4x4*> 
 }
 
 //----------------------------------------------------------------------------
-void vtkDataCollector::GetTrackedFrame(vtkImageData* frame, vtkMatrix4x4* toolTransMatrix, long& flags, double& synchronizedTime, int toolNumber/* = 0*/)
+void vtkDataCollector::GetTrackedFrame(vtkImageData* frame, vtkMatrix4x4* toolTransMatrix, long& flags, double& synchronizedTime, int toolNumber/* = 0*/, bool calibratedTransform /*= false*/)
 {
 	//LOG_TRACE("vtkDataCollector::GetTrackedFrame - vtkImageData"); 
 	this->GetFrameWithTimestamp(frame, synchronizedTime); 
-	this->GetTransformByTimestamp( toolTransMatrix, flags, synchronizedTime, toolNumber); 
+	this->GetTransformByTimestamp( toolTransMatrix, flags, synchronizedTime, toolNumber, calibratedTransform); 
 }
 
 //----------------------------------------------------------------------------
@@ -948,15 +976,15 @@ void vtkDataCollector::ConvertVtkImageToItkImage(vtkImageData* inFrame, TrackedF
 }
 
 //----------------------------------------------------------------------------
-void vtkDataCollector::GetTrackedFrame(TrackedFrame* trackedFrame)
+void vtkDataCollector::GetTrackedFrame(TrackedFrame* trackedFrame, bool calibratedTransform /*= false*/)
 {
 	//LOG_TRACE("vtkDataCollector::GetTrackedFrame - TrackedFrame"); 
 	const double time = this->GetMostRecentTimestamp(); 
-	this->GetTrackedFrameByTime(time, trackedFrame); 
+	this->GetTrackedFrameByTime(time, trackedFrame, calibratedTransform); 
 }
 
 //----------------------------------------------------------------------------
-void vtkDataCollector::GetTrackedFrameByTime(const double time, TrackedFrame* trackedFrame)
+void vtkDataCollector::GetTrackedFrameByTime(const double time, TrackedFrame* trackedFrame, bool calibratedTransform /*= false*/)
 {
 	//LOG_TRACE("vtkDataCollector::GetTrackedFrameByTime - TrackedFrame");
 	// Allocate memory for new frame
@@ -978,7 +1006,7 @@ void vtkDataCollector::GetTrackedFrameByTime(const double time, TrackedFrame* tr
 	std::vector<std::string> toolBufferValues; 
 	std::vector<std::string> toolBufferStatuses; 
 
-	this->GetTracker()->GetTrackerToolBufferStringList(synchronizedTime, toolNames, toolBufferValues, toolBufferStatuses); 
+	this->GetTracker()->GetTrackerToolBufferStringList(synchronizedTime, toolNames, toolBufferValues, toolBufferStatuses, calibratedTransform); 
 
 	//Add all information to the tracked frame
 	trackedFrame->Timestamp = synchronizedTime; 
@@ -1000,7 +1028,7 @@ void vtkDataCollector::GetTrackedFrameByTime(const double time, TrackedFrame* tr
 }
 
 //----------------------------------------------------------------------------
-void vtkDataCollector::GetTrackedFrameByTime(const double time, vtkImageData* frame, std::vector<vtkMatrix4x4*> &toolTransforms, std::vector<std::string> &toolTransformNames, std::vector<long> &flags, double& synchronizedTime)
+void vtkDataCollector::GetTrackedFrameByTime(const double time, vtkImageData* frame, std::vector<vtkMatrix4x4*> &toolTransforms, std::vector<std::string> &toolTransformNames, std::vector<long> &flags, double& synchronizedTime, bool calibratedTransform /*= false*/)
 {
 	//LOG_TRACE("vtkDataCollector::GetTrackedFrameByTime - vtkImageData");
 	toolTransforms.clear(); 
@@ -1016,7 +1044,7 @@ void vtkDataCollector::GetTrackedFrameByTime(const double time, vtkImageData* fr
 			long flag(0); 
 
 			vtkSmartPointer<vtkMatrix4x4> toolTransMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
-			this->GetTransformByTimestamp( toolTransMatrix, flag, synchronizedTime, tool); 
+			this->GetTransformByTimestamp( toolTransMatrix, flag, synchronizedTime, tool, calibratedTransform); 
 
 			toolTransMatrix->Register(NULL); 
 			toolTransforms.push_back(toolTransMatrix); 
@@ -1030,12 +1058,12 @@ void vtkDataCollector::GetTrackedFrameByTime(const double time, vtkImageData* fr
 }
 
 //----------------------------------------------------------------------------
-void vtkDataCollector::GetTrackedFrame(vtkImageData* frame, std::vector<vtkMatrix4x4*> &toolTransforms, std::vector<std::string> &toolTransformNames, std::vector<long> &flags, double& synchronizedTime)
+void vtkDataCollector::GetTrackedFrame(vtkImageData* frame, std::vector<vtkMatrix4x4*> &toolTransforms, std::vector<std::string> &toolTransformNames, std::vector<long> &flags, double& synchronizedTime, bool calibratedTransform /*= false*/)
 {
 	//LOG_TRACE("vtkDataCollector::GetTrackedFrame - vtkImageData");
 	// Get the most recent frame timestamp 
 	const double time = this->GetMostRecentTimestamp(); 
-	this->GetTrackedFrameByTime(time, frame, toolTransforms, toolTransformNames, flags, synchronizedTime); 
+	this->GetTrackedFrameByTime(time, frame, toolTransforms, toolTransformNames, flags, synchronizedTime, calibratedTransform); 
 }
 
 //----------------------------------------------------------------------------
