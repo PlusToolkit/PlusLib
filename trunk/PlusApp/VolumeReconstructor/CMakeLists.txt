@@ -26,8 +26,8 @@ TARGET_LINK_LIBRARIES(
 IF(PLUSAPP_INSTALL_BIN_DIR)
 
 INSTALL(FILES 
-	${PLUS_DATA_DIR}/ConfigFiles/VolumeReconstructionConfig.xml  
-    ${PLUS_DATA_DIR}/ConfigFiles/VolRec_SonixRP_Linear14-5_D45mm.xml  
+	${PLUSLIB_DATA_DIR}/ConfigFiles/VolumeReconstructionConfig.xml  
+    ${PLUSLIB_DATA_DIR}/ConfigFiles/VolRec_SonixRP_Linear14-5_D45mm.xml  
 	DESTINATION ${PLUSAPP_INSTALL_CONFIG_DIR}
 	COMPONENT RuntimeLibraries
   )

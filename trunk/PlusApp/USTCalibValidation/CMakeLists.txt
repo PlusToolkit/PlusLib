@@ -9,7 +9,7 @@ TARGET_LINK_LIBRARIES(
 )
 
 INSTALL(FILES 
-	${PLUS_DATA_DIR}/ConfigFiles/TemplateModel.xml 
+	${PLUSLIB_DATA_DIR}/ConfigFiles/TemplateModel.xml 
 	DESTINATION ${PLUSAPP_INSTALL_CONFIG_DIR}
 	COMPONENT RuntimeLibraries
   )

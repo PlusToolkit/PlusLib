@@ -47,7 +47,7 @@ int main( int argc, char *argv[] )
 	vtkSmartPointer< vtkDataCollector > dataCollector = vtkSmartPointer< vtkDataCollector >::New();
 	  dataCollector->ReadConfiguration( inputConfigFileName.c_str() );
   
-  if ( dataCollector->GetAcquisitionType() == ACQUISITION_TYPE::SYNCHRO_VIDEO_SAVEDDATASET )
+	  if ( dataCollector->GetAcquisitionType() == SYNCHRO_VIDEO_SAVEDDATASET )
     {
     if ( inputVideoBufferMetafile.empty() )
       {
@@ -59,7 +59,7 @@ int main( int argc, char *argv[] )
     videoSource->SetSequenceMetafile( inputVideoBufferMetafile.c_str() );
     }
   
-  if ( dataCollector->GetTrackerType() == TRACKER_TYPE::TRACKER_SAVEDDATASET )
+	  if ( dataCollector->GetTrackerType() == TRACKER_SAVEDDATASET )
     {
     if ( inputTrackerBufferMetafile.empty() )
       {

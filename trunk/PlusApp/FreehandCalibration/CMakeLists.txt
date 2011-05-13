@@ -107,7 +107,7 @@ INSTALL(FILES
   )
 
 INSTALL(FILES 
-	${PLUS_DATA_DIR}/ConfigFiles/PhantomDefinition_fCal_1.0.xml
+	${PLUSLIB_DATA_DIR}/ConfigFiles/PhantomDefinition_fCal_1.0.xml
 	DESTINATION ${PLUSAPP_INSTALL_CONFIG_DIR}
 	COMPONENT RuntimeLibraries
   )

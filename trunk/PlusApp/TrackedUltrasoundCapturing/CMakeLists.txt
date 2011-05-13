@@ -81,7 +81,7 @@ INSTALL(FILES
   )
 
 INSTALL(FILES 
-	${PLUS_DATA_DIR}/ConfigFiles/USDataCollectionConfig.xml  
+	${PLUSLIB_DATA_DIR}/ConfigFiles/USDataCollectionConfig.xml  
 	DESTINATION ${PLUSAPP_INSTALL_CONFIG_DIR}
 	COMPONENT RuntimeLibraries
   )

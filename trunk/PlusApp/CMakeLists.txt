@@ -1,4 +1,4 @@
-PROJECT(PLUSAPP)
+PROJECT(PlusApp)
 
 CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
 IF(COMMAND CMAKE_POLICY)
@@ -7,18 +7,18 @@ ENDIF(COMMAND CMAKE_POLICY)
 
 # ------------------------------------------------------------------------
 # Find Plus use file
-FIND_PACKAGE (Plus REQUIRED PATHS "${PLUS_DIR}/src" NO_DEFAULT_PATH)
-IF ( Plus_FOUND)
-	INCLUDE( ${PLUS_USE_FILE} )
-ELSE( PLUS_FOUND )
-    MESSAGE( FATAL_ERROR "This project requires PLUS. One of these components is missing. Please verify configuration")
-ENDIF( Plus_FOUND )
+FIND_PACKAGE (PlusLib REQUIRED PATHS "${PLUSLIB_DIR}/src" NO_DEFAULT_PATH)
+IF ( PlusLib_FOUND)
+	INCLUDE( ${PlusLib_USE_FILE} )
+ELSE( PlusLib_FOUND )
+    MESSAGE( FATAL_ERROR "This project requires PlusLib. One of these components is missing. Please verify configuration")
+ENDIF( PlusLib_FOUND )
 
 # ------------------------------------------------------------------------
 # Set project version number: PlusApp version should identical to Plus version 
-SET(PLUSAPP_VERSION_MAJOR ${PLUS_VERSION_MAJOR})
-SET(PLUSAPP_VERSION_MINOR ${PLUS_VERSION_MINOR})
-SET(PLUSAPP_VERSION_PATCH ${PLUS_VERSION_PATCH})
+SET(PLUSAPP_VERSION_MAJOR ${PLUSLIB_VERSION_MAJOR})
+SET(PLUSAPP_VERSION_MINOR ${PLUSLIB_VERSION_MINOR})
+SET(PLUSAPP_VERSION_PATCH ${PLUSLIB_VERSION_PATCH})
 SET(PLUSAPP_VERSION ${PLUSAPP_VERSION_MAJOR}.${PLUSAPP_VERSION_MINOR}.${PLUSAPP_VERSION_PATCH})
 
 MESSAGE(STATUS "PlusApp version: ${PLUSAPP_VERSION}" )
