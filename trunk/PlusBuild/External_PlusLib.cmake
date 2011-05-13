@@ -60,4 +60,4 @@ ExternalProject_Add(PlusLib
             INSTALL_COMMAND ""
             DEPENDS ${PlusLib_DEPENDENCIES}
             )
-SET(PLUS_DIR ${CMAKE_BINARY_DIR}/PlusLib-bin CACHE PATH "The directory containing PlusLib binaries" FORCE)                
+SET(PLUSLIB_DIR ${CMAKE_BINARY_DIR}/PlusLib-bin CACHE PATH "The directory containing PlusLib binaries" FORCE)                

@@ -10,7 +10,7 @@ ExternalProject_Add(PlusApp
             SVN_REPOSITORY https://subversion.assembla.com/svn/plus/trunk/PlusApp
             #--Configure step-------------
             CMAKE_ARGS 
-                -DPLUS_DIR:PATH=${PLUS_DIR}
+                -DPLUSLIB_DIR:PATH=${PLUSLIB_DIR}
                 -DSubversion_SVN_EXECUTABLE:FILEPATH=${Subversion_SVN_EXECUTABLE}
                 -DPLUSAPP_BUILD_4DUltrasound:BOOL=ON
                 -DPLUSAPP_BUILD_VolumeReconstructor:BOOL=ON
