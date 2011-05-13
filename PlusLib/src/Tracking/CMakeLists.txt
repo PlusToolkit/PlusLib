@@ -64,8 +64,8 @@ IF (PLUS_USE_CERTUS)
         FIND_PATH(NDIOAPI_BINARY_DIR oapi.dll DOC "Path to the NDI oapi SDK binary directory.")
     ENDIF(PLUS_USE_PLTools)
 
-    SET (PLUS_INCLUDE_DIRS 
-            ${PLUS_INCLUDE_DIRS} 
+    SET (PLUSLIB_INCLUDE_DIRS 
+            ${PLUSLIB_INCLUDE_DIRS} 
             ${VTKNDICAPI_SOURCE_DIR} 
             ${VTKNDICAPI_BINARY_DIR}
 			${NDIOAPI_INCLUDE_DIR}
@@ -102,8 +102,8 @@ IF (PLUS_USE_POLARIS)
 			)
 	endif (WIN32)
 
-    SET (PLUS_INCLUDE_DIRS 
-            ${PLUS_INCLUDE_DIRS} 
+    SET (PLUSLIB_INCLUDE_DIRS 
+            ${PLUSLIB_INCLUDE_DIRS} 
             ${VTKNDICAPI_SOURCE_DIR}
             ${VTKNDICAPI_BINARY_DIR}
             CACHE INTERNAL ""
@@ -132,8 +132,8 @@ IF (PLUS_USE_FLOCK)
 	endif (WIN32)
 	
 	ADD_SUBDIRECTORY(FlockTracking/Utils)
-    SET (PLUS_INCLUDE_DIRS 
-                ${PLUS_INCLUDE_DIRS} 
+    SET (PLUSLIB_INCLUDE_DIRS 
+                ${PLUSLIB_INCLUDE_DIRS} 
                 ${VTKFLOCK_SOURCE_DIR}
                 ${VTKFLOCK_BINARY_DIR}
                 CACHE INTERNAL ""
@@ -164,8 +164,8 @@ IF (PLUS_USE_MICRONTRACKER)
 	
 	ADD_SUBDIRECTORY(MicronTracking/Utils)
 
-    SET (PLUS_INCLUDE_DIRS 
-                ${PLUS_INCLUDE_DIRS} 
+    SET (PLUSLIB_INCLUDE_DIRS 
+                ${PLUSLIB_INCLUDE_DIRS} 
                 ${MICRONTRACKERFILES_SOURCE_DIR}
 				${MICRONTRACKERFILES_BINARY_DIR}
                 CACHE INTERNAL ""
@@ -197,8 +197,8 @@ IF (PLUS_USE_AMS_TRACKER)
 	
 	ADD_SUBDIRECTORY(AMSTracking/Utils)
 	
-    SET (PLUS_INCLUDE_DIRS 
-                ${PLUS_INCLUDE_DIRS} 
+    SET (PLUSLIB_INCLUDE_DIRS 
+                ${PLUSLIB_INCLUDE_DIRS} 
                 ${AMSStepper_SOURCE_DIR}
                 ${AMSStepper_BINARY_DIR}
                 CACHE INTERNAL ""
@@ -224,7 +224,7 @@ IF( PLUS_USE_Ascension3DG )
       FIND_PATH( ATC_BINARY_DIRECTORY ATC3DG${CMAKE_SHARED_LIBRARY_SUFFIX} PATHS "C:/Program Files/Ascension/3D Guidance (Rev D)/3D Guidance API" DOC "Path to the Ascension 3D Guidance library folder" )
     ENDIF( PLUS_USE_PLTools )
   
-  SET (PLUS_INCLUDE_DIRS ${PLUS_INCLUDE_DIRS} 
+  SET (PLUSLIB_INCLUDE_DIRS ${PLUSLIB_INCLUDE_DIRS} 
             ${ATC_INCLUDE_DIRECTORY}
             ${CMAKE_CURRENT_SOURCE_DIR}/Ascension3DGTracking
             CACHE INTERNAL ""
@@ -242,13 +242,6 @@ IF( PLUS_USE_Ascension3DG )
         
 ENDIF( PLUS_USE_Ascension3DG )
 
-INCLUDE_DIRECTORIES( ${PLUS_INCLUDE_DIRS} )
-
-IF (BUILD_TESTING)
-	ADD_SUBDIRECTORY(Testing)
-ENDIF (BUILD_TESTING)
-
-
 #--------------------------------------------------------------------------
 # Ascension 3DGm support (MedSafe!!!)
 IF( PLUS_USE_Ascension3DGm )
@@ -262,7 +255,7 @@ IF( PLUS_USE_Ascension3DGm )
          FIND_PATH( ATCM_LIBRARY_DIRECTORY ATC3DGm${CMAKE_STATIC_LIBRARY_SUFFIX} PATHS "C:/Program Files/Ascension/3D Guidance medSAFE (Rev F)/3D Guidance API" DOC "Path to the Ascension 3D Guidance medSAFE library folder" )
     ENDIF(PLUS_USE_PLTools)
     
-  SET (PLUS_INCLUDE_DIRS ${PLUS_INCLUDE_DIRS} 
+  SET (PLUSLIB_INCLUDE_DIRS ${PLUSLIB_INCLUDE_DIRS} 
             ${ATCM_INCLUDE_DIRECTORY}
             ${CMAKE_CURRENT_SOURCE_DIR}/Ascension3DGTracking
             CACHE INTERNAL ""
@@ -280,6 +273,11 @@ IF( PLUS_USE_Ascension3DGm )
         
 ENDIF( PLUS_USE_Ascension3DGm )
 
+INCLUDE_DIRECTORIES( ${PLUSLIB_INCLUDE_DIRS} )
+
+IF (BUILD_TESTING)
+	ADD_SUBDIRECTORY(Testing)
+ENDIF (BUILD_TESTING)
 
 # --------------------------------------------------------------------------
 # Build the library

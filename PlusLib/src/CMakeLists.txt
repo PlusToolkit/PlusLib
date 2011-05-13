@@ -58,7 +58,7 @@ ENDIF(PLUS_USE_PLTools)
 
 # --------------------------------------------------------------------------
 # The project library directories.
-SET(PLUS_LIBRARY_DIRS ${LIBRARY_OUTPUT_PATH} CACHE INTERNAL "Path to the Plus library directory" FORCE)
+SET(PLUSLIB_LIBRARY_DIRS ${LIBRARY_OUTPUT_PATH} CACHE INTERNAL "Path to the Plus library directory" FORCE)
 
 # --------------------------------------------------------------------------
 # Configure include file
@@ -72,7 +72,7 @@ configure_file(
 # --------------------------------------------------------------------------
 # Include dirs
 
-SET (PLUS_INCLUDE_DIRS 	
+SET (PLUSLIB_INCLUDE_DIRS 	
 	${CMAKE_CURRENT_SOURCE_DIR}
 	${CMAKE_CURRENT_BINARY_DIR}
 	${CMAKE_CURRENT_SOURCE_DIR}/DataCollection 
@@ -104,7 +104,7 @@ SET (PLUS_INCLUDE_DIRS
 	)
 
 
-INCLUDE_DIRECTORIES( ${PLUS_INCLUDE_DIRS} )
+INCLUDE_DIRECTORIES( ${PLUSLIB_INCLUDE_DIRS} )
 
 # --------------------------------------------------------------------------
 # Subdirs
@@ -124,7 +124,7 @@ file(GLOB headers
 
 # --------------------------------------------------------------------------
 # Create Plus target list 
-SET( PLUS_TARGETS 
+SET( PLUSLIB_TARGETS 
         vtkImageAcquisition 
         vtkTrusCalibration 
         vtkTrusCalibrationCommon 
@@ -137,34 +137,34 @@ SET( PLUS_TARGETS
         )
 
 IF ( PLUS_USE_AMS_TRACKER )
-    SET( PLUS_TARGETS ${PLUS_TARGETS} vtkAMSStepper )
+    SET( PLUSLIB_TARGETS ${PLUSLIB_TARGETS} vtkAMSStepper )
 ENDIF ( PLUS_USE_AMS_TRACKER )
 
 IF ( PLUS_USE_CERTUS OR PLUS_USE_POLARIS )
-    SET( PLUS_TARGETS ${PLUS_TARGETS} vtkndicapi )
+    SET( PLUSLIB_TARGETS ${PLUSLIB_TARGETS} vtkndicapi )
 ENDIF ( PLUS_USE_CERTUS OR PLUS_USE_POLARIS )
 
 IF ( PLUS_USE_FLOCK )
-    SET( PLUS_TARGETS ${PLUS_TARGETS} vtkflock )
+    SET( PLUSLIB_TARGETS ${PLUSLIB_TARGETS} vtkflock )
 ENDIF ( PLUS_USE_FLOCK )
 
 IF ( PLUS_USE_MICRONTRACKER )
-    SET( PLUS_TARGETS ${PLUS_TARGETS} vtkMicrontrackerfiles )
+    SET( PLUSLIB_TARGETS ${PLUSLIB_TARGETS} vtkMicrontrackerfiles )
 ENDIF ( PLUS_USE_MICRONTRACKER )
 
 # Add all targets to the build-tree export set
-export(TARGETS ${PLUS_TARGETS}
-  FILE "${CMAKE_CURRENT_BINARY_DIR}/PlusLibraryDepends.cmake")    
+export(TARGETS ${PLUSLIB_TARGETS}
+  FILE "${CMAKE_CURRENT_BINARY_DIR}/PlusLibLibraryDepends.cmake")    
  
 # Export the package for use from the build-tree
 # (this registers the build-tree with a global CMake-registry)
-export(PACKAGE Plus)
+export(PACKAGE PlusLib)
 
 # Create a PlusConfig.cmake file for the use from the build tree
-configure_file(PlusConfig.cmake.in
-  "${CMAKE_CURRENT_BINARY_DIR}/PlusConfig.cmake" @ONLY)
-configure_file(PlusConfigVersion.cmake.in
-  "${CMAKE_CURRENT_BINARY_DIR}/PlusConfigVersion.cmake" @ONLY)
+configure_file(PlusLibConfig.cmake.in
+  "${CMAKE_CURRENT_BINARY_DIR}/PlusLibConfig.cmake" @ONLY)
+configure_file(PlusLibConfigVersion.cmake.in
+  "${CMAKE_CURRENT_BINARY_DIR}/PlusLibConfigVersion.cmake" @ONLY)
   
 # IF (BUILD_SLICER_MODULE)
 	
@@ -244,8 +244,8 @@ configure_file(PlusConfigVersion.cmake.in
 #
 
 configure_file(
-	${CMAKE_CURRENT_SOURCE_DIR}/UsePlus.cmake.in 
-	${CMAKE_CURRENT_BINARY_DIR}/UsePlus.cmake
+	${CMAKE_CURRENT_SOURCE_DIR}/UsePlusLib.cmake.in 
+	${CMAKE_CURRENT_BINARY_DIR}/UsePlusLib.cmake
 	)	
 
 # --------------------------------------------------------------------------
