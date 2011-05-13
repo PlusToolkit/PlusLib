@@ -64,6 +64,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/Toolboxes)
 SET (FreehandCalibration_LIBS 
     ${FreehandCalibration_LIBS} 
     ${QT_LIBRARIES} 
+    vtkImageAcquisition 
     ITKIO
     itkvnl 
     itkvnl_algo 
@@ -71,7 +72,6 @@ SET (FreehandCalibration_LIBS
     vtkRendering 
     vtkHybrid 
     vtkTrusCalibration 
-    vtkImageAcquisition 
     vtkTracking 
     vtkDataCollection 
     vtkPlusCommon

@@ -187,7 +187,7 @@ AbstractToolboxController* FreehandMainWindow::GetToolboxControllerByType(Toolbo
 		case ToolboxType_PhantomRegistration:
 			return PhantomRegistrationController::GetInstance();
 		case ToolboxType_FreehandCalibration:
-			return FreehandCalibrationController::GetInstance();
+			return vtkFreehandCalibrationController::GetInstance();
 		case ToolboxType_VolumeReconstruction:
 			return VolumeReconstructionController::GetInstance();
 		default:
@@ -239,7 +239,7 @@ void FreehandMainWindow::CurrentTabChanged(int aTabIndex)
 	if ((vtkFreehandController::GetInstance() == NULL)
 		|| (StylusCalibrationController::GetInstance() == NULL)
 		|| (PhantomRegistrationController::GetInstance() == NULL)
-		|| (FreehandCalibrationController::GetInstance() == NULL)
+		|| (vtkFreehandCalibrationController::GetInstance() == NULL)
 		|| (VolumeReconstructionController::GetInstance() == NULL))
 	{
 		LOG_ERROR("Some controllers are not initialized!");
@@ -271,7 +271,7 @@ void FreehandMainWindow::CurrentTabChanged(int aTabIndex)
 
 	} else if (ui.tabWidgetToolbox->tabText(aTabIndex) == "Freehand Calibration") {
 		// Initialize freehand calibration
-		FreehandCalibrationController::GetInstance()->Initialize();
+		vtkFreehandCalibrationController::GetInstance()->Initialize();
 		vtkFreehandController::GetInstance()->TrackingOnlyOff();
 
 		m_ActiveToolbox = ToolboxType_FreehandCalibration;
@@ -323,7 +323,7 @@ void FreehandMainWindow::UpdateGUI()
 	if ((controller == NULL)
 		|| (StylusCalibrationController::GetInstance() == NULL)
 		|| (PhantomRegistrationController::GetInstance() == NULL)
-		|| (FreehandCalibrationController::GetInstance() == NULL)) { //TODO kiegesziteni
+		|| (vtkFreehandCalibrationController::GetInstance() == NULL)) { //TODO kiegesziteni
 		LOG_ERROR("Some controllers are not initialized!");
 		return;
 	}

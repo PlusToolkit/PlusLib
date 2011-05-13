@@ -20,7 +20,7 @@ FreehandCalibrationToolbox::FreehandCalibrationToolbox(QWidget* aParent, Qt::WFl
 	m_AcquisitionTimer = new QTimer(this);
 
 	// Initialize toolbox controller
-	FreehandCalibrationController* toolboxController = FreehandCalibrationController::GetInstance();
+	vtkFreehandCalibrationController* toolboxController = vtkFreehandCalibrationController::GetInstance();
 	if (toolboxController == NULL) {
 		LOG_ERROR("Freehand calibration toolbox controller is not initialized!");
 		return;
@@ -47,7 +47,7 @@ FreehandCalibrationToolbox::FreehandCalibrationToolbox(QWidget* aParent, Qt::WFl
 
 FreehandCalibrationToolbox::~FreehandCalibrationToolbox()
 {
-	FreehandCalibrationController* freehandCalibrationController = FreehandCalibrationController::GetInstance();
+	vtkFreehandCalibrationController* freehandCalibrationController = vtkFreehandCalibrationController::GetInstance();
 	if (freehandCalibrationController != NULL) {
 		delete freehandCalibrationController;
 	}
@@ -74,7 +74,7 @@ void FreehandCalibrationToolbox::RefreshToolboxContent()
 {
 	//LOG_DEBUG("StylusCalibrationToolbox: Refresh stylus calibration toolbox content"); 
 
-	FreehandCalibrationController* toolboxController = FreehandCalibrationController::GetInstance();
+	vtkFreehandCalibrationController* toolboxController = vtkFreehandCalibrationController::GetInstance();
 
 	// If initialization failed
 	if (toolboxController->State() == ToolboxState_Uninitialized) {
@@ -89,7 +89,7 @@ void FreehandCalibrationToolbox::RefreshToolboxContent()
 	} else
 	// If initialized
 	if (toolboxController->State() == ToolboxState_Idle) {
-		if (FreehandCalibrationController::GetInstance()->IsTemporalCalibrationDone() == false) { // If temporal calibration has not been done yet
+		if (toolboxController->GetTemporalCalibrationDone() == false) { // If temporal calibration has not been done yet
 			ui.label_InstructionsTemporal->setText(tr("Press Start and make abrupt movements with the probe every 2 seconds"));
 			ui.pushButton_StartTemporal->setEnabled(true);
 			ui.pushButton_ResetTemporal->setEnabled(false);
@@ -121,7 +121,7 @@ void FreehandCalibrationToolbox::RefreshToolboxContent()
 	} else
 	// If in progress
 	if (toolboxController->State() == ToolboxState_InProgress) {
-		if (FreehandCalibrationController::GetInstance()->IsTemporalCalibrationDone() == false) { // If temporal calibration has not been done yet
+		if (toolboxController->GetTemporalCalibrationDone() == false) { // If temporal calibration has not been done yet
 			ui.label_InstructionsTemporal->setText(tr("Make abrupt movements with the probe every 2 seconds"));
 			ui.pushButton_StartTemporal->setEnabled(false);
 			ui.pushButton_ResetTemporal->setEnabled(true);
@@ -180,7 +180,7 @@ void FreehandCalibrationToolbox::RefreshToolboxContent()
 
 void FreehandCalibrationToolbox::Stop()
 {
-	FreehandCalibrationController::GetInstance()->Stop();
+	vtkFreehandCalibrationController::GetInstance()->Stop();
 }
 
 //-----------------------------------------------------------------------------
@@ -220,12 +220,40 @@ void FreehandCalibrationToolbox::OpenPhantomDefinitionClicked()
 
 void FreehandCalibrationToolbox::OpenPhantomRegistrationClicked()
 {
+	LOG_DEBUG("FreehandCalibrationToolbox: Open phantom registration button clicked"); 
+
+	// File open dialog for selecting phantom registration xml
+	QString filter = QString( tr( "XML files ( *.xml );;" ) );
+	QString fileName = QFileDialog::getOpenFileName(NULL, QString( tr( "Open phantom registration XML" ) ), vtkFreehandController::GetInstance()->GetConfigDirectory(), filter);
+	if (fileName.isNull()) {
+		return;
+	}
+
+	// Load phantom registration xml
+	if (PhantomRegistrationController::GetInstance()->LoadPhantomRegistrationFromFile(fileName.toStdString())) {
+		ui.lineEdit_PhantomRegistration->setText(fileName);
+		ui.lineEdit_PhantomRegistration->setToolTip(fileName);
+	}
 }
 
 //-----------------------------------------------------------------------------
 
 void FreehandCalibrationToolbox::OpenCalibrationConfigurationClicked()
 {
+	LOG_DEBUG("FreehandCalibrationToolbox: Open calibration configuration button clicked"); 
+
+	// File open dialog for selecting calibration configuration xml
+	QString filter = QString( tr( "XML files ( *.xml );;" ) );
+	QString fileName = QFileDialog::getOpenFileName(NULL, QString( tr( "Open calibration configuration XML" ) ), vtkFreehandController::GetInstance()->GetConfigDirectory(), filter);
+	if (fileName.isNull()) {
+		return;
+	}
+
+	// Load calibration configuration xml
+	if (true/*vtkFreehandCalibrationController::GetInstance()->LoadCalibrationConfigurationFile(fileName.toStdString()) TODO */) {
+		ui.lineEdit_CalibrationConfiguration->setText(fileName);
+		ui.lineEdit_CalibrationConfiguration->setToolTip(fileName);
+	}
 }
 
 //-----------------------------------------------------------------------------
