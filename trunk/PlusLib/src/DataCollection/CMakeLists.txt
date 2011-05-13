@@ -41,7 +41,7 @@ IF (PLUS_USE_OpenIGTLink)
     SET (DataCollection_LIBS ${DataCollection_LIBS} OpenIGTLink)
 ENDIF(PLUS_USE_OpenIGTLink)        
 
-INCLUDE_DIRECTORIES( ${PLUS_INCLUDE_DIRS} )
+INCLUDE_DIRECTORIES( ${PLUSLIB_INCLUDE_DIRS} )
 ADD_LIBRARY(vtkDataCollection ${DataCollection_SRCS} ${DataCollection_HDRS})
 TARGET_LINK_LIBRARIES(vtkDataCollection ${DataCollection_LIBS})
 

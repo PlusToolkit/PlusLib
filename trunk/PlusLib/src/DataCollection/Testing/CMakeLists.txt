@@ -1,5 +1,5 @@
-SET( TestDataDir ${PLUS_DATA_DIR}/TestImages )
-SET( ConfigFilesDir ${PLUS_DATA_DIR}/ConfigFiles )
+SET( TestDataDir ${PLUSLIB_DATA_DIR}/TestImages )
+SET( ConfigFilesDir ${PLUSLIB_DATA_DIR}/ConfigFiles )
 
 #***************************  vtkDataCollectorTest1 ***************************
 ADD_EXECUTABLE(vtkDataCollectorTest1 vtkDataCollectorTest1.cxx)

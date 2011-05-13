@@ -1,4 +1,4 @@
-SET( TestDataDir ${PLUS_DATA_DIR}/TestImages )
+SET( TestDataDir ${PLUSLIB_DATA_DIR}/TestImages )
 
 ###################################################
 ADD_EXECUTABLE( ConvertFcsvToXml

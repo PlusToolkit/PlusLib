@@ -4,8 +4,8 @@ SET (vtkUSCalibrationControllerTest_LIBS ${vtkUSCalibrationControllerTest_LIBS} 
 ADD_EXECUTABLE(vtkUSCalibrationControllerTest1 vtkUSCalibrationControllerTest1.cxx)
 TARGET_LINK_LIBRARIES(vtkUSCalibrationControllerTest1 ${vtkUSCalibrationControllerTest_LIBS} )
 
-SET( TestDataDir ${PLUS_DATA_DIR}/TestImages )
-SET( ConfigFilesDir ${PLUS_DATA_DIR}/ConfigFiles )
+SET( TestDataDir ${PLUSLIB_DATA_DIR}/TestImages )
+SET( ConfigFilesDir ${PLUSLIB_DATA_DIR}/ConfigFiles )
 
 ADD_TEST(vtkUSCalibrationControllerTest-Exact
 		${EXECUTABLE_OUTPUT_PATH}/vtkUSCalibrationControllerTest1
@@ -93,9 +93,6 @@ SET (vtkStylusCalibrationTest_LIBS ${vtkStylusCalibrationTest_LIBS} itkvnl itkvn
 ADD_EXECUTABLE(vtkStylusCalibrationTest vtkStylusCalibrationTest.cxx)
 TARGET_LINK_LIBRARIES(vtkStylusCalibrationTest ${vtkStylusCalibrationTest_LIBS} )
 
-SET( TestDataDir ${PLUS_DATA_DIR}/TestImages )
-SET( ConfigFilesDir ${PLUS_DATA_DIR}/ConfigFiles )
-
 ADD_TEST(vtkStylusCalibrationTest
 		${EXECUTABLE_OUTPUT_PATH}/vtkStylusCalibrationTest
 		--input-config-file-name=${ConfigFilesDir}/USDataCollectionConfig_FakeTracker_PivotCalibration.xml
@@ -108,9 +105,6 @@ ADD_TEST(vtkStylusCalibrationTest
 SET (vtkPhantomRegistrationTest_LIBS ${vtkPhantomRegistrationTest_LIBS} itkvnl itkvnl_algo vtkCommon vtkTrusCalibration vtkDataCollection)
 ADD_EXECUTABLE(vtkPhantomRegistrationTest vtkPhantomRegistrationTest.cxx)
 TARGET_LINK_LIBRARIES(vtkPhantomRegistrationTest ${vtkPhantomRegistrationTest_LIBS} )
-
-SET( TestDataDir ${PLUS_DATA_DIR}/TestImages )
-SET( ConfigFilesDir ${PLUS_DATA_DIR}/ConfigFiles )
 
 ADD_TEST(vtkPhantomRegistrationTest
 		${EXECUTABLE_OUTPUT_PATH}/vtkPhantomRegistrationTest

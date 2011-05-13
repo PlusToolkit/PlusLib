@@ -1,4 +1,4 @@
-SET( TestDataDir ${PLUS_DATA_DIR}/TestImages )
+SET( TestDataDir ${PLUSLIB_DATA_DIR}/TestImages )
 
 #***************************  itkMetaImageSequenceIOTest1  ***************************
 ADD_EXECUTABLE(itkMetaImageSequenceIOTest1 itkMetaImageSequenceIOTest1.cxx )

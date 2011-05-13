@@ -1,4 +1,4 @@
-PROJECT(PLUS)
+PROJECT(PlusLib)
 
 cmake_minimum_required(VERSION 2.8)
 if(COMMAND cmake_policy)
@@ -7,12 +7,12 @@ endif(COMMAND cmake_policy)
 
 # ------------------------------------------------------------------------
 # Set project version number 
-SET(PLUS_VERSION_MAJOR "1")
-SET(PLUS_VERSION_MINOR "1")
-SET(PLUS_VERSION_PATCH "1")
-SET(PLUS_VERSION ${PLUS_VERSION_MAJOR}.${PLUS_VERSION_MINOR}.${PLUS_VERSION_PATCH})
+SET(PLUSLIB_VERSION_MAJOR "1")
+SET(PLUSLIB_VERSION_MINOR "1")
+SET(PLUSLIB_VERSION_PATCH "1")
+SET(PLUSLIB_VERSION ${PLUSLIB_VERSION_MAJOR}.${PLUSLIB_VERSION_MINOR}.${PLUSLIB_VERSION_PATCH})
 
-MESSAGE(STATUS "Plus version: ${PLUS_VERSION}" )
+MESSAGE(STATUS "PlusLib version: ${PLUSLIB_VERSION}" )
 
 # --------------------------------------------------------------------------
 # User options
@@ -27,17 +27,16 @@ OPTION(BUILD_TESTING
 # Testing
 #
 
-SET (PLUS_DATA_DIR ${CMAKE_CURRENT_SOURCE_DIR}/data)
-
+SET (PLUSLIB_DATA_DIR ${CMAKE_CURRENT_SOURCE_DIR}/data)
 # Need subversion for the automatic update of the repository
 find_package(Subversion)
 IF(Subversion_FOUND)
-  Subversion_WC_INFO(${CMAKE_CURRENT_SOURCE_DIR} PLUS_SVN_INFO)
-  MESSAGE(STATUS "Current revision is ${PLUS_SVN_INFO_WC_REVISION}") 
-  SET(PLUS_REVISION ${PLUS_SVN_INFO_WC_REVISION})
+  Subversion_WC_INFO(${CMAKE_CURRENT_SOURCE_DIR} PLUSLIB_SVN_INFO)
+  MESSAGE(STATUS "Current revision is ${PLUSLIB_SVN_INFO_WC_REVISION}") 
+  SET(PLUSLIB_REVISION ${PLUSLIB_SVN_INFO_WC_REVISION})
 ENDIF(Subversion_FOUND)
 
-SET( PLUS_SVN_EXECUTABLE ${Subversion_SVN_EXECUTABLE} )
+SET( PLUSLIB_SVN_EXECUTABLE ${Subversion_SVN_EXECUTABLE} )
 
 INCLUDE(CTest)
 
