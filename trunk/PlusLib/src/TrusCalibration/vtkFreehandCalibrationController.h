@@ -1,28 +1,33 @@
-#ifndef FREEHANDCALIBRATIONCONTROLLER_H
-#define FREEHANDCALIBRATIONCONTROLLER_H
+#ifndef __vtkFreehandCalibrationController_h
+#define __vtkFreehandCalibrationController_h
 
 #include "AbstractToolboxController.h"
 
-#include "vtkProbeCalibrationController.h"
+#include "vtkCalibrationController.h"
 
 //-----------------------------------------------------------------------------
 
 /*!
 * \brief Control operations for freehand calibration toolbox - singleton class
 */
-class FreehandCalibrationController : public AbstractToolboxController
+class vtkFreehandCalibrationController : public vtkCalibrationController, public AbstractToolboxController //TODOsajt a filet is atnevezni
 {
 public:
+	/*!
+	* \brief New
+	*/
+	static vtkFreehandCalibrationController *New();
+
 	/*!
 	* \brief Instance getter for the singleton class
 	* \return Instance object
 	*/
-	static FreehandCalibrationController* GetInstance();
+	static vtkFreehandCalibrationController* GetInstance();
 
 	/*!
 	* \brief Destructor
 	*/
-	virtual	~FreehandCalibrationController();
+	virtual	~vtkFreehandCalibrationController();
 
 	/*!
 	* \brief Initialize - implementation of a pure virtual function
@@ -52,23 +57,31 @@ public:
 	//TODO
 	void StartTemporalCalibration();
 	void StartSpatialCalibration();
-	bool IsTemporalCalibrationDone();
 	void SaveCalibrationResults(std::string aFile);
+	static void UpdateProgress(int aPercent);
+
+	// Set/Get macros for member variables
+	vtkSetMacro(TemporalCalibrationDone, bool); 
+	vtkGetMacro(TemporalCalibrationDone, bool); 
+	vtkBooleanMacro(TemporalCalibrationDone, bool); 
+
+	vtkSetMacro(ProgressPercent, int); 
+	vtkGetMacro(ProgressPercent, int); 
 
 protected:
 	/*!
 	* \brief Constructor
 	*/
-	FreehandCalibrationController();
+	vtkFreehandCalibrationController();
 
 protected:
 	//TODO
-	vtkProbeCalibrationController* m_ProbeCalibrationController;
-	bool m_TemporalCalibrationDone;
+	bool TemporalCalibrationDone;
+	int ProgressPercent;
 
 private:
 	//! Instance of the singleton
-	static FreehandCalibrationController*	m_Instance;
+	static vtkFreehandCalibrationController*	Instance;
 };
 
 #endif

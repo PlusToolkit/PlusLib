@@ -13,7 +13,7 @@ SET (TrusCalibration_SRCS
     vtkMeanShiftClustering.cxx 
 	StylusCalibrationController.cxx
 	PhantomRegistrationController.cxx
-	FreehandCalibrationController.cxx
+	vtkFreehandCalibrationController.cxx
 	VolumeReconstructionController.cxx
 	vtkFreehandController.cxx
 	)
@@ -34,7 +34,7 @@ IF (WIN32)
 		AbstractToolboxController.h
 		StylusCalibrationController.h
 		PhantomRegistrationController.h
-		FreehandCalibrationController.h
+		vtkFreehandCalibrationController.h
 		VolumeReconstructionController.h
 		vtkFreehandController.h
 		)
