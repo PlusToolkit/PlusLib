@@ -10,8 +10,7 @@ IF "${ULTERIUS_MAJOR_VERSION}"=="1" SET PATH=${ULTERIUS_BINARY_DIR}/r;%PATH% ELS
   SET PATH=${ULTERIUS_BINARY_DIR};%PATH%)
 IF "${PLUS_USE_OpenIGTLink}"=="ON" SET PATH=${OpenIGTLink_DIR}/bin/RelWithDebInfo;%PATH% 
 SET PATH=${QT_BINARY_DIR};%PATH%
-SET PATH=c:/cygwin/bin;%PATH%
-SET SVNCOMMAND=svn.exe
+SET SVNCOMMAND=${Subversion_SVN_EXECUTABLE}
 REM Emptying SVN_SSH variable is needed so that AnkhSVN Visual Studio plugin work (without this unset command, it cannot commit)
 SET SVN_SSH=
 

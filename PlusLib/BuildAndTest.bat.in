@@ -9,9 +9,7 @@ IF "${ULTERIUS_MAJOR_VERSION}"=="1" SET PATH=${ULTERIUS_BINARY_DIR}/r;%PATH% ELS
   SET PATH=${ULTERIUS_BINARY_DIR};%PATH%)
 IF "${PLUS_USE_OpenIGTLink}"=="ON" SET PATH=${OpenIGTLink_DIR}/bin/Release;%PATH%
 SET PATH=${QT_BINARY_DIR};%PATH%
-SET PATH=c:/cygwin/bin;%PATH%
-
-SET SVNCOMMAND=svn.exe
+SET SVNCOMMAND=${Subversion_SVN_EXECUTABLE}
 
 if "%1" == "" goto experimental
 if "%1" == "-E" goto experimental
