@@ -16,6 +16,6 @@ SET SVN_SSH=
 
 if "%1" == "no-sln" goto End
 
-PLUS.sln
+PLUSLIB.sln
 
 :End
