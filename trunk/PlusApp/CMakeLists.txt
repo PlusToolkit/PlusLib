@@ -42,13 +42,13 @@ OPTION(BUILD_SHARED_LIBS
 # --------------------------------------------------------------------------
 # Configure output paths for libraries and executables.
 #
-SET(LIBRARY_OUTPUT_PATH ${PLUSAPP_BINARY_DIR}/bin CACHE PATH
-    "Single output directory for building all libraries.")
-SET(EXECUTABLE_OUTPUT_PATH ${PLUSAPP_BINARY_DIR}/bin CACHE PATH
-    "Single output directory for building all executables.")
+SET(LIBRARY_OUTPUT_PATH ${CMAKE_CURRENT_BINARY_DIR}/bin CACHE PATH
+    "Single output directory for building all libraries." FORCE)
+SET(EXECUTABLE_OUTPUT_PATH ${CMAKE_CURRENT_BINARY_DIR}/bin CACHE PATH
+    "Single output directory for building all executables." FORCE)
 MARK_AS_ADVANCED(LIBRARY_OUTPUT_PATH EXECUTABLE_OUTPUT_PATH)
 
-SET(CMAKE_INSTALL_PREFIX ${PLUSAPP_BINARY_DIR}/Install )
+SET(CMAKE_INSTALL_PREFIX ${CMAKE_CURRENT_BINARY_DIR}/Install )
 SET( INSTALL_DESTINATION_DIR "PlusApp_v${PLUSAPP_VERSION_MAJOR}.${PLUSAPP_VERSION_MINOR}.${PLUSAPP_VERSION_PATCH}" )
 
 OPTION (PLUSAPP_BUILD_4DUltrasound "Build the 4DUltrasound application" ON)
