@@ -320,6 +320,24 @@ void vtkCalibrationController::ConvertVnlMatrixToVtkMatrix(vnl_matrix<double>& i
 }
 
 //----------------------------------------------------------------------------
+void vtkCalibrationController::ConvertVtkMatrixToVnlMatrixInMeter(vtkMatrix4x4* inVtkMatrix, vnl_matrix<double>& outVnlMatrix )
+{
+	LOG_TRACE("vtkCalibrationController::ConvertVtkMatrixToVnlMatrixInMeter"); 
+	ConvertVtkMatrixToVnlMatrix(inVtkMatrix, outVnlMatrix); 
+
+	// Option: convert the translation to meters
+	const double TxInM = 0.001 * outVnlMatrix.get(0,3);
+	const double TyInM = 0.001 * outVnlMatrix.get(1,3);
+	const double TzInM = 0.001 * outVnlMatrix.get(2,3);
+
+	const double translationInMeters[] = {TxInM, TyInM, TzInM, 1};
+	vnl_vector<double> translationInMetersVector(4);
+	translationInMetersVector.set( translationInMeters );
+
+	outVnlMatrix.set_column(3, translationInMetersVector);
+}
+
+//----------------------------------------------------------------------------
 void  vtkCalibrationController::CreateTrackedFrame(ImageType* imageData, const double probePosition, const double probeRotation, const double templatePosition, IMAGE_DATA_TYPE dataType, TrackedFrame& trackedFrame)
 {
 	LOG_TRACE("vtkCalibrationController::CreateTrackedFrame - with optical readings"); 
