@@ -1,14 +1,26 @@
 #include "vtkFreehandCalibrationController.h"
 
 #include "vtkFreehandController.h"
+#include "PhantomRegistrationController.h"
 #include "PlusConfigure.h"
+
+#include "BrachyTRUSCalibrator.h"
 
 #include "vtkObjectFactory.h"
 #include "vtkAccurateTimer.h"
 
 //-----------------------------------------------------------------------------
 
+vtkCxxRevisionMacro(vtkFreehandCalibrationController, "$Revision: 1.0 $");
+
 vtkFreehandCalibrationController *vtkFreehandCalibrationController::Instance = NULL;
+
+//-----------------------------------------------------------------------------
+
+void vtkFreehandCalibrationController::PrintSelf(ostream& os, vtkIndent indent)
+{
+	this->Superclass::PrintSelf(os,indent);
+} 
 
 //-----------------------------------------------------------------------------
 
@@ -39,6 +51,15 @@ vtkFreehandCalibrationController::vtkFreehandCalibrationController()
 {
 	this->TemporalCalibrationDone = false;
 	this->ProgressPercent = 0;
+
+	this->USImageFrameOriginXInPixels = 0; 
+	this->USImageFrameOriginYInPixels = 0; 
+
+	// Initializing vtkCalibrationController members
+	this->InitializedOff(); 
+	this->EnableSystemLogOff();
+	this->SetCalibrationMode(REALTIME); 
+	this->VisualizationComponent = NULL;
 
 	VTK_LOG_TO_CONSOLE_ON
 }
@@ -77,7 +98,40 @@ void vtkFreehandCalibrationController::Initialize()
 		controller->GetCanvasRenderer()->Modified();
 	}
 
-	// Set state to idle
+	// Initialize vtkCalibrationController
+	if ( this->GetSegParameters() == NULL ) {
+		this->SegParameters = new SegmentationParameters(); 
+	}
+
+	// Initialize the segmenation component
+	this->mptrAutomatedSegmentation = new KPhantomSeg( 
+		this->GetImageWidthInPixels(), this->GetImageHeightInPixels(), 
+		this->GetSearchStartAtX(), this->GetSearchStartAtY(), 
+		this->GetSearchDimensionX(), this->GetSearchDimensionY(), this->GetEnableSegmentationAnalysis(), "frame.jpg");
+
+	// Initialize the calibration component
+	if ( CalibrationPhantom == NULL ) {
+		CalibrationPhantom = new BrachyTRUSCalibrator( this->GetEnableSystemLog() );
+	}
+
+	// Set the ultrasound image frame in pixels
+	// This defines the US image frame origin in pixels W.R.T. the left-upper corner of the original image, with X pointing to the right (column) and Y pointing down to the bottom (row).
+	this->SetUSImageFrameOriginInPixels( this->GetUSImageFrameOriginXInPixels(), this->GetUSImageFrameOriginYInPixels() ); 
+
+	// STEP-OPTIONAL. Apply the US 3D beamwidth data to calibration if desired
+	// This will pass the US 3D beamwidth data and their predefined weights to the calibration component.
+	/*
+	if( this->GetUS3DBeamwidthDataReady() )
+	{
+		this->GetCalibrator()->setUltrasoundBeamwidthAndWeightFactorsTable(
+			this->GetIncorporatingUS3DBeamProfile(),
+			*this->GetInterpUS3DBeamwidthAndWeightFactorsInUSImageFrameTable5xM(),
+			*this->GetSortedUS3DBeamwidthAndWeightFactorsInAscendingAxialDepthInUSImageFrameMatrix5xN(),
+			*this->GetMinElevationBeamwidthAndFocalZoneInUSImageFrame() );
+	}
+	*/
+
+	// Set state to idle (initialized)
 	if (m_State == ToolboxState_Uninitialized) {
 		m_State = ToolboxState_Idle;
 	}
@@ -169,3 +223,70 @@ void vtkFreehandCalibrationController::SaveCalibrationResults(std::string aFile)
 	//TODO temporal+spatial (check if they are available)
 }
 
+//-----------------------------------------------------------------------------
+
+void vtkFreehandCalibrationController::SetUSImageFrameOriginInPixels(int* origin)
+{
+	this->SetUSImageFrameOriginInPixels(origin[0], origin[1]); 
+}
+
+//-----------------------------------------------------------------------------
+
+void vtkFreehandCalibrationController::SetUSImageFrameOriginInPixels(int originX, int originY)
+{
+	LOG_TRACE("vtkFreehandCalibrationController::SetUSImageFrameOriginInPixels: " << originX << "  " << originY); //TODO Copy these traces to the other functions as well
+
+	this->SetUSImageFrameOriginXInPixels(originX);
+	this->SetUSImageFrameOriginYInPixels(originY);
+
+	if (this->GetCalibrator() != NULL) {
+		this->GetCalibrator()->setUltrasoundImageFrameOriginInPixels(originX, originY); 
+	}
+}
+
+//-----------------------------------------------------------------------------
+
+void vtkFreehandCalibrationController::ReadConfiguration(const char* configFileNameWithPath)
+{
+	LOG_TRACE("vtkProbeCalibrationController::ReadConfiguration - " << configFileNameWithPath);
+
+	this->SetConfigurationFileName(configFileNameWithPath);
+	
+	vtkXMLDataElement *calibrationController = vtkXMLUtilities::ReadElementFromFile(this->GetConfigurationFileName());
+	ReadConfiguration(calibrationController);
+	calibrationController->Delete();
+}
+
+//-----------------------------------------------------------------------------
+
+void vtkFreehandCalibrationController::ReadConfiguration(vtkXMLDataElement* configData)
+{
+	LOG_TRACE("vtkProbeCalibrationController::ReadConfiguration");
+
+	if ( configData == NULL ) {
+		LOG_ERROR("Unable to read the main configration file"); 
+		exit(EXIT_FAILURE); 
+	}
+
+	// Calibration controller specifications
+	vtkSmartPointer<vtkXMLDataElement> calibrationController = configData->FindNestedElementWithName("CalibrationController"); 
+	this->ReadCalibrationControllerConfiguration(calibrationController); 
+
+	// ProbeCalibration specifications
+	//vtkSmartPointer<vtkXMLDataElement> probeCalibration = calibrationController->FindNestedElementWithName("ProbeCalibration");
+	//this->CalibrationControllerIO->ReadProbeCalibrationConfiguration(probeCalibration);
+//TODO a number of needed image-t egyelore beegetem a kodba, a tobbi cucc meg egyelore nem kell
+}
+
+//-----------------------------------------------------------------------------
+
+void vtkFreehandCalibrationController::RegisterPhantomGeometry()
+{
+	LOG_TRACE("vtkFreehandCalibrationController::RegisterPhantomGeometry"); 
+
+	// Register the phantom geometry to the DRB frame in the "Emulator" mode.
+	vnl_matrix<double> transformMatrixPhantom2DRB4x4InEmulatorMode(4,4);
+	this->ConvertVtkMatrixToVnlMatrixInMeter( PhantomRegistrationController::GetInstance()->GetPhantomReferenceToPhantomTransform()->GetMatrix(), transformMatrixPhantom2DRB4x4InEmulatorMode ); 
+
+	this->GetCalibrator()->registerPhantomGeometryInEmulatorMode( transformMatrixPhantom2DRB4x4InEmulatorMode );
+}

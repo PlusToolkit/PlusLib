@@ -187,7 +187,7 @@ void vtkProbeCalibrationController::Initialize()
 	}
 
 	vnl_matrix<double> transformOrigImageFrame2TRUSImageFrameMatrix4x4(4,4);
-	this->ConvertVtkMatrixToVnlMatrix(this->GetTransformImageHomeToUserImageHome()->GetMatrix(), transformOrigImageFrame2TRUSImageFrameMatrix4x4); 
+	ConvertVtkMatrixToVnlMatrix(this->GetTransformImageHomeToUserImageHome()->GetMatrix(), transformOrigImageFrame2TRUSImageFrameMatrix4x4); 
 	this->GetCalibrator()->setTransformOrigImageToTRUSImageFrame4x4( transformOrigImageFrame2TRUSImageFrameMatrix4x4 );
 
 	// Initialize the visualization component
@@ -270,7 +270,7 @@ void vtkProbeCalibrationController::RegisterPhantomGeometry( double phantomToPro
 
 	// Register the phantom geometry to the DRB frame in the "Emulator" mode.
 	vnl_matrix<double> transformMatrixPhantom2DRB4x4InEmulatorMode(4,4);
-	this->ConvertVtkMatrixToVnlMatrixInMeter( tTemplateHomeToProbeHome->GetMatrix(), transformMatrixPhantom2DRB4x4InEmulatorMode ); 
+	ConvertVtkMatrixToVnlMatrixInMeter( tTemplateHomeToProbeHome->GetMatrix(), transformMatrixPhantom2DRB4x4InEmulatorMode ); 
 
 	this->GetCalibrator()->registerPhantomGeometryInEmulatorMode( transformMatrixPhantom2DRB4x4InEmulatorMode );
 }
@@ -388,7 +388,7 @@ bool vtkProbeCalibrationController::AddTrackedFrameData(TrackedFrame* trackedFra
 			tProbeHomeToProbeMatrix->DeepCopy(tProbeHomeToProbe); 
 			vnl_matrix<double> transformUSProbe2StepperFrameMatrix4x4(4,4);
 
-			this->ConvertVtkMatrixToVnlMatrixInMeter(tProbeHomeToProbeMatrix, transformUSProbe2StepperFrameMatrix4x4); 
+			ConvertVtkMatrixToVnlMatrixInMeter(tProbeHomeToProbeMatrix, transformUSProbe2StepperFrameMatrix4x4); 
 
 			this->GetTransformProbeHomeToProbe()->SetMatrix(tProbeHomeToProbeMatrix); 
 
@@ -602,24 +602,6 @@ void vtkProbeCalibrationController::PopulateSegmentedFiducialsToDataContainer(vn
 	{
 		this->GetCalibrator()->addValidationPositionsPerImage( SegmentedNFiducialsInFixedCorrespondence, transformUSProbe2StepperFrameMatrix4x4 );
 	}
-}
-
-//----------------------------------------------------------------------------
-void vtkProbeCalibrationController::ConvertVtkMatrixToVnlMatrixInMeter(vtkMatrix4x4* inVtkMatrix, vnl_matrix<double>& outVnlMatrix )
-{
-	LOG_TRACE("vtkProbeCalibrationController::ConvertVtkMatrixToVnlMatrixInMeter"); 
-	this->ConvertVtkMatrixToVnlMatrix(inVtkMatrix, outVnlMatrix); 
-
-	// Option: convert the translation to meters
-	const double TxInM = 0.001 * outVnlMatrix.get(0,3);
-	const double TyInM = 0.001 * outVnlMatrix.get(1,3);
-	const double TzInM = 0.001 * outVnlMatrix.get(2,3);
-
-	const double translationInMeters[] = {TxInM, TyInM, TzInM, 1};
-	vnl_vector<double> translationInMetersVector(4);
-	translationInMetersVector.set( translationInMeters );
-
-	outVnlMatrix.set_column(3, translationInMetersVector);
 }
 
 //----------------------------------------------------------------------------

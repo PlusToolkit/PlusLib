@@ -22,6 +22,8 @@ enum IMAGE_DATA_TYPE
 	PROBE_ROTATION,				// Pure rotation dataset in different stepper positions
 	RANDOM_STEPPER_MOTION_1,	// Calibration dataset
 	RANDOM_STEPPER_MOTION_2,	// Validation dataset
+	PROBE_FREEHAND_MOTION_1,	// Calibration dataset for the freehand probe calibration //TODO jo igy?
+	PROBE_FREEHAND_MOTION_2,	// Validation dataset for the freehand probe calibration
 	NUMBER_OF_IMAGE_DATA_TYPES
 }; 
 
@@ -102,8 +104,9 @@ public:
 
 	//! Description 
 	// VTK/VNL matrix conversion 
-	virtual void ConvertVnlMatrixToVtkMatrix(vnl_matrix<double>& inVnlMatrix, vtkMatrix4x4* outVtkMatrix); 
-	virtual void ConvertVtkMatrixToVnlMatrix(vtkMatrix4x4* inVtkMatrix, vnl_matrix<double>& outVnlMatrix ); 
+	static void ConvertVnlMatrixToVtkMatrix(vnl_matrix<double>& inVnlMatrix, vtkMatrix4x4* outVtkMatrix); 
+	static void ConvertVtkMatrixToVnlMatrix(vtkMatrix4x4* inVtkMatrix, vnl_matrix<double>& outVnlMatrix ); 
+	static void ConvertVtkMatrixToVnlMatrixInMeter(vtkMatrix4x4* inVtkMatrix, vnl_matrix<double>& outVnlMatrix ); 
 
 	//! Description 
 	// Returns the list of tracked frames of the selected data type

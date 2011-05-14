@@ -52,8 +52,6 @@ public:
 	virtual void ReadConfiguration( const char* configFileNameWithPath ); 
 	virtual void ReadConfiguration( vtkXMLDataElement* configData ); 
 		
-	virtual void ConvertVtkMatrixToVnlMatrixInMeter(vtkMatrix4x4* inVtkMatrix, vnl_matrix<double>& outVnlMatrix ); 
-
 	//! Operations: get the wire position of the the US frame and phantom intersection in template coordinate system
 	virtual bool GetWirePosInTemplateCoordinate( int wireNum, double* wirePosInTemplate ); 
 
