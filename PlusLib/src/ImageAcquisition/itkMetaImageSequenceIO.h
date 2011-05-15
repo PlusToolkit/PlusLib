@@ -58,11 +58,24 @@ namespace itk
 		itkSetStringMacro(DefaultFrameTransformName); 
 		itkGetStringMacro(DefaultFrameTransformName); 
 
+		// Set/get the Ultrasound Image Orientation
+		// The ultrasound image axes are defined as follows:
+		// - x axis: points towards the x coordinate increase direction
+		// - y axis: points towards the y coordinate increase direction
+		// The image orientation can be defined by specifying which transducer axis corresponds to the x and y image axes, respectively.
+		// There are four possible orientations:
+		// - UF: image x axis = unmarked transducer axis, image y axis = far transducer axis
+		// - UN: image x axis = unmarked transducer axis, image y axis = near transducer axis
+		// - MF: image x axis = marked transducer axis, image y axis = far transducer axis
+		// - MN: image x axis = marked transducer axis, image y axis = near transducer axis
+		virtual bool SetUltrasoundImageOrientation( const char* strOrientation); 
+		itkGetStringMacro(UltrasoundImageOrientation); 
+
 		// Get custom field names
-		std::vector<std::string> GetCustomFieldNames() { return m_CustomFieldNamesForReading; }
+		virtual std::vector<std::string> GetCustomFieldNames() { return m_CustomFieldNamesForReading; }
 
 		// Get custom frame field names 
-		std::vector<std::string> GetCustomFrameFieldNames() { return m_CustomFrameFieldNamesForReading; } 
+		virtual std::vector<std::string> GetCustomFrameFieldNames() { return m_CustomFrameFieldNamesForReading; } 
 
 		// Set the spacing and dimension information for the set filename. 
 		virtual void ReadImageInformation();
@@ -133,7 +146,7 @@ namespace itk
 		MetaImageSequenceIO();
 		virtual ~MetaImageSequenceIO();
 		void PrintSelf(std::ostream& os, Indent indent) const;
-		
+
 		// Read the number of frames from the header to create user field sequences
 		virtual int ReadNumberOfFramesFromMetaData(const char *_fileName); 
 
@@ -145,6 +158,7 @@ namespace itk
 
 		MetaImage *m_MetaImage;
 		std::string m_DefaultFrameTransformName; 
+		std::string m_UltrasoundImageOrientation; 
 
 		std::vector<std::string> m_CustomFieldNamesForReading; 
 		std::vector<std::string> m_CustomFrameFieldNamesForReading; 

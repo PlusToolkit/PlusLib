@@ -8,10 +8,23 @@
 #include "vtkMatrix4x4.h"
 #include "vtkTransform.h"
 
+
+//----------------------------------------------------------------------------
+// ************************* TrackedFrame ************************************
+//----------------------------------------------------------------------------
 class VTK_EXPORT TrackedFrame
 {
+public:
+	
+	enum US_IMAGE_ORIENTATION
+	{
+		US_IMG_ORIENT_UF, // image x axis = unmarked transducer axis, image y axis = far transducer axis
+		US_IMG_ORIENT_UN, // image x axis = unmarked transducer axis, image y axis = near transducer axis
+		US_IMG_ORIENT_MF, // image x axis = marked transducer axis, image y axis = far transducer axis
+		US_IMG_ORIENT_MN, // image x axis = marked transducer axis, image y axis = near transducer axis
+		US_IMG_ORIENT_XX  // undefined
+	}; 
 
-public: 
 	typedef unsigned char PixelType;
 	typedef itk::Image< PixelType, 2 > ImageType;
 	// <CustomFrameFieldName, CustomFrameFieldValue>
@@ -19,159 +32,65 @@ public:
 	// <CustomFieldName, CustomFieldValue>
 	typedef std::pair<std::string, std::string> CustomFieldPair; 
 
-	TrackedFrame()
-	{
-		this->Status = 0; 
-		this->Timestamp = 0; 
-		this->ImageData = NULL; 
-	}
-
-	~TrackedFrame()
-	{
-		if ( this->ImageData != NULL )
-		{
-			this->ImageData->UnRegister(); 
-		}
-	}
-
-	TrackedFrame(const TrackedFrame& frame)
-	{
-		this->DefaultFrameTransformName = frame.DefaultFrameTransformName; 
-		this->CustomFrameFieldList = frame.CustomFrameFieldList; 
-		this->CustomFieldList = frame.CustomFieldList; 
-		this->ImageData = frame.ImageData; 
-		this->Timestamp = frame.Timestamp;
-		this->Status = frame.Status; 
-		if ( this->ImageData != NULL )
-		{
-			this->ImageData->Register(); 
-		}
-	}
+	TrackedFrame(); 
+	~TrackedFrame(); 
+	TrackedFrame(const TrackedFrame& frame); 
 
 	//! Operation: 
 	// Set custom frame field
-	void SetCustomFrameField( std::string name, std::string value )
-	{
-		CustomFrameFieldPair pair(name, value); 
-		this->CustomFrameFieldList.push_back(pair); 
-	}
+	void SetCustomFrameField( std::string name, std::string value ); 
 
 	//! Operation: 
 	// Get custom frame field value
-	const char* GetCustomFrameField( std::string name )
-	{
-		std::vector<CustomFrameFieldPair>::iterator customFrameValue; 
-		for ( customFrameValue = this->CustomFrameFieldList.begin(); customFrameValue != this->CustomFrameFieldList.end(); customFrameValue++ )
-		{
-			if ( customFrameValue->first.find(name) != std::string::npos )
-			{ 
-				return customFrameValue->second.c_str(); 
-			}
-		}
-
-		return NULL; 
-	}
+	const char* GetCustomFrameField( std::string name ); 
 
 	//! Operation: 
 	// Set custom field 
-	void SetCustomField( std::string name, std::string value )
-	{
-		CustomFieldPair pair(name, value); 
-		this->CustomFieldList.push_back(pair); 
-	}
+	void SetCustomField( std::string name, std::string value ); 
 
 	//! Operation: 
 	// Get custom field value
-	const char* GetCustomField( std::string name )
-	{
-		std::vector<CustomFieldPair>::iterator customValue; 
-		for ( customValue = this->CustomFieldList.begin(); customValue != this->CustomFieldList.end(); customValue++ )
-		{
-			if ( customValue->first.find(name) != std::string::npos )
-			{ 
-				return customValue->second.c_str(); 
-			}
-		}
-
-		return NULL; 
-	}
-
+	const char* GetCustomField( std::string name ); 
 
 	//! Operation: 
 	// Get default frame transform
-	bool GetDefaultFrameTransform(double transform[16]) 
-	{
-		// Find default frame transform 
-		std::vector<CustomFrameFieldPair>::iterator defaultFrameTransform; 
-		for ( defaultFrameTransform = this->CustomFrameFieldList.begin(); defaultFrameTransform != this->CustomFrameFieldList.end(); defaultFrameTransform++ )
-		{
-			if ( defaultFrameTransform->first.find(this->DefaultFrameTransformName) != std::string::npos )
-			{
-				std::istringstream transformFieldValue(defaultFrameTransform->second); 
-				double item; 
-				int i = 0; 
-				while ( transformFieldValue >> item )
-				{
-					if ( i < 16 )
-						transform[i++] = item; 
-				}
-				return true;
-			}
-		}
-
-		LOG_ERROR("Unable to find default transform in sequence metafile!"); 
-		return false; 
-	}
+	bool GetDefaultFrameTransform(double transform[16]); 
 
 	//! Operation: 
 	// Get custom frame transform
-	bool GetCustomFrameTransform(const char* frameTransformName, double transform[16]) 
-	{
-		// Find default frame transform 
-		std::vector<CustomFrameFieldPair>::iterator customFrameTransform; 
-		for ( customFrameTransform = this->CustomFrameFieldList.begin(); customFrameTransform != this->CustomFrameFieldList.end(); customFrameTransform++ )
-		{
-			if ( customFrameTransform->first.find(frameTransformName) != std::string::npos )
-			{
-				std::istringstream transformFieldValue(customFrameTransform->second); 
-				double item; 
-				int i = 0; 
-				while ( transformFieldValue >> item )
-				{
-					if ( i < 16 )
-						transform[i++] = item; 
-				}
-				return true;
-			}
-		}
-
-		LOG_ERROR("Unable to find custom transform (" << frameTransformName << ") in sequence metafile!"); 
-		return false; 
-	}
-
+	bool GetCustomFrameTransform(const char* frameTransformName, double transform[16]); 
 
 	//! Operation: 
 	// Set custom frame transform
-	void SetCustomFrameTransform(std::string frameTransformName, double transform[16]) 
-	{
-		std::ostringstream strTransform; 
-		for ( int i = 0; i < 16; ++ i )
-		{
-			strTransform << transform[ i ] << " ";
-		}
-
-		CustomFrameFieldPair pair(frameTransformName, strTransform.str()); 
-		this->CustomFrameFieldList.push_back(pair); 
-	}
+	void SetCustomFrameTransform(std::string frameTransformName, double transform[16]); 
 
 	//! Operation: 
 	// Set custom frame transform
-	void SetCustomFrameTransform(std::string frameTransformName, vtkMatrix4x4* transform) 
-	{
-		double dTransform[ 16 ];
-		vtkMatrix4x4::DeepCopy( dTransform, transform );
-		this->SetCustomFrameTransform(frameTransformName, dTransform); 
-	}
+	void SetCustomFrameTransform(std::string frameTransformName, vtkMatrix4x4* transform); 
+
+	//! Operation: 
+	// Get US_IMAGE_ORIENTATION enum value from string 
+	static US_IMAGE_ORIENTATION GetUsImageOrientationFromString( const char* usImgOrientation ); 
+
+	//! Operation: 
+	// Set/get ultrasound image orientation 
+	// The ultrasound image axes are defined as follows:
+	// - x axis: points towards the x coordinate increase direction
+	// - y axis: points towards the y coordinate increase direction
+	// The image orientation can be defined by specifying which transducer axis corresponds to the x and y image axes, respectively.
+	// There are four possible orientations:
+	// - UF: image x axis = unmarked transducer axis, image y axis = far transducer axis
+	// - UN: image x axis = unmarked transducer axis, image y axis = near transducer axis
+	// - MF: image x axis = marked transducer axis, image y axis = far transducer axis
+	// - MN: image x axis = marked transducer axis, image y axis = near transducer axis
+	const char* GetUltrasoundImageOrientation(); 
+	void SetUltrasoundImageOrientation(const char* usImgOrientation); 
+
+	//! Operation: 
+	// Get oriented tracked ultrasound image 
+	// User should call UnRegister() on returned image after this call 
+	ImageType* GetOrientedImage( US_IMAGE_ORIENTATION usImageOrientation ); 
+	ImageType* GetOrientedImage( const char* usImageOrientation ); 
 
 	bool operator< (TrackedFrame data) { return Timestamp < data.Timestamp; }
 	bool operator== (const TrackedFrame& data) const 
@@ -179,13 +98,22 @@ public:
 		return this->Timestamp == data.Timestamp; 
 	}
 
+	US_IMAGE_ORIENTATION UltrasoundImageOrientation; 
 	std::string DefaultFrameTransformName; 
-	std::vector<CustomFrameFieldPair> CustomFrameFieldList; 
-	std::vector<CustomFieldPair> CustomFieldList; 
-	ImageType* ImageData;
 	double Timestamp; 
 	long Status; 
+	ImageType* ImageData;
+
+	std::vector<CustomFrameFieldPair> CustomFrameFieldList; 
+	std::vector<CustomFieldPair> CustomFieldList; 
 };
+
+
+
+//----------------------------------------------------------------------------
+// ************************* vtkTrackedFrameList *****************************
+//----------------------------------------------------------------------------
+
 
 class TrackedFrameTimestampFinder
 {	
@@ -316,7 +244,7 @@ public:
 
 	//! Operation: 
 	// Save the tracked data to sequence metafile 
-	virtual void SaveToSequenceMetafile(const char* outputFolder, const char* sequenceDataFileName, SEQ_METAFILE_EXTENSION extension /*=SEQ_METAFILE_MHA*/ , bool useCompression /*=true*/);
+	virtual void SaveToSequenceMetafile(const char* outputFolder, const char* sequenceDataFileName, SEQ_METAFILE_EXTENSION extension = SEQ_METAFILE_MHA, bool useCompression = true, const char* usImageOrientation = NULL);
 
 	//! Operation: 
 	// Read the tracked data from sequence metafile 

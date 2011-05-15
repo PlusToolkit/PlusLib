@@ -11,6 +11,7 @@
 namespace itk
 {
 
+	static const char* SEQMETA_FIELD_US_IMG_ORIENT = "UltrasoundImageOrientation"; 
 	static const char* SEQMETA_FIELD_DEF_FRAME_TRANS = "DefaultFrameTransformName"; 
 	static const char* SEQMETA_FIELD_CUSTOM_FIELD_NAMES = "CustomFieldNames"; 
 	static const char* SEQMETA_FIELD_CUSTOM_FRAME_FIELD_NAMES = "CustomFrameFieldNames"; 
@@ -20,6 +21,7 @@ namespace itk
 	{ 
 		this->m_MetaImage = Superclass::GetMetaImagePointer(); 
 		this->m_DefaultFrameTransformName = "ToolToTrackerTransform"; 
+		this->m_UltrasoundImageOrientation = "XX"; 
 	} 
 
 	//----------------------------------------------------------------------------
@@ -53,6 +55,48 @@ namespace itk
 		{
 				m_CustomFieldNamesForReading.push_back(fieldName); 
 		}
+	}
+
+	//----------------------------------------------------------------------------
+	bool MetaImageSequenceIO::SetUltrasoundImageOrientation( const char* strOrientation)
+	{
+		LOG_TRACE("MetaImageSequenceIO::SetUltrasoundImageOrientation"); 
+		bool retValue(false); 
+
+		if ( strOrientation == NULL || STRCASECMP(strOrientation, "XX") == 0 )
+		{
+			LOG_WARNING("Ultrasound image orientation is not defined!");
+			this->m_UltrasoundImageOrientation = "XX"; 
+			retValue = true; 
+		}
+		else if ( STRCASECMP(strOrientation, "UF") == 0 )
+		{
+			this->m_UltrasoundImageOrientation = "UF"; 
+			retValue = true; 
+		}
+		else if ( STRCASECMP(strOrientation, "UN") == 0 )
+		{
+			this->m_UltrasoundImageOrientation = "UN"; 
+			retValue = true; 
+		}
+		else if ( STRCASECMP(strOrientation, "MF") == 0 )
+		{
+			this->m_UltrasoundImageOrientation = "MF"; 
+			retValue = true; 
+		}
+		else if ( STRCASECMP(strOrientation, "MN") == 0 )
+		{
+			this->m_UltrasoundImageOrientation = "MN"; 
+			retValue = true; 
+		}
+		else
+		{
+			LOG_ERROR("Unable to recognize ultrasound image orientation: " << strOrientation);
+			this->m_UltrasoundImageOrientation = "XX"; 
+			retValue = false; 
+		}
+
+		return retValue; 
 	}
 	
 	//----------------------------------------------------------------------------
@@ -247,6 +291,9 @@ namespace itk
 		
 		// Set the default frame transform name from metafile
 		this->SetDefaultFrameTransformName( this->GetCustomString(SEQMETA_FIELD_DEF_FRAME_TRANS) ); 
+
+		// Set the ultrasound image orientation from metafile
+		this->SetUltrasoundImageOrientation( this->GetCustomString(SEQMETA_FIELD_US_IMG_ORIENT) ); 
 		
 		// Clear and add again the userfields for ImageData reading
 		this->SetupUserFields(IO_READ);
@@ -284,6 +331,7 @@ namespace itk
 	void MetaImageSequenceIO::Write( const void* buffer) 
 	{
 		this->SetCustomString(SEQMETA_FIELD_DEF_FRAME_TRANS, this->GetDefaultFrameTransformName()); 
+		this->SetCustomString(SEQMETA_FIELD_US_IMG_ORIENT, this->GetUltrasoundImageOrientation()); 
 
 		// Save custom field names to header
 		std::ostringstream customFieldNames; 
