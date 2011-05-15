@@ -94,6 +94,8 @@ std::string inputBitmapSuffix("");
 std::string inputTransformSuffix(".transforms");
 std::string outputSequenceFileName("SeqMetafile");
 std::string outputFolder("./");
+std::string inputUsImageOrientation("XX"); 
+std::string outputUsImageOrientation("XX");
 bool inputUseCompression(false); 
 std::string inputToolToReferenceName, inputReferenceToTrackerName; 
 
@@ -122,6 +124,7 @@ int main (int argc, char* argv[])
 	
 	cmdargs.AddArgument("--saving-method", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputSavingMethod, "Saving method ( Default: SEQUENCE_METAFILE; METAFILE, SEQUENCE_METAFILE, BMP24, BMP8, PNG, JPG)" );
 	cmdargs.AddArgument("--convert-method", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConvertMethod, "Convert method ( Default: FROM_BMP24; FROM_BMP24, FROM_METAFILE, FROM_OLD_SEQUENCE_METAFILE, FROM_SEQUENCE_METAFILE)" );
+	cmdargs.AddArgument("--output-us-img-orientation", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputUsImageOrientation, "Output ultrasound image orientation ( Default: XX; UF, UN, MF, MN, XX)" );
 
 	// convert from BMP24 arguments
 	cmdargs.AddArgument("--input-data-dir", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputDataDir, "Input data directory for image files with transforms (default: ./)");
@@ -133,6 +136,7 @@ int main (int argc, char* argv[])
 	cmdargs.AddArgument("--input-bitmap-prefix", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputBitmapPrefix, "Prefix of bitmap images (default: CapturedImageID_NO_).");
 	cmdargs.AddArgument("--input-bitmap-suffix", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputBitmapSuffix, "Suffix of bitmap images.");
 	cmdargs.AddArgument("--input-transform-suffix", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputTransformSuffix, "Suffix of transform files (default: .transforms).");
+	cmdargs.AddArgument("--input-us-img-orientation", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputUsImageOrientation, "Input ultrasound image orientation. NOTE: SEQUENCE_METAFILE has it's own image orientation flag ( Default: XX; UF, UN, MF, MN, XX)" );
 	
 	// Saving to BMP24, BMP8, PNG, JPG arguments
 	cmdargs.AddArgument("--tool-to-reference-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputToolToReferenceName, "Tool to reference transform name in sequence metafile (e.g. ToolToReference)");
@@ -542,7 +546,7 @@ void SaveImages( vtkTrackedFrameList* trackedFrameList, SAVING_METHOD savingMeth
 				if ( savingMethod == BMP8 || savingMethod == BMP24 ) 
 				{
 					fileName << ".bmp"; 					
-				}
+				}	
 				else if ( savingMethod == JPG ) 
 				{
 					fileName << ".jpg"; 					
@@ -552,9 +556,10 @@ void SaveImages( vtkTrackedFrameList* trackedFrameList, SAVING_METHOD savingMeth
 					fileName << ".png"; 					
 				}
 
-				SaveImageToBitmap(trackedFrameList->GetTrackedFrame(imgNumber)->ImageData, fileName.str(), savingMethod); 
+				TrackedFrame::ImageType::Pointer orientedImage = trackedFrameList->GetTrackedFrame(imgNumber)->GetOrientedImage(outputUsImageOrientation.c_str()); 
+				SaveImageToBitmap(orientedImage, fileName.str(), savingMethod); 
 				SaveTransformToFile(trackedFrameList->GetTrackedFrame(imgNumber), fileName.str(), inputToolToReferenceName, inputReferenceToTrackerName); 
-
+				orientedImage->UnRegister(); 
 			} 
 
 			if ( numberOfFrames > 1 )
@@ -595,10 +600,9 @@ void SaveImages( vtkTrackedFrameList* trackedFrameList, SAVING_METHOD savingMeth
 			{
 				LOG_INFO("Saving sequence meta file..."); 
 			}
-			trackedFrameList->SaveToSequenceMetafile(outputFolder.c_str(), outputSequenceFileName.c_str(), vtkTrackedFrameList::SEQ_METAFILE_MHA, inputUseCompression); 
+			trackedFrameList->SaveToSequenceMetafile(outputFolder.c_str(), outputSequenceFileName.c_str(), vtkTrackedFrameList::SEQ_METAFILE_MHA, inputUseCompression, outputUsImageOrientation.c_str()); 
 		}
 	}
-
 }
 
 //-------------------------------------------------------------------------------
@@ -745,7 +749,7 @@ void SaveTransformToFile(TrackedFrame* trackedFrame, std::string imageFileName, 
 //-------------------------------------------------------------------------------
 void SaveImageToMetaFile( TrackedFrame* trackedFrame, std::string metaFileName, bool useCompression)
 {
-	ImageType* image = trackedFrame->ImageData; 
+	TrackedFrame::ImageType::Pointer image = trackedFrame->GetOrientedImage(outputUsImageOrientation.c_str()); 
 
 	const unsigned long imageWidthInPixels = image->GetLargestPossibleRegion().GetSize()[0]; 
 	const unsigned long imageHeightInPixels = image->GetLargestPossibleRegion().GetSize()[1]; 
@@ -761,6 +765,7 @@ void SaveImageToMetaFile( TrackedFrame* trackedFrame, std::string metaFileName, 
 	frame->Allocate();
 
 	memcpy(frame->GetBufferPointer() , image->GetBufferPointer() , frameSizeInBytes);
+	image->UnRegister(); 
 
 	double transformMatrix[16]; 
 	trackedFrame->GetDefaultFrameTransform(transformMatrix); 
