@@ -361,7 +361,7 @@ void TrackedUltrasoundCapturingGUI::UpdateWidgets()
 	// Update transform matrix 
 	if ( this->m_USCapturing->GetDataCollector() != NULL )
 	{
-		const int mainToolNumber = this->m_USCapturing->GetDataCollector()->GetMainToolNumber(); 
+		const int mainToolNumber = this->m_USCapturing->GetDataCollector()->GetDefaultToolPortNumber(); 
 		vtkTrackerBuffer* trackerBuffer = this->m_USCapturing->GetDataCollector()->GetTracker()->GetTool( mainToolNumber )->GetBuffer();  
 	
 		trackerBuffer->Lock(); 
@@ -859,7 +859,7 @@ void TrackedUltrasoundCapturingGUI::ChangeMainToolID()
 		{
 			LOG_INFO("Selected main tool: " << this->GetToolID(i) ); 
 
-			this->m_USCapturing->GetDataCollector()->SetMainToolNumber(i); 
+			//this->m_USCapturing->GetDataCollector()->SetMainToolNumber(i); 
 
 			std::string mainToolName = this->m_USCapturing->GetDataCollector()->GetMainToolName(); 
 			this->MainToolTransformName->setText(QString(mainToolName.c_str())); 
@@ -947,7 +947,7 @@ void TrackedUltrasoundCapturingGUI::UpdateToolIDs()
 	}
 
 	// Select main tool ID
-	int mainToolCurrentIndex = this->MainToolComboBox->findText(QString(this->GetToolID(this->m_USCapturing->GetDataCollector()->GetMainToolNumber()).c_str()), Qt::MatchExactly); 
+	int mainToolCurrentIndex = this->MainToolComboBox->findText(QString(this->GetToolID(this->m_USCapturing->GetDataCollector()->GetDefaultToolPortNumber()).c_str()), Qt::MatchExactly); 
 	this->MainToolComboBox->setCurrentIndex(mainToolCurrentIndex);
 	std::string mainToolName = this->m_USCapturing->GetDataCollector()->GetMainToolName();  
 	this->MainToolTransformName->setText(QString(mainToolName.c_str())); 

@@ -73,7 +73,7 @@ int main(int argc, char **argv)
 	dataCollector->Initialize(); 
 	dataCollector->Start();
 
-	const int mainToolNumber = dataCollector->GetMainToolNumber(); 
+	const int mainToolNumber = dataCollector->GetDefaultToolPortNumber(); 
 	const double acqStartTime = vtkTimerLog::GetUniversalTime(); 
 
 	//************************************************************************************

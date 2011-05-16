@@ -93,7 +93,7 @@ MainWidget
   
   if ( this->DataCollector->GetInitialized() )
     {
-    this->DataCollector->GetTransformWithTimestamp( mMain, timestamp, flags, this->DataCollector->GetMainToolNumber() );
+    this->DataCollector->GetTransformWithTimestamp( mMain, timestamp, flags, this->DataCollector->GetDefaultToolPortNumber() );
     if ( flags & ( TR_MISSING | TR_OUT_OF_VIEW ) )
       {
       ss << "Target out of view";
