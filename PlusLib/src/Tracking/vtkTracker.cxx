@@ -104,6 +104,9 @@ vtkTracker::vtkTracker()
 	this->NetworkPort = 11111;
 	this->RemoteAddress = NULL;
 
+	this->ReferenceToolName = NULL; 
+	this->DefaultToolName = NULL; 
+
 	this->ConfigurationData = NULL; 
 	
 	// for accurate timing
@@ -935,7 +938,78 @@ void vtkTracker::DeepCopy(vtkTracker *tracker)
 //-----------------------------------------------------------------------------
 void vtkTracker::ReadConfiguration(vtkXMLDataElement* config)
 {
+	LOG_TRACE("vtkTracker::ReadConfiguration"); 
+	if ( config == NULL )
+	{
+		LOG_ERROR("Unable to configure tracker! (XML data element is NULL)"); 
+		return; 
+	}
 
+	if ( this->ConfigurationData == NULL ) 
+	{
+		this->ConfigurationData = vtkXMLDataElement::New(); 
+	}
+
+	// Save config data
+	this->ConfigurationData->DeepCopy(config);
+
+	int bufferSize = 0; 
+	if ( config->GetScalarAttribute("BufferSize", bufferSize) ) 
+	{
+		for ( int i = 0; i < this->GetNumberOfTools(); i++)
+		{
+			this->GetTool(i)->GetBuffer()->SetBufferSize( bufferSize ); 
+		}
+	}
+
+	double frequency = 0; 
+	if ( config->GetScalarAttribute("Frequency", frequency) ) 
+	{
+		this->SetFrequency(frequency);  
+	}
+
+	double localTimeOffset = 0; 
+	if ( config->GetScalarAttribute("LocalTimeOffset", localTimeOffset) )
+	{
+		LOG_INFO("Tracker local time offset: " << std::fixed << 1000*localTimeOffset << "ms" ); 
+		for ( int i = 0; i < this->GetNumberOfTools(); i++)
+		{
+			this->GetTool(i)->GetBuffer()->SetLocalTimeOffset(localTimeOffset);
+		}
+	}
+
+	const char* referenceToolName = config->GetAttribute("ReferenceToolName"); 
+	if ( referenceToolName != NULL ) 
+	{
+		this->SetReferenceToolName(referenceToolName); 
+	}
+
+	const char* defaultToolName = config->GetAttribute("DefaultToolName"); 
+	if ( defaultToolName != NULL ) 
+	{
+		this->SetDefaultToolName(defaultToolName); 
+	}
+
+
+	// Read tool configurations 
+	for ( int tool = 0; tool < config->GetNumberOfNestedElements(); tool++ )
+	{
+		vtkSmartPointer<vtkXMLDataElement> toolDataElement = config->GetNestedElement(tool); 
+		if ( STRCASECMP(toolDataElement->GetName(), "Tool") != 0 )
+		{
+			// if this is not a Tool element, skip it
+			continue; 
+		}
+
+		int portNumber(-1); 
+		if ( toolDataElement->GetScalarAttribute("PortNumber", portNumber) )
+		{
+			if ( portNumber >= 0 && portNumber < this->GetNumberOfTools() )
+			{
+				this->GetTool(portNumber)->ReadConfiguration(toolDataElement); 
+			}
+		}
+	}
 }
 
 
@@ -974,11 +1048,15 @@ std::string vtkTracker::ConvertFlagToString(long flag)
 }
 
 //----------------------------------------------------------------------------
-void vtkTracker::GetTrackerToolBufferStringList(const double timestamp, std::vector<std::string> &toolNames, std::vector<std::string> &toolBufferValues, std::vector<std::string> &toolBufferStatuses, bool calibratedTransform /*= false*/)
+void vtkTracker::GetTrackerToolBufferStringList(const double timestamp,
+												std::map<std::string, std::string> &toolsBufferMatrices, 
+												std::map<std::string, std::string> &toolsCalibrationMatrices, 
+												std::map<std::string, std::string> &toolsStatuses,
+												bool calibratedTransform /*= false*/)
 {
-	toolNames.clear(); 
-	toolBufferValues.clear(); 
-	toolBufferStatuses.clear(); 
+	toolsBufferMatrices.clear();  
+	toolsCalibrationMatrices.clear();  
+	toolsStatuses.clear(); 
 
 	this->Lock(); 
 	for ( int tool = 0; tool < this->GetNumberOfTools(); tool++ )
@@ -1003,9 +1081,19 @@ void vtkTracker::GetTrackerToolBufferStringList(const double timestamp, std::vec
 			{
 				strToolTransform << dMatrix[i] << " ";
 			}
-			toolBufferStatuses.push_back(vtkTracker::ConvertFlagToString(toolFlags)); 
-			toolNames.push_back( this->GetTool(tool)->GetToolName()); 
-			toolBufferValues.push_back( strToolTransform.str() ); 
+
+			vtkMatrix4x4* toolCalibrationMatrix = this->GetTool(tool)->GetCalibrationMatrix(); 
+			double dCalibMatrix[16]; 
+			vtkMatrix4x4::DeepCopy(dCalibMatrix, toolCalibrationMatrix); 
+			std::ostringstream strToolCalibMatrix; 
+			for ( int i = 0; i < 16; ++i )
+			{
+				strToolCalibMatrix << dCalibMatrix[i] << " ";
+			}
+
+			toolsBufferMatrices[ this->GetTool(tool)->GetToolName() ] = strToolTransform.str(); 
+			toolsCalibrationMatrices[ this->GetTool(tool)->GetCalibrationMatrixName() ] = strToolCalibMatrix.str(); 
+			toolsStatuses[ this->GetTool(tool)->GetToolName() ] = vtkTracker::ConvertFlagToString(toolFlags); 
 		}
 	}
 	this->Unlock(); 

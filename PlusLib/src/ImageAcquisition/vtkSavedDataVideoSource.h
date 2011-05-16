@@ -31,6 +31,11 @@ public:
 	//ETX
 
 	// Description:
+	// Read/write main configuration from/to xml data
+	virtual void ReadConfiguration(vtkXMLDataElement* config); 
+	virtual void WriteConfiguration(vtkXMLDataElement* config);
+
+	// Description:
 	// Connect to device
 	virtual int Connect();
 

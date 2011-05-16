@@ -34,7 +34,7 @@ public:
 		{
 			double timestamp(0); 
 			long flags(0); 
-			dataCollector->GetTransformWithTimestamp(tFrame2Tracker, timestamp, flags, dataCollector->GetMainToolNumber()); 
+			dataCollector->GetTransformWithTimestamp(tFrame2Tracker, timestamp, flags, dataCollector->GetDefaultToolPortNumber()); 
 
 			if (flags & (TR_MISSING | TR_OUT_OF_VIEW )) 
 			{

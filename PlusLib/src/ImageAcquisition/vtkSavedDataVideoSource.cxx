@@ -381,3 +381,29 @@ void vtkSavedDataVideoSource::Stop()
 	}
 }
 
+//-----------------------------------------------------------------------------
+void vtkSavedDataVideoSource::ReadConfiguration(vtkXMLDataElement* config)
+{
+	LOG_TRACE("vtkSavedDataVideoSource::ReadConfiguration"); 
+	if ( config == NULL )
+	{
+		LOG_ERROR("Unable to configure Saved Data video source! (XML data element is NULL)"); 
+		return; 
+	}
+
+	Superclass::ReadConfiguration(config); 
+
+	const char* sequenceMetafile = config->GetAttribute("SequenceMetafile"); 
+	if ( sequenceMetafile != NULL ) 
+	{
+		this->SetSequenceMetafile(sequenceMetafile);
+	}
+}
+
+//-----------------------------------------------------------------------------
+void vtkSavedDataVideoSource::WriteConfiguration(vtkXMLDataElement* config)
+{
+	LOG_TRACE("vtkSavedDataVideoSource::WriteConfiguration"); 
+	Superclass::WriteConfiguration(config); 
+}
+

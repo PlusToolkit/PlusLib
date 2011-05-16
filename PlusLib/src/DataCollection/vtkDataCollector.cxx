@@ -109,10 +109,11 @@ vtkDataCollector::vtkDataCollector()
 
 	this->ConfigurationData = NULL; 
 	this->ConfigFileName = NULL;
+	this->DeviceSetName = NULL; 
+	this->DeviceSetDescription = NULL; 
 	this->ToolTransMatrices.reserve(0); 
 	this->ToolFlags.reserve(0); 
 
-	this->MainToolNumber = -1; 
 	this->DumpBufferSize = 500; 
 
 	this->InitializedOff(); 
@@ -196,12 +197,6 @@ void vtkDataCollector::Connect()
 		{
 			LOG_ERROR("Unable to initialize tracker!"); 
 			exit(EXIT_FAILURE);  
-		}
-
-		// If we hadn't set the main tool number, set to the first active
-		if ( this->GetMainToolNumber() == -1)
-		{
-			this->SetMainToolNumber( this->GetNextActiveToolNumber() ); 
 		}
 	}
 }
@@ -380,7 +375,7 @@ void vtkDataCollector::DumpTrackerToMetafile( vtkTracker* tracker, const char* o
 		trackedFrame.ImageData = frame;
 		trackedFrame.ImageData->Register(); 
 
-		const double frameTimestamp = tracker->GetTool(this->GetMainToolNumber())->GetBuffer()->GetFilteredTimeStamp(( numberOfItems - 1 ) - i); 
+		const double frameTimestamp = tracker->GetTool(this->GetDefaultToolPortNumber())->GetBuffer()->GetFilteredTimeStamp(( numberOfItems - 1 ) - i); 
 
 		// Add main tool timestamp
 		std::ostringstream timestampFieldValue; 
@@ -389,21 +384,21 @@ void vtkDataCollector::DumpTrackerToMetafile( vtkTracker* tracker, const char* o
 
 		// Add main tool unfiltered timestamp
 		std::ostringstream unfilteredtimestampFieldValue; 
-		unfilteredtimestampFieldValue << std::fixed << tracker->GetTool(this->GetMainToolNumber())->GetBuffer()->GetUnfilteredTimeStamp(( numberOfItems - 1 ) - i); 
+		unfilteredtimestampFieldValue << std::fixed << tracker->GetTool(this->GetDefaultToolPortNumber())->GetBuffer()->GetUnfilteredTimeStamp(( numberOfItems - 1 ) - i); 
 		trackedFrame.SetCustomFrameField("UnfilteredTimestamp", unfilteredtimestampFieldValue.str()); 
 
 		// Add main tool frameNumber
 		std::ostringstream frameNumberFieldValue; 
-		frameNumberFieldValue << std::fixed << tracker->GetTool(this->GetMainToolNumber())->GetBuffer()->GetFrameNumber(( numberOfItems - 1 ) - i); 
+		frameNumberFieldValue << std::fixed << tracker->GetTool(this->GetDefaultToolPortNumber())->GetBuffer()->GetFrameNumber(( numberOfItems - 1 ) - i); 
 		trackedFrame.SetCustomFrameField("FrameNumber", frameNumberFieldValue.str()); 
 
 		// Add main tool status
-		long flag = tracker->GetTool(this->GetMainToolNumber())->GetBuffer()->GetFlags(( numberOfItems - 1 ) - i); 
+		long flag = tracker->GetTool(this->GetDefaultToolPortNumber())->GetBuffer()->GetFlags(( numberOfItems - 1 ) - i); 
 		std::string status = tracker->ConvertFlagToString(flag); 
 		trackedFrame.SetCustomFrameField("Status", status); 
 
 		// Set default transform name
-		trackedFrame.DefaultFrameTransformName = tracker->GetTool(this->GetMainToolNumber())->GetToolName(); 
+		trackedFrame.DefaultFrameTransformName = tracker->GetTool(this->GetDefaultToolPortNumber())->GetToolName(); 
 
 		// Add transforms
 		for ( int tool = 0; tool < tracker->GetNumberOfTools(); tool++ )
@@ -528,6 +523,13 @@ void vtkDataCollector::DumpVideoBufferToMetafile( vtkVideoBuffer2* videoBuffer, 
 void vtkDataCollector::Synchronize( const bool saveSyncData /*=false*/ )
 {
 	LOG_TRACE("vtkDataCollector::Synchronize"); 
+
+	if ( this->GetSynchronizer() == NULL )
+	{
+		LOG_WARNING("Unable to synchronize without a synchronizer! Please set synchronizer type in the configuration file!"); 
+		return; 
+	}
+	
 	if ( this->GetTracker() == NULL ) 
 	{	
 		LOG_ERROR("Unable to synchronize tracker - there is no tracker selected!"); 
@@ -545,7 +547,7 @@ void vtkDataCollector::Synchronize( const bool saveSyncData /*=false*/ )
 	//************************************************************************************
 	// Save local time offsets before sync
 	const double prevVideoOffset = this->GetVideoSource()->GetBuffer()->GetLocalTimeOffset(); 
-	const double prevTrackerOffset = this->GetTracker()->GetTool(this->GetMainToolNumber())->GetBuffer()->GetLocalTimeOffset(); 
+	const double prevTrackerOffset = this->GetTracker()->GetTool(this->GetDefaultToolPortNumber())->GetBuffer()->GetLocalTimeOffset(); 
 
 	//************************************************************************************
 	// Set the local timeoffset to 0 before synchronization 
@@ -556,16 +558,16 @@ void vtkDataCollector::Synchronize( const bool saveSyncData /*=false*/ )
 	const double syncTimeLength = this->GetSynchronizer()->GetSynchronizationTimeLength(); 
 
 	// Get the realtime tracking frequency
-	this->GetTracker()->GetTool(this->GetMainToolNumber())->GetBuffer()->Lock(); 
-	double trackerFrameRate = this->GetTracker()->GetTool(this->GetMainToolNumber())->GetBuffer()->GetFrameRate(); 
-	this->GetTracker()->GetTool(this->GetMainToolNumber())->GetBuffer()->Unlock(); 
+	this->GetTracker()->GetTool(this->GetDefaultToolPortNumber())->GetBuffer()->Lock(); 
+	double trackerFrameRate = this->GetTracker()->GetTool(this->GetDefaultToolPortNumber())->GetBuffer()->GetFrameRate(); 
+	this->GetTracker()->GetTool(this->GetDefaultToolPortNumber())->GetBuffer()->Unlock(); 
 
 	// Get the realtime video frame rate
 	this->GetVideoSource()->GetBuffer()->Lock();
 	double videoFrameRate = this->GetVideoSource()->GetBuffer()->GetFrameRate(); 
 	this->GetVideoSource()->GetBuffer()->Unlock();
 
-	const int trackerBufferSize = this->GetTracker()->GetTool(this->GetMainToolNumber())->GetBuffer()->GetBufferSize(); 
+	const int trackerBufferSize = this->GetTracker()->GetTool(this->GetDefaultToolPortNumber())->GetBuffer()->GetBufferSize(); 
 	const int videoBufferSize = this->GetVideoSource()->GetBuffer()->GetBufferSize(); 
 	int syncTrackerBufferSize = trackerFrameRate * syncTimeLength + 100; 
 	int syncVideoBufferSize = videoFrameRate * syncTimeLength + 100; 
@@ -664,7 +666,7 @@ void vtkDataCollector::Synchronize( const bool saveSyncData /*=false*/ )
 	this->GetSynchronizer()->SetProgressBarUpdateCallbackFunction(ProgressBarUpdateCallbackFunction); 
 	this->GetSynchronizer()->SetSyncStartTime(syncStartTime); 
 
-	vtkTrackerBuffer* trackerbuffer = tracker->GetTool(this->GetMainToolNumber())->GetBuffer(); 
+	vtkTrackerBuffer* trackerbuffer = tracker->GetTool(this->GetDefaultToolPortNumber())->GetBuffer(); 
 
 	LOG_DEBUG("Tracker buffer size: " << trackerbuffer->GetBufferSize()); 
 	LOG_DEBUG("Tracker buffer elements: " << trackerbuffer->GetNumberOfItems()); 
@@ -740,7 +742,7 @@ double vtkDataCollector::GetMostRecentTimestamp()
 std::string vtkDataCollector::GetMainToolName()
 {
 	LOG_TRACE("vtkDataCollector::GetMainToolName"); 
-	std::string mainToolName( this->GetTracker()->GetTool(this->GetMainToolNumber())->GetToolName() ); 
+	std::string mainToolName( this->GetTracker()->GetTool(this->GetDefaultToolPortNumber())->GetToolName() ); 
 
 	return mainToolName; 
 }
@@ -749,7 +751,7 @@ std::string vtkDataCollector::GetMainToolName()
 long vtkDataCollector::GetMainToolStatus( double time )
 {
 	LOG_TRACE("vtkDataCollector::GetMainToolStatus"); 
-	vtkTrackerBuffer* buffer = this->GetTracker()->GetTool(this->GetMainToolNumber())->GetBuffer(); 
+	vtkTrackerBuffer* buffer = this->GetTracker()->GetTool(this->GetDefaultToolPortNumber())->GetBuffer(); 
 
 	buffer->Lock(); 
 	int index = buffer->GetIndexFromTime(time); 
@@ -1002,11 +1004,11 @@ void vtkDataCollector::GetTrackedFrameByTime(const double time, TrackedFrame* tr
 	this->ConvertVtkImageToItkImage(vtkimage, itkimage); 
 
 	// Get tracker buffer values 
-	std::vector<std::string> toolNames; 
-	std::vector<std::string> toolBufferValues; 
-	std::vector<std::string> toolBufferStatuses; 
+	std::map<std::string, std::string> toolsBufferMatrices; 
+	std::map<std::string, std::string> toolsCalibrationMatrices; 
+	std::map<std::string, std::string> toolsStatuses; 
 
-	this->GetTracker()->GetTrackerToolBufferStringList(synchronizedTime, toolNames, toolBufferValues, toolBufferStatuses, calibratedTransform); 
+	this->GetTracker()->GetTrackerToolBufferStringList(synchronizedTime, toolsBufferMatrices, toolsCalibrationMatrices, toolsStatuses, calibratedTransform); 
 
 	//Add all information to the tracked frame
 	trackedFrame->Timestamp = synchronizedTime; 
@@ -1015,15 +1017,24 @@ void vtkDataCollector::GetTrackedFrameByTime(const double time, TrackedFrame* tr
 	trackedFrame->Status = this->GetMainToolStatus(synchronizedTime); 
 	trackedFrame->DefaultFrameTransformName = this->GetMainToolName(); 
 
-	for ( int tool = 0; tool < toolNames.size(); ++tool)
+	for ( std::map<std::string, std::string>::iterator it = toolsBufferMatrices.begin(); it != toolsBufferMatrices.end(); it++ )
 	{
 		// Set tool buffer values 
-		trackedFrame->SetCustomFrameField(toolNames[tool], toolBufferValues[tool]); 
+		trackedFrame->SetCustomFrameField(it->first, it->second); 
+	}
 
+	for ( std::map<std::string, std::string>::iterator it = toolsCalibrationMatrices.begin(); it != toolsCalibrationMatrices.end(); it++ )
+	{
+		// Set tool calibration values 
+		trackedFrame->SetCustomField(it->first, it->second); 
+	}
+
+	for ( std::map<std::string, std::string>::iterator it = toolsStatuses.begin(); it != toolsStatuses.end(); it++ )
+	{
 		// Set tool buffer statuses 
 		std::ostringstream statusName; 
-		statusName << toolNames[tool] << "Status"; 
-		trackedFrame->SetCustomFrameField(statusName.str(), toolBufferStatuses[tool]); 
+		statusName << it->first << "Status"; 
+		trackedFrame->SetCustomFrameField(statusName.str(), it->second); 
 	}
 }
 
@@ -1152,7 +1163,7 @@ int vtkDataCollector::GetNextActiveToolNumber()
 		return -1; 
 	}
 
-	int nextToolNumber = this->GetMainToolNumber(); 
+	int nextToolNumber = this->GetDefaultToolPortNumber(); 
 	const int numberOfTools = this->GetTracker()->GetNumberOfTools(); 
 	bool toolActive(false);
 	int loop(0); 
@@ -1170,7 +1181,7 @@ int vtkDataCollector::GetNextActiveToolNumber()
 		// avoid endless loop
 		if ( loop > 1 ) 
 		{
-			return this->GetMainToolNumber(); 
+			return this->GetDefaultToolPortNumber(); 
 		}
 	}
 
@@ -1187,7 +1198,7 @@ int vtkDataCollector::GetPreviousActiveToolNumber()
 		return -1; 
 	}
 
-	int prevToolNumber = this->GetMainToolNumber(); 
+	int prevToolNumber = this->GetDefaultToolPortNumber(); 
 	const int numberOfTools = this->GetTracker()->GetNumberOfTools(); 
 	bool toolActive(false);
 	int loop(0); 
@@ -1205,7 +1216,7 @@ int vtkDataCollector::GetPreviousActiveToolNumber()
 		// avoid endless loop
 		if ( loop > 1 ) 
 		{
-			return this->GetMainToolNumber(); 
+			return this->GetDefaultToolPortNumber(); 
 		}
 	}
 
@@ -1251,7 +1262,7 @@ void vtkDataCollector::ReadTrackerProperties(vtkXMLDataElement* trackerConfig)
 	const char* type = trackerConfig->GetAttribute("Type"); 
 	if ( type == NULL ) 
 	{
-		vtkWarningMacro(<< "Unable to find tracker type, set to default None"); 
+		LOG_WARNING("Unable to find tracker type, set to default: None"); 
 
 		this->SetTrackerType(TRACKER_NONE); 
 		LOG_DEBUG("Tracker type: None");
@@ -1263,134 +1274,87 @@ void vtkDataCollector::ReadTrackerProperties(vtkXMLDataElement* trackerConfig)
 #ifdef PLUS_USE_AMS_TRACKER
 		LOG_DEBUG("Tracker type: AMS tracker"); 
 		this->SetTrackerType(TRACKER_AMS); 
-
-		vtkSmartPointer<vtkXMLDataElement> xmlconfig = trackerConfig->FindNestedElementWithName("AMSTracker"); 
-
-		if ( xmlconfig != NULL )
-		{
-			vtkSmartPointer<vtkAMSTracker> tracker = vtkSmartPointer<vtkAMSTracker>::New();
-			this->SetTracker(tracker); 
-			tracker->ReadConfiguration(xmlconfig); 
-			this->SetMainToolNumber(vtkAMSTracker::PROBEHOME_TO_PROBE_TRANSFORM); 
-		}
+		vtkSmartPointer<vtkAMSTracker> tracker = vtkSmartPointer<vtkAMSTracker>::New();
+		this->SetTracker(tracker); 
+		tracker->ReadConfiguration(trackerConfig); 
 #endif
 	}
 	//******************* Certus Tracker ***************************
 	else if ( STRCASECMP("CertusTracker", type)==0) 
 	{
+#ifdef PLUS_USE_CERTUS
 		LOG_DEBUG("Tracker type: Certus tracker"); 
 		this->SetTrackerType(TRACKER_CERTUS); 
+		vtkSmartPointer<vtkNDICertusTracker> tracker = vtkSmartPointer<vtkNDICertusTracker>::New();
+		this->SetTracker(tracker); 
+		tracker->ReadConfiguration(trackerConfig); 
 
-		vtkSmartPointer<vtkXMLDataElement> trackerCertus = trackerConfig->FindNestedElementWithName("CertusTracker"); 
-
-		if ( trackerCertus != NULL )
+		/*int referenceToolNumber(-1);
+		if ( trackerCertus->GetScalarAttribute("ReferenceToolNumber", referenceToolNumber) ) 
 		{
-#ifdef PLUS_USE_CERTUS
-			vtkSmartPointer<vtkNDICertusTracker> tracker = vtkSmartPointer<vtkNDICertusTracker>::New();
-			this->SetTracker(tracker); 
-
-			int referenceToolNumber(-1);
-			if ( trackerCertus->GetScalarAttribute("ReferenceToolNumber", referenceToolNumber) ) 
-			{
-				tracker->SetReferenceTool(referenceToolNumber); 
-			}
-
-			int mainToolNumber(-1);
-			if ( trackerCertus->GetScalarAttribute("MainToolNumber", mainToolNumber) ) 
-			{
-				tracker->SetMainTool(mainToolNumber); 
-				this->SetMainToolNumber(mainToolNumber); 
-			}
-#endif
+			tracker->SetReferenceTool(referenceToolNumber); 
 		}
+
+		int mainToolNumber(-1);
+		if ( trackerCertus->GetScalarAttribute("MainToolNumber", mainToolNumber) ) 
+		{
+			tracker->SetMainTool(mainToolNumber); 
+			this->SetMainToolNumber(mainToolNumber); 
+		}*/
+#endif
 	}
 	//******************* Polaris Tracker ***************************
 	else if ( STRCASECMP("PolarisTracker", type)==0) 
 	{
+#ifdef PLUS_USE_POLARIS
 		LOG_DEBUG("Tracker type: Polaris tracker"); 
 		this->SetTrackerType(TRACKER_POLARIS); 
-
-		vtkSmartPointer<vtkXMLDataElement> trackerPolaris = trackerConfig->FindNestedElementWithName("PolarisTracker"); 
-
-		if ( trackerPolaris != NULL )
-		{
-#ifdef PLUS_USE_POLARIS
-			vtkSmartPointer<vtkPOLARISTracker> tracker = vtkSmartPointer<vtkPOLARISTracker>::New();
-			this->SetTracker(tracker); 
-
-			// TODO: set base parameters
+		vtkSmartPointer<vtkPOLARISTracker> tracker = vtkSmartPointer<vtkPOLARISTracker>::New();
+		this->SetTracker(tracker); 
+		tracker->ReadConfiguration(trackerConfig); 
 #endif
-		}
 	}
 	//******************* Aurora Tracker ***************************
 	else if ( STRCASECMP("AuroraTracker", type)==0) 
 	{
+#ifdef PLUS_USE_POLARIS
 		LOG_DEBUG("Tracker type: Aurora tracker"); 
 		this->SetTrackerType(TRACKER_AURORA); 
-
-		vtkSmartPointer<vtkXMLDataElement> trackerAurora = trackerConfig->FindNestedElementWithName("AuroraTracker"); 
-
-		if ( trackerAurora != NULL )
-		{
-#ifdef PLUS_USE_POLARIS
-			vtkSmartPointer<vtkNDITracker> tracker = vtkSmartPointer<vtkNDITracker>::New();
-			this->SetTracker(tracker); 
-
-			// TODO: set base parameters
+		vtkSmartPointer<vtkNDITracker> tracker = vtkSmartPointer<vtkNDITracker>::New();
+		this->SetTracker(tracker); 
+		tracker->ReadConfiguration(trackerConfig); 
 #endif
-		}
 	}
 	//******************* Flock Tracker ***************************
 	else if ( STRCASECMP("FlockTracker", type)==0) 
 	{
+#ifdef PLUS_USE_FLOCK
 		LOG_DEBUG("Tracker type: Flock tracker"); 
 		this->SetTrackerType(TRACKER_FLOCK); 
-
-		vtkSmartPointer<vtkXMLDataElement> trackerFlock = trackerConfig->FindNestedElementWithName("FlockTracker"); 
-
-		if ( trackerFlock != NULL )
-		{
-#ifdef PLUS_USE_FLOCK
-			vtkSmartPointer<vtkFlockTracker> tracker = vtkSmartPointer<vtkFlockTracker>::New();
-			this->SetTracker(tracker); 
-
-			// TODO: set base parameters
+		vtkSmartPointer<vtkFlockTracker> tracker = vtkSmartPointer<vtkFlockTracker>::New();
+		this->SetTracker(tracker); 
+		tracker->ReadConfiguration(trackerConfig); 
 #endif
-		}
 	}
 	//******************* Micron Tracker ***************************
 	else if ( STRCASECMP("MicronTracker", type)==0) 
 	{
+#ifdef PLUS_USE_MICRONTRACKER
 		LOG_DEBUG("Tracker type: Micron tracker"); 
 		this->SetTrackerType(TRACKER_MICRON); 
-
-		vtkSmartPointer<vtkXMLDataElement> trackerMicron = trackerConfig->FindNestedElementWithName("MicronTracker"); 
-
-		if ( trackerMicron != NULL )
-		{
-#ifdef PLUS_USE_MICRONTRACKER
-			vtkSmartPointer<vtkMicronTracker> tracker = vtkSmartPointer<vtkMicronTracker>::New();
-			this->SetTracker(tracker); 
-
-			// TODO: set base parameters
+		vtkSmartPointer<vtkMicronTracker> tracker = vtkSmartPointer<vtkMicronTracker>::New();
+		this->SetTracker(tracker); 
+		tracker->ReadConfiguration(trackerConfig); 
 #endif
-		}
 	}
 	//******************* Saved dataset ***************************
 	else if ( STRCASECMP("SavedDataset", type)==0) 
 	{
 		LOG_DEBUG("Tracker type: Saved Dataset");
 		this->SetTrackerType(TRACKER_SAVEDDATASET); 
-
-		vtkSmartPointer<vtkXMLDataElement> xmlconfig = trackerConfig->FindNestedElementWithName("SavedDataset"); 
-
-		if ( xmlconfig != NULL )
-		{
-			vtkSmartPointer<vtkSavedDataTracker> tracker = vtkSmartPointer<vtkSavedDataTracker>::New();
-			this->SetTracker(tracker); 
-			tracker->ReadConfiguration(xmlconfig); 
-			this->SetMainToolNumber(0); 
-		}
+		vtkSmartPointer<vtkSavedDataTracker> tracker = vtkSmartPointer<vtkSavedDataTracker>::New();
+		this->SetTracker(tracker); 
+		tracker->ReadConfiguration(trackerConfig); 
 	}
 	//******************* Ascension 3DG ***************************
 	else if ( STRCASECMP( "Ascension3DG", type ) == 0 )
@@ -1398,20 +1362,9 @@ void vtkDataCollector::ReadTrackerProperties(vtkXMLDataElement* trackerConfig)
 #ifdef PLUS_USE_Ascension3DG
 		LOG_DEBUG( "Tracker type: Ascension 3DG" );
 		this->SetTrackerType( TRACKER_ASCENSION3DG );
-
-		vtkSmartPointer< vtkXMLDataElement > xmlconfig = trackerConfig->FindNestedElementWithName( "Ascension3DG" );
-
-		if ( xmlconfig != NULL )
-		{
-			vtkSmartPointer< vtkAscension3DGTracker > tracker = vtkSmartPointer< vtkAscension3DGTracker >::New();
-			this->SetTracker( tracker );
-			this->SetMainToolNumber( 0 ); // TODO: Read this from config xml data.
-		}
-		else
-		{
-			LOG_WARNING("Unable to read Ascension3DG XML data element"); 
-		}
-
+		vtkSmartPointer< vtkAscension3DGTracker > tracker = vtkSmartPointer< vtkAscension3DGTracker >::New();
+		this->SetTracker( tracker );
+		tracker->ReadConfiguration(trackerConfig); 
 #endif
 	}
 	//******************* Fake Tracker ***************************
@@ -1419,51 +1372,15 @@ void vtkDataCollector::ReadTrackerProperties(vtkXMLDataElement* trackerConfig)
 	{
 		LOG_DEBUG("Tracker type: Fake Tracker");
 		this->SetTrackerType(TRACKER_FAKE); 
-
-		vtkSmartPointer<vtkXMLDataElement> xmlconfig = trackerConfig->FindNestedElementWithName("FakeTracker"); 
-
-		if ( xmlconfig != NULL )
-		{
-			vtkSmartPointer<vtkFakeTracker> tracker = vtkSmartPointer<vtkFakeTracker>::New();
-			this->SetTracker(tracker);
-			tracker->ReadConfiguration(xmlconfig);
-			this->SetMainToolNumber(tracker->GetMainTool());
-		}
+		vtkSmartPointer<vtkFakeTracker> tracker = vtkSmartPointer<vtkFakeTracker>::New();
+		this->SetTracker(tracker);
+		tracker->ReadConfiguration(trackerConfig);
 	}
 	else
 	{
 		this->SetTrackerType(TRACKER_NONE); 
 		LOG_DEBUG("Tracker type: None");
 		this->SetTracker(NULL); 
-	}
-
-	if ( this->GetTracker() != NULL )
-	{
-		int bufferSize = 0; 
-		if ( trackerConfig->GetScalarAttribute("BufferSize", bufferSize) ) 
-		{
-			for ( int i = 0; i < this->GetTracker()->GetNumberOfTools(); i++)
-			{
-				this->GetTracker()->GetTool(i)->GetBuffer()->SetBufferSize( bufferSize ); 
-			}
-		}
-
-		double frequency = 0; 
-		if ( trackerConfig->GetScalarAttribute("Frequency", frequency) ) 
-		{
-			this->GetTracker()->SetFrequency(frequency);  
-		}
-
-		double localTimeOffset = 0; 
-		if ( trackerConfig->GetScalarAttribute("LocalTimeOffset", localTimeOffset) )
-		{
-			LOG_INFO("Tracker local time offset: " << std::fixed << 1000*localTimeOffset << "ms" ); 
-			for ( int i = 0; i < this->GetTracker()->GetNumberOfTools(); i++)
-			{
-				this->GetTracker()->GetTool(i)->GetBuffer()->SetLocalTimeOffset(localTimeOffset);
-			}
-		}
-
 	}
 }
 
@@ -1476,8 +1393,7 @@ void vtkDataCollector::ReadImageAcqusitionProperties(vtkXMLDataElement* imageAcq
 
 	if ( type == NULL ) 
 	{
-		vtkWarningMacro(<< "Unable to find image acquisition type, set to default None"); 
-
+		LOG_WARNING("Unable to find image acquisition type, set to default: None"); 
 		this->SetAcquisitionType(SYNCHRO_VIDEO_NONE); 
 		LOG_DEBUG("Image acquisition type: None");
 		this->SetVideoSource(NULL); 
@@ -1485,219 +1401,75 @@ void vtkDataCollector::ReadImageAcqusitionProperties(vtkXMLDataElement* imageAcq
 	//******************* Sonix Video ***************************
 	else if ( STRCASECMP("SonixVideo", type)==0) 
 	{
+#ifdef PLUS_USE_SONIX_VIDEO
 		LOG_DEBUG("Image acquisition type: Sonix Video"); 
 		this->SetAcquisitionType(SYNCHRO_VIDEO_SONIX); 
-
-		vtkSmartPointer<vtkXMLDataElement> sonixVideo = imageAcqusitionConfig->FindNestedElementWithName("SonixVideo"); 
-
-		if ( sonixVideo != NULL) 
-		{
-			//Set SonixRP parameters from config file
-#ifdef PLUS_USE_SONIX_VIDEO
-			vtkSmartPointer<vtkSonixVideoSource2> videoSource = vtkSmartPointer<vtkSonixVideoSource2>::New();
-			this->SetVideoSource(videoSource); 
-
-			const char* ipAddress = sonixVideo->GetAttribute("IP"); 
-			if ( ipAddress != NULL) 
-			{
-				videoSource->SetSonixIP(ipAddress); 
-			}
-			LOG_DEBUG("Sonix Video IP: " << ipAddress); 
-
-			int imagingMode = 0; 
-			if ( sonixVideo->GetScalarAttribute("ImagingMode", imagingMode)) 
-			{
-				videoSource->SetImagingMode(imagingMode); 
-			}
-
-			int acquisitionDataType = 0; 
-			if ( sonixVideo->GetScalarAttribute("AcquisitionDataType", acquisitionDataType)) 
-			{
-				videoSource->SetAcquisitionDataType(acquisitionDataType); 
-			}
-
-			int depth = -1; 
-			if ( sonixVideo->GetScalarAttribute("Depth", depth)) 
-			{
-				videoSource->SetDepth(depth); 
-			}
-
-			int sector = -1; 
-			if ( sonixVideo->GetScalarAttribute("Sector", sector)) 
-			{
-				videoSource->SetSector(sector); 
-			}
-
-			int gain = -1; 
-			if ( sonixVideo->GetScalarAttribute("Gain", gain)) 
-			{
-				videoSource->SetGain(gain); 
-			}
-
-			int dynRange = -1; 
-			if ( sonixVideo->GetScalarAttribute("DynRange", dynRange)) 
-			{
-				videoSource->SetDynRange(dynRange); 
-			}
-
-			int zoom = -1; 
-			if ( sonixVideo->GetScalarAttribute("Zoom", zoom)) 
-			{
-				videoSource->SetZoom(zoom); 
-			}
-
-			int frequency = -1; 
-			if ( sonixVideo->GetScalarAttribute("Frequency", frequency)) 
-			{
-				videoSource->SetFrequency(frequency); 
-			}
-
-			int compressionStatus = 0; 
-			if ( sonixVideo->GetScalarAttribute("CompressionStatus", compressionStatus)) 
-			{
-				videoSource->SetCompressionStatus(compressionStatus); 
-			}
-
-			int timeout = 0; 
-			if ( sonixVideo->GetScalarAttribute("Timeout", timeout)) 
-			{
-				videoSource->SetTimeout(timeout); 
-			}
+		vtkSmartPointer<vtkSonixVideoSource2> videoSource = vtkSmartPointer<vtkSonixVideoSource2>::New();
+		this->SetVideoSource(videoSource); 
+		videoSource->ReadConfiguration(imageAcqusitionConfig); 
 #endif
-		}
 	}
 	//******************* Matrox Imaging ***************************
 	else if ( STRCASECMP("MatroxImaging", type)==0) 
 	{
+#ifdef PLUS_USE_MATROX_IMAGING
 		LOG_DEBUG("Image acquisition type: Matrox Imaging"); 
 		this->SetAcquisitionType(SYNCHRO_VIDEO_MIL); 
-
-		vtkSmartPointer<vtkXMLDataElement> matroxImaging = imageAcqusitionConfig->FindNestedElementWithName("MatroxImaging"); 
-
-		if ( matroxImaging != NULL) 
-		{
-#ifdef PLUS_USE_MATROX_IMAGING
-			vtkSmartPointer<vtkMILVideoSource2> videoSource = vtkSmartPointer<vtkMILVideoSource2>::New();
-			this->SetVideoSource(videoSource); 
-
-			// TODO: set base parameters
+		vtkSmartPointer<vtkMILVideoSource2> videoSource = vtkSmartPointer<vtkMILVideoSource2>::New();
+		this->SetVideoSource(videoSource); 
+		videoSource->ReadConfiguration(imageAcqusitionConfig); 
 #endif
-		}
 	}
 	//******************* Video For Windows ***************************
 	else if ( STRCASECMP("VFWVideo", type)==0) 
 	{
+#ifdef VTK_VFW_SUPPORTS_CAPTURE
 		LOG_DEBUG("Image acquisition type: Video For Windows"); 
 		this->SetAcquisitionType(SYNCHRO_VIDEO_WIN32); 	
-		vtkSmartPointer<vtkXMLDataElement> videoForWindows = imageAcqusitionConfig->FindNestedElementWithName("VFWVideo"); 
-
-		if ( videoForWindows != NULL) 
-		{
-#ifdef VTK_VFW_SUPPORTS_CAPTURE
-			vtkSmartPointer<vtkWin32VideoSource2> videoSource = vtkSmartPointer<vtkWin32VideoSource2>::New();
-			this->SetVideoSource(videoSource); 
-			// TODO: set base parameters
+		vtkSmartPointer<vtkWin32VideoSource2> videoSource = vtkSmartPointer<vtkWin32VideoSource2>::New();
+		this->SetVideoSource(videoSource); 
+		videoSource->ReadConfiguration(imageAcqusitionConfig); 
 #endif
-		}
 	}
 	//******************* IC Capturing frame grabber ***************************
 	else if ( STRCASECMP("ICCapturing", type)==0) 
 	{
+#ifdef PLUS_USE_ICCAPTURING_VIDEO
 		LOG_DEBUG("Image acquisition type: IC Capturing"); 
 		this->SetAcquisitionType(SYNCHRO_VIDEO_ICCAPTURING); 
-		vtkSmartPointer<vtkXMLDataElement> icCapturing = imageAcqusitionConfig->FindNestedElementWithName("ICCapturing"); 
-
-		if ( icCapturing != NULL) 
-		{
-#ifdef PLUS_USE_ICCAPTURING_VIDEO
-			vtkSmartPointer<vtkICCapturingSource2> videoSource = vtkSmartPointer<vtkICCapturingSource2>::New();
-			this->SetVideoSource(videoSource); 
-
-			const char* deviceName = icCapturing->GetAttribute("DeviceName"); 
-			if ( deviceName != NULL) 
-			{
-				videoSource->SetDeviceName(deviceName); 
-			}
-
-			const char* videoNorm = icCapturing->GetAttribute("VideoNorm"); 
-			if ( videoNorm != NULL) 
-			{
-				videoSource->SetVideoNorm(videoNorm); 
-			}
-
-			const char* videoFormat = icCapturing->GetAttribute("VideoFormat"); 
-			if ( videoFormat != NULL) 
-			{
-				videoSource->SetVideoFormat(videoFormat); 
-			}
-
-			const char* inputChannel = icCapturing->GetAttribute("InputChannel"); 
-			if ( inputChannel != NULL) 
-			{
-				videoSource->SetInputChannel(inputChannel); 
-			}
-
-			const char* licenseKey = icCapturing->GetAttribute("LicenseKey"); 
-			if ( licenseKey != NULL) 
-			{
-				videoSource->SetLicenceKey(licenseKey); 
-			}
-
-			int icBufferSize = 0; 
-			if ( icCapturing->GetScalarAttribute("ICBufferSize", icBufferSize) ) 
-			{
-				videoSource->SetICBufferSize(icBufferSize); 
-			}
+		vtkSmartPointer<vtkICCapturingSource2> videoSource = vtkSmartPointer<vtkICCapturingSource2>::New();
+		this->SetVideoSource(videoSource); 
+		videoSource->ReadConfiguration(imageAcqusitionConfig); 
 #endif
-		}
 	}
 	//******************* Linux Video ***************************
 	else if ( STRCASECMP("LinuxVideo", type)==0) 
 	{
+#ifdef PLUS_USE_LINUX_VIDEO
 		LOG_DEBUG("Image acquisition type: Linux Video mode"); 
 		this->SetAcquisitionType(SYNCHRO_VIDEO_LINUX); 
-		vtkSmartPointer<vtkXMLDataElement> linuxVideo = imageAcqusitionConfig->FindNestedElementWithName("LinuxVideo"); 
-
-		if ( linuxVideo != NULL) 
-		{
-#ifdef PLUS_USE_LINUX_VIDEO
-			//vtkSmartPointer<vtkV4L2LinuxSource2> videoSource = vtkSmartPointer<vtkV4L2LinuxSource2>::New();
-			//this->SetVideoSource(videoSource); 
-			// TODO: set base parameters
+		vtkSmartPointer<vtkV4L2LinuxSource2> videoSource = vtkSmartPointer<vtkV4L2LinuxSource2>::New();
+		this->SetVideoSource(videoSource); 
+		videoSource->ReadConfiguration(imageAcqusitionConfig); 
 #endif
-		}
 	}
 	//******************* Noise Video ***************************
 	else if ( STRCASECMP("NoiseVideo", type)==0) 
 	{
 		LOG_DEBUG("Image acquisition type: Noise Video"); 
 		this->SetAcquisitionType(SYNCHRO_VIDEO_NOISE); 
-		vtkSmartPointer<vtkXMLDataElement> noiseVideo = imageAcqusitionConfig->FindNestedElementWithName("NoiseVideo"); 
-
-		if ( noiseVideo != NULL) 
-		{
-			vtkSmartPointer<vtkVideoSource2> videoSource = vtkSmartPointer<vtkVideoSource2>::New();
-			//this->SetVideoSource(videoSource); 
-		}
+		vtkSmartPointer<vtkVideoSource2> videoSource = vtkSmartPointer<vtkVideoSource2>::New();
+		this->SetVideoSource(videoSource); 
+		videoSource->ReadConfiguration(imageAcqusitionConfig); 
 	}
 	//******************* Saved dataset ***************************
 	else if ( STRCASECMP("SavedDataset", type)==0 ) 
 	{
 		LOG_DEBUG("Image acquisition type: Saved Dataset");
 		this->SetAcquisitionType(SYNCHRO_VIDEO_SAVEDDATASET); 
-
-		vtkSmartPointer<vtkXMLDataElement> savedDataset = imageAcqusitionConfig->FindNestedElementWithName("SavedDataset"); 
-		if ( savedDataset != NULL) 
-		{
-			vtkSmartPointer<vtkSavedDataVideoSource> videoSource = vtkSmartPointer<vtkSavedDataVideoSource>::New();
-			this->SetVideoSource(videoSource); 
-
-			const char* sequenceMetafile = savedDataset->GetAttribute("SequenceMetafile"); 
-			if ( sequenceMetafile != NULL ) 
-			{
-				videoSource->SetSequenceMetafile(sequenceMetafile);
-			}
-		}
+		vtkSmartPointer<vtkSavedDataVideoSource> videoSource = vtkSmartPointer<vtkSavedDataVideoSource>::New();
+		this->SetVideoSource(videoSource); 
+		videoSource->ReadConfiguration(imageAcqusitionConfig); 
 	}
 	else
 	{
@@ -1705,110 +1477,35 @@ void vtkDataCollector::ReadImageAcqusitionProperties(vtkXMLDataElement* imageAcq
 		LOG_DEBUG("Image acquisition type: None");
 		this->SetVideoSource(NULL); 
 	}
-
-	if ( this->GetVideoSource() != NULL )
-	{
-
-		int frameSize[3] = {0, 0, 0}; 
-		if ( imageAcqusitionConfig->GetVectorAttribute("FrameSize", 3, frameSize) )
-		{
-			this->GetVideoSource()->SetFrameSize(frameSize[0], frameSize[1], frameSize[2]); 
-		}
-
-		int bufferSize = 0; 
-		if ( imageAcqusitionConfig->GetScalarAttribute("BufferSize", bufferSize) )
-		{
-			this->GetVideoSource()->GetBuffer()->SetBufferSize(bufferSize); 
-		}
-
-		int frameRate = 0; 
-		if ( imageAcqusitionConfig->GetScalarAttribute("FrameRate", frameRate) )
-		{
-			this->GetVideoSource()->SetFrameRate(frameRate); 
-		}
-
-		double smoothingFactor = 0; 
-		if ( imageAcqusitionConfig->GetScalarAttribute("SmoothingFactor", smoothingFactor) )
-		{
-			this->GetVideoSource()->SetSmoothingFactor(smoothingFactor); 
-		}
-
-		double localTimeOffset = 0; 
-		if ( imageAcqusitionConfig->GetScalarAttribute("LocalTimeOffset", localTimeOffset) )
-		{
-			LOG_INFO("Image acqusition local time offset: " << std::fixed << 1000*localTimeOffset << "ms" ); 
-			this->GetVideoSource()->GetBuffer()->SetLocalTimeOffset(localTimeOffset); 
-		}
-	}
 }
 
 //------------------------------------------------------------------------------
 void vtkDataCollector::ReadSynchronizationProperties(vtkXMLDataElement* synchronizationConfig)
 {
 	LOG_TRACE("vtkDataCollector::ReadSynchronizationProperties");
-	vtkSmartPointer<vtkDataCollectorSynchronizer> synchronizer = vtkSmartPointer<vtkDataCollectorSynchronizer>::New(); 
-	this->SetSynchronizer(synchronizer); 
+	const char* type = synchronizationConfig->GetAttribute("Type"); 
 
-	vtkSmartPointer<vtkXMLDataElement> synchronizerConfig = synchronizationConfig->FindNestedElementWithName("Synchronizer"); 
-	if ( synchronizerConfig == NULL) 
+	if ( type == NULL ) 
 	{
-		vtkWarningMacro(<< "Unable to find synchronizer settings, set to default."); 
+		LOG_WARNING("Unable to find synchronization type, set to default: None"); 
+		this->SetSyncType(SYNC_NONE); 
+		LOG_DEBUG("Sync type: None");
+		this->SetSynchronizer(NULL); 
+	}
+	//******************* Change Detection ***************************
+	else if ( STRCASECMP("ChangeDetection", type)==0) 
+	{
+		LOG_DEBUG("Sync type: Change Detection");
+		vtkSmartPointer<vtkDataCollectorSynchronizer> synchronizer = vtkSmartPointer<vtkDataCollectorSynchronizer>::New(); 
+		this->SetSyncType(SYNC_CHANGE_DETECTION); 
+		this->SetSynchronizer(synchronizer); 
+		synchronizer->ReadConfiguration(synchronizationConfig); 
 	}
 	else
 	{
-		int synchronizationTimeLength = 0; 
-		if ( synchronizerConfig->GetScalarAttribute("SynchronizationTimeLength", synchronizationTimeLength) )
-		{
-			this->GetSynchronizer()->SetSynchronizationTimeLength(synchronizationTimeLength); 
-		}
-
-		int minNumOfSyncSteps = 0; 
-		if ( synchronizerConfig->GetScalarAttribute("MinNumOfSyncSteps", minNumOfSyncSteps) )
-		{
-			this->GetSynchronizer()->SetMinNumOfSyncSteps(minNumOfSyncSteps); 
-		}
-
-		int numberOfAveragedFrames = 0; 
-		if ( synchronizerConfig->GetScalarAttribute("NumberOfAveragedFrames", numberOfAveragedFrames) )
-		{
-			this->GetSynchronizer()->SetNumberOfAveragedFrames(numberOfAveragedFrames); 
-		}
-
-		int numberOfAveragedTransforms = 0; 
-		if ( synchronizerConfig->GetScalarAttribute("NumberOfAveragedTransforms", numberOfAveragedTransforms) )
-		{
-			this->GetSynchronizer()->SetNumberOfAveragedTransforms(numberOfAveragedTransforms); 
-		}
-
-		int thresholdMultiplier = 0; 
-		if ( synchronizerConfig->GetScalarAttribute("ThresholdMultiplier", thresholdMultiplier) )
-		{
-			this->GetSynchronizer()->SetThresholdMultiplier(thresholdMultiplier); 
-		}
-
-		double minTransformThreshold = 0; 
-		if ( synchronizerConfig->GetScalarAttribute("MinTransformThreshold", minTransformThreshold) )
-		{
-			this->GetSynchronizer()->SetMinTransformThreshold(minTransformThreshold); 
-		}
-
-		double maxTransformDifference = 0; 
-		if ( synchronizerConfig->GetScalarAttribute("MaxTransformDifference", maxTransformDifference) )
-		{
-			this->GetSynchronizer()->SetMaxTransformDifference(maxTransformDifference); 
-		}
-
-		double minFrameThreshold = 0; 
-		if ( synchronizerConfig->GetScalarAttribute("MinFrameThreshold", minFrameThreshold) )
-		{
-			this->GetSynchronizer()->SetMinFrameThreshold(minFrameThreshold); 
-		}
-
-		double maxFrameDifference = 0; 
-		if ( synchronizerConfig->GetScalarAttribute("MaxFrameDifference", maxFrameDifference) )
-		{
-			this->GetSynchronizer()->SetMaxFrameDifference(maxFrameDifference); 
-		}
+		this->SetSyncType(SYNC_NONE); 
+		LOG_DEBUG("Sync type: None");
+		this->SetSynchronizer(NULL);
 	}
 }
 
@@ -1867,6 +1564,20 @@ void vtkDataCollector::SetVideoOnly(bool videoOnly)
 			}
 		}
 	}
+}
+//------------------------------------------------------------------------------
+int vtkDataCollector::GetDefaultToolPortNumber()
+{
+	for ( int tool = 0; tool < this->GetNumberOfTools(); tool++ )
+	{
+		if ( STRCASECMP( this->GetTracker()->GetDefaultToolName(), this->GetTracker()->GetTool(tool)->GetToolName() ) == 0 )
+		{
+			return tool;
+		}
+	}
+
+	LOG_ERROR("Unable to find default tool port number! Please set default tool name in the configuration file!" ); 
+	return -1; 
 }
 
 //------------------------------------------------------------------------------

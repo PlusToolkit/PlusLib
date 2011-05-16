@@ -1015,3 +1015,89 @@ void vtkSonixVideoSource2::SetSonixIP(const char *SonixIP)
 	}
 }
 
+//-----------------------------------------------------------------------------
+void vtkSonixVideoSource2::ReadConfiguration(vtkXMLDataElement* config)
+{
+	LOG_TRACE("vtkSonixVideoSource2::ReadConfiguration"); 
+	if ( config == NULL )
+	{
+		LOG_ERROR("Unable to configure Sonix video source! (XML data element is NULL)"); 
+		return; 
+	}
+
+	Superclass::ReadConfiguration(config); 
+
+	const char* ipAddress = config->GetAttribute("IP"); 
+	if ( ipAddress != NULL) 
+	{
+		this->SetSonixIP(ipAddress); 
+	}
+	LOG_DEBUG("Sonix Video IP: " << ipAddress); 
+
+	int imagingMode = 0; 
+	if ( config->GetScalarAttribute("ImagingMode", imagingMode)) 
+	{
+		this->SetImagingMode(imagingMode); 
+	}
+
+	int acquisitionDataType = 0; 
+	if ( config->GetScalarAttribute("AcquisitionDataType", acquisitionDataType)) 
+	{
+		this->SetAcquisitionDataType(acquisitionDataType); 
+	}
+
+	int depth = -1; 
+	if ( config->GetScalarAttribute("Depth", depth)) 
+	{
+		this->SetDepth(depth); 
+	}
+
+	int sector = -1; 
+	if ( config->GetScalarAttribute("Sector", sector)) 
+	{
+		this->SetSector(sector); 
+	}
+
+	int gain = -1; 
+	if ( config->GetScalarAttribute("Gain", gain)) 
+	{
+		this->SetGain(gain); 
+	}
+
+	int dynRange = -1; 
+	if ( config->GetScalarAttribute("DynRange", dynRange)) 
+	{
+		this->SetDynRange(dynRange); 
+	}
+
+	int zoom = -1; 
+	if ( config->GetScalarAttribute("Zoom", zoom)) 
+	{
+		this->SetZoom(zoom); 
+	}
+
+	int frequency = -1; 
+	if ( config->GetScalarAttribute("Frequency", frequency)) 
+	{
+		this->SetFrequency(frequency); 
+	}
+
+	int compressionStatus = 0; 
+	if ( config->GetScalarAttribute("CompressionStatus", compressionStatus)) 
+	{
+		this->SetCompressionStatus(compressionStatus); 
+	}
+
+	int timeout = 0; 
+	if ( config->GetScalarAttribute("Timeout", timeout)) 
+	{
+		this->SetTimeout(timeout); 
+	}
+}
+
+//-----------------------------------------------------------------------------
+void vtkSonixVideoSource2::WriteConfiguration(vtkXMLDataElement* config)
+{
+	Superclass::WriteConfiguration(config); 
+
+}

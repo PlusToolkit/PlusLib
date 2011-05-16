@@ -87,6 +87,10 @@ vtkTrackerTool::vtkTrackerTool()
 	this->ToolManufacturer = 0;
 	this->ToolName = 0;
 	this->ToolPort = 0;
+	this->CalibrationMatrixName = 0; 
+	this->CalibrationDate = 0; 
+	this->CalibrationError = 0.0; 
+	this->SendToLink = 0; 
 
 	this->SetToolType("");
 	this->SetToolRevision("");
@@ -433,4 +437,62 @@ void vtkTrackerTool::DeepCopy(vtkTrackerTool *tool)
 	this->Buffer->DeepCopy( tool->GetBuffer() );
 
 	this->SetFrameNumber( tool->GetFrameNumber() );
+}
+
+
+//-----------------------------------------------------------------------------
+void vtkTrackerTool::ReadConfiguration(vtkXMLDataElement* config)
+{
+	LOG_TRACE("vtkTrackerTool::ReadConfiguration"); 
+	if ( config == NULL )
+	{
+		LOG_ERROR("Unable to configure tracker tool! (XML data element is NULL)"); 
+		return; 
+	}
+
+	const char* toolName = config->GetAttribute("Name"); 
+	if ( toolName != NULL ) 
+	{
+		this->SetToolName(toolName); 
+	}
+
+	const char* sendToLink = config->GetAttribute("SendTo"); 
+	if ( sendToLink != NULL ) 
+	{
+		this->SetSendToLink(sendToLink); 
+	}
+
+	vtkSmartPointer<vtkXMLDataElement> toolCalibrationDataElement = config->FindNestedElementWithName("Calibration"); 
+	if ( toolCalibrationDataElement != NULL ) 
+	{
+		const char* matrixName = toolCalibrationDataElement->GetAttribute("MatrixName"); 
+		if ( matrixName != NULL ) 
+		{
+			this->SetCalibrationMatrixName(matrixName); 
+		}
+
+		double calibrationMatrixValue[16]; 
+		if ( toolCalibrationDataElement->GetVectorAttribute("MatrixValue", 16, calibrationMatrixValue ) )
+		{
+			this->CalibrationMatrix->DeepCopy(calibrationMatrixValue); 
+		}
+
+		const char* calibrationDate = toolCalibrationDataElement->GetAttribute("Date"); 
+		if ( calibrationDate != NULL ) 
+		{
+			this->SetCalibrationDate(calibrationDate); 
+		}
+
+		double calibrationError(0); 
+		if ( toolCalibrationDataElement->GetScalarAttribute("Error", calibrationError) )
+		{
+			this->SetCalibrationError(calibrationError); 
+		}
+	}
+}
+
+//-----------------------------------------------------------------------------
+void vtkTrackerTool::WriteConfiguration(vtkXMLDataElement* config)
+{
+
 }

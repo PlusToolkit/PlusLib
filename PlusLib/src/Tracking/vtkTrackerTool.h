@@ -69,6 +69,11 @@ public:
   virtual void PrintSelf(ostream& os, vtkIndent indent);
 
   // Description:
+  // Read/write main configuration from/to xml data
+  virtual void ReadConfiguration(vtkXMLDataElement* config); 
+  virtual void WriteConfiguration(vtkXMLDataElement* config); 
+
+  // Description:
   // Get a reference to the transform associated with this tool.  The
   // transform will automatically update when Update() is called
   // on the tracking system.  You can connect this transform or its
@@ -180,6 +185,26 @@ public:
   void Update();
   //ETX
 
+  // Description:
+  // Set/get calibration matrix name
+  vtkSetStringMacro(CalibrationMatrixName); 
+  vtkGetStringMacro(CalibrationMatrixName); 
+
+  // Description:
+  // Set/get calibration date
+  vtkSetStringMacro(CalibrationDate); 
+  vtkGetStringMacro(CalibrationDate); 
+
+  // Description:
+  // Set/get the tool 'SendTo' link for OpenIGTLink broadcasting
+  vtkSetStringMacro(SendToLink);
+  vtkGetStringMacro(SendToLink);
+  
+  // Description:
+  // Set/get calibration error
+  vtkSetMacro(CalibrationError, double); 
+  vtkGetMacro(CalibrationError, double); 
+
   //BTX
   // Description:
   // This is obsolete since threading was added, but I'm
@@ -228,6 +253,11 @@ protected:
   char *ToolPartNumber;
   char *ToolManufacturer;
   char *ToolName; 
+  char *CalibrationMatrixName; 
+  char *CalibrationDate; 
+  char* SendToLink; 
+
+  double CalibrationError; 
 
   vtkTrackerBuffer *Buffer;
 

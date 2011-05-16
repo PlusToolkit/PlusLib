@@ -55,7 +55,11 @@ public:
 
 	// Description:
 	// Get the buffer element values of each tool in a string list by timestamp. 
-	void GetTrackerToolBufferStringList(const double timestamp, std::vector<std::string> &toolNames, std::vector<std::string> &toolBufferValues, std::vector<std::string> &toolBufferStatuses, bool calibratedTransform = false); 
+	void GetTrackerToolBufferStringList(const double timestamp, 
+		std::map<std::string, std::string> &toolsBufferMatrices, 
+		std::map<std::string, std::string> &toolsCalibrationMatrices, 
+		std::map<std::string, std::string> &toolsStatuses,
+		bool calibratedTransform = false); 
 
 	// Description:
 	// Get stepper encoder values from the buffer, where '0' is the most recent and

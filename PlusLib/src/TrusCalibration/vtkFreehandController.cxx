@@ -97,11 +97,6 @@ void vtkFreehandController::Initialize()
 		this->TrackedFrameContainer = vtkTrackedFrameList::New(); 
 	}
 
-	// If we hadn't set the main tool number, set to the first active
-	if ( this->DataCollector->GetMainToolNumber() == -1) {
-		this->DataCollector->SetMainToolNumber(this->GetNextActiveToolNumber());
-	}
-
 	// Set up canvas image actor
 	vtkSmartPointer<vtkImageActor> canvasImageActor = vtkSmartPointer<vtkImageActor>::New();
 	//canvasImageActor->VisibilityOn(); 
@@ -126,7 +121,7 @@ void vtkFreehandController::Initialize()
 
 int vtkFreehandController::GetNextActiveToolNumber()
 {
-	int nextToolNumber = this->DataCollector->GetMainToolNumber();
+	int nextToolNumber = this->DataCollector->GetDefaultToolPortNumber();
 	const int numberOfTools = this->DataCollector->GetTracker()->GetNumberOfTools(); 
 	bool toolActive(false);
 	int loop(0); 
@@ -141,7 +136,7 @@ int vtkFreehandController::GetNextActiveToolNumber()
 
 		// avoid endless loop
 		if (loop > 1) {
-			return this->DataCollector->GetMainToolNumber();
+			return this->DataCollector->GetDefaultToolPortNumber();
 		}
 	}
 
@@ -180,7 +175,7 @@ void vtkFreehandController::AddTrackedFrame( vtkImageData* aImageData, std::vect
 	TrackedFrame trackedFrame;
 	trackedFrame.ImageData = NULL; 
 	trackedFrame.Timestamp = aTimestamp; 
-	trackedFrame.DefaultFrameTransformName = aToolTransformNames[this->DataCollector->GetMainToolNumber()]; 
+	trackedFrame.DefaultFrameTransformName = aToolTransformNames[this->DataCollector->GetDefaultToolPortNumber()]; 
 
 	if ( !this->TrackedFrameContainer->ValidateData(&trackedFrame) ) {
 		// We've already inserted this frame into the sequence

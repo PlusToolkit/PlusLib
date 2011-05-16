@@ -36,6 +36,7 @@
 #define __vtkVideoSource2_h
 
 #include "vtkImageAlgorithm.h"
+#include "vtkXMLDataElement.h"
 #include <vector>
 
 class vtkTimerLog;
@@ -65,6 +66,11 @@ public:
   static vtkVideoSource2 *New();
   vtkTypeRevisionMacro(vtkVideoSource2,vtkImageAlgorithm);
   void PrintSelf(ostream& os, vtkIndent indent);   
+
+  // Description:
+  // Read/write main configuration from/to xml data
+  virtual void ReadConfiguration(vtkXMLDataElement* config); 
+  virtual void WriteConfiguration(vtkXMLDataElement* config);
 
   // Description:
   // Connect to device

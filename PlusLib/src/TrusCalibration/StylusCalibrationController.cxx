@@ -313,7 +313,7 @@ vtkMatrix4x4* StylusCalibrationController::AcquireTrackerPosition(double aPositi
 		LOG_ERROR("Data collector is not initialized!");
 		return NULL;
 	}
-	if ((dataCollector->GetTracker() == NULL) || (dataCollector->GetTracker()->GetTool(dataCollector->GetMainToolNumber()) < 0)) {
+	if ((dataCollector->GetTracker() == NULL) || (dataCollector->GetTracker()->GetTool(dataCollector->GetDefaultToolPortNumber()) < 0)) {
 		LOG_ERROR("Tracker is not initialized properly!");
 		return NULL;
 	}
@@ -325,7 +325,7 @@ vtkMatrix4x4* StylusCalibrationController::AcquireTrackerPosition(double aPositi
 	if (aReference) {
 		toolNumber = dataCollector->GetTracker()->GetReferenceTool();
 	} else {
-		toolNumber = dataCollector->GetMainToolNumber();
+		toolNumber = dataCollector->GetDefaultToolPortNumber();
 	}
 
 	if (dataCollector->GetTracker()->GetTool(toolNumber)->GetEnabled()) {
@@ -373,7 +373,7 @@ void StylusCalibrationController::DoAcquisition()
 			LOG_ERROR("Data collector is not initialized!");
 			return;
 		}
-		if ((dataCollector->GetTracker() == NULL) || (dataCollector->GetTracker()->GetTool(dataCollector->GetMainToolNumber()) < 0)) {
+		if ((dataCollector->GetTracker() == NULL) || (dataCollector->GetTracker()->GetTool(dataCollector->GetDefaultToolPortNumber()) < 0)) {
 			LOG_ERROR("Tracker is not initialized properly!");
 			return;
 		}
@@ -402,7 +402,7 @@ void StylusCalibrationController::DoAcquisition()
 			} else if (distance > distance_highThreshold_mm * distance_highThreshold_mm) {
 				LOG_WARNING("Acquired position seems to be an outlier - it is skipped");
 			} else {
-				unsigned int mainToolNumber = dataCollector->GetMainToolNumber();
+				unsigned int mainToolNumber = dataCollector->GetDefaultToolPortNumber();
 
 				// Add the point into the calibration dataset
 				dataCollector->GetTracker()->GetTool(mainToolNumber)->InsertNextCalibrationPoint();
@@ -479,7 +479,7 @@ void StylusCalibrationController::Start()
 		LOG_ERROR("Data collector is not initialized!");
 		return;
 	}
-	if ((dataCollector->GetTracker() == NULL) || (dataCollector->GetTracker()->GetTool(dataCollector->GetMainToolNumber()) < 0)) {
+	if ((dataCollector->GetTracker() == NULL) || (dataCollector->GetTracker()->GetTool(dataCollector->GetDefaultToolPortNumber()) < 0)) {
 		LOG_ERROR("Tracker is not initialized properly!");
 		return;
 	}
@@ -487,12 +487,12 @@ void StylusCalibrationController::Start()
 	m_CurrentPointNumber = 0;
 
 	// Initialize tracker tool
-	dataCollector->GetTracker()->GetTool(dataCollector->GetMainToolNumber())->GetBuffer()->Clear();
-	dataCollector->GetTracker()->GetTool(dataCollector->GetMainToolNumber())->InitializeToolTipCalibration();
+	dataCollector->GetTracker()->GetTool(dataCollector->GetDefaultToolPortNumber())->GetBuffer()->Clear();
+	dataCollector->GetTracker()->GetTool(dataCollector->GetDefaultToolPortNumber())->InitializeToolTipCalibration();
 
 	vtkSmartPointer<vtkTransform> initialTransform = vtkSmartPointer<vtkTransform>::New();
 	initialTransform->Identity();
-	dataCollector->GetTracker()->GetTool(dataCollector->GetMainToolNumber())->SetCalibrationMatrix(initialTransform->GetMatrix());
+	dataCollector->GetTracker()->GetTool(dataCollector->GetDefaultToolPortNumber())->SetCalibrationMatrix(initialTransform->GetMatrix());
 
 	// Reset polydatas (make it look like empty)
 	m_InputPolyData->GetPoints()->Reset();
@@ -554,7 +554,7 @@ bool StylusCalibrationController::LoadStylusCalibrationFromFile(std::string aFil
 
 			// Set calibration matrix to stylus tool
 			vtkDataCollector* dataCollector = vtkFreehandController::GetInstance()->GetDataCollector();
-			dataCollector->GetTracker()->GetTool(dataCollector->GetMainToolNumber())->SetCalibrationMatrix(transformMatrix);
+			dataCollector->GetTracker()->GetTool(dataCollector->GetDefaultToolPortNumber())->SetCalibrationMatrix(transformMatrix);
 		}
 		delete[] transform; 
 	}
@@ -596,20 +596,20 @@ bool StylusCalibrationController::CalibrateStylus()
 		LOG_ERROR("Data collector is not initialized!");
 		return false;
 	}
-	if ((dataCollector->GetTracker() == NULL) || (dataCollector->GetTracker()->GetTool(dataCollector->GetMainToolNumber()) < 0)) {
+	if ((dataCollector->GetTracker() == NULL) || (dataCollector->GetTracker()->GetTool(dataCollector->GetDefaultToolPortNumber()) < 0)) {
 		LOG_ERROR("Tracker is not initialized properly!");
 		return false;
 	}
 
 	// Do the calibration
-	m_Precision = dataCollector->GetTracker()->GetTool(dataCollector->GetMainToolNumber())->DoToolTipCalibration();
+	m_Precision = dataCollector->GetTracker()->GetTool(dataCollector->GetDefaultToolPortNumber())->DoToolTipCalibration();
 
 	// Get the calibration result
 	if (m_StylusToStylustipTransform == NULL) {
 		m_StylusToStylustipTransform = vtkTransform::New();
 	}
 	m_StylusToStylustipTransform->Identity();
-	vtkMatrix4x4* transform = dataCollector->GetTracker()->GetTool(dataCollector->GetMainToolNumber())->GetCalibrationMatrix();
+	vtkMatrix4x4* transform = dataCollector->GetTracker()->GetTool(dataCollector->GetDefaultToolPortNumber())->GetCalibrationMatrix();
 	m_StylusToStylustipTransform->SetMatrix(transform);
 
 	// Display calibration result stylus tip (by acquiring a new point and using it) //TODO do it an other way, without getting a new point
