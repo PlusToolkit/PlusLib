@@ -272,19 +272,14 @@ bool vtkAMSTracker::InitAMSTracker()
 //----------------------------------------------------------------------------
 void vtkAMSTracker::ReadConfiguration(vtkXMLDataElement* config)
 {
+	// Read superclass configuration first
+	Superclass::ReadConfiguration(config); 
+
 	if ( config == NULL ) 
 	{
 		LOG_WARNING("Unable to find AMSTracker XML data element");
 		return; 
 	}
-
-	if ( this->ConfigurationData == NULL ) 
-	{
-		this->ConfigurationData = vtkXMLDataElement::New(); 
-	}
-
-	// Save config data
-	this->ConfigurationData->DeepCopy(config); 
 
 	const char* serialPort = config->GetAttribute("SerialPort"); 
 	if ( serialPort != NULL ) 
@@ -449,11 +444,15 @@ bool vtkAMSTracker::CalibrateStepper( std::string &calibMsg )
 }
 
 //----------------------------------------------------------------------------
-void vtkAMSTracker::GetTrackerToolBufferStringList(const double timestamp, std::vector<std::string> &toolNames, std::vector<std::string> &toolBufferValues, std::vector<std::string> &toolBufferStatuses, bool calibratedTransform /*= false*/)
+void vtkAMSTracker::GetTrackerToolBufferStringList(const double timestamp, 
+												   std::map<std::string, std::string> &toolsBufferMatrices, 
+												   std::map<std::string, std::string> &toolsCalibrationMatrices, 
+												   std::map<std::string, std::string> &toolsStatuses,
+												   bool calibratedTransform /*= false*/)
 {
-	toolNames.clear(); 
-	toolBufferValues.clear(); 
-	toolBufferStatuses.clear(); 
+	toolsBufferMatrices.clear(); 
+	toolsCalibrationMatrices.clear(); 
+	toolsStatuses.clear(); 
 
 	// PROBEHOME_TO_PROBE_TRANSFORM
 	long probehome2probeFlags(TR_OK); 
@@ -464,9 +463,8 @@ void vtkAMSTracker::GetTrackerToolBufferStringList(const double timestamp, std::
 	{
 		strProbeHomeToProbeTransform << probehome2probeMatrix[i] << " ";
 	}
-	toolBufferStatuses.push_back(vtkTracker::ConvertFlagToString(probehome2probeFlags)); 
-	toolNames.push_back( this->GetTool(PROBEHOME_TO_PROBE_TRANSFORM)->GetToolName()); 
-	toolBufferValues.push_back( strProbeHomeToProbeTransform.str() ); 
+	toolsBufferMatrices[ this->GetTool(PROBEHOME_TO_PROBE_TRANSFORM)->GetToolName() ] = strProbeHomeToProbeTransform.str(); 
+	toolsStatuses[ this->GetTool(PROBEHOME_TO_PROBE_TRANSFORM)->GetToolName() ] = vtkTracker::ConvertFlagToString(probehome2probeFlags); 
 
 	// TEMPLATEHOME_TO_TEMPLATE_TRANSFORM
 	long templhome2templFlags(TR_OK); 
@@ -477,9 +475,8 @@ void vtkAMSTracker::GetTrackerToolBufferStringList(const double timestamp, std::
 	{
 		strTemplHomeToTemplTransform << templhome2templMatrix[i] << " ";
 	}
-	toolBufferStatuses.push_back(vtkTracker::ConvertFlagToString(templhome2templFlags)); 
-	toolNames.push_back( this->GetTool(TEMPLATEHOME_TO_TEMPLATE_TRANSFORM)->GetToolName()); 
-	toolBufferValues.push_back( strTemplHomeToTemplTransform.str() ); 
+	toolsBufferMatrices[ this->GetTool(TEMPLATEHOME_TO_TEMPLATE_TRANSFORM)->GetToolName() ] = strTemplHomeToTemplTransform.str(); 
+	toolsStatuses[ this->GetTool(TEMPLATEHOME_TO_TEMPLATE_TRANSFORM)->GetToolName() ] = vtkTracker::ConvertFlagToString(templhome2templFlags); 
 
 	// RAW_ENCODER_VALUES
 	long rawEncoderValuesFlags(TR_OK); 
@@ -490,9 +487,8 @@ void vtkAMSTracker::GetTrackerToolBufferStringList(const double timestamp, std::
 	{
 		strRawEncoderValuesTransform << rawEncoderValuesMatrix[i] << " ";
 	}
-	toolBufferStatuses.push_back(vtkTracker::ConvertFlagToString(rawEncoderValuesFlags)); 
-	toolNames.push_back( this->GetTool(RAW_ENCODER_VALUES)->GetToolName()); 
-	toolBufferValues.push_back( strRawEncoderValuesTransform.str() ); 
+	toolsBufferMatrices[ this->GetTool(RAW_ENCODER_VALUES)->GetToolName() ] = strRawEncoderValuesTransform.str(); 
+	toolsStatuses[ this->GetTool(RAW_ENCODER_VALUES)->GetToolName() ] = vtkTracker::ConvertFlagToString(rawEncoderValuesFlags); 
 	
 	// Get value for PROBE_POSITION, PROBE_ROTATION, TEMPLATE_POSITION tools
 	long encoderflags(TR_OK); 
@@ -500,25 +496,22 @@ void vtkAMSTracker::GetTrackerToolBufferStringList(const double timestamp, std::
 	this->GetStepperEncoderValues(timestamp, probePos, probeRot, templatePos, encoderflags); 
 	
 	// PROBE_POSITION
-	toolBufferStatuses.push_back( vtkTracker::ConvertFlagToString(encoderflags) ); 
-	toolNames.push_back( "ProbePosition" ); 
 	std::ostringstream strProbePos; 
 	strProbePos << probePos; 
-	toolBufferValues.push_back( strProbePos.str() ); 
+	toolsBufferMatrices[ "ProbePosition" ] = strProbePos.str(); 
+	toolsStatuses[ "ProbePosition" ] = vtkTracker::ConvertFlagToString(encoderflags); 
 
 	// PROBE_ROTATION
-	toolBufferStatuses.push_back( vtkTracker::ConvertFlagToString(encoderflags) ); 
-	toolNames.push_back( "ProbeRotation" ); 
 	std::ostringstream strProbeRot; 
 	strProbeRot << probeRot; 
-	toolBufferValues.push_back( strProbeRot.str() ); 
+	toolsBufferMatrices[ "ProbeRotation" ] = strProbeRot.str(); 
+	toolsStatuses[ "ProbeRotation" ] = vtkTracker::ConvertFlagToString(encoderflags); 
 
 	// TEMPLATE_POSITION
-	toolBufferStatuses.push_back( vtkTracker::ConvertFlagToString(encoderflags) ); 
-	toolNames.push_back( "TemplatePosition" ); 
 	std::ostringstream strTemplatePos; 
 	strTemplatePos << templatePos; 
-	toolBufferValues.push_back( strTemplatePos.str() );
+	toolsBufferMatrices[ "TemplatePosition" ] = strTemplatePos.str(); 
+	toolsStatuses[ "TemplatePosition" ] = vtkTracker::ConvertFlagToString(encoderflags); 
 }
 
 //----------------------------------------------------------------------------

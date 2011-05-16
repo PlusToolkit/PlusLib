@@ -578,7 +578,7 @@ vtkMatrix4x4* PhantomRegistrationController::AcquireTrackerPosition(double aPosi
 		LOG_ERROR("Data collector is not initialized!");
 		return NULL;
 	}
-	if ((dataCollector->GetTracker() == NULL) || (dataCollector->GetTracker()->GetTool(dataCollector->GetMainToolNumber()) < 0)) {
+	if ((dataCollector->GetTracker() == NULL) || (dataCollector->GetTracker()->GetTool(dataCollector->GetDefaultToolPortNumber()) < 0)) {
 		LOG_ERROR("Tracker is not initialized properly!");
 		return NULL;
 	}
@@ -590,7 +590,7 @@ vtkMatrix4x4* PhantomRegistrationController::AcquireTrackerPosition(double aPosi
 	if (aReference) {
 		toolNumber = dataCollector->GetTracker()->GetReferenceTool();
 	} else {
-		toolNumber = dataCollector->GetMainToolNumber();
+		toolNumber = dataCollector->GetDefaultToolPortNumber();
 	}
 
 	// If tracker is FakeTracker and recording has been requested then wait to ensure new position is set by tracker thread

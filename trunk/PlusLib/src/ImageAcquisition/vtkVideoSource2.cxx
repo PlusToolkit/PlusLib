@@ -1796,6 +1796,55 @@ void vtkVideoSource2::ReadFramesAsTIFF(const char *summaryFileName)
 	reader->Delete();
 }
 
+//-----------------------------------------------------------------------------
+void vtkVideoSource2::WriteConfiguration(vtkXMLDataElement* config)
+{
+
+}
+
+//-----------------------------------------------------------------------------
+void vtkVideoSource2::ReadConfiguration(vtkXMLDataElement* config)
+{
+	LOG_TRACE("vtkVideoSource2::ReadConfiguration"); 
+	if ( config == NULL )
+	{
+		LOG_ERROR("Unable to configure video source! (XML data element is NULL)"); 
+		return; 
+	}
+
+	int frameSize[3] = {0, 0, 0}; 
+	if ( config->GetVectorAttribute("FrameSize", 3, frameSize) )
+	{
+		this->SetFrameSize(frameSize[0], frameSize[1], frameSize[2]); 
+	}
+
+	int bufferSize = 0; 
+	if ( config->GetScalarAttribute("BufferSize", bufferSize) )
+	{
+		this->GetBuffer()->SetBufferSize(bufferSize); 
+	}
+
+	int frameRate = 0; 
+	if ( config->GetScalarAttribute("FrameRate", frameRate) )
+	{
+		this->SetFrameRate(frameRate); 
+	}
+
+	double smoothingFactor = 0; 
+	if ( config->GetScalarAttribute("SmoothingFactor", smoothingFactor) )
+	{
+		this->SetSmoothingFactor(smoothingFactor); 
+	}
+
+	double localTimeOffset = 0; 
+	if ( config->GetScalarAttribute("LocalTimeOffset", localTimeOffset) )
+	{
+		LOG_INFO("Image acqusition local time offset: " << std::fixed << 1000*localTimeOffset << "ms" ); 
+		this->GetBuffer()->SetLocalTimeOffset(localTimeOffset); 
+	}
+
+}
+
 
 //----------------------------------------------------------------------------
 void vtkVideoSource2::GenerateVideoDataAcquisitionReport( vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter, const char* gnuplotScriptsFolder)

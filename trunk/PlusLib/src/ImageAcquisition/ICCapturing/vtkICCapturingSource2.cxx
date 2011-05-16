@@ -406,66 +406,58 @@ void vtkICCapturingSource2::Stop()
 	}
 }
 
+//-----------------------------------------------------------------------------
+void vtkICCapturingSource2::ReadConfiguration(vtkXMLDataElement* config)
+{
+	LOG_TRACE("vtkICCapturingSource2::ReadConfiguration"); 
+	if ( config == NULL )
+	{
+		LOG_ERROR("Unable to configure IC Capturing video source! (XML data element is NULL)"); 
+		return; 
+	}
 
-////----------------------------------------------------------------------------
-//int vtkICCapturingSource2::RequestInformation(
-//	vtkInformation * vtkNotUsed(request),
-//	vtkInformationVector **vtkNotUsed(inputVector),
-//	vtkInformationVector *outputVector)
-//{
-//	// get the info objects
-//	vtkInformation* outInfo = outputVector->GetInformationObject(0);
-//
-//	int i;
-//	int extent[6];
-//
-//	// ensure that the hardware is initialized.
-//	this->Initialize();
-//
-//	// set the whole extent
-//	int FrameBufferExtent[6];
-//	this->Buffer->GetFrameFormat()->GetFrameExtent(FrameBufferExtent);
-//	for (i = 0; i < 3; i++)
-//	{
-//		// initially set extent to the OutputWholeExtent
-//		extent[2*i] = this->OutputWholeExtent[2*i];
-//		extent[2*i+1] = this->OutputWholeExtent[2*i+1];
-//		// if 'flag' is set in output extent, use the FrameBufferExtent instead
-//		if (extent[2*i+1] < extent[2*i])
-//		{
-//			extent[2*i] = 0; 
-//			extent[2*i+1] = \
-//				FrameBufferExtent[2*i+1] - FrameBufferExtent[2*i];
-//		}
-//		this->FrameOutputExtent[2*i] = extent[2*i];
-//		this->FrameOutputExtent[2*i+1] = extent[2*i+1];
-//	}
-//
-//	int numFrames = this->NumberOfOutputFrames;
-//	if (numFrames < 1)
-//	{
-//		numFrames = 1;
-//	}
-//	if (numFrames > this->Buffer->GetBufferSize())
-//	{
-//		numFrames = this->Buffer->GetBufferSize();
-//	}
-//	// multiply Z extent by number of frames to output
-//	extent[5] = extent[4] + (extent[5]-extent[4]+1) * numFrames - 1;
-//	outInfo->Set(vtkStreamingDemandDrivenPipeline::WHOLE_EXTENT(),extent,6);
-//
-//	outInfo->Set(vtkStreamingDemandDrivenPipeline::UPDATE_EXTENT(),extent,6);
-//	// set the spacing
-//	outInfo->Set(vtkDataObject::SPACING(),this->DataSpacing,3);
-//
-//	// set the origin.
-//	outInfo->Set(vtkDataObject::ORIGIN(),this->DataOrigin,3);
-//
-//	// set default data type (8 bit greyscale)  
-//	vtkDataObject::SetPointDataActiveScalarInfo(outInfo, VTK_UNSIGNED_CHAR, 
-//		this->NumberOfScalarComponents);
-//
-//	return 1;
-//}
+	Superclass::ReadConfiguration(config); 
 
+	const char* deviceName = config->GetAttribute("DeviceName"); 
+	if ( deviceName != NULL) 
+	{
+		this->SetDeviceName(deviceName); 
+	}
+
+	const char* videoNorm = config->GetAttribute("VideoNorm"); 
+	if ( videoNorm != NULL) 
+	{
+		this->SetVideoNorm(videoNorm); 
+	}
+
+	const char* videoFormat = config->GetAttribute("VideoFormat"); 
+	if ( videoFormat != NULL) 
+	{
+		this->SetVideoFormat(videoFormat); 
+	}
+
+	const char* inputChannel = config->GetAttribute("InputChannel"); 
+	if ( inputChannel != NULL) 
+	{
+		this->SetInputChannel(inputChannel); 
+	}
+
+	const char* licenseKey = config->GetAttribute("LicenseKey"); 
+	if ( licenseKey != NULL) 
+	{
+		this->SetLicenceKey(licenseKey); 
+	}
+
+	int icBufferSize = 0; 
+	if ( config->GetScalarAttribute("ICBufferSize", icBufferSize) ) 
+	{
+		this->SetICBufferSize(icBufferSize); 
+	}
+}
+
+//-----------------------------------------------------------------------------
+void vtkICCapturingSource2::WriteConfiguration(vtkXMLDataElement* config)
+{
+	Superclass::WriteConfiguration(config); 
+}
 

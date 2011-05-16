@@ -33,7 +33,7 @@ public:
 	void InternalUpdate();
 
 	// Description:
-	// Read/write BrachyStepper configuration to xml data
+	// Read/write tracker configuration to xml data
 	void ReadConfiguration(vtkXMLDataElement* config); 
 	void WriteConfiguration(vtkXMLDataElement* config); 
 

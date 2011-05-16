@@ -7,6 +7,7 @@
 #include "vtkImageData.h"
 #include "vtkVideoBuffer2.h"
 #include "vtkTrackerBuffer.h"
+#include "vtkXMLDataElement.h"
 #include <vector>
 
 class vtkHTMLGenerator; 
@@ -18,6 +19,10 @@ public:
 	static vtkDataCollectorSynchronizer *New();
 	vtkTypeRevisionMacro(vtkDataCollectorSynchronizer, vtkObject);
 	virtual void PrintSelf(ostream& os, vtkIndent indent);
+
+	// Description:
+	// Read/write main configuration from/to xml data
+	virtual void ReadConfiguration(vtkXMLDataElement* synchronizationConfig); 
 
 	// Description:
 	// Start the synchronization 

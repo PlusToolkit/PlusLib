@@ -91,7 +91,7 @@ vtkOpenIGTLinkBroadcaster
   double timestamp( 0 ); 
 	long flags( 0 ); 
   
-  this->DataCollector->GetTransformWithTimestamp( probeToTrackerMatrix, timestamp, flags, this->DataCollector->GetMainToolNumber() ); 
+  this->DataCollector->GetTransformWithTimestamp( probeToTrackerMatrix, timestamp, flags, this->DataCollector->GetDefaultToolPortNumber() ); 
   
   if ( flags & ( TR_MISSING | TR_OUT_OF_VIEW ) ) 
     {

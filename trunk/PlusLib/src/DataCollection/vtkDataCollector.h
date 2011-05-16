@@ -47,6 +47,13 @@ enum TRACKER_TYPE
 	TRACKER_ASCENSION3DG
 }; 
 
+// Synchronization types
+enum SYNC_TYPE
+{
+	SYNC_NONE=0,
+	SYNC_CHANGE_DETECTION
+};
+
 class VTK_EXPORT vtkDataCollector: public vtkImageAlgorithm
 {
 public:
@@ -178,6 +185,11 @@ public:
 	TRACKER_TYPE GetTrackerType() { return this->TrackerType; }
 
 	// Description:
+	// Set/Get the synchronization type 
+	void SetSyncType(SYNC_TYPE type) { SyncType = type; }
+	SYNC_TYPE GetSyncType() { return this->SyncType; }
+
+	// Description:
 	// Get the tool transformation matrix
 	virtual vtkMatrix4x4* GetToolTransMatrix( unsigned int toolNumber = 0 ) ;
 	
@@ -195,6 +207,16 @@ public:
 	vtkGetStringMacro(ConfigFileName); 
 
 	// Description:
+	// Set/Get the device set name
+	vtkSetStringMacro(DeviceSetName); 
+	vtkGetStringMacro(DeviceSetName); 
+	
+	// Description:
+	// Set/Get the device set description 
+	vtkSetStringMacro(DeviceSetDescription); 
+	vtkGetStringMacro(DeviceSetDescription); 
+	
+	// Description:
 	// Set/Get the video source of ultrasound
 	vtkSetObjectMacro(VideoSource,vtkVideoSource2);
 	vtkGetObjectMacro(VideoSource,vtkVideoSource2);
@@ -210,9 +232,8 @@ public:
 	vtkGetObjectMacro(Tracker,vtkTracker);
 
 	// Description:	
-	// Get/Set the main tool number 
-	vtkSetMacro(MainToolNumber, int); 
-	vtkGetMacro(MainToolNumber, int);
+	// Get default tool port number 
+	int GetDefaultToolPortNumber(); 
 
 	// Description:	
 	// Get/Set the maximum buffer size to dump
@@ -283,6 +304,7 @@ protected:
 
 	ACQUISITION_TYPE	AcquisitionType; 
 	TRACKER_TYPE		TrackerType; 
+	SYNC_TYPE			SyncType; 
 
 	std::vector<vtkMatrix4x4*> ToolTransMatrices; 
 	std::vector<int>	ToolFlags; 
@@ -292,8 +314,6 @@ protected:
 
 	bool Initialized; 
 	
-	int MainToolNumber; 
-
 	int MostRecentFrameBufferIndex; 
 	
 	int DumpBufferSize;
@@ -302,6 +322,11 @@ protected:
 	bool VideoOnly;
 
 	bool CancelSyncRequest; 
+
+	char * DeviceSetName; 
+	char * DeviceSetDescription; 
+
+
 
 private:
 	vtkDataCollector(const vtkDataCollector&);

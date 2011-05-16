@@ -262,14 +262,8 @@ void vtkSavedDataTracker::ReadConfiguration(vtkXMLDataElement* config)
 		LOG_WARNING("Unable to find SavedDataset XML data element");
 		return; 
 	}
-
-	if ( this->ConfigurationData == NULL ) 
-	{
-		this->ConfigurationData = vtkXMLDataElement::New(); 
-	}
-
-	// Save config data
-	this->ConfigurationData->DeepCopy(config); 
+	
+	Superclass::ReadConfiguration(config); 
 
 	const char* sequenceMetafile = config->GetAttribute("SequenceMetafile"); 
 	if ( sequenceMetafile != NULL ) 

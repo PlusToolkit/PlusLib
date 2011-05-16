@@ -28,7 +28,7 @@ vtkDataCollectorSynchronizer::vtkDataCollectorSynchronizer()
 	this->SyncStartTime = 0.0; 
 	this->MinNumOfSyncSteps = 5; 
 	this->SynchronizationTimeLength = 10; 
-	
+
 	this->VideoBuffer = NULL; 
 	this->CurrentVideoBufferIndex = 0; 
 	this->NumberOfAveragedFrames = 30; // Number of frames used for computing the mean difference between the images
@@ -95,7 +95,7 @@ void vtkDataCollectorSynchronizer::Synchronize()
 	int videoBufferIndex = this->VideoBuffer->GetIndexFromTime( this->SyncStartTime ); 
 	int stillPositionIndex = videoBufferIndex; 
 	int syncStep(1); 
-	
+
 	std::vector<double> stillTransformTimestamps; 
 	std::vector<double> movedTransformTimestamps; 
 
@@ -140,10 +140,10 @@ void vtkDataCollectorSynchronizer::Synchronize()
 			}
 		}
 		syncStep++; 
-		
+
 	}
 
-	
+
 	LOG_DEBUG("Still Frame Search Intervall: " << 1000*stillFrameIntervall << "ms"); 
 
 	int videoSyncStep(0); 
@@ -153,7 +153,7 @@ void vtkDataCollectorSynchronizer::Synchronize()
 		LOG_DEBUG(std::fixed << "Next moved transform timestamp: " << movedTransformTimestamps[i] ); 
 		// Choose an initial timestamp to search for still images 
 		double stillFrameTimestamp = movedTransformTimestamps[i] - stillFrameIntervall; 
-		
+
 		if ( this->FrameTimestamp.size() > 0 && stillFrameTimestamp < this->FrameTimestamp.back() )
 		{
 			// still frame timestamp cannot be less than the last moved frame timestamp 
@@ -168,9 +168,9 @@ void vtkDataCollectorSynchronizer::Synchronize()
 		double nextMovedTimestamp = movedTransformTimestamps[i] + stillFrameIntervall; 
 		/*if ( i + 1 < movedTransformTimestamps.size() )
 		{
-			nextMovedTimestamp = movedTransformTimestamps[i + 1] - stillFrameIntervall; 
+		nextMovedTimestamp = movedTransformTimestamps[i + 1] - stillFrameIntervall; 
 		}*/
-			
+
 		// Find the next still frame 
 		this->SetBaseFrame(NULL); 
 		this->FindStillFrame(videoBufferIndex, stillFrameIndex ); 
@@ -225,7 +225,7 @@ void vtkDataCollectorSynchronizer::Synchronize()
 		}
 		videoSyncStep++; 
 	}
-	
+
 	if ( this->ProgressBarUpdateCallbackFunction != NULL )
 	{
 		(*ProgressBarUpdateCallbackFunction)(100); 
@@ -240,7 +240,7 @@ void vtkDataCollectorSynchronizer::Synchronize()
 
 	LOG_INFO("Image Acquisition Frame Rate:    " << imgFrameRate << "  Mean Image Acquisition Time:    " << 1000*imgAcqMean << "ms  Image Acquisition Deviation:    " << 1000*imgAcqDeviation <<"ms" ); 
 	LOG_INFO("Position Acquisition Frame Rate: " << posFrameRate << "  Mean Position Acquisition Time: " << 1000*posAcqMean << "ms  Position Acquisition Deviation: " << 1000*posAcqDeviation <<"ms" ); 
-	
+
 	LOG_DEBUG("Video Offset: "); 
 	for ( unsigned int i = 0; i < this->FrameTimestamp.size(); i++ )
 	{
@@ -289,7 +289,7 @@ void vtkDataCollectorSynchronizer::RemoveOutliers()
 	for ( int i = numOfElements - 1; i >= 0; --i )
 	{	
 		double offset = this->TransformTimestamp[i] - this->FrameTimestamp[i]; 
-		
+
 		if ( abs(meanVideoOffset - offset) > 2.0 * stdevVideoOffset )
 		{
 			LOG_DEBUG("Remove offset outlier ("<< i << "): " << offset); 
@@ -376,7 +376,7 @@ void vtkDataCollectorSynchronizer::ComputeTransformThreshold( int& bufferIndex )
 		meanTransform.Ty = meanTransform.Ty + (position[1] / numElements) ; 
 		meanTransform.Tz = meanTransform.Tz + (position[2] / numElements) ; 
 	}
-	
+
 	this->PositionTransformMean = meanTransform; 
 
 	// compute the deviation of the buffer for each matrix elements
@@ -425,7 +425,7 @@ bool vtkDataCollectorSynchronizer::FindTransformTimestamp( int& bufferIndex, dou
 {
 	LOG_TRACE("vtkDataCollectorSynchronizer::FindTransformTimestamp"); 
 	bool diffFound = false; 
-	
+
 	while ( !diffFound && bufferIndex >= 0 )
 	{
 		if ( (this->GetTrackerBuffer()->GetFlags(bufferIndex) & (TR_MISSING | TR_OUT_OF_VIEW | TR_REQ_TIMEOUT))  == 0 )
@@ -440,18 +440,18 @@ bool vtkDataCollectorSynchronizer::FindTransformTimestamp( int& bufferIndex, dou
 
 			vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New(); 
 			transform->SetMatrix( matrix ); 
-			
+
 			if ( ! this->IsTransformBelowThreshold(transform, timestamp) )
 			{
-//				if ( nextFrameNumber - frameNumber > 1 || frameNumber - prevFrameNumber > 1 ) 
-//				{
-//					// we have missing frames, the result is not reliable
-//#ifdef PLUS_PRINT_SYNC_DEBUG_INFO
-//					this->DebugInfoStream << "# Final Transform Timestamp is not reliable! We have missing frames!" <<  std::endl; 
-//#endif
-//					LOG_DEBUG("# Final Transform Timestamp is not reliable! We have missing frames!"); 
-//					//return false; 
-//				}
+				//				if ( nextFrameNumber - frameNumber > 1 || frameNumber - prevFrameNumber > 1 ) 
+				//				{
+				//					// we have missing frames, the result is not reliable
+				//#ifdef PLUS_PRINT_SYNC_DEBUG_INFO
+				//					this->DebugInfoStream << "# Final Transform Timestamp is not reliable! We have missing frames!" <<  std::endl; 
+				//#endif
+				//					LOG_DEBUG("# Final Transform Timestamp is not reliable! We have missing frames!"); 
+				//					//return false; 
+				//				}
 
 #ifdef PLUS_PRINT_SYNC_DEBUG_INFO
 				this->DebugInfoStream << "# Final TransformTimestamp:\t" << timestamp << std::endl; 
@@ -506,9 +506,9 @@ double vtkDataCollectorSynchronizer::GetRotationError(vtkMatrix4x4* baseTransMat
 	LOG_TRACE("vtkDataCollectorSynchronizer::GetRotationError"); 
 	vtkSmartPointer<vtkMatrix4x4> diffTransMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
 	vtkSmartPointer<vtkMatrix4x4> invCurrentTransMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
-	
+
 	vtkMatrix4x4::Invert(currentTransMatrix, invCurrentTransMatrix);  
-	
+
 	vtkMatrix4x4::Multiply4x4(baseTransMatrix, invCurrentTransMatrix, diffTransMatrix); 
 
 	vtkSmartPointer<vtkTransform> diffTransform = vtkSmartPointer<vtkTransform>::New(); 
@@ -626,7 +626,7 @@ void vtkDataCollectorSynchronizer::FindStillFrame( int& baseIndex, int& currentI
 	LOG_TRACE("vtkDataCollectorSynchronizer::FindStillFrame"); 
 	while ( currentIndex >= 0 && baseIndex >= 0 && baseIndex != currentIndex )
 	{
-		
+
 		const int videosyncprogress = floor(100.0*(this->GetVideoBuffer()->GetBufferSize() - baseIndex) / (1.0 * this->GetVideoBuffer()->GetBufferSize())); 
 		if ( this->ProgressBarUpdateCallbackFunction != NULL )
 		{
@@ -646,7 +646,7 @@ void vtkDataCollectorSynchronizer::FindStillFrame( int& baseIndex, int& currentI
 
 			vtkSmartPointer<vtkImageData> baseframeRGB = vtkSmartPointer<vtkImageData>::New(); 
 			this->ConvertFrameToRGB(resample->GetOutput(), baseframeRGB); 
-			
+
 			resample->Delete(); 
 			baseframe->Delete(); 
 			this->SetBaseFrame( baseframeRGB ); 
@@ -662,22 +662,22 @@ void vtkDataCollectorSynchronizer::FindStillFrame( int& baseIndex, int& currentI
 		resample->SetAxisMagnificationFactor(0, 0.5); 
 		resample->SetAxisMagnificationFactor(1, 0.5); 
 		resample->SetAxisMagnificationFactor(2, 0.5);
-		
+
 		// Convert the resampled frame to RGB 
 		vtkImageData* frameRGB = vtkImageData::New(); 
 		this->ConvertFrameToRGB(resample->GetOutput(), frameRGB); 
-		
+
 		// Compute frame differences
 		double frameDifference = this->GetFrameDifference(frameRGB); 
 		resample->Delete(); 
 		frameRGB->Delete(); 
 		frame->Delete(); 
-			
+
 		LOG_TRACE("FindStillFrame - baseIndex: " << std::fixed << baseIndex << "(timestamp: " << this->GetVideoBuffer()->GetTimeStamp(baseIndex) << ")  currentIndex: " << currentIndex << "   frameDifference: " << frameDifference); 
 		if ( frameDifference < this->MaxFrameDifference )
 		{
 			currentIndex = currentIndex + 1; 
-			
+
 		}
 		else
 		{
@@ -697,7 +697,7 @@ bool vtkDataCollectorSynchronizer::FindFrameTimestamp( int& bufferIndex, double&
 
 	LOG_DEBUG("****Start to find next frame movement at: " << std::fixed << this->GetVideoBuffer()->GetTimeStamp(bufferIndex) ); 
 	bool diffFound = false; 
-	
+
 	while ( !diffFound && bufferIndex > 0 )
 	{
 		const int videosyncprogress = floor(100.0*(this->GetVideoBuffer()->GetBufferSize() - bufferIndex) / (1.0 * this->GetVideoBuffer()->GetBufferSize())); 
@@ -707,7 +707,7 @@ bool vtkDataCollectorSynchronizer::FindFrameTimestamp( int& bufferIndex, double&
 		}
 
 		double frameTimestamp = this->GetVideoBuffer()->GetTimeStamp(bufferIndex); 
-		
+
 		// if the tracker moved again, the result is not reliable - return false
 		if ( frameTimestamp >= nextMovedTimestamp )
 		{
@@ -749,16 +749,16 @@ bool vtkDataCollectorSynchronizer::FindFrameTimestamp( int& bufferIndex, double&
 		// if larger then threshold => frame moved
 		if ( ! diffFound && abs(frameDifference - this->FrameDifferenceMean) >  this->FrameDifferenceThreshold )
 		{
-			
-//			if ( nextFrameNumber - frameNumber > 1 || frameNumber - prevFrameNumber > 1 ) 
-//			{
-//				// we have missing frames, the result is not reliable
-//#ifdef PLUS_PRINT_SYNC_DEBUG_INFO
-//				this->DebugInfoStream << "# FinalFrameTimestamp is not reliable! We have missing frames!" <<  std::endl; 
-//#endif
-//				LOG_DEBUG("# Final Frame Timestamp is not reliable! We have missing frames!"); 
-//				//return false; 
-//			}
+
+			//			if ( nextFrameNumber - frameNumber > 1 || frameNumber - prevFrameNumber > 1 ) 
+			//			{
+			//				// we have missing frames, the result is not reliable
+			//#ifdef PLUS_PRINT_SYNC_DEBUG_INFO
+			//				this->DebugInfoStream << "# FinalFrameTimestamp is not reliable! We have missing frames!" <<  std::endl; 
+			//#endif
+			//				LOG_DEBUG("# Final Frame Timestamp is not reliable! We have missing frames!"); 
+			//				//return false; 
+			//			}
 
 			LOG_DEBUG(std::fixed << "FinalFrameTimestamp: " << frameTimestamp); 
 #ifdef PLUS_PRINT_SYNC_DEBUG_INFO
@@ -942,9 +942,9 @@ void vtkDataCollectorSynchronizer::GenerateSynchronizationReport( vtkHTMLGenerat
 		LOG_ERROR("Unable to find gnuplot script at: " << plotSyncResultScript); 
 		return; 
 	}
-	
+
 	std::string reportFile = vtksys::SystemTools::GetCurrentWorkingDirectory() + std::string("/SyncResult.txt"); 
-	
+
 	if ( !vtksys::SystemTools::FileExists( reportFile.c_str(), true) )
 	{
 		LOG_ERROR("Unable to find synchronization report file at: " << reportFile); 
@@ -959,7 +959,7 @@ void vtkDataCollectorSynchronizer::GenerateSynchronizationReport( vtkHTMLGenerat
 		<< "Mean Position Acquisition Time: " << 1000*trackerMean << "ms <br/>" 
 		<< "Position Acquisition Deviation: " << 1000*trackerDev << "ms <br/>" ; 
 	htmlReport->AddParagraph(trackerSummary.str().c_str()); 
-	
+
 	double videoMean(0), videoDev(0); 
 	double videoFrameRate = this->GetImageAcquisitionFrameRate(videoMean, videoDev); 
 	std::ostringstream videoSummary; 
@@ -976,7 +976,73 @@ void vtkDataCollectorSynchronizer::GenerateSynchronizationReport( vtkHTMLGenerat
 	plotter->AddArgument(plotSyncResultScript.c_str());  
 	plotter->Execute(); 
 	htmlReport->AddImage("SyncResult.jpg", "Video and Tracking Data Synchronization Analysis"); 
-	
+
 	htmlReport->AddHorizontalLine(); 
 #endif
+}
+
+//-----------------------------------------------------------------------------
+void vtkDataCollectorSynchronizer::ReadConfiguration(vtkXMLDataElement* synchronizationConfig)
+{
+	LOG_TRACE("vtkDataCollectorSynchronizer::ReadConfiguration"); 
+	if ( synchronizationConfig == NULL )
+	{
+		LOG_ERROR("Unable to configure synchronizer! (XML data element is NULL)"); 
+		return; 
+	}
+
+
+	int synchronizationTimeLength = 0; 
+	if ( synchronizationConfig->GetScalarAttribute("SynchronizationTimeLength", synchronizationTimeLength) )
+	{
+		this->SetSynchronizationTimeLength(synchronizationTimeLength); 
+	}
+
+	int minNumOfSyncSteps = 0; 
+	if ( synchronizationConfig->GetScalarAttribute("MinNumOfSyncSteps", minNumOfSyncSteps) )
+	{
+		this->SetMinNumOfSyncSteps(minNumOfSyncSteps); 
+	}
+
+	int numberOfAveragedFrames = 0; 
+	if ( synchronizationConfig->GetScalarAttribute("NumberOfAveragedFrames", numberOfAveragedFrames) )
+	{
+		this->SetNumberOfAveragedFrames(numberOfAveragedFrames); 
+	}
+
+	int numberOfAveragedTransforms = 0; 
+	if ( synchronizationConfig->GetScalarAttribute("NumberOfAveragedTransforms", numberOfAveragedTransforms) )
+	{
+		this->SetNumberOfAveragedTransforms(numberOfAveragedTransforms); 
+	}
+
+	int thresholdMultiplier = 0; 
+	if ( synchronizationConfig->GetScalarAttribute("ThresholdMultiplier", thresholdMultiplier) )
+	{
+		this->SetThresholdMultiplier(thresholdMultiplier); 
+	}
+
+	double minTransformThreshold = 0; 
+	if ( synchronizationConfig->GetScalarAttribute("MinTransformThreshold", minTransformThreshold) )
+	{
+		this->SetMinTransformThreshold(minTransformThreshold); 
+	}
+
+	double maxTransformDifference = 0; 
+	if ( synchronizationConfig->GetScalarAttribute("MaxTransformDifference", maxTransformDifference) )
+	{
+		this->SetMaxTransformDifference(maxTransformDifference); 
+	}
+
+	double minFrameThreshold = 0; 
+	if ( synchronizationConfig->GetScalarAttribute("MinFrameThreshold", minFrameThreshold) )
+	{
+		this->SetMinFrameThreshold(minFrameThreshold); 
+	}
+
+	double maxFrameDifference = 0; 
+	if ( synchronizationConfig->GetScalarAttribute("MaxFrameDifference", maxFrameDifference) )
+	{
+		this->SetMaxFrameDifference(maxFrameDifference); 
+	}
 }
