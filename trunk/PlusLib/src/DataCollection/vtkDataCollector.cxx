@@ -109,6 +109,8 @@ vtkDataCollector::vtkDataCollector()
 
 	this->ConfigurationData = NULL; 
 	this->ConfigFileName = NULL;
+	this->ConfigFileVersion = 2.0; 
+
 	this->DeviceSetName = NULL; 
 	this->DeviceSetDescription = NULL; 
 	this->ToolTransMatrices.reserve(0); 
@@ -1234,6 +1236,16 @@ void vtkDataCollector::ReadConfiguration()
 		LOG_ERROR("Unable to read the main configration file: " << this->GetConfigFileName() ); 
 		exit(EXIT_FAILURE); 
 	} 
+
+	double version(0); 
+	if ( this->ConfigurationData->GetScalarAttribute("version", version) )
+	{
+		if ( version < this->ConfigFileVersion )
+		{
+			LOG_ERROR("This version of configuration file is no longer supported! Please update to version " << this->ConfigFileVersion ); 
+			exit(EXIT_FAILURE); 
+		}
+	}
 
 	vtkSmartPointer<vtkXMLDataElement> imageAcqusitionConfig = this->ConfigurationData->FindNestedElementWithName("ImageAcqusition"); 
 	if ( imageAcqusitionConfig != NULL) 

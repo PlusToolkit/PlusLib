@@ -311,6 +311,7 @@ protected:
 
 	vtkXMLDataElement*	ConfigurationData;
 	char*				ConfigFileName; 
+	double				ConfigFileVersion; 
 
 	bool Initialized; 
 	

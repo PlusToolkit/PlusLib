@@ -1,4 +1,4 @@
-<USDataCollection version="1.0">
+<USDataCollection version="2.0">
     <DeviceSet 
         Name="SonixTouch L14-5 probe with NDI Certus optical tracker" 
         Description="" 
@@ -52,7 +52,7 @@
             FrameRate="30" 
             SmoothingFactor="0.001" 
             LocalTimeOffset="0.0"
-            IP="127.0.0.1" 
+            IP="130.15.7.20" 
             ImagingMode="0" 
             AcquisitionDataType="4" 
             Depth="-1" 
