@@ -187,11 +187,18 @@ public:
 	vtkGetMacro(UpdateTimeStamp,double);
 
 	// Description:
-	// Set one of the ports to be a reference, i.e. track other
+	// Get one of the ports to be a reference, i.e. track other
 	// tools relative to this one.  Set this to -1 (the default)
 	// if a reference tool is not desired.
-	vtkSetMacro(ReferenceTool, int);
-	vtkGetMacro(ReferenceTool, int);
+	virtual int GetReferenceTool(); 
+
+	// Description:
+	// Get default tool port number
+	virtual int GetDefaultTool(); 
+
+	// Description:
+	// Get tool port by name 
+	int GetToolPortByName( const char* toolName); 
 
 	// Description:
 	// In addition to the default mode of operation of the tracker
@@ -369,7 +376,6 @@ protected:
 	vtkMatrix4x4 *WorldCalibrationMatrix;
 	int NumberOfTools;
 	vtkTrackerTool **Tools;
-	int ReferenceTool;
 	int Tracking;
 
 	double UpdateTimeStamp;

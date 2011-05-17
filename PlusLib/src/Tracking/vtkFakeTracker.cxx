@@ -38,7 +38,6 @@ vtkFakeTracker::vtkFakeTracker()
 	this->InternalTransform = vtkTransform::New();
 	this->SerialPort = 0;
 	this->Mode = FakeTrackerMode_Undefined;
-	this->MainTool = -1;
 	this->Counter = -1;
 }
 
@@ -381,20 +380,6 @@ void vtkFakeTracker::ReadConfiguration(vtkXMLDataElement* config)
 
 	if ( !this->Tracking )
 	{
-		const char* referenceTool = config->GetAttribute("ReferenceToolNumber"); 
-		if ( referenceTool != NULL ) 
-		{
-			int number = atoi(referenceTool);
-			this->SetReferenceTool(number); 
-		}
-
-		const char* mainTool = config->GetAttribute("MainToolNumber"); 
-		if ( mainTool != NULL ) 
-		{
-			int number = atoi(mainTool);
-			this->SetMainTool(number); 
-		}
-
 		const char* mode = config->GetAttribute("Mode"); 
 		if ( mode != NULL ) 
 		{

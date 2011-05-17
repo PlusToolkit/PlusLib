@@ -53,9 +53,6 @@ public:
 	vtkSetMacro(SerialPort, int);
 	vtkGetMacro(SerialPort, int);
 
-	vtkSetMacro(MainTool, int);
-	vtkGetMacro(MainTool, int);
-
 	vtkSetMacro(Counter, int);
 
 protected:
@@ -88,8 +85,6 @@ protected:
 	int SerialPort;
 
 	FakeTrackerMode Mode;
-
-	int MainTool;
 
 	int RandomSeed;
 

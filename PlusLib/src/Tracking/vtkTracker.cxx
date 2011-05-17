@@ -85,7 +85,6 @@ vtkTracker::vtkTracker()
 	this->Tracking = 0;
 	this->WorldCalibrationMatrix = vtkMatrix4x4::New();
 	this->NumberOfTools = 0;
-	this->ReferenceTool = -1;
 	this->UpdateTimeStamp = 0;
 	this->Tools = 0;
 	this->LastUpdateTime = 0;
@@ -166,7 +165,6 @@ void vtkTracker::PrintSelf(ostream& os, vtkIndent indent)
 	os << indent << "WorldCalibrationMatrix: " << this->WorldCalibrationMatrix << "\n";
 	this->WorldCalibrationMatrix->PrintSelf(os,indent.GetNextIndent());
 	os << indent << "Tracking: " << this->Tracking << "\n";
-	os << indent << "ReferenceTool: " << this->ReferenceTool << "\n";
 	os << indent << "NumberOfTools: " << this->NumberOfTools << "\n";
 }
 
@@ -928,7 +926,6 @@ void vtkTracker::DeepCopy(vtkTracker *tracker)
 	tracker->Unlock(); 
 	
 	this->WorldCalibrationMatrix->DeepCopy( tracker->GetWorldCalibrationMatrix() ); 
-	this->ReferenceTool = tracker->GetReferenceTool();
 	this->InternalUpdateRate = tracker->GetInternalUpdateRate();
 	this->Frequency = tracker->GetFrequency(); 
 	
@@ -1010,8 +1007,44 @@ void vtkTracker::ReadConfiguration(vtkXMLDataElement* config)
 			}
 		}
 	}
+
+	// Set reference tool 
+
 }
 
+
+//-----------------------------------------------------------------------------
+int vtkTracker::GetToolPortByName( const char* toolName)
+{
+	for ( int tool = 0; tool < this->GetNumberOfTools(); tool++ )
+	{
+		if ( STRCASECMP( toolName, this->GetTool(tool)->GetToolName() ) == 0 )
+		{
+			return tool;
+		}
+	}
+	return -1; 
+}
+
+
+//------------------------------------------------------------------------------
+int vtkTracker::GetDefaultTool()
+{
+	int toolPort = this->GetToolPortByName(this->GetDefaultToolName()); 
+
+	if ( toolPort < 0 )
+	{
+		LOG_ERROR("Unable to find default tool port number! Please set default tool name in the configuration file!" ); 
+	}
+	
+	return toolPort; 
+}
+
+//-----------------------------------------------------------------------------
+int vtkTracker::GetReferenceTool()
+{
+	return this->GetToolPortByName(this->GetReferenceToolName()); 
+}
 
 //-----------------------------------------------------------------------------
 void vtkTracker::WriteConfiguration(vtkXMLDataElement* config)
