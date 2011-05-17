@@ -25,11 +25,11 @@ enum FakeTrackerMode
 
 class vtkTransform;
 
-class VTK_EXPORT vtkFakeTracker: public vtkTracker
+class VTK_EXPORT vtkFakeTracker : public vtkTracker
 {
 public:
 	static vtkFakeTracker *New();
-	vtkTypeMacro(vtkFakeTracker,vtkObject);
+	vtkTypeMacro(vtkFakeTracker,vtkTracker);
 
 	// Description:
 	// Connect to device

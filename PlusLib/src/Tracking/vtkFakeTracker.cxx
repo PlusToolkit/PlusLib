@@ -364,19 +364,12 @@ void vtkFakeTracker::InternalUpdate()
 //----------------------------------------------------------------------------
 void vtkFakeTracker::ReadConfiguration(vtkXMLDataElement* config)
 {
+	LOG_TRACE("vtkFakeTracker::ReadConfiguration"); 
 	if ( config == NULL ) 
 	{
 		LOG_WARNING("Unable to find FakeTracker XML data element");
 		return; 
 	}
-
-	if ( this->ConfigurationData == NULL ) 
-	{
-		this->ConfigurationData = vtkXMLDataElement::New(); 
-	}
-
-	// Save config data
-	this->ConfigurationData->DeepCopy(config); 
 
 	if ( !this->Tracking )
 	{
@@ -394,4 +387,6 @@ void vtkFakeTracker::ReadConfiguration(vtkXMLDataElement* config)
 			}
 		}
 	}
+
+	Superclass::ReadConfiguration(config); 
 }
