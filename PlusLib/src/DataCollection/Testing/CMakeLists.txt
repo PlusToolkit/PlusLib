@@ -6,7 +6,7 @@ ADD_EXECUTABLE(vtkDataCollectorTest1 vtkDataCollectorTest1.cxx)
 TARGET_LINK_LIBRARIES(vtkDataCollectorTest1 vtkDataCollection )
 ADD_TEST(vtkDataCollectorTest1 
   ${EXECUTABLE_OUTPUT_PATH}/vtkDataCollectorTest1
-  --input-config-file-name=${ConfigFilesDir}/USDataCollectionConfig_SavedDataset.xml 
+  --input-config-file-name=${ConfigFilesDir}/Test_USDataCollectionConfig_SavedDataset.xml 
   --input-video-buffer-metafile=${TestDataDir}/DataCollectorSyncVideoBuffer.mha 
   --input-tracker-buffer-metafile=${TestDataDir}/DataCollectorSyncTrackerBuffer.mha 
   --rendering-off
@@ -15,7 +15,7 @@ ADD_TEST(vtkDataCollectorTest1
 IF (PLUS_USE_SONIX_VIDEO)
 	ADD_TEST(vtkDataCollectorTest1_SonixVideo
 	  ${EXECUTABLE_OUTPUT_PATH}/vtkDataCollectorTest1
-	  --input-config-file-name=${ConfigFilesDir}/USDataCollectionConfig_SonixVideo.xml 
+	  --input-config-file-name=${ConfigFilesDir}/Test_USDataCollectionConfig_SonixVideo_FakeTracker.xml 
 	  --rendering-off
 	  )
 ENDIF (PLUS_USE_SONIX_VIDEO)
@@ -42,11 +42,14 @@ ADD_TEST(vtkDataCollectorSynchronizerTest1
  #***************************  vtkDataCollectorTest2 ***************************
 ADD_EXECUTABLE(vtkDataCollectorTest2 vtkDataCollectorTest2.cxx)
 TARGET_LINK_LIBRARIES(vtkDataCollectorTest2 vtkDataCollection )
-# ADD_TEST(vtkDataCollectorTest2 
-  # ${EXECUTABLE_OUTPUT_PATH}/vtkDataCollectorTest2
-  # --input-config-file-name=${ConfigFilesDir}/USDataCollectionConfig.xml 
-  # --verbose=2
-  # )
+ADD_TEST(vtkDataCollectorTest2 
+  ${EXECUTABLE_OUTPUT_PATH}/vtkDataCollectorTest2
+  --input-video-buffer-metafile=${TestDataDir}/DataCollectorSyncVideoBuffer.mha 
+  --input-tracker-buffer-metafile=${TestDataDir}/DataCollectorSyncTrackerBuffer.mha 
+  --input-config-file-name=${ConfigFilesDir}/Test_USDataCollectionConfig_SavedDataset.xml 
+  --input-acq-time-length=5
+  --verbose=2
+  )
  
  #***************************  vtkDataCollectorTrackingTest ***************************
 ADD_EXECUTABLE(vtkDataCollectorTrackingTest vtkDataCollectorTrackingTest.cxx)

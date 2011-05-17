@@ -4,14 +4,19 @@
 #include "vtkDataCollector.h"
 #include "vtkTracker.h"
 #include "vtkVideoBuffer2.h"
+#include "vtkSavedDataTracker.h"
+#include "vtkSavedDataVideoSource.h"
 
 int main(int argc, char **argv)
 {
+	int numberOfFailures(0); 
 	std::string inputConfigFileName;
-	double inputAcqTimeLength(60);
+	double inputAcqTimeLength(20);
 	std::string outputFolder("./"); 
 	std::string outputTrackerBufferSequenceFileName("TrackerBufferMetafile"); 
 	std::string outputVideoBufferSequenceFileName("VideoBufferMetafile"); 
+	std::string inputVideoBufferMetafile;
+	std::string inputTrackerBufferMetafile;
 	bool outputCompressed(true);
 
 	int verboseLevel=PlusLogger::LOG_LEVEL_INFO;
@@ -20,7 +25,9 @@ int main(int argc, char **argv)
 	args.Initialize(argc, argv);
 
 	args.AddArgument("--input-config-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "Name of the input configuration file.");
-	args.AddArgument("--input-acq-time-length", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputAcqTimeLength, "Length of acquisition time in seconds (Default: 60s)");	
+	args.AddArgument("--input-acq-time-length", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputAcqTimeLength, "Length of acquisition time in seconds (Default: 20s)");	
+	args.AddArgument("--input-video-buffer-metafile", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputVideoBufferMetafile, "Video buffer sequence metafile.");
+	args.AddArgument("--input-tracker-buffer-metafile", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputTrackerBufferMetafile, "Tracker buffer sequence metafile.");
 	args.AddArgument("--output-tracker-buffer-seq-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputTrackerBufferSequenceFileName, "Filename of the output tracker buffer sequence metafile (Default: TrackerBufferMetafile)");
 	args.AddArgument("--output-video-buffer-seq-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputVideoBufferSequenceFileName, "Filename of the output video buffer sequence metafile (Default: VideoBufferMetafile)");
 	args.AddArgument("--output-folder", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputFolder, "Output folder (Default: ./)");
@@ -48,6 +55,19 @@ int main(int argc, char **argv)
 
 	vtkSmartPointer<vtkDataCollector> dataCollector = vtkSmartPointer<vtkDataCollector>::New(); 
 	dataCollector->ReadConfiguration(inputConfigFileName.c_str());
+
+	if ( dataCollector->GetAcquisitionType() == SYNCHRO_VIDEO_SAVEDDATASET )
+	{
+		vtkSavedDataVideoSource* videoSource = static_cast<vtkSavedDataVideoSource*>(dataCollector->GetVideoSource()); 
+		videoSource->SetSequenceMetafile(inputVideoBufferMetafile.c_str()); 
+	}
+
+	if ( dataCollector->GetTrackerType() == TRACKER_SAVEDDATASET )
+	{
+		vtkSavedDataTracker* tracker = static_cast<vtkSavedDataTracker*>(dataCollector->GetTracker()); 
+		tracker->SetSequenceMetafile(inputTrackerBufferMetafile.c_str()); 
+	}
+
 	dataCollector->Initialize(); 
 	dataCollector->Start();
 
@@ -85,7 +105,54 @@ int main(int argc, char **argv)
 		dataCollector->DumpTrackerToMetafile( tracker, outputFolder.c_str(), outputTrackerBufferSequenceFileName.c_str(), outputCompressed); 
 	}
 
+
+	if ( dataCollector->GetVideoSource() != NULL )
+	{
+		std::ostringstream filepath; 
+		filepath << outputFolder << "/" << outputVideoBufferSequenceFileName; 
+
+		if ( vtksys::SystemTools::FileExists(filepath.str().c_str(), true) )
+		{
+			if ( !vtksys::SystemTools::RemoveFile(filepath.str().c_str()) )
+			{
+				LOG_ERROR("Unable to remove generated video buffer: " << filepath.str() ); 
+				numberOfFailures++; 
+			}
+		}
+		else
+		{
+			LOG_ERROR("Unable to find video buffer at: " << filepath.str() ); 
+			numberOfFailures++; 
+		}
+	}
+
+	if ( dataCollector->GetTracker() != NULL )
+	{
+		std::ostringstream filepath; 
+		filepath << outputFolder << "/" << outputTrackerBufferSequenceFileName; 
+
+		if ( vtksys::SystemTools::FileExists(filepath.str().c_str(), true) )
+		{
+			if ( !vtksys::SystemTools::RemoveFile(filepath.str().c_str()) )
+			{
+				LOG_ERROR("Unable to remove generated tracker buffer: " << filepath.str() ); 
+				numberOfFailures++; 
+			}
+		}
+		else
+		{
+			LOG_ERROR("Unable to find tracker buffer at: " << filepath.str() ); 
+			numberOfFailures++; 
+		}
+	}
+
 	VTK_LOG_TO_CONSOLE_OFF; 
+
+	if ( numberOfFailures > 0 ) 
+	{
+		LOG_ERROR("Number of failures: " << numberOfFailures ); 
+		return EXIT_FAILURE; 
+	}
 
 	std::cout << "Test completed successfully!" << std::endl;
 	return EXIT_SUCCESS; 

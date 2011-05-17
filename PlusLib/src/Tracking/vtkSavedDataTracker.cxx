@@ -88,6 +88,8 @@ int vtkSavedDataTracker::Connect()
 		this->GetTool(tool)->EnabledOn(); 
 	}
 
+	// Set default tool name
+	this->SetDefaultToolName(savedDataBuffer->GetDefaultFrameTransformName().c_str()); 
 	// Set tool names
 	this->SetToolName(0, savedDataBuffer->GetDefaultFrameTransformName().c_str()); 
 	
@@ -173,7 +175,7 @@ int vtkSavedDataTracker::Probe()
 	LOG_TRACE("vtkSavedDataTracker::Probe"); 
 	if ( !vtksys::SystemTools::FileExists(this->GetSequenceMetafile(), true) )
 	{
-		LOG_ERROR("SavedDataTracker Probe failed: Unable to read sequence metafile: " << this->GetSequenceMetafile()); 
+		LOG_ERROR("SavedDataTracker Probe failed: Unable to read sequence metafile!"); 
 		return 0; 
 	}
 	return 1; 
