@@ -1,0 +1,40 @@
+<USDataCollection version="2.0">
+    <DeviceSet 
+        Name="No Video with Fake tracker in Record phantom landmarks mode" 
+        Description="vtkPhantomRegistrationTest uses this configuration" 
+        />
+
+    <Tracker Type="FakeTracker" BufferSize="1000" Frequency="50" LocalTimeOffset="0.0" ReferenceToolName="Reference" DefaultToolName="Stylus" Mode="RecordPhantomLandmarks" >
+        
+        <Tool Name="Reference" PortNumber="0">
+        </Tool>
+
+        <Tool Name="Stylus" PortNumber="1">
+            <Calibration 
+                MatrixName="StylusTipToStylus" 
+                MatrixValue="1 0 0 0 
+                             0 1 0 0 
+                             0 0 1 0
+                             0 0 0 1" 
+                Date="2011.05.17"
+                Error="0.0"
+                />
+        </Tool>
+    </Tracker>
+
+    <ImageAcqusition Type="None" />
+
+    <Synchronization Type="ChangeDetection" 
+            SynchronizationTimeLength="30" 
+            MinNumOfSyncSteps="5" 
+            ThresholdMultiplier="5"
+
+            NumberOfAveragedTransforms="20" 
+            MinTransformThreshold="2.0" 
+            MaxTransformDifference="2.0" 
+
+            NumberOfAveragedFrames="6" 
+            MinFrameThreshold="200.0" 
+            MaxFrameDifference="10.0" 
+            />
+</USDataCollection> 
