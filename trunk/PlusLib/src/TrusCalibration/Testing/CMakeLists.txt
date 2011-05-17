@@ -95,7 +95,7 @@ TARGET_LINK_LIBRARIES(vtkStylusCalibrationTest ${vtkStylusCalibrationTest_LIBS} 
 
 ADD_TEST(vtkStylusCalibrationTest
 		${EXECUTABLE_OUTPUT_PATH}/vtkStylusCalibrationTest
-		--input-config-file-name=${ConfigFilesDir}/USDataCollectionConfig_VideoNone_FakeTracker_PivotCalibration.xml
+		--input-config-file-name=${ConfigFilesDir}/Test_USDataCollectionConfig_VideoNone_FakeTracker_PivotCalibration.xml
 		--input-baseline-file-name=${TestDataDir}/StylusCalibration.results.xml 
 		--number-of-acquired-points=100
 		--verbose=1
@@ -108,7 +108,7 @@ TARGET_LINK_LIBRARIES(vtkPhantomRegistrationTest ${vtkPhantomRegistrationTest_LI
 
 ADD_TEST(vtkPhantomRegistrationTest
 		${EXECUTABLE_OUTPUT_PATH}/vtkPhantomRegistrationTest
-		--input-config-file-name=${ConfigFilesDir}/USDataCollectionConfig_VideoNone_FakeTracker_RecordPhantomLandmarks.xml
+		--input-config-file-name=${ConfigFilesDir}/Test_USDataCollectionConfig_VideoNone_FakeTracker_RecordPhantomLandmarks.xml
 		--input-baseline-file-name=${TestDataDir}/PhantomRegistration.results.xml
 		--input-stylus-calibration-xml-file-name=${TestDataDir}/StylusCalibration.results.xml
 		--input-phantom-definition-xml-file-name=${ConfigFilesDir}/PhantomDefinition_fCal_1.0.xml

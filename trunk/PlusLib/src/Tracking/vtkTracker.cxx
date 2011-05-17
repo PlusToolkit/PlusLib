@@ -1016,13 +1016,17 @@ void vtkTracker::ReadConfiguration(vtkXMLDataElement* config)
 //-----------------------------------------------------------------------------
 int vtkTracker::GetToolPortByName( const char* toolName)
 {
-	for ( int tool = 0; tool < this->GetNumberOfTools(); tool++ )
+	if ( toolName != NULL )
 	{
-		if ( STRCASECMP( toolName, this->GetTool(tool)->GetToolName() ) == 0 )
+		for ( int tool = 0; tool < this->GetNumberOfTools(); tool++ )
 		{
-			return tool;
+			if ( STRCASECMP( toolName, this->GetTool(tool)->GetToolName() ) == 0 )
+			{
+				return tool;
+			}
 		}
 	}
+
 	return -1; 
 }
 

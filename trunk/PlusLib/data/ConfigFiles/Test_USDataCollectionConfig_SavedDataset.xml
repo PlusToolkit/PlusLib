@@ -1,0 +1,31 @@
+<USDataCollection version="2.0">
+    <DeviceSet 
+            Name="Tracking and video data is read from sequence metafile." 
+            Description="Test configuration file for vtkDataCollectorTest to use saved dataset. The SequenceMetafile names should be defined either from command line argument or from configuration file!" 
+            />
+
+    <Tracker Type="SavedDataset" BufferSize="200" Frequency="50" LocalTimeOffset="0.0" DefaultToolName="Probe" SequenceMetafile="">
+    </Tracker>
+
+    <ImageAcqusition Type="SavedDataset" 
+            BufferSize="200" 
+            FrameSize="640 480 1" 
+            FrameRate="10" 
+            SmoothingFactor="0.001" 
+            LocalTimeOffset="0.0" 
+            />
+
+    <Synchronization Type="ChangeDetection"
+            SynchronizationTimeLength="30" 
+            MinNumOfSyncSteps="5" 
+            ThresholdMultiplier="5"
+
+            NumberOfAveragedTransforms="20" 
+            MinTransformThreshold="2.0" 
+            MaxTransformDifference="2.0" 
+
+            NumberOfAveragedFrames="6" 
+            MinFrameThreshold="200.0" 
+            MaxFrameDifference="10.0" 
+            />
+</USDataCollection>

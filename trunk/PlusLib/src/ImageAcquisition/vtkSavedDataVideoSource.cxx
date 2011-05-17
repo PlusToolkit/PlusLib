@@ -214,7 +214,7 @@ int vtkSavedDataVideoSource::Connect()
 
 	if ( !vtksys::SystemTools::FileExists(this->GetSequenceMetafile(), true) )
 	{
-		LOG_ERROR("Unable to connect to saved data video source: Unable to read sequence metafile: " << this->GetSequenceMetafile()); 
+		LOG_ERROR("Unable to connect to saved data video source: Unable to read sequence metafile!"); 
 		return 0; 
 	}
 
