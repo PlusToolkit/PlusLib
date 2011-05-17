@@ -101,7 +101,6 @@ static VLEDState vtkNDICertusMapVLEDState[] = {
 		this->Tracking = 0;
 		this->NumberOfMarkers = 0;
 		this->NumberOfRigidBodies = 0;
-		this->MainTool = -1;
 		this->SetNumberOfTools(VTK_CERTUS_NTOOLS);
 
 		for (int i = 0; i < VTK_CERTUS_NTOOLS; i++)
@@ -147,7 +146,7 @@ static VLEDState vtkNDICertusMapVLEDState[] = {
 	if (OptotrakGetErrorString(vtkCertusErrorString, \
 	MAX_ERROR_STRING_LENGTH+1) == 0) \
 	{ \
-	vtkErrorMacro(<< vtkCertusErrorString); \
+	LOG_ERROR(vtkCertusErrorString); \
 	} \
 	} 
 
@@ -532,9 +531,9 @@ static VLEDState vtkNDICertusMapVLEDState[] = {
 		delete [] rigidBodyData;
 
 		// get reference tool transform
-		if (this->ReferenceTool >= 0)
+		if (this->GetReferenceTool() >= 0)
 		{ 
-			referenceTransform = transform[this->ReferenceTool];
+			referenceTransform = transform[this->GetReferenceTool()];
 		}
 
 		for (tool = 0; tool < VTK_CERTUS_NTOOLS; tool++) 
@@ -551,9 +550,9 @@ static VLEDState vtkNDICertusMapVLEDState[] = {
 			}
 
 			// if tracking relative to another tool
-			if (this->ReferenceTool >= 0 && tool != this->ReferenceTool)
+			if (this->GetReferenceTool() >= 0 && tool != this->GetReferenceTool())
 			{
-				if ( statusFlags[this->ReferenceTool] & (TR_MISSING | TR_OUT_OF_VIEW) ) 
+				if ( statusFlags[this->GetReferenceTool()] & (TR_MISSING | TR_OUT_OF_VIEW) ) 
 				{
 					flags |= TR_OUT_OF_VIEW;
 				}

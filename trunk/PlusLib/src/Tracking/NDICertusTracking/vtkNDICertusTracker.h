@@ -93,9 +93,6 @@ public:
 	void InternalUpdate();
 	void Update();
 
-	vtkSetMacro(MainTool, int);
-	vtkGetMacro(MainTool, int);
-
 protected:
 	vtkNDICertusTracker();
 	~vtkNDICertusTracker();
@@ -156,7 +153,6 @@ protected:
 
 	int NumberOfMarkers;
 	int NumberOfRigidBodies;
-	int MainTool;
 
 	vtkMatrix4x4 *SendMatrix;
 

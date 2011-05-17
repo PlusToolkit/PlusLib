@@ -1242,7 +1242,7 @@ void vtkDataCollector::ReadConfiguration()
 	{
 		if ( version < this->ConfigFileVersion )
 		{
-			LOG_ERROR("This version of configuration file is no longer supported! Please update to version " << this->ConfigFileVersion ); 
+			LOG_ERROR("This version of configuration file is no longer supported! Please update to version " << std::fixed << this->ConfigFileVersion ); 
 			exit(EXIT_FAILURE); 
 		}
 	}
@@ -1580,16 +1580,7 @@ void vtkDataCollector::SetVideoOnly(bool videoOnly)
 //------------------------------------------------------------------------------
 int vtkDataCollector::GetDefaultToolPortNumber()
 {
-	for ( int tool = 0; tool < this->GetNumberOfTools(); tool++ )
-	{
-		if ( STRCASECMP( this->GetTracker()->GetDefaultToolName(), this->GetTracker()->GetTool(tool)->GetToolName() ) == 0 )
-		{
-			return tool;
-		}
-	}
-
-	LOG_ERROR("Unable to find default tool port number! Please set default tool name in the configuration file!" ); 
-	return -1; 
+	return this->GetTracker()->GetDefaultTool(); 
 }
 
 //------------------------------------------------------------------------------
