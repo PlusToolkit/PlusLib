@@ -882,7 +882,8 @@ void TrackedUltrasoundCapturingGUI::ChangeReferenceToolID()
 		{
 			LOG_INFO("Selected reference tool: " << this->GetToolID(i) ); 
 
-			tracker->SetReferenceTool(i);
+			// TODO: Remove tool selection from gui! 
+			// tracker->SetReferenceTool(i);
 
 			if ( i < 0 )
 			{
