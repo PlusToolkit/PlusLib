@@ -77,15 +77,17 @@ public:
 
 	//! Description 
 	// Run the probe rotation axis calibration algorithm 
+	// Returns 1 on success otherwise 0
 	virtual int CalibrateProbeRotationAxis(); 
 
 	//! Description 
 	// Run the probe translation axis calibration algorithm 
-	virtual void CalibrateProbeTranslationAxis(); 
+	virtual int CalibrateProbeTranslationAxis(); 
 
 	//! Description 
 	// Run the template translation axis calibration algorithm 
-	virtual void CalibrateTemplateTranslationAxis(); 
+	// Returns 1 on success otherwise 0
+	virtual int CalibrateTemplateTranslationAxis(); 
 
 	//! Description 
 	// Run the probe rotation axis calibration algorithm in offline mode
@@ -100,7 +102,7 @@ public:
 	virtual void OfflineTemplateTranslationAxisCalibration(); 
 
 	//! Description 
-	//
+	// Read the stepper calibration configurations from xml data element
 	virtual void ReadStepperCalibrationConfiguration(vtkXMLDataElement* stepperCalibration); 
 
 	// Description:
@@ -218,80 +220,194 @@ protected:
 	//! Description: 
 	// Solve Ax = b sparse linear equations with linear least squares method (vnl_lsqr)
 	// The coefficient matrix aMatrix should be m-by-n and the column vector bVector must have length m. 
-	// resultVector size nned to be fixed by constructor time
-	virtual void LSQRMinimizer(std::vector<vnl_vector<double>> aMatrix, std::vector<double> bVector, vnl_vector<double> &resultVector);
+	// resultVector size need to be fixed by constructor time
+	// The method will return false in case of any error
+	virtual bool LSQRMinimizer(
+		const std::vector<vnl_vector<double>> &aMatrix, 
+		const std::vector<double> &bVector, 
+		vnl_vector<double> &resultVector);
 
-	//! Description: 
-	// Construct linear equation for translation axis calibration
-	virtual void ConstrLinEqForTransAxisCalib( std::vector<vnl_vector<double>> &aMatrix, std::vector<double> &bVector, IMAGE_DATA_TYPE dataType );
+	// Description:
+	// Compute mean and stddev from dataset
+	virtual void ComputeStatistics(const std::vector< std::vector<double> > &diffVector, std::vector<double> &mean, std::vector<double> &stdev); 
+
+	
+	//***************************************************************************
+	//					Translation axis calibration
+	//***************************************************************************
 
 	//! Description: 
 	// Do the translation axis calibration 
-	virtual void TranslationAxisCalibration(IMAGE_DATA_TYPE dataType); 
+	// Returns 1 on success otherwise 0
+	virtual int TranslationAxisCalibration(IMAGE_DATA_TYPE dataType); 
 
 	//! Description: 
-	// Construct linear equation for rotation axis calibration
-	virtual void ConstrLinEqForRotationAxisCalib( std::vector< std::pair<double, double> > listOfCenterOfRotations, std::vector< double > listOfClusterPositions, std::vector<vnl_vector<double>> &aMatrix, std::vector<double> &bVector); 
+	// Construct linear equation for translation axis calibration
+	virtual void ConstrLinEqForTransAxisCalib( 
+		std::vector<vnl_vector<double>> &aMatrix, 
+		std::vector<double> &bVector, 
+		IMAGE_DATA_TYPE dataType );
 
 	//! Description: 
-	// Do the rotation axis calibration 
-	// Return 1 on success otherwise 0
-	virtual int RotationAxisCalibration(); 
-
+	// Remove outliers from translation axis calibration dataset
+	virtual void RemoveOutliersFromTransAxisCalibData(std::vector<vnl_vector<double>> &aMatrix, std::vector<double> &bVector, const vnl_vector<double> &resultVector );
+	
 	//! Description: 
-	// Do the rotation encoder calibration 
-	virtual void RotationEncoderCalibration(); 
-
-	//! Description: 
-	// Construct linear equation for rotation encoder calibration
-	virtual void ConstrLinEqForRotEncCalc( std::vector<vnl_vector<double>> &aMatrix, std::vector<double> &bVector); 
-
-	//! Description: 
-	// Remove outliers from rotation encoder calibration dataset
-	virtual void RemoveOutliersFromRotEncCalibData(std::vector<vnl_vector<double>> &aMatrix, std::vector<double> &bVector, vnl_vector<double> resultVector );
-
-	//! Description: 
-	// Calculate mean error and stdev of measured and computed rotation angles
-	virtual void GetRotationEncoderCalibrationError(const std::vector<vnl_vector<double>> aMatrix, const std::vector<double> bVector, const vnl_vector<double> resultVector, double &mean, double &stdev ); 
+	// Calculate mean error and stdev of measured and computed wire positions for each wire
+	virtual void GetTranslationAxisCalibrationError(
+		const std::vector<vnl_vector<double>> &aMatrix, 
+		const std::vector<double> &bVector, 
+		const vnl_vector<double> &resultVector, 
+		std::vector<double> &mean, 
+		std::vector<double> &stdev ); 
 
 	//! Description: 
 	// Save translation axix calibration error in gnuplot format 
-	virtual void SaveRotationEncoderCalibrationError(const std::vector<vnl_vector<double>> aMatrix, const std::vector<double> bVector, const vnl_vector<double> resultVector); 
+	virtual void SaveTranslationAxisCalibrationError(
+		const std::vector<vnl_vector<double>> &aMatrix, 
+		const std::vector<double> &bVector, 
+		const vnl_vector<double> &resultVector, 
+		IMAGE_DATA_TYPE dataType ); 
+
+	// Description:
+	// Add generated html report from the selected data type (probe or template) translation axis calibration to the existing html report
+	// htmlReport and plotter arguments has to be defined by the caller function
+	virtual void GenerateTranslationAxisCalibrationReport( IMAGE_DATA_TYPE dataType, vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter, const char* gnuplotScriptsFolder); 
+
+
+	//***************************************************************************
+	//						Rotation axis calibration
+	//***************************************************************************
+
+	//! Description: 
+	// Do the rotation axis calibration 
+	// Returns 1 on success otherwise 0
+	virtual int RotationAxisCalibration(); 
+
+	//! Description: 
+	// Construct linear equation for rotation axis calibration
+	virtual void ConstrLinEqForRotationAxisCalib( 
+		const std::vector< std::pair<double, double> > &listOfCenterOfRotations, 
+		const std::vector< double > &listOfClusterPositions, 
+		std::vector<vnl_vector<double>> &aMatrix, 
+		std::vector<double> &bVector); 
+
+
+	//! Description: 
+	// Calculate mean error and stdev of measured and computed rotation angles
+	virtual void GetRotationAxisCalibrationError(
+		const std::vector<vnl_vector<double>> &aMatrix, 
+		const std::vector<double> &bVector, \
+		const vnl_vector<double> &resultVector, 
+		std::vector<double> &mean, 
+		std::vector<double> &stdev  ); 
+
+	//! Description: 
+	// Remove outliers from rotation axis calibration dataset
+	virtual void RemoveOutliersFromRotAxisCalibData(
+		std::vector<vnl_vector<double>> &aMatrix, 
+		std::vector<double> &bVector, 
+		vnl_vector<double> resultVector );
+
+	//***************************************************************************
+	//						Rotation encoder calibration
+	//***************************************************************************
+
+	//! Description: 
+	// Do the rotation encoder calibration 
+	// Returns 1 on success otherwise 0
+	virtual int RotationEncoderCalibration(); 
+
+	//! Description: 
+	// Construct linear equation for rotation encoder calibration
+	virtual void ConstrLinEqForRotEncCalc( 
+		std::vector<vnl_vector<double>> &aMatrix, 
+		std::vector<double> &bVector); 
+	
+	//! Description: 
+	// Remove outliers from rotation encoder calibration dataset
+	virtual void RemoveOutliersFromRotEncCalibData(
+		std::vector<vnl_vector<double>> &aMatrix, 
+		std::vector<double> &bVector, 
+		vnl_vector<double> resultVector );
+
+	//! Description: 
+	// Calculate mean error and stdev of measured and computed rotation angles
+	virtual void GetRotationEncoderCalibrationError(
+		const std::vector<vnl_vector<double>> &aMatrix, 
+		const std::vector<double> &bVector, 
+		const vnl_vector<double> &resultVector, 
+		double &mean, 
+		double &stdev ); 
+
+	//! Description: 
+	// Save translation axix calibration error in gnuplot format 
+	virtual void SaveRotationEncoderCalibrationError(
+		const std::vector<vnl_vector<double>> &aMatrix, 
+		const std::vector<double> &bVector, 
+		const vnl_vector<double> &resultVector ); 
+
+	//***************************************************************************
+	//						Center of rotation calculation
+	//***************************************************************************
 
 	//! Description: 
 	// Compute rotation center using linear least squares
-	virtual void CalculateCenterOfRotation( const SegmentedFrameList frameListForCenterOfRotation, double centerOfRotationPx[2] );
+	// Returns 1 on success otherwise 0
+	virtual int CalculateCenterOfRotation( const SegmentedFrameList &frameListForCenterOfRotation, double centerOfRotationPx[2] );
 
 	//! Description: 
 	// Calculate mean error and stdev of measured and computed distances between rotation center and segmented wires
-	virtual void GetCenterOfRotationCalculationError(const std::vector<vnl_vector<double>> aMatrix, const std::vector<double> bVector, const vnl_vector<double> resultVector, double &mean, double &stdev ); 
+	virtual void GetCenterOfRotationCalculationError(
+		const std::vector<vnl_vector<double>> &aMatrix, 
+		const std::vector<double> &bVector, 
+		const vnl_vector<double> &resultVector, 
+		double &mean, 
+		double &stdev ); 
 
 	//! Description: 
 	// Remove outliers from center of rotation calculation dataset
-	virtual void RemoveOutliersFromCenterOfRotCalcData(std::vector<vnl_vector<double>> &aMatrix, std::vector<double> &bVector, vnl_vector<double> resultVector ); 
+	virtual void RemoveOutliersFromCenterOfRotCalcData(
+		std::vector<vnl_vector<double>> &aMatrix, 
+		std::vector<double> &bVector, 
+		const vnl_vector<double> &resultVector ); 
 
-	//! Description: 
-	// Construct linear equation for spacing calculation
-	virtual void ConstrLinEqForSpacingCalc( std::vector<vnl_vector<double>> &aMatrix, std::vector<double> &bVector); 
+
+	//***************************************************************************
+	//							Spacing calculation
+	//***************************************************************************
 
 	//! Description: 
 	// Compute spacing using linear least squares
 	// This computation needs a set of point distances between two well known 
 	// object on the image in X and Y direction (in px and mm as well) to define the spacing.
-	virtual void CalculateSpacing(); 
+	// Returns 1 on success otherwise 0
+	virtual int CalculateSpacing(); 
 
 	//! Description: 
-	// Remove outliers from translation axis calibration dataset
-	virtual void RemoveOutliersFromTransAxisCalibData(std::vector<vnl_vector<double>> &aMatrix, std::vector<double> &bVector, vnl_vector<double> resultVector );
+	// Remove outliers from spacing calculation dataset
+	virtual void RemoveOutliersFromSpacingCalcData(
+		std::vector<vnl_vector<double>> &aMatrix, 
+		std::vector<double> &bVector, 
+		vnl_vector<double> resultVector );
+
+	//! Description: 
+	// Calculate mean error and stdev of measured and computed spacing factors
+	virtual void GetSpacingCalculationError(
+		const std::vector<vnl_vector<double>> &aMatrix, 
+		const std::vector<double> &bVector, 
+		const vnl_vector<double> &resultVector, 
+		std::vector<double> &mean, 
+		std::vector<double> &stdev ); 
+
+	//! Description: 
+	// Construct linear equation for spacing calculation
+	virtual void ConstrLinEqForSpacingCalc( std::vector<vnl_vector<double>> &aMatrix, std::vector<double> &bVector); 
 	
-	//! Description: 
-	// Calculate mean error and stdev of measured and computed wire positions for each wire
-	virtual void GetTranslationAxisCalibrationError(const std::vector<vnl_vector<double>> aMatrix, const std::vector<double> bVector, const vnl_vector<double> resultVector, std::vector<double> &mean, std::vector<double> &stdev ); 
-
-	//! Description: 
-	// Save translation axix calibration error in gnuplot format 
-	virtual void SaveTranslationAxisCalibrationError(const std::vector<vnl_vector<double>> aMatrix, const std::vector<double> bVector, const vnl_vector<double> resultVector, IMAGE_DATA_TYPE dataType); 
-
+	//***************************************************************************
+	//					Phantom to probe distance calculation
+	//***************************************************************************
+	
 	//! Description: 
 	// Add points to the point set for calculating the distance between the 
 	// phantom and TRUS probe
@@ -304,7 +420,13 @@ protected:
 
 	//! Description:
 	// Calculate the distance between the probe and phantom 
-	virtual void CalculatePhantomToProbeDistance(); 
+	// Returns 1 on success otherwise 0
+	virtual int CalculatePhantomToProbeDistance(); 
+
+	
+	//***************************************************************************
+	//								Clustering
+	//***************************************************************************
 
 	//! Description:
 	// Clustering segmented frames by Z position 
@@ -314,11 +436,6 @@ protected:
 	// Get Z position of the cluster (aka. the z position of the point cloud)
 	virtual double GetClusterZPosition(const SegmentedFrameList &cluster); 
 
-	// Description:
-	// Add generated html report from the selected data type (probe or template) translation axis calibration to the existing html report
-	// htmlReport and plotter arguments has to be defined by the caller function
-	virtual void GenerateTranslationAxisCalibrationReport( IMAGE_DATA_TYPE dataType, vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter, const char* gnuplotScriptsFolder); 
-	
 protected:
 
 	bool SpacingCalculated; 
