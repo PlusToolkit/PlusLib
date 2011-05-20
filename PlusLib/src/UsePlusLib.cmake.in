@@ -42,6 +42,10 @@ IF(NOT PLUSLIB_USE_FILE_INCLUDED)
 	# Add link directories needed to use Plus library
 	LINK_DIRECTORIES(${PLUSLIB_LIBRARY_DIRS})
     
+    SET(PLUSLIB_BUILD_SHARED_LIBS ${BUILD_SHARED_LIBS})
+    
+    SET(QT_QMAKE_EXECUTABLE ${QT_QMAKE_EXECUTABLE})
+    
     ## Find SVN 
     SET (SVN_FOUND ${Subversion_FOUND})
     IF ( SVN_FOUND )
