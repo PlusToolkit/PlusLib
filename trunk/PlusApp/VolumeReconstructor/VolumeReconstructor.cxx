@@ -13,23 +13,7 @@
 #include "itkMetaImageSequenceIO.h"
 #include "vtkTrackerTool.h"
 #include "vtkXMLImageDataWriter.h"
-
-
-// debug
-#include "vtkAppendPolyData.h"
-#include "vtkCubeSource.h"
-#include "vtkSphereSource.h"
-#include "vtkPolyData.h"
-#include "vtkPolyDataWriter.h"
-#include "vtkTransformPolyDataFilter.h"
-
-
-typedef unsigned char PixelType;
-typedef itk::Image< PixelType, 2 > ImageType;
-typedef itk::Image< PixelType, 3 > ImageSequenceType;
-typedef itk::ImageFileReader< ImageSequenceType > ImageSequenceReaderType;
-
-void PrintProgressBar( int percent ); 
+#include "vtkTrackedFrameList.h"
 
 int main (int argc, char* argv[])
 { 
@@ -82,127 +66,47 @@ int main (int argc, char* argv[])
 
 	//***************************  Image sequence reading *****************************
 	LOG_INFO("Reading image sequence...");
-	itk::MetaImageSequenceIO::Pointer readerMetaImageSequenceIO = itk::MetaImageSequenceIO::New(); 
-	ImageSequenceReaderType::Pointer reader = ImageSequenceReaderType::New(); 
+	vtkSmartPointer<vtkTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New(); 
+	trackedFrameList->ReadFromSequenceMetafile(inputImgSeqFileName.c_str()); 
 
-	// Set the image IO 
-	reader->SetImageIO(readerMetaImageSequenceIO); 
-	reader->SetFileName(inputImgSeqFileName.c_str());
-
-	try
-	{
-		reader->Update(); 
-	}
-	catch (itk::ExceptionObject & err) 
-	{		
-		LOG_ERROR( "Sequence image reader couldn't update: " <<  err); 
-		exit(EXIT_FAILURE);
-	}	
-
-	ImageSequenceType::Pointer imageSeq = reader->GetOutput();
-
-	const unsigned long imageWidthInPixels = imageSeq->GetLargestPossibleRegion().GetSize()[0]; 
-	const unsigned long imageHeightInPixels = imageSeq->GetLargestPossibleRegion().GetSize()[1]; 
-	unsigned long numberOfFrames = imageSeq->GetLargestPossibleRegion().GetSize()[2];	
-	unsigned int frameSizeInBytes = imageWidthInPixels * imageHeightInPixels * sizeof(PixelType);
-	
 	//***************************  Volume reconstruction ***************************** 
 	
 	// Set the input frame parameters 
-	reconstructor->SetNumberOfFrames( numberOfFrames ); 
-	reconstructor->SetFrameSize( imageWidthInPixels, imageHeightInPixels, 1); 
+	reconstructor->SetNumberOfFrames( trackedFrameList->GetNumberOfTrackedFrames() ); 
+	reconstructor->SetFrameSize( trackedFrameList->GetFrameSize() ); 
 	
 	LOG_INFO("Initialize reconstructor...");
 	reconstructor->Initialize(); 
   
 	LOG_INFO("Adding images to reconstructor...");
 	
+	std::ostringstream osTransformImageToTool; 
+	reconstructor->GetImageToToolTransform()->GetMatrix()->Print( osTransformImageToTool );
+	LOG_DEBUG("Image to tool (probe calibration) transform: \n" << osTransformImageToTool.str());  
 	
-	
-	// debug
-	std::cout << std::endl << "image to tool (probe calibration)" << std::endl;
-	reconstructor->GetImageToToolTransform()->GetMatrix()->Print( std::cout );
-	std::cout << std::endl;
-	vtkSmartPointer< vtkAppendPolyData > append = vtkSmartPointer< vtkAppendPolyData >::New();
-	
-	
-	
-	PixelType* imageSeqData = imageSeq->GetBufferPointer(); 
-	for ( int imgNumber = 0; imgNumber < numberOfFrames; imgNumber++ )
+	int* frameSize = trackedFrameList->GetFrameSize(); 
+	const int numberOfFrames = trackedFrameList->GetNumberOfTrackedFrames(); 
+	for ( int imgNumber = 0; imgNumber < numberOfFrames; ++imgNumber )
 	{
-		PrintProgressBar( (100.0 * imgNumber) / numberOfFrames ); 
-		unsigned char* currentFrameImageData = imageSeqData + imgNumber * frameSizeInBytes;
+		PlusLogger::PrintProgressbar( (100.0 * imgNumber) / numberOfFrames ); 
   
 		vtkSmartPointer<vtkMatrix4x4> mToolToReference = vtkSmartPointer<vtkMatrix4x4>::New();
-		if ( ! readerMetaImageSequenceIO->GetFrameTransform( imgNumber, mToolToReference ) )
+		double tToolToReference[16]; 
+		if ( trackedFrameList->GetTrackedFrame(imgNumber)->GetDefaultFrameTransform(tToolToReference) )
+		{
+			mToolToReference->DeepCopy(tToolToReference); 
+		}
+		else
 		{
 			LOG_ERROR("Unable to get default frame transform for frame #" << imgNumber); 
 			continue; 
 		}
 		
 		  // Add each tracked frame to reconstructor.
-		
-		reconstructor->AddTrackedFrame(currentFrameImageData, imageWidthInPixels, imageHeightInPixels, mToolToReference );
-		
-		
-		//debug
-		vtkSmartPointer< vtkCubeSource > source = vtkSmartPointer< vtkCubeSource >::New();
-		  source->SetXLength( 640 );
-		  source->SetYLength( 480 );
-		vtkSmartPointer< vtkSphereSource > source1 = vtkSmartPointer< vtkSphereSource >::New();
-		  source1->SetRadius( 20 );
-		vtkSmartPointer< vtkTransform > tSourceToImage = vtkSmartPointer< vtkTransform >::New();
-		  tSourceToImage->Translate( 320, 240, 0 );
-		vtkSmartPointer< vtkMatrix4x4 > mImageToReference = vtkSmartPointer< vtkMatrix4x4 >::New();
-		  mImageToReference->DeepCopy( reconstructor->GetImageToReferenceTransform( imgNumber )->GetMatrix() );
-		vtkSmartPointer< vtkTransform > tImageToReference = vtkSmartPointer< vtkTransform >::New();
-		  tImageToReference->PostMultiply();
-		  tImageToReference->SetMatrix( mImageToReference );
-		  tImageToReference->Update();
-		vtkSmartPointer< vtkTransform > tSourceToReference = vtkSmartPointer< vtkTransform >::New();
-		  tSourceToReference->PostMultiply();
-		  tSourceToReference->Identity();
-		  tSourceToReference->Concatenate( tSourceToImage );
-		  tSourceToReference->Concatenate( tImageToReference );
-		  tSourceToReference->Update();
-		// std::cout << std::endl << "image to reference " << imgNumber << std::endl;
-		// tImageToReference->GetMatrix()->Print( std::cout );
-		// std::cout << std::endl;
-		vtkSmartPointer< vtkTransformPolyDataFilter > transformFilter = vtkSmartPointer< vtkTransformPolyDataFilter >::New();
-		  transformFilter->SetTransform( tSourceToReference );
-		  transformFilter->SetInputConnection( source->GetOutputPort() );
-		  transformFilter->Update();
-		vtkSmartPointer< vtkTransformPolyDataFilter > transformFilter1 = vtkSmartPointer< vtkTransformPolyDataFilter >::New();
-		  transformFilter1->SetTransform( tImageToReference );
-		  transformFilter1->SetInputConnection( source1->GetOutputPort() );
-		  transformFilter1->Update();
-		append->AddInput( transformFilter->GetOutput() );
-		append->AddInput( transformFilter1->GetOutput() );
-		append->Update();
-		
+		reconstructor->AddTrackedFrame(trackedFrameList->GetTrackedFrame(imgNumber)->ImageData->GetBufferPointer(), frameSize[0] , frameSize[1], mToolToReference );
 	}
 	
-	
-	// debug
-	vtkSmartPointer< vtkCubeSource > oSource = vtkSmartPointer< vtkCubeSource >::New();
-	  oSource->SetXLength( 10 );
-	append->AddInput( oSource->GetOutput() );
-	append->Update();
-	std::cout << std::endl;
-	double* outextmin = reconstructor->GetVolumeExtentMin();
-	double* outextmax = reconstructor->GetVolumeExtentMax();
-	for ( int i = 0; i < 3; ++ i )
-	  {
-	  std::cout << outextmin[ i ] << " -- " << outextmax[ i ] << std::endl;
-	  }
-	vtkSmartPointer< vtkPolyDataWriter > pw = vtkSmartPointer< vtkPolyDataWriter >::New();
-	  pw->SetFileName( "C:/us/aa.vtk" );
-	  pw->SetInput( append->GetOutput() );
-	  pw->Update();
-	
-	
-	
-	PrintProgressBar( 100 ); 
+	PlusLogger::PrintProgressbar( 100 ); 
 	std::cout << std::endl; 
   
 	LOG_INFO("Start reconstruction...");
@@ -210,11 +114,11 @@ int main (int argc, char* argv[])
 
 	while ( reconstructor->GetReconstructor()->ReconstructionFrameCount > 0 ) 
 	{
-		PrintProgressBar( ( 1 - ( 1.0 * reconstructor->GetReconstructor()->ReconstructionFrameCount /  numberOfFrames )) * 100 ); 
+		PlusLogger::PrintProgressbar( ( 1 - ( 1.0 * reconstructor->GetReconstructor()->ReconstructionFrameCount /  numberOfFrames )) * 100 ); 
 		vtksys::SystemTools::Delay(200); 
 	}
 
-	PrintProgressBar( 100 ); 
+	PlusLogger::PrintProgressbar( 100 ); 
 	std::cout << std::endl; 
 
 	LOG_INFO("Fill holes in output volume...");
@@ -236,32 +140,3 @@ int main (int argc, char* argv[])
 	VTK_LOG_TO_CONSOLE_OFF; 
 	return EXIT_SUCCESS; 
 }
-
-
-void PrintProgressBar( int percent )
-{
-	std::string bar;
-
-	for(int i = 0; i < 50; i++)
-	{
-		if( i < (percent/2))
-		{
-			bar.replace(i,1,"=");
-		}
-		else if( i == (percent/2))
-		{
-			bar.replace(i,1,">");
-		}
-		else
-		{
-			bar.replace(i,1," ");
-		}
-	}
-
-	std::cout<< "\r" "[" << bar << "] ";
-	std::cout.width( 3 );
-	std::cout<< percent << "%     " << std::flush;
-}
-
-
-
