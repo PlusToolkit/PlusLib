@@ -165,7 +165,7 @@ bool vtkCalibrationController::AddTrackedFrameData(TrackedFrame* trackedFrame, I
 	{
 		// Check frame size before segmentation 
 		int * frameSize = trackedFrame->GetFrameSize(); 
-		if ( this->ImageWidthInPixels != frameSize[0] || this->ImageHeightInPixels != frameSize[2] )
+		if ( this->ImageWidthInPixels != frameSize[0] || this->ImageHeightInPixels != frameSize[1] )
 		{
 			LOG_ERROR("Unable to add frame to calibrator! Frame size mismatch: actual (" 
 				<< frameSize[0] << "x" << frameSize[1] << ") expected (" 
