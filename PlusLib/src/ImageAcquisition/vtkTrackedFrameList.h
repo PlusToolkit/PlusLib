@@ -279,11 +279,17 @@ public:
 	vtkSetMacro(NumberOfUniqueFrames, int); 
 	vtkGetMacro(NumberOfUniqueFrames, int); 
 	
-
+	//! Operation: 
+	// Get tracked frame size in pixel
+	virtual int* GetFrameSize(); 
 
 protected:
 	vtkTrackedFrameList();
 	virtual ~vtkTrackedFrameList();
+
+	//! Operation: 
+	// Set tracked frame size in pixel
+	vtkSetVector3Macro(FrameSize, int); 
 
 	bool ValidateTimestamp(TrackedFrame* trackedFrame); 
 	bool ValidateStatus(TrackedFrame* trackedFrame); 
@@ -293,6 +299,7 @@ protected:
 
 	int MaxNumOfFramesToWrite; 
 	int NumberOfUniqueFrames; 
+	int FrameSize[3]; 
 
 private:
 	vtkTrackedFrameList(const vtkTrackedFrameList&);
