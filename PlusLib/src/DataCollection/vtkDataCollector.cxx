@@ -1038,6 +1038,11 @@ void vtkDataCollector::GetTrackedFrameByTime(const double time, TrackedFrame* tr
 		statusName << it->first << "Status"; 
 		trackedFrame->SetCustomFrameField(statusName.str(), it->second); 
 	}
+
+	// Save frame timestamp
+	std::ostringstream strTimestamp; 
+	strTimestamp << trackedFrame->Timestamp; 
+	trackedFrame->SetCustomFrameField("Timestamp", strTimestamp.str()); 
 }
 
 //----------------------------------------------------------------------------
