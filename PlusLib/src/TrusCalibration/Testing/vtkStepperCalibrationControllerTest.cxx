@@ -9,6 +9,7 @@
 
 int main (int argc, char* argv[])
 { 
+	int numberOfFailures(0); 
 	std::string inputProbeTranslationSeqMetafile;
 	std::string inputTemplateTranslationSeqMetafile; 
 	std::string inputProbeRotationSeqMetafile;
@@ -72,7 +73,10 @@ int main (int argc, char* argv[])
 
 	probeRotationAxisTrackedFrameList->Clear(); 
 	
-	stepperCalibrator->CalibrateProbeRotationAxis(); 
+	if ( !stepperCalibrator->CalibrateProbeRotationAxis() )
+	{
+		numberOfFailures++; 
+	}
 
 	//************************************************************************************
 
@@ -99,7 +103,10 @@ int main (int argc, char* argv[])
 
 	probeTranslationAxisTrackedFrameList->Clear(); 
 	
-	stepperCalibrator->CalibrateProbeTranslationAxis(); 
+	if ( !stepperCalibrator->CalibrateProbeTranslationAxis() )
+	{
+		numberOfFailures++; 
+	}
 
 	//************************************************************************************
 
@@ -126,11 +133,19 @@ int main (int argc, char* argv[])
 
 	templateTranslationAxisTrackedFrameList->Clear(); 
 
-	stepperCalibrator->CalibrateTemplateTranslationAxis(); 
+	if ( !stepperCalibrator->CalibrateTemplateTranslationAxis() )
+	{
+		numberOfFailures++; 
+	}
 
 	//************************************************************************************
 	
 
+	if ( numberOfFailures > 0 )
+	{
+		LOG_ERROR("Test failed!"); 
+		return EXIT_FAILURE; 
+	}
 	
     LOG_INFO("vtkStepperCalibrationControllerTest exited successfully!!!"); 
 	return EXIT_SUCCESS; 

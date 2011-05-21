@@ -1149,7 +1149,7 @@ int  vtkDataCollector::GetToolFlags( unsigned int toolNumber/* = 0 */)
 //------------------------------------------------------------------------------
 void vtkDataCollector::ReadConfiguration( const char* configFileName)
 {	
-	LOG_TRACE("vtkDataCollector::ReadConfiguration: " << configFileName);
+	LOG_TRACE("vtkDataCollector::ReadConfiguration");
 	this->SetConfigFileName(configFileName); 
 	this->ReadConfiguration(); 
 }
@@ -1233,7 +1233,7 @@ void vtkDataCollector::ReadConfiguration()
 
 	if ( this->ConfigurationData == NULL) 
 	{	
-		LOG_ERROR("Unable to read the main configration file: " << this->GetConfigFileName() ); 
+		LOG_ERROR("Unable to read the main configration file!"); 
 		exit(EXIT_FAILURE); 
 	} 
 

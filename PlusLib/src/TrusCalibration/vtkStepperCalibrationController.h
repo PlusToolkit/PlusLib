@@ -77,17 +77,17 @@ public:
 
 	//! Description 
 	// Run the probe rotation axis calibration algorithm 
-	// Returns 1 on success otherwise 0
-	virtual int CalibrateProbeRotationAxis(); 
+	// Returns true on success otherwise false
+	virtual bool CalibrateProbeRotationAxis(); 
 
 	//! Description 
 	// Run the probe translation axis calibration algorithm 
-	virtual int CalibrateProbeTranslationAxis(); 
+	virtual bool CalibrateProbeTranslationAxis(); 
 
 	//! Description 
 	// Run the template translation axis calibration algorithm 
-	// Returns 1 on success otherwise 0
-	virtual int CalibrateTemplateTranslationAxis(); 
+	// Returns true on success otherwise false
+	virtual bool CalibrateTemplateTranslationAxis(); 
 
 	//! Description 
 	// Run the probe rotation axis calibration algorithm in offline mode
@@ -222,7 +222,7 @@ protected:
 	// The coefficient matrix aMatrix should be m-by-n and the column vector bVector must have length m. 
 	// resultVector size need to be fixed by constructor time
 	// The method will return false in case of any error
-	virtual bool LSQRMinimizer(
+	virtual bool LSQRMinimize(
 		const std::vector<vnl_vector<double>> &aMatrix, 
 		const std::vector<double> &bVector, 
 		vnl_vector<double> &resultVector);
@@ -238,8 +238,8 @@ protected:
 
 	//! Description: 
 	// Do the translation axis calibration 
-	// Returns 1 on success otherwise 0
-	virtual int TranslationAxisCalibration(IMAGE_DATA_TYPE dataType); 
+	// Returns true on success otherwise false
+	virtual bool CalibrateTranslationAxis(IMAGE_DATA_TYPE dataType); 
 
 	//! Description: 
 	// Construct linear equation for translation axis calibration
@@ -281,8 +281,8 @@ protected:
 
 	//! Description: 
 	// Do the rotation axis calibration 
-	// Returns 1 on success otherwise 0
-	virtual int RotationAxisCalibration(); 
+	// Returns true on success otherwise false
+	virtual bool CalibrateRotationAxis(); 
 
 	//! Description: 
 	// Construct linear equation for rotation axis calibration
@@ -315,8 +315,8 @@ protected:
 
 	//! Description: 
 	// Do the rotation encoder calibration 
-	// Returns 1 on success otherwise 0
-	virtual int RotationEncoderCalibration(); 
+	// Returns true on success otherwise false
+	virtual bool CalibrateRotationEncoder(); 
 
 	//! Description: 
 	// Construct linear equation for rotation encoder calibration
@@ -353,8 +353,8 @@ protected:
 
 	//! Description: 
 	// Compute rotation center using linear least squares
-	// Returns 1 on success otherwise 0
-	virtual int CalculateCenterOfRotation( const SegmentedFrameList &frameListForCenterOfRotation, double centerOfRotationPx[2] );
+	// Returns true on success otherwise false
+	virtual bool CalculateCenterOfRotation( const SegmentedFrameList &frameListForCenterOfRotation, double centerOfRotationPx[2] );
 
 	//! Description: 
 	// Calculate mean error and stdev of measured and computed distances between rotation center and segmented wires
@@ -381,8 +381,8 @@ protected:
 	// Compute spacing using linear least squares
 	// This computation needs a set of point distances between two well known 
 	// object on the image in X and Y direction (in px and mm as well) to define the spacing.
-	// Returns 1 on success otherwise 0
-	virtual int CalculateSpacing(); 
+	// Returns true on success otherwise false
+	virtual bool CalculateSpacing(); 
 
 	//! Description: 
 	// Remove outliers from spacing calculation dataset
@@ -420,8 +420,8 @@ protected:
 
 	//! Description:
 	// Calculate the distance between the probe and phantom 
-	// Returns 1 on success otherwise 0
-	virtual int CalculatePhantomToProbeDistance(); 
+	// Returns true on success otherwise false
+	virtual bool CalculatePhantomToProbeDistance(); 
 
 	
 	//***************************************************************************
