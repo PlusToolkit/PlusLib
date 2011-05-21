@@ -377,6 +377,7 @@ vtkTrackedFrameList::vtkTrackedFrameList()
 {
 	this->SetMaxNumOfFramesToWrite(500); 
 	this->SetNumberOfUniqueFrames(5); 
+	this->SetFrameSize(0,0,0); 
 }
 
 //----------------------------------------------------------------------------
@@ -491,6 +492,23 @@ bool vtkTrackedFrameList::ValidatePosition(TrackedFrame* trackedFrame, char* fra
 bool vtkTrackedFrameList::ValidateStatus(TrackedFrame* trackedFrame)
 {
 	return (trackedFrame->Status == 0); 
+}
+
+//----------------------------------------------------------------------------
+int* vtkTrackedFrameList::GetFrameSize()
+{
+	if ( this->GetNumberOfTrackedFrames() > 0 )
+	{
+		const int w = this->GetTrackedFrame(0)->ImageData->GetLargestPossibleRegion().GetSize()[0]; 
+		const int h = this->GetTrackedFrame(0)->ImageData->GetLargestPossibleRegion().GetSize()[1]; 
+		this->SetFrameSize(w,h,1); 
+	}
+	else
+	{
+		LOG_WARNING("Unable to get frame size: there is no frame in the tracked frame list!"); 
+	}
+
+	return this->FrameSize; 
 }
 
 //----------------------------------------------------------------------------
