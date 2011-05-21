@@ -4,6 +4,7 @@
 #include "vtksys/CommandLineArguments.hxx" 
 #include "vtksys/SystemTools.hxx"
 #include "vtkImageData.h"
+#include "vtkTrackedFrameList.h"
 
 #include "itkImage.h"
 #include "itkImageFileReader.h"
@@ -17,8 +18,6 @@ typedef unsigned char PixelType;
 typedef itk::Image< PixelType, 2 > ImageType;
 typedef itk::Image< PixelType, 3 > ImageSequenceType;
 typedef itk::ImageFileReader< ImageSequenceType > ImageSequenceReaderType;
-
-void PrintProgressBar( int percent ); 
 
 int main (int argc, char* argv[])
 { 
@@ -54,72 +53,60 @@ int main (int argc, char* argv[])
 
 	//***************************  Image sequence reading *****************************
 	LOG_INFO("Reading image sequence...");
-	itk::MetaImageSequenceIO::Pointer readerMetaImageSequenceIO = itk::MetaImageSequenceIO::New(); 
-	ImageSequenceReaderType::Pointer reader = ImageSequenceReaderType::New(); 
+	vtkSmartPointer<vtkTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New(); 
+	trackedFrameList->ReadFromSequenceMetafile(inputImgSeqFileName.c_str()); 
 
-	// Set the image IO 
-	reader->SetImageIO(readerMetaImageSequenceIO); 
-	reader->SetFileName(inputImgSeqFileName.c_str());
-
-	try
-	{
-		reader->Update(); 
-	}
-	catch (itk::ExceptionObject & err) 
-	{		
-		LOG_ERROR( "Sequence image reader couldn't update: " <<  err); 
-		exit(EXIT_FAILURE);
-	}	
-
-	ImageSequenceType::Pointer imageSeq = reader->GetOutput();
-
-	const unsigned long imageWidthInPixels = imageSeq->GetLargestPossibleRegion().GetSize()[0]; 
-	const unsigned long imageHeightInPixels = imageSeq->GetLargestPossibleRegion().GetSize()[1]; 
-	unsigned long numberOfFrames = imageSeq->GetLargestPossibleRegion().GetSize()[2];	
-	unsigned int frameSizeInBytes = imageWidthInPixels * imageHeightInPixels * sizeof(PixelType);
 	
 	//***************************  Volume reconstruction ***************************** 
-	
 	// Set the input frame parameters 
-	reconstructor->SetNumberOfFrames( numberOfFrames ); 
-	reconstructor->SetFrameSize( imageWidthInPixels, imageHeightInPixels, 1); 
-	
+	reconstructor->SetNumberOfFrames( trackedFrameList->GetNumberOfTrackedFrames() ); 
+	reconstructor->SetFrameSize( trackedFrameList->GetFrameSize() ); 
+
 	LOG_INFO("Initialize reconstructor...");
 	reconstructor->Initialize(); 
 
 	LOG_INFO("Adding images to reconstructor...");
-	
-	PixelType* imageSeqData = imageSeq->GetBufferPointer(); 
-	for ( int imgNumber = 0; imgNumber < numberOfFrames; imgNumber++ )
-	{
-		PrintProgressBar( (100.0 * imgNumber) / numberOfFrames ); 
-		unsigned char* currentFrameImageData = imageSeqData + imgNumber * frameSizeInBytes;
 
-		vtkSmartPointer<vtkMatrix4x4> transformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-		if ( !readerMetaImageSequenceIO->GetFrameTransform(imgNumber, transformMatrix) )
+	std::ostringstream osTransformImageToTool; 
+	reconstructor->GetImageToToolTransform()->GetMatrix()->Print( osTransformImageToTool );
+	LOG_DEBUG("Image to tool (probe calibration) transform: \n" << osTransformImageToTool.str());  
+	
+		 
+	const int numberOfFrames = trackedFrameList->GetNumberOfTrackedFrames(); 
+	for ( int imgNumber = 0; imgNumber < numberOfFrames; ++imgNumber )
+	{
+		PlusLogger::PrintProgressbar( (100.0 * imgNumber) / numberOfFrames ); 
+  
+		vtkSmartPointer<vtkMatrix4x4> mToolToReference = vtkSmartPointer<vtkMatrix4x4>::New();
+		double tToolToReference[16]; 
+		if ( trackedFrameList->GetTrackedFrame(imgNumber)->GetDefaultFrameTransform(tToolToReference) )
+		{
+			mToolToReference->DeepCopy(tToolToReference); 
+		}
+		else
 		{
 			LOG_ERROR("Unable to get default frame transform for frame #" << imgNumber); 
 			continue; 
 		}
 		
-		// Add each tracked frame to reconstructor 
-		reconstructor->AddTrackedFrame(currentFrameImageData, imageWidthInPixels, imageHeightInPixels, transformMatrix ); 
+		int* frameSize = trackedFrameList->GetTrackedFrame(imgNumber)->GetFrameSize();
+
+		  // Add each tracked frame to reconstructor.
+		reconstructor->AddTrackedFrame(trackedFrameList->GetTrackedFrame(imgNumber)->ImageData->GetBufferPointer(), frameSize[0] , frameSize[1], mToolToReference );
 	}
 	
-	PrintProgressBar( 100 ); 
-	std::cout << std::endl; 
+	PlusLogger::PrintProgressbar( 100 ); 
 
 	LOG_INFO("Start reconstruction...");
 	reconstructor->StartReconstruction(); 
 
 	while ( reconstructor->GetReconstructor()->ReconstructionFrameCount > 0 ) 
 	{
-		PrintProgressBar( ( 1 - ( 1.0 * reconstructor->GetReconstructor()->ReconstructionFrameCount /  numberOfFrames )) * 100 ); 
+		PlusLogger::PrintProgressbar( ( 1 - ( 1.0 * reconstructor->GetReconstructor()->ReconstructionFrameCount /  numberOfFrames )) * 100 ); 
 		vtksys::SystemTools::Delay(200); 
 	}
 
-	PrintProgressBar( 100 ); 
-	std::cout << std::endl; 
+	PlusLogger::PrintProgressbar( 100 ); 
 
 	LOG_INFO("Fill holes in output volume...");
 	reconstructor->FillHoles(); 
@@ -149,32 +136,4 @@ int main (int argc, char* argv[])
 	VTK_LOG_TO_CONSOLE_OFF; 
 	return EXIT_SUCCESS; 
 }
-
-
-void PrintProgressBar( int percent )
-{
-	std::string bar;
-
-	for(int i = 0; i < 50; i++)
-	{
-		if( i < (percent/2))
-		{
-			bar.replace(i,1,"=");
-		}
-		else if( i == (percent/2))
-		{
-			bar.replace(i,1,">");
-		}
-		else
-		{
-			bar.replace(i,1," ");
-		}
-	}
-
-	std::cout<< "\r" "[" << bar << "] ";
-	std::cout.width( 3 );
-	std::cout<< percent << "%     " << std::flush;
-}
-
-
 

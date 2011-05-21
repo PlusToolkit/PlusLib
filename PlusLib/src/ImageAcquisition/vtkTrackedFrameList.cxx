@@ -21,6 +21,9 @@ TrackedFrame::TrackedFrame()
 	this->Timestamp = 0; 
 	this->ImageData = NULL; 
 	this->UltrasoundImageOrientation = US_IMG_ORIENT_XX; 
+	this->FrameSize[0] = 0; 
+	this->FrameSize[1] = 0; 
+	this->FrameSize[2] = 0; 
 }
 
 //----------------------------------------------------------------------------
@@ -48,6 +51,22 @@ TrackedFrame::TrackedFrame(const TrackedFrame& frame)
 		this->ImageData->Register(); 
 	}
 }
+
+//----------------------------------------------------------------------------
+int* TrackedFrame::GetFrameSize()
+{
+	if ( this->ImageData != NULL )
+	{
+		const int w = this->ImageData->GetLargestPossibleRegion().GetSize()[0]; 
+		const int h = this->ImageData->GetLargestPossibleRegion().GetSize()[1]; 
+		this->FrameSize[0] = w; 
+		this->FrameSize[1] = h; 
+		this->FrameSize[2] = 1; 
+	}
+
+	return this->FrameSize; 
+}
+
 
 //----------------------------------------------------------------------------
 void TrackedFrame::SetCustomFrameField( std::string name, std::string value )
@@ -499,9 +518,7 @@ int* vtkTrackedFrameList::GetFrameSize()
 {
 	if ( this->GetNumberOfTrackedFrames() > 0 )
 	{
-		const int w = this->GetTrackedFrame(0)->ImageData->GetLargestPossibleRegion().GetSize()[0]; 
-		const int h = this->GetTrackedFrame(0)->ImageData->GetLargestPossibleRegion().GetSize()[1]; 
-		this->SetFrameSize(w,h,1); 
+		this->SetFrameSize(this->GetTrackedFrame(0)->GetFrameSize()); 
 	}
 	else
 	{
