@@ -84,7 +84,7 @@ int main (int argc, char* argv[])
 	reconstructor->GetImageToToolTransform()->GetMatrix()->Print( osTransformImageToTool );
 	LOG_DEBUG("Image to tool (probe calibration) transform: \n" << osTransformImageToTool.str());  
 	
-	int* frameSize = trackedFrameList->GetFrameSize(); 
+	
 	const int numberOfFrames = trackedFrameList->GetNumberOfTrackedFrames(); 
 	for ( int imgNumber = 0; imgNumber < numberOfFrames; ++imgNumber )
 	{
@@ -102,12 +102,13 @@ int main (int argc, char* argv[])
 			continue; 
 		}
 		
+		int* frameSize = trackedFrameList->GetTrackedFrame(imgNumber)->GetFrameSize(); 
+
 		  // Add each tracked frame to reconstructor.
 		reconstructor->AddTrackedFrame(trackedFrameList->GetTrackedFrame(imgNumber)->ImageData->GetBufferPointer(), frameSize[0] , frameSize[1], mToolToReference );
 	}
 	
 	PlusLogger::PrintProgressbar( 100 ); 
-	std::cout << std::endl; 
   
 	LOG_INFO("Start reconstruction...");
 	reconstructor->StartReconstruction(); 
@@ -119,7 +120,6 @@ int main (int argc, char* argv[])
 	}
 
 	PlusLogger::PrintProgressbar( 100 ); 
-	std::cout << std::endl; 
 
 	LOG_INFO("Fill holes in output volume...");
 	reconstructor->FillHoles(); 
