@@ -92,6 +92,10 @@ public:
 	ImageType* GetOrientedImage( US_IMAGE_ORIENTATION usImageOrientation ); 
 	ImageType* GetOrientedImage( const char* usImageOrientation ); 
 
+	//! Operation: 
+	// Get tracked frame size in pixel
+	int* GetFrameSize(); 
+
 	bool operator< (TrackedFrame data) { return Timestamp < data.Timestamp; }
 	bool operator== (const TrackedFrame& data) const 
 	{
@@ -106,6 +110,7 @@ public:
 
 	std::vector<CustomFrameFieldPair> CustomFrameFieldList; 
 	std::vector<CustomFieldPair> CustomFieldList; 
+	int FrameSize[3]; 
 };
 
 
