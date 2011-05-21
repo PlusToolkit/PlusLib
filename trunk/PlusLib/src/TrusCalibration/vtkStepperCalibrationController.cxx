@@ -99,19 +99,19 @@ bool vtkStepperCalibrationController::AddItkImageData( ImageType* frame, const d
 }
 
 //----------------------------------------------------------------------------
-bool vtkStepperCalibrationController::LSQRMinimizer(const std::vector<vnl_vector<double>> &aMatrix, const std::vector<double> &bVector, vnl_vector<double> &resultVector)
+bool vtkStepperCalibrationController::LSQRMinimize(const std::vector<vnl_vector<double>> &aMatrix, const std::vector<double> &bVector, vnl_vector<double> &resultVector)
 {
-	LOG_TRACE("vtkStepperCalibrationController::LSQRMinimizer"); 
+	LOG_TRACE("vtkStepperCalibrationController::LSQRMinimize"); 
 
 	if (aMatrix.size()==0)
 	{
-		LOG_ERROR("LSQRMinimizer: A matrix is empty");
+		LOG_ERROR("LSQRMinimize: A matrix is empty");
 		resultVector.clear();
 		return false;
 	}
 	if (bVector.size()==0)
 	{
-		LOG_ERROR("LSQRMinimizer: b vector is empty");
+		LOG_ERROR("LSQRMinimize: b vector is empty");
 		resultVector.clear();
 		return false;
 	}
@@ -193,7 +193,7 @@ void vtkStepperCalibrationController::ComputeStatistics(const std::vector< std::
 //***************************************************************************
 
 //----------------------------------------------------------------------------
-int vtkStepperCalibrationController::CalibrateProbeRotationAxis()
+bool vtkStepperCalibrationController::CalibrateProbeRotationAxis()
 {
 	LOG_TRACE("vtkStepperCalibrationController::CalibrateProbeRotationAxis"); 
 	if ( ! this->GetInitialized() ) 
@@ -205,12 +205,12 @@ int vtkStepperCalibrationController::CalibrateProbeRotationAxis()
 	{
 		LOG_ERROR("Failed to calibrate probe rotation axis without spacing information!"); 
 		this->ProbeRotationAxisCalibratedOff(); 
-		return 0;
+		return false;
 	}
 
 	LOG_INFO( "----------------------------------------------------"); 
 	LOG_INFO( ">>>>>>>>>>>> Rotation axis calibration ..."); 
-	if ( this->RotationAxisCalibration() )
+	if ( this->CalibrateRotationAxis() )
 	{
 		LOG_INFO("CenterOfRotation (px): " << this->GetCenterOfRotationPx()[0] << "  " << this->GetCenterOfRotationPx()[1]); 
 		LOG_INFO("CenterOfRotation (mm): " << this->GetCenterOfRotationPx()[0]*this->GetSpacing()[0] << "  " << this->GetCenterOfRotationPx()[1]*this->GetSpacing()[1]); 
@@ -220,13 +220,13 @@ int vtkStepperCalibrationController::CalibrateProbeRotationAxis()
 	{
 		LOG_ERROR("Failed to calibrate probe rotation axis!"); 
 		this->ProbeRotationAxisCalibratedOff(); 
-		return 0; 
+		return false; 
 	}
 	
 
 	LOG_INFO( "----------------------------------------------------"); 
 	LOG_INFO( ">>>>>>>>>>>> Rotation encoder calibration ..."); 
-	if ( this->RotationEncoderCalibration() )
+	if ( this->CalibrateRotationEncoder() )
 	{
 		LOG_INFO("ProbeRotationEncoderScale = " << ProbeRotationEncoderScale); 
 		LOG_INFO("ProbeRotationEncoderOffset = " << ProbeRotationEncoderOffset); 
@@ -235,7 +235,7 @@ int vtkStepperCalibrationController::CalibrateProbeRotationAxis()
 	{
 		LOG_ERROR("Failed to calibrate probe rotation encoder!"); 
 		this->ProbeRotationAxisCalibratedOff(); 
-		return 0; 
+		return false; 
 	}
 
 	LOG_INFO( "----------------------------------------------------"); 
@@ -243,15 +243,15 @@ int vtkStepperCalibrationController::CalibrateProbeRotationAxis()
 	if ( this->CalculatePhantomToProbeDistance() )
 	{
 		LOG_INFO("Phantom to probe distance: " << this->GetPhantomToProbeDistanceInMm()[0] << "  " << this->GetPhantomToProbeDistanceInMm()[1]); 
+		this->ProbeRotationAxisCalibratedOn(); 
 	}
 	else
 	{
 		LOG_ERROR("Failed to calculate phantom to probe distance!"); 
 		this->ProbeRotationAxisCalibratedOff(); 
-		return 0; 
 	}
 
-	this->ProbeRotationAxisCalibratedOn(); 
+	
 
 	// save the input images to meta image
 	if ( this->GetEnableTrackedSequenceDataSaving() )
@@ -264,30 +264,31 @@ int vtkStepperCalibrationController::CalibrateProbeRotationAxis()
 		this->SaveTrackedFrameListToMetafile( PROBE_ROTATION, this->GetOutputPath(), probeRotationDataFileName.str().c_str(), false ); 
 	}
 
-	return 1; 
+	return this->GetProbeRotationAxisCalibrated(); 
 }
 
 //----------------------------------------------------------------------------
-int vtkStepperCalibrationController::RotationAxisCalibration()
+bool vtkStepperCalibrationController::CalibrateRotationAxis()
 {
-	LOG_TRACE("vtkStepperCalibrationController::RotationAxisCalibration"); 
+	LOG_TRACE("vtkStepperCalibrationController::CalibrateRotationAxis"); 
 
 	std::vector<SegmentedFrameList> clusteredFrames; 
 	this->ClusterSegmentedFrames(PROBE_ROTATION, clusteredFrames); 
 
 	if ( clusteredFrames.size() < this->MinNumberOfRotationClusters )
 	{
-		LOG_WARNING("Unable to calibrate rotation axis: Number of rotation clusters are less than the minimum requirements (" << clusteredFrames.size() << " of " << this->MinNumberOfRotationClusters << ")." ); 
 		if ( clusteredFrames.size() > 0 )
 		{
+			LOG_WARNING("Unable to calibrate rotation axis: Number of rotation clusters are less than the minimum requirements (" << clusteredFrames.size() << " of " << this->MinNumberOfRotationClusters << ")." ); 
 			double centerOfRotationPx[2] = {0, 0}; 
 			this->CalculateCenterOfRotation(clusteredFrames[0], centerOfRotationPx); 
 			this->SetCenterOfRotationPx( centerOfRotationPx[0], centerOfRotationPx[1]); 
-			return 1; 
+			return true; 
 		}
 		else
 		{
-			return 0; 
+			LOG_ERROR("Failed to calibrate rotation axis: Unable to find any rotation clusters!" ); 
+			return false; 
 		}
 	}
 
@@ -329,7 +330,7 @@ int vtkStepperCalibrationController::RotationAxisCalibration()
 	do 
 	{
 		numberOfEquations = bVector.size(); 
-		if ( this->LSQRMinimizer(aMatrix, bVector, rotationAxisCalibResult) )
+		if ( this->LSQRMinimize(aMatrix, bVector, rotationAxisCalibResult) )
 		{
 			this->RemoveOutliersFromRotAxisCalibData(aMatrix, bVector, rotationAxisCalibResult); 
 		}
@@ -339,7 +340,7 @@ int vtkStepperCalibrationController::RotationAxisCalibration()
 	if ( rotationAxisCalibResult.empty() )
 	{
 		LOG_ERROR("Unable to calibrate rotation axis! Minimizer returned empty result."); 
-		return 0; 
+		return false; 
 	}
 
 	LOG_INFO("RotationAxisCalibResult: " << std::fixed << rotationAxisCalibResult[0] << "  " << rotationAxisCalibResult[1] << "  " << rotationAxisCalibResult[2] << "  " << rotationAxisCalibResult[3] ); 
@@ -351,7 +352,7 @@ int vtkStepperCalibrationController::RotationAxisCalibration()
 	// => we need to change the sign of the axis to compensate it
 	this->SetProbeRotationAxisOrientation(-rotationAxisCalibResult[0], -rotationAxisCalibResult[1], 1); 
 
-	return 1; 
+	return true; 
 }
 
 //----------------------------------------------------------------------------
@@ -463,13 +464,13 @@ void vtkStepperCalibrationController::RemoveOutliersFromRotAxisCalibData(std::ve
 
 
 //----------------------------------------------------------------------------
-int vtkStepperCalibrationController::RotationEncoderCalibration()
+bool vtkStepperCalibrationController::CalibrateRotationEncoder()
 {
-	LOG_TRACE("vtkStepperCalibrationController::RotationEncoderCalibration"); 
+	LOG_TRACE("vtkStepperCalibrationController::CalibrateRotationEncoder"); 
 	if ( !this->CalculateSpacing() )
 	{
 		LOG_ERROR("Unable to calibrate rotation encoder without spacing information!"); 
-		return 0; 
+		return false; 
 	}
 
 	// Construct linear equations Ax = b, where A is a matrix with m rows and 
@@ -483,7 +484,7 @@ int vtkStepperCalibrationController::RotationEncoderCalibration()
 	if ( aMatrix.size() == 0 || bVector.size() == 0 )
 	{
 		LOG_WARNING("Rotation encoder calibration failed, no data found!"); 
-		return 0; 
+		return false; 
 	}
 
 	vnl_vector<double> rotationEncoderCalibrationResult(2,0);
@@ -491,7 +492,7 @@ int vtkStepperCalibrationController::RotationEncoderCalibration()
 	do
 	{
 		numberOfEquations = bVector.size(); 
-		if ( this->LSQRMinimizer(aMatrix, bVector, rotationEncoderCalibrationResult) )
+		if ( this->LSQRMinimize(aMatrix, bVector, rotationEncoderCalibrationResult) )
 		{
 			this->RemoveOutliersFromRotEncCalibData(aMatrix, bVector, rotationEncoderCalibrationResult); 
 		}
@@ -501,7 +502,7 @@ int vtkStepperCalibrationController::RotationEncoderCalibration()
 	if ( rotationEncoderCalibrationResult.empty() )
 	{
 		LOG_ERROR("Unable to calibrate rotation encoder! Minimizer returned empty result."); 
-		return 0; 
+		return false; 
 	}
 
 	// Calculate mean error and stdev of measured and computed wire positions for each wire
@@ -513,7 +514,7 @@ int vtkStepperCalibrationController::RotationEncoderCalibration()
 	this->SetProbeRotationEncoderScale(rotationEncoderCalibrationResult.get(0)); 
 	this->SetProbeRotationEncoderOffset(rotationEncoderCalibrationResult.get(1)); 
 
-	return 1; 
+	return true; 
 }
 
 //----------------------------------------------------------------------------
@@ -673,10 +674,8 @@ void vtkStepperCalibrationController::SaveRotationEncoderCalibrationError(const 
 
 
 //----------------------------------------------------------------------------
-int vtkStepperCalibrationController::CalibrateProbeTranslationAxis()
+bool vtkStepperCalibrationController::CalibrateProbeTranslationAxis()
 {
-	int retValue(0); 
-
 	LOG_TRACE("vtkStepperCalibrationController::CalibrateProbeTranslationAxis"); 
 	if ( ! this->GetInitialized() ) 
 	{
@@ -687,23 +686,21 @@ int vtkStepperCalibrationController::CalibrateProbeTranslationAxis()
 	{
 		LOG_ERROR("Failed to calibrate probe translation axis without spacing information!"); 
 		this->ProbeTranslationAxisCalibratedOff(); 
-		return 0; 
+		return false; 
 	}
 
 	// Probe translation axis calibration 
 	LOG_INFO( "----------------------------------------------------"); 
 	LOG_INFO( ">>>>>>>>>>>> Probe translation axis calibration ..."); 
-	if ( this->TranslationAxisCalibration(PROBE_TRANSLATION) )
+	if ( this->CalibrateTranslationAxis(PROBE_TRANSLATION) )
 	{
 		LOG_INFO("Probe translation axis orientation: Tx=" << std::fixed << this->GetProbeTranslationAxisOrientation()[0] << "  Ty=" << this->GetProbeTranslationAxisOrientation()[1]); 
 		this->ProbeTranslationAxisCalibratedOn(); 
-		retValue = 1; 
 	}
 	else
 	{
 		LOG_ERROR("Failed to calibrate probe translation axis!"); 
 		this->ProbeTranslationAxisCalibratedOff(); 
-		retValue = 0; 
 	}
 
 	// save the input images to meta image
@@ -717,13 +714,12 @@ int vtkStepperCalibrationController::CalibrateProbeTranslationAxis()
 		this->SaveTrackedFrameListToMetafile( PROBE_TRANSLATION, this->GetOutputPath(), probeTranslationDataFileName.str().c_str(), false ); 
 	}
 
-	return retValue; 
+	return this->GetProbeTranslationAxisCalibrated(); 
 }
 
 //----------------------------------------------------------------------------
-int vtkStepperCalibrationController::CalibrateTemplateTranslationAxis()
+bool vtkStepperCalibrationController::CalibrateTemplateTranslationAxis()
 {
-	int retValue(0); 
 	LOG_TRACE("vtkStepperCalibrationController::CalibrateTemplateTranslationAxis"); 
 	if ( ! this->GetInitialized() ) 
 	{
@@ -734,23 +730,21 @@ int vtkStepperCalibrationController::CalibrateTemplateTranslationAxis()
 	{
 		LOG_ERROR("Failed to calibrate template translation axis without spacing information!"); 
 		this->TemplateTranslationAxisCalibratedOff(); 
-		return 0; 
+		return false; 
 	}
 
 	// Template translation axis calibration 
 	LOG_INFO( "----------------------------------------------------"); 
 	LOG_INFO( ">>>>>>>>>>>> Template translation axis calibration ..."); 
-	if ( this->TranslationAxisCalibration(TEMPLATE_TRANSLATION) )
+	if ( this->CalibrateTranslationAxis(TEMPLATE_TRANSLATION) )
 	{
 		LOG_INFO("Template translation axis orientation: Tx=" << std::fixed << this->GetTemplateTranslationAxisOrientation()[0] << "  Ty=" << this->GetTemplateTranslationAxisOrientation()[1]); 
 		this->TemplateTranslationAxisCalibratedOn(); 
-		retValue = 1; 
 	}
 	else
 	{
 		LOG_ERROR("Failed to calibrate template translation axis!"); 
 		this->TemplateTranslationAxisCalibratedOff(); 
-		retValue = 0; 
 	}
 
 	// save the input images to meta image
@@ -764,13 +758,13 @@ int vtkStepperCalibrationController::CalibrateTemplateTranslationAxis()
 		this->SaveTrackedFrameListToMetafile( TEMPLATE_TRANSLATION, this->GetOutputPath(), templateTranslationDataFileName.str().c_str(), false ); 
 	}
 
-	return retValue; 
+	return this->GetTemplateTranslationAxisCalibrated(); 
 }
 
 //----------------------------------------------------------------------------
-int vtkStepperCalibrationController::TranslationAxisCalibration( IMAGE_DATA_TYPE dataType )
+bool vtkStepperCalibrationController::CalibrateTranslationAxis( IMAGE_DATA_TYPE dataType )
 {
-	LOG_TRACE("vtkStepperCalibrationController::TranslationAxisCalibration"); 
+	LOG_TRACE("vtkStepperCalibrationController::CalibrateTranslationAxis"); 
 	// Construct linear equations Ax = b, where A is a matrix with m rows and 
 	// n columns, b is an m-vector. 
 	std::vector<vnl_vector<double>> aMatrix;
@@ -782,7 +776,7 @@ int vtkStepperCalibrationController::TranslationAxisCalibration( IMAGE_DATA_TYPE
 	if ( aMatrix.size() == 0 || bVector.size() == 0 )
 	{
 		LOG_WARNING("Translation axis calibration failed, no data found!"); 
-		return 0; 
+		return false; 
 	}
 
 	// [tx, ty, w1x0, w1y0, w3x0, w3y0, w4x0, w4y0, w6x0, w6y0 ]
@@ -792,7 +786,7 @@ int vtkStepperCalibrationController::TranslationAxisCalibration( IMAGE_DATA_TYPE
 	do 
 	{
 		numberOfEquations = bVector.size(); 
-		if ( this->LSQRMinimizer(aMatrix, bVector, translationAxisCalibResult) )
+		if ( this->LSQRMinimize(aMatrix, bVector, translationAxisCalibResult) )
 		{
 			this->RemoveOutliersFromTransAxisCalibData(aMatrix, bVector, translationAxisCalibResult); 
 		}
@@ -802,7 +796,7 @@ int vtkStepperCalibrationController::TranslationAxisCalibration( IMAGE_DATA_TYPE
 	if ( translationAxisCalibResult.empty() )
 	{
 		LOG_ERROR("Unable to calibrate translation axis! Minimizer returned empty result."); 
-		return 0; 
+		return false; 
 	}
 
 	// Calculate mean error and stdev of measured and computed wire positions for each wire
@@ -823,7 +817,7 @@ int vtkStepperCalibrationController::TranslationAxisCalibration( IMAGE_DATA_TYPE
 		this->SetTemplateTranslationAxisOrientation(-translationAxisCalibResult[0], -translationAxisCalibResult[1], 1); 
 	}
 
-	return 1; 
+	return true; 
 }
 
 //----------------------------------------------------------------------------
@@ -1265,13 +1259,13 @@ void vtkStepperCalibrationController::GenerateTranslationAxisCalibrationReport( 
 //***************************************************************************
 
 //----------------------------------------------------------------------------
-int vtkStepperCalibrationController::CalculateSpacing()
+bool vtkStepperCalibrationController::CalculateSpacing()
 {
 	LOG_TRACE("vtkStepperCalibrationController::CalculateSpacing"); 
 	if ( this->GetSpacingCalculated() )
 	{
 		// we already calculated it, no need to recalculate
-		return 1; 
+		return true; 
 	}
 
 	LOG_INFO( ">>>>>>>>>>>> Image spacing calculation ..."); 
@@ -1287,7 +1281,7 @@ int vtkStepperCalibrationController::CalculateSpacing()
 	if ( aMatrix.size() == 0 || bVector.size() == 0 )
 	{
 		LOG_WARNING("Spacing calculation failed, no data found!"); 
-		return 0; 
+		return false; 
 	}
 
 	// The TRUS Scale factors
@@ -1300,7 +1294,7 @@ int vtkStepperCalibrationController::CalculateSpacing()
 	do 
 	{
 		numberOfEquations = bVector.size(); 
-		if ( this->LSQRMinimizer(aMatrix, bVector, TRUSSquaredScaleFactorsInMMperPixel2x1) )
+		if ( this->LSQRMinimize(aMatrix, bVector, TRUSSquaredScaleFactorsInMMperPixel2x1) )
 		{
 			this->RemoveOutliersFromSpacingCalcData(aMatrix, bVector, TRUSSquaredScaleFactorsInMMperPixel2x1); 
 		}
@@ -1310,7 +1304,7 @@ int vtkStepperCalibrationController::CalculateSpacing()
 	if ( TRUSSquaredScaleFactorsInMMperPixel2x1.empty() )
 	{
 		LOG_ERROR("Unable to calculate spacing! Minimizer returned empty result."); 
-		return 0; 
+		return false; 
 	}
 
 	this->SetSpacing( sqrt(TRUSSquaredScaleFactorsInMMperPixel2x1.get(0)), sqrt(TRUSSquaredScaleFactorsInMMperPixel2x1.get(1)) );
@@ -1319,7 +1313,7 @@ int vtkStepperCalibrationController::CalculateSpacing()
 
 	LOG_INFO("Spacing: " << this->GetSpacing()[0] << "  " << this->GetSpacing()[1]); 
 
-	return 1; 
+	return true; 
 }
 
 
@@ -1433,7 +1427,7 @@ void vtkStepperCalibrationController::RemoveOutliersFromSpacingCalcData(
 //***************************************************************************
 
 //----------------------------------------------------------------------------
-int vtkStepperCalibrationController::CalculateCenterOfRotation( const SegmentedFrameList &frameListForCenterOfRotation, double centerOfRotationPx[2] )
+bool vtkStepperCalibrationController::CalculateCenterOfRotation( const SegmentedFrameList &frameListForCenterOfRotation, double centerOfRotationPx[2] )
 {
 	LOG_TRACE("vtkStepperCalibrationController::CalculateCenterOfRotation"); 
 	// ====================================================================
@@ -1499,7 +1493,7 @@ int vtkStepperCalibrationController::CalculateCenterOfRotation( const SegmentedF
 	if ( aMatrix.size() == 0 || bVector.size() == 0 )
 	{
 		LOG_WARNING("Center of rotation calculation failed, no data found!"); 
-		return 0; 
+		return false; 
 	}
 
 
@@ -1514,7 +1508,7 @@ int vtkStepperCalibrationController::CalculateCenterOfRotation( const SegmentedF
 	do 
 	{
 		numberOfEquations = bVector.size(); 
-		if ( this->LSQRMinimizer(aMatrix, bVector, TRUSRotationCenterInOriginalImageFrameInMm2x1) )
+		if ( this->LSQRMinimize(aMatrix, bVector, TRUSRotationCenterInOriginalImageFrameInMm2x1) )
 		{
 			this->RemoveOutliersFromCenterOfRotCalcData(aMatrix, bVector, TRUSRotationCenterInOriginalImageFrameInMm2x1); 
 		}
@@ -1524,7 +1518,7 @@ int vtkStepperCalibrationController::CalculateCenterOfRotation( const SegmentedF
 	if ( TRUSRotationCenterInOriginalImageFrameInMm2x1.empty() )
 	{
 		LOG_ERROR("Unable to calculate center of rotation! Minimizer returned empty result."); 
-		return 0; 
+		return false; 
 	}
 
 	// Calculate mean error and stdev of measured and computed distances
@@ -1536,7 +1530,7 @@ int vtkStepperCalibrationController::CalculateCenterOfRotation( const SegmentedF
 	centerOfRotationPx[0] = TRUSRotationCenterInOriginalImageFrameInMm2x1.get(0) / this->GetSpacing()[0]; 
 	centerOfRotationPx[1] = TRUSRotationCenterInOriginalImageFrameInMm2x1.get(1) / this->GetSpacing()[1]; 
 
-	return 1; 
+	return true; 
 }
 
 //----------------------------------------------------------------------------
@@ -1641,7 +1635,7 @@ void vtkStepperCalibrationController::AddPointsForPhantomToProbeDistanceCalculat
 }
 
 //----------------------------------------------------------------------------
-int vtkStepperCalibrationController::CalculatePhantomToProbeDistance()
+bool vtkStepperCalibrationController::CalculatePhantomToProbeDistance()
 {
 	LOG_TRACE("vtkStepperCalibrationController::CalculatePhantomToProbeDistance"); 
 	// ==================================================================================
@@ -1657,7 +1651,7 @@ int vtkStepperCalibrationController::CalculatePhantomToProbeDistance()
 	if ( !this->GetSpacingCalculated() )
 	{
 		LOG_WARNING("Unable to calculate phantom to probe distance without spacing calculated!"); 
-		return 0; 
+		return false; 
 	}
 
 	for ( int frame = 0; frame < this->SegmentedFrameContainer.size(); frame++ )
@@ -1682,6 +1676,12 @@ int vtkStepperCalibrationController::CalculatePhantomToProbeDistance()
 
 	// Total number images used for this computation
 	const int totalNumberOfImages2ComputePtLnDist = this->PointSetForPhantomToProbeDistanceCalculation.size();
+
+	if ( totalNumberOfImages2ComputePtLnDist == 0 )
+	{
+		LOG_ERROR("Failed to calculate phantom to probe distance. Probe distance calculation data is empty!"); 
+		return false; 
+	}
 
 	// This will keep a trace on all the calculated distance
 	vnl_vector<double> listOfPhantomToProbeVerticalDistanceInMm(totalNumberOfImages2ComputePtLnDist, 0 );
@@ -1729,7 +1729,7 @@ int vtkStepperCalibrationController::CalculatePhantomToProbeDistance()
 
 	this->SetPhantomToProbeDistanceInMm( listOfPhantomToProbeHorizontalDistanceInMm.mean(), listOfPhantomToProbeVerticalDistanceInMm.mean() ); 
 
-	return 1; 
+	return true; 
 }
 
 
