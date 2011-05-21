@@ -249,30 +249,39 @@ int vtkSavedDataVideoSource::Connect()
 
 		// Get frame number
 		const char* strFrameNumber = trackedFrame->GetCustomFrameField("FrameNumber"); 
+		long frameNumber = -1;
 		if ( strFrameNumber == NULL ) 
 		{
-			LOG_WARNING("Unable to get frame number for frame #" << frame ); 
-			continue; 
+			frameNumber = frame;
 		}
-		long frameNumber = atol(strFrameNumber); 
+		else
+		{
+		  frameNumber = atol(strFrameNumber); 
+		}
 
 		// Get Timestamp
 		const char* strTimestamp = trackedFrame->GetCustomFrameField("Timestamp"); 
+		double timestamp = -1;
 		if ( strTimestamp == NULL ) 
 		{
-			LOG_WARNING("Unable to get timestamp for frame #" << frame ); 
-			continue; 
+			timestamp = frame;  // Just to make sure its increasing. This is not a normal case.
 		}
-		double timestamp = atof(strTimestamp); 
+		else
+		{
+		  timestamp = atof(strTimestamp); 
+		}
 
 		// Get UnfilteredTimestamp
 		const char* strUnfilteredTimestamp = trackedFrame->GetCustomFrameField("UnfilteredTimestamp"); 
+		double unfilteredTimestamp = -1;
 		if ( strUnfilteredTimestamp == NULL ) 
 		{
-			LOG_WARNING("Unable to get unfiltered timestamp for frame #" << frame ); 
-			continue; 
+			unfilteredTimestamp = timestamp;
 		}
-		double unfilteredTimestamp = atof(strUnfilteredTimestamp); 
+		else
+		{
+		  unfilteredTimestamp = atof(strUnfilteredTimestamp); 
+		}
 
 		this->LocalVideoBuffer->Seek(1);
 		TrackedFrame::PixelType *deviceDataPtr = trackedFrame->ImageData->GetBufferPointer(); 
@@ -298,7 +307,7 @@ int vtkSavedDataVideoSource::Connect()
 		}
 		
 		// add the new frame and the current time to the buffer
-		this->LocalVideoBuffer->AddItem(this->LocalVideoBuffer->GetFrame(0), timestamp, timestamp, frameNumber );
+		this->LocalVideoBuffer->AddItem(this->LocalVideoBuffer->GetFrame(0), timestamp, unfilteredTimestamp, frameNumber );
 	}
 
 	return 1; 
