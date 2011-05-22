@@ -17,7 +17,7 @@ FreehandCalibrationToolbox::FreehandCalibrationToolbox(QWidget* aParent, Qt::WFl
 	//TODO tooltips
 
 	// Create timer
-	m_AcquisitionTimer = new QTimer(this);
+	//m_AcquisitionTimer = new QTimer(this);
 
 	// Initialize toolbox controller
 	vtkFreehandCalibrationController* toolboxController = vtkFreehandCalibrationController::GetInstance();
@@ -52,10 +52,12 @@ FreehandCalibrationToolbox::~FreehandCalibrationToolbox()
 		delete freehandCalibrationController;
 	}
 
+	/*
 	if (m_AcquisitionTimer != NULL) {
 		delete m_AcquisitionTimer;
 		m_AcquisitionTimer = NULL;
 	}
+	*/
 }
 
 //-----------------------------------------------------------------------------
@@ -188,12 +190,6 @@ void FreehandCalibrationToolbox::Stop()
 void FreehandCalibrationToolbox::Clear()
 {
 	LOG_INFO("Clear freehand calibration"); 
-}
-
-//-----------------------------------------------------------------------------
-
-void FreehandCalibrationToolbox::RequestDoAcquisition()
-{
 }
 
 //-----------------------------------------------------------------------------

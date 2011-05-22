@@ -59,9 +59,9 @@ signals:
 
 protected slots:
 	/*!
-	* \brief Calls acquire positions function in controller (called by the acquisition timer) - implementation of a pure virtual function
+	* \brief Not used in this controller - implementation of a pure virtual function
 	*/
-	void RequestDoAcquisition();
+	void RequestDoAcquisition() { };
 
 	//TODO
 	void OpenPhantomDefinitionClicked();
@@ -77,7 +77,7 @@ protected:
 	Ui::FreehandCalibrationToolbox ui;
 
 	//! Timer for acquisition
-	QTimer*	m_AcquisitionTimer;
+	//QTimer*	m_AcquisitionTimer; //TODO delete
 };
 
 #endif
