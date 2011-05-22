@@ -106,6 +106,11 @@ public:
 	virtual void ReadStepperCalibrationConfiguration(vtkXMLDataElement* stepperCalibration); 
 
 	// Description:
+	// Add generated html report from probe rotation axis calibration to the existing html report
+	// htmlReport and plotter arguments has to be defined by the caller function
+	virtual void GenerateProbeRotationAxisCalibrationReport( vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter, const char* gnuplotScriptsFolder); 
+
+	// Description:
 	// Add generated html report from probe translation axis calibration to the existing html report
 	// htmlReport and plotter arguments has to be defined by the caller function
 	virtual void GenerateProbeTranslationAxisCalibrationReport( vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter, const char* gnuplotScriptsFolder); 
@@ -200,6 +205,11 @@ public:
 	vtkGetStringMacro(CalibrationStartTime); 
 
 	//! Description: 
+	// Set/get probe rotation axis calibration error report file path
+	vtkSetStringMacro(ProbeRotationAxisCalibrationErrorReportFilePath); 
+	vtkGetStringMacro(ProbeRotationAxisCalibrationErrorReportFilePath); 
+
+	//! Description: 
 	// Set/get probe translation axis calibration error report file path
 	vtkSetStringMacro(ProbeTranslationAxisCalibrationErrorReportFilePath); 
 	vtkGetStringMacro(ProbeTranslationAxisCalibrationErrorReportFilePath); 
@@ -262,7 +272,7 @@ protected:
 		std::vector<double> &stdev ); 
 
 	//! Description: 
-	// Save translation axix calibration error in gnuplot format 
+	// Save translation axis calibration error in gnuplot format 
 	virtual void SaveTranslationAxisCalibrationError(
 		const std::vector<vnl_vector<double>> &aMatrix, 
 		const std::vector<double> &bVector, 
@@ -308,6 +318,13 @@ protected:
 		std::vector<vnl_vector<double>> &aMatrix, 
 		std::vector<double> &bVector, 
 		vnl_vector<double> resultVector );
+
+	//! Description: 
+	// Save rotation axis calibration error in gnuplot format 
+	virtual void SaveRotationAxisCalibrationError(
+		const std::vector<vnl_vector<double>> &aMatrix, 
+		const std::vector<double> &bVector, 
+		const vnl_vector<double> &resultVector); 
 
 	//***************************************************************************
 	//						Rotation encoder calibration
@@ -476,6 +493,7 @@ protected:
 
 	std::vector< std::vector<HomogenousVector4x1> > PointSetForPhantomToProbeDistanceCalculation;
 
+	char* ProbeRotationAxisCalibrationErrorReportFilePath; 
 	char* ProbeTranslationAxisCalibrationErrorReportFilePath; 
 	char* TemplateTranslationAxisCalibrationErrorReportFilePath; 
 

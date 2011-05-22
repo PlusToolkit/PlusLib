@@ -1,5 +1,5 @@
-## PlotStepperCalibrationErrorHistogram
-## -------------------------------------
+## PlotStepperCalibrationError
+## ---------------------------
 ## Create an LRE error histogram for stepper calibration  
 ##
 ## gnuplot.exe -e "f='TranslationAxisCalibrationError.txt'; o='TranslationAxisCalibrationError'; w=1" PlotStepperCalibrationError.gnu 
