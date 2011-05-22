@@ -3,8 +3,6 @@
 #include "PhantomRegistrationController.h"
 #include "StylusCalibrationController.h"
 #include "vtkSmartPointer.h"
-//#include "vtkCommand.h"
-//#include "vtkCallbackCommand.h"
 #include "vtkXMLDataElement.h"
 #include "vtkXMLUtilities.h"
 #include "vtksys/CommandLineArguments.hxx" 

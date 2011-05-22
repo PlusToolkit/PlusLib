@@ -2,8 +2,6 @@
 
 #include "vtkObjectFactory.h"
 #include "vtkDirectory.h"
-#include "vtkTrackerTool.h"
-#include "vtkTrackedFrameList.h"
 
 //-----------------------------------------------------------------------------
 
@@ -36,7 +34,7 @@ vtkFreehandController* vtkFreehandController::GetInstance() {
 vtkFreehandController::vtkFreehandController()
 {
 	this->DataCollector = NULL;
-	this->TrackedFrameContainer = NULL;
+	//this->TrackedFrameContainer = NULL; TODO
 	this->RecordingFrameRate = 20;
 	this->InputConfigFileName = NULL;
 	this->OutputFolder = NULL;
@@ -46,7 +44,7 @@ vtkFreehandController::vtkFreehandController()
 	this->TrackingOnlyOn();
 	this->Canvas = NULL;
 	this->CanvasRenderer = NULL;
-	this->CanvasImageActor = NULL;
+	//this->CanvasImageActor = NULL; TODO
 
 	VTK_LOG_TO_CONSOLE_ON
 }
@@ -59,10 +57,11 @@ vtkFreehandController::~vtkFreehandController()
 	this->SetCanvasRenderer(NULL);
 	//this->SetCanvasImageActor(NULL); TODO
 
+	/* TODO
 	if ( this->TrackedFrameContainer != NULL ) {
 		this->TrackedFrameContainer->Delete(); 
 		this->TrackedFrameContainer = NULL; 
-	}
+	}*/
 }
 
 //-----------------------------------------------------------------------------
@@ -93,15 +92,11 @@ void vtkFreehandController::Initialize()
 		exit(EXIT_FAILURE); 
 	}
 
+	/*
 	if ( this->TrackedFrameContainer == NULL ) {
 		this->TrackedFrameContainer = vtkTrackedFrameList::New(); 
-	}
-
-	// Set up canvas image actor
-	vtkSmartPointer<vtkImageActor> canvasImageActor = vtkSmartPointer<vtkImageActor>::New();
-	//canvasImageActor->VisibilityOn(); 
-	this->SetCanvasImageActor(canvasImageActor); 
-	//CanvasImageActor->SetInput( this->DataCollector->GetOutput() );
+	} TODO
+	*/
 
 	// Set up canvas renderer
 	vtkSmartPointer<vtkRenderer> canvasRenderer = vtkSmartPointer<vtkRenderer>::New(); 
@@ -118,7 +113,7 @@ void vtkFreehandController::Initialize()
 }
 
 //-----------------------------------------------------------------------------
-
+/* TODO torolni
 int vtkFreehandController::GetNextActiveToolNumber()
 {
 	int nextToolNumber = this->DataCollector->GetDefaultToolPortNumber();
@@ -142,7 +137,7 @@ int vtkFreehandController::GetNextActiveToolNumber()
 
 	return nextToolNumber; 
 }
-
+*/
 //-----------------------------------------------------------------------------
 
 void vtkFreehandController::SetTrackingOnly(bool aOn)
@@ -157,7 +152,7 @@ void vtkFreehandController::SetTrackingOnly(bool aOn)
 }
 
 //-----------------------------------------------------------------------------
-
+/*
 int vtkFreehandController::GetNumberOfRecordedFrames()
 { 
 	int numOfFrames = 0;
@@ -169,9 +164,9 @@ int vtkFreehandController::GetNumberOfRecordedFrames()
 }
 
 //-----------------------------------------------------------------------------
-
+/*
 void vtkFreehandController::AddTrackedFrame( vtkImageData* aImageData, std::vector<vtkMatrix4x4*> aToolTransforms, std::vector<std::string> aToolTransformNames, std::vector<long> aFlags, double aTimestamp)
-{
+{ //TODO torolni ha biztos nem kell
 	TrackedFrame trackedFrame;
 	trackedFrame.ImageData = NULL; 
 	trackedFrame.Timestamp = aTimestamp; 
@@ -181,7 +176,7 @@ void vtkFreehandController::AddTrackedFrame( vtkImageData* aImageData, std::vect
 		// We've already inserted this frame into the sequence
 		return; 
 	}
-	/*
+
 	// convert vtkImageData to itkImage 
 	vtkSmartPointer<vtkImageFlip> imageFlipy = vtkSmartPointer<vtkImageFlip>::New(); 
 	imageFlipy->SetInput(imageData); 
@@ -207,7 +202,7 @@ void vtkFreehandController::AddTrackedFrame( vtkImageData* aImageData, std::vect
 	memcpy( frame->GetBufferPointer(), imageExport->GetPointerToData(), imageExport->GetDataMemorySize() ); 
 
 	trackedFrame.ImageData = frame;
-	*/
+
 	// Save flags
 	for (unsigned int i = 0; i < aFlags.size(); i++) {
 		if (aToolTransformNames.size() <= i) {
@@ -248,10 +243,11 @@ void vtkFreehandController::AddTrackedFrame( vtkImageData* aImageData, std::vect
 
 	LOG_DEBUG("New tracked frame to container added"); 
 }
-
+*/
 //-----------------------------------------------------------------------------
-
+/* TODO
 void vtkFreehandController::ClearTrackedFrameContainer()
 {
 	this->TrackedFrameContainer->Clear();
 }
+*/

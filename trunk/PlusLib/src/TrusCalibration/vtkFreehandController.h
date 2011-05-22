@@ -5,7 +5,6 @@
 
 #include "vtkObject.h"
 #include "vtkDataCollector.h"
-#include "vtkImageActor.h" 
 #include "vtkRenderer.h"
 
 class vtkTrackedFrameList;
@@ -39,8 +38,8 @@ public:
 	/*!
 	 * \brief Get index of next active tool
 	 * \return Tool index
-	 */
-	int GetNextActiveToolNumber();
+	 */ //TODO torolni
+	//int GetNextActiveToolNumber();
 
 	/*!
 	 * \brief Sets tracking only flag and forwards the request to vtkDataCollector
@@ -51,8 +50,8 @@ public:
 	/*!
 	 * \brief Gets number of recorded frames
 	 * \return Number of recorded frames
-	 */
-	int GetNumberOfRecordedFrames(); 
+	 */ // TODO torolni
+	//int GetNumberOfRecordedFrames(); 
 
 	/*!
 	 * \brief Adds tracked frame to contained
@@ -61,13 +60,13 @@ public:
 	 * \param aToolTransformNames Names of the tool transforms
 	 * \param aFlags Flags of tracking
 	 * \param aTimestamp Timestamp of the tracked frame
-	 */
-	void AddTrackedFrame(vtkImageData* aImageData, std::vector<vtkMatrix4x4*> aToolTransforms, std::vector<std::string> aToolTransformNames, std::vector<long> aFlags, double aTimestamp);
+	 */ // TODO torolni
+	//void AddTrackedFrame(vtkImageData* aImageData, std::vector<vtkMatrix4x4*> aToolTransforms, std::vector<std::string> aToolTransformNames, std::vector<long> aFlags, double aTimestamp);
 
 	/*!
 	* \brief Empty tracked frame container for next operation
-	*/
-	void ClearTrackedFrameContainer();
+	*/ // TODO torolni
+	//void ClearTrackedFrameContainer();
 
 public:
 	// Set/Get functions for canvas
@@ -94,9 +93,6 @@ public:
 	vtkGetObjectMacro(DataCollector, vtkDataCollector); 
 	vtkSetObjectMacro(DataCollector, vtkDataCollector); 
 
-	vtkGetObjectMacro(CanvasImageActor, vtkImageActor);
-	vtkSetObjectMacro(CanvasImageActor, vtkImageActor);
-
 	vtkGetObjectMacro(CanvasRenderer, vtkRenderer);
 	vtkSetObjectMacro(CanvasRenderer, vtkRenderer);
 
@@ -119,40 +115,37 @@ protected:
 
 protected:
 	//! Tracker object
-	vtkDataCollector*			DataCollector;
+	vtkDataCollector*				DataCollector;
 
 	//! Container of recorded data
-	vtkTrackedFrameList*		TrackedFrameContainer;
+	//vtkTrackedFrameList*			TrackedFrameContainer; //TODO
 
 	//! Initialization flag
-	bool						Initialized;
+	bool							Initialized;
 
 	//! Flag determining if there is image recording beside tracker recording
-	bool						TrackingOnly;
+	bool							TrackingOnly;
 
 	//! Desired frame rate of synchronized recording
-	int							RecordingFrameRate;
+	int								RecordingFrameRate;
 
 	//! Input configuration file name
-	char*						InputConfigFileName;
+	char*							InputConfigFileName;
 
 	//! Output folder
-	char*						OutputFolder;
+	char*							OutputFolder;
 
 	//! Canvas object for real-time 3D visualization
-	QVTKWidget*					Canvas;
+	QVTKWidget*						Canvas;
 
 	//! Renderer for the canvas
-	vtkRenderer*				CanvasRenderer; 
-
-	//! TODO
-	vtkImageActor*				CanvasImageActor; 
+	vtkRenderer*					CanvasRenderer; 
 
 	//! Program path
-	char*						ProgramPath;
+	char*							ProgramPath;
 
 	//! Config directory path
-	char*						ConfigDirectory;
+	char*							ConfigDirectory;
 
 private:
 	//! Instance of the singleton

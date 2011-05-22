@@ -114,3 +114,20 @@ ADD_TEST(vtkPhantomRegistrationTest
 		--input-phantom-definition-xml-file-name=${ConfigFilesDir}/PhantomDefinition_fCal_1.0.xml
 		--verbose=1
 		)
+
+#--------------------------------------------------------------------------------------------
+SET (vtkFreehandCalibrationTest_LIBS ${vtkFreehandCalibrationTest_LIBS} itkvnl itkvnl_algo vtkCommon vtkTrusCalibration vtkDataCollection)
+ADD_EXECUTABLE(vtkFreehandCalibrationTest vtkFreehandCalibrationTest.cxx)
+TARGET_LINK_LIBRARIES(vtkFreehandCalibrationTest ${vtkFreehandCalibrationTest_LIBS} )
+
+ADD_TEST(vtkFreehandCalibrationTest
+		${EXECUTABLE_OUTPUT_PATH}/vtkFreehandCalibrationTest
+		--input-config-file-name=${ConfigFilesDir}/Test_USDataCollectionConfig_VideoNone_FakeTracker_RecordPhantomLandmarks.xml
+		--input-freehand-motion-1-sequence-metafile=${TestDataDir}/fCAL_Calibration_Test_MN.mha 
+        --input-freehand-motion-2-sequence-metafile=${TestDataDir}/fCAL_Validation_Test_MN.mha 
+		--input-baseline-file-name=${TestDataDir}/FreehandCalibration.results.xml
+		--input-phantom-registration-xml-file-name=${TestDataDir}/PhantomRegistration.results.xml
+		--input-stylus-calibration-xml-file-name=${TestDataDir}/StylusCalibration.results.xml
+		--input-phantom-definition-xml-file-name=${ConfigFilesDir}/PhantomDefinition_fCal_1.0.xml
+		--verbose=1
+		)
