@@ -39,6 +39,7 @@ vtkStepperCalibrationController::vtkStepperCalibrationController()
 	this->MinNumOfFramesUsedForCenterOfRotCalc = 25; 
 
 	this->CalibrationStartTime = NULL; 
+	this->ProbeRotationAxisCalibrationErrorReportFilePath = NULL; 
 	this->ProbeTranslationAxisCalibrationErrorReportFilePath = NULL; 
 	this->TemplateTranslationAxisCalibrationErrorReportFilePath = NULL; 
 
@@ -343,6 +344,11 @@ bool vtkStepperCalibrationController::CalibrateRotationAxis()
 		return false; 
 	}
 
+	// Calculate mean error and stdev of measured and computed wire positions for each wire
+	std::vector<double> mean, stdev;
+	this->GetRotationAxisCalibrationError(aMatrix, bVector, rotationAxisCalibResult, mean, stdev); 
+	this->SaveRotationAxisCalibrationError(aMatrix, bVector, rotationAxisCalibResult); 
+	
 	LOG_INFO("RotationAxisCalibResult: " << std::fixed << rotationAxisCalibResult[0] << "  " << rotationAxisCalibResult[1] << "  " << rotationAxisCalibResult[2] << "  " << rotationAxisCalibResult[3] ); 
 
 	this->SetCenterOfRotationPx( rotationAxisCalibResult[2] / this->GetSpacing()[0], rotationAxisCalibResult[3] / this->GetSpacing()[1]); 
@@ -457,6 +463,96 @@ void vtkStepperCalibrationController::RemoveOutliersFromRotAxisCalibData(std::ve
 
 }
 
+//----------------------------------------------------------------------------
+void vtkStepperCalibrationController::GenerateProbeRotationAxisCalibrationReport( vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter, const char* gnuplotScriptsFolder)
+{
+	if ( htmlReport == NULL || plotter == NULL )
+	{
+		LOG_ERROR("Caller should define HTML report generator and gnuplot plotter before report generation!"); 
+		return; 
+	}
+
+	std::string plotProbeRotationAxisCalibrationErrorScript = gnuplotScriptsFolder + std::string("/PlotProbeRotationAxisCalibrationError.gnu"); 
+	if ( !vtksys::SystemTools::FileExists( plotProbeRotationAxisCalibrationErrorScript.c_str(), true) )
+	{
+		LOG_ERROR("Unable to find gnuplot script at: " << plotProbeRotationAxisCalibrationErrorScript); 
+		return; 
+	}
+
+	if ( this->GetProbeRotationAxisCalibrated() )
+	{
+		std::string reportFile = this->GetProbeRotationAxisCalibrationErrorReportFilePath(); 
+		if ( !vtksys::SystemTools::FileExists( reportFile.c_str(), true) )
+		{
+			LOG_ERROR("Unable to find rotation axis calibration report file at: " << reportFile); 
+			return; 
+		}
+
+		std::string title; 
+		std::string scriptOutputFilePrefixHistogram, scriptOutputFilePrefix; 
+		title = "Probe Rotation Axis Calibration Analysis"; 
+		scriptOutputFilePrefix = "PlotProbeRotationAxisCalibrationError"; 
+
+		htmlReport->AddText(title.c_str(), vtkHTMLGenerator::H1); 
+
+		htmlReport->AddText("Error Plot", vtkHTMLGenerator::H2); 
+		plotter->ClearArguments(); 
+		plotter->AddArgument("-e");
+		std::ostringstream rotAxisError; 
+		rotAxisError << "f='" << reportFile << "'; o='" << scriptOutputFilePrefix << "';" << std::ends; 
+		plotter->AddArgument(rotAxisError.str().c_str()); 
+		plotter->AddArgument(plotProbeRotationAxisCalibrationErrorScript.c_str());  
+		plotter->Execute(); 
+		plotter->ClearArguments(); 
+
+		std::ostringstream imageSourceX, imageAltX, imageSourceY, imageAltY; 
+		imageSourceX << "x_" << scriptOutputFilePrefix << ".jpg" << std::ends; 
+		imageAltX << "Probe rotation axis calibration error - X axis" << std::ends; 
+		imageSourceY << "y_" << scriptOutputFilePrefix << ".jpg" << std::ends; 
+		imageAltY << "Probe rotation axis calibration error - Y axis" << std::ends; 
+
+		htmlReport->AddImage(imageSourceX.str().c_str(), imageAltX.str().c_str()); 
+		htmlReport->AddImage(imageSourceY.str().c_str(), imageAltY.str().c_str()); 
+
+		htmlReport->AddHorizontalLine(); 
+	}
+
+}
+
+//----------------------------------------------------------------------------
+void vtkStepperCalibrationController::SaveRotationAxisCalibrationError(
+		const std::vector<vnl_vector<double>> &aMatrix, 
+		const std::vector<double> &bVector, 
+		const vnl_vector<double> &resultVector)
+{
+
+	LOG_TRACE("vtkStepperCalibrationController::SaveRotationAxisCalibrationError"); 
+	const int numberOfAxes(2); 
+	std::ostringstream filename; 
+	std::ostringstream path; 
+
+	std::ofstream rotationAxisCalibrationError;
+	path << this->OutputPath << "/" << this->CalibrationStartTime  << ".ProbeRotationAxisCalibrationError.txt"; 
+	this->SetProbeRotationAxisCalibrationErrorReportFilePath(path.str().c_str()); 
+	rotationAxisCalibrationError.open (path.str().c_str(), ios::out);
+	rotationAxisCalibrationError << "# Probe rotation axis calibration error report" << std::endl; 
+
+	rotationAxisCalibrationError << "ProbePosition\t"
+		<< "MeasuredCenterOfRotationXInImageMm\tMeasuredCenterOfRotationYInImageMm\t" 
+		<< "ComputedCenterOfRotationXInImageMm\tComputedCenterOfRotationYInImageMm\t" 
+		<< std::endl; 
+
+	for( int row = 0; row < bVector.size(); row = row + numberOfAxes)
+	{
+		rotationAxisCalibrationError << aMatrix[row    ].get(0) << "\t"
+			<< bVector[row] << "\t" << bVector[row+1] << "\t" 
+			<< resultVector[2] + aMatrix[row    ].get(0) * resultVector[0] << "\t" 
+			<< resultVector[3] + aMatrix[row + 1].get(1) * resultVector[1] << "\t"
+			<< std::endl; 
+	}
+
+	rotationAxisCalibrationError.close(); 
+}
 
 //***************************************************************************
 //						Rotation encoder calibration
