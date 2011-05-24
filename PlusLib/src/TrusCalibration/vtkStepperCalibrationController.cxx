@@ -34,6 +34,7 @@ vtkStepperCalibrationController::vtkStepperCalibrationController()
 	this->SpacingCalculatedOff(); 
 	this->ProbeRotationAxisCalibratedOff(); 
 	this->ProbeTranslationAxisCalibratedOff(); 
+	this->ProbeRotationEncoderCalibratedOff(); 
 	this->TemplateTranslationAxisCalibratedOff(); 
 	this->SetOutlierDetectionThreshold(3.0); 
 	this->MinNumOfFramesUsedForCenterOfRotCalc = 25; 
@@ -42,6 +43,7 @@ vtkStepperCalibrationController::vtkStepperCalibrationController()
 	this->ProbeRotationAxisCalibrationErrorReportFilePath = NULL; 
 	this->ProbeTranslationAxisCalibrationErrorReportFilePath = NULL; 
 	this->TemplateTranslationAxisCalibrationErrorReportFilePath = NULL; 
+	this->ProbeRotationEncoderCalibrationErrorReportFilePath = NULL; 
 
 	this->SaveCalibrationStartTime(); 
 }
@@ -229,13 +231,14 @@ bool vtkStepperCalibrationController::CalibrateProbeRotationAxis()
 	LOG_INFO( ">>>>>>>>>>>> Rotation encoder calibration ..."); 
 	if ( this->CalibrateRotationEncoder() )
 	{
+		this->ProbeRotationEncoderCalibratedOn(); 
 		LOG_INFO("ProbeRotationEncoderScale = " << ProbeRotationEncoderScale); 
 		LOG_INFO("ProbeRotationEncoderOffset = " << ProbeRotationEncoderOffset); 
 	}
 	else
 	{
 		LOG_ERROR("Failed to calibrate probe rotation encoder!"); 
-		this->ProbeRotationAxisCalibratedOff(); 
+		this->ProbeRotationEncoderCalibratedOff(); 
 		return false; 
 	}
 
@@ -604,7 +607,6 @@ bool vtkStepperCalibrationController::CalibrateRotationEncoder()
 	// Calculate mean error and stdev of measured and computed wire positions for each wire
 	double mean, stdev;
 	this->GetRotationEncoderCalibrationError(aMatrix, bVector, rotationEncoderCalibrationResult, mean, stdev); 
-
 	this->SaveRotationEncoderCalibrationError(aMatrix, bVector, rotationEncoderCalibrationResult); 
 
 	this->SetProbeRotationEncoderScale(rotationEncoderCalibrationResult.get(0)); 
@@ -745,6 +747,8 @@ void vtkStepperCalibrationController::SaveRotationEncoderCalibrationError(const 
 	std::ofstream rotationEncoderCalibrationError;
 	std::ostringstream filename; 
 	filename << this->OutputPath << "/" << this->CalibrationStartTime  << ".ProbeRotationEncoderCalibrationError.txt"; 
+	
+	this->SetProbeRotationEncoderCalibrationErrorReportFilePath(filename.str().c_str()); 
 
 	rotationEncoderCalibrationError.open (filename.str().c_str() , ios::out);
 	rotationEncoderCalibrationError << "# Probe rotation encoder calibration error report" << std::endl; 
@@ -756,11 +760,63 @@ void vtkStepperCalibrationController::SaveRotationEncoderCalibrationError(const 
 
 	for( int row = 0; row < bVector.size(); row ++)
 	{
-		rotationEncoderCalibrationError << aMatrix[row].get(0) << "\t" << bVector[row] << offset + aMatrix[row].get(0) * scale << "\t" << std::endl; 
+		rotationEncoderCalibrationError << aMatrix[row].get(0) << "\t" << bVector[row]  << "\t" << offset + aMatrix[row].get(0) * scale << "\t" << std::endl; 
 	}
 
 	rotationEncoderCalibrationError.close(); 
 
+}
+
+
+//----------------------------------------------------------------------------
+void vtkStepperCalibrationController::GenerateProbeRotationEncoderCalibrationReport( vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter, const char* gnuplotScriptsFolder)
+{
+	if ( htmlReport == NULL || plotter == NULL )
+	{
+		LOG_ERROR("Caller should define HTML report generator and gnuplot plotter before report generation!"); 
+		return; 
+	}
+
+	std::string plotProbeRotationEncoderCalibrationErrorScript = gnuplotScriptsFolder + std::string("/PlotProbeRotationEncoderCalibrationError.gnu"); 
+	if ( !vtksys::SystemTools::FileExists( plotProbeRotationEncoderCalibrationErrorScript.c_str(), true) )
+	{
+		LOG_ERROR("Unable to find gnuplot script at: " << plotProbeRotationEncoderCalibrationErrorScript); 
+		return; 
+	}
+
+	if ( this->GetProbeRotationEncoderCalibrated() )
+	{
+		std::string reportFile = this->GetProbeRotationEncoderCalibrationErrorReportFilePath(); 
+		if ( !vtksys::SystemTools::FileExists( reportFile.c_str(), true) )
+		{
+			LOG_ERROR("Unable to find rotation encoder calibration report file at: " << reportFile); 
+			return; 
+		}
+
+		std::string title; 
+		std::string scriptOutputFilePrefixHistogram, scriptOutputFilePrefix; 
+		title = "Probe Rotation Encoder Calibration Analysis"; 
+		scriptOutputFilePrefix = "PlotProbeRotationEncoderCalibrationError"; 
+
+		htmlReport->AddText(title.c_str(), vtkHTMLGenerator::H1); 
+
+		plotter->ClearArguments(); 
+		plotter->AddArgument("-e");
+		std::ostringstream rotEncoderError; 
+		rotEncoderError << "f='" << reportFile << "'; o='" << scriptOutputFilePrefix << "';" << std::ends; 
+		plotter->AddArgument(rotEncoderError.str().c_str()); 
+		plotter->AddArgument(plotProbeRotationEncoderCalibrationErrorScript.c_str());  
+		plotter->Execute(); 
+		plotter->ClearArguments(); 
+
+		std::ostringstream imageSource, imageAlt; 
+		imageSource << scriptOutputFilePrefix << ".jpg" << std::ends; 
+		imageAlt << "Probe rotation encoder calibration error" << std::ends; 
+
+		htmlReport->AddImage(imageSource.str().c_str(), imageAlt.str().c_str()); 
+
+		htmlReport->AddHorizontalLine(); 
+	}
 }
 
 

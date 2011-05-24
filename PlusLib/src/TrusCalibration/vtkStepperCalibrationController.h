@@ -121,6 +121,11 @@ public:
 	virtual void GenerateTemplateTranslationAxisCalibrationReport( vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter, const char* gnuplotScriptsFolder); 
 
 	// Description:
+	// Add generated html report from probe rotation encoder calibration to the existing html report
+	// htmlReport and plotter arguments has to be defined by the caller function
+	virtual void GenerateProbeRotationEncoderCalibrationReport( vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter, const char* gnuplotScriptsFolder); 
+
+	// Description:
 	// Set/get outlier detection threshold
 	vtkSetMacro(OutlierDetectionThreshold, double); 
 	vtkGetMacro(OutlierDetectionThreshold, double); 
@@ -182,6 +187,12 @@ public:
 	vtkBooleanMacro(ProbeRotationAxisCalibrated, bool); 
 
 	//! Description: 
+	// Set/get probe rotation encoder calibration finished flag
+	vtkSetMacro(ProbeRotationEncoderCalibrated, bool); 
+	vtkGetMacro(ProbeRotationEncoderCalibrated, bool); 
+	vtkBooleanMacro(ProbeRotationEncoderCalibrated, bool); 
+
+	//! Description: 
 	// Set/get probe translation axis calibration finished flag
 	vtkSetMacro(ProbeTranslationAxisCalibrated, bool); 
 	vtkGetMacro(ProbeTranslationAxisCalibrated, bool); 
@@ -219,6 +230,11 @@ public:
 	vtkSetStringMacro(TemplateTranslationAxisCalibrationErrorReportFilePath); 
 	vtkGetStringMacro(TemplateTranslationAxisCalibrationErrorReportFilePath); 
 	
+	//! Description: 
+	// Set/get probe rotation encoder calibration error report file path
+	vtkSetStringMacro(ProbeRotationEncoderCalibrationErrorReportFilePath); 
+	vtkGetStringMacro(ProbeRotationEncoderCalibrationErrorReportFilePath); 
+
 protected:
 	vtkStepperCalibrationController ();
 	virtual ~vtkStepperCalibrationController ();
@@ -459,6 +475,7 @@ protected:
 	bool ProbeRotationAxisCalibrated; 
 	bool ProbeTranslationAxisCalibrated; 
 	bool TemplateTranslationAxisCalibrated; 
+	bool ProbeRotationEncoderCalibrated; 
 
 	// Stores the center of rotation in px space
 	// Origin: Left-upper corner (the original image frame)
@@ -496,6 +513,7 @@ protected:
 	char* ProbeRotationAxisCalibrationErrorReportFilePath; 
 	char* ProbeTranslationAxisCalibrationErrorReportFilePath; 
 	char* TemplateTranslationAxisCalibrationErrorReportFilePath; 
+	char* ProbeRotationEncoderCalibrationErrorReportFilePath; 
 
 	int MinNumberOfRotationClusters; 
 	int MinNumOfFramesUsedForCenterOfRotCalc; 
