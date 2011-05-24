@@ -109,10 +109,11 @@ int main(int argc, char **argv)
 	if ( dataCollector->GetVideoSource() != NULL )
 	{
 		std::ostringstream filepath; 
-		filepath << outputFolder << "/" << outputVideoBufferSequenceFileName; 
+		filepath << outputFolder << "/" << outputVideoBufferSequenceFileName << ".mha"; 
 
 		if ( vtksys::SystemTools::FileExists(filepath.str().c_str(), true) )
 		{
+			LOG_INFO("Remove generated video metafile!"); 
 			if ( !vtksys::SystemTools::RemoveFile(filepath.str().c_str()) )
 			{
 				LOG_ERROR("Unable to remove generated video buffer: " << filepath.str() ); 
@@ -129,10 +130,11 @@ int main(int argc, char **argv)
 	if ( dataCollector->GetTracker() != NULL )
 	{
 		std::ostringstream filepath; 
-		filepath << outputFolder << "/" << outputTrackerBufferSequenceFileName; 
+		filepath << outputFolder << "/" << outputTrackerBufferSequenceFileName << ".mha"; 
 
 		if ( vtksys::SystemTools::FileExists(filepath.str().c_str(), true) )
 		{
+			LOG_INFO("Remove generated tracker metafile!"); 
 			if ( !vtksys::SystemTools::RemoveFile(filepath.str().c_str()) )
 			{
 				LOG_ERROR("Unable to remove generated tracker buffer: " << filepath.str() ); 
