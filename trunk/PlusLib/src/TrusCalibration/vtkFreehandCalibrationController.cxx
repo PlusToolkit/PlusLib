@@ -63,6 +63,8 @@ vtkFreehandCalibrationController::vtkFreehandCalibrationController()
 	this->CalibrationResultFileNameWithPath = NULL;
 	this->CalibrationResultFileSuffix = NULL;
 
+	this->CalibrationPhantom = NULL;
+
 	vtkSmartPointer<vtkTransform> transformProbeToPhantomReference = vtkSmartPointer<vtkTransform>::New(); 
 	this->TransformProbeToPhantomReference = NULL;
 	this->SetTransformProbeToPhantomReference(transformProbeToPhantomReference); 
@@ -75,8 +77,12 @@ vtkFreehandCalibrationController::vtkFreehandCalibrationController()
 vtkFreehandCalibrationController::~vtkFreehandCalibrationController()
 {
 	this->SetCanvasImageActor(NULL);
-
 	this->SetTransformProbeToPhantomReference(NULL);
+
+	if (this->CalibrationPhantom != NULL) {
+		delete this->CalibrationPhantom;
+		this->CalibrationPhantom = NULL;
+	}
 }
 
 //-----------------------------------------------------------------------------
@@ -131,8 +137,8 @@ void vtkFreehandCalibrationController::Initialize()
 		this->GetSearchDimensionX(), this->GetSearchDimensionY(), this->GetEnableSegmentationAnalysis(), "frame.jpg");
 
 	// Initialize the calibration component
-	if ( CalibrationPhantom == NULL ) {
-		CalibrationPhantom = new BrachyTRUSCalibrator( this->GetEnableSystemLog() );
+	if ( this->CalibrationPhantom == NULL ) {
+		this->CalibrationPhantom = new BrachyTRUSCalibrator( this->GetEnableSystemLog() );
 	}
 
 	// Set the ultrasound image frame in pixels
@@ -155,6 +161,8 @@ void vtkFreehandCalibrationController::Initialize()
 	// Set state to idle (initialized)
 	if (m_State == ToolboxState_Uninitialized) {
 		m_State = ToolboxState_Idle;
+
+		this->InitializedOn();
 	}
 }
 
@@ -331,9 +339,9 @@ void vtkFreehandCalibrationController::ReadConfiguration(vtkXMLDataElement* conf
 {
 	LOG_TRACE("vtkProbeCalibrationController::ReadConfiguration");
 
-	// TEMPORARY CODE ////////////
-	{ // Freehand motion calibration data
-	vtkCalibrationController::RealtimeImageDataInfo imageDataInfo = this->GetRealtimeImageDataInfo(RANDOM_STEPPER_MOTION_1); 
+	// TEMPORARY CODE //////////// TODO
+	{ // Freehand motion calibration data REALTIME
+	vtkCalibrationController::RealtimeImageDataInfo imageDataInfo = this->GetRealtimeImageDataInfo(FREEHAND_MOTION_1); 
 	int numberOfImagesToUse = 300;
 	const char* sequenceMetaFile = ".FreehandMotionData1";
 	imageDataInfo.OutputSequenceMetaFileSuffix.assign(sequenceMetaFile); 
@@ -341,18 +349,36 @@ void vtkFreehandCalibrationController::ReadConfiguration(vtkXMLDataElement* conf
 	this->SetRealtimeImageDataInfo(FREEHAND_MOTION_1, imageDataInfo);
 	}
 
-	{ // Freehand motion validation data
-	vtkCalibrationController::RealtimeImageDataInfo imageDataInfo = this->GetRealtimeImageDataInfo(RANDOM_STEPPER_MOTION_1); 
+	{ // Freehand motion validation data REALTIME
+	vtkCalibrationController::RealtimeImageDataInfo imageDataInfo = this->GetRealtimeImageDataInfo(FREEHAND_MOTION_2); 
 	int numberOfImagesToUse = 200;
 	const char* sequenceMetaFile = ".FreehandMotionData2";
 	imageDataInfo.OutputSequenceMetaFileSuffix.assign(sequenceMetaFile); 
 	imageDataInfo.NumberOfImagesToAcquire = numberOfImagesToUse;
 	this->SetRealtimeImageDataInfo(FREEHAND_MOTION_2, imageDataInfo);
 	}
+	//*************************************************************
+	{ // Freehand motion calibration data OFFLINE
+	vtkCalibrationController::SavedImageDataInfo imageDataInfo = this->GetSavedImageDataInfo(FREEHAND_MOTION_1); 
+	int numberOfImagesToUse = 300;
+	//const char* sequenceMetaFile = ".FreehandMotionData1";
+	//imageDataInfo.OutputSequenceMetaFileSuffix.assign(sequenceMetaFile); 
+	imageDataInfo.NumberOfImagesToUse = numberOfImagesToUse;
+	this->SetSavedImageDataInfo(FREEHAND_MOTION_1, imageDataInfo);
+	}
+
+	{ // Freehand motion validation data OFFLINE
+	vtkCalibrationController::SavedImageDataInfo imageDataInfo = this->GetSavedImageDataInfo(FREEHAND_MOTION_2); 
+	int numberOfImagesToUse = 200;
+	imageDataInfo.NumberOfImagesToUse = numberOfImagesToUse;
+	this->SetSavedImageDataInfo(FREEHAND_MOTION_2, imageDataInfo);
+	}
+	//*************************************************************
+	this->SetCalibrationResultFileSuffix(".Calibration.results");
+	vtkFreehandController::GetInstance()->SetOutputFolder("./Output");
 	// TEMPORARY CODE ////////////
 
 
-	/* TODO read the above data from the new config file
 	if ( configData == NULL ) {
 		LOG_ERROR("Unable to read the main configration file");
 		exit(EXIT_FAILURE);
@@ -362,6 +388,7 @@ void vtkFreehandCalibrationController::ReadConfiguration(vtkXMLDataElement* conf
 	vtkSmartPointer<vtkXMLDataElement> calibrationController = configData->FindNestedElementWithName("CalibrationController"); 
 	this->ReadCalibrationControllerConfiguration(calibrationController); 
 
+	/* TODO
 	// ProbeCalibration specifications
 	vtkSmartPointer<vtkXMLDataElement> probeCalibration = calibrationController->FindNestedElementWithName("ProbeCalibration");
 	this->CalibrationControllerIO->ReadProbeCalibrationConfiguration(probeCalibration);
@@ -391,7 +418,7 @@ bool vtkFreehandCalibrationController::AddTrackedFrameData(TrackedFrame* tracked
 		double tProbeToPhantomReference[16];
 
 		if (trackedFrame->GetDefaultFrameTransform(tProbeToPhantomReference)) {
-			// TODO biztos h a trafo nem a nevenek a forditottja?
+			// TODO Is it sure that the transform is not its name inverted?
 			vtkSmartPointer<vtkMatrix4x4> tProbeToPhantomReferenceMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
 			tProbeToPhantomReferenceMatrix->DeepCopy(tProbeToPhantomReference);
 			vnl_matrix<double> transformProbeToPhantomReferenceMatrix4x4(4,4);
@@ -498,6 +525,8 @@ void vtkFreehandCalibrationController::DoOfflineCalibration()
 			if ( this->AddTrackedFrameData(trackedFrameList->GetTrackedFrame(imgNumber), FREEHAND_MOTION_2) ) {
 				// The segmentation was successful
 				validationCounter++;
+			} else {
+				LOG_DEBUG("Adding tracked frame failed!");
 			}
 
 			this->AddFrameToRenderer(trackedFrameList->GetTrackedFrame(imgNumber)->ImageData);
@@ -516,7 +545,7 @@ void vtkFreehandCalibrationController::DoOfflineCalibration()
 		}
 
 		int calibrationCounter = 0;
-		for (int imgNumber = this->GetSavedImageDataInfo(FREEHAND_MOTION_1).StartingIndex; calibrationCounter < this->GetSavedImageDataInfo(RANDOM_STEPPER_MOTION_1).NumberOfImagesToUse; imgNumber++) {
+		for (int imgNumber = this->GetSavedImageDataInfo(FREEHAND_MOTION_1).StartingIndex; calibrationCounter < this->GetSavedImageDataInfo(FREEHAND_MOTION_1).NumberOfImagesToUse; imgNumber++) {
 			if ( imgNumber >= calibrationData->GetNumberOfTrackedFrames() ) {
 				break; 
 			}
@@ -524,6 +553,8 @@ void vtkFreehandCalibrationController::DoOfflineCalibration()
 			if ( this->AddTrackedFrameData(calibrationData->GetTrackedFrame(imgNumber), FREEHAND_MOTION_1) ) {
 				// The segmentation was successful
 				calibrationCounter++; 
+			} else {
+				LOG_DEBUG("Adding tracked frame failed!");
 			}
 
 			this->AddFrameToRenderer(calibrationData->GetTrackedFrame(imgNumber)->ImageData); 

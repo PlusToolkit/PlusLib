@@ -267,8 +267,6 @@ protected:
 	//! Attributes: The US image frame origin (in pixels) - These are the US image frame origin in pixels W.R.T. the left-upper corner of the original image, with X pointing to the right (column) and Y pointing down to the bottom (row)
 	int USImageFrameOriginXInPixels;
 	int USImageFrameOriginYInPixels;
-	//! Stores realtime dataset information
-	std::vector<RealtimeImageDataInfo> RealtimeImageDataInfoContainer; 
 	//! TODO
 	vtkImageActor*				CanvasImageActor;
 	vtkTransform*	TransformProbeToPhantomReference;

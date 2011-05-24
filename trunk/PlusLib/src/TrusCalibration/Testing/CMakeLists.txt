@@ -122,7 +122,8 @@ TARGET_LINK_LIBRARIES(vtkFreehandCalibrationTest ${vtkFreehandCalibrationTest_LI
 
 ADD_TEST(vtkFreehandCalibrationTest
 		${EXECUTABLE_OUTPUT_PATH}/vtkFreehandCalibrationTest
-		--input-config-file-name=${ConfigFilesDir}/Test_USDataCollectionConfig_VideoNone_FakeTracker_RecordPhantomLandmarks.xml
+		--input-calibration-config-file-name=${ConfigFilesDir}/USCalibrationConfig_fCal.xml
+		--input-data-collection-config-file-name=${ConfigFilesDir}/Test_USDataCollectionConfig_VideoNone_FakeTracker_RecordPhantomLandmarks.xml
 		--input-freehand-motion-1-sequence-metafile=${TestDataDir}/fCAL_Calibration_Test_MN.mha 
         --input-freehand-motion-2-sequence-metafile=${TestDataDir}/fCAL_Validation_Test_MN.mha 
 		--input-baseline-file-name=${TestDataDir}/FreehandCalibration.results.xml
