@@ -92,12 +92,6 @@ void vtkFreehandController::Initialize()
 		exit(EXIT_FAILURE); 
 	}
 
-	/*
-	if ( this->TrackedFrameContainer == NULL ) {
-		this->TrackedFrameContainer = vtkTrackedFrameList::New(); 
-	} TODO
-	*/
-
 	// Set up canvas renderer
 	vtkSmartPointer<vtkRenderer> canvasRenderer = vtkSmartPointer<vtkRenderer>::New(); 
 	canvasRenderer->SetBackground(0.6, 0.6, 0.6);
@@ -113,32 +107,6 @@ void vtkFreehandController::Initialize()
 }
 
 //-----------------------------------------------------------------------------
-/* TODO torolni
-int vtkFreehandController::GetNextActiveToolNumber()
-{
-	int nextToolNumber = this->DataCollector->GetDefaultToolPortNumber();
-	const int numberOfTools = this->DataCollector->GetTracker()->GetNumberOfTools(); 
-	bool toolActive(false);
-	int loop(0); 
-
-	while (!toolActive) {
-		if (++nextToolNumber >= numberOfTools) {
-			nextToolNumber = 0; 
-			loop++; 
-		}
-
-		toolActive = this->DataCollector->GetTracker()->GetTool(nextToolNumber)->GetEnabled(); 
-
-		// avoid endless loop
-		if (loop > 1) {
-			return this->DataCollector->GetDefaultToolPortNumber();
-		}
-	}
-
-	return nextToolNumber; 
-}
-*/
-//-----------------------------------------------------------------------------
 
 void vtkFreehandController::SetTrackingOnly(bool aOn)
 {
@@ -150,104 +118,3 @@ void vtkFreehandController::SetTrackingOnly(bool aOn)
 		this->DataCollector->SetTrackingOnly(aOn);
 	}
 }
-
-//-----------------------------------------------------------------------------
-/*
-int vtkFreehandController::GetNumberOfRecordedFrames()
-{ 
-	int numOfFrames = 0;
-	if (this->TrackedFrameContainer) {
-		numOfFrames = this->TrackedFrameContainer->GetNumberOfTrackedFrames(); 
-	}
-
-	return numOfFrames; 
-}
-
-//-----------------------------------------------------------------------------
-/*
-void vtkFreehandController::AddTrackedFrame( vtkImageData* aImageData, std::vector<vtkMatrix4x4*> aToolTransforms, std::vector<std::string> aToolTransformNames, std::vector<long> aFlags, double aTimestamp)
-{ //TODO torolni ha biztos nem kell
-	TrackedFrame trackedFrame;
-	trackedFrame.ImageData = NULL; 
-	trackedFrame.Timestamp = aTimestamp; 
-	trackedFrame.DefaultFrameTransformName = aToolTransformNames[this->DataCollector->GetDefaultToolPortNumber()]; 
-
-	if ( !this->TrackedFrameContainer->ValidateData(&trackedFrame) ) {
-		// We've already inserted this frame into the sequence
-		return; 
-	}
-
-	// convert vtkImageData to itkImage 
-	vtkSmartPointer<vtkImageFlip> imageFlipy = vtkSmartPointer<vtkImageFlip>::New(); 
-	imageFlipy->SetInput(imageData); 
-	imageFlipy->SetFilteredAxis(1); 
-	imageFlipy->Update(); 
-
-	vtkSmartPointer<vtkImageExport> imageExport = vtkSmartPointer<vtkImageExport>::New(); 
-	imageExport->ImageLowerLeftOff();
-	imageExport->SetInput(imageFlipy->GetOutput()); 
-	imageExport->Update(); 
-
-	ImageType::Pointer frame = ImageType::New();
-	double width = imageData->GetExtent()[1] - imageData->GetExtent()[0] + 1; 
-	double height = imageData->GetExtent()[3] - imageData->GetExtent()[2] + 1; 
-	ImageType::SizeType size = { width, height };
-	ImageType::IndexType start = {0,0};
-	ImageType::RegionType region;
-	region.SetSize(size);
-	region.SetIndex(start);
-	frame->SetRegions(region);
-	frame->Allocate();
-
-	memcpy( frame->GetBufferPointer(), imageExport->GetPointerToData(), imageExport->GetDataMemorySize() ); 
-
-	trackedFrame.ImageData = frame;
-
-	// Save flags
-	for (unsigned int i = 0; i < aFlags.size(); i++) {
-		if (aToolTransformNames.size() <= i) {
-			LOG_ERROR("Unable to find tool name for tool number: " << i); 
-			continue; 
-		}
-
-		std::string flagName = aToolTransformNames[i] + std::string("Status"); 
-		std::string flagFieldValue;
-
-		if ( aFlags[i] == TR_OK ) {
-			flagFieldValue = "OK "; 
-		} else if ( (aFlags[i] & TR_MISSING) != 0 ) {
-			flagFieldValue = "TR_MISSING "; 
-		} else if ( (aFlags[i] & TR_OUT_OF_VIEW) != 0 ) {
-			flagFieldValue = "TR_OUT_OF_VIEW "; 
-		} else if ( (aFlags[i] & TR_OUT_OF_VOLUME) != 0 ) {
-			flagFieldValue = "TR_OUT_OF_VOLUME "; 
-		} else if ( (aFlags[i] & TR_REQ_TIMEOUT) != 0 ) {
-			flagFieldValue = "TR_REQ_TIMEOUT "; 
-		}
-
-		trackedFrame.SetCustomFrameField(flagName, flagFieldValue); 
-	}
-
-
-	// Save transforms
-	for (unsigned int i = 0; i < aToolTransforms.size(); i++) {
-		if (aToolTransformNames.size() <= i) {
-			LOG_ERROR("Unable to find tool transform name for tool number: " << i); 
-			continue; 
-		}
-
-		trackedFrame.SetCustomFrameTransform(aToolTransformNames[i], aToolTransforms[i]); 
-	}
-
-	this->TrackedFrameContainer->AddTrackedFrame(&trackedFrame); 
-
-	LOG_DEBUG("New tracked frame to container added"); 
-}
-*/
-//-----------------------------------------------------------------------------
-/* TODO
-void vtkFreehandController::ClearTrackedFrameContainer()
-{
-	this->TrackedFrameContainer->Clear();
-}
-*/

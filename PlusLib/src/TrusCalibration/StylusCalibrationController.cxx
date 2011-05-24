@@ -554,7 +554,11 @@ bool StylusCalibrationController::LoadStylusCalibrationFromFile(std::string aFil
 
 			// Set calibration matrix to stylus tool
 			vtkDataCollector* dataCollector = vtkFreehandController::GetInstance()->GetDataCollector();
-			dataCollector->GetTracker()->GetTool(dataCollector->GetDefaultToolPortNumber())->SetCalibrationMatrix(transformMatrix);
+			if (dataCollector != NULL) {
+				dataCollector->GetTracker()->GetTool(dataCollector->GetDefaultToolPortNumber())->SetCalibrationMatrix(transformMatrix);
+			} else {
+				LOG_WARNING("Data collector is not initialized!");
+			}
 		}
 		delete[] transform; 
 	}

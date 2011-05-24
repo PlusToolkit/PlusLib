@@ -31,7 +31,8 @@ int main (int argc, char* argv[])
 	std::string inputFreehandMotion1SeqMetafile;
 	std::string inputFreehandMotion2SeqMetafile;
 
-	std::string inputConfigFileName;
+	std::string inputCalibrationConfigFileName;
+	std::string inputDataCollectionConfigFileName;
 	std::string inputBaselineFileName;
 
 	std::string inputPhantomDefinitionXmlFileName;
@@ -48,7 +49,8 @@ int main (int argc, char* argv[])
 	cmdargs.AddArgument("--input-freehand-motion-1-sequence-metafile", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputFreehandMotion1SeqMetafile, "Sequence metafile name of saved freehand motion 1 dataset.");
 	cmdargs.AddArgument("--input-freehand-motion-2-sequence-metafile", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputFreehandMotion2SeqMetafile, "Sequence metafile name of saved freehand motion 2 dataset.");
 
-	cmdargs.AddArgument("--input-config-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "Configuration file name");
+	cmdargs.AddArgument("--input-calibration-config-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputCalibrationConfigFileName, "Calibration configuration file name");
+	cmdargs.AddArgument("--input-data-collection-config-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputDataCollectionConfigFileName, "Data collection configuration file name (arbitrary valid config file will do - only necessary to initialize FreehandController)");
 	cmdargs.AddArgument("--input-baseline-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputBaselineFileName, "Name of file storing baseline calibration results");
 
 	cmdargs.AddArgument("--input-phantom-definition-xml-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputPhantomDefinitionXmlFileName, "Phantom definition file name");
@@ -79,13 +81,15 @@ int main (int argc, char* argv[])
 
 	// Initialize related controllers with the input data
 	vtkSmartPointer<vtkFreehandController> controller = vtkFreehandController::GetInstance();
-	controller->SetInputConfigFileName(inputConfigFileName.c_str());
+	controller->SetInputConfigFileName(inputDataCollectionConfigFileName.c_str());
 	controller->Initialize();
 
 	StylusCalibrationController* stylusCalibrationController = StylusCalibrationController::GetInstance();
+	stylusCalibrationController->Initialize();
 	stylusCalibrationController->LoadStylusCalibrationFromFile(inputStylusCalibrationXmlFileName);
 
 	PhantomRegistrationController* phantomRegistrationController = PhantomRegistrationController::GetInstance();
+	phantomRegistrationController->Initialize();
 	phantomRegistrationController->LoadPhantomDefinitionFromFile(inputPhantomDefinitionXmlFileName);
 	phantomRegistrationController->LoadPhantomRegistrationFromFile(inputPhantomRegistrationXmlFileName);
 
@@ -93,7 +97,7 @@ int main (int argc, char* argv[])
 	vtkSmartPointer<vtkFreehandCalibrationController> freehandCalibration = vtkSmartPointer<vtkFreehandCalibrationController>::New(); 
 	freehandCalibration->SetProgramFolderPath(programPath.c_str());
 	freehandCalibration->SetPhantomDefinitionFileName(inputPhantomDefinitionXmlFileName.c_str());
-	freehandCalibration->ReadConfiguration(inputConfigFileName.c_str()); 
+	freehandCalibration->ReadConfiguration(inputCalibrationConfigFileName.c_str()); 
 
 	vtkCalibrationController::SavedImageDataInfo freehandMotion1DataInfo = freehandCalibration->GetSavedImageDataInfo(FREEHAND_MOTION_1);
 	freehandMotion1DataInfo.SequenceMetaFileName.assign(inputFreehandMotion1SeqMetafile.c_str());
