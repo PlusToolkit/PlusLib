@@ -472,19 +472,20 @@ void vtkDataCollector::DumpVideoBufferToMetafile( vtkVideoBuffer2* videoBuffer, 
 		const int bufferItem = ( numberOfFrames - 1 ) - i; 
 
 		// Allocate memory for new frame
-		vtkSmartPointer<vtkImageData> vtkimage = vtkSmartPointer<vtkImageData>::New(); 
-		vtkimage->CopyStructure( this->GetOutput() ); 
-		vtkimage->SetScalarTypeToUnsignedChar(); 
-		vtkimage->AllocateScalars(); 
+		int* videoFrameSize = videoBuffer->GetFrameFormat()->GetFrameSize(); 
+		TrackedFrame::ImageType::Pointer frame = TrackedFrame::ImageType::New(); 
+		TrackedFrame::ImageType::SizeType size = {videoFrameSize[0], videoFrameSize[1]};
+		TrackedFrame::ImageType::IndexType start = {0,0};
+		TrackedFrame::ImageType::RegionType region;
+		region.SetSize(size);
+		region.SetIndex(start);
+		frame->SetRegions(region);
+		frame->Allocate();
 
-		videoBuffer->GetFrame(bufferItem)->CopyData(vtkimage->GetScalarPointer(), vtkimage->GetExtent(), vtkimage->GetExtent(), videoBuffer->GetFrame(bufferItem)->GetPixelFormat() ); 
-
-		// Convert vtkImage to itkimage
-		TrackedFrame::ImageType::Pointer itkimage = TrackedFrame::ImageType::New(); 
-		this->ConvertVtkImageToItkImage(vtkimage, itkimage); 
+		videoBuffer->GetFrame(bufferItem)->CopyData(frame->GetBufferPointer(), videoFrameSize, videoFrameSize, videoBuffer->GetFrame(bufferItem)->GetPixelFormat() ); 
 
 		TrackedFrame trackedFrame; 
-		trackedFrame.ImageData = itkimage;
+		trackedFrame.ImageData = frame;
 		trackedFrame.ImageData->Register(); 
 
 		// Set default transform name
