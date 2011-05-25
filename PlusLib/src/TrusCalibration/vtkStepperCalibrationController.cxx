@@ -44,6 +44,7 @@ vtkStepperCalibrationController::vtkStepperCalibrationController()
 	this->ProbeTranslationAxisCalibrationErrorReportFilePath = NULL; 
 	this->TemplateTranslationAxisCalibrationErrorReportFilePath = NULL; 
 	this->ProbeRotationEncoderCalibrationErrorReportFilePath = NULL; 
+	this->SpacingCalculationErrorReportFilePath = NULL; 
 
 	this->SaveCalibrationStartTime(); 
 }
@@ -1459,6 +1460,7 @@ bool vtkStepperCalibrationController::CalculateSpacing()
 		return false; 
 	}
 
+	this->SaveSpacingCalculationError(aMatrix, bVector, TRUSSquaredScaleFactorsInMMperPixel2x1); 
 	this->SetSpacing( sqrt(TRUSSquaredScaleFactorsInMMperPixel2x1.get(0)), sqrt(TRUSSquaredScaleFactorsInMMperPixel2x1.get(1)) );
 
 	this->SpacingCalculatedOn(); 
@@ -1571,6 +1573,90 @@ void vtkStepperCalibrationController::RemoveOutliersFromSpacingCalcData(
 			aMatrix.erase(aMatrix.begin() + row, aMatrix.begin() + row + numberOfAxes); 
 			bVector.erase(bVector.begin() + row, bVector.begin() + row + numberOfAxes); 
 		}
+	}
+}
+
+//----------------------------------------------------------------------------
+void vtkStepperCalibrationController::SaveSpacingCalculationError(const std::vector<vnl_vector<double>> &aMatrix, 
+																		  const std::vector<double> &bVector, 
+																		  const vnl_vector<double> &resultVector)
+{
+	LOG_TRACE("vtkStepperCalibrationController::SaveSpacingCalculationError"); 
+	std::ofstream spacingCalculationError;
+	std::ostringstream filename; 
+	filename << this->OutputPath << "/" << this->CalibrationStartTime  << ".SpacingCalculationError.txt"; 
+	
+	this->SetSpacingCalculationErrorReportFilePath(filename.str().c_str()); 
+
+	spacingCalculationError.open (filename.str().c_str() , ios::out);
+	spacingCalculationError << "# Spacing calculation error report" << std::endl; 
+
+	spacingCalculationError << "Computed Distance - X (mm)\t" << "Measured Distance - X (mm)\t" << "Computed Distance - Y (mm)\t" << "Measured Distance - Y (mm)\t" << std::endl; 
+
+	const int numberOfAxes(2); 
+	const int m = bVector.size();
+	const double sX = resultVector[0]; 
+	const double sY = resultVector[1]; 
+
+	for( int row = 0; row < m; row = row + numberOfAxes)
+	{
+		spacingCalculationError << sqrt( aMatrix[row].get(0) * sX + aMatrix[row].get(1) * sY ) << "\t" << sqrt(bVector[row])  << "\t" 
+			<< sqrt( aMatrix[row + 1].get(0) * sX + aMatrix[row + 1].get(1) * sY  )<< "\t" << sqrt(bVector[row + 1])  << "\t" << "\t" << std::endl; 
+	}
+
+	spacingCalculationError.close(); 
+
+}
+
+
+//----------------------------------------------------------------------------
+void vtkStepperCalibrationController::GenerateSpacingCalculationReport( vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter, const char* gnuplotScriptsFolder)
+{
+	if ( htmlReport == NULL || plotter == NULL )
+	{
+		LOG_ERROR("Caller should define HTML report generator and gnuplot plotter before report generation!"); 
+		return; 
+	}
+
+	std::string plotSpacingCalculationErrorScript = gnuplotScriptsFolder + std::string("/PlotSpacingCalculationErrorHistogram.gnu"); 
+	if ( !vtksys::SystemTools::FileExists( plotSpacingCalculationErrorScript.c_str(), true) )
+	{
+		LOG_ERROR("Unable to find gnuplot script at: " << plotSpacingCalculationErrorScript); 
+		return; 
+	}
+
+	if ( this->GetSpacingCalculated() )
+	{
+		std::string reportFile = this->GetSpacingCalculationErrorReportFilePath(); 
+		if ( !vtksys::SystemTools::FileExists( reportFile.c_str(), true) )
+		{
+			LOG_ERROR("Unable to find spacing calculation report file at: " << reportFile); 
+			return; 
+		}
+
+		std::string title; 
+		std::string scriptOutputFilePrefixHistogram, scriptOutputFilePrefix; 
+		title = "Spacing Calculation Analysis"; 
+		scriptOutputFilePrefix = "PlotSpacingCalculationErrorHistogram"; 
+
+		htmlReport->AddText(title.c_str(), vtkHTMLGenerator::H1); 
+
+		plotter->ClearArguments(); 
+		plotter->AddArgument("-e");
+		std::ostringstream spacingCalculationError; 
+		spacingCalculationError << "f='" << reportFile << "'; o='" << scriptOutputFilePrefix << "';" << std::ends; 
+		plotter->AddArgument(spacingCalculationError.str().c_str()); 
+		plotter->AddArgument(plotSpacingCalculationErrorScript.c_str());  
+		plotter->Execute(); 
+		plotter->ClearArguments(); 
+
+		std::ostringstream imageSource, imageAlt; 
+		imageSource << scriptOutputFilePrefix << ".jpg" << std::ends; 
+		imageAlt << "Spacing calculation error histogram" << std::ends; 
+
+		htmlReport->AddImage(imageSource.str().c_str(), imageAlt.str().c_str()); 
+
+		htmlReport->AddHorizontalLine(); 
 	}
 }
 
