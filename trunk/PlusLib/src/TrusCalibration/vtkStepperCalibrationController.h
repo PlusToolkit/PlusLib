@@ -126,6 +126,11 @@ public:
 	virtual void GenerateProbeRotationEncoderCalibrationReport( vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter, const char* gnuplotScriptsFolder); 
 
 	// Description:
+	// Add generated html report from spacing calculation to the existing html report
+	// htmlReport and plotter arguments has to be defined by the caller function
+	virtual void GenerateSpacingCalculationReport( vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter, const char* gnuplotScriptsFolder); 
+
+	// Description:
 	// Set/get outlier detection threshold
 	vtkSetMacro(OutlierDetectionThreshold, double); 
 	vtkGetMacro(OutlierDetectionThreshold, double); 
@@ -234,6 +239,12 @@ public:
 	// Set/get probe rotation encoder calibration error report file path
 	vtkSetStringMacro(ProbeRotationEncoderCalibrationErrorReportFilePath); 
 	vtkGetStringMacro(ProbeRotationEncoderCalibrationErrorReportFilePath); 
+
+	//! Description: 
+	// Set/get spacing calculation error report file path
+	vtkSetStringMacro(SpacingCalculationErrorReportFilePath); 
+	vtkGetStringMacro(SpacingCalculationErrorReportFilePath); 
+	
 
 protected:
 	vtkStepperCalibrationController ();
@@ -434,6 +445,12 @@ protected:
 		std::vector<double> &stdev ); 
 
 	//! Description: 
+	// Save spacing calculation error to file in gnuplot format 
+	virtual void SaveSpacingCalculationError(const std::vector<vnl_vector<double>> &aMatrix, 
+		const std::vector<double> &bVector, 
+		const vnl_vector<double> &resultVector); 
+
+	//! Description: 
 	// Construct linear equation for spacing calculation
 	virtual void ConstrLinEqForSpacingCalc( std::vector<vnl_vector<double>> &aMatrix, std::vector<double> &bVector); 
 	
@@ -514,6 +531,7 @@ protected:
 	char* ProbeTranslationAxisCalibrationErrorReportFilePath; 
 	char* TemplateTranslationAxisCalibrationErrorReportFilePath; 
 	char* ProbeRotationEncoderCalibrationErrorReportFilePath; 
+	char* SpacingCalculationErrorReportFilePath; 
 
 	int MinNumberOfRotationClusters; 
 	int MinNumOfFramesUsedForCenterOfRotCalc; 
