@@ -69,6 +69,7 @@ protected:
 
 	char* SequenceMetafile; 
 	double StartTimestamp; 
+	bool ReplayEnabled; 
 
 	vtkTrackerBuffer* LocalTrackerBuffer; 
 	

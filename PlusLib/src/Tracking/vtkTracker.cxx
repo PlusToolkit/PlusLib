@@ -191,6 +191,10 @@ void vtkTracker::SetNumberOfTools(int numtools)
 		std::ostringstream toolname; 
 		toolname << "Tool" << i; 
 		this->SetToolName(i, toolname.str().c_str()); 
+
+		std::ostringstream toolcalibmatrixname; 
+		toolcalibmatrixname << "Tool" << i << "CalibMatrix"; 
+		this->Tools[i]->SetCalibrationMatrixName(toolcalibmatrixname.str().c_str()); 
 	}
 }  
 

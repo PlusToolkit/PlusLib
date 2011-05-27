@@ -407,10 +407,29 @@ void vtkDataCollector::DumpTrackerToMetafile( vtkTracker* tracker, const char* o
 		{
 			if ( tracker->GetTool(tool)->GetEnabled() )
 			{
-				vtkSmartPointer<vtkMatrix4x4> matrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
 				const int index = tracker->GetTool(tool)->GetBuffer()->GetIndexFromTime(frameTimestamp); 
+				
+				vtkSmartPointer<vtkMatrix4x4> matrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
 				tracker->GetTool(tool)->GetBuffer()->GetMatrix(matrix, index); 
 				trackedFrame.SetCustomFrameTransform(tracker->GetTool(tool)->GetToolName(), matrix); 
+				
+				const char* calibMatrixName = tracker->GetTool(tool)->GetCalibrationMatrixName(); 
+				vtkMatrix4x4* calibmatrix = tracker->GetTool(tool)->GetCalibrationMatrix(); 
+
+				if ( calibMatrixName != NULL && calibmatrix != NULL )
+				{
+					std::ostringstream strcalibmatrix; 
+					for ( int r = 0; r < 4; r++ )
+					{
+						for ( int c = 0; c < 4; c++ )
+						{
+							strcalibmatrix << std::fixed << calibmatrix->GetElement(r,c) << " "; 
+						}
+					}
+
+					trackedFrame.SetCustomField(calibMatrixName, strcalibmatrix.str()); 
+				}
+
 			}
 		}
 
@@ -429,7 +448,7 @@ void vtkDataCollector::CopyVideoBuffer( vtkVideoBuffer2* videoBuffer )
 {
 	if ( this->GetVideoSource() == NULL ) 
 	{	
-		vtkErrorMacro(<< "Unable to copy video buffer - there is no video source selected!"); 
+		LOG_ERROR("Unable to copy video buffer - there is no video source selected!"); 
 		return; 
 	}
 
@@ -733,6 +752,13 @@ void vtkDataCollector::SetLocalTimeOffset(double videoOffset, double trackerOffs
 double vtkDataCollector::GetMostRecentTimestamp()
 {
 	LOG_TRACE("vtkDataCollector::GetMostRecentTimestamp"); 
+
+	if ( this->GetVideoSource() == NULL )
+	{
+		LOG_WARNING("Unable to get most recent timestamp without video source!"); 
+		return 0; 
+	}
+
 	this->GetVideoSource()->GetBuffer()->Lock(); 
 	// Get the most recent frame from the buffer
 	double frameTimestamp = this->GetVideoSource()->GetBuffer()->GetTimeStamp(this->MostRecentFrameBufferIndex); 
@@ -745,7 +771,16 @@ double vtkDataCollector::GetMostRecentTimestamp()
 std::string vtkDataCollector::GetMainToolName()
 {
 	LOG_TRACE("vtkDataCollector::GetMainToolName"); 
-	std::string mainToolName( this->GetTracker()->GetTool(this->GetDefaultToolPortNumber())->GetToolName() ); 
+
+	std::string mainToolName; 
+	if ( this->GetTracker() != NULL )
+	{
+		mainToolName = this->GetTracker()->GetTool(this->GetDefaultToolPortNumber())->GetToolName(); 
+	}
+	else
+	{
+		LOG_WARNING("Unable to get main tool name without tracking device!"); 
+	}
 
 	return mainToolName; 
 }
@@ -754,6 +789,12 @@ std::string vtkDataCollector::GetMainToolName()
 long vtkDataCollector::GetMainToolStatus( double time )
 {
 	LOG_TRACE("vtkDataCollector::GetMainToolStatus"); 
+	if ( this->GetTracker() == NULL )
+	{
+		LOG_WARNING("Unable to get main tool status without tracking device!"); 
+		return TR_MISSING; 
+	}
+	
 	vtkTrackerBuffer* buffer = this->GetTracker()->GetTool(this->GetDefaultToolPortNumber())->GetBuffer(); 
 
 	buffer->Lock(); 
@@ -1006,43 +1047,48 @@ void vtkDataCollector::GetTrackedFrameByTime(const double time, TrackedFrame* tr
 	TrackedFrame::ImageType::Pointer itkimage = TrackedFrame::ImageType::New(); 
 	this->ConvertVtkImageToItkImage(vtkimage, itkimage); 
 
-	// Get tracker buffer values 
-	std::map<std::string, std::string> toolsBufferMatrices; 
-	std::map<std::string, std::string> toolsCalibrationMatrices; 
-	std::map<std::string, std::string> toolsStatuses; 
-
-	this->GetTracker()->GetTrackerToolBufferStringList(synchronizedTime, toolsBufferMatrices, toolsCalibrationMatrices, toolsStatuses, calibratedTransform); 
-
 	//Add all information to the tracked frame
 	trackedFrame->Timestamp = synchronizedTime; 
 	trackedFrame->ImageData = itkimage; 
 	trackedFrame->ImageData->Register(); 
-	trackedFrame->Status = this->GetMainToolStatus(synchronizedTime); 
-	trackedFrame->DefaultFrameTransformName = this->GetMainToolName(); 
-
-	for ( std::map<std::string, std::string>::iterator it = toolsBufferMatrices.begin(); it != toolsBufferMatrices.end(); it++ )
+	
+	if ( this->GetTracker() != NULL )
 	{
-		// Set tool buffer values 
-		trackedFrame->SetCustomFrameField(it->first, it->second); 
-	}
+	
+		// Get tracker buffer values 
+		std::map<std::string, std::string> toolsBufferMatrices; 
+		std::map<std::string, std::string> toolsCalibrationMatrices; 
+		std::map<std::string, std::string> toolsStatuses; 
 
-	for ( std::map<std::string, std::string>::iterator it = toolsCalibrationMatrices.begin(); it != toolsCalibrationMatrices.end(); it++ )
-	{
-		// Set tool calibration values 
-		trackedFrame->SetCustomField(it->first, it->second); 
-	}
+		this->GetTracker()->GetTrackerToolBufferStringList(synchronizedTime, toolsBufferMatrices, toolsCalibrationMatrices, toolsStatuses, calibratedTransform); 
 
-	for ( std::map<std::string, std::string>::iterator it = toolsStatuses.begin(); it != toolsStatuses.end(); it++ )
-	{
-		// Set tool buffer statuses 
-		std::ostringstream statusName; 
-		statusName << it->first << "Status"; 
-		trackedFrame->SetCustomFrameField(statusName.str(), it->second); 
+		trackedFrame->Status = this->GetMainToolStatus(synchronizedTime); 
+		trackedFrame->DefaultFrameTransformName = this->GetMainToolName(); 
+
+		for ( std::map<std::string, std::string>::iterator it = toolsBufferMatrices.begin(); it != toolsBufferMatrices.end(); it++ )
+		{
+			// Set tool buffer values 
+			trackedFrame->SetCustomFrameField(it->first, it->second); 
+		}
+
+		for ( std::map<std::string, std::string>::iterator it = toolsCalibrationMatrices.begin(); it != toolsCalibrationMatrices.end(); it++ )
+		{
+			// Set tool calibration values 
+			trackedFrame->SetCustomField(it->first, it->second); 
+		}
+
+		for ( std::map<std::string, std::string>::iterator it = toolsStatuses.begin(); it != toolsStatuses.end(); it++ )
+		{
+			// Set tool buffer statuses 
+			std::ostringstream statusName; 
+			statusName << it->first << "Status"; 
+			trackedFrame->SetCustomFrameField(statusName.str(), it->second); 
+		}
 	}
 
 	// Save frame timestamp
 	std::ostringstream strTimestamp; 
-	strTimestamp << trackedFrame->Timestamp; 
+	strTimestamp << std::fixed << trackedFrame->Timestamp; 
 	trackedFrame->SetCustomFrameField("Timestamp", strTimestamp.str()); 
 }
 
@@ -1056,22 +1102,25 @@ void vtkDataCollector::GetTrackedFrameByTime(const double time, vtkImageData* fr
 
 	this->GetFrameByTime(time, frame, synchronizedTime); 
 
-	for ( int tool = 0; tool < this->GetTracker()->GetNumberOfTools(); tool++ )
+	if ( this->GetTracker() != NULL )
 	{
-		if ( this->GetTracker()->GetTool(tool)->GetEnabled() )
+		for ( int tool = 0; tool < this->GetTracker()->GetNumberOfTools(); tool++ )
 		{
-			long flag(0); 
+			if ( this->GetTracker()->GetTool(tool)->GetEnabled() )
+			{
+				long flag(0); 
 
-			vtkSmartPointer<vtkMatrix4x4> toolTransMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
-			this->GetTransformByTimestamp( toolTransMatrix, flag, synchronizedTime, tool, calibratedTransform); 
+				vtkSmartPointer<vtkMatrix4x4> toolTransMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
+				this->GetTransformByTimestamp( toolTransMatrix, flag, synchronizedTime, tool, calibratedTransform); 
 
-			toolTransMatrix->Register(NULL); 
-			toolTransforms.push_back(toolTransMatrix); 
+				toolTransMatrix->Register(NULL); 
+				toolTransforms.push_back(toolTransMatrix); 
 
-			std::string transformName( this->GetTracker()->GetTool(tool)->GetToolName() ); 
-			toolTransformNames.push_back(transformName); 
+				std::string transformName( this->GetTracker()->GetTool(tool)->GetToolName() ); 
+				toolTransformNames.push_back(transformName); 
 
-			flags.push_back(flag); 
+				flags.push_back(flag); 
+			}
 		}
 	}
 }
@@ -1133,20 +1182,20 @@ vtkMatrix4x4* vtkDataCollector::GetToolTransMatrix( unsigned int toolNumber/* = 
 	//LOG_TRACE("vtkDataCollector::GetToolTransMatrix");
 	if ( toolNumber >= ToolTransMatrices.size() )
 	{
-		vtkErrorMacro( << "The tool number is larger than number of tools: " << this->GetTracker()->GetNumberOfTools() ); 
+		LOG_ERROR("The tool number is larger than number of tools: " << this->GetTracker()->GetNumberOfTools() ); 
 		return NULL;
 	}
 	return ToolTransMatrices[toolNumber]; 
 }
 
 //------------------------------------------------------------------------------
-int  vtkDataCollector::GetToolFlags( unsigned int toolNumber/* = 0 */) 
+int vtkDataCollector::GetToolFlags( unsigned int toolNumber/* = 0 */) 
 {	
 	//LOG_TRACE("vtkDataCollector::GetToolFlags");
 	if ( toolNumber >= ToolFlags.size() )
 	{
-		vtkErrorMacro( << "The tool number is larger than number of tools: " << this->GetTracker()->GetNumberOfTools() ); 
-		return NULL;
+		LOG_ERROR("The tool number is larger than number of tools: " << this->GetNumberOfTools() ); 
+		return -1;
 	}
 	return ToolFlags[toolNumber]; 
 }
@@ -1586,7 +1635,13 @@ void vtkDataCollector::SetVideoOnly(bool videoOnly)
 //------------------------------------------------------------------------------
 int vtkDataCollector::GetDefaultToolPortNumber()
 {
-	return this->GetTracker()->GetDefaultTool(); 
+	int defaultToolPortNumber(0); 
+	if ( this->GetTracker() != NULL )
+	{
+		defaultToolPortNumber = this->GetTracker()->GetDefaultTool(); 
+	}
+
+	return defaultToolPortNumber; 
 }
 
 //------------------------------------------------------------------------------

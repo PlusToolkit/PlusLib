@@ -81,7 +81,7 @@ const char* TrackedFrame::GetCustomFrameField( std::string name )
 	std::vector<CustomFrameFieldPair>::iterator customFrameValue; 
 	for ( customFrameValue = this->CustomFrameFieldList.begin(); customFrameValue != this->CustomFrameFieldList.end(); customFrameValue++ )
 	{
-		if ( customFrameValue->first.find(name) != std::string::npos )
+		if ( STRCASECMP(customFrameValue->first.c_str(), name.c_str()) == 0 ) 
 		{ 
 			return customFrameValue->second.c_str(); 
 		}
@@ -103,7 +103,7 @@ const char* TrackedFrame::GetCustomField( std::string name )
 	std::vector<CustomFieldPair>::iterator customValue; 
 	for ( customValue = this->CustomFieldList.begin(); customValue != this->CustomFieldList.end(); customValue++ )
 	{
-		if ( customValue->first.find(name) != std::string::npos )
+		if ( STRCASECMP(customValue->first.c_str(), name.c_str()) == 0 )
 		{ 
 			return customValue->second.c_str(); 
 		}
@@ -120,7 +120,7 @@ bool TrackedFrame::GetDefaultFrameTransform(double transform[16])
 	std::vector<CustomFrameFieldPair>::iterator defaultFrameTransform; 
 	for ( defaultFrameTransform = this->CustomFrameFieldList.begin(); defaultFrameTransform != this->CustomFrameFieldList.end(); defaultFrameTransform++ )
 	{
-		if ( defaultFrameTransform->first.find(this->DefaultFrameTransformName) != std::string::npos )
+		if ( STRCASECMP(defaultFrameTransform->first.c_str(), this->DefaultFrameTransformName.c_str()) == 0) 
 		{
 			std::istringstream transformFieldValue(defaultFrameTransform->second); 
 			double item; 
@@ -141,11 +141,17 @@ bool TrackedFrame::GetDefaultFrameTransform(double transform[16])
 //----------------------------------------------------------------------------
 bool TrackedFrame::GetCustomFrameTransform(const char* frameTransformName, double transform[16]) 
 {
+	if (frameTransformName == NULL )
+	{
+		LOG_ERROR("Unable to get custom frame transform: frame transform name is NULL!"); 
+		return false; 
+	}
+
 	// Find default frame transform 
 	std::vector<CustomFrameFieldPair>::iterator customFrameTransform; 
 	for ( customFrameTransform = this->CustomFrameFieldList.begin(); customFrameTransform != this->CustomFrameFieldList.end(); customFrameTransform++ )
 	{
-		if ( customFrameTransform->first.find(frameTransformName) != std::string::npos )
+		if ( STRCASECMP(customFrameTransform->first.c_str(), frameTransformName) == 0)
 		{
 			std::istringstream transformFieldValue(customFrameTransform->second); 
 			double item; 
@@ -168,7 +174,7 @@ bool TrackedFrame::GetCustomFrameTransform(const char* frameTransformName, doubl
 void TrackedFrame::SetCustomFrameTransform(std::string frameTransformName, double transform[16]) 
 {
 	std::ostringstream strTransform; 
-	for ( int i = 0; i < 16; ++ i )
+	for ( int i = 0; i < 16; ++i )
 	{
 		strTransform << transform[ i ] << " ";
 	}
@@ -478,7 +484,15 @@ bool vtkTrackedFrameList::ValidateTimestamp(TrackedFrame* trackedFrame)
 {
 	if ( this->TrackedFrameList.size() > 0 )
 	{
-		return std::find_if(this->TrackedFrameList.begin(), this->TrackedFrameList.end(), TrackedFrameTimestampFinder(trackedFrame) ) == this->TrackedFrameList.end(); 
+		const bool isTimestampUnique = std::find_if(this->TrackedFrameList.begin(), this->TrackedFrameList.end(), TrackedFrameTimestampFinder(trackedFrame) ) == this->TrackedFrameList.end(); 
+
+		if ( !isTimestampUnique )
+		{
+			LOG_DEBUG("Tracked frame timestamp validation result: we've already inserted this frame to container!"); 
+			return false; 
+		}
+		
+		return true; 
 	}
 	
 	return true; 
@@ -501,6 +515,7 @@ bool vtkTrackedFrameList::ValidatePosition(TrackedFrame* trackedFrame, char* fra
 	if (std::find_if(searchIndex, this->TrackedFrameList.end(), TrackedFramePositionFinder(trackedFrame, frameTransformName) ) != this->TrackedFrameList.end() )
 	{
 		// We've already inserted this frame 
+		LOG_DEBUG("Tracked frame position validation result: we've already inserted this frame to container!"); 
 		return false; 
 	}
 	
@@ -510,7 +525,13 @@ bool vtkTrackedFrameList::ValidatePosition(TrackedFrame* trackedFrame, char* fra
 //----------------------------------------------------------------------------
 bool vtkTrackedFrameList::ValidateStatus(TrackedFrame* trackedFrame)
 {
-	return (trackedFrame->Status == 0); 
+	const bool isStatusValid = (trackedFrame->Status == 0); 
+	if ( !isStatusValid )
+	{
+		LOG_DEBUG("Tracked frame status validation result: tracked frame status invalid!"); 
+	}
+
+	return isStatusValid; 
 }
 
 //----------------------------------------------------------------------------

@@ -37,6 +37,7 @@ vtkSavedDataVideoSource::vtkSavedDataVideoSource()
 	this->LocalVideoBuffer = NULL;
 	this->SequenceMetafile = NULL; 
 	this->StartTimestamp = 0.0; 
+	this->ReplayEnabled = false; 
 }
 
 //----------------------------------------------------------------------------
@@ -186,6 +187,12 @@ void vtkSavedDataVideoSource::InternalGrab()
 	this->Modified();
 
 	this->Buffer->Unlock();
+
+	// Replay the buffer after we reached the most recent element if desired
+	if ( bufferIndex == 0  && this->ReplayEnabled)
+	{
+		this->SetStartTimestamp(vtkAccurateTimer::GetSystemTime() + 1.0/this->GetFrameRate() ); 
+	}
 }
 
 //----------------------------------------------------------------------------
@@ -407,6 +414,25 @@ void vtkSavedDataVideoSource::ReadConfiguration(vtkXMLDataElement* config)
 	{
 		this->SetSequenceMetafile(sequenceMetafile);
 	}
+
+	const char* replayEnabled = config->GetAttribute("ReplayEnabled"); 
+	if ( replayEnabled != NULL ) 
+	{
+		if ( STRCASECMP("TRUE", replayEnabled ) == 0 )
+		{
+			this->ReplayEnabled = true; 
+		}
+		else if ( STRCASECMP("FALSE", replayEnabled ) == 0 )
+		{
+			this->ReplayEnabled = false; 
+		}
+		else
+		{
+			LOG_WARNING("Unable to recognize ReplayEnabled attribute: " << replayEnabled << " - changed to false by default!"); 
+			this->ReplayEnabled = false; 
+		}
+	}
+	
 }
 
 //-----------------------------------------------------------------------------
