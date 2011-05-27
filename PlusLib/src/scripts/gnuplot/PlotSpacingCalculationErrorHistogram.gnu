@@ -37,9 +37,11 @@ bin(x,width)=width*floor(x/width)
 ## Plot the histogram  
 set title "X Spacing Error Histogram" ; \
 set origin 0.0,0.5; \
+set xlabel "Computed and Measured Wire Distance Difference - X (mm)"; \
 plot f using (bin(($1 - $2),binwidth)):(1.0) smooth freq with boxes; \
-set title "Y Spacing Error Histogram" ; \
+set title "Y Spacing Error Histogram"; \
 set origin 0.0,0.0; \
+set xlabel "Computed and Measured Wire Distance Difference - Y (mm)"; \
 plot f using (bin(($3 - $4),binwidth)):(1.0) smooth freq with boxes; \
 
 unset multiplot     
