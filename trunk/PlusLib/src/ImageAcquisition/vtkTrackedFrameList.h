@@ -152,17 +152,27 @@ public:
     bool operator()( TrackedFrame *newFrame )	
     {		
 		vtkSmartPointer<vtkTransform> baseTransform = vtkSmartPointer<vtkTransform>::New(); 
-		double baseTransMatrix[16]; 
+		double baseTransMatrix[16]={0}; 
 		if ( mTrackedFrame->GetCustomFrameTransform(mFrameTransformName.c_str(), baseTransMatrix) )
 		{
 			baseTransform->SetMatrix(baseTransMatrix); 
 		}
+		else
+		{
+			LOG_ERROR("TrackedFramePositionFinder: Unable to find base frame transform name for tracked frame validation!"); 
+			return false; 
+		}
 
 		vtkSmartPointer<vtkTransform> newTransform = vtkSmartPointer<vtkTransform>::New(); 
-		double newTransMatrix[16]; 
+		double newTransMatrix[16]={0}; 
 		if ( newFrame->GetCustomFrameTransform(mFrameTransformName.c_str(), newTransMatrix) )
 		{
 			newTransform->SetMatrix(newTransMatrix); 
+		}
+		else
+		{
+			LOG_ERROR("TrackedFramePositionFinder: Unable to find frame transform name for new tracked frame validation!"); 
+			return false; 
 		}
 
 		double bx(0), by(0), bz(0), cx(0), cy(0), cz(0); 

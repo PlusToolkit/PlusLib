@@ -33,6 +33,7 @@ vtkSavedDataTracker::vtkSavedDataTracker()
 	this->StartTimestamp = 0.0; 
 	this->Tracking = 0;
 	this->Initialized = false;
+	this->ReplayEnabled = false; 
 }
 
 //----------------------------------------------------------------------------
@@ -90,6 +91,7 @@ int vtkSavedDataTracker::Connect()
 
 	// Set default tool name
 	this->SetDefaultToolName(savedDataBuffer->GetDefaultFrameTransformName().c_str()); 
+	
 	// Set tool names
 	this->SetToolName(0, savedDataBuffer->GetDefaultFrameTransformName().c_str()); 
 	
@@ -167,7 +169,7 @@ int vtkSavedDataTracker::Connect()
 		LocalTrackerBuffer->AddItem(defaultTransformMatrix, status, frameNumber, unfilteredTimestamp, timestamp); 
 	}
   
-  this->Initialized = true;
+	this->Initialized = true;
 	return 1; 
 }
 
@@ -254,6 +256,12 @@ void vtkSavedDataTracker::InternalUpdate()
 
 	// send the transformation matrix and flags to the tool
 	this->ToolUpdate(0, defaultTransMatrix, flags, frameNumber, unfilteredtimestamp, filteredtimestamp);   
+
+	// Replay the buffer after we reached the most recent element if desired
+	if ( bufferIndex == 0  && this->ReplayEnabled)
+	{
+		this->SetStartTimestamp(vtkAccurateTimer::GetSystemTime() + 1.0/this->GetFrequency() ); 
+	}
 }
 
 //----------------------------------------------------------------------------
@@ -280,6 +288,24 @@ void vtkSavedDataTracker::ReadConfiguration(vtkXMLDataElement* config)
 	if ( sequenceMetafile != NULL ) 
 	{
 		this->SetSequenceMetafile(sequenceMetafile);
+	}
+
+	const char* replayEnabled = config->GetAttribute("ReplayEnabled"); 
+	if ( replayEnabled != NULL ) 
+	{
+		if ( STRCASECMP("TRUE", replayEnabled ) == 0 )
+		{
+			this->ReplayEnabled = true; 
+		}
+		else if ( STRCASECMP("FALSE", replayEnabled ) == 0 )
+		{
+			this->ReplayEnabled = false; 
+		}
+		else
+		{
+			LOG_WARNING("Unable to recognize ReplayEnabled attribute: " << replayEnabled << " - changed to false by default!"); 
+			this->ReplayEnabled = false; 
+		}
 	}
 }
 

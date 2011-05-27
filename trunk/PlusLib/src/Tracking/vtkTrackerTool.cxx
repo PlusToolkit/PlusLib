@@ -431,6 +431,11 @@ void vtkTrackerTool::DeepCopy(vtkTrackerTool *tool)
 	this->SetToolPartNumber( tool->GetToolPartNumber() );
 	this->SetToolManufacturer( tool->GetToolManufacturer() );
 	this->SetToolName( tool->GetToolName() ); 
+	
+	this->SetCalibrationMatrix( tool->GetCalibrationMatrix() ); 
+	this->SetCalibrationMatrixName( tool->GetCalibrationMatrixName() ); 
+	this->SetCalibrationDate( tool->GetCalibrationDate() ); 
+	this->SetCalibrationError( tool->GetCalibrationError() ); 
 
 	this->SetEnabled( tool->GetEnabled() ); 
 
@@ -471,7 +476,7 @@ void vtkTrackerTool::ReadConfiguration(vtkXMLDataElement* config)
 			this->SetCalibrationMatrixName(matrixName); 
 		}
 
-		double calibrationMatrixValue[16]; 
+		double calibrationMatrixValue[16] = {0}; 
 		if ( toolCalibrationDataElement->GetVectorAttribute("MatrixValue", 16, calibrationMatrixValue ) )
 		{
 			this->CalibrationMatrix->DeepCopy(calibrationMatrixValue); 

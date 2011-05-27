@@ -98,6 +98,7 @@ protected:
 
 	char* SequenceMetafile; 
 	double StartTimestamp; 
+	bool ReplayEnabled; 
 
 	vtkVideoBuffer2* LocalVideoBuffer; 
 
