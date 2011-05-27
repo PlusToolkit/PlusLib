@@ -9,6 +9,7 @@ IF "${PLUS_USE_ICCAPTURING_VIDEO}"=="ON" SET PATH=${ICCAPTURING_BIN_DIR}/release
 IF "${ULTERIUS_MAJOR_VERSION}"=="1" SET PATH=${ULTERIUS_BINARY_DIR}/r;%PATH% ELSE (
   SET PATH=${ULTERIUS_BINARY_DIR};%PATH%)
 IF "${PLUS_USE_OpenIGTLink}"=="ON" SET PATH=${OpenIGTLink_DIR}/bin/Release;%PATH%
+IF "${PLUS_USE_Ascension3DG}"=="ON" SET PATH=${ATC_BINARY_DIRECTORY};%PATH%
 SET PATH=${QT_BINARY_DIR};%PATH%
 SET SVNCOMMAND=${Subversion_SVN_EXECUTABLE}
 REM Emptying SVN_SSH variable is needed so that AnkhSVN Visual Studio plugin work (without this unset command, it cannot commit)

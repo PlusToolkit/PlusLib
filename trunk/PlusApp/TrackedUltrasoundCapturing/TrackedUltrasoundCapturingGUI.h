@@ -63,6 +63,8 @@ protected:
 
 	virtual int previousId(); 
 
+	virtual int nextId() const; 
+
 	virtual void cleanupPage ( int id ); 
 
 	// QT events 

@@ -327,6 +327,27 @@ int TrackedUltrasoundCapturingGUI::previousId()
 }
 
 //----------------------------------------------------------------------
+int TrackedUltrasoundCapturingGUI::nextId() const
+ {
+	 LOG_TRACE("TrackedUltrasoundCapturingGUI::nextId");
+
+	 if ( this->m_USCapturing == NULL || this->m_USCapturing->GetDataCollector() == NULL )
+	 {
+		return this->currentPage()->nextId(); 
+	 }
+
+	 // if we don't have tracking skip SynchronizationPage
+	 vtkTracker* tracker = this->m_USCapturing->GetDataCollector()->GetTracker(); 
+	 if ( this->currentPage() == this->SettingsPage && tracker == NULL ) 
+	 {
+		 return this->SynchronizationPage->nextId(); 
+     } 
+
+	 return this->currentPage()->nextId(); 
+}
+
+
+//----------------------------------------------------------------------
 void TrackedUltrasoundCapturingGUI::done( int r )
 {
 	LOG_TRACE("TrackedUltrasoundCapturingGUI::done");
@@ -361,37 +382,49 @@ void TrackedUltrasoundCapturingGUI::UpdateWidgets()
 	// Update transform matrix 
 	if ( this->m_USCapturing->GetDataCollector() != NULL )
 	{
-		const int mainToolNumber = this->m_USCapturing->GetDataCollector()->GetDefaultToolPortNumber(); 
-		vtkTrackerBuffer* trackerBuffer = this->m_USCapturing->GetDataCollector()->GetTracker()->GetTool( mainToolNumber )->GetBuffer();  
-	
-		trackerBuffer->Lock(); 
-		long flag = trackerBuffer->GetFlags(0); 
-		vtkSmartPointer<vtkMatrix4x4> transformMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
-		trackerBuffer->GetMatrix(transformMatrix, 0); 
-		trackerBuffer->Unlock(); 
-
-		if ( flag == TR_OK )
+		vtkTracker* tracker = this->m_USCapturing->GetDataCollector()->GetTracker(); 
+		if ( tracker == NULL )
 		{
 			this->SyncTrackerOutOfViewLabel->hide(); 
 			this->CapturingTrackerOutOfViewLabel->hide(); 
-			this->SyncTrackerMatrix->show(); 
-			this->CapturingTrackerMatrix->show(); 
-
-			for ( int r = 0; r < 4; r++ )
-			{
-				for ( int c = 0; c < 4; c++ )
-				{
-					this->SyncTrackerMatrix->item(r,c)->setText(QString::number(transformMatrix->GetElement(r,c), 'f', 2)); 
-					this->CapturingTrackerMatrix->item(r,c)->setText(QString::number(transformMatrix->GetElement(r,c), 'f', 2)); 
-				}
-			}
+			this->SyncTrackerMatrix->hide(); 
+			this->CapturingTrackerMatrix->hide(); 
 		}
 		else
 		{
-			this->SyncTrackerMatrix->hide(); 
-			this->CapturingTrackerMatrix->hide(); 
-			this->SyncTrackerOutOfViewLabel->show(); 
-			this->CapturingTrackerOutOfViewLabel->show(); 
+
+			const int mainToolNumber = this->m_USCapturing->GetDataCollector()->GetDefaultToolPortNumber(); 
+			vtkTrackerBuffer* trackerBuffer = tracker->GetTool( mainToolNumber )->GetBuffer();  
+
+			trackerBuffer->Lock(); 
+			long flag = trackerBuffer->GetFlags(0); 
+			vtkSmartPointer<vtkMatrix4x4> transformMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
+			trackerBuffer->GetMatrix(transformMatrix, 0); 
+			trackerBuffer->Unlock(); 
+
+			if ( flag == TR_OK )
+			{
+				this->SyncTrackerOutOfViewLabel->hide(); 
+				this->CapturingTrackerOutOfViewLabel->hide(); 
+				this->SyncTrackerMatrix->show(); 
+				this->CapturingTrackerMatrix->show(); 
+
+				for ( int r = 0; r < 4; r++ )
+				{
+					for ( int c = 0; c < 4; c++ )
+					{
+						this->SyncTrackerMatrix->item(r,c)->setText(QString::number(transformMatrix->GetElement(r,c), 'f', 2)); 
+						this->CapturingTrackerMatrix->item(r,c)->setText(QString::number(transformMatrix->GetElement(r,c), 'f', 2)); 
+					}
+				}
+			}
+			else
+			{
+				this->SyncTrackerMatrix->hide(); 
+				this->CapturingTrackerMatrix->hide(); 
+				this->SyncTrackerOutOfViewLabel->show(); 
+				this->CapturingTrackerOutOfViewLabel->show(); 
+			}
 		}
 	}
 
@@ -935,9 +968,20 @@ void TrackedUltrasoundCapturingGUI::UpdateToolIDs()
 	this->MainToolComboBox->clear(); 
 	this->ReferenceToolComboBox->clear(); 
 
+	vtkTracker * tracker = this->m_USCapturing->GetDataCollector()->GetTracker(); 
+
+	if ( tracker == NULL )
+	{
+		this->MainToolComboBox->setEnabled(false); 
+		this->MainToolTransformName->setEnabled(false); 
+		this->ReferenceToolComboBox->setEnabled(false); 
+		this->ReferenceToolTransformName->setEnabled(false); 
+		return; 
+	}
+
 	this->ReferenceToolComboBox->addItem(QString("None")); 
 
-	vtkTracker * tracker = this->m_USCapturing->GetDataCollector()->GetTracker(); 
+	
 	for ( int i = 0; i < tracker->GetNumberOfTools(); i++ )
 	{
 		if ( tracker->GetTool(i)->GetEnabled() )
@@ -977,6 +1021,12 @@ void TrackedUltrasoundCapturingGUI::ChangeTransformNames()
 	std::string referenceTool(this->ReferenceToolComboBox->currentText().ascii()); 
 
 	vtkTracker * tracker = this->m_USCapturing->GetDataCollector()->GetTracker(); 
+
+	if ( tracker == NULL )
+	{
+		LOG_DEBUG("No need to change transform names if there is no tracker!"); 
+		return; 
+	}
 
 	for ( int i = 0; i < tracker->GetNumberOfTools(); i++ )
 	{

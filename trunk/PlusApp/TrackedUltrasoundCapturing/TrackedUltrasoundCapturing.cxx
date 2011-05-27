@@ -233,7 +233,18 @@ void TrackedUltrasoundCapturing::AddTrackedFrame( TrackedFrame* trackedFrame )
 		(*UpdateRequestCallbackFunction)();
 	}
 
-	if ( !this->TrackedFrameContainer->ValidateData(trackedFrame) )
+	bool isDataUnique(false); 
+	if ( this->GetDataCollector()->GetTracker() != NULL )
+	{
+		isDataUnique = this->TrackedFrameContainer->ValidateData(trackedFrame); 
+	}
+	else
+	{
+		// If we don't have tracking device, we don't need to validate status and position
+		isDataUnique = this->TrackedFrameContainer->ValidateData(trackedFrame, true, false, false); 
+	}
+
+	if ( !isDataUnique )
 	{
 		LOG_DEBUG("We've already inserted this frame into the sequence."); 
 		return; 
