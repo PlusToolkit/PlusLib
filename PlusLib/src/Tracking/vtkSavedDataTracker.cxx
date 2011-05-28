@@ -134,7 +134,7 @@ int vtkSavedDataTracker::Connect()
 		double timestamp = -1;
 		if ( strTimestamp == NULL ) 
 		{
-			timestamp = frameNumber;  // This is not a normal behaviour.
+			timestamp = frameNumber / 10.0;  // This is not a normal behaviour.
 		}
 		else
 		{
@@ -155,17 +155,19 @@ int vtkSavedDataTracker::Connect()
 
 		// Get Status
 		const char* strStatus = trackedFrame->GetCustomFrameField("Status"); 
+		long status = TR_OK; 
 		if ( strStatus == NULL ) 
 		{
-			LOG_WARNING("Unable to get Status for frame #" << frame ); 
-			continue; 
+			LOG_DEBUG("Unable to get Status for frame #" << frame ); 
 		}
-		long status = TR_OK; 
-		if ( STRCASECMP(strStatus, "OK") != 0 )
+		else
 		{
-			status = TR_MISSING; 
+		  if ( STRCASECMP(strStatus, "OK") != 0 )
+		  {
+			  status = TR_MISSING; 
+		  }
 		}
-
+		
 		LocalTrackerBuffer->AddItem(defaultTransformMatrix, status, frameNumber, unfilteredTimestamp, timestamp); 
 	}
   
