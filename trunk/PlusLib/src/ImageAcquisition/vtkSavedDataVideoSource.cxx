@@ -271,7 +271,7 @@ int vtkSavedDataVideoSource::Connect()
 		double timestamp = -1;
 		if ( strTimestamp == NULL ) 
 		{
-			timestamp = frame;  // Just to make sure its increasing. This is not a normal case.
+			timestamp = frame / 10.0;  // Just to make sure its increasing. This is not a normal case.
 		}
 		else
 		{

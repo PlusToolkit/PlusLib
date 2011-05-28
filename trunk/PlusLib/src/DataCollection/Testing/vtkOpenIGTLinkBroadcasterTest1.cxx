@@ -91,11 +91,11 @@ int main( int argc, char** argv )
   dataCollector->Start();
   
   
-  for ( int i = 0; i < 20; ++ i )
+  for ( int i = 0; i < 50; ++ i )
     {
     std::cout << "Iteration: " << i << std::endl;
 
-    vtkAccurateTimer::Delay( 0.4 );
+    vtkAccurateTimer::Delay( 0.2 );
     
 		std::ostringstream ss;
 		ss.precision( 2 ); 

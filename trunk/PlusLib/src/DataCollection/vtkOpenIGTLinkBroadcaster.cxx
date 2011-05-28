@@ -118,8 +118,12 @@ vtkOpenIGTLinkBroadcaster
       }
     }
   
+  igtl::TimeStamp::Pointer igtlTime = igtl::TimeStamp::New();
+    igtlTime->SetTime( timestamp );
+  
   transformMessage->SetDeviceName( "Probe" );
   transformMessage->SetMatrix( igtlMatrix );
+  transformMessage->SetTimeStamp( igtlTime );
   transformMessage->Pack();
   
   
@@ -168,8 +172,11 @@ vtkOpenIGTLinkBroadcaster
     ++ vtkImagePointer;
     }
   
+  igtl::TimeStamp::Pointer igtlFrameTime = igtl::TimeStamp::New();
+    igtlFrameTime->SetTime( frameTime );
   
   imageMessage->SetMatrix( igtlMatrix );
+  imageMessage->SetTimeStamp( igtlFrameTime );
   imageMessage->Pack();
   
   
