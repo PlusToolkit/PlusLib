@@ -1,0 +1,29 @@
+<USDataCollection version="2.0">
+    <DeviceSet 
+        Name="SonixRP without tracking" 
+        Description="" 
+        />
+
+    <Tracker Type="NONE"></Tracker>
+
+    <ImageAcqusition Type="SonixVideo" 
+            BufferSize="200" 
+            FrameSize="640 480 1" 
+            FrameRate="10" 
+            SmoothingFactor="0.001" 
+            LocalTimeOffset="0.0"
+            IP="130.15.7.212" 
+            ImagingMode="0" 
+            AcquisitionDataType="4" 
+            Depth="-1" 
+            Sector="-1" 
+            Gain="-1" 
+            DynRange="-1" 
+            Zoom="-1" 
+            Frequency="-1" 
+            Timeout="-1" 
+            CompressionStatus="0" 
+            />
+
+    <Synchronization Type="None" />
+</USDataCollection>
