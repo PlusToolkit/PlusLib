@@ -106,21 +106,23 @@ void vtkFreehandCalibrationController::Initialize()
 		m_Toolbox->Initialize();
 	}
 
-	if (m_State == ToolboxState_Uninitialized) {
-		// Initialize visualization
-		if (controller->GetCanvas() != NULL) {
+	// Initialize visualization
+	if (controller->GetCanvas() != NULL) {
+		if (m_State == ToolboxState_Uninitialized) {
 			vtkSmartPointer<vtkImageActor> canvasImageActor = vtkSmartPointer<vtkImageActor>::New();
-			canvasImageActor->VisibilityOn(); 
-			canvasImageActor->SetInput(dataCollector->GetOutput());
 
-			this->SetCanvasImageActor(canvasImageActor); 
+			if (dataCollector->GetAcquisitionType() != SYNCHRO_VIDEO_NONE) {
+				canvasImageActor->VisibilityOn();
+				canvasImageActor->SetInput(dataCollector->GetOutput());
+			} else {
+				LOG_WARNING("Data collector has no output port, canvas image actor initalization failed.");
+			}
 
-			// Add image actor to the realtime renderer, and add renderer to Canvas
-			controller->GetCanvasRenderer()->AddActor(this->CanvasImageActor);
-			controller->GetCanvasRenderer()->Modified();
+			this->SetCanvasImageActor(canvasImageActor);
 		}
-	} else if (controller->GetCanvas() != NULL) {  // If already initialized (it can occur if tab change - and so clear - happened)
-		// Add all actors to the renderer again - state must be "Done", because tab cannot be changed if "In progress"
+
+		// Add image actor to the realtime renderer, and add renderer to Canvas
+		// If already initialized (it can occur if tab change - and so clear - happened)
 		controller->GetCanvasRenderer()->AddActor(this->CanvasImageActor);
 		controller->GetCanvasRenderer()->Modified();
 	}
@@ -157,6 +159,16 @@ void vtkFreehandCalibrationController::Initialize()
 			*this->GetMinElevationBeamwidthAndFocalZoneInUSImageFrame() );
 	}
 	*/
+
+	// TEMPORARY CODE ////////////
+
+	vtkSmartPointer<vtkMatrix4x4> identity = vtkSmartPointer<vtkMatrix4x4>::New();
+	identity->Identity();
+	vnl_matrix<double> transformOrigImageFrame2TRUSImageFrameMatrix4x4(4,4);
+	ConvertVtkMatrixToVnlMatrix(identity, transformOrigImageFrame2TRUSImageFrameMatrix4x4); 
+	this->GetCalibrator()->setTransformOrigImageToTRUSImageFrame4x4(transformOrigImageFrame2TRUSImageFrameMatrix4x4);
+
+	// TEMPORARY CODE ////////////
 
 	// Set state to idle (initialized)
 	if (m_State == ToolboxState_Uninitialized) {
@@ -374,8 +386,11 @@ void vtkFreehandCalibrationController::ReadConfiguration(vtkXMLDataElement* conf
 	this->SetSavedImageDataInfo(FREEHAND_MOTION_2, imageDataInfo);
 	}
 	//*************************************************************
+
 	this->SetCalibrationResultFileSuffix(".Calibration.results");
 	vtkFreehandController::GetInstance()->SetOutputFolder("./Output");
+	this->EnableSystemLogOn();
+
 	// TEMPORARY CODE ////////////
 
 
@@ -486,7 +501,11 @@ void vtkFreehandCalibrationController::PopulateSegmentedFiducialsToDataContainer
 		NFiducial[3]=1;
 
 		SegmentedNFiducialsInFixedCorrespondence.push_back(NFiducial);
+
+		//std::cout << i << ": " << NFiducial[0] << "\t" << NFiducial[1] << "\t"; //TEST
 	}
+
+	//std::cout << std::endl; //TEST
 
 	// Add the data for calibration
 	if (dataType == FREEHAND_MOTION_1) {

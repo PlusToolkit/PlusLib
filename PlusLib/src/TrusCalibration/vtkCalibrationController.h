@@ -186,6 +186,11 @@ public:
 	vtkSetStringMacro(PhantomDefinitionFileName); 
 	vtkGetStringMacro(PhantomDefinitionFileName); 
 
+	//! Description 
+	// Set/get the desired orientation
+	vtkSetStringMacro(DesiredOrientation); 
+	vtkGetStringMacro(DesiredOrientation); 
+
 	//! Attribute: Flag to enable the Segmentation Analysis
 	vtkGetMacro(EnableSegmentationAnalysis, bool);
 	vtkSetMacro(EnableSegmentationAnalysis, bool);
@@ -325,6 +330,9 @@ protected:
 
 	//! Attributes: phantom definition file name
 	char* PhantomDefinitionFileName;
+
+	//! Attribute: desired otientation of images that are passed to the segmenter
+	char* DesiredOrientation;
 
 	//! Pointer to the callback function that is executed each time a segmentation is finished
     SegmentationProgressPtr SegmentationProgressCallbackFunction;

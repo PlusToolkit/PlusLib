@@ -122,7 +122,7 @@ int main (int argc, char* argv[])
 		std::cout << "Exit failure!!!" << std::endl; 
 		return EXIT_FAILURE;
 	}
-	
+
 	std::cout << "Exit success!!!" << std::endl; 
 	return EXIT_SUCCESS;
 }

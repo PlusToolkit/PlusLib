@@ -859,16 +859,11 @@ bool PhantomRegistrationController::LoadPhantomRegistrationFromFile(std::string 
 	} else {
 		double* transform = new double[16]; 
 		if (phantomRegistrationTransform->GetVectorAttribute("Transform", 16, transform)) {
-			// Create matrix and set it to controller member variable
-			vtkSmartPointer<vtkMatrix4x4> transformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-			transformMatrix->Identity();
-			transformMatrix->DeepCopy(transform);
-
 			if (m_PhantomReferenceToPhantomTransform == NULL) {
 				m_PhantomReferenceToPhantomTransform = vtkTransform::New();
 			}
-			m_PhantomReferenceToPhantomTransform->Identity();
-			m_PhantomReferenceToPhantomTransform->SetMatrix(transformMatrix);
+
+			m_PhantomReferenceToPhantomTransform->SetMatrix(transform);
 		}
 		delete[] transform; 
 	}

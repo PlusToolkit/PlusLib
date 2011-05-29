@@ -711,6 +711,16 @@ void BrachyTRUSCalibrator::addDataPositionsPerImage(
 				mTransformMatrixPhantom2DRB4x4 *
 				PositionInTemplateFrame;
 
+			if( true == mIsSystemLogOn )
+			{
+				std::ofstream SystemLogFile(
+					mSystemLogFileNameWithTimeStamp.c_str(), std::ios::app);
+				SystemLogFile << " ----------------------------------------------------------------\n";
+				SystemLogFile << " PositionInUSProbeFrame = \n" << PositionInUSProbeFrame << "\n";
+				SystemLogFile << " TransformMatrixPhantom2DRB4x4 = \n" << mTransformMatrixPhantom2DRB4x4 << "\n";
+				SystemLogFile.close();
+			}
+
 			// Store into the list of positions in the US image frame
 			mDataPositionsInUSImageFrame.push_back( SegmentedPositionInUSImageFrame );
 

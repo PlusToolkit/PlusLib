@@ -34,7 +34,6 @@ vtkFreehandController* vtkFreehandController::GetInstance() {
 vtkFreehandController::vtkFreehandController()
 {
 	this->DataCollector = NULL;
-	//this->TrackedFrameContainer = NULL; TODO
 	this->RecordingFrameRate = 20;
 	this->InputConfigFileName = NULL;
 	this->OutputFolder = NULL;
@@ -44,7 +43,6 @@ vtkFreehandController::vtkFreehandController()
 	this->TrackingOnlyOn();
 	this->Canvas = NULL;
 	this->CanvasRenderer = NULL;
-	//this->CanvasImageActor = NULL; TODO
 
 	VTK_LOG_TO_CONSOLE_ON
 }
@@ -55,13 +53,6 @@ vtkFreehandController::~vtkFreehandController()
 {
 	this->SetDataCollector(NULL);
 	this->SetCanvasRenderer(NULL);
-	//this->SetCanvasImageActor(NULL); TODO
-
-	/* TODO
-	if ( this->TrackedFrameContainer != NULL ) {
-		this->TrackedFrameContainer->Delete(); 
-		this->TrackedFrameContainer = NULL; 
-	}*/
 }
 
 //-----------------------------------------------------------------------------
