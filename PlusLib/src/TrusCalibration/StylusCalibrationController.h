@@ -85,6 +85,12 @@ public:
 
 	/*!
 	* \brief Getter function
+	* \return Stylus port number
+	*/
+	unsigned int GetStylusPortNumber();
+
+	/*!
+	* \brief Getter function
 	* \return Uncertainty (standard deviation), precision of the calibration result
 	*/
 	double GetPrecision();
@@ -125,12 +131,12 @@ protected:
 	void InitializeVisualization();
 
 	/*!
-	* \brief Acquires new position from main tool of the tracker
+	* \brief Acquires new position from stylus tool of the tracker
 	* \param aPosition Out parameter for containing acquired position
 	* \param aReference Flag if the reference is needed (if false, the main tool is acquired) - by default it is false
 	* \return Acquired transform if successful, else NULL
 	*/
-	vtkMatrix4x4* AcquireTrackerPosition(double aPosition[4], bool aReference = false);
+	vtkMatrix4x4* AcquireStylusTrackerPosition(double aPosition[4], bool aReference = false);
 
 	/*!
 	* \brief Do the stylus calibration
@@ -151,6 +157,9 @@ protected:
 
 	//! Frame count in tracker when recording is started
 	int									m_StartingFrame;
+
+	//! Port number of the stylus tool found in the configuration file
+	unsigned int						m_StylusPortNumber;
 
 	//! Bounding box (0,1 - min and max of X axis; 2,3 - Y; 4,5 - Z)
 	double								m_BoundingBox[6];

@@ -489,20 +489,39 @@ void PhantomRegistrationController::Register()
 	initializer->InitializeTransform();
 
 	// Get result (do the registration)
-	vtkSmartPointer<vtkMatrix4x4> trackerToPhantomTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-	trackerToPhantomTransformMatrix->Identity();
+	vtkSmartPointer<vtkMatrix4x4> phantomReferenceToPhantomTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+	phantomReferenceToPhantomTransformMatrix->Identity();
 
 	itk::Matrix<double,3,3> transformMatrix = transform->GetMatrix();
 	for (int i=0; i<transformMatrix.RowDimensions; ++i) {
 		for (int j=0; j<transformMatrix.ColumnDimensions; ++j) {
-			trackerToPhantomTransformMatrix->SetElement(i, j, transformMatrix[i][j]);
+			phantomReferenceToPhantomTransformMatrix->SetElement(i, j, transformMatrix[i][j]);
 		}
 	}
 	itk::Vector<double,3> transformOffset = transform->GetOffset();
 	for (int j=0; j<transformOffset.GetNumberOfComponents(); ++j) {
-		trackerToPhantomTransformMatrix->SetElement(j, 3, transformOffset[j]);
+		phantomReferenceToPhantomTransformMatrix->SetElement(j, 3, transformOffset[j]);
 	}
 
+	m_PhantomReferenceToPhantomTransform = vtkTransform::New();
+	m_PhantomReferenceToPhantomTransform->SetMatrix(phantomReferenceToPhantomTransformMatrix);
+
+	// Display phantom model in the main canvas
+	if (vtkFreehandController::GetInstance()->GetCanvas() != NULL) {
+		vtkSmartPointer<vtkTransform> phantomReferenceToModelTransform = vtkSmartPointer<vtkTransform>::New();
+		phantomReferenceToModelTransform->Identity();
+		phantomReferenceToModelTransform->Concatenate(m_PhantomReferenceToPhantomTransform);
+		phantomReferenceToModelTransform->Concatenate(m_PhantomToModelTransform);
+		phantomReferenceToModelTransform->Modified();
+
+		m_RegisteredPhantomBodyActor->SetUserTransform(phantomReferenceToModelTransform);
+		m_RegisteredPhantomBodyActor->VisibilityOn();
+		m_RegisteredPhantomBodyActor->Modified();
+
+		vtkFreehandController::GetInstance()->GetCanvasRenderer()->ResetCamera();
+	}
+
+	/*
 	vtkSmartPointer<vtkTransform> trackerToPhantomTransform = vtkSmartPointer<vtkTransform>::New();
 	trackerToPhantomTransform->Identity();
 	trackerToPhantomTransform->SetMatrix(trackerToPhantomTransformMatrix);
@@ -527,7 +546,7 @@ void PhantomRegistrationController::Register()
 	double stylusTipPosition[4];
 	vtkMatrix4x4* trackerToPhantomReferenceTransformMatrix = NULL;
 
-	if ((trackerToPhantomReferenceTransformMatrix = AcquireTrackerPosition(stylusTipPosition, true)) == false) {
+	if ((trackerToPhantomReferenceTransformMatrix = AcquireStylusTipTrackerPosition(stylusTipPosition, true)) == false) {
 		LOG_ERROR("Unable to get reference tool position!");
 		m_State = ToolboxState_Error;
 		return;
@@ -548,6 +567,7 @@ void PhantomRegistrationController::Register()
 	m_PhantomReferenceToPhantomTransform->Concatenate(trackerToPhantomTransform);
 	m_PhantomReferenceToPhantomTransform->Concatenate(trackerToPhantomReferenceInverseTransform);
 	m_PhantomReferenceToPhantomTransform->Modified();
+	*/
 }
 
 //-----------------------------------------------------------------------------
@@ -566,7 +586,7 @@ void PhantomRegistrationController::RequestRecording()
 
 //-----------------------------------------------------------------------------
 
-vtkMatrix4x4* PhantomRegistrationController::AcquireTrackerPosition(double aPosition[4], bool aReference)
+vtkMatrix4x4* PhantomRegistrationController::AcquireStylusTipTrackerPosition(double aPosition[4], bool aReference)
 {
 	vtkFreehandController* controller = vtkFreehandController::GetInstance();
 	if ((controller == NULL) || (controller->GetInitialized() == false)) {
@@ -583,14 +603,16 @@ vtkMatrix4x4* PhantomRegistrationController::AcquireTrackerPosition(double aPosi
 		return NULL;
 	}
 
-	vtkSmartPointer<vtkMatrix4x4> transformMatrix = NULL; // stylus to reference tool transform
+	vtkSmartPointer<vtkMatrix4x4> referenceToolToStylusTransformMatrix = NULL; // stylus to reference tool transform
+	vtkSmartPointer<vtkMatrix4x4> referenceToolToStylusTipTransformMatrix = NULL;
+
 	long flags = -1;
 	double timestamp;
 	unsigned int toolNumber;
 	if (aReference) {
 		toolNumber = dataCollector->GetTracker()->GetReferenceTool();
 	} else {
-		toolNumber = dataCollector->GetDefaultToolPortNumber();
+		toolNumber = StylusCalibrationController::GetInstance()->GetStylusPortNumber();
 	}
 
 	// If tracker is FakeTracker and recording has been requested then wait to ensure new position is set by tracker thread
@@ -603,14 +625,12 @@ vtkMatrix4x4* PhantomRegistrationController::AcquireTrackerPosition(double aPosi
 
 	// Acquire position from tracker
 	if (dataCollector->GetTracker()->GetTool(toolNumber)->GetEnabled()) {
-		transformMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
-		dataCollector->GetTransformWithTimestamp(transformMatrix, timestamp, flags, toolNumber); 
-
-		transformMatrix->Register(NULL);
+		referenceToolToStylusTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
+		dataCollector->GetTransformWithTimestamp(referenceToolToStylusTransformMatrix, timestamp, flags, toolNumber); 
 	}
 
 	if (flags & (TR_MISSING | TR_OUT_OF_VIEW) ) {
-		LOG_WARNING("Tracker out of view!");
+		LOG_DEBUG("Tracker out of view!");
 		m_PositionString = std::string("Tracker out of view!");
 		return NULL;
 	} else if (flags & TR_REQ_TIMEOUT ) {
@@ -618,9 +638,19 @@ vtkMatrix4x4* PhantomRegistrationController::AcquireTrackerPosition(double aPosi
 		m_PositionString = std::string("Tracker request timeout!");
 		return NULL;
 	} else if (aPosition != NULL) { // TR_OK
+		// Apply calibration if stylus was requested
+		referenceToolToStylusTipTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+		referenceToolToStylusTipTransformMatrix->Identity();
+		if (! aReference) {
+			vtkMatrix4x4::Multiply4x4(referenceToolToStylusTransformMatrix, StylusCalibrationController::GetInstance()->GetStylusToStylustipTransform()->GetMatrix(), referenceToolToStylusTipTransformMatrix);
+		} else {
+			referenceToolToStylusTipTransformMatrix->DeepCopy(referenceToolToStylusTransformMatrix);
+		}
+		referenceToolToStylusTipTransformMatrix->Register(NULL);
+
 		// Compute the new position
 		double elements[16]; //TODO find other way
-		for (int i=0; i<4; ++i) for (int j=0; j<4; ++j) elements[4*j+i] = transformMatrix->GetElement(i,j);
+		for (int i=0; i<4; ++i) for (int j=0; j<4; ++j) elements[4*j+i] = referenceToolToStylusTipTransformMatrix->GetElement(i,j);
 		double origin[4] = {0.0, 0.0, 0.0, 1.0};
 
 		vtkMatrix4x4::PointMultiply(elements, origin, aPosition);
@@ -632,7 +662,7 @@ vtkMatrix4x4* PhantomRegistrationController::AcquireTrackerPosition(double aPosi
 		m_PositionString = std::string(stylusPositionChars);
 	}
 
-	return transformMatrix;
+	return referenceToolToStylusTipTransformMatrix;
 }
 
 //-----------------------------------------------------------------------------
@@ -642,68 +672,65 @@ void PhantomRegistrationController::DoAcquisition()
 	if ((m_State == ToolboxState_InProgress) || (m_State == ToolboxState_Done)) {
 		// Display stylus
 		double stylusTipPosition[4];
-		vtkSmartPointer<vtkMatrix4x4> referenceToolToStylusTransformMatrix = AcquireTrackerPosition(stylusTipPosition);
-
-		// Apply calibration
-		vtkSmartPointer<vtkMatrix4x4> referenceToolToStylusTipTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-		referenceToolToStylusTipTransformMatrix->Identity();
-		vtkMatrix4x4::Multiply4x4(referenceToolToStylusTransformMatrix, StylusCalibrationController::GetInstance()->GetStylusToStylustipTransform()->GetMatrix(), referenceToolToStylusTipTransformMatrix);
-
-		// If first acquisition, then reset camera and determine FOV
-		bool firstAcquisition = false;
-		if ((m_StylusActor != NULL) && (m_StylusActor->GetUserMatrix() == NULL)) {
-			firstAcquisition = true;
-		}
-
-		// Display stylus
-		if (vtkFreehandController::GetInstance()->GetCanvas() != NULL) {
-			// If acquisition was successful
-			if (referenceToolToStylusTransformMatrix != NULL) {
-				m_StylusActor->GetProperty()->SetOpacity(1.0);
-				m_StylusActor->GetProperty()->SetColor(0.0, 0.0, 0.0);
-
-				m_StylusActor->SetUserMatrix(referenceToolToStylusTipTransformMatrix);
-			} else {
-				m_StylusActor->GetProperty()->SetOpacity(0.3);
-				m_StylusActor->GetProperty()->SetColor(1.0, 0.0, 0.0);
+		vtkSmartPointer<vtkMatrix4x4> referenceToolToStylusTipTransformMatrix;
+		
+		if (referenceToolToStylusTipTransformMatrix = AcquireStylusTipTrackerPosition(stylusTipPosition)) {
+			// If first acquisition, then reset camera and determine FOV
+			bool firstAcquisition = false;
+			if ((m_StylusActor != NULL) && (m_StylusActor->GetUserMatrix() == NULL)) {
+				firstAcquisition = true;
 			}
-		}
 
-		// Record landmark if requested
-		if ((m_RecordRequested) && (m_State == ToolboxState_InProgress)) {
-			// Compute calibrated position
-			double elements[16]; //TODO find other way
-			for (int i=0; i<4; ++i) for (int j=0; j<4; ++j) elements[4*j+i] = referenceToolToStylusTipTransformMatrix->GetElement(i,j);
-			double origin[4] = {0.0, 0.0, 0.0, 1.0};
-			vtkMatrix4x4::PointMultiply(elements, origin, stylusTipPosition);
+			// Display stylus
+			if (vtkFreehandController::GetInstance()->GetCanvas() != NULL) {
+				// If acquisition was successful
+				if (referenceToolToStylusTipTransformMatrix != NULL) {
+					m_StylusActor->GetProperty()->SetOpacity(1.0);
+					m_StylusActor->GetProperty()->SetColor(0.0, 0.0, 0.0);
 
-			// Add recorded point
-			vtkPoints* points = m_LandmarksPolyData->GetPoints();
-			points->InsertPoint(m_CurrentLandmarkIndex, stylusTipPosition[0], stylusTipPosition[1], stylusTipPosition[2]);
-			points->Modified();
-
-			// Set new current landmark number and reset request flag
-			++m_CurrentLandmarkIndex;
-
-			// If it was the last landmark then set status to done and reset landmark counter
-			if (m_CurrentLandmarkIndex == GetNumberOfLandmarks()) {
-				if (m_Toolbox) {
-					m_Toolbox->Stop();
+					m_StylusActor->SetUserMatrix(referenceToolToStylusTipTransformMatrix);
 				} else {
-					Stop();
+					m_StylusActor->GetProperty()->SetOpacity(0.3);
+					m_StylusActor->GetProperty()->SetColor(1.0, 0.0, 0.0);
 				}
-			} else {
-				// Highlight next landmark
-				m_RequestedLandmarkPolyData->GetPoints()->InsertPoint(0, m_DefinedLandmarks->GetPoint(m_CurrentLandmarkIndex));
-				m_RequestedLandmarkPolyData->GetPoints()->Modified();
 			}
 
-			m_RecordRequested = false;
-		}
+			// Record landmark if requested
+			if ((m_RecordRequested) && (m_State == ToolboxState_InProgress)) {
+				// Compute calibrated position
+				double elements[16]; //TODO find other way
+				for (int i=0; i<4; ++i) for (int j=0; j<4; ++j) elements[4*j+i] = referenceToolToStylusTipTransformMatrix->GetElement(i,j);
+				double origin[4] = {0.0, 0.0, 0.0, 1.0};
+				vtkMatrix4x4::PointMultiply(elements, origin, stylusTipPosition);
 
-		if ((firstAcquisition) && (vtkFreehandController::GetInstance()->GetCanvas() != NULL)) {
-			vtkFreehandController::GetInstance()->GetCanvasRenderer()->ResetCamera();
-			vtkFreehandController::GetInstance()->GetCanvasRenderer()->GetActiveCamera()->Zoom(0.5);
+				// Add recorded point
+				vtkPoints* points = m_LandmarksPolyData->GetPoints();
+				points->InsertPoint(m_CurrentLandmarkIndex, stylusTipPosition[0], stylusTipPosition[1], stylusTipPosition[2]);
+				points->Modified();
+
+				// Set new current landmark number and reset request flag
+				++m_CurrentLandmarkIndex;
+
+				// If it was the last landmark then set status to done and reset landmark counter
+				if (m_CurrentLandmarkIndex == GetNumberOfLandmarks()) {
+					if (m_Toolbox) {
+						m_Toolbox->Stop();
+					} else {
+						Stop();
+					}
+				} else {
+					// Highlight next landmark
+					m_RequestedLandmarkPolyData->GetPoints()->InsertPoint(0, m_DefinedLandmarks->GetPoint(m_CurrentLandmarkIndex));
+					m_RequestedLandmarkPolyData->GetPoints()->Modified();
+				}
+
+				m_RecordRequested = false;
+			}
+
+			if ((firstAcquisition) && (vtkFreehandController::GetInstance()->GetCanvas() != NULL)) {
+				vtkFreehandController::GetInstance()->GetCanvasRenderer()->ResetCamera();
+				vtkFreehandController::GetInstance()->GetCanvasRenderer()->GetActiveCamera()->Zoom(0.5);
+			}
 		}
 	}
 }
@@ -883,7 +910,10 @@ void PhantomRegistrationController::SavePhantomRegistrationToFile(std::string aF
 
 	char phantomRegistrationChars[256];
 	vtkSmartPointer<vtkMatrix4x4> transformMatrix = m_PhantomReferenceToPhantomTransform->GetMatrix();
-	sprintf_s(phantomRegistrationChars, 256, "\n\t1 0 0 %.1lf\n\t0 1 0 %.1lf\n\t0 0 1 %.1lf\n\t0 0 0 1", transformMatrix->GetElement(0,3), transformMatrix->GetElement(1,3), transformMatrix->GetElement(2,3));
+	sprintf_s(phantomRegistrationChars, 256, "\n\t%.4lf %.4lf %.4lf %.4lf\n\t%.4lf %.4lf %.4lf %.4lf\n\t%.4lf %.4lf %.4lf %.1lf\n\t0 0 0 1", 
+		transformMatrix->GetElement(0,0), transformMatrix->GetElement(0,1), transformMatrix->GetElement(0,2), transformMatrix->GetElement(0,3), 
+		transformMatrix->GetElement(1,0), transformMatrix->GetElement(1,1), transformMatrix->GetElement(1,2), transformMatrix->GetElement(1,3), 
+		transformMatrix->GetElement(2,0), transformMatrix->GetElement(2,1), transformMatrix->GetElement(2,2), transformMatrix->GetElement(2,3));
 
 	phantomRegistrationTransform->SetName("PhantomReferenceToPhantomTransform");
 

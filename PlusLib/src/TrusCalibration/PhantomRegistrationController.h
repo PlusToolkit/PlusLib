@@ -149,7 +149,7 @@ protected:
 	* \param aReference Flag if the reference is needed (if false, the main tool is acquired) - by default it is false
 	* \return Acquired transform if successful, else NULL
 	*/
-	vtkMatrix4x4* AcquireTrackerPosition(double aPosition[4], bool aReference = false);
+	vtkMatrix4x4* AcquireStylusTipTrackerPosition(double aPosition[4], bool aReference = false);
 
 protected:
 	//! Renderer for the canvas

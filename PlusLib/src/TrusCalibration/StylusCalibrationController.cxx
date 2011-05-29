@@ -42,6 +42,7 @@ StylusCalibrationController::StylusCalibrationController()
 	,m_NumberOfPoints(200)
 	,m_CurrentPointNumber(0)
 	,m_StartingFrame(-1)
+	,m_StylusPortNumber(-1)
 	,m_StylusToStylustipTransform(NULL)
 	,m_Precision(-1.0)
 	,m_InputPolyData(NULL)
@@ -100,7 +101,22 @@ void StylusCalibrationController::Initialize()
 		LOG_ERROR("vtkFreehandController is not initialized!");
 		return;
 	}
+	vtkDataCollector* dataCollector = controller->GetDataCollector();
+	if (dataCollector == NULL) {
+		LOG_ERROR("Data collector is not initialized!");
+		return;
+	}
 
+	// Get stylus tool port number
+	unsigned int toolNumber = dataCollector->GetTracker()->GetToolPortByName("Stylus");
+	if (toolNumber != -1) {
+		m_StylusPortNumber = toolNumber;
+	} else {
+		LOG_WARNING("Stylus port number not found in configuration file, default tool used!");
+		m_StylusPortNumber = dataCollector->GetTracker()->GetDefaultTool();
+	}
+
+	// Initialize visualization
 	InitializeVisualization();
 
 	// Set state to idle
@@ -256,6 +272,12 @@ int StylusCalibrationController::GetCurrentPointNumber() {
 
 //-----------------------------------------------------------------------------
 
+unsigned int StylusCalibrationController::GetStylusPortNumber() {
+	return m_StylusPortNumber;
+}
+
+//-----------------------------------------------------------------------------
+
 double StylusCalibrationController::GetPrecision() {
 	return m_Precision;
 }
@@ -301,7 +323,7 @@ std::string StylusCalibrationController::GetPositionString()
 
 //-----------------------------------------------------------------------------
 
-vtkMatrix4x4* StylusCalibrationController::AcquireTrackerPosition(double aPosition[4], bool aReference)
+vtkMatrix4x4* StylusCalibrationController::AcquireStylusTrackerPosition(double aPosition[4], bool aReference)
 {
 	vtkFreehandController* controller = vtkFreehandController::GetInstance();
 	if ((controller == NULL) || (controller->GetInitialized() == false)) {
@@ -325,7 +347,7 @@ vtkMatrix4x4* StylusCalibrationController::AcquireTrackerPosition(double aPositi
 	if (aReference) {
 		toolNumber = dataCollector->GetTracker()->GetReferenceTool();
 	} else {
-		toolNumber = dataCollector->GetDefaultToolPortNumber();
+		toolNumber = m_StylusPortNumber;
 	}
 
 	if (dataCollector->GetTracker()->GetTool(toolNumber)->GetEnabled()) {
@@ -336,7 +358,7 @@ vtkMatrix4x4* StylusCalibrationController::AcquireTrackerPosition(double aPositi
 	}
 
 	if (flags & (TR_MISSING | TR_OUT_OF_VIEW) ) {
-		LOG_WARNING("Tracker out of view!");
+		LOG_DEBUG("Tracker out of view!");
 		m_PositionString = std::string("Tracker out of view!");
 		return NULL;
 	} else if (flags & TR_REQ_TIMEOUT ) {
@@ -380,7 +402,7 @@ void StylusCalibrationController::DoAcquisition()
 
 		double stylusPosition[4];
 
-		if (AcquireTrackerPosition(stylusPosition)) {
+		if (AcquireStylusTrackerPosition(stylusPosition)) {
 			vtkPoints* points = m_InputPolyData->GetPoints();
 			
 			double distance_lowThreshold_mm = 3.0; // TODO review this threshold with the guys
@@ -402,10 +424,8 @@ void StylusCalibrationController::DoAcquisition()
 			} else if (distance > distance_highThreshold_mm * distance_highThreshold_mm) {
 				LOG_WARNING("Acquired position seems to be an outlier - it is skipped");
 			} else {
-				unsigned int mainToolNumber = dataCollector->GetDefaultToolPortNumber();
-
 				// Add the point into the calibration dataset
-				dataCollector->GetTracker()->GetTool(mainToolNumber)->InsertNextCalibrationPoint();
+				dataCollector->GetTracker()->GetTool(m_StylusPortNumber)->InsertNextCalibrationPoint();
 
 				// Add to polydata for rendering and re-compute bounding box
 				points->InsertPoint(m_CurrentPointNumber, stylusPosition[0], stylusPosition[1], stylusPosition[2]);
@@ -448,7 +468,7 @@ void StylusCalibrationController::DisplayStylus()
 	double stylusPosition[4];
 	vtkSmartPointer<vtkMatrix4x4> referenceToolToStylusTransformMatrix = NULL;
 
-	if (referenceToolToStylusTransformMatrix = AcquireTrackerPosition(stylusPosition)) {
+	if (referenceToolToStylusTransformMatrix = AcquireStylusTrackerPosition(stylusPosition)) {
 		m_StylusActor->GetProperty()->SetOpacity(1.0);
 		m_StylusActor->GetProperty()->SetColor(0.0, 0.0, 0.0);
 
@@ -487,12 +507,12 @@ void StylusCalibrationController::Start()
 	m_CurrentPointNumber = 0;
 
 	// Initialize tracker tool
-	dataCollector->GetTracker()->GetTool(dataCollector->GetDefaultToolPortNumber())->GetBuffer()->Clear();
-	dataCollector->GetTracker()->GetTool(dataCollector->GetDefaultToolPortNumber())->InitializeToolTipCalibration();
+	dataCollector->GetTracker()->GetTool(m_StylusPortNumber)->GetBuffer()->Clear();
+	dataCollector->GetTracker()->GetTool(m_StylusPortNumber)->InitializeToolTipCalibration();
 
 	vtkSmartPointer<vtkTransform> initialTransform = vtkSmartPointer<vtkTransform>::New();
 	initialTransform->Identity();
-	dataCollector->GetTracker()->GetTool(dataCollector->GetDefaultToolPortNumber())->SetCalibrationMatrix(initialTransform->GetMatrix());
+	dataCollector->GetTracker()->GetTool(m_StylusPortNumber)->SetCalibrationMatrix(initialTransform->GetMatrix());
 
 	// Reset polydatas (make it look like empty)
 	m_InputPolyData->GetPoints()->Reset();
@@ -555,7 +575,7 @@ bool StylusCalibrationController::LoadStylusCalibrationFromFile(std::string aFil
 			// Set calibration matrix to stylus tool
 			vtkDataCollector* dataCollector = vtkFreehandController::GetInstance()->GetDataCollector();
 			if (dataCollector != NULL) {
-				dataCollector->GetTracker()->GetTool(dataCollector->GetDefaultToolPortNumber())->SetCalibrationMatrix(transformMatrix);
+				dataCollector->GetTracker()->GetTool(m_StylusPortNumber)->SetCalibrationMatrix(transformMatrix);
 			} else {
 				LOG_WARNING("Data collector is not initialized!");
 			}
@@ -578,7 +598,7 @@ void StylusCalibrationController::SaveStylusCalibrationToFile(std::string aFile)
 
 	char stylusToStylustipTransformChars[256];
 	vtkSmartPointer<vtkMatrix4x4> transformMatrix = m_StylusToStylustipTransform->GetMatrix();
-	sprintf_s(stylusToStylustipTransformChars, 256, "\n\t1 0 0 %.1lf\n\t0 1 0 %.1lf\n\t0 0 1 %.1lf\n\t0 0 0 1", transformMatrix->GetElement(0,3), transformMatrix->GetElement(1,3), transformMatrix->GetElement(2,3));
+	sprintf_s(stylusToStylustipTransformChars, 256, "\n\t1 0 0 %.4lf\n\t0 1 0 %.4lf\n\t0 0 1 %.4lf\n\t0 0 0 1", transformMatrix->GetElement(0,3), transformMatrix->GetElement(1,3), transformMatrix->GetElement(2,3));
 
 	stylusToStylusTipTransform->SetName("StylusToStylusTipTransform");
 
@@ -600,20 +620,20 @@ bool StylusCalibrationController::CalibrateStylus()
 		LOG_ERROR("Data collector is not initialized!");
 		return false;
 	}
-	if ((dataCollector->GetTracker() == NULL) || (dataCollector->GetTracker()->GetTool(dataCollector->GetDefaultToolPortNumber()) < 0)) {
+	if ((dataCollector->GetTracker() == NULL) || (dataCollector->GetTracker()->GetTool(m_StylusPortNumber) < 0)) {
 		LOG_ERROR("Tracker is not initialized properly!");
 		return false;
 	}
 
 	// Do the calibration
-	m_Precision = dataCollector->GetTracker()->GetTool(dataCollector->GetDefaultToolPortNumber())->DoToolTipCalibration();
+	m_Precision = dataCollector->GetTracker()->GetTool(m_StylusPortNumber)->DoToolTipCalibration();
 
 	// Get the calibration result
 	if (m_StylusToStylustipTransform == NULL) {
 		m_StylusToStylustipTransform = vtkTransform::New();
 	}
 	m_StylusToStylustipTransform->Identity();
-	vtkMatrix4x4* transform = dataCollector->GetTracker()->GetTool(dataCollector->GetDefaultToolPortNumber())->GetCalibrationMatrix();
+	vtkMatrix4x4* transform = dataCollector->GetTracker()->GetTool(m_StylusPortNumber)->GetCalibrationMatrix();
 	m_StylusToStylustipTransform->SetMatrix(transform);
 
 	// Display calibration result stylus tip (by acquiring a new point and using it) //TODO do it an other way, without getting a new point
@@ -621,7 +641,7 @@ bool StylusCalibrationController::CalibrateStylus()
 		double stylusTipPosition[4];
 		vtkMatrix4x4* referenceToolToStylusTransformMatrix = NULL;
 
-		if (referenceToolToStylusTransformMatrix = AcquireTrackerPosition(stylusTipPosition)) {
+		if (referenceToolToStylusTransformMatrix = AcquireStylusTrackerPosition(stylusTipPosition)) {
 			// Apply calibration
 			vtkSmartPointer<vtkMatrix4x4> referenceToolToStylusTipTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
 			referenceToolToStylusTipTransformMatrix->Identity();
