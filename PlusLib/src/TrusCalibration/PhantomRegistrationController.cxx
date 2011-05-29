@@ -520,54 +520,6 @@ void PhantomRegistrationController::Register()
 
 		vtkFreehandController::GetInstance()->GetCanvasRenderer()->ResetCamera();
 	}
-
-	/*
-	vtkSmartPointer<vtkTransform> trackerToPhantomTransform = vtkSmartPointer<vtkTransform>::New();
-	trackerToPhantomTransform->Identity();
-	trackerToPhantomTransform->SetMatrix(trackerToPhantomTransformMatrix);
-
-	// Display phantom model in the main canvas
-	if (vtkFreehandController::GetInstance()->GetCanvas() != NULL) {
-		vtkSmartPointer<vtkTransform> trackerToModelTransform = vtkSmartPointer<vtkTransform>::New();
-		trackerToModelTransform->Identity();
-		trackerToModelTransform->Concatenate(trackerToPhantomTransform);
-		trackerToModelTransform->Concatenate(m_PhantomToModelTransform);
-		trackerToModelTransform->Modified();
-
-		m_RegisteredPhantomBodyActor->SetUserTransform(trackerToModelTransform);
-		m_RegisteredPhantomBodyActor->VisibilityOn();
-		m_RegisteredPhantomBodyActor->Modified();
-
-		vtkFreehandController::GetInstance()->GetCanvasRenderer()->ResetCamera();
-	}
-
-
-	// Get phantom reference tool position
-	double stylusTipPosition[4];
-	vtkMatrix4x4* trackerToPhantomReferenceTransformMatrix = NULL;
-
-	if ((trackerToPhantomReferenceTransformMatrix = AcquireStylusTipTrackerPosition(stylusTipPosition, true)) == false) {
-		LOG_ERROR("Unable to get reference tool position!");
-		m_State = ToolboxState_Error;
-		return;
-	}
-
-	// Compute phantom reference to phantom transform (set result)
-	vtkSmartPointer<vtkTransform> trackerToPhantomReferenceInverseTransform = vtkSmartPointer<vtkTransform>::New();
-	trackerToPhantomReferenceInverseTransform->Identity();
-	trackerToPhantomReferenceInverseTransform->SetMatrix(trackerToPhantomReferenceTransformMatrix);
-	trackerToPhantomReferenceInverseTransform->Inverse();
-	trackerToPhantomReferenceInverseTransform->Modified();
-
-	if (m_PhantomReferenceToPhantomTransform != NULL) {
-		m_PhantomReferenceToPhantomTransform->Delete();
-	}
-	m_PhantomReferenceToPhantomTransform = vtkTransform::New();
-	m_PhantomReferenceToPhantomTransform->Identity();
-	m_PhantomReferenceToPhantomTransform->Concatenate(trackerToPhantomTransform);
-	m_PhantomReferenceToPhantomTransform->Concatenate(trackerToPhantomReferenceInverseTransform);
-	m_PhantomReferenceToPhantomTransform->Modified();
-	*/
 }
 
 //-----------------------------------------------------------------------------

@@ -73,7 +73,7 @@ void vtkFreehandController::Initialize()
 	this->DataCollector->Initialize();
 	this->DataCollector->Start();
 
-	if (this->DataCollector->GetTracker()->GetNumberOfTools() < 1) {
+	if ((this->DataCollector->GetTracker() == NULL) || (this->DataCollector->GetTracker()->GetNumberOfTools() < 1)) {
 		LOG_ERROR("Unable to initialize Tracker!"); 
 		exit(EXIT_FAILURE); // TODO ezek helyett logbol GUIra kiiratas
 	}
