@@ -1,0 +1,55 @@
+<PhantomDefinition version="1.0">
+	<!-- Supported types are: Double-N, U-Shaped-N -->
+	<Description
+		Name="ThomasFreehand"
+		Type="Double-N"
+		Version="1.0"
+		Institution="Queen's University PerkLab"
+	/>
+	
+	<!-- ModelToPhantomOriginTransform - transforming model into phantom origin coordinate system for proper visualization -->
+	<Model
+		File=""
+		ModelToPhantomOriginTransform="
+			1 0 0 0.0
+			0 1 0 0.0
+			0 0 1 0.0
+			0 0 0 1"
+	/>
+
+	<Geometry>
+		<!-- N wire definitions -->
+		<NWire>
+			<Wire Name="A1_a1" EndPointFront="0.0 0.0 0.0" EndPointBack="0.0 20.0 0.0" />
+			<Wire Name="B1_b1" EndPointFront="15.0 0.0 0.0" EndPointBack="5.0 20.0 0.0" />
+			<Wire Name="C1_c1" EndPointFront="20.0 0.0 0.0" EndPointBack="20.0 20.0 0.0" />
+		</NWire>
+		<NWire>
+			<Wire Name="A1_a2" EndPointFront="-10.0 0.0 5.0" EndPointBack="-10.0 20.0 5.0" />
+			<Wire Name="B2_b2" EndPointFront="5.0 0.0 5.0" EndPointBack="-5.0 20.0 5.0" />
+			<Wire Name="C2_c2" EndPointFront="10.0 0.0 5.0" EndPointBack="10.0 20.0 5.0" />
+		</NWire>
+
+		<!-- Landmark list for registration -->
+		<Landmarks>
+			<Landmark Name="#1" Position="0.0 0.0 0.0" />
+			<Landmark Name="#2" Position="0.0 0.0 0.0" />
+			<Landmark Name="#3" Position="0.0 0.0 0.0" />
+			<Landmark Name="#4" Position="0.0 0.0 0.0" />
+			
+			<Landmark Name="#5" Position="0.0 0.0 0.0" />
+			<Landmark Name="#6" Position="0.0 0.0 0.0" />
+			<Landmark Name="#7" Position="0.0 0.0 0.0" />
+			<Landmark Name="#8" Position="0.0 0.0 0.0" />
+		</Landmarks>
+		
+		<Registration
+			MatrixName="PhantomReferenceToPhantom" 
+			MatrixValue="1 0 0 0 
+						 0 1 0 0 
+						 0 0 1 0
+						 0 0 0 1" 
+			Date="2011.05.17"
+			Error="0.0" />
+	</Geometry>
+</PhantomDefinition>

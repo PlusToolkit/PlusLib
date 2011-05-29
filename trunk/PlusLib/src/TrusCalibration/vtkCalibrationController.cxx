@@ -52,6 +52,7 @@ SegmentationProgressCallbackFunction(NULL)
 	this->ProgramFolderPath = NULL; 
 	this->ConfigurationFileName = NULL;
 	this->PhantomDefinitionFileName = NULL;
+	this->DesiredOrientation = NULL;
 	this->SegParameters = NULL; 
 
 	this->SetCalibrationMode(REALTIME); 
@@ -174,7 +175,12 @@ bool vtkCalibrationController::AddTrackedFrameData(TrackedFrame* trackedFrame, I
 		}
 
 		// Check to see if the segmentation has returned the targets
-		SegmentationResults segResults = this->SegmentImage(trackedFrame->ImageData); 
+		SegmentationResults segResults;
+		if (this->DesiredOrientation != NULL) {
+			segResults = this->SegmentImage(trackedFrame->GetOrientedImage(this->DesiredOrientation));
+		} else {
+			segResults = this->SegmentImage(trackedFrame->ImageData);
+		}
 
 		// Add frame to the container 
 		int trackedFramePosition(-1); 
