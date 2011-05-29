@@ -160,14 +160,14 @@ void vtkFreehandCalibrationController::Initialize()
 	}
 	*/
 
-	// TEMPORARY CODE ////////////
+	this->DesiredOrientation = "MN";
 
+	// TEMPORARY CODE ////////////
 	vtkSmartPointer<vtkMatrix4x4> identity = vtkSmartPointer<vtkMatrix4x4>::New();
 	identity->Identity();
 	vnl_matrix<double> transformOrigImageFrame2TRUSImageFrameMatrix4x4(4,4);
 	ConvertVtkMatrixToVnlMatrix(identity, transformOrigImageFrame2TRUSImageFrameMatrix4x4); 
 	this->GetCalibrator()->setTransformOrigImageToTRUSImageFrame4x4(transformOrigImageFrame2TRUSImageFrameMatrix4x4);
-
 	// TEMPORARY CODE ////////////
 
 	// Set state to idle (initialized)
