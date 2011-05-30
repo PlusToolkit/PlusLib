@@ -53,7 +53,7 @@ PhantomRegistrationController::PhantomRegistrationController()
 	,m_LandmarksPolyData(NULL)
 	,m_RequestedLandmarkPolyData(NULL)
 	,m_DefinedLandmarks(NULL)
-	,m_PhantomReferenceToPhantomTransform(NULL)
+	,m_PhantomToPhantomReferenceTransform(NULL)
 	,m_PhantomToModelTransform(NULL)
 	,m_PositionString("")
 	,m_CurrentLandmarkIndex(-1)
@@ -113,9 +113,9 @@ PhantomRegistrationController::~PhantomRegistrationController()
 		m_RequestedLandmarkPolyData = NULL;
 	}
 	
-	if (m_PhantomReferenceToPhantomTransform != NULL) {
-		m_PhantomReferenceToPhantomTransform->Delete();
-		m_PhantomReferenceToPhantomTransform = NULL;
+	if (m_PhantomToPhantomReferenceTransform != NULL) {
+		m_PhantomToPhantomReferenceTransform->Delete();
+		m_PhantomToPhantomReferenceTransform = NULL;
 	}
 	
 	if (m_PhantomToModelTransform != NULL) {
@@ -331,9 +331,9 @@ int PhantomRegistrationController::GetCurrentLandmarkIndex()
 
 //-----------------------------------------------------------------------------
 
-vtkTransform* PhantomRegistrationController::GetPhantomReferenceToPhantomTransform()
+vtkTransform* PhantomRegistrationController::GetPhantomToPhantomReferenceTransform()
 {
-	return m_PhantomReferenceToPhantomTransform;
+	return m_PhantomToPhantomReferenceTransform;
 }
 
 //-----------------------------------------------------------------------------
@@ -387,9 +387,9 @@ void PhantomRegistrationController::Undo()
 		--m_CurrentLandmarkIndex;
 
 		// Reset result transform (if Undo was pressed when the registration was ready we have to make it null)
-		if (m_PhantomReferenceToPhantomTransform != NULL) {
-			m_PhantomReferenceToPhantomTransform->Delete();
-			m_PhantomReferenceToPhantomTransform = NULL;
+		if (m_PhantomToPhantomReferenceTransform != NULL) {
+			m_PhantomToPhantomReferenceTransform->Delete();
+			m_PhantomToPhantomReferenceTransform = NULL;
 		}
 
 		// Delete previously acquired landmark
@@ -425,9 +425,9 @@ void PhantomRegistrationController::Reset()
 	m_CurrentLandmarkIndex = 0;
 
 	// Reset result transform (if Reset was pressed when the registration was ready we have to make it null)
-	if (m_PhantomReferenceToPhantomTransform != NULL) {
-		m_PhantomReferenceToPhantomTransform->Delete();
-		m_PhantomReferenceToPhantomTransform = NULL;
+	if (m_PhantomToPhantomReferenceTransform != NULL) {
+		m_PhantomToPhantomReferenceTransform->Delete();
+		m_PhantomToPhantomReferenceTransform = NULL;
 	}
 
 	// Highlight first landmark
@@ -489,28 +489,28 @@ void PhantomRegistrationController::Register()
 	initializer->InitializeTransform();
 
 	// Get result (do the registration)
-	vtkSmartPointer<vtkMatrix4x4> phantomReferenceToPhantomTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-	phantomReferenceToPhantomTransformMatrix->Identity();
+	vtkSmartPointer<vtkMatrix4x4> phantomToPhantomReferenceTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+	phantomToPhantomReferenceTransformMatrix->Identity();
 
 	itk::Matrix<double,3,3> transformMatrix = transform->GetMatrix();
 	for (int i=0; i<transformMatrix.RowDimensions; ++i) {
 		for (int j=0; j<transformMatrix.ColumnDimensions; ++j) {
-			phantomReferenceToPhantomTransformMatrix->SetElement(i, j, transformMatrix[i][j]);
+			phantomToPhantomReferenceTransformMatrix->SetElement(i, j, transformMatrix[i][j]);
 		}
 	}
 	itk::Vector<double,3> transformOffset = transform->GetOffset();
 	for (int j=0; j<transformOffset.GetNumberOfComponents(); ++j) {
-		phantomReferenceToPhantomTransformMatrix->SetElement(j, 3, transformOffset[j]);
+		phantomToPhantomReferenceTransformMatrix->SetElement(j, 3, transformOffset[j]);
 	}
 
-	m_PhantomReferenceToPhantomTransform = vtkTransform::New();
-	m_PhantomReferenceToPhantomTransform->SetMatrix(phantomReferenceToPhantomTransformMatrix);
+	m_PhantomToPhantomReferenceTransform = vtkTransform::New();
+	m_PhantomToPhantomReferenceTransform->SetMatrix(phantomToPhantomReferenceTransformMatrix);
 
 	// Display phantom model in the main canvas
-	if (vtkFreehandController::GetInstance()->GetCanvas() != NULL) {
+	if (vtkFreehandController::GetInstance()->GetCanvas() != NULL) { //TODO fix!!! the new name of m_PhantomToPhantomReferenceTransform and the concatenation is not consistent!
 		vtkSmartPointer<vtkTransform> phantomReferenceToModelTransform = vtkSmartPointer<vtkTransform>::New();
 		phantomReferenceToModelTransform->Identity();
-		phantomReferenceToModelTransform->Concatenate(m_PhantomReferenceToPhantomTransform);
+		phantomReferenceToModelTransform->Concatenate(m_PhantomToPhantomReferenceTransform);
 		phantomReferenceToModelTransform->Concatenate(m_PhantomToModelTransform);
 		phantomReferenceToModelTransform->Modified();
 
@@ -838,11 +838,11 @@ bool PhantomRegistrationController::LoadPhantomRegistrationFromFile(std::string 
 	} else {
 		double* transform = new double[16]; 
 		if (phantomRegistrationTransform->GetVectorAttribute("Transform", 16, transform)) {
-			if (m_PhantomReferenceToPhantomTransform == NULL) {
-				m_PhantomReferenceToPhantomTransform = vtkTransform::New();
+			if (m_PhantomToPhantomReferenceTransform == NULL) {
+				m_PhantomToPhantomReferenceTransform = vtkTransform::New();
 			}
 
-			m_PhantomReferenceToPhantomTransform->SetMatrix(transform);
+			m_PhantomToPhantomReferenceTransform->SetMatrix(transform);
 		}
 		delete[] transform; 
 	}
@@ -861,7 +861,7 @@ void PhantomRegistrationController::SavePhantomRegistrationToFile(std::string aF
 	vtkSmartPointer<vtkXMLDataElement> phantomRegistrationTransform = vtkSmartPointer<vtkXMLDataElement>::New();
 
 	char phantomRegistrationChars[256];
-	vtkSmartPointer<vtkMatrix4x4> transformMatrix = m_PhantomReferenceToPhantomTransform->GetMatrix();
+	vtkSmartPointer<vtkMatrix4x4> transformMatrix = m_PhantomToPhantomReferenceTransform->GetMatrix();
 	sprintf_s(phantomRegistrationChars, 256, "\n\t%.4lf %.4lf %.4lf %.4lf\n\t%.4lf %.4lf %.4lf %.4lf\n\t%.4lf %.4lf %.4lf %.1lf\n\t0 0 0 1", 
 		transformMatrix->GetElement(0,0), transformMatrix->GetElement(0,1), transformMatrix->GetElement(0,2), transformMatrix->GetElement(0,3), 
 		transformMatrix->GetElement(1,0), transformMatrix->GetElement(1,1), transformMatrix->GetElement(1,2), transformMatrix->GetElement(1,3), 
