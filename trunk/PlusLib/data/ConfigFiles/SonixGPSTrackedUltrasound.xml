@@ -1,0 +1,74 @@
+<USDataCollection version="2.0">
+  
+  <DeviceSet 
+    Name="SonixTouch with GPS extension" 
+    Description="Ultrasound probe is tracked by the GPS extension against a reference sensor." 
+    />
+
+  <Tracker
+    Type="Ascension3DG"
+    BufferSize="1000"
+    Frequency="5"
+    LocalTimeOffset="0.0"
+    ReferenceToolName="Reference"
+    DefaultToolName="Probe"
+    >
+      
+    <Tool
+      Name="Probe"
+      PortNumber="0"
+      SendTo="localhost:18944">
+      <Calibration 
+        MatrixName="ImageToProbe" 
+        MatrixValue="1 0 0 0 
+                     0 1 0 0 
+                     0 0 1 0
+                     0 0 0 1" 
+        Date="2011.05.02"
+        Error="0.0"
+        />
+    </Tool>
+    
+    <Tool
+      Name="Reference"
+      PortNumber="1">
+    </Tool>
+  
+  </Tracker>
+
+  <ImageAcqusition
+    Type="SonixVideo" 
+    BufferSize="200" 
+    FrameSize="640 480 1" 
+    FrameRate="30" 
+    SmoothingFactor="0.001" 
+    LocalTimeOffset="0.0"
+    IP="130.15.7.20" 
+    ImagingMode="0" 
+    AcquisitionDataType="4" 
+    Depth="-1" 
+    Sector="-1" 
+    Gain="-1" 
+    DynRange="-1" 
+    Zoom="-1" 
+    Frequency="-1" 
+    Timeout="-1" 
+    CompressionStatus="0" 
+    />
+
+  <Synchronization
+    Type="ChangeDetection" 
+    SynchronizationTimeLength="30" 
+    MinNumOfSyncSteps="5" 
+    ThresholdMultiplier="5"
+
+    NumberOfAveragedTransforms="20" 
+    MinTransformThreshold="2.0" 
+    MaxTransformDifference="2.0" 
+
+    NumberOfAveragedFrames="6" 
+    MinFrameThreshold="200.0" 
+    MaxFrameDifference="10.0" 
+    />
+  
+</USDataCollection>
