@@ -101,10 +101,10 @@ public:
 	std::string GetCurrentLandmarkName();
 
 	/*!
-	* \brief Get phantom reference to phantom transform (result of phantom registration and landmark registration)
-	* \return Phantom reference to phantom transform
+	* \brief Get phantom to phantom reference transform (result of phantom registration and landmark registration)
+	* \return Phantom to phantom reference transform
 	*/
-	vtkTransform* GetPhantomReferenceToPhantomTransform();
+	vtkTransform* GetPhantomToPhantomReferenceTransform();
 
 	/*!
 	* \brief Load phantom definition of phantom definition XML
@@ -182,8 +182,8 @@ protected:
 	//! Point array holding the defined landmarks from the configuration file
 	vtkPoints*								m_DefinedLandmarks;
 
-	//! Phantom reference to phantom transform - the result of the process
-	vtkTransform*							m_PhantomReferenceToPhantomTransform;
+	//! Phantom to phantom reference transform - the result of the process
+	vtkTransform*							m_PhantomToPhantomReferenceTransform;
 
 	//! Phantom model to phantom origin transform (from phantom definition file)
 	vtkTransform*							m_PhantomToModelTransform;

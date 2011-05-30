@@ -418,7 +418,7 @@ void vtkFreehandCalibrationController::RegisterPhantomGeometry()
 
 	// Register the phantom geometry to the DRB frame in the "Emulator" mode.
 	vnl_matrix<double> transformMatrixPhantom2DRB4x4InEmulatorMode(4,4);
-	this->ConvertVtkMatrixToVnlMatrixInMeter(PhantomRegistrationController::GetInstance()->GetPhantomReferenceToPhantomTransform()->GetMatrix(), transformMatrixPhantom2DRB4x4InEmulatorMode);
+	this->ConvertVtkMatrixToVnlMatrixInMeter(PhantomRegistrationController::GetInstance()->GetPhantomToPhantomReferenceTransform()->GetMatrix(), transformMatrixPhantom2DRB4x4InEmulatorMode);
 
 	this->GetCalibrator()->registerPhantomGeometryInEmulatorMode(transformMatrixPhantom2DRB4x4InEmulatorMode);
 }
