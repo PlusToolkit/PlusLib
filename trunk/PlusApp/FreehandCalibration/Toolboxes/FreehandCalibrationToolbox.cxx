@@ -65,7 +65,7 @@ FreehandCalibrationToolbox::~FreehandCalibrationToolbox()
 void FreehandCalibrationToolbox::Initialize()
 {
 	// If phantom registration has just been done, then indicate it
-	if (PhantomRegistrationController::GetInstance()->GetPhantomReferenceToPhantomTransform() != NULL) {
+	if (PhantomRegistrationController::GetInstance()->GetPhantomToPhantomReferenceTransform() != NULL) {
 		ui.lineEdit_PhantomRegistration->setText(tr("Using session calibration data"));
 	}
 }

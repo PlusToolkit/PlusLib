@@ -145,7 +145,7 @@ void PhantomRegistrationToolbox::RefreshToolboxContent()
 	if (toolboxController->State() == ToolboxState_Done) {
 		ui.label_StylusPosition->setText(QString::fromStdString(toolboxController->GetPositionString()));
 
-		if (! toolboxController->GetPhantomReferenceToPhantomTransform()) {
+		if (! toolboxController->GetPhantomToPhantomReferenceTransform()) {
 			ui.label_Instructions->setText(tr("Press Register button to compute the transform"));
 
 			ui.pushButton_OpenPhantomDefinition->setEnabled(true);
