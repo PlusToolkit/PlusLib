@@ -87,13 +87,17 @@ int vtkSavedDataTracker::Connect()
 	for ( int tool = 0; tool < this->GetNumberOfTools(); tool++ )
 	{
 		this->GetTool(tool)->EnabledOn(); 
+		
 	}
-
+  
+	// Set tool names
+	this->SetToolName(0, savedDataBuffer->GetDefaultFrameTransformName().c_str()); 
+	
 	// Set default tool name
 	this->SetDefaultToolName(savedDataBuffer->GetDefaultFrameTransformName().c_str()); 
 	
-	// Set tool names
-	this->SetToolName(0, savedDataBuffer->GetDefaultFrameTransformName().c_str()); 
+	// TODO: Read this from the config file.
+	this->GetTool( this->GetDefaultTool() )->SetSendToLink( "localhost:18944" );
 	
 	if ( this->LocalTrackerBuffer == NULL )
 	{

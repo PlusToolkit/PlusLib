@@ -15,6 +15,9 @@
 
 
 
+/**
+ * Broadcasts tracked ultrasound through OpenIGTLink network protocol.
+ */
 class
 VTK_EXPORT 
 vtkOpenIGTLinkBroadcaster
@@ -22,15 +25,25 @@ vtkOpenIGTLinkBroadcaster
 {
 public:
   
+  enum Status {
+    STATUS_OK,
+    STATUS_NOT_INITIALIZED,
+    STATUS_NOT_TRACKING,
+    STATUS_HOST_NOT_FOUND,
+    STATUS_SEND_ERROR,
+    STATUS_MISSING_DEFAULT_TOOL
+  };
+  
   static vtkOpenIGTLinkBroadcaster *New();
 	vtkTypeRevisionMacro( vtkOpenIGTLinkBroadcaster, vtkObject );
 	virtual void PrintSelf( ostream& os, vtkIndent indent );
   
   
-  vtkSetObjectMacro( DataCollector, vtkDataCollector );
+  Status SetDataCollector( vtkDataCollector* dataCollector );
+  Status Initialize( std::string &strError );
   
-  void AddSocket( std::string host, unsigned int port );
-  void SendMessages();
+  Status SendMessages( std::string strError );
+  Status SendMessages();
   
   
 protected:
@@ -44,8 +57,11 @@ private:
   vtkOpenIGTLinkBroadcaster( const vtkOpenIGTLinkBroadcaster& );
 	void operator=( const vtkOpenIGTLinkBroadcaster& );
   
-  std::vector< igtl::ClientSocket::Pointer > Sockets;
-  vtkDataCollector* DataCollector;
+  
+  Status             InternalStatus;
+  vtkDataCollector*  DataCollector;
+  
+  igtl::ClientSocket::Pointer DefaultSocket;
   
 };
 

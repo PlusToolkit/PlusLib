@@ -74,6 +74,7 @@ int main( int argc, char** argv )
       }
     vtkSavedDataTracker* tracker = static_cast< vtkSavedDataTracker* >( dataCollector->GetTracker() );
     tracker->SetSequenceMetafile( inputTrackerBufferMetafile.c_str() );
+    tracker->Connect();
     }
   
   std::cout << "Initializing data collector... ";
@@ -82,10 +83,28 @@ int main( int argc, char** argv )
   
     // Prepare the OpenIGTLink broadcaster.
   
+  vtkOpenIGTLinkBroadcaster::Status broadcasterStatus = vtkOpenIGTLinkBroadcaster::STATUS_NOT_INITIALIZED;
   vtkSmartPointer< vtkOpenIGTLinkBroadcaster > broadcaster = vtkSmartPointer< vtkOpenIGTLinkBroadcaster >::New();
-    broadcaster->AddSocket( "localhost", 18944 );
     broadcaster->SetDataCollector( dataCollector );
   
+  std::string errorMessage;
+  broadcasterStatus = broadcaster->Initialize( errorMessage );
+  
+  if ( broadcasterStatus == vtkOpenIGTLinkBroadcaster::STATUS_NOT_INITIALIZED )
+    {
+    std::cout << "ERROR: Couldn't initialize OpenIGTLink broadcaster.";
+    return 1;
+    }
+  else if ( broadcasterStatus == vtkOpenIGTLinkBroadcaster::STATUS_HOST_NOT_FOUND )
+    {
+    std::cout << "Error: Could not connect to host: " << errorMessage << std::endl;
+    return 1;
+    }
+  else if ( broadcasterStatus == vtkOpenIGTLinkBroadcaster::STATUS_MISSING_DEFAULT_TOOL )
+    {
+    std::cout << "Error: Default tool not defined. " << std::endl;
+    return 1;
+    }
   
   std::cout << "Start data collector... ";
   dataCollector->Start();
@@ -130,7 +149,32 @@ int main( int argc, char** argv )
 		}
     
     std::cout << ss.str() << std::endl;
-    broadcaster->SendMessages();
+    
+    vtkOpenIGTLinkBroadcaster::Status broadcasterStatus = vtkOpenIGTLinkBroadcaster::STATUS_NOT_INITIALIZED;
+    std::string                       errorMessage;
+    
+    broadcasterStatus = broadcaster->SendMessages( errorMessage );
+    
+    
+      // Display messages depending on the status of broadcaster.
+    
+    if ( broadcasterStatus == vtkOpenIGTLinkBroadcaster::STATUS_HOST_NOT_FOUND )
+      {
+      std::cout << "WARNING: Host not found: " << errorMessage << std::endl;
+      }
+    else if ( broadcasterStatus == vtkOpenIGTLinkBroadcaster::STATUS_NOT_INITIALIZED )
+      {
+      std::cout << "WARNING: OpenIGTLink broadcaster not initialized." << std::endl;
+      }
+    else if ( broadcasterStatus == vtkOpenIGTLinkBroadcaster::STATUS_NOT_TRACKING )
+      {
+      std::cout << "WARNING: Tracking error detected." << std::endl;
+      }
+    else if ( broadcasterStatus == vtkOpenIGTLinkBroadcaster::STATUS_SEND_ERROR )
+      {
+      std::cout << "WARNING: Could not send OpenIGTLink message." << std::endl;
+      }
+    
     }
   
   std::cout << "Stop data collector... ";

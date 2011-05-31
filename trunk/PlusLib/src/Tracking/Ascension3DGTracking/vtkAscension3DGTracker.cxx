@@ -131,7 +131,6 @@ vtkAscension3DGTracker
     }
   
   
-	// TODO: Do we need other tools than the defult tool? 
 	this->SetNumberOfTools( systemConfig.numberSensors );
   
 	// Enable tools
@@ -263,7 +262,7 @@ vtkAscension3DGTracker
   // TODO: Frame number is fake here!
   ++ this->FrameNumber;
   
-  double unfilteredtimestamp(0), filteredtimestamp(0); 
+  double unfilteredtimestamp( 0 ), filteredtimestamp( 0 ); 
   this->Timer->GetTimeStampForFrame( this->FrameNumber, unfilteredtimestamp, filteredtimestamp );
   
   
@@ -317,6 +316,7 @@ vtkAscension3DGTracker
     int flags = 0;
     if ( ! attached ) flags |= TR_MISSING;
     if ( ! inMotionBox ) flags |= TR_OUT_OF_VIEW;
+    
     // TODO: Handle all kinds of errors.
     
     this->ToolUpdate( sensorIndex, vtkM, flags, this->FrameNumber, unfilteredtimestamp, filteredtimestamp );
