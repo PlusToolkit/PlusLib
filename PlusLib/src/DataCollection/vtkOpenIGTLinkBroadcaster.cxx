@@ -10,6 +10,8 @@
 #include "vtkObjectFactory.h"
 #include "vtkSmartPointer.h"
 
+#include "vtkTrackerTool.h"
+
 #include "igtlImageMessage.h"
 #include "igtlTransformMessage.h"
 
@@ -20,23 +22,112 @@ vtkStandardNewMacro( vtkOpenIGTLinkBroadcaster );
 
 
 
+vtkOpenIGTLinkBroadcaster::Status
 vtkOpenIGTLinkBroadcaster
-::vtkOpenIGTLinkBroadcaster()
+::SetDataCollector( vtkDataCollector* dataCollector )
 {
-  this->DataCollector = NULL;
+  this->DataCollector = dataCollector;
+  
+  return this->InternalStatus;
 }
 
 
 
+vtkOpenIGTLinkBroadcaster::Status
+vtkOpenIGTLinkBroadcaster
+::Initialize( std::string &strError )
+{
+  if (    this->DataCollector == NULL
+       || this->DataCollector->GetTracker() == NULL )
+    {
+    LOG_ERROR( "Tried to initialize vtkOpenIGTLinkBroadcaster without DataCollector." );
+    this->InternalStatus = STATUS_NOT_INITIALIZED;
+    return this->InternalStatus;
+    }
+  
+  
+    // Check default tool port.
+  
+  int defaultToolPort = this->DataCollector->GetTracker()->GetDefaultTool();
+  
+  if ( defaultToolPort < 0 )
+    {
+    LOG_ERROR( "Default tool port number missing in DataCollector." );
+    this->InternalStatus = STATUS_MISSING_DEFAULT_TOOL;
+    return this->InternalStatus;
+    }
+  
+  
+    // Check SendTo address for default tool.
+  
+  vtkTrackerTool* defaultTool = this->DataCollector->GetTracker()->GetTool( defaultToolPort );
+  const char* constCharSendTo = defaultTool->GetSendToLink();
+  std::string strSendTo( constCharSendTo );
+  
+  
+  if ( strSendTo.size() < 1 )
+    {
+    LOG_ERROR( "No SendTo address defined for default tracker tool." );
+    this->InternalStatus = STATUS_NOT_INITIALIZED;
+    return this->InternalStatus;
+    }
+  
+  char* charSendTo = new char[ strSendTo.size() + 1 ];
+  strcpy( charSendTo, strSendTo.c_str() );
+  const char* hostname = strtok( charSendTo, ":");
+  char*       charPort = strtok( NULL, ":\n" );
+  int         port = atoi( charPort );
+  
+  
+  if ( hostname == NULL || charPort == NULL || port == 0 )
+    {
+    charSendTo = defaultTool->GetSendToLink();
+    LOG_ERROR( "Could not connect to OpenIGTLink host: " << defaultTool->GetSendToLink() );
+    this->InternalStatus = STATUS_HOST_NOT_FOUND;
+    strError = std::string( defaultTool->GetSendToLink() );
+    return this->InternalStatus;
+    }
+  
+  
+    // Try to connect.
+  
+  int fail = this->DefaultSocket->ConnectToServer( hostname, port );
+  
+  if ( fail )
+    {
+    LOG_ERROR( "Could not connect to OpenIGTLink host: " << defaultTool->GetSendToLink() );
+    this->InternalStatus = STATUS_HOST_NOT_FOUND;
+    strError = defaultTool->GetSendToLink();
+    return this->InternalStatus;
+    }
+  
+  
+    // Everything worked.
+  
+  this->InternalStatus = STATUS_OK;
+  return this->InternalStatus;
+}
+
+
+
+  // Constructor.
+
+vtkOpenIGTLinkBroadcaster
+::vtkOpenIGTLinkBroadcaster()
+{
+  this->DataCollector = NULL;
+  this->InternalStatus = STATUS_NOT_INITIALIZED;
+  this->DefaultSocket = igtl::ClientSocket::New();
+}
+
+
+
+  // Destructor.
+
 vtkOpenIGTLinkBroadcaster
 ::~vtkOpenIGTLinkBroadcaster()
 {
-  std::vector< igtl::ClientSocket::Pointer >::iterator it;
-  for ( it = this->Sockets.begin(); it != this->Sockets.end(); ++ it )
-    {
-    (*it)->CloseSocket();
-    }
-  this->Sockets.clear();
+  this->DefaultSocket->CloseSocket();
 }
 
 
@@ -50,64 +141,71 @@ vtkOpenIGTLinkBroadcaster
 
 
 
-void
+vtkOpenIGTLinkBroadcaster::Status
 vtkOpenIGTLinkBroadcaster
-::AddSocket( std::string host, unsigned int port )
+::SendMessages()
 {
-    // Try to set up connection.
-  
-  igtl::ClientSocket::Pointer socket = igtl::ClientSocket::New();
-  int r = socket->ConnectToServer( host.c_str(), port );
-  if ( r != 0 )
-    {
-    LOG_WARNING( "Failed to connect to OpenIGTLink server." );
-    }
-  
-  this->Sockets.push_back( socket );
+  std::string str;
+  return SendMessages( str );
 }
 
 
 
-void
+/**
+ * @returns Internal status. If it is HOST_NOT_FOUND, strError will be filled
+ *          with the host:port address not found.
+ * 
+ */
+vtkOpenIGTLinkBroadcaster::Status
 vtkOpenIGTLinkBroadcaster
-::SendMessages()
+::SendMessages( std::string strError )
 {
+  if ( this->InternalStatus == STATUS_NOT_INITIALIZED )
+    {
+    LOG_WARNING( "Broadcaster not initialized." );
+    return this->InternalStatus;
+    }
+  
   if ( this->DataCollector == NULL )
     {
     LOG_WARNING( "Tried to send OpenIGTLink messages without specifying a DataCollector." );
-    return;
+    this->InternalStatus = STATUS_NOT_INITIALIZED;
+    return this->InternalStatus;
     }
   
   if ( ! this->DataCollector->GetTracker()->IsTracking() )
     {
     LOG_WARNING( "Tried to send OpenIGTLink messages without starting the tracker." );
-    return;
+    this->InternalStatus = STATUS_NOT_TRACKING;
+    return this->InternalStatus;
     }
   
   
-    // Read the transform from the DataCollector.
+    // Read the default transform relative to the reference from the DataCollector.
   
   vtkSmartPointer< vtkMatrix4x4 > probeToTrackerMatrix = vtkSmartPointer< vtkMatrix4x4 >::New();
   double timestamp( 0 ); 
 	long flags( 0 ); 
   
-  this->DataCollector->GetTransformWithTimestamp( probeToTrackerMatrix, timestamp, flags, this->DataCollector->GetDefaultToolPortNumber() ); 
+  int defaultTool = this->DataCollector->GetDefaultToolPortNumber();
+  this->DataCollector->GetTransformWithTimestamp( probeToTrackerMatrix, timestamp, flags, defaultTool, true ); 
   
   if ( flags & ( TR_MISSING | TR_OUT_OF_VIEW ) ) 
     {
     LOG_WARNING( "Tracker out of view..." );
-    return;
+    this->InternalStatus = STATUS_NOT_TRACKING;
+    return this->InternalStatus;
     }
   else if ( flags & ( TR_REQ_TIMEOUT ) ) 
     {
     LOG_WARNING( "Tracker request timeout..." );
-    return;
+    this->InternalStatus = STATUS_NOT_TRACKING;
+    return this->InternalStatus;
     } 
   
   
-    // Prepare the OpenIGTLink transform message.
+    // Prepare the transform matrices.
   
-  igtl::TransformMessage::Pointer transformMessage = igtl::TransformMessage::New();
   igtl::Matrix4x4 igtlMatrix;
   
   for ( int row = 0; row < 4; ++ row )
@@ -117,14 +215,6 @@ vtkOpenIGTLinkBroadcaster
       igtlMatrix[ row ][ col ] = probeToTrackerMatrix->GetElement( row, col );
       }
     }
-  
-  igtl::TimeStamp::Pointer igtlTime = igtl::TimeStamp::New();
-    igtlTime->SetTime( timestamp );
-  
-  transformMessage->SetDeviceName( "Probe" );
-  transformMessage->SetMatrix( igtlMatrix );
-  transformMessage->SetTimeStamp( igtlTime );
-  transformMessage->Pack();
   
   
     // Read the image from the DataCollector.
@@ -139,16 +229,18 @@ vtkOpenIGTLinkBroadcaster
   
   this->DataCollector->GetFrameWithTimestamp( frameImage, frameTime );
   
-  int imageSizePixels[ 3 ] = { 0, 0, 0 };
+  
+    // Convert image to IGTL image message.
+  
+  int    imageSizePixels[ 3 ] = { 0, 0, 0 };
   double imageSpacingMm[ 3 ] = { 0, 0, 0 };
-  int svSizePixels[ 3 ] = { 0, 0, 0 };
-  int svOffset[ 3 ] = { 0, 0, 0 };
-  int scalarType = igtl::ImageMessage::TYPE_UINT8;
+  int    subSizePixels[ 3 ] = { 0, 0, 0 };
+  int    subOffset[ 3 ] = { 0, 0, 0 };
+  int    scalarType = igtl::ImageMessage::TYPE_UINT8;
   
   frameImage->GetDimensions( imageSizePixels );
   frameImage->GetSpacing( imageSpacingMm );
-  frameImage->GetDimensions( svSizePixels );
-  
+  frameImage->GetDimensions( subSizePixels );
   
   float spacingFloat[ 3 ];
   for ( int i = 0; i < 3; ++ i ) spacingFloat[ i ] = (float)imageSpacingMm[ i ];
@@ -157,8 +249,8 @@ vtkOpenIGTLinkBroadcaster
     imageMessage->SetDimensions( imageSizePixels );
     imageMessage->SetSpacing( spacingFloat );
     imageMessage->SetScalarType( scalarType );
-    imageMessage->SetDeviceName( "Ultrasound" );
-    imageMessage->SetSubVolume( svSizePixels, svOffset );
+    imageMessage->SetDeviceName( this->DataCollector->GetTracker()->GetTool( defaultTool )->GetToolName() );
+    imageMessage->SetSubVolume( subSizePixels, subOffset );
     imageMessage->AllocateScalars();
   
   unsigned char* igtlImagePointer = (unsigned char*)( imageMessage->GetScalarPointer() );
@@ -182,12 +274,15 @@ vtkOpenIGTLinkBroadcaster
   
     // Send the OpenIGTLink transform and image message to all hosts.
   
-  std::vector< igtl::ClientSocket::Pointer >::iterator it;
-  for ( it = this->Sockets.begin(); it != this->Sockets.end(); ++ it )
+  int success = this->DefaultSocket->Send( imageMessage->GetPackPointer(), imageMessage->GetPackSize() );
+  
+  if ( success == 0 )
     {
-    (*it)->Send( transformMessage->GetPackPointer(), transformMessage->GetPackSize() );
-    (*it)->Send( imageMessage->GetPackPointer(), imageMessage->GetPackSize() );
+    this->InternalStatus = STATUS_SEND_ERROR;
+    return this->InternalStatus;
     }
   
+  this->InternalStatus = STATUS_OK;
+  return this->InternalStatus;
 }
 
