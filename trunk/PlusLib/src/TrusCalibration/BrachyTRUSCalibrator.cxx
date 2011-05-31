@@ -469,17 +469,6 @@ bool BrachyTRUSCalibrator::loadGeometry(SegmentationParameters* aSegmentationPar
 		} else {
 			return false; // no diagonal found (there were no parallel wires in an NWire)! //TODO proper error message
 		}
-		/*
-		if (vnl_cross_3d(itNWire->at(0) - itNWire->at(1), itNWire->at(2) - itNWire->at(3)).is_zero()) {
-			diagonal = 2;
-		} else if (vnl_cross_3d(itNWire->at(0) - itNWire->at(1), itNWire->at(4) - itNWire->at(5)).is_zero()) {
-			diagonal = 1;
-		} else if (vnl_cross_3d(itNWire->at(2) - itNWire->at(3), itNWire->at(4) - itNWire->at(5)).is_zero()) {
-			diagonal = 0;
-		} else {
-			return false; // no diagonal found (there were no parallel wires in an NWire)! //TODO proper error message
-		}
-		*/
 
 		// Determine wire that has a joint with the diagonal wire in front and the wire that has with the back
 		int jointFront = -1;
@@ -501,7 +490,7 @@ bool BrachyTRUSCalibrator::loadGeometry(SegmentationParameters* aSegmentationPar
 		jointBack = 5 - (diagonal+1) - (jointFront+1);
 
 //TODO Tomitol megkerdezni h melyik a felso es melyik az also!!!
-		if (layer == 0) { // top
+		if (layer == 1) { // top
 			alphaTopLayerFrontWall =
 				(itNWire->at(jointFront*2) - itNWire->at(diagonal*2)).magnitude() / 
 				(itNWire->at(jointFront*2+1) - itNWire->at(diagonal*2+1)).magnitude();
@@ -516,7 +505,7 @@ bool BrachyTRUSCalibrator::loadGeometry(SegmentationParameters* aSegmentationPar
 				(1/(1-alphaTopLayerBackWall)) * itNWire->at(jointBack*2+1) -
 				(alphaTopLayerBackWall/(1-alphaTopLayerBackWall)) * itNWire->at(jointBack*2);
 
-		} else if (layer == 1) { // bottom
+		} else if (layer == 0) { // bottom
 			alphaBottomLayerFrontWall =
 				(itNWire->at(jointFront*2) - itNWire->at(diagonal*2)).magnitude() / 
 				(itNWire->at(jointFront*2+1) - itNWire->at(diagonal*2+1)).magnitude();
