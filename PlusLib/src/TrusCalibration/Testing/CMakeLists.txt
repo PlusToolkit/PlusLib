@@ -1,4 +1,3 @@
-
 #--------------------------------------------------------------------------------------------
 SET (vtkUSCalibrationControllerTest_LIBS ${vtkUSCalibrationControllerTest_LIBS} itkvnl itkvnl_algo vtkCommon vtkRendering vtkHybrid vtkTrusCalibration vtkDataCollection)
 ADD_EXECUTABLE(vtkUSCalibrationControllerTest1 vtkUSCalibrationControllerTest1.cxx)
