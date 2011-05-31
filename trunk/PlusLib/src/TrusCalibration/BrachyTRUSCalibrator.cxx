@@ -496,7 +496,7 @@ bool BrachyTRUSCalibrator::loadGeometry(SegmentationParameters* aSegmentationPar
 
 		//TODO Top and bottom layer determination automatically - the difficulty is that the phantom coordinate system can have any orientation; maybe it is better to modify the calibration to handleactual wires in the 3D space instead of layers
 		// Calculate joints
-		if (layer == 1) { // top
+		if (layer == 0) { // top
 			alphaTopLayerFrontWall =
 				(itNWire->at(jointFront*2) - itNWire->at(diagonal*2)).magnitude() / 
 				(itNWire->at(jointFront*2+1) - itNWire->at(diagonal*2+1)).magnitude();
@@ -511,7 +511,7 @@ bool BrachyTRUSCalibrator::loadGeometry(SegmentationParameters* aSegmentationPar
 				(1/(1-alphaTopLayerBackWall)) * itNWire->at(jointBack*2+1) -
 				(alphaTopLayerBackWall/(1-alphaTopLayerBackWall)) * itNWire->at(jointBack*2);
 
-		} else if (layer == 0) { // bottom
+		} else if (layer == 1) { // bottom
 			alphaBottomLayerFrontWall =
 				(itNWire->at(jointFront*2) - itNWire->at(diagonal*2)).magnitude() / 
 				(itNWire->at(jointFront*2+1) - itNWire->at(diagonal*2+1)).magnitude();

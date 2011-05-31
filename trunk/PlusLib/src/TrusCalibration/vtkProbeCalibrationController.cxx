@@ -268,6 +268,10 @@ void vtkProbeCalibrationController::RegisterPhantomGeometry( double phantomToPro
 	tTemplateHomeToProbeHome->Concatenate( this->TransformTemplateHolderHomeToTemplateHome ); 
 	tTemplateHomeToProbeHome->Inverse(); 
 
+	std::ostringstream osTemplateHomeToProbeHome; 
+	tTemplateHomeToProbeHome->GetMatrix()->Print(osTemplateHomeToProbeHome);   
+	LOG_DEBUG("TemplateHomeToProbeHome:\n" << osTemplateHomeToProbeHome.str().c_str() );
+
 	// Register the phantom geometry to the DRB frame in the "Emulator" mode.
 	vnl_matrix<double> transformMatrixPhantom2DRB4x4InEmulatorMode(4,4);
 	ConvertVtkMatrixToVnlMatrixInMeter( tTemplateHomeToProbeHome->GetMatrix(), transformMatrixPhantom2DRB4x4InEmulatorMode ); 
