@@ -46,6 +46,8 @@
 #include <fstream>	// for file I/O process
 #include <algorithm>
 
+#include <float.h>
+
 // VNL Includes
 #include "vnl/algo/vnl_matrix_inverse.h"
 #include "vcl_istream.h"
@@ -71,6 +73,7 @@ const int BrachyTRUSCalibrator::mNUMREFPOINTSPERIMAGE = 6;
 //    point to quality control the imaging data for a reliable calibration.
 const double BrachyTRUSCalibrator::mNUMOFTIMESOFMINBEAMWIDTH = 2.1;  
 
+//-----------------------------------------------------------------------------
 
 BrachyTRUSCalibrator::BrachyTRUSCalibrator( const bool IsSystemLogOn )
 	: Phantom( IsSystemLogOn )	// Call the parent's constructor
@@ -115,6 +118,8 @@ BrachyTRUSCalibrator::BrachyTRUSCalibrator( const bool IsSystemLogOn )
 	}
 }
 
+//-----------------------------------------------------------------------------
+
 BrachyTRUSCalibrator::~BrachyTRUSCalibrator()
 {
 	try
@@ -126,6 +131,8 @@ BrachyTRUSCalibrator::~BrachyTRUSCalibrator()
 
 	}
 }
+
+//-----------------------------------------------------------------------------
 
 void BrachyTRUSCalibrator::loadGeometry()
 {
@@ -364,6 +371,197 @@ void BrachyTRUSCalibrator::loadGeometry()
 		throw;
 	}
 }
+
+//-----------------------------------------------------------------------------
+
+bool BrachyTRUSCalibrator::loadGeometry(SegmentationParameters* aSegmentationParameters)
+{
+	if (mIsPhantomGeometryLoaded == true) {
+		mIsPhantomGeometryLoaded = false;
+	}
+
+	if( true == mIsSystemLogOn )
+	{
+		std::ofstream SystemLogFile(
+			mSystemLogFileNameWithTimeStamp.c_str(), std::ios::app);
+		SystemLogFile << " ==========================================================================\n";
+		SystemLogFile << " PHANTOM GEOMETRY >>>>>>>>>>>>>>>>>>>>>\n\n";
+		SystemLogFile.close();
+	}
+
+	// Read input NWires and convert them to vnl vectors to easier processing
+	std::vector<NWire> nWires = aSegmentationParameters->mNWires;
+	std::vector<std::vector<vnl_vector<double>>> vnl_NWires;
+
+	if (mIsSystemLogOn == true) {
+		std::ofstream SystemLogFile(
+			mSystemLogFileNameWithTimeStamp.c_str(), std::ios::app);
+		SystemLogFile << " -----------------------------------------------------------------------------------\n";
+		SystemLogFile << "\n Endpoints of wires = \n\n";
+	}
+
+	int layer = -1;
+	std::vector<NWire>::iterator it;
+	for (layer = 0, it = nWires.begin(); it != nWires.end(); ++it, ++layer) {
+		std::vector<vnl_vector<double>> vnl_NWire;
+
+		for (int i=0; i<3; ++i) {
+			vnl_vector<double> endPointFront(4);
+			vnl_vector<double> endPointBack(4);
+		
+			for (int j=0; j<3; ++j) {
+				endPointFront[j] = it->wires[i].endPointFront[j] / 1000.0; //TODO this is meter
+				endPointBack[j] = it->wires[i].endPointBack[j] / 1000.0;
+			}
+			// Insert front first then back (so vector will be like {front0, back0, front1, back1, front2, back2}
+			endPointFront[3] = 1.0;
+			endPointBack[3] = 1.0;
+
+			vnl_NWire.push_back(endPointFront);
+			vnl_NWire.push_back(endPointBack);
+
+			if (mIsSystemLogOn == true) {
+				std::ofstream SystemLogFile(
+					mSystemLogFileNameWithTimeStamp.c_str(), std::ios::app);
+				SystemLogFile << "\t Front endpoint of wire " << i << " on layer " << layer << " = " << endPointFront << "\n";
+				SystemLogFile << "\t Back endpoint of wire " << i << " on layer " << layer << " = " << endPointBack << "\n";
+			}
+		}
+
+		vnl_NWires.push_back(vnl_NWire);
+	}
+
+	if (mIsSystemLogOn == true) {
+		std::ofstream SystemLogFile(
+			mSystemLogFileNameWithTimeStamp.c_str(), std::ios::app);
+		SystemLogFile.close();
+	}
+
+
+	double alphaTopLayerFrontWall = -1.0;
+	double alphaTopLayerBackWall = -1.0;
+	double alphaBottomLayerFrontWall = -1.0;
+	double alphaBottomLayerBackWall = -1.0;
+
+	// Calculate wire joints
+	std::vector<std::vector<vnl_vector<double>>>::iterator itNWire;
+	for (layer = 0, itNWire = vnl_NWires.begin(); itNWire != vnl_NWires.end(); ++itNWire, ++layer) {
+		// Find the diagonal wire for the NWire
+		int diagonal = -1;
+
+		// Convert 4D vectors to 3D to be able to compute cross product (for determining parallelism)
+		std::vector<vnl_vector<double>> endPoints3D;
+		for (int i=0; i<6; ++i) {
+			vnl_vector<double> endPoint(3);
+			for (int j=0; j<3; ++j) {
+				endPoint[j] = itNWire->at(i)[j];
+			}
+
+			endPoints3D.push_back(endPoint);
+		}
+
+		if (vnl_cross_3d(endPoints3D[0] - endPoints3D[1], endPoints3D[2] - endPoints3D[3]).is_zero()) {
+			diagonal = 2;
+		} else if (vnl_cross_3d(endPoints3D[0] - endPoints3D[1], endPoints3D[4] - endPoints3D[5]).is_zero()) {
+			diagonal = 1;
+		} else if (vnl_cross_3d(endPoints3D[2] - endPoints3D[3], endPoints3D[4] - endPoints3D[5]).is_zero()) {
+			diagonal = 0;
+		} else {
+			return false; // no diagonal found (there were no parallel wires in an NWire)! //TODO proper error message
+		}
+		/*
+		if (vnl_cross_3d(itNWire->at(0) - itNWire->at(1), itNWire->at(2) - itNWire->at(3)).is_zero()) {
+			diagonal = 2;
+		} else if (vnl_cross_3d(itNWire->at(0) - itNWire->at(1), itNWire->at(4) - itNWire->at(5)).is_zero()) {
+			diagonal = 1;
+		} else if (vnl_cross_3d(itNWire->at(2) - itNWire->at(3), itNWire->at(4) - itNWire->at(5)).is_zero()) {
+			diagonal = 0;
+		} else {
+			return false; // no diagonal found (there were no parallel wires in an NWire)! //TODO proper error message
+		}
+		*/
+
+		// Determine wire that has a joint with the diagonal wire in front and the wire that has with the back
+		int jointFront = -1;
+		int jointBack = -1;
+		double minHoleDistanceFront = FLT_MAX;
+
+		for (int i=0; i<3; ++i) {
+			if (i == diagonal) {
+				continue;
+			}
+
+			if ((itNWire->at(diagonal*2) - itNWire->at(i*2)).magnitude() < minHoleDistanceFront) {
+				minHoleDistanceFront = (itNWire->at(diagonal*2) - itNWire->at(i*2)).magnitude();
+				jointFront = i;
+			}
+		}
+
+		// Determine wire that has a joint with the diagonal wire in back
+		jointBack = 5 - (diagonal+1) - (jointFront+1);
+
+//TODO Tomitol megkerdezni h melyik a felso es melyik az also!!!
+		if (layer == 0) { // top
+			alphaTopLayerFrontWall =
+				(itNWire->at(jointFront*2) - itNWire->at(diagonal*2)).magnitude() / 
+				(itNWire->at(jointFront*2+1) - itNWire->at(diagonal*2+1)).magnitude();
+			mNWireJointTopLayerFrontWall = 
+				(1/(1-alphaTopLayerFrontWall)) * itNWire->at(jointFront*2) -
+				(alphaTopLayerFrontWall/(1-alphaTopLayerFrontWall)) * itNWire->at(jointFront*2+1);
+
+			alphaTopLayerBackWall =
+				(itNWire->at(jointBack*2+1) - itNWire->at(diagonal*2+1)).magnitude() / 
+				(itNWire->at(jointBack*2) - itNWire->at(diagonal*2)).magnitude();
+			mNWireJointTopLayerBackWall = 
+				(1/(1-alphaTopLayerBackWall)) * itNWire->at(jointBack*2+1) -
+				(alphaTopLayerBackWall/(1-alphaTopLayerBackWall)) * itNWire->at(jointBack*2);
+
+		} else if (layer == 1) { // bottom
+			alphaBottomLayerFrontWall =
+				(itNWire->at(jointFront*2) - itNWire->at(diagonal*2)).magnitude() / 
+				(itNWire->at(jointFront*2+1) - itNWire->at(diagonal*2+1)).magnitude();
+			mNWireJointBottomLayerFrontWall = 
+				(1/(1-alphaBottomLayerFrontWall)) * itNWire->at(jointFront*2) -
+				(alphaBottomLayerFrontWall/(1-alphaBottomLayerFrontWall)) * itNWire->at(jointFront*2+1);
+
+			alphaBottomLayerBackWall =
+				(itNWire->at(jointBack*2+1) - itNWire->at(diagonal*2+1)).magnitude() / 
+				(itNWire->at(jointBack*2) - itNWire->at(diagonal*2)).magnitude();
+			mNWireJointBottomLayerBackWall = 
+				(1/(1-alphaBottomLayerBackWall)) * itNWire->at(jointBack*2+1) -
+				(alphaBottomLayerBackWall/(1-alphaBottomLayerBackWall)) * itNWire->at(jointBack*2);
+
+		} else {
+			return false; //only 2 layers of wires are supported! //TODO proper error message
+		}
+
+	}
+
+	// Set the flag
+	mIsPhantomGeometryLoaded = true;
+
+	// Log the data pipeline if requested.
+	if( true == mIsSystemLogOn )
+	{
+		std::ofstream SystemLogFile(
+			mSystemLogFileNameWithTimeStamp.c_str(), std::ios::app);
+		SystemLogFile << " -----------------------------------------------------------------------------------\n";
+		SystemLogFile << "\n Alpha ratio between NWires = \n\n";
+		SystemLogFile << "\t alphaTopLayerBackWall \t= " << alphaTopLayerBackWall << "\n";
+		SystemLogFile << "\t alphaTopLayerFrontWall \t= " << alphaTopLayerFrontWall << "\n";
+		SystemLogFile << "\t alphaBottomLayerBackWall \t= " << alphaBottomLayerBackWall << "\n";
+		SystemLogFile << "\t alphaBottomLayerFrontWall \t= " << alphaBottomLayerFrontWall << "\n";
+		SystemLogFile << " -----------------------------------------------------------------------------------\n";
+		SystemLogFile << "\n Joints of N-wires in the Phantom frame = \n\n";
+		SystemLogFile << "\t mNWireJointTopLayerFrontWall(used) \t= " << mNWireJointTopLayerFrontWall << "\n\n";
+		SystemLogFile << "\t mNWireJointTopLayerBackWall(used) \t= " << mNWireJointTopLayerBackWall << "\n\n";
+		SystemLogFile << "\t mNWireJointBottomLayerFrontWall(used) \t= " << mNWireJointBottomLayerFrontWall << "\n\n";
+		SystemLogFile << "\t mNWireJointBottomLayerBackWall(used) \t= " << mNWireJointBottomLayerBackWall << "\n\n";
+		SystemLogFile.close();
+	}
+}
+
+//-----------------------------------------------------------------------------
 
 void BrachyTRUSCalibrator::addDataPositionsPerImage( 
 	std::vector<vnl_vector_double> SegmentedDataPositionListPerImage, 
@@ -748,6 +946,8 @@ void BrachyTRUSCalibrator::addDataPositionsPerImage(
 		throw;	
 	}
 }
+
+//-----------------------------------------------------------------------------
 
 void BrachyTRUSCalibrator::addDataPositionsPerImage( 
 	std::vector<vnl_vector_double> SegmentedDataPositionListPerImage, 
@@ -1134,6 +1334,8 @@ void BrachyTRUSCalibrator::addDataPositionsPerImage(
 	}
 }
 
+//-----------------------------------------------------------------------------
+
 void BrachyTRUSCalibrator::deleteLatestAddedDataPositionsPerImage ()
 {
 	// Delete the latest added data positions per image
@@ -1147,6 +1349,8 @@ void BrachyTRUSCalibrator::deleteLatestAddedDataPositionsPerImage ()
 	}
 }
 
+//-----------------------------------------------------------------------------
+
 void BrachyTRUSCalibrator::deleteDataPositionsPerImage(int position)
 {
 	// Delete the specified data positions per image
@@ -1156,6 +1360,8 @@ void BrachyTRUSCalibrator::deleteDataPositionsPerImage(int position)
 	mDataPositionsInPhantomFrame.erase( mDataPositionsInPhantomFrame.begin() + position );
 	mDataPositionsInUSProbeFrame.erase( mDataPositionsInUSProbeFrame.begin() + position );
 }
+
+//-----------------------------------------------------------------------------
 
 void BrachyTRUSCalibrator::addValidationPositionsPerImage( 
 	std::vector<vnl_vector_double> SegmentedDataPositionListPerImage, 
@@ -1531,6 +1737,8 @@ void BrachyTRUSCalibrator::addValidationPositionsPerImage(
 	}
 }
 
+//-----------------------------------------------------------------------------
+
 void BrachyTRUSCalibrator::addValidationPositionsPerImage( 
 	std::vector<vnl_vector_double> SegmentedDataPositionListPerImage, 
 	const std::vector<double> TransformUSProbe2Tracker,
@@ -1834,6 +2042,8 @@ void BrachyTRUSCalibrator::addValidationPositionsPerImage(
 		throw;	
 	}
 }
+
+//-----------------------------------------------------------------------------
 
 std::vector<double> BrachyTRUSCalibrator::getPRE3DforRealtimeImage(
     std::vector<vnl_vector_double> SegmentedDataPositionListPerImage, 
