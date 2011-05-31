@@ -131,7 +131,7 @@ int main (int argc, char* argv[])
 int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const char* currentResultFileName, int inputErrorThreshold)
 {
 	int numberOfFailures=0;
-/*
+/* TODO
 	vtkXMLDataElement* baselineRootElem = vtkXMLUtilities::ReadElementFromFile(baselineFileName);
 	vtkXMLDataElement* currentRootElem = vtkXMLUtilities::ReadElementFromFile(currentResultFileName); 
 	// check to make sure we have the right element
