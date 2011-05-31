@@ -135,13 +135,13 @@ public:
 		PhantomPointPosition wire6front; 
 		wire6front.x = 9.86; 
 		wire6front.y = 54.385; 
-		wire6front.z = 142.05; 
+		wire6front.z = 62.05; 
 		WirePositionFrontWall.push_back(wire6front);  
 
 		PhantomPointPosition wire6back; 
 		wire6back.x = 9.86; 
 		wire6back.y = 54.385; 
-		wire6back.z = 62.05; 
+		wire6back.z = 142.05; 
 		WirePositionBackWall.push_back(wire6back);  
 
 	}
