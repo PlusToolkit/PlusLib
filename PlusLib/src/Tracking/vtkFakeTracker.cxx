@@ -91,12 +91,17 @@ void vtkFakeTracker::SetMode(FakeTrackerMode mode)
 		this->Tools[0]->SetToolManufacturer("ACME Inc.");
 		this->Tools[0]->SetToolPartNumber("Stationary");
 		this->Tools[0]->SetToolSerialNumber("A11111");
+		this->Tools[0]->SetToolName("Reference");
 
 		this->Tools[1]->SetToolType("Pointer");
 		this->Tools[1]->SetToolRevision("1.1");
 		this->Tools[1]->SetToolManufacturer("ACME Inc.");
 		this->Tools[1]->SetToolPartNumber("Stylus");
 		this->Tools[1]->SetToolSerialNumber("B22222");
+		this->Tools[1]->SetToolName("Stylus");
+
+		this->SetReferenceToolName("Reference");
+		this->SetDefaultToolName("Stylus");
 
 		break;
 	case (FakeTrackerMode_RecordPhantomLandmarks):
@@ -107,12 +112,17 @@ void vtkFakeTracker::SetMode(FakeTrackerMode mode)
 		this->Tools[0]->SetToolManufacturer("ACME Inc.");
 		this->Tools[0]->SetToolPartNumber("Stationary");
 		this->Tools[0]->SetToolSerialNumber("A11111");
+		this->Tools[0]->SetToolName("Reference");
 
 		this->Tools[1]->SetToolType("Pointer");
 		this->Tools[1]->SetToolRevision("1.1");
 		this->Tools[1]->SetToolManufacturer("ACME Inc.");
 		this->Tools[1]->SetToolPartNumber("Stylus");
 		this->Tools[1]->SetToolSerialNumber("B22222");
+		this->Tools[1]->SetToolName("Stylus");
+
+		this->SetReferenceToolName("Reference");
+		this->SetDefaultToolName("Stylus");
 
 		this->Counter = -1;
 
@@ -287,13 +297,13 @@ void vtkFakeTracker::InternalUpdate()
 			int flags = 0;
 
 			// create stationary position for phantom reference (tool 0)
-			vtkSmartPointer<vtkTransform> trackerToPhantomReferenceTransform = vtkSmartPointer<vtkTransform>::New();
-			trackerToPhantomReferenceTransform->Identity();
+			vtkSmartPointer<vtkTransform> phantomReferenceToTrackerTransform = vtkSmartPointer<vtkTransform>::New();
+			phantomReferenceToTrackerTransform->Identity();
 			
-			trackerToPhantomReferenceTransform->Translate(300, 400, 700);
-			trackerToPhantomReferenceTransform->RotateZ(90);
+			phantomReferenceToTrackerTransform->Translate(300, 400, 700);
+			phantomReferenceToTrackerTransform->RotateZ(90);
 			
-			this->ToolUpdate(0, trackerToPhantomReferenceTransform->GetMatrix(), flags, this->Frame, unfilteredtimestamp, filteredtimestamp);   
+			this->ToolUpdate(0, phantomReferenceToTrackerTransform->GetMatrix(), flags, this->Frame, unfilteredtimestamp, filteredtimestamp);   
 
 			// touch landmark points
 			vtkSmartPointer<vtkTransform> phantomToLandmarkTransform = vtkSmartPointer<vtkTransform>::New();
@@ -346,14 +356,13 @@ void vtkFakeTracker::InternalUpdate()
 			stylustipToStylusTransform->Inverse();
 			stylustipToStylusTransform->Modified();
 
-			vtkSmartPointer<vtkTransform> trackerToLandmarkTransform = vtkSmartPointer<vtkTransform>::New();
-			trackerToLandmarkTransform->Identity();
-			trackerToLandmarkTransform->Concatenate(trackerToPhantomReferenceTransform);
-			trackerToLandmarkTransform->Concatenate(phantomReferenceToPhantomTransform);
-			trackerToLandmarkTransform->Concatenate(phantomToLandmarkTransform);
-			trackerToLandmarkTransform->Concatenate(stylustipToStylusTransform);
+			vtkSmartPointer<vtkTransform> phantomReferenceToLandmarkTransform = vtkSmartPointer<vtkTransform>::New();
+			phantomReferenceToLandmarkTransform->Identity();
+			phantomReferenceToLandmarkTransform->Concatenate(phantomReferenceToPhantomTransform);
+			phantomReferenceToLandmarkTransform->Concatenate(phantomToLandmarkTransform);
+			phantomReferenceToLandmarkTransform->Concatenate(stylustipToStylusTransform);
 
-			this->ToolUpdate(1, trackerToLandmarkTransform->GetMatrix(), flags, this->Frame, unfilteredtimestamp, filteredtimestamp);   
+			this->ToolUpdate(1, phantomReferenceToLandmarkTransform->GetMatrix(), flags, this->Frame, unfilteredtimestamp, filteredtimestamp);   
 		}
 		break;
 	default:

@@ -237,6 +237,9 @@ public:
 	vtkGetObjectMacro(TransformProbeToPhantomReference, vtkTransform);
 	vtkSetObjectMacro(TransformProbeToPhantomReference, vtkTransform);
 
+	vtkGetObjectMacro(TransformImageToProbe, vtkTransform);
+	vtkSetObjectMacro(TransformImageToProbe, vtkTransform);
+
 	vtkGetStringMacro(CalibrationResultFileNameWithPath);
 	vtkSetStringMacro(CalibrationResultFileNameWithPath);
 
@@ -270,6 +273,7 @@ protected:
 	//! TODO
 	vtkImageActor*				CanvasImageActor;
 	vtkTransform*	TransformProbeToPhantomReference;
+	vtkTransform*	TransformImageToProbe;
 	//! Attribute: calibration result file name
 	char* CalibrationResultFileNameWithPath; 
 	//! Attributes: suffix of the calibration result file
