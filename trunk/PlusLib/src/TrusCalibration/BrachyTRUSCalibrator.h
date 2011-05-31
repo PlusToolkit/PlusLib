@@ -44,6 +44,8 @@
 #include "Phantom.h"  // The parent class
 #endif	
 
+#include "SegImpl.h"
+
 #include <vector>
 
 // Phantom known points in template coordinate system
@@ -282,6 +284,9 @@ class BrachyTRUSCalibrator : public Phantom
 
 		PhantomPoints GetPhantomPoints() { return this->mPhantomPoints; }; 
 
+		//! Load phantom geometry from segmentation parameters (NWires)
+		virtual bool loadGeometry(SegmentationParameters* aSegmentationParameters);
+
 	private:
 
 		//! Overridden Operation
@@ -348,7 +353,6 @@ class BrachyTRUSCalibrator : public Phantom
 		vnl_vector<double> mNWireJointBottomLayerBackWall;
 
 		PhantomPoints mPhantomPoints; 
-	
 };
 
 

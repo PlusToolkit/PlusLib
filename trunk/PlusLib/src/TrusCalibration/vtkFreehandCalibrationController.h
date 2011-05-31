@@ -74,7 +74,7 @@ public:
 	virtual void SetUSImageFrameOriginInPixels(int* origin); 
 
 	// Returns the calibrator
-	BrachyTRUSCalibrator* GetCalibrator() { return CalibrationPhantom; }
+	BrachyTRUSCalibrator* GetCalibrator() { return Calibrator; }
 
 	// Read XML based configuration of the calibration controller
 	virtual void ReadConfiguration( const char* configFileNameWithPath ); 
@@ -261,7 +261,7 @@ protected:
 	bool SpatialCalibrationDone;
 	int ProgressPercent;
 	//! Attribute: a reference to the calibration phantom
-	BrachyTRUSCalibrator* CalibrationPhantom;
+	BrachyTRUSCalibrator* Calibrator;
 	//! Attribute: Flag to enable the calibration log file
 	bool EnableSystemLog;
 	//! Attributes: The US image frame origin (in pixels) - These are the US image frame origin in pixels W.R.T. the left-upper corner of the original image, with X pointing to the right (column) and Y pointing down to the bottom (row)
