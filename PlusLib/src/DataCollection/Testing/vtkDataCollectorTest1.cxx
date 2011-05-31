@@ -108,16 +108,28 @@ int main(int argc, char **argv)
 
 	dataCollector = vtkDataCollector::New(); 
 	dataCollector->ReadConfiguration(inputConfigFileName.c_str());
-
-	if ( dataCollector->GetAcquisitionType() == SYNCHRO_VIDEO_SAVEDDATASET )
+  
+  if ( ! inputVideoBufferMetafile.empty()
+       && dataCollector->GetAcquisitionType() == SYNCHRO_VIDEO_SAVEDDATASET )
 	{
-		vtkSavedDataVideoSource* videoSource = static_cast<vtkSavedDataVideoSource*>(dataCollector->GetVideoSource()); 
+		vtkSavedDataVideoSource* videoSource = dynamic_cast<vtkSavedDataVideoSource*>(dataCollector->GetVideoSource()); 
+		if ( videoSource == NULL )
+		{
+		  LOG_ERROR( "Unable to cast video source to vtkSavedDataVideoSource." );
+		  exit( EXIT_FAILURE );
+		}
 		videoSource->SetSequenceMetafile(inputVideoBufferMetafile.c_str()); 
 	}
 
-	if ( dataCollector->GetTrackerType() == TRACKER_SAVEDDATASET )
+	if ( ! inputTrackerBufferMetafile.empty()
+	     && dataCollector->GetTrackerType() == TRACKER_SAVEDDATASET )
 	{
-		vtkSavedDataTracker* tracker = static_cast<vtkSavedDataTracker*>(dataCollector->GetTracker()); 
+		vtkSavedDataTracker* tracker = dynamic_cast<vtkSavedDataTracker*>(dataCollector->GetTracker()); 
+		if ( tracker == NULL )
+		{
+		  LOG_ERROR( "Unable to cast tracker to vtkSavedDataTracker." );
+		  exit( EXIT_FAILURE );
+		}
 		tracker->SetSequenceMetafile(inputTrackerBufferMetafile.c_str()); 
 	}
 
