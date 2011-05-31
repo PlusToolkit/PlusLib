@@ -478,6 +478,10 @@ void PhantomRegistrationController::Register()
 		movingPoints.push_back(movingPoint);
 	}
 
+	for (int i=0; i<numberOfLandmarks; ++i) {
+		LOG_DEBUG("Phantom point " << i << ": Defined: " << fixedPoints[i] << "  Recorded: " << movingPoints[i]);
+	}
+
 	// Initialize ITK transform
 	itk::Similarity3DTransform<double>::Pointer transform = itk::Similarity3DTransform<double>::New();
 	transform->SetIdentity();
@@ -505,6 +509,10 @@ void PhantomRegistrationController::Register()
 
 	m_PhantomToPhantomReferenceTransform = vtkTransform::New();
 	m_PhantomToPhantomReferenceTransform->SetMatrix(phantomToPhantomReferenceTransformMatrix);
+
+	std::ostringstream osPhantomToPhantomReferenceTransform; 
+	m_PhantomToPhantomReferenceTransform->GetMatrix()->Print(osPhantomToPhantomReferenceTransform);   
+	LOG_DEBUG("PhantomToPhantomReferenceTransform:\n" << osPhantomToPhantomReferenceTransform.str().c_str() );
 
 	// Display phantom model in the main canvas
 	if (vtkFreehandController::GetInstance()->GetCanvas() != NULL) { //TODO fix!!! the new name of m_PhantomToPhantomReferenceTransform and the concatenation is not consistent!
@@ -831,7 +839,7 @@ bool PhantomRegistrationController::LoadPhantomRegistrationFromFile(std::string 
 	}
 
 	// Load stylus calibration transform
-	vtkSmartPointer<vtkXMLDataElement> phantomRegistrationTransform = phantomRegistration->FindNestedElementWithName("PhantomReferenceToPhantomTransform"); 
+	vtkSmartPointer<vtkXMLDataElement> phantomRegistrationTransform = phantomRegistration->FindNestedElementWithName("PhantomToPhantomReferenceTransform"); 
 	if (phantomRegistrationTransform == NULL) {
 		LOG_ERROR("Phantom registration transform not found!");
 		return false;
@@ -867,7 +875,7 @@ void PhantomRegistrationController::SavePhantomRegistrationToFile(std::string aF
 		transformMatrix->GetElement(1,0), transformMatrix->GetElement(1,1), transformMatrix->GetElement(1,2), transformMatrix->GetElement(1,3), 
 		transformMatrix->GetElement(2,0), transformMatrix->GetElement(2,1), transformMatrix->GetElement(2,2), transformMatrix->GetElement(2,3));
 
-	phantomRegistrationTransform->SetName("PhantomReferenceToPhantomTransform");
+	phantomRegistrationTransform->SetName("PhantomToPhantomReferenceTransform");
 
 	phantomRegistrationTransform->SetAttribute("Transform", phantomRegistrationChars);
 

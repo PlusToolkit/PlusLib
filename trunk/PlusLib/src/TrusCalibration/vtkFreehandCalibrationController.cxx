@@ -65,6 +65,10 @@ vtkFreehandCalibrationController::vtkFreehandCalibrationController()
 
 	this->Calibrator = NULL;
 
+	vtkSmartPointer<vtkTransform> transformImageToProbe = vtkSmartPointer<vtkTransform>::New(); 
+	this->TransformImageToProbe = NULL;
+	this->SetTransformImageToProbe(transformImageToProbe); 
+
 	vtkSmartPointer<vtkTransform> transformProbeToPhantomReference = vtkSmartPointer<vtkTransform>::New(); 
 	this->TransformProbeToPhantomReference = NULL;
 	this->SetTransformProbeToPhantomReference(transformProbeToPhantomReference); 
@@ -77,6 +81,7 @@ vtkFreehandCalibrationController::vtkFreehandCalibrationController()
 vtkFreehandCalibrationController::~vtkFreehandCalibrationController()
 {
 	this->SetCanvasImageActor(NULL);
+	this->SetTransformImageToProbe(NULL);
 	this->SetTransformProbeToPhantomReference(NULL);
 
 	if (this->Calibrator != NULL) {
@@ -160,7 +165,7 @@ void vtkFreehandCalibrationController::Initialize()
 	}
 	*/
 
-	this->DesiredOrientation = "MN";
+	this->DesiredOrientation = "UF";
 
 	// TEMPORARY CODE ////////////
 	vtkSmartPointer<vtkMatrix4x4> identity = vtkSmartPointer<vtkMatrix4x4>::New();
@@ -631,13 +636,15 @@ void vtkFreehandCalibrationController::ComputeCalibrationResults()
 		imageToProbeMatrix->SetElement(1, 2, zVector[1]);
 		imageToProbeMatrix->SetElement(2, 2, zVector[2]);
 
+		this->GetTransformImageToProbe()->SetMatrix(imageToProbeMatrix);
+
 		// Write transformations to log and output
-		std::ostringstream osTransformProbeToPhantomReference; 
-		this->GetTransformProbeToPhantomReference()->Print(osTransformProbeToPhantomReference);   
-		LOG_DEBUG("TransformProbeToPhantomReference:\n" << osTransformProbeToPhantomReference.str().c_str() );
+		std::ostringstream osImageToProbe; 
+		this->GetTransformImageToProbe()->Print(osImageToProbe);   
+		LOG_DEBUG("TransformImageToProbe:\n" << osImageToProbe.str().c_str() );
 
 		// Compute the independent point and line reconstruction errors
-		LOG_INFO("Compute the independent point and line reconstruction errors") ;
+		LOG_INFO("Compute the independent point and line reconstruction errors");
 		this->GetCalibrator()->computeIndependentPointLineReconstructionError();
 
 		// STEP-4. Print the final calibration results and error reports 
@@ -684,7 +691,7 @@ void vtkFreehandCalibrationController::PrintCalibrationResultsAndErrorReports()
 			std::ostringstream matrixRow; 
 
 			for (int j = 0; j < 4; j++) {
-				matrixRow << this->GetTransformProbeToPhantomReference()->GetMatrix()->GetElement(i,j) << "  " ;
+				matrixRow << this->GetTransformImageToProbe()->GetMatrix()->GetElement(i,j) << "  " ;
 			}
 			LOG_INFO(matrixRow.str()); 
 		}
@@ -756,20 +763,20 @@ void vtkFreehandCalibrationController::SaveCalibrationResultsAndErrorReportsToXM
 	// </UltrasoundImageOrigin>
 
 
-	double *probeToPhantomReferenceMatrix = new double[16]; 
+	double *imageToProbeMatrix = new double[16]; 
 	for (int i = 0; i < 4; i++) {
 		for (int j = 0; j < 4; j++) {
-			probeToPhantomReferenceMatrix[i*4+j] = this->GetTransformProbeToPhantomReference()->GetMatrix()->GetElement(i,j); 
+			imageToProbeMatrix[i*4+j] = this->GetTransformImageToProbe()->GetMatrix()->GetElement(i,j); 
 		}
 	}
 
 	// <CalibrationTransform>
 	vtkSmartPointer<vtkXMLDataElement> tagCalibrationTransform = vtkSmartPointer<vtkXMLDataElement>::New(); 
 	tagCalibrationTransform->SetName("CalibrationTransform"); 
-	tagCalibrationTransform->SetVectorAttribute("TransformProbeToPhantomReference", 16, probeToPhantomReferenceMatrix); 
+	tagCalibrationTransform->SetVectorAttribute("TransformImageToProbe", 16, imageToProbeMatrix); 
 	// </CalibrationTransform>
 
-	delete[] probeToPhantomReferenceMatrix; 
+	delete[] imageToProbeMatrix; 
 
 	tagCalibrationResults->AddNestedElement(tagUltrasoundImageDimensions); 
 	tagCalibrationResults->AddNestedElement(tagUltrasoundImageOrigin); 
@@ -1118,7 +1125,7 @@ std::vector<double> vtkFreehandCalibrationController::GetLineReconstructionError
 
 vnl_matrix<double> vtkFreehandCalibrationController::GetLineReconstructionErrorMatrix(int wireNumber)
 {
-	LOG_TRACE("vtkProbeCalibrationController::GetLineReconstructionErrorMatrix (wire #" << wireNumber << ")"); 
+	//LOG_TRACE("vtkProbeCalibrationController::GetLineReconstructionErrorMatrix (wire #" << wireNumber << ")"); 
 	vnl_matrix<double> mLREOrigInUSProbeFrameMatrix; 
 	switch (wireNumber)
 	{

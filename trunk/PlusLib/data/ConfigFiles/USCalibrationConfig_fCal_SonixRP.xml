@@ -92,12 +92,12 @@
         <!-- SearchRegionY: Y-axis points to the bottom in pixels (there must be at least 8-pixel-wide black border outside of the search region.) -->
         <SegmentationParameters
                 FrameSize="640 480"
-                ScalingEstimation="0.11"
+                ScalingEstimation="0.098"
                 MorphologicalOpeningCircleRadiusMm="0.55"
 				MorphologicalOpeningBarSizeMm="2.0"
 
-                SearchRegionX="20 620"
-                SearchRegionY="20 460"
+                SearchRegionX="25 590"
+                SearchRegionY="25 430"
 
 				MaxLineLengthErrorPercent="10.0"
 				MaxLinePairDistanceErrorPercent="10.0"

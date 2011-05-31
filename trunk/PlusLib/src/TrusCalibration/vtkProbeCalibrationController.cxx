@@ -748,7 +748,7 @@ std::vector<double> vtkProbeCalibrationController::GetLineReconstructionErrorAna
 //----------------------------------------------------------------------------
 vnl_matrix<double> vtkProbeCalibrationController::GetLineReconstructionErrorMatrix(int wireNumber)
 {
-	LOG_TRACE("vtkProbeCalibrationController::GetLineReconstructionErrorMatrix (wire #" << wireNumber << ")"); 
+	//LOG_TRACE("vtkProbeCalibrationController::GetLineReconstructionErrorMatrix (wire #" << wireNumber << ")"); 
 	vnl_matrix<double> mLREOrigInUSProbeFrameMatrix; 
 	switch(wireNumber)
 	{

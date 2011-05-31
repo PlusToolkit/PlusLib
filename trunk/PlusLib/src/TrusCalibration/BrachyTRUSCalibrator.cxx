@@ -46,6 +46,7 @@
 #include <fstream>	// for file I/O process
 #include <algorithm>
 
+#include <set>
 #include <float.h>
 
 // VNL Includes
@@ -380,6 +381,19 @@ bool BrachyTRUSCalibrator::loadGeometry(SegmentationParameters* aSegmentationPar
 		mIsPhantomGeometryLoaded = false;
 	}
 
+	std::vector<NWire> nWires = aSegmentationParameters->mNWires;
+	std::vector<std::vector<vnl_vector<double>>> vnl_NWires;
+
+	std::vector<std::vector<vnl_vector<double>>>::iterator itNWire;
+
+	double alphaTopLayerFrontWall = -1.0;
+	double alphaTopLayerBackWall = -1.0;
+	double alphaBottomLayerFrontWall = -1.0;
+	double alphaBottomLayerBackWall = -1.0;
+
+	int axisOfNWires = -1;
+
+
 	if( true == mIsSystemLogOn )
 	{
 		std::ofstream SystemLogFile(
@@ -390,9 +404,6 @@ bool BrachyTRUSCalibrator::loadGeometry(SegmentationParameters* aSegmentationPar
 	}
 
 	// Read input NWires and convert them to vnl vectors to easier processing
-	std::vector<NWire> nWires = aSegmentationParameters->mNWires;
-	std::vector<std::vector<vnl_vector<double>>> vnl_NWires;
-
 	if (mIsSystemLogOn == true) {
 		std::ofstream SystemLogFile(
 			mSystemLogFileNameWithTimeStamp.c_str(), std::ios::app);
@@ -438,20 +449,14 @@ bool BrachyTRUSCalibrator::loadGeometry(SegmentationParameters* aSegmentationPar
 	}
 
 
-	double alphaTopLayerFrontWall = -1.0;
-	double alphaTopLayerBackWall = -1.0;
-	double alphaBottomLayerFrontWall = -1.0;
-	double alphaBottomLayerBackWall = -1.0;
-
 	// Calculate wire joints
-	std::vector<std::vector<vnl_vector<double>>>::iterator itNWire;
 	for (layer = 0, itNWire = vnl_NWires.begin(); itNWire != vnl_NWires.end(); ++itNWire, ++layer) {
 		// Find the diagonal wire for the NWire
 		int diagonal = -1;
 
 		// Convert 4D vectors to 3D to be able to compute cross product (for determining parallelism)
 		std::vector<vnl_vector<double>> endPoints3D;
-		for (int i=0; i<6; ++i) {
+		for (int i=0; i<itNWire->size(); ++i) {
 			vnl_vector<double> endPoint(3);
 			for (int j=0; j<3; ++j) {
 				endPoint[j] = itNWire->at(i)[j];
@@ -489,7 +494,8 @@ bool BrachyTRUSCalibrator::loadGeometry(SegmentationParameters* aSegmentationPar
 		// Determine wire that has a joint with the diagonal wire in back
 		jointBack = 5 - (diagonal+1) - (jointFront+1);
 
-//TODO Tomitol megkerdezni h melyik a felso es melyik az also!!!
+		//TODO Top and bottom layer determination automatically - the difficulty is that the phantom coordinate system can have any orientation; maybe it is better to modify the calibration to handleactual wires in the 3D space instead of layers
+		// Calculate joints
 		if (layer == 1) { // top
 			alphaTopLayerFrontWall =
 				(itNWire->at(jointFront*2) - itNWire->at(diagonal*2)).magnitude() / 

@@ -65,6 +65,7 @@ int main (int argc, char* argv[])
 	controller->TrackingOnlyOn();
 
 	StylusCalibrationController* stylusCalibrationController = StylusCalibrationController::GetInstance();
+	stylusCalibrationController->Initialize();
 	stylusCalibrationController->LoadStylusCalibrationFromFile(inputStylusCalibrationXmlFileName);
 
 	PhantomRegistrationController* phantomRegistrationController = PhantomRegistrationController::GetInstance();
@@ -126,7 +127,7 @@ int CompareRegistrationResultsWithBaseline(const char* baselineFileName, const c
 		numberOfFailures++;
 	}
 
-	vtkSmartPointer<vtkXMLDataElement> phantomRegistrationTransformCurrent = phantomRegistrationCurrent->FindNestedElementWithName("PhantomReferenceToPhantomTransform"); 
+	vtkSmartPointer<vtkXMLDataElement> phantomRegistrationTransformCurrent = phantomRegistrationCurrent->FindNestedElementWithName("PhantomToPhantomReferenceTransform"); 
 	if (phantomRegistrationTransformCurrent == NULL) {
 		LOG_ERROR("Phantom registration transform not found!");
 		numberOfFailures++;
@@ -142,7 +143,7 @@ int CompareRegistrationResultsWithBaseline(const char* baselineFileName, const c
 		numberOfFailures++;
 	}
 
-	vtkSmartPointer<vtkXMLDataElement> phantomRegistrationTransformBaseline = phantomRegistrationBaseline->FindNestedElementWithName("PhantomReferenceToPhantomTransform"); 
+	vtkSmartPointer<vtkXMLDataElement> phantomRegistrationTransformBaseline = phantomRegistrationBaseline->FindNestedElementWithName("PhantomToPhantomReferenceTransform"); 
 	if (phantomRegistrationTransformBaseline == NULL) {
 		LOG_ERROR("Phantom registration transform not found!");
 		numberOfFailures++;
