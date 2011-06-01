@@ -20,14 +20,14 @@
 	<Geometry>
 		<!-- N wire definitions -->
 		<NWire>
-			<Wire Name="A1_a1" EndPointFront="0.0 0.0 0.0" EndPointBack="0.0 20.0 0.0" />
-			<Wire Name="B1_b1" EndPointFront="15.0 0.0 0.0" EndPointBack="5.0 20.0 0.0" />
-			<Wire Name="C1_c1" EndPointFront="20.0 0.0 0.0" EndPointBack="20.0 20.0 0.0" />
+			<Wire Name="#1" EndPointFront="-15.0 -20.0 -90.0" EndPointBack="-15.0 20.0 -90.0" />
+			<Wire Name="#2" EndPointFront="0.0 -20.0 -90.0" EndPointBack="-10.0 20.0 -90.0" />
+			<Wire Name="#3" EndPointFront="5.0 -20.0 -90.0" EndPointBack="5.0 20.0 -90.0" />
 		</NWire>
 		<NWire>
-			<Wire Name="A1_a2" EndPointFront="-10.0 0.0 5.0" EndPointBack="-10.0 20.0 5.0" />
-			<Wire Name="B2_b2" EndPointFront="5.0 0.0 5.0" EndPointBack="-5.0 20.0 5.0" />
-			<Wire Name="C2_c2" EndPointFront="10.0 0.0 5.0" EndPointBack="10.0 20.0 5.0" />
+			<Wire Name="#4" EndPointFront="-5.0 -20.0 -95.0" EndPointBack="-5.0 20.0 -95.0" />
+			<Wire Name="#5" EndPointFront="10.0 -20.0 -95.0" EndPointBack="0 20.0 -95.0" />
+			<Wire Name="#6" EndPointFront="15.0 -20.0 -95.0" EndPointBack="15.0 20.0 -95.0" />
 		</NWire>
 
 		<!-- Landmark list for registration -->
@@ -49,7 +49,7 @@
 						 0 1 0 0 
 						 0 0 1 0
 						 0 0 0 1" 
-			Date="2011.05.17"
+			Date=""
 			Error="0.0" />
 	</Geometry>
 </PhantomDefinition>
