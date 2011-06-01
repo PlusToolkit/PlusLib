@@ -5,7 +5,7 @@
 
 class vtkHTMLGenerator; 
 class vtkGnuplotExecuter; 
-
+class vtkTable; 
 
 class HomogenousVector4x1
 {
@@ -129,6 +129,11 @@ public:
 	// Add generated html report from spacing calculation to the existing html report
 	// htmlReport and plotter arguments has to be defined by the caller function
 	virtual void GenerateSpacingCalculationReport( vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter, const char* gnuplotScriptsFolder); 
+	
+	// Description:
+	// Add generated html report from center of rotation calculation to the existing html report
+	// htmlReport and plotter arguments has to be defined by the caller function
+	virtual void GenerateCenterOfRotationReport( vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter, const char* gnuplotScriptsFolder); 
 
 	// Description:
 	// Set/get outlier detection threshold
@@ -216,6 +221,12 @@ public:
 	vtkBooleanMacro(SpacingCalculated, bool); 
 
 	//! Description: 
+	// Set/get spacing calculated finished flag
+	vtkSetMacro(CenterOfRotationCalculated, bool); 
+	vtkGetMacro(CenterOfRotationCalculated, bool); 
+	vtkBooleanMacro(CenterOfRotationCalculated, bool); 
+	
+	//! Description: 
 	// Set/get calibration start time in string 
 	vtkSetStringMacro(CalibrationStartTime); 
 	vtkGetStringMacro(CalibrationStartTime); 
@@ -244,8 +255,13 @@ public:
 	// Set/get spacing calculation error report file path
 	vtkSetStringMacro(SpacingCalculationErrorReportFilePath); 
 	vtkGetStringMacro(SpacingCalculationErrorReportFilePath); 
-	
 
+	//! Description: 
+	// Set/get center of rotation calculation error report file path
+	vtkSetStringMacro(CenterOfRotationCalculationErrorReportFilePath); 
+	vtkGetStringMacro(CenterOfRotationCalculationErrorReportFilePath); 
+	
+	
 protected:
 	vtkStepperCalibrationController ();
 	virtual ~vtkStepperCalibrationController ();
@@ -268,6 +284,9 @@ protected:
 	// Compute mean and stddev from dataset
 	virtual void ComputeStatistics(const std::vector< std::vector<double> > &diffVector, std::vector<double> &mean, std::vector<double> &stdev); 
 
+	// Description:
+	// Dump vtk table to text file in gnuplot format
+	virtual void vtkStepperCalibrationController::DumpTableToFileInGnuplotFormat( vtkTable* table, const char* filename); 
 	
 	//***************************************************************************
 	//					Translation axis calibration
@@ -385,7 +404,7 @@ protected:
 		double &stdev ); 
 
 	//! Description: 
-	// Save translation axix calibration error in gnuplot format 
+	// Save rotation encoder calibration error in gnuplot format 
 	virtual void SaveRotationEncoderCalibrationError(
 		const std::vector<vnl_vector<double>> &aMatrix, 
 		const std::vector<double> &bVector, 
@@ -398,7 +417,7 @@ protected:
 	//! Description: 
 	// Compute rotation center using linear least squares
 	// Returns true on success otherwise false
-	virtual bool CalculateCenterOfRotation( const SegmentedFrameList &frameListForCenterOfRotation, double centerOfRotationPx[2] );
+	virtual bool CalculateCenterOfRotation( const SegmentedFrameList &frameListForCenterOfRotation, double centerOfRotationPx[2], vtkTable* centerOfRotationCalculationErrorTable );
 
 	//! Description: 
 	// Calculate mean error and stdev of measured and computed distances between rotation center and segmented wires
@@ -415,6 +434,13 @@ protected:
 		std::vector<vnl_vector<double>> &aMatrix, 
 		std::vector<double> &bVector, 
 		const vnl_vector<double> &resultVector ); 
+
+	//! Description: 
+	// Save center of rotation calibration error in gnuplot format 
+	virtual void SaveCenterOfRotationCalculationError(
+		const SegmentedFrameList &frameListForCenterOfRotation, 
+		const double centerOfRotationPx[2], 
+		vtkTable* centerOfRotationCalculationErrorTable = NULL); 
 
 
 	//***************************************************************************
@@ -489,6 +515,7 @@ protected:
 protected:
 
 	bool SpacingCalculated; 
+	bool CenterOfRotationCalculated; 
 	bool ProbeRotationAxisCalibrated; 
 	bool ProbeTranslationAxisCalibrated; 
 	bool TemplateTranslationAxisCalibrated; 
@@ -532,6 +559,7 @@ protected:
 	char* TemplateTranslationAxisCalibrationErrorReportFilePath; 
 	char* ProbeRotationEncoderCalibrationErrorReportFilePath; 
 	char* SpacingCalculationErrorReportFilePath; 
+	char* CenterOfRotationCalculationErrorReportFilePath; 
 
 	int MinNumberOfRotationClusters; 
 	int MinNumOfFramesUsedForCenterOfRotCalc; 
