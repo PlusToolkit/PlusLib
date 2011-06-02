@@ -39,8 +39,12 @@ public:
 	// Description:
 	// Read/write BrachyStepper configuration to xml data
 	void ReadConfiguration( vtkXMLDataElement* config ); 
-	void WriteConfiguration( vtkXMLDataElement* config ); 
-  
+	void WriteConfiguration( vtkXMLDataElement* config );
+
+	// Description:
+	// Get number of sensors 
+	vtkGetMacro(NumberOfSensors, int);
+ 
   
 protected:
   
@@ -90,6 +94,7 @@ private:  // Variables.
 	bool TransmitterAttached;
 	
 	unsigned int FrameNumber;
+	int NumberOfSensors; 
   
 };
 

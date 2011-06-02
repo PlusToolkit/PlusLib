@@ -55,6 +55,10 @@ vtkAscension3DGTracker
 	
 	this->TransmitterAttached = false;
 	this->FrameNumber = 0;
+
+	// Set the maximum number of sensors that this class can handle
+	this->SetNumberOfTools(12); 
+	this->NumberOfSensors = 0; 
 }
 
 
@@ -131,12 +135,12 @@ vtkAscension3DGTracker
     }
   
   
-	this->SetNumberOfTools( systemConfig.numberSensors );
+	this->NumberOfSensors = systemConfig.numberSensors; 
   
 	// Enable tools
 	for ( int tool = 0; tool < this->GetNumberOfTools(); tool ++ )
 	{
-		if ( this->SensorAttached[ tool ] )
+		if ( tool < this->GetNumberOfSensors() && this->SensorAttached[ tool ] )
 		  {
 		  this->GetTool( tool )->EnabledOn();
 		  }
@@ -277,7 +281,7 @@ vtkAscension3DGTracker
   if ( ! success ) return;
   
   
-  if ( this->GetNumberOfTools() != sysConfig.numberSensors )
+  if ( this->GetNumberOfSensors() != sysConfig.numberSensors )
     {
     vtkErrorMacro( "Changing sensors while tracking is not supported. Reconnect necessary." );
     this->StopTracking();
@@ -331,7 +335,7 @@ bool
 vtkAscension3DGTracker
 ::InitAscension3DGTracker()
 {
-	LOG_TRACE( "vtkAscension3DGTracker::InitSavedDataTracker" ); 
+	LOG_TRACE( "vtkAscension3DGTracker::InitAscension3DGTracker" ); 
 	return this->Connect(); 
 }
 
@@ -341,6 +345,9 @@ void
 vtkAscension3DGTracker
 ::ReadConfiguration( vtkXMLDataElement* config )
 {
+	// Read superclass configuration first
+	Superclass::ReadConfiguration(config); 
+
 	LOG_TRACE( "vtkAscension3DGTracker::ReadConfiguration" ); 
 	if ( config == NULL ) 
 	{
