@@ -171,6 +171,12 @@ QWizard(parent)
 	this->ConnectToDevicesButton->setFocus(); 
 
 	this->UpdateWidgets();
+
+	// TODO: remove these! No more need to choos tool numbers
+	this->MainToolComboBox->setEnabled(false); 
+	this->MainToolTransformName->setEnabled(false); 
+	this->ReferenceToolComboBox->setEnabled(false); 
+	this->ReferenceToolTransformName->setEnabled(false); 
 }
 
 //----------------------------------------------------------------------
@@ -204,9 +210,6 @@ void TrackedUltrasoundCapturingGUI::Initialize()
 
 	// Initialize the tracked US capturing class 
 	this->m_USCapturing->Initialize(); 
-
-	// Fill combo boxes with tool IDs 
-	this->UpdateToolIDs(); 
 
 	// Update labels
 	this->SyncVideoOffsetLabel->setText(tr(LABEL_SYNC_VIDEO_OFFSET + "  " + QString::number(this->m_USCapturing->GetVideoOffsetMs(), 'f', 2) + " ms")); 
@@ -959,58 +962,6 @@ std::string TrackedUltrasoundCapturingGUI::GetToolID( int tool)
 	}
 
 	return toolID.str(); 
-}
-
-//----------------------------------------------------------------------
-void TrackedUltrasoundCapturingGUI::UpdateToolIDs()
-{
-	LOG_TRACE("TrackedUltrasoundCapturingGUI::UpdateToolIDs");
-	this->MainToolComboBox->clear(); 
-	this->ReferenceToolComboBox->clear(); 
-
-	vtkTracker * tracker = this->m_USCapturing->GetDataCollector()->GetTracker(); 
-
-	if ( tracker == NULL )
-	{
-		this->MainToolComboBox->setEnabled(false); 
-		this->MainToolTransformName->setEnabled(false); 
-		this->ReferenceToolComboBox->setEnabled(false); 
-		this->ReferenceToolTransformName->setEnabled(false); 
-		return; 
-	}
-
-	this->ReferenceToolComboBox->addItem(QString("None")); 
-
-	
-	for ( int i = 0; i < tracker->GetNumberOfTools(); i++ )
-	{
-		if ( tracker->GetTool(i)->GetEnabled() )
-		{
-			this->MainToolComboBox->addItem( QString(this->GetToolID(i).c_str())); 
-			this->ReferenceToolComboBox->addItem( QString(this->GetToolID(i).c_str())); 
-		}
-	}
-
-	// Select main tool ID
-	int mainToolCurrentIndex = this->MainToolComboBox->findText(QString(this->GetToolID(this->m_USCapturing->GetDataCollector()->GetDefaultToolPortNumber()).c_str()), Qt::MatchExactly); 
-	this->MainToolComboBox->setCurrentIndex(mainToolCurrentIndex);
-	std::string mainToolName = this->m_USCapturing->GetDataCollector()->GetMainToolName();  
-	this->MainToolTransformName->setText(QString(mainToolName.c_str())); 
-
-	// Select reference tool ID
-	int refToolCurrentIndex = this->ReferenceToolComboBox->findText(QString(this->GetToolID(tracker->GetReferenceTool()).c_str()), Qt::MatchExactly); 
-	this->ReferenceToolComboBox->setCurrentIndex(refToolCurrentIndex); 
-
-	if ( tracker->GetReferenceTool() >= 0 )
-	{
-		std::string refToolName = tracker->GetTool(tracker->GetReferenceTool())->GetToolName(); 
-		this->ReferenceToolTransformName->setText(QString(refToolName.c_str())); 
-	}
-	else
-	{
-		this->ReferenceToolTransformName->clear();  
-	}
-
 }
 
 //----------------------------------------------------------------------

@@ -53,8 +53,6 @@ protected:
 
 	virtual void ShowTrackerToolWidgets(); 
 
-	virtual void UpdateToolIDs(); 
-
 	virtual std::string GetToolID( int tool ); 
 
 	virtual void ChangeTransformNames(); 
