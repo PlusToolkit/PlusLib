@@ -1005,10 +1005,20 @@ void vtkTracker::ReadConfiguration(vtkXMLDataElement* config)
 		int portNumber(-1); 
 		if ( toolDataElement->GetScalarAttribute("PortNumber", portNumber) )
 		{
-			if ( portNumber >= 0 && portNumber < this->GetNumberOfTools() )
+			if ( portNumber < 0 )
+			{
+				LOG_WARNING("Port number should be larger than 0! Current: " << portNumber); 
+			}
+
+			if (portNumber < this->GetNumberOfTools() )
 			{
 				this->GetTool(portNumber)->ReadConfiguration(toolDataElement); 
 			}
+			else
+			{
+				LOG_WARNING("Unable to read tool data element configuration for port: " << portNumber << " - number of tools are: " << this->GetNumberOfTools() ); 
+			}
+			
 		}
 	}
 
