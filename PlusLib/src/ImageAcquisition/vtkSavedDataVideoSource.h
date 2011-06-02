@@ -85,6 +85,13 @@ public:
 	vtkSetMacro(StartTimestamp, double); 
 	vtkGetMacro(StartTimestamp, double); 
 
+	//! Description 
+	// Flag to to enable saved dataset reply
+	// If it's enabled, the video source will continuously play saved data
+	vtkGetMacro(ReplayEnabled, bool);
+	vtkSetMacro(ReplayEnabled, bool);
+	vtkBooleanMacro(ReplayEnabled, bool);
+	
 protected:
 	vtkSavedDataVideoSource();
 	virtual ~vtkSavedDataVideoSource();
