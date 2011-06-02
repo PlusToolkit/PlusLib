@@ -290,12 +290,18 @@ vtkAscension3DGTracker
     }
   
   
-  for ( unsigned short sensorIndex = 0; sensorIndex < sysConfig.numberSensors; ++ sensorIndex )
-    {
-    atc::DEVICE_STATUS status = atc::GetSensorStatus( sensorIndex );
+    // Set up reference matrix.
+  
+  bool saturated, attached, inMotionBox;
+  bool transmitterRunning, transmitterAttached, globalError;
     
-    bool saturated, attached, inMotionBox;
-    bool transmitterRunning, transmitterAttached, globalError;
+  int flags = 0;
+  vtkSmartPointer< vtkMatrix4x4 > mTrackerToReference = vtkSmartPointer< vtkMatrix4x4 >::New();
+    mTrackerToReference->Identity();
+  
+  if ( this->GetReferenceTool() >= 0 )
+    {
+    atc::DEVICE_STATUS status = atc::GetSensorStatus( this->GetReferenceTool() );
     
     saturated = status & SATURATED;
     attached = ! ( status & NOT_ATTACHED );
@@ -304,26 +310,76 @@ vtkAscension3DGTracker
     transmitterAttached = !( status & NO_TRANSMITTER_ATTACHED );
     globalError = status & GLOBAL_ERROR;
     
-    vtkSmartPointer< vtkMatrix4x4 > vtkM = vtkSmartPointer< vtkMatrix4x4 >::New();
-    vtkM->Identity();
+    if ( ! attached )
+      {
+      flags |= TR_MISSING;
+      }
+    else if ( ! inMotionBox )
+      {
+      flags |= TR_OUT_OF_VIEW;
+      }
+    else
+		  {
+		  for ( int row = 0; row < 3; ++ row )
+        {
+        for ( int col = 0; col < 3; ++ col )
+          {
+          mTrackerToReference->SetElement( row, col, record[ this->GetReferenceTool() ].s[ row ][ col ] );
+          }
+        }
+      
+      mTrackerToReference->SetElement( 0, 3, record[ this->GetReferenceTool() ].x );
+      mTrackerToReference->SetElement( 1, 3, record[ this->GetReferenceTool() ].y );
+      mTrackerToReference->SetElement( 2, 3, record[ this->GetReferenceTool() ].z );
+    
+		  }
+		mTrackerToReference->Invert();
+    }
+  
+  
+  for ( unsigned short sensorIndex = 0; sensorIndex < sysConfig.numberSensors; ++ sensorIndex )
+    {
+    atc::DEVICE_STATUS status = atc::GetSensorStatus( sensorIndex );
+    
+    saturated = status & SATURATED;
+    attached = ! ( status & NOT_ATTACHED );
+    inMotionBox = ! ( status & OUT_OF_MOTIONBOX );
+    transmitterRunning = !( status & NO_TRANSMITTER_RUNNING );
+    transmitterAttached = !( status & NO_TRANSMITTER_ATTACHED );
+    globalError = status & GLOBAL_ERROR;
+    
+    vtkSmartPointer< vtkMatrix4x4 > mToolToTracker = vtkSmartPointer< vtkMatrix4x4 >::New();
+    mToolToTracker->Identity();
     for ( int row = 0; row < 3; ++ row )
       {
       for ( int col = 0; col < 3; ++ col )
         {
-        vtkM->SetElement( row, col, record[ sensorIndex ].s[ row ][ col ] );
+        mToolToTracker->SetElement( row, col, record[ sensorIndex ].s[ row ][ col ] );
         }
       }
-    vtkM->SetElement( 0, 3, record[ sensorIndex ].x );
-    vtkM->SetElement( 1, 3, record[ sensorIndex ].y );
-    vtkM->SetElement( 2, 3, record[ sensorIndex ].z );
     
-    int flags = 0;
+    mToolToTracker->SetElement( 0, 3, record[ sensorIndex ].x );
+    mToolToTracker->SetElement( 1, 3, record[ sensorIndex ].y );
+    mToolToTracker->SetElement( 2, 3, record[ sensorIndex ].z );
+    
+    
     if ( ! attached ) flags |= TR_MISSING;
     if ( ! inMotionBox ) flags |= TR_OUT_OF_VIEW;
     
-    // TODO: Handle all kinds of errors.
     
-    this->ToolUpdate( sensorIndex, vtkM, flags, this->FrameNumber, unfilteredtimestamp, filteredtimestamp );
+      // Apply reference to get Tool-to-Reference.
+    
+    vtkSmartPointer< vtkMatrix4x4 > mToolToReference = vtkSmartPointer< vtkMatrix4x4 >::New();
+      
+    if ( sensorIndex != this->GetReferenceTool() )
+      {
+      vtkMatrix4x4::Multiply4x4( mTrackerToReference, mToolToTracker, mToolToReference );
+      this->ToolUpdate( sensorIndex, mToolToReference, flags, this->FrameNumber, unfilteredtimestamp, filteredtimestamp );
+      }
+    else
+      {
+      this->ToolUpdate( sensorIndex, mToolToTracker, flags, this->FrameNumber, unfilteredtimestamp, filteredtimestamp );
+      }
     }
   
   
