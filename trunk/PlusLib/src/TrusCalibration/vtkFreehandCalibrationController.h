@@ -69,6 +69,8 @@ public:
 	void StartTemporalCalibration();
 	void StartSpatialCalibration();
 	static void UpdateProgress(int aPercent);
+	bool IsReadyToStartSpatialCalibration();
+	void DisplayCalibrationResults();
 
 	virtual void SetUSImageFrameOriginInPixels(int originX, int originY); 
 	virtual void SetUSImageFrameOriginInPixels(int* origin); 
@@ -79,6 +81,8 @@ public:
 	// Read XML based configuration of the calibration controller
 	virtual void ReadConfiguration( const char* configFileNameWithPath ); 
 	virtual void ReadConfiguration( vtkXMLDataElement* configData ); 
+	// Read freehand calibration configurations (from probe calibration data element of the config file)
+	virtual void ReadFreehandCalibrationConfiguration(vtkXMLDataElement* probeCalibration);
 
 	//! Operation: Register phantom geometry for calibrator 
 	virtual void RegisterPhantomGeometry();
@@ -105,7 +109,7 @@ public:
 	//! Operation: print the calibration results as well as error reports to the stdout
 	virtual void PrintCalibrationResultsAndErrorReports();
 
-//TODO ezek itt lent az ososztalyba???
+//TODO these should go to a base class of this and ProbeCalibrationController?
 	//! Attribute: Point-Line Distance Error Analysis for Validation Positions in US probe frame
 	// FORMAT: (all positions are in the US probe frame)
 	// [ vector 0 - 2:  PLDE_mean, PLDE_rms, PLDE_std ]
@@ -254,7 +258,7 @@ protected:
 
 	//TODO
 	// Call the calibrator class and do the calibration process
-	virtual void DoCalibration(); 
+	virtual void Calibrate(); 
 	// Populate the segmented N-fiducials to the data container
 	virtual void PopulateSegmentedFiducialsToDataContainer(vnl_matrix<double> &transformUSProbe2StepperFrameMatrix4x4, IMAGE_DATA_TYPE dataType); 
 

@@ -101,6 +101,12 @@ public:
 	std::string GetCurrentLandmarkName();
 
 	/*!
+	* \brief Getter function
+	* \return String containing the phantom definition file path and name
+	*/
+	std::string GetPhantomDefinitionFileName();
+
+	/*!
 	* \brief Get phantom to phantom reference transform (result of phantom registration and landmark registration)
 	* \return Phantom to phantom reference transform
 	*/
@@ -199,6 +205,9 @@ protected:
 
 	//! Flag to trigger landmark recording - if it is set then at the next acquisition the position is recorded
 	bool									m_RecordRequested;
+
+	//! Phantom definition file name for later use (eg. in freehand calibration)
+	std::string								m_PhantomDefinitionFileName;
 
 private:
 	//! Instance of the singleton
