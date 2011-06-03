@@ -377,7 +377,27 @@ void FreehandMainWindow::UpdateGUI()
 		// Refresh toolbox content
 		toolboxController->GetToolbox()->RefreshToolboxContent();
 	} else if (ui.tabWidgetToolbox->tabText(tabIndex) == "Freehand Calibration") {
-		// TODO
+		vtkFreehandCalibrationController* toolboxController = vtkFreehandCalibrationController::GetInstance();
+
+		// Update progress bar TODO
+		if (toolboxController->State() == ToolboxState_InProgress) {
+			m_StatusBarLabel->setText(QString(" Acquiring and adding images to calibrator"));
+			m_StatusBarProgress->setVisible(true);
+			m_StatusBarProgress->setValue(toolboxController->GetProgressPercent());
+		} else
+		// If done
+		if (toolboxController->State() == ToolboxState_Done) {
+			m_StatusBarLabel->setText(QString(" Calibration done"));
+			m_StatusBarProgress->setVisible(false);
+			m_StatusBarProgress->setValue(100);
+		} else {
+			m_StatusBarLabel->setText(QString(""));
+			m_StatusBarProgress->setVisible(false);
+			m_StatusBarProgress->setValue(0);
+		}
+
+		// Refresh toolbox content
+		toolboxController->GetToolbox()->RefreshToolboxContent(); // TODO put ouside block (toolboxController should be AbstractTOolboxCOntroller)
 	} else if (ui.tabWidgetToolbox->tabText(tabIndex) == "Volume Reconstruction") {
 		// TODO
 	} else {

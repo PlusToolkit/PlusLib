@@ -37,6 +37,7 @@ FreehandCalibrationToolbox::FreehandCalibrationToolbox(QWidget* aParent, Qt::WFl
 	connect( ui.pushButton_OpenCalibrationConfiguration, SIGNAL( pressed() ), this, SLOT( OpenCalibrationConfigurationClicked() ) );
 	connect( ui.pushButton_StartTemporal, SIGNAL( pressed() ), this, SLOT( StartTemporalClicked() ) );
 	connect( ui.pushButton_ResetTemporal, SIGNAL( pressed() ), this, SLOT( ResetTemporalClicked() ) );
+	connect( ui.pushButton_SkipTemporal, SIGNAL( pressed() ), this, SLOT( SkipTemporalClicked() ) );
 	connect( ui.pushButton_StartSpatial, SIGNAL( pressed() ), this, SLOT( StartSpatialClicked() ) );
 	connect( ui.pushButton_ResetSpatial, SIGNAL( pressed() ), this, SLOT( ResetSpatialClicked() ) );
 	connect( ui.pushButton_Save, SIGNAL( pressed() ), this, SLOT( SaveClicked() ) );
@@ -65,8 +66,18 @@ FreehandCalibrationToolbox::~FreehandCalibrationToolbox()
 void FreehandCalibrationToolbox::Initialize()
 {
 	// If phantom registration has just been done, then indicate it
-	if (PhantomRegistrationController::GetInstance()->GetPhantomToPhantomReferenceTransform() != NULL) {
-		ui.lineEdit_PhantomRegistration->setText(tr("Using session calibration data"));
+	if (PhantomRegistrationController::GetInstance() == NULL) {
+		LOG_ERROR("Phantom registration controller not initialized!");
+		return;
+	}
+
+	PhantomRegistrationController* phantomRegistrationController = PhantomRegistrationController::GetInstance();
+	if (phantomRegistrationController->GetPhantomToPhantomReferenceTransform() != NULL) {
+		ui.lineEdit_PhantomRegistration->setText(tr("Using session registration data"));
+
+		if (! phantomRegistrationController->GetPhantomDefinitionFileName().empty()) {
+			ui.label_PhantomDefinition->setText(tr("Using session data"));
+		}
 	}
 }
 
@@ -74,7 +85,7 @@ void FreehandCalibrationToolbox::Initialize()
 
 void FreehandCalibrationToolbox::RefreshToolboxContent()
 {
-	//LOG_DEBUG("StylusCalibrationToolbox: Refresh stylus calibration toolbox content"); 
+	//LOG_TRACE("StylusCalibrationToolbox: Refresh stylus calibration toolbox content"); 
 
 	vtkFreehandCalibrationController* toolboxController = vtkFreehandCalibrationController::GetInstance();
 
@@ -92,9 +103,11 @@ void FreehandCalibrationToolbox::RefreshToolboxContent()
 	// If initialized
 	if (toolboxController->State() == ToolboxState_Idle) {
 		if (toolboxController->GetTemporalCalibrationDone() == false) { // If temporal calibration has not been done yet
-			ui.label_InstructionsTemporal->setText(tr("Press Start and make abrupt movements with the probe every 2 seconds"));
+			ui.label_InstructionsTemporal->setText(tr("Press Start and to perform temporal calibration or Skip"));
+
 			ui.pushButton_StartTemporal->setEnabled(true);
 			ui.pushButton_ResetTemporal->setEnabled(false);
+			ui.pushButton_SkipTemporal->setEnabled(true);
 
 			ui.label_InstructionsSpatial->setText(tr(""));
 			ui.frame_SpatialCalibration->setEnabled(false);
@@ -105,13 +118,13 @@ void FreehandCalibrationToolbox::RefreshToolboxContent()
 				ui.pushButton_StartTemporal->setFocus();
 			}
 		} else { // If temporal calibration is finished
-			ui.label_InstructionsTemporal->setText(tr("Temporal calibration is ready to save"));
+			ui.label_InstructionsTemporal->setText(tr(""/*"Temporal calibration is ready to save"*/));
 			ui.pushButton_StartTemporal->setEnabled(false);
 			ui.pushButton_ResetTemporal->setEnabled(true);
+			ui.pushButton_SkipTemporal->setEnabled(false);
 
 			ui.label_InstructionsSpatial->setText(tr("Press Start and start scanning the phantom"));
 			ui.frame_SpatialCalibration->setEnabled(true);
-			ui.pushButton_StartSpatial->setEnabled(true);
 			ui.pushButton_ResetSpatial->setEnabled(false);
 
 			ui.pushButton_Save->setEnabled(false);
@@ -120,6 +133,9 @@ void FreehandCalibrationToolbox::RefreshToolboxContent()
 				ui.pushButton_StartSpatial->setFocus();
 			}
 		}
+
+		ui.pushButton_StartSpatial->setEnabled(toolboxController->IsReadyToStartSpatialCalibration());
+
 	} else
 	// If in progress
 	if (toolboxController->State() == ToolboxState_InProgress) {
@@ -206,10 +222,11 @@ void FreehandCalibrationToolbox::OpenPhantomDefinitionClicked()
 	}
 
 	// Load phantom definition xml
-	if (PhantomRegistrationController::GetInstance()->LoadPhantomDefinitionFromFile(fileName.toStdString())) {
-		ui.lineEdit_PhantomDefinition->setText(fileName);
-		ui.lineEdit_PhantomDefinition->setToolTip(fileName);
-	}
+	//if (PhantomRegistrationController::GetInstance()->LoadPhantomDefinitionFromFile(fileName.toStdString())) { // probably it is not needed
+	vtkFreehandCalibrationController::GetInstance()->SetPhantomDefinitionFileName(fileName.toStdString().c_str());
+
+	ui.lineEdit_PhantomDefinition->setText(fileName);
+	ui.lineEdit_PhantomDefinition->setToolTip(fileName);
 }
 
 //-----------------------------------------------------------------------------
@@ -246,28 +263,59 @@ void FreehandCalibrationToolbox::OpenCalibrationConfigurationClicked()
 	}
 
 	// Load calibration configuration xml
-	if (true/*vtkFreehandCalibrationController::GetInstance()->LoadCalibrationConfigurationFile(fileName.toStdString()) TODO */) {
-		ui.lineEdit_CalibrationConfiguration->setText(fileName);
-		ui.lineEdit_CalibrationConfiguration->setToolTip(fileName);
-	}
+	vtkFreehandCalibrationController::GetInstance()->ReadConfiguration(fileName.toStdString().c_str()); //TODO error handling
+
+	ui.lineEdit_CalibrationConfiguration->setText(fileName);
+	ui.lineEdit_CalibrationConfiguration->setToolTip(fileName);
 }
 
 //-----------------------------------------------------------------------------
 
 void FreehandCalibrationToolbox::StartTemporalClicked()
 {
+	vtkFreehandCalibrationController::GetInstance()->Start();
+
+	//TODO
+
+	vtkFreehandCalibrationController::GetInstance()->Stop();
 }
 
 //-----------------------------------------------------------------------------
 
 void FreehandCalibrationToolbox::ResetTemporalClicked()
 {
+	//TODO
+}
+
+//-----------------------------------------------------------------------------
+
+void FreehandCalibrationToolbox::SkipTemporalClicked()
+{
+	vtkFreehandCalibrationController::GetInstance()->TemporalCalibrationDoneOn();
 }
 
 //-----------------------------------------------------------------------------
 
 void FreehandCalibrationToolbox::StartSpatialClicked()
 {
+	vtkFreehandCalibrationController* toolboxController = vtkFreehandCalibrationController::GetInstance();
+	if (toolboxController == NULL) {
+		LOG_ERROR("Freehand calibration toolbox controller is not initialized!");
+		return;
+	}
+
+	if (toolboxController->GetCalibrationMode() != REALTIME) {
+		LOG_ERROR("Unable to start calibration in offline mode!");
+		return; 
+	}
+
+	toolboxController->Start();
+
+	toolboxController->DoAcquisition();
+
+	toolboxController->ComputeCalibrationResults();
+
+	toolboxController->Stop();
 }
 
 //-----------------------------------------------------------------------------

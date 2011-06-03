@@ -56,7 +56,7 @@ StylusCalibrationToolbox::~StylusCalibrationToolbox()
 
 void StylusCalibrationToolbox::RefreshToolboxContent()
 {
-	//LOG_DEBUG("StylusCalibrationToolbox: Refresh stylus calibration toolbox content"); 
+	//LOG_TRACE("StylusCalibrationToolbox: Refresh stylus calibration toolbox content"); 
 
 	StylusCalibrationController* toolboxController = StylusCalibrationController::GetInstance();
 

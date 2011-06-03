@@ -55,7 +55,7 @@
      </property>
     </spacer>
    </item>
-   <item row="2" column="0">
+   <item row="2" column="0" colspan="2">
     <widget class="QLabel" name="label_InstructionsTemporal">
      <property name="text">
       <string>Instructions</string>
@@ -97,6 +97,13 @@
       <widget class="QPushButton" name="pushButton_ResetTemporal">
        <property name="text">
         <string>Reset</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="pushButton_SkipTemporal">
+       <property name="text">
+        <string>Skip</string>
        </property>
       </widget>
      </item>

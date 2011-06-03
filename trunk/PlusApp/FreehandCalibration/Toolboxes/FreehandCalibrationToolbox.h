@@ -69,6 +69,7 @@ protected slots:
 	void OpenCalibrationConfigurationClicked();
 	void StartTemporalClicked();
 	void ResetTemporalClicked();
+	void SkipTemporalClicked();
 	void StartSpatialClicked();
 	void ResetSpatialClicked();
 	void SaveClicked();

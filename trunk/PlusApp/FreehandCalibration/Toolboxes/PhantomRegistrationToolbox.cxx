@@ -77,7 +77,7 @@ void PhantomRegistrationToolbox::Initialize()
 
 void PhantomRegistrationToolbox::RefreshToolboxContent()
 {
-	//LOG_DEBUG("PhantomRegistrationToolbox: Refresh phantom registration toolbox content"); 
+	//LOG_TRACE("PhantomRegistrationToolbox: Refresh phantom registration toolbox content"); 
 
 	PhantomRegistrationController* toolboxController = PhantomRegistrationController::GetInstance();
 
