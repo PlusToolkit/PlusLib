@@ -56,6 +56,7 @@ PhantomRegistrationController::PhantomRegistrationController()
 	,m_PhantomToPhantomReferenceTransform(NULL)
 	,m_PhantomToModelTransform(NULL)
 	,m_PositionString("")
+	,m_PhantomDefinitionFileName("")
 	,m_CurrentLandmarkIndex(-1)
 	,m_RecordRequested(false)
 {
@@ -306,9 +307,14 @@ void PhantomRegistrationController::Clear()
 
 //-----------------------------------------------------------------------------
 
-std::string PhantomRegistrationController::GetPositionString()
-{
+std::string PhantomRegistrationController::GetPositionString() {
 	return m_PositionString;
+}
+
+//-----------------------------------------------------------------------------
+
+std::string PhantomRegistrationController::GetPhantomDefinitionFileName() {
+	return m_PhantomDefinitionFileName;
 }
 
 //-----------------------------------------------------------------------------
@@ -704,6 +710,8 @@ bool PhantomRegistrationController::LoadPhantomDefinitionFromFile(std::string aF
 	if (phantomDefinition == NULL) {	
 		LOG_ERROR("Unable to read the phantom definition file: " << aFile); 
 		return false;
+	} else {
+		m_PhantomDefinitionFileName = aFile;
 	}
 
 	// Load model information

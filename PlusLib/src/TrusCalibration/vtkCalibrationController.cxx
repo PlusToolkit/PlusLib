@@ -700,6 +700,55 @@ void vtkCalibrationController::ReadRealtimeCalibrationConfiguration( vtkXMLDataE
 		LOG_WARNING("Unable to find RandomStepperMotionData2 XML data element"); 
 	}
 
+	// FreehandMotionData1 data set specifications
+	//********************************************************************
+	vtkSmartPointer<vtkXMLDataElement> freehandMotionData1 = realtimeCalibration->FindNestedElementWithName("FreehandMotionData1"); 
+	if ( freehandMotionData1 != NULL) 
+	{
+		vtkCalibrationController::RealtimeImageDataInfo imageDataInfo = this->GetRealtimeImageDataInfo(FREEHAND_MOTION_1); 
+		int numberOfImagesToUse = -1;
+		if ( freehandMotionData1->GetScalarAttribute("NumberOfImagesToAcquire", numberOfImagesToUse) ) 
+		{
+			imageDataInfo.NumberOfImagesToAcquire = numberOfImagesToUse; 
+		}
+
+		const char* sequenceMetaFile = freehandMotionData1->GetAttribute("OutputSequenceMetaFileSuffix"); 
+		if ( sequenceMetaFile != NULL) 
+		{
+			imageDataInfo.OutputSequenceMetaFileSuffix.assign(sequenceMetaFile); 
+		}
+
+		this->SetRealtimeImageDataInfo(FREEHAND_MOTION_1, imageDataInfo); 
+	}
+	else
+	{
+		LOG_WARNING("Unable to find FreehandMotionData1 XML data element"); 
+	}
+
+	// FreehandMotionData2 data set specifications
+	//********************************************************************
+	vtkSmartPointer<vtkXMLDataElement> freehandMotionData2 = realtimeCalibration->FindNestedElementWithName("FreehandMotionData2"); 
+	if ( freehandMotionData2 != NULL) 
+	{
+		vtkCalibrationController::RealtimeImageDataInfo imageDataInfo = this->GetRealtimeImageDataInfo(FREEHAND_MOTION_2); 
+		int numberOfImagesToUse = -1;
+		if ( freehandMotionData2->GetScalarAttribute("NumberOfImagesToAcquire", numberOfImagesToUse) ) 
+		{
+			imageDataInfo.NumberOfImagesToAcquire = numberOfImagesToUse; 
+		}
+
+		const char* sequenceMetaFile = freehandMotionData2->GetAttribute("OutputSequenceMetaFileSuffix"); 
+		if ( sequenceMetaFile != NULL) 
+		{
+			imageDataInfo.OutputSequenceMetaFileSuffix.assign(sequenceMetaFile); 
+		}
+
+		this->SetRealtimeImageDataInfo(FREEHAND_MOTION_2, imageDataInfo); 
+	}
+	else
+	{
+		LOG_WARNING("Unable to find FreehandMotionData2 XML data element"); 
+	}
 
 }
 
