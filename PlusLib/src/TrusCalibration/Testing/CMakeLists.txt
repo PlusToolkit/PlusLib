@@ -1,7 +1,6 @@
 #--------------------------------------------------------------------------------------------
-SET (vtkUSCalibrationControllerTest_LIBS ${vtkUSCalibrationControllerTest_LIBS} itkvnl itkvnl_algo vtkCommon vtkRendering vtkHybrid vtkTrusCalibration vtkDataCollection)
 ADD_EXECUTABLE(vtkUSCalibrationControllerTest1 vtkUSCalibrationControllerTest1.cxx)
-TARGET_LINK_LIBRARIES(vtkUSCalibrationControllerTest1 ${vtkUSCalibrationControllerTest_LIBS} )
+TARGET_LINK_LIBRARIES(vtkUSCalibrationControllerTest1 itkvnl itkvnl_algo vtkCommon vtkRendering vtkHybrid vtkTrusCalibration vtkDataCollection )
 
 SET( TestDataDir ${PLUSLIB_DATA_DIR}/TestImages )
 SET( ConfigFilesDir ${PLUSLIB_DATA_DIR}/ConfigFiles )
@@ -67,15 +66,12 @@ ADD_TEST(vtkUSCalibrationControllerTest_FrameGrabber
 		)
 		
 #--------------------------------------------------------------------------------------------
-SET (vtkTemplateToStepperCalibratorTest1_LIBS ${vtkTemplateToStepperCalibratorTest1_LIBS} itkvnl itkvnl_algo vtkCommon vtkIO vtkImageAcquisition vtkTrusCalibration UsFidSegAlgo)
 ADD_EXECUTABLE(vtkTemplateToStepperCalibratorTest1 vtkTemplateToStepperCalibratorTest1.cxx)
-TARGET_LINK_LIBRARIES(vtkTemplateToStepperCalibratorTest1 ${vtkTemplateToStepperCalibratorTest1_LIBS} )		
-
+TARGET_LINK_LIBRARIES(vtkTemplateToStepperCalibratorTest1 itkvnl itkvnl_algo vtkCommon vtkIO vtkImageAcquisition vtkTrusCalibration UsFidSegAlgo )		
 
 #--------------------------------------------------------------------------------------------
-SET (vtkStepperCalibrationControllerTest_LIBS ${vtkStepperCalibrationControllerTest_LIBS} itkvnl itkvnl_algo vtkCommon vtkTrusCalibration vtkDataCollection vtkImageAcquisition)
 ADD_EXECUTABLE(vtkStepperCalibrationControllerTest vtkStepperCalibrationControllerTest.cxx)
-TARGET_LINK_LIBRARIES(vtkStepperCalibrationControllerTest ${vtkStepperCalibrationControllerTest_LIBS} )
+TARGET_LINK_LIBRARIES(vtkStepperCalibrationControllerTest itkvnl itkvnl_algo vtkCommon vtkTrusCalibration vtkDataCollection vtkImageAcquisition )
 
 # ADD_TEST(vtkStepperCalibrationControllerTest
 		# ${EXECUTABLE_OUTPUT_PATH}/vtkStepperCalibrationControllerTest
@@ -88,9 +84,8 @@ TARGET_LINK_LIBRARIES(vtkStepperCalibrationControllerTest ${vtkStepperCalibratio
 		# )
 
 #--------------------------------------------------------------------------------------------
-SET (vtkStylusCalibrationTest_LIBS ${vtkStylusCalibrationTest_LIBS} itkvnl itkvnl_algo vtkCommon vtkTrusCalibration vtkDataCollection)
 ADD_EXECUTABLE(vtkStylusCalibrationTest vtkStylusCalibrationTest.cxx)
-TARGET_LINK_LIBRARIES(vtkStylusCalibrationTest ${vtkStylusCalibrationTest_LIBS} )
+TARGET_LINK_LIBRARIES(vtkStylusCalibrationTest itkvnl itkvnl_algo vtkCommon vtkTrusCalibration vtkDataCollection )
 
 ADD_TEST(vtkStylusCalibrationTest
 		${EXECUTABLE_OUTPUT_PATH}/vtkStylusCalibrationTest
@@ -101,9 +96,8 @@ ADD_TEST(vtkStylusCalibrationTest
 		)
 
 #--------------------------------------------------------------------------------------------
-SET (vtkPhantomRegistrationTest_LIBS ${vtkPhantomRegistrationTest_LIBS} itkvnl itkvnl_algo vtkCommon vtkTrusCalibration vtkDataCollection)
 ADD_EXECUTABLE(vtkPhantomRegistrationTest vtkPhantomRegistrationTest.cxx)
-TARGET_LINK_LIBRARIES(vtkPhantomRegistrationTest ${vtkPhantomRegistrationTest_LIBS} )
+TARGET_LINK_LIBRARIES(vtkPhantomRegistrationTest itkvnl itkvnl_algo vtkCommon vtkTrusCalibration vtkDataCollection )
 
 ADD_TEST(vtkPhantomRegistrationTest
 		${EXECUTABLE_OUTPUT_PATH}/vtkPhantomRegistrationTest
@@ -115,9 +109,8 @@ ADD_TEST(vtkPhantomRegistrationTest
 		)
 
 #--------------------------------------------------------------------------------------------
-SET (vtkFreehandCalibrationTest_LIBS ${vtkFreehandCalibrationTest_LIBS} itkvnl itkvnl_algo vtkCommon vtkTrusCalibration vtkDataCollection)
 ADD_EXECUTABLE(vtkFreehandCalibrationTest vtkFreehandCalibrationTest.cxx)
-TARGET_LINK_LIBRARIES(vtkFreehandCalibrationTest ${vtkFreehandCalibrationTest_LIBS} )
+TARGET_LINK_LIBRARIES(vtkFreehandCalibrationTest itkvnl itkvnl_algo vtkCommon vtkTrusCalibration vtkDataCollection )
 
 ADD_TEST(vtkFreehandCalibrationTest
 		${EXECUTABLE_OUTPUT_PATH}/vtkFreehandCalibrationTest

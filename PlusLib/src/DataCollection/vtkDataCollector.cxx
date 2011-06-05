@@ -1284,11 +1284,18 @@ int vtkDataCollector::GetPreviousActiveToolNumber()
 void vtkDataCollector::ReadConfiguration()
 {
 	LOG_TRACE("vtkDataCollector::ReadConfiguration");
-	this->ConfigurationData = vtkXMLUtilities::ReadElementFromFile(this->GetConfigFileName()); 
 
+  const char* configFn=this->GetConfigFileName();
+  if (configFn==NULL)
+  {
+    LOG_ERROR("Unable to read the main configration file: no filename is specified"); 
+    exit(EXIT_FAILURE);
+  }
+
+	this->ConfigurationData = vtkXMLUtilities::ReadElementFromFile(configFn); 
 	if ( this->ConfigurationData == NULL) 
 	{	
-		LOG_ERROR("Unable to read the main configration file!"); 
+    LOG_ERROR("Unable to read the main configration file: " << configFn); 
 		exit(EXIT_FAILURE); 
 	} 
 
