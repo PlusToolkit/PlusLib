@@ -214,7 +214,7 @@ int main(int argc, char **argv)
 	LOG_INFO("Allocate space for video buffer..."); 
 	for ( int i = 0; i < videoBuffer->GetBufferSize(); i++ )
 	{
-		videoBuffer->GetFrame(i)->Allocate(); 
+		videoBuffer->GetFrameByBufferIndex(i)->Allocate(); 
 	}
 
 	LOG_INFO("Copy buffer to video buffer..."); 
@@ -260,11 +260,11 @@ int main(int argc, char **argv)
 			continue; 
 		}
 
-		videoBuffer->Seek(1); 
-		unsigned char *frameBufferPtr = reinterpret_cast<unsigned char *>(videoBuffer->GetFrame(0)->GetVoidPointer(0));
+		vtkVideoFrame2* frameInBuffer = videoBuffer->GetFrameToWrite(); 
+		unsigned char *frameBufferPtr = reinterpret_cast<unsigned char *>(frameInBuffer->GetVoidPointer(0));
 
 		memcpy(frameBufferPtr,videoFrameList->GetTrackedFrame(frameNumber)->ImageData->GetBufferPointer(), frameSizeInBytes);
-		videoBuffer->AddItem(videoBuffer->GetFrame(0), unfilteredtimestamp, timestamp, frmnum );
+		videoBuffer->AddItem(frameInBuffer, unfilteredtimestamp, timestamp, frmnum );
 	}
 
 	PlusLogger::PrintProgressbar( 100 ); 

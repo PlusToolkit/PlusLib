@@ -141,10 +141,10 @@ protected:
 	vtkDataCollectorSynchronizer();
 	virtual ~vtkDataCollectorSynchronizer();
 
-	virtual void ComputeFrameThreshold( int& bufferIndex ); 
-	virtual bool FindFrameTimestamp( int& bufferIndex, double& movedFrameTimestamp, double nextMovedTimestamp ); 
-	virtual void GetFrameFromVideoBuffer( vtkImageData* frame, int bufferIndex ); 
-	virtual void FindStillFrame( int& baseIndex, int& currentIndex ); 
+	virtual void ComputeFrameThreshold( vtkVideoBuffer2::FrameUidType& bufferIndex ); 
+	virtual bool FindFrameTimestamp( vtkVideoBuffer2::FrameUidType& bufferIndex, double& movedFrameTimestamp, double nextMovedTimestamp ); 
+	virtual bool GetFrameFromVideoBuffer( vtkImageData* frame, vtkVideoBuffer2::FrameUidType bufferIndex ); 
+	virtual void FindStillFrame( vtkVideoBuffer2::FrameUidType& baseIndex, vtkVideoBuffer2::FrameUidType& currentIndex ); 
 
 	virtual void ComputeTransformThreshold( int& bufferIndex ); 
 	virtual bool FindTransformTimestamp( int& bufferIndex, double& movedTransformTimestamp ); 

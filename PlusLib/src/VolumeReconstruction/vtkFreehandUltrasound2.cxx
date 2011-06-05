@@ -1359,7 +1359,7 @@ double vtkFreehandUltrasound2::GetSleepTime()
 // Override in derived classes
 double vtkFreehandUltrasound2::CalculateCurrentVideoTime(vtkImageData* inData)
 {
-	return this->VideoSource->GetFrameTimeStamp( this->VideoSource->GetFrameIndex() );
+	return this->VideoSource->GetFrameTimeStamp();
 }
 
 //----------------------------------------------------------------------------

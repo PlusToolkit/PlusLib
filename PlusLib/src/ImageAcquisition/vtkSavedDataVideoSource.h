@@ -49,11 +49,6 @@ public:
 	virtual void Record();
 
 	// Description:
-	// Play through the 'tape' sequentially at the specified frame rate.
-	// If you have just finished Recoding, you should call Rewind() first.
-	virtual void Play();
-
-	// Description:
 	// Stop recording or playing.
 	virtual void Stop();
 

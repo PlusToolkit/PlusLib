@@ -61,6 +61,7 @@ void vtkSavedDataTracker::PrintSelf(ostream& os, vtkIndent indent)
 /**
  * @returns 1 on success, 0 on failure.
  */
+//----------------------------------------------------------------------------
 int vtkSavedDataTracker::Connect()
 {
 	LOG_TRACE("vtkSavedDataTracker::Connect"); 
@@ -79,13 +80,15 @@ int vtkSavedDataTracker::Connect()
   
 	// Read metafile
 	savedDataBuffer->ReadFromSequenceMetafile(this->GetSequenceMetafile()); 
-	
-	// TODO: Do we need other tools than the defult tool? 
+
+
+	// TODO: Do we need other tools than the default tool? 
 	this->SetNumberOfTools(1);
 
 	// Enable tools
 	for ( int tool = 0; tool < this->GetNumberOfTools(); tool++ )
 	{
+		this->GetTool(tool)->GetBuffer()->SetBufferSize( savedDataBuffer->GetNumberOfTrackedFrames() ); 
 		this->GetTool(tool)->EnabledOn(); 
 		
 	}
@@ -266,7 +269,7 @@ void vtkSavedDataTracker::InternalUpdate()
 	// Replay the buffer after we reached the most recent element if desired
 	if ( bufferIndex == 0  && this->ReplayEnabled)
 	{
-		this->SetStartTimestamp(vtkAccurateTimer::GetSystemTime() + 1.0/this->GetFrequency() ); 
+		this->SetStartTimestamp(vtkAccurateTimer::GetSystemTime()); 
 	}
 }
 

@@ -56,7 +56,7 @@ vtkICCapturingSource2::vtkICCapturingSource2()
 	this->Buffer->GetFrameFormat()->SetFrameGrabberType(FG_BASE); 
 	for (int i = 0; i < this->Buffer->GetBufferSize(); i++)
 	{
-		this->Buffer->GetFrame(i)->SetFrameGrabberType(FG_BASE);
+		this->Buffer->GetFrameByBufferIndex(i)->SetFrameGrabberType(FG_BASE);
 	}
 
 	this->SetFrameBufferSize(200); 
@@ -164,15 +164,6 @@ void vtkICCapturingSource2::LocalInternalGrab(unsigned char * dataPtr, unsigned 
 {
 	this->Buffer->Lock();
 
-	// 1) Do the frame buffer indices maintenance
-	if (this->AutoAdvance)
-	{
-		this->AdvanceFrameBuffer(1);
-		if (this->FrameIndex + 1 < this->Buffer->GetBufferSize())
-		{
-			this->FrameIndex++;
-		}
-	}
 	this->FrameNumber = frameNumber; 
 	double unfilteredTimestamp(0), filteredTimestamp(0); 
 	this->CreateTimeStampForFrame(this->FrameNumber, unfilteredTimestamp, filteredTimestamp);
@@ -182,7 +173,7 @@ void vtkICCapturingSource2::LocalInternalGrab(unsigned char * dataPtr, unsigned 
 	// to the local buffer, which demands necessary advancement of dataPtr
 
 	// get the pointer to the correct location in the frame buffer, where this data needs to be copied
-	unsigned char *frameBufferPtr = reinterpret_cast<unsigned char *>(this->Buffer->GetFrame(0)->GetVoidPointer(0));
+	unsigned char *frameBufferPtr = reinterpret_cast<unsigned char *>(this->Buffer->GetFrameToWrite()->GetVoidPointer(0));
 
 	int FrameBufferExtent[6];
 	this->Buffer->GetFrameFormat()->GetFrameExtent(FrameBufferExtent);
@@ -223,11 +214,15 @@ void vtkICCapturingSource2::LocalInternalGrab(unsigned char * dataPtr, unsigned 
 	}
 
 	// add the new frame and the current time to the buffer
-	this->Buffer->AddItem(this->Buffer->GetFrame(0), unfilteredTimestamp, filteredTimestamp, this->FrameNumber);
+	this->Buffer->AddItem(this->Buffer->GetFrameToWrite(), unfilteredTimestamp, filteredTimestamp, this->FrameNumber);
 
 	if (this->FrameCount++ == 0)
 	{
-		this->StartTimeStamp = this->Buffer->GetTimeStamp(0);
+		double timestamp(0); 
+		if ( this->Buffer->GetLatestTimeStamp(timestamp) == vtkVideoBuffer2::FRAME_OK )
+		{
+			this->StartTimeStamp = timestamp;
+		}
 	}
 
 	this->Modified();
@@ -339,7 +334,7 @@ void vtkICCapturingSource2::Initialize()
 //----------------------------------------------------------------------------
 void vtkICCapturingSource2::ReleaseSystemResources()
 {
-	if (this->Playing || this->Recording)
+	if (this->Recording)
 	{
 		this->Stop();
 	}
@@ -374,22 +369,11 @@ void vtkICCapturingSource2::Record()
 		return;
 	}
 
-	if (this->Playing)
-	{
-		this->Stop();
-	}
-
 	if (!this->Recording)
 	{
 		this->Recording = 1;
 		this->Modified();
 	}
-}
-
-//----------------------------------------------------------------------------
-void vtkICCapturingSource2::Play()
-{
-	this->vtkVideoSource2::Play();
 }
 
 //----------------------------------------------------------------------------
@@ -399,10 +383,6 @@ void vtkICCapturingSource2::Stop()
 	{
 		this->Recording = 0;
 		this->Modified();
-	}
-	else if (this->Playing)
-	{
-		this->vtkVideoSource2::Stop();
 	}
 }
 

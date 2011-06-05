@@ -18,14 +18,10 @@
 // .NAME vtkVideoSource2 - Superclass of video input devices for VTK
 // .SECTION Description
 // vtkVideoSource2 is a superclass for video input interfaces for VTK.
-// The goal is to provide an interface which is very similar to the
-// interface of a VCR, where the 'tape' is an internal frame buffer
-// capable of holding a preset number of video frames.  Specialized
-// versions of this class record input from various video input sources.
 // This base class records input from a noise source.  vtkVideoSource2 uses
 // vtkVideoBuffer2 and vtkVideoFrame2 to hold its image data, and should be
 // used instead of vtkVideoSource if you want to be able to access data while
-// recording or playing.
+// recording.
 // .SECTION Caveats
 // You must call the ReleaseSystemResources() method before the application
 // exits.  Otherwise the application might hang while trying to exit.
@@ -88,43 +84,17 @@ public:
   virtual void Record();
 
   // Description:
-  // Play through the 'tape' sequentially at the specified frame rate.
-  // If you have just finished Recording, you should call Rewind() first.
-  virtual void Play();
-
-  // Description:
-  // Stop recording or playing.
+  // Stop recording
   virtual void Stop();
-
-  // Description:
-  // Rewind to the frame with the earliest timestamp.  Record operations
-  // will start on the following frame, therefore if you want to re-record
-  // over this frame you must call Seek(-1) before calling Grab() or Record().
-  virtual void Rewind();
-
-  // Description:
-  // FastForward to the last frame that was recorded (i.e. to the frame
-  // that has the most recent timestamp).
-  virtual void FastForward();
-
-  // Description:
-  // Seek forwards or backwards by the specified number of frames
-  // (positive is forward, negative is backward).
-  virtual void Seek(int n); 
 
   // Description:
   // Grab a single video frame.
   virtual void Grab();
 
   // Description:
-  // Are we in record mode? (record mode and play mode are mutually
+  // Are we in record mode?
   // exclusive).
   vtkGetMacro(Recording,int);
-
-  // Description:
-  // Are we in play mode? (record mode and play mode are mutually
-  // exclusive).
-  vtkGetMacro(Playing,int);
 
   // Description:
   // Set/Get the full-frame size.  This must be an allowed size for the device,
@@ -166,13 +136,6 @@ public:
   // most recent frame first.  The default is 1.
   vtkSetMacro(NumberOfOutputFrames,int);
   vtkGetMacro(NumberOfOutputFrames,int);
-
-  // Description:
-  // Set/Get whether to automatically advance the buffer before each grab. 
-  // Default: on
-  vtkBooleanMacro(AutoAdvance,int);
-  vtkSetMacro(AutoAdvance,int)
-  vtkGetMacro(AutoAdvance,int);
 
   // Description:
   // Set/Get the clip rectangle for the frames.  The video will be clipped 
@@ -235,22 +198,9 @@ public:
   vtkGetMacro(SmoothingFactor, double); 
   
   // Description:
-  // Get the frame index relative to the 'beginning of the tape'.  The
-  // maximum value is the frame buffer's size - 1.
-  vtkGetMacro(FrameIndex, int);
-
-  // Description:
   // Get the frame number (some devices has frame numbering, otherwise 
   // just increment if new frame received)
   vtkGetMacro(FrameNumber, unsigned long);
-
-  // Description:
-  // Get a time stamp in seconds (resolution of milliseconds) for
-  // a video frame.   Time began on Jan 1, 1970.  You can specify
-  // a number (negative or positive) to specify the position of the
-  // video frame relative to the current frame (positive is forwards,
-  // negative is backwards).
-  virtual double GetFrameTimeStamp(int frame);
 
   // Description:
   // Get a time stamp in seconds (resolution of milliseconds) for
@@ -307,28 +257,6 @@ public:
   vtkGetMacro(TimestampClosestToDesired, double);
 
   // Description:
-  // Writes buffer contents to file: the summary file lists the image file names and their
-  // associated timestamps, and a new image file is created for each frame in the buffer.
-  // Currently only 2D images in VTK_LUMINANCE, VTK_RGB or VTK_RGBA format are supported.
-  virtual void WriteFramesAsBMP(const char *summaryFileName, const char *filePrefix);
-  virtual void WriteFramesAsBMP(const char *summaryFileName, const char *filePrefix, int numFrames);
-  virtual void WriteFramesAsPNG(const char *summaryFileName, const char *filePrefix);
-  virtual void WriteFramesAsPNG(const char *summaryFileName, const char *filePrefix, int numFrames);
-  virtual void WriteFramesAsTIFF(const char *summaryFileName, const char *filePrefix, int compression);
-  virtual void WriteFramesAsTIFF(const char *summaryFileName, const char *filePrefix, int compression, int numFrames);
-  //virtual void WriteFramesAsMINCImage(const char *summaryFileName, const char *filePrefix);
-  //virtual void WriteFramesAsMINCImage(const char *summaryFileName, const char *filePrefix, numFrames);
-
-  // Description:
-  // Reads buffer contents from file:  the summary file should have been generated by one of
-  // vtkVideoSource2's WriteFramesAs functions.  Currently only 2D images in VTK_LUMINANCE,
-  // VTK_RGB or VTK_RGBA format are supported.
-  virtual void ReadFramesAsBMP(const char *summaryFileName);
-  virtual void ReadFramesAsPNG(const char *summaryFileName);
-  virtual void ReadFramesAsTIFF(const char *summaryFileName);
-  //virtual void ReadFramesAsMINCImage(const char *summaryFileName);
-
-  // Description:
   // Add generated html report from video data acquisition to the existing html report
   // htmlReport and plotter arguments has to be defined by the caller function
   // Solution should build with PLUS_PRINT_VIDEO_TIMESTAMP_DEBUG_INFO to generate this report
@@ -338,8 +266,6 @@ protected:
   vtkVideoSource2();
   virtual ~vtkVideoSource2();
   virtual int RequestInformation(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
-  virtual void WriteFramesToFile(vtkImageWriter *writer, const char *summaryFileName, const char *filePrefix, const char *filePattern, int numFrames);
-  virtual void ReadFramesFromFile(vtkImageReader2 *reader, const char *summaryFileName, int fileType);
   virtual void CopyImageToFrame(unsigned char *outPtr, unsigned char *inPtr, int bytesInFrame, int outputFormat, int *dimensions, float opacity, int fileType);
 
   // Description:
@@ -372,10 +298,8 @@ protected:
   int LastOutputExtent[6];
 
   int Recording;
-  int Playing;
   float FrameRate;
   int FrameCount;
-  int FrameIndex;
   unsigned long FrameNumber; 
   double StartTimeStamp;
   double FrameTimeStamp;
@@ -388,16 +312,14 @@ protected:
   double SmoothingFactor; 
   std::vector<double> AveragedFramePeriods; 
 
-
-  int AutoAdvance;
   int NumberOfOutputFrames;
 
   // set if output needs to be cleared to be cleared before being written
   int OutputNeedsInitialization;
 
-  // An example of asynchrony
-  vtkMultiThreader *PlayerThreader;
-  int PlayerThreadId;
+    // An example of asynchrony
+  vtkMultiThreader *RecordThreader;
+  int RecordThreadId;
 
   // The buffer used to hold the frames
   vtkVideoBuffer2 *Buffer;
@@ -405,7 +327,6 @@ protected:
   // Description:
   // These methods can be overridden in subclasses
   virtual void UpdateFrameBuffer();
-  virtual void AdvanceFrameBuffer(int n);
   virtual int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
 
   std::ofstream DebugInfoStream;
