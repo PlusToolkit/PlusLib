@@ -55,23 +55,10 @@ IF(NOT GIT_FOUND)
 ENDIF() 
 
 #-----------------------------------------------------------------------------
-# Qt - Let's check if a valid version of Qt is available
-#-----------------------------------------------------------------------------
-FIND_FILE(QT_QMAKE_EXECUTABLE qmake${CMAKE_EXECUTABLE_SUFFIX} 
-  PATH
-    $ENV{QTDIR}
-    "C:/Qt/4.7.3/bin"
-    "../Qt/4.7.3/bin"
-    "../../Qt/4.7.3/bin"
-  )
-FIND_PACKAGE(Qt4 REQUIRED)
-SET(QT_USE_QT3SUPPORT TRUE) 
-INCLUDE(${QT_USE_FILE})
-
-#-----------------------------------------------------------------------------
 # Options to control build process
 #-----------------------------------------------------------------------------
 OPTION(PLUSBUILD_USE_PLTools "Use the PLTools repository" OFF)
+OPTION(PLUSBUILD_USE_3DSlicer "Use 3D Slicer and it's external projects (like ITK, VTK, OpenIGTLink)" OFF)
 OPTION(PLUSBUILD_USE_OpenIGTLink "Use OpenIGTLink" ON)
 OPTION(PLUSBUILD_BUILD_SHARED_LIBS "Build shared libs" ON)
 OPTION(PLUSBUILD_BUILD_PLUSAPP "Build PlusApp applications" ON)
@@ -111,6 +98,21 @@ ELSE()
     
 ENDIF()
 
+#-----------------------------------------------------------------------------
+# Qt - Let's check if a valid version of Qt is available
+#-----------------------------------------------------------------------------
+IF(PLUSBUILD_BUILD_PLUSAPP) 
+    FIND_FILE(QT_QMAKE_EXECUTABLE qmake${CMAKE_EXECUTABLE_SUFFIX} 
+      PATH
+        $ENV{QTDIR}
+        "C:/Qt/4.7.3/bin"
+        "../Qt/4.7.3/bin"
+        "../../Qt/4.7.3/bin"
+      )
+    FIND_PACKAGE(Qt4 REQUIRED)
+    SET(QT_USE_QT3SUPPORT TRUE) 
+    INCLUDE(${QT_USE_FILE})
+ENDIF(PLUSBUILD_BUILD_PLUSAPP) 
 
 #-----------------------------------------------------------------------------
 # Enable and setup External project global properties
@@ -139,16 +141,18 @@ ENDIF()
 # Establish Target Dependencies based on Selected Options
 #------------------------------------------------------------------------------
 
-SET(VTK_DEPENDENCIES)
+SET(PlusLib_DEPENDENCIES)
+IF ( NOT PLUSBUILD_USE_3DSlicer )
+    SET(VTK_DEPENDENCIES)
+    SET(ITK_DEPENDENCIES)
+    LIST(APPEND PlusLib_DEPENDENCIES vtk itk)
+    
+    IF(PLUSBUILD_USE_OpenIGTLink)
+        SET(OpenIGTLink_DEPENDENCIES)
+        LIST(APPEND PlusLib_DEPENDENCIES OpenIGTLink)
+    ENDIF(PLUSBUILD_USE_OpenIGTLink)
 
-SET(ITK_DEPENDENCIES)
-
-SET(PlusLib_DEPENDENCIES vtk itk)
-
-IF(PLUSBUILD_USE_OpenIGTLink)
-    SET(OpenIGTLink_DEPENDENCIES)
-    LIST(APPEND PlusLib_DEPENDENCIES OpenIGTLink)
-ENDIF(PLUSBUILD_USE_OpenIGTLink)
+ENDIF ( NOT PLUSBUILD_USE_3DSlicer )
 
 IF(PLUSBUILD_USE_PLTools)
     LIST(APPEND PlusLib_DEPENDENCIES PLTools)
@@ -160,13 +164,51 @@ SET(PlusApp_DEPENDENCIES PlusLib)
 # Conditionnaly include ExternalProject Target
 #------------------------------------------------------------------------------
 
-INCLUDE(External_VTK.cmake)
+IF ( PLUSBUILD_USE_3DSlicer )
 
-INCLUDE(External_ITK.cmake)
+    SET(PLUSBUILD_SLICER_BIN_DIRECTORY "PLUSBUILD_SLICER_BIN_DIRECTORY-NOT-FOUND" CACHE PATH "Path to 3D Slicer binary directory" )
 
-IF(PLUSBUILD_USE_OpenIGTLink)
-    INCLUDE(External_OpenIGTLink.cmake)
-ENDIF(PLUSBUILD_USE_OpenIGTLink)
+    IF("${PLUSBUILD_SLICER_BIN_DIRECTORY}" STREQUAL "PLUSBUILD_SLICER_BIN_DIRECTORY-NOT-FOUND")
+        MESSAGE(FATAL_ERROR "Cannot use 3D Slicer if PLUSBUILD_SLICER_BIN_DIRECTORY is not defined.")
+    ENDIF() 
+
+    ## Try to find Slicer4
+    FIND_PACKAGE( Slicer PATHS ${PLUSBUILD_SLICER_BIN_DIRECTORY} NO_DEFAULT_PATH QUIET )
+    IF ( Slicer_FOUND )
+        INCLUDE( ${Slicer_USE_FILE} )
+        IF(PLUSBUILD_USE_OpenIGTLink)
+            FIND_PACKAGE(OpenIGTLink REQUIRED PATHS "${Slicer_BINARY_DIR}/../OpenIGTLink-build" NO_DEFAULT_PATH )
+        ENDIF(PLUSBUILD_USE_OpenIGTLink)
+    ENDIF( Slicer_FOUND )
+    
+    ## Try to find Slicer3
+    FIND_PACKAGE( Slicer3 PATHS ${PLUSBUILD_SLICER_BIN_DIRECTORY} NO_DEFAULT_PATH QUIET )
+    IF ( Slicer3_FOUND )
+        INCLUDE( ${Slicer3_USE_FILE} )
+        IF(PLUSBUILD_USE_OpenIGTLink)
+            FIND_PACKAGE(OpenIGTLink REQUIRED PATHS "${Slicer3_HOME}/../Slicer3-lib/OpenIGTLink-build" NO_DEFAULT_PATH )
+        ENDIF(PLUSBUILD_USE_OpenIGTLink)
+    ENDIF( Slicer3_FOUND )
+    
+    IF ( NOT Slicer_FOUND AND NOT Slicer3_FOUND)
+        MESSAGE( FATAL_ERROR "Unable to find Slicer at ${PLUSBUILD_SLICER_BIN_DIRECTORY} directory. Please verify configuration")
+    ENDIF()
+    
+    IF(PLUSBUILD_BUILD_PLUSAPP) 
+        IF (NOT VTK_USE_QT)
+            MESSAGE( SEND_ERROR "You have to build VTK with VTK_USE_QT flag ON if you need to use PLUSBUILD_BUILD_PLUSAPP.")
+        ENDIF (NOT VTK_USE_QT)
+    ENDIF(PLUSBUILD_BUILD_PLUSAPP)    
+    
+ELSE ( PLUSBUILD_USE_3DSlicer )
+    INCLUDE(External_VTK.cmake)
+    INCLUDE(External_ITK.cmake)
+    
+    IF(PLUSBUILD_USE_OpenIGTLink)
+        INCLUDE(External_OpenIGTLink.cmake)
+    ENDIF(PLUSBUILD_USE_OpenIGTLink)
+ENDIF ( PLUSBUILD_USE_3DSlicer )
+
 
 IF(PLUSBUILD_USE_PLTools)
     INCLUDE(External_PLTools.cmake)
