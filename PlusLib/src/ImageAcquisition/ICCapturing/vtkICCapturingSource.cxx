@@ -6,7 +6,6 @@
 #include "vtkInformation.h"
 #include "vtkInformationVector.h"
 #include "vtkStreamingDemandDrivenPipeline.h"
-#include "vtkUnsignedCharArray.h"
 #include "vtksys/SystemTools.hxx"
 
 #include <ctype.h>
@@ -193,9 +192,8 @@ void vtkICCapturingSource::LocalInternalGrab(unsigned char * dataPtr, unsigned l
 		this->StartTimeStamp = this->FrameBufferTimeStamps[index];
 	}
 
-
 	// get the pointer to the correct location in the frame buffer, where this data needs to be copied
-	unsigned char *frameBufferPtr = (unsigned char *)((reinterpret_cast<vtkUnsignedCharArray*>(this->FrameBuffer[index]))->GetPointer(0));
+  unsigned char *frameBufferPtr = static_cast<unsigned char*>(this->FrameBuffer[index]);
 
 	int outBytesPerRow = ((this->FrameBufferExtent[1]- this->FrameBufferExtent[0]+1)* this->FrameBufferBitsPerPixel + 7)/8;
 	outBytesPerRow += outBytesPerRow % this->FrameBufferRowAlignment;

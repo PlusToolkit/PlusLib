@@ -554,6 +554,7 @@ bool BrachyTRUSCalibrator::loadGeometry(SegmentationParameters* aSegmentationPar
 		SystemLogFile << "\t mNWireJointBottomLayerBackWall(used) \t= " << mNWireJointBottomLayerBackWall << "\n\n";
 		SystemLogFile.close();
 	}
+  return true;
 }
 
 //-----------------------------------------------------------------------------
