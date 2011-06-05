@@ -184,15 +184,12 @@ vtkVideoSource2::vtkVideoSource2()
 
 	this->Initialized = 0;
 
-	this->AutoAdvance = 1;
 
-	this->Playing = 0;
 	this->Recording = 0;
 
 	this->FrameRate = 30;
 
 	this->FrameCount = 0;
-	this->FrameIndex = -1;
 	this->FrameNumber = 0; 
 
 	this->StartTimeStamp = 0;
@@ -227,8 +224,8 @@ vtkVideoSource2::vtkVideoSource2()
 	}
 	this->LastNumberOfScalarComponents = 0;
 
-	this->PlayerThreader = vtkMultiThreader::New();
-	this->PlayerThreadId = -1;
+	this->RecordThreader = vtkMultiThreader::New();
+	this->RecordThreadId = -1;
 
 	this->Buffer = vtkVideoBuffer2::New();
 
@@ -257,9 +254,9 @@ vtkVideoSource2::~vtkVideoSource2()
 
 	this->SetFrameBufferSize(0);
 	this->Buffer->Delete();
-	if ( this->PlayerThreader != NULL )
+	if ( this->RecordThreader != NULL )
 	{
-		this->PlayerThreader->Delete();
+		this->RecordThreader->Delete();
 	}
 
 #ifdef PLUS_PRINT_VIDEO_TIMESTAMP_DEBUG_INFO
@@ -311,11 +308,7 @@ void vtkVideoSource2::PrintSelf(ostream& os, vtkIndent indent)
 
 	os << indent << "Recording: " << (this->Recording ? "On\n" : "Off\n");
 
-	os << indent << "Playing: " << (this->Playing ? "On\n" : "Off\n");
-
 	os << indent << "NumberOfOutputFrames: " << this->NumberOfOutputFrames << "\n";
-
-	os << indent << "AutoAdvance: " << (this->AutoAdvance ? "On\n" : "Off\n");
 
 	os << indent << "Buffer:\n";
 	this->Buffer->PrintSelf(os, indent.GetNextIndent());
@@ -493,29 +486,6 @@ void vtkVideoSource2::SetFrameBufferSize(int bufsize)
 
 	this->Buffer->Lock();
 
-	// update FrameIndex
-	if (this->Buffer == 0)
-	{
-		if (bufsize > 0)
-		{
-			this->FrameIndex = -1;
-		}
-	}
-	else
-	{
-		if (bufsize > 0)
-		{
-			if (this->FrameIndex >= bufsize)
-			{
-				this->FrameIndex = bufsize - 1;
-			}
-		}
-		else
-		{
-			this->FrameIndex = -1;
-		}
-	}
-
 	// update the buffer size
 	this->Buffer->SetBufferSize(bufsize);
 	if (this->Initialized)
@@ -545,12 +515,6 @@ void vtkVideoSource2::SetOpacity(float alpha)
 float vtkVideoSource2::GetOpacity()
 {
 	return this->Buffer->GetFrameFormat()->GetOpacity();
-}
-
-//----------------------------------------------------------------------------
-double vtkVideoSource2::GetFrameTimeStamp(int frame)
-{
-	return this->Buffer->GetTimeStamp(frame);
 }
 
 //----------------------------------------------------------------------------
@@ -625,7 +589,7 @@ void vtkVideoSource2::UpdateFrameBuffer()
 	i = this->Buffer->GetBufferSize();
 	while (--i >= 0)
 	{
-		currFrame = this->Buffer->GetFrame(i);
+		currFrame = this->Buffer->GetFrameByBufferIndex(i);
 		currFrame->GetFrameSize(currFrameSize);
 		currFrame->GetFrameExtent(currFrameExtent);
 		currBitsPerPixel = currFrame->GetBitsPerPixel();
@@ -723,7 +687,7 @@ void vtkVideoSource2::Disconnect()
 // ReleaseSystemResources() should be overridden to release the hardware
 void vtkVideoSource2::ReleaseSystemResources()
 {
-	if (this->Playing || this->Recording)
+	if (this->Recording)
 	{
 		this->Stop();
 	}
@@ -745,23 +709,21 @@ void vtkVideoSource2::InternalGrab()
 	// get a thread lock on the frame buffer
 	this->Buffer->Lock();
 
-	// advance the buffer so that we don't copy over old data
-	if (this->AutoAdvance)
-	{
-		this->AdvanceFrameBuffer(1);
-		if (this->FrameIndex + 1 < this->Buffer->GetBufferSize())
-		{
-			this->FrameIndex++;
-		}
-	}
-
 	// get the number of bytes needed to store one frame
 	int totalSize = this->Buffer->GetFrameFormat()->GetBytesInFrame();
 
 	randNum = randsave;
 
+	// get the pointer to the correct location in the frame buffer, where this data needs to be copied
+	vtkVideoFrame2* newFrameInBuffer = this->Buffer->GetFrameToWrite(); 
+	if ( newFrameInBuffer == NULL )
+	{
+		LOG_WARNING( "vtkVideoSource2: Failed to get video frame pointer from the buffer for internal grab the new frame!"); 
+		return; 
+	}
+
 	// get the pointer to the first pixel of the current frame
-	ptr = reinterpret_cast<unsigned char*>(this->Buffer->GetFrame(0)->GetVoidPointer(0));
+	ptr = reinterpret_cast<unsigned char*>(newFrameInBuffer->GetVoidPointer(0));
 
 	// Somebody should check this:
 	lptr = (int *)(((((long)ptr) + 3)/4)*4);
@@ -784,11 +746,15 @@ void vtkVideoSource2::InternalGrab()
 
 	// add the new frame and the current time to the buffer
 	double timestamp = vtkAccurateTimer::GetSystemTime(); 
-	this->Buffer->AddItem(this->Buffer->GetFrame(0), timestamp, timestamp, ++this->FrameNumber);
+	this->Buffer->AddItem(newFrameInBuffer, timestamp, timestamp, ++this->FrameNumber);
 
 	if (this->FrameCount++ == 0)
 	{
-		this->StartTimeStamp = this->Buffer->GetTimeStamp(0);
+		double timestamp(0); 
+		if ( this->Buffer->GetLatestTimeStamp(timestamp) == vtkVideoBuffer2::FRAME_OK )
+		{
+			this->StartTimeStamp = timestamp;
+		}
 	}
 
 	this->Modified();
@@ -864,63 +830,15 @@ static void *vtkVideoSourceRecordThread(vtkMultiThreader::ThreadInfo *data)
 // You should override this as appropriate for your device.  
 void vtkVideoSource2::Record()
 {
-	if (this->Playing)
-	{
-		this->Stop();
-	}
-
 	if (!this->Recording)
 	{
 		this->Initialize();
 		this->Recording = 1;
 		this->FrameCount = 0;
 		this->Modified();
-		this->PlayerThreadId = 
-			this->PlayerThreader->SpawnThread((vtkThreadFunctionType)\
+		this->RecordThreadId = 
+			this->RecordThreader->SpawnThread((vtkThreadFunctionType)\
 			&vtkVideoSourceRecordThread,this);
-	}
-}
-
-//----------------------------------------------------------------------------
-// this function runs in an alternate thread to 'play the tape' at the
-// specified frame rate.
-static void *vtkVideoSourcePlayThread(vtkMultiThreader::ThreadInfo *data)
-{
-	vtkVideoSource2 *self = (vtkVideoSource2 *)(data->UserData);
-
-	double startTime = vtkAccurateTimer::GetSystemTime();
-	double rate = self->GetFrameRate();
-	int frame = 0;
-
-	do
-	{
-		self->Seek(1);
-		frame++;
-	}
-	while (vtkThreadSleep(data, startTime + frame/rate));
-
-	return NULL;
-}
-
-//----------------------------------------------------------------------------
-// Set the source to play back recorded frames.
-// You should override this as appropriate for your device.  
-void vtkVideoSource2::Play()
-{
-	if (this->Recording)
-	{
-		this->Stop();
-	}
-
-	if (!this->Playing)
-	{
-		this->Initialize();
-
-		this->Playing = 1;
-		this->Modified();
-		this->PlayerThreadId = 
-			this->PlayerThreader->SpawnThread((vtkThreadFunctionType)\
-			&vtkVideoSourcePlayThread,this);
 	}
 }
 
@@ -929,128 +847,14 @@ void vtkVideoSource2::Play()
 // if your class overrides Play() and Record()
 void vtkVideoSource2::Stop()
 {
-	if (this->Playing || this->Recording)
+	if (this->Recording)
 	{
-		this->PlayerThreader->TerminateThread(this->PlayerThreadId);
-		this->PlayerThreadId = -1;
-		this->Playing = 0;
+		this->RecordThreader->TerminateThread(this->RecordThreadId);
+		this->RecordThreadId = -1;
 		this->Recording = 0;
 		this->Modified();
 	}
 } 
-
-//----------------------------------------------------------------------------
-// Rewind back to the frame with the earliest timestamp.
-// This assumes that the times motonically increase as the index decreases.
-void vtkVideoSource2::Rewind()
-{
-	this->Buffer->Lock();
-
-	double lowest = 0;
-	double stamp;
-	int i;
-
-	if (this->Buffer->GetBufferSize())
-	{
-		lowest = this->Buffer->GetTimeStamp(0);
-	}
-
-	// search for the frame with the lowest timestamp
-	for (i = 0; i < this->Buffer->GetBufferSize(); i++)
-	{
-		stamp = this->Buffer->GetTimeStamp(-(i+1));
-		if (stamp != 0.0 && stamp <= lowest)
-		{
-			lowest = stamp;
-		}
-		else
-		{
-			break;
-		}
-	}
-	stamp = this->Buffer->GetTimeStamp(-i);
-
-	// update the buffer's current index
-	if (stamp != 0 && stamp < 980000000.0)
-	{
-		vtkWarningMacro("Rewind: bogus time stamp!");
-	}
-	else
-	{
-		this->AdvanceFrameBuffer(-i);
-		this->FrameIndex = (this->FrameIndex - i) % this->Buffer->GetBufferSize();
-		while (this->FrameIndex < 0)
-		{
-			this->FrameIndex += this->Buffer->GetBufferSize();
-		}
-	}
-
-	this->Buffer->Unlock();
-}  
-
-//----------------------------------------------------------------------------
-// Fast-forward to the frame with the latest timestamp.
-// This assumes that the times motonically increase as the index decreases.
-void vtkVideoSource2::FastForward()
-{
-	this->Buffer->Lock();
-
-	double highest = 0;
-	double stamp;
-	int i;
-
-	if (this->Buffer->GetBufferSize())
-	{
-		highest = this->Buffer->GetTimeStamp(0);
-	}
-
-	// search for the frame with the highest timestamp
-	for (i = 0; i < this->Buffer->GetBufferSize(); i++)
-	{
-		stamp = this->Buffer->GetTimeStamp(i+1);
-		if (stamp != 0.0 && stamp >= highest)
-		{
-			highest = stamp;
-		}
-		else
-		{
-			break;
-		}
-	}
-	stamp = this->Buffer->GetTimeStamp(i);
-
-	// update the buffer's current index
-	if (stamp != 0 && stamp < 980000000.0)
-	{
-		vtkWarningMacro("Rewind: bogus time stamp!");
-	}
-	else
-	{
-		this->AdvanceFrameBuffer(i);
-		this->FrameIndex = (this->FrameIndex + i) % this->Buffer->GetBufferSize();
-		while (this->FrameIndex < 0)
-		{
-			this->FrameIndex += this->Buffer->GetBufferSize();
-		}
-	}
-
-	this->Buffer->Unlock();
-}  
-
-//----------------------------------------------------------------------------
-// Rotate the buffers
-void vtkVideoSource2::Seek(int n)
-{ 
-	this->Buffer->Lock();
-	this->AdvanceFrameBuffer(n);
-	this->FrameIndex = (this->FrameIndex + n) % this->Buffer->GetBufferSize();
-	while (this->FrameIndex < 0)
-	{
-		this->FrameIndex += this->Buffer->GetBufferSize();
-	}
-	this->Buffer->Unlock();
-	this->Modified(); 
-}
 
 //----------------------------------------------------------------------------
 // The grab function, which should (of course) be overridden to do
@@ -1062,13 +866,6 @@ void vtkVideoSource2::Grab()
 	this->Initialize();
 
 	this->InternalGrab();
-}
-
-//----------------------------------------------------------------------------
-// This function must be called only from within a mutex lock
-void vtkVideoSource2::AdvanceFrameBuffer(int n)
-{
-	this->Buffer->Seek(n);
 }
 
 //----------------------------------------------------------------------------
@@ -1196,150 +993,55 @@ int vtkVideoSource2::RequestData(
 	} 
 
 	this->Buffer->Lock();
-	this->FrameTimeStamp = this->Buffer->GetTimeStamp(0);
+
+	double timestamp(0); 
+	if ( this->Buffer->GetLatestTimeStamp(timestamp) == vtkVideoBuffer2::FRAME_OK )
+	{
+		this->FrameTimeStamp = timestamp;
+	}
 
 	// get the most recent frame if we are not updating with the desired timestamp, or the
 	// frame closest to the desired timestamp if we are
-	int index = 0; // default index is most recent frame
+	vtkVideoBuffer2::FrameUidType frameUID = this->Buffer->GetLatestFrameUidInBuffer(); // default index is most recent frame
 	if (this->UpdateWithDesiredTimestamp && this->DesiredTimestamp != -1)
 	{
-		index = this->Buffer->GetIndexFromTime(this->DesiredTimestamp);
-
-		/*double actual = abs(this->DesiredTimestamp - this->Buffer->GetTimeStamp(index));
-		double before = abs(this->DesiredTimestamp - this->Buffer->GetTimeStamp(index-1));
-		double after = abs(this->DesiredTimestamp - this->Buffer->GetTimeStamp(index+1));
-		if ((actual > before) || (actual > after))
+		vtkVideoBuffer2::FrameUidType desiredFrameUid(0); 
+		if ( this->Buffer->GetFrameUidFromTime(this->DesiredTimestamp, desiredFrameUid) == vtkVideoBuffer2::FRAME_OK )
 		{
-		std::cout << "ERROR IN VIDEO SOURCE!!!" << std::endl;
-		}*/
-
-		//std::cout << setiosflags(ios::fixed);
-		//std::cout << "d - " << this->DesiredTimestamp << "; a - " << this->Buffer->GetTimeStamp(index) << "; -1 - " << this->Buffer->GetTimeStamp(index-1) << "; +1 - " << this->Buffer->GetTimeStamp(index+1) << std::endl;
-
+			frameUID = desiredFrameUid; 
+		}
+		else
+		{
+			LOG_WARNING("vtkVideoSource2: Couldn't get desired frame timestamp (" << std::fixed << this->DesiredTimestamp << "), the latest frame will be used!")
+		}
 	}
-	this->Buffer->GetFrame(index)->CopyData(outPtr, outputExtent, saveOutputExtent, this->Buffer->GetFrameFormat()->GetPixelFormat());
+	
+	vtkVideoFrame2* frame = NULL; 
+	if ( this->Buffer->GetFrame(frameUID, frame) == vtkVideoBuffer2::FRAME_OK )
+	{
+		if ( frame != NULL ) 
+		{
+			frame->CopyData(outPtr, outputExtent, saveOutputExtent, this->Buffer->GetFrameFormat()->GetPixelFormat());
+		}
+		else
+		{
+			LOG_WARNING("vtkVideoSource2: Unable to copy video data to the requested output!"); 
+			return 0; 
+		}
+	}
 
 	// Get the frame timestamp for the index
-	this->TimestampClosestToDesired = this->Buffer->GetTimeStamp(index);
+	double desiredTimestamp(0); 
+	if ( this->Buffer->GetTimeStamp(frameUID, desiredTimestamp) == vtkVideoBuffer2::FRAME_OK )
+	{
+		this->TimestampClosestToDesired = desiredTimestamp;
+	}
 
 	this->Buffer->Unlock();
 
 	return 1;
 }
 
-//----------------------------------------------------------------------------
-//TODO create directory if it doesn't exist yet
-void vtkVideoSource2::WriteFramesToFile(vtkImageWriter *writer, const char *summaryFileName, const char *filePrefix, const char *filePattern, int numFrames)
-{
-
-	this->Buffer->Lock();
-
-	// set up the buffer
-	if (this->Recording || this->Playing)
-	{
-		this->Stop();
-	}
-	//int numItems = this->Buffer->GetNumberOfItems();
-	this->Seek(-numFrames);
-
-	// open the summary file and write the format and opacity
-	ofstream outputStream;
-	outputStream.open(summaryFileName);
-	outputStream << setiosflags(ios::fixed);
-	if (outputStream.is_open())
-	{
-		int format = this->Buffer->GetFrameFormat()->GetPixelFormat();
-		outputStream << "OutputFormat: " <<
-			(format == VTK_RGBA ? "RGBA" :
-			(format == VTK_RGB ? "RGB" :
-			(format == VTK_LUMINANCE_ALPHA ? "LuminanceAlpha" :
-			(format == VTK_LUMINANCE ? "Luminance" : "Unknown"))))
-			<< "\n";
-		outputStream << "Opacity: " << this->Buffer->GetFrameFormat()->GetOpacity() << "\n" << "\n";
-	}
-
-	// write the files
-	vtkImageData *image = vtkImageData::New();
-	char fileName[100];
-	for (int i = 0; i < numFrames; i++)
-	{
-		this->Seek(1);
-
-		// write the output image
-		image = this->GetOutput();
-		sprintf(fileName, filePattern, filePrefix, i);
-		writer->SetFileName(fileName);
-		writer->SetInput(image);
-		writer->Write();
-
-		// write a line in the summary file
-		if (outputStream.is_open())
-		{
-			outputStream << this->Buffer->GetTimeStamp(0) << " " << fileName << "\n";
-		}
-	}
-	outputStream.close();
-	image->Delete();
-
-	this->Buffer->Unlock();
-}
-
-//----------------------------------------------------------------------------
-void vtkVideoSource2::WriteFramesAsBMP(const char *summaryFileName, const char *filePrefix, int numFrames)
-{
-	vtkBMPWriter *writer = vtkBMPWriter::New();
-	this->WriteFramesToFile(writer, summaryFileName, filePrefix, "%s%d.bmp", numFrames);
-	writer->Delete();
-}
-
-//----------------------------------------------------------------------------
-void vtkVideoSource2::WriteFramesAsBMP(const char *summaryFileName, const char *filePrefix)
-{
-	this->WriteFramesAsBMP(summaryFileName, filePrefix, this->Buffer->GetNumberOfItems());
-}
-
-//----------------------------------------------------------------------------
-/*void vtkVideoSource2::WriteFramesAsMINCImage(const char *summaryFileName, const char *filePrefix, int numFrames)
-{
-vtkMINCImageWriter *writer = vtkMINCImageWriter::New();
-this->WriteFramesToFile(writer, summaryFileName, filePrefix, "%s%d.mnc", numFrames);
-writer->Delete();
-}*/
-
-/*//----------------------------------------------------------------------------
-void vtkVideoSource2::WriteFramesAsMINCImage(const char *summaryFileName, const char *filePrefix)
-{
-this->WriteFramesAsMINCImage(summaryFileName, filePrefix, this->Buffer->GetNumberOfItems());
-}*/
-
-//----------------------------------------------------------------------------
-void vtkVideoSource2::WriteFramesAsPNG(const char *summaryFileName, const char *filePrefix, int numFrames)
-{
-	vtkPNGWriter *writer = vtkPNGWriter::New();
-	this->WriteFramesToFile(writer, summaryFileName, filePrefix, "%s%d.png", numFrames);
-	writer->Delete();
-}
-
-//----------------------------------------------------------------------------
-void vtkVideoSource2::WriteFramesAsPNG(const char *summaryFileName, const char *filePrefix)
-{
-	this->WriteFramesAsPNG(summaryFileName, filePrefix, this->Buffer->GetNumberOfItems());
-}
-
-//----------------------------------------------------------------------------
-void vtkVideoSource2::WriteFramesAsTIFF(const char *summaryFileName, const char *filePrefix, int compression, int numFrames)
-{
-	vtkTIFFWriter *writer = vtkTIFFWriter::New();
-	writer->SetCompression(compression);
-	this->WriteFramesToFile(writer, summaryFileName, filePrefix, "%s%d.tiff", numFrames);
-	writer->Delete();
-}
-
-//----------------------------------------------------------------------------
-void vtkVideoSource2::WriteFramesAsTIFF(const char *summaryFileName, const char *filePrefix, int compression)
-{
-	this->WriteFramesAsTIFF(summaryFileName, filePrefix, compression, this->Buffer->GetNumberOfItems());
-}
 
 //----------------------------------------------------------------------------
 // Used by ReadFramesFromFile - copies data from one array to another, meant to
@@ -1626,174 +1328,6 @@ void vtkVideoSource2::CreateTimeStampForFrame(unsigned long framecount, double &
 #endif
 
 	return;
-}
-
-//----------------------------------------------------------------------------
-// side-effects- resets format to appropriate format and erases everything in buffer if
-// format changes
-void vtkVideoSource2::ReadFramesFromFile(vtkImageReader2 *reader, const char *summaryFileName, int fileType)
-{
-	this->Buffer->Lock();
-
-	if (this->Recording || this->Playing)
-	{
-		this->Stop();
-	}
-
-	// set up the buffer
-	this->Buffer->GetFrameFormat()->SetRowAlignment(1);
-	this->Buffer->GetFrameFormat()->SetTopDown(0);
-
-	// open the summary file
-	ifstream inputStream;
-	inputStream.open(summaryFileName);
-
-	vtkImageData *image = vtkImageData::New();
-	char line[200];
-	char delims[] = " ";
-	char *fileName = NULL;
-	double timestamp;
-	char *dummy = NULL;
-	char *formatString = NULL;
-	int format = VTK_LUMINANCE; // initialize to suppress compiler warnings
-	int numComponents = 1; // initialize to suppress compiler warnings
-	float opacity = 1; // initialize to suppress compiler warnings
-
-	// get the format
-	if (inputStream.is_open())
-	{
-		if (!inputStream.getline(line, 200).eof())
-		{
-			dummy = strtok(line, delims);
-			formatString = strtok(NULL, delims);
-			if (strcmp(formatString, "Luminance") == 0)
-			{
-				format = VTK_LUMINANCE;
-				numComponents = 1;
-			}
-			else if (strcmp(formatString, "LuminanceAlpha") == 0)
-			{
-				format = VTK_LUMINANCE_ALPHA;
-				numComponents = 2;
-			}
-			else if (strcmp(formatString, "RGB") == 0)
-			{
-				format = VTK_RGB;
-				numComponents = 3;
-			}
-			else if (strcmp(formatString, "RGBA") == 0)
-			{
-				format = VTK_RGBA;
-				numComponents = 4;
-			}
-			else
-			{
-				vtkErrorMacro(<< "ReadFramesFromFile: Unrecognized color format.");
-			}
-			// access the frame format directly instead of using vtkVideoSource2 functions
-			// because if we are initialized already, we don't want to update the frame buffer
-			// until we are finished setting everything.
-			this->Buffer->GetFrameFormat()->SetPixelFormat((unsigned int)format);
-			this->NumberOfScalarComponents = numComponents;
-			this->Buffer->GetFrameFormat()->SetBitsPerPixel(numComponents*8);
-			reader->SetNumberOfScalarComponents(numComponents);
-		}
-
-		// get the opacity
-		if (!inputStream.getline(line, 200).eof())
-		{
-			dummy = strtok(line, delims);
-			opacity = atof(strtok(NULL, delims));
-			this->Buffer->GetFrameFormat()->SetOpacity(opacity);
-		}
-
-		// get the blank line
-		inputStream.getline(line, 200);
-
-		// get the data from all of the images (after updating the buffer according to
-		// the extent of the first image)
-		unsigned char *ptr;
-		unsigned char *imgPtr;
-		int firstImage = 1;
-
-		while (!inputStream.getline(line, 200).eof())
-		{
-			timestamp = atof(strtok(line, delims));
-			fileName = strtok(NULL, delims);
-
-			reader->SetFileName(fileName);
-			reader->UpdateWholeExtent();
-			image = reader->GetOutput();
-
-			// update the buffer if we are reading the first image
-			if (firstImage)
-			{
-				this->Buffer->GetFrameFormat()->SetFrameSize(image->GetDimensions());
-				this->Buffer->GetFrameFormat()->SetFrameExtent(image->GetExtent());
-				this->UpdateFrameBuffer();
-				this->FrameNumber = 0; 
-				firstImage = 0;
-			}
-
-			// advance the buffer
-			this->AdvanceFrameBuffer(1);
-			if (this->FrameIndex + 1 < this->Buffer->GetBufferSize())
-			{
-				this->FrameIndex++;
-			}
-
-			// copy the data from the image to the frame
-			ptr = reinterpret_cast<unsigned char*>(this->Buffer->GetFrame(0)->GetVoidPointer(0));
-			imgPtr = reinterpret_cast<unsigned char *>(image->GetScalarPointer());
-			this->CopyImageToFrame(ptr, imgPtr, this->Buffer->GetFrameFormat()->GetBytesInFrame(), this->GetOutputFormat(), image->GetDimensions(), opacity, fileType);
-
-			// add the frame
-			this->Buffer->AddItem(this->Buffer->GetFrame(0), timestamp, timestamp, ++this->FrameNumber);
-			if (this->FrameCount++ == 0)
-			{
-				this->StartTimeStamp = this->Buffer->GetTimeStamp(0);
-			}
-			this->Modified();
-		}
-	}
-
-	inputStream.close();
-	image->Delete();
-
-	this->Buffer->Unlock();
-}
-
-//----------------------------------------------------------------------------
-void vtkVideoSource2::ReadFramesAsBMP(const char *summaryFileName)
-{
-	vtkBMPReader* reader = vtkBMPReader::New();
-	reader->Allow8BitBMPOn();
-	this->ReadFramesFromFile(reader, summaryFileName, FILETYPE_BMP);
-	reader->Delete();
-}
-
-//----------------------------------------------------------------------------
-/*void vtkVideoSource2::ReadFramesAsMINCImage(const char *summaryFileName)
-{
-vtkMINCImageReader* reader = vtkMINCImageReader::New();
-this->ReadFramesFromFile(reader, summaryFileName, FILETYPE_MINC);
-reader->Delete();
-}*/
-
-//----------------------------------------------------------------------------
-void vtkVideoSource2::ReadFramesAsPNG(const char *summaryFileName)
-{
-	vtkPNGReader* reader = vtkPNGReader::New();
-	this->ReadFramesFromFile(reader, summaryFileName, FILETYPE_PNG);
-	reader->Delete();
-}
-
-//----------------------------------------------------------------------------
-void vtkVideoSource2::ReadFramesAsTIFF(const char *summaryFileName)
-{
-	vtkTIFFReader* reader = vtkTIFFReader::New();
-	this->ReadFramesFromFile(reader, summaryFileName, FILETYPE_TIFF);
-	reader->Delete();
 }
 
 //-----------------------------------------------------------------------------

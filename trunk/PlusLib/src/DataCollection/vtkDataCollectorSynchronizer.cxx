@@ -92,8 +92,7 @@ void vtkDataCollectorSynchronizer::Synchronize()
 	this->FrameTimestamp.clear(); 
 
 	int trackerBufferIndex = this->TrackerBuffer->GetIndexFromTime( this->SyncStartTime ); 
-	int videoBufferIndex = this->VideoBuffer->GetIndexFromTime( this->SyncStartTime ); 
-	int stillPositionIndex = videoBufferIndex; 
+	int stillPositionIndex = trackerBufferIndex - floor(1.0*this->GetNumberOfAveragedTransforms()/2.0);
 	int syncStep(1); 
 
 	std::vector<double> stillTransformTimestamps; 
@@ -143,11 +142,17 @@ void vtkDataCollectorSynchronizer::Synchronize()
 
 	}
 
+	vtkVideoBuffer2::FrameUidType videoBufferIndex = this->VideoBuffer->GetOldestFrameUidInBuffer(); 
+	/*if ( this->VideoBuffer->GetBufferIndexFromTime( this->SyncStartTime,  videoBufferIndex) != vtkVideoBuffer2::FRAME_OK )
+	{
+		LOG_WARNING("Unable to get buffer index for sync start time: " << std::fixed << this->SyncStartTime << " - let's start from the oldest frame!");
+		videoBufferIndex = this->VideoBuffer->GetBufferIndex( this->VideoBuffer->GetOldestFrameUidInBuffer() ); 
+	}*/
 
 	LOG_DEBUG("Still Frame Search Intervall: " << 1000*stillFrameIntervall << "ms"); 
 
 	int videoSyncStep(0); 
-	for ( unsigned int i = 0; i < movedTransformTimestamps.size() && videoBufferIndex >= 0; i++ )
+	for ( unsigned int i = 0; i < movedTransformTimestamps.size() && videoBufferIndex <= this->VideoBuffer->GetLatestFrameUidInBuffer(); i++ )
 	{
 		LOG_TRACE("Video sync step: " << videoSyncStep ); 
 		LOG_DEBUG(std::fixed << "Next moved transform timestamp: " << movedTransformTimestamps[i] ); 
@@ -161,8 +166,22 @@ void vtkDataCollectorSynchronizer::Synchronize()
 		}
 
 		// Find the initial frame index 
-		videoBufferIndex = this->VideoBuffer->GetIndexFromTime( stillFrameTimestamp );
-		int stillFrameIndex = videoBufferIndex - this->GetNumberOfAveragedFrames(); 
+		vtkVideoBuffer2::FrameUidType idx(0); 
+		if ( this->VideoBuffer->GetFrameUidFromTime( stillFrameTimestamp, idx) != vtkVideoBuffer2::FRAME_OK )
+		{
+			LOG_WARNING("vtkDataCollectorSynchronizer: Unable to get frame UID for timestamp: " << std::fixed << stillFrameTimestamp);
+			continue; 
+		}
+		else
+		{
+			videoBufferIndex = idx; 
+		}
+
+		vtkVideoBuffer2::FrameUidType stillFrameIndex = videoBufferIndex - this->GetNumberOfAveragedFrames(); 
+		if ( stillFrameIndex < this->VideoBuffer->GetOldestFrameUidInBuffer() )
+		{
+			stillFrameIndex = this->VideoBuffer->GetOldestFrameUidInBuffer(); 
+		}
 
 		// Find the timestamp of next possible movement 
 		double nextMovedTimestamp = movedTransformTimestamps[i] + stillFrameIntervall; 
@@ -174,14 +193,30 @@ void vtkDataCollectorSynchronizer::Synchronize()
 		// Find the next still frame 
 		this->SetBaseFrame(NULL); 
 		this->FindStillFrame(videoBufferIndex, stillFrameIndex ); 
-		stillFrameTimestamp = this->VideoBuffer->GetTimeStamp(videoBufferIndex); 
+
+		if ( this->VideoBuffer->GetTimeStamp(videoBufferIndex, stillFrameTimestamp) != vtkVideoBuffer2::FRAME_OK )
+		{
+			LOG_WARNING("vtkDataCollectorSynchronizer: Unable to get frame timestamp for still frame with frame UID: " << videoBufferIndex); 
+			continue; 
+		}
+
 		LOG_DEBUG("Still frame timestamp: " << std::fixed << stillFrameTimestamp); 
 
-		if ( videoBufferIndex > 0 ) 
+		if ( videoBufferIndex < this->VideoBuffer->GetLatestFrameUidInBuffer() ) 
 		{
 			// Set the baseframe of the image compare 
 			vtkSmartPointer<vtkImageData> baseframe = vtkSmartPointer<vtkImageData>::New(); 
-			this->GetFrameFromVideoBuffer(baseframe, videoBufferIndex); 
+			if ( !this->GetFrameFromVideoBuffer(baseframe, videoBufferIndex) )
+			{
+				LOG_WARNING("vtkDataCollectorSynchronizer: Unable to get frame from video buffer!"); 
+				continue; 
+			}
+
+			if ( baseframe == NULL )
+			{
+				LOG_WARNING("vtkDataCollectorSynchronizer: Unable to resize base frame if it's NULL - continue with next frame."); 
+				continue; 
+			}
 
 			// Make the image smaller
 			vtkSmartPointer<vtkImageResample> resample = vtkSmartPointer<vtkImageResample>::New();
@@ -197,7 +232,13 @@ void vtkDataCollectorSynchronizer::Synchronize()
 			// Compute the frame threshold
 			this->ComputeFrameThreshold( videoBufferIndex ); 
 
-			double currentFrameTimestamp = this->VideoBuffer->GetTimeStamp(videoBufferIndex); 
+			double currentFrameTimestamp(0); 
+			if ( this->VideoBuffer->GetTimeStamp(videoBufferIndex, currentFrameTimestamp) != vtkVideoBuffer2::FRAME_OK )
+			{
+				LOG_WARNING("vtkDataCollectorSynchronizer: Unable to get frame timestamp for frame with frame UID: " << videoBufferIndex); 
+				continue; 
+			}
+
 			if ( currentFrameTimestamp > movedTransformTimestamps[i] )
 			{
 				LOG_DEBUG("Start frame timestamp is already over the moved transform timestamp (difference: " << 1000*(currentFrameTimestamp - movedTransformTimestamps[i]) << "ms)"); 
@@ -607,27 +648,42 @@ void vtkDataCollectorSynchronizer::ConvertFrameToRGB( vtkImageData* pFrame, vtkI
 }
 
 //----------------------------------------------------------------------------
-void vtkDataCollectorSynchronizer::GetFrameFromVideoBuffer( vtkImageData* frame, int bufferIndex )
+bool vtkDataCollectorSynchronizer::GetFrameFromVideoBuffer( vtkImageData* frame, vtkVideoBuffer2::FrameUidType bufferIndex )
 {
 	LOG_TRACE("vtkDataCollectorSynchronizer::GetFrameFromVideoBuffer"); 
-	int* extent = this->GetVideoBuffer()->GetFrame(bufferIndex)->GetFrameExtent(); 
-	int pixelFormat = this->GetVideoBuffer()->GetFrame(bufferIndex)->GetPixelFormat(); 
+
+	vtkVideoFrame2* frameInBuffer = NULL; 
+	if ( this->GetVideoBuffer()->GetFrame(bufferIndex, frameInBuffer) != vtkVideoBuffer2::FRAME_OK )
+	{
+		LOG_WARNING("vtkDataCollectorSynchronizer: Unable to get frame from buffer with frame UID: " << bufferIndex); 
+		if ( frame != NULL ) 
+		{
+			frame->Delete(); 
+			frame = NULL; 
+		}
+		return false; 
+	}
+
+	int* extent = frameInBuffer->GetFrameExtent(); 
+	int pixelFormat = frameInBuffer->GetPixelFormat(); 
 	frame->SetExtent( extent ); 
 	frame->SetScalarTypeToUnsignedChar(); 
 	frame->SetNumberOfScalarComponents(1); 
 	frame->AllocateScalars(); 
 
-	this->GetVideoBuffer()->GetFrame(bufferIndex)->CopyData( frame->GetScalarPointer() , extent, extent, pixelFormat); 
+	frameInBuffer->CopyData( frame->GetScalarPointer(), extent, extent, pixelFormat); 
+
+	return true; 
 }
 
 //----------------------------------------------------------------------------
-void vtkDataCollectorSynchronizer::FindStillFrame( int& baseIndex, int& currentIndex )
+void vtkDataCollectorSynchronizer::FindStillFrame( vtkVideoBuffer2::FrameUidType& baseIndex, vtkVideoBuffer2::FrameUidType& currentIndex )
 {
 	LOG_TRACE("vtkDataCollectorSynchronizer::FindStillFrame"); 
-	while ( currentIndex >= 0 && baseIndex >= 0 && baseIndex != currentIndex )
+	const vtkVideoBuffer2::FrameUidType latestFrameUid = this->VideoBuffer->GetLatestFrameUidInBuffer(); 
+	while ( currentIndex <= latestFrameUid && baseIndex <= latestFrameUid && baseIndex != currentIndex )
 	{
-
-		const int videosyncprogress = floor(100.0*(this->GetVideoBuffer()->GetBufferSize() - baseIndex) / (1.0 * this->GetVideoBuffer()->GetBufferSize())); 
+		const int videosyncprogress = floor(100.0*(this->GetVideoBuffer()->GetNumberOfItems() - baseIndex) / (1.0 * this->GetVideoBuffer()->GetNumberOfItems())); 
 		if ( this->ProgressBarUpdateCallbackFunction != NULL )
 		{
 			(*ProgressBarUpdateCallbackFunction)(videosyncprogress); 
@@ -636,7 +692,24 @@ void vtkDataCollectorSynchronizer::FindStillFrame( int& baseIndex, int& currentI
 		if ( this->GetBaseFrame() == NULL ) 
 		{
 			vtkImageData* baseframe = vtkImageData::New(); 
-			this->GetFrameFromVideoBuffer(baseframe, baseIndex); 
+			if ( !this->GetFrameFromVideoBuffer(baseframe, baseIndex) )
+			{
+				LOG_WARNING("vtkDataCollectorSynchronizer: Unable to get frame from video buffer!"); 
+				baseIndex = baseIndex + 1; 
+				currentIndex = baseIndex + this->GetNumberOfAveragedFrames(); 
+				this->SetBaseFrame(NULL); 
+				continue; 
+			}
+
+			if ( baseframe == NULL )
+			{
+				LOG_WARNING("vtkDataCollectorSynchronizer: Unable to resize base frame for still frame finding if it's NULL - continue with next frame."); 
+				baseIndex = baseIndex + 1; 
+				currentIndex = baseIndex + this->GetNumberOfAveragedFrames(); 
+				this->SetBaseFrame(NULL); 
+				continue; 
+			}
+
 			// Make the image smaller
 			vtkImageResample* resample = vtkImageResample::New();
 			resample->SetInput(baseframe); 
@@ -654,7 +727,23 @@ void vtkDataCollectorSynchronizer::FindStillFrame( int& baseIndex, int& currentI
 
 
 		vtkImageData* frame = vtkImageData::New(); 
-		this->GetFrameFromVideoBuffer(frame, currentIndex);
+		if ( !this->GetFrameFromVideoBuffer(frame, currentIndex) ) 
+		{
+			LOG_WARNING("vtkDataCollectorSynchronizer: Unable to get frame from video buffer!"); 
+			baseIndex = baseIndex + 1; 
+			currentIndex = baseIndex + this->GetNumberOfAveragedFrames(); 
+			this->SetBaseFrame(NULL); 
+			continue; 
+		}
+
+		if ( frame == NULL )
+		{
+			LOG_WARNING("vtkDataCollectorSynchronizer: Unable to resize actual frame for still frame finding if it's NULL - continue with next frame."); 
+			baseIndex = baseIndex + 1; 
+			currentIndex = baseIndex + this->GetNumberOfAveragedFrames(); 
+			this->SetBaseFrame(NULL); 
+			continue; 
+		}
 
 		// Make the image smaller
 		vtkImageResample* resample = vtkImageResample::New();
@@ -673,16 +762,16 @@ void vtkDataCollectorSynchronizer::FindStillFrame( int& baseIndex, int& currentI
 		frameRGB->Delete(); 
 		frame->Delete(); 
 
-		LOG_TRACE("FindStillFrame - baseIndex: " << std::fixed << baseIndex << "(timestamp: " << this->GetVideoBuffer()->GetTimeStamp(baseIndex) << ")  currentIndex: " << currentIndex << "   frameDifference: " << frameDifference); 
+		//LOG_TRACE("FindStillFrame - baseIndex: " << std::fixed << baseIndex << "(timestamp: " << this->GetVideoBuffer()->GetTimeStamp(baseIndex) << ")  currentIndex: " << currentIndex << "   frameDifference: " << frameDifference); 
 		if ( frameDifference < this->MaxFrameDifference )
 		{
-			currentIndex = currentIndex + 1; 
+			currentIndex = currentIndex - 1; 
 
 		}
 		else
 		{
-			baseIndex = baseIndex - 1; 
-			currentIndex = baseIndex - this->GetNumberOfAveragedFrames(); 
+			baseIndex = baseIndex + 1; 
+			currentIndex = baseIndex + this->GetNumberOfAveragedFrames(); 
 			this->SetBaseFrame(NULL); 
 		}
 
@@ -691,22 +780,33 @@ void vtkDataCollectorSynchronizer::FindStillFrame( int& baseIndex, int& currentI
 }
 
 //----------------------------------------------------------------------------
-bool vtkDataCollectorSynchronizer::FindFrameTimestamp( int& bufferIndex, double& movedFrameTimestamp, double nextMovedTimestamp )
+bool vtkDataCollectorSynchronizer::FindFrameTimestamp( vtkVideoBuffer2::FrameUidType& bufferIndex, double& movedFrameTimestamp, double nextMovedTimestamp )
 {
 	LOG_TRACE("vtkDataCollectorSynchronizer::FindFrameTimestamp"); 
 
-	LOG_DEBUG("****Start to find next frame movement at: " << std::fixed << this->GetVideoBuffer()->GetTimeStamp(bufferIndex) ); 
+	double frameTimestamp(0); 
+	if ( this->GetVideoBuffer()->GetTimeStamp(bufferIndex, frameTimestamp) == vtkVideoBuffer2::FRAME_OK )
+	{
+		LOG_DEBUG("****Start to find next frame movement at: " << std::fixed << frameTimestamp ); 
+	}
+
 	bool diffFound = false; 
 
-	while ( !diffFound && bufferIndex > 0 )
+	while ( !diffFound && bufferIndex <= this->VideoBuffer->GetLatestFrameUidInBuffer() )
 	{
-		const int videosyncprogress = floor(100.0*(this->GetVideoBuffer()->GetBufferSize() - bufferIndex) / (1.0 * this->GetVideoBuffer()->GetBufferSize())); 
+		const int videosyncprogress = floor(100.0*(this->GetVideoBuffer()->GetNumberOfItems() - bufferIndex) / (1.0 * this->GetVideoBuffer()->GetNumberOfItems())); 
 		if ( this->ProgressBarUpdateCallbackFunction != NULL )
 		{
 			(*ProgressBarUpdateCallbackFunction)(videosyncprogress); 
 		}
-
-		double frameTimestamp = this->GetVideoBuffer()->GetTimeStamp(bufferIndex); 
+	
+		double frameTimestamp(0); 
+		if ( this->GetVideoBuffer()->GetTimeStamp(bufferIndex, frameTimestamp) != vtkVideoBuffer2::FRAME_OK )
+		{
+			LOG_WARNING("vtkDataCollectorSynchronizer: Unable to get frame from frame UID: " << bufferIndex); 
+			bufferIndex++; 
+			continue; 
+		}
 
 		// if the tracker moved again, the result is not reliable - return false
 		if ( frameTimestamp >= nextMovedTimestamp )
@@ -718,12 +818,48 @@ bool vtkDataCollectorSynchronizer::FindFrameTimestamp( int& bufferIndex, double&
 			return false; 
 		}
 
-		unsigned long frameNumber = this->GetVideoBuffer()->GetFrameNumber(bufferIndex); 
-		unsigned long prevFrameNumber = this->GetVideoBuffer()->GetFrameNumber(bufferIndex + 1); 
-		unsigned long nextFrameNumber = this->GetVideoBuffer()->GetFrameNumber(bufferIndex - 1); 
+		unsigned long frameNumber(0); 
+		if ( this->GetVideoBuffer()->GetFrameNumber(bufferIndex, frameNumber) != vtkVideoBuffer2::FRAME_OK)
+		{
+			LOG_WARNING("vtkDataCollectorSynchronizer: Unable to get frame number from frame UID: " << bufferIndex); 
+			bufferIndex++; 
+			continue; 
+		}
+
+		// Check previous frame 
+		if ( bufferIndex - 1 >= this->GetVideoBuffer()->GetOldestFrameUidInBuffer() )
+		{
+			unsigned long prevFrameNumber(0); 
+			if ( this->GetVideoBuffer()->GetFrameNumber(bufferIndex - 1, prevFrameNumber) != vtkVideoBuffer2::FRAME_OK)
+			{
+				LOG_WARNING("vtkDataCollectorSynchronizer: Unable to get previous frame number from frame UID: " << bufferIndex - 1); 
+			}
+		}
+
+		// Check next frame 
+		if ( bufferIndex + 1 <= this->GetVideoBuffer()->GetLatestFrameUidInBuffer() )
+		{
+			unsigned long nextFrameNumber(0); 
+			if ( this->GetVideoBuffer()->GetFrameNumber(bufferIndex + 1, nextFrameNumber) != vtkVideoBuffer2::FRAME_OK)
+			{
+				LOG_WARNING("vtkDataCollectorSynchronizer: Unable to get next frame number from frame UID: " << bufferIndex + 1); 
+			}
+		}
 
 		vtkSmartPointer<vtkImageData> frame = vtkSmartPointer<vtkImageData>::New(); 
-		this->GetFrameFromVideoBuffer(frame, bufferIndex); 
+		if ( !this->GetFrameFromVideoBuffer(frame, bufferIndex) ) 
+		{
+			LOG_WARNING("vtkDataCollectorSynchronizer: Unable to get frame from video buffer!"); 
+			bufferIndex++; 
+			continue; 
+		}
+
+		if ( frame == NULL )
+		{
+			LOG_WARNING("vtkDataCollectorSynchronizer: Unable to resize frame for frame finding if it's NULL - continue with next frame."); 
+			bufferIndex++; 
+			continue; 
+		}
 
 		// Make the image smaller
 		vtkSmartPointer<vtkImageResample> resample = vtkSmartPointer<vtkImageResample>::New();
@@ -768,26 +904,41 @@ bool vtkDataCollectorSynchronizer::FindFrameTimestamp( int& bufferIndex, double&
 			diffFound = true; 
 		}
 
-		bufferIndex--; 
+		bufferIndex++; 
 	}
 
 	return diffFound;
 }
 
 //----------------------------------------------------------------------------
-void vtkDataCollectorSynchronizer::ComputeFrameThreshold( int& bufferIndex )
+void vtkDataCollectorSynchronizer::ComputeFrameThreshold( vtkVideoBuffer2::FrameUidType& bufferIndex )
 {
 	LOG_TRACE("vtkDataCollectorSynchronizer::ComputeFrameThreshold"); 
 	// Compute frame average 
 	int sizeOfAvgFrames(0); 
 	std::vector<double> avgFrames; 
-	for ( bufferIndex; bufferIndex >= 0 && sizeOfAvgFrames != this->NumberOfAveragedFrames; bufferIndex-- )
+	for ( bufferIndex; bufferIndex <= this->VideoBuffer->GetLatestFrameUidInBuffer() && sizeOfAvgFrames != this->NumberOfAveragedFrames; bufferIndex++ )
 	{
-		double frameTimestamp = this->GetVideoBuffer()->GetTimeStamp(bufferIndex); 
+		double frameTimestamp(0); 
+		if ( this->GetVideoBuffer()->GetTimeStamp(bufferIndex, frameTimestamp) != vtkVideoBuffer2::FRAME_OK )
+		{
+			LOG_WARNING("vtkDataCollectorSynchronizer: Unable to get frame for frame threshold computation from frame UID: " << bufferIndex); 
+			continue; 
+		}
 
 		vtkSmartPointer<vtkImageData> frame = vtkSmartPointer<vtkImageData>::New(); 
-		this->GetFrameFromVideoBuffer(frame, bufferIndex); 
+		if ( !this->GetFrameFromVideoBuffer(frame, bufferIndex) )
+		{
+			LOG_WARNING("vtkDataCollectorSynchronizer: Unable to get frame from video buffer!"); 
+			continue; 
+		}
 
+		if ( frame == NULL )
+		{
+			LOG_WARNING("vtkDataCollectorSynchronizer: Unable to resize actual frame for frame threshold computation if it's NULL - continue with next frame."); 
+			continue; 
+		}
+		
 		// Make the image smaller
 		vtkSmartPointer<vtkImageResample> resample = vtkSmartPointer<vtkImageResample>::New();
 		resample->SetInput(frame); 
@@ -828,9 +979,15 @@ double vtkDataCollectorSynchronizer::GetImageAcquisitionFrameRate(double& mean, 
 {
 	LOG_TRACE("vtkDataCollectorSynchronizer::GetImageAcquisitionFrameRate"); 
 	std::vector<double> frameTimestamps; 
-	for ( int bufferIndex = 0; bufferIndex < this->GetVideoBuffer()->GetBufferSize(); bufferIndex++ )
+	for ( vtkVideoBuffer2::FrameUidType frameUid = this->GetVideoBuffer()->GetOldestFrameUidInBuffer(); frameUid <= this->GetVideoBuffer()->GetLatestFrameUidInBuffer(); ++frameUid )
 	{
-		double timestamp = this->GetVideoBuffer()->GetTimeStamp(bufferIndex); 
+		double timestamp(0); 
+		if ( this->GetVideoBuffer()->GetTimeStamp(frameUid, timestamp) != vtkVideoBuffer2::FRAME_OK )
+		{
+			LOG_WARNING("vtkDataCollectorSynchronizer: Unable to get frame timestamp for image acquisition computation from frame UID: " << frameUid); 
+			continue; 
+		}
+
 		if ( timestamp > 0 ) 
 		{
 			frameTimestamps.push_back(timestamp); 

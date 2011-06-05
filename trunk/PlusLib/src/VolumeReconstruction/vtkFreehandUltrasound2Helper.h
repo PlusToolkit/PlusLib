@@ -1934,7 +1934,6 @@ static void *vtkReconstructionThread(ThreadInfoStruct *data)
       {
       insertSliceNow = 0;
       printf("\ntracker out of view\n");
-	  std::cout << "FrameIndex: " << self->GetVideoSource()->GetFrameIndex() << std::endl; 
       double timenow = vtkAccurateTimer::GetSystemTime();
       //double sleepuntil = currtime + sleeptime;
       double sleepuntil = frametime + sleeptime;
@@ -1994,7 +1993,8 @@ static void *vtkReconstructionThread(ThreadInfoStruct *data)
           {
           return NULL;
           }
-        video->Seek(1);
+		//TODO: seek the buffer without seek function 
+        //video->Seek(1);
         }
       }
     }

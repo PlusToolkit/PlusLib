@@ -120,24 +120,70 @@ void vtkSavedDataVideoSource::InternalGrab()
 	// get a thread lock on the frame buffer
 	this->Buffer->Lock();
 
-	// 1) Do the frame buffer indices maintenance
-	if (this->AutoAdvance)
+	// Compute elapsed time since we restarted the timer
+	const double elapsedTime = vtkAccurateTimer::GetSystemTime() - this->GetStartTimestamp(); 
+
+	// Get the oldest timestamp from the buffer 
+	double oldestFrameTimestamp(0); 
+	vtkVideoBuffer2::FrameStatus oldestFrameStatus = this->LocalVideoBuffer->GetTimeStamp( this->LocalVideoBuffer->GetOldestFrameUidInBuffer(), oldestFrameTimestamp); 
+	if ( oldestFrameStatus != vtkVideoBuffer2::FRAME_OK )
 	{
-		this->AdvanceFrameBuffer(1);
-		if (this->FrameIndex + 1 < this->Buffer->GetBufferSize())
+		LOG_WARNING("vtkSavedDataVideoSource: Unable to get oldest frame timestamp from local buffer with the oldest frame UID!");
+		this->Buffer->Unlock();
+		return; 
+	}
+
+	// Get the latest timestamp from the buffer 
+	double latestFrameTimestamp(0); 
+	vtkVideoBuffer2::FrameStatus latestFrameStatus = this->LocalVideoBuffer->GetTimeStamp( this->LocalVideoBuffer->GetLatestFrameUidInBuffer(), latestFrameTimestamp); 
+	if ( latestFrameStatus != vtkVideoBuffer2::FRAME_OK )
+	{
+		LOG_WARNING("vtkSavedDataVideoSource: Unable to get newest frame timestamp from local buffer with the latest frame UID!");
+		this->Buffer->Unlock();
+		return; 
+	}
+
+	// Compute the next timestamp 
+	double nextFrameTimestamp = oldestFrameTimestamp + elapsedTime; 
+	if ( nextFrameTimestamp > latestFrameTimestamp )
+	{
+		if ( this->ReplayEnabled )
 		{
-			this->FrameIndex++;
+			// Start again from the oldest frame
+			nextFrameTimestamp = oldestFrameTimestamp;
+			this->SetStartTimestamp(vtkAccurateTimer::GetSystemTime()); 
+		}
+		else
+		{
+			// Use the latest frame always
+			nextFrameTimestamp = latestFrameTimestamp; 
 		}
 	}
 
-	const double elapsedTime = vtkAccurateTimer::GetSystemTime() - this->GetStartTimestamp(); 
-	const double localStartTime = this->LocalVideoBuffer->GetTimeStamp(LocalVideoBuffer->GetNumberOfItems() - 1); 
-
 	// Get buffer index 
-	const int bufferIndex = this->LocalVideoBuffer->GetIndexFromTime(localStartTime + elapsedTime); 
+	vtkVideoBuffer2::FrameUidType frameUID(0); 
+	vtkVideoBuffer2::FrameStatus frameStatus = this->LocalVideoBuffer->GetFrameUidFromTime(nextFrameTimestamp, frameUID); 
+	if ( frameStatus == vtkVideoBuffer2::FRAME_NOT_AVAILABLE_YET )
+	{
+		LOG_WARNING("vtkSavedDataVideoSource: Unable to get frame UID from time - frame not available yet!");
+		this->Buffer->Unlock();
+		return; 
+	}
+	else if ( frameStatus == vtkVideoBuffer2::FRAME_NOT_AVAILABLE_ANYMORE )
+	{
+		LOG_WARNING("vtkSavedDataVideoSource: Unable to get frame UID from time - frame not available anymore!");
+		this->Buffer->Unlock();
+		return; 
+	}
 
 	// Get frame number 
-	int frameNumber = this->LocalVideoBuffer->GetFrameNumber(bufferIndex); 
+	unsigned long frameNumber(0); 
+	if ( this->LocalVideoBuffer->GetFrameNumber(frameUID, frameNumber) != vtkVideoBuffer2::FRAME_OK )
+	{
+		LOG_WARNING( "vtkSavedDataVideoSource: Unable to get frame number from local video buffer with UID: " << frameUID ); 
+		this->Buffer->Unlock();
+		return; 
+	}
 
 	// use the information about data type and frmnum to do cross checking that you are maintaining correct frame index, & receiving
 	// expected data type
@@ -145,9 +191,34 @@ void vtkSavedDataVideoSource::InternalGrab()
 	double unfilteredTimestamp(0), filteredTimestamp(0); 
 	this->CreateTimeStampForFrame(this->FrameNumber, unfilteredTimestamp, filteredTimestamp);
 
-	unsigned char *deviceDataPtr = reinterpret_cast<unsigned char *>(this->LocalVideoBuffer->GetFrame(bufferIndex)->GetVoidPointer(0)); 
+	vtkVideoFrame2* localFrame = NULL; 
+	vtkVideoBuffer2::FrameStatus localFrameStatus = this->LocalVideoBuffer->GetFrame(frameUID, localFrame); 
+
+	if ( localFrameStatus != vtkVideoBuffer2::FRAME_OK )
+	{
+		LOG_WARNING( "vtkSavedDataVideoSource: Unable to get frame from local video buffer with UID: " << frameUID ); 
+		this->Buffer->Unlock();
+		return; 
+	}
+
+	if ( localFrame == NULL )
+	{
+		LOG_WARNING( "vtkSavedDataVideoSource: Failed to grab new frame from local video buffer with UID: " << frameUID  << " - Frame pointer was NULL"); 
+		this->Buffer->Unlock();
+		return; 
+	}
+
 	// get the pointer to the correct location in the frame buffer, where this data needs to be copied
-	unsigned char *frameBufferPtr = reinterpret_cast<unsigned char *>(this->Buffer->GetFrame(0)->GetVoidPointer(0));
+	vtkVideoFrame2* newFrameInBuffer = this->Buffer->GetFrameToWrite(); 
+	if ( newFrameInBuffer == NULL )
+	{
+		LOG_WARNING( "vtkSavedDataVideoSource: Failed to get video frame pointer from the buffer for the new frame!"); 
+		this->Buffer->Unlock();
+		return; 
+	}
+
+	unsigned char *deviceDataPtr = reinterpret_cast<unsigned char *>(localFrame->GetVoidPointer(0)); 
+	unsigned char *frameBufferPtr = reinterpret_cast<unsigned char *>(newFrameInBuffer->GetVoidPointer(0));
 
 	int FrameBufferExtent[6];
 	this->Buffer->GetFrameFormat()->GetFrameExtent(FrameBufferExtent);
@@ -182,17 +253,11 @@ void vtkSavedDataVideoSource::InternalGrab()
 	}
 
 	// add the new frame and the current time to the buffer
-	this->Buffer->AddItem(this->Buffer->GetFrame(0), unfilteredTimestamp, filteredTimestamp, this->FrameNumber);
+	this->Buffer->AddItem(newFrameInBuffer, unfilteredTimestamp, filteredTimestamp, this->FrameNumber);
 
 	this->Modified();
 
 	this->Buffer->Unlock();
-
-	// Replay the buffer after we reached the most recent element if desired
-	if ( bufferIndex == 0  && this->ReplayEnabled)
-	{
-		this->SetStartTimestamp(vtkAccurateTimer::GetSystemTime() + 1.0/this->GetFrameRate() ); 
-	}
 }
 
 //----------------------------------------------------------------------------
@@ -235,6 +300,10 @@ int vtkSavedDataVideoSource::Connect()
 	// Read metafile
 	savedDataBuffer->ReadFromSequenceMetafile(this->GetSequenceMetafile()); 
 	
+	// Set buffer size 
+	this->SetFrameBufferSize( savedDataBuffer->GetNumberOfTrackedFrames() ); 
+
+	// Set local buffer 
 	if ( this->LocalVideoBuffer == NULL )
 	{
 		this->LocalVideoBuffer = vtkVideoBuffer2::New(); 
@@ -246,7 +315,7 @@ int vtkSavedDataVideoSource::Connect()
 	// Allocate local video buffer frames
 	for ( int i = 0; i < this->LocalVideoBuffer->GetBufferSize(); i++ )
 	{
-		this->LocalVideoBuffer->GetFrame(i)->Allocate(); 
+		this->LocalVideoBuffer->GetFrameByBufferIndex(i)->Allocate(); 
 	}
 
 	// Fill local video buffers 
@@ -290,9 +359,17 @@ int vtkSavedDataVideoSource::Connect()
 		  unfilteredTimestamp = atof(strUnfilteredTimestamp); 
 		}
 
-		this->LocalVideoBuffer->Seek(1);
 		TrackedFrame::PixelType *deviceDataPtr = trackedFrame->ImageData->GetBufferPointer(); 
-		unsigned char *frameBufferPtr = reinterpret_cast<unsigned char *>(this->LocalVideoBuffer->GetFrame(0)->GetVoidPointer(0));
+		
+		// get the pointer to the correct location in the frame buffer, where this data needs to be copied
+		vtkVideoFrame2* newFrameInBuffer = this->LocalVideoBuffer->GetFrameToWrite(); 
+		if ( newFrameInBuffer == NULL )
+		{
+			LOG_WARNING( "vtkSavedDataVideoSource: Failed to get video frame pointer from the local buffer for the new frame (frame number: " << frame << ")!"); 
+			continue; 
+		}
+
+		unsigned char *frameBufferPtr = reinterpret_cast<unsigned char *>(newFrameInBuffer->GetVoidPointer(0));
 		int frameBufferExtent[6];
 		this->LocalVideoBuffer->GetFrameFormat()->GetFrameExtent(frameBufferExtent);
 
@@ -314,7 +391,7 @@ int vtkSavedDataVideoSource::Connect()
 		}
 		
 		// add the new frame and the current time to the buffer
-		this->LocalVideoBuffer->AddItem(this->LocalVideoBuffer->GetFrame(0), timestamp, unfilteredTimestamp, frameNumber );
+		this->LocalVideoBuffer->AddItem(newFrameInBuffer, timestamp, unfilteredTimestamp, frameNumber );
 	}
 
 	return 1; 
@@ -363,23 +440,11 @@ void vtkSavedDataVideoSource::Record()
 		return;
 	}
 
-	if (this->Playing)
-	{
-		this->Stop();
-	}
-
 	if (!this->Recording)
 	{
 		this->SetStartTimestamp(vtkAccurateTimer::GetSystemTime()); 
 		this->vtkVideoSource2::Record(); 
 	}
-}
-
-//----------------------------------------------------------------------------
-void vtkSavedDataVideoSource::Play()
-{
-	LOG_TRACE("vtkSavedDataVideoSource::Play"); 
-	this->vtkVideoSource2::Play();
 }
 
 //----------------------------------------------------------------------------
@@ -390,10 +455,6 @@ void vtkSavedDataVideoSource::Stop()
 	{
 		this->Recording = 0;
 		this->Modified();
-	}
-	else if (this->Playing)
-	{
-		this->vtkVideoSource2::Stop();
 	}
 }
 

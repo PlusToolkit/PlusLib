@@ -1,3 +1,4 @@
+#include "PlusConfigure.h"
 #include "vtkBufferedVideoSource.h"
 
 #include "vtkImageData.h"
@@ -138,7 +139,7 @@ void vtkBufferedVideoSource::Initialize()
 //----------------------------------------------------------------------------
 void vtkBufferedVideoSource::ReleaseSystemResources()
 {
-	if (this->Playing || this->Recording)
+	if (this->Recording)
 	{
 		this->Stop();
 	}
@@ -171,22 +172,11 @@ void vtkBufferedVideoSource::Record()
 		return;
 	}
 
-	if (this->Playing)
-	{
-		this->Stop();
-	}
-
 	if (!this->Recording)
 	{
 		this->Recording = 1;
 		this->Modified();
 	}
-}
-
-//----------------------------------------------------------------------------
-void vtkBufferedVideoSource::Play()
-{
-	this->vtkVideoSource2::Play();
 }
 
 //----------------------------------------------------------------------------
@@ -197,10 +187,6 @@ void vtkBufferedVideoSource::Stop()
 		this->Recording = 0;
 		this->Modified();
 	}
-	else if (this->Playing)
-	{
-		this->vtkVideoSource2::Stop();
-	}
 }
 
 //----------------------------------------------------------------------------
@@ -209,22 +195,19 @@ void vtkBufferedVideoSource::AddFrame( vtkImageData* image, double timestamp )
 
 	this->Buffer->Lock();
 
-	// 1) Do the frame buffer indices maintenance
-	if (this->AutoAdvance)
-	{
-		this->AdvanceFrameBuffer(1);
-		if (this->FrameIndex + 1 < this->Buffer->GetBufferSize())
-		{
-			this->FrameIndex++;
-		}
-	}
-
 	// get the pointer to actual incoming data on to a local pointer
 	unsigned char *deviceDataPtr = static_cast<unsigned char*>( image->GetScalarPointer() ); 
 
 	// get the pointer to the correct location in the frame buffer, where this data needs to be copied
-	//unsigned char *frameBufferPtr = (unsigned char *)((reinterpret_cast<vtkUnsignedCharArray*>(this->FrameBuffer[index]))->GetVoidPointer(0));
-	unsigned char *frameBufferPtr = reinterpret_cast<unsigned char *>(this->Buffer->GetFrame(0)->GetVoidPointer(0));
+	// get the pointer to the correct location in the frame buffer, where this data needs to be copied
+	vtkVideoFrame2* newFrameInBuffer = this->Buffer->GetFrameToWrite(); 
+	if ( newFrameInBuffer == NULL )
+	{
+		LOG_WARNING( "vtkBufferedVideoSource: Failed to get video frame pointer from the buffer for the new frame!"); 
+		return; 
+	}
+
+	unsigned char *frameBufferPtr = reinterpret_cast<unsigned char *>(newFrameInBuffer->GetVoidPointer(0));
 
 	int FrameBufferExtent[6];
 	this->Buffer->GetFrameFormat()->GetFrameExtent(FrameBufferExtent);
@@ -254,11 +237,15 @@ void vtkBufferedVideoSource::AddFrame( vtkImageData* image, double timestamp )
 	}
 
 	// add the new frame and the current time to the buffer
-	this->Buffer->AddItem(this->Buffer->GetFrame(0), timestamp, timestamp, ++this->FrameNumber );
+	this->Buffer->AddItem(newFrameInBuffer, timestamp, timestamp, ++this->FrameNumber );
 
 	if (this->FrameCount++ == 0)
 	{
-		this->StartTimeStamp = this->Buffer->GetTimeStamp(0);
+		double timestamp(0); 
+		if ( this->Buffer->GetLatestTimeStamp(timestamp) == vtkVideoBuffer2::FRAME_OK )
+		{
+			this->StartTimeStamp = timestamp;
+		}
 	}
 
 	this->Modified();

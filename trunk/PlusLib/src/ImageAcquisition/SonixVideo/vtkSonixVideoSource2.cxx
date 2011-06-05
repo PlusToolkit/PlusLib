@@ -146,7 +146,6 @@ vtkSonixVideoSource2::vtkSonixVideoSource2()
 	this->SonixHostIP = "130.15.7.212";
 	this->FrameRate = -1; // in fps
 	this->FrameCount = 0;
-	this->FrameIndex = -1;
 
 	this->Frequency = -1; //in Mhz
 	this->Depth = -1; //in mm
@@ -183,7 +182,7 @@ vtkSonixVideoSource2::vtkSonixVideoSource2()
 	this->Buffer->GetFrameFormat()->SetFrameGrabberType(FG_BASE); 
 	for (int i = 0; i < this->Buffer->GetBufferSize(); i++)
 	{
-		this->Buffer->GetFrame(i)->SetFrameGrabberType(FG_BASE);
+		this->Buffer->GetFrameByBufferIndex(i)->SetFrameGrabberType(FG_BASE);
 	}
 }
 
@@ -299,16 +298,6 @@ void vtkSonixVideoSource2::LocalInternalGrab(void* dataPtr, int type, int sz, bo
 		LOG_ERROR( "Received data type is different than expected");
 	}
 
-	// 1) Do the frame buffer indices maintenance
-	if (this->AutoAdvance)
-	{
-		this->AdvanceFrameBuffer(1);
-		if (this->FrameIndex + 1 < this->Buffer->GetBufferSize())
-		{
-			this->FrameIndex++;
-		}
-	}
-
 	// use the information about data type and frmnum to do cross checking that you are maintaining correct frame index, & receiving
 	// expected data type
 	this->FrameNumber = frmnum; 
@@ -330,7 +319,7 @@ void vtkSonixVideoSource2::LocalInternalGrab(void* dataPtr, int type, int sz, bo
 	unsigned char *deviceDataPtr = static_cast<unsigned char*>(dataPtr);
 
 	// get the pointer to the correct location in the frame buffer, where this data needs to be copied
-	unsigned char *frameBufferPtr = reinterpret_cast<unsigned char *>(this->Buffer->GetFrame(0)->GetVoidPointer(0));
+	unsigned char *frameBufferPtr = reinterpret_cast<unsigned char *>(this->Buffer->GetFrameToWrite()->GetVoidPointer(0));
 
 	int FrameBufferExtent[6];
 	this->Buffer->GetFrameFormat()->GetFrameExtent(FrameBufferExtent);
@@ -379,11 +368,15 @@ void vtkSonixVideoSource2::LocalInternalGrab(void* dataPtr, int type, int sz, bo
 	}
 
 	// add the new frame and the current time to the buffer
-	this->Buffer->AddItem(this->Buffer->GetFrame(0), unfilteredTimestamp, filteredTimestamp, this->FrameNumber);
+	this->Buffer->AddItem(this->Buffer->GetFrameToWrite(), unfilteredTimestamp, filteredTimestamp, this->FrameNumber);
 
 	if (this->FrameCount++ == 0)
 	{
-		this->StartTimeStamp = this->Buffer->GetTimeStamp(0);
+		double timestamp(0); 
+		if ( this->Buffer->GetLatestTimeStamp(timestamp) == vtkVideoBuffer2::FRAME_OK )
+		{
+			this->StartTimeStamp = timestamp;
+		}
 	}
 
 	this->Modified();
@@ -700,11 +693,6 @@ void vtkSonixVideoSource2::Record()
 		return;
 	}
 
-	if (this->Playing)
-	{
-		this->Stop();
-	}
-
 	if (!this->Recording)
 	{
 		this->Recording = 1;
@@ -712,12 +700,6 @@ void vtkSonixVideoSource2::Record()
 		if(this->ult->getFreezeState())
 			this->ult->toggleFreeze();
 	}
-}
-
-//----------------------------------------------------------------------------
-void vtkSonixVideoSource2::Play()
-{
-	this->vtkVideoSource2::Play();
 }
 
 //----------------------------------------------------------------------------
@@ -730,10 +712,6 @@ void vtkSonixVideoSource2::Stop()
 
 		if (!this->ult->getFreezeState())
 			this->ult->toggleFreeze();
-	}
-	else if (this->Playing)
-	{
-		this->vtkVideoSource2::Stop();
 	}
 }
 

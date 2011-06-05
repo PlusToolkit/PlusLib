@@ -33,13 +33,15 @@ vtkVideoBuffer2::vtkVideoBuffer2()
 	this->FilteredTimeStampArray = vtkDoubleArray::New();
 	this->UnfilteredTimeStampArray = vtkDoubleArray::New();
 	this->FrameNumberArray = vtkUnsignedLongLongArray::New(); 
+	this->FrameUIDArray = vtkUnsignedLongLongArray::New(); 
 	this->FrameFormat = vtkVideoFrame2::New();
 	this->Mutex = vtkCriticalSection::New();
 	this->BufferSize = 0;
 	this->NumberOfItems = 0;
-	this->CurrentIndex = -1;
+	this->WritePointer = 0;
 	this->CurrentTimeStamp = 0.0;
 	this->LocalTimeOffset = 0.0; 
+	this->FrameUID = 0; 
 
 	// serves to instantiate the frame array and the time stamp array
 	//this->SetBufferSize(30);
@@ -54,21 +56,31 @@ vtkVideoBuffer2::~vtkVideoBuffer2()
 	if (this->FrameArray)
 	{
 		delete [] this->FrameArray;
+		this->FrameArray = NULL; 
 	}
 
 	if (this->FilteredTimeStampArray)
 	{
 		this->FilteredTimeStampArray->Delete();
+		this->FilteredTimeStampArray = NULL; 
 	}
 
 	if (this->UnfilteredTimeStampArray)
 	{
 		this->UnfilteredTimeStampArray->Delete();
+		this->UnfilteredTimeStampArray = NULL; 
 	}
 
 	if ( this->FrameNumberArray )
 	{
 		this->FrameNumberArray->Delete(); 
+		this->FrameNumberArray = NULL; 
+	}
+
+	if ( this->FrameUIDArray )
+	{
+		this->FrameUIDArray->Delete(); 
+		this->FrameUIDArray = NULL; 
 	}
 
 
@@ -108,6 +120,12 @@ void vtkVideoBuffer2::PrintSelf(ostream& os, vtkIndent indent)
 		this->FrameNumberArray->PrintSelf(os, indent.GetNextIndent());
 	}
 
+	if ( this->FrameUIDArray ) 
+	{
+		os << indent << "FrameUIDArray:\n"; 
+		this->FrameUIDArray->PrintSelf(os, indent.GetNextIndent()); 
+	}
+
 }
 
 //----------------------------------------------------------------------------
@@ -132,6 +150,7 @@ void vtkVideoBuffer2::SetBufferSize(int bufsize)
 	vtkDoubleArray* filteredtimestamps;
 	vtkDoubleArray* unfilteredtimestamps;
 	vtkUnsignedLongLongArray* framenumberarray; 
+	vtkUnsignedLongLongArray* frameuidarray; 
 
 	if (bufsize < 0)
 	{
@@ -149,7 +168,7 @@ void vtkVideoBuffer2::SetBufferSize(int bufsize)
 	{
 		if (bufsize > 0)
 		{
-			this->CurrentIndex = -1;
+			this->WritePointer = 0;
 			this->NumberOfItems = 0;
 			this->CurrentTimeStamp = 0.0;
 			this->FrameArray = new vtkVideoFrame2 *[bufsize];
@@ -157,12 +176,14 @@ void vtkVideoBuffer2::SetBufferSize(int bufsize)
 			this->FilteredTimeStampArray->SetNumberOfValues(this->BufferSize);
 			this->UnfilteredTimeStampArray->SetNumberOfValues(this->BufferSize);
 			this->FrameNumberArray->SetNumberOfValues(this->BufferSize); 
+			this->FrameUIDArray->SetNumberOfValues(this->BufferSize); 
 			for (i = 0; i < bufsize; i++)
 			{
 				this->FrameArray[i] = this->FrameFormat->MakeObject();
 				this->FilteredTimeStampArray->SetValue(i, 0.0);
 				this->UnfilteredTimeStampArray->SetValue(i, 0.0);
 				this->FrameNumberArray->SetValue(i, 0);
+				this->FrameUIDArray->SetValue(i, 0); 
 			} 
 			this->Modified();
 		}
@@ -179,6 +200,8 @@ void vtkVideoBuffer2::SetBufferSize(int bufsize)
 			unfilteredtimestamps->SetNumberOfValues(bufsize);
 			framenumberarray = vtkUnsignedLongLongArray::New(); 
 			framenumberarray->SetNumberOfValues(bufsize); 
+			frameuidarray = vtkUnsignedLongLongArray::New(); 
+			frameuidarray->SetNumberOfValues(bufsize); 
 		}
 		else
 		{
@@ -186,11 +209,12 @@ void vtkVideoBuffer2::SetBufferSize(int bufsize)
 			filteredtimestamps = NULL;
 			unfilteredtimestamps = NULL;
 			framenumberarray = NULL; 
+			frameuidarray = NULL; 
 			this->NumberOfItems = 0;
 			this->CurrentTimeStamp = 0.0;
 		}
 
-		int index = this->CurrentIndex;
+		int index = this->WritePointer;
 		if (index < 0)
 		{
 			// because '%' can give negative results on some platforms
@@ -207,6 +231,7 @@ void vtkVideoBuffer2::SetBufferSize(int bufsize)
 				filteredtimestamps->SetValue(i, this->FilteredTimeStampArray->GetValue(index));
 				unfilteredtimestamps->SetValue(i, this->UnfilteredTimeStampArray->GetValue(index));
 				framenumberarray->SetValue(i, this->FrameNumberArray->GetValue(index)); 
+				frameuidarray->SetValue(i, this->FrameUIDArray->GetValue(index)); 
 				index = (index - 1) % this->BufferSize;
 				if (index < 0)
 				{
@@ -221,6 +246,7 @@ void vtkVideoBuffer2::SetBufferSize(int bufsize)
 				this->FilteredTimeStampArray->SetValue(index, 0.0);
 				this->UnfilteredTimeStampArray->SetValue(index, 0.0);
 				this->FrameNumberArray->SetValue(index, 0); 
+				this->FrameUIDArray->SetValue(index, 0); 
 				index = (index - 1) % this->BufferSize;
 				if (index < 0)
 				{
@@ -229,7 +255,7 @@ void vtkVideoBuffer2::SetBufferSize(int bufsize)
 				}
 			}
 			// set the current index
-			this->CurrentIndex = -1;
+			this->WritePointer = 0;
 		}
 		// if the new buffer is bigger than the old buffer
 		else if (bufsize > this->BufferSize)
@@ -241,6 +267,7 @@ void vtkVideoBuffer2::SetBufferSize(int bufsize)
 				filteredtimestamps->SetValue(i, this->FilteredTimeStampArray->GetValue(i));
 				unfilteredtimestamps->SetValue(i, this->UnfilteredTimeStampArray->GetValue(i));
 				framenumberarray->SetValue(i, this->FrameNumberArray->GetValue(i)); 
+				frameuidarray->SetValue(i, this->FrameUIDArray->GetValue(i)); 
 			}
 			// create new frames and timestamps
 			for (i = this->BufferSize; i < bufsize; i++)
@@ -249,13 +276,8 @@ void vtkVideoBuffer2::SetBufferSize(int bufsize)
 				filteredtimestamps->SetValue(i, 0.0);
 				unfilteredtimestamps->SetValue(i, 0.0);
 				framenumberarray->SetValue(i, 0.0); 
+				frameuidarray->SetValue(i, 0); 
 			}
-		}
-
-		// fix the current index if it is out of range
-		if (this->NumberOfItems == 0)
-		{
-			this->CurrentIndex = -1;
 		}
 
 		// update the frame array and the time stamp array
@@ -281,6 +303,12 @@ void vtkVideoBuffer2::SetBufferSize(int bufsize)
 			this->FrameNumberArray->Delete(); 
 		}
 		this->FrameNumberArray = framenumberarray; 
+
+		if ( this->FrameUIDArray )
+		{
+			this->FrameUIDArray->Delete(); 
+		}
+		this->FrameUIDArray = frameuidarray; 
 
 		// update the buffer size and the number of items
 		this->BufferSize = bufsize;
@@ -358,9 +386,10 @@ void vtkVideoBuffer2::SetFrameFormat(vtkVideoFrame2 *format)
 		this->FilteredTimeStampArray->SetValue(i, 0.0);
 		this->UnfilteredTimeStampArray->SetValue(i, 0.0);
 		this->FrameNumberArray->SetValue(i, 0); 
+		this->FrameUIDArray->SetValue(i, 0); 
 	}
 
-	this->CurrentIndex = -1;
+	this->WritePointer = 0;
 	this->NumberOfItems = 0;
 	this->CurrentTimeStamp = 0.0;
 }
@@ -399,20 +428,30 @@ void vtkVideoBuffer2::AddItem(vtkVideoFrame2* frame, double unfilteredTimestamp,
 		frame->GetCompression() != this->FrameFormat->GetCompression() ||
 		frame->GetFrameGrabberType() != this->FrameFormat->GetFrameGrabberType() )
 	{
-		this->Seek(-1); 
 		return;
 	}
 
+	
+	// Increase frame unique ID
+	this->FrameUID++; 
+	
 	// add the frame and timestamp, and update buffer
 	this->CurrentTimeStamp = filteredTimestamp;
-	this->FrameArray[this->CurrentIndex] = frame;
-	this->FilteredTimeStampArray->SetValue(this->CurrentIndex, filteredTimestamp);
-	this->UnfilteredTimeStampArray->SetValue(this->CurrentIndex, unfilteredTimestamp);
-	this->FrameNumberArray->SetValue(this->CurrentIndex, frameNumber); 
+	this->FrameArray[this->WritePointer] = frame;
+	this->FilteredTimeStampArray->SetValue(this->WritePointer, filteredTimestamp);
+	this->UnfilteredTimeStampArray->SetValue(this->WritePointer, unfilteredTimestamp);
+	this->FrameNumberArray->SetValue(this->WritePointer, frameNumber); 
+	this->FrameUIDArray->SetValue(this->WritePointer, this->FrameUID); 
 	this->NumberOfItems++;
 	if (this->NumberOfItems > this->BufferSize)
 	{
 		this->NumberOfItems = this->BufferSize;
+	}
+
+	// Increase the write pointer
+	if ( ++this->WritePointer >= this->BufferSize )
+	{
+		this->WritePointer = 0; 
 	}
 
 	/*LOG_TRACE("*** New frame at: " << std::fixed << filteredTimestamp); */
@@ -421,134 +460,231 @@ void vtkVideoBuffer2::AddItem(vtkVideoFrame2* frame, double unfilteredTimestamp,
 }
 
 //----------------------------------------------------------------------------
-void vtkVideoBuffer2::Seek(int n)
+vtkVideoBuffer2::FrameStatus vtkVideoBuffer2::GetFrameStatus(const FrameUidType uid )
 {
-	if (this->BufferSize <= 0)
+	if ( uid < this->GetOldestFrameUidInBuffer() ) 
 	{
-		return;
+		return FRAME_NOT_AVAILABLE_ANYMORE; 
 	}
-
-	int i = (this->CurrentIndex + n) % this->BufferSize;
-	while (i < 0) 
-	{ // because '%' can give negative results on some platforms
-		i += this->BufferSize;
+	else if ( uid > this->GetLatestFrameUidInBuffer() )
+	{
+		return FRAME_NOT_AVAILABLE_YET; 
 	}
-	this->CurrentIndex = i;
-
-	this->Modified();
+	else
+	{
+		return FRAME_OK; 
+	}
 }
 
 //----------------------------------------------------------------------------
-vtkVideoFrame2* vtkVideoBuffer2::GetFrame(int frame)
+vtkVideoBuffer2::FrameStatus vtkVideoBuffer2::GetFrameUidFromBufferIndex( const int bufferIndex, FrameUidType &uid )
 {
-	if (this->BufferSize <= 0)
+	if (this->BufferSize <= 0 
+		|| bufferIndex >= this->GetBufferSize() 
+		|| bufferIndex < 0 )
 	{
-		return 0;
+		LOG_ERROR("vtkVideoBuffer2: Unable to get frame UID from buffer index! Buffer index is not valid (bufferIndex=" 
+			<< bufferIndex << ", bufferSize=" << this->GetBufferSize() << ")." ); 
+		uid = 0; 
+	}
+	else
+	{
+		uid = this->FrameUIDArray->GetValue(bufferIndex); 
 	}
 
-	int index = (this->CurrentIndex - frame) % this->BufferSize;
-	while (index < 0)
-	{ // because '%' can give negative results on some platforms
-		index += this->BufferSize;
-	}
-
-	return this->FrameArray[index];
+	return this->GetFrameStatus(uid); 
 }
 
 //----------------------------------------------------------------------------
-double vtkVideoBuffer2::GetFilteredTimeStamp(int frame)
-{ 
-	if (this->BufferSize <= 0)
+int vtkVideoBuffer2::GetBufferIndex( const FrameUidType uid )
+{
+	if ( this->GetFrameStatus( uid ) != FRAME_OK )
 	{
-		return 0.0;
+		return -1; 
 	}
+	
+	int readIndex = (this->WritePointer - 1) % this->BufferSize;
 
-	int index = (this->CurrentIndex - frame) % this->BufferSize;
-	while (index < 0)
-	{ // because '%' can give negative results on some platforms
-		index += this->BufferSize;
+	if ( readIndex < 0 ) 
+	{
+		readIndex += this->BufferSize;
 	}
-
-	double globalTimestamp = this->FilteredTimeStampArray->GetValue(index) + this->LocalTimeOffset; 
-
-	return globalTimestamp;
+	
+	const int bufferIndex = readIndex - (this->FrameUID - uid); 
+	
+	return bufferIndex; 
 }
 
 //----------------------------------------------------------------------------
-double vtkVideoBuffer2::GetUnfilteredTimeStamp(int frame)
-{ 
-	if (this->BufferSize <= 0)
+vtkVideoFrame2* vtkVideoBuffer2::GetFrameByBufferIndex(const int bufferIndex)
+{
+	if (this->BufferSize <= 0 
+		|| bufferIndex >= this->GetBufferSize() 
+		|| bufferIndex < 0 )
 	{
-		return 0.0;
+		return NULL;
+	}
+	
+	return this->FrameArray[bufferIndex];
+}
+
+//----------------------------------------------------------------------------
+vtkVideoBuffer2::FrameStatus vtkVideoBuffer2::GetLatestFrame(vtkVideoFrame2* latestFrame)
+{
+	return this->GetFrame( this->FrameUID, latestFrame ); 
+}
+
+//----------------------------------------------------------------------------
+vtkVideoBuffer2::FrameStatus vtkVideoBuffer2::GetFrame(const FrameUidType uid, vtkVideoFrame2*& frame)
+{
+	FrameStatus status = this->GetFrameStatus( uid ); 
+	if ( status != FRAME_OK )
+	{
+		frame = NULL; 
+		return status; 
 	}
 
-	int index = (this->CurrentIndex - frame) % this->BufferSize;
-	while (index < 0)
-	{ // because '%' can give negative results on some platforms
-		index += this->BufferSize;
+	const int bufferIndex = this->GetBufferIndex( uid ); 
+	frame = this->GetFrameByBufferIndex(bufferIndex); 
+
+	return status; 
+}
+
+//----------------------------------------------------------------------------
+vtkVideoFrame2* vtkVideoBuffer2::GetFrameToWrite() 
+{ 
+	if (this->BufferSize <= 0 
+		|| this->WritePointer >= this->GetBufferSize() 
+		|| this->WritePointer < 0 )
+	{
+		return NULL;
 	}
 
-	double globalTimestamp = this->UnfilteredTimeStampArray->GetValue(index) + this->LocalTimeOffset; 
+	return this->FrameArray[this->WritePointer]; 
+}
 
-	return globalTimestamp;
+//----------------------------------------------------------------------------
+vtkVideoBuffer2::FrameStatus vtkVideoBuffer2::GetFilteredTimeStamp(const FrameUidType uid, double &filteredTimestamp)
+{ 
+	FrameStatus status = this->GetFrameStatus( uid ); 
+	if ( status != FRAME_OK )
+	{
+		filteredTimestamp = 0.0; 
+		return status; 
+	}
+
+	const int bufferIndex = this->GetBufferIndex( uid ); 
+	filteredTimestamp = this->FilteredTimeStampArray->GetValue(bufferIndex) + this->LocalTimeOffset; 
+	return status;
+}
+
+//----------------------------------------------------------------------------
+vtkVideoBuffer2::FrameStatus vtkVideoBuffer2::GetUnfilteredTimeStamp(const FrameUidType uid, double &unfilteredTimestamp)
+{ 
+	FrameStatus status = this->GetFrameStatus( uid ); 
+	if ( status != FRAME_OK )
+	{
+		unfilteredTimestamp = 0.0; 
+		return status; 
+	}
+
+	const int bufferIndex = this->GetBufferIndex( uid ); 
+	unfilteredTimestamp = this->UnfilteredTimeStampArray->GetValue(bufferIndex) + this->LocalTimeOffset; 
+	return status;
 }
 
 
 //----------------------------------------------------------------------------
-unsigned long vtkVideoBuffer2::GetFrameNumber(int frame)
+vtkVideoBuffer2::FrameStatus vtkVideoBuffer2::GetFrameNumber(const FrameUidType uid, unsigned long &frameNumber)
 { 
-	if (this->BufferSize <= 0)
+	FrameStatus status = this->GetFrameStatus( uid ); 
+	if ( status != FRAME_OK )
 	{
-		return 0.0;
+		frameNumber = 0; 
+		return status; 
 	}
 
-	int index = (this->CurrentIndex - frame) % this->BufferSize;
-	while (index < 0)
-	{ // because '%' can give negative results on some platforms
-		index += this->BufferSize;
-	}
-
-	return this->FrameNumberArray->GetValue(index); 
+	const int bufferIndex = this->GetBufferIndex( uid ); 
+	frameNumber = this->FrameNumberArray->GetValue(bufferIndex); 
+	return status;
 }
+
+
+//----------------------------------------------------------------------------
+vtkVideoBuffer2::FrameStatus vtkVideoBuffer2::GetBufferIndexFromTime(const double time, int& bufferIndex )
+{
+	FrameUidType frameUid(0); 
+	FrameStatus frameStatus = this->GetFrameUidFromTime(time, frameUid); 
+
+	if ( frameStatus != FRAME_OK )
+	{
+		return frameStatus; 
+	}
+	
+	bufferIndex = this->GetBufferIndex(frameUid); 
+	return frameStatus; 
+}
+
 
 //----------------------------------------------------------------------------
 // do a simple divide-and-conquer search for the transform
 // that best matches the given timestamp
-int vtkVideoBuffer2::GetIndexFromTime(double time)
+vtkVideoBuffer2::FrameStatus vtkVideoBuffer2::GetFrameUidFromTime(const double time, FrameUidType& uid )
 {
-	int lo = (this->NumberOfItems > 0 ? this->NumberOfItems - 1 : this->NumberOfItems);
-	int hi = 0;
+	FrameUidType lo = this->GetOldestFrameUidInBuffer();
+	FrameUidType hi = this->GetLatestFrameUidInBuffer();
 
-	double tlo = this->GetTimeStamp(lo); // minimum time
-	double thi = this->GetTimeStamp(hi); // maximum time
-
-	if (time <= tlo)
+	double tlo(0); 
+	// minimum time
+	FrameStatus loStatus = this->GetTimeStamp(lo, tlo); 
+	if ( loStatus != FRAME_OK )
 	{
-		//std::cout << "warning - returning lo" << std::endl; // TODO put back
-		return lo;
+		LOG_WARNING("vtkVideoBuffer2: Unable to get lo timestamp for frame UID: " << lo ); 
+		return loStatus; 
 	}
-	else if (time >= thi)
+
+	double thi(0); 
+	// maximum time
+	FrameStatus hiStatus = this->GetTimeStamp(hi, thi); 
+	if ( hiStatus != FRAME_OK )
 	{
-		//std::cout << "warning - returning hi" << std::endl; // TODO put back
-		return hi;
+		LOG_WARNING("vtkVideoBuffer2: Unable to get hi timestamp for frame UID: " << hi ); 
+		return hiStatus; 
+	} 
+
+	if (time < tlo)
+	{
+		return FRAME_NOT_AVAILABLE_ANYMORE; 
+	}
+	else if (time > thi)
+	{
+		return FRAME_NOT_AVAILABLE_YET;
 	}
 
 	for (;;)
 	{
-		if (lo-hi == 1)
+		if (hi-lo == 1)
 		{
 			if (time - tlo > thi - time)
 			{
-				return hi;
+				uid = hi; 
+				return FRAME_OK;
 			}
 			else
 			{
-				return lo;
+				uid = lo; 
+				return FRAME_OK;
 			}
 		}
 
 		int mid = (lo+hi)/2;
-		double tmid = this->GetTimeStamp(mid);
+		double tmid(0);
+		FrameStatus midStatus = this->GetTimeStamp(mid, tmid); 
+		if ( midStatus != FRAME_OK )
+		{
+			LOG_WARNING("vtkVideoBuffer2: Unable to get mid timestamp for frame UID: " << tmid ); 
+			return midStatus; 
+		}
 
 		if (time < tmid)
 		{
@@ -569,26 +705,28 @@ void vtkVideoBuffer2::DeepCopy(vtkVideoBuffer2* buffer)
 	this->SetFrameFormat(buffer->GetFrameFormat()); 
 	this->SetBufferSize(buffer->GetBufferSize()); 
 
-	this->CurrentIndex = buffer->CurrentIndex;
+	this->WritePointer = buffer->WritePointer;
 	this->NumberOfItems = buffer->NumberOfItems;
 	this->CurrentTimeStamp = buffer->CurrentTimeStamp;
 	this->LocalTimeOffset = buffer->LocalTimeOffset;
+	this->FrameUID = buffer->FrameUID; 
 
 	for ( int i = 0; i < this->BufferSize; i++ )
 	{
-		int * extent = this->GetFrame(i)->GetFrameExtent(); 
-		this->GetFrame(i)->Allocate(); 
-		buffer->GetFrame(i)->CopyData(this->GetFrame(i)->GetVoidPointer(0), extent, extent, this->GetFrame(i)->GetPixelFormat()) ; 
+		int * extent = this->GetFrameByBufferIndex(i)->GetFrameExtent(); 
+		this->GetFrameByBufferIndex(i)->Allocate(); 
+		buffer->GetFrameByBufferIndex(i)->CopyData(this->GetFrameByBufferIndex(i)->GetVoidPointer(0), extent, extent, this->GetFrameByBufferIndex(i)->GetPixelFormat()) ; 
 		this->FilteredTimeStampArray->SetValue(i, buffer->FilteredTimeStampArray->GetValue(i));
 		this->UnfilteredTimeStampArray->SetValue(i, buffer->UnfilteredTimeStampArray->GetValue(i));
 		this->FrameNumberArray->SetValue(i, buffer->FrameNumberArray->GetValue(i)); 
+		this->FrameUIDArray->SetValue(i, buffer->FrameUIDArray->GetValue(i)); 
 	}
 }
 
 //----------------------------------------------------------------------------
 void vtkVideoBuffer2::Clear()
 {
-	this->CurrentIndex = -1; 
+	this->WritePointer = 0; 
 	this->NumberOfItems = 0; 
 	this->CurrentTimeStamp = 0; 
 
@@ -598,15 +736,28 @@ void vtkVideoBuffer2::Clear()
 double vtkVideoBuffer2::GetFrameRate(bool ideal /*=false*/)
 {
 	std::vector<double> framePeriods; 
-
-	for ( int frame = 0; frame < this->NumberOfItems - 1; frame++ )
+	for ( FrameUidType frame = this->GetLatestFrameUidInBuffer(); frame > this->GetOldestFrameUidInBuffer(); --frame )
 	{
-		double time = this->GetTimeStamp(frame); 
-		unsigned long framenum = this->GetFrameNumber(frame); 
-		double prevtime = this->GetTimeStamp(frame + 1); 
-		unsigned long prevframenum = this->GetFrameNumber(frame + 1); 
+		double time(0); 
+		if ( this->GetTimeStamp(frame, time) != FRAME_OK )
+		{
+			continue; 
+		}
 
-		if ( time == 0 || prevtime == 0 )
+		unsigned long framenum(0); 
+		if ( this->GetFrameNumber(frame, framenum) != FRAME_OK)
+		{
+			continue; 
+		}
+		
+		double prevtime(0); 
+		if ( this->GetTimeStamp(frame - 1, prevtime) != FRAME_OK )
+		{
+			continue; 
+		}
+		
+		unsigned long prevframenum(0); 
+		if ( this->GetFrameNumber(frame - 1, framenum) != FRAME_OK)
 		{
 			continue; 
 		}
