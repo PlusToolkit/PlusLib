@@ -20,6 +20,8 @@ if "%1" == "-N" goto nightly
 goto END
 
 :nightly
+@REM Clean before the nightly build to enforce all build warnings appear on all nightly dashboard submissions
+"${CMAKE_MAKE_PROGRAM}" PlusLib.sln /clean Release /project ALL_BUILD
 "${CMAKE_CTEST_COMMAND}" -D Nightly
 goto END
 
