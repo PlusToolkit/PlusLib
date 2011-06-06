@@ -18,6 +18,7 @@ ADD_TEST(vtkUSCalibrationControllerTest-Exact
 		--input-baseline-file-name=${TestDataDir}/UsTemplateCalibration.results.xml 
 		--verbose=1
 		)
+SET_TESTS_PROPERTIES( vtkUSCalibrationControllerTest-Exact PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
 ADD_TEST(vtkUSCalibrationControllerTest
 		${EXECUTABLE_OUTPUT_PATH}/vtkUSCalibrationControllerTest1
@@ -34,6 +35,7 @@ ADD_TEST(vtkUSCalibrationControllerTest
 		--rotation-error-threshold=1.0
 		--verbose=1
 		)
+SET_TESTS_PROPERTIES( vtkUSCalibrationControllerTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
 ADD_TEST(vtkUSCalibrationControllerTest_FrameGrabber-Exact
 		${EXECUTABLE_OUTPUT_PATH}/vtkUSCalibrationControllerTest1
@@ -48,6 +50,7 @@ ADD_TEST(vtkUSCalibrationControllerTest_FrameGrabber-Exact
 		--input-baseline-file-name=${TestDataDir}/UsTemplateCalibration_FrameGrabber.results.xml 
 		--verbose=1
 		)
+SET_TESTS_PROPERTIES( vtkUSCalibrationControllerTest_FrameGrabber-Exact PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
 ADD_TEST(vtkUSCalibrationControllerTest_FrameGrabber
 		${EXECUTABLE_OUTPUT_PATH}/vtkUSCalibrationControllerTest1
@@ -64,6 +67,7 @@ ADD_TEST(vtkUSCalibrationControllerTest_FrameGrabber
 		--rotation-error-threshold=1.0
 		--verbose=1
 		)
+SET_TESTS_PROPERTIES( vtkUSCalibrationControllerTest_FrameGrabber PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 		
 #--------------------------------------------------------------------------------------------
 ADD_EXECUTABLE(vtkTemplateToStepperCalibratorTest1 vtkTemplateToStepperCalibratorTest1.cxx)
@@ -82,6 +86,7 @@ TARGET_LINK_LIBRARIES(vtkStepperCalibrationControllerTest itkvnl itkvnl_algo vtk
 		# --input-baseline-file-name=${TestDataDir}/UsTemplateCalibration.results.xml 
 		# --verbose=1
 		# )
+#SET_TESTS_PROPERTIES( vtkStepperCalibrationControllerTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
 #--------------------------------------------------------------------------------------------
 ADD_EXECUTABLE(vtkStylusCalibrationTest vtkStylusCalibrationTest.cxx)
@@ -94,6 +99,7 @@ ADD_TEST(vtkStylusCalibrationTest
 		--number-of-acquired-points=100
 		--verbose=1
 		)
+SET_TESTS_PROPERTIES( vtkStylusCalibrationTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
 #--------------------------------------------------------------------------------------------
 ADD_EXECUTABLE(vtkPhantomRegistrationTest vtkPhantomRegistrationTest.cxx)
@@ -107,6 +113,7 @@ ADD_TEST(vtkPhantomRegistrationTest
 		--input-phantom-definition-xml-file-name=${ConfigFilesDir}/PhantomDefinition_fCal_1.0.xml
 		--verbose=1
 		)
+SET_TESTS_PROPERTIES( vtkPhantomRegistrationTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
 #--------------------------------------------------------------------------------------------
 ADD_EXECUTABLE(vtkFreehandCalibrationTest vtkFreehandCalibrationTest.cxx)
@@ -124,3 +131,4 @@ ADD_TEST(vtkFreehandCalibrationTest
 		--input-phantom-definition-xml-file-name=${ConfigFilesDir}/PhantomDefinition_fCal_1.0.xml
 		--verbose=1
 		)
+SET_TESTS_PROPERTIES( vtkFreehandCalibrationTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )

@@ -9,6 +9,7 @@ ADD_TEST(itkMetaImageSequenceIOTest1
   --input-img-seq-file-name=MetaImageSequenceIOTest1.mhd
   --output-img-seq-file-name=_MetaImageSequenceIOTest1.mhd
   )
+SET_TESTS_PROPERTIES( itkMetaImageSequenceIOTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
 #***************************  itkMetaImageSequenceIOTest2  ***************************
 ADD_EXECUTABLE(itkMetaImageSequenceIOTest2 itkMetaImageSequenceIOTest2.cxx )
@@ -17,6 +18,7 @@ ADD_TEST(itkMetaImageSequenceIOTest2
   ${EXECUTABLE_OUTPUT_PATH}/itkMetaImageSequenceIOTest2
   --input-img-seq-file-names ${TestDataDir}/USTC_FrameGrabber_TemplateTranslationData.mha 
   )
+SET_TESTS_PROPERTIES( itkMetaImageSequenceIOTest2 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
   
 #***************************  itkMetaImageSequenceIOTest3  ***************************
 ADD_EXECUTABLE(itkMetaImageSequenceIOTest3 itkMetaImageSequenceIOTest3.cxx )
@@ -26,6 +28,7 @@ ADD_TEST(itkMetaImageSequenceIOTest3
   --input-img-seq-file-name=${TestDataDir}/USTC_FrameGrabber_TemplateTranslationData.mha 
   --rendering-off
   )
+SET_TESTS_PROPERTIES( itkMetaImageSequenceIOTest3 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
 #***************************  itkMetaImageSequenceIOTest4  ***************************
 ADD_EXECUTABLE(itkMetaImageSequenceIOTest4 itkMetaImageSequenceIOTest4.cxx )
@@ -34,6 +37,7 @@ ADD_TEST(itkMetaImageSequenceIOTest4
   ${EXECUTABLE_OUTPUT_PATH}/itkMetaImageSequenceIOTest4
   --output-img-seq-file-name=GeneratedUsSeqMetafile.mhd
   )
+SET_TESTS_PROPERTIES( itkMetaImageSequenceIOTest4 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
 #***************************  itkFcsvReaderTest1.cxx ***************************
 ADD_EXECUTABLE(itkFcsvReaderTest1 itkFcsvReaderTest1.cxx )
@@ -41,6 +45,7 @@ TARGET_LINK_LIBRARIES(itkFcsvReaderTest1 vtkImageAcquisition )
 ADD_TEST(itkFcsvReaderTest1 ${EXECUTABLE_OUTPUT_PATH}/itkFcsvReaderTest1
   ${TestDataDir}/FcsvReaderTest1.fcsv 
   )
+SET_TESTS_PROPERTIES( itkFcsvReaderTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
 #***************************  itkFcsvWriterTest1.cxx ***************************
 ADD_EXECUTABLE(itkFcsvWriterTest1 itkFcsvWriterTest1.cxx )
@@ -48,6 +53,7 @@ TARGET_LINK_LIBRARIES(itkFcsvWriterTest1 vtkImageAcquisition )
 ADD_TEST(itkFcsvWriterTest1 ${EXECUTABLE_OUTPUT_PATH}/itkFcsvWriterTest1
   ${TestDataDir}/FcsvReaderTest1.fcsv ${TestDataDir}/FcsvWriterTest1.fcsv
   )
+SET_TESTS_PROPERTIES( itkFcsvWriterTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
 #***************************  vtkSonixVideoSourceTest1.cxx ***************************
 IF (PLUS_USE_SONIX_VIDEO)
@@ -58,6 +64,7 @@ IF (PLUS_USE_SONIX_VIDEO)
 	 --rendering-off
      --sonix-ip=130.15.7.20
 	)
+	SET_TESTS_PROPERTIES( vtkSonixVideoSourceTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 ENDIF (PLUS_USE_SONIX_VIDEO)
 
 #***************************  vtkICCapturingSourceTest1.cxx ***************************
@@ -68,6 +75,7 @@ ADD_EXECUTABLE(vtkICCapturingSourceTest1 vtkICCapturingSourceTest1.cxx )
 	# ${EXECUTABLE_OUTPUT_PATH}/vtkICCapturingSourceTest1
 	 # --rendering-off
 	# )
+	#SET_TESTS_PROPERTIES( vtkICCapturingSourceTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 ENDIF (PLUS_USE_ICCAPTURING_VIDEO)
 
 #***************************  vtkSonixVolumeReaderTest1.cxx ***************************
@@ -80,5 +88,6 @@ IF (PLUS_USE_SONIX_VIDEO)
 	--input-baseline-name=${TestDataDir}/UltrasonixFrame5Baseline.tiff
 	--input-frame-number=5 
 	)
+	SET_TESTS_PROPERTIES( vtkSonixVolumeReaderTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 ENDIF (PLUS_USE_SONIX_VIDEO)
 

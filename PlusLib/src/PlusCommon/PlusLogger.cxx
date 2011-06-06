@@ -106,6 +106,7 @@ void PlusLogger::LogMessage(LogLevelType level, const char *msg, const char* fil
     break;
   }
   log << msg;
+  log << " [in " << fileName << "(" << lineNumber << ")]"; // add filename and line number
 	
 	m_CriticalSection->Lock(); 
 
@@ -164,7 +165,7 @@ void PlusLogger::LogMessage(LogLevelType level, const char *msg, const char* fil
 
   if (m_LogLevel>=level)
   {
-    this->m_LogStream << timestamp << " " << log.str() << msg << " [in " << fileName << "(" << lineNumber << ")]" << std::endl; 
+    this->m_LogStream << timestamp << " " << log.str() << std::endl; 
 	  this->m_LogStream.flush(); 
   }
 

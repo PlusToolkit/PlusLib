@@ -10,3 +10,4 @@ ADD_TEST(vtkVolumeReconstructorTest1
   --input-img-seq-file-name=${TestDataDir}/GeneratedUsSeqMetafile.mhd 
   --output-volume-file-name=_GeneratedUsVolume.vtk
   )
+SET_TESTS_PROPERTIES( vtkVolumeReconstructorTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )

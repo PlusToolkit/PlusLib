@@ -173,7 +173,7 @@ public:
   // If the new array pointer points to the first index and the ArrayExtent is 
   // smaller than ClipRegion, the frame's array will be further cliped to the size
   // specified by ArrayExtent.
-  virtual void CopyData(void *array, const int clipRegion[6], const int arrayExtent[6],
+  virtual bool CopyData(void *array, const int clipRegion[6], const int arrayExtent[6],
                 int arrayFormat);
 
   // Description:
