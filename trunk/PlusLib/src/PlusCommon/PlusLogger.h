@@ -23,18 +23,9 @@ public:
 
 	static PlusLogger* Instance(); 
 
-	void LogError(const char *msg); 
-
-	void LogWarning(const char *msg); 
+	void LogMessage(LogLevelType level, const char *msg, const char* fileName, int lineNumber); 
 	
-	void LogInfo(const char *msg); 
-	
-	void LogDebug(const char *msg); 
-
-	void LogTrace(const char *msg); 
-	
-	int GetLogLevel();
-	
+	int GetLogLevel();	
 	void SetLogLevel(int logLevel);
 
 	int GetDisplayLogLevel();
@@ -43,7 +34,7 @@ public:
 
 	static void PrintProgressbar( int percent ); 
 
-    void SetDisplayMessageCallbackFunction( DisplayMessageCallbackPtr cb );
+  void SetDisplayMessageCallbackFunction( DisplayMessageCallbackPtr cb );
 
 protected:
 	PlusLogger(); 

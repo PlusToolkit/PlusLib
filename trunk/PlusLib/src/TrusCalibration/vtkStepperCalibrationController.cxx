@@ -2503,7 +2503,7 @@ void vtkStepperCalibrationController::ReadConfiguration( vtkXMLDataElement* conf
 	LOG_TRACE("vtkStepperCalibrationController::ReadConfiguration"); 
 	if ( configData == NULL )
 	{
-		LOG_ERROR("Unable to read the main configration file"); 
+		LOG_ERROR("Unable to read configuration"); 
 		exit(EXIT_FAILURE); 
 	}
 

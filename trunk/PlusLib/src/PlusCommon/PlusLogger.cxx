@@ -1,3 +1,7 @@
+#ifdef _WIN32
+#include <Windows.h> // required for setting the text color on the console output
+#endif
+
 #include "PlusLogger.h"
 #include "PlusConfigure.h"
 #include <string>
@@ -12,7 +16,7 @@ PlusLogger::PlusLogger()
 	m_CriticalSection = vtkSimpleCriticalSection::New(); 
 	m_DisplayMessageCallbackFunction = NULL;
 	m_LogLevel = LOG_LEVEL_WARNING;
-	m_DisplayLogLevel = LOG_LEVEL_ERROR;
+	m_DisplayLogLevel = LOG_LEVEL_WARNING;
 	std::ostringstream logfilename; 
 	logfilename << vtkAccurateTimer::GetInstance()->GetDateAndTimeString() << "_PlusLog.txt"; 
 	this->m_LogStream.open (logfilename.str().c_str(), ios::out);
@@ -69,113 +73,104 @@ void PlusLogger::SetDisplayLogLevel(int logLevel)
 }
 
 //-------------------------------------------------------
-void PlusLogger::LogError(const char *msg)
+void PlusLogger::LogMessage(LogLevelType level, const char *msg, const char* fileName, int lineNumber)
 {
+  if (m_LogLevel<level && m_DisplayLogLevel<level)
+  {
+    // no need to log
+    return;
+  }
+
+  std::string timestamp=vtkAccurateTimer::GetInstance()->GetDateAndTimeMSecString();
+
 	std::ostringstream log; 
-	log << "[ERROR  ]: " << msg; 
-
-	this->WriteToFile(log.str().c_str()); 
-
+  switch (level)
+  {
+  case LOG_LEVEL_ERROR:
+    log << "[ERROR]  ";
+    break;
+  case LOG_LEVEL_WARNING:
+    log << "[WARNING]"; 
+    break;
+  case LOG_LEVEL_INFO:
+    log << "[INFO]   "; 
+    break;
+    case LOG_LEVEL_DEBUG:
+    log << "[DEBUG]  "; 
+    break;
+  case LOG_LEVEL_TRACE:
+    log << "[TRACE]  "; 
+    break;
+  default:
+    log << "[UNKNOWN]"; 
+    break;
+  }
+  log << msg;
+	
 	m_CriticalSection->Lock(); 
-	if (m_LogLevel>=LOG_LEVEL_ERROR)
+
+	if (m_DisplayLogLevel>=level)
 	{ 
-		std::cerr << log.str() << std::endl; 
-	}
-	if ((m_DisplayMessageCallbackFunction != NULL) && (m_DisplayLogLevel>=LOG_LEVEL_ERROR))
-	{
-		m_DisplayMessageCallbackFunction(msg, LOG_LEVEL_ERROR);
-	}
+
+#ifdef _WIN32
+
+    // Set the text color to highlight error and warning messages (supported only on windows)
+    switch (level)
+    {
+    case LOG_LEVEL_ERROR:  
+      {
+        HANDLE hStdout = GetStdHandle(STD_ERROR_HANDLE); 
+        SetConsoleTextAttribute(hStdout, FOREGROUND_RED|FOREGROUND_GREEN|FOREGROUND_BLUE|BACKGROUND_RED);
+      }
+      break;
+    case LOG_LEVEL_WARNING:
+      {
+        HANDLE hStdout = GetStdHandle(STD_ERROR_HANDLE); 
+        SetConsoleTextAttribute(hStdout, BACKGROUND_RED|BACKGROUND_GREEN);
+      }
+      break;
+    default:
+      {
+        HANDLE hStdout = GetStdHandle(STD_OUTPUT_HANDLE); 
+        SetConsoleTextAttribute(hStdout, FOREGROUND_RED|FOREGROUND_GREEN|FOREGROUND_BLUE);
+      }
+      break;
+    }    
+#endif
+
+    if (level>LOG_LEVEL_WARNING)
+    {
+      std::cout << log.str() << std::endl; 
+    }
+    else
+    {
+		  std::cerr << log.str() << std::endl; 
+    }
+
+#ifdef _WIN32
+    // Revert the text color (supported only on windows)
+    if (level==LOG_LEVEL_ERROR || level==LOG_LEVEL_WARNING)
+    {
+      HANDLE hStdout = GetStdHandle(STD_ERROR_HANDLE); 
+      SetConsoleTextAttribute(hStdout, FOREGROUND_RED|FOREGROUND_GREEN|FOREGROUND_BLUE);
+    }
+#endif
+
+    if (m_DisplayMessageCallbackFunction != NULL)
+    {
+	    m_DisplayMessageCallbackFunction(msg, level);
+    }
+	}	
+
+  if (m_LogLevel>=level)
+  {
+    this->m_LogStream << timestamp << " " << log.str() << msg << " [in " << fileName << "(" << lineNumber << ")]" << std::endl; 
+	  this->m_LogStream.flush(); 
+  }
+
 	m_CriticalSection->Unlock(); 
 }
 
-//-------------------------------------------------------
-void PlusLogger::LogWarning(const char *msg)
-{
-	std::ostringstream log; 
-	log << "[WARNING]: " << msg; 
-
-	this->WriteToFile(log.str().c_str()); 
-
-	m_CriticalSection->Lock(); 
-	if (m_LogLevel>=LOG_LEVEL_WARNING)
-	{ 
-		std::cerr << log.str() << std::endl; 
-	}
-	if ((m_DisplayMessageCallbackFunction != NULL) && (m_DisplayLogLevel>=LOG_LEVEL_WARNING))
-	{
-		m_DisplayMessageCallbackFunction(msg, LOG_LEVEL_WARNING);
-	}
-	m_CriticalSection->Unlock(); 
-}
-
-//-------------------------------------------------------
-void PlusLogger::LogInfo(const char *msg)
-{
-	std::ostringstream log; 
-	log << "[INFO   ]: " << msg; 
-
-	this->WriteToFile(log.str().c_str()); 
-
-	m_CriticalSection->Lock(); 
-	if (m_LogLevel>=LOG_LEVEL_INFO)
-	{ 
-		std::cerr << log.str() << std::endl; 
-	}
-	if ((m_DisplayMessageCallbackFunction != NULL) && (m_DisplayLogLevel>=LOG_LEVEL_INFO))
-	{
-		m_DisplayMessageCallbackFunction(msg, LOG_LEVEL_INFO);
-	}
-	m_CriticalSection->Unlock(); 
-}
-
-//-------------------------------------------------------
-void PlusLogger::LogDebug(const char *msg)
-{
-	std::ostringstream log; 
-	log << "[DEBUG  ]: " << msg; 
-
-	this->WriteToFile(log.str().c_str()); 
-
-	m_CriticalSection->Lock(); 
-	if (m_LogLevel>=LOG_LEVEL_DEBUG)
-	{ 
-		std::cerr << log.str() << std::endl; 
-	}
-	if ((m_DisplayMessageCallbackFunction != NULL) && (m_DisplayLogLevel>=LOG_LEVEL_DEBUG))
-	{
-		m_DisplayMessageCallbackFunction(msg, LOG_LEVEL_DEBUG);
-	}
-	m_CriticalSection->Unlock(); 
-}
-
-//-------------------------------------------------------
-void PlusLogger::LogTrace(const char *msg)
-{
-	std::ostringstream log; 
-	log << "[TRACE  ]: " << msg; 
-
-	this->WriteToFile(log.str().c_str()); 
-
-	m_CriticalSection->Lock(); 
-	if (m_LogLevel>=LOG_LEVEL_TRACE)
-	{ 
-		std::cerr << log.str() << std::endl; 
-	}
-	if ((m_DisplayMessageCallbackFunction != NULL) && (m_DisplayLogLevel>=LOG_LEVEL_TRACE))
-	{
-		m_DisplayMessageCallbackFunction(msg, LOG_LEVEL_TRACE);
-	}
-	m_CriticalSection->Unlock(); 
-}
-
-//-------------------------------------------------------
-void PlusLogger::WriteToFile(const char *msg)
-{
-	m_CriticalSection->Lock();
-	this->m_LogStream << "[" << vtkAccurateTimer::GetInstance()->GetDateAndTimeMSecString() << "\t]::" << msg << std::endl; 
-	this->m_LogStream.flush(); 
-	m_CriticalSection->Unlock(); 
-}
 
 //-------------------------------------------------------
 void PlusLogger::PrintProgressbar( int percent )

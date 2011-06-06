@@ -438,7 +438,7 @@ void vtkCalibrationController::ReadConfiguration( vtkXMLDataElement* configData 
 	LOG_TRACE("vtkCalibrationController::ReadConfiguration"); 
 	if ( configData == NULL )
 	{
-		LOG_ERROR("Unable to read the main configration file"); 
+		LOG_ERROR("Unable to read configuration"); 
 		exit(EXIT_FAILURE); 
 	}
 
