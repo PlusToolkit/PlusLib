@@ -15,6 +15,7 @@
      PURPOSE.  See the above copyright notice for more information. 
 
 =========================================================================*/
+#include "PlusConfigure.h"
 #include "vtkVideoFrame2.h"
 #include "vtkObjectFactory.h"
 
@@ -346,18 +347,29 @@ void *vtkVideoFrame2::GetVoidPointer(vtkIdType i)
   
 //----------------------------------------------------------------------------
 // Copies data from the frame's array to the array pointed to by arrayPtr.
-void vtkVideoFrame2::CopyData(void *arrayPtr, const int clipExtent[6],
+bool vtkVideoFrame2::CopyData(void *arrayPtr, const int clipExtent[6],
            const int outExtent[6],
            int outFormat)
 {
 
   if (outFormat != VTK_LUMINANCE && outFormat != VTK_RGB && outFormat != VTK_RGBA)
     {
-    return;
+    LOG_ERROR("Output format " << outFormat << " is not supported");
+    return false;
     }
 
   unsigned char *outPtr = reinterpret_cast<unsigned char *>(arrayPtr);
   unsigned char *inPtr = this->Array;
+  if (outPtr==NULL)
+  {
+    LOG_ERROR("Copydata output is invalid");
+    return false;
+  }
+  if (inPtr==NULL)
+  {
+    LOG_ERROR("Copydata input is invalid");
+    return false;
+  }
 
   int i, j;
 
@@ -460,7 +472,7 @@ void vtkVideoFrame2::CopyData(void *arrayPtr, const int clipExtent[6],
       inPtr += inIncZ;
       }
   }
-
+  return true;
 }
 
 //----------------------------------------------------------------------------
