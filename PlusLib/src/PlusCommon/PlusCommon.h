@@ -22,40 +22,40 @@
 #define LOG_ERROR(msg) \
 	{ \
 	std::ostrstream msgStream; \
-	msgStream << msg << std::ends; \
-	PlusLogger::Instance()->LogError(msgStream.str()); \
+  msgStream << " " << msg << std::ends; \
+	PlusLogger::Instance()->LogMessage(PlusLogger::LOG_LEVEL_ERROR, msgStream.str(), __FILE__, __LINE__); \
 	msgStream.rdbuf()->freeze(); \
 	}	
 
 #define LOG_WARNING(msg) \
 	{ \
 	std::ostrstream msgStream; \
-	msgStream << msg << std::ends; \
-	PlusLogger::Instance()->LogWarning(msgStream.str()); \
-	msgStream.rdbuf()->freeze(); \
+	msgStream << " " << msg << std::ends; \
+  PlusLogger::Instance()->LogMessage(PlusLogger::LOG_LEVEL_WARNING, msgStream.str(), __FILE__, __LINE__); \
+  msgStream.rdbuf()->freeze(); \
 	}
 		
 #define LOG_INFO(msg) \
 	{ \
 	std::ostrstream msgStream; \
-	msgStream << msg << std::ends; \
-	PlusLogger::Instance()->LogInfo(msgStream.str()); \
+	msgStream << " " << msg << std::ends; \
+	PlusLogger::Instance()->LogMessage(PlusLogger::LOG_LEVEL_INFO, msgStream.str(), __FILE__, __LINE__); \
 	msgStream.rdbuf()->freeze(); \
 	}
 	
 #define LOG_DEBUG(msg) \
 	{ \
 	std::ostrstream msgStream; \
-	msgStream << msg << std::ends; \
-	PlusLogger::Instance()->LogDebug(msgStream.str()); \
+	msgStream << " " << msg << std::ends; \
+	PlusLogger::Instance()->LogMessage(PlusLogger::LOG_LEVEL_DEBUG, msgStream.str(), __FILE__, __LINE__); \
 	msgStream.rdbuf()->freeze(); \
 	}	
 	
 #define LOG_TRACE(msg) \
 	{ \
 	std::ostrstream msgStream; \
-	msgStream << msg << std::ends; \
-	PlusLogger::Instance()->LogTrace(msgStream.str()); \
+	msgStream << " " << msg << std::ends; \
+	PlusLogger::Instance()->LogMessage(PlusLogger::LOG_LEVEL_TRACE, msgStream.str(), __FILE__, __LINE__); \
 	msgStream.rdbuf()->freeze(); \
 	}	
 	

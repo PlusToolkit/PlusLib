@@ -1397,14 +1397,14 @@ void vtkDataCollector::ReadConfiguration()
   const char* configFn=this->GetConfigFileName();
   if (configFn==NULL)
   {
-    LOG_ERROR("Unable to read the main configration file: no filename is specified"); 
+    LOG_ERROR("Unable to read configuration file: no filename is specified"); 
     exit(EXIT_FAILURE);
   }
 
 	this->ConfigurationData = vtkXMLUtilities::ReadElementFromFile(configFn); 
 	if ( this->ConfigurationData == NULL) 
 	{	
-    LOG_ERROR("Unable to read the main configration file: " << configFn); 
+    LOG_ERROR("Unable to read configuration from file " << configFn); 
 		exit(EXIT_FAILURE); 
 	} 
 
