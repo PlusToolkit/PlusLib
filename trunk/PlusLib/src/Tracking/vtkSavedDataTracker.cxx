@@ -62,19 +62,19 @@ void vtkSavedDataTracker::PrintSelf(ostream& os, vtkIndent indent)
  * @returns 1 on success, 0 on failure.
  */
 //----------------------------------------------------------------------------
-int vtkSavedDataTracker::Connect()
+PlusStatus vtkSavedDataTracker::Connect()
 {
 	LOG_TRACE("vtkSavedDataTracker::Connect"); 
 	vtkSmartPointer<vtkTrackedFrameList> savedDataBuffer = vtkSmartPointer<vtkTrackedFrameList>::New(); 
 		
-	if ( !this->Probe() )
+  if ( this->Probe()!=PLUS_SUCCESS )
 	{
-		return 0; 
+		return PLUS_FAIL; 
 	}
   
   if ( this->Initialized )
     {
-    return 1;
+    return PLUS_SUCCESS;
     }
   
   
@@ -179,42 +179,42 @@ int vtkSavedDataTracker::Connect()
 	}
   
 	this->Initialized = true;
-	return 1; 
+	return PLUS_SUCCESS; 
 }
 
 //-----------------------------------------------------------------------------
-void vtkSavedDataTracker::Disconnect()
+PlusStatus vtkSavedDataTracker::Disconnect()
 {
 	LOG_TRACE("vtkSavedDataTracker::Disconnect"); 
-	this->StopTracking(); 
+	return this->StopTracking(); 
 }
 
 //----------------------------------------------------------------------------
-int vtkSavedDataTracker::Probe()
+PlusStatus vtkSavedDataTracker::Probe()
 {
 	LOG_TRACE("vtkSavedDataTracker::Probe"); 
 	if ( !vtksys::SystemTools::FileExists(this->GetSequenceMetafile(), true) )
 	{
 		LOG_ERROR("SavedDataTracker Probe failed: Unable to read sequence metafile!"); 
-		return 0; 
+		return PLUS_FAIL; 
 	}
-	return 1; 
+	return PLUS_SUCCESS; 
 } 
 
 //----------------------------------------------------------------------------
-int vtkSavedDataTracker::InternalStartTracking()
+PlusStatus vtkSavedDataTracker::InternalStartTracking()
 {
 	LOG_TRACE("vtkSavedDataTracker::InternalStartTracking"); 
 	if (this->Tracking)
 	{
-		return 1;
+		return PLUS_SUCCESS;
 	}
 
 	if (!this->InitSavedDataTracker())
 	{
 		LOG_ERROR("Couldn't initialize SavedDataTracker");
 		this->Tracking = 0;
-		return 0;
+		return PLUS_FAIL;
 	} 
 
 	this->SetStartTimestamp(vtkAccurateTimer::GetSystemTime()); 
@@ -223,24 +223,24 @@ int vtkSavedDataTracker::InternalStartTracking()
 	this->Timer->Initialize();
 	this->Tracking = 1;
 
-	return 1;
+	return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-int vtkSavedDataTracker::InternalStopTracking()
+PlusStatus vtkSavedDataTracker::InternalStopTracking()
 {
 	LOG_TRACE("vtkSavedDataTracker::InternalStopTracking"); 
-	return 1;
+	return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-void vtkSavedDataTracker::InternalUpdate()
+PlusStatus vtkSavedDataTracker::InternalUpdate()
 {
 	LOG_TRACE("vtkSavedDataTracker::InternalUpdate"); 
 	if (!this->Tracking)
 	{
-		LOG_WARNING("Called Update() when SavedDataTracker was not tracking");
-		return;
+		LOG_ERROR("Called Update() when SavedDataTracker was not tracking");
+		return PLUS_FAIL;
 	}
 
 	const double elapsedTime = vtkAccurateTimer::GetSystemTime() - this->GetStartTimestamp(); 
@@ -271,24 +271,26 @@ void vtkSavedDataTracker::InternalUpdate()
 	{
 		this->SetStartTimestamp(vtkAccurateTimer::GetSystemTime()); 
 	}
+  
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-bool vtkSavedDataTracker::InitSavedDataTracker()
+PlusStatus vtkSavedDataTracker::InitSavedDataTracker()
 {
 	LOG_TRACE("vtkSavedDataTracker::InitSavedDataTracker"); 
 	// Connect to device 
-	 return this->Connect(); 
+	return this->Connect(); 
 }
 
 //----------------------------------------------------------------------------
-void vtkSavedDataTracker::ReadConfiguration(vtkXMLDataElement* config)
+PlusStatus vtkSavedDataTracker::ReadConfiguration(vtkXMLDataElement* config)
 {
 	LOG_TRACE("vtkSavedDataTracker::ReadConfiguration"); 
 	if ( config == NULL ) 
 	{
-		LOG_WARNING("Unable to find SavedDataset XML data element");
-		return; 
+		LOG_ERROR("Unable to find SavedDataset XML data element");
+		return PLUS_FAIL; 
 	}
 	
 	Superclass::ReadConfiguration(config); 
@@ -316,18 +318,23 @@ void vtkSavedDataTracker::ReadConfiguration(vtkXMLDataElement* config)
 			this->ReplayEnabled = false; 
 		}
 	}
+  
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-void vtkSavedDataTracker::WriteConfiguration(vtkXMLDataElement* config)
+PlusStatus vtkSavedDataTracker::WriteConfiguration(vtkXMLDataElement* config)
 {
 	LOG_TRACE("vtkSavedDataTracker::WriteConfiguration"); 
-	if ( config == NULL )
-	{
-		config = vtkXMLDataElement::New(); 
-	}
+  
+  if ( config == NULL )
+  {
+    LOG_ERROR("Config is invalid");
+    return PLUS_FAIL;
+  }
 
 	config->SetName("SavedDataset");  
-
 	config->SetAttribute( "SequenceMetafile", this->GetSequenceMetafile() ); 
+  
+  return PLUS_SUCCESS;
 }

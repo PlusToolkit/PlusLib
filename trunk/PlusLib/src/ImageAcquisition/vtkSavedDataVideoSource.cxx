@@ -109,13 +109,13 @@ void vtkSavedDataVideoSource::PrintSelf(ostream& os, vtkIndent indent)
 }
 
 //----------------------------------------------------------------------------
-void vtkSavedDataVideoSource::InternalGrab()
+PlusStatus vtkSavedDataVideoSource::InternalGrab()
 {
 	/*LOG_TRACE("vtkSavedDataVideoSource::InternalGrab");*/
 	if ( !this->Initialized )
 	{
-		LOG_WARNING("Called InternalGrab() when SavedDataVideoSource was not initialized!");
-		return; 	
+		LOG_ERROR("Called InternalGrab() when SavedDataVideoSource was not initialized!");
+		return PLUS_FAIL; 	
 	}
 	// get a thread lock on the frame buffer
 	this->Buffer->Lock();
@@ -128,9 +128,9 @@ void vtkSavedDataVideoSource::InternalGrab()
 	vtkVideoBuffer2::FrameStatus oldestFrameStatus = this->LocalVideoBuffer->GetTimeStamp( this->LocalVideoBuffer->GetOldestFrameUidInBuffer(), oldestFrameTimestamp); 
 	if ( oldestFrameStatus != vtkVideoBuffer2::FRAME_OK )
 	{
-		LOG_WARNING("vtkSavedDataVideoSource: Unable to get oldest frame timestamp from local buffer with the oldest frame UID!");
+		LOG_ERROR("vtkSavedDataVideoSource: Unable to get oldest frame timestamp from local buffer with the oldest frame UID!");
 		this->Buffer->Unlock();
-		return; 
+		return PLUS_FAIL; 
 	}
 
 	// Get the latest timestamp from the buffer 
@@ -138,9 +138,9 @@ void vtkSavedDataVideoSource::InternalGrab()
 	vtkVideoBuffer2::FrameStatus latestFrameStatus = this->LocalVideoBuffer->GetTimeStamp( this->LocalVideoBuffer->GetLatestFrameUidInBuffer(), latestFrameTimestamp); 
 	if ( latestFrameStatus != vtkVideoBuffer2::FRAME_OK )
 	{
-		LOG_WARNING("vtkSavedDataVideoSource: Unable to get newest frame timestamp from local buffer with the latest frame UID!");
+		LOG_ERROR("vtkSavedDataVideoSource: Unable to get newest frame timestamp from local buffer with the latest frame UID!");
 		this->Buffer->Unlock();
-		return; 
+		return PLUS_FAIL; 
 	}
 
 	// Compute the next timestamp 
@@ -165,24 +165,24 @@ void vtkSavedDataVideoSource::InternalGrab()
 	vtkVideoBuffer2::FrameStatus frameStatus = this->LocalVideoBuffer->GetFrameUidFromTime(nextFrameTimestamp, frameUID); 
 	if ( frameStatus == vtkVideoBuffer2::FRAME_NOT_AVAILABLE_YET )
 	{
-		LOG_WARNING("vtkSavedDataVideoSource: Unable to get frame UID from time - frame not available yet!");
+		LOG_ERROR("vtkSavedDataVideoSource: Unable to get frame UID from time - frame not available yet!");
 		this->Buffer->Unlock();
-		return; 
+		return PLUS_FAIL; 
 	}
 	else if ( frameStatus == vtkVideoBuffer2::FRAME_NOT_AVAILABLE_ANYMORE )
 	{
-		LOG_WARNING("vtkSavedDataVideoSource: Unable to get frame UID from time - frame not available anymore!");
+		LOG_ERROR("vtkSavedDataVideoSource: Unable to get frame UID from time - frame not available anymore!");
 		this->Buffer->Unlock();
-		return; 
+		return PLUS_FAIL; 
 	}
 
 	// Get frame number 
 	unsigned long frameNumber(0); 
 	if ( this->LocalVideoBuffer->GetFrameNumber(frameUID, frameNumber) != vtkVideoBuffer2::FRAME_OK )
 	{
-		LOG_WARNING( "vtkSavedDataVideoSource: Unable to get frame number from local video buffer with UID: " << frameUID ); 
+		LOG_ERROR( "vtkSavedDataVideoSource: Unable to get frame number from local video buffer with UID: " << frameUID ); 
 		this->Buffer->Unlock();
-		return; 
+		return PLUS_FAIL; 
 	}
 
 	// use the information about data type and frmnum to do cross checking that you are maintaining correct frame index, & receiving
@@ -196,25 +196,25 @@ void vtkSavedDataVideoSource::InternalGrab()
 
 	if ( localFrameStatus != vtkVideoBuffer2::FRAME_OK )
 	{
-		LOG_WARNING( "vtkSavedDataVideoSource: Unable to get frame from local video buffer with UID: " << frameUID ); 
+		LOG_ERROR( "vtkSavedDataVideoSource: Unable to get frame from local video buffer with UID: " << frameUID ); 
 		this->Buffer->Unlock();
-		return; 
+		return PLUS_FAIL; 
 	}
 
 	if ( localFrame == NULL )
 	{
-		LOG_WARNING( "vtkSavedDataVideoSource: Failed to grab new frame from local video buffer with UID: " << frameUID  << " - Frame pointer was NULL"); 
+		LOG_ERROR( "vtkSavedDataVideoSource: Failed to grab new frame from local video buffer with UID: " << frameUID  << " - Frame pointer was NULL"); 
 		this->Buffer->Unlock();
-		return; 
+		return PLUS_FAIL; 
 	}
 
 	// get the pointer to the correct location in the frame buffer, where this data needs to be copied
 	vtkVideoFrame2* newFrameInBuffer = this->Buffer->GetFrameToWrite(); 
 	if ( newFrameInBuffer == NULL )
 	{
-		LOG_WARNING( "vtkSavedDataVideoSource: Failed to get video frame pointer from the buffer for the new frame!"); 
+		LOG_ERROR( "vtkSavedDataVideoSource: Failed to get video frame pointer from the buffer for the new frame!"); 
 		this->Buffer->Unlock();
-		return; 
+		return PLUS_FAIL; 
 	}
 
 	unsigned char *deviceDataPtr = reinterpret_cast<unsigned char *>(localFrame->GetVoidPointer(0)); 
@@ -258,36 +258,39 @@ void vtkSavedDataVideoSource::InternalGrab()
 	this->Modified();
 
 	this->Buffer->Unlock();
+
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-void vtkSavedDataVideoSource::Initialize()
+PlusStatus vtkSavedDataVideoSource::Initialize()
 {
 	LOG_TRACE("vtkSavedDataVideoSource::Initialize"); 
 	if (this->Initialized)
 	{
-		return;
+		return PLUS_SUCCESS;
 	}
 
 	// Connect to device
 	if ( !this->Connect() ) 
 	{
 		LOG_ERROR("Unable to connect to saved data video device!"); 
-		return; 
+		return PLUS_FAIL; 
 	}
 
 	this->Initialized = 1;
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-int vtkSavedDataVideoSource::Connect()
+PlusStatus vtkSavedDataVideoSource::Connect()
 {
 	LOG_TRACE("vtkSavedDataVideoSource::Connect"); 
 
 	if ( !vtksys::SystemTools::FileExists(this->GetSequenceMetafile(), true) )
 	{
 		LOG_ERROR("Unable to connect to saved data video source: Unable to read sequence metafile!"); 
-		return 0; 
+		return PLUS_FAIL; 
 	}
 
 	vtkSmartPointer<vtkTrackedFrameList> savedDataBuffer = vtkSmartPointer<vtkTrackedFrameList>::New(); 
@@ -394,14 +397,14 @@ int vtkSavedDataVideoSource::Connect()
 		this->LocalVideoBuffer->AddItem(newFrameInBuffer, timestamp, unfilteredTimestamp, frameNumber );
 	}
 
-	return 1; 
+	return PLUS_SUCCESS; 
 }
 
 //----------------------------------------------------------------------------
-void vtkSavedDataVideoSource::Disconnect()
+PlusStatus vtkSavedDataVideoSource::Disconnect()
 {
 	LOG_TRACE("vtkSavedDataVideoSource::Disconnect"); 
-	this->Stop();
+	return this->Stop();
 }
 
 //----------------------------------------------------------------------------
@@ -413,31 +416,21 @@ void vtkSavedDataVideoSource::ReleaseSystemResources()
 }
 
 //----------------------------------------------------------------------------
-void vtkSavedDataVideoSource::Grab()
+PlusStatus vtkSavedDataVideoSource::Grab()
 {
-	LOG_TRACE("vtkSavedDataVideoSource::Grab"); 
-	if (this->Recording)
-	{
-		return;
-	}
-
-	// ensure that the frame buffer is properly initialized
-	this->Initialize();
-	if (!this->Initialized)
-	{
-		return;
-	}
+  LOG_ERROR("Grab is not implemented for this video source");
+	return PLUS_FAIL;
 }
 
 //----------------------------------------------------------------------------
-void vtkSavedDataVideoSource::Record()
+PlusStatus vtkSavedDataVideoSource::Record()
 {
 	LOG_TRACE("vtkSavedDataVideoSource::Record"); 
 
 	if (!this->Initialized)
 	{
 		LOG_ERROR("Unable to start recording: initialize the video device first!"); 
-		return;
+		return PLUS_FAIL;
 	}
 
 	if (!this->Recording)
@@ -445,10 +438,12 @@ void vtkSavedDataVideoSource::Record()
 		this->SetStartTimestamp(vtkAccurateTimer::GetSystemTime()); 
 		this->vtkVideoSource2::Record(); 
 	}
+
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-void vtkSavedDataVideoSource::Stop()
+PlusStatus vtkSavedDataVideoSource::Stop()
 {
 	LOG_TRACE("vtkSavedDataVideoSource::Stop"); 
 	if (this->Recording)
@@ -456,16 +451,18 @@ void vtkSavedDataVideoSource::Stop()
 		this->Recording = 0;
 		this->Modified();
 	}
+
+  return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
-void vtkSavedDataVideoSource::ReadConfiguration(vtkXMLDataElement* config)
+PlusStatus vtkSavedDataVideoSource::ReadConfiguration(vtkXMLDataElement* config)
 {
 	LOG_TRACE("vtkSavedDataVideoSource::ReadConfiguration"); 
 	if ( config == NULL )
 	{
 		LOG_ERROR("Unable to configure Saved Data video source! (XML data element is NULL)"); 
-		return; 
+		return PLUS_FAIL; 
 	}
 
 	Superclass::ReadConfiguration(config); 
@@ -494,12 +491,15 @@ void vtkSavedDataVideoSource::ReadConfiguration(vtkXMLDataElement* config)
 		}
 	}
 	
+  return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
-void vtkSavedDataVideoSource::WriteConfiguration(vtkXMLDataElement* config)
+PlusStatus vtkSavedDataVideoSource::WriteConfiguration(vtkXMLDataElement* config)
 {
 	LOG_TRACE("vtkSavedDataVideoSource::WriteConfiguration"); 
 	Superclass::WriteConfiguration(config); 
+  LOG_ERROR("Not implemented");
+  return PLUS_FAIL;
 }
 

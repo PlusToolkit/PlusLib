@@ -290,10 +290,9 @@ void vtkCalibratorVisualizationComponent::Initialize(vtkProbeCalibrationControll
 //----------------------------------------------------------------------------
 void vtkCalibratorVisualizationComponent::SetupTemplateOverlay()
 {
-	vtkXMLDataElement *configTemplateModel = vtkXMLUtilities::ReadElementFromFile(this->GetTemplateModelConfigFileName()); 
+	vtkSmartPointer<vtkXMLDataElement> configTemplateModel = vtkXMLUtilities::ReadElementFromFile(this->GetTemplateModelConfigFileName()); 
 	// Read Template model file 
 	this->ReadTemplateModelConfiguration(configTemplateModel); 
-	configTemplateModel->Delete(); 
 
 	this->TemplateGridActors.TransverseGridActors = vtkSmartPointer<vtkCollection>::New(); 
 	this->TemplateGridActors.TransverseLetterActors = vtkSmartPointer<vtkCollection>::New(); 
@@ -1341,13 +1340,13 @@ void vtkCalibratorVisualizationComponent::ReadTemplateModelConfiguration(vtkXMLD
 {
 	if ( configTemplateModel == NULL ) 
 	{
-		vtkErrorMacro("Unable to read template model file: " << this->GetTemplateModelConfigFileName()); 
+		LOG_ERROR("Unable to read template model file: " << this->GetTemplateModelConfigFileName()); 
 	}
 
-	vtkSmartPointer<vtkXMLDataElement> originFromTemplateHolder = configTemplateModel->FindNestedElementWithName("OriginFromTemplateHolder"); 
+	vtkXMLDataElement* originFromTemplateHolder = configTemplateModel->FindNestedElementWithName("OriginFromTemplateHolder"); 
 	if ( originFromTemplateHolder == NULL ) 
 	{
-		vtkErrorMacro("Unable to read template origin from template holder from template model file!"); 
+		LOG_ERROR("Unable to read template origin from template holder from template model file!"); 
 	}
 
 	vtkSmartPointer<vtkTransform> transformTemplateHolderHomeToTemplateHome = vtkSmartPointer<vtkTransform>::New(); 
@@ -1369,7 +1368,7 @@ void vtkCalibratorVisualizationComponent::ReadTemplateModelConfiguration(vtkXMLD
 	this->GetCalibrationController()->SetTransformTemplateHolderHomeToTemplateHome( transformTemplateHolderHomeToTemplateHome ); 
 
 	// ************************* Template model letters *************************
-	vtkSmartPointer<vtkXMLDataElement> letterPositions = configTemplateModel->FindNestedElementWithName("LetterPositions");
+	vtkXMLDataElement* letterPositions = configTemplateModel->FindNestedElementWithName("LetterPositions");
 	if (letterPositions!=NULL)
 	{ 
 
@@ -1418,7 +1417,7 @@ void vtkCalibratorVisualizationComponent::ReadTemplateModelConfiguration(vtkXMLD
 	TEMPLATE_LETTER_TYPE letterType = LETTER_NUM; 
 	double holeRadius=0.2; 
 
-	vtkSmartPointer<vtkXMLDataElement> templateHole = configTemplateModel->FindNestedElementWithName("TemplateHole");
+	vtkXMLDataElement* templateHole = configTemplateModel->FindNestedElementWithName("TemplateHole");
 	if (templateHole != NULL) 
 	{
 		const char* representation = templateHole->GetAttribute("Representation"); 
@@ -1435,7 +1434,7 @@ void vtkCalibratorVisualizationComponent::ReadTemplateModelConfiguration(vtkXMLD
 
 	}
 
-	vtkSmartPointer<vtkXMLDataElement> holePositions = configTemplateModel->FindNestedElementWithName("HolePositions");
+	vtkXMLDataElement* holePositions = configTemplateModel->FindNestedElementWithName("HolePositions");
 	if (holePositions!=NULL)
 	{ 
 		for (int i = 0; i < holePositions->GetNumberOfNestedElements(); i++)

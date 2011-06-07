@@ -154,7 +154,7 @@ void vtkVideoBuffer2::SetBufferSize(int bufsize)
 
 	if (bufsize < 0)
 	{
-		vtkErrorMacro("SetBufferSize: invalid buffer size");
+		LOG_ERROR("SetBufferSize: invalid buffer size");
 		return;
 	}
 
@@ -715,7 +715,10 @@ void vtkVideoBuffer2::DeepCopy(vtkVideoBuffer2* buffer)
 	{
 		int * extent = this->GetFrameByBufferIndex(i)->GetFrameExtent(); 
 		this->GetFrameByBufferIndex(i)->Allocate(); 
-		buffer->GetFrameByBufferIndex(i)->CopyData(this->GetFrameByBufferIndex(i)->GetVoidPointer(0), extent, extent, this->GetFrameByBufferIndex(i)->GetPixelFormat()) ; 
+    if (!buffer->GetFrameByBufferIndex(i)->CopyData(this->GetFrameByBufferIndex(i)->GetVoidPointer(0), extent, extent, this->GetFrameByBufferIndex(i)->GetPixelFormat()))
+    {
+      LOG_ERROR("Cannot copy data for frame index: " << i);
+    }		
 		this->FilteredTimeStampArray->SetValue(i, buffer->FilteredTimeStampArray->GetValue(i));
 		this->UnfilteredTimeStampArray->SetValue(i, buffer->UnfilteredTimeStampArray->GetValue(i));
 		this->FrameNumberArray->SetValue(i, buffer->FrameNumberArray->GetValue(i)); 

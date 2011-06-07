@@ -164,7 +164,7 @@ vtkProbeCalibrationController::~vtkProbeCalibrationController()
 }
 
 //----------------------------------------------------------------------------
-void vtkProbeCalibrationController::Initialize()
+PlusStatus vtkProbeCalibrationController::Initialize()
 {
 	LOG_TRACE("vtkProbeCalibrationController::Initialize"); 
 	
@@ -218,6 +218,8 @@ void vtkProbeCalibrationController::Initialize()
 	}
 
 	this->InitializedOn(); 
+
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
@@ -383,7 +385,7 @@ void vtkProbeCalibrationController::DoCalibration()
 }
 
 //----------------------------------------------------------------------------
-bool vtkProbeCalibrationController::AddTrackedFrameData(TrackedFrame* trackedFrame, IMAGE_DATA_TYPE dataType )
+PlusStatus vtkProbeCalibrationController::AddTrackedFrameData(TrackedFrame* trackedFrame, IMAGE_DATA_TYPE dataType )
 {
 	LOG_TRACE("vtkProbeCalibrationController::AddTrackedFrameData"); 
 	if ( Superclass::AddTrackedFrameData(trackedFrame, dataType) )
@@ -410,11 +412,11 @@ bool vtkProbeCalibrationController::AddTrackedFrameData(TrackedFrame* trackedFra
 			{
 				this->DoCalibration(); 
 			}
-			return true; 
+			return PLUS_SUCCESS; 
 		}
 	}
 
-	return false; 
+	return PLUS_FAIL; 
 }
 
 //----------------------------------------------------------------------------
@@ -631,7 +633,7 @@ void vtkProbeCalibrationController::SetUSImageFrameOriginInPixels( int* origin )
 }
 
 //----------------------------------------------------------------------------
-bool vtkProbeCalibrationController::GetWirePosInTemplateCoordinate( int wireNum, double* wirePosInTemplate )
+PlusStatus vtkProbeCalibrationController::GetWirePosInTemplateCoordinate( int wireNum, double* wirePosInTemplate )
 {
 	LOG_TRACE("vtkProbeCalibrationController::GetWirePosInTemplateCoordinate (wire #" << wireNum << ")"); 
 	// Wire position on the front wall in template coordinate system
@@ -674,11 +676,11 @@ bool vtkProbeCalibrationController::GetWirePosInTemplateCoordinate( int wireNum,
 
 	if ( vtkPlane::IntersectWithLine(p1, p2, n, p0, t, wirePosInTemplate ) )
 	{
-		return true; 
+		return PLUS_SUCCESS; 
 	}
 
 	// plane and line are parallel
-	return false; 
+	return PLUS_FAIL; 
 }
 
 //----------------------------------------------------------------------------
@@ -784,59 +786,66 @@ vnl_matrix<double> vtkProbeCalibrationController::GetLineReconstructionErrorMatr
 }
 
 //----------------------------------------------------------------------------
-void vtkProbeCalibrationController::ReadConfiguration( const char* configFileNameWithPath )
+PlusStatus vtkProbeCalibrationController::ReadConfiguration( const char* configFileNameWithPath )
 {
 	LOG_TRACE("vtkProbeCalibrationController::ReadConfiguration - " << configFileNameWithPath); 
 	this->SetConfigurationFileName(configFileNameWithPath); 
 	
-	vtkXMLDataElement *calibrationController = vtkXMLUtilities::ReadElementFromFile(this->GetConfigurationFileName()); 
-	this->ReadConfiguration(calibrationController); 
-	calibrationController->Delete(); 
+	vtkSmartPointer<vtkXMLDataElement> calibrationController = vtkXMLUtilities::ReadElementFromFile(this->GetConfigurationFileName()); 
+  if (calibrationController==NULL)
+  {
+    LOG_ERROR("Failed to read calibration controller configuration from " << this->GetConfigurationFileName());
+    return PLUS_FAIL;
+  }
+	PlusStatus status=this->ReadConfiguration(calibrationController); 
+  return status;
 }
 
 //----------------------------------------------------------------------------
-void vtkProbeCalibrationController::ReadConfiguration( vtkXMLDataElement* configData )
+PlusStatus vtkProbeCalibrationController::ReadConfiguration( vtkXMLDataElement* configData )
 {
 	LOG_TRACE("vtkProbeCalibrationController::ReadConfiguration"); 
 	if ( configData == NULL )
 	{
 		LOG_ERROR("Unable to read configuration"); 
-		exit(EXIT_FAILURE); 
+		return PLUS_FAIL;
 	}
 
 	// Calibration controller specifications
 	//********************************************************************
-	vtkSmartPointer<vtkXMLDataElement> calibrationController = configData->FindNestedElementWithName("CalibrationController"); 
+	vtkXMLDataElement* calibrationController = configData->FindNestedElementWithName("CalibrationController"); 
 	this->ReadCalibrationControllerConfiguration(calibrationController); 
 
 	// ProbeCalibration specifications
 	//*********************************
-	vtkSmartPointer<vtkXMLDataElement> probeCalibration = calibrationController->FindNestedElementWithName("ProbeCalibration"); 
+	vtkXMLDataElement* probeCalibration = calibrationController->FindNestedElementWithName("ProbeCalibration"); 
 	this->CalibrationControllerIO->ReadProbeCalibrationConfiguration(probeCalibration); 
+
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-void vtkProbeCalibrationController::GenerateProbeCalibrationReport( vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter, const char* gnuplotScriptsFolder)
+PlusStatus vtkProbeCalibrationController::GenerateProbeCalibrationReport( vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter, const char* gnuplotScriptsFolder)
 {
 	LOG_TRACE("vtkProbeCalibrationController::GenerateProbeCalibrationReport"); 
 	if ( htmlReport == NULL || plotter == NULL )
 	{
 		LOG_ERROR("Caller should define HTML report generator and gnuplot plotter before report generation!"); 
-		return; 
+		return PLUS_FAIL; 
 	}
 
 	std::string plotSegmentedWirePositionsHistogramScript = gnuplotScriptsFolder + std::string("/PlotSegmentedWirePositionsHistogram.gnu"); 
 	if ( !vtksys::SystemTools::FileExists( plotSegmentedWirePositionsHistogramScript.c_str(), true) )
 	{
 		LOG_ERROR("Unable to find gnuplot script at: " << plotSegmentedWirePositionsHistogramScript); 
-		return; 
+		return PLUS_FAIL; 
 	}
 
 	std::string plotSegmentedWirePositionsErrorScript = gnuplotScriptsFolder + std::string("/PlotSegmentedWirePositions.gnu"); 
 	if ( !vtksys::SystemTools::FileExists( plotSegmentedWirePositionsErrorScript.c_str(), true) )
 	{
 		LOG_ERROR("Unable to find gnuplot script at: " << plotSegmentedWirePositionsErrorScript); 
-		return; 
+		return PLUS_FAIL; 
 	}
 
 	if ( this->CalibrationDone && this->GetEnableSegmentedWirePositionsSaving() )
@@ -845,7 +854,7 @@ void vtkProbeCalibrationController::GenerateProbeCalibrationReport( vtkHTMLGener
 		if ( !vtksys::SystemTools::FileExists( reportFile.c_str(), true) )
 		{
 			LOG_ERROR("Unable to find segmented wire positions report file at: " << reportFile); 
-			return; 
+			return PLUS_FAIL; 
 		}
 
 		htmlReport->AddText("Final Calibration Error", vtkHTMLGenerator::H1); 
@@ -908,4 +917,5 @@ void vtkProbeCalibrationController::GenerateProbeCalibrationReport( vtkHTMLGener
 		htmlReport->AddHorizontalLine(); 
 	}
 
+  return PLUS_SUCCESS;
 }

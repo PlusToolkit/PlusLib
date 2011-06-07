@@ -91,7 +91,7 @@ void vtkTemplateToStepperCalibrator::CalculateCenterOfRotation()
 
 	if ( this->PointSetForCenterOfRotationCalculation.size() < MinNumberOfPointsForCalibration )
 	{
-		vtkWarningMacro("Center of rotation calculation: There is not enough data points for Template to Stepper Calibration!"); 
+		LOG_WARNING("Center of rotation calculation: There is not enough data points for Template to Stepper Calibration!"); 
 		return; 
 	}
 
@@ -195,7 +195,7 @@ void vtkTemplateToStepperCalibrator::CalculateSpacing()
 
 	if ( this->PointSetForSpacingCalculation.size() < MinNumberOfPointsForCalibration )
 	{
-		vtkWarningMacro("Spacing calculation: There is not enough data points for Template to Stepper Calibration!"); 
+		LOG_WARNING("Spacing calculation: There is not enough data points for Template to Stepper Calibration!"); 
 		return; 
 	}
 
@@ -276,7 +276,7 @@ void vtkTemplateToStepperCalibrator::CalculatePhantomToProbeDistance()
 	{
 		// The template to stepper calibration was NOT successful 
 		this->TemplateToStepperCalibrationDoneOff();
-		vtkWarningMacro("Phantom to probe distance calculation: There is not enough data points for Template to Stepper Calibration!"); 
+		LOG_WARNING("Phantom to probe distance calculation: There is not enough data points for Template to Stepper Calibration!"); 
 		return; 
 	}
 
@@ -345,7 +345,7 @@ void vtkTemplateToStepperCalibrator::CalculateTemplateToStepperTransformation(do
 {
 	if ( this->Calibrator == NULL ) 
 	{
-		vtkErrorMacro("Unable to calculate template to stepper transformation. Set calibrator first!"); 
+		LOG_ERROR("Unable to calculate template to stepper transformation. Set calibrator first!"); 
 		return; 
 	}
 
@@ -368,7 +368,7 @@ void vtkTemplateToStepperCalibrator::CalculateTemplateToStepperTransformation(vt
 {
 	if ( this->Calibrator == NULL ) 
 	{
-		vtkErrorMacro("Unable to calculate template to stepper transformation. Set calibrator first!"); 
+		LOG_ERROR("Unable to calculate template to stepper transformation. Set calibrator first!"); 
 		return; 
 	}
 

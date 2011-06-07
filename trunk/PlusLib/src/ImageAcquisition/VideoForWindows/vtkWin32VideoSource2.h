@@ -49,11 +49,7 @@ public:
   void Record();
 
   // Description:
-  // Standard VCR functionality: Play recorded video.
-  void Play();
-
-  // Description:
-  // Standard VCR functionality: Stop recording or playing.
+  // Standard VCR functionality: Stop recording.
   void Stop();
 
   // Description:

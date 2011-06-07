@@ -207,7 +207,7 @@ void vtkSignalBox::Stop()
 void vtkSignalBox::Update()
 {
   if (!this->IsStarted){
-    vtkWarningMacro( << "called Update() before you started reading Signal.  Starting Signal Reading for you");
+    LOG_WARNING("called Update() before you started reading Signal.  Starting Signal Reading for you");
     this->Start();
     return;
   }

@@ -22,7 +22,7 @@ public:
 	virtual void PrintSelf(ostream& os, vtkIndent indent); 
 
 	//! Operation: Initialize the calibration controller interface
-	virtual void Initialize(); 
+	virtual PlusStatus Initialize(); 
 
 	//! Operations: initialize the visualization parts for PRE3D distribution
 	//  Initialize plot components when calibration (re)starts
@@ -34,7 +34,7 @@ public:
 	//! Operation 
 	// Add new tracked data for segmentation and save the segmentation result to the SegmentedFrameContainer
 	// The class has to be initialized before the segmentation process. 
-	virtual bool AddTrackedFrameData( TrackedFrame* trackedFrame, IMAGE_DATA_TYPE dataType ); 
+	virtual PlusStatus AddTrackedFrameData( TrackedFrame* trackedFrame, IMAGE_DATA_TYPE dataType ); 
 
 	//! Operation: Computes the calibration results: 
 	// - Compute the overall Point-Line Distance Error (PLDE)
@@ -49,16 +49,16 @@ public:
 
 	//! Description 
 	// Read XML based configuration of the calibration controller
-	virtual void ReadConfiguration( const char* configFileNameWithPath ); 
-	virtual void ReadConfiguration( vtkXMLDataElement* configData ); 
+	virtual PlusStatus ReadConfiguration( const char* configFileNameWithPath ); 
+	virtual PlusStatus ReadConfiguration( vtkXMLDataElement* configData ); 
 		
 	//! Operations: get the wire position of the the US frame and phantom intersection in template coordinate system
-	virtual bool GetWirePosInTemplateCoordinate( int wireNum, double* wirePosInTemplate ); 
+	virtual PlusStatus GetWirePosInTemplateCoordinate( int wireNum, double* wirePosInTemplate ); 
 
 	// Description:
 	// Add generated html report from final calibration to the existing html report
 	// htmlReport and plotter arguments has to be defined by the caller function
-	virtual void GenerateProbeCalibrationReport( vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter, const char* gnuplotScriptsFolder); 
+	virtual PlusStatus GenerateProbeCalibrationReport( vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter, const char* gnuplotScriptsFolder); 
 
 	//! Attribute: Flag to enable the calibration log file
 	vtkGetMacro(EnableSystemLog, bool);

@@ -3,6 +3,12 @@
 
 #include "vtkOutputWindow.h"
 
+enum PlusStatus
+{   
+  PLUS_FAIL=0,
+  PLUS_SUCCESS=1
+};
+
 /* Define case insensitive string compare for Windows. */
 #if defined( _WIN32 ) && !defined(__CYGWIN__)
 #  if defined(__BORLANDC__)

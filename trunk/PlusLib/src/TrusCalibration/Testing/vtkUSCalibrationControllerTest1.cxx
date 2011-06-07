@@ -144,8 +144,8 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
 {
 	int numberOfFailures=0;
 
-	vtkXMLDataElement* baselineRootElem = vtkXMLUtilities::ReadElementFromFile(baselineFileName);
-	vtkXMLDataElement* currentRootElem = vtkXMLUtilities::ReadElementFromFile(currentResultFileName); 
+	vtkSmartPointer<vtkXMLDataElement> baselineRootElem = vtkXMLUtilities::ReadElementFromFile(baselineFileName);
+	vtkSmartPointer<vtkXMLDataElement> currentRootElem = vtkXMLUtilities::ReadElementFromFile(currentResultFileName); 
 	// check to make sure we have the right element
 	if (baselineRootElem == NULL )
 	{
@@ -161,8 +161,8 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
 	}
 
 	{	//<CalibrationResults>
-		vtkSmartPointer<vtkXMLDataElement> calibrationResultsBaseline = baselineRootElem->FindNestedElementWithName("CalibrationResults"); 
-		vtkSmartPointer<vtkXMLDataElement> calibrationResults = currentRootElem->FindNestedElementWithName("CalibrationResults"); 
+		vtkXMLDataElement* calibrationResultsBaseline = baselineRootElem->FindNestedElementWithName("CalibrationResults"); 
+		vtkXMLDataElement* calibrationResults = currentRootElem->FindNestedElementWithName("CalibrationResults"); 
 
 		if ( calibrationResultsBaseline == NULL) 
 		{
@@ -181,8 +181,8 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
 
 		{	// <UltrasoundImageDimensions>
 
-			vtkSmartPointer<vtkXMLDataElement> ultrasoundImageDimensionsBaseline = calibrationResultsBaseline->FindNestedElementWithName("UltrasoundImageDimensions"); 
-			vtkSmartPointer<vtkXMLDataElement> ultrasoundImageDimensions = calibrationResults->FindNestedElementWithName("UltrasoundImageDimensions");
+			vtkXMLDataElement* ultrasoundImageDimensionsBaseline = calibrationResultsBaseline->FindNestedElementWithName("UltrasoundImageDimensions"); 
+			vtkXMLDataElement* ultrasoundImageDimensions = calibrationResults->FindNestedElementWithName("UltrasoundImageDimensions");
 
 			if ( ultrasoundImageDimensionsBaseline == NULL) 
 			{
@@ -241,8 +241,8 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
 
 
 		{	// <UltrasoundImageOrigin>
-			vtkSmartPointer<vtkXMLDataElement> ultrasoundImageOriginBaseline = calibrationResultsBaseline->FindNestedElementWithName("UltrasoundImageOrigin"); 
-			vtkSmartPointer<vtkXMLDataElement> ultrasoundImageOrigin = calibrationResults->FindNestedElementWithName("UltrasoundImageOrigin");
+			vtkXMLDataElement* ultrasoundImageOriginBaseline = calibrationResultsBaseline->FindNestedElementWithName("UltrasoundImageOrigin"); 
+			vtkXMLDataElement* ultrasoundImageOrigin = calibrationResults->FindNestedElementWithName("UltrasoundImageOrigin");
 
 			if ( ultrasoundImageOriginBaseline == NULL) 
 			{
@@ -301,8 +301,8 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
 		}// </UltrasoundImageOrigin>
 
 		{	// <CalibrationTransform>
-			vtkSmartPointer<vtkXMLDataElement> calibrationTransformBaseline = calibrationResultsBaseline->FindNestedElementWithName("CalibrationTransform"); 
-			vtkSmartPointer<vtkXMLDataElement> calibrationTransform = calibrationResults->FindNestedElementWithName("CalibrationTransform");
+			vtkXMLDataElement* calibrationTransformBaseline = calibrationResultsBaseline->FindNestedElementWithName("CalibrationTransform"); 
+			vtkXMLDataElement* calibrationTransform = calibrationResults->FindNestedElementWithName("CalibrationTransform");
 
 			if ( calibrationTransformBaseline == NULL) 
 			{
@@ -601,8 +601,8 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
 	}//</CalibrationResults>
 
 	{	// <ErrorReports>
-		vtkSmartPointer<vtkXMLDataElement> errorReportsBaseline = baselineRootElem->FindNestedElementWithName("ErrorReports"); 
-		vtkSmartPointer<vtkXMLDataElement> errorReports = currentRootElem->FindNestedElementWithName("ErrorReports");
+		vtkXMLDataElement* errorReportsBaseline = baselineRootElem->FindNestedElementWithName("ErrorReports"); 
+		vtkXMLDataElement* errorReports = currentRootElem->FindNestedElementWithName("ErrorReports");
 
 		if ( errorReportsBaseline == NULL) 
 		{
@@ -619,8 +619,8 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
 		}
 
 		{	// <PointReconstructionErrorAnalysis>
-			vtkSmartPointer<vtkXMLDataElement> pointReconstructionErrorAnalysisBaseline = errorReportsBaseline->FindNestedElementWithName("PointReconstructionErrorAnalysis"); 
-			vtkSmartPointer<vtkXMLDataElement> pointReconstructionErrorAnalysis = errorReports->FindNestedElementWithName("PointReconstructionErrorAnalysis");
+			vtkXMLDataElement* pointReconstructionErrorAnalysisBaseline = errorReportsBaseline->FindNestedElementWithName("PointReconstructionErrorAnalysis"); 
+			vtkXMLDataElement* pointReconstructionErrorAnalysis = errorReports->FindNestedElementWithName("PointReconstructionErrorAnalysis");
 
 			if ( pointReconstructionErrorAnalysisBaseline == NULL) 
 			{
@@ -690,8 +690,8 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
 		}// </PointReconstructionErrorAnalysis>
 
 		{	// <PointLineDistanceErrorAnalysis>
-			vtkSmartPointer<vtkXMLDataElement> pointLineDistanceErrorAnalysisBaseline = errorReportsBaseline->FindNestedElementWithName("PointLineDistanceErrorAnalysis"); 
-			vtkSmartPointer<vtkXMLDataElement> pointLineDistanceErrorAnalysis = errorReports->FindNestedElementWithName("PointLineDistanceErrorAnalysis");
+			vtkXMLDataElement* pointLineDistanceErrorAnalysisBaseline = errorReportsBaseline->FindNestedElementWithName("PointLineDistanceErrorAnalysis"); 
+			vtkXMLDataElement* pointLineDistanceErrorAnalysis = errorReports->FindNestedElementWithName("PointLineDistanceErrorAnalysis");
 
 			if ( pointLineDistanceErrorAnalysisBaseline == NULL) 
 			{
@@ -760,9 +760,6 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
 
 		}// </PointLineDistanceErrorAnalysis>
 	} //</ErrorReports>
-
-	baselineRootElem->Delete();
-	currentRootElem->Delete();
 
 	return numberOfFailures; 
 

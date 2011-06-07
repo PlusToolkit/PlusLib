@@ -446,13 +446,13 @@ void vtkTrackerTool::DeepCopy(vtkTrackerTool *tool)
 
 
 //-----------------------------------------------------------------------------
-void vtkTrackerTool::ReadConfiguration(vtkXMLDataElement* config)
+PlusStatus vtkTrackerTool::ReadConfiguration(vtkXMLDataElement* config)
 {
 	LOG_TRACE("vtkTrackerTool::ReadConfiguration"); 
 	if ( config == NULL )
 	{
 		LOG_ERROR("Unable to configure tracker tool! (XML data element is NULL)"); 
-		return; 
+		return PLUS_FAIL; 
 	}
 
 	const char* toolName = config->GetAttribute("Name"); 
@@ -467,7 +467,7 @@ void vtkTrackerTool::ReadConfiguration(vtkXMLDataElement* config)
 		this->SetSendToLink(sendToLink); 
 	}
 
-	vtkSmartPointer<vtkXMLDataElement> toolCalibrationDataElement = config->FindNestedElementWithName("Calibration"); 
+	vtkXMLDataElement* toolCalibrationDataElement = config->FindNestedElementWithName("Calibration"); 
 	if ( toolCalibrationDataElement != NULL ) 
 	{
 		const char* matrixName = toolCalibrationDataElement->GetAttribute("MatrixName"); 
@@ -497,7 +497,8 @@ void vtkTrackerTool::ReadConfiguration(vtkXMLDataElement* config)
 }
 
 //-----------------------------------------------------------------------------
-void vtkTrackerTool::WriteConfiguration(vtkXMLDataElement* config)
+PlusStatus vtkTrackerTool::WriteConfiguration(vtkXMLDataElement* config)
 {
-
+  LOG_ERROR("Not implemented");
+  return PLUS_FAIL;
 }

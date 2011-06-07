@@ -115,7 +115,7 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
 		numberOfFailures++;
 	}
 
-	vtkSmartPointer<vtkXMLDataElement> stylusToStylusTipTransformCurrent = stylusCalibrationCurrent->FindNestedElementWithName("StylusToStylusTipTransform"); 
+	vtkXMLDataElement* stylusToStylusTipTransformCurrent = stylusCalibrationCurrent->FindNestedElementWithName("StylusToStylusTipTransform"); 
 
 	if (stylusToStylusTipTransformCurrent == NULL) {
 		LOG_ERROR("Stylus calibration transform not found!");
@@ -132,7 +132,7 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
 		numberOfFailures++;
 	}
 
-	vtkSmartPointer<vtkXMLDataElement> stylusToStylusTipTransformBaseline = stylusCalibrationBaseline->FindNestedElementWithName("StylusToStylusTipTransform"); 
+	vtkXMLDataElement* stylusToStylusTipTransformBaseline = stylusCalibrationBaseline->FindNestedElementWithName("StylusToStylusTipTransform"); 
 
 	if (stylusToStylusTipTransformBaseline == NULL) {
 		LOG_ERROR("Stylus calibration transform not found!");

@@ -70,8 +70,8 @@ public:
 
   // Description:
   // Read/write main configuration from/to xml data
-  virtual void ReadConfiguration(vtkXMLDataElement* config); 
-  virtual void WriteConfiguration(vtkXMLDataElement* config); 
+  virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config); 
+  virtual PlusStatus WriteConfiguration(vtkXMLDataElement* config); 
 
   // Description:
   // Get a reference to the transform associated with this tool.  The

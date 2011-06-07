@@ -35,12 +35,12 @@ public:
 
 	virtual void Initialize(); 
 
-	virtual void StartReconstruction(); 
+	virtual PlusStatus StartReconstruction(); 
 
 	virtual void FillHoles(); 
 
-	virtual void ReadConfiguration( const char* configFileName ); 
-	virtual void ReadConfiguration(); 
+	virtual PlusStatus ReadConfiguration( const char* configFileName ); 
+	virtual PlusStatus ReadConfiguration(); 
 
 	virtual void AddTrackedFrame( vtkImageData* frame, vtkMatrix4x4* mToolToReference); 
 

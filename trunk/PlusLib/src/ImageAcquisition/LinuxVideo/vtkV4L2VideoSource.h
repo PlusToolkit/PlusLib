@@ -110,12 +110,7 @@ public:
   virtual void Record();
 
   // Description:
-  // Play through the 'tape' sequentially at the specified frame rate.
-  // If you have just finished Recoding, you should call Rewind() first.
-  virtual void Play();
-
-  // Description:
-  // Stop recording or playing.
+  // Stop recording
   virtual void Stop();
   
 //New-Start
@@ -142,14 +137,8 @@ public:
 
 //New-Start
   // Description:
-  // Are we in record mode? (record mode and play mode are mutually
-  // exclusive).
+  // Are we in record mode?
   vtkGetMacro(Recording,int);
-
-  // Description:
-  // Are we in play mode? (record mode and play mode are mutually
-  // exclusive).
-  vtkGetMacro(Playing,int);  
   
   // Description:
   // Set the full-frame size.  This must be an allowed size for the device,
@@ -332,7 +321,6 @@ protected:
   int LastOutputExtent[6];
 
   int Recording;
-  int Playing;
   float FrameRate;
 
   int FrameCount;

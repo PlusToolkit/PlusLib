@@ -22,7 +22,7 @@ public:
 
 	// Description:
 	// Read/write main configuration from/to xml data
-	virtual void ReadConfiguration(vtkXMLDataElement* synchronizationConfig); 
+	virtual PlusStatus ReadConfiguration(vtkXMLDataElement* synchronizationConfig); 
 
 	// Description:
 	// Start the synchronization 
@@ -36,7 +36,7 @@ public:
 	// Add generated html report from synchronization to the existing html report
 	// htmlReport and plotter arguments has to be defined by the caller function
 	// Solution should build with PLUS_PRINT_SYNC_DEBUG_INFO to generate this report
-	virtual void GenerateSynchronizationReport( vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter, const char* gnuplotScriptsFolder); 
+	virtual PlusStatus GenerateSynchronizationReport( vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter, const char* gnuplotScriptsFolder); 
 	
 	// Description:	
 	// Set/get video buffer 
@@ -142,12 +142,12 @@ protected:
 	virtual ~vtkDataCollectorSynchronizer();
 
 	virtual void ComputeFrameThreshold( vtkVideoBuffer2::FrameUidType& bufferIndex ); 
-	virtual bool FindFrameTimestamp( vtkVideoBuffer2::FrameUidType& bufferIndex, double& movedFrameTimestamp, double nextMovedTimestamp ); 
-	virtual bool GetFrameFromVideoBuffer( vtkImageData* frame, vtkVideoBuffer2::FrameUidType bufferIndex ); 
+	virtual PlusStatus FindFrameTimestamp( vtkVideoBuffer2::FrameUidType& bufferIndex, double& movedFrameTimestamp, double nextMovedTimestamp ); 
+	virtual PlusStatus GetFrameFromVideoBuffer( vtkImageData* frame, vtkVideoBuffer2::FrameUidType frameUid ); 
 	virtual void FindStillFrame( vtkVideoBuffer2::FrameUidType& baseIndex, vtkVideoBuffer2::FrameUidType& currentIndex ); 
 
 	virtual void ComputeTransformThreshold( int& bufferIndex ); 
-	virtual bool FindTransformTimestamp( int& bufferIndex, double& movedTransformTimestamp ); 
+	virtual PlusStatus FindTransformTimestamp( int& bufferIndex, double& movedTransformTimestamp ); 
 	virtual bool IsTransformBelowThreshold( vtkTransform* transform, double timestamp); 
 	virtual void FindStillTransform( int& baseIndex, int& currentIndex ); 
 	virtual double GetRotationError(vtkMatrix4x4* baseTransMatrix, vtkMatrix4x4* currentTransMatrix); 

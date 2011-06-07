@@ -36,21 +36,21 @@
 
 		~AMSStepper();
 
-		bool GetVersionInfo(int &iVerHi, int &iVerLo, int &iModelNum, int &iSerialNum);
+		PlusStatus GetVersionInfo(int &iVerHi, int &iVerLo, int &iModelNum, int &iSerialNum);
 
-		bool GetStatusInfo(unsigned int &Status);
+		PlusStatus GetStatusInfo(unsigned int &Status);
 
-		bool GetProbeReferenceData(double &count, double &dist, double &scale);
+		PlusStatus GetProbeReferenceData(double &count, double &dist, double &scale);
 
-		bool GetGridReferenceData(double &count, double &dist, double &scale);
+		PlusStatus GetGridReferenceData(double &count, double &dist, double &scale);
 
-		bool GetRotationReferenceData(double &count, double &dist, double &scale);
+		PlusStatus GetRotationReferenceData(double &count, double &dist, double &scale);
 
-		bool GetProbePositions(double &PPosition, double &GPosition, double &RPosition, unsigned long &PositionRequestNumber);
+		PlusStatus GetProbePositions(double &PPosition, double &GPosition, double &RPosition, unsigned long &PositionRequestNumber);
 
-		bool GetCalibrationState(int &PState, int &GState, int &RState);
+		PlusStatus GetCalibrationState(int &PState, int &GState, int &RState);
 
-		bool GetRotateState(int &State);
+		PlusStatus GetRotateState(int &State);
 
 		void SetBaudRate(unsigned long BaudRate) { this->m_StepperCOMPort->SetSerialPortSpeed(BaudRate); }
 
@@ -60,31 +60,31 @@
 
 		bool IsStepperAlive();
 
-		bool StartTracking(); 
+		PlusStatus StartTracking(); 
 
 		void StopTracking(); 
 
-		bool CalibrateStepper(std::string &CalibMsg);
+		PlusStatus CalibrateStepper(std::string &CalibMsg);
 
-		bool ResetStepper();
+		PlusStatus ResetStepper();
 
-		bool TurnMotorOn(); 
+		PlusStatus TurnMotorOn(); 
 
-		bool TurnMotorOff(); 
+		PlusStatus TurnMotorOff(); 
 
-		bool GetMotorizationCode(int &MotorizationCode); 
+		PlusStatus GetMotorizationCode(int &MotorizationCode); 
 
 		bool IsStepperMotorized(); 
 
-		bool MoveProbeToPosition(double PositionInMm, int &ReturnCode); 
+		PlusStatus MoveProbeToPosition(double PositionInMm, int &ReturnCode); 
 
-		bool StepperButtonEnable();
+		PlusStatus StepperButtonEnable();
 
-		bool StepperButtonDisable();
+		PlusStatus StepperButtonDisable();
 
-		bool StepperRotateCalibrationEnable();
+		PlusStatus StepperRotateCalibrationEnable();
 
-		bool StepperRotateCalibrationDisable();
+		PlusStatus StepperRotateCalibrationDisable();
 
 		void SetScalingParameters();
 
@@ -118,7 +118,7 @@
 
 		void DecodeStepperMessage(std::vector<BYTE> StepperMessage, std::vector<BYTE> &DecodedMessage);
 
-		bool GetReferenceData(STEPPERCOMMAND command, STEPPERRESPCODE respcode, double &count, double &dist, double &scale);
+		PlusStatus GetReferenceData(STEPPERCOMMAND command, STEPPERRESPCODE respcode, double &count, double &dist, double &scale);
 
 	private:
 		BRACHY_STEPPER_TYPE m_BarchyStepperType; 

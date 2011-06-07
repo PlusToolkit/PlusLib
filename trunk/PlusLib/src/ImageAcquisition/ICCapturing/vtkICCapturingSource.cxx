@@ -1,5 +1,6 @@
-#include "vtkICCapturingSource.h"
 #include "PlusConfigure.h"
+
+#include "vtkICCapturingSource.h"
 #include "vtkImageData.h"
 #include "vtkCriticalSection.h"
 #include "vtkObjectFactory.h"
@@ -166,7 +167,7 @@ bool vtkICCapturingSource::vtkICCapturingSourceNewFrameCallback(unsigned char * 
 //----------------------------------------------------------------------------
 // copy the Device Independent Bitmap from the VFW framebuffer into the
 // vtkVideoSource framebuffer (don't do the unpacking yet)
-void vtkICCapturingSource::LocalInternalGrab(unsigned char * dataPtr, unsigned long size)
+PlusStatus vtkICCapturingSource::LocalInternalGrab(unsigned char * dataPtr, unsigned long size)
 {
 
 	// get a thread lock on the frame buffer
@@ -230,20 +231,22 @@ void vtkICCapturingSource::LocalInternalGrab(unsigned char * dataPtr, unsigned l
 	this->Modified();
 
 	this->FrameBufferMutex->Unlock();
+
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-void vtkICCapturingSource::Initialize()
+PlusStatus vtkICCapturingSource::Initialize()
 {
 	if (this->Initialized)
 	{
-		return;
+		return PLUS_SUCCESS;
 	}
 
 	if( !DShowLib::InitLibrary( this->GetLicenceKey() ) )
 	{
-		vtkErrorMacro( << "The IC capturing library could not be initialized - invalid license key: " << this->GetLicenceKey() ); 
-		return;
+		LOG_ERROR("The IC capturing library could not be initialized - invalid license key: " << this->GetLicenceKey() ); 
+		return PLUS_FAIL;
 	}
 
 	//atexit( DShowLib::ExitLibrary );
@@ -251,28 +254,28 @@ void vtkICCapturingSource::Initialize()
 	// Set the device name (e.g. DFG/USB2-lt)
 	if ( this->GetDeviceName() == NULL || !FrameGrabber.openDev(this->GetDeviceName() ) ) 
 	{
-		vtkErrorMacro( << "The IC capturing library could not be initialized - invalid device name: " << this->GetDeviceName() ); 
-		return;
+		LOG_ERROR("The IC capturing library could not be initialized - invalid device name: " << this->GetDeviceName() ); 
+		return PLUS_FAIL;
 	}
 
 	// Set the video norm (e.g. PAL_B or NTSC_M)
 	if ( this->GetVideoNorm() == NULL || !FrameGrabber.setVideoNorm( this->GetVideoNorm() ) ) 
 	{
-		vtkErrorMacro( << "The IC capturing library could not be initialized - invalid video norm: " << this->GetVideoNorm() ); 
-		return;
+		LOG_ERROR("The IC capturing library could not be initialized - invalid video norm: " << this->GetVideoNorm() ); 
+		return PLUS_FAIL;
 	}
 
 	// The Y800 color format is an 8 bit monochrome format. 
 	if ( this->GetVideoFormat() == NULL || !FrameGrabber.setVideoFormat( this->GetVideoFormat() ) )
 	{
-		vtkErrorMacro( << "The IC capturing library could not be initialized - invalid video format: " << this->GetVideoFormat() ); 
-		return;
+		LOG_ERROR("The IC capturing library could not be initialized - invalid video format: " << this->GetVideoFormat() ); 
+		return PLUS_FAIL;
 	}
 	
 	if ( this->GetInputChannel() == NULL || !FrameGrabber.setInputChannel( this->GetInputChannel() ) ) 
 	{
-		vtkErrorMacro( << "The IC capturing library could not be initialized - invalid input channel: " << this->GetInputChannel() ); 
-		return;
+		LOG_ERROR("The IC capturing library could not be initialized - invalid input channel: " << this->GetInputChannel() ); 
+		return PLUS_FAIL;
 	}
 
 	FrameGrabberListener = new ICCapturingListener(); 
@@ -301,6 +304,8 @@ void vtkICCapturingSource::Initialize()
 	this->UpdateFrameBuffer();
 
 	this->Initialized = 1;
+  
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
@@ -311,19 +316,10 @@ void vtkICCapturingSource::ReleaseSystemResources()
 }
 
 //----------------------------------------------------------------------------
-void vtkICCapturingSource::Grab()
+PlusStatus vtkICCapturingSource::Grab()
 {
-	if (this->Recording)
-	{
-		return;
-	}
-
-	// ensure that the frame buffer is properly initialized
-	this->Initialize();
-	if (!this->Initialized)
-	{
-		return;
-	}
+  LOG_ERROR("Grab is not implemented for this video source");
+	return PLUS_FAIL;
 
 	// just do the grab, the callback does the rest
 	//this->SetStartTimeStamp(vtkAccurateTimer::GetSystemTime());
@@ -339,22 +335,11 @@ void vtkICCapturingSource::Record()
 		return;
 	}
 
-	if (this->Playing)
-	{
-		this->Stop();
-	}
-
 	if (!this->Recording)
 	{
 		this->Recording = 1;
 		this->Modified();
 	}
-}
-
-//----------------------------------------------------------------------------
-void vtkICCapturingSource::Play()
-{
-	this->vtkVideoSource::Play();
 }
 
 //----------------------------------------------------------------------------
@@ -365,10 +350,7 @@ void vtkICCapturingSource::Stop()
 		this->Recording = 0;
 		this->Modified();
 	}
-	else if (this->Playing)
-	{
-		this->vtkVideoSource::Stop();
-	}
+
 }
 
 
@@ -459,7 +441,7 @@ void vtkICCapturingSource::SetOutputFormat(int format)
 		break;
 	default:
 		numComponents = 0;
-		vtkErrorMacro(<< "SetOutputFormat: Unrecognized color format.");
+		LOG_ERROR("SetOutputFormat: Unrecognized color format.");
 		break;
 	}
 	this->NumberOfScalarComponents = numComponents;

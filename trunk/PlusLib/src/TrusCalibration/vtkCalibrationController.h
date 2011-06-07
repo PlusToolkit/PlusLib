@@ -80,27 +80,27 @@ public:
 
 	//! Description 
 	// Initialize the calibration controller interface
-	virtual void Initialize(); 
+	virtual PlusStatus Initialize(); 
 
 	//! Description 
 	// Read XML based configuration of the calibration controller
-	virtual void ReadConfiguration( const char* configFileNameWithPath ); 
-	virtual void ReadConfiguration( vtkXMLDataElement* configData ); 
+	virtual PlusStatus ReadConfiguration( const char* configFileNameWithPath ); 
+	virtual PlusStatus ReadConfiguration( vtkXMLDataElement* configData ); 
 
 	//! Description 
 	// Add new tracked data for segmentation and save the segmentation result to the SegmentedFrameContainer
 	// The class has to be initialized before the segmentation process. 
-	virtual bool AddVtkImageData( vtkImageData* frame, vtkMatrix4x4* trackingTransform, IMAGE_DATA_TYPE dataType ); 
+	virtual PlusStatus AddVtkImageData( vtkImageData* frame, vtkMatrix4x4* trackingTransform, IMAGE_DATA_TYPE dataType ); 
 
 	//! Description 
 	// Add new tracked data for segmentation and save the segmentation result to the SegmentedFrameContainer
 	// The class has to be initialized before the segmentation process. 
-	virtual bool AddItkImageData( ImageType* frame, vtkMatrix4x4* trackingTransform, IMAGE_DATA_TYPE dataType );
+	virtual PlusStatus AddItkImageData( ImageType* frame, vtkMatrix4x4* trackingTransform, IMAGE_DATA_TYPE dataType );
 
 	//! Description 
 	// Add new tracked data for segmentation and save the segmentation result to the SegmentedFrameContainer
 	// The class has to be initialized before the segmentation process. 
-	virtual bool AddTrackedFrameData( TrackedFrame* trackedFrame, IMAGE_DATA_TYPE dataType ); 
+	virtual PlusStatus AddTrackedFrameData( TrackedFrame* trackedFrame, IMAGE_DATA_TYPE dataType ); 
 
 	//! Description 
 	// VTK/VNL matrix conversion 
@@ -259,19 +259,19 @@ protected:
 
 	//! Description 
 	// Read CalibrationController data element
-	virtual void ReadCalibrationControllerConfiguration( vtkXMLDataElement* calibrationController ); 
+	virtual PlusStatus ReadCalibrationControllerConfiguration( vtkXMLDataElement* calibrationController ); 
 
 	//! Description 
 	// Read SegmentationParameters data element
-	virtual void ReadSegmentationParametersConfiguration( vtkXMLDataElement* segmentationParameters );
+	virtual PlusStatus ReadSegmentationParametersConfiguration( vtkXMLDataElement* segmentationParameters );
 
 	//! Description 
 	// Read RealtimeCalibration data element
-	virtual void ReadRealtimeCalibrationConfiguration( vtkXMLDataElement* realtimeCalibration );
+	virtual PlusStatus ReadRealtimeCalibrationConfiguration( vtkXMLDataElement* realtimeCalibration );
 
 	//! Description 
 	// Read Phantom definition from XML
-	virtual void ReadPhantomDefinition();
+	virtual PlusStatus ReadPhantomDefinition();
 	
 
 protected:

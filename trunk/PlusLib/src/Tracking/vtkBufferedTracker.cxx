@@ -1,3 +1,5 @@
+#include "PlusConfigure.h"
+
 #include "vtkBufferedTracker.h"
 #include "vtkTracker.h"
 #include "vtkTrackerTool.h"
@@ -54,44 +56,46 @@ void vtkBufferedTracker::PrintSelf(ostream& os, vtkIndent indent)
 }
 
 //----------------------------------------------------------------------------
-int vtkBufferedTracker::Probe()
+PlusStatus vtkBufferedTracker::Probe()
 {
 	if (this->IsTracking())
 	{
-		return 1;
+		return PLUS_SUCCESS;
 	}
 
-	return 1; 
+	return PLUS_SUCCESS; 
 } 
 
 //----------------------------------------------------------------------------
-int vtkBufferedTracker::InternalStartTracking()
+PlusStatus vtkBufferedTracker::InternalStartTracking()
 {
 	if (this->IsTracking())
 	{
-		return 1;
+		return PLUS_SUCCESS;
 	}
 
 	// for accurate timing
 	this->Timer->Initialize();
 	this->Tracking = 1;
 
-	return 1;
+	return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-int vtkBufferedTracker::InternalStopTracking()
+PlusStatus vtkBufferedTracker::InternalStopTracking()
 {
-	return 1;
+	return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-void vtkBufferedTracker::InternalUpdate()
+PlusStatus vtkBufferedTracker::InternalUpdate()
 {
 	if (!this->IsTracking())
 	{
-		return;
+		return PLUS_FAIL;
 	}
+
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------

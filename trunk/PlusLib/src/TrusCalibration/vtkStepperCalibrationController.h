@@ -49,45 +49,45 @@ public:
 
 	//! Description 
 	// Initialize the calibration controller interface
-	virtual void Initialize(); 
+	virtual PlusStatus Initialize(); 
 
 	//! Description 
 	// Read XML based configuration of the calibration controller
-	virtual void ReadConfiguration( const char* configFileNameWithPath ); 
-	virtual void ReadConfiguration( vtkXMLDataElement* configData ); 
+	virtual PlusStatus ReadConfiguration( const char* configFileNameWithPath ); 
+	virtual PlusStatus ReadConfiguration( vtkXMLDataElement* configData ); 
 
 	//! Description 
 	// Add new tracked data for segmentation and save the segmentation result to the SegmentedFrameContainer
 	// The class has to be initialized before the segmentation process. 
-	virtual bool AddVtkImageData( vtkImageData* frame, const double probePosition, const double probeRotation, const double templatePosition, IMAGE_DATA_TYPE dataType ); 
+	virtual PlusStatus AddVtkImageData( vtkImageData* frame, const double probePosition, const double probeRotation, const double templatePosition, IMAGE_DATA_TYPE dataType ); 
 
 	//! Description 
 	// Add new tracked data for segmentation and save the segmentation result to the SegmentedFrameContainer
 	// The class has to be initialized before the segmentation process. 
-	virtual bool AddItkImageData( ImageType* frame, const double probePosition, const double probeRotation, const double templatePosition, IMAGE_DATA_TYPE dataType );
+	virtual PlusStatus AddItkImageData( ImageType* frame, const double probePosition, const double probeRotation, const double templatePosition, IMAGE_DATA_TYPE dataType );
 
 	//! Description: 
 	// Get stepper encoder values from the tracked frame info
 	// Return true if we found the encoder values, otherwise false
-	virtual bool GetStepperEncoderValues( TrackedFrame* trackedFrame, double &probePosition, double &probeRotation, double &templatePosition); 
+	virtual PlusStatus GetStepperEncoderValues( TrackedFrame* trackedFrame, double &probePosition, double &probeRotation, double &templatePosition); 
 
 	//! Description 
 	// Write result to the XML data element
-	virtual void WriteCalibrationResultToXml(vtkXMLDataElement* calibration);
+	virtual PlusStatus WriteCalibrationResultToXml(vtkXMLDataElement* calibration);
 
 	//! Description 
 	// Run the probe rotation axis calibration algorithm 
 	// Returns true on success otherwise false
-	virtual bool CalibrateProbeRotationAxis(); 
+	virtual PlusStatus CalibrateProbeRotationAxis(); 
 
 	//! Description 
 	// Run the probe translation axis calibration algorithm 
-	virtual bool CalibrateProbeTranslationAxis(); 
+	virtual PlusStatus CalibrateProbeTranslationAxis(); 
 
 	//! Description 
 	// Run the template translation axis calibration algorithm 
 	// Returns true on success otherwise false
-	virtual bool CalibrateTemplateTranslationAxis(); 
+	virtual PlusStatus CalibrateTemplateTranslationAxis(); 
 
 	//! Description 
 	// Run the probe rotation axis calibration algorithm in offline mode
@@ -103,7 +103,7 @@ public:
 
 	//! Description 
 	// Read the stepper calibration configurations from xml data element
-	virtual void ReadStepperCalibrationConfiguration(vtkXMLDataElement* stepperCalibration); 
+	virtual PlusStatus ReadStepperCalibrationConfiguration(vtkXMLDataElement* stepperCalibration); 
 
 	// Description:
 	// Add generated html report from probe rotation axis calibration to the existing html report
@@ -275,14 +275,14 @@ protected:
 	// The coefficient matrix aMatrix should be m-by-n and the column vector bVector must have length m. 
 	// resultVector size need to be fixed by constructor time
 	// The method will return false in case of any error
-	virtual bool LSQRMinimize(
+	virtual PlusStatus LSQRMinimize(
 		const std::vector<vnl_vector<double>> &aMatrix, 
 		const std::vector<double> &bVector, 
 		vnl_vector<double> &resultVector);
 
 	// Description:
 	// Compute mean and stddev from dataset
-	virtual void ComputeStatistics(const std::vector< std::vector<double> > &diffVector, std::vector<double> &mean, std::vector<double> &stdev); 
+	virtual PlusStatus ComputeStatistics(const std::vector< std::vector<double> > &diffVector, std::vector<double> &mean, std::vector<double> &stdev); 
 
 	// Description:
 	// Dump vtk table to text file in gnuplot format
@@ -295,7 +295,7 @@ protected:
 	//! Description: 
 	// Do the translation axis calibration 
 	// Returns true on success otherwise false
-	virtual bool CalibrateTranslationAxis(IMAGE_DATA_TYPE dataType); 
+	virtual PlusStatus CalibrateTranslationAxis(IMAGE_DATA_TYPE dataType); 
 
 	//! Description: 
 	// Construct linear equation for translation axis calibration
@@ -338,7 +338,7 @@ protected:
 	//! Description: 
 	// Do the rotation axis calibration 
 	// Returns true on success otherwise false
-	virtual bool CalibrateRotationAxis(); 
+	virtual PlusStatus CalibrateRotationAxis(); 
 
 	//! Description: 
 	// Construct linear equation for rotation axis calibration
@@ -379,7 +379,7 @@ protected:
 	//! Description: 
 	// Do the rotation encoder calibration 
 	// Returns true on success otherwise false
-	virtual bool CalibrateRotationEncoder(); 
+	virtual PlusStatus CalibrateRotationEncoder(); 
 
 	//! Description: 
 	// Construct linear equation for rotation encoder calibration
@@ -417,7 +417,7 @@ protected:
 	//! Description: 
 	// Compute rotation center using linear least squares
 	// Returns true on success otherwise false
-	virtual bool CalculateCenterOfRotation( const SegmentedFrameList &frameListForCenterOfRotation, double centerOfRotationPx[2], vtkTable* centerOfRotationCalculationErrorTable );
+	virtual PlusStatus CalculateCenterOfRotation( const SegmentedFrameList &frameListForCenterOfRotation, double centerOfRotationPx[2], vtkTable* centerOfRotationCalculationErrorTable );
 
 	//! Description: 
 	// Calculate mean error and stdev of measured and computed distances between rotation center and segmented wires
@@ -452,7 +452,7 @@ protected:
 	// This computation needs a set of point distances between two well known 
 	// object on the image in X and Y direction (in px and mm as well) to define the spacing.
 	// Returns true on success otherwise false
-	virtual bool CalculateSpacing(); 
+	virtual PlusStatus CalculateSpacing(); 
 
 	//! Description: 
 	// Remove outliers from spacing calculation dataset
@@ -497,7 +497,7 @@ protected:
 	//! Description:
 	// Calculate the distance between the probe and phantom 
 	// Returns true on success otherwise false
-	virtual bool CalculatePhantomToProbeDistance(); 
+	virtual PlusStatus CalculatePhantomToProbeDistance(); 
 
 	
 	//***************************************************************************

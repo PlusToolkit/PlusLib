@@ -96,7 +96,7 @@ void vtkAMSTracker::PrintSelf(ostream& os, vtkIndent indent)
 }
 
 //-----------------------------------------------------------------------------
-int vtkAMSTracker::Connect()
+PlusStatus vtkAMSTracker::Connect()
 {
 	if (this->Device == NULL)
 	{
@@ -107,44 +107,44 @@ int vtkAMSTracker::Connect()
 }
 
 //-----------------------------------------------------------------------------
-void vtkAMSTracker::Disconnect()
+PlusStatus vtkAMSTracker::Disconnect()
 {
 	this->Device->StopTracking(); 
-	this->StopTracking(); 
+	return this->StopTracking(); 
 }
 
 //----------------------------------------------------------------------------
-int vtkAMSTracker::Probe()
+PlusStatus vtkAMSTracker::Probe()
 {
 	if (this->Tracking)
 	{
-		return 1;
+		return PLUS_SUCCESS;
 	}
 
 	if ( !this->Connect() )
 	{
 		LOG_ERROR("Unable to connect to stepper on port: " << this->GetSerialPort() );
-		return 0; 
+		return PLUS_FAIL; 
 	}
 
 	this->Disconnect(); 
 
-	return 1; 
+	return PLUS_SUCCESS; 
 } 
 
 //----------------------------------------------------------------------------
-int vtkAMSTracker::InternalStartTracking()
+PlusStatus vtkAMSTracker::InternalStartTracking()
 {
 	if (this->Tracking)
 	{
-		return 1;
+		return PLUS_SUCCESS;
 	}
 
 	if (!this->InitAMSTracker())
 	{
 		LOG_ERROR("Couldn't initialize AMS stepper.");
 		this->Tracking = 0;
-		return 0;
+		return PLUS_FAIL;
 	} 
 
 	// for accurate timing
@@ -152,28 +152,27 @@ int vtkAMSTracker::InternalStartTracking()
 
 	this->Tracking = 1;
 
-	return 1;
+	return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-int vtkAMSTracker::InternalStopTracking()
+PlusStatus vtkAMSTracker::InternalStopTracking()
 {
 	delete this->Device; 
-
 	this->Device = 0;
 
-	return 1;
+	return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-void vtkAMSTracker::InternalUpdate()
+PlusStatus vtkAMSTracker::InternalUpdate()
 {
 	long flags=0;
 
 	if (!this->Tracking)
 	{
-		LOG_WARNING("called Update() when AMS stepper was not tracking");
-		return;
+		LOG_ERROR("called Update() when AMS stepper was not tracking");
+		return PLUS_FAIL;
 	}
 
 	// get the transforms from stepper
@@ -228,23 +227,25 @@ void vtkAMSTracker::InternalUpdate()
 	tProbeHomeToProbe->Translate(-probeRotationVector[0], -probeRotationVector[1], probeRotationVector[2]); 
 	// send the transformation matrix and flags to the tool
 	this->ToolUpdate(PROBEHOME_TO_PROBE_TRANSFORM, tProbeHomeToProbe->GetMatrix(), flags, frameNum, unfilteredtimestamp, filteredtimestamp);   
+
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-bool vtkAMSTracker::InitAMSTracker()
+PlusStatus vtkAMSTracker::InitAMSTracker()
 {
 	// Connect to device 
 	if ( !this->Connect() )
 	{
 		LOG_ERROR("Unable to connect to stepper on port: " << this->GetSerialPort() );
-		return false; 
+		return PLUS_FAIL; 
 	}
 
 	int iVerHi=0; int iVerLo=0; int iModelNum=0; int iSerialNum=0;
 	if (!this->Device->GetVersionInfo(iVerHi, iVerLo, iModelNum, iSerialNum))
 	{
 		LOG_ERROR("Couldn't get version info from AMS stepper.");
-		return false; 
+		return PLUS_FAIL; 
 	}
 
 	for ( int tool = 0; tool < NUMBER_OF_BRACHY_TOOLS; tool++ )
@@ -266,11 +267,11 @@ bool vtkAMSTracker::InitAMSTracker()
 		this->SetToolName(TEMPLATEHOME_TO_TEMPLATE_TRANSFORM, "TemplateHomeToTemplate"); 
 	}
 
-	return true; 
+	return PLUS_SUCCESS; 
 }
 
 //----------------------------------------------------------------------------
-void vtkAMSTracker::ReadConfiguration(vtkXMLDataElement* config)
+PlusStatus vtkAMSTracker::ReadConfiguration(vtkXMLDataElement* config)
 {
 	// Read superclass configuration first
 	Superclass::ReadConfiguration(config); 
@@ -278,7 +279,7 @@ void vtkAMSTracker::ReadConfiguration(vtkXMLDataElement* config)
 	if ( config == NULL ) 
 	{
 		LOG_WARNING("Unable to find AMSTracker XML data element");
-		return; 
+		return PLUS_FAIL; 
 	}
 
 	const char* serialPort = config->GetAttribute("SerialPort"); 
@@ -301,7 +302,7 @@ void vtkAMSTracker::ReadConfiguration(vtkXMLDataElement* config)
 
 	if ( !this->Tracking )
 	{
-		vtkSmartPointer<vtkXMLDataElement> modelInformation = config->FindNestedElementWithName("ModelInformation"); 
+		vtkXMLDataElement* modelInformation = config->FindNestedElementWithName("ModelInformation"); 
 		if ( modelInformation != NULL ) 
 		{
 			const char* modelName = modelInformation->GetAttribute("Name"); 
@@ -352,7 +353,7 @@ void vtkAMSTracker::ReadConfiguration(vtkXMLDataElement* config)
 		}
 	}
 
-	vtkSmartPointer<vtkXMLDataElement> calibration = config->FindNestedElementWithName("Calibration"); 
+	vtkXMLDataElement* calibration = config->FindNestedElementWithName("Calibration"); 
 	if ( calibration != NULL ) 
 	{
 		const char* calibrationAlgorithmVersion = calibration->GetAttribute("AlgorithmVersion"); 
@@ -406,28 +407,27 @@ void vtkAMSTracker::ReadConfiguration(vtkXMLDataElement* config)
 	{
 		LOG_INFO("AMSTracker is uncalibrated"); 
 	}
+
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-void vtkAMSTracker::WriteConfiguration(vtkXMLDataElement* config)
+PlusStatus vtkAMSTracker::WriteConfiguration(vtkXMLDataElement* config)
 {
 	if ( config == NULL )
 	{
-		config = vtkXMLDataElement::New(); 
+    LOG_ERROR("Config is invalid");
+		return PLUS_FAIL;
 	}
 
 	config->SetName("BrachyStepper");  
-
 	config->SetAttribute( "SerialPort", this->GetSerialPort() ); 
-
 	config->SetDoubleAttribute( "BaudRate", this->GetBaudRate() ); 
-
 	config->SetAttribute( "VersionNumber", this->GetVersion() ); 
-
 	config->SetIntAttribute( "ModelNumber", this->GetModelNumber() ); 
-
 	config->SetIntAttribute( "SerialNumber", this->GetSerialNumber() ); 
 
+  return PLUS_SUCCESS;
 }
 
 
@@ -438,7 +438,7 @@ void vtkAMSTracker::ResetCalibration()
 }
 
 //----------------------------------------------------------------------------
-bool vtkAMSTracker::CalibrateStepper( std::string &calibMsg )
+PlusStatus vtkAMSTracker::CalibrateStepper( std::string &calibMsg )
 {
 	return this->Device->CalibrateStepper(calibMsg); 
 }

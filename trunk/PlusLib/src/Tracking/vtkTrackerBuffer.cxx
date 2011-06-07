@@ -776,7 +776,7 @@ void vtkTrackerBuffer::WriteToFile(const char *filename)
 
 	if (file == 0)
 	{
-		vtkErrorMacro( << "can't open file " << filename);
+		LOG_ERROR("can't open file " << filename);
 		return;
 	}
 
@@ -855,7 +855,7 @@ void vtkTrackerBuffer::ReadFromFile(const char *filename)
 
 	if (file == 0)
 	{
-		vtkErrorMacro( << "can't open file " << filename);
+		LOG_ERROR("can't open file " << filename);
 		return;
 	}
 
@@ -865,7 +865,7 @@ void vtkTrackerBuffer::ReadFromFile(const char *filename)
 		{ // error or end of file
 			if (i != 0)
 			{
-				vtkErrorMacro( << "bad data: " << filename << " line " << line);
+				LOG_ERROR("bad data: " << filename << " line " << line);
 			}
 			break;
 		}
@@ -884,7 +884,7 @@ void vtkTrackerBuffer::ReadFromFile(const char *filename)
 			state = 1;
 			if (i != 0)
 			{
-				vtkErrorMacro( << "bad data: " << filename << " line " << line);
+				LOG_ERROR("bad data: " << filename << " line " << line);
 				break;
 			}
 		}
@@ -896,7 +896,7 @@ void vtkTrackerBuffer::ReadFromFile(const char *filename)
 			state = 2;
 			if (i != 0)
 			{
-				vtkErrorMacro( << "bad data: " << filename << " line " << line);
+				LOG_ERROR("bad data: " << filename << " line " << line);
 				break;
 			}
 		}
@@ -939,7 +939,7 @@ void vtkTrackerBuffer::ReadFromFile(const char *filename)
 				{
 					if (i > 14 || *cp != ';')
 					{
-						vtkErrorMacro( << "bad data: " << filename << " line " << line);
+						LOG_ERROR("bad data: " << filename << " line " << line);
 						fclose(file);
 						return;
 					}
@@ -948,7 +948,7 @@ void vtkTrackerBuffer::ReadFromFile(const char *filename)
 					matrix->DeepCopy(elements);
 					if (timestamp <= this->CurrentTimeStamp && !timestamp_warning)
 					{
-						vtkWarningMacro( << filename << " line " << line << ": timestamps are not monotonically increasing, some data was ignored.");      
+						LOG_WARNING(filename << " line " << line << ": timestamps are not monotonically increasing, some data was ignored.");      
 						timestamp_warning = 1;
 					}
 					this->AddItem(matrix, flags, line, timestamp, timestamp);
@@ -967,7 +967,7 @@ void vtkTrackerBuffer::ReadFromFile(const char *filename)
 				{
 					if (i > 16 || *cp != ';')
 					{
-						vtkErrorMacro( << "bad data: " << filename << " line " << line);
+						LOG_ERROR("bad data: " << filename << " line " << line);
 						fclose(file);
 						return;
 					}
@@ -990,7 +990,7 @@ void vtkTrackerBuffer::ReadFromFile(const char *filename)
 				{
 					if (i > 16 || *cp != ';')
 					{
-						vtkErrorMacro( << "bad data: " << filename << " line " << line);
+						LOG_ERROR("bad data: " << filename << " line " << line);
 						fclose(file);
 						return;
 					}

@@ -110,19 +110,19 @@ public:
 	// computer.  Returns 1 if the tracking system was found and is working.
 	// Do not call this method while the system is Tracking.  This method
 	// should be overridden in subclasses. 
-	virtual int Probe();
+	virtual PlusStatus Probe();
 
 	// Description:
 	// Start the tracking system.  The tracking system is brought from
 	// its ground state (i.e. on but not necessarily initialized) into
 	// full tracking mode.  This method calls InternalStartTracking()
 	// after doing a bit of housekeeping.
-	virtual void StartTracking();
+	virtual PlusStatus StartTracking();
 
 	// Description:
 	// Stop the tracking system and bring it back to its ground state.
 	// This method calls InternalStopTracking().
-	virtual void StopTracking();
+	virtual PlusStatus StopTracking();
 
 	// Description:
 	// Test whether or not the system is tracking.
@@ -132,12 +132,12 @@ public:
 	// This method will call Update() on each of the tools.  Note that
 	// this method does not call the InternalUpdate() method, which
 	// is called by a separate thread.
-	virtual void Update();
+	virtual PlusStatus Update();
 
 	// Description:
 	// Read/write main configuration from/to xml data
-	virtual void ReadConfiguration(vtkXMLDataElement* config); 
-	virtual void WriteConfiguration(vtkXMLDataElement* config); 
+	virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config); 
+	virtual PlusStatus WriteConfiguration(vtkXMLDataElement* config); 
 
 	// Description:
 	// Convert flag status to string 
@@ -287,7 +287,7 @@ public:
 		// pause the thread by locking this->UpdateMutex->Lock() e.g. if you
 		// need to communicate with the device from outside of InternalUpdate().
 		// A call to this->UpdateMutex->Unlock() will resume the thread.
-		virtual void InternalUpdate() {};
+		virtual PlusStatus InternalUpdate() { return PLUS_SUCCESS; };
 
 		//BTX
 		// These are used by static functions in vtkTracker.cxx, and since
@@ -303,8 +303,8 @@ public:
 		// Description:
 		// The ServerTracker should call this function. This creates
 		// a thread that allows it to wait till a client connects. 
-		virtual int Connect();
-		virtual void Disconnect();
+		virtual PlusStatus Connect();
+		virtual PlusStatus Disconnect();
 		void StartServer();
 		void InterpretCommands(char *message);
 
@@ -358,20 +358,20 @@ protected:
 	// InternalStopTracking() should free all resources associated with
 	// the device.  These methods should return 1 if they are successful,
 	// or 0 if they are not.
-	virtual int InternalStartTracking() { return 1; };
-	virtual int InternalStopTracking() { return 1; };
+	virtual PlusStatus InternalStartTracking() { return PLUS_SUCCESS; };
+	virtual PlusStatus InternalStopTracking() { return PLUS_SUCCESS; };
 	virtual void InternalInterpretCommand( char * c) { };
 	// Description:
 	// This method should be overridden in derived classes that can make
 	// an audible beep.  The return value should be zero if an error
 	// occurred while the request was being processed.
-	virtual int InternalBeep(int n) { return 1; };
+	virtual PlusStatus InternalBeep(int n) { return PLUS_SUCCESS; };
 
 	// Description:
 	// This method should be overridden for devices that have one or more LEDs
 	// on the tracked tools. The return value should be zero if an error
 	// occurred while the request was being processed.
-	virtual int InternalSetToolLED(int tool, int led, int state) { return 1; };
+	virtual PlusStatus InternalSetToolLED(int tool, int led, int state) { return PLUS_SUCCESS; };
 
 	vtkMatrix4x4 *WorldCalibrationMatrix;
 	int NumberOfTools;

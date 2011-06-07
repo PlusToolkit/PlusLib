@@ -191,7 +191,7 @@ void vtkVideoFrame2::SetRowAlignment(int row)
     }
   else
     {
-    vtkErrorMacro("SetRowAlignment:  Row alignment must be either 1 or 4");
+    LOG_ERROR("SetRowAlignment:  Row alignment must be either 1 or 4");
     }
 }
 
@@ -200,7 +200,7 @@ void vtkVideoFrame2::SetFrameSize (int x, int y, int z)
 {
   if (x < 1 || y < 1 || z < 1)
     {
-    vtkErrorMacro(<< "SetFrameSize: Illegal frame size");
+    LOG_ERROR("SetFrameSize: Illegal frame size");
     return;
     }
 
@@ -298,7 +298,7 @@ void vtkVideoFrame2::SetVoidArray(void* newArray, vtkIdType size, int save)
   vtkIdType correctSize = this->CalculateActualMemorySize();
   if (size != correctSize)
     {
-    vtkErrorMacro(<< "SetVoidArray: Size does not match frame attributes");
+    LOG_ERROR("SetVoidArray: Size does not match frame attributes");
     return;
     }
 
@@ -362,12 +362,12 @@ bool vtkVideoFrame2::CopyData(void *arrayPtr, const int clipExtent[6],
   unsigned char *inPtr = this->Array;
   if (outPtr==NULL)
   {
-    LOG_ERROR("Copydata output is invalid");
+    LOG_ERROR("CopyData output is invalid");
     return false;
   }
   if (inPtr==NULL)
   {
-    LOG_ERROR("Copydata input is invalid");
+    LOG_ERROR("CopyData input is invalid");
     return false;
   }
 

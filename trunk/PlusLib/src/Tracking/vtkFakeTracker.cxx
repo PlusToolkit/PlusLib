@@ -133,25 +133,25 @@ void vtkFakeTracker::SetMode(FakeTrackerMode mode)
 }
 
 //----------------------------------------------------------------------------
-int vtkFakeTracker::Connect()
+PlusStatus vtkFakeTracker::Connect()
 {
-	return 1; 
+	return PLUS_SUCCESS; 
 }
 
 //----------------------------------------------------------------------------
-void vtkFakeTracker::Disconnect()
+PlusStatus vtkFakeTracker::Disconnect()
 {
-	this->StopTracking(); 
+	return this->StopTracking(); 
 }
 
 //----------------------------------------------------------------------------
-int vtkFakeTracker::Probe()
+PlusStatus vtkFakeTracker::Probe()
 {
-	return 1;
+	return PLUS_SUCCESS; 
 }
 
 //----------------------------------------------------------------------------
-int vtkFakeTracker::InternalStartTracking()
+PlusStatus vtkFakeTracker::InternalStartTracking()
 {
 	// for accurate timing
 	this->Timer->Initialize();
@@ -162,16 +162,16 @@ int vtkFakeTracker::InternalStartTracking()
 		this->Tools[i]->EnabledOn();
 	}
 
-	return 1; 
+	return PLUS_SUCCESS;
 }
 
-int vtkFakeTracker::InternalStopTracking()
+PlusStatus vtkFakeTracker::InternalStopTracking()
 {
-	return 1;
+	return PLUS_SUCCESS; 
 }
 
 //----------------------------------------------------------------------------
-void vtkFakeTracker::InternalUpdate()
+PlusStatus vtkFakeTracker::InternalUpdate()
 {
 	if (this->Frame++ > 355559)
 	{
@@ -368,16 +368,18 @@ void vtkFakeTracker::InternalUpdate()
 	default:
 		break;
 	}
+
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-void vtkFakeTracker::ReadConfiguration(vtkXMLDataElement* config)
+PlusStatus vtkFakeTracker::ReadConfiguration(vtkXMLDataElement* config)
 {
 	LOG_TRACE("vtkFakeTracker::ReadConfiguration"); 
 	if ( config == NULL ) 
 	{
 		LOG_WARNING("Unable to find FakeTracker XML data element");
-		return; 
+		return PLUS_FAIL; 
 	}
 
 	if ( !this->Tracking )
@@ -397,5 +399,5 @@ void vtkFakeTracker::ReadConfiguration(vtkXMLDataElement* config)
 		}
 	}
 
-	Superclass::ReadConfiguration(config); 
+	return Superclass::ReadConfiguration(config); 
 }

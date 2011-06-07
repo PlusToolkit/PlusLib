@@ -47,20 +47,20 @@ public:
 	// Description:
 	// Record incoming video at the specified FrameRate.  The recording
 	// continues indefinitely until Stop() is called. 
-	virtual void Record();
+	virtual PlusStatus Record();
 
 	// Description:
 	// Stop recording or playing.
-	virtual void Stop();
+	virtual PlusStatus Stop();
 
 	// Description:
 	// Grab a single video frame.
-	void Grab();
+	PlusStatus Grab();
 
 	// Description:
 	// Initialize the driver (this is called automatically when the
 	// first grab is done).
-	void Initialize();
+	PlusStatus Initialize();
 
 	// Description:
 	// Free the driver (this is called automatically inside the
