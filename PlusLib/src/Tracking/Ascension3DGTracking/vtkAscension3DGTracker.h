@@ -20,26 +20,26 @@ public:
 
 	// Description:
 	// Connect to device
-	int Connect();
+	PlusStatus Connect();
 
 	// Description:
 	// Disconnect from device 
-	virtual void Disconnect();
+	virtual PlusStatus Disconnect();
 
 	// Description:
 	// Probe to see if the tracking system is present on the
 	// specified serial port.  If the SerialPort is set to -1, then all serial ports will be checked.
-	int Probe();
+	PlusStatus Probe();
 
 	// Description:
 	// Get an update from the tracking system and push the new transforms
 	// to the tools.  This should only be used within vtkTracker.cxx.
-	void InternalUpdate();
+	PlusStatus InternalUpdate();
 
 	// Description:
 	// Read/write BrachyStepper configuration to xml data
-	void ReadConfiguration( vtkXMLDataElement* config ); 
-	void WriteConfiguration( vtkXMLDataElement* config );
+	PlusStatus ReadConfiguration( vtkXMLDataElement* config ); 
+	PlusStatus WriteConfiguration( vtkXMLDataElement* config );
 
 	// Description:
 	// Get number of sensors 
@@ -53,17 +53,17 @@ protected:
 
 	// Description:
 	// Initialize the tracking device
-	bool InitAscension3DGTracker();
+	PlusStatus InitAscension3DGTracker();
 
 	// Description:
 	// Start the tracking system.  The tracking system is brought from its ground state into full tracking mode.
   // The device will only be reset if communication cannot be established without a reset.
-	int InternalStartTracking();
+	PlusStatus InternalStartTracking();
 
 	// Description:
 	// Stop the tracking system and bring it back to its ground state:
 	// Initialized, not tracking, at 9600 Baud.
-	int InternalStopTracking();
+	PlusStatus InternalStopTracking();
   
 	vtkTrackerBuffer* LocalTrackerBuffer; 
 	
@@ -80,7 +80,7 @@ private:  // Functions.
   vtkAscension3DGTracker( const vtkAscension3DGTracker& );
 	void operator=( const vtkAscension3DGTracker& );  
 	
-	int CheckReturnStatus( int status );
+	PlusStatus CheckReturnStatus( int status );
   
   
 private:  // Variables.
