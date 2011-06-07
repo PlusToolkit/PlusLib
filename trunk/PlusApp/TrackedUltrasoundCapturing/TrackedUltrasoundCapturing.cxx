@@ -275,17 +275,21 @@ void TrackedUltrasoundCapturing::StopRecording()
 }
 
 //----------------------------------------------------------------------------
-void TrackedUltrasoundCapturing::UpdateRecording()
+PlusStatus TrackedUltrasoundCapturing::UpdateRecording()
 {
 	LOG_TRACE("TrackedUltrasoundCapturing::UpdateRecording");
 	if ( !this->Recording )
 	{	
 		LOG_DEBUG("No need to update recording: recording stoppped!"); 
-		return; 
+		return PLUS_FAIL; 
 	}
 
-
-	const double newestTimestamp = this->GetDataCollector()->GetMostRecentTimestamp(); 
+	double newestTimestamp(0);
+  if (this->GetDataCollector()->GetMostRecentTimestamp(newestTimestamp)!=PLUS_SUCCESS)
+  {
+    LOG_ERROR("Cannot update recording, most recent timestamp is not available");
+    return PLUS_FAIL; 
+  }
 	const double samplingTime = (1.0 / this->GetFrameRate()); 
 
 	if ( this->GetRecordingStartTime() == 0 )
@@ -302,19 +306,26 @@ void TrackedUltrasoundCapturing::UpdateRecording()
 		lastTimestamp = lastTimestamp + samplingTime; 
 		vtksys::SystemTools::Delay(0); 
 	}
+
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-void TrackedUltrasoundCapturing::RecordTrackedFrame( const double time /*=0*/)
+PlusStatus TrackedUltrasoundCapturing::RecordTrackedFrame( const double time /*=0*/)
 {
 	LOG_TRACE("TrackedUltrasoundCapturing::RecordTrackedFrame");
 	if ( time != 0 )
 	{
-		double timestamp = this->GetDataCollector()->GetFrameTimestampByTime(time); 
+    double timestamp(0);
+    if (this->GetDataCollector()->GetFrameTimestampByTime(time)!=PLUS_SUCCESS)
+    {
+      LOG_ERROR("Cannot get frame timestamp, RecordTrackedFrame failed");
+      return PLUS_FAIL;
+    } 
 		if (timestamp == this->GetLastRecordedFrameTimestamp() )
 		{
 			LOG_DEBUG("This frame is already in the local buffer (timestamp: " << std::fixed << timestamp << ")"); 
-			return; 
+			return PLUS_FAIL;
 		}
 	}
 
@@ -338,6 +349,8 @@ void TrackedUltrasoundCapturing::RecordTrackedFrame( const double time /*=0*/)
 	{		
 		this->AddTrackedFrame(&trackedFrame); 
 	}
+
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------

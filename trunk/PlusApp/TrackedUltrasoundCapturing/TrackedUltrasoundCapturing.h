@@ -53,10 +53,10 @@ public:
 	virtual void StopRecording(); 
 
 	// Description:
-	virtual void UpdateRecording(); 
+	virtual PlusStatus UpdateRecording(); 
 
 	// Description:
-	virtual void RecordTrackedFrame(const double timestamp = 0); 
+	virtual PlusStatus RecordTrackedFrame(const double timestamp = 0); 
 	
 	// Description:
 	virtual void AddTrackedFrame( TrackedFrame* trackedFrame ); 
