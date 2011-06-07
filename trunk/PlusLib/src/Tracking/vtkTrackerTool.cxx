@@ -494,6 +494,8 @@ PlusStatus vtkTrackerTool::ReadConfiguration(vtkXMLDataElement* config)
 			this->SetCalibrationError(calibrationError); 
 		}
 	}
+
+  return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
