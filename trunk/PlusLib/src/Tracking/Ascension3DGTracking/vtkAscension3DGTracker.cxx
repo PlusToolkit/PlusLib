@@ -1,3 +1,4 @@
+#include "PlusConfigure.h"
 
 #include "vtkAscension3DGTracker.h"
 
@@ -89,32 +90,35 @@ vtkAscension3DGTracker
 
 
 
-/** 
- * @returns 1 on success, 0 on failure.
- */
-int
+PlusStatus
 vtkAscension3DGTracker
 ::Connect()
 {
 	LOG_TRACE( "vtkAscension3DGTracker::Connect" ); 
 		
-	if ( ! this->Probe() ) return 0;
-	
+  if ( this->Probe()!=PLUS_SUCCESS )
+  {
+    LOG_ERROR("Connection probe failed");
+    return PLUS_FAIL;
+  }
   
   this->CheckReturnStatus( atc::InitializeBIRDSystem() );
   
   atc::SYSTEM_CONFIGURATION systemConfig;
   
-  int success = 1;
-  success = this->CheckReturnStatus( atc::GetBIRDSystemConfiguration( &systemConfig ) );
-  if ( ! success ) return 0;
-  
+  if (this->CheckReturnStatus( atc::GetBIRDSystemConfiguration( &systemConfig ) ) != PLUS_SUCCESS)
+  {
+    LOG_ERROR("Connection initialization failed");
+    return PLUS_FAIL;
+  }  
     // Change to metric units.
   
   int metric = 1;
-  success = this->CheckReturnStatus( atc::SetSystemParameter( atc::METRIC, &metric, sizeof( metric ) ) );
-  if ( ! success ) return 0;
-  
+  if (this->CheckReturnStatus( atc::SetSystemParameter( atc::METRIC, &metric, sizeof( metric ) ) )!= PLUS_SUCCESS)
+  {
+    LOG_ERROR("Connection set to metric units failed");
+    return PLUS_FAIL;
+  }  
   
     // Go through all tools.
   
@@ -148,28 +152,28 @@ vtkAscension3DGTracker
 
 	// Set tool names
 	
-	return 1; 
+	return PLUS_SUCCESS; 
 }
 
 
 
-void
+PlusStatus
 vtkAscension3DGTracker
 ::Disconnect()
 {
 	LOG_TRACE( "vtkAscension3DGTracker::Disconnect" ); 
-	this->StopTracking(); 
+	return this->StopTracking(); 
 }
 
 
 
-int
+PlusStatus
 vtkAscension3DGTracker
 ::Probe()
 {
 	LOG_TRACE( "vtkAscension3DGTracker::Probe" ); 
 	
-  return 1; 
+  return PLUS_SUCCESS; 
 } 
 
 
@@ -177,21 +181,21 @@ vtkAscension3DGTracker
 /**
  * @returns 1 on success, 0 on failure.
  */
-int
+PlusStatus
 vtkAscension3DGTracker
 ::InternalStartTracking()
 {
 	LOG_TRACE( "vtkAscension3DGTracker::InternalStartTracking" ); 
 	if ( this->Tracking )
 	{
-		return 1;
+		return PLUS_SUCCESS;
 	}
   
 	if ( ! this->InitAscension3DGTracker() )
 	{
 		LOG_ERROR( "Couldn't initialize vtkAscension3DGTracker" );
 		this->Tracking = 0;
-		return 0;
+		return PLUS_FAIL;
 	} 
 
 	
@@ -203,7 +207,7 @@ vtkAscension3DGTracker
     // Turn on the first attached transmitter.
   
   atc::BOARD_CONFIGURATION boardConfig;
-  int success = this->CheckReturnStatus( GetBoardConfiguration( 0, &boardConfig ) );
+  this->CheckReturnStatus( GetBoardConfiguration( 0, &boardConfig ) );
   
   short selectID = TRANSMITTER_OFF;
   int i = 0;
@@ -211,7 +215,7 @@ vtkAscension3DGTracker
   while( ( i < boardConfig.numberTransmitters ) && ( found == false ) )
     {
     atc::TRANSMITTER_CONFIGURATION transConfig;
-    success = this->CheckReturnStatus( GetTransmitterConfiguration( i, &transConfig ) );
+    this->CheckReturnStatus( GetTransmitterConfiguration( i, &transConfig ) );
     if ( transConfig.attached )
       {
       selectID = i;
@@ -220,24 +224,32 @@ vtkAscension3DGTracker
     ++ i;
     }
   
-  success = this->CheckReturnStatus( atc::SetSystemParameter( atc::SELECT_TRANSMITTER, &selectID, sizeof( selectID ) ) );
-  if ( ! success ) return 0;
+  if (this->CheckReturnStatus( atc::SetSystemParameter( atc::SELECT_TRANSMITTER, &selectID, sizeof( selectID ) ) ) != PLUS_SUCCESS)
+  {
+    LOG_ERROR("Select transmitter failed");
+    return PLUS_FAIL;
+  }
   
-	return 1;
+	return PLUS_SUCCESS;
 }
 
 
 
-int
+PlusStatus
 vtkAscension3DGTracker
 ::InternalStopTracking()
 {
 	LOG_TRACE( "vtkAscension3DGTracker::InternalStopTracking" ); 
 	
 	short selectID = TRANSMITTER_OFF;
-	this->CheckReturnStatus( atc::SetSystemParameter( atc::SELECT_TRANSMITTER, &selectID, sizeof( selectID ) ) );
+  if (this->CheckReturnStatus( atc::SetSystemParameter( atc::SELECT_TRANSMITTER, &selectID, sizeof( selectID ) ) )
+    != PLUS_SUCCESS)
+  {
+    LOG_ERROR("Select transmitter failed");
+    return PLUS_FAIL;
+  }
 	
-	return 1;
+	return PLUS_SUCCESS;
 }
 
 
@@ -245,22 +257,22 @@ vtkAscension3DGTracker
 /**
  * This function is called by the tracker thread.
  */
-void
+PlusStatus
 vtkAscension3DGTracker
 ::InternalUpdate()
 {
 	LOG_TRACE( "vtkAscension3DGTracker::InternalUpdate" ); 
 	if ( ! this->Tracking )
 	{
-		LOG_WARNING( "Called Update() when SavedDataTracker was not tracking" );
-		return;
+		LOG_ERROR( "Called Update() when SavedDataTracker was not tracking" );
+		return PLUS_FAIL;
 	}
   
   
   if ( ! this->Tracking )
     {
-    vtkWarningMacro( << "called Update() when not tracking" );
-    return;
+    LOG_ERROR("called Update() when not tracking" );
+    return PLUS_FAIL;
     }
   
   // TODO: Frame number is fake here!
@@ -271,22 +283,28 @@ vtkAscension3DGTracker
   
   
   atc::SYSTEM_CONFIGURATION sysConfig;
-  int success = this->CheckReturnStatus( atc::GetBIRDSystemConfiguration( &sysConfig ) );
-  if ( ! success ) return;
+  if (this->CheckReturnStatus( atc::GetBIRDSystemConfiguration( &sysConfig ) )
+    != PLUS_SUCCESS)
+  {
+    LOG_ERROR("Cannot get system configuration");
+    return PLUS_FAIL;
+  }
   
   typedef atc::DOUBLE_POSITION_ANGLES_MATRIX_QUATERNION_TIME_Q_BUTTON_RECORD RecordType;
   RecordType *record = new RecordType[ sysConfig.numberSensors ];
-  success = this->CheckReturnStatus( atc::GetSynchronousRecord( ALL_SENSORS,
-                                     record, sysConfig.numberSensors * sizeof( RecordType ) ) );
-  if ( ! success ) return;
-  
+  if (this->CheckReturnStatus( atc::GetSynchronousRecord( ALL_SENSORS,
+    record, sysConfig.numberSensors * sizeof( RecordType ) ) ) != PLUS_SUCCESS)
+  {
+    LOG_ERROR("Cannot get synchronous record");
+    return PLUS_FAIL;
+  }
   
   if ( this->GetNumberOfSensors() != sysConfig.numberSensors )
     {
-    vtkErrorMacro( "Changing sensors while tracking is not supported. Reconnect necessary." );
+    LOG_ERROR( "Changing sensors while tracking is not supported. Reconnect necessary." );
     this->StopTracking();
     this->Disconnect();
-    return;
+    return PLUS_FAIL;
     }
   
   
@@ -382,12 +400,12 @@ vtkAscension3DGTracker
       }
     }
   
-  
+  return PLUS_SUCCESS;
 }
 
 
 
-bool
+PlusStatus
 vtkAscension3DGTracker
 ::InitAscension3DGTracker()
 {
@@ -397,7 +415,7 @@ vtkAscension3DGTracker
 
 
 
-void
+PlusStatus
 vtkAscension3DGTracker
 ::ReadConfiguration( vtkXMLDataElement* config )
 {
@@ -407,8 +425,8 @@ vtkAscension3DGTracker
 	LOG_TRACE( "vtkAscension3DGTracker::ReadConfiguration" ); 
 	if ( config == NULL ) 
 	{
-		LOG_WARNING("Unable to find Ascension3DGTracker XML data element");
-		return; 
+		LOG_ERROR("Unable to find Ascension3DGTracker XML data element");
+		return PLUS_FAIL; 
 	}
 
 	if ( this->ConfigurationData == NULL ) 
@@ -419,29 +437,30 @@ vtkAscension3DGTracker
 	// Save config data
 	this->ConfigurationData->DeepCopy( config ); 
 
+  return PLUS_SUCCESS;
 }
 
 
 
-void
+PlusStatus
 vtkAscension3DGTracker
 ::WriteConfiguration( vtkXMLDataElement* config )
 {
 	LOG_TRACE( "vtkAscension3DGTracker::WriteConfiguration" ); 
 	if ( config == NULL )
 	{
-		config = vtkXMLDataElement::New(); 
+    LOG_ERROR("Invalid write configuration pointer");
+		return PLUS_FAIL;
 	}
 
-	config->SetName("Ascension3DGTracker");
+	//config->SetName("Ascension3DGTracker");
+  
+  LOG_ERROR("Not implemented");
+  return PLUS_FAIL;
 }
 
 
-
-/**
- * @returns 1 on success, 0 on failure
- */
-int
+PlusStatus
 vtkAscension3DGTracker
 ::CheckReturnStatus( int status )
 {
@@ -449,9 +468,9 @@ vtkAscension3DGTracker
   {
     char buffer[ 512 ];
     atc::GetErrorText( status, buffer, sizeof( buffer ), atc::SIMPLE_MESSAGE );
-    std::cout << "Error: " << buffer << std::endl;
-    return 0;
+    LOG_ERROR(buffer);
+    return PLUS_FAIL;
   }
-  return 1;
+  return PLUS_SUCCESS;
 }
 
