@@ -117,17 +117,12 @@ public:
   virtual void Record();
 
   // Description:
-  // Play through the 'tape' sequentially at the specified frame rate.
-  // If you have just finished Recoding, you should call Rewind() first.
-  virtual void Play();
-
-  // Description:
-  // Stop recording or playing.
+  // Stop recording.
   virtual void Stop();
 
   // Description:
   // Grab a single video frame.
-  void Grab();
+  PlusStatus Grab();
 
   // Description:
   // Request a particular vtk output format (default: VTK_RGB).
@@ -179,7 +174,7 @@ public:
   // Description:
   // Initialize the driver (this is called automatically when the
   // first grab is done).
-  void Initialize();
+  PlusStatus Initialize();
 
   // Description:
   // Free the driver (this is called automatically inside the
@@ -213,7 +208,7 @@ protected:
 
   // Description:
   // For internal use only
-  void LocalInternalGrab(void * data, int type, int sz, bool cine, int frmnum);
+  PlusStatus LocalInternalGrab(void * data, int type, int sz, bool cine, int frmnum);
   
 
 private:

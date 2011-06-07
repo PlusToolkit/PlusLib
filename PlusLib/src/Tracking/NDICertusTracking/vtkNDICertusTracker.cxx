@@ -143,158 +143,125 @@ static VLEDState vtkNDICertusMapVLEDState[] = {
 
 #define vtkPrintCertusErrorMacro() \
 	{ \
-	if (OptotrakGetErrorString(vtkCertusErrorString, \
-	MAX_ERROR_STRING_LENGTH+1) == 0) \
+	if (OptotrakGetErrorString(vtkCertusErrorString, MAX_ERROR_STRING_LENGTH+1) == 0) \
 	{ \
 	LOG_ERROR(vtkCertusErrorString); \
 	} \
 	} 
 
-#if VTK_CERTUS_DEBUG_STATEMENTS
-#define vtkCertusDebugMacro(t) \
-	{ \
-	cerr << "vtkNDICertusTracker.cxx:" << __LINE__ << " " t << "\n"; \
-	}
-#else
-#define vtkCertusDebugMacro(t)
-#endif
-
 	//----------------------------------------------------------------------------
-	int vtkNDICertusTracker::Connect()
+	PlusStatus vtkNDICertusTracker::Connect()
 	{
-		// Variable to indicate that probe failed
-		int successFlag = 1;  
-
 		// Set the NIF (Network Information File)
-		if (successFlag &&
-			OptotrakSetProcessingFlags(OPTO_USE_INTERNAL_NIF)
-			!= OPTO_NO_ERROR_CODE)
+		if (OptotrakSetProcessingFlags(OPTO_USE_INTERNAL_NIF) != OPTO_NO_ERROR_CODE)
 		{
-			vtkErrorMacro("Call to OptotrakSetProcessingFlags() failed.");
+			LOG_ERROR("Call to OptotrakSetProcessingFlags() failed.");
 			vtkPrintCertusErrorMacro();
-			successFlag = 0;    
+			return PLUS_FAIL;
 		}
 
 		// Write to the internal NIF
-		if (successFlag &&
-			TransputerDetermineSystemCfg(NULL) != OPTO_NO_ERROR_CODE)
+		if (TransputerDetermineSystemCfg(NULL) != OPTO_NO_ERROR_CODE)
 		{
-			vtkErrorMacro("Call to TransputerDetermineSystemCfg() failed.");
+			LOG_ERROR("Call to TransputerDetermineSystemCfg() failed.");
 			vtkPrintCertusErrorMacro();
-			successFlag = 0;    
+			return PLUS_FAIL;
 		}
 
 		// Do the initial load.
-		if (successFlag &&
-			TransputerLoadSystem("system") != OPTO_NO_ERROR_CODE)
+		if (TransputerLoadSystem("system") != OPTO_NO_ERROR_CODE)
 		{
-			vtkErrorMacro("Call to Certus TransputerLoadSystem() failed");
+			LOG_ERROR("Call to Certus TransputerLoadSystem() failed");
 			vtkPrintCertusErrorMacro();
-			successFlag = 0;
+			return PLUS_FAIL;
 		}
 
-		if (successFlag)
-		{
-			// Wait for 1 second, according to the Certus documentation
-			vtkAccurateTimer::Delay(1); 
-		}
+		// Wait for 1 second, according to the Certus documentation
+		vtkAccurateTimer::Delay(1); 
 
 		// Do the initialization
-		if (successFlag &&
-			TransputerInitializeSystem(0) != OPTO_NO_ERROR_CODE)
+		if (TransputerInitializeSystem(0) != OPTO_NO_ERROR_CODE)
 		{ // optionally, use "OPTO_LOG_ERRORS_FLAG" argument to above
-			vtkErrorMacro("Call to Certus TransputerInitializeSystem() failed");
+			LOG_ERROR("Call to Certus TransputerInitializeSystem() failed");
 			vtkPrintCertusErrorMacro();
-			successFlag = 0;
+			return PLUS_FAIL;
 		}
 
 		// Load the standard camera parameters
-		if (successFlag &&
-			OptotrakLoadCameraParameters("standard") != OPTO_NO_ERROR_CODE)
+		if (OptotrakLoadCameraParameters("standard") != OPTO_NO_ERROR_CODE)
 		{
-			vtkErrorMacro("Call to OptotrakLoadCameraParameters()  failed");
+			LOG_ERROR("Call to OptotrakLoadCameraParameters()  failed");
 			vtkPrintCertusErrorMacro();
-			successFlag = 0;
+			return PLUS_FAIL;
 		}
-
-		return successFlag; 
+    
+    return PLUS_SUCCESS;
 	}
 
 	//----------------------------------------------------------------------------
-	void vtkNDICertusTracker::Disconnect()
+	PlusStatus vtkNDICertusTracker::Disconnect()
 	{
 		this->StopTracking(); 
 
 		// Shut down the system
 		this->ShutdownCertusSystem();
+
+    return PLUS_SUCCESS;
 	}
 
 	//----------------------------------------------------------------------------
-	int vtkNDICertusTracker::InitializeCertusSystem()
+	PlusStatus vtkNDICertusTracker::InitializeCertusSystem()
 	{
 		// Connect to device
-		int successFlag = this->Connect(); 
+		if (this->Connect()!=PLUS_SUCCESS)
+    {
+      return PLUS_FAIL;
+    }
 
 		// Get the Optotrak status
 		int nNumSensors;
 		int nNumOdaus;
 		int nFlags;
-		if (successFlag &&
-			OptotrakGetStatus(&nNumSensors,
-			&nNumOdaus,
-			NULL,
-			NULL,
-			NULL,
-			NULL, 
-			NULL,
-			NULL,
-			NULL,
-			NULL,
-			NULL,
-			NULL,
-			NULL,
-			&nFlags ) != OPTO_NO_ERROR_CODE)
+		if (OptotrakGetStatus(&nNumSensors, &nNumOdaus, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, &nFlags ) != OPTO_NO_ERROR_CODE)
 		{
-			vtkErrorMacro("Call to OptotrakGetStatus() failed");
+			LOG_ERROR("Call to OptotrakGetStatus() failed");
 			vtkPrintCertusErrorMacro();
-			successFlag = 0;
+			return PLUS_FAIL;
 		}
 
 		// Make sure that the attached system is a Certus
-		if (successFlag &&
-			(nFlags & (OPTOTRAK_3020_FLAG | OPTOTRAK_CERTUS_FLAG))
-			!= OPTOTRAK_CERTUS_FLAG)
+		if ((nFlags & (OPTOTRAK_3020_FLAG | OPTOTRAK_CERTUS_FLAG))!= OPTOTRAK_CERTUS_FLAG)
 		{
-			vtkErrorMacro("Only Certus is supported. Attached device is not Certus.");
-			successFlag = 0;
+			LOG_ERROR("Only Certus is supported. Attached device is not Certus.");
+			return PLUS_FAIL;
 		}
 
 		// Check to make sure configuration is what we expect
-		if (successFlag &&
-			(nNumSensors != 1 || nNumOdaus != 1))
+		if ((nNumSensors != 1 || nNumOdaus != 1))
 		{
-			vtkCertusDebugMacro("Certus configuration: " << nNumSensors << " sensors, "
+			LOG_DEBUG("Certus configuration: " << nNumSensors << " sensors, "
 				<< nNumOdaus << " odaus");
 			//successFlag = 0;
 		}
 
-		return successFlag;
+		return PLUS_SUCCESS;
 	}
 
 	//----------------------------------------------------------------------------
-	int vtkNDICertusTracker::ShutdownCertusSystem()
+	PlusStatus vtkNDICertusTracker::ShutdownCertusSystem()
 	{
 		// Just a simple shutdown command
 		if (TransputerShutdownSystem() != OPTO_NO_ERROR_CODE)
 		{
 			vtkPrintCertusErrorMacro();
+      return PLUS_FAIL;
 		}
 
-		return 1;
+		return PLUS_SUCCESS;
 	}
 
 	//----------------------------------------------------------------------------
-	int vtkNDICertusTracker::ActivateCertusMarkers()
+	PlusStatus vtkNDICertusTracker::ActivateCertusMarkers()
 	{
 		// count the number of markers on all tools first
 		if (OptotrakSetupCollection(
@@ -310,31 +277,33 @@ static VLEDState vtkNDICertusMapVLEDState[] = {
 			(float)0.0,     /* Number of seconds to pre-trigger data by. */
 			OPTOTRAK_BUFFER_RAW_FLAG ) != OPTO_NO_ERROR_CODE)
 		{
-			return 0;
+			return PLUS_FAIL;
 		}
 
 		// Activate the markers
 		if (OptotrakActivateMarkers() != OPTO_NO_ERROR_CODE)
 		{
-			return 0;
+      LOG_ERROR("Cannot activate the markers");
+			return PLUS_FAIL;
 		}
 
-		return 1;
+		return PLUS_SUCCESS;
 	}
 
 	//----------------------------------------------------------------------------
-	int vtkNDICertusTracker::DeActivateCertusMarkers()
+	PlusStatus vtkNDICertusTracker::DeActivateCertusMarkers()
 	{
 		if(OptotrakDeActivateMarkers() != OPTO_NO_ERROR_CODE)
 		{
-			return 0;
+      LOG_ERROR("Cannot activate the markers");
+			return PLUS_FAIL;
 		}
 
-		return 1;
+		return PLUS_SUCCESS;
 	}
 
 	//----------------------------------------------------------------------------
-	int vtkNDICertusTracker::Probe()
+	PlusStatus vtkNDICertusTracker::Probe()
 	{
 		if(!this->ServerMode && this->RemoteAddress) 
 		{
@@ -344,34 +313,40 @@ static VLEDState vtkNDICertusMapVLEDState[] = {
 		// If device is already tracking, return success.
 		if (this->Tracking)
 		{
-			return 1;
+			return PLUS_SUCCESS;
 		}
 
 		// Perform initialization of the system
-		int successFlag = this->InitializeCertusSystem();
+		PlusStatus status = this->InitializeCertusSystem();
 
 		// Shut down the system
 		this->ShutdownCertusSystem();
 
-		return successFlag;
+		return status;
 	} 
 
 	//----------------------------------------------------------------------------
-	void vtkNDICertusTracker::StartTracking()
+	PlusStatus vtkNDICertusTracker::StartTracking()
 	{
 #if VTK_CERTUS_NO_THREADING
-		this->Tracking = this->InternalStartTracking();
+		if (this->InternalStartTracking()!=PLUS_SUCCESS)
+    {
+      this->Tracking=0;
+      return PLUS_FAIL;
+    }
+    this->Tracking=1;
+    return PLUS_SUCCESS;
 #else
-		this->vtkTracker::StartTracking();
-#endif
+		return this->vtkTracker::StartTracking();
+#endif    
 	}
 
 	//----------------------------------------------------------------------------
-	int vtkNDICertusTracker::InternalStartTracking()
+	PlusStatus vtkNDICertusTracker::InternalStartTracking()
 	{
 		if (this->Tracking)
 		{
-			return 1;
+			return PLUS_SUCCESS;
 		}
 
 		// Attempt to initialize the Certus
@@ -381,7 +356,7 @@ static VLEDState vtkNDICertusMapVLEDState[] = {
 		{
 			vtkPrintCertusErrorMacro();
 			this->ShutdownCertusSystem();
-			return 0;
+			return PLUS_FAIL;
 		}
 
 		// count the number of markers on all tools first
@@ -389,7 +364,7 @@ static VLEDState vtkNDICertusMapVLEDState[] = {
 		{
 			vtkPrintCertusErrorMacro();
 			this->ShutdownCertusSystem();
-			return 0;
+			return PLUS_FAIL;
 		}
 
 		// For accurate timing
@@ -397,22 +372,22 @@ static VLEDState vtkNDICertusMapVLEDState[] = {
 
 		this->Tracking = 1;
 
-		return 1;
+		return PLUS_SUCCESS;
 	}
 
 	//----------------------------------------------------------------------------
-	void vtkNDICertusTracker::StopTracking()
+	PlusStatus vtkNDICertusTracker::StopTracking()
 	{
 #if VTK_CERTUS_NO_THREADING
-		this->InternalStopTracking();
-		this->Tracking = 0;
+    this->Tracking = 0;
+		return this->InternalStopTracking();
 #else
-		this->vtkTracker::StopTracking();
+		return this->vtkTracker::StopTracking();
 #endif
 	}
 
 	//----------------------------------------------------------------------------
-	int vtkNDICertusTracker::InternalStopTracking()
+	PlusStatus vtkNDICertusTracker::InternalStopTracking()
 	{
 		if(OptotrakDeActivateMarkers() != OPTO_NO_ERROR_CODE)
 		{
@@ -425,24 +400,28 @@ static VLEDState vtkNDICertusMapVLEDState[] = {
 			vtkPrintCertusErrorMacro();
 		}
 
-		return 1;
+		return PLUS_SUCCESS;
 	}
 
 	//----------------------------------------------------------------------------
-	void vtkNDICertusTracker::Update()
+	PlusStatus vtkNDICertusTracker::Update()
 	{
 #if VTK_CERTUS_NO_THREADING
 		if (this->Tracking)
 		{
-			this->InternalUpdate();
+			return this->InternalUpdate();
 		}
+    else
+    {
+      return PLUS_FAIL;
+    }
 #endif
 
-		this->vtkTracker::Update();
+		return this->vtkTracker::Update();
 	}
 
 	//----------------------------------------------------------------------------
-	void vtkNDICertusTracker::InternalUpdate()
+	PlusStatus vtkNDICertusTracker::InternalUpdate()
 	{
 		int tool;
 		int missing[VTK_CERTUS_NTOOLS];
@@ -452,8 +431,8 @@ static VLEDState vtkNDICertusMapVLEDState[] = {
 
 		if (!this->Tracking)
 		{
-			vtkWarningMacro( << "called Update() when Certus was not tracking");
-			return;
+			LOG_ERROR("called Update() when Certus was not tracking");
+			return PLUS_FAIL;
 		}
 
 		// initialize transformations to identity
@@ -478,10 +457,10 @@ static VLEDState vtkNDICertusMapVLEDState[] = {
 		{
 			vtkPrintCertusErrorMacro();
 			delete [] rigidBodyData;
-			return;
+			return PLUS_FAIL;
 		}
 
-		vtkCertusDebugMacro("Found " << uElements << " rigid bodies, expected " << this->NumberOfRigidBodies
+		LOG_DEBUG("Found " << uElements << " rigid bodies, expected " << this->NumberOfRigidBodies
 			<< " with " << this->NumberOfMarkers << " markers");
 
 		// these two calls are to generate an accurate timestamp
@@ -493,7 +472,7 @@ static VLEDState vtkNDICertusMapVLEDState[] = {
 		{
 			OptotrakRigidStruct& rigidBody = rigidBodyData[rigidCounter];
 			long rigidId = rigidBody.RigidId;
-			vtkCertusDebugMacro("rigidBody " << rigidCounter << " rigidId = " << rigidId);
+			LOG_DEBUG("rigidBody " << rigidCounter << " rigidId = " << rigidId);
 
 			std::map<int, int>::iterator rigidBodyMapIterator = this->RigidBodyMap.find(rigidId); 
 			if ( rigidBodyMapIterator != this->RigidBodyMap.end())
@@ -502,7 +481,7 @@ static VLEDState vtkNDICertusMapVLEDState[] = {
 			}
 			else
 			{
-				vtkErrorMacro("InternalUpdate: bad rigid body ID " << rigidId);
+				LOG_ERROR("InternalUpdate: bad rigid body ID " << rigidId);
 				continue;
 			}
 
@@ -518,11 +497,11 @@ static VLEDState vtkNDICertusMapVLEDState[] = {
 				trans[5] = rigidBody.transformation.quaternion.translation.y;
 				trans[6] = rigidBody.transformation.quaternion.translation.z;
 				trans[7] = rigidBody.QuaternionError;
-				vtkCertusDebugMacro(" " << trans[4] << ", " << trans[5] << ", " << trans[6]);
+				LOG_DEBUG(" " << trans[4] << ", " << trans[5] << ", " << trans[6]);
 			}
 			else
 			{
-				vtkCertusDebugMacro("OPTOTRAK_UNDETERMINED_FLAG");
+				LOG_DEBUG("OPTOTRAK_UNDETERMINED_FLAG");
 			}
 
 			statusFlags[tool] = rigidBody.flags;
@@ -572,12 +551,14 @@ static VLEDState vtkNDICertusMapVLEDState[] = {
 			// send the matrix and flags to the tool's vtkTrackerBuffer
 			this->ToolUpdate(tool, this->SendMatrix, flags, uFrameNumber, unfilteredtimestamp, filteredtimestamp);
 		}
+
+    return PLUS_SUCCESS;
 	}
 
 	//----------------------------------------------------------------------------
 	// Enable all tool ports that have tools plugged into them.
 	// The reference port is enabled with NDI_STATIC.
-	int vtkNDICertusTracker::EnableToolPorts()
+	PlusStatus vtkNDICertusTracker::EnableToolPorts()
 	{
 		int toolCounter = 0;
 
@@ -586,7 +567,7 @@ static VLEDState vtkNDICertusMapVLEDState[] = {
 		{
 			if (this->PortEnabled[toolCounter])
 			{
-				vtkCertusDebugMacro("disabling tool " << toolCounter);
+				LOG_DEBUG("disabling tool " << toolCounter);
 				if (RigidBodyDelete(this->PortHandle[toolCounter]) != OPTO_NO_ERROR_CODE)
 				{
 					vtkPrintCertusErrorMacro();
@@ -598,7 +579,7 @@ static VLEDState vtkNDICertusMapVLEDState[] = {
 		// stop tracking
 		if (this->Tracking)
 		{
-			vtkCertusDebugMacro("DeActivating Markers");
+			LOG_DEBUG("DeActivating Markers");
 			if(!this->DeActivateCertusMarkers())
 			{
 				vtkPrintCertusErrorMacro();
@@ -614,30 +595,30 @@ static VLEDState vtkNDICertusMapVLEDState[] = {
 			trialNumber < 3 && !allDevicesEnabled;
 			trialNumber++)
 		{
-			vtkCertusDebugMacro("Getting Number Device Handles");
+			LOG_DEBUG("Getting Number Device Handles");
 			if (OptotrakGetNumberDeviceHandles(&nDeviceHandles) != OPTO_NO_ERROR_CODE)
 			{
 				vtkPrintCertusErrorMacro();
-				return 0;
+				return PLUS_FAIL;
 			}
 
 			if (nDeviceHandles <= 0)
 			{
-				vtkErrorMacro("EnableToolPorts: no Optotrack strobers found");
-				return 0;
+				LOG_ERROR("EnableToolPorts: no Optotrack strobers found");
+				return PLUS_FAIL;
 			}
 
 			// get all device handles and the status of each one
 			deviceHandles = new DeviceHandle[nDeviceHandles];
 
 			unsigned int flags = 0;
-			vtkCertusDebugMacro("Getting Device Handles for " << nDeviceHandles << " devices");
+			LOG_DEBUG("Getting Device Handles for " << nDeviceHandles << " devices");
 			if (OptotrakGetDeviceHandles(deviceHandles, nDeviceHandles, &flags)
 				!= OPTO_NO_ERROR_CODE)
 			{
 				vtkPrintCertusErrorMacro();
 				delete [] deviceHandles;
-				return 0;
+				return PLUS_FAIL;
 			}
 
 			// initialize this to 1 (set to 0 if unenabled handles found)
@@ -653,7 +634,7 @@ static VLEDState vtkNDICertusMapVLEDState[] = {
 
 				if (status == DH_STATUS_UNOCCUPIED)
 				{
-					vtkCertusDebugMacro("Delete port handle " << ph);
+					LOG_DEBUG("Delete port handle " << ph);
 					if (OptotrakDeviceHandleFree(ph) != OPTO_NO_ERROR_CODE)
 					{
 						vtkPrintCertusErrorMacro();
@@ -662,7 +643,7 @@ static VLEDState vtkNDICertusMapVLEDState[] = {
 				}
 				else if (status == DH_STATUS_INITIALIZED)
 				{
-					vtkCertusDebugMacro("Enable port handle " << ph);
+					LOG_DEBUG("Enable port handle " << ph);
 					if (OptotrakDeviceHandleEnable(ph) != OPTO_NO_ERROR_CODE)
 					{
 						vtkPrintCertusErrorMacro();
@@ -694,7 +675,7 @@ static VLEDState vtkNDICertusMapVLEDState[] = {
 
 			DeviceHandleProperty *properties = 0;
 			int nProperties = 0;
-			vtkCertusDebugMacro("Getting number of properties for port handle " << ph);
+			LOG_DEBUG("Getting number of properties for port handle " << ph);
 			if (OptotrakDeviceHandleGetNumberProperties(ph, &nProperties)
 				!= OPTO_NO_ERROR_CODE
 				|| nProperties == 0)
@@ -704,7 +685,7 @@ static VLEDState vtkNDICertusMapVLEDState[] = {
 			else
 			{
 				properties = new DeviceHandleProperty[nProperties];
-				vtkCertusDebugMacro("Getting " << nProperties << " properties for handle " << ph);
+				LOG_DEBUG("Getting " << nProperties << " properties for handle " << ph);
 				if (OptotrakDeviceHandleGetProperties(ph, properties, nProperties)
 					!= OPTO_NO_ERROR_CODE)
 				{
@@ -768,7 +749,7 @@ static VLEDState vtkNDICertusMapVLEDState[] = {
 						// assume only one strober: index tools by SubPort
 						int port = nSubPort - 1;
 
-						vtkCertusDebugMacro("Found tool for port " << port);
+						LOG_DEBUG("Found tool for port " << port);
 						std::cout << "Found tool port " << port << " for device " << deviceName << std::endl; 
 
 						if (port >= 0 && port < VTK_CERTUS_NTOOLS)
@@ -776,7 +757,7 @@ static VLEDState vtkNDICertusMapVLEDState[] = {
 							if (this->PortEnabled[port] &&
 								this->PortHandle[port] != ph)
 							{
-								vtkErrorMacro("Port number " << port << " is already "
+								LOG_ERROR("Port number " << port << " is already "
 									"taken by a different tool");
 							}
 							else
@@ -815,7 +796,7 @@ static VLEDState vtkNDICertusMapVLEDState[] = {
 			{
 				int ph = this->PortHandle[toolCounter];
 				int rigidID = this->NumberOfRigidBodies; 
-				vtkCertusDebugMacro("Adding rigid body for port handle" << ph);
+				LOG_DEBUG("Adding rigid body for port handle" << ph);
 				if (RigidBodyAddFromDeviceHandle(ph,
 					rigidID, // rigID is port handle
 					OPTOTRAK_QUATERN_RIGID_FLAG |
@@ -857,20 +838,20 @@ static VLEDState vtkNDICertusMapVLEDState[] = {
 		// re-start the tracking
 		if (this->Tracking)
 		{
-			vtkCertusDebugMacro("Activating Markers");
+			LOG_DEBUG("Activating Markers");
 			if (!this->ActivateCertusMarkers())
 			{
 				vtkPrintCertusErrorMacro();
-				return 0;
+				return PLUS_FAIL;
 			}
 		}
 
-		return 1;
+		return PLUS_SUCCESS;
 	}
 
 	//----------------------------------------------------------------------------
 	// Disable all enabled tool ports.
-	int vtkNDICertusTracker::DisableToolPorts()
+	PlusStatus vtkNDICertusTracker::DisableToolPorts()
 	{
 		// stop tracking
 		if (this->Tracking)
@@ -903,7 +884,7 @@ static VLEDState vtkNDICertusMapVLEDState[] = {
 			}
 		}
 
-		return 1;
+		return PLUS_SUCCESS;
 	}
 
 	//----------------------------------------------------------------------------
@@ -924,15 +905,15 @@ static VLEDState vtkNDICertusMapVLEDState[] = {
 
 	//----------------------------------------------------------------------------
 	// cause the system to beep
-	int vtkNDICertusTracker::InternalBeep(int n)
+	PlusStatus vtkNDICertusTracker::InternalBeep(int n)
 	{
 		// beep is not implemented yet
-		return 1;
+		return PLUS_SUCCESS;
 	}
 
 	//----------------------------------------------------------------------------
 	// change the state of an LED on the tool
-	int vtkNDICertusTracker::InternalSetToolLED(int tool, int led, int state)
+	PlusStatus vtkNDICertusTracker::InternalSetToolLED(int tool, int led, int state)
 	{
 		if (this->Tracking &&
 			tool >= 0 && tool < VTK_CERTUS_NTOOLS &&
@@ -942,13 +923,13 @@ static VLEDState vtkNDICertusMapVLEDState[] = {
 			int ph = this->PortHandle[tool];
 			if (ph == 0)
 			{
-				return 0;
+				return PLUS_FAIL;
 			}
 
 			OptotrakDeviceHandleSetVisibleLED(ph, led+1, pstate);
 		}
 
-		return 1;
+		return PLUS_SUCCESS;
 	}
 
 

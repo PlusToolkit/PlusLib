@@ -33,7 +33,7 @@ public:
 	/*!
 	* \brief Initialize object, connect to devices, load configuration
 	*/
-	void Initialize();
+	PlusStatus Initialize();
 
 	/*!
 	 * \brief Sets tracking only flag and forwards the request to vtkDataCollector

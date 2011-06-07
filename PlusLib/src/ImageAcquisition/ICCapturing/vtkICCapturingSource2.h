@@ -43,36 +43,36 @@ public:
 
 	// Description:
 	// Read/write main configuration from/to xml data
-	virtual void ReadConfiguration(vtkXMLDataElement* config); 
-	virtual void WriteConfiguration(vtkXMLDataElement* config);
+	virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config); 
+	virtual PlusStatus WriteConfiguration(vtkXMLDataElement* config);
 
 	// Description:
 	// Connect to device
 	// Should be overridden to connect to the hardware 
-	virtual int Connect();
+	virtual PlusStatus Connect();
 
 	// Description:
 	// Disconnect from device
 	// Should be overridden to disconnect from the hardware 
-	virtual void Disconnect();
+	virtual PlusStatus Disconnect();
 
 	// Description:
 	// Record incoming video at the specified FrameRate.  The recording
 	// continues indefinitely until Stop() is called. 
-	virtual void Record();
+	virtual PlusStatus Record();
 
 	// Description:
 	// Stop recording or playing.
-	virtual void Stop();
+	virtual PlusStatus Stop();
 
 	// Description:
 	// Grab a single video frame.
-	void Grab();
+	PlusStatus Grab();
 
 	// Description:
 	// Initialize the driver (this is called automatically when the
 	// first grab is done).
-	void Initialize();
+	PlusStatus Initialize();
 
 	// Description:
 	// Free the driver (this is called automatically inside the
@@ -123,7 +123,7 @@ protected:
 
 	// Description:
 	// For internal use only
-	void LocalInternalGrab(unsigned char * data, unsigned long size, unsigned long frameNumber);
+	PlusStatus LocalInternalGrab(unsigned char * data, unsigned long size, unsigned long frameNumber);
 
 	// byte alignment of each row in the framebuffer
 	int FrameBufferRowAlignment;

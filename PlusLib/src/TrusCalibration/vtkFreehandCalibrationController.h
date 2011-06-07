@@ -43,27 +43,27 @@ public:
 	/*!
 	* \brief Initialize - implementation of a pure virtual function
 	*/
-	void Initialize();
+	PlusStatus Initialize();
 
 	/*!
 	* \brief Clear - implementation of a pure virtual function
 	*/
-	void Clear();
+	PlusStatus Clear();
 
 	/*!
 	* \brief Acquire new tracker positions and updates toolbox and canvas - implementation of a pure virtual function
 	*/
-	void DoAcquisition();
+	PlusStatus DoAcquisition();
 
 	/*!
 	* \brief Start calibration - implementation of a pure virtual function
 	*/
-	void Start();
+	PlusStatus Start();
 
 	/*!
 	* \brief Stop calibration - implementation of a pure virtual function
 	*/
-	void Stop();
+	PlusStatus Stop();
 
 	//TODO--------------------------
 	void StartTemporalCalibration();
@@ -79,17 +79,17 @@ public:
 	BrachyTRUSCalibrator* GetCalibrator() { return Calibrator; }
 
 	// Read XML based configuration of the calibration controller
-	virtual void ReadConfiguration( const char* configFileNameWithPath ); 
-	virtual void ReadConfiguration( vtkXMLDataElement* configData ); 
+	virtual PlusStatus ReadConfiguration( const char* configFileNameWithPath ); 
+	virtual PlusStatus ReadConfiguration( vtkXMLDataElement* configData ); 
 	// Read freehand calibration configurations (from probe calibration data element of the config file)
-	virtual void ReadFreehandCalibrationConfiguration(vtkXMLDataElement* probeCalibration);
+	virtual PlusStatus ReadFreehandCalibrationConfiguration(vtkXMLDataElement* probeCalibration);
 
 	//! Operation: Register phantom geometry for calibrator 
 	virtual void RegisterPhantomGeometry();
 	//! Operation 
 	// Add new tracked data for segmentation and save the segmentation result to the SegmentedFrameContainer
 	// The class has to be initialized before the segmentation process. 
-	virtual bool AddTrackedFrameData( TrackedFrame* trackedFrame, IMAGE_DATA_TYPE dataType ); 
+	virtual PlusStatus AddTrackedFrameData( TrackedFrame* trackedFrame, IMAGE_DATA_TYPE dataType ); 
 
 	// Get/set the saved image data info
 	RealtimeImageDataInfo GetRealtimeImageDataInfo(IMAGE_DATA_TYPE dataType);
@@ -101,13 +101,13 @@ public:
 	// - Save the calibration results and error reports into a file 
 	// - Save the PRE3D distribution plot to an image file
 	// - Map the PRE3D distribution onto the US image
-	virtual void ComputeCalibrationResults();
+	virtual PlusStatus ComputeCalibrationResults();
 
 	//! Operation: Read and populate US to Template calibration image data in offline mode
-	virtual void DoOfflineCalibration();
+	virtual PlusStatus DoOfflineCalibration();
 
 	//! Operation: print the calibration results as well as error reports to the stdout
-	virtual void PrintCalibrationResultsAndErrorReports();
+	virtual PlusStatus PrintCalibrationResultsAndErrorReports();
 
 //TODO these should go to a base class of this and ProbeCalibrationController?
 	//! Attribute: Point-Line Distance Error Analysis for Validation Positions in US probe frame
@@ -208,7 +208,7 @@ public:
 	//! Description
 	// File the calibration results 
 	// This operation writes the final calibration results to a file.
-	virtual void SaveCalibrationResultsAndErrorReportsToXML(); 
+	virtual PlusStatus SaveCalibrationResultsAndErrorReportsToXML(); 
 
 	virtual void SaveCalibrationDataToSequenceMetafile();
 
@@ -260,7 +260,7 @@ protected:
 	// Call the calibrator class and do the calibration process
 	virtual void Calibrate(); 
 	// Populate the segmented N-fiducials to the data container
-	virtual void PopulateSegmentedFiducialsToDataContainer(vnl_matrix<double> &transformUSProbe2StepperFrameMatrix4x4, IMAGE_DATA_TYPE dataType); 
+	virtual PlusStatus PopulateSegmentedFiducialsToDataContainer(vnl_matrix<double> &transformUSProbe2StepperFrameMatrix4x4, IMAGE_DATA_TYPE dataType); 
 
 protected:
 	//TODO

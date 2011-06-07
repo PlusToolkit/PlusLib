@@ -86,7 +86,7 @@ vtkSonixPortaVideoSource::vtkSonixPortaVideoSource()
 					  this->PortaBModeHeight * 4 ];
   if ( !this->ImageBuffer ) 
     {
-      vtkErrorMacro( << "vtkSonixPortaVideoSource constructor: not enough emory for ImageBuffer" );
+      LOG_ERROR("vtkSonixPortaVideoSource constructor: not enough emory for ImageBuffer" );
     }
   
   this->PortaImageMode = (int)BMode;
@@ -299,7 +299,7 @@ void vtkSonixPortaVideoSource::Initialize()
        bIsPortaFirmwarePathSet == 0 ||
        bIsPortaFirmwarePathSet == 0 ) 
     {
-      vtkErrorMacro( << "One of the Porta paths has not been set" );
+      LOG_ERROR("One of the Porta paths has not been set" );
       return;
     }
   
@@ -315,7 +315,7 @@ void vtkSonixPortaVideoSource::Initialize()
 			      this->PortaLUTPath ) ) 
     {
       this->PtrPorta->getLastError( err, size );
-      vtkErrorMacro( << "Initialize: Porta could not be initialized: "
+      LOG_ERROR("Initialize: Porta could not be initialized: "
 		     << "(" << err << ")" );
       return;
     }
@@ -323,7 +323,7 @@ void vtkSonixPortaVideoSource::Initialize()
   // test if the nameing scheme matches
   if ( this->PtrPorta->testParameterNames() != -1 ) 
     {
-      vtkErrorMacro( << "Porta naming scheme does not match" );
+      LOG_ERROR("Porta naming scheme does not match" );
       this->ReleaseSystemResources();
       return;
     }
@@ -354,13 +354,13 @@ void vtkSonixPortaVideoSource::Initialize()
       
       if ( !this->PtrPorta->findMasterPreset( name, 80, code ) ) 
 	{
-	  vtkErrorMacro( << "Initialize: master preset cannot be found" );
+	  LOG_ERROR("Initialize: master preset cannot be found" );
 	  return;
 	}
       
       if ( !this->PtrPorta->loadPreset( name ) ) 
 	{
-	  vtkErrorMacro( << "Initialize: master preset could not be loaded" );
+	  LOG_ERROR("Initialize: master preset could not be loaded" );
 	  return;
 	}
 
@@ -371,7 +371,7 @@ void vtkSonixPortaVideoSource::Initialize()
   // this is from propello
   if( !this->PtrPorta->initImagingMode( BMode ) ) 
     {
-      vtkErrorMacro( << "Initialize: cannot initialize imagingMode" );
+      LOG_ERROR("Initialize: cannot initialize imagingMode" );
       return;
     }
   else
@@ -390,7 +390,7 @@ void vtkSonixPortaVideoSource::Initialize()
   // finally, update all the parameters
   if ( !this->UpdateSonixPortaParams() ) 
     {
-      vtkErrorMacro( << "Initialize: cannot update sonix params" ); 
+      LOG_ERROR("Initialize: cannot update sonix params" ); 
     }
   
 
@@ -501,10 +501,7 @@ void vtkSonixPortaVideoSource::Record()
     {
       return;
     }
-  
-  if ( this->Playing )
-    this->Stop();
-  
+    
   if ( !this->Recording ) 
     {
       this->Recording = 1;
@@ -514,14 +511,6 @@ void vtkSonixPortaVideoSource::Record()
       if ( !this->PtrPorta->isImaging() )
 	this->PtrPorta->runImage();
     }
-}
-
-
-
-//----------------------------------------------------------------------------
-void vtkSonixPortaVideoSource::Play() 
-{
-  this->vtkVideoSource::Play();
 }
 
 //----------------------------------------------------------------------------
@@ -536,10 +525,6 @@ void vtkSonixPortaVideoSource::Stop()
 	{
 	  this->PtrPorta->stopImage();
 	}
-    }
-  else if ( this->Playing )
-    {
-      this->vtkVideoSource::Stop();
     }
 }
 
@@ -857,7 +842,7 @@ void vtkSonixPortaVideoSource::SetOutputFormat(int format)
       break;
     default:
       numComponents = 0;
-      vtkErrorMacro(<< "SetOutputFormat: Unrecognized color format.");
+      LOG_ERROR("SetOutputFormat: Unrecognized color format.");
       break;
     }
   
@@ -993,7 +978,7 @@ int vtkSonixPortaVideoSource::SetImageDepth( int myDepth )
   if ( !this->PtrPorta->setParam( prmImageDepth, myDepth ) ) 
     {
       this->Depth = myDepth;
-      vtkErrorMacro( << "Problem setting depth manually" );
+      LOG_ERROR("Problem setting depth manually" );
       return( 0 );
     }
   
@@ -1007,7 +992,7 @@ int vtkSonixPortaVideoSource::SetZoom( int percentage )
   // 100% means full height of the display area
   if ( !this->PtrPorta->setParam( prmZoom, percentage ) ) 
     {
-      vtkErrorMacro( << "SetZoom:  cannot set the zoom value" );
+      LOG_ERROR("SetZoom:  cannot set the zoom value" );
       return( 0 );
     }
   
@@ -1018,7 +1003,7 @@ int vtkSonixPortaVideoSource::SetZoom( int percentage )
 int vtkSonixPortaVideoSource::SetBLineDensity( int density ) {
   if ( !this->PtrPorta->setParam( prmBLineDensity, density ) ) 
     {
-      vtkErrorMacro( << "SetBLineDensity: cannot set the line density" );
+      LOG_ERROR("SetBLineDensity: cannot set the line density" );
       return( 0 );
     }
   
@@ -1134,7 +1119,7 @@ int vtkSonixPortaVideoSource::SetBModeFrameSize( int width, int height )
   
   if ( !this->ImageBuffer ) 
     {
-      vtkErrorMacro( << "SetBModeFrameSize: Not enough memory" );
+      LOG_ERROR("SetBModeFrameSize: Not enough memory" );
       return( 0 );
     }
   
@@ -1159,7 +1144,7 @@ int vtkSonixPortaVideoSource::SetBModeFrameSize( int width, int height )
       //
       if ( !this->UpdateSonixPortaParams() ) 
 	{
-	  vtkErrorMacro( << "SetBModeFrameSize:  unable to update param" );
+	  LOG_ERROR("SetBModeFrameSize:  unable to update param" );
 	  return( 0 );
 	}
     }

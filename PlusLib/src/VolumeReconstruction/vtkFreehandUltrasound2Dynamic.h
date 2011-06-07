@@ -94,7 +94,7 @@ public:
 
   // Description:
   // Configure the freehand ultrasound reconstruction according to a summary file
-  virtual int ReadSummaryFile(const char *filename);
+  virtual PlusStatus ReadSummaryFile(const char *filename);
 
   // Description:
   // Cause the slice to be inserted into the first reconstruction volume

@@ -25,27 +25,27 @@ public:
 	/*!
 	* \brief Initialize - implementation of a pure virtual function
 	*/
-	void Initialize();
+	PlusStatus Initialize();
 
 	/*!
 	* \brief Clear - implementation of a pure virtual function
 	*/
-	void Clear();
+	PlusStatus Clear();
 
 	/*!
 	* \brief Acquire new tracker positions and updates toolbox and canvas - implementation of a pure virtual function
 	*/
-	void DoAcquisition();
+	PlusStatus DoAcquisition();
 
 	/*!
 	* \brief Start - implementation of a pure virtual function
 	*/
-	void Start();
+	PlusStatus Start();
 
 	/*!
 	* \brief Stop - implementation of a pure virtual function
 	*/
-	void Stop();
+	PlusStatus Stop();
 
 protected:
 	/*!

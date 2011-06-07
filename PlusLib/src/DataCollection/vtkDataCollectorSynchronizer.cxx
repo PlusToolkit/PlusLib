@@ -462,7 +462,7 @@ void vtkDataCollectorSynchronizer::ComputeTransformThreshold( int& bufferIndex )
 }
 
 //----------------------------------------------------------------------------
-bool vtkDataCollectorSynchronizer::FindTransformTimestamp( int& bufferIndex, double& movedTransformTimestamp  )
+PlusStatus vtkDataCollectorSynchronizer::FindTransformTimestamp( int& bufferIndex, double& movedTransformTimestamp  )
 {
 	LOG_TRACE("vtkDataCollectorSynchronizer::FindTransformTimestamp"); 
 	bool diffFound = false; 
@@ -505,7 +505,12 @@ bool vtkDataCollectorSynchronizer::FindTransformTimestamp( int& bufferIndex, dou
 		bufferIndex--; 
 	}
 
-	return diffFound; 
+  if (!diffFound)
+  {
+    LOG_ERROR("Not enough difference found in the data");
+    return PLUS_FAIL;
+  }
+	return PLUS_SUCCESS; 
 
 }
 
@@ -648,20 +653,20 @@ void vtkDataCollectorSynchronizer::ConvertFrameToRGB( vtkImageData* pFrame, vtkI
 }
 
 //----------------------------------------------------------------------------
-bool vtkDataCollectorSynchronizer::GetFrameFromVideoBuffer( vtkImageData* frame, vtkVideoBuffer2::FrameUidType bufferIndex )
+PlusStatus vtkDataCollectorSynchronizer::GetFrameFromVideoBuffer( vtkImageData* frame, vtkVideoBuffer2::FrameUidType frameUid )
 {
 	LOG_TRACE("vtkDataCollectorSynchronizer::GetFrameFromVideoBuffer"); 
 
 	vtkVideoFrame2* frameInBuffer = NULL; 
-	if ( this->GetVideoBuffer()->GetFrame(bufferIndex, frameInBuffer) != vtkVideoBuffer2::FRAME_OK )
+	if ( this->GetVideoBuffer()->GetFrame(frameUid, frameInBuffer) != vtkVideoBuffer2::FRAME_OK )
 	{
-		LOG_WARNING("vtkDataCollectorSynchronizer: Unable to get frame from buffer with frame UID: " << bufferIndex); 
+		LOG_WARNING("vtkDataCollectorSynchronizer: Unable to get frame from buffer with frame UID: " << frameUid); 
 		if ( frame != NULL ) 
 		{
 			frame->Delete(); 
 			frame = NULL; 
 		}
-		return false; 
+		return PLUS_FAIL; 
 	}
 
 	int* extent = frameInBuffer->GetFrameExtent(); 
@@ -671,9 +676,13 @@ bool vtkDataCollectorSynchronizer::GetFrameFromVideoBuffer( vtkImageData* frame,
 	frame->SetNumberOfScalarComponents(1); 
 	frame->AllocateScalars(); 
 
-	frameInBuffer->CopyData( frame->GetScalarPointer(), extent, extent, pixelFormat); 
+	if (!frameInBuffer->CopyData( frame->GetScalarPointer(), extent, extent, pixelFormat))
+  {
+    LOG_ERROR("Cannot copy data for UID: " << frameUid);
+    return PLUS_FAIL;
+  }
 
-	return true; 
+	return PLUS_SUCCESS; 
 }
 
 //----------------------------------------------------------------------------
@@ -780,7 +789,7 @@ void vtkDataCollectorSynchronizer::FindStillFrame( vtkVideoBuffer2::FrameUidType
 }
 
 //----------------------------------------------------------------------------
-bool vtkDataCollectorSynchronizer::FindFrameTimestamp( vtkVideoBuffer2::FrameUidType& bufferIndex, double& movedFrameTimestamp, double nextMovedTimestamp )
+PlusStatus vtkDataCollectorSynchronizer::FindFrameTimestamp( vtkVideoBuffer2::FrameUidType& bufferIndex, double& movedFrameTimestamp, double nextMovedTimestamp )
 {
 	LOG_TRACE("vtkDataCollectorSynchronizer::FindFrameTimestamp"); 
 
@@ -815,7 +824,7 @@ bool vtkDataCollectorSynchronizer::FindFrameTimestamp( vtkVideoBuffer2::FrameUid
 #ifdef PLUS_PRINT_SYNC_DEBUG_INFO
 			this->DebugInfoStream << "# FinalFrameTimestamp is not reliable! We have reached the next tracker movement!" <<  std::endl; 
 #endif
-			return false; 
+			return PLUS_FAIL; 
 		}
 
 		unsigned long frameNumber(0); 
@@ -907,7 +916,12 @@ bool vtkDataCollectorSynchronizer::FindFrameTimestamp( vtkVideoBuffer2::FrameUid
 		bufferIndex++; 
 	}
 
-	return diffFound;
+  if (!diffFound)
+  {
+    LOG_ERROR("Not enough difference found in the data");
+    return PLUS_FAIL;
+  }
+	return PLUS_SUCCESS; 
 }
 
 //----------------------------------------------------------------------------
@@ -1077,27 +1091,27 @@ void vtkDataCollectorSynchronizer::SaveFrameToFile(vtkImageData* frame, char* fi
 }
 
 //----------------------------------------------------------------------------
-void vtkDataCollectorSynchronizer::GenerateSynchronizationReport( vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter, const char* gnuplotScriptsFolder)
+PlusStatus vtkDataCollectorSynchronizer::GenerateSynchronizationReport( vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter, const char* gnuplotScriptsFolder)
 {
 	LOG_TRACE("vtkDataCollectorSynchronizer::GenerateSynchronizationReport"); 
 #ifdef PLUS_PRINT_SYNC_DEBUG_INFO 
 	if ( !this->GetSynchronized() )
 	{
-		LOG_WARNING("Unable to generate synchronization report: synchronization not yet finished!"); 
-		return; 
+		LOG_ERROR("Unable to generate synchronization report: synchronization not yet finished!"); 
+		return PLUS_FAIL; 
 	}
 
 	if ( htmlReport == NULL || plotter == NULL )
 	{
 		LOG_ERROR("Caller should define HTML report generator and gnuplot plotter before report generation!"); 
-		return; 
+		return PLUS_FAIL;
 	}
 
 	std::string plotSyncResultScript = gnuplotScriptsFolder + std::string("/PlotSyncResult.gnu"); 
 	if ( !vtksys::SystemTools::FileExists( plotSyncResultScript.c_str(), true) )
 	{
 		LOG_ERROR("Unable to find gnuplot script at: " << plotSyncResultScript); 
-		return; 
+		return PLUS_FAIL; 
 	}
 
 	std::string reportFile = vtksys::SystemTools::GetCurrentWorkingDirectory() + std::string("/SyncResult.txt"); 
@@ -1105,7 +1119,7 @@ void vtkDataCollectorSynchronizer::GenerateSynchronizationReport( vtkHTMLGenerat
 	if ( !vtksys::SystemTools::FileExists( reportFile.c_str(), true) )
 	{
 		LOG_ERROR("Unable to find synchronization report file at: " << reportFile); 
-		return; 
+		return PLUS_FAIL; 
 	}
 
 	htmlReport->AddText("Video and Tracking Data Synchronization Analysis", vtkHTMLGenerator::H1); 
@@ -1136,16 +1150,18 @@ void vtkDataCollectorSynchronizer::GenerateSynchronizationReport( vtkHTMLGenerat
 
 	htmlReport->AddHorizontalLine(); 
 #endif
+  
+  return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
-void vtkDataCollectorSynchronizer::ReadConfiguration(vtkXMLDataElement* synchronizationConfig)
+PlusStatus vtkDataCollectorSynchronizer::ReadConfiguration(vtkXMLDataElement* synchronizationConfig)
 {
 	LOG_TRACE("vtkDataCollectorSynchronizer::ReadConfiguration"); 
 	if ( synchronizationConfig == NULL )
 	{
 		LOG_ERROR("Unable to configure synchronizer! (XML data element is NULL)"); 
-		return; 
+		return PLUS_FAIL; 
 	}
 
 
@@ -1202,4 +1218,6 @@ void vtkDataCollectorSynchronizer::ReadConfiguration(vtkXMLDataElement* synchron
 	{
 		this->SetMaxFrameDifference(maxFrameDifference); 
 	}
+
+  return PLUS_SUCCESS;
 }

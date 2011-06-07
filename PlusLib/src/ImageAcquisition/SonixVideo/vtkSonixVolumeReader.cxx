@@ -77,7 +77,7 @@ int vtkSonixVolumeReader::ReadVolume()
 {
 	if (this->FileName.empty())
 	{
-		vtkErrorMacro( << "Error: cannot open volume file: " << this->FileName.c_str()); 
+		LOG_ERROR("Error: cannot open volume file: " << this->FileName.c_str()); 
 		return -1; 
 	}
 
@@ -87,7 +87,7 @@ int vtkSonixVolumeReader::ReadVolume()
 	
 	if(err != 0)
 	{
-		vtkErrorMacro( << "Error opening volume file: " << this->FileName.c_str() << " Error No.: " << err); 
+		LOG_ERROR("Error opening volume file: " << this->FileName.c_str() << " Error No.: " << err); 
 		return -1;
 	}
 
@@ -114,7 +114,7 @@ int vtkSonixVolumeReader::ReadVolume()
 	}
 	else
 	{
-		vtkErrorMacro( << "Unsupported data type: " << this->DataType); 
+		LOG_ERROR("Unsupported data type: " << this->DataType); 
 		return -1;
 
 	}
@@ -240,7 +240,7 @@ void vtkSonixVolumeReader::WriteAllFramesAsTIFF(const char* filePrefix, const ch
 {
 	if (this->ImageDataVector.empty())
 	{
-		vtkWarningMacro( << "Warning: There are no images to save as TIFF"); 
+		LOG_WARNING("Warning: There are no images to save as TIFF"); 
 		return; 
 	}
 

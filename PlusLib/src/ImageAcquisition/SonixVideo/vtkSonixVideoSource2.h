@@ -114,29 +114,29 @@ public:
 
   // Description:
   // Read/write main configuration from/to xml data
-  virtual void ReadConfiguration(vtkXMLDataElement* config); 
-  virtual void WriteConfiguration(vtkXMLDataElement* config);
+  virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config); 
+  virtual PlusStatus WriteConfiguration(vtkXMLDataElement* config);
 
   // Description:
   // Connect to device
-  virtual int Connect();
+  virtual PlusStatus Connect();
 
   // Description:
   // Disconnect from device
-  virtual void Disconnect();
+  virtual PlusStatus Disconnect();
 
   // Description:
   // Record incoming video at the specified FrameRate.  The recording
   // continues indefinitely until Stop() is called. 
-  virtual void Record();
+  virtual PlusStatus Record();
 
   // Description:
   // Stop recording or playing.
-  virtual void Stop();
+  virtual PlusStatus Stop();
 
   // Description:
   // Grab a single video frame.
-  void Grab();
+  PlusStatus Grab();
 
   // Description:
   // Request a particular vtk output format (default: VTK_RGB).
@@ -229,7 +229,7 @@ public:
   // Description:
   // Initialize the driver (this is called automatically when the
   // first grab is done).
-  void Initialize();
+  PlusStatus Initialize();
 
   // Description:
   // Free the driver (this is called automatically inside the
@@ -277,7 +277,7 @@ protected:
 
   // Description:
   // For internal use only
-  void LocalInternalGrab(void * data, int type, int sz, bool cine, int frmnum);
+  PlusStatus LocalInternalGrab(void * data, int type, int sz, bool cine, int frmnum);
 
     // A mutex for the frame buffer: must be applied when any of the
   // below data is modified.

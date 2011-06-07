@@ -1,3 +1,5 @@
+#include "PlusConfigure.h"
+
 #include "AMSStepper.h"
 #include <iostream>
 #include <assert.h>
@@ -121,24 +123,31 @@ AMSStepper::~AMSStepper()
 }
 
 //----------------------------------------------------------------------------
-bool AMSStepper::StartTracking()
+PlusStatus AMSStepper::StartTracking()
 {
 	if (!this->m_StepperCOMPort->IsHandleAlive())
 	{
 		this->m_StepperCOMPort->Open(); 
 	}
 
-	if ( !this->IsStepperAlive() )
-	{
-		return false;
-	}
+  if ( !this->IsStepperAlive() )
+  {
+    LOG_ERROR("Stepper is not alive");
+    return PLUS_FAIL;
+  }
 
-	if (this->m_StepperCOMPort->IsHandleAlive())  
-	{	
-		return this->IsStepperCalibrated();  
-	}
+  if (!this->m_StepperCOMPort->IsHandleAlive())  
+  {	
+    LOG_ERROR("Stepper COM port handle is not alive");
+    return PLUS_FAIL; 
+  }
+  if (!this->IsStepperCalibrated())
+  {
+    LOG_ERROR("Stepper is not calibrated");
+    return PLUS_FAIL; 
+  }
 
-	return false; 
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
@@ -148,10 +157,10 @@ void AMSStepper::StopTracking()
 }
 
 //----------------------------------------------------------------------------
-bool AMSStepper::GetStatusInfo(unsigned int &Status)
+PlusStatus AMSStepper::GetStatusInfo(unsigned int &Status)
 {
 	std::vector<BYTE> vDecodedMessage;
-	bool retValue(false); 
+	PlusStatus retValue(PLUS_FAIL); 
 	EnterCriticalSection(&m_CriticalSection); 
 	for ( int i = 0; i < MAXTRIES; i++)
 	{
@@ -160,7 +169,7 @@ bool AMSStepper::GetStatusInfo(unsigned int &Status)
 		if (vDecodedMessage.size() >= 2 )
 		{
 			Status = vDecodedMessage[1];
-			retValue = true;
+			retValue = PLUS_SUCCESS;
 			break; 
 		} 
 	}
@@ -169,10 +178,10 @@ bool AMSStepper::GetStatusInfo(unsigned int &Status)
 }
 
 //----------------------------------------------------------------------------
-bool AMSStepper::GetVersionInfo(int &iVerHi, int &iVerLo, int &iModelNum, int &iSerialNum)
+PlusStatus AMSStepper::GetVersionInfo(int &iVerHi, int &iVerLo, int &iModelNum, int &iSerialNum)
 {
 	std::vector<BYTE> vDecodedMessage; 
-	bool retValue(false); 
+	PlusStatus retValue(PLUS_FAIL); 
 	EnterCriticalSection(&m_CriticalSection); 
 	for ( int i = 0; i < MAXTRIES; i++)
 	{
@@ -184,7 +193,7 @@ bool AMSStepper::GetVersionInfo(int &iVerHi, int &iVerLo, int &iModelNum, int &i
 			iVerLo = vDecodedMessage[2];
 			iModelNum = vDecodedMessage[3] * 256 + vDecodedMessage[4];
 			iSerialNum = vDecodedMessage[5] * 256 + vDecodedMessage[6];
-			retValue = true;
+			retValue = PLUS_SUCCESS;
 			break; 
 		}
 	}
@@ -193,10 +202,10 @@ bool AMSStepper::GetVersionInfo(int &iVerHi, int &iVerLo, int &iModelNum, int &i
 }
 
 //----------------------------------------------------------------------------
-bool AMSStepper::GetReferenceData(STEPPERCOMMAND command, STEPPERRESPCODE respcode, double &count, double &dist, double &scale)
+PlusStatus AMSStepper::GetReferenceData(STEPPERCOMMAND command, STEPPERRESPCODE respcode, double &count, double &dist, double &scale)
 {
 	std::vector<BYTE> vDecodedMessage; 
-	bool retValue(false); 
+	PlusStatus retValue(PLUS_FAIL); 
 	EnterCriticalSection(&m_CriticalSection); 
 	for ( int i = 0; i < MAXTRIES; i++)
 	{
@@ -207,7 +216,7 @@ bool AMSStepper::GetReferenceData(STEPPERCOMMAND command, STEPPERRESPCODE respco
 			count = vDecodedMessage[1] * 256 + vDecodedMessage[2];
 			dist = vDecodedMessage[3] * 256 + vDecodedMessage[4];
 			scale = (double)(dist/100.0) / (double)count;
-			retValue = true;
+			retValue = PLUS_SUCCESS;
 			break; 
 		}
 	}
@@ -216,53 +225,53 @@ bool AMSStepper::GetReferenceData(STEPPERCOMMAND command, STEPPERRESPCODE respco
 }
 
 //----------------------------------------------------------------------------
-bool AMSStepper::GetProbeReferenceData(double &count, double &dist, double &scale)
+PlusStatus AMSStepper::GetProbeReferenceData(double &count, double &dist, double &scale)
 {	
 	count = 0; dist = 0; scale = 0; 
 	if (GetReferenceData(SC_PROBE_REFERENCE_DATA,SRC_PROBE_REFERENCE_DATA,count, dist, scale))
 	{
 		m_ProbeScale = scale;
-		return true;
+		return PLUS_SUCCESS;
 	}
 
-	return false;
+	return PLUS_FAIL;
 }
 
 //----------------------------------------------------------------------------
-bool AMSStepper::GetGridReferenceData(double &count, double &dist, double &scale)
+PlusStatus AMSStepper::GetGridReferenceData(double &count, double &dist, double &scale)
 {
 	count = 0; dist = 0; scale = 0; 
 	if (GetReferenceData(SC_GRID_REFERENCE_DATA,SRC_GRID_REFERENCE_DATA,count, dist, scale)) 
 	{
 		m_GridScale = scale;
-		return true;
+		return PLUS_SUCCESS;
 	}
 
-	return false;
+	return PLUS_FAIL;
 }
 
 //----------------------------------------------------------------------------
-bool AMSStepper::GetRotationReferenceData(double &count, double &dist, double &scale)
+PlusStatus AMSStepper::GetRotationReferenceData(double &count, double &dist, double &scale)
 {
 	count = 0; dist = 0; scale = 0; 
 	if (GetReferenceData(SC_ROTATION_REFERENCE_DATA,SRC_ROTATION_REFERENCE_DATA,count, dist, scale))
 	{
 		m_RotationScale = scale;
-		return true;
+		return PLUS_SUCCESS;
 	}
 
-	return false;
+	return PLUS_FAIL;
 }
 
 //----------------------------------------------------------------------------
-bool AMSStepper::GetProbePositions(double &PPosition, double &GPosition, double &RPosition, unsigned long &PositionRequestNumber)
+PlusStatus AMSStepper::GetProbePositions(double &PPosition, double &GPosition, double &RPosition, unsigned long &PositionRequestNumber)
 {
 	// Increase the m_PositionNumber on every position request
 	PositionRequestNumber = ++m_PositionRequestNumber; 
 
 	if ( ! m_IsCalibrated )
 	{
-		return false; 
+		return PLUS_FAIL; 
 	}
 
 	if ( m_ProbeScale == 0 || m_GridScale == 0 || m_RotationScale == 0 )
@@ -272,7 +281,7 @@ bool AMSStepper::GetProbePositions(double &PPosition, double &GPosition, double 
 
 	std::vector<BYTE> vDecodedMessage; 
 	
-	bool retValue(false); 
+	PlusStatus retValue(PLUS_FAIL); 
 
 	EnterCriticalSection(&m_CriticalSection); 
 	SendPositionRequestCommand(SC_POSITION_DATA_1, vDecodedMessage);
@@ -284,7 +293,7 @@ bool AMSStepper::GetProbePositions(double &PPosition, double &GPosition, double 
 		GPosition = (static_cast<short>(vDecodedMessage[3]*256 + vDecodedMessage[4]))*m_GridScale;
 		RPosition = (static_cast<short>(vDecodedMessage[5]*256 + vDecodedMessage[6]))*m_RotationScale;
 		m_RepeatedPositionErrorCount = 0; 
-		retValue = true;
+		retValue = PLUS_SUCCESS;
 	}
 	else
 	{
@@ -302,10 +311,10 @@ bool AMSStepper::GetProbePositions(double &PPosition, double &GPosition, double 
 }
 
 //----------------------------------------------------------------------------
-bool AMSStepper::GetCalibrationState(int &PState, int &GState, int &RState)
+PlusStatus AMSStepper::GetCalibrationState(int &PState, int &GState, int &RState)
 {
 	std::vector<BYTE> vDecodedMessage; 
-	bool retValue(false); 
+	PlusStatus retValue(PLUS_FAIL); 
 	EnterCriticalSection(&m_CriticalSection); 
 	for ( int i = 0; i < MAXTRIES; i++)
 	{
@@ -316,7 +325,7 @@ bool AMSStepper::GetCalibrationState(int &PState, int &GState, int &RState)
 			PState = vDecodedMessage[1];
 			GState = vDecodedMessage[2];
 			RState = vDecodedMessage[3];
-			retValue = true;
+			retValue = PLUS_SUCCESS;
 			break; 
 		}
 	}
@@ -325,10 +334,10 @@ bool AMSStepper::GetCalibrationState(int &PState, int &GState, int &RState)
 }
 
 //----------------------------------------------------------------------------
-bool AMSStepper::GetRotateState(int &State)
+PlusStatus AMSStepper::GetRotateState(int &State)
 {
 	std::vector<BYTE> vDecodedMessage; 
-	bool retValue(false); 
+	PlusStatus retValue(PLUS_FAIL); 
 	EnterCriticalSection(&m_CriticalSection);
 	for ( int i = 0; i < MAXTRIES; i++)
 	{
@@ -337,7 +346,7 @@ bool AMSStepper::GetRotateState(int &State)
 		if (vDecodedMessage.size() >= 2) 
 		{
 			State = vDecodedMessage[1];
-			retValue = true;
+			retValue = PLUS_SUCCESS;
 			break; 
 		}
 	}
@@ -386,13 +395,13 @@ bool AMSStepper::IsStepperAlive()
 	unsigned int Status;
 	if (!this->GetStatusInfo(Status))
 	{
-		return false; 
+		return PLUS_FAIL; 
 	}
-	return true; 
+	return PLUS_SUCCESS; 
 }
 
 //----------------------------------------------------------------------------
-bool AMSStepper::CalibrateStepper(std::string &CalibMsg)
+PlusStatus AMSStepper::CalibrateStepper(std::string &CalibMsg)
 {
 	int PState = 0, GState = 0, RState = 0;
 	this->GetCalibrationState(PState, GState, RState);
@@ -413,7 +422,7 @@ bool AMSStepper::CalibrateStepper(std::string &CalibMsg)
 		default:
 			CalibMsg = CALIB_MSG_PROBE_TO_BASE;
 		}
-		return false;
+		return PLUS_FAIL;
 	}
 	else if ((GState < 5) && (m_BarchyStepperType != BURDETTE_MEDICAL_SYSTEMS_DIGITAL_MOTORIZED_STEPPER)) //TODO: does motorized stepper need this? It works without it and does not flash the green light either
 	{
@@ -430,7 +439,7 @@ bool AMSStepper::CalibrateStepper(std::string &CalibMsg)
 		default:
 			CalibMsg = CALIB_MSG_GRID_TO_BASE;
 		}
-		return false;
+		return PLUS_FAIL;
 	}
 	else if (RState < 9)
 	{
@@ -446,18 +455,18 @@ bool AMSStepper::CalibrateStepper(std::string &CalibMsg)
 		default:
 			CalibMsg = CALIB_MSG_ROTATION_TO_BASE;
 		}
-		return false;
+		return PLUS_FAIL;
 	}
 	CalibMsg = CALIB_MSG_COMPLETED;
 	this->SetScalingParameters();
 	this->m_IsCalibrated = true;
-	return true;
+	return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-bool AMSStepper::ResetStepper()
+PlusStatus AMSStepper::ResetStepper()
 {
-	bool retValue(false); 
+	PlusStatus retValue(PLUS_FAIL); 
 	EnterCriticalSection(&m_CriticalSection);
 	for ( int i = 0; i<MAXTRIES; i++)
 	{
@@ -465,7 +474,7 @@ bool AMSStepper::ResetStepper()
 		this->StepperInstruction(SC_RESET_SYSTEM);
 		if(IsStepperACKRecieved(ackMessage, SC_RESET_SYSTEM))
 		{
-			retValue = true;
+			retValue = PLUS_SUCCESS;
 			break; 
 		}
 		ClearBuffer(); 
@@ -475,9 +484,9 @@ bool AMSStepper::ResetStepper()
 }
 
 //----------------------------------------------------------------------------
-bool AMSStepper::TurnMotorOn()
+PlusStatus AMSStepper::TurnMotorOn()
 {
-	bool retValue(false); 
+	PlusStatus retValue(PLUS_FAIL); 
 	EnterCriticalSection(&m_CriticalSection);
 	for ( int i = 0; i<MAXTRIES; i++)
 	{
@@ -485,7 +494,7 @@ bool AMSStepper::TurnMotorOn()
 		this->StepperInstruction(SC_MOTOR_ON);
 		if(IsStepperACKRecieved(ackMessage, SC_MOTOR_ON))
 		{
-			retValue = true;
+			retValue = PLUS_SUCCESS;
 			break; 
 		}
 		ClearBuffer(); 
@@ -495,9 +504,9 @@ bool AMSStepper::TurnMotorOn()
 }
 
 //----------------------------------------------------------------------------
-bool AMSStepper::TurnMotorOff()
+PlusStatus AMSStepper::TurnMotorOff()
 {
-	bool retValue(false); 
+	PlusStatus retValue(PLUS_FAIL); 
 	EnterCriticalSection(&m_CriticalSection);
 	for ( int i = 0; i<MAXTRIES; i++)
 	{
@@ -505,7 +514,7 @@ bool AMSStepper::TurnMotorOff()
 		this->StepperInstruction(SC_MOTOR_OFF);
 		if(IsStepperACKRecieved(ackMessage, SC_MOTOR_OFF))
 		{
-			retValue = true;
+			retValue = PLUS_SUCCESS;
 			break; 
 		}
 		ClearBuffer(); 
@@ -515,9 +524,9 @@ bool AMSStepper::TurnMotorOff()
 }
 
 //----------------------------------------------------------------------------
-bool AMSStepper::GetMotorizationCode(int &MotorizationCode)
+PlusStatus AMSStepper::GetMotorizationCode(int &MotorizationCode)
 {
-	bool retValue(false); 
+	PlusStatus retValue(PLUS_FAIL); 
 	EnterCriticalSection(&m_CriticalSection);
 	for ( int i = 0; i<MAXTRIES; i++)
 	{
@@ -528,7 +537,7 @@ bool AMSStepper::GetMotorizationCode(int &MotorizationCode)
 		if (vDecodedMessage.size() >= 2) 
 		{
 			MotorizationCode = vDecodedMessage[1];
-			retValue = true;
+			retValue = PLUS_SUCCESS;
 			break; 
 		}
 		ClearBuffer(); 
@@ -547,7 +556,7 @@ bool AMSStepper::IsStepperMotorized()
 
 	if ( motorizationCode > 0 )
 	{
-		retValue = true; 
+		retValue = PLUS_SUCCESS; 
 	}
 	
 	return retValue; 
@@ -555,12 +564,12 @@ bool AMSStepper::IsStepperMotorized()
 
 
 //----------------------------------------------------------------------------
-bool AMSStepper::MoveProbeToPosition(double PositionInMm, int &ReturnCode)
+PlusStatus AMSStepper::MoveProbeToPosition(double PositionInMm, int &ReturnCode)
 {
 	int motorizationCode(0); 
 	if ( !this->IsStepperMotorized() )
 	{
-		return false; 
+		return PLUS_FAIL; 
 	}
 
 	this->TurnMotorOn(); 
@@ -570,7 +579,7 @@ bool AMSStepper::MoveProbeToPosition(double PositionInMm, int &ReturnCode)
 	if ( !this->GetProbeReferenceData(count, dist, scale) )
 	{
 		// unable to get probe reference data
-		return false; 
+		return PLUS_FAIL; 
 	}
 
 	int scaleFactor(0); 
@@ -581,7 +590,7 @@ bool AMSStepper::MoveProbeToPosition(double PositionInMm, int &ReturnCode)
 	if ( !this->GetProbePositions(pPosition, gPosition, pRotation, positionRequestNumber) )
 	{
 		// Unable to get probe position
-		return false; 
+		return PLUS_FAIL; 
 	}
 	
 	// Calculate position distance
@@ -619,7 +628,7 @@ bool AMSStepper::MoveProbeToPosition(double PositionInMm, int &ReturnCode)
 	STEPPERCOMMAND moveProbe = (static_cast<STEPPERCOMMAND>(sMessage.c_str()));
 
 	std::vector<BYTE> vDecodedMessage;
-	bool retValue(false); 
+	PlusStatus retValue(PLUS_FAIL); 
 	EnterCriticalSection(&m_CriticalSection); 
 	ReturnCode = -1; 
 	StepperInstruction(moveProbe);
@@ -631,7 +640,7 @@ bool AMSStepper::MoveProbeToPosition(double PositionInMm, int &ReturnCode)
 		if (vDecodedMessage.size() >= 2 )
 		{
 			ReturnCode = vDecodedMessage[1];
-			retValue = true;
+			retValue = PLUS_SUCCESS;
 			break; 
 		} 
 		vtkAccurateTimer::GetInstance()->Delay(0.5); 
@@ -645,9 +654,9 @@ bool AMSStepper::MoveProbeToPosition(double PositionInMm, int &ReturnCode)
 }
 
 //----------------------------------------------------------------------------
-bool AMSStepper::StepperButtonEnable()
+PlusStatus AMSStepper::StepperButtonEnable()
 {
-	bool retValue(false); 
+	PlusStatus retValue(PLUS_FAIL); 
 	EnterCriticalSection(&m_CriticalSection);
 	for ( int i = 0; i<MAXTRIES; i++)
 	{
@@ -655,7 +664,7 @@ bool AMSStepper::StepperButtonEnable()
 		std::vector<BYTE> ackMessage; 
 		if(IsStepperACKRecieved(ackMessage, SC_BUTTON_ENABLE))
 		{
-			retValue = true;
+			retValue = PLUS_SUCCESS;
 			break; 
 		}
 		ClearBuffer(); 
@@ -665,9 +674,9 @@ bool AMSStepper::StepperButtonEnable()
 }
 
 //----------------------------------------------------------------------------
-bool AMSStepper::StepperButtonDisable()
+PlusStatus AMSStepper::StepperButtonDisable()
 {
-	bool retValue(false); 
+	PlusStatus retValue(PLUS_FAIL); 
 	EnterCriticalSection(&m_CriticalSection);
 	for ( int i = 0; i<MAXTRIES; i++)
 	{
@@ -675,7 +684,7 @@ bool AMSStepper::StepperButtonDisable()
 		std::vector<BYTE> ackMessage; 	
 		if(IsStepperACKRecieved(ackMessage, SC_BUTTON_DISABLE))
 		{
-			retValue = true;
+			retValue = PLUS_SUCCESS;
 			break; 
 		}
 		ClearBuffer(); 
@@ -685,9 +694,9 @@ bool AMSStepper::StepperButtonDisable()
 }
 
 //----------------------------------------------------------------------------
-bool AMSStepper::StepperRotateCalibrationEnable()
+PlusStatus AMSStepper::StepperRotateCalibrationEnable()
 {
-	bool retValue(false); 
+	PlusStatus retValue(PLUS_FAIL); 
 	EnterCriticalSection(&m_CriticalSection);
 	for ( int i = 0; i<MAXTRIES; i++)
 	{
@@ -695,7 +704,7 @@ bool AMSStepper::StepperRotateCalibrationEnable()
 		std::vector<BYTE> ackMessage; 
 		if(IsStepperACKRecieved(ackMessage, SC_ENABLE_ROTATE_CALIBRATION))
 		{
-			retValue = true;
+			retValue = PLUS_SUCCESS;
 			break; 
 		}
 		ClearBuffer(); 
@@ -705,9 +714,9 @@ bool AMSStepper::StepperRotateCalibrationEnable()
 }
 
 //----------------------------------------------------------------------------
-bool AMSStepper::StepperRotateCalibrationDisable()
+PlusStatus AMSStepper::StepperRotateCalibrationDisable()
 {
-	bool retValue(false); 
+	PlusStatus retValue(PLUS_FAIL); 
 	EnterCriticalSection(&m_CriticalSection);
 	for ( int i = 0; i<MAXTRIES; i++)
 	{
@@ -715,7 +724,7 @@ bool AMSStepper::StepperRotateCalibrationDisable()
 		std::vector<BYTE> ackMessage; 
 		if(IsStepperACKRecieved(ackMessage, SC_DISABLE_ROTATE_CALIBRATION))
 		{
-			retValue = true;
+			retValue = PLUS_SUCCESS;
 			break; 
 		}
 		ClearBuffer(); 
@@ -841,7 +850,7 @@ bool AMSStepper::IsStepperACKRecieved(std::vector<BYTE> &ackMessage, STEPPERCOMM
 		if ( command[0] == ackMessage[3] && command[1] == ackMessage[4] )
 		{
 			// recieved the expected ack 
-			return true;
+			return PLUS_SUCCESS;
 		}
 		else
 		{
@@ -849,11 +858,11 @@ bool AMSStepper::IsStepperACKRecieved(std::vector<BYTE> &ackMessage, STEPPERCOMM
 			std::vector<BYTE> StepperMessage; 
 			this->ReadStepperAnswer(StepperMessage);
 			this->SendAckMessage(StepperMessage);
-			return false; 
+			return PLUS_FAIL; 
 		}
 	}
 
-	return false;
+	return PLUS_FAIL;
 }
 
 //----------------------------------------------------------------------------

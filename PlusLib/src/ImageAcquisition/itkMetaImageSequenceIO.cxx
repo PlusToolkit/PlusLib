@@ -65,7 +65,7 @@ namespace itk
 
 		if ( strOrientation == NULL || STRCASECMP(strOrientation, "XX") == 0 )
 		{
-			LOG_WARNING("Ultrasound image orientation is not defined!");
+      LOG_WARNING("Ultrasound image orientation is not defined in " << this->GetFileName()); 
 			this->m_UltrasoundImageOrientation = "XX"; 
 			retValue = true; 
 		}

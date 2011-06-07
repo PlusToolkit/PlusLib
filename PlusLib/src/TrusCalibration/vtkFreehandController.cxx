@@ -1,3 +1,5 @@
+#include "PlusConfigure.h"
+
 #include "vtkFreehandController.h"
 
 #include "vtkObjectFactory.h"
@@ -57,10 +59,10 @@ vtkFreehandController::~vtkFreehandController()
 
 //-----------------------------------------------------------------------------
 
-void vtkFreehandController::Initialize()
+PlusStatus vtkFreehandController::Initialize()
 {
 	if (this->Initialized) {
-		return;
+		return PLUS_SUCCESS;
 	}
 
 	LOG_DEBUG("Initialize vtkFreehandController"); 
@@ -75,12 +77,12 @@ void vtkFreehandController::Initialize()
 
 	if ((this->DataCollector->GetTracker() == NULL) || (this->DataCollector->GetTracker()->GetNumberOfTools() < 1)) {
 		LOG_ERROR("Unable to initialize Tracker!"); 
-		exit(EXIT_FAILURE); // TODO ezek helyett logbol GUIra kiiratas
+		return PLUS_FAIL; // TODO: write on GUI
 	}
 
 	if (! this->DataCollector->GetInitialized()) {
 		LOG_ERROR("Unable to initialize DataCollector!"); 
-		exit(EXIT_FAILURE); 
+		return PLUS_FAIL; // TODO: write on GUI
 	}
 
 	// Set up canvas renderer
@@ -95,6 +97,8 @@ void vtkFreehandController::Initialize()
 	}
 
 	this->SetInitialized(true);
+
+  return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------

@@ -1,7 +1,8 @@
+#include "PlusConfigure.h"
+
 #include "PhantomRegistrationController.h"
 
 #include "vtkFreehandController.h"
-#include "PlusConfigure.h"
 #include "StylusCalibrationController.h"
 
 #include "vtkFakeTracker.h"
@@ -132,15 +133,19 @@ PhantomRegistrationController::~PhantomRegistrationController()
 
 //-----------------------------------------------------------------------------
 
-void PhantomRegistrationController::Initialize()
+PlusStatus PhantomRegistrationController::Initialize()
 {
 	LOG_DEBUG("Initialize PhantomRegistrationController");
 
 	vtkFreehandController* controller = vtkFreehandController::GetInstance();
-	if ((controller == NULL) || (controller->GetInitialized() == false)) {
-		LOG_ERROR("vtkFreehandController is not initialized!");
-		return;
+	if (controller == NULL) {
+		LOG_ERROR("vtkFreehandController is invalid!");
+		return PLUS_FAIL;
 	}
+  if (controller->GetInitialized() == false) {
+    LOG_ERROR("vtkFreehandController is not initialized!");
+    return PLUS_FAIL;
+  }
 
 	if (m_Toolbox) {
 		m_Toolbox->Initialize();
@@ -152,6 +157,8 @@ void PhantomRegistrationController::Initialize()
 	if (m_State == ToolboxState_Uninitialized) {
 		m_State = ToolboxState_Idle;
 	}
+
+  return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
@@ -287,7 +294,7 @@ void PhantomRegistrationController::InitializeVisualization()
 
 //-----------------------------------------------------------------------------
 
-void PhantomRegistrationController::Clear()
+PlusStatus PhantomRegistrationController::Clear()
 {
 	LOG_DEBUG("Clear PhantomRegistrationController");
 
@@ -303,6 +310,8 @@ void PhantomRegistrationController::Clear()
 	m_PhantomRenderer->Modified();
 
 	m_Toolbox->Clear();
+
+  return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
@@ -358,7 +367,7 @@ vtkRenderer* PhantomRegistrationController::GetPhantomRenderer()
 
 //-----------------------------------------------------------------------------
 
-void PhantomRegistrationController::Start()
+PlusStatus PhantomRegistrationController::Start()
 {
 	if ( (m_DefinedLandmarks != NULL) && (m_DefinedLandmarks->GetNumberOfPoints() >= 4)
 		&& (StylusCalibrationController::GetInstance() != NULL)
@@ -368,16 +377,18 @@ void PhantomRegistrationController::Start()
 
 		m_State = ToolboxState_InProgress;
 	}
+  return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
 
-void PhantomRegistrationController::Stop()
+PlusStatus PhantomRegistrationController::Stop()
 {
 	m_RequestedLandmarkPolyData->GetPoints()->GetData()->RemoveTuple(0);
 	m_RequestedLandmarkPolyData->GetPoints()->Modified();
 
 	m_State = ToolboxState_Done;
+  return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
@@ -633,7 +644,7 @@ vtkMatrix4x4* PhantomRegistrationController::AcquireStylusTipTrackerPosition(dou
 
 //-----------------------------------------------------------------------------
 
-void PhantomRegistrationController::DoAcquisition()
+PlusStatus PhantomRegistrationController::DoAcquisition()
 {
 	if ((m_State == ToolboxState_InProgress) || (m_State == ToolboxState_Done)) {
 		// Display stylus
@@ -699,23 +710,24 @@ void PhantomRegistrationController::DoAcquisition()
 			}
 		}
 	}
+  return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
 
-bool PhantomRegistrationController::LoadPhantomDefinitionFromFile(std::string aFile)
+PlusStatus PhantomRegistrationController::LoadPhantomDefinitionFromFile(std::string aFile)
 {
 	vtkSmartPointer<vtkXMLDataElement> phantomDefinition = vtkXMLUtilities::ReadElementFromFile(aFile.c_str());
 
 	if (phantomDefinition == NULL) {	
 		LOG_ERROR("Unable to read the phantom definition file: " << aFile); 
-		return false;
+		return PLUS_FAIL;
 	} else {
 		m_PhantomDefinitionFileName = aFile;
 	}
 
 	// Load model information
-	vtkSmartPointer<vtkXMLDataElement> model = phantomDefinition->FindNestedElementWithName("Model"); 
+	vtkXMLDataElement* model = phantomDefinition->FindNestedElementWithName("Model"); 
 	if (model == NULL) {
 		LOG_WARNING("Phantom model information not found - no model displayed");
 	} else {
@@ -778,20 +790,19 @@ bool PhantomRegistrationController::LoadPhantomDefinitionFromFile(std::string aF
 	m_LandmarksPolyData->Modified();
 
 	// Load geometry
-	vtkSmartPointer<vtkXMLDataElement> geometry = phantomDefinition->FindNestedElementWithName("Geometry"); 
+	vtkXMLDataElement* geometry = phantomDefinition->FindNestedElementWithName("Geometry"); 
 	if (geometry == NULL) {
 		LOG_ERROR("Phantom geometry information not found!");
 		if (vtkFreehandController::GetInstance()->GetCanvas() != NULL) {
 			m_PhantomRenderer->RemoveActor(m_PhantomBodyActor);
 		}
-
-		return false;
+		return PLUS_FAIL;
 	} else {
 		// Read landmarks (NWires are not interesting at this point, it is only parsed if segmentation is needed)
 		vtkSmartPointer<vtkXMLDataElement> landmarks = geometry->FindNestedElementWithName("Landmarks"); 
 		if (landmarks == NULL) {
 			LOG_ERROR("Landmarks not found, registration is not possible!");
-			return false;
+			return PLUS_FAIL;
 		} else {
 			int numberOfLandmarks = landmarks->GetNumberOfNestedElements();
 			m_LandmarkNames.resize(numberOfLandmarks);
@@ -824,7 +835,7 @@ bool PhantomRegistrationController::LoadPhantomDefinitionFromFile(std::string aF
 
 		if (m_DefinedLandmarks->GetNumberOfPoints() == 0) {
 			LOG_ERROR("No valid landmarks were found!");
-			return false;
+			return PLUS_FAIL;
 		}
 
 		// Highlight first landmark
@@ -832,25 +843,25 @@ bool PhantomRegistrationController::LoadPhantomDefinitionFromFile(std::string aF
 		m_RequestedLandmarkPolyData->GetPoints()->Modified();
 	}
 
-	return true;
+	return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
 
-bool PhantomRegistrationController::LoadPhantomRegistrationFromFile(std::string aFile)
+PlusStatus PhantomRegistrationController::LoadPhantomRegistrationFromFile(std::string aFile)
 {
 	vtkSmartPointer<vtkXMLDataElement> phantomRegistration = vtkXMLUtilities::ReadElementFromFile(aFile.c_str());
 
 	if (phantomRegistration == NULL) {	
 		LOG_ERROR("Unable to read the phantom registration file: " << aFile); 
-		return false;
+		return PLUS_FAIL;
 	}
 
 	// Load stylus calibration transform
-	vtkSmartPointer<vtkXMLDataElement> phantomRegistrationTransform = phantomRegistration->FindNestedElementWithName("PhantomToPhantomReferenceTransform"); 
+	vtkXMLDataElement* phantomRegistrationTransform = phantomRegistration->FindNestedElementWithName("PhantomToPhantomReferenceTransform"); 
 	if (phantomRegistrationTransform == NULL) {
 		LOG_ERROR("Phantom registration transform not found!");
-		return false;
+		return PLUS_FAIL;
 	} else {
 		double* transform = new double[16]; 
 		if (phantomRegistrationTransform->GetVectorAttribute("Transform", 16, transform)) {
@@ -863,7 +874,7 @@ bool PhantomRegistrationController::LoadPhantomRegistrationFromFile(std::string 
 		delete[] transform; 
 	}
 
-	return true;
+	return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------

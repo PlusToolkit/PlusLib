@@ -94,16 +94,16 @@ void vtkVolumeReconstructor::Initialize()
 }
 
 //----------------------------------------------------------------------------
-void vtkVolumeReconstructor::StartReconstruction()
+PlusStatus vtkVolumeReconstructor::StartReconstruction()
 {
 
 	if ( !this->GetInitialized() ) 
 	{
 		LOG_ERROR( "Unable to start reconstruction: First need to initialize!"); 
-		exit(EXIT_FAILURE); 
+		return PLUS_FAIL; 
 	}
 
-	this->Reconstructor->StartReconstruction( this->GetNumberOfFrames() ) ;
+	return this->Reconstructor->StartReconstruction( this->GetNumberOfFrames() ) ;
 }
 
 
@@ -241,21 +241,22 @@ void vtkVolumeReconstructor::FindOutputExtent( vtkMatrix4x4* mToolToReference, i
 
 
 //----------------------------------------------------------------------------
-void vtkVolumeReconstructor::ReadConfiguration( const char* configFileName )
+PlusStatus vtkVolumeReconstructor::ReadConfiguration( const char* configFileName )
 {
 	this->SetConfigFileName( configFileName ); 
-	this->ReadConfiguration(); 
+	return this->ReadConfiguration(); 
 }
 
 //----------------------------------------------------------------------------
-void vtkVolumeReconstructor::ReadConfiguration()
+PlusStatus vtkVolumeReconstructor::ReadConfiguration()
 {
 	if ( this->GetConfigFileName() == NULL ) 
 	{
 		LOG_ERROR( "You need to specify the configuration file name!" ); 
+    return PLUS_FAIL;
 	}
 
-	this->GetReconstructor()->ReadSummaryFile(this->GetConfigFileName()); 
+	return this->GetReconstructor()->ReadSummaryFile(this->GetConfigFileName()); 
 }
 
 //----------------------------------------------------------------------------

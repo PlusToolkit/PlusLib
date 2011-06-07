@@ -42,27 +42,27 @@ public:
 	/*!
 	* \brief Initialize - pure virtual function
 	*/
-	virtual void Initialize() = 0;
+	virtual PlusStatus Initialize() = 0;
 
 	/*!
 	* \brief Clear (deinitialize) - pure virtual function
 	*/
-	virtual void Clear() = 0;
+	virtual PlusStatus Clear() = 0;
 
 	/*!
 	* \brief Acquire data - pure virtual function
 	*/
-	virtual void DoAcquisition() = 0;
+	virtual PlusStatus DoAcquisition() = 0;
 
 	/*!
 	* \brief Start process - pure virtual function
 	*/
-	virtual void Start() = 0;
+	virtual PlusStatus Start() = 0;
 
 	/*!
 	* \brief Stop process - pure virtual function
 	*/
-	virtual void Stop() = 0;
+	virtual PlusStatus Stop() = 0;
 
 	/*!
 	* \brief Setter function

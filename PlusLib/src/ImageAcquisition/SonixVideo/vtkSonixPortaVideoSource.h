@@ -96,14 +96,9 @@ public:
   // Record incoming video at the specified FrameRate.  The recording
   // continues indefinitely until Stop() is called.
   void Record();
-  
-  // Description:
-  // Play through the 'tape' sequentially at the specified frame rate.
-  // If you have just finished Recording, you should call Rewind() first.
-  void Play();
-  
+    
   // Description
-  // Stop recording or Playing
+  // Stop recording
   void Stop();
 
   // Description

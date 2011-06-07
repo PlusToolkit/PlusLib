@@ -736,7 +736,7 @@ void vtkProbeCalibrationControllerIO::ReadUs3DBeamwidthDataFromFile()
 		std::ifstream USBeamProfileFile( this->CalibrationController->GetUS3DBeamProfileDataFileNameAndPath(), std::ios::in );
 		if( !USBeamProfileFile.is_open() )
 		{
-			vtkErrorMacro(<<"ReadUs3DBeamwidthDataFromFile: Failed to open the US 3D beam profile data file: " << this->CalibrationController->GetUS3DBeamProfileDataFileNameAndPath() << "!"); 
+			vtkErrorMacro("ReadUs3DBeamwidthDataFromFile: Failed to open the US 3D beam profile data file: " << this->CalibrationController->GetUS3DBeamProfileDataFileNameAndPath() << "!"); 
 			throw;
 		}
 
@@ -849,7 +849,7 @@ void vtkProbeCalibrationControllerIO::ReadUs3DBeamwidthDataFromFile()
 
 		if(  this->CalibrationController->GetNumUS3DBeamwidthProfileData() <= 0 )
 		{	// If the number of data is invalid, throw up error
-			vtkErrorMacro(<<"ReadUs3DBeamwidthDataFromFile: The number of US 3D beamwidth profile data is invalid!!!  Please double check the data file!"); 
+			vtkErrorMacro("ReadUs3DBeamwidthDataFromFile: The number of US 3D beamwidth profile data is invalid!!!  Please double check the data file!"); 
 			throw;
 		}		
 		USBeamProfileFile.ignore(1024, '#');
@@ -874,7 +874,7 @@ void vtkProbeCalibrationControllerIO::ReadUs3DBeamwidthDataFromFile()
 	}
 	catch(...)
 	{
-		vtkErrorMacro(<<"ReadUs3DBeamwidthDataFromFile: Failed to read the US 3D Beam Profile Data from File!"); 
+		vtkErrorMacro("ReadUs3DBeamwidthDataFromFile: Failed to read the US 3D Beam Profile Data from File!"); 
 		throw;
 	}
 }
@@ -1135,7 +1135,7 @@ void vtkProbeCalibrationControllerIO::ReadProbeCalibrationConfiguration(vtkXMLDa
 
 	// RandomStepperMotionData2 data set specifications
 	//********************************************************************
-	vtkSmartPointer<vtkXMLDataElement> randomStepperMotionData_2 = probeCalibration->FindNestedElementWithName("RandomStepperMotionData2"); 
+	vtkXMLDataElement* randomStepperMotionData_2 = probeCalibration->FindNestedElementWithName("RandomStepperMotionData2"); 
 	if ( randomStepperMotionData_2 != NULL) 
 	{
 		vtkCalibrationController::SavedImageDataInfo imageDataInfo; 
@@ -1167,7 +1167,7 @@ void vtkProbeCalibrationControllerIO::ReadProbeCalibrationConfiguration(vtkXMLDa
 
 	// RandomStepperMotionData_1 data set specifications
 	//********************************************************************
-	vtkSmartPointer<vtkXMLDataElement> randomStepperMotionData_1 = probeCalibration->FindNestedElementWithName("RandomStepperMotionData1"); 
+	vtkXMLDataElement* randomStepperMotionData_1 = probeCalibration->FindNestedElementWithName("RandomStepperMotionData1"); 
 	if ( randomStepperMotionData_1 != NULL) 
 	{
 		vtkCalibrationController::SavedImageDataInfo imageDataInfo; 
@@ -1199,7 +1199,7 @@ void vtkProbeCalibrationControllerIO::ReadProbeCalibrationConfiguration(vtkXMLDa
 
 	// Template model specifications
 	//********************************************************************
-	vtkSmartPointer<vtkXMLDataElement> templateModel = probeCalibration->FindNestedElementWithName("TemplateModel"); 
+	vtkXMLDataElement* templateModel = probeCalibration->FindNestedElementWithName("TemplateModel"); 
 	if ( templateModel != NULL) 
 	{
 		// Path to the template model config file 
@@ -1217,7 +1217,7 @@ void vtkProbeCalibrationControllerIO::ReadProbeCalibrationConfiguration(vtkXMLDa
 
 	// US3DBeamwidth specifications
 	//********************************************************************
-	vtkSmartPointer<vtkXMLDataElement> us3DBeamProfile = probeCalibration->FindNestedElementWithName("US3DBeamProfile"); 
+	vtkXMLDataElement* us3DBeamProfile = probeCalibration->FindNestedElementWithName("US3DBeamProfile"); 
 	if ( us3DBeamProfile != NULL) 
 	{
 		// To incorporate the ultrasound beam profile (3D beam width)

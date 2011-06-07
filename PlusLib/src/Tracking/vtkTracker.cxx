@@ -176,7 +176,7 @@ void vtkTracker::SetNumberOfTools(int numtools)
 
 	if (this->NumberOfTools > 0) 
 	{
-		vtkErrorMacro( << "SetNumberOfTools() can only be called once");
+		LOG_ERROR("SetNumberOfTools() can only be called once");
 	}
 	this->NumberOfTools = numtools;
 
@@ -209,8 +209,7 @@ vtkTrackerTool *vtkTracker::GetTool(int tool)
 {
 	if (tool < 0 || tool > this->NumberOfTools) 
 	{
-		vtkErrorMacro( << "GetTool(" << tool << "): only " << \
-			this->NumberOfTools << " are available");
+		LOG_ERROR("GetTool(" << tool << "): only " << this->NumberOfTools << " are available");
 	}
 	return this->Tools[tool];
 }
@@ -323,7 +322,7 @@ static void *vtkTrackerThread(vtkMultiThreader::ThreadInfo *data)
 }
 
 //----------------------------------------------------------------------------
-int vtkTracker::Probe()
+PlusStatus vtkTracker::Probe()
 {
 	this->UpdateMutex->Lock();
 	// Client
@@ -338,10 +337,9 @@ int vtkTracker::Probe()
 			{
 				if(!this->SocketCommunicator->Send(msg, len, 1, 22))
 				{
-					vtkErrorMacro("Could not send message Probe\n");
-					exit(0);
+					LOG_ERROR("Could not send message Probe\n");
 					this->UpdateMutex->Unlock();
-					return 0;
+					return PLUS_FAIL;
 				}
 			}
 			else
@@ -349,12 +347,16 @@ int vtkTracker::Probe()
 				this->UpdateMutex->Unlock();
 				if(!this->SocketCommunicator->Receive(success, 1, 1, 11))
 				{
-					vtkErrorMacro("Could not receive the Probe results");
-					exit(0);
+					LOG_ERROR("Could not receive the Probe results");
+					return PLUS_FAIL;
 				}
 			}
 		}
-		return success[0];
+    if (success[0]==0)
+    {
+      return PLUS_FAIL;
+    }
+		return PLUS_SUCCESS;
 	}
 	// Server / Normal
 	if (this->InternalStartTracking() == 0)
@@ -368,7 +370,7 @@ int vtkTracker::Probe()
 				this->SocketCommunicator->Send(success,1, 1, 11);
 			}
 		}
-		return 0;
+		return PLUS_FAIL;
 	}
 
 	this->Tracking = 1;
@@ -384,16 +386,16 @@ int vtkTracker::Probe()
 			{
 				if(!this->SocketCommunicator->Send(success, 1, 1, 11))
 				{
-					vtkErrorMacro("Could not send Success information!\n");
-					exit(0);
+					LOG_ERROR("Could not send Success information!\n");
+					return PLUS_FAIL;
 				}
 			}
 			else
 			{
-				vtkErrorMacro("Client Not Connected.\n");
+				LOG_ERROR("Client Not Connected.\n");
 			}
 		}
-		return 0;
+		return PLUS_FAIL;
 	}
 
 	this->Tracking = 0;
@@ -405,20 +407,20 @@ int vtkTracker::Probe()
 		{
 			if(!this->SocketCommunicator->Send(success, 1, 1, 11))
 			{
-				vtkErrorMacro("Could not send Success information!\n");
-				exit(0);
+				LOG_ERROR("Could not send Success information!\n");
+				return PLUS_FAIL;
 			}
 		}
 		else
 		{
-			vtkErrorMacro("Client Not Connected.\n");
+			LOG_ERROR("Client Not Connected.\n");
 		}
 	}
-	return 1;
+	return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-void vtkTracker::StartTracking()
+PlusStatus vtkTracker::StartTracking()
 {
 	int tracking = this->Tracking;
 	// client 
@@ -437,8 +439,8 @@ void vtkTracker::StartTracking()
 			{
 				if( !this->SocketCommunicator->Send(msg1, len, 1, 22))
 				{
-					vtkErrorMacro(" Could not send the message\n");
-					exit(0);
+					LOG_ERROR("Could not send the message");
+					return PLUS_FAIL;
 				}
 				else
 				{
@@ -457,8 +459,8 @@ void vtkTracker::StartTracking()
 							char *rmsg = new char [rlen[0]];
 							if(!this->SocketCommunicator->Receive(rmsg, rlen[0], 1, 22) )
 							{
-								vtkErrorMacro("Could not RecieveToolInfo");
-								exit(0);
+								LOG_ERROR("Could not RecieveToolInfo");
+								return PLUS_FAIL;
 							}
 							else
 							{
@@ -471,7 +473,7 @@ void vtkTracker::StartTracking()
 					}
 					if (messageNum == maxMessages)
 					{
-						vtkErrorMacro("Waited to receive \"EndEnabledToolPort\" "
+						LOG_ERROR("Waited to receive \"EndEnabledToolPort\" "
 							"but it never came");
 					}
 					this->Tracking = 1;
@@ -500,28 +502,27 @@ void vtkTracker::StartTracking()
 				{
 					if(!this->SocketCommunicator->Send(msgText, len, 1, 22))
 					{
-						vtkErrorMacro(
-							"Could not send message: InternalStartTrackingSuccessful");
-						exit(0);
+						LOG_ERROR("Could not send message: InternalStartTrackingSuccessful");
+						return PLUS_FAIL;
 					}
 				}
 				else
 				{
-					vtkErrorMacro(
-						"Could not send length of InternalStartTrackingSuccessful");
-					exit(0);
+					LOG_ERROR("Could not send length of InternalStartTrackingSuccessful");
+					return PLUS_FAIL;
 				}
 			}
 			else
 			{
-				vtkErrorMacro("Client Not Connected.\n");
+				LOG_ERROR("Client Not Connected.\n");
 			}
 		}
 
 		// start the tracking thread
 		if (!(this->Tracking && !tracking && this->ThreadId == -1))
 		{
-			return;
+      LOG_ERROR("Cannot start the tracking thread");
+			return PLUS_FAIL;
 		}
 
 		// this will block the tracking thread until we're ready
@@ -547,16 +548,19 @@ void vtkTracker::StartTracking()
 		this->UpdateMutex->Unlock();
 		vtkAccurateTimer::Delay(0.1); 
 	}
+
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-void vtkTracker::StopTracking()
+PlusStatus vtkTracker::StopTracking()
 {
 	if( !this->ServerMode && this->RemoteAddress ) // client
 	{
 		if(!this->Tracking)
 		{
-			return;
+      // already stopped
+			return PLUS_SUCCESS;
 		}
 		int slen = 13;
 		char *smsg = "StopTracking";
@@ -566,14 +570,14 @@ void vtkTracker::StopTracking()
 			{
 				if(!this->SocketCommunicator->Send(smsg, slen, 1, 22))
 				{
-					vtkErrorMacro("Could not Send the message StopTracking!\n");
-					exit(0);
+					LOG_ERROR("Could not Send the message StopTracking!\n");
+					return PLUS_FAIL;
 				}
 			}
 			else
 			{
-				vtkErrorMacro("Could not send the length of  StopTracking!\n");
-				exit(0);
+				LOG_ERROR("Could not send the length of  StopTracking!\n");
+				return PLUS_FAIL;
 			}
 			this->Threader->TerminateThread(this->ThreadId);
 			this->ThreadId = -1;
@@ -583,9 +587,8 @@ void vtkTracker::StopTracking()
 				char *msg = new char [len[0]];
 				if( !this->SocketCommunicator->Receive(msg, len[0], 1, 22))
 				{
-					vtkErrorMacro("Could not receive InternalStopTrackingSuccessful");
+					LOG_ERROR("Could not receive InternalStopTrackingSuccessful");
 				}
-
 				else
 				{
 					this->InterpretCommands(msg);//ca2->GetPointer(0));
@@ -594,9 +597,9 @@ void vtkTracker::StopTracking()
 		}
 		else
 		{
-			vtkErrorMacro("Not connected to the Server. \n");
+			LOG_ERROR("Not connected to the Server. \n");
 		}
-		return;
+		return PLUS_SUCCESS;
 	}
 	// normal and server 
 	if ( this->Tracking && this->ThreadId != -1 )
@@ -610,8 +613,8 @@ void vtkTracker::StopTracking()
 		{
 			if(this->SocketCommunicator->GetIsConnected()<=0)
 			{
-				vtkErrorMacro("Client not Connected\n");
-				return ;
+				LOG_ERROR("Client not Connected\n");
+				return PLUS_FAIL;
 			}
 			int len = 31;
 			if(this->SocketCommunicator->Send(&len, 1, 1, 11))
@@ -619,25 +622,28 @@ void vtkTracker::StopTracking()
 				char *msg = "InternalStopTrackingSuccessful";
 				if(!this->SocketCommunicator->Send(msg, 31, 1, 22))
 				{
-					vtkErrorMacro("Could not send InternalStopTrackingSuccessful\n");
-					exit(0);
+					LOG_ERROR("Could not send InternalStopTrackingSuccessful\n");
+					return PLUS_FAIL;
 				}
 			}
 			else
 			{
-				vtkErrorMacro("Could not send length\n");
-				exit(0);
+				LOG_ERROR("Could not send length\n");
+				return PLUS_FAIL;
 			}
 		}
 	}
+
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-void vtkTracker::Update()
+PlusStatus vtkTracker::Update()
 {
 	if (!this->Tracking)
 	{ 
-		return; 
+    LOG_ERROR("Cannot update, tracking is not active");
+		return PLUS_FAIL; 
 	}
 
 	for (int tool = 0; tool < this->NumberOfTools; tool++)
@@ -648,6 +654,8 @@ void vtkTracker::Update()
 	}
 
 	this->LastUpdateTime = this->UpdateTime.GetMTime();
+
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
@@ -721,7 +729,7 @@ void vtkTracker::SetToolLED(int tool, int led, int state)
 }
 
 //-----------------------------------------------------------------------------
-int vtkTracker::Connect()
+PlusStatus vtkTracker::Connect()
 {
 	if( this->RemoteAddress && !this->ServerMode )
 	{
@@ -729,7 +737,7 @@ int vtkTracker::Connect()
 			this->RemoteAddress,this->NetworkPort))
 		{
 			LOG_ERROR("Could not connect to server\n");
-			return 0; 
+			return PLUS_FAIL; 
 		}
 	}
 	else
@@ -737,11 +745,11 @@ int vtkTracker::Connect()
 		LOG_WARNING("Do not need to Call Connect() in Normal Mode");
 	}
 
-	return 1; 
+	return PLUS_SUCCESS; 
 }
 
 //-----------------------------------------------------------------------------
-void vtkTracker::Disconnect()
+PlusStatus vtkTracker::Disconnect()
 {
 	if( this->RemoteAddress && !this->ServerMode )
 	{
@@ -754,7 +762,7 @@ void vtkTracker::Disconnect()
 				if(!this->SocketCommunicator->Send( msg, len, 1, 22))
 				{
 					LOG_ERROR("Could not receive message text");
-					exit(0);
+					return PLUS_FAIL;
 				}
 			}
 			else
@@ -767,6 +775,7 @@ void vtkTracker::Disconnect()
 	{
 		LOG_ERROR("Disconnect can be called from Client Tracker only !");
 	}
+  return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
@@ -776,7 +785,8 @@ void vtkTracker::StartServer()
 	{ 
 		if(this->SocketCommunicator->GetIsConnected())
 		{
-			exit(0);
+      LOG_DEBUG("Communicator disconnected");
+			return;
 		}
 		if(this->SocketCommunicator->WaitForConnection(this->NetworkPort))
 		{
@@ -794,14 +804,14 @@ void vtkTracker::StartServer()
 					}
 					else
 					{
-						vtkErrorMacro("Could not receive message text\n");
-						exit(0);
+						LOG_ERROR("Could not receive message text\n");
+						return;
 					}
 				}
 				else
 				{
-					vtkErrorMacro("Could not receive length.");
-					exit(0);
+					LOG_ERROR("Could not receive length.");
+					return;
 				}
 			}
 		}
@@ -937,13 +947,13 @@ void vtkTracker::DeepCopy(vtkTracker *tracker)
 
 
 //-----------------------------------------------------------------------------
-void vtkTracker::ReadConfiguration(vtkXMLDataElement* config)
+PlusStatus vtkTracker::ReadConfiguration(vtkXMLDataElement* config)
 {
 	LOG_TRACE("vtkTracker::ReadConfiguration"); 
 	if ( config == NULL )
 	{
 		LOG_ERROR("Unable to configure tracker! (XML data element is NULL)"); 
-		return; 
+		return PLUS_FAIL; 
 	}
 
 	if ( this->ConfigurationData == NULL ) 
@@ -1024,6 +1034,7 @@ void vtkTracker::ReadConfiguration(vtkXMLDataElement* config)
 
 	// Set reference tool 
 
+  return PLUS_SUCCESS; 
 }
 
 
@@ -1065,9 +1076,10 @@ int vtkTracker::GetReferenceTool()
 }
 
 //-----------------------------------------------------------------------------
-void vtkTracker::WriteConfiguration(vtkXMLDataElement* config)
+PlusStatus vtkTracker::WriteConfiguration(vtkXMLDataElement* config)
 {
-
+  LOG_ERROR("Not implemented");
+  return PLUS_FAIL;
 }
 
 //----------------------------------------------------------------------------

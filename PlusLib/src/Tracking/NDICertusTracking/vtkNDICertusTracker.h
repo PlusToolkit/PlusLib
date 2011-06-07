@@ -70,17 +70,17 @@ public:
 
 	// Description:
 	// Connect to device
-	int Connect();
+	PlusStatus Connect();
 
 	// Description:
 	// Disconnect from device 
-	virtual void Disconnect();
+	virtual PlusStatus Disconnect();
 
 	// Description:
 	// Probe to check whether there is an attached Certus system that
 	// is able to track.  After Probe is called, you can call
 	// GetVersion() to get information about the attached Certus system.
-	int Probe();
+	PlusStatus Probe();
 
 	// Description:
 	// Get the a string (perhaps a long one) describing the type and version
@@ -90,8 +90,8 @@ public:
 	// Description:
 	// Get an update from the tracking system and push the new transforms
 	// to the tools.  This should only be used within vtkTracker.cxx.
-	void InternalUpdate();
-	void Update();
+	PlusStatus InternalUpdate();
+	PlusStatus Update();
 
 protected:
 	vtkNDICertusTracker();
@@ -106,44 +106,44 @@ protected:
 	// its ground state into full tracking mode.  The device will
 	// only be reset if communication cannot be established without
 	// a reset.
-	int InternalStartTracking();
-	void StartTracking();
+	PlusStatus InternalStartTracking();
+	PlusStatus StartTracking();
 
 	// Description:
 	// Stop the tracking system and bring it back to its ground state:
 	// Initialized, not tracking, at 9600 Baud.
-	int InternalStopTracking();
-	void StopTracking();
+	PlusStatus InternalStopTracking();
+	PlusStatus StopTracking();
 
 	// Description:
 	// Cause the device to beep the specified number of times.
-	int InternalBeep(int n);
+	PlusStatus InternalBeep(int n);
 
 	// Description:
 	// Set the specified tool LED to the specified state.
-	int InternalSetToolLED(int tool, int led, int state);
+	PlusStatus InternalSetToolLED(int tool, int led, int state);
 
 	// Description:
 	// Initialize communication with the Certus system.
-	int InitializeCertusSystem();
+	PlusStatus InitializeCertusSystem();
 
 	// Description:
 	// Terminate communication with the Certus system.
-	int ShutdownCertusSystem();
+	PlusStatus ShutdownCertusSystem();
 
 	// Description:
 	// Activate the markers for tracking.
-	int ActivateCertusMarkers();
+	PlusStatus ActivateCertusMarkers();
 
 	// Description:
 	// Deactivate all markers.
-	int DeActivateCertusMarkers();
+	PlusStatus DeActivateCertusMarkers();
 
 	// Description:
 	// Methods for detecting which ports have tools in them, and
 	// auto-enabling those tools.
-	int EnableToolPorts();
-	int DisableToolPorts();
+	PlusStatus EnableToolPorts();
+	PlusStatus DisableToolPorts();
 
 	// Description:
 	// Find the tool for a specific port handle (-1 if not found).

@@ -127,7 +127,7 @@ int CompareRegistrationResultsWithBaseline(const char* baselineFileName, const c
 		numberOfFailures++;
 	}
 
-	vtkSmartPointer<vtkXMLDataElement> phantomRegistrationTransformCurrent = phantomRegistrationCurrent->FindNestedElementWithName("PhantomToPhantomReferenceTransform"); 
+	vtkXMLDataElement* phantomRegistrationTransformCurrent = phantomRegistrationCurrent->FindNestedElementWithName("PhantomToPhantomReferenceTransform"); 
 	if (phantomRegistrationTransformCurrent == NULL) {
 		LOG_ERROR("Phantom registration transform not found!");
 		numberOfFailures++;
@@ -143,7 +143,7 @@ int CompareRegistrationResultsWithBaseline(const char* baselineFileName, const c
 		numberOfFailures++;
 	}
 
-	vtkSmartPointer<vtkXMLDataElement> phantomRegistrationTransformBaseline = phantomRegistrationBaseline->FindNestedElementWithName("PhantomToPhantomReferenceTransform"); 
+	vtkXMLDataElement* phantomRegistrationTransformBaseline = phantomRegistrationBaseline->FindNestedElementWithName("PhantomToPhantomReferenceTransform"); 
 	if (phantomRegistrationTransformBaseline == NULL) {
 		LOG_ERROR("Phantom registration transform not found!");
 		numberOfFailures++;

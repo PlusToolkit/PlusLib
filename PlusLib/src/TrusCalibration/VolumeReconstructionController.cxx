@@ -1,7 +1,9 @@
+#include "PlusConfigure.h"
+
 #include "VolumeReconstructionController.h"
 
 #include "vtkFreehandController.h"
-#include "PlusConfigure.h"
+
 
 //-----------------------------------------------------------------------------
 
@@ -31,21 +33,23 @@ VolumeReconstructionController::~VolumeReconstructionController()
 
 //-----------------------------------------------------------------------------
 
-void VolumeReconstructionController::Initialize()
+PlusStatus VolumeReconstructionController::Initialize()
 {
 	LOG_DEBUG("Initialize VolumeReconstructionController");
+  return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
 
-void VolumeReconstructionController::Clear()
+PlusStatus VolumeReconstructionController::Clear()
 {
 	LOG_DEBUG("Clear VolumeReconstructionController");
+  return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
 
-void VolumeReconstructionController::DoAcquisition()
+PlusStatus VolumeReconstructionController::DoAcquisition()
 {
 /* // a buggy solution for getting all data since last acquisition
 void StylusCalibrationController::DoAcquisition()
@@ -137,16 +141,19 @@ void StylusCalibrationController::DoAcquisition()
 	}
 }
 */
+  return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
 
-void VolumeReconstructionController::Start()
+PlusStatus VolumeReconstructionController::Start()
 {
+  return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
 
-void VolumeReconstructionController::Stop()
+PlusStatus VolumeReconstructionController::Stop()
 {
+  return PLUS_SUCCESS;
 }

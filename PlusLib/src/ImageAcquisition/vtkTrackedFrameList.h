@@ -263,7 +263,7 @@ public:
 
 	//! Operation: 
 	// Read the tracked data from sequence metafile 
-	virtual void ReadFromSequenceMetafile(const char* trackedSequenceDataFileName); 
+	virtual PlusStatus ReadFromSequenceMetafile(const char* trackedSequenceDataFileName); 
 
 	//! Operation: 
 	// Get the tracked frame list 

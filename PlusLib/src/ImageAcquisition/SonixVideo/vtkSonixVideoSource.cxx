@@ -37,6 +37,8 @@ POSSIBILITY OF SUCH DAMAGE.
 
 =========================================================================*/
 
+#include "PlusConfigure.h"
+
 #include "vtkSonixVideoSource.h"
 
 #include "vtkImageData.h"
@@ -279,7 +281,7 @@ bool vtkSonixVideoSource::vtkSonixVideoSourceNewFrameCallback(void * data, int t
 //----------------------------------------------------------------------------
 // copy the Device Independent Bitmap from the VFW framebuffer into the
 // vtkVideoSource framebuffer (don't do the unpacking yet)
-void vtkSonixVideoSource::LocalInternalGrab(void* dataPtr, int type, int sz, bool cine, int frmnum)
+PlusStatus vtkSonixVideoSource::LocalInternalGrab(void* dataPtr, int type, int sz, bool cine, int frmnum)
 {
 	//to do
 	// 1) Do frame buffer indices maintenance
@@ -299,7 +301,9 @@ void vtkSonixVideoSource::LocalInternalGrab(void* dataPtr, int type, int sz, boo
   //error check for data type, size
   if ((uData)type!= (uData)this->AcquisitionDataType)
     {
-	vtkErrorMacro(<< "Received data type is different than expected");
+	  LOG_ERROR("Received data type is different than expected");
+    this->FrameBufferMutex->Unlock();
+    return PLUS_FAIL;
     }
   // 1) Do the frame buffer indices maintenance
   if (this->AutoAdvance)
@@ -394,10 +398,12 @@ void vtkSonixVideoSource::LocalInternalGrab(void* dataPtr, int type, int sz, boo
   this->Modified();
 
   this->FrameBufferMutex->Unlock();
+
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-void vtkSonixVideoSource::Initialize()
+PlusStatus vtkSonixVideoSource::Initialize()
 {
 	//to do:
 	//1) connect to sonix machine using the ip address provided earlier
@@ -410,7 +416,7 @@ void vtkSonixVideoSource::Initialize()
 	//8) update frame buffer
   if (this->Initialized)
     {
-    return;
+    return PLUS_SUCCESS;
     }
 
    
@@ -420,9 +426,9 @@ void vtkSonixVideoSource::Initialize()
 	char *err = new char[256]; 
 	int sz = 256;
 	this->ult->getLastError(err,sz);
-	vtkErrorMacro(<< "Initialize: couldn't connect to Sonix RP"<<" (" << err << ")");
+	LOG_ERROR("Initialize: couldn't connect to Sonix RP"<<" (" << err << ")");
     this->ReleaseSystemResources();
-    return;
+    return PLUS_FAIL;
     }
 
   // 2) set the imaging mode
@@ -431,9 +437,9 @@ void vtkSonixVideoSource::Initialize()
 	char *err = new char[256]; 
 	int sz = 256;
 	this->ult->getLastError(err,sz);
-    vtkErrorMacro(<< "Initialize: couldn't select imaging mode (" << err << ")");
+    LOG_ERROR("Initialize: couldn't select imaging mode (" << err << ")");
     this->ReleaseSystemResources();
-    return;
+    return PLUS_FAIL;
     }
 
   // do we need to wait for a little while before the mode actually gets selected??
@@ -446,9 +452,9 @@ void vtkSonixVideoSource::Initialize()
 	char *err = new char[256];  
 	int sz = 256;
 	this->ult->getLastError(err,sz);
-    vtkErrorMacro(<< "Initialize: Requested imaging mode could not be selected(" << err << ")");
+    LOG_ERROR("Initialize: Requested imaging mode could not be selected(" << err << ")");
     this->ReleaseSystemResources();
-    return;
+    return PLUS_FAIL;
 	}
 
   // 3) set the data acquisition type
@@ -458,9 +464,9 @@ void vtkSonixVideoSource::Initialize()
 	char *err = new char[256];  
 	int sz = 256;
 	this->ult->getLastError(err,sz);
-    vtkErrorMacro(<< "Initialize: Requested the data aquisition type not available for selected imaging mode(" << err << ")");
+    LOG_ERROR("Initialize: Requested the data aquisition type not available for selected imaging mode(" << err << ")");
     this->ReleaseSystemResources();
-    return;
+    return PLUS_FAIL;
     }
   // actually request data, now that its available
   if (!this->ult->setDataToAcquire(AcquisitionDataType))
@@ -468,9 +474,9 @@ void vtkSonixVideoSource::Initialize()
 	char *err = new char[256];  
 	int sz = 256;
 	this->ult->getLastError(err,sz);
-    vtkErrorMacro(<< "Initialize: couldn't request the data aquisition type (" << err << ")");
+    LOG_ERROR("Initialize: couldn't request the data aquisition type (" << err << ")");
     this->ReleaseSystemResources();
-    return;
+    return PLUS_FAIL;
     }
 
   // 4) get the data descriptor
@@ -479,9 +485,9 @@ void vtkSonixVideoSource::Initialize()
 	char *err = new char[256];  
 	int sz = 256;
 	this->ult->getLastError(err,sz);
-    vtkErrorMacro(<< "Initialize: couldn't retrieve data descriptor (" << err << ")");
+    LOG_ERROR("Initialize: couldn't retrieve data descriptor (" << err << ")");
     this->ReleaseSystemResources();
-    return;
+    return PLUS_FAIL;
     }
 
   // 5) set up the frame buffer
@@ -497,9 +503,9 @@ void vtkSonixVideoSource::Initialize()
 	char *err = new char[256];  
 	int sz = 256;
 	this->ult->getLastError(err,sz);
-    vtkErrorMacro(<< "Initialize: couldn't set desired frequency (" << err << ")");
+    LOG_ERROR("Initialize: couldn't set desired frequency (" << err << ")");
     this->ReleaseSystemResources();
-    return;
+    return PLUS_FAIL;
     }
 
   if (!this->ult->setParamValue(VARID_FRATE, FrameRate))
@@ -507,9 +513,9 @@ void vtkSonixVideoSource::Initialize()
 	char *err = new char[256]; 
 	int sz = 256;
 	this->ult->getLastError(err,sz);
-    vtkErrorMacro(<< "Initialize: couldn't set desired frame rate (" << err << ")");
+    LOG_ERROR("Initialize: couldn't set desired frame rate (" << err << ")");
     this->ReleaseSystemResources();
-    return;
+    return PLUS_FAIL;
     }
 
   if (!this->ult->setParamValue(VARID_DEPTH, Depth))
@@ -517,9 +523,9 @@ void vtkSonixVideoSource::Initialize()
 	char *err = new char[256];  
 	int sz = 256;
 	this->ult->getLastError(err,sz);
-    vtkErrorMacro(<< "Initialize: couldn't set desired depth (" << err << ")");
+    LOG_ERROR("Initialize: couldn't set desired depth (" << err << ")");
     this->ReleaseSystemResources();
-    return;
+    return PLUS_FAIL;
     }
 
   // 7) set callback for receiving new frames
@@ -529,6 +535,8 @@ void vtkSonixVideoSource::Initialize()
   this->UpdateFrameBuffer();
 
   this->Initialized = 1;
+
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
@@ -538,23 +546,10 @@ void vtkSonixVideoSource::ReleaseSystemResources()
 }
 
 //----------------------------------------------------------------------------
-void vtkSonixVideoSource::Grab()
+PlusStatus vtkSonixVideoSource::Grab()
 {
-  if (this->Recording)
-    {
-    return;
-    }
-
-  // ensure that the frame buffer is properly initialized
-  this->Initialize();
-  if (!this->Initialized)
-    {
-    return;
-    }
-
-  // just do the grab, the callback does the rest
-  //this->SetStartTimeStamp(vtkAccurateTimer::GetSystemTime());
-//  capGrabFrameNoStop(this->Internal->CapWnd);
+  LOG_ERROR("Grab is not implemented for this video source");
+	return PLUS_FAIL;
 }
 
 //----------------------------------------------------------------------------
@@ -564,11 +559,6 @@ void vtkSonixVideoSource::Record()
   if (!this->Initialized)
     {
     return;
-    }
-
-  if (this->Playing)
-    {
-    this->Stop();
     }
 
   if (!this->Recording)
@@ -581,12 +571,6 @@ void vtkSonixVideoSource::Record()
 }
     
 //----------------------------------------------------------------------------
-void vtkSonixVideoSource::Play()
-{
-  this->vtkVideoSource::Play();
-}
-    
-//----------------------------------------------------------------------------
 void vtkSonixVideoSource::Stop()
 {
   if (this->Recording)
@@ -596,10 +580,6 @@ void vtkSonixVideoSource::Stop()
 
 	if (!this->ult->getFreezeState())
 		this->ult->toggleFreeze();
-    }
-  else if (this->Playing)
-    {
-    this->vtkVideoSource::Stop();
     }
 }
 
@@ -1002,7 +982,7 @@ void vtkSonixVideoSource::SetOutputFormat(int format)
       break;
     default:
       numComponents = 0;
-      vtkErrorMacro(<< "SetOutputFormat: Unrecognized color format.");
+      LOG_ERROR("SetOutputFormat: Unrecognized color format.");
       break;
     }
   this->NumberOfScalarComponents = numComponents;

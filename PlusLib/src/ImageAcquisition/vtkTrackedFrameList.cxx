@@ -562,7 +562,7 @@ std::string vtkTrackedFrameList::GetDefaultFrameTransformName()
 }
 
 //----------------------------------------------------------------------------
-void vtkTrackedFrameList::ReadFromSequenceMetafile(const char* trackedSequenceDataFileName)
+PlusStatus vtkTrackedFrameList::ReadFromSequenceMetafile(const char* trackedSequenceDataFileName)
 {
 	typedef itk::Image< TrackedFrame::PixelType, 3 > ImageSequenceType;
 	typedef itk::ImageFileReader< ImageSequenceType > ImageSequenceReaderType;
@@ -579,8 +579,8 @@ void vtkTrackedFrameList::ReadFromSequenceMetafile(const char* trackedSequenceDa
 	}
 	catch (itk::ExceptionObject & err) 
 	{		
-		vtkErrorMacro(<< " Sequence image reader couldn't update: " <<  err); 
-		exit(EXIT_FAILURE);
+		LOG_ERROR(" Sequence image reader couldn't update: " <<  err); 
+		return PLUS_FAIL;
 	}	
 
 	ImageSequenceType::Pointer imageSeq = reader->GetOutput();
@@ -643,6 +643,8 @@ void vtkTrackedFrameList::ReadFromSequenceMetafile(const char* trackedSequenceDa
 		
 		this->AddTrackedFrame(&trackedFrame); 
 	}
+
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------

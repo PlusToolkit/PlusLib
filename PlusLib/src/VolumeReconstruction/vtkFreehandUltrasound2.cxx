@@ -713,7 +713,7 @@ int vtkFreehandUltrasound2::InitializeRealTimeReconstruction()
 	{
 		if (!this->VideoSource->GetRecording())
 		{
-			vtkWarningMacro(<<"video wasn't recording; starting recording for you");
+			LOG_WARNING("video wasn't recording; starting recording for you");
 			this->VideoSource->Record();
 		}
 	}
@@ -722,7 +722,7 @@ int vtkFreehandUltrasound2::InitializeRealTimeReconstruction()
 	{
 		if (!this->TrackerTool->GetTracker()->IsTracking())
 		{
-			vtkWarningMacro(<<"tracker wasn't started, starting tracking for you");
+			LOG_WARNING("tracker wasn't started, starting tracking for you");
 			this->TrackerTool->GetTracker()->StartTracking();
 		}
 	}
@@ -769,7 +769,7 @@ void vtkFreehandUltrasound2::StartRealTimeReconstruction()
 		}
 		else
 		{
-			vtkErrorMacro(<< "Could not initialize real-time reconstruction ... stopping");
+			LOG_ERROR("Could not initialize real-time reconstruction ... stopping");
 		}
 	}
 }
@@ -831,11 +831,12 @@ void vtkFreehandUltrasound2::UninitializeReconstruction()
 // TODO NOT currently implemented for gated reconstruction,
 // and not tested for non-gated reconstruction since David wrote it:
 // Use StartRealTimeReconstruction instead
-void vtkFreehandUltrasound2::StartReconstruction(int frames)
+PlusStatus vtkFreehandUltrasound2::StartReconstruction(int frames)
 {
 	if (frames <= 0)
 	{
-		return;
+    LOG_ERROR("No frames are available");
+		return PLUS_FAIL;
 	}
 
 	// If the real-time reconstruction isn't running...
@@ -862,9 +863,11 @@ void vtkFreehandUltrasound2::StartReconstruction(int frames)
 		}
 		else
 		{
-			vtkErrorMacro(<< "Could not initialize reconstruction ... stopping");
+			LOG_ERROR("Could not initialize reconstruction ... stopping");
+      return PLUS_FAIL;
 		}
 	}
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
@@ -1053,7 +1056,7 @@ int vtkFreehandUltrasound2::SplitSliceExtent(int splitExt[6], // TODO clip exten
 	int splitAxis; // the axis we should split along
 	int min, max; // the min and max indices of the axis of interest
 
-	vtkDebugMacro("SplitSliceExtent: ( " << startExt[0] << ", " 
+	LOG_DEBUG("SplitSliceExtent: ( " << startExt[0] << ", " 
 		<< startExt[1] << ", "
 		<< startExt[2] << ", " << startExt[3] << ", "
 		<< startExt[4] << ", " << startExt[5] << "), " 
@@ -1073,7 +1076,7 @@ int vtkFreehandUltrasound2::SplitSliceExtent(int splitExt[6], // TODO clip exten
 		// we cannot split if the input extent is something like [50, 50, 100, 100, 0, 0]!
 		if (splitAxis < 0)
 		{ 
-			vtkDebugMacro("  Cannot Split");
+			LOG_DEBUG("  Cannot Split");
 			return 1;
 		}
 		min = startExt[splitAxis*2];
@@ -1130,12 +1133,12 @@ void vtkFreehandUltrasound2::ThreadedSliceExecute(vtkImageData *inData, // input
 		accPtr = NULL;
 	}
 
-	vtkDebugMacro(<< "OptimizedInsertSlice: inData = " << inData << ", outData = " << outData);
+	LOG_DEBUG("OptimizedInsertSlice: inData = " << inData << ", outData = " << outData);
 
 	// this filter expects that input is the same type as output.
 	if (inData->GetScalarType() != outData->GetScalarType())
 	{
-		vtkErrorMacro(<< "OptimizedInsertSlice: input ScalarType, " 
+		LOG_ERROR("OptimizedInsertSlice: input ScalarType, " 
 			<< inData->GetScalarType()
 			<< ", must match out ScalarType "<<outData->GetScalarType());
 		return;
@@ -1176,7 +1179,7 @@ void vtkFreehandUltrasound2::ThreadedSliceExecute(vtkImageData *inData, // input
 				inExt, newmatrix, threadId);
 			break;
 		default:
-			vtkErrorMacro(<< "OptimizedInsertSlice: Unknown input ScalarType");
+			LOG_ERROR("OptimizedInsertSlice: Unknown input ScalarType");
 			return;
 		}
 	}
@@ -1218,7 +1221,7 @@ void vtkFreehandUltrasound2::ThreadedSliceExecute(vtkImageData *inData, // input
 				inExt, newmatrix, threadId);
 			break;
 		default:
-			vtkErrorMacro(<< "OptimizedInsertSlice: Unknown input ScalarType");
+			LOG_ERROR("OptimizedInsertSlice: Unknown input ScalarType");
 			return;
 		}
 	}
@@ -1298,7 +1301,7 @@ void vtkFreehandUltrasound2::InsertSliceHelper(vtkImageData* outData, // output 
 	// this filter expects that input is the same type as the output
 	if (inData->GetScalarType() != outData->GetScalarType())
 	{
-		vtkErrorMacro(<< "InsertSlice: input ScalarType, " 
+		LOG_ERROR("InsertSlice: input ScalarType, " 
 			<< inData->GetScalarType()
 			<< ", must match out ScalarType " 
 			<< outData->GetScalarType());
@@ -1335,7 +1338,7 @@ void vtkFreehandUltrasound2::InsertSliceHelper(vtkImageData* outData, // output 
 			inExt, indexMatrix);
 		break;
 	default:
-		vtkErrorMacro(<< "InsertSlice: Unknown input ScalarType");
+		LOG_ERROR("InsertSlice: Unknown input ScalarType");
 		return;
 	}
 }
@@ -2348,7 +2351,7 @@ void vtkFreehandUltrasound2::ThreadedFillExecute(vtkImageData *outData,  // outp
 			(unsigned short *)(accPtr), outExt); 
 		break;
 	default:
-		vtkErrorMacro(<< "FillHolesInOutput: Unknown input ScalarType");
+		LOG_ERROR("FillHolesInOutput: Unknown input ScalarType");
 		return;
 	}
 }
@@ -2580,45 +2583,40 @@ void vtkFreehandUltrasound2::SaveSummaryFile(const char *directory)
 #endif
 
 	// get the XML element that describes the freehand object and write to file
-	vtkXMLUtilities* util = vtkXMLUtilities::New();
 	vtkXMLDataElement* elem = this->MakeXMLElement();
-	util->WriteElementToFile(elem, path);
+	vtkXMLUtilities::WriteElementToFile(elem, path);
 
 	// clean up
 	elem->Delete();
-	util->Delete();
 }
 
 //----------------------------------------------------------------------------
 // Read the freehand parameters from the filename specified in the (relative!)
 // directory
 // File should have been created using SaveSummaryFile()
-int vtkFreehandUltrasound2::ReadSummaryFile(const char *filename)
+PlusStatus vtkFreehandUltrasound2::ReadSummaryFile(const char *filename)
 {
 
 	if (this->ReconstructionThreadId != -1)
 	{
-		return 0;
+    LOG_ERROR("Reconstruction is still active");
+		return PLUS_FAIL;
 	}
 
 	// read in the freehand information
-	vtkXMLUtilities* util = vtkXMLUtilities::New();
-	vtkXMLDataElement* elem = util->ReadElementFromFile(filename);
+	vtkSmartPointer<vtkXMLDataElement> elem = vtkXMLUtilities::ReadElementFromFile(filename);
 
 	// check to make sure we have the right element
 	if (elem == NULL)
 	{
-		vtkErrorMacro(<< "ReadRawData - invalid file " << filename);
-		util->Delete();
-		return 0;
+		LOG_ERROR("ReadRawData - invalid file " << filename);
+		return PLUS_FAIL;
 	}
 
 	if (strcmp(elem->GetName(), "Freehand") != 0)
 	{
-		vtkErrorMacro(<< "ReadRawData - invalid file " << filename);
-		elem->Delete();
-		util->Delete();
-		return 0;
+		LOG_ERROR("ReadRawData - invalid file " << filename);
+		return PLUS_FAIL;
 	}
 
 	// slice parameters
@@ -2785,9 +2783,5 @@ int vtkFreehandUltrasound2::ReadSummaryFile(const char *filename)
 		}
 	}
 
-	// clean up
-	elem->Delete();
-	util->Delete();
-
-	return 1;
+	return PLUS_SUCCESS;
 }

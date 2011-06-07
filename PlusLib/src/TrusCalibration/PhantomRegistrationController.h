@@ -35,34 +35,34 @@ public:
 	/*!
 	* \brief Initialize - implementation of a pure virtual function
 	*/
-	void Initialize();
+	PlusStatus Initialize();
 
 	/*!
 	* \brief Clear - implementation of a pure virtual function
 	*/
-	void Clear();
+	PlusStatus Clear();
 
 	/*!
 	* \brief Acquire new tracker positions and updates toolbox and canvas - implementation of a pure virtual function
 	*/
-	void DoAcquisition();
+	PlusStatus DoAcquisition();
 
 	/*!
 	* \brief Put state into in progress if all prerequisites are done - implementation of a pure virtual function
 	*/
-	void Start();
+	PlusStatus Start();
 
 	/*!
 	* \brief Stop - implementation of a pure virtual function
 	*/
-	void Stop();
+	PlusStatus Stop();
 
 	/*!
 	* \brief Load phantom registration from XML file
 	* \param aFile XML file name and path
 	* \return Success flag
 	*/
-	bool LoadPhantomRegistrationFromFile(std::string aFile);
+	PlusStatus LoadPhantomRegistrationFromFile(std::string aFile);
 
 	/*!
 	* \brief Save result to XML file
@@ -116,7 +116,7 @@ public:
 	* \brief Load phantom definition of phantom definition XML
 	* \param Path and filename of input XML
 	*/
-	bool LoadPhantomDefinitionFromFile(std::string aFile);
+	PlusStatus LoadPhantomDefinitionFromFile(std::string aFile);
 
 	/*!
 	* \brief Sets request recording flag to true, so at the next acquisition the position is recorded

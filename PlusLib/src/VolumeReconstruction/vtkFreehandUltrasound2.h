@@ -122,7 +122,7 @@ public:
   // TODO NOT currently implemented for dynamic(gated) reconstruction
   // and not tested for non-gated reconstruction: use
   // StartRealTimeReconstruction instead
-  virtual void StartReconstruction(int n);
+  virtual PlusStatus StartReconstruction(int n);
   
   // Description:
   // Stop the reconstruction.  The number of frames remaining to
@@ -155,7 +155,7 @@ public:
 
   // Description:
   // Configure the freehand ultrasound reconstruction according to a summary file
-  virtual int ReadSummaryFile(const char *filename);
+  virtual PlusStatus ReadSummaryFile(const char *filename);
 
   // Description:
   // Set the time by which the video lags behind the tracking information,

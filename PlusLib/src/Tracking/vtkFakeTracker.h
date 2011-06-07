@@ -33,19 +33,19 @@ public:
 
 	// Description:
 	// Connect to device
-	int Connect();
+	PlusStatus Connect();
 
 	// Description:
 	// Disconnect from device 
-	void Disconnect();
+	PlusStatus Disconnect();
 
 	// Description:
 	// Checks availibility of tracker (this always returns 1)
-	int Probe();
+	PlusStatus Probe();
 
 	// Description:
 	// Read configuration from xml data
-	void ReadConfiguration(vtkXMLDataElement* config); 
+	PlusStatus ReadConfiguration(vtkXMLDataElement* config); 
 
 	// Set fake mode (tool info for fake tools)
 	void SetMode(FakeTrackerMode);
@@ -58,16 +58,16 @@ public:
 protected:
 	// Description:
 	// Start the tracking system.
-	int InternalStartTracking();
+	PlusStatus InternalStartTracking();
 
 	// Description:
 	// Stop the tracking system.
-	int InternalStopTracking();
+	PlusStatus InternalStopTracking();
 
 	// Description:
 	// Get an update from the tracking system and push the new transforms
 	// to the tools.  This should only be used within vtkTracker.cxx.
-	void InternalUpdate();
+	PlusStatus InternalUpdate();
 
 	// Description:
 	// Constructor

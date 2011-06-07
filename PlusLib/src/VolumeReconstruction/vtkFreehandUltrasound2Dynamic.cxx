@@ -436,22 +436,22 @@ vtkMatrix4x4 *vtkFreehandUltrasound2Dynamic::GetIndexMatrix(int phase)
 		{
 			/*if (!this->SliceAxesBuffer)
 			{
-			vtkErrorMacro(<< "GetIndexMatrix(phase) doesn't have a slice axes buffer");
+			LOG_ERROR("GetIndexMatrix(phase) doesn't have a slice axes buffer");
 			return NULL;
 			}
 			if (!this->GetSliceAxesBuffer(phase))
 			{
-			vtkErrorMacro(<< "GetIndexMatrix(phase) doesn't have a slice axes buffer at phase " << phase);
+			LOG_ERROR("GetIndexMatrix(phase) doesn't have a slice axes buffer at phase " << phase);
 			return NULL;
 			}
 			if (!this->SliceTransformBuffer)
 			{
-			vtkErrorMacro(<< "GetIndexMatrix(phase) doesn't have a slice transform buffer");
+			LOG_ERROR("GetIndexMatrix(phase) doesn't have a slice transform buffer");
 			return NULL;
 			}
 			if (!this->GetSliceTransformBuffer(phase))
 			{
-			vtkErrorMacro(<< "GetIndexMatrix(phase) doesn't have a slice transform buffer at phase " << phase);
+			LOG_ERROR("GetIndexMatrix(phase) doesn't have a slice transform buffer at phase " << phase);
 			return NULL;
 			}*/
 			vtkMatrix4x4* sliceAxes = this->GetSliceAxesBuffer(phase);
@@ -565,7 +565,7 @@ int vtkFreehandUltrasound2Dynamic::InitializeRealTimeReconstruction()
 	{
 		if (!this->CalculateHeartRateParameters())
 		{
-			vtkWarningMacro( << "Could not calculate mean heart rate - the patient's heart rate is fluctuating too much");
+			LOG_WARNING("Could not calculate mean heart rate - the patient's heart rate is fluctuating too much");
 			return 0;
 		}
 	}
@@ -693,28 +693,28 @@ int vtkFreehandUltrasound2Dynamic::TestBeforeReconstructingWithTriggering()
 
 	if (!this->SignalBox)
 	{
-		vtkErrorMacro(<< "Triggering is set on but there is no signal box");
+		LOG_ERROR("Triggering is set on but there is no signal box");
 		return 0;
 	}
 
 	// want to make sure the user hasn't switched all signal boxes off
 	if (this->NumberOfOutputVolumes < 1)
 	{
-		vtkErrorMacro(<< "The number of output volumes must be at least one");
+		LOG_ERROR("The number of output volumes must be at least one");
 		return 0;
 	}
 
 	// want to make sure that the user hasn't change the parameters of the signal box since setting it
 	if (this->NumSignalBoxPhases != this->SignalBox->GetNumberOfPhases())
 	{
-		vtkErrorMacro(<< "The number of phases in the signal box has changed since it was set");
+		LOG_ERROR("The number of phases in the signal box has changed since it was set");
 		return 0;
 	}
 
 	// start the signal box if necessary
 	if (!this->SignalBox->GetIsStarted())
 	{
-		vtkWarningMacro( << "Signal box was not started - starting now");
+		LOG_WARNING("Signal box was not started - starting now");
 		this->SignalBox->Initialize();
 		this->SignalBox->Start();
 	}
@@ -722,7 +722,7 @@ int vtkFreehandUltrasound2Dynamic::TestBeforeReconstructingWithTriggering()
 	// if we still couldn't start...
 	if (!this->SignalBox->GetIsStarted())
 	{
-		vtkErrorMacro(<< "Signal box could not be started");
+		LOG_ERROR("Signal box could not be started");
 		return 0;
 	}
 
@@ -910,12 +910,12 @@ void vtkFreehandUltrasound2Dynamic::OptimizedInsertSlice(vtkImageData *outData, 
 		{
 			/*if (!this->SliceBuffer)
 			{
-			vtkErrorMacro(<< "InsertSlice(phase) doesn't have a slice buffer");
+			LOG_ERROR("InsertSlice(phase) doesn't have a slice buffer");
 			return;
 			}
 			if (!this->GetSliceBuffer(phase))
 			{
-			vtkErrorMacro(<< "InsertSlice(phase) doesn't have a slice buffer at this phase");
+			LOG_ERROR("InsertSlice(phase) doesn't have a slice buffer at this phase");
 			return;
 			}*/
 			vtkImageData* slice = this->GetSliceBuffer(phase);
@@ -978,12 +978,12 @@ void vtkFreehandUltrasound2Dynamic::InsertSlice(vtkImageData* outData, vtkImageD
 		{
 			/*if (!this->SliceBuffer)
 			{
-			vtkErrorMacro(<< "InsertSlice(phase) doesn't have a slice buffer");
+			LOG_ERROR("InsertSlice(phase) doesn't have a slice buffer");
 			return;
 			}
 			if (!this->GetSliceBuffer(phase))
 			{
-			vtkErrorMacro(<< "InsertSlice(phase) doesn't have a slice buffer at this phase");
+			LOG_ERROR("InsertSlice(phase) doesn't have a slice buffer at this phase");
 			return;
 			}*/
 			vtkImageData* slice = this->GetSliceBuffer(phase);
@@ -1312,7 +1312,7 @@ void vtkFreehandUltrasound2Dynamic::ReconstructSlice(double timestamp, vtkImageD
 			{
 				if (this->PhaseToInsert != -1)
 				{
-					vtkWarningMacro(<< "warning - dropped frame - when waiting for next video frame");
+					LOG_WARNING("warning - dropped frame - when waiting for next video frame");
 				}
 				this->PhaseToInsert = phase;
 			}
@@ -1338,7 +1338,7 @@ void vtkFreehandUltrasound2Dynamic::ReconstructOldSlice(double timestamp, vtkIma
 		// for sanity's sake
 		if (this->Retrospective || !this->Triggering)
 		{
-			vtkWarningMacro(<< "Reconstructing old slice with retrospective gating or no triggering- shouldn't be here!\n");
+			LOG_WARNING("Reconstructing old slice with retrospective gating or no triggering- shouldn't be here!\n");
 		}
 
 		if (!this->CheckHeartRate)
@@ -1467,7 +1467,7 @@ void vtkFreehandUltrasound2Dynamic::SetSignalBox(vtkSignalBox *signalBox)
 
 	if (signalBox->GetNumberOfPhases() <= 1)
 	{
-		vtkErrorMacro(<< "The signal box must have at least 2 phases");
+		LOG_ERROR("The signal box must have at least 2 phases");
 		return;
 	}
 
@@ -2239,7 +2239,7 @@ void vtkFreehandUltrasound2Dynamic::SaveInsertedTimestampsOn()
 
 	/*if (!this->SaveInsertedDirectory) // annoying with AV setup
 	{
-	vtkWarningMacro(<< "Can't set saving inserted timestamps if we don't have a directory yet");
+	LOG_WARNING(<< "Can't set saving inserted timestamps if we don't have a directory yet");
 	return;
 	}*/
 
@@ -2298,7 +2298,7 @@ void vtkFreehandUltrasound2Dynamic::SaveInsertedSlicesOn()
 
 	/*if (!this->SaveInsertedDirectory) // annoying with AV setup
 	{
-	vtkWarningMacro(<< "Can't set saving inserted timestamps if we don't have a directory yet");
+	LOG_WARNING(<< "Can't set saving inserted timestamps if we don't have a directory yet");
 	return;
 	}*/
 
@@ -2592,33 +2592,29 @@ vtkXMLDataElement* vtkFreehandUltrasound2Dynamic::MakeXMLElement()
 // Read the freehand parameters from the filename specified in the (relative!)
 // directory
 // File should have been created using SaveSummaryFile()
-int vtkFreehandUltrasound2Dynamic::ReadSummaryFile(const char *filename)
+PlusStatus vtkFreehandUltrasound2Dynamic::ReadSummaryFile(const char *filename)
 {
 
 	if (this->ReconstructionThreadId != -1)
 	{
-		return 0;
+    LOG_ERROR("Reconstruction is already active");
+		return PLUS_FAIL;
 	}
 
 	// read in the freehand information
-	vtkXMLUtilities* util = vtkXMLUtilities::New();
-
-	vtkXMLDataElement* elem = util->ReadElementFromFile(filename);
+	vtkSmartPointer<vtkXMLDataElement> elem = vtkXMLUtilities::ReadElementFromFile(filename);
 
 	// check to make sure we have the right element
 	if (elem == NULL)
 	{
-		vtkErrorMacro(<< "ReadRawData - invalid file " << filename);
-		util->Delete();
-		return 0;
+		LOG_ERROR("ReadRawData - invalid file " << filename);
+		return PLUS_FAIL;
 	}
 
 	if (strcmp(elem->GetName(), "Freehand") != 0)
 	{
-		vtkErrorMacro(<< "ReadRawData - invalid file " << filename);
-		elem->Delete();
-		util->Delete();
-		return 0;
+		LOG_ERROR("ReadRawData - invalid file " << filename);
+		return PLUS_FAIL;
 	}
 
 	// get the base information
@@ -2739,11 +2735,6 @@ int vtkFreehandUltrasound2Dynamic::ReadSummaryFile(const char *filename)
 		}
 	}
 
-	// clean up
-	elem->Delete();
-	util->Delete();
-
-
-	return 1;
+	return PLUS_SUCCESS;
 
 }

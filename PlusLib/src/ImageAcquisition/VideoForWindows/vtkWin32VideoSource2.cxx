@@ -270,7 +270,7 @@ void vtkWin32VideoSource2::Initialize()
     
   if (i > 32)
     {
-    vtkErrorMacro(<< "Initialize: failed to register VTKVideo class"\
+    LOG_ERROR("Initialize: failed to register VTKVideo class"\
                     << " (" << GetLastError() << ")");
     return;
     }
@@ -303,7 +303,7 @@ void vtkWin32VideoSource2::Initialize()
     
   if (!this->Internal->ParentWnd) 
     {
-    vtkErrorMacro(<< "Initialize: failed to create window"\
+    LOG_ERROR("Initialize: failed to create window"\
                     << " (" << GetLastError() << ")");
     return;
     }
@@ -319,7 +319,7 @@ void vtkWin32VideoSource2::Initialize()
 
   if (!this->Internal->CapWnd) 
     {
-    vtkErrorMacro(<< "Initialize: failed to create capture window"\
+    LOG_ERROR("Initialize: failed to create capture window"\
                     << " (" << GetLastError() << ")");
     this->ReleaseSystemResources();
     return;
@@ -328,7 +328,7 @@ void vtkWin32VideoSource2::Initialize()
   // connect to the driver
   if (!capDriverConnect(this->Internal->CapWnd,0))
     {
-    vtkErrorMacro(<< "Initialize: couldn't connect to driver"\
+    LOG_ERROR("Initialize: couldn't connect to driver"\
                     << " (" << GetLastError() << ")");
     this->ReleaseSystemResources();
     return;
@@ -367,7 +367,7 @@ void vtkWin32VideoSource2::Initialize()
   if (!capCaptureSetSetup(this->Internal->CapWnd,&this->Internal->CaptureParms,
                             sizeof(CAPTUREPARMS)))
     {
-    vtkErrorMacro(<< "Initialize: setup of capture parameters failed"\
+    LOG_ERROR("Initialize: setup of capture parameters failed"\
                     << " (" << GetLastError() << ")");
     this->ReleaseSystemResources();
     return;
@@ -376,7 +376,7 @@ void vtkWin32VideoSource2::Initialize()
   // set user data for callbacks
   if (!capSetUserData(this->Internal->CapWnd,(long)this))
     {
-    vtkErrorMacro(<< "Initialize: couldn't set user data for callback"\
+    LOG_ERROR("Initialize: couldn't set user data for callback"\
                     << " (" << GetLastError() << ")");
     this->ReleaseSystemResources();
     return;
@@ -386,7 +386,7 @@ void vtkWin32VideoSource2::Initialize()
   if (!capSetCallbackOnCapControl(this->Internal->CapWnd,
                                   &vtkWin32VideoSource2CapControlProc))
     {
-    vtkErrorMacro(<< "Initialize: couldn't set control callback"\
+    LOG_ERROR("Initialize: couldn't set control callback"\
                     << " (" << GetLastError() << ")");
     this->ReleaseSystemResources();
     return;
@@ -396,7 +396,7 @@ void vtkWin32VideoSource2::Initialize()
   if (!capSetCallbackOnFrame(this->Internal->CapWnd,
                              &vtkWin32VideoSource2CallbackProc))
     {
-    vtkErrorMacro(<< "Initialize: couldn't set frame callback"\
+    LOG_ERROR("Initialize: couldn't set frame callback"\
                     << " (" << GetLastError() << ")");
     this->ReleaseSystemResources();
     return;
@@ -405,7 +405,7 @@ void vtkWin32VideoSource2::Initialize()
   if (!capSetCallbackOnVideoStream(this->Internal->CapWnd,
                                    &vtkWin32VideoSource2CallbackProc))
     {
-    vtkErrorMacro(<< "Initialize: couldn't set stream callback"\
+    LOG_ERROR("Initialize: couldn't set stream callback"\
                     << " (" << GetLastError() << ")");
     this->ReleaseSystemResources();
     return;
@@ -414,7 +414,7 @@ void vtkWin32VideoSource2::Initialize()
   if (!capSetCallbackOnStatus(this->Internal->CapWnd,
                              &vtkWin32VideoSource2StatusCallbackProc))
     {
-    vtkErrorMacro(<< "Initialize: couldn't set status callback"\
+    LOG_ERROR("Initialize: couldn't set status callback"\
                     << " (" << GetLastError() << ")");
     this->ReleaseSystemResources();
     return;
@@ -423,7 +423,7 @@ void vtkWin32VideoSource2::Initialize()
   if (!capSetCallbackOnError(this->Internal->CapWnd,
                              &vtkWin32VideoSource2ErrorCallbackProc))
     {
-    vtkErrorMacro(<< "Initialize: couldn't set error callback"\
+    LOG_ERROR("Initialize: couldn't set error callback"\
                     << " (" << GetLastError() << ")");
     this->ReleaseSystemResources();
     return;
@@ -477,7 +477,7 @@ void vtkWin32VideoSource2::ReleaseSystemResources()
 //----------------------------------------------------------------------------
 void vtkWin32VideoSource2::OnParentWndDestroy()
 {
-  if (this->Playing || this->Recording)
+  if (this->Recording)
     {
     this->Stop();
     }  
@@ -615,11 +615,6 @@ void vtkWin32VideoSource2::Record()
     return;
     }
 
-  if (this->Playing)
-    {
-    this->Stop();
-    }
-
   if (!this->Recording)
     {
     this->Recording = 1;
@@ -627,13 +622,7 @@ void vtkWin32VideoSource2::Record()
     capCaptureSequenceNoFile(this->Internal->CapWnd);
     }
 }
-    
-//----------------------------------------------------------------------------
-void vtkWin32VideoSource2::Play()
-{
-  this->vtkVideoSource2::Play();
-}
-    
+        
 //----------------------------------------------------------------------------
 void vtkWin32VideoSource2::Stop()
 {
@@ -643,10 +632,6 @@ void vtkWin32VideoSource2::Stop()
     this->Modified();
 
     capCaptureStop(this->Internal->CapWnd);
-    }
-  else if (this->Playing)
-    {
-    this->vtkVideoSource2::Stop();
     }
 }
 
@@ -781,7 +766,7 @@ void vtkWin32VideoSource2::SetFrameSize(int x, int y, int z)
 
   if (x < 1 || y < 1 || z != 1) 
     {
-    vtkErrorMacro(<< "SetFrameSize: Illegal frame size");
+    LOG_ERROR("SetFrameSize: Illegal frame size");
     return;
     }
 
@@ -850,7 +835,7 @@ void vtkWin32VideoSource2::SetOutputFormat(int format)
       break;
     default:
       numComponents = 0;
-      vtkErrorMacro(<< "SetOutputFormat: Unrecognized color format.");
+      LOG_ERROR("SetOutputFormat: Unrecognized color format.");
       break;
     }
   this->NumberOfScalarComponents = numComponents;
@@ -929,7 +914,7 @@ void vtkWin32VideoSource2::DoVFWFormatCheck()
         }
       }
     fourcc[4] = '\0';
-    vtkWarningMacro(<< "DoVFWFormatCheck: video compression mode " <<
+    LOG_WARNING(<< "DoVFWFormatCheck: video compression mode " <<
                     fourcchex << " \"" << fourcc << "\": can't grab");
     }
 
@@ -1023,7 +1008,7 @@ void vtkWin32VideoSource2::DoVFWFormatSetup()
     }
   if (i > 4)
     {
-    vtkWarningMacro(<< "DoVFWFormatSetup: invalid video format for device"\
+    LOG_WARNING(<< "DoVFWFormatSetup: invalid video format for device"\
                     << " (" << GetLastError() << ")");
     }
   this->DoVFWFormatCheck();

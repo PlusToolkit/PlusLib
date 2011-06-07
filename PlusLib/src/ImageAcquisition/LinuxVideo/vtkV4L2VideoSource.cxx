@@ -160,7 +160,6 @@ vtkV4L2VideoSource::vtkV4L2VideoSource()
       this->FrameBufferExtent[i] = 0;
     }
   
-  this->Playing = 0;
   this->Recording = 0;
 
   this->FrameRate = 30;
@@ -291,8 +290,6 @@ void vtkV4L2VideoSource::PrintSelf(ostream& os, vtkIndent indent)
 
   os << indent << "Recording: " << (this->Recording ? "On\n" : "Off\n");
 
-  os << indent << "Playing: " << (this->Playing ? "On\n" : "Off\n");
-
   os << indent << "FrameBufferSize: " << this->FrameBufferSize << "\n";
 
   os << indent << "NumberOfOutputFrames: " << this->NumberOfOutputFrames << "\n";
@@ -403,12 +400,6 @@ static void *vtkV4L2VideoSourceRecordThread(vtkMultiThreader::ThreadInfo *data)
 void vtkV4L2VideoSource::Record()
 {
 
-
-if (this->Playing)
-    {
-      this->Stop();
-    }
-
   if (!this->Recording)
     {
       this->Initialize();
@@ -500,37 +491,13 @@ static void *vtkV4L2VideoSourcePlayThread(vtkMultiThreader::ThreadInfo *data)
 
   return NULL;
 }
-
-
-//----------------------------------------------------------------------------
-// Set the source to play back recorded frames.
-// You should override this as appropriate for your device
-void vtkV4L2VideoSource::Play()
-{
-    if (this->Recording)
-    {
-      this->Stop();
-    }
-
-  if (!this->Playing)
-    {
-      this->Initialize();
-
-      this->Playing = 1;
-      this->Modified();
-      this->PlayerThreadId = 
-  this->PlayerThreader->SpawnThread((vtkThreadFunctionType)\
-            &vtkV4L2VideoSourcePlayThread,this);
-    }
-}
-
     
 //----------------------------------------------------------------------------
 // Stop continuous grabbing or playback.  You will have to override this
 // if your class overrides Play() and Record()
 void vtkV4L2VideoSource::Stop()
 {
-  if (this->Playing || this->Recording)
+  if (this->Recording)
     {
       this->PlayerThreader->TerminateThread(this->PlayerThreadId);
       this->PlayerThreadId = -1;
@@ -588,7 +555,7 @@ void vtkV4L2VideoSource::Rewind()
   j = (this->FrameBufferIndex + i) % this->FrameBufferSize;
   if (stamp[j] != 0.0 && stamp[j] < 980000000.0)
     {
-      vtkWarningMacro("Rewind: bogus time stamp!");
+      LOG_WARNING("Rewind: bogus time stamp!");
     }
   else
     {
@@ -640,7 +607,7 @@ void vtkV4L2VideoSource::FastForward()
     }
   if (stamp[j] != 0.0 && stamp[j] < 980000000.0)
     {
-      vtkWarningMacro("FastForward: bogus time stamp!");
+      LOG_WARNING("FastForward: bogus time stamp!");
     }
   else
     {
@@ -693,7 +660,7 @@ void vtkV4L2VideoSource::SetFrameSize(int x, int y, int z)
 
   if (x < 1 || y < 1 || z < 1) 
     {
-      vtkErrorMacro(<< "SetFrameSize: Illegal frame size");
+      LOG_ERROR("SetFrameSize: Illegal frame size");
       return;
     }
 
@@ -757,7 +724,7 @@ void vtkV4L2VideoSource::SetOutputFormat(int format)
       numComponents = 1;
       break;
     default:
-      vtkErrorMacro(<< "SetOutputFormat: Unrecognized color format.");
+      LOG_ERROR("SetOutputFormat: Unrecognized color format.");
       break;
     }
   this->NumberOfScalarComponents = numComponents;
@@ -790,7 +757,7 @@ void vtkV4L2VideoSource::SetFrameBufferSize(int bufsize)
 
   if (bufsize < 0)
     {
-      vtkErrorMacro(<< "SetFrameBufferSize: There must be at least one framebuffer");
+      LOG_ERROR("SetFrameBufferSize: There must be at least one framebuffer");
     }
 
   if (bufsize == this->FrameBufferSize && bufsize != 0)
@@ -955,7 +922,7 @@ void vtkV4L2VideoSource::Initialize()
 // ReleaseSystemResources() should be overridden to release the hardware
 void vtkV4L2VideoSource::ReleaseSystemResources()
 {
-  if (this->Playing || this->Recording)
+  if (this->Recording)
     {
       this->Stop();
     }

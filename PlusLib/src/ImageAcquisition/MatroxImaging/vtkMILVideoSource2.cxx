@@ -384,7 +384,7 @@ void vtkMILVideoSource2::Initialize()
     if (this->MILAppID == 0)
       {
       this->ReleaseSystemResources();
-      vtkErrorMacro(<< "Initialize: couldn't open MIL application\n");
+      LOG_ERROR("Initialize: couldn't open MIL application\n");
       return;
       }
     this->MILAppInternallyAllocated = 1;    
@@ -418,7 +418,7 @@ void vtkMILVideoSource2::Initialize()
       if (this->MILSysID == 0)
         {
         this->ReleaseSystemResources();
-        vtkErrorMacro(<< "Initialize: couldn't find " << this->MILInterpreterDLL << ".dll\n");
+        LOG_ERROR("Initialize: couldn't find " << this->MILInterpreterDLL << ".dll\n");
         return;
         }
       }
@@ -449,7 +449,7 @@ void vtkMILVideoSource2::Initialize()
       if (system_types[i] == 0)
         {
         this->ReleaseSystemResources();
-        vtkErrorMacro(<< "Initialize: Couldn't find a Matrox frame grabber on the system\n");
+        LOG_ERROR("Initialize: Couldn't find a Matrox frame grabber on the system\n");
         return;
         }
       MappControl(M_ERROR,M_PRINT_ENABLE);
@@ -693,23 +693,12 @@ void vtkMILVideoSource2::Grab()
 }
 
 //----------------------------------------------------------------------------
-void vtkMILVideoSource2::Play()
-{
-  vtkVideoSource2::Play();
-}
-
-//----------------------------------------------------------------------------
 void vtkMILVideoSource2::Record()
 {
   this->Initialize();
   if (!this->Initialized)
     {
     return;
-    }
-
-  if (this->Playing)
-    {
-    this->Stop();
     }
 
   if (this->Recording)
@@ -742,11 +731,6 @@ void vtkMILVideoSource2::Record()
 //----------------------------------------------------------------------------
 void vtkMILVideoSource2::Stop()
 {
-  if (this->Playing)
-    {
-    vtkVideoSource2::Stop();
-    }
-
   if (!this->Recording)
     {
     return;
@@ -796,7 +780,7 @@ void vtkMILVideoSource2::SetFrameSize(int x, int y, int z)
 
   if (x < 1 || y < 1 || z != 1) 
     {
-    vtkErrorMacro(<< "SetFrameSize: Illegal frame size");
+    LOG_ERROR("SetFrameSize: Illegal frame size");
     return;
     }
 
@@ -840,7 +824,7 @@ void vtkMILVideoSource2::SetOutputFormat(int format)
       numComponents = 1;
       break;
     default:
-      vtkErrorMacro(<< "SetOutputFormat: Unrecognized color format.");
+      LOG_ERROR("SetOutputFormat: Unrecognized color format.");
       break;
     }
   this->NumberOfScalarComponents = numComponents;
@@ -1092,7 +1076,7 @@ void vtkMILVideoSource2::AllocateMILDigitizer()
       this->FrameMaxSize[1] = 0;
       break;
     default:
-      vtkWarningMacro(<< "AllocateMILDigitizer: Unknown video format");
+      LOG_WARNING(<< "AllocateMILDigitizer: Unknown video format");
     }
 
   if (this->MILDigitizerDCF)
@@ -1107,7 +1091,7 @@ void vtkMILVideoSource2::AllocateMILDigitizer()
 
   if (this->MILDigID == 0)
     {
-    vtkErrorMacro(<< "AllocateMILDigitizer:  Couldn't allocate MIL Digitizer\n");
+    LOG_ERROR("AllocateMILDigitizer:  Couldn't allocate MIL Digitizer\n");
     return;
     }
 
@@ -1177,7 +1161,7 @@ void vtkMILVideoSource2::AllocateMILBuffer()
 
   if (format != VTK_LUMINANCE && format != VTK_RGB && format != VTK_RGBA)
     {
-    vtkWarningMacro(<< "Initialize: unsupported OutputFormat");
+    LOG_WARNING(<< "Initialize: unsupported OutputFormat");
     this->vtkVideoSource2::SetOutputFormat(VTK_LUMINANCE);
     } 
 
@@ -1209,7 +1193,7 @@ void vtkMILVideoSource2::AllocateMILBuffer()
 
   if (this->MILBufID == 0)
     {
-    vtkErrorMacro(<< "AllocateMILBuffer:  Couldn't allocate MIL Buffer\n");
+    LOG_ERROR("AllocateMILBuffer:  Couldn't allocate MIL Buffer\n");
     return;
     }
 

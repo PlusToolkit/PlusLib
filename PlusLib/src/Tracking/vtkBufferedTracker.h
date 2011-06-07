@@ -19,12 +19,12 @@ public:
   // Probe to see if the tracking system is present on the
   // specified serial port.  If the SerialPort is set to -1,
   // then all serial ports will be checked.
-  int Probe();
+  PlusStatus Probe();
 
   // Description:
   // Get an update from the tracking system and push the new transforms
   // to the tools.  This should only be used within vtkTracker.cxx.
-  void InternalUpdate();
+  PlusStatus InternalUpdate();
 
   virtual void AddTransform( vtkMatrix4x4* transformMatrix, double timestamp ); 
 
@@ -38,12 +38,12 @@ protected:
   // its ground state into full tracking mode.  The device will
   // only be reset if communication cannot be established without
   // a reset.
-  int InternalStartTracking();
+  PlusStatus InternalStartTracking();
 
   // Description:
   // Stop the tracking system and bring it back to its ground state:
   // Initialized, not tracking, at 9600 Baud.
-  int InternalStopTracking();
+  PlusStatus InternalStopTracking();
 
   // Description:
   // Class for updating the virtual clock that accurately times the

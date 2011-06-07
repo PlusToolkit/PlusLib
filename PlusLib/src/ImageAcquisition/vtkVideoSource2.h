@@ -65,31 +65,31 @@ public:
 
   // Description:
   // Read/write main configuration from/to xml data
-  virtual void ReadConfiguration(vtkXMLDataElement* config); 
-  virtual void WriteConfiguration(vtkXMLDataElement* config);
+  virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config); 
+  virtual PlusStatus WriteConfiguration(vtkXMLDataElement* config);
 
   // Description:
   // Connect to device
   // Should be overridden to connect to the hardware 
-  virtual int Connect();
+  virtual PlusStatus Connect();
 
   // Description:
   // Disconnect from device
   // Should be overridden to disconnect from the hardware 
-  virtual void Disconnect();
+  virtual PlusStatus Disconnect();
 
   // Description:
   // Record incoming video at the specified FrameRate.  The recording
   // continues indefinitely until Stop() is called. 
-  virtual void Record();
+  virtual PlusStatus Record();
 
   // Description:
   // Stop recording
-  virtual void Stop();
+  virtual PlusStatus Stop();
 
   // Description:
   // Grab a single video frame.
-  virtual void Grab();
+  virtual PlusStatus Grab();
 
   // Description:
   // Are we in record mode?
@@ -218,7 +218,7 @@ public:
   // Description:
   // Initialize the hardware.  This is called automatically
   // on the first Update or Grab.
-  virtual void Initialize();
+  virtual PlusStatus Initialize();
   virtual int GetInitialized() { return this->Initialized; };
 
   // Description:
@@ -231,7 +231,7 @@ public:
   // The internal function which actually does the grab.  You will
   // definitely want to override this if you develop a vtkVideoSource2
   // subclass. 
-  virtual void InternalGrab();
+  virtual PlusStatus InternalGrab();
 
   // Description:
   // And internal variable which marks the beginning of a Record session.

@@ -30,34 +30,34 @@ public:
 	/*!
 	* \brief Initialize - implementation of a pure virtual function
 	*/
-	void Initialize();
+	PlusStatus Initialize();
 
 	/*!
 	* \brief Clear - implementation of a pure virtual function
 	*/
-	void Clear();
+	PlusStatus Clear();
 
 	/*!
 	* \brief Acquire new tracker positions and updates toolbox and canvas - implementation of a pure virtual function
 	*/
-	void DoAcquisition();
+	PlusStatus DoAcquisition();
 
 	/*!
 	* \brief Start calibration - implementation of a pure virtual function
 	*/
-	void Start();
+	PlusStatus Start();
 
 	/*!
 	* \brief Stop calibration - implementation of a pure virtual function
 	*/
-	void Stop();
+	PlusStatus Stop();
 
 	/*!
 	* \brief Load stylus calibration (stylus to stylustip transform) from file
 	* \param aFile Stylus cailbration transform XML
 	* \return Success flag
 	*/
-	bool LoadStylusCalibrationFromFile(std::string aFile);
+	PlusStatus LoadStylusCalibrationFromFile(std::string aFile);
 
 	/*!
 	* \brief Save result to XML file
@@ -141,7 +141,7 @@ protected:
 	/*!
 	* \brief Do the stylus calibration
 	*/
-	bool CalibrateStylus();
+	PlusStatus CalibrateStylus();
 
 	/*!
 	* \brief Display stylus tooltip (after calibration is complete)

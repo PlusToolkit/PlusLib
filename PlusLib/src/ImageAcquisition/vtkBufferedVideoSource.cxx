@@ -123,17 +123,19 @@ void vtkBufferedVideoSource::PrintSelf(ostream& os, vtkIndent indent)
 
 
 //----------------------------------------------------------------------------
-void vtkBufferedVideoSource::Initialize()
+PlusStatus vtkBufferedVideoSource::Initialize()
 {
 	if (this->Initialized)
 	{
-		return;
+		return PLUS_SUCCESS;
 	}
 
 	// update framebuffer 
 	this->UpdateFrameBuffer();
 
 	this->Initialized = 1;
+
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
@@ -148,28 +150,19 @@ void vtkBufferedVideoSource::ReleaseSystemResources()
 }
 
 //----------------------------------------------------------------------------
-void vtkBufferedVideoSource::Grab()
+PlusStatus vtkBufferedVideoSource::Grab()
 {
-	if (this->Recording)
-	{
-		return;
-	}
-
-	// ensure that the frame buffer is properly initialized
-	this->Initialize();
-	if (!this->Initialized)
-	{
-		return;
-	}
+  LOG_ERROR("Grab is not implemented for this video source");
+	return PLUS_FAIL;
 }
 
 //----------------------------------------------------------------------------
-void vtkBufferedVideoSource::Record()
+PlusStatus vtkBufferedVideoSource::Record()
 {
 	this->Initialize();
 	if (!this->Initialized)
 	{
-		return;
+		return PLUS_FAIL;
 	}
 
 	if (!this->Recording)
@@ -177,16 +170,19 @@ void vtkBufferedVideoSource::Record()
 		this->Recording = 1;
 		this->Modified();
 	}
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-void vtkBufferedVideoSource::Stop()
+PlusStatus vtkBufferedVideoSource::Stop()
 {
 	if (this->Recording)
 	{
 		this->Recording = 0;
 		this->Modified();
 	}
+
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------

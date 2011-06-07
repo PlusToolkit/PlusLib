@@ -329,7 +329,7 @@ void vtkVideoSource2::SetFrameSize(int x, int y, int z)
 
 	if (x < 1 || y < 1 || z < 1) 
 	{
-		vtkErrorMacro(<< "SetFrameSize: Illegal frame size");
+		LOG_ERROR("SetFrameSize: Illegal frame size");
 		return;
 	}
 
@@ -450,7 +450,7 @@ void vtkVideoSource2::SetOutputFormat(int format)
 		numComponents = 1;
 		break;
 	default:
-		vtkErrorMacro(<< "SetOutputFormat: Unrecognized color format.");
+		LOG_ERROR("SetOutputFormat: Unrecognized color format.");
 		break;
 	}
 	this->NumberOfScalarComponents = numComponents;
@@ -481,7 +481,7 @@ void vtkVideoSource2::SetFrameBufferSize(int bufsize)
 {
 	if (bufsize < 0)
 	{
-		vtkErrorMacro(<< "SetFrameBufferSize: There must be at least one framebuffer");
+		LOG_ERROR("SetFrameBufferSize: There must be at least one framebuffer");
 	}
 
 	this->Buffer->Lock();
@@ -658,29 +658,30 @@ void vtkVideoSource2::UpdateFrameBuffer()
 
 //----------------------------------------------------------------------------
 // Initialize() should be overridden to initialize the hardware frame grabber
-void vtkVideoSource2::Initialize()
+PlusStatus vtkVideoSource2::Initialize()
 {
 	if (this->Initialized)
 	{
-		return;
+		return PLUS_SUCCESS;
 	}
 	this->Initialized = 1;
 
 	this->UpdateFrameBuffer();
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
 // Connect() should be overridden to connect to the hardware 
-int vtkVideoSource2::Connect()
+PlusStatus vtkVideoSource2::Connect()
 {
-	return 1; 
+	return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
 // Disconnect() should be overridden to disconnect from the hardware 
-void vtkVideoSource2::Disconnect()
+PlusStatus vtkVideoSource2::Disconnect()
 {
-
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
@@ -698,7 +699,7 @@ void vtkVideoSource2::ReleaseSystemResources()
 //----------------------------------------------------------------------------
 // Copy pseudo-random noise into the frames.  This function may be called
 // asynchronously.
-void vtkVideoSource2::InternalGrab()
+PlusStatus vtkVideoSource2::InternalGrab()
 {
 	int i;
 	static int randsave = 0;
@@ -718,8 +719,8 @@ void vtkVideoSource2::InternalGrab()
 	vtkVideoFrame2* newFrameInBuffer = this->Buffer->GetFrameToWrite(); 
 	if ( newFrameInBuffer == NULL )
 	{
-		LOG_WARNING( "vtkVideoSource2: Failed to get video frame pointer from the buffer for internal grab the new frame!"); 
-		return; 
+		LOG_ERROR( "Failed to get video frame pointer from the buffer for internal grab the new frame!"); 
+		return PLUS_FAIL; 
 	}
 
 	// get the pointer to the first pixel of the current frame
@@ -760,6 +761,8 @@ void vtkVideoSource2::InternalGrab()
 	this->Modified();
 
 	this->Buffer->Unlock();
+
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
@@ -828,7 +831,7 @@ static void *vtkVideoSourceRecordThread(vtkMultiThreader::ThreadInfo *data)
 //----------------------------------------------------------------------------
 // Set the source to grab frames continuously.
 // You should override this as appropriate for your device.  
-void vtkVideoSource2::Record()
+PlusStatus vtkVideoSource2::Record()
 {
 	if (!this->Recording)
 	{
@@ -840,12 +843,14 @@ void vtkVideoSource2::Record()
 			this->RecordThreader->SpawnThread((vtkThreadFunctionType)\
 			&vtkVideoSourceRecordThread,this);
 	}
+
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-// Stop continuous grabbing or playback.  You will have to override this
-// if your class overrides Play() and Record()
-void vtkVideoSource2::Stop()
+// Stop continuous grabbing.  You will have to override this
+// if your class overrides Record()
+PlusStatus vtkVideoSource2::Stop()
 {
 	if (this->Recording)
 	{
@@ -854,18 +859,23 @@ void vtkVideoSource2::Stop()
 		this->Recording = 0;
 		this->Modified();
 	}
+
+  return PLUS_SUCCESS;
 } 
 
 //----------------------------------------------------------------------------
 // The grab function, which should (of course) be overridden to do
 // the appropriate hardware stuff.  This function should never be
 // called asynchronously.
-void vtkVideoSource2::Grab()
+PlusStatus vtkVideoSource2::Grab()
 {
 	// ensure that the hardware is initialized.
-	this->Initialize();
+	if (this->Initialize()!=PLUS_SUCCESS)
+  {
+    return PLUS_FAIL;
+  }
 
-	this->InternalGrab();
+	return this->InternalGrab();
 }
 
 //----------------------------------------------------------------------------
@@ -1012,7 +1022,7 @@ int vtkVideoSource2::RequestData(
 		}
 		else
 		{
-			LOG_WARNING("vtkVideoSource2: Couldn't get desired frame timestamp (" << std::fixed << this->DesiredTimestamp << "), the latest frame will be used!")
+			LOG_WARNING("Couldn't get desired frame timestamp (" << std::fixed << this->DesiredTimestamp << "), the latest frame will be used!")
 		}
 	}
 	
@@ -1021,11 +1031,15 @@ int vtkVideoSource2::RequestData(
 	{
 		if ( frame != NULL ) 
 		{
-			frame->CopyData(outPtr, outputExtent, saveOutputExtent, this->Buffer->GetFrameFormat()->GetPixelFormat());
+			if (!frame->CopyData(outPtr, outputExtent, saveOutputExtent, this->Buffer->GetFrameFormat()->GetPixelFormat()))
+      {
+        LOG_ERROR("Unable to copy video data to the requested output!"); 
+			  return 0; 
+      }
 		}
 		else
 		{
-			LOG_WARNING("vtkVideoSource2: Unable to copy video data to the requested output!"); 
+			LOG_WARNING("Unable to copy video data to the requested output!"); 
 			return 0; 
 		}
 	}
@@ -1331,19 +1345,20 @@ void vtkVideoSource2::CreateTimeStampForFrame(unsigned long framecount, double &
 }
 
 //-----------------------------------------------------------------------------
-void vtkVideoSource2::WriteConfiguration(vtkXMLDataElement* config)
+PlusStatus vtkVideoSource2::WriteConfiguration(vtkXMLDataElement* config)
 {
-
+  LOG_ERROR("Not implemented");
+  return PLUS_FAIL;
 }
 
 //-----------------------------------------------------------------------------
-void vtkVideoSource2::ReadConfiguration(vtkXMLDataElement* config)
+PlusStatus vtkVideoSource2::ReadConfiguration(vtkXMLDataElement* config)
 {
 	LOG_TRACE("vtkVideoSource2::ReadConfiguration"); 
 	if ( config == NULL )
 	{
 		LOG_ERROR("Unable to configure video source! (XML data element is NULL)"); 
-		return; 
+		return PLUS_FAIL; 
 	}
 
 	int frameSize[3] = {0, 0, 0}; 
@@ -1377,6 +1392,7 @@ void vtkVideoSource2::ReadConfiguration(vtkXMLDataElement* config)
 		this->GetBuffer()->SetLocalTimeOffset(localTimeOffset); 
 	}
 
+  return PLUS_SUCCESS;
 }
 
 

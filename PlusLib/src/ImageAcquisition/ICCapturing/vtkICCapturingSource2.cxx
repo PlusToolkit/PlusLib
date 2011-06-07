@@ -1,6 +1,7 @@
+#include "PlusConfigure.h"
+
 #include "vtkICCapturingSource2.h"
 #include "ICCapturingListener.h"
-#include "PlusConfigure.h"
 #include <tisudshl.h>
 
 #include "vtkImageData.h"
@@ -160,7 +161,7 @@ bool vtkICCapturingSource2::vtkICCapturingSource2NewFrameCallback(unsigned char 
 //----------------------------------------------------------------------------
 // copy the Device Independent Bitmap from the VFW framebuffer into the
 // vtkVideoSource framebuffer (don't do the unpacking yet)
-void vtkICCapturingSource2::LocalInternalGrab(unsigned char * dataPtr, unsigned long size, unsigned long frameNumber)
+PlusStatus vtkICCapturingSource2::LocalInternalGrab(unsigned char * dataPtr, unsigned long size, unsigned long frameNumber)
 {
 	this->Buffer->Lock();
 
@@ -228,10 +229,12 @@ void vtkICCapturingSource2::LocalInternalGrab(unsigned char * dataPtr, unsigned 
 	this->Modified();
 
 	this->Buffer->Unlock();
+  
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-int vtkICCapturingSource2::Connect()
+PlusStatus vtkICCapturingSource2::Connect()
 {
 	if ( this->FrameGrabber == NULL ) 
 	{
@@ -240,8 +243,8 @@ int vtkICCapturingSource2::Connect()
 
 	if( !DShowLib::InitLibrary( this->GetLicenceKey() ) )
 	{
-		vtkErrorMacro( << "The IC capturing library could not be initialized - invalid license key: " << this->GetLicenceKey() ); 
-		exit(EXIT_FAILURE);
+		LOG_ERROR("The IC capturing library could not be initialized - invalid license key: " << this->GetLicenceKey() );
+		return PLUS_FAIL;
 	}
 
 	atexit( DShowLib::ExitLibrary );
@@ -249,28 +252,28 @@ int vtkICCapturingSource2::Connect()
 	// Set the device name (e.g. DFG/USB2-lt)
 	if ( this->GetDeviceName() == NULL || !static_cast<DShowLib::Grabber*>(FrameGrabber)->openDev(this->GetDeviceName() ) ) 
 	{
-		vtkErrorMacro( << "The IC capturing library could not be initialized - invalid device name: " << this->GetDeviceName() ); 
-		exit(EXIT_FAILURE);
-	}
+		LOG_ERROR("The IC capturing library could not be initialized - invalid device name: " << this->GetDeviceName() ); 
+    return PLUS_FAIL;
+  }
 
 	// Set the video norm (e.g. PAL_B or NTSC_M)
 	if ( this->GetVideoNorm() == NULL || !static_cast<DShowLib::Grabber*>(FrameGrabber)->setVideoNorm( this->GetVideoNorm() ) ) 
 	{
-		vtkErrorMacro( << "The IC capturing library could not be initialized - invalid video norm: " << this->GetVideoNorm() ); 
-		exit(EXIT_FAILURE);
+		LOG_ERROR("The IC capturing library could not be initialized - invalid video norm: " << this->GetVideoNorm() ); 
+		return PLUS_FAIL;
 	}
 
 	// The Y800 color format is an 8 bit monochrome format. 
 	if ( this->GetVideoFormat() == NULL || !static_cast<DShowLib::Grabber*>(FrameGrabber)->setVideoFormat( this->GetVideoFormat() ) )
 	{
-		vtkErrorMacro( << "The IC capturing library could not be initialized - invalid video format: " << this->GetVideoFormat() ); 
-		exit(EXIT_FAILURE);
+		LOG_ERROR("The IC capturing library could not be initialized - invalid video format: " << this->GetVideoFormat() ); 
+		return PLUS_FAIL;
 	}
 
 	if ( this->GetInputChannel() == NULL || !static_cast<DShowLib::Grabber*>(FrameGrabber)->setInputChannel( this->GetInputChannel() ) ) 
 	{
-		vtkErrorMacro( << "The IC capturing library could not be initialized - invalid input channel: " << this->GetInputChannel() ); 
-		exit(EXIT_FAILURE);
+		LOG_ERROR("The IC capturing library could not be initialized - invalid input channel: " << this->GetInputChannel() ); 
+		return PLUS_FAIL;
 	}
 
 	FrameGrabberListener = new ICCapturingListener(); 
@@ -304,31 +307,33 @@ int vtkICCapturingSource2::Connect()
 	this->UpdateFrameBuffer();
 	this->Buffer->Unlock();
 
-	return 1; 
+	return PLUS_SUCCESS; 
 }
 
 //----------------------------------------------------------------------------
-void vtkICCapturingSource2::Disconnect()
+PlusStatus vtkICCapturingSource2::Disconnect()
 {
 	this->ReleaseSystemResources(); 
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-void vtkICCapturingSource2::Initialize()
+PlusStatus vtkICCapturingSource2::Initialize()
 {
 	if (this->Initialized)
 	{
-		return;
+		return PLUS_SUCCESS;
 	}
 
 	// Connect to device
-	if (! this->Connect() )
+	if (this->Connect()!=PLUS_SUCCESS)
 	{
 		LOG_ERROR("Unable to connect video device!"); 
-		return; 
+		return PLUS_FAIL;
 	}
 	
 	this->Initialized = 1;
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
@@ -345,28 +350,19 @@ void vtkICCapturingSource2::ReleaseSystemResources()
 }
 
 //----------------------------------------------------------------------------
-void vtkICCapturingSource2::Grab()
+PlusStatus vtkICCapturingSource2::Grab()
 {
-	if (this->Recording)
-	{
-		return;
-	}
-
-	// ensure that the frame buffer is properly initialized
-	this->Initialize();
-	if (!this->Initialized)
-	{
-		return;
-	}
+  LOG_ERROR("Grab is not implemented for this video source");
+	return PLUS_FAIL;
 }
 
 //----------------------------------------------------------------------------
-void vtkICCapturingSource2::Record()
+PlusStatus vtkICCapturingSource2::Record()
 {
 	this->Initialize();
 	if (!this->Initialized)
 	{
-		return;
+		return PLUS_FAIL;
 	}
 
 	if (!this->Recording)
@@ -374,26 +370,30 @@ void vtkICCapturingSource2::Record()
 		this->Recording = 1;
 		this->Modified();
 	}
+  
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-void vtkICCapturingSource2::Stop()
+PlusStatus vtkICCapturingSource2::Stop()
 {
 	if (this->Recording)
 	{
 		this->Recording = 0;
 		this->Modified();
 	}
+  
+  return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
-void vtkICCapturingSource2::ReadConfiguration(vtkXMLDataElement* config)
+PlusStatus vtkICCapturingSource2::ReadConfiguration(vtkXMLDataElement* config)
 {
 	LOG_TRACE("vtkICCapturingSource2::ReadConfiguration"); 
 	if ( config == NULL )
 	{
 		LOG_ERROR("Unable to configure IC Capturing video source! (XML data element is NULL)"); 
-		return; 
+		return PLUS_FAIL; 
 	}
 
 	Superclass::ReadConfiguration(config); 
@@ -433,11 +433,14 @@ void vtkICCapturingSource2::ReadConfiguration(vtkXMLDataElement* config)
 	{
 		this->SetICBufferSize(icBufferSize); 
 	}
+
+  return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
-void vtkICCapturingSource2::WriteConfiguration(vtkXMLDataElement* config)
+PlusStatus vtkICCapturingSource2::WriteConfiguration(vtkXMLDataElement* config)
 {
 	Superclass::WriteConfiguration(config); 
+  LOG_ERROR("Not implemented");
+  return PLUS_FAIL;
 }
-

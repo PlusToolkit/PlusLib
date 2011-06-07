@@ -107,7 +107,7 @@ vtkCalibrationController::~vtkCalibrationController()
 }
 
 //----------------------------------------------------------------------------
-void vtkCalibrationController::Initialize()
+PlusStatus vtkCalibrationController::Initialize()
 {
 	LOG_TRACE("vtkCalibrationController::Initialize"); 
 	if ( this->GetSegParameters() == NULL )
@@ -122,6 +122,7 @@ void vtkCalibrationController::Initialize()
 		this->GetSearchStartAtX(), this->GetSearchStartAtY(), 
 		this->GetSearchDimensionX(), this->GetSearchDimensionY(), this->GetEnableSegmentationAnalysis(), "frame.jpg");
 
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
@@ -140,7 +141,7 @@ void vtkCalibrationController::SaveTrackedFrameListToMetafile( IMAGE_DATA_TYPE d
 }
 
 //----------------------------------------------------------------------------
-bool vtkCalibrationController::AddVtkImageData(vtkImageData* frame, vtkMatrix4x4* trackingTransform, IMAGE_DATA_TYPE dataType )
+PlusStatus vtkCalibrationController::AddVtkImageData(vtkImageData* frame, vtkMatrix4x4* trackingTransform, IMAGE_DATA_TYPE dataType )
 {
 	LOG_TRACE("vtkCalibrationController::AddData - vtkImage"); 
 	ImageType::Pointer exportedFrame = ImageType::New();
@@ -150,7 +151,7 @@ bool vtkCalibrationController::AddVtkImageData(vtkImageData* frame, vtkMatrix4x4
 }
 
 //----------------------------------------------------------------------------
-bool vtkCalibrationController::AddItkImageData(ImageType* frame, vtkMatrix4x4* trackingTransform, IMAGE_DATA_TYPE dataType )
+PlusStatus vtkCalibrationController::AddItkImageData(ImageType* frame, vtkMatrix4x4* trackingTransform, IMAGE_DATA_TYPE dataType )
 {
 	LOG_TRACE("vtkCalibrationController::AddData - itkImage"); 
 	TrackedFrame trackedFrame; 
@@ -159,7 +160,7 @@ bool vtkCalibrationController::AddItkImageData(ImageType* frame, vtkMatrix4x4* t
 }
 
 //----------------------------------------------------------------------------
-bool vtkCalibrationController::AddTrackedFrameData(TrackedFrame* trackedFrame, IMAGE_DATA_TYPE dataType )
+PlusStatus vtkCalibrationController::AddTrackedFrameData(TrackedFrame* trackedFrame, IMAGE_DATA_TYPE dataType )
 {
 	LOG_TRACE("vtkCalibrationController::AddData - TrackedFrame"); 
 	try
@@ -171,7 +172,7 @@ bool vtkCalibrationController::AddTrackedFrameData(TrackedFrame* trackedFrame, I
 			LOG_ERROR("Unable to add frame to calibrator! Frame size mismatch: actual (" 
 				<< frameSize[0] << "x" << frameSize[1] << ") expected (" 
 				<< this->ImageWidthInPixels << "x" << this->ImageHeightInPixels << ")"); 
-			return false; 
+			return PLUS_FAIL; 
 		}
 
 		// Check to see if the segmentation has returned the targets
@@ -205,7 +206,7 @@ bool vtkCalibrationController::AddTrackedFrameData(TrackedFrame* trackedFrame, I
 		if( !segResults.m_DotsFound )
 		{
 			LOG_DEBUG("The segmentation cannot locate any meaningful targets, the image was ignored!!!"); 
-			return false; 
+			return PLUS_FAIL; 
 		}
 
 		// Add the segmentation result to the SegmentedFrameContainer
@@ -224,12 +225,12 @@ bool vtkCalibrationController::AddTrackedFrameData(TrackedFrame* trackedFrame, I
 			(*SegmentationProgressCallbackFunction)(dataType);
 		}
 
-		return true; 
+		return PLUS_SUCCESS; 
 	}
 	catch(...)
 	{
 		LOG_ERROR("AddData: Failed to add tracked data!");  
-		throw;
+		return PLUS_FAIL;
 	}
 }
 
@@ -422,40 +423,43 @@ void vtkCalibrationController::ExportVtkImageData(vtkImageData* imageData, Image
 }
 
 //----------------------------------------------------------------------------
-void vtkCalibrationController::ReadConfiguration( const char* configFileNameWithPath )
+PlusStatus vtkCalibrationController::ReadConfiguration( const char* configFileNameWithPath )
 {
 	LOG_TRACE("vtkCalibrationController::ReadConfiguration"); 
 	this->SetConfigurationFileName(configFileNameWithPath); 
 
-	vtkXMLDataElement *calibrationController = vtkXMLUtilities::ReadElementFromFile(this->GetConfigurationFileName()); 
+	vtkSmartPointer<vtkXMLDataElement> calibrationController = vtkXMLUtilities::ReadElementFromFile(this->GetConfigurationFileName()); 
 	this->ReadConfiguration(calibrationController); 
-	calibrationController->Delete(); 
+
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-void vtkCalibrationController::ReadConfiguration( vtkXMLDataElement* configData )
+PlusStatus vtkCalibrationController::ReadConfiguration( vtkXMLDataElement* configData )
 {
 	LOG_TRACE("vtkCalibrationController::ReadConfiguration"); 
 	if ( configData == NULL )
 	{
 		LOG_ERROR("Unable to read configuration"); 
-		exit(EXIT_FAILURE); 
+		return PLUS_FAIL; 
 	}
 
 	// Calibration controller specifications
 	//********************************************************************
-	vtkSmartPointer<vtkXMLDataElement> calibrationController = configData->FindNestedElementWithName("CalibrationController"); 
+	vtkXMLDataElement* calibrationController = configData->FindNestedElementWithName("CalibrationController"); 
 	this->ReadCalibrationControllerConfiguration(calibrationController); 
+  
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-void vtkCalibrationController::ReadCalibrationControllerConfiguration( vtkXMLDataElement* calibrationController )
+PlusStatus vtkCalibrationController::ReadCalibrationControllerConfiguration( vtkXMLDataElement* calibrationController )
 {
 	LOG_TRACE("vtkCalibrationController::ReadCalibrationControllerConfiguration"); 
 	if ( calibrationController == NULL) 
 	{
 		LOG_WARNING("Unable to read the CalibrationController XML data element!"); 
-		return; 
+		return PLUS_FAIL; 
 	}
 
 	// Set the log level 
@@ -552,32 +556,34 @@ void vtkCalibrationController::ReadCalibrationControllerConfiguration( vtkXMLDat
 
 	// RealtimeCalibration specifications
 	//********************************************************************
-	vtkSmartPointer<vtkXMLDataElement> realtimeCalibration = calibrationController->FindNestedElementWithName("RealtimeCalibration"); 
+	vtkXMLDataElement* realtimeCalibration = calibrationController->FindNestedElementWithName("RealtimeCalibration"); 
 	this->ReadRealtimeCalibrationConfiguration(realtimeCalibration); 
 
 	// SegmentationParameters specifications
 	//********************************************************************
-	vtkSmartPointer<vtkXMLDataElement> segmentationParameters = calibrationController->FindNestedElementWithName("SegmentationParameters"); 
+	vtkXMLDataElement* segmentationParameters = calibrationController->FindNestedElementWithName("SegmentationParameters"); 
 	this->ReadSegmentationParametersConfiguration(segmentationParameters); 
 
 	// Phantom definition
 	//********************************************************************
 	this->ReadPhantomDefinition();
+
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-void vtkCalibrationController::ReadRealtimeCalibrationConfiguration( vtkXMLDataElement* realtimeCalibration )
+PlusStatus vtkCalibrationController::ReadRealtimeCalibrationConfiguration( vtkXMLDataElement* realtimeCalibration )
 {
 	LOG_TRACE("vtkCalibrationController::ReadRealtimeCalibrationConfiguration"); 
 	if ( realtimeCalibration == NULL) 
 	{
-		LOG_WARNING("Unable to read the RealtimeCalibration XML data element!"); 
-		return; 
+		LOG_ERROR("Unable to read the RealtimeCalibration XML data element!"); 
+		return PLUS_FAIL; 
 	}
 
 	// TemplateTranslationData data set specifications
 	//********************************************************************
-	vtkSmartPointer<vtkXMLDataElement> templateTranslationData = realtimeCalibration->FindNestedElementWithName("TemplateTranslationData"); 
+	vtkXMLDataElement* templateTranslationData = realtimeCalibration->FindNestedElementWithName("TemplateTranslationData"); 
 	if ( templateTranslationData != NULL) 
 	{
 		vtkCalibrationController::RealtimeImageDataInfo imageDataInfo = this->GetRealtimeImageDataInfo(TEMPLATE_TRANSLATION); 
@@ -602,7 +608,7 @@ void vtkCalibrationController::ReadRealtimeCalibrationConfiguration( vtkXMLDataE
 
 	// ProbeTranslationData data set specifications
 	//********************************************************************
-	vtkSmartPointer<vtkXMLDataElement> probeTranslationData = realtimeCalibration->FindNestedElementWithName("ProbeTranslationData"); 
+	vtkXMLDataElement* probeTranslationData = realtimeCalibration->FindNestedElementWithName("ProbeTranslationData"); 
 	if ( probeTranslationData != NULL) 
 	{
 		vtkCalibrationController::RealtimeImageDataInfo imageDataInfo = this->GetRealtimeImageDataInfo(PROBE_TRANSLATION); 
@@ -627,7 +633,7 @@ void vtkCalibrationController::ReadRealtimeCalibrationConfiguration( vtkXMLDataE
 
 	// ProbeRotationData data set specifications
 	//********************************************************************
-	vtkSmartPointer<vtkXMLDataElement> probeRotationData = realtimeCalibration->FindNestedElementWithName("ProbeRotationData"); 
+	vtkXMLDataElement* probeRotationData = realtimeCalibration->FindNestedElementWithName("ProbeRotationData"); 
 	if ( probeRotationData != NULL) 
 	{
 		vtkCalibrationController::RealtimeImageDataInfo imageDataInfo = this->GetRealtimeImageDataInfo(PROBE_ROTATION); 
@@ -652,7 +658,7 @@ void vtkCalibrationController::ReadRealtimeCalibrationConfiguration( vtkXMLDataE
 
 	// RandomStepperMotionData1 data set specifications
 	//********************************************************************
-	vtkSmartPointer<vtkXMLDataElement> randomStepperMotionData1 = realtimeCalibration->FindNestedElementWithName("RandomStepperMotionData1"); 
+	vtkXMLDataElement* randomStepperMotionData1 = realtimeCalibration->FindNestedElementWithName("RandomStepperMotionData1"); 
 	if ( randomStepperMotionData1 != NULL) 
 	{
 		vtkCalibrationController::RealtimeImageDataInfo imageDataInfo = this->GetRealtimeImageDataInfo(RANDOM_STEPPER_MOTION_1); 
@@ -677,7 +683,7 @@ void vtkCalibrationController::ReadRealtimeCalibrationConfiguration( vtkXMLDataE
 
 	// RandomStepperMotionData2 data set specifications
 	//********************************************************************
-	vtkSmartPointer<vtkXMLDataElement> randomStepperMotionData2 = realtimeCalibration->FindNestedElementWithName("RandomStepperMotionData2"); 
+	vtkXMLDataElement* randomStepperMotionData2 = realtimeCalibration->FindNestedElementWithName("RandomStepperMotionData2"); 
 	if ( randomStepperMotionData2 != NULL) 
 	{
 		vtkCalibrationController::RealtimeImageDataInfo imageDataInfo = this->GetRealtimeImageDataInfo(RANDOM_STEPPER_MOTION_2); 
@@ -702,7 +708,7 @@ void vtkCalibrationController::ReadRealtimeCalibrationConfiguration( vtkXMLDataE
 
 	// FreehandMotionData1 data set specifications
 	//********************************************************************
-	vtkSmartPointer<vtkXMLDataElement> freehandMotionData1 = realtimeCalibration->FindNestedElementWithName("FreehandMotionData1"); 
+	vtkXMLDataElement* freehandMotionData1 = realtimeCalibration->FindNestedElementWithName("FreehandMotionData1"); 
 	if ( freehandMotionData1 != NULL) 
 	{
 		vtkCalibrationController::RealtimeImageDataInfo imageDataInfo = this->GetRealtimeImageDataInfo(FREEHAND_MOTION_1); 
@@ -727,7 +733,7 @@ void vtkCalibrationController::ReadRealtimeCalibrationConfiguration( vtkXMLDataE
 
 	// FreehandMotionData2 data set specifications
 	//********************************************************************
-	vtkSmartPointer<vtkXMLDataElement> freehandMotionData2 = realtimeCalibration->FindNestedElementWithName("FreehandMotionData2"); 
+	vtkXMLDataElement* freehandMotionData2 = realtimeCalibration->FindNestedElementWithName("FreehandMotionData2"); 
 	if ( freehandMotionData2 != NULL) 
 	{
 		vtkCalibrationController::RealtimeImageDataInfo imageDataInfo = this->GetRealtimeImageDataInfo(FREEHAND_MOTION_2); 
@@ -750,16 +756,17 @@ void vtkCalibrationController::ReadRealtimeCalibrationConfiguration( vtkXMLDataE
 		LOG_WARNING("Unable to find FreehandMotionData2 XML data element"); 
 	}
 
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-void vtkCalibrationController::ReadSegmentationParametersConfiguration( vtkXMLDataElement* segmentationParameters )
+PlusStatus vtkCalibrationController::ReadSegmentationParametersConfiguration( vtkXMLDataElement* segmentationParameters )
 {
 	LOG_TRACE("vtkCalibrationController::ReadSegmentationParametersConfiguration"); 
 	if ( segmentationParameters == NULL) 
 	{
 		LOG_WARNING("Unable to read the SegmentationParameters XML data element!"); 
-		return; 
+		return PLUS_FAIL; 
 	}
 
 	if ( this->GetSegParameters() == NULL )
@@ -904,10 +911,12 @@ void vtkCalibrationController::ReadSegmentationParametersConfiguration( vtkXMLDa
 	}
 
 	this->GetSegParameters()->UpdateParameters(); 
+
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-void vtkCalibrationController::ReadPhantomDefinition()
+PlusStatus vtkCalibrationController::ReadPhantomDefinition()
 {
 	LOG_TRACE("vtkCalibrationController::ReadPhantomDefinition");
 
@@ -917,14 +926,14 @@ void vtkCalibrationController::ReadPhantomDefinition()
 
 		if (phantomDefinition == NULL) {
 			LOG_ERROR("Unable to read the phantom definition file: " << this->PhantomDefinitionFileName); 
-			return;
+			return PLUS_FAIL;
 		}
 
 		// Load type
-		vtkSmartPointer<vtkXMLDataElement> description = phantomDefinition->FindNestedElementWithName("Description"); 
+		vtkXMLDataElement* description = phantomDefinition->FindNestedElementWithName("Description"); 
 		if (description == NULL) {
 			LOG_ERROR("Phantom description not found!");
-			return;
+			return PLUS_FAIL;
 		} else {
 			const char* type =  description->GetAttribute("Type"); 
 			if ( type != NULL ) {
@@ -939,10 +948,10 @@ void vtkCalibrationController::ReadPhantomDefinition()
 		}
 
 		// Load geometry
-		vtkSmartPointer<vtkXMLDataElement> geometry = phantomDefinition->FindNestedElementWithName("Geometry"); 
+		vtkXMLDataElement* geometry = phantomDefinition->FindNestedElementWithName("Geometry"); 
 		if (geometry == NULL) {
 			LOG_ERROR("Phantom geometry information not found!");
-			return;
+			return PLUS_FAIL;
 		} else {
 			this->GetSegParameters()->mNWires.clear();
 
@@ -996,7 +1005,7 @@ void vtkCalibrationController::ReadPhantomDefinition()
 		}
 	} else {
 		LOG_ERROR("Phantom definition file path is not set!"); 
-		return;
+		return PLUS_FAIL;
 	}
 
 	// Compute error boundaries based on error percents and the NWire definition (supposing that the NWire is regular - parallel sides)
@@ -1070,4 +1079,6 @@ void vtkCalibrationController::ReadPhantomDefinition()
 	this->GetSegParameters()->mMaxLinePairDistMm = maxNPlaneDistance * (1.0 + (this->GetSegParameters()->mMaxLinePairDistanceErrorPercent / 100.0));
 	this->GetSegParameters()->mMinLinePairDistMm = minNPlaneDistance * (1.0 - (this->GetSegParameters()->mMaxLinePairDistanceErrorPercent / 100.0));
 	LOG_DEBUG("Line pair distance - computed min: " << minNPlaneDistance << " , max: " << maxNPlaneDistance << ";  allowed min: " << this->GetSegParameters()->mMinLinePairDistMm << ", max: " << this->GetSegParameters()->mMaxLinePairDistMm);
+
+  return PLUS_SUCCESS;
 }

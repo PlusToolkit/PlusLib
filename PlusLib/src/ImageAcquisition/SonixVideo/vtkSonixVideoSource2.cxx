@@ -283,11 +283,12 @@ bool vtkSonixVideoSource2::vtkSonixVideoSourceNewFrameCallback(void * data, int 
 //----------------------------------------------------------------------------
 // copy the Device Independent Bitmap from the VFW framebuffer into the
 // vtkVideoSource framebuffer (don't do the unpacking yet)
-void vtkSonixVideoSource2::LocalInternalGrab(void* dataPtr, int type, int sz, bool cine, int frmnum)
+PlusStatus vtkSonixVideoSource2::LocalInternalGrab(void* dataPtr, int type, int sz, bool cine, int frmnum)
 {
 	if ( !this->Initialized )
 	{
-		return; 	
+    LOG_ERROR("Cannot grab, the video source has not been initialized yet");
+		return PLUS_FAIL; 	
 	}
 	// get a thread lock on the frame buffer
 	this->Buffer->Lock();
@@ -296,6 +297,8 @@ void vtkSonixVideoSource2::LocalInternalGrab(void* dataPtr, int type, int sz, bo
 	if ((uData)type!= (uData)this->AcquisitionDataType)
 	{
 		LOG_ERROR( "Received data type is different than expected");
+    this->Buffer->Unlock();
+    return PLUS_FAIL;
 	}
 
 	// use the information about data type and frmnum to do cross checking that you are maintaining correct frame index, & receiving
@@ -382,21 +385,23 @@ void vtkSonixVideoSource2::LocalInternalGrab(void* dataPtr, int type, int sz, bo
 	this->Modified();
 
 	this->Buffer->Unlock();
+  
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-void vtkSonixVideoSource2::Initialize()
+PlusStatus vtkSonixVideoSource2::Initialize()
 {
 	if (this->Initialized)
 	{
-		return;
+		return PLUS_SUCCESS;
 	}
 
 	// Connect to device
 	if ( !this->Connect() ) 
 	{
 		LOG_ERROR("Unable to connect to video device!"); 
-		return; 
+		return PLUS_FAIL; 
 	}
 
 	// Set up the frame buffer
@@ -410,10 +415,12 @@ void vtkSonixVideoSource2::Initialize()
 	this->UpdateFrameBuffer();
 
 	this->Initialized = 1;
+  
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-int vtkSonixVideoSource2::Connect()
+PlusStatus vtkSonixVideoSource2::Connect()
 {
 	// 1) connect to sonix machine.
 	if(!this->ult->connect(this->SonixHostIP))
@@ -423,7 +430,7 @@ int vtkSonixVideoSource2::Connect()
 		this->ult->getLastError(err,sz);
 		LOG_ERROR("Initialize: couldn't connect to Ultrasonix "<<" (" << err << ")");
 		this->ReleaseSystemResources();
-		return 0;
+		return PLUS_FAIL;
 	}
 
 	// 2) set the imaging mode
@@ -434,7 +441,7 @@ int vtkSonixVideoSource2::Connect()
 		this->ult->getLastError(err,sz);
 		LOG_ERROR("Initialize: couldn't select imaging mode (" << err << ")");
 		this->ReleaseSystemResources();
-		return 0;
+		return PLUS_FAIL;
 	}
 
 	// do we need to wait for a little while before the mode actually gets selected??
@@ -449,7 +456,7 @@ int vtkSonixVideoSource2::Connect()
 		this->ult->getLastError(err,sz);
 		LOG_ERROR("Initialize: Requested imaging mode could not be selected(" << err << ")");
 		this->ReleaseSystemResources();
-		return 0;
+		return PLUS_FAIL;
 	}
 
 	// 3) set the data acquisition type
@@ -461,7 +468,7 @@ int vtkSonixVideoSource2::Connect()
 		this->ult->getLastError(err,sz);
 		LOG_ERROR("Initialize: Requested the data aquisition type not available for selected imaging mode(" << err << ")");
 		this->ReleaseSystemResources();
-		return 0;
+		return PLUS_FAIL;
 	}
 	// actually request data, now that its available
 	if (!this->ult->setDataToAcquire(AcquisitionDataType))
@@ -471,7 +478,7 @@ int vtkSonixVideoSource2::Connect()
 		this->ult->getLastError(err,sz);
 		LOG_ERROR("Initialize: couldn't request the data aquisition type (" << err << ")");
 		this->ReleaseSystemResources();
-		return 0;
+		return PLUS_FAIL;
 	}
 
 	// 4) get the data descriptor
@@ -482,7 +489,7 @@ int vtkSonixVideoSource2::Connect()
 		this->ult->getLastError(err,sz);
 		LOG_ERROR("Initialize: couldn't retrieve data descriptor (" << err << ")");
 		this->ReleaseSystemResources();
-		return 0;
+		return PLUS_FAIL;
 	}
 
 	// Parameter setting doesn't work with Ulterius-2.x
@@ -499,7 +506,7 @@ int vtkSonixVideoSource2::Connect()
 		int sz = 256;
 		this->ult->getLastError(err,sz);
 		LOG_ERROR("Unable to get parameter: " << err); 
-		return 0; 
+		return PLUS_FAIL; 
 	}
 	if (this->Frequency >= 0 && !this->ult->setParamValue(prmFrequency.id, this->Frequency))
 #endif
@@ -509,7 +516,7 @@ int vtkSonixVideoSource2::Connect()
 		this->ult->getLastError(err,sz);
 		LOG_ERROR("Initialize: couldn't set desired frequency (" << err << ")");
 		this->ReleaseSystemResources();
-		return 0;
+		return PLUS_FAIL;
 	}
 
 #if ULTERIUS_MAJOR_VERSION < 2
@@ -522,7 +529,7 @@ int vtkSonixVideoSource2::Connect()
 		int sz = 256;
 		this->ult->getLastError(err,sz);
 		LOG_ERROR("Unable to get parameter: " << err); 
-		return 0; 
+		return PLUS_FAIL; 
 	}
 	if (this->Depth >= 0 && !this->ult->setParamValue(prmDepth.id, this->Depth))
 #endif
@@ -532,7 +539,7 @@ int vtkSonixVideoSource2::Connect()
 		this->ult->getLastError(err,sz);
 		LOG_ERROR("Initialize: couldn't set desired depth (" << err << ")");
 		this->ReleaseSystemResources();
-		return 0;
+		return PLUS_FAIL;
 	}
 
 #if ULTERIUS_MAJOR_VERSION < 2
@@ -545,7 +552,7 @@ int vtkSonixVideoSource2::Connect()
 		int sz = 256;
 		this->ult->getLastError(err,sz);
 		LOG_ERROR("Unable to get parameter: " << err); 
-		return 0; 
+		return PLUS_FAIL; 
 	}
 	if (this->Sector >= 0 && !this->ult->setParamValue(prmSector.id, this->Sector))
 #endif
@@ -555,7 +562,7 @@ int vtkSonixVideoSource2::Connect()
 		this->ult->getLastError(err,sz);
 		LOG_ERROR("Initialize: couldn't set desired sector (" << err << ")");
 		this->ReleaseSystemResources();
-		return 0;
+		return PLUS_FAIL;
 	}
 
 #if ULTERIUS_MAJOR_VERSION < 2
@@ -568,7 +575,7 @@ int vtkSonixVideoSource2::Connect()
 		int sz = 256;
 		this->ult->getLastError(err,sz);
 		LOG_ERROR("Unable to get parameter: " << err); 
-		return 0; 
+		return PLUS_FAIL; 
 	}
 	if (this->Gain >= 0 && !this->ult->setParamValue(prmGain.id, this->Gain))
 #endif 
@@ -578,7 +585,7 @@ int vtkSonixVideoSource2::Connect()
 		this->ult->getLastError(err,sz);
 		LOG_ERROR("Initialize: couldn't set desired gain (" << err << ")");
 		this->ReleaseSystemResources();
-		return 0;
+		return PLUS_FAIL;
 	}
 
 #if ULTERIUS_MAJOR_VERSION < 2 
@@ -591,7 +598,7 @@ int vtkSonixVideoSource2::Connect()
 		int sz = 256;
 		this->ult->getLastError(err,sz);
 		LOG_ERROR("Unable to get parameter: " << err); 
-		return 0; 
+		return PLUS_FAIL; 
 	}
 	if (this->DynRange >= 0 && !this->ult->setParamValue(prmDynRange.id, this->DynRange))
 #endif 
@@ -601,7 +608,7 @@ int vtkSonixVideoSource2::Connect()
 		this->ult->getLastError(err,sz);
 		LOG_ERROR("Initialize: couldn't set desired dyn range (" << err << ")");
 		this->ReleaseSystemResources();
-		return 0;
+		return PLUS_FAIL;
 	}
 
 #if ULTERIUS_MAJOR_VERSION < 2 
@@ -614,7 +621,7 @@ int vtkSonixVideoSource2::Connect()
 		int sz = 256;
 		this->ult->getLastError(err,sz);
 		LOG_ERROR("Unable to get parameter: " << err); 
-		return 0; 
+		return PLUS_FAIL; 
 	}
 	if (this->Zoom >= 0 && !this->ult->setParamValue(prmZoom.id, this->Zoom))
 #endif 
@@ -624,7 +631,7 @@ int vtkSonixVideoSource2::Connect()
 		this->ult->getLastError(err,sz);
 		LOG_ERROR("Initialize: couldn't set desired zoom (" << err << ")");
 		this->ReleaseSystemResources();
-		return 0;
+		return PLUS_FAIL;
 	}
 
 	if (!this->ult->setCompressionStatus(this->CompressionStatus))
@@ -634,7 +641,7 @@ int vtkSonixVideoSource2::Connect()
 		this->ult->getLastError(err,sz);
 		LOG_ERROR("Initialize: couldn't set compression status (" << err << ")");
 		this->ReleaseSystemResources();
-		return 0;
+		return PLUS_FAIL;
 	}
 
 	// set callback for receiving new frames
@@ -649,14 +656,15 @@ int vtkSonixVideoSource2::Connect()
 	LOG_WARNING("Ultrasound imaging parameter setting is not supported with Ulterius-2.x");
 #endif
 
-	return 1; 
+	return PLUS_SUCCESS; 
 }
 
 //----------------------------------------------------------------------------
-void vtkSonixVideoSource2::Disconnect()
+PlusStatus vtkSonixVideoSource2::Disconnect()
 {
 	this->Stop();
 	this->ult->disconnect();
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
@@ -668,29 +676,19 @@ void vtkSonixVideoSource2::ReleaseSystemResources()
 }
 
 //----------------------------------------------------------------------------
-void vtkSonixVideoSource2::Grab()
+PlusStatus vtkSonixVideoSource2::Grab()
 {
-	if (this->Recording)
-	{
-		return;
-	}
-
-	// ensure that the frame buffer is properly initialized
-	this->Initialize();
-	if (!this->Initialized)
-	{
-		return;
-	}
-
+  LOG_ERROR("Grab is not implemented for this video source");
+	return PLUS_FAIL;
 }
 
 //----------------------------------------------------------------------------
-void vtkSonixVideoSource2::Record()
+PlusStatus vtkSonixVideoSource2::Record()
 {
 	if (!this->Initialized)
 	{
 		LOG_ERROR("Unable to start recording: initialize the video device first!"); 
-		return;
+		return PLUS_FAIL;
 	}
 
 	if (!this->Recording)
@@ -700,10 +698,12 @@ void vtkSonixVideoSource2::Record()
 		if(this->ult->getFreezeState())
 			this->ult->toggleFreeze();
 	}
+
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-void vtkSonixVideoSource2::Stop()
+PlusStatus vtkSonixVideoSource2::Stop()
 {
 	if (this->Recording)
 	{
@@ -713,6 +713,8 @@ void vtkSonixVideoSource2::Stop()
 		if (!this->ult->getFreezeState())
 			this->ult->toggleFreeze();
 	}
+  
+  return PLUS_SUCCESS;
 }
 
 
@@ -994,13 +996,13 @@ void vtkSonixVideoSource2::SetSonixIP(const char *SonixIP)
 }
 
 //-----------------------------------------------------------------------------
-void vtkSonixVideoSource2::ReadConfiguration(vtkXMLDataElement* config)
+PlusStatus vtkSonixVideoSource2::ReadConfiguration(vtkXMLDataElement* config)
 {
 	LOG_TRACE("vtkSonixVideoSource2::ReadConfiguration"); 
 	if ( config == NULL )
 	{
 		LOG_ERROR("Unable to configure Sonix video source! (XML data element is NULL)"); 
-		return; 
+		return PLUS_FAIL; 
 	}
 
 	Superclass::ReadConfiguration(config); 
@@ -1071,11 +1073,14 @@ void vtkSonixVideoSource2::ReadConfiguration(vtkXMLDataElement* config)
 	{
 		this->SetTimeout(timeout); 
 	}
+
+  return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
-void vtkSonixVideoSource2::WriteConfiguration(vtkXMLDataElement* config)
+PlusStatus vtkSonixVideoSource2::WriteConfiguration(vtkXMLDataElement* config)
 {
 	Superclass::WriteConfiguration(config); 
-
+  LOG_ERROR("Not implemented");
+  return PLUS_FAIL;
 }

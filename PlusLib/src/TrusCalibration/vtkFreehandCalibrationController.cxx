@@ -1,8 +1,9 @@
+#include "PlusConfigure.h"
+
 #include "vtkFreehandCalibrationController.h"
 
 #include "vtkFreehandController.h"
 #include "PhantomRegistrationController.h"
-#include "PlusConfigure.h"
 
 #include "vtkObjectFactory.h"
 #include "vtkAccurateTimer.h"
@@ -92,19 +93,19 @@ vtkFreehandCalibrationController::~vtkFreehandCalibrationController()
 
 //-----------------------------------------------------------------------------
 
-void vtkFreehandCalibrationController::Initialize()
+PlusStatus vtkFreehandCalibrationController::Initialize()
 {
 	LOG_DEBUG("Initialize vtkFreehandCalibrationController");
 
 	vtkFreehandController* controller = vtkFreehandController::GetInstance();
 	if ((controller == NULL) || (controller->GetInitialized() == false)) {
 		LOG_ERROR("vtkFreehandController is not initialized!");
-		return;
+		return PLUS_FAIL;
 	}
 	vtkDataCollector* dataCollector = controller->GetDataCollector();
 	if (dataCollector == NULL) {
 		LOG_ERROR("Data collector is not initialized!");
-		return;
+		return PLUS_FAIL;
 	}
 
 	if (m_Toolbox) {
@@ -181,28 +182,32 @@ void vtkFreehandCalibrationController::Initialize()
 
 		this->InitializedOn();
 	}
+
+  return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
 
-void vtkFreehandCalibrationController::Clear()
+PlusStatus vtkFreehandCalibrationController::Clear()
 {
 	LOG_DEBUG("Clear vtkFreehandCalibrationController");
 
 	// Remove actor
 	vtkFreehandController::GetInstance()->GetCanvasRenderer()->AddActor(this->CanvasImageActor);
 
-	m_Toolbox->Clear();
+	m_Toolbox->Clear();  
+
+  return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
 
-void vtkFreehandCalibrationController::DoAcquisition()
+PlusStatus vtkFreehandCalibrationController::DoAcquisition()
 {
 	vtkFreehandController* controller = vtkFreehandController::GetInstance();
 	if ((controller == NULL) || (controller->GetInitialized() == false)) {
 		LOG_ERROR("vtkFreehandController is not initialized!");
-		return;
+		return PLUS_FAIL;
 	}
 
 	const int maxNumberOfValidationImages = this->GetRealtimeImageDataInfo(FREEHAND_MOTION_2).NumberOfImagesToAcquire; 
@@ -216,7 +221,7 @@ void vtkFreehandCalibrationController::DoAcquisition()
 		/* TODO
 		if (this->CancelRequest) {
 			// we should cancel the job...
-			return; 
+			return PLUS_FAIL;
 		}
 		*/
 
@@ -263,22 +268,26 @@ void vtkFreehandCalibrationController::DoAcquisition()
 		++numberOfAcquiredImages;
 		this->SetProgressPercent( (int)((numberOfAcquiredImages / (maxNumberOfValidationImages + maxNumberOfCalibrationImages)) * 100.0) );
 	}
+  
+  return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
 
-void vtkFreehandCalibrationController::Start()
+PlusStatus vtkFreehandCalibrationController::Start()
 {
 	//TODO
 	m_State = ToolboxState_InProgress;
+  return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
 
-void vtkFreehandCalibrationController::Stop()
+PlusStatus vtkFreehandCalibrationController::Stop()
 {
 	//TODO
 	m_State = ToolboxState_Done;
+  return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
@@ -420,46 +429,52 @@ void vtkFreehandCalibrationController::SetUSImageFrameOriginInPixels(int originX
 
 //-----------------------------------------------------------------------------
 
-void vtkFreehandCalibrationController::ReadConfiguration(const char* configFileNameWithPath)
+PlusStatus vtkFreehandCalibrationController::ReadConfiguration(const char* configFileNameWithPath)
 {
 	LOG_TRACE("vtkProbeCalibrationController::ReadConfiguration - " << configFileNameWithPath);
 
 	this->SetConfigurationFileName(configFileNameWithPath);
 	
-	vtkXMLDataElement *calibrationController = vtkXMLUtilities::ReadElementFromFile(this->GetConfigurationFileName());
-	ReadConfiguration(calibrationController);
-	calibrationController->Delete();
+	vtkSmartPointer<vtkXMLDataElement> calibrationController = vtkXMLUtilities::ReadElementFromFile(this->GetConfigurationFileName());
+  if (calibrationController==NULL)
+  {
+    LOG_ERROR("Failed to read configuration from file: " << this->GetConfigurationFileName());
+    return PLUS_FAIL;
+  }
+	return ReadConfiguration(calibrationController);
 }
 
 //-----------------------------------------------------------------------------
 
-void vtkFreehandCalibrationController::ReadConfiguration(vtkXMLDataElement* configData)
+PlusStatus vtkFreehandCalibrationController::ReadConfiguration(vtkXMLDataElement* configData)
 {
 	LOG_TRACE("vtkProbeCalibrationController::ReadConfiguration");
 
 	if ( configData == NULL ) {
 		LOG_ERROR("Unable to read configuration");
-		exit(EXIT_FAILURE);
+		return PLUS_FAIL;
 	}
 
 	// Calibration controller specifications
-	vtkSmartPointer<vtkXMLDataElement> calibrationController = configData->FindNestedElementWithName("CalibrationController"); 
+	vtkXMLDataElement* calibrationController = configData->FindNestedElementWithName("CalibrationController"); 
 	this->ReadCalibrationControllerConfiguration(calibrationController);
 
 	vtkFreehandController::GetInstance()->SetOutputFolder(this->GetOutputPath());
 
 	// Freehand Calibration specifications (from ProbeCalibration section of the config file)
-	vtkSmartPointer<vtkXMLDataElement> freehandCalibration = calibrationController->FindNestedElementWithName("ProbeCalibration");
+	vtkXMLDataElement* freehandCalibration = calibrationController->FindNestedElementWithName("ProbeCalibration");
 	this->ReadFreehandCalibrationConfiguration(freehandCalibration);
+  
+  return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
 
-void vtkFreehandCalibrationController::ReadFreehandCalibrationConfiguration(vtkXMLDataElement* probeCalibration)
+PlusStatus vtkFreehandCalibrationController::ReadFreehandCalibrationConfiguration(vtkXMLDataElement* probeCalibration)
 {
 	if (probeCalibration == NULL) {	
 		LOG_WARNING("Unable to read ProbeCalibration XML data element!"); 
-		return; 
+		return PLUS_FAIL; 
 	} 
 
 	// To enable/disable the system logging
@@ -533,7 +548,7 @@ void vtkFreehandCalibrationController::ReadFreehandCalibrationConfiguration(vtkX
 	*/
 
 	// RandomStepperMotionData2 data set specifications
-	vtkSmartPointer<vtkXMLDataElement> randomStepperMotionData_2 = probeCalibration->FindNestedElementWithName("RandomStepperMotionData2"); 
+	vtkXMLDataElement* randomStepperMotionData_2 = probeCalibration->FindNestedElementWithName("RandomStepperMotionData2"); 
 	if (randomStepperMotionData_2 != NULL) {
 		SavedImageDataInfo imageDataInfo; 
 		int numberOfImagesToUse = -1;
@@ -558,7 +573,7 @@ void vtkFreehandCalibrationController::ReadFreehandCalibrationConfiguration(vtkX
 	}
 
 	// RandomStepperMotionData_1 data set specifications
-	vtkSmartPointer<vtkXMLDataElement> randomStepperMotionData_1 = probeCalibration->FindNestedElementWithName("RandomStepperMotionData1"); 
+	vtkXMLDataElement* randomStepperMotionData_1 = probeCalibration->FindNestedElementWithName("RandomStepperMotionData1"); 
 	if (randomStepperMotionData_1 != NULL) {
 		SavedImageDataInfo imageDataInfo; 
 		int numberOfImagesToUse = -1;
@@ -585,7 +600,7 @@ void vtkFreehandCalibrationController::ReadFreehandCalibrationConfiguration(vtkX
 	/* TODO
 	// US3DBeamwidth specifications
 	//********************************************************************
-	vtkSmartPointer<vtkXMLDataElement> us3DBeamProfile = probeCalibration->FindNestedElementWithName("US3DBeamProfile"); 
+	vtkXMLDataElement* us3DBeamProfile = probeCalibration->FindNestedElementWithName("US3DBeamProfile"); 
 	if ( us3DBeamProfile != NULL) 
 	{
 		// To incorporate the ultrasound beam profile (3D beam width)
@@ -612,6 +627,8 @@ void vtkFreehandCalibrationController::ReadFreehandCalibrationConfiguration(vtkX
 		LOG_WARNING("Unable to find US3DBeamProfile XML data element"); 
 	}
 	*/
+  
+  return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
@@ -632,7 +649,7 @@ void vtkFreehandCalibrationController::RegisterPhantomGeometry()
 
 //-----------------------------------------------------------------------------
 
-bool vtkFreehandCalibrationController::AddTrackedFrameData(TrackedFrame* trackedFrame, IMAGE_DATA_TYPE dataType)
+PlusStatus vtkFreehandCalibrationController::AddTrackedFrameData(TrackedFrame* trackedFrame, IMAGE_DATA_TYPE dataType)
 {
 	LOG_TRACE("vtkProbeCalibrationController::AddTrackedFrameData");
 
@@ -655,11 +672,11 @@ bool vtkFreehandCalibrationController::AddTrackedFrameData(TrackedFrame* tracked
 				this->Calibrate(); 
 			}
 
-			return true;
+			return PLUS_SUCCESS;
 		}
 	}
 
-	return false; 
+	return PLUS_FAIL; 
 }
 
 //----------------------------------------------------------------------------
@@ -676,7 +693,7 @@ void vtkFreehandCalibrationController::Calibrate()
 
 //-----------------------------------------------------------------------------
 
-void vtkFreehandCalibrationController::PopulateSegmentedFiducialsToDataContainer(vnl_matrix<double> &transformUSProbe2StepperFrameMatrix4x4, IMAGE_DATA_TYPE dataType)
+PlusStatus vtkFreehandCalibrationController::PopulateSegmentedFiducialsToDataContainer(vnl_matrix<double> &transformUSProbe2StepperFrameMatrix4x4, IMAGE_DATA_TYPE dataType)
 {
 	LOG_TRACE("vtkFreehandCalibrationController::PopulateSegmentedFiducialsToDataContainer"); 
 	// ========================================================================
@@ -695,8 +712,8 @@ void vtkFreehandCalibrationController::PopulateSegmentedFiducialsToDataContainer
 	this->GetSegmenter()->GetSegmentationResults(segResults); 
 
 	if (! segResults.m_DotsFound) {
-		LOG_DEBUG("Segmantation failed! Unable to populate segmentation result!"); 
-		return; 
+		LOG_ERROR("Segmentation failed! Unable to populate segmentation result!"); 
+		return PLUS_FAIL; 
 	}
 
 	// Top layer:		3, 2, 1 
@@ -724,11 +741,13 @@ void vtkFreehandCalibrationController::PopulateSegmentedFiducialsToDataContainer
 	} else if (dataType == FREEHAND_MOTION_2) {
 		this->GetCalibrator()->addValidationPositionsPerImage( SegmentedNFiducialsInFixedCorrespondence, transformUSProbe2StepperFrameMatrix4x4 );
 	}
+  
+  return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
 
-void vtkFreehandCalibrationController::DoOfflineCalibration()
+PlusStatus vtkFreehandCalibrationController::DoOfflineCalibration()
 {
 	LOG_TRACE("vtkFreehandCalibrationController::OfflineUSToTemplateCalibration"); 
 
@@ -742,7 +761,7 @@ void vtkFreehandCalibrationController::DoOfflineCalibration()
 			trackedFrameList->ReadFromSequenceMetafile(this->GetSavedImageDataInfo(FREEHAND_MOTION_2).SequenceMetaFileName.c_str()); 
 		} else {
 			LOG_ERROR("Unable to start OfflineCalibration with validation data: SequenceMetaFileName is empty!"); 
-			return; 
+			return PLUS_FAIL; 
 		}
 
 		// Validation data
@@ -756,7 +775,7 @@ void vtkFreehandCalibrationController::DoOfflineCalibration()
 				// The segmentation was successful
 				validationCounter++;
 			} else {
-				LOG_DEBUG("Adding tracked frame failed!");
+				LOG_WARNING("Adding tracked frame failed!");
 			}
 
 			this->AddFrameToRenderer(trackedFrameList->GetTrackedFrame(imgNumber)->ImageData);
@@ -771,7 +790,7 @@ void vtkFreehandCalibrationController::DoOfflineCalibration()
 			calibrationData->ReadFromSequenceMetafile(this->GetSavedImageDataInfo(FREEHAND_MOTION_1).SequenceMetaFileName.c_str()); 
 		} else {
 			LOG_ERROR("Unable to start OfflineCalibration with calibration data: SequenceMetaFileName is empty!"); 
-			return; 
+			return PLUS_FAIL; 
 		}
 
 		int calibrationCounter = 0;
@@ -784,7 +803,7 @@ void vtkFreehandCalibrationController::DoOfflineCalibration()
 				// The segmentation was successful
 				calibrationCounter++; 
 			} else {
-				LOG_DEBUG("Adding tracked frame failed!");
+				LOG_WARNING("Adding tracked frame failed!");
 			}
 
 			this->AddFrameToRenderer(calibrationData->GetTrackedFrame(imgNumber)->ImageData); 
@@ -793,13 +812,14 @@ void vtkFreehandCalibrationController::DoOfflineCalibration()
 		LOG_INFO ("A total of " << this->GetRealtimeImageDataInfo(FREEHAND_MOTION_1).NumberOfSegmentedImages << " images have been successfully added for calibration.");
 	} catch(...) {
 		LOG_ERROR("AddAllSavedData: Failed to add saved data!");  
-		throw;
+		return PLUS_FAIL;
 	}
+  return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
 
-void vtkFreehandCalibrationController::ComputeCalibrationResults()
+PlusStatus vtkFreehandCalibrationController::ComputeCalibrationResults()
 {
 	LOG_TRACE("vtkFreehandCalibrationController::ComputeCalibrationResults"); 
 
@@ -878,8 +898,10 @@ void vtkFreehandCalibrationController::ComputeCalibrationResults()
 
 	} catch(...) {
 		LOG_ERROR("ComputeCalibrationResults: Failed to compute calibration results!"); 
-		throw;
+		return PLUS_FAIL;
 	}
+  
+  return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
@@ -890,9 +912,9 @@ void vtkFreehandCalibrationController::DisplayCalibrationResults()
 
 //-----------------------------------------------------------------------------
 
-void vtkFreehandCalibrationController::PrintCalibrationResultsAndErrorReports()
+PlusStatus vtkFreehandCalibrationController::PrintCalibrationResultsAndErrorReports()
 {
-	LOG_TRACE("vtkProbeCalibrationController::PrintCalibrationResultsAndErrorReports");
+  LOG_TRACE("vtkProbeCalibrationController::PrintCalibrationResultsAndErrorReports");
 
 	try {
 		LOG_INFO("---------------------------------------------------------------");
@@ -917,18 +939,19 @@ void vtkFreehandCalibrationController::PrintCalibrationResultsAndErrorReports()
 
 	} catch(...) {
 		LOG_ERROR("PrintCalibrationResultsAndErrorReports: Failed to retrieve the calibration results!"); 
-		throw;
+		return PLUS_FAIL;
 	}
+  return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
 
-void vtkFreehandCalibrationController::SaveCalibrationResultsAndErrorReportsToXML()
+PlusStatus vtkFreehandCalibrationController::SaveCalibrationResultsAndErrorReportsToXML()
 {
 	vtkFreehandController* controller = vtkFreehandController::GetInstance();
 	if ((controller == NULL) || (controller->GetInitialized() == false)) {
 		LOG_ERROR("vtkFreehandController is not initialized!");
-		return;
+		return PLUS_FAIL;
 	}
 
 	// Construct the calibration result file name with path and timestamp
@@ -1281,6 +1304,8 @@ void vtkFreehandCalibrationController::SaveCalibrationResultsAndErrorReportsToXM
 	// </USTemplateCalibrationResult>
 
 	xmlCalibrationResults->PrintXML(this->GetCalibrationResultFileNameWithPath()); 
+  
+  return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
