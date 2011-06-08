@@ -5,7 +5,7 @@ SET (UsFidSegAlgo_SRCS
 	drawing.cpp 
 	kphantseg.cpp 
 	morph.cpp
-        USFidsSegResultFile.cpp 
+        UsFidSegResultFile.cpp 
 	)
 
 SET (UsFidSegAlgo_HDRS)	
@@ -15,7 +15,7 @@ IF (WIN32)
 		kphantseg.h 
 		segimpl.h 
 		sort.h 
-		USFidsSegResultFile.h
+		UsFidSegResultFile.h
 		)
 ENDIF (WIN32)
 
