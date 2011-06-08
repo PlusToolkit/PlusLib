@@ -3,7 +3,6 @@ SET( TestDataDir ${PLUSLIB_DATA_DIR}/TestImages )
 ###################################################
 ADD_EXECUTABLE( ConvertFcsvToXml
   ConvertFcsvToXml.cpp 
-  UsFidSegResultFile.cpp
   Segmentation.cpp
   )
 
@@ -34,7 +33,6 @@ SET_TESTS_PROPERTIES( ConvertFcsvToXml PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR
 ###################################################
 ADD_EXECUTABLE( ConvertXmlToFcsv
   ConvertXmlToFcsv.cpp 
-  UsFidSegResultFile.cpp
   )
 
  SET(ITK_LIBRARIES
@@ -61,7 +59,6 @@ SET_TESTS_PROPERTIES( ConvertXmlToFcsv PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR
 ###################################################
 ADD_EXECUTABLE( UsFidSegTest
   UsFidSegTest.cpp
-  UsFidSegResultFile.cpp
   Segmentation.cpp
   )
 
