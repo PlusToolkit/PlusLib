@@ -76,15 +76,15 @@ TARGET_LINK_LIBRARIES( UsFidSegTest
 	vtkImageAcquisition
   ) 
  
-# ADD_TEST(UsFidSegTest_CALIBRATION_PHANTOM_6_POINT
-	# ${EXECUTABLE_OUTPUT_PATH}/UsFidSegTest
-	# --input-test-data-dir=${TestDataDir}
-	# --input-img-seq-file=UsTestSeqBaselineThomasShortened.mha
-	# --input-testcase-name=UsTestSeqBaselineThomasShortened
-	# --input-baseline-file=${TestDataDir}/baselineTestWithThomasData.xml
-	# --output-result-file=testcomparisons.xml
-	# )
-#SET_TESTS_PROPERTIES( UsFidSegTest_CALIBRATION_PHANTOM_6_POINT PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+ADD_TEST(UsFidSegTest_CALIBRATION_PHANTOM_6_POINT
+	${EXECUTABLE_OUTPUT_PATH}/UsFidSegTest
+	--input-test-data-dir=${TestDataDir}
+	--input-img-seq-file=UsTestSeqBaselineThomasShortened.mha
+	--input-testcase-name=UsTestSeqBaselineThomasShortened
+	--input-baseline-file=${TestDataDir}/baselineTestWithThomasData.xml
+	--output-result-file=testcomparisons.xml
+	)
+SET_TESTS_PROPERTIES( UsFidSegTest_CALIBRATION_PHANTOM_6_POINT PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
 # ADD_TEST(UsFidSegTest_TAB2_5_POINT_1
 	# ${EXECUTABLE_OUTPUT_PATH}/UsFidSegTest
