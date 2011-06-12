@@ -13,7 +13,7 @@
 #include "vtksys/SystemTools.hxx"
 
 #include "vtkVideoSource2.h"
-#include "vtkVideoBuffer2.h"
+#include "vtkVideoBuffer.h"
 #include "vtkTracker.h"
 #include "vtkTrackerBuffer.h"
 #include "vtkTrackedFrameList.h"

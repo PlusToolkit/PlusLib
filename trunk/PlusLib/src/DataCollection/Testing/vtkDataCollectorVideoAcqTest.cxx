@@ -2,7 +2,7 @@
 #include "vtksys/CommandLineArguments.hxx"
 #include "vtkSmartPointer.h"
 #include "vtkDataCollector.h"
-#include "vtkVideoBuffer2.h"
+#include "vtkVideoBuffer.h"
 
 int main(int argc, char **argv)
 {

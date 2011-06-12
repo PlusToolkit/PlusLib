@@ -1,5 +1,5 @@
 #include "PlusConfigure.h"
-#include "vtkVideoBuffer2.h"
+#include "vtkVideoBuffer.h"
 #include "vtkObjectFactory.h"
 #include "vtkVideoFrame2.h"
 #include "vtkDoubleArray.h"

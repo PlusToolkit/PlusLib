@@ -47,7 +47,7 @@ POSSIBILITY OF SUCH DAMAGES.
 #include "vtkFreehandUltrasound2.h"
 #include "vtkFreehandUltrasound2Helper.h"
 #include "vtkObjectFactory.h"
-#include "vtkVideoBuffer2.h"
+#include "vtkVideoBuffer.h"
 #include "vtkStreamingDemandDrivenPipeline.h"
 #include "vtkInformation.h"
 #include "vtkInformationVector.h"
