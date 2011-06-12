@@ -4,7 +4,7 @@
 #include "vtkDataCollectorSynchronizer.h"
 #include "vtkTracker.h"
 #include "vtkTrackerTool.h"
-#include "vtkVideoBuffer2.h"
+#include "vtkVideoBuffer.h"
 #include "vtkHTMLGenerator.h"
 #include "vtkGnuplotExecuter.h"
 #include "vtksys/SystemTools.hxx"

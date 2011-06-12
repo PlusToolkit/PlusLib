@@ -17,7 +17,7 @@
 #include "vtkTimerLog.h"
 #include "vtkMatrix4x4.h"
 #include "vtkVideoSource2.h"
-#include "vtkVideoBuffer2.h"
+#include "vtkVideoBuffer.h"
 #include "vtkTransform.h"
 #include "vtkImageThreshold.h"
 #include "vtkImageClip.h"
