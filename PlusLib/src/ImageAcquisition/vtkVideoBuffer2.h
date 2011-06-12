@@ -121,7 +121,7 @@ public:
 
 	virtual int GetNumberOfItems() { return this->VideoBuffer->GetNumberOfItems(); }
 
-	virtual double GetFrameRate() { return this->VideoBuffer->GetFrameRate(); }
+	virtual double GetFrameRate( bool ideal = false) { return this->VideoBuffer->GetFrameRate(ideal); }
 
 	// Description:
 	// Make this buffer into a copy of another buffer.  You should
