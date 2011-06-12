@@ -79,7 +79,7 @@ int main(int argc, char **argv)
 		vtksys::SystemTools::Delay(1000); 
 	}
 
-	vtkSmartPointer<vtkVideoBuffer2> videobuffer = vtkSmartPointer<vtkVideoBuffer2>::New(); 
+	vtkSmartPointer<vtkVideoBuffer> videobuffer = vtkSmartPointer<vtkVideoBuffer>::New(); 
 	if ( dataCollector->GetVideoSource() != NULL ) 
 	{
 		LOG_INFO("Copy video buffer"); 

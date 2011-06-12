@@ -56,7 +56,7 @@ int main(int argc, char **argv)
 
 
 	LOG_INFO("Copy video buffer"); 
-	vtkVideoBuffer2 *buffer = vtkVideoBuffer2::New(); 
+	vtkVideoBuffer *buffer = vtkVideoBuffer::New(); 
 	dataCollector->CopyVideoBuffer(buffer); 
 
 	LOG_INFO("Dump video buffer to " << outputVideoBufferSequenceFileName);

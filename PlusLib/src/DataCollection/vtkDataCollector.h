@@ -104,11 +104,11 @@ public:
 	
 	// Description:
 	// Copy the current state of the video buffer 
-	virtual PlusStatus CopyVideoBuffer( vtkVideoBuffer2* videoBuffer ); 
+	virtual PlusStatus CopyVideoBuffer( vtkVideoBuffer* videoBuffer ); 
 
 	// Description:
 	// Dump the current state of the video buffer to metafile
-	virtual PlusStatus DumpVideoBufferToMetafile( vtkVideoBuffer2* videoBuffer, const char* outputFolder, const char* metaFileName, bool useCompression = false ); 
+	virtual PlusStatus DumpVideoBufferToMetafile( vtkVideoBuffer* videoBuffer, const char* outputFolder, const char* metaFileName, bool useCompression = false ); 
 
 	// Description:
 	// Return the most recent frame timestamp in the buffer
@@ -323,7 +323,7 @@ protected:
 	char * DeviceSetName; 
 	char * DeviceSetDescription; 
 
-
+	VideoBufferItem* CurrentVideoBufferItem; 
 
 private:
 	vtkDataCollector(const vtkDataCollector&);

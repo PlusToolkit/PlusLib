@@ -167,10 +167,14 @@ void vtkVolumeReconstructor::AddTrackedFrame( vtkImageData* frame, vtkMatrix4x4*
 
 
 	double timestamp = vtkAccurateTimer::GetSystemTime(); 
-	this->GetVideoSource()->AddFrame( frame, timestamp ); 
-	this->GetTracker()->AddTransform( tToolToReference->GetMatrix(), timestamp ); 
+	PlusStatus  videoStatus = this->GetVideoSource()->AddFrame( frame, timestamp ); 
 
-	this->FindOutputExtent( tToolToReference->GetMatrix(), frame->GetExtent() ); 
+	/*PlusStatus trackerStatus = */ this->GetTracker()->AddTransform( tToolToReference->GetMatrix(), timestamp ); 
+
+	if ( videoStatus == PLUS_SUCCESS /*&& trackerStatus == PLUS_SUCCESS*/ )
+	{
+		this->FindOutputExtent( tToolToReference->GetMatrix(), frame->GetExtent() ); 
+	}
 }
 
 

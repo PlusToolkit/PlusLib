@@ -17,6 +17,8 @@ if (WIN32)
 		PlusLogger.h
 		vtkHTMLGenerator.h
 		vtkGnuplotExecuter.h
+        vtkTimestampedCircularBuffer.h 
+        vtkTimestampedCircularBuffer.txx
 		)
 endif (WIN32)	
 

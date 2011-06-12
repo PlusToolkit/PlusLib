@@ -55,10 +55,6 @@ vtkICCapturingSource2::vtkICCapturingSource2()
 	this->SetOutputFormatToLuminance(); 
 
 	this->Buffer->GetFrameFormat()->SetFrameGrabberType(FG_BASE); 
-	for (int i = 0; i < this->Buffer->GetBufferSize(); i++)
-	{
-		this->Buffer->GetFrameByBufferIndex(i)->SetFrameGrabberType(FG_BASE);
-	}
 
 	this->SetFrameBufferSize(200); 
 	this->Buffer->Modified();
@@ -163,74 +159,16 @@ bool vtkICCapturingSource2::vtkICCapturingSource2NewFrameCallback(unsigned char 
 // vtkVideoSource framebuffer (don't do the unpacking yet)
 PlusStatus vtkICCapturingSource2::LocalInternalGrab(unsigned char * dataPtr, unsigned long size, unsigned long frameNumber)
 {
-	this->Buffer->Lock();
-
 	this->FrameNumber = frameNumber; 
 	double unfilteredTimestamp(0), filteredTimestamp(0); 
 	this->CreateTimeStampForFrame(this->FrameNumber, unfilteredTimestamp, filteredTimestamp);
+	const int* frameSize = this->GetFrameSize(); 
+	int frameBufferBitsPerPixel = this->NumberOfScalarComponents * 8; 
 
-	// 3) read the data, based on the data type and clip region information, which is reflected in frame buffer extents
-	// this is necessary as there would be cases when there is a clip region defined i.e. only data from the desired extents should be copied 
-	// to the local buffer, which demands necessary advancement of dataPtr
-
-	// get the pointer to the correct location in the frame buffer, where this data needs to be copied
-	unsigned char *frameBufferPtr = reinterpret_cast<unsigned char *>(this->Buffer->GetFrameToWrite()->GetVoidPointer(0));
-
-	int FrameBufferExtent[6];
-	this->Buffer->GetFrameFormat()->GetFrameExtent(FrameBufferExtent);
-
-	int FrameBufferBitsPerPixel = this->Buffer->GetFrameFormat()->GetBitsPerPixel();
-
-	int outBytesPerRow = ((FrameBufferExtent[1] - FrameBufferExtent[0]+1)* FrameBufferBitsPerPixel + 7)/8;
-	outBytesPerRow += outBytesPerRow % this->FrameBufferRowAlignment;
-
-	int* frameSize = this->GetFrameSize(); 
-	int inBytesPerRow = frameSize[0] * FrameBufferBitsPerPixel/8;
-
-	int rows = FrameBufferExtent[3] - FrameBufferExtent[2]+1;
-
-	//check if the data received has the same size in bytes as expected
-	if (size != inBytesPerRow*rows)
-	{
-		//error; data discrepancy!
-		//what to do?
-	}
-
-	dataPtr += FrameBufferExtent[0]* FrameBufferBitsPerPixel/8;
-	dataPtr += FrameBufferExtent[2]*inBytesPerRow;
-
-	// 4) copy data to the local vtk frame buffer
-	if (outBytesPerRow == inBytesPerRow)
-	{
-		memcpy(frameBufferPtr,dataPtr,inBytesPerRow*rows);
-	}
-	else
-	{
-		while (--rows >= 0)
-		{
-			memcpy(frameBufferPtr,dataPtr,outBytesPerRow);
-			frameBufferPtr += outBytesPerRow;
-			dataPtr += inBytesPerRow;
-		}
-	}
-
-	// add the new frame and the current time to the buffer
-	this->Buffer->AddItem(this->Buffer->GetFrameToWrite(), unfilteredTimestamp, filteredTimestamp, this->FrameNumber);
-
-	if (this->FrameCount++ == 0)
-	{
-		double timestamp(0); 
-		if ( this->Buffer->GetLatestTimeStamp(timestamp) == vtkVideoBuffer2::FRAME_OK )
-		{
-			this->StartTimeStamp = timestamp;
-		}
-	}
-
+	PlusStatus status = this->Buffer->AddItem(dataPtr, frameSize, frameBufferBitsPerPixel, 0, unfilteredTimestamp, filteredTimestamp, this->FrameNumber); 
 	this->Modified();
 
-	this->Buffer->Unlock();
-  
-  return PLUS_SUCCESS;
+	return status;
 }
 
 //----------------------------------------------------------------------------
@@ -303,9 +241,7 @@ PlusStatus vtkICCapturingSource2::Connect()
 	this->FrameGrabberListener->SetICCapturingSourceNewFrameCallback(vtkICCapturingSource2::vtkICCapturingSource2NewFrameCallback); 
 
 	// 8)update framebuffer 
-	this->Buffer->Lock();
 	this->UpdateFrameBuffer();
-	this->Buffer->Unlock();
 
 	return PLUS_SUCCESS; 
 }

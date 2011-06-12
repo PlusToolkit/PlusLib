@@ -3,7 +3,7 @@
 
 #include "vtkVideoSource2.h"
 
-class vtkVideoBuffer2; 
+class vtkVideoBuffer; 
 
 class VTK_EXPORT vtkSavedDataVideoSource;
 
@@ -102,7 +102,7 @@ protected:
 	double StartTimestamp; 
 	bool ReplayEnabled; 
 
-	vtkVideoBuffer2* LocalVideoBuffer; 
+	vtkVideoBuffer* LocalVideoBuffer; 
 
 private:
 	static vtkSavedDataVideoSource* Instance;

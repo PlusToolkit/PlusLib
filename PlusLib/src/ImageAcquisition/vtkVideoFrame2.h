@@ -59,6 +59,14 @@
 class VTK_EXPORT vtkVideoFrame2 : public vtkObject
 {
 public:
+
+	enum LineOrder 
+	{
+		LINES_BOTTOM_UP, 
+		LINES_TOP_DOWN
+
+	}; 
+
   static vtkVideoFrame2 *New();
   vtkTypeRevisionMacro(vtkVideoFrame2,vtkObject);
   void PrintSelf(ostream& os, vtkIndent indent);
@@ -174,11 +182,15 @@ public:
   // smaller than ClipRegion, the frame's array will be further cliped to the size
   // specified by ArrayExtent.
   virtual bool CopyData(void *array, const int clipRegion[6], const int arrayExtent[6],
-                int arrayFormat);
+                int arrayFormat, LineOrder requestedLineOrder = LINES_BOTTOM_UP);
 
   // Description:
   // Create an empty frame with the same information as this one.
   vtkVideoFrame2 *MakeObject();
+
+  // Description:
+  // Make this video frame into a copy of another video frame
+  void DeepCopy(vtkVideoFrame2 * frame);
 
 protected:
   vtkVideoFrame2();

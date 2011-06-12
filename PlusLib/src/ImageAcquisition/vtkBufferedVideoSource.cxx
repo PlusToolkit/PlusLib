@@ -186,65 +186,18 @@ PlusStatus vtkBufferedVideoSource::Stop()
 }
 
 //----------------------------------------------------------------------------
-void vtkBufferedVideoSource::AddFrame( vtkImageData* image, double timestamp )
+PlusStatus vtkBufferedVideoSource::AddFrame( vtkImageData* image, double timestamp )
 {
+	// We don't have information about the unfiltered timestamp, use the filtered one
+	const double unfilteredTimestamp = timestamp; 
+	const long frameNumber = this->FrameNumber + 1; 
+	PlusStatus status = this->Buffer->AddItem(image, unfilteredTimestamp, timestamp, frameNumber); 
 
-	this->Buffer->Lock();
-
-	// get the pointer to actual incoming data on to a local pointer
-	unsigned char *deviceDataPtr = static_cast<unsigned char*>( image->GetScalarPointer() ); 
-
-	// get the pointer to the correct location in the frame buffer, where this data needs to be copied
-	// get the pointer to the correct location in the frame buffer, where this data needs to be copied
-	vtkVideoFrame2* newFrameInBuffer = this->Buffer->GetFrameToWrite(); 
-	if ( newFrameInBuffer == NULL )
+	if ( status == PLUS_SUCCESS )
 	{
-		LOG_WARNING( "vtkBufferedVideoSource: Failed to get video frame pointer from the buffer for the new frame!"); 
-		return; 
-	}
-
-	unsigned char *frameBufferPtr = reinterpret_cast<unsigned char *>(newFrameInBuffer->GetVoidPointer(0));
-
-	int FrameBufferExtent[6];
-	this->Buffer->GetFrameFormat()->GetFrameExtent(FrameBufferExtent);
-
-	int FrameBufferBitsPerPixel = this->Buffer->GetFrameFormat()->GetBitsPerPixel();
-
-	int outBytesPerRow = ((FrameBufferExtent[1] - FrameBufferExtent[0]+1)* FrameBufferBitsPerPixel + 7)/8;
-
-	int* frameSize = this->GetFrameSize(); 
-	int inBytesPerRow = frameSize[0] * FrameBufferBitsPerPixel/8;
-
-	int rows = FrameBufferExtent[3] - FrameBufferExtent[2]+1;
-
-	// 4) copy data to the local vtk frame buffer
-	if (outBytesPerRow == inBytesPerRow)
-	{
-		memcpy(frameBufferPtr,deviceDataPtr,inBytesPerRow*rows);
-	}
-	else
-	{
-		while (--rows >= 0)
-		{
-			memcpy(frameBufferPtr,deviceDataPtr,outBytesPerRow);
-			frameBufferPtr += outBytesPerRow;
-			deviceDataPtr += inBytesPerRow;
-		}
-	}
-
-	// add the new frame and the current time to the buffer
-	this->Buffer->AddItem(newFrameInBuffer, timestamp, timestamp, ++this->FrameNumber );
-
-	if (this->FrameCount++ == 0)
-	{
-		double timestamp(0); 
-		if ( this->Buffer->GetLatestTimeStamp(timestamp) == vtkVideoBuffer2::FRAME_OK )
-		{
-			this->StartTimeStamp = timestamp;
-		}
+		this->FrameNumber = frameNumber; 
 	}
 
 	this->Modified();
-
-	this->Buffer->Unlock();
+	return status; 
 }

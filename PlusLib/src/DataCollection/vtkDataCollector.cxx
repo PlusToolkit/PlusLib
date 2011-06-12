@@ -124,6 +124,8 @@ vtkDataCollector::vtkDataCollector()
 
 	// Most recent frame buffer index 
 	this->MostRecentFrameBufferIndex = 0; 
+
+	this->CurrentVideoBufferItem = new VideoBufferItem();
 }
 
 
@@ -162,12 +164,12 @@ PlusStatus vtkDataCollector::Initialize()
 
 	// Connect to devices
 	if (this->Connect()!=PLUS_SUCCESS)
-  {
-    return PLUS_FAIL;
-  }
+	{
+		return PLUS_FAIL;
+	}
 
 	this->InitializedOn(); 
-  return PLUS_SUCCESS;
+	return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
@@ -175,11 +177,7 @@ PlusStatus vtkDataCollector::Connect()
 {
 	LOG_TRACE("vtkDataCollector::Connect"); 
 
-	if ( this->GetVideoSource() == NULL ) 
-	{
-		LOG_WARNING("Unable to find video source! Please read configuration file first." );
-	}
-	else
+	if ( this->GetVideoSource() != NULL ) 
 	{
 		this->GetVideoSource()->Initialize();
 
@@ -192,11 +190,7 @@ PlusStatus vtkDataCollector::Connect()
 		this->SetInputConnection(this->GetVideoSource()->GetOutputPort());
 	}
 
-	if ( this->GetTracker() == NULL ) 
-	{
-		LOG_WARNING("Unable to find tracker! Please read configuration file first." ); 
-	}
-	else
+	if ( this->GetTracker() != NULL ) 
 	{
 		if ( !this->GetTracker()->Connect() )
 		{
@@ -204,8 +198,8 @@ PlusStatus vtkDataCollector::Connect()
 			return PLUS_FAIL;
 		}
 	}
-  
-  return PLUS_SUCCESS;
+
+	return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
@@ -223,7 +217,7 @@ PlusStatus vtkDataCollector::Disconnect()
 		this->GetTracker()->Disconnect(); 
 	}
 
-  return PLUS_SUCCESS;
+	return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
@@ -265,7 +259,7 @@ PlusStatus vtkDataCollector::Start()
 		LOG_DEBUG("Start data collection in video only mode."); 
 	}
 
-  return PLUS_SUCCESS;
+	return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
@@ -281,8 +275,8 @@ PlusStatus vtkDataCollector::Stop()
 	{
 		this->GetTracker()->StopTracking(); 
 	}
-  
-  return PLUS_SUCCESS;
+
+	return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
@@ -309,7 +303,7 @@ PlusStatus vtkDataCollector::CopyTrackerBuffer( vtkTrackerBuffer* trackerBuffer,
 	trackerBuffer->Unlock();
 	this->GetTracker()->GetTool(toolNumber)->GetBuffer()->Unlock(); 
 
-  return PLUS_SUCCESS;
+	return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
@@ -329,7 +323,7 @@ PlusStatus vtkDataCollector::CopyTracker( vtkTracker* tracker)
 
 	tracker->DeepCopy(this->GetTracker()); 
 
-  return PLUS_SUCCESS;
+	return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
@@ -359,8 +353,8 @@ PlusStatus vtkDataCollector::DumpTrackerToMetafile( vtkTracker* tracker, const c
 	}
 
 	vtkSmartPointer<vtkTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New(); 
-	
-  PlusStatus status=PLUS_SUCCESS;
+
+	PlusStatus status=PLUS_SUCCESS;
 
 	for ( int i = 0 ; i < numberOfItems; i++ ) 
 	{
@@ -378,7 +372,7 @@ PlusStatus vtkDataCollector::DumpTrackerToMetafile( vtkTracker* tracker, const c
 		region.SetSize(size);
 		region.SetIndex(start);
 		frame->SetRegions(region);
-		
+
 		try
 		{
 			frame->Allocate();
@@ -386,7 +380,7 @@ PlusStatus vtkDataCollector::DumpTrackerToMetafile( vtkTracker* tracker, const c
 		catch (itk::ExceptionObject & err) 
 		{		
 			LOG_ERROR("Unable to allocate memory for image: " << err);
-      status=PLUS_FAIL;
+			status=PLUS_FAIL;
 			continue; 
 		}	
 
@@ -425,11 +419,11 @@ PlusStatus vtkDataCollector::DumpTrackerToMetafile( vtkTracker* tracker, const c
 			if ( tracker->GetTool(tool)->GetEnabled() )
 			{
 				const int index = tracker->GetTool(tool)->GetBuffer()->GetIndexFromTime(frameTimestamp); 
-				
+
 				vtkSmartPointer<vtkMatrix4x4> matrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
 				tracker->GetTool(tool)->GetBuffer()->GetMatrix(matrix, index); 
 				trackedFrame.SetCustomFrameTransform(tracker->GetTool(tool)->GetToolName(), matrix); 
-				
+
 				const char* calibMatrixName = tracker->GetTool(tool)->GetCalibrationMatrixName(); 
 				vtkMatrix4x4* calibmatrix = tracker->GetTool(tool)->GetCalibrationMatrix(); 
 
@@ -458,12 +452,12 @@ PlusStatus vtkDataCollector::DumpTrackerToMetafile( vtkTracker* tracker, const c
 	trackedFrameList->SaveToSequenceMetafile(outputFolder, metaFileName, vtkTrackedFrameList::SEQ_METAFILE_MHA, useCompression); 
 
 	tracker->Unlock();
-  
-  return status;
+
+	return status;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkDataCollector::CopyVideoBuffer( vtkVideoBuffer2* videoBuffer )
+PlusStatus vtkDataCollector::CopyVideoBuffer( vtkVideoBuffer* videoBuffer )
 {
 	if ( this->GetVideoSource() == NULL ) 
 	{	
@@ -473,23 +467,16 @@ PlusStatus vtkDataCollector::CopyVideoBuffer( vtkVideoBuffer2* videoBuffer )
 
 	if ( videoBuffer == NULL ) 
 	{
-		videoBuffer = vtkVideoBuffer2::New();
+		videoBuffer = vtkVideoBuffer::New();
 	}
-
-
-	this->GetVideoSource()->GetBuffer()->Lock();
-	videoBuffer->Lock(); 
 
 	videoBuffer->DeepCopy(this->GetVideoSource()->GetBuffer()); 
 
-	videoBuffer->Unlock(); 
-	this->GetVideoSource()->GetBuffer()->Unlock();
-  
-  return PLUS_SUCCESS;
+	return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkDataCollector::DumpVideoBufferToMetafile( vtkVideoBuffer2* videoBuffer, const char* outputFolder, const char* metaFileName, bool useCompression /*=false*/ )
+PlusStatus vtkDataCollector::DumpVideoBufferToMetafile( vtkVideoBuffer* videoBuffer, const char* outputFolder, const char* metaFileName, bool useCompression /*=false*/ )
 {
 	if ( videoBuffer == NULL )
 	{
@@ -497,14 +484,13 @@ PlusStatus vtkDataCollector::DumpVideoBufferToMetafile( vtkVideoBuffer2* videoBu
 		return PLUS_FAIL; 
 	}
 
-	videoBuffer->Lock(); 
-
 	const int numberOfFrames = videoBuffer->GetNumberOfItems(); 
 	vtkSmartPointer<vtkTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New(); 
 
-  PlusStatus status=PLUS_SUCCESS;
+	PlusStatus status=PLUS_SUCCESS;
+	VideoBufferItem videoItem; 
 
-	for ( vtkVideoBuffer2::FrameUidType frameUid = videoBuffer->GetOldestFrameUidInBuffer(); frameUid <= videoBuffer->GetLatestFrameUidInBuffer(); ++frameUid ) 
+	for ( BufferItemUidType frameUid = videoBuffer->GetOldestItemUidInBuffer(); frameUid <= videoBuffer->GetLatestItemUidInBuffer(); ++frameUid ) 
 	{
 		const int percent = floor( (100.0*frameUid) / (1.0*numberOfFrames)); 
 		if ( this->ProgressBarUpdateCallbackFunction != NULL )
@@ -523,27 +509,19 @@ PlusStatus vtkDataCollector::DumpVideoBufferToMetafile( vtkVideoBuffer2* videoBu
 		frame->SetRegions(region);
 		frame->Allocate();
 
-		vtkVideoFrame2* frameInBuffer = NULL; 
-		if ( videoBuffer->GetFrame(frameUid, frameInBuffer) != vtkVideoBuffer2::FRAME_OK )
+		if ( videoBuffer->GetVideoBufferItem(frameUid, &videoItem) != ITEM_OK )
 		{
 			LOG_ERROR("Unable to get frame from buffer with UID: " << frameUid); 
-      status=PLUS_FAIL;
-			continue; 
-		}
-		
-		if ( frameInBuffer == NULL )
-		{
-			LOG_ERROR("Unable to add frame to frame list if it's NULL!"); 
-      status=PLUS_FAIL;
+			status=PLUS_FAIL;
 			continue; 
 		}
 
-		if (!frameInBuffer->CopyData(frame->GetBufferPointer(), videoFrameSize, videoFrameSize, frameInBuffer->GetPixelFormat() ))
-    {
-      LOG_ERROR("Cannot copy data for frame with UID: " << frameUid);
-      status=PLUS_FAIL;
-      continue;
-    }
+		if ( !videoItem.GetFrame()->CopyData(frame->GetBufferPointer(), videoFrameSize, videoFrameSize, videoItem.GetFrame()->GetPixelFormat() )) 
+		{
+			LOG_ERROR("Cannot copy data for frame with UID: " << frameUid);
+			status=PLUS_FAIL;
+			continue;
+		}
 
 		TrackedFrame trackedFrame; 
 		trackedFrame.ImageData = frame;
@@ -558,49 +536,22 @@ PlusStatus vtkDataCollector::DumpVideoBufferToMetafile( vtkVideoBuffer2* videoBu
 		trackedFrame.SetCustomFrameTransform(trackedFrame.DefaultFrameTransformName, matrix); 
 
 		// Add filtered timestamp
-		double filteredTimestamp(0); 
-		if ( videoBuffer->GetFilteredTimeStamp(frameUid, filteredTimestamp) != vtkVideoBuffer2::FRAME_OK )
-		{
-			LOG_ERROR("Unable to get frame filtered timestamp from buffer with UID: " << frameUid); 
-      status=PLUS_FAIL;
-			continue; 
-		}
-		else
-		{
-			std::ostringstream timestampFieldValue; 
-			timestampFieldValue << std::fixed << filteredTimestamp; 
-			trackedFrame.SetCustomFrameField("Timestamp", timestampFieldValue.str()); 
-		}
+		double filteredTimestamp = videoItem.GetFilteredTimestamp( videoBuffer->GetLocalTimeOffset() ); 
+		std::ostringstream timestampFieldValue; 
+		timestampFieldValue << std::fixed << filteredTimestamp; 
+		trackedFrame.SetCustomFrameField("Timestamp", timestampFieldValue.str()); 
 
 		// Add unfiltered timestamp
-		double unfilteredTimestamp(0); 
-		if ( videoBuffer->GetUnfilteredTimeStamp(frameUid, unfilteredTimestamp) != vtkVideoBuffer2::FRAME_OK )
-		{
-			LOG_ERROR("Unable to get frame unfiltered timestamp from buffer with UID: " << frameUid); 
-      status=PLUS_FAIL;
-			continue; 
-		}
-		else
-		{
-			std::ostringstream unfilteredtimestampFieldValue; 
-			unfilteredtimestampFieldValue << std::fixed << unfilteredTimestamp; 
-			trackedFrame.SetCustomFrameField("UnfilteredTimestamp", unfilteredtimestampFieldValue.str()); 
-		}
+		double unfilteredTimestamp = videoItem.GetUnfilteredTimestamp( videoBuffer->GetLocalTimeOffset() ); 
+		std::ostringstream unfilteredtimestampFieldValue; 
+		unfilteredtimestampFieldValue << std::fixed << unfilteredTimestamp; 
+		trackedFrame.SetCustomFrameField("UnfilteredTimestamp", unfilteredtimestampFieldValue.str()); 
 
 		// Add frame number
-		unsigned long frameNumber(0); 
-		if ( videoBuffer->GetFrameNumber(frameUid, frameNumber) != vtkVideoBuffer2::FRAME_OK )
-		{
-			LOG_ERROR("Unable to get frame number from buffer with UID: " << frameUid); 
-      status=PLUS_FAIL;
-			continue; 
-		}
-		else
-		{
-			std::ostringstream frameNumberFieldValue; 
-			frameNumberFieldValue << std::fixed << frameNumber; 
-			trackedFrame.SetCustomFrameField("FrameNumber", frameNumberFieldValue.str()); 
-		}
+		unsigned long frameNumber = videoItem.GetIndex();  
+		std::ostringstream frameNumberFieldValue; 
+		frameNumberFieldValue << std::fixed << frameNumber; 
+		trackedFrame.SetCustomFrameField("FrameNumber", frameNumberFieldValue.str()); 
 
 		// Add tracked frame to the list
 		trackedFrameList->AddTrackedFrame(&trackedFrame); 
@@ -609,9 +560,7 @@ PlusStatus vtkDataCollector::DumpVideoBufferToMetafile( vtkVideoBuffer2* videoBu
 	// Save tracked frames to metafile
 	trackedFrameList->SaveToSequenceMetafile(outputFolder, metaFileName, vtkTrackedFrameList::SEQ_METAFILE_MHA, useCompression); 
 
-	videoBuffer->Unlock();
-
-  return status;
+	return status;
 }
 
 //----------------------------------------------------------------------------
@@ -624,7 +573,7 @@ PlusStatus vtkDataCollector::Synchronize( const bool saveSyncData /*=false*/ )
 		LOG_WARNING("Unable to synchronize without a synchronizer! Please set synchronizer type in the configuration file!"); 
 		return PLUS_FAIL; 
 	}
-	
+
 	if ( this->GetTracker() == NULL ) 
 	{	
 		LOG_ERROR("Unable to synchronize tracker - there is no tracker selected!"); 
@@ -647,7 +596,7 @@ PlusStatus vtkDataCollector::Synchronize( const bool saveSyncData /*=false*/ )
 	//************************************************************************************
 	// Set the local timeoffset to 0 before synchronization 
 	this->SetLocalTimeOffset(0, 0); 
-	
+
 	//************************************************************************************
 	// Set the length of the acquisition 
 	const double syncTimeLength = this->GetSynchronizer()->GetSynchronizationTimeLength(); 
@@ -658,9 +607,7 @@ PlusStatus vtkDataCollector::Synchronize( const bool saveSyncData /*=false*/ )
 	this->GetTracker()->GetTool(this->GetDefaultToolPortNumber())->GetBuffer()->Unlock(); 
 
 	// Get the realtime video frame rate
-	this->GetVideoSource()->GetBuffer()->Lock();
 	double videoFrameRate = this->GetVideoSource()->GetBuffer()->GetFrameRate(); 
-	this->GetVideoSource()->GetBuffer()->Unlock();
 
 	const int trackerBufferSize = this->GetTracker()->GetTool(this->GetDefaultToolPortNumber())->GetBuffer()->GetBufferSize(); 
 	const int videoBufferSize = this->GetVideoSource()->GetBuffer()->GetBufferSize(); 
@@ -673,15 +620,11 @@ PlusStatus vtkDataCollector::Synchronize( const bool saveSyncData /*=false*/ )
 	{
 		LOG_DEBUG("Change video buffer size to: " << syncVideoBufferSize); 
 		this->GetVideoSource()->SetFrameBufferSize(syncVideoBufferSize);	
-		this->GetVideoSource()->GetBuffer()->Lock(); 
 		this->GetVideoSource()->GetBuffer()->Clear(); 
-		this->GetVideoSource()->GetBuffer()->Unlock();
 	}
 	else
 	{
-		this->GetVideoSource()->GetBuffer()->Lock(); 
 		this->GetVideoSource()->GetBuffer()->Clear(); 
-		this->GetVideoSource()->GetBuffer()->Unlock(); 
 	}
 
 	if ( syncTrackerBufferSize > trackerBufferSize )
@@ -734,7 +677,7 @@ PlusStatus vtkDataCollector::Synchronize( const bool saveSyncData /*=false*/ )
 
 	//************************************************************************************
 	// Copy buffers to local buffer
-	vtkSmartPointer<vtkVideoBuffer2> videobuffer = vtkSmartPointer<vtkVideoBuffer2>::New(); 
+	vtkSmartPointer<vtkVideoBuffer> videobuffer = vtkSmartPointer<vtkVideoBuffer>::New(); 
 	if ( this->GetVideoSource() != NULL ) 
 	{
 		LOG_DEBUG("Copy video buffer ..."); 
@@ -754,7 +697,7 @@ PlusStatus vtkDataCollector::Synchronize( const bool saveSyncData /*=false*/ )
 		this->DumpTrackerToMetafile(tracker, "./", "DataCollectorSyncTrackerBuffer", false );
 		this->DumpVideoBufferToMetafile(videobuffer, "./", "DataCollectorSyncVideoBuffer", false ); 
 	}
-	
+
 
 	//************************************************************************************
 	// Start synchronization 
@@ -786,10 +729,8 @@ PlusStatus vtkDataCollector::Synchronize( const bool saveSyncData /*=false*/ )
 	// Change buffer size back to original 
 	LOG_DEBUG("Change video buffer size to: " << videoBufferSize); 
 	this->GetVideoSource()->SetFrameBufferSize(videoBufferSize);
-	this->GetVideoSource()->GetBuffer()->Lock(); 
 	this->GetVideoSource()->GetBuffer()->Clear(); 
-	this->GetVideoSource()->GetBuffer()->Unlock();
-	
+
 	LOG_DEBUG("Change tracker buffer size to: " << trackerBufferSize); 
 	for ( int i = 0; i < this->GetTracker()->GetNumberOfTools(); i++ )
 	{
@@ -799,7 +740,7 @@ PlusStatus vtkDataCollector::Synchronize( const bool saveSyncData /*=false*/ )
 		this->GetTracker()->GetTool(i)->GetBuffer()->Unlock(); 
 	}
 
-  return PLUS_SUCCESS;
+	return PLUS_SUCCESS;
 }
 
 
@@ -826,7 +767,7 @@ void vtkDataCollector::SetLocalTimeOffset(double videoOffset, double trackerOffs
 PlusStatus vtkDataCollector::GetMostRecentTimestamp(double &ts)
 {
 	LOG_TRACE("vtkDataCollector::GetMostRecentTimestamp"); 
-  ts=0;
+	ts=0;
 
 	if ( this->GetVideoSource() == NULL )
 	{
@@ -834,20 +775,16 @@ PlusStatus vtkDataCollector::GetMostRecentTimestamp(double &ts)
 		return PLUS_FAIL; 
 	}
 
-	this->GetVideoSource()->GetBuffer()->Lock(); 
 	// Get the most recent frame from the buffer
-	double frameTimestamp(0); 
-	vtkVideoBuffer2::FrameStatus status = this->GetVideoSource()->GetBuffer()->GetLatestTimeStamp(frameTimestamp); 
-	this->GetVideoSource()->GetBuffer()->Unlock();
-
-	if ( status != vtkVideoBuffer2::FRAME_OK )
+	if ( this->GetVideoSource()->GetBuffer()->GetLatestVideoBufferItem(this->CurrentVideoBufferItem) != ITEM_OK )
 	{
-		LOG_WARNING("Unable to get most recent timestamp from video buffer!"); 
+		LOG_WARNING("Unable to get most recent video item from video buffer!"); 
 		return PLUS_FAIL;
 	}
 
-	ts=frameTimestamp; 
-  return PLUS_SUCCESS;
+	ts = this->CurrentVideoBufferItem->GetTimestamp(this->GetVideoSource()->GetBuffer()->GetLocalTimeOffset() ); 
+
+	return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
@@ -877,7 +814,7 @@ long vtkDataCollector::GetMainToolStatus( double time )
 		LOG_ERROR("Unable to get main tool status without tracking device!"); 
 		return TR_MISSING; 
 	}
-	
+
 	vtkTrackerBuffer* buffer = this->GetTracker()->GetTool(this->GetDefaultToolPortNumber())->GetBuffer(); 
 
 	buffer->Lock(); 
@@ -898,60 +835,31 @@ PlusStatus vtkDataCollector::GetFrameByTime(const double time, vtkImageData* fra
 		return PLUS_FAIL; 
 	}
 
-	this->GetVideoSource()->GetBuffer()->Lock(); 
+	// Get frame UID
+	BufferItemUidType frameUID(0); 
+	ItemStatus status = this->GetVideoSource()->GetBuffer()->GetItemUidFromTime(time, frameUID); 
+	if ( status != ITEM_OK )
 	{
-		// Get frame UID
-		vtkVideoBuffer2::FrameUidType frameUID(0); 
-		vtkVideoBuffer2::FrameStatus status = this->GetVideoSource()->GetBuffer()->GetFrameUidFromTime(time, frameUID); 
-		if ( status != vtkVideoBuffer2::FRAME_OK )
-		{
-			LOG_ERROR("Couldn't get frame UID from time: " << std::fixed << time); 
-			this->GetVideoSource()->GetBuffer()->Unlock();
-			return PLUS_FAIL; 
-		}
-
-		// Get frame data
-		vtkVideoFrame2* videoFrame = NULL; 
-		if ( this->GetVideoSource()->GetBuffer()->GetFrame(frameUID, videoFrame) !=  vtkVideoBuffer2::FRAME_OK)
-		{
-			LOG_ERROR("Couldn't get video frame by frame UID: " << frameUID); 
-			this->GetVideoSource()->GetBuffer()->Unlock();
-			return PLUS_FAIL; 
-		}
-
-		// Copy image data 
-		if ( videoFrame == NULL )
-		{
-			LOG_ERROR("Couldn't copy video frame data if it's NULL!"); 
-			this->GetVideoSource()->GetBuffer()->Unlock();
-			return PLUS_FAIL; 
-		}
-		else
-		{
-			int videoFormat = this->GetVideoSource()->GetOutputFormat(); 
-			if (!videoFrame->CopyData(frame->GetScalarPointer(), frame->GetExtent(), frame->GetExtent(), videoFormat))
-      {
-        this->GetVideoSource()->GetBuffer()->Unlock();
-        LOG_ERROR("Cannot copy data for UID: " << frameUID);
-        return PLUS_FAIL;
-      }
-		}
-
-		// Get frame timestamp 
-		double timestamp(0); 
-		if ( this->GetVideoSource()->GetBuffer()->GetTimeStamp(frameUID, timestamp) != vtkVideoBuffer2::FRAME_OK )
-		{
-			LOG_ERROR("Couldn't get frame timestamp by frame UID: " << frameUID); 
-			this->GetVideoSource()->GetBuffer()->Unlock();
-			return PLUS_FAIL; 
-		}
-		else
-		{
-			frameTimestamp = timestamp; 
-		}
+		LOG_ERROR("Couldn't get frame UID from time: " << std::fixed << time); 
+		return PLUS_FAIL; 
 	}
-	this->GetVideoSource()->GetBuffer()->Unlock();
 
+
+	if ( this->GetVideoSource()->GetBuffer()->GetVideoBufferItem(frameUID, this->CurrentVideoBufferItem) != ITEM_OK )
+	{
+		LOG_ERROR("Couldn't get video buffer item by frame UID: " << frameUID); 
+		return PLUS_FAIL; 
+	}
+
+	int videoFormat = this->GetVideoSource()->GetOutputFormat(); 
+	if ( !this->CurrentVideoBufferItem->GetFrame()->CopyData( frame->GetScalarPointer(), frame->GetExtent(), frame->GetExtent(), videoFormat ) )
+	{
+		LOG_ERROR("Failed to copy image data for UID: " << frameUID);
+		return PLUS_FAIL;
+	}
+
+	// Get frame timestamp 
+	double timestamp = this->CurrentVideoBufferItem->GetTimestamp( this->GetVideoSource()->GetBuffer()->GetLocalTimeOffset() ); 
 	return PLUS_SUCCESS; 
 }
 
@@ -959,11 +867,11 @@ PlusStatus vtkDataCollector::GetFrameByTime(const double time, vtkImageData* fra
 PlusStatus vtkDataCollector::GetFrameWithTimestamp(vtkImageData* frame, double& frameTimestamp)
 {
 	//LOG_TRACE("vtkDataCollector::GetFrameWithTimestamp"); 
-  double mostRecentFrameTimestamp(0);
+	double mostRecentFrameTimestamp(0);
 	if (this->GetMostRecentTimestamp(mostRecentFrameTimestamp)!=PLUS_SUCCESS) 
-  {
-    return PLUS_FAIL;
-  }
+	{
+		return PLUS_FAIL;
+	}
 	return this->GetFrameByTime(mostRecentFrameTimestamp, frame, frameTimestamp); 
 }
 
@@ -1075,7 +983,7 @@ double vtkDataCollector::GetTransformsByTimeInterval(std::vector<vtkMatrix4x4*> 
 
 	for (int i=frameBufferStartIndex; i<=frameBufferEndIndex; ++i) {
 		vtkMatrix4x4* currentTransform = vtkMatrix4x4::New();
-		
+
 		if (calibratedTransform)
 		{
 			buffer->GetCalibratedMatrix(currentTransform, i);
@@ -1100,22 +1008,22 @@ double vtkDataCollector::GetTransformsByTimeInterval(std::vector<vtkMatrix4x4*> 
 PlusStatus vtkDataCollector::GetTrackedFrame(vtkImageData* frame, vtkMatrix4x4* toolTransMatrix, long& flags, double& synchronizedTime, int toolNumber/* = 0*/, bool calibratedTransform /*= false*/)
 {
 	//LOG_TRACE("vtkDataCollector::GetTrackedFrame - vtkImageData"); 
-	PlusStatus frameStatus=PLUS_SUCCESS; 
+	PlusStatus frameStatus = PLUS_SUCCESS; 
 	if ( ! this->TrackingOnly )
 	{
 		frameStatus = this->GetFrameWithTimestamp(frame, synchronizedTime); 
 	}
 
-  PlusStatus transformStatus=PLUS_SUCCESS; 
+	PlusStatus transformStatus=PLUS_SUCCESS; 
 	if ( ! this->VideoOnly )
 	{
 		transformStatus	= this->GetTransformByTimestamp( toolTransMatrix, flags, synchronizedTime, toolNumber, calibratedTransform); 
 	}
 
-  if (frameStatus==PLUS_FAIL || transformStatus==PLUS_FAIL)
-  {
-    return PLUS_FAIL;
-  }
+	if (frameStatus==PLUS_FAIL || transformStatus==PLUS_FAIL)
+	{
+		return PLUS_FAIL;
+	}
 
 	return PLUS_SUCCESS; 
 }
@@ -1154,9 +1062,9 @@ PlusStatus vtkDataCollector::GetTrackedFrame(TrackedFrame* trackedFrame, bool ca
 	//LOG_TRACE("vtkDataCollector::GetTrackedFrame - TrackedFrame"); 
 	double mostRecentFrameTimestamp(0);
 	if (this->GetMostRecentTimestamp(mostRecentFrameTimestamp)!=PLUS_SUCCESS) 
-  {
-    return PLUS_FAIL;
-  }
+	{
+		return PLUS_FAIL;
+	}
 	return this->GetTrackedFrameByTime(mostRecentFrameTimestamp, trackedFrame, calibratedTransform); 
 }
 
@@ -1175,7 +1083,6 @@ PlusStatus vtkDataCollector::GetTrackedFrameByTime(const double time, TrackedFra
 		vtkimage->AllocateScalars(); 
 
 		// Get the frame by time
-		double synchronizedTime(0); 
 		if ( ! this->GetFrameByTime(time, vtkimage, synchronizedTime) )
 		{
 			LOG_ERROR("Failed to get tracked frame by time: " << std::fixed << time ); 
@@ -1187,11 +1094,10 @@ PlusStatus vtkDataCollector::GetTrackedFrameByTime(const double time, TrackedFra
 		this->ConvertVtkImageToItkImage(vtkimage, itkimage); 
 
 		//Add all information to the tracked frame
-		trackedFrame->Timestamp = synchronizedTime; 
 		trackedFrame->ImageData = itkimage; 
 		trackedFrame->ImageData->Register(); 
 	}
-	
+
 	if ( ! this->VideoOnly && this->GetTracker() != NULL )
 	{
 		// Get tracker buffer values 
@@ -1232,6 +1138,9 @@ PlusStatus vtkDataCollector::GetTrackedFrameByTime(const double time, TrackedFra
 			trackedFrame->SetCustomFrameField(statusName.str(), it->second); 
 		}
 	}
+
+	// Save tracked frame timestamp 
+	trackedFrame->Timestamp = synchronizedTime; 
 
 	// Save frame timestamp
 	std::ostringstream strTimestamp; 
@@ -1287,9 +1196,9 @@ PlusStatus vtkDataCollector::GetTrackedFrame(vtkImageData* frame, std::vector<vt
 	// Get the most recent frame timestamp 
 	double mostRecentFrameTimestamp(0);
 	if (this->GetMostRecentTimestamp(mostRecentFrameTimestamp)!=PLUS_SUCCESS) 
-  {
-    return PLUS_FAIL;
-  }
+	{
+		return PLUS_FAIL;
+	}
 	return this->GetTrackedFrameByTime(mostRecentFrameTimestamp, frame, toolTransforms, toolTransformNames, flags, synchronizedTime, calibratedTransform); 
 }
 
@@ -1310,20 +1219,19 @@ int vtkDataCollector::RequestData( vtkInformation* vtkNotUsed( request ), vtkInf
 	outData->SetExtent(extent);
 	outData->GetPointData()->PassData(inData->GetPointData()); 
 
+	if ( this->GetVideoSource()->GetBuffer()->GetLatestVideoBufferItem( this->CurrentVideoBufferItem ) != ITEM_OK )
+	{
+		LOG_WARNING("Failed to get latest video buffer item!"); 
+		return 0; 
+	}
+	
+	// TODO: Do we need to copy the latest image data? 
+	//this->CurrentVideoBufferItem->GetFrame()->CopyData(
+
+	const double globalTime = this->CurrentVideoBufferItem->GetTimestamp( this->GetVideoSource()->GetBuffer()->GetLocalTimeOffset() ); 
+
 	if( this->GetTracker() != NULL && this->GetTracker()->IsTracking() )
 	{
-		double globalTime(0); 
-		this->VideoSource->GetBuffer()->Lock();
-		// Get the most recent frame from the buffer (if the video slower we have a chance to get the right transform)
-		vtkVideoBuffer2::FrameStatus status = this->VideoSource->GetBuffer()->GetLatestTimeStamp(globalTime); 
-		this->VideoSource->GetBuffer()->Unlock(); 
-
-		if (  status != vtkVideoBuffer2::FRAME_OK )
-		{
-			LOG_ERROR("Unable to get latest timestamp from video buffer!"); 
-			return 0;
-		}
-
 		for ( int i = 0; i < this->GetTracker()->GetNumberOfTools(); i++)
 		{
 			this->GetTracker()->GetTool(i)->GetBuffer()->Lock(); 
@@ -1453,23 +1361,23 @@ PlusStatus vtkDataCollector::ReadConfiguration()
 {
 	LOG_TRACE("vtkDataCollector::ReadConfiguration");
 
-  const char* configFn=this->GetConfigFileName();
-  if (configFn==NULL)
-  {
-    LOG_ERROR("Unable to read configuration file: no filename is specified"); 
-    return PLUS_FAIL;
-  }
+	const char* configFn=this->GetConfigFileName();
+	if (configFn==NULL)
+	{
+		LOG_ERROR("Unable to read configuration file: no filename is specified"); 
+		return PLUS_FAIL;
+	}
 
-  if ( this->ConfigurationData != NULL ) 
+	if ( this->ConfigurationData != NULL ) 
 	{
 		this->ConfigurationData->Delete(); 
 		this->ConfigurationData = NULL; 
 	}
 
-  this->ConfigurationData = vtkXMLUtilities::ReadElementFromFile(configFn); 
+	this->ConfigurationData = vtkXMLUtilities::ReadElementFromFile(configFn); 
 	if ( this->ConfigurationData == NULL) 
 	{	
-    LOG_ERROR("Unable to read configuration from file " << configFn); 
+		LOG_ERROR("Unable to read configuration from file " << configFn); 
 		return PLUS_FAIL;
 	} 
 
@@ -1500,18 +1408,18 @@ PlusStatus vtkDataCollector::ReadConfiguration()
 	{
 		this->ReadSynchronizationProperties(synchronizationConfig); 
 	}
-  return PLUS_SUCCESS;
+	return PLUS_SUCCESS;
 }
 
 
 //------------------------------------------------------------------------------
 PlusStatus vtkDataCollector::ReadTrackerProperties(vtkXMLDataElement* trackerConfig)
 {
-  if (trackerConfig==NULL)
-  {
-    LOG_ERROR("TrackerConfig element is invalid");
-    return PLUS_FAIL;
-  }
+	if (trackerConfig==NULL)
+	{
+		LOG_ERROR("TrackerConfig element is invalid");
+		return PLUS_FAIL;
+	}
 	LOG_TRACE("vtkDataCollector::ReadTrackerProperties");
 	const char* type = trackerConfig->GetAttribute("Type"); 
 	if ( type == NULL ) 
@@ -1546,14 +1454,14 @@ PlusStatus vtkDataCollector::ReadTrackerProperties(vtkXMLDataElement* trackerCon
 		/*int referenceToolNumber(-1);
 		if ( trackerCertus->GetScalarAttribute("ReferenceToolNumber", referenceToolNumber) ) 
 		{
-			tracker->SetReferenceTool(referenceToolNumber); 
+		tracker->SetReferenceTool(referenceToolNumber); 
 		}
 
 		int mainToolNumber(-1);
 		if ( trackerCertus->GetScalarAttribute("MainToolNumber", mainToolNumber) ) 
 		{
-			tracker->SetMainTool(mainToolNumber); 
-			this->SetMainToolNumber(mainToolNumber); 
+		tracker->SetMainTool(mainToolNumber); 
+		this->SetMainToolNumber(mainToolNumber); 
 		}*/
 #endif
 	}
@@ -1636,7 +1544,7 @@ PlusStatus vtkDataCollector::ReadTrackerProperties(vtkXMLDataElement* trackerCon
 		LOG_DEBUG("Tracker type: None");
 		this->SetTracker(NULL); 
 	}
-  return PLUS_SUCCESS;
+	return PLUS_SUCCESS;
 }
 
 
@@ -1645,11 +1553,11 @@ PlusStatus vtkDataCollector::ReadImageAcqusitionProperties(vtkXMLDataElement* im
 {
 	LOG_TRACE("vtkDataCollector::ReadImageAcqusitionProperties");
 
-  if (imageAcqusitionConfig==NULL)
-  {
-    LOG_ERROR("ImageAcqusitionConfig element is invalid");
-    return PLUS_FAIL;
-  }
+	if (imageAcqusitionConfig==NULL)
+	{
+		LOG_ERROR("ImageAcqusitionConfig element is invalid");
+		return PLUS_FAIL;
+	}
 
 	const char* type = imageAcqusitionConfig->GetAttribute("Type"); 
 
@@ -1739,7 +1647,7 @@ PlusStatus vtkDataCollector::ReadImageAcqusitionProperties(vtkXMLDataElement* im
 		LOG_DEBUG("Image acquisition type: None");
 		this->SetVideoSource(NULL); 
 	}
-  return PLUS_SUCCESS;
+	return PLUS_SUCCESS;
 }
 
 //------------------------------------------------------------------------------
@@ -1747,11 +1655,11 @@ PlusStatus vtkDataCollector::ReadSynchronizationProperties(vtkXMLDataElement* sy
 {
 	LOG_TRACE("vtkDataCollector::ReadSynchronizationProperties");
 
-  if (synchronizationConfig==NULL)
-  {
-    LOG_ERROR("SynchronizationConfig element is invalid");
-    return PLUS_FAIL;
-  }
+	if (synchronizationConfig==NULL)
+	{
+		LOG_ERROR("SynchronizationConfig element is invalid");
+		return PLUS_FAIL;
+	}
 
 	const char* type = synchronizationConfig->GetAttribute("Type"); 
 
@@ -1777,7 +1685,7 @@ PlusStatus vtkDataCollector::ReadSynchronizationProperties(vtkXMLDataElement* sy
 		LOG_DEBUG("Sync type: None");
 		this->SetSynchronizer(NULL);
 	}
-  return PLUS_SUCCESS;
+	return PLUS_SUCCESS;
 }
 
 

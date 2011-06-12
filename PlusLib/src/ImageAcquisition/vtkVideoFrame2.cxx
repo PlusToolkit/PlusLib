@@ -289,6 +289,30 @@ vtkVideoFrame2 *vtkVideoFrame2::MakeObject()
 }
 
 //----------------------------------------------------------------------------
+void vtkVideoFrame2::DeepCopy(vtkVideoFrame2* frame)
+{
+	this->SetFrameSize( frame->GetFrameSize() ); 
+	this->SetFrameExtent( frame->GetFrameExtent() ); 
+	this->SetPixelFormat( frame->GetPixelFormat() ); 
+	this->SetBitsPerPixel( frame->GetBitsPerPixel() ); 
+	this->SetRowAlignment( frame->GetRowAlignment() ); 
+	this->SetTopDown( frame->GetTopDown() ); 
+	this->SetOpacity( frame->GetOpacity() ); 
+	this->SetCompression( frame->GetCompression() ); 
+	this->SetFrameGrabberType( frame->GetFrameGrabberType() ); 
+
+	this->Allocate(); 
+
+	if ( frame->Array != NULL )
+	{
+		if (!frame->CopyData(this->GetVoidPointer(0), this->GetFrameExtent(), this->GetFrameExtent(), this->GetPixelFormat()))
+		{
+			LOG_ERROR("Cannot copy video frame data!");
+		}
+	}
+}
+
+//----------------------------------------------------------------------------
 // This method lets the user specify the data to be held by the array.
 // The array argument is a pointer to the data.  Size is the size of 
 // the array supplied by the user (in bytes).  Set save to 1 to keep the class
@@ -345,11 +369,15 @@ void *vtkVideoFrame2::GetVoidPointer(vtkIdType i)
   return (void *)(((char *)this->Array) + i);
 }
   
+// Line order:
+//  VTK format: LINES_BOTTOM_UP
+//  ITK format: LINES_TOP_DOWN
 //----------------------------------------------------------------------------
 // Copies data from the frame's array to the array pointed to by arrayPtr.
 bool vtkVideoFrame2::CopyData(void *arrayPtr, const int clipExtent[6],
            const int outExtent[6],
-           int outFormat)
+           int outFormat,
+		   LineOrder requestedLineOrder/*=LINES_BOTTOM_UP*/)
 {
 
   if (outFormat != VTK_LUMINANCE && outFormat != VTK_RGB && outFormat != VTK_RGBA)
@@ -428,7 +456,14 @@ bool vtkVideoFrame2::CopyData(void *arrayPtr, const int clipExtent[6],
 
   // a very small number of standard formats start at the top of the frame
   // (usually from frame grabbers), the rest all start at the bottom
-  if (this->TopDown)
+  bool reverseLineOrder=false;
+  if (this->TopDown && requestedLineOrder==LINES_BOTTOM_UP ||
+	  !this->TopDown && requestedLineOrder==LINES_TOP_DOWN)
+  {
+	  reverseLineOrder=true;
+  }
+
+  if (reverseLineOrder)
     {
   // apply a vertical flip while copying to output
     //inPtr += inIncZ*inPadZ+inIncY*(frameExtentY-clipExtent[3]-1);

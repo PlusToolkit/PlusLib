@@ -72,6 +72,7 @@ int main(int argc, char **argv)
 	///////////////
 
 	PlusLogger::Instance()->SetLogLevel(verboseLevel);
+	PlusLogger::Instance()->SetDisplayLogLevel(verboseLevel);
 
 	std::string programPath("./"), errorMsg; 
 	if ( !vtksys::SystemTools::FindProgramPath(argv[0], programPath, errorMsg) )
@@ -203,20 +204,15 @@ int main(int argc, char **argv)
 	const unsigned long imageHeightInPixels = videoFrameList->GetTrackedFrame(0)->ImageData->GetLargestPossibleRegion().GetSize()[1]; 
 	unsigned int frameSizeInBytes = imageWidthInPixels * imageHeightInPixels * sizeof(TrackedFrame::PixelType);
 
-	vtkSmartPointer<vtkVideoBuffer2> videoBuffer = vtkSmartPointer<vtkVideoBuffer2>::New(); 
+	vtkSmartPointer<vtkVideoBuffer> videoBuffer = vtkSmartPointer<vtkVideoBuffer>::New(); 
 	videoBuffer->GetFrameFormat()->SetFrameSize(imageWidthInPixels, imageHeightInPixels, 1); 
-	videoBuffer->GetFrameFormat()->SetFrameExtent(0, imageWidthInPixels - 1, 0, imageHeightInPixels - 1, 0, 1); 
+	videoBuffer->GetFrameFormat()->SetFrameExtent(0, imageWidthInPixels - 1, 0, imageHeightInPixels - 1, 0, 0); 
 	videoBuffer->GetFrameFormat()->SetPixelFormat(VTK_LUMINANCE); 
 	videoBuffer->GetFrameFormat()->SetBitsPerPixel(8); 
 	videoBuffer->GetFrameFormat()->SetFrameGrabberType(FG_BASE); 
 	videoBuffer->SetBufferSize(numberOfVideoFrames + 1); 
+	videoBuffer->UpdateBuffer(); 
 	
-	LOG_INFO("Allocate space for video buffer..."); 
-	for ( int i = 0; i < videoBuffer->GetBufferSize(); i++ )
-	{
-		videoBuffer->GetFrameByBufferIndex(i)->Allocate(); 
-	}
-
 	LOG_INFO("Copy buffer to video buffer..."); 
 	for ( int frameNumber = 0; frameNumber < numberOfVideoFrames; frameNumber++ )
 	{
@@ -260,11 +256,14 @@ int main(int argc, char **argv)
 			continue; 
 		}
 
-		vtkVideoFrame2* frameInBuffer = videoBuffer->GetFrameToWrite(); 
-		unsigned char *frameBufferPtr = reinterpret_cast<unsigned char *>(frameInBuffer->GetVoidPointer(0));
+		TrackedFrame::PixelType *deviceDataPtr = videoFrameList->GetTrackedFrame(frameNumber)->ImageData->GetBufferPointer(); 
+		const int frameSize[3] = {videoFrameList->GetTrackedFrame(frameNumber)->ImageData->GetLargestPossibleRegion().GetSize()[0], videoFrameList->GetTrackedFrame(frameNumber)->ImageData->GetLargestPossibleRegion().GetSize()[1], 1}; 
+		const int numberOfBitsPerPixel = videoFrameList->GetTrackedFrame(frameNumber)->ImageData->GetNumberOfComponentsPerPixel() * sizeof(TrackedFrame::PixelType) * 8; 
 
-		memcpy(frameBufferPtr,videoFrameList->GetTrackedFrame(frameNumber)->ImageData->GetBufferPointer(), frameSizeInBytes);
-		videoBuffer->AddItem(frameInBuffer, unfilteredtimestamp, timestamp, frmnum );
+		if ( videoBuffer->AddItem(deviceDataPtr, frameSize, numberOfBitsPerPixel, 0, unfilteredtimestamp, timestamp, frmnum) != PLUS_SUCCESS )
+		{
+			LOG_WARNING("Failed to add video frame to buffer from sequence metafile with frame #" << frameNumber ); 
+		}
 	}
 
 	PlusLogger::PrintProgressbar( 100 ); 
