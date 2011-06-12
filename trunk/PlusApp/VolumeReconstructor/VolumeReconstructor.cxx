@@ -109,6 +109,8 @@ int main (int argc, char* argv[])
 	}
 	
 	PlusLogger::PrintProgressbar( 100 ); 
+	
+	trackedFrameList->Clear(); 
   
 	LOG_INFO("Start reconstruction...");
 	reconstructor->StartReconstruction(); 

@@ -314,23 +314,8 @@ PlusStatus TrackedUltrasoundCapturing::UpdateRecording()
 PlusStatus TrackedUltrasoundCapturing::RecordTrackedFrame( const double time /*=0*/)
 {
 	LOG_TRACE("TrackedUltrasoundCapturing::RecordTrackedFrame");
-	if ( time != 0 )
-	{
-    double timestamp(0);
-    if (this->GetDataCollector()->GetFrameTimestampByTime(time)!=PLUS_SUCCESS)
-    {
-      LOG_ERROR("Cannot get frame timestamp, RecordTrackedFrame failed");
-      return PLUS_FAIL;
-    } 
-		if (timestamp == this->GetLastRecordedFrameTimestamp() )
-		{
-			LOG_DEBUG("This frame is already in the local buffer (timestamp: " << std::fixed << timestamp << ")"); 
-			return PLUS_FAIL;
-		}
-	}
 
 	TrackedFrame trackedFrame; 
-
 
 	if ( time == 0 )
 	{
@@ -340,6 +325,7 @@ PlusStatus TrackedUltrasoundCapturing::RecordTrackedFrame( const double time /*=
 	{
 		this->GetDataCollector()->GetTrackedFrameByTime(time, &trackedFrame); 
 	}
+
 
 	if ( trackedFrame.Status != TR_OK )
 	{

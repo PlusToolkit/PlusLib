@@ -94,7 +94,7 @@ int main(int argc, char **argv)
 	
 	//************************************************************************************
 	// Copy buffers to local buffer
-	vtkSmartPointer<vtkVideoBuffer2> videobuffer = vtkSmartPointer<vtkVideoBuffer2>::New(); 
+	vtkSmartPointer<vtkVideoBuffer> videobuffer = vtkSmartPointer<vtkVideoBuffer>::New(); 
 	if ( dataCollector->GetVideoSource() != NULL ) 
 	{
 		LOG_INFO("Copy video buffer ..."); 

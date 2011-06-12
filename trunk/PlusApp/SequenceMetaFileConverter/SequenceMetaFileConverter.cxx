@@ -504,6 +504,7 @@ void ConvertFromBitmap(SAVING_METHOD savingMethod)
 		TrackedFrame trackedFrame;
 		trackedFrame.ImageData = imageData;
 		trackedFrame.ImageData->Register(); 
+		trackedFrame.SetUltrasoundImageOrientation(inputUsImageOrientation.c_str()); 
 		ReadDRBTransformFile( transformFileNameWithPath.str(), &trackedFrame); 
 		trackedFrameContainer->AddTrackedFrame(&trackedFrame);
 
