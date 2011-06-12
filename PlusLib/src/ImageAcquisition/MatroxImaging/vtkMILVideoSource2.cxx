@@ -20,7 +20,7 @@
 #include "vtkObjectFactory.h"
 #include "vtkCriticalSection.h"
 #include "vtkDataArray.h"
-#include "vtkVideoBuffer2.h"
+#include "vtkVideoBuffer.h"
 #include "vtkVideoFrame2.h"
 
 #include <mil.h>

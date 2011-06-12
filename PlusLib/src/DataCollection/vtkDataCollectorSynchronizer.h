@@ -5,7 +5,7 @@
 #include "vtkTransform.h"
 #include "vtkMatrix4x4.h"
 #include "vtkImageData.h"
-#include "vtkVideoBuffer2.h"
+#include "vtkVideoBuffer.h"
 #include "vtkTrackerBuffer.h"
 #include "vtkXMLDataElement.h"
 #include <vector>

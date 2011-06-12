@@ -5,7 +5,7 @@
 #include "vtkSmartPointer.h"
 #include "vtkMatrix4x4.h"
 #include "vtkTrackerBuffer.h"
-#include "vtkVideoBuffer2.h"
+#include "vtkVideoBuffer.h"
 #include "vtkVideoFrame2.h"
 #include "vtkDataCollectorSynchronizer.h"
 #include "vtkHTMLGenerator.h"

@@ -14,7 +14,7 @@ SET (ImageAcquisition_SRCS
 	itkMetaImageSequenceIO.cxx 
 	itkFcsvReader.cxx
 	itkFcsvWriter.cxx
-	vtkVideoBuffer2.cxx 
+	vtkVideoBuffer.cxx 
 	vtkVideoFrame2.cxx 
 	vtkVideoSource2.cxx 
 	vtkBufferedVideoSource.cxx 
@@ -28,7 +28,7 @@ if (WIN32)
 		itkMetaImageSequenceIO.h
 		itkFcsvReader.h
 		itkFcsvWriter.h
-		vtkVideoBuffer2.h 
+		vtkVideoBuffer.h 
 		vtkVideoFrame2.h 
 		vtkVideoSource2.h 
 		vtkBufferedVideoSource.h

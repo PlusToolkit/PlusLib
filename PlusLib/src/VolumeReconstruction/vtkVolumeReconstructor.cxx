@@ -13,7 +13,7 @@
 #include "vtkTrackerTool.h"
 #include "vtkTrackerBuffer.h"
 #include "vtkTransform.h"
-#include "vtkVideoBuffer2.h"
+#include "vtkVideoBuffer.h"
 #include "vtkVolumeReconstructor.h"
 
 

@@ -1,7 +1,7 @@
 /*=========================================================================
 
 Program:   Visualization Toolkit
-Module:    $RCSfile: vtkVideoBuffer2.h,v $
+Module:    $RCSfile: vtkVideoBuffer.h,v $
 
 Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen
 All rights reserved.
@@ -15,13 +15,13 @@ the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
 PURPOSE.  See the above copyright notice for more information. 
 
 =========================================================================*/
-// .NAME vtkVideoBuffer2 - Store a collection of video frames
+// .NAME vtkVideoBuffer - Store a collection of video frames
 // .SECTION Description
-// vtkVideoBuffer2 is a structure for holding video frames that are
+// vtkVideoBuffer is a structure for holding video frames that are
 // captured either from a vtkRenderWindow or from some other video
 // source.  The buffer can be locked, to allow some video frames to
 // be written to while other frames are being read from.  Hopefully
-// an additional class will be written that will take a vtkVideoBuffer2
+// an additional class will be written that will take a vtkVideoBuffer
 // and compress it into a movie file.
 // .SECTION See Also
 // vtkVideoFrame2 vtkVideoSource2 vtkWin32VideoSource2 vtkMILVideoSource2

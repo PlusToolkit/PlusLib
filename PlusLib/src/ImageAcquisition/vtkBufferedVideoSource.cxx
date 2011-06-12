@@ -10,7 +10,7 @@
 //#include "vtkStreamingDemandDrivenPipeline.h"
 //#include "vtkUnsignedCharArray.h"
 //#include "vtksys/SystemTools.hxx"
-#include "vtkVideoBuffer2.h"
+#include "vtkVideoBuffer.h"
 #include "vtkVideoFrame2.h"
 #include "vtkMultiThreader.h"
 

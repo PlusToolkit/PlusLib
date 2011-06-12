@@ -3,7 +3,7 @@
 #include "vtkSmartPointer.h"
 #include "vtkDataCollector.h"
 #include "vtkTracker.h"
-#include "vtkVideoBuffer2.h"
+#include "vtkVideoBuffer.h"
 #include "vtkSavedDataTracker.h"
 #include "vtkSavedDataVideoSource.h"
 

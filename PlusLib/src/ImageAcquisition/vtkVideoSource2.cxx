@@ -18,7 +18,7 @@ PURPOSE.  See the above copyright notice for more information.
 #include "PlusConfigure.h"
 
 #include "vtkVideoSource2.h"
-#include "vtkVideoBuffer2.h"
+#include "vtkVideoBuffer.h"
 #include "vtkCriticalSection.h"
 #include "vtkDataArray.h"
 #include "vtkImageData.h"
