@@ -40,8 +40,8 @@ public:
 	
 	// Description:	
 	// Set/get video buffer 
-	vtkSetObjectMacro(VideoBuffer, vtkVideoBuffer2); 
-	vtkGetObjectMacro(VideoBuffer, vtkVideoBuffer2); 
+	vtkSetObjectMacro(VideoBuffer, vtkVideoBuffer); 
+	vtkGetObjectMacro(VideoBuffer, vtkVideoBuffer); 
 
 	// Description:	
 	// Set/get tracker buffer 
@@ -141,10 +141,10 @@ protected:
 	vtkDataCollectorSynchronizer();
 	virtual ~vtkDataCollectorSynchronizer();
 
-	virtual void ComputeFrameThreshold( vtkVideoBuffer2::FrameUidType& bufferIndex ); 
-	virtual PlusStatus FindFrameTimestamp( vtkVideoBuffer2::FrameUidType& bufferIndex, double& movedFrameTimestamp, double nextMovedTimestamp ); 
-	virtual PlusStatus GetFrameFromVideoBuffer( vtkImageData* frame, vtkVideoBuffer2::FrameUidType frameUid ); 
-	virtual void FindStillFrame( vtkVideoBuffer2::FrameUidType& baseIndex, vtkVideoBuffer2::FrameUidType& currentIndex ); 
+	virtual void ComputeFrameThreshold( BufferItemUidType& bufferIndex ); 
+	virtual PlusStatus FindFrameTimestamp( BufferItemUidType& bufferIndex, double& movedFrameTimestamp, double nextMovedTimestamp ); 
+	virtual PlusStatus CopyVideoFrame( vtkImageData* frame, vtkVideoFrame2* frameInBuffer); 
+	virtual void FindStillFrame( BufferItemUidType& baseIndex, BufferItemUidType& currentIndex ); 
 
 	virtual void ComputeTransformThreshold( int& bufferIndex ); 
 	virtual PlusStatus FindTransformTimestamp( int& bufferIndex, double& movedTransformTimestamp ); 
@@ -166,7 +166,7 @@ protected:
 
 	double SynchronizationTimeLength;
 
-	vtkVideoBuffer2* VideoBuffer; 
+	vtkVideoBuffer* VideoBuffer; 
 	int CurrentVideoBufferIndex; 
 	double FrameDifferenceMean; 
 	double FrameDifferenceThreshold; 

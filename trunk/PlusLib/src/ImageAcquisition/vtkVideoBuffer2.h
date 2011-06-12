@@ -26,38 +26,60 @@ PURPOSE.  See the above copyright notice for more information.
 // .SECTION See Also
 // vtkVideoFrame2 vtkVideoSource2 vtkWin32VideoSource2 vtkMILVideoSource2
 
-#ifndef __vtkVideoBuffer2_h
-#define __vtkVideoBuffer2_h
+#ifndef __vtkVideoBuffer_h
+#define __vtkVideoBuffer_h
 
 #include "vtkObject.h"
 
-class vtkCriticalSection;
-class vtkVideoFrame2;
-class vtkDoubleArray;
-class vtkUnsignedLongLongArray; 
+#include "vtkObjectFactory.h"
+#include "vtkTimestampedCircularBuffer.h"
 
-class VTK_EXPORT vtkVideoBuffer2 : public vtkObject
+class vtkVideoBufferObject; 
+class vtkVideoFrame2;
+class vtkImageData; 
+class TimestampedBufferItem; 
+
+class VTK_EXPORT VideoBufferItem : public TimestampedBufferItem
 {
 public:
-	typedef unsigned __int64 FrameUidType;
-	enum FrameStatus { FRAME_OK, FRAME_NOT_AVAILABLE_YET, FRAME_NOT_AVAILABLE_ANYMORE };
+	VideoBufferItem(); 
+	~VideoBufferItem(); 
+	VideoBufferItem(const VideoBufferItem& videoBufferItem); 
 
-	static vtkVideoBuffer2 *New();
-	vtkTypeRevisionMacro(vtkVideoBuffer2,vtkObject);
+	// Copy video buffer item 
+	PlusStatus DeepCopy(VideoBufferItem* videoBufferItem); 
+
+	// Set video frame format 
+	PlusStatus SetFrameFormat(vtkVideoFrame2* frameFormat); 
+
+	// Set/get video frame 
+	PlusStatus SetFrame(vtkVideoFrame2* frame); 
+	PlusStatus SetFrame(vtkImageData* frame); 
+	PlusStatus SetFrame(unsigned char *imageDataPtr, 
+		const int frameSizeInPx[3],
+		const int numberOfBitsPerPixel, 
+		const int	numberOfBytesToSkip ); 
+
+	vtkVideoFrame2* GetFrame() const { return this->Frame; }
+
+protected:
+	vtkVideoFrame2 *Frame;
+}; 
+
+
+class VTK_EXPORT vtkVideoBuffer : public vtkObject
+{
+public:	
+	
+	static vtkVideoBuffer *New();
+	vtkTypeRevisionMacro(vtkVideoBuffer,vtkObject);
 	void PrintSelf(ostream& os, vtkIndent indent);
 
 	// Description:
 	// Set/Get the size of the buffer, i.e. the maximum number of
 	// video frames that it will hold.  The default is 30.
 	virtual void SetBufferSize(int n);
-	vtkGetMacro(BufferSize, int);
-
-	// Description:
-	// Set/Get the number of items in the list (this is not the same as
-	// the buffer size, but is rather the number of transforms that
-	// have been added to the list).  This will never be greater than
-	// the BufferSize.
-	vtkGetMacro(NumberOfItems, int);
+	virtual int GetBufferSize(); 
 
 	// Description:
 	// Set/Get the format of the video frames in the buffer (the get method
@@ -68,134 +90,79 @@ public:
 	vtkVideoFrame2 *GetFrameFormat() { return this->FrameFormat; };
 
 	// Description:
-	// Lock/Unlock the buffer: this should be done before changing or accessing
-	// the data in the buffer if the buffer is being used from multiple
-	// threads.  
-	virtual void Lock();
-	virtual void Unlock();
-
+	// Update video buffer 
+	virtual void UpdateBuffer(); 
+	
 	// Description:
 	// Add a frame plus a timestamp to the buffer with frame index.  If the timestamp is
 	// less than or equal to the previous timestamp, or if the frame's format
 	// doesn't match the buffer's frame format, then nothing will be done.
-	virtual void AddItem(vtkVideoFrame2* frame, double unfilteredTimestamp, double filteredTimestamp, int frameNumber);
+	virtual PlusStatus AddItem(vtkImageData* frame, const double unfilteredTimestamp, const double filteredTimestamp, const long frameNumber); 
+	virtual PlusStatus AddItem(unsigned char *imageDataPtr, 
+		const int frameSizeInPx[3],
+		const int numberOfBitsPerPixel, 
+		const int numberOfBytesToSkip, 
+		const double unfilteredTimestamp, 
+		const double filteredTimestamp, 
+		const long frameNumber);
 
-	// Description:
-	// Get frame from the buffer by frame UID
-	// If FrameStatus is NOT FRAME_OK, vtkVideoFrame2*  will be NULL
-	virtual FrameStatus GetFrame(const FrameUidType uid, vtkVideoFrame2*& frame); 
+	virtual ItemStatus GetVideoBufferItem(const BufferItemUidType uid, VideoBufferItem* bufferItem);
+	virtual ItemStatus GetLatestVideoBufferItem(VideoBufferItem* bufferItem) { return this->GetVideoBufferItem( this->GetLatestItemUidInBuffer(), bufferItem); }; 
+	virtual ItemStatus GetOldestVideoBufferItem(VideoBufferItem* bufferItem) { return this->GetVideoBufferItem( this->GetOldestItemUidInBuffer(), bufferItem); }; 
+	virtual ItemStatus GetVideoBufferItemFromTime( const double time, VideoBufferItem* bufferItem); 
 
-	// Description:
-	// Get most recent frame from the frame buffer
-	virtual FrameStatus GetLatestFrame(vtkVideoFrame2* latestFrame); 
 
-		// Description:
-	// Get a frame from the buffer by buffer index, starting from 0 to (BufferSize - 1)
-	// This function is mainly needed for frame buffer initialization and internal access of buffer. 
-	virtual vtkVideoFrame2 *GetFrameByBufferIndex(const int bufferIndex);
+	virtual BufferItemUidType GetOldestItemUidInBuffer() { return this->VideoBuffer->GetOldestItemUidInBuffer(); }
+	virtual BufferItemUidType GetLatestItemUidInBuffer() { return this->VideoBuffer->GetLatestItemUidInBuffer(); }
+	virtual ItemStatus GetItemUidFromTime(const double time, BufferItemUidType& uid) { return this->VideoBuffer->GetItemUidFromTime(time, uid); }
 
-	// Description:
-	// Get next writable frame from the buffer
-	virtual vtkVideoFrame2 *GetFrameToWrite(); 
+	virtual void SetLocalTimeOffset(double offset);
+	virtual double GetLocalTimeOffset();
 
-	// Description:
-	// Given a timestamp, compute the nearest frame UID
-	// This assumes that the times motonically increase
-	virtual FrameStatus GetFrameUidFromTime(const double time, FrameUidType& uid );
+	virtual int GetNumberOfItems() { return this->VideoBuffer->GetNumberOfItems(); }
 
-	// Description:
-	// Get frame UID from buffer index
-	virtual FrameStatus GetFrameUidFromBufferIndex(const int bufferIndex, FrameUidType &uid ); 
-
-	// Description:
-	// Get the most recent frame UID 
-	virtual FrameUidType GetLatestFrameUidInBuffer() 
-	{ 
-		return this->FrameUID; 
-	}
-
-	// Description:
-	// Get the oldest frame UID in the buffer 
-	virtual FrameUidType GetOldestFrameUidInBuffer() 
-	{ 
-		// LatestFrameUid - ( NumberOfItems - 1 ) is the oldest element in the buffer, 
-		// but that one is the WritePointer location, the oldest readable frame is the subsequent
-		return ( this->FrameUID - ( this->NumberOfItems - 1 ) + 1 ); 
-	} 
-	
-	// Description:
-	// Get frame status by frame UID 
-	virtual FrameStatus GetFrameStatus(const FrameUidType uid ); 
-
-	// Description:
-	// Get timestamp by frame UID associated with the video frame data in the buffer
-	virtual FrameStatus GetLatestTimeStamp(double &timestamp) { return this->GetTimeStamp(this->FrameUID, timestamp); } ; 
-	virtual FrameStatus GetTimeStamp(const FrameUidType uid, double &timestamp) { return this->GetFilteredTimeStamp(uid, timestamp); }
-	virtual FrameStatus GetFilteredTimeStamp(const FrameUidType uid, double &filteredTimestamp); 
-	virtual FrameStatus GetUnfilteredTimeStamp(const FrameUidType uid, double &unfilteredTimestamp); 
-
-	// Description:
-	// Get a frame number from the buffer by frame UID. 
-	virtual FrameStatus GetFrameNumber(const FrameUidType uid, unsigned long &frameNumber); 
-
-	// Description:
-	// Get buffer index by frame UID 
-	// Returns buffer index if the FrameStatus is FRAME_OK, otherwise -1; 
-	virtual int GetBufferIndex( FrameUidType uid ); 
-
-	// Description:
-	// Given a timestamp, compute the nearest buffer index 
-	// This assumes that the times motonically increase
-	virtual FrameStatus GetBufferIndexFromTime(const double time, int& bufferIndex );
+	virtual double GetFrameRate() { return this->VideoBuffer->GetFrameRate(); }
 
 	// Description:
 	// Make this buffer into a copy of another buffer.  You should
 	// Lock both of the buffers before doing this.
-	virtual void DeepCopy(vtkVideoBuffer2* buffer); 
-
-	// Description:	
-	// Get/Set the local time offset (global = local + offset)
-	vtkSetMacro(LocalTimeOffset, double); 
-	vtkGetMacro(LocalTimeOffset, double);
-
-	// Description:
-	// Get the frame rate from the buffer based on the number of frames in the buffer
-	// and the elapsed time.
-	// Ideal frame rate shows the mean of the frame periods in the buffer based on the frame 
-	// number difference (aka the device frame rate)
-	virtual double GetFrameRate(bool ideal = false);
+	virtual void DeepCopy(vtkVideoBuffer* buffer); 
 
 	// Description:
 	// Clear buffer (set the buffer pointer to the first element)
 	virtual void Clear(); 
 
-protected:
-	vtkVideoBuffer2();
-	~vtkVideoBuffer2();
 
-	vtkVideoFrame2 **FrameArray;
-	vtkDoubleArray *FilteredTimeStampArray;
-	vtkDoubleArray *UnfilteredTimeStampArray;
-	vtkUnsignedLongLongArray *FrameNumberArray; 
-	vtkUnsignedLongLongArray *FrameUIDArray; 
+/*
+	// Description:
+	// Get frame from the buffer by frame UID
+	// If ItemStatus is NOT ITEM_OK, vtkVideoFrame2*  will be NULL
+	virtual ItemStatus GetFrame(const BufferItemUidType uid, vtkVideoFrame2*& frame); 
+	virtual ItemStatus UpdateImageData(const BufferItemUidType uid, vtkTrackedFrame *frame);
+*/
+
+	
+
+protected:
+	vtkVideoBuffer();
+	~vtkVideoBuffer();
+
+	// Description:
+	// Compares frame format with new frame imaging parameters
+	// Returns true if it matches, otherwise false
+	virtual bool CheckFrameFormat( const int frameSizeInPx[3], const int numberOfBitsPerPixel ); 
+	virtual bool CheckFrameFormat( vtkVideoFrame2* frame ); 
 
 	// holds the formatting information for the buffer's frames, but no data.
 	vtkVideoFrame2 *FrameFormat;
-
-	vtkCriticalSection *Mutex;
-
-	int BufferSize;
-	int NumberOfItems;
-	// Next image will be written here
-	int WritePointer;
-	double CurrentTimeStamp;
-	double LocalTimeOffset; 
-	
-	FrameUidType FrameUID; 
+	vtkTimestampedCircularBuffer<VideoBufferItem>* VideoBuffer; 
 
 private:
-	vtkVideoBuffer2(const vtkVideoBuffer2&);
-	void operator=(const vtkVideoBuffer2&);
+	vtkVideoBuffer(const vtkVideoBuffer&);
+	void operator=(const vtkVideoBuffer&);
 };
+
+
+
 
 #endif

@@ -75,39 +75,42 @@ void PlusLogger::SetDisplayLogLevel(int logLevel)
 //-------------------------------------------------------
 void PlusLogger::LogMessage(LogLevelType level, const char *msg, const char* fileName, int lineNumber)
 {
-  if (m_LogLevel<level && m_DisplayLogLevel<level)
-  {
-    // no need to log
-    return;
-  }
+	if (m_LogLevel<level && m_DisplayLogLevel<level)
+	{
+		// no need to log
+		return;
+	}
 
-  std::string timestamp=vtkAccurateTimer::GetInstance()->GetDateAndTimeMSecString();
+	std::string timestamp=vtkAccurateTimer::GetInstance()->GetDateAndTimeMSecString();
 
 	std::ostringstream log; 
-  switch (level)
-  {
-  case LOG_LEVEL_ERROR:
-    log << "[ERROR]  ";
-    break;
-  case LOG_LEVEL_WARNING:
-    log << "[WARNING]"; 
-    break;
-  case LOG_LEVEL_INFO:
-    log << "[INFO]   "; 
-    break;
-    case LOG_LEVEL_DEBUG:
-    log << "[DEBUG]  "; 
-    break;
-  case LOG_LEVEL_TRACE:
-    log << "[TRACE]  "; 
-    break;
-  default:
-    log << "[UNKNOWN]"; 
-    break;
-  }
-  log << msg;
-  log << " [in " << fileName << "(" << lineNumber << ")]"; // add filename and line number
-	
+	switch (level)
+	{
+	case LOG_LEVEL_ERROR:
+		log << "[ERROR]  ";
+		break;
+	case LOG_LEVEL_WARNING:
+		log << "[WARNING]"; 
+		break;
+	case LOG_LEVEL_INFO:
+		log << "[INFO]   "; 
+		break;
+	case LOG_LEVEL_DEBUG:
+		log << "[DEBUG]  "; 
+		break;
+	case LOG_LEVEL_TRACE:
+		log << "[TRACE]  "; 
+		break;
+	default:
+		log << "[UNKNOWN]"; 
+		break;
+	}
+	log << msg;
+	if ( level != LOG_LEVEL_INFO )
+	{
+		log << " [in " << fileName << "(" << lineNumber << ")]"; // add filename and line number
+	}
+
 	m_CriticalSection->Lock(); 
 
 	if (m_DisplayLogLevel>=level)
@@ -115,59 +118,59 @@ void PlusLogger::LogMessage(LogLevelType level, const char *msg, const char* fil
 
 #ifdef _WIN32
 
-    // Set the text color to highlight error and warning messages (supported only on windows)
-    switch (level)
-    {
-    case LOG_LEVEL_ERROR:  
-      {
-        HANDLE hStdout = GetStdHandle(STD_ERROR_HANDLE); 
-        SetConsoleTextAttribute(hStdout, FOREGROUND_RED|FOREGROUND_GREEN|FOREGROUND_BLUE|BACKGROUND_RED);
-      }
-      break;
-    case LOG_LEVEL_WARNING:
-      {
-        HANDLE hStdout = GetStdHandle(STD_ERROR_HANDLE); 
-        SetConsoleTextAttribute(hStdout, BACKGROUND_RED|BACKGROUND_GREEN);
-      }
-      break;
-    default:
-      {
-        HANDLE hStdout = GetStdHandle(STD_OUTPUT_HANDLE); 
-        SetConsoleTextAttribute(hStdout, FOREGROUND_RED|FOREGROUND_GREEN|FOREGROUND_BLUE);
-      }
-      break;
-    }    
+		// Set the text color to highlight error and warning messages (supported only on windows)
+		switch (level)
+		{
+		case LOG_LEVEL_ERROR:  
+			{
+				HANDLE hStdout = GetStdHandle(STD_ERROR_HANDLE); 
+				SetConsoleTextAttribute(hStdout, FOREGROUND_RED|FOREGROUND_GREEN|FOREGROUND_BLUE|BACKGROUND_RED);
+			}
+			break;
+		case LOG_LEVEL_WARNING:
+			{
+				HANDLE hStdout = GetStdHandle(STD_ERROR_HANDLE); 
+				SetConsoleTextAttribute(hStdout, BACKGROUND_RED|BACKGROUND_GREEN);
+			}
+			break;
+		default:
+			{
+				HANDLE hStdout = GetStdHandle(STD_OUTPUT_HANDLE); 
+				SetConsoleTextAttribute(hStdout, FOREGROUND_RED|FOREGROUND_GREEN|FOREGROUND_BLUE);
+			}
+			break;
+		}    
 #endif
 
-    if (level>LOG_LEVEL_WARNING)
-    {
-      std::cout << log.str() << std::endl; 
-    }
-    else
-    {
-		  std::cerr << log.str() << std::endl; 
-    }
+		if (level>LOG_LEVEL_WARNING)
+		{
+			std::cout << log.str() << std::endl; 
+		}
+		else
+		{
+			std::cerr << log.str() << std::endl; 
+		}
 
 #ifdef _WIN32
-    // Revert the text color (supported only on windows)
-    if (level==LOG_LEVEL_ERROR || level==LOG_LEVEL_WARNING)
-    {
-      HANDLE hStdout = GetStdHandle(STD_ERROR_HANDLE); 
-      SetConsoleTextAttribute(hStdout, FOREGROUND_RED|FOREGROUND_GREEN|FOREGROUND_BLUE);
-    }
+		// Revert the text color (supported only on windows)
+		if (level==LOG_LEVEL_ERROR || level==LOG_LEVEL_WARNING)
+		{
+			HANDLE hStdout = GetStdHandle(STD_ERROR_HANDLE); 
+			SetConsoleTextAttribute(hStdout, FOREGROUND_RED|FOREGROUND_GREEN|FOREGROUND_BLUE);
+		}
 #endif
 
-    if (m_DisplayMessageCallbackFunction != NULL)
-    {
-	    m_DisplayMessageCallbackFunction(msg, level);
-    }
+		if (m_DisplayMessageCallbackFunction != NULL)
+		{
+			m_DisplayMessageCallbackFunction(msg, level);
+		}
 	}	
 
-  if (m_LogLevel>=level)
-  {
-    this->m_LogStream << timestamp << " " << log.str() << std::endl; 
-	  this->m_LogStream.flush(); 
-  }
+	if (m_LogLevel>=level)
+	{
+		this->m_LogStream << timestamp << " " << log.str() << std::endl; 
+		this->m_LogStream.flush(); 
+	}
 
 	m_CriticalSection->Unlock(); 
 }

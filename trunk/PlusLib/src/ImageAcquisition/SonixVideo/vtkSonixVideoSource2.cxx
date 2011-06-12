@@ -180,10 +180,7 @@ vtkSonixVideoSource2::vtkSonixVideoSource2()
 	//this->Buffer->GetFrameFormat()->SetTopDown(1);
 
 	this->Buffer->GetFrameFormat()->SetFrameGrabberType(FG_BASE); 
-	for (int i = 0; i < this->Buffer->GetBufferSize(); i++)
-	{
-		this->Buffer->GetFrameByBufferIndex(i)->SetFrameGrabberType(FG_BASE);
-	}
+	this->SetFrameBufferSize(200); 
 }
 
 //----------------------------------------------------------------------------
@@ -287,18 +284,14 @@ PlusStatus vtkSonixVideoSource2::LocalInternalGrab(void* dataPtr, int type, int 
 {
 	if ( !this->Initialized )
 	{
-    LOG_ERROR("Cannot grab, the video source has not been initialized yet");
+		//LOG_ERROR("Cannot grab, the video source has not been initialized yet");
 		return PLUS_FAIL; 	
 	}
-	// get a thread lock on the frame buffer
-	this->Buffer->Lock();
-
 	//error check for data type, size
 	if ((uData)type!= (uData)this->AcquisitionDataType)
 	{
 		LOG_ERROR( "Received data type is different than expected");
-    this->Buffer->Unlock();
-    return PLUS_FAIL;
+		return PLUS_FAIL;
 	}
 
 	// use the information about data type and frmnum to do cross checking that you are maintaining correct frame index, & receiving
@@ -306,87 +299,27 @@ PlusStatus vtkSonixVideoSource2::LocalInternalGrab(void* dataPtr, int type, int 
 	this->FrameNumber = frmnum; 
 	double unfilteredTimestamp(0), filteredTimestamp(0); 
 	this->CreateTimeStampForFrame(this->FrameNumber, unfilteredTimestamp, filteredTimestamp);
-
-	// 3) read the data, based on the data type and clip region information, which is reflected in frame buffer extents
-	// this is necessary as there would be cases when there is a clip region defined i.e. only data from the desired extents should be copied 
-	// to the local buffer, which demands necessary advancement of deviceDataPtr
-
-	// first do the error check that whether the type arrived is same as the type requested?
-	if (type != this->AcquisitionDataType)
-	{
-		// error: data being acquired is not the same as requested
-		// do what?
-	}
-
-	// get the pointer to actual incoming data on to a local pointer
-	unsigned char *deviceDataPtr = static_cast<unsigned char*>(dataPtr);
-
-	// get the pointer to the correct location in the frame buffer, where this data needs to be copied
-	unsigned char *frameBufferPtr = reinterpret_cast<unsigned char *>(this->Buffer->GetFrameToWrite()->GetVoidPointer(0));
-
-	int FrameBufferExtent[6];
-	this->Buffer->GetFrameFormat()->GetFrameExtent(FrameBufferExtent);
-
-	int FrameBufferBitsPerPixel = this->Buffer->GetFrameFormat()->GetBitsPerPixel();
-
-	int outBytesPerRow = ((FrameBufferExtent[1] - FrameBufferExtent[0]+1)* FrameBufferBitsPerPixel + 7)/8;
-	outBytesPerRow += outBytesPerRow % this->FrameBufferRowAlignment;
-
-	int* frameSize = this->GetFrameSize(); 
-	int inBytesPerRow = frameSize[0] * FrameBufferBitsPerPixel/8;
-
-	int rows = FrameBufferExtent[3] - FrameBufferExtent[2]+1;
-
-	//check if the data received has the same size in bytes as expected
-	if (sz != inBytesPerRow*rows)
-	{
-		//error; data discrepancy!
-		//what to do?
-	}
+	
+	const int* frameSize = this->GetFrameSize(); 
+	int frameBufferBitsPerPixel = this->NumberOfScalarComponents * 8;
 
 	// for frame containing FC (frame count) in the beginning for data coming from cine, jump 2 bytes
+	int numberOfBytesToSkip = 0; 
 	if(    (type == udtBPre) || (type == udtRF) 
 		||  (type == udtMPre) || (type == udtPWRF)
 		||  (type == udtColorRF)
 		)
 	{
-		deviceDataPtr +=4;
+		numberOfBytesToSkip = 4;
 	}
 
+	// get the pointer to actual incoming data on to a local pointer
+	unsigned char *deviceDataPtr = static_cast<unsigned char*>(dataPtr);
 
-	deviceDataPtr += FrameBufferExtent[0]* FrameBufferBitsPerPixel/8;
-	deviceDataPtr += FrameBufferExtent[2]*inBytesPerRow;
+	PlusStatus status = this->Buffer->AddItem(deviceDataPtr, frameSize, frameBufferBitsPerPixel, numberOfBytesToSkip, unfilteredTimestamp, filteredTimestamp, this->FrameNumber); 
+	this->Modified(); 
 
-	// 4) copy data to the local vtk frame buffer
-	while (--rows >= 0)
-	{
-		deviceDataPtr += inBytesPerRow; 
-		for ( int c = 0; c < frameSize[0]; c++)
-		{
-			deviceDataPtr -= FrameBufferBitsPerPixel/8; 
-			memcpy(frameBufferPtr,deviceDataPtr,FrameBufferBitsPerPixel/8);
-			frameBufferPtr += FrameBufferBitsPerPixel/8; 
-		}
-		deviceDataPtr += inBytesPerRow;
-	}
-
-	// add the new frame and the current time to the buffer
-	this->Buffer->AddItem(this->Buffer->GetFrameToWrite(), unfilteredTimestamp, filteredTimestamp, this->FrameNumber);
-
-	if (this->FrameCount++ == 0)
-	{
-		double timestamp(0); 
-		if ( this->Buffer->GetLatestTimeStamp(timestamp) == vtkVideoBuffer2::FRAME_OK )
-		{
-			this->StartTimeStamp = timestamp;
-		}
-	}
-
-	this->Modified();
-
-	this->Buffer->Unlock();
-  
-  return PLUS_SUCCESS;
+	return status;
 }
 
 //----------------------------------------------------------------------------
@@ -404,14 +337,9 @@ PlusStatus vtkSonixVideoSource2::Initialize()
 		return PLUS_FAIL; 
 	}
 
-	// Set up the frame buffer
-	this->Buffer->Lock();
-	// update the frame buffer now just in case there is an error
-	this->UpdateFrameBuffer();
 	this->DoFormatSetup();
-	this->Buffer->Unlock();
 
-	// update framebuffer 
+	// update the frame buffer now just in case there is an error
 	this->UpdateFrameBuffer();
 
 	this->Initialized = 1;
@@ -913,14 +841,12 @@ void vtkSonixVideoSource2::SetOutputFormat(int format)
 
 	if (this->Buffer->GetFrameFormat()->GetBitsPerPixel() != numComponents*8)
 	{
-		this->Buffer->Lock();
 		this->Buffer->GetFrameFormat()->SetBitsPerPixel(numComponents*8);
 		if (this->Initialized)
 		{
 			this->UpdateFrameBuffer();    
 			this->DoFormatSetup();
 		}
-		this->Buffer->Unlock();
 	}
 
 	this->Modified();

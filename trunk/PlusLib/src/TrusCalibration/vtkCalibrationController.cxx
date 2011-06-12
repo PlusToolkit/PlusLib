@@ -726,10 +726,6 @@ PlusStatus vtkCalibrationController::ReadRealtimeCalibrationConfiguration( vtkXM
 
 		this->SetRealtimeImageDataInfo(FREEHAND_MOTION_1, imageDataInfo); 
 	}
-	else
-	{
-		LOG_WARNING("Unable to find FreehandMotionData1 XML data element"); 
-	}
 
 	// FreehandMotionData2 data set specifications
 	//********************************************************************
@@ -750,10 +746,6 @@ PlusStatus vtkCalibrationController::ReadRealtimeCalibrationConfiguration( vtkXM
 		}
 
 		this->SetRealtimeImageDataInfo(FREEHAND_MOTION_2, imageDataInfo); 
-	}
-	else
-	{
-		LOG_WARNING("Unable to find FreehandMotionData2 XML data element"); 
 	}
 
   return PLUS_SUCCESS;

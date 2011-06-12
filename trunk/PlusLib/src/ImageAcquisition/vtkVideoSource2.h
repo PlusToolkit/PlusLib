@@ -39,11 +39,13 @@ class vtkTimerLog;
 class vtkCriticalSection;
 class vtkMultiThreader;
 class vtkScalarsToColors;
-class vtkVideoBuffer2;
+class vtkVideoBuffer;
 class vtkImageWriter;
 class vtkImageReader2;
 class vtkHTMLGenerator; 
 class vtkGnuplotExecuter; 
+class vtkVideoFrame2; 
+class VideoBufferItem;
 
 
 #define FILETYPE_BMP  1
@@ -213,7 +215,7 @@ public:
 
   // Description:
   // Get the buffer that is used to hold the video frames.
-  virtual vtkVideoBuffer2 *GetBuffer() { return this->Buffer; };
+  virtual vtkVideoBuffer *GetBuffer() { return this->Buffer; };
 
   // Description:
   // Initialize the hardware.  This is called automatically
@@ -236,8 +238,8 @@ public:
   // Description:
   // And internal variable which marks the beginning of a Record session.
   // These methods are for internal use only.
-  void SetStartTimeStamp(double t) { this->StartTimeStamp = t; };
-  virtual double GetStartTimeStamp() { return this->StartTimeStamp; };
+  /*void SetStartTimeStamp(double t) { this->StartTimeStamp = t; };
+  virtual double GetStartTimeStamp() { return this->StartTimeStamp; };*/
 
   // Description:
   // The result of GetOutput() will be the frame closest to DesiredTimestamp
@@ -301,7 +303,7 @@ protected:
   float FrameRate;
   int FrameCount;
   unsigned long FrameNumber; 
-  double StartTimeStamp;
+  //double StartTimeStamp;
   double FrameTimeStamp;
 
   double LastTimeStamp;
@@ -322,7 +324,8 @@ protected:
   int RecordThreadId;
 
   // The buffer used to hold the frames
-  vtkVideoBuffer2 *Buffer;
+  vtkVideoBuffer *Buffer;
+  VideoBufferItem *CurrentVideoBufferItem; 
 
   // Description:
   // These methods can be overridden in subclasses
@@ -334,6 +337,8 @@ protected:
 private:
   vtkVideoSource2(const vtkVideoSource2&);  // Not implemented.
   void operator=(const vtkVideoSource2&);  // Not implemented.
+
+  vtkVideoFrame2* PseudoRandomNoiseFrame; 
 };
 
 #endif

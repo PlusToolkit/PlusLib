@@ -119,7 +119,7 @@ void vtkDataCollectorSynchronizer::Synchronize()
 			this->ComputeTransformThreshold( trackerBufferIndex ); 
 
 			double movedTransformTimestamp(0); 
-			if ( this->FindTransformTimestamp( trackerBufferIndex, movedTransformTimestamp ) )
+			if ( this->FindTransformTimestamp( trackerBufferIndex, movedTransformTimestamp ) == PLUS_SUCCESS )
 			{
 				if ( movedTransformTimestamps.size() == 0 )
 				{
@@ -142,17 +142,17 @@ void vtkDataCollectorSynchronizer::Synchronize()
 
 	}
 
-	vtkVideoBuffer2::FrameUidType videoBufferIndex = this->VideoBuffer->GetOldestFrameUidInBuffer(); 
-	/*if ( this->VideoBuffer->GetBufferIndexFromTime( this->SyncStartTime,  videoBufferIndex) != vtkVideoBuffer2::FRAME_OK )
+	BufferItemUidType videoBufferIndex = this->VideoBuffer->GetOldestItemUidInBuffer(); 
+	/*if ( this->VideoBuffer->GetBufferIndexFromTime( this->SyncStartTime,  videoBufferIndex) != ITEM_OK )
 	{
-		LOG_WARNING("Unable to get buffer index for sync start time: " << std::fixed << this->SyncStartTime << " - let's start from the oldest frame!");
-		videoBufferIndex = this->VideoBuffer->GetBufferIndex( this->VideoBuffer->GetOldestFrameUidInBuffer() ); 
+	LOG_WARNING("Unable to get buffer index for sync start time: " << std::fixed << this->SyncStartTime << " - let's start from the oldest frame!");
+	videoBufferIndex = this->VideoBuffer->GetBufferIndex( this->VideoBuffer->GetOldestItemUidInBuffer() ); 
 	}*/
 
 	LOG_DEBUG("Still Frame Search Intervall: " << 1000*stillFrameIntervall << "ms"); 
 
 	int videoSyncStep(0); 
-	for ( unsigned int i = 0; i < movedTransformTimestamps.size() && videoBufferIndex <= this->VideoBuffer->GetLatestFrameUidInBuffer(); i++ )
+	for ( unsigned int i = 0; i < movedTransformTimestamps.size() && videoBufferIndex <= this->VideoBuffer->GetLatestItemUidInBuffer(); i++ )
 	{
 		LOG_TRACE("Video sync step: " << videoSyncStep ); 
 		LOG_DEBUG(std::fixed << "Next moved transform timestamp: " << movedTransformTimestamps[i] ); 
@@ -166,8 +166,8 @@ void vtkDataCollectorSynchronizer::Synchronize()
 		}
 
 		// Find the initial frame index 
-		vtkVideoBuffer2::FrameUidType idx(0); 
-		if ( this->VideoBuffer->GetFrameUidFromTime( stillFrameTimestamp, idx) != vtkVideoBuffer2::FRAME_OK )
+		BufferItemUidType idx(0); 
+		if ( this->VideoBuffer->GetItemUidFromTime( stillFrameTimestamp, idx) != ITEM_OK )
 		{
 			LOG_WARNING("vtkDataCollectorSynchronizer: Unable to get frame UID for timestamp: " << std::fixed << stillFrameTimestamp);
 			continue; 
@@ -177,10 +177,10 @@ void vtkDataCollectorSynchronizer::Synchronize()
 			videoBufferIndex = idx; 
 		}
 
-		vtkVideoBuffer2::FrameUidType stillFrameIndex = videoBufferIndex - this->GetNumberOfAveragedFrames(); 
-		if ( stillFrameIndex < this->VideoBuffer->GetOldestFrameUidInBuffer() )
+		BufferItemUidType stillFrameIndex = videoBufferIndex - this->GetNumberOfAveragedFrames(); 
+		if ( stillFrameIndex < this->VideoBuffer->GetOldestItemUidInBuffer() )
 		{
-			stillFrameIndex = this->VideoBuffer->GetOldestFrameUidInBuffer(); 
+			stillFrameIndex = this->VideoBuffer->GetOldestItemUidInBuffer(); 
 		}
 
 		// Find the timestamp of next possible movement 
@@ -194,21 +194,24 @@ void vtkDataCollectorSynchronizer::Synchronize()
 		this->SetBaseFrame(NULL); 
 		this->FindStillFrame(videoBufferIndex, stillFrameIndex ); 
 
-		if ( this->VideoBuffer->GetTimeStamp(videoBufferIndex, stillFrameTimestamp) != vtkVideoBuffer2::FRAME_OK )
+		VideoBufferItem videoItem; 
+		if ( this->VideoBuffer->GetVideoBufferItem(videoBufferIndex, &videoItem) != ITEM_OK )
 		{
-			LOG_WARNING("vtkDataCollectorSynchronizer: Unable to get frame timestamp for still frame with frame UID: " << videoBufferIndex); 
+			LOG_WARNING("vtkDataCollectorSynchronizer: Unable to get video frame with frame UID: " << videoBufferIndex); 
 			continue; 
 		}
 
+		const double localTimeOffset = 0; 
+		stillFrameTimestamp = videoItem.GetTimestamp(localTimeOffset); 
 		LOG_DEBUG("Still frame timestamp: " << std::fixed << stillFrameTimestamp); 
 
-		if ( videoBufferIndex < this->VideoBuffer->GetLatestFrameUidInBuffer() ) 
+		if ( videoBufferIndex < this->VideoBuffer->GetLatestItemUidInBuffer() ) 
 		{
 			// Set the baseframe of the image compare 
 			vtkSmartPointer<vtkImageData> baseframe = vtkSmartPointer<vtkImageData>::New(); 
-			if ( !this->GetFrameFromVideoBuffer(baseframe, videoBufferIndex) )
+			if ( this->CopyVideoFrame(baseframe, videoItem.GetFrame()) != PLUS_SUCCESS )
 			{
-				LOG_WARNING("vtkDataCollectorSynchronizer: Unable to get frame from video buffer!"); 
+				LOG_WARNING("vtkDataCollectorSynchronizer: Unable to copy image from video buffer!"); 
 				continue; 
 			}
 
@@ -232,12 +235,13 @@ void vtkDataCollectorSynchronizer::Synchronize()
 			// Compute the frame threshold
 			this->ComputeFrameThreshold( videoBufferIndex ); 
 
-			double currentFrameTimestamp(0); 
-			if ( this->VideoBuffer->GetTimeStamp(videoBufferIndex, currentFrameTimestamp) != vtkVideoBuffer2::FRAME_OK )
+			if ( this->VideoBuffer->GetVideoBufferItem(videoBufferIndex, &videoItem) != ITEM_OK )
 			{
-				LOG_WARNING("vtkDataCollectorSynchronizer: Unable to get frame timestamp for frame with frame UID: " << videoBufferIndex); 
+				LOG_WARNING("vtkDataCollectorSynchronizer: Unable to get video frame with frame UID: " << videoBufferIndex); 
 				continue; 
 			}
+
+			double currentFrameTimestamp = videoItem.GetTimestamp(localTimeOffset); 
 
 			if ( currentFrameTimestamp > movedTransformTimestamps[i] )
 			{
@@ -505,11 +509,10 @@ PlusStatus vtkDataCollectorSynchronizer::FindTransformTimestamp( int& bufferInde
 		bufferIndex--; 
 	}
 
-  if (!diffFound)
-  {
-    LOG_ERROR("Not enough difference found in the data");
-    return PLUS_FAIL;
-  }
+	if (!diffFound)
+	{
+		return PLUS_FAIL;
+	}
 	return PLUS_SUCCESS; 
 
 }
@@ -653,19 +656,13 @@ void vtkDataCollectorSynchronizer::ConvertFrameToRGB( vtkImageData* pFrame, vtkI
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkDataCollectorSynchronizer::GetFrameFromVideoBuffer( vtkImageData* frame, vtkVideoBuffer2::FrameUidType frameUid )
+PlusStatus vtkDataCollectorSynchronizer::CopyVideoFrame( vtkImageData* frame, vtkVideoFrame2* frameInBuffer )
 {
-	LOG_TRACE("vtkDataCollectorSynchronizer::GetFrameFromVideoBuffer"); 
+	LOG_TRACE("vtkDataCollectorSynchronizer::CopyVideoFrame"); 
 
-	vtkVideoFrame2* frameInBuffer = NULL; 
-	if ( this->GetVideoBuffer()->GetFrame(frameUid, frameInBuffer) != vtkVideoBuffer2::FRAME_OK )
+	if ( frameInBuffer == NULL )
 	{
-		LOG_WARNING("vtkDataCollectorSynchronizer: Unable to get frame from buffer with frame UID: " << frameUid); 
-		if ( frame != NULL ) 
-		{
-			frame->Delete(); 
-			frame = NULL; 
-		}
+		LOG_WARNING("vtkDataCollectorSynchronizer: Failed to copy NULL video frame!"); 
 		return PLUS_FAIL; 
 	}
 
@@ -676,20 +673,21 @@ PlusStatus vtkDataCollectorSynchronizer::GetFrameFromVideoBuffer( vtkImageData* 
 	frame->SetNumberOfScalarComponents(1); 
 	frame->AllocateScalars(); 
 
-	if (!frameInBuffer->CopyData( frame->GetScalarPointer(), extent, extent, pixelFormat))
-  {
-    LOG_ERROR("Cannot copy data for UID: " << frameUid);
-    return PLUS_FAIL;
-  }
+	if (!frameInBuffer->CopyData(frame->GetScalarPointer(), extent, extent, pixelFormat))
+	{
+		LOG_ERROR("Failed to copy data from video frame!");
+		return PLUS_FAIL;
+	}
 
 	return PLUS_SUCCESS; 
 }
 
 //----------------------------------------------------------------------------
-void vtkDataCollectorSynchronizer::FindStillFrame( vtkVideoBuffer2::FrameUidType& baseIndex, vtkVideoBuffer2::FrameUidType& currentIndex )
+void vtkDataCollectorSynchronizer::FindStillFrame( BufferItemUidType& baseIndex, BufferItemUidType& currentIndex )
 {
 	LOG_TRACE("vtkDataCollectorSynchronizer::FindStillFrame"); 
-	const vtkVideoBuffer2::FrameUidType latestFrameUid = this->VideoBuffer->GetLatestFrameUidInBuffer(); 
+	const BufferItemUidType latestFrameUid = this->VideoBuffer->GetLatestItemUidInBuffer(); 
+	VideoBufferItem videoItem; 
 	while ( currentIndex <= latestFrameUid && baseIndex <= latestFrameUid && baseIndex != currentIndex )
 	{
 		const int videosyncprogress = floor(100.0*(this->GetVideoBuffer()->GetNumberOfItems() - baseIndex) / (1.0 * this->GetVideoBuffer()->GetNumberOfItems())); 
@@ -700,10 +698,24 @@ void vtkDataCollectorSynchronizer::FindStillFrame( vtkVideoBuffer2::FrameUidType
 
 		if ( this->GetBaseFrame() == NULL ) 
 		{
-			vtkImageData* baseframe = vtkImageData::New(); 
-			if ( !this->GetFrameFromVideoBuffer(baseframe, baseIndex) )
+			if ( this->VideoBuffer->GetVideoBufferItem(baseIndex, &videoItem) != ITEM_OK )
 			{
 				LOG_WARNING("vtkDataCollectorSynchronizer: Unable to get frame from video buffer!"); 
+				baseIndex = baseIndex + 1; 
+				currentIndex = baseIndex + this->GetNumberOfAveragedFrames(); 
+				this->SetBaseFrame(NULL); 
+				continue; 
+			}
+
+			vtkImageData* baseframe = vtkImageData::New(); 
+			if ( this->CopyVideoFrame(baseframe, videoItem.GetFrame()) != PLUS_SUCCESS )
+			{
+				LOG_WARNING("vtkDataCollectorSynchronizer: Unable to copy video frame!"); 
+				if ( baseframe != NULL )
+				{
+					baseframe->Delete(); 
+					baseframe = NULL; 
+				}
 				baseIndex = baseIndex + 1; 
 				currentIndex = baseIndex + this->GetNumberOfAveragedFrames(); 
 				this->SetBaseFrame(NULL); 
@@ -735,10 +747,24 @@ void vtkDataCollectorSynchronizer::FindStillFrame( vtkVideoBuffer2::FrameUidType
 		}
 
 
-		vtkImageData* frame = vtkImageData::New(); 
-		if ( !this->GetFrameFromVideoBuffer(frame, currentIndex) ) 
+		if ( this->VideoBuffer->GetVideoBufferItem(currentIndex, &videoItem) != ITEM_OK )
 		{
 			LOG_WARNING("vtkDataCollectorSynchronizer: Unable to get frame from video buffer!"); 
+			baseIndex = baseIndex + 1; 
+			currentIndex = baseIndex + this->GetNumberOfAveragedFrames(); 
+			this->SetBaseFrame(NULL); 
+			continue; 
+		}
+
+		vtkImageData* frame = vtkImageData::New(); 
+		if ( this->CopyVideoFrame(frame, videoItem.GetFrame()) != PLUS_SUCCESS ) 
+		{
+			LOG_WARNING("vtkDataCollectorSynchronizer: Unable to get frame from video buffer!"); 
+			if ( frame != NULL )
+			{
+				frame->Delete(); 
+				frame = NULL; 
+			}
 			baseIndex = baseIndex + 1; 
 			currentIndex = baseIndex + this->GetNumberOfAveragedFrames(); 
 			this->SetBaseFrame(NULL); 
@@ -789,33 +815,35 @@ void vtkDataCollectorSynchronizer::FindStillFrame( vtkVideoBuffer2::FrameUidType
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkDataCollectorSynchronizer::FindFrameTimestamp( vtkVideoBuffer2::FrameUidType& bufferIndex, double& movedFrameTimestamp, double nextMovedTimestamp )
+PlusStatus vtkDataCollectorSynchronizer::FindFrameTimestamp( BufferItemUidType& bufferIndex, double& movedFrameTimestamp, double nextMovedTimestamp )
 {
 	LOG_TRACE("vtkDataCollectorSynchronizer::FindFrameTimestamp"); 
 
-	double frameTimestamp(0); 
-	if ( this->GetVideoBuffer()->GetTimeStamp(bufferIndex, frameTimestamp) == vtkVideoBuffer2::FRAME_OK )
+	const double localTimeOffset(0); 
+	VideoBufferItem videoItem; 
+	if ( this->GetVideoBuffer()->GetVideoBufferItem(bufferIndex, &videoItem) == ITEM_OK )
 	{
-		LOG_DEBUG("****Start to find next frame movement at: " << std::fixed << frameTimestamp ); 
+		LOG_DEBUG("****Start to find next frame movement at: " << std::fixed << videoItem.GetTimestamp(localTimeOffset)); 
 	}
 
 	bool diffFound = false; 
 
-	while ( !diffFound && bufferIndex <= this->VideoBuffer->GetLatestFrameUidInBuffer() )
+	while ( !diffFound && bufferIndex <= this->VideoBuffer->GetLatestItemUidInBuffer() )
 	{
 		const int videosyncprogress = floor(100.0*(this->GetVideoBuffer()->GetNumberOfItems() - bufferIndex) / (1.0 * this->GetVideoBuffer()->GetNumberOfItems())); 
 		if ( this->ProgressBarUpdateCallbackFunction != NULL )
 		{
 			(*ProgressBarUpdateCallbackFunction)(videosyncprogress); 
 		}
-	
-		double frameTimestamp(0); 
-		if ( this->GetVideoBuffer()->GetTimeStamp(bufferIndex, frameTimestamp) != vtkVideoBuffer2::FRAME_OK )
-		{
+
+		if ( this->GetVideoBuffer()->GetVideoBufferItem(bufferIndex, &videoItem) != ITEM_OK )
+		{	
 			LOG_WARNING("vtkDataCollectorSynchronizer: Unable to get frame from frame UID: " << bufferIndex); 
 			bufferIndex++; 
 			continue; 
 		}
+
+		double frameTimestamp = videoItem.GetTimestamp(localTimeOffset); 
 
 		// if the tracker moved again, the result is not reliable - return false
 		if ( frameTimestamp >= nextMovedTimestamp )
@@ -827,36 +855,10 @@ PlusStatus vtkDataCollectorSynchronizer::FindFrameTimestamp( vtkVideoBuffer2::Fr
 			return PLUS_FAIL; 
 		}
 
-		unsigned long frameNumber(0); 
-		if ( this->GetVideoBuffer()->GetFrameNumber(bufferIndex, frameNumber) != vtkVideoBuffer2::FRAME_OK)
-		{
-			LOG_WARNING("vtkDataCollectorSynchronizer: Unable to get frame number from frame UID: " << bufferIndex); 
-			bufferIndex++; 
-			continue; 
-		}
-
-		// Check previous frame 
-		if ( bufferIndex - 1 >= this->GetVideoBuffer()->GetOldestFrameUidInBuffer() )
-		{
-			unsigned long prevFrameNumber(0); 
-			if ( this->GetVideoBuffer()->GetFrameNumber(bufferIndex - 1, prevFrameNumber) != vtkVideoBuffer2::FRAME_OK)
-			{
-				LOG_WARNING("vtkDataCollectorSynchronizer: Unable to get previous frame number from frame UID: " << bufferIndex - 1); 
-			}
-		}
-
-		// Check next frame 
-		if ( bufferIndex + 1 <= this->GetVideoBuffer()->GetLatestFrameUidInBuffer() )
-		{
-			unsigned long nextFrameNumber(0); 
-			if ( this->GetVideoBuffer()->GetFrameNumber(bufferIndex + 1, nextFrameNumber) != vtkVideoBuffer2::FRAME_OK)
-			{
-				LOG_WARNING("vtkDataCollectorSynchronizer: Unable to get next frame number from frame UID: " << bufferIndex + 1); 
-			}
-		}
+		unsigned long frameNumber = videoItem.GetIndex(); 
 
 		vtkSmartPointer<vtkImageData> frame = vtkSmartPointer<vtkImageData>::New(); 
-		if ( !this->GetFrameFromVideoBuffer(frame, bufferIndex) ) 
+		if ( this->CopyVideoFrame(frame, videoItem.GetFrame() ) != PLUS_SUCCESS ) 
 		{
 			LOG_WARNING("vtkDataCollectorSynchronizer: Unable to get frame from video buffer!"); 
 			bufferIndex++; 
@@ -894,17 +896,6 @@ PlusStatus vtkDataCollectorSynchronizer::FindFrameTimestamp( vtkVideoBuffer2::Fr
 		// if larger then threshold => frame moved
 		if ( ! diffFound && abs(frameDifference - this->FrameDifferenceMean) >  this->FrameDifferenceThreshold )
 		{
-
-			//			if ( nextFrameNumber - frameNumber > 1 || frameNumber - prevFrameNumber > 1 ) 
-			//			{
-			//				// we have missing frames, the result is not reliable
-			//#ifdef PLUS_PRINT_SYNC_DEBUG_INFO
-			//				this->DebugInfoStream << "# FinalFrameTimestamp is not reliable! We have missing frames!" <<  std::endl; 
-			//#endif
-			//				LOG_DEBUG("# Final Frame Timestamp is not reliable! We have missing frames!"); 
-			//				//return false; 
-			//			}
-
 			LOG_DEBUG(std::fixed << "FinalFrameTimestamp: " << frameTimestamp); 
 #ifdef PLUS_PRINT_SYNC_DEBUG_INFO
 			this->DebugInfoStream << "# FinalFrameTimestamp:\t" << frameTimestamp << std::endl; 
@@ -916,34 +907,37 @@ PlusStatus vtkDataCollectorSynchronizer::FindFrameTimestamp( vtkVideoBuffer2::Fr
 		bufferIndex++; 
 	}
 
-  if (!diffFound)
-  {
-    LOG_ERROR("Not enough difference found in the data");
-    return PLUS_FAIL;
-  }
+	if (!diffFound)
+	{
+		LOG_ERROR("Not enough difference found in the data");
+		return PLUS_FAIL;
+	}
 	return PLUS_SUCCESS; 
 }
 
 //----------------------------------------------------------------------------
-void vtkDataCollectorSynchronizer::ComputeFrameThreshold( vtkVideoBuffer2::FrameUidType& bufferIndex )
+void vtkDataCollectorSynchronizer::ComputeFrameThreshold( BufferItemUidType& bufferIndex )
 {
 	LOG_TRACE("vtkDataCollectorSynchronizer::ComputeFrameThreshold"); 
 	// Compute frame average 
 	int sizeOfAvgFrames(0); 
+	VideoBufferItem videoItem; 
+	const double localTimeOffset(0); 
 	std::vector<double> avgFrames; 
-	for ( bufferIndex; bufferIndex <= this->VideoBuffer->GetLatestFrameUidInBuffer() && sizeOfAvgFrames != this->NumberOfAveragedFrames; bufferIndex++ )
+	for ( bufferIndex; bufferIndex <= this->VideoBuffer->GetLatestItemUidInBuffer() && sizeOfAvgFrames != this->NumberOfAveragedFrames; bufferIndex++ )
 	{
-		double frameTimestamp(0); 
-		if ( this->GetVideoBuffer()->GetTimeStamp(bufferIndex, frameTimestamp) != vtkVideoBuffer2::FRAME_OK )
+		if ( this->VideoBuffer->GetVideoBufferItem(bufferIndex, &videoItem) != ITEM_OK )
 		{
-			LOG_WARNING("vtkDataCollectorSynchronizer: Unable to get frame for frame threshold computation from frame UID: " << bufferIndex); 
+			LOG_WARNING("vtkDataCollectorSynchronizer: Unable to get video item for frame threshold computation from frame UID: " << bufferIndex); 
 			continue; 
 		}
 
+		double frameTimestamp = videoItem.GetTimestamp(localTimeOffset); 
+
 		vtkSmartPointer<vtkImageData> frame = vtkSmartPointer<vtkImageData>::New(); 
-		if ( !this->GetFrameFromVideoBuffer(frame, bufferIndex) )
+		if ( this->CopyVideoFrame(frame, videoItem.GetFrame()) != PLUS_SUCCESS )
 		{
-			LOG_WARNING("vtkDataCollectorSynchronizer: Unable to get frame from video buffer!"); 
+			LOG_WARNING("vtkDataCollectorSynchronizer: Failed to copy frame from video buffer!"); 
 			continue; 
 		}
 
@@ -952,7 +946,7 @@ void vtkDataCollectorSynchronizer::ComputeFrameThreshold( vtkVideoBuffer2::Frame
 			LOG_WARNING("vtkDataCollectorSynchronizer: Unable to resize actual frame for frame threshold computation if it's NULL - continue with next frame."); 
 			continue; 
 		}
-		
+
 		// Make the image smaller
 		vtkSmartPointer<vtkImageResample> resample = vtkSmartPointer<vtkImageResample>::New();
 		resample->SetInput(frame); 
@@ -993,14 +987,18 @@ double vtkDataCollectorSynchronizer::GetImageAcquisitionFrameRate(double& mean, 
 {
 	LOG_TRACE("vtkDataCollectorSynchronizer::GetImageAcquisitionFrameRate"); 
 	std::vector<double> frameTimestamps; 
-	for ( vtkVideoBuffer2::FrameUidType frameUid = this->GetVideoBuffer()->GetOldestFrameUidInBuffer(); frameUid <= this->GetVideoBuffer()->GetLatestFrameUidInBuffer(); ++frameUid )
+	VideoBufferItem videoItem; 
+	const double localTimeOffset(0); 
+
+	for ( BufferItemUidType frameUid = this->GetVideoBuffer()->GetOldestItemUidInBuffer(); frameUid <= this->GetVideoBuffer()->GetLatestItemUidInBuffer(); ++frameUid )
 	{
-		double timestamp(0); 
-		if ( this->GetVideoBuffer()->GetTimeStamp(frameUid, timestamp) != vtkVideoBuffer2::FRAME_OK )
+		if ( this->GetVideoBuffer()->GetVideoBufferItem(frameUid,&videoItem) != ITEM_OK )
 		{
-			LOG_WARNING("vtkDataCollectorSynchronizer: Unable to get frame timestamp for image acquisition computation from frame UID: " << frameUid); 
+			LOG_WARNING("vtkDataCollectorSynchronizer: Unable to get video item for image acquisition computation from frame UID: " << frameUid); 
 			continue; 
 		}
+
+		double timestamp = videoItem.GetTimestamp(localTimeOffset); 
 
 		if ( timestamp > 0 ) 
 		{
@@ -1150,8 +1148,8 @@ PlusStatus vtkDataCollectorSynchronizer::GenerateSynchronizationReport( vtkHTMLG
 
 	htmlReport->AddHorizontalLine(); 
 #endif
-  
-  return PLUS_SUCCESS;
+
+	return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
@@ -1219,5 +1217,5 @@ PlusStatus vtkDataCollectorSynchronizer::ReadConfiguration(vtkXMLDataElement* sy
 		this->SetMaxFrameDifference(maxFrameDifference); 
 	}
 
-  return PLUS_SUCCESS;
+	return PLUS_SUCCESS;
 }
