@@ -311,6 +311,8 @@ void FreehandCalibrationToolbox::StartSpatialClicked()
 
 	toolboxController->Start();
 
+	toolboxController->RegisterPhantomGeometry();
+
 	toolboxController->DoAcquisition();
 
 	toolboxController->ComputeCalibrationResults();
