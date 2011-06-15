@@ -840,7 +840,19 @@ PlusStatus vtkDataCollector::GetFrameByTime(const double time, vtkImageData* fra
 	ItemStatus status = this->GetVideoSource()->GetBuffer()->GetItemUidFromTime(time, frameUID); 
 	if ( status != ITEM_OK )
 	{
-		LOG_ERROR("Couldn't get frame UID from time: " << std::fixed << time); 
+		if ( status == ITEM_NOT_AVAILABLE_ANYMORE )
+		{
+			LOG_ERROR("Couldn't get frame UID from time (" << std::fixed << time << ") - item not available anymore!"); 
+		}
+		else if ( status == ITEM_NOT_AVAILABLE_YET )
+		{
+			LOG_ERROR("Couldn't get frame UID from time (" << std::fixed << time << ") - item not available yet!"); 
+		}
+		else
+		{
+			LOG_ERROR("Couldn't get frame UID from time (" << std::fixed << time << ")!"); 
+		}
+
 		return PLUS_FAIL; 
 	}
 
@@ -859,7 +871,7 @@ PlusStatus vtkDataCollector::GetFrameByTime(const double time, vtkImageData* fra
 	}
 
 	// Get frame timestamp 
-	double timestamp = this->CurrentVideoBufferItem->GetTimestamp( this->GetVideoSource()->GetBuffer()->GetLocalTimeOffset() ); 
+	frameTimestamp = this->CurrentVideoBufferItem->GetTimestamp( this->GetVideoSource()->GetBuffer()->GetLocalTimeOffset() ); 
 	return PLUS_SUCCESS; 
 }
 
