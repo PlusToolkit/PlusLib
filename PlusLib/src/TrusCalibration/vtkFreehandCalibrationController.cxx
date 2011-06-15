@@ -133,49 +133,6 @@ PlusStatus vtkFreehandCalibrationController::Initialize()
 		controller->GetCanvasRenderer()->Modified();
 	}
 
-	// Initialize vtkCalibrationController
-	if ( this->GetSegParameters() == NULL ) {
-		this->SegParameters = new SegmentationParameters(); 
-	}
-
-	// Initialize the segmenation component
-	this->mptrAutomatedSegmentation = new KPhantomSeg( 
-		this->GetImageWidthInPixels(), this->GetImageHeightInPixels(), 
-		this->GetSearchStartAtX(), this->GetSearchStartAtY(), 
-		this->GetSearchDimensionX(), this->GetSearchDimensionY(), this->GetEnableSegmentationAnalysis(), "frame.jpg");
-
-	// Initialize the calibration component
-	if ( this->Calibrator == NULL ) {
-		this->Calibrator = new BrachyTRUSCalibrator( this->GetEnableSystemLog() );
-	}
-
-	// Set the ultrasound image frame in pixels
-	// This defines the US image frame origin in pixels W.R.T. the left-upper corner of the original image, with X pointing to the right (column) and Y pointing down to the bottom (row).
-	this->SetUSImageFrameOriginInPixels( this->GetUSImageFrameOriginXInPixels(), this->GetUSImageFrameOriginYInPixels() ); 
-
-	// STEP-OPTIONAL. Apply the US 3D beamwidth data to calibration if desired
-	// This will pass the US 3D beamwidth data and their predefined weights to the calibration component.
-	/*
-	if( this->GetUS3DBeamwidthDataReady() )
-	{
-		this->GetCalibrator()->setUltrasoundBeamwidthAndWeightFactorsTable(
-			this->GetIncorporatingUS3DBeamProfile(),
-			*this->GetInterpUS3DBeamwidthAndWeightFactorsInUSImageFrameTable5xM(),
-			*this->GetSortedUS3DBeamwidthAndWeightFactorsInAscendingAxialDepthInUSImageFrameMatrix5xN(),
-			*this->GetMinElevationBeamwidthAndFocalZoneInUSImageFrame() );
-	}
-	*/
-
-	this->DesiredOrientation = "MF";
-
-	// TEMPORARY CODE ////////////
-	vtkSmartPointer<vtkMatrix4x4> identity = vtkSmartPointer<vtkMatrix4x4>::New();
-	identity->Identity();
-	vnl_matrix<double> transformOrigImageFrame2TRUSImageFrameMatrix4x4(4,4);
-	ConvertVtkMatrixToVnlMatrix(identity, transformOrigImageFrame2TRUSImageFrameMatrix4x4); 
-	this->GetCalibrator()->setTransformOrigImageToTRUSImageFrame4x4(transformOrigImageFrame2TRUSImageFrameMatrix4x4);
-	// TEMPORARY CODE ////////////
-
 	// Set state to idle (initialized)
 	if (m_State == ToolboxState_Uninitialized) {
 		m_State = ToolboxState_Idle;
@@ -183,7 +140,7 @@ PlusStatus vtkFreehandCalibrationController::Initialize()
 		this->InitializedOn();
 	}
 
-  return PLUS_SUCCESS;
+	return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
@@ -197,7 +154,7 @@ PlusStatus vtkFreehandCalibrationController::Clear()
 
 	m_Toolbox->Clear();  
 
-  return PLUS_SUCCESS;
+	return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
@@ -269,16 +226,59 @@ PlusStatus vtkFreehandCalibrationController::DoAcquisition()
 		this->SetProgressPercent( (int)((numberOfAcquiredImages / (maxNumberOfValidationImages + maxNumberOfCalibrationImages)) * 100.0) );
 	}
   
-  return PLUS_SUCCESS;
+	return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
 
 PlusStatus vtkFreehandCalibrationController::Start()
 {
-	//TODO
+	// Initialize vtkCalibrationController
+	if ( this->GetSegParameters() == NULL ) {
+		this->SegParameters = new SegmentationParameters(); 
+	}
+
+	// Initialize the segmenation component
+	this->mptrAutomatedSegmentation = new KPhantomSeg( 
+		this->GetImageWidthInPixels(), this->GetImageHeightInPixels(), 
+		this->GetSearchStartAtX(), this->GetSearchStartAtY(), 
+		this->GetSearchDimensionX(), this->GetSearchDimensionY(), this->GetEnableSegmentationAnalysis(), "frame.jpg");
+
+	// Initialize the calibration component
+	if ( this->Calibrator == NULL ) {
+		this->Calibrator = new BrachyTRUSCalibrator( this->GetEnableSystemLog() );
+	}
+
+	// Set the ultrasound image frame in pixels
+	// This defines the US image frame origin in pixels W.R.T. the left-upper corner of the original image, with X pointing to the right (column) and Y pointing down to the bottom (row).
+	this->SetUSImageFrameOriginInPixels( this->GetUSImageFrameOriginXInPixels(), this->GetUSImageFrameOriginYInPixels() ); 
+
+	// STEP-OPTIONAL. Apply the US 3D beamwidth data to calibration if desired
+	// This will pass the US 3D beamwidth data and their predefined weights to the calibration component.
+	/*
+	if( this->GetUS3DBeamwidthDataReady() )
+	{
+		this->GetCalibrator()->setUltrasoundBeamwidthAndWeightFactorsTable(
+			this->GetIncorporatingUS3DBeamProfile(),
+			*this->GetInterpUS3DBeamwidthAndWeightFactorsInUSImageFrameTable5xM(),
+			*this->GetSortedUS3DBeamwidthAndWeightFactorsInAscendingAxialDepthInUSImageFrameMatrix5xN(),
+			*this->GetMinElevationBeamwidthAndFocalZoneInUSImageFrame() );
+	}
+	*/
+
+	this->DesiredOrientation = "MF";
+
+	// TEMPORARY CODE ////////////
+	vtkSmartPointer<vtkMatrix4x4> identity = vtkSmartPointer<vtkMatrix4x4>::New();
+	identity->Identity();
+	vnl_matrix<double> transformOrigImageFrame2TRUSImageFrameMatrix4x4(4,4);
+	ConvertVtkMatrixToVnlMatrix(identity, transformOrigImageFrame2TRUSImageFrameMatrix4x4); 
+	this->GetCalibrator()->setTransformOrigImageToTRUSImageFrame4x4(transformOrigImageFrame2TRUSImageFrameMatrix4x4);
+	// TEMPORARY CODE ////////////
+
 	m_State = ToolboxState_InProgress;
-  return PLUS_SUCCESS;
+
+	return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
@@ -287,7 +287,8 @@ PlusStatus vtkFreehandCalibrationController::Stop()
 {
 	//TODO
 	m_State = ToolboxState_Done;
-  return PLUS_SUCCESS;
+
+	return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
@@ -436,11 +437,11 @@ PlusStatus vtkFreehandCalibrationController::ReadConfiguration(const char* confi
 	this->SetConfigurationFileName(configFileNameWithPath);
 	
 	vtkSmartPointer<vtkXMLDataElement> calibrationController = vtkXMLUtilities::ReadElementFromFile(this->GetConfigurationFileName());
-  if (calibrationController==NULL)
-  {
-    LOG_ERROR("Failed to read configuration from file: " << this->GetConfigurationFileName());
-    return PLUS_FAIL;
-  }
+	if (calibrationController == NULL) {
+		LOG_ERROR("Failed to read configuration from file: " << this->GetConfigurationFileName());
+		return PLUS_FAIL;
+	}
+
 	return ReadConfiguration(calibrationController);
 }
 
@@ -450,7 +451,7 @@ PlusStatus vtkFreehandCalibrationController::ReadConfiguration(vtkXMLDataElement
 {
 	LOG_TRACE("vtkProbeCalibrationController::ReadConfiguration");
 
-	if ( configData == NULL ) {
+	if (configData == NULL) {
 		LOG_ERROR("Unable to read configuration");
 		return PLUS_FAIL;
 	}
@@ -465,7 +466,7 @@ PlusStatus vtkFreehandCalibrationController::ReadConfiguration(vtkXMLDataElement
 	vtkXMLDataElement* freehandCalibration = calibrationController->FindNestedElementWithName("ProbeCalibration");
 	this->ReadFreehandCalibrationConfiguration(freehandCalibration);
   
-  return PLUS_SUCCESS;
+	return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
@@ -628,7 +629,7 @@ PlusStatus vtkFreehandCalibrationController::ReadFreehandCalibrationConfiguratio
 	}
 	*/
   
-  return PLUS_SUCCESS;
+	return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
@@ -742,7 +743,7 @@ PlusStatus vtkFreehandCalibrationController::PopulateSegmentedFiducialsToDataCon
 		this->GetCalibrator()->addValidationPositionsPerImage( SegmentedNFiducialsInFixedCorrespondence, transformUSProbe2StepperFrameMatrix4x4 );
 	}
   
-  return PLUS_SUCCESS;
+	return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
@@ -814,7 +815,8 @@ PlusStatus vtkFreehandCalibrationController::DoOfflineCalibration()
 		LOG_ERROR("AddAllSavedData: Failed to add saved data!");  
 		return PLUS_FAIL;
 	}
-  return PLUS_SUCCESS;
+
+	return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
@@ -901,7 +903,7 @@ PlusStatus vtkFreehandCalibrationController::ComputeCalibrationResults()
 		return PLUS_FAIL;
 	}
   
-  return PLUS_SUCCESS;
+	return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
@@ -941,7 +943,8 @@ PlusStatus vtkFreehandCalibrationController::PrintCalibrationResultsAndErrorRepo
 		LOG_ERROR("PrintCalibrationResultsAndErrorReports: Failed to retrieve the calibration results!"); 
 		return PLUS_FAIL;
 	}
-  return PLUS_SUCCESS;
+
+	return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
@@ -1305,7 +1308,7 @@ PlusStatus vtkFreehandCalibrationController::SaveCalibrationResultsAndErrorRepor
 
 	xmlCalibrationResults->PrintXML(this->GetCalibrationResultFileNameWithPath()); 
   
-  return PLUS_SUCCESS;
+	return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
