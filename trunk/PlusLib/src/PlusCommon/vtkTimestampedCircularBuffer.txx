@@ -236,7 +236,12 @@ int vtkTimestampedCircularBuffer<BufferItemType>::GetBufferIndex( const BufferIt
 		readIndex += this->GetBufferSize();
 	}
 	
-	const int bufferIndex = readIndex - (this->LatestItemUid - uid); 
+	int bufferIndex = readIndex - (this->LatestItemUid - uid); 
+	
+	if ( bufferIndex < 0 )
+	{
+		bufferIndex += this->GetBufferSize(); 
+	}
 	
 	return bufferIndex; 
 }
