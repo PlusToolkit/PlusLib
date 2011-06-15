@@ -124,13 +124,13 @@ void PlusLogger::LogMessage(LogLevelType level, const char *msg, const char* fil
 		case LOG_LEVEL_ERROR:  
 			{
 				HANDLE hStdout = GetStdHandle(STD_ERROR_HANDLE); 
-				SetConsoleTextAttribute(hStdout, FOREGROUND_RED|FOREGROUND_GREEN|FOREGROUND_BLUE|BACKGROUND_RED);
+				SetConsoleTextAttribute(hStdout, FOREGROUND_RED|FOREGROUND_INTENSITY);
 			}
 			break;
 		case LOG_LEVEL_WARNING:
 			{
 				HANDLE hStdout = GetStdHandle(STD_ERROR_HANDLE); 
-				SetConsoleTextAttribute(hStdout, BACKGROUND_RED|BACKGROUND_GREEN);
+				SetConsoleTextAttribute(hStdout, FOREGROUND_RED|FOREGROUND_GREEN|FOREGROUND_INTENSITY);
 			}
 			break;
 		default:

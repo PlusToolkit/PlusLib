@@ -85,10 +85,6 @@ int main(int argc, char **argv)
 	args.AddArgument("--rendering-off", vtksys::CommandLineArguments::NO_ARGUMENT, &renderingOff, "Run test without rendering.");	
 	args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug)");	
 
-
-
-	PlusLogger::Instance()->SetLogLevel(verboseLevel);
-
 	if ( !args.Parse() )
 	{
 		std::cerr << "Problem parsing arguments" << std::endl;
@@ -101,6 +97,9 @@ int main(int argc, char **argv)
 		std::cerr << "input-config-file-name is required" << std::endl;
 		exit(EXIT_FAILURE);
 	}
+
+	PlusLogger::Instance()->SetLogLevel(verboseLevel);
+	PlusLogger::Instance()->SetDisplayLogLevel(verboseLevel);
 
 	///////////////
 
