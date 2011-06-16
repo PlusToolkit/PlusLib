@@ -12,11 +12,16 @@
 #include "vtkVideoSource2.h"
 #include "vtkSavedDataTracker.h"
 #include "vtkSavedDataVideoSource.h"
+#include "vtkOpenIGTLinkBroadcaster.h"
 
 vtkDataCollector* dataCollector = NULL; 
 vtkImageViewer *viewer = NULL;
 vtkRenderWindowInteractor *iren = NULL;
 vtkTextActor *stepperTextActor = NULL; 
+vtkOpenIGTLinkBroadcaster* broadcaster = NULL; 
+
+PlusStatus InitBroadcater(); 
+PlusStatus InvokeBroadcasterMessage(); 
 
 class vtkMyCallback : public vtkCommand
 {
@@ -60,6 +65,8 @@ public:
 
 		stepperTextActor->SetInput(ss.str().c_str());
 		stepperTextActor->Modified(); 
+
+		InvokeBroadcasterMessage(); 
 				
 		//update the timer so it will trigger again
 		iren->CreateTimer(VTKI_TIMER_UPDATE);
@@ -73,6 +80,8 @@ int main(int argc, char **argv)
 	bool renderingOff(false);
 	std::string inputVideoBufferMetafile;
 	std::string inputTrackerBufferMetafile;
+	bool inputReplay(false); 
+	bool inputEnableBroadcasting(false); 
 
 	int verboseLevel=PlusLogger::LOG_LEVEL_INFO;
 
@@ -84,6 +93,8 @@ int main(int argc, char **argv)
 	args.AddArgument("--input-tracker-buffer-metafile", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputTrackerBufferMetafile, "Tracker buffer sequence metafile.");
 	args.AddArgument("--rendering-off", vtksys::CommandLineArguments::NO_ARGUMENT, &renderingOff, "Run test without rendering.");	
 	args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug)");	
+	args.AddArgument( "--replay", vtksys::CommandLineArguments::NO_ARGUMENT, &inputReplay, "Replay tracked frames after reached the latest one." );
+	args.AddArgument( "--enable-broadcasting", vtksys::CommandLineArguments::NO_ARGUMENT, &inputEnableBroadcasting, "Enable OpenIGTLink broadcasting." );
 
 	if ( !args.Parse() )
 	{
@@ -118,6 +129,7 @@ int main(int argc, char **argv)
 		  exit( EXIT_FAILURE );
 		}
 		videoSource->SetSequenceMetafile(inputVideoBufferMetafile.c_str()); 
+		videoSource->SetReplayEnabled(inputReplay); 
 	}
 
 	if ( ! inputTrackerBufferMetafile.empty()
@@ -130,9 +142,21 @@ int main(int argc, char **argv)
 		  exit( EXIT_FAILURE );
 		}
 		tracker->SetSequenceMetafile(inputTrackerBufferMetafile.c_str()); 
+		tracker->SetReplayEnabled(inputReplay); 
 	}
 
 	dataCollector->Initialize(); 
+
+	if ( inputEnableBroadcasting && InitBroadcater() != PLUS_SUCCESS )
+	{
+		LOG_ERROR("Unable to initialize OpenIGTLink bradcaster!"); 
+		if ( broadcaster != NULL )
+		{
+			broadcaster->Delete(); 
+			broadcaster = NULL; 
+		}
+	}
+
 	dataCollector->Start();
 
 	if (renderingOff)
@@ -180,7 +204,17 @@ int main(int argc, char **argv)
 	iren->Initialize();
 	iren->Start();
 	
-	dataCollector->Delete();
+	if ( dataCollector != NULL )
+	{
+		dataCollector->Delete();
+		dataCollector = NULL; 
+	}
+
+	if ( broadcaster != NULL )
+	{
+		broadcaster->Delete(); 
+		broadcaster = NULL; 
+	}
 
 	call->Delete(); 
 	viewer->Delete();
@@ -192,4 +226,73 @@ int main(int argc, char **argv)
 	std::cout << "vtkDataCollectorTest1 completed successfully!" << std::endl;
 	return EXIT_SUCCESS; 
 
+}
+
+PlusStatus InitBroadcater()
+{
+	vtkOpenIGTLinkBroadcaster::Status broadcasterStatus = vtkOpenIGTLinkBroadcaster::STATUS_NOT_INITIALIZED;
+	broadcaster = vtkOpenIGTLinkBroadcaster::New();
+	broadcaster->SetDataCollector( dataCollector );
+
+	std::string errorMessage;
+	broadcasterStatus = broadcaster->Initialize( errorMessage );
+	switch ( broadcasterStatus )
+	{
+	case vtkOpenIGTLinkBroadcaster::STATUS_OK:
+		// no error, continue
+		break;
+	case vtkOpenIGTLinkBroadcaster::STATUS_NOT_INITIALIZED:
+		LOG_ERROR("Couldn't initialize OpenIGTLink broadcaster.");
+		return PLUS_FAIL; 
+	case vtkOpenIGTLinkBroadcaster::STATUS_HOST_NOT_FOUND:
+		LOG_ERROR("Could not connect to host: " << errorMessage);
+		return PLUS_FAIL; 
+	case vtkOpenIGTLinkBroadcaster::STATUS_MISSING_DEFAULT_TOOL:
+		LOG_ERROR("Default tool not defined. ");
+		return PLUS_FAIL; 
+	default:
+		LOG_ERROR("Unknown error while trying to intialize the broadcaster. ");
+		return PLUS_FAIL; 
+	}
+
+	return PLUS_SUCCESS; 
+}
+
+PlusStatus InvokeBroadcasterMessage()
+{
+	if ( broadcaster == NULL )
+	{
+		LOG_DEBUG("Unable invoke broadcaster message - broadcaster is NULL!"); 
+		return PLUS_FAIL; 
+	}
+
+	vtkOpenIGTLinkBroadcaster::Status broadcasterStatus = vtkOpenIGTLinkBroadcaster::STATUS_NOT_INITIALIZED;
+	std::string errorMessage;
+
+	broadcasterStatus = broadcaster->SendMessages( errorMessage );
+
+	// Display messages depending on the status of broadcaster.
+	switch (broadcasterStatus)
+	{
+	case vtkOpenIGTLinkBroadcaster::STATUS_OK:
+		// no error, no message
+		break;
+	case vtkOpenIGTLinkBroadcaster::STATUS_HOST_NOT_FOUND:
+		LOG_WARNING("Host not found: " << errorMessage);
+		return PLUS_FAIL; 
+	case vtkOpenIGTLinkBroadcaster::STATUS_NOT_INITIALIZED:
+		LOG_WARNING("OpenIGTLink broadcaster not initialized.");
+		return PLUS_FAIL; 
+	case vtkOpenIGTLinkBroadcaster::STATUS_NOT_TRACKING:
+		LOG_WARNING("Tracking error detected.");
+		return PLUS_FAIL; 
+	case vtkOpenIGTLinkBroadcaster::STATUS_SEND_ERROR:
+		LOG_WARNING("Could not send OpenIGTLink message.");
+		return PLUS_FAIL; 
+	default:
+		LOG_WARNING("Unknown status while trying to send OpenIGTLink message.");
+		return PLUS_FAIL; 
+	}
+	
+	return PLUS_SUCCESS; 
 }
