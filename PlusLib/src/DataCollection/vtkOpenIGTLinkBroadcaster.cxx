@@ -183,13 +183,25 @@ vtkOpenIGTLinkBroadcaster
   
     // Read the default transform relative to the reference from the DataCollector.
   
+  const int defaultTool = this->DataCollector->GetDefaultToolPortNumber();
   vtkSmartPointer< vtkMatrix4x4 > probeToTrackerMatrix = vtkSmartPointer< vtkMatrix4x4 >::New();
   double timestamp( 0 ); 
-	long flags( 0 ); 
+  long flags( 0 ); 
+
+  vtkSmartPointer< vtkImageData > frameImage = vtkSmartPointer< vtkImageData >::New();
+  frameImage->SetDimensions( this->DataCollector->GetVideoSource()->GetFrameSize() );
+  frameImage->SetOrigin( this->DataCollector->GetVideoSource()->GetDataOrigin() );
+  frameImage->SetSpacing( this->DataCollector->GetVideoSource()->GetDataSpacing() );
+  frameImage->SetScalarTypeToUnsignedChar();
+  frameImage->AllocateScalars();
   
-  int defaultTool = this->DataCollector->GetDefaultToolPortNumber();
-  this->DataCollector->GetTransformWithTimestamp( probeToTrackerMatrix, timestamp, flags, defaultTool, true ); 
-  
+  if ( this->DataCollector->GetTrackedFrame(frameImage, probeToTrackerMatrix, flags, timestamp, defaultTool, true ) != PLUS_SUCCESS )
+  {
+	  LOG_WARNING( "Failed to get tracked frame..." );
+	  this->InternalStatus = STATUS_MISSING_TRACKED_FRAME;
+	  return this->InternalStatus;
+  }
+ 
   if ( flags & ( TR_MISSING | TR_OUT_OF_VIEW ) ) 
     {
     LOG_WARNING( "Tracker out of view..." );
@@ -216,21 +228,7 @@ vtkOpenIGTLinkBroadcaster
       }
     }
   
-  
-    // Read the image from the DataCollector.
-  
-  double frameTime = 0.0;
-  vtkSmartPointer< vtkImageData > frameImage = vtkSmartPointer< vtkImageData >::New();
-    frameImage->SetDimensions( this->DataCollector->GetVideoSource()->GetFrameSize() );
-    frameImage->SetOrigin( this->DataCollector->GetVideoSource()->GetDataOrigin() );
-    frameImage->SetSpacing( this->DataCollector->GetVideoSource()->GetDataSpacing() );
-    frameImage->SetScalarTypeToUnsignedChar();
-    frameImage->AllocateScalars();
-  
-  this->DataCollector->GetFrameWithTimestamp( frameImage, frameTime );
-  
-  
-    // Convert image to IGTL image message.
+  // Convert image to IGTL image message.
   
   int    imageSizePixels[ 3 ] = { 0, 0, 0 };
   double imageSpacingMm[ 3 ] = { 0, 0, 0 };
@@ -256,16 +254,10 @@ vtkOpenIGTLinkBroadcaster
   unsigned char* igtlImagePointer = (unsigned char*)( imageMessage->GetScalarPointer() );
   unsigned char* vtkImagePointer = (unsigned char*)( frameImage->GetScalarPointer() );
   
-  
-  for ( int i = 0; i < imageMessage->GetImageSize(); ++ i )
-    {
-    *igtlImagePointer = *vtkImagePointer;
-    ++ igtlImagePointer;
-    ++ vtkImagePointer;
-    }
-  
+  memcpy(igtlImagePointer, vtkImagePointer, imageMessage->GetImageSize()); 
+
   igtl::TimeStamp::Pointer igtlFrameTime = igtl::TimeStamp::New();
-    igtlFrameTime->SetTime( frameTime );
+    igtlFrameTime->SetTime( timestamp );
   
   imageMessage->SetMatrix( igtlMatrix );
   imageMessage->SetTimeStamp( igtlFrameTime );
