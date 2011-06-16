@@ -34,6 +34,9 @@ vtkSavedDataTracker::vtkSavedDataTracker()
 	this->Tracking = 0;
 	this->Initialized = false;
 	this->ReplayEnabled = false; 
+
+	// TODO: Do we need other tools than the default tool? 
+	this->SetNumberOfTools(1);
 }
 
 //----------------------------------------------------------------------------
@@ -80,10 +83,6 @@ PlusStatus vtkSavedDataTracker::Connect()
   
 	// Read metafile
 	savedDataBuffer->ReadFromSequenceMetafile(this->GetSequenceMetafile()); 
-
-
-	// TODO: Do we need other tools than the default tool? 
-	this->SetNumberOfTools(1);
 
 	// Enable tools
 	for ( int tool = 0; tool < this->GetNumberOfTools(); tool++ )
