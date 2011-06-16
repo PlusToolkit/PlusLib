@@ -24,9 +24,11 @@ enum {
 
 int main( int argc, char** argv )
 {
-  std::string inputConfigFileName;
+	std::string inputConfigFileName;
 	std::string inputVideoBufferMetafile;
 	std::string inputTrackerBufferMetafile;
+	bool inputReplay(false); 
+	int verboseLevel=PlusLogger::LOG_LEVEL_INFO;
 	
   vtksys::CommandLineArguments args;
 	args.Initialize( argc, argv );
@@ -37,7 +39,11 @@ int main( int argc, char** argv )
 	                  &inputVideoBufferMetafile, "Video buffer sequence metafile." );
 	args.AddArgument( "--input-tracker-buffer-metafile", vtksys::CommandLineArguments::EQUAL_ARGUMENT,
 	                  &inputTrackerBufferMetafile, "Tracker buffer sequence metafile." );
-	
+	args.AddArgument( "--replay", vtksys::CommandLineArguments::NO_ARGUMENT,
+	                  &inputReplay, "Replay tracked frames after reached the latest one." );
+	args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, 
+                      &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug 5=trace)");	
+
 	if ( ! args.Parse() )
 	{
 		std::cerr << "Problem parsing arguments" << std::endl;
@@ -51,6 +57,8 @@ int main( int argc, char** argv )
 		exit( EXIT_FAILURE );
 	}
   
+	PlusLogger::Instance()->SetLogLevel(verboseLevel);
+	PlusLogger::Instance()->SetDisplayLogLevel(verboseLevel);
   
 	  // Prepare data collector object.
 	
@@ -61,32 +69,34 @@ int main( int argc, char** argv )
     {
     if ( inputVideoBufferMetafile.empty() )
       {
-      std::cerr << "Video source metafile missing." << std::endl;
+      LOG_ERROR("Video source metafile missing.");
       return BC_EXIT_FAILURE;
       }
 
     vtkSavedDataVideoSource* videoSource = dynamic_cast< vtkSavedDataVideoSource* >( dataCollector->GetVideoSource() );
     if ( videoSource == NULL )
       {
-      std::cerr << "Invalid saved data video source." << std::endl;
+      LOG_ERROR("Invalid saved data video source.");
       exit( BC_EXIT_FAILURE );
       }
     videoSource->SetSequenceMetafile( inputVideoBufferMetafile.c_str() );
+	videoSource->SetReplayEnabled(inputReplay); 
     }
 
   if ( dataCollector->GetTrackerType() == TRACKER_SAVEDDATASET )
     {
     if ( inputTrackerBufferMetafile.empty() )
       {
-      std::cerr << "Tracker source metafile missing." << std::endl;
+      LOG_ERROR("Tracker source metafile missing.");
       return BC_EXIT_FAILURE;
       }
     vtkSavedDataTracker* tracker = static_cast< vtkSavedDataTracker* >( dataCollector->GetTracker() );
     tracker->SetSequenceMetafile( inputTrackerBufferMetafile.c_str() );
+	tracker->SetReplayEnabled(inputReplay); 
     tracker->Connect();
     }
   
-  std::cout << "Initializing data collector... ";
+  LOG_INFO("Initializing data collector... ");
   dataCollector->Initialize();
   
   
@@ -104,31 +114,39 @@ int main( int argc, char** argv )
       // no error, continue
       break;
     case vtkOpenIGTLinkBroadcaster::STATUS_NOT_INITIALIZED:
-      std::cerr << "ERROR: Couldn't initialize OpenIGTLink broadcaster.";
+      LOG_ERROR("Couldn't initialize OpenIGTLink broadcaster.");
       exit( BC_EXIT_FAILURE );
     case vtkOpenIGTLinkBroadcaster::STATUS_HOST_NOT_FOUND:
-      std::cerr << "Could not connect to host: " << errorMessage << std::endl;
+      LOG_ERROR("Could not connect to host: " << errorMessage);
       exit( BC_EXIT_SUCCESS );
     case vtkOpenIGTLinkBroadcaster::STATUS_MISSING_DEFAULT_TOOL:
-      std::cerr << "Error: Default tool not defined. " << std::endl;
+      LOG_ERROR("Default tool not defined. ");
       exit( BC_EXIT_FAILURE );
     default:
-      std::cerr << "Error: Unknown error while trying to intialize the broadcaster. " << std::endl;
+      LOG_ERROR("Unknown error while trying to intialize the broadcaster. ");
       exit( BC_EXIT_FAILURE );
     }
 
-  std::cout << "Start data collector... ";
+  LOG_INFO("Start data collector... ");
   dataCollector->Start();
-  const int NUMBER_OF_BROADCASTED_MESSAGES=50;
+
+  unsigned int NUMBER_OF_BROADCASTED_MESSAGES=dataCollector->GetVideoSource()->GetBuffer()->GetBufferSize();
+  if ( inputReplay )
+    {
+	NUMBER_OF_BROADCASTED_MESSAGES=UINT_MAX; 
+    }
+
   const double DELAY_BETWEEN_MESSAGES_SEC=0.2;
   for ( int i = 0; i < NUMBER_OF_BROADCASTED_MESSAGES; ++ i )
     {
-    std::cout << "Iteration: " << i << std::endl;
-
-    vtkAccurateTimer::Delay( DELAY_BETWEEN_MESSAGES_SEC );
+		vtkAccurateTimer::Delay( DELAY_BETWEEN_MESSAGES_SEC );
+		
 
 		std::ostringstream ss;
 		ss.precision( 2 ); 
+		
+		ss << "Iteration: " << i << std::endl;
+
 		vtkSmartPointer<vtkMatrix4x4> tFrame2Tracker = vtkSmartPointer<vtkMatrix4x4>::New(); 
 		if ( dataCollector->GetTracker()->IsTracking())
 		{
@@ -159,7 +177,7 @@ int main( int argc, char** argv )
 			ss << "Unable to connect to tracker...";		
 		}
     
-    std::cout << ss.str() << std::endl;
+    LOG_INFO(ss.str());
     
     vtkOpenIGTLinkBroadcaster::Status broadcasterStatus = vtkOpenIGTLinkBroadcaster::STATUS_NOT_INITIALIZED;
     std::string                       errorMessage;
@@ -173,29 +191,29 @@ int main( int argc, char** argv )
         // no error, no message
         break;
       case vtkOpenIGTLinkBroadcaster::STATUS_HOST_NOT_FOUND:
-        std::cout << "WARNING: Host not found: " << errorMessage << std::endl;
+        LOG_WARNING("Host not found: " << errorMessage);
         break;
       case vtkOpenIGTLinkBroadcaster::STATUS_NOT_INITIALIZED:
-        std::cout << "WARNING: OpenIGTLink broadcaster not initialized." << std::endl;
+        LOG_WARNING("OpenIGTLink broadcaster not initialized.");
         break;
       case vtkOpenIGTLinkBroadcaster::STATUS_NOT_TRACKING:
-        std::cout << "WARNING: Tracking error detected." << std::endl;
+        LOG_WARNING("Tracking error detected.");
         break;
       case vtkOpenIGTLinkBroadcaster::STATUS_SEND_ERROR:
-        std::cout << "WARNING: Could not send OpenIGTLink message." << std::endl;
+        LOG_WARNING("Could not send OpenIGTLink message.");
         break;
       default:
-        std::cout << "WARNING: Unknown status while trying to send OpenIGTLink message." << std::endl;
+       LOG_WARNING("Unknown status while trying to send OpenIGTLink message.");
       }
     }
   
-  std::cout << "Stop data collector... ";
+  LOG_INFO("Stop data collector... ");
   dataCollector->Stop();
-  std::cout << "Done." << std::endl;
+  LOG_INFO("Done.");
   
-  std::cout << "Deleting data collector... ";
+  LOG_INFO("Deleting data collector... ");
   dataCollector->Delete();
-  std::cout << "Done." << std::endl;
+  LOG_INFO("Done.");
   
   return BC_EXIT_SUCCESS;
 }
