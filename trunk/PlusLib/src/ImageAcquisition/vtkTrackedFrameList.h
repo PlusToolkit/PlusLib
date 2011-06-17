@@ -2,7 +2,7 @@
 #define __VTKTRACKEDFRAMELIST_H
 
 #include "vtkObject.h"
-#include <vector>
+#include <deque>
 
 #include "itkImage.h"
 #include "vtkMatrix4x4.h"
@@ -235,6 +235,7 @@ class VTK_EXPORT vtkTrackedFrameList : public vtkObject
 {
 
 public:
+    typedef std::deque<TrackedFrame*> TrackedFrameListType; 
 	enum SEQ_METAFILE_EXTENSION
 	{
 		SEQ_METAFILE_MHA, 
@@ -267,7 +268,7 @@ public:
 
 	//! Operation: 
 	// Get the tracked frame list 
-	std::vector<TrackedFrame*> GetTrackedFrameList() { return this->TrackedFrameList; }
+	TrackedFrameListType GetTrackedFrameList() { return this->TrackedFrameList; }
 
 	//! Operation: 
 	// Validate tracked frame before adding to the list.
@@ -310,7 +311,7 @@ protected:
 	bool ValidateStatus(TrackedFrame* trackedFrame); 
 	bool ValidatePosition(TrackedFrame* trackedFrame, char* frameTransformName); 
 
-	std::vector<TrackedFrame*> TrackedFrameList; 
+	TrackedFrameListType TrackedFrameList; 
 
 	int MaxNumOfFramesToWrite; 
 	int NumberOfUniqueFrames; 

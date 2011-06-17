@@ -260,6 +260,12 @@ TrackedFrame::ImageType* TrackedFrame::GetOrientedImage( const char* usImageOrie
 //----------------------------------------------------------------------------
 TrackedFrame::ImageType* TrackedFrame::GetOrientedImage( US_IMAGE_ORIENTATION usImageOrientation )
 {
+    if ( this->ImageData == NULL )
+    {
+        LOG_DEBUG("Image data was NULL, so oriented image will be NULL also!"); 
+        return NULL; 
+    }
+
 	ImageType::Pointer flipedImage; 
 	if ( this->UltrasoundImageOrientation == US_IMG_ORIENT_XX || usImageOrientation == US_IMG_ORIENT_XX )
 	{
@@ -501,7 +507,7 @@ bool vtkTrackedFrameList::ValidateTimestamp(TrackedFrame* trackedFrame)
 //----------------------------------------------------------------------------
 bool vtkTrackedFrameList::ValidatePosition(TrackedFrame* trackedFrame, char* frameTransformName)
 {
-	std::vector<TrackedFrame*>::iterator searchIndex; 
+	TrackedFrameListType::iterator searchIndex; 
 	const int containerSize = this->TrackedFrameList.size(); 
 	if (containerSize < this->NumberOfUniqueFrames )
 	{
@@ -684,8 +690,12 @@ void vtkTrackedFrameList::SaveToSequenceMetafile(const char* outputFolder, const
 			numberOfFrames = TrackedFrameList.size() - (fileNumber - 1) * this->MaxNumOfFramesToWrite; 
 		}
 		
-		const unsigned long ImageWidthInPixels  = TrackedFrameList[0]->ImageData->GetLargestPossibleRegion().GetSize()[0]; 
-		const unsigned long ImageHeightInPixels = TrackedFrameList[0]->ImageData->GetLargestPossibleRegion().GetSize()[1]; 
+		unsigned long ImageWidthInPixels(1), ImageHeightInPixels(1); 
+        if ( TrackedFrameList[0]->ImageData != NULL )
+        {
+            ImageWidthInPixels = TrackedFrameList[0]->ImageData->GetLargestPossibleRegion().GetSize()[0]; 
+		    ImageHeightInPixels = TrackedFrameList[0]->ImageData->GetLargestPossibleRegion().GetSize()[1]; 
+        }
 
 		ImageSequenceType::SizeType size = {ImageWidthInPixels, ImageHeightInPixels, numberOfFrames };
 		ImageSequenceType::IndexType start = {0,0,0};
@@ -717,9 +727,16 @@ void vtkTrackedFrameList::SaveToSequenceMetafile(const char* outputFolder, const
 			int trackedFrameListItem = (fileNumber - 1) * this->MaxNumOfFramesToWrite + i; 
 			TrackedFrame::PixelType *currentFrameImageData = imageData + i * frameSizeInBytes;
 			
-			TrackedFrame::ImageType::Pointer orientedImage = TrackedFrameList[trackedFrameListItem]->GetOrientedImage(usImageOrientation); 
-			memcpy(currentFrameImageData, orientedImage->GetBufferPointer(), frameSizeInBytes); 
-			orientedImage->UnRegister(); 
+			TrackedFrame::ImageType* orientedImage = TrackedFrameList[trackedFrameListItem]->GetOrientedImage(usImageOrientation); 
+            if ( orientedImage != NULL )
+            {
+			    memcpy(currentFrameImageData, orientedImage->GetBufferPointer(), frameSizeInBytes); 
+			    orientedImage->UnRegister(); 
+            }
+            else
+            {
+               memset(currentFrameImageData, NULL, frameSizeInBytes); 
+            }
 
 			// Write custom fields only once 
 			if ( i == 0 )

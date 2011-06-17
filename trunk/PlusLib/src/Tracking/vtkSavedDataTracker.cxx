@@ -67,22 +67,25 @@ void vtkSavedDataTracker::PrintSelf(ostream& os, vtkIndent indent)
 //----------------------------------------------------------------------------
 PlusStatus vtkSavedDataTracker::Connect()
 {
-	LOG_TRACE("vtkSavedDataTracker::Connect"); 
-	vtkSmartPointer<vtkTrackedFrameList> savedDataBuffer = vtkSmartPointer<vtkTrackedFrameList>::New(); 
-		
-  if ( this->Probe()!=PLUS_SUCCESS )
-	{
-		return PLUS_FAIL; 
-	}
-  
-  if ( this->Initialized )
+    LOG_TRACE("vtkSavedDataTracker::Connect"); 
+    vtkSmartPointer<vtkTrackedFrameList> savedDataBuffer = vtkSmartPointer<vtkTrackedFrameList>::New(); 
+
+    if ( this->Probe()!=PLUS_SUCCESS )
     {
-    return PLUS_SUCCESS;
+        return PLUS_FAIL; 
     }
-  
-  
+
+    if ( this->Initialized )
+    {
+        return PLUS_SUCCESS;
+    }
+    
 	// Read metafile
-	savedDataBuffer->ReadFromSequenceMetafile(this->GetSequenceMetafile()); 
+	if ( savedDataBuffer->ReadFromSequenceMetafile(this->GetSequenceMetafile()) != PLUS_SUCCESS )
+    {
+        LOG_ERROR("Failed to read tracker buffer from sequence metafile!"); 
+        return PLUS_FAIL; 
+    }
 
 	// Enable tools
 	for ( int tool = 0; tool < this->GetNumberOfTools(); tool++ )
@@ -176,6 +179,8 @@ PlusStatus vtkSavedDataTracker::Connect()
 		
 		LocalTrackerBuffer->AddItem(defaultTransformMatrix, status, frameNumber, unfilteredTimestamp, timestamp); 
 	}
+
+    savedDataBuffer->Clear(); 
   
 	this->Initialized = true;
 	return PLUS_SUCCESS; 
@@ -194,7 +199,7 @@ PlusStatus vtkSavedDataTracker::Probe()
 	LOG_TRACE("vtkSavedDataTracker::Probe"); 
 	if ( !vtksys::SystemTools::FileExists(this->GetSequenceMetafile(), true) )
 	{
-		LOG_ERROR("SavedDataTracker Probe failed: Unable to read sequence metafile!"); 
+		LOG_ERROR("SavedDataTracker Probe failed: Unable to find sequence metafile!"); 
 		return PLUS_FAIL; 
 	}
 	return PLUS_SUCCESS; 
