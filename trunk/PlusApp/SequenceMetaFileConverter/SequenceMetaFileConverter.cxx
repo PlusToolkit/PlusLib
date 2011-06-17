@@ -97,6 +97,7 @@ std::string outputFolder("./");
 std::string inputUsImageOrientation("XX"); 
 std::string outputUsImageOrientation("XX");
 bool inputUseCompression(false); 
+bool inputNoImageData(false); 
 std::string inputToolToReferenceName, inputReferenceToTrackerName; 
 
 
@@ -145,27 +146,11 @@ int main (int argc, char* argv[])
 	// Saving to SEQUENCE_METAFILE arguments
 	cmdargs.AddArgument("--output-sequence-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputSequenceFileName, "Output sequence file name of saving method SEQUENCE_METAFILE. (Default: SeqMetafile)");
 	cmdargs.AddArgument("--use-compression", vtksys::CommandLineArguments::NO_ARGUMENT, &inputUseCompression, "Compress metafile and sequence metafile images.");	
+    cmdargs.AddArgument("--no-image-data", vtksys::CommandLineArguments::NO_ARGUMENT, &inputNoImageData, "Save sequence metafile without image data.");	
+    
 
 	cmdargs.AddArgument("--output-folder", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputFolder, "Path to the output folder where to save the converted files (Default: ./Output).");
 	cmdargs.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (Default: INFO; ERROR, WARNING, INFO, DEBUG)");	
-
-	if ( STRCASECMP("ERROR", verboseLevel.c_str())==0 )
-	{
-		PlusLogger::Instance()->SetLogLevel(PlusLogger::LOG_LEVEL_ERROR);
-	}
-	else if ( STRCASECMP("WARNING", verboseLevel.c_str())==0 )
-	{
-		PlusLogger::Instance()->SetLogLevel(PlusLogger::LOG_LEVEL_WARNING);
-	}
-	else if ( STRCASECMP("INFO", verboseLevel.c_str())==0 )
-	{
-		PlusLogger::Instance()->SetLogLevel(PlusLogger::LOG_LEVEL_INFO);
-	}
-	else if ( STRCASECMP("DEBUG", verboseLevel.c_str())==0 )
-	{
-		PlusLogger::Instance()->SetLogLevel(PlusLogger::LOG_LEVEL_DEBUG);
-	}
-
 
 	if ( !cmdargs.Parse() )
 	{
@@ -183,6 +168,27 @@ int main (int argc, char* argv[])
 	////////////////////////////////////////////////////
 
 	VTK_LOG_TO_CONSOLE_ON; 
+
+    if ( STRCASECMP("ERROR", verboseLevel.c_str())==0 )
+	{
+		PlusLogger::Instance()->SetLogLevel(PlusLogger::LOG_LEVEL_ERROR);
+        PlusLogger::Instance()->SetDisplayLogLevel(PlusLogger::LOG_LEVEL_ERROR);
+	}
+	else if ( STRCASECMP("WARNING", verboseLevel.c_str())==0 )
+	{
+		PlusLogger::Instance()->SetLogLevel(PlusLogger::LOG_LEVEL_WARNING);
+        PlusLogger::Instance()->SetDisplayLogLevel(PlusLogger::LOG_LEVEL_WARNING);
+	}
+	else if ( STRCASECMP("INFO", verboseLevel.c_str())==0 )
+	{
+		PlusLogger::Instance()->SetLogLevel(PlusLogger::LOG_LEVEL_INFO);
+        PlusLogger::Instance()->SetDisplayLogLevel(PlusLogger::LOG_LEVEL_INFO);
+	}
+	else if ( STRCASECMP("DEBUG", verboseLevel.c_str())==0 )
+	{
+		PlusLogger::Instance()->SetLogLevel(PlusLogger::LOG_LEVEL_DEBUG);
+        PlusLogger::Instance()->SetDisplayLogLevel(PlusLogger::LOG_LEVEL_DEBUG);
+	}
 
 	if ( STRCASECMP("METAFILE", inputSavingMethod.c_str())==0 )
 	{
@@ -601,6 +607,18 @@ void SaveImages( vtkTrackedFrameList* trackedFrameList, SAVING_METHOD savingMeth
 			{
 				LOG_INFO("Saving sequence meta file..."); 
 			}
+
+            if ( inputNoImageData ) 
+            {
+                for ( int i = 0; i < numberOfFrames; ++i )
+                {
+                    if ( trackedFrameList->GetTrackedFrame(i)->ImageData != NULL )
+                    {
+                        trackedFrameList->GetTrackedFrame(i)->ImageData->Delete(); 
+                        trackedFrameList->GetTrackedFrame(i)->ImageData = NULL; 
+                    }
+                }
+            }
 			trackedFrameList->SaveToSequenceMetafile(outputFolder.c_str(), outputSequenceFileName.c_str(), vtkTrackedFrameList::SEQ_METAFILE_MHA, inputUseCompression, outputUsImageOrientation.c_str()); 
 		}
 	}
@@ -613,6 +631,8 @@ void SaveImageToBitmap( ImageType* image, std::string bitmapFileName, int saving
 	{
 		const unsigned long imageWidthInPixels = image->GetLargestPossibleRegion().GetSize()[0]; 
 		const unsigned long imageHeightInPixels = image->GetLargestPossibleRegion().GetSize()[1]; 
+
+		LOG_INFO("imageWidthInPixels: " << imageWidthInPixels << "    imageHeightInPixels: " << imageHeightInPixels); 
 
 		RGBImageType::Pointer frameRGB = RGBImageType::New(); 
 		RGBImageType::SizeType sizeRGB = {imageWidthInPixels, imageHeightInPixels};
