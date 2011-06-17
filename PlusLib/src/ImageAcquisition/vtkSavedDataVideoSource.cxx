@@ -215,6 +215,12 @@ PlusStatus vtkSavedDataVideoSource::Connect()
 {
 	LOG_TRACE("vtkSavedDataVideoSource::Connect"); 
 
+    if (this->Initialized)
+	{
+		return PLUS_SUCCESS;
+	}
+
+
 	if ( !vtksys::SystemTools::FileExists(this->GetSequenceMetafile(), true) )
 	{
 		LOG_ERROR("Unable to connect to saved data video source: Unable to read sequence metafile!"); 
@@ -227,7 +233,11 @@ PlusStatus vtkSavedDataVideoSource::Connect()
 	this->UpdateFrameBuffer();
 
 	// Read metafile
-	savedDataBuffer->ReadFromSequenceMetafile(this->GetSequenceMetafile()); 
+    if ( savedDataBuffer->ReadFromSequenceMetafile(this->GetSequenceMetafile()) != PLUS_SUCCESS )
+    {
+        LOG_ERROR("Failed to read video buffer from sequence metafile!"); 
+        return PLUS_FAIL; 
+    }
 	
 	// Set buffer size 
 	this->SetFrameBufferSize( savedDataBuffer->GetNumberOfTrackedFrames() ); 
@@ -292,6 +302,8 @@ PlusStatus vtkSavedDataVideoSource::Connect()
 			LOG_WARNING("vtkSavedDataVideoSource: Failed to add video frame to buffer from sequence metafile with frame #" << frame ); 
 		}
 	}
+
+    savedDataBuffer->Clear(); 
 
 	return PLUS_SUCCESS; 
 }
