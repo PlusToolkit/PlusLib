@@ -86,7 +86,7 @@ PlusStatus vtkTimestampedCircularBuffer<BufferItemType>::PrepareForNewFrame(cons
 	}
 
 	// Increase frame unique ID
-	this->Lock();
+	//this->Lock();
 	newFrameUid = this->LatestItemUid++; 
 	bufferIndex = this->WritePointer; 
 	this->CurrentTimeStamp = timestamp; 
@@ -101,7 +101,7 @@ PlusStatus vtkTimestampedCircularBuffer<BufferItemType>::PrepareForNewFrame(cons
 	{
 		this->WritePointer = 0; 
 	}
-	this->Unlock(); 
+	//this->Unlock(); 
 
 	return PLUS_SUCCESS; 
 }
