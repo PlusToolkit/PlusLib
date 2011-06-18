@@ -319,6 +319,8 @@ void FreehandMainWindow::ChangeBackTab(int aTabIndex)
 
 void FreehandMainWindow::UpdateGUI()
 {
+	//LOG_TRACE("Update GUI"); 
+
 	vtkFreehandController* controller = vtkFreehandController::GetInstance();
 	if ((controller == NULL)
 		|| (StylusCalibrationController::GetInstance() == NULL)
@@ -327,8 +329,6 @@ void FreehandMainWindow::UpdateGUI()
 		LOG_ERROR("Some controllers are not initialized!");
 		return;
 	}
-
-	//LOG_DEBUG("Update GUI"); 
 
 	int tabIndex = ui.tabWidgetToolbox->currentIndex();
 	// Stylus calibration
@@ -397,7 +397,7 @@ void FreehandMainWindow::UpdateGUI()
 		}
 
 		// Refresh toolbox content
-		toolboxController->GetToolbox()->RefreshToolboxContent(); // TODO put ouside block (toolboxController should be AbstractTOolboxCOntroller)
+		toolboxController->GetToolbox()->RefreshToolboxContent(); // TODO put outside block (toolboxController should be AbstractToolboxController)
 	} else if (ui.tabWidgetToolbox->tabText(tabIndex) == "Volume Reconstruction") {
 		// TODO
 	} else {

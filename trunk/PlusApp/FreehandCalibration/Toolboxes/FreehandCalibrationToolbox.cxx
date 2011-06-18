@@ -192,6 +192,9 @@ void FreehandCalibrationToolbox::RefreshToolboxContent()
 
 		QApplication::restoreOverrideCursor();
 	}
+
+	// Needed for forced refreshing the UI (without this, no progress is shown)
+	QApplication::processEvents();
 }
 
 //-----------------------------------------------------------------------------
@@ -292,6 +295,22 @@ void FreehandCalibrationToolbox::ResetTemporalClicked()
 void FreehandCalibrationToolbox::SkipTemporalClicked()
 {
 	vtkFreehandCalibrationController::GetInstance()->TemporalCalibrationDoneOn();
+
+	////////////TEMPORARY CODE///////////// TODO
+	QString fileName("d:/devel/Plus-bin_Assembla/PlusApp-bin/bin/Config/PhantomRegistration_Thomas.xml");
+	if (PhantomRegistrationController::GetInstance()->LoadPhantomRegistrationFromFile(fileName.toStdString())) {
+		ui.lineEdit_PhantomRegistration->setText(fileName);
+		ui.lineEdit_PhantomRegistration->setToolTip(fileName);
+	}
+	fileName = QString("d:/devel/Plus-bin_Assembla/PlusApp-bin/bin/Config/PhantomDefinition_ThomasFreehand_1.0.xml");
+	vtkFreehandCalibrationController::GetInstance()->SetPhantomDefinitionFileName(fileName.toStdString().c_str());
+	ui.lineEdit_PhantomDefinition->setText(fileName);
+	ui.lineEdit_PhantomDefinition->setToolTip(fileName);
+	fileName = QString("d:/devel/Plus-bin_Assembla/PlusApp-bin/bin/Config/USCalibrationConfig_Thomas_FrameGrabber.xml");
+	vtkFreehandCalibrationController::GetInstance()->ReadConfiguration(fileName.toStdString().c_str()); //TODO error handling
+	ui.lineEdit_CalibrationConfiguration->setText(fileName);
+	ui.lineEdit_CalibrationConfiguration->setToolTip(fileName);
+	////////////TEMPORARY CODE/////////////
 }
 
 //-----------------------------------------------------------------------------
@@ -308,6 +327,8 @@ void FreehandCalibrationToolbox::StartSpatialClicked()
 		LOG_ERROR("Unable to start calibration in offline mode!");
 		return; 
 	}
+
+	QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
 
 	toolboxController->Start();
 
