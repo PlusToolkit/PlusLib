@@ -108,6 +108,7 @@ int main (int argc, char* argv[])
 	freehandCalibration->SetSavedImageDataInfo(FREEHAND_MOTION_2, freehandMotion2DataInfo);
 
 	freehandCalibration->Initialize(); 
+	freehandCalibration->Start();
 
 	// Register phantom geometry before calibration 
 	freehandCalibration->RegisterPhantomGeometry(); 
