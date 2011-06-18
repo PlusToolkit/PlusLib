@@ -19,6 +19,7 @@ vtkImageViewer *viewer = NULL;
 vtkRenderWindowInteractor *iren = NULL;
 vtkTextActor *stepperTextActor = NULL; 
 vtkOpenIGTLinkBroadcaster* broadcaster = NULL; 
+vtkImageData* realtimeImage; 
 
 PlusStatus InitBroadcater(); 
 PlusStatus InvokeBroadcasterMessage(); 
@@ -30,17 +31,24 @@ public:
     {return new vtkMyCallback;}
     virtual void Execute(vtkObject *caller, unsigned long, void*)
     {
-        viewer->Render();
+        long flags = TR_OK; 
+		double synchronizedTime(0); 
+		vtkSmartPointer<vtkMatrix4x4> tFrame2Tracker = vtkSmartPointer<vtkMatrix4x4>::New(); 
+		if ( dataCollector->GetTrackedFrame(realtimeImage, tFrame2Tracker, flags, synchronizedTime, dataCollector->GetDefaultToolPortNumber()) == PLUS_SUCCESS )
+		{
+            viewer->SetInput(realtimeImage); 
+			viewer->Modified(); 
+		}
+		else
+		{
+			LOG_WARNING("Unable to get tracked frame!"); 
+            return; 
+		}
 
         std::ostringstream ss;
         ss.precision( 2 ); 
-        vtkSmartPointer<vtkMatrix4x4> tFrame2Tracker = vtkSmartPointer<vtkMatrix4x4>::New(); 
         if ( dataCollector->GetTracker()->IsTracking())
         {
-            double timestamp(0); 
-            long flags(0); 
-            dataCollector->GetTransformWithTimestamp(tFrame2Tracker, timestamp, flags, dataCollector->GetDefaultToolPortNumber()); 
-
             if (flags & (TR_MISSING | TR_OUT_OF_VIEW )) 
             {
                 ss	<< "Tracker out of view..."; 
@@ -65,6 +73,8 @@ public:
 
         stepperTextActor->SetInput(ss.str().c_str());
         stepperTextActor->Modified(); 
+
+        viewer->Render();
 
         InvokeBroadcasterMessage(); 
 
@@ -169,8 +179,15 @@ int main(int argc, char **argv)
         exit(EXIT_SUCCESS); 
     }
 
+    int * frameSize = dataCollector->GetVideoSource()->GetFrameSize(); 
+	realtimeImage = vtkImageData::New(); 
+	realtimeImage->SetExtent( 0, frameSize[0] - 1, 0, frameSize[1] - 1, 0, 0); 
+	realtimeImage->SetNumberOfScalarComponents(1); 
+	realtimeImage->SetScalarTypeToUnsignedChar(); 
+	realtimeImage->AllocateScalars();
+
     viewer = vtkImageViewer::New();
-    viewer->SetInput(dataCollector->GetOutput());   //set image to the render and window
+    viewer->SetInput(realtimeImage);   //set image to the render and window
     viewer->SetColorWindow(255);
     viewer->SetColorLevel(127.5);
     viewer->SetZSlice(0);
@@ -220,6 +237,7 @@ int main(int argc, char **argv)
     viewer->Delete();
     iren->Delete();
     stepperTextActor->Delete(); 
+    realtimeImage->Delete(); 
 
     VTK_LOG_TO_CONSOLE_OFF; 
 
