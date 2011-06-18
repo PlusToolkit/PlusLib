@@ -62,16 +62,16 @@ vtkOpenIGTLinkBroadcaster
   
   vtkTrackerTool* defaultTool = this->DataCollector->GetTracker()->GetTool( defaultToolPort );
   const char* constCharSendTo = defaultTool->GetSendToLink();
-  std::string strSendTo( constCharSendTo );
-  
-  
-  if ( strSendTo.size() < 1 )
+   
+  if ( constCharSendTo == NULL )
     {
     LOG_ERROR( "No SendTo address defined for default tracker tool." );
     this->InternalStatus = STATUS_NOT_INITIALIZED;
     return this->InternalStatus;
     }
   
+  std::string strSendTo( constCharSendTo );
+
   char* charSendTo = new char[ strSendTo.size() + 1 ];
   strcpy( charSendTo, strSendTo.c_str() );
   const char* hostname = strtok( charSendTo, ":");
