@@ -297,16 +297,17 @@ void FreehandCalibrationToolbox::SkipTemporalClicked()
 	vtkFreehandCalibrationController::GetInstance()->TemporalCalibrationDoneOn();
 
 	////////////TEMPORARY CODE///////////// TODO
-	QString fileName("d:/devel/Plus-bin_Assembla/PlusApp-bin/bin/Config/PhantomRegistration_Thomas.xml");
+	QString configPath(vtkFreehandController::GetInstance()->GetConfigDirectory());
+	QString fileName(configPath + "/PhantomRegistration_Thomas.xml");
 	if (PhantomRegistrationController::GetInstance()->LoadPhantomRegistrationFromFile(fileName.toStdString())) {
 		ui.lineEdit_PhantomRegistration->setText(fileName);
 		ui.lineEdit_PhantomRegistration->setToolTip(fileName);
 	}
-	fileName = QString("d:/devel/Plus-bin_Assembla/PlusApp-bin/bin/Config/PhantomDefinition_ThomasFreehand_1.0.xml");
+	fileName = QString(configPath + "/PhantomDefinition_ThomasFreehand_1.0.xml");
 	vtkFreehandCalibrationController::GetInstance()->SetPhantomDefinitionFileName(fileName.toStdString().c_str());
 	ui.lineEdit_PhantomDefinition->setText(fileName);
 	ui.lineEdit_PhantomDefinition->setToolTip(fileName);
-	fileName = QString("d:/devel/Plus-bin_Assembla/PlusApp-bin/bin/Config/USCalibrationConfig_Thomas_FrameGrabber.xml");
+	fileName = QString(configPath + "/USCalibrationConfig_Thomas_FrameGrabber.xml");
 	vtkFreehandCalibrationController::GetInstance()->ReadConfiguration(fileName.toStdString().c_str()); //TODO error handling
 	ui.lineEdit_CalibrationConfiguration->setText(fileName);
 	ui.lineEdit_CalibrationConfiguration->setToolTip(fileName);
