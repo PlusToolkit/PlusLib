@@ -172,9 +172,13 @@ PlusStatus vtkFreehandCalibrationController::DoAcquisition()
 	int numberOfAcquiredImages = 0;
 
 	// this->CancelRequestOff(); //TODO
-	// Acquire and add validation data
 
-	while (this->GetRealtimeImageDataInfo(FREEHAND_MOTION_2).NumberOfSegmentedImages < maxNumberOfValidationImages) {
+	// Acquire and add validation and calibration data
+	while ((this->GetRealtimeImageDataInfo(FREEHAND_MOTION_2).NumberOfSegmentedImages < maxNumberOfValidationImages)
+		&& (this->GetRealtimeImageDataInfo(FREEHAND_MOTION_1).NumberOfSegmentedImages < maxNumberOfCalibrationImages)) {
+
+		bool segmentationSuccessful = false;
+
 		/* TODO
 		if (this->CancelRequest) {
 			// we should cancel the job...
@@ -190,40 +194,34 @@ PlusStatus vtkFreehandCalibrationController::DoAcquisition()
 		} else if ( trackedFrame.Status & (TR_REQ_TIMEOUT)) {
 			LOG_WARNING("Tracker request timeout"); 
 		} else { // TR_OK
-			//TODO Validate data like "if ( this->ProbeCalibrationController->GetTrackedFrameList(dataType)->ValidateData(&trackedFrame) )"
-			AddTrackedFrameData(&trackedFrame, FREEHAND_MOTION_2);
+			if (numberOfAcquiredImages < maxNumberOfValidationImages) {
+				// Validation data
+				//TODO Validate data like "if ( this->ProbeCalibrationController->GetTrackedFrameList(dataType)->ValidateData(&trackedFrame) )"
+				if (AddTrackedFrameData(&trackedFrame, FREEHAND_MOTION_2)) {
+					segmentationSuccessful = true;
+				} else {
+					//LOG_WARNING("Adding tracked frame " << this->GetRealtimeImageDataInfo(FREEHAND_MOTION_2).NumberOfSegmentedImages << " (for validation) failed!");
+				}
+			} else {
+				// Calibration data
+				if (AddTrackedFrameData(&trackedFrame, FREEHAND_MOTION_1)) {
+					segmentationSuccessful = true;
+				} else {
+					//LOG_WARNING("Adding tracked frame " << this->GetRealtimeImageDataInfo(FREEHAND_MOTION_1).NumberOfSegmentedImages << " (for calibration) failed!");
+				}
+			}
 		}
 
 		//TODO display current frame in ImageCanvas
 
-		++numberOfAcquiredImages;
-		this->SetProgressPercent( (int)((numberOfAcquiredImages / (maxNumberOfValidationImages + maxNumberOfCalibrationImages)) * 100.0) );
-	}
-
-	// Acquire and add calibration data //TODO out validation and calibration into one loop since almost the whole inner codes are the same
-	while ( this->GetRealtimeImageDataInfo(FREEHAND_MOTION_1).NumberOfSegmentedImages < maxNumberOfCalibrationImages) {
-		/* TODO
-		if (this->CancelRequest) {
-			// we should cancel the job...
-			return; 
-		}
-		*/
-
-		TrackedFrame trackedFrame; 
-		controller->GetDataCollector()->GetTrackedFrame(&trackedFrame); 
-
-		if (trackedFrame.Status & (TR_MISSING | TR_OUT_OF_VIEW)) {
-			LOG_WARNING("Tracker out of view"); 
-		} else if ( trackedFrame.Status & (TR_REQ_TIMEOUT)) {
-			LOG_WARNING("Tracker request timeout"); 
-		} else { // TR_OK
-			AddTrackedFrameData(&trackedFrame, FREEHAND_MOTION_1);
+		if (segmentationSuccessful) {
+			++numberOfAcquiredImages;
+			this->SetProgressPercent( (int)((numberOfAcquiredImages / (double)(maxNumberOfValidationImages + maxNumberOfCalibrationImages)) * 100.0) );
 		}
 
-		//TODO display current frame in ImageCanvas
-
-		++numberOfAcquiredImages;
-		this->SetProgressPercent( (int)((numberOfAcquiredImages / (maxNumberOfValidationImages + maxNumberOfCalibrationImages)) * 100.0) );
+		if (m_Toolbox) {
+			m_Toolbox->RefreshToolboxContent();
+		}
 	}
   
 	return PLUS_SUCCESS;
@@ -669,9 +667,11 @@ PlusStatus vtkFreehandCalibrationController::AddTrackedFrameData(TrackedFrame* t
 
 			this->PopulateSegmentedFiducialsToDataContainer(transformProbeToPhantomReferenceMatrix4x4, dataType);
 
+			/*
 			if ((dataType == FREEHAND_MOTION_1) && (this->GetCalibrator()->areDataPositionsReadyForCalibration())) {
 				this->Calibrate(); 
 			}
+			*/
 
 			return PLUS_SUCCESS;
 		}
@@ -776,7 +776,7 @@ PlusStatus vtkFreehandCalibrationController::DoOfflineCalibration()
 				// The segmentation was successful
 				validationCounter++;
 			} else {
-				LOG_WARNING("Adding tracked frame failed!");
+				LOG_WARNING("Adding tracked frame " << imgNumber << " (for validation) failed!");
 			}
 
 			this->AddFrameToRenderer(trackedFrameList->GetTrackedFrame(imgNumber)->ImageData);
@@ -804,7 +804,7 @@ PlusStatus vtkFreehandCalibrationController::DoOfflineCalibration()
 				// The segmentation was successful
 				calibrationCounter++; 
 			} else {
-				LOG_WARNING("Adding tracked frame failed!");
+				LOG_WARNING("Adding tracked frame " << imgNumber << " (for calibration) failed!");
 			}
 
 			this->AddFrameToRenderer(calibrationData->GetTrackedFrame(imgNumber)->ImageData); 
