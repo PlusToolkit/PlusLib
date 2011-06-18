@@ -387,8 +387,10 @@ PlusStatus vtkVideoBuffer::AddItem(unsigned char *imageDataPtr,
 
 	int bufferIndex(0); 
 	BufferItemUidType itemUid; 
+    this->VideoBuffer->Lock(); 
 	if ( this->VideoBuffer->PrepareForNewFrame(filteredTimestamp, itemUid, bufferIndex) != PLUS_SUCCESS )
 	{
+        this->VideoBuffer->Unlock(); 
 		LOG_DEBUG( "vtkVideoBuffer: Failed to prepare for adding new frame to video buffer!"); 
 		return PLUS_FAIL; 
 	}
@@ -397,6 +399,7 @@ PlusStatus vtkVideoBuffer::AddItem(unsigned char *imageDataPtr,
 	VideoBufferItem* newObjectInBuffer = this->VideoBuffer->GetBufferItem(bufferIndex); 
 	if ( newObjectInBuffer == NULL )
 	{
+        this->VideoBuffer->Unlock(); 
 		LOG_WARNING( "vtkVideoBuffer: Failed to get pointer to video buffer object from the video buffer for the new frame!"); 
 		return PLUS_FAIL; 
 	}
@@ -406,6 +409,7 @@ PlusStatus vtkVideoBuffer::AddItem(unsigned char *imageDataPtr,
 	newObjectInBuffer->SetUnfilteredTimestamp(unfilteredTimestamp); 
 	newObjectInBuffer->SetIndex(frameNumber); 
 	newObjectInBuffer->SetUid(itemUid); 
+    this->VideoBuffer->Unlock(); 
 
 	return status; 
 }
