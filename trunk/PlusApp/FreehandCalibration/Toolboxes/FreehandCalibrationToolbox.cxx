@@ -268,6 +268,9 @@ void FreehandCalibrationToolbox::OpenCalibrationConfigurationClicked()
 	// Load calibration configuration xml
 	vtkFreehandCalibrationController::GetInstance()->ReadConfiguration(fileName.toStdString().c_str()); //TODO error handling
 
+	// Re-calculate camera parameters
+	vtkFreehandCalibrationController::GetInstance()->CalculateImageCameraParameters();
+
 	ui.lineEdit_CalibrationConfiguration->setText(fileName);
 	ui.lineEdit_CalibrationConfiguration->setToolTip(fileName);
 }
@@ -309,6 +312,7 @@ void FreehandCalibrationToolbox::SkipTemporalClicked()
 	ui.lineEdit_PhantomDefinition->setToolTip(fileName);
 	fileName = QString(configPath + "/USCalibrationConfig_Thomas_FrameGrabber.xml");
 	vtkFreehandCalibrationController::GetInstance()->ReadConfiguration(fileName.toStdString().c_str()); //TODO error handling
+	vtkFreehandCalibrationController::GetInstance()->CalculateImageCameraParameters();
 	ui.lineEdit_CalibrationConfiguration->setText(fileName);
 	ui.lineEdit_CalibrationConfiguration->setToolTip(fileName);
 	////////////TEMPORARY CODE/////////////
