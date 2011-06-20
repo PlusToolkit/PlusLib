@@ -66,11 +66,12 @@ public:
 	PlusStatus Stop();
 
 	//TODO--------------------------
-	void StartTemporalCalibration();
+	void DoTemporalCalibration();
 	void StartSpatialCalibration();
 	static void UpdateProgress(int aPercent);
 	bool IsReadyToStartSpatialCalibration();
 	void DisplayCalibrationResults();
+	PlusStatus CalculateImageCameraParameters();
 
 	virtual void SetUSImageFrameOriginInPixels(int originX, int originY); 
 	virtual void SetUSImageFrameOriginInPixels(int* origin); 
@@ -229,6 +230,9 @@ public:
 	vtkGetObjectMacro(CanvasImageActor, vtkImageActor);
 	vtkSetObjectMacro(CanvasImageActor, vtkImageActor);
 
+	vtkGetObjectMacro(ImageCamera, vtkCamera);
+	vtkSetObjectMacro(ImageCamera, vtkCamera);
+
 	vtkGetMacro(EnableSystemLog, bool);
 	vtkSetMacro(EnableSystemLog, bool);
 	vtkBooleanMacro(EnableSystemLog, bool);
@@ -275,7 +279,8 @@ protected:
 	int USImageFrameOriginXInPixels;
 	int USImageFrameOriginYInPixels;
 	//! TODO
-	vtkImageActor*				CanvasImageActor;
+	vtkImageActor*	CanvasImageActor;
+	vtkCamera*		ImageCamera;
 	vtkTransform*	TransformProbeToPhantomReference;
 	vtkTransform*	TransformImageToProbe;
 	//! Attribute: calibration result file name
