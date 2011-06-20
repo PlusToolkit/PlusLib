@@ -77,12 +77,12 @@ PlusStatus vtkFreehandController::Initialize()
 
 	if ((this->DataCollector->GetTracker() == NULL) || (this->DataCollector->GetTracker()->GetNumberOfTools() < 1)) {
 		LOG_ERROR("Unable to initialize Tracker!"); 
-		return PLUS_FAIL; // TODO: write on GUI
+		return PLUS_FAIL;
 	}
 
 	if (! this->DataCollector->GetInitialized()) {
 		LOG_ERROR("Unable to initialize DataCollector!"); 
-		return PLUS_FAIL; // TODO: write on GUI
+		return PLUS_FAIL;
 	}
 
 	// Set up canvas renderer

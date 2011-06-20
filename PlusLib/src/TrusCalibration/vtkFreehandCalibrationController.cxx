@@ -61,6 +61,7 @@ vtkFreehandCalibrationController::vtkFreehandCalibrationController()
 	this->EnableSystemLogOff();
 	this->SetCalibrationMode(REALTIME); 
 	this->CanvasImageActor = NULL;
+	this->ImageCamera = NULL;
 	this->CalibrationResultFileNameWithPath = NULL;
 	this->CalibrationResultFileSuffix = NULL;
 
@@ -114,6 +115,7 @@ PlusStatus vtkFreehandCalibrationController::Initialize()
 
 	// Initialize visualization
 	if (controller->GetCanvas() != NULL) {
+		// Initialize canvas image actor
 		if (m_State == ToolboxState_Uninitialized) {
 			vtkSmartPointer<vtkImageActor> canvasImageActor = vtkSmartPointer<vtkImageActor>::New();
 
@@ -127,10 +129,15 @@ PlusStatus vtkFreehandCalibrationController::Initialize()
 			this->SetCanvasImageActor(canvasImageActor);
 		}
 
+		// Compute image camera parameters and set it to display live image
+		CalculateImageCameraParameters();
+		
 		// Add image actor to the realtime renderer, and add renderer to Canvas
 		// If already initialized (it can occur if tab change - and so clear - happened)
 		controller->GetCanvasRenderer()->AddActor(this->CanvasImageActor);
-		controller->GetCanvasRenderer()->ResetCamera();
+		controller->GetCanvasRenderer()->SetBackground(0.2, 0.2, 0.2);
+		controller->GetCanvasRenderer()->InteractiveOff(); // TODO it doesn't work - find a way to disable interactions (also re-enable on Clear)
+		controller->GetCanvasRenderer()->Modified();
 	}
 
 	// Set state to idle (initialized)
@@ -145,12 +152,58 @@ PlusStatus vtkFreehandCalibrationController::Initialize()
 
 //-----------------------------------------------------------------------------
 
+PlusStatus vtkFreehandCalibrationController::CalculateImageCameraParameters()
+{
+	LOG_DEBUG("Calculate image camera parameters");
+
+	vtkFreehandController* controller = vtkFreehandController::GetInstance();
+	if ((controller == NULL) || (controller->GetInitialized() == false)) {
+		LOG_ERROR("vtkFreehandController is not initialized!");
+		return PLUS_FAIL;
+	}
+	vtkDataCollector* dataCollector = controller->GetDataCollector();
+	if (dataCollector == NULL) {
+		LOG_ERROR("Data collector is not initialized!");
+		return PLUS_FAIL;
+	}
+
+	double imageCenterX = 0;
+	double imageCenterY = 0;
+	if ((this->GetImageWidthInPixels() == 0) || (this->GetImageHeightInPixels() == 0)) {
+		int dimensions[3];
+		dataCollector->GetVideoSource()->GetFrameSize(dimensions);
+		//dimensions = dataCollector->GetOutput()->GetDimensions();
+		imageCenterX = dimensions[0] / 2.0;
+		imageCenterY = dimensions[1] / 2.0;
+	} else {
+		imageCenterX = this->GetImageWidthInPixels() / 2.0; 
+		imageCenterY = this->GetImageHeightInPixels() / 2.0; 
+	}
+	vtkSmartPointer<vtkCamera> imageCamera = vtkSmartPointer<vtkCamera>::New(); 
+	imageCamera->SetPosition(imageCenterX, imageCenterY, -150);
+	imageCamera->SetFocalPoint(imageCenterX, imageCenterY, 0);
+	imageCamera->SetViewUp(0, -1, 0);
+	imageCamera->SetClippingRange(0.1, 1000);
+	imageCamera->ParallelProjectionOn();
+	imageCamera->SetParallelScale(imageCenterY);
+
+	this->SetImageCamera(imageCamera);
+
+	controller->GetCanvasRenderer()->SetActiveCamera(this->ImageCamera);
+
+	return PLUS_SUCCESS;
+}
+
+//-----------------------------------------------------------------------------
+
 PlusStatus vtkFreehandCalibrationController::Clear()
 {
 	LOG_DEBUG("Clear vtkFreehandCalibrationController");
 
-	// Remove actor
-	vtkFreehandController::GetInstance()->GetCanvasRenderer()->AddActor(this->CanvasImageActor);
+	// Remove actor and reset background color
+	vtkFreehandController::GetInstance()->GetCanvasRenderer()->RemoveActor(this->CanvasImageActor);
+	vtkFreehandController::GetInstance()->GetCanvasRenderer()->SetBackground(0.6, 0.6, 0.6);
+	vtkFreehandController::GetInstance()->GetCanvasRenderer()->InteractiveOn();
 
 	m_Toolbox->Clear();  
 
@@ -212,9 +265,7 @@ PlusStatus vtkFreehandCalibrationController::DoAcquisition()
 			}
 		}
 
-		//TODO display current frame in ImageCanvas
-		//this->CanvasImageActor->Modified();
-
+		// Update progress if tracked frame has been successfully added
 		if (segmentationSuccessful) {
 			++numberOfAcquiredImages;
 			this->SetProgressPercent( (int)((numberOfAcquiredImages / (double)(maxNumberOfValidationImages + maxNumberOfCalibrationImages)) * 100.0) );
@@ -315,7 +366,7 @@ void vtkFreehandCalibrationController::UpdateProgress(int aPercent) {
 
 //-----------------------------------------------------------------------------
 
-void vtkFreehandCalibrationController::StartTemporalCalibration()
+void vtkFreehandCalibrationController::DoTemporalCalibration()
 {
 	if (GetCalibrationMode() != REALTIME) {
 		LOG_ERROR( "Unable to start temporal calibration in offline mode!" );  
@@ -338,6 +389,7 @@ void vtkFreehandCalibrationController::StartTemporalCalibration()
 
 void vtkFreehandCalibrationController::StartSpatialCalibration()
 {
+	//TODO Possibly this function is not needed at all (DoAcquisition does its job)
 	if (GetCalibrationMode() != REALTIME) {
 		LOG_ERROR( "Unable to start spatial calibration in offline mode!" );  
 		return; 
