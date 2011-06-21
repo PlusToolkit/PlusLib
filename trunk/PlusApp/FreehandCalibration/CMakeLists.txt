@@ -10,6 +10,7 @@ INCLUDE(${QT_USE_FILE})
 SET (FreehandCalibration_SRCS
 	FreehandMain.cxx
 	FreehandMainWindow.cxx
+	Toolboxes/ConfigurationToolbox.cxx
 	Toolboxes/FreehandCalibrationToolbox.cxx
 	Toolboxes/StylusCalibrationToolbox.cxx
 	Toolboxes/PhantomRegistrationToolbox.cxx
@@ -24,6 +25,7 @@ endif (WIN32)
 
 SET (FreehandCalibration_UI_HDRS
 		FreehandMainWindow.h
+		Toolboxes/ConfigurationToolbox.h
 		Toolboxes/FreehandCalibrationToolbox.h
 		Toolboxes/StylusCalibrationToolbox.h
 		Toolboxes/PhantomRegistrationToolbox.h
@@ -32,6 +34,7 @@ SET (FreehandCalibration_UI_HDRS
 
 SET (FreehandCalibration_UI_SRCS
 	FreehandMainWindow.ui 
+	Toolboxes/ConfigurationToolbox.ui
 	Toolboxes/FreehandCalibrationToolbox.ui
 	Toolboxes/StylusCalibrationToolbox.ui
 	Toolboxes/PhantomRegistrationToolbox.ui
@@ -40,6 +43,7 @@ SET (FreehandCalibration_UI_SRCS
 
 SET (QT_Resources
 	FreehandCalibration.qrc
+	${PlusApp_SOURCE_DIR}/CommonWidgets/CommonWidgets.qrc
 	)
 	
 
@@ -57,6 +61,8 @@ SOURCE_GROUP("UI Files" FILES ${FreehandCalibration_UI_SRCS})
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/Toolboxes)
+include_directories(${PlusApp_BINARY_DIR}/CommonWidgets)
+include_directories(${PlusApp_SOURCE_DIR}/CommonWidgets)
 
 # --------------------------------------------------------------------------
 # Build the library
@@ -64,6 +70,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/Toolboxes)
 SET (FreehandCalibration_LIBS 
     ${FreehandCalibration_LIBS} 
     ${QT_LIBRARIES} 
+	CommonWidgets
     vtkImageAcquisition 
     ITKIO
     itkvnl 

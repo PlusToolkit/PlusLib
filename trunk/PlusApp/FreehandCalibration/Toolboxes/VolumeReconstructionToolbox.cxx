@@ -6,7 +6,8 @@
 //-----------------------------------------------------------------------------
 
 VolumeReconstructionToolbox::VolumeReconstructionToolbox(QWidget* aParent, Qt::WFlags aFlags)
-	:AbstractToolbox()
+	: AbstractToolbox()
+	, QWidget(aParent, aFlags)
 {
 }
 

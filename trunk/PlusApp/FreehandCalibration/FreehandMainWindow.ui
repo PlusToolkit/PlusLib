@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>FreehandClass</class>
- <widget class="QMainWindow" name="FreehandClass">
+ <class>fCalMainWindow</class>
+ <widget class="QMainWindow" name="fCalMainWindow">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>856</width>
+    <width>932</width>
     <height>620</height>
    </rect>
   </property>
@@ -18,19 +18,19 @@
     <normaloff>:/icon_/Resources/icon_fCal.png</normaloff>:/icon_/Resources/icon_fCal.png</iconset>
   </property>
   <widget class="QWidget" name="centralWidget">
-   <layout class="QHBoxLayout" name="horizontalLayout">
-    <property name="spacing">
-     <number>0</number>
-    </property>
+   <layout class="QGridLayout" name="gridLayout">
     <property name="margin">
      <number>0</number>
     </property>
-    <item>
+    <property name="spacing">
+     <number>0</number>
+    </property>
+    <item row="0" column="0">
      <widget class="QTabWidget" name="tabWidgetToolbox">
       <property name="minimumSize">
        <size>
         <width>212</width>
-        <height>600</height>
+        <height>500</height>
        </size>
       </property>
       <property name="maximumSize">
@@ -45,6 +45,11 @@
       <property name="currentIndex">
        <number>0</number>
       </property>
+      <widget class="QWidget" name="tab_Configuration">
+       <attribute name="title">
+        <string>Configuration</string>
+       </attribute>
+      </widget>
       <widget class="QWidget" name="tab_StylusCalibration">
        <attribute name="title">
         <string>Stylus Calibration</string>
@@ -67,7 +72,7 @@
       </widget>
      </widget>
     </item>
-    <item>
+    <item row="0" column="1">
      <widget class="QVTKWidget" name="canvas" native="true">
       <property name="sizePolicy">
        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
@@ -77,7 +82,7 @@
       </property>
       <property name="minimumSize">
        <size>
-        <width>600</width>
+        <width>720</width>
         <height>600</height>
        </size>
       </property>

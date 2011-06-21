@@ -1,6 +1,6 @@
 <RCC>
   <qresource prefix="icon_">
-    <file>Resources/icon_OpenFile.png</file>
     <file>Resources/icon_fCal.png</file>
+    <file>../CommonWidgets/Resources/icon_OpenFile.png</file>
   </qresource>
 </RCC>

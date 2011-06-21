@@ -12,7 +12,8 @@
 //-----------------------------------------------------------------------------
 
 PhantomRegistrationToolbox::PhantomRegistrationToolbox(QWidget* aParent, Qt::WFlags aFlags)
-	:AbstractToolbox()
+	: AbstractToolbox()
+	, QWidget(aParent, aFlags)
 {
 	ui.setupUi(this);
 

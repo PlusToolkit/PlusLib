@@ -1,6 +1,7 @@
 #include "FreehandMainWindow.h"
 
 #include "vtkFreehandController.h"
+#include "ConfigurationToolbox.h"
 #include "StylusCalibrationToolbox.h"
 #include "PhantomRegistrationToolbox.h"
 #include "FreehandCalibrationToolbox.h"
@@ -88,6 +89,17 @@ void FreehandMainWindow::CreateToolboxes()
 {
 	LOG_DEBUG("Create toolboxes"); 
 
+	// Configuration widget
+	ConfigurationToolbox* configurationToolbox = new ConfigurationToolbox(ui.tab_Configuration);
+
+	if (configurationToolbox != NULL) {
+		QGridLayout* grid = new QGridLayout(ui.tab_Configuration, 1, 1, 0, 0, "");
+		grid->addWidget(configurationToolbox);
+		ui.tab_Configuration->setLayout(grid);
+
+		connect( configurationToolbox, SIGNAL( SetTabsEnabled(bool) ), this, SLOT( SetTabsEnabled(bool) ) );
+	}
+
 	// Stylus calibration widget
 	StylusCalibrationToolbox* stylusCalibrationToolbox = new StylusCalibrationToolbox(ui.tab_StylusCalibration);
 
@@ -141,6 +153,7 @@ void FreehandMainWindow::SetupStatusBar()
 	m_StatusBarProgress->setSizePolicy(sizePolicy);
 	m_StatusBarProgress->hide();
 
+	//TODO add icon indicating the status. Warning and error messages can be read as tooltip on hover
 	ui.statusBar->addWidget(m_StatusBarLabel, 1);
 	ui.statusBar->addPermanentWidget(m_StatusBarProgress, 3);
 }
@@ -182,6 +195,8 @@ void FreehandMainWindow::FindConfigurationFiles()
 AbstractToolboxController* FreehandMainWindow::GetToolboxControllerByType(ToolboxType aType)
 {
 	switch (aType) {
+		case ToolboxType_Configuration:
+			return NULL; //TODO If there will be a ConfigurationController, it has to go here
 		case ToolboxType_StylusCalibration:
 			return StylusCalibrationController::GetInstance();
 		case ToolboxType_PhantomRegistration:
@@ -255,7 +270,13 @@ void FreehandMainWindow::CurrentTabChanged(int aTabIndex)
 	}
 
 	// Initialize new tab
-	if (ui.tabWidgetToolbox->tabText(aTabIndex) == "Stylus Calibration") {
+	if (ui.tabWidgetToolbox->tabText(aTabIndex) == "Configuration") {
+		// Initialize configuration
+		//ConfigurationController::GetInstance()->Initialize();
+
+		m_ActiveToolbox = ToolboxType_Configuration;
+
+	} else if (ui.tabWidgetToolbox->tabText(aTabIndex) == "Stylus Calibration") {
 		// Initialize stylus calibration
 		StylusCalibrationController::GetInstance()->Initialize();
 		vtkFreehandController::GetInstance()->TrackingOnlyOn();
@@ -325,14 +346,16 @@ void FreehandMainWindow::UpdateGUI()
 	if ((controller == NULL)
 		|| (StylusCalibrationController::GetInstance() == NULL)
 		|| (PhantomRegistrationController::GetInstance() == NULL)
-		|| (vtkFreehandCalibrationController::GetInstance() == NULL)) { //TODO kiegesziteni
+		|| (vtkFreehandCalibrationController::GetInstance() == NULL)) { //TODO add VolumeReconstructor and possibly Configuration if needed
 		LOG_ERROR("Some controllers are not initialized!");
 		return;
 	}
 
 	int tabIndex = ui.tabWidgetToolbox->currentIndex();
-	// Stylus calibration
-	if (ui.tabWidgetToolbox->tabText(tabIndex) == "Stylus Calibration") {
+
+	if (ui.tabWidgetToolbox->tabText(tabIndex) == "Configuration") {
+		// No update action
+	} else if (ui.tabWidgetToolbox->tabText(tabIndex) == "Stylus Calibration") {
 		StylusCalibrationController* toolboxController = StylusCalibrationController::GetInstance();
 
 		// Update progress bar

@@ -15,6 +15,7 @@ class AbstractToolboxController;
 enum ToolboxType
 {
 	ToolboxType_Undefined = -1,
+	ToolboxType_Configuration,
 	ToolboxType_StylusCalibration,
 	ToolboxType_PhantomRegistration,
 	ToolboxType_FreehandCalibration,
@@ -132,7 +133,7 @@ protected:
 	ToolboxType					m_ActiveToolbox;
 
 private:
-	Ui::FreehandClass			ui;
+	Ui::fCalMainWindow			ui;
 
 };
 
