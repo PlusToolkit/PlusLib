@@ -16,9 +16,6 @@ FreehandCalibrationToolbox::FreehandCalibrationToolbox(QWidget* aParent, Qt::WFl
 
 	//TODO tooltips
 
-	// Create timer
-	//m_AcquisitionTimer = new QTimer(this);
-
 	// Initialize toolbox controller
 	vtkFreehandCalibrationController* toolboxController = vtkFreehandCalibrationController::GetInstance();
 	if (toolboxController == NULL) {
@@ -52,13 +49,6 @@ FreehandCalibrationToolbox::~FreehandCalibrationToolbox()
 	if (freehandCalibrationController != NULL) {
 		delete freehandCalibrationController;
 	}
-
-	/*
-	if (m_AcquisitionTimer != NULL) {
-		delete m_AcquisitionTimer;
-		m_AcquisitionTimer = NULL;
-	}
-	*/
 }
 
 //-----------------------------------------------------------------------------
@@ -135,6 +125,8 @@ void FreehandCalibrationToolbox::RefreshToolboxContent()
 		}
 
 		ui.pushButton_StartSpatial->setEnabled(toolboxController->IsReadyToStartSpatialCalibration());
+
+		QApplication::restoreOverrideCursor();
 
 	} else
 	// If in progress
@@ -225,7 +217,6 @@ void FreehandCalibrationToolbox::OpenPhantomDefinitionClicked()
 	}
 
 	// Load phantom definition xml
-	//if (PhantomRegistrationController::GetInstance()->LoadPhantomDefinitionFromFile(fileName.toStdString())) { // probably it is not needed
 	vtkFreehandCalibrationController::GetInstance()->SetPhantomDefinitionFileName(fileName.toStdString().c_str());
 
 	ui.lineEdit_PhantomDefinition->setText(fileName);
@@ -339,17 +330,19 @@ void FreehandCalibrationToolbox::StartSpatialClicked()
 
 	toolboxController->RegisterPhantomGeometry();
 
-	toolboxController->DoAcquisition();
+	if (toolboxController->DoAcquisition()) {
 
-	toolboxController->ComputeCalibrationResults();
+		toolboxController->ComputeCalibrationResults();
 
-	toolboxController->Stop();
+		toolboxController->Stop();
+	}
 }
 
 //-----------------------------------------------------------------------------
 
 void FreehandCalibrationToolbox::ResetSpatialClicked()
 {
+	vtkFreehandCalibrationController::GetInstance()->Reset();
 }
 
 //-----------------------------------------------------------------------------
