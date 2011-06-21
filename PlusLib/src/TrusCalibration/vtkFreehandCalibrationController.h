@@ -66,12 +66,12 @@ public:
 	PlusStatus Stop();
 
 	//TODO--------------------------
-	void DoTemporalCalibration();
-	void StartSpatialCalibration();
+	PlusStatus DoTemporalCalibration();
 	static void UpdateProgress(int aPercent);
 	bool IsReadyToStartSpatialCalibration();
 	void DisplayCalibrationResults();
 	PlusStatus CalculateImageCameraParameters();
+	PlusStatus Reset();
 
 	virtual void SetUSImageFrameOriginInPixels(int originX, int originY); 
 	virtual void SetUSImageFrameOriginInPixels(int* origin); 
@@ -227,6 +227,10 @@ public:
 	vtkSetMacro(ProgressPercent, int); 
 	vtkGetMacro(ProgressPercent, int); 
 
+	vtkSetMacro(CancelRequest, bool); 
+	vtkGetMacro(CancelRequest, bool); 
+	vtkBooleanMacro(CancelRequest, bool); 
+
 	vtkGetObjectMacro(CanvasImageActor, vtkImageActor);
 	vtkSetObjectMacro(CanvasImageActor, vtkImageActor);
 
@@ -271,6 +275,7 @@ protected:
 	bool TemporalCalibrationDone;
 	bool SpatialCalibrationDone;
 	int ProgressPercent;
+	bool CancelRequest;
 	//! Attribute: a reference to the calibration phantom
 	BrachyTRUSCalibrator* Calibrator;
 	//! Attribute: Flag to enable the calibration log file
