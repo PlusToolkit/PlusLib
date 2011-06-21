@@ -97,17 +97,21 @@ PlusStatus StylusCalibrationController::Initialize()
 	LOG_DEBUG("Initialize StylusCalibrationController");
 
 	vtkFreehandController* controller = vtkFreehandController::GetInstance();
-  if (controller == NULL) {
+	if (controller == NULL) {
 		LOG_ERROR("vtkFreehandController is invalid");
 		return PLUS_FAIL;
 	}
-  if (controller->GetInitialized() == false) {
+	if (controller->GetInitialized() == false) {
 		LOG_ERROR("vtkFreehandController is not initialized!");
 		return PLUS_FAIL;
 	}
 	vtkDataCollector* dataCollector = controller->GetDataCollector();
 	if (dataCollector == NULL) {
 		LOG_ERROR("Data collector is not initialized!");
+		return PLUS_FAIL;
+	}
+	if (dataCollector->GetTracker() == NULL) {
+		LOG_ERROR("Tracker is not initialized!");
 		return PLUS_FAIL;
 	}
 

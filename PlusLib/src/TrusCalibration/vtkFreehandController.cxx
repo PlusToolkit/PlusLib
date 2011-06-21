@@ -76,8 +76,7 @@ PlusStatus vtkFreehandController::Initialize()
 	this->DataCollector->Start();
 
 	if ((this->DataCollector->GetTracker() == NULL) || (this->DataCollector->GetTracker()->GetNumberOfTools() < 1)) {
-		LOG_ERROR("Unable to initialize Tracker!"); 
-		return PLUS_FAIL;
+		LOG_WARNING("Unable to initialize Tracker!"); 
 	}
 
 	if (! this->DataCollector->GetInitialized()) {
