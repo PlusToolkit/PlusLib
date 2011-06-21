@@ -65,6 +65,10 @@ OPTION (PLUSAPP_BUILD_FreehandCalibration "Build the Freehand Calibration applic
 INCLUDE (${CMAKE_CURRENT_SOURCE_DIR}/CPackConfig.cmake) 
 
 # --------------------------------------------------------------------------
+# Build the CommonWidgets library
+ADD_SUBDIRECTORY(CommonWidgets)
+
+# --------------------------------------------------------------------------
 # Build the VolumeReconstructor application
 IF (PLUSAPP_BUILD_VolumeReconstructor)
     ADD_SUBDIRECTORY(VolumeReconstructor)
