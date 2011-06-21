@@ -43,7 +43,7 @@ protected:
 	/*!
 	* \brief Calls DoAcquisition function in controller
 	*/
-	virtual void RequestDoAcquisition() = 0;
+	virtual void RequestDoAcquisition() {};
 
 };
 

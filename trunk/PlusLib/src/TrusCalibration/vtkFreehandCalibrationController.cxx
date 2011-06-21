@@ -170,6 +170,10 @@ PlusStatus vtkFreehandCalibrationController::CalculateImageCameraParameters()
 		LOG_ERROR("Data collector is not initialized!");
 		return PLUS_FAIL;
 	}
+	if (dataCollector->GetVideoSource() == NULL) {
+		LOG_WARNING("Data collector has no video source!");
+		return PLUS_FAIL;
+	}
 
 	double imageCenterX = 0;
 	double imageCenterY = 0;
@@ -893,8 +897,8 @@ PlusStatus vtkFreehandCalibrationController::ComputeCalibrationResults()
 		this->GetTransformImageToProbe()->SetMatrix(imageToProbeMatrix);
 
 		// Write transformations to log and output
-		std::ostringstream osImageToProbe; 
-		this->GetTransformImageToProbe()->Print(osImageToProbe);   
+		std::ostringstream osImageToProbe;
+		this->GetTransformImageToProbe()->Print(osImageToProbe);
 		LOG_DEBUG("TransformImageToProbe:\n" << osImageToProbe.str().c_str() );
 
 		// Compute the independent point and line reconstruction errors
@@ -902,7 +906,7 @@ PlusStatus vtkFreehandCalibrationController::ComputeCalibrationResults()
 		this->GetCalibrator()->computeIndependentPointLineReconstructionError();
 
 		// STEP-4. Print the final calibration results and error reports 
-		LOG_INFO("Print calibration results and error reports"); ;
+		LOG_INFO("Print calibration results and error reports");
 		this->PrintCalibrationResultsAndErrorReports();
 
 		// STEP-5. Save the calibration results and error reports into a file 
@@ -928,7 +932,7 @@ PlusStatus vtkFreehandCalibrationController::ComputeCalibrationResults()
 		DisplayCalibrationResults();
 
 	} catch(...) {
-		LOG_ERROR("ComputeCalibrationResults: Failed to compute calibration results!"); 
+		LOG_ERROR("ComputeCalibrationResults: Failed to compute calibration results!");
 		return PLUS_FAIL;
 	}
   
