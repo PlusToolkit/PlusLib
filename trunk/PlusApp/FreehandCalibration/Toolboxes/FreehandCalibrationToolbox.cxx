@@ -330,7 +330,7 @@ void FreehandCalibrationToolbox::StartSpatialClicked()
 
 	toolboxController->RegisterPhantomGeometry();
 
-	if (toolboxController->DoAcquisition()) {
+	if (toolboxController->DoAcquisition() == PLUS_SUCCESS) {
 
 		toolboxController->ComputeCalibrationResults();
 
