@@ -8,6 +8,8 @@
 #include "vtkObjectFactory.h"
 #include "vtkAccurateTimer.h"
 #include "vtkMath.h"
+#include "vtkRenderWindow.h"
+#include "vtkRenderWindowInteractor.h"
 
 //-----------------------------------------------------------------------------
 
@@ -52,6 +54,7 @@ vtkFreehandCalibrationController::vtkFreehandCalibrationController()
 	this->TemporalCalibrationDone = false;
 	this->SpatialCalibrationDone = false;
 	this->ProgressPercent = 0;
+	this->CancelRequest = false;
 
 	this->USImageFrameOriginXInPixels = 0; 
 	this->USImageFrameOriginYInPixels = 0; 
@@ -137,6 +140,7 @@ PlusStatus vtkFreehandCalibrationController::Initialize()
 		controller->GetCanvasRenderer()->AddActor(this->CanvasImageActor);
 		controller->GetCanvasRenderer()->SetBackground(0.2, 0.2, 0.2);
 		controller->GetCanvasRenderer()->InteractiveOff(); // TODO it doesn't work - find a way to disable interactions (also re-enable on Clear)
+		//controller->GetCanvasRenderer()->GetRenderWindow()->GetInteractor()->Disable();
 		controller->GetCanvasRenderer()->Modified();
 	}
 
@@ -172,7 +176,6 @@ PlusStatus vtkFreehandCalibrationController::CalculateImageCameraParameters()
 	if ((this->GetImageWidthInPixels() == 0) || (this->GetImageHeightInPixels() == 0)) {
 		int dimensions[3];
 		dataCollector->GetVideoSource()->GetFrameSize(dimensions);
-		//dimensions = dataCollector->GetOutput()->GetDimensions();
 		imageCenterX = dimensions[0] / 2.0;
 		imageCenterY = dimensions[1] / 2.0;
 	} else {
@@ -224,7 +227,7 @@ PlusStatus vtkFreehandCalibrationController::DoAcquisition()
 	const int maxNumberOfCalibrationImages = this->GetRealtimeImageDataInfo(FREEHAND_MOTION_1).NumberOfImagesToAcquire; 
 	int numberOfAcquiredImages = 0;
 
-	// this->CancelRequestOff(); //TODO
+	this->CancelRequestOff();
 
 	// Acquire and add validation and calibration data
 	while ((this->GetRealtimeImageDataInfo(FREEHAND_MOTION_2).NumberOfSegmentedImages < maxNumberOfValidationImages)
@@ -232,12 +235,10 @@ PlusStatus vtkFreehandCalibrationController::DoAcquisition()
 
 		bool segmentationSuccessful = false;
 
-		/* TODO
 		if (this->CancelRequest) {
-			// we should cancel the job...
+			// Cancel the job
 			return PLUS_FAIL;
 		}
-		*/
 
 		TrackedFrame trackedFrame; 
 		controller->GetDataCollector()->GetTrackedFrame(&trackedFrame); 
@@ -284,18 +285,20 @@ PlusStatus vtkFreehandCalibrationController::DoAcquisition()
 PlusStatus vtkFreehandCalibrationController::Start()
 {
 	// Initialize vtkCalibrationController
-	if ( this->GetSegParameters() == NULL ) {
+	if (this->GetSegParameters() == NULL) {
 		this->SegParameters = new SegmentationParameters(); 
 	}
 
-	// Initialize the segmenation component
-	this->mptrAutomatedSegmentation = new KPhantomSeg( 
-		this->GetImageWidthInPixels(), this->GetImageHeightInPixels(), 
-		this->GetSearchStartAtX(), this->GetSearchStartAtY(), 
-		this->GetSearchDimensionX(), this->GetSearchDimensionY(), this->GetEnableSegmentationAnalysis(), "frame.jpg");
+	// Initialize the segmentation component
+	if (this->mptrAutomatedSegmentation == NULL) {
+		this->mptrAutomatedSegmentation = new KPhantomSeg( 
+			this->GetImageWidthInPixels(), this->GetImageHeightInPixels(), 
+			this->GetSearchStartAtX(), this->GetSearchStartAtY(), 
+			this->GetSearchDimensionX(), this->GetSearchDimensionY(), this->GetEnableSegmentationAnalysis(), "frame.jpg");
+	}	
 
 	// Initialize the calibration component
-	if ( this->Calibrator == NULL ) {
+	if (this->Calibrator == NULL) {
 		this->Calibrator = new BrachyTRUSCalibrator( this->GetEnableSystemLog() );
 	}
 
@@ -343,6 +346,38 @@ PlusStatus vtkFreehandCalibrationController::Stop()
 
 //-----------------------------------------------------------------------------
 
+PlusStatus vtkFreehandCalibrationController::Reset()
+{
+	this->CancelRequestOn();
+
+	// Delete object related to calibration (removing previously acquired data)
+	if (this->TemporalCalibrationDone == true) {
+		//if (this->mptrAutomatedSegmentation != NULL) {
+		//	delete this->mptrAutomatedSegmentation;
+		//	this->mptrAutomatedSegmentation = NULL;
+		//}	
+
+		if (this->Calibrator != NULL) {
+			delete this->Calibrator;
+			this->Calibrator = NULL;
+		}
+
+		// Empty tracked frame containers
+		this->TrackedFrameListContainer[FREEHAND_MOTION_1]->Clear();
+		this->TrackedFrameListContainer[FREEHAND_MOTION_2]->Clear();
+	}
+
+	// Reset progress
+	this->SetProgressPercent(0);
+
+	// Set state back to idle
+	m_State = ToolboxState_Idle;
+
+	return PLUS_SUCCESS;
+}
+
+//-----------------------------------------------------------------------------
+
 bool vtkFreehandCalibrationController::IsReadyToStartSpatialCalibration()
 {
 	if ((m_State == ToolboxState_Uninitialized)
@@ -361,90 +396,220 @@ bool vtkFreehandCalibrationController::IsReadyToStartSpatialCalibration()
 //-----------------------------------------------------------------------------
 
 void vtkFreehandCalibrationController::UpdateProgress(int aPercent) {
+	// Calls this way because it is a static function
 	vtkFreehandCalibrationController::GetInstance()->SetProgressPercent(aPercent);
 }
 
 //-----------------------------------------------------------------------------
 
-void vtkFreehandCalibrationController::DoTemporalCalibration()
+PlusStatus vtkFreehandCalibrationController::DoTemporalCalibration()
 {
 	if (GetCalibrationMode() != REALTIME) {
 		LOG_ERROR( "Unable to start temporal calibration in offline mode!" );  
-		return; 
+		return PLUS_FAIL; 
 	}
 
 	vtkFreehandController* controller = vtkFreehandController::GetInstance();
 	if ((controller == NULL) || (controller->GetInitialized() == false)) {
 		LOG_ERROR("vtkFreehandController is not initialized!");
-		return;
+		return PLUS_FAIL;
 	}
 
 	controller->GetDataCollector()->SetProgressBarUpdateCallbackFunction(UpdateProgress);
 	controller->GetDataCollector()->Synchronize();
 
 	this->TemporalCalibrationDoneOn();
+
+	return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
 
-void vtkFreehandCalibrationController::StartSpatialCalibration()
+void vtkFreehandCalibrationController::RegisterPhantomGeometry()
 {
-	//TODO Possibly this function is not needed at all (DoAcquisition does its job)
-	if (GetCalibrationMode() != REALTIME) {
-		LOG_ERROR( "Unable to start spatial calibration in offline mode!" );  
-		return; 
+	LOG_TRACE("vtkFreehandCalibrationController::RegisterPhantomGeometry"); 
+
+	// Load phantom geometry in calibrator
+	this->Calibrator->loadGeometry(this->SegParameters);
+
+	// Register the phantom geometry to the DRB frame in the "Emulator" mode.
+	vnl_matrix<double> transformMatrixPhantom2DRB4x4InEmulatorMode(4,4);
+	this->ConvertVtkMatrixToVnlMatrixInMeter(PhantomRegistrationController::GetInstance()->GetPhantomToPhantomReferenceTransform()->GetMatrix(), transformMatrixPhantom2DRB4x4InEmulatorMode);
+
+	this->Calibrator->registerPhantomGeometryInEmulatorMode(transformMatrixPhantom2DRB4x4InEmulatorMode);
+}
+
+//-----------------------------------------------------------------------------
+
+PlusStatus vtkFreehandCalibrationController::AddTrackedFrameData(TrackedFrame* trackedFrame, IMAGE_DATA_TYPE dataType)
+{
+	LOG_TRACE("vtkProbeCalibrationController::AddTrackedFrameData");
+
+	if (Superclass::AddTrackedFrameData(trackedFrame, dataType)) {
+		double tProbeToPhantomReference[16];
+
+		if (trackedFrame->GetDefaultFrameTransform(tProbeToPhantomReference)) {
+			// TODO Is it sure that the transform is not its name inverted?
+			vtkSmartPointer<vtkMatrix4x4> tProbeToPhantomReferenceMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+			tProbeToPhantomReferenceMatrix->DeepCopy(tProbeToPhantomReference);
+			vnl_matrix<double> transformProbeToPhantomReferenceMatrix4x4(4,4);
+
+			ConvertVtkMatrixToVnlMatrixInMeter(tProbeToPhantomReferenceMatrix, transformProbeToPhantomReferenceMatrix4x4);
+
+			this->GetTransformProbeToPhantomReference()->SetMatrix(tProbeToPhantomReferenceMatrix);
+
+			this->PopulateSegmentedFiducialsToDataContainer(transformProbeToPhantomReferenceMatrix4x4, dataType);
+
+			/*
+			if ((dataType == FREEHAND_MOTION_1) && (this->GetCalibrator()->areDataPositionsReadyForCalibration())) {
+				this->Calibrate(); 
+			}
+			*/
+
+			return PLUS_SUCCESS;
+		}
 	}
 
-	vtkFreehandController* controller = vtkFreehandController::GetInstance();
-	if ((controller == NULL) || (controller->GetInitialized() == false)) {
-		LOG_ERROR("vtkFreehandController is not initialized!");
-		return;
-	}
-	vtkDataCollector* dataCollector = controller->GetDataCollector();
-	if (dataCollector == NULL) {
-		LOG_ERROR("Data collector is not initialized!");
-		return;
-	}
-	if ((dataCollector->GetTracker() == NULL) || (dataCollector->GetTracker()->GetTool(dataCollector->GetDefaultToolPortNumber()) < 0)) {
-		LOG_ERROR("Tracker is not initialized properly!");
-		return;
+	return PLUS_FAIL; 
+}
+
+//----------------------------------------------------------------------------
+void vtkFreehandCalibrationController::Calibrate()
+{
+	LOG_TRACE("vtkFreehandCalibrationController::DoCalibration"); 
+
+	// Instruct the calibrator to perform the calibration task
+	this->GetCalibrator()->calibrate();
+
+	// Instruct the calibrator to validate the calibration accuracy
+	this->GetCalibrator()->compute3DPointReconstructionError();
+}
+
+//-----------------------------------------------------------------------------
+
+PlusStatus vtkFreehandCalibrationController::PopulateSegmentedFiducialsToDataContainer(vnl_matrix<double> &transformUSProbe2StepperFrameMatrix4x4, IMAGE_DATA_TYPE dataType)
+{
+	LOG_TRACE("vtkFreehandCalibrationController::PopulateSegmentedFiducialsToDataContainer"); 
+	// ========================================================================
+	// Populate the segmented N-fiducials to the data container
+	// Indices defined in the input std::vector array.
+	// This is the order that the segmentation algorithm gives the 
+	// segmented positions in each image:
+	//
+	// [ Array 0-2: Top N-wire Layer (Right-Middle-Left)]; 
+	// [ Array 3-5: Bottom N-wire Layer (Right-Middle-Left)]
+	// Each acquired data position is a 4x1 homogenous vector :
+	// [ X, Y, 0, 1] all units in pixels
+	// ==================================================================
+
+	SegmentationResults segResults;
+	this->GetSegmenter()->GetSegmentationResults(segResults); 
+
+	if (! segResults.m_DotsFound) {
+		LOG_ERROR("Segmentation failed! Unable to populate segmentation result!"); 
+		return PLUS_FAIL; 
 	}
 
-	// this->CancelRequestOff(); TODO
-	int numberOfImagesToUse = 0;
+	// Top layer:		3, 2, 1 
+	// Bottom Layer:	6, 5, 4 
+	std::vector<vnl_vector<double>> SegmentedNFiducialsInFixedCorrespondence;
+	SegmentedNFiducialsInFixedCorrespondence.resize(0);
 
-	// Validation images
-	numberOfImagesToUse = this->GetRealtimeImageDataInfo(FREEHAND_MOTION_2).NumberOfImagesToAcquire;
-	while ( this->GetRealtimeImageDataInfo(FREEHAND_MOTION_2).NumberOfSegmentedImages < numberOfImagesToUse ) {
-		if ( false/*this->CancelRequest TODO*/ ) {
-			// we should cancel the job...
-			return;
+	for (int i=0; i<segResults.m_FoundDotsCoordinateValue.size(); i++) {
+		vnl_vector<double> NFiducial(4,0);
+		NFiducial[0]=segResults.m_FoundDotsCoordinateValue[i][0];
+		NFiducial[1]=segResults.m_FoundDotsCoordinateValue[i][1];
+		NFiducial[2]=0;
+		NFiducial[3]=1;
+
+		SegmentedNFiducialsInFixedCorrespondence.push_back(NFiducial);
+
+		//std::cout << i << ": " << NFiducial[0] << "\t" << NFiducial[1] << "\t"; //TEST
+	}
+
+	//std::cout << std::endl; //TEST
+
+	// Add the data for calibration
+	if (dataType == FREEHAND_MOTION_1) {
+		this->GetCalibrator()->addDataPositionsPerImage( SegmentedNFiducialsInFixedCorrespondence, transformUSProbe2StepperFrameMatrix4x4 );
+	} else if (dataType == FREEHAND_MOTION_2) {
+		this->GetCalibrator()->addValidationPositionsPerImage( SegmentedNFiducialsInFixedCorrespondence, transformUSProbe2StepperFrameMatrix4x4 );
+	}
+  
+	return PLUS_SUCCESS;
+}
+
+//-----------------------------------------------------------------------------
+
+PlusStatus vtkFreehandCalibrationController::DoOfflineCalibration()
+{
+	LOG_TRACE("vtkFreehandCalibrationController::OfflineUSToTemplateCalibration"); 
+
+	try {
+		if (m_State == ToolboxState_Uninitialized) {
+			Initialize();
 		}
 
-		// Acuired tracked frame
-		TrackedFrame trackedFrame;
-		dataCollector->GetTrackedFrame(&trackedFrame);
-
-		AddTrackedFrameData(&trackedFrame, FREEHAND_MOTION_2); 
-	}
-
-	// Calibration images
-	numberOfImagesToUse = this->GetRealtimeImageDataInfo(FREEHAND_MOTION_1).NumberOfImagesToAcquire;
-	while ( this->GetRealtimeImageDataInfo(FREEHAND_MOTION_1).NumberOfSegmentedImages < numberOfImagesToUse ) {
-		if ( false/*this->CancelRequest TODO*/ ) {
-			// we should cancel the job...
-			return;
+		vtkSmartPointer<vtkTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New();
+		if ( !this->GetSavedImageDataInfo(FREEHAND_MOTION_2).SequenceMetaFileName.empty() ) {
+			trackedFrameList->ReadFromSequenceMetafile(this->GetSavedImageDataInfo(FREEHAND_MOTION_2).SequenceMetaFileName.c_str()); 
+		} else {
+			LOG_ERROR("Unable to start OfflineCalibration with validation data: SequenceMetaFileName is empty!"); 
+			return PLUS_FAIL; 
 		}
 
-		// Acuired tracked frame
-		TrackedFrame trackedFrame;
-		dataCollector->GetTrackedFrame(&trackedFrame);
+		// Validation data
+		int validationCounter = 0;
+		for (int imgNumber = this->GetSavedImageDataInfo(FREEHAND_MOTION_2).StartingIndex; validationCounter < this->GetSavedImageDataInfo(FREEHAND_MOTION_2).NumberOfImagesToUse; imgNumber++) {
+			if ( imgNumber >= trackedFrameList->GetNumberOfTrackedFrames() ) {
+				break; 
+			}
 
-		AddTrackedFrameData(&trackedFrame, FREEHAND_MOTION_1); 
+			if ( this->AddTrackedFrameData(trackedFrameList->GetTrackedFrame(imgNumber), FREEHAND_MOTION_2) ) {
+				// The segmentation was successful
+				validationCounter++;
+			} else {
+				LOG_DEBUG("Adding tracked frame " << imgNumber << " (for validation) failed!");
+			}
+
+			this->AddFrameToRenderer(trackedFrameList->GetTrackedFrame(imgNumber)->ImageData);
+		}
+
+		LOG_INFO( "A total of " << this->GetRealtimeImageDataInfo(FREEHAND_MOTION_2).NumberOfSegmentedImages << " images have been successfully added for validation.");
+
+
+		// Calibration data
+		vtkSmartPointer<vtkTrackedFrameList> calibrationData = vtkSmartPointer<vtkTrackedFrameList>::New();
+		if ( !this->GetSavedImageDataInfo(FREEHAND_MOTION_1).SequenceMetaFileName.empty() ) {
+			calibrationData->ReadFromSequenceMetafile(this->GetSavedImageDataInfo(FREEHAND_MOTION_1).SequenceMetaFileName.c_str()); 
+		} else {
+			LOG_ERROR("Unable to start OfflineCalibration with calibration data: SequenceMetaFileName is empty!"); 
+			return PLUS_FAIL; 
+		}
+
+		int calibrationCounter = 0;
+		for (int imgNumber = this->GetSavedImageDataInfo(FREEHAND_MOTION_1).StartingIndex; calibrationCounter < this->GetSavedImageDataInfo(FREEHAND_MOTION_1).NumberOfImagesToUse; imgNumber++) {
+			if ( imgNumber >= calibrationData->GetNumberOfTrackedFrames() ) {
+				break; 
+			}
+
+			if ( this->AddTrackedFrameData(calibrationData->GetTrackedFrame(imgNumber), FREEHAND_MOTION_1) ) {
+				// The segmentation was successful
+				calibrationCounter++; 
+			} else {
+				LOG_DEBUG("Adding tracked frame " << imgNumber << " (for calibration) failed!");
+			}
+
+			this->AddFrameToRenderer(calibrationData->GetTrackedFrame(imgNumber)->ImageData); 
+		}
+
+		LOG_INFO ("A total of " << this->GetRealtimeImageDataInfo(FREEHAND_MOTION_1).NumberOfSegmentedImages << " images have been successfully added for calibration.");
+	} catch(...) {
+		LOG_ERROR("AddAllSavedData: Failed to add saved data!");  
+		return PLUS_FAIL;
 	}
 
-	// Calibrate
-	Calibrate();
+	return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
@@ -680,195 +845,6 @@ PlusStatus vtkFreehandCalibrationController::ReadFreehandCalibrationConfiguratio
 	}
 	*/
   
-	return PLUS_SUCCESS;
-}
-
-//-----------------------------------------------------------------------------
-
-void vtkFreehandCalibrationController::RegisterPhantomGeometry()
-{
-	LOG_TRACE("vtkFreehandCalibrationController::RegisterPhantomGeometry"); 
-
-	// Load phantom geometry in calibrator
-	this->Calibrator->loadGeometry(this->SegParameters);
-
-	// Register the phantom geometry to the DRB frame in the "Emulator" mode.
-	vnl_matrix<double> transformMatrixPhantom2DRB4x4InEmulatorMode(4,4);
-	this->ConvertVtkMatrixToVnlMatrixInMeter(PhantomRegistrationController::GetInstance()->GetPhantomToPhantomReferenceTransform()->GetMatrix(), transformMatrixPhantom2DRB4x4InEmulatorMode);
-
-	this->Calibrator->registerPhantomGeometryInEmulatorMode(transformMatrixPhantom2DRB4x4InEmulatorMode);
-}
-
-//-----------------------------------------------------------------------------
-
-PlusStatus vtkFreehandCalibrationController::AddTrackedFrameData(TrackedFrame* trackedFrame, IMAGE_DATA_TYPE dataType)
-{
-	LOG_TRACE("vtkProbeCalibrationController::AddTrackedFrameData");
-
-	if (Superclass::AddTrackedFrameData(trackedFrame, dataType)) {
-		double tProbeToPhantomReference[16];
-
-		if (trackedFrame->GetDefaultFrameTransform(tProbeToPhantomReference)) {
-			// TODO Is it sure that the transform is not its name inverted?
-			vtkSmartPointer<vtkMatrix4x4> tProbeToPhantomReferenceMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-			tProbeToPhantomReferenceMatrix->DeepCopy(tProbeToPhantomReference);
-			vnl_matrix<double> transformProbeToPhantomReferenceMatrix4x4(4,4);
-
-			ConvertVtkMatrixToVnlMatrixInMeter(tProbeToPhantomReferenceMatrix, transformProbeToPhantomReferenceMatrix4x4);
-
-			this->GetTransformProbeToPhantomReference()->SetMatrix(tProbeToPhantomReferenceMatrix);
-
-			this->PopulateSegmentedFiducialsToDataContainer(transformProbeToPhantomReferenceMatrix4x4, dataType);
-
-			/*
-			if ((dataType == FREEHAND_MOTION_1) && (this->GetCalibrator()->areDataPositionsReadyForCalibration())) {
-				this->Calibrate(); 
-			}
-			*/
-
-			return PLUS_SUCCESS;
-		}
-	}
-
-	return PLUS_FAIL; 
-}
-
-//----------------------------------------------------------------------------
-void vtkFreehandCalibrationController::Calibrate()
-{
-	LOG_TRACE("vtkFreehandCalibrationController::DoCalibration"); 
-
-	// Instruct the calibrator to perform the calibration task
-	this->GetCalibrator()->calibrate();
-
-	// Instruct the calibrator to validate the calibration accuracy
-	this->GetCalibrator()->compute3DPointReconstructionError();
-}
-
-//-----------------------------------------------------------------------------
-
-PlusStatus vtkFreehandCalibrationController::PopulateSegmentedFiducialsToDataContainer(vnl_matrix<double> &transformUSProbe2StepperFrameMatrix4x4, IMAGE_DATA_TYPE dataType)
-{
-	LOG_TRACE("vtkFreehandCalibrationController::PopulateSegmentedFiducialsToDataContainer"); 
-	// ========================================================================
-	// Populate the segmented N-fiducials to the data container
-	// Indices defined in the input std::vector array.
-	// This is the order that the segmentation algorithm gives the 
-	// segmented positions in each image:
-	//
-	// [ Array 0-2: Top N-wire Layer (Right-Middle-Left)]; 
-	// [ Array 3-5: Bottom N-wire Layer (Right-Middle-Left)]
-	// Each acquired data position is a 4x1 homogenous vector :
-	// [ X, Y, 0, 1] all units in pixels
-	// ==================================================================
-
-	SegmentationResults segResults;
-	this->GetSegmenter()->GetSegmentationResults(segResults); 
-
-	if (! segResults.m_DotsFound) {
-		LOG_ERROR("Segmentation failed! Unable to populate segmentation result!"); 
-		return PLUS_FAIL; 
-	}
-
-	// Top layer:		3, 2, 1 
-	// Bottom Layer:	6, 5, 4 
-	std::vector<vnl_vector<double>> SegmentedNFiducialsInFixedCorrespondence;
-	SegmentedNFiducialsInFixedCorrespondence.resize(0);
-
-	for (int i=0; i<segResults.m_FoundDotsCoordinateValue.size(); i++) {
-		vnl_vector<double> NFiducial(4,0);
-		NFiducial[0]=segResults.m_FoundDotsCoordinateValue[i][0];
-		NFiducial[1]=segResults.m_FoundDotsCoordinateValue[i][1];
-		NFiducial[2]=0;
-		NFiducial[3]=1;
-
-		SegmentedNFiducialsInFixedCorrespondence.push_back(NFiducial);
-
-		//std::cout << i << ": " << NFiducial[0] << "\t" << NFiducial[1] << "\t"; //TEST
-	}
-
-	//std::cout << std::endl; //TEST
-
-	// Add the data for calibration
-	if (dataType == FREEHAND_MOTION_1) {
-		this->GetCalibrator()->addDataPositionsPerImage( SegmentedNFiducialsInFixedCorrespondence, transformUSProbe2StepperFrameMatrix4x4 );
-	} else if (dataType == FREEHAND_MOTION_2) {
-		this->GetCalibrator()->addValidationPositionsPerImage( SegmentedNFiducialsInFixedCorrespondence, transformUSProbe2StepperFrameMatrix4x4 );
-	}
-  
-	return PLUS_SUCCESS;
-}
-
-//-----------------------------------------------------------------------------
-
-PlusStatus vtkFreehandCalibrationController::DoOfflineCalibration()
-{
-	LOG_TRACE("vtkFreehandCalibrationController::OfflineUSToTemplateCalibration"); 
-
-	try {
-		if (m_State == ToolboxState_Uninitialized) {
-			Initialize();
-		}
-
-		vtkSmartPointer<vtkTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New();
-		if ( !this->GetSavedImageDataInfo(FREEHAND_MOTION_2).SequenceMetaFileName.empty() ) {
-			trackedFrameList->ReadFromSequenceMetafile(this->GetSavedImageDataInfo(FREEHAND_MOTION_2).SequenceMetaFileName.c_str()); 
-		} else {
-			LOG_ERROR("Unable to start OfflineCalibration with validation data: SequenceMetaFileName is empty!"); 
-			return PLUS_FAIL; 
-		}
-
-		// Validation data
-		int validationCounter = 0;
-		for (int imgNumber = this->GetSavedImageDataInfo(FREEHAND_MOTION_2).StartingIndex; validationCounter < this->GetSavedImageDataInfo(FREEHAND_MOTION_2).NumberOfImagesToUse; imgNumber++) {
-			if ( imgNumber >= trackedFrameList->GetNumberOfTrackedFrames() ) {
-				break; 
-			}
-
-			if ( this->AddTrackedFrameData(trackedFrameList->GetTrackedFrame(imgNumber), FREEHAND_MOTION_2) ) {
-				// The segmentation was successful
-				validationCounter++;
-			} else {
-				LOG_DEBUG("Adding tracked frame " << imgNumber << " (for validation) failed!");
-			}
-
-			this->AddFrameToRenderer(trackedFrameList->GetTrackedFrame(imgNumber)->ImageData);
-		}
-
-		LOG_INFO( "A total of " << this->GetRealtimeImageDataInfo(FREEHAND_MOTION_2).NumberOfSegmentedImages << " images have been successfully added for validation.");
-
-
-		// Calibration data
-		vtkSmartPointer<vtkTrackedFrameList> calibrationData = vtkSmartPointer<vtkTrackedFrameList>::New();
-		if ( !this->GetSavedImageDataInfo(FREEHAND_MOTION_1).SequenceMetaFileName.empty() ) {
-			calibrationData->ReadFromSequenceMetafile(this->GetSavedImageDataInfo(FREEHAND_MOTION_1).SequenceMetaFileName.c_str()); 
-		} else {
-			LOG_ERROR("Unable to start OfflineCalibration with calibration data: SequenceMetaFileName is empty!"); 
-			return PLUS_FAIL; 
-		}
-
-		int calibrationCounter = 0;
-		for (int imgNumber = this->GetSavedImageDataInfo(FREEHAND_MOTION_1).StartingIndex; calibrationCounter < this->GetSavedImageDataInfo(FREEHAND_MOTION_1).NumberOfImagesToUse; imgNumber++) {
-			if ( imgNumber >= calibrationData->GetNumberOfTrackedFrames() ) {
-				break; 
-			}
-
-			if ( this->AddTrackedFrameData(calibrationData->GetTrackedFrame(imgNumber), FREEHAND_MOTION_1) ) {
-				// The segmentation was successful
-				calibrationCounter++; 
-			} else {
-				LOG_DEBUG("Adding tracked frame " << imgNumber << " (for calibration) failed!");
-			}
-
-			this->AddFrameToRenderer(calibrationData->GetTrackedFrame(imgNumber)->ImageData); 
-		}
-
-		LOG_INFO ("A total of " << this->GetRealtimeImageDataInfo(FREEHAND_MOTION_1).NumberOfSegmentedImages << " images have been successfully added for calibration.");
-	} catch(...) {
-		LOG_ERROR("AddAllSavedData: Failed to add saved data!");  
-		return PLUS_FAIL;
-	}
-
 	return PLUS_SUCCESS;
 }
 
