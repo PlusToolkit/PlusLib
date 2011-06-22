@@ -57,6 +57,11 @@ signals:
 	*/
 	void SetTabsEnabled(bool);
 
+protected slots:
+	//TODO
+	void SetConfigurationDirectory(std::string aDirectory);
+	void ConnectToDevicesByConfigFile(std::string aConfigFile);
+
 protected:
 	Ui::ConfigurationToolbox ui;
 };

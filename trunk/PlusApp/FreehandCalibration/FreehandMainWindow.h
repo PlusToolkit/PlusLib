@@ -80,16 +80,6 @@ protected:
 	void SetupCanvas();
 
 	/*!
-	* \brief Try to connect devices set in configuration file
-	*/
-	void ConnectToDevices();
-
-	/*!
-	* \brief Determint configuration files location
-	*/
-	void FindConfigurationFiles();
-
-	/*!
 	* \brief Get toolbox controller pointer by the type identifier
 	* \param aType Toolbox type (ToolboxType enum)
 	* \return Toolbox controller pointer as abstract toolbox controller

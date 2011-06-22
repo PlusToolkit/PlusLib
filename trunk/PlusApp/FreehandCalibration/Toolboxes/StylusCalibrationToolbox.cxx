@@ -167,7 +167,7 @@ void StylusCalibrationToolbox::StartClicked()
 
 void StylusCalibrationToolbox::StopClicked()
 {
-	LOG_DEBUG("StylusCalibrationToolbox: Stop button clicked"); 
+	LOG_TRACE("StylusCalibrationToolbox: Stop button clicked"); 
 
 	Stop();
 }
@@ -198,7 +198,7 @@ void StylusCalibrationToolbox::Clear()
 
 void StylusCalibrationToolbox::SaveResultClicked()
 {
-	LOG_DEBUG("StylusCalibrationToolbox: Save button clicked"); 
+	LOG_TRACE("StylusCalibrationToolbox: Save button clicked"); 
 
 	QString filter = QString( tr( "XML files ( *.xml );;" ) );
 	QString fileName = QFileDialog::getSaveFileName(NULL, tr("Save stylus calibration result"), vtkFreehandController::GetInstance()->GetConfigDirectory(), filter);

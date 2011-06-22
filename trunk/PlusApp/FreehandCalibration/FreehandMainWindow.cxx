@@ -9,7 +9,6 @@
 #include "PlusLogger.h"
 
 #include <QTimer>
-#include <QDialog>
 #include <QDir>
 #include <QMessageBox>
 
@@ -45,6 +44,7 @@ void FreehandMainWindow::Initialize()
 		return;
 	}
 	controller->SetCanvas(ui.canvas);
+	controller->Initialize();
 
 	// Locate directories and set them to freehand controller
 	LocateDirectories();
@@ -54,12 +54,6 @@ void FreehandMainWindow::Initialize()
 
 	// Set up status bar (message and progress bar)
 	SetupStatusBar();
-
-	// Attempt to find configuration files (if failed, display window for locating them manually TODO)
-	FindConfigurationFiles();
-
-	// Connect to devices
-	ConnectToDevices();
 
 	// Set up canvas for 3D visualization
 	SetupCanvas();
@@ -174,24 +168,6 @@ void FreehandMainWindow::SetupCanvas()
 
 //-----------------------------------------------------------------------------
 
-void FreehandMainWindow::FindConfigurationFiles()
-{
-	LOG_DEBUG("Find configuration files");
-
-	vtkFreehandController* controller = vtkFreehandController::GetInstance();
-
-	// Find configuration file
-	std::string configPath = vtksys::SystemTools::CollapseFullPath("../config/USDataCollectionConfig.xml", controller->GetProgramPath()); 
-	if (vtksys::SystemTools::FileExists(configPath.c_str(), true)) {
-		controller->SetInputConfigFileName(configPath.c_str());
-	} else {
-		controller->SetInputConfigFileName("");
-		LOG_WARNING("Configuration file could not be found!");
-	}
-}
-
-//-----------------------------------------------------------------------------
-
 AbstractToolboxController* FreehandMainWindow::GetToolboxControllerByType(ToolboxType aType)
 {
 	switch (aType) {
@@ -209,40 +185,6 @@ AbstractToolboxController* FreehandMainWindow::GetToolboxControllerByType(Toolbo
 			LOG_ERROR("No toolbox of this type found!");
 			return NULL;
 	}
-}
-
-//-----------------------------------------------------------------------------
-
-void FreehandMainWindow::ConnectToDevices()
-{
-	LOG_INFO("Connect to devices"); 
-
-	// Create dialog
-	QDialog* connectDialog = new QDialog(this, Qt::Dialog);
-	connectDialog->setModal(true);
-	connectDialog->setMinimumSize(QSize(360,80));
-	connectDialog->setCaption(tr("Freehand Ultrasound Calibration"));
-	connectDialog->setBackgroundColor(QColor(224, 224, 224));
-
-	QLabel* connectLabel = new QLabel(QString("Connecting to devices, please wait..."), connectDialog);
-	connectLabel->setFont(QFont("SansSerif", 16));
-
-	QHBoxLayout* layout = new QHBoxLayout();
-	layout->addWidget(connectLabel);
-
-	connectDialog->setLayout(layout);
-	connectDialog->show();
-
-	QApplication::processEvents();
-
-	// Connect to devices
-	vtkFreehandController* controller = vtkFreehandController::GetInstance();
-	if (controller != NULL) {
-		controller->Initialize();
-	}
-
-	// Close dialog
-	connectDialog->done(0);
 }
 
 //-----------------------------------------------------------------------------
@@ -454,7 +396,6 @@ void FreehandMainWindow::LocateDirectories()
 		configDir.cd("config");
 	}
 	if (!success) {
-		LOG_WARNING("Configuration file path could not be found!");
 		configDir = QDir::root();
 	} else {
 		configDir.makeAbsolute();

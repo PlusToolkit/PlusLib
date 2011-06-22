@@ -224,7 +224,7 @@ void PhantomRegistrationToolbox::RequestDoAcquisition()
 
 void PhantomRegistrationToolbox::OpenPhantomDefinitionClicked()
 {
-	LOG_DEBUG("PhantomRegistrationToolbox: Open phantom definition button clicked"); 
+	LOG_TRACE("PhantomRegistrationToolbox: Open phantom definition button clicked"); 
 
 	// File open dialog for selecting phantom definition xml
 	QString filter = QString( tr( "XML files ( *.xml );;" ) );
@@ -250,7 +250,7 @@ void PhantomRegistrationToolbox::OpenPhantomDefinitionClicked()
 
 void PhantomRegistrationToolbox::OpenStylusCalibrationClicked()
 {
-	LOG_DEBUG("PhantomRegistrationToolbox: Open stylus calibration XML button clicked");
+	LOG_TRACE("PhantomRegistrationToolbox: Open stylus calibration XML button clicked");
 
 	// File open dialog for selecting phantom definition xml
 	QString filter = QString( tr( "XML files ( *.xml );;" ) );
@@ -273,7 +273,7 @@ void PhantomRegistrationToolbox::OpenStylusCalibrationClicked()
 
 void PhantomRegistrationToolbox::RecordPointClicked()
 {
-	LOG_DEBUG("PhantomRegistrationToolbox: Record button clicked"); 
+	LOG_TRACE("PhantomRegistrationToolbox: Record button clicked"); 
 
 	PhantomRegistrationController* toolboxController = PhantomRegistrationController::GetInstance();
 
@@ -289,7 +289,7 @@ void PhantomRegistrationToolbox::RecordPointClicked()
 
 void PhantomRegistrationToolbox::UndoClicked()
 {
-	LOG_DEBUG("PhantomRegistrationToolbox: Undo button clicked"); 
+	LOG_TRACE("PhantomRegistrationToolbox: Undo button clicked"); 
 
 	PhantomRegistrationController::GetInstance()->Undo();
 }
@@ -309,7 +309,7 @@ void PhantomRegistrationToolbox::ResetClicked()
 
 void PhantomRegistrationToolbox::RegisterClicked()
 {
-	LOG_DEBUG("PhantomRegistrationToolbox: Register button clicked"); 
+	LOG_TRACE("PhantomRegistrationToolbox: Register button clicked"); 
 
 	PhantomRegistrationController::GetInstance()->Register();
 
@@ -320,7 +320,7 @@ void PhantomRegistrationToolbox::RegisterClicked()
 
 void PhantomRegistrationToolbox::SaveClicked()
 {
-	LOG_DEBUG("PhantomRegistrationToolbox: Save button clicked"); 
+	LOG_TRACE("PhantomRegistrationToolbox: Save button clicked"); 
 
 	QString filter = QString( tr( "XML files ( *.xml );;" ) );
 	QString fileName = QFileDialog::getSaveFileName(NULL, tr("Save phantom registration result"), vtkFreehandController::GetInstance()->GetConfigDirectory(), filter);

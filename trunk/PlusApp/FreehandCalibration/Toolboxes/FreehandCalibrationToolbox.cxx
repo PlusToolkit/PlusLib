@@ -208,7 +208,7 @@ void FreehandCalibrationToolbox::Clear()
 
 void FreehandCalibrationToolbox::OpenPhantomDefinitionClicked()
 {
-	LOG_DEBUG("FreehandCalibrationToolbox: Open phantom definition button clicked"); 
+	LOG_TRACE("FreehandCalibrationToolbox: Open phantom definition button clicked"); 
 
 	// File open dialog for selecting phantom definition xml
 	QString filter = QString( tr( "XML files ( *.xml );;" ) );
@@ -228,7 +228,7 @@ void FreehandCalibrationToolbox::OpenPhantomDefinitionClicked()
 
 void FreehandCalibrationToolbox::OpenPhantomRegistrationClicked()
 {
-	LOG_DEBUG("FreehandCalibrationToolbox: Open phantom registration button clicked"); 
+	LOG_TRACE("FreehandCalibrationToolbox: Open phantom registration button clicked"); 
 
 	// File open dialog for selecting phantom registration xml
 	QString filter = QString( tr( "XML files ( *.xml );;" ) );
@@ -248,7 +248,7 @@ void FreehandCalibrationToolbox::OpenPhantomRegistrationClicked()
 
 void FreehandCalibrationToolbox::OpenCalibrationConfigurationClicked()
 {
-	LOG_DEBUG("FreehandCalibrationToolbox: Open calibration configuration button clicked"); 
+	LOG_TRACE("FreehandCalibrationToolbox: Open calibration configuration button clicked"); 
 
 	// File open dialog for selecting calibration configuration xml
 	QString filter = QString( tr( "XML files ( *.xml );;" ) );
