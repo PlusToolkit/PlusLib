@@ -41,6 +41,9 @@ public:
 	 */
 	void SetTrackingOnly(bool); 
 
+	//TODO
+	PlusStatus StartDataCollection();
+
 public:
 	// Set/Get functions for canvas
 	QVTKWidget* GetCanvas() { return this->Canvas; };
