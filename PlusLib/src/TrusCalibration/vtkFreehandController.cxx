@@ -18,7 +18,8 @@ vtkFreehandController* vtkFreehandController::New()
 
 //-----------------------------------------------------------------------------
 
-vtkFreehandController* vtkFreehandController::GetInstance() {
+vtkFreehandController* vtkFreehandController::GetInstance()
+{
 	if(!vtkFreehandController::Instance) {
 		// Try the factory first
 		vtkFreehandController::Instance = (vtkFreehandController*)vtkObjectFactory::CreateInstance("vtkFreehandController");    
@@ -65,24 +66,7 @@ PlusStatus vtkFreehandController::Initialize()
 		return PLUS_SUCCESS;
 	}
 
-	LOG_DEBUG("Initialize vtkFreehandController"); 
-
-	// Set up data collector and related containers
-	vtkSmartPointer<vtkDataCollector> dataCollector = vtkSmartPointer<vtkDataCollector>::New(); 
-	this->SetDataCollector(dataCollector);
-
-	this->DataCollector->ReadConfiguration(this->InputConfigFileName);
-	this->DataCollector->Initialize();
-	this->DataCollector->Start();
-
-	if ((this->DataCollector->GetTracker() == NULL) || (this->DataCollector->GetTracker()->GetNumberOfTools() < 1)) {
-		LOG_WARNING("Unable to initialize Tracker!"); 
-	}
-
-	if (! this->DataCollector->GetInitialized()) {
-		LOG_ERROR("Unable to initialize DataCollector!"); 
-		return PLUS_FAIL;
-	}
+	LOG_TRACE("Initialize vtkFreehandController"); 
 
 	// Set up canvas renderer
 	vtkSmartPointer<vtkRenderer> canvasRenderer = vtkSmartPointer<vtkRenderer>::New(); 
@@ -97,7 +81,7 @@ PlusStatus vtkFreehandController::Initialize()
 
 	this->SetInitialized(true);
 
-  return PLUS_SUCCESS;
+	return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
@@ -111,4 +95,39 @@ void vtkFreehandController::SetTrackingOnly(bool aOn)
 	if (this->DataCollector != NULL) {
 		this->DataCollector->SetTrackingOnly(aOn);
 	}
+}
+
+//-----------------------------------------------------------------------------
+
+PlusStatus vtkFreehandController::StartDataCollection()
+{
+	// Stop data collection if already started
+	if (this->GetDataCollector() != NULL) {
+		this->GetDataCollector()->Stop();
+	}
+
+	// Set up data collector
+	vtkSmartPointer<vtkDataCollector> dataCollector = vtkSmartPointer<vtkDataCollector>::New(); 
+	this->SetDataCollector(dataCollector);
+
+	if (this->DataCollector->ReadConfiguration(this->InputConfigFileName) != PLUS_SUCCESS) {
+		return PLUS_FAIL;
+	}
+	if (this->DataCollector->Initialize()) {
+		return PLUS_FAIL;
+	}
+	if (this->DataCollector->Start()) {
+		return PLUS_FAIL;
+	}
+
+	if ((this->DataCollector->GetTracker() == NULL) || (this->DataCollector->GetTracker()->GetNumberOfTools() < 1)) {
+		LOG_WARNING("Unable to initialize Tracker!"); 
+	}
+
+	if (! this->DataCollector->GetInitialized()) {
+		LOG_ERROR("Unable to initialize DataCollector!"); 
+		return PLUS_FAIL;
+	}
+
+	return PLUS_SUCCESS;
 }
