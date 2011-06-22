@@ -3,6 +3,8 @@
 
 #include "ui_DeviceSetSelectorWidget.h"
 
+#include "PlusConfigure.h"
+
 #include <QWidget>
 
 //-----------------------------------------------------------------------------
@@ -27,9 +29,26 @@ public:
 	*/
 	~DeviceSetSelectorWidget();
 
+	//TODO
+	void SetConfigurationDirectory(std::string aDirectory);
+
 signals:
+	//TODO
+	void ConfigurationDirectoryChanged(std::string);
+	void ConnectToDevicesByConfigFileInvoked(std::string);
+
+protected:
+	//TODO
+	PlusStatus ParseDirectory(QString aDirectory);
 
 protected slots:
+	//TODO
+	void OpenConfigurationDirectoryClicked();
+	void DeviceSetSelected(int);
+	void InvokeConnect();
+
+protected:
+	QString	m_ConfigurationDirectory;
 
 protected:
 	Ui::DeviceSetSelectorWidget ui;

@@ -1,7 +1,8 @@
 PROJECT(CommonWidgets)
 
 FIND_PACKAGE(Qt4 REQUIRED)
-SET(QT_USE_QT3SUPPORT TRUE) 
+SET(QT_USE_QT3SUPPORT TRUE)
+SET(QT_USE_QTXML TRUE)
 INCLUDE(${QT_USE_FILE})
 
 # --------------------------------------------------------------------------
