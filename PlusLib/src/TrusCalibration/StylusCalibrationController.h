@@ -53,14 +53,26 @@ public:
 	PlusStatus Stop();
 
 	/*!
-	* \brief Load stylus calibration (stylus to stylustip transform) from file
+	* \brief Load stylus calibration (stylus to stylustip transform) from data collection config file
+	* \return Success flag
+	*/
+	PlusStatus LoadStylusCalibrationFromDataCollectionConfigFile();
+
+	/*!
+	* \brief Save result to data collection config XML file
+	* \return Success flag
+	*/
+	PlusStatus SaveStylusCalibrationToDataCollectionConfigFile();
+
+	/*!
+	* \brief Load stylus calibration (stylus to stylustip transform) from file - obsolete (data collection config file is used now)
 	* \param aFile Stylus cailbration transform XML
 	* \return Success flag
 	*/
 	PlusStatus LoadStylusCalibrationFromFile(std::string aFile);
 
 	/*!
-	* \brief Save result to XML file
+	* \brief Save result to XML file - obsolete (data collection config file is used now)
 	* \param aFile XML file name and path
 	*/
 	void SaveStylusCalibrationToFile(std::string aFile);
