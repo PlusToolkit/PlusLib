@@ -582,6 +582,24 @@ PlusStatus StylusCalibrationController::Stop()
 
 //-----------------------------------------------------------------------------
 
+PlusStatus StylusCalibrationController::LoadStylusCalibrationFromDataCollectionConfigFile()
+{
+	//TODO
+
+	return PLUS_SUCCESS;
+}
+
+//-----------------------------------------------------------------------------
+
+PlusStatus StylusCalibrationController::SaveStylusCalibrationToDataCollectionConfigFile()
+{
+	//TODO
+
+	return PLUS_SUCCESS;
+}
+
+//-----------------------------------------------------------------------------
+
 PlusStatus StylusCalibrationController::LoadStylusCalibrationFromFile(std::string aFile)
 {
 	vtkSmartPointer<vtkXMLDataElement> stylusCalibration = vtkXMLUtilities::ReadElementFromFile(aFile.c_str());
