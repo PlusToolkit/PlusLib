@@ -52,6 +52,8 @@ void DeviceSetSelectorWidget::OpenConfigurationDirectoryClicked()
 void DeviceSetSelectorWidget::InvokeConnect()
 {
 	emit ConnectToDevicesByConfigFileInvoked(ui.comboBox_DeviceSet->itemData(ui.comboBox_DeviceSet->currentIndex()).toStringList().at(0).toStdString());
+
+	ui.pushButton_Connect->setEnabled(false);
 }
 
 //-----------------------------------------------------------------------------
@@ -67,6 +69,8 @@ void DeviceSetSelectorWidget::DeviceSetSelected(int aIndex)
 		+ ui.comboBox_DeviceSet->itemData(aIndex).toStringList().at(1));
 
 	ui.comboBox_DeviceSet->setToolTip(ui.comboBox_DeviceSet->currentText() + " (" + ui.comboBox_DeviceSet->itemData(aIndex).toStringList().at(0) + ")");
+
+	ui.pushButton_Connect->setEnabled(true);
 }
 
 //-----------------------------------------------------------------------------
