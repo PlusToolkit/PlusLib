@@ -75,6 +75,7 @@ public:
 		int NumberOfSegmentedImages; 
 	};
 
+	static vtkCalibrationController *New();
 	vtkTypeRevisionMacro(vtkCalibrationController, vtkObject);
 	virtual void PrintSelf(ostream& os, vtkIndent indent); 
 

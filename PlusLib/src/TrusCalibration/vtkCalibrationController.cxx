@@ -21,6 +21,8 @@
 #include "vtksys/SystemTools.hxx"
 
 vtkCxxRevisionMacro(vtkCalibrationController, "$Revision: 1.0 $");
+vtkStandardNewMacro(vtkCalibrationController);
+
 //----------------------------------------------------------------------------
 void vtkCalibrationController::PrintSelf(ostream& os, vtkIndent indent)
 {
