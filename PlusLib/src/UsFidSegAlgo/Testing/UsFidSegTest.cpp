@@ -12,6 +12,7 @@
 
 #include "segimpl.h"
 #include "kphantseg.h"
+#include "vtkCalibrationController.h"
 
 #include "vtksys/CommandLineArguments.hxx"
 #include "vtkXMLDataElement.h"
@@ -40,8 +41,6 @@ typedef itk::Image< PixelType, imageSequenceDimension > ImageSequenceType;
 
 typedef itk::ImageFileReader< ImageSequenceType > ImageSequenceReaderType;
 
-static const int IMAGE_BORDER=15; // need to specify a >0 border, otherwise the segmentation algorithm crashes
-
 ///////////////////////////////////////////////////////////////////
 // Other constants
 
@@ -52,12 +51,9 @@ static const float FIDUCIAL_POSITION_TOLERANCE = 0.1;  // in pixel
 // real fiducial position is less than segParams.then the fiducial is considered to be
 // found).
 static const double BASELINE_TO_ALGORITHM_TOLERANCE = 5; 
-static const int START_FID_INDEX = 0;// start comparing baseline at this index to potential fiducials
-// necesary because baseline xml files contains two sets of fiducials, only need second set. 
-
 ///////////////////////////////////////////////////////////////////
 
-void SegmentImageSequence(ImageSequenceType::Pointer image, std::ofstream &outFile,const std::string &inputTestcaseName, const std::string &inputImageSequenceFileName, const SegmentationParameters &segParams) 
+void SegmentImageSequence(ImageSequenceType::Pointer image, std::ofstream &outFile, const std::string &inputTestcaseName, const std::string &inputImageSequenceFileName, vtkCalibrationController* calibrationController) 
 {
 	PixelType* imageData = image->GetBufferPointer(); // pointer to the image pixel buffer
 
@@ -69,6 +65,8 @@ void SegmentImageSequence(ImageSequenceType::Pointer image, std::ofstream &outFi
 	
 	double sumFiducialNum = 0;// divide by framenum
 	double sumFiducialCandidate = 0;// divide by framenum
+
+	SegmentationParameters segParams = *(calibrationController->GetSegParameters());
 	 
 	for (int currentFrameIndex=0; currentFrameIndex<numberOfFrames; currentFrameIndex++)
 	{
@@ -77,10 +75,10 @@ void SegmentImageSequence(ImageSequenceType::Pointer image, std::ofstream &outFi
 		PixelType *currentFrameImageData=imageData+currentFrameIndex*frameSizeInBytes;
 
 		// Search in the whole image
-		int SearchStartAtX=IMAGE_BORDER;
-		int SearchStartAtY=IMAGE_BORDER;
-		int SearchDimensionX=ImageWidthInPixels-2*IMAGE_BORDER;
-		int SearchDimensionY=ImageHeightInPixels-2*IMAGE_BORDER;
+		int SearchStartAtX=calibrationController->GetSearchStartAtX();
+		int SearchStartAtY=calibrationController->GetSearchStartAtY();
+		int SearchDimensionX=calibrationController->GetSearchDimensionX();
+		int SearchDimensionY=calibrationController->GetSearchDimensionY();
 
 		// Set to false if you don't want images produced after each morphological operation
 		bool debugOutput=PlusLogger::Instance()->GetLogLevel()>=PlusLogger::LOG_LEVEL_DEBUG; 
@@ -417,6 +415,8 @@ int main(int argc, char **argv)
 	std::string inputBaselineFileName;
 	std::string inputTestcaseName;
 	std::string inputTestDataDir;
+	std::string inputConfigFileName;
+	std::string inputPhantomDefinitionFileName;
 	std::string outputTestResultsFileName;
 	int thresholdTop = 0; 
 	int thresholdBottom = 0; 
@@ -427,8 +427,6 @@ int main(int argc, char **argv)
 	vtksys::CommandLineArguments args;
 	args.Initialize(argc, argv);
 
-	// --input-test-data-dir="c:\devel\TissueAblation-data\TestImages" --input-img-seq="UsTestSeq001.b8" --input-testcase-name="test1"
-
 	args.AddArgument("--input-test-data-dir", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputTestDataDir, "Test data directory");
 	args.AddArgument("--input-img-seq-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputImageSequenceFileName, "Filename of the input image sequence. Segmentation will be performed for all frames of the sequence.");
 	args.AddArgument("--input-testcase-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputTestcaseName, "Name of the test case that will be printed to the output");
@@ -436,10 +434,9 @@ int main(int argc, char **argv)
 
 	args.AddArgument("--output-result-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputTestResultsFileName, "Name of file storing results of a new segmentation (fiducial coordinates, intensity, angle)");
 	args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug)");		
-	args.AddArgument("--threshold-top", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &thresholdTop, "cut off value for thresholding at the top half of the image");
-	args.AddArgument("--threshold-bottom", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &thresholdBottom, "cut off value for thresholding at the bottom half of the image");
 
-	args.AddArgument("--fiducial-geom", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &fiducialGeomString, "fiducial geometry (CALIBRATION_PHANTOM_6_POINT or TAB2_5_POINT or TAB2_6_POINT)");
+	args.AddArgument("--input-config-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "Calibration configuration file name");
+	args.AddArgument("--input-phantom-definition-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputPhantomDefinitionFileName, "Phantom definition file name");
 		
 	if ( !args.Parse() )
 	{
@@ -450,51 +447,16 @@ int main(int argc, char **argv)
 
 	PlusLogger::Instance()->SetLogLevel(verboseLevel);
 
-	if (inputImageSequenceFileName.empty() && inputBaselineFileName.empty())
+	if (inputImageSequenceFileName.empty() || inputBaselineFileName.empty() || inputConfigFileName.empty() || inputPhantomDefinitionFileName.empty())
 	{
-		std::cerr << "input-img-seq-file-name or input-baseline-file-name parameter is required" << std::endl;
+		std::cerr << "At lease one of the following parameters is missing: input-img-seq-file-name, input-baseline-file-name, input-config-file-name, input-phantom-definition-file-name" << std::endl;
 		exit(EXIT_FAILURE);
 	}
 
-	SegmentationParameters segParams;
-	if (thresholdTop>0)
-	{ 
-		// the user specified a threshold
-		segParams.mThresholdImageTop=thresholdTop; 
-		segParams.mThresholdImageBottom=thresholdBottom; 
-	} 
-	if (thresholdBottom>0)
-	{ 
-		// the user specified a threshold
-		segParams.mThresholdImageBottom=thresholdBottom; 
-	} 
+	vtkSmartPointer<vtkCalibrationController> calibrationController = vtkSmartPointer<vtkCalibrationController>::New();
+	calibrationController->SetPhantomDefinitionFileName(inputPhantomDefinitionFileName.c_str());
+	calibrationController->ReadConfiguration(inputConfigFileName.c_str());
 
-	if (fiducialGeomString.compare("CALIBRATION_PHANTOM_6_POINT")==0)
-	{
-		segParams.mFiducialGeometry=SegmentationParameters::CALIBRATION_PHANTOM_6_POINT;
-	
-	}
-	else if (fiducialGeomString.compare("TAB2_5_POINT")==0)
-	{
-		segParams.mFiducialGeometry=SegmentationParameters::TAB2_5_POINT;
-		segParams.mMaxLineErrorMm = 4.0;
-		segParams.mFindLines3PtDist=30;//30
-		segParams.mMinLineLenMm = 40; //210; 
-		segParams.mUseOriginalImageIntensityForDotIntensityScore=true;
-	}
-	else if (fiducialGeomString.compare("TAB2_6_POINT")==0)
-	{
-		segParams.mFiducialGeometry=SegmentationParameters::TAB2_6_POINT;
-		segParams.mMaxLineErrorMm=4.0;
-		segParams.mFindLines3PtDist=50;
-		segParams.mMinLineLenMm = 36.0;// change caused improvement  
-		segParams.mUseOriginalImageIntensityForDotIntensityScore=true;
-		segParams.mMaxLinePairDistMm = 59.0;
-		segParams.mMinLinePairDistMm = 47.5;
-	}
-
-	segParams.UpdateParameters(); 
-	/////////////////
 
 	ImageSequenceReaderType::Pointer reader = ImageSequenceReaderType::New(); // reader object, pointed to by smart pointer
 	itk::MetaImageSequenceIO::Pointer readerMetaImageSequenceIO = itk::MetaImageSequenceIO::New(); 
@@ -503,7 +465,7 @@ int main(int argc, char **argv)
 	std::string inputImageSequencePath=inputTestDataDir+"\\"+inputImageSequenceFileName;
 	
 	
-	reader->SetFileName(inputImageSequencePath);   // set input file name, can also use variables commented out
+	reader->SetFileName(inputImageSequencePath); // set input file name, can also use variables commented out
 
 	try
 	{
@@ -518,8 +480,10 @@ int main(int argc, char **argv)
 	std::ofstream outFile; 
 	outFile.open(outputTestResultsFileName.c_str());	
 	UsFidSegResultFile::WriteSegmentationResultsHeader(outFile);
-	UsFidSegResultFile::WriteSegmentationResultsParameters(outFile, segParams, "");
-	SegmentImageSequence(reader->GetOutput(), outFile, inputTestcaseName, inputImageSequenceFileName, segParams); 
+	UsFidSegResultFile::WriteSegmentationResultsParameters(outFile, *(calibrationController->GetSegParameters()), "");
+
+	SegmentImageSequence(reader->GetOutput(), outFile, inputTestcaseName, inputImageSequenceFileName, calibrationController); 
+
 	UsFidSegResultFile::WriteSegmentationResultsFooter(outFile);
 	outFile.close();
 
@@ -527,7 +491,7 @@ int main(int argc, char **argv)
 	
 	if (!inputBaselineFileName.empty())
 	{		
-		if (CompareSegmentationResults(inputBaselineFileName, outputTestResultsFileName,segParams)!=0)
+		if (CompareSegmentationResults(inputBaselineFileName, outputTestResultsFileName, *(calibrationController->GetSegParameters()))!=0)
 		{
 			LOG_ERROR("Comparison of segmentation data to baseline failed");
 			return EXIT_FAILURE;

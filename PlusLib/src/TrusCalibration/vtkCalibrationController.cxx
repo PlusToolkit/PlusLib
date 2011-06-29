@@ -998,7 +998,7 @@ PlusStatus vtkCalibrationController::ReadPhantomDefinition()
 			}
 		}
 	} else {
-		LOG_ERROR("Phantom definition file path is not set!"); 
+		LOG_ERROR("Phantom definition file name is not set!"); 
 		return PLUS_FAIL;
 	}
 

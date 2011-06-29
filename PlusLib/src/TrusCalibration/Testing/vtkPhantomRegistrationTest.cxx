@@ -63,6 +63,7 @@ int main (int argc, char* argv[])
 	controller->SetInputConfigFileName(inputConfigFileName.c_str());
 	controller->Initialize();
 	controller->TrackingOnlyOn();
+	controller->StartDataCollection();
 
 	StylusCalibrationController* stylusCalibrationController = StylusCalibrationController::GetInstance();
 	stylusCalibrationController->Initialize();

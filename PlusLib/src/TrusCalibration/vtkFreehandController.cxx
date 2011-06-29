@@ -113,10 +113,10 @@ PlusStatus vtkFreehandController::StartDataCollection()
 	if (this->DataCollector->ReadConfiguration(this->InputConfigFileName) != PLUS_SUCCESS) {
 		return PLUS_FAIL;
 	}
-	if (this->DataCollector->Initialize()) {
+	if (this->DataCollector->Initialize() != PLUS_SUCCESS) {
 		return PLUS_FAIL;
 	}
-	if (this->DataCollector->Start()) {
+	if (this->DataCollector->Start() != PLUS_SUCCESS) {
 		return PLUS_FAIL;
 	}
 
