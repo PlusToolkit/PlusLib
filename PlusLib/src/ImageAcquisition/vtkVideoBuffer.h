@@ -53,6 +53,7 @@ public:
 	PlusStatus SetFrameFormat(vtkVideoFrame2* frameFormat); 
 
 	// Set/get video frame 
+    // Caller should clean the image data from memory after this call. 
 	PlusStatus SetFrame(vtkVideoFrame2* frame); 
 	PlusStatus SetFrame(vtkImageData* frame); 
 	PlusStatus SetFrame(unsigned char *imageDataPtr, 
@@ -78,7 +79,7 @@ public:
 	// Description:
 	// Set/Get the size of the buffer, i.e. the maximum number of
 	// video frames that it will hold.  The default is 30.
-	virtual void SetBufferSize(int n);
+	virtual PlusStatus SetBufferSize(int n);
 	virtual int GetBufferSize(); 
 
 	// Description:
@@ -90,8 +91,8 @@ public:
 	vtkVideoFrame2 *GetFrameFormat() { return this->FrameFormat; };
 
 	// Description:
-	// Update video buffer 
-	virtual void UpdateBuffer(); 
+	// Update video buffer by setting the frame format for each frame 
+	virtual void UpdateBufferFrameFormats(); 
 	
 	// Description:
 	// Add a frame plus a timestamp to the buffer with frame index.  If the timestamp is
@@ -111,6 +112,7 @@ public:
 	virtual ItemStatus GetOldestVideoBufferItem(VideoBufferItem* bufferItem) { return this->GetVideoBufferItem( this->GetOldestItemUidInBuffer(), bufferItem); }; 
 	virtual ItemStatus GetVideoBufferItemFromTime( const double time, VideoBufferItem* bufferItem); 
 
+    virtual ItemStatus GetLatestTimeStamp( double& latestTimestamp );  
 
 	virtual BufferItemUidType GetOldestItemUidInBuffer() { return this->VideoBuffer->GetOldestItemUidInBuffer(); }
 	virtual BufferItemUidType GetLatestItemUidInBuffer() { return this->VideoBuffer->GetLatestItemUidInBuffer(); }

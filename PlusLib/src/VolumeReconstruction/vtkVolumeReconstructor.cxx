@@ -73,7 +73,11 @@ void vtkVolumeReconstructor::Initialize()
 	{
 		this->GetVideoSource()->SetFrameSize(this->GetFrameSize()); 
 
-		this->GetVideoSource()->GetBuffer()->SetBufferSize( this->GetNumberOfFrames() ); 
+		if ( this->GetVideoSource()->GetBuffer()->SetBufferSize( this->GetNumberOfFrames() ) != PLUS_SUCCESS )
+        {
+            LOG_ERROR("Failed to set video buffer size!"); 
+            return; 
+        }
 
 		this->GetTracker()->GetTool( this->TrackerToolID )->GetBuffer()->SetBufferSize( this->GetNumberOfFrames() ); 
 	}

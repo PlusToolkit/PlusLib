@@ -66,13 +66,17 @@ int main(int argc, char* argv[])
 	sonixGrabber->SetSonixIP(inputSonixIP.c_str());
 	sonixGrabber->SetImagingMode(0);
 	sonixGrabber->SetAcquisitionDataType(0x00000004);
-	sonixGrabber->GetBuffer()->SetBufferSize(30); 
+	if ( sonixGrabber->GetBuffer()->SetBufferSize(30) != PLUS_SUCCESS )
+    {
+        LOG_ERROR("Failed to set video buffer size!"); 
+        exit(EXIT_FAILURE);
+    }
 
 	sonixGrabber->Initialize(); 
 
 	if ( sonixGrabber->GetInitialized() ) 
 	{
-		sonixGrabber->Record();				//start recording frame from the video
+		sonixGrabber->StartRecording();				//start recording frame from the video
 	} 
 	else 
 	{
@@ -98,7 +102,7 @@ int main(int argc, char* argv[])
 
 	if (renderingOff)
 	{
-		sonixGrabber->Stop(); 
+		sonixGrabber->StopRecording(); 
 		sonixGrabber->ReleaseSystemResources();
 
 		if ( sonixGrabber != NULL ) 

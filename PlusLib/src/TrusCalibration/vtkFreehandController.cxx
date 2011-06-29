@@ -110,7 +110,7 @@ PlusStatus vtkFreehandController::StartDataCollection()
 	vtkSmartPointer<vtkDataCollector> dataCollector = vtkSmartPointer<vtkDataCollector>::New(); 
 	this->SetDataCollector(dataCollector);
 
-	if (this->DataCollector->ReadConfiguration(this->InputConfigFileName) != PLUS_SUCCESS) {
+	if (this->DataCollector->ReadConfigurationFromFile(this->InputConfigFileName) != PLUS_SUCCESS) {
 		return PLUS_FAIL;
 	}
 	if (this->DataCollector->Initialize() != PLUS_SUCCESS) {

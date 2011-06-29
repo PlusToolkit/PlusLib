@@ -28,14 +28,6 @@ vtkTimestampedCircularBuffer<BufferItemType>::vtkTimestampedCircularBuffer()
 template<class BufferItemType>
 vtkTimestampedCircularBuffer<BufferItemType>::~vtkTimestampedCircularBuffer()
 { 
-	for ( int i = 0; i < this->GetBufferSize(); ++i )
-	{
-		if ( this->BufferItemContainer[i] != NULL )
-		{
-			delete this->BufferItemContainer[i];
-			this->BufferItemContainer[i] = NULL; 
-		}
-	}
 	this->BufferItemContainer.clear(); 
 
 	this->NumberOfItems = 0;
@@ -116,17 +108,17 @@ int vtkTimestampedCircularBuffer<BufferItemType>::GetBufferSize()
 // Sets the buffer size, and copies the maximum number of the most current old
 // frames and timestamps
 template<class BufferItemType>
-void vtkTimestampedCircularBuffer<BufferItemType>::SetBufferSize(int bufsize)
+PlusStatus vtkTimestampedCircularBuffer<BufferItemType>::SetBufferSize(int bufsize)
 {
 	if (bufsize < 0)
 	{
 		LOG_ERROR("SetBufferSize: invalid buffer size");
-		return;
+		return PLUS_FAIL;
 	}
 
 	if (bufsize == this->GetBufferSize() && bufsize != 0)
 	{
-		return;
+		return PLUS_SUCCESS;
 	}
 
 	this->Lock(); 
@@ -135,7 +127,7 @@ void vtkTimestampedCircularBuffer<BufferItemType>::SetBufferSize(int bufsize)
 	{
 		for ( int i = 0; i < bufsize; i++ )
 		{
-			BufferItemType *emptyBufferItem = new BufferItemType(); 
+			BufferItemType emptyBufferItem; 
 			this->BufferItemContainer.push_back(emptyBufferItem); 
 		}
 		this->WritePointer = 0;
@@ -145,11 +137,11 @@ void vtkTimestampedCircularBuffer<BufferItemType>::SetBufferSize(int bufsize)
 	// if the new buffer is bigger than the old buffer
 	else if ( this->GetBufferSize() < bufsize )
 	{
-		std::deque<BufferItemType*>::iterator it = this->BufferItemContainer.begin() + this->WritePointer; 
+		std::deque<BufferItemType>::iterator it = this->BufferItemContainer.begin() + this->WritePointer; 
 		const int numberOfNewBufferObjects = bufsize - this->GetBufferSize(); 
 		for ( int i = 0; i < numberOfNewBufferObjects; ++i )
 		{
-			BufferItemType *emptyBufferItem = new BufferItemType(); 
+			BufferItemType emptyBufferItem;
 			it = this->BufferItemContainer.insert(it, emptyBufferItem); 
 		}
 	}
@@ -159,9 +151,7 @@ void vtkTimestampedCircularBuffer<BufferItemType>::SetBufferSize(int bufsize)
 		// delete the oldest buffer objects 
 		for (int i = 0; i < this->GetBufferSize() - bufsize; ++i)
 		{
-			delete this->BufferItemContainer[this->WritePointer]; 
-			this->BufferItemContainer[this->WritePointer] = NULL; 
-			std::deque<BufferItemType*>::iterator it = this->BufferItemContainer.begin() + this->WritePointer; 
+			std::deque<BufferItemType>::iterator it = this->BufferItemContainer.begin() + this->WritePointer; 
 			this->BufferItemContainer.erase(it); 
 			if ( this->WritePointer >= this->GetBufferSize() )
 			{
@@ -179,6 +169,8 @@ void vtkTimestampedCircularBuffer<BufferItemType>::SetBufferSize(int bufsize)
 	this->Unlock(); 
 
 	this->Modified();
+	
+	return PLUS_SUCCESS; 
 }
 
 //----------------------------------------------------------------------------
@@ -214,7 +206,7 @@ ItemStatus vtkTimestampedCircularBuffer<BufferItemType>::GetItemUidFromBufferInd
 	else
 	{
 		this->Lock(); 
-		uid = this->BufferItemContainer[bufferIndex]->GetUid(); 
+		uid = this->BufferItemContainer[bufferIndex].GetUid(); 
 		this->Unlock(); 
 	}
 
@@ -262,10 +254,11 @@ BufferItemType* vtkTimestampedCircularBuffer<BufferItemType>::GetBufferItem(cons
 		|| bufferIndex >= this->GetBufferSize() 
 		|| bufferIndex < 0 )
 	{
+		LOG_ERROR("Failed to get buffer item with buffer index - index is out of range (bufferIndex: " << bufferIndex << ")."); 
 		return NULL;
 	}
 
-	return this->BufferItemContainer[bufferIndex]; 
+	return &this->BufferItemContainer[bufferIndex]; 
 }
 
 //----------------------------------------------------------------------------
@@ -280,7 +273,7 @@ ItemStatus vtkTimestampedCircularBuffer<BufferItemType>::GetFilteredTimeStamp(co
 	}
 
 	const int bufferIndex = this->GetBufferIndex( uid ); 
-	filteredTimestamp = this->BufferItemContainer[bufferIndex]->GetFilteredTimestamp(this->LocalTimeOffset); 
+	filteredTimestamp = this->BufferItemContainer[bufferIndex].GetFilteredTimestamp(this->LocalTimeOffset); 
 	return status;
 }
 
@@ -296,7 +289,7 @@ ItemStatus vtkTimestampedCircularBuffer<BufferItemType>::GetUnfilteredTimeStamp(
 	}
 
 	const int bufferIndex = this->GetBufferIndex( uid ); 
-	unfilteredTimestamp = this->BufferItemContainer[bufferIndex]->GetUnfilteredTimestamp(this->LocalTimeOffset); 
+	unfilteredTimestamp = this->BufferItemContainer[bufferIndex].GetUnfilteredTimestamp(this->LocalTimeOffset); 
 	return status;
 }
 
@@ -313,7 +306,7 @@ ItemStatus vtkTimestampedCircularBuffer<BufferItemType>::GetIndex(const BufferIt
 	}
 
 	const int bufferIndex = this->GetBufferIndex( uid ); 
-	index = this->BufferItemContainer[bufferIndex]->GetIndex(); 
+	index = this->BufferItemContainer[bufferIndex].GetIndex(); 
 	return status;
 }
 
@@ -413,6 +406,8 @@ ItemStatus vtkTimestampedCircularBuffer<BufferItemType>::GetItemUidFromTime(cons
 template<class BufferItemType>
 void vtkTimestampedCircularBuffer<BufferItemType>::DeepCopy(vtkTimestampedCircularBuffer<BufferItemType>* buffer)
 {
+	buffer->Lock(); 
+	this->Lock(); 
 	this->WritePointer = buffer->WritePointer;
 	this->NumberOfItems = buffer->NumberOfItems;
 	this->CurrentTimeStamp = buffer->CurrentTimeStamp;
@@ -420,6 +415,8 @@ void vtkTimestampedCircularBuffer<BufferItemType>::DeepCopy(vtkTimestampedCircul
 	this->LatestItemUid = buffer->LatestItemUid; 
 
 	this->BufferItemContainer = buffer->BufferItemContainer; 
+	this->Unlock(); 
+	buffer->Unlock(); 
 }
 
 //----------------------------------------------------------------------------
@@ -490,8 +487,6 @@ double vtkTimestampedCircularBuffer<BufferItemType>::GetFrameRate(bool ideal /*=
 	}
 
 	return frameRate; 
-	
-	return 1; 
 }
 
 

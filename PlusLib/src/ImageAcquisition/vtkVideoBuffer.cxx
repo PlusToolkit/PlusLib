@@ -43,11 +43,7 @@ VideoBufferItem::VideoBufferItem(const VideoBufferItem &videoItem)
 			}
 		}
 
-		if (!videoItem.GetFrame()->CopyData(this->Frame->GetVoidPointer(0), this->Frame->GetFrameExtent(), this->Frame->GetFrameExtent(), this->Frame->GetPixelFormat()))
-		{
-			LOG_ERROR("Cannot copy video frame data!");
-			return; 
-		}
+        this->Frame->DeepCopy( videoItem.GetFrame() ); 
 	}
 
 	this->FilteredTimeStamp = videoItem.FilteredTimeStamp; 
@@ -80,11 +76,7 @@ PlusStatus VideoBufferItem::DeepCopy(VideoBufferItem* videoItem)
 			}
 		}
 
-		if (!videoItem->GetFrame()->CopyData(this->Frame->GetVoidPointer(0), this->Frame->GetFrameExtent(), this->Frame->GetFrameExtent(), this->Frame->GetPixelFormat()))
-		{
-			LOG_ERROR("Cannot copy video frame data!");
-			return PLUS_FAIL; 
-		}
+        this->Frame->DeepCopy( videoItem->GetFrame() ); 
 	}
 
 	this->FilteredTimeStamp = videoItem->FilteredTimeStamp; 
@@ -190,7 +182,7 @@ PlusStatus VideoBufferItem::SetFrame(unsigned char *imageDataPtr,
 	}
 	else
 	{
-		while (--rows >= 0)
+		for (int r = 0; r < rows; ++r)
 		{
 			memcpy(frameBufferPtr,imageDataPtr,outBytesPerRow);
 			frameBufferPtr += outBytesPerRow;
@@ -217,7 +209,17 @@ vtkVideoBuffer::vtkVideoBuffer()
 //----------------------------------------------------------------------------
 vtkVideoBuffer::~vtkVideoBuffer()
 { 
-	this->FrameFormat->Delete();
+    if ( this->FrameFormat != NULL )
+    {
+	    this->FrameFormat->Delete();
+        this->FrameFormat = NULL; 
+    }
+
+    if ( this->VideoBuffer != NULL )
+    {
+        this->VideoBuffer->Delete(); 
+        this->VideoBuffer = NULL; 
+    }
 }
 
 //----------------------------------------------------------------------------
@@ -233,7 +235,7 @@ void vtkVideoBuffer::PrintSelf(ostream& os, vtkIndent indent)
 }
 
 //----------------------------------------------------------------------------
-void vtkVideoBuffer::UpdateBuffer()
+void vtkVideoBuffer::UpdateBufferFrameFormats()
 {
 	this->VideoBuffer->Lock(); 
 	for ( int i = 0; i < this->VideoBuffer->GetBufferSize(); ++i )
@@ -262,9 +264,9 @@ int vtkVideoBuffer::GetBufferSize()
 }
 
 //----------------------------------------------------------------------------
-void vtkVideoBuffer::SetBufferSize(int bufsize)
+PlusStatus vtkVideoBuffer::SetBufferSize(int bufsize)
 {
-	this->VideoBuffer->SetBufferSize(bufsize); 
+	return this->VideoBuffer->SetBufferSize(bufsize); 
 }
 
 //----------------------------------------------------------------------------
@@ -297,7 +299,7 @@ void vtkVideoBuffer::SetFrameFormat(vtkVideoFrame2 *format)
 	this->Modified();
 
 	// replace all the frames with ones in the new format
-	this->UpdateBuffer(); 
+	this->UpdateBufferFrameFormats(); 
 }
 
 //----------------------------------------------------------------------------
@@ -391,6 +393,7 @@ PlusStatus vtkVideoBuffer::AddItem(unsigned char *imageDataPtr,
 	if ( this->VideoBuffer->PrepareForNewFrame(filteredTimestamp, itemUid, bufferIndex) != PLUS_SUCCESS )
 	{
         this->VideoBuffer->Unlock(); 
+        // Just a debug message, because we want to avoid unnecessary warning messages if the timestamp is the same as last one
 		LOG_DEBUG( "vtkVideoBuffer: Failed to prepare for adding new frame to video buffer!"); 
 		return PLUS_FAIL; 
 	}
@@ -400,7 +403,7 @@ PlusStatus vtkVideoBuffer::AddItem(unsigned char *imageDataPtr,
 	if ( newObjectInBuffer == NULL )
 	{
         this->VideoBuffer->Unlock(); 
-		LOG_WARNING( "vtkVideoBuffer: Failed to get pointer to video buffer object from the video buffer for the new frame!"); 
+		LOG_ERROR( "vtkVideoBuffer: Failed to get pointer to video buffer object from the video buffer for the new frame!"); 
 		return PLUS_FAIL; 
 	}
 
@@ -421,6 +424,12 @@ PlusStatus vtkVideoBuffer::AddItem(vtkImageData* frame, const double unfilteredT
 	const int frameSize[3] = {(frameExtent[1] - frameExtent[0] + 1), (frameExtent[3] - frameExtent[2] + 1), (frameExtent[5] - frameExtent[4] + 1) }; 
 	const int numberOfBits = frame->GetScalarSize() * 8; 
 	return this->AddItem( reinterpret_cast<unsigned char*>(frame->GetScalarPointer()), frameSize, numberOfBits, 0, unfilteredTimestamp, filteredTimestamp, frameNumber); 
+}
+
+//----------------------------------------------------------------------------
+ItemStatus vtkVideoBuffer::GetLatestTimeStamp( double& latestTimestamp )
+{
+    return this->VideoBuffer->GetLatestTimeStamp(latestTimestamp); 
 }
 
 //----------------------------------------------------------------------------
@@ -498,7 +507,7 @@ void vtkVideoBuffer::DeepCopy(vtkVideoBuffer* buffer)
 
 	this->SetFrameFormat(buffer->GetFrameFormat()); 
 	this->SetBufferSize(buffer->GetBufferSize()); 
-	this->UpdateBuffer(); 
+	this->UpdateBufferFrameFormats(); 
 }
 
 //----------------------------------------------------------------------------

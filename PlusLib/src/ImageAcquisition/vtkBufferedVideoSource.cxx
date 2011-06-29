@@ -143,7 +143,7 @@ void vtkBufferedVideoSource::ReleaseSystemResources()
 {
 	if (this->Recording)
 	{
-		this->Stop();
+		this->StopRecording();
 	}
 
 	this->Initialized = 0;
@@ -157,7 +157,7 @@ PlusStatus vtkBufferedVideoSource::Grab()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkBufferedVideoSource::Record()
+PlusStatus vtkBufferedVideoSource::StartRecording()
 {
 	this->Initialize();
 	if (!this->Initialized)
@@ -174,7 +174,7 @@ PlusStatus vtkBufferedVideoSource::Record()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkBufferedVideoSource::Stop()
+PlusStatus vtkBufferedVideoSource::StopRecording()
 {
 	if (this->Recording)
 	{

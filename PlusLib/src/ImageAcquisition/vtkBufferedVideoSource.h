@@ -47,11 +47,11 @@ public:
 	// Description:
 	// Record incoming video at the specified FrameRate.  The recording
 	// continues indefinitely until Stop() is called. 
-	virtual PlusStatus Record();
+	virtual PlusStatus StartRecording();
 
 	// Description:
 	// Stop recording or playing.
-	virtual PlusStatus Stop();
+	virtual PlusStatus StopRecording();
 
 	// Description:
 	// Grab a single video frame.

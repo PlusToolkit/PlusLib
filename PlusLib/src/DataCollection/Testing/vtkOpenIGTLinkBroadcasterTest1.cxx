@@ -63,7 +63,7 @@ int main( int argc, char** argv )
 	  // Prepare data collector object.
 	
 	vtkDataCollector* dataCollector = vtkDataCollector::New();
-	  dataCollector->ReadConfiguration( inputConfigFileName.c_str() );
+	  dataCollector->ReadConfigurationFromFile( inputConfigFileName.c_str() );
   
   if ( dataCollector->GetAcquisitionType() == SYNCHRO_VIDEO_SAVEDDATASET )
     {

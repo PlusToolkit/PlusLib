@@ -240,7 +240,11 @@ PlusStatus vtkSavedDataVideoSource::Connect()
     }
 	
 	// Set buffer size 
-	this->SetFrameBufferSize( savedDataBuffer->GetNumberOfTrackedFrames() ); 
+	if ( this->SetFrameBufferSize( savedDataBuffer->GetNumberOfTrackedFrames() ) != PLUS_SUCCESS )
+    {
+        LOG_ERROR("Failed to set video buffer size!"); 
+        return PLUS_FAIL; 
+    }
 
 	// Set local buffer 
 	if ( this->LocalVideoBuffer == NULL )
@@ -249,8 +253,12 @@ PlusStatus vtkSavedDataVideoSource::Connect()
 	}
 
 	this->LocalVideoBuffer->SetFrameFormat(this->Buffer->GetFrameFormat()); 
-	this->LocalVideoBuffer->SetBufferSize(savedDataBuffer->GetNumberOfTrackedFrames()); 
-	this->LocalVideoBuffer->UpdateBuffer(); 
+	if ( this->LocalVideoBuffer->SetBufferSize(savedDataBuffer->GetNumberOfTrackedFrames()) != PLUS_SUCCESS )
+    {
+        LOG_ERROR("Failed to set video buffer size!"); 
+        return PLUS_FAIL;
+    }
+	this->LocalVideoBuffer->UpdateBufferFrameFormats(); 
 
 	// Fill local video buffers 
 	for ( unsigned int frame = 0; frame < savedDataBuffer->GetNumberOfTrackedFrames(); ++frame)
@@ -312,7 +320,7 @@ PlusStatus vtkSavedDataVideoSource::Connect()
 PlusStatus vtkSavedDataVideoSource::Disconnect()
 {
 	LOG_TRACE("vtkSavedDataVideoSource::Disconnect"); 
-	return this->Stop();
+	return this->StopRecording();
 }
 
 //----------------------------------------------------------------------------
@@ -331,7 +339,7 @@ PlusStatus vtkSavedDataVideoSource::Grab()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkSavedDataVideoSource::Record()
+PlusStatus vtkSavedDataVideoSource::StartRecording()
 {
 	LOG_TRACE("vtkSavedDataVideoSource::Record"); 
 
@@ -344,14 +352,14 @@ PlusStatus vtkSavedDataVideoSource::Record()
 	if (!this->Recording)
 	{
 		this->SetStartTimestamp(vtkAccurateTimer::GetSystemTime()); 
-		this->vtkVideoSource2::Record(); 
+		this->vtkVideoSource2::StartRecording(); 
 	}
 
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkSavedDataVideoSource::Stop()
+PlusStatus vtkSavedDataVideoSource::StopRecording()
 {
 	LOG_TRACE("vtkSavedDataVideoSource::Stop"); 
 	if (this->Recording)

@@ -83,11 +83,11 @@ public:
   // Description:
   // Record incoming video at the specified FrameRate.  The recording
   // continues indefinitely until Stop() is called. 
-  virtual PlusStatus Record();
+  virtual PlusStatus StartRecording();
 
   // Description:
   // Stop recording
-  virtual PlusStatus Stop();
+  virtual PlusStatus StopRecording();
 
   // Description:
   // Grab a single video frame.
@@ -129,7 +129,7 @@ public:
   // Description:
   // Set/Get size of the frame buffer, i.e. the number of frames that
   // the 'tape' can store.
-  virtual void SetFrameBufferSize(int FrameBufferSize);
+  virtual PlusStatus SetFrameBufferSize(int FrameBufferSize);
   virtual int GetFrameBufferSize();
 
   // Description:
