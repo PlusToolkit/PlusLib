@@ -62,7 +62,9 @@ ADD_EXECUTABLE( UsFidSegTest
   Segmentation.cpp
   )
 
- SET(ITK_LIBRARIES
+INCLUDE_DIRECTORIES( ${PlusLib_SOURCE_DIR}/src/TrusCalibration )
+
+SET(ITK_LIBRARIES
 	ITKCommon
 	)
 
@@ -74,8 +76,11 @@ TARGET_LINK_LIBRARIES( UsFidSegTest
 	vtkCommon
 	vtkIO
 	vtkImageAcquisition
+	vtkTrusCalibration
   ) 
  
+
+ ###################################################
 ADD_TEST(UsFidSegTest_CALIBRATION_PHANTOM_6_POINT
 	${EXECUTABLE_OUTPUT_PATH}/UsFidSegTest
 	--input-test-data-dir=${TestDataDir}
@@ -83,6 +88,8 @@ ADD_TEST(UsFidSegTest_CALIBRATION_PHANTOM_6_POINT
 	--input-testcase-name=UsTestSeqBaselineThomasShortened
 	--input-baseline-file=${TestDataDir}/baselineTestWithThomasData.xml
 	--output-result-file=testcomparisons.xml
+	--input-config-file-name=${ConfigFilesDir}/USCalibrationConfig.xml
+	--input-phantom-definition-file-name=${ConfigFilesDir}/PhantomDefinition_iCal_1.0.xml
 	)
 SET_TESTS_PROPERTIES( UsFidSegTest_CALIBRATION_PHANTOM_6_POINT PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 

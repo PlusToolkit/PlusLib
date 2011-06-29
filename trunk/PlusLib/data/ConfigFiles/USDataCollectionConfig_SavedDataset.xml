@@ -1,19 +1,19 @@
 <USDataCollection version="2.0">
     <DeviceSet 
-            Name="Tracking and video data is read from sequence metafile." 
+            Name="Sequence metafile for both" 
             Description="Test configuration file for vtkDataCollectorTest to use saved dataset. The SequenceMetafile names should be defined either from command line argument or from configuration file!" 
             />
 
-    <Tracker Type="SavedDataset" BufferSize="200" Frequency="9" LocalTimeOffset="0.0" DefaultToolName="Probe" SequenceMetafile="d:\devel\_Images\2011-05-30_CalibrationTestDataset\Cal_20110530.mha" ReplayEnabled="TRUE">
+    <Tracker Type="SavedDataset" BufferSize="200" Frequency="9" LocalTimeOffset="0.0" DefaultToolName="Probe" SequenceMetafile="d:\devel\_Images\2011-06-14_ThomasPhantom_SonixVideo_SonixTOUCH_NDICertus-10fps-Sync.mha" ReplayEnabled="TRUE">
     </Tracker>
 
     <ImageAcqusition Type="SavedDataset" 
             BufferSize="200" 
-            FrameSize="640 480 1" 
+            FrameSize="820 616 1" 
             FrameRate="9" 
             SmoothingFactor="0.001" 
             LocalTimeOffset="0.0" 
-			SequenceMetafile="d:\devel\_Images\2011-05-30_CalibrationTestDataset\Cal_20110530.mha"
+			SequenceMetafile="d:\devel\_Images\2011-06-14_ThomasPhantom_SonixVideo_SonixTOUCH_NDICertus-10fps-Sync.mha"
 			ReplayEnabled="TRUE"
             />
 
