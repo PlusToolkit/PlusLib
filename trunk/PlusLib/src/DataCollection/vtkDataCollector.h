@@ -67,8 +67,8 @@ public:
 
 	// Description:
 	// Read the configuration file in XML format and set up the devices
-	virtual PlusStatus ReadConfiguration( const char* configFileName); 
-	virtual PlusStatus ReadConfiguration(); 
+	virtual PlusStatus ReadConfigurationFromFile( const char* configFileName); 
+	virtual PlusStatus ReadConfigurationFromFile(); 
 
 	// Description:
 	// Disconnect from devices
@@ -88,7 +88,7 @@ public:
 
 	// Description:
 	// Synchronize the connected devices
-	virtual PlusStatus Synchronize(const bool saveSyncData = false); 
+	virtual PlusStatus Synchronize(); 
 
 	// Description:
 	// Copy the current state of the tracker buffer 
@@ -100,7 +100,7 @@ public:
 
 	// Description:
 	// Dump the current state of the tracker to metafile (with each tools and buffers)
-	virtual PlusStatus DumpTrackerToMetafile( vtkTracker* tracker, const char* outputFolder, const char* metaFileName, bool useCompression = false ); 
+	static PlusStatus WriteTrackerToMetafile( vtkTracker* tracker, const char* outputFolder, const char* metaFileName, bool useCompression = false ); 
 	
 	// Description:
 	// Copy the current state of the video buffer 
@@ -108,19 +108,19 @@ public:
 
 	// Description:
 	// Dump the current state of the video buffer to metafile
-	virtual PlusStatus DumpVideoBufferToMetafile( vtkVideoBuffer* videoBuffer, const char* outputFolder, const char* metaFileName, bool useCompression = false ); 
+	static PlusStatus WriteVideoBufferToMetafile( vtkVideoBuffer* videoBuffer, const char* outputFolder, const char* metaFileName, bool useCompression = false ); 
 
 	// Description:
 	// Return the most recent frame timestamp in the buffer
 	virtual PlusStatus GetMostRecentTimestamp(double &ts); 
 
 	// Description:
-	// Return the main tool status at a given time
-	virtual long GetMainToolStatus( double time ); 
+	// Return the default tool status at a given time
+	virtual long GetDefaultToolStatus( double time ); 
 
 	// Description:
-	// Return the main tool name
-	virtual std::string GetMainToolName(); 
+	// Return the default tool name
+	virtual std::string GetDefaultToolName(); 
 
 	// Description:
 	// Get the tracked frame from devices 
@@ -155,20 +155,8 @@ public:
 	virtual double GetTransformsByTimeInterval(std::vector<vtkMatrix4x4*> &toolTransMatrixVector, std::vector<long> &flagsVector, const double startTime, const double endTime, int toolNumber = 0, bool calibratedTransform = false);
 
 	// Description:
-	// Get frame data with timestamp 
-	virtual PlusStatus GetFrameWithTimestamp(vtkImageData* frame, double& frameTimestamp); 
-
-	// Description:
 	// Get frame data by time 
 	virtual PlusStatus GetFrameByTime(const double time, vtkImageData* frame, double& frameTimestamp); 
-
-	// Description:
-	// Find the next active tracker tool number 
-	virtual int GetNextActiveToolNumber(); 
-	
-	// Description:
-	// Find the previous active tracker tool number 
-	virtual int GetPreviousActiveToolNumber(); 
 
 	// Description:
 	// Set/Get the acquisition type 
@@ -184,15 +172,7 @@ public:
 	// Set/Get the synchronization type 
 	void SetSyncType(SYNC_TYPE type) { SyncType = type; }
 	SYNC_TYPE GetSyncType() { return this->SyncType; }
-
-	// Description:
-	// Get the tool transformation matrix
-	virtual vtkMatrix4x4* GetToolTransMatrix( unsigned int toolNumber = 0 ) ;
 	
-	// Description:
-	// Get the tool flags (for more details see vtkTracker.h (e.g. TR_MISSING) 
-	virtual int GetToolFlags( unsigned int toolNumber/* = 0 */); 
-
 	// Description:
 	// Set video and tracker local time offset 
 	virtual void SetLocalTimeOffset(double videoOffset, double trackerOffset); 
@@ -231,11 +211,6 @@ public:
 	// Get default tool port number 
 	int GetDefaultToolPortNumber(); 
 
-	// Description:	
-	// Get/Set the maximum buffer size to dump
-	vtkSetMacro(DumpBufferSize, int); 
-	vtkGetMacro(DumpBufferSize, int);
-	
 	// Description:
 	// Set/get the Initialized flag 
 	vtkSetMacro(Initialized,bool);
@@ -244,12 +219,12 @@ public:
 
 	// Description:
 	// Set/get the Tracking only flag
-	vtkGetMacro(TrackingOnly,bool);
+	vtkGetMacro(TrackingEnabled,bool);
 	void SetTrackingOnly(bool);
 
 	// Description:
 	// Set/get the Video only flag
-	vtkGetMacro(VideoOnly,bool);
+	vtkGetMacro(VideoEnabled,bool);
 	void SetVideoOnly(bool);
 
 	// Description:
@@ -288,6 +263,7 @@ protected:
 
 	// Description:
 	// Convert vtkImageData to itkImage (TrackedFrame::ImageType)
+    // Flipping is necessary, because vtk stores the image data in bottom up format, while itk in top down format. 
 	virtual void ConvertVtkImageToItkImage(vtkImageData* inFrame, TrackedFrame::ImageType* outFrame); 
 
 	//! Pointer to the progress bar update callback function 
@@ -311,19 +287,15 @@ protected:
 
 	bool Initialized; 
 	
-	int MostRecentFrameBufferIndex; 
+	static const int MostRecentFrameBufferIndex = 0; 
 	
-	int DumpBufferSize;
-
-	bool TrackingOnly;
-	bool VideoOnly;
+	bool TrackingEnabled;
+	bool VideoEnabled;
 
 	bool CancelSyncRequest; 
 
 	char * DeviceSetName; 
 	char * DeviceSetDescription; 
-
-	VideoBufferItem* CurrentVideoBufferItem; 
 
 private:
 	vtkDataCollector(const vtkDataCollector&);

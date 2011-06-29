@@ -92,7 +92,7 @@ int main(int argc, char **argv)
 	if ( frameGrabber->GetInitialized() )
 	{
 		LOG_INFO("Start recording..."); 
-		frameGrabber->Record(); 
+		frameGrabber->StartRecording(); 
 	}
 	else
 	{
@@ -126,7 +126,7 @@ int main(int argc, char **argv)
 	if (renderingOff)
 	{
 		LOG_INFO("No need for rendering, stop the device..."); 
-		frameGrabber->Stop(); 
+		frameGrabber->StopRecording(); 
 		frameGrabber->ReleaseSystemResources();
 
 		if ( frameGrabber != NULL ) 

@@ -54,7 +54,7 @@ int main(int argc, char **argv)
 	VTK_LOG_TO_CONSOLE_ON; 
 
 	vtkSmartPointer<vtkDataCollector> dataCollector = vtkSmartPointer<vtkDataCollector>::New(); 
-	dataCollector->ReadConfiguration(inputConfigFileName.c_str());
+	dataCollector->ReadConfigurationFromFile(inputConfigFileName.c_str());
 
 	if ( dataCollector->GetAcquisitionType() == SYNCHRO_VIDEO_SAVEDDATASET )
 	{
@@ -95,14 +95,14 @@ int main(int argc, char **argv)
 
 	if ( dataCollector->GetVideoSource() != NULL ) 
 	{
-		LOG_INFO("Dump video buffer to " << outputVideoBufferSequenceFileName);
-		dataCollector->DumpVideoBufferToMetafile( videobuffer, outputFolder.c_str(), outputVideoBufferSequenceFileName.c_str(), outputCompressed); 
+		LOG_INFO("Write video buffer to " << outputVideoBufferSequenceFileName);
+		dataCollector->WriteVideoBufferToMetafile( videobuffer, outputFolder.c_str(), outputVideoBufferSequenceFileName.c_str(), outputCompressed); 
 	}
 
 	if ( dataCollector->GetTracker() != NULL )
 	{
-		LOG_INFO("Dump tracker buffer to " << outputTrackerBufferSequenceFileName);
-		dataCollector->DumpTrackerToMetafile( tracker, outputFolder.c_str(), outputTrackerBufferSequenceFileName.c_str(), outputCompressed); 
+		LOG_INFO("Write tracker buffer to " << outputTrackerBufferSequenceFileName);
+		dataCollector->WriteTrackerToMetafile( tracker, outputFolder.c_str(), outputTrackerBufferSequenceFileName.c_str(), outputCompressed); 
 	}
 
 

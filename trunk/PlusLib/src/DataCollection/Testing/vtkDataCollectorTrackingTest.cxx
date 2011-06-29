@@ -42,7 +42,7 @@ int main(int argc, char **argv)
 	VTK_LOG_TO_CONSOLE_ON; 
 
 	vtkSmartPointer<vtkDataCollector> dataCollector = vtkSmartPointer<vtkDataCollector>::New(); 
-	dataCollector->ReadConfiguration(inputConfigFileName.c_str());
+	dataCollector->ReadConfigurationFromFile(inputConfigFileName.c_str());
 	dataCollector->Initialize(); 
 	dataCollector->Start();
 
@@ -59,8 +59,8 @@ int main(int argc, char **argv)
 	vtkTracker *tracker = vtkTracker::New(); 
 	dataCollector->CopyTracker(tracker); 
 
-	LOG_INFO("Dump tracker to " << outputTrackerBufferSequenceFileName);
-	dataCollector->DumpTrackerToMetafile( tracker, outputFolder.c_str(), outputTrackerBufferSequenceFileName.c_str(), true); 
+	LOG_INFO("Write tracker to " << outputTrackerBufferSequenceFileName);
+	dataCollector->WriteTrackerToMetafile( tracker, outputFolder.c_str(), outputTrackerBufferSequenceFileName.c_str(), true); 
 
 	tracker->Delete(); 
 

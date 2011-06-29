@@ -42,7 +42,7 @@ int main(int argc, char **argv)
 	VTK_LOG_TO_CONSOLE_ON; 
 
 	vtkSmartPointer<vtkDataCollector> dataCollector = vtkSmartPointer<vtkDataCollector>::New(); 
-	dataCollector->ReadConfiguration(inputConfigFileName.c_str());
+	dataCollector->ReadConfigurationFromFile(inputConfigFileName.c_str());
 	dataCollector->Initialize(); 
 	dataCollector->Start();
 
@@ -59,8 +59,8 @@ int main(int argc, char **argv)
 	vtkVideoBuffer *buffer = vtkVideoBuffer::New(); 
 	dataCollector->CopyVideoBuffer(buffer); 
 
-	LOG_INFO("Dump video buffer to " << outputVideoBufferSequenceFileName);
-	dataCollector->DumpVideoBufferToMetafile( buffer, outputFolder.c_str(), outputVideoBufferSequenceFileName.c_str(), true); 
+	LOG_INFO("write video buffer to " << outputVideoBufferSequenceFileName);
+	dataCollector->WriteVideoBufferToMetafile( buffer, outputFolder.c_str(), outputVideoBufferSequenceFileName.c_str(), true); 
 
 	buffer->Delete(); 
 

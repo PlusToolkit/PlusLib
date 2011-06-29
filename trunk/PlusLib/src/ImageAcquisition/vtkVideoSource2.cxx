@@ -406,16 +406,23 @@ int vtkVideoSource2::GetOutputFormat()
 // set or change the circular buffer size
 // you will have to override this if you want the buffers 
 // to be device-specific (i.e. something other than vtkDataArray)
-void vtkVideoSource2::SetFrameBufferSize(int bufsize)
+PlusStatus vtkVideoSource2::SetFrameBufferSize(int bufsize)
 {
 	if (bufsize < 0)
 	{
 		LOG_ERROR("SetFrameBufferSize: There must be at least one framebuffer");
+        return PLUS_FAIL; 
 	}
 
 	// update the buffer size
-	this->Buffer->SetBufferSize(bufsize);
+	if ( this->Buffer->SetBufferSize(bufsize) != PLUS_SUCCESS )
+    {
+        LOG_ERROR("Failed to set video buffer size!"); 
+        return PLUS_FAIL; 
+    }
 	this->UpdateFrameBuffer();
+
+    return PLUS_SUCCESS; 
 }
 
 //----------------------------------------------------------------------------
@@ -478,7 +485,7 @@ void vtkVideoSource2::UpdateFrameBuffer()
 	}
 	this->Buffer->GetFrameFormat()->SetFrameExtent(frameBufferExtent);
 	this->Buffer->GetFrameFormat()->Allocate();
-	this->Buffer->UpdateBuffer(); 
+	this->Buffer->UpdateBufferFrameFormats(); 
 	this->CurrentVideoBufferItem->SetFrameFormat(this->Buffer->GetFrameFormat()); 
 
 
@@ -518,7 +525,7 @@ void vtkVideoSource2::ReleaseSystemResources()
 {
 	if (this->Recording)
 	{
-		this->Stop();
+		this->StopRecording();
 	}
 
 	this->Initialized = 0;
@@ -653,7 +660,7 @@ static void *vtkVideoSourceRecordThread(vtkMultiThreader::ThreadInfo *data)
 //----------------------------------------------------------------------------
 // Set the source to grab frames continuously.
 // You should override this as appropriate for your device.  
-PlusStatus vtkVideoSource2::Record()
+PlusStatus vtkVideoSource2::StartRecording()
 {
 	if (!this->Recording)
 	{
@@ -672,7 +679,7 @@ PlusStatus vtkVideoSource2::Record()
 //----------------------------------------------------------------------------
 // Stop continuous grabbing.  You will have to override this
 // if your class overrides Record()
-PlusStatus vtkVideoSource2::Stop()
+PlusStatus vtkVideoSource2::StopRecording()
 {
 	if (this->Recording)
 	{
@@ -1166,7 +1173,10 @@ PlusStatus vtkVideoSource2::ReadConfiguration(vtkXMLDataElement* config)
 	int bufferSize = 0; 
 	if ( config->GetScalarAttribute("BufferSize", bufferSize) )
 	{
-		this->GetBuffer()->SetBufferSize(bufferSize); 
+		if ( this->GetBuffer()->SetBufferSize(bufferSize) != PLUS_SUCCESS )
+        {
+            LOG_ERROR("Failed to set video buffer size!"); 
+        }
 	}
 
 	int frameRate = 0; 

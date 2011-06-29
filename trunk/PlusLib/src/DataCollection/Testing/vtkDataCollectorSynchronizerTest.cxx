@@ -210,8 +210,13 @@ int main(int argc, char **argv)
 	videoBuffer->GetFrameFormat()->SetPixelFormat(VTK_LUMINANCE); 
 	videoBuffer->GetFrameFormat()->SetBitsPerPixel(8); 
 	videoBuffer->GetFrameFormat()->SetFrameGrabberType(FG_BASE); 
-	videoBuffer->SetBufferSize(numberOfVideoFrames + 1); 
-	videoBuffer->UpdateBuffer(); 
+    if ( videoBuffer->SetBufferSize(numberOfVideoFrames + 1) != PLUS_SUCCESS )
+    {
+        LOG_ERROR("Failed to set video buffer size!"); 
+        numberOfErrors++; 
+    }
+
+	videoBuffer->UpdateBufferFrameFormats(); 
 	
 	LOG_INFO("Copy buffer to video buffer..."); 
 	for ( int frameNumber = 0; frameNumber < numberOfVideoFrames; frameNumber++ )

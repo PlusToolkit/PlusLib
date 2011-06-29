@@ -714,7 +714,7 @@ int vtkFreehandUltrasound2::InitializeRealTimeReconstruction()
 		if (!this->VideoSource->GetRecording())
 		{
 			LOG_WARNING("video wasn't recording; starting recording for you");
-			this->VideoSource->Record();
+			this->VideoSource->StartRecording();
 		}
 	}
 
@@ -2773,7 +2773,10 @@ PlusStatus vtkFreehandUltrasound2::ReadSummaryFile(const char *filename)
 			this->VideoSource->SetFrameRate(tempd);
 			tempi = this->VideoSource->GetFrameBufferSize();
 			bufferOptions->GetScalarAttribute("VideoBufferSize", tempi);
-			this->VideoSource->SetFrameBufferSize(tempi);
+            if ( this->VideoSource->SetFrameBufferSize(tempi) != PLUS_SUCCESS )
+            {
+                LOG_ERROR("Failed to set video buffer size!"); 
+            }
 		}
 		if (this->TrackerBuffer)
 		{

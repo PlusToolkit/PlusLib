@@ -127,7 +127,7 @@ int main(int argc, char **argv)
     VTK_LOG_TO_CONSOLE_ON; 
 
     dataCollector = vtkDataCollector::New(); 
-    dataCollector->ReadConfiguration(inputConfigFileName.c_str());
+    dataCollector->ReadConfigurationFromFile(inputConfigFileName.c_str());
 
     if ( ! inputVideoBufferMetafile.empty()
         && dataCollector->GetAcquisitionType() == SYNCHRO_VIDEO_SAVEDDATASET )

@@ -77,7 +77,7 @@ public:
 	// Description:
 	// Set/Get the size of the buffer, i.e. the maximum number of
 	// video frames that it will hold.  The default is 30.
-	virtual void SetBufferSize(int n);
+	virtual PlusStatus SetBufferSize(int n);
 	virtual int GetBufferSize(); 
 
 	// Description:
@@ -193,7 +193,7 @@ protected:
 	
 	BufferItemUidType LatestItemUid; 
 
-	std::deque<BufferItemType*> BufferItemContainer; 
+	std::deque<BufferItemType> BufferItemContainer; 
 
 private:
 	vtkTimestampedCircularBuffer(const vtkTimestampedCircularBuffer&);

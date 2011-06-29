@@ -132,131 +132,131 @@ vtkSonixVideoSourceCleanup2::vtkSonixVideoSourceCleanup2()
 //----------------------------------------------------------------------------
 vtkSonixVideoSourceCleanup2::~vtkSonixVideoSourceCleanup2()
 {
-	// Destroy any remaining output window.
-	vtkSonixVideoSource2::SetInstance(NULL);
+    // Destroy any remaining output window.
+    vtkSonixVideoSource2::SetInstance(NULL);
 }
 //----------------------------------------------------------------------------
 vtkSonixVideoSource2::vtkSonixVideoSource2()
 {
-	this->ult = new ulterius();
-	this->DataDescriptor = new uDataDesc();
+    this->ult = new ulterius();
+    this->DataDescriptor = new uDataDesc();
 
-	this->SetFrameSize(640, 480, 1);
+    this->SetFrameSize(640, 480, 1);
 
-	this->SonixHostIP = "130.15.7.212";
-	this->FrameRate = -1; // in fps
-	this->FrameCount = 0;
+    this->SonixHostIP = "130.15.7.212";
+    this->FrameRate = -1; // in fps
+    this->FrameCount = 0;
 
-	this->Frequency = -1; //in Mhz
-	this->Depth = -1; //in mm
-	this->Sector = -1; //in %
-	this->Gain = -1; //in %
-	this->DynRange = -1; //in dB
-	this->Zoom = -1; //in %
-	this->Timeout = -1; // in ms
-	this->CompressionStatus = 0; // no compression by default
-	this->AcquisitionDataType = 0x00000004; //corresponds to type: BPost 8-bit  
-	this->ImagingMode = 0; //corresponds to BMode imaging  
+    this->Frequency = -1; //in Mhz
+    this->Depth = -1; //in mm
+    this->Sector = -1; //in %
+    this->Gain = -1; //in %
+    this->DynRange = -1; //in dB
+    this->Zoom = -1; //in %
+    this->Timeout = -1; // in ms
+    this->CompressionStatus = 0; // no compression by default
+    this->AcquisitionDataType = 0x00000004; //corresponds to type: BPost 8-bit  
+    this->ImagingMode = 0; //corresponds to BMode imaging  
 
-	this->FlipFrames = 0;
+    this->FlipFrames = 0;
 
-	this->FrameBufferRowAlignment = 1;
+    this->FrameBufferRowAlignment = 1;
 
-	//note, input data i.e. data from sonix machine is always uncompressed rgb 
-	//so, by default we set the output format as rgb
-	this->SetOutputFormatToLuminance(); 
+    //note, input data i.e. data from sonix machine is always uncompressed rgb 
+    //so, by default we set the output format as rgb
+    this->SetOutputFormatToLuminance(); 
 
-	this->NumberOfScalarComponents = 1;
-	this->NumberOfOutputFrames = 1;
+    this->NumberOfScalarComponents = 1;
+    this->NumberOfOutputFrames = 1;
 
-	this->Opacity = 1.0;
+    this->Opacity = 1.0;
 
-	//// for accurate timing
-	this->LastTimeStamp = 0;
-	this->LastFrameCount = 0;
-	this->EstimatedFramePeriod = 0;
+    //// for accurate timing
+    this->LastTimeStamp = 0;
+    this->LastFrameCount = 0;
+    this->EstimatedFramePeriod = 0;
 
-	// apply vertical flip to each frame
-	//this->Buffer->GetFrameFormat()->SetTopDown(1);
+    // apply vertical flip to each frame
+    //this->Buffer->GetFrameFormat()->SetTopDown(1);
 
-	this->Buffer->GetFrameFormat()->SetFrameGrabberType(FG_BASE); 
-	this->SetFrameBufferSize(200); 
+    this->Buffer->GetFrameFormat()->SetFrameGrabberType(FG_BASE); 
+    this->SetFrameBufferSize(200); 
 }
 
 //----------------------------------------------------------------------------
 vtkSonixVideoSource2::~vtkSonixVideoSource2()
 { 
 
-	this->vtkSonixVideoSource2::ReleaseSystemResources();
+    this->vtkSonixVideoSource2::ReleaseSystemResources();
 
-	if ( this->DataDescriptor != NULL ) 
-	{
-		delete this->DataDescriptor; 
-		this->DataDescriptor = NULL; 
-	}
+    if ( this->DataDescriptor != NULL ) 
+    {
+        delete this->DataDescriptor; 
+        this->DataDescriptor = NULL; 
+    }
 
-	this->ult->disconnect(); 
-	delete this->ult;
+    this->ult->disconnect(); 
+    delete this->ult;
 }
 
 //----------------------------------------------------------------------------
 // Up the reference count so it behaves like New
 vtkSonixVideoSource2* vtkSonixVideoSource2::New()
 {
-	vtkSonixVideoSource2* ret = vtkSonixVideoSource2::GetInstance();
-	ret->Register(NULL);
-	return ret;
+    vtkSonixVideoSource2* ret = vtkSonixVideoSource2::GetInstance();
+    ret->Register(NULL);
+    return ret;
 }
 
 //----------------------------------------------------------------------------
 // Return the single instance of the vtkOutputWindow
 vtkSonixVideoSource2* vtkSonixVideoSource2::GetInstance()
 {
-	if(!vtkSonixVideoSource2::Instance)
-	{
-		// Try the factory first
-		vtkSonixVideoSource2::Instance = (vtkSonixVideoSource2*)vtkObjectFactory::CreateInstance("vtkSonixVideoSource2");    
-		if(!vtkSonixVideoSource2::Instance)
-		{
-			vtkSonixVideoSource2::Instance = new vtkSonixVideoSource2();     
-		}
-		if(!vtkSonixVideoSource2::Instance)
-		{
-			int error = 0;
-		}
-	}
-	// return the instance
-	return vtkSonixVideoSource2::Instance;
+    if(!vtkSonixVideoSource2::Instance)
+    {
+        // Try the factory first
+        vtkSonixVideoSource2::Instance = (vtkSonixVideoSource2*)vtkObjectFactory::CreateInstance("vtkSonixVideoSource2");    
+        if(!vtkSonixVideoSource2::Instance)
+        {
+            vtkSonixVideoSource2::Instance = new vtkSonixVideoSource2();     
+        }
+        if(!vtkSonixVideoSource2::Instance)
+        {
+            int error = 0;
+        }
+    }
+    // return the instance
+    return vtkSonixVideoSource2::Instance;
 }
 
 //----------------------------------------------------------------------------
 void vtkSonixVideoSource2::SetInstance(vtkSonixVideoSource2* instance)
 {
-	if (vtkSonixVideoSource2::Instance==instance)
-	{
-		return;
-	}
-	// preferably this will be NULL
-	if (vtkSonixVideoSource2::Instance)
-	{
-		vtkSonixVideoSource2::Instance->Delete();;
-	}
-	vtkSonixVideoSource2::Instance = instance;
-	if (!instance)
-	{
-		return;
-	}
-	// user will call ->Delete() after setting instance
-	instance->Register(NULL);
+    if (vtkSonixVideoSource2::Instance==instance)
+    {
+        return;
+    }
+    // preferably this will be NULL
+    if (vtkSonixVideoSource2::Instance)
+    {
+        vtkSonixVideoSource2::Instance->Delete();;
+    }
+    vtkSonixVideoSource2::Instance = instance;
+    if (!instance)
+    {
+        return;
+    }
+    // user will call ->Delete() after setting instance
+    instance->Register(NULL);
 }
 //----------------------------------------------------------------------------
 void vtkSonixVideoSource2::PrintSelf(ostream& os, vtkIndent indent)
 {
-	this->Superclass::PrintSelf(os,indent);
+    this->Superclass::PrintSelf(os,indent);
 
-	os << indent << "Imaging mode: " << this->ImagingMode << "\n";
-	os << indent << "Frequency: " << this->Frequency << "MHz\n";
-	os << indent << "Frame rate: " << this->FrameRate << "fps\n";
+    os << indent << "Imaging mode: " << this->ImagingMode << "\n";
+    os << indent << "Frequency: " << this->Frequency << "MHz\n";
+    os << indent << "Frame rate: " << this->FrameRate << "fps\n";
 
 }
 
@@ -264,17 +264,17 @@ void vtkSonixVideoSource2::PrintSelf(ostream& os, vtkIndent indent)
 // the callback function used when there is a new frame of data received
 bool vtkSonixVideoSource2::vtkSonixVideoSourceNewFrameCallback(void * data, int type, int sz, bool cine, int frmnum)
 {    
-	if(!data || !sz)
-	{
-		//printf("Error: no actual frame data received\n");
-		return false;
-	}
+    if(!data || !sz)
+    {
+        //printf("Error: no actual frame data received\n");
+        return false;
+    }
 
-	if(data)
-	{
-		vtkSonixVideoSource2::GetInstance()->LocalInternalGrab(data, type, sz, cine, frmnum);    
-	}
-	return true;;
+    if(data)
+    {
+        vtkSonixVideoSource2::GetInstance()->LocalInternalGrab(data, type, sz, cine, frmnum);    
+    }
+    return true;;
 }
 
 //----------------------------------------------------------------------------
@@ -282,527 +282,527 @@ bool vtkSonixVideoSource2::vtkSonixVideoSourceNewFrameCallback(void * data, int 
 // vtkVideoSource framebuffer (don't do the unpacking yet)
 PlusStatus vtkSonixVideoSource2::LocalInternalGrab(void* dataPtr, int type, int sz, bool cine, int frmnum)
 {
-	if ( !this->Initialized )
-	{
-		//LOG_ERROR("Cannot grab, the video source has not been initialized yet");
-		return PLUS_FAIL; 	
-	}
-	//error check for data type, size
-	if ((uData)type!= (uData)this->AcquisitionDataType)
-	{
-		LOG_ERROR( "Received data type is different than expected");
-		return PLUS_FAIL;
-	}
+    if ( !this->Initialized )
+    {
+        //LOG_ERROR("Cannot grab, the video source has not been initialized yet");
+        return PLUS_FAIL; 	
+    }
+    //error check for data type, size
+    if ((uData)type!= (uData)this->AcquisitionDataType)
+    {
+        LOG_ERROR( "Received data type is different than expected");
+        return PLUS_FAIL;
+    }
 
-	// use the information about data type and frmnum to do cross checking that you are maintaining correct frame index, & receiving
-	// expected data type
-	this->FrameNumber = frmnum; 
-	double unfilteredTimestamp(0), filteredTimestamp(0); 
-	this->CreateTimeStampForFrame(this->FrameNumber, unfilteredTimestamp, filteredTimestamp);
-	
-	const int* frameSize = this->GetFrameSize(); 
-	int frameBufferBitsPerPixel = this->NumberOfScalarComponents * 8;
+    // use the information about data type and frmnum to do cross checking that you are maintaining correct frame index, & receiving
+    // expected data type
+    this->FrameNumber = frmnum; 
+    double unfilteredTimestamp(0), filteredTimestamp(0); 
+    this->CreateTimeStampForFrame(this->FrameNumber, unfilteredTimestamp, filteredTimestamp);
 
-	// for frame containing FC (frame count) in the beginning for data coming from cine, jump 2 bytes
-	int numberOfBytesToSkip = 0; 
-	if(    (type == udtBPre) || (type == udtRF) 
-		||  (type == udtMPre) || (type == udtPWRF)
-		||  (type == udtColorRF)
-		)
-	{
-		numberOfBytesToSkip = 4;
-	}
+    const int* frameSize = this->GetFrameSize(); 
+    int frameBufferBitsPerPixel = this->NumberOfScalarComponents * 8;
 
-	// get the pointer to actual incoming data on to a local pointer
-	unsigned char *deviceDataPtr = static_cast<unsigned char*>(dataPtr);
+    // for frame containing FC (frame count) in the beginning for data coming from cine, jump 2 bytes
+    int numberOfBytesToSkip = 0; 
+    if(    (type == udtBPre) || (type == udtRF) 
+        ||  (type == udtMPre) || (type == udtPWRF)
+        ||  (type == udtColorRF)
+        )
+    {
+        numberOfBytesToSkip = 4;
+    }
 
-	PlusStatus status = this->Buffer->AddItem(deviceDataPtr, frameSize, frameBufferBitsPerPixel, numberOfBytesToSkip, unfilteredTimestamp, filteredTimestamp, this->FrameNumber); 
-	this->Modified(); 
+    // get the pointer to actual incoming data on to a local pointer
+    unsigned char *deviceDataPtr = static_cast<unsigned char*>(dataPtr);
 
-	return status;
+    PlusStatus status = this->Buffer->AddItem(deviceDataPtr, frameSize, frameBufferBitsPerPixel, numberOfBytesToSkip, unfilteredTimestamp, filteredTimestamp, this->FrameNumber); 
+    this->Modified(); 
+
+    return status;
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkSonixVideoSource2::Initialize()
 {
-	if (this->Initialized)
-	{
-		return PLUS_SUCCESS;
-	}
+    if (this->Initialized)
+    {
+        return PLUS_SUCCESS;
+    }
 
-	// Connect to device
-	if ( !this->Connect() ) 
-	{
-		LOG_ERROR("Unable to connect to video device!"); 
-		return PLUS_FAIL; 
-	}
+    // Connect to device
+    if ( !this->Connect() ) 
+    {
+        LOG_ERROR("Unable to connect to video device!"); 
+        return PLUS_FAIL; 
+    }
 
-	this->DoFormatSetup();
+    this->DoFormatSetup();
 
-	// update the frame buffer now just in case there is an error
-	this->UpdateFrameBuffer();
+    // update the frame buffer now just in case there is an error
+    this->UpdateFrameBuffer();
 
-	this->Initialized = 1;
-  
-  return PLUS_SUCCESS;
+    this->Initialized = 1;
+
+    return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkSonixVideoSource2::Connect()
 {
-	// 1) connect to sonix machine.
-	if(!this->ult->connect(this->SonixHostIP))
-	{
-		char *err = new char[256]; 
-		int sz = 256;
-		this->ult->getLastError(err,sz);
-		LOG_ERROR("Initialize: couldn't connect to Ultrasonix "<<" (" << err << ")");
-		this->ReleaseSystemResources();
-		return PLUS_FAIL;
-	}
+    // 1) connect to sonix machine.
+    if(!this->ult->connect(this->SonixHostIP))
+    {
+        char *err = new char[256]; 
+        int sz = 256;
+        this->ult->getLastError(err,sz);
+        LOG_ERROR("Initialize: couldn't connect to Ultrasonix "<<" (" << err << ")");
+        this->ReleaseSystemResources();
+        return PLUS_FAIL;
+    }
 
-	// 2) set the imaging mode
-	if (!this->ult->selectMode(this->ImagingMode))
-	{
-		char *err = new char[256]; 
-		int sz = 256;
-		this->ult->getLastError(err,sz);
-		LOG_ERROR("Initialize: couldn't select imaging mode (" << err << ")");
-		this->ReleaseSystemResources();
-		return PLUS_FAIL;
-	}
+    // 2) set the imaging mode
+    if (!this->ult->selectMode(this->ImagingMode))
+    {
+        char *err = new char[256]; 
+        int sz = 256;
+        this->ult->getLastError(err,sz);
+        LOG_ERROR("Initialize: couldn't select imaging mode (" << err << ")");
+        this->ReleaseSystemResources();
+        return PLUS_FAIL;
+    }
 
-	// do we need to wait for a little while before the mode actually gets selected??
-	// like a thread sleep or something??
-	vtkAccurateTimer::Delay(2); 
+    // do we need to wait for a little while before the mode actually gets selected??
+    // like a thread sleep or something??
+    vtkAccurateTimer::Delay(2); 
 
-	// double-check to see if the mode has actually been set
-	if (this->ImagingMode != this->ult->getActiveImagingMode())
-	{
-		char *err = new char[256];  
-		int sz = 256;
-		this->ult->getLastError(err,sz);
-		LOG_ERROR("Initialize: Requested imaging mode could not be selected(" << err << ")");
-		this->ReleaseSystemResources();
-		return PLUS_FAIL;
-	}
+    // double-check to see if the mode has actually been set
+    if (this->ImagingMode != this->ult->getActiveImagingMode())
+    {
+        char *err = new char[256];  
+        int sz = 256;
+        this->ult->getLastError(err,sz);
+        LOG_ERROR("Initialize: Requested imaging mode could not be selected(" << err << ")");
+        this->ReleaseSystemResources();
+        return PLUS_FAIL;
+    }
 
-	// 3) set the data acquisition type
-	// check if the desired acquisition type is actually available on desired imaging mode
-	if (!this->ult->isDataAvailable((uData)(AcquisitionDataType)))
-	{
-		char *err = new char[256];  
-		int sz = 256;
-		this->ult->getLastError(err,sz);
-		LOG_ERROR("Initialize: Requested the data aquisition type not available for selected imaging mode(" << err << ")");
-		this->ReleaseSystemResources();
-		return PLUS_FAIL;
-	}
-	// actually request data, now that its available
-	if (!this->ult->setDataToAcquire(AcquisitionDataType))
-	{
-		char *err = new char[256];  
-		int sz = 256;
-		this->ult->getLastError(err,sz);
-		LOG_ERROR("Initialize: couldn't request the data aquisition type (" << err << ")");
-		this->ReleaseSystemResources();
-		return PLUS_FAIL;
-	}
+    // 3) set the data acquisition type
+    // check if the desired acquisition type is actually available on desired imaging mode
+    if (!this->ult->isDataAvailable((uData)(AcquisitionDataType)))
+    {
+        char *err = new char[256];  
+        int sz = 256;
+        this->ult->getLastError(err,sz);
+        LOG_ERROR("Initialize: Requested the data aquisition type not available for selected imaging mode(" << err << ")");
+        this->ReleaseSystemResources();
+        return PLUS_FAIL;
+    }
+    // actually request data, now that its available
+    if (!this->ult->setDataToAcquire(AcquisitionDataType))
+    {
+        char *err = new char[256];  
+        int sz = 256;
+        this->ult->getLastError(err,sz);
+        LOG_ERROR("Initialize: couldn't request the data aquisition type (" << err << ")");
+        this->ReleaseSystemResources();
+        return PLUS_FAIL;
+    }
 
-	// 4) get the data descriptor
-	if (!this->ult->getDataDescriptor((uData)AcquisitionDataType, *this->DataDescriptor))
-	{
-		char *err = new char[256];  
-		int sz = 256;
-		this->ult->getLastError(err,sz);
-		LOG_ERROR("Initialize: couldn't retrieve data descriptor (" << err << ")");
-		this->ReleaseSystemResources();
-		return PLUS_FAIL;
-	}
+    // 4) get the data descriptor
+    if (!this->ult->getDataDescriptor((uData)AcquisitionDataType, *this->DataDescriptor))
+    {
+        char *err = new char[256];  
+        int sz = 256;
+        this->ult->getLastError(err,sz);
+        LOG_ERROR("Initialize: couldn't retrieve data descriptor (" << err << ")");
+        this->ReleaseSystemResources();
+        return PLUS_FAIL;
+    }
 
-	// Parameter setting doesn't work with Ulterius-2.x
+    // Parameter setting doesn't work with Ulterius-2.x
 #if ULTERIUS_MAJOR_VERSION != 2
-	// 6) set parameters, currently: frequency, frame rate, depth
+    // 6) set parameters, currently: frequency, frame rate, depth
 
 #if ULTERIUS_MAJOR_VERSION < 2
-	if (this->Frequency >= 0 && !this->ult->setParamValue(VARID_FREQ, this->Frequency))
+    if (this->Frequency >= 0 && !this->ult->setParamValue(VARID_FREQ, this->Frequency))
 #else 
-	uParam prmFrequency; 
-	if ( !this->ult->getParam(VARID_FREQ, prmFrequency) )
-	{
-		char *err = new char[256];  
-		int sz = 256;
-		this->ult->getLastError(err,sz);
-		LOG_ERROR("Unable to get parameter: " << err); 
-		return PLUS_FAIL; 
-	}
-	if (this->Frequency >= 0 && !this->ult->setParamValue(prmFrequency.id, this->Frequency))
+    uParam prmFrequency; 
+    if ( !this->ult->getParam(VARID_FREQ, prmFrequency) )
+    {
+        char *err = new char[256];  
+        int sz = 256;
+        this->ult->getLastError(err,sz);
+        LOG_ERROR("Unable to get parameter: " << err); 
+        return PLUS_FAIL; 
+    }
+    if (this->Frequency >= 0 && !this->ult->setParamValue(prmFrequency.id, this->Frequency))
 #endif
-	{
-		char *err = new char[256];  
-		int sz = 256;
-		this->ult->getLastError(err,sz);
-		LOG_ERROR("Initialize: couldn't set desired frequency (" << err << ")");
-		this->ReleaseSystemResources();
-		return PLUS_FAIL;
-	}
+    {
+        char *err = new char[256];  
+        int sz = 256;
+        this->ult->getLastError(err,sz);
+        LOG_ERROR("Initialize: couldn't set desired frequency (" << err << ")");
+        this->ReleaseSystemResources();
+        return PLUS_FAIL;
+    }
 
 #if ULTERIUS_MAJOR_VERSION < 2
-	if (this->Depth >= 0 && !this->ult->setParamValue(VARID_DEPTH, this->Depth))
+    if (this->Depth >= 0 && !this->ult->setParamValue(VARID_DEPTH, this->Depth))
 #else
-	uParam prmDepth; 
-	if ( ! this->ult->getParam(VARID_DEPTH, prmDepth) )
-	{
-		char *err = new char[256];  
-		int sz = 256;
-		this->ult->getLastError(err,sz);
-		LOG_ERROR("Unable to get parameter: " << err); 
-		return PLUS_FAIL; 
-	}
-	if (this->Depth >= 0 && !this->ult->setParamValue(prmDepth.id, this->Depth))
+    uParam prmDepth; 
+    if ( ! this->ult->getParam(VARID_DEPTH, prmDepth) )
+    {
+        char *err = new char[256];  
+        int sz = 256;
+        this->ult->getLastError(err,sz);
+        LOG_ERROR("Unable to get parameter: " << err); 
+        return PLUS_FAIL; 
+    }
+    if (this->Depth >= 0 && !this->ult->setParamValue(prmDepth.id, this->Depth))
 #endif
-	{
-		char *err = new char[256];  
-		int sz = 256;
-		this->ult->getLastError(err,sz);
-		LOG_ERROR("Initialize: couldn't set desired depth (" << err << ")");
-		this->ReleaseSystemResources();
-		return PLUS_FAIL;
-	}
+    {
+        char *err = new char[256];  
+        int sz = 256;
+        this->ult->getLastError(err,sz);
+        LOG_ERROR("Initialize: couldn't set desired depth (" << err << ")");
+        this->ReleaseSystemResources();
+        return PLUS_FAIL;
+    }
 
 #if ULTERIUS_MAJOR_VERSION < 2
-	if (this->Sector >= 0 && !this->ult->setParamValue(VARID_SECTOR, this->Sector))
+    if (this->Sector >= 0 && !this->ult->setParamValue(VARID_SECTOR, this->Sector))
 #else
-	uParam prmSector; 
-	if ( !this->ult->getParam(VARID_SECTOR, prmSector) )
-	{
-		char *err = new char[256];  
-		int sz = 256;
-		this->ult->getLastError(err,sz);
-		LOG_ERROR("Unable to get parameter: " << err); 
-		return PLUS_FAIL; 
-	}
-	if (this->Sector >= 0 && !this->ult->setParamValue(prmSector.id, this->Sector))
+    uParam prmSector; 
+    if ( !this->ult->getParam(VARID_SECTOR, prmSector) )
+    {
+        char *err = new char[256];  
+        int sz = 256;
+        this->ult->getLastError(err,sz);
+        LOG_ERROR("Unable to get parameter: " << err); 
+        return PLUS_FAIL; 
+    }
+    if (this->Sector >= 0 && !this->ult->setParamValue(prmSector.id, this->Sector))
 #endif
-	{
-		char *err = new char[256];  
-		int sz = 256;
-		this->ult->getLastError(err,sz);
-		LOG_ERROR("Initialize: couldn't set desired sector (" << err << ")");
-		this->ReleaseSystemResources();
-		return PLUS_FAIL;
-	}
+    {
+        char *err = new char[256];  
+        int sz = 256;
+        this->ult->getLastError(err,sz);
+        LOG_ERROR("Initialize: couldn't set desired sector (" << err << ")");
+        this->ReleaseSystemResources();
+        return PLUS_FAIL;
+    }
 
 #if ULTERIUS_MAJOR_VERSION < 2
-	if (this->Gain >= 0 && !this->ult->setParamValue(VARID_GAIN, this->Gain))
+    if (this->Gain >= 0 && !this->ult->setParamValue(VARID_GAIN, this->Gain))
 #else
-	uParam prmGain; 
-	if ( !this->ult->getParam(VARID_GAIN, prmGain) )
-	{
-		char *err = new char[256];  
-		int sz = 256;
-		this->ult->getLastError(err,sz);
-		LOG_ERROR("Unable to get parameter: " << err); 
-		return PLUS_FAIL; 
-	}
-	if (this->Gain >= 0 && !this->ult->setParamValue(prmGain.id, this->Gain))
+    uParam prmGain; 
+    if ( !this->ult->getParam(VARID_GAIN, prmGain) )
+    {
+        char *err = new char[256];  
+        int sz = 256;
+        this->ult->getLastError(err,sz);
+        LOG_ERROR("Unable to get parameter: " << err); 
+        return PLUS_FAIL; 
+    }
+    if (this->Gain >= 0 && !this->ult->setParamValue(prmGain.id, this->Gain))
 #endif 
-	{
-		char *err = new char[256];  
-		int sz = 256;
-		this->ult->getLastError(err,sz);
-		LOG_ERROR("Initialize: couldn't set desired gain (" << err << ")");
-		this->ReleaseSystemResources();
-		return PLUS_FAIL;
-	}
+    {
+        char *err = new char[256];  
+        int sz = 256;
+        this->ult->getLastError(err,sz);
+        LOG_ERROR("Initialize: couldn't set desired gain (" << err << ")");
+        this->ReleaseSystemResources();
+        return PLUS_FAIL;
+    }
 
 #if ULTERIUS_MAJOR_VERSION < 2 
-	if (this->DynRange >= 0 && !this->ult->setParamValue(VARID_DYNRANGE, this->DynRange))
+    if (this->DynRange >= 0 && !this->ult->setParamValue(VARID_DYNRANGE, this->DynRange))
 #else
-	uParam prmDynRange; 
-	if ( !this->ult->getParam(VARID_DYNRANGE, prmDynRange) )
-	{
-		char *err = new char[256];  
-		int sz = 256;
-		this->ult->getLastError(err,sz);
-		LOG_ERROR("Unable to get parameter: " << err); 
-		return PLUS_FAIL; 
-	}
-	if (this->DynRange >= 0 && !this->ult->setParamValue(prmDynRange.id, this->DynRange))
+    uParam prmDynRange; 
+    if ( !this->ult->getParam(VARID_DYNRANGE, prmDynRange) )
+    {
+        char *err = new char[256];  
+        int sz = 256;
+        this->ult->getLastError(err,sz);
+        LOG_ERROR("Unable to get parameter: " << err); 
+        return PLUS_FAIL; 
+    }
+    if (this->DynRange >= 0 && !this->ult->setParamValue(prmDynRange.id, this->DynRange))
 #endif 
-	{
-		char *err = new char[256];  
-		int sz = 256;
-		this->ult->getLastError(err,sz);
-		LOG_ERROR("Initialize: couldn't set desired dyn range (" << err << ")");
-		this->ReleaseSystemResources();
-		return PLUS_FAIL;
-	}
+    {
+        char *err = new char[256];  
+        int sz = 256;
+        this->ult->getLastError(err,sz);
+        LOG_ERROR("Initialize: couldn't set desired dyn range (" << err << ")");
+        this->ReleaseSystemResources();
+        return PLUS_FAIL;
+    }
 
 #if ULTERIUS_MAJOR_VERSION < 2 
-	if (this->Zoom >= 0 && !this->ult->setParamValue(VARID_ZOOM, this->Zoom))
+    if (this->Zoom >= 0 && !this->ult->setParamValue(VARID_ZOOM, this->Zoom))
 #else
-	uParam prmZoom; 
-	if ( !this->ult->getParam(VARID_ZOOM, prmZoom) )
-	{
-		char *err = new char[256];  
-		int sz = 256;
-		this->ult->getLastError(err,sz);
-		LOG_ERROR("Unable to get parameter: " << err); 
-		return PLUS_FAIL; 
-	}
-	if (this->Zoom >= 0 && !this->ult->setParamValue(prmZoom.id, this->Zoom))
+    uParam prmZoom; 
+    if ( !this->ult->getParam(VARID_ZOOM, prmZoom) )
+    {
+        char *err = new char[256];  
+        int sz = 256;
+        this->ult->getLastError(err,sz);
+        LOG_ERROR("Unable to get parameter: " << err); 
+        return PLUS_FAIL; 
+    }
+    if (this->Zoom >= 0 && !this->ult->setParamValue(prmZoom.id, this->Zoom))
 #endif 
-	{
-		char *err = new char[256];  
-		int sz = 256;
-		this->ult->getLastError(err,sz);
-		LOG_ERROR("Initialize: couldn't set desired zoom (" << err << ")");
-		this->ReleaseSystemResources();
-		return PLUS_FAIL;
-	}
+    {
+        char *err = new char[256];  
+        int sz = 256;
+        this->ult->getLastError(err,sz);
+        LOG_ERROR("Initialize: couldn't set desired zoom (" << err << ")");
+        this->ReleaseSystemResources();
+        return PLUS_FAIL;
+    }
 
-	if (!this->ult->setCompressionStatus(this->CompressionStatus))
-	{
-		char *err = new char[256];  
-		int sz = 256;
-		this->ult->getLastError(err,sz);
-		LOG_ERROR("Initialize: couldn't set compression status (" << err << ")");
-		this->ReleaseSystemResources();
-		return PLUS_FAIL;
-	}
+    if (!this->ult->setCompressionStatus(this->CompressionStatus))
+    {
+        char *err = new char[256];  
+        int sz = 256;
+        this->ult->getLastError(err,sz);
+        LOG_ERROR("Initialize: couldn't set compression status (" << err << ")");
+        this->ReleaseSystemResources();
+        return PLUS_FAIL;
+    }
 
-	// set callback for receiving new frames
-	this->ult->setCallback(vtkSonixVideoSourceNewFrameCallback);
+    // set callback for receiving new frames
+    this->ult->setCallback(vtkSonixVideoSourceNewFrameCallback);
 
-	// Do not change the current settings if it's not set 
-	if ( this->Timeout > 0 )
-	{
-		this->ult->setTimeout(this->Timeout); 
-	}
+    // Do not change the current settings if it's not set 
+    if ( this->Timeout > 0 )
+    {
+        this->ult->setTimeout(this->Timeout); 
+    }
 #else
-	LOG_WARNING("Ultrasound imaging parameter setting is not supported with Ulterius-2.x");
+    LOG_WARNING("Ultrasound imaging parameter setting is not supported with Ulterius-2.x");
 #endif
 
-	return PLUS_SUCCESS; 
+    return PLUS_SUCCESS; 
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkSonixVideoSource2::Disconnect()
 {
-	this->Stop();
-	this->ult->disconnect();
-  return PLUS_SUCCESS;
+    this->StopRecording();
+    this->ult->disconnect();
+    return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
 void vtkSonixVideoSource2::ReleaseSystemResources()
 {
-	this->Disconnect(); 
+    this->Disconnect(); 
 
-	this->Initialized = 0;
+    this->Initialized = 0;
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkSonixVideoSource2::Grab()
 {
-  LOG_ERROR("Grab is not implemented for this video source");
-	return PLUS_FAIL;
+    LOG_ERROR("Grab is not implemented for this video source");
+    return PLUS_FAIL;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkSonixVideoSource2::Record()
+PlusStatus vtkSonixVideoSource2::StartRecording()
 {
-	if (!this->Initialized)
-	{
-		LOG_ERROR("Unable to start recording: initialize the video device first!"); 
-		return PLUS_FAIL;
-	}
+    if (!this->Initialized)
+    {
+        LOG_ERROR("Unable to start recording: initialize the video device first!"); 
+        return PLUS_FAIL;
+    }
 
-	if (!this->Recording)
-	{
-		this->Recording = 1;
-		this->Modified();
-		if(this->ult->getFreezeState())
-			this->ult->toggleFreeze();
-	}
+    if (!this->Recording)
+    {
+        this->Recording = 1;
+        this->Modified();
+        if(this->ult->getFreezeState())
+            this->ult->toggleFreeze();
+    }
 
-  return PLUS_SUCCESS;
+    return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkSonixVideoSource2::Stop()
+PlusStatus vtkSonixVideoSource2::StopRecording()
 {
-	if (this->Recording)
-	{
-		this->Recording = 0;
-		this->Modified();
+    if (this->Recording)
+    {
+        this->Recording = 0;
+        this->Modified();
 
-		if (!this->ult->getFreezeState())
-			this->ult->toggleFreeze();
-	}
-  
-  return PLUS_SUCCESS;
+        if (!this->ult->getFreezeState())
+            this->ult->toggleFreeze();
+    }
+
+    return PLUS_SUCCESS;
 }
 
 
 //----------------------------------------------------------------------------
 int vtkSonixVideoSource2::RequestInformation(
-	vtkInformation * vtkNotUsed(request),
-	vtkInformationVector **vtkNotUsed(inputVector),
-	vtkInformationVector *outputVector)
+    vtkInformation * vtkNotUsed(request),
+    vtkInformationVector **vtkNotUsed(inputVector),
+    vtkInformationVector *outputVector)
 {
-	// get the info objects
-	vtkInformation* outInfo = outputVector->GetInformationObject(0);
+    // get the info objects
+    vtkInformation* outInfo = outputVector->GetInformationObject(0);
 
-	int i;
-	int extent[6];
+    int i;
+    int extent[6];
 
-	// ensure that the hardware is initialized.
-	this->Initialize();
+    // ensure that the hardware is initialized.
+    this->Initialize();
 
-	// set the whole extent
-	int FrameBufferExtent[6];
-	this->Buffer->GetFrameFormat()->GetFrameExtent(FrameBufferExtent);
-	for (i = 0; i < 3; i++)
-	{
-		// initially set extent to the OutputWholeExtent
-		extent[2*i] = this->OutputWholeExtent[2*i];
-		extent[2*i+1] = this->OutputWholeExtent[2*i+1];
-		// if 'flag' is set in output extent, use the FrameBufferExtent instead
-		if (extent[2*i+1] < extent[2*i])
-		{
-			extent[2*i] = 0; 
-			extent[2*i+1] = \
-				FrameBufferExtent[2*i+1] - FrameBufferExtent[2*i];
-		}
-		this->FrameOutputExtent[2*i] = extent[2*i];
-		this->FrameOutputExtent[2*i+1] = extent[2*i+1];
-	}
+    // set the whole extent
+    int FrameBufferExtent[6];
+    this->Buffer->GetFrameFormat()->GetFrameExtent(FrameBufferExtent);
+    for (i = 0; i < 3; i++)
+    {
+        // initially set extent to the OutputWholeExtent
+        extent[2*i] = this->OutputWholeExtent[2*i];
+        extent[2*i+1] = this->OutputWholeExtent[2*i+1];
+        // if 'flag' is set in output extent, use the FrameBufferExtent instead
+        if (extent[2*i+1] < extent[2*i])
+        {
+            extent[2*i] = 0; 
+            extent[2*i+1] = \
+                FrameBufferExtent[2*i+1] - FrameBufferExtent[2*i];
+        }
+        this->FrameOutputExtent[2*i] = extent[2*i];
+        this->FrameOutputExtent[2*i+1] = extent[2*i+1];
+    }
 
-	int numFrames = this->NumberOfOutputFrames;
-	if (numFrames < 1)
-	{
-		numFrames = 1;
-	}
-	if (numFrames > this->Buffer->GetBufferSize())
-	{
-		numFrames = this->Buffer->GetBufferSize();
-	}
+    int numFrames = this->NumberOfOutputFrames;
+    if (numFrames < 1)
+    {
+        numFrames = 1;
+    }
+    if (numFrames > this->Buffer->GetBufferSize())
+    {
+        numFrames = this->Buffer->GetBufferSize();
+    }
 
-	// multiply Z extent by number of frames to output
-	extent[5] = extent[4] + (extent[5]-extent[4]+1) * numFrames - 1;
+    // multiply Z extent by number of frames to output
+    extent[5] = extent[4] + (extent[5]-extent[4]+1) * numFrames - 1;
 
-	outInfo->Set(vtkStreamingDemandDrivenPipeline::WHOLE_EXTENT(),extent,6);
+    outInfo->Set(vtkStreamingDemandDrivenPipeline::WHOLE_EXTENT(),extent,6);
 
-	outInfo->Set(vtkStreamingDemandDrivenPipeline::UPDATE_EXTENT(),extent,6);
-	// set the spacing
-	outInfo->Set(vtkDataObject::SPACING(),this->DataSpacing,3);
+    outInfo->Set(vtkStreamingDemandDrivenPipeline::UPDATE_EXTENT(),extent,6);
+    // set the spacing
+    outInfo->Set(vtkDataObject::SPACING(),this->DataSpacing,3);
 
-	// set the origin.
-	outInfo->Set(vtkDataObject::ORIGIN(),this->DataOrigin,3);
+    // set the origin.
+    outInfo->Set(vtkDataObject::ORIGIN(),this->DataOrigin,3);
 
-	if((this->AcquisitionDataType == udtRF) || (this->AcquisitionDataType == udtColorRF) || (this->AcquisitionDataType == udtPWRF))
-	{
-		vtkDataObject::SetPointDataActiveScalarInfo(outInfo, VTK_SHORT, 
-			this->NumberOfScalarComponents);
-	}
-	else
-	{
-		// set default data type (8 bit greyscale)  
-		vtkDataObject::SetPointDataActiveScalarInfo(outInfo, VTK_UNSIGNED_CHAR, 
-			this->NumberOfScalarComponents);
-	}
-	return 1;
+    if((this->AcquisitionDataType == udtRF) || (this->AcquisitionDataType == udtColorRF) || (this->AcquisitionDataType == udtPWRF))
+    {
+        vtkDataObject::SetPointDataActiveScalarInfo(outInfo, VTK_SHORT, 
+            this->NumberOfScalarComponents);
+    }
+    else
+    {
+        // set default data type (8 bit greyscale)  
+        vtkDataObject::SetPointDataActiveScalarInfo(outInfo, VTK_UNSIGNED_CHAR, 
+            this->NumberOfScalarComponents);
+    }
+    return 1;
 }
 
 //----------------------------------------------------------------------------
 void vtkSonixVideoSource2::UnpackRasterLine(char *outptr, char *inptr, 
-											int start, int count)
+                                            int start, int count)
 {
-	char alpha = (char)(this->Opacity*255);
+    char alpha = (char)(this->Opacity*255);
 
-	switch (this->AcquisitionDataType)
-	{
-		// all these data types have 8-bit greyscale raster data
-	case udtBPost:
-	case udtMPost:
-	case udtPWSpectrum:
-	case udtElastoOverlay:
-		{
-			inptr += start;
-			memcpy(outptr,inptr,count);
-		}
-		break;
+    switch (this->AcquisitionDataType)
+    {
+        // all these data types have 8-bit greyscale raster data
+    case udtBPost:
+    case udtMPost:
+    case udtPWSpectrum:
+    case udtElastoOverlay:
+        {
+            inptr += start;
+            memcpy(outptr,inptr,count);
+        }
+        break;
 
-		//these data types give vector data 8-bit, with FC at the start
-	case udtBPre:
-	case udtMPre:
-	case udtElastoPre: //this data type does not have a FC at the start
-		{
-			inptr += start;
-			memcpy(outptr,inptr,count);
-		}
-		break;
+        //these data types give vector data 8-bit, with FC at the start
+    case udtBPre:
+    case udtMPre:
+    case udtElastoPre: //this data type does not have a FC at the start
+        {
+            inptr += start;
+            memcpy(outptr,inptr,count);
+        }
+        break;
 
-		//these data types give 16-bit vector data, to be read into int, just one component
-	case udtColorRF:
-	case udtPWRF:
-	case udtRF:
-		{
-			inptr += 2*start;
-			//unsigned short rawWord;
-			//unsigned short *shInPtr = (unsigned short *)inptr;
-			//unsigned short *shOutPtr = (unsigned short *)outptr;
-			outptr += 2;
-			while (--count >= 0)
-			{
-				*--outptr = *inptr++;
-				*--outptr = *inptr++;
-				outptr += 4;
-			}
-			//*shOutPtr++ = *shInPtr++;
-			//*outptr++ = *inptr++;
+        //these data types give 16-bit vector data, to be read into int, just one component
+    case udtColorRF:
+    case udtPWRF:
+    case udtRF:
+        {
+            inptr += 2*start;
+            //unsigned short rawWord;
+            //unsigned short *shInPtr = (unsigned short *)inptr;
+            //unsigned short *shOutPtr = (unsigned short *)outptr;
+            outptr += 2;
+            while (--count >= 0)
+            {
+                *--outptr = *inptr++;
+                *--outptr = *inptr++;
+                outptr += 4;
+            }
+            //*shOutPtr++ = *shInPtr++;
+            //*outptr++ = *inptr++;
 
 
-			//memcpy(outptr,inptr,2*count);
+            //memcpy(outptr,inptr,2*count);
 
-		}
-		break;
+        }
+        break;
 
-		// 16-bit vector data, but two components
-		// don't know how to handle it as yet
-	case udtColorVelocityVariance:
-		this->OutputFormat = VTK_RGB;
-		this->NumberOfScalarComponents = 2;
-		break;
+        // 16-bit vector data, but two components
+        // don't know how to handle it as yet
+    case udtColorVelocityVariance:
+        this->OutputFormat = VTK_RGB;
+        this->NumberOfScalarComponents = 2;
+        break;
 
-		//32-bit data
-	case udtScreen:
-	case udtBPost32:
+        //32-bit data
+    case udtScreen:
+    case udtBPost32:
 #if ULTERIUS_MAJOR_VERSION == 1
-	case udtColorPost:
+    case udtColorPost:
 #endif
-	case udtElastoCombined:
-		inptr += 4*start;
-		{ // must do BGRX to RGBA conversion
-			outptr += 4;
-			while (--count >= 0)
-			{
-				*--outptr = alpha;
-				*--outptr = *inptr++;
-				*--outptr = *inptr++;
-				*--outptr = *inptr++;
-				inptr++;
-				outptr += 8;
-			}
-		}
-		break;
+    case udtElastoCombined:
+        inptr += 4*start;
+        { // must do BGRX to RGBA conversion
+            outptr += 4;
+            while (--count >= 0)
+            {
+                *--outptr = alpha;
+                *--outptr = *inptr++;
+                *--outptr = *inptr++;
+                *--outptr = *inptr++;
+                inptr++;
+                outptr += 8;
+            }
+        }
+        break;
 
-	default:
-		break;
+    default:
+        break;
 
-	}
+    }
 
 
 }
@@ -811,202 +811,202 @@ void vtkSonixVideoSource2::UnpackRasterLine(char *outptr, char *inptr,
 //----------------------------------------------------------------------------
 void vtkSonixVideoSource2::SetOutputFormat(int format)
 {
-	if (format == this->OutputFormat)
-	{
-		return;
-	}
+    if (format == this->OutputFormat)
+    {
+        return;
+    }
 
-	this->OutputFormat = format;
+    this->OutputFormat = format;
 
-	// convert color format to number of scalar components
-	int numComponents;
+    // convert color format to number of scalar components
+    int numComponents;
 
-	switch (this->OutputFormat)
-	{
-	case VTK_RGBA:
-		numComponents = 4;
-		break;
-	case VTK_RGB:
-		numComponents = 3;
-		break;
-	case VTK_LUMINANCE:
-		numComponents = 1;
-		break;
-	default:
-		numComponents = 0;
-		LOG_ERROR("SetOutputFormat: Unrecognized color format.");
-		break;
-	}
-	this->NumberOfScalarComponents = numComponents;
+    switch (this->OutputFormat)
+    {
+    case VTK_RGBA:
+        numComponents = 4;
+        break;
+    case VTK_RGB:
+        numComponents = 3;
+        break;
+    case VTK_LUMINANCE:
+        numComponents = 1;
+        break;
+    default:
+        numComponents = 0;
+        LOG_ERROR("SetOutputFormat: Unrecognized color format.");
+        break;
+    }
+    this->NumberOfScalarComponents = numComponents;
 
-	if (this->Buffer->GetFrameFormat()->GetBitsPerPixel() != numComponents*8)
-	{
-		this->Buffer->GetFrameFormat()->SetBitsPerPixel(numComponents*8);
-		if (this->Initialized)
-		{
-			this->UpdateFrameBuffer();    
-			this->DoFormatSetup();
-		}
-	}
+    if (this->Buffer->GetFrameFormat()->GetBitsPerPixel() != numComponents*8)
+    {
+        this->Buffer->GetFrameFormat()->SetBitsPerPixel(numComponents*8);
+        if (this->Initialized)
+        {
+            this->UpdateFrameBuffer();    
+            this->DoFormatSetup();
+        }
+    }
 
-	this->Modified();
+    this->Modified();
 }
 
 //----------------------------------------------------------------------------
 // check the current video format and set up the VTK video framebuffer to match
 void vtkSonixVideoSource2::DoFormatSetup()
 {
-	//set the frame size from the data descriptor, 
-	this->SetFrameSize(this->DataDescriptor->w, this->DataDescriptor->h, 1);
-	this->Buffer->GetFrameFormat()->SetBitsPerPixel(this->DataDescriptor->ss);
-	switch (this->AcquisitionDataType)
-	{
-		// all these data types have 8-bit greyscale raster data
-	case udtBPost:
-	case udtMPost:
-	case udtPWSpectrum:
-	case udtElastoOverlay:
-		this->OutputFormat = VTK_LUMINANCE;
-		this->NumberOfScalarComponents = 1;
-		break;
-		//these data types give vector data 8-bit, with FC at the start
-	case udtBPre:
-	case udtMPre:
-	case udtElastoPre: //this data type does not have a FC at the start
-		this->SetFrameSize(this->DataDescriptor->h, this->DataDescriptor->w, 1);
-		this->OutputFormat = VTK_LUMINANCE;
-		this->NumberOfScalarComponents = 1;
-		break;
+    //set the frame size from the data descriptor, 
+    this->SetFrameSize(this->DataDescriptor->w, this->DataDescriptor->h, 1);
+    this->Buffer->GetFrameFormat()->SetBitsPerPixel(this->DataDescriptor->ss);
+    switch (this->AcquisitionDataType)
+    {
+        // all these data types have 8-bit greyscale raster data
+    case udtBPost:
+    case udtMPost:
+    case udtPWSpectrum:
+    case udtElastoOverlay:
+        this->OutputFormat = VTK_LUMINANCE;
+        this->NumberOfScalarComponents = 1;
+        break;
+        //these data types give vector data 8-bit, with FC at the start
+    case udtBPre:
+    case udtMPre:
+    case udtElastoPre: //this data type does not have a FC at the start
+        this->SetFrameSize(this->DataDescriptor->h, this->DataDescriptor->w, 1);
+        this->OutputFormat = VTK_LUMINANCE;
+        this->NumberOfScalarComponents = 1;
+        break;
 
-		//these data types give 16-bit vector data, to be read into int, just one component
-	case udtColorRF:
-	case udtPWRF:
-	case udtRF:
-		this->SetFrameSize(this->DataDescriptor->h, this->DataDescriptor->w, 1);
-		this->OutputFormat = VTK_LUMINANCE;
-		this->NumberOfScalarComponents = 1;
-		break;
+        //these data types give 16-bit vector data, to be read into int, just one component
+    case udtColorRF:
+    case udtPWRF:
+    case udtRF:
+        this->SetFrameSize(this->DataDescriptor->h, this->DataDescriptor->w, 1);
+        this->OutputFormat = VTK_LUMINANCE;
+        this->NumberOfScalarComponents = 1;
+        break;
 
-		// 16-bit vector data, but two components
-		// don't know how to handle it as yet
-	case udtColorVelocityVariance:
-		this->OutputFormat = VTK_RGB;
-		this->NumberOfScalarComponents = 2;
-		break;
+        // 16-bit vector data, but two components
+        // don't know how to handle it as yet
+    case udtColorVelocityVariance:
+        this->OutputFormat = VTK_RGB;
+        this->NumberOfScalarComponents = 2;
+        break;
 
-		//32-bit data
-	case udtScreen:
-	case udtBPost32:
+        //32-bit data
+    case udtScreen:
+    case udtBPost32:
 #if ULTERIUS_MAJOR_VERSION == 1
-	case udtColorPost:
+    case udtColorPost:
 #endif
-	case udtElastoCombined:
-		this->OutputFormat = VTK_RGBA;
-		this->NumberOfScalarComponents = 4;        
-		break;
-	}
+    case udtElastoCombined:
+        this->OutputFormat = VTK_RGBA;
+        this->NumberOfScalarComponents = 4;        
+        break;
+    }
 
-	this->Modified();
-	this->UpdateFrameBuffer();
+    this->Modified();
+    this->UpdateFrameBuffer();
 
 }
 
 //----------------------------------------------------------------------------
 void vtkSonixVideoSource2::SetSonixIP(const char *SonixIP)
 {
-	if (SonixIP)
-	{
-		this->SonixHostIP = new char[256];
-		sprintf(this->SonixHostIP, "%s", SonixIP);    
-	}
+    if (SonixIP)
+    {
+        this->SonixHostIP = new char[256];
+        sprintf(this->SonixHostIP, "%s", SonixIP);    
+    }
 }
 
 //-----------------------------------------------------------------------------
 PlusStatus vtkSonixVideoSource2::ReadConfiguration(vtkXMLDataElement* config)
 {
-	LOG_TRACE("vtkSonixVideoSource2::ReadConfiguration"); 
-	if ( config == NULL )
-	{
-		LOG_ERROR("Unable to configure Sonix video source! (XML data element is NULL)"); 
-		return PLUS_FAIL; 
-	}
+    LOG_TRACE("vtkSonixVideoSource2::ReadConfiguration"); 
+    if ( config == NULL )
+    {
+        LOG_ERROR("Unable to configure Sonix video source! (XML data element is NULL)"); 
+        return PLUS_FAIL; 
+    }
 
-	Superclass::ReadConfiguration(config); 
+    Superclass::ReadConfiguration(config); 
 
-	const char* ipAddress = config->GetAttribute("IP"); 
-	if ( ipAddress != NULL) 
-	{
-		this->SetSonixIP(ipAddress); 
-	}
-	LOG_DEBUG("Sonix Video IP: " << ipAddress); 
+    const char* ipAddress = config->GetAttribute("IP"); 
+    if ( ipAddress != NULL) 
+    {
+        this->SetSonixIP(ipAddress); 
+    }
+    LOG_DEBUG("Sonix Video IP: " << ipAddress); 
 
-	int imagingMode = 0; 
-	if ( config->GetScalarAttribute("ImagingMode", imagingMode)) 
-	{
-		this->SetImagingMode(imagingMode); 
-	}
+    int imagingMode = 0; 
+    if ( config->GetScalarAttribute("ImagingMode", imagingMode)) 
+    {
+        this->SetImagingMode(imagingMode); 
+    }
 
-	int acquisitionDataType = 0; 
-	if ( config->GetScalarAttribute("AcquisitionDataType", acquisitionDataType)) 
-	{
-		this->SetAcquisitionDataType(acquisitionDataType); 
-	}
+    int acquisitionDataType = 0; 
+    if ( config->GetScalarAttribute("AcquisitionDataType", acquisitionDataType)) 
+    {
+        this->SetAcquisitionDataType(acquisitionDataType); 
+    }
 
-	int depth = -1; 
-	if ( config->GetScalarAttribute("Depth", depth)) 
-	{
-		this->SetDepth(depth); 
-	}
+    int depth = -1; 
+    if ( config->GetScalarAttribute("Depth", depth)) 
+    {
+        this->SetDepth(depth); 
+    }
 
-	int sector = -1; 
-	if ( config->GetScalarAttribute("Sector", sector)) 
-	{
-		this->SetSector(sector); 
-	}
+    int sector = -1; 
+    if ( config->GetScalarAttribute("Sector", sector)) 
+    {
+        this->SetSector(sector); 
+    }
 
-	int gain = -1; 
-	if ( config->GetScalarAttribute("Gain", gain)) 
-	{
-		this->SetGain(gain); 
-	}
+    int gain = -1; 
+    if ( config->GetScalarAttribute("Gain", gain)) 
+    {
+        this->SetGain(gain); 
+    }
 
-	int dynRange = -1; 
-	if ( config->GetScalarAttribute("DynRange", dynRange)) 
-	{
-		this->SetDynRange(dynRange); 
-	}
+    int dynRange = -1; 
+    if ( config->GetScalarAttribute("DynRange", dynRange)) 
+    {
+        this->SetDynRange(dynRange); 
+    }
 
-	int zoom = -1; 
-	if ( config->GetScalarAttribute("Zoom", zoom)) 
-	{
-		this->SetZoom(zoom); 
-	}
+    int zoom = -1; 
+    if ( config->GetScalarAttribute("Zoom", zoom)) 
+    {
+        this->SetZoom(zoom); 
+    }
 
-	int frequency = -1; 
-	if ( config->GetScalarAttribute("Frequency", frequency)) 
-	{
-		this->SetFrequency(frequency); 
-	}
+    int frequency = -1; 
+    if ( config->GetScalarAttribute("Frequency", frequency)) 
+    {
+        this->SetFrequency(frequency); 
+    }
 
-	int compressionStatus = 0; 
-	if ( config->GetScalarAttribute("CompressionStatus", compressionStatus)) 
-	{
-		this->SetCompressionStatus(compressionStatus); 
-	}
+    int compressionStatus = 0; 
+    if ( config->GetScalarAttribute("CompressionStatus", compressionStatus)) 
+    {
+        this->SetCompressionStatus(compressionStatus); 
+    }
 
-	int timeout = 0; 
-	if ( config->GetScalarAttribute("Timeout", timeout)) 
-	{
-		this->SetTimeout(timeout); 
-	}
+    int timeout = 0; 
+    if ( config->GetScalarAttribute("Timeout", timeout)) 
+    {
+        this->SetTimeout(timeout); 
+    }
 
-  return PLUS_SUCCESS;
+    return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
 PlusStatus vtkSonixVideoSource2::WriteConfiguration(vtkXMLDataElement* config)
 {
-	Superclass::WriteConfiguration(config); 
-  LOG_ERROR("Not implemented");
-  return PLUS_FAIL;
+    Superclass::WriteConfiguration(config); 
+    LOG_ERROR("Not implemented");
+    return PLUS_FAIL;
 }

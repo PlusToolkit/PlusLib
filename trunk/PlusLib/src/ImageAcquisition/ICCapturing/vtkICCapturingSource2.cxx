@@ -277,7 +277,7 @@ void vtkICCapturingSource2::ReleaseSystemResources()
 {
 	if (this->Recording)
 	{
-		this->Stop();
+		this->StopRecording();
 	}
 
 	DShowLib::ExitLibrary(); 
@@ -293,7 +293,7 @@ PlusStatus vtkICCapturingSource2::Grab()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkICCapturingSource2::Record()
+PlusStatus vtkICCapturingSource2::StartRecording()
 {
 	this->Initialize();
 	if (!this->Initialized)
@@ -311,7 +311,7 @@ PlusStatus vtkICCapturingSource2::Record()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkICCapturingSource2::Stop()
+PlusStatus vtkICCapturingSource2::StopRecording()
 {
 	if (this->Recording)
 	{
