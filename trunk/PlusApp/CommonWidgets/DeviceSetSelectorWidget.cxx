@@ -10,6 +10,7 @@
 DeviceSetSelectorWidget::DeviceSetSelectorWidget(QWidget* aParent)
 	: QWidget(aParent)
 	, m_ConfigurationDirectory("")
+	, m_ConnectionSuccessful(false)
 {
 	ui.setupUi(this);
 
@@ -53,7 +54,12 @@ void DeviceSetSelectorWidget::InvokeConnect()
 {
 	emit ConnectToDevicesByConfigFileInvoked(ui.comboBox_DeviceSet->itemData(ui.comboBox_DeviceSet->currentIndex()).toStringList().at(0).toStdString());
 
-	ui.pushButton_Connect->setEnabled(false);
+	if (m_ConnectionSuccessful) {
+		ui.pushButton_Connect->setEnabled(false);
+	} else {
+		ui.textEdit_Description->setTextColor(QColor(Qt::darkRed));
+		ui.textEdit_Description->setText("Connection failed!\n\nPlease select another device set and try again!");
+	}
 }
 
 //-----------------------------------------------------------------------------
@@ -64,8 +70,10 @@ void DeviceSetSelectorWidget::DeviceSetSelected(int aIndex)
 		return;
 	}
 
-	ui.label_Description->setText(ui.comboBox_DeviceSet->currentText()
-		+ " (" + ui.comboBox_DeviceSet->itemData(aIndex).toStringList().at(0) + ")\n\n"
+	ui.textEdit_Description->setTextColor(QColor(Qt::black));
+
+	ui.textEdit_Description->setText(ui.comboBox_DeviceSet->currentText()
+		+ "\n(" + ui.comboBox_DeviceSet->itemData(aIndex).toStringList().at(0) + ")\n\n"
 		+ ui.comboBox_DeviceSet->itemData(aIndex).toStringList().at(1));
 
 	ui.comboBox_DeviceSet->setToolTip(ui.comboBox_DeviceSet->currentText() + " (" + ui.comboBox_DeviceSet->itemData(aIndex).toStringList().at(0) + ")");
@@ -86,6 +94,13 @@ void DeviceSetSelectorWidget::SetConfigurationDirectory(std::string aDirectory)
 		ui.lineEdit_ConfigurationDirectory->setText(tr("Invalid configuration directory"));
 		ui.lineEdit_ConfigurationDirectory->setToolTip("No valid configuration files in directory, please select another");
 	}
+}
+
+//-----------------------------------------------------------------------------
+
+void DeviceSetSelectorWidget::SetConnectionSuccessful(bool aConnectionSuccessful)
+{
+	m_ConnectionSuccessful = aConnectionSuccessful;
 }
 
 //-----------------------------------------------------------------------------

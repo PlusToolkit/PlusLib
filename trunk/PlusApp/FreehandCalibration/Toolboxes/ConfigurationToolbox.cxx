@@ -2,7 +2,6 @@
 
 #include "vtkFreehandController.h"
 #include "FreehandMainWindow.h"
-#include "DeviceSetSelectorWidget.h"
 
 #include <QDialog>
 
@@ -21,14 +20,14 @@ ConfigurationToolbox::ConfigurationToolbox(QWidget* aParent, Qt::WFlags aFlags)
 	}
 
 	// Create and setup device set selector widget
-	DeviceSetSelectorWidget* deviceSetSelectorWidget = new DeviceSetSelectorWidget(this);
-	deviceSetSelectorWidget->SetConfigurationDirectory(std::string(vtkFreehandController::GetInstance()->GetConfigDirectory()));
+	m_DeviceSetSelectorWidget = new DeviceSetSelectorWidget(this);
+	m_DeviceSetSelectorWidget->SetConfigurationDirectory(std::string(vtkFreehandController::GetInstance()->GetConfigDirectory()));
 
-	connect( deviceSetSelectorWidget, SIGNAL( ConfigurationDirectoryChanged(std::string) ), this, SLOT( SetConfigurationDirectory(std::string) ) );
-	connect( deviceSetSelectorWidget, SIGNAL( ConnectToDevicesByConfigFileInvoked(std::string) ), this, SLOT( ConnectToDevicesByConfigFile(std::string) ) );
+	connect( m_DeviceSetSelectorWidget, SIGNAL( ConfigurationDirectoryChanged(std::string) ), this, SLOT( SetConfigurationDirectory(std::string) ) );
+	connect( m_DeviceSetSelectorWidget, SIGNAL( ConnectToDevicesByConfigFileInvoked(std::string) ), this, SLOT( ConnectToDevicesByConfigFile(std::string) ) );
 
 	QGridLayout* grid = new QGridLayout(ui.deviceSetSelectionWidget, 1, 1, 0, 0, "");
-	grid->addWidget(deviceSetSelectorWidget);
+	grid->addWidget(m_DeviceSetSelectorWidget);
 	ui.deviceSetSelectionWidget->setLayout(grid);
 
 	//TODO tooltips
@@ -102,7 +101,12 @@ void ConfigurationToolbox::ConnectToDevicesByConfigFile(std::string aConfigFile)
 	// Connect to devices
 	vtkFreehandController* controller = vtkFreehandController::GetInstance();
 	if ((controller != NULL) && (controller->GetInitialized() == true)) {
-		vtkFreehandController::GetInstance()->StartDataCollection();
+		if (vtkFreehandController::GetInstance()->StartDataCollection() != PLUS_SUCCESS) {
+			LOG_ERROR("Unable to start collecting data!");
+			m_DeviceSetSelectorWidget->SetConnectionSuccessful(false);
+		} else {
+			m_DeviceSetSelectorWidget->SetConnectionSuccessful(true);
+		}
 	}
 
 	// Close dialog

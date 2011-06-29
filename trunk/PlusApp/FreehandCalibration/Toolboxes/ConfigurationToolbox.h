@@ -4,6 +4,7 @@
 #include "ui_ConfigurationToolbox.h"
 
 #include "AbstractToolbox.h"
+#include "DeviceSetSelectorWidget.h"
 //#include "ConfigurationController.h"
 
 #include <QWidget>
@@ -63,7 +64,10 @@ protected slots:
 	void ConnectToDevicesByConfigFile(std::string aConfigFile);
 
 protected:
-	Ui::ConfigurationToolbox ui;
+	DeviceSetSelectorWidget*	m_DeviceSetSelectorWidget;
+
+protected:
+	Ui::ConfigurationToolbox	ui;
 };
 
 #endif

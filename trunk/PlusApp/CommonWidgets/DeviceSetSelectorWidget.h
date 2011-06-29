@@ -32,6 +32,9 @@ public:
 	//TODO
 	void SetConfigurationDirectory(std::string aDirectory);
 
+	//TODO
+	void SetConnectionSuccessful(bool aConnectionSuccessful);
+
 signals:
 	//TODO
 	void ConfigurationDirectoryChanged(std::string);
@@ -49,6 +52,7 @@ protected slots:
 
 protected:
 	QString	m_ConfigurationDirectory;
+	bool	m_ConnectionSuccessful;
 
 protected:
 	Ui::DeviceSetSelectorWidget ui;
