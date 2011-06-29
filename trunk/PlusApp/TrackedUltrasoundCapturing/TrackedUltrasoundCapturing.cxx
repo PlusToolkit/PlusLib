@@ -128,7 +128,6 @@ TrackedUltrasoundCapturing::TrackedUltrasoundCapturing()
 	this->ImageSequenceFileName = NULL; 
 	this->InputConfigFileName = NULL;
 	this->TrackedFrameContainer = NULL;
-	this->EnableSyncDataSavingOff(); 
 }
 
 
@@ -154,7 +153,7 @@ void TrackedUltrasoundCapturing::Initialize()
 	vtkSmartPointer<vtkDataCollector> dataCollector = vtkSmartPointer<vtkDataCollector>::New(); 
 	this->SetDataCollector(dataCollector); 
 
-	this->DataCollector->ReadConfiguration(this->GetInputConfigFileName());
+	this->DataCollector->ReadConfigurationFromFile(this->GetInputConfigFileName());
 	this->DataCollector->Initialize(); 
 	this->DataCollector->Start();
 
@@ -345,7 +344,7 @@ void TrackedUltrasoundCapturing::SynchronizeFrameToTracker()
 	LOG_TRACE("TrackedUltrasoundCapturing::SynchronizeFrameToTracker");
 	this->SynchronizingOn(); 
 	this->DataCollector->SetProgressBarUpdateCallbackFunction( this->ProgressBarUpdateCallbackFunction ); 
-	this->DataCollector->Synchronize(this->GetEnableSyncDataSaving()); 
+	this->DataCollector->Synchronize(); 
 	this->SynchronizingOff(); 
 }
 

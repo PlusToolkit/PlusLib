@@ -897,7 +897,7 @@ void TrackedUltrasoundCapturingGUI::ChangeMainToolID()
 
 			//this->m_USCapturing->GetDataCollector()->SetMainToolNumber(i); 
 
-			std::string mainToolName = this->m_USCapturing->GetDataCollector()->GetMainToolName(); 
+			std::string mainToolName = this->m_USCapturing->GetDataCollector()->GetDefaultToolName(); 
 			this->MainToolTransformName->setText(QString(mainToolName.c_str())); 
 
 			return; 
@@ -998,20 +998,6 @@ void TrackedUltrasoundCapturingGUI::ChangeTransformNames()
 				LOG_INFO("Tool " << i << " name changed to: " << tracker->GetTool(i)->GetToolName() );
 			}
 		}
-	}
-}
-
-//----------------------------------------------------------------------
-void TrackedUltrasoundCapturingGUI::SaveSyncDataClicked()
-{
-	LOG_TRACE("TrackedUltrasoundCapturingGUI::SaveSyncDataClicked");
-	if ( this->SaveSyncDataCheckBox->isChecked() )
-	{
-		this->m_USCapturing->EnableSyncDataSavingOn(); 
-	}
-	else
-	{
-		this->m_USCapturing->EnableSyncDataSavingOff(); 
 	}
 }
 

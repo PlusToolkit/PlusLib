@@ -114,8 +114,6 @@ protected slots:
 
 	void SetFrameRate(); 
 
-	void SaveSyncDataClicked(); 
-
 signals: 
 	void UpdateProgressBar(int); 
 	

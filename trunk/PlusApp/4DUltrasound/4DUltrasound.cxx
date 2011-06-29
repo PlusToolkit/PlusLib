@@ -379,7 +379,7 @@ int main(int argc, char **argv)
     if (terminate == 0)
       {
       cout << "Starting video" << endl;
-      videoSource->Record();
+      videoSource->StartRecording();
 
       if (!videoSource->GetRecording())
         {
@@ -638,7 +638,7 @@ int main(int argc, char **argv)
     if (videoSource->GetRecording())
       {
       videoSource->ReleaseSystemResources();
-      videoSource->Stop();
+      videoSource->StopRecording();
       }
     if (reconParams.SignalBoxType != SYNCHRO_SIGNAL_NOGATING)
       {

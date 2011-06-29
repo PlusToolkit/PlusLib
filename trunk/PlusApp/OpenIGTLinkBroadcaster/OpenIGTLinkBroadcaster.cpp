@@ -45,7 +45,7 @@ int main( int argc, char *argv[] )
 	  // Prepare data collector object.
 	
 	vtkSmartPointer< vtkDataCollector > dataCollector = vtkSmartPointer< vtkDataCollector >::New();
-	  dataCollector->ReadConfiguration( inputConfigFileName.c_str() );
+	  dataCollector->ReadConfigurationFromFile( inputConfigFileName.c_str() );
   
 	  if ( dataCollector->GetAcquisitionType() == SYNCHRO_VIDEO_SAVEDDATASET )
     {

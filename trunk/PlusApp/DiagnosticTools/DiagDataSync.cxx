@@ -76,7 +76,7 @@ int main(int argc, char **argv)
 	//************************************************************************************
 	// Initialize data collector
 	vtkSmartPointer<vtkDataCollector> dataCollector = vtkSmartPointer<vtkDataCollector>::New(); 
-	dataCollector->ReadConfiguration(inputConfigFileName.c_str());
+	dataCollector->ReadConfigurationFromFile(inputConfigFileName.c_str());
 	dataCollector->Initialize(); 
 	dataCollector->Start();
 
@@ -114,7 +114,7 @@ int main(int argc, char **argv)
 	if ( dataCollector->GetVideoSource() != NULL ) 
 	{
 		LOG_INFO("Stop video recording ..."); 
-		dataCollector->GetVideoSource()->Stop(); 
+		dataCollector->GetVideoSource()->StopRecording(); 
 	}
 
 	if ( dataCollector->GetTracker() != NULL )
@@ -173,14 +173,14 @@ int main(int argc, char **argv)
 	// Dump buffers to file 
 	if ( dataCollector->GetVideoSource() != NULL ) 
 	{
-		LOG_INFO("Dump video buffer to " << outputVideoBufferSequenceFileName);
-		dataCollector->DumpVideoBufferToMetafile( videobuffer, outputFolder.c_str(), outputVideoBufferSequenceFileName.c_str(), false); 
+		LOG_INFO("Write video buffer to " << outputVideoBufferSequenceFileName);
+		dataCollector->WriteVideoBufferToMetafile( videobuffer, outputFolder.c_str(), outputVideoBufferSequenceFileName.c_str(), false); 
 	}
 
 	if ( dataCollector->GetTracker() != NULL )
 	{
-		LOG_INFO("Dump tracker buffer to " << outputTrackerBufferSequenceFileName);
-		dataCollector->DumpTrackerToMetafile( tracker, outputFolder.c_str(), outputTrackerBufferSequenceFileName.c_str(), false); 
+		LOG_INFO("Write tracker buffer to " << outputTrackerBufferSequenceFileName);
+		dataCollector->WriteTrackerToMetafile( tracker, outputFolder.c_str(), outputTrackerBufferSequenceFileName.c_str(), false); 
 	}
 
 	VTK_LOG_TO_CONSOLE_OFF; 

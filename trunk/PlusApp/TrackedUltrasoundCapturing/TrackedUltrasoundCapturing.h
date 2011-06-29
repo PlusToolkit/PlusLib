@@ -124,13 +124,6 @@ public:
 	vtkGetMacro(Recording, bool); 
 	vtkBooleanMacro(Recording, bool); 
 	
-	// Description:
-	// Set/get the sync data saving flag to save synchroniyation data to metafile
-	vtkSetMacro(EnableSyncDataSaving, bool); 
-	vtkGetMacro(EnableSyncDataSaving, bool); 
-	vtkBooleanMacro(EnableSyncDataSaving, bool); 
-	
-
 	//! Description 
 	//! Callback function that is executed each time an update requested
 	typedef void (*UpdateRequestPtr)(void);
@@ -159,8 +152,6 @@ protected:
 
 	int FrameRate; 
 	double RecordingStartTime; 
-
-	bool EnableSyncDataSaving; 
 
 	//! Pointer to the callback function that is executed each time an update requested
     UpdateRequestPtr UpdateRequestCallbackFunction;
