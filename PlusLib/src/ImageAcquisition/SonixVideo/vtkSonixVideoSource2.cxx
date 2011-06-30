@@ -356,7 +356,7 @@ PlusStatus vtkSonixVideoSource2::Connect()
         char *err = new char[256]; 
         int sz = 256;
         this->ult->getLastError(err,sz);
-        LOG_ERROR("Initialize: couldn't connect to Ultrasonix "<<" (" << err << ")");
+        LOG_ERROR("Initialize: couldn't connect to Ultrasonix at " << this->SonixHostIP << " address (error message: " << err << ")");
         this->ReleaseSystemResources();
         return PLUS_FAIL;
     }

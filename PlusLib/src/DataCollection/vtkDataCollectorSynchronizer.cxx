@@ -177,10 +177,10 @@ void vtkDataCollectorSynchronizer::Synchronize()
 			videoBufferIndex = idx; 
 		}
 
-		BufferItemUidType stillFrameIndex = videoBufferIndex - this->GetNumberOfAveragedFrames(); 
-		if ( stillFrameIndex < this->VideoBuffer->GetOldestItemUidInBuffer() )
+		BufferItemUidType stillFrameIndex = videoBufferIndex + this->GetNumberOfAveragedFrames(); 
+		if ( stillFrameIndex < this->VideoBuffer->GetLatestItemUidInBuffer() )
 		{
-			stillFrameIndex = this->VideoBuffer->GetOldestItemUidInBuffer(); 
+			stillFrameIndex = this->VideoBuffer->GetLatestItemUidInBuffer(); 
 		}
 
 		// Find the timestamp of next possible movement 
@@ -749,7 +749,7 @@ void vtkDataCollectorSynchronizer::FindStillFrame( BufferItemUidType& baseIndex,
 
 		if ( this->VideoBuffer->GetVideoBufferItem(currentIndex, &videoItem) != ITEM_OK )
 		{
-			LOG_WARNING("vtkDataCollectorSynchronizer: Unable to get frame from video buffer!"); 
+            LOG_WARNING("vtkDataCollectorSynchronizer: Unable to get frame from video buffer (Uid: " << currentIndex << ")."); 
 			baseIndex = baseIndex + 1; 
 			currentIndex = baseIndex + this->GetNumberOfAveragedFrames(); 
 			this->SetBaseFrame(NULL); 
@@ -759,7 +759,7 @@ void vtkDataCollectorSynchronizer::FindStillFrame( BufferItemUidType& baseIndex,
 		vtkImageData* frame = vtkImageData::New(); 
 		if ( this->CopyVideoFrame(frame, videoItem.GetFrame()) != PLUS_SUCCESS ) 
 		{
-			LOG_WARNING("vtkDataCollectorSynchronizer: Unable to get frame from video buffer!"); 
+			LOG_WARNING("vtkDataCollectorSynchronizer: Unable to copy video frame!"); 
 			if ( frame != NULL )
 			{
 				frame->Delete(); 

@@ -192,6 +192,11 @@ public:
   // Make this video frame into a copy of another video frame
   void DeepCopy(vtkVideoFrame2 * frame);
 
+  // Description:
+  // Compares frame format with new frame imaging parameters
+  // Returns true if it matches, otherwise false
+  virtual bool CheckFrameFormat( vtkVideoFrame2* frame ); 
+
 protected:
   vtkVideoFrame2();
   ~vtkVideoFrame2();  

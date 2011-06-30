@@ -34,6 +34,7 @@ int main(int argc, char **argv)
 	double maxFrameDifference(5.0); 
 	double maxTransformDifference(2.0); 
 	double thresholdMultiplier(5); 
+    bool generateReport(false); 
 
 	VTK_LOG_TO_CONSOLE_ON; 
 	
@@ -51,6 +52,7 @@ int main(int argc, char **argv)
 	args.AddArgument("--input-min-frame-threshold", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &minFrameThreshold, "Minimum frame threshold (Default: 10.0)");
 	args.AddArgument("--input-max-frame-difference", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &maxFrameDifference, "Maximum frame difference (Default: 5.0)");
 	args.AddArgument("--input-max-transform-difference", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &maxTransformDifference, "Maximum transform difference (Default: 5.0)");
+    args.AddArgument("--generate-report", vtksys::CommandLineArguments::NO_ARGUMENT, &generateReport, "Generate HTML report (it assumes ../gnuplot/gnuplot.exe and ../scripts/ are valid)");
 
 	args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug)");	
 
@@ -309,21 +311,24 @@ int main(int argc, char **argv)
 
 	//************************************************************************************
 	// Generate html report
-	const std::string gnuplotPath = vtksys::SystemTools::CollapseFullPath("../gnuplot/gnuplot.exe", programPath.c_str()); 
-	const std::string gnuplotScriptsFolder = vtksys::SystemTools::CollapseFullPath("../scripts/"  , programPath.c_str()); 
+    if ( generateReport )
+    {
+        const std::string gnuplotPath = vtksys::SystemTools::CollapseFullPath("../gnuplot/gnuplot.exe", programPath.c_str()); 
+        const std::string gnuplotScriptsFolder = vtksys::SystemTools::CollapseFullPath("../scripts/"  , programPath.c_str()); 
 
-	vtkSmartPointer<vtkHTMLGenerator> htmlReport = vtkSmartPointer<vtkHTMLGenerator>::New(); 
-	htmlReport->SetTitle("iCAL Temporal Calibration Report"); 
+        vtkSmartPointer<vtkHTMLGenerator> htmlReport = vtkSmartPointer<vtkHTMLGenerator>::New(); 
+        htmlReport->SetTitle("iCAL Temporal Calibration Report"); 
 
-	vtkSmartPointer<vtkGnuplotExecuter> plotter = vtkSmartPointer<vtkGnuplotExecuter>::New(); 
-	plotter->SetGnuplotCommand(gnuplotPath.c_str()); 
-	plotter->SetWorkingDirectory( programPath.c_str() ); 
-	plotter->SetHideWindow(true); 
+        vtkSmartPointer<vtkGnuplotExecuter> plotter = vtkSmartPointer<vtkGnuplotExecuter>::New(); 
+        plotter->SetGnuplotCommand(gnuplotPath.c_str()); 
+        plotter->SetWorkingDirectory( programPath.c_str() ); 
+        plotter->SetHideWindow(true); 
 
-	// Synchronizer Analysis
-	synchronizer->GenerateSynchronizationReport(htmlReport, plotter, gnuplotScriptsFolder.c_str()); 
+        // Synchronizer Analysis
+        synchronizer->GenerateSynchronizationReport(htmlReport, plotter, gnuplotScriptsFolder.c_str()); 
 
-	htmlReport->SaveHtmlPage("iCALTemporalCalibrationReport.html"); 
+        htmlReport->SaveHtmlPage("iCALTemporalCalibrationReport.html"); 
+    }
 	//************************************************************************************
 
 	if ( numberOfErrors != 0 )

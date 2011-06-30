@@ -115,6 +115,7 @@ ADD_TEST(vtkPhantomRegistrationTest
 		)
 SET_TESTS_PROPERTIES( vtkPhantomRegistrationTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
+
 #--------------------------------------------------------------------------------------------
 ADD_EXECUTABLE(vtkFreehandCalibrationTest vtkFreehandCalibrationTest.cxx)
 TARGET_LINK_LIBRARIES(vtkFreehandCalibrationTest itkvnl itkvnl_algo vtkCommon vtkTrusCalibration vtkDataCollection )
@@ -132,3 +133,8 @@ ADD_TEST(vtkFreehandCalibrationTest
 		--verbose=1
 		)
 SET_TESTS_PROPERTIES( vtkFreehandCalibrationTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+
+SET (vtkFreehandCalibrationTest-CoordinateSystems_LIBS itkvnl itkvnl_algo vtkCommon vtkTrusCalibration vtkDataCollection)
+ADD_EXECUTABLE(vtkFreehandCalibrationTest-CoordinateSystems vtkFreehandCalibrationTest-CoordinateSystems.cxx)
+TARGET_LINK_LIBRARIES(vtkFreehandCalibrationTest-CoordinateSystems ${vtkFreehandCalibrationTest-CoordinateSystems_LIBS} )
+
