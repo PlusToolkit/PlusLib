@@ -18,7 +18,7 @@
 			
 			 <!-- ProbeRotationData: These are the data files used to calculate the frame center of rotation  -->
             <ProbeRotationData 
-                    NumberOfImagesToUse="200" 
+                    NumberOfImagesToUse="500" 
                     StartingIndex="0" 
                     SequenceMetaFile="\\image\shared_data\images\TRUSCalibration\2011-02-09_iCALDemo_TestData\ProbeRotationData.mha"
                     />
@@ -73,7 +73,7 @@
                     />
 			 <!-- ProbeRotationData: These are the data files used to calculate the frame center of rotation  -->
             <ProbeRotationData 
-                    NumberOfImagesToAcquire="200" 
+                    NumberOfImagesToAcquire="500" 
                     OutputSequenceMetaFileSuffix=".ProbeRotationData"
                     />
 			 <!-- RandomStepperMotionData1: These are the data files used for calibration. -->

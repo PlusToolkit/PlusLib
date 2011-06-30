@@ -73,7 +73,7 @@
                     />
 			 <!-- ProbeRotationData: These are the data files used to calculate the frame center of rotation  -->
             <ProbeRotationData 
-                    NumberOfImagesToAcquire="200" 
+                    NumberOfImagesToAcquire="500" 
                     OutputSequenceMetaFileSuffix=".ProbeRotationData"
                     />
 			 <!-- RandomStepperMotionData1: These are the data files used for calibration. -->

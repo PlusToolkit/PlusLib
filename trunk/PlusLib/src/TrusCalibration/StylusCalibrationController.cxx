@@ -443,9 +443,9 @@ PlusStatus StylusCalibrationController::DoAcquisition()
 
 			// If current point is close to the previous one, or too far (outlier), we do not insert it
 			if (distance < distance_lowThreshold_mm * distance_lowThreshold_mm) {
-				LOG_WARNING("Acquired position is too close to the previous - it is skipped");
+				LOG_DEBUG("Acquired position is too close to the previous - it is skipped");
 			} else if (distance > distance_highThreshold_mm * distance_highThreshold_mm) {
-				LOG_WARNING("Acquired position seems to be an outlier - it is skipped");
+				LOG_DEBUG("Acquired position seems to be an outlier - it is skipped");
 			} else {
 				// Add the point into the calibration dataset
 				dataCollector->GetTracker()->GetTool(m_StylusPortNumber)->InsertNextCalibrationPoint();
