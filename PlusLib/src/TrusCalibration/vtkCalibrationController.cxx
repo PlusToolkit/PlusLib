@@ -605,7 +605,9 @@ PlusStatus vtkCalibrationController::ReadRealtimeCalibrationConfiguration( vtkXM
 	}
 	else
 	{
-		LOG_WARNING("Unable to find TemplateTranslationData XML data element"); 
+		LOG_DEBUG("Unable to find TemplateTranslationData XML data element, default 100 is used"); 
+		vtkCalibrationController::RealtimeImageDataInfo imageDataInfo = this->GetRealtimeImageDataInfo(TEMPLATE_TRANSLATION); 
+		imageDataInfo.NumberOfImagesToAcquire = 100;
 	}
 
 	// ProbeTranslationData data set specifications
@@ -630,7 +632,9 @@ PlusStatus vtkCalibrationController::ReadRealtimeCalibrationConfiguration( vtkXM
 	}
 	else
 	{
-		LOG_WARNING("Unable to find ProbeTranslationData XML data element"); 
+		LOG_DEBUG("Unable to find ProbeTranslationData XML data element, default 200 is used"); 
+		vtkCalibrationController::RealtimeImageDataInfo imageDataInfo = this->GetRealtimeImageDataInfo(PROBE_TRANSLATION); 
+		imageDataInfo.NumberOfImagesToAcquire = 200;
 	}
 
 	// ProbeRotationData data set specifications
@@ -655,7 +659,9 @@ PlusStatus vtkCalibrationController::ReadRealtimeCalibrationConfiguration( vtkXM
 	}
 	else
 	{
-		LOG_WARNING("Unable to find ProbeRotationData XML data element"); 
+		LOG_DEBUG("Unable to find ProbeRotationData XML data element, default 500 is used"); 
+		vtkCalibrationController::RealtimeImageDataInfo imageDataInfo = this->GetRealtimeImageDataInfo(PROBE_ROTATION); 
+		imageDataInfo.NumberOfImagesToAcquire = 500;
 	}
 
 	// RandomStepperMotionData1 data set specifications
@@ -680,7 +686,9 @@ PlusStatus vtkCalibrationController::ReadRealtimeCalibrationConfiguration( vtkXM
 	}
 	else
 	{
-		LOG_WARNING("Unable to find RandomStepperMotionData1 XML data element"); 
+		LOG_DEBUG("Unable to find RandomStepperMotionData1 XML data element, default 200 is used"); 
+		vtkCalibrationController::RealtimeImageDataInfo imageDataInfo = this->GetRealtimeImageDataInfo(RANDOM_STEPPER_MOTION_1); 
+		imageDataInfo.NumberOfImagesToAcquire = 200;
 	}
 
 	// RandomStepperMotionData2 data set specifications
@@ -705,7 +713,9 @@ PlusStatus vtkCalibrationController::ReadRealtimeCalibrationConfiguration( vtkXM
 	}
 	else
 	{
-		LOG_WARNING("Unable to find RandomStepperMotionData2 XML data element"); 
+		LOG_DEBUG("Unable to find RandomStepperMotionData2 XML data element, default 100 is used"); 
+		vtkCalibrationController::RealtimeImageDataInfo imageDataInfo = this->GetRealtimeImageDataInfo(RANDOM_STEPPER_MOTION_2); 
+		imageDataInfo.NumberOfImagesToAcquire = 100; 
 	}
 
 	// FreehandMotionData1 data set specifications
@@ -728,6 +738,12 @@ PlusStatus vtkCalibrationController::ReadRealtimeCalibrationConfiguration( vtkXM
 
 		this->SetRealtimeImageDataInfo(FREEHAND_MOTION_1, imageDataInfo); 
 	}
+	else
+	{
+		LOG_DEBUG("Unable to find FreehandMotionData1 XML data element, default 200 is used"); 
+		vtkCalibrationController::RealtimeImageDataInfo imageDataInfo = this->GetRealtimeImageDataInfo(FREEHAND_MOTION_1); 
+		imageDataInfo.NumberOfImagesToAcquire = 200;
+	}
 
 	// FreehandMotionData2 data set specifications
 	//********************************************************************
@@ -748,6 +764,12 @@ PlusStatus vtkCalibrationController::ReadRealtimeCalibrationConfiguration( vtkXM
 		}
 
 		this->SetRealtimeImageDataInfo(FREEHAND_MOTION_2, imageDataInfo); 
+	}
+	else
+	{
+		LOG_DEBUG("Unable to find FreehandMotionData2 XML data element, default 100 is used"); 
+		vtkCalibrationController::RealtimeImageDataInfo imageDataInfo = this->GetRealtimeImageDataInfo(FREEHAND_MOTION_2); 
+		imageDataInfo.NumberOfImagesToAcquire = 100; 
 	}
 
   return PLUS_SUCCESS;
