@@ -2,19 +2,14 @@
 # Sources
 
 SET (UsFidSegAlgo_SRCS
-	drawing.cpp 
-	kphantseg.cpp 
-	morph.cpp
+		UltraSoundFiducialSegmentation.cpp
         UsFidSegResultFile.cpp 
 	)
 
 SET (UsFidSegAlgo_HDRS)	
 IF (WIN32)	
 	SET (UsFidSegAlgo_HDRS
-		binsearch.h 
-		kphantseg.h 
-		segimpl.h 
-		sort.h 
+		UltraSoundFiducialSegmentation.h
 		UsFidSegResultFile.h
 		)
 ENDIF (WIN32)
