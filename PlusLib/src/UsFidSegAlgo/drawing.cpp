@@ -50,7 +50,7 @@ void print_pair( LinePair *pair, Line *lines, Dot *dots )
 	}
 }
 
-void SegImpl::draw_dots( pixel *image, Dot *dots, int ndots )
+void SegImpl::draw_dots( PixelType *image, Dot *dots, int ndots )
 {
 	for ( int d = 0; d < ndots; d++ ) {
 		Dot *dot = dots+d;
@@ -58,8 +58,8 @@ void SegImpl::draw_dots( pixel *image, Dot *dots, int ndots )
 		float col = dot->c;
 
 		for ( float t = 0; t < 2*M_PI; t += M_PI/DOT_STEPS ) {
-			uint r = (int)floor( row + cos(t) * DOT_RADIUS );
-			uint c = (int)floor( col + sin(t)* DOT_RADIUS );
+			unsigned int r = (int)floor( row + cos(t) * DOT_RADIUS );
+			unsigned int c = (int)floor( col + sin(t)* DOT_RADIUS );
 
 			if ( r >= 0 && r < rows && c >= 0 && c <= cols )
 				image[r*cols+c] = UCHAR_MAX;
@@ -69,7 +69,7 @@ void SegImpl::draw_dots( pixel *image, Dot *dots, int ndots )
 	}
 }
 
-void SegImpl::draw_lines( pixel *image, Line *lines, int nlines )
+void SegImpl::draw_lines( PixelType *image, Line *lines, int nlines )
 {
 	for ( int l = 0; l < nlines; l++ ) {
 		Line *line = lines+l;
@@ -83,23 +83,23 @@ void SegImpl::draw_lines( pixel *image, Line *lines, int nlines )
 		}		
 
 		if ( theta < M_PI/4 || theta > 3*M_PI/4 ) {
-			for ( uint y = 0; y < rows; y++ ) {
+			for ( unsigned int y = 0; y < rows; y++ ) {
 				// Thomas Kuiran Chen - retouched for ANSI-C++
 				//float x = roundf(( p - y * sin(theta) ) / cos(theta));
 				double x = floor( ( p - y * sin(theta) ) / cos(theta) + 0.5 );
-				uint r = rows - y - 1;
-				uint c = (uint)x;
+				unsigned int r = rows - y - 1;
+				unsigned int c = (unsigned int)x;
 				if ( c >= 0 && c < cols )
 					image[r*cols+c] = UCHAR_MAX;
 			}
 		}
 		else {
-			for ( uint x = 0; x < cols; x++ ) {
+			for ( unsigned int x = 0; x < cols; x++ ) {
 				// Thomas Kuiran Chen - retouched for ANSI-C++
 				//float y = roundf(( p - x * cos(theta) ) / sin(theta));
 				double y = floor( ( p - x * cos(theta) ) / sin(theta) + 0.5 );
-				uint r = rows - (uint)y - 1;
-				uint c = x;
+				unsigned int r = rows - (unsigned int)y - 1;
+				unsigned int c = x;
 				if ( r >= 0 && r < rows )
 					image[r*cols+c] = UCHAR_MAX;
 			}
@@ -107,7 +107,7 @@ void SegImpl::draw_lines( pixel *image, Line *lines, int nlines )
 	}
 }
 
-void SegImpl::draw_pair( pixel *image, LinePair *pair )
+void SegImpl::draw_pair( PixelType *image, LinePair *pair )
 {
 	/* Drawing on the original. */
 	draw_lines( image, lines+pair->l1, 1 );
@@ -134,7 +134,7 @@ void SegImpl::print_results( )
 	}
 }
 
-void SegImpl::draw_results( pixel *image )
+void SegImpl::draw_results( PixelType *image )
 {
 	if ( npairs > 0 )
 		draw_pair( image, pairs );
