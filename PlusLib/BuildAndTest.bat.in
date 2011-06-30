@@ -14,6 +14,7 @@ SET SVNCOMMAND=${Subversion_SVN_EXECUTABLE}
 if "%1" == "" goto experimental
 if "%1" == "-E" goto experimental
 if "%1" == "-N" goto nightly
+if "%1" == "-I" goto individual
 
 :experimental
 "${CMAKE_CTEST_COMMAND}" -D Experimental
@@ -24,6 +25,15 @@ goto END
 "${CMAKE_MAKE_PROGRAM}" PlusLib.sln /clean Release /project ALL_BUILD
 "${CMAKE_CTEST_COMMAND}" -D Nightly
 goto END
+
+:individual 
+@REM Run individual tests with regexp search 
+@REM Display the list of tests
+"${CMAKE_CTEST_COMMAND}" -R "%2" -N
+@REM Run selected tests
+"${CMAKE_CTEST_COMMAND}" -R "%2"
+goto END
+
 
 :END
 ECHO DONE
