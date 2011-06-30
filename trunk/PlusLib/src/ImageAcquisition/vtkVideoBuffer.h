@@ -45,12 +45,14 @@ public:
 	VideoBufferItem(); 
 	~VideoBufferItem(); 
 	VideoBufferItem(const VideoBufferItem& videoBufferItem); 
+    VideoBufferItem& VideoBufferItem::operator=(VideoBufferItem const&videoItem); 
 
 	// Copy video buffer item 
 	PlusStatus DeepCopy(VideoBufferItem* videoBufferItem); 
 
 	// Set video frame format 
 	PlusStatus SetFrameFormat(vtkVideoFrame2* frameFormat); 
+    bool CheckFrameFormat( vtkVideoFrame2* frameFormat ); 
 
 	// Set/get video frame 
     // Caller should clean the image data from memory after this call. 

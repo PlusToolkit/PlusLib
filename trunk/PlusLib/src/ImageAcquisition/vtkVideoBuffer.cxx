@@ -28,28 +28,36 @@ VideoBufferItem::~VideoBufferItem()
 //----------------------------------------------------------------------------
 VideoBufferItem::VideoBufferItem(const VideoBufferItem &videoItem)
 {
-	if ( videoItem.GetFrame() != NULL )
-	{
-		if ( this->Frame == NULL ) 
-		{
-			if ( this->SetFrameFormat(videoItem.GetFrame()) == PLUS_SUCCESS ) 
-			{
-				this->Frame->Allocate(); 
-			}
-			else
-			{	
-				LOG_ERROR("Failed to allocate frame for video buffer item!"); 
-				return; 
-			}
-		}
+    this->Frame = NULL; 
+    *this = videoItem; 
+}
 
+//----------------------------------------------------------------------------
+VideoBufferItem& VideoBufferItem::operator=(VideoBufferItem const&videoItem)
+{
+    // Handle self-assignment
+    if (this == &videoItem)
+    {
+        return *this;
+    }
+
+    if ( videoItem.GetFrame() != NULL && 
+        this->SetFrameFormat(videoItem.GetFrame()) != PLUS_SUCCESS ) 
+    {
+        LOG_ERROR("Failed to set frame format for video buffer item!"); 
+    }
+
+    if ( this->Frame != NULL ) 
+    {
         this->Frame->DeepCopy( videoItem.GetFrame() ); 
-	}
+    }
 
 	this->FilteredTimeStamp = videoItem.FilteredTimeStamp; 
 	this->UnfilteredTimeStamp = videoItem.UnfilteredTimeStamp; 
 	this->Index = videoItem.Index; 
 	this->Uid = videoItem.Uid; 
+    
+    return *this;
 }
 
 //----------------------------------------------------------------------------
@@ -63,18 +71,11 @@ PlusStatus VideoBufferItem::DeepCopy(VideoBufferItem* videoItem)
 
 	if ( videoItem->GetFrame() != NULL )
 	{
-		if ( this->Frame == NULL ) 
-		{
-			if ( this->SetFrameFormat(videoItem->GetFrame()) == PLUS_SUCCESS ) 
-			{
-				this->Frame->Allocate(); 
-			}
-			else
-			{	
-				LOG_ERROR("Failed to allocate frame for video buffer item!"); 
-				return PLUS_FAIL; 
-			}
-		}
+        if ( this->SetFrameFormat(videoItem->GetFrame()) != PLUS_SUCCESS ) 
+        {
+            LOG_ERROR("Failed to allocate frame for video buffer item!"); 
+            return PLUS_FAIL; 
+        }
 
         this->Frame->DeepCopy( videoItem->GetFrame() ); 
 	}
@@ -96,6 +97,12 @@ PlusStatus VideoBufferItem::SetFrameFormat(vtkVideoFrame2* frameFormat)
 		return PLUS_FAIL; 
 	}
 
+    if ( this->Frame != NULL && this->Frame->CheckFrameFormat(frameFormat) )
+    {
+        // Farme format is the same, no need to change anything 
+        return PLUS_SUCCESS; 
+    }
+
 	if ( this->Frame != NULL )
 	{
 		this->Frame->Delete(); 
@@ -104,10 +111,16 @@ PlusStatus VideoBufferItem::SetFrameFormat(vtkVideoFrame2* frameFormat)
 
 	// Create frame object and allocate space
 	this->Frame = frameFormat->MakeObject(); 
-	this->Frame->Allocate(); 
+	if (!this->Frame->Allocate())
+    {
+        LOG_ERROR("Failed to allocate memory for video frame!"); 
+        return PLUS_FAIL; 
+    }
 
 	return PLUS_SUCCESS; 
 }
+
+
 
 //----------------------------------------------------------------------------
 PlusStatus VideoBufferItem::SetFrame(vtkVideoFrame2* frame)
@@ -324,45 +337,7 @@ bool vtkVideoBuffer::CheckFrameFormat( const int frameSizeInPx[3], const int num
 //----------------------------------------------------------------------------
 bool vtkVideoBuffer::CheckFrameFormat( vtkVideoFrame2* frame )
 {
-	if ( frame == NULL )
-	{
-		//LOG_DEBUG("Frame format and buffer frame format does not match!"); 
-		return false;
-	}
-
-	int frameSize[3]={0};
-	int frameExtent[6]={0};
-	frame->GetFrameSize(frameSize);
-	frame->GetFrameExtent(frameExtent);
-
-	int frameFormatSize[3]={0};
-	int frameFormatExtent[6]={0};
-	this->FrameFormat->GetFrameSize(frameFormatSize);
-	this->FrameFormat->GetFrameExtent(frameFormatExtent);
-
-	if (frameSize[0] == frameFormatSize[0] &&
-		frameSize[1] == frameFormatSize[1] &&
-		frameSize[2] == frameFormatSize[2] &&
-		frameExtent[0] == frameFormatExtent[0] &&
-		frameExtent[1] == frameFormatExtent[1] &&
-		frameExtent[2] == frameFormatExtent[2] &&
-		frameExtent[3] == frameFormatExtent[3] &&
-		frameExtent[4] == frameFormatExtent[4] &&
-		frameExtent[5] == frameFormatExtent[5] &&
-		frame->GetPixelFormat() == this->FrameFormat->GetPixelFormat() &&
-		frame->GetBitsPerPixel() == this->FrameFormat->GetBitsPerPixel() &&
-		frame->GetRowAlignment() == this->FrameFormat->GetRowAlignment() &&
-		frame->GetTopDown() == this->FrameFormat->GetTopDown() &&
-		frame->GetBytesInFrame() == this->FrameFormat->GetBytesInFrame() &&
-		frame->GetOpacity() == this->FrameFormat->GetOpacity() &&
-		frame->GetCompression() == this->FrameFormat->GetCompression() &&
-		frame->GetFrameGrabberType() == this->FrameFormat->GetFrameGrabberType() )
-	{
-		return true;
-	}
-
-	//LOG_DEBUG("Frame format and buffer frame format does not match!"); 
-	return false;
+    return this->FrameFormat->CheckFrameFormat(frame); 
 }
 
 //----------------------------------------------------------------------------

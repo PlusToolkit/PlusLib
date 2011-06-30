@@ -313,6 +313,50 @@ void vtkVideoFrame2::DeepCopy(vtkVideoFrame2* frame)
 }
 
 //----------------------------------------------------------------------------
+bool vtkVideoFrame2::CheckFrameFormat( vtkVideoFrame2* frameFormat )
+{
+	if ( frameFormat == NULL )
+	{
+		//LOG_DEBUG("Frame format and buffer frame format does not match!"); 
+		return false;
+	}
+
+	int frameSize[3]={0};
+	int frameExtent[6]={0};
+	this->GetFrameSize(frameSize);
+	this->GetFrameExtent(frameExtent);
+
+	int frameFormatSize[3]={0};
+	int frameFormatExtent[6]={0};
+	frameFormat->GetFrameSize(frameFormatSize);
+	frameFormat->GetFrameExtent(frameFormatExtent);
+
+	if (frameSize[0] == frameFormatSize[0] &&
+		frameSize[1] == frameFormatSize[1] &&
+		frameSize[2] == frameFormatSize[2] &&
+		frameExtent[0] == frameFormatExtent[0] &&
+		frameExtent[1] == frameFormatExtent[1] &&
+		frameExtent[2] == frameFormatExtent[2] &&
+		frameExtent[3] == frameFormatExtent[3] &&
+		frameExtent[4] == frameFormatExtent[4] &&
+		frameExtent[5] == frameFormatExtent[5] &&
+		frameFormat->GetPixelFormat() == this->GetPixelFormat() &&
+		frameFormat->GetBitsPerPixel() == this->GetBitsPerPixel() &&
+		frameFormat->GetRowAlignment() == this->GetRowAlignment() &&
+		frameFormat->GetTopDown() == this->GetTopDown() &&
+		frameFormat->GetBytesInFrame() == this->GetBytesInFrame() &&
+		frameFormat->GetOpacity() == this->GetOpacity() &&
+		frameFormat->GetCompression() == this->GetCompression() &&
+		frameFormat->GetFrameGrabberType() == this->GetFrameGrabberType() )
+	{
+		return true;
+	}
+
+	//LOG_DEBUG("Frame format and buffer frame format does not match!"); 
+	return false;
+}
+
+//----------------------------------------------------------------------------
 // This method lets the user specify the data to be held by the array.
 // The array argument is a pointer to the data.  Size is the size of 
 // the array supplied by the user (in bytes).  Set save to 1 to keep the class
