@@ -114,7 +114,7 @@
 
                 UseOriginalImageIntensityForDotIntensityScore="0"
 
-                PhantomDefinition="d:\devel\Plus-bin\bin\config\PhantomDefinition_iCal_1.0.xml" 
+                PhantomDefinition="PhantomDefinition_iCal_1.0.xml" 
                 >
         </SegmentationParameters>
     </CalibrationController>

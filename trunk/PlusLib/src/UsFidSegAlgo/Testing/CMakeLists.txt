@@ -89,7 +89,7 @@ ADD_TEST(UsFidSegTest_CALIBRATION_PHANTOM_6_POINT_UsTestSeqBaselineThomasShorten
 	--input-testcase-name=UsTestSeqBaselineThomasShortened
 	--input-baseline-file=${TestDataDir}/UsTestSeqBaselineThomasShortened_baseline.xml
 	--output-result-file=testcomparisons.xml
-	--input-config-file-name=${ConfigFilesDir}/USCalibrationConfig.xml
+	--input-config-file-name=${ConfigFilesDir}/USCalibrationConfig_iCal_SonixRP_Ulterius.xml
 	--input-phantom-definition-file-name=${ConfigFilesDir}/PhantomDefinition_iCal_1.0.xml
 	)
 SET_TESTS_PROPERTIES( UsFidSegTest_CALIBRATION_PHANTOM_6_POINT_UsTestSeqBaselineThomasShortened PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )

@@ -99,7 +99,7 @@
                 SearchRegionX="50 550"
                 SearchRegionY="140 300"
 
-				MaxLineLengthErrorPercent="5.0"
+				MaxLineLengthErrorPercent="8.0"
 				MaxLinePairDistanceErrorPercent="10.0"
                 MaxLineErrorMm="2.0"
 
