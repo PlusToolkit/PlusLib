@@ -24,8 +24,6 @@
 #include "itkLandmarkSpatialObject.h"
 
 
-
-
 //TODO: Add to project itkUlteriusImageIOFactory
 //#include "itkUlteriusImageIOFactory.h"
 
@@ -62,16 +60,14 @@ void SegmentImageSequence(ImageSequenceType::Pointer image, std::ofstream &outFi
 	const unsigned long numberOfFrames = image->GetLargestPossibleRegion().GetSize()[2];	
 
 	unsigned int frameSizeInBytes=ImageWidthInPixels*ImageHeightInPixels*sizeof(PixelType);
-	
+
 	double sumFiducialNum = 0;// divide by framenum
 	double sumFiducialCandidate = 0;// divide by framenum
 
 	SegmentationParameters segParams = *(calibrationController->GetSegParameters());
-	 
+
 	for (int currentFrameIndex=0; currentFrameIndex<numberOfFrames; currentFrameIndex++)
 	{
-		//callSegmentation(imageData, currentFrameIndex, frameSizeInBytes, outFile, inputTestcaseName, inputImageSequenceFileName, ImageWidthInPixels ,ImageHeightInPixels); 
-
 		PixelType *currentFrameImageData=imageData+currentFrameIndex*frameSizeInBytes;
 
 		// Search in the whole image
@@ -82,15 +78,11 @@ void SegmentImageSequence(ImageSequenceType::Pointer image, std::ofstream &outFi
 
 		// Set to false if you don't want images produced after each morphological operation
 		bool debugOutput=PlusLogger::Instance()->GetLogLevel()>=PlusLogger::LOG_LEVEL_DEBUG; 
-		
-		//std::string nameDebugOutputFile = inputTestcaseName + currentFrameIndex; 
-
 
 		std::ostrstream possibleFiducialsImageFilename; 
 		possibleFiducialsImageFilename << inputTestcaseName << std::setw(3) << std::setfill('0') << currentFrameIndex << ".bmp" << std::ends; 
 		
 		SegmentationResults segResults;
-
 
 		KPhantomSeg TheSegmentationStruct(ImageWidthInPixels,ImageHeightInPixels, 
 			SearchStartAtX,SearchStartAtY, SearchDimensionX,SearchDimensionY,debugOutput,possibleFiducialsImageFilename.str());
@@ -117,14 +109,12 @@ void SegmentImageSequence(ImageSequenceType::Pointer image, std::ofstream &outFi
 		{
 			UsFidSegResultFile::WriteSegmentationResults(std::cout, segResults, inputTestcaseName, currentFrameIndex, inputImageSequenceFileName);
 		}
-
 	}
-	
-		
+
+
 	double meanFid = sumFiducialNum/numberOfFrames;
 	double meanFidCandidate = sumFiducialCandidate/numberOfFrames;
 	UsFidSegResultFile::WriteSegmentationResultsStats(outFile,  meanFid, meanFidCandidate);
-	
 }
 
 // return the number of differences

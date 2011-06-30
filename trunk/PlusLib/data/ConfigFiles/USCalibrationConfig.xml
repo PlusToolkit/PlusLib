@@ -18,14 +18,14 @@
 			
 			 <!-- ProbeRotationData: These are the data files used to calculate the frame center of rotation  -->
             <ProbeRotationData 
-                    NumberOfImagesToUse="500" 
+                    NumberOfImagesToUse="200" 
                     StartingIndex="0" 
                     SequenceMetaFile="\\image\shared_data\images\TRUSCalibration\2011-02-09_iCALDemo_TestData\ProbeRotationData.mha"
                     />
 		</StepperCalibration>	
 		
         <ProbeCalibration
-                EnableLogFile="TRUE"  
+                EnableLogFile="FALSE"  
 				EnableSegmentedWirePositionsSaving="FALSE"
                 ImageHomeToUserImageHomeTransform=" 1  0  0  0 
                                                     0  1  0  0 
@@ -99,7 +99,7 @@
                 SearchRegionX="50 550"
                 SearchRegionY="140 300"
 
-				MaxLineLengthErrorPercent="10.0"
+				MaxLineLengthErrorPercent="5.0"
 				MaxLinePairDistanceErrorPercent="10.0"
                 MaxLineErrorMm="2.0"
 
