@@ -25,10 +25,7 @@
 
 #define MAX_CLUSTER_VALS 16384
 
-typedef unsigned int uint;
-typedef unsigned char uchar;
-
-typedef unsigned char pixel;
+typedef unsigned char PixelType;
 
 struct Item
 {
@@ -234,40 +231,40 @@ struct SegImpl
 	void compute_line( Line &line, Dot *dots );
 	float compute_t( Dot *dot1, Dot *dot2 );
 
-	inline pixel erode_point_0( pixel *image, uint ir, uint ic );
-	void erode_0( pixel *dest, pixel *image );
-	inline pixel erode_point_45( pixel *image, uint ir, uint ic );
-	void erode_45( pixel *dest, pixel *image );
-	inline pixel erode_point_90( pixel *image, uint ir, uint ic );
-	void erode_90( pixel *dest, pixel *image );
-	inline pixel erode_point_135( pixel *image, uint ir, uint ic );
-	void erode_135( pixel *dest, pixel *image );
-	void erode_circle( pixel *dest, pixel *image );
-	inline pixel dilate_point_0( pixel *image, uint ir, uint ic );
-	void dilate_0( pixel *dest, pixel *image );
-	inline pixel dilate_point_45( pixel *image, uint ir, uint ic );
-	void dilate_45( pixel *dest, pixel *image );
-	inline pixel dilate_point_90( pixel *image, uint ir, uint ic );
-	void dilate_90( pixel *dest, pixel *image );
-	inline pixel dilate_point_135( pixel *image, uint ir, uint ic );
-	void dilate_135( pixel *dest, pixel *image );
-	inline pixel dilate_point( pixel *image, uint ir, uint ic, Item *shape, int slen );
-	void dilate_circle( pixel *dest, pixel *image );
-	void subtract( pixel *image, pixel *vals );
+	inline PixelType erode_point_0( PixelType *image, unsigned int ir, unsigned int ic );
+	void erode_0( PixelType *dest, PixelType *image );
+	inline PixelType erode_point_45( PixelType *image, unsigned int ir, unsigned int ic );
+	void erode_45( PixelType *dest, PixelType *image );
+	inline PixelType erode_point_90( PixelType *image, unsigned int ir, unsigned int ic );
+	void erode_90( PixelType *dest, PixelType *image );
+	inline PixelType erode_point_135( PixelType *image, unsigned int ir, unsigned int ic );
+	void erode_135( PixelType *dest, PixelType *image );
+	void erode_circle( PixelType *dest, PixelType *image );
+	inline PixelType dilate_point_0( PixelType *image, unsigned int ir, unsigned int ic );
+	void dilate_0( PixelType *dest, PixelType *image );
+	inline PixelType dilate_point_45( PixelType *image, unsigned int ir, unsigned int ic );
+	void dilate_45( PixelType *dest, PixelType *image );
+	inline PixelType dilate_point_90( PixelType *image, unsigned int ir, unsigned int ic );
+	void dilate_90( PixelType *dest, PixelType *image );
+	inline PixelType dilate_point_135( PixelType *image, unsigned int ir, unsigned int ic );
+	void dilate_135( PixelType *dest, PixelType *image );
+	inline PixelType dilate_point( PixelType *image, unsigned int ir, unsigned int ic, Item *shape, int slen );
+	void dilate_circle( PixelType *dest, PixelType *image );
+	void subtract( PixelType *image, PixelType *vals );
 	void morphological_operations();	
 	void setdebugOutput(bool on ); // addition to turn intermediate output on/off
 	void setpossibleFiducialsImageFilename(int index); 
-	void SegImpl::dynamicThresholding( pixel *image);// addition to test dynamic thresholding
-	inline void trypos( pixel *image, int r, int c );
-	void suppress( pixel *image, float percent_thresh_top, float percent_thresh_bottom ); // a different threshold can be applied on the top and the bottom of the image
-	void WritePossibleFiducialOverlayImage(Dot *fiducials, pixel *unalteredImage); 
+	void SegImpl::dynamicThresholding( PixelType *image);// addition to test dynamic thresholding
+	inline void trypos( PixelType *image, int r, int c );
+	void suppress( PixelType *image, float percent_thresh_top, float percent_thresh_bottom ); // a different threshold can be applied on the top and the bottom of the image
+	void WritePossibleFiducialOverlayImage(Dot *fiducials, PixelType *unalteredImage); 
 
 	void find_u_shape_line_triad(SegmentationResults &segResult);
 	void find_double_n_lines(SegmentationResults &segResult);
 
 	bool accept_line( const Line &line );  
 
-	static void WritePng(pixel *modifiedImage, std::string outImageName, int cols, int rows); // addition to write out intermediate files
+	static void WritePng(PixelType *modifiedImage, std::string outImageName, int cols, int rows); // addition to write out intermediate files
 
 	inline bool accept_dot( const Dot &dot );
 		Dot * cluster();
@@ -275,13 +272,13 @@ struct SegImpl
 	void find_lines();
 	void find_pairs();
 
-	void uscseg( pixel *image,  const SegmentationParameters &segParams, SegmentationResults &segResult );
+	void uscseg( PixelType *image,  const SegmentationParameters &segParams, SegmentationResults &segResult );
 
-	void draw_dots( pixel *image, Dot *dots, int ndots );
-	void draw_lines( pixel *image, Line *lines, int nlines );
-	void draw_pair( pixel *image, LinePair *pair );
+	void draw_dots( PixelType *image, Dot *dots, int ndots );
+	void draw_lines( PixelType *image, Line *lines, int nlines );
+	void draw_pair( PixelType *image, LinePair *pair );
 	void print_results();
-	void draw_results( pixel *data );
+	void draw_results( PixelType *data );
 
 	void sort_top_to_bottom( LinePair *pair );
 	void sort_right_to_left( Line *line );
@@ -290,16 +287,16 @@ struct SegImpl
 
 	SegmentationParameters m_SegParams;
 
-	uint size, bytes;
-	uint rows, cols;
+	unsigned int size, bytes;
+	unsigned int rows, cols;
 
-	uint vertLow, horzLow;
-	uint vertHigh, horzHigh;
+	unsigned int vertLow, horzLow;
+	unsigned int vertHigh, horzHigh;
 
-	pixel *working;
-	pixel *dilated;
-	pixel *eroded;
-	pixel *unalteredImage; 
+	PixelType *working;
+	PixelType *dilated;
+	PixelType *eroded;
+	PixelType *unalteredImage; 
 
 	/* Dot, line and pair data. */
 	Dot dots[MAX_DOTS];
@@ -310,7 +307,7 @@ struct SegImpl
 	/* Cluster data. */
 	Pos test[MAX_CLUSTER_VALS];
 	Pos set[MAX_CLUSTER_VALS];
-	pixel vals[MAX_CLUSTER_VALS];
+	PixelType vals[MAX_CLUSTER_VALS];
 	int ntest, nset;
 
 	/* Line finding. */

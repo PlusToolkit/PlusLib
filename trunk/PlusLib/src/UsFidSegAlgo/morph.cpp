@@ -26,22 +26,22 @@ bool shape_contains( std::vector<Item> shape, Item newItem )
 	return false;
 }
 
-inline pixel min( pixel v1, pixel v2 )
+inline PixelType min( PixelType v1, PixelType v2 )
 {
 	return v1 < v2 ? v1 : v2;
 }
 
-inline pixel max( pixel v1, pixel v2 )
+inline PixelType max( PixelType v1, PixelType v2 )
 {
 	return v1 > v2 ? v1 : v2;
 }
 
-inline pixel SegImpl::erode_point_0( pixel *image, uint ir, uint ic )
+inline PixelType SegImpl::erode_point_0( PixelType *image, unsigned int ir, unsigned int ic )
 {
 	const int barSize = this->GetMorphologicalOpeningBarSizePx(); 
-	pixel dval = UCHAR_MAX;
-	uint p = ir*cols + ic - barSize; // current pixel - bar size (position of the start of the bar)
-	uint p_max = ir*cols + ic + barSize;// current pixel +  bar size (position of the end  of the bar)
+	PixelType dval = UCHAR_MAX;
+	unsigned int p = ir*cols + ic - barSize; // current pixel - bar size (position of the start of the bar)
+	unsigned int p_max = ir*cols + ic + barSize;// current pixel +  bar size (position of the end  of the bar)
 
 	//find lowest intensity in bar shaped area in image
 	for ( ; p <= p_max; p++ ) {
@@ -59,22 +59,22 @@ int SegImpl::GetMorphologicalOpeningBarSizePx()
 	return barsize; 
 }
 
-void SegImpl::erode_0( pixel *dest, pixel *image )
+void SegImpl::erode_0( PixelType *dest, PixelType *image )
 {
-	memset( dest, 0, rows*cols*sizeof(pixel) );
+	memset( dest, 0, rows*cols*sizeof(PixelType) );
 
 	const int barSize = this->GetMorphologicalOpeningBarSizePx(); 
 
-	for ( uint ir = vertLow; ir < vertHigh; ir++ ) {
-		uint ic = horzLow;
-		uint p_base = ir*cols;
+	for ( unsigned int ir = vertLow; ir < vertHigh; ir++ ) {
+		unsigned int ic = horzLow;
+		unsigned int p_base = ir*cols;
 
-		pixel dval = erode_point_0( image, ir, ic ); // find lowest pixel intensity in surroudning region ( postions +/- 8 of current pixel position) 
+		PixelType dval = erode_point_0( image, ir, ic ); // find lowest pixel intensity in surroudning region ( postions +/- 8 of current pixel position) 
 		dest[p_base+ic] = dval; // p_base+ic = current pixel
 
 		for ( ic++; ic < horzHigh; ic++ ) {
-			pixel new_val = image[p_base + ic + barSize];
-			pixel del_val = image[p_base + ic - 1 - barSize];
+			PixelType new_val = image[p_base + ic + barSize];
+			PixelType del_val = image[p_base + ic - 1 - barSize];
 
 			dval = new_val <= dval ? new_val  : // dval = new val if new val is less than or equal to dval
 					del_val > dval ? min(dval, new_val) : // if del val is greater than dval, dval= min of dval and new val
@@ -85,13 +85,13 @@ void SegImpl::erode_0( pixel *dest, pixel *image )
 	}
 }
 
-inline pixel SegImpl::erode_point_45( pixel *image, uint ir, uint ic )
+inline PixelType SegImpl::erode_point_45( PixelType *image, unsigned int ir, unsigned int ic )
 {
 	const int barSize = this->GetMorphologicalOpeningBarSizePx(); 
 
-	pixel dval = UCHAR_MAX;
-	uint p = (ir+barSize)*cols + ic-barSize;
-	uint p_max = (ir-barSize)*cols + ic+barSize;
+	PixelType dval = UCHAR_MAX;
+	unsigned int p = (ir+barSize)*cols + ic-barSize;
+	unsigned int p_max = (ir-barSize)*cols + ic+barSize;
 
 	for ( ; p >= p_max; p = p - cols + 1 ) {
 		if ( image[p] < dval )
@@ -102,22 +102,22 @@ inline pixel SegImpl::erode_point_45( pixel *image, uint ir, uint ic )
 	return dval;
 }
 
-void SegImpl::erode_45( pixel *dest, pixel *image )
+void SegImpl::erode_45( PixelType *dest, PixelType *image )
 {
-	memset( dest, 0, rows*cols*sizeof(pixel) );
+	memset( dest, 0, rows*cols*sizeof(PixelType) );
 	const int barSize = this->GetMorphologicalOpeningBarSizePx(); 
 
 	/* Down the left side. */
-	for ( uint sr = vertLow; sr < vertHigh; sr++ ) {
-		uint ir = sr;
-		uint ic = horzLow;
+	for ( unsigned int sr = vertLow; sr < vertHigh; sr++ ) {
+		unsigned int ir = sr;
+		unsigned int ic = horzLow;
 
-		pixel dval = erode_point_45( image, ir, ic );
+		PixelType dval = erode_point_45( image, ir, ic );
 		dest[ir*cols+ic] = dval;
 
 		for ( ir--, ic++; ir >= vertLow && ic < horzHigh; ir--, ic++ ) {
-			pixel new_val = image[(ir - barSize)*cols+(ic + barSize)];
-			pixel del_val = image[(ir + 1 + barSize)*cols+(ic - 1 - barSize)];
+			PixelType new_val = image[(ir - barSize)*cols+(ic + barSize)];
+			PixelType del_val = image[(ir + 1 + barSize)*cols+(ic - 1 - barSize)];
 
 			dval = new_val <= dval ? new_val : 
 					del_val > dval ? min(dval, new_val) :
@@ -128,16 +128,16 @@ void SegImpl::erode_45( pixel *dest, pixel *image )
 	}
 
 	/* Accross the bottom */
-	for ( uint sc = horzLow; sc < horzHigh; sc++ ) {
-		uint ic = sc;
-		uint ir = vertHigh-1;
+	for ( unsigned int sc = horzLow; sc < horzHigh; sc++ ) {
+		unsigned int ic = sc;
+		unsigned int ir = vertHigh-1;
 
-		pixel dval = erode_point_45( image, ir, ic );
+		PixelType dval = erode_point_45( image, ir, ic );
 		dest[ir*cols+ic] = dval;
 
 		for ( ir--, ic++; ir >= vertLow && ic < horzHigh; ir--, ic++ ) {
-			pixel new_val = image[(ir - barSize)*cols+(ic + barSize)];
-			pixel del_val = image[(ir + 1 + barSize)*cols+(ic - 1 - barSize)];
+			PixelType new_val = image[(ir - barSize)*cols+(ic + barSize)];
+			PixelType del_val = image[(ir + 1 + barSize)*cols+(ic - 1 - barSize)];
 
 			dval = new_val <= dval ? new_val : 
 					del_val > dval ? min(dval, new_val) :
@@ -148,12 +148,12 @@ void SegImpl::erode_45( pixel *dest, pixel *image )
 	}
 }
 
-inline pixel SegImpl::erode_point_90( pixel *image, uint ir, uint ic )
+inline PixelType SegImpl::erode_point_90( PixelType *image, unsigned int ir, unsigned int ic )
 {
 	const int barSize = this->GetMorphologicalOpeningBarSizePx(); 
-	pixel dval = UCHAR_MAX;
-	uint p = (ir-barSize)*cols + ic;
-	uint p_max = (ir+barSize)*cols + ic;
+	PixelType dval = UCHAR_MAX;
+	unsigned int p = (ir-barSize)*cols + ic;
+	unsigned int p_max = (ir+barSize)*cols + ic;
 
 	for ( ; p <= p_max; p += cols ) {
 		if ( image[p] < dval )
@@ -164,21 +164,21 @@ inline pixel SegImpl::erode_point_90( pixel *image, uint ir, uint ic )
 	return dval;
 }
 
-void SegImpl::erode_90( pixel *dest, pixel *image )
+void SegImpl::erode_90( PixelType *dest, PixelType *image )
 {
-	memset( dest, 0, rows*cols*sizeof(pixel) );
+	memset( dest, 0, rows*cols*sizeof(PixelType) );
 
 	const int barSize = this->GetMorphologicalOpeningBarSizePx(); 
 
-	for ( uint ic = horzLow; ic < horzHigh; ic++ ) {
-		uint ir = vertLow;
+	for ( unsigned int ic = horzLow; ic < horzHigh; ic++ ) {
+		unsigned int ir = vertLow;
 
-		pixel dval = erode_point_90( image, ir, ic );
+		PixelType dval = erode_point_90( image, ir, ic );
 		dest[ir*cols+ic] = dval;
 
 		for ( ir++; ir < vertHigh; ir++ ) {
-			pixel new_val = image[(ir + barSize)*cols+ic];
-			pixel del_val = image[(ir - 1 - barSize)*cols+ic];
+			PixelType new_val = image[(ir + barSize)*cols+ic];
+			PixelType del_val = image[(ir - 1 - barSize)*cols+ic];
 
 			dval = new_val <= dval ? new_val : 
 					del_val > dval ? min(dval, new_val) :
@@ -189,12 +189,12 @@ void SegImpl::erode_90( pixel *dest, pixel *image )
 	}
 }
 
-inline pixel SegImpl::erode_point_135( pixel *image, uint ir, uint ic )
+inline PixelType SegImpl::erode_point_135( PixelType *image, unsigned int ir, unsigned int ic )
 {
 	const int barSize = this->GetMorphologicalOpeningBarSizePx(); 
-	pixel dval = UCHAR_MAX;
-	uint p = (ir-barSize)*cols + ic-barSize;
-	uint p_max = (ir+barSize)*cols + ic+barSize;
+	PixelType dval = UCHAR_MAX;
+	unsigned int p = (ir-barSize)*cols + ic-barSize;
+	unsigned int p_max = (ir+barSize)*cols + ic+barSize;
 
 	for ( ; p <= p_max; p = p + cols + 1 ) {
 		if ( image[p] < dval )
@@ -206,23 +206,23 @@ inline pixel SegImpl::erode_point_135( pixel *image, uint ir, uint ic )
 }
 
 
-void SegImpl::erode_135( pixel *dest, pixel *image )
+void SegImpl::erode_135( PixelType *dest, PixelType *image )
 {
-	memset( dest, 0, rows*cols*sizeof(pixel) );
+	memset( dest, 0, rows*cols*sizeof(PixelType) );
 
 	const int barSize = this->GetMorphologicalOpeningBarSizePx(); 
 
 	/* Up the left side. */
-	for ( uint sr = vertHigh-1; sr >= vertLow; sr-- ) {
-		uint ir = sr;
+	for ( unsigned int sr = vertHigh-1; sr >= vertLow; sr-- ) {
+		unsigned int ir = sr;
 
-		uint ic = horzLow;
-		pixel dval = erode_point_135( image, ir, ic );
+		unsigned int ic = horzLow;
+		PixelType dval = erode_point_135( image, ir, ic );
 		dest[ir*cols+ic] = dval;
 
 		for ( ir++, ic++; ir < vertHigh && ic < horzHigh; ir++, ic++ ) {
-			pixel new_val = image[(ir + barSize)*cols+(ic + barSize)];
-			pixel del_val = image[(ir - 1 -barSize)*cols+(ic - 1 - barSize)];
+			PixelType new_val = image[(ir + barSize)*cols+(ic + barSize)];
+			PixelType del_val = image[(ir - 1 -barSize)*cols+(ic - 1 - barSize)];
 
 			dval = new_val <= dval ? new_val : 
 					del_val > dval ? min(dval, new_val) :
@@ -233,16 +233,16 @@ void SegImpl::erode_135( pixel *dest, pixel *image )
 	}
 
 	/* Across the top. */
-	for ( uint sc = horzLow; sc < horzHigh; sc++ ) {
-		uint ic = sc;
-		uint ir = vertLow;
+	for ( unsigned int sc = horzLow; sc < horzHigh; sc++ ) {
+		unsigned int ic = sc;
+		unsigned int ir = vertLow;
 
-		pixel dval = erode_point_135( image, ir, ic );
+		PixelType dval = erode_point_135( image, ir, ic );
 		dest[ir*cols+ic] = dval;
 
 		for ( ir++, ic++; ir < vertHigh && ic < horzHigh; ir++, ic++ ) {
-			pixel new_val = image[(ir + barSize)*cols+(ic + barSize)];
-			pixel del_val = image[(ir - 1 -barSize)*cols+(ic - 1 - barSize)];
+			PixelType new_val = image[(ir + barSize)*cols+(ic + barSize)];
+			PixelType del_val = image[(ir - 1 -barSize)*cols+(ic - 1 - barSize)];
 
 			dval = new_val <= dval ? new_val : 
 					del_val > dval ? min(dval, new_val) :
@@ -253,18 +253,18 @@ void SegImpl::erode_135( pixel *dest, pixel *image )
 	}
 }
 
-void SegImpl::erode_circle( pixel *dest, pixel *image )
+void SegImpl::erode_circle( PixelType *dest, PixelType *image )
 {
 	unsigned int slen = m_SegParams.mMorphologicalCircle.size();
 
-	memset( dest, 0, rows*cols*sizeof(pixel) );
+	memset( dest, 0, rows*cols*sizeof(PixelType) );
 
-	for ( uint ir = vertLow; ir < vertHigh; ir++ ) {
-		for ( uint ic = horzLow; ic < horzHigh; ic++ ) {
-			pixel dval = UCHAR_MAX;
+	for ( unsigned int ir = vertLow; ir < vertHigh; ir++ ) {
+		for ( unsigned int ic = horzLow; ic < horzHigh; ic++ ) {
+			PixelType dval = UCHAR_MAX;
 			for ( unsigned int sp = 0; sp < slen; sp++ ) {
-				uint sr = ir + m_SegParams.mMorphologicalCircle[sp].roff;
-				uint sc = ic + m_SegParams.mMorphologicalCircle[sp].coff;
+				unsigned int sr = ir + m_SegParams.mMorphologicalCircle[sp].roff;
+				unsigned int sc = ic + m_SegParams.mMorphologicalCircle[sp].coff;
 
 				if ( image[sr*cols+sc] < dval )
 					dval = image[sr*cols+sc];
@@ -277,12 +277,12 @@ void SegImpl::erode_circle( pixel *dest, pixel *image )
 	}
 }
 
-inline pixel SegImpl::dilate_point_0( pixel *image, uint ir, uint ic )
+inline PixelType SegImpl::dilate_point_0( PixelType *image, unsigned int ir, unsigned int ic )
 {
 	const int barSize = this->GetMorphologicalOpeningBarSizePx(); 
-	pixel dval = 0;
-	uint p = ir*cols + ic - barSize;
-	uint p_max = ir*cols + ic + barSize;
+	PixelType dval = 0;
+	unsigned int p = ir*cols + ic - barSize;
+	unsigned int p_max = ir*cols + ic + barSize;
 
 	for ( ; p <= p_max; p++ ) {
 		if ( image[p] > dval )
@@ -291,21 +291,21 @@ inline pixel SegImpl::dilate_point_0( pixel *image, uint ir, uint ic )
 	return dval;
 }
 
-void SegImpl::dilate_0( pixel *dest, pixel *image )
+void SegImpl::dilate_0( PixelType *dest, PixelType *image )
 {
-	memset( dest, 0, rows*cols*sizeof(pixel) );
+	memset( dest, 0, rows*cols*sizeof(PixelType) );
 
 	const int barSize = this->GetMorphologicalOpeningBarSizePx(); 
 
-	for ( uint ir = vertLow; ir < vertHigh; ir++ ) {
-		uint ic = horzLow;
-		uint p_base = ir*cols;
+	for ( unsigned int ir = vertLow; ir < vertHigh; ir++ ) {
+		unsigned int ic = horzLow;
+		unsigned int p_base = ir*cols;
 
-		pixel dval = dilate_point_0( image, ir, ic );
+		PixelType dval = dilate_point_0( image, ir, ic );
 		dest[ir*cols+ic] = dval;
 		for ( ic++; ic < horzHigh; ic++ ) {
-			pixel new_val = image[p_base + ic + barSize];
-			pixel del_val = image[p_base + ic - 1 - barSize];
+			PixelType new_val = image[p_base + ic + barSize];
+			PixelType del_val = image[p_base + ic - 1 - barSize];
 
 			dval = new_val >= dval ? new_val :
 					(del_val < dval ? max(dval, new_val) :
@@ -315,12 +315,12 @@ void SegImpl::dilate_0( pixel *dest, pixel *image )
 	}
 }
 
-inline pixel SegImpl::dilate_point_45( pixel *image, uint ir, uint ic )
+inline PixelType SegImpl::dilate_point_45( PixelType *image, unsigned int ir, unsigned int ic )
 {
 	const int barSize = this->GetMorphologicalOpeningBarSizePx(); 
-	pixel dval = 0;
-	uint p = (ir+barSize)*cols + ic-barSize;
-	uint p_max = (ir-barSize)*cols + ic+barSize;
+	PixelType dval = 0;
+	unsigned int p = (ir+barSize)*cols + ic-barSize;
+	unsigned int p_max = (ir-barSize)*cols + ic+barSize;
 
 	for ( ; p >= p_max; p = p - cols + 1 ) {
 		if ( image[p] > dval )
@@ -329,21 +329,21 @@ inline pixel SegImpl::dilate_point_45( pixel *image, uint ir, uint ic )
 	return dval;
 }
 
-void SegImpl::dilate_45( pixel *dest, pixel *image )
+void SegImpl::dilate_45( PixelType *dest, PixelType *image )
 {
-	memset( dest, 0, rows*cols*sizeof(pixel) );
+	memset( dest, 0, rows*cols*sizeof(PixelType) );
 	const int barSize = this->GetMorphologicalOpeningBarSizePx(); 
 
 	/* Down the left side. */
-	for ( uint sr = vertLow; sr < vertHigh; sr++ ) {
-		uint ir = sr;
-		uint ic = horzLow;
+	for ( unsigned int sr = vertLow; sr < vertHigh; sr++ ) {
+		unsigned int ir = sr;
+		unsigned int ic = horzLow;
 
-		pixel dval = dilate_point_45( image, ir, ic );
+		PixelType dval = dilate_point_45( image, ir, ic );
 		dest[ir*cols+ic] = dval ;
 		for ( ir--, ic++; ir >= vertLow && ic < horzHigh; ir--, ic++ ) {
-			pixel new_val = image[(ir - barSize)*cols+(ic + barSize)];
-			pixel del_val = image[(ir + 1 + barSize)*cols+(ic - 1 - barSize)];
+			PixelType new_val = image[(ir - barSize)*cols+(ic + barSize)];
+			PixelType del_val = image[(ir + 1 + barSize)*cols+(ic - 1 - barSize)];
 
 			dval = new_val >= dval ? new_val :
 					(del_val < dval ? max(dval, new_val) :
@@ -353,15 +353,15 @@ void SegImpl::dilate_45( pixel *dest, pixel *image )
 	}
 
 	/* Accross the bottom */
-	for ( uint sc = horzLow; sc < horzHigh; sc++ ) {
-		uint ic = sc;
-		uint ir = vertHigh-1;
+	for ( unsigned int sc = horzLow; sc < horzHigh; sc++ ) {
+		unsigned int ic = sc;
+		unsigned int ir = vertHigh-1;
 
-		pixel dval = dilate_point_45( image, ir, ic );
+		PixelType dval = dilate_point_45( image, ir, ic );
 		dest[ir*cols+ic] = dval ;
 		for ( ir--, ic++; ir >= vertLow && ic < horzHigh; ir--, ic++ ) {
-			pixel new_val = image[(ir - barSize)*cols+(ic + barSize)];
-			pixel del_val = image[(ir + 1 + barSize)*cols+(ic - 1 - barSize)];
+			PixelType new_val = image[(ir - barSize)*cols+(ic + barSize)];
+			PixelType del_val = image[(ir + 1 + barSize)*cols+(ic - 1 - barSize)];
 
 			dval = new_val >= dval ? new_val :
 					(del_val < dval ? max(dval, new_val) :
@@ -371,12 +371,12 @@ void SegImpl::dilate_45( pixel *dest, pixel *image )
 	}
 }
 
-inline pixel SegImpl::dilate_point_90( pixel *image, uint ir, uint ic )
+inline PixelType SegImpl::dilate_point_90( PixelType *image, unsigned int ir, unsigned int ic )
 {
 	const int barSize = this->GetMorphologicalOpeningBarSizePx(); 
-	pixel dval = 0;
-	uint p = (ir-barSize)*cols + ic;
-	uint p_max = (ir+barSize)*cols + ic;
+	PixelType dval = 0;
+	unsigned int p = (ir-barSize)*cols + ic;
+	unsigned int p_max = (ir+barSize)*cols + ic;
 
 	for ( ; p <= p_max; p += cols ) {
 		if ( image[p] > dval )
@@ -385,18 +385,18 @@ inline pixel SegImpl::dilate_point_90( pixel *image, uint ir, uint ic )
 	return dval;
 }
 
-void SegImpl::dilate_90( pixel *dest, pixel *image )
+void SegImpl::dilate_90( PixelType *dest, PixelType *image )
 {
-	memset( dest, 0, rows*cols*sizeof(pixel) );
+	memset( dest, 0, rows*cols*sizeof(PixelType) );
 	const int barSize = this->GetMorphologicalOpeningBarSizePx(); 
 
-	for ( uint ic = horzLow; ic < horzHigh; ic++ ) {
-		uint ir = vertLow;
-		pixel dval = dilate_point_90( image, ir, ic );
+	for ( unsigned int ic = horzLow; ic < horzHigh; ic++ ) {
+		unsigned int ir = vertLow;
+		PixelType dval = dilate_point_90( image, ir, ic );
 		dest[ir*cols+ic] = dval ;
 		for ( ir++; ir < vertHigh; ir++ ) {
-			pixel new_val = image[(ir + barSize)*cols+ic];
-			pixel del_val = image[(ir - 1 - barSize)*cols+ic];
+			PixelType new_val = image[(ir + barSize)*cols+ic];
+			PixelType del_val = image[(ir - 1 - barSize)*cols+ic];
 
 			dval = new_val >= dval ? new_val :
 					(del_val < dval ? max(dval, new_val) :
@@ -407,12 +407,12 @@ void SegImpl::dilate_90( pixel *dest, pixel *image )
 	}
 }
 
-inline pixel SegImpl::dilate_point_135( pixel *image, uint ir, uint ic )
+inline PixelType SegImpl::dilate_point_135( PixelType *image, unsigned int ir, unsigned int ic )
 {
 	const int barSize = this->GetMorphologicalOpeningBarSizePx(); 
-	pixel dval = 0;
-	uint p = (ir-barSize)*cols + ic-barSize;
-	uint p_max = (ir+barSize)*cols + ic+barSize;
+	PixelType dval = 0;
+	unsigned int p = (ir-barSize)*cols + ic-barSize;
+	unsigned int p_max = (ir+barSize)*cols + ic+barSize;
 
 	for ( ; p <= p_max; p = p + cols + 1 ) {
 		if ( image[p] > dval )
@@ -421,20 +421,20 @@ inline pixel SegImpl::dilate_point_135( pixel *image, uint ir, uint ic )
 	return dval;
 }
 
-void SegImpl::dilate_135( pixel *dest, pixel *image )
+void SegImpl::dilate_135( PixelType *dest, PixelType *image )
 {
-	memset( dest, 0, rows*cols*sizeof(pixel) );
+	memset( dest, 0, rows*cols*sizeof(PixelType) );
 	const int barSize = this->GetMorphologicalOpeningBarSizePx(); 
 
 	/* Up the left side. */
-	for ( uint sr = vertHigh-1; sr >= vertLow; sr-- ) {
-		uint ir = sr;
-		uint ic = horzLow;
-		pixel dval = dilate_point_135( image, ir, ic );
+	for ( unsigned int sr = vertHigh-1; sr >= vertLow; sr-- ) {
+		unsigned int ir = sr;
+		unsigned int ic = horzLow;
+		PixelType dval = dilate_point_135( image, ir, ic );
 		dest[ir*cols+ic] = dval ;
 		for ( ir++, ic++; ir < vertHigh && ic < horzHigh; ir++, ic++ ) {
-			pixel new_val = image[(ir + barSize)*cols+(ic + barSize)];
-			pixel del_val = image[(ir - 1 -barSize)*cols+(ic - 1 - barSize)];
+			PixelType new_val = image[(ir + barSize)*cols+(ic + barSize)];
+			PixelType del_val = image[(ir - 1 -barSize)*cols+(ic - 1 - barSize)];
 
 			dval = new_val >= dval ? new_val :
 					(del_val < dval ? max(dval, new_val) :
@@ -444,14 +444,14 @@ void SegImpl::dilate_135( pixel *dest, pixel *image )
 	}
 
 	/* Across the top. */
-	for ( uint sc = horzLow; sc < horzHigh; sc++ ) {
-		uint ic = sc;
-		uint ir = vertLow;
-		pixel dval = dilate_point_135( image, ir, ic );
+	for ( unsigned int sc = horzLow; sc < horzHigh; sc++ ) {
+		unsigned int ic = sc;
+		unsigned int ir = vertLow;
+		PixelType dval = dilate_point_135( image, ir, ic );
 		dest[ir*cols+ic] = dval;
 		for ( ir++, ic++; ir < vertHigh && ic < horzHigh; ir++, ic++ ) {
-			pixel new_val = image[(ir + barSize)*cols+(ic + barSize)];
-			pixel del_val = image[(ir - 1 -barSize)*cols+(ic - 1 - barSize)];
+			PixelType new_val = image[(ir + barSize)*cols+(ic + barSize)];
+			PixelType del_val = image[(ir - 1 -barSize)*cols+(ic - 1 - barSize)];
 
 			dval = new_val >= dval ? new_val :
 					(del_val < dval ? max(dval, new_val) : 
@@ -461,20 +461,20 @@ void SegImpl::dilate_135( pixel *dest, pixel *image )
 	}
 }
 
-inline pixel SegImpl::dilate_point( pixel *image, uint ir, uint ic, 
+inline PixelType SegImpl::dilate_point( PixelType *image, unsigned int ir, unsigned int ic, 
                 Item *shape, int slen )
 {
-	pixel dval = 0;
+	PixelType dval = 0;
 	for ( int sp = 0; sp < slen; sp++ ) {
-		uint sr = ir + shape[sp].roff;
-		uint sc = ic + shape[sp].coff;
+		unsigned int sr = ir + shape[sp].roff;
+		unsigned int sc = ic + shape[sp].coff;
 		if ( image[sr*cols+sc] > dval )
 			dval = image[sr*cols+sc];
 	}
 	return dval;
 }
 
-void SegImpl::dilate_circle( pixel *dest, pixel *image )
+void SegImpl::dilate_circle( PixelType *dest, PixelType *image )
 {
 	unsigned int slen = m_SegParams.mMorphologicalCircle.size();
 
@@ -511,20 +511,20 @@ void SegImpl::dilate_circle( pixel *dest, pixel *image )
 
 	delete [] sr_exist; 
 
-	memset( dest, 0, rows*cols*sizeof(pixel) );
-	for ( uint ir = vertLow; ir < vertHigh; ir++ ) {
-		uint ic = horzLow;
+	memset( dest, 0, rows*cols*sizeof(PixelType) );
+	for ( unsigned int ir = vertLow; ir < vertHigh; ir++ ) {
+		unsigned int ic = horzLow;
 
-		pixel dval = dilate_point( image, ir, ic, shape, slen );
-		pixel last = dest[ir*cols+ic] = dval;
+		PixelType dval = dilate_point( image, ir, ic, shape, slen );
+		PixelType last = dest[ir*cols+ic] = dval;
 		
 		for ( ic++; ic < horzHigh; ic++ ) {
-			pixel dval = dilate_point( image, ir, ic, new_items, n_new_items );
+			PixelType dval = dilate_point( image, ir, ic, new_items, n_new_items );
 
 			if ( dval < last ) {
 				for ( int sp = 0; sp < n_old_items; sp++ ) {
-					uint sr = ir + old_items[sp].roff;
-					uint sc = ic + old_items[sp].coff;
+					unsigned int sr = ir + old_items[sp].roff;
+					unsigned int sc = ic + old_items[sp].coff;
 					if ( image[sr*cols+sc] > dval )
 						dval = image[sr*cols+sc];
 
@@ -539,16 +539,16 @@ void SegImpl::dilate_circle( pixel *dest, pixel *image )
 	delete [] old_items; 
 }
 
-void SegImpl::subtract( pixel *image, pixel *vals )
+void SegImpl::subtract( PixelType *image, PixelType *vals )
 {
-	for ( uint pos = 0; pos < rows*cols; pos++ )
+	for ( unsigned int pos = 0; pos < rows*cols; pos++ )
 		image[pos] = vals[pos] > image[pos] ? 0 : image[pos] - vals[pos];
 	
 }
 
 
 
-void SegImpl::dynamicThresholding( pixel *pixelArray)
+void SegImpl::dynamicThresholding( PixelType *pixelArray)
 {
 	
 
@@ -675,7 +675,7 @@ out how to do it*/
 
 	
 }
-void SegImpl::WritePng(pixel *modifiedImage, std::string outImageName, int cols, int rows) 
+void SegImpl::WritePng(PixelType *modifiedImage, std::string outImageName, int cols, int rows) 
 {
 
 // output intermediate image

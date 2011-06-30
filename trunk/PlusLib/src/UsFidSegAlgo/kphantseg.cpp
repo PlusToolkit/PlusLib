@@ -27,16 +27,16 @@ const int WHITE = 255;
  *  1. Track the frame-to-frame data?
  *  2. Lines should be roughly of the same length? */
 
-void SegImpl::suppress( pixel *image, float percent_thresh_top, float percent_thresh_bottom )
+void SegImpl::suppress( PixelType *image, float percent_thresh_top, float percent_thresh_bottom )
 {
-	pixel max = 0;
-	for ( uint pos = 0; pos < size; pos ++ ) {
+	PixelType max = 0;
+	for ( unsigned int pos = 0; pos < size; pos ++ ) {
 		if ( image[pos] > max )
 			max = image[pos];
 	}
 
-	pixel min = 255; 
-	for ( uint currentPos = 0; currentPos < size; currentPos ++) 
+	PixelType min = 255; 
+	for ( unsigned int currentPos = 0; currentPos < size; currentPos ++) 
 	{ 
 		if( image[currentPos] < min)
 		{ 
@@ -48,8 +48,8 @@ void SegImpl::suppress( pixel *image, float percent_thresh_top, float percent_th
 	// NOTE: round/roundf are not ANSI C++ math functions. 
 	//       We use floor to calculate the round value here.
 	
-	pixel thresh_top = min+(pixel)floor( (float)(max-min) * percent_thresh_top + 0.5 );
-	pixel thresh_bottom = min+(pixel)floor( (float)(max-min) * percent_thresh_bottom + 0.5 );
+	PixelType thresh_top = min+(PixelType)floor( (float)(max-min) * percent_thresh_top + 0.5 );
+	PixelType thresh_bottom = min+(PixelType)floor( (float)(max-min) * percent_thresh_bottom + 0.5 );
 	
 
 	typedef unsigned char			PixelType; 
@@ -238,7 +238,7 @@ inline bool SegImpl::accept_dot( const Dot &dot )
 	return false;
 }
 
-inline void SegImpl::trypos( pixel *image, int r, int c )
+inline void SegImpl::trypos( PixelType *image, int r, int c )
 {
 	if ( image[r*cols+c] > 0 && ntest < MAX_CLUSTER_VALS && 
 			nset < MAX_CLUSTER_VALS )
@@ -259,8 +259,8 @@ Dot * SegImpl::cluster()
 
 	Dot dot;
 
-	for ( uint r = vertLow; r < vertHigh; r++ ) {
-		for ( uint c = horzLow; c < horzHigh; c++ ) {
+	for ( unsigned int r = vertLow; r < vertHigh; r++ ) {
+		for ( unsigned int c = horzLow; c < horzHigh; c++ ) {
 			if ( working[r*cols+c] > 0 ) {
 
 				test[0].r = r, test[0].c = c;
@@ -617,7 +617,7 @@ void SegImpl::sort_right_to_left( Line *line )
 		line->b[i] = points[i] - dots;
 	}
 }
-void SegImpl::WritePossibleFiducialOverlayImage(Dot *fiducials, pixel *unalteredImage)
+void SegImpl::WritePossibleFiducialOverlayImage(Dot *fiducials, PixelType *unalteredImage)
 {
 	typedef itk::RGBPixel< unsigned char >    PixelType;
 	typedef itk::Image< PixelType, 2 >   ImageType;
@@ -644,9 +644,9 @@ void SegImpl::WritePossibleFiducialOverlayImage(Dot *fiducials, pixel *unaltered
 	ImageType::PixelType pixelValue; 
 
 	// copy pixel by pixel (we need to do gray->RGB conversion and only a ROI is updated)
-	for ( uint r = vertLow; r < vertHigh; r++ ) 
+	for ( unsigned int r = vertLow; r < vertHigh; r++ ) 
 	{
-		for ( uint c = horzLow; c < horzHigh; c++ ) 
+		for ( unsigned int c = horzLow; c < horzHigh; c++ ) 
 		{
 			pixelValue[0] = 0; //unalteredImage[r*cols+c];
 			pixelValue[1] = unalteredImage[r*cols+c];
@@ -705,7 +705,7 @@ void SegImpl::WritePossibleFiducialOverlayImage(Dot *fiducials, pixel *unaltered
 }
 
 
-void SegImpl::uscseg( pixel *image, const SegmentationParameters &segParams, SegmentationResults &segResult )
+void SegImpl::uscseg( PixelType *image, const SegmentationParameters &segParams, SegmentationResults &segResult )
 {
 	ndots = nlines = npairs = 0;
 	ntest = nset = nlines2pt = 0;
@@ -1062,12 +1062,12 @@ KPhantomSeg::KPhantomSeg(int sizeX, int sizeY,
 	m_SegImpl = new SegImpl;
 
 	m_SegImpl->size = sizeX*sizeY;
-	m_SegImpl->bytes = sizeX*sizeY*sizeof(pixel);
+	m_SegImpl->bytes = sizeX*sizeY*sizeof(PixelType);
 
-	m_SegImpl->dilated = new pixel[m_SegImpl->size];
-	m_SegImpl->eroded = new pixel[m_SegImpl->size];
-	m_SegImpl->working = new pixel[m_SegImpl->size];
-	m_SegImpl->unalteredImage = new pixel[m_SegImpl->size]; 
+	m_SegImpl->dilated = new PixelType[m_SegImpl->size];
+	m_SegImpl->eroded = new PixelType[m_SegImpl->size];
+	m_SegImpl->working = new PixelType[m_SegImpl->size];
+	m_SegImpl->unalteredImage = new PixelType[m_SegImpl->size]; 
 
 	m_SegImpl->rows = sizeY;
 	m_SegImpl->cols = sizeX;
