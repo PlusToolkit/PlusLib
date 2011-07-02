@@ -23,6 +23,14 @@ ELSE()
     )
 ENDIF()
 
+
+SET(PLUSBUILD_Slicer_ARGS -DPLUS_USE_SLICER:BOOL=${PLUSBUILD_USE_3DSlicer} )
+IF (PLUSBUILD_USE_3DSlicer)
+    SET(PLUSBUILD_Slicer_ARGS ${PLUSBUILD_Slicer_ARGS}
+            -DSLICER_BIN_DIRECTORY=${PLUSBUILD_SLICER_BIN_DIRECTORY}
+        )
+ENDIF()        
+
 # --------------------------------------------------------------------------
 # PlusLib
 SET (PLUS_PLUSLIB_DIR ${CMAKE_BINARY_DIR}/PlusLib CACHE INTERNAL "Path to store PlusLib contents.")
@@ -40,6 +48,7 @@ ExternalProject_Add(PlusLib
                 -DSubversion_SVN_EXECUTABLE:FILEPATH=${Subversion_SVN_EXECUTABLE}
                 ${PLUSBUILD_OpenIGTLink_ARGS}
                 ${PLUSBUILD_PLTools_ARGS}
+                ${PLUSBUILD_Slicer_ARGS}
                 -DPLUS_USE_SONIX_VIDEO:BOOL=${PLUS_USE_SONIX_VIDEO}
                 -DPLUS_USE_ICCAPTURING_VIDEO:BOOL=${PLUS_USE_ICCAPTURING_VIDEO}
                 -DPLUS_USE_VFW_VIDEO:BOOL=${PLUS_USE_VFW_VIDEO}
