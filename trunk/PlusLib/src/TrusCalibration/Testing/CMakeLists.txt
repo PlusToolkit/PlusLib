@@ -16,7 +16,6 @@ ADD_TEST(vtkUSCalibrationControllerTest-Exact
 		--input-phantom-definition-xml-file-name=${ConfigFilesDir}/PhantomDefinition_iCal_1.0.xml
 		--input-template-model-config-file-name=${ConfigFilesDir}/TemplateModel.xml 
 		--input-baseline-file-name=${TestDataDir}/UsTemplateCalibration.results.xml 
-		--verbose=1
 		)
 SET_TESTS_PROPERTIES( vtkUSCalibrationControllerTest-Exact PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
@@ -33,7 +32,6 @@ ADD_TEST(vtkUSCalibrationControllerTest
 		--input-baseline-file-name=${TestDataDir}/UsTemplateCalibration.results.xml 
 		--translation-error-threshold=1.0
 		--rotation-error-threshold=1.0
-		--verbose=1
 		)
 SET_TESTS_PROPERTIES( vtkUSCalibrationControllerTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
@@ -48,7 +46,6 @@ ADD_TEST(vtkUSCalibrationControllerTest_FrameGrabber-Exact
 		--input-template-model-config-file-name=${ConfigFilesDir}/TemplateModel.xml 
 		--input-phantom-definition-xml-file-name=${ConfigFilesDir}/PhantomDefinition_iCal_1.0.xml
 		--input-baseline-file-name=${TestDataDir}/UsTemplateCalibration_FrameGrabber.results.xml 
-		--verbose=1
 		)
 SET_TESTS_PROPERTIES( vtkUSCalibrationControllerTest_FrameGrabber-Exact PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
@@ -65,7 +62,6 @@ ADD_TEST(vtkUSCalibrationControllerTest_FrameGrabber
 		--input-baseline-file-name=${TestDataDir}/UsTemplateCalibration_FrameGrabber.results.xml 
 		--translation-error-threshold=1.0
 		--rotation-error-threshold=1.0
-		--verbose=1
 		)
 SET_TESTS_PROPERTIES( vtkUSCalibrationControllerTest_FrameGrabber PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 		
@@ -84,7 +80,6 @@ TARGET_LINK_LIBRARIES(vtkStepperCalibrationControllerTest itkvnl itkvnl_algo vtk
         # --input-centerofrotation-sequence-metafile=${TestDataDir}/UsTemplateCalibrationRotationBaseline.mha
 		# --input-config-file-name=${ConfigFilesDir}/USCalibrationConfig.xml
 		# --input-baseline-file-name=${TestDataDir}/UsTemplateCalibration.results.xml 
-		# --verbose=1
 		# )
 #SET_TESTS_PROPERTIES( vtkStepperCalibrationControllerTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
@@ -97,7 +92,6 @@ ADD_TEST(vtkStylusCalibrationTest
 		--input-config-file-name=${ConfigFilesDir}/Test_USDataCollectionConfig_VideoNone_FakeTracker_PivotCalibration.xml
 		--input-baseline-file-name=${TestDataDir}/StylusCalibration.results.xml 
 		--number-of-acquired-points=100
-		--verbose=1
 		)
 SET_TESTS_PROPERTIES( vtkStylusCalibrationTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
@@ -111,7 +105,6 @@ ADD_TEST(vtkPhantomRegistrationTest
 		--input-baseline-file-name=${TestDataDir}/PhantomRegistration.results.xml
 		--input-stylus-calibration-xml-file-name=${TestDataDir}/StylusCalibration.results.xml
 		--input-phantom-definition-xml-file-name=${ConfigFilesDir}/PhantomDefinition_fCal_1.0.xml
-		--verbose=1
 		)
 SET_TESTS_PROPERTIES( vtkPhantomRegistrationTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
@@ -129,6 +122,5 @@ ADD_TEST(vtkFreehandCalibrationTest
 		--input-phantom-registration-xml-file-name=${TestDataDir}/PhantomRegistration.results.xml
 		--input-stylus-calibration-xml-file-name=${TestDataDir}/StylusCalibration.results.xml
 		--input-phantom-definition-xml-file-name=${ConfigFilesDir}/PhantomDefinition_fCal_1.0.xml
-		--verbose=1
 		)
 SET_TESTS_PROPERTIES( vtkFreehandCalibrationTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )

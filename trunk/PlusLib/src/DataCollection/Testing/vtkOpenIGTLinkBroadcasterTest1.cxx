@@ -118,7 +118,7 @@ int main( int argc, char** argv )
       exit( BC_EXIT_FAILURE );
     case vtkOpenIGTLinkBroadcaster::STATUS_HOST_NOT_FOUND:
       LOG_ERROR("Could not connect to host: " << errorMessage);
-      exit( BC_EXIT_SUCCESS );
+      exit( BC_EXIT_FAILURE );
     case vtkOpenIGTLinkBroadcaster::STATUS_MISSING_DEFAULT_TOOL:
       LOG_ERROR("Default tool not defined. ");
       exit( BC_EXIT_FAILURE );
