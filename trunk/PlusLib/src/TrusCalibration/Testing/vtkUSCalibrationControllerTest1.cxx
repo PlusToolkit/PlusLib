@@ -26,6 +26,7 @@ double GetRotationError(vtkMatrix4x4* baseTransMatrix, vtkMatrix4x4* currentTran
 
 int main (int argc, char* argv[])
 { 
+    int numberOfFailures(0); 
 	std::string inputRandomStepperMotion1SeqMetafile;
 	std::string inputRandomStepperMotion2SeqMetafile;
 	std::string inputProbeRotationSeqMetafile;
@@ -68,6 +69,7 @@ int main (int argc, char* argv[])
 	}
 
 	PlusLogger::Instance()->SetLogLevel(verboseLevel);
+    PlusLogger::Instance()->SetDisplayLogLevel(verboseLevel); 
 
 	VTK_LOG_TO_CONSOLE_ON; 
 
@@ -99,9 +101,24 @@ int main (int argc, char* argv[])
 
 	stepperCal->Initialize(); 
 
-	stepperCal->OfflineProbeRotationAxisCalibration(); 
-	stepperCal->OfflineProbeTranslationAxisCalibration();
-	stepperCal->OfflineTemplateTranslationAxisCalibration(); 
+	if ( stepperCal->OfflineProbeRotationAxisCalibration() != PLUS_SUCCESS )
+    {
+        numberOfFailures++; 
+        LOG_ERROR("OfflineProbeRotationAxisCalibration failed!"); 
+
+    }
+
+	if ( stepperCal->OfflineProbeTranslationAxisCalibration() != PLUS_SUCCESS )
+    {
+        numberOfFailures++; 
+        LOG_ERROR("OfflineProbeTranslationAxisCalibration failed!"); 
+    }
+
+	if ( stepperCal->OfflineTemplateTranslationAxisCalibration() != PLUS_SUCCESS )
+    {
+        numberOfFailures++; 
+        LOG_ERROR("OfflineTemplateTranslationAxisCalibration failed!"); 
+    }
 
 	// Initialize the stepper calibration controller 
 	vtkSmartPointer<vtkProbeCalibrationController> probeCal = vtkSmartPointer<vtkProbeCalibrationController>::New(); 
@@ -123,17 +140,29 @@ int main (int argc, char* argv[])
 
 	// Register phantom geometry before calibration 
 	probeCal->RegisterPhantomGeometry( stepperCal->GetPhantomToProbeDistanceInMm() ); 
-	probeCal->OfflineUSToTemplateCalibration();  
-	probeCal->ComputeCalibrationResults(); 
+	if ( probeCal->OfflineUSToTemplateCalibration() == PLUS_SUCCESS )
+    {
+	    probeCal->ComputeCalibrationResults(); 
+    }
+    else
+    {
+        numberOfFailures++; 
+        LOG_ERROR("OfflineUSToTemplateCalibration failed!"); 
+    }
 
 	vtkstd::string currentConfigFileName = probeCal->GetCalibrationResultFileNameWithPath(); 
 
 	if ( CompareCalibrationResultsWithBaseline( inputBaselineFileName.c_str(), currentConfigFileName.c_str(), inputTranslationErrorThreshold, inputRotationErrorThreshold ) !=0 )
 	{
+        numberOfFailures++; 
 		LOG_ERROR("Comparison of calibration data to baseline failed");
-		std::cout << "Exit failure!!!" << std::endl; 
-		return EXIT_FAILURE;
 	}
+
+    if ( numberOfFailures > 0 )
+    {
+        std::cout << "Test exited with failures!!!" << std::endl; 
+		return EXIT_FAILURE;
+    }
 
 	std::cout << "Exit success!!!" << std::endl; 
 	return EXIT_SUCCESS; 
