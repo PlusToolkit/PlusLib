@@ -928,7 +928,7 @@ void vtkTracker::DeepCopy(vtkTracker *tracker)
 	LOG_TRACE("vtkTracker::DeepCopy"); 
 	this->SetNumberOfTools( tracker->GetNumberOfTools() ); 
 	this->SetTrackerCalibrated( tracker->GetTrackerCalibrated() ); 
-
+    
 	tracker->Lock(); 
 	this->Lock(); 
 	for ( int i = 0; i < this->NumberOfTools; i++ )
@@ -941,8 +941,15 @@ void vtkTracker::DeepCopy(vtkTracker *tracker)
 	
 	this->WorldCalibrationMatrix->DeepCopy( tracker->GetWorldCalibrationMatrix() ); 
 	this->InternalUpdateRate = tracker->GetInternalUpdateRate();
-	this->Frequency = tracker->GetFrequency(); 
-	
+	this->SetFrequency(tracker->GetFrequency()); 
+    this->SetServerMode(tracker->GetServerMode()); 
+    this->SetNetworkPort(tracker->GetNetworkPort()); 
+    this->SetRemoteAddress(tracker->GetRemoteAddress()); 
+    this->SetTrackerCalibrated(tracker->GetTrackerCalibrated()); 
+    this->Timer->DeepCopy( tracker->Timer ); 
+    this->SetConfigurationData( tracker->GetConfigurationData() ); 
+    this->SetReferenceToolName( tracker->GetReferenceToolName() ); 
+    this->SetDefaultToolName( tracker->GetDefaultToolName() ); 
 }
 
 

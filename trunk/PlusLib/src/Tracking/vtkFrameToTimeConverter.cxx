@@ -233,7 +233,17 @@ double vtkFrameToTimeConverter::GetInstantaneousFrequency()
 	return 1.0/this->EstimatedFramePeriod;
 }
 
-
+//----------------------------------------------------------------------------
+void vtkFrameToTimeConverter::DeepCopy(vtkFrameToTimeConverter *converter)
+{
+    this->SetNominalFrequency( converter->GetNominalFrequency() ); 
+    this->LastTimeStamp = converter->LastTimeStamp; 
+    this->LastUnfilteredTimeStamp = converter->LastUnfilteredTimeStamp; 
+    this->LastFrameCount = converter->LastFrameCount; 
+    this->EstimatedFramePeriod = converter->EstimatedFramePeriod; 
+    this->AveragedFramePeriods = converter->AveragedFramePeriods; 
+    this->MaximumFramePeriodJitter = converter->MaximumFramePeriodJitter;
+}
 
 
 
