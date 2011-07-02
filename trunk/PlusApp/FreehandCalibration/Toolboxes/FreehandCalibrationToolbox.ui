@@ -220,7 +220,7 @@
           </property>
           <property name="icon">
            <iconset resource="../FreehandCalibration.qrc">
-            <normaloff>:/icon_/CommonWidgets/Resources/icon_OpenFile.png</normaloff>:/icon_/CommonWidgets/Resources/icon_OpenFile.png</iconset>
+            <normaloff>:/icons/CommonWidgets/Resources/icon_OpenFile.png</normaloff>:/icons/CommonWidgets/Resources/icon_OpenFile.png</iconset>
           </property>
           <property name="iconSize">
            <size>
@@ -282,7 +282,7 @@
           </property>
           <property name="icon">
            <iconset resource="../FreehandCalibration.qrc">
-            <normaloff>:/icon_/CommonWidgets/Resources/icon_OpenFile.png</normaloff>:/icon_/CommonWidgets/Resources/icon_OpenFile.png</iconset>
+            <normaloff>:/icons/CommonWidgets/Resources/icon_OpenFile.png</normaloff>:/icons/CommonWidgets/Resources/icon_OpenFile.png</iconset>
           </property>
           <property name="iconSize">
            <size>
@@ -344,7 +344,7 @@
           </property>
           <property name="icon">
            <iconset resource="../FreehandCalibration.qrc">
-            <normaloff>:/icon_/CommonWidgets/Resources/icon_OpenFile.png</normaloff>:/icon_/CommonWidgets/Resources/icon_OpenFile.png</iconset>
+            <normaloff>:/icons/CommonWidgets/Resources/icon_OpenFile.png</normaloff>:/icons/CommonWidgets/Resources/icon_OpenFile.png</iconset>
           </property>
           <property name="iconSize">
            <size>

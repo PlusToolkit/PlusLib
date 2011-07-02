@@ -70,7 +70,7 @@
        </property>
        <property name="icon">
         <iconset resource="CommonWidgets.qrc">
-         <normaloff>:/icon_/Resources/icon_OpenFile.png</normaloff>:/icon_/Resources/icon_OpenFile.png</iconset>
+         <normaloff>:/icons/Resources/icon_OpenFile.png</normaloff>:/icons/Resources/icon_OpenFile.png</iconset>
        </property>
        <property name="iconSize">
         <size>
@@ -152,7 +152,7 @@
        </property>
        <property name="icon">
         <iconset resource="CommonWidgets.qrc">
-         <normaloff>:/icon_/Resources/icon_Connect.png</normaloff>:/icon_/Resources/icon_Connect.png</iconset>
+         <normaloff>:/icons/Resources/icon_Connect.png</normaloff>:/icons/Resources/icon_Connect.png</iconset>
        </property>
       </widget>
      </item>

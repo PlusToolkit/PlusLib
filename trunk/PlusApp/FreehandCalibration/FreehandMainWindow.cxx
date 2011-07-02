@@ -6,7 +6,7 @@
 #include "PhantomRegistrationToolbox.h"
 #include "FreehandCalibrationToolbox.h"
 #include "VolumeReconstructionToolbox.h"
-#include "PlusLogger.h"
+#include "StatusIcon.h"
 
 #include <QTimer>
 #include <QDir>
@@ -25,9 +25,6 @@ FreehandMainWindow::FreehandMainWindow(QWidget *parent, Qt::WFlags flags)
 {
 	// Set up UI
 	ui.setupUi(this);
-
-	// Set callback for logger to display errors
-	PlusLogger::Instance()->SetDisplayMessageCallbackFunction(DisplayMessage);
 
 	// Make connections
 	connect(ui.tabWidgetToolbox, SIGNAL(currentChanged(int)), this, SLOT(CurrentTabChanged(int)) );
@@ -73,7 +70,7 @@ FreehandMainWindow::~FreehandMainWindow()
 {
 	vtkFreehandController* controller = vtkFreehandController::GetInstance();
 	if (controller != NULL) {
-		controller->Delete();
+		controller->Delete(); //TODO Because of this variable, reference count is non-zero, so it cannot be deleted
 	}
 }
 
@@ -147,9 +144,14 @@ void FreehandMainWindow::SetupStatusBar()
 	m_StatusBarProgress->setSizePolicy(sizePolicy);
 	m_StatusBarProgress->hide();
 
-	//TODO add icon indicating the status. Warning and error messages can be read as tooltip on hover
 	ui.statusBar->addWidget(m_StatusBarLabel, 1);
 	ui.statusBar->addPermanentWidget(m_StatusBarProgress, 3);
+	
+	StatusIcon* statusIcon = new StatusIcon(this);
+	ui.statusBar->addPermanentWidget(statusIcon);
+
+	// Set callback for logger to display errors
+	PlusLogger::Instance()->SetDisplayMessageCallbackFunction(StatusIcon::AddMessage);
 }
 
 //-----------------------------------------------------------------------------
@@ -411,7 +413,7 @@ void FreehandMainWindow::LocateDirectories()
 }
 
 //-----------------------------------------------------------------------------
-
+/*
 void FreehandMainWindow::DisplayMessage(const char* aMessage, const int aLevel)
 {
 	QString message(aMessage);
@@ -428,3 +430,4 @@ void FreehandMainWindow::DisplayMessage(const char* aMessage, const int aLevel)
 			break;
 	}
 }
+*/

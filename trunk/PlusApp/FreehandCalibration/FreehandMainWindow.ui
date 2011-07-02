@@ -15,7 +15,7 @@
   </property>
   <property name="windowIcon">
    <iconset resource="FreehandCalibration.qrc">
-    <normaloff>:/icon_/Resources/icon_fCal.png</normaloff>:/icon_/Resources/icon_fCal.png</iconset>
+    <normaloff>:/icons/Resources/icon_fCal.png</normaloff>:/icons/Resources/icon_fCal.png</iconset>
   </property>
   <widget class="QWidget" name="centralWidget">
    <layout class="QGridLayout" name="gridLayout">

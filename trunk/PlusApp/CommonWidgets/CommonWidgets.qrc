@@ -1,6 +1,10 @@
 <RCC>
-  <qresource prefix="icon_">
+  <qresource prefix="icons">
     <file>Resources/icon_Connect.png</file>
     <file>Resources/icon_OpenFile.png</file>
+    <file>Resources/icon_DotGray.png</file>
+    <file>Resources/icon_DotGreen.png</file>
+    <file>Resources/icon_DotOrange.png</file>
+    <file>Resources/icon_DotRed.png</file>
   </qresource>
 </RCC>
