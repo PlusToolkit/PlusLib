@@ -45,7 +45,7 @@ public:
 	virtual void ComputeCalibrationResults();
 
 	//! Operation: Read and populate US to Template calibration image data in offline mode
-	virtual void OfflineUSToTemplateCalibration(); 
+	virtual PlusStatus OfflineUSToTemplateCalibration(); 
 
 	//! Description 
 	// Read XML based configuration of the calibration controller

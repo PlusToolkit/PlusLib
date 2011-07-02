@@ -1757,6 +1757,12 @@ PlusStatus vtkStepperCalibrationController::CalculateCenterOfRotation( const Seg
 		pointSetForCenterOfRotationCalculation.push_back(vectorOfWirePoints); 
 	}
 
+    if ( pointSetForCenterOfRotationCalculation.size() < 30 )
+    {
+        LOG_WARNING("Center of rotation calculation failed - there is not enough data (" << pointSetForCenterOfRotationCalculation.size() << " out of at least 30)!"); 
+		return PLUS_FAIL; 
+   }
+
 	// Data containers
 	std::vector<vnl_vector<double>> aMatrix;
 	std::vector<double> bVector;
@@ -2341,7 +2347,7 @@ PlusStatus vtkStepperCalibrationController::GetStepperEncoderValues( TrackedFram
 }
 
 //----------------------------------------------------------------------------
-void vtkStepperCalibrationController::OfflineProbeRotationAxisCalibration()
+PlusStatus vtkStepperCalibrationController::OfflineProbeRotationAxisCalibration()
 {
 	LOG_TRACE("vtkStepperCalibrationController::OfflineProbeRotationAxisCalibration"); 
 	if ( ! this->GetInitialized() ) 
@@ -2357,7 +2363,7 @@ void vtkStepperCalibrationController::OfflineProbeRotationAxisCalibration()
 	else
 	{
 		LOG_ERROR("Unable to start OfflineProbeRotationAxisCalibration with probe rotation data: SequenceMetaFileName is empty!"); 
-		return; 
+		return PLUS_FAIL; 
 	}
 
 	int frameCounter(0); 
@@ -2381,14 +2387,17 @@ void vtkStepperCalibrationController::OfflineProbeRotationAxisCalibration()
 	LOG_INFO ( "A total of " << frameCounter << " images (" << 100*frameCounter/imgNumber << "%) have been successfully added for probe rotation axis calibration.");
 	trackedFrameList->Clear(); 
 
-	if ( !this->CalibrateProbeRotationAxis() )
+	if ( this->CalibrateProbeRotationAxis() != PLUS_SUCCESS)
 	{
 		LOG_ERROR("Unable to calibrate probe rotation axis!"); 
+        return PLUS_FAIL; 
 	}
+
+    return PLUS_SUCCESS; 
 }
 
 //----------------------------------------------------------------------------
-void vtkStepperCalibrationController::OfflineProbeTranslationAxisCalibration()
+PlusStatus vtkStepperCalibrationController::OfflineProbeTranslationAxisCalibration()
 {
 	LOG_TRACE("vtkStepperCalibrationController::OfflineProbeTranslationAxisCalibration"); 
 	if ( ! this->GetInitialized() ) 
@@ -2404,7 +2413,7 @@ void vtkStepperCalibrationController::OfflineProbeTranslationAxisCalibration()
 	else
 	{
 		LOG_ERROR("Unable to start OfflineProbeTranslationAxisCalibration with probe translation data: SequenceMetaFileName is empty!"); 
-		return; 
+		return PLUS_FAIL; 
 	}
 
 	int frameCounter(0); 
@@ -2428,14 +2437,17 @@ void vtkStepperCalibrationController::OfflineProbeTranslationAxisCalibration()
 	LOG_INFO ( "A total of " << frameCounter << " images (" << 100*frameCounter/imgNumber << "%) have been successfully added for probe translation axis calibration.");
 
 	trackedFrameList->Clear(); 
-	if ( !this->CalibrateProbeTranslationAxis() )
+	if ( this->CalibrateProbeTranslationAxis() != PLUS_SUCCESS )
 	{
 		LOG_ERROR("Unable to calibrate probe translation axis!"); 
+        return PLUS_FAIL; 
 	}
+
+    return PLUS_SUCCESS; 
 }
 
 //----------------------------------------------------------------------------
-void vtkStepperCalibrationController::OfflineTemplateTranslationAxisCalibration()
+PlusStatus vtkStepperCalibrationController::OfflineTemplateTranslationAxisCalibration()
 {
 	LOG_TRACE("vtkStepperCalibrationController::OfflineTemplateTranslationAxisCalibration"); 
 	if ( ! this->GetInitialized() ) 
@@ -2451,7 +2463,7 @@ void vtkStepperCalibrationController::OfflineTemplateTranslationAxisCalibration(
 	else
 	{
 		LOG_ERROR("Unable to start OfflineTemplateTranslationAxisCalibration with template translation data: SequenceMetaFileName is empty!"); 
-		return; 
+		return PLUS_FAIL; 
 	}
 
 	int frameCounter(0); 
@@ -2475,10 +2487,13 @@ void vtkStepperCalibrationController::OfflineTemplateTranslationAxisCalibration(
 	LOG_INFO ( "A total of " << frameCounter << " images (" << 100*frameCounter/imgNumber << "%) have been successfully added for template translation axis calibration.");
 
 	trackedFrameList->Clear(); 
-	if ( !this->CalibrateTemplateTranslationAxis() )
+	if ( this->CalibrateTemplateTranslationAxis() != PLUS_SUCCESS )
 	{
 		LOG_ERROR("Unable to calibrate template translation axis!"); 
+        return PLUS_FAIL; 
 	}
+
+    return PLUS_SUCCESS; 
 }
 
 //----------------------------------------------------------------------------

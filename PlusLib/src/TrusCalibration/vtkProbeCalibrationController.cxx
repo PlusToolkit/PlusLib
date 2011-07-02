@@ -243,127 +243,131 @@ void vtkProbeCalibrationController::RegisterPhantomGeometry( double phantomToPro
 	// to the TRUS Rotation Center
 	double verticalDistanceTemplateMounterHoleToTRUSRotationCenterInMM = 
 			this->GetCalibrator()->GetPhantomPoints().WirePositionFrontWall[0].y
-			+ phantomToProbeDistanceInMm[1]
-			- this->GetCalibrator()->GetPhantomPoints().TemplateHolderPosition.y; 
+            + phantomToProbeDistanceInMm[1]
+    - this->GetCalibrator()->GetPhantomPoints().TemplateHolderPosition.y; 
 
-	// Horizontal distance from the template mounter hole center
-	// to the TRUS Rotation Center
-	double horizontalDistanceTemplateMounterHoleToTRUSRotationCenterInMM = 
-			this->GetCalibrator()->GetPhantomPoints().WirePositionFrontWall[2].x
-			+ phantomToProbeDistanceInMm[0]
-			- this->GetCalibrator()->GetPhantomPoints().TemplateHolderPosition.x; 
+    // Horizontal distance from the template mounter hole center
+    // to the TRUS Rotation Center
+    double horizontalDistanceTemplateMounterHoleToTRUSRotationCenterInMM = 
+        this->GetCalibrator()->GetPhantomPoints().WirePositionFrontWall[2].x
+        + phantomToProbeDistanceInMm[0]
+    - this->GetCalibrator()->GetPhantomPoints().TemplateHolderPosition.x; 
 
-	double horizontalTemplateToStepper = horizontalDistanceTemplateMounterHoleToTRUSRotationCenterInMM + this->GetCalibrator()->GetPhantomPoints().TemplateHolderPosition.x;
-	double verticalTemplateToStepper = verticalDistanceTemplateMounterHoleToTRUSRotationCenterInMM + this->GetCalibrator()->GetPhantomPoints().TemplateHolderPosition.y;
+    double horizontalTemplateToStepper = horizontalDistanceTemplateMounterHoleToTRUSRotationCenterInMM + this->GetCalibrator()->GetPhantomPoints().TemplateHolderPosition.x;
+    double verticalTemplateToStepper = verticalDistanceTemplateMounterHoleToTRUSRotationCenterInMM + this->GetCalibrator()->GetPhantomPoints().TemplateHolderPosition.y;
 
-	vtkSmartPointer<vtkTransform> tTemplateHolderToTemplate = vtkSmartPointer<vtkTransform>::New();
-	tTemplateHolderToTemplate->Translate( this->GetCalibrator()->GetPhantomPoints().TemplateHolderPosition.x, this->GetCalibrator()->GetPhantomPoints().TemplateHolderPosition.y, this->GetCalibrator()->GetPhantomPoints().TemplateHolderPosition.z);
-	this->GetTransformTemplateHolderHomeToTemplateHome()->SetMatrix( tTemplateHolderToTemplate->GetMatrix() ); 
+    vtkSmartPointer<vtkTransform> tTemplateHolderToTemplate = vtkSmartPointer<vtkTransform>::New();
+    tTemplateHolderToTemplate->Translate( this->GetCalibrator()->GetPhantomPoints().TemplateHolderPosition.x, this->GetCalibrator()->GetPhantomPoints().TemplateHolderPosition.y, this->GetCalibrator()->GetPhantomPoints().TemplateHolderPosition.z);
+    this->GetTransformTemplateHolderHomeToTemplateHome()->SetMatrix( tTemplateHolderToTemplate->GetMatrix() ); 
 
-	vtkSmartPointer<vtkTransform> tProbeHomeToTemplateHolderHome = vtkSmartPointer<vtkTransform>::New();
-	tProbeHomeToTemplateHolderHome->Translate( horizontalDistanceTemplateMounterHoleToTRUSRotationCenterInMM, verticalDistanceTemplateMounterHoleToTRUSRotationCenterInMM, 0);
-	this->GetTransformProbeHomeToTemplateHolderHome()->SetMatrix( tProbeHomeToTemplateHolderHome->GetMatrix() ); 
+    vtkSmartPointer<vtkTransform> tProbeHomeToTemplateHolderHome = vtkSmartPointer<vtkTransform>::New();
+    tProbeHomeToTemplateHolderHome->Translate( horizontalDistanceTemplateMounterHoleToTRUSRotationCenterInMM, verticalDistanceTemplateMounterHoleToTRUSRotationCenterInMM, 0);
+    this->GetTransformProbeHomeToTemplateHolderHome()->SetMatrix( tProbeHomeToTemplateHolderHome->GetMatrix() ); 
 
-	vtkSmartPointer<vtkTransform> tTemplateHomeToProbeHome = vtkSmartPointer<vtkTransform>::New();
-	tTemplateHomeToProbeHome->PostMultiply(); 
-	tTemplateHomeToProbeHome->Concatenate( this->TransformProbeHomeToTemplateHolderHome ); 
-	tTemplateHomeToProbeHome->Concatenate( this->TransformTemplateHolderHomeToTemplateHome ); 
-	tTemplateHomeToProbeHome->Inverse(); 
+    vtkSmartPointer<vtkTransform> tTemplateHomeToProbeHome = vtkSmartPointer<vtkTransform>::New();
+    tTemplateHomeToProbeHome->PostMultiply(); 
+    tTemplateHomeToProbeHome->Concatenate( this->TransformProbeHomeToTemplateHolderHome ); 
+    tTemplateHomeToProbeHome->Concatenate( this->TransformTemplateHolderHomeToTemplateHome ); 
+    tTemplateHomeToProbeHome->Inverse(); 
 
-	std::ostringstream osTemplateHomeToProbeHome; 
-	tTemplateHomeToProbeHome->GetMatrix()->Print(osTemplateHomeToProbeHome);   
-	LOG_DEBUG("TemplateHomeToProbeHome:\n" << osTemplateHomeToProbeHome.str().c_str() );
+    std::ostringstream osTemplateHomeToProbeHome; 
+    tTemplateHomeToProbeHome->GetMatrix()->Print(osTemplateHomeToProbeHome);   
+    LOG_DEBUG("TemplateHomeToProbeHome:\n" << osTemplateHomeToProbeHome.str().c_str() );
 
-	// Register the phantom geometry to the DRB frame in the "Emulator" mode.
-	vnl_matrix<double> transformMatrixPhantom2DRB4x4InEmulatorMode(4,4);
-	ConvertVtkMatrixToVnlMatrixInMeter( tTemplateHomeToProbeHome->GetMatrix(), transformMatrixPhantom2DRB4x4InEmulatorMode ); 
+    // Register the phantom geometry to the DRB frame in the "Emulator" mode.
+    vnl_matrix<double> transformMatrixPhantom2DRB4x4InEmulatorMode(4,4);
+    ConvertVtkMatrixToVnlMatrixInMeter( tTemplateHomeToProbeHome->GetMatrix(), transformMatrixPhantom2DRB4x4InEmulatorMode ); 
 
-	this->GetCalibrator()->registerPhantomGeometryInEmulatorMode( transformMatrixPhantom2DRB4x4InEmulatorMode );
+    this->GetCalibrator()->registerPhantomGeometryInEmulatorMode( transformMatrixPhantom2DRB4x4InEmulatorMode );
 }
 
 //----------------------------------------------------------------------------
-void vtkProbeCalibrationController::OfflineUSToTemplateCalibration()
+PlusStatus vtkProbeCalibrationController::OfflineUSToTemplateCalibration()
 {
-	LOG_TRACE("vtkProbeCalibrationController::OfflineUSToTemplateCalibration"); 
-	try
-	{
-		if ( ! this->GetInitialized() ) 
-		{
-			this->Initialize(); 
-		}
+    LOG_TRACE("vtkProbeCalibrationController::OfflineUSToTemplateCalibration"); 
+    if ( ! this->GetInitialized() ) 
+    {
+        this->Initialize(); 
+    }
 
-		vtkSmartPointer<vtkTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New();
-		if ( !this->GetSavedImageDataInfo(RANDOM_STEPPER_MOTION_2).SequenceMetaFileName.empty() )
-		{
-			trackedFrameList->ReadFromSequenceMetafile(this->GetSavedImageDataInfo(RANDOM_STEPPER_MOTION_2).SequenceMetaFileName.c_str()); 
-		}
-		else
-		{
-			LOG_ERROR("Unable to start OfflineUSToTemplateCalibration with validation data: SequenceMetaFileName is empty!"); 
-			return; 
-		}
+    vtkSmartPointer<vtkTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New();
+    const std::string validationDataFileName = this->GetSavedImageDataInfo(RANDOM_STEPPER_MOTION_2).SequenceMetaFileName; 
+    if ( !validationDataFileName.empty() )
+    {
+        if ( trackedFrameList->ReadFromSequenceMetafile(validationDataFileName.c_str()) != PLUS_SUCCESS )
+        {
+            LOG_ERROR("Failed to read tracked frames from sequence metafile from: " << validationDataFileName ); 
+            return PLUS_FAIL; 
+        }
+    }
+    else
+    {
+        LOG_ERROR("Unable to start OfflineUSToTemplateCalibration with validation data: SequenceMetaFileName is empty!"); 
+        return PLUS_FAIL; 
+    }
 
 
-		// ****************************  Validation data ***********************
-		int validationCounter(0); 
-		int vImgNumber(0);
-		for( vImgNumber = this->GetSavedImageDataInfo(RANDOM_STEPPER_MOTION_2).StartingIndex; validationCounter < this->GetSavedImageDataInfo(RANDOM_STEPPER_MOTION_2).NumberOfImagesToUse; vImgNumber++ )
-		{
-			if ( vImgNumber >= trackedFrameList->GetNumberOfTrackedFrames() )
-			{
-				break; 
-			}
+    // ****************************  Validation data ***********************
+    int validationCounter(0); 
+    int vImgNumber(0);
+    for( vImgNumber = this->GetSavedImageDataInfo(RANDOM_STEPPER_MOTION_2).StartingIndex; validationCounter < this->GetSavedImageDataInfo(RANDOM_STEPPER_MOTION_2).NumberOfImagesToUse; vImgNumber++ )
+    {
+        if ( vImgNumber >= trackedFrameList->GetNumberOfTrackedFrames() )
+        {
+            break; 
+        }
 
-			if ( this->AddTrackedFrameData(trackedFrameList->GetTrackedFrame(vImgNumber), RANDOM_STEPPER_MOTION_2) )
-			{
-				// The segmentation was successful 
-				validationCounter++; 
-			}
+        if ( this->AddTrackedFrameData(trackedFrameList->GetTrackedFrame(vImgNumber), RANDOM_STEPPER_MOTION_2) == PLUS_SUCCESS )
+        {
+            // The segmentation was successful 
+            validationCounter++; 
+        }
 
-			this->AddFrameToRenderer(trackedFrameList->GetTrackedFrame(vImgNumber)->ImageData); 
-		}
+        this->AddFrameToRenderer(trackedFrameList->GetTrackedFrame(vImgNumber)->ImageData); 
+    }
 
-		int validSegmentationSuccessRate = 100*this->GetRealtimeImageDataInfo(RANDOM_STEPPER_MOTION_2).NumberOfSegmentedImages / vImgNumber; 
-		LOG_INFO ( "A total of " << this->GetRealtimeImageDataInfo(RANDOM_STEPPER_MOTION_2).NumberOfSegmentedImages << " images (" << validSegmentationSuccessRate << "%) have been successfully added for validation.");
+    int validSegmentationSuccessRate = 100*this->GetRealtimeImageDataInfo(RANDOM_STEPPER_MOTION_2).NumberOfSegmentedImages / vImgNumber; 
+    LOG_INFO ( "A total of " << this->GetRealtimeImageDataInfo(RANDOM_STEPPER_MOTION_2).NumberOfSegmentedImages << " images (" << validSegmentationSuccessRate << "%) have been successfully added for validation.");
 
-		// ****************************  Calibration data ***********************
-		vtkSmartPointer<vtkTrackedFrameList> calibrationData = vtkSmartPointer<vtkTrackedFrameList>::New();
-		if ( !this->GetSavedImageDataInfo(RANDOM_STEPPER_MOTION_1).SequenceMetaFileName.empty() )
-		{
-			calibrationData->ReadFromSequenceMetafile(this->GetSavedImageDataInfo(RANDOM_STEPPER_MOTION_1).SequenceMetaFileName.c_str()); 
-		}
-		else
-		{
-			LOG_ERROR("Unable to start OfflineUSToTemplateCalibration with calibration data: SequenceMetaFileName is empty!"); 
-			return; 
-		}
+    // ****************************  Calibration data ***********************
+    vtkSmartPointer<vtkTrackedFrameList> calibrationData = vtkSmartPointer<vtkTrackedFrameList>::New();
+    const std::string calibrationDataFileName = this->GetSavedImageDataInfo(RANDOM_STEPPER_MOTION_1).SequenceMetaFileName; 
+    if ( !calibrationDataFileName.empty() )
+    {
+        if ( calibrationData->ReadFromSequenceMetafile(calibrationDataFileName.c_str()) != PLUS_SUCCESS )
+        {
+            LOG_ERROR("Failed to read tracked frames from sequence metafile from: " << calibrationDataFileName ); 
+            return PLUS_FAIL; 
+        }
+    }
+    else
+    {
+        LOG_ERROR("Unable to start OfflineUSToTemplateCalibration with calibration data: SequenceMetaFileName is empty!"); 
+        return PLUS_FAIL; 
+    }
 
-		int calibrationCounter(0);
-		int cImgNumber(0); 
-		for( cImgNumber = this->GetSavedImageDataInfo(RANDOM_STEPPER_MOTION_1).StartingIndex; calibrationCounter < this->GetSavedImageDataInfo(RANDOM_STEPPER_MOTION_1).NumberOfImagesToUse; cImgNumber++ )
-		{
-			if ( cImgNumber >= calibrationData->GetNumberOfTrackedFrames() )
-			{
-				break; 
-			}
+    int calibrationCounter(0);
+    int cImgNumber(0); 
+    for( cImgNumber = this->GetSavedImageDataInfo(RANDOM_STEPPER_MOTION_1).StartingIndex; calibrationCounter < this->GetSavedImageDataInfo(RANDOM_STEPPER_MOTION_1).NumberOfImagesToUse; cImgNumber++ )
+    {
+        if ( cImgNumber >= calibrationData->GetNumberOfTrackedFrames() )
+        {
+            break; 
+        }
 
-			if ( this->AddTrackedFrameData(calibrationData->GetTrackedFrame(cImgNumber), RANDOM_STEPPER_MOTION_1) )
-			{
-				// The segmentation was successful
-				calibrationCounter++; 
-			}
+        if ( this->AddTrackedFrameData(calibrationData->GetTrackedFrame(cImgNumber), RANDOM_STEPPER_MOTION_1) == PLUS_SUCCESS)
+        {
+            // The segmentation was successful
+            calibrationCounter++; 
+        }
 
-			this->AddFrameToRenderer(calibrationData->GetTrackedFrame(cImgNumber)->ImageData); 
-		}
+        this->AddFrameToRenderer(calibrationData->GetTrackedFrame(cImgNumber)->ImageData); 
+    }
 
-		int calibSegmentationSuccessRate = 100*this->GetRealtimeImageDataInfo(RANDOM_STEPPER_MOTION_1).NumberOfSegmentedImages / cImgNumber; 
-		LOG_INFO ("A total of " << this->GetRealtimeImageDataInfo(RANDOM_STEPPER_MOTION_1).NumberOfSegmentedImages << " images (" << calibSegmentationSuccessRate << "%) have been successfully added for calibration.");
-	}
-	catch(...)
-	{
-		LOG_ERROR("AddAllSavedData: Failed to add saved data!");  
-		throw;
-	}
+    int calibSegmentationSuccessRate = 100*this->GetRealtimeImageDataInfo(RANDOM_STEPPER_MOTION_1).NumberOfSegmentedImages / cImgNumber; 
+    LOG_INFO ("A total of " << this->GetRealtimeImageDataInfo(RANDOM_STEPPER_MOTION_1).NumberOfSegmentedImages << " images (" << calibSegmentationSuccessRate << "%) have been successfully added for calibration.");
+
+    return PLUS_SUCCESS; 
 }
 
 //----------------------------------------------------------------------------

@@ -91,15 +91,15 @@ public:
 
 	//! Description 
 	// Run the probe rotation axis calibration algorithm in offline mode
-	virtual void OfflineProbeRotationAxisCalibration(); 
+	virtual PlusStatus OfflineProbeRotationAxisCalibration(); 
 
 	//! Description 
 	// Run the probe translation axis calibration algorithm in offline mode
-	virtual void OfflineProbeTranslationAxisCalibration(); 
+	virtual PlusStatus OfflineProbeTranslationAxisCalibration(); 
 
 	//! Description 
 	// Run the template rotation axis calibration algorithm in offline mode
-	virtual void OfflineTemplateTranslationAxisCalibration(); 
+	virtual PlusStatus OfflineTemplateTranslationAxisCalibration(); 
 
 	//! Description 
 	// Read the stepper calibration configurations from xml data element
