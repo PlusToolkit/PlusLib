@@ -744,17 +744,8 @@ void vtkTrackedFrameList::SaveToSequenceMetafile(const char* outputFolder, const
 				// Set default frame transform name
 				writerMetaImageSequenceIO->SetDefaultFrameTransformName( TrackedFrameList[trackedFrameListItem]->DefaultFrameTransformName ); 
 				
-				// Set ultrasound image orientation
-				if ( TrackedFrameList[trackedFrameListItem]->UltrasoundImageOrientation != TrackedFrame::US_IMG_ORIENT_XX )
-				{
-					// Set to the converted orientation 
-					writerMetaImageSequenceIO->SetUltrasoundImageOrientation( usImageOrientation ); 
-				}
-				else
-				{
-					// Cannot convert from undefined image orientation, so the sequence should be undefined, too.
-					writerMetaImageSequenceIO->SetUltrasoundImageOrientation( NULL ); 
-				}
+				// Set ultrasound image orientation to the internal MF orientation 
+				writerMetaImageSequenceIO->SetUltrasoundImageOrientation( "MF" ); 
 
 				for( int field = 0; field < TrackedFrameList[trackedFrameListItem]->CustomFieldList.size(); field++ )
 				{

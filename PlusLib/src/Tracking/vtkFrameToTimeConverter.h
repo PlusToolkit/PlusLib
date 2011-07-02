@@ -1,12 +1,12 @@
 /*=========================================================================
 
-  Program:   AtamaiTracking for VTK
-  Module:    $RCSfile: vtkFrameToTimeConverter.h,v $
-  Creator:   David Gobbi <dgobbi@atamai.com>
-  Language:  C++
-  Author:    $Author: dgobbi $
-  Date:      $Date: 2005/07/01 22:52:05 $
-  Version:   $Revision: 1.2 $
+Program:   AtamaiTracking for VTK
+Module:    $RCSfile: vtkFrameToTimeConverter.h,v $
+Creator:   David Gobbi <dgobbi@atamai.com>
+Language:  C++
+Author:    $Author: dgobbi $
+Date:      $Date: 2005/07/01 22:52:05 $
+Version:   $Revision: 1.2 $
 
 ==========================================================================
 
@@ -17,17 +17,17 @@ binary forms, are permitted provided that the following terms and
 conditions are met:
 
 1) Redistribution of the source code, in verbatim or modified
-   form, must retain the above copyright notice, this license,
-   the following disclaimer, and any notices that refer to this
-   license and/or the following disclaimer.  
+form, must retain the above copyright notice, this license,
+the following disclaimer, and any notices that refer to this
+license and/or the following disclaimer.  
 
 2) Redistribution in binary form must include the above copyright
-   notice, a copy of this license and the following disclaimer
-   in the documentation or with other materials provided with the
-   distribution.
+notice, a copy of this license and the following disclaimer
+in the documentation or with other materials provided with the
+distribution.
 
 3) Modified copies of the source code must be clearly marked as such,
-   and must not be misrepresented as verbatim copies of the source code.
+and must not be misrepresented as verbatim copies of the source code.
 
 THE COPYRIGHT HOLDERS AND/OR OTHER PARTIES PROVIDE THE SOFTWARE "AS IS"
 WITHOUT EXPRESSED OR IMPLIED WARRANTY INCLUDING, BUT NOT LIMITED TO,
@@ -69,59 +69,63 @@ POSSIBILITY OF SUCH DAMAGES.
 class VTK_EXPORT vtkFrameToTimeConverter : public vtkObject
 {
 public:
-  static vtkFrameToTimeConverter *New();
-  vtkTypeMacro(vtkFrameToTimeConverter,vtkObject);
-  void PrintSelf(ostream& os, vtkIndent indent);
+    static vtkFrameToTimeConverter *New();
+    vtkTypeMacro(vtkFrameToTimeConverter,vtkObject);
+    void PrintSelf(ostream& os, vtkIndent indent);
 
-  // Description:
-  // Set the nominal frequency of the measurement frames.  The default
-  // nominal frequency is 100Hz.
-  void SetNominalFrequency(double f) { this->NominalFrequency = f; };
-  double GetNominalFrequency() { return this->NominalFrequency; };
+    // Description:
+    // Set the nominal frequency of the measurement frames.  The default
+    // nominal frequency is 100Hz.
+    void SetNominalFrequency(double f) { this->NominalFrequency = f; };
+    double GetNominalFrequency() { return this->NominalFrequency; };
 
-  // Description:
-  // Set/Get maximum allowed difference of the frame delay compared to average delay, in seconds
-  vtkSetMacro(MaximumFramePeriodJitter, double); 
-  vtkGetMacro(MaximumFramePeriodJitter, double); 
+    // Description:
+    // Set/Get maximum allowed difference of the frame delay compared to average delay, in seconds
+    vtkSetMacro(MaximumFramePeriodJitter, double); 
+    vtkGetMacro(MaximumFramePeriodJitter, double); 
 
-  // Description:
-  // Initialize, this should be done after the nominal frequency is
-  // set but before the object is used.
-  void Initialize();
+    // Description:
+    // Initialize, this should be done after the nominal frequency is
+    // set but before the object is used.
+    void Initialize();
 
-  // Description:
-  // Generate a timestamp for a particular frame.
-  // Give the frame number of the data record that was most recently
-  // obtained from the measurement system, i.e. give the frame number
-  // that corresponds most closely with 'now'.  The instantanous
-  // frequency is estimated within this method, and used to update
-  // the virtual clock.  If the given frame is less than or equal
-  // to the current LastFrame, it will be quietly ignored.
-  void GetTimeStampForFrame(unsigned long frame, double &unfilteredTimestamp, double &filteredTimestamp);
-  unsigned long GetLastFrame() { return this->LastFrameCount; };
-  
-  // Description:
-  // Get the measured frame frequency (which hopefully should not
-  // be much different from the nominal frequency).
-  double GetInstantaneousFrequency();
+    // Description:
+    // Generate a timestamp for a particular frame.
+    // Give the frame number of the data record that was most recently
+    // obtained from the measurement system, i.e. give the frame number
+    // that corresponds most closely with 'now'.  The instantanous
+    // frequency is estimated within this method, and used to update
+    // the virtual clock.  If the given frame is less than or equal
+    // to the current LastFrame, it will be quietly ignored.
+    void GetTimeStampForFrame(unsigned long frame, double &unfilteredTimestamp, double &filteredTimestamp);
+    unsigned long GetLastFrame() { return this->LastFrameCount; };
+
+    // Description:
+    // Get the measured frame frequency (which hopefully should not
+    // be much different from the nominal frequency).
+    double GetInstantaneousFrequency();
+
+    // Description:
+    // Make this FrameToTimeConverter into a copy of another FrameToTimeConverter.
+    void DeepCopy(vtkFrameToTimeConverter *converter);
 
 protected:
-  vtkFrameToTimeConverter();
-  ~vtkFrameToTimeConverter();
+    vtkFrameToTimeConverter();
+    ~vtkFrameToTimeConverter();
 
-  double NominalFrequency;
-  double LastTimeStamp;
-  double LastUnfilteredTimeStamp;
-  unsigned long LastFrameCount;
-  double EstimatedFramePeriod;
-  std::vector<double> AveragedFramePeriods; 
-  double MaximumFramePeriodJitter; 
+    double NominalFrequency;
+    double LastTimeStamp;
+    double LastUnfilteredTimeStamp;
+    unsigned long LastFrameCount;
+    double EstimatedFramePeriod;
+    std::vector<double> AveragedFramePeriods; 
+    double MaximumFramePeriodJitter; 
 
-  std::ofstream DebugInfoStream;
+    std::ofstream DebugInfoStream;
 
 private:
-  vtkFrameToTimeConverter(const vtkFrameToTimeConverter&);
-  void operator=(const vtkFrameToTimeConverter&);  
+    vtkFrameToTimeConverter(const vtkFrameToTimeConverter&);
+    void operator=(const vtkFrameToTimeConverter&);  
 };
 
 #endif

@@ -96,13 +96,13 @@ int main(int argc, char **argv)
 	if ( dataCollector->GetVideoSource() != NULL ) 
 	{
 		LOG_INFO("Write video buffer to " << outputVideoBufferSequenceFileName);
-		dataCollector->WriteVideoBufferToMetafile( videobuffer, outputFolder.c_str(), outputVideoBufferSequenceFileName.c_str(), outputCompressed); 
+        vtkDataCollector::WriteVideoBufferToMetafile( videobuffer, outputFolder.c_str(), outputVideoBufferSequenceFileName.c_str(), outputCompressed); 
 	}
 
 	if ( dataCollector->GetTracker() != NULL )
 	{
 		LOG_INFO("Write tracker buffer to " << outputTrackerBufferSequenceFileName);
-		dataCollector->WriteTrackerToMetafile( tracker, outputFolder.c_str(), outputTrackerBufferSequenceFileName.c_str(), outputCompressed); 
+		vtkDataCollector::WriteTrackerToMetafile( tracker, outputFolder.c_str(), outputTrackerBufferSequenceFileName.c_str(), outputCompressed); 
 	}
 
 
