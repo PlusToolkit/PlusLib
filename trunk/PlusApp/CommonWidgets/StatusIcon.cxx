@@ -3,17 +3,31 @@
 #include <QEvent>
 #include <QGridLayout>
 #include <QSizePolicy>
-#include <QFrame>
-#include <QPalette>
 
-QList<QPair<QString, int>>* StatusIcon::m_MessageList = NULL;
+//-----------------------------------------------------------------------------
+
+StatusIcon *StatusIcon::Instance = NULL;
+
+//-----------------------------------------------------------------------------
+
+StatusIcon* StatusIcon::GetInstance()
+{
+	if(!StatusIcon::Instance) {
+		return NULL;
+	}
+	// return the instance
+	return StatusIcon::Instance;
+}
 
 //-----------------------------------------------------------------------------
 
 StatusIcon::StatusIcon(QWidget* aParent, Qt::WFlags aFlags)
 	: QWidget(aParent, aFlags)
 	, m_MessageListWidget(NULL)
+	, m_MessageTextEdit(NULL)
+	, m_MessageList(NULL)
 	, m_Level(PlusLogger::LOG_LEVEL_INFO)
+	, m_PreviousScroll(0)
 {
 	this->setMinimumSize(18, 16);
 	this->setMaximumSize(18, 16);
@@ -31,8 +45,8 @@ StatusIcon::StatusIcon(QWidget* aParent, Qt::WFlags aFlags)
 	this->setLayout(grid);
 
 	// Create message list (static)
-	if (StatusIcon::m_MessageList == NULL) {
-		StatusIcon::m_MessageList = new QList<QPair<QString, int>>();
+	if (m_MessageList == NULL) {
+		m_MessageList = new QList<QPair<QString, int>>();
 	}
 
 	if (m_DotLabel == NULL) {
@@ -42,6 +56,9 @@ StatusIcon::StatusIcon(QWidget* aParent, Qt::WFlags aFlags)
 
 	// Install event filter that is called on any event
 	this->installEventFilter(this);
+
+	// Set instance of the object to the recently created
+	this->Instance = this;
 }
 
 //-----------------------------------------------------------------------------
@@ -56,11 +73,58 @@ StatusIcon::~StatusIcon()
 
 //-----------------------------------------------------------------------------
 
+QList<QPair<QString, int>>* StatusIcon::GetMessageList()
+{
+	return m_MessageList;
+}
+
+//-----------------------------------------------------------------------------
+
+void StatusIcon::SetLevel(int aLevel)
+{
+	m_Level = aLevel;
+}
+
+//-----------------------------------------------------------------------------
+
+int StatusIcon::GetLevel()
+{
+	return m_Level;
+}
+
+//-----------------------------------------------------------------------------
+
+QLabel* StatusIcon::GetDotLabel()
+{
+	return m_DotLabel;
+}
+
+//-----------------------------------------------------------------------------
+
 void StatusIcon::AddMessage(const char* aMessage, const int aLevel)
 {
 	QPair<QString, int> message(QString::fromAscii(aMessage), aLevel);
 
-	StatusIcon::m_MessageList->append(message);
+	StatusIcon* statusIcon = StatusIcon::GetInstance();
+	statusIcon->GetMessageList()->append(message);
+
+	// Re-color dot if necessary
+	switch (aLevel) {
+		case PlusLogger::LOG_LEVEL_ERROR:
+			if (statusIcon->GetLevel() > PlusLogger::LOG_LEVEL_ERROR) {
+				statusIcon->SetLevel(PlusLogger::LOG_LEVEL_ERROR);
+				statusIcon->GetDotLabel()->setPixmap( QPixmap( ":/icons/Resources/icon_DotRed.png" ) );
+			}
+			break;
+		case PlusLogger::LOG_LEVEL_WARNING:
+			if (statusIcon->GetLevel() > PlusLogger::LOG_LEVEL_WARNING) {
+				statusIcon->SetLevel(PlusLogger::LOG_LEVEL_WARNING);
+				statusIcon->GetDotLabel()->setPixmap( QPixmap( ":/icons/Resources/icon_DotOrange.png" ) );
+			}
+			break;
+		default:
+			break;
+	}
 }
 
 //-----------------------------------------------------------------------------
@@ -74,7 +138,7 @@ PlusStatus StatusIcon::ConstructMessageListWidget()
 	}
 
 	m_MessageListWidget = new QFrame(this, Qt::ToolTip);
-	m_MessageListWidget->setBackgroundColor(QColor::fromRgb(255, 255, 223));
+	m_MessageListWidget->setBackgroundColor(QColor::fromRgb(255, 255, 192));
 	m_MessageListWidget->setMinimumSize(480, 480);
 	m_MessageListWidget->setMaximumSize(480, 480);
 	m_MessageListWidget->setFrameShape(QFrame::Box);
@@ -92,6 +156,10 @@ PlusStatus StatusIcon::ConstructMessageListWidget()
 	grid->setContentsMargins(4, 4, 4, 4);
 	grid->setAlignment(Qt::AlignTop);
 
+	m_MessageTextEdit = new QTextEdit(m_MessageListWidget);
+	m_MessageTextEdit->setWordWrapMode(QTextOption::WordWrap);
+	m_MessageTextEdit->setReadOnly(true);
+
 	// Add messages as labels
 	if (! m_MessageList->empty()) {
 		QListIterator<QPair<QString, int>> messagesIterator(*m_MessageList);
@@ -99,41 +167,32 @@ PlusStatus StatusIcon::ConstructMessageListWidget()
 			QPair<QString, int> messagePair(messagesIterator.next());
 
 			QString message(messagePair.first);
-			QLabel* messageLabel = new QLabel(message, m_MessageListWidget);
 
 			const int messageLevel = messagePair.second;
-			QColor messageColor = QColor();
 			switch (messageLevel) {
 				case PlusLogger::LOG_LEVEL_ERROR:
-					messageColor.setRgb(192, 0, 0);
-					if (m_Level > PlusLogger::LOG_LEVEL_ERROR) {
-						m_Level = PlusLogger::LOG_LEVEL_ERROR;
-						m_DotLabel->setPixmap( QPixmap( ":/icons/Resources/icon_DotRed.png" ) );
-					}
+					m_MessageTextEdit->setTextColor(Qt::darkRed);
 					break;
 				case PlusLogger::LOG_LEVEL_WARNING:
-					if (m_Level > PlusLogger::LOG_LEVEL_WARNING) {
-						m_Level = PlusLogger::LOG_LEVEL_WARNING;
-						m_DotLabel->setPixmap( QPixmap( ":/icons/Resources/icon_DotOrange.png" ) );
-					}
-					messageColor.setRgb(255, 128, 0);
+					m_MessageTextEdit->setTextColor(QColor::fromRgb(255, 128, 0));
 					break;
 				default:
-					messageColor.setRgb(0, 0, 0);
+					m_MessageTextEdit->setTextColor(Qt::black);
 					break;
 			}
-			QPalette messagePalette = QPalette();
-			messagePalette.setColor(QPalette::Text, messageColor);
-			messageLabel->setPalette(messagePalette);
-
-			grid->addWidget(messageLabel);
+			m_MessageTextEdit->append("-" + message);
 		}
 	} else {
-		QLabel* messageLabel = new QLabel("There are no messages yet...", m_MessageListWidget);
-		grid->addWidget(messageLabel);
+		m_MessageTextEdit->setText("There are no messages yet...");
 	}
 
+	grid->addWidget(m_MessageTextEdit);
 	m_MessageListWidget->setLayout(grid);
+
+	// Set cursor to the end of the log
+	QTextCursor cursor(m_MessageTextEdit->textCursor());
+	cursor.movePosition(QTextCursor::End);
+	m_MessageTextEdit->setTextCursor(cursor);
 
 	return PLUS_SUCCESS;
 }
@@ -144,6 +203,7 @@ bool StatusIcon::eventFilter(QObject *obj, QEvent *ev)
 {
 	if ( obj == this ) {
 		if ( ev->type() == QEvent::Enter ) {
+			m_PreviousScroll = 0;
 			// Construct and show message list widget
 			if (ConstructMessageListWidget() == PLUS_SUCCESS) {
 				m_MessageListWidget->move( mapToGlobal( QPoint( m_DotLabel->x() - m_MessageListWidget->maximumWidth() + 38, m_DotLabel->y() - m_MessageListWidget->maximumHeight() - 6 ) ) );
@@ -152,6 +212,27 @@ bool StatusIcon::eventFilter(QObject *obj, QEvent *ev)
 		} else if ( ev->type() == QEvent::Leave ) {
 			if (m_MessageListWidget) {
 				m_MessageListWidget->hide();
+			}
+		} else if ( ev->type() == QEvent::Wheel ) {
+			QWheelEvent* wheelEv = dynamic_cast<QWheelEvent*>(ev);
+			if (wheelEv != NULL) {
+				QTextCursor cursor(m_MessageTextEdit->textCursor());
+				if (wheelEv->delta() < 0) {
+					if (m_PreviousScroll < 0) { // Hack: move cursor to bottom of page if it is at the top (could not solve simple scrolling, had to play with cursot)
+						cursor.movePosition(QTextCursor::Down, QTextCursor::MoveAnchor, 36);
+					}
+					cursor.movePosition(QTextCursor::Down, QTextCursor::MoveAnchor, 2);
+					cursor.movePosition(QTextCursor::EndOfLine);
+					m_PreviousScroll = 1;
+				} else {
+					if ((m_PreviousScroll > 0) || (cursor.atEnd())) {
+						cursor.movePosition(QTextCursor::Up, QTextCursor::MoveAnchor, 36);
+					}
+					cursor.movePosition(QTextCursor::Up, QTextCursor::MoveAnchor, 2);
+					cursor.movePosition(QTextCursor::StartOfLine);
+					m_PreviousScroll = -1;
+				}
+				m_MessageTextEdit->setTextCursor(cursor);
 			}
 		} else {
 			// Pass the event on to the parent class

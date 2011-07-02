@@ -6,6 +6,7 @@
 #include "PlusConfigure.h"
 
 #include <QLabel>
+#include <QTextEdit>
 
 //-----------------------------------------------------------------------------
 
@@ -17,6 +18,12 @@ class StatusIcon : public QWidget
 	Q_OBJECT
 
 public:
+	/*!
+	* \brief Instance getter
+	* \return Instance object
+	*/
+	static StatusIcon* GetInstance();
+
 	/*!
 	* \brief Constructor
 	* \param aParent parent
@@ -36,10 +43,6 @@ public:
 	*/
 	static void AddMessage(const char* aMessage, const int aLevel);
 
-signals:
-
-protected slots:
-
 protected:
 	/*!
 	* \brief Filters events if this object has been installed as an event filter for the watched object
@@ -52,18 +55,40 @@ protected:
 	//TODO
 	PlusStatus ConstructMessageListWidget();
 
+	//TODO
+	QList<QPair<QString, int>>* GetMessageList();
+
+	//TODO
+	void SetLevel(int aLevel);
+
+	//TODO
+	int GetLevel();
+
+	//TODO
+	QLabel* GetDotLabel();
+
 protected:
 	//! List of messages to display
-	static QList<QPair<QString, int>>*	m_MessageList;
+	QList<QPair<QString, int>>*	m_MessageList;
 
 	//! TODO
-	QLabel*								m_DotLabel;
+	QLabel*						m_DotLabel;
 
 	//! TODO
-	QFrame*								m_MessageListWidget;
+	QFrame*						m_MessageListWidget;
 
 	//! TODO
-	int									m_Level;
+	QTextEdit*					m_MessageTextEdit;
+
+	//! TODO
+	int							m_Level;
+
+	// Hack: move cursor to bottom of page if it is at the top (could not solve simple scrolling, had to play with cursot)
+	int							m_PreviousScroll;
+
+private:
+	//! Instance of the singleton
+	static StatusIcon*			Instance;
 };
 
 #endif
