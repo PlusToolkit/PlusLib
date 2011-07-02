@@ -72,9 +72,10 @@ void DeviceSetSelectorWidget::DeviceSetSelected(int aIndex)
 
 	ui.textEdit_Description->setTextColor(QColor(Qt::black));
 
-	ui.textEdit_Description->setText(ui.comboBox_DeviceSet->currentText()
-		+ "\n(" + ui.comboBox_DeviceSet->itemData(aIndex).toStringList().at(0) + ")\n\n"
-		+ ui.comboBox_DeviceSet->itemData(aIndex).toStringList().at(1));
+	ui.textEdit_Description->setText(
+		ui.comboBox_DeviceSet->itemData(aIndex).toStringList().at(1)
+		+ "\n\n(" + ui.comboBox_DeviceSet->itemData(aIndex).toStringList().at(0) + ")"
+		);
 
 	ui.comboBox_DeviceSet->setToolTip(ui.comboBox_DeviceSet->currentText() + " (" + ui.comboBox_DeviceSet->itemData(aIndex).toStringList().at(0) + ")");
 

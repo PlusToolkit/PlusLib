@@ -107,11 +107,17 @@
    </item>
    <item row="4" column="0">
     <widget class="QComboBox" name="comboBox_DeviceSet">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
      <property name="maxVisibleItems">
       <number>20</number>
      </property>
      <property name="sizeAdjustPolicy">
-      <enum>QComboBox::AdjustToMinimumContentsLength</enum>
+      <enum>QComboBox::AdjustToContents</enum>
      </property>
     </widget>
    </item>
