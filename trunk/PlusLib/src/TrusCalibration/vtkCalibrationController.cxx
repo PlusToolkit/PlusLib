@@ -802,19 +802,19 @@ PlusStatus vtkCalibrationController::ReadSegmentationParametersConfiguration( vt
 	double scalingEstimation(0.0); 
 	if ( segmentationParameters->GetScalarAttribute("ScalingEstimation", scalingEstimation) )
 	{
-		this->GetSegParameters()->mScalingEstimation = scalingEstimation; 
+		this->GetSegParameters()->SetScalingEstimation(scalingEstimation); 
 	}
 
 	double morphologicalOpeningCircleRadiusMm(0.0); 
 	if ( segmentationParameters->GetScalarAttribute("MorphologicalOpeningCircleRadiusMm", morphologicalOpeningCircleRadiusMm) )
 	{
-		this->GetSegParameters()->mMorphologicalOpeningCircleRadiusMm = morphologicalOpeningCircleRadiusMm; 
+		this->GetSegParameters()->SetMorphologicalOpeningCircleRadiusMm(morphologicalOpeningCircleRadiusMm); 
 	}
 
 	double morphologicalOpeningBarSizeMm(0.0); 
 	if ( segmentationParameters->GetScalarAttribute("MorphologicalOpeningBarSizeMm", morphologicalOpeningBarSizeMm) )
 	{
-		this->GetSegParameters()->mMorphologicalOpeningBarSizeMm = morphologicalOpeningBarSizeMm; 
+		this->GetSegParameters()->SetMorphologicalOpeningBarSizeMm(morphologicalOpeningBarSizeMm); 
 	}
 
 	// Segmentation search region X direction
@@ -838,55 +838,55 @@ PlusStatus vtkCalibrationController::ReadSegmentationParametersConfiguration( vt
 	double thresholdImageTop(0.0); 
 	if ( segmentationParameters->GetScalarAttribute("ThresholdImageTop", thresholdImageTop) )
 	{
-		this->GetSegParameters()->mThresholdImageTop = thresholdImageTop; 
+		this->GetSegParameters()->SetThresholdImageTop(thresholdImageTop); 
 	}
 
 	double thresholdImageBottom(0.0); 
 	if ( segmentationParameters->GetScalarAttribute("ThresholdImageBottom", thresholdImageBottom) )
 	{
-		this->GetSegParameters()->mThresholdImageBottom = thresholdImageBottom; 
+		this->GetSegParameters()->SetThresholdImageBottom(thresholdImageBottom); 
 	}
 
 	double maxLineLengthErrorPercent(0.0); 
 	if ( segmentationParameters->GetScalarAttribute("MaxLineLengthErrorPercent", maxLineLengthErrorPercent) )
 	{
-		this->GetSegParameters()->mMaxLineLengthErrorPercent = maxLineLengthErrorPercent; 
+		this->GetSegParameters()->SetMaxLineLengthErrorPercent(maxLineLengthErrorPercent); 
 	}
 
 	double maxLinePairDistanceErrorPercent(0.0); 
 	if ( segmentationParameters->GetScalarAttribute("MaxLinePairDistanceErrorPercent", maxLinePairDistanceErrorPercent) )
 	{
-		this->GetSegParameters()->mMaxLinePairDistanceErrorPercent = maxLinePairDistanceErrorPercent; 
+		this->GetSegParameters()->SetMaxLinePairDistanceErrorPercent(maxLinePairDistanceErrorPercent); 
 	}
 
 	double findLines3PtDist(0.0); 
 	if ( segmentationParameters->GetScalarAttribute("FindLines3PtDist", findLines3PtDist) )
 	{
-		this->GetSegParameters()->mFindLines3PtDist = findLines3PtDist; 
+		this->GetSegParameters()->SetFindLines3PtDist(findLines3PtDist); 
 	}
 
 	double maxLineErrorMm(0.0); 
 	if ( segmentationParameters->GetScalarAttribute("MaxLineErrorMm", maxLineErrorMm) )
 	{
-		this->GetSegParameters()->mMaxLineErrorMm = maxLineErrorMm; 
+		this->GetSegParameters()->SetMaxLineErrorMm(maxLineErrorMm); 
 	}
 
 	double maxAngleDifferenceDegrees(0.0); 
 	if ( segmentationParameters->GetScalarAttribute("MaxAngleDifferenceDegrees", maxAngleDifferenceDegrees) )
 	{
-		this->GetSegParameters()->mMaxAngleDiff = maxAngleDifferenceDegrees * M_PI / 180.0; 
+		this->GetSegParameters()->SetMaxAngleDiff(maxAngleDifferenceDegrees * M_PI / 180.0); 
 	}
 
 	double minThetaDegrees(0.0); 
 	if ( segmentationParameters->GetScalarAttribute("MinThetaDegrees", minThetaDegrees) )
 	{
-		this->GetSegParameters()->mMinTheta = minThetaDegrees * M_PI / 180.0; 
+		this->GetSegParameters()->SetMinTheta(minThetaDegrees * M_PI / 180.0); 
 	}
 
 	double maxThetaDegrees(0.0); 
 	if ( segmentationParameters->GetScalarAttribute("MaxThetaDegrees", maxThetaDegrees) )
 	{
-		this->GetSegParameters()->mMaxTheta = maxThetaDegrees * M_PI / 180.0; 
+		this->GetSegParameters()->SetMaxTheta(maxThetaDegrees * M_PI / 180.0); 
 	}
 
 	/* Temporarily removed (also from config file) - these are the parameters for the U shaped ablation phantom
@@ -918,7 +918,7 @@ PlusStatus vtkCalibrationController::ReadSegmentationParametersConfiguration( vt
 	int useOriginalImageIntensityForDotIntensityScore(0); 
 	if ( segmentationParameters->GetScalarAttribute("UseOriginalImageIntensityForDotIntensityScore", useOriginalImageIntensityForDotIntensityScore) )
 	{
-		this->GetSegParameters()->mUseOriginalImageIntensityForDotIntensityScore = (useOriginalImageIntensityForDotIntensityScore?true:false); 
+		this->GetSegParameters()->SetUseOriginalImageIntensityForDotIntensityScore((useOriginalImageIntensityForDotIntensityScore?true:false)); 
 	}
 
 	const char* phantomDefinitionFile =  segmentationParameters->GetAttribute("PhantomDefinition"); 
@@ -935,7 +935,7 @@ PlusStatus vtkCalibrationController::ReadSegmentationParametersConfiguration( vt
 PlusStatus vtkCalibrationController::ReadPhantomDefinition()
 {
 	LOG_TRACE("vtkCalibrationController::ReadPhantomDefinition");
-
+	std::vector<NWire> tempNWires = this->GetSegParameters()->GetNWires();
 	if ( this->PhantomDefinitionFileName != NULL )
 	{
 		vtkSmartPointer<vtkXMLDataElement> phantomDefinition = vtkXMLUtilities::ReadElementFromFile(this->PhantomDefinitionFileName);
@@ -954,9 +954,9 @@ PlusStatus vtkCalibrationController::ReadPhantomDefinition()
 			const char* type =  description->GetAttribute("Type"); 
 			if ( type != NULL ) {
 				if (STRCASECMP("Double-N", type) == 0) {
-					this->GetSegParameters()->mFiducialGeometry = SegmentationParameters::CALIBRATION_PHANTOM_6_POINT;
+					this->GetSegParameters()->SetFiducialGeometry(SegmentationParameters::CALIBRATION_PHANTOM_6_POINT);
 				} else if (STRCASECMP("U-Shaped-N", type) == 0) {
-					this->GetSegParameters()->mFiducialGeometry = SegmentationParameters::TAB2_5_POINT;
+					this->GetSegParameters()->SetFiducialGeometry(SegmentationParameters::TAB2_5_POINT);
 				}
 			} else {
 				LOG_ERROR("Phantom type not found!");
@@ -969,7 +969,8 @@ PlusStatus vtkCalibrationController::ReadPhantomDefinition()
 			LOG_ERROR("Phantom geometry information not found!");
 			return PLUS_FAIL;
 		} else {
-			this->GetSegParameters()->mNWires.clear();
+			
+			tempNWires.clear();
 
 			// Finding of NWires and extracting the endpoints
 			int numberOfGeometryChildren = geometry->GetNumberOfNestedElements();
@@ -1016,9 +1017,11 @@ PlusStatus vtkCalibrationController::ReadPhantomDefinition()
 					nWire.wires[j] = wire;
 				}
 				
-				this->GetSegParameters()->mNWires.push_back(nWire);
+				tempNWires.push_back(nWire);
 			}
 		}
+
+		this->GetSegParameters()->SetNWires(tempNWires);
 	} else {
 		LOG_ERROR("Phantom definition file name is not set!"); 
 		return PLUS_FAIL;
@@ -1028,7 +1031,7 @@ PlusStatus vtkCalibrationController::ReadPhantomDefinition()
 	// Line length of an N-wire: the maximum distance between its wires' front endpoints
 	double maxLineLengthSquared = -1.0;
 	double minLineLengthSquared = FLT_MAX;
-	std::vector<NWire> nWires = this->GetSegParameters()->mNWires;
+	std::vector<NWire> nWires = this->GetSegParameters()->GetNWires();
 
 	for (std::vector<NWire>::iterator it = nWires.begin(); it != nWires.end(); ++it) {
 		Wire wire0 = it->wires[0];
@@ -1048,9 +1051,9 @@ PlusStatus vtkCalibrationController::ReadPhantomDefinition()
 		}
 	}
 
-	this->GetSegParameters()->mMaxLineLenMm = sqrt(maxLineLengthSquared) * (1.0 + (this->GetSegParameters()->mMaxLineLengthErrorPercent / 100.0));
-	this->GetSegParameters()->mMinLineLenMm = sqrt(minLineLengthSquared) * (1.0 - (this->GetSegParameters()->mMaxLineLengthErrorPercent / 100.0));
-	LOG_DEBUG("Line length - computed min: " << sqrt(minLineLengthSquared) << " , max: " << sqrt(maxLineLengthSquared) << ";  allowed min: " << this->GetSegParameters()->mMinLineLenMm << ", max: " << this->GetSegParameters()->mMaxLineLenMm);
+	this->GetSegParameters()->SetMaxLineLenMm(sqrt(maxLineLengthSquared) * (1.0 + (this->GetSegParameters()->GetMaxLineLengthErrorPercent() / 100.0)));
+	this->GetSegParameters()->SetMinLineLenMm(sqrt(minLineLengthSquared) * (1.0 - (this->GetSegParameters()->GetMaxLineLengthErrorPercent() / 100.0)));
+	LOG_DEBUG("Line length - computed min: " << sqrt(minLineLengthSquared) << " , max: " << sqrt(maxLineLengthSquared) << ";  allowed min: " << this->GetSegParameters()->GetMinLineLenMm() << ", max: " << this->GetSegParameters()->GetMaxLineLenMm());
 
 	// Distance between lines (= distance between planes of the N-wires)
 	double maxNPlaneDistance = -1.0;
@@ -1092,9 +1095,9 @@ PlusStatus vtkCalibrationController::ReadPhantomDefinition()
 		}
 	}
 
-	this->GetSegParameters()->mMaxLinePairDistMm = maxNPlaneDistance * (1.0 + (this->GetSegParameters()->mMaxLinePairDistanceErrorPercent / 100.0));
-	this->GetSegParameters()->mMinLinePairDistMm = minNPlaneDistance * (1.0 - (this->GetSegParameters()->mMaxLinePairDistanceErrorPercent / 100.0));
-	LOG_DEBUG("Line pair distance - computed min: " << minNPlaneDistance << " , max: " << maxNPlaneDistance << ";  allowed min: " << this->GetSegParameters()->mMinLinePairDistMm << ", max: " << this->GetSegParameters()->mMaxLinePairDistMm);
+	this->GetSegParameters()->SetMaxLinePairDistMm(maxNPlaneDistance * (1.0 + (this->GetSegParameters()->GetMaxLinePairDistanceErrorPercent() / 100.0)));
+	this->GetSegParameters()->SetMinLinePairDistMm(minNPlaneDistance * (1.0 - (this->GetSegParameters()->GetMaxLinePairDistanceErrorPercent() / 100.0)));
+	LOG_DEBUG("Line pair distance - computed min: " << minNPlaneDistance << " , max: " << maxNPlaneDistance << ";  allowed min: " << this->GetSegParameters()->GetMinLinePairDistMm() << ", max: " << this->GetSegParameters()->GetMaxLinePairDistMm());
 
   return PLUS_SUCCESS;
 }

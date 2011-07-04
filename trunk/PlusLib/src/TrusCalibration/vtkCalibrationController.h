@@ -12,8 +12,7 @@
 #include "vnl/vnl_vector.h"
 #include <string>
 #include <vector>
-#include "segimpl.h"
-#include "kphantseg.h"
+#include "UltraSoundFiducialSegmentation.h"
 
 enum IMAGE_DATA_TYPE
 {

@@ -44,7 +44,7 @@
 #include "Phantom.h"  // The parent class
 #endif	
 
-#include "SegImpl.h"
+#include "UltraSoundFiducialSegmentation.h"
 
 #include <vector>
 
