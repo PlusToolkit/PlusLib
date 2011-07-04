@@ -417,7 +417,7 @@ protected:
 	//! Description: 
 	// Compute rotation center using linear least squares
 	// Returns true on success otherwise false
-	virtual PlusStatus CalculateCenterOfRotation( const SegmentedFrameList &frameListForCenterOfRotation, double centerOfRotationPx[2], vtkTable* centerOfRotationCalculationErrorTable );
+	virtual PlusStatus CalculateCenterOfRotation( SegmentedFrameList &frameListForCenterOfRotation, double centerOfRotationPx[2], vtkTable* centerOfRotationCalculationErrorTable );
 
 	//! Description: 
 	// Calculate mean error and stdev of measured and computed distances between rotation center and segmented wires
@@ -438,7 +438,7 @@ protected:
 	//! Description: 
 	// Save center of rotation calibration error in gnuplot format 
 	virtual void SaveCenterOfRotationCalculationError(
-		const SegmentedFrameList &frameListForCenterOfRotation, 
+		SegmentedFrameList &frameListForCenterOfRotation, 
 		const double centerOfRotationPx[2], 
 		vtkTable* centerOfRotationCalculationErrorTable = NULL); 
 

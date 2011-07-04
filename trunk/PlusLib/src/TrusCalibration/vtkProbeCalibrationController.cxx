@@ -586,7 +586,7 @@ void vtkProbeCalibrationController::PopulateSegmentedFiducialsToDataContainer(vn
 	SegmentationResults segResults;
 	this->GetSegmenter()->GetSegmentationResults(segResults); 
 
-	if ( !segResults.m_DotsFound )
+	if ( !segResults.GetDotsFound() )
 	{
 		LOG_DEBUG("Segmantation failed! Unable to populate segmentation result!"); 
 		return; 
@@ -596,11 +596,11 @@ void vtkProbeCalibrationController::PopulateSegmentedFiducialsToDataContainer(vn
 	// Bottom Layer:	6, 5, 4 
 	std::vector<vnl_vector_double> SegmentedNFiducialsInFixedCorrespondence;
 	SegmentedNFiducialsInFixedCorrespondence.resize(0);
-	for (int i=0; i<segResults.m_FoundDotsCoordinateValue.size(); i++)
+	for (int i=0; i<segResults.GetFoundDotsCoordinateValue().size(); i++)
 	{
 		vnl_vector<double> NFiducial(4,0);
-		NFiducial[0]=segResults.m_FoundDotsCoordinateValue[i][0];
-		NFiducial[1]=segResults.m_FoundDotsCoordinateValue[i][1];
+		NFiducial[0]=segResults.GetFoundDotsCoordinateValue()[i][0];
+		NFiducial[1]=segResults.GetFoundDotsCoordinateValue()[i][1];
 		NFiducial[2]=0;
 		NFiducial[3]=1;
 		SegmentedNFiducialsInFixedCorrespondence.push_back(NFiducial);
