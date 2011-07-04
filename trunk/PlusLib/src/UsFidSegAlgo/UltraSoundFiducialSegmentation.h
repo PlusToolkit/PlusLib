@@ -678,6 +678,32 @@ class KPhantomSeg
 		
 		static std::vector<std::vector<double>> sortInAscendingOrder(std::vector<std::vector<double>> fiducials);  
 
+		void SetSizeX(int value) { m_SizeX = value; };
+		int GetSizeX() { return m_SizeX; };
+		void SetSizeY(int value) { m_SizeY = value; };
+		int GetSizeY() { return m_SizeY; };
+
+		void SetSearchOriginX(int value) { m_SearchOriginX = value; };
+		int GetSearchOriginX() { return m_SearchOriginX; };
+		void SetSearchOriginY(int value) { m_SearchOriginY = value; };
+		int GetSearchOriginY() { return m_SearchOriginY; };
+
+		void SetSearchSizeX(int value) { m_SearchSizeX = value; };
+		int GetSearchSizeX() { return m_SearchSizeX; };
+		void SetSearchSizeY(int value) { m_SearchSizeY = value; };
+		int GetSearchSizeY() { return m_SearchSizeY; };
+
+		void SetPossibleFiducialsImageFilename(std::string value) { m_PossibleFiducialsImageFilename = value; };
+		std::string GetPossibleFiducialsImageFilename() { return m_PossibleFiducialsImageFilename; };
+
+		void SetSegParams(SegmentationParameters value) { m_SegParams = value; };
+		SegmentationParameters GetSegParams() { return m_SegParams; };
+		void SetSegImpl(SegImpl	* value) { m_SegImpl = value; };
+		SegImpl	* GetSegImpl() { return m_SegImpl; };
+		void SetSegResult(SegmentationResults value) { m_SegResult = value; };
+		SegmentationResults GetSegResult() { return m_SegResult; };
+
+	protected:
 		/*
 		 * Input
 		 */
@@ -711,22 +737,11 @@ class KPhantomSeg
 		// vector<double> m_FoundDotsYValue; 
 
 		/*
-		delete later
-		float x1, y1;
-		float x2, y2;
-		float x3, y3;
-		float x4, y4;
-		float x5, y5;
-		float x6, y6;
-		// delete later ...///
-		*/ 
-
-		/*
 		 * Private Data
 		 */  
 		
 		SegmentationParameters	m_SegParams; 
-		SegImpl					*m_SegImpl;
+		SegImpl	*				m_SegImpl;
 		SegmentationResults		m_SegResult; 
 };
 
