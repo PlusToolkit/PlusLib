@@ -669,12 +669,12 @@ void SegImpl::uscseg( PixelType *image, const SegmentationParameters &segParams,
 
 	cluster();
 
-	segResult.m_NumDots= ndots; 
-	segResult.m_CandidateFidValues=dots;	  
+	segResult.SetNumDots(ndots); 
+	segResult.SetCandidateFidValues(dots);	  
 	 
 	if(debugOutput) 
 	{
-		WritePossibleFiducialOverlayImage(segResult.m_CandidateFidValues, unalteredImage); 
+		WritePossibleFiducialOverlayImage(segResult.GetCandidateFidValues(), unalteredImage); 
 	}
 	
 	find_lines();
@@ -713,38 +713,40 @@ void SegImpl::find_double_n_lines(SegmentationResults &segResult)
 	}
 	else if ( npairs < 1 ) 
 	{
-		LOG_DEBUG("Segmentation was NOT successful! (Number of dots found: " << segResult.m_FoundDotsCoordinateValue.size() << " Number of possible fiducial points: " << segResult.m_NumDots << ")"); 
-		segResult.m_DotsFound = false;				
+		LOG_DEBUG("Segmentation was NOT successful! (Number of dots found: " << segResult.GetFoundDotsCoordinateValue().size() << " Number of possible fiducial points: " << segResult.GetNumDots() << ")"); 
+		segResult.SetDotsFound(false);				
 		return;
 	}
 
-	segResult.m_DotsFound = true;
+	segResult.SetDotsFound(true);
 
 	LinePair *pair = pairs;
 	Line *line1 = &lines[pair->l1];
 	Line *line2 = &lines[pair->l2];
 
 	std::vector<double> dotCoords;
+	std::vector< std::vector<double> > foundDotsCoordinateValues = segResult.GetFoundDotsCoordinateValue();
 	for (int i=0; i<3; i++)
 	{
 		dotCoords.push_back(dots[line1->b[i]].c);
 		dotCoords.push_back(dots[line1->b[i]].r);
-		segResult.m_FoundDotsCoordinateValue.push_back(dotCoords);
+		foundDotsCoordinateValues.push_back(dotCoords);
 		dotCoords.clear();
 	}
 	for (int i=0; i<3; i++)
 	{
 		dotCoords.push_back(dots[line2->b[i]].c);
 		dotCoords.push_back(dots[line2->b[i]].r);
-		segResult.m_FoundDotsCoordinateValue.push_back(dotCoords);
+		foundDotsCoordinateValues.push_back(dotCoords);
 		dotCoords.clear();
 	}
-	std::vector<std::vector<double>> sortedFiducials = KPhantomSeg::sortInAscendingOrder(segResult.m_FoundDotsCoordinateValue); 
-	segResult.m_FoundDotsCoordinateValue = sortedFiducials; 					
+	segResult.SetFoundDotsCoordinateValue(foundDotsCoordinateValues);
+	std::vector<std::vector<double>> sortedFiducials = KPhantomSeg::sortInAscendingOrder(segResult.GetFoundDotsCoordinateValue()); 
+	segResult.SetFoundDotsCoordinateValue(sortedFiducials); 					
 
-	segResult.m_Angles = pair->angle_conf;
-	segResult.m_Intensity = pair->intensity;
-	segResult.m_NumDots= ndots; 
+	segResult.SetAngles(pair->angle_conf);
+	segResult.SetIntensity(pair->intensity);
+	segResult.SetNumDots(ndots); 
 }
 
 //-----------------------------------------------------------------------------
@@ -930,51 +932,51 @@ void SegImpl::find_u_shape_line_triad(SegmentationResults &segResult)
 
 	std::vector<Dot> bestFiducialCombo=twoFiducialCombos[0]; // :TODO: check if the first combo is the best	
 
-	segResult.m_DotsFound=true;
+	segResult.SetDotsFound(true);
 
 	std::vector<double> coords(2);
-
+	std::vector< std::vector<double> > foundDotsCoordinateValues = segResult.GetFoundDotsCoordinateValue();
 	// Side line A top
 	coords[0]=bestFiducialCombo[0].c;
 	coords[1]=bestFiducialCombo[0].r;
-	segResult.m_FoundDotsCoordinateValue.push_back(coords);
+	foundDotsCoordinateValues.push_back(coords);
 
 	// Baseline	
 	coords[0]=threePointLine[0](0);
 	coords[1]=threePointLine[0](1);
-	segResult.m_FoundDotsCoordinateValue.push_back(coords);
+	foundDotsCoordinateValues.push_back(coords);
 	coords[0]=threePointLine[1](0);
 	coords[1]=threePointLine[1](1);
-	segResult.m_FoundDotsCoordinateValue.push_back(coords);
+	foundDotsCoordinateValues.push_back(coords);
 	coords[0]=threePointLine[2](0);
 	coords[1]=threePointLine[2](1);
-	segResult.m_FoundDotsCoordinateValue.push_back(coords);
+	foundDotsCoordinateValues.push_back(coords);
 
 	// Side line B top
 	coords[0]=bestFiducialCombo[1].c;
 	coords[1]=bestFiducialCombo[1].r;
-	segResult.m_FoundDotsCoordinateValue.push_back(coords);
+	foundDotsCoordinateValues.push_back(coords);
 
 	// Sort the fiducials based on their location around the center of gravity the fiducial set
 	// (ascending order of the arctan of the COG->FidPoint vector)
 	std::vector<double> centerPoint(2);
 	centerPoint[0]=0.0;
 	centerPoint[1]=0.0;
-	for(int i =0;i<segResult.m_FoundDotsCoordinateValue.size();i++)
+	for(int i =0;i<segResult.GetFoundDotsCoordinateValue().size();i++)
 	{
-		centerPoint[0] += segResult.m_FoundDotsCoordinateValue[i][0];
-		centerPoint[1] +=segResult.m_FoundDotsCoordinateValue [i][1]; 
+		centerPoint[0] += segResult.GetFoundDotsCoordinateValue()[i][0];
+		centerPoint[1] +=segResult.GetFoundDotsCoordinateValue()[i][1]; 
 	}
-	int pointCount=segResult.m_FoundDotsCoordinateValue.size();
+	int pointCount=segResult.GetFoundDotsCoordinateValue().size();
 	centerPoint[0] = centerPoint[0]/pointCount; 
 	centerPoint[1] = centerPoint[1]/pointCount;
 	std::list<SortedAngle> sortedAngles;
-	for(int i =0;i<segResult.m_FoundDotsCoordinateValue.size();i++)
+	for(int i =0;i<segResult.GetFoundDotsCoordinateValue().size();i++)
 	{		
 		SortedAngle sa;
 		sa.pointIndex=i;
-		sa.coords[0]=segResult.m_FoundDotsCoordinateValue[i][0];
-		sa.coords[1]=segResult.m_FoundDotsCoordinateValue[i][1];
+		sa.coords[0]=segResult.GetFoundDotsCoordinateValue()[i][0];
+		sa.coords[1]=segResult.GetFoundDotsCoordinateValue()[i][1];
 		double directionVectorX = sa.coords[0] - centerPoint[0];
 		double directionVectorY = sa.coords[1] - centerPoint[1];
 		// angle=0 corresponds to -Y direction
@@ -983,18 +985,19 @@ void SegImpl::find_u_shape_line_triad(SegmentationResults &segResult)
 		sortedAngles.push_back(sa);
 	}
 	sortedAngles.sort(AngleMoreThan);
-	segResult.m_FoundDotsCoordinateValue.clear();
+	segResult.GetFoundDotsCoordinateValue().clear();
 	for(std::list<SortedAngle>::iterator it=sortedAngles.begin();it!=sortedAngles.end();it++)
 	{
 		SortedAngle sa=(*it);
 		std::vector<double> coord(2);
 		coord[0]=sa.coords[0];
 		coord[1]=sa.coords[1];
-		segResult.m_FoundDotsCoordinateValue.push_back(coord);
+		foundDotsCoordinateValues.push_back(coord);
 	}
-
-	segResult.m_Angles=0; // :TODO: compute a score for this
-	segResult.m_Intensity=0; // :TODO: compute a score for this
+	
+	segResult.SetFoundDotsCoordinateValue(foundDotsCoordinateValues);
+	segResult.SetAngles(0); // :TODO: compute a score for this
+	segResult.SetIntensity(0); // :TODO: compute a score for this
 }
 
 //-----------------------------------------------------------------------------
