@@ -132,7 +132,7 @@ PlusStatus StylusCalibrationController::Initialize()
 		m_State = ToolboxState_Idle;
 	}
 
-  return PLUS_SUCCESS;
+	return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
@@ -261,7 +261,7 @@ PlusStatus StylusCalibrationController::Clear()
 
 	m_Toolbox->Clear();
 
-  return PLUS_SUCCESS;
+	return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
@@ -481,7 +481,7 @@ PlusStatus StylusCalibrationController::DoAcquisition()
 		DisplayStylus();
 	}
   
-  return PLUS_SUCCESS;
+	return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
@@ -515,12 +515,12 @@ PlusStatus StylusCalibrationController::Start()
 {
 	LOG_INFO("Start stylus calibration"); 
 
-  vtkFreehandController* controller = vtkFreehandController::GetInstance();
-  if (controller == NULL) {
+	vtkFreehandController* controller = vtkFreehandController::GetInstance();
+	if (controller == NULL) {
 		LOG_ERROR("vtkFreehandController is invalid");
 		return PLUS_FAIL;
 	}
-  if (controller->GetInitialized() == false) {
+	if (controller->GetInitialized() == false) {
 		LOG_ERROR("vtkFreehandController is not initialized");
 		return PLUS_FAIL;
 	}
@@ -533,7 +533,7 @@ PlusStatus StylusCalibrationController::Start()
 		LOG_ERROR("Tracker is invalid");
 		return PLUS_FAIL;
 	}
-  if (dataCollector->GetTracker()->GetTool(dataCollector->GetDefaultToolPortNumber()) < 0) {
+	if (dataCollector->GetTracker()->GetTool(dataCollector->GetDefaultToolPortNumber()) < 0) {
 		LOG_ERROR("Tracker is not initialized properly");
 		return PLUS_FAIL;
 	}
@@ -577,7 +577,7 @@ PlusStatus StylusCalibrationController::Stop()
 		m_State = ToolboxState_Error;
 	}
   
-  return PLUS_SUCCESS;
+	return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------

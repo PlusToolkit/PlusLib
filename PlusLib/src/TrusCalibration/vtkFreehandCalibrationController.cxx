@@ -174,6 +174,8 @@ PlusStatus vtkFreehandCalibrationController::InitializeVisualization()
 		//renderer->AddActor(m_StylusTipActor);
 		renderer->Modified();
 	}
+
+	return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
