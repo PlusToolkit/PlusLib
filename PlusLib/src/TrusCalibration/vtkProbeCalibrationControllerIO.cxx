@@ -175,9 +175,9 @@ void vtkProbeCalibrationControllerIO::SaveSegmentedWirePositionsToFile()
 		os << dataType << "\t" << posZ << "\t" << rotZ << "\t"; 
 
 		//************************* Image frame *****************************
-		for (int i=0; i<segResults.m_FoundDotsCoordinateValue.size(); i++)
+		for (int i=0; i<segResults.GetFoundDotsCoordinateValue().size(); i++)
 		{
-			os << segResults.m_FoundDotsCoordinateValue[i][0] << "\t" << segResults.m_FoundDotsCoordinateValue[i][1] << "\t"; 
+			os << segResults.GetFoundDotsCoordinateValue()[i][0] << "\t" << segResults.GetFoundDotsCoordinateValue()[i][1] << "\t"; 
 		}
 
 		// Save ground truth wire positions 
@@ -202,14 +202,14 @@ void vtkProbeCalibrationControllerIO::SaveSegmentedWirePositionsToFile()
 		}
 
 		//************************* Probe frame *****************************
-		for (int i=0; i<segResults.m_FoundDotsCoordinateValue.size(); i++)
+		for (int i=0; i<segResults.GetFoundDotsCoordinateValue().size(); i++)
 		{
 			vtkSmartPointer<vtkTransform> point = vtkSmartPointer<vtkTransform>::New(); 
 			point->PreMultiply();
 			point->Concatenate(tProbeHomeToProbe);
 			point->Concatenate(this->CalibrationController->GetTransformUserImageHomeToProbeHome()); 
 			point->Concatenate(this->CalibrationController->GetTransformImageHomeToUserImageHome()); 
-			point->Translate(segResults.m_FoundDotsCoordinateValue[i][0], segResults.m_FoundDotsCoordinateValue[i][1], 0); 
+			point->Translate(segResults.GetFoundDotsCoordinateValue()[i][0], segResults.GetFoundDotsCoordinateValue()[i][1], 0); 
 			point->Update(); 
 
 			double* wireposInProbeHome = point->GetPosition();
@@ -238,11 +238,11 @@ void vtkProbeCalibrationControllerIO::SaveSegmentedWirePositionsToFile()
 		}
 
 		//************************* Template frame *****************************
-		for (int i=0; i<segResults.m_FoundDotsCoordinateValue.size(); i++)
+		for (int i=0; i<segResults.GetFoundDotsCoordinateValue().size(); i++)
 		{
 			vtkSmartPointer<vtkTransform> point = vtkSmartPointer<vtkTransform>::New(); 
 			point->PostMultiply();
-			point->Translate(segResults.m_FoundDotsCoordinateValue[i][0], segResults.m_FoundDotsCoordinateValue[i][1], 0); 
+			point->Translate(segResults.GetFoundDotsCoordinateValue()[i][0], segResults.GetFoundDotsCoordinateValue()[i][1], 0); 
 			point->Concatenate(this->CalibrationController->GetTransformImageToTemplate()); 
 			point->Update(); 
 

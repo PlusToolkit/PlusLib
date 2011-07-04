@@ -192,20 +192,20 @@ PlusStatus vtkCalibrationController::AddTrackedFrameData(TrackedFrame* trackedFr
 			// Save the erroneously segmented frames too 
 			trackedFramePosition = this->TrackedFrameListContainer[dataType]->AddTrackedFrame(trackedFrame); 
 		}
-		else if (segResults.m_DotsFound )
+		else if (segResults.GetDotsFound() )
 		{
 			// Segmentation was successful
 			trackedFramePosition = this->TrackedFrameListContainer[dataType]->AddTrackedFrame(trackedFrame); 
 		}
 
 		// Draw segmentation results to frame if needed
-		if ( segResults.m_DotsFound && ( this->EnableSegmentationAnalysis || this->CalibrationMode == OFFLINE) )
+		if ( segResults.GetDotsFound() && ( this->EnableSegmentationAnalysis || this->CalibrationMode == OFFLINE) )
 		{
 			// Draw segmentation result to image
 			this->GetSegmenter()->drawResults( trackedFrame->ImageData->GetBufferPointer() );
 		} 
 
-		if( !segResults.m_DotsFound )
+		if( !segResults.GetDotsFound() )
 		{
 			LOG_DEBUG("The segmentation cannot locate any meaningful targets, the image was ignored!!!"); 
 			return PLUS_FAIL; 

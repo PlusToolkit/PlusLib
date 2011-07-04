@@ -583,7 +583,7 @@ PlusStatus vtkFreehandCalibrationController::PopulateSegmentedFiducialsToDataCon
 	SegmentationResults segResults;
 	this->GetSegmenter()->GetSegmentationResults(segResults); 
 
-	if (! segResults.m_DotsFound) {
+	if (! segResults.GetDotsFound()) {
 		LOG_ERROR("Segmentation failed! Unable to populate segmentation result!"); 
 		return PLUS_FAIL; 
 	}
@@ -593,10 +593,10 @@ PlusStatus vtkFreehandCalibrationController::PopulateSegmentedFiducialsToDataCon
 	std::vector<vnl_vector<double>> SegmentedNFiducialsInFixedCorrespondence;
 	SegmentedNFiducialsInFixedCorrespondence.resize(0);
 
-	for (int i=0; i<segResults.m_FoundDotsCoordinateValue.size(); i++) {
+	for (int i=0; i<segResults.GetFoundDotsCoordinateValue().size(); i++) {
 		vnl_vector<double> NFiducial(4,0);
-		NFiducial[0]=segResults.m_FoundDotsCoordinateValue[i][0];
-		NFiducial[1]=segResults.m_FoundDotsCoordinateValue[i][1];
+		NFiducial[0]=segResults.GetFoundDotsCoordinateValue()[i][0];
+		NFiducial[1]=segResults.GetFoundDotsCoordinateValue()[i][1];
 		NFiducial[2]=0;
 		NFiducial[3]=1;
 

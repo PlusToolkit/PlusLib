@@ -194,7 +194,7 @@ int main (int argc, char* argv[])
 			SegmentationResults segResults;
 			segmenter.GetSegmentationResults(segResults); 
 
-			if ( segResults.m_DotsFound )
+			if ( segResults.GetDotsFound() )
 			{
 				vtkSmartPointer<vtkTransform> frameTransform = vtkSmartPointer<vtkTransform>::New(); 
 				frameTransform->SetMatrix(transformMatrix); 
@@ -207,38 +207,38 @@ int main (int argc, char* argv[])
 				// Bottom Layer:	6, 5, 4 (from right to left);
 				std::vector<HomogenousVector4x1> vectorOfWirePoints; 
 				// Add Line #1 pixel coordinates to center of rotation point set 
-				vectorOfWirePoints.push_back( HomogenousVector4x1( segResults.m_FoundDotsCoordinateValue[0][0], segResults.m_FoundDotsCoordinateValue[0][1], 0 ) ); 
+				vectorOfWirePoints.push_back( HomogenousVector4x1( segResults.GetFoundDotsCoordinateValue()[0][0], segResults.GetFoundDotsCoordinateValue()[0][1], 0 ) ); 
 
 				// Add Line #3 pixel coordinates to center of rotation point set 
-				vectorOfWirePoints.push_back( HomogenousVector4x1( segResults.m_FoundDotsCoordinateValue[2][0], segResults.m_FoundDotsCoordinateValue[2][1], 0 ) ); 
+				vectorOfWirePoints.push_back( HomogenousVector4x1( segResults.GetFoundDotsCoordinateValue()[2][0], segResults.GetFoundDotsCoordinateValue()[2][1], 0 ) ); 
 
 				// Add Line #4 pixel coordinates to center of rotation point set 
-				vectorOfWirePoints.push_back( HomogenousVector4x1( segResults.m_FoundDotsCoordinateValue[3][0], segResults.m_FoundDotsCoordinateValue[3][1], 0 ) ); 
+				vectorOfWirePoints.push_back( HomogenousVector4x1( segResults.GetFoundDotsCoordinateValue()[3][0], segResults.GetFoundDotsCoordinateValue()[3][1], 0 ) ); 
 
 				// Add Line #6 pixel coordinates to center of rotation point set 
-				vectorOfWirePoints.push_back( HomogenousVector4x1( segResults.m_FoundDotsCoordinateValue[5][0], segResults.m_FoundDotsCoordinateValue[5][1], 0 ) ); 
+				vectorOfWirePoints.push_back( HomogenousVector4x1( segResults.GetFoundDotsCoordinateValue()[5][0], segResults.GetFoundDotsCoordinateValue()[5][1], 0 ) ); 
 
 				templateToStepperCalibrator->AddPointForCenterOfRotationCalculation(vectorOfWirePoints); 
 
 				// Add Line #1 (point A) Line #3 (point B) and Line #6 (point C) pixel coordinates to phantom to probe distance point set 
 				templateToStepperCalibrator->AddPointsForPhantomToProbeDistanceCalculation(
-					segResults.m_FoundDotsCoordinateValue[0][0], segResults.m_FoundDotsCoordinateValue[0][1], 0, 
-					segResults.m_FoundDotsCoordinateValue[2][0], segResults.m_FoundDotsCoordinateValue[2][1], 0, 
-					segResults.m_FoundDotsCoordinateValue[5][0], segResults.m_FoundDotsCoordinateValue[5][1], 0 
+					segResults.GetFoundDotsCoordinateValue()[0][0], segResults.GetFoundDotsCoordinateValue()[0][1], 0, 
+					segResults.GetFoundDotsCoordinateValue()[2][0], segResults.GetFoundDotsCoordinateValue()[2][1], 0, 
+					segResults.GetFoundDotsCoordinateValue()[5][0], segResults.GetFoundDotsCoordinateValue()[5][1], 0 
 					); 
 
 				// Add distance between line #1 and #3 for scaling computation 
 				// Constant Distance Measurements from iCAL phantom design in mm
 				const double distanceN1ToN3inMm(40); // TODO: read it from pahantom design
-				double xDistanceN1ToN3 = segResults.m_FoundDotsCoordinateValue[0][0] - segResults.m_FoundDotsCoordinateValue[2][0]; 
-				double yDistanceN1ToN3 = segResults.m_FoundDotsCoordinateValue[0][1] - segResults.m_FoundDotsCoordinateValue[2][1]; 
+				double xDistanceN1ToN3 = segResults.GetFoundDotsCoordinateValue()[0][0] - segResults.GetFoundDotsCoordinateValue()[2][0]; 
+				double yDistanceN1ToN3 = segResults.GetFoundDotsCoordinateValue()[0][1] - segResults.GetFoundDotsCoordinateValue()[2][1]; 
 				templateToStepperCalibrator->AddDistancesForSpacingCalculation(xDistanceN1ToN3, yDistanceN1ToN3, distanceN1ToN3inMm); 
 
 				// Add distance between line #3 and #6 for scaling computation 
 				// Constant Distance Measurements from iCAL phantom design in mm
 				const double distanceN3ToN6inMm(20); // TODO: read it from pahantom design
-				double xDistanceN3ToN6 = segResults.m_FoundDotsCoordinateValue[2][0] - segResults.m_FoundDotsCoordinateValue[5][0]; 
-				double yDistanceN3ToN6 = segResults.m_FoundDotsCoordinateValue[2][1] - segResults.m_FoundDotsCoordinateValue[5][1]; 
+				double xDistanceN3ToN6 = segResults.GetFoundDotsCoordinateValue()[2][0] - segResults.GetFoundDotsCoordinateValue()[5][0]; 
+				double yDistanceN3ToN6 = segResults.GetFoundDotsCoordinateValue()[2][1] - segResults.GetFoundDotsCoordinateValue()[5][1]; 
 				templateToStepperCalibrator->AddDistancesForSpacingCalculation(xDistanceN3ToN6, yDistanceN3ToN6, distanceN3ToN6inMm); 
 
 				numberOfSegmentedCenterOfRotationImages++;
