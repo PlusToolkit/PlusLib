@@ -10,8 +10,7 @@
 #include "itkImageRegionConstIterator.h" 
 #include "itkMetaImageSequenceIO.h"
 
-#include "segimpl.h"
-#include "kphantseg.h"
+#include "UltraSoundFiducialSegmentation.h"
 #include "vtkCalibrationController.h"
 
 #include "vtksys/CommandLineArguments.hxx"
@@ -118,7 +117,7 @@ void SegmentImageSequence(ImageSequenceType::Pointer image, std::ofstream &outFi
 }
 
 // return the number of differences
-int CompareSegmentationResults(const std::string& inputBaselineFileName, const std::string& outputTestResultsFileName, const SegmentationParameters &segParams)
+int CompareSegmentationResults(const std::string& inputBaselineFileName, const std::string& outputTestResultsFileName, SegmentationParameters &segParams)
 {
 	const bool reportWarningsAsFailure=true;
 	int numberOfFailures=0;
@@ -157,8 +156,8 @@ int CompareSegmentationResults(const std::string& inputBaselineFileName, const s
 	std::ofstream outFileFidFindingResults; 
 	outFileFidFindingResults.open("FiducialsFound.txt");
 	outFileFidFindingResults<< "Baseline to algorithm Tolerance: "<<BASELINE_TO_ALGORITHM_TOLERANCE<<" pixel(s)" <<std::endl;
-	outFileFidFindingResults<< "ThresholdTop: "<< segParams.mThresholdImageTop <<std::endl; 
-	outFileFidFindingResults<< "ThresholdBottom: "<< segParams.mThresholdImageBottom <<std::endl; 
+	outFileFidFindingResults<< "ThresholdTop: "<< segParams.GetThresholdImageTop() <<std::endl; 
+	outFileFidFindingResults<< "ThresholdBottom: "<< segParams.GetThresholdImageBottom() <<std::endl; 
 	for (int nestedElemInd=0; nestedElemInd<currentRootElem->GetNumberOfNestedElements(); nestedElemInd++)
 	{
 		vtkSmartPointer<vtkXMLDataElement> currentElem=currentRootElem->GetNestedElement(nestedElemInd); 

@@ -46,7 +46,7 @@
 
 typedef unsigned char PixelType;
 
-//************************************************************************************************
+//-----------------------------------------------------------------------------
 
 struct Item
 {
@@ -57,7 +57,7 @@ struct Item
 	int coff;
 };
 
-//************************************************************************************************
+//-----------------------------------------------------------------------------
 
 struct Pos
 {
@@ -65,7 +65,7 @@ struct Pos
 	int c;
 };
 
-//************************************************************************************************
+//-----------------------------------------------------------------------------
 
 struct Dot
 {
@@ -74,7 +74,7 @@ struct Dot
 	float intensity;
 };
 
-//************************************************************************************************
+//-----------------------------------------------------------------------------
 
 struct Line
 {
@@ -86,7 +86,7 @@ struct Line
 	float length;
 };
 
-//************************************************************************************************
+//-----------------------------------------------------------------------------
 
 struct LinePair
 {
@@ -97,7 +97,7 @@ struct LinePair
 	float angle_conf;
 };
 
-//************************************************************************************************
+//-----------------------------------------------------------------------------
 
 struct Wire
 {
@@ -106,265 +106,312 @@ struct Wire
 	double endPointBack[3];
 };
 
-//************************************************************************************************
+//-----------------------------------------------------------------------------
 
 struct NWire
 {
 	Wire wires[3];
 };
 
-//************************************************************************************************
+//-----------------------------------------------------------------------------
 
 class SegmentationParameters
 {
-public:
-	enum FiducialGeometryType
-	{
-		CALIBRATION_PHANTOM_6_POINT, //PerkLab Double-N phantom
-		TAB2_5_POINT, // Tissue Ablation Box version 2, with 5 visible fiducials
-		TAB2_6_POINT // Tissue Ablation Box version 2, with 2 horizontal 3 point lines 
-	};
-
-	SegmentationParameters::SegmentationParameters() :
-		mThresholdImageTop( 10.0 ),
-		mThresholdImageBottom( 10.0 ),
-
-		mMaxLineLenMm ( -1.0 ), 
-		mMinLineLenMm ( -1.0 ),
-		mMaxLinePairDistMm ( -1.0 ),
-		mMinLinePairDistMm ( -1.0 ),
-
-		mMaxLineLengthErrorPercent( 5.0 ),
-		mMaxLinePairDistanceErrorPercent( 10.0 ),
-		mMaxLineErrorMm ( 2.0 ),
-
-		mFindLines3PtDist ( 5.3f ),
-
-		mMaxAngleDiff ( 11.0 * M_PI / 180.0 ),
-		mMinTheta( 20.0 * M_PI / 180.0 ),
-		mMaxTheta( 160.0 * M_PI / 180.0 ),
-
-		mMaxUangleDiff( 10.0 * M_PI / 180.0 ),
-		mMaxUsideLineDiff (30), 
-		mMinUsideLineLength (280),//320
-		mMaxUsideLineLength (300),//350
-
-		mMorphologicalOpeningBarSizeMm(2.0), 
-		mMorphologicalOpeningCircleRadiusMm(0.55), 
-		mScalingEstimation(0.2), 
-
-		mFiducialGeometry(CALIBRATION_PHANTOM_6_POINT),
-
-		mUseOriginalImageIntensityForDotIntensityScore (false) 
-	{
-		this->UpdateParameters(); 
-	}
-
-	void UpdateParameters()
-	{
-		// Create morphological circle
-		mMorphologicalCircle.clear(); 
-		int radiuspx = floor((this->mMorphologicalOpeningCircleRadiusMm / this->mScalingEstimation) + 0.5); 
-		for ( int x = -radiuspx; x <= radiuspx; x++ )
+	public:
+		enum FiducialGeometryType
 		{
-			for ( int y = -radiuspx; y <= radiuspx; y++ )
+			CALIBRATION_PHANTOM_6_POINT, //PerkLab Double-N phantom
+			TAB2_5_POINT, // Tissue Ablation Box version 2, with 5 visible fiducials
+			TAB2_6_POINT // Tissue Ablation Box version 2, with 2 horizontal 3 point lines 
+		};
+
+		SegmentationParameters::SegmentationParameters() :
+			m_ThresholdImageTop( 10.0 ),
+			m_ThresholdImageBottom( 10.0 ),
+
+			m_MaxLineLenMm ( -1.0 ), 
+			m_MinLineLenMm ( -1.0 ),
+			m_MaxLinePairDistMm ( -1.0 ),
+			m_MinLinePairDistMm ( -1.0 ),
+
+			m_MaxLineLengthErrorPercent( 5.0 ),
+			m_MaxLinePairDistanceErrorPercent( 10.0 ),
+			m_MaxLineErrorMm ( 2.0 ),
+
+			m_FindLines3PtDist ( 5.3f ),
+
+			m_MaxAngleDiff ( 11.0 * M_PI / 180.0 ),
+			m_MinTheta( 20.0 * M_PI / 180.0 ),
+			m_MaxTheta( 160.0 * M_PI / 180.0 ),
+
+			m_MaxUangleDiff( 10.0 * M_PI / 180.0 ),
+			m_MaxUsideLineDiff (30), 
+			m_MinUsideLineLength (280),//320
+			m_MaxUsideLineLength (300),//350
+
+			m_MorphologicalOpeningBarSizeMm(2.0), 
+			m_MorphologicalOpeningCircleRadiusMm(0.55), 
+			m_ScalingEstimation(0.2), 
+
+			m_FiducialGeometry(CALIBRATION_PHANTOM_6_POINT),
+
+			m_UseOriginalImageIntensityForDotIntensityScore (false) 
+		{
+			this->UpdateParameters(); 
+		}
+
+		void UpdateParameters()
+		{
+			// Create morphological circle
+			m_MorphologicalCircle.clear(); 
+			int radiuspx = floor((this->m_MorphologicalOpeningCircleRadiusMm / this->m_ScalingEstimation) + 0.5); 
+			for ( int x = -radiuspx; x <= radiuspx; x++ )
 			{
-				if ( sqrt( pow(x,2.0) + pow(y,2.0) ) <= radiuspx )
+				for ( int y = -radiuspx; y <= radiuspx; y++ )
 				{
-					this->mMorphologicalCircle.push_back( Item(x, y) ); 
+					if ( sqrt( pow(x,2.0) + pow(y,2.0) ) <= radiuspx )
+					{
+						this->m_MorphologicalCircle.push_back( Item(x, y) ); 
+					}
 				}
 			}
 		}
-	}
+
+		void SetUseOriginalImageIntensityForDotIntensityScore(bool value) { m_UseOriginalImageIntensityForDotIntensityScore = value; };
+		bool GetUseOriginalImageIntensityForDotIntensityScore() { return m_UseOriginalImageIntensityForDotIntensityScore; };
+
+		void SetThresholdImageTop(double value) { m_ThresholdImageTop = value; };
+		double GetThresholdImageTop() { return m_ThresholdImageTop; };
+		void SetThresholdImageBottom(double value) { m_ThresholdImageBottom = value; };
+		double GetThresholdImageBottom() { return m_ThresholdImageBottom; };
+
+		void SetMaxLineLengthErrorPercent(double value) { m_MaxLineLengthErrorPercent = value; };
+		double GetMaxLineLengthErrorPercent() { return m_MaxLineLengthErrorPercent; };
+		void SetMaxLinePairDistanceErrorPercent(double value) { m_MaxLinePairDistanceErrorPercent = value; };
+		double GetMaxLinePairDistanceErrorPercent() { return m_MaxLinePairDistanceErrorPercent; };
+
+		void SetMinLineLenMm(double value) { m_MinLineLenMm = value; };
+		double GetMinLineLenMm() { return m_MinLineLenMm; };
+		void SetMaxLineLenMm(double value) { m_MaxLineLenMm = value; };
+		double GetMaxLineLenMm() { return m_MaxLineLenMm; };
+
+		void SetMinLinePairDistMm(double value) { m_MinLinePairDistMm = value; };
+		double GetMinLinePairDistMm() { return m_MinLinePairDistMm; };
+		void SetMaxLinePairDistMm(double value) { m_MaxLinePairDistMm = value; };
+		double GetMaxLinePairDistMm() { return m_MaxLinePairDistMm; };
+
+		void SetMaxLineErrorMm(double value) { m_MaxLineErrorMm = value; };
+		double GetMaxLineErrorMm() { return m_MaxLineErrorMm; };
+
+		void SetFindLines3PtDist(double value) { m_FindLines3PtDist = value; };
+		double GetFindLines3PtDist() { return m_FindLines3PtDist; };
+		void SetMaxAngleDiff(double value) { m_MaxAngleDiff = value; };
+		double GetMaxAngleDiff() { return m_MaxAngleDiff; };
+		void SetMinTheta(double value) { m_MinTheta = value; };
+		double GetMinTheta() { return m_MinTheta; };
+		void SetMaxTheta(double value) { m_MaxTheta = value; };
+		double GetMaxTheta() { return m_MaxTheta; };
+
+		void SetMaxUangleDiff(double value) { m_MaxUangleDiff = value; };
+		double GetMaxUangleDiff() { return m_MaxUangleDiff; };
+		void SetMaxUsideLineDiff(double value) { m_MaxUsideLineDiff = value; };
+		double GetMaxUsideLineDiff() { return m_MaxUsideLineDiff; };
+		void SetMinUsideLineLength(double value) { m_MinUsideLineLength = value; };
+		double GetMinUsideLineLength() { return m_MinUsideLineLength; };
+		void SetMaxUsideLineLength(double value) { m_MaxUsideLineLength = value; };
+		double GetMaxUsideLineLength() { return m_MaxUsideLineLength; };
+
+		void SetMorphologicalOpeningBarSizeMm(double value) { m_MorphologicalOpeningBarSizeMm = value; };
+		double GetMorphologicalOpeningBarSizeMm() { return m_MorphologicalOpeningBarSizeMm; };
+		void SetMorphologicalOpeningCircleRadiusMm(double value) { m_MorphologicalOpeningCircleRadiusMm = value; };
+		double GetMorphologicalOpeningCircleRadiusMm() { return m_MorphologicalOpeningCircleRadiusMm; };
+		void SetScalingEstimation(double value) { m_ScalingEstimation = value; };
+		double GetScalingEstimation() { return m_ScalingEstimation; };
+
+		void SetFiducialGeometry(FiducialGeometryType value) { m_FiducialGeometry = value; };
+		FiducialGeometryType GetFiducialGeometry() { return m_FiducialGeometry; };
+		void SetNWires(std::vector<NWire> value) { m_NWires = value; };
+		std::vector<NWire> GetNWires() { return m_NWires; };
+
+		void SetMorphologicalCircle(std::vector<Item> value) { m_MorphologicalCircle = value; };
+		std::vector<Item> GetMorphologicalCircle() { return m_MorphologicalCircle; };
+
+	protected:
+			
+		bool					m_UseOriginalImageIntensityForDotIntensityScore;
+
+		double 					m_ThresholdImageTop;  // segmentation threshold (in percentage, minimum is 0, maximum is 100 at the top half of the image
+		double 					m_ThresholdImageBottom;  // segmentation threshold (in percentage, minimum is 0, maximum is 100 at the bottom half of the image
+
+		// line length and line pair distance errors in percent - read from phantom definition
+		double 					m_MaxLineLengthErrorPercent;
+		double 					m_MaxLinePairDistanceErrorPercent;
+
+		// min and max length of 3pt line (mm) - computed from input error percent and NWire definitions
+		double 					m_MinLineLenMm;
+		double 					m_MaxLineLenMm;
+
+		// min and max distance between two detected parallel lines - computed from input error percent and NWire definitions
+		// NOTE: This parameter should be adjusted w.r.t phantom design specs (e.g., distance between N-wires).
+		double 					m_MinLinePairDistMm; 	
+		double 					m_MaxLinePairDistMm;
+
+		double 					m_MaxLineErrorMm;
+
+		double 					m_FindLines3PtDist; 
+		double 					m_MaxAngleDiff; 
+		double 					m_MinTheta; 
+		double 					m_MaxTheta; 
+
+		double					m_MaxUangleDiff; // max difference from 90 deg of angle betwen the side lines of the U and the baseline, in radians
+		double					m_MaxUsideLineDiff; // max difference of the two side line endpoints, in pixels
+		double					m_MinUsideLineLength; // min length of the U side line, in pixels
+		double					m_MaxUsideLineLength; // max length of the U side line, in pixels
+
+		double					m_MorphologicalOpeningBarSizeMm; 
+		double					m_MorphologicalOpeningCircleRadiusMm; 
+		double					m_ScalingEstimation; 
 		
-	bool mUseOriginalImageIntensityForDotIntensityScore;
-
-	double mThresholdImageTop;  // segmentation threshold (in percentage, minimum is 0, maximum is 100 at the top half of the image
-	double mThresholdImageBottom;  // segmentation threshold (in percentage, minimum is 0, maximum is 100 at the bottom half of the image
-
-	// line length and line pair distance errors in percent - read from phantom definition
-	double mMaxLineLengthErrorPercent;
-	double mMaxLinePairDistanceErrorPercent;
-
-	// min and max length of 3pt line (mm) - computed from input error percent and NWire definitions
-	double mMinLineLenMm;
-	double mMaxLineLenMm;
-
-	// min and max distance between two detected parallel lines - computed from input error percent and NWire definitions
-	// NOTE: This parameter should be adjusted w.r.t phantom design specs (e.g., distance between N-wires).
-	double mMinLinePairDistMm; 	
-	double mMaxLinePairDistMm;
-
-
-	double mMaxLineErrorMm;
-
-	double mFindLines3PtDist; 
-	double mMaxAngleDiff; 
-	double mMinTheta; 
-	double mMaxTheta; 
-
-	double mMaxUangleDiff; // max difference from 90 deg of angle betwen the side lines of the U and the baseline, in radians
-	double mMaxUsideLineDiff; // max difference of the two side line endpoints, in pixels
-	double mMinUsideLineLength; // min length of the U side line, in pixels
-	double mMaxUsideLineLength; // max length of the U side line, in pixels
-
-	double mMorphologicalOpeningBarSizeMm; 
-	double mMorphologicalOpeningCircleRadiusMm; 
-	double mScalingEstimation; 
-	
-	FiducialGeometryType mFiducialGeometry;
-	std::vector<NWire> mNWires;
-	
-	std::vector<Item> mMorphologicalCircle; 
+		FiducialGeometryType	m_FiducialGeometry;
+		std::vector<NWire>		m_NWires;
+		
+		std::vector<Item>		m_MorphologicalCircle; 
 };
 
-//************************************************************************************************
+//-----------------------------------------------------------------------------
 
 class SegmentationResults
 {
-public:SegmentationResults::SegmentationResults() :
-		m_DotsFound( false ),
-		m_Angles(-1),
-		m_Intensity(-1),
-		m_NumDots(0)
-	{
-	}
-	
-	void Clear() 
-	{
-		m_DotsFound = false;
-		m_Angles = -1;
-		m_Intensity = -1;
-		m_FoundDotsCoordinateValue.clear();
-		m_NumDots = 1;
-		m_CandidateFidValues = NULL; 
-	};
-	
+	public:
+		SegmentationResults();
+		
+		void Clear();
+		
 		/* True if the dots are found, false otherwise. */
-	bool m_DotsFound;
+		bool m_DotsFound;
 
-			/* X and Y values of found dots. */
-	//vector<vector<double>> m_FoundDotsCoordinateValue;
-	std::vector< std::vector<double> > m_FoundDotsCoordinateValue; 
+		/* X and Y values of found dots. */
+		//vector<vector<double>> m_FoundDotsCoordinateValue;
+		std::vector< std::vector<double> > m_FoundDotsCoordinateValue; 
 		/* The degree to which the lines are parallel and the dots linear.  On the
-	 * range 0-1, with 0 being a very good angles score and 1 being the
-	 * threshold of acceptability. */
-	float m_Angles;
+		 * range 0-1, with 0 being a very good angles score and 1 being the
+		 * threshold of acceptability. */
+		float	m_Angles;
 
-	/* The combined intensity of the six dots. This is the sum of the pixel
-	 * values after the morphological operations, with the pixel values on the
-	 * range 0-1.  A good intensity score is over 100. A bad one (but still
-	 * valid) is below 25. */
-	float m_Intensity;
-	double m_NumDots; // number of possibel fiducial points
-	Dot *m_CandidateFidValues; // pointer to the fiducial candidates coordinates
+		/* The combined intensity of the six dots. This is the sum of the pixel
+		 * values after the morphological operations, with the pixel values on the
+		 * range 0-1.  A good intensity score is over 100. A bad one (but still
+		 * valid) is below 25. */
+		float	m_Intensity;
+		double	m_NumDots; // number of possibel fiducial points
+		Dot	*	m_CandidateFidValues; // pointer to the fiducial candidates coordinates
 };
 
-//************************************************************************************************
+//-----------------------------------------------------------------------------
 
 struct SegImpl
 {	
+	//public:
+		void find_lines3pt();
+		void find_lines2pt();
+		void compute_line( Line &line, Dot *dots );
+		float compute_t( Dot *dot1, Dot *dot2 );
 
-	void find_lines3pt();
-	void find_lines2pt();
-	void compute_line( Line &line, Dot *dots );
-	float compute_t( Dot *dot1, Dot *dot2 );
+		inline PixelType erode_point_0( PixelType *image, unsigned int ir, unsigned int ic );
+		void erode_0( PixelType *dest, PixelType *image );
+		inline PixelType erode_point_45( PixelType *image, unsigned int ir, unsigned int ic );
+		void erode_45( PixelType *dest, PixelType *image );
+		inline PixelType erode_point_90( PixelType *image, unsigned int ir, unsigned int ic );
+		void erode_90( PixelType *dest, PixelType *image );
+		inline PixelType erode_point_135( PixelType *image, unsigned int ir, unsigned int ic );
+		void erode_135( PixelType *dest, PixelType *image );
+		void erode_circle( PixelType *dest, PixelType *image );
+		inline PixelType dilate_point_0( PixelType *image, unsigned int ir, unsigned int ic );
+		void dilate_0( PixelType *dest, PixelType *image );
+		inline PixelType dilate_point_45( PixelType *image, unsigned int ir, unsigned int ic );
+		void dilate_45( PixelType *dest, PixelType *image );
+		inline PixelType dilate_point_90( PixelType *image, unsigned int ir, unsigned int ic );
+		void dilate_90( PixelType *dest, PixelType *image );
+		inline PixelType dilate_point_135( PixelType *image, unsigned int ir, unsigned int ic );
+		void dilate_135( PixelType *dest, PixelType *image );
+		inline PixelType dilate_point( PixelType *image, unsigned int ir, unsigned int ic, Item *shape, int slen );
+		void dilate_circle( PixelType *dest, PixelType *image );
+		void subtract( PixelType *image, PixelType *vals );
+		void morphological_operations();	
+		void setdebugOutput(bool on ); // addition to turn intermediate output on/off
+		void setpossibleFiducialsImageFilename(int index); 
+		void SegImpl::dynamicThresholding( PixelType *image);// addition to test dynamic thresholding
+		inline void trypos( PixelType *image, int r, int c );
+		void suppress( PixelType *image, float percent_thresh_top, float percent_thresh_bottom ); // a different threshold can be applied on the top and the bottom of the image
+		void WritePossibleFiducialOverlayImage(Dot *fiducials, PixelType *unalteredImage); 
 
-	inline PixelType erode_point_0( PixelType *image, unsigned int ir, unsigned int ic );
-	void erode_0( PixelType *dest, PixelType *image );
-	inline PixelType erode_point_45( PixelType *image, unsigned int ir, unsigned int ic );
-	void erode_45( PixelType *dest, PixelType *image );
-	inline PixelType erode_point_90( PixelType *image, unsigned int ir, unsigned int ic );
-	void erode_90( PixelType *dest, PixelType *image );
-	inline PixelType erode_point_135( PixelType *image, unsigned int ir, unsigned int ic );
-	void erode_135( PixelType *dest, PixelType *image );
-	void erode_circle( PixelType *dest, PixelType *image );
-	inline PixelType dilate_point_0( PixelType *image, unsigned int ir, unsigned int ic );
-	void dilate_0( PixelType *dest, PixelType *image );
-	inline PixelType dilate_point_45( PixelType *image, unsigned int ir, unsigned int ic );
-	void dilate_45( PixelType *dest, PixelType *image );
-	inline PixelType dilate_point_90( PixelType *image, unsigned int ir, unsigned int ic );
-	void dilate_90( PixelType *dest, PixelType *image );
-	inline PixelType dilate_point_135( PixelType *image, unsigned int ir, unsigned int ic );
-	void dilate_135( PixelType *dest, PixelType *image );
-	inline PixelType dilate_point( PixelType *image, unsigned int ir, unsigned int ic, Item *shape, int slen );
-	void dilate_circle( PixelType *dest, PixelType *image );
-	void subtract( PixelType *image, PixelType *vals );
-	void morphological_operations();	
-	void setdebugOutput(bool on ); // addition to turn intermediate output on/off
-	void setpossibleFiducialsImageFilename(int index); 
-	void SegImpl::dynamicThresholding( PixelType *image);// addition to test dynamic thresholding
-	inline void trypos( PixelType *image, int r, int c );
-	void suppress( PixelType *image, float percent_thresh_top, float percent_thresh_bottom ); // a different threshold can be applied on the top and the bottom of the image
-	void WritePossibleFiducialOverlayImage(Dot *fiducials, PixelType *unalteredImage); 
+		void find_u_shape_line_triad(SegmentationResults &segResult);
+		void find_double_n_lines(SegmentationResults &segResult);
 
-	void find_u_shape_line_triad(SegmentationResults &segResult);
-	void find_double_n_lines(SegmentationResults &segResult);
+		bool accept_line( const Line &line );  
 
-	bool accept_line( const Line &line );  
+		static void WritePng(PixelType *modifiedImage, std::string outImageName, int cols, int rows); // addition to write out intermediate files
 
-	static void WritePng(PixelType *modifiedImage, std::string outImageName, int cols, int rows); // addition to write out intermediate files
+		inline bool accept_dot( const Dot &dot );
+			Dot * cluster();
 
-	inline bool accept_dot( const Dot &dot );
-		Dot * cluster();
+		void find_lines();
+		void find_pairs();
 
-	void find_lines();
-	void find_pairs();
+		void uscseg( PixelType *image,  const SegmentationParameters &segParams, SegmentationResults &segResult );
 
-	void uscseg( PixelType *image,  const SegmentationParameters &segParams, SegmentationResults &segResult );
+		void draw_dots( PixelType *image, Dot *dots, int ndots );
+		void draw_lines( PixelType *image, Line *lines, int nlines );
+		void draw_pair( PixelType *image, LinePair *pair );
+		void print_results();
+		void draw_results( PixelType *data );
 
-	void draw_dots( PixelType *image, Dot *dots, int ndots );
-	void draw_lines( PixelType *image, Line *lines, int nlines );
-	void draw_pair( PixelType *image, LinePair *pair );
-	void print_results();
-	void draw_results( PixelType *data );
+		void sort_top_to_bottom( LinePair *pair );
+		void sort_right_to_left( Line *line );
 
-	void sort_top_to_bottom( LinePair *pair );
-	void sort_right_to_left( Line *line );
+		int GetMorphologicalOpeningBarSizePx(); 
 
-	int GetMorphologicalOpeningBarSizePx(); 
+		SegmentationParameters m_SegParams;
 
-	SegmentationParameters m_SegParams;
+		unsigned int size, bytes;
+		unsigned int rows, cols;
 
-	unsigned int size, bytes;
-	unsigned int rows, cols;
+		unsigned int vertLow, horzLow;
+		unsigned int vertHigh, horzHigh;
 
-	unsigned int vertLow, horzLow;
-	unsigned int vertHigh, horzHigh;
+		PixelType *working;
+		PixelType *dilated;
+		PixelType *eroded;
+		PixelType *unalteredImage; 
 
-	PixelType *working;
-	PixelType *dilated;
-	PixelType *eroded;
-	PixelType *unalteredImage; 
+		/* Dot, line and pair data. */
+		Dot dots[MAX_DOTS];
+		Line lines[MAX_LINES];
+		LinePair pairs[MAX_PAIRS];
+		int ndots, nlines, npairs;
 
-	/* Dot, line and pair data. */
-	Dot dots[MAX_DOTS];
-	Line lines[MAX_LINES];
-	LinePair pairs[MAX_PAIRS];
-	int ndots, nlines, npairs;
+		/* Cluster data. */
+		Pos test[MAX_CLUSTER_VALS];
+		Pos set[MAX_CLUSTER_VALS];
+		PixelType vals[MAX_CLUSTER_VALS];
+		int ntest, nset;
 
-	/* Cluster data. */
-	Pos test[MAX_CLUSTER_VALS];
-	Pos set[MAX_CLUSTER_VALS];
-	PixelType vals[MAX_CLUSTER_VALS];
-	int ntest, nset;
+		/* Line finding. */
+		Line lines2pt[MAX_LINES_2PT];
+		int nlines2pt;
+		std::vector< std::vector<Line> > uShapes;
 
-	/* Line finding. */
-	Line lines2pt[MAX_LINES_2PT];
-	int nlines2pt;
-	std::vector< std::vector<Line> > uShapes;
-
-	bool debugOutput; 
-	std::string possibleFiducialsImageFilename;
+		bool debugOutput; 
+		std::string possibleFiducialsImageFilename;
 };
 
-//************************************************************************************************
+//-----------------------------------------------------------------------------
 
 /* 
  * Comparison functions used with generic sort.
  */
 
-//************************************************************************************************
+//-----------------------------------------------------------------------------
 
 struct LtDotIntensity
 {
@@ -375,7 +422,7 @@ struct LtDotIntensity
 	}
 };
 
-//************************************************************************************************
+//-----------------------------------------------------------------------------
 
 struct SortedAngle
 {
@@ -384,15 +431,15 @@ struct SortedAngle
 	double coords[2];
 };
 
-//************************************************************************************************
+//-----------------------------------------------------------------------------
 
-bool AngleMoreThan( const SortedAngle &pt1, const SortedAngle &pt2 )
+inline bool AngleMoreThan( const SortedAngle &pt1, const SortedAngle &pt2 )
 {
 	/* Use > to get descending. */
 	return pt1.angle < pt2.angle;
-}
+};
 
-//************************************************************************************************
+//-----------------------------------------------------------------------------
 
 struct LtVectorAngle
 {
@@ -403,7 +450,7 @@ struct LtVectorAngle
 	}
 };
 
-//************************************************************************************************
+//-----------------------------------------------------------------------------
 
 struct CmpLine
 {
@@ -420,7 +467,7 @@ struct CmpLine
 	}
 };
 
-//************************************************************************************************
+//-----------------------------------------------------------------------------
 
 struct LtLineIntensity
 {
@@ -431,7 +478,7 @@ struct LtLineIntensity
 	}
 };
 
-//************************************************************************************************
+//-----------------------------------------------------------------------------
 
 struct LtInt
 {
@@ -441,7 +488,7 @@ struct LtInt
 	}
 };
 
-//************************************************************************************************
+//-----------------------------------------------------------------------------
 
 struct LtLinePairIntensity
 {
@@ -452,7 +499,7 @@ struct LtLinePairIntensity
 	}
 };
 
-//************************************************************************************************
+//-----------------------------------------------------------------------------
 
 /* Used for discovering the correspondences. Sorts points left to right based
  * on their positions in the x axis. */
@@ -465,7 +512,7 @@ struct LtDotPosition
 	}
 };
 
-//************************************************************************************************
+//-----------------------------------------------------------------------------
 
 template<class T, class LessThan> void doSort(T *tmpStor, T *data, long len)
 {
@@ -507,7 +554,7 @@ template<class T, class LessThan> void doSort(T *tmpStor, T *data, long len)
 	memcpy( data, tmpStor, sizeof( T ) * len );
 }
 
-//************************************************************************************************
+//-----------------------------------------------------------------------------
 
 template<class T, class LessThan> void sort(T *data, long len)
 {
@@ -526,7 +573,7 @@ template<class T, class LessThan> void sort(T *data, long len)
 	tmpStor = NULL;
 }
 
-//************************************************************************************************
+//-----------------------------------------------------------------------------
 
 template <class T, class Compare> bool bs_find( const T &item, T *data, int dlen )
 {
@@ -547,7 +594,7 @@ template <class T, class Compare> bool bs_find( const T &item, T *data, int dlen
 	}
 }
 
-//************************************************************************************************
+//-----------------------------------------------------------------------------
 
 template <class T, class Compare> void bs_insert( const T &item, T *data, int &dlen )
 {
@@ -579,7 +626,7 @@ insert:
 	data[pos] = item;
 }
 
-//************************************************************************************************
+//-----------------------------------------------------------------------------
 
 class KPhantomSeg
 {

@@ -4,8 +4,7 @@
 #include <strstream>
 #include <limits>
 
-#include "kphantseg.h"
-#include "segimpl.h"
+#include "UltraSoundFiducialSegmentation.h"
 
 #include "vtksys/CommandLineArguments.hxx"
 #include "vtkXMLDataElement.h"

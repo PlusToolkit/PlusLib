@@ -7,8 +7,7 @@
 #include "vtkTransform.h"
 #include "vtkMath.h"
 
-#include "segimpl.h"
-#include "kphantseg.h"
+#include "UltraSoundFiducialSegmentation.h"
 
 #include "itkImage.h"
 #include "itkImageFileReader.h"
@@ -80,7 +79,7 @@ int main (int argc, char* argv[])
 		SearchRegionXSize = 565; 
 		SearchRegionYMin = 50; 
 		SearchRegionYSize = 370;  
-		SegParameters.mScalingEstimation = 0.19;
+		SegParameters.SetScalingEstimation(0.19);
 
 
 		break; 
@@ -89,29 +88,29 @@ int main (int argc, char* argv[])
 		SearchRegionXSize = 360; 
 		SearchRegionYMin = 65; 
 		SearchRegionYSize = 280;  
-		SegParameters.mScalingEstimation = 0.26;  
+		SegParameters.SetScalingEstimation(0.26);  
 		break; 
 	}
 
-	SegParameters.mMorphologicalOpeningBarSizeMm = 2.0;  
-	SegParameters.mMorphologicalOpeningCircleRadiusMm = 0.55;  
-	SegParameters.mThresholdImageTop = 10; 
-	SegParameters.mThresholdImageBottom = 10; 
-	SegParameters.mMaxLineLenMm = 42; 
-	SegParameters.mMinLineLenMm = 38; 
-	SegParameters.mMaxLinePairDistMm = 22; 
-	SegParameters.mMinLinePairDistMm = 18; 
-	SegParameters.mFindLines3PtDist = 5.3; 
-	SegParameters.mMaxLineErrorMm = 2.0; 
-	SegParameters.mMaxAngleDiff = 0.191986; 
-	SegParameters.mMinTheta = 0.349065; 
-	SegParameters.mMaxTheta = 2.792526; 
-	SegParameters.mMaxUangleDiff = 0.174532; 
-	SegParameters.mMaxUsideLineDiff = 30; 
-	SegParameters.mMinUsideLineLength = 320; 
-	SegParameters.mMaxUsideLineLength = 350; 
-	SegParameters.mUseOriginalImageIntensityForDotIntensityScore = 0; 
-	SegParameters.mFiducialGeometry = SegmentationParameters::CALIBRATION_PHANTOM_6_POINT; 
+	SegParameters.SetMorphologicalOpeningBarSizeMm(2.0);  
+	SegParameters.SetMorphologicalOpeningCircleRadiusMm(0.55);  
+	SegParameters.SetThresholdImageTop(10); 
+	SegParameters.SetThresholdImageBottom(10); 
+	SegParameters.SetMaxLineLenMm(42); 
+	SegParameters.SetMinLineLenMm(38); 
+	SegParameters.SetMaxLinePairDistMm(22); 
+	SegParameters.SetMinLinePairDistMm(18); 
+	SegParameters.SetFindLines3PtDist(5.3); 
+	SegParameters.SetMaxLineErrorMm(2.0); 
+	SegParameters.SetMaxAngleDiff(0.191986); 
+	SegParameters.SetMinTheta(0.349065); 
+	SegParameters.SetMaxTheta(2.792526); 
+	SegParameters.SetMaxUangleDiff(0.174532); 
+	SegParameters.SetMaxUsideLineDiff(30); 
+	SegParameters.SetMinUsideLineLength(320); 
+	SegParameters.SetMaxUsideLineLength(350); 
+	SegParameters.SetUseOriginalImageIntensityForDotIntensityScore(0); 
+	SegParameters.SetFiducialGeometry(SegmentationParameters::CALIBRATION_PHANTOM_6_POINT); 
 
 	SegParameters.UpdateParameters(); 
 
