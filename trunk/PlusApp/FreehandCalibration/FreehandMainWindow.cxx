@@ -68,9 +68,12 @@ void FreehandMainWindow::Initialize()
 
 FreehandMainWindow::~FreehandMainWindow()
 {
-	vtkFreehandController* controller = vtkFreehandController::GetInstance();
-	if (controller != NULL) {
-		controller->Delete(); //TODO Because of this variable, reference count is non-zero, so it cannot be deleted
+	if (vtkFreehandController::GetInstance() != NULL) {
+		vtkFreehandController::GetInstance()->Delete();
+	}
+
+	if (StatusIcon::GetInstance() != NULL) {
+		delete StatusIcon::GetInstance();
 	}
 }
 
@@ -147,7 +150,7 @@ void FreehandMainWindow::SetupStatusBar()
 	ui.statusBar->addWidget(m_StatusBarLabel, 1);
 	ui.statusBar->addPermanentWidget(m_StatusBarProgress, 3);
 	
-	StatusIcon* statusIcon = new StatusIcon(this);
+	StatusIcon* statusIcon = StatusIcon::New(this);
 	ui.statusBar->addPermanentWidget(statusIcon);
 
 	// Set callback for logger to display errors

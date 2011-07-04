@@ -12,11 +12,26 @@ StatusIcon *StatusIcon::Instance = NULL;
 
 StatusIcon* StatusIcon::GetInstance()
 {
-	if(!StatusIcon::Instance) {
+	if(StatusIcon::Instance == NULL) {
+		LOG_WARNING("An instance must be created first using New method");
 		return NULL;
 	}
+
 	// return the instance
 	return StatusIcon::Instance;
+}
+
+//-----------------------------------------------------------------------------
+
+StatusIcon* StatusIcon::New(QWidget* aParent)
+{
+	if (StatusIcon::Instance == NULL) {
+		StatusIcon::Instance = new StatusIcon(aParent);
+		return StatusIcon::Instance;
+	} else {
+		LOG_ERROR("An instance of StatusIcon has been already created");
+		return NULL; // Null instead of the instance because it is crucial that the application uses only one instance. Using the same instance multiple times can result in unexpexted behavior
+	}
 }
 
 //-----------------------------------------------------------------------------
@@ -171,7 +186,7 @@ PlusStatus StatusIcon::ConstructMessageListWidget()
 			const int messageLevel = messagePair.second;
 			switch (messageLevel) {
 				case PlusLogger::LOG_LEVEL_ERROR:
-					m_MessageTextEdit->setTextColor(Qt::darkRed);
+					m_MessageTextEdit->setTextColor(QColor::fromRgb(223, 0, 0));
 					break;
 				case PlusLogger::LOG_LEVEL_WARNING:
 					m_MessageTextEdit->setTextColor(QColor::fromRgb(255, 128, 0));

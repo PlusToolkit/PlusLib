@@ -25,11 +25,11 @@ public:
 	static StatusIcon* GetInstance();
 
 	/*!
-	* \brief Constructor
+	* \brief Constructor replacement function according to the singleton behavior
 	* \param aParent parent
-	* \param aFlags widget flag
+	* \return The created instance (if there already was an instance, NULL is returned and error message thrown)
 	*/
-	StatusIcon(QWidget* aParent = 0, Qt::WFlags aFlags = 0);
+	static StatusIcon* New(QWidget* aParent);
 
 	/*!
 	* \brief Destructor
@@ -66,6 +66,14 @@ protected:
 
 	//TODO
 	QLabel* GetDotLabel();
+
+private:
+	/*!
+	* \brief Constructor
+	* \param aParent parent
+	* \param aFlags widget flag
+	*/
+	StatusIcon(QWidget* aParent = 0, Qt::WFlags aFlags = 0);
 
 protected:
 	//! List of messages to display
