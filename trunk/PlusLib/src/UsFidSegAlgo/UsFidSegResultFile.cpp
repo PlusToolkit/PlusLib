@@ -1,5 +1,5 @@
 #include "UsFidSegResultFile.h" 
-#include "KPhantSeg.h"
+#include "UltraSoundFiducialSegmentation.h"
 
 //----------------------------------------------------------------------------
 
@@ -17,10 +17,10 @@ void UsFidSegResultFile::WriteSegmentationResultsHeader(std::ostream &outFile)
 	outFile << "<"<<TEST_RESULTS_ELEMENT_NAME<<">" << std::endl; 
 }
 
-void UsFidSegResultFile::WriteSegmentationResultsParameters(std::ostream &outFile, const SegmentationParameters &params, const std::string &trueFidFileName)
+void UsFidSegResultFile::WriteSegmentationResultsParameters(std::ostream &outFile, SegmentationParameters &params, const std::string &trueFidFileName)
 {
 	
-	outFile << " <AlgorithmOptions SegmentationThresholdTop=\"" << params.mThresholdImageTop << "\" SegmentationThresholdBottom=\"" << params.mThresholdImageBottom << "\" ImportSegResultsFromFile=\"" << trueFidFileName.c_str() << "\" />" << std::endl;
+	outFile << " <AlgorithmOptions SegmentationThresholdTop=\"" << params.GetThresholdImageTop() << "\" SegmentationThresholdBottom=\"" << params.GetThresholdImageBottom() << "\" ImportSegResultsFromFile=\"" << trueFidFileName.c_str() << "\" />" << std::endl;
 	
 	
 }
@@ -54,7 +54,7 @@ SegmentationPoints="12 12 23 23 34 34 45 45 56 56 67 67" />
 void UsFidSegResultFile::WriteSegmentationResults(std::ostream &outFile, SegmentationResults &segResults, const std::string &inputTestcaseName, int currentFrameIndex, const std::string &inputImageSequenceFileName)
 { 	
 	LOG_DEBUG("Writing test case " << inputTestcaseName.c_str() << " frame " << currentFrameIndex);
-	bool algoSuccessful=segResults.m_DotsFound && (segResults.m_FoundDotsCoordinateValue.size()>0);
+	bool algoSuccessful=segResults.GetDotsFound() && (segResults.GetFoundDotsCoordinateValue().size()>0);
 
 	outFile << "  <"<<TEST_CASE_ELEMENT_NAME<<" "<<ID_ATTRIBUTE_NAME<<"=\"" << inputTestcaseName.c_str() << "_" << currentFrameIndex << "\">" << std::endl;
 	outFile << "    <Input ImageSeqFileName=\"" << inputImageSequenceFileName.c_str() << "\" ImageSeqFrameIndex=\"" << currentFrameIndex << "\" />" << std::endl;
@@ -63,32 +63,32 @@ void UsFidSegResultFile::WriteSegmentationResults(std::ostream &outFile, Segment
 	if (algoSuccessful)
 	{
 		outFile << std::endl;
-		if (segResults.m_Angles>=0)
+		if (segResults.GetAngles()>=0)
 		{
-			outFile << "      SegmentationQualityInAngleScore=\""<< segResults.m_Angles <<"\"" << std::endl;
+			outFile << "      SegmentationQualityInAngleScore=\""<< segResults.GetAngles() <<"\"" << std::endl;
 		}
-		if (segResults.m_Intensity>=0)
+		if (segResults.GetIntensity()>=0)
 		{
-			outFile << "      SegmentationQualityInIntensityScore=\"" << segResults.m_Intensity<< "\""<< std::endl;
+			outFile << "      SegmentationQualityInIntensityScore=\"" << segResults.GetIntensity()<< "\""<< std::endl;
 		}
-		if (segResults.m_FoundDotsCoordinateValue.size()>0)
+		if (segResults.GetFoundDotsCoordinateValue().size()>0)
 		{
 			outFile << "      SegmentationPoints=\"";
-			for (unsigned int pt=0; pt<segResults.m_FoundDotsCoordinateValue.size(); pt++)
+			for (unsigned int pt=0; pt<segResults.GetFoundDotsCoordinateValue().size(); pt++)
 			{
 				if (pt>0)
 				{
 					outFile << " ";
 				}
 				// Print only the x, y componentes (z will be always 0).
-				if (segResults.m_FoundDotsCoordinateValue[pt].size()>=2)
+				if (segResults.GetFoundDotsCoordinateValue()[pt].size()>=2)
 				{
-					outFile << segResults.m_FoundDotsCoordinateValue[pt][0] 
-						<< " " << segResults.m_FoundDotsCoordinateValue[pt][1];
+					outFile << segResults.GetFoundDotsCoordinateValue()[pt][0] 
+						<< " " << segResults.GetFoundDotsCoordinateValue()[pt][1];
 				}
 				else
 				{
-					LOG_ERROR("Point "<<pt<<" has only "<<segResults.m_FoundDotsCoordinateValue[pt].size()<<" components, while at least 2 is required");
+					LOG_ERROR("Point "<<pt<<" has only "<<segResults.GetFoundDotsCoordinateValue()[pt].size()<<" components, while at least 2 is required");
 				}
 			}// end for
 
@@ -96,15 +96,15 @@ void UsFidSegResultFile::WriteSegmentationResults(std::ostream &outFile, Segment
 		outFile << "\"";
 	}
 	outFile << " />" << std::endl;
-	if (segResults.m_NumDots>0)
+	if (segResults.GetNumDots()>0)
 		{
 
 			outFile << "     <FiducialPointCandidates>"<<std::endl;
-			for(int i = 0; i<segResults.m_NumDots; i++)
+			for(int i = 0; i<segResults.GetNumDots(); i++)
 			{ 
 			
-			outFile << "       <Point id=\"" << i << "\" Intensity =\""<< segResults.m_CandidateFidValues[i].intensity << "\" Positon=\"" << segResults.m_CandidateFidValues[i].c 
-				<< " " << segResults.m_CandidateFidValues[i].r << "\" />" << std::endl; 
+			outFile << "       <Point id=\"" << i << "\" Intensity =\""<< segResults.GetCandidateFidValues()[i].intensity << "\" Positon=\"" << segResults.GetCandidateFidValues()[i].c 
+				<< " " << segResults.GetCandidateFidValues()[i].r << "\" />" << std::endl; 
 			} 
 			outFile << "       </FiducialPointCandidates>"<<std::endl; 
 

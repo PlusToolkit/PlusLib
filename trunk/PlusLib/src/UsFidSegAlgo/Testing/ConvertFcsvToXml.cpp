@@ -77,6 +77,7 @@ void WriteFiducialPositions(std::ofstream &outFile,const std::string &inputTestc
 		SegmentationResults segResults;
 		
 		std::vector<itk::FcsvPoint>::iterator it = fcsvData->points.begin(); 
+		std::vector< std::vector<double> > foundDotsCoordinateValue = segResults.GetFoundDotsCoordinateValue();
 		int validFidNum = 0;
 		while(it != fcsvData->points.end()) 
 		{	
@@ -93,12 +94,12 @@ void WriteFiducialPositions(std::ofstream &outFile,const std::string &inputTestc
 					// if coordinates are 0,0 it means that the fiducial was not found
 					validFidNum++; 
 				}
-				segResults.m_FoundDotsCoordinateValue.push_back( fiducial );
+				foundDotsCoordinateValue.push_back( fiducial );
 			}
 			it++; 
 		}
-
-		segResults.m_DotsFound=true;
+		segResults.SetFoundDotsCoordinateValue( foundDotsCoordinateValue );
+		segResults.SetDotsFound(true);
 
 		sumFiducialNum = sumFiducialNum + validFidNum; 
 		

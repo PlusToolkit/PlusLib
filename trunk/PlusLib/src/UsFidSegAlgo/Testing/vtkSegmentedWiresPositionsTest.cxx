@@ -187,7 +187,7 @@ int main (int argc, char* argv[])
 		SegmentationResults segResults;
 		segmenter.GetSegmentationResults(segResults); 
 
-		if ( segResults.m_DotsFound )
+		if ( segResults.GetDotsFound() )
 		{
 			vtkSmartPointer<vtkTransform> frameTransform = vtkSmartPointer<vtkTransform>::New(); 
 			frameTransform->SetMatrix(transformMatrix); 
@@ -198,9 +198,9 @@ int main (int argc, char* argv[])
 			int dataType = -1; 
 			positionInfo << dataType << "\t\t" << posZ << "\t" << rotZ << "\t\t"; 
 
-			for (int i=0; i<segResults.m_FoundDotsCoordinateValue.size(); i++)
+			for (int i=0; i<segResults.GetFoundDotsCoordinateValue().size(); i++)
 			{
-				positionInfo << segResults.m_FoundDotsCoordinateValue[i][0] << "\t" << segResults.m_FoundDotsCoordinateValue[i][1] << "\t\t"; 
+				positionInfo << segResults.GetFoundDotsCoordinateValue()[i][0] << "\t" << segResults.GetFoundDotsCoordinateValue()[i][1] << "\t\t"; 
 			}
 
 			positionInfo << std::endl; 

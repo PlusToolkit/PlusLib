@@ -88,11 +88,11 @@ void SegmentImageSequence(ImageSequenceType::Pointer image, std::ofstream &outFi
 		TheSegmentationStruct.segment(currentFrameImageData, segParams);
 	
 		TheSegmentationStruct.GetSegmentationResults(segResults);
-		sumFiducialCandidate += segResults.m_NumDots;
+		sumFiducialCandidate += segResults.GetNumDots();
 		int numFid=0;
-		for(int fidPosition = 0; fidPosition<segResults.m_FoundDotsCoordinateValue.size();fidPosition++)
+		for(int fidPosition = 0; fidPosition<segResults.GetFoundDotsCoordinateValue().size();fidPosition++)
 		{ 
-			std::vector<double> currentFid = segResults.m_FoundDotsCoordinateValue[fidPosition]; 
+			std::vector<double> currentFid = segResults.GetFoundDotsCoordinateValue()[fidPosition]; 
 			if (currentFid[0] != 0 || currentFid[1] != 0)
 			{
 				numFid++; 

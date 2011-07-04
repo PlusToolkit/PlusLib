@@ -286,7 +286,24 @@ class SegmentationResults
 		SegmentationResults();
 		
 		void Clear();
+
+		void SetDotsFound(bool value) { m_DotsFound = value; };
+		bool GetDotsFound() { return m_DotsFound; };
+
+		void SetFoundDotsCoordinateValue(std::vector< std::vector<double> > value) { m_FoundDotsCoordinateValue = value; };
+		std::vector< std::vector<double> > GetFoundDotsCoordinateValue() { return m_FoundDotsCoordinateValue; };
+
+		void SetAngles(float value) { m_Angles = value; };
+		float GetAngles() { return m_Angles; };
+
+		void SetIntensity(float value) { m_Intensity = value; };
+		float GetIntensity() { return m_Intensity; };
+		void SetNumDots(double value) { m_NumDots = value; };
+		double GetNumDots() { return m_NumDots; };
+		void SetCandidateFidValues(Dot * value) { m_CandidateFidValues = value; };
+		Dot	* GetCandidateFidValues() { return m_CandidateFidValues; };
 		
+	protected:
 		/* True if the dots are found, false otherwise. */
 		bool m_DotsFound;
 
