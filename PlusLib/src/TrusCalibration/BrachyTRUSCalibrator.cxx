@@ -381,7 +381,7 @@ bool BrachyTRUSCalibrator::loadGeometry(SegmentationParameters* aSegmentationPar
 		mIsPhantomGeometryLoaded = false;
 	}
 
-	std::vector<NWire> nWires = aSegmentationParameters->mNWires;
+	std::vector<NWire> nWires = aSegmentationParameters->GetNWires();
 	std::vector<std::vector<vnl_vector<double>>> vnl_NWires;
 
 	std::vector<std::vector<vnl_vector<double>>>::iterator itNWire;
