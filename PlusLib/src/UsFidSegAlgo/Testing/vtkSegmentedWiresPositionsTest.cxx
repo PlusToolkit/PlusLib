@@ -172,7 +172,7 @@ int main (int argc, char* argv[])
 		}
 
 		KPhantomSeg segmenter(ImageWidthInPixels, ImageHeightInPixels, SearchRegionXMin, SearchRegionYMin, SearchRegionXSize, SearchRegionYSize); 
-		segmenter.m_SegParams = SegParameters; 
+		segmenter.SetSegParams(SegParameters); 
 
 		try
 		{
