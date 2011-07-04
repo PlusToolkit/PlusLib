@@ -302,7 +302,7 @@ void FreehandCalibrationToolbox::SkipTemporalClicked()
 	vtkFreehandCalibrationController::GetInstance()->SetPhantomDefinitionFileName(fileName.toStdString().c_str());
 	ui.lineEdit_PhantomDefinition->setText(fileName);
 	ui.lineEdit_PhantomDefinition->setToolTip(fileName);
-	fileName = QString(configPath + "/USCalibrationConfig_Thomas_FrameGrabber.xml");
+	fileName = QString(configPath + "/USCalibrationConfig_Thomas_SonixTouch.xml");
 	vtkFreehandCalibrationController::GetInstance()->ReadConfiguration(fileName.toStdString().c_str()); //TODO error handling
 	vtkFreehandCalibrationController::GetInstance()->CalculateImageCameraParameters();
 	ui.lineEdit_CalibrationConfiguration->setText(fileName);

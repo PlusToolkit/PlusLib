@@ -55,7 +55,7 @@
      </property>
     </spacer>
    </item>
-   <item row="2" column="0" colspan="2">
+   <item row="2" column="0">
     <widget class="QLabel" name="label_InstructionsTemporal">
      <property name="text">
       <string>Instructions</string>
@@ -132,7 +132,7 @@
      </property>
     </widget>
    </item>
-   <item row="7" column="0" colspan="2">
+   <item row="7" column="0" rowspan="2" colspan="2">
     <widget class="QFrame" name="frame_SpatialCalibration">
      <property name="frameShape">
       <enum>QFrame::NoFrame</enum>
@@ -419,10 +419,27 @@
         </property>
        </spacer>
       </item>
+      <item row="13" column="0" colspan="2">
+       <layout class="QHBoxLayout" name="horizontalLayout_4">
+        <property name="spacing">
+         <number>4</number>
+        </property>
+        <property name="leftMargin">
+         <number>40</number>
+        </property>
+        <item>
+         <widget class="QCheckBox" name="checkBox_ShowDevices">
+          <property name="text">
+           <string>Show devices</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
      </layout>
     </widget>
    </item>
-   <item row="8" column="0" colspan="2">
+   <item row="9" column="0" colspan="2">
     <spacer name="verticalSpacer_9">
      <property name="orientation">
       <enum>Qt::Vertical</enum>
@@ -438,13 +455,20 @@
      </property>
     </spacer>
    </item>
-   <item row="11" column="0" colspan="2">
+   <item row="10" column="0" rowspan="2" colspan="2">
+    <widget class="Line" name="line">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+    </widget>
+   </item>
+   <item row="13" column="0" colspan="2">
     <layout class="QGridLayout" name="gridLayout_3">
      <item row="0" column="0">
       <widget class="QPushButton" name="pushButton_Save">
        <property name="minimumSize">
         <size>
-         <width>120</width>
+         <width>100</width>
          <height>0</height>
         </size>
        </property>
@@ -454,14 +478,17 @@
          <height>16777215</height>
         </size>
        </property>
+       <property name="toolTip">
+        <string>Save results into device set configuration XML file</string>
+       </property>
        <property name="text">
-        <string>Save results to XML...</string>
+        <string>Save results</string>
        </property>
       </widget>
      </item>
     </layout>
    </item>
-   <item row="12" column="0" colspan="2">
+   <item row="14" column="0" colspan="2">
     <spacer name="verticalSpacer_2">
      <property name="orientation">
       <enum>Qt::Vertical</enum>
@@ -474,14 +501,7 @@
      </property>
     </spacer>
    </item>
-   <item row="9" column="0" colspan="2">
-    <widget class="Line" name="line">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-    </widget>
-   </item>
-   <item row="10" column="0" colspan="2">
+   <item row="12" column="0" colspan="2">
     <spacer name="verticalSpacer_4">
      <property name="orientation">
       <enum>Qt::Vertical</enum>
