@@ -41,26 +41,31 @@ public:
 
 	/*!
 	* \brief Initialize - pure virtual function
+	* \return Success flag
 	*/
 	virtual PlusStatus Initialize() = 0;
 
 	/*!
 	* \brief Clear (deinitialize) - pure virtual function
+	* \return Success flag
 	*/
 	virtual PlusStatus Clear() = 0;
 
 	/*!
 	* \brief Acquire data - pure virtual function
+	* \return Success flag
 	*/
 	virtual PlusStatus DoAcquisition() = 0;
 
 	/*!
 	* \brief Start process - pure virtual function
+	* \return Success flag
 	*/
 	virtual PlusStatus Start() = 0;
 
 	/*!
 	* \brief Stop process - pure virtual function
+	* \return Success flag
 	*/
 	virtual PlusStatus Stop() = 0;
 
