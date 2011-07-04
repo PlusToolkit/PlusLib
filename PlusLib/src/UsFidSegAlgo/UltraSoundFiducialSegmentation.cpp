@@ -3,10 +3,31 @@
 const int BLACK = 0; 
 const int WHITE = 255; 
 
+#define DOT_STEPS 4.0
+#define DOT_RADIUS 6.0
+
 using std::cout;
 using std::endl;
 
-//************************************************************************************************
+//-----------------------------------------------------------------------------
+
+SegmentationResults::SegmentationResults()
+	: m_DotsFound( false ), m_Angles(-1), m_Intensity(-1), m_NumDots(0)
+{}
+
+//-----------------------------------------------------------------------------
+
+void SegmentationResults::Clear()
+{
+	m_DotsFound = false;
+	m_Angles = -1;
+	m_Intensity = -1;
+	m_FoundDotsCoordinateValue.clear();
+	m_NumDots = 1;
+	m_CandidateFidValues = NULL; 
+}
+
+//-----------------------------------------------------------------------------
 
 /* Possible additional criteria:
  *  1. Track the frame-to-frame data?
@@ -118,7 +139,7 @@ void SegImpl::suppress( PixelType *image, float percent_thresh_top, float percen
 	
 }
 
-//************************************************************************************************
+//-----------------------------------------------------------------------------
 
 /* Should we accept a dot? */
 inline bool SegImpl::accept_dot( const Dot &dot )
@@ -133,7 +154,7 @@ inline bool SegImpl::accept_dot( const Dot &dot )
 	return false;
 }
 
-//************************************************************************************************
+//-----------------------------------------------------------------------------
 
 inline void SegImpl::trypos( PixelType *image, int r, int c )
 {
@@ -150,7 +171,7 @@ inline void SegImpl::trypos( PixelType *image, int r, int c )
 	}
 }
 
-//************************************************************************************************
+//-----------------------------------------------------------------------------
 
 Dot * SegImpl::cluster()
 {
@@ -200,7 +221,7 @@ Dot * SegImpl::cluster()
 
 				if ( accept_dot( dot ) )
 				{
-					if (m_SegParams.mUseOriginalImageIntensityForDotIntensityScore)
+					if (m_SegParams.GetUseOriginalImageIntensityForDotIntensityScore())
 					{
 						// Take into account intensities that are close to the dot center
 						const double dotRadius2=3.0*3.0;
@@ -232,7 +253,7 @@ done:
 	return dots;
 }
 
-//************************************************************************************************
+//-----------------------------------------------------------------------------
 
 float SegImpl::compute_t( Dot *dot1, Dot *dot2 )
 {
@@ -261,7 +282,7 @@ float SegImpl::compute_t( Dot *dot1, Dot *dot2 )
 	return t;
 }
 
-//************************************************************************************************
+//-----------------------------------------------------------------------------
 
 float segment_length( Dot *d1, Dot *d2 )
 {
@@ -270,7 +291,7 @@ float segment_length( Dot *d1, Dot *d2 )
 	return sqrtf( xd*xd + yd*yd );
 }
 
-//************************************************************************************************
+//-----------------------------------------------------------------------------
 
 float line_length( const Line &line, Dot *dots )
 {
@@ -283,7 +304,7 @@ float line_length( const Line &line, Dot *dots )
 	return l3 > l1 ? l3 : l1;
 }
 
-//************************************************************************************************
+//-----------------------------------------------------------------------------
 
 void SegImpl::compute_line( Line &line, Dot *dots )
 {
@@ -337,7 +358,7 @@ void SegImpl::compute_line( Line &line, Dot *dots )
 	line.length = line_length( line, dots );
 }
 
-//************************************************************************************************
+//-----------------------------------------------------------------------------
 
 void SegImpl::find_lines2pt()
 {
@@ -367,22 +388,24 @@ void SegImpl::find_lines2pt()
 	}
 }
 
-//************************************************************************************************
+//-----------------------------------------------------------------------------
 
 bool SegImpl::accept_line( const Line &line )
 {
-	int maxLineLenPx = floor(m_SegParams.mMaxLineLenMm / m_SegParams.mScalingEstimation + 0.5 );
-	int minLineLenPx = floor(m_SegParams.mMinLineLenMm / m_SegParams.mScalingEstimation + 0.5 );
-	double maxLineErrorPx = m_SegParams.mMaxLineErrorMm / m_SegParams.mScalingEstimation;
+	double scalingEstimation = m_SegParams.GetScalingEstimation();
+
+	int maxLineLenPx = floor(m_SegParams.GetMaxLineLenMm() / scalingEstimation + 0.5 );
+	int minLineLenPx = floor(m_SegParams.GetMinLineLenMm() / scalingEstimation + 0.5 );
+	double maxLineErrorPx = m_SegParams.GetMaxLineErrorMm() / scalingEstimation;
 
 	if ( line.length <= maxLineLenPx && line.length >= minLineLenPx &&
 			line.line_error <= maxLineErrorPx && 
-			line.t >= m_SegParams.mMinTheta && line.t <= m_SegParams.mMaxTheta )
+			line.t >= m_SegParams.GetMinTheta() && line.t <= m_SegParams.GetMaxTheta() )
 		return true;
 	return false;
 }
 
-//************************************************************************************************
+//-----------------------------------------------------------------------------
 
 void SegImpl::find_lines3pt( )
 {
@@ -393,7 +416,7 @@ void SegImpl::find_lines3pt( )
 
 	Line line;
 	int points[3];
-	float dist = m_SegParams.mFindLines3PtDist;
+	float dist = m_SegParams.GetFindLines3PtDist();
 	for ( int b3 = 0; b3 < ndots; b3++ ) {
 		float x3 = dots[b3].c - 1;
 		float y3 = rows - dots[b3].r;
@@ -436,7 +459,7 @@ void SegImpl::find_lines3pt( )
 	}
 }
 
-//************************************************************************************************
+//-----------------------------------------------------------------------------
 
 void SegImpl::find_lines( )
 {
@@ -450,13 +473,18 @@ void SegImpl::find_lines( )
 	sort<Line, LtLineIntensity>( lines, nlines );
 }
 
-//************************************************************************************************
+//-----------------------------------------------------------------------------
 
 void SegImpl::find_pairs()
 {
-	int maxLinePairDistPx = floor(m_SegParams.mMaxLinePairDistMm / m_SegParams.mScalingEstimation + 0.5 );
-	int minLinePairDistPx = floor(m_SegParams.mMinLinePairDistMm / m_SegParams.mScalingEstimation + 0.5 );
-	double maxLineErrorPx = m_SegParams.mMaxLineErrorMm / m_SegParams.mScalingEstimation;
+	double scalingEstimation = m_SegParams.GetScalingEstimation();
+	double maxAngleDifference = m_SegParams.GetMaxAngleDiff();
+	double maxTheta = m_SegParams.GetMaxTheta();
+	double minTheta = m_SegParams.GetMinTheta();
+
+	int maxLinePairDistPx = floor(m_SegParams.GetMaxLinePairDistMm() / scalingEstimation + 0.5 );
+	int minLinePairDistPx = floor(m_SegParams.GetMinLinePairDistMm() / scalingEstimation + 0.5 );
+	double maxLineErrorPx = m_SegParams.GetMaxLineErrorMm() / scalingEstimation;
 
 	for ( int l1 = 0; l1 < nlines; l1++ ) {
 		for ( int l2 = l1+1; l2 < nlines; l2++ ) {
@@ -469,10 +497,10 @@ void SegImpl::find_pairs()
 			float angle_diff = fabsf( t2 - t1 );
 			float line_error = lines[l1].line_error + lines[l2].line_error;
 
-			bool test1 = angle_diff < m_SegParams.mMaxAngleDiff;
+			bool test1 = angle_diff < maxAngleDifference;
 			bool test2 = line_error < maxLineErrorPx;
-			bool test3 = m_SegParams.mMinTheta <= t1 && t1 <= m_SegParams.mMaxTheta;
-			bool test4 = m_SegParams.mMinTheta <= t2 && t2 <= m_SegParams.mMaxTheta;
+			bool test3 = minTheta <= t1 && t1 <= maxTheta;
+			bool test4 = minTheta <= t2 && t2 <= maxTheta;
 			// (old value was hardcoded as 65)
 			bool test5 = fabsf( p2 - p1 ) < maxLinePairDistPx;  
 			// (old value was hardcoded as 25)
@@ -482,15 +510,15 @@ void SegImpl::find_pairs()
 				line_error = line_error / maxLineErrorPx;
 				float angle_conf = angle_diff / ( 1 - line_error );
 
-				if ( angle_conf < m_SegParams.mMaxAngleDiff ) {
+				if ( angle_conf < maxAngleDifference ) {
 					float intensity = lines[l1].intensity + lines[l2].intensity;
 
 					pairs[npairs].l1 = l1;
 					pairs[npairs].l2 = l2;
 					pairs[npairs].intensity = intensity;
 					pairs[npairs].line_error = line_error;
-					pairs[npairs].angle_diff = angle_diff / m_SegParams.mMaxAngleDiff;
-					pairs[npairs].angle_conf = angle_conf / m_SegParams.mMaxAngleDiff;
+					pairs[npairs].angle_diff = angle_diff / maxAngleDifference;
+					pairs[npairs].angle_conf = angle_conf / maxAngleDifference;
 
 					npairs += 1;
 					if ( npairs == MAX_PAIRS )
@@ -505,7 +533,7 @@ done:
 	sort<LinePair, LtLinePairIntensity>( pairs, npairs );
 }
 
-//************************************************************************************************
+//-----------------------------------------------------------------------------
 
 void SegImpl::sort_top_to_bottom( LinePair *pair )
 {
@@ -517,7 +545,7 @@ void SegImpl::sort_top_to_bottom( LinePair *pair )
 	}
 }
 
-//************************************************************************************************
+//-----------------------------------------------------------------------------
 
 void SegImpl::sort_right_to_left( Line *line )
 {
@@ -535,7 +563,7 @@ void SegImpl::sort_right_to_left( Line *line )
 	}
 }
 
-//************************************************************************************************
+//-----------------------------------------------------------------------------
 
 void SegImpl::WritePossibleFiducialOverlayImage(Dot *fiducials, PixelType *unalteredImage)
 {
@@ -624,7 +652,7 @@ void SegImpl::WritePossibleFiducialOverlayImage(Dot *fiducials, PixelType *unalt
 	}
 }
 
-//************************************************************************************************
+//-----------------------------------------------------------------------------
 
 void SegImpl::uscseg( PixelType *image, const SegmentationParameters &segParams, SegmentationResults &segResult )
 {
@@ -637,7 +665,7 @@ void SegImpl::uscseg( PixelType *image, const SegmentationParameters &segParams,
 
 	morphological_operations();
 
-	suppress( working, m_SegParams.mThresholdImageTop/100.00, m_SegParams.mThresholdImageBottom/100.00 );
+	suppress( working, m_SegParams.GetThresholdImageTop()/100.00, m_SegParams.GetThresholdImageBottom()/100.00 );
 
 	cluster();
 
@@ -651,7 +679,7 @@ void SegImpl::uscseg( PixelType *image, const SegmentationParameters &segParams,
 	
 	find_lines();
 
-	switch (m_SegParams.mFiducialGeometry)
+	switch (m_SegParams.GetFiducialGeometry())
 	{
 	case SegmentationParameters::TAB2_6_POINT:
 		LOG_WARNING("Unsupported phantom geometry - skipped"); 
@@ -668,7 +696,7 @@ void SegImpl::uscseg( PixelType *image, const SegmentationParameters &segParams,
 	}
 }
 
-//************************************************************************************************
+//-----------------------------------------------------------------------------
 
 void SegImpl::find_double_n_lines(SegmentationResults &segResult)
 {	
@@ -719,7 +747,7 @@ void SegImpl::find_double_n_lines(SegmentationResults &segResult)
 	segResult.m_NumDots= ndots; 
 }
 
-//************************************************************************************************
+//-----------------------------------------------------------------------------
 
 void SegImpl::find_u_shape_line_triad(SegmentationResults &segResult)
 {	
@@ -795,19 +823,22 @@ void SegImpl::find_u_shape_line_triad(SegmentationResults &segResult)
 
 		std::vector<int> potentialAvectors;
 		std::vector<int> potentialBvectors;	
+		double minUsideLineLength = m_SegParams.GetMinUsideLineLength();
+		double maxUsideLineLength = m_SegParams.GetMaxUsideLineLength();
 		for(int dotPosition=0; dotPosition<ndots; dotPosition++)
 		{	
 			vnl_vector<double> vectorFromCurrentDot(3);
 			vectorFromCurrentDot(0) = (dots[dotPosition].c - threePointLine[ptAindex](0)); 
 			vectorFromCurrentDot(1) = (dots[dotPosition].r - threePointLine[ptAindex](1));
 			vectorFromCurrentDot(2) = 0;
-			if (vectorFromCurrentDot.magnitude()>m_SegParams.mMinUsideLineLength &&
-				vectorFromCurrentDot.magnitude()<m_SegParams.mMaxUsideLineLength)
+			if (vectorFromCurrentDot.magnitude()>minUsideLineLength &&
+				vectorFromCurrentDot.magnitude()<maxUsideLineLength)
 			{
 				vectorFromCurrentDot.normalize();
+				double maxUangleDiff = m_SegParams.GetMaxUangleDiff();
 				double angleDiff=acos(dot_product(normal, vectorFromCurrentDot));
-				if (fabs(angleDiff)<m_SegParams.mMaxUangleDiff
-					|| fabs(M_PI-angleDiff) <m_SegParams.mMaxUangleDiff )
+				if (fabs(angleDiff)<maxUangleDiff
+					|| fabs(M_PI-angleDiff) <maxUangleDiff )
 				{
 					// this may be sideline of the U
 					potentialAvectors.push_back(dotPosition); 
@@ -817,13 +848,14 @@ void SegImpl::find_u_shape_line_triad(SegmentationResults &segResult)
 			vectorFromCurrentDot(0) = (dots[dotPosition].c - threePointLine[ptBindex](0)); 
 			vectorFromCurrentDot(1) = (dots[dotPosition].r - threePointLine[ptBindex](1));
 			vectorFromCurrentDot(2) = 0;
-			if (vectorFromCurrentDot.magnitude()>m_SegParams.mMinUsideLineLength &&
-				vectorFromCurrentDot.magnitude()<m_SegParams.mMaxUsideLineLength)
+			if (vectorFromCurrentDot.magnitude()>minUsideLineLength &&
+				vectorFromCurrentDot.magnitude()<maxUsideLineLength)
 			{
 				vectorFromCurrentDot.normalize();		
+				double maxUangleDiff = m_SegParams.GetMaxUangleDiff();
 				double angleDiff=acos(dot_product(normal, vectorFromCurrentDot));
-				if (fabs(angleDiff)<m_SegParams.mMaxUangleDiff
-					|| fabs(M_PI-angleDiff) <m_SegParams.mMaxUangleDiff )
+				if (fabs(angleDiff)<maxUangleDiff
+					|| fabs(M_PI-angleDiff) <maxUangleDiff )
 				{
 					// this may be sideline of the U
 					potentialBvectors.push_back(dotPosition); 
@@ -846,7 +878,7 @@ void SegImpl::find_u_shape_line_triad(SegmentationResults &segResult)
 				bVec(1) = (dots[bIndex].r - threePointLine[ptBindex](1)); 
 				bVec(2) = 1;
 
-				if( (aVec-bVec).magnitude()<m_SegParams.mMaxUsideLineDiff)
+				if( (aVec-bVec).magnitude()<m_SegParams.GetMaxUsideLineDiff())
 				{
 					std::vector<Dot> twoFiducials;
 					twoFiducials.push_back(dots[aIndex]);
@@ -965,7 +997,7 @@ void SegImpl::find_u_shape_line_triad(SegmentationResults &segResult)
 	segResult.m_Intensity=0; // :TODO: compute a score for this
 }
 
-//************************************************************************************************
+//-----------------------------------------------------------------------------
 
 KPhantomSeg::KPhantomSeg(int sizeX, int sizeY,
 						 int searchOriginX, int searchOriginY, int searchSizeX, int searchSizeY , bool debugOutput /*=false*/, std::string possibleFiducialsImageFilename)
@@ -997,7 +1029,7 @@ KPhantomSeg::KPhantomSeg(int sizeX, int sizeY,
 	m_SegImpl->possibleFiducialsImageFilename=possibleFiducialsImageFilename; 
 }
 
-//************************************************************************************************
+//-----------------------------------------------------------------------------
 
 KPhantomSeg::~KPhantomSeg()
 {
@@ -1008,7 +1040,7 @@ KPhantomSeg::~KPhantomSeg()
 	delete m_SegImpl;
 }
 
-//************************************************************************************************
+//-----------------------------------------------------------------------------
 
 std::vector<std::vector<double>> KPhantomSeg::sortInAscendingOrder(std::vector<std::vector<double>> fiducials) 
 {
@@ -1150,7 +1182,7 @@ std::vector<std::vector<double>> KPhantomSeg::sortInAscendingOrder(std::vector<s
 	return sortedFiducials;
 }
 
-//************************************************************************************************
+//-----------------------------------------------------------------------------
 
 void KPhantomSeg::segment( unsigned char *data, const SegmentationParameters &segParams)
 {
@@ -1158,27 +1190,27 @@ void KPhantomSeg::segment( unsigned char *data, const SegmentationParameters &se
 	m_SegImpl->uscseg( data, segParams, m_SegResult );
 }
 
-//************************************************************************************************
+//-----------------------------------------------------------------------------
 
 void KPhantomSeg::printResults()
 {
 	m_SegImpl->print_results();
 }
 
-//************************************************************************************************
+//-----------------------------------------------------------------------------
 
 void KPhantomSeg::drawResults( unsigned char *image )
 {
 	m_SegImpl->draw_results( image );
 }
 
-//************************************************************************************************
+//-----------------------------------------------------------------------------
 
 void KPhantomSeg::GetSegmentationResults(SegmentationResults &segResults) { 
 	segResults=m_SegResult; 
 }
 
-//************************************************************************************************
+//-----------------------------------------------------------------------------
 
 bool shape_contains( std::vector<Item> shape, Item newItem )
 {
@@ -1199,14 +1231,14 @@ inline PixelType min( PixelType v1, PixelType v2 )
 	return v1 < v2 ? v1 : v2;
 }
 
-//************************************************************************************************
+//-----------------------------------------------------------------------------
 
 inline PixelType max( PixelType v1, PixelType v2 )
 {
 	return v1 > v2 ? v1 : v2;
 }
 
-//************************************************************************************************
+//-----------------------------------------------------------------------------
 
 inline PixelType SegImpl::erode_point_0( PixelType *image, unsigned int ir, unsigned int ic )
 {
@@ -1225,15 +1257,15 @@ inline PixelType SegImpl::erode_point_0( PixelType *image, unsigned int ir, unsi
 	return dval;
 }
 
-//************************************************************************************************
+//-----------------------------------------------------------------------------
 
 int SegImpl::GetMorphologicalOpeningBarSizePx()
 {
-	int barsize = floor(m_SegParams.mMorphologicalOpeningBarSizeMm / m_SegParams.mScalingEstimation + 0.5 );
+	int barsize = floor(m_SegParams.GetMorphologicalOpeningBarSizeMm() / m_SegParams.GetScalingEstimation() + 0.5 );
 	return barsize; 
 }
 
-//************************************************************************************************
+//-----------------------------------------------------------------------------
 
 void SegImpl::erode_0( PixelType *dest, PixelType *image )
 {
@@ -1261,7 +1293,7 @@ void SegImpl::erode_0( PixelType *dest, PixelType *image )
 	}
 }
 
-//************************************************************************************************
+//-----------------------------------------------------------------------------
 
 inline PixelType SegImpl::erode_point_45( PixelType *image, unsigned int ir, unsigned int ic )
 {
@@ -1280,7 +1312,7 @@ inline PixelType SegImpl::erode_point_45( PixelType *image, unsigned int ir, uns
 	return dval;
 }
 
-//************************************************************************************************
+//-----------------------------------------------------------------------------
 
 void SegImpl::erode_45( PixelType *dest, PixelType *image )
 {
@@ -1328,7 +1360,7 @@ void SegImpl::erode_45( PixelType *dest, PixelType *image )
 	}
 }
 
-//************************************************************************************************
+//-----------------------------------------------------------------------------
 
 inline PixelType SegImpl::erode_point_90( PixelType *image, unsigned int ir, unsigned int ic )
 {
@@ -1346,7 +1378,7 @@ inline PixelType SegImpl::erode_point_90( PixelType *image, unsigned int ir, uns
 	return dval;
 }
 
-//************************************************************************************************
+//-----------------------------------------------------------------------------
 
 void SegImpl::erode_90( PixelType *dest, PixelType *image )
 {
@@ -1373,7 +1405,7 @@ void SegImpl::erode_90( PixelType *dest, PixelType *image )
 	}
 }
 
-//************************************************************************************************
+//-----------------------------------------------------------------------------
 
 inline PixelType SegImpl::erode_point_135( PixelType *image, unsigned int ir, unsigned int ic )
 {
@@ -1391,7 +1423,7 @@ inline PixelType SegImpl::erode_point_135( PixelType *image, unsigned int ir, un
 	return dval;
 }
 
-//************************************************************************************************
+//-----------------------------------------------------------------------------
 
 void SegImpl::erode_135( PixelType *dest, PixelType *image )
 {
@@ -1440,11 +1472,12 @@ void SegImpl::erode_135( PixelType *dest, PixelType *image )
 	}
 }
 
-//************************************************************************************************
+//-----------------------------------------------------------------------------
 
 void SegImpl::erode_circle( PixelType *dest, PixelType *image )
 {
-	unsigned int slen = m_SegParams.mMorphologicalCircle.size();
+	std::vector<Item> morphologicalCircle = m_SegParams.GetMorphologicalCircle();
+	unsigned int slen = morphologicalCircle.size();
 
 	memset( dest, 0, rows*cols*sizeof(PixelType) );
 
@@ -1452,8 +1485,8 @@ void SegImpl::erode_circle( PixelType *dest, PixelType *image )
 		for ( unsigned int ic = horzLow; ic < horzHigh; ic++ ) {
 			PixelType dval = UCHAR_MAX;
 			for ( unsigned int sp = 0; sp < slen; sp++ ) {
-				unsigned int sr = ir + m_SegParams.mMorphologicalCircle[sp].roff;
-				unsigned int sc = ic + m_SegParams.mMorphologicalCircle[sp].coff;
+				unsigned int sr = ir + morphologicalCircle[sp].roff;
+				unsigned int sc = ic + morphologicalCircle[sp].coff;
 
 				if ( image[sr*cols+sc] < dval )
 					dval = image[sr*cols+sc];
@@ -1466,7 +1499,7 @@ void SegImpl::erode_circle( PixelType *dest, PixelType *image )
 	}
 }
 
-//************************************************************************************************
+//-----------------------------------------------------------------------------
 
 inline PixelType SegImpl::dilate_point_0( PixelType *image, unsigned int ir, unsigned int ic )
 {
@@ -1482,7 +1515,7 @@ inline PixelType SegImpl::dilate_point_0( PixelType *image, unsigned int ir, uns
 	return dval;
 }
 
-//************************************************************************************************
+//-----------------------------------------------------------------------------
 
 void SegImpl::dilate_0( PixelType *dest, PixelType *image )
 {
@@ -1508,7 +1541,7 @@ void SegImpl::dilate_0( PixelType *dest, PixelType *image )
 	}
 }
 
-//************************************************************************************************
+//-----------------------------------------------------------------------------
 
 inline PixelType SegImpl::dilate_point_45( PixelType *image, unsigned int ir, unsigned int ic )
 {
@@ -1524,7 +1557,7 @@ inline PixelType SegImpl::dilate_point_45( PixelType *image, unsigned int ir, un
 	return dval;
 }
 
-//************************************************************************************************
+//-----------------------------------------------------------------------------
 
 void SegImpl::dilate_45( PixelType *dest, PixelType *image )
 {
@@ -1568,7 +1601,7 @@ void SegImpl::dilate_45( PixelType *dest, PixelType *image )
 	}
 }
 
-//************************************************************************************************
+//-----------------------------------------------------------------------------
 
 inline PixelType SegImpl::dilate_point_90( PixelType *image, unsigned int ir, unsigned int ic )
 {
@@ -1584,7 +1617,7 @@ inline PixelType SegImpl::dilate_point_90( PixelType *image, unsigned int ir, un
 	return dval;
 }
 
-//************************************************************************************************
+//-----------------------------------------------------------------------------
 
 void SegImpl::dilate_90( PixelType *dest, PixelType *image )
 {
@@ -1608,7 +1641,7 @@ void SegImpl::dilate_90( PixelType *dest, PixelType *image )
 	}
 }
 
-//************************************************************************************************
+//-----------------------------------------------------------------------------
 
 inline PixelType SegImpl::dilate_point_135( PixelType *image, unsigned int ir, unsigned int ic )
 {
@@ -1624,7 +1657,7 @@ inline PixelType SegImpl::dilate_point_135( PixelType *image, unsigned int ir, u
 	return dval;
 }
 
-//************************************************************************************************
+//-----------------------------------------------------------------------------
 
 void SegImpl::dilate_135( PixelType *dest, PixelType *image )
 {
@@ -1666,7 +1699,7 @@ void SegImpl::dilate_135( PixelType *dest, PixelType *image )
 	}
 }
 
-//************************************************************************************************
+//-----------------------------------------------------------------------------
 
 inline PixelType SegImpl::dilate_point( PixelType *image, unsigned int ir, unsigned int ic, 
                 Item *shape, int slen )
@@ -1681,17 +1714,18 @@ inline PixelType SegImpl::dilate_point( PixelType *image, unsigned int ir, unsig
 	return dval;
 }
 
-//************************************************************************************************
+//-----------------------------------------------------------------------------
 
 void SegImpl::dilate_circle( PixelType *dest, PixelType *image )
 {
-	unsigned int slen = m_SegParams.mMorphologicalCircle.size();
+	std::vector<Item> morphologicalCircle = m_SegParams.GetMorphologicalCircle();
+	unsigned int slen = morphologicalCircle.size();
 
 	Item *shape = new Item[slen]; 
 
 	for ( unsigned int i = 0; i < slen; i++ )
 	{
-		shape[i] = m_SegParams.mMorphologicalCircle[i]; 
+		shape[i] = morphologicalCircle[i]; 
 	}
 
 	/* Which elements stick around when you shift right? */
@@ -1702,7 +1736,7 @@ void SegImpl::dilate_circle( PixelType *dest, PixelType *image )
 	memset( sr_exist, 0, slen*sizeof(bool) );
 	for ( int si = 0; si < slen; si++ ) 
 	{
-		if ( shape_contains( m_SegParams.mMorphologicalCircle, Item(m_SegParams.mMorphologicalCircle[si].roff, m_SegParams.mMorphologicalCircle[si].coff+1) ) )
+		if ( shape_contains( morphologicalCircle, Item(morphologicalCircle[si].roff, morphologicalCircle[si].coff+1) ) )
 			sr_exist[si] = true, n++;
 	}
 	//cout << "shift_exist: " << n << endl;
@@ -1748,7 +1782,7 @@ void SegImpl::dilate_circle( PixelType *dest, PixelType *image )
 	delete [] old_items; 
 }
 
-//************************************************************************************************
+//-----------------------------------------------------------------------------
 
 void SegImpl::subtract( PixelType *image, PixelType *vals )
 {
@@ -1756,7 +1790,7 @@ void SegImpl::subtract( PixelType *image, PixelType *vals )
 		image[pos] = vals[pos] > image[pos] ? 0 : image[pos] - vals[pos];
 }
 
-//************************************************************************************************
+//-----------------------------------------------------------------------------
 
 void SegImpl::dynamicThresholding( PixelType *pixelArray)
 {
@@ -1878,7 +1912,7 @@ void SegImpl::dynamicThresholding( PixelType *pixelArray)
 	}	
 }
 
-//************************************************************************************************
+//-----------------------------------------------------------------------------
 
 void SegImpl::WritePng(PixelType *modifiedImage, std::string outImageName, int cols, int rows) 
 {
@@ -1942,7 +1976,7 @@ void SegImpl::WritePng(PixelType *modifiedImage, std::string outImageName, int c
 
 }
 
-//************************************************************************************************
+//-----------------------------------------------------------------------------
 
 void SegImpl::morphological_operations()
 {
@@ -2046,8 +2080,7 @@ void SegImpl::morphological_operations()
 	 */ 
 }
 
-#define DOT_STEPS 4.0
-#define DOT_RADIUS 6.0
+//-----------------------------------------------------------------------------
 
 void print_dots( Dot *dots, int ndots )
 {
@@ -2056,6 +2089,8 @@ void print_dots( Dot *dots, int ndots )
 				"\t" << dots[d].intensity << endl;
 	}
 }
+
+//-----------------------------------------------------------------------------
 
 void print_lines( Line *lines, int nlines )
 {
@@ -2066,6 +2101,8 @@ void print_lines( Line *lines, int nlines )
 				"\t" << lines[l].intensity << "\t" << lines[l].line_error << endl;
 	}
 }
+
+//-----------------------------------------------------------------------------
 
 void print_pair( LinePair *pair, Line *lines, Dot *dots )
 {
@@ -2087,6 +2124,8 @@ void print_pair( LinePair *pair, Line *lines, Dot *dots )
 	}
 }
 
+//-----------------------------------------------------------------------------
+
 void SegImpl::draw_dots( PixelType *image, Dot *dots, int ndots )
 {
 	for ( int d = 0; d < ndots; d++ ) {
@@ -2105,6 +2144,8 @@ void SegImpl::draw_dots( PixelType *image, Dot *dots, int ndots )
 		image[static_cast<int>(floor(row)*cols+floor(col))] = 0; 
 	}
 }
+
+//-----------------------------------------------------------------------------
 
 void SegImpl::draw_lines( PixelType *image, Line *lines, int nlines )
 {
@@ -2144,12 +2185,16 @@ void SegImpl::draw_lines( PixelType *image, Line *lines, int nlines )
 	}
 }
 
+//-----------------------------------------------------------------------------
+
 void SegImpl::draw_pair( PixelType *image, LinePair *pair )
 {
 	/* Drawing on the original. */
 	draw_lines( image, lines+pair->l1, 1 );
 	draw_lines( image, lines+pair->l2, 1 );
 }
+
+//-----------------------------------------------------------------------------
 
 void SegImpl::print_results( )
 {
@@ -2170,6 +2215,8 @@ void SegImpl::print_results( )
 		cout << "ERROR: could not find any pair of parallel lines!" << endl;
 	}
 }
+
+//-----------------------------------------------------------------------------
 
 void SegImpl::draw_results( PixelType *image )
 {
