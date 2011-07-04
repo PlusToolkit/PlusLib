@@ -101,6 +101,30 @@ PlusStatus vtkFreehandCalibrationController::Initialize()
 {
 	LOG_DEBUG("Initialize vtkFreehandCalibrationController");
 
+	if (m_Toolbox) {
+		m_Toolbox->Initialize();
+	}
+
+	// Initialize visualization
+	if (! InitializeVisualization()) {
+		LOG_ERROR("Initializing freehand calibration visualization failed!");
+		return PLUS_FAIL;
+	}
+
+	// Set state to idle (initialized)
+	if (m_State == ToolboxState_Uninitialized) {
+		m_State = ToolboxState_Idle;
+
+		this->InitializedOn();
+	}
+
+	return PLUS_SUCCESS;
+}
+
+//-----------------------------------------------------------------------------
+
+PlusStatus vtkFreehandCalibrationController::InitializeVisualization()
+{
 	vtkFreehandController* controller = vtkFreehandController::GetInstance();
 	if ((controller == NULL) || (controller->GetInitialized() == false)) {
 		LOG_ERROR("vtkFreehandController is not initialized!");
@@ -112,45 +136,88 @@ PlusStatus vtkFreehandCalibrationController::Initialize()
 		return PLUS_FAIL;
 	}
 
-	if (m_Toolbox) {
-		m_Toolbox->Initialize();
-	}
+	if (m_State == ToolboxState_Uninitialized) {
+		if (controller->GetCanvas() != NULL) {
+			// Initialize canvas image actor
+			if (m_State == ToolboxState_Uninitialized) {
+				vtkSmartPointer<vtkImageActor> canvasImageActor = vtkSmartPointer<vtkImageActor>::New();
 
-	// Initialize visualization
-	if (controller->GetCanvas() != NULL) {
-		// Initialize canvas image actor
-		if (m_State == ToolboxState_Uninitialized) {
-			vtkSmartPointer<vtkImageActor> canvasImageActor = vtkSmartPointer<vtkImageActor>::New();
+				if (dataCollector->GetAcquisitionType() != SYNCHRO_VIDEO_NONE) {
+					canvasImageActor->VisibilityOn();
+					canvasImageActor->SetInput(dataCollector->GetOutput());
+				} else {
+					LOG_WARNING("Data collector has no output port, canvas image actor initalization failed.");
+				}
 
-			if (dataCollector->GetAcquisitionType() != SYNCHRO_VIDEO_NONE) {
-				canvasImageActor->VisibilityOn();
-				canvasImageActor->SetInput(dataCollector->GetOutput());
-			} else {
-				LOG_WARNING("Data collector has no output port, canvas image actor initalization failed.");
+				this->SetCanvasImageActor(canvasImageActor);
 			}
 
-			this->SetCanvasImageActor(canvasImageActor);
+			// Load models and initialize device actors
+			InitializeDeviceVisualization();
+
+			// Compute image camera parameters and set it to display live image
+			CalculateImageCameraParameters();
+			
+			// Add image actor to the realtime renderer, and add renderer to Canvas
+			// If already initialized (it can occur if tab change - and so clear - happened)
+			controller->GetCanvasRenderer()->AddActor(this->CanvasImageActor);
+			controller->GetCanvasRenderer()->SetBackground(0.2, 0.2, 0.2);
+			controller->GetCanvasRenderer()->InteractiveOff(); // TODO it doesn't work - find a way to disable interactions (also re-enable on Clear)
+			//controller->GetCanvasRenderer()->GetRenderWindow()->GetInteractor()->Disable();
+			controller->GetCanvasRenderer()->Modified();
 		}
+	} else if (vtkFreehandController::GetInstance()->GetCanvas() != NULL) {  // If already initialized (it can occur if tab change - and so clear - happened)
+		// Add all actors to the renderer again - state must be "Done", because tab cannot be changed if "In progress"
+		vtkRenderer* renderer = vtkFreehandController::GetInstance()->GetCanvasRenderer();
+		//renderer->AddActor(m_InputActor);
+		//renderer->AddActor(m_StylusActor);
+		//renderer->AddActor(m_StylusTipActor);
+		renderer->Modified();
+	}
+}
 
-		// Compute image camera parameters and set it to display live image
-		CalculateImageCameraParameters();
-		
-		// Add image actor to the realtime renderer, and add renderer to Canvas
-		// If already initialized (it can occur if tab change - and so clear - happened)
-		controller->GetCanvasRenderer()->AddActor(this->CanvasImageActor);
-		controller->GetCanvasRenderer()->SetBackground(0.2, 0.2, 0.2);
-		controller->GetCanvasRenderer()->InteractiveOff(); // TODO it doesn't work - find a way to disable interactions (also re-enable on Clear)
-		//controller->GetCanvasRenderer()->GetRenderWindow()->GetInteractor()->Disable();
-		controller->GetCanvasRenderer()->Modified();
+//-----------------------------------------------------------------------------
+
+PlusStatus vtkFreehandCalibrationController::InitializeDeviceVisualization()
+{
+	/*
+	// Initialize phantom model visualization
+	if (vtkFreehandController::GetInstance()->GetCanvas() != NULL) {
+		vtkSmartPointer<vtkSTLReader> stlReader = vtkSmartPointer<vtkSTLReader>::New();
+		std::string filePath = vtksys::SystemTools::CollapseFullPath(file, vtkFreehandController::GetInstance()->GetConfigDirectory());
+		if (! vtksys::SystemTools::FileExists(filePath.c_str())) {
+			LOG_ERROR("Phantom model file is not found in the specified path: " << filePath);
+		} else {
+			stlReader->SetFileName(filePath.c_str());
+			vtkSmartPointer<vtkPolyDataMapper> stlMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+			stlMapper->SetInputConnection(stlReader->GetOutputPort());
+			m_PhantomBodyActor->SetMapper(stlMapper);
+
+			vtkSmartPointer<vtkPolyDataMapper> stlMapper2 = vtkSmartPointer<vtkPolyDataMapper>::New();
+			stlMapper2->SetInputConnection(stlReader->GetOutputPort());
+			m_RegisteredPhantomBodyActor->SetMapper(stlMapper2);
+		}
 	}
 
-	// Set state to idle (initialized)
-	if (m_State == ToolboxState_Uninitialized) {
-		m_State = ToolboxState_Idle;
+	// ModelToPhantomOriginTransform - Transforming input model for proper visualization
+	double* modelToPhantomOriginTransformVector = new double[16]; 
+	if (model->GetVectorAttribute("ModelToPhantomOriginTransform", 16, modelToPhantomOriginTransformVector)) {
+		vtkSmartPointer<vtkMatrix4x4> modelToPhantomOriginTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+		modelToPhantomOriginTransformMatrix->Identity();
+		modelToPhantomOriginTransformMatrix->DeepCopy(modelToPhantomOriginTransformVector);
 
-		this->InitializedOn();
+		if (m_PhantomToModelTransform != NULL) {
+			m_PhantomToModelTransform->Delete();
+		}
+		m_PhantomToModelTransform = vtkTransform::New();
+		m_PhantomToModelTransform->SetMatrix(modelToPhantomOriginTransformMatrix);
+
+		if (vtkFreehandController::GetInstance()->GetCanvas() != NULL) {
+			m_PhantomBodyActor->SetUserTransform(m_PhantomToModelTransform);
+		}
 	}
-
+	delete[] modelToPhantomOriginTransformVector;
+	*/
 	return PLUS_SUCCESS;
 }
 
@@ -174,7 +241,8 @@ PlusStatus vtkFreehandCalibrationController::CalculateImageCameraParameters()
 		LOG_WARNING("Data collector has no video source!");
 		return PLUS_FAIL;
 	}
-
+/*
+	// Calculate image center
 	double imageCenterX = 0;
 	double imageCenterY = 0;
 	if ((this->GetImageWidthInPixels() == 0) || (this->GetImageHeightInPixels() == 0)) {
@@ -186,8 +254,12 @@ PlusStatus vtkFreehandCalibrationController::CalculateImageCameraParameters()
 		imageCenterX = this->GetImageWidthInPixels() / 2.0; 
 		imageCenterY = this->GetImageHeightInPixels() / 2.0; 
 	}
+
+	// Calculate 
+	sajt
+
 	vtkSmartPointer<vtkCamera> imageCamera = vtkSmartPointer<vtkCamera>::New(); 
-	imageCamera->SetPosition(imageCenterX, imageCenterY, -150);
+	imageCamera->SetPosition(imageCenterX, imageCenterY, positionZ);
 	imageCamera->SetFocalPoint(imageCenterX, imageCenterY, 0);
 	imageCamera->SetViewUp(0, -1, 0);
 	imageCamera->SetClippingRange(0.1, 1000);
@@ -197,7 +269,7 @@ PlusStatus vtkFreehandCalibrationController::CalculateImageCameraParameters()
 	this->SetImageCamera(imageCamera);
 
 	controller->GetCanvasRenderer()->SetActiveCamera(this->ImageCamera);
-
+*/
 	return PLUS_SUCCESS;
 }
 

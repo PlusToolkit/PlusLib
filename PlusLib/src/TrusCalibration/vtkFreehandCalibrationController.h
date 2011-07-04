@@ -42,26 +42,43 @@ public:
 
 	/*!
 	* \brief Initialize - implementation of a pure virtual function
+	* \return Success flag
 	*/
 	PlusStatus Initialize();
 
 	/*!
+	* \brief Initialize visualization (actors, cameras etc.)
+	* \return Success flag
+	*/
+	PlusStatus InitializeVisualization();
+
+	/*!
+	* \brief Initialize visualization (actors, cameras etc.)
+	* \return Success flag
+	*/
+	PlusStatus InitializeDeviceVisualization();
+
+	/*!
 	* \brief Clear - implementation of a pure virtual function
+	* \return Success flag
 	*/
 	PlusStatus Clear();
 
 	/*!
 	* \brief Acquire new tracker positions and updates toolbox and canvas - implementation of a pure virtual function
+	* \return Success flag
 	*/
 	PlusStatus DoAcquisition();
 
 	/*!
 	* \brief Start calibration - implementation of a pure virtual function
+	* \return Success flag
 	*/
 	PlusStatus Start();
 
 	/*!
 	* \brief Stop calibration - implementation of a pure virtual function
+	* \return Success flag
 	*/
 	PlusStatus Stop();
 

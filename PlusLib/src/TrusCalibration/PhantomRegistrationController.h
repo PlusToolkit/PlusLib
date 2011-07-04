@@ -34,26 +34,31 @@ public:
 
 	/*!
 	* \brief Initialize - implementation of a pure virtual function
+	* \return Success flag
 	*/
 	PlusStatus Initialize();
 
 	/*!
 	* \brief Clear - implementation of a pure virtual function
+	* \return Success flag
 	*/
 	PlusStatus Clear();
 
 	/*!
 	* \brief Acquire new tracker positions and updates toolbox and canvas - implementation of a pure virtual function
+	* \return Success flag
 	*/
 	PlusStatus DoAcquisition();
 
 	/*!
 	* \brief Put state into in progress if all prerequisites are done - implementation of a pure virtual function
+	* \return Success flag
 	*/
 	PlusStatus Start();
 
 	/*!
 	* \brief Stop - implementation of a pure virtual function
+	* \return Success flag
 	*/
 	PlusStatus Stop();
 
