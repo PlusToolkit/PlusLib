@@ -162,7 +162,7 @@ void PlusLogger::LogMessage(LogLevelType level, const char *msg, const char* fil
 
 		if (m_DisplayMessageCallbackFunction != NULL)
 		{
-			m_DisplayMessageCallbackFunction(msg, level);
+			m_DisplayMessageCallbackFunction(log.str().c_str(), level);
 		}
 	}	
 
