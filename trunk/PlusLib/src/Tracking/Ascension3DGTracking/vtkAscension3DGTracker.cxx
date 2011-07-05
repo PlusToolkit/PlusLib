@@ -375,6 +375,7 @@ vtkAscension3DGTracker
         mToolToTracker->SetElement( row, col, record[ sensorIndex ].s[ row ][ col ] );
         }
       }
+    mToolToTracker->Invert();
     
     mToolToTracker->SetElement( 0, 3, record[ sensorIndex ].x );
     mToolToTracker->SetElement( 1, 3, record[ sensorIndex ].y );
