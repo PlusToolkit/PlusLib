@@ -249,7 +249,7 @@ Dot * SegImpl::cluster()
 	}
 
 done:
-	sort<Dot, LtDotIntensity>( dots, ndots );
+	UltraSoundFiducialSegmentationTools::sort<Dot, LtDotIntensity>( dots, ndots );
 	return dots;
 }
 
@@ -438,17 +438,17 @@ void SegImpl::find_lines3pt( )
 					points[0] = b1;
 					points[1] = b2;
 					points[2] = b3;
-					sort<int, LtInt>(points, 3);
+					UltraSoundFiducialSegmentationTools::sort<int, LtInt>(points, 3);
 
 					for (int i=0; i<3; i++)
 					{
 						line.b[i] = points[i];
 					}					
 
-					if ( ! bs_find<Line, CmpLine>( line, lines, nlines ) ) {
+					if ( ! UltraSoundFiducialSegmentationTools::bs_find<Line, CmpLine>( line, lines, nlines ) ) {
 						compute_line( line, dots );
 						if ( accept_line( line ) ) {
-							bs_insert<Line, CmpLine>( line, lines, nlines );
+							UltraSoundFiducialSegmentationTools::bs_insert<Line, CmpLine>( line, lines, nlines );
 							if ( nlines == MAX_LINES )
 								return;
 						}
@@ -470,7 +470,7 @@ void SegImpl::find_lines( )
 	find_lines3pt();
 
 	/* Sort by intensity. */
-	sort<Line, LtLineIntensity>( lines, nlines );
+	UltraSoundFiducialSegmentationTools::sort<Line, LtLineIntensity>( lines, nlines );
 }
 
 //-----------------------------------------------------------------------------
@@ -530,7 +530,7 @@ void SegImpl::find_pairs()
 
 done:
 	/* Rank the pairs by intensity. */
-	sort<LinePair, LtLinePairIntensity>( pairs, npairs );
+	UltraSoundFiducialSegmentationTools::sort<LinePair, LtLinePairIntensity>( pairs, npairs );
 }
 
 //-----------------------------------------------------------------------------
@@ -556,7 +556,7 @@ void SegImpl::sort_right_to_left( Line *line )
 	{
 		points[i] = &dots[line->b[i]];
 	}
-	sort<Dot*, LtDotPosition>( points, 3 );
+	UltraSoundFiducialSegmentationTools::sort<Dot*, LtDotPosition>( points, 3 );
 	for (int i=0; i<3; i++)
 	{
 		line->b[i] = points[i] - dots;
@@ -984,7 +984,7 @@ void SegImpl::find_u_shape_line_triad(SegmentationResults &segResult)
 		sa.angle=angle;		
 		sortedAngles.push_back(sa);
 	}
-	sortedAngles.sort(AngleMoreThan);
+	sortedAngles.sort(UltraSoundFiducialSegmentationTools::AngleMoreThan);
 	segResult.GetFoundDotsCoordinateValue().clear();
 	for(std::list<SortedAngle>::iterator it=sortedAngles.begin();it!=sortedAngles.end();it++)
 	{
@@ -2232,4 +2232,126 @@ void SegImpl::draw_results( PixelType *image )
 		draw_dots( image, dots, ndots );
 	}
 
+}
+
+//-----------------------------------------------------------------------------
+
+bool UltraSoundFiducialSegmentationTools::AngleMoreThan( const SortedAngle &pt1, const SortedAngle &pt2 )
+{
+	/* Use > to get descending. */
+	return pt1.angle < pt2.angle;
+}
+
+//-----------------------------------------------------------------------------
+
+template<class T, class LessThan> static void UltraSoundFiducialSegmentationTools::doSort(T *tmpStor, T *data, long len)
+{
+	if ( len <= 1 )
+		return;
+
+	long mid = len / 2;
+
+	doSort<T, LessThan>( tmpStor, data, mid );
+	doSort<T, LessThan>( tmpStor + mid, data + mid, len - mid );
+	
+	/* Merge the data. */
+	T *endLower = data + mid, *lower = data;
+	T *endUpper = data + len, *upper = data + mid;
+	T *dest = tmpStor;
+	while ( true ) {
+		if ( lower == endLower ) {
+			/* Possibly upper left. */
+			if ( upper != endUpper )
+				memcpy( dest, upper, (endUpper - upper) * sizeof(T) );
+			break;
+		}
+		else if ( upper == endUpper ) {
+			/* Only lower left. */
+			if ( lower != endLower )
+				memcpy( dest, lower, (endLower - lower) * sizeof(T) );
+			break;
+		}
+		else {
+			/* Both upper and lower left. */
+			if ( LessThan::lessThan( *upper, *lower ) )
+				memcpy( dest++, upper++, sizeof(T) );
+			else
+				memcpy( dest++, lower++, sizeof(T) );
+		}
+	}
+
+	/* Copy back from the tmpStor array. */
+	memcpy( data, tmpStor, sizeof( T ) * len );
+}
+
+//-----------------------------------------------------------------------------
+
+template<class T, class LessThan> static void UltraSoundFiducialSegmentationTools::sort(T *data, long len)
+{
+	/* Allocate the tmp space needed by merge sort, sort and free. */
+
+	// Thomas Kuiran Chen - retouched for ANSI-C++
+	// ANSI-C++ does not allow an initialization of static array
+	// data using a variable.  A walk-around is to use the dynamic
+	// allocation of the array.
+	//T tmpStor[len];
+	T *tmpStor = new T[len];
+	doSort<T, LessThan>( tmpStor, data, len );
+
+	// Thomas Kuiran Chen - make sure to clean up the memory.
+	delete [] tmpStor;
+	tmpStor = NULL;
+}
+
+//-----------------------------------------------------------------------------
+
+template <class T, class Compare> static bool UltraSoundFiducialSegmentationTools::bs_find( const T &item, T *data, int dlen )
+{
+	T *lower = data;
+	T *upper = data + dlen - 1;
+	while ( true ) {
+		if ( upper < lower )
+			return false;
+
+		T *mid = lower + ((upper-lower)>>1);
+		long cmp = Compare::compare( item, *mid );
+		if ( cmp < 0 )
+			upper = mid - 1;
+		else if ( cmp > 0 )
+			lower = mid + 1;
+		else
+			return true;
+	}
+}
+
+//-----------------------------------------------------------------------------
+
+template <class T, class Compare> static void UltraSoundFiducialSegmentationTools::bs_insert( const T &item, T *data, int &dlen )
+{
+	T *lower = data;
+	T *upper = data + dlen - 1;
+	while ( true ) {
+		if ( upper < lower )
+			goto insert;
+
+		T *mid = lower + ((upper-lower)>>1);
+		long cmp = Compare::compare( item, *mid );
+		if ( cmp < 0 )
+			upper = mid - 1;
+		else if ( cmp > 0 )
+			lower = mid + 1;
+		else
+			return;
+	}
+insert:
+	int pos = lower - data;
+	int newLen = dlen + 1;
+
+	/* Shift over data at insert spot if needed. */
+	if ( dlen > 0 && pos < dlen )
+		memmove(data+pos+1, data+pos, sizeof(T)*(dlen-pos));
+
+	/* Save the new length. */
+	dlen = newLen;
+	data[pos] = item;
 }
