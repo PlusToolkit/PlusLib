@@ -8,6 +8,7 @@
 #include "vtkImageImport.h"
 #include "vtkImageFlip.h"
 #include "vtkXMLDataElement.h"
+#include "vtkFileFinder.h"
 
 #include "itkImage.h"
 #include "itkImageFileReader.h"
@@ -124,7 +125,7 @@ PlusStatus vtkCalibrationController::Initialize()
 		this->GetSearchStartAtX(), this->GetSearchStartAtY(), 
 		this->GetSearchDimensionX(), this->GetSearchDimensionY(), this->GetEnableSegmentationAnalysis(), "frame.jpg");
 
-  return PLUS_SUCCESS;
+	return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
@@ -433,7 +434,7 @@ PlusStatus vtkCalibrationController::ReadConfiguration( const char* configFileNa
 	vtkSmartPointer<vtkXMLDataElement> calibrationController = vtkXMLUtilities::ReadElementFromFile(this->GetConfigurationFileName()); 
 	this->ReadConfiguration(calibrationController); 
 
-  return PLUS_SUCCESS;
+	return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
@@ -451,7 +452,7 @@ PlusStatus vtkCalibrationController::ReadConfiguration( vtkXMLDataElement* confi
 	vtkXMLDataElement* calibrationController = configData->FindNestedElementWithName("CalibrationController"); 
 	this->ReadCalibrationControllerConfiguration(calibrationController); 
   
-  return PLUS_SUCCESS;
+	return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
@@ -570,7 +571,7 @@ PlusStatus vtkCalibrationController::ReadCalibrationControllerConfiguration( vtk
 	//********************************************************************
 	this->ReadPhantomDefinition();
 
-  return PLUS_SUCCESS;
+	return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
@@ -772,7 +773,7 @@ PlusStatus vtkCalibrationController::ReadRealtimeCalibrationConfiguration( vtkXM
 		imageDataInfo.NumberOfImagesToAcquire = 100; 
 	}
 
-  return PLUS_SUCCESS;
+	return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
@@ -921,28 +922,41 @@ PlusStatus vtkCalibrationController::ReadSegmentationParametersConfiguration( vt
 		this->GetSegParameters()->SetUseOriginalImageIntensityForDotIntensityScore((useOriginalImageIntensityForDotIntensityScore?true:false)); 
 	}
 
-	const char* phantomDefinitionFile =  segmentationParameters->GetAttribute("PhantomDefinition"); 
-	if ( (this->GetEnablePathOverride()) && (phantomDefinitionFile != NULL) && (vtksys::SystemTools::FileExists(phantomDefinitionFile, true)) ) {
+	// Search for the phantom definition file found in the configuration file
+	const char* phantomDefinitionFile =  segmentationParameters->GetAttribute("PhantomDefinition");
+	std::string configurationDirectory = vtksys::SystemTools::GetFilenamePath(this->ConfigurationFileName);
+	std::string searchResult = vtkFileFinder::GetFirstFileFoundInParentOfDirectory(phantomDefinitionFile, configurationDirectory.c_str());
+	if (STRCASECMP("", searchResult.c_str()) == 0) {
+		LOG_WARNING("Phantom model file is not found with name: " << phantomDefinitionFile);
+	}
+
+	if ( (this->GetEnablePathOverride()) && (phantomDefinitionFile != NULL) && (vtksys::SystemTools::FileExists(searchResult.c_str(), true)) ) {
 		this->SetPhantomDefinitionFileName(phantomDefinitionFile);
 	}
 
 	this->GetSegParameters()->UpdateParameters(); 
 
-  return PLUS_SUCCESS;
+	return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkCalibrationController::ReadPhantomDefinition()
 {
 	LOG_TRACE("vtkCalibrationController::ReadPhantomDefinition");
-	std::vector<NWire> tempNWires = this->GetSegParameters()->GetNWires();
+
 	if ( this->PhantomDefinitionFileName != NULL )
 	{
+		std::vector<NWire> tempNWires = this->GetSegParameters()->GetNWires();
 		vtkSmartPointer<vtkXMLDataElement> phantomDefinition = vtkXMLUtilities::ReadElementFromFile(this->PhantomDefinitionFileName);
 
 		if (phantomDefinition == NULL) {
 			LOG_ERROR("Unable to read the phantom definition file: " << this->PhantomDefinitionFileName); 
 			return PLUS_FAIL;
+		}
+
+		// Verify XML type
+		if (STRCASECMP("PhantomDefinition", phantomDefinition->GetName()) != NULL) {
+			LOG_ERROR(this->PhantomDefinitionFileName << " is not a phantom definition file!");
 		}
 
 		// Load type
@@ -1099,5 +1113,5 @@ PlusStatus vtkCalibrationController::ReadPhantomDefinition()
 	this->GetSegParameters()->SetMinLinePairDistMm(minNPlaneDistance * (1.0 - (this->GetSegParameters()->GetMaxLinePairDistanceErrorPercent() / 100.0)));
 	LOG_DEBUG("Line pair distance - computed min: " << minNPlaneDistance << " , max: " << maxNPlaneDistance << ";  allowed min: " << this->GetSegParameters()->GetMinLinePairDistMm() << ", max: " << this->GetSegParameters()->GetMaxLinePairDistMm());
 
-  return PLUS_SUCCESS;
+	return PLUS_SUCCESS;
 }

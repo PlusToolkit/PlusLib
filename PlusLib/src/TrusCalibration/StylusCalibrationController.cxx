@@ -96,6 +96,24 @@ PlusStatus StylusCalibrationController::Initialize()
 {
 	LOG_DEBUG("Initialize StylusCalibrationController");
 
+	// Determine stylus tool port number
+	DetermineStylusPortNumber();
+
+	// Initialize visualization
+	InitializeVisualization();
+
+	// Set state to idle
+	if (m_State == ToolboxState_Uninitialized) {
+		m_State = ToolboxState_Idle;
+	}
+
+	return PLUS_SUCCESS;
+}
+
+//-----------------------------------------------------------------------------
+
+PlusStatus StylusCalibrationController::DetermineStylusPortNumber()
+{
 	vtkFreehandController* controller = vtkFreehandController::GetInstance();
 	if (controller == NULL) {
 		LOG_ERROR("vtkFreehandController is invalid");
@@ -122,14 +140,6 @@ PlusStatus StylusCalibrationController::Initialize()
 	} else {
 		LOG_WARNING("Stylus port number not found in configuration file, default tool used!");
 		m_StylusPortNumber = dataCollector->GetTracker()->GetDefaultTool();
-	}
-
-	// Initialize visualization
-	InitializeVisualization();
-
-	// Set state to idle
-	if (m_State == ToolboxState_Uninitialized) {
-		m_State = ToolboxState_Idle;
 	}
 
 	return PLUS_SUCCESS;
@@ -184,6 +194,7 @@ void StylusCalibrationController::InitializeVisualization()
 			m_StylusTipActor->GetProperty()->SetColor(0.0, 0.5, 0.0);
 
 			// Initialize stylus visualization - in ReferenceTool coordinate system
+			//TODO If a tool definition file for the stylus exists, use that model instead (this can remain in case it is undefined - just in a separate function, probably in the same that loads the stl (in the else branch of the loading))
 			m_StylusActor = vtkActor::New();
 			vtkSmartPointer<vtkPolyDataMapper> stylusMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
 			vtkSmartPointer<vtkCylinderSource> stylusBigCylinderSource = vtkSmartPointer<vtkCylinderSource>::New();
@@ -631,6 +642,11 @@ PlusStatus StylusCalibrationController::LoadStylusCalibrationFromFile(std::strin
 			// Set calibration matrix to stylus tool
 			vtkDataCollector* dataCollector = vtkFreehandController::GetInstance()->GetDataCollector();
 			if (dataCollector != NULL) {
+				// If one jumped to Phantom registration toolbox right away
+				if (m_State == ToolboxState_Uninitialized) {
+					DetermineStylusPortNumber();
+				}
+
 				dataCollector->GetTracker()->GetTool(m_StylusPortNumber)->SetCalibrationMatrix(transformMatrix);
 			} else {
 				LOG_WARNING("Data collector is not initialized!");

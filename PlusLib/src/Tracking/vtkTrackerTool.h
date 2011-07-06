@@ -170,6 +170,7 @@ public:
   vtkGetStringMacro(ToolPartNumber);
   vtkGetStringMacro(ToolSerialNumber);
   vtkGetStringMacro(ToolName); 
+  vtkGetStringMacro(ToolModelFileName); 
 
   //BTX
   // Description:
@@ -182,6 +183,7 @@ public:
   vtkSetStringMacro(ToolPartNumber);
   vtkSetStringMacro(ToolSerialNumber);
   vtkSetStringMacro(ToolName);
+  vtkSetStringMacro(ToolModelFileName); 
   void Update();
   //ETX
 
@@ -255,7 +257,8 @@ protected:
   char *ToolName; 
   char *CalibrationMatrixName; 
   char *CalibrationDate; 
-  char* SendToLink; 
+  char *SendToLink;
+  char *ToolModelFileName;
 
   double CalibrationError; 
 
