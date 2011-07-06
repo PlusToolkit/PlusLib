@@ -145,6 +145,11 @@ protected:
 	/*!
 	* \brief Initialize 3D visualization
 	*/
+	PlusStatus DetermineStylusPortNumber();
+
+	/*!
+	* \brief Initialize 3D visualization
+	*/
 	void InitializeVisualization();
 
 	/*!

@@ -19,6 +19,7 @@ if (WIN32)
 		vtkGnuplotExecuter.h
         vtkTimestampedCircularBuffer.h 
         vtkTimestampedCircularBuffer.txx
+		vtkFileFinder.h
 		)
 endif (WIN32)	
 

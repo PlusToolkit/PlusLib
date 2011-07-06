@@ -6,7 +6,7 @@
 
     <Tracker Type="CertusTracker" BufferSize="1000" Frequency="50" LocalTimeOffset="0.0" ReferenceToolName="PhantomReference" DefaultToolName="Probe" >
         
-        <Tool Name="Probe" PortNumber="0" SendTo="127.0.0.1:1111">
+        <Tool Name="Probe" Type="L14-5_38" PortNumber="0" SendTo="127.0.0.1:1111">
         <Calibration 
                 MatrixName="ImageToProbe" 
                 MatrixValue="1 0 0 0 

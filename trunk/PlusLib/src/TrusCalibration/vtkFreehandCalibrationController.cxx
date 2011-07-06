@@ -243,7 +243,7 @@ PlusStatus vtkFreehandCalibrationController::CalculateImageCameraParameters()
 		LOG_WARNING("Data collector has no video source!");
 		return PLUS_FAIL;
 	}
-/*
+
 	// Calculate image center
 	double imageCenterX = 0;
 	double imageCenterY = 0;
@@ -257,21 +257,32 @@ PlusStatus vtkFreehandCalibrationController::CalculateImageCameraParameters()
 		imageCenterY = this->GetImageHeightInPixels() / 2.0; 
 	}
 
-	// Calculate 
-	sajt
-
+	// Set up camera
 	vtkSmartPointer<vtkCamera> imageCamera = vtkSmartPointer<vtkCamera>::New(); 
-	imageCamera->SetPosition(imageCenterX, imageCenterY, positionZ);
 	imageCamera->SetFocalPoint(imageCenterX, imageCenterY, 0);
 	imageCamera->SetViewUp(0, -1, 0);
 	imageCamera->SetClippingRange(0.1, 1000);
 	imageCamera->ParallelProjectionOn();
 	imageCamera->SetParallelScale(imageCenterY);
 
+	// Calculate distance of camera from the plane
+	double positionZ = -200.0;
+
+	int *size = controller->GetCanvasRenderer()->GetSize();
+	if ((double)size[0] / (double)size[1] > imageCenterX / imageCenterY) {
+		// If canvas aspect ratio is more elongenated in the X position then compute the distance according to the Y axis
+		positionZ = (-1.0) * imageCenterY / tan(imageCamera->GetViewAngle()*M_PI/180.0);
+	} else {
+		positionZ = (-1.0) * imageCenterX / tan(imageCamera->GetViewAngle()*M_PI/180.0);
+	}
+
+	imageCamera->SetPosition(imageCenterX, imageCenterY, positionZ);
+
+	// Set camera
 	this->SetImageCamera(imageCamera);
 
 	controller->GetCanvasRenderer()->SetActiveCamera(this->ImageCamera);
-*/
+
 	return PLUS_SUCCESS;
 }
 

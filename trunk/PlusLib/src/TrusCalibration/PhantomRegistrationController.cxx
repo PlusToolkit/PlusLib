@@ -11,6 +11,7 @@
 #include "vtkPolyData.h"
 #include "vtkSTLReader.h"
 #include "vtkXMLUtilities.h"
+#include "vtkFileFinder.h"
 
 #include "vtkActor.h"
 #include "vtkPolyDataMapper.h"
@@ -242,6 +243,8 @@ void PhantomRegistrationController::InitializeVisualization()
 			renderer->AddActor(m_StylusActor);
 			renderer->AddActor(m_LandmarksActor);
 			renderer->AddActor(m_RegisteredPhantomBodyActor);
+
+			renderer->ResetCamera();
 
 			// Phantom body
 			m_PhantomBodyActor = vtkActor::New();
@@ -527,8 +530,9 @@ void PhantomRegistrationController::Register()
 	m_PhantomToPhantomReferenceTransform = vtkTransform::New();
 	m_PhantomToPhantomReferenceTransform->SetMatrix(phantomToPhantomReferenceTransformMatrix);
 
-	std::ostringstream osPhantomToPhantomReferenceTransform; 
-	m_PhantomToPhantomReferenceTransform->GetMatrix()->Print(osPhantomToPhantomReferenceTransform);   
+	std::ostringstream osPhantomToPhantomReferenceTransform;
+	m_PhantomToPhantomReferenceTransform->GetMatrix()->Print(osPhantomToPhantomReferenceTransform);
+
 	LOG_DEBUG("PhantomToPhantomReferenceTransform:\n" << osPhantomToPhantomReferenceTransform.str().c_str() );
 
 	// Display phantom model in the main canvas
@@ -722,6 +726,8 @@ PlusStatus PhantomRegistrationController::LoadPhantomDefinitionFromFile(std::str
 	if (phantomDefinition == NULL) {	
 		LOG_ERROR("Unable to read the phantom definition file: " << aFile); 
 		return PLUS_FAIL;
+	} else if (STRCASECMP("PhantomDefinition", phantomDefinition->GetName()) != NULL) {
+		LOG_INFO(aFile << " is not a phantom definition file! The registration data cannot be used by calibration.");
 	} else {
 		m_PhantomDefinitionFileName = aFile;
 	}
@@ -737,11 +743,12 @@ PlusStatus PhantomRegistrationController::LoadPhantomDefinitionFromFile(std::str
 			// Initialize phantom model visualization
 			if (vtkFreehandController::GetInstance()->GetCanvas() != NULL) {
 				vtkSmartPointer<vtkSTLReader> stlReader = vtkSmartPointer<vtkSTLReader>::New();
-				std::string filePath = vtksys::SystemTools::CollapseFullPath(file, vtkFreehandController::GetInstance()->GetConfigDirectory());
-				if (! vtksys::SystemTools::FileExists(filePath.c_str())) {
-					LOG_ERROR("Phantom model file is not found in the specified path: " << filePath);
+				
+				std::string searchResult = vtkFileFinder::GetFirstFileFoundInParentOfDirectory(file, vtkFreehandController::GetInstance()->GetConfigDirectory());
+				if (STRCASECMP("", searchResult.c_str()) == 0) {
+					LOG_ERROR("Phantom model file is not found with name: " << file);
 				} else {
-					stlReader->SetFileName(filePath.c_str());
+					stlReader->SetFileName(searchResult.c_str());
 					vtkSmartPointer<vtkPolyDataMapper> stlMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
 					stlMapper->SetInputConnection(stlReader->GetOutputPort());
 					m_PhantomBodyActor->SetMapper(stlMapper);

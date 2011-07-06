@@ -86,6 +86,7 @@ vtkTrackerTool::vtkTrackerTool()
 	this->ToolPartNumber = 0;
 	this->ToolManufacturer = 0;
 	this->ToolName = 0;
+	this->ToolModelFileName = 0;
 	this->ToolPort = 0;
 	this->CalibrationMatrixName = 0; 
 	this->CalibrationDate = 0; 
@@ -98,6 +99,7 @@ vtkTrackerTool::vtkTrackerTool()
 	this->SetToolPartNumber("");
 	this->SetToolManufacturer("");
 	this->SetToolName("");
+	this->SetToolModelFileName("");
 	this->EnabledOff(); 
 
 	this->TempMatrix = vtkMatrix4x4::New();
@@ -121,6 +123,10 @@ vtkTrackerTool::~vtkTrackerTool()
 	if (this->ToolType)
 	{
 		delete [] this->ToolType;
+	}
+	if (this->ToolModelFileName)
+	{
+		delete [] this->ToolModelFileName;
 	}
 	if (this->ToolRevision)
 	{
@@ -157,7 +163,9 @@ void vtkTrackerTool::PrintSelf(ostream& os, vtkIndent indent)
 	os << indent << "LED1: " << this->GetLED1() << "\n"; 
 	os << indent << "LED2: " << this->GetLED2() << "\n"; 
 	os << indent << "LED3: " << this->GetLED3() << "\n";
+	os << indent << "SendTo: " << this->GetSendToLink() << "\n";
 	os << indent << "ToolType: " << this->GetToolType() << "\n";
+	os << indent << "ToolModelFileName: " << this->GetToolModelFileName() << "\n";
 	os << indent << "ToolRevision: " << this->GetToolRevision() << "\n";
 	os << indent << "ToolManufacturer: " << this->GetToolManufacturer() << "\n";
 	os << indent << "ToolPartNumber: " << this->GetToolPartNumber() << "\n";
@@ -425,7 +433,10 @@ void vtkTrackerTool::DeepCopy(vtkTrackerTool *tool)
 	this->SetLED2( tool->GetLED2() );
 	this->SetLED3( tool->GetLED3() );
 
+	this->SetSendToLink( tool->GetSendToLink() );
+
 	this->SetToolType( tool->GetToolType() );
+	this->SetToolModelFileName( tool->GetToolModelFileName() );
 	this->SetToolRevision( tool->GetToolRevision() );
 	this->SetToolSerialNumber( tool->GetToolSerialNumber() );
 	this->SetToolPartNumber( tool->GetToolPartNumber() );
@@ -465,6 +476,22 @@ PlusStatus vtkTrackerTool::ReadConfiguration(vtkXMLDataElement* config)
 	if ( sendToLink != NULL ) 
 	{
 		this->SetSendToLink(sendToLink); 
+	}
+
+	const char* type = config->GetAttribute("Type"); 
+	if ( type != NULL ) 
+	{
+		this->SetToolType(type);
+
+		if ( toolName != NULL )
+		{
+			std::string toolModelFileName(toolName);
+			toolModelFileName.append("_");
+			toolModelFileName.append(type);
+			toolModelFileName.append(".xml");
+
+			this->SetToolModelFileName(toolModelFileName.c_str());
+		}
 	}
 
 	vtkXMLDataElement* toolCalibrationDataElement = config->FindNestedElementWithName("Calibration"); 
