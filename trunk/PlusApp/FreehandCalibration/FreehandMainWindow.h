@@ -49,13 +49,6 @@ public:
 	*/
 	void Initialize();
 
-	/*!
-	* \brief Callback function for logger to display messages in popup window
-	* \param aMessage Message string to display
-	* \param aLevel Log level of the message
-	*/
-	//static void DisplayMessage(const char* aMessage, const int aLevel); TODO remove (body too)
-
 public slots:
 	/*!
 	* \brief Determint configuration files location

@@ -414,23 +414,3 @@ void FreehandMainWindow::LocateDirectories()
 		vtkFreehandController::GetInstance()->SetOutputFolder(outputPath.c_str());
 	}
 }
-
-//-----------------------------------------------------------------------------
-/*
-void FreehandMainWindow::DisplayMessage(const char* aMessage, const int aLevel)
-{
-	QString message(aMessage);
-
-	switch (aLevel) {
-		case PlusLogger::LOG_LEVEL_ERROR:
-			QMessageBox::critical(NULL, tr("Error"), message, QMessageBox::Ok, QMessageBox::Ok);
-			break;
-		case PlusLogger::LOG_LEVEL_WARNING:
-			QMessageBox::warning(NULL, tr("Warning"), message, QMessageBox::Ok, QMessageBox::Ok);
-			break;
-		default:
-			QMessageBox::information(NULL, tr("Information"), message, QMessageBox::Ok, QMessageBox::Ok);
-			break;
-	}
-}
-*/

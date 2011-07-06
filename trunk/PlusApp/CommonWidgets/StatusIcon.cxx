@@ -195,7 +195,7 @@ PlusStatus StatusIcon::ConstructMessageListWidget()
 					m_MessageTextEdit->setTextColor(Qt::black);
 					break;
 			}
-			m_MessageTextEdit->append("-" + message);
+			m_MessageTextEdit->append(message);
 		}
 	} else {
 		m_MessageTextEdit->setText("There are no messages yet...");
@@ -234,7 +234,7 @@ bool StatusIcon::eventFilter(QObject *obj, QEvent *ev)
 				QTextCursor cursor(m_MessageTextEdit->textCursor());
 				if (wheelEv->delta() < 0) {
 					if (m_PreviousScroll < 0) { // Hack: move cursor to bottom of page if it is at the top (could not solve simple scrolling, had to play with cursot)
-						cursor.movePosition(QTextCursor::Down, QTextCursor::MoveAnchor, 36);
+						cursor.movePosition(QTextCursor::Down, QTextCursor::MoveAnchor, 36); // TODO Compute line count from heights instead of this constant
 					}
 					cursor.movePosition(QTextCursor::Down, QTextCursor::MoveAnchor, 2);
 					cursor.movePosition(QTextCursor::EndOfLine);
