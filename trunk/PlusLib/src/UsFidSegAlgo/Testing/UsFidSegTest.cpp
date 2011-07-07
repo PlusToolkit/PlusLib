@@ -405,7 +405,6 @@ int main(int argc, char **argv)
 	std::string inputTestcaseName;
 	std::string inputTestDataDir;
 	std::string inputConfigFileName;
-	std::string inputPhantomDefinitionFileName;
 	std::string outputTestResultsFileName;
 	int thresholdTop = 0; 
 	int thresholdBottom = 0; 
@@ -425,7 +424,6 @@ int main(int argc, char **argv)
 	args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug)");		
 
 	args.AddArgument("--input-config-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "Calibration configuration file name");
-	args.AddArgument("--input-phantom-definition-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputPhantomDefinitionFileName, "Phantom definition file name");
 		
 	if ( !args.Parse() )
 	{
@@ -436,16 +434,14 @@ int main(int argc, char **argv)
 
 	PlusLogger::Instance()->SetLogLevel(verboseLevel);
 
-	if (inputImageSequenceFileName.empty() || inputBaselineFileName.empty() || inputConfigFileName.empty() || inputPhantomDefinitionFileName.empty())
+	if (inputImageSequenceFileName.empty() || inputBaselineFileName.empty() || inputConfigFileName.empty())
 	{
-		std::cerr << "At lease one of the following parameters is missing: input-img-seq-file-name, input-baseline-file-name, input-config-file-name, input-phantom-definition-file-name" << std::endl;
+		std::cerr << "At lease one of the following parameters is missing: input-img-seq-file-name, input-baseline-file-name, input-config-file-name" << std::endl;
 		exit(EXIT_FAILURE);
 	}
 
 	vtkSmartPointer<vtkCalibrationController> calibrationController = vtkSmartPointer<vtkCalibrationController>::New();
-	calibrationController->SetPhantomDefinitionFileName(inputPhantomDefinitionFileName.c_str());
 	calibrationController->ReadConfiguration(inputConfigFileName.c_str());
-
 
 	ImageSequenceReaderType::Pointer reader = ImageSequenceReaderType::New(); // reader object, pointed to by smart pointer
 	itk::MetaImageSequenceIO::Pointer readerMetaImageSequenceIO = itk::MetaImageSequenceIO::New(); 

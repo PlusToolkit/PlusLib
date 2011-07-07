@@ -90,7 +90,6 @@ ADD_TEST(UsFidSegTest_CALIBRATION_PHANTOM_6_POINT_UsTestSeqBaselineThomasShorten
 	--input-baseline-file=${TestDataDir}/UsTestSeqBaselineThomasShortened_baseline.xml
 	--output-result-file=testcomparisons.xml
 	--input-config-file-name=${ConfigFilesDir}/USCalibrationConfig_iCal_SonixRP_Ulterius.xml
-	--input-phantom-definition-file-name=${ConfigFilesDir}/PhantomDefinition_iCal_1.0.xml
 	)
 SET_TESTS_PROPERTIES( UsFidSegTest_CALIBRATION_PHANTOM_6_POINT_UsTestSeqBaselineThomasShortened PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
@@ -102,7 +101,6 @@ ADD_TEST(UsFidSegTest_CALIBRATION_PHANTOM_6_POINT_BKMedical_RandomStepperMotionD
 	--input-baseline-file=${TestDataDir}/SegmentationTest_BKMedical_RandomStepperMotionData2_Segmentation_baseline.xml
 	--output-result-file=testcomparisons.xml
 	--input-config-file-name=${ConfigFilesDir}/USCalibrationConfig_iCal_BKMedical_FrameGrabber.xml
-	--input-phantom-definition-file-name=${ConfigFilesDir}/PhantomDefinition_iCal_1.0.xml
 	)
 SET_TESTS_PROPERTIES( UsFidSegTest_CALIBRATION_PHANTOM_6_POINT_BKMedical_RandomStepperMotionData2 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
@@ -114,7 +112,6 @@ ADD_TEST(UsFidSegTest_CALIBRATION_PHANTOM_6_POINT_VLCUS_RandomStepperMotionData2
 	--input-baseline-file=${TestDataDir}/SegmentationTest_VLCUS_RandomStepperMotionData2_Segmentation_baseline.xml
 	--output-result-file=testcomparisons.xml
 	--input-config-file-name=${ConfigFilesDir}/USCalibrationConfig_iCal_VLCUS_FrameGrabber.xml
-	--input-phantom-definition-file-name=${ConfigFilesDir}/PhantomDefinition_iCal_1.0.xml
 	)
 SET_TESTS_PROPERTIES( UsFidSegTest_CALIBRATION_PHANTOM_6_POINT_VLCUS_RandomStepperMotionData2 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
@@ -126,7 +123,6 @@ ADD_TEST(UsFidSegTest_CALIBRATION_PHANTOM_6_POINT_USTC_FrameGrabber_ProbeRotatio
 	--input-baseline-file=${TestDataDir}/USTC_FrameGrabber_ProbeRotationData_Segmentation_baseline.xml
 	--output-result-file=testcomparisons.xml
 	--input-config-file-name=${ConfigFilesDir}/USCalibrationConfig_iCal_SonixRP_FrameGrabber.xml
-	--input-phantom-definition-file-name=${ConfigFilesDir}/PhantomDefinition_iCal_1.0.xml
 	)
 SET_TESTS_PROPERTIES( UsFidSegTest_CALIBRATION_PHANTOM_6_POINT_USTC_FrameGrabber_ProbeRotationData PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
@@ -138,7 +134,6 @@ ADD_TEST(UsFidSegTest_CALIBRATION_PHANTOM_6_POINT_USTC_Ulterius_ProbeRotationDat
 	--input-baseline-file=${TestDataDir}/USTC_Ulterius_ProbeRotationData_Segmentation_baseline.xml
 	--output-result-file=testcomparisons.xml
 	--input-config-file-name=${ConfigFilesDir}/USCalibrationConfig_iCal_SonixRP_Ulterius.xml
-	--input-phantom-definition-file-name=${ConfigFilesDir}/PhantomDefinition_iCal_1.0.xml
 	)
 SET_TESTS_PROPERTIES( UsFidSegTest_CALIBRATION_PHANTOM_6_POINT_USTC_Ulterius_ProbeRotationData PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
