@@ -104,7 +104,7 @@ ADD_TEST(vtkPhantomRegistrationTest
 		--input-config-file-name=${ConfigFilesDir}/Test_USDataCollectionConfig_VideoNone_FakeTracker_RecordPhantomLandmarks.xml
 		--input-baseline-file-name=${TestDataDir}/PhantomRegistration.results.xml
 		--input-stylus-calibration-xml-file-name=${TestDataDir}/StylusCalibration.results.xml
-		--input-phantom-definition-xml-file-name=${ConfigFilesDir}/PhantomDefinition_fCal_1.0.xml
+		--input-phantom-definition-xml-file-name=${ConfigFilesDir}/PhantomDefinition_fCal_1.0_Wiring_1.0.xml
 		)
 SET_TESTS_PROPERTIES( vtkPhantomRegistrationTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
@@ -114,13 +114,13 @@ TARGET_LINK_LIBRARIES(vtkFreehandCalibrationTest itkvnl itkvnl_algo vtkCommon vt
 
 ADD_TEST(vtkFreehandCalibrationTest
 		${EXECUTABLE_OUTPUT_PATH}/vtkFreehandCalibrationTest
-		--input-calibration-config-file-name=${ConfigFilesDir}/USCalibrationConfig_fCal.xml
+		--input-calibration-config-file-name=${ConfigFilesDir}/USCalibrationConfig_fCal_SonixTouch.xml
 		--input-data-collection-config-file-name=${ConfigFilesDir}/Test_USDataCollectionConfig_VideoNone_FakeTracker_RecordPhantomLandmarks.xml
 		--input-freehand-motion-1-sequence-metafile=${TestDataDir}/fCAL_Calibration_Test_MN.mha 
         --input-freehand-motion-2-sequence-metafile=${TestDataDir}/fCAL_Validation_Test_MN.mha 
 		--input-baseline-file-name=${TestDataDir}/FreehandCalibration.results.xml
 		--input-phantom-registration-xml-file-name=${TestDataDir}/PhantomRegistration.results.xml
 		--input-stylus-calibration-xml-file-name=${TestDataDir}/StylusCalibration.results.xml
-		--input-phantom-definition-xml-file-name=${ConfigFilesDir}/PhantomDefinition_fCal_1.0.xml
+		--error-threshold=1.0
 		)
 SET_TESTS_PROPERTIES( vtkFreehandCalibrationTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
