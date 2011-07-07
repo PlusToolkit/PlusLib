@@ -80,7 +80,6 @@ int main (int argc, char* argv[])
 
 	// Initialize the probe calibration controller 
 	vtkSmartPointer<vtkStepperCalibrationController> stepperCal = vtkSmartPointer<vtkStepperCalibrationController>::New(); 
-	stepperCal->EnablePathOverrideOff();
 	stepperCal->SetProgramFolderPath(programPath.c_str()); 
 	stepperCal->ReadConfiguration(inputConfigFileName.c_str()); 
 
@@ -119,7 +118,6 @@ int main (int argc, char* argv[])
 
 	// Initialize the stepper calibration controller 
 	vtkSmartPointer<vtkProbeCalibrationController> probeCal = vtkSmartPointer<vtkProbeCalibrationController>::New(); 
-	stepperCal->EnablePathOverrideOff();
 	probeCal->SetProgramFolderPath(programPath.c_str());
 	probeCal->ReadConfiguration(inputConfigFileName.c_str()); 
 	probeCal->SetTemplateModelConfigFileName(inputTemplateModelConfigFileName.c_str()); 
