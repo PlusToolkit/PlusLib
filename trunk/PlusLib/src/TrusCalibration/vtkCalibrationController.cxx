@@ -1016,6 +1016,12 @@ PlusStatus vtkCalibrationController::ReadPhantomDefinition()
 
 					Wire wire;
 
+					int wireId = -1;
+					if ( wireElement->GetScalarAttribute("Id", wireId) ) 
+					{
+						wire.id = wireId; 
+					}
+
 					const char* wireName =  wireElement->GetAttribute("Name"); 
 					if ( wireName != NULL )
 					{
