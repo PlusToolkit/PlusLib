@@ -101,6 +101,7 @@ struct LinePair
 
 struct Wire
 {
+	int id;
 	char name[128];
 	double endPointFront[3];
 	double endPointBack[3];
