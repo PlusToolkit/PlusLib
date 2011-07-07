@@ -196,11 +196,6 @@ public:
 	vtkSetMacro(EnableSegmentationAnalysis, bool);
 	vtkBooleanMacro(EnableSegmentationAnalysis, bool);
 
-	//! Attribute: Flag to enable overriding configuration file paths from other configuration files (eg. phantom definition path from calibration config file)
-	vtkGetMacro(EnablePathOverride, bool);
-	vtkSetMacro(EnablePathOverride, bool);
-	vtkBooleanMacro(EnablePathOverride, bool);
-
 	//! Description 
 	// Get segmentation parameters
 	SegmentationParameters* GetSegParameters() { return this->SegParameters; };
@@ -295,9 +290,6 @@ protected:
 
 	//! Attribute: Flag to enable the Segmentation Analysis file
 	bool EnableSegmentationAnalysis; 
-
-	//! Attribute: Flag to enable overriding configuration file paths from other configuration files (eg. phantom definition path from calibration config file)
-	bool EnablePathOverride;
 
 	//! Attribute: Flag to show the initialized state
 	bool Initialized; 

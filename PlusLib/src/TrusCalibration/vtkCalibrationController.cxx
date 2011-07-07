@@ -39,7 +39,6 @@ SegmentationProgressCallbackFunction(NULL)
 	this->EnableTrackedSequenceDataSavingOff();
 	this->EnableErroneouslySegmentedDataSavingOff(); 
 	this->EnableSegmentationAnalysisOff();
-	this->EnablePathOverrideOn();
 	this->InitializedOff(); 
 
 	// Segmentation parameters
@@ -931,7 +930,7 @@ PlusStatus vtkCalibrationController::ReadSegmentationParametersConfiguration( vt
 			LOG_WARNING("Phantom model file is not found with name: " << phantomDefinitionFile);
 		}
 
-		if ( (this->GetEnablePathOverride()) && (vtksys::SystemTools::FileExists(searchResult.c_str(), true)) ) {
+		if ( vtksys::SystemTools::FileExists(searchResult.c_str(), true) ) {
 			this->SetPhantomDefinitionFileName(searchResult.c_str());
 		}
 	}
