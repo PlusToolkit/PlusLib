@@ -924,14 +924,16 @@ PlusStatus vtkCalibrationController::ReadSegmentationParametersConfiguration( vt
 
 	// Search for the phantom definition file found in the configuration file
 	const char* phantomDefinitionFile =  segmentationParameters->GetAttribute("PhantomDefinition");
-	std::string configurationDirectory = vtksys::SystemTools::GetFilenamePath(this->ConfigurationFileName);
-	std::string searchResult = vtkFileFinder::GetFirstFileFoundInParentOfDirectory(phantomDefinitionFile, configurationDirectory.c_str());
-	if (STRCASECMP("", searchResult.c_str()) == 0) {
-		LOG_WARNING("Phantom model file is not found with name: " << phantomDefinitionFile);
-	}
+	if (phantomDefinitionFile != NULL) {
+		std::string configurationDirectory = vtksys::SystemTools::GetFilenamePath(this->ConfigurationFileName);
+		std::string searchResult = vtkFileFinder::GetFirstFileFoundInParentOfDirectory(phantomDefinitionFile, configurationDirectory.c_str());
+		if (STRCASECMP("", searchResult.c_str()) == 0) {
+			LOG_WARNING("Phantom model file is not found with name: " << phantomDefinitionFile);
+		}
 
-	if ( (this->GetEnablePathOverride()) && (phantomDefinitionFile != NULL) && (vtksys::SystemTools::FileExists(searchResult.c_str(), true)) ) {
-		this->SetPhantomDefinitionFileName(phantomDefinitionFile);
+		if ( (this->GetEnablePathOverride()) && (vtksys::SystemTools::FileExists(searchResult.c_str(), true)) ) {
+			this->SetPhantomDefinitionFileName(searchResult.c_str());
+		}
 	}
 
 	this->GetSegParameters()->UpdateParameters(); 
