@@ -35,7 +35,6 @@ int main (int argc, char* argv[])
 
 	std::string inputConfigFileName;
 	std::string inputTemplateModelConfigFileName; 
-	std::string inputPhantomDefinitionXmlFileName;
 	std::string inputBaselineFileName;
 	double inputTranslationErrorThreshold(0); 
 	double inputRotationErrorThreshold(0); 
@@ -54,7 +53,6 @@ int main (int argc, char* argv[])
 
 	cmdargs.AddArgument("--input-config-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "Configuration file name");
 	cmdargs.AddArgument("--input-template-model-config-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputTemplateModelConfigFileName, "Template model configuration file name");
-	cmdargs.AddArgument("--input-phantom-definition-xml-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputPhantomDefinitionXmlFileName, "Phantom definition file name");
 	
 	cmdargs.AddArgument("--input-baseline-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputBaselineFileName, "Name of file storing baseline calibration results");
 	cmdargs.AddArgument("--translation-error-threshold", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputTranslationErrorThreshold, "Translation error threshold in mm.");	
@@ -84,7 +82,6 @@ int main (int argc, char* argv[])
 	vtkSmartPointer<vtkStepperCalibrationController> stepperCal = vtkSmartPointer<vtkStepperCalibrationController>::New(); 
 	stepperCal->EnablePathOverrideOff();
 	stepperCal->SetProgramFolderPath(programPath.c_str()); 
-	stepperCal->SetPhantomDefinitionFileName(inputPhantomDefinitionXmlFileName.c_str());
 	stepperCal->ReadConfiguration(inputConfigFileName.c_str()); 
 
 	vtkCalibrationController::SavedImageDataInfo probeRotationDataInfo = stepperCal->GetSavedImageDataInfo(PROBE_ROTATION); 
@@ -124,7 +121,6 @@ int main (int argc, char* argv[])
 	vtkSmartPointer<vtkProbeCalibrationController> probeCal = vtkSmartPointer<vtkProbeCalibrationController>::New(); 
 	stepperCal->EnablePathOverrideOff();
 	probeCal->SetProgramFolderPath(programPath.c_str());
-	probeCal->SetPhantomDefinitionFileName(inputPhantomDefinitionXmlFileName.c_str());
 	probeCal->ReadConfiguration(inputConfigFileName.c_str()); 
 	probeCal->SetTemplateModelConfigFileName(inputTemplateModelConfigFileName.c_str()); 
 
