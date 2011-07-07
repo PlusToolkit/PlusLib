@@ -76,7 +76,7 @@ const double BrachyTRUSCalibrator::mNUMOFTIMESOFMINBEAMWIDTH = 2.1;
 
 //-----------------------------------------------------------------------------
 
-BrachyTRUSCalibrator::BrachyTRUSCalibrator( const bool IsSystemLogOn )
+BrachyTRUSCalibrator::BrachyTRUSCalibrator( SegmentationParameters* aSegmentationParameters, const bool IsSystemLogOn )
 	: Phantom( IsSystemLogOn )	// Call the parent's constructor
 {
 	try
@@ -108,7 +108,7 @@ BrachyTRUSCalibrator::BrachyTRUSCalibrator( const bool IsSystemLogOn )
 		}
 
 		// Load the phantom-specfic geometry
-		loadGeometry ();
+		loadGeometry(aSegmentationParameters);
 	}
 	catch(...)
 	{
@@ -130,246 +130,6 @@ BrachyTRUSCalibrator::~BrachyTRUSCalibrator()
 	catch(...)
 	{
 
-	}
-}
-
-//-----------------------------------------------------------------------------
-
-void BrachyTRUSCalibrator::loadGeometry()
-{
-	try
-	{
-		if( true == mIsPhantomGeometryLoaded )
-		{
-			mIsPhantomGeometryLoaded = false;
-		}
-		
-		// ========================================================
-		// General Terminologies used in the phantom design
-		// ========================================================
-		// Visit the Solid Edge CAD model of the phantom for details.
-		//
-		// - Top:		the upper, sealed side of the phantom box, marked
-		//				by the 3D-printed triangle pointing up;
-		// - Bottom:	the lower, open side of the phantom box;
-		// - Front:		the face that has the brachy template;
-		// - Back:		the opposite side to the front face.
-		// ========================================================
-
-		// ========================================================
-		// PART-1 The phantom geometry of The BrachyTRUSCalibrator
-		// ========================================================
-		// 1. This geometry is all kept w.r.t the brachy template frame;
-		// 2. The definition of the BrachyTRUSCalibrator frame (see SolidEdge design
-		//    CAD specs: DoubleN-EG-Phantom-SolidEdge_AssembledAllParts_v1.0.asm).
-		//    The template is the BMSI design. The coordinate system is defined as:  
-		//    - Left/Right is x;
-		//    - Up/Down is y; 
-		//    - z is toward the patient.
-		//    - Origin: the top left hole, on the front face (labeled as A7).
-		// 3. There are a total of 50 drilled holes in the calibrator (25 on front plate
-		//    and 25 on back plate).
-		// 4. All the geometry is defined for the inner-walls of the wire mount because
-		//    these are what matters to us to calculate the N-wire joints.
-		// 5. The holes in the front/back inner walls are marked as: Fij/Bij, where i,j
-		//    are the indices of rows and columns in a top-down, left-right matter.
-		// 6. The precise location of each holes on the inner walls can be calculated as:
-		//    - Front Wall Index Hole: the top-left hole on the front inner wall;
-		//    - Back Wall Index Hole: the top-left hole on the back inner wall.
-		//    - A constant step size on both X and Y direction;
-		//    - A constant depth for front and back inner wall (Z-axis).
-		// 7. The hole positions are used to calculate their joints of the N-wires.
-		// 8. All units are in meters; all positions are in 4x1 homogeneous coordinates.
-		// ========================================================
-
-		// The precise location of the front/back wall index holes.
-		// NOTE: there is a distance of 80mm between the front and back inner walls.
-		double const FrontIndexHole[] = {9.86*0.001, 14.385*0.001, 62.05*0.001, 1};
-		vnl_vector<double> FrontIndexHoleVector(4);
-		FrontIndexHoleVector.set( FrontIndexHole );
-
-		double const BackIndexHole[] = {9.86*0.001, 14.385*0.001, 142.05*0.001, 1};
-		vnl_vector<double> BackIndexHoleVector(4);
-		BackIndexHoleVector.set( BackIndexHole );
-        
-		// The precise distance/step between the holes.
-		double const HoleXStep[] = {10*0.001, 0, 0, 0}; 
-		vnl_vector<double> HoleXStepVector(4);
-		HoleXStepVector.set( HoleXStep );
-		double const HoleYStep[] = {0, 10*0.001, 0, 0};
-		vnl_vector<double> HoleYStepVector(4);
-		HoleYStepVector.set( HoleYStep );
-
-		// N-wire's Start and End Positions in the Front and Back Inner Walls
-		// Populate the computed locations of the hole matrices
-		// based on the index holes and steps.
-		// There are 5x5 matrix of holes on both front and back inner walls
-		// [FORMAT: Front/Back [i][j], i & j are rows/columns of the hole matrix]
-		for( int i = 0; i < 5; i++ ) // i: row of matrix from top to down
-			for( int j = 0; j < 5; j++ ) // j: column of matrix from left to right
-			{
-				mPhantomGeometryOnFrontInnerWall[i][j] = 
-					FrontIndexHoleVector + HoleYStepVector*i + HoleXStepVector*j;
-
-				mPhantomGeometryOnBackInnerWall[i][j] = 
-					BackIndexHoleVector + HoleYStepVector*i + HoleXStepVector*j;
-			}
-		
-		// =================================
-		// PART-2 The Joints of the N-wires
-		// =================================
-		// 1. This section calculates the joints between two wires in 
-		//    the N-wire geometry, i.e., NWireJointAB
-		// 2. The wire joints are in turn used for computation in the
-		//    similar triangles of each N-wire geometry
-		// 3. Since there are only two layers of the N-wires are 
-		//    deployed, only those joints related are computed here.
-		// 4. NWireJointAB and NwireJointBA should be theoretically the 
-		//    same, except NWireJointAB is calculated using NWire-A while 
-		//    NWireJointBA is calculated using NWire-B.
-		//
-		// Important Note:
-		// - These N-wire joints should be exactly corresponding to 
-		//   the wire locations in the phantom (one to one fixation).
-		// ========================================================
-
-		// Current Setup (Wed Mar 10 11:06 EST 2010):
-		// - We used the 3rd (ROW[2]) and 5th rows (ROW[4]) in Part-1 for wiring.
-		// - Check the phantom to see where the wire joints are.
-		
-		// Joint of N-wires at 
-		// [Top Layer] toward [Front Wall]
-		double alphaTopLayerFrontWall =  
-			(mPhantomGeometryOnFrontInnerWall[2][0] - mPhantomGeometryOnFrontInnerWall[2][1]).magnitude()/
-			(mPhantomGeometryOnBackInnerWall[2][0] - mPhantomGeometryOnBackInnerWall[2][3]).magnitude();
-		mNWireJointTopLayerFrontWall = 
-			(1/(1-alphaTopLayerFrontWall))*mPhantomGeometryOnFrontInnerWall[2][0] -
-			(alphaTopLayerFrontWall/(1-alphaTopLayerFrontWall))* mPhantomGeometryOnBackInnerWall[2][0];
-
-		// Joint of N-wires at 
-		// [Top Layer] toward [Back Wall]
-		double alphaTopLayerBackWall =  
-			(mPhantomGeometryOnBackInnerWall[2][3] - mPhantomGeometryOnBackInnerWall[2][4]).magnitude()/
-			(mPhantomGeometryOnFrontInnerWall[2][1] - mPhantomGeometryOnFrontInnerWall[2][4]).magnitude();
-		mNWireJointTopLayerBackWall = 
-			(1/(1-alphaTopLayerBackWall))*mPhantomGeometryOnBackInnerWall[2][4] -
-			(alphaTopLayerBackWall/(1-alphaTopLayerBackWall))* mPhantomGeometryOnFrontInnerWall[2][4];
-
-		// Joint of N-wires at
-		// [Bottom Layer] toward [Front Wall]
-		double alphaBottomLayerFrontWall =  
-			(mPhantomGeometryOnFrontInnerWall[4][3] - mPhantomGeometryOnFrontInnerWall[4][4]).magnitude()/
-			(mPhantomGeometryOnBackInnerWall[4][1] - mPhantomGeometryOnBackInnerWall[4][4]).magnitude();
-		mNWireJointBottomLayerFrontWall = 
-			(1/(1-alphaBottomLayerFrontWall))*mPhantomGeometryOnFrontInnerWall[4][4] -
-			(alphaBottomLayerFrontWall/(1-alphaBottomLayerFrontWall))* mPhantomGeometryOnBackInnerWall[4][4];
-
-		// Joint of N-wires at
-		// [Bottom Layer] toward [Back Wall]
-		double alphaBottomLayerBackWall =  
-			(mPhantomGeometryOnBackInnerWall[4][0] - mPhantomGeometryOnBackInnerWall[4][1]).magnitude()/
-			(mPhantomGeometryOnFrontInnerWall[4][0] - mPhantomGeometryOnFrontInnerWall[4][3]).magnitude();
-		mNWireJointBottomLayerBackWall = 
-			(1/(1-alphaBottomLayerBackWall))*mPhantomGeometryOnBackInnerWall[4][0] -
-			(alphaBottomLayerBackWall/(1-alphaBottomLayerBackWall))* mPhantomGeometryOnFrontInnerWall[4][0];
-
-
-		// PART-2. The phantom-specific reference points on BrachyTRUSCalibrator
-		// ======================================================================
-
-		// NOTE: this is NOT in use currently.  Rather, it serves as an backup
-		// plan in the event if we need to use an optical tracking system (e.g.,
-		// NDI Certus) to locate the phantom's geometry with a stylus probe.
-		// At the moment, the 3D print of the calibration phantom design is very
-		// accurate, so no need for stylus probing at all.  - TKC, Mar-10-2010.
-
-		// 1. These are fixed physical positions measurable using a Stylus probe.
-		// 2. All positions are all kept w.r.t the phantom frame as defined above.
-		// 3. They are used to register the phantom geomtry from the phantom 
-		//	  frame to the DRB reference frame to be mounted on the calibrator.
-		// 4. There are totally 8 reference points (4 on each plate).  See the marking
-		//    on the physical calibrator surfaces for their IDs. 
-		// 5. All units are in meters.
-
-		// fill in the reference position indices (for stylus)
-		double ref0[] = {-0.020, -0.02475, -0.024, 1};
-		double ref1[] = { 0.020, -0.02475, -0.024, 1};
-		double ref2[] = {-0.020, -0.02475, -0.090, 1};
-		double ref3[] = { 0.020, -0.02475, -0.080, 1};
-		double ref4[] = {-0.020,  0.02475, -0.024, 1};
-		double ref5[] = { 0.020,  0.02475, -0.024, 1};
-		double ref6[] = {-0.020,  0.02475, -0.090, 1};
-		double ref7[] = { 0.020,  0.02475, -0.080, 1};
-		mPhantomSpecificReferencePoints[0].set( ref0 );
-		mPhantomSpecificReferencePoints[1].set( ref1 );
-		mPhantomSpecificReferencePoints[2].set( ref2 );
-		mPhantomSpecificReferencePoints[3].set( ref3 );
-		mPhantomSpecificReferencePoints[4].set( ref4 );
-		mPhantomSpecificReferencePoints[5].set( ref5 );
-		mPhantomSpecificReferencePoints[6].set( ref6 );
-		mPhantomSpecificReferencePoints[7].set( ref7 );
-
-		// PART-3. The name list of the phantom-specific reference points
-		// ===============================================================
-		
-		// There are totally 8 reference points (4 on each plate). These are the
-		// IDs given to each of the points (see the marking on the phantom).
-		std::string MarksName[8] = { "R1", "R2", "R3", "R4", "R5", "R6", "R7", "R8"};
-		
-		mNamesOfPhantomSpecificReferencePoints.resize(0);
-		for( int i = 0; i < 8; i++ )
-		{
-			mNamesOfPhantomSpecificReferencePoints.push_back( MarksName[i] );
-		}
-
-		// Set the flag
-		mIsPhantomGeometryLoaded = true;
-
-		// Log the data pipeline if requested.
-		if( true == mIsSystemLogOn )
-		{
-			std::ofstream SystemLogFile(
-				mSystemLogFileNameWithTimeStamp.c_str(), std::ios::app);
-			SystemLogFile << " ==========================================================================\n";
-			SystemLogFile << " PHANTOM GEOMETRY >>>>>>>>>>>>>>>>>>>>>\n\n";
-			SystemLogFile << "\n NWires Start/End Positions in the DRB frame [0-5] = \n";
-			for(int i = 0; i < 5; i++ )
-				for(int j = 0; j < 5; j++ )
-			{
-				SystemLogFile << "\tFrontWallGeometry [" << i <<"]["<< j <<"]= "<< mPhantomGeometryOnFrontInnerWall[i][j] <<"\n";
-				SystemLogFile << "\tBackWallGeometry  [" << i <<"]["<< j <<"]= "<< mPhantomGeometryOnBackInnerWall[i][j] <<"\n";
-			}
-			SystemLogFile << " -----------------------------------------------------------------------------------\n";
-			SystemLogFile << "\n Alpha ratio between NWires = \n\n";
-			SystemLogFile << "\t alphaTopLayerBackWall \t= " << alphaTopLayerBackWall << "\n";
-			SystemLogFile << "\t alphaTopLayerFrontWall \t= " << alphaTopLayerFrontWall << "\n";
-			SystemLogFile << "\t alphaBottomLayerBackWall \t= " << alphaBottomLayerBackWall << "\n";
-			SystemLogFile << "\t alphaBottomLayerFrontWall \t= " << alphaBottomLayerFrontWall << "\n";
-
-			SystemLogFile << " -----------------------------------------------------------------------------------\n";
-			SystemLogFile << "\n Joints of N-wires in the Phantom frame = \n\n";
-			SystemLogFile << "\t mNWireJointTopLayerFrontWall(used) \t= " << mNWireJointTopLayerFrontWall << "\n\n";
-			SystemLogFile << "\t mNWireJointTopLayerBackWall(used) \t= " << mNWireJointTopLayerBackWall << "\n\n";
-			SystemLogFile << "\t mNWireJointBottomLayerFrontWall(used) \t= " << mNWireJointBottomLayerFrontWall << "\n\n";
-			SystemLogFile << "\t mNWireJointBottomLayerBackWall(used) \t= " << mNWireJointBottomLayerBackWall << "\n\n";
-			SystemLogFile << " -----------------------------------------------------------------------------------\n";
-			SystemLogFile << "\n Phantom Specified Reference Points (x, y, z, 1) = \n";
-			SystemLogFile << " (Used to register the Phantom to the DRB frame)\n\n";
-			for( int i = 0; i < 8; i++ )
-			{
-				SystemLogFile << "\t" << mNamesOfPhantomSpecificReferencePoints[i] 
-					<< " = " << mPhantomSpecificReferencePoints[i] << "\n";
-			}
-			SystemLogFile << "\n";
-			SystemLogFile.close();
-		}
-	}
-	catch(...)
-	{
-		std::cerr << "\n\n" << __FILE__ << "," << __LINE__ << "\n"
-			<< ">>>>>>>> In " << mstrScope << "::Unable to load the phantom geometry!!!  Throw up ...\n";
-
-		throw;
 	}
 }
 
@@ -411,7 +171,7 @@ bool BrachyTRUSCalibrator::loadGeometry(SegmentationParameters* aSegmentationPar
 		SystemLogFile << "\n Endpoints of wires = \n\n";
 	}
 
-	int layer = -1;
+	int layer = -1; //TODO ensure that layer0 contains wire 1,2,3, layer1 contains wire 4,5,6 and so on
 	std::vector<NWire>::iterator it;
 	for (layer = 0, it = nWires.begin(); it != nWires.end(); ++it, ++layer) {
 		std::vector<vnl_vector<double>> vnl_NWire;

@@ -71,7 +71,7 @@ public:
 	PlusStatus DoAcquisition();
 
 	/*!
-	* \brief Start calibration - implementation of a pure virtual function
+	* \brief Start calibration; initialization of segmenter and calibrator - implementation of a pure virtual function
 	* \return Success flag
 	*/
 	PlusStatus Start();
@@ -102,8 +102,6 @@ public:
 	// Read freehand calibration configurations (from probe calibration data element of the config file)
 	virtual PlusStatus ReadFreehandCalibrationConfiguration(vtkXMLDataElement* probeCalibration);
 
-	//! Operation: Register phantom geometry for calibrator 
-	virtual void RegisterPhantomGeometry();
 	//! Operation 
 	// Add new tracked data for segmentation and save the segmentation result to the SegmentedFrameContainer
 	// The class has to be initialized before the segmentation process. 

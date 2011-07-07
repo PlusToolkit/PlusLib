@@ -375,7 +375,8 @@ PlusStatus vtkFreehandCalibrationController::Start()
 {
 	// Initialize vtkCalibrationController
 	if (this->GetSegParameters() == NULL) {
-		this->SegParameters = new SegmentationParameters(); 
+		LOG_ERROR( "Unable to start spatial calibration: calibration configuration is not loaded!" );  
+		return PLUS_FAIL; 
 	}
 
 	// Initialize the segmentation component
@@ -388,7 +389,7 @@ PlusStatus vtkFreehandCalibrationController::Start()
 
 	// Initialize the calibration component
 	if (this->Calibrator == NULL) {
-		this->Calibrator = new BrachyTRUSCalibrator( this->GetEnableSystemLog() );
+		this->Calibrator = new BrachyTRUSCalibrator( this->SegParameters, this->GetEnableSystemLog() );
 	}
 
 	// Set the ultrasound image frame in pixels
@@ -417,6 +418,13 @@ PlusStatus vtkFreehandCalibrationController::Start()
 	ConvertVtkMatrixToVnlMatrix(identity, transformOrigImageFrame2TRUSImageFrameMatrix4x4); 
 	this->GetCalibrator()->setTransformOrigImageToTRUSImageFrame4x4(transformOrigImageFrame2TRUSImageFrameMatrix4x4);
 	// TEMPORARY CODE ////////////
+
+	// Register the phantom geometry to the DRB frame in the "Emulator" mode.
+	vnl_matrix<double> transformMatrixPhantom2DRB4x4InEmulatorMode(4,4);
+	this->ConvertVtkMatrixToVnlMatrixInMeter(PhantomRegistrationController::GetInstance()->GetPhantomToPhantomReferenceTransform()->GetMatrix(), transformMatrixPhantom2DRB4x4InEmulatorMode);
+
+	this->Calibrator->registerPhantomGeometryInEmulatorMode(transformMatrixPhantom2DRB4x4InEmulatorMode);
+
 
 	m_State = ToolboxState_InProgress;
 
@@ -510,22 +518,6 @@ PlusStatus vtkFreehandCalibrationController::DoTemporalCalibration()
 	this->TemporalCalibrationDoneOn();
 
 	return PLUS_SUCCESS;
-}
-
-//-----------------------------------------------------------------------------
-
-void vtkFreehandCalibrationController::RegisterPhantomGeometry()
-{
-	LOG_TRACE("vtkFreehandCalibrationController::RegisterPhantomGeometry"); 
-
-	// Load phantom geometry in calibrator
-	this->Calibrator->loadGeometry(this->SegParameters);
-
-	// Register the phantom geometry to the DRB frame in the "Emulator" mode.
-	vnl_matrix<double> transformMatrixPhantom2DRB4x4InEmulatorMode(4,4);
-	this->ConvertVtkMatrixToVnlMatrixInMeter(PhantomRegistrationController::GetInstance()->GetPhantomToPhantomReferenceTransform()->GetMatrix(), transformMatrixPhantom2DRB4x4InEmulatorMode);
-
-	this->Calibrator->registerPhantomGeometryInEmulatorMode(transformMatrixPhantom2DRB4x4InEmulatorMode);
 }
 
 //-----------------------------------------------------------------------------

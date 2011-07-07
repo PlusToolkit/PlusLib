@@ -191,7 +191,7 @@ class BrachyTRUSCalibrator : public Phantom
 		// 2. The system log should be turned on before any calibration related 
 		//    activities (e.g., add data positions, validating, calibrating, etc.).
 		// [DEFAULT: OFF (FALSE)]
-		BrachyTRUSCalibrator ( const bool IsSystemLogOn = false );
+		BrachyTRUSCalibrator ( SegmentationParameters* aSegmentationParameters, const bool IsSystemLogOn = false );
 
 		//! Destructor
 		virtual ~BrachyTRUSCalibrator ();
@@ -288,36 +288,6 @@ class BrachyTRUSCalibrator : public Phantom
 		virtual bool loadGeometry(SegmentationParameters* aSegmentationParameters);
 
 	private:
-
-		//! Overridden Operation
-		// This calculates the phantom geomtry on the fly.
-		//
-		// ==================================================
-		// The phantom geometry of The BrachyTRUSCalibrator
-		// ==================================================
-		// 1. This geometry is all kept w.r.t the brachy template frame;
-		// 2. The definition of the BrachyTRUSCalibrator frame (see SolidEdge design
-		//    CAD specs: DoubleN-EG-Phantom-SolidEdge_AssembledAllParts_v1.0.asm).
-		//    The template is the BMSI design. The coordinate system is defined as:
-		//    - Left/Right is x;
-		//    - Up/Down is y; 
-		//    - z is toward the patient
-		//    - Origin: the top left hole, on the front face (labeled as A7).
-		// 3. There are a total of 50 drilled holes in the calibrator (25 on front plate
-		//    and 25 on back plate).
-		// 4. All the geometry is defined for the inner-walls of the wire mount because
-		//    these are what matters to us to calculate the N-wire joints.
-		// 5. The holes in the front/back inner walls are marked as: Fij/Bij, where i,j
-		//    are the indices of rows and columns in a top-down, left-right matter.
-		// 6. The precise location of each holes on the inner walls can be calculated as:
-		//    - Front Wall Index Hole: the top-left hole on the front inner wall;
-		//    - Back Wall Index Hole: the top-left hole on the back inner wall.
-		//    - A constant step size on both X and Y direction;
-		//    - A constant depth for front and back inner wall (Z-axis).
-		// 7. The hole positions are used to calculate their joints of the N-wires.
-		// 8. All units are in meters; all positions are in 4x1 homogeneous coordinates.
-		// ==================================================	
-		virtual void loadGeometry ();
 
 		// N-wire's Start and End Positions in the Front and Back Inner Walls
 		// There are 5x5 matrix of holes on both front and back inner walls

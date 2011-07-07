@@ -110,7 +110,6 @@ int main (int argc, char* argv[])
 	freehandCalibration->Start();
 
 	// Register phantom geometry before calibration 
-	freehandCalibration->RegisterPhantomGeometry(); 
 	freehandCalibration->DoOfflineCalibration();  
 	freehandCalibration->ComputeCalibrationResults(); 
 

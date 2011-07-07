@@ -491,11 +491,6 @@ class Phantom
 		std::string getCalibrationTimeStampWithFormat();
 
 	protected:
-	 	
-		//! Virtual Operation
-		// This calculates the phantom geomtry on the fly. It must be overridden
-		// in the child class that extends this class.
-		virtual void loadGeometry () = 0;
 
 		//! Operation: Convert the calibration transform to parameters
 		// The parameters are stored in the following format:
