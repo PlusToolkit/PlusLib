@@ -39,6 +39,7 @@ FreehandCalibrationToolbox::FreehandCalibrationToolbox(QWidget* aParent, Qt::WFl
 	connect( ui.pushButton_StartSpatial, SIGNAL( pressed() ), this, SLOT( StartSpatialClicked() ) );
 	connect( ui.pushButton_ResetSpatial, SIGNAL( pressed() ), this, SLOT( ResetSpatialClicked() ) );
 	connect( ui.pushButton_Save, SIGNAL( pressed() ), this, SLOT( SaveClicked() ) );
+	connect( ui.checkBox_ShowDevices, SIGNAL( stateChanged(int) ), this, SLOT( ShowDevicesToggled(int) ) );
 
 }
 
@@ -329,8 +330,6 @@ void FreehandCalibrationToolbox::StartSpatialClicked()
 
 	toolboxController->Start();
 
-	toolboxController->RegisterPhantomGeometry();
-
 	if (toolboxController->DoAcquisition() == PLUS_SUCCESS) {
 
 		toolboxController->ComputeCalibrationResults();
@@ -350,4 +349,13 @@ void FreehandCalibrationToolbox::ResetSpatialClicked()
 
 void FreehandCalibrationToolbox::SaveClicked()
 {
+}
+
+//-----------------------------------------------------------------------------
+
+void FreehandCalibrationToolbox::ShowDevicesToggled(int aState)
+{
+	if (aState == Qt::Unchecked) {
+	} else if (aState == Qt::Checked) {
+	}
 }

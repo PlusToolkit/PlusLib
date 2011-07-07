@@ -58,16 +58,56 @@ signals:
 	void SetTabsEnabled(bool);
 
 protected slots:
-	//TODO
+	/*!
+	* \brief Slot handling open phantom definition button click
+	*/
 	void OpenPhantomDefinitionClicked();
+
+	/*!
+	* \brief Slot handling open phantom registration button click
+	*/
 	void OpenPhantomRegistrationClicked();
+
+	/*!
+	* \brief Slot handling open calibration configuration button click
+	*/
 	void OpenCalibrationConfigurationClicked();
+
+	/*!
+	* \brief Slot handling start temporal calibration button click
+	*/
 	void StartTemporalClicked();
+
+	/*!
+	* \brief Slot handling reset temporal calibration button click
+	*/
 	void ResetTemporalClicked();
+
+	/*!
+	* \brief Slot handling skip temporal calibration button click
+	*/
 	void SkipTemporalClicked();
+
+	/*!
+	* \brief Slot handling start spatial calibration button click
+	*/
 	void StartSpatialClicked();
+
+	/*!
+	* \brief Slot handling reset spatial calibration button click
+	*/
 	void ResetSpatialClicked();
+
+	/*!
+	* \brief Slot handling save results button click
+	*/
 	void SaveClicked();
+
+	/*!
+	* \brief Slot handling show devices combobox state change
+	* \param aState New state of the combobox
+	*/
+	void ShowDevicesToggled(int aState);
 
 protected:
 	Ui::FreehandCalibrationToolbox ui;
