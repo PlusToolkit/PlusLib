@@ -170,7 +170,8 @@ PlusStatus vtkProbeCalibrationController::Initialize()
 	
 	if ( this->GetSegParameters() == NULL )
 	{
-		this->SegParameters = new SegmentationParameters(); 
+		LOG_ERROR( "Unable to initialize calibration: calibration configuration is not loaded!" );  
+		return PLUS_FAIL; 
 	}
 
 	// Initialize the segmenation component
@@ -183,7 +184,7 @@ PlusStatus vtkProbeCalibrationController::Initialize()
 	// Initialize the calibration component
 	if ( this->GetCalibrator() == NULL ) 
 	{
-		mptrCalibrationPhantom = new BrachyTRUSCalibrator( this->GetEnableSystemLog() );
+		mptrCalibrationPhantom = new BrachyTRUSCalibrator(this->SegParameters, this->GetEnableSystemLog() );
 	}
 
 	vnl_matrix<double> transformOrigImageFrame2TRUSImageFrameMatrix4x4(4,4);
