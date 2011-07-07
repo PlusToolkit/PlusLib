@@ -124,7 +124,7 @@
 
                 UseOriginalImageIntensityForDotIntensityScore="0"
 
-                PhantomDefinition="PhantomDefinition_fCal_1.0.xml" 
+                PhantomDefinition="PhantomDefinition_fCal_1.0_Wiring_1.0.xml" 
                 >
         </SegmentationParameters>
     </CalibrationController>
