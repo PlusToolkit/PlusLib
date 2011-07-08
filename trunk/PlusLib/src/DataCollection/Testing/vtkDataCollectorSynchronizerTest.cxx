@@ -266,7 +266,7 @@ int main(int argc, char **argv)
 		const int numberOfBitsPerPixel = videoFrameList->GetTrackedFrame(frameNumber)->ImageData->GetNumberOfComponentsPerPixel() * sizeof(TrackedFrame::PixelType) * 8; 
 
         // Images in the tracked frame list always stored in MF orientation 
-		if ( videoBuffer->AddItem(deviceDataPtr, "MF", frameSize, numberOfBitsPerPixel, 0, unfilteredtimestamp, timestamp, frmnum) != PLUS_SUCCESS )
+		if ( videoBuffer->AddItem(deviceDataPtr, US_IMG_ORIENT_MF, frameSize, numberOfBitsPerPixel, 0, unfilteredtimestamp, timestamp, frmnum) != PLUS_SUCCESS )
 		{
 			LOG_WARNING("Failed to add video frame to buffer from sequence metafile with frame #" << frameNumber ); 
 		}

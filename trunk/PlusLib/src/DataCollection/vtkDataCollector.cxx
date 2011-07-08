@@ -377,7 +377,7 @@ PlusStatus vtkDataCollector::WriteTrackerToMetafile( vtkTracker* tracker, const 
         }
         catch (itk::ExceptionObject & err) 
         {		
-            LOG_ERROR("Unable to allocate memory for image: " << err);
+            LOG_ERROR("Unable to allocate memory for image: " << err.GetDescription() );
             status=PLUS_FAIL;
             continue; 
         }	

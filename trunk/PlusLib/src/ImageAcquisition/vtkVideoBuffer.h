@@ -61,8 +61,8 @@ public:
 	PlusStatus SetFrame(vtkImageData* frame); 
 	PlusStatus SetFrame(unsigned char *imageDataPtr, 
 		const int frameSizeInPx[3],
-		const int numberOfBitsPerPixel, 
-		const int	numberOfBytesToSkip ); 
+		int numberOfBitsPerPixel, 
+		int	numberOfBytesToSkip ); 
     
     PlusStatus AllocateFrame(int imageSize[2]); 
 
@@ -97,26 +97,26 @@ public:
 	// Add a frame plus a timestamp to the buffer with frame index.  If the timestamp is
 	// less than or equal to the previous timestamp, or if the frame's format
 	// doesn't match the buffer's frame format, then nothing will be done.
-	virtual PlusStatus AddItem(vtkImageData* frame, const char*  usImageOrientation, const double unfilteredTimestamp, const double filteredTimestamp, const long frameNumber); 
+	virtual PlusStatus AddItem(vtkImageData* frame, US_IMAGE_ORIENTATION  usImageOrientation, double unfilteredTimestamp, double filteredTimestamp, long frameNumber); 
 	virtual PlusStatus AddItem(unsigned char *imageDataPtr, 
-		const char*  usImageOrientation,
+		US_IMAGE_ORIENTATION  usImageOrientation,
         const int frameSizeInPx[2],
-		const int numberOfBitsPerPixel, 
-		const int numberOfBytesToSkip, 
-		const double unfilteredTimestamp, 
-		const double filteredTimestamp, 
-		const long frameNumber);
+		int numberOfBitsPerPixel, 
+		int numberOfBytesToSkip, 
+		double unfilteredTimestamp, 
+		double filteredTimestamp, 
+		long frameNumber);
 
-	virtual ItemStatus GetVideoBufferItem(const BufferItemUidType uid, VideoBufferItem* bufferItem);
+	virtual ItemStatus GetVideoBufferItem(BufferItemUidType uid, VideoBufferItem* bufferItem);
 	virtual ItemStatus GetLatestVideoBufferItem(VideoBufferItem* bufferItem) { return this->GetVideoBufferItem( this->GetLatestItemUidInBuffer(), bufferItem); }; 
 	virtual ItemStatus GetOldestVideoBufferItem(VideoBufferItem* bufferItem) { return this->GetVideoBufferItem( this->GetOldestItemUidInBuffer(), bufferItem); }; 
-	virtual ItemStatus GetVideoBufferItemFromTime( const double time, VideoBufferItem* bufferItem); 
+	virtual ItemStatus GetVideoBufferItemFromTime( double time, VideoBufferItem* bufferItem); 
 
     virtual ItemStatus GetLatestTimeStamp( double& latestTimestamp );  
 
 	virtual BufferItemUidType GetOldestItemUidInBuffer() { return this->VideoBuffer->GetOldestItemUidInBuffer(); }
 	virtual BufferItemUidType GetLatestItemUidInBuffer() { return this->VideoBuffer->GetLatestItemUidInBuffer(); }
-	virtual ItemStatus GetItemUidFromTime(const double time, BufferItemUidType& uid) { return this->VideoBuffer->GetItemUidFromTime(time, uid); }
+	virtual ItemStatus GetItemUidFromTime(double time, BufferItemUidType& uid) { return this->VideoBuffer->GetItemUidFromTime(time, uid); }
 
 	virtual void SetLocalTimeOffset(double offset);
 	virtual double GetLocalTimeOffset();
@@ -151,7 +151,7 @@ protected:
 	// Description:
 	// Compares frame format with new frame imaging parameters
 	// Returns true if it matches, otherwise false
-	virtual bool CheckFrameFormat( const int frameSizeInPx[2], const int numberOfBitsPerPixel ); 
+	virtual bool CheckFrameFormat( const int frameSizeInPx[2], int numberOfBitsPerPixel ); 
     
     int FrameSize[2]; 
     int NumberOfBitsPerPixel; 

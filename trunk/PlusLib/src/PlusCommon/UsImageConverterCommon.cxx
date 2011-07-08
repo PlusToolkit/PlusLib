@@ -23,7 +23,7 @@ UsImageConverterCommon::~UsImageConverterCommon()
 }
 
 //----------------------------------------------------------------------------
-UsImageConverterCommon::US_IMAGE_ORIENTATION UsImageConverterCommon::GetUsImageOrientationFromString( const char* usImgOrientation )
+US_IMAGE_ORIENTATION UsImageConverterCommon::GetUsImageOrientationFromString( const char* usImgOrientation )
 {
 	US_IMAGE_ORIENTATION imageorientation = US_IMG_ORIENT_XX; 
 	if ( usImgOrientation == NULL )
@@ -271,7 +271,7 @@ PlusStatus UsImageConverterCommon::ConvertVtkImageToItkImage(vtkImageData* inFra
     }
     catch(itk::ExceptionObject & err)
     {
-        LOG_ERROR("Failed to allocate memory for the image conversion: " << err ); 
+        LOG_ERROR("Failed to allocate memory for the image conversion: " << err.GetDescription() ); 
         return PLUS_FAIL; 
     }
 

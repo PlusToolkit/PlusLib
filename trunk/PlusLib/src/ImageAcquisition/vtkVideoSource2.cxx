@@ -91,7 +91,7 @@ vtkVideoSource2::vtkVideoSource2()
 
 	this->PseudoRandomNoiseFrame = NULL; 
 
-    this->UsImageOrientation = NULL; 
+    this->UsImageOrientation = US_IMG_ORIENT_XX;  
 
 #ifdef PLUS_PRINT_VIDEO_TIMESTAMP_DEBUG_INFO 
 	this->DebugInfoStream.open ("VideoBufferTimestamps.txt", ios::out);
@@ -320,7 +320,7 @@ PlusStatus vtkVideoSource2::InternalGrab()
         }
         catch(itk::ExceptionObject & err)
         {
-            LOG_ERROR("Failed to allocate memory for the image: " << err); 
+            LOG_ERROR("Failed to allocate memory for the image: " << err.GetDescription() ); 
             return PLUS_FAIL; 
         }
 	}
@@ -730,12 +730,16 @@ PlusStatus vtkVideoSource2::ReadConfiguration(vtkXMLDataElement* config)
     if ( usImageOrientation != NULL )
     {
         LOG_INFO("Selected US image orientation: " << usImageOrientation ); 
-        this->SetUsImageOrientation(usImageOrientation); 
+        this->SetUsImageOrientation( UsImageConverterCommon::GetUsImageOrientationFromString(usImageOrientation) ); 
+        if ( this->GetUsImageOrientation() == US_IMG_ORIENT_XX )
+        {
+            LOG_ERROR("Ultrasound image orientation is undefined - please set a proper image orientation!"); 
+        }
     }
     else
     {
         LOG_ERROR("Ultrasound image orientation is not defined in the configuration file - set to undefined by default!"); 
-        this->SetUsImageOrientation("XX"); 
+        this->SetUsImageOrientation(US_IMG_ORIENT_XX ); 
     }
 
   return PLUS_SUCCESS;

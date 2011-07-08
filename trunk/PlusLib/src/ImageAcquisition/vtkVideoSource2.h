@@ -216,8 +216,8 @@ public:
 
     // Description:
     // Set/get ultrasound image orientation of the device set
-    vtkSetStringMacro(UsImageOrientation); 
-    vtkGetStringMacro(UsImageOrientation); 
+    vtkSetMacro(UsImageOrientation, US_IMAGE_ORIENTATION); 
+    vtkGetMacro(UsImageOrientation, US_IMAGE_ORIENTATION); 
 
     // Description:
     // Add generated html report from video data acquisition to the existing html report
@@ -275,7 +275,7 @@ protected:
     vtkVideoBuffer *Buffer;
     VideoBufferItem *CurrentVideoBufferItem; 
 
-    char* UsImageOrientation; 
+    US_IMAGE_ORIENTATION UsImageOrientation; 
 
     // Description:
     // These methods can be overridden in subclasses
