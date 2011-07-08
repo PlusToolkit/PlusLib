@@ -1,6 +1,6 @@
 #include "PlusConfigure.h"
 
-#include "vtkICCapturingSource2.h"
+#include "vtkICCapturingSource.h"
 #include "ICCapturingListener.h"
 #include <tisudshl.h>
 
@@ -20,22 +20,22 @@
 #include <string>
 
 
-vtkCxxRevisionMacro(vtkICCapturingSource2, "$Revision: 1.0$");
+vtkCxxRevisionMacro(vtkICCapturingSource, "$Revision: 1.0$");
 
-vtkICCapturingSource2* vtkICCapturingSource2::Instance = 0;
-vtkICCapturingSourceCleanup2 vtkICCapturingSource2::Cleanup;
+vtkICCapturingSource* vtkICCapturingSource::Instance = 0;
+vtkICCapturingSourceCleanup vtkICCapturingSource::Cleanup;
 
-vtkICCapturingSourceCleanup2::vtkICCapturingSourceCleanup2(){}
+vtkICCapturingSourceCleanup::vtkICCapturingSourceCleanup(){}
 
-vtkICCapturingSourceCleanup2::~vtkICCapturingSourceCleanup2()
+vtkICCapturingSourceCleanup::~vtkICCapturingSourceCleanup()
 {
 	// Destroy any remaining output window.
-	vtkICCapturingSource2::SetInstance(NULL);
+	vtkICCapturingSource::SetInstance(NULL);
 }
 
 
 //----------------------------------------------------------------------------
-vtkICCapturingSource2::vtkICCapturingSource2()
+vtkICCapturingSource::vtkICCapturingSource()
 {
 	this->Initialized = 0;
 
@@ -58,7 +58,7 @@ vtkICCapturingSource2::vtkICCapturingSource2()
 }
 
 //----------------------------------------------------------------------------
-vtkICCapturingSource2::~vtkICCapturingSource2()
+vtkICCapturingSource::~vtkICCapturingSource()
 { 
 
 	this->Disconnect();
@@ -72,47 +72,47 @@ vtkICCapturingSource2::~vtkICCapturingSource2()
 
 //----------------------------------------------------------------------------
 // Up the reference count so it behaves like New
-vtkICCapturingSource2* vtkICCapturingSource2::New()
+vtkICCapturingSource* vtkICCapturingSource::New()
 {
-	vtkICCapturingSource2* ret = vtkICCapturingSource2::GetInstance();
+	vtkICCapturingSource* ret = vtkICCapturingSource::GetInstance();
 	ret->Register(NULL);
 	return ret;
 }
 
 //----------------------------------------------------------------------------
 // Return the single instance of the vtkOutputWindow
-vtkICCapturingSource2* vtkICCapturingSource2::GetInstance()
+vtkICCapturingSource* vtkICCapturingSource::GetInstance()
 {
-	if(!vtkICCapturingSource2::Instance)
+	if(!vtkICCapturingSource::Instance)
 	{
 		// Try the factory first
-		vtkICCapturingSource2::Instance = (vtkICCapturingSource2*)vtkObjectFactory::CreateInstance("vtkICCapturingSource2");    
-		if(!vtkICCapturingSource2::Instance)
+		vtkICCapturingSource::Instance = (vtkICCapturingSource*)vtkObjectFactory::CreateInstance("vtkICCapturingSource");    
+		if(!vtkICCapturingSource::Instance)
 		{
-			vtkICCapturingSource2::Instance = new vtkICCapturingSource2();     
+			vtkICCapturingSource::Instance = new vtkICCapturingSource();     
 		}
-		if(!vtkICCapturingSource2::Instance)
+		if(!vtkICCapturingSource::Instance)
 		{
 			int error = 0;
 		}
 	}
 	// return the instance
-	return vtkICCapturingSource2::Instance;
+	return vtkICCapturingSource::Instance;
 }
 
 //----------------------------------------------------------------------------
-void vtkICCapturingSource2::SetInstance(vtkICCapturingSource2* instance)
+void vtkICCapturingSource::SetInstance(vtkICCapturingSource* instance)
 {
-	if (vtkICCapturingSource2::Instance==instance)
+	if (vtkICCapturingSource::Instance==instance)
 	{
 		return;
 	}
 	// preferably this will be NULL
-	if (vtkICCapturingSource2::Instance)
+	if (vtkICCapturingSource::Instance)
 	{
-		vtkICCapturingSource2::Instance->Delete();;
+		vtkICCapturingSource::Instance->Delete();;
 	}
-	vtkICCapturingSource2::Instance = instance;
+	vtkICCapturingSource::Instance = instance;
 	if (!instance)
 	{
 		return;
@@ -122,7 +122,7 @@ void vtkICCapturingSource2::SetInstance(vtkICCapturingSource2* instance)
 }
 
 //----------------------------------------------------------------------------
-void vtkICCapturingSource2::PrintSelf(ostream& os, vtkIndent indent)
+void vtkICCapturingSource::PrintSelf(ostream& os, vtkIndent indent)
 {
 	this->Superclass::PrintSelf(os,indent);
 
@@ -130,7 +130,7 @@ void vtkICCapturingSource2::PrintSelf(ostream& os, vtkIndent indent)
 
 //----------------------------------------------------------------------------
 // the callback function used when there is a new frame of data received
-bool vtkICCapturingSource2::vtkICCapturingSource2NewFrameCallback(unsigned char * data, unsigned long size, unsigned long frameNumber)
+bool vtkICCapturingSource::vtkICCapturingSourceNewFrameCallback(unsigned char * data, unsigned long size, unsigned long frameNumber)
 {    
 	if(!data || !size)
 	{
@@ -140,7 +140,7 @@ bool vtkICCapturingSource2::vtkICCapturingSource2NewFrameCallback(unsigned char 
 
 	if(data)
 	{
-		vtkICCapturingSource2::GetInstance()->LocalInternalGrab(data, size, frameNumber);    
+		vtkICCapturingSource::GetInstance()->LocalInternalGrab(data, size, frameNumber);    
 	}
 	return true;
 }
@@ -148,7 +148,7 @@ bool vtkICCapturingSource2::vtkICCapturingSource2NewFrameCallback(unsigned char 
 //----------------------------------------------------------------------------
 // copy the Device Independent Bitmap from the VFW framebuffer into the
 // vtkVideoSource framebuffer (don't do the unpacking yet)
-PlusStatus vtkICCapturingSource2::LocalInternalGrab(unsigned char * dataPtr, unsigned long size, unsigned long frameNumber)
+PlusStatus vtkICCapturingSource::LocalInternalGrab(unsigned char * dataPtr, unsigned long size, unsigned long frameNumber)
 {
 	this->FrameNumber = frameNumber; 
 	double unfilteredTimestamp(0), filteredTimestamp(0); 
@@ -163,7 +163,7 @@ PlusStatus vtkICCapturingSource2::LocalInternalGrab(unsigned char * dataPtr, uns
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkICCapturingSource2::Connect()
+PlusStatus vtkICCapturingSource::Connect()
 {
 	if ( this->FrameGrabber == NULL ) 
 	{
@@ -233,7 +233,7 @@ PlusStatus vtkICCapturingSource2::Connect()
 	static_cast<DShowLib::Grabber*>(FrameGrabber)->startLive(false);				// Start the grabber.
 
 	// 7) set callback for receiving new frames
-	this->FrameGrabberListener->SetICCapturingSourceNewFrameCallback(vtkICCapturingSource2::vtkICCapturingSource2NewFrameCallback); 
+	this->FrameGrabberListener->SetICCapturingSourceNewFrameCallback(vtkICCapturingSource::vtkICCapturingSourceNewFrameCallback); 
 
 	// 8)update framebuffer 
 	this->UpdateFrameBuffer();
@@ -242,14 +242,14 @@ PlusStatus vtkICCapturingSource2::Connect()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkICCapturingSource2::Disconnect()
+PlusStatus vtkICCapturingSource::Disconnect()
 {
 	this->ReleaseSystemResources(); 
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkICCapturingSource2::Initialize()
+PlusStatus vtkICCapturingSource::Initialize()
 {
 	if (this->Initialized)
 	{
@@ -268,7 +268,7 @@ PlusStatus vtkICCapturingSource2::Initialize()
 }
 
 //----------------------------------------------------------------------------
-void vtkICCapturingSource2::ReleaseSystemResources()
+void vtkICCapturingSource::ReleaseSystemResources()
 {
 	if (this->Recording)
 	{
@@ -281,14 +281,14 @@ void vtkICCapturingSource2::ReleaseSystemResources()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkICCapturingSource2::Grab()
+PlusStatus vtkICCapturingSource::Grab()
 {
   LOG_ERROR("Grab is not implemented for this video source");
 	return PLUS_FAIL;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkICCapturingSource2::StartRecording()
+PlusStatus vtkICCapturingSource::StartRecording()
 {
 	this->Initialize();
 	if (!this->Initialized)
@@ -306,7 +306,7 @@ PlusStatus vtkICCapturingSource2::StartRecording()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkICCapturingSource2::StopRecording()
+PlusStatus vtkICCapturingSource::StopRecording()
 {
 	if (this->Recording)
 	{
@@ -318,9 +318,9 @@ PlusStatus vtkICCapturingSource2::StopRecording()
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkICCapturingSource2::ReadConfiguration(vtkXMLDataElement* config)
+PlusStatus vtkICCapturingSource::ReadConfiguration(vtkXMLDataElement* config)
 {
-	LOG_TRACE("vtkICCapturingSource2::ReadConfiguration"); 
+	LOG_TRACE("vtkICCapturingSource::ReadConfiguration"); 
 	if ( config == NULL )
 	{
 		LOG_ERROR("Unable to configure IC Capturing video source! (XML data element is NULL)"); 
@@ -369,7 +369,7 @@ PlusStatus vtkICCapturingSource2::ReadConfiguration(vtkXMLDataElement* config)
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkICCapturingSource2::WriteConfiguration(vtkXMLDataElement* config)
+PlusStatus vtkICCapturingSource::WriteConfiguration(vtkXMLDataElement* config)
 {
 	Superclass::WriteConfiguration(config); 
   LOG_ERROR("Not implemented");

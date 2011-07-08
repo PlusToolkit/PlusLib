@@ -1,6 +1,6 @@
 /*=========================================================================
 
-Module:    $RCSfile: vtkSonixVideoSource2.h,v $
+Module:    $RCSfile: vtkSonixVideoSource.h,v $
 Author:  Siddharth Vikal, Queens School Of Computing
 
 Copyright (c) 2008, Queen's University, Kingston, Ontario, Canada
@@ -41,9 +41,9 @@ POSSIBILITY OF SUCH DAMAGE.
 
 =========================================================================*/
   
-// .NAME vtkSonixVideoSource2 - VTK interface for video input from Ultrasonix machine
+// .NAME vtkSonixVideoSource - VTK interface for video input from Ultrasonix machine
 // .SECTION Description
-// vtkSonixVideoSource2 is a class for providing video input interfaces between VTK and Ultrasonix machine.
+// vtkSonixVideoSource is a class for providing video input interfaces between VTK and Ultrasonix machine.
 // The goal is to provide the ability to be able to do acquisition
 // in various imaging modes, buffer the image/volume series being acquired
 // and stream the frames to output. 
@@ -74,21 +74,21 @@ POSSIBILITY OF SUCH DAMAGE.
 class uDataDesc;
 class ulterius;
 
-class VTK_EXPORT vtkSonixVideoSource2;
+class VTK_EXPORT vtkSonixVideoSource;
 
-class VTK_EXPORT vtkSonixVideoSourceCleanup2
+class VTK_EXPORT vtkSonixVideoSourceCleanup
 {
 public:
-  vtkSonixVideoSourceCleanup2();
-  ~vtkSonixVideoSourceCleanup2();
+  vtkSonixVideoSourceCleanup();
+  ~vtkSonixVideoSourceCleanup();
 };
 //ETX
 
-class VTK_EXPORT vtkSonixVideoSource2 : public vtkVideoSource2
+class VTK_EXPORT vtkSonixVideoSource : public vtkVideoSource2
 {
 public:
-  //static vtkSonixVideoSource2 *New();
-  vtkTypeRevisionMacro(vtkSonixVideoSource2,vtkVideoSource2);
+  //static vtkSonixVideoSource *New();
+  vtkTypeRevisionMacro(vtkSonixVideoSource,vtkVideoSource2);
   void PrintSelf(ostream& os, vtkIndent indent);   
   // Description:
   // This is a singleton pattern New.  There will only be ONE
@@ -96,20 +96,20 @@ public:
   // call this must call Delete on the object so that the reference
   // counting will work.   The single instance will be unreferenced when
   // the program exits.
-  static vtkSonixVideoSource2* New();
+  static vtkSonixVideoSource* New();
   // Description:
   // Return the singleton instance with no reference counting.
-  static vtkSonixVideoSource2* GetInstance();
+  static vtkSonixVideoSource* GetInstance();
 
   // Description:
   // Supply a user defined output window. Call ->Delete() on the supplied
   // instance after setting it.
-  static void SetInstance(vtkSonixVideoSource2 *instance);
+  static void SetInstance(vtkSonixVideoSource *instance);
   //BTX
   // use this as a way of memory management when the
   // program exits the SmartPointer will be deleted which
   // will delete the Instance singleton
-  static vtkSonixVideoSourceCleanup2 Cleanup;
+  static vtkSonixVideoSourceCleanup Cleanup;
   //ETX
 
   // Description:
@@ -227,8 +227,8 @@ public:
   void ReleaseSystemResources();
 
 protected:
-  vtkSonixVideoSource2();
-  virtual ~vtkSonixVideoSource2();
+  vtkSonixVideoSource();
+  virtual ~vtkSonixVideoSource();
 
   ulterius *ult;
   uDataDesc *DataDescriptor;
@@ -254,10 +254,10 @@ protected:
   
 private:
  
-  static vtkSonixVideoSource2* Instance;
+  static vtkSonixVideoSource* Instance;
   static bool vtkSonixVideoSourceNewFrameCallback(void * data, int type, int sz, bool cine, int frmnum);
-  vtkSonixVideoSource2(const vtkSonixVideoSource2&);  // Not implemented.
-  void operator=(const vtkSonixVideoSource2&);  // Not implemented.
+  vtkSonixVideoSource(const vtkSonixVideoSource&);  // Not implemented.
+  void operator=(const vtkSonixVideoSource&);  // Not implemented.
 };
 
 #endif

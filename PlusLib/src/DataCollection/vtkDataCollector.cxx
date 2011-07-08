@@ -62,10 +62,10 @@
 #endif*/
 #endif
 #ifdef PLUS_USE_SONIX_VIDEO
-#include "vtkSonixVideoSource2.h"
+#include "vtkSonixVideoSource.h"
 #endif
 #ifdef PLUS_USE_ICCAPTURING_VIDEO
-#include "vtkICCapturingSource2.h"
+#include "vtkICCapturingSource.h"
 #endif
 #include "vtkBufferedVideoSource.h"
 #include "vtkSavedDataVideoSource.h"
@@ -1438,7 +1438,7 @@ PlusStatus vtkDataCollector::ReadImageAcqusitionProperties(vtkXMLDataElement* im
 #ifdef PLUS_USE_SONIX_VIDEO
         LOG_DEBUG("Image acquisition type: Sonix Video"); 
         this->SetAcquisitionType(SYNCHRO_VIDEO_SONIX); 
-        vtkSmartPointer<vtkSonixVideoSource2> videoSource = vtkSmartPointer<vtkSonixVideoSource2>::New();
+        vtkSmartPointer<vtkSonixVideoSource> videoSource = vtkSmartPointer<vtkSonixVideoSource>::New();
         this->SetVideoSource(videoSource); 
         videoSource->ReadConfiguration(imageAcqusitionConfig); 
 #endif
@@ -1471,7 +1471,7 @@ PlusStatus vtkDataCollector::ReadImageAcqusitionProperties(vtkXMLDataElement* im
 #ifdef PLUS_USE_ICCAPTURING_VIDEO
         LOG_DEBUG("Image acquisition type: IC Capturing"); 
         this->SetAcquisitionType(SYNCHRO_VIDEO_ICCAPTURING); 
-        vtkSmartPointer<vtkICCapturingSource2> videoSource = vtkSmartPointer<vtkICCapturingSource2>::New();
+        vtkSmartPointer<vtkICCapturingSource> videoSource = vtkSmartPointer<vtkICCapturingSource>::New();
         this->SetVideoSource(videoSource); 
         videoSource->ReadConfiguration(imageAcqusitionConfig); 
 #endif

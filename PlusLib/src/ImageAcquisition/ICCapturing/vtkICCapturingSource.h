@@ -1,23 +1,23 @@
-#ifndef __vtkICCapturingSource2_h
-#define __vtkICCapturingSource2_h
+#ifndef __vtkICCapturingSource_h
+#define __vtkICCapturingSource_h
 
 #include "vtkVideoSource2.h"
 class ICCapturingListener; 
 
-class VTK_EXPORT vtkICCapturingSource2;
+class VTK_EXPORT vtkICCapturingSource;
 
-class VTK_EXPORT vtkICCapturingSourceCleanup2
+class VTK_EXPORT vtkICCapturingSourceCleanup
 {
 public:
-	vtkICCapturingSourceCleanup2();
-	~vtkICCapturingSourceCleanup2();
+	vtkICCapturingSourceCleanup();
+	~vtkICCapturingSourceCleanup();
 };
 
 
-class VTK_EXPORT vtkICCapturingSource2 : public vtkVideoSource2
+class VTK_EXPORT vtkICCapturingSource : public vtkVideoSource2
 {
 public:
-	vtkTypeRevisionMacro(vtkICCapturingSource2,vtkVideoSource2);
+	vtkTypeRevisionMacro(vtkICCapturingSource,vtkVideoSource2);
 	void PrintSelf(ostream& os, vtkIndent indent);   
 	// Description:
 	// This is a singleton pattern New.  There will only be ONE
@@ -25,20 +25,20 @@ public:
 	// call this must call Delete on the object so that the reference
 	// counting will work.   The single instance will be unreferenced when
 	// the program exits.
-	static vtkICCapturingSource2* New();
+	static vtkICCapturingSource* New();
 	// Description:
 	// Return the singleton instance with no reference counting.
-	static vtkICCapturingSource2* GetInstance();
+	static vtkICCapturingSource* GetInstance();
 
 	// Description:
 	// Supply a user defined output window. Call ->Delete() on the supplied
 	// instance after setting it.
-	static void SetInstance(vtkICCapturingSource2 *instance);
+	static void SetInstance(vtkICCapturingSource *instance);
 	//BTX
 	// use this as a way of memory management when the
 	// program exits the SmartPointer will be deleted which
 	// will delete the Instance singleton
-	static vtkICCapturingSourceCleanup2 Cleanup;
+	static vtkICCapturingSourceCleanup Cleanup;
 	//ETX
 
 	// Description:
@@ -116,8 +116,8 @@ public:
 	vtkGetMacro(ICBufferSize, int); 
 
 protected:
-	vtkICCapturingSource2();
-	~vtkICCapturingSource2();
+	vtkICCapturingSource();
+	~vtkICCapturingSource();
 
 	// Description:
 	// For internal use only
@@ -136,10 +136,10 @@ protected:
 
 private:
 
-	static vtkICCapturingSource2* Instance;
-	static bool vtkICCapturingSource2NewFrameCallback(unsigned char * data, unsigned long size, unsigned long frameNumber);
-	vtkICCapturingSource2(const vtkICCapturingSource2&);  // Not implemented.
-	void operator=(const vtkICCapturingSource2&);  // Not implemented.
+	static vtkICCapturingSource* Instance;
+	static bool vtkICCapturingSourceNewFrameCallback(unsigned char * data, unsigned long size, unsigned long frameNumber);
+	vtkICCapturingSource(const vtkICCapturingSource&);  // Not implemented.
+	void operator=(const vtkICCapturingSource&);  // Not implemented.
 };
 
 #endif

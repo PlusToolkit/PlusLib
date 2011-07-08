@@ -1,6 +1,6 @@
 #include "PlusConfigure.h"
 #include "vtksys/CommandLineArguments.hxx"
-#include "vtkICCapturingSource2.h"
+#include "vtkICCapturingSource.h"
 #include "vtkImageData.h"
 #include "vtkImageViewer2.h"
 #include "vtkRenderWindowInteractor.h"
@@ -72,7 +72,7 @@ int main(int argc, char **argv)
 
 	VTK_LOG_TO_CONSOLE_ON; 
 
-	vtkICCapturingSource2* frameGrabber = vtkICCapturingSource2::New();
+	vtkICCapturingSource* frameGrabber = vtkICCapturingSource::New();
 
 	frameGrabber->SetLicenceKey(licenseKey.c_str()); 
 	frameGrabber->SetDeviceName(deviceName.c_str()); 
