@@ -102,7 +102,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #endif*/
 #endif
 #ifdef PLUS_USE_SONIX_VIDEO
-#include "vtkSonixVideoSource2.h"
+#include "vtkSonixVideoSource.h"
 #endif
 
 #include "vtkSignalBox.h"
@@ -1272,7 +1272,7 @@ vtkVideoSource2* MakeVideoSource(int type, char *videoDeviceName, int videoChann
 #ifdef PLUS_USE_SONIX_VIDEO
   else if (type == SYNCHRO_VIDEO_SONIX)
   {
-    videoSource = vtkSonixVideoSource2::New();
+    videoSource = vtkSonixVideoSource::New();
   }
 #endif
 
