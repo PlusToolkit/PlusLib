@@ -24,24 +24,29 @@ PURPOSE.  See the above copyright notice for more information.
 // an additional class will be written that will take a vtkVideoBuffer
 // and compress it into a movie file.
 // .SECTION See Also
-// vtkVideoFrame2 vtkVideoSource2 vtkWin32VideoSource2 vtkMILVideoSource2
+// vtkVideoSource2 vtkWin32VideoSource2 vtkMILVideoSource2
 
 #ifndef __vtkVideoBuffer_h
 #define __vtkVideoBuffer_h
 
+#include "PlusConfigure.h"
 #include "vtkObject.h"
 
 #include "vtkObjectFactory.h"
 #include "vtkTimestampedCircularBuffer.h"
+#include "itkImage.h"
+#include "UsImageConverterCommon.h"
 
 class vtkVideoBufferObject; 
-class vtkVideoFrame2;
 class vtkImageData; 
 class TimestampedBufferItem; 
 
 class VTK_EXPORT VideoBufferItem : public TimestampedBufferItem
 {
 public:
+    typedef UsImageConverterCommon::PixelType PixelType;
+	typedef UsImageConverterCommon::ImageType ImageType;
+
 	VideoBufferItem(); 
 	~VideoBufferItem(); 
 	VideoBufferItem(const VideoBufferItem& videoBufferItem); 
@@ -50,23 +55,23 @@ public:
 	// Copy video buffer item 
 	PlusStatus DeepCopy(VideoBufferItem* videoBufferItem); 
 
-	// Set video frame format 
-	PlusStatus SetFrameFormat(vtkVideoFrame2* frameFormat); 
-    bool CheckFrameFormat( vtkVideoFrame2* frameFormat ); 
-
 	// Set/get video frame 
     // Caller should clean the image data from memory after this call. 
-	PlusStatus SetFrame(vtkVideoFrame2* frame); 
+    PlusStatus SetFrame(const ImageType::Pointer& frame); 
 	PlusStatus SetFrame(vtkImageData* frame); 
 	PlusStatus SetFrame(unsigned char *imageDataPtr, 
 		const int frameSizeInPx[3],
 		const int numberOfBitsPerPixel, 
 		const int	numberOfBytesToSkip ); 
+    
+    PlusStatus AllocateFrame(int imageSize[2]); 
 
-	vtkVideoFrame2* GetFrame() const { return this->Frame; }
+    unsigned long GetFrameSizeInBytes(); 
+
+    ImageType::Pointer GetFrame() const { return this->Frame; }
 
 protected:
-	vtkVideoFrame2 *Frame;
+    ImageType::Pointer Frame; 
 }; 
 
 
@@ -85,14 +90,6 @@ public:
 	virtual int GetBufferSize(); 
 
 	// Description:
-	// Set/Get the format of the video frames in the buffer (the get method
-	// returns a frame that contains no data, just the format 
-	// description).  If the buffer is not empty, changing the frame format has the
-	// side-effect of deleting the frames within the buffer.
-	virtual void SetFrameFormat(vtkVideoFrame2 *);
-	vtkVideoFrame2 *GetFrameFormat() { return this->FrameFormat; };
-
-	// Description:
 	// Update video buffer by setting the frame format for each frame 
 	virtual void UpdateBufferFrameFormats(); 
 	
@@ -100,9 +97,10 @@ public:
 	// Add a frame plus a timestamp to the buffer with frame index.  If the timestamp is
 	// less than or equal to the previous timestamp, or if the frame's format
 	// doesn't match the buffer's frame format, then nothing will be done.
-	virtual PlusStatus AddItem(vtkImageData* frame, const double unfilteredTimestamp, const double filteredTimestamp, const long frameNumber); 
+	virtual PlusStatus AddItem(vtkImageData* frame, const char*  usImageOrientation, const double unfilteredTimestamp, const double filteredTimestamp, const long frameNumber); 
 	virtual PlusStatus AddItem(unsigned char *imageDataPtr, 
-		const int frameSizeInPx[3],
+		const char*  usImageOrientation,
+        const int frameSizeInPx[2],
 		const int numberOfBitsPerPixel, 
 		const int numberOfBytesToSkip, 
 		const double unfilteredTimestamp, 
@@ -136,16 +134,15 @@ public:
 	// Clear buffer (set the buffer pointer to the first element)
 	virtual void Clear(); 
 
+    // Description:
+	// Set/get frame size in pixel 
+    vtkSetVector2Macro(FrameSize, int); 
+    vtkGetVector2Macro(FrameSize, int); 
 
-/*
-	// Description:
-	// Get frame from the buffer by frame UID
-	// If ItemStatus is NOT ITEM_OK, vtkVideoFrame2*  will be NULL
-	virtual ItemStatus GetFrame(const BufferItemUidType uid, vtkVideoFrame2*& frame); 
-	virtual ItemStatus UpdateImageData(const BufferItemUidType uid, vtkTrackedFrame *frame);
-*/
-
-	
+    // Description:
+	// Set/get pixel size in bits 
+    vtkSetMacro(NumberOfBitsPerPixel, int); 
+    vtkGetMacro(NumberOfBitsPerPixel, int); 
 
 protected:
 	vtkVideoBuffer();
@@ -154,11 +151,11 @@ protected:
 	// Description:
 	// Compares frame format with new frame imaging parameters
 	// Returns true if it matches, otherwise false
-	virtual bool CheckFrameFormat( const int frameSizeInPx[3], const int numberOfBitsPerPixel ); 
-	virtual bool CheckFrameFormat( vtkVideoFrame2* frame ); 
+	virtual bool CheckFrameFormat( const int frameSizeInPx[2], const int numberOfBitsPerPixel ); 
+    
+    int FrameSize[2]; 
+    int NumberOfBitsPerPixel; 
 
-	// holds the formatting information for the buffer's frames, but no data.
-	vtkVideoFrame2 *FrameFormat;
 	vtkTimestampedCircularBuffer<VideoBufferItem>* VideoBuffer; 
 
 private:

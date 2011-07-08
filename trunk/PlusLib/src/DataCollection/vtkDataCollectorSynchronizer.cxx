@@ -6,7 +6,6 @@
 #include "vtkSmartPointer.h"
 #include "vtkImageImport.h"
 #include "vtkBMPWriter.h"
-#include "vtkVideoFrame2.h"
 #include "vtkImageResample.h"
 #include "vtksys/SystemTools.hxx"
 #include "vtkGnuplotExecuter.h"
@@ -656,30 +655,17 @@ void vtkDataCollectorSynchronizer::ConvertFrameToRGB( vtkImageData* pFrame, vtkI
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkDataCollectorSynchronizer::CopyVideoFrame( vtkImageData* frame, vtkVideoFrame2* frameInBuffer )
+PlusStatus vtkDataCollectorSynchronizer::CopyVideoFrame( vtkImageData* frame, VideoBufferItem::ImageType::Pointer& frameInBuffer )
 {
 	LOG_TRACE("vtkDataCollectorSynchronizer::CopyVideoFrame"); 
 
-	if ( frameInBuffer == NULL )
+	if ( frameInBuffer.IsNull() )
 	{
 		LOG_WARNING("vtkDataCollectorSynchronizer: Failed to copy NULL video frame!"); 
 		return PLUS_FAIL; 
 	}
 
-	int* extent = frameInBuffer->GetFrameExtent(); 
-	int pixelFormat = frameInBuffer->GetPixelFormat(); 
-	frame->SetExtent( extent ); 
-	frame->SetScalarTypeToUnsignedChar(); 
-	frame->SetNumberOfScalarComponents(1); 
-	frame->AllocateScalars(); 
-
-	if (!frameInBuffer->CopyData(frame->GetScalarPointer(), extent, extent, pixelFormat))
-	{
-		LOG_ERROR("Failed to copy data from video frame!");
-		return PLUS_FAIL;
-	}
-
-	return PLUS_SUCCESS; 
+    return UsImageConverterCommon::ConvertItkImageToVtkImage(frameInBuffer, frame); 
 }
 
 //----------------------------------------------------------------------------

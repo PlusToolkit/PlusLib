@@ -36,7 +36,7 @@ vtkProbeCalibrationControllerIO::~vtkProbeCalibrationControllerIO()
 
 
 //----------------------------------------------------------------------------
-void vtkProbeCalibrationControllerIO::SaveSegmentationResultToImage( int imgIndex, ImageType* frame )
+void vtkProbeCalibrationControllerIO::SaveSegmentationResultToImage( int imgIndex, const ImageType::Pointer& frame )
 {
 	// ==============================================
 	// Output the segmentation results on the images

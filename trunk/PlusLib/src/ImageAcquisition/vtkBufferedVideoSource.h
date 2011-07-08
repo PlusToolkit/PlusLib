@@ -42,7 +42,7 @@ public:
 	//ETX
 
 
-	virtual PlusStatus AddFrame( vtkImageData* image, double timestamp ); 
+	virtual PlusStatus AddFrame( vtkImageData* image, const char* usImageOrientation, double timestamp ); 
 
 	// Description:
 	// Record incoming video at the specified FrameRate.  The recording

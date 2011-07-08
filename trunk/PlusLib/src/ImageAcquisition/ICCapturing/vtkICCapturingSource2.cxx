@@ -12,7 +12,6 @@
 #include "vtkStreamingDemandDrivenPipeline.h"
 #include "vtksys/SystemTools.hxx"
 #include "vtkVideoBuffer.h"
-#include "vtkVideoFrame2.h"
 #include "vtkMultiThreader.h"
 
 #include <ctype.h>
@@ -40,8 +39,6 @@ vtkICCapturingSource2::vtkICCapturingSource2()
 {
 	this->Initialized = 0;
 
-	this->SetFrameSize(640, 480, 1);
-
 	this->ICBufferSize = 50; 
 
 	this->LicenceKey = NULL; 
@@ -49,12 +46,6 @@ vtkICCapturingSource2::vtkICCapturingSource2()
 	this->VideoNorm = NULL; 
 	this->VideoFormat = NULL; 
 	this->InputChannel = NULL; 
-
-	this->FrameBufferRowAlignment = 1;
-
-	this->SetOutputFormatToLuminance(); 
-
-	this->Buffer->GetFrameFormat()->SetFrameGrabberType(FG_BASE); 
 
 	this->SetFrameBufferSize(200); 
 	this->Buffer->Modified();
@@ -162,10 +153,10 @@ PlusStatus vtkICCapturingSource2::LocalInternalGrab(unsigned char * dataPtr, uns
 	this->FrameNumber = frameNumber; 
 	double unfilteredTimestamp(0), filteredTimestamp(0); 
 	this->CreateTimeStampForFrame(this->FrameNumber, unfilteredTimestamp, filteredTimestamp);
-	const int* frameSize = this->GetFrameSize(); 
-	int frameBufferBitsPerPixel = this->NumberOfScalarComponents * 8; 
+    const int frameSize[2] = {static_cast<DShowLib::Grabber*>(FrameGrabber)->getAcqSizeMaxX(), static_cast<DShowLib::Grabber*>(FrameGrabber)->getAcqSizeMaxY()}; 
+	int frameBufferBitsPerPixel = static_cast<DShowLib::Grabber*>(FrameGrabber)->getVideoFormat().getBitsPerPixel(); 
 
-	PlusStatus status = this->Buffer->AddItem(dataPtr, frameSize, frameBufferBitsPerPixel, 0, unfilteredTimestamp, filteredTimestamp, this->FrameNumber); 
+	PlusStatus status = this->Buffer->AddItem(dataPtr, this->GetUsImageOrientation(), frameSize, frameBufferBitsPerPixel, 0, unfilteredTimestamp, filteredTimestamp, this->FrameNumber); 
 	this->Modified();
 
 	return status;
@@ -207,6 +198,10 @@ PlusStatus vtkICCapturingSource2::Connect()
 		LOG_ERROR("The IC capturing library could not be initialized - invalid video format: " << this->GetVideoFormat() ); 
 		return PLUS_FAIL;
 	}
+
+    this->GetBuffer()->SetNumberOfBitsPerPixel(static_cast<DShowLib::Grabber*>(FrameGrabber)->getVideoFormat().getBitsPerPixel() );  
+
+    this->GetBuffer()->SetFrameSize( static_cast<DShowLib::Grabber*>(FrameGrabber)->getAcqSizeMaxX(), static_cast<DShowLib::Grabber*>(FrameGrabber)->getAcqSizeMaxY() ); 
 
 	if ( this->GetInputChannel() == NULL || !static_cast<DShowLib::Grabber*>(FrameGrabber)->setInputChannel( this->GetInputChannel() ) ) 
 	{

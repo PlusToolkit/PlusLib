@@ -71,7 +71,15 @@ int main(int argc, char **argv)
 	region.SetSize(size);
 	region.SetIndex(start);
 	imageDataSequence->SetRegions(region);
-	imageDataSequence->Allocate();
+	 try
+    {
+        imageDataSequence->Allocate();
+    }
+    catch (itk::ExceptionObject & err) 
+    {		
+        LOG_ERROR("Unable to allocate memory for image data sequence: " << err);
+        return EXIT_FAILURE; 
+    }
 
 	const unsigned long ImageWidthInPixels = imageDataSequence->GetLargestPossibleRegion().GetSize()[0]; 
 	const unsigned long ImageHeightInPixels = imageDataSequence->GetLargestPossibleRegion().GetSize()[1]; 
@@ -162,6 +170,7 @@ int main(int argc, char **argv)
 	catch (itk::ExceptionObject & err) 
 	{		
 		LOG_ERROR(" Unable to update sequence writer: " << err);
+        return EXIT_FAILURE; 
 	}	
 	
 	LOG_INFO( "itkMetaImageSequenceIOTest4 completed successfully!" ); 

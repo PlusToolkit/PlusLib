@@ -71,7 +71,7 @@ public:
 	vtkTypeRevisionMacro(vtkCalibratorVisualizationComponent, vtkObject);
 	virtual void PrintSelf(ostream& os, vtkIndent indent); 
 	virtual void Initialize( vtkProbeCalibrationController* calibrationController ); 
-	virtual void AddFrameToRealtimeRenderer(vtkImageData* frame); 
+	virtual PlusStatus AddFrameToRealtimeRenderer(vtkImageData* frame); 
 	virtual void SaveFrameToFile(vtkImageData* frame, char* fileName); 
 	virtual void OverlayTemplate(); 
 	virtual void RemoveTemplate(); 

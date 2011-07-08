@@ -989,7 +989,7 @@ PlusStatus vtkTracker::ReadConfiguration(vtkXMLDataElement* config)
 	double localTimeOffset = 0; 
 	if ( config->GetScalarAttribute("LocalTimeOffset", localTimeOffset) )
 	{
-		LOG_INFO("Tracker local time offset: " << std::fixed << 1000*localTimeOffset << "ms" ); 
+		LOG_INFO("Tracker local time offset: " << 1000*localTimeOffset << "ms" ); 
 		for ( int i = 0; i < this->GetNumberOfTools(); i++)
 		{
 			this->GetTool(i)->GetBuffer()->SetLocalTimeOffset(localTimeOffset);

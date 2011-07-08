@@ -64,7 +64,7 @@ public:
 	//! Description 
 	// Add new tracked data for segmentation and save the segmentation result to the SegmentedFrameContainer
 	// The class has to be initialized before the segmentation process. 
-	virtual PlusStatus AddItkImageData( ImageType* frame, const double probePosition, const double probeRotation, const double templatePosition, IMAGE_DATA_TYPE dataType );
+	virtual PlusStatus AddItkImageData( const ImageType::Pointer& frame, const double probePosition, const double probeRotation, const double templatePosition, IMAGE_DATA_TYPE dataType );
 
 	//! Description: 
 	// Get stepper encoder values from the tracked frame info

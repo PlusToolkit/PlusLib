@@ -56,7 +56,9 @@ POSSIBILITY OF SUCH DAMAGES.
 #ifndef __vtkFreehandUltrasound2_h
 #define __vtkFreehandUltrasound2_h
 
+#include "PlusConfigure.h"
 #include "vtkImageAlgorithm.h"
+#include "vtkTimestampedCircularBuffer.h"
 
 class vtkLinearTransform;
 class vtkMatrix4x4;
@@ -400,6 +402,7 @@ protected:
   vtkTrackerTool *TrackerTool;
   double VideoLag;
   int NeedsClear;
+  BufferItemUidType VideoBufferUid; 
 
   // parameters for fan/image
   vtkFloatingPointType OutputOrigin[3];

@@ -143,7 +143,7 @@ protected:
 
 	virtual void ComputeFrameThreshold( BufferItemUidType& bufferIndex ); 
 	virtual PlusStatus FindFrameTimestamp( BufferItemUidType& bufferIndex, double& movedFrameTimestamp, double nextMovedTimestamp ); 
-	virtual PlusStatus CopyVideoFrame( vtkImageData* frame, vtkVideoFrame2* frameInBuffer); 
+    virtual PlusStatus CopyVideoFrame( vtkImageData* frame, VideoBufferItem::ImageType::Pointer& frameInBuffer); 
 	virtual void FindStillFrame( BufferItemUidType& baseIndex, BufferItemUidType& currentIndex ); 
 
 	virtual void ComputeTransformThreshold( int& bufferIndex ); 

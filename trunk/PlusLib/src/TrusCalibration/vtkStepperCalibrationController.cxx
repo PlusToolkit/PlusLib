@@ -101,13 +101,17 @@ PlusStatus vtkStepperCalibrationController::AddVtkImageData( vtkImageData* frame
 {
 	LOG_TRACE("vtkCalibrationController::AddData - vtkImage with stepper encoder values"); 
 	ImageType::Pointer exportedFrame = ImageType::New();
-	this->ExportVtkImageData(frame, exportedFrame); 
+    if ( UsImageConverterCommon::ConvertVtkImageToItkImage(frame, exportedFrame) != PLUS_SUCCESS )
+    {
+        LOG_ERROR("Failed to convert vtk image to itk image!"); 
+        return PLUS_FAIL; 
+    }
 
 	return this->AddItkImageData(exportedFrame, probePosition, probeRotation, templatePosition, dataType); 
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkStepperCalibrationController::AddItkImageData( ImageType* frame, const double probePosition, const double probeRotation, const double templatePosition, IMAGE_DATA_TYPE dataType )
+PlusStatus vtkStepperCalibrationController::AddItkImageData( const ImageType::Pointer& frame, const double probePosition, const double probeRotation, const double templatePosition, IMAGE_DATA_TYPE dataType )
 {
 	LOG_TRACE("vtkCalibrationController::AddData - itkImage with stepper encoder values"); 
 	TrackedFrame trackedFrame; 

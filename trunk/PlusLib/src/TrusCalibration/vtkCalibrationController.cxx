@@ -54,7 +54,6 @@ SegmentationProgressCallbackFunction(NULL)
 	this->ProgramFolderPath = NULL; 
 	this->ConfigurationFileName = NULL;
 	this->PhantomDefinitionFileName = NULL;
-	this->DesiredOrientation = NULL;
 	this->SegParameters = NULL; 
 
 	this->SetCalibrationMode(REALTIME); 
@@ -147,13 +146,16 @@ PlusStatus vtkCalibrationController::AddVtkImageData(vtkImageData* frame, vtkMat
 {
 	LOG_TRACE("vtkCalibrationController::AddData - vtkImage"); 
 	ImageType::Pointer exportedFrame = ImageType::New();
-	this->ExportVtkImageData(frame, exportedFrame); 
-
+    if ( UsImageConverterCommon::ConvertVtkImageToItkImage(frame, exportedFrame) != PLUS_SUCCESS )
+    {
+        LOG_ERROR("Failed to convert vtk image to itk image!"); 
+        return PLUS_FAIL; 
+    }
 	return this->AddItkImageData(exportedFrame, trackingTransform, dataType); 
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkCalibrationController::AddItkImageData(ImageType* frame, vtkMatrix4x4* trackingTransform, IMAGE_DATA_TYPE dataType )
+PlusStatus vtkCalibrationController::AddItkImageData(const ImageType::Pointer& frame, vtkMatrix4x4* trackingTransform, IMAGE_DATA_TYPE dataType )
 {
 	LOG_TRACE("vtkCalibrationController::AddData - itkImage"); 
 	TrackedFrame trackedFrame; 
@@ -178,12 +180,12 @@ PlusStatus vtkCalibrationController::AddTrackedFrameData(TrackedFrame* trackedFr
 		}
 
 		// Check to see if the segmentation has returned the targets
-		SegmentationResults segResults;
-		if (this->DesiredOrientation != NULL) {
-			segResults = this->SegmentImage(trackedFrame->GetOrientedImage(this->DesiredOrientation));
-		} else {
-			segResults = this->SegmentImage(trackedFrame->ImageData);
-		}
+		SegmentationResults segResults; 
+        if ( this->SegmentImage(trackedFrame->ImageData, segResults) != PLUS_SUCCESS )
+        {
+            LOG_WARNING("Undefined error occured during frame segmentation!"); 
+            return PLUS_FAIL; 
+        }
 
 		// Add frame to the container 
 		int trackedFramePosition(-1); 
@@ -237,17 +239,21 @@ PlusStatus vtkCalibrationController::AddTrackedFrameData(TrackedFrame* trackedFr
 }
 
 //----------------------------------------------------------------------------
-SegmentationResults vtkCalibrationController::SegmentImage(vtkImageData * imageData)
+PlusStatus vtkCalibrationController::SegmentImage(vtkImageData * imageData, SegmentationResults& segResult )
 {
 	LOG_TRACE("vtkCalibrationController::SegmentImage - vtkImage"); 
 	ImageType::Pointer frame = ImageType::New();
-	this->ExportVtkImageData(imageData, frame); 
+    if ( UsImageConverterCommon::ConvertVtkImageToItkImage(imageData, frame) != PLUS_SUCCESS )
+    {
+        LOG_ERROR("Failed to convert vtk image to itk image!"); 
+        return PLUS_FAIL; 
 
-	return this->SegmentImage(frame);
+    }
+	return this->SegmentImage(frame, segResult);
 }
 
 //----------------------------------------------------------------------------
-SegmentationResults vtkCalibrationController::SegmentImage(ImageType* imageData)
+PlusStatus vtkCalibrationController::SegmentImage(const ImageType::Pointer& imageData, SegmentationResults& segResult)
 {
 	LOG_TRACE("vtkCalibrationController::SegmentImage - itkImage"); 
 	try
@@ -259,26 +265,31 @@ SegmentationResults vtkCalibrationController::SegmentImage(ImageType* imageData)
 
 		// Send the image to the Segmentation component for segmentation
 		this->GetSegmenter()->segment( imageData->GetBufferPointer(), *this->GetSegParameters());	
-		SegmentationResults segResults;
-		this->GetSegmenter()->GetSegmentationResults(segResults); 
-		return segResults;
+		this->GetSegmenter()->GetSegmentationResults(segResult); 
+		return PLUS_SUCCESS;
 	}
 	catch(...)
 	{
 		LOG_ERROR("SegmentImage: The segmentation has failed for due to UNKNOWN exception thrown, the image was ignored!!!"); 
-		throw;  
+		return PLUS_FAIL; 
 	}
 }
 
 //----------------------------------------------------------------------------
-void vtkCalibrationController::AddFrameToRenderer(ImageType* frame)
+PlusStatus vtkCalibrationController::AddFrameToRenderer(const ImageType::Pointer& frame)
 {
 	LOG_TRACE("vtkCalibrationController::AddFrameToRenderer"); 
 	if ( ! this->GetEnableVisualization() ) 
 	{
 		// We don't want to render anything
-		return; 
+		return PLUS_SUCCESS; 
 	}
+
+    if ( frame.IsNull() )
+    {
+        LOG_ERROR("Failed to add frame to the renderer - frame is NULL!"); 
+        return PLUS_FAIL; 
+    }
 
 	// create an importer to read the data back in
 	vtkSmartPointer<vtkImageImport> importer = vtkSmartPointer<vtkImageImport>::New();
@@ -294,20 +305,21 @@ void vtkCalibrationController::AddFrameToRenderer(ImageType* frame)
 	imageFlipY->SetFilteredAxis(1); 
 	imageFlipY->Update(); 
 
-	this->AddFrameToRenderer(imageFlipY->GetOutput()); 
+	return this->AddFrameToRenderer(imageFlipY->GetOutput()); 
 }
 
 
 //----------------------------------------------------------------------------
-void vtkCalibrationController::AddFrameToRenderer(vtkImageData* frame)
+PlusStatus vtkCalibrationController::AddFrameToRenderer(vtkImageData* frame)
 {
 	LOG_TRACE("vtkCalibrationController::AddFrameToRenderer"); 
 	if ( ! this->GetEnableVisualization() || this->VisualizationComponent == NULL ) 
 	{
 		// We don't want to render anything
-		return; 
+		return PLUS_SUCCESS; 
 	}
-	this->GetVisualizationComponent()->AddFrameToRealtimeRenderer(frame); 
+
+	return this->GetVisualizationComponent()->AddFrameToRealtimeRenderer(frame); 
 }
 
 //----------------------------------------------------------------------------
@@ -357,7 +369,7 @@ void vtkCalibrationController::ConvertVtkMatrixToVnlMatrixInMeter(vtkMatrix4x4* 
 }
 
 //----------------------------------------------------------------------------
-void  vtkCalibrationController::CreateTrackedFrame(ImageType* imageData, const double probePosition, const double probeRotation, const double templatePosition, IMAGE_DATA_TYPE dataType, TrackedFrame& trackedFrame)
+void  vtkCalibrationController::CreateTrackedFrame(const ImageType::Pointer& imageData, const double probePosition, const double probeRotation, const double templatePosition, IMAGE_DATA_TYPE dataType, TrackedFrame& trackedFrame)
 {
 	LOG_TRACE("vtkCalibrationController::CreateTrackedFrame - with optical readings"); 
 	trackedFrame.Timestamp = 0; // TODO: current time or 0? 
@@ -379,7 +391,7 @@ void  vtkCalibrationController::CreateTrackedFrame(ImageType* imageData, const d
 }
 
 //----------------------------------------------------------------------------
-void  vtkCalibrationController::CreateTrackedFrame(ImageType* imageData, vtkMatrix4x4* transform, IMAGE_DATA_TYPE dataType, TrackedFrame& trackedFrame)
+void  vtkCalibrationController::CreateTrackedFrame(const ImageType::Pointer& imageData, vtkMatrix4x4* transform, IMAGE_DATA_TYPE dataType, TrackedFrame& trackedFrame)
 {
 	LOG_TRACE("vtkCalibrationController::CreateTrackedFrame - with transform"); 
 	trackedFrame.Timestamp = 0; // TODO: current time or 0?
@@ -396,32 +408,6 @@ void  vtkCalibrationController::CreateTrackedFrame(ImageType* imageData, vtkMatr
 	trackedFrame.SetCustomFrameField(trackedFrame.DefaultFrameTransformName, strToolToTracker.str()); 
 
 	trackedFrame.ImageData = imageData;
-}
-
-
-//----------------------------------------------------------------------------
-void vtkCalibrationController::ExportVtkImageData(vtkImageData* imageData, ImageType* imageDataExported)
-{
-	LOG_TRACE("vtkCalibrationController::ExportVtkImageData"); 
-	vtkSmartPointer<vtkImageFlip> imageFlipy = vtkSmartPointer<vtkImageFlip>::New(); 
-	imageFlipy->SetInput(imageData); 
-	imageFlipy->SetFilteredAxis(1); 
-	imageFlipy->Update(); 
-
-	vtkSmartPointer<vtkImageExport> imageExport = vtkSmartPointer<vtkImageExport>::New(); 
-	imageExport->ImageLowerLeftOff();
-	imageExport->SetInput(imageFlipy->GetOutput()); 
-	imageExport->Update(); 
-
-	ImageType::SizeType size = {this->GetImageWidthInPixels(), this->GetImageHeightInPixels() };
-	ImageType::IndexType start = {0,0};
-	ImageType::RegionType region;
-	region.SetSize(size);
-	region.SetIndex(start);
-	imageDataExported->SetRegions(region);
-	imageDataExported->Allocate();
-
-	memcpy(imageDataExported->GetBufferPointer() , imageExport->GetPointerToData(), imageExport->GetDataMemorySize());
 }
 
 //----------------------------------------------------------------------------

@@ -119,14 +119,9 @@ protected:
 	vtkICCapturingSource2();
 	~vtkICCapturingSource2();
 
-	//int RequestInformation(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
-
 	// Description:
 	// For internal use only
 	PlusStatus LocalInternalGrab(unsigned char * data, unsigned long size, unsigned long frameNumber);
-
-	// byte alignment of each row in the framebuffer
-	int FrameBufferRowAlignment;
 
 	void* FrameGrabber;
 	ICCapturingListener* FrameGrabberListener; 

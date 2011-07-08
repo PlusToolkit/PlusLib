@@ -33,6 +33,10 @@ vtkVolumeReconstructor::vtkVolumeReconstructor()
 
 	this->TrackerToolID = 0;
 
+    this->SetNumberOfBitsPerPixel(0); 
+
+    this->SetFrameSize(0, 0); 
+
 	this->InitializedOff(); 
 
 	vtkSmartPointer<vtkBufferedTracker> tracker = vtkSmartPointer<vtkBufferedTracker>::New();
@@ -72,6 +76,7 @@ void vtkVolumeReconstructor::Initialize()
 	if ( this->GetNumberOfFrames() > 0 )
 	{
 		this->GetVideoSource()->SetFrameSize(this->GetFrameSize()); 
+        this->GetVideoSource()->GetBuffer()->SetNumberOfBitsPerPixel( this->GetNumberOfBitsPerPixel() ); 
 
 		if ( this->GetVideoSource()->GetBuffer()->SetBufferSize( this->GetNumberOfFrames() ) != PLUS_SUCCESS )
         {
@@ -120,6 +125,7 @@ void vtkVolumeReconstructor::FillHoles()
 
 //----------------------------------------------------------------------------
 void vtkVolumeReconstructor::AddTrackedFrame( unsigned char* imageData, 
+                                             const char* usImageOrientation, 
 											 const int imageWidthInPixels, 
 											 const int imageHeightInPixels, 
 											 const double transformMatrix[16] )
@@ -127,13 +133,14 @@ void vtkVolumeReconstructor::AddTrackedFrame( unsigned char* imageData,
 	vtkSmartPointer<vtkMatrix4x4> vtkMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
 	vtkMatrix->DeepCopy(transformMatrix);
 
-	this->AddTrackedFrame(imageData, imageWidthInPixels, imageHeightInPixels, vtkMatrix); 
+	this->AddTrackedFrame(imageData, usImageOrientation, imageWidthInPixels, imageHeightInPixels, vtkMatrix); 
 
 }
 
 
 //----------------------------------------------------------------------------
 void vtkVolumeReconstructor::AddTrackedFrame( unsigned char* imageData, 
+                                             const char* usImageOrientation, 
 											 const int imageWidthInPixels, 
 											 const int imageHeightInPixels, 
 											 vtkMatrix4x4* transformMatrix )
@@ -151,12 +158,12 @@ void vtkVolumeReconstructor::AddTrackedFrame( unsigned char* imageData,
 	imageFlip->SetFilteredAxis(1); 
 	imageFlip->Update(); 
 
-	this->AddTrackedFrame( imageFlip->GetOutput(), transformMatrix ); 
+	this->AddTrackedFrame( imageFlip->GetOutput(), usImageOrientation, transformMatrix ); 
 }
 
 
 //----------------------------------------------------------------------------
-void vtkVolumeReconstructor::AddTrackedFrame( vtkImageData* frame, vtkMatrix4x4* mToolToReference )
+void vtkVolumeReconstructor::AddTrackedFrame( vtkImageData* frame, const char* usImageOrientation, vtkMatrix4x4* mToolToReference )
 {
 	if ( !this->GetInitialized() ) 
 	{
@@ -171,7 +178,7 @@ void vtkVolumeReconstructor::AddTrackedFrame( vtkImageData* frame, vtkMatrix4x4*
 
 
 	double timestamp = vtkAccurateTimer::GetSystemTime(); 
-	PlusStatus  videoStatus = this->GetVideoSource()->AddFrame( frame, timestamp ); 
+	PlusStatus  videoStatus = this->GetVideoSource()->AddFrame( frame, usImageOrientation, timestamp ); 
 
 	/*PlusStatus trackerStatus = */ this->GetTracker()->AddTransform( tToolToReference->GetMatrix(), timestamp ); 
 

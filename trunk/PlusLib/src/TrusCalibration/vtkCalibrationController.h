@@ -95,7 +95,7 @@ public:
 	//! Description 
 	// Add new tracked data for segmentation and save the segmentation result to the SegmentedFrameContainer
 	// The class has to be initialized before the segmentation process. 
-	virtual PlusStatus AddItkImageData( ImageType* frame, vtkMatrix4x4* trackingTransform, IMAGE_DATA_TYPE dataType );
+	virtual PlusStatus AddItkImageData( const ImageType::Pointer& frame, vtkMatrix4x4* trackingTransform, IMAGE_DATA_TYPE dataType );
 
 	//! Description 
 	// Add new tracked data for segmentation and save the segmentation result to the SegmentedFrameContainer
@@ -186,11 +186,6 @@ public:
 	vtkSetStringMacro(PhantomDefinitionFileName); 
 	vtkGetStringMacro(PhantomDefinitionFileName); 
 
-	//! Description 
-	// Set/get the desired orientation
-	vtkSetStringMacro(DesiredOrientation); 
-	vtkGetStringMacro(DesiredOrientation); 
-
 	//! Attribute: Flag to enable the Segmentation Analysis
 	vtkGetMacro(EnableSegmentationAnalysis, bool);
 	vtkSetMacro(EnableSegmentationAnalysis, bool);
@@ -236,21 +231,17 @@ protected:
 	//! Description 
 	// Run the segmentation algorithm on the image and return with the segmentation result 
 	// The class has to be initialized before the segmentation process. 
-	virtual SegmentationResults SegmentImage(ImageType* imageData); 
-	virtual SegmentationResults SegmentImage(vtkImageData * imageData); 
+	virtual PlusStatus SegmentImage(const ImageType::Pointer& imageData, SegmentationResults& segResult); 
+	virtual PlusStatus SegmentImage(vtkImageData * imageData, SegmentationResults& segResult); 
 
 	//! Description 
 	// Create tracked frame with the inputs specified
-	virtual void CreateTrackedFrame(ImageType* imageData, vtkMatrix4x4* transform, IMAGE_DATA_TYPE dataType, TrackedFrame& trackedFrame ); 
-	virtual void CreateTrackedFrame(ImageType* imageData, const double probePosition, const double probeRotation, const double templatePosition, IMAGE_DATA_TYPE dataType, TrackedFrame& trackedFrame); 
+	virtual void CreateTrackedFrame(const ImageType::Pointer& imageData, vtkMatrix4x4* transform, IMAGE_DATA_TYPE dataType, TrackedFrame& trackedFrame ); 
+	virtual void CreateTrackedFrame(const ImageType::Pointer& imageData, const double probePosition, const double probeRotation, const double templatePosition, IMAGE_DATA_TYPE dataType, TrackedFrame& trackedFrame); 
 
 	//! Operation: Add frame to renderer in offline mode
-	virtual void AddFrameToRenderer(vtkImageData* frame); 
-	virtual void AddFrameToRenderer(ImageType* frame); 
-
-	//! Description 
-	// Export the vtkImageData to itkImage 
-	virtual void ExportVtkImageData(vtkImageData* imageData, ImageType* imageDataExported); 
+	virtual PlusStatus AddFrameToRenderer(vtkImageData* frame); 
+	virtual PlusStatus AddFrameToRenderer(const ImageType::Pointer& frame); 
 
 	//! Description 
 	// Read CalibrationController data element
@@ -322,9 +313,6 @@ protected:
 
 	//! Attributes: phantom definition file name
 	char* PhantomDefinitionFileName;
-
-	//! Attribute: desired otientation of images that are passed to the segmenter
-	char* DesiredOrientation;
 
 	//! Pointer to the callback function that is executed each time a segmentation is finished
     SegmentationProgressPtr SegmentationProgressCallbackFunction;

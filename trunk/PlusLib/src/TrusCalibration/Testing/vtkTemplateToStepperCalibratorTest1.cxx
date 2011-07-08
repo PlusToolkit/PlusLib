@@ -167,7 +167,16 @@ int main (int argc, char* argv[])
 			region.SetSize(size);
 			region.SetIndex(start);
 			frame->SetRegions(region);
-			frame->Allocate();
+            try 
+            {
+                frame->Allocate();
+            }
+            catch (itk::ExceptionObject & err)
+            {
+                LOG_ERROR("Failed to allocate memory: " << err ); 
+                continue; 
+            }
+
 
 			memcpy(frame->GetBufferPointer() , currentFrameImageData, frameSizeInBytes);
 
