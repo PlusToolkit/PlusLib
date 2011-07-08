@@ -4,12 +4,12 @@
 #include <QString>
 #include <QMessageBox>
 #include <QDomDocument>
+#include <QSettings>
 
 //-----------------------------------------------------------------------------
 
 DeviceSetSelectorWidget::DeviceSetSelectorWidget(QWidget* aParent)
 	: QWidget(aParent)
-	, m_ConfigurationDirectory("")
 	, m_ConnectionSuccessful(false)
 {
 	ui.setupUi(this);
@@ -17,6 +17,13 @@ DeviceSetSelectorWidget::DeviceSetSelectorWidget(QWidget* aParent)
 	connect( ui.pushButton_OpenConfigurationDirectory, SIGNAL( pressed() ), this, SLOT( OpenConfigurationDirectoryClicked() ) );
 	connect( ui.pushButton_Connect, SIGNAL( pressed() ), this, SLOT( InvokeConnect() ) );
 	connect( ui.comboBox_DeviceSet, SIGNAL( currentIndexChanged(int) ), this, SLOT( DeviceSetSelected(int) ) );
+
+	// Get configuration directory from registry if possible
+	QSettings settings( QSettings::NativeFormat, QSettings::UserScope, "PerkLab", "Common" );
+	m_ConfigurationDirectory = settings.value("ConfigurationDirectory", "").toString();
+	if (! m_ConfigurationDirectory.isEmpty()) {
+		SetConfigurationDirectory(m_ConfigurationDirectory.toStdString(), true);
+	}
 }
 
 //-----------------------------------------------------------------------------
@@ -44,6 +51,12 @@ void DeviceSetSelectorWidget::OpenConfigurationDirectoryClicked()
 		ui.lineEdit_ConfigurationDirectory->setText(dirName);
 		ui.lineEdit_ConfigurationDirectory->setToolTip(dirName);
 
+		// Write the selected directory to registry
+		QSettings settings( QSettings::NativeFormat, QSettings::UserScope, "PerkLab", "Common" );
+		settings.setValue("ConfigurationDirectory", dirName);
+		settings.sync();
+
+		// Notify the application about the directory change
 		emit ConfigurationDirectoryChanged(m_ConfigurationDirectory.toStdString());
 	}
 }
@@ -84,16 +97,18 @@ void DeviceSetSelectorWidget::DeviceSetSelected(int aIndex)
 
 //-----------------------------------------------------------------------------
 
-void DeviceSetSelectorWidget::SetConfigurationDirectory(std::string aDirectory)
+void DeviceSetSelectorWidget::SetConfigurationDirectory(std::string aDirectory, bool aForce)
 {
-	if (ParseDirectory(QString::fromStdString(aDirectory))) {
-		m_ConfigurationDirectory = QString::fromStdString(aDirectory);
+	if (m_ConfigurationDirectory.isEmpty() || aForce) {
+		if (ParseDirectory(QString::fromStdString(aDirectory))) {
+			m_ConfigurationDirectory = QString::fromStdString(aDirectory);
 
-		ui.lineEdit_ConfigurationDirectory->setText(m_ConfigurationDirectory);
-		ui.lineEdit_ConfigurationDirectory->setToolTip(m_ConfigurationDirectory);
-	} else {
-		ui.lineEdit_ConfigurationDirectory->setText(tr("Invalid configuration directory"));
-		ui.lineEdit_ConfigurationDirectory->setToolTip("No valid configuration files in directory, please select another");
+			ui.lineEdit_ConfigurationDirectory->setText(m_ConfigurationDirectory);
+			ui.lineEdit_ConfigurationDirectory->setToolTip(m_ConfigurationDirectory);
+		} else {
+			ui.lineEdit_ConfigurationDirectory->setText(tr("Invalid configuration directory"));
+			ui.lineEdit_ConfigurationDirectory->setToolTip("No valid configuration files in directory, please select another");
+		}
 	}
 }
 

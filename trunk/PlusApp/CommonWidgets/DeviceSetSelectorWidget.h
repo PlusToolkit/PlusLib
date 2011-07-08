@@ -29,29 +29,60 @@ public:
 	*/
 	~DeviceSetSelectorWidget();
 
-	//TODO
-	void SetConfigurationDirectory(std::string aDirectory);
+	/*!
+	* \brief Set configuration directory to search in
+	* \param aDirectory Input configuration directory
+	* \param aForce If true, it is set even when it is not empty (false if omitted)
+	*/
+	void SetConfigurationDirectory(std::string aDirectory, bool aForce = false);
 
-	//TODO
+	/*!
+	* \brief Set connection successful flag
+	* \param aConnectionSuccessful If true, Connect button will be disabled until changing another device set
+	*/
 	void SetConnectionSuccessful(bool aConnectionSuccessful);
 
 signals:
-	//TODO
+	/*!
+	* \brief Emmitted when configuration directory is changed (notifies application)
+	* \param Configuration directory path
+	*/
 	void ConfigurationDirectoryChanged(std::string);
+
+	/*!
+	* \brief Emitted when connecting to devices
+	* \param Device set configuration file
+	*/
 	void ConnectToDevicesByConfigFileInvoked(std::string);
 
 protected:
-	//TODO
+	/*!
+	* \brief Fills the combo box with the valid device set configuration files found in input directory
+	* \param aDirectory The directory to search in
+	*/
 	PlusStatus ParseDirectory(QString aDirectory);
 
 protected slots:
-	//TODO
+	/*!
+	* \brief Pops up open directory dialog and saves the selected one into application
+	*/
 	void OpenConfigurationDirectoryClicked();
+
+	/*!
+	* \brief Called when device set selection has been changed
+	*/
 	void DeviceSetSelected(int);
+
+	/*!
+	* \brief Called when Connect button is pushed - connects to devices
+	*/
 	void InvokeConnect();
 
 protected:
+	//! Configuration directory path
 	QString	m_ConfigurationDirectory;
+
+	//! Flag telling whether connection has been successful
 	bool	m_ConnectionSuccessful;
 
 protected:
