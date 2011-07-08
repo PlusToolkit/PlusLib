@@ -109,9 +109,19 @@ struct Wire
 
 //-----------------------------------------------------------------------------
 
-struct NWire
+class NWire
 {
+public:
 	Wire wires[3];
+	double intersectPosW12[3]; // Use wire.id mod 3 if not first layer
+	double intersectPosW32[3];
+
+	Wire *GetWireById(int aId) {
+		if ((wires[0].id % 3) == (aId % 3)) { return &wires[0]; }
+		else if ((wires[1].id % 3) == (aId % 3)) { return &wires[1]; }
+		else if ((wires[2].id % 3) == (aId % 3)) { return &wires[2]; }
+		else { return NULL; }
+	};
 };
 
 //-----------------------------------------------------------------------------

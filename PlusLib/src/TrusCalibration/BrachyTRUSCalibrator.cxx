@@ -53,6 +53,9 @@
 #include "vnl/algo/vnl_matrix_inverse.h"
 #include "vcl_istream.h"
 
+#include "vtkMath.h"
+#include "vtkLine.h"
+
 // CommonFramework includes
 #include "LinearLeastSquares.h"
 
@@ -88,11 +91,6 @@ BrachyTRUSCalibrator::BrachyTRUSCalibrator( SegmentationParameters* aSegmentatio
 			mPhantomGeometryOnBackInnerWall[i][j].set_size(4);
 		}
 
-		mNWireJointTopLayerBackWall.set_size(4);
-		mNWireJointTopLayerFrontWall.set_size(4);
-		mNWireJointBottomLayerBackWall.set_size(4);
-		mNWireJointBottomLayerFrontWall.set_size(4);
-
 		// The reference points on BrachyTRUSCalibrator
 		// 1. All positions are all kept w.r.t the phantom frame.
 		// 2. These are fixed physical positions measurable using a Stylus probe.
@@ -107,8 +105,10 @@ BrachyTRUSCalibrator::BrachyTRUSCalibrator( SegmentationParameters* aSegmentatio
 			mPhantomSpecificReferencePoints[i].set_size(4);
 		}
 
+		mNWires = aSegmentationParameters->GetNWires();
+
 		// Load the phantom-specfic geometry
-		loadGeometry(aSegmentationParameters);
+		loadGeometry();
 	}
 	catch(...)
 	{
@@ -135,24 +135,16 @@ BrachyTRUSCalibrator::~BrachyTRUSCalibrator()
 
 //-----------------------------------------------------------------------------
 
-bool BrachyTRUSCalibrator::loadGeometry(SegmentationParameters* aSegmentationParameters)
+PlusStatus BrachyTRUSCalibrator::loadGeometry()
 {
 	if (mIsPhantomGeometryLoaded == true) {
 		mIsPhantomGeometryLoaded = false;
 	}
 
-	std::vector<NWire> nWires = aSegmentationParameters->GetNWires();
-	std::vector<std::vector<vnl_vector<double>>> vnl_NWires;
-
-	std::vector<std::vector<vnl_vector<double>>>::iterator itNWire;
-
 	double alphaTopLayerFrontWall = -1.0;
 	double alphaTopLayerBackWall = -1.0;
 	double alphaBottomLayerFrontWall = -1.0;
 	double alphaBottomLayerBackWall = -1.0;
-
-	int axisOfNWires = -1;
-
 
 	if( true == mIsSystemLogOn )
 	{
@@ -171,25 +163,21 @@ bool BrachyTRUSCalibrator::loadGeometry(SegmentationParameters* aSegmentationPar
 		SystemLogFile << "\n Endpoints of wires = \n\n";
 	}
 
-	int layer = -1; //TODO ensure that layer0 contains wire 1,2,3, layer1 contains wire 4,5,6 and so on
-	std::vector<NWire>::iterator it;
-	for (layer = 0, it = nWires.begin(); it != nWires.end(); ++it, ++layer) {
-		std::vector<vnl_vector<double>> vnl_NWire;
+	// List endpoints, check wire ids and NWire geometry correctness (wire order and locations) and compute intersections
+	for (std::vector<NWire>::iterator it = mNWires.begin(); it != mNWires.end(); ++it) {
+		int layer = it->wires[0].id / 3;
+		int sumLayer = 0;
 
 		for (int i=0; i<3; ++i) {
-			vnl_vector<double> endPointFront(4);
-			vnl_vector<double> endPointBack(4);
+			vnl_vector<double> endPointFront(3);
+			vnl_vector<double> endPointBack(3);
+
+			sumLayer += it->wires[i].id;
 		
 			for (int j=0; j<3; ++j) {
 				endPointFront[j] = it->wires[i].endPointFront[j] / 1000.0; //TODO this is meter
 				endPointBack[j] = it->wires[i].endPointBack[j] / 1000.0;
 			}
-			// Insert front first then back (so vector will be like {front0, back0, front1, back1, front2, back2}
-			endPointFront[3] = 1.0;
-			endPointBack[3] = 1.0;
-
-			vnl_NWire.push_back(endPointFront);
-			vnl_NWire.push_back(endPointBack);
 
 			if (mIsSystemLogOn == true) {
 				std::ofstream SystemLogFile(
@@ -199,97 +187,36 @@ bool BrachyTRUSCalibrator::loadGeometry(SegmentationParameters* aSegmentationPar
 			}
 		}
 
-		vnl_NWires.push_back(vnl_NWire);
-	}
-
-	if (mIsSystemLogOn == true) {
-		std::ofstream SystemLogFile(
-			mSystemLogFileNameWithTimeStamp.c_str(), std::ios::app);
-		SystemLogFile.close();
-	}
-
-
-	// Calculate wire joints
-	for (layer = 0, itNWire = vnl_NWires.begin(); itNWire != vnl_NWires.end(); ++itNWire, ++layer) {
-		// Find the diagonal wire for the NWire
-		int diagonal = -1;
-
-		// Convert 4D vectors to 3D to be able to compute cross product (for determining parallelism)
-		std::vector<vnl_vector<double>> endPoints3D;
-		for (int i=0; i<itNWire->size(); ++i) {
-			vnl_vector<double> endPoint(3);
-			for (int j=0; j<3; ++j) {
-				endPoint[j] = itNWire->at(i)[j];
-			}
-
-			endPoints3D.push_back(endPoint);
+		if (sumLayer != layer * 9 + 6) {
+			LOG_ERROR("Invalid NWire IDs (" << it->wires[0].id << ", " << it->wires[1].id << ", " << it->wires[2].id << ")!");
+			return PLUS_FAIL;
 		}
 
-		if (vnl_cross_3d(endPoints3D[0] - endPoints3D[1], endPoints3D[2] - endPoints3D[3]).is_zero()) {
-			diagonal = 2;
-		} else if (vnl_cross_3d(endPoints3D[0] - endPoints3D[1], endPoints3D[4] - endPoints3D[5]).is_zero()) {
-			diagonal = 1;
-		} else if (vnl_cross_3d(endPoints3D[2] - endPoints3D[3], endPoints3D[4] - endPoints3D[5]).is_zero()) {
-			diagonal = 0;
-		} else {
-			return false; // no diagonal found (there were no parallel wires in an NWire)! //TODO proper error message
+		// Check if the middle wire is the diagonal (the other two are parallel to each other and the first and the second, and the second and the third intersect)
+		double wire1[3];
+		double wire3[3];
+		double cross[3];
+		if ((it->GetWireById(1) == NULL) || (it->GetWireById(3) == NULL)) {
+			LOG_ERROR("No first or third wire found!");
+			return PLUS_FAIL;
 		}
-
-		// Determine wire that has a joint with the diagonal wire in front and the wire that has with the back
-		int jointFront = -1;
-		int jointBack = -1;
-		double minHoleDistanceFront = FLT_MAX;
-
-		for (int i=0; i<3; ++i) {
-			if (i == diagonal) {
-				continue;
-			}
-
-			if ((itNWire->at(diagonal*2) - itNWire->at(i*2)).magnitude() < minHoleDistanceFront) {
-				minHoleDistanceFront = (itNWire->at(diagonal*2) - itNWire->at(i*2)).magnitude();
-				jointFront = i;
-			}
+		vtkMath::Subtract(it->GetWireById(1)->endPointFront, it->GetWireById(1)->endPointBack, wire1);
+		vtkMath::Subtract(it->GetWireById(3)->endPointFront, it->GetWireById(3)->endPointBack, wire3);
+		vtkMath::Cross(wire1, wire3, cross);
+		if (vtkMath::Norm(cross) != 0) {
+			LOG_ERROR("The first and third wire of layer " << layer << " are not parallel!");
+			return PLUS_FAIL;
 		}
-
-		// Determine wire that has a joint with the diagonal wire in back
-		jointBack = 5 - (diagonal+1) - (jointFront+1);
-
-		//TODO Top and bottom layer determination automatically - the difficulty is that the phantom coordinate system can have any orientation; maybe it is better to modify the calibration to handleactual wires in the 3D space instead of layers
-		// Calculate joints
-		if (layer == 0) { // top
-			alphaTopLayerFrontWall =
-				(itNWire->at(jointFront*2) - itNWire->at(diagonal*2)).magnitude() / 
-				(itNWire->at(jointFront*2+1) - itNWire->at(diagonal*2+1)).magnitude();
-			mNWireJointTopLayerFrontWall = 
-				(1/(1-alphaTopLayerFrontWall)) * itNWire->at(jointFront*2) -
-				(alphaTopLayerFrontWall/(1-alphaTopLayerFrontWall)) * itNWire->at(jointFront*2+1);
-
-			alphaTopLayerBackWall =
-				(itNWire->at(jointBack*2+1) - itNWire->at(diagonal*2+1)).magnitude() / 
-				(itNWire->at(jointBack*2) - itNWire->at(diagonal*2)).magnitude();
-			mNWireJointTopLayerBackWall = 
-				(1/(1-alphaTopLayerBackWall)) * itNWire->at(jointBack*2+1) -
-				(alphaTopLayerBackWall/(1-alphaTopLayerBackWall)) * itNWire->at(jointBack*2);
-
-		} else if (layer == 1) { // bottom
-			alphaBottomLayerFrontWall =
-				(itNWire->at(jointFront*2) - itNWire->at(diagonal*2)).magnitude() / 
-				(itNWire->at(jointFront*2+1) - itNWire->at(diagonal*2+1)).magnitude();
-			mNWireJointBottomLayerFrontWall = 
-				(1/(1-alphaBottomLayerFrontWall)) * itNWire->at(jointFront*2) -
-				(alphaBottomLayerFrontWall/(1-alphaBottomLayerFrontWall)) * itNWire->at(jointFront*2+1);
-
-			alphaBottomLayerBackWall =
-				(itNWire->at(jointBack*2+1) - itNWire->at(diagonal*2+1)).magnitude() / 
-				(itNWire->at(jointBack*2) - itNWire->at(diagonal*2)).magnitude();
-			mNWireJointBottomLayerBackWall = 
-				(1/(1-alphaBottomLayerBackWall)) * itNWire->at(jointBack*2+1) -
-				(alphaBottomLayerBackWall/(1-alphaBottomLayerBackWall)) * itNWire->at(jointBack*2);
-
-		} else {
-			return false; //only 2 layers of wires are supported! //TODO proper error message
+		double closestTemp[3];
+		double parametricCoord1, parametricCoord2;
+		if (vtkLine::DistanceBetweenLines(it->wires[0].endPointFront, it->wires[0].endPointBack, it->wires[1].endPointFront, it->wires[1].endPointBack, it->intersectPosW12, closestTemp, parametricCoord1, parametricCoord2) > 0.000001) {
+			LOG_ERROR("The first and second wire of layer " << layer << " do not intersect each other!");
+			return PLUS_FAIL;
 		}
-
+		if (vtkLine::DistanceBetweenLines(it->wires[2].endPointFront, it->wires[2].endPointBack, it->wires[1].endPointFront, it->wires[1].endPointBack, it->intersectPosW32, closestTemp, parametricCoord1, parametricCoord2) > 0.000001) {
+			LOG_ERROR("The second and third wire of layer " << layer << " do not intersect each other!");
+			return PLUS_FAIL;
+		}
 	}
 
 	// Set the flag
@@ -301,20 +228,16 @@ bool BrachyTRUSCalibrator::loadGeometry(SegmentationParameters* aSegmentationPar
 		std::ofstream SystemLogFile(
 			mSystemLogFileNameWithTimeStamp.c_str(), std::ios::app);
 		SystemLogFile << " -----------------------------------------------------------------------------------\n";
-		SystemLogFile << "\n Alpha ratio between NWires = \n\n";
-		SystemLogFile << "\t alphaTopLayerBackWall \t= " << alphaTopLayerBackWall << "\n";
-		SystemLogFile << "\t alphaTopLayerFrontWall \t= " << alphaTopLayerFrontWall << "\n";
-		SystemLogFile << "\t alphaBottomLayerBackWall \t= " << alphaBottomLayerBackWall << "\n";
-		SystemLogFile << "\t alphaBottomLayerFrontWall \t= " << alphaBottomLayerFrontWall << "\n";
-		SystemLogFile << " -----------------------------------------------------------------------------------\n";
-		SystemLogFile << "\n Joints of N-wires in the Phantom frame = \n\n";
-		SystemLogFile << "\t mNWireJointTopLayerFrontWall(used) \t= " << mNWireJointTopLayerFrontWall << "\n\n";
-		SystemLogFile << "\t mNWireJointTopLayerBackWall(used) \t= " << mNWireJointTopLayerBackWall << "\n\n";
-		SystemLogFile << "\t mNWireJointBottomLayerFrontWall(used) \t= " << mNWireJointBottomLayerFrontWall << "\n\n";
-		SystemLogFile << "\t mNWireJointBottomLayerBackWall(used) \t= " << mNWireJointBottomLayerBackWall << "\n\n";
+		int layer;
+		std::vector<NWire>::iterator it;
+		for (it = mNWires.begin(), layer = 0; it != mNWires.end(); ++it, ++layer) {
+			SystemLogFile << "\t Intersection of wire 1 and 2 in layer " << layer << " \t= (" << it->intersectPosW12[0] << ", " << it->intersectPosW12[1] << ", " << it->intersectPosW12[2] << ")\n";
+			SystemLogFile << "\t Intersection of wire 3 and 2 in layer " << layer << " \t= (" << it->intersectPosW32[0] << ", " << it->intersectPosW32[1] << ", " << it->intersectPosW32[2] << ")\n";
+		}
 		SystemLogFile.close();
 	}
-  return true;
+
+	return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
@@ -602,59 +525,41 @@ void BrachyTRUSCalibrator::addDataPositionsPerImage(
 			// - Closely examine the wiring design and set Ai and Bi accordingly.
             // ==============================================================
 
-			vnl_vector<double> PositionInTemplateFrame; 
-			
-			if( 0 == Layer )
-			{
-				PositionInTemplateFrame = 
-					mNWireJointTopLayerBackWall + 
-					alpha*( mNWireJointTopLayerFrontWall - mNWireJointTopLayerBackWall );
+			vnl_vector<double> PositionInTemplateFrame(4);
+			vnl_vector<double> IntersectPosW12(4);
+			vnl_vector<double> IntersectPosW32(4);
 
-				// Log the data pipeline if requested.
-				if( true == mIsSystemLogOn )
-				{
-					std::ofstream SystemLogFile(
-						mSystemLogFileNameWithTimeStamp.c_str(), std::ios::app);
-					SystemLogFile << " ==========================================================================\n";
-					SystemLogFile << " ADD DATA FOR CALIBRATION >>>>>>>>>>>>>>>>>>>>>\n\n";
-					SystemLogFile << " SegmentedNFiducial-" << Layer*3 << " = " << SegmentedDataPositionListPerImage.at( Layer*3 ) << "\n"; 
-					SystemLogFile << " SegmentedNFiducial-" << Layer*3+1 << " = " << SegmentedDataPositionListPerImage.at( Layer*3+1 ) << "\n";  
-					SystemLogFile << " SegmentedNFiducial-" << Layer*3+2 << " = " << SegmentedDataPositionListPerImage.at( Layer*3+2 ) << "\n";  
-					SystemLogFile << " ----------------------------------------------------------------\n";
-					SystemLogFile << " SegmentedPositionInOriginalImageFrame = " << SegmentedPositionInOriginalImageFrame << "\n";
-					SystemLogFile << " SegmentedPositionInUSImageFrame = " << SegmentedPositionInUSImageFrame << "\n";
-					SystemLogFile << " alpha = " << alpha << "\n";
-					SystemLogFile << " PositionInTemplateFrame = " << PositionInTemplateFrame << "\n";
-					SystemLogFile << " TransformMatrixUSProbe2Stepper4x4 = \n" << TransformMatrixUSProbe2Stepper4x4 << "\n";
-					SystemLogFile << " TransformMatrixStepper2USProbe4x4 = \n" << TransformMatrixStepper2USProbe4x4 << "\n";
-					SystemLogFile.close();
-				}
+			// NWire joints that need to be saved to compute the PLDE (Point-Line Distance Error) 
+			// in addition to the real-time PRE3D.
+			vnl_vector<double> NWireStartinPhantomFrame;
+			vnl_vector<double> NWireEndinPhantomFrame;
+
+			for (int i=0; i<3; ++i) {
+				IntersectPosW12[i] = mNWires[Layer].intersectPosW12[i] / 1000.0;
+				IntersectPosW32[i] = mNWires[Layer].intersectPosW32[i] / 1000.0;
 			}
-			else // Layer == 1
+			IntersectPosW12[3] = 0.0;
+			IntersectPosW32[3] = 0.0;
+
+			PositionInTemplateFrame = IntersectPosW12 + alpha * ( IntersectPosW32 - IntersectPosW12 );
+
+			if( true == mIsSystemLogOn )
 			{
-				PositionInTemplateFrame = 
-					mNWireJointBottomLayerFrontWall + 
-					alpha*( mNWireJointBottomLayerBackWall - mNWireJointBottomLayerFrontWall );
-				
-				// Log the data pipeline if requested.
-				if( true == mIsSystemLogOn )
-				{
-					std::ofstream SystemLogFile(
-						mSystemLogFileNameWithTimeStamp.c_str(), std::ios::app);
-					SystemLogFile << " ==========================================================================\n";
-					SystemLogFile << " ADD DATA FOR CALIBRATION >>>>>>>>>>>>>>>>>>>>>\n\n";
-					SystemLogFile << " SegmentedNFiducial-" << Layer*3 << " = " << SegmentedDataPositionListPerImage.at( Layer*3 ) << "\n"; 
-					SystemLogFile << " SegmentedNFiducial-" << Layer*3+1 << " = " << SegmentedDataPositionListPerImage.at( Layer*3+1 ) << "\n";  
-					SystemLogFile << " SegmentedNFiducial-" << Layer*3+2 << " = " << SegmentedDataPositionListPerImage.at( Layer*3+2 ) << "\n";  
-					SystemLogFile << " ----------------------------------------------------------------\n";
-					SystemLogFile << " SegmentedPositionInOriginalImageFrame = " << SegmentedPositionInOriginalImageFrame << "\n";
-					SystemLogFile << " SegmentedPositionInUSImageFrame = " << SegmentedPositionInUSImageFrame << "\n";
-					SystemLogFile << " alpha = " << alpha << "\n";
-					SystemLogFile << " PositionInTemplateFrame = " << PositionInTemplateFrame << "\n";
-					SystemLogFile << " TransformMatrixUSProbe2Stepper4x4 = \n" << TransformMatrixUSProbe2Stepper4x4 << "\n";
-					SystemLogFile << " TransformMatrixStepper2USProbe4x4 = \n" << TransformMatrixStepper2USProbe4x4 << "\n";
-					SystemLogFile.close();
-				}
+				std::ofstream SystemLogFile(
+					mSystemLogFileNameWithTimeStamp.c_str(), std::ios::app);
+				SystemLogFile << " ==========================================================================\n";
+				SystemLogFile << " ADD DATA FOR CALIBRATION >>>>>>>>>>>>>>>>>>>>>\n\n";
+				SystemLogFile << " SegmentedNFiducial-" << Layer*3 << " = " << SegmentedDataPositionListPerImage.at( Layer*3 ) << "\n"; 
+				SystemLogFile << " SegmentedNFiducial-" << Layer*3+1 << " = " << SegmentedDataPositionListPerImage.at( Layer*3+1 ) << "\n";  
+				SystemLogFile << " SegmentedNFiducial-" << Layer*3+2 << " = " << SegmentedDataPositionListPerImage.at( Layer*3+2 ) << "\n";  
+				SystemLogFile << " ----------------------------------------------------------------\n";
+				SystemLogFile << " SegmentedPositionInOriginalImageFrame = " << SegmentedPositionInOriginalImageFrame << "\n";
+				SystemLogFile << " SegmentedPositionInUSImageFrame = " << SegmentedPositionInUSImageFrame << "\n";
+				SystemLogFile << " alpha = " << alpha << "\n";
+				SystemLogFile << " PositionInTemplateFrame = " << PositionInTemplateFrame << "\n";
+				SystemLogFile << " TransformMatrixUSProbe2Stepper4x4 = \n" << TransformMatrixUSProbe2Stepper4x4 << "\n";
+				SystemLogFile << " TransformMatrixStepper2USProbe4x4 = \n" << TransformMatrixStepper2USProbe4x4 << "\n";
+				SystemLogFile.close();
 			}
 
 			// Finally, calculate the position in the US probe frame
@@ -1000,58 +905,33 @@ void BrachyTRUSCalibrator::addDataPositionsPerImage(
 			// - Closely examine the wiring design and set Ai and Bi accordingly.
             // ==============================================================
 
-			vnl_vector<double> PositionInPhantomFrame;
+			vnl_vector<double> PositionInPhantomFrame(3);
+			vnl_vector<double> IntersectPosW12(3);
+			vnl_vector<double> IntersectPosW32(3);
 
-			if( 0 == Layer )
-			{
-				PositionInPhantomFrame = 
-					mNWireJointTopLayerBackWall + 
-					alpha*( mNWireJointTopLayerFrontWall - mNWireJointTopLayerBackWall );
-		
-				// Log the data pipeline if requested.
-				if( true == mIsSystemLogOn )
-				{
-					std::ofstream SystemLogFile(
-						mSystemLogFileNameWithTimeStamp.c_str(), std::ios::app);
-					SystemLogFile << " ==========================================================================\n";
-					SystemLogFile << " ADD DATA FOR CALIBRATION >>>>>>>>>>>>>>>>>>>>>\n\n";
-					SystemLogFile << " SegmentedNFiducial-" << Layer*3 << " = " << SegmentedDataPositionListPerImage.at( Layer*3 ) << "\n"; 
-					SystemLogFile << " SegmentedNFiducial-" << Layer*3+1 << " = " << SegmentedDataPositionListPerImage.at( Layer*3+1 ) << "\n";  
-					SystemLogFile << " SegmentedNFiducial-" << Layer*3+2 << " = " << SegmentedDataPositionListPerImage.at( Layer*3+2 ) << "\n";  
-					SystemLogFile << " ----------------------------------------------------------------\n";
-					SystemLogFile << " SegmentedPositionInOriginalImageFrame = " << SegmentedPositionInOriginalImageFrame << "\n";
-					SystemLogFile << " SegmentedPositionInUSImageFrame = " << SegmentedPositionInUSImageFrame << "\n";
-					SystemLogFile << " alpha = " << alpha << "\n";
-					SystemLogFile << " PositionInPhantomFrame = " << PositionInPhantomFrame << "\n";
-					SystemLogFile << " TransformMatrixDRB2USProbe4x4 = \n" << TransformMatrixDRB2USProbe4x4 << "\n";
-					SystemLogFile.close();
-				}
-
+			for (int i=0; i<3; ++i) {
+				IntersectPosW12[i] = mNWires[Layer].intersectPosW12[i] / 1000.0;
+				IntersectPosW32[i] = mNWires[Layer].intersectPosW32[i] / 1000.0;
 			}
-			else // Layer == 1
-			{
-				PositionInPhantomFrame = 
-					mNWireJointBottomLayerFrontWall + 
-					alpha*( mNWireJointBottomLayerBackWall - mNWireJointBottomLayerFrontWall );
 
-				// Log the data pipeline if requested.
-				if( true == mIsSystemLogOn )
-				{
-					std::ofstream SystemLogFile(
-						mSystemLogFileNameWithTimeStamp.c_str(), std::ios::app);
-					SystemLogFile << " ==========================================================================\n";
-					SystemLogFile << " ADD DATA FOR CALIBRATION >>>>>>>>>>>>>>>>>>>>>\n\n";
-					SystemLogFile << " SegmentedNFiducial-" << Layer*3 << " = " << SegmentedDataPositionListPerImage.at( Layer*3 ) << "\n"; 
-					SystemLogFile << " SegmentedNFiducial-" << Layer*3+1 << " = " << SegmentedDataPositionListPerImage.at( Layer*3+1 ) << "\n";  
-					SystemLogFile << " SegmentedNFiducial-" << Layer*3+2 << " = " << SegmentedDataPositionListPerImage.at( Layer*3+2 ) << "\n";  
-					SystemLogFile << " ----------------------------------------------------------------\n";
-					SystemLogFile << " SegmentedPositionInOriginalImageFrame = " << SegmentedPositionInOriginalImageFrame << "\n";
-					SystemLogFile << " SegmentedPositionInUSImageFrame = " << SegmentedPositionInUSImageFrame << "\n";
-					SystemLogFile << " alpha = " << alpha << "\n";
-					SystemLogFile << " PositionInPhantomFrame = " << PositionInPhantomFrame << "\n";
-					SystemLogFile << " TransformMatrixDRB2USProbe4x4 = \n" << TransformMatrixDRB2USProbe4x4 << "\n";
-					SystemLogFile.close();
-				}
+			PositionInPhantomFrame = IntersectPosW12 + alpha * ( IntersectPosW32 - IntersectPosW12 );
+
+			if( true == mIsSystemLogOn )
+			{
+				std::ofstream SystemLogFile(
+					mSystemLogFileNameWithTimeStamp.c_str(), std::ios::app);
+				SystemLogFile << " ==========================================================================\n";
+				SystemLogFile << " ADD DATA FOR CALIBRATION >>>>>>>>>>>>>>>>>>>>>\n\n";
+				SystemLogFile << " SegmentedNFiducial-" << Layer*3 << " = " << SegmentedDataPositionListPerImage.at( Layer*3 ) << "\n"; 
+				SystemLogFile << " SegmentedNFiducial-" << Layer*3+1 << " = " << SegmentedDataPositionListPerImage.at( Layer*3+1 ) << "\n";  
+				SystemLogFile << " SegmentedNFiducial-" << Layer*3+2 << " = " << SegmentedDataPositionListPerImage.at( Layer*3+2 ) << "\n";  
+				SystemLogFile << " ----------------------------------------------------------------\n";
+				SystemLogFile << " SegmentedPositionInOriginalImageFrame = " << SegmentedPositionInOriginalImageFrame << "\n";
+				SystemLogFile << " SegmentedPositionInUSImageFrame = " << SegmentedPositionInUSImageFrame << "\n";
+				SystemLogFile << " alpha = " << alpha << "\n";
+				SystemLogFile << " PositionInPhantomFrame = " << PositionInPhantomFrame << "\n";
+				SystemLogFile << " TransformMatrixDRB2USProbe4x4 = \n" << TransformMatrixDRB2USProbe4x4 << "\n";
+				SystemLogFile.close();
 			}
 
 			// Finally, calculate the position in the US probe frame
@@ -1332,77 +1212,42 @@ void BrachyTRUSCalibrator::addValidationPositionsPerImage(
 			//   the 6 segmented image positions (N-fiducials) and the wires.
 			// - Closely examine the wiring design and set Ai and Bi accordingly.
             // ==============================================================
-            
-			vnl_vector<double> PositionInTemplateFrame;
 
-			// NWire joints that need to be saved to compute the PLDE (Point-Line Distance Error)
+			vnl_vector<double> PositionInTemplateFrame(4);
+			vnl_vector<double> IntersectPosW12(4);
+			vnl_vector<double> IntersectPosW32(4);
+
+			// NWire joints that need to be saved to compute the PLDE (Point-Line Distance Error) 
 			// in addition to the real-time PRE3D.
-			vnl_vector<double> NWireStartInTemplateFrame;
-			vnl_vector<double> NWireEndInTemplateFrame;
-			
-			if( 0 == Layer )
-			{
-				PositionInTemplateFrame = 
-					mNWireJointTopLayerBackWall + 
-					alpha*( mNWireJointTopLayerFrontWall - mNWireJointTopLayerBackWall );
-				
-				NWireStartInTemplateFrame = mNWireJointTopLayerBackWall;
-				NWireEndInTemplateFrame = mNWireJointTopLayerFrontWall;
+			vnl_vector<double> NWireStartinPhantomFrame;
+			vnl_vector<double> NWireEndinPhantomFrame;
 
-				// Log the data pipeline if requested.
-				if( true == mIsSystemLogOn )
-				{
-					std::ofstream SystemLogFile(
-						mSystemLogFileNameWithTimeStamp.c_str(), std::ios::app);
-					SystemLogFile << " ==========================================================================\n";
-					SystemLogFile << " ADD DATA FOR VALIDATION >>>>>>>>>>>>>>>>>>>>>\n\n";
-					SystemLogFile << " SegmentedNFiducial-" << Layer*3 << " = " << SegmentedDataPositionListPerImage.at( Layer*3 ) << "\n"; 
-					SystemLogFile << " SegmentedNFiducial-" << Layer*3+1 << " = " << SegmentedDataPositionListPerImage.at( Layer*3+1 ) << "\n";  
-					SystemLogFile << " SegmentedNFiducial-" << Layer*3+2 << " = " << SegmentedDataPositionListPerImage.at( Layer*3+2 ) << "\n";  
-					SystemLogFile << " ----------------------------------------------------------------\n";
-					SystemLogFile << " N1SegmentedPositionInUSImageFrame = " << N1SegmentedPositionInUSImageFrame << "\n";
-					SystemLogFile << " N3SegmentedPositionInUSImageFrame = " << N3SegmentedPositionInUSImageFrame << "\n";
-					SystemLogFile << " ----------------------------------------------------------------\n";
-					SystemLogFile << " SegmentedPositionInOriginalImageFrame = " << SegmentedPositionInOriginalImageFrame << "\n";
-					SystemLogFile << " SegmentedPositionInUSImageFrame = " << SegmentedPositionInUSImageFrame << "\n";
-					SystemLogFile << " alpha = " << alpha << "\n";
-					SystemLogFile << " PositionInTemplateFrame = " << PositionInTemplateFrame << "\n";
+			for (int i=0; i<3; ++i) {
+				IntersectPosW12[i] = mNWires[Layer].intersectPosW12[i] / 1000.0;
+				IntersectPosW32[i] = mNWires[Layer].intersectPosW32[i] / 1000.0;
+			}
+			IntersectPosW12[3] = 0.0;
+			IntersectPosW32[3] = 0.0;
+
+			PositionInTemplateFrame = IntersectPosW12 + alpha * ( IntersectPosW32 - IntersectPosW12 );
+
+			if( true == mIsSystemLogOn )
+			{
+				std::ofstream SystemLogFile(
+					mSystemLogFileNameWithTimeStamp.c_str(), std::ios::app);
+				SystemLogFile << " ==========================================================================\n";
+				SystemLogFile << " ADD DATA FOR VALIDATION >>>>>>>>>>>>>>>>>>>>>\n\n";
+				SystemLogFile << " SegmentedNFiducial-" << Layer*3 << " = " << SegmentedDataPositionListPerImage.at( Layer*3 ) << "\n"; 
+				SystemLogFile << " SegmentedNFiducial-" << Layer*3+1 << " = " << SegmentedDataPositionListPerImage.at( Layer*3+1 ) << "\n";  
+				SystemLogFile << " SegmentedNFiducial-" << Layer*3+2 << " = " << SegmentedDataPositionListPerImage.at( Layer*3+2 ) << "\n";  
+				SystemLogFile << " ----------------------------------------------------------------\n";
+				SystemLogFile << " SegmentedPositionInOriginalImageFrame = " << SegmentedPositionInOriginalImageFrame << "\n";
+				SystemLogFile << " SegmentedPositionInUSImageFrame = " << SegmentedPositionInUSImageFrame << "\n";
+				SystemLogFile << " alpha = " << alpha << "\n";
+				SystemLogFile << " PositionInTemplateFrame = " << PositionInTemplateFrame << "\n";
 					SystemLogFile << " TransformMatrixUSProbe2Stepper4x4 = \n" << TransformMatrixUSProbe2Stepper4x4 << "\n";					
 					SystemLogFile << " TransformMatrixStepper2USProbe4x4 = \n" << TransformMatrixStepper2USProbe4x4 << "\n";
-					SystemLogFile.close();
-				}
-			}
-			else // Layer == 1
-			{
-				PositionInTemplateFrame = 
-					mNWireJointBottomLayerFrontWall + 
-					alpha*( mNWireJointBottomLayerBackWall - mNWireJointBottomLayerFrontWall );
-				
-				NWireStartInTemplateFrame = mNWireJointBottomLayerBackWall;
-				NWireEndInTemplateFrame = mNWireJointBottomLayerFrontWall;
-
-				// Log the data pipeline if requested.
-				if( true == mIsSystemLogOn )
-				{
-					std::ofstream SystemLogFile(
-						mSystemLogFileNameWithTimeStamp.c_str(), std::ios::app);
-					SystemLogFile << " ==========================================================================\n";
-					SystemLogFile << " ADD DATA FOR VALIDATION >>>>>>>>>>>>>>>>>>>>>\n\n";
-					SystemLogFile << " SegmentedNFiducial-" << Layer*3 << " = " << SegmentedDataPositionListPerImage.at( Layer*3 ) << "\n"; 
-					SystemLogFile << " SegmentedNFiducial-" << Layer*3+1 << " = " << SegmentedDataPositionListPerImage.at( Layer*3+1 ) << "\n";  
-					SystemLogFile << " SegmentedNFiducial-" << Layer*3+2 << " = " << SegmentedDataPositionListPerImage.at( Layer*3+2 ) << "\n";  
-					SystemLogFile << " ----------------------------------------------------------------\n";
-					SystemLogFile << " N4SegmentedPositionInUSImageFrame = " << N4SegmentedPositionInUSImageFrame << "\n";
-					SystemLogFile << " N6SegmentedPositionInUSImageFrame = " << N6SegmentedPositionInUSImageFrame << "\n";
-					SystemLogFile << " ----------------------------------------------------------------\n";
-					SystemLogFile << " SegmentedPositionInOriginalImageFrame = " << SegmentedPositionInOriginalImageFrame << "\n";
-					SystemLogFile << " SegmentedPositionInUSImageFrame = " << SegmentedPositionInUSImageFrame << "\n";
-					SystemLogFile << " alpha = " << alpha << "\n";
-					SystemLogFile << " PositionInTemplateFrame = " << PositionInTemplateFrame << "\n";
-					SystemLogFile << " TransformMatrixUSProbe2Stepper4x4 = \n" << TransformMatrixUSProbe2Stepper4x4 << "\n";
-					SystemLogFile << " TransformMatrixStepper2USProbe4x4 = \n" << TransformMatrixStepper2USProbe4x4 << "\n";
-					SystemLogFile.close();
-				}
+				SystemLogFile.close();
 			}
 
 			// Finally, calculate the position in the US probe frame
@@ -1416,12 +1261,12 @@ void BrachyTRUSCalibrator::addValidationPositionsPerImage(
 			vnl_vector<double> NWireStartinUSProbeFrame =
 				TransformMatrixStepper2USProbe4x4 * 
 				mTransformMatrixPhantom2DRB4x4 *
-				NWireStartInTemplateFrame;
+				IntersectPosW12;
 
 			vnl_vector<double> NWireEndinUSProbeFrame =
 				TransformMatrixStepper2USProbe4x4 * 
 				mTransformMatrixPhantom2DRB4x4 *
-				NWireEndInTemplateFrame;
+				IntersectPosW32;
 
 			// The parallel wires position in US Probe frame 
 			// Note: 
@@ -1433,25 +1278,25 @@ void BrachyTRUSCalibrator::addValidationPositionsPerImage(
 			vnl_vector<double> NWireJointTopLayerBackWallForN1InUSProbeFrame =
 				TransformMatrixStepper2USProbe4x4 * 
 				mTransformMatrixPhantom2DRB4x4 *
-				mNWireJointTopLayerBackWall;
+				IntersectPosW12;
 
 			// Wire N3 corresponds to mNWireJointTopLayerFrontWall
 			vnl_vector<double> NWireJointTopLayerBackWallForN3InUSProbeFrame =
 				TransformMatrixStepper2USProbe4x4 * 
 				mTransformMatrixPhantom2DRB4x4 *
-				mNWireJointTopLayerFrontWall;
+				IntersectPosW32;
 
 			// Wire N4 corresponds to mNWireJointBottomLayerFrontWall
 			vnl_vector<double> NWireJointTopLayerBackWallForN4InUSProbeFrame =
 				TransformMatrixStepper2USProbe4x4 * 
 				mTransformMatrixPhantom2DRB4x4 *
-				mNWireJointBottomLayerFrontWall;
+				IntersectPosW32;
 
 			// Wire N6 corresponds to mNWireJointBottomLayerBackWall
 			vnl_vector<double> NWireJointTopLayerBackWallForN6InUSProbeFrame =
 				TransformMatrixStepper2USProbe4x4 * 
 				mTransformMatrixPhantom2DRB4x4 *
-				mNWireJointBottomLayerBackWall;
+				IntersectPosW12;
 
 			// Store into the list of positions in the US image frame
 			mValidationPositionsInUSImageFrame.push_back( SegmentedPositionInUSImageFrame );
@@ -1690,68 +1535,36 @@ void BrachyTRUSCalibrator::addValidationPositionsPerImage(
 			// - Closely examine the wiring design and set Ai and Bi accordingly.
             // ==============================================================
 
-			vnl_vector<double> PositionInPhantomFrame;
 
-			// NWire joints that need to be saved to compute the PLDE (Point-Line Distance Error) 
-			// in addition to the real-time PRE3D.
-			vnl_vector<double> NWireStartinPhantomFrame;
-			vnl_vector<double> NWireEndinPhantomFrame;
-			
-			if( 0 == Layer )
-			{
-				PositionInPhantomFrame = 
-					mNWireJointTopLayerBackWall + 
-					alpha*( mNWireJointTopLayerFrontWall - mNWireJointTopLayerBackWall );
-				
-				NWireStartinPhantomFrame = mNWireJointTopLayerBackWall;
-				NWireEndinPhantomFrame = mNWireJointTopLayerFrontWall;
+			vnl_vector<double> PositionInPhantomFrame(4);
+			vnl_vector<double> IntersectPosW12(4);
+			vnl_vector<double> IntersectPosW32(4);
 
-				// Log the data pipeline if requested.
-				if( true == mIsSystemLogOn )
-				{
-					std::ofstream SystemLogFile(
-						mSystemLogFileNameWithTimeStamp.c_str(), std::ios::app);
-					SystemLogFile << " ==========================================================================\n";
-					SystemLogFile << " ADD DATA FOR VALIDATION >>>>>>>>>>>>>>>>>>>>>\n\n";
-					SystemLogFile << " SegmentedNFiducial-" << Layer*3 << " = " << SegmentedDataPositionListPerImage.at( Layer*3 ) << "\n"; 
-					SystemLogFile << " SegmentedNFiducial-" << Layer*3+1 << " = " << SegmentedDataPositionListPerImage.at( Layer*3+1 ) << "\n";  
-					SystemLogFile << " SegmentedNFiducial-" << Layer*3+2 << " = " << SegmentedDataPositionListPerImage.at( Layer*3+2 ) << "\n";  
-					SystemLogFile << " ----------------------------------------------------------------\n";
-					SystemLogFile << " SegmentedPositionInOriginalImageFrame = " << SegmentedPositionInOriginalImageFrame << "\n";
-					SystemLogFile << " SegmentedPositionInUSImageFrame = " << SegmentedPositionInUSImageFrame << "\n";
-					SystemLogFile << " alpha = " << alpha << "\n";
-					SystemLogFile << " PositionInPhantomFrame = " << PositionInPhantomFrame << "\n";
-					SystemLogFile << " TransformMatrixDRB2USProbe4x4 = \n" << TransformMatrixDRB2USProbe4x4 << "\n";
-					SystemLogFile.close();
-				}
+			for (int i=0; i<3; ++i) {
+				IntersectPosW12[i] = mNWires[Layer].intersectPosW12[i] / 1000.0;
+				IntersectPosW32[i] = mNWires[Layer].intersectPosW32[i] / 1000.0;
 			}
-			else // Layer == 1
-			{
-				PositionInPhantomFrame = 
-					mNWireJointBottomLayerFrontWall + 
-					alpha*( mNWireJointBottomLayerBackWall - mNWireJointBottomLayerFrontWall );
-				
-				NWireStartinPhantomFrame = mNWireJointBottomLayerBackWall;
-				NWireEndinPhantomFrame = mNWireJointBottomLayerFrontWall;
+			IntersectPosW12[3] = 0.0;
+			IntersectPosW32[3] = 0.0;
 
-				// Log the data pipeline if requested.
-				if( true == mIsSystemLogOn )
-				{
-					std::ofstream SystemLogFile(
-						mSystemLogFileNameWithTimeStamp.c_str(), std::ios::app);
-					SystemLogFile << " ==========================================================================\n";
-					SystemLogFile << " ADD DATA FOR VALIDATION >>>>>>>>>>>>>>>>>>>>>\n\n";
-					SystemLogFile << " SegmentedNFiducial-" << Layer*3 << " = " << SegmentedDataPositionListPerImage.at( Layer*3 ) << "\n"; 
-					SystemLogFile << " SegmentedNFiducial-" << Layer*3+1 << " = " << SegmentedDataPositionListPerImage.at( Layer*3+1 ) << "\n";  
-					SystemLogFile << " SegmentedNFiducial-" << Layer*3+2 << " = " << SegmentedDataPositionListPerImage.at( Layer*3+2 ) << "\n";  
-					SystemLogFile << " ----------------------------------------------------------------\n";
-					SystemLogFile << " SegmentedPositionInOriginalImageFrame = " << SegmentedPositionInOriginalImageFrame << "\n";
-					SystemLogFile << " SegmentedPositionInUSImageFrame = " << SegmentedPositionInUSImageFrame << "\n";
-					SystemLogFile << " alpha = " << alpha << "\n";
-					SystemLogFile << " PositionInPhantomFrame = " << PositionInPhantomFrame << "\n";
-					SystemLogFile << " TransformMatrixDRB2USProbe4x4 = \n" << TransformMatrixDRB2USProbe4x4 << "\n";
-					SystemLogFile.close();
-				}
+			PositionInPhantomFrame = IntersectPosW12 + alpha * ( IntersectPosW32 - IntersectPosW12 );
+
+			if( true == mIsSystemLogOn )
+			{
+				std::ofstream SystemLogFile(
+					mSystemLogFileNameWithTimeStamp.c_str(), std::ios::app);
+				SystemLogFile << " ==========================================================================\n";
+				SystemLogFile << " ADD DATA FOR VALIDATION >>>>>>>>>>>>>>>>>>>>>\n\n";
+				SystemLogFile << " SegmentedNFiducial-" << Layer*3 << " = " << SegmentedDataPositionListPerImage.at( Layer*3 ) << "\n"; 
+				SystemLogFile << " SegmentedNFiducial-" << Layer*3+1 << " = " << SegmentedDataPositionListPerImage.at( Layer*3+1 ) << "\n";  
+				SystemLogFile << " SegmentedNFiducial-" << Layer*3+2 << " = " << SegmentedDataPositionListPerImage.at( Layer*3+2 ) << "\n";  
+				SystemLogFile << " ----------------------------------------------------------------\n";
+				SystemLogFile << " SegmentedPositionInOriginalImageFrame = " << SegmentedPositionInOriginalImageFrame << "\n";
+				SystemLogFile << " SegmentedPositionInUSImageFrame = " << SegmentedPositionInUSImageFrame << "\n";
+				SystemLogFile << " alpha = " << alpha << "\n";
+				SystemLogFile << " PositionInPhantomFrame = " << PositionInPhantomFrame << "\n";
+				SystemLogFile << " TransformMatrixDRB2USProbe4x4 = \n" << TransformMatrixDRB2USProbe4x4 << "\n";
+				SystemLogFile.close();
 			}
 
 			// Finally, calculate the position in the US probe frame
@@ -1764,20 +1577,20 @@ void BrachyTRUSCalibrator::addValidationPositionsPerImage(
 			vnl_vector<double> NWireStartinUSProbeFrame =
 				TransformMatrixDRB2USProbe4x4 * 
 				mTransformMatrixPhantom2DRB4x4 * 
-				NWireStartinPhantomFrame;
+				IntersectPosW12;
 
 			vnl_vector<double> NWireEndinUSProbeFrame =
 				TransformMatrixDRB2USProbe4x4 * 
 				mTransformMatrixPhantom2DRB4x4 * 
-				NWireEndinPhantomFrame;
+				IntersectPosW32;
 
 			// Store into the list of positions in the US image frame
 			mValidationPositionsInUSImageFrame.push_back( SegmentedPositionInUSImageFrame );
 
 			// Store into the list of positions in the US probe frame
 			mValidationPositionsInUSProbeFrame.push_back( PositionInUSProbeFrame );
-			mValidationPositionsNWireStartInUSProbeFrame.push_back( NWireStartinUSProbeFrame );
-			mValidationPositionsNWireEndInUSProbeFrame.push_back( NWireEndinUSProbeFrame );
+			mValidationPositionsNWireStartInUSProbeFrame.push_back( IntersectPosW12 );
+			mValidationPositionsNWireEndInUSProbeFrame.push_back( IntersectPosW32 );
 
 			// Store into the list of positions in the Phantom frame
 			mValidationPositionsInPhantomFrame.push_back( PositionInPhantomFrame );
@@ -1909,57 +1722,41 @@ std::vector<double> BrachyTRUSCalibrator::getPRE3DforRealtimeImage(
 			// - Closely examine the wiring design and set Ai and Bi accordingly.
             // ==============================================================
 
-			vnl_vector<double> PositionInPhantomFrame;
-			
-			if( 0 == Layer )
-			{
-				PositionInPhantomFrame = 
-					mNWireJointTopLayerBackWall + 
-					alpha* (mNWireJointTopLayerFrontWall - mNWireJointTopLayerBackWall );
 
-				// Log the data pipeline if requested.
-				if( true == mIsSystemLogOn )
-				{
-					std::ofstream SystemLogFile(
-						mSystemLogFileNameWithTimeStamp.c_str(), std::ios::app);
-					SystemLogFile << " ==========================================================================\n";
-					SystemLogFile << " REAL-TIME DATA FOR VALIDATION >>>>>>>>>>>>>>>>>>>>>\n\n";
-					SystemLogFile << " SegmentedNFiducial-" << Layer*3 << " = " << SegmentedDataPositionListPerImage.at( Layer*3 ) << "\n"; 
-					SystemLogFile << " SegmentedNFiducial-" << Layer*3+1 << " = " << SegmentedDataPositionListPerImage.at( Layer*3+1 ) << "\n";  
-					SystemLogFile << " SegmentedNFiducial-" << Layer*3+2 << " = " << SegmentedDataPositionListPerImage.at( Layer*3+2 ) << "\n";  
-					SystemLogFile << " ----------------------------------------------------------------\n";
-					SystemLogFile << " SegmentedPositionInOriginalImageFrame = " << SegmentedPositionInOriginalImageFrame << "\n";
-					SystemLogFile << " SegmentedPositionInUSImageFrame = " << SegmentedPositionInUSImageFrame << "\n";
-					SystemLogFile << " alpha = " << alpha << "\n";
-					SystemLogFile << " PositionInPhantomFrame = " << PositionInPhantomFrame << "\n";
-					SystemLogFile << " TransformMatrixDRB2USProbe4x4 = \n" << TransformMatrixDRB2USProbe4x4 << "\n";
-					SystemLogFile.close();
-				}
+			vnl_vector<double> PositionInPhantomFrame(4);
+			vnl_vector<double> IntersectPosW12(4);
+			vnl_vector<double> IntersectPosW32(4);
+
+			// NWire joints that need to be saved to compute the PLDE (Point-Line Distance Error) 
+			// in addition to the real-time PRE3D.
+			vnl_vector<double> NWireStartinPhantomFrame;
+			vnl_vector<double> NWireEndinPhantomFrame;
+
+			for (int i=0; i<3; ++i) {
+				IntersectPosW12[i] = mNWires[Layer].intersectPosW12[i] / 1000.0;
+				IntersectPosW32[i] = mNWires[Layer].intersectPosW32[i] / 1000.0;
 			}
-			else // Layer == 1
-			{
-				PositionInPhantomFrame = 
-					mNWireJointBottomLayerFrontWall + 
-					alpha*( mNWireJointBottomLayerBackWall - mNWireJointBottomLayerFrontWall );
+			IntersectPosW12[3] = 0.0;
+			IntersectPosW32[3] = 0.0;
 
-				// Log the data pipeline if requested.
-				if( true == mIsSystemLogOn )
-				{
-					std::ofstream SystemLogFile(
-						mSystemLogFileNameWithTimeStamp.c_str(), std::ios::app);
-					SystemLogFile << " ==========================================================================\n";
-					SystemLogFile << " REAL-TIME DATA FOR VALIDATION >>>>>>>>>>>>>>>>>>>>>\n\n";
-					SystemLogFile << " SegmentedNFiducial-" << Layer*3 << " = " << SegmentedDataPositionListPerImage.at( Layer*3 ) << "\n"; 
-					SystemLogFile << " SegmentedNFiducial-" << Layer*3+1 << " = " << SegmentedDataPositionListPerImage.at( Layer*3+1 ) << "\n";  
-					SystemLogFile << " SegmentedNFiducial-" << Layer*3+2 << " = " << SegmentedDataPositionListPerImage.at( Layer*3+2 ) << "\n";  
-					SystemLogFile << " ----------------------------------------------------------------\n";
-					SystemLogFile << " SegmentedPositionInOriginalImageFrame = " << SegmentedPositionInOriginalImageFrame << "\n";
-					SystemLogFile << " SegmentedPositionInUSImageFrame = " << SegmentedPositionInUSImageFrame << "\n";
-					SystemLogFile << " alpha = " << alpha << "\n";
-					SystemLogFile << " PositionInPhantomFrame = " << PositionInPhantomFrame << "\n";
-					SystemLogFile << " TransformMatrixDRB2USProbe4x4 = \n" << TransformMatrixDRB2USProbe4x4 << "\n";
-					SystemLogFile.close();
-				}
+			PositionInPhantomFrame = IntersectPosW12 + alpha * ( IntersectPosW32 - IntersectPosW12 );
+
+			if( true == mIsSystemLogOn )
+			{
+				std::ofstream SystemLogFile(
+					mSystemLogFileNameWithTimeStamp.c_str(), std::ios::app);
+				SystemLogFile << " ==========================================================================\n";
+				SystemLogFile << " ADD DATA FOR CALIBRATION >>>>>>>>>>>>>>>>>>>>>\n\n";
+				SystemLogFile << " SegmentedNFiducial-" << Layer*3 << " = " << SegmentedDataPositionListPerImage.at( Layer*3 ) << "\n"; 
+				SystemLogFile << " SegmentedNFiducial-" << Layer*3+1 << " = " << SegmentedDataPositionListPerImage.at( Layer*3+1 ) << "\n";  
+				SystemLogFile << " SegmentedNFiducial-" << Layer*3+2 << " = " << SegmentedDataPositionListPerImage.at( Layer*3+2 ) << "\n";  
+				SystemLogFile << " ----------------------------------------------------------------\n";
+				SystemLogFile << " SegmentedPositionInOriginalImageFrame = " << SegmentedPositionInOriginalImageFrame << "\n";
+				SystemLogFile << " SegmentedPositionInUSImageFrame = " << SegmentedPositionInUSImageFrame << "\n";
+				SystemLogFile << " alpha = " << alpha << "\n";
+				SystemLogFile << " PositionInPhantomFrame = " << PositionInPhantomFrame << "\n";
+				SystemLogFile << " TransformMatrixDRB2USProbe4x4 = \n" << TransformMatrixDRB2USProbe4x4 << "\n";
+				SystemLogFile.close();
 			}
 
 			// Finally, calculate the position in the US probe frame
