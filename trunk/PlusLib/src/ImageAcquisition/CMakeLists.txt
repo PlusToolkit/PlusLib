@@ -49,7 +49,7 @@ IF (PLUS_USE_SONIX_VIDEO)
 
 	SET (ImageAcquisition_SRCS
 		${ImageAcquisition_SRCS}
-		SonixVideo/vtkSonixVideoSource2.cxx
+		SonixVideo/vtkSonixVideoSource.cxx
 		SonixVideo/vtkSonixVolumeReader.cxx
         SonixVideo/itkUlteriusImageIO.cxx
         SonixVideo/itkUlteriusImageIOFactory.cxx  
@@ -58,7 +58,7 @@ IF (PLUS_USE_SONIX_VIDEO)
 	if (WIN32)	
 		SET (ImageAcquisition_HDRS
 			${ImageAcquisition_HDRS}
-			SonixVideo/vtkSonixVideoSource2.h
+			SonixVideo/vtkSonixVideoSource.h
 			SonixVideo/vtkSonixVolumeReader.h
             SonixVideo/itkUlteriusImageIO.h
             SonixVideo/itkUlteriusImageIOFactory.h       
@@ -148,14 +148,14 @@ SET (ICCapturing_LIBRARY)
 IF (PLUS_USE_ICCAPTURING_VIDEO)
 	SET (ImageAcquisition_SRCS
 		${ImageAcquisition_SRCS}
-		ICCapturing/vtkICCapturingSource2.cxx
+		ICCapturing/vtkICCapturingSource.cxx
 		ICCapturing/ICCapturingListener.cxx
 	)
 	
 	if (WIN32)	
 		SET (ImageAcquisition_HDRS
 			${ImageAcquisition_HDRS}
-			ICCapturing/vtkICCapturingSource2.h
+			ICCapturing/vtkICCapturingSource.h
 			ICCapturing/ICCapturingListener.h 
 			)
 	endif (WIN32)	

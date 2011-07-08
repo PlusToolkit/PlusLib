@@ -2,14 +2,14 @@
 #include "vtksys/CommandLineArguments.hxx"
 #include <stdlib.h>
 #include "vtkRenderWindowInteractor.h"
-#include "vtkSonixVideoSource2.h"
+#include "vtkSonixVideoSource.h"
 #include "vtkVideoBuffer.h"
 #include "vtkImageViewer.h"
 #include "vtkCallbackCommand.h"
 #include "vtkCommand.h"
 #include "vtkSmartPointer.h"
 
-vtkSonixVideoSource2 *sonixGrabber = NULL;
+vtkSonixVideoSource *sonixGrabber = NULL;
 vtkImageViewer *viewer = NULL;
 vtkRenderWindowInteractor *iren = NULL;
 
@@ -62,7 +62,7 @@ int main(int argc, char* argv[])
 	PlusLogger::Instance()->SetLogLevel(verboseLevel);
 
    //Add the video source here
-	sonixGrabber = vtkSonixVideoSource2::New();
+	sonixGrabber = vtkSonixVideoSource::New();
 	sonixGrabber->SetSonixIP(inputSonixIP.c_str());
 	sonixGrabber->SetImagingMode(0);
 	sonixGrabber->SetAcquisitionDataType(0x00000004);

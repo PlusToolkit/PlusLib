@@ -1,6 +1,6 @@
 /*=========================================================================
 
-Module:    $RCSfile: vtkSonixVideoSource2.cxx,v $
+Module:    $RCSfile: vtkSonixVideoSource.cxx,v $
 Author:  Siddharth Vikal, Queens School Of Computing
 
 Copyright (c) 2008, Queen's University, Kingston, Ontario, Canada
@@ -40,7 +40,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
 =========================================================================*/
 
-#include "vtkSonixVideoSource2.h"
+#include "vtkSonixVideoSource.h"
 
 #include "vtkImageData.h"
 #include "vtkCriticalSection.h"
@@ -75,16 +75,16 @@ POSSIBILITY OF SUCH DAMAGE.
 
 
 
-vtkCxxRevisionMacro(vtkSonixVideoSource2, "$Revision: 1.0$");
+vtkCxxRevisionMacro(vtkSonixVideoSource, "$Revision: 1.0$");
 //vtkStandardNewMacro(vtkWin32VideoSource);
 //----------------------------------------------------------------------------
 // Needed when we don't use the vtkStandardNewMacro.
-vtkInstantiatorNewMacro(vtkSonixVideoSource2);
+vtkInstantiatorNewMacro(vtkSonixVideoSource);
 
 //----------------------------------------------------------------------------
 
-vtkSonixVideoSource2* vtkSonixVideoSource2::Instance = 0;
-vtkSonixVideoSourceCleanup2 vtkSonixVideoSource2::Cleanup;
+vtkSonixVideoSource* vtkSonixVideoSource::Instance = 0;
+vtkSonixVideoSourceCleanup vtkSonixVideoSource::Cleanup;
 
 
 //sonic param indices
@@ -124,18 +124,18 @@ vtkSonixVideoSourceCleanup2 vtkSonixVideoSource2::Cleanup;
 #endif // 
 
 //----------------------------------------------------------------------------
-vtkSonixVideoSourceCleanup2::vtkSonixVideoSourceCleanup2()
+vtkSonixVideoSourceCleanup::vtkSonixVideoSourceCleanup()
 {
 }
 
 //----------------------------------------------------------------------------
-vtkSonixVideoSourceCleanup2::~vtkSonixVideoSourceCleanup2()
+vtkSonixVideoSourceCleanup::~vtkSonixVideoSourceCleanup()
 {
     // Destroy any remaining output window.
-    vtkSonixVideoSource2::SetInstance(NULL);
+    vtkSonixVideoSource::SetInstance(NULL);
 }
 //----------------------------------------------------------------------------
-vtkSonixVideoSource2::vtkSonixVideoSource2()
+vtkSonixVideoSource::vtkSonixVideoSource()
 {
     this->ult = new ulterius();
     this->DataDescriptor = new uDataDesc();
@@ -166,10 +166,10 @@ vtkSonixVideoSource2::vtkSonixVideoSource2()
 }
 
 //----------------------------------------------------------------------------
-vtkSonixVideoSource2::~vtkSonixVideoSource2()
+vtkSonixVideoSource::~vtkSonixVideoSource()
 { 
 
-    this->vtkSonixVideoSource2::ReleaseSystemResources();
+    this->vtkSonixVideoSource::ReleaseSystemResources();
 
     if ( this->DataDescriptor != NULL ) 
     {
@@ -183,47 +183,47 @@ vtkSonixVideoSource2::~vtkSonixVideoSource2()
 
 //----------------------------------------------------------------------------
 // Up the reference count so it behaves like New
-vtkSonixVideoSource2* vtkSonixVideoSource2::New()
+vtkSonixVideoSource* vtkSonixVideoSource::New()
 {
-    vtkSonixVideoSource2* ret = vtkSonixVideoSource2::GetInstance();
+    vtkSonixVideoSource* ret = vtkSonixVideoSource::GetInstance();
     ret->Register(NULL);
     return ret;
 }
 
 //----------------------------------------------------------------------------
 // Return the single instance of the vtkOutputWindow
-vtkSonixVideoSource2* vtkSonixVideoSource2::GetInstance()
+vtkSonixVideoSource* vtkSonixVideoSource::GetInstance()
 {
-    if(!vtkSonixVideoSource2::Instance)
+    if(!vtkSonixVideoSource::Instance)
     {
         // Try the factory first
-        vtkSonixVideoSource2::Instance = (vtkSonixVideoSource2*)vtkObjectFactory::CreateInstance("vtkSonixVideoSource2");    
-        if(!vtkSonixVideoSource2::Instance)
+        vtkSonixVideoSource::Instance = (vtkSonixVideoSource*)vtkObjectFactory::CreateInstance("vtkSonixVideoSource");    
+        if(!vtkSonixVideoSource::Instance)
         {
-            vtkSonixVideoSource2::Instance = new vtkSonixVideoSource2();     
+            vtkSonixVideoSource::Instance = new vtkSonixVideoSource();     
         }
-        if(!vtkSonixVideoSource2::Instance)
+        if(!vtkSonixVideoSource::Instance)
         {
             int error = 0;
         }
     }
     // return the instance
-    return vtkSonixVideoSource2::Instance;
+    return vtkSonixVideoSource::Instance;
 }
 
 //----------------------------------------------------------------------------
-void vtkSonixVideoSource2::SetInstance(vtkSonixVideoSource2* instance)
+void vtkSonixVideoSource::SetInstance(vtkSonixVideoSource* instance)
 {
-    if (vtkSonixVideoSource2::Instance==instance)
+    if (vtkSonixVideoSource::Instance==instance)
     {
         return;
     }
     // preferably this will be NULL
-    if (vtkSonixVideoSource2::Instance)
+    if (vtkSonixVideoSource::Instance)
     {
-        vtkSonixVideoSource2::Instance->Delete();;
+        vtkSonixVideoSource::Instance->Delete();;
     }
-    vtkSonixVideoSource2::Instance = instance;
+    vtkSonixVideoSource::Instance = instance;
     if (!instance)
     {
         return;
@@ -232,7 +232,7 @@ void vtkSonixVideoSource2::SetInstance(vtkSonixVideoSource2* instance)
     instance->Register(NULL);
 }
 //----------------------------------------------------------------------------
-void vtkSonixVideoSource2::PrintSelf(ostream& os, vtkIndent indent)
+void vtkSonixVideoSource::PrintSelf(ostream& os, vtkIndent indent)
 {
     this->Superclass::PrintSelf(os,indent);
 
@@ -244,7 +244,7 @@ void vtkSonixVideoSource2::PrintSelf(ostream& os, vtkIndent indent)
 
 //----------------------------------------------------------------------------
 // the callback function used when there is a new frame of data received
-bool vtkSonixVideoSource2::vtkSonixVideoSourceNewFrameCallback(void * data, int type, int sz, bool cine, int frmnum)
+bool vtkSonixVideoSource::vtkSonixVideoSourceNewFrameCallback(void * data, int type, int sz, bool cine, int frmnum)
 {    
     if(!data || !sz)
     {
@@ -254,7 +254,7 @@ bool vtkSonixVideoSource2::vtkSonixVideoSourceNewFrameCallback(void * data, int 
 
     if(data)
     {
-        vtkSonixVideoSource2::GetInstance()->LocalInternalGrab(data, type, sz, cine, frmnum);    
+        vtkSonixVideoSource::GetInstance()->LocalInternalGrab(data, type, sz, cine, frmnum);    
     }
     return true;;
 }
@@ -262,7 +262,7 @@ bool vtkSonixVideoSource2::vtkSonixVideoSourceNewFrameCallback(void * data, int 
 //----------------------------------------------------------------------------
 // copy the Device Independent Bitmap from the VFW framebuffer into the
 // vtkVideoSource framebuffer (don't do the unpacking yet)
-PlusStatus vtkSonixVideoSource2::LocalInternalGrab(void* dataPtr, int type, int sz, bool cine, int frmnum)
+PlusStatus vtkSonixVideoSource::LocalInternalGrab(void* dataPtr, int type, int sz, bool cine, int frmnum)
 {
     if ( !this->Initialized )
     {
@@ -312,7 +312,7 @@ PlusStatus vtkSonixVideoSource2::LocalInternalGrab(void* dataPtr, int type, int 
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkSonixVideoSource2::Initialize()
+PlusStatus vtkSonixVideoSource::Initialize()
 {
     if (this->Initialized)
     {
@@ -335,7 +335,7 @@ PlusStatus vtkSonixVideoSource2::Initialize()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkSonixVideoSource2::Connect()
+PlusStatus vtkSonixVideoSource::Connect()
 {
     // 1) connect to sonix machine.
     if(!this->ult->connect(this->SonixHostIP))
@@ -579,7 +579,7 @@ PlusStatus vtkSonixVideoSource2::Connect()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkSonixVideoSource2::Disconnect()
+PlusStatus vtkSonixVideoSource::Disconnect()
 {
     this->StopRecording();
     this->ult->disconnect();
@@ -587,7 +587,7 @@ PlusStatus vtkSonixVideoSource2::Disconnect()
 }
 
 //----------------------------------------------------------------------------
-void vtkSonixVideoSource2::ReleaseSystemResources()
+void vtkSonixVideoSource::ReleaseSystemResources()
 {
     this->Disconnect(); 
 
@@ -595,14 +595,14 @@ void vtkSonixVideoSource2::ReleaseSystemResources()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkSonixVideoSource2::Grab()
+PlusStatus vtkSonixVideoSource::Grab()
 {
     LOG_ERROR("Grab is not implemented for this video source");
     return PLUS_FAIL;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkSonixVideoSource2::StartRecording()
+PlusStatus vtkSonixVideoSource::StartRecording()
 {
     if (!this->Initialized)
     {
@@ -622,7 +622,7 @@ PlusStatus vtkSonixVideoSource2::StartRecording()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkSonixVideoSource2::StopRecording()
+PlusStatus vtkSonixVideoSource::StopRecording()
 {
     if (this->Recording)
     {
@@ -637,7 +637,7 @@ PlusStatus vtkSonixVideoSource2::StopRecording()
 }
 
 //----------------------------------------------------------------------------
-void vtkSonixVideoSource2::SetSonixIP(const char *SonixIP)
+void vtkSonixVideoSource::SetSonixIP(const char *SonixIP)
 {
     if (SonixIP)
     {
@@ -647,9 +647,9 @@ void vtkSonixVideoSource2::SetSonixIP(const char *SonixIP)
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkSonixVideoSource2::ReadConfiguration(vtkXMLDataElement* config)
+PlusStatus vtkSonixVideoSource::ReadConfiguration(vtkXMLDataElement* config)
 {
-    LOG_TRACE("vtkSonixVideoSource2::ReadConfiguration"); 
+    LOG_TRACE("vtkSonixVideoSource::ReadConfiguration"); 
     if ( config == NULL )
     {
         LOG_ERROR("Unable to configure Sonix video source! (XML data element is NULL)"); 
@@ -729,7 +729,7 @@ PlusStatus vtkSonixVideoSource2::ReadConfiguration(vtkXMLDataElement* config)
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkSonixVideoSource2::WriteConfiguration(vtkXMLDataElement* config)
+PlusStatus vtkSonixVideoSource::WriteConfiguration(vtkXMLDataElement* config)
 {
     Superclass::WriteConfiguration(config); 
     LOG_ERROR("Not implemented");
