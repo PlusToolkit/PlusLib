@@ -284,8 +284,8 @@ class BrachyTRUSCalibrator : public Phantom
 
 		PhantomPoints GetPhantomPoints() { return this->mPhantomPoints; }; 
 
-		//! Load phantom geometry from segmentation parameters (NWires)
-		virtual bool loadGeometry(SegmentationParameters* aSegmentationParameters);
+		//! Compute wire intersections from phantom geometry
+		virtual PlusStatus loadGeometry();
 
 	private:
 
@@ -314,15 +314,17 @@ class BrachyTRUSCalibrator : public Phantom
 		// ========================================================
 		// Joints of N-wires at:
 		// [Top Layer] toward [Front Wall]
-		vnl_vector<double> mNWireJointTopLayerFrontWall;
+		//vnl_vector<double> mNWireJointTopLayerFrontWall;
 		// [Top Layer] toward [Back Wall]
-		vnl_vector<double> mNWireJointTopLayerBackWall;
+		//vnl_vector<double> mNWireJointTopLayerBackWall;
 		// [Bottom Layer] toward [Front Wall]
-		vnl_vector<double> mNWireJointBottomLayerFrontWall;
+		//vnl_vector<double> mNWireJointBottomLayerFrontWall;
 		// [Bottom Layer] toward [Back Wall]
-		vnl_vector<double> mNWireJointBottomLayerBackWall;
+		//vnl_vector<double> mNWireJointBottomLayerBackWall;
 
-		PhantomPoints mPhantomPoints; 
+		PhantomPoints mPhantomPoints;
+
+		std::vector<NWire> mNWires;
 };
 
 
