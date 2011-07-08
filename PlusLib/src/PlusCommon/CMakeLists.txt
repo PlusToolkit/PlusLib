@@ -6,6 +6,7 @@ SET ( PlusCommon_SRCS
 		PlusLogger.cxx
 		vtkHTMLGenerator.cxx 
 		vtkGnuplotExecuter.cxx
+        UsImageConverterCommon.cxx
 		)
 
 SET (PlusCommon_HDRS)
@@ -20,6 +21,7 @@ if (WIN32)
         vtkTimestampedCircularBuffer.h 
         vtkTimestampedCircularBuffer.txx
 		vtkFileFinder.h
+        UsImageConverterCommon.h
 		)
 endif (WIN32)	
 
@@ -40,7 +42,7 @@ endif (WIN32)
 
 ADD_LIBRARY(vtkPlusCommon ${PlusCommon_SRCS} ${PlusCommon_HDRS})
 
-TARGET_LINK_LIBRARIES(	vtkPlusCommon vtkCommon vtkHybrid vtkFiltering 
+TARGET_LINK_LIBRARIES(	vtkPlusCommon vtkCommon vtkHybrid vtkFiltering ITKIO
 						${PlusCommon_LIBS}
 						)
 

@@ -58,6 +58,8 @@ POSSIBILITY OF SUCH DAMAGES.
 #include "vtkXMLUtilities.h"
 #include "vtkXMLDataElement.h"
 #include "vtkBMPWriter.h"
+#include "vtkTimestampedCircularBuffer.h"
+#include "vtkVideoBuffer.h"
 
 vtkCxxRevisionMacro(vtkFreehandUltrasound2Dynamic, "$Revisions: 1.0 $");
 vtkStandardNewMacro(vtkFreehandUltrasound2Dynamic);
@@ -500,6 +502,8 @@ int vtkFreehandUltrasound2Dynamic::InitializeReconstruction()
 	this->PhaseToInsert = -1;
 	this->PreviousVideoTime = -1;
 	this->VideoTime = -1;
+
+    this->VideoBufferUid = this->VideoSource->GetBuffer()->GetOldestItemUidInBuffer(); 
 
 	this->ClearBuffers();
 
@@ -1073,9 +1077,38 @@ int vtkFreehandUltrasound2Dynamic::UpdateSlice(vtkImageData* inData)
 	// not triggering
 	if (!this->Triggering)
 	{
-		inData->Update();
-		this->PreviousVideoTime = this->VideoTime;
-		this->VideoTime = this->VideoSource->GetFrameTimeStamp();
+        if ( this->RealTimeReconstruction )
+        {
+            inData->Update();
+            this->PreviousVideoTime = this->VideoTime;
+		    this->VideoTime = this->VideoSource->GetFrameTimeStamp();
+        }
+        else
+        {
+            if ( this->VideoBufferUid <= this->VideoSource->GetBuffer()->GetLatestItemUidInBuffer() )
+            {
+                VideoBufferItem bufferItem; 
+                if ( this->VideoSource->GetBuffer()->GetVideoBufferItem( this->VideoBufferUid, &bufferItem) != ITEM_OK )
+                {
+                    LOG_ERROR("Failed to get video item from buffer with UID: " << this->VideoBufferUid); 
+                    return 0; // Do not insert now 
+                }
+
+                this->PreviousVideoTime = this->VideoTime;
+                this->VideoTime = bufferItem.GetTimestamp(0); 
+
+                UsImageConverterCommon::ConvertItkImageToVtkImage(bufferItem.GetFrame(), inData); 
+                inData->Modified(); 
+
+                this->VideoBufferUid++; 
+            }
+            else
+            {
+                LOG_WARNING("We've reached the last frame in the buffer..."); 
+            }
+        }
+
+        
 	}
 
 	// we are using retrospective gating, so set the time that we want to the

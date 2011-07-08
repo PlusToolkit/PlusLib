@@ -261,11 +261,6 @@ protected:
 	// Read synchronization properties from xml file 
 	virtual PlusStatus ReadSynchronizationProperties(vtkXMLDataElement* synchronizationConfig); 
 
-	// Description:
-	// Convert vtkImageData to itkImage (TrackedFrame::ImageType)
-    // Flipping is necessary, because vtk stores the image data in bottom up format, while itk in top down format. 
-	virtual void ConvertVtkImageToItkImage(vtkImageData* inFrame, TrackedFrame::ImageType* outFrame); 
-
 	//! Pointer to the progress bar update callback function 
 	ProgressBarUpdatePtr ProgressBarUpdateCallbackFunction; 
 

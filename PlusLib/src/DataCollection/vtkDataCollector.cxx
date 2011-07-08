@@ -5,7 +5,6 @@
 #include "vtkXMLUtilities.h"
 #include "vtkBMPWriter.h"
 
-#include "vtkVideoFrame2.h"
 #include "vtkTrackerTool.h"
 #include "vtkInformationVector.h"
 #include "vtkInformation.h"
@@ -385,7 +384,6 @@ PlusStatus vtkDataCollector::WriteTrackerToMetafile( vtkTracker* tracker, const 
 
         TrackedFrame trackedFrame; 
         trackedFrame.ImageData = frame;
-        trackedFrame.ImageData->Register(); 
 
         const int defaultToolPortNumber = tracker->GetDefaultTool(); 
         const double frameTimestamp = tracker->GetTool(defaultToolPortNumber)->GetBuffer()->GetFilteredTimeStamp(( numberOfItems - 1 ) - i); 
@@ -493,16 +491,6 @@ PlusStatus vtkDataCollector::WriteVideoBufferToMetafile( vtkVideoBuffer* videoBu
 
     for ( BufferItemUidType frameUid = videoBuffer->GetOldestItemUidInBuffer(); frameUid <= videoBuffer->GetLatestItemUidInBuffer(); ++frameUid ) 
     {
-        // Allocate memory for new frame
-        int* videoFrameSize = videoBuffer->GetFrameFormat()->GetFrameSize(); 
-        TrackedFrame::ImageType::Pointer frame = TrackedFrame::ImageType::New(); 
-        TrackedFrame::ImageType::SizeType size = {videoFrameSize[0], videoFrameSize[1]};
-        TrackedFrame::ImageType::IndexType start = {0,0};
-        TrackedFrame::ImageType::RegionType region;
-        region.SetSize(size);
-        region.SetIndex(start);
-        frame->SetRegions(region);
-        frame->Allocate();
 
         if ( videoBuffer->GetVideoBufferItem(frameUid, &videoItem) != ITEM_OK )
         {
@@ -511,16 +499,8 @@ PlusStatus vtkDataCollector::WriteVideoBufferToMetafile( vtkVideoBuffer* videoBu
             continue; 
         }
 
-        if ( !videoItem.GetFrame()->CopyData(frame->GetBufferPointer(), videoFrameSize, videoFrameSize, videoItem.GetFrame()->GetPixelFormat() )) 
-        {
-            LOG_ERROR("Cannot copy data for frame with UID: " << frameUid);
-            status=PLUS_FAIL;
-            continue;
-        }
-
         TrackedFrame trackedFrame; 
-        trackedFrame.ImageData = frame;
-        trackedFrame.ImageData->Register(); 
+        trackedFrame.ImageData = videoItem.GetFrame();
 
         // Set default transform name
         trackedFrame.DefaultFrameTransformName = "IdentityTransform"; 
@@ -863,8 +843,7 @@ PlusStatus vtkDataCollector::GetFrameByTime(const double time, vtkImageData* fra
         return PLUS_FAIL; 
     }
 
-    int videoFormat = this->GetVideoSource()->GetOutputFormat(); 
-    if ( !currentVideoBufferItem.GetFrame()->CopyData( frame->GetScalarPointer(), frame->GetExtent(), frame->GetExtent(), videoFormat ) )
+    if ( UsImageConverterCommon::ConvertItkImageToVtkImage(currentVideoBufferItem.GetFrame(), frame) != PLUS_SUCCESS )
     {
         LOG_ERROR("Failed to copy image data for UID: " << frameUID);
         return PLUS_FAIL;
@@ -1038,34 +1017,6 @@ PlusStatus vtkDataCollector::GetTrackedFrame(vtkImageData* frame, vtkMatrix4x4* 
 }
 
 //----------------------------------------------------------------------------
-void vtkDataCollector::ConvertVtkImageToItkImage(vtkImageData* inFrame, TrackedFrame::ImageType* outFrame)
-{
-    //LOG_TRACE("vtkDataCollector::ConvertVtkImageToItkImage"); 
-    // convert vtkImageData to itkImage 
-    vtkSmartPointer<vtkImageFlip> imageFlipy = vtkSmartPointer<vtkImageFlip>::New(); 
-    imageFlipy->SetInput(inFrame); 
-    imageFlipy->SetFilteredAxis(1); 
-    imageFlipy->Update(); 
-
-    vtkSmartPointer<vtkImageExport> imageExport = vtkSmartPointer<vtkImageExport>::New(); 
-    imageExport->ImageLowerLeftOff();
-    imageExport->SetInput(imageFlipy->GetOutput()); 
-    imageExport->Update(); 
-
-    double width = inFrame->GetExtent()[1] - inFrame->GetExtent()[0] + 1; 
-    double height = inFrame->GetExtent()[3] - inFrame->GetExtent()[2] + 1; 
-    TrackedFrame::ImageType::SizeType size = { width, height };
-    TrackedFrame::ImageType::IndexType start = {0,0};
-    TrackedFrame::ImageType::RegionType region;
-    region.SetSize(size);
-    region.SetIndex(start);
-    outFrame->SetRegions(region);
-    outFrame->Allocate();
-
-    memcpy( outFrame->GetBufferPointer(), imageExport->GetPointerToData(), imageExport->GetDataMemorySize() ); 
-}
-
-//----------------------------------------------------------------------------
 PlusStatus vtkDataCollector::GetTrackedFrame(TrackedFrame* trackedFrame, bool calibratedTransform /*= false*/)
 {
     //LOG_TRACE("vtkDataCollector::GetTrackedFrame - TrackedFrame"); 
@@ -1100,11 +1051,10 @@ PlusStatus vtkDataCollector::GetTrackedFrameByTime(const double time, TrackedFra
 
         // Convert vtkImage to itkimage
         TrackedFrame::ImageType::Pointer itkimage = TrackedFrame::ImageType::New(); 
-        this->ConvertVtkImageToItkImage(vtkimage, itkimage); 
+        UsImageConverterCommon::ConvertVtkImageToItkImage(vtkimage, itkimage); 
 
         //Add all information to the tracked frame
         trackedFrame->ImageData = itkimage; 
-        trackedFrame->ImageData->Register(); 
     }
 
     if ( this->GetTrackingEnabled() && this->GetTracker() != NULL )

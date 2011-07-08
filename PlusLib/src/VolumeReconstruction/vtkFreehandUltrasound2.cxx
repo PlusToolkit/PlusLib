@@ -56,7 +56,7 @@ POSSIBILITY OF SUCH DAMAGES.
 #include "vtkMutexLock.h"
 #include "vtkXMLUtilities.h"
 #include "vtkXMLDataElement.h"
-
+#include "vtkTimestampedCircularBuffer.h"
 #include "vtkIndent.h"
 
 vtkCxxRevisionMacro(vtkFreehandUltrasound2, "$Revision: 1.47 $");
@@ -88,6 +88,7 @@ vtkFreehandUltrasound2::vtkFreehandUltrasound2()
 	this->VideoSource = NULL;
 	this->TrackerTool = NULL;
 	this->VideoLag = 0.0;
+    this->VideoBufferUid = 0; 
 
 	// this will force ClearOutput() to run, which will allocate the output
 	// and the accumulation buffer(s)
@@ -808,6 +809,7 @@ void vtkFreehandUltrasound2::StopRealTimeReconstruction()
 // derived classes
 int vtkFreehandUltrasound2::InitializeReconstruction()
 {
+    this->VideoBufferUid = this->VideoSource->GetBuffer()->GetOldestItemUidInBuffer(); 
 	this->GetOutput()->Update();
 	return 1;
 }
@@ -1371,7 +1373,31 @@ double vtkFreehandUltrasound2::CalculateCurrentVideoTime(vtkImageData* inData)
 // Override in derived classes
 int vtkFreehandUltrasound2::UpdateSlice(vtkImageData* inData)
 {
-	inData->Update();
+    if ( this->RealTimeReconstruction )
+    {
+        inData->Update();
+    }
+    else
+    {
+        if ( this->VideoBufferUid <= this->VideoSource->GetBuffer()->GetLatestItemUidInBuffer() )
+        {
+            VideoBufferItem bufferItem; 
+            if ( this->VideoSource->GetBuffer()->GetVideoBufferItem( this->VideoBufferUid, &bufferItem) != PLUS_SUCCESS )
+            {
+                LOG_ERROR("Failed to get video item from buffer with UID: " << this->VideoBufferUid ); 
+                return 1; 
+            }
+
+            UsImageConverterCommon::ConvertItkImageToVtkImage(bufferItem.GetFrame(), inData); 
+            inData->Modified(); 
+
+            this->VideoBufferUid++; 
+        }
+        else
+        {
+            LOG_WARNING("We've reached the last frame in the buffer..."); 
+        }
+    }
 	return 0;
 }
 
@@ -2637,18 +2663,8 @@ PlusStatus vtkFreehandUltrasound2::ReadSummaryFile(const char *filename)
 		{
 			sliceParams->GetVectorAttribute("SliceSpacing", 3, this->VideoSource->GetDataSpacing());
 			sliceParams->GetVectorAttribute("SliceOrigin", 3, this->VideoSource->GetDataOrigin());
-			sliceParams->GetVectorAttribute("SliceExtent", 6, this->VideoSource->GetOutputWholeExtent());
 			int outputFormat;
 			sliceParams->GetScalarAttribute("NumScalarComponents", outputFormat);
-			this->VideoSource->SetOutputFormat(outputFormat);
-			//sliceParams->GetScalarAttribute("ScalarType", this->VideoSource->Get);
-			//sliceParams->GetVectorAttribute("FrameSize", 3, this->VideoSource->GetFrameSize());
-			//int frameRate;
-			//sliceParams->GetScalarAttribute("FrameRate", frameRate);
-			//this->VideoSource->SetFrameRate(frameRate);
-			//int frameBufferSize;
-			//sliceParams->GetScalarAttribute("FrameBufferSize", frameBufferSize);
-			//this->VideoSource->SetFrameBufferSize(frameBufferSize);
 		}
 
 	}

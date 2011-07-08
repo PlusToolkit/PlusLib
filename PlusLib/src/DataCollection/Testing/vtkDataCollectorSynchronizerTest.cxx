@@ -6,7 +6,6 @@
 #include "vtkMatrix4x4.h"
 #include "vtkTrackerBuffer.h"
 #include "vtkVideoBuffer.h"
-#include "vtkVideoFrame2.h"
 #include "vtkDataCollectorSynchronizer.h"
 #include "vtkHTMLGenerator.h"
 #include "vtkGnuplotExecuter.h"
@@ -205,14 +204,13 @@ int main(int argc, char **argv)
 	const unsigned long imageWidthInPixels = videoFrameList->GetTrackedFrame(0)->ImageData->GetLargestPossibleRegion().GetSize()[0]; 
 	const unsigned long imageHeightInPixels = videoFrameList->GetTrackedFrame(0)->ImageData->GetLargestPossibleRegion().GetSize()[1]; 
 	unsigned int frameSizeInBytes = imageWidthInPixels * imageHeightInPixels * sizeof(TrackedFrame::PixelType);
+    const int numberOfBitsPerPixel = videoFrameList->GetTrackedFrame(0)->ImageData->GetNumberOfComponentsPerPixel() * sizeof(TrackedFrame::PixelType)*8; 
 
 	vtkSmartPointer<vtkVideoBuffer> videoBuffer = vtkSmartPointer<vtkVideoBuffer>::New(); 
-	videoBuffer->GetFrameFormat()->SetFrameSize(imageWidthInPixels, imageHeightInPixels, 1); 
-	videoBuffer->GetFrameFormat()->SetFrameExtent(0, imageWidthInPixels - 1, 0, imageHeightInPixels - 1, 0, 0); 
-	videoBuffer->GetFrameFormat()->SetPixelFormat(VTK_LUMINANCE); 
-	videoBuffer->GetFrameFormat()->SetBitsPerPixel(8); 
-	videoBuffer->GetFrameFormat()->SetFrameGrabberType(FG_BASE); 
-    if ( videoBuffer->SetBufferSize(numberOfVideoFrames + 1) != PLUS_SUCCESS )
+	videoBuffer->SetFrameSize(imageWidthInPixels, imageHeightInPixels); 
+    videoBuffer->SetNumberOfBitsPerPixel(numberOfBitsPerPixel); 
+
+    if ( videoBuffer->SetBufferSize(numberOfVideoFrames) != PLUS_SUCCESS )
     {
         LOG_ERROR("Failed to set video buffer size!"); 
         numberOfErrors++; 
@@ -267,7 +265,8 @@ int main(int argc, char **argv)
 		const int frameSize[3] = {videoFrameList->GetTrackedFrame(frameNumber)->ImageData->GetLargestPossibleRegion().GetSize()[0], videoFrameList->GetTrackedFrame(frameNumber)->ImageData->GetLargestPossibleRegion().GetSize()[1], 1}; 
 		const int numberOfBitsPerPixel = videoFrameList->GetTrackedFrame(frameNumber)->ImageData->GetNumberOfComponentsPerPixel() * sizeof(TrackedFrame::PixelType) * 8; 
 
-		if ( videoBuffer->AddItem(deviceDataPtr, frameSize, numberOfBitsPerPixel, 0, unfilteredtimestamp, timestamp, frmnum) != PLUS_SUCCESS )
+        // Images in the tracked frame list always stored in MF orientation 
+		if ( videoBuffer->AddItem(deviceDataPtr, "MF", frameSize, numberOfBitsPerPixel, 0, unfilteredtimestamp, timestamp, frmnum) != PLUS_SUCCESS )
 		{
 			LOG_WARNING("Failed to add video frame to buffer from sequence metafile with frame #" << frameNumber ); 
 		}

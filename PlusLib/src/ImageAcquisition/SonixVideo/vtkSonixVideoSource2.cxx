@@ -52,7 +52,6 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "vtkUnsignedCharArray.h"
 #include "vtksys/SystemTools.hxx"
 #include "vtkVideoBuffer.h"
-#include "vtkVideoFrame2.h"
 #include "vtkMultiThreader.h"
 
 #include <ctype.h>
@@ -141,8 +140,6 @@ vtkSonixVideoSource2::vtkSonixVideoSource2()
     this->ult = new ulterius();
     this->DataDescriptor = new uDataDesc();
 
-    this->SetFrameSize(640, 480, 1);
-
     this->SonixHostIP = "130.15.7.212";
     this->FrameRate = -1; // in fps
     this->FrameCount = 0;
@@ -158,28 +155,13 @@ vtkSonixVideoSource2::vtkSonixVideoSource2()
     this->AcquisitionDataType = 0x00000004; //corresponds to type: BPost 8-bit  
     this->ImagingMode = 0; //corresponds to BMode imaging  
 
-    this->FlipFrames = 0;
-
-    this->FrameBufferRowAlignment = 1;
-
-    //note, input data i.e. data from sonix machine is always uncompressed rgb 
-    //so, by default we set the output format as rgb
-    this->SetOutputFormatToLuminance(); 
-
-    this->NumberOfScalarComponents = 1;
     this->NumberOfOutputFrames = 1;
-
-    this->Opacity = 1.0;
 
     //// for accurate timing
     this->LastTimeStamp = 0;
     this->LastFrameCount = 0;
     this->EstimatedFramePeriod = 0;
 
-    // apply vertical flip to each frame
-    //this->Buffer->GetFrameFormat()->SetTopDown(1);
-
-    this->Buffer->GetFrameFormat()->SetFrameGrabberType(FG_BASE); 
     this->SetFrameBufferSize(200); 
 }
 
@@ -266,7 +248,7 @@ bool vtkSonixVideoSource2::vtkSonixVideoSourceNewFrameCallback(void * data, int 
 {    
     if(!data || !sz)
     {
-        //printf("Error: no actual frame data received\n");
+        LOG_WARNING("Error: no actual frame data received"); 
         return false;
     }
 
@@ -301,7 +283,8 @@ PlusStatus vtkSonixVideoSource2::LocalInternalGrab(void* dataPtr, int type, int 
     this->CreateTimeStampForFrame(this->FrameNumber, unfilteredTimestamp, filteredTimestamp);
 
     const int* frameSize = this->GetFrameSize(); 
-    int frameBufferBitsPerPixel = this->NumberOfScalarComponents * 8;
+    int frameBufferBitsPerPixel = this->Buffer->GetNumberOfBitsPerPixel(); 
+    const int frameSizeInBytes = frameSize[0] * frameSize[1] * sizeof( PixelType ); 
 
     // for frame containing FC (frame count) in the beginning for data coming from cine, jump 2 bytes
     int numberOfBytesToSkip = 0; 
@@ -313,10 +296,16 @@ PlusStatus vtkSonixVideoSource2::LocalInternalGrab(void* dataPtr, int type, int 
         numberOfBytesToSkip = 4;
     }
 
+    if ( sz != frameSizeInBytes + numberOfBytesToSkip )
+    {
+        LOG_ERROR("Received frame size (" << sz << " bytes) doesn't match the buffer size (" << frameSizeInBytes + numberOfBytesToSkip << " bytes)!"); 
+        return PLUS_FAIL; 
+    }
+    
     // get the pointer to actual incoming data on to a local pointer
     unsigned char *deviceDataPtr = static_cast<unsigned char*>(dataPtr);
 
-    PlusStatus status = this->Buffer->AddItem(deviceDataPtr, frameSize, frameBufferBitsPerPixel, numberOfBytesToSkip, unfilteredTimestamp, filteredTimestamp, this->FrameNumber); 
+    PlusStatus status = this->Buffer->AddItem(deviceDataPtr, this->GetUsImageOrientation(), frameSize, frameBufferBitsPerPixel, numberOfBytesToSkip, unfilteredTimestamp, filteredTimestamp, this->FrameNumber); 
     this->Modified(); 
 
     return status;
@@ -336,8 +325,6 @@ PlusStatus vtkSonixVideoSource2::Initialize()
         LOG_ERROR("Unable to connect to video device!"); 
         return PLUS_FAIL; 
     }
-
-    this->DoFormatSetup();
 
     // update the frame buffer now just in case there is an error
     this->UpdateFrameBuffer();
@@ -419,6 +406,10 @@ PlusStatus vtkSonixVideoSource2::Connect()
         this->ReleaseSystemResources();
         return PLUS_FAIL;
     }
+
+    this->SetFrameSize( this->DataDescriptor->w, this->DataDescriptor->h); 
+    this->Buffer->SetNumberOfBitsPerPixel( this->DataDescriptor->ss );
+
 
     // Parameter setting doesn't work with Ulterius-2.x
 #if ULTERIUS_MAJOR_VERSION != 2
@@ -643,272 +634,6 @@ PlusStatus vtkSonixVideoSource2::StopRecording()
     }
 
     return PLUS_SUCCESS;
-}
-
-
-//----------------------------------------------------------------------------
-int vtkSonixVideoSource2::RequestInformation(
-    vtkInformation * vtkNotUsed(request),
-    vtkInformationVector **vtkNotUsed(inputVector),
-    vtkInformationVector *outputVector)
-{
-    // get the info objects
-    vtkInformation* outInfo = outputVector->GetInformationObject(0);
-
-    int i;
-    int extent[6];
-
-    // ensure that the hardware is initialized.
-    this->Initialize();
-
-    // set the whole extent
-    int FrameBufferExtent[6];
-    this->Buffer->GetFrameFormat()->GetFrameExtent(FrameBufferExtent);
-    for (i = 0; i < 3; i++)
-    {
-        // initially set extent to the OutputWholeExtent
-        extent[2*i] = this->OutputWholeExtent[2*i];
-        extent[2*i+1] = this->OutputWholeExtent[2*i+1];
-        // if 'flag' is set in output extent, use the FrameBufferExtent instead
-        if (extent[2*i+1] < extent[2*i])
-        {
-            extent[2*i] = 0; 
-            extent[2*i+1] = \
-                FrameBufferExtent[2*i+1] - FrameBufferExtent[2*i];
-        }
-        this->FrameOutputExtent[2*i] = extent[2*i];
-        this->FrameOutputExtent[2*i+1] = extent[2*i+1];
-    }
-
-    int numFrames = this->NumberOfOutputFrames;
-    if (numFrames < 1)
-    {
-        numFrames = 1;
-    }
-    if (numFrames > this->Buffer->GetBufferSize())
-    {
-        numFrames = this->Buffer->GetBufferSize();
-    }
-
-    // multiply Z extent by number of frames to output
-    extent[5] = extent[4] + (extent[5]-extent[4]+1) * numFrames - 1;
-
-    outInfo->Set(vtkStreamingDemandDrivenPipeline::WHOLE_EXTENT(),extent,6);
-
-    outInfo->Set(vtkStreamingDemandDrivenPipeline::UPDATE_EXTENT(),extent,6);
-    // set the spacing
-    outInfo->Set(vtkDataObject::SPACING(),this->DataSpacing,3);
-
-    // set the origin.
-    outInfo->Set(vtkDataObject::ORIGIN(),this->DataOrigin,3);
-
-    if((this->AcquisitionDataType == udtRF) || (this->AcquisitionDataType == udtColorRF) || (this->AcquisitionDataType == udtPWRF))
-    {
-        vtkDataObject::SetPointDataActiveScalarInfo(outInfo, VTK_SHORT, 
-            this->NumberOfScalarComponents);
-    }
-    else
-    {
-        // set default data type (8 bit greyscale)  
-        vtkDataObject::SetPointDataActiveScalarInfo(outInfo, VTK_UNSIGNED_CHAR, 
-            this->NumberOfScalarComponents);
-    }
-    return 1;
-}
-
-//----------------------------------------------------------------------------
-void vtkSonixVideoSource2::UnpackRasterLine(char *outptr, char *inptr, 
-                                            int start, int count)
-{
-    char alpha = (char)(this->Opacity*255);
-
-    switch (this->AcquisitionDataType)
-    {
-        // all these data types have 8-bit greyscale raster data
-    case udtBPost:
-    case udtMPost:
-    case udtPWSpectrum:
-    case udtElastoOverlay:
-        {
-            inptr += start;
-            memcpy(outptr,inptr,count);
-        }
-        break;
-
-        //these data types give vector data 8-bit, with FC at the start
-    case udtBPre:
-    case udtMPre:
-    case udtElastoPre: //this data type does not have a FC at the start
-        {
-            inptr += start;
-            memcpy(outptr,inptr,count);
-        }
-        break;
-
-        //these data types give 16-bit vector data, to be read into int, just one component
-    case udtColorRF:
-    case udtPWRF:
-    case udtRF:
-        {
-            inptr += 2*start;
-            //unsigned short rawWord;
-            //unsigned short *shInPtr = (unsigned short *)inptr;
-            //unsigned short *shOutPtr = (unsigned short *)outptr;
-            outptr += 2;
-            while (--count >= 0)
-            {
-                *--outptr = *inptr++;
-                *--outptr = *inptr++;
-                outptr += 4;
-            }
-            //*shOutPtr++ = *shInPtr++;
-            //*outptr++ = *inptr++;
-
-
-            //memcpy(outptr,inptr,2*count);
-
-        }
-        break;
-
-        // 16-bit vector data, but two components
-        // don't know how to handle it as yet
-    case udtColorVelocityVariance:
-        this->OutputFormat = VTK_RGB;
-        this->NumberOfScalarComponents = 2;
-        break;
-
-        //32-bit data
-    case udtScreen:
-    case udtBPost32:
-#if ULTERIUS_MAJOR_VERSION == 1
-    case udtColorPost:
-#endif
-    case udtElastoCombined:
-        inptr += 4*start;
-        { // must do BGRX to RGBA conversion
-            outptr += 4;
-            while (--count >= 0)
-            {
-                *--outptr = alpha;
-                *--outptr = *inptr++;
-                *--outptr = *inptr++;
-                *--outptr = *inptr++;
-                inptr++;
-                outptr += 8;
-            }
-        }
-        break;
-
-    default:
-        break;
-
-    }
-
-
-}
-
-
-//----------------------------------------------------------------------------
-void vtkSonixVideoSource2::SetOutputFormat(int format)
-{
-    if (format == this->OutputFormat)
-    {
-        return;
-    }
-
-    this->OutputFormat = format;
-
-    // convert color format to number of scalar components
-    int numComponents;
-
-    switch (this->OutputFormat)
-    {
-    case VTK_RGBA:
-        numComponents = 4;
-        break;
-    case VTK_RGB:
-        numComponents = 3;
-        break;
-    case VTK_LUMINANCE:
-        numComponents = 1;
-        break;
-    default:
-        numComponents = 0;
-        LOG_ERROR("SetOutputFormat: Unrecognized color format.");
-        break;
-    }
-    this->NumberOfScalarComponents = numComponents;
-
-    if (this->Buffer->GetFrameFormat()->GetBitsPerPixel() != numComponents*8)
-    {
-        this->Buffer->GetFrameFormat()->SetBitsPerPixel(numComponents*8);
-        if (this->Initialized)
-        {
-            this->UpdateFrameBuffer();    
-            this->DoFormatSetup();
-        }
-    }
-
-    this->Modified();
-}
-
-//----------------------------------------------------------------------------
-// check the current video format and set up the VTK video framebuffer to match
-void vtkSonixVideoSource2::DoFormatSetup()
-{
-    //set the frame size from the data descriptor, 
-    this->SetFrameSize(this->DataDescriptor->w, this->DataDescriptor->h, 1);
-    this->Buffer->GetFrameFormat()->SetBitsPerPixel(this->DataDescriptor->ss);
-    switch (this->AcquisitionDataType)
-    {
-        // all these data types have 8-bit greyscale raster data
-    case udtBPost:
-    case udtMPost:
-    case udtPWSpectrum:
-    case udtElastoOverlay:
-        this->OutputFormat = VTK_LUMINANCE;
-        this->NumberOfScalarComponents = 1;
-        break;
-        //these data types give vector data 8-bit, with FC at the start
-    case udtBPre:
-    case udtMPre:
-    case udtElastoPre: //this data type does not have a FC at the start
-        this->SetFrameSize(this->DataDescriptor->h, this->DataDescriptor->w, 1);
-        this->OutputFormat = VTK_LUMINANCE;
-        this->NumberOfScalarComponents = 1;
-        break;
-
-        //these data types give 16-bit vector data, to be read into int, just one component
-    case udtColorRF:
-    case udtPWRF:
-    case udtRF:
-        this->SetFrameSize(this->DataDescriptor->h, this->DataDescriptor->w, 1);
-        this->OutputFormat = VTK_LUMINANCE;
-        this->NumberOfScalarComponents = 1;
-        break;
-
-        // 16-bit vector data, but two components
-        // don't know how to handle it as yet
-    case udtColorVelocityVariance:
-        this->OutputFormat = VTK_RGB;
-        this->NumberOfScalarComponents = 2;
-        break;
-
-        //32-bit data
-    case udtScreen:
-    case udtBPost32:
-#if ULTERIUS_MAJOR_VERSION == 1
-    case udtColorPost:
-#endif
-    case udtElastoCombined:
-        this->OutputFormat = VTK_RGBA;
-        this->NumberOfScalarComponents = 4;        
-        break;
-    }
-
-    this->Modified();
-    this->UpdateFrameBuffer();
-
 }
 
 //----------------------------------------------------------------------------

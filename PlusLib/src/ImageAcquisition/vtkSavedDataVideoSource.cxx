@@ -4,7 +4,6 @@
 #include "vtkObjectFactory.h"
 #include "vtksys/SystemTools.hxx"
 #include "vtkVideoBuffer.h"
-#include "vtkVideoFrame2.h"
 #include "vtkTrackedFrameList.h"
 
 
@@ -184,8 +183,11 @@ PlusStatus vtkSavedDataVideoSource::InternalGrab()
 	double unfilteredTimestamp(0), filteredTimestamp(0); 
 	this->CreateTimeStampForFrame(this->FrameNumber, unfilteredTimestamp, filteredTimestamp);
 
-	unsigned char *deviceDataPtr = reinterpret_cast<unsigned char *>(nextVideoBufferItem.GetFrame()->GetVoidPointer(0)); 
-	PlusStatus status = this->Buffer->AddItem(deviceDataPtr, nextVideoBufferItem.GetFrame()->GetFrameSize(), nextVideoBufferItem.GetFrame()->GetBitsPerPixel(), 0, unfilteredTimestamp, filteredTimestamp, this->FrameNumber); 
+    VideoBufferItem::PixelType* deviceDataPtr = nextVideoBufferItem.GetFrame()->GetBufferPointer(); 
+    const int frameSize[2] = {nextVideoBufferItem.GetFrame()->GetLargestPossibleRegion().GetSize()[0], nextVideoBufferItem.GetFrame()->GetLargestPossibleRegion().GetSize()[1]}; 
+	const int numberOfBitsPerPixel = nextVideoBufferItem.GetFrame()->GetNumberOfComponentsPerPixel() * sizeof(VideoBufferItem::PixelType)*8; 
+
+	PlusStatus status = this->Buffer->AddItem(deviceDataPtr, this->GetUsImageOrientation(), frameSize, numberOfBitsPerPixel, 0, unfilteredTimestamp, filteredTimestamp, this->FrameNumber); 
 	this->Modified();
 	return status;
 }
@@ -238,6 +240,12 @@ PlusStatus vtkSavedDataVideoSource::Connect()
         LOG_ERROR("Failed to read video buffer from sequence metafile!"); 
         return PLUS_FAIL; 
     }
+
+    if ( savedDataBuffer->GetNumberOfTrackedFrames() < 1 ) 
+    {
+        LOG_ERROR("Failed to connect to saved dataset - there is no frame in the sequence metafile!"); 
+        return PLUS_FAIL; 
+    }
 	
 	// Set buffer size 
 	if ( this->SetFrameBufferSize( savedDataBuffer->GetNumberOfTrackedFrames() ) != PLUS_SUCCESS )
@@ -252,7 +260,12 @@ PlusStatus vtkSavedDataVideoSource::Connect()
 		this->LocalVideoBuffer = vtkVideoBuffer::New(); 
 	}
 
-	this->LocalVideoBuffer->SetFrameFormat(this->Buffer->GetFrameFormat()); 
+	this->LocalVideoBuffer->SetFrameSize( savedDataBuffer->GetFrameSize() ); 
+    this->LocalVideoBuffer->SetNumberOfBitsPerPixel( savedDataBuffer->GetNumberOfBitsPerPixel() ); 
+
+    this->Buffer->SetFrameSize( this->LocalVideoBuffer->GetFrameSize() ); 
+    this->Buffer->SetNumberOfBitsPerPixel( this->LocalVideoBuffer->GetNumberOfBitsPerPixel() ); 
+
 	if ( this->LocalVideoBuffer->SetBufferSize(savedDataBuffer->GetNumberOfTrackedFrames()) != PLUS_SUCCESS )
     {
         LOG_ERROR("Failed to set video buffer size!"); 
@@ -305,7 +318,7 @@ PlusStatus vtkSavedDataVideoSource::Connect()
 		const int frameSize[3] = {trackedFrame->ImageData->GetLargestPossibleRegion().GetSize()[0], trackedFrame->ImageData->GetLargestPossibleRegion().GetSize()[1], 1}; 
 		const int numberOfBitsPerPixel = trackedFrame->ImageData->GetNumberOfComponentsPerPixel() * sizeof(TrackedFrame::PixelType)*8; 
 
-		if ( this->LocalVideoBuffer->AddItem(deviceDataPtr, frameSize, numberOfBitsPerPixel, 0, unfilteredTimestamp, timestamp, frameNumber) != PLUS_SUCCESS )
+		if ( this->LocalVideoBuffer->AddItem(deviceDataPtr, this->GetUsImageOrientation(), frameSize, numberOfBitsPerPixel, 0, unfilteredTimestamp, timestamp, frameNumber) != PLUS_SUCCESS )
 		{
 			LOG_WARNING("vtkSavedDataVideoSource: Failed to add video frame to buffer from sequence metafile with frame #" << frame ); 
 		}

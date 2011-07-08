@@ -19,54 +19,73 @@ TrackedFrame::TrackedFrame()
 {
 	this->Status = 0; 
 	this->Timestamp = 0; 
-	this->ImageData = NULL; 
-	this->UltrasoundImageOrientation = US_IMG_ORIENT_XX; 
 	this->FrameSize[0] = 0; 
 	this->FrameSize[1] = 0; 
-	this->FrameSize[2] = 0; 
 }
 
 //----------------------------------------------------------------------------
 TrackedFrame::~TrackedFrame()
 {
-	if ( this->ImageData != NULL )
-	{
-		this->ImageData->UnRegister(); 
-	}
 }
 
 //----------------------------------------------------------------------------
 TrackedFrame::TrackedFrame(const TrackedFrame& frame)
 {
-	this->DefaultFrameTransformName = frame.DefaultFrameTransformName; 
-	this->UltrasoundImageOrientation = frame.UltrasoundImageOrientation; 
-	this->CustomFrameFieldList = frame.CustomFrameFieldList; 
-	this->CustomFieldList = frame.CustomFieldList; 
-	this->ImageData = frame.ImageData; 
-	this->Timestamp = frame.Timestamp;
-	this->Status = frame.Status; 
-	
-	if ( this->ImageData != NULL )
-	{
-		this->ImageData->Register(); 
-	}
+    this->Status = 0; 
+	this->Timestamp = 0; 
+	this->FrameSize[0] = 0; 
+	this->FrameSize[1] = 0; 
+
+    *this = frame; 
+}
+
+//----------------------------------------------------------------------------
+TrackedFrame& TrackedFrame::operator=(TrackedFrame const&trackedFrame)
+{
+    // Handle self-assignment
+    if (this == &trackedFrame)
+    {
+        return *this;
+    }
+
+    this->DefaultFrameTransformName = trackedFrame.DefaultFrameTransformName; 
+	this->CustomFrameFieldList = trackedFrame.CustomFrameFieldList; 
+	this->CustomFieldList = trackedFrame.CustomFieldList; 
+	this->ImageData = trackedFrame.ImageData; 
+	this->Timestamp = trackedFrame.Timestamp;
+	this->Status = trackedFrame.Status; 
+    this->FrameSize[0] = trackedFrame.FrameSize[0]; 
+    this->FrameSize[1] = trackedFrame.FrameSize[1]; 
+
+    return *this;
 }
 
 //----------------------------------------------------------------------------
 int* TrackedFrame::GetFrameSize()
 {
-	if ( this->ImageData != NULL )
+	if ( this->ImageData.IsNotNull() )
 	{
 		const int w = this->ImageData->GetLargestPossibleRegion().GetSize()[0]; 
 		const int h = this->ImageData->GetLargestPossibleRegion().GetSize()[1]; 
 		this->FrameSize[0] = w; 
 		this->FrameSize[1] = h; 
-		this->FrameSize[2] = 1; 
 	}
 
 	return this->FrameSize; 
 }
 
+
+//----------------------------------------------------------------------------
+int TrackedFrame::GetNumberOfBitsPerPixel()
+{
+    int numberOfBitsPerPixel(0); 
+    if ( this->ImageData.IsNotNull() )
+	{
+        numberOfBitsPerPixel = this->ImageData->GetNumberOfComponentsPerPixel() * sizeof(PixelType)*8;
+    }
+
+    return numberOfBitsPerPixel; 
+}
 
 //----------------------------------------------------------------------------
 void TrackedFrame::SetCustomFrameField( std::string name, std::string value )
@@ -192,212 +211,6 @@ void TrackedFrame::SetCustomFrameTransform(std::string frameTransformName, vtkMa
 }
 
 //----------------------------------------------------------------------------
-TrackedFrame::US_IMAGE_ORIENTATION TrackedFrame::GetUsImageOrientationFromString( const char* usImgOrientation )
-{
-	US_IMAGE_ORIENTATION imageorientation = US_IMG_ORIENT_XX; 
-	if ( usImgOrientation == NULL )
-	{
-		return imageorientation; 
-	}
-	else if ( STRCASECMP(usImgOrientation, "UF" ) == 0 )
-	{
-		imageorientation = US_IMG_ORIENT_UF; 
-	}
-	else if ( STRCASECMP(usImgOrientation, "UN" ) == 0 )
-	{
-		imageorientation = US_IMG_ORIENT_UN; 
-	}
-	else if ( STRCASECMP(usImgOrientation, "MF" ) == 0 )
-	{
-		imageorientation = US_IMG_ORIENT_MF; 
-	}
-	else if ( STRCASECMP(usImgOrientation, "MN" ) == 0 )
-	{
-		imageorientation = US_IMG_ORIENT_MN; 
-	}
-
-	return imageorientation; 
-}
-
-//----------------------------------------------------------------------------
-const char* TrackedFrame::GetUltrasoundImageOrientation()
-{
-	std::string usImgOrientation; 
-	switch(this->UltrasoundImageOrientation)
-	{
-	case US_IMG_ORIENT_UF: 
-		usImgOrientation = "UF"; 
-		break; 
-	case US_IMG_ORIENT_UN: 
-		usImgOrientation = "UN"; 
-		break; 
-	case US_IMG_ORIENT_MF:
-		usImgOrientation = "MF"; 
-		break; 
-	case US_IMG_ORIENT_MN: 
-		usImgOrientation = "MN"; 
-		break; 
-	case US_IMG_ORIENT_XX: 
-		usImgOrientation = "XX"; 
-		break; 
-	}	 
-
-	return usImgOrientation.c_str(); 
-}	
-
-//----------------------------------------------------------------------------
-void TrackedFrame::SetUltrasoundImageOrientation(const char* usImgOrientation)
-{
-	this->UltrasoundImageOrientation = this->GetUsImageOrientationFromString(usImgOrientation); 
-}	
-
-//----------------------------------------------------------------------------
-TrackedFrame::ImageType* TrackedFrame::GetOrientedImage( const char* usImageOrientation )
-{
-	return this->GetOrientedImage(this->GetUsImageOrientationFromString(usImageOrientation) ); 
-}
-
-//----------------------------------------------------------------------------
-TrackedFrame::ImageType* TrackedFrame::GetOrientedImage( US_IMAGE_ORIENTATION usImageOrientation )
-{
-    if ( this->ImageData == NULL )
-    {
-        LOG_DEBUG("Image data was NULL, so oriented image will be NULL also!"); 
-        return NULL; 
-    }
-
-	ImageType::Pointer flipedImage; 
-	if ( this->UltrasoundImageOrientation == US_IMG_ORIENT_XX || usImageOrientation == US_IMG_ORIENT_XX )
-	{
-		LOG_DEBUG("GetOrientedImage: No ultrasound image orientation specified, return identical copy!"); 
-		flipedImage = this->ImageData; 
-		flipedImage->Register(); 
-		return flipedImage; 
-	}
-
-	if ( this->UltrasoundImageOrientation == usImageOrientation )
-	{
-		flipedImage = this->ImageData; 
-		flipedImage->Register(); 
-		return flipedImage; 
-	}
-
-	typedef itk::FlipImageFilter <ImageType> FlipImageFilterType;
-	FlipImageFilterType::Pointer flipFilter = FlipImageFilterType::New ();
-	flipFilter->SetInput(this->ImageData);
-	flipFilter->FlipAboutOriginOff(); 
-
-	itk::FixedArray<bool, 2> flipAxes;
-	switch( this->UltrasoundImageOrientation )
-	{
-	case US_IMG_ORIENT_UF: 
-		{
-			if ( usImageOrientation == US_IMG_ORIENT_UF ) 
-			{
-				flipAxes[0] = false;
-				flipAxes[1] = false;
-			}
-			else if ( usImageOrientation == US_IMG_ORIENT_UN ) 
-			{
-				flipAxes[0] = false;
-				flipAxes[1] = true;
-			}
-			else if ( usImageOrientation == US_IMG_ORIENT_MF ) 
-			{
-				flipAxes[0] = true;
-				flipAxes[1] = false;
-			}
-			else if ( usImageOrientation == US_IMG_ORIENT_MN ) 
-			{
-				flipAxes[0] = true;
-				flipAxes[1] = true;
-			}
-		}
-		break; 
-	case US_IMG_ORIENT_UN: 
-		{
-			if ( usImageOrientation == US_IMG_ORIENT_UF ) 
-			{
-				flipAxes[0] = false;
-				flipAxes[1] = true;
-			}
-			else if ( usImageOrientation == US_IMG_ORIENT_UN ) 
-			{
-				flipAxes[0] = false;
-				flipAxes[1] = false;
-			}
-			else if ( usImageOrientation == US_IMG_ORIENT_MF ) 
-			{
-				flipAxes[0] = true;
-				flipAxes[1] = true;
-			}
-			else if ( usImageOrientation == US_IMG_ORIENT_MN ) 
-			{
-				flipAxes[0] = true;
-				flipAxes[1] = false;
-			}
-		}
-		break; 
-	case US_IMG_ORIENT_MF: 
-		{
-			if ( usImageOrientation == US_IMG_ORIENT_UF ) 
-			{
-				flipAxes[0] = true;
-				flipAxes[1] = false;
-			}
-			else if ( usImageOrientation == US_IMG_ORIENT_UN ) 
-			{
-				flipAxes[0] = true;
-				flipAxes[1] = true;
-			}
-			else if ( usImageOrientation == US_IMG_ORIENT_MF ) 
-			{
-				flipAxes[0] = false;
-				flipAxes[1] = false;
-			}
-			else if ( usImageOrientation == US_IMG_ORIENT_MN ) 
-			{
-				flipAxes[0] = false;
-				flipAxes[1] = true;
-			}
-		}
-		break; 
-	case US_IMG_ORIENT_MN: 
-		{
-			if ( usImageOrientation == US_IMG_ORIENT_UF ) 
-			{
-				flipAxes[0] = true;
-				flipAxes[1] = true;
-			}
-			else if ( usImageOrientation == US_IMG_ORIENT_UN ) 
-			{
-				flipAxes[0] = true;
-				flipAxes[1] = false;
-			}
-			else if ( usImageOrientation == US_IMG_ORIENT_MF ) 
-			{
-				flipAxes[0] = false;
-				flipAxes[1] = true;
-			}
-			else if ( usImageOrientation == US_IMG_ORIENT_MN ) 
-			{
-				flipAxes[0] = false;
-				flipAxes[1] = false;
-			}
-		}
-		break; 
-	}
-
-	flipFilter->SetFlipAxes(flipAxes);
-	flipFilter->Update();
-
-	flipedImage = flipFilter->GetOutput(); 
-	flipedImage->Register();
-
-	return flipedImage; 
-}
-
-//----------------------------------------------------------------------------
 // ************************* vtkTrackedFrameList *****************************
 //----------------------------------------------------------------------------
 vtkCxxRevisionMacro(vtkTrackedFrameList, "$Revision: 1.0 $");
@@ -408,7 +221,7 @@ vtkTrackedFrameList::vtkTrackedFrameList()
 {
 	this->SetMaxNumOfFramesToWrite(500); 
 	this->SetNumberOfUniqueFrames(5); 
-	this->SetFrameSize(0,0,0); 
+	this->SetFrameSize(0,0); 
 }
 
 //----------------------------------------------------------------------------
@@ -556,6 +369,22 @@ int* vtkTrackedFrameList::GetFrameSize()
 }
 
 //----------------------------------------------------------------------------
+int vtkTrackedFrameList::GetNumberOfBitsPerPixel()
+{
+    int numberOfBitsPerPixel = 0; 
+	if ( this->GetNumberOfTrackedFrames() > 0 )
+	{
+		numberOfBitsPerPixel = this->GetTrackedFrame(0)->GetNumberOfBitsPerPixel(); 
+	}
+	else
+	{
+		LOG_WARNING("Unable to get frame size: there is no frame in the tracked frame list!"); 
+	}
+
+	return numberOfBitsPerPixel; 
+}
+
+//----------------------------------------------------------------------------
 std::string vtkTrackedFrameList::GetDefaultFrameTransformName()
 {
 	std::string defaultFrameTransformName; 
@@ -595,6 +424,8 @@ PlusStatus vtkTrackedFrameList::ReadFromSequenceMetafile(const char* trackedSequ
 	const unsigned long ImageHeightInPixels = imageSeq->GetLargestPossibleRegion().GetSize()[1]; 
 	const unsigned long numberOfFrames = imageSeq->GetLargestPossibleRegion().GetSize()[2];	
 
+    const char * usImageOrientation = readerMetaImageSequenceIO->GetUltrasoundImageOrientation(); 
+
 	unsigned int frameSizeInBytes=ImageWidthInPixels*ImageHeightInPixels*sizeof(TrackedFrame::PixelType);
 
 	TrackedFrame::PixelType* imageSeqData = imageSeq->GetBufferPointer(); // pointer to the image pixel buffer
@@ -611,7 +442,15 @@ PlusStatus vtkTrackedFrameList::ReadFromSequenceMetafile(const char* trackedSequ
 		region.SetSize(size);
 		region.SetIndex(start);
 		frame->SetRegions(region);
-		frame->Allocate();
+        try 
+        {
+		    frame->Allocate();
+        }
+        catch (itk::ExceptionObject & err)
+        {
+            LOG_ERROR("Failed to allocate memory for new image: " << err); 
+            continue; 
+        }
 
 		memcpy(frame->GetBufferPointer() , currentFrameImageData, frameSizeInBytes);
 
@@ -620,9 +459,6 @@ PlusStatus vtkTrackedFrameList::ReadFromSequenceMetafile(const char* trackedSequ
 		// Get Default transform name 
 		std::string defaultFrameTransformName = readerMetaImageSequenceIO->GetDefaultFrameTransformName(); 
 		trackedFrame.DefaultFrameTransformName = defaultFrameTransformName; 
-
-		// Get ultrasound image orientation 
-		trackedFrame.SetUltrasoundImageOrientation(readerMetaImageSequenceIO->GetUltrasoundImageOrientation()); 
 
 		// Get custom fields 
 		std::vector<std::string> customFieldNames = readerMetaImageSequenceIO->GetCustomFieldNames(); 
@@ -644,8 +480,13 @@ PlusStatus vtkTrackedFrameList::ReadFromSequenceMetafile(const char* trackedSequ
 			trackedFrame.CustomFrameFieldList.push_back(field); 
 		}
 		
-		trackedFrame.ImageData = frame;
-		trackedFrame.ImageData->Register(); 
+        const UsImageConverterCommon::US_IMAGE_ORIENTATION imgOrientation = UsImageConverterCommon::GetUsImageOrientationFromString(usImageOrientation); 
+        trackedFrame.ImageData = TrackedFrame::ImageType::New(); 
+        if ( UsImageConverterCommon::GetMFOrientedImage(frame, imgOrientation, trackedFrame.ImageData) != PLUS_SUCCESS )
+        {
+            LOG_ERROR("Failed to get MF oriented image from sequence metafile (frame number: " << imgNumber << ")!"); 
+            continue; 
+        }
 		
 		this->AddTrackedFrame(&trackedFrame); 
 	}
@@ -654,7 +495,7 @@ PlusStatus vtkTrackedFrameList::ReadFromSequenceMetafile(const char* trackedSequ
 }
 
 //----------------------------------------------------------------------------
-void vtkTrackedFrameList::SaveToSequenceMetafile(const char* outputFolder, const char* sequenceDataFileName, SEQ_METAFILE_EXTENSION extension /*=SEQ_METAFILE_MHA*/ , bool useCompression /*=true*/, const char* usImageOrientation /*=NULL*/)
+void vtkTrackedFrameList::SaveToSequenceMetafile(const char* outputFolder, const char* sequenceDataFileName, SEQ_METAFILE_EXTENSION extension /*=SEQ_METAFILE_MHA*/ , bool useCompression /*=true*/)
 {
 	LOG_TRACE("vtkTrackedFrameList::SaveToSequenceMetafile - outputFolder: " << outputFolder << "  sequenceDataFileName: " << sequenceDataFileName); 
 
@@ -691,7 +532,7 @@ void vtkTrackedFrameList::SaveToSequenceMetafile(const char* outputFolder, const
 		}
 		
 		unsigned long ImageWidthInPixels(1), ImageHeightInPixels(1); 
-        if ( TrackedFrameList[0]->ImageData != NULL )
+        if ( TrackedFrameList[0]->ImageData.IsNotNull() )
         {
             ImageWidthInPixels = TrackedFrameList[0]->ImageData->GetLargestPossibleRegion().GetSize()[0]; 
 		    ImageHeightInPixels = TrackedFrameList[0]->ImageData->GetLargestPossibleRegion().GetSize()[1]; 
@@ -727,11 +568,10 @@ void vtkTrackedFrameList::SaveToSequenceMetafile(const char* outputFolder, const
 			int trackedFrameListItem = (fileNumber - 1) * this->MaxNumOfFramesToWrite + i; 
 			TrackedFrame::PixelType *currentFrameImageData = imageData + i * frameSizeInBytes;
 			
-			TrackedFrame::ImageType* orientedImage = TrackedFrameList[trackedFrameListItem]->GetOrientedImage(usImageOrientation); 
-            if ( orientedImage != NULL )
+            TrackedFrame::ImageType::Pointer mfOrientedImage = TrackedFrameList[trackedFrameListItem]->ImageData; 
+            if ( mfOrientedImage.IsNotNull() )
             {
-			    memcpy(currentFrameImageData, orientedImage->GetBufferPointer(), frameSizeInBytes); 
-			    orientedImage->UnRegister(); 
+			    memcpy(currentFrameImageData, mfOrientedImage->GetBufferPointer(), frameSizeInBytes); 
             }
             else
             {

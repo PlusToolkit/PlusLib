@@ -1,12 +1,14 @@
 #ifndef __VTKTRACKEDFRAMELIST_H
 #define __VTKTRACKEDFRAMELIST_H
 
+#include "PlusConfigure.h"
 #include "vtkObject.h"
 #include <deque>
 
 #include "itkImage.h"
 #include "vtkMatrix4x4.h"
 #include "vtkTransform.h"
+#include "UsImageConverterCommon.h"
 
 
 //----------------------------------------------------------------------------
@@ -15,18 +17,9 @@
 class VTK_EXPORT TrackedFrame
 {
 public:
-	
-	enum US_IMAGE_ORIENTATION
-	{
-		US_IMG_ORIENT_UF, // image x axis = unmarked transducer axis, image y axis = far transducer axis
-		US_IMG_ORIENT_UN, // image x axis = unmarked transducer axis, image y axis = near transducer axis
-		US_IMG_ORIENT_MF, // image x axis = marked transducer axis, image y axis = far transducer axis
-		US_IMG_ORIENT_MN, // image x axis = marked transducer axis, image y axis = near transducer axis
-		US_IMG_ORIENT_XX  // undefined
-	}; 
+    typedef UsImageConverterCommon::PixelType PixelType;
+	typedef UsImageConverterCommon::ImageType ImageType;
 
-	typedef unsigned char PixelType;
-	typedef itk::Image< PixelType, 2 > ImageType;
 	// <CustomFrameFieldName, CustomFrameFieldValue>
 	typedef std::pair<std::string, std::string> CustomFrameFieldPair; 
 	// <CustomFieldName, CustomFieldValue>
@@ -35,6 +28,7 @@ public:
 	TrackedFrame(); 
 	~TrackedFrame(); 
 	TrackedFrame(const TrackedFrame& frame); 
+    TrackedFrame& TrackedFrame::operator=(TrackedFrame const&trackedFrame); 
 
 	//! Operation: 
 	// Set custom frame field
@@ -69,32 +63,12 @@ public:
 	void SetCustomFrameTransform(std::string frameTransformName, vtkMatrix4x4* transform); 
 
 	//! Operation: 
-	// Get US_IMAGE_ORIENTATION enum value from string 
-	static US_IMAGE_ORIENTATION GetUsImageOrientationFromString( const char* usImgOrientation ); 
-
-	//! Operation: 
-	// Set/get ultrasound image orientation 
-	// The ultrasound image axes are defined as follows:
-	// - x axis: points towards the x coordinate increase direction
-	// - y axis: points towards the y coordinate increase direction
-	// The image orientation can be defined by specifying which transducer axis corresponds to the x and y image axes, respectively.
-	// There are four possible orientations:
-	// - UF: image x axis = unmarked transducer axis, image y axis = far transducer axis
-	// - UN: image x axis = unmarked transducer axis, image y axis = near transducer axis
-	// - MF: image x axis = marked transducer axis, image y axis = far transducer axis
-	// - MN: image x axis = marked transducer axis, image y axis = near transducer axis
-	const char* GetUltrasoundImageOrientation(); 
-	void SetUltrasoundImageOrientation(const char* usImgOrientation); 
-
-	//! Operation: 
-	// Get oriented tracked ultrasound image 
-	// User should call UnRegister() on returned image after this call 
-	ImageType* GetOrientedImage( US_IMAGE_ORIENTATION usImageOrientation ); 
-	ImageType* GetOrientedImage( const char* usImageOrientation ); 
-
-	//! Operation: 
 	// Get tracked frame size in pixel
 	int* GetFrameSize(); 
+
+    //! Operation: 
+    // Get tracked frame pixel size in bits 
+    int GetNumberOfBitsPerPixel(); 
 
 	bool operator< (TrackedFrame data) { return Timestamp < data.Timestamp; }
 	bool operator== (const TrackedFrame& data) const 
@@ -102,15 +76,14 @@ public:
 		return this->Timestamp == data.Timestamp; 
 	}
 
-	US_IMAGE_ORIENTATION UltrasoundImageOrientation; 
 	std::string DefaultFrameTransformName; 
 	double Timestamp; 
 	long Status; 
-	ImageType* ImageData;
+	ImageType::Pointer ImageData;
 
 	std::vector<CustomFrameFieldPair> CustomFrameFieldList; 
 	std::vector<CustomFieldPair> CustomFieldList; 
-	int FrameSize[3]; 
+	int FrameSize[2]; 
 };
 
 
@@ -260,7 +233,7 @@ public:
 
 	//! Operation: 
 	// Save the tracked data to sequence metafile 
-	virtual void SaveToSequenceMetafile(const char* outputFolder, const char* sequenceDataFileName, SEQ_METAFILE_EXTENSION extension = SEQ_METAFILE_MHA, bool useCompression = true, const char* usImageOrientation = NULL);
+	virtual void SaveToSequenceMetafile(const char* outputFolder, const char* sequenceDataFileName, SEQ_METAFILE_EXTENSION extension = SEQ_METAFILE_MHA, bool useCompression = true);
 
 	//! Operation: 
 	// Read the tracked data from sequence metafile 
@@ -299,13 +272,17 @@ public:
 	// Get tracked frame size in pixel
 	virtual int* GetFrameSize(); 
 
+    //! Operation: 
+    // Get tracked frame pixel size in bits 
+    virtual int GetNumberOfBitsPerPixel(); 
+
 protected:
 	vtkTrackedFrameList();
 	virtual ~vtkTrackedFrameList();
 
 	//! Operation: 
 	// Set tracked frame size in pixel
-	vtkSetVector3Macro(FrameSize, int); 
+	vtkSetVector2Macro(FrameSize, int); 
 
 	bool ValidateTimestamp(TrackedFrame* trackedFrame); 
 	bool ValidateStatus(TrackedFrame* trackedFrame); 
@@ -315,7 +292,7 @@ protected:
 
 	int MaxNumOfFramesToWrite; 
 	int NumberOfUniqueFrames; 
-	int FrameSize[3]; 
+	int FrameSize[2]; 
 
 private:
 	vtkTrackedFrameList(const vtkTrackedFrameList&);

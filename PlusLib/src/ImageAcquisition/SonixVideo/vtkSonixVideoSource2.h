@@ -139,16 +139,6 @@ public:
   PlusStatus Grab();
 
   // Description:
-  // Request a particular vtk output format (default: VTK_RGB).
-  void SetOutputFormat(int format);
-
-  //  // Description:
-  //// Set size of the frame buffer, i.e. the number of frames that
-  //// the 'tape' can store.
-  //void SetFrameBufferSize(int FrameBufferSize);
-  //vtkGetMacro(FrameBufferSize,int);
-
-  // Description:
   // Request a particular mode of imaging (e.g. B-mode (0), M-mode(1), Color-doppler(2), pulsed-doppler(3); default: B-mode).
   void SetImagingMode(int mode){ImagingMode = mode;};
   void GetImagingMode(int & mode){mode = ImagingMode;};
@@ -236,15 +226,9 @@ public:
   // destructor).
   void ReleaseSystemResources();
 
-  //Description:
-  // Request data method override
-  //int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
-
 protected:
   vtkSonixVideoSource2();
   virtual ~vtkSonixVideoSource2();
-
-  int RequestInformation(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
 
   ulterius *ult;
   uDataDesc *DataDescriptor;
@@ -264,44 +248,12 @@ protected:
   
   char *SonixHostIP;
 
-  void UnpackRasterLine(char *outptr, char *inptr, 
-                        int start, int count);
-
-
-  float Opacity;
-
-  // true if Execute() must apply a vertical flip to each frame
-  int FlipFrames;
-
-  void DoFormatSetup();
-
   // Description:
   // For internal use only
   PlusStatus LocalInternalGrab(void * data, int type, int sz, bool cine, int frmnum);
-
-    // A mutex for the frame buffer: must be applied when any of the
-  // below data is modified.
-  //vtkCriticalSection *FrameBufferMutex;
-
-    // set according to the needs of the hardware:
-  // number of bits per framebuffer pixel
-  //int FrameBufferBitsPerPixel;
-
-  // byte alignment of each row in the framebuffer
-  int FrameBufferRowAlignment;
   
-  // FrameBufferExtent is the extent of frame after it has been clipped 
-  // with ClipRegion.  It is initialized in CheckBuffer().
-  //int FrameBufferExtent[6];
-
-  //int FrameBufferSize;
-  //int FrameBufferIndex;
-  //void **FrameBuffer;
-  //double *FrameBufferTimeStamps;
-
 private:
  
-
   static vtkSonixVideoSource2* Instance;
   static bool vtkSonixVideoSourceNewFrameCallback(void * data, int type, int sz, bool cine, int frmnum);
   vtkSonixVideoSource2(const vtkSonixVideoSource2&);  // Not implemented.

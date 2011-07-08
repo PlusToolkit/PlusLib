@@ -42,22 +42,27 @@ public:
 	virtual PlusStatus ReadConfiguration( const char* configFileName ); 
 	virtual PlusStatus ReadConfiguration(); 
 
-	virtual void AddTrackedFrame( vtkImageData* frame, vtkMatrix4x4* mToolToReference); 
+	virtual void AddTrackedFrame( vtkImageData* frame, const char* usImageOrientation, vtkMatrix4x4* mToolToReference); 
 
 	virtual void AddTrackedFrame( unsigned char* imageData, 
+                                  const char* usImageOrientation, 
 								  const int imageWidthInPixels, 
 								  const int imageHeightInPixels, 
 								  const double transformMatrix[16] ); 
 
 	virtual void AddTrackedFrame( unsigned char* imageData, 
+                                  const char* usImageOrientation, 
 								  const int imageWidthInPixels, 
 								  const int imageHeightInPixels, 
 								  vtkMatrix4x4* transformMatrix ); 
 
 	virtual void FindOutputExtent( vtkMatrix4x4* frame2TrackerTransMatrix, int* frameExtent); 
 
-	vtkSetVector3Macro( FrameSize, int ); 
-	vtkGetVector3Macro( FrameSize, int ); 
+	vtkSetVector2Macro( FrameSize, int ); 
+	vtkGetVector2Macro( FrameSize, int ); 
+
+    vtkSetMacro(NumberOfBitsPerPixel, int); 
+    vtkGetMacro(NumberOfBitsPerPixel, int); 
 
 	vtkSetMacro( NumberOfFrames, int ); 
 	vtkGetMacro( NumberOfFrames, int ); 
@@ -99,7 +104,8 @@ protected:
 	vtkFreehandUltrasound2Dynamic* Reconstructor; 
 
 	int NumberOfFrames; 
-	int FrameSize[3];
+	int FrameSize[2];
+    int NumberOfBitsPerPixel; 
 
 	bool Initialized; 
 

@@ -5,13 +5,7 @@
 #include "vtkCriticalSection.h"
 #include "vtkObjectFactory.h"
 #include "vtkTimerLog.h"
-//#include "vtkInformation.h"
-//#include "vtkInformationVector.h"
-//#include "vtkStreamingDemandDrivenPipeline.h"
-//#include "vtkUnsignedCharArray.h"
-//#include "vtksys/SystemTools.hxx"
 #include "vtkVideoBuffer.h"
-#include "vtkVideoFrame2.h"
 #include "vtkMultiThreader.h"
 
 #include <ctype.h>
@@ -186,12 +180,12 @@ PlusStatus vtkBufferedVideoSource::StopRecording()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkBufferedVideoSource::AddFrame( vtkImageData* image, double timestamp )
+PlusStatus vtkBufferedVideoSource::AddFrame( vtkImageData* image, const char* usImageOrientation, double timestamp )
 {
 	// We don't have information about the unfiltered timestamp, use the filtered one
 	const double unfilteredTimestamp = timestamp; 
 	const long frameNumber = this->FrameNumber + 1; 
-	PlusStatus status = this->Buffer->AddItem(image, unfilteredTimestamp, timestamp, frameNumber); 
+	PlusStatus status = this->Buffer->AddItem(image, usImageOrientation, unfilteredTimestamp, timestamp, frameNumber); 
 
 	if ( status == PLUS_SUCCESS )
 	{

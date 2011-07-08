@@ -409,8 +409,6 @@ PlusStatus vtkFreehandCalibrationController::Start()
 	}
 	*/
 
-	this->DesiredOrientation = "MF";
-
 	// TEMPORARY CODE ////////////
 	vtkSmartPointer<vtkMatrix4x4> identity = vtkSmartPointer<vtkMatrix4x4>::New();
 	identity->Identity();

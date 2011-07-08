@@ -630,19 +630,32 @@ void vtkCalibratorVisualizationComponent::SetupImageViewers()
 
 
 //----------------------------------------------------------------------------
-void vtkCalibratorVisualizationComponent::AddFrameToRealtimeRenderer(vtkImageData* frame)
+PlusStatus vtkCalibratorVisualizationComponent::AddFrameToRealtimeRenderer(vtkImageData* frame)
 {
 	if ( !this->Initialized )
 	{
-		return; 
+        LOG_WARNING("Failed to add frame to the realtime renderer - vtkCalibratorVisualizationComponent not initialized!"); 
+		return PLUS_FAIL; 
 	}
+
+    if ( this->GetRealtimeImageActor() == NULL )
+    {
+        LOG_WARNING("Failed to add frame to the realtime renderer - realtime image actor is NULL!"); 
+		return PLUS_FAIL;
+    }
 
 	this->GetRealtimeImageActor()->SetInput(frame); 
 	this->GetRealtimeImageActor()->Modified(); 
-	if ( this->GetRealtimeRenderer()->GetRenderWindow() != NULL ) 
+
+	if ( this->GetRealtimeRenderer()->GetRenderWindow() == NULL ) 
 	{
-		this->GetRealtimeRenderer()->GetRenderWindow()->Render(); 
+        LOG_WARNING("Failed to render realtime image - render window is NULL!"); 
+		return PLUS_FAIL; 
 	}
+
+    this->GetRealtimeRenderer()->GetRenderWindow()->Render(); 
+
+    return PLUS_SUCCESS; 
 }
 
 //----------------------------------------------------------------------------

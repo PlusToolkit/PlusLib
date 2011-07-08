@@ -153,7 +153,15 @@ int main(int argc, char **argv)
 					region.SetSize(size);
 					region.SetIndex(start);
 					frame->SetRegions(region);
-					frame->Allocate();
+                    try
+                    {
+                        frame->Allocate();
+                    }
+                    catch (itk::ExceptionObject & err) 
+                    {		
+                        LOG_ERROR("Unable to allocate memory for image: " << err);
+                        continue; 
+                    }
 
 					memcpy(frame->GetBufferPointer() , currentFrameImageData , frameSizeInBytes);
 
@@ -164,7 +172,15 @@ int main(int argc, char **argv)
 					regionRGB.SetSize(sizeRGB);
 					regionRGB.SetIndex(startRGB);
 					frameRGB->SetRegions(regionRGB);
-					frameRGB->Allocate();
+                    try
+                    {
+                        frameRGB->Allocate();
+                    }
+                    catch (itk::ExceptionObject & err) 
+                    {		
+                        LOG_ERROR("Unable to allocate memory for image: " << err);
+                        continue;
+                    }
 
 					typedef itk::ComposeRGBImageFilter< ImageType, RGBImageType > ComposeRGBFilterType;
 					ComposeRGBFilterType::Pointer composeRGB = ComposeRGBFilterType::New();
@@ -262,7 +278,15 @@ int main(int argc, char **argv)
 					region.SetSize(size);
 					region.SetIndex(start);
 					frame->SetRegions(region);
-					frame->Allocate();
+                    try
+                    {
+                        frame->Allocate();
+                    }
+                    catch (itk::ExceptionObject & err) 
+                    {		
+                        LOG_ERROR("Unable to allocate memory for image: " << err);
+                        continue; 
+                    }
 
 					memcpy(frame->GetBufferPointer() , currentFrameImageData , frameSizeInBytes);
 

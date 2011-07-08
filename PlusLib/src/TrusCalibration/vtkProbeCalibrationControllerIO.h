@@ -28,7 +28,7 @@ public:
 
 	//! Description
 	// Draw the segmentation result to each individual image and save them into TIFF files
-	virtual void SaveSegmentationResultToImage( int imgNumber, ImageType* frame );
+	virtual void SaveSegmentationResultToImage( const int imgNumber, const ImageType::Pointer& frame );
 
 	//! Description
 	// Save back projected wire positions to text file in gnuplot format 
