@@ -17,6 +17,7 @@
 #include "itkRGBPixel.h"
 #include "itkComposeRGBImageFilter.h"
 #include "itkRGBToLuminanceImageFilter.h"
+#include "itkFlipImageFilter.h"
 
 // VXL/VNL Includes
 #include "vnl/vnl_matrix.h"
@@ -79,14 +80,15 @@ void ConvertFromOldSequenceMetafile(std::vector<std::string> inputImageSequenceF
 
 void SaveImages( vtkTrackedFrameList* trackedFrameList, SAVING_METHOD savingMethod, int numberOfImagesWritten ); 
 void SaveImageToMetaFile( TrackedFrame* trackedFrame, std::string metaFileName, bool useCompression ); 
-void SaveImageToBitmap( ImageType* image, std::string bitmapFileName, int savingMethod ); 
+void SaveImageToBitmap( const ImageType::Pointer& image, std::string bitmapFileName, int savingMethod ); 
 
 void SaveTransformToFile(TrackedFrame* trackedFrame, std::string imageFileName, std::string toolToReferenceTransformName, std::string referenceToTrackerTransformName); 
 
+// convert internal MF oriented image into the desired image orientation 
+PlusStatus GetOrientedImage( const ImageType::Pointer& inMFOrientedImage, UsImageConverterCommon::US_IMAGE_ORIENTATION desiredUsImageOrientation, ImageType::Pointer& outOrientedImage ); 
+
 void ReadTransformFile( const std::string TransformFileNameWithPath, double* transformUSProbe2StepperFrame ); 
 void ReadDRBTransformFile( const std::string TransformFileNameWithPath, TrackedFrame* trackedFrame); 
-
-void PrintProgressBar( int percent ); 
 
 std::string inputDataDir;
 std::string inputBitmapPrefix("CapturedImageID_NO_"); 
@@ -366,7 +368,13 @@ void ConvertFromOldSequenceMetafile(std::vector<std::string> inputImageSequenceF
 		PixelType* imageSeqData = imageSeq->GetBufferPointer(); 
 		for ( int imgNumber = 0; imgNumber < numberOfFrames; imgNumber++ )
 		{
-			PrintProgressBar( (100.0 * imgNumber) / numberOfFrames ); 
+            if ( inputUsImageOrientation == "XX" )
+            {
+                LOG_ERROR("Failed to convert frame from old sequence metafile without proper image orientation! Please set the --input-us-img-orientation partameter!"); 
+                continue; 
+            }
+
+			PlusLogger::PrintProgressbar( (100.0 * imgNumber) / numberOfFrames ); 
 
 			TrackedFrame::ImageType::Pointer frame = TrackedFrame::ImageType::New(); 
 			TrackedFrame::ImageType::SizeType size = {imageWidthInPixels, imageHeightInPixels};
@@ -410,17 +418,24 @@ void ConvertFromOldSequenceMetafile(std::vector<std::string> inputImageSequenceF
 				0, 0, 0, 1
 			}; 
 
+            ImageType::Pointer mfOrientedImage = ImageType::New(); 
+            UsImageConverterCommon::US_IMAGE_ORIENTATION imgOrientation = UsImageConverterCommon::GetUsImageOrientationFromString(inputUsImageOrientation.c_str()); 
+            if ( UsImageConverterCommon::GetMFOrientedImage(frame, imgOrientation, mfOrientedImage) != PLUS_SUCCESS )
+            {
+                LOG_ERROR("Failed to get MF oriented image from " << inputUsImageOrientation << " orientation!"); 
+                continue; 
+            }
+
 			// Create tracked frame struct
 			TrackedFrame trackedFrame;
-			trackedFrame.ImageData = frame;
-			trackedFrame.ImageData->Register(); 
+			trackedFrame.ImageData = mfOrientedImage;
 			trackedFrame.SetCustomFrameTransform(defaultFrameTransformName, defaultTransformMatrix); 
 			trackedFrame.DefaultFrameTransformName = defaultFrameTransformName; 
 
 			trackedFrameContainer->AddTrackedFrame(&trackedFrame);
 		}
 
-		PrintProgressBar(100); 
+		PlusLogger::PrintProgressbar(100); 
 
 		SaveImages(trackedFrameContainer, savingMethod, ++numberOfImagesWritten); 
 	}
@@ -450,7 +465,7 @@ void ConvertFromBitmap(SAVING_METHOD savingMethod)
 	{
 		// Skip this file, if it's not a .bmp file.
 
-		PrintProgressBar(frameNumber*100 / totalNumberOfImages ); 
+		PlusLogger::PrintProgressbar(frameNumber*100 / totalNumberOfImages ); 
 
 		std::string fileName( dir->GetFile( dirIndex ) );
 		std::size_t pos = 0;
@@ -460,6 +475,12 @@ void ConvertFromBitmap(SAVING_METHOD savingMethod)
 
 		imageFileNameWithPath.str( "" );
 		imageFileNameWithPath << inputDataDir << "/" << fileName;
+
+        if ( inputUsImageOrientation == "XX" )
+        {
+            LOG_ERROR("Failed to convert frame from bitmap without proper image orientation! Please set the --input-us-img-orientation partameter (" << imageFileNameWithPath.str() << ")!"); 
+            continue; 
+        }
 
 		RGBImageReaderType::Pointer reader = RGBImageReaderType::New(); 
 		reader->SetFileName(imageFileNameWithPath.str().c_str());
@@ -490,8 +511,8 @@ void ConvertFromBitmap(SAVING_METHOD savingMethod)
 		}
 
 		ImageType::Pointer imageData = filter->GetOutput(); 
-    
-    
+
+
       // Try to find the file name for the transform file.
     
 		std::ostringstream transformFileNameWithPath; 
@@ -505,12 +526,18 @@ void ConvertFromBitmap(SAVING_METHOD savingMethod)
 			transformFileNameWithPath << inputDataDir << "/" << fileName;
 		}
 
-		
+
+
+        ImageType::Pointer mfOrientedImage = ImageType::New(); 
+        UsImageConverterCommon::US_IMAGE_ORIENTATION imgOrientation = UsImageConverterCommon::GetUsImageOrientationFromString(inputUsImageOrientation.c_str()); 
+        if ( UsImageConverterCommon::GetMFOrientedImage(imageData, imgOrientation, mfOrientedImage) != PLUS_SUCCESS )
+        {
+            LOG_ERROR("Failed to get MF oriented image from " << inputUsImageOrientation << " orientation!"); 
+            continue; 
+        }
 		
 		TrackedFrame trackedFrame;
-		trackedFrame.ImageData = imageData;
-		trackedFrame.ImageData->Register(); 
-		trackedFrame.SetUltrasoundImageOrientation(inputUsImageOrientation.c_str()); 
+		trackedFrame.ImageData = mfOrientedImage;
 		ReadDRBTransformFile( transformFileNameWithPath.str(), &trackedFrame); 
 		trackedFrameContainer->AddTrackedFrame(&trackedFrame);
 
@@ -518,7 +545,7 @@ void ConvertFromBitmap(SAVING_METHOD savingMethod)
 		imageFileNameWithPath << inputDataDir << "/" << inputBitmapPrefix << std::setfill('0') << std::setw(4) << ++frameNumber << inputBitmapSuffix << ".bmp"; 
 	}
 
-	PrintProgressBar(100); 
+	PlusLogger::PrintProgressbar(100); 
 
 	SaveImages(trackedFrameContainer, savingMethod, numberOfImagesWritten); 
 }
@@ -544,7 +571,7 @@ void SaveImages( vtkTrackedFrameList* trackedFrameList, SAVING_METHOD savingMeth
 			{
 				if ( numberOfFrames > 1 )
 				{
-					PrintProgressBar(imgNumber*100 / numberOfFrames ); 
+					PlusLogger::PrintProgressbar(imgNumber*100 / numberOfFrames ); 
 				}
 
 				std::ostringstream fileName; 
@@ -563,15 +590,22 @@ void SaveImages( vtkTrackedFrameList* trackedFrameList, SAVING_METHOD savingMeth
 					fileName << ".png"; 					
 				}
 
-				TrackedFrame::ImageType::Pointer orientedImage = trackedFrameList->GetTrackedFrame(imgNumber)->GetOrientedImage(outputUsImageOrientation.c_str()); 
+                // Convert the internal MF oriented image into the desired image orientation 
+                ImageType::Pointer orientedImage = ImageType::New(); 
+                UsImageConverterCommon::US_IMAGE_ORIENTATION desiredOrientation = UsImageConverterCommon::GetUsImageOrientationFromString( outputUsImageOrientation.c_str() ); 
+                if ( GetOrientedImage(trackedFrameList->GetTrackedFrame(imgNumber)->ImageData, desiredOrientation, orientedImage) != PLUS_SUCCESS )
+                {
+                    LOG_ERROR("Failed to get " << outputUsImageOrientation << " oriented image from MF orientation!"); 
+                    continue; 
+                }
+
 				SaveImageToBitmap(orientedImage, fileName.str(), savingMethod); 
 				SaveTransformToFile(trackedFrameList->GetTrackedFrame(imgNumber), fileName.str(), inputToolToReferenceName, inputReferenceToTrackerName); 
-				orientedImage->UnRegister(); 
 			} 
 
 			if ( numberOfFrames > 1 )
 			{
-				PrintProgressBar(100); 
+				PlusLogger::PrintProgressbar(100); 
 			}
 		}
 		break; 
@@ -586,7 +620,7 @@ void SaveImages( vtkTrackedFrameList* trackedFrameList, SAVING_METHOD savingMeth
 			{
 				if ( numberOfFrames > 1 )
 				{
-					PrintProgressBar(imgNumber*100 / numberOfFrames ); 
+					PlusLogger::PrintProgressbar(imgNumber*100 / numberOfFrames ); 
 				}
 
 				std::ostringstream fileName; 
@@ -597,7 +631,7 @@ void SaveImages( vtkTrackedFrameList* trackedFrameList, SAVING_METHOD savingMeth
 
 			if ( numberOfFrames > 1 )
 			{
-				PrintProgressBar(100); 
+				PlusLogger::PrintProgressbar(100); 
 			}
 		}
 		break; 
@@ -612,20 +646,19 @@ void SaveImages( vtkTrackedFrameList* trackedFrameList, SAVING_METHOD savingMeth
             {
                 for ( int i = 0; i < numberOfFrames; ++i )
                 {
-                    if ( trackedFrameList->GetTrackedFrame(i)->ImageData != NULL )
+                    if ( trackedFrameList->GetTrackedFrame(i)->ImageData.IsNotNull() )
                     {
-                        trackedFrameList->GetTrackedFrame(i)->ImageData->Delete(); 
                         trackedFrameList->GetTrackedFrame(i)->ImageData = NULL; 
                     }
                 }
             }
-			trackedFrameList->SaveToSequenceMetafile(outputFolder.c_str(), outputSequenceFileName.c_str(), vtkTrackedFrameList::SEQ_METAFILE_MHA, inputUseCompression, outputUsImageOrientation.c_str()); 
+			trackedFrameList->SaveToSequenceMetafile(outputFolder.c_str(), outputSequenceFileName.c_str(), vtkTrackedFrameList::SEQ_METAFILE_MHA, inputUseCompression); 
 		}
 	}
 }
 
 //-------------------------------------------------------------------------------
-void SaveImageToBitmap( ImageType* image, std::string bitmapFileName, int savingMethod) 
+void SaveImageToBitmap( const ImageType::Pointer& image, std::string bitmapFileName, int savingMethod) 
 {
 	if ( savingMethod == BMP24 )
 	{
@@ -770,10 +803,18 @@ void SaveTransformToFile(TrackedFrame* trackedFrame, std::string imageFileName, 
 //-------------------------------------------------------------------------------
 void SaveImageToMetaFile( TrackedFrame* trackedFrame, std::string metaFileName, bool useCompression)
 {
-	TrackedFrame::ImageType::Pointer image = trackedFrame->GetOrientedImage(outputUsImageOrientation.c_str()); 
+	TrackedFrame::ImageType::Pointer mfOrientedImage = trackedFrame->ImageData; 
 
-	const unsigned long imageWidthInPixels = image->GetLargestPossibleRegion().GetSize()[0]; 
-	const unsigned long imageHeightInPixels = image->GetLargestPossibleRegion().GetSize()[1]; 
+    UsImageConverterCommon::US_IMAGE_ORIENTATION desiredOrientation = UsImageConverterCommon::GetUsImageOrientationFromString( outputUsImageOrientation.c_str() ); 
+    TrackedFrame::ImageType::Pointer orientedImage = TrackedFrame::ImageType::New(); 
+    if ( GetOrientedImage(mfOrientedImage, desiredOrientation, orientedImage) != PLUS_SUCCESS )
+    {
+        LOG_ERROR("Failed to save oriented image to metafile (" << metaFileName << ")!"); 
+        return; 
+    }
+
+	const unsigned long imageWidthInPixels = orientedImage->GetLargestPossibleRegion().GetSize()[0]; 
+	const unsigned long imageHeightInPixels = orientedImage->GetLargestPossibleRegion().GetSize()[1]; 
 	unsigned int frameSizeInBytes = imageWidthInPixels * imageHeightInPixels * sizeof(PixelType);
 
 	ImageType3D::Pointer frame = ImageType3D::New(); 
@@ -785,8 +826,7 @@ void SaveImageToMetaFile( TrackedFrame* trackedFrame, std::string metaFileName, 
 	frame->SetRegions(region);
 	frame->Allocate();
 
-	memcpy(frame->GetBufferPointer() , image->GetBufferPointer() , frameSizeInBytes);
-	image->UnRegister(); 
+	memcpy(frame->GetBufferPointer() , orientedImage->GetBufferPointer() , frameSizeInBytes);
 
 	double transformMatrix[16]; 
 	trackedFrame->GetDefaultFrameTransform(transformMatrix); 
@@ -1040,34 +1080,66 @@ void ReadDRBTransformFile( const std::string TransformFileNameWithPath, TrackedF
 }
 
 
-//-------------------------------------------------------------------------------
-void PrintProgressBar( int percent )
+//----------------------------------------------------------------------------
+ PlusStatus GetOrientedImage( const ImageType::Pointer& inMFOrientedImage, UsImageConverterCommon::US_IMAGE_ORIENTATION desiredUsImageOrientation, ImageType::Pointer& outOrientedImage )
 {
-	std::string bar;
+    if ( inMFOrientedImage.IsNull() )
+    {
+        LOG_WARNING("Failed to get oriented image - input image is NULL!"); 
+        return PLUS_FAIL; 
+    }
 
-	for(int i = 0; i < 50; i++)
+    if ( outOrientedImage.IsNull() )
+    {
+        LOG_WARNING("Failed to get oriented image - output image is NULL!"); 
+        return PLUS_FAIL; 
+    }
+
+    if ( desiredUsImageOrientation == UsImageConverterCommon::US_IMG_ORIENT_XX )
 	{
-		if( i < (percent/2))
-		{
-			bar.replace(i,1,"=");
-		}
-		else if( i == (percent/2))
-		{
-			bar.replace(i,1,">");
-		}
-		else
-		{
-			bar.replace(i,1," ");
-		}
+		LOG_DEBUG("GetOrientedImage: No ultrasound image orientation specified, return identical copy!"); 
+		outOrientedImage = inMFOrientedImage; 
+		return PLUS_SUCCESS; 
 	}
 
-	std::cout<< "\r" "[" << bar << "] ";
-	std::cout.width( 3 );
-	std::cout<< percent << "%     " << std::flush;
-
-	if ( percent == 100)
+    if ( UsImageConverterCommon::US_IMG_ORIENT_MF == desiredUsImageOrientation )
 	{
-		std::cout << std::endl << std::endl;
+		outOrientedImage = inMFOrientedImage; 
+		return PLUS_SUCCESS;
 	}
+
+    // if the desired image orientation is not MF, then flip the image 
+	typedef itk::FlipImageFilter <ImageType> FlipImageFilterType;
+	FlipImageFilterType::Pointer flipFilter = FlipImageFilterType::New ();
+	flipFilter->SetInput(inMFOrientedImage);
+	flipFilter->FlipAboutOriginOff(); 
+
+    itk::FixedArray<bool, 2> flipAxes;
+    if ( desiredUsImageOrientation == UsImageConverterCommon::US_IMG_ORIENT_UF ) 
+    {
+        flipAxes[0] = true;
+        flipAxes[1] = false;
+    }
+    else if ( desiredUsImageOrientation == UsImageConverterCommon::US_IMG_ORIENT_UN ) 
+    {
+        flipAxes[0] = true;
+        flipAxes[1] = true;
+    }
+    else if ( desiredUsImageOrientation == UsImageConverterCommon::US_IMG_ORIENT_MF ) 
+    {
+        flipAxes[0] = false;
+        flipAxes[1] = false;
+    }
+    else if ( desiredUsImageOrientation == UsImageConverterCommon::US_IMG_ORIENT_MN ) 
+    {
+        flipAxes[0] = false;
+        flipAxes[1] = true;
+    }
+
+	flipFilter->SetFlipAxes(flipAxes);
+	flipFilter->Update();
+
+    outOrientedImage = flipFilter->GetOutput(); 
+
+	return PLUS_SUCCESS; 
 }
-
