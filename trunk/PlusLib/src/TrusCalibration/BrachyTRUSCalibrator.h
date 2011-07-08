@@ -295,33 +295,6 @@ class BrachyTRUSCalibrator : public Phantom
 		vnl_vector<double> mPhantomGeometryOnFrontInnerWall[5][5];
 		vnl_vector<double> mPhantomGeometryOnBackInnerWall[5][5];
 
-		// ==========================
-		// The Joints of the N-wires
-		// ==========================
-		// 1. This section calculates the joints between two wires in 
-		//    the N-wire geometry, i.e., NWireJointAB
-		// 2. The wire joints are in turn used for computation in the
-		//    similar triangles of each N-wire geometry
-		// 3. Since there are only two layers of the N-wires are 
-		//    deployed, only those joints related are computed here.
-		// 4. NWireJointAB and NwireJointBA should be theoretically the 
-		//    same, except NWireJointAB is calculated using NWire-A while 
-		//    NWireJointBA is calculated using NWire-B.
-		//
-		// Important Note:
-		// - These N-wire joints should be exactly corresponding to 
-		//   the wire locations in the phantom (one to one fixation).
-		// ========================================================
-		// Joints of N-wires at:
-		// [Top Layer] toward [Front Wall]
-		//vnl_vector<double> mNWireJointTopLayerFrontWall;
-		// [Top Layer] toward [Back Wall]
-		//vnl_vector<double> mNWireJointTopLayerBackWall;
-		// [Bottom Layer] toward [Front Wall]
-		//vnl_vector<double> mNWireJointBottomLayerFrontWall;
-		// [Bottom Layer] toward [Back Wall]
-		//vnl_vector<double> mNWireJointBottomLayerBackWall;
-
 		PhantomPoints mPhantomPoints;
 
 		std::vector<NWire> mNWires;
