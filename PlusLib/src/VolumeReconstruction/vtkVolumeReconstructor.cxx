@@ -125,7 +125,7 @@ void vtkVolumeReconstructor::FillHoles()
 
 //----------------------------------------------------------------------------
 void vtkVolumeReconstructor::AddTrackedFrame( unsigned char* imageData, 
-                                             const char* usImageOrientation, 
+                                             US_IMAGE_ORIENTATION usImageOrientation, 
 											 const int imageWidthInPixels, 
 											 const int imageHeightInPixels, 
 											 const double transformMatrix[16] )
@@ -140,7 +140,7 @@ void vtkVolumeReconstructor::AddTrackedFrame( unsigned char* imageData,
 
 //----------------------------------------------------------------------------
 void vtkVolumeReconstructor::AddTrackedFrame( unsigned char* imageData, 
-                                             const char* usImageOrientation, 
+                                             US_IMAGE_ORIENTATION usImageOrientation, 
 											 const int imageWidthInPixels, 
 											 const int imageHeightInPixels, 
 											 vtkMatrix4x4* transformMatrix )
@@ -163,7 +163,7 @@ void vtkVolumeReconstructor::AddTrackedFrame( unsigned char* imageData,
 
 
 //----------------------------------------------------------------------------
-void vtkVolumeReconstructor::AddTrackedFrame( vtkImageData* frame, const char* usImageOrientation, vtkMatrix4x4* mToolToReference )
+void vtkVolumeReconstructor::AddTrackedFrame( vtkImageData* frame, US_IMAGE_ORIENTATION usImageOrientation, vtkMatrix4x4* mToolToReference )
 {
 	if ( !this->GetInitialized() ) 
 	{

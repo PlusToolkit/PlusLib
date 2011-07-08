@@ -414,7 +414,7 @@ PlusStatus vtkTrackedFrameList::ReadFromSequenceMetafile(const char* trackedSequ
 	}
 	catch (itk::ExceptionObject & err) 
 	{		
-		LOG_ERROR(" Sequence image reader couldn't update: " <<  err); 
+		LOG_ERROR(" Sequence image reader couldn't update: " <<  err.GetDescription() ); 
 		return PLUS_FAIL;
 	}	
 
@@ -424,9 +424,9 @@ PlusStatus vtkTrackedFrameList::ReadFromSequenceMetafile(const char* trackedSequ
 	const unsigned long ImageHeightInPixels = imageSeq->GetLargestPossibleRegion().GetSize()[1]; 
 	const unsigned long numberOfFrames = imageSeq->GetLargestPossibleRegion().GetSize()[2];	
 
-    const char * usImageOrientation = readerMetaImageSequenceIO->GetUltrasoundImageOrientation(); 
+    US_IMAGE_ORIENTATION usImageOrientation = UsImageConverterCommon::GetUsImageOrientationFromString(readerMetaImageSequenceIO->GetUltrasoundImageOrientation()); 
 
-	unsigned int frameSizeInBytes=ImageWidthInPixels*ImageHeightInPixels*sizeof(TrackedFrame::PixelType);
+    unsigned int frameSizeInBytes=ImageWidthInPixels*ImageHeightInPixels*sizeof(TrackedFrame::PixelType);
 
 	TrackedFrame::PixelType* imageSeqData = imageSeq->GetBufferPointer(); // pointer to the image pixel buffer
 
@@ -448,7 +448,7 @@ PlusStatus vtkTrackedFrameList::ReadFromSequenceMetafile(const char* trackedSequ
         }
         catch (itk::ExceptionObject & err)
         {
-            LOG_ERROR("Failed to allocate memory for new image: " << err); 
+            LOG_ERROR("Failed to allocate memory for new image: " << err.GetDescription() ); 
             continue; 
         }
 
@@ -480,9 +480,8 @@ PlusStatus vtkTrackedFrameList::ReadFromSequenceMetafile(const char* trackedSequ
 			trackedFrame.CustomFrameFieldList.push_back(field); 
 		}
 		
-        const UsImageConverterCommon::US_IMAGE_ORIENTATION imgOrientation = UsImageConverterCommon::GetUsImageOrientationFromString(usImageOrientation); 
         trackedFrame.ImageData = TrackedFrame::ImageType::New(); 
-        if ( UsImageConverterCommon::GetMFOrientedImage(frame, imgOrientation, trackedFrame.ImageData) != PLUS_SUCCESS )
+        if ( UsImageConverterCommon::GetMFOrientedImage(frame, usImageOrientation, trackedFrame.ImageData) != PLUS_SUCCESS )
         {
             LOG_ERROR("Failed to get MF oriented image from sequence metafile (frame number: " << imgNumber << ")!"); 
             continue; 
@@ -551,7 +550,7 @@ void vtkTrackedFrameList::SaveToSequenceMetafile(const char* outputFolder, const
 		}
 		catch (itk::ExceptionObject & err) 
 		{		
-			LOG_ERROR("Unable to allocate memory for image sequence : " << err);
+			LOG_ERROR("Unable to allocate memory for image sequence : " << err.GetDescription() );
 			return; 
 		}	
 
@@ -642,7 +641,7 @@ void vtkTrackedFrameList::SaveToSequenceMetafile(const char* outputFolder, const
 		}
 		catch (itk::ExceptionObject & err) 
 		{		
-			LOG_ERROR(" Unable to update sequence writer: " << err);
+			LOG_ERROR(" Unable to update sequence writer: " << err.GetDescription() );
 		}	
 	}
 }

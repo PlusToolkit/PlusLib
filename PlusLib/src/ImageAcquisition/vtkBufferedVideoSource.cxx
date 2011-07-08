@@ -180,7 +180,7 @@ PlusStatus vtkBufferedVideoSource::StopRecording()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkBufferedVideoSource::AddFrame( vtkImageData* image, const char* usImageOrientation, double timestamp )
+PlusStatus vtkBufferedVideoSource::AddFrame( vtkImageData* image, US_IMAGE_ORIENTATION usImageOrientation, double timestamp )
 {
 	// We don't have information about the unfiltered timestamp, use the filtered one
 	const double unfilteredTimestamp = timestamp; 

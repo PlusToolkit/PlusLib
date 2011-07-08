@@ -95,7 +95,7 @@ int main (int argc, char* argv[])
 		int* frameSize = trackedFrameList->GetTrackedFrame(imgNumber)->GetFrameSize();
 
 		  // Add each tracked frame to reconstructor - US image orientation always MF in tracked frame list
-		reconstructor->AddTrackedFrame(trackedFrameList->GetTrackedFrame(imgNumber)->ImageData->GetBufferPointer(), "MF", frameSize[0] , frameSize[1], mToolToReference );
+		reconstructor->AddTrackedFrame(trackedFrameList->GetTrackedFrame(imgNumber)->ImageData->GetBufferPointer(), US_IMG_ORIENT_MF , frameSize[0] , frameSize[1], mToolToReference );
 	}
 	
 	PlusLogger::PrintProgressbar( 100 ); 
