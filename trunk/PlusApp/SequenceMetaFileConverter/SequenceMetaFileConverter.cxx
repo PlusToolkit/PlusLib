@@ -85,7 +85,7 @@ void SaveImageToBitmap( const ImageType::Pointer& image, std::string bitmapFileN
 void SaveTransformToFile(TrackedFrame* trackedFrame, std::string imageFileName, std::string toolToReferenceTransformName, std::string referenceToTrackerTransformName); 
 
 // convert internal MF oriented image into the desired image orientation 
-PlusStatus GetOrientedImage( const ImageType::Pointer& inMFOrientedImage, UsImageConverterCommon::US_IMAGE_ORIENTATION desiredUsImageOrientation, ImageType::Pointer& outOrientedImage ); 
+PlusStatus GetOrientedImage( const ImageType::Pointer& inMFOrientedImage, US_IMAGE_ORIENTATION desiredUsImageOrientation, ImageType::Pointer& outOrientedImage ); 
 
 void ReadTransformFile( const std::string TransformFileNameWithPath, double* transformUSProbe2StepperFrame ); 
 void ReadDRBTransformFile( const std::string TransformFileNameWithPath, TrackedFrame* trackedFrame); 
@@ -252,6 +252,12 @@ int main (int argc, char* argv[])
 			LOG_ERROR("Need to set input-data-dir argument to convert from BMP24"); 
 			exit(EXIT_FAILURE); 
 		}
+
+        if ( inputUsImageOrientation == "XX" )
+        {
+            LOG_ERROR("Need to set input-us-img-orientation argument to convert from BMP24"); 
+            exit(EXIT_FAILURE);
+        }
 	}
 
 	if ( convertMethod == FROM_SEQUENCE_METAFILE )
@@ -277,6 +283,7 @@ int main (int argc, char* argv[])
 			LOG_ERROR("Need to set reference-to-tracker-name argument for to BMP24, BMP8, PNG, JPG"); 
 			exit(EXIT_FAILURE); 
 		}
+
 	}
 
 	vtkSmartPointer<vtkDirectory> dir = vtkSmartPointer<vtkDirectory>::New(); 
@@ -371,7 +378,7 @@ void ConvertFromOldSequenceMetafile(std::vector<std::string> inputImageSequenceF
             if ( inputUsImageOrientation == "XX" )
             {
                 LOG_ERROR("Failed to convert frame from old sequence metafile without proper image orientation! Please set the --input-us-img-orientation partameter!"); 
-                continue; 
+                exit(EXIT_FAILURE);
             }
 
 			PlusLogger::PrintProgressbar( (100.0 * imgNumber) / numberOfFrames ); 
@@ -419,11 +426,11 @@ void ConvertFromOldSequenceMetafile(std::vector<std::string> inputImageSequenceF
 			}; 
 
             ImageType::Pointer mfOrientedImage = ImageType::New(); 
-            UsImageConverterCommon::US_IMAGE_ORIENTATION imgOrientation = UsImageConverterCommon::GetUsImageOrientationFromString(inputUsImageOrientation.c_str()); 
+            US_IMAGE_ORIENTATION imgOrientation = UsImageConverterCommon::GetUsImageOrientationFromString(inputUsImageOrientation.c_str()); 
             if ( UsImageConverterCommon::GetMFOrientedImage(frame, imgOrientation, mfOrientedImage) != PLUS_SUCCESS )
             {
                 LOG_ERROR("Failed to get MF oriented image from " << inputUsImageOrientation << " orientation!"); 
-                continue; 
+                exit(EXIT_FAILURE);
             }
 
 			// Create tracked frame struct
@@ -479,7 +486,7 @@ void ConvertFromBitmap(SAVING_METHOD savingMethod)
         if ( inputUsImageOrientation == "XX" )
         {
             LOG_ERROR("Failed to convert frame from bitmap without proper image orientation! Please set the --input-us-img-orientation partameter (" << imageFileNameWithPath.str() << ")!"); 
-            continue; 
+            exit(EXIT_FAILURE);
         }
 
 		RGBImageReaderType::Pointer reader = RGBImageReaderType::New(); 
@@ -529,11 +536,11 @@ void ConvertFromBitmap(SAVING_METHOD savingMethod)
 
 
         ImageType::Pointer mfOrientedImage = ImageType::New(); 
-        UsImageConverterCommon::US_IMAGE_ORIENTATION imgOrientation = UsImageConverterCommon::GetUsImageOrientationFromString(inputUsImageOrientation.c_str()); 
+        US_IMAGE_ORIENTATION imgOrientation = UsImageConverterCommon::GetUsImageOrientationFromString(inputUsImageOrientation.c_str()); 
         if ( UsImageConverterCommon::GetMFOrientedImage(imageData, imgOrientation, mfOrientedImage) != PLUS_SUCCESS )
         {
             LOG_ERROR("Failed to get MF oriented image from " << inputUsImageOrientation << " orientation!"); 
-            continue; 
+            exit(EXIT_FAILURE);
         }
 		
 		TrackedFrame trackedFrame;
@@ -592,11 +599,11 @@ void SaveImages( vtkTrackedFrameList* trackedFrameList, SAVING_METHOD savingMeth
 
                 // Convert the internal MF oriented image into the desired image orientation 
                 ImageType::Pointer orientedImage = ImageType::New(); 
-                UsImageConverterCommon::US_IMAGE_ORIENTATION desiredOrientation = UsImageConverterCommon::GetUsImageOrientationFromString( outputUsImageOrientation.c_str() ); 
+                US_IMAGE_ORIENTATION desiredOrientation = UsImageConverterCommon::GetUsImageOrientationFromString( outputUsImageOrientation.c_str() ); 
                 if ( GetOrientedImage(trackedFrameList->GetTrackedFrame(imgNumber)->ImageData, desiredOrientation, orientedImage) != PLUS_SUCCESS )
                 {
                     LOG_ERROR("Failed to get " << outputUsImageOrientation << " oriented image from MF orientation!"); 
-                    continue; 
+                    exit(EXIT_FAILURE);
                 }
 
 				SaveImageToBitmap(orientedImage, fileName.str(), savingMethod); 
@@ -805,7 +812,7 @@ void SaveImageToMetaFile( TrackedFrame* trackedFrame, std::string metaFileName, 
 {
 	TrackedFrame::ImageType::Pointer mfOrientedImage = trackedFrame->ImageData; 
 
-    UsImageConverterCommon::US_IMAGE_ORIENTATION desiredOrientation = UsImageConverterCommon::GetUsImageOrientationFromString( outputUsImageOrientation.c_str() ); 
+    US_IMAGE_ORIENTATION desiredOrientation = UsImageConverterCommon::GetUsImageOrientationFromString( outputUsImageOrientation.c_str() ); 
     TrackedFrame::ImageType::Pointer orientedImage = TrackedFrame::ImageType::New(); 
     if ( GetOrientedImage(mfOrientedImage, desiredOrientation, orientedImage) != PLUS_SUCCESS )
     {
@@ -1081,7 +1088,7 @@ void ReadDRBTransformFile( const std::string TransformFileNameWithPath, TrackedF
 
 
 //----------------------------------------------------------------------------
- PlusStatus GetOrientedImage( const ImageType::Pointer& inMFOrientedImage, UsImageConverterCommon::US_IMAGE_ORIENTATION desiredUsImageOrientation, ImageType::Pointer& outOrientedImage )
+ PlusStatus GetOrientedImage( const ImageType::Pointer& inMFOrientedImage, US_IMAGE_ORIENTATION desiredUsImageOrientation, ImageType::Pointer& outOrientedImage )
 {
     if ( inMFOrientedImage.IsNull() )
     {
@@ -1095,14 +1102,14 @@ void ReadDRBTransformFile( const std::string TransformFileNameWithPath, TrackedF
         return PLUS_FAIL; 
     }
 
-    if ( desiredUsImageOrientation == UsImageConverterCommon::US_IMG_ORIENT_XX )
+    if ( desiredUsImageOrientation == US_IMG_ORIENT_XX )
 	{
 		LOG_DEBUG("GetOrientedImage: No ultrasound image orientation specified, return identical copy!"); 
 		outOrientedImage = inMFOrientedImage; 
 		return PLUS_SUCCESS; 
 	}
 
-    if ( UsImageConverterCommon::US_IMG_ORIENT_MF == desiredUsImageOrientation )
+    if ( US_IMG_ORIENT_MF == desiredUsImageOrientation )
 	{
 		outOrientedImage = inMFOrientedImage; 
 		return PLUS_SUCCESS;
@@ -1115,22 +1122,22 @@ void ReadDRBTransformFile( const std::string TransformFileNameWithPath, TrackedF
 	flipFilter->FlipAboutOriginOff(); 
 
     itk::FixedArray<bool, 2> flipAxes;
-    if ( desiredUsImageOrientation == UsImageConverterCommon::US_IMG_ORIENT_UF ) 
+    if ( desiredUsImageOrientation == US_IMG_ORIENT_UF ) 
     {
         flipAxes[0] = true;
         flipAxes[1] = false;
     }
-    else if ( desiredUsImageOrientation == UsImageConverterCommon::US_IMG_ORIENT_UN ) 
+    else if ( desiredUsImageOrientation == US_IMG_ORIENT_UN ) 
     {
         flipAxes[0] = true;
         flipAxes[1] = true;
     }
-    else if ( desiredUsImageOrientation == UsImageConverterCommon::US_IMG_ORIENT_MF ) 
+    else if ( desiredUsImageOrientation == US_IMG_ORIENT_MF ) 
     {
         flipAxes[0] = false;
         flipAxes[1] = false;
     }
-    else if ( desiredUsImageOrientation == UsImageConverterCommon::US_IMG_ORIENT_MN ) 
+    else if ( desiredUsImageOrientation == US_IMG_ORIENT_MN ) 
     {
         flipAxes[0] = false;
         flipAxes[1] = true;
