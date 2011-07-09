@@ -466,9 +466,11 @@ void vtkTimestampedCircularBuffer<BufferItemType>::DeepCopy(vtkTimestampedCircul
 template<class BufferItemType>
 void vtkTimestampedCircularBuffer<BufferItemType>::Clear()
 {
+	this->Lock(); 
 	this->WritePointer = 0; 
 	this->NumberOfItems = 0; 
 	this->CurrentTimeStamp = 0; 
+	this->Unlock();
 }
 
 //----------------------------------------------------------------------------
