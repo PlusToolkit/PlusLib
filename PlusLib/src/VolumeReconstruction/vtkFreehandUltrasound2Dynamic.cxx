@@ -1104,8 +1104,10 @@ int vtkFreehandUltrasound2Dynamic::UpdateSlice(vtkImageData* inData)
             }
             else
             {
-                LOG_WARNING("We've reached the last frame in the buffer..."); 
+                LOG_WARNING("We've reached the last frame in the buffer (Latest Uid: " << this->VideoSource->GetBuffer()->GetLatestItemUidInBuffer() << ")!"); 
             }
+
+
         }
 
         

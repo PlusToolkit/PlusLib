@@ -186,6 +186,13 @@ void vtkVolumeReconstructor::AddTrackedFrame( vtkImageData* frame, US_IMAGE_ORIE
 	{
 		this->FindOutputExtent( tToolToReference->GetMatrix(), frame->GetExtent() ); 
 	}
+    else
+    {
+        LOG_ERROR("Failed to add tracked frame to buffer!"); 
+    }
+
+    // Need to wait a bit to have unique timestamps
+    vtkAccurateTimer::Delay(0.001); 
 }
 
 

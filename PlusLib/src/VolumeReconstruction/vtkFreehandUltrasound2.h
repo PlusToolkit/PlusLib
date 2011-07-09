@@ -321,6 +321,8 @@ public:
   vtkSetVector6Macro(OutputExtent, int);
   vtkGetVector6Macro(OutputExtent, int);
 
+  vtkGetMacro(VideoBufferUid, BufferItemUidType); 
+
   // Description:
   // When determining the modified time of the source. 
   unsigned long int GetMTime();

@@ -191,6 +191,10 @@ PlusStatus vtkBufferedVideoSource::AddFrame( vtkImageData* image, US_IMAGE_ORIEN
 	{
 		this->FrameNumber = frameNumber; 
 	}
+    else
+    {
+        LOG_ERROR("Failed to add frame to buffer (timestamp: " << std::fixed << timestamp << ")!"); 
+    }
 
 	this->Modified();
 	return status; 
