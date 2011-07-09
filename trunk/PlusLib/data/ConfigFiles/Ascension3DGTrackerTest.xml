@@ -43,7 +43,8 @@
     
     <ImageAcqusition Type="None" 
             BufferSize="200" 
-            FrameSize="820 616 1" 
+            FrameSize="820 616" 
+            UsImageOrientation="MF"
             FrameRate="5" 
             SmoothingFactor="0.001" 
             LocalTimeOffset="0.0" 

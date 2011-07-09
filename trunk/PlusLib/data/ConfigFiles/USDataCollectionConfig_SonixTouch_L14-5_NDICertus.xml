@@ -48,7 +48,7 @@
 
     <ImageAcqusition Type="SonixVideo" 
             BufferSize="200" 
-            FrameSize="640 480" 
+            FrameSize="820 616" 
             UsImageOrientation="MN"
             FrameRate="30" 
             SmoothingFactor="0.001" 
