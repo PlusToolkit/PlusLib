@@ -69,6 +69,7 @@ POSSIBILITY OF SUCH DAMAGES.
 #include "fixed.h"
 #include "vtkSmartPointer.h"
 #include "vtkMultiThreader.h"
+#include "vtkVideoBuffer.h"
 
 class vtkFreehandUltrasound2;
 
@@ -1996,12 +1997,10 @@ static void *vtkReconstructionThread(ThreadInfoStruct *data)
         {
             vtkSleep(0.001);
 
-            if (video)
+            --self->ReconstructionFrameCount;
+            if (video && self->GetVideoBufferUid() > video->GetBuffer()->GetLatestItemUidInBuffer())
             {
-                if (--self->ReconstructionFrameCount == 0)
-                {
-                    return NULL;
-                }
+                return NULL;
             }
         }
     }
