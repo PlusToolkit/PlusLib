@@ -8,7 +8,8 @@
 
     <ImageAcqusition Type="SonixVideo" 
             BufferSize="200" 
-            FrameSize="640 480 1" 
+            FrameSize="640 480" 
+            UsImageOrientation="MN"
             FrameRate="10" 
             SmoothingFactor="0.001" 
             LocalTimeOffset="0.0"

@@ -23,9 +23,6 @@
 #include "itkLandmarkSpatialObject.h"
 
 
-//TODO: Add to project itkUlteriusImageIOFactory
-//#include "itkUlteriusImageIOFactory.h"
-
 ///////////////////////////////////////////////////////////////////
 // Image type definition
 
@@ -50,25 +47,15 @@ static const float FIDUCIAL_POSITION_TOLERANCE = 0.1;  // in pixel
 static const double BASELINE_TO_ALGORITHM_TOLERANCE = 5; 
 ///////////////////////////////////////////////////////////////////
 
-void SegmentImageSequence(ImageSequenceType::Pointer image, std::ofstream &outFile, const std::string &inputTestcaseName, const std::string &inputImageSequenceFileName, vtkCalibrationController* calibrationController) 
+void SegmentImageSequence( vtkTrackedFrameList* trackedFrameList, std::ofstream &outFile, const std::string &inputTestcaseName, const std::string &inputImageSequenceFileName, vtkCalibrationController* calibrationController) 
 {
-	PixelType* imageData = image->GetBufferPointer(); // pointer to the image pixel buffer
-
-	const unsigned long ImageWidthInPixels = image->GetLargestPossibleRegion().GetSize()[0]; 
-	const unsigned long ImageHeightInPixels = image->GetLargestPossibleRegion().GetSize()[1]; 
-	const unsigned long numberOfFrames = image->GetLargestPossibleRegion().GetSize()[2];	
-
-	unsigned int frameSizeInBytes=ImageWidthInPixels*ImageHeightInPixels*sizeof(PixelType);
-
 	double sumFiducialNum = 0;// divide by framenum
 	double sumFiducialCandidate = 0;// divide by framenum
 
 	SegmentationParameters segParams = *(calibrationController->GetSegParameters());
 
-	for (int currentFrameIndex=0; currentFrameIndex<numberOfFrames; currentFrameIndex++)
+	for (int currentFrameIndex=0; currentFrameIndex<trackedFrameList->GetNumberOfTrackedFrames(); currentFrameIndex++)
 	{
-		PixelType *currentFrameImageData=imageData+currentFrameIndex*frameSizeInBytes;
-
 		// Search in the whole image
 		int SearchStartAtX=calibrationController->GetSearchStartAtX();
 		int SearchStartAtY=calibrationController->GetSearchStartAtY();
@@ -83,9 +70,9 @@ void SegmentImageSequence(ImageSequenceType::Pointer image, std::ofstream &outFi
 		
 		SegmentationResults segResults;
 
-		KPhantomSeg TheSegmentationStruct(ImageWidthInPixels,ImageHeightInPixels, 
+		KPhantomSeg TheSegmentationStruct(trackedFrameList->GetFrameSize()[0],trackedFrameList->GetFrameSize()[1], 
 			SearchStartAtX,SearchStartAtY, SearchDimensionX,SearchDimensionY,debugOutput,possibleFiducialsImageFilename.str());
-		TheSegmentationStruct.segment(currentFrameImageData, segParams);
+		TheSegmentationStruct.segment(trackedFrameList->GetTrackedFrame(currentFrameIndex)->ImageData->GetBufferPointer(), segParams);
 	
 		TheSegmentationStruct.GetSegmentationResults(segResults);
 		sumFiducialCandidate += segResults.GetNumDots();
@@ -111,8 +98,8 @@ void SegmentImageSequence(ImageSequenceType::Pointer image, std::ofstream &outFi
 	}
 
 
-	double meanFid = sumFiducialNum/numberOfFrames;
-	double meanFidCandidate = sumFiducialCandidate/numberOfFrames;
+	double meanFid = sumFiducialNum/trackedFrameList->GetNumberOfTrackedFrames();
+	double meanFidCandidate = sumFiducialCandidate/trackedFrameList->GetNumberOfTrackedFrames();
 	UsFidSegResultFile::WriteSegmentationResultsStats(outFile,  meanFid, meanFidCandidate);
 }
 
@@ -443,31 +430,20 @@ int main(int argc, char **argv)
 	vtkSmartPointer<vtkCalibrationController> calibrationController = vtkSmartPointer<vtkCalibrationController>::New();
 	calibrationController->ReadConfiguration(inputConfigFileName.c_str());
 
-	ImageSequenceReaderType::Pointer reader = ImageSequenceReaderType::New(); // reader object, pointed to by smart pointer
-	itk::MetaImageSequenceIO::Pointer readerMetaImageSequenceIO = itk::MetaImageSequenceIO::New(); 
-	reader->SetImageIO(readerMetaImageSequenceIO); 
-		
-	std::string inputImageSequencePath=inputTestDataDir+"\\"+inputImageSequenceFileName;
-	
-	
-	reader->SetFileName(inputImageSequencePath); // set input file name, can also use variables commented out
-
-	try
-	{
-		reader->Update(); 
-	}
-	catch (itk::ExceptionObject & err) 
-	{		
-		LOG_ERROR(" Exception! reader did not update: " <<  err); 
-		return EXIT_FAILURE;
-	}	
+    std::string inputImageSequencePath=inputTestDataDir+"\\"+inputImageSequenceFileName;
+    vtkSmartPointer<vtkTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New(); 
+    if ( trackedFrameList->ReadFromSequenceMetafile(inputImageSequencePath.c_str()) != PLUS_SUCCESS )
+    {
+        LOG_ERROR("Failed to read sequence metafile: " << inputImageSequencePath); 
+        return EXIT_FAILURE;
+    }
 
 	std::ofstream outFile; 
 	outFile.open(outputTestResultsFileName.c_str());	
 	UsFidSegResultFile::WriteSegmentationResultsHeader(outFile);
 	UsFidSegResultFile::WriteSegmentationResultsParameters(outFile, *(calibrationController->GetSegParameters()), "");
 
-	SegmentImageSequence(reader->GetOutput(), outFile, inputTestcaseName, inputImageSequenceFileName, calibrationController); 
+	SegmentImageSequence(trackedFrameList.GetPointer(), outFile, inputTestcaseName, inputImageSequenceFileName, calibrationController); 
 
 	UsFidSegResultFile::WriteSegmentationResultsFooter(outFile);
 	outFile.close();

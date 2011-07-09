@@ -9,12 +9,13 @@
 
     <ImageAcqusition Type="SavedDataset" 
             BufferSize="200" 
-            FrameSize="820 616 1" 
+            FrameSize="820 616" 
             FrameRate="9" 
             SmoothingFactor="0.001" 
             LocalTimeOffset="0.0" 
 			SequenceMetafile="d:\devel\_Images\2011-06-14_ThomasPhantom_SonixVideo_SonixTOUCH_NDICertus-10fps-Sync.mha"
 			ReplayEnabled="TRUE"
+            UsImageOrientation="MF"
             />
 
     <Synchronization Type="ChangeDetection"
