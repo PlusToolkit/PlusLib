@@ -538,10 +538,11 @@ void BrachyTRUSCalibrator::addDataPositionsPerImage(
 				IntersectPosW12[i] = mNWires[Layer].intersectPosW12[i] / 1000.0;
 				IntersectPosW32[i] = mNWires[Layer].intersectPosW32[i] / 1000.0;
 			}
-			IntersectPosW12[3] = 0.0;
-			IntersectPosW32[3] = 0.0;
+			IntersectPosW12[3] = 1.0;
+			IntersectPosW32[3] = 1.0;
 
 			PositionInTemplateFrame = IntersectPosW12 + alpha * ( IntersectPosW32 - IntersectPosW12 );
+			PositionInTemplateFrame[3]=1.0;
 
 			if( true == mIsSystemLogOn )
 			{
@@ -1226,10 +1227,11 @@ void BrachyTRUSCalibrator::addValidationPositionsPerImage(
 				IntersectPosW12[i] = mNWires[Layer].intersectPosW12[i] / 1000.0;
 				IntersectPosW32[i] = mNWires[Layer].intersectPosW32[i] / 1000.0;
 			}
-			IntersectPosW12[3] = 0.0;
-			IntersectPosW32[3] = 0.0;
+			IntersectPosW12[3] = 1.0;
+			IntersectPosW32[3] = 1.0;
 
 			PositionInTemplateFrame = IntersectPosW12 + alpha * ( IntersectPosW32 - IntersectPosW12 );
+			PositionInTemplateFrame[3]=1.0;
 
 			if( true == mIsSystemLogOn )
 			{
@@ -1244,9 +1246,9 @@ void BrachyTRUSCalibrator::addValidationPositionsPerImage(
 				SystemLogFile << " SegmentedPositionInOriginalImageFrame = " << SegmentedPositionInOriginalImageFrame << "\n";
 				SystemLogFile << " SegmentedPositionInUSImageFrame = " << SegmentedPositionInUSImageFrame << "\n";
 				SystemLogFile << " alpha = " << alpha << "\n";
-				SystemLogFile << " PositionInTemplateFrame = " << PositionInTemplateFrame << "\n";
+				SystemLogFile << " PositionInTemplateFrame = " << PositionInTemplateFrame << "\n";					
 					SystemLogFile << " TransformMatrixUSProbe2Stepper4x4 = \n" << TransformMatrixUSProbe2Stepper4x4 << "\n";					
-					SystemLogFile << " TransformMatrixStepper2USProbe4x4 = \n" << TransformMatrixStepper2USProbe4x4 << "\n";
+				SystemLogFile << " TransformMatrixStepper2USProbe4x4 = \n" << TransformMatrixStepper2USProbe4x4 << "\n";
 				SystemLogFile.close();
 			}
 
@@ -1275,46 +1277,44 @@ void BrachyTRUSCalibrator::addValidationPositionsPerImage(
 			// 2. The Z-axis of the N-wire joints is not used in the computing.
 
  			// Wire N1 corresponds to mNWireJointTopLayerBackWall 
-			vnl_vector<double> NWireJointTopLayerBackWallForN1InUSProbeFrame =
+			vnl_vector<double> NWireJointForN1InUSProbeFrame =
 				TransformMatrixStepper2USProbe4x4 * 
 				mTransformMatrixPhantom2DRB4x4 *
-				IntersectPosW12;
+				IntersectPosW12; //any point of wire 1 of this layer
 
 			// Wire N3 corresponds to mNWireJointTopLayerFrontWall
-			vnl_vector<double> NWireJointTopLayerBackWallForN3InUSProbeFrame =
+			vnl_vector<double> NWireJointForN3InUSProbeFrame =
 				TransformMatrixStepper2USProbe4x4 * 
 				mTransformMatrixPhantom2DRB4x4 *
-				IntersectPosW32;
-
-			// Wire N4 corresponds to mNWireJointBottomLayerFrontWall
-			vnl_vector<double> NWireJointTopLayerBackWallForN4InUSProbeFrame =
-				TransformMatrixStepper2USProbe4x4 * 
-				mTransformMatrixPhantom2DRB4x4 *
-				IntersectPosW32;
-
-			// Wire N6 corresponds to mNWireJointBottomLayerBackWall
-			vnl_vector<double> NWireJointTopLayerBackWallForN6InUSProbeFrame =
-				TransformMatrixStepper2USProbe4x4 * 
-				mTransformMatrixPhantom2DRB4x4 *
-				IntersectPosW12;
+				IntersectPosW32; //any point of wire 3 of this layer
 
 			// Store into the list of positions in the US image frame
 			mValidationPositionsInUSImageFrame.push_back( SegmentedPositionInUSImageFrame );
-			mValidationPositionsNWire1InUSImageFrame.push_back( N1SegmentedPositionInUSImageFrame );
-			mValidationPositionsNWire3InUSImageFrame.push_back( N3SegmentedPositionInUSImageFrame );
-			mValidationPositionsNWire4InUSImageFrame.push_back( N4SegmentedPositionInUSImageFrame );
-			mValidationPositionsNWire6InUSImageFrame.push_back( N6SegmentedPositionInUSImageFrame );
-
 
 			// Store into the list of positions in the US probe frame
 			mValidationPositionsInUSProbeFrame.push_back( PositionInUSProbeFrame );
 			mValidationPositionsNWireStartInUSProbeFrame.push_back( NWireStartinUSProbeFrame );
 			mValidationPositionsNWireEndInUSProbeFrame.push_back( NWireEndinUSProbeFrame );
-			mValidationPositionsNWire1InUSProbeFrame.push_back( NWireJointTopLayerBackWallForN1InUSProbeFrame );
-			mValidationPositionsNWire3InUSProbeFrame.push_back( NWireJointTopLayerBackWallForN3InUSProbeFrame );
-			mValidationPositionsNWire4InUSProbeFrame.push_back( NWireJointTopLayerBackWallForN4InUSProbeFrame );
-			mValidationPositionsNWire6InUSProbeFrame.push_back( NWireJointTopLayerBackWallForN6InUSProbeFrame );
 
+      for (int i=0; i<2; i++)
+      {
+        // all the matrices are expected to have the same length, so we need to add each value 
+        // as many times as many layer we have - this really have to be cleaned up
+        if (Layer==0)
+        {
+          mValidationPositionsNWire1InUSImageFrame.push_back( N1SegmentedPositionInUSImageFrame );
+          mValidationPositionsNWire3InUSImageFrame.push_back( N3SegmentedPositionInUSImageFrame );
+          mValidationPositionsNWire1InUSProbeFrame.push_back( NWireJointForN1InUSProbeFrame );
+          mValidationPositionsNWire3InUSProbeFrame.push_back( NWireJointForN3InUSProbeFrame );
+        }
+        else
+        {
+          mValidationPositionsNWire4InUSImageFrame.push_back( N4SegmentedPositionInUSImageFrame );
+          mValidationPositionsNWire6InUSImageFrame.push_back( N6SegmentedPositionInUSImageFrame );
+          mValidationPositionsNWire4InUSProbeFrame.push_back( NWireJointForN1InUSProbeFrame );
+          mValidationPositionsNWire6InUSProbeFrame.push_back( NWireJointForN3InUSProbeFrame );
+        }
+      }
 
 			// Store into the list of positions in the Phantom frame
 			mValidationPositionsInPhantomFrame.push_back( PositionInTemplateFrame );
@@ -1544,8 +1544,8 @@ void BrachyTRUSCalibrator::addValidationPositionsPerImage(
 				IntersectPosW12[i] = mNWires[Layer].intersectPosW12[i] / 1000.0;
 				IntersectPosW32[i] = mNWires[Layer].intersectPosW32[i] / 1000.0;
 			}
-			IntersectPosW12[3] = 0.0;
-			IntersectPosW32[3] = 0.0;
+			IntersectPosW12[3] = 1.0;
+			IntersectPosW32[3] = 1.0;
 
 			PositionInPhantomFrame = IntersectPosW12 + alpha * ( IntersectPosW32 - IntersectPosW12 );
 
@@ -1736,8 +1736,8 @@ std::vector<double> BrachyTRUSCalibrator::getPRE3DforRealtimeImage(
 				IntersectPosW12[i] = mNWires[Layer].intersectPosW12[i] / 1000.0;
 				IntersectPosW32[i] = mNWires[Layer].intersectPosW32[i] / 1000.0;
 			}
-			IntersectPosW12[3] = 0.0;
-			IntersectPosW32[3] = 0.0;
+			IntersectPosW12[3] = 1.0;
+			IntersectPosW32[3] = 1.0;
 
 			PositionInPhantomFrame = IntersectPosW12 + alpha * ( IntersectPosW32 - IntersectPosW12 );
 
