@@ -246,6 +246,8 @@ void BrachyTRUSCalibrator::addDataPositionsPerImage(
 	std::vector<vnl_vector_double> SegmentedDataPositionListPerImage, 
 	const vnl_matrix<double> TransformMatrixUSProbe2Stepper4x4 )
 {
+  static int frameIndex=-1;
+  frameIndex++;
 	if( mHasPhantomBeenRegistered != true )
 	{
 		std::cerr << "\n\n" << __FILE__ << "," << __LINE__ << "\n"
@@ -542,26 +544,7 @@ void BrachyTRUSCalibrator::addDataPositionsPerImage(
 			IntersectPosW32[3] = 1.0;
 
 			PositionInTemplateFrame = IntersectPosW12 + alpha * ( IntersectPosW32 - IntersectPosW12 );
-			PositionInTemplateFrame[3]=1.0;
-
-			if( true == mIsSystemLogOn )
-			{
-				std::ofstream SystemLogFile(
-					mSystemLogFileNameWithTimeStamp.c_str(), std::ios::app);
-				SystemLogFile << " ==========================================================================\n";
-				SystemLogFile << " ADD DATA FOR CALIBRATION >>>>>>>>>>>>>>>>>>>>>\n\n";
-				SystemLogFile << " SegmentedNFiducial-" << Layer*3 << " = " << SegmentedDataPositionListPerImage.at( Layer*3 ) << "\n"; 
-				SystemLogFile << " SegmentedNFiducial-" << Layer*3+1 << " = " << SegmentedDataPositionListPerImage.at( Layer*3+1 ) << "\n";  
-				SystemLogFile << " SegmentedNFiducial-" << Layer*3+2 << " = " << SegmentedDataPositionListPerImage.at( Layer*3+2 ) << "\n";  
-				SystemLogFile << " ----------------------------------------------------------------\n";
-				SystemLogFile << " SegmentedPositionInOriginalImageFrame = " << SegmentedPositionInOriginalImageFrame << "\n";
-				SystemLogFile << " SegmentedPositionInUSImageFrame = " << SegmentedPositionInUSImageFrame << "\n";
-				SystemLogFile << " alpha = " << alpha << "\n";
-				SystemLogFile << " PositionInTemplateFrame = " << PositionInTemplateFrame << "\n";
-				SystemLogFile << " TransformMatrixUSProbe2Stepper4x4 = \n" << TransformMatrixUSProbe2Stepper4x4 << "\n";
-				SystemLogFile << " TransformMatrixStepper2USProbe4x4 = \n" << TransformMatrixStepper2USProbe4x4 << "\n";
-				SystemLogFile.close();
-			}
+      PositionInTemplateFrame[3]=1.0;
 
 			// Finally, calculate the position in the US probe frame
 			// X_USProbe = T_Stepper->USProbe * T_Template->Stepper * X_Template
@@ -575,9 +558,19 @@ void BrachyTRUSCalibrator::addDataPositionsPerImage(
 			{
 				std::ofstream SystemLogFile(
 					mSystemLogFileNameWithTimeStamp.c_str(), std::ios::app);
+				SystemLogFile << " ==========================================================================\n";
+				SystemLogFile << " ADD DATA FOR CALIBRATION ("<<frameIndex<<") >>>>>>>>>>>>>>>>>>>>>\n\n";
+				SystemLogFile << " SegmentedNFiducial-" << Layer*3 << " = " << SegmentedDataPositionListPerImage.at( Layer*3 ) << "\n"; 
+				SystemLogFile << " SegmentedNFiducial-" << Layer*3+1 << " = " << SegmentedDataPositionListPerImage.at( Layer*3+1 ) << "\n";  
+				SystemLogFile << " SegmentedNFiducial-" << Layer*3+2 << " = " << SegmentedDataPositionListPerImage.at( Layer*3+2 ) << "\n";  
 				SystemLogFile << " ----------------------------------------------------------------\n";
-				SystemLogFile << " PositionInUSProbeFrame = \n" << PositionInUSProbeFrame << "\n";
-				SystemLogFile << " TransformMatrixPhantom2DRB4x4 = \n" << mTransformMatrixPhantom2DRB4x4 << "\n";
+				SystemLogFile << " SegmentedPositionInOriginalImageFrame = " << SegmentedPositionInOriginalImageFrame << "\n";
+				SystemLogFile << " SegmentedPositionInUSImageFrame = " << SegmentedPositionInUSImageFrame << "\n";
+				SystemLogFile << " alpha = " << alpha << "\n";
+				SystemLogFile << " PositionInTemplateFrame = " << PositionInTemplateFrame << "\n";
+				SystemLogFile << " TransformMatrixStepper2USProbe4x4 = \n" << TransformMatrixStepper2USProbe4x4 << "\n";
+        SystemLogFile << " mTransformMatrixPhantom2DRB4x4 = \n" << mTransformMatrixPhantom2DRB4x4 << "\n";
+        SystemLogFile << " PositionInUSProbeFrame = " << PositionInUSProbeFrame << "\n";
 				SystemLogFile.close();
 			}
 
@@ -616,6 +609,9 @@ void BrachyTRUSCalibrator::addDataPositionsPerImage(
 	const std::vector<double> TransformUSProbe2Tracker,
 	const std::vector<double> TransformDRB2Tracker )
 {
+  static int frameIndex=-1;
+  frameIndex++;
+
 	if( mHasPhantomBeenRegistered != true )
 	{
 		std::cerr << "\n\n" << __FILE__ << "," << __LINE__ << "\n"
@@ -917,12 +913,19 @@ void BrachyTRUSCalibrator::addDataPositionsPerImage(
 
 			PositionInPhantomFrame = IntersectPosW12 + alpha * ( IntersectPosW32 - IntersectPosW12 );
 
+      // Finally, calculate the position in the US probe frame
+      // X(US Probe) =  T(Tracker->US Probe)*T(DRB->Tracker)*T(Phantom->DRB)*X(Phantom)
+      vnl_vector<double> PositionInUSProbeFrame =  
+        TransformMatrixDRB2USProbe4x4 * 
+        mTransformMatrixPhantom2DRB4x4 * 
+        PositionInPhantomFrame;
+
 			if( true == mIsSystemLogOn )
 			{
 				std::ofstream SystemLogFile(
 					mSystemLogFileNameWithTimeStamp.c_str(), std::ios::app);
 				SystemLogFile << " ==========================================================================\n";
-				SystemLogFile << " ADD DATA FOR CALIBRATION >>>>>>>>>>>>>>>>>>>>>\n\n";
+				SystemLogFile << " ADD DATA FOR CALIBRATION ("<<frameIndex<<") >>>>>>>>>>>>>>>>>>>>>\n\n";
 				SystemLogFile << " SegmentedNFiducial-" << Layer*3 << " = " << SegmentedDataPositionListPerImage.at( Layer*3 ) << "\n"; 
 				SystemLogFile << " SegmentedNFiducial-" << Layer*3+1 << " = " << SegmentedDataPositionListPerImage.at( Layer*3+1 ) << "\n";  
 				SystemLogFile << " SegmentedNFiducial-" << Layer*3+2 << " = " << SegmentedDataPositionListPerImage.at( Layer*3+2 ) << "\n";  
@@ -932,15 +935,10 @@ void BrachyTRUSCalibrator::addDataPositionsPerImage(
 				SystemLogFile << " alpha = " << alpha << "\n";
 				SystemLogFile << " PositionInPhantomFrame = " << PositionInPhantomFrame << "\n";
 				SystemLogFile << " TransformMatrixDRB2USProbe4x4 = \n" << TransformMatrixDRB2USProbe4x4 << "\n";
+        SystemLogFile << " mTransformMatrixPhantom2DRB4x4 = \n" << mTransformMatrixPhantom2DRB4x4 << "\n";
+        SystemLogFile << " PositionInUSProbeFrame = " << PositionInUSProbeFrame << "\n";
 				SystemLogFile.close();
 			}
-
-			// Finally, calculate the position in the US probe frame
-			// X(US Probe) =  T(Tracker->US Probe)*T(DRB->Tracker)*T(Phantom->DRB)*X(Phantom)
-			vnl_vector<double> PositionInUSProbeFrame =  
-				TransformMatrixDRB2USProbe4x4 * 
-				mTransformMatrixPhantom2DRB4x4 * 
-				PositionInPhantomFrame;
 
 			// Store into the list of positions in the US image frame
 			mDataPositionsInUSImageFrame.push_back( SegmentedPositionInUSImageFrame );
@@ -1004,6 +1002,9 @@ void BrachyTRUSCalibrator::addValidationPositionsPerImage(
 	std::vector<vnl_vector_double> SegmentedDataPositionListPerImage, 
 	const vnl_matrix<double> TransformMatrixUSProbe2Stepper4x4 )
 {
+  static int frameIndex=-1;
+  frameIndex++;
+
 	if( mHasPhantomBeenRegistered != true )
 	{
 		std::cerr << "\n\n" << __FILE__ << "," << __LINE__ << "\n"
@@ -1231,26 +1232,7 @@ void BrachyTRUSCalibrator::addValidationPositionsPerImage(
 			IntersectPosW32[3] = 1.0;
 
 			PositionInTemplateFrame = IntersectPosW12 + alpha * ( IntersectPosW32 - IntersectPosW12 );
-			PositionInTemplateFrame[3]=1.0;
-
-			if( true == mIsSystemLogOn )
-			{
-				std::ofstream SystemLogFile(
-					mSystemLogFileNameWithTimeStamp.c_str(), std::ios::app);
-				SystemLogFile << " ==========================================================================\n";
-				SystemLogFile << " ADD DATA FOR VALIDATION >>>>>>>>>>>>>>>>>>>>>\n\n";
-				SystemLogFile << " SegmentedNFiducial-" << Layer*3 << " = " << SegmentedDataPositionListPerImage.at( Layer*3 ) << "\n"; 
-				SystemLogFile << " SegmentedNFiducial-" << Layer*3+1 << " = " << SegmentedDataPositionListPerImage.at( Layer*3+1 ) << "\n";  
-				SystemLogFile << " SegmentedNFiducial-" << Layer*3+2 << " = " << SegmentedDataPositionListPerImage.at( Layer*3+2 ) << "\n";  
-				SystemLogFile << " ----------------------------------------------------------------\n";
-				SystemLogFile << " SegmentedPositionInOriginalImageFrame = " << SegmentedPositionInOriginalImageFrame << "\n";
-				SystemLogFile << " SegmentedPositionInUSImageFrame = " << SegmentedPositionInUSImageFrame << "\n";
-				SystemLogFile << " alpha = " << alpha << "\n";
-				SystemLogFile << " PositionInTemplateFrame = " << PositionInTemplateFrame << "\n";					
-					SystemLogFile << " TransformMatrixUSProbe2Stepper4x4 = \n" << TransformMatrixUSProbe2Stepper4x4 << "\n";					
-				SystemLogFile << " TransformMatrixStepper2USProbe4x4 = \n" << TransformMatrixStepper2USProbe4x4 << "\n";
-				SystemLogFile.close();
-			}
+      PositionInTemplateFrame[3]=1.0;
 
 			// Finally, calculate the position in the US probe frame
 			// X_USProbe = T_Stepper->USProbe * T_Template->Stepper * X_Template
@@ -1259,6 +1241,26 @@ void BrachyTRUSCalibrator::addValidationPositionsPerImage(
 				TransformMatrixStepper2USProbe4x4 * 
 				mTransformMatrixPhantom2DRB4x4 *
 				PositionInTemplateFrame;
+
+			if( true == mIsSystemLogOn )
+			{
+				std::ofstream SystemLogFile(
+					mSystemLogFileNameWithTimeStamp.c_str(), std::ios::app);
+				SystemLogFile << " ==========================================================================\n";
+        SystemLogFile << " ADD DATA FOR VALIDATION ("<<frameIndex<<") >>>>>>>>>>>>>>>>>>>>>\n\n";
+				SystemLogFile << " SegmentedNFiducial-" << Layer*3 << " = " << SegmentedDataPositionListPerImage.at( Layer*3 ) << "\n"; 
+				SystemLogFile << " SegmentedNFiducial-" << Layer*3+1 << " = " << SegmentedDataPositionListPerImage.at( Layer*3+1 ) << "\n";  
+				SystemLogFile << " SegmentedNFiducial-" << Layer*3+2 << " = " << SegmentedDataPositionListPerImage.at( Layer*3+2 ) << "\n";  
+				SystemLogFile << " ----------------------------------------------------------------\n";
+				SystemLogFile << " SegmentedPositionInOriginalImageFrame = " << SegmentedPositionInOriginalImageFrame << "\n";
+				SystemLogFile << " SegmentedPositionInUSImageFrame = " << SegmentedPositionInUSImageFrame << "\n";
+				SystemLogFile << " alpha = " << alpha << "\n";
+				SystemLogFile << " PositionInTemplateFrame = " << PositionInTemplateFrame << "\n";					
+				SystemLogFile << " TransformMatrixStepper2USProbe4x4 = \n" << TransformMatrixStepper2USProbe4x4 << "\n";
+        SystemLogFile << " mTransformMatrixPhantom2DRB4x4 = \n" << mTransformMatrixPhantom2DRB4x4 << "\n";
+        SystemLogFile << " PositionInUSProbeFrame = " << PositionInUSProbeFrame << "\n";					
+				SystemLogFile.close();
+			}
 
 			vnl_vector<double> NWireStartinUSProbeFrame =
 				TransformMatrixStepper2USProbe4x4 * 
@@ -1345,6 +1347,9 @@ void BrachyTRUSCalibrator::addValidationPositionsPerImage(
 	const std::vector<double> TransformUSProbe2Tracker,
 	const std::vector<double> TransformDRB2Tracker )
 {
+  static int frameIndex=-1;
+  frameIndex++;
+
 	if( mHasPhantomBeenRegistered != true )
 	{
 		std::cerr << "\n\n" << __FILE__ << "," << __LINE__ << "\n"
@@ -1549,12 +1554,19 @@ void BrachyTRUSCalibrator::addValidationPositionsPerImage(
 
 			PositionInPhantomFrame = IntersectPosW12 + alpha * ( IntersectPosW32 - IntersectPosW12 );
 
+			// Finally, calculate the position in the US probe frame
+			// X(US Probe) =  T(Tracker->US Probe)*T(DRB->Tracker)*T(Phantom->DRB)*X(Phantom)
+			vnl_vector<double> PositionInUSProbeFrame =  
+				TransformMatrixDRB2USProbe4x4 * 
+				mTransformMatrixPhantom2DRB4x4 * 
+				PositionInPhantomFrame;
+
 			if( true == mIsSystemLogOn )
 			{
 				std::ofstream SystemLogFile(
 					mSystemLogFileNameWithTimeStamp.c_str(), std::ios::app);
 				SystemLogFile << " ==========================================================================\n";
-				SystemLogFile << " ADD DATA FOR VALIDATION >>>>>>>>>>>>>>>>>>>>>\n\n";
+				SystemLogFile << " ADD DATA FOR VALIDATION ("<<frameIndex<<") >>>>>>>>>>>>>>>>>>>>>\n\n";
 				SystemLogFile << " SegmentedNFiducial-" << Layer*3 << " = " << SegmentedDataPositionListPerImage.at( Layer*3 ) << "\n"; 
 				SystemLogFile << " SegmentedNFiducial-" << Layer*3+1 << " = " << SegmentedDataPositionListPerImage.at( Layer*3+1 ) << "\n";  
 				SystemLogFile << " SegmentedNFiducial-" << Layer*3+2 << " = " << SegmentedDataPositionListPerImage.at( Layer*3+2 ) << "\n";  
@@ -1564,15 +1576,10 @@ void BrachyTRUSCalibrator::addValidationPositionsPerImage(
 				SystemLogFile << " alpha = " << alpha << "\n";
 				SystemLogFile << " PositionInPhantomFrame = " << PositionInPhantomFrame << "\n";
 				SystemLogFile << " TransformMatrixDRB2USProbe4x4 = \n" << TransformMatrixDRB2USProbe4x4 << "\n";
+        SystemLogFile << " mTransformMatrixPhantom2DRB4x4 = \n" << mTransformMatrixPhantom2DRB4x4 << "\n";
+        SystemLogFile << " PositionInUSProbeFrame = " << PositionInUSProbeFrame << "\n";
 				SystemLogFile.close();
 			}
-
-			// Finally, calculate the position in the US probe frame
-			// X(US Probe) =  T(Tracker->US Probe)*T(DRB->Tracker)*T(Phantom->DRB)*X(Phantom)
-			vnl_vector<double> PositionInUSProbeFrame =  
-				TransformMatrixDRB2USProbe4x4 * 
-				mTransformMatrixPhantom2DRB4x4 * 
-				PositionInPhantomFrame;
 
 			vnl_vector<double> NWireStartinUSProbeFrame =
 				TransformMatrixDRB2USProbe4x4 * 
@@ -1741,6 +1748,13 @@ std::vector<double> BrachyTRUSCalibrator::getPRE3DforRealtimeImage(
 
 			PositionInPhantomFrame = IntersectPosW12 + alpha * ( IntersectPosW32 - IntersectPosW12 );
 
+			// Finally, calculate the position in the US probe frame
+			// X(US Probe) =  T(Tracker->US Probe)*T(DRB->Tracker)*T(Phantom->DRB)*X(Phantom)
+			vnl_vector<double> PositionInUSProbeFrame =  
+				TransformMatrixDRB2USProbe4x4 * 
+				mTransformMatrixPhantom2DRB4x4 * 
+				PositionInPhantomFrame;
+
 			if( true == mIsSystemLogOn )
 			{
 				std::ofstream SystemLogFile(
@@ -1756,15 +1770,10 @@ std::vector<double> BrachyTRUSCalibrator::getPRE3DforRealtimeImage(
 				SystemLogFile << " alpha = " << alpha << "\n";
 				SystemLogFile << " PositionInPhantomFrame = " << PositionInPhantomFrame << "\n";
 				SystemLogFile << " TransformMatrixDRB2USProbe4x4 = \n" << TransformMatrixDRB2USProbe4x4 << "\n";
+        SystemLogFile << " mTransformMatrixPhantom2DRB4x4 = \n" << mTransformMatrixPhantom2DRB4x4 << "\n";
+        SystemLogFile << " PositionInUSProbeFrame = " << PositionInUSProbeFrame << "\n";
 				SystemLogFile.close();
 			}
-
-			// Finally, calculate the position in the US probe frame
-			// X(US Probe) =  T(Tracker->US Probe)*T(DRB->Tracker)*T(Phantom->DRB)*X(Phantom)
-			vnl_vector<double> PositionInUSProbeFrame =  
-				TransformMatrixDRB2USProbe4x4 * 
-				mTransformMatrixPhantom2DRB4x4 * 
-				PositionInPhantomFrame;
 
 			// Store into the list of positions in the Phantom frame
 			DataPositionsInPhantomFrame.push_back( PositionInPhantomFrame );
