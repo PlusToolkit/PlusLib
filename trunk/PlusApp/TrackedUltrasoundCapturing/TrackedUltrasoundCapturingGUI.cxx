@@ -861,22 +861,27 @@ void TrackedUltrasoundCapturingGUI::ChangeLogLevel()
 	if ( STRCASECMP(this->LogLevelComboBox->currentText().ascii(), "ERROR") == 0 )
 	{
 		PlusLogger::Instance()->SetLogLevel(PlusLogger::LOG_LEVEL_ERROR); 
+        PlusLogger::Instance()->SetDisplayLogLevel(PlusLogger::LOG_LEVEL_ERROR); 
 	}
 	else if ( STRCASECMP(this->LogLevelComboBox->currentText().ascii(), "WARNING") == 0 )
 	{
 		PlusLogger::Instance()->SetLogLevel(PlusLogger::LOG_LEVEL_WARNING); 
+        PlusLogger::Instance()->SetDisplayLogLevel(PlusLogger::LOG_LEVEL_WARNING);
 	}
 	else if ( STRCASECMP(this->LogLevelComboBox->currentText().ascii(), "INFO") == 0 )
 	{
 		PlusLogger::Instance()->SetLogLevel(PlusLogger::LOG_LEVEL_INFO); 
+        PlusLogger::Instance()->SetDisplayLogLevel(PlusLogger::LOG_LEVEL_INFO);
 	}
 	else if ( STRCASECMP(this->LogLevelComboBox->currentText().ascii(), "DEBUG") == 0 )
 	{
 		PlusLogger::Instance()->SetLogLevel(PlusLogger::LOG_LEVEL_DEBUG); 
+        PlusLogger::Instance()->SetDisplayLogLevel(PlusLogger::LOG_LEVEL_DEBUG);
 	}
 	else if ( STRCASECMP(this->LogLevelComboBox->currentText().ascii(), "TRACE") == 0 )
 	{
 		PlusLogger::Instance()->SetLogLevel(PlusLogger::LOG_LEVEL_TRACE); 
+        PlusLogger::Instance()->SetDisplayLogLevel(PlusLogger::LOG_LEVEL_TRACE);
 	}
 
 	LOG_INFO("Log level changed to: " << this->LogLevelComboBox->currentText().ascii() )
