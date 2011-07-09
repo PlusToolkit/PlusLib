@@ -179,9 +179,9 @@ protected:
 	~vtkTimestampedCircularBuffer();
 
 	// Description:
-	// Get buffer index by frame UID 
+	// Get buffer index by frame UID - internal use only, the buffer should be locked 
 	// Returns buffer index if the ItemStatus is ITEM_OK, otherwise -1; 
-	virtual int GetBufferIndex( BufferItemUidType uid ); 
+	virtual ItemStatus GetBufferIndex( BufferItemUidType uid, int& bufferIndex ); 
 
 	vtkCriticalSection *Mutex;
 

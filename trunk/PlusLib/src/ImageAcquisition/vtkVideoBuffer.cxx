@@ -399,10 +399,12 @@ ItemStatus vtkVideoBuffer::GetVideoBufferItem(BufferItemUidType uid, VideoBuffer
 
 	if ( bufferItem->DeepCopy(videoItem) != PLUS_SUCCESS )
 	{
-		status = ITEM_UNKNOWN_ERROR; 
+        LOG_WARNING("Failed to copy video item!"); 
+		return ITEM_UNKNOWN_ERROR; 
 	}
 	
-	return status; 
+    // Check the status again to make sure the writer didn't change it
+    return this->VideoBuffer->GetFrameStatus(uid); 
 }
 
 //----------------------------------------------------------------------------

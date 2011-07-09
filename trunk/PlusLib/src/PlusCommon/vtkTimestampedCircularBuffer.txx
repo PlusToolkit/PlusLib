@@ -215,11 +215,16 @@ ItemStatus vtkTimestampedCircularBuffer<BufferItemType>::GetItemUidFromBufferInd
 
 //----------------------------------------------------------------------------
 template<class BufferItemType>
-int vtkTimestampedCircularBuffer<BufferItemType>::GetBufferIndex( const BufferItemUidType uid )
+ItemStatus vtkTimestampedCircularBuffer<BufferItemType>::GetBufferIndex( const BufferItemUidType uid, int& bufferIndex )
 {
-	if ( this->GetFrameStatus( uid ) != ITEM_OK )
+	bufferIndex = -1; 
+	
+	// check the status before we get the buffer index 
+	ItemStatus currentStatus = this->GetFrameStatus( uid ); 
+	if ( currentStatus != ITEM_OK )
 	{
-		return -1; 
+		LOG_WARNING("Buffer item is not in the buffer (Uid: " << uid << ")!"); 
+		return currentStatus; 
 	}
 	
 	int readIndex = (this->WritePointer - 1) % this->GetBufferSize();
@@ -228,21 +233,29 @@ int vtkTimestampedCircularBuffer<BufferItemType>::GetBufferIndex( const BufferIt
 		readIndex += this->GetBufferSize();
 	}
 	
-	int bufferIndex = readIndex - (this->LatestItemUid - uid); 
+	bufferIndex = readIndex - (this->LatestItemUid - uid); 
 	
 	if ( bufferIndex < 0 )
 	{
 		bufferIndex += this->GetBufferSize(); 
 	}
 	
-	return bufferIndex; 
+	// return with the current status of the frame 
+	return this->GetFrameStatus( uid ); 
 }
 
 //----------------------------------------------------------------------------
 template<class BufferItemType>
 BufferItemType* vtkTimestampedCircularBuffer<BufferItemType>::GetBufferItem(const BufferItemUidType uid) 
 { 
-	const int bufferIndex = this->GetBufferIndex(uid); 
+	int bufferIndex(0); 
+	ItemStatus status = this->GetBufferIndex(uid, bufferIndex); 
+	if ( status != ITEM_OK )
+	{
+		LOG_WARNING("Buffer item is not in the buffer (Uid: " << uid << ")!"); 
+		return NULL; 
+	}
+	
 	return this->GetBufferItem(bufferIndex); 
 }
 
@@ -272,9 +285,19 @@ ItemStatus vtkTimestampedCircularBuffer<BufferItemType>::GetFilteredTimeStamp(co
 		return status; 
 	}
 
-	const int bufferIndex = this->GetBufferIndex( uid ); 
+	int bufferIndex(0); 
+	status = this->GetBufferIndex( uid, bufferIndex ); 
+	
+	if ( status != ITEM_OK )
+	{
+		LOG_WARNING("Buffer item is not in the buffer (Uid: " << uid << ")!"); 
+		return status; 
+	}
+	
 	filteredTimestamp = this->BufferItemContainer[bufferIndex].GetFilteredTimestamp(this->LocalTimeOffset); 
-	return status;
+	
+	// Check the status again to make sure the writer didn't change it
+	return this->GetFrameStatus( uid );
 }
 
 //----------------------------------------------------------------------------
@@ -288,9 +311,19 @@ ItemStatus vtkTimestampedCircularBuffer<BufferItemType>::GetUnfilteredTimeStamp(
 		return status; 
 	}
 
-	const int bufferIndex = this->GetBufferIndex( uid ); 
+	int bufferIndex(0); 
+	status = this->GetBufferIndex( uid, bufferIndex ); 
+	
+	if ( status != ITEM_OK )
+	{
+		LOG_WARNING("Buffer item is not in the buffer (Uid: " << uid << ")!"); 
+		return status; 
+	}
+	
 	unfilteredTimestamp = this->BufferItemContainer[bufferIndex].GetUnfilteredTimestamp(this->LocalTimeOffset); 
-	return status;
+	
+	// Check the status again to make sure the writer didn't change it
+	return this->GetFrameStatus( uid );
 }
 
 
@@ -305,9 +338,19 @@ ItemStatus vtkTimestampedCircularBuffer<BufferItemType>::GetIndex(const BufferIt
 		return status; 
 	}
 
-	const int bufferIndex = this->GetBufferIndex( uid ); 
+	int bufferIndex(0); 
+	status = this->GetBufferIndex( uid, bufferIndex ); 
+	
+	if ( status != ITEM_OK )
+	{
+		LOG_WARNING("Buffer item is not in the buffer (Uid: " << uid << ")!"); 
+		return status; 
+	}
+	
 	index = this->BufferItemContainer[bufferIndex].GetIndex(); 
-	return status;
+	
+	// Check the status again to make sure the writer didn't change it
+	return this->GetFrameStatus( uid );
 }
 
 
@@ -320,11 +363,11 @@ ItemStatus vtkTimestampedCircularBuffer<BufferItemType>::GetBufferIndexFromTime(
 
 	if ( itemStatus != ITEM_OK )
 	{
+		LOG_WARNING("Buffer item is not in the buffer (time: " << std::fixed << time << ")!"); 
 		return itemStatus; 
 	}
 	
-	bufferIndex = this->GetBufferIndex(itemUid); 
-	return itemStatus; 
+	return this->GetBufferIndex( itemUid, bufferIndex ); 
 }
 
 
