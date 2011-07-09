@@ -1164,20 +1164,12 @@ PlusStatus vtkDataCollector::GetTrackedFrame(vtkImageData* frame, std::vector<vt
 //----------------------------------------------------------------------------
 int vtkDataCollector::RequestData( vtkInformation* vtkNotUsed( request ), vtkInformationVector**  inputVector, vtkInformationVector* outputVector )
 {
-    //LOG_TRACE("vtkDataCollector::RequestData");
-    vtkInformation *inInfo = inputVector[0]->GetInformationObject(0);
+    LOG_TRACE("vtkDataCollector::RequestData");
     vtkInformation *outInfo = outputVector->GetInformationObject(0);
 
-    vtkImageData *inData = vtkImageData::SafeDownCast(
-        inInfo->Get(vtkDataObject::DATA_OBJECT()));
     vtkImageData *outData = vtkImageData::SafeDownCast(
         outInfo->Get(vtkDataObject::DATA_OBJECT()));
-
-    int extent[6];
-    inData->GetExtent(extent);
-    outData->SetExtent(extent);
-    outData->GetPointData()->PassData(inData->GetPointData()); 
-
+   
     VideoBufferItem currentVideoBufferItem; 
     if ( this->GetVideoSource()->GetBuffer()->GetLatestVideoBufferItem( &currentVideoBufferItem ) != ITEM_OK )
     {
@@ -1185,8 +1177,7 @@ int vtkDataCollector::RequestData( vtkInformation* vtkNotUsed( request ), vtkInf
         return 0; 
     }
 
-    // TODO: Do we need to copy the latest image data? 
-    //this->CurrentVideoBufferItem->GetFrame()->CopyData(
+    UsImageConverterCommon::ConvertItkImageToVtkImage(currentVideoBufferItem.GetFrame(), outData); 
 
     const double globalTime = currentVideoBufferItem.GetTimestamp( this->GetVideoSource()->GetBuffer()->GetLocalTimeOffset() ); 
 
