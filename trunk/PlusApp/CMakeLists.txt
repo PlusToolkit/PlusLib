@@ -14,6 +14,8 @@ ELSE( PlusLib_FOUND )
     MESSAGE( FATAL_ERROR "This project requires PlusLib. One of these components is missing. Please verify configuration")
 ENDIF( PlusLib_FOUND )
 
+SET(PLUSLIB_DEPENDENCIES vtkPlusCommon vtkImageAcquisition vtkPlusCommon vtkTracking vtkDataCollection UsFidSegAlgo vtkTrusCalibration vtkVolumeReconstruction)
+
 # ------------------------------------------------------------------------
 # Set project version number: PlusApp version should identical to Plus version 
 SET(PLUSAPP_VERSION_MAJOR ${PLUSLIB_VERSION_MAJOR})
@@ -72,45 +74,62 @@ ADD_SUBDIRECTORY(CommonWidgets)
 # Build the VolumeReconstructor application
 IF (PLUSAPP_BUILD_VolumeReconstructor)
     ADD_SUBDIRECTORY(VolumeReconstructor)
+    ADD_DEPENDENCIES( VolumeReconstructor ${PLUSLIB_DEPENDENCIES} )
 ENDIF (PLUSAPP_BUILD_VolumeReconstructor)
 
 # --------------------------------------------------------------------------
 # Build the SequenceMetaFileConverter application 
 IF (PLUSAPP_BUILD_SequenceMetaFileConverter)
     ADD_SUBDIRECTORY(SequenceMetaFileConverter)
+    ADD_DEPENDENCIES( SequenceMetaFileConverter ${PLUSLIB_DEPENDENCIES} )
 ENDIF (PLUSAPP_BUILD_SequenceMetaFileConverter)
 
 # --------------------------------------------------------------------------
 # Build the DiagnosticTools 
 IF (PLUSAPP_BUILD_DiagnosticTools)
     ADD_SUBDIRECTORY(DiagnosticTools)
+    ADD_DEPENDENCIES( DiagDataCollection ${PLUSLIB_DEPENDENCIES} )
+    ADD_DEPENDENCIES( DiagDataSync ${PLUSLIB_DEPENDENCIES} )
 ENDIF (PLUSAPP_BUILD_DiagnosticTools)
 
 # --------------------------------------------------------------------------
 # Build the TrackedUltrasoundCapturing application (Qt version)
 IF (PLUSAPP_BUILD_TrackedUltrasoundCapturing)
 	ADD_SUBDIRECTORY(TrackedUltrasoundCapturing)
+    ADD_DEPENDENCIES( TrackedUltrasoundCapturing ${PLUSLIB_DEPENDENCIES} )
 ENDIF (PLUSAPP_BUILD_TrackedUltrasoundCapturing)
 
 # --------------------------------------------------------------------------
 # Build the 4DUltrasound application
 IF (PLUSAPP_BUILD_4DUltrasound)
 	ADD_SUBDIRECTORY(4DUltrasound)
+    ADD_DEPENDENCIES( 4DUltrasound ${PLUSLIB_DEPENDENCIES} )
 ENDIF (PLUSAPP_BUILD_4DUltrasound)
 
 # --------------------------------------------------------------------------
 # Build the Freehand Calibration application (Qt)
 IF (PLUSAPP_BUILD_FreehandCalibration)
 	ADD_SUBDIRECTORY(FreehandCalibration)
+    ADD_DEPENDENCIES( FreehandCalibration ${PLUSLIB_DEPENDENCIES} )
 ENDIF (PLUSAPP_BUILD_FreehandCalibration)
 
 IF(PLUSAPP_BUILD_OpenIGTLinkBroadcaster)
     IF (PLUS_USE_OpenIGTLink)
         ADD_SUBDIRECTORY(OpenIGTLinkBroadcaster)
+        ADD_DEPENDENCIES( OpenIGTLinkBroadcaster ${PLUSLIB_DEPENDENCIES} )
     ELSE (PLUS_USE_OpenIGTLink)
         MESSAGE(SEND_ERROR "OpenIGTLinkBroadcaster: PLUS has to be configured with PLUS_USE_OpenIGTLink flag ON")
     ENDIF (PLUS_USE_OpenIGTLink)
 ENDIF(PLUSAPP_BUILD_OpenIGTLinkBroadcaster)
+
+INCLUDE_EXTERNAL_MSPROJECT(vtkDataCollection "${PLUSLIB_DIR}/src/DataCollection/vtkDataCollection.vcproj" vtkPlusCommon vtkImageAcquisition vtkTracking)
+INCLUDE_EXTERNAL_MSPROJECT(vtkImageAcquisition "c:/devel/Plus-BUILD/PlusLib-bin/src/ImageAcquisition/vtkImageAcquisition.vcproj" vtkPlusCommon)
+INCLUDE_EXTERNAL_MSPROJECT(vtkPlusCommon "${PLUSLIB_DIR}/src/PlusCommon/vtkPlusCommon.vcproj")
+INCLUDE_EXTERNAL_MSPROJECT(vtkTracking "${PLUSLIB_DIR}/src/Tracking/vtkTracking.vcproj" vtkPlusCommon vtkImageAcquisition)
+INCLUDE_EXTERNAL_MSPROJECT(vtkTrusCalibration "${PLUSLIB_DIR}/src/TrusCalibration/vtkTrusCalibration.vcproj" vtkPlusCommon UsFidSegAlgo)
+INCLUDE_EXTERNAL_MSPROJECT(UsFidSegAlgo "${PLUSLIB_DIR}/src/UsFidSegAlgo/UsFidSegAlgo.vcproj" vtkPlusCommon )
+INCLUDE_EXTERNAL_MSPROJECT(vtkSignaling "${PLUSLIB_DIR}/src/Signaling/vtkSignaling.vcproj" vtkPlusCommon )
+INCLUDE_EXTERNAL_MSPROJECT(vtkVolumeReconstruction "${PLUSLIB_DIR}/src/VolumeReconstruction/vtkVolumeReconstruction.vcproj" vtkPlusCommon vtkSignaling vtkTracking vtkImageAcquisition)
 
 #-----------------------------------------------------------------------------
 # Generate convenience files for automatic build, test, and packaging
