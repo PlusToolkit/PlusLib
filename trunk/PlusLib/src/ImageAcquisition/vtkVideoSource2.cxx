@@ -491,16 +491,15 @@ PlusStatus vtkVideoSource2::Grab()
 
 //----------------------------------------------------------------------------
 // This method returns the largest data that can be generated.
-int vtkVideoSource2::RequestInformation(
-										vtkInformation * vtkNotUsed(request),
+int vtkVideoSource2::RequestInformation(vtkInformation * vtkNotUsed(request),
 										vtkInformationVector **vtkNotUsed(inputVector),
 										vtkInformationVector *outputVector)
 {
-	// get the info objects
-	vtkInformation* outInfo = outputVector->GetInformationObject(0);
-
-	// ensure that the hardware is initialized.
+    // ensure that the hardware is initialized.
 	this->Initialize();
+
+ 	// get the info objects
+	vtkInformation* outInfo = outputVector->GetInformationObject(0);
 
 	// Set extent
     int extent[6] = {0, this->Buffer->GetFrameSize()[0] - 1, 0, this->Buffer->GetFrameSize()[1] - 1, 0, 0 }; 
@@ -522,14 +521,21 @@ int vtkVideoSource2::RequestInformation(
 // The Execute method is fairly complex, so I would not recommend overriding
 // it unless you have to.  Override the UnpackRasterLine() method in
 // vtkVideoFrame2 instead.
-int vtkVideoSource2::RequestData(
-								 vtkInformation *vtkNotUsed(request),
+int vtkVideoSource2::RequestData(vtkInformation *vtkNotUsed(request),
 								 vtkInformationVector **vtkNotUsed(inputVector),
 								 vtkInformationVector *vtkNotUsed(outputVector))
 {
 	// the output data
 	vtkImageData *data = this->AllocateOutputData(this->GetOutput());
     unsigned char *outPtr = (unsigned char *)data->GetScalarPointer();
+
+    if ( this->Buffer->GetNumberOfItems() < 1 ) 
+    {
+        // If the video buffer is empty, we can return immediately 
+        LOG_DEBUG("Cannot request data from video source, the video buffer is empty!"); 
+        return 1;
+    }
+
 
 	if (this->UpdateWithDesiredTimestamp && this->DesiredTimestamp != -1)
 	{

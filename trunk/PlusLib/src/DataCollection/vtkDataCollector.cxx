@@ -1165,6 +1165,13 @@ PlusStatus vtkDataCollector::GetTrackedFrame(vtkImageData* frame, std::vector<vt
 int vtkDataCollector::RequestData( vtkInformation* vtkNotUsed( request ), vtkInformationVector**  inputVector, vtkInformationVector* outputVector )
 {
     LOG_TRACE("vtkDataCollector::RequestData");
+    if ( this->GetVideoSource()->GetBuffer()->GetNumberOfItems() < 1 ) 
+    {
+        // If the video buffer is empty, we can return immediately 
+        LOG_DEBUG("Cannot request data from video source, the video buffer is empty!"); 
+        return 1;
+    }
+
     vtkInformation *outInfo = outputVector->GetInformationObject(0);
 
     vtkImageData *outData = vtkImageData::SafeDownCast(
