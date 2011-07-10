@@ -123,7 +123,7 @@ IF(PLUSAPP_BUILD_OpenIGTLinkBroadcaster)
 ENDIF(PLUSAPP_BUILD_OpenIGTLinkBroadcaster)
 
 INCLUDE_EXTERNAL_MSPROJECT(vtkDataCollection "${PLUSLIB_DIR}/src/DataCollection/vtkDataCollection.vcproj" vtkPlusCommon vtkImageAcquisition vtkTracking)
-INCLUDE_EXTERNAL_MSPROJECT(vtkImageAcquisition "c:/devel/Plus-BUILD/PlusLib-bin/src/ImageAcquisition/vtkImageAcquisition.vcproj" vtkPlusCommon)
+INCLUDE_EXTERNAL_MSPROJECT(vtkImageAcquisition "${PLUSLIB_DIR}/src/ImageAcquisition/vtkImageAcquisition.vcproj" vtkPlusCommon)
 INCLUDE_EXTERNAL_MSPROJECT(vtkPlusCommon "${PLUSLIB_DIR}/src/PlusCommon/vtkPlusCommon.vcproj")
 INCLUDE_EXTERNAL_MSPROJECT(vtkTracking "${PLUSLIB_DIR}/src/Tracking/vtkTracking.vcproj" vtkPlusCommon vtkImageAcquisition)
 INCLUDE_EXTERNAL_MSPROJECT(vtkTrusCalibration "${PLUSLIB_DIR}/src/TrusCalibration/vtkTrusCalibration.vcproj" vtkPlusCommon UsFidSegAlgo)
