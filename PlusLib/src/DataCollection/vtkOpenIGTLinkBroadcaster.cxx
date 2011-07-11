@@ -284,6 +284,7 @@ vtkOpenIGTLinkBroadcaster
     igtl::TransformMessage::Pointer transformMessage = igtl::TransformMessage::New();
     transformMessage->SetMatrix( igtlMatrix );
     transformMessage->SetTimeStamp( igtlFrameTime );
+    transformMessage->SetDeviceName( this->DataCollector->GetTracker()->GetTool( defaultTool )->GetToolName() );
     transformMessage->Pack();
     
     success = this->DefaultSocket->Send( transformMessage->GetPackPointer(), transformMessage->GetPackSize() );
