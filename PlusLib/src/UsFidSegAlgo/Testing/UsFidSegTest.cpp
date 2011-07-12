@@ -228,12 +228,10 @@ int CompareSegmentationResults(const std::string& inputBaselineFileName, const s
 
 		vtkSmartPointer<vtkXMLDataElement> fidCandidElement = currentElem->FindNestedElementWithName("FiducialPointCandidates");
 		const char *fidCandid = "FiducialPointCandidates";
-		if(strcmp(fidCandidElement->GetName(),fidCandid) ==0)// or null ?
+		if((fidCandidElement != NULL) && (strcmp(fidCandidElement->GetName(),fidCandid) == 0))
 		{					
-
 			double fidCandidates [2];
 			memset(fidCandidates,0,sizeof(fidCandidates[0]* MAX_DOTS)); 
-
 
 			vtkSmartPointer<vtkXMLDataElement> fidCandidCurrentNested = NULL; 
 			vtkSmartPointer<vtkXMLDataElement> pointElement = NULL; 
@@ -251,7 +249,6 @@ int CompareSegmentationResults(const std::string& inputBaselineFileName, const s
 
 				for(int j=0; j<MAX_FIDUCIAL_COORDINATE_COUNT; j++)// loop through baseline fiducials, skip first 14, because those are old incorrect fiducials
 				{
-
 					if ( abs(baselineFiducialPoints[j] + fidCandidates[0])<BASELINE_TO_ALGORITHM_TOLERANCE && abs(baselineFiducialPoints[j+1]+ fidCandidates[1])< BASELINE_TO_ALGORITHM_TOLERANCE)// || or && ? compares x and y coordinates of baseline to x and y coordiantes of a fid candidate
 					{
 						LOG_DEBUG("Fiducial " << baselineFiducialPoints[j]<< " and " << baselineFiducialPoints[j+1]<<" matches "<<fidCandidates[0]<< "and "<<fidCandidates[1] ); 
