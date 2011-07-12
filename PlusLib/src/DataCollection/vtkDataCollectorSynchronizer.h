@@ -26,7 +26,7 @@ public:
 
 	// Description:
 	// Start the synchronization 
-	virtual void Synchronize(); 
+	virtual PlusStatus Synchronize(); 
 
 	// Description:
 	// Compute video offset mean, stdev, min, max after synchronization 
@@ -121,6 +121,11 @@ public:
 	vtkSetMacro(SynchronizationTimeLength, double); 
 	vtkGetMacro(SynchronizationTimeLength, double);
 
+  // Description:
+	// Set/get startup delay in sec to give some time to the buffers for proper initialization before sync 
+	vtkSetMacro(StartupDelaySec, double); 
+	vtkGetMacro(StartupDelaySec, double);
+
 	//! Description 
 	// Callback function for progress bar refreshing
 	typedef void (*ProgressBarUpdatePtr)(int percent);
@@ -141,15 +146,23 @@ protected:
 	vtkDataCollectorSynchronizer();
 	virtual ~vtkDataCollectorSynchronizer();
 
-	virtual void ComputeFrameThreshold( BufferItemUidType& bufferIndex ); 
+  //! Description 
+  // Start tracker motion detection 
+  virtual PlusStatus DetectTrackerMotions(std::vector<double> &movedTransformTimestamps); 
+
+  //! Description 
+  // Start video motion detection 
+  virtual PlusStatus DetectVideoMotions(const std::vector<double> &movedTransformTimestamps); 
+
+	virtual PlusStatus ComputeFrameThreshold( BufferItemUidType& bufferIndex ); 
 	virtual PlusStatus FindFrameTimestamp( BufferItemUidType& bufferIndex, double& movedFrameTimestamp, double nextMovedTimestamp ); 
     virtual PlusStatus CopyVideoFrame( vtkImageData* frame, VideoBufferItem::ImageType::Pointer& frameInBuffer); 
 	virtual void FindStillFrame( BufferItemUidType& baseIndex, BufferItemUidType& currentIndex ); 
 
-	virtual void ComputeTransformThreshold( int& bufferIndex ); 
-	virtual PlusStatus FindTransformTimestamp( int& bufferIndex, double& movedTransformTimestamp ); 
+	virtual PlusStatus ComputeTransformThreshold( BufferItemUidType& bufferIndex ); 
+	virtual PlusStatus FindTransformTimestamp( BufferItemUidType& bufferIndex, double& movedTransformTimestamp ); 
 	virtual bool IsTransformBelowThreshold( vtkTransform* transform, double timestamp); 
-	virtual void FindStillTransform( int& baseIndex, int& currentIndex ); 
+	virtual void FindStillTransform( BufferItemUidType& baseIndex, BufferItemUidType& currentIndex ); 
 	virtual double GetRotationError(vtkMatrix4x4* baseTransMatrix, vtkMatrix4x4* currentTransMatrix); 
 	virtual double GetTranslationError(vtkMatrix4x4* baseTransMatrix, vtkMatrix4x4* currentTransMatrix); 
 
@@ -165,6 +178,9 @@ protected:
 	vtkImageData* BaseFrame; 
 
 	double SynchronizationTimeLength;
+
+  double StillFrameTimeInterval;
+  int StillFrameIndexInterval; 
 
 	vtkVideoBuffer* VideoBuffer; 
 	int CurrentVideoBufferIndex; 
@@ -191,6 +207,7 @@ protected:
 
 	bool Synchronized; 
 	double SyncStartTime; 
+  double StartupDelaySec; 
 
 	int MinNumOfSyncSteps; 
 	

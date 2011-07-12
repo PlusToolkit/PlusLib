@@ -124,29 +124,29 @@ int main(int argc, char **argv)
 
 		const char* cFlag = trackerFrameList->GetTrackedFrame(frameNumber)->GetCustomFrameField("Status"); 
 
-		long flag(0);
+		TrackerStatus status = TR_OK;
 		if ( cFlag != NULL )
 		{
 			std::string strFlag(cFlag); 
 			if ( strFlag.find("OK") != std::string::npos )
 			{
-				flag = 0;
+				status = TR_OK;
 			}
 			else if ( strFlag.find("TR_MISSING") != std::string::npos )
 			{
-				flag = flag & TR_MISSING;
+				status = TR_MISSING;
 			}
 			else if ( strFlag.find("TR_OUT_OF_VIEW") != std::string::npos )
 			{
-				flag = flag & TR_OUT_OF_VIEW;
+				status = TR_OUT_OF_VIEW;
 			}
 			else if ( strFlag.find("TR_OUT_OF_VOLUME") != std::string::npos )
 			{
-				flag = flag & TR_OUT_OF_VOLUME;
+				status = TR_OUT_OF_VOLUME;
 			}
 			else if ( strFlag.find("TR_REQ_TIMEOUT") != std::string::npos )
 			{
-				flag = flag & TR_REQ_TIMEOUT;
+				status = TR_REQ_TIMEOUT;
 			}
 		}
 		else
@@ -181,7 +181,7 @@ int main(int argc, char **argv)
 		vtkSmartPointer<vtkMatrix4x4> defaultTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
 		defaultTransformMatrix->DeepCopy(defaultTransform); 
 
-		trackerBuffer->AddItem(defaultTransformMatrix, flag, frmnum, unfilteredtimestamp, timestamp); 
+		trackerBuffer->AddItem(defaultTransformMatrix, status, frmnum, unfilteredtimestamp, timestamp); 
 	}
 	
 	PlusLogger::PrintProgressbar( 100 ); 

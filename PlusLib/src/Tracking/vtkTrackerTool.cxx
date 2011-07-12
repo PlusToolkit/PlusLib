@@ -71,9 +71,7 @@ vtkTrackerTool* vtkTrackerTool::New()
 vtkTrackerTool::vtkTrackerTool()
 {  
 	this->Tracker = 0;
-	this->Transform = vtkTransform::New();
-	this->Flags = TR_MISSING;
-	this->TimeStamp = 0;
+	//this->Transform = vtkTransform::New();
 	this->CalibrationMatrix = vtkMatrix4x4::New();
 
 	this->Minimizer = vtkAmoebaMinimizer::New();
@@ -93,26 +91,19 @@ vtkTrackerTool::vtkTrackerTool()
 	this->ToolDefinitionFileName = 0;
 	this->ToolModelFileName = 0;
 	this->ToolPort = 0;
+
 	this->CalibrationMatrixName = 0; 
 	this->CalibrationDate = 0; 
 	this->CalibrationError = 0.0; 
+
 	this->SendToLink = 0; 
 
-	this->SetToolType("");
-	this->SetToolRevision("");
-	this->SetToolSerialNumber("");
-	this->SetToolPartNumber("");
-	this->SetToolManufacturer("");
-	this->SetToolName("");
-	this->SetToolDefinitionFileName("");
+  // Set tool enabled off by default 
 	this->EnabledOff(); 
 
 	this->ModelToToolTransform = vtkTransform::New();
 	this->ToolToToolReferenceTransform = vtkTransform::New();
 	this->SetToolModelFileName("");
-
-	this->TempMatrix = vtkMatrix4x4::New();
-	this->RawMatrix = vtkMatrix4x4::New();
 
 	this->Buffer = vtkTrackerBuffer::New();
 	this->Buffer->SetToolCalibrationMatrix(this->CalibrationMatrix);
@@ -123,41 +114,20 @@ vtkTrackerTool::vtkTrackerTool()
 //----------------------------------------------------------------------------
 vtkTrackerTool::~vtkTrackerTool()
 {
-	this->Transform->Delete();
 	this->CalibrationMatrix->Delete();
 	this->CalibrationArray->Delete();
 	this->Minimizer->Delete();
-	this->TempMatrix->Delete();
-	this->RawMatrix->Delete();
-	if (this->ToolType)
-	{
-		delete [] this->ToolType;
-	}
-	if (this->ToolDefinitionFileName)
-	{
-		delete [] this->ToolDefinitionFileName;
-	}
-	if (this->ModelToToolTransform)
-	{
-		this->ModelToToolTransform->Delete();
-	}
-	if (this->ToolToToolReferenceTransform)
-	{
-		this->ToolToToolReferenceTransform->Delete();
-	}
-	if (this->ToolRevision)
-	{
-		delete [] this->ToolRevision;
-	}
-	if (this->ToolSerialNumber)
-	{
-		delete [] this->ToolSerialNumber;
-	}
-	if (this->ToolManufacturer)
-	{
-		delete [] this->ToolManufacturer;
-	}
 
+	this->SetToolType(NULL); 
+	this->SetToolModelFileName(NULL); 
+  this->SetToolRevision(NULL); 
+  this->SetToolSerialNumber(NULL); 
+  this->SetToolManufacturer(NULL); 
+
+  this->SetModelToToolTransform(NULL); 
+  this->SetToolDefinitionFileName(NULL); 
+  this->SetToolModelFileName(NULL); 
+	
 	if ( this->Buffer )
 	{
 		this->Buffer->Delete(); 
@@ -171,12 +141,6 @@ void vtkTrackerTool::PrintSelf(ostream& os, vtkIndent indent)
 
 	os << indent << "Tracker: " << this->Tracker << "\n";
 	os << indent << "ToolPort: " << this->ToolPort << "\n";
-	os << indent << "IsMissing: " << this->IsMissing() << "\n";
-	os << indent << "IsOutOfView: " << this->IsOutOfView() << "\n";
-	os << indent << "IsOutOfVolume: " << this->IsOutOfVolume() << "\n";
-	os << indent << "IsSwitch1On: " << this->IsSwitch1On() << "\n";
-	os << indent << "IsSwitch2On: " << this->IsSwitch2On() << "\n";
-	os << indent << "IsSwitch3On: " << this->IsSwitch3On() << "\n";
 	os << indent << "LED1: " << this->GetLED1() << "\n"; 
 	os << indent << "LED2: " << this->GetLED2() << "\n"; 
 	os << indent << "LED3: " << this->GetLED3() << "\n";
@@ -189,34 +153,44 @@ void vtkTrackerTool::PrintSelf(ostream& os, vtkIndent indent)
 	os << indent << "ToolManufacturer: " << this->GetToolManufacturer() << "\n";
 	os << indent << "ToolPartNumber: " << this->GetToolPartNumber() << "\n";
 	os << indent << "ToolSerialNumber: " << this->GetToolSerialNumber() << "\n";
-	os << indent << "Transform: " << this->Transform << "\n";
-	this->Transform->PrintSelf(os,indent.GetNextIndent());
+	/*os << indent << "Transform: " << this->Transform << "\n";
+	this->Transform->PrintSelf(os,indent.GetNextIndent());*/
 	os << indent << "CalibrationMatrix: " << this->CalibrationMatrix << "\n";
 	this->CalibrationMatrix->PrintSelf(os,indent.GetNextIndent());
 	os << indent << "Buffer: " << this->Buffer << "\n";
 	this->Buffer->PrintSelf(os,indent.GetNextIndent());
 }
 
-//----------------------------------------------------------------------------
-// the update copies the latest matrix from the buffer
-void vtkTrackerTool::Update()
-{
-	this->Buffer->Lock();
-
-	this->Flags = this->Buffer->GetFlags(0);
-
-	if ((this->Flags & (TR_MISSING | TR_OUT_OF_VIEW | TR_REQ_TIMEOUT))  == 0) 
-	{
-		this->Buffer->GetMatrix(this->TempMatrix, 0);
-		this->Transform->SetMatrix(this->TempMatrix);
-	} 
-
-	this->TimeStamp = this->Buffer->GetTimeStamp(0);
-
-	this->Buffer->Unlock();
-
-	this->Modified();
-}
+////----------------------------------------------------------------------------
+//// the update copies the latest matrix from the buffer
+//void vtkTrackerTool::Update()
+//{
+//  TrackerBufferItem bufferItem; 
+//  if ( this->Buffer->GetLatestTrackerBufferItem(&bufferItem, false) != PLUS_SUCCESS )
+//  {
+//    LOG_ERROR("Failed to get latest tracker buffer item!"); 
+//    return PLUS_FAIL; 
+//  }
+//
+//  this->Status = bufferItem.GetStatus(); 
+//  this->Transform->SetMatrix( bufferItem.GetMatrix() ); 
+//  this->TimeStamp = bufferItem.GetTimestamp( this-
+//	this->Buffer->Lock();
+//
+//	this->Flags = this->Buffer->GetFlags(0);
+//
+//	if ((this->Flags & (TR_MISSING | TR_OUT_OF_VIEW | TR_REQ_TIMEOUT))  == 0) 
+//	{
+//		this->Buffer->GetMatrix(this->TempMatrix, 0);
+//		this->Transform->SetMatrix(this->TempMatrix);
+//	} 
+//
+//	this->TimeStamp = this->Buffer->GetTimeStamp(0);
+//
+//	this->Buffer->Unlock();
+//
+//	this->Modified();
+//}
 
 //----------------------------------------------------------------------------
 void vtkTrackerTool::InitializeToolTipCalibration()
@@ -225,12 +199,20 @@ void vtkTrackerTool::InitializeToolTipCalibration()
 }
 
 //----------------------------------------------------------------------------
-int vtkTrackerTool::InsertNextCalibrationPoint()
+PlusStatus vtkTrackerTool::InsertNextCalibrationPoint()
 {
-	this->Buffer->Lock();
-	this->Buffer->GetMatrix(this->TempMatrix, 0);
-	this->Buffer->Unlock();
-	return this->CalibrationArray->InsertNextTuple(*this->TempMatrix->Element);
+  TrackerBufferItem bufferItem; 
+	if ( this->Buffer->GetLatestTrackerBufferItem(&bufferItem, false) != ITEM_OK )
+  {
+    LOG_ERROR("Failed to get latest tracker item from buffer!"); 
+    return PLUS_FAIL; 
+  }
+
+  vtkMatrix4x4* tempMatrix = bufferItem.GetMatrix(); 
+
+	this->CalibrationArray->InsertNextTuple(*tempMatrix->Element);
+
+  return PLUS_SUCCESS; 
 }
 
 //----------------------------------------------------------------------------
@@ -315,39 +297,6 @@ double vtkTrackerTool::DoToolTipCalibration()
 }
 
 //----------------------------------------------------------------------------
-void vtkTrackerTool::SetCalibrationMatrix(vtkMatrix4x4 *vmat)
-{
-	int i, j;
-
-	for (i = 0; i < 4; i++) 
-	{
-		for (j = 0; j < 4; j++)
-		{
-			if (this->CalibrationMatrix->GetElement(i,j) != vmat->GetElement(i,j))
-			{
-				break;
-			}
-		}
-		if (j < 4)
-		{ 
-			break;
-		}
-	}
-
-	if (i < 4 || j < 4) // the matrix is different
-	{
-		this->CalibrationMatrix->DeepCopy(vmat);
-		this->Modified();
-	}
-}
-
-//----------------------------------------------------------------------------
-vtkMatrix4x4 *vtkTrackerTool::GetCalibrationMatrix()
-{
-	return this->CalibrationMatrix;
-}
-
-//----------------------------------------------------------------------------
 void vtkTrackerTool::SetLED1(int state)
 {
 	this->Tracker->SetToolLED(this->ToolPort,1,state);
@@ -385,8 +334,7 @@ void vtkTrackerTool::SetTracker(vtkTracker *tracker)
 	if (tracker)
 	{
 		this->Tracker = tracker;
-		this->Buffer->SetWorldCalibrationMatrix(tracker->\
-			GetWorldCalibrationMatrix());
+		this->Buffer->SetWorldCalibrationMatrix(tracker->GetWorldCalibrationMatrix());
 	}
 	else
 	{
@@ -397,55 +345,10 @@ void vtkTrackerTool::SetTracker(vtkTracker *tracker)
 }
 
 //----------------------------------------------------------------------------
-// obsolete, replaced by the TrackerBuffer class, but left in for now
-// just in case I want to go back to doing things this way.
-void vtkTrackerTool::UpdateAndCalibrate(vtkMatrix4x4 *trans, long flags)
-{
-	if ((flags & (TR_MISSING | TR_OUT_OF_VIEW | TR_REQ_TIMEOUT))  == 0) 
-	{
-		// only copy in the new matrix if the transform is valid 
-		this->RawMatrix->DeepCopy(trans);
-	}
-
-	int i,j;
-	vtkMatrix4x4 *matrix = this->Transform->GetMatrix();
-
-	vtkMatrix4x4::Multiply4x4(this->RawMatrix,
-		this->CalibrationMatrix,
-		this->TempMatrix);
-	vtkMatrix4x4::Multiply4x4(this->Tracker->GetWorldCalibrationMatrix(),
-		this->TempMatrix,
-		this->TempMatrix);
-
-	for (i = 0; i < 4; i++) 
-	{
-		for (j = 0; j < 4; j++)
-		{
-			if (matrix->GetElement(i,j) != TempMatrix->GetElement(i,j))
-			{
-				break;
-			}
-		}
-		if (j < 4)
-		{ 
-			break;
-		}
-	}
-
-	if (i < 4 || j < 4 || flags != this->Flags) // the transform has changed
-	{
-		this->Transform->SetMatrix(TempMatrix);
-		this->Flags = flags;
-	}
-}
-
-//----------------------------------------------------------------------------
 void vtkTrackerTool::DeepCopy(vtkTrackerTool *tool)
 {
 	LOG_TRACE("vtkTrackerTool::DeepCopy"); 
-	this->Transform->DeepCopy( tool->GetTransform() );
-	this->Flags = tool->GetFlags();
-	this->TimeStamp = tool->GetTimeStamp();
+	//this->Transform->DeepCopy( tool->GetTransform() );
 	this->CalibrationMatrix->DeepCopy( tool->GetCalibrationMatrix() ); 
 
 	this->SetLED1( tool->GetLED1() );

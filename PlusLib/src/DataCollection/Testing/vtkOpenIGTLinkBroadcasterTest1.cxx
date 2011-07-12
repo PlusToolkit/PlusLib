@@ -163,14 +163,14 @@ int main( int argc, char** argv )
     if ( dataCollector->GetTracker()->IsTracking() )
       {
       double timestamp( 0 ); 
-      long flags( 0 ); 
-      dataCollector->GetTransformWithTimestamp( tFrame2Tracker, timestamp, flags, dataCollector->GetDefaultToolPortNumber() ); 
+      TrackerStatus status = TR_OK; 
+      dataCollector->GetTransformWithTimestamp( tFrame2Tracker, timestamp, status, dataCollector->GetDefaultToolPortNumber() ); 
 
-      if ( flags & ( TR_MISSING | TR_OUT_OF_VIEW ) ) 
+      if ( status == TR_MISSING || status == TR_OUT_OF_VIEW ) 
         {
         ss  << "Tracker out of view..."; 
         }
-      else if ( flags & ( TR_REQ_TIMEOUT ) ) 
+      else if ( status == TR_REQ_TIMEOUT ) 
         {
         ss  << "Tracker request timeout..."; 
         }

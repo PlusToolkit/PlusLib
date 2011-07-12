@@ -186,7 +186,7 @@ vtkOpenIGTLinkBroadcaster
   const int defaultTool = this->DataCollector->GetDefaultToolPortNumber();
   vtkSmartPointer< vtkMatrix4x4 > probeToTrackerMatrix = vtkSmartPointer< vtkMatrix4x4 >::New();
   double timestamp( 0 ); 
-  long flags( 0 ); 
+  TrackerStatus status = TR_OK; 
   
   vtkSmartPointer< vtkImageData > frameImage = vtkSmartPointer< vtkImageData >::New();
   
@@ -199,20 +199,20 @@ vtkOpenIGTLinkBroadcaster
     frameImage->SetScalarTypeToUnsignedChar();
     frameImage->AllocateScalars();
   
-    if ( this->DataCollector->GetTrackedFrame( frameImage, probeToTrackerMatrix, flags, timestamp, defaultTool, true ) != PLUS_SUCCESS )
+    if ( this->DataCollector->GetTrackedFrame( frameImage, probeToTrackerMatrix, status, timestamp, defaultTool, true ) != PLUS_SUCCESS )
     {
 	    LOG_WARNING( "Failed to get tracked frame..." );
 	    this->InternalStatus = STATUS_MISSING_TRACKED_FRAME;
 	    return this->InternalStatus;
     }
    
-    if ( flags & ( TR_MISSING | TR_OUT_OF_VIEW ) ) 
+    if ( status == TR_MISSING || status == TR_OUT_OF_VIEW ) 
       {
       LOG_WARNING( "Tracker out of view..." );
       this->InternalStatus = STATUS_NOT_TRACKING;
       return this->InternalStatus;
       }
-    else if ( flags & ( TR_REQ_TIMEOUT ) ) 
+    else if ( status == TR_REQ_TIMEOUT ) 
       {
       LOG_WARNING( "Tracker request timeout..." );
       this->InternalStatus = STATUS_NOT_TRACKING;
@@ -221,7 +221,7 @@ vtkOpenIGTLinkBroadcaster
     }
   else
     {
-    this->DataCollector->GetTransformWithTimestamp( probeToTrackerMatrix, timestamp, flags, defaultTool, true );
+    this->DataCollector->GetTransformWithTimestamp( probeToTrackerMatrix, timestamp, status, defaultTool, true );
     }
   
     // Prepare the transform matrices.

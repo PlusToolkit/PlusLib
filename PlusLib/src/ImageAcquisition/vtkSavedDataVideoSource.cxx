@@ -120,26 +120,20 @@ PlusStatus vtkSavedDataVideoSource::InternalGrab()
 	// Compute elapsed time since we restarted the timer
 	const double elapsedTime = vtkAccurateTimer::GetSystemTime() - this->GetStartTimestamp(); 
 
-	VideoBufferItem oldestVideoBufferItem; 
-	ItemStatus oldestItemStatus = this->LocalVideoBuffer->GetOldestVideoBufferItem(&oldestVideoBufferItem); 
-	if ( oldestItemStatus != ITEM_OK )
-	{
-		LOG_ERROR("vtkSavedDataVideoSource: Unable to get oldest item from local buffer with the oldest frame UID!");
+	double oldestFrameTimestamp(0);  
+  if ( this->LocalVideoBuffer->GetOldestTimeStamp(oldestFrameTimestamp) != ITEM_OK )
+  {
+    LOG_ERROR("vtkSavedDataVideoSource: Unable to get oldest timestamp from local buffer!");
 		return PLUS_FAIL; 
-	}
+  }
 
-	VideoBufferItem latestVideoBufferItem; 
-	ItemStatus latestItemStatus = this->LocalVideoBuffer->GetLatestVideoBufferItem(&latestVideoBufferItem); 
-
-	if ( latestItemStatus != ITEM_OK )
-	{
-		LOG_ERROR("vtkSavedDataVideoSource: Unable to get newest item from local buffer with the latest frame UID!");
+	double latestFrameTimestamp(0); 
+  if ( this->LocalVideoBuffer->GetLatestTimeStamp(latestFrameTimestamp) != ITEM_OK )
+  {
+    LOG_ERROR("vtkSavedDataVideoSource: Unable to get latest timestamp from local buffer!");
 		return PLUS_FAIL; 
-	}
+  }
 
-	const double oldestFrameTimestamp = oldestVideoBufferItem.GetFilteredTimestamp(this->LocalVideoBuffer->GetLocalTimeOffset()) ; 
-	const double latestFrameTimestamp = latestVideoBufferItem.GetFilteredTimestamp(this->LocalVideoBuffer->GetLocalTimeOffset()); 
-	
 	
 	// Compute the next timestamp 
 	double nextFrameTimestamp = oldestFrameTimestamp + elapsedTime; 
@@ -183,8 +177,8 @@ PlusStatus vtkSavedDataVideoSource::InternalGrab()
 	double unfilteredTimestamp(0), filteredTimestamp(0); 
 	this->CreateTimeStampForFrame(this->FrameNumber, unfilteredTimestamp, filteredTimestamp);
 
-    VideoBufferItem::PixelType* deviceDataPtr = nextVideoBufferItem.GetFrame()->GetBufferPointer(); 
-    const int frameSize[2] = {nextVideoBufferItem.GetFrame()->GetLargestPossibleRegion().GetSize()[0], nextVideoBufferItem.GetFrame()->GetLargestPossibleRegion().GetSize()[1]}; 
+  VideoBufferItem::PixelType* deviceDataPtr = nextVideoBufferItem.GetFrame()->GetBufferPointer(); 
+  const int frameSize[2] = {nextVideoBufferItem.GetFrame()->GetLargestPossibleRegion().GetSize()[0], nextVideoBufferItem.GetFrame()->GetLargestPossibleRegion().GetSize()[1]}; 
 	const int numberOfBitsPerPixel = nextVideoBufferItem.GetFrame()->GetNumberOfComponentsPerPixel() * sizeof(VideoBufferItem::PixelType)*8; 
 
 	PlusStatus status = this->Buffer->AddItem(deviceDataPtr, this->GetUsImageOrientation(), frameSize, numberOfBitsPerPixel, 0, unfilteredTimestamp, filteredTimestamp, this->FrameNumber); 

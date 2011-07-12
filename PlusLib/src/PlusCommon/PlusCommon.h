@@ -9,6 +9,17 @@ enum PlusStatus
   PLUS_SUCCESS=1
 };
 
+enum TrackerStatus {
+  TR_OK,			      // Tool OK
+  TR_MISSING,       // tool or tool port is not available
+  TR_OUT_OF_VIEW,   // cannot obtain transform for tool
+  TR_OUT_OF_VOLUME, // tool is not within the sweet spot of system
+  TR_SWITCH1_IS_ON, // various buttons/switches on tool
+  TR_SWITCH2_IS_ON,
+  TR_SWITCH3_IS_ON, 
+  TR_REQ_TIMEOUT   // Request timeout
+};
+
 /* Define case insensitive string compare for Windows. */
 #if defined( _WIN32 ) && !defined(__CYGWIN__)
 #  if defined(__BORLANDC__)

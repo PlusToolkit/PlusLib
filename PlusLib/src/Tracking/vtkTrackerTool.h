@@ -53,6 +53,7 @@ POSSIBILITY OF SUCH DAMAGES.
 
 #include "vtkObject.h"
 #include "vtkTracker.h"
+#include "vtkTransform.h"
 
 class vtkMatrix4x4;
 class vtkTransform;
@@ -79,7 +80,7 @@ public:
   // transform will automatically update when Update() is called
   // on the tracking system.  You can connect this transform or its
   // matrix to a vtkActor.
-  vtkGetObjectMacro(Transform,vtkTransform);
+  /*vtkGetObjectMacro(Transform,vtkTransform);*/
 
   // Description:
   // Get a running list of all the transforms received for this
@@ -106,8 +107,8 @@ public:
   // custom coordinate system for the tool which is different from the
   // manufacturer's tool coordinate system.
   // Warning: the calibration matrix is copied, not referenced.
-  void SetCalibrationMatrix(vtkMatrix4x4* vmat);
-  vtkMatrix4x4 *GetCalibrationMatrix();
+  vtkSetObjectMacro(CalibrationMatrix, vtkMatrix4x4); 
+  vtkGetObjectMacro(CalibrationMatrix, vtkMatrix4x4); 
 
   // Description:
   // Perform a calibration of the position of the tool tip.  To accomplish
@@ -119,27 +120,9 @@ public:
   // is the uncertainty (one standard deviation) in the position of the
   // origin for any particular measurement.
   void InitializeToolTipCalibration();
-  int InsertNextCalibrationPoint();
+  PlusStatus InsertNextCalibrationPoint();
   double DoToolTipCalibration();
 
-  // Description:
-  // Get additional information about the transform for the latest update:
-  // <p>Missing:     there is no tool plugged into this port.
-  // <p>OutOfView:   tracker is temporarily unable to supply a transform.
-  // <p>OutOfVolume: tool is outside of its calibrated volume.
-  // <p>SwitchNOn:   button N on the tool is being held down.
-  int GetFlags()   { return this->Flags; };
-  int IsMissing()   {return ((this->Flags & TR_MISSING) != 0); };
-  int IsOutOfView() {return ((this->Flags & TR_OUT_OF_VIEW) != 0); };
-  int IsOutOfVolume() {return ((this->Flags & TR_OUT_OF_VOLUME) != 0); };
-  int IsSwitch1On() {return ((this->Flags & TR_SWITCH1_IS_ON) != 0); };
-  int IsSwitch2On() {return ((this->Flags & TR_SWITCH2_IS_ON) != 0); };
-  int IsSwitch3On() {return ((this->Flags & TR_SWITCH3_IS_ON) != 0); };
-
-  // Description:
-  // Get the timestamp (in seconds since 1970) for the last update to
-  // the tool Transform.
-  double GetTimeStamp() { return this->TimeStamp; };
 
   // Description:
   // Set the states of the LEDs on the tool.  If the tracking system
@@ -185,13 +168,15 @@ public:
   vtkSetStringMacro(ToolSerialNumber);
   vtkSetStringMacro(ToolName);
   vtkSetStringMacro(ToolDefinitionFileName); 
-  void Update();
+  //void Update();
   //ETX
 
   // Description
   // Set/Get Tool definition data (model to tool transform, tool registration transform, model file path and filename)
   vtkGetObjectMacro(ModelToToolTransform,vtkTransform);
+  vtkSetObjectMacro(ModelToToolTransform,vtkTransform);
   vtkGetObjectMacro(ToolToToolReferenceTransform,vtkTransform);
+  vtkSetObjectMacro(ToolToToolReferenceTransform,vtkTransform);
   vtkGetStringMacro(ToolModelFileName); 
   vtkSetStringMacro(ToolModelFileName); 
 
@@ -215,13 +200,6 @@ public:
   vtkSetMacro(CalibrationError, double); 
   vtkGetMacro(CalibrationError, double); 
 
-  //BTX
-  // Description:
-  // This is obsolete since threading was added, but I'm
-  // leaving it in just in case I change my mind.
-  void UpdateAndCalibrate(vtkMatrix4x4 *matrix, long flags);
-  //ETX
-
   // Description:
   // Make this tracker into a copy of another tracker.
   // You should lock both of the tracker buffers before doing this.
@@ -239,15 +217,11 @@ protected:
 
   vtkTracker *Tracker;
   int ToolPort;
-  vtkTransform *Transform;
+  //vtkTransform *Transform;
   vtkMatrix4x4 *CalibrationMatrix;
 
   vtkAmoebaMinimizer *Minimizer;
   vtkDoubleArray *CalibrationArray;
-
-  int Flags;
-
-  double TimeStamp;
 
   unsigned long FrameNumber; 
 
@@ -284,8 +258,6 @@ private:
   vtkTrackerTool(const vtkTrackerTool&);
   void operator=(const vtkTrackerTool&);  
 
-  vtkMatrix4x4 *TempMatrix;
-  vtkMatrix4x4 *RawMatrix;
 };
 
 #endif

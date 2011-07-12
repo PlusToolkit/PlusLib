@@ -188,7 +188,7 @@ PlusStatus vtkFakeTracker::InternalUpdate()
 
 		for (int tool = 0; tool < 4; tool++) 
 		{
-			int flags = 0;
+			TrackerStatus trackerStatus = TR_OK;
 
 			int rotation = this->Frame/1000;
 
@@ -219,7 +219,7 @@ PlusStatus vtkFakeTracker::InternalUpdate()
 				break;
 			}
 
-			this->ToolUpdate(tool,this->InternalTransform->GetMatrix(),flags,this->Frame, unfilteredtimestamp, filteredtimestamp);   
+			this->ToolUpdate(tool,this->InternalTransform->GetMatrix(),trackerStatus,this->Frame, unfilteredtimestamp, filteredtimestamp);   
 		}
 		}
 		break;
@@ -235,7 +235,7 @@ PlusStatus vtkFakeTracker::InternalUpdate()
 			this->Timer->GetTimeStampForFrame(this->Frame, unfilteredtimestamp, filteredtimestamp);
 
 			// Set flags
-			int flags = 0;
+			TrackerStatus trackerStatus = TR_OK;
 
 			// Once in every 50 request, the tracker provides 'out of view' flag - FOR TEST PURPOSES
 			/*
@@ -252,7 +252,7 @@ PlusStatus vtkFakeTracker::InternalUpdate()
 			trackerToReferenceToolTransform->Translate(300, 400, 700);
 			trackerToReferenceToolTransform->RotateZ(90);
 
-			this->ToolUpdate(0, trackerToReferenceToolTransform->GetMatrix(), flags, this->Frame, unfilteredtimestamp, filteredtimestamp);   
+			this->ToolUpdate(0, trackerToReferenceToolTransform->GetMatrix(), trackerStatus, this->Frame, unfilteredtimestamp, filteredtimestamp);   
 
 			// create random positions along a sphere (with built-in error)
 			double exactRadius = 210.0;
@@ -283,7 +283,7 @@ PlusStatus vtkFakeTracker::InternalUpdate()
 			referenceToolToStylusTipTransform->Concatenate(trackerToStylusTipTransform);
 
 			random->Delete();
-			this->ToolUpdate(1, referenceToolToStylusTipTransform->GetMatrix(), flags, this->Frame, unfilteredtimestamp, filteredtimestamp);   
+			this->ToolUpdate(1, referenceToolToStylusTipTransform->GetMatrix(), trackerStatus, this->Frame, unfilteredtimestamp, filteredtimestamp);   
 		}
 		break;
 
@@ -294,7 +294,7 @@ PlusStatus vtkFakeTracker::InternalUpdate()
 			this->Timer->GetTimeStampForFrame(this->Frame, unfilteredtimestamp, filteredtimestamp);
 
 			// Set flags - one in every 50 request, the tracker provides 'out of view' flag
-			int flags = 0;
+			TrackerStatus trackerStatus = TR_OK;
 
 			// create stationary position for phantom reference (tool 0)
 			vtkSmartPointer<vtkTransform> phantomReferenceToTrackerTransform = vtkSmartPointer<vtkTransform>::New();
@@ -303,7 +303,7 @@ PlusStatus vtkFakeTracker::InternalUpdate()
 			phantomReferenceToTrackerTransform->Translate(300, 400, 700);
 			phantomReferenceToTrackerTransform->RotateZ(90);
 			
-			this->ToolUpdate(0, phantomReferenceToTrackerTransform->GetMatrix(), flags, this->Frame, unfilteredtimestamp, filteredtimestamp);   
+			this->ToolUpdate(0, phantomReferenceToTrackerTransform->GetMatrix(), trackerStatus, this->Frame, unfilteredtimestamp, filteredtimestamp);   
 
 			// touch landmark points
 			vtkSmartPointer<vtkTransform> phantomToLandmarkTransform = vtkSmartPointer<vtkTransform>::New();
@@ -362,7 +362,7 @@ PlusStatus vtkFakeTracker::InternalUpdate()
 			phantomReferenceToLandmarkTransform->Concatenate(phantomToLandmarkTransform);
 			phantomReferenceToLandmarkTransform->Concatenate(stylustipToStylusTransform);
 
-			this->ToolUpdate(1, phantomReferenceToLandmarkTransform->GetMatrix(), flags, this->Frame, unfilteredtimestamp, filteredtimestamp);   
+			this->ToolUpdate(1, phantomReferenceToLandmarkTransform->GetMatrix(), trackerStatus, this->Frame, unfilteredtimestamp, filteredtimestamp);   
 		}
 		break;
 	default:

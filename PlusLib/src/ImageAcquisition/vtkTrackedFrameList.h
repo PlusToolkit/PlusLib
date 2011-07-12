@@ -78,7 +78,7 @@ public:
 
 	std::string DefaultFrameTransformName; 
 	double Timestamp; 
-	long Status; 
+	TrackerStatus Status; 
 	ImageType::Pointer ImageData;
 
 	std::vector<CustomFrameFieldPair> CustomFrameFieldList; 

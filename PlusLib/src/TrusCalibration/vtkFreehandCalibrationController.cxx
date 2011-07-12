@@ -258,7 +258,7 @@ PlusStatus vtkFreehandCalibrationController::InitializeDeviceVisualization()
 		// Load device models and create actors
 		for (int i=0; i<dataCollector->GetTracker()->GetNumberOfTools(); ++i) {
 			vtkTrackerTool *tool = dataCollector->GetTracker()->GetTool(i);
-			if ((tool == NULL) || (tool->IsMissing())) {
+			if ((tool == NULL) || (!tool->GetEnabled())) {
 				continue;
 			}
 

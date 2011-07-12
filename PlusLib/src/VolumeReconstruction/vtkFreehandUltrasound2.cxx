@@ -790,9 +790,7 @@ void vtkFreehandUltrasound2::StopRealTimeReconstruction()
 			// the vtkTrackerBuffer should be locked before changing or
 			// accessing the data in the buffer if the buffer is being used from
 			// multiple threads
-			this->TrackerTool->GetBuffer()->Lock();
 			this->TrackerBuffer->DeepCopy(this->TrackerTool->GetBuffer());
-			this->TrackerTool->GetBuffer()->Unlock();
 		}
 		// save this off so that we can grab slice parameters later
 		if (this->VideoSource)

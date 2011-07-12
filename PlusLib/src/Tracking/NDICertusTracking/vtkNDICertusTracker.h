@@ -91,7 +91,7 @@ public:
 	// Get an update from the tracking system and push the new transforms
 	// to the tools.  This should only be used within vtkTracker.cxx.
 	PlusStatus InternalUpdate();
-	PlusStatus Update();
+	//PlusStatus Update();
 
 protected:
 	vtkNDICertusTracker();
