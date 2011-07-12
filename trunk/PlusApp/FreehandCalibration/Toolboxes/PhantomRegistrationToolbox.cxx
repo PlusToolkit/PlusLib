@@ -8,6 +8,7 @@
 #include <QTimer>
 
 #include "vtkRenderWindow.h"
+#include "vtkFileFinder.h"
 
 //-----------------------------------------------------------------------------
 
@@ -228,7 +229,7 @@ void PhantomRegistrationToolbox::OpenPhantomDefinitionClicked()
 
 	// File open dialog for selecting phantom definition xml
 	QString filter = QString( tr( "XML files ( *.xml );;" ) );
-	QString fileName = QFileDialog::getOpenFileName(NULL, QString( tr( "Open phantom descriptor XML" ) ), vtkFreehandController::GetInstance()->GetConfigDirectory(), filter);
+	QString fileName = QFileDialog::getOpenFileName(NULL, QString( tr( "Open phantom descriptor XML" ) ), vtkFileFinder::GetInstance()->GetConfigurationDirectory(), filter);
 	if (fileName.isNull()) {
 		return;
 	}
@@ -254,7 +255,7 @@ void PhantomRegistrationToolbox::OpenStylusCalibrationClicked()
 
 	// File open dialog for selecting phantom definition xml
 	QString filter = QString( tr( "XML files ( *.xml );;" ) );
-	QString fileName = QFileDialog::getOpenFileName(NULL, QString( tr( "Open stylus calibration XML" ) ), vtkFreehandController::GetInstance()->GetConfigDirectory(), filter);
+	QString fileName = QFileDialog::getOpenFileName(NULL, QString( tr( "Open stylus calibration XML" ) ), vtkFileFinder::GetInstance()->GetConfigurationDirectory(), filter);
 	if (fileName.isNull()) {
 		return;
 	}
@@ -323,7 +324,7 @@ void PhantomRegistrationToolbox::SaveClicked()
 	LOG_TRACE("PhantomRegistrationToolbox: Save button clicked"); 
 
 	QString filter = QString( tr( "XML files ( *.xml );;" ) );
-	QString fileName = QFileDialog::getSaveFileName(NULL, tr("Save phantom registration result"), vtkFreehandController::GetInstance()->GetConfigDirectory(), filter);
+	QString fileName = QFileDialog::getSaveFileName(NULL, tr("Save phantom registration result"), vtkFileFinder::GetInstance()->GetConfigurationDirectory(), filter);
 
 	if (! fileName.isNull() ) {
 		PhantomRegistrationController::GetInstance()->SavePhantomRegistrationToFile(fileName.toStdString());

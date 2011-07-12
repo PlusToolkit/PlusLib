@@ -105,6 +105,9 @@ void DeviceSetSelectorWidget::SetConfigurationDirectory(std::string aDirectory, 
 
 			ui.lineEdit_ConfigurationDirectory->setText(m_ConfigurationDirectory);
 			ui.lineEdit_ConfigurationDirectory->setToolTip(m_ConfigurationDirectory);
+
+			// Notify the application about the directory change
+			emit ConfigurationDirectoryChanged(m_ConfigurationDirectory.toStdString());
 		} else {
 			ui.lineEdit_ConfigurationDirectory->setText(tr("Invalid configuration directory"));
 			ui.lineEdit_ConfigurationDirectory->setToolTip("No valid configuration files in directory, please select another");

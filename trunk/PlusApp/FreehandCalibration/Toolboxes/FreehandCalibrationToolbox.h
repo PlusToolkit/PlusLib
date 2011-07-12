@@ -59,11 +59,6 @@ signals:
 
 protected slots:
 	/*!
-	* \brief Slot handling open phantom definition button click
-	*/
-	void OpenPhantomDefinitionClicked();
-
-	/*!
 	* \brief Slot handling open phantom registration button click
 	*/
 	void OpenPhantomRegistrationClicked();
@@ -105,9 +100,8 @@ protected slots:
 
 	/*!
 	* \brief Slot handling show devices combobox state change
-	* \param aState New state of the combobox
 	*/
-	void ShowDevicesToggled(int aState);
+	void ShowDevicesToggled();
 
 protected:
 	Ui::FreehandCalibrationToolbox ui;

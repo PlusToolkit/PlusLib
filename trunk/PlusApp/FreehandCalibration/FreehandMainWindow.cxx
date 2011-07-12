@@ -13,6 +13,7 @@
 #include <QMessageBox>
 
 #include "vtkRenderWindow.h"
+#include "vtkFileFinder.h"
 
 //-----------------------------------------------------------------------------
 
@@ -72,6 +73,7 @@ FreehandMainWindow::~FreehandMainWindow()
 		vtkFreehandController::GetInstance()->Delete();
 	}
 
+	PlusLogger::Instance()->SetDisplayMessageCallbackFunction(NULL);
 	if (StatusIcon::GetInstance() != NULL) {
 		delete StatusIcon::GetInstance();
 	}
@@ -406,7 +408,7 @@ void FreehandMainWindow::LocateDirectories()
 		configDir.makeAbsolute();
 	}
 
-	vtkFreehandController::GetInstance()->SetConfigDirectory(configDir.path());
+	vtkFileFinder::GetInstance()->SetConfigurationDirectory(configDir.path().toStdString().c_str());
 
 	// Make output directory
 	std::string outputPath = vtksys::SystemTools::CollapseFullPath("./Output", vtkFreehandController::GetInstance()->GetProgramPath()); 

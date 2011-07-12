@@ -1,6 +1,7 @@
 #include "StylusCalibrationToolbox.h"
 
 #include "FreehandMainWindow.h"
+#include "vtkFileFinder.h"
 #include "vtkFreehandController.h"
 
 #include <QFileDialog>
@@ -201,7 +202,7 @@ void StylusCalibrationToolbox::SaveResultClicked()
 	LOG_TRACE("StylusCalibrationToolbox: Save button clicked"); 
 
 	QString filter = QString( tr( "XML files ( *.xml );;" ) );
-	QString fileName = QFileDialog::getSaveFileName(NULL, tr("Save stylus calibration result"), vtkFreehandController::GetInstance()->GetConfigDirectory(), filter);
+	QString fileName = QFileDialog::getSaveFileName(NULL, tr("Save stylus calibration result"), vtkFileFinder::GetInstance()->GetConfigurationDirectory(), filter);
 
 	if (! fileName.isNull() ) {
 		StylusCalibrationController::GetInstance()->SaveStylusCalibrationToFile(fileName.toStdString());

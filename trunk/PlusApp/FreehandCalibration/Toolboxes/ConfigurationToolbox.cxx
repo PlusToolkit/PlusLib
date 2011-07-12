@@ -1,6 +1,7 @@
 #include "ConfigurationToolbox.h"
 
 #include "vtkFreehandController.h"
+#include "vtkFileFinder.h"
 #include "FreehandMainWindow.h"
 
 #include <QDialog>
@@ -21,7 +22,7 @@ ConfigurationToolbox::ConfigurationToolbox(QWidget* aParent, Qt::WFlags aFlags)
 
 	// Create and setup device set selector widget
 	m_DeviceSetSelectorWidget = new DeviceSetSelectorWidget(this);
-	m_DeviceSetSelectorWidget->SetConfigurationDirectory(std::string(vtkFreehandController::GetInstance()->GetConfigDirectory()));
+	m_DeviceSetSelectorWidget->SetConfigurationDirectory(vtkFileFinder::GetInstance()->GetConfigurationDirectory());
 
 	connect( m_DeviceSetSelectorWidget, SIGNAL( ConfigurationDirectoryChanged(std::string) ), this, SLOT( SetConfigurationDirectory(std::string) ) );
 	connect( m_DeviceSetSelectorWidget, SIGNAL( ConnectToDevicesByConfigFileInvoked(std::string) ), this, SLOT( ConnectToDevicesByConfigFile(std::string) ) );
@@ -67,7 +68,7 @@ void ConfigurationToolbox::Clear()
 
 void ConfigurationToolbox::SetConfigurationDirectory(std::string aDirectory)
 {
-	vtkFreehandController::GetInstance()->SetConfigDirectory(aDirectory.data());
+	vtkFileFinder::GetInstance()->SetConfigurationDirectory(aDirectory.c_str());
 }
 
 //-----------------------------------------------------------------------------

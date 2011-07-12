@@ -3,6 +3,7 @@
 #include "FreehandMainWindow.h"
 #include "vtkFreehandController.h"
 #include "PhantomRegistrationController.h"
+#include "vtkFileFinder.h"
 
 #include <QFileDialog>
 #include <QTimer>
@@ -30,7 +31,6 @@ FreehandCalibrationToolbox::FreehandCalibrationToolbox(QWidget* aParent, Qt::WFl
 	ui.label_TemporalCalibration->setFont(QFont("SansSerif", 9, QFont::Bold));
 
 	// Connect events
-	connect( ui.pushButton_OpenPhantomDefinition, SIGNAL( pressed() ), this, SLOT( OpenPhantomDefinitionClicked() ) );
 	connect( ui.pushButton_OpenPhantomRegistration, SIGNAL( pressed() ), this, SLOT( OpenPhantomRegistrationClicked() ) );
 	connect( ui.pushButton_OpenCalibrationConfiguration, SIGNAL( pressed() ), this, SLOT( OpenCalibrationConfigurationClicked() ) );
 	connect( ui.pushButton_StartTemporal, SIGNAL( pressed() ), this, SLOT( StartTemporalClicked() ) );
@@ -39,7 +39,7 @@ FreehandCalibrationToolbox::FreehandCalibrationToolbox(QWidget* aParent, Qt::WFl
 	connect( ui.pushButton_StartSpatial, SIGNAL( pressed() ), this, SLOT( StartSpatialClicked() ) );
 	connect( ui.pushButton_ResetSpatial, SIGNAL( pressed() ), this, SLOT( ResetSpatialClicked() ) );
 	connect( ui.pushButton_Save, SIGNAL( pressed() ), this, SLOT( SaveClicked() ) );
-	connect( ui.checkBox_ShowDevices, SIGNAL( stateChanged(int) ), this, SLOT( ShowDevicesToggled(int) ) );
+	connect( ui.checkBox_ShowDevices, SIGNAL( pressed() ), this, SLOT( ShowDevicesToggled() ) ); // Note: stateChanged(int) did not work because the processEvents
 
 }
 
@@ -66,10 +66,6 @@ void FreehandCalibrationToolbox::Initialize()
 	PhantomRegistrationController* phantomRegistrationController = PhantomRegistrationController::GetInstance();
 	if (phantomRegistrationController->GetPhantomToPhantomReferenceTransform() != NULL) {
 		ui.lineEdit_PhantomRegistration->setText(tr("Using session registration data"));
-
-		if (! phantomRegistrationController->GetPhantomDefinitionFileName().empty()) {
-			ui.label_PhantomDefinition->setText(tr("Using session data"));
-		}
 	}
 }
 
@@ -90,6 +86,7 @@ void FreehandCalibrationToolbox::RefreshToolboxContent()
 		ui.label_InstructionsSpatial->setText(tr(""));
 		ui.frame_SpatialCalibration->setEnabled(false);
 
+		ui.checkBox_ShowDevices->setEnabled(false);
 		ui.pushButton_Save->setEnabled(false);
 	} else
 	// If initialized
@@ -104,6 +101,7 @@ void FreehandCalibrationToolbox::RefreshToolboxContent()
 			ui.label_InstructionsSpatial->setText(tr(""));
 			ui.frame_SpatialCalibration->setEnabled(false);
 
+			ui.checkBox_ShowDevices->setEnabled(false);
 			ui.pushButton_Save->setEnabled(false);
 
 			if (!(ui.pushButton_StartTemporal->hasFocus() || vtkFreehandController::GetInstance()->GetCanvas()->hasFocus())) {
@@ -119,6 +117,7 @@ void FreehandCalibrationToolbox::RefreshToolboxContent()
 			ui.frame_SpatialCalibration->setEnabled(true);
 			ui.pushButton_ResetSpatial->setEnabled(false);
 
+			ui.checkBox_ShowDevices->setEnabled(false);
 			ui.pushButton_Save->setEnabled(false);
 
 			if (!(ui.pushButton_StartSpatial->hasFocus() || vtkFreehandController::GetInstance()->GetCanvas()->hasFocus())) {
@@ -141,6 +140,7 @@ void FreehandCalibrationToolbox::RefreshToolboxContent()
 			ui.label_InstructionsSpatial->setText(tr(""));
 			ui.frame_SpatialCalibration->setEnabled(false);
 
+			ui.checkBox_ShowDevices->setEnabled(false);
 			ui.pushButton_Save->setEnabled(false);
 		} else { // If temporal calibration is finished
 			ui.label_InstructionsTemporal->setText(tr("Temporal calibration is ready to save"));
@@ -152,6 +152,7 @@ void FreehandCalibrationToolbox::RefreshToolboxContent()
 			ui.pushButton_StartSpatial->setEnabled(false);
 			ui.pushButton_ResetSpatial->setEnabled(true);
 
+			ui.checkBox_ShowDevices->setEnabled(false);
 			ui.pushButton_Save->setEnabled(false);
 		}
 	} else
@@ -166,6 +167,7 @@ void FreehandCalibrationToolbox::RefreshToolboxContent()
 		ui.pushButton_StartSpatial->setEnabled(false);
 		ui.pushButton_ResetSpatial->setEnabled(true);
 
+		ui.checkBox_ShowDevices->setEnabled(true);
 		ui.pushButton_Save->setEnabled(true);
 
 		QApplication::restoreOverrideCursor();
@@ -182,6 +184,7 @@ void FreehandCalibrationToolbox::RefreshToolboxContent()
 		ui.pushButton_StartSpatial->setEnabled(false);
 		ui.pushButton_ResetSpatial->setEnabled(false);
 
+		ui.checkBox_ShowDevices->setEnabled(false);
 		ui.pushButton_Save->setEnabled(false);
 
 		QApplication::restoreOverrideCursor();
@@ -207,33 +210,13 @@ void FreehandCalibrationToolbox::Clear()
 
 //-----------------------------------------------------------------------------
 
-void FreehandCalibrationToolbox::OpenPhantomDefinitionClicked()
-{
-	LOG_TRACE("FreehandCalibrationToolbox: Open phantom definition button clicked"); 
-
-	// File open dialog for selecting phantom definition xml
-	QString filter = QString( tr( "XML files ( *.xml );;" ) );
-	QString fileName = QFileDialog::getOpenFileName(NULL, QString( tr( "Open phantom descriptor XML" ) ), vtkFreehandController::GetInstance()->GetConfigDirectory(), filter);
-	if (fileName.isNull()) {
-		return;
-	}
-
-	// Load phantom definition xml
-	vtkFreehandCalibrationController::GetInstance()->SetPhantomDefinitionFileName(fileName.toStdString().c_str());
-
-	ui.lineEdit_PhantomDefinition->setText(fileName);
-	ui.lineEdit_PhantomDefinition->setToolTip(fileName);
-}
-
-//-----------------------------------------------------------------------------
-
 void FreehandCalibrationToolbox::OpenPhantomRegistrationClicked()
 {
 	LOG_TRACE("FreehandCalibrationToolbox: Open phantom registration button clicked"); 
 
 	// File open dialog for selecting phantom registration xml
 	QString filter = QString( tr( "XML files ( *.xml );;" ) );
-	QString fileName = QFileDialog::getOpenFileName(NULL, QString( tr( "Open phantom registration XML" ) ), vtkFreehandController::GetInstance()->GetConfigDirectory(), filter);
+	QString fileName = QFileDialog::getOpenFileName(NULL, QString( tr( "Open phantom registration XML" ) ), vtkFileFinder::GetInstance()->GetConfigurationDirectory(), filter);
 	if (fileName.isNull()) {
 		return;
 	}
@@ -253,13 +236,16 @@ void FreehandCalibrationToolbox::OpenCalibrationConfigurationClicked()
 
 	// File open dialog for selecting calibration configuration xml
 	QString filter = QString( tr( "XML files ( *.xml );;" ) );
-	QString fileName = QFileDialog::getOpenFileName(NULL, QString( tr( "Open calibration configuration XML" ) ), vtkFreehandController::GetInstance()->GetConfigDirectory(), filter);
+	QString fileName = QFileDialog::getOpenFileName(NULL, QString( tr( "Open calibration configuration XML" ) ), vtkFileFinder::GetInstance()->GetConfigurationDirectory(), filter);
 	if (fileName.isNull()) {
 		return;
 	}
 
 	// Load calibration configuration xml
-	vtkFreehandCalibrationController::GetInstance()->ReadConfiguration(fileName.toStdString().c_str()); //TODO error handling
+	if (vtkFreehandCalibrationController::GetInstance()->ReadConfiguration(fileName.toStdString().c_str()) != PLUS_SUCCESS) {
+		LOG_ERROR("Calibration configuration file " << fileName.toStdString().c_str() << " cannot be loaded!");
+		return;
+	}
 
 	// Re-calculate camera parameters
 	vtkFreehandCalibrationController::GetInstance()->CalculateImageCameraParameters();
@@ -293,17 +279,13 @@ void FreehandCalibrationToolbox::SkipTemporalClicked()
 	vtkFreehandCalibrationController::GetInstance()->TemporalCalibrationDoneOn();
 
 	////////////TEMPORARY CODE///////////// TODO
-	QString configPath(vtkFreehandController::GetInstance()->GetConfigDirectory());
-	QString fileName(configPath + "/PhantomRegistration_Thomas.xml");
+	QString configPath(vtkFileFinder::GetInstance()->GetConfigurationDirectory());
+	QString fileName(configPath + "/PhantomRegistration_fCal_20110529.xml");
 	if (PhantomRegistrationController::GetInstance()->LoadPhantomRegistrationFromFile(fileName.toStdString())) {
 		ui.lineEdit_PhantomRegistration->setText(fileName);
 		ui.lineEdit_PhantomRegistration->setToolTip(fileName);
 	}
-	fileName = QString(configPath + "/PhantomDefinition_ThomasFreehand_1.0.xml");
-	vtkFreehandCalibrationController::GetInstance()->SetPhantomDefinitionFileName(fileName.toStdString().c_str());
-	ui.lineEdit_PhantomDefinition->setText(fileName);
-	ui.lineEdit_PhantomDefinition->setToolTip(fileName);
-	fileName = QString(configPath + "/USCalibrationConfig_Thomas_SonixTouch.xml");
+	fileName = QString(configPath + "/USCalibrationConfig_fCal_SonixRP.xml");
 	vtkFreehandCalibrationController::GetInstance()->ReadConfiguration(fileName.toStdString().c_str()); //TODO error handling
 	vtkFreehandCalibrationController::GetInstance()->CalculateImageCameraParameters();
 	ui.lineEdit_CalibrationConfiguration->setText(fileName);
@@ -353,9 +335,8 @@ void FreehandCalibrationToolbox::SaveClicked()
 
 //-----------------------------------------------------------------------------
 
-void FreehandCalibrationToolbox::ShowDevicesToggled(int aState)
+void FreehandCalibrationToolbox::ShowDevicesToggled()
 {
-	if (aState == Qt::Unchecked) {
-	} else if (aState == Qt::Checked) {
-	}
+	ui.checkBox_ShowDevices->setChecked(! ui.checkBox_ShowDevices->isChecked());
+	vtkFreehandCalibrationController::GetInstance()->ToggleDeviceVisualization(ui.checkBox_ShowDevices->isChecked());
 }

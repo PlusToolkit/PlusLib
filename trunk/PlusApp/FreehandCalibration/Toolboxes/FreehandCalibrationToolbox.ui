@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>188</width>
-    <height>603</height>
+    <height>560</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -154,92 +154,14 @@
         </property>
        </widget>
       </item>
-      <item row="1" column="0" colspan="2">
-       <spacer name="verticalSpacer_8">
-        <property name="orientation">
-         <enum>Qt::Vertical</enum>
-        </property>
-        <property name="sizeType">
-         <enum>QSizePolicy::Fixed</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>158</width>
-          <height>8</height>
-         </size>
-        </property>
-       </spacer>
-      </item>
       <item row="2" column="0" colspan="2">
-       <widget class="QLabel" name="label_PhantomDefinition">
-        <property name="text">
-         <string>Phantom definition XML:</string>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="0" colspan="2">
-       <layout class="QHBoxLayout" name="horizontalLayout">
-        <property name="spacing">
-         <number>2</number>
-        </property>
-        <item>
-         <widget class="QLineEdit" name="lineEdit_PhantomDefinition">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="readOnly">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="pushButton_OpenPhantomDefinition">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="minimumSize">
-           <size>
-            <width>23</width>
-            <height>23</height>
-           </size>
-          </property>
-          <property name="maximumSize">
-           <size>
-            <width>23</width>
-            <height>23</height>
-           </size>
-          </property>
-          <property name="text">
-           <string/>
-          </property>
-          <property name="icon">
-           <iconset resource="../FreehandCalibration.qrc">
-            <normaloff>:/icons/CommonWidgets/Resources/icon_OpenFile.png</normaloff>:/icons/CommonWidgets/Resources/icon_OpenFile.png</iconset>
-          </property>
-          <property name="iconSize">
-           <size>
-            <width>16</width>
-            <height>16</height>
-           </size>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </item>
-      <item row="4" column="0" colspan="2">
        <widget class="QLabel" name="label_PhantomRegistration">
         <property name="text">
          <string>Phantom registration XML:</string>
         </property>
        </widget>
       </item>
-      <item row="5" column="0" colspan="2">
+      <item row="3" column="0" colspan="2">
        <layout class="QHBoxLayout" name="horizontalLayout_3">
         <property name="spacing">
          <number>2</number>
@@ -294,14 +216,14 @@
         </item>
        </layout>
       </item>
-      <item row="6" column="0" colspan="2">
+      <item row="4" column="0" colspan="2">
        <widget class="QLabel" name="label_CalibrationConfiguration">
         <property name="text">
          <string>Calibration configuration XML:</string>
         </property>
        </widget>
       </item>
-      <item row="7" column="0" colspan="2">
+      <item row="5" column="0" colspan="2">
        <layout class="QHBoxLayout" name="horizontalLayout_6">
         <property name="spacing">
          <number>2</number>
@@ -356,7 +278,7 @@
         </item>
        </layout>
       </item>
-      <item row="10" column="0">
+      <item row="8" column="0">
        <widget class="QLabel" name="label_InstructionsSpatial">
         <property name="text">
          <string>Instructions</string>
@@ -366,7 +288,7 @@
         </property>
        </widget>
       </item>
-      <item row="11" column="0" colspan="2">
+      <item row="9" column="0" colspan="2">
        <spacer name="verticalSpacer">
         <property name="orientation">
          <enum>Qt::Vertical</enum>
@@ -382,7 +304,7 @@
         </property>
        </spacer>
       </item>
-      <item row="12" column="0" colspan="2">
+      <item row="10" column="0" colspan="2">
        <layout class="QHBoxLayout" name="horizontalLayout_2">
         <property name="spacing">
          <number>4</number>
@@ -403,7 +325,7 @@
         </item>
        </layout>
       </item>
-      <item row="8" column="0" colspan="2">
+      <item row="6" column="0" colspan="2">
        <spacer name="verticalSpacer_7">
         <property name="orientation">
          <enum>Qt::Vertical</enum>
@@ -419,7 +341,7 @@
         </property>
        </spacer>
       </item>
-      <item row="13" column="0" colspan="2">
+      <item row="11" column="0" colspan="2">
        <layout class="QHBoxLayout" name="horizontalLayout_4">
         <property name="spacing">
          <number>4</number>
@@ -435,6 +357,22 @@
          </widget>
         </item>
        </layout>
+      </item>
+      <item row="1" column="0" colspan="2">
+       <spacer name="verticalSpacer_8">
+        <property name="orientation">
+         <enum>Qt::Vertical</enum>
+        </property>
+        <property name="sizeType">
+         <enum>QSizePolicy::Fixed</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>158</width>
+          <height>8</height>
+         </size>
+        </property>
+       </spacer>
       </item>
      </layout>
     </widget>
