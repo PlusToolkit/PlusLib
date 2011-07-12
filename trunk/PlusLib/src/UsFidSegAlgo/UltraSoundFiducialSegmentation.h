@@ -3,9 +3,11 @@
 
 #include "PlusConfigure.h"
 #include <string.h>
-#include <iostream>
 #include <vector>
 #include <math.h>
+#include <strstream>
+#include <iostream>
+#include <iomanip>
 
 #include <climits>
 // Thomas Kuiran Chen - ANSI-C++ headers
@@ -13,9 +15,6 @@
 //#include <math.h>
 #include <assert.h>
 
-#include <strstream>
-#include <iostream>
-#include <iomanip>
 #include "itkRGBPixel.h"
 #include "itkPointSet.h"
 #include "itkImage.h"
@@ -48,7 +47,7 @@ typedef unsigned char PixelType;
 
 //-----------------------------------------------------------------------------
 
-struct Item
+struct Item//TODO find about it and hopefully change it to a class with proper name
 {
 	Item(){ roff = 0; coff = 0; }; 
 	Item( int r, int c) { roff = r; coff = c; }; 
@@ -59,42 +58,121 @@ struct Item
 
 //-----------------------------------------------------------------------------
 
-struct Pos
+class Dot
 {
-	int r;
-	int c;
+	public:
+		static bool lessThan( Dot &dot1, Dot &dot2 );//compare the intensity of 2 dots
+
+		void	SetX(float value) { m_X = value; };
+		float	GetX() { return m_X; };
+		void	SetY(float value) { m_Y = value; };
+		float	GetY() { return m_Y; };
+		void	SetDotIntensity(float value) { m_DotIntensity = value; };
+		float	GetDotIntensity() { return m_DotIntensity; };
+
+	protected:
+		float	m_X;
+		float	m_Y;
+		float	m_DotIntensity;
 };
 
 //-----------------------------------------------------------------------------
 
-struct Dot
+class Position
 {
-	float r;
-	float c;
-	float intensity;
+	public:
+		//static bool lessThan( Dot *b1, Dot *b2 );//compare two dots (coordinate wise)
+		static bool lessThan( std::vector<Dot>::iterator b1, std::vector<Dot>::iterator b2 );
+		
+		void	SetX(int value) { m_X = value; };
+		int		GetX() { return m_X; };
+		void	SetY(int value) { m_Y = value; };
+		int		GetY() { return m_Y; };
+
+	protected:
+		int		m_X;
+		int		m_Y;
 };
 
 //-----------------------------------------------------------------------------
 
-struct Line
+class Line
 {
-	float t; // slope of the line
-	float p; // position of the line (distance of the line from the origin)
-	int b[3]; // indices of points that make up the line
-	float intensity;
-	float line_error;
-	float length;
+	public:
+		static bool lessThan( Line &line1, Line &line2 );//compare the intensity of 2 lines
+		static bool compareLines( const Line &line1, const Line &line2 );//compare two lines
+		
+		void				SetLinePoint(int aIndex, int aValue) { m_LinePoints[aIndex] = aValue; };
+		std::vector<int>*	GetLinePoints() { return &m_LinePoints; };
+		int					GetLinePoint(int aIndex) const{ return m_LinePoints[aIndex]; };
+		void				SetLineSlope(float value) { m_LineSlope = value; };
+		float				GetLineSlope() { return m_LineSlope; };
+		void				SetLinePosition(float value) { m_LinePosition = value; };
+		float				GetLinePosition() { return m_LinePosition; };
+		void				SetLineIntensity(float value) { m_LineIntensity = value; };
+		float				GetLineIntensity() { return m_LineIntensity; };
+		void				SetLineError(float value) { m_LineError = value; };
+		float				GetLineError() { return m_LineError; };
+		void				SetLineLength(float value) { m_LineLength = value; };
+		float				GetLineLength() { return m_LineLength; };
+
+	protected:
+		std::vector<int>	m_LinePoints; // indices of points that make up the line
+		float				m_LineSlope; // slope of the line
+		float				m_LinePosition; // position of the line (distance of the line from the origin)
+		float				m_LineIntensity;
+		float				m_LineError;
+		float				m_LineLength;
 };
 
 //-----------------------------------------------------------------------------
 
-struct LinePair
+class LinePair
 {
-	int l1, l2;
-	float intensity;
-	float line_error;
-	float angle_diff;
-	float angle_conf;
+	public:
+		static bool lessThan( LinePair &pair1, LinePair &pair2 );//compare the intensity of two pairs of lines
+
+		void	SetLine1(int value) { m_Line1 = value; };
+		int		GetLine1() { return m_Line1; };
+		void	SetLine2(int value) { m_Line2 = value; };
+		int		GetLine2() { return m_Line2; };
+		void	SetLinePairIntensity(float value) { m_LinePairIntensity = value; };
+		float	GetLinePairIntensity() { return m_LinePairIntensity; };
+		void	SetLinePairError(float value) { m_LinePairError = value; };
+		float	GetLinePairError() { return m_LinePairError; };
+		void	SetAngleDifference(float value) { m_AngleDifference = value; };
+		float	GetAngleDifference() { return m_AngleDifference; };
+		void	SetAngleConf(float value) { m_AngleConf = value; };
+		float	GetAngleConf() { return m_AngleConf; };
+
+	protected:
+		int		m_Line1;
+		int		m_Line2;
+		float	m_LinePairIntensity;
+		float	m_LinePairError;
+		float	m_AngleDifference;
+		float	m_AngleConf;
+};
+
+
+//-----------------------------------------------------------------------------
+
+class SortedAngle
+{
+	public:
+		static bool lessThan( SortedAngle &pt1, SortedAngle &pt2 );//compare two vector angles
+
+		void				SetAngle(double value) { m_Angle = value; };
+		double				GetAngle() { return m_Angle; };
+		void				SetPointIndex(int value) { m_PointIndex = value; };
+		int					GetPointIndex() { return m_PointIndex; };
+		void				SetCoordinate(std::vector<double> value) { m_Coordinate = value; };
+		std::vector<double>	GetCoordinate() { return m_Coordinate; };
+
+	protected:
+		double				m_Angle;
+		int					m_PointIndex;
+		std::vector<double>	m_Coordinate;
 };
 
 //-----------------------------------------------------------------------------
@@ -136,113 +214,65 @@ class SegmentationParameters
 			TAB2_6_POINT // Tissue Ablation Box version 2, with 2 horizontal 3 point lines 
 		};
 
-		SegmentationParameters::SegmentationParameters() :
-			m_ThresholdImageTop( 10.0 ),
-			m_ThresholdImageBottom( 10.0 ),
+		SegmentationParameters::SegmentationParameters();
 
-			m_MaxLineLenMm ( -1.0 ), 
-			m_MinLineLenMm ( -1.0 ),
-			m_MaxLinePairDistMm ( -1.0 ),
-			m_MinLinePairDistMm ( -1.0 ),
+		void					UpdateParameters();
+		
+		void					SetUseOriginalImageIntensityForDotIntensityScore(bool value) { m_UseOriginalImageIntensityForDotIntensityScore = value; };
+		bool					GetUseOriginalImageIntensityForDotIntensityScore() { return m_UseOriginalImageIntensityForDotIntensityScore; };
 
-			m_MaxLineLengthErrorPercent( 5.0 ),
-			m_MaxLinePairDistanceErrorPercent( 10.0 ),
-			m_MaxLineErrorMm ( 2.0 ),
+		void					SetThresholdImageTop(double value) { m_ThresholdImageTop = value; };
+		double					GetThresholdImageTop() { return m_ThresholdImageTop; };
+		void					SetThresholdImageBottom(double value) { m_ThresholdImageBottom = value; };
+		double					GetThresholdImageBottom() { return m_ThresholdImageBottom; };
 
-			m_FindLines3PtDist ( 5.3f ),
+		void					SetMaxLineLengthErrorPercent(double value) { m_MaxLineLengthErrorPercent = value; };
+		double					GetMaxLineLengthErrorPercent() { return m_MaxLineLengthErrorPercent; };
+		void					SetMaxLinePairDistanceErrorPercent(double value) { m_MaxLinePairDistanceErrorPercent = value; };
+		double					GetMaxLinePairDistanceErrorPercent() { return m_MaxLinePairDistanceErrorPercent; };
 
-			m_MaxAngleDiff ( 11.0 * M_PI / 180.0 ),
-			m_MinTheta( 20.0 * M_PI / 180.0 ),
-			m_MaxTheta( 160.0 * M_PI / 180.0 ),
+		void					SetMinLineLenMm(double value) { m_MinLineLenMm = value; };
+		double					GetMinLineLenMm() { return m_MinLineLenMm; };
+		void					SetMaxLineLenMm(double value) { m_MaxLineLenMm = value; };
+		double					GetMaxLineLenMm() { return m_MaxLineLenMm; };
 
-			m_MaxUangleDiff( 10.0 * M_PI / 180.0 ),
-			m_MaxUsideLineDiff (30), 
-			m_MinUsideLineLength (280),//320
-			m_MaxUsideLineLength (300),//350
+		void					SetMinLinePairDistMm(double value) { m_MinLinePairDistMm = value; };
+		double					GetMinLinePairDistMm() { return m_MinLinePairDistMm; };
+		void					SetMaxLinePairDistMm(double value) { m_MaxLinePairDistMm = value; };
+		double					GetMaxLinePairDistMm() { return m_MaxLinePairDistMm; };
 
-			m_MorphologicalOpeningBarSizeMm(2.0), 
-			m_MorphologicalOpeningCircleRadiusMm(0.55), 
-			m_ScalingEstimation(0.2), 
+		void					SetMaxLineErrorMm(double value) { m_MaxLineErrorMm = value; };
+		double					GetMaxLineErrorMm() { return m_MaxLineErrorMm; };
 
-			m_FiducialGeometry(CALIBRATION_PHANTOM_6_POINT),
+		void					SetFindLines3PtDist(double value) { m_FindLines3PtDist = value; };
+		double					GetFindLines3PtDist() { return m_FindLines3PtDist; };
+		void					SetMaxAngleDiff(double value) { m_MaxAngleDiff = value; };
+		double					GetMaxAngleDiff() { return m_MaxAngleDiff; };
+		void					SetMinTheta(double value) { m_MinTheta = value; };
+		double					GetMinTheta() { return m_MinTheta; };
+		void					SetMaxTheta(double value) { m_MaxTheta = value; };
+		double					GetMaxTheta() { return m_MaxTheta; };
 
-			m_UseOriginalImageIntensityForDotIntensityScore (false) 
-		{
-			this->UpdateParameters(); 
-		}
+		void					SetMaxUangleDiff(double value) { m_MaxUangleDiff = value; };
+		double					GetMaxUangleDiff() { return m_MaxUangleDiff; };
+		void					SetMaxUsideLineDiff(double value) { m_MaxUsideLineDiff = value; };
+		double					GetMaxUsideLineDiff() { return m_MaxUsideLineDiff; };
+		void					SetMinUsideLineLength(double value) { m_MinUsideLineLength = value; };
+		double					GetMinUsideLineLength() { return m_MinUsideLineLength; };
+		void					SetMaxUsideLineLength(double value) { m_MaxUsideLineLength = value; };
+		double					GetMaxUsideLineLength() { return m_MaxUsideLineLength; };
 
-		void UpdateParameters()
-		{
-			// Create morphological circle
-			m_MorphologicalCircle.clear(); 
-			int radiuspx = floor((this->m_MorphologicalOpeningCircleRadiusMm / this->m_ScalingEstimation) + 0.5); 
-			for ( int x = -radiuspx; x <= radiuspx; x++ )
-			{
-				for ( int y = -radiuspx; y <= radiuspx; y++ )
-				{
-					if ( sqrt( pow(x,2.0) + pow(y,2.0) ) <= radiuspx )
-					{
-						this->m_MorphologicalCircle.push_back( Item(x, y) ); 
-					}
-				}
-			}
-		}
+		void					SetMorphologicalOpeningBarSizeMm(double value) { m_MorphologicalOpeningBarSizeMm = value; };
+		double					GetMorphologicalOpeningBarSizeMm() { return m_MorphologicalOpeningBarSizeMm; };
+		void					SetMorphologicalOpeningCircleRadiusMm(double value) { m_MorphologicalOpeningCircleRadiusMm = value; };
+		double					GetMorphologicalOpeningCircleRadiusMm() { return m_MorphologicalOpeningCircleRadiusMm; };
+		void					SetScalingEstimation(double value) { m_ScalingEstimation = value; };
+		double					GetScalingEstimation() { return m_ScalingEstimation; };
 
-		void SetUseOriginalImageIntensityForDotIntensityScore(bool value) { m_UseOriginalImageIntensityForDotIntensityScore = value; };
-		bool GetUseOriginalImageIntensityForDotIntensityScore() { return m_UseOriginalImageIntensityForDotIntensityScore; };
-
-		void SetThresholdImageTop(double value) { m_ThresholdImageTop = value; };
-		double GetThresholdImageTop() { return m_ThresholdImageTop; };
-		void SetThresholdImageBottom(double value) { m_ThresholdImageBottom = value; };
-		double GetThresholdImageBottom() { return m_ThresholdImageBottom; };
-
-		void SetMaxLineLengthErrorPercent(double value) { m_MaxLineLengthErrorPercent = value; };
-		double GetMaxLineLengthErrorPercent() { return m_MaxLineLengthErrorPercent; };
-		void SetMaxLinePairDistanceErrorPercent(double value) { m_MaxLinePairDistanceErrorPercent = value; };
-		double GetMaxLinePairDistanceErrorPercent() { return m_MaxLinePairDistanceErrorPercent; };
-
-		void SetMinLineLenMm(double value) { m_MinLineLenMm = value; };
-		double GetMinLineLenMm() { return m_MinLineLenMm; };
-		void SetMaxLineLenMm(double value) { m_MaxLineLenMm = value; };
-		double GetMaxLineLenMm() { return m_MaxLineLenMm; };
-
-		void SetMinLinePairDistMm(double value) { m_MinLinePairDistMm = value; };
-		double GetMinLinePairDistMm() { return m_MinLinePairDistMm; };
-		void SetMaxLinePairDistMm(double value) { m_MaxLinePairDistMm = value; };
-		double GetMaxLinePairDistMm() { return m_MaxLinePairDistMm; };
-
-		void SetMaxLineErrorMm(double value) { m_MaxLineErrorMm = value; };
-		double GetMaxLineErrorMm() { return m_MaxLineErrorMm; };
-
-		void SetFindLines3PtDist(double value) { m_FindLines3PtDist = value; };
-		double GetFindLines3PtDist() { return m_FindLines3PtDist; };
-		void SetMaxAngleDiff(double value) { m_MaxAngleDiff = value; };
-		double GetMaxAngleDiff() { return m_MaxAngleDiff; };
-		void SetMinTheta(double value) { m_MinTheta = value; };
-		double GetMinTheta() { return m_MinTheta; };
-		void SetMaxTheta(double value) { m_MaxTheta = value; };
-		double GetMaxTheta() { return m_MaxTheta; };
-
-		void SetMaxUangleDiff(double value) { m_MaxUangleDiff = value; };
-		double GetMaxUangleDiff() { return m_MaxUangleDiff; };
-		void SetMaxUsideLineDiff(double value) { m_MaxUsideLineDiff = value; };
-		double GetMaxUsideLineDiff() { return m_MaxUsideLineDiff; };
-		void SetMinUsideLineLength(double value) { m_MinUsideLineLength = value; };
-		double GetMinUsideLineLength() { return m_MinUsideLineLength; };
-		void SetMaxUsideLineLength(double value) { m_MaxUsideLineLength = value; };
-		double GetMaxUsideLineLength() { return m_MaxUsideLineLength; };
-
-		void SetMorphologicalOpeningBarSizeMm(double value) { m_MorphologicalOpeningBarSizeMm = value; };
-		double GetMorphologicalOpeningBarSizeMm() { return m_MorphologicalOpeningBarSizeMm; };
-		void SetMorphologicalOpeningCircleRadiusMm(double value) { m_MorphologicalOpeningCircleRadiusMm = value; };
-		double GetMorphologicalOpeningCircleRadiusMm() { return m_MorphologicalOpeningCircleRadiusMm; };
-		void SetScalingEstimation(double value) { m_ScalingEstimation = value; };
-		double GetScalingEstimation() { return m_ScalingEstimation; };
-
-		void SetFiducialGeometry(FiducialGeometryType value) { m_FiducialGeometry = value; };
-		FiducialGeometryType GetFiducialGeometry() { return m_FiducialGeometry; };
-		void SetNWires(std::vector<NWire> value) { m_NWires = value; };
-		std::vector<NWire> GetNWires() { return m_NWires; };
+		void					SetFiducialGeometry(FiducialGeometryType value) { m_FiducialGeometry = value; };
+		FiducialGeometryType	GetFiducialGeometry() { return m_FiducialGeometry; };
+		void					SetNWires(std::vector<NWire> value) { m_NWires = value; };
+		std::vector<NWire>		GetNWires() { return m_NWires; };
 
 		void SetMorphologicalCircle(std::vector<Item> value) { m_MorphologicalCircle = value; };
 		std::vector<Item> GetMorphologicalCircle() { return m_MorphologicalCircle; };
@@ -298,21 +328,21 @@ class SegmentationResults
 		
 		void Clear();
 
-		void SetDotsFound(bool value) { m_DotsFound = value; };
-		bool GetDotsFound() { return m_DotsFound; };
+		void								SetDotsFound(bool value) { m_DotsFound = value; };
+		bool								GetDotsFound() { return m_DotsFound; };
 
-		void SetFoundDotsCoordinateValue(std::vector< std::vector<double> > value) { m_FoundDotsCoordinateValue = value; };
-		std::vector< std::vector<double> > GetFoundDotsCoordinateValue() { return m_FoundDotsCoordinateValue; };
+		void								SetFoundDotsCoordinateValue(std::vector< std::vector<double> > value) { m_FoundDotsCoordinateValue = value; };
+		std::vector< std::vector<double> >	GetFoundDotsCoordinateValue() { return m_FoundDotsCoordinateValue; };
 
-		void SetAngles(float value) { m_Angles = value; };
-		float GetAngles() { return m_Angles; };
+		void								SetAngles(float value) { m_Angles = value; };
+		float								GetAngles() { return m_Angles; };
 
-		void SetIntensity(float value) { m_Intensity = value; };
-		float GetIntensity() { return m_Intensity; };
-		void SetNumDots(double value) { m_NumDots = value; };
-		double GetNumDots() { return m_NumDots; };
-		void SetCandidateFidValues(Dot * value) { m_CandidateFidValues = value; };
-		Dot	* GetCandidateFidValues() { return m_CandidateFidValues; };
+		void								SetIntensity(float value) { m_Intensity = value; };
+		float								GetIntensity() { return m_Intensity; };
+		void								SetNumDots(double value) { m_NumDots = value; };
+		double								GetNumDots() { return m_NumDots; };
+		void								SetCandidateFidValues(std::vector<Dot> value) { m_CandidateFidValues = value; };
+		std::vector<Dot>								GetCandidateFidValues() { return m_CandidateFidValues; };
 		
 	protected:
 		/* True if the dots are found, false otherwise. */
@@ -332,17 +362,20 @@ class SegmentationResults
 		 * valid) is below 25. */
 		float	m_Intensity;
 		double	m_NumDots; // number of possibel fiducial points
-		Dot	*	m_CandidateFidValues; // pointer to the fiducial candidates coordinates
+		std::vector<Dot>	m_CandidateFidValues; // pointer to the fiducial candidates coordinates
 };
 
 //-----------------------------------------------------------------------------
 
-struct SegImpl
+class SegImpl
 {	
-	//public:
+	public:
+		SegImpl(int sizeX, int sizeY, int searchOriginX, int searchOriginY, int searchSizeX, int searchSizeY , bool debugOutput /*=false*/, std::string);
+		~SegImpl();
+
 		void find_lines3pt();
 		void find_lines2pt();
-		void compute_line( Line &line, Dot *dots );
+		void compute_line( Line &line, std::vector<Dot> dots );
 		float compute_t( Dot *dot1, Dot *dot2 );
 
 		inline PixelType erode_point_0( PixelType *image, unsigned int ir, unsigned int ic );
@@ -371,26 +404,26 @@ struct SegImpl
 		void SegImpl::dynamicThresholding( PixelType *image);// addition to test dynamic thresholding
 		inline void trypos( PixelType *image, int r, int c );
 		void suppress( PixelType *image, float percent_thresh_top, float percent_thresh_bottom ); // a different threshold can be applied on the top and the bottom of the image
-		void WritePossibleFiducialOverlayImage(Dot *fiducials, PixelType *unalteredImage); 
+		void WritePossibleFiducialOverlayImage(std::vector<Dot> fiducials, PixelType *unalteredImage); 
 
 		void find_u_shape_line_triad(SegmentationResults &segResult);
 		void find_double_n_lines(SegmentationResults &segResult);
 
-		bool accept_line( const Line &line );  
+		bool accept_line( Line &line );  
 
 		static void WritePng(PixelType *modifiedImage, std::string outImageName, int cols, int rows); // addition to write out intermediate files
 
-		inline bool accept_dot( const Dot &dot );
-			Dot * cluster();
+		inline bool accept_dot( Dot &dot );
+		void cluster();
 
 		void find_lines();
 		void find_pairs();
 
-		void uscseg( PixelType *image,  const SegmentationParameters &segParams, SegmentationResults &segResult );
+		void uscseg( PixelType *image,  SegmentationParameters &segParams, SegmentationResults &segResult );
 
-		void draw_dots( PixelType *image, Dot *dots, int ndots );
-		void draw_lines( PixelType *image, Line *lines, int nlines );
-		void draw_pair( PixelType *image, LinePair *pair );
+		void draw_dots( PixelType *image,  std::vector<Dot>::iterator dotsIterator, int ndots);
+		void draw_lines( PixelType *image, std::vector<Line>::iterator linesIterator, int nlines );
+		void draw_pair( PixelType *image, std::vector<LinePair>::iterator pairIterator  );
 		void print_results();
 		void draw_results( PixelType *data );
 
@@ -399,6 +432,7 @@ struct SegImpl
 
 		int GetMorphologicalOpeningBarSizePx(); 
 
+	public: //TODO protected
 		SegmentationParameters m_SegParams;
 
 		unsigned int size, bytes;
@@ -413,19 +447,19 @@ struct SegImpl
 		PixelType *unalteredImage; 
 
 		/* Dot, line and pair data. */
-		Dot dots[MAX_DOTS];
-		Line lines[MAX_LINES];
-		LinePair pairs[MAX_PAIRS];
+		std::vector<Dot> dots;
+		std::vector<Line> lines;
+		std::vector<LinePair> pairs;
 		int ndots, nlines, npairs;
 
 		/* Cluster data. */
-		Pos test[MAX_CLUSTER_VALS];
-		Pos set[MAX_CLUSTER_VALS];
+		Position test[MAX_CLUSTER_VALS];
+		Position set[MAX_CLUSTER_VALS];
 		PixelType vals[MAX_CLUSTER_VALS];
 		int ntest, nset;
 
 		/* Line finding. */
-		Line lines2pt[MAX_LINES_2PT];
+		std::vector<Line> lines2pt;
 		int nlines2pt;
 		std::vector< std::vector<Line> > uShapes;
 
@@ -435,118 +469,19 @@ struct SegImpl
 
 //-----------------------------------------------------------------------------
 
-/* 
- * Comparison functions used with generic sort.
- */
-
-//-----------------------------------------------------------------------------
-
-struct LtDotIntensity
-{
-	inline static bool lessThan( const Dot &dot1, const Dot &dot2 )
-	{
-		/* Use > to get descending. */
-		return dot1.intensity > dot2.intensity;
-	}
-};
-
-//-----------------------------------------------------------------------------
-
-struct SortedAngle
-{
-	double angle;
-	int pointIndex;
-	double coords[2];
-};
-
-//-----------------------------------------------------------------------------
-
-struct LtVectorAngle
-{
-	inline static bool lessThan( const SortedAngle &pt1, const SortedAngle &pt2 )
-	{
-		/* Use > to get descending. */
-		return pt1.angle > pt2.angle;
-	}
-};
-
-//-----------------------------------------------------------------------------
-
-struct CmpLine
-{
-	inline static long compare( const Line &line1, const Line &line2 )
-	{
-		for (int i=0; i<3; i++)
-		{
-			if ( line1.b[i] < line2.b[i] )
-				return -1;
-			else if ( line1.b[i] > line2.b[i] )
-				return 1;
-		}
-		return 0;
-	}
-};
-
-//-----------------------------------------------------------------------------
-
-struct LtLineIntensity
-{
-	inline static bool lessThan( const Line &line1, const Line &line2 )
-	{
-		/* Use > to get descending. */
-		return line1.intensity > line2.intensity;
-	}
-};
-
-//-----------------------------------------------------------------------------
-
-struct LtInt
-{
-	inline static bool lessThan( int i1, int i2 )
-	{
-		return i1 < i2;
-	}
-};
-
-//-----------------------------------------------------------------------------
-
-struct LtLinePairIntensity
-{
-	inline static bool lessThan( const LinePair &pair1, const LinePair &pair2 )
-	{
-		/* Use > to get descending. */
-		return pair1.intensity > pair2.intensity;
-	}
-};
-
-//-----------------------------------------------------------------------------
-
-/* Used for discovering the correspondences. Sorts points left to right based
- * on their positions in the x axis. */
-struct LtDotPosition
-{
-	inline static bool lessThan( Dot *b1, Dot *b2 )
-	{
-		/* Use > to get descending. */
-		return b1->c > b2->c;
-	}
-};
-
-//-----------------------------------------------------------------------------
-
 class UltraSoundFiducialSegmentationTools
 {
 	public:
 		UltraSoundFiducialSegmentationTools(){}
-		static bool AngleMoreThan( const SortedAngle &pt1, const SortedAngle &pt2 );
+		static bool AngleMoreThan( SortedAngle &pt1,  SortedAngle &pt2 );
 		
 		//Search Methods
-		template<class T, class LessThan> static void doSort(T *tmpStor, T *data, long len);
-		template<class T, class LessThan> static void sort(T *data, long len);
+		template<class T, class LessThan> static void doSort(std::vector<T> tmpStor, std::vector<T> data, long len);
+		template<class T, class LessThan> static void sort(std::vector<T> data, long len);
 			
 		//Binary search methods
-		template <class T, class Compare> static bool bs_find( const T &item, T *data, int dlen );
-		template <class T, class Compare> void static bs_insert( const T &item, T *data, int &dlen );
+		template <class T, class Compare> static bool BinarySearchFind(const T &item, std::vector<T> data, int dlen );
+		template <class T, class Compare> static void BinarySearchInsert( T &item, std::vector<T> data, int &dlen );
 		
 };
 
@@ -576,39 +511,39 @@ class KPhantomSeg
 		 * increasng Y moves down. The returned dot locations are in this
 		 * coordinate system. The data is in row major order. The offset of a
 		 * pixel is computed using the formula ( posY * sizeX + posX ). */
-		void segment( unsigned char *data,  const SegmentationParameters &segParams );
+		void segment( unsigned char *data,  SegmentationParameters &segParams );
 
 		/* Debugging routines: printing and drawing the results. */
 		void printResults();
 		void drawResults( unsigned char *data );
 		void GetSegmentationResults(SegmentationResults &segResults); 
 		
-		static std::vector<std::vector<double>> sortInAscendingOrder(std::vector<std::vector<double>> fiducials);  
+		static std::vector<std::vector<double> > sortInAscendingOrder(std::vector<std::vector<double> > fiducials);  
 
-		void SetSizeX(int value) { m_SizeX = value; };
-		int GetSizeX() { return m_SizeX; };
-		void SetSizeY(int value) { m_SizeY = value; };
-		int GetSizeY() { return m_SizeY; };
+		void					SetSizeX(int value) { m_SizeX = value; };
+		int						GetSizeX() { return m_SizeX; };
+		void					SetSizeY(int value) { m_SizeY = value; };
+		int						GetSizeY() { return m_SizeY; };
 
-		void SetSearchOriginX(int value) { m_SearchOriginX = value; };
-		int GetSearchOriginX() { return m_SearchOriginX; };
-		void SetSearchOriginY(int value) { m_SearchOriginY = value; };
-		int GetSearchOriginY() { return m_SearchOriginY; };
+		void					SetSearchOriginX(int value) { m_SearchOriginX = value; };
+		int						GetSearchOriginX() { return m_SearchOriginX; };
+		void					SetSearchOriginY(int value) { m_SearchOriginY = value; };
+		int						GetSearchOriginY() { return m_SearchOriginY; };
 
-		void SetSearchSizeX(int value) { m_SearchSizeX = value; };
-		int GetSearchSizeX() { return m_SearchSizeX; };
-		void SetSearchSizeY(int value) { m_SearchSizeY = value; };
-		int GetSearchSizeY() { return m_SearchSizeY; };
+		void					SetSearchSizeX(int value) { m_SearchSizeX = value; };
+		int						GetSearchSizeX() { return m_SearchSizeX; };
+		void					SetSearchSizeY(int value) { m_SearchSizeY = value; };
+		int						GetSearchSizeY() { return m_SearchSizeY; };
 
-		void SetPossibleFiducialsImageFilename(std::string value) { m_PossibleFiducialsImageFilename = value; };
-		std::string GetPossibleFiducialsImageFilename() { return m_PossibleFiducialsImageFilename; };
+		void					SetPossibleFiducialsImageFilename(std::string value) { m_PossibleFiducialsImageFilename = value; };
+		std::string				GetPossibleFiducialsImageFilename() { return m_PossibleFiducialsImageFilename; };
 
-		void SetSegParams(SegmentationParameters value) { m_SegParams = value; };
-		SegmentationParameters GetSegParams() { return m_SegParams; };
-		void SetSegImpl(SegImpl	* value) { m_SegImpl = value; };
-		SegImpl	* GetSegImpl() { return m_SegImpl; };
-		void SetSegResult(SegmentationResults value) { m_SegResult = value; };
-		SegmentationResults GetSegResult() { return m_SegResult; };
+		void					SetSegParams(SegmentationParameters value) { m_SegParams = value; };
+		SegmentationParameters	GetSegParams() { return m_SegParams; };
+		void					SetSegImpl(SegImpl	* value) { m_SegImpl = value; };
+		SegImpl	*				GetSegImpl() { return m_SegImpl; };
+		void					SetSegResult(SegmentationResults value) { m_SegResult = value; };
+		SegmentationResults		GetSegResult() { return m_SegResult; };
 
 	protected:
 		/*
@@ -639,9 +574,6 @@ class KPhantomSeg
 		/*
 		 * Output
 		 */
-
-		//(3, vector<int>(2,0)); 
-		// vector<double> m_FoundDotsYValue; 
 
 		/*
 		 * Private Data

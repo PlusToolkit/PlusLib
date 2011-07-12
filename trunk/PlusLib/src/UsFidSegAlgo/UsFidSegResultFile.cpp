@@ -103,8 +103,8 @@ void UsFidSegResultFile::WriteSegmentationResults(std::ostream &outFile, Segment
 			for(int i = 0; i<segResults.GetNumDots(); i++)
 			{ 
 			
-			outFile << "       <Point id=\"" << i << "\" Intensity =\""<< segResults.GetCandidateFidValues()[i].intensity << "\" Positon=\"" << segResults.GetCandidateFidValues()[i].c 
-				<< " " << segResults.GetCandidateFidValues()[i].r << "\" />" << std::endl; 
+			outFile << "       <Point id=\"" << i << "\" Intensity =\""<< segResults.GetCandidateFidValues()[i].GetDotIntensity() << "\" Positon=\"" << segResults.GetCandidateFidValues()[i].GetX() 
+				<< " " << segResults.GetCandidateFidValues()[i].GetY() << "\" />" << std::endl; 
 			} 
 			outFile << "       </FiducialPointCandidates>"<<std::endl; 
 
