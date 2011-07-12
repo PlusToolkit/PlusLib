@@ -116,47 +116,43 @@ public:
 
 	// Description:
 	// Return the default tool status at a given time
-	virtual long GetDefaultToolStatus( double time ); 
+	virtual PlusStatus GetDefaultToolStatus( double time, TrackerStatus &status ); 
 
 	// Description:
 	// Return the default tool name
 	virtual std::string GetDefaultToolName(); 
 
 	// Description:
-	// Get the tracked frame from devices 
-	virtual PlusStatus GetTrackedFrame(vtkImageData* frame, vtkMatrix4x4* toolTransMatrix, long& flags, double& synchronizedTime, int toolNumber = 0, bool calibratedTransform = false); 
+	// Get the most recent tracked frame from devices 
+	virtual PlusStatus GetTrackedFrame(vtkImageData* frame, vtkMatrix4x4* toolTransMatrix, TrackerStatus& status, double& synchronizedTime, int toolNumber = 0, bool calibratedTransform = false); 
 
 	// Description:
-	// Get the tracked frame from devices with each tool transforms
-	virtual PlusStatus GetTrackedFrame(vtkImageData* frame, std::vector<vtkMatrix4x4*> &toolTransforms, std::vector<std::string> &toolTransformNames, std::vector<long> &flags, double& synchronizedTime, bool calibratedTransform = false); 
-	
-	// Description:
-	// Get the tracked frame from devices with each tool transforms
+	// Get the most recent tracked frame from devices with each tool transforms
 	virtual PlusStatus GetTrackedFrame(TrackedFrame* trackedFrame, bool calibratedTransform = false); 
 
 	// Description:
 	// Get the tracked frame from devices by time with each tool transforms
-	virtual PlusStatus GetTrackedFrameByTime(const double time, TrackedFrame* trackedFrame, bool calibratedTransform = false); 
+	virtual PlusStatus GetTrackedFrameByTime(double time, TrackedFrame* trackedFrame, bool calibratedTransform = false); 
 
 	// Description:
 	// Get the tracked frame from devices by time with each tool transforms
-	virtual PlusStatus GetTrackedFrameByTime(const double time, vtkImageData* frame, std::vector<vtkMatrix4x4*> &toolTransforms, std::vector<std::string> &toolTransformNames, std::vector<long> &flags, double& synchronizedTime, bool calibratedTransform = false); 
+	virtual PlusStatus GetTrackedFrameByTime(double time, vtkImageData* frame, std::vector<vtkMatrix4x4*> &toolTransforms, std::vector<std::string> &toolTransformNames, std::vector<TrackerStatus> &status, double& synchronizedTime, bool calibratedTransform = false); 
 
 	// Description:
 	// Get transformation with timestamp from tracker 
-	virtual PlusStatus GetTransformWithTimestamp(vtkMatrix4x4* toolTransMatrix, double& transformTimestamp, long& flags, int toolNumber = 0, bool calibratedTransform = false); 
+	virtual PlusStatus GetTransformWithTimestamp(vtkMatrix4x4* toolTransMatrix, double& transformTimestamp, TrackerStatus& status, int toolNumber = 0, bool calibratedTransform = false); 
 
 	// Description:
 	// Get transformation by timestamp from tracker 
-	virtual PlusStatus GetTransformByTimestamp(vtkMatrix4x4* toolTransMatrix, long& flags, const double synchronizedTime, int toolNumber = 0, bool calibratedTransform = false); 
+	virtual PlusStatus GetTransformByTimestamp(vtkMatrix4x4* toolTransMatrix, TrackerStatus& status, double synchronizedTime, int toolNumber = 0, bool calibratedTransform = false); 
 
 	// Description:
 	// Get transformations by timestamp range from tracker. The first returned transform is the one after the startTime, except if startTime is -1, then it refers to the oldest one. '-1' for end time means the latest transform. Returns the timestamp of the requested transform (makes sense if endTime is -1)
-	virtual double GetTransformsByTimeInterval(std::vector<vtkMatrix4x4*> &toolTransMatrixVector, std::vector<long> &flagsVector, const double startTime, const double endTime, int toolNumber = 0, bool calibratedTransform = false);
+	virtual double GetTransformsByTimeInterval(std::vector<vtkMatrix4x4*> &toolTransMatrixVector, std::vector<TrackerStatus> &statusVector, double startTime, double endTime, int toolNumber = 0, bool calibratedTransform = false);
 
 	// Description:
 	// Get frame data by time 
-	virtual PlusStatus GetFrameByTime(const double time, vtkImageData* frame, double& frameTimestamp); 
+	virtual PlusStatus GetFrameByTime(double time, vtkImageData* frame, double& frameTimestamp); 
 
 	// Description:
 	// Set/Get the acquisition type 
@@ -232,7 +228,12 @@ public:
 	vtkSetMacro(CancelSyncRequest, bool); 
 	vtkGetMacro(CancelSyncRequest, bool); 
 	vtkBooleanMacro(CancelSyncRequest, bool); 
-	
+
+  // Description:
+	// Set/get startup delay in sec to give some time to the buffers for proper initialization
+	vtkSetMacro(StartupDelaySec, double); 
+	vtkGetMacro(StartupDelaySec, double);
+
 	int GetNumberOfTools();
 
 	//! Description 
@@ -274,15 +275,15 @@ protected:
 	SYNC_TYPE			SyncType; 
 
 	std::vector<vtkMatrix4x4*> ToolTransMatrices; 
-	std::vector<int>	ToolFlags; 
+	std::vector<TrackerStatus>	ToolStatus; 
 
 	vtkXMLDataElement*	ConfigurationData;
 	char*				ConfigFileName; 
 	double				ConfigFileVersion; 
 
+  double StartupDelaySec; 
+
 	bool Initialized; 
-	
-	static const int MostRecentFrameBufferIndex = 0; 
 	
 	bool TrackingEnabled;
 	bool VideoEnabled;

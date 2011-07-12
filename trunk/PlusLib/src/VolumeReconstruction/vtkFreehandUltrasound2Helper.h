@@ -1784,7 +1784,6 @@ static void *vtkReconstructionThread(ThreadInfoStruct *data)
     vtkImageThreshold* thresholder = self->GetRotationThresholder();
     double sleeptime = self->GetSleepTime();
     int maxRotation = self->GetMaximumRotationChange();
-    int flags;
     int problemWithThisSlice;
     int insertSliceNow = 0;
     double frametime = currtime;
@@ -1829,22 +1828,28 @@ static void *vtkReconstructionThread(ThreadInfoStruct *data)
 
         // Get the tracking transform, using temporal calibration if applicable
         // recall that matrix = this->SliceAxes
-        buffer->Lock();
-        flags = 0;
+        TrackerBufferItem trackerItem; 
         if (video && (videolag > 0.0 || !self->RealTimeReconstruction)) // TODO add "or retrospective" for when doing offline recon with retro gating?
         {
-            flags = buffer->GetFlagsAndCalibratedMatrixFromTime(matrix, timestamp);
+          if ( buffer->GetTrackerBufferItemFromTime(timestamp, &trackerItem, true) != ITEM_OK )
+          {
+            LOG_ERROR("Failed to get tracker item from buffer with timestamp: " << std::fixed << timestamp ); 
+            continue; 
+          }
         }
         else
         {
-            buffer->GetCalibratedMatrix(matrix, 0);
-            flags = buffer->GetFlags(0);
-            if (!video)
-            {
-                currtime = buffer->GetTimeStamp(0);
-            }
+          if ( buffer->GetLatestTrackerBufferItem(&trackerItem, true) != ITEM_OK )
+          {
+            LOG_ERROR("Failed to get latest tracker item from buffer!"); 
+            continue; 
+          }
+          if (!video)
+          {
+            currtime = trackerItem.GetTimestamp(0);
+          }
         }
-        buffer->Unlock();
+        matrix = trackerItem.GetMatrix(); 
 
         // get the rotation and apply 
         if (rotating)
@@ -1940,7 +1945,7 @@ static void *vtkReconstructionThread(ThreadInfoStruct *data)
         }
 
         // sleep if tool is not tracking properly
-        else if (flags & (TR_MISSING | TR_OUT_OF_VIEW | TR_REQ_TIMEOUT))
+        else if ( trackerItem.GetStatus() != TR_OK )
         {
             insertSliceNow = 0;
             printf("\ntracker out of view\n");

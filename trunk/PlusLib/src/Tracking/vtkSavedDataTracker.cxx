@@ -164,7 +164,7 @@ PlusStatus vtkSavedDataTracker::Connect()
 
 		// Get Status
 		const char* strStatus = trackedFrame->GetCustomFrameField("Status"); 
-		long status = TR_OK; 
+		TrackerStatus status = TR_OK; 
 		if ( strStatus == NULL ) 
 		{
 			LOG_DEBUG("Unable to get Status for frame #" << frame ); 
@@ -248,35 +248,75 @@ PlusStatus vtkSavedDataTracker::InternalUpdate()
 	}
 
 	const double elapsedTime = vtkAccurateTimer::GetSystemTime() - this->GetStartTimestamp(); 
-	const double localStartTime = this->LocalTrackerBuffer->GetTimeStamp(LocalTrackerBuffer->GetNumberOfItems() - 1); 
 
-	// Get buffer index 
-	const int bufferIndex = this->LocalTrackerBuffer->GetIndexFromTime(localStartTime + elapsedTime); 
+  double oldestFrameTimestamp(0);  
+  if ( this->LocalTrackerBuffer->GetOldestTimeStamp(oldestFrameTimestamp) != ITEM_OK )
+  {
+    LOG_ERROR("vtkSavedDataTracker: Unable to get oldest timestamp from local buffer!");
+		return PLUS_FAIL; 
+  }
+
+	double latestFrameTimestamp(0); 
+  if ( this->LocalTrackerBuffer->GetLatestTimeStamp(latestFrameTimestamp) != ITEM_OK )
+  {
+    LOG_ERROR("vtkSavedDataTracker: Unable to get latest timestamp from local buffer!");
+		return PLUS_FAIL; 
+  }
+
+	
+	// Compute the next timestamp 
+	double nextFrameTimestamp = oldestFrameTimestamp + elapsedTime; 
+	if ( nextFrameTimestamp > latestFrameTimestamp )
+	{
+		if ( this->ReplayEnabled )
+		{
+			// Start again from the oldest frame
+			nextFrameTimestamp = oldestFrameTimestamp;
+			this->SetStartTimestamp(vtkAccurateTimer::GetSystemTime()); 
+		}
+		else
+		{
+			// Use the latest frame always
+			nextFrameTimestamp = latestFrameTimestamp; 
+		}
+	}
+
+  TrackerBufferItem bufferItem;  
+  ItemStatus itemStatus = this->LocalTrackerBuffer->GetTrackerBufferItemFromTime(nextFrameTimestamp, &bufferItem); 
+  if ( itemStatus != ITEM_OK )
+	{
+		if ( itemStatus == ITEM_NOT_AVAILABLE_YET )
+		{
+			LOG_ERROR("vtkSavedDataTracker: Unable to get next item from local buffer from time - frame not available yet!");
+		}
+		else if ( itemStatus == ITEM_NOT_AVAILABLE_ANYMORE )
+		{
+			LOG_ERROR("vtkSavedDataTracker: Unable to get next item from local buffer from time - frame not available anymore!");
+		}
+		else
+		{
+			LOG_ERROR("vtkSavedDataTracker: Unable to get next item from local buffer from time!");
+		}
+		return PLUS_FAIL; 
+	}
 
 	// Get frame number 
-	int frameNumber = this->LocalTrackerBuffer->GetFrameNumber(bufferIndex); 
+	int frameNumber = bufferItem.GetIndex(); 
 
 	// Get default transfom
-	vtkSmartPointer<vtkMatrix4x4> defaultTransMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
-	this->LocalTrackerBuffer->GetMatrix(defaultTransMatrix, bufferIndex); 
+	vtkMatrix4x4* defaultTransMatrix = bufferItem.GetMatrix(); 
 
 	// Get flags
-	long flags = this->LocalTrackerBuffer->GetFlags(bufferIndex); 
+	TrackerStatus trackerStatus = bufferItem.GetStatus(); 
 
 	// Create timestamp 
 	double unfilteredtimestamp(0), filteredtimestamp(0); 
 	this->Timer->GetTimeStampForFrame(frameNumber, unfilteredtimestamp, filteredtimestamp);
 
 	// send the transformation matrix and flags to the tool
-	this->ToolUpdate(0, defaultTransMatrix, flags, frameNumber, unfilteredtimestamp, filteredtimestamp);   
-
-	// Replay the buffer after we reached the most recent element if desired
-	if ( bufferIndex == 0  && this->ReplayEnabled)
-	{
-		this->SetStartTimestamp(vtkAccurateTimer::GetSystemTime()); 
-	}
+	PlusStatus updateStatus = this->ToolUpdate(0, defaultTransMatrix, trackerStatus, frameNumber, unfilteredtimestamp, filteredtimestamp);   
   
-  return PLUS_SUCCESS;
+  return updateStatus;
 }
 
 //----------------------------------------------------------------------------

@@ -69,485 +69,260 @@ POSSIBILITY OF SUCH DAMAGES.
 //----------------------------------------------------------------------------
 vtkTracker* vtkTracker::New()
 {
-	// First try to create the object from the vtkObjectFactory
-	vtkObject* ret = vtkObjectFactory::CreateInstance("vtkTracker");
-	if(ret)
-	{
-		return (vtkTracker*)ret;
-	}
-	// If the factory was unable to create the object, then create it here.
-	return new vtkTracker;
+  // First try to create the object from the vtkObjectFactory
+  vtkObject* ret = vtkObjectFactory::CreateInstance("vtkTracker");
+  if(ret)
+  {
+    return (vtkTracker*)ret;
+  }
+  // If the factory was unable to create the object, then create it here.
+  return new vtkTracker;
 }
 
 //----------------------------------------------------------------------------
 vtkTracker::vtkTracker()
 {
-	this->Tracking = 0;
-	this->WorldCalibrationMatrix = vtkMatrix4x4::New();
-	this->NumberOfTools = 0;
-	this->UpdateTimeStamp = 0;
-	this->Tools = 0;
-	this->LastUpdateTime = 0;
-	this->InternalUpdateRate = 0;
-	this->Frequency = 50; 
-	this->TrackerCalibratedOff(); 
+  this->Tracking = 0;
+  this->WorldCalibrationMatrix = vtkMatrix4x4::New();
+  this->NumberOfTools = 0;
+  this->UpdateTimeStamp = 0;
+  this->Tools = 0;
+  this->LastUpdateTime = 0;
+  this->InternalUpdateRate = 0;
+  this->Frequency = 50; 
+  this->TrackerCalibratedOff(); 
 
-	// for threaded capture of transformations
-	this->Threader = vtkMultiThreader::New();
-	this->ThreadId = -1;
-	this->UpdateMutex = vtkCriticalSection::New();
-	this->RequestUpdateMutex = vtkCriticalSection::New();
+  // for threaded capture of transformations
+  this->Threader = vtkMultiThreader::New();
+  this->ThreadId = -1;
+  this->UpdateMutex = vtkCriticalSection::New();
+  this->RequestUpdateMutex = vtkCriticalSection::New();
 
-	this->SocketCommunicator = vtkSocketCommunicator::New();
-	this->ServerMode = 0;
-	this->NetworkPort = 11111;
-	this->RemoteAddress = NULL;
+  this->ReferenceToolName = NULL; 
+  this->DefaultToolName = NULL; 
 
-	this->ReferenceToolName = NULL; 
-	this->DefaultToolName = NULL; 
+  this->ConfigurationData = NULL; 
 
-	this->ConfigurationData = NULL; 
-	
-	// for accurate timing
-	this->Timer = vtkFrameToTimeConverter::New();
-	this->Timer->SetNominalFrequency(this->Frequency);
+  // for accurate timing
+  this->Timer = vtkFrameToTimeConverter::New();
+  this->Timer->SetNominalFrequency(this->Frequency);
 
 }
 
 //----------------------------------------------------------------------------
 vtkTracker::~vtkTracker()
 {
-	// The thread should have been stopped before the
-	// subclass destructor was called, but just in case
-	// se stop it here.
-	if (this->ThreadId != -1)
-	{
-		this->Threader->TerminateThread(this->ThreadId);
-		this->ThreadId = -1;
-	}
+  // The thread should have been stopped before the
+  // subclass destructor was called, but just in case
+  // se stop it here.
+  if (this->ThreadId != -1)
+  {
+    this->Threader->TerminateThread(this->ThreadId);
+    this->ThreadId = -1;
+  }
 
-	for (int i = 0; i < this->NumberOfTools; i++)
-	{ 
-		this->Tools[i]->SetTracker(NULL);
-		this->Tools[i]->Delete();
-	}
-	if (this->Tools)
-	{
-		delete [] this->Tools;
-	}
+  for (int i = 0; i < this->NumberOfTools; i++)
+  { 
+    this->Tools[i]->SetTracker(NULL);
+    this->Tools[i]->Delete();
+  }
+  if (this->Tools)
+  {
+    delete [] this->Tools;
+  }
 
-	if ( this->ConfigurationData != NULL ) 
-	{
-		this->ConfigurationData->Delete(); 
-		this->ConfigurationData = NULL; 
-	}
+  if ( this->ConfigurationData != NULL ) 
+  {
+    this->ConfigurationData->Delete(); 
+    this->ConfigurationData = NULL; 
+  }
 
-	if (this->Timer)
-	{
-		this->Timer->Delete();
-	}
+  if (this->Timer)
+  {
+    this->Timer->Delete();
+  }
 
 
-	this->WorldCalibrationMatrix->Delete();
+  this->WorldCalibrationMatrix->Delete();
 
-	this->Threader->Delete();
-	this->UpdateMutex->Delete();
-	this->RequestUpdateMutex->Delete();
-	this->SocketCommunicator->Delete();
-	this->RemoteAddress = NULL;
+  this->Threader->Delete();
+  this->UpdateMutex->Delete();
+  this->RequestUpdateMutex->Delete();
 }
 
 //----------------------------------------------------------------------------
 void vtkTracker::PrintSelf(ostream& os, vtkIndent indent)
 {
-	vtkObject::PrintSelf(os,indent);
+  vtkObject::PrintSelf(os,indent);
 
-	os << indent << "WorldCalibrationMatrix: " << this->WorldCalibrationMatrix << "\n";
-	this->WorldCalibrationMatrix->PrintSelf(os,indent.GetNextIndent());
-	os << indent << "Tracking: " << this->Tracking << "\n";
-	os << indent << "NumberOfTools: " << this->NumberOfTools << "\n";
+  os << indent << "WorldCalibrationMatrix: " << this->WorldCalibrationMatrix << "\n";
+  this->WorldCalibrationMatrix->PrintSelf(os,indent.GetNextIndent());
+  os << indent << "Tracking: " << this->Tracking << "\n";
+  os << indent << "NumberOfTools: " << this->NumberOfTools << "\n";
 }
 
 //----------------------------------------------------------------------------
 // allocates a vtkTrackerTool object for each of the tools.
 void vtkTracker::SetNumberOfTools(int numtools)
 {
-	int i;
+  int i;
 
-	if (this->NumberOfTools > 0) 
-	{
-		LOG_ERROR("SetNumberOfTools() can only be called once");
-	}
-	this->NumberOfTools = numtools;
+  if (this->NumberOfTools > 0) 
+  {
+    LOG_ERROR("SetNumberOfTools() can only be called once");
+  }
+  this->NumberOfTools = numtools;
 
-	this->Tools = new vtkTrackerTool *[numtools];
+  this->Tools = new vtkTrackerTool *[numtools];
 
-	for (i = 0; i < numtools; i++) 
-	{
-		this->Tools[i] = vtkTrackerTool::New();
-		this->Tools[i]->SetTracker(this);
-		this->Tools[i]->SetToolPort(i);
-		// Set default tool names
-		std::ostringstream toolname; 
-		toolname << "Tool" << i; 
-		this->SetToolName(i, toolname.str().c_str()); 
+  for (i = 0; i < numtools; i++) 
+  {
+    this->Tools[i] = vtkTrackerTool::New();
+    this->Tools[i]->SetTracker(this);
+    this->Tools[i]->SetToolPort(i);
+    // Set default tool names
+    std::ostringstream toolname; 
+    toolname << "Tool" << i; 
+    this->SetToolName(i, toolname.str().c_str()); 
 
-		std::ostringstream toolcalibmatrixname; 
-		toolcalibmatrixname << "Tool" << i << "CalibMatrix"; 
-		this->Tools[i]->SetCalibrationMatrixName(toolcalibmatrixname.str().c_str()); 
-	}
+    std::ostringstream toolcalibmatrixname; 
+    toolcalibmatrixname << "Tool" << i << "CalibMatrix"; 
+    this->Tools[i]->SetCalibrationMatrixName(toolcalibmatrixname.str().c_str()); 
+  }
 }  
 
 //----------------------------------------------------------------------------
 void vtkTracker::SetToolName(int tool, const char* name)
 {
-	this->Tools[tool]->SetToolName(name); 	
+  this->Tools[tool]->SetToolName(name); 	
 }
 
 //----------------------------------------------------------------------------
 vtkTrackerTool *vtkTracker::GetTool(int tool)
 {
-	if (tool < 0 || tool > this->NumberOfTools) 
-	{
-		LOG_ERROR("GetTool(" << tool << "): only " << this->NumberOfTools << " are available");
-	}
-	return this->Tools[tool];
+  if (tool < 0 || tool > this->NumberOfTools) 
+  {
+    LOG_ERROR("GetTool(" << tool << "): only " << this->NumberOfTools << " are available");
+  }
+  return this->Tools[tool];
 }
 
 //----------------------------------------------------------------------------
 // this thread is run whenever the tracker is tracking
 static void *vtkTrackerThread(vtkMultiThreader::ThreadInfo *data)
 {
-	vtkTracker *self = (vtkTracker *)(data->UserData);
+  vtkTracker *self = (vtkTracker *)(data->UserData);
 
-	double currtime[10];
-	
-	// loop until cancelled
-	for (int i = 0;; i++)
-	{
-		double newtime = vtkAccurateTimer::GetSystemTime(); 
+  double currtime[10];
 
-		// get current tracking rate over last 10 updates
-		double difftime = newtime - currtime[i%10];
-		currtime[i%10] = newtime;
-		if (i > 10 && difftime != 0)
-		{
-			self->InternalUpdateRate = (10.0/difftime);
-		}
-		// need to change this code for server/client/normal
-		// query the hardware tracker
-		self->UpdateMutex->Lock();
-		if( !self->GetServerMode() && self->GetRemoteAddress() )
-		{
-			// client 
-			for( int i = 0; i< self->GetNumberOfTools(); i++ )
-			{
-				double *msg = new double[19];
-				vtkMatrix4x4 *matrix = NULL;
-				double vals[3];
-				long flags=0; 
-				double ts=0;
-				int tool=0;
-				if(self->GetSocketCommunicator()->Receive( msg, 19, 1, 33 ) == 0)
-				{
-					vtkGenericWarningMacro(" Didin't receive the buffer");
-				}
-				else
-				{
-					matrix = vtkMatrix4x4::New();
-					self->ConvertMessageToBuffer(msg, vals, matrix);
-					tool = static_cast<int>(vals[0]);
-					flags = static_cast<long>(vals[1]);
-					ts = vals[2];
-					self->ServerToolUpdate( tool, matrix, flags, ts, ts );
-				}
-			}
-		}
-		else // server & normal 
-		{
-			self->InternalUpdate();
-			if(self->GetServerMode())
-			{
-				// server
-				for( int i = 0; i< self->GetNumberOfTools(); i++ )
-				{
-					vtkTrackerBuffer* buffer  = self->GetTool(i)->GetBuffer();
-					if(buffer)
-					{
-						vtkMatrix4x4 *mat = vtkMatrix4x4::New(); 
-						long flags;
-						double ts;
-						int tool = i;
-						buffer->Lock();
-						buffer->GetMatrix(mat, 0);
-						flags = buffer->GetFlags(0);
-						ts = buffer->GetTimeStamp(0);
-						buffer->Unlock();
-						double *da = new double[19];
-						self->ConvertBufferToMessage(tool, mat, flags, ts, da);
-						if(self->GetSocketCommunicator()->GetIsConnected()>0)
-						{
-							if (self->GetSocketCommunicator()->Send(da, 19, 1, 33) == 0)
-							{
-								vtkGenericWarningMacro("Could not set tool buffer message");
-							}
-						}
-					}
-				}
-			}
-		}
-		self->UpdateTime.Modified();
-		self->UpdateMutex->Unlock();
+  // loop until cancelled
+  for (int i = 0;; i++)
+  {
+    double newtime = vtkAccurateTimer::GetSystemTime(); 
 
-		// check to see if main thread wants to lock the UpdateMutex
-		self->RequestUpdateMutex->Lock();
-		self->RequestUpdateMutex->Unlock();
+    // get current tracking rate over last 10 updates
+    double difftime = newtime - currtime[i%10];
+    currtime[i%10] = newtime;
+    if (i > 10 && difftime != 0)
+    {
+      self->InternalUpdateRate = (10.0/difftime);
+    }
 
-		// check to see if we are being told to quit 
-		data->ActiveFlagLock->Lock();
-		int activeFlag = *(data->ActiveFlag);
-		data->ActiveFlagLock->Unlock();
+    self->UpdateMutex->Lock();
+    self->InternalUpdate();
+    self->UpdateTime.Modified();
+    self->UpdateMutex->Unlock();
 
-		if (activeFlag == 0)
-		{
-			return NULL;
-		}
+    // check to see if main thread wants to lock the UpdateMutex
+    self->RequestUpdateMutex->Lock();
+    self->RequestUpdateMutex->Unlock();
 
-		double delay = ( newtime + 1.0 / self->GetFrequency() - vtkAccurateTimer::GetSystemTime() );
-		if ( delay > 0 )
-		{
-			vtkAccurateTimer::Delay(delay); 
-		}
-	}
+    // check to see if we are being told to quit 
+    data->ActiveFlagLock->Lock();
+    int activeFlag = *(data->ActiveFlag);
+    data->ActiveFlagLock->Unlock();
+
+    if (activeFlag == 0)
+    {
+      return NULL;
+    }
+
+    double delay = ( newtime + 1.0 / self->GetFrequency() - vtkAccurateTimer::GetSystemTime() );
+    if ( delay > 0 )
+    {
+      vtkAccurateTimer::Delay(delay); 
+    }
+  }
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkTracker::Probe()
 {
-	this->UpdateMutex->Lock();
-	// Client
-	if(!this->ServerMode && this->RemoteAddress) 
-	{
-		int success[1] = {0};
-		int len = 6;
-		char *msg = "Probe";
-		if(this->SocketCommunicator->GetIsConnected()>0)
-		{
-			if(this->SocketCommunicator->Send(&len, 1, 1, 11))
-			{
-				if(!this->SocketCommunicator->Send(msg, len, 1, 22))
-				{
-					LOG_ERROR("Could not send message Probe\n");
-					this->UpdateMutex->Unlock();
-					return PLUS_FAIL;
-				}
-			}
-			else
-			{
-				this->UpdateMutex->Unlock();
-				if(!this->SocketCommunicator->Receive(success, 1, 1, 11))
-				{
-					LOG_ERROR("Could not receive the Probe results");
-					return PLUS_FAIL;
-				}
-			}
-		}
-    if (success[0]==0)
-    {
-      return PLUS_FAIL;
-    }
-		return PLUS_SUCCESS;
-	}
-	// Server / Normal
-	if (this->InternalStartTracking() == 0)
-	{
-		this->UpdateMutex->Unlock();
-		int success[1] = {0};
-		if(this->ServerMode)
-		{
-			if(this->SocketCommunicator->GetIsConnected()>0)
-			{
-				this->SocketCommunicator->Send(success,1, 1, 11);
-			}
-		}
-		return PLUS_FAIL;
-	}
+  this->UpdateMutex->Lock();
+  // Client
 
-	this->Tracking = 1;
+  if (this->InternalStartTracking() == 0)
+  {
+    this->UpdateMutex->Unlock();
+    return PLUS_FAIL;
+  }
 
-	if (this->InternalStopTracking() == 0)
-	{
-		this->Tracking = 0;
-		this->UpdateMutex->Unlock();
-		if(this->ServerMode)
-		{
-			int success[1]= {0};
-			if(this->SocketCommunicator->GetIsConnected()>0)
-			{
-				if(!this->SocketCommunicator->Send(success, 1, 1, 11))
-				{
-					LOG_ERROR("Could not send Success information!\n");
-					return PLUS_FAIL;
-				}
-			}
-			else
-			{
-				LOG_ERROR("Client Not Connected.\n");
-			}
-		}
-		return PLUS_FAIL;
-	}
+  this->Tracking = 1;
 
-	this->Tracking = 0;
-	this->UpdateMutex->Unlock();
-	if(this->ServerMode)
-	{
-		int success[1]= {1};
-		if(this->SocketCommunicator->GetIsConnected()>0)
-		{
-			if(!this->SocketCommunicator->Send(success, 1, 1, 11))
-			{
-				LOG_ERROR("Could not send Success information!\n");
-				return PLUS_FAIL;
-			}
-		}
-		else
-		{
-			LOG_ERROR("Client Not Connected.\n");
-		}
-	}
-	return PLUS_SUCCESS;
+  if (this->InternalStopTracking() == 0)
+  {
+    this->Tracking = 0;
+    this->UpdateMutex->Unlock();
+    return PLUS_FAIL;
+  }
+
+  this->Tracking = 0;
+  this->UpdateMutex->Unlock();
+
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkTracker::StartTracking()
 {
-	int tracking = this->Tracking;
-	// client 
-	if(!this->ServerMode && this->RemoteAddress) 
-	{
-		// ask the communication thread to send a message" StartTracking"
-		int len = 16;
-		char* msg1 = "StartTracking";
+  int tracking = this->Tracking;
 
-		if(this->SocketCommunicator->GetIsConnected()>0 )
-		{
-			if(!this->SocketCommunicator->Send(&len, 1, 1, 11) )
-			{
-			}
-			else
-			{
-				if( !this->SocketCommunicator->Send(msg1, len, 1, 22))
-				{
-					LOG_ERROR("Could not send the message");
-					return PLUS_FAIL;
-				}
-				else
-				{
-					// wait to receive the Tool Information acknowledgement
-					char *msg = "InternalStartTracking";
-					const int maxMessages = 50;
-					int messageNum = 0;
-					for (messageNum = 0; 
-						messageNum < maxMessages && 
-						strcmp( msg, "InternalStartTrackingSuccessful" ) ;
-					messageNum++)
-					{
-						int rlen[1] = {0};
-						if( this->SocketCommunicator->Receive(rlen, 1, 1, 11) )
-						{
-							char *rmsg = new char [rlen[0]];
-							if(!this->SocketCommunicator->Receive(rmsg, rlen[0], 1, 22) )
-							{
-								LOG_ERROR("Could not RecieveToolInfo");
-								return PLUS_FAIL;
-							}
-							else
-							{
-								this->InterpretCommands( rmsg );
-								msg = NULL;
-								msg = new char [rlen[0]];
-								memcpy(msg, rmsg, rlen[0]);
-							}
-						}
-					}
-					if (messageNum == maxMessages)
-					{
-						LOG_ERROR("Waited to receive \"EndEnabledToolPort\" "
-							"but it never came");
-					}
-					this->Tracking = 1;
-				}
-			}
-		}
-		this->UpdateMutex->Lock();
-		this->ThreadId = this->Threader->SpawnThread((vtkThreadFunctionType)\
-			&vtkTrackerThread,this);
-		this->LastUpdateTime = this->UpdateTime.GetMTime();
-		this->UpdateMutex->Unlock();
-	} //end client
+  if ( this->InternalStartTracking() != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to start tracking!"); 
+    return PLUS_FAIL; 
+  } 
 
-	//server / normal
-	else if(this->ServerMode || !this->RemoteAddress) 
-	{
-		this->Tracking = this->InternalStartTracking();
+  // start the tracking thread
+  if ( !this->Tracking && this->ThreadId != -1 )
+  {
+    LOG_ERROR("Cannot start the tracking thread - tracking still running!");
+    return PLUS_FAIL;
+  }
 
-		if(this->ServerMode)
-		{
-			if(this->SocketCommunicator->GetIsConnected()>0)
-			{
-				char *msgText = "InternalStartTrackingSuccessful";
-				int len = strlen(msgText);
-				if( this->SocketCommunicator->Send(&len, 1, 1, 11) )
-				{
-					if(!this->SocketCommunicator->Send(msgText, len, 1, 22))
-					{
-						LOG_ERROR("Could not send message: InternalStartTrackingSuccessful");
-						return PLUS_FAIL;
-					}
-				}
-				else
-				{
-					LOG_ERROR("Could not send length of InternalStartTrackingSuccessful");
-					return PLUS_FAIL;
-				}
-			}
-			else
-			{
-				LOG_ERROR("Client Not Connected.\n");
-			}
-		}
+  // this will block the tracking thread until we're ready
+  this->UpdateMutex->Lock();
 
-		// start the tracking thread
-		if (!(this->Tracking && !tracking && this->ThreadId == -1))
-		{
-      LOG_ERROR("Cannot start the tracking thread");
-			return PLUS_FAIL;
-		}
+  // start the tracking thread
+  this->ThreadId = this->Threader->SpawnThread((vtkThreadFunctionType)\
+    &vtkTrackerThread,this);
+  this->LastUpdateTime = this->UpdateTime.GetMTime();
 
-		// this will block the tracking thread until we're ready
-		this->UpdateMutex->Lock();
+  // allow the tracking thread to proceed
+  this->UpdateMutex->Unlock();
 
-		// start the tracking thread
-		this->ThreadId = this->Threader->SpawnThread((vtkThreadFunctionType)\
-			&vtkTrackerThread,this);
-		this->LastUpdateTime = this->UpdateTime.GetMTime();
+  // wait until the first update has occurred before returning
+  int timechanged = 0;
 
-		// allow the tracking thread to proceed
-		this->UpdateMutex->Unlock();
-	}
-	// wait until the first update has occurred before returning
-	int timechanged = 0;
-
-	while (!timechanged)
-	{
-		this->RequestUpdateMutex->Lock();
-		this->UpdateMutex->Lock();
-		this->RequestUpdateMutex->Unlock();
-		timechanged = (this->LastUpdateTime != this->UpdateTime.GetMTime());
-		this->UpdateMutex->Unlock();
-		vtkAccurateTimer::Delay(0.1); 
-	}
+  while (!timechanged)
+  {
+    this->RequestUpdateMutex->Lock();
+    this->UpdateMutex->Lock();
+    this->RequestUpdateMutex->Unlock();
+    timechanged = (this->LastUpdateTime != this->UpdateTime.GetMTime());
+    this->UpdateMutex->Unlock();
+    vtkAccurateTimer::Delay(0.1); 
+  }
 
   return PLUS_SUCCESS;
 }
@@ -555,491 +330,199 @@ PlusStatus vtkTracker::StartTracking()
 //----------------------------------------------------------------------------
 PlusStatus vtkTracker::StopTracking()
 {
-	if( !this->ServerMode && this->RemoteAddress ) // client
-	{
-		if(!this->Tracking)
-		{
-      // already stopped
-			return PLUS_SUCCESS;
-		}
-		int slen = 13;
-		char *smsg = "StopTracking";
-		if( this->SocketCommunicator->GetIsConnected()>0)
-		{
-			if ( this->SocketCommunicator->Send(&slen, 1, 1, 11))
-			{
-				if(!this->SocketCommunicator->Send(smsg, slen, 1, 22))
-				{
-					LOG_ERROR("Could not Send the message StopTracking!\n");
-					return PLUS_FAIL;
-				}
-			}
-			else
-			{
-				LOG_ERROR("Could not send the length of  StopTracking!\n");
-				return PLUS_FAIL;
-			}
-			this->Threader->TerminateThread(this->ThreadId);
-			this->ThreadId = -1;
-			int len[1] = {0};
-			if ( this->SocketCommunicator->Receive(len, 1, 1, 11))
-			{
-				char *msg = new char [len[0]];
-				if( !this->SocketCommunicator->Receive(msg, len[0], 1, 22))
-				{
-					LOG_ERROR("Could not receive InternalStopTrackingSuccessful");
-				}
-				else
-				{
-					this->InterpretCommands(msg);//ca2->GetPointer(0));
-				}
-			}
-		}
-		else
-		{
-			LOG_ERROR("Not connected to the Server. \n");
-		}
-		return PLUS_SUCCESS;
-	}
-	// normal and server 
-	if ( this->Tracking && this->ThreadId != -1 )
-	{
-		this->Threader->TerminateThread(this->ThreadId);
-		this->ThreadId = -1;
+  this->Threader->TerminateThread(this->ThreadId);
+  this->ThreadId = -1;
 
-		this->InternalStopTracking();
-		this->Tracking = 0;
-		if(this->ServerMode)
-		{
-			if(this->SocketCommunicator->GetIsConnected()<=0)
-			{
-				LOG_ERROR("Client not Connected\n");
-				return PLUS_FAIL;
-			}
-			int len = 31;
-			if(this->SocketCommunicator->Send(&len, 1, 1, 11))
-			{
-				char *msg = "InternalStopTrackingSuccessful";
-				if(!this->SocketCommunicator->Send(msg, 31, 1, 22))
-				{
-					LOG_ERROR("Could not send InternalStopTrackingSuccessful\n");
-					return PLUS_FAIL;
-				}
-			}
-			else
-			{
-				LOG_ERROR("Could not send length\n");
-				return PLUS_FAIL;
-			}
-		}
-	}
+  if ( this->InternalStopTracking() != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to stop tracking thread!"); 
+    return PLUS_FAIL; 
+  }
+
+  this->Tracking = 0;
 
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkTracker::Update()
-{
-	if (!this->Tracking)
-	{ 
-    LOG_ERROR("Cannot update, tracking is not active");
-		return PLUS_FAIL; 
-	}
-
-	for (int tool = 0; tool < this->NumberOfTools; tool++)
-	{
-		vtkTrackerTool *trackerTool = this->Tools[tool];
-		trackerTool->Update();
-		this->UpdateTimeStamp = trackerTool->GetTimeStamp();
-	}
-
-	this->LastUpdateTime = this->UpdateTime.GetMTime();
-
-  return PLUS_SUCCESS;
-}
-
-//----------------------------------------------------------------------------
-void vtkTracker::SetWorldCalibrationMatrix(vtkMatrix4x4 *vmat)
-{
-	int i, j;
-	for (i = 0; i < 4; i++) 
-	{
-		for (j = 0; j < 4; j++)
-		{
-			if (this->WorldCalibrationMatrix->GetElement(i,j) 
-				!= vmat->GetElement(i,j))
-			{
-				break;
-			}
-		}
-		if (j < 4)
-		{ 
-			break;
-		}
-	}
-
-	if (i < 4 || j < 4) // the matrix is different
-	{
-		this->WorldCalibrationMatrix->DeepCopy(vmat);
-		this->Modified();
-	}
-}
+//PlusStatus vtkTracker::Update()
+//{
+//	if (!this->Tracking)
+//	{ 
+//    LOG_ERROR("Cannot update, tracking is not active");
+//		return PLUS_FAIL; 
+//	}
+//
+//	for (int tool = 0; tool < this->NumberOfTools; tool++)
+//	{
+//		vtkTrackerTool *trackerTool = this->Tools[tool];
+//		trackerTool->Update();
+//		this->UpdateTimeStamp = trackerTool->GetTimeStamp();
+//	}
+//
+//	this->LastUpdateTime = this->UpdateTime.GetMTime();
+//
+//  return PLUS_SUCCESS;
+//}
 
 //----------------------------------------------------------------------------
-vtkMatrix4x4 *vtkTracker::GetWorldCalibrationMatrix()
+PlusStatus vtkTracker::ToolUpdate(int tool, vtkMatrix4x4 *matrix, TrackerStatus status, unsigned long frameNumber, 
+                                  double unfilteredtimestamp, double filteredtimestamp) 
 {
-	return this->WorldCalibrationMatrix;
-}
+  vtkTrackerBuffer *buffer = this->Tools[tool]->GetBuffer();
+  PlusStatus bufferStatus = buffer->AddItem(matrix, status, frameNumber, unfilteredtimestamp, filteredtimestamp);
+  this->GetTool(tool)->SetFrameNumber(frameNumber); 
 
-//----------------------------------------------------------------------------
-void vtkTracker::ToolUpdate(int tool, vtkMatrix4x4 *matrix, long flags, unsigned long frameNumber, 
-							double unfilteredtimestamp, double filteredtimestamp) 
-{
-	vtkTrackerBuffer *buffer = this->Tools[tool]->GetBuffer();
-
-	buffer->Lock();
-	buffer->AddItem(matrix, flags, frameNumber, unfilteredtimestamp, filteredtimestamp);
-	buffer->Unlock();
-
-	this->GetTool(tool)->SetFrameNumber(frameNumber); 
+  return bufferStatus; 
 }
 
 //----------------------------------------------------------------------------
 void vtkTracker::Beep(int n)
 {
-	this->RequestUpdateMutex->Lock();
-	this->UpdateMutex->Lock();
-	this->RequestUpdateMutex->Unlock();
+  this->RequestUpdateMutex->Lock();
+  this->UpdateMutex->Lock();
+  this->RequestUpdateMutex->Unlock();
 
-	this->InternalBeep(n);
+  this->InternalBeep(n);
 
-	this->UpdateMutex->Unlock();
+  this->UpdateMutex->Unlock();
 }
 
 //----------------------------------------------------------------------------
 void vtkTracker::SetToolLED(int tool, int led, int state)
 {
-	this->RequestUpdateMutex->Lock();
-	this->UpdateMutex->Lock();
-	this->RequestUpdateMutex->Unlock();
+  this->RequestUpdateMutex->Lock();
+  this->UpdateMutex->Lock();
+  this->RequestUpdateMutex->Unlock();
 
-	this->InternalSetToolLED(tool, led, state);
+  this->InternalSetToolLED(tool, led, state);
 
-	this->UpdateMutex->Unlock();
+  this->UpdateMutex->Unlock();
 }
 
 //-----------------------------------------------------------------------------
 PlusStatus vtkTracker::Connect()
 {
-	if( this->RemoteAddress && !this->ServerMode )
-	{
-		if( !this->SocketCommunicator->ConnectTo(
-			this->RemoteAddress,this->NetworkPort))
-		{
-			LOG_ERROR("Could not connect to server\n");
-			return PLUS_FAIL; 
-		}
-	}
-	else
-	{
-		LOG_WARNING("Do not need to Call Connect() in Normal Mode");
-	}
-
-	return PLUS_SUCCESS; 
+  return PLUS_SUCCESS; 
 }
 
 //-----------------------------------------------------------------------------
 PlusStatus vtkTracker::Disconnect()
 {
-	if( this->RemoteAddress && !this->ServerMode )
-	{
-		if(this->SocketCommunicator->GetIsConnected()>0)
-		{
-			int len = 12;
-			if (this->SocketCommunicator->Send( &len, 1, 1, 11 ))
-			{
-				char *msg = "Disconnect";
-				if(!this->SocketCommunicator->Send( msg, len, 1, 22))
-				{
-					LOG_ERROR("Could not receive message text");
-					return PLUS_FAIL;
-				}
-			}
-			else
-			{
-				LOG_ERROR("Not Connected to server.");
-			}
-		}
-	}
-	else
-	{
-		LOG_ERROR("Disconnect can be called from Client Tracker only !");
-	}
   return PLUS_SUCCESS;
-}
-
-//-----------------------------------------------------------------------------
-void vtkTracker::StartServer()
-{
-	while (1)
-	{ 
-		if(this->SocketCommunicator->GetIsConnected())
-		{
-      LOG_DEBUG("Communicator disconnected");
-			return;
-		}
-		if(this->SocketCommunicator->WaitForConnection(this->NetworkPort))
-		{
-			this->ClientConnected = 1;
-			while( this->ClientConnected )
-			{
-				int len[1] = {0};
-				if (this->SocketCommunicator->Receive( len, 1, 1, 11 ))
-				{
-					int msglen = static_cast<int>(len[0]);
-					char *msg = new char [msglen];
-					if(this->SocketCommunicator->Receive( msg, msglen, 1, 22))
-					{
-						this->InterpretCommands( msg );
-					}
-					else
-					{
-						LOG_ERROR("Could not receive message text\n");
-						return;
-					}
-				}
-				else
-				{
-					LOG_ERROR("Could not receive length.");
-					return;
-				}
-			}
-		}
-	}
-}
-
-//-----------------------------------------------------------------------------
-void vtkTracker::InterpretCommands( char *messageText )
-{
-	if(!messageText)
-	{
-		return;
-	}
-	if( !strcmp(messageText, "StartTracking" ))
-	{
-		this->StartTracking();
-		return ;
-	}
-	if( !strcmp(messageText, "StopTracking" ))
-	{
-		this->StopTracking();
-		return ;
-	}
-	if( !strcmp(messageText, "Probe" ))
-	{
-		this->Probe();
-		return ;
-	}
-	if( !strcmp(messageText, "Update" ))
-	{
-		this->Update();
-		return ;
-	}
-	if( !strcmp(messageText, "Disconnect" ))
-	{
-		this->ClientConnected = 0;
-		this->SocketCommunicator->CloseConnection();
-		return ;
-	}
-
-	this->InternalInterpretCommand( messageText );
-}
-
-//-----------------------------------------------------------------------------
-void vtkTracker::ConvertMessageToBuffer( double *da, 
-										double *vals, vtkMatrix4x4 *matrix )
-{
-	double elements[16];
-	vals[0] = da[0];
-	vals[1] = da[1];
-	vals[2] = da[2];
-	for( int i= 0; i<16; i++)
-	{
-		elements[i]=da[i+3];
-	}
-	matrix->DeepCopy(elements);
-}
-
-//-----------------------------------------------------------------------------
-void vtkTracker::ConvertBufferToMessage( int tool, vtkMatrix4x4 *matrix, 
-										long flags, double ts,
-										double *msg )
-{
-	if(!msg)
-	{
-		msg = new double[19];
-	}
-	msg[0] = static_cast<double>(tool);
-	msg[1] = static_cast<double>(flags);
-	msg[2] = ts;
-	int k = 3;
-	for( int i = 0; i < 4; i++)
-	{
-		for( int j =0; j < 4; j++)
-		{
-			msg[k++] = matrix->GetElement(i,j);
-		}
-	}
-}
-
-//-----------------------------------------------------------------------------
-void vtkTracker::ServerToolUpdate( int tool, 
-								  vtkMatrix4x4 *matrix, 
-								  long flags, double ufts, double fts )
-{
-	if(!this->ServerMode )
-	{
-		unsigned long frameNum = this->GetTool(tool)->GetFrameNumber() + 1; 
-		this->ToolUpdate( tool, matrix, flags, frameNum, ufts, fts );
-	}
-}
-
-//-----------------------------------------------------------------------------
-void vtkTracker::Lock()
-{
-	for ( int i = 0; i < this->NumberOfTools; i++ )
-	{
-		this->Tools[i]->GetBuffer()->Lock();
-	}
-}
-
-//-----------------------------------------------------------------------------
-void vtkTracker::Unlock()
-{
-	for ( int i = 0; i < this->NumberOfTools; i++ )
-	{
-		this->Tools[i]->GetBuffer()->Unlock();
-	}
 }
 
 //-----------------------------------------------------------------------------
 void vtkTracker::DeepCopy(vtkTracker *tracker)
 {
-	LOG_TRACE("vtkTracker::DeepCopy"); 
-	this->SetNumberOfTools( tracker->GetNumberOfTools() ); 
-	this->SetTrackerCalibrated( tracker->GetTrackerCalibrated() ); 
-    
-	tracker->Lock(); 
-	this->Lock(); 
-	for ( int i = 0; i < this->NumberOfTools; i++ )
-	{
-		LOG_DEBUG("Copy the buffer of tracker tool: " << i ); 
-		this->Tools[i]->DeepCopy( tracker->GetTool(i) );
-	}
-	this->Unlock(); 
-	tracker->Unlock(); 
-	
-	this->WorldCalibrationMatrix->DeepCopy( tracker->GetWorldCalibrationMatrix() ); 
-	this->InternalUpdateRate = tracker->GetInternalUpdateRate();
-	this->SetFrequency(tracker->GetFrequency()); 
-    this->SetServerMode(tracker->GetServerMode()); 
-    this->SetNetworkPort(tracker->GetNetworkPort()); 
-    this->SetRemoteAddress(tracker->GetRemoteAddress()); 
-    this->SetTrackerCalibrated(tracker->GetTrackerCalibrated()); 
-    this->Timer->DeepCopy( tracker->Timer ); 
-    this->SetConfigurationData( tracker->GetConfigurationData() ); 
-    this->SetReferenceToolName( tracker->GetReferenceToolName() ); 
-    this->SetDefaultToolName( tracker->GetDefaultToolName() ); 
+  LOG_TRACE("vtkTracker::DeepCopy"); 
+  this->SetNumberOfTools( tracker->GetNumberOfTools() ); 
+  this->SetTrackerCalibrated( tracker->GetTrackerCalibrated() ); 
+
+  for ( int i = 0; i < this->NumberOfTools; i++ )
+  {
+    LOG_DEBUG("Copy the buffer of tracker tool: " << i ); 
+    this->Tools[i]->DeepCopy( tracker->GetTool(i) );
+  }
+
+  this->WorldCalibrationMatrix->DeepCopy( tracker->GetWorldCalibrationMatrix() ); 
+  this->InternalUpdateRate = tracker->GetInternalUpdateRate();
+  this->SetFrequency(tracker->GetFrequency()); 
+  this->SetTrackerCalibrated(tracker->GetTrackerCalibrated()); 
+  this->Timer->DeepCopy( tracker->Timer ); 
+  this->SetConfigurationData( tracker->GetConfigurationData() ); 
+  this->SetReferenceToolName( tracker->GetReferenceToolName() ); 
+  this->SetDefaultToolName( tracker->GetDefaultToolName() ); 
 }
 
 
 //-----------------------------------------------------------------------------
 PlusStatus vtkTracker::ReadConfiguration(vtkXMLDataElement* config)
 {
-	LOG_TRACE("vtkTracker::ReadConfiguration"); 
-	if ( config == NULL )
-	{
-		LOG_ERROR("Unable to configure tracker! (XML data element is NULL)"); 
-		return PLUS_FAIL; 
-	}
+  LOG_TRACE("vtkTracker::ReadConfiguration"); 
+  if ( config == NULL )
+  {
+    LOG_ERROR("Unable to configure tracker! (XML data element is NULL)"); 
+    return PLUS_FAIL; 
+  }
 
-	if ( this->ConfigurationData == NULL ) 
-	{
-		this->ConfigurationData = vtkXMLDataElement::New(); 
-	}
+  if ( this->ConfigurationData == NULL ) 
+  {
+    this->ConfigurationData = vtkXMLDataElement::New(); 
+  }
 
-	// Save config data
-	this->ConfigurationData->DeepCopy(config);
+  // Save config data
+  this->ConfigurationData->DeepCopy(config);
 
-	int bufferSize = 0; 
-	if ( config->GetScalarAttribute("BufferSize", bufferSize) ) 
-	{
-		for ( int i = 0; i < this->GetNumberOfTools(); i++)
-		{
-			this->GetTool(i)->GetBuffer()->SetBufferSize( bufferSize ); 
-		}
-	}
+  int bufferSize = 0; 
+  if ( config->GetScalarAttribute("BufferSize", bufferSize) ) 
+  {
+    for ( int i = 0; i < this->GetNumberOfTools(); i++)
+    {
+      this->GetTool(i)->GetBuffer()->SetBufferSize( bufferSize ); 
+    }
+  }
 
-	double frequency = 0; 
-	if ( config->GetScalarAttribute("Frequency", frequency) ) 
-	{
-		this->SetFrequency(frequency);  
-	}
+  double frequency = 0; 
+  if ( config->GetScalarAttribute("Frequency", frequency) ) 
+  {
+    this->SetFrequency(frequency);  
+  }
 
-	double localTimeOffset = 0; 
-	if ( config->GetScalarAttribute("LocalTimeOffset", localTimeOffset) )
-	{
-		LOG_INFO("Tracker local time offset: " << 1000*localTimeOffset << "ms" ); 
-		for ( int i = 0; i < this->GetNumberOfTools(); i++)
-		{
-			this->GetTool(i)->GetBuffer()->SetLocalTimeOffset(localTimeOffset);
-		}
-	}
+  double localTimeOffset = 0; 
+  if ( config->GetScalarAttribute("LocalTimeOffset", localTimeOffset) )
+  {
+    LOG_INFO("Tracker local time offset: " << 1000*localTimeOffset << "ms" ); 
+    for ( int i = 0; i < this->GetNumberOfTools(); i++)
+    {
+      this->GetTool(i)->GetBuffer()->SetLocalTimeOffset(localTimeOffset);
+    }
+  }
 
-	const char* referenceToolName = config->GetAttribute("ReferenceToolName"); 
-	if ( referenceToolName != NULL ) 
-	{
-		this->SetReferenceToolName(referenceToolName); 
-	}
+  const char* referenceToolName = config->GetAttribute("ReferenceToolName"); 
+  if ( referenceToolName != NULL ) 
+  {
+    this->SetReferenceToolName(referenceToolName); 
+  }
 
-	const char* defaultToolName = config->GetAttribute("DefaultToolName"); 
-	if ( defaultToolName != NULL ) 
-	{
-		this->SetDefaultToolName(defaultToolName); 
-	}
+  const char* defaultToolName = config->GetAttribute("DefaultToolName"); 
+  if ( defaultToolName != NULL ) 
+  {
+    this->SetDefaultToolName(defaultToolName); 
+  }
 
 
-	// Read tool configurations 
-	for ( int tool = 0; tool < config->GetNumberOfNestedElements(); tool++ )
-	{
-		vtkSmartPointer<vtkXMLDataElement> toolDataElement = config->GetNestedElement(tool); 
-		if ( STRCASECMP(toolDataElement->GetName(), "Tool") != 0 )
-		{
-			// if this is not a Tool element, skip it
-			continue; 
-		}
+  // Read tool configurations 
+  for ( int tool = 0; tool < config->GetNumberOfNestedElements(); tool++ )
+  {
+    vtkSmartPointer<vtkXMLDataElement> toolDataElement = config->GetNestedElement(tool); 
+    if ( STRCASECMP(toolDataElement->GetName(), "Tool") != 0 )
+    {
+      // if this is not a Tool element, skip it
+      continue; 
+    }
 
-		int portNumber(-1); 
-		if ( toolDataElement->GetScalarAttribute("PortNumber", portNumber) )
-		{
-			if ( portNumber < 0 )
-			{
-				LOG_WARNING("Port number should be larger than 0! Current: " << portNumber); 
-			}
+    int portNumber(-1); 
+    if ( toolDataElement->GetScalarAttribute("PortNumber", portNumber) )
+    {
+      if ( portNumber < 0 )
+      {
+        LOG_WARNING("Port number should be larger than 0! Current: " << portNumber); 
+      }
 
-			if (portNumber < this->GetNumberOfTools() )
-			{
-				this->GetTool(portNumber)->ReadConfiguration(toolDataElement); 
-			}
-			else
-			{
-				LOG_WARNING("Unable to read tool data element configuration for port: " << portNumber << " - number of tools are: " << this->GetNumberOfTools() ); 
-			}
-			
-		}
-	}
+      if (portNumber < this->GetNumberOfTools() )
+      {
+        this->GetTool(portNumber)->ReadConfiguration(toolDataElement); 
+      }
+      else
+      {
+        LOG_WARNING("Unable to read tool data element configuration for port: " << portNumber << " - number of tools are: " << this->GetNumberOfTools() ); 
+      }
 
-	// Set reference tool 
+    }
+  }
+
+  // Set reference tool 
 
   return PLUS_SUCCESS; 
 }
@@ -1048,38 +531,38 @@ PlusStatus vtkTracker::ReadConfiguration(vtkXMLDataElement* config)
 //-----------------------------------------------------------------------------
 int vtkTracker::GetToolPortByName( const char* toolName)
 {
-	if ( toolName != NULL )
-	{
-		for ( int tool = 0; tool < this->GetNumberOfTools(); tool++ )
-		{
-			if ( STRCASECMP( toolName, this->GetTool(tool)->GetToolName() ) == 0 )
-			{
-				return tool;
-			}
-		}
-	}
+  if ( toolName != NULL )
+  {
+    for ( int tool = 0; tool < this->GetNumberOfTools(); tool++ )
+    {
+      if ( STRCASECMP( toolName, this->GetTool(tool)->GetToolName() ) == 0 )
+      {
+        return tool;
+      }
+    }
+  }
 
-	return -1; 
+  return -1; 
 }
 
 
 //------------------------------------------------------------------------------
 int vtkTracker::GetDefaultTool()
 {
-	int toolPort = this->GetToolPortByName(this->GetDefaultToolName()); 
+  int toolPort = this->GetToolPortByName(this->GetDefaultToolName()); 
 
-	if ( toolPort < 0 )
-	{
-		LOG_ERROR("Unable to find default tool port number! Please set default tool name in the configuration file!" ); 
-	}
-	
-	return toolPort; 
+  if ( toolPort < 0 )
+  {
+    LOG_ERROR("Unable to find default tool port number! Please set default tool name in the configuration file!" ); 
+  }
+
+  return toolPort; 
 }
 
 //-----------------------------------------------------------------------------
 int vtkTracker::GetReferenceTool()
 {
-	return this->GetToolPortByName(this->GetReferenceToolName()); 
+  return this->GetToolPortByName(this->GetReferenceToolName()); 
 }
 
 //-----------------------------------------------------------------------------
@@ -1090,83 +573,86 @@ PlusStatus vtkTracker::WriteConfiguration(vtkXMLDataElement* config)
 }
 
 //----------------------------------------------------------------------------
-std::string vtkTracker::ConvertFlagToString(long flag)
+std::string vtkTracker::ConvertTrackerStatusToString(TrackerStatus status)
 {
-	std::ostringstream flagFieldValue; 
-	if ( flag == TR_OK )
-	{
-		flagFieldValue << "OK "; 
-	}
-	else if ( (flag & TR_MISSING) != 0 )
-	{
-		flagFieldValue << "TR_MISSING "; 
-	}
-	else if ( (flag & TR_OUT_OF_VIEW) != 0 )
-	{
-		flagFieldValue << "TR_OUT_OF_VIEW "; 
-	}
-	else if ( (flag & TR_OUT_OF_VOLUME) != 0 )
-	{
-		flagFieldValue << "TR_OUT_OF_VOLUME "; 
-	}
-	else if ( (flag & TR_REQ_TIMEOUT) != 0 )
-	{
-		flagFieldValue << "TR_REQ_TIMEOUT "; 
-	}
+  std::ostringstream flagFieldValue; 
+  if ( status == TR_OK )
+  {
+    flagFieldValue << "OK "; 
+  }
+  else if ( status == TR_MISSING != 0 )
+  {
+    flagFieldValue << "TR_MISSING "; 
+  }
+  else if ( status == TR_OUT_OF_VIEW != 0 )
+  {
+    flagFieldValue << "TR_OUT_OF_VIEW "; 
+  }
+  else if ( status == TR_OUT_OF_VOLUME != 0 )
+  {
+    flagFieldValue << "TR_OUT_OF_VOLUME "; 
+  }
+  else if ( status == TR_REQ_TIMEOUT != 0 )
+  {
+    flagFieldValue << "TR_REQ_TIMEOUT "; 
+  }
+  else
+  { 
+    LOG_WARNING("Unknown tracker status received - set TR_MISSING by default!"); 
+    flagFieldValue << "TR_MISSING "; 
+  }
 
-	return flagFieldValue.str(); 
+  return flagFieldValue.str(); 
 }
 
 //----------------------------------------------------------------------------
-void vtkTracker::GetTrackerToolBufferStringList(const double timestamp,
-												std::map<std::string, std::string> &toolsBufferMatrices, 
-												std::map<std::string, std::string> &toolsCalibrationMatrices, 
-												std::map<std::string, std::string> &toolsStatuses,
-												bool calibratedTransform /*= false*/)
+PlusStatus vtkTracker::GetTrackerToolBufferStringList(double timestamp,
+                                                      std::map<std::string, std::string> &toolsBufferMatrices, 
+                                                      std::map<std::string, std::string> &toolsCalibrationMatrices, 
+                                                      std::map<std::string, std::string> &toolsStatuses,
+                                                      bool calibratedTransform /*= false*/)
 {
-	toolsBufferMatrices.clear();  
-	toolsCalibrationMatrices.clear();  
-	toolsStatuses.clear(); 
+  toolsBufferMatrices.clear();  
+  toolsCalibrationMatrices.clear();  
+  toolsStatuses.clear(); 
 
-	this->Lock(); 
-	for ( int tool = 0; tool < this->GetNumberOfTools(); tool++ )
-	{
-		if ( this->GetTool(tool)->GetEnabled() )
-		{
-			vtkSmartPointer<vtkMatrix4x4> toolMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
-			long toolFlags(0); 
-			if ( calibratedTransform )
-			{
-				this->GetTool(tool)->GetBuffer()->GetFlagsAndCalibratedMatrixFromTime(toolMatrix, timestamp); 
-			}
-			else
-			{
-				this->GetTool(tool)->GetBuffer()->GetFlagsAndMatrixFromTime(toolMatrix, timestamp); 
-			}
+  for ( int tool = 0; tool < this->GetNumberOfTools(); tool++ )
+  {
+    if ( this->GetTool(tool)->GetEnabled() )
+    {
+      vtkSmartPointer<vtkMatrix4x4> toolMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
+      TrackerStatus trackerStatus = TR_OK; 
+  
+      TrackerBufferItem bufferItem; 
+      if ( this->GetTool(tool)->GetBuffer()->GetTrackerBufferItemFromTime(timestamp, &bufferItem, calibratedTransform ) != ITEM_OK )
+      {
+        LOG_ERROR("Failed to get tracker item from buffer by time: " << std::fixed << timestamp); 
+        return PLUS_FAIL; 
+      }
 
-			double dMatrix[16]; 
-			vtkMatrix4x4::DeepCopy(dMatrix, toolMatrix); 
-			std::ostringstream strToolTransform; 
-			for ( int i = 0; i < 16; ++i )
-			{
-				strToolTransform << dMatrix[i] << " ";
-			}
+      vtkMatrix4x4* dMatrix = bufferItem.GetMatrix(); 
+      std::ostringstream strToolTransform; 
+      for ( int i = 0; i < 16; ++i )
+      {
+        strToolTransform << dMatrix[i] << " ";
+      }
 
-			vtkMatrix4x4* toolCalibrationMatrix = this->GetTool(tool)->GetCalibrationMatrix(); 
-			double dCalibMatrix[16]; 
-			vtkMatrix4x4::DeepCopy(dCalibMatrix, toolCalibrationMatrix); 
-			std::ostringstream strToolCalibMatrix; 
-			for ( int i = 0; i < 16; ++i )
-			{
-				strToolCalibMatrix << dCalibMatrix[i] << " ";
-			}
+      vtkMatrix4x4* toolCalibrationMatrix = this->GetTool(tool)->GetCalibrationMatrix(); 
+      double dCalibMatrix[16]; 
+      vtkMatrix4x4::DeepCopy(dCalibMatrix, toolCalibrationMatrix); 
+      std::ostringstream strToolCalibMatrix; 
+      for ( int i = 0; i < 16; ++i )
+      {
+        strToolCalibMatrix << dCalibMatrix[i] << " ";
+      }
 
-			toolsBufferMatrices[ this->GetTool(tool)->GetToolName() ] = strToolTransform.str(); 
-			toolsCalibrationMatrices[ this->GetTool(tool)->GetCalibrationMatrixName() ] = strToolCalibMatrix.str(); 
-			toolsStatuses[ this->GetTool(tool)->GetToolName() ] = vtkTracker::ConvertFlagToString(toolFlags); 
-		}
-	}
-	this->Unlock(); 
+      toolsBufferMatrices[ this->GetTool(tool)->GetToolName() ] = strToolTransform.str(); 
+      toolsCalibrationMatrices[ this->GetTool(tool)->GetCalibrationMatrixName() ] = strToolCalibMatrix.str(); 
+      toolsStatuses[ this->GetTool(tool)->GetToolName() ] = vtkTracker::ConvertTrackerStatusToString( bufferItem.GetStatus() ); 
+    }
+  }
+
+  return PLUS_SUCCESS; 
 }
 
 
@@ -1174,38 +660,38 @@ void vtkTracker::GetTrackerToolBufferStringList(const double timestamp,
 void vtkTracker::GenerateTrackingDataAcquisitionReport( vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter, const char* gnuplotScriptsFolder)
 {
 #ifdef PLUS_PRINT_TRACKER_TIMESTAMP_DEBUG_INFO
-	if ( htmlReport == NULL || plotter == NULL )
-	{
-		LOG_ERROR("Caller should define HTML report generator and gnuplot plotter before report generation!"); 
-		return; 
-	}
+  if ( htmlReport == NULL || plotter == NULL )
+  {
+    LOG_ERROR("Caller should define HTML report generator and gnuplot plotter before report generation!"); 
+    return; 
+  }
 
-	std::string reportFile = vtksys::SystemTools::GetCurrentWorkingDirectory() + std::string("/TrackerBufferTimestamps.txt"); 
-	
-	if ( !vtksys::SystemTools::FileExists( reportFile.c_str(), true) )
-	{
-		LOG_ERROR("Unable to find tracking data acquisition report file at: " << reportFile); 
-		return; 
-	}
-	
-	std::string plotBufferTimestampScript = gnuplotScriptsFolder + std::string("/PlotBufferTimestamp.gnu"); 
-	if ( !vtksys::SystemTools::FileExists( plotBufferTimestampScript.c_str(), true) )
-	{
-		LOG_ERROR("Unable to find gnuplot script at: " << plotBufferTimestampScript); 
-		return; 
-	}
+  std::string reportFile = vtksys::SystemTools::GetCurrentWorkingDirectory() + std::string("/TrackerBufferTimestamps.txt"); 
 
-	htmlReport->AddText("Tracking Data Acquisition Analysis", vtkHTMLGenerator::H1); 
-	plotter->ClearArguments(); 
-	plotter->AddArgument("-e");
-	std::ostringstream trackerBufferAnalysis; 
-	trackerBufferAnalysis << "f='" << reportFile << "'; o='TrackerBufferTimestamps';" << std::ends; 
-	plotter->AddArgument(trackerBufferAnalysis.str().c_str()); 
-	plotter->AddArgument(plotBufferTimestampScript.c_str());  
-	plotter->Execute(); 
-	htmlReport->AddImage("TrackerBufferTimestamps.jpg", "Tracking Data Acquisition Analysis"); 
-	
-	htmlReport->AddHorizontalLine(); 
+  if ( !vtksys::SystemTools::FileExists( reportFile.c_str(), true) )
+  {
+    LOG_ERROR("Unable to find tracking data acquisition report file at: " << reportFile); 
+    return; 
+  }
+
+  std::string plotBufferTimestampScript = gnuplotScriptsFolder + std::string("/PlotBufferTimestamp.gnu"); 
+  if ( !vtksys::SystemTools::FileExists( plotBufferTimestampScript.c_str(), true) )
+  {
+    LOG_ERROR("Unable to find gnuplot script at: " << plotBufferTimestampScript); 
+    return; 
+  }
+
+  htmlReport->AddText("Tracking Data Acquisition Analysis", vtkHTMLGenerator::H1); 
+  plotter->ClearArguments(); 
+  plotter->AddArgument("-e");
+  std::ostringstream trackerBufferAnalysis; 
+  trackerBufferAnalysis << "f='" << reportFile << "'; o='TrackerBufferTimestamps';" << std::ends; 
+  plotter->AddArgument(trackerBufferAnalysis.str().c_str()); 
+  plotter->AddArgument(plotBufferTimestampScript.c_str());  
+  plotter->Execute(); 
+  htmlReport->AddImage("TrackerBufferTimestamps.jpg", "Tracking Data Acquisition Analysis"); 
+
+  htmlReport->AddHorizontalLine(); 
 
 #endif
 }

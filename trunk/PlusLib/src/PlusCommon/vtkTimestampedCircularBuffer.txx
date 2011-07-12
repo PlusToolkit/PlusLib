@@ -68,7 +68,7 @@ void vtkTimestampedCircularBuffer<BufferItemType>::Unlock()
 
 //----------------------------------------------------------------------------
 template<class BufferItemType>
-PlusStatus vtkTimestampedCircularBuffer<BufferItemType>::PrepareForNewFrame(const double timestamp, BufferItemUidType& newFrameUid, int& bufferIndex)
+PlusStatus vtkTimestampedCircularBuffer<BufferItemType>::PrepareForNewItem(const double timestamp, BufferItemUidType& newFrameUid, int& bufferIndex)
 {
 	if ( timestamp <= this->CurrentTimeStamp )
 	{

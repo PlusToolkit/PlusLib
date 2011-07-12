@@ -91,7 +91,6 @@ public:
   
 	
 	vtkSmartPointer< vtkTransform > GetImageToToolTransform();
-	vtkSmartPointer< vtkTransform > GetImageToReferenceTransform( int slice );
   
   
 protected: 

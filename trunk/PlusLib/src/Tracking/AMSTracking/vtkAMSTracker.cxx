@@ -46,10 +46,6 @@ vtkAMSTracker::vtkAMSTracker()
 
 	this->Frequency = 50; 
 
-	this->ProbeHomeToProbeTransform = vtkTransform::New(); 
-	this->TemplateHomeToTemplateTransform = vtkTransform::New();
-	this->RawEncoderValuesTransform = vtkTransform::New();
-
 	// Stepper calibration parameters
 	this->SetProbeTranslationAxisOrientation(0,0,1); 
 	this->SetTemplateTranslationAxisOrientation(0,0,1); 
@@ -68,24 +64,6 @@ vtkAMSTracker::~vtkAMSTracker()
 	if (this->Version)
 	{
 		delete [] this->Version;
-	}
-
-	if ( this->ProbeHomeToProbeTransform != NULL )
-	{
-		this->ProbeHomeToProbeTransform->Delete(); 
-		this->ProbeHomeToProbeTransform = NULL; 
-	}
-
-	if ( this->TemplateHomeToTemplateTransform != NULL )
-	{
-		this->TemplateHomeToTemplateTransform->Delete(); 
-		this->TemplateHomeToTemplateTransform = NULL; 
-	}
-
-	if ( this->RawEncoderValuesTransform != NULL ) 
-	{
-		this->RawEncoderValuesTransform->Delete(); 
-		this->RawEncoderValuesTransform = NULL; 
 	}
 }
 
@@ -167,7 +145,7 @@ PlusStatus vtkAMSTracker::InternalStopTracking()
 //----------------------------------------------------------------------------
 PlusStatus vtkAMSTracker::InternalUpdate()
 {
-	long flags=0;
+	TrackerStatus status = TR_OK;
 
 	if (!this->Tracking)
 	{
@@ -182,7 +160,7 @@ PlusStatus vtkAMSTracker::InternalUpdate()
 	{
 		LOG_DEBUG("Tracker request timeout..."); 
 		// Unable to get tracking information from tracker
-		flags = TR_REQ_TIMEOUT; 
+		status = TR_REQ_TIMEOUT; 
 	}
 
 	// Create timestamp 
@@ -196,8 +174,8 @@ PlusStatus vtkAMSTracker::InternalUpdate()
 	probePosition->SetElement(ROW_PROBE_POSITION, 3, dProbePosition); 
 	probePosition->SetElement(ROW_PROBE_ROTATION, 3, dProbeRotation); 
 	probePosition->SetElement(ROW_TEMPLATE_POSITION, 3, dTemplatePosition); 
-	// send the transformation matrix and flags to the tool
-	this->ToolUpdate(RAW_ENCODER_VALUES, probePosition, flags, frameNum, unfilteredtimestamp, filteredtimestamp);   
+	// send the transformation matrix and status to the tool
+	this->ToolUpdate(RAW_ENCODER_VALUES, probePosition, status, frameNum, unfilteredtimestamp, filteredtimestamp);   
 
 	// Save template home to template transform
 	vtkSmartPointer<vtkTransform> tTemplateHomeToTemplate = vtkSmartPointer<vtkTransform>::New(); 
@@ -205,8 +183,8 @@ PlusStatus vtkAMSTracker::InternalUpdate()
 	this->GetTemplateTranslationAxisOrientation(templateTranslationAxisVector); 
 	vtkMath::MultiplyScalar(templateTranslationAxisVector, dTemplatePosition); 
 	tTemplateHomeToTemplate->Translate(templateTranslationAxisVector); 
-	// send the transformation matrix and flags to the tool
-	this->ToolUpdate(TEMPLATEHOME_TO_TEMPLATE_TRANSFORM, tTemplateHomeToTemplate->GetMatrix(), flags, frameNum, unfilteredtimestamp, filteredtimestamp);   
+	// send the transformation matrix and status to the tool
+	this->ToolUpdate(TEMPLATEHOME_TO_TEMPLATE_TRANSFORM, tTemplateHomeToTemplate->GetMatrix(), status, frameNum, unfilteredtimestamp, filteredtimestamp);   
 
 	// Save probehome to probe transform
 	vtkSmartPointer<vtkTransform> tProbeHomeToProbe = vtkSmartPointer<vtkTransform>::New(); 
@@ -225,8 +203,8 @@ PlusStatus vtkAMSTracker::InternalUpdate()
 	tProbeHomeToProbe->RotateZ(compensatedProbeRotation);
 	// Translate back the probe to the original position
 	tProbeHomeToProbe->Translate(-probeRotationVector[0], -probeRotationVector[1], probeRotationVector[2]); 
-	// send the transformation matrix and flags to the tool
-	this->ToolUpdate(PROBEHOME_TO_PROBE_TRANSFORM, tProbeHomeToProbe->GetMatrix(), flags, frameNum, unfilteredtimestamp, filteredtimestamp);   
+	// send the transformation matrix and status to the tool
+	this->ToolUpdate(PROBEHOME_TO_PROBE_TRANSFORM, tProbeHomeToProbe->GetMatrix(), status, frameNum, unfilteredtimestamp, filteredtimestamp);   
 
   return PLUS_SUCCESS;
 }
@@ -444,7 +422,7 @@ PlusStatus vtkAMSTracker::CalibrateStepper( std::string &calibMsg )
 }
 
 //----------------------------------------------------------------------------
-void vtkAMSTracker::GetTrackerToolBufferStringList(const double timestamp, 
+PlusStatus vtkAMSTracker::GetTrackerToolBufferStringList(double timestamp, 
 												   std::map<std::string, std::string> &toolsBufferMatrices, 
 												   std::map<std::string, std::string> &toolsCalibrationMatrices, 
 												   std::map<std::string, std::string> &toolsStatuses,
@@ -455,102 +433,119 @@ void vtkAMSTracker::GetTrackerToolBufferStringList(const double timestamp,
 	toolsStatuses.clear(); 
 
 	// PROBEHOME_TO_PROBE_TRANSFORM
-	long probehome2probeFlags(TR_OK); 
-	double probehome2probeMatrix[16]; 
-	vtkMatrix4x4::DeepCopy(probehome2probeMatrix, this->GetProbeHomeToProbeTransform(timestamp, probehome2probeFlags, calibratedTransform)->GetMatrix()); 
+	TrackerStatus probehome2probeStatus = TR_OK; 
+  vtkSmartPointer<vtkMatrix4x4> probehome2probeMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
+  if ( this->GetProbeHomeToProbeTransform(timestamp, probehome2probeMatrix, probehome2probeStatus, calibratedTransform) != PLUS_SUCCESS )
+  { 
+    LOG_ERROR("Failed to get probe home to probe transform from buffer!"); 
+    return PLUS_FAIL; 
+  }
+
 	std::ostringstream strProbeHomeToProbeTransform; 
 	for ( int i = 0; i < 16; ++i )
 	{
 		strProbeHomeToProbeTransform << probehome2probeMatrix[i] << " ";
 	}
 	toolsBufferMatrices[ this->GetTool(PROBEHOME_TO_PROBE_TRANSFORM)->GetToolName() ] = strProbeHomeToProbeTransform.str(); 
-	toolsStatuses[ this->GetTool(PROBEHOME_TO_PROBE_TRANSFORM)->GetToolName() ] = vtkTracker::ConvertFlagToString(probehome2probeFlags); 
+	toolsStatuses[ this->GetTool(PROBEHOME_TO_PROBE_TRANSFORM)->GetToolName() ] = vtkTracker::ConvertTrackerStatusToString(probehome2probeStatus); 
 
 	// TEMPLATEHOME_TO_TEMPLATE_TRANSFORM
-	long templhome2templFlags(TR_OK); 
-	double templhome2templMatrix[16]; 
-	vtkMatrix4x4::DeepCopy(templhome2templMatrix, this->GetTemplateHomeToTemplateTransform(timestamp, templhome2templFlags, calibratedTransform)->GetMatrix()); 
+	TrackerStatus templhome2templStatus = TR_OK; 
+  vtkSmartPointer<vtkMatrix4x4> templhome2templMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+  if ( this->GetTemplateHomeToTemplateTransform(timestamp, templhome2templMatrix, templhome2templStatus, calibratedTransform) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to get template home to template transform from buffer!"); 
+    return PLUS_FAIL; 
+  }
+
 	std::ostringstream strTemplHomeToTemplTransform; 
 	for ( int i = 0; i < 16; ++i )
 	{
 		strTemplHomeToTemplTransform << templhome2templMatrix[i] << " ";
 	}
 	toolsBufferMatrices[ this->GetTool(TEMPLATEHOME_TO_TEMPLATE_TRANSFORM)->GetToolName() ] = strTemplHomeToTemplTransform.str(); 
-	toolsStatuses[ this->GetTool(TEMPLATEHOME_TO_TEMPLATE_TRANSFORM)->GetToolName() ] = vtkTracker::ConvertFlagToString(templhome2templFlags); 
+	toolsStatuses[ this->GetTool(TEMPLATEHOME_TO_TEMPLATE_TRANSFORM)->GetToolName() ] = vtkTracker::ConvertTrackerStatusToString(templhome2templStatus); 
 
 	// RAW_ENCODER_VALUES
-	long rawEncoderValuesFlags(TR_OK); 
-	double rawEncoderValuesMatrix[16]; 
-	vtkMatrix4x4::DeepCopy(rawEncoderValuesMatrix, this->GetRawEncoderValuesTransform(timestamp, rawEncoderValuesFlags)->GetMatrix()); 
+	TrackerStatus rawEncoderValuesStatus = TR_OK; 
+  vtkSmartPointer<vtkMatrix4x4> rawEncoderValuesMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
+	if ( this->GetRawEncoderValuesTransform(timestamp, rawEncoderValuesMatrix, rawEncoderValuesStatus)  != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to get raw encoder values from buffer!"); 
+    return PLUS_FAIL; 
+  }
+
 	std::ostringstream strRawEncoderValuesTransform; 
 	for ( int i = 0; i < 16; ++i )
 	{
 		strRawEncoderValuesTransform << rawEncoderValuesMatrix[i] << " ";
 	}
 	toolsBufferMatrices[ this->GetTool(RAW_ENCODER_VALUES)->GetToolName() ] = strRawEncoderValuesTransform.str(); 
-	toolsStatuses[ this->GetTool(RAW_ENCODER_VALUES)->GetToolName() ] = vtkTracker::ConvertFlagToString(rawEncoderValuesFlags); 
+	toolsStatuses[ this->GetTool(RAW_ENCODER_VALUES)->GetToolName() ] = vtkTracker::ConvertTrackerStatusToString(rawEncoderValuesStatus); 
 	
 	// Get value for PROBE_POSITION, PROBE_ROTATION, TEMPLATE_POSITION tools
-	long encoderflags(TR_OK); 
+	TrackerStatus encoderStatus = TR_OK; 
 	double probePos(0), probeRot(0), templatePos(0); 
-	this->GetStepperEncoderValues(timestamp, probePos, probeRot, templatePos, encoderflags); 
+	if ( this->GetStepperEncoderValues(timestamp, probePos, probeRot, templatePos, encoderStatus) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to get stepper encoder values!"); 
+    return PLUS_FAIL; 
+  }
 	
 	// PROBE_POSITION
 	std::ostringstream strProbePos; 
 	strProbePos << probePos; 
 	toolsBufferMatrices[ "ProbePosition" ] = strProbePos.str(); 
-	toolsStatuses[ "ProbePosition" ] = vtkTracker::ConvertFlagToString(encoderflags); 
+	toolsStatuses[ "ProbePosition" ] = vtkTracker::ConvertTrackerStatusToString(encoderStatus); 
 
 	// PROBE_ROTATION
 	std::ostringstream strProbeRot; 
 	strProbeRot << probeRot; 
 	toolsBufferMatrices[ "ProbeRotation" ] = strProbeRot.str(); 
-	toolsStatuses[ "ProbeRotation" ] = vtkTracker::ConvertFlagToString(encoderflags); 
+	toolsStatuses[ "ProbeRotation" ] = vtkTracker::ConvertTrackerStatusToString(encoderStatus); 
 
 	// TEMPLATE_POSITION
 	std::ostringstream strTemplatePos; 
 	strTemplatePos << templatePos; 
 	toolsBufferMatrices[ "TemplatePosition" ] = strTemplatePos.str(); 
-	toolsStatuses[ "TemplatePosition" ] = vtkTracker::ConvertFlagToString(encoderflags); 
+	toolsStatuses[ "TemplatePosition" ] = vtkTracker::ConvertTrackerStatusToString(encoderStatus); 
+
+  return PLUS_SUCCESS; 
 }
 
 //----------------------------------------------------------------------------
-void vtkAMSTracker::GetStepperEncoderValues( int bufferIndex, double &probePosition, double &probeRotation, double &templatePosition, long &flags )
+PlusStatus vtkAMSTracker::GetStepperEncoderValues( BufferItemUidType uid, double &probePosition, double &probeRotation, double &templatePosition, TrackerStatus &status )
 {
-	double timestamp(0); 
+  TrackerBufferItem bufferItem; 
+	if ( this->GetTool(RAW_ENCODER_VALUES)->GetBuffer()->GetTrackerBufferItem(uid, &bufferItem, false) != ITEM_OK )
+  {
+    LOG_ERROR("Failed to get stepper encoder values from buffer by UID: " << uid ); 
+    return PLUS_FAIL; 
+  }
 
-	this->Lock(); 
-	timestamp += this->GetTool(RAW_ENCODER_VALUES)->GetBuffer()->GetTimeStamp(bufferIndex); 
-	this->Unlock();
-
-	this->GetStepperEncoderValues(timestamp, probePosition, probeRotation, templatePosition, flags); 
-}
-
-
-//----------------------------------------------------------------------------
-void vtkAMSTracker::GetStepperEncoderValues( double timestamp, double &probePosition, double &probeRotation, double &templatePosition, long &flags )
-{
-	vtkSmartPointer<vtkMatrix4x4> rawEncValMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
-
-	flags = TR_OK; 
+  probePosition = bufferItem.GetMatrix()->GetElement(ROW_PROBE_POSITION,3); 
+	probeRotation = bufferItem.GetMatrix()->GetElement(ROW_PROBE_ROTATION,3); 
+	templatePosition = bufferItem.GetMatrix()->GetElement(ROW_TEMPLATE_POSITION,3); 
+  status = bufferItem.GetStatus(); 
 	
-	this->Lock(); 
-	int buffIndex = this->GetTool(RAW_ENCODER_VALUES)->GetBuffer()->GetIndexFromTime(timestamp); 
-
-	// Get flags
-	flags += this->GetTool(RAW_ENCODER_VALUES)->GetBuffer()->GetFlags(buffIndex); 
-
-	// Get raw encoder values
-	this->GetTool(RAW_ENCODER_VALUES)->GetBuffer()->GetMatrix(rawEncValMatrix, buffIndex); 
-
-	this->Unlock(); 
-
-	probePosition = rawEncValMatrix->GetElement(ROW_PROBE_POSITION,3); 
-	probeRotation = rawEncValMatrix->GetElement(ROW_PROBE_ROTATION,3); 
-	templatePosition = rawEncValMatrix->GetElement(ROW_TEMPLATE_POSITION,3); 
+  return PLUS_SUCCESS; 
 }
 
+
 //----------------------------------------------------------------------------
+PlusStatus vtkAMSTracker::GetStepperEncoderValues( double timestamp, double &probePosition, double &probeRotation, double &templatePosition, TrackerStatus &status )
+{
+  BufferItemUidType uid(0); 
+  if ( this->GetTool(RAW_ENCODER_VALUES)->GetBuffer()->GetItemUidFromTime(timestamp, uid) != ITEM_OK )
+  {
+    LOG_ERROR("Failed to get stepper encoder values from buffer by time: " << std::fixed << timestamp ); 
+    return PLUS_FAIL; 
+  }
+
+  return this->GetStepperEncoderValues(uid, probePosition, probeRotation, templatePosition, status); 
+}
+
+/*//----------------------------------------------------------------------------
 double vtkAMSTracker::GetProbePosition( int bufferIndex, long &flags)
 {
 	double probePos(0), probeRot(0), templatePos(0); 
@@ -597,150 +592,108 @@ double vtkAMSTracker::GetTemplatePosition( double timestamp, long &flags )
 	this->GetStepperEncoderValues(timestamp, probePos, probeRot, templatePos, flags); 
 	return templatePos;
 }
-
+*/
 //----------------------------------------------------------------------------
-vtkTransform* vtkAMSTracker::GetProbeHomeToProbeTransform( int bufferIndex, long &flags, bool calibratedTransform /*= false*/ )
+PlusStatus vtkAMSTracker::GetProbeHomeToProbeTransform( BufferItemUidType uid, vtkMatrix4x4* probeHomeToProbeMatrix, TrackerStatus &status, bool calibratedTransform /*= false*/ )
 {
-	vtkSmartPointer<vtkMatrix4x4> probeHomeToProbeMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
+  if ( probeHomeToProbeMatrix == NULL )
+  {
+    LOG_ERROR("Failed to get probe home to probe transform - input transform is NULL!"); 
+    return PLUS_FAIL; 
+  }
 
-	vtkTrackerBuffer *trackerBuffer = this->GetTool(PROBEHOME_TO_PROBE_TRANSFORM)->GetBuffer(); 
+  TrackerBufferItem bufferItem; 
+	if ( this->GetTool(PROBEHOME_TO_PROBE_TRANSFORM)->GetBuffer()->GetTrackerBufferItem(uid, &bufferItem, calibratedTransform) != ITEM_OK )
+  {
+    LOG_ERROR("Failed to get probe home to probe transform by UID: " << uid); 
+    return PLUS_FAIL; 
+  }
 
-	trackerBuffer->Lock(); 
+  status = bufferItem.GetStatus(); 
+  probeHomeToProbeMatrix->DeepCopy( bufferItem.GetMatrix() ); 
 
-	flags = trackerBuffer->GetFlags(bufferIndex); 
-	if ( calibratedTransform )
-	{
-		trackerBuffer->GetCalibratedMatrix(probeHomeToProbeMatrix, bufferIndex); 
-	}
-	else
-	{
-		trackerBuffer->GetMatrix(probeHomeToProbeMatrix, bufferIndex); 
-	}
-
-	trackerBuffer->Unlock(); 
-
-	this->ProbeHomeToProbeTransform->SetMatrix( probeHomeToProbeMatrix ); 
-
-	return this->ProbeHomeToProbeTransform; 
+	return PLUS_SUCCESS; 
 }
 
 //----------------------------------------------------------------------------
-vtkTransform* vtkAMSTracker::GetProbeHomeToProbeTransform( double timestamp, long &flags, bool calibratedTransform /*= false*/ )
+PlusStatus vtkAMSTracker::GetProbeHomeToProbeTransform( double timestamp, vtkMatrix4x4* probeHomeToProbeMatrix, TrackerStatus &status, bool calibratedTransform /*= false*/ )
 {
-	vtkSmartPointer<vtkMatrix4x4> probeHomeToProbeMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
+  BufferItemUidType uid(0); 
+  if ( this->GetTool(PROBEHOME_TO_PROBE_TRANSFORM)->GetBuffer()->GetItemUidFromTime(timestamp, uid) != ITEM_OK )
+  {
+    LOG_ERROR("Failed to get probe home to probe transform by timestamp: " << std::fixed << timestamp);
+    PLUS_FAIL; 
+  }
 
-	vtkTrackerBuffer *trackerBuffer = this->GetTool(PROBEHOME_TO_PROBE_TRANSFORM)->GetBuffer(); 
-
-	trackerBuffer->Lock(); 
-
-	int bufferIndex = trackerBuffer->GetIndexFromTime(timestamp); 
-	flags = trackerBuffer->GetFlags(bufferIndex); 
-
-	if ( calibratedTransform )
-	{
-		trackerBuffer->GetCalibratedMatrix(probeHomeToProbeMatrix, bufferIndex); 
-	}
-	else
-	{
-		trackerBuffer->GetMatrix(probeHomeToProbeMatrix, bufferIndex); 
-	}
-
-	trackerBuffer->Unlock(); 
-
-	this->ProbeHomeToProbeTransform->SetMatrix( probeHomeToProbeMatrix ); 
-
-	return this->ProbeHomeToProbeTransform; 
+  return this->GetProbeHomeToProbeTransform(uid, probeHomeToProbeMatrix, status, calibratedTransform); 
 }
 
 //----------------------------------------------------------------------------
-vtkTransform* vtkAMSTracker::GetTemplateHomeToTemplateTransform( int bufferIndex, long &flags, bool calibratedTransform /*= false*/ )
+PlusStatus vtkAMSTracker::GetTemplateHomeToTemplateTransform( BufferItemUidType uid, vtkMatrix4x4* templateHomeToTemplateMatrix, TrackerStatus &status, bool calibratedTransform /*= false*/ )
 {
-	vtkSmartPointer<vtkMatrix4x4> templateHomeToTemplateMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
+  if ( templateHomeToTemplateMatrix == NULL )
+  {
+    LOG_ERROR("Failed to get template home to template transform - input transform is NULL!"); 
+    return PLUS_FAIL; 
+  }
 
-	vtkTrackerBuffer *trackerBuffer = this->GetTool(TEMPLATEHOME_TO_TEMPLATE_TRANSFORM)->GetBuffer(); 
+  TrackerBufferItem bufferItem; 
+	if ( this->GetTool(TEMPLATEHOME_TO_TEMPLATE_TRANSFORM)->GetBuffer()->GetTrackerBufferItem(uid, &bufferItem, calibratedTransform) != ITEM_OK )
+  {
+    LOG_ERROR("Failed to get template home to template transform by UID: " << uid); 
+    return PLUS_FAIL; 
+  }
 
-	trackerBuffer->Lock(); 
+  status = bufferItem.GetStatus(); 
+  templateHomeToTemplateMatrix->DeepCopy( bufferItem.GetMatrix() ); 
 
-	flags = trackerBuffer->GetFlags(bufferIndex); 
-	if ( calibratedTransform )
-	{
-		trackerBuffer->GetCalibratedMatrix(templateHomeToTemplateMatrix, bufferIndex); 
-	}
-	else
-	{
-		trackerBuffer->GetMatrix(templateHomeToTemplateMatrix, bufferIndex); 
-	}
-
-	trackerBuffer->Unlock(); 
-
-	this->TemplateHomeToTemplateTransform->SetMatrix( templateHomeToTemplateMatrix ); 
-
-	return this->TemplateHomeToTemplateTransform; 
+	return PLUS_SUCCESS; 
 }
 
 //----------------------------------------------------------------------------
-vtkTransform* vtkAMSTracker::GetTemplateHomeToTemplateTransform( double timestamp, long &flags, bool calibratedTransform /*= false*/ )
+PlusStatus vtkAMSTracker::GetTemplateHomeToTemplateTransform( double timestamp, vtkMatrix4x4* templateHomeToTemplateMatrix, TrackerStatus &status, bool calibratedTransform /*= false*/ )
 {
-	vtkSmartPointer<vtkMatrix4x4> templateHomeToTemplateMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
+  BufferItemUidType uid(0); 
+  if ( this->GetTool(TEMPLATEHOME_TO_TEMPLATE_TRANSFORM)->GetBuffer()->GetItemUidFromTime(timestamp, uid) != ITEM_OK )
+  {
+    LOG_ERROR("Failed to get template home to template transform by timestamp: " << std::fixed << timestamp);
+    return PLUS_FAIL; 
+  }
 
-	vtkTrackerBuffer *trackerBuffer = this->GetTool(TEMPLATEHOME_TO_TEMPLATE_TRANSFORM)->GetBuffer(); 
-
-	trackerBuffer->Lock(); 
-
-	int bufferIndex = trackerBuffer->GetIndexFromTime(timestamp); 
-	flags = trackerBuffer->GetFlags(bufferIndex); 
-	
-	if ( calibratedTransform )
-	{
-		trackerBuffer->GetCalibratedMatrix(templateHomeToTemplateMatrix, bufferIndex); 
-	}
-	else
-	{
-		trackerBuffer->GetMatrix(templateHomeToTemplateMatrix, bufferIndex); 
-	}
-
-	trackerBuffer->Unlock(); 
-
-	this->TemplateHomeToTemplateTransform->SetMatrix( templateHomeToTemplateMatrix ); 
-
-	return this->TemplateHomeToTemplateTransform; 
+  return this->GetTemplateHomeToTemplateTransform(uid, templateHomeToTemplateMatrix, status, calibratedTransform); 
 }
 
 //----------------------------------------------------------------------------
-vtkTransform* vtkAMSTracker::GetRawEncoderValuesTransform( int bufferIndex, long &flags )
+PlusStatus vtkAMSTracker::GetRawEncoderValuesTransform( BufferItemUidType uid, vtkMatrix4x4* rawEncoderValuesTransform, TrackerStatus &status )
 {
-	vtkSmartPointer<vtkMatrix4x4> rawEncoderValuesMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
+  if ( rawEncoderValuesTransform == NULL )
+  {
+    LOG_ERROR("Failed to get raw encoder values transform from buffer - input transform NULL!"); 
+    return PLUS_FAIL; 
+  }
 
-	vtkTrackerBuffer *trackerBuffer = this->GetTool(RAW_ENCODER_VALUES)->GetBuffer(); 
+  TrackerBufferItem bufferItem; 
+  if ( this->GetTool(RAW_ENCODER_VALUES)->GetBuffer()->GetTrackerBufferItem(uid, &bufferItem, false) != ITEM_OK )
+  {
+    LOG_ERROR("Failed to get raw encoder values transform from buffer by UID: " << uid ); 
+    return PLUS_FAIL;
+  }
 
-	trackerBuffer->Lock(); 
+  rawEncoderValuesTransform->DeepCopy( bufferItem.GetMatrix() ); 
+  status = bufferItem.GetStatus(); 
 
-	flags = trackerBuffer->GetFlags(bufferIndex); 
-	trackerBuffer->GetMatrix(rawEncoderValuesMatrix, bufferIndex); 
-
-	trackerBuffer->Unlock(); 
-
-	this->RawEncoderValuesTransform->SetMatrix( rawEncoderValuesMatrix ); 
-
-	return this->RawEncoderValuesTransform; 
+  return PLUS_SUCCESS; 
 }
 
 //----------------------------------------------------------------------------
-vtkTransform* vtkAMSTracker::GetRawEncoderValuesTransform( double timestamp, long &flags )
+PlusStatus vtkAMSTracker::GetRawEncoderValuesTransform( double timestamp, vtkMatrix4x4* rawEncoderValuesTransform, TrackerStatus &status )
 {
-	vtkSmartPointer<vtkMatrix4x4> rawEncoderValuesMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
-
-	vtkTrackerBuffer *trackerBuffer = this->GetTool(RAW_ENCODER_VALUES)->GetBuffer(); 
-
-	trackerBuffer->Lock(); 
-
-	int bufferIndex = trackerBuffer->GetIndexFromTime(timestamp); 
-	flags = trackerBuffer->GetFlags(bufferIndex); 
-	trackerBuffer->GetMatrix(rawEncoderValuesMatrix, bufferIndex); 
-
-	trackerBuffer->Unlock(); 
-
-	this->RawEncoderValuesTransform->SetMatrix( rawEncoderValuesMatrix ); 
-
-	return this->RawEncoderValuesTransform; 
+  BufferItemUidType uid(0); 
+  if ( this->GetTool(RAW_ENCODER_VALUES)->GetBuffer()->GetItemUidFromTime(timestamp, uid) != ITEM_OK )
+  {
+    LOG_ERROR("Failed to get raw encoder values transform by timestamp: " << std::fixed << timestamp);
+    return PLUS_FAIL; 
+  }
+  
+  return this->GetRawEncoderValuesTransform(uid, rawEncoderValuesTransform, status); 
 }

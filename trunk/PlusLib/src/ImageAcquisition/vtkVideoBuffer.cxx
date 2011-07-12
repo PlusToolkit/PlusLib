@@ -23,187 +23,187 @@ VideoBufferItem::~VideoBufferItem()
 //----------------------------------------------------------------------------
 VideoBufferItem::VideoBufferItem(const VideoBufferItem &videoItem)
 {
-    *this = videoItem; 
+  *this = videoItem; 
 }
 
 //----------------------------------------------------------------------------
 VideoBufferItem& VideoBufferItem::operator=(VideoBufferItem const&videoItem)
 {
-    // Handle self-assignment
-    if (this == &videoItem)
-    {
-        return *this;
-    }
-
-    if ( videoItem.GetFrame().IsNotNull() )
-    {
-        int frameSize[2] = {videoItem.GetFrame()->GetLargestPossibleRegion().GetSize()[0], videoItem.GetFrame()->GetLargestPossibleRegion().GetSize()[1]}; 
-        if ( this->AllocateFrame(frameSize) != PLUS_SUCCESS )
-        {
-            LOG_ERROR("Failed to allocate memory for the new frame in the buffer!"); 
-        }
-        else
-        {
-            memcpy(this->Frame->GetBufferPointer(), videoItem.GetFrame()->GetBufferPointer(), this->GetFrameSizeInBytes() ); 
-        }
-    }
-
-	this->FilteredTimeStamp = videoItem.FilteredTimeStamp; 
-	this->UnfilteredTimeStamp = videoItem.UnfilteredTimeStamp; 
-	this->Index = videoItem.Index; 
-	this->Uid = videoItem.Uid; 
-    
+  // Handle self-assignment
+  if (this == &videoItem)
+  {
     return *this;
+  }
+
+  if ( videoItem.GetFrame().IsNotNull() )
+  {
+    int frameSize[2] = {videoItem.GetFrame()->GetLargestPossibleRegion().GetSize()[0], videoItem.GetFrame()->GetLargestPossibleRegion().GetSize()[1]}; 
+    if ( this->AllocateFrame(frameSize) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Failed to allocate memory for the new frame in the buffer!"); 
+    }
+    else
+    {
+      memcpy(this->Frame->GetBufferPointer(), videoItem.GetFrame()->GetBufferPointer(), this->GetFrameSizeInBytes() ); 
+    }
+  }
+
+  this->FilteredTimeStamp = videoItem.FilteredTimeStamp; 
+  this->UnfilteredTimeStamp = videoItem.UnfilteredTimeStamp; 
+  this->Index = videoItem.Index; 
+  this->Uid = videoItem.Uid; 
+
+  return *this;
 }
 
 //----------------------------------------------------------------------------
 PlusStatus VideoBufferItem::DeepCopy(VideoBufferItem* videoItem)
 {
-	if ( videoItem == NULL )
-	{
-		LOG_ERROR("Failed to deep copy video buffer item - buffer item NULL!"); 
-		return PLUS_FAIL; 
-	}
+  if ( videoItem == NULL )
+  {
+    LOG_ERROR("Failed to deep copy video buffer item - buffer item NULL!"); 
+    return PLUS_FAIL; 
+  }
 
-   if ( videoItem->GetFrame().IsNotNull() )
+  if ( videoItem->GetFrame().IsNotNull() )
+  {
+    int frameSize[2] = {videoItem->GetFrame()->GetLargestPossibleRegion().GetSize()[0], videoItem->GetFrame()->GetLargestPossibleRegion().GetSize()[1]}; 
+    if ( this->AllocateFrame(frameSize) != PLUS_SUCCESS )
     {
-        int frameSize[2] = {videoItem->GetFrame()->GetLargestPossibleRegion().GetSize()[0], videoItem->GetFrame()->GetLargestPossibleRegion().GetSize()[1]}; 
-        if ( this->AllocateFrame(frameSize) != PLUS_SUCCESS )
-        {
-            LOG_ERROR("Failed to allocate memory for the new frame in the buffer!"); 
-        }
-        else
-        {
-            memcpy(this->Frame->GetBufferPointer(), videoItem->GetFrame()->GetBufferPointer(), this->GetFrameSizeInBytes() ); 
-        }
+      LOG_ERROR("Failed to allocate memory for the new frame in the buffer!"); 
     }
+    else
+    {
+      memcpy(this->Frame->GetBufferPointer(), videoItem->GetFrame()->GetBufferPointer(), this->GetFrameSizeInBytes() ); 
+    }
+  }
 
-	this->FilteredTimeStamp = videoItem->FilteredTimeStamp; 
-	this->UnfilteredTimeStamp = videoItem->UnfilteredTimeStamp; 
-	this->Index = videoItem->Index; 
-	this->Uid = videoItem->Uid; 
+  this->FilteredTimeStamp = videoItem->FilteredTimeStamp; 
+  this->UnfilteredTimeStamp = videoItem->UnfilteredTimeStamp; 
+  this->Index = videoItem->Index; 
+  this->Uid = videoItem->Uid; 
 
-	return PLUS_SUCCESS; 
+  return PLUS_SUCCESS; 
 }
 
 //----------------------------------------------------------------------------
 PlusStatus VideoBufferItem::AllocateFrame(int imageSize[2])
 {
-    if ( this->Frame.IsNull() )
-    {
-        this->Frame = ImageType::New(); 
-    }
-    
-    ImageType::SizeType size = {imageSize[0], imageSize[1]};
-    ImageType::IndexType start = {0,0};
-    ImageType::RegionType region;
-    region.SetSize(size);
-    region.SetIndex(start);
-    this->Frame->SetRegions(region);
+  if ( this->Frame.IsNull() )
+  {
+    this->Frame = ImageType::New(); 
+  }
 
-    try
-    {
-        this->Frame->Allocate();
-    }
-    catch (itk::ExceptionObject & err) 
-    {		
-        LOG_ERROR("Unable to allocate memory for image: " << err.GetDescription() );
-        return PLUS_FAIL;
-    }	
+  ImageType::SizeType size = {imageSize[0], imageSize[1]};
+  ImageType::IndexType start = {0,0};
+  ImageType::RegionType region;
+  region.SetSize(size);
+  region.SetIndex(start);
+  this->Frame->SetRegions(region);
 
-    return PLUS_SUCCESS; 
+  try
+  {
+    this->Frame->Allocate();
+  }
+  catch (itk::ExceptionObject & err) 
+  {		
+    LOG_ERROR("Unable to allocate memory for image: " << err.GetDescription() );
+    return PLUS_FAIL;
+  }	
+
+  return PLUS_SUCCESS; 
 }
 
 //----------------------------------------------------------------------------
 PlusStatus VideoBufferItem::SetFrame(const ImageType::Pointer& frame)
 {
-    if ( this->Frame.IsNull() )
-    {
-        LOG_ERROR("Failed to add frame into video buffer item - frame is NULL!"); 
-        return PLUS_FAIL;     
-    }
+  if ( this->Frame.IsNull() )
+  {
+    LOG_ERROR("Failed to add frame into video buffer item - frame is NULL!"); 
+    return PLUS_FAIL;     
+  }
 
-    if ( frame->GetLargestPossibleRegion() != this->Frame->GetLargestPossibleRegion() )
-    {
-        LOG_ERROR("Input image region doesn't match buffer image region!"); 
-        return PLUS_FAIL; 
-    }
+  if ( frame->GetLargestPossibleRegion() != this->Frame->GetLargestPossibleRegion() )
+  {
+    LOG_ERROR("Input image region doesn't match buffer image region!"); 
+    return PLUS_FAIL; 
+  }
 
-    memcpy(this->Frame->GetBufferPointer(), frame->GetBufferPointer(), this->GetFrameSizeInBytes() ); 
+  memcpy(this->Frame->GetBufferPointer(), frame->GetBufferPointer(), this->GetFrameSizeInBytes() ); 
 
-    return PLUS_SUCCESS; 
+  return PLUS_SUCCESS; 
 }
 
 
 //----------------------------------------------------------------------------
 unsigned long VideoBufferItem::GetFrameSizeInBytes()
 {
-    const unsigned long imageWidthInPixels = this->Frame->GetLargestPossibleRegion().GetSize()[0]; 
-	const unsigned long imageHeightInPixels = this->Frame->GetLargestPossibleRegion().GetSize()[1]; 
-    unsigned long frameSizeInBytes = imageWidthInPixels * imageHeightInPixels * sizeof(PixelType);
+  const unsigned long imageWidthInPixels = this->Frame->GetLargestPossibleRegion().GetSize()[0]; 
+  const unsigned long imageHeightInPixels = this->Frame->GetLargestPossibleRegion().GetSize()[1]; 
+  unsigned long frameSizeInBytes = imageWidthInPixels * imageHeightInPixels * sizeof(PixelType);
 
-    return frameSizeInBytes; 
+  return frameSizeInBytes; 
 }
 
 //----------------------------------------------------------------------------
 PlusStatus VideoBufferItem::SetFrame(vtkImageData* frame)
 {
-    if ( this->Frame.IsNull() )
-    {
-        LOG_ERROR("Failed to add frame into video buffer item - frame is NULL!"); 
-        return PLUS_FAIL; 
-    }
+  if ( this->Frame.IsNull() )
+  {
+    LOG_ERROR("Failed to add frame into video buffer item - frame is NULL!"); 
+    return PLUS_FAIL; 
+  }
 
-    const unsigned long imageWidthInPixels = this->Frame->GetLargestPossibleRegion().GetSize()[0]; 
-	const unsigned long imageHeightInPixels = this->Frame->GetLargestPossibleRegion().GetSize()[1]; 
+  const unsigned long imageWidthInPixels = this->Frame->GetLargestPossibleRegion().GetSize()[0]; 
+  const unsigned long imageHeightInPixels = this->Frame->GetLargestPossibleRegion().GetSize()[1]; 
 
-    int* frameExtent = frame->GetExtent(); 
+  int* frameExtent = frame->GetExtent(); 
 
-    if ( ( frameExtent[1] - frameExtent[0] + 1 ) != imageWidthInPixels ||
-         ( frameExtent[3] - frameExtent[2] + 1 ) != imageHeightInPixels )
-    {
-        LOG_ERROR("Input image size doesn't match buffer image size!"); 
-        return PLUS_FAIL; 
-    }
+  if ( ( frameExtent[1] - frameExtent[0] + 1 ) != imageWidthInPixels ||
+    ( frameExtent[3] - frameExtent[2] + 1 ) != imageHeightInPixels )
+  {
+    LOG_ERROR("Input image size doesn't match buffer image size!"); 
+    return PLUS_FAIL; 
+  }
 
-    return UsImageConverterCommon::ConvertVtkImageToItkImage(frame, this->Frame); 
+  return UsImageConverterCommon::ConvertVtkImageToItkImage(frame, this->Frame); 
 }
 
 //----------------------------------------------------------------------------
 PlusStatus VideoBufferItem::SetFrame(unsigned char *imageDataPtr, 
-									 const int frameSizeInPx[3],
-									 int numberOfBitsPerPixel, 
-									 int numberOfBytesToSkip )
+                                     const int frameSizeInPx[3],
+                                     int numberOfBitsPerPixel, 
+                                     int numberOfBytesToSkip )
 {
-	if ( imageDataPtr == NULL )
-	{
-		LOG_ERROR( "Failed to add NULL frame to video buffer!"); 
-		return PLUS_FAIL;
-	}
+  if ( imageDataPtr == NULL )
+  {
+    LOG_ERROR( "Failed to add NULL frame to video buffer!"); 
+    return PLUS_FAIL;
+  }
 
-	if ( this->Frame.IsNull() )
-	{
-		LOG_ERROR( "Unable to add frame to video buffer - need to allocate frame first!"); 
-		return PLUS_FAIL; 
-	}
+  if ( this->Frame.IsNull() )
+  {
+    LOG_ERROR( "Unable to add frame to video buffer - need to allocate frame first!"); 
+    return PLUS_FAIL; 
+  }
 
-    const unsigned long imageWidthInPixels = this->Frame->GetLargestPossibleRegion().GetSize()[0]; 
-	const unsigned long imageHeightInPixels = this->Frame->GetLargestPossibleRegion().GetSize()[1]; 
+  const unsigned long imageWidthInPixels = this->Frame->GetLargestPossibleRegion().GetSize()[0]; 
+  const unsigned long imageHeightInPixels = this->Frame->GetLargestPossibleRegion().GetSize()[1]; 
 
-	if ( frameSizeInPx[0] != imageWidthInPixels 
-	|| frameSizeInPx[1] != imageHeightInPixels )
-	{
-		LOG_ERROR("Input frame size is different from buffer frame size (input: " << frameSizeInPx[0] << "x" << frameSizeInPx[1] << "x" 
-		<< ",   buffer: " << imageWidthInPixels << "x" << imageHeightInPixels << ")!"); 
-        return PLUS_FAIL; 
-	}
+  if ( frameSizeInPx[0] != imageWidthInPixels 
+    || frameSizeInPx[1] != imageHeightInPixels )
+  {
+    LOG_ERROR("Input frame size is different from buffer frame size (input: " << frameSizeInPx[0] << "x" << frameSizeInPx[1] << "x" 
+      << ",   buffer: " << imageWidthInPixels << "x" << imageHeightInPixels << ")!"); 
+    return PLUS_FAIL; 
+  }
 
-	// Skip the numberOfBytesToSkip bytes, e.g. header size
-	imageDataPtr += numberOfBytesToSkip; 
+  // Skip the numberOfBytesToSkip bytes, e.g. header size
+  imageDataPtr += numberOfBytesToSkip; 
 
-    memcpy(this->Frame->GetBufferPointer(), imageDataPtr, this->GetFrameSizeInBytes() );
+  memcpy(this->Frame->GetBufferPointer(), imageDataPtr, this->GetFrameSizeInBytes() );
 
-    return PLUS_SUCCESS; 
+  return PLUS_SUCCESS; 
 }
 
 //----------------------------------------------------------------------------
@@ -215,84 +215,84 @@ vtkStandardNewMacro(vtkVideoBuffer);
 //----------------------------------------------------------------------------
 vtkVideoBuffer::vtkVideoBuffer()
 {
-	this->VideoBuffer = vtkTimestampedCircularBuffer<VideoBufferItem>::New(); 
-    this->SetFrameSize(0,0); 
-    this->SetNumberOfBitsPerPixel(0); 
+  this->VideoBuffer = vtkTimestampedCircularBuffer<VideoBufferItem>::New(); 
+  this->SetFrameSize(0,0); 
+  this->SetNumberOfBitsPerPixel(0); 
 }
 
 //----------------------------------------------------------------------------
 vtkVideoBuffer::~vtkVideoBuffer()
 { 
-    if ( this->VideoBuffer != NULL )
-    {
-        this->VideoBuffer->Delete(); 
-        this->VideoBuffer = NULL; 
-    }
+  if ( this->VideoBuffer != NULL )
+  {
+    this->VideoBuffer->Delete(); 
+    this->VideoBuffer = NULL; 
+  }
 }
 
 //----------------------------------------------------------------------------
 void vtkVideoBuffer::PrintSelf(ostream& os, vtkIndent indent)
 {
-	this->Superclass::PrintSelf(os,indent);
-    os << indent << "Frame size in pixel: " << this->GetFrameSize()[0] << "   " << this->GetFrameSize()[1] << std::endl; 
-    os << indent << "Number of bits per pixel: " << this->GetNumberOfBitsPerPixel() << std::endl; 
+  this->Superclass::PrintSelf(os,indent);
+  os << indent << "Frame size in pixel: " << this->GetFrameSize()[0] << "   " << this->GetFrameSize()[1] << std::endl; 
+  os << indent << "Number of bits per pixel: " << this->GetNumberOfBitsPerPixel() << std::endl; 
 }
 
 //----------------------------------------------------------------------------
 void vtkVideoBuffer::UpdateBufferFrameFormats()
 {
-	this->VideoBuffer->Lock(); 
-	for ( int i = 0; i < this->VideoBuffer->GetBufferSize(); ++i )
-	{
-		this->VideoBuffer->GetBufferItem(i)->AllocateFrame(this->GetFrameSize()); 
-	}
-	this->VideoBuffer->Unlock(); 
+  this->VideoBuffer->Lock(); 
+  for ( int i = 0; i < this->VideoBuffer->GetBufferSize(); ++i )
+  {
+    this->VideoBuffer->GetBufferItem(i)->AllocateFrame(this->GetFrameSize()); 
+  }
+  this->VideoBuffer->Unlock(); 
 }
 
 //----------------------------------------------------------------------------
 void vtkVideoBuffer::SetLocalTimeOffset(double offset)
 {
-	this->VideoBuffer->SetLocalTimeOffset(offset); 
+  this->VideoBuffer->SetLocalTimeOffset(offset); 
 }
 
 //----------------------------------------------------------------------------
 double vtkVideoBuffer::GetLocalTimeOffset()
 {
-	return this->VideoBuffer->GetLocalTimeOffset(); 
+  return this->VideoBuffer->GetLocalTimeOffset(); 
 }
 
 //----------------------------------------------------------------------------
 int vtkVideoBuffer::GetBufferSize()
 {
-	return this->VideoBuffer->GetBufferSize(); 
+  return this->VideoBuffer->GetBufferSize(); 
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkVideoBuffer::SetBufferSize(int bufsize)
 {
-	return this->VideoBuffer->SetBufferSize(bufsize); 
+  return this->VideoBuffer->SetBufferSize(bufsize); 
 }
 
 //----------------------------------------------------------------------------
 bool vtkVideoBuffer::CheckFrameFormat( const int frameSizeInPx[2], int numberOfBitsPerPixel )
 {
-	// don't add a frame if it doesn't match the buffer frame format
-	if (frameSizeInPx[0] != this->GetFrameSize()[0]||
-		frameSizeInPx[1] != this->GetFrameSize()[1] )
-	{
-        LOG_WARNING("Frame format and buffer frame format does not match (expected frame size: " << this->GetFrameSize()[0] 
-        << "x" << this->GetFrameSize()[1] << "  received: " << frameSizeInPx[0] << "x" << frameSizeInPx[1] << ")!"); 
-		return false;
-	}
+  // don't add a frame if it doesn't match the buffer frame format
+  if (frameSizeInPx[0] != this->GetFrameSize()[0]||
+    frameSizeInPx[1] != this->GetFrameSize()[1] )
+  {
+    LOG_WARNING("Frame format and buffer frame format does not match (expected frame size: " << this->GetFrameSize()[0] 
+    << "x" << this->GetFrameSize()[1] << "  received: " << frameSizeInPx[0] << "x" << frameSizeInPx[1] << ")!"); 
+    return false;
+  }
 
-    if ( numberOfBitsPerPixel != this->GetNumberOfBitsPerPixel() )
-    {
-        LOG_WARNING("Frame format and buffer frame format does not match (expected pixel size: " << this->GetNumberOfBitsPerPixel() 
-            << "bits  received:" << numberOfBitsPerPixel << "bits)!"); 
-        return false; 
-    }
+  if ( numberOfBitsPerPixel != this->GetNumberOfBitsPerPixel() )
+  {
+    LOG_WARNING("Frame format and buffer frame format does not match (expected pixel size: " << this->GetNumberOfBitsPerPixel() 
+      << "bits  received:" << numberOfBitsPerPixel << "bits)!"); 
+    return false; 
+  }
 
-	return true;
+  return true;
 }
 //----------------------------------------------------------------------------
 PlusStatus vtkVideoBuffer::AddItem(unsigned char* imageDataPtr,                               
@@ -304,149 +304,161 @@ PlusStatus vtkVideoBuffer::AddItem(unsigned char* imageDataPtr,
                                    double filteredTimestamp, 
                                    long   frameNumber)
 {
-	if ( imageDataPtr == NULL )
-	{
-		LOG_ERROR( "vtkVideoBuffer: Unable to add NULL frame to video buffer!"); 
-		return PLUS_FAIL; 
-	}
+  if ( imageDataPtr == NULL )
+  {
+    LOG_ERROR( "vtkVideoBuffer: Unable to add NULL frame to video buffer!"); 
+    return PLUS_FAIL; 
+  }
 
-	if ( !this->CheckFrameFormat(frameSizeInPx, numberOfBitsPerPixel) )
-	{
-		LOG_ERROR( "vtkVideoBuffer: Unable to add frame to video buffer - frame format doesn't match!"); 
-		return PLUS_FAIL; 
-	}
+  if ( !this->CheckFrameFormat(frameSizeInPx, numberOfBitsPerPixel) )
+  {
+    LOG_ERROR( "vtkVideoBuffer: Unable to add frame to video buffer - frame format doesn't match!"); 
+    return PLUS_FAIL; 
+  }
 
-	int bufferIndex(0); 
-	BufferItemUidType itemUid; 
-    this->VideoBuffer->Lock(); 
-	if ( this->VideoBuffer->PrepareForNewFrame(filteredTimestamp, itemUid, bufferIndex) != PLUS_SUCCESS )
-	{
-        this->VideoBuffer->Unlock(); 
-        // Just a debug message, because we want to avoid unnecessary warning messages if the timestamp is the same as last one
-		LOG_DEBUG( "vtkVideoBuffer: Failed to prepare for adding new frame to video buffer!"); 
-		return PLUS_FAIL; 
-	}
-
-	// get the pointer to the correct location in the frame buffer, where this data needs to be copied
-	VideoBufferItem* newObjectInBuffer = this->VideoBuffer->GetBufferItem(bufferIndex); 
-	if ( newObjectInBuffer == NULL )
-	{
-        this->VideoBuffer->Unlock(); 
-		LOG_ERROR( "vtkVideoBuffer: Failed to get pointer to video buffer object from the video buffer for the new frame!"); 
-		return PLUS_FAIL; 
-	}
-
-	PlusStatus status = newObjectInBuffer->SetFrame(imageDataPtr, frameSizeInPx, numberOfBitsPerPixel, numberOfBytesToSkip); 
-	newObjectInBuffer->SetFilteredTimestamp(filteredTimestamp); 
-	newObjectInBuffer->SetUnfilteredTimestamp(unfilteredTimestamp); 
-	newObjectInBuffer->SetIndex(frameNumber); 
-	newObjectInBuffer->SetUid(itemUid); 
+  int bufferIndex(0); 
+  BufferItemUidType itemUid; 
+  this->VideoBuffer->Lock(); 
+  if ( this->VideoBuffer->PrepareForNewItem(filteredTimestamp, itemUid, bufferIndex) != PLUS_SUCCESS )
+  {
     this->VideoBuffer->Unlock(); 
+    // Just a debug message, because we want to avoid unnecessary warning messages if the timestamp is the same as last one
+    LOG_DEBUG( "vtkVideoBuffer: Failed to prepare for adding new frame to video buffer!"); 
+    return PLUS_FAIL; 
+  }
 
-	return status; 
+  // get the pointer to the correct location in the frame buffer, where this data needs to be copied
+  VideoBufferItem* newObjectInBuffer = this->VideoBuffer->GetBufferItem(bufferIndex); 
+  if ( newObjectInBuffer == NULL )
+  {
+    this->VideoBuffer->Unlock(); 
+    LOG_ERROR( "vtkVideoBuffer: Failed to get pointer to video buffer object from the video buffer for the new frame!"); 
+    return PLUS_FAIL; 
+  }
+
+  PlusStatus status = newObjectInBuffer->SetFrame(imageDataPtr, frameSizeInPx, numberOfBitsPerPixel, numberOfBytesToSkip); 
+  newObjectInBuffer->SetFilteredTimestamp(filteredTimestamp); 
+  newObjectInBuffer->SetUnfilteredTimestamp(unfilteredTimestamp); 
+  newObjectInBuffer->SetIndex(frameNumber); 
+  newObjectInBuffer->SetUid(itemUid); 
+  this->VideoBuffer->Unlock(); 
+
+  return status; 
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkVideoBuffer::AddItem(vtkImageData* frame, US_IMAGE_ORIENTATION usImageOrientation, double unfilteredTimestamp, double filteredTimestamp, long frameNumber)
 {
-    vtkSmartPointer<vtkImageData> mfOrientedImage = vtkSmartPointer<vtkImageData>::New(); 
-    if ( UsImageConverterCommon::GetMFOrientedImage(frame, usImageOrientation, mfOrientedImage) != PLUS_SUCCESS )
-    {
-        LOG_ERROR("Failed to add video item to buffer: couldn't get MF oriented frame!"); 
-        return PLUS_FAIL; 
-    }
+  vtkSmartPointer<vtkImageData> mfOrientedImage = vtkSmartPointer<vtkImageData>::New(); 
+  if ( UsImageConverterCommon::GetMFOrientedImage(frame, usImageOrientation, mfOrientedImage) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to add video item to buffer: couldn't get MF oriented frame!"); 
+    return PLUS_FAIL; 
+  }
 
-	const int* frameExtent = mfOrientedImage->GetExtent(); 
-	const int frameSize[3] = {(frameExtent[1] - frameExtent[0] + 1), (frameExtent[3] - frameExtent[2] + 1), (frameExtent[5] - frameExtent[4] + 1) }; 
-	const int numberOfBits = mfOrientedImage->GetScalarSize() * 8; 
-    return this->AddItem( reinterpret_cast<unsigned char*>(mfOrientedImage->GetScalarPointer()), US_IMG_ORIENT_MF , frameSize, numberOfBits, 0, unfilteredTimestamp, filteredTimestamp, frameNumber); 
+  const int* frameExtent = mfOrientedImage->GetExtent(); 
+  const int frameSize[3] = {(frameExtent[1] - frameExtent[0] + 1), (frameExtent[3] - frameExtent[2] + 1), (frameExtent[5] - frameExtent[4] + 1) }; 
+  const int numberOfBits = mfOrientedImage->GetScalarSize() * 8; 
+  return this->AddItem( reinterpret_cast<unsigned char*>(mfOrientedImage->GetScalarPointer()), US_IMG_ORIENT_MF , frameSize, numberOfBits, 0, unfilteredTimestamp, filteredTimestamp, frameNumber); 
 }
 
 //----------------------------------------------------------------------------
 ItemStatus vtkVideoBuffer::GetLatestTimeStamp( double& latestTimestamp )
 {
-    return this->VideoBuffer->GetLatestTimeStamp(latestTimestamp); 
+  return this->VideoBuffer->GetLatestTimeStamp(latestTimestamp); 
+}
+
+//----------------------------------------------------------------------------
+ItemStatus vtkVideoBuffer::GetOldestTimeStamp( double& oldestTimestamp )
+{
+  return this->VideoBuffer->GetOldestTimeStamp(oldestTimestamp); 
+}
+
+//----------------------------------------------------------------------------
+ItemStatus vtkVideoBuffer::GetTimeStamp( BufferItemUidType uid, double& timestamp)
+{
+  return this->VideoBuffer->GetTimeStamp(uid, timestamp); 
 }
 
 //----------------------------------------------------------------------------
 ItemStatus vtkVideoBuffer::GetVideoBufferItem(BufferItemUidType uid, VideoBufferItem* bufferItem)
 {
-	if ( bufferItem == NULL )
-	{
-		LOG_ERROR("Unable to copy video buffer item into a NULL video buffer item!"); 
-		return ITEM_UNKNOWN_ERROR; 
-	}
+  if ( bufferItem == NULL )
+  {
+    LOG_ERROR("Unable to copy video buffer item into a NULL video buffer item!"); 
+    return ITEM_UNKNOWN_ERROR; 
+  }
 
-	ItemStatus status = this->VideoBuffer->GetFrameStatus(uid); 
-	if ( status != ITEM_OK )
-	{
-		if (  status == ITEM_NOT_AVAILABLE_ANYMORE )
-		{
-			LOG_WARNING("Failed to get video buffer item: video item not available anymore"); 
-		}
-		else if (  status == ITEM_NOT_AVAILABLE_YET )
-		{
-			LOG_WARNING("Failed to get video buffer item: video item not available yet"); 
-		}
-		else
-		{
-			LOG_WARNING("Failed to get video buffer item!"); 
-		}
-		return status; 
-	}
+  ItemStatus status = this->VideoBuffer->GetFrameStatus(uid); 
+  if ( status != ITEM_OK )
+  {
+    if (  status == ITEM_NOT_AVAILABLE_ANYMORE )
+    {
+      LOG_WARNING("Failed to get video buffer item: video item not available anymore"); 
+    }
+    else if (  status == ITEM_NOT_AVAILABLE_YET )
+    {
+      LOG_WARNING("Failed to get video buffer item: video item not available yet"); 
+    }
+    else
+    {
+      LOG_WARNING("Failed to get video buffer item!"); 
+    }
+    return status; 
+  }
 
-	VideoBufferItem* videoItem = this->VideoBuffer->GetBufferItem(uid); 
+  VideoBufferItem* videoItem = this->VideoBuffer->GetBufferItem(uid); 
 
-	if ( bufferItem->DeepCopy(videoItem) != PLUS_SUCCESS )
-	{
-        LOG_WARNING("Failed to copy video item!"); 
-		return ITEM_UNKNOWN_ERROR; 
-	}
-	
-    // Check the status again to make sure the writer didn't change it
-    return this->VideoBuffer->GetFrameStatus(uid); 
+  if ( bufferItem->DeepCopy(videoItem) != PLUS_SUCCESS )
+  {
+    LOG_WARNING("Failed to copy video item!"); 
+    return ITEM_UNKNOWN_ERROR; 
+  }
+
+  // Check the status again to make sure the writer didn't change it
+  return this->VideoBuffer->GetFrameStatus(uid); 
 }
 
 //----------------------------------------------------------------------------
 ItemStatus vtkVideoBuffer::GetVideoBufferItemFromTime( double time, VideoBufferItem* bufferItem)
 {
-	BufferItemUidType uid(0); 
-	ItemStatus status = this->VideoBuffer->GetItemUidFromTime(time, uid); 
-	if ( status != ITEM_OK )
-	{
-		if (  status == ITEM_NOT_AVAILABLE_ANYMORE )
-		{
-			LOG_WARNING("Failed to get video buffer item from time: video item not available anymore"); 
-		}
-		else if (  status == ITEM_NOT_AVAILABLE_YET )
-		{
-			LOG_WARNING("Failed to get video buffer item from time: video item not available yet"); 
-			
-		}
-		else
-		{
-			LOG_WARNING("Failed to get video buffer item from time!"); 
-		}
-		return status; 
-	}
+  BufferItemUidType uid(0); 
+  ItemStatus status = this->VideoBuffer->GetItemUidFromTime(time, uid); 
+  if ( status != ITEM_OK )
+  {
+    if (  status == ITEM_NOT_AVAILABLE_ANYMORE )
+    {
+      LOG_WARNING("Failed to get video buffer item from time: video item not available anymore"); 
+    }
+    else if (  status == ITEM_NOT_AVAILABLE_YET )
+    {
+      LOG_WARNING("Failed to get video buffer item from time: video item not available yet"); 
 
-	return this->GetVideoBufferItem(uid, bufferItem);  
+    }
+    else
+    {
+      LOG_WARNING("Failed to get video buffer item from time!"); 
+    }
+    return status; 
+  }
+
+  return this->GetVideoBufferItem(uid, bufferItem);  
 }
 
 //----------------------------------------------------------------------------
 void vtkVideoBuffer::DeepCopy(vtkVideoBuffer* buffer)
 {
-	this->VideoBuffer->DeepCopy( buffer->VideoBuffer ); 
-    this->SetFrameSize( buffer->GetFrameSize() ); 
-    this->SetNumberOfBitsPerPixel( buffer->GetNumberOfBitsPerPixel() ); 
-    this->SetBufferSize(buffer->GetBufferSize()); 
-	this->UpdateBufferFrameFormats(); 
+  this->VideoBuffer->DeepCopy( buffer->VideoBuffer ); 
+  this->SetFrameSize( buffer->GetFrameSize() ); 
+  this->SetNumberOfBitsPerPixel( buffer->GetNumberOfBitsPerPixel() ); 
+  this->SetBufferSize(buffer->GetBufferSize()); 
+  this->UpdateBufferFrameFormats(); 
 }
 
 //----------------------------------------------------------------------------
 void vtkVideoBuffer::Clear()
 {
-	this->VideoBuffer->Clear(); 
+  this->VideoBuffer->Clear(); 
 }
 
 

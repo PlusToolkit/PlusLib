@@ -293,25 +293,3 @@ vtkSmartPointer< vtkTransform > vtkVolumeReconstructor::GetImageToToolTransform(
 	return tImageToTool;
 }
 
-//----------------------------------------------------------------------------
-vtkSmartPointer< vtkTransform > vtkVolumeReconstructor::GetImageToReferenceTransform( int slice )
-{
-	vtkSmartPointer< vtkMatrix4x4 > mToolToReference = vtkSmartPointer< vtkMatrix4x4 >::New();
-	vtkTrackerBuffer* buffer = this->GetTracker()->GetTool( this->TrackerToolID )->GetBuffer();
-	buffer->GetMatrix( mToolToReference, buffer->GetNumberOfItems() - 1 - slice );
-
-	vtkSmartPointer< vtkTransform > tToolToReference = vtkSmartPointer< vtkTransform >::New();
-	tToolToReference->PostMultiply();
-	tToolToReference->Identity();
-	tToolToReference->SetMatrix( mToolToReference );
-	tToolToReference->Update();
-
-	vtkSmartPointer< vtkTransform > tImageToReference = vtkSmartPointer< vtkTransform >::New();
-	tImageToReference->PostMultiply();
-	tImageToReference->Identity();
-	tImageToReference->Concatenate( this->GetImageToToolTransform() );
-	tImageToReference->Concatenate( tToolToReference );
-	tImageToReference->Update();
-
-	return tImageToReference;
-}

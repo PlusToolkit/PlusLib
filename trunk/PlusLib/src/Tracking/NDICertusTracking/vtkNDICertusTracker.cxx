@@ -305,11 +305,6 @@ static VLEDState vtkNDICertusMapVLEDState[] = {
 	//----------------------------------------------------------------------------
 	PlusStatus vtkNDICertusTracker::Probe()
 	{
-		if(!this->ServerMode && this->RemoteAddress) 
-		{
-			//return Superclass::Probe();
-		}
-
 		// If device is already tracking, return success.
 		if (this->Tracking)
 		{
@@ -404,21 +399,21 @@ static VLEDState vtkNDICertusMapVLEDState[] = {
 	}
 
 	//----------------------------------------------------------------------------
-	PlusStatus vtkNDICertusTracker::Update()
-	{
-#if VTK_CERTUS_NO_THREADING
-		if (this->Tracking)
-		{
-			return this->InternalUpdate();
-		}
-    else
-    {
-      return PLUS_FAIL;
-    }
-#endif
-
-		return this->vtkTracker::Update();
-	}
+//	PlusStatus vtkNDICertusTracker::Update()
+//	{
+//#if VTK_CERTUS_NO_THREADING
+//		if (this->Tracking)
+//		{
+//			return this->InternalUpdate();
+//		}
+//    else
+//    {
+//      return PLUS_FAIL;
+//    }
+//#endif
+//
+//		return this->vtkTracker::Update();
+//	}
 
 	//----------------------------------------------------------------------------
 	PlusStatus vtkNDICertusTracker::InternalUpdate()
@@ -518,14 +513,14 @@ static VLEDState vtkNDICertusMapVLEDState[] = {
 		for (tool = 0; tool < VTK_CERTUS_NTOOLS; tool++) 
 		{
 			// convert status flags from Optotrak format to vtkTracker format
-			int flags = 0;
+			TrackerStatus status = TR_OK;
 			if ((statusFlags[tool] & OPTOTRAK_UNDETERMINED_FLAG) != 0)
 			{
-				flags |= TR_MISSING;
+				status = TR_MISSING;
 			}
 			else if ((statusFlags[tool] & OPTOTRAK_UNDETERMINED_FLAG) != 0)
 			{
-				flags |= TR_OUT_OF_VIEW;
+				status = TR_OUT_OF_VIEW;
 			}
 
 			// if tracking relative to another tool
@@ -533,7 +528,7 @@ static VLEDState vtkNDICertusMapVLEDState[] = {
 			{
 				if ( statusFlags[this->GetReferenceTool()] & (TR_MISSING | TR_OUT_OF_VIEW) ) 
 				{
-					flags |= TR_OUT_OF_VIEW;
+					status = TR_OUT_OF_VIEW;
 				}
 
 				for (std::map<int, int>::iterator it = this->RigidBodyMap.begin(); it != this->RigidBodyMap.end(); it++)
@@ -548,8 +543,8 @@ static VLEDState vtkNDICertusMapVLEDState[] = {
 			ndiTransformToMatrixd(transform[tool],*this->SendMatrix->Element);
 			this->SendMatrix->Transpose();
 
-			// send the matrix and flags to the tool's vtkTrackerBuffer
-			this->ToolUpdate(tool, this->SendMatrix, flags, uFrameNumber, unfilteredtimestamp, filteredtimestamp);
+			// send the matrix and status to the tool's vtkTrackerBuffer
+			this->ToolUpdate(tool, this->SendMatrix, status, uFrameNumber, unfilteredtimestamp, filteredtimestamp);
 		}
 
     return PLUS_SUCCESS;

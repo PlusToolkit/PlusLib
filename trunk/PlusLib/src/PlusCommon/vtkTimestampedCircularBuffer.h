@@ -124,6 +124,7 @@ public:
 	// Description:
 	// Get timestamp by frame UID associated with the buffer item 
 	virtual ItemStatus GetLatestTimeStamp(double &timestamp) { return this->GetTimeStamp(this->GetLatestItemUidInBuffer(), timestamp); } ; 
+  virtual ItemStatus GetOldestTimeStamp(double &timestamp) { return this->GetTimeStamp(this->GetOldestItemUidInBuffer(), timestamp); } ; 
 	virtual ItemStatus GetTimeStamp(const BufferItemUidType uid, double &timestamp) { return this->GetFilteredTimeStamp(uid, timestamp); }
 	virtual ItemStatus GetFilteredTimeStamp(const BufferItemUidType uid, double &filteredTimestamp); 
 	virtual ItemStatus GetUnfilteredTimeStamp(const BufferItemUidType uid, double &unfilteredTimestamp); 
@@ -171,7 +172,7 @@ public:
 	virtual BufferItemType* GetBufferItem(const int bufferIndex); 
 	virtual BufferItemType* GetBufferItem(const BufferItemUidType uid); 
 
-	virtual PlusStatus PrepareForNewFrame(const double timestamp, BufferItemUidType& newFrameUid, int& bufferIndex); 
+	virtual PlusStatus PrepareForNewItem(const double timestamp, BufferItemUidType& newFrameUid, int& bufferIndex); 
 
 
 protected:

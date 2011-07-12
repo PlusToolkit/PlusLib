@@ -44,123 +44,146 @@ class TimestampedBufferItem;
 class VTK_EXPORT VideoBufferItem : public TimestampedBufferItem
 {
 public:
-    typedef UsImageConverterCommon::PixelType PixelType;
-	typedef UsImageConverterCommon::ImageType ImageType;
+  typedef UsImageConverterCommon::PixelType PixelType;
+  typedef UsImageConverterCommon::ImageType ImageType;
 
-	VideoBufferItem(); 
-	~VideoBufferItem(); 
-	VideoBufferItem(const VideoBufferItem& videoBufferItem); 
-    VideoBufferItem& VideoBufferItem::operator=(VideoBufferItem const&videoItem); 
+  VideoBufferItem(); 
+  ~VideoBufferItem(); 
+  VideoBufferItem(const VideoBufferItem& videoBufferItem); 
+  VideoBufferItem& VideoBufferItem::operator=(VideoBufferItem const&videoItem); 
 
-	// Copy video buffer item 
-	PlusStatus DeepCopy(VideoBufferItem* videoBufferItem); 
+  // Copy video buffer item 
+  PlusStatus DeepCopy(VideoBufferItem* videoBufferItem); 
 
-	// Set/get video frame 
-    // Caller should clean the image data from memory after this call. 
-    PlusStatus SetFrame(const ImageType::Pointer& frame); 
-	PlusStatus SetFrame(vtkImageData* frame); 
-	PlusStatus SetFrame(unsigned char *imageDataPtr, 
-		const int frameSizeInPx[3],
-		int numberOfBitsPerPixel, 
-		int	numberOfBytesToSkip ); 
-    
-    PlusStatus AllocateFrame(int imageSize[2]); 
+  // Set/get video frame 
+  // Caller should clean the image data from memory after this call. 
+  PlusStatus SetFrame(const ImageType::Pointer& frame); 
+  PlusStatus SetFrame(vtkImageData* frame); 
+  PlusStatus SetFrame(unsigned char *imageDataPtr, 
+    const int frameSizeInPx[3],
+    int numberOfBitsPerPixel, 
+    int	numberOfBytesToSkip ); 
 
-    unsigned long GetFrameSizeInBytes(); 
+  PlusStatus AllocateFrame(int imageSize[2]); 
 
-    ImageType::Pointer GetFrame() const { return this->Frame; }
+  unsigned long GetFrameSizeInBytes(); 
+
+  ImageType::Pointer GetFrame() const { return this->Frame; }
 
 protected:
-    ImageType::Pointer Frame; 
+  ImageType::Pointer Frame; 
 }; 
 
 
 class VTK_EXPORT vtkVideoBuffer : public vtkObject
 {
 public:	
-	
-	static vtkVideoBuffer *New();
-	vtkTypeRevisionMacro(vtkVideoBuffer,vtkObject);
-	void PrintSelf(ostream& os, vtkIndent indent);
 
-	// Description:
-	// Set/Get the size of the buffer, i.e. the maximum number of
-	// video frames that it will hold.  The default is 30.
-	virtual PlusStatus SetBufferSize(int n);
-	virtual int GetBufferSize(); 
+  static vtkVideoBuffer *New();
+  vtkTypeRevisionMacro(vtkVideoBuffer,vtkObject);
+  void PrintSelf(ostream& os, vtkIndent indent);
 
-	// Description:
-	// Update video buffer by setting the frame format for each frame 
-	virtual void UpdateBufferFrameFormats(); 
-	
-	// Description:
-	// Add a frame plus a timestamp to the buffer with frame index.  If the timestamp is
-	// less than or equal to the previous timestamp, or if the frame's format
-	// doesn't match the buffer's frame format, then nothing will be done.
-	virtual PlusStatus AddItem(vtkImageData* frame, US_IMAGE_ORIENTATION  usImageOrientation, double unfilteredTimestamp, double filteredTimestamp, long frameNumber); 
-	virtual PlusStatus AddItem(unsigned char *imageDataPtr, 
-		US_IMAGE_ORIENTATION  usImageOrientation,
-        const int frameSizeInPx[2],
-		int numberOfBitsPerPixel, 
-		int numberOfBytesToSkip, 
-		double unfilteredTimestamp, 
-		double filteredTimestamp, 
-		long frameNumber);
+  // Description:
+  // Set/Get the size of the buffer, i.e. the maximum number of
+  // video frames that it will hold.  The default is 30.
+  virtual PlusStatus SetBufferSize(int n);
+  virtual int GetBufferSize(); 
 
-	virtual ItemStatus GetVideoBufferItem(BufferItemUidType uid, VideoBufferItem* bufferItem);
-	virtual ItemStatus GetLatestVideoBufferItem(VideoBufferItem* bufferItem) { return this->GetVideoBufferItem( this->GetLatestItemUidInBuffer(), bufferItem); }; 
-	virtual ItemStatus GetOldestVideoBufferItem(VideoBufferItem* bufferItem) { return this->GetVideoBufferItem( this->GetOldestItemUidInBuffer(), bufferItem); }; 
-	virtual ItemStatus GetVideoBufferItemFromTime( double time, VideoBufferItem* bufferItem); 
+  // Description:
+  // Update video buffer by setting the frame format for each frame 
+  virtual void UpdateBufferFrameFormats(); 
 
-    virtual ItemStatus GetLatestTimeStamp( double& latestTimestamp );  
+  // Description:
+  // Add a frame plus a timestamp to the buffer with frame index.  If the timestamp is
+  // less than or equal to the previous timestamp, or if the frame's format
+  // doesn't match the buffer's frame format, then nothing will be done.
+  virtual PlusStatus AddItem(vtkImageData* frame, US_IMAGE_ORIENTATION  usImageOrientation, double unfilteredTimestamp, double filteredTimestamp, long frameNumber); 
+  virtual PlusStatus AddItem(unsigned char *imageDataPtr, 
+    US_IMAGE_ORIENTATION  usImageOrientation,
+    const int frameSizeInPx[2],
+    int numberOfBitsPerPixel, 
+    int numberOfBytesToSkip, 
+    double unfilteredTimestamp, 
+    double filteredTimestamp, 
+    long frameNumber);
 
-	virtual BufferItemUidType GetOldestItemUidInBuffer() { return this->VideoBuffer->GetOldestItemUidInBuffer(); }
-	virtual BufferItemUidType GetLatestItemUidInBuffer() { return this->VideoBuffer->GetLatestItemUidInBuffer(); }
-	virtual ItemStatus GetItemUidFromTime(double time, BufferItemUidType& uid) { return this->VideoBuffer->GetItemUidFromTime(time, uid); }
+  // Description:
+  // Get tracker item from buffer 
+  virtual ItemStatus GetVideoBufferItem(BufferItemUidType uid, VideoBufferItem* bufferItem);
+  virtual ItemStatus GetLatestVideoBufferItem(VideoBufferItem* bufferItem) { return this->GetVideoBufferItem( this->GetLatestItemUidInBuffer(), bufferItem); }; 
+  virtual ItemStatus GetOldestVideoBufferItem(VideoBufferItem* bufferItem) { return this->GetVideoBufferItem( this->GetOldestItemUidInBuffer(), bufferItem); }; 
+  virtual ItemStatus GetVideoBufferItemFromTime( double time, VideoBufferItem* bufferItem); 
 
-	virtual void SetLocalTimeOffset(double offset);
-	virtual double GetLocalTimeOffset();
+  // Description:
+  // Get latest timestamp in the buffer 
+  virtual ItemStatus GetLatestTimeStamp( double& latestTimestamp );  
 
-	virtual int GetNumberOfItems() { return this->VideoBuffer->GetNumberOfItems(); }
+  // Description:
+  // Get oldest timestamp in the buffer 
+  virtual ItemStatus GetOldestTimeStamp( double& oldestTimestamp );  
 
-	virtual double GetFrameRate( bool ideal = false) { return this->VideoBuffer->GetFrameRate(ideal); }
+  // Description:
+  // Get video buffer item timestamp 
+  virtual ItemStatus GetTimeStamp( BufferItemUidType uid, double& timestamp); 
 
-	// Description:
-	// Make this buffer into a copy of another buffer.  You should
-	// Lock both of the buffers before doing this.
-	virtual void DeepCopy(vtkVideoBuffer* buffer); 
+  // Description:
+  // Get buffer item unique ID 
+  virtual BufferItemUidType GetOldestItemUidInBuffer() { return this->VideoBuffer->GetOldestItemUidInBuffer(); }
+  virtual BufferItemUidType GetLatestItemUidInBuffer() { return this->VideoBuffer->GetLatestItemUidInBuffer(); }
+  virtual ItemStatus GetItemUidFromTime(double time, BufferItemUidType& uid) { return this->VideoBuffer->GetItemUidFromTime(time, uid); }
 
-	// Description:
-	// Clear buffer (set the buffer pointer to the first element)
-	virtual void Clear(); 
+  // Description:	
+  // Get/Set the local time offset (global = local + offset)
+  virtual void SetLocalTimeOffset(double offset);
+  virtual double GetLocalTimeOffset();
 
-    // Description:
-	// Set/get frame size in pixel 
-    vtkSetVector2Macro(FrameSize, int); 
-    vtkGetVector2Macro(FrameSize, int); 
+  // Description:
+  // Get the number of items in the buffer
+  virtual int GetNumberOfItems() { return this->VideoBuffer->GetNumberOfItems(); }
 
-    // Description:
-	// Set/get pixel size in bits 
-    vtkSetMacro(NumberOfBitsPerPixel, int); 
-    vtkGetMacro(NumberOfBitsPerPixel, int); 
+  // Description:
+  // Get the frame rate from the buffer based on the number of frames in the buffer
+  // and the elapsed time.
+  // Ideal frame rate shows the mean of the frame periods in the buffer based on the frame 
+  // number difference (aka the device frame rate)
+  virtual double GetFrameRate( bool ideal = false) { return this->VideoBuffer->GetFrameRate(ideal); }
+
+  // Description:
+  // Make this buffer into a copy of another buffer.  You should
+  // Lock both of the buffers before doing this.
+  virtual void DeepCopy(vtkVideoBuffer* buffer); 
+
+  // Description:
+  // Clear buffer (set the buffer pointer to the first element)
+  virtual void Clear(); 
+
+  // Description:
+  // Set/get frame size in pixel 
+  vtkSetVector2Macro(FrameSize, int); 
+  vtkGetVector2Macro(FrameSize, int); 
+
+  // Description:
+  // Set/get pixel size in bits 
+  vtkSetMacro(NumberOfBitsPerPixel, int); 
+  vtkGetMacro(NumberOfBitsPerPixel, int); 
 
 protected:
-	vtkVideoBuffer();
-	~vtkVideoBuffer();
+  vtkVideoBuffer();
+  ~vtkVideoBuffer();
 
-	// Description:
-	// Compares frame format with new frame imaging parameters
-	// Returns true if it matches, otherwise false
-	virtual bool CheckFrameFormat( const int frameSizeInPx[2], int numberOfBitsPerPixel ); 
-    
-    int FrameSize[2]; 
-    int NumberOfBitsPerPixel; 
+  // Description:
+  // Compares frame format with new frame imaging parameters
+  // Returns true if it matches, otherwise false
+  virtual bool CheckFrameFormat( const int frameSizeInPx[2], int numberOfBitsPerPixel ); 
 
-	vtkTimestampedCircularBuffer<VideoBufferItem>* VideoBuffer; 
+  int FrameSize[2]; 
+  int NumberOfBitsPerPixel; 
+
+  vtkTimestampedCircularBuffer<VideoBufferItem>* VideoBuffer; 
 
 private:
-	vtkVideoBuffer(const vtkVideoBuffer&);
-	void operator=(const vtkVideoBuffer&);
+  vtkVideoBuffer(const vtkVideoBuffer&);
+  void operator=(const vtkVideoBuffer&);
 };
 
 

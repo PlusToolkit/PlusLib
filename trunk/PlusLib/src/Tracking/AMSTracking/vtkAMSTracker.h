@@ -1,10 +1,12 @@
 #ifndef __vtkAMSTracker_h
 #define __vtkAMSTracker_h
 
+#include "PlusConfigure.h"
 #include "vtkTracker.h"
 #include "AMSStepper.h"
 
 class vtkTransform;
+
 
 class VTK_EXPORT vtkAMSTracker : public vtkTracker
 {
@@ -55,81 +57,79 @@ public:
 
 	// Description:
 	// Get the buffer element values of each tool in a string list by timestamp. 
-	void GetTrackerToolBufferStringList(const double timestamp, 
+	PlusStatus GetTrackerToolBufferStringList(double timestamp, 
 		std::map<std::string, std::string> &toolsBufferMatrices, 
 		std::map<std::string, std::string> &toolsCalibrationMatrices, 
 		std::map<std::string, std::string> &toolsStatuses,
 		bool calibratedTransform = false); 
 
 	// Description:
-	// Get stepper encoder values from the buffer, where '0' is the most recent and
-	// (NumberOfItems-1) is the oldest.
-	void GetStepperEncoderValues( int bufferIndex, double &probePosition, double &probeRotation, double &templatePosition, long &flags ); 
+	// Get stepper encoder values from the buffer by UID
+	PlusStatus GetStepperEncoderValues( BufferItemUidType uid, double &probePosition, double &probeRotation, double &templatePosition, TrackerStatus &status ); 
 
 	// Description:
 	// Get stepper encoder values in a particular timestamp, where the timestamp is
 	// in system time as returned by vtkAccurateTimer::GetSystemTime().
-	void GetStepperEncoderValues(double timestamp, double &probePosition, double &probeRotation, double &templatePosition, long &flags ); 
+	PlusStatus GetStepperEncoderValues(double timestamp, double &probePosition, double &probeRotation, double &templatePosition, TrackerStatus &status ); 
 
 	// Description:
 	// Get probe position from the buffer, where '0' is the most recent and
 	// (NumberOfItems-1) is the oldest.
 	double GetProbePosition( int bufferIndex, long &flags ); 
 
-	// Description:
-	// Get probe position in a particular timestamp, where the timestamp is
-	// in system time as returned by vtkAccurateTimer::GetSystemTime().
-	double GetProbePosition( double timestamp, long &flags ); 
+	//// Description:
+	//// Get probe position in a particular timestamp, where the timestamp is
+	//// in system time as returned by vtkAccurateTimer::GetSystemTime().
+	//double GetProbePosition( double timestamp, long &flags ); 
 
-	// Description:
-	//  Get probe rotation from the buffer, where '0' is the most recent and
-	// (NumberOfItems-1) is the oldest.
-	double GetProbeRotation( int bufferIndex, long &flags  ); 
+	//// Description:
+	////  Get probe rotation from the buffer, where '0' is the most recent and
+	//// (NumberOfItems-1) is the oldest.
+	//double GetProbeRotation( int bufferIndex, long &flags  ); 
 
-	// Description:
-	// Get probe rotation in a particular timestamp, where the timestamp is
-	// in system time as returned by vtkAccurateTimer::GetSystemTime().
-	double GetProbeRotation( double timestamp, long &flags  );
+	//// Description:
+	//// Get probe rotation in a particular timestamp, where the timestamp is
+	//// in system time as returned by vtkAccurateTimer::GetSystemTime().
+	//double GetProbeRotation( double timestamp, long &flags  );
 
-	// Description:
-	// Get template position from the buffer, where '0' is the most recent and
-	// (NumberOfItems-1) is the oldest.
-	double GetTemplatePosition( int bufferIndex, long &flags  ); 
+	//// Description:
+	//// Get template position from the buffer, where '0' is the most recent and
+	//// (NumberOfItems-1) is the oldest.
+	//double GetTemplatePosition( int bufferIndex, long &flags  ); 
 
-	// Description:
-	// Get template position in a particular timestamp, where the timestamp is
-	// in system time as returned by vtkAccurateTimer::GetSystemTime().
-	double GetTemplatePosition( double timestamp, long &flags  ); 
+	//// Description:
+	//// Get template position in a particular timestamp, where the timestamp is
+	//// in system time as returned by vtkAccurateTimer::GetSystemTime().
+	//double GetTemplatePosition( double timestamp, long &flags  ); 
 	
 	// Description:
 	// Get probe home to probe transform from the buffer, where '0' is the most recent and
 	// (NumberOfItems-1) is the oldest.
-	vtkTransform* GetProbeHomeToProbeTransform( int bufferIndex, long &flags, bool calibratedTransform = false ); 
+	PlusStatus GetProbeHomeToProbeTransform( BufferItemUidType uid, vtkMatrix4x4* probeHomeToProbeMatrix, TrackerStatus &status, bool calibratedTransform = false ); 
 
 	// Description:
 	// Get probe home to probe transform in a particular timestamp, where the timestamp is
 	// in system time as returned by vtkAccurateTimer::GetSystemTime().
-	vtkTransform* GetProbeHomeToProbeTransform( double timestamp, long &flags, bool calibratedTransform = false ); 
+	PlusStatus GetProbeHomeToProbeTransform( double timestamp, vtkMatrix4x4* probeHomeToProbeMatrix, TrackerStatus &status, bool calibratedTransform = false ); 
 
 	// Description:
 	// Get template home to template transform from the buffer, where '0' is the most recent and
 	// (NumberOfItems-1) is the oldest.
-	vtkTransform* GetTemplateHomeToTemplateTransform( int bufferIndex, long &flags, bool calibratedTransform = false ); 
+	PlusStatus GetTemplateHomeToTemplateTransform( BufferItemUidType uid, vtkMatrix4x4* templateHomeToTemplateMatrix, TrackerStatus &status, bool calibratedTransform = false ); 
 
 	// Description:
 	// Get template home to template transform in a particular timestamp, where the timestamp is
 	// in system time as returned by vtkAccurateTimer::GetSystemTime().
-	vtkTransform* GetTemplateHomeToTemplateTransform( double timestamp, long &flags, bool calibratedTransform = false );
+	PlusStatus GetTemplateHomeToTemplateTransform( double timestamp, vtkMatrix4x4* templateHomeToTemplateMatrix, TrackerStatus &status, bool calibratedTransform = false );
 
 	// Description:
-	// Getraw encoder values transform from the buffer, where '0' is the most recent and
-	// (NumberOfItems-1) is the oldest.
-	vtkTransform* GetRawEncoderValuesTransform( int bufferIndex, long &flags ); 
+	// Get raw encoder values transform from the buffer
+	PlusStatus GetRawEncoderValuesTransform( BufferItemUidType uid, vtkMatrix4x4* rawEncoderValuesTransform, TrackerStatus &status ); 
 
 	// Description:
 	// Get raw encoder values transform in a particular timestamp, where the timestamp is
 	// in system time as returned by vtkAccurateTimer::GetSystemTime().
-	vtkTransform* GetRawEncoderValuesTransform( double timestamp, long &flags ); 
+	PlusStatus GetRawEncoderValuesTransform( double timestamp, vtkMatrix4x4* rawEncoderValuesTransform, TrackerStatus &status); 
 
 	// Description:
 	// Get the a string (perhaps a long one) describing the type and version
@@ -229,11 +229,6 @@ protected:
 	double TemplateTranslationAxisOrientation[3]; 
 
 	double ProbeRotationEncoderScale; 
-
-	vtkTransform* ProbeHomeToProbeTransform; 
-	vtkTransform* TemplateHomeToTemplateTransform; 
-	vtkTransform* RawEncoderValuesTransform; 
-	
 
 private:
 	vtkAMSTracker(const vtkAMSTracker&);

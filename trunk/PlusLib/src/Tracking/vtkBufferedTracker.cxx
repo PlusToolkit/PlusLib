@@ -101,9 +101,9 @@ PlusStatus vtkBufferedTracker::InternalUpdate()
 //----------------------------------------------------------------------------
 void vtkBufferedTracker::AddTransform( vtkMatrix4x4* transformMatrix, double timestamp )
 {
-	long flags=0;
+	TrackerStatus status = TR_OK;
 
 	unsigned long frameNum = this->GetTool(this->ToolNumber)->GetFrameNumber() + 1; 
-	// send the transformation matrix and flags to the tool
-	this->ToolUpdate(this->ToolNumber, transformMatrix, flags, frameNum, timestamp, timestamp);   
+	// send the transformation matrix and status to the tool
+	this->ToolUpdate(this->ToolNumber, transformMatrix, status, frameNum, timestamp, timestamp);   
 }

@@ -588,7 +588,7 @@ vtkMatrix4x4* PhantomRegistrationController::AcquireStylusTipTrackerPosition(dou
 	vtkSmartPointer<vtkMatrix4x4> referenceToolToStylusTransformMatrix = NULL; // stylus to reference tool transform
 	vtkSmartPointer<vtkMatrix4x4> referenceToolToStylusTipTransformMatrix = NULL;
 
-	long flags = -1;
+	TrackerStatus status = TR_MISSING;
 	double timestamp;
 	unsigned int toolNumber;
 	if (aReference) {
@@ -608,14 +608,14 @@ vtkMatrix4x4* PhantomRegistrationController::AcquireStylusTipTrackerPosition(dou
 	// Acquire position from tracker
 	if (dataCollector->GetTracker()->GetTool(toolNumber)->GetEnabled()) {
 		referenceToolToStylusTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
-		dataCollector->GetTransformWithTimestamp(referenceToolToStylusTransformMatrix, timestamp, flags, toolNumber); 
+		dataCollector->GetTransformWithTimestamp(referenceToolToStylusTransformMatrix, timestamp, status, toolNumber); 
 	}
 
-	if (flags & (TR_MISSING | TR_OUT_OF_VIEW) ) {
+  if (status == TR_MISSING || status == TR_OUT_OF_VIEW ) {
 		LOG_DEBUG("Tracker out of view!");
 		m_PositionString = std::string("Tracker out of view!");
 		return NULL;
-	} else if (flags & TR_REQ_TIMEOUT ) {
+	} else if (status == TR_REQ_TIMEOUT ) {
 		LOG_WARNING("Tracker request timeout!");
 		m_PositionString = std::string("Tracker request timeout!");
 		return NULL;

@@ -25,8 +25,11 @@ vtkDataCollectorSynchronizer::vtkDataCollectorSynchronizer()
 	this->SynchronizedOff(); 
 	this->ThresholdMultiplier = 5; 
 	this->SyncStartTime = 0.0; 
+  this->StartupDelaySec = 0.0; 
 	this->MinNumOfSyncSteps = 5; 
 	this->SynchronizationTimeLength = 10; 
+  this->StillFrameIndexInterval = 0; 
+  this->StillFrameTimeInterval = 0; 
 
 	this->VideoBuffer = NULL; 
 	this->CurrentVideoBufferIndex = 0; 
@@ -71,13 +74,20 @@ void vtkDataCollectorSynchronizer::PrintSelf(ostream& os, vtkIndent indent)
 } 
 
 //----------------------------------------------------------------------------
-void vtkDataCollectorSynchronizer::Synchronize()
+PlusStatus vtkDataCollectorSynchronizer::Synchronize()
 {
 	LOG_TRACE("vtkDataCollectorSynchronizer::Synchronize"); 
 
-	if ( this->SyncStartTime == 0 )
+	if ( this->SyncStartTime < 1 )
 	{
-		this->SetSyncStartTime( this->TrackerBuffer->GetTimeStamp(this->TrackerBuffer->GetNumberOfItems() - 1) ); 
+    double oldestTimestamp(0); 
+    if ( this->TrackerBuffer->GetOldestTimeStamp(oldestTimestamp) != ITEM_OK )
+    {
+      LOG_ERROR("Failed to get oldest timestamp from tracker timestamp!"); 
+      return PLUS_FAIL; 
+    }
+
+		this->SetSyncStartTime( oldestTimestamp + this->StartupDelaySec ); 
 		LOG_DEBUG("Sync start time: " << this->SyncStartTime ); 
 	}
 
@@ -86,190 +96,28 @@ void vtkDataCollectorSynchronizer::Synchronize()
 	this->DebugInfoStream << "TransformTimestamp\tTransformDifference\tFrameTimestamp\tFrameDifference" << std::endl; 
 #endif
 
+  // Set the time and index interval where the frames and transforms should be unchanged
+  this->StillFrameIndexInterval = floor(1.0*this->GetNumberOfAveragedTransforms()/2.0); 
+  this->StillFrameTimeInterval = 1.0 * this->StillFrameIndexInterval / this->VideoBuffer->GetFrameRate(); 
+
 	// Clear previous results 
 	this->TransformTimestamp.clear(); 
 	this->FrameTimestamp.clear(); 
 
-	int trackerBufferIndex = this->TrackerBuffer->GetIndexFromTime( this->SyncStartTime ); 
-	int stillPositionIndex = trackerBufferIndex - floor(1.0*this->GetNumberOfAveragedTransforms()/2.0);
-	int syncStep(1); 
+  std::vector<double> movedTransformTimestamps; 
 
-	std::vector<double> stillTransformTimestamps; 
-	std::vector<double> movedTransformTimestamps; 
+  if ( this->DetectTrackerMotions(movedTransformTimestamps) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Unable to detect tracker motions!"); 
+    return PLUS_FAIL; 
+  }
 
-	const double videoFrameRate = this->VideoBuffer->GetFrameRate(); 
-	const double stillFrameIntervall = 2.0*this->GetNumberOfAveragedFrames() / videoFrameRate; 
-
-	while ( trackerBufferIndex >= 0 && stillPositionIndex >= 0)
-	{
-		LOG_TRACE("Tracker sync step: " << syncStep ); 
-		const int percent = floor(100.0*(this->TrackerBuffer->GetBufferSize() - trackerBufferIndex) / (1.0 * this->TrackerBuffer->GetBufferSize())); 
-		if ( this->ProgressBarUpdateCallbackFunction != NULL )
-		{
-			(*ProgressBarUpdateCallbackFunction)(percent); 
-		}
-
-		stillPositionIndex = trackerBufferIndex - floor(1.0*this->GetNumberOfAveragedTransforms()/2.0); 
-		this->FindStillTransform(trackerBufferIndex, stillPositionIndex ); 
-
-		if ( stillPositionIndex >= 0 )
-		{
-			double stillTransformTimestamp = this->GetTrackerBuffer()->GetTimeStamp(trackerBufferIndex); 
-			this->ComputeTransformThreshold( trackerBufferIndex ); 
-
-			double movedTransformTimestamp(0); 
-			if ( this->FindTransformTimestamp( trackerBufferIndex, movedTransformTimestamp ) == PLUS_SUCCESS )
-			{
-				if ( movedTransformTimestamps.size() == 0 )
-				{
-					stillTransformTimestamps.push_back(stillTransformTimestamp); 
-					movedTransformTimestamps.push_back(movedTransformTimestamp); 
-				}
-				else if ( movedTransformTimestamps.back() + stillFrameIntervall < movedTransformTimestamp )
-				{
-					stillTransformTimestamps.push_back(stillTransformTimestamp); 
-					movedTransformTimestamps.push_back(movedTransformTimestamp); 
-				}
-				else
-				{
-					LOG_DEBUG("This movement is too close to the previous one ( " << 1000*(movedTransformTimestamp - movedTransformTimestamps.back()) << "ms)"); 
-				}
-
-			}
-		}
-		syncStep++; 
-
-	}
-
-	BufferItemUidType videoBufferIndex = this->VideoBuffer->GetOldestItemUidInBuffer(); 
-	/*if ( this->VideoBuffer->GetBufferIndexFromTime( this->SyncStartTime,  videoBufferIndex) != ITEM_OK )
-	{
-	LOG_WARNING("Unable to get buffer index for sync start time: " << std::fixed << this->SyncStartTime << " - let's start from the oldest frame!");
-	videoBufferIndex = this->VideoBuffer->GetBufferIndex( this->VideoBuffer->GetOldestItemUidInBuffer() ); 
-	}*/
-
-	LOG_DEBUG("Still Frame Search Intervall: " << 1000*stillFrameIntervall << "ms"); 
-
-	int videoSyncStep(0); 
-	for ( unsigned int i = 0; i < movedTransformTimestamps.size() && videoBufferIndex <= this->VideoBuffer->GetLatestItemUidInBuffer(); i++ )
-	{
-		LOG_TRACE("Video sync step: " << videoSyncStep ); 
-		LOG_DEBUG(std::fixed << "Next moved transform timestamp: " << movedTransformTimestamps[i] ); 
-		// Choose an initial timestamp to search for still images 
-		double stillFrameTimestamp = movedTransformTimestamps[i] - stillFrameIntervall; 
-
-		if ( this->FrameTimestamp.size() > 0 && stillFrameTimestamp < this->FrameTimestamp.back() )
-		{
-			// still frame timestamp cannot be less than the last moved frame timestamp 
-			stillFrameTimestamp = this->FrameTimestamp.back() + 0.5; 
-		}
-
-		// Find the initial frame index 
-		BufferItemUidType idx(0); 
-		if ( this->VideoBuffer->GetItemUidFromTime( stillFrameTimestamp, idx) != ITEM_OK )
-		{
-			LOG_WARNING("vtkDataCollectorSynchronizer: Unable to get frame UID for timestamp: " << std::fixed << stillFrameTimestamp);
-			continue; 
-		}
-		else
-		{
-			videoBufferIndex = idx; 
-		}
-
-		BufferItemUidType stillFrameIndex = videoBufferIndex + this->GetNumberOfAveragedFrames(); 
-		if ( stillFrameIndex < this->VideoBuffer->GetLatestItemUidInBuffer() )
-		{
-			stillFrameIndex = this->VideoBuffer->GetLatestItemUidInBuffer(); 
-		}
-
-		// Find the timestamp of next possible movement 
-		double nextMovedTimestamp = movedTransformTimestamps[i] + stillFrameIntervall; 
-		/*if ( i + 1 < movedTransformTimestamps.size() )
-		{
-		nextMovedTimestamp = movedTransformTimestamps[i + 1] - stillFrameIntervall; 
-		}*/
-
-		// Find the next still frame 
-		this->SetBaseFrame(NULL); 
-		this->FindStillFrame(videoBufferIndex, stillFrameIndex ); 
-
-		VideoBufferItem videoItem; 
-		if ( this->VideoBuffer->GetVideoBufferItem(videoBufferIndex, &videoItem) != ITEM_OK )
-		{
-			LOG_WARNING("vtkDataCollectorSynchronizer: Unable to get video frame with frame UID: " << videoBufferIndex); 
-			continue; 
-		}
-
-		const double localTimeOffset = 0; 
-		stillFrameTimestamp = videoItem.GetTimestamp(localTimeOffset); 
-		LOG_DEBUG("Still frame timestamp: " << std::fixed << stillFrameTimestamp); 
-
-		if ( videoBufferIndex < this->VideoBuffer->GetLatestItemUidInBuffer() ) 
-		{
-			// Set the baseframe of the image compare 
-			vtkSmartPointer<vtkImageData> baseframe = vtkSmartPointer<vtkImageData>::New(); 
-			if ( this->CopyVideoFrame(baseframe, videoItem.GetFrame()) != PLUS_SUCCESS )
-			{
-				LOG_WARNING("vtkDataCollectorSynchronizer: Unable to copy image from video buffer!"); 
-				continue; 
-			}
-
-			if ( baseframe == NULL )
-			{
-				LOG_WARNING("vtkDataCollectorSynchronizer: Unable to resize base frame if it's NULL - continue with next frame."); 
-				continue; 
-			}
-
-			// Make the image smaller
-			vtkSmartPointer<vtkImageResample> resample = vtkSmartPointer<vtkImageResample>::New();
-			resample->SetInput(baseframe); 
-			resample->SetAxisMagnificationFactor(0, 0.5); 
-			resample->SetAxisMagnificationFactor(1, 0.5); 
-			resample->SetAxisMagnificationFactor(2, 0.5);
-
-			vtkSmartPointer<vtkImageData> baseframeRGB = vtkSmartPointer<vtkImageData>::New(); 
-			this->ConvertFrameToRGB(resample->GetOutput(), baseframeRGB); 
-			this->SetBaseFrame( baseframeRGB ); 
-
-			// Compute the frame threshold
-			this->ComputeFrameThreshold( videoBufferIndex ); 
-
-			if ( this->VideoBuffer->GetVideoBufferItem(videoBufferIndex, &videoItem) != ITEM_OK )
-			{
-				LOG_WARNING("vtkDataCollectorSynchronizer: Unable to get video frame with frame UID: " << videoBufferIndex); 
-				continue; 
-			}
-
-			double currentFrameTimestamp = videoItem.GetTimestamp(localTimeOffset); 
-
-			if ( currentFrameTimestamp > movedTransformTimestamps[i] )
-			{
-				LOG_DEBUG("Start frame timestamp is already over the moved transform timestamp (difference: " << 1000*(currentFrameTimestamp - movedTransformTimestamps[i]) << "ms)"); 
-				continue; 
-			}
-
-			// Find the moved image timestamp 
-			double movedFrameTimestamp(0); 
-			if ( this->FindFrameTimestamp( videoBufferIndex, movedFrameTimestamp, nextMovedTimestamp ) )	
-			{
-				// Save the frame and transform timestamp 
-				this->FrameTimestamp.push_back(movedFrameTimestamp); 
-				this->TransformTimestamp.push_back(movedTransformTimestamps[i]); 
-
-				LOG_DEBUG(">>>>>> Step " << videoSyncStep << " - Frame and transform moved!" ); 
-				LOG_DEBUG("Frame timestamp: " << std::fixed << movedFrameTimestamp); 
-				LOG_DEBUG("Transform timestamp: " << std::fixed << movedTransformTimestamps[i]); 
-				LOG_DEBUG("Transform to frame difference: " << std::fixed << 1000*(movedTransformTimestamps[i] - movedFrameTimestamp) << "ms"); 
-			}
-			else
-			{
-				// The result is not reliable
-				LOG_DEBUG(">>>>>> Step " << videoSyncStep << " - Result is not reliable!"); 
-			}
-		}
-		videoSyncStep++; 
-	}
-
+  if ( this->DetectVideoMotions(movedTransformTimestamps) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Unable to detect video motions!"); 
+    return PLUS_FAIL; 
+  }
+	
 	if ( this->ProgressBarUpdateCallbackFunction != NULL )
 	{
 		(*ProgressBarUpdateCallbackFunction)(100); 
@@ -320,7 +168,217 @@ void vtkDataCollectorSynchronizer::Synchronize()
 
 		this->SynchronizedOn(); 
 	}
+
+  return PLUS_SUCCESS; 
 }
+
+//----------------------------------------------------------------------------
+PlusStatus vtkDataCollectorSynchronizer::DetectTrackerMotions(std::vector<double> &movedTransformTimestamps)
+{
+  LOG_TRACE("vtkDataCollectorSynchronizer::DetectTrackerMotions"); 
+
+  BufferItemUidType trackerBufferIndex(0); 
+  if ( this->TrackerBuffer->GetItemUidFromTime( this->SyncStartTime, trackerBufferIndex ) != ITEM_OK )
+  {
+    LOG_ERROR("Failed to get item UID from time: " << std::fixed << this->SyncStartTime ); 
+    return PLUS_FAIL; 
+  }
+
+  BufferItemUidType stillPositionIndex = trackerBufferIndex + this->StillFrameIndexInterval;
+  int syncStep(1); 
+
+  // clear input vector 
+	movedTransformTimestamps.clear(); 
+
+  const BufferItemUidType latestTrackerUid = this->TrackerBuffer->GetLatestItemUidInBuffer(); 
+
+	while ( trackerBufferIndex <= latestTrackerUid && stillPositionIndex <= latestTrackerUid)
+	{
+		LOG_TRACE("Tracker sync step: " << syncStep ); 
+		
+		if ( this->ProgressBarUpdateCallbackFunction != NULL )
+		{
+      const int percent = floor(100.0*(trackerBufferIndex - this->TrackerBuffer->GetOldestItemUidInBuffer()) / (1.0 * this->TrackerBuffer->GetBufferSize())); 
+			(*ProgressBarUpdateCallbackFunction)(percent); 
+		}
+
+    // Set the initial index for still position 
+    stillPositionIndex = trackerBufferIndex + this->StillFrameIndexInterval; 
+		this->FindStillTransform(trackerBufferIndex, stillPositionIndex ); 
+
+		if ( stillPositionIndex <= latestTrackerUid )
+		{
+			double stillTransformTimestamp(0); 
+      if ( this->GetTrackerBuffer()->GetTimeStamp(trackerBufferIndex, stillTransformTimestamp) != ITEM_OK )
+      {
+        LOG_ERROR("Failed to get timestamp for tracker buffer item by UID: " << trackerBufferIndex); 
+        trackerBufferIndex++;
+        continue; 
+      }
+
+			if ( this->ComputeTransformThreshold( trackerBufferIndex ) != PLUS_SUCCESS )
+      {
+        LOG_WARNING("Failed to compute transform threshold..."); 
+        trackerBufferIndex++; 
+        continue; 
+      }
+
+			double movedTransformTimestamp(0); 
+			if ( this->FindTransformTimestamp( trackerBufferIndex, movedTransformTimestamp ) == PLUS_SUCCESS )
+			{
+				if ( movedTransformTimestamps.size() == 0 || movedTransformTimestamps.back() + this->StillFrameTimeInterval < movedTransformTimestamp)
+				{
+					movedTransformTimestamps.push_back(movedTransformTimestamp); 
+				}
+				else
+				{
+					LOG_DEBUG("This movement is too close to the previous one ( " << 1000*(movedTransformTimestamp - movedTransformTimestamps.back()) << "ms)"); 
+				}
+
+			}
+		}
+		syncStep++; 
+	}
+
+  return PLUS_SUCCESS; 
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkDataCollectorSynchronizer::DetectVideoMotions(const std::vector<double> &movedTransformTimestamps)
+{
+  LOG_TRACE("vtkDataCollectorSynchronizer::DetectVideoMotions"); 
+
+  BufferItemUidType videoBufferIndex = this->VideoBuffer->GetOldestItemUidInBuffer(); 
+
+	LOG_DEBUG("Still Frame Search Interval: " << 1000*this->StillFrameTimeInterval << "ms"); 
+
+	int videoSyncStep(0); 
+	for ( unsigned int i = 0; i < movedTransformTimestamps.size() && videoBufferIndex <= this->VideoBuffer->GetLatestItemUidInBuffer(); i++ )
+	{
+		LOG_TRACE("Video sync step: " << videoSyncStep ); 
+		LOG_DEBUG(std::fixed << "Next moved transform timestamp: " << movedTransformTimestamps[i] ); 
+		// Choose an initial timestamp to search for still images 
+		double stillFrameTimestamp = movedTransformTimestamps[i] - this->StillFrameTimeInterval; 
+
+		if ( this->FrameTimestamp.size() > 0 && stillFrameTimestamp < this->FrameTimestamp.back() )
+		{
+			// still frame timestamp cannot be less than the last moved frame timestamp 
+			stillFrameTimestamp = this->FrameTimestamp.back() + 0.5; 
+		}
+
+		// Find the initial frame index 
+		BufferItemUidType idx(0); 
+		if ( this->VideoBuffer->GetItemUidFromTime( stillFrameTimestamp, idx) != ITEM_OK )
+		{
+			LOG_WARNING("vtkDataCollectorSynchronizer: Unable to get frame UID for timestamp: " << std::fixed << stillFrameTimestamp);
+			continue; 
+		}
+		else
+		{
+			videoBufferIndex = idx; 
+		}
+
+		BufferItemUidType stillFrameIndex = videoBufferIndex + this->GetNumberOfAveragedFrames(); 
+		if ( stillFrameIndex > this->VideoBuffer->GetLatestItemUidInBuffer() )
+		{
+			stillFrameIndex = this->VideoBuffer->GetLatestItemUidInBuffer(); 
+		}
+
+		// Find the timestamp of next possible movement 
+		double nextMovedTimestamp = movedTransformTimestamps[i] + this->StillFrameTimeInterval; 
+		/*if ( i + 1 < movedTransformTimestamps.size() )
+		{
+		nextMovedTimestamp = movedTransformTimestamps[i + 1] - this->StillFrameTimeInterval; 
+		}*/
+
+		// Find the next still frame 
+		this->SetBaseFrame(NULL); 
+		this->FindStillFrame(videoBufferIndex, stillFrameIndex ); 
+
+		VideoBufferItem videoItem; 
+		if ( this->VideoBuffer->GetVideoBufferItem(videoBufferIndex, &videoItem) != ITEM_OK )
+		{
+			LOG_WARNING("vtkDataCollectorSynchronizer: Unable to get video frame with frame UID: " << videoBufferIndex); 
+			continue; 
+		}
+
+		const double localTimeOffset = 0; 
+		stillFrameTimestamp = videoItem.GetTimestamp(localTimeOffset); 
+		LOG_DEBUG("Still frame timestamp: " << std::fixed << stillFrameTimestamp); 
+
+		if ( videoBufferIndex < this->VideoBuffer->GetLatestItemUidInBuffer() ) 
+		{
+			// Set the baseframe of the image compare 
+			vtkSmartPointer<vtkImageData> baseframe = vtkSmartPointer<vtkImageData>::New(); 
+			if ( this->CopyVideoFrame(baseframe, videoItem.GetFrame()) != PLUS_SUCCESS )
+			{
+				LOG_WARNING("vtkDataCollectorSynchronizer: Unable to copy image from video buffer!"); 
+				continue; 
+			}
+
+			if ( baseframe == NULL )
+			{
+				LOG_WARNING("vtkDataCollectorSynchronizer: Unable to resize base frame if it's NULL - continue with next frame."); 
+				continue; 
+			}
+
+			// Make the image smaller
+			vtkSmartPointer<vtkImageResample> resample = vtkSmartPointer<vtkImageResample>::New();
+			resample->SetInput(baseframe); 
+			resample->SetAxisMagnificationFactor(0, 0.5); 
+			resample->SetAxisMagnificationFactor(1, 0.5); 
+			resample->SetAxisMagnificationFactor(2, 0.5);
+
+			vtkSmartPointer<vtkImageData> baseframeRGB = vtkSmartPointer<vtkImageData>::New(); 
+			this->ConvertFrameToRGB(resample->GetOutput(), baseframeRGB); 
+			this->SetBaseFrame( baseframeRGB ); 
+
+			// Compute the frame threshold
+			if ( this->ComputeFrameThreshold( videoBufferIndex ) != PLUS_SUCCESS )
+      { 
+        LOG_WARNING("Failed to compute frame threshold..."); 
+        continue; 
+      }
+
+			if ( this->VideoBuffer->GetVideoBufferItem(videoBufferIndex, &videoItem) != ITEM_OK )
+			{
+				LOG_WARNING("vtkDataCollectorSynchronizer: Unable to get video frame with frame UID: " << videoBufferIndex); 
+				continue; 
+			}
+
+			double currentFrameTimestamp = videoItem.GetTimestamp(localTimeOffset); 
+
+			if ( currentFrameTimestamp > movedTransformTimestamps[i] )
+			{
+				LOG_DEBUG("Start frame timestamp is already over the moved transform timestamp (difference: " << 1000*(currentFrameTimestamp - movedTransformTimestamps[i]) << "ms)"); 
+				continue; 
+			}
+
+			// Find the moved image timestamp 
+			double movedFrameTimestamp(0); 
+			if ( this->FindFrameTimestamp( videoBufferIndex, movedFrameTimestamp, nextMovedTimestamp ) )	
+			{
+				// Save the frame and transform timestamp 
+				this->FrameTimestamp.push_back(movedFrameTimestamp); 
+				this->TransformTimestamp.push_back(movedTransformTimestamps[i]); 
+
+				LOG_DEBUG(">>>>>> Step " << videoSyncStep << " - Frame and transform moved!" ); 
+				LOG_DEBUG("Frame timestamp: " << std::fixed << movedFrameTimestamp); 
+				LOG_DEBUG("Transform timestamp: " << std::fixed << movedTransformTimestamps[i]); 
+				LOG_DEBUG("Transform to frame difference: " << std::fixed << 1000*(movedTransformTimestamps[i] - movedFrameTimestamp) << "ms"); 
+			}
+			else
+			{
+				// The result is not reliable
+				LOG_DEBUG(">>>>>> Step " << videoSyncStep << " - Result is not reliable!"); 
+			}
+		}
+		videoSyncStep++; 
+	}
+
+  return PLUS_SUCCESS; 
+}
+
 
 //----------------------------------------------------------------------------
 void vtkDataCollectorSynchronizer::RemoveOutliers()
@@ -378,20 +436,24 @@ void vtkDataCollectorSynchronizer::GetOffsetStatistics(double &meanVideoOffset, 
 }
 
 //----------------------------------------------------------------------------
-void vtkDataCollectorSynchronizer::ComputeTransformThreshold( int& bufferIndex )
+PlusStatus vtkDataCollectorSynchronizer::ComputeTransformThreshold( BufferItemUidType& bufferIndex )
 {
 	LOG_TRACE("vtkDataCollectorSynchronizer::ComputeTransformThreshold"); 
 	int sizeOfAvgPositons(0); 
 	std::vector< vtkSmartPointer<vtkTransform> > avgTransforms; 
-	for ( bufferIndex; bufferIndex >= 0 && sizeOfAvgPositons != this->NumberOfAveragedTransforms; bufferIndex-- )
+	for ( bufferIndex; bufferIndex <= this->TrackerBuffer->GetLatestItemUidInBuffer() && sizeOfAvgPositons != this->NumberOfAveragedTransforms; bufferIndex++ )
 	{
-		if ( (this->GetTrackerBuffer()->GetFlags(bufferIndex) & (TR_MISSING | TR_OUT_OF_VIEW | TR_REQ_TIMEOUT))  == 0 )
-		{
-			vtkSmartPointer<vtkMatrix4x4> matrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
-			this->GetTrackerBuffer()->GetMatrix(matrix, bufferIndex); 
+    TrackerBufferItem bufferItem; 
+    if ( this->GetTrackerBuffer()->GetTrackerBufferItem(bufferIndex, &bufferItem, false) != ITEM_OK ) 
+    {
+      LOG_ERROR("Failed to get tracker buffer item with UID: " << bufferIndex ); 
+      return PLUS_FAIL; 
+    }
 
+    if ( bufferItem.GetStatus() == TR_OK )
+    {
 			vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New(); 
-			transform->SetMatrix( matrix ); 
+			transform->SetMatrix( bufferItem.GetMatrix() ); 
 			avgTransforms.push_back(transform); 
 			sizeOfAvgPositons++; 
 		}
@@ -462,41 +524,37 @@ void vtkDataCollectorSynchronizer::ComputeTransformThreshold( int& bufferIndex )
 	this->PositionTransformThreshold.Tx = (deviationTransform.Tx > this->MinTransformThreshold ? ThresholdMultiplier * deviationTransform.Tx : this->MinTransformThreshold); 
 	this->PositionTransformThreshold.Ty = (deviationTransform.Ty > this->MinTransformThreshold ? ThresholdMultiplier * deviationTransform.Ty : this->MinTransformThreshold); 
 	this->PositionTransformThreshold.Tz = (deviationTransform.Tx > this->MinTransformThreshold ? ThresholdMultiplier * deviationTransform.Tz : this->MinTransformThreshold); 
+
+  return PLUS_SUCCESS; 
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkDataCollectorSynchronizer::FindTransformTimestamp( int& bufferIndex, double& movedTransformTimestamp  )
+PlusStatus vtkDataCollectorSynchronizer::FindTransformTimestamp( BufferItemUidType& bufferIndex, double& movedTransformTimestamp  )
 {
 	LOG_TRACE("vtkDataCollectorSynchronizer::FindTransformTimestamp"); 
 	bool diffFound = false; 
+  const double localTimeOffset(0);
 
-	while ( !diffFound && bufferIndex >= 0 )
+	while ( !diffFound && bufferIndex <= this->TrackerBuffer->GetLatestItemUidInBuffer() )
 	{
-		if ( (this->GetTrackerBuffer()->GetFlags(bufferIndex) & (TR_MISSING | TR_OUT_OF_VIEW | TR_REQ_TIMEOUT))  == 0 )
-		{
-			double timestamp = this->GetTrackerBuffer()->GetTimeStamp(bufferIndex); 
-			unsigned long frameNumber = this->GetTrackerBuffer()->GetFrameNumber(bufferIndex); 
-			unsigned long prevFrameNumber = this->GetTrackerBuffer()->GetFrameNumber(bufferIndex + 1); 
-			unsigned long nextFrameNumber = this->GetTrackerBuffer()->GetFrameNumber(bufferIndex - 1); 
+    TrackerBufferItem bufferItem;
+    if ( this->GetTrackerBuffer()->GetTrackerBufferItem(bufferIndex, &bufferItem, false ) != ITEM_OK )
+    {
+      LOG_ERROR("Failed to get tracker buffer item with UID: " << bufferIndex ); 
+      bufferIndex++; 
+      continue; 
+    }
 
-			vtkSmartPointer<vtkMatrix4x4> matrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
-			this->GetTrackerBuffer()->GetMatrix(matrix, bufferIndex); 
+		if ( bufferItem.GetStatus() == TR_OK )
+		{
+			double timestamp = bufferItem.GetTimestamp(localTimeOffset); 
+			unsigned long frameNumber = bufferItem.GetIndex();
 
 			vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New(); 
-			transform->SetMatrix( matrix ); 
+			transform->SetMatrix( bufferItem.GetMatrix() ); 
 
 			if ( ! this->IsTransformBelowThreshold(transform, timestamp) )
 			{
-				//				if ( nextFrameNumber - frameNumber > 1 || frameNumber - prevFrameNumber > 1 ) 
-				//				{
-				//					// we have missing frames, the result is not reliable
-				//#ifdef PLUS_PRINT_SYNC_DEBUG_INFO
-				//					this->DebugInfoStream << "# Final Transform Timestamp is not reliable! We have missing frames!" <<  std::endl; 
-				//#endif
-				//					LOG_DEBUG("# Final Transform Timestamp is not reliable! We have missing frames!"); 
-				//					//return false; 
-				//				}
-
 #ifdef PLUS_PRINT_SYNC_DEBUG_INFO
 				this->DebugInfoStream << "# Final TransformTimestamp:\t" << timestamp << std::endl; 
 #endif
@@ -505,7 +563,7 @@ PlusStatus vtkDataCollectorSynchronizer::FindTransformTimestamp( int& bufferInde
 			}
 		}
 
-		bufferIndex--; 
+		bufferIndex++; 
 	}
 
 	if (!diffFound)
@@ -517,32 +575,58 @@ PlusStatus vtkDataCollectorSynchronizer::FindTransformTimestamp( int& bufferInde
 }
 
 //----------------------------------------------------------------------------
-void vtkDataCollectorSynchronizer::FindStillTransform( int& baseIndex, int& currentIndex )
+void vtkDataCollectorSynchronizer::FindStillTransform( BufferItemUidType& baseIndex, BufferItemUidType& currentIndex )
 {
 	LOG_TRACE("vtkDataCollectorSynchronizer::FindStillTransform"); 
-	while ( currentIndex >= 0 && baseIndex >= 0 && baseIndex != currentIndex )
+	while ( currentIndex <= this->GetTrackerBuffer()->GetLatestItemUidInBuffer() && baseIndex <= this->GetTrackerBuffer()->GetLatestItemUidInBuffer() && baseIndex != currentIndex )
 	{
-		vtkSmartPointer<vtkMatrix4x4> baseMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
-		if ( (this->GetTrackerBuffer()->GetFlags(baseIndex) & (TR_MISSING | TR_OUT_OF_VIEW | TR_REQ_TIMEOUT))  == 0 )
-		{
-			this->GetTrackerBuffer()->GetMatrix(baseMatrix, baseIndex); 
-		}
+    
+    TrackerBufferItem baseItem; 
+    if ( this->GetTrackerBuffer()->GetTrackerBufferItem(baseIndex, &baseItem, false) != ITEM_OK )
+    {
+      LOG_ERROR("Failed to get tracker buffer item with UID: " << baseIndex ); 
+      baseIndex = baseIndex + 1; 
+			currentIndex = baseIndex + this->StillFrameIndexInterval; 
+      continue; 
+    }
 
-		vtkSmartPointer<vtkMatrix4x4> currentMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
-		if ( (this->GetTrackerBuffer()->GetFlags(currentIndex) & (TR_MISSING | TR_OUT_OF_VIEW | TR_REQ_TIMEOUT))  == 0 )
-		{
-			this->GetTrackerBuffer()->GetMatrix(currentMatrix, currentIndex); 
-		}
+    if ( baseItem.GetStatus() != TR_OK )
+    {
+      // Tracker status was invalid, move to next item
+      baseIndex = baseIndex + 1; 
+			currentIndex = baseIndex + this->StillFrameIndexInterval; 
+      continue; 
+    }
 
-		if ( this->GetTranslationError(baseMatrix, currentMatrix) < this->MaxTransformDifference && this->GetRotationError(baseMatrix, currentMatrix) < this->MaxTransformDifference )
+    TrackerBufferItem currentItem; 
+    if ( this->GetTrackerBuffer()->GetTrackerBufferItem(currentIndex, &currentItem, false) != ITEM_OK )
+    {
+      LOG_ERROR("Failed to get tracker buffer item with UID: " << currentIndex ); 
+      baseIndex = baseIndex + 1; 
+			currentIndex = baseIndex + this->StillFrameIndexInterval; 
+      continue; 
+    }
+
+    if ( currentItem.GetStatus() != TR_OK )
+    {
+      // Tracker status was invalid, move to next item
+      baseIndex = baseIndex + 1; 
+			currentIndex = baseIndex + this->StillFrameIndexInterval; 
+      continue; 
+    }
+
+		if ( this->GetTranslationError(baseItem.GetMatrix(), currentItem.GetMatrix() ) < this->MaxTransformDifference 
+      && this->GetRotationError(baseItem.GetMatrix(), currentItem.GetMatrix()) < this->MaxTransformDifference )
 		{
-			currentIndex = currentIndex + 1; 
+      // This item is below threshold, continue with the preceding item in the buffer
+			currentIndex = currentIndex - 1; 
 			FindStillTransform(baseIndex, currentIndex); 
 		}
 		else
 		{
-			baseIndex = baseIndex - 1; 
-			currentIndex = baseIndex - floor(1.0*this->GetNumberOfAveragedTransforms()/2.0); 
+      // Item was over the threshold, move the base index and start the search from the beginning
+			baseIndex = baseIndex + 1; 
+			currentIndex = baseIndex + this->StillFrameIndexInterval; 
 			FindStillTransform(baseIndex, currentIndex); 
 		}
 	}
@@ -676,9 +760,9 @@ void vtkDataCollectorSynchronizer::FindStillFrame( BufferItemUidType& baseIndex,
 	VideoBufferItem videoItem; 
 	while ( currentIndex <= latestFrameUid && baseIndex <= latestFrameUid && baseIndex != currentIndex )
 	{
-		const int videosyncprogress = floor(100.0*(this->GetVideoBuffer()->GetNumberOfItems() - baseIndex) / (1.0 * this->GetVideoBuffer()->GetNumberOfItems())); 
 		if ( this->ProgressBarUpdateCallbackFunction != NULL )
 		{
+      const int videosyncprogress = floor(100.0*(baseIndex - this->TrackerBuffer->GetOldestItemUidInBuffer()) / (1.0 * this->GetVideoBuffer()->GetNumberOfItems())); 
 			(*ProgressBarUpdateCallbackFunction)(videosyncprogress); 
 		}
 
@@ -816,9 +900,9 @@ PlusStatus vtkDataCollectorSynchronizer::FindFrameTimestamp( BufferItemUidType& 
 
 	while ( !diffFound && bufferIndex <= this->VideoBuffer->GetLatestItemUidInBuffer() )
 	{
-		const int videosyncprogress = floor(100.0*(this->GetVideoBuffer()->GetNumberOfItems() - bufferIndex) / (1.0 * this->GetVideoBuffer()->GetNumberOfItems())); 
 		if ( this->ProgressBarUpdateCallbackFunction != NULL )
 		{
+      const int videosyncprogress = floor(100.0*(bufferIndex - this->TrackerBuffer->GetOldestItemUidInBuffer()) / (1.0 * this->GetVideoBuffer()->GetNumberOfItems())); 
 			(*ProgressBarUpdateCallbackFunction)(videosyncprogress); 
 		}
 
@@ -902,7 +986,7 @@ PlusStatus vtkDataCollectorSynchronizer::FindFrameTimestamp( BufferItemUidType& 
 }
 
 //----------------------------------------------------------------------------
-void vtkDataCollectorSynchronizer::ComputeFrameThreshold( BufferItemUidType& bufferIndex )
+PlusStatus vtkDataCollectorSynchronizer::ComputeFrameThreshold( BufferItemUidType& bufferIndex )
 {
 	LOG_TRACE("vtkDataCollectorSynchronizer::ComputeFrameThreshold"); 
 	// Compute frame average 
@@ -966,6 +1050,8 @@ void vtkDataCollectorSynchronizer::ComputeFrameThreshold( BufferItemUidType& buf
 
 	double threshold = ThresholdMultiplier * deviationDifference; 
 	this->FrameDifferenceThreshold = ( threshold > this->MinFrameThreshold ? threshold : this->MinFrameThreshold ); 
+
+  return PLUS_SUCCESS; 
 }
 
 //----------------------------------------------------------------------------
@@ -1016,12 +1102,20 @@ double vtkDataCollectorSynchronizer::GetImageAcquisitionFrameRate(double& mean, 
 double vtkDataCollectorSynchronizer::GetPositionAcquisitionFrameRate(double& mean, double& deviation)
 {
 	LOG_TRACE("vtkDataCollectorSynchronizer::GetPositionAcquisitionFrameRate"); 
-	std::vector<double> trackerTimestamps; 
-	for ( int bufferIndex = 0; bufferIndex < this->GetTrackerBuffer()->GetBufferSize(); bufferIndex++ )
+	const double localTimeOffset(0);
+  std::vector<double> trackerTimestamps; 
+	for ( BufferItemUidType bufferIndex = this->GetTrackerBuffer()->GetOldestItemUidInBuffer() ; bufferIndex <= this->GetTrackerBuffer()->GetLatestItemUidInBuffer(); ++bufferIndex )
 	{
-		double timestamp = this->GetTrackerBuffer()->GetTimeStamp(bufferIndex); 
+    TrackerBufferItem bufferItem; 
+    if ( this->GetTrackerBuffer()->GetTrackerBufferItem(bufferIndex, &bufferItem, false ) != ITEM_OK )
+    {
+      LOG_ERROR("Failed to get tracker buffer item with UID: " << bufferIndex ); 
+      continue; 
+    }
 
-		if ( timestamp > 0 && (this->GetTrackerBuffer()->GetFlags(bufferIndex) & (TR_MISSING | TR_OUT_OF_VIEW | TR_REQ_TIMEOUT))  == 0 )
+		double timestamp = bufferItem.GetTimestamp(localTimeOffset); 
+
+		if ( timestamp > 0 && bufferItem.GetStatus() == TR_OK )
 		{
 			trackerTimestamps.push_back(timestamp); 
 		}
