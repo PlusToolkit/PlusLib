@@ -308,17 +308,25 @@ static void *vtkInstrumentTrackerThread(vtkMultiThreader::ThreadInfo *data)
     #endif
 
     igtl::Matrix4x4 igtlMatrix;
-    long flags;
+    TrackerStatus status;
 
       //Get Tracking Matrix for new frame
-      flags = self->GetTrackerTool()->GetBuffer()->GetFlagsAndMatrixFromTime(trackerMatrix, vtkTimerLog::GetUniversalTime());
+    TrackerBufferItem bufferItem; 
+    if ( self->GetTrackerTool()->GetBuffer()->GetLatestTrackerBufferItem(&bufferItem) != ITEM_OK )
+    {
+      LOG_WARNING("Failed to get latest tracker buffer item!"); 
+      continue; 
+    }
+
+      status = bufferItem.GetStatus(); 
+      trackerMatrix->DeepCopy( bufferItem.GetMatrix() ); 
       
       #ifdef DEBUG_INST_TRACKER
       self->GetLogStream() <<  self->GetUpTime() << " |I-INFO: New Matrix " << endl;
       trackerMatrix->Print(self->GetLogStream());
       #endif
 
-      if (flags & (TR_MISSING | TR_OUT_OF_VIEW))
+      if (status == TR_MISSING || status == TR_OUT_OF_VIEW)
       {
       #ifdef WARNING_INST_TRACKER
       self->GetLogStream() << " | I-ERROR: Tracker missing or out of view" << endl;

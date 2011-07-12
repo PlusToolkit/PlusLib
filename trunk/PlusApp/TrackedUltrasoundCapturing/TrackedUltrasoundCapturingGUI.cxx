@@ -396,39 +396,49 @@ void TrackedUltrasoundCapturingGUI::UpdateWidgets()
 		else
 		{
 
-			const int mainToolNumber = this->m_USCapturing->GetDataCollector()->GetDefaultToolPortNumber(); 
-			vtkTrackerBuffer* trackerBuffer = tracker->GetTool( mainToolNumber )->GetBuffer();  
+			const int defaultToolNumber = this->m_USCapturing->GetDataCollector()->GetDefaultToolPortNumber(); 
+			vtkTrackerBuffer* trackerBuffer = tracker->GetTool( defaultToolNumber )->GetBuffer();  
 
-			trackerBuffer->Lock(); 
-			long flag = trackerBuffer->GetFlags(0); 
-			vtkSmartPointer<vtkMatrix4x4> transformMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
-			trackerBuffer->GetMatrix(transformMatrix, 0); 
-			trackerBuffer->Unlock(); 
+      TrackerBufferItem bufferItem; 
+      if ( trackerBuffer->GetLatestTrackerBufferItem(&bufferItem, false) != ITEM_OK )
+      {
+        LOG_WARNING("Failed to get latest tracker item from buffer!"); 
+        this->SyncTrackerMatrix->hide(); 
+        this->CapturingTrackerMatrix->hide(); 
+        this->SyncTrackerOutOfViewLabel->show(); 
+        this->CapturingTrackerOutOfViewLabel->show(); 
+      }
+      else
+      {
 
-			if ( flag == TR_OK )
-			{
-				this->SyncTrackerOutOfViewLabel->hide(); 
-				this->CapturingTrackerOutOfViewLabel->hide(); 
-				this->SyncTrackerMatrix->show(); 
-				this->CapturingTrackerMatrix->show(); 
+        vtkSmartPointer<vtkMatrix4x4> transformMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
+        transformMatrix->DeepCopy( bufferItem.GetMatrix() ); 
 
-				for ( int r = 0; r < 4; r++ )
-				{
-					for ( int c = 0; c < 4; c++ )
-					{
-						this->SyncTrackerMatrix->item(r,c)->setText(QString::number(transformMatrix->GetElement(r,c), 'f', 2)); 
-						this->CapturingTrackerMatrix->item(r,c)->setText(QString::number(transformMatrix->GetElement(r,c), 'f', 2)); 
-					}
-				}
-			}
-			else
-			{
-				this->SyncTrackerMatrix->hide(); 
-				this->CapturingTrackerMatrix->hide(); 
-				this->SyncTrackerOutOfViewLabel->show(); 
-				this->CapturingTrackerOutOfViewLabel->show(); 
-			}
-		}
+        if ( bufferItem.GetStatus() == TR_OK )
+        {
+          this->SyncTrackerOutOfViewLabel->hide(); 
+          this->CapturingTrackerOutOfViewLabel->hide(); 
+          this->SyncTrackerMatrix->show(); 
+          this->CapturingTrackerMatrix->show(); 
+
+          for ( int r = 0; r < 4; r++ )
+          {
+            for ( int c = 0; c < 4; c++ )
+            {
+              this->SyncTrackerMatrix->item(r,c)->setText(QString::number(transformMatrix->GetElement(r,c), 'f', 2)); 
+              this->CapturingTrackerMatrix->item(r,c)->setText(QString::number(transformMatrix->GetElement(r,c), 'f', 2)); 
+            }
+          }
+        }
+        else
+        {
+          this->SyncTrackerMatrix->hide(); 
+          this->CapturingTrackerMatrix->hide(); 
+          this->SyncTrackerOutOfViewLabel->show(); 
+          this->CapturingTrackerOutOfViewLabel->show(); 
+        }
+      }
+    }
 	}
 
 	qApp->processEvents();
@@ -466,7 +476,7 @@ void TrackedUltrasoundCapturingGUI::closeEvent(QCloseEvent* closeEvent)
 {
 	LOG_TRACE("TrackedUltrasoundCapturingGUI::closeEvent");
 	int quit = QMessageBox::question (this, tr("Tracked Ultrasound Capturing"),
-		tr("Dou you want to close the application?"),
+		tr("Do you want to close the application?"),
 		QMessageBox::Yes | QMessageBox::No,
 		QMessageBox::No);
 

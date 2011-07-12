@@ -86,15 +86,15 @@ MainWidget
 {
   vtkSmartPointer< vtkMatrix4x4 > mMain = vtkSmartPointer< vtkMatrix4x4 >::New();
   double timestamp = 0.0;
-  long flags = 0;
+  TrackerStatus status = TR_OK;
   
   std::stringstream ss;
   ss.precision( 2 );
   
   if ( this->DataCollector->GetInitialized() )
     {
-    this->DataCollector->GetTransformWithTimestamp( mMain, timestamp, flags, this->DataCollector->GetDefaultToolPortNumber() );
-    if ( flags & ( TR_MISSING | TR_OUT_OF_VIEW ) )
+    this->DataCollector->GetTransformWithTimestamp( mMain, timestamp, status, this->DataCollector->GetDefaultToolPortNumber() );
+    if ( status  == TR_MISSING || status == TR_OUT_OF_VIEW )
       {
       ss << "Target out of view";
       }

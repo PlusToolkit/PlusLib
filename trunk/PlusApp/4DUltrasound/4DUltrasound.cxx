@@ -625,8 +625,6 @@ int main(int argc, char **argv)
   #else
         sprintf(filename, "%s/trackedInstrument.txt", reconParams.SaveDirectory);
   #endif
-        cout << "Saving tracker buffer to " << filename << endl;
-        tracker->GetTool(reconParams.TrackerPort)->GetBuffer()->WriteToFile(filename);
         }
       }
 
