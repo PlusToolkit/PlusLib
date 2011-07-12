@@ -75,9 +75,6 @@ public:
 	vtkSetStringMacro(ProgramPath); 
 	vtkGetStringMacro(ProgramPath); 
 
-	vtkSetStringMacro(ConfigDirectory); 
-	vtkGetStringMacro(ConfigDirectory); 
-
 protected:
 	/*!
 	* \brief Constructor
@@ -116,9 +113,6 @@ protected:
 
 	//! Program path
 	char*							ProgramPath;
-
-	//! Config directory path
-	char*							ConfigDirectory;
 
 private:
 	//! Instance of the singleton

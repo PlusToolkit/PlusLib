@@ -7,9 +7,13 @@
 
 #include "vtkObjectFactory.h"
 #include "vtkAccurateTimer.h"
+#include "vtkTrackerTool.h"
+#include "vtkFileFinder.h"
 #include "vtkMath.h"
 #include "vtkRenderWindow.h"
 #include "vtkRenderWindowInteractor.h"
+#include "vtkSTLReader.h"
+#include "vtkPolyDataMapper.h"
 
 //-----------------------------------------------------------------------------
 
@@ -49,12 +53,13 @@ vtkFreehandCalibrationController* vtkFreehandCalibrationController::GetInstance(
 //-----------------------------------------------------------------------------
 
 vtkFreehandCalibrationController::vtkFreehandCalibrationController()
-	:AbstractToolboxController()
+	: AbstractToolboxController()
 {
 	this->TemporalCalibrationDone = false;
 	this->SpatialCalibrationDone = false;
 	this->ProgressPercent = 0;
 	this->CancelRequest = false;
+	this->ShowDevices = false;
 
 	this->USImageFrameOriginXInPixels = 0; 
 	this->USImageFrameOriginYInPixels = 0; 
@@ -64,6 +69,10 @@ vtkFreehandCalibrationController::vtkFreehandCalibrationController()
 	this->EnableSystemLogOff();
 	this->SetCalibrationMode(REALTIME); 
 	this->CanvasImageActor = NULL;
+	this->PhantomBodyActor = NULL;
+	this->ProbeActor = NULL;
+	this->StylusActor = NULL;
+	this->NeedleActor = NULL;
 	this->ImageCamera = NULL;
 	this->CalibrationResultFileNameWithPath = NULL;
 	this->CalibrationResultFileSuffix = NULL;
@@ -86,6 +95,10 @@ vtkFreehandCalibrationController::vtkFreehandCalibrationController()
 vtkFreehandCalibrationController::~vtkFreehandCalibrationController()
 {
 	this->SetCanvasImageActor(NULL);
+	this->SetPhantomBodyActor(NULL);
+	this->SetProbeActor(NULL);
+	this->SetStylusActor(NULL);
+	this->SetNeedleActor(NULL);
 	this->SetTransformImageToProbe(NULL);
 	this->SetTransformProbeToPhantomReference(NULL);
 
@@ -152,9 +165,6 @@ PlusStatus vtkFreehandCalibrationController::InitializeVisualization()
 				this->SetCanvasImageActor(canvasImageActor);
 			}
 
-			// Load models and initialize device actors
-			InitializeDeviceVisualization();
-
 			// Compute image camera parameters and set it to display live image
 			CalculateImageCameraParameters();
 			
@@ -169,10 +179,20 @@ PlusStatus vtkFreehandCalibrationController::InitializeVisualization()
 	} else if (vtkFreehandController::GetInstance()->GetCanvas() != NULL) {  // If already initialized (it can occur if tab change - and so clear - happened)
 		// Add all actors to the renderer again - state must be "Done", because tab cannot be changed if "In progress"
 		vtkRenderer* renderer = vtkFreehandController::GetInstance()->GetCanvasRenderer();
-		//renderer->AddActor(m_InputActor);
-		//renderer->AddActor(m_StylusActor);
-		//renderer->AddActor(m_StylusTipActor);
+
+		renderer->AddActor(this->CanvasImageActor);
+
+		if (this->ShowDevices) {
+			renderer->AddActor(this->PhantomBodyActor);
+			renderer->AddActor(this->ProbeActor);
+			renderer->AddActor(this->StylusActor);
+			renderer->AddActor(this->NeedleActor);
+		}
+
 		renderer->Modified();
+
+		// Compute image camera parameters and set it to display live image
+		CalculateImageCameraParameters();
 	}
 
 	return PLUS_SUCCESS;
@@ -182,45 +202,142 @@ PlusStatus vtkFreehandCalibrationController::InitializeVisualization()
 
 PlusStatus vtkFreehandCalibrationController::InitializeDeviceVisualization()
 {
-	/*
-	// Initialize phantom model visualization
+	vtkFreehandController* controller = vtkFreehandController::GetInstance();
+	if (controller == NULL) {
+		LOG_ERROR("vtkFreehandController is invalid");
+		return PLUS_FAIL;
+	}
+	if (controller->GetInitialized() == false) {
+		LOG_ERROR("vtkFreehandController is not initialized!");
+		return PLUS_FAIL;
+	}
+	vtkDataCollector* dataCollector = controller->GetDataCollector();
+	if (dataCollector == NULL) {
+		LOG_ERROR("Data collector is not initialized!");
+		return PLUS_FAIL;
+	}
+	if (dataCollector->GetTracker() == NULL) {
+		LOG_ERROR("Tracker is not initialized!");
+		return PLUS_FAIL;
+	}
+
+	vtkRenderer* renderer = vtkFreehandController::GetInstance()->GetCanvasRenderer();
+
 	if (vtkFreehandController::GetInstance()->GetCanvas() != NULL) {
-		vtkSmartPointer<vtkSTLReader> stlReader = vtkSmartPointer<vtkSTLReader>::New();
-		std::string filePath = vtksys::SystemTools::CollapseFullPath(file, vtkFreehandController::GetInstance()->GetConfigDirectory());
-		if (! vtksys::SystemTools::FileExists(filePath.c_str())) {
-			LOG_ERROR("Phantom model file is not found in the specified path: " << filePath);
+		// Load phantom model and create phantom body actor
+		if (this->PhantomDefinitionFileName != NULL) {
+			// Initialize phantom model visualization
+			vtkSmartPointer<vtkSTLReader> stlReader = vtkSmartPointer<vtkSTLReader>::New();
+			if (! vtksys::SystemTools::FileExists(this->PhantomModelFileName)) {
+				LOG_WARNING("Phantom model file is not found in the specified path: " << this->PhantomModelFileName);
+			} else {
+				stlReader->SetFileName(this->PhantomModelFileName);
+				vtkSmartPointer<vtkPolyDataMapper> stlMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+				stlMapper->SetInputConnection(stlReader->GetOutputPort());
+
+				vtkSmartPointer<vtkActor> phantomBodyActor = vtkSmartPointer<vtkActor>::New();
+				phantomBodyActor->SetMapper(stlMapper);
+				this->SetPhantomBodyActor(phantomBodyActor);
+			}
+
+			// ModelToPhantomOriginTransform - Transforming input model for proper visualization
+			if ((this->ModelToPhantomOriginTransform != NULL) && (PhantomRegistrationController::GetInstance()->GetPhantomToPhantomReferenceTransform() != NULL)) {
+				vtkSmartPointer<vtkTransform> modelToPhantomReferenceTransform = vtkSmartPointer<vtkTransform>::New();
+				modelToPhantomReferenceTransform->Identity();
+				modelToPhantomReferenceTransform->Concatenate(this->ModelToPhantomOriginTransform);
+				modelToPhantomReferenceTransform->Concatenate(PhantomRegistrationController::GetInstance()->GetPhantomToPhantomReferenceTransform());
+				modelToPhantomReferenceTransform->Modified();
+
+				this->PhantomBodyActor->SetUserTransform(modelToPhantomReferenceTransform);
+				renderer->AddActor(this->PhantomBodyActor);
+			}
 		} else {
-			stlReader->SetFileName(filePath.c_str());
-			vtkSmartPointer<vtkPolyDataMapper> stlMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-			stlMapper->SetInputConnection(stlReader->GetOutputPort());
-			m_PhantomBodyActor->SetMapper(stlMapper);
-
-			vtkSmartPointer<vtkPolyDataMapper> stlMapper2 = vtkSmartPointer<vtkPolyDataMapper>::New();
-			stlMapper2->SetInputConnection(stlReader->GetOutputPort());
-			m_RegisteredPhantomBodyActor->SetMapper(stlMapper2);
+			LOG_WARNING("Phantom definiton file is not specified, phantom will not be displayed");
 		}
+
+		// Load device models and create actors
+		for (int i=0; i<dataCollector->GetTracker()->GetNumberOfTools(); ++i) {
+			vtkTrackerTool *tool = dataCollector->GetTracker()->GetTool(i);
+			if ((tool == NULL) || (tool->IsMissing())) {
+				continue;
+			}
+
+			// Load model if file name exists and file can be found
+			if (STRCASECMP(tool->GetToolModelFileName(), "") != 0) {
+				vtkSmartPointer<vtkSTLReader> stlReader = vtkSmartPointer<vtkSTLReader>::New();
+
+				std::string searchResult = vtkFileFinder::GetFirstFileFoundInConfigurationDirectory(tool->GetToolModelFileName());
+				if (STRCASECMP("", searchResult.c_str()) == 0) {
+					LOG_WARNING("Tool (" << tool->GetToolName() << ") model file is not found with name: " << tool->GetToolModelFileName());
+				} else {
+					stlReader->SetFileName(searchResult.c_str());
+					vtkSmartPointer<vtkPolyDataMapper> stlMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+					stlMapper->SetInputConnection(stlReader->GetOutputPort());
+
+					vtkSmartPointer<vtkActor> deviceActor = vtkSmartPointer<vtkActor>::New();
+					deviceActor->SetMapper(stlMapper);
+
+					// Create and apply actor transform
+					vtkSmartPointer<vtkTransform> modelToToolReferenceTransform = vtkSmartPointer<vtkTransform>::New();
+					modelToToolReferenceTransform->Identity();
+					modelToToolReferenceTransform->Concatenate(tool->GetModelToToolTransform());
+					modelToToolReferenceTransform->Concatenate(tool->GetToolToToolReferenceTransform());
+					modelToToolReferenceTransform->Modified();
+
+					deviceActor->SetUserTransform(modelToToolReferenceTransform);
+
+					// Set proper members
+					if (STRCASECMP(tool->GetToolName(), "Probe") != 0) {
+						this->SetProbeActor(deviceActor);
+						renderer->AddActor(this->ProbeActor);
+					} else if (STRCASECMP(tool->GetToolName(), "Stylus") != 0) {
+						this->SetStylusActor(deviceActor);
+						renderer->AddActor(this->StylusActor);
+					} else if (STRCASECMP(tool->GetToolName(), "Needle") != 0) {
+						this->SetNeedleActor(deviceActor);
+						renderer->AddActor(this->NeedleActor);
+					}
+				}
+			}
+
+		} // for each tool
 	}
 
-	// ModelToPhantomOriginTransform - Transforming input model for proper visualization
-	double* modelToPhantomOriginTransformVector = new double[16]; 
-	if (model->GetVectorAttribute("ModelToPhantomOriginTransform", 16, modelToPhantomOriginTransformVector)) {
-		vtkSmartPointer<vtkMatrix4x4> modelToPhantomOriginTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-		modelToPhantomOriginTransformMatrix->Identity();
-		modelToPhantomOriginTransformMatrix->DeepCopy(modelToPhantomOriginTransformVector);
-
-		if (m_PhantomToModelTransform != NULL) {
-			m_PhantomToModelTransform->Delete();
-		}
-		m_PhantomToModelTransform = vtkTransform::New();
-		m_PhantomToModelTransform->SetMatrix(modelToPhantomOriginTransformMatrix);
-
-		if (vtkFreehandController::GetInstance()->GetCanvas() != NULL) {
-			m_PhantomBodyActor->SetUserTransform(m_PhantomToModelTransform);
-		}
-	}
-	delete[] modelToPhantomOriginTransformVector;
-	*/
 	return PLUS_SUCCESS;
+}
+
+//-----------------------------------------------------------------------------
+
+void vtkFreehandCalibrationController::ToggleDeviceVisualization(bool aOn)
+{
+	vtkFreehandController* controller = vtkFreehandController::GetInstance();
+	if ((controller == NULL) || (controller->GetInitialized() == false)) {
+		LOG_ERROR("vtkFreehandController is not initialized!");
+		return;
+	}
+	vtkRenderer* renderer = controller->GetCanvasRenderer();
+
+	if (aOn == false) {
+		// Remove device actors
+		renderer->RemoveActor(this->PhantomBodyActor);
+		renderer->RemoveActor(this->ProbeActor);
+		renderer->RemoveActor(this->StylusActor);
+		renderer->RemoveActor(this->NeedleActor);
+
+		// Calculate camera to show only the image
+		CalculateImageCameraParameters();
+	} else if (aOn == true) {
+		// Add device actors
+		renderer->AddActor(this->PhantomBodyActor);
+		renderer->AddActor(this->ProbeActor);
+		renderer->AddActor(this->StylusActor);
+		renderer->AddActor(this->NeedleActor);
+
+		// Reset camera to show all devices and the image
+		renderer->ResetCamera();
+	}
+
+	this->SetShowDevices(aOn);
 }
 
 //-----------------------------------------------------------------------------
@@ -433,7 +550,9 @@ PlusStatus vtkFreehandCalibrationController::Start()
 
 PlusStatus vtkFreehandCalibrationController::Stop()
 {
-	//TODO
+	// Load models and initialize device actors (entering this function means that the calibration is successful)
+	InitializeDeviceVisualization();
+
 	m_State = ToolboxState_Done;
 
 	return PLUS_SUCCESS;
@@ -447,11 +566,6 @@ PlusStatus vtkFreehandCalibrationController::Reset()
 
 	// Delete object related to calibration (removing previously acquired data)
 	if (this->TemporalCalibrationDone == true) {
-		//if (this->mptrAutomatedSegmentation != NULL) {
-		//	delete this->mptrAutomatedSegmentation;
-		//	this->mptrAutomatedSegmentation = NULL;
-		//}	
-
 		if (this->Calibrator != NULL) {
 			delete this->Calibrator;
 			this->Calibrator = NULL;

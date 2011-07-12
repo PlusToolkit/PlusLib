@@ -36,7 +36,7 @@
 		</Landmarks>
 		
 		<Registration
-			MatrixName="PhantomReferenceToPhantom" 
+			MatrixName="PhantomToPhantomReference" 
 			MatrixValue="1 0 0 0 
 						 0 1 0 0 
 						 0 0 1 0

@@ -56,7 +56,7 @@ PhantomRegistrationController::PhantomRegistrationController()
 	,m_RequestedLandmarkPolyData(NULL)
 	,m_DefinedLandmarks(NULL)
 	,m_PhantomToPhantomReferenceTransform(NULL)
-	,m_PhantomToModelTransform(NULL)
+	,m_ModelToPhantomOriginTransform(NULL)
 	,m_PositionString("")
 	,m_PhantomDefinitionFileName("")
 	,m_CurrentLandmarkIndex(-1)
@@ -71,6 +71,7 @@ PhantomRegistrationController::PhantomRegistrationController()
 
 PhantomRegistrationController::~PhantomRegistrationController()
 {
+	//TODO use vtkSmartPointer when creating these
 	if (m_PhantomRenderer != NULL) {
 		m_PhantomRenderer->Delete();
 		m_PhantomRenderer = NULL;
@@ -121,9 +122,9 @@ PhantomRegistrationController::~PhantomRegistrationController()
 		m_PhantomToPhantomReferenceTransform = NULL;
 	}
 	
-	if (m_PhantomToModelTransform != NULL) {
-		m_PhantomToModelTransform->Delete();
-		m_PhantomToModelTransform = NULL;
+	if (m_ModelToPhantomOriginTransform != NULL) {
+		m_ModelToPhantomOriginTransform->Delete();
+		m_ModelToPhantomOriginTransform = NULL;
 	}
 
 	if (m_DefinedLandmarks != NULL) {
@@ -536,14 +537,14 @@ void PhantomRegistrationController::Register()
 	LOG_DEBUG("PhantomToPhantomReferenceTransform:\n" << osPhantomToPhantomReferenceTransform.str().c_str() );
 
 	// Display phantom model in the main canvas
-	if (vtkFreehandController::GetInstance()->GetCanvas() != NULL) { //TODO fix!!! the new name of m_PhantomToPhantomReferenceTransform and the concatenation is not consistent!
-		vtkSmartPointer<vtkTransform> phantomReferenceToModelTransform = vtkSmartPointer<vtkTransform>::New();
-		phantomReferenceToModelTransform->Identity();
-		phantomReferenceToModelTransform->Concatenate(m_PhantomToPhantomReferenceTransform);
-		phantomReferenceToModelTransform->Concatenate(m_PhantomToModelTransform);
-		phantomReferenceToModelTransform->Modified();
+	if (vtkFreehandController::GetInstance()->GetCanvas() != NULL) {
+		vtkSmartPointer<vtkTransform> modelToPhantomReferenceTransform = vtkSmartPointer<vtkTransform>::New();
+		modelToPhantomReferenceTransform->Identity();
+		modelToPhantomReferenceTransform->Concatenate(m_ModelToPhantomOriginTransform);
+		modelToPhantomReferenceTransform->Concatenate(m_PhantomToPhantomReferenceTransform);
+		modelToPhantomReferenceTransform->Modified();
 
-		m_RegisteredPhantomBodyActor->SetUserTransform(phantomReferenceToModelTransform);
+		m_RegisteredPhantomBodyActor->SetUserTransform(modelToPhantomReferenceTransform);
 		m_RegisteredPhantomBodyActor->VisibilityOn();
 		m_RegisteredPhantomBodyActor->Modified();
 
@@ -744,7 +745,7 @@ PlusStatus PhantomRegistrationController::LoadPhantomDefinitionFromFile(std::str
 			if (vtkFreehandController::GetInstance()->GetCanvas() != NULL) {
 				vtkSmartPointer<vtkSTLReader> stlReader = vtkSmartPointer<vtkSTLReader>::New();
 				
-				std::string searchResult = vtkFileFinder::GetFirstFileFoundInParentOfDirectory(file, vtkFreehandController::GetInstance()->GetConfigDirectory());
+				std::string searchResult = vtkFileFinder::GetFirstFileFoundInConfigurationDirectory(file);
 				if (STRCASECMP("", searchResult.c_str()) == 0) {
 					LOG_ERROR("Phantom model file is not found with name: " << file);
 				} else {
@@ -766,14 +767,14 @@ PlusStatus PhantomRegistrationController::LoadPhantomDefinitionFromFile(std::str
 				modelToPhantomOriginTransformMatrix->Identity();
 				modelToPhantomOriginTransformMatrix->DeepCopy(modelToPhantomOriginTransformVector);
 
-				if (m_PhantomToModelTransform != NULL) {
-					m_PhantomToModelTransform->Delete();
+				if (m_ModelToPhantomOriginTransform != NULL) {
+					m_ModelToPhantomOriginTransform->Delete();
 				}
-				m_PhantomToModelTransform = vtkTransform::New();
-				m_PhantomToModelTransform->SetMatrix(modelToPhantomOriginTransformMatrix);
+				m_ModelToPhantomOriginTransform = vtkTransform::New();
+				m_ModelToPhantomOriginTransform->SetMatrix(modelToPhantomOriginTransformMatrix);
 
 				if (vtkFreehandController::GetInstance()->GetCanvas() != NULL) {
-					m_PhantomBodyActor->SetUserTransform(m_PhantomToModelTransform);
+					m_PhantomBodyActor->SetUserTransform(m_ModelToPhantomOriginTransform);
 				}
 			}
 			delete[] modelToPhantomOriginTransformVector;
