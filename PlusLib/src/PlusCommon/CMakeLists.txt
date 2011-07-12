@@ -7,6 +7,7 @@ SET ( PlusCommon_SRCS
 		vtkHTMLGenerator.cxx 
 		vtkGnuplotExecuter.cxx
         UsImageConverterCommon.cxx
+		vtkFileFinder.cxx
 		)
 
 SET (PlusCommon_HDRS)

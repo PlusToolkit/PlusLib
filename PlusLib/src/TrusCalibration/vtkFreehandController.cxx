@@ -41,7 +41,6 @@ vtkFreehandController::vtkFreehandController()
 	this->InputConfigFileName = NULL;
 	this->OutputFolder = NULL;
 	this->ProgramPath = NULL;
-	this->ConfigDirectory = NULL;
 	this->InitializedOff();
 	this->TrackingOnlyOn();
 	this->Canvas = NULL;

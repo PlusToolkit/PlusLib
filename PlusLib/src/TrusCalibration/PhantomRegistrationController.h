@@ -197,7 +197,7 @@ protected:
 	vtkTransform*							m_PhantomToPhantomReferenceTransform;
 
 	//! Phantom model to phantom origin transform (from phantom definition file)
-	vtkTransform*							m_PhantomToModelTransform;
+	vtkTransform*							m_ModelToPhantomOriginTransform;
 
 	//! Names of the phantom landmarks
 	std::vector<std::string>				m_LandmarkNames;

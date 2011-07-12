@@ -13,7 +13,7 @@
 /*!
 * \brief Control operations for freehand calibration toolbox - singleton class
 */
-class vtkFreehandCalibrationController : public vtkCalibrationController, public AbstractToolboxController //TODOsajt a filet is atnevezni
+class vtkFreehandCalibrationController : public vtkCalibrationController, public AbstractToolboxController
 {
 public:
 
@@ -81,6 +81,12 @@ public:
 	* \return Success flag
 	*/
 	PlusStatus Stop();
+
+	/*!
+	* \brief Toggle visualization of devices on or off
+	* \param aOn Visualization state flag
+	*/
+	void ToggleDeviceVisualization(bool aOn);
 
 	//TODO--------------------------
 	PlusStatus DoTemporalCalibration();
@@ -246,8 +252,24 @@ public:
 	vtkGetMacro(CancelRequest, bool); 
 	vtkBooleanMacro(CancelRequest, bool); 
 
+	vtkSetMacro(ShowDevices, bool); 
+	vtkGetMacro(ShowDevices, bool); 
+	vtkBooleanMacro(ShowDevices, bool); 
+
 	vtkGetObjectMacro(CanvasImageActor, vtkImageActor);
 	vtkSetObjectMacro(CanvasImageActor, vtkImageActor);
+
+	vtkGetObjectMacro(PhantomBodyActor, vtkActor);
+	vtkSetObjectMacro(PhantomBodyActor, vtkActor);
+
+	vtkGetObjectMacro(ProbeActor, vtkActor);
+	vtkSetObjectMacro(ProbeActor, vtkActor);
+
+	vtkGetObjectMacro(StylusActor, vtkActor);
+	vtkSetObjectMacro(StylusActor, vtkActor);
+
+	vtkGetObjectMacro(NeedleActor, vtkActor);
+	vtkSetObjectMacro(NeedleActor, vtkActor);
 
 	vtkGetObjectMacro(ImageCamera, vtkCamera);
 	vtkSetObjectMacro(ImageCamera, vtkCamera);
@@ -291,18 +313,39 @@ protected:
 	bool SpatialCalibrationDone;
 	int ProgressPercent;
 	bool CancelRequest;
+	bool ShowDevices;
 	//! Attribute: a reference to the calibration phantom
 	BrachyTRUSCalibrator* Calibrator;
+
+	//! Actor displaying the image
+	vtkImageActor*	CanvasImageActor;
+
+	//! Camera of the scene
+	vtkCamera*		ImageCamera;
+
+	//! The current transformation matrix of the main tool (the probe)
+	vtkTransform*	TransformProbeToPhantomReference;
+
+	//! Result of the calibration - Image to Probe transform
+	vtkTransform*	TransformImageToProbe;
+
+	//! Actor for displaying the phantom body
+	vtkActor* PhantomBodyActor;
+
+	//! Actor for displaying the probe
+	vtkActor* ProbeActor;
+
+	//! Actor for displaying the stylus
+	vtkActor* StylusActor;
+
+	//! Actor for displaying the needle
+	vtkActor* NeedleActor;
+
 	//! Attribute: Flag to enable the calibration log file
 	bool EnableSystemLog;
 	//! Attributes: The US image frame origin (in pixels) - These are the US image frame origin in pixels W.R.T. the left-upper corner of the original image, with X pointing to the right (column) and Y pointing down to the bottom (row)
 	int USImageFrameOriginXInPixels;
 	int USImageFrameOriginYInPixels;
-	//! TODO
-	vtkImageActor*	CanvasImageActor;
-	vtkCamera*		ImageCamera;
-	vtkTransform*	TransformProbeToPhantomReference;
-	vtkTransform*	TransformImageToProbe;
 	//! Attribute: calibration result file name
 	char* CalibrationResultFileNameWithPath; 
 	//! Attributes: suffix of the calibration result file

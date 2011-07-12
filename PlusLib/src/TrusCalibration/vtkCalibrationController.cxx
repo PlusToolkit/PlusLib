@@ -54,6 +54,8 @@ SegmentationProgressCallbackFunction(NULL)
 	this->ProgramFolderPath = NULL; 
 	this->ConfigurationFileName = NULL;
 	this->PhantomDefinitionFileName = NULL;
+	this->ModelToPhantomOriginTransform = NULL;
+	this->PhantomModelFileName = NULL;
 	this->SegParameters = NULL; 
 
 	this->SetCalibrationMode(REALTIME); 
@@ -910,8 +912,13 @@ PlusStatus vtkCalibrationController::ReadSegmentationParametersConfiguration( vt
 	// Search for the phantom definition file found in the configuration file
 	const char* phantomDefinitionFile =  segmentationParameters->GetAttribute("PhantomDefinition");
 	if (phantomDefinitionFile != NULL) {
-		std::string configurationDirectory = vtksys::SystemTools::GetFilenamePath(this->ConfigurationFileName);
-		std::string searchResult = vtkFileFinder::GetFirstFileFoundInParentOfDirectory(phantomDefinitionFile, configurationDirectory.c_str());
+		std::string searchResult;
+		if (STRCASECMP(vtkFileFinder::GetInstance()->GetConfigurationDirectory(), "") == 0) {
+			std::string configurationDirectory = vtksys::SystemTools::GetFilenamePath(this->ConfigurationFileName);
+			searchResult = vtkFileFinder::GetFirstFileFoundInParentOfDirectory(phantomDefinitionFile, configurationDirectory.c_str());
+		} else {
+			searchResult = vtkFileFinder::GetFirstFileFoundInConfigurationDirectory(phantomDefinitionFile);
+		}
 		if (STRCASECMP("", searchResult.c_str()) == 0) {
 			LOG_WARNING("Phantom model file is not found with name: " << phantomDefinitionFile);
 		}
@@ -964,6 +971,39 @@ PlusStatus vtkCalibrationController::ReadPhantomDefinition()
 			}
 		}
 
+		// Load model information
+		vtkXMLDataElement* model = phantomDefinition->FindNestedElementWithName("Model"); 
+		if (model == NULL) {
+			LOG_WARNING("Phantom model information not found - no model displayed");
+		} else {
+			const char* file = model->GetAttribute("File");
+			if (file) {
+				std::string searchResult;
+				if (STRCASECMP(vtkFileFinder::GetInstance()->GetConfigurationDirectory(), "") == 0) {
+					std::string configurationDirectory = vtksys::SystemTools::GetFilenamePath(this->ConfigurationFileName);
+					searchResult = vtkFileFinder::GetFirstFileFoundInParentOfDirectory(file, configurationDirectory.c_str());
+				} else {
+					searchResult = vtkFileFinder::GetFirstFileFoundInConfigurationDirectory(file);
+				}
+				if (STRCASECMP("", searchResult.c_str()) != 0) {
+					this->SetPhantomModelFileName(searchResult.c_str());
+				}
+			}
+
+			// ModelToPhantomOriginTransform - Transforming input model for proper visualization
+			double* modelToPhantomOriginTransformVector = new double[16]; 
+			if (model->GetVectorAttribute("ModelToPhantomOriginTransform", 16, modelToPhantomOriginTransformVector)) {
+				vtkSmartPointer<vtkMatrix4x4> modelToPhantomOriginTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+				modelToPhantomOriginTransformMatrix->Identity();
+				modelToPhantomOriginTransformMatrix->DeepCopy(modelToPhantomOriginTransformVector);
+
+				vtkSmartPointer<vtkTransform> modelToPhantomOriginTransform = vtkSmartPointer<vtkTransform>::New();
+				modelToPhantomOriginTransform->SetMatrix(modelToPhantomOriginTransformMatrix);
+				this->SetModelToPhantomOriginTransform(modelToPhantomOriginTransform);
+			}
+			delete[] modelToPhantomOriginTransformVector;
+		}
+
 		// Load geometry
 		vtkXMLDataElement* geometry = phantomDefinition->FindNestedElementWithName("Geometry"); 
 		if (geometry == NULL) {
@@ -1006,6 +1046,11 @@ PlusStatus vtkCalibrationController::ReadPhantomDefinition()
 					{
 						wire.id = wireId; 
 					}
+					else
+					{
+						LOG_WARNING("Wire id not found - skipped");
+						continue;
+					}
 
 					const char* wireName =  wireElement->GetAttribute("Name"); 
 					if ( wireName != NULL )
@@ -1033,6 +1078,8 @@ PlusStatus vtkCalibrationController::ReadPhantomDefinition()
 		LOG_ERROR("Phantom definition file name is not set!"); 
 		return PLUS_FAIL;
 	}
+
+	//TODO Load registration
 
 	// Compute error boundaries based on error percents and the NWire definition (supposing that the NWire is regular - parallel sides)
 	// Line length of an N-wire: the maximum distance between its wires' front endpoints

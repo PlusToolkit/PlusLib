@@ -72,6 +72,7 @@ public:
   // Read/write main configuration from/to xml data
   virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config); 
   virtual PlusStatus WriteConfiguration(vtkXMLDataElement* config); 
+  virtual PlusStatus ReadToolDefinitionConfiguration(vtkXMLDataElement* toolDefinition);
 
   // Description:
   // Get a reference to the transform associated with this tool.  The
@@ -170,7 +171,7 @@ public:
   vtkGetStringMacro(ToolPartNumber);
   vtkGetStringMacro(ToolSerialNumber);
   vtkGetStringMacro(ToolName); 
-  vtkGetStringMacro(ToolModelFileName); 
+  vtkGetStringMacro(ToolDefinitionFileName); 
 
   //BTX
   // Description:
@@ -183,9 +184,16 @@ public:
   vtkSetStringMacro(ToolPartNumber);
   vtkSetStringMacro(ToolSerialNumber);
   vtkSetStringMacro(ToolName);
-  vtkSetStringMacro(ToolModelFileName); 
+  vtkSetStringMacro(ToolDefinitionFileName); 
   void Update();
   //ETX
+
+  // Description
+  // Set/Get Tool definition data (model to tool transform, tool registration transform, model file path and filename)
+  vtkGetObjectMacro(ModelToToolTransform,vtkTransform);
+  vtkGetObjectMacro(ToolToToolReferenceTransform,vtkTransform);
+  vtkGetStringMacro(ToolModelFileName); 
+  vtkSetStringMacro(ToolModelFileName); 
 
   // Description:
   // Set/get calibration matrix name
@@ -258,7 +266,11 @@ protected:
   char *CalibrationMatrixName; 
   char *CalibrationDate; 
   char *SendToLink;
+  char *ToolDefinitionFileName;
+
   char *ToolModelFileName;
+  vtkTransform *ModelToToolTransform;
+  vtkTransform *ToolToToolReferenceTransform;
 
   double CalibrationError; 
 
