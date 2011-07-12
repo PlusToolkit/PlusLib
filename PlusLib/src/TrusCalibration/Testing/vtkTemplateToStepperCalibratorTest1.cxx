@@ -140,9 +140,9 @@ int main (int argc, char* argv[])
 
 		ImageSequenceType::Pointer imageSeq = reader->GetOutput();
 
-		const unsigned long ImageWidthInPixels = imageSeq->GetLargestPossibleRegion().GetSize()[0]; 
-		const unsigned long ImageHeightInPixels = imageSeq->GetLargestPossibleRegion().GetSize()[1]; 
-		const unsigned long numberOfFrames = imageSeq->GetLargestPossibleRegion().GetSize()[2];	
+		unsigned long ImageWidthInPixels = imageSeq->GetLargestPossibleRegion().GetSize()[0]; 
+		unsigned long ImageHeightInPixels = imageSeq->GetLargestPossibleRegion().GetSize()[1]; 
+		unsigned long numberOfFrames = imageSeq->GetLargestPossibleRegion().GetSize()[2];	
 
 		unsigned int frameSizeInBytes=ImageWidthInPixels*ImageHeightInPixels*sizeof(PixelType);
 
