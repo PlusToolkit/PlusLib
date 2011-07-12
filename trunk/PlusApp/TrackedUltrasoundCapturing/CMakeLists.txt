@@ -80,12 +80,6 @@ INSTALL(FILES
 	COMPONENT RuntimeLibraries
   )
 
-INSTALL(FILES 
-	${PLUSLIB_DATA_DIR}/ConfigFiles/USDataCollectionConfig.xml  
-	DESTINATION ${PLUSAPP_INSTALL_CONFIG_DIR}
-	COMPONENT RuntimeLibraries
-  )
-
 INSTALL(TARGETS TrackedUltrasoundCapturing
   DESTINATION ${PLUSAPP_INSTALL_BIN_DIR}
   COMPONENT RuntimeLibraries
