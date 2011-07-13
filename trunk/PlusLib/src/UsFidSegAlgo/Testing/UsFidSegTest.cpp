@@ -147,6 +147,7 @@ int CompareSegmentationResults(const std::string& inputBaselineFileName, const s
 	outFileFidFindingResults<< "ThresholdBottom: "<< segParams.GetThresholdImageBottom() <<std::endl; 
 	for (int nestedElemInd=0; nestedElemInd<currentRootElem->GetNumberOfNestedElements(); nestedElemInd++)
 	{
+    LOG_DEBUG( "Current Frame: " << nestedElemInd);
 		vtkSmartPointer<vtkXMLDataElement> currentElem=currentRootElem->GetNestedElement(nestedElemInd); 
 		if (currentElem==NULL)  
 		{
@@ -224,49 +225,35 @@ int CompareSegmentationResults(const std::string& inputBaselineFileName, const s
 		memset(baselineFiducialPoints,0,sizeof(baselineFiducialPoints[0] * MAX_FIDUCIAL_COORDINATE_COUNT));
 		int baselineFidPointsRead = outputElementBaseline->GetVectorAttribute("SegmentationPoints", MAX_FIDUCIAL_COORDINATE_COUNT, baselineFiducialPoints);
 
-		// Compare fiducial candidate positions
+		// Count how many baseline fiducials are detected as fiducial candidates
+    vtkSmartPointer<vtkXMLDataElement> fidCandidElement = currentElem->FindNestedElementWithName("FiducialPointCandidates");
+    const char *fidCandid = "FiducialPointCandidates";
+    if((fidCandidElement != NULL) && (strcmp(fidCandidElement->GetName(),fidCandid) == 0))
+    {					
+      int foundBaselineFiducials = 0;
 
-		vtkSmartPointer<vtkXMLDataElement> fidCandidElement = currentElem->FindNestedElementWithName("FiducialPointCandidates");
-		const char *fidCandid = "FiducialPointCandidates";
-		if((fidCandidElement != NULL) && (strcmp(fidCandidElement->GetName(),fidCandid) == 0))
-		{					
-			double fidCandidates [2];
-			memset(fidCandidates,0,sizeof(fidCandidates[0]* MAX_DOTS)); 
+      for(int b=0; b+1<baselineFidPointsRead; b+=2)// loop through baseline fiducials
+      {
+        for(int i=0; i<fidCandidElement->GetNumberOfNestedElements(); i++)// loop through all found potential fiducials
+        { 
+          double fidCandidates[2]={0,0};
+          fidCandidElement->GetNestedElement(i)->GetVectorAttribute("Positon",2,fidCandidates);
 
-			vtkSmartPointer<vtkXMLDataElement> fidCandidCurrentNested = NULL; 
-			vtkSmartPointer<vtkXMLDataElement> pointElement = NULL; 
-			vtkSmartPointer<vtkXMLDataElement> positionElement = NULL;
-			int matchNumberTestCase = 0; // should be 5 ( at least) 
-			int fidCandidNumber = 0; 
-			for(int i=0; i<fidCandidElement->GetNumberOfNestedElements(); i++)// loop through all found potential fiducials
-			{ 
-				fidCandidNumber = fidCandidElement->GetNumberOfNestedElements(); 
-				fidCandidCurrentNested = fidCandidElement->GetNestedElement(i); 
-				std::string currentName = fidCandidCurrentNested->GetName(); 
-				double number = 0; 
-				//positionElement = fidCandidCurrentNested->FindNestedElementWithName("Position"); 
-				fidCandidCurrentNested->GetVectorAttribute("Positon",2,fidCandidates);
+          if ( fabs(baselineFiducialPoints[b] - fidCandidates[0])<BASELINE_TO_ALGORITHM_TOLERANCE 
+            && fabs(baselineFiducialPoints[b+1] - fidCandidates[1])< BASELINE_TO_ALGORITHM_TOLERANCE)
+          {
+            LOG_DEBUG("Fiducial candidate ("<<fidCandidates[0]<< ", "<<fidCandidates[1]
+              <<") matches the segmented baseline fiducial (" << baselineFiducialPoints[b]<< ", " << baselineFiducialPoints[b+1]<<")" ); 
+            foundBaselineFiducials++; 
+            break; 
+          }
 
-				for(int j=0; j<MAX_FIDUCIAL_COORDINATE_COUNT; j++)// loop through baseline fiducials, skip first 14, because those are old incorrect fiducials
-				{
-					if ( abs(baselineFiducialPoints[j] + fidCandidates[0])<BASELINE_TO_ALGORITHM_TOLERANCE && abs(baselineFiducialPoints[j+1]+ fidCandidates[1])< BASELINE_TO_ALGORITHM_TOLERANCE)// || or && ? compares x and y coordinates of baseline to x and y coordiantes of a fid candidate
-					{
-						LOG_DEBUG("Fiducial " << baselineFiducialPoints[j]<< " and " << baselineFiducialPoints[j+1]<<" matches "<<fidCandidates[0]<< "and "<<fidCandidates[1] ); 
-						matchNumberTestCase++; 
-						break; 
-					}
-					else
-					{
-						LOG_DEBUG("No Match"); 
-					}
-					j++;
-				}//for inner
-			}//for outer
+        }
+      }
 
-			LOG_DEBUG( "Current Frame: " << nestedElemInd <<  "Found Fiducials / Fiducial Candidates : " << matchNumberTestCase << " / " << fidCandidNumber) ; 
-			outFileFidFindingResults << nestedElemInd<< ": " <<matchNumberTestCase << " / " << fidCandidNumber <<std::endl; 
-			//AoutFileFidFindingResults << "Current Frame: " << nestedElemInd <<  " Found Fiducials  : " << matchNumberTestCase << " / " << fidCandidNumber <<std::endl; 
-		} 
+      LOG_DEBUG( "Found fiducials / Fiducial candidates: " << foundBaselineFiducials << " / " << fidCandidElement->GetNumberOfNestedElements()) ; 
+      outFileFidFindingResults << nestedElemInd<< ": " <<foundBaselineFiducials << " / " << fidCandidElement->GetNumberOfNestedElements() <<std::endl; 
+    } 
 
 		if (!currentSegmentationSuccess)
 		{
@@ -416,7 +403,8 @@ int main(int argc, char **argv)
 		exit(EXIT_FAILURE);
 	}
 
-	PlusLogger::Instance()->SetLogLevel(verboseLevel);
+  PlusLogger::Instance()->SetDisplayLogLevel(verboseLevel);
+  PlusLogger::Instance()->SetLogLevel(verboseLevel);
 
 	if (inputImageSequenceFileName.empty() || inputBaselineFileName.empty() || inputConfigFileName.empty())
 	{
@@ -427,6 +415,7 @@ int main(int argc, char **argv)
 	vtkSmartPointer<vtkCalibrationController> calibrationController = vtkSmartPointer<vtkCalibrationController>::New();
 	calibrationController->ReadConfiguration(inputConfigFileName.c_str());
 
+  LOG_INFO("Read from metafile");
     std::string inputImageSequencePath=inputTestDataDir+"\\"+inputImageSequenceFileName;
     vtkSmartPointer<vtkTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New(); 
     if ( trackedFrameList->ReadFromSequenceMetafile(inputImageSequencePath.c_str()) != PLUS_SUCCESS )
@@ -440,6 +429,7 @@ int main(int argc, char **argv)
 	UsFidSegResultFile::WriteSegmentationResultsHeader(outFile);
 	UsFidSegResultFile::WriteSegmentationResultsParameters(outFile, *(calibrationController->GetSegParameters()), "");
 
+  LOG_INFO("Segment image sequence");
 	SegmentImageSequence(trackedFrameList.GetPointer(), outFile, inputTestcaseName, inputImageSequenceFileName, calibrationController); 
 
 	UsFidSegResultFile::WriteSegmentationResultsFooter(outFile);
@@ -449,6 +439,7 @@ int main(int argc, char **argv)
 	
 	if (!inputBaselineFileName.empty())
 	{		
+    LOG_INFO("Compare results");
 		if (CompareSegmentationResults(inputBaselineFileName, outputTestResultsFileName, *(calibrationController->GetSegParameters()))!=0)
 		{
 			LOG_ERROR("Comparison of segmentation data to baseline failed");
