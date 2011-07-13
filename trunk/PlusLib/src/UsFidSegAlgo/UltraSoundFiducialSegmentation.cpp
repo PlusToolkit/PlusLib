@@ -35,20 +35,22 @@ void SegmentationResults::Clear()
 
 void SegImpl::suppress( PixelType *image, float percent_thresh_top, float percent_thresh_bottom )
 {
+  // Get the minimum and maximum pixel value
 	PixelType max = 0;
-	for ( unsigned int pos = 0; pos < size; pos ++ ) {
-		if ( image[pos] > max )
-			max = image[pos];
+  PixelType min = 255;
+  PixelType* pix=image;
+	for ( unsigned int pos = 0; pos < size; pos ++ ) 
+  {
+		if ( *pix > max )
+    {
+			max = *pix;
+    }
+    if ( *pix < min )
+    {
+			min = *pix;
+    }
+    pix++;
 	}
-
-	PixelType min = 255; 
-	for ( unsigned int currentPos = 0; currentPos < size; currentPos ++) 
-	{ 
-		if( image[currentPos] < min)
-		{ 
-			min = image[currentPos]; 
-		} 
-	} 
 
 	// Thomas Kuiran Chen
 	// NOTE: round/roundf are not ANSI C++ math functions. 
@@ -57,86 +59,24 @@ void SegImpl::suppress( PixelType *image, float percent_thresh_top, float percen
 	PixelType thresh_top = min+(PixelType)floor( (float)(max-min) * percent_thresh_top + 0.5 );
 	PixelType thresh_bottom = min+(PixelType)floor( (float)(max-min) * percent_thresh_bottom + 0.5 );
 	
-	typedef unsigned char			PixelType; 
-	const unsigned int				Dimension = 2; 
-	// copy array contents into an image container to be used with thresholding
-	typedef itk::Image< PixelType, Dimension > ImageType; 
-	ImageType::Pointer imagePointer = ImageType::New(); 
-	ImageType::SizeType size; 
-	size[0] = cols; 
-	size[1] = rows; 
-
-	ImageType::IndexType start;
-	start[0] = 0;
-	start[1] = 0; 
-
-	ImageType::RegionType wholeImage; 
-	wholeImage.SetSize(size);
-	wholeImage.SetIndex(start); 
-
-	imagePointer->SetRegions(wholeImage); 
-	imagePointer->Allocate(); 
-
-	typedef itk::ImageRegionIterator<ImageType> IterType; 
-	IterType iter(imagePointer, imagePointer->GetRequestedRegion() ); 
-	iter.GoToBegin(); 
-
-	int count = 0; 	
-
-	while( !iter.IsAtEnd())
-	{
-		iter.Set(image[count]);
-		count++; 
-		++iter;
-	}
 
 	//thresholding 
+  int pixelCount=cols*rows;
+  PixelType* pixel=image;
+  for (int i=0; i<pixelCount; i++)
+  {
+    if (*pixel<thresh_top)
+    {
+      *pixel=BLACK;
+    }
+    pixel++;
+  }
 
-	typedef   unsigned char ThresholdPixelType;
-	typedef itk::Image< ThresholdPixelType, 2 > ThresholdResultImageType;
-	typedef itk::ThresholdImageFilter<ImageType> ThresholdFilterType; 
-
-	ThresholdFilterType::Pointer thresholdFilterTop = ThresholdFilterType::New();
-	thresholdFilterTop->SetInput(imagePointer); 
-	thresholdFilterTop->SetOutsideValue( BLACK);
-	thresholdFilterTop->ThresholdBelow( thresh_top ); // 13
-	thresholdFilterTop->Update(); 
-	ImageType::Pointer filteredImageTop = thresholdFilterTop->GetOutput(); 
-
-	ThresholdFilterType::Pointer thresholdFilterBottom = ThresholdFilterType::New();
-	thresholdFilterBottom->SetInput(imagePointer); 
-	thresholdFilterBottom->SetOutsideValue( BLACK);
-	thresholdFilterBottom->ThresholdBelow( thresh_bottom ); // 13
-	thresholdFilterBottom->Update(); 
-	ImageType::Pointer filteredImageBottom = thresholdFilterBottom->GetOutput(); 	
-
-	typedef itk::ImageRegionIterator<ImageType> IterType; 
-	IterType resultingImageIteratorTop(filteredImageTop, filteredImageTop->GetRequestedRegion() ); 
-	resultingImageIteratorTop.GoToBegin(); 
-	IterType resultingImageIteratorBottom(filteredImageBottom, filteredImageBottom->GetRequestedRegion() ); 
-	resultingImageIteratorBottom.GoToBegin(); 
-
-	int counter = 0; 	
-
-	while( !resultingImageIteratorTop.IsAtEnd())
+  if(m_DebugOutput) 
 	{
-		int lineIndex=counter/cols;
-		if (lineIndex<rows/2)
-		{
-			// top half of the image
-			image[counter] = resultingImageIteratorTop.Get();
-		}
-		else
-		{
-			// bottom half of the image
-			image[counter] = resultingImageIteratorBottom.Get();
-		}
-		counter++; 
-		++resultingImageIteratorTop;
-		++resultingImageIteratorBottom;
-
+		WritePng(image,"seg-suppress.png", cols, rows); 
 	}
-	
+
 }
 
 //-----------------------------------------------------------------------------
@@ -431,7 +371,7 @@ SegImpl::SegImpl(int sizeX, int sizeY, int searchOriginX, int searchOriginY, int
 	vertHigh = searchOriginY + searchSizeY;
 	horzHigh = searchOriginX + searchSizeX;
 
-	debugOutput=debugOutput; 
+	m_DebugOutput=debugOutput; 
 	possibleFiducialsImageFilename=inputPossibleFiducialsImageFilename; 
 
 	//dots.resize(MAX_DOTS);
@@ -499,7 +439,8 @@ void SegImpl::find_lines3pt( )
 							//line.SetLinePosition(0);
 							lines.push_back(line);
 							//UltraSoundFiducialSegmentationTools::sort<Line, Line>( lines, lines.size() );
-							std::sort (lines.begin(), lines.end(), Line::lessThan);
+              // sort the lines so that lines that are already in the list can be quickly found by a binary search
+							std::sort (lines.begin(), lines.end(), Line::compareLines);
 							//UltraSoundFiducialSegmentationTools::BinarySearchInsert<Line, Line>( line, lines, nlines );
 						}
 					}
@@ -507,6 +448,7 @@ void SegImpl::find_lines3pt( )
 			}
 		}
 	}
+  //std::sort (lines.begin(), lines.end(), Line::lessThan);
 }
 
 //-----------------------------------------------------------------------------
@@ -768,6 +710,15 @@ void SegImpl::uscseg( PixelType *image, SegmentationParameters &segParams, Segme
 	ndots = nlines = npairs = 0;
 	ntest = nset = nlines2pt = 0;
 	m_SegParams = segParams; 
+  lines.clear();
+
+  dots.clear();
+  lines.clear();
+  pairs.clear();
+  
+  lines2pt.clear();
+  nlines2pt=0;
+  uShapes.clear();
 
 	memcpy( working, image, bytes );
 	memcpy( unalteredImage, image, bytes); 
@@ -781,7 +732,7 @@ void SegImpl::uscseg( PixelType *image, SegmentationParameters &segParams, Segme
 	segResult.SetNumDots(dots.size()); 
 	segResult.SetCandidateFidValues(dots);	  
 	 
-	if(debugOutput) 
+	if(m_DebugOutput) 
 	{
 		WritePossibleFiducialOverlayImage(segResult.GetCandidateFidValues(), unalteredImage); 
 	}
@@ -1643,11 +1594,11 @@ void SegImpl::erode_circle( PixelType *dest, PixelType *image )
 			for ( unsigned int sp = 0; sp < slen; sp++ ) {
 				unsigned int sr = ir + morphologicalCircle[sp].roff;
 				unsigned int sc = ic + morphologicalCircle[sp].coff;
+        PixelType pixSrc=image[sr*cols+sc];
+				if ( pixSrc < dval )
+					dval = pixSrc;
 
-				if ( image[sr*cols+sc] < dval )
-					dval = image[sr*cols+sc];
-
-				if ( image[sr*cols+sc] == 0 )
+				if ( pixSrc == 0 )
 					break;
 			}
 			dest[ir*cols+ic] = dval;
@@ -1942,130 +1893,12 @@ void SegImpl::dilate_circle( PixelType *dest, PixelType *image )
 
 void SegImpl::subtract( PixelType *image, PixelType *vals )
 {
-	for ( unsigned int pos = 0; pos < rows*cols; pos++ )
-		image[pos] = vals[pos] > image[pos] ? 0 : image[pos] - vals[pos];
-}
-
-//-----------------------------------------------------------------------------
-
-void SegImpl::dynamicThresholding( PixelType *pixelArray)
-{
-	typedef unsigned char			PixelType; 
-	const unsigned int				Dimension = 2; 
-
-	// copy array of pixels into an image container
-	typedef itk::Image< PixelType, Dimension > ImageType; 
-	ImageType::Pointer image = ImageType::New(); 
-	ImageType::SizeType size; 
-	size[0] = cols; 
-	size[1] = rows; 
-
-	ImageType::IndexType start;
-	start[0] = 0;
-	start[1] = 0; 
-
-	ImageType::RegionType wholeImage; 
-	wholeImage.SetSize(size);
-	wholeImage.SetIndex(start); 
-
-	image->SetRegions(wholeImage); 
-	image->Allocate(); 
-
-	typedef itk::ImageRegionIterator<ImageType> IterType; 
-	IterType iter(image, image->GetRequestedRegion() ); 
-	iter.GoToBegin(); 
-
-	int count = 0; 	
-
-	while( !iter.IsAtEnd())
-	{
-		iter.Set(pixelArray[count]);
-		count++;
-		++iter;
-	}
-
-	// mean set up
-	// change region size
-	typedef   unsigned char  InputPixelType;
-	typedef   unsigned char  OutputPixelType;
-	
-	typedef itk::Image< InputPixelType,  2 >   InputImageType;
-	typedef itk::Image< OutputPixelType, 2 >   OutputImageType;
-	typedef itk::MeanImageFilter<InputImageType, OutputImageType >  FilterType;
-
-	FilterType::Pointer meanFilter = FilterType::New();
-
-	InputImageType::SizeType indexRadius;
-  
-
-	indexRadius[0] = 5; // radius along x
-	indexRadius[1] = 8; // radius along y
-
-	meanFilter->SetRadius( indexRadius );
- 
-	// subtract filter set up
-	typedef   unsigned char	SubtractPixelType;
-	typedef itk::Image< SubtractPixelType,  2 >   SubtractResultsImageType;
-	typedef itk::SubtractImageFilter<ImageType,OutputImageType,SubtractResultsImageType>SubtractionFilterType; 
-	
-	SubtractionFilterType::Pointer subtractionFilter = SubtractionFilterType::New(); 
-
-	//writer setup
-	typedef itk::ImageFileWriter< ImageType > WriterType;
-	WriterType::Pointer writeResult = WriterType::New();  // 
-	writeResult->SetFileName("dynamicthresholding" + possibleFiducialsImageFilename);
-
-	//thresholding setup
-	typedef   unsigned char ThresholdPixelType;
-	typedef itk::Image< ThresholdPixelType, 2 > ThresholdResultImageType;
-	typedef itk::BinaryThresholdImageFilter<SubtractResultsImageType,ThresholdResultImageType> ThresholdFilterType; 
-	ThresholdFilterType::Pointer thresholdFilter = ThresholdFilterType::New();
-	
-	//pipeline setup to incorporate mean and subtraction filters if desired, currently only 
-	//uses thresholding 
-
-	//meanFilter->SetInput(image);
-	//subtractionFilter->SetInput1(image);
-	//subtractionFilter->SetInput2(meanFilter->GetOutput()); 
-	//subtractionFilter->Update(); 
-	
-	/* 
-	Threshold values based on the concept that after the opening operations
-	the image has a black background with potential fiducials appearing less black
-	*/  
-	thresholdFilter->SetInput(image); 
-	thresholdFilter->SetOutsideValue( 10);
-	thresholdFilter->SetInsideValue( 255);
-	thresholdFilter->SetLowerThreshold( 26); // 13
-	thresholdFilter->SetUpperThreshold( 255);
-
-	thresholdFilter->Update(); 
-	//uncomment below if you wish to output the image
-	// directly after thresholding, redundant if debug
-	// mode is on 
-
-	//writeResult->SetInput( thresholdFilter->GetOutput() );
-	//writeResult->Update();
-
-	/*set working image pixel values to new thresholded image
-	tried using pixel buffer andmemcopy but couldn't figure
-	out how to do it*/ 
-	
-	ImageType::Pointer filteredImage = thresholdFilter->GetOutput(); 
-
-	typedef itk::ImageRegionIterator<ImageType> IterType; 
-	IterType resultingImageIterator(filteredImage, filteredImage->GetRequestedRegion() ); 
-	resultingImageIterator.GoToBegin(); 
-
-	int counter = 0; 	
-
-	while( !resultingImageIterator.IsAtEnd())
-	{
-	working[counter] = resultingImageIterator.Get();
-	counter++; 
-	++resultingImageIterator;
-
-	}	
+	for ( unsigned int pos = rows*cols; pos>0; pos-- )
+  {    
+		*image = *vals > *image ? 0 : *image - *vals;
+    image++;
+    vals++;
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -2138,102 +1971,95 @@ void SegImpl::morphological_operations()
 {
   // Morphological operations with a stick-like structuring element
 	
-	if(debugOutput) 
+	if(m_DebugOutput) 
 	{
 		WritePng(working,"seg01-initial.png", cols, rows); 
 	}
 
 	erode_0( eroded, working );
-	if(debugOutput) 
+	if(m_DebugOutput) 
 	{
 		WritePng(eroded,"seg02-morph-bar-deg0-erode.png", cols, rows); 
 	}
 	
 	dilate_0( dilated, eroded );
-	if(debugOutput) 
+	if(m_DebugOutput) 
 	{
 		WritePng(dilated,"seg03-morph-bar-deg0-dilated.png", cols, rows); 
 	}
 	subtract( working, dilated );
-	if(debugOutput) 
+	if(m_DebugOutput) 
 	{
 		WritePng(working,"seg04-morph-bar-deg0-final.png", cols, rows); 
 	}
 
 	erode_45( eroded, working );
-	if(debugOutput) 
+	if(m_DebugOutput) 
 	{
 		WritePng(eroded,"seg05-morph-bar-deg45-erode.png", cols, rows); 
 	}
 
 	dilate_45( dilated, eroded );
-	if(debugOutput) 
+	if(m_DebugOutput) 
 	{
 		WritePng(dilated,"seg06-morph-bar-deg45-dilated.png", cols, rows); 
 	}
 
 	subtract( working, dilated );
-	if(debugOutput) 
+	if(m_DebugOutput) 
 	{
 		WritePng(working,"seg07-morph-bar-deg45-final.png", cols, rows); 
 	}
 
 	erode_90( eroded, working );
-	if(debugOutput) 
+	if(m_DebugOutput) 
 	{
 		WritePng(eroded,"seg08-morph-bar-deg90-erode.png", cols, rows); 
 	}
 
 	dilate_90( dilated, eroded );
-	if(debugOutput) 
+	if(m_DebugOutput) 
 	{
 		WritePng(dilated,"seg09-morph-bar-deg90-dilated.png", cols, rows); 
 	}
 
 	subtract( working, dilated );
-	if(debugOutput) 
+	if(m_DebugOutput) 
 	{
 		WritePng(working,"seg10-morph-bar-deg90-final.png", cols, rows); 
 	}
 
 	erode_135( eroded, working );
-	if(debugOutput) 
+	if(m_DebugOutput) 
 	{
 		WritePng(eroded,"seg11-morph-bar-deg135-erode.png", cols, rows); 
 	}
 
 	dilate_135( dilated, eroded );
-	if(debugOutput) 
+	if(m_DebugOutput) 
 	{
 		WritePng(dilated,"seg12-morph-bar-deg135-dilated.png", cols, rows); 
 	}
 
 	subtract( working, dilated );
-	if(debugOutput) 
+	if(m_DebugOutput) 
 	{
 		WritePng(working,"seg13-morph-bar-deg135-final.png", cols, rows); 
 	}
 
 	/* Circle operation. */
 	erode_circle( eroded, working );
-	if(debugOutput) 
+	if(m_DebugOutput) 
 	{
 		WritePng(eroded,"seg14-morph-circle-erode.png", cols, rows); 
 	}
 
 	dilate_circle( working, eroded );
-	if(debugOutput) 
+	if(m_DebugOutput) 
 	{
 		WritePng(working,"seg15-morph-circle-final.png", cols, rows); 
 	}
 	
-	//dynamicThresholding(working); 
-
-	/*if(debugOutput) 
-	{
-		WritePng(working,"afterDT" + possibleFiducialsImageFilename); 
-	}
-	 */ 
 }
 
 //-----------------------------------------------------------------------------
