@@ -56,6 +56,8 @@ void SegmentImageSequence( vtkTrackedFrameList* trackedFrameList, std::ofstream 
 
 	for (int currentFrameIndex=0; currentFrameIndex<trackedFrameList->GetNumberOfTrackedFrames(); currentFrameIndex++)
 	{
+    LOG_INFO("Frame: "<<currentFrameIndex);
+
 		// Search in the whole image
 		int SearchStartAtX=calibrationController->GetSearchStartAtX();
 		int SearchStartAtY=calibrationController->GetSearchStartAtY();
@@ -63,7 +65,7 @@ void SegmentImageSequence( vtkTrackedFrameList* trackedFrameList, std::ofstream 
 		int SearchDimensionY=calibrationController->GetSearchDimensionY();
 
 		// Set to false if you don't want images produced after each morphological operation
-		bool debugOutput=PlusLogger::Instance()->GetLogLevel()>=PlusLogger::LOG_LEVEL_DEBUG; 
+		bool debugOutput=PlusLogger::Instance()->GetLogLevel()>=PlusLogger::LOG_LEVEL_TRACE; 
 
 		std::ostrstream possibleFiducialsImageFilename; 
 		possibleFiducialsImageFilename << inputTestcaseName << std::setw(3) << std::setfill('0') << currentFrameIndex << ".bmp" << std::ends; 
@@ -112,6 +114,7 @@ int CompareSegmentationResults(const std::string& inputBaselineFileName, const s
 	vtkXMLDataElement* currentRootElem = vtkXMLUtilities::ReadElementFromFile( outputTestResultsFileName.c_str()); 
 	vtkXMLDataElement* baselineRootElem = vtkXMLUtilities::ReadElementFromFile(inputBaselineFileName.c_str());
 
+  bool writeFidFoundRatioToFile=PlusLogger::Instance()->GetLogLevel()>=PlusLogger::LOG_LEVEL_TRACE; 
 	
 	// check to make sure we have the right element
 	if (baselineRootElem == NULL )
@@ -141,10 +144,13 @@ int CompareSegmentationResults(const std::string& inputBaselineFileName, const s
 	}
 
 	std::ofstream outFileFidFindingResults; 
-	outFileFidFindingResults.open("FiducialsFound.txt");
-	outFileFidFindingResults<< "Baseline to algorithm Tolerance: "<<BASELINE_TO_ALGORITHM_TOLERANCE<<" pixel(s)" <<std::endl;
-	outFileFidFindingResults<< "ThresholdTop: "<< segParams.GetThresholdImageTop() <<std::endl; 
-	outFileFidFindingResults<< "ThresholdBottom: "<< segParams.GetThresholdImageBottom() <<std::endl; 
+  if (writeFidFoundRatioToFile)
+  {
+	  outFileFidFindingResults.open("FiducialsFound.txt");
+	  outFileFidFindingResults<< "Baseline to algorithm Tolerance: "<<BASELINE_TO_ALGORITHM_TOLERANCE<<" pixel(s)" <<std::endl;
+	  outFileFidFindingResults<< "ThresholdTop: "<< segParams.GetThresholdImageTop() <<std::endl; 
+	  outFileFidFindingResults<< "ThresholdBottom: "<< segParams.GetThresholdImageBottom() <<std::endl; 
+  }
 	for (int nestedElemInd=0; nestedElemInd<currentRootElem->GetNumberOfNestedElements(); nestedElemInd++)
 	{
     LOG_DEBUG( "Current Frame: " << nestedElemInd);
@@ -252,7 +258,10 @@ int CompareSegmentationResults(const std::string& inputBaselineFileName, const s
       }
 
       LOG_DEBUG( "Found fiducials / Fiducial candidates: " << foundBaselineFiducials << " / " << fidCandidElement->GetNumberOfNestedElements()) ; 
-      outFileFidFindingResults << nestedElemInd<< ": " <<foundBaselineFiducials << " / " << fidCandidElement->GetNumberOfNestedElements() <<std::endl; 
+      if (writeFidFoundRatioToFile)
+      {
+	      outFileFidFindingResults << nestedElemInd<< ": " <<foundBaselineFiducials << " / " << fidCandidElement->GetNumberOfNestedElements() <<std::endl; 
+      }
     } 
 
 		if (!currentSegmentationSuccess)
@@ -362,7 +371,10 @@ int CompareSegmentationResults(const std::string& inputBaselineFileName, const s
 
 	baselineRootElem->Delete();
 	currentRootElem->Delete();
-	outFileFidFindingResults.close(); 
+  if (writeFidFoundRatioToFile)
+  {
+	  outFileFidFindingResults.close(); 
+  }
 	return numberOfFailures;
 }
 

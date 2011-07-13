@@ -401,7 +401,6 @@ class SegImpl
 		void morphological_operations();	
 		void setdebugOutput(bool on ); // addition to turn intermediate output on/off
 		void setpossibleFiducialsImageFilename(int index); 
-		void SegImpl::dynamicThresholding( PixelType *image);// addition to test dynamic thresholding
 		inline void trypos( PixelType *image, int r, int c );
 		void suppress( PixelType *image, float percent_thresh_top, float percent_thresh_bottom ); // a different threshold can be applied on the top and the bottom of the image
 		void WritePossibleFiducialOverlayImage(std::vector<Dot> fiducials, PixelType *unalteredImage); 
@@ -463,7 +462,7 @@ class SegImpl
 		int nlines2pt;
 		std::vector< std::vector<Line> > uShapes;
 
-		bool debugOutput; 
+		bool m_DebugOutput; 
 		std::string possibleFiducialsImageFilename;
 };
 
