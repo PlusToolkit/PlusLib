@@ -229,11 +229,14 @@ PlusStatus vtkDataCollector::Start()
 {
   LOG_TRACE("vtkDataCollector::Start"); 
 
+  const double startTime = vtkAccurateTimer::GetSystemTime(); 
+
   if ( this->GetVideoEnabled() )
   {
     if ( this->GetVideoSource() != NULL && !this->GetVideoSource()->GetRecording())
     {
       this->GetVideoSource()->StartRecording();
+      this->GetVideoSource()->GetBuffer()->SetStartTime(startTime); 
     }
   }
   else
@@ -256,6 +259,8 @@ PlusStatus vtkDataCollector::Start()
       }
 
       this->GetTracker()->StartTracking(); 
+
+      this->GetTracker()->SetStartTime(startTime); 
     }
   }
   else
@@ -495,11 +500,11 @@ PlusStatus vtkDataCollector::WriteVideoBufferToMetafile( vtkVideoBuffer* videoBu
   vtkSmartPointer<vtkTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New(); 
 
   PlusStatus status=PLUS_SUCCESS;
-  VideoBufferItem videoItem; 
-
+  
   for ( BufferItemUidType frameUid = videoBuffer->GetOldestItemUidInBuffer(); frameUid <= videoBuffer->GetLatestItemUidInBuffer(); ++frameUid ) 
   {
 
+    VideoBufferItem videoItem; 
     if ( videoBuffer->GetVideoBufferItem(frameUid, &videoItem) != ITEM_OK )
     {
       LOG_ERROR("Unable to get frame from buffer with UID: " << frameUid); 
@@ -1327,6 +1332,7 @@ PlusStatus vtkDataCollector::ReadTrackerProperties(vtkXMLDataElement* trackerCon
     this->SetTrackerType(TRACKER_NONE); 
     LOG_DEBUG("Tracker type: None");
     this->SetTracker(NULL); 
+    this->TrackingEnabled = false; 
   }
   //******************* AMS Tracker ***************************
   else if ( STRCASECMP("AMSTracker", type)==0) 
@@ -1441,6 +1447,7 @@ PlusStatus vtkDataCollector::ReadTrackerProperties(vtkXMLDataElement* trackerCon
     this->SetTrackerType(TRACKER_NONE); 
     LOG_DEBUG("Tracker type: None");
     this->SetTracker(NULL); 
+    this->TrackingEnabled = false; 
   }
   return PLUS_SUCCESS;
 }
@@ -1465,6 +1472,7 @@ PlusStatus vtkDataCollector::ReadImageAcqusitionProperties(vtkXMLDataElement* im
     this->SetAcquisitionType(SYNCHRO_VIDEO_NONE); 
     LOG_DEBUG("Image acquisition type: None");
     this->SetVideoSource(NULL); 
+    this->VideoEnabled = false; 
   }
   //******************* Sonix Video ***************************
   else if ( STRCASECMP("SonixVideo", type)==0) 
@@ -1544,6 +1552,7 @@ PlusStatus vtkDataCollector::ReadImageAcqusitionProperties(vtkXMLDataElement* im
     this->SetAcquisitionType(SYNCHRO_VIDEO_NONE); 
     LOG_DEBUG("Image acquisition type: None");
     this->SetVideoSource(NULL); 
+    this->VideoEnabled = false; 
   }
   return PLUS_SUCCESS;
 }

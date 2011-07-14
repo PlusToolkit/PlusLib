@@ -4,6 +4,7 @@
 #include "vtksys/SystemTools.hxx" 
 #include "vtksys/Process.h"
 #include "vtkDirectory.h"
+#include "vtkDelimitedTextWriter.h"
 
 
 //----------------------------------------------------------------------------
@@ -33,7 +34,33 @@ vtkGnuplotExecuter::~vtkGnuplotExecuter()
 void vtkGnuplotExecuter::PrintSelf(ostream& os, vtkIndent indent)
 {
 	this->Superclass::PrintSelf(os,indent);
+}
 
+//----------------------------------------------------------------------------
+PlusStatus vtkGnuplotExecuter::DumpTableToFileInGnuplotFormat( vtkTable* table, const char* filename)
+{
+	LOG_TRACE("vtkGnuplotExecuter::DumpTableToFileInGnuplotFormat"); 
+	
+	if ( table == NULL ) 
+  {
+		LOG_ERROR("Failed to dump table to file in gnuplot format - Input table is NULL!"); 
+		return PLUS_FAIL; 
+	}
+
+  if ( filename == NULL )
+  {
+		LOG_ERROR("Failed to dump table to file in gnuplot format - Input filename is NULL!"); 
+		return PLUS_FAIL; 
+	}
+
+  vtkSmartPointer<vtkDelimitedTextWriter> textWriter = vtkSmartPointer<vtkDelimitedTextWriter>::New(); 
+	textWriter->SetFieldDelimiter("\t"); 
+	textWriter->SetUseStringDelimiter(false); 
+	textWriter->SetFileName(filename); 
+	textWriter->SetInput( table ); 
+	textWriter->Update(); 
+
+  return PLUS_SUCCESS; 
 }
 
 //----------------------------------------------------------------------------
@@ -49,18 +76,18 @@ void vtkGnuplotExecuter::ClearArguments()
 }
 
 //----------------------------------------------------------------------------
-void vtkGnuplotExecuter::Execute()
+PlusStatus vtkGnuplotExecuter::Execute()
 {
 	if ( this->GetGnuplotCommand() == NULL )
 	{
 		LOG_ERROR("Gnuplot command has to be set before execution!"); 
-		return; 
+		return PLUS_FAIL; 
 	}
 
 	if ( !vtksys::SystemTools::FileExists( this->GetGnuplotCommand(), true) )
 	{
 		LOG_ERROR("Unable to find Gnuplot command at: " << this->GetGnuplotCommand()); 
-		return; 
+		return PLUS_FAIL; 
 	}
 
 	std::vector<const char*> command;
@@ -128,7 +155,7 @@ void vtkGnuplotExecuter::Execute()
 	vtksysProcess_WaitForExit(gp, 0); 
 	LOG_DEBUG("Execution time was: " << this->GetTimeout() - timeout << "s ..." ); 
 
-
+  PlusStatus status = PLUS_SUCCESS; 
 	int result(0); 
 	switch ( vtksysProcess_GetState(gp) )
 	{
@@ -141,12 +168,14 @@ void vtkGnuplotExecuter::Execute()
 		{
 			LOG_ERROR("Error during execution: " << vtksysProcess_GetErrorString(gp)); 
 			LOG_ERROR("Program output: " << buffer); 
+      status = PLUS_FAIL; 
 		}
 		break;
 	case vtksysProcess_State_Exception: 
 		{
 			LOG_ERROR("Exception during execution: " << vtksysProcess_GetExceptionString(gp)); 
 			LOG_ERROR("Program output: " << buffer); 
+      status = PLUS_FAIL; 
 		}
 		break;
 	case vtksysProcess_State_Starting: 
@@ -156,6 +185,7 @@ void vtkGnuplotExecuter::Execute()
 		{
 			LOG_ERROR("Unexpected ending state after running " << this->GetGnuplotCommand() ); 
 			LOG_ERROR("Program output: " << buffer); 
+      status = PLUS_FAIL; 
 		}
 		break;
 	}
@@ -163,4 +193,5 @@ void vtkGnuplotExecuter::Execute()
 	LOG_DEBUG("Deleting process ..."); 
 	vtksysProcess_Delete(gp); 
 
+  return status; 
 }

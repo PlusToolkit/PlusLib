@@ -59,13 +59,6 @@ vtkVideoSource2::vtkVideoSource2()
 	//this->StartTimeStamp = 0;
 	this->FrameTimeStamp = 0;
 
-	this->LastTimeStamp = 0;
-	this->LastUnfilteredTimeStamp = 0;
-	this->LastFrameCount = 0;
-	this->EstimatedFramePeriod = 0;
-	this->MaximumFramePeriodJitter = 0.100; 
-	this->SmoothingFactor = 0.001; 
-
 	this->OutputNeedsInitialization = 1;
 
 	this->NumberOfOutputFrames = 1;
@@ -356,13 +349,10 @@ PlusStatus vtkVideoSource2::InternalGrab()
 	}
 	randsave = randNum;
 
-	// add the new frame and the current time to the buffer
-	const double timestamp = vtkAccurateTimer::GetSystemTime(); 
-	const double unfilteredtimestamp = timestamp; 
 	const long frameNumber = this->FrameNumber + 1; 
-    const int numberOfBitsPerPixel = this->PseudoRandomNoiseFrame->GetNumberOfComponentsPerPixel() * sizeof(PixelType)*8; 
+  const int numberOfBitsPerPixel = this->PseudoRandomNoiseFrame->GetNumberOfComponentsPerPixel() * sizeof(PixelType)*8; 
 
-	PlusStatus status = this->Buffer->AddItem(ptr, this->GetUsImageOrientation(), this->GetFrameSize(), numberOfBitsPerPixel, 0, unfilteredtimestamp, timestamp, frameNumber);
+	PlusStatus status = this->Buffer->AddItem(ptr, this->GetUsImageOrientation(), this->GetFrameSize(), numberOfBitsPerPixel, 0, frameNumber);
 	if ( status != PLUS_SUCCESS )
 	{
 		LOG_WARNING("vtkVideoSource2: Failed to add frame to video buffer."); 
@@ -565,122 +555,6 @@ int vtkVideoSource2::RequestData(vtkInformation *vtkNotUsed(request),
 	return 1;
 }
 
-//----------------------------------------------------------------------------
-// for accurate timing of the frame: an exponential moving average
-// is computed to smooth out the jitter in the times that are returned by the system clock:
-// EstimatedFramePeriod[t] = EstimatedFramePeriod[t-1] * (1-SmoothingFactor) + FramePeriod[t] * SmoothingFactor
-// Smaller SmoothingFactor results leads to less jitter.
-void vtkVideoSource2::CreateTimeStampForFrame(unsigned long framecount, double &unfilteredTimestamp, double &filteredTimestamp)
-{
-	double timestamp = vtkAccurateTimer::GetSystemTime();
-	unfilteredTimestamp = timestamp; 
-
-	if ( this->LastFrameCount == 0 )
-	{
-		this->LastFrameCount = framecount; 
-		this->LastTimeStamp = timestamp; 
-		this->LastUnfilteredTimeStamp = unfilteredTimestamp; 
-	}
-
-	if ( framecount == this->LastFrameCount )
-	{
-		unfilteredTimestamp = this->LastUnfilteredTimeStamp; 
-		filteredTimestamp = this->LastTimeStamp; 
-		return; 
-	}
-
-	// maximum allowed difference of the frame delay compared to average delay, in seconds
-	const unsigned int numberOfAveragedPeriods = 20; 
-
-	unsigned long frameCountDiff = framecount - this->LastFrameCount; 
-	double frameperiod = ((timestamp - this->LastTimeStamp)/ frameCountDiff);
-
-	if ( this->AveragedFramePeriods.size() < numberOfAveragedPeriods ) 
-	{
-		if ( this->LastTimeStamp == 0 ) 
-		{
-			frameperiod = 0; 
-			this->LastUnfilteredTimeStamp = timestamp;
-			this->AveragedFramePeriods.clear(); 
-			this->EstimatedFramePeriod = 0; 
-		}
-		else if ( frameCountDiff > 1 )
-		{
-			LOG_DEBUG("CreateTimeStampForFrame: frames lost (" << frameCountDiff - 1 << "), the previous frame period was ignored!"); 
-			if ( AveragedFramePeriods.size() > 0 ) 
-			{
-				// we have some lost frames, ignore the previous frame period
-				AveragedFramePeriods.pop_back(); 
-			}
-		}
-		else
-		{
-			AveragedFramePeriods.push_back(frameperiod); 
-		}
-
-		double diffUnfilteredTimestamp = ((timestamp - this->LastUnfilteredTimeStamp)/ frameCountDiff);
-		this->LastTimeStamp = timestamp;
-		this->LastUnfilteredTimeStamp = timestamp; 
-		this->LastFrameCount = framecount;
-		filteredTimestamp = timestamp;
-
-#ifdef PLUS_PRINT_VIDEO_TIMESTAMP_DEBUG_INFO 
-		// FrameNumber  FrameNumberDifference	UnfilteredTimestamp	FilteredTimestamp	UnfilteredTimeDifference	SamplingPeriod	EstimatedFramePeriod
-		this->DebugInfoStream << std::fixed << framecount << "\t" << frameCountDiff << "\t" << unfilteredTimestamp << "\t" << filteredTimestamp << "\t" 
-			<< diffUnfilteredTimestamp << "\t" << frameperiod << "\t" << this->EstimatedFramePeriod << std::endl; 
-		this->DebugInfoStream.flush(); 
-#endif
-		return; 
-	}
-	else if ( this->AveragedFramePeriods.size() == numberOfAveragedPeriods )
-	{
-		this->EstimatedFramePeriod = 0; 
-		for ( int i = 0; i < numberOfAveragedPeriods; i++ )
-		{
-			this->EstimatedFramePeriod += this->AveragedFramePeriods[i] / numberOfAveragedPeriods; 
-		}
-		AveragedFramePeriods.push_back(this->EstimatedFramePeriod); 
-	}
-
-	double diffUnfilteredTimestamp = ((timestamp - this->LastUnfilteredTimeStamp)/ frameCountDiff);
-	this->LastUnfilteredTimeStamp = timestamp; 
-
-	this->LastTimeStamp += ((framecount - this->LastFrameCount)* this->EstimatedFramePeriod);
-	double diffperiod = (timestamp - this->LastTimeStamp);
-
-	if (diffperiod < -this->MaximumFramePeriodJitter || diffperiod > this->MaximumFramePeriodJitter )
-	{ 
-		// Frame delay is very large, most probably because the frame transfer 
-		// was delayed, therefore the current time doesn't represent well the actual acquisition time.
-		// Ignore this outlier and use the average delay instead.
-		this->LastTimeStamp = timestamp;
-		this->LastFrameCount = framecount;
-		filteredTimestamp = timestamp; 
-
-#ifdef PLUS_PRINT_VIDEO_TIMESTAMP_DEBUG_INFO 
-		// FrameNumber	FrameNumberDifference	UnfilteredTimestamp	FilteredTimestamp	UnfilteredTimeDifference	FramePeriod	EstimatedFramePeriod	
-		this->DebugInfoStream << std::fixed << framecount << "\t" << frameCountDiff << "\t" << unfilteredTimestamp << "\t" << filteredTimestamp << "\t" 
-			<< diffUnfilteredTimestamp << "\t" << frameperiod << "\t" << this->EstimatedFramePeriod << std::endl; 
-		this->DebugInfoStream.flush(); 
-#endif
-
-		return; 
-	}
-
-	this->EstimatedFramePeriod = this->EstimatedFramePeriod * (1-this->SmoothingFactor) + frameperiod * this->SmoothingFactor;
-	this->LastFrameCount = framecount;
-	filteredTimestamp = this->LastTimeStamp; 
-
-#ifdef PLUS_PRINT_VIDEO_TIMESTAMP_DEBUG_INFO 
-	// FrameNumber	FrameNumberDifference	UnfilteredTimestamp	FilteredTimestamp	UnfilteredTimeDifference	FramePeriod	EstimatedFramePeriod	
-	this->DebugInfoStream << std::fixed << framecount << "\t" << frameCountDiff << "\t" << unfilteredTimestamp << "\t" << filteredTimestamp << "\t" 
-		<< diffUnfilteredTimestamp << "\t" << frameperiod << "\t" << this->EstimatedFramePeriod << std::endl; 
-	this->DebugInfoStream.flush(); 
-#endif
-
-	return;
-}
-
 //-----------------------------------------------------------------------------
 PlusStatus vtkVideoSource2::WriteConfiguration(vtkXMLDataElement* config)
 {
@@ -722,8 +596,12 @@ PlusStatus vtkVideoSource2::ReadConfiguration(vtkXMLDataElement* config)
 	double smoothingFactor = 0; 
 	if ( config->GetScalarAttribute("SmoothingFactor", smoothingFactor) )
 	{
-		this->SetSmoothingFactor(smoothingFactor); 
+		this->GetBuffer()->SetSmoothingFactor(smoothingFactor); 
 	}
+  else
+  {
+    LOG_WARNING("Unable to find ImageAcqusition SmoothingFactor attribute in configuration file!"); 
+  }
 
 	double localTimeOffset = 0; 
 	if ( config->GetScalarAttribute("LocalTimeOffset", localTimeOffset) )
@@ -753,28 +631,42 @@ PlusStatus vtkVideoSource2::ReadConfiguration(vtkXMLDataElement* config)
 
 
 //----------------------------------------------------------------------------
-void vtkVideoSource2::GenerateVideoDataAcquisitionReport( vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter, const char* gnuplotScriptsFolder)
+PlusStatus vtkVideoSource2::GenerateVideoDataAcquisitionReport( vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter, const char* gnuplotScriptsFolder)
 {
 #ifdef PLUS_PRINT_VIDEO_TIMESTAMP_DEBUG_INFO 
 	if ( htmlReport == NULL || plotter == NULL )
 	{
 		LOG_ERROR("Caller should define HTML report generator and gnuplot plotter before report generation!"); 
-		return; 
+		return PLUS_FAIL; 
 	}
 
-	std::string reportFile = vtksys::SystemTools::GetCurrentWorkingDirectory() + std::string("/VideoBufferTimestamps.txt"); 
+  vtkSmartPointer<vtkTable> timestampReportTable = vtkSmartPointer<vtkTable>::New(); 
+  if ( this->GetBuffer()->GetTimeStampReportTable(timestampReportTable) != PLUS_SUCCESS )
+  { 
+    LOG_ERROR("Failed to get timestamp report table from video buffer!"); 
+    return PLUS_FAIL; 
+  }
+
+  std::string reportFile = vtksys::SystemTools::GetCurrentWorkingDirectory() + std::string("/VideoBufferTimestamps.txt"); 
+  LOG_INFO(reportFile); 
+
+  if ( vtkGnuplotExecuter::DumpTableToFileInGnuplotFormat( timestampReportTable, reportFile.c_str() ) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to write table to file in gnuplot format!"); 
+    return PLUS_FAIL; 
+  } 
 
 	if ( !vtksys::SystemTools::FileExists( reportFile.c_str(), true) )
 	{
 		LOG_ERROR("Unable to find video data acquisition report file at: " << reportFile); 
-		return; 
+		return PLUS_FAIL; 
 	}
 
 	std::string plotBufferTimestampScript = gnuplotScriptsFolder + std::string("/PlotBufferTimestamp.gnu"); 
 	if ( !vtksys::SystemTools::FileExists( plotBufferTimestampScript.c_str(), true) )
 	{
 		LOG_ERROR("Unable to find gnuplot script at: " << plotBufferTimestampScript); 
-		return; 
+		return PLUS_FAIL; 
 	}
 
 	htmlReport->AddText("Video Data Acquisition Analysis", vtkHTMLGenerator::H1); 
@@ -785,13 +677,18 @@ void vtkVideoSource2::GenerateVideoDataAcquisitionReport( vtkHTMLGenerator* html
 	plotter->AddArgument(videoBufferAnalysis.str().c_str()); 
 	
 	plotter->AddArgument(plotBufferTimestampScript.c_str());  
-	plotter->Execute(); 
+  if ( plotter->Execute() != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to run gnuplot executer!"); 
+    return PLUS_FAIL; 
+  }
 	plotter->ClearArguments(); 
 
 	htmlReport->AddImage("VideoBufferTimestamps.jpg", "Video Data Acquisition Analysis"); 
 
 	htmlReport->AddHorizontalLine(); 
 
+  return PLUS_SUCCESS; 
 
 #endif
 }

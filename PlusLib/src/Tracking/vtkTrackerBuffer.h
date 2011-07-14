@@ -45,14 +45,30 @@ public:
   virtual int GetBufferSize();
 
   // Description:
+  // Set/Get smoothing factor for accurate timing of the frames 
+  // an exponential moving average is computed to smooth out the 
+  // jitter in the times that are returned by the system clock:
+  // EstimatedFramePeriod[t] = EstimatedFramePeriod[t-1] * (1-SmoothingFactor) + FramePeriod[t] * SmoothingFactor
+  // Smaller SmoothingFactor results leads to less jitter.
+  virtual void SetSmoothingFactor(double smoothingFactor); 
+
+  // Description:
+  // Set recording start time
+  virtual void SetStartTime( double startTime ); 
+
+  // Description: 
+  // Get the table report of the timestamped buffer 
+  virtual PlusStatus GetTimeStampReportTable(vtkTable* timeStampReportTable); 
+
+  // Description:
   // Get the number of items in the buffer
   int GetNumberOfItems() { return this->TrackerBuffer->GetNumberOfItems(); };
 
   // Description:
-  // Add a matrix plus flags to the list.  If the timestamp is
+  // Add a matrix plus status to the list.  If the timestamp is
   // less than or equal to the previous timestamp, then nothing
   // will be done.
-  PlusStatus AddItem(vtkMatrix4x4 *matrix, TrackerStatus status, unsigned long frameNumber, double unfilteredTimestamp, double filteredTimestamp);
+  PlusStatus AddTimeStampedItem(vtkMatrix4x4 *matrix, TrackerStatus status, unsigned long frameNumber, double unfilteredTimestamp);
 
   // Description:
   // Get tracker item from buffer 

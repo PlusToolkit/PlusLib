@@ -1223,7 +1223,11 @@ PlusStatus vtkDataCollectorSynchronizer::GenerateSynchronizationReport( vtkHTMLG
 	syncAnalysis << "f='" << reportFile << "'; o='SyncResult';" << std::ends; 
 	plotter->AddArgument(syncAnalysis.str().c_str()); 
 	plotter->AddArgument(plotSyncResultScript.c_str());  
-	plotter->Execute(); 
+	if ( plotter->Execute() != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to run gnuplot executer!"); 
+    return PLUS_FAIL; 
+  }
 	htmlReport->AddImage("SyncResult.jpg", "Video and Tracking Data Synchronization Analysis"); 
 
 	htmlReport->AddHorizontalLine(); 

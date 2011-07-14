@@ -108,7 +108,7 @@ public:
 	// Description:
 	// Add generated html report from probe rotation axis calibration to the existing html report
 	// htmlReport and plotter arguments has to be defined by the caller function
-	virtual void GenerateProbeRotationAxisCalibrationReport( vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter, const char* gnuplotScriptsFolder); 
+	virtual PlusStatus GenerateProbeRotationAxisCalibrationReport( vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter, const char* gnuplotScriptsFolder); 
 
 	// Description:
 	// Add generated html report from probe translation axis calibration to the existing html report
@@ -123,17 +123,17 @@ public:
 	// Description:
 	// Add generated html report from probe rotation encoder calibration to the existing html report
 	// htmlReport and plotter arguments has to be defined by the caller function
-	virtual void GenerateProbeRotationEncoderCalibrationReport( vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter, const char* gnuplotScriptsFolder); 
+	virtual PlusStatus GenerateProbeRotationEncoderCalibrationReport( vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter, const char* gnuplotScriptsFolder); 
 
 	// Description:
 	// Add generated html report from spacing calculation to the existing html report
 	// htmlReport and plotter arguments has to be defined by the caller function
-	virtual void GenerateSpacingCalculationReport( vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter, const char* gnuplotScriptsFolder); 
+	virtual PlusStatus GenerateSpacingCalculationReport( vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter, const char* gnuplotScriptsFolder); 
 	
 	// Description:
 	// Add generated html report from center of rotation calculation to the existing html report
 	// htmlReport and plotter arguments has to be defined by the caller function
-	virtual void GenerateCenterOfRotationReport( vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter, const char* gnuplotScriptsFolder); 
+	virtual PlusStatus GenerateCenterOfRotationReport( vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter, const char* gnuplotScriptsFolder); 
 
 	// Description:
 	// Set/get outlier detection threshold
@@ -284,10 +284,6 @@ protected:
 	// Compute mean and stddev from dataset
 	virtual PlusStatus ComputeStatistics(const std::vector< std::vector<double> > &diffVector, std::vector<double> &mean, std::vector<double> &stdev); 
 
-	// Description:
-	// Dump vtk table to text file in gnuplot format
-	virtual void vtkStepperCalibrationController::DumpTableToFileInGnuplotFormat( vtkTable* table, const char* filename); 
-	
 	//***************************************************************************
 	//					Translation axis calibration
 	//***************************************************************************
@@ -328,7 +324,7 @@ protected:
 	// Description:
 	// Add generated html report from the selected data type (probe or template) translation axis calibration to the existing html report
 	// htmlReport and plotter arguments has to be defined by the caller function
-	virtual void GenerateTranslationAxisCalibrationReport( IMAGE_DATA_TYPE dataType, vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter, const char* gnuplotScriptsFolder); 
+	virtual PlusStatus GenerateTranslationAxisCalibrationReport( IMAGE_DATA_TYPE dataType, vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter, const char* gnuplotScriptsFolder); 
 
 
 	//***************************************************************************

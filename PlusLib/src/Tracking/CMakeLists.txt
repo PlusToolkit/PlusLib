@@ -13,7 +13,6 @@ OPTION (PLUS_PRINT_TRACKER_TIMESTAMP_DEBUG_INFO "Print tracker timestamp filteri
 # Sources
 SET (Tracking_SRCS
 	vtkFakeTracker.cxx 
-	vtkFrameToTimeConverter.cxx 
 	vtkTracker.cxx 
 	vtkTrackerBuffer.cxx 
 	vtkTrackerTool.cxx 
@@ -25,7 +24,6 @@ SET (Tracking_HDRS)
 if (WIN32)	
 	SET (Tracking_HDRS
 		vtkFakeTracker.h
-		vtkFrameToTimeConverter.h 
 		vtkTracker.h 
 		vtkTrackerBuffer.h 
 		vtkTrackerTool.h 

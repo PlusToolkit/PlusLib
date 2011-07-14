@@ -181,7 +181,7 @@ int main(int argc, char **argv)
 		vtkSmartPointer<vtkMatrix4x4> defaultTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
 		defaultTransformMatrix->DeepCopy(defaultTransform); 
 
-		trackerBuffer->AddItem(defaultTransformMatrix, status, frmnum, unfilteredtimestamp, timestamp); 
+		trackerBuffer->AddTimeStampedItem(defaultTransformMatrix, status, frmnum, unfilteredtimestamp); 
 	}
 	
 	PlusLogger::PrintProgressbar( 100 ); 
@@ -265,8 +265,8 @@ int main(int argc, char **argv)
 		const int frameSize[3] = {videoFrameList->GetTrackedFrame(frameNumber)->ImageData->GetLargestPossibleRegion().GetSize()[0], videoFrameList->GetTrackedFrame(frameNumber)->ImageData->GetLargestPossibleRegion().GetSize()[1], 1}; 
 		const int numberOfBitsPerPixel = videoFrameList->GetTrackedFrame(frameNumber)->ImageData->GetNumberOfComponentsPerPixel() * sizeof(TrackedFrame::PixelType) * 8; 
 
-        // Images in the tracked frame list always stored in MF orientation 
-		if ( videoBuffer->AddItem(deviceDataPtr, US_IMG_ORIENT_MF, frameSize, numberOfBitsPerPixel, 0, unfilteredtimestamp, timestamp, frmnum) != PLUS_SUCCESS )
+    // Images in the tracked frame list always stored in MF orientation 
+		if ( videoBuffer->AddTimeStampedItem(deviceDataPtr, US_IMG_ORIENT_MF, frameSize, numberOfBitsPerPixel, 0, unfilteredtimestamp, frmnum) != PLUS_SUCCESS )
 		{
 			LOG_WARNING("Failed to add video frame to buffer from sequence metafile with frame #" << frameNumber ); 
 		}

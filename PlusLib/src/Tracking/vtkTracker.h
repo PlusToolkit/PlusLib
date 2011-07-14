@@ -78,7 +78,6 @@ class vtkDataArray;
 class vtkDoubleArray;
 class vtkHTMLGenerator; 
 class vtkGnuplotExecuter;
-class vtkFrameToTimeConverter;
 
 //// several flags which give added info about a transform
 //enum {
@@ -130,6 +129,10 @@ public:
 	// Test whether or not the system is tracking.
 	virtual int IsTracking() { return this->Tracking; };
 
+  // Description:
+  // Set recording start time for each tool
+  virtual void SetStartTime( double startTime ); 
+
 	// Description:
 	// This method will call Update() on each of the tools.  Note that
 	// this method does not call the InternalUpdate() method, which
@@ -157,7 +160,7 @@ public:
 	// Add generated html report from tracking data acquisition to the existing html report
 	// htmlReport and plotter arguments has to be defined by the caller function
 	// Solution should build with PLUS_PRINT_TRACKER_TIMESTAMP_DEBUG_INFO to generate this report
-	virtual void GenerateTrackingDataAcquisitionReport( vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter, const char* gnuplotScriptsFolder); 
+	virtual PlusStatus GenerateTrackingDataAcquisitionReport( vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter, const char* gnuplotScriptsFolder); 
 
 	// Description:
 	// Get the internal update rate for this tracking system.  This is
@@ -288,8 +291,9 @@ protected:
 	// This function is called by InternalUpdate() so that the subclasses
 	// can communicate information back to the vtkTracker base class, which
 	// will in turn relay the information to the appropriate vtkTrackerTool.
-	PlusStatus ToolUpdate(int tool, vtkMatrix4x4 *matrix, TrackerStatus status, unsigned long frameNumber, 
-		double unfilteredtimestamp, double filteredtimestamp);
+  PlusStatus ToolUpdate(int tool, vtkMatrix4x4 *matrix, TrackerStatus status, unsigned long frameNumber); 
+	PlusStatus ToolTimeStampedUpdate(int tool, vtkMatrix4x4 *matrix, TrackerStatus status, unsigned long frameNumber, 
+		double unfilteredtimestamp);
 
 	// Description:
 	// Set the number of tools for the tracker -- this method is
@@ -335,13 +339,6 @@ protected:
 	double Frequency; 
 
 	bool TrackerCalibrated; 
-
-	// Description:
-	// Class for updating the virtual clock that accurately times the
-	// arrival of each transform, more accurately than is possible with
-	// the system clock alone because the virtual clock averages out the
-	// jitter.
-	vtkFrameToTimeConverter *Timer;
 
 	vtkXMLDataElement*	ConfigurationData;
 

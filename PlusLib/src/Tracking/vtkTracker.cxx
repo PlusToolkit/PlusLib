@@ -63,7 +63,6 @@ POSSIBILITY OF SUCH DAMAGES.
 #include "vtkAccurateTimer.h"
 #include "vtkGnuplotExecuter.h"
 #include "vtkHTMLGenerator.h"
-#include "vtkFrameToTimeConverter.h"
 
 
 //----------------------------------------------------------------------------
@@ -102,11 +101,6 @@ vtkTracker::vtkTracker()
   this->DefaultToolName = NULL; 
 
   this->ConfigurationData = NULL; 
-
-  // for accurate timing
-  this->Timer = vtkFrameToTimeConverter::New();
-  this->Timer->SetNominalFrequency(this->Frequency);
-
 }
 
 //----------------------------------------------------------------------------
@@ -136,12 +130,6 @@ vtkTracker::~vtkTracker()
     this->ConfigurationData->Delete(); 
     this->ConfigurationData = NULL; 
   }
-
-  if (this->Timer)
-  {
-    this->Timer->Delete();
-  }
-
 
   this->WorldCalibrationMatrix->Delete();
 
@@ -365,12 +353,20 @@ PlusStatus vtkTracker::StopTracking()
 //  return PLUS_SUCCESS;
 //}
 
+
 //----------------------------------------------------------------------------
-PlusStatus vtkTracker::ToolUpdate(int tool, vtkMatrix4x4 *matrix, TrackerStatus status, unsigned long frameNumber, 
-                                  double unfilteredtimestamp, double filteredtimestamp) 
+PlusStatus vtkTracker::ToolUpdate(int tool, vtkMatrix4x4 *matrix, TrackerStatus status, unsigned long frameNumber) 
+{
+  double unfilteredTimestamp = vtkAccurateTimer::GetSystemTime();
+  return this->ToolTimeStampedUpdate(tool, matrix, status, frameNumber, unfilteredTimestamp); 
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkTracker::ToolTimeStampedUpdate(int tool, vtkMatrix4x4 *matrix, TrackerStatus status, unsigned long frameNumber, 
+                                             double unfilteredtimestamp) 
 {
   vtkTrackerBuffer *buffer = this->Tools[tool]->GetBuffer();
-  PlusStatus bufferStatus = buffer->AddItem(matrix, status, frameNumber, unfilteredtimestamp, filteredtimestamp);
+  PlusStatus bufferStatus = buffer->AddTimeStampedItem(matrix, status, frameNumber, unfilteredtimestamp);
   this->GetTool(tool)->SetFrameNumber(frameNumber); 
 
   return bufferStatus; 
@@ -429,7 +425,6 @@ void vtkTracker::DeepCopy(vtkTracker *tracker)
   this->InternalUpdateRate = tracker->GetInternalUpdateRate();
   this->SetFrequency(tracker->GetFrequency()); 
   this->SetTrackerCalibrated(tracker->GetTrackerCalibrated()); 
-  this->Timer->DeepCopy( tracker->Timer ); 
   this->SetConfigurationData( tracker->GetConfigurationData() ); 
   this->SetReferenceToolName( tracker->GetReferenceToolName() ); 
   this->SetDefaultToolName( tracker->GetDefaultToolName() ); 
@@ -469,6 +464,19 @@ PlusStatus vtkTracker::ReadConfiguration(vtkXMLDataElement* config)
     this->SetFrequency(frequency);  
   }
 
+  double smoothingFactor = 0; 
+  if ( config->GetScalarAttribute("SmoothingFactor", smoothingFactor) )
+  {
+    for ( int i = 0; i < this->GetNumberOfTools(); i++)
+    {
+      this->GetTool(i)->GetBuffer()->SetSmoothingFactor(smoothingFactor);
+    }
+  }
+  else
+  {
+    LOG_WARNING("Unable to find Tracker SmoothingFactor attribute in configuration file!"); 
+  }
+
   double localTimeOffset = 0; 
   if ( config->GetScalarAttribute("LocalTimeOffset", localTimeOffset) )
   {
@@ -489,6 +497,10 @@ PlusStatus vtkTracker::ReadConfiguration(vtkXMLDataElement* config)
   if ( defaultToolName != NULL ) 
   {
     this->SetDefaultToolName(defaultToolName); 
+  }
+  else
+  {
+    LOG_WARNING("Unable to find Tracker DefaultToolName attribute in configuration file!"); 
   }
 
 
@@ -565,6 +577,15 @@ int vtkTracker::GetReferenceTool()
   return this->GetToolPortByName(this->GetReferenceToolName()); 
 }
 
+//----------------------------------------------------------------------------
+void vtkTracker::SetStartTime( double startTime)
+{
+  for ( int i = 0; i < this->GetNumberOfTools(); ++i )
+  {
+    this->GetTool(i)->GetBuffer()->SetStartTime(startTime); 
+  }
+}
+
 //-----------------------------------------------------------------------------
 PlusStatus vtkTracker::WriteConfiguration(vtkXMLDataElement* config)
 {
@@ -622,7 +643,7 @@ PlusStatus vtkTracker::GetTrackerToolBufferStringList(double timestamp,
     {
       vtkSmartPointer<vtkMatrix4x4> toolMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
       TrackerStatus trackerStatus = TR_OK; 
-  
+
       TrackerBufferItem bufferItem; 
       if ( this->GetTool(tool)->GetBuffer()->GetTrackerBufferItemFromTime(timestamp, &bufferItem, calibratedTransform ) != ITEM_OK )
       {
@@ -632,18 +653,23 @@ PlusStatus vtkTracker::GetTrackerToolBufferStringList(double timestamp,
 
       vtkMatrix4x4* dMatrix = bufferItem.GetMatrix(); 
       std::ostringstream strToolTransform; 
-      for ( int i = 0; i < 16; ++i )
+      for ( int r = 0; r < 4; ++r )
       {
-        strToolTransform << dMatrix[i] << " ";
+        for ( int c = 0; c < 4; ++c )
+        {
+          strToolTransform << dMatrix->GetElement(r,c) << " ";
+        }
       }
 
+
       vtkMatrix4x4* toolCalibrationMatrix = this->GetTool(tool)->GetCalibrationMatrix(); 
-      double dCalibMatrix[16]; 
-      vtkMatrix4x4::DeepCopy(dCalibMatrix, toolCalibrationMatrix); 
       std::ostringstream strToolCalibMatrix; 
-      for ( int i = 0; i < 16; ++i )
+      for ( int r = 0; r < 4; ++r )
       {
-        strToolCalibMatrix << dCalibMatrix[i] << " ";
+        for ( int c = 0; c < 4; ++c )
+        {
+          strToolCalibMatrix << toolCalibrationMatrix->GetElement(r,c)  << " ";
+        }
       }
 
       toolsBufferMatrices[ this->GetTool(tool)->GetToolName() ] = strToolTransform.str(); 
@@ -657,28 +683,41 @@ PlusStatus vtkTracker::GetTrackerToolBufferStringList(double timestamp,
 
 
 //-----------------------------------------------------------------------------
-void vtkTracker::GenerateTrackingDataAcquisitionReport( vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter, const char* gnuplotScriptsFolder)
+PlusStatus vtkTracker::GenerateTrackingDataAcquisitionReport( vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter, const char* gnuplotScriptsFolder)
 {
 #ifdef PLUS_PRINT_TRACKER_TIMESTAMP_DEBUG_INFO
   if ( htmlReport == NULL || plotter == NULL )
   {
     LOG_ERROR("Caller should define HTML report generator and gnuplot plotter before report generation!"); 
-    return; 
+    return PLUS_FAIL; 
+  }
+
+  vtkSmartPointer<vtkTable> timestampReportTable = vtkSmartPointer<vtkTable>::New(); 
+  if ( this->GetTool( this->GetDefaultTool() )->GetBuffer()->GetTimeStampReportTable(timestampReportTable) != PLUS_SUCCESS )
+  { 
+    LOG_ERROR("Failed to get timestamp report table from default tool buffer!"); 
+    return PLUS_FAIL; 
   }
 
   std::string reportFile = vtksys::SystemTools::GetCurrentWorkingDirectory() + std::string("/TrackerBufferTimestamps.txt"); 
 
+  if ( vtkGnuplotExecuter::DumpTableToFileInGnuplotFormat( timestampReportTable, reportFile.c_str() ) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to write table to file in gnuplot format!"); 
+    return PLUS_FAIL; 
+  } 
+
   if ( !vtksys::SystemTools::FileExists( reportFile.c_str(), true) )
   {
     LOG_ERROR("Unable to find tracking data acquisition report file at: " << reportFile); 
-    return; 
+    return PLUS_FAIL; 
   }
 
   std::string plotBufferTimestampScript = gnuplotScriptsFolder + std::string("/PlotBufferTimestamp.gnu"); 
   if ( !vtksys::SystemTools::FileExists( plotBufferTimestampScript.c_str(), true) )
   {
     LOG_ERROR("Unable to find gnuplot script at: " << plotBufferTimestampScript); 
-    return; 
+    return PLUS_FAIL; 
   }
 
   htmlReport->AddText("Tracking Data Acquisition Analysis", vtkHTMLGenerator::H1); 
@@ -688,10 +727,16 @@ void vtkTracker::GenerateTrackingDataAcquisitionReport( vtkHTMLGenerator* htmlRe
   trackerBufferAnalysis << "f='" << reportFile << "'; o='TrackerBufferTimestamps';" << std::ends; 
   plotter->AddArgument(trackerBufferAnalysis.str().c_str()); 
   plotter->AddArgument(plotBufferTimestampScript.c_str());  
-  plotter->Execute(); 
+  if ( plotter->Execute() != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to run gnuplot executer!"); 
+    return PLUS_FAIL; 
+  } 
   htmlReport->AddImage("TrackerBufferTimestamps.jpg", "Tracking Data Acquisition Analysis"); 
 
   htmlReport->AddHorizontalLine(); 
 
 #endif
+
+  return PLUS_SUCCESS; 
 }

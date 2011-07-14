@@ -879,7 +879,11 @@ PlusStatus vtkProbeCalibrationController::GenerateProbeCalibrationReport( vtkHTM
 			segWirePosError << "f='" << reportFile << "'; o='SegWirePosHistogram'; w=" << wires[i] << std::ends; 
 			plotter->AddArgument(segWirePosError.str().c_str()); 
 			plotter->AddArgument(plotSegmentedWirePositionsHistogramScript.c_str());  
-			plotter->Execute(); 
+			if ( plotter->Execute() != PLUS_SUCCESS )
+      {
+        LOG_ERROR("Failed to run gnuplot executer!"); 
+        continue; 
+      }
 			plotter->ClearArguments(); 
 
 			std::ostringstream imageSource;
@@ -905,7 +909,12 @@ PlusStatus vtkProbeCalibrationController::GenerateProbeCalibrationReport( vtkHTM
 			segWirePosError << "f='" << reportFile << "'; o='SegWirePos'; w=" << wires[i] << std::ends; 
 			plotter->AddArgument(segWirePosError.str().c_str()); 
 			plotter->AddArgument(plotSegmentedWirePositionsErrorScript.c_str());  
-			plotter->Execute(); 
+			if ( plotter->Execute() != PLUS_SUCCESS )
+      {
+        LOG_ERROR("Failed to run gnuplot executer!"); 
+        continue; 
+      }
+
 			plotter->ClearArguments(); 
 
 			std::ostringstream imageSourceX, imageAltX, imageSourceY, imageAltY; 

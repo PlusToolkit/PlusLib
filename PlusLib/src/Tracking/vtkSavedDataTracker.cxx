@@ -5,7 +5,6 @@
 #include "vtkTracker.h"
 #include "vtkTrackerTool.h"
 #include "vtkTrackerBuffer.h"
-#include "vtkFrameToTimeConverter.h"
 #include "vtkMatrix4x4.h"
 #include "vtkTransform.h"
 #include "vtksys/SystemTools.hxx"
@@ -177,7 +176,7 @@ PlusStatus vtkSavedDataTracker::Connect()
 		  }
 		}
 		
-		LocalTrackerBuffer->AddItem(defaultTransformMatrix, status, frameNumber, unfilteredTimestamp, timestamp); 
+		LocalTrackerBuffer->AddTimeStampedItem(defaultTransformMatrix, status, frameNumber, unfilteredTimestamp); 
 	}
 
     savedDataBuffer->Clear(); 
@@ -223,8 +222,6 @@ PlusStatus vtkSavedDataTracker::InternalStartTracking()
 
 	this->SetStartTimestamp(vtkAccurateTimer::GetSystemTime()); 
 
-	// for accurate timing
-	this->Timer->Initialize();
 	this->Tracking = 1;
 
 	return PLUS_SUCCESS;
@@ -309,12 +306,10 @@ PlusStatus vtkSavedDataTracker::InternalUpdate()
 	// Get flags
 	TrackerStatus trackerStatus = bufferItem.GetStatus(); 
 
-	// Create timestamp 
-	double unfilteredtimestamp(0), filteredtimestamp(0); 
-	this->Timer->GetTimeStampForFrame(frameNumber, unfilteredtimestamp, filteredtimestamp);
+  double unfilteredtimestamp = bufferItem.GetUnfilteredTimestamp( this->LocalTrackerBuffer->GetLocalTimeOffset() ); 
 
 	// send the transformation matrix and flags to the tool
-	PlusStatus updateStatus = this->ToolUpdate(0, defaultTransMatrix, trackerStatus, frameNumber, unfilteredtimestamp, filteredtimestamp);   
+	PlusStatus updateStatus = this->ToolTimeStampedUpdate(0, defaultTransMatrix, trackerStatus, frameNumber, unfilteredtimestamp);   
   
   return updateStatus;
 }

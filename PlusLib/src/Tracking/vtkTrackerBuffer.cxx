@@ -170,12 +170,37 @@ PlusStatus vtkTrackerBuffer::SetBufferSize(int bufsize)
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkTrackerBuffer::AddItem(vtkMatrix4x4 *matrix, TrackerStatus status, unsigned long frameNumber, double unfilteredTimestamp, double filteredTimestamp)
+void vtkTrackerBuffer::SetSmoothingFactor(double smoothingFactor)
+{
+  this->TrackerBuffer->SetSmoothingFactor(smoothingFactor); 
+}
+
+//----------------------------------------------------------------------------
+void vtkTrackerBuffer::SetStartTime( double startTime)
+{
+  this->TrackerBuffer->SetStartTime(startTime); 
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkTrackerBuffer::GetTimeStampReportTable(vtkTable* timeStampReportTable) 
+{
+  return this->TrackerBuffer->GetTimeStampReportTable(timeStampReportTable); 
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkTrackerBuffer::AddTimeStampedItem(vtkMatrix4x4 *matrix, TrackerStatus status, unsigned long frameNumber, double unfilteredTimestamp)
 {
 
   if ( matrix  == NULL )
   {
     LOG_ERROR( "vtkTrackerBuffer: Unable to add NULL matrix to tracker buffer!"); 
+    return PLUS_FAIL; 
+  }
+
+  double filteredTimestamp(0); 
+  if ( this->TrackerBuffer->CreateFilteredTimeStampForItem(frameNumber, unfilteredTimestamp, filteredTimestamp) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to create filtered timestamp for buffer item with item index: " << frameNumber ); 
     return PLUS_FAIL; 
   }
 

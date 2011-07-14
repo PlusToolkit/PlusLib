@@ -16,7 +16,6 @@ a tracking system to test code that relies on having one active.
 #include "vtkTransform.h"
 #include "vtkTrackerTool.h"
 #include "vtkMinimalStandardRandomSequence.h"
-#include "vtkFrameToTimeConverter.h"
 
 //----------------------------------------------------------------------------
 vtkFakeTracker* vtkFakeTracker::New()
@@ -153,8 +152,6 @@ PlusStatus vtkFakeTracker::Probe()
 //----------------------------------------------------------------------------
 PlusStatus vtkFakeTracker::InternalStartTracking()
 {
-	// for accurate timing
-	this->Timer->Initialize();
 	this->RandomSeed = 0;
 
   	for (int i=0; i<this->GetNumberOfTools(); ++i) 
@@ -182,10 +179,6 @@ PlusStatus vtkFakeTracker::InternalUpdate()
 	{
 	case (FakeTrackerMode_Default): // Spins the tools around different axis to fake movement
 		{
-		// Create timestamp 
-		double unfilteredtimestamp(0), filteredtimestamp(0); 
-		this->Timer->GetTimeStampForFrame(this->Frame, unfilteredtimestamp, filteredtimestamp);
-
 		for (int tool = 0; tool < 4; tool++) 
 		{
 			TrackerStatus trackerStatus = TR_OK;
@@ -219,7 +212,7 @@ PlusStatus vtkFakeTracker::InternalUpdate()
 				break;
 			}
 
-			this->ToolUpdate(tool,this->InternalTransform->GetMatrix(),trackerStatus,this->Frame, unfilteredtimestamp, filteredtimestamp);   
+			this->ToolUpdate(tool,this->InternalTransform->GetMatrix(),trackerStatus,this->Frame);   
 		}
 		}
 		break;
@@ -229,10 +222,6 @@ PlusStatus vtkFakeTracker::InternalUpdate()
 		{
 			vtkMinimalStandardRandomSequence* random = vtkMinimalStandardRandomSequence::New();
 			random->SetSeed(RandomSeed++); // To get completely random numbers, timestamp should use instead of constant seed
-
-			// Create timestamp 
-			double unfilteredtimestamp(0), filteredtimestamp(0); 
-			this->Timer->GetTimeStampForFrame(this->Frame, unfilteredtimestamp, filteredtimestamp);
 
 			// Set flags
 			TrackerStatus trackerStatus = TR_OK;
@@ -252,7 +241,7 @@ PlusStatus vtkFakeTracker::InternalUpdate()
 			trackerToReferenceToolTransform->Translate(300, 400, 700);
 			trackerToReferenceToolTransform->RotateZ(90);
 
-			this->ToolUpdate(0, trackerToReferenceToolTransform->GetMatrix(), trackerStatus, this->Frame, unfilteredtimestamp, filteredtimestamp);   
+			this->ToolUpdate(0, trackerToReferenceToolTransform->GetMatrix(), trackerStatus, this->Frame);   
 
 			// create random positions along a sphere (with built-in error)
 			double exactRadius = 210.0;
@@ -283,16 +272,12 @@ PlusStatus vtkFakeTracker::InternalUpdate()
 			referenceToolToStylusTipTransform->Concatenate(trackerToStylusTipTransform);
 
 			random->Delete();
-			this->ToolUpdate(1, referenceToolToStylusTipTransform->GetMatrix(), trackerStatus, this->Frame, unfilteredtimestamp, filteredtimestamp);   
+			this->ToolUpdate(1, referenceToolToStylusTipTransform->GetMatrix(), trackerStatus, this->Frame);   
 		}
 		break;
 
 	case (FakeTrackerMode_RecordPhantomLandmarks): // Touches some positions with 1 sec difference
 		{
-			// Create timestamp 
-			double unfilteredtimestamp(0), filteredtimestamp(0); 
-			this->Timer->GetTimeStampForFrame(this->Frame, unfilteredtimestamp, filteredtimestamp);
-
 			// Set flags - one in every 50 request, the tracker provides 'out of view' flag
 			TrackerStatus trackerStatus = TR_OK;
 
@@ -303,7 +288,7 @@ PlusStatus vtkFakeTracker::InternalUpdate()
 			phantomReferenceToTrackerTransform->Translate(300, 400, 700);
 			phantomReferenceToTrackerTransform->RotateZ(90);
 			
-			this->ToolUpdate(0, phantomReferenceToTrackerTransform->GetMatrix(), trackerStatus, this->Frame, unfilteredtimestamp, filteredtimestamp);   
+			this->ToolUpdate(0, phantomReferenceToTrackerTransform->GetMatrix(), trackerStatus, this->Frame);   
 
 			// touch landmark points
 			vtkSmartPointer<vtkTransform> phantomToLandmarkTransform = vtkSmartPointer<vtkTransform>::New();
@@ -362,7 +347,7 @@ PlusStatus vtkFakeTracker::InternalUpdate()
 			phantomReferenceToLandmarkTransform->Concatenate(phantomToLandmarkTransform);
 			phantomReferenceToLandmarkTransform->Concatenate(stylustipToStylusTransform);
 
-			this->ToolUpdate(1, phantomReferenceToLandmarkTransform->GetMatrix(), trackerStatus, this->Frame, unfilteredtimestamp, filteredtimestamp);   
+			this->ToolUpdate(1, phantomReferenceToLandmarkTransform->GetMatrix(), trackerStatus, this->Frame);   
 		}
 		break;
 	default:

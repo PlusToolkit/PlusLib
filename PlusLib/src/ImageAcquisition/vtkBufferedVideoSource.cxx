@@ -183,9 +183,8 @@ PlusStatus vtkBufferedVideoSource::StopRecording()
 PlusStatus vtkBufferedVideoSource::AddFrame( vtkImageData* image, US_IMAGE_ORIENTATION usImageOrientation, double timestamp )
 {
 	// We don't have information about the unfiltered timestamp, use the filtered one
-	const double unfilteredTimestamp = timestamp; 
 	const long frameNumber = this->FrameNumber + 1; 
-	PlusStatus status = this->Buffer->AddItem(image, usImageOrientation, unfilteredTimestamp, timestamp, frameNumber); 
+	PlusStatus status = this->Buffer->AddTimeStampedItem(image, usImageOrientation, timestamp, frameNumber); 
 
 	if ( status == PLUS_SUCCESS )
 	{

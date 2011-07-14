@@ -67,7 +67,6 @@ POSSIBILITY OF SUCH DAMAGES.
 #include "vtkTransform.h"
 #include "vtkNDICertusTracker.h"
 #include "vtkTrackerTool.h"
-#include "vtkFrameToTimeConverter.h"
 #include "vtkObjectFactory.h"
 
 // turn this on to print lots of debug information
@@ -108,9 +107,6 @@ static VLEDState vtkNDICertusMapVLEDState[] = {
 			this->PortHandle[i] = 0;
 			this->PortEnabled[i] = 0;
 		}
-
-		// for accurate timing
-		this->Timer->SetNominalFrequency(60.0);
 	}
 
 	//----------------------------------------------------------------------------
@@ -362,9 +358,6 @@ static VLEDState vtkNDICertusMapVLEDState[] = {
 			return PLUS_FAIL;
 		}
 
-		// For accurate timing
-		this->Timer->Initialize();
-
 		this->Tracking = 1;
 
 		return PLUS_SUCCESS;
@@ -458,10 +451,6 @@ static VLEDState vtkNDICertusMapVLEDState[] = {
 		LOG_DEBUG("Found " << uElements << " rigid bodies, expected " << this->NumberOfRigidBodies
 			<< " with " << this->NumberOfMarkers << " markers");
 
-		// these two calls are to generate an accurate timestamp
-		double unfilteredtimestamp(0), filteredtimestamp(0); 
-		this->Timer->GetTimeStampForFrame(uFrameNumber, unfilteredtimestamp, filteredtimestamp);
-
 		for (int rigidCounter = 0; rigidCounter < this->NumberOfRigidBodies;
 			rigidCounter++)
 		{
@@ -544,7 +533,7 @@ static VLEDState vtkNDICertusMapVLEDState[] = {
 			this->SendMatrix->Transpose();
 
 			// send the matrix and status to the tool's vtkTrackerBuffer
-			this->ToolUpdate(tool, this->SendMatrix, status, uFrameNumber, unfilteredtimestamp, filteredtimestamp);
+			this->ToolUpdate(tool, this->SendMatrix, status, uFrameNumber);
 		}
 
     return PLUS_SUCCESS;

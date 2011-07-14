@@ -6,7 +6,14 @@
 #include "vtkObjectFactory.h"
 #include "vtkTypeTemplate.h"
 #include <deque>
+#include <vector>
 #include "vtkCriticalSection.h"
+#include "vtkTable.h"
+#include "vtkVariantArray.h"
+#include "vtkDoubleArray.h"
+#include "vtkStringArray.h"
+#include <iostream>
+#include <sstream>
 
 typedef unsigned __int64 BufferItemUidType;
 enum ItemStatus { ITEM_OK, ITEM_NOT_AVAILABLE_YET, ITEM_NOT_AVAILABLE_ANYMORE, ITEM_UNKNOWN_ERROR };
@@ -100,7 +107,7 @@ public:
 	// Get the most recent frame UID 
 	virtual BufferItemUidType GetLatestItemUidInBuffer() 
 	{ 
-		this->Lock(); 
+    this->Lock(); 
 		BufferItemUidType latestUid = this->LatestItemUid;
 		this->Unlock(); 
 		return latestUid; 
@@ -110,10 +117,10 @@ public:
 	// Get the oldest frame UID in the buffer 
 	virtual BufferItemUidType GetOldestItemUidInBuffer() 
 	{ 
-		this->Lock(); 
+    this->Lock(); 
 		// LatestItemUid - ( NumberOfItems - 1 ) is the oldest element in the buffer
 		BufferItemUidType oldestUid = ( this->LatestItemUid - ( this->NumberOfItems - 1 ) ); 
-		this->Unlock();
+    this->Unlock();
 		return oldestUid; 
 	} 
 	
@@ -174,6 +181,37 @@ public:
 
 	virtual PlusStatus PrepareForNewItem(const double timestamp, BufferItemUidType& newFrameUid, int& bufferIndex); 
 
+  // Description:
+  // Create filtered and unfiltered timestamp 
+  // for accurate timing of the buffer item: an exponential moving average
+  // is computed to smooth out the jitter in the times that are returned by the system clock:
+  // EstimatedFramePeriod[t] = EstimatedFramePeriod[t-1] * (1-SmoothingFactor) + FramePeriod[t] * SmoothingFactor
+  // Smaller SmoothingFactor results leads to less jitter.
+  virtual PlusStatus CreateFilteredTimeStampForItem(unsigned long itemIndex, double inUnfilteredTimestamp, double &outFilteredTimestamp); 
+  
+  // Description:
+  // Set/Get maximum allowed difference of the frame delay compared to average delay, in seconds
+  vtkSetMacro(MaximumFramePeriodJitter, double); 
+  vtkGetMacro(MaximumFramePeriodJitter, double); 
+
+  // Description:
+  // Set/Get smoothing factor for accurate timing of the frames 
+  // an exponential moving average is computed to smooth out the 
+  // jitter in the times that are returned by the system clock:
+  // EstimatedFramePeriod[t] = EstimatedFramePeriod[t-1] * (1-SmoothingFactor) + FramePeriod[t] * SmoothingFactor
+  // Smaller SmoothingFactor results leads to less jitter.
+  vtkSetMacro(SmoothingFactor, double); 
+  vtkGetMacro(SmoothingFactor, double); 
+
+  // Description:
+  // Recording start time
+  vtkSetMacro(StartTime, double); 
+  vtkGetMacro(StartTime, double); 
+  
+
+  // Description: 
+  // Get the table report of the timestamped buffer 
+  PlusStatus GetTimeStampReportTable(vtkTable* timeStampReportTable); 
 
 protected:
 	vtkTimestampedCircularBuffer();
@@ -183,6 +221,10 @@ protected:
 	// Get buffer index by frame UID - internal use only, the buffer should be locked 
 	// Returns buffer index if the ItemStatus is ITEM_OK, otherwise -1; 
 	virtual ItemStatus GetBufferIndex( BufferItemUidType uid, int& bufferIndex ); 
+
+  // Description:
+	// Initialize the timestamp report table by adding the proper cols
+  virtual void InitTimeStampReportTable(); 
 
 	vtkCriticalSection *Mutex;
 
@@ -194,7 +236,20 @@ protected:
 	
 	BufferItemUidType LatestItemUid; 
 
-	std::deque<BufferItemType> BufferItemContainer; 
+  std::deque<BufferItemType> BufferItemContainer; 
+
+  // Timestamp generation 
+  double LastTimeStamp;
+  double LastUnfilteredTimeStamp;
+  unsigned long LastItemIndex;
+  double EstimatedFramePeriod;
+  std::vector<double> AveragedFramePeriods; 
+  double MaximumFramePeriodJitter; 
+  double SmoothingFactor; 
+  
+  double StartTime; 
+
+  vtkTable* TimeStampReportTable; 
 
 private:
 	vtkTimestampedCircularBuffer(const vtkTimestampedCircularBuffer&);

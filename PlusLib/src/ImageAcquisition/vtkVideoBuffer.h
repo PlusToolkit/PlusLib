@@ -97,15 +97,23 @@ public:
   // Add a frame plus a timestamp to the buffer with frame index.  If the timestamp is
   // less than or equal to the previous timestamp, or if the frame's format
   // doesn't match the buffer's frame format, then nothing will be done.
-  virtual PlusStatus AddItem(vtkImageData* frame, US_IMAGE_ORIENTATION  usImageOrientation, double unfilteredTimestamp, double filteredTimestamp, long frameNumber); 
-  virtual PlusStatus AddItem(unsigned char *imageDataPtr, 
-    US_IMAGE_ORIENTATION  usImageOrientation,
-    const int frameSizeInPx[2],
-    int numberOfBitsPerPixel, 
-    int numberOfBytesToSkip, 
+  virtual PlusStatus AddTimeStampedItem(unsigned char* imageDataPtr,                               
+    US_IMAGE_ORIENTATION  usImageOrientation, 
+    const int    frameSizeInPx[2],
+    int    numberOfBitsPerPixel, 
+    int	numberOfBytesToSkip, 
     double unfilteredTimestamp, 
-    double filteredTimestamp, 
-    long frameNumber);
+    long   frameNumber); 
+
+  virtual PlusStatus AddItem(unsigned char* imageDataPtr,                               
+    US_IMAGE_ORIENTATION  usImageOrientation, 
+    const int    frameSizeInPx[2],
+    int    numberOfBitsPerPixel, 
+    int	numberOfBytesToSkip, 
+    long   frameNumber); 
+
+  virtual PlusStatus AddItem(vtkImageData* frame, US_IMAGE_ORIENTATION usImageOrientation, long frameNumber); 
+  virtual PlusStatus AddTimeStampedItem(vtkImageData* frame, US_IMAGE_ORIENTATION usImageOrientation, double unfilteredTimestamp, long frameNumber); 
 
   // Description:
   // Get tracker item from buffer 
@@ -156,6 +164,22 @@ public:
   // Description:
   // Clear buffer (set the buffer pointer to the first element)
   virtual void Clear(); 
+
+  // Description:
+  // Set/Get smoothing factor for accurate timing of the frames 
+  // an exponential moving average is computed to smooth out the 
+  // jitter in the times that are returned by the system clock:
+  // EstimatedFramePeriod[t] = EstimatedFramePeriod[t-1] * (1-SmoothingFactor) + FramePeriod[t] * SmoothingFactor
+  // Smaller SmoothingFactor results leads to less jitter.
+  virtual void SetSmoothingFactor( double smoothingFactor); 
+
+  // Description:
+  // Set recording start time
+  virtual void SetStartTime( double startTime ); 
+
+  // Description: 
+  // Get the table report of the timestamped buffer 
+  virtual PlusStatus GetTimeStampReportTable(vtkTable* timeStampReportTable); 
 
   // Description:
   // Set/get frame size in pixel 
