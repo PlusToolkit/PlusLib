@@ -134,6 +134,80 @@ PlusStatus UsImageConverterCommon::GetMFOrientedImage( vtkImageData* inUsImage, 
 }
 
 //----------------------------------------------------------------------------
+ PlusStatus UsImageConverterCommon::FlipImage(const UsImageConverterCommon::ImageType::Pointer inUsImage, const itk::FixedArray<bool, 2> &flipAxes, UsImageConverterCommon::ImageType::Pointer& outUsOrintedImage)
+{
+  outUsOrintedImage->SetOrigin(inUsImage->GetOrigin());
+  outUsOrintedImage->SetSpacing(inUsImage->GetSpacing());
+  outUsOrintedImage->SetDirection(inUsImage->GetDirection());
+  outUsOrintedImage->SetLargestPossibleRegion(inUsImage->GetLargestPossibleRegion());
+  outUsOrintedImage->SetRequestedRegion(inUsImage->GetRequestedRegion());
+  outUsOrintedImage->SetBufferedRegion(inUsImage->GetBufferedRegion());
+
+  try 
+  {
+    outUsOrintedImage->Allocate(); 
+  }
+  catch(itk::ExceptionObject & err)
+  {
+    LOG_ERROR("Failed to allocate memory for the image conversion: " << err.GetDescription() ); 
+    return PLUS_FAIL; 
+  }
+
+  ImageType::SizeType imageSize=inUsImage->GetLargestPossibleRegion().GetSize();
+  int width=imageSize[0];
+  int height=imageSize[1];
+
+  if (!flipAxes[0] && flipAxes[1])
+  {
+    // flip Y    
+    ImageType::PixelType *inputPixel=inUsImage->GetBufferPointer();
+    // Set the target position pointer to the first pixel of the last row
+    ImageType::PixelType *outputPixel=outUsOrintedImage->GetBufferPointer()+width*(height-1);
+    // Copy the image row-by-row, reversing the row order
+    for (int y=height; y>0; y--)
+    {
+      memcpy(outputPixel, inputPixel, width);
+      inputPixel+=width;
+      outputPixel-=width;
+    }
+  }
+  else if (flipAxes[0] && !flipAxes[1])
+  {
+    // flip X    
+    ImageType::PixelType *inputPixel=inUsImage->GetBufferPointer();
+    // Set the target position pointer to the last pixel of the first row
+    ImageType::PixelType *outputPixel=outUsOrintedImage->GetBufferPointer()+width-1;
+    // Copy the image row-by-row, reversing the pixel order in each row
+    for (int y=height; y>0; y--)
+    {
+      for (int x=width; x>0; x--)
+      {
+        *outputPixel=*inputPixel;
+        inputPixel++;
+        outputPixel--;
+      }
+      outputPixel+=2*width-1;
+    }
+  }
+  else if (flipAxes[0] && flipAxes[1])
+  {
+    // flip X and Y
+    ImageType::PixelType *inputPixel=inUsImage->GetBufferPointer();
+    // Set the target position pointer to the last pixel
+    ImageType::PixelType *outputPixel=outUsOrintedImage->GetBufferPointer()+height*width-1;
+    // Copy the image pixel-by-pixel, reversing the pixel order
+    for (int p=width*height; p>0; p--)
+    {
+      *outputPixel=*inputPixel;
+      inputPixel++;
+      outputPixel--;
+    }
+  }
+
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
 PlusStatus UsImageConverterCommon::GetMFOrientedImage( const ImageType::Pointer inUsImage, US_IMAGE_ORIENTATION inUsImageOrientation, ImageType::Pointer& outUsOrintedImage )
 {
     if ( inUsImage.IsNull() )
@@ -161,11 +235,6 @@ PlusStatus UsImageConverterCommon::GetMFOrientedImage( const ImageType::Pointer 
         return PLUS_SUCCESS; 
 	}
 
-	typedef itk::FlipImageFilter <ImageType> FlipImageFilterType;
-	FlipImageFilterType::Pointer flipFilter = FlipImageFilterType::New();
-	flipFilter->SetInput(inUsImage);
-	flipFilter->FlipAboutOriginOff(); 
-
     itk::FixedArray<bool, 2> flipAxes;
     switch( inUsImageOrientation )
     {
@@ -189,12 +258,27 @@ PlusStatus UsImageConverterCommon::GetMFOrientedImage( const ImageType::Pointer 
         break; 
     }
 
-	flipFilter->SetFlipAxes(flipAxes);
-	flipFilter->Update();
+    // Performance profiling showed that flip image filter is very slow,
+    // therefore, an alternative implementation was tried, which does not use this filter.
+    // Execution time of the alternative implementation in releaes mode does not seem to be
+    // much faster, so for now keep using the flip image filter.
+    const bool useItkFlipImageFilter=true;
 
-	outUsOrintedImage = flipFilter->GetOutput(); 
-
-    return PLUS_SUCCESS; 
+    if (useItkFlipImageFilter)
+    {
+      typedef itk::FlipImageFilter <ImageType> FlipImageFilterType;
+      FlipImageFilterType::Pointer flipFilter = FlipImageFilterType::New();
+      flipFilter->SetInput(inUsImage);
+      flipFilter->FlipAboutOriginOff(); 
+      flipFilter->SetFlipAxes(flipAxes);
+      flipFilter->Update();
+      outUsOrintedImage = flipFilter->GetOutput(); 
+      return PLUS_SUCCESS; 
+    }
+    else
+    {
+      return FlipImage(inUsImage, flipAxes, outUsOrintedImage);
+    }   
 }
 
 //----------------------------------------------------------------------------

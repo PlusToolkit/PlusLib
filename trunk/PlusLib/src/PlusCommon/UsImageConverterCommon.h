@@ -54,6 +54,11 @@ class DllExport UsImageConverterCommon
     // Flipping is necessary, because vtk stores the image data in bottom up format, while itk in top down format. 
     static PlusStatus ConvertItkImageToVtkImage(const ImageType::Pointer& inFrame, vtkImageData* outFrame); 
 
+    // Description:
+	  // Flip a 2D image along one or two axes
+    // This is a performance optimized version of flipping that does not use ITK filters 
+    static PlusStatus FlipImage(const ImageType::Pointer inUsImage, const itk::FixedArray<bool, 2> &flipAxes, ImageType::Pointer& outUsOrintedImage);
+
 protected:
 	UsImageConverterCommon(); 
 	~UsImageConverterCommon();
