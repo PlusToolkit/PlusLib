@@ -6,6 +6,7 @@
 #define __VTKGNUPLOTEXECUTER_H
 
 #include "vtkObject.h"
+#include "vtkTable.h"
 #include <vector>
 
 
@@ -18,7 +19,7 @@ public:
 
 	// Description:
 	// Execute gnuplot with the given arguments
-	void Execute(); 
+	PlusStatus Execute(); 
 
 	// Description:
 	// Add custom argument
@@ -27,6 +28,10 @@ public:
 	// Description:
 	// Clear arguments 
 	void ClearArguments(); 
+
+  // Description:
+	// Dump vtkTable to text file in gnuplot format
+  static PlusStatus DumpTableToFileInGnuplotFormat( vtkTable* table, const char* filename); 
 
 	// Description:
 	// Set/get working directory

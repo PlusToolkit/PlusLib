@@ -142,20 +142,6 @@ public:
     vtkSetMacro(FrameCount, int);
 
     // Description:
-    // Set/Get maximum allowed difference of the frame delay compared to average delay, in seconds
-    vtkSetMacro(MaximumFramePeriodJitter, double); 
-    vtkGetMacro(MaximumFramePeriodJitter, double); 
-
-    // Description:
-    // Set/Get smoothing factor for accurate timing of the frames 
-    // an exponential moving average is computed to smooth out the 
-    // jitter in the times that are returned by the system clock:
-    // EstimatedFramePeriod[t] = EstimatedFramePeriod[t-1] * (1-SmoothingFactor) + FramePeriod[t] * SmoothingFactor
-    // Smaller SmoothingFactor results leads to less jitter.
-    vtkSetMacro(SmoothingFactor, double); 
-    vtkGetMacro(SmoothingFactor, double); 
-
-    // Description:
     // Get the frame number (some devices has frame numbering, otherwise 
     // just increment if new frame received)
     vtkGetMacro(FrameNumber, unsigned long);
@@ -223,19 +209,12 @@ public:
     // Add generated html report from video data acquisition to the existing html report
     // htmlReport and plotter arguments has to be defined by the caller function
     // Solution should build with PLUS_PRINT_VIDEO_TIMESTAMP_DEBUG_INFO to generate this report
-    virtual void GenerateVideoDataAcquisitionReport( vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter, const char* gnuplotScriptsFolder); 
+    virtual PlusStatus GenerateVideoDataAcquisitionReport( vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter, const char* gnuplotScriptsFolder); 
 
 protected:
     vtkVideoSource2();
     virtual ~vtkVideoSource2();
     virtual int RequestInformation(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
-
-    // Description:
-    // Method for updating the virtual clock that accurately times the
-    // arrival of each frame, more accurately than is possible with
-    // the system clock alone because the virtual clock averages out the
-    // jitter.
-    virtual void CreateTimeStampForFrame(unsigned long frameNum, double &unfilteredTimestamp, double &filteredTimestamp);
 
     int Initialized;
 
@@ -251,16 +230,7 @@ protected:
     float FrameRate;
     int FrameCount;
     unsigned long FrameNumber; 
-    //double StartTimeStamp;
     double FrameTimeStamp;
-
-    double LastTimeStamp;
-    double LastUnfilteredTimeStamp;
-    unsigned long LastFrameCount;
-    double EstimatedFramePeriod;
-    double MaximumFramePeriodJitter; 
-    double SmoothingFactor; 
-    std::vector<double> AveragedFramePeriods; 
 
     int NumberOfOutputFrames;
 

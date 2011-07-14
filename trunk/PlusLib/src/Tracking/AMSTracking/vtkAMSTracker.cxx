@@ -5,7 +5,6 @@
 #include "vtkTracker.h"
 #include "vtkTrackerTool.h"
 #include "vtkTrackerBuffer.h"
-#include "vtkFrameToTimeConverter.h"
 #include "vtkMatrix4x4.h"
 #include "vtkTransform.h"
 #include "vtkMath.h"
@@ -125,10 +124,7 @@ PlusStatus vtkAMSTracker::InternalStartTracking()
 		return PLUS_FAIL;
 	} 
 
-	// for accurate timing
-	this->Timer->Initialize();
-
-	this->Tracking = 1;
+  this->Tracking = 1;
 
 	return PLUS_SUCCESS;
 }
@@ -163,10 +159,6 @@ PlusStatus vtkAMSTracker::InternalUpdate()
 		status = TR_REQ_TIMEOUT; 
 	}
 
-	// Create timestamp 
-	double unfilteredtimestamp(0), filteredtimestamp(0); 
-	this->Timer->GetTimeStampForFrame(frameNum, unfilteredtimestamp, filteredtimestamp);
-
 	// Save probe position to the matrix (0,3) element
 	// Save probe rotation to the matrix (1,3) element
 	// Save grid position to the matrix (2,3) element
@@ -175,7 +167,7 @@ PlusStatus vtkAMSTracker::InternalUpdate()
 	probePosition->SetElement(ROW_PROBE_ROTATION, 3, dProbeRotation); 
 	probePosition->SetElement(ROW_TEMPLATE_POSITION, 3, dTemplatePosition); 
 	// send the transformation matrix and status to the tool
-	this->ToolUpdate(RAW_ENCODER_VALUES, probePosition, status, frameNum, unfilteredtimestamp, filteredtimestamp);   
+	this->ToolUpdate(RAW_ENCODER_VALUES, probePosition, status, frameNum);   
 
 	// Save template home to template transform
 	vtkSmartPointer<vtkTransform> tTemplateHomeToTemplate = vtkSmartPointer<vtkTransform>::New(); 
@@ -184,7 +176,7 @@ PlusStatus vtkAMSTracker::InternalUpdate()
 	vtkMath::MultiplyScalar(templateTranslationAxisVector, dTemplatePosition); 
 	tTemplateHomeToTemplate->Translate(templateTranslationAxisVector); 
 	// send the transformation matrix and status to the tool
-	this->ToolUpdate(TEMPLATEHOME_TO_TEMPLATE_TRANSFORM, tTemplateHomeToTemplate->GetMatrix(), status, frameNum, unfilteredtimestamp, filteredtimestamp);   
+	this->ToolUpdate(TEMPLATEHOME_TO_TEMPLATE_TRANSFORM, tTemplateHomeToTemplate->GetMatrix(), status, frameNum);   
 
 	// Save probehome to probe transform
 	vtkSmartPointer<vtkTransform> tProbeHomeToProbe = vtkSmartPointer<vtkTransform>::New(); 
@@ -204,7 +196,7 @@ PlusStatus vtkAMSTracker::InternalUpdate()
 	// Translate back the probe to the original position
 	tProbeHomeToProbe->Translate(-probeRotationVector[0], -probeRotationVector[1], probeRotationVector[2]); 
 	// send the transformation matrix and status to the tool
-	this->ToolUpdate(PROBEHOME_TO_PROBE_TRANSFORM, tProbeHomeToProbe->GetMatrix(), status, frameNum, unfilteredtimestamp, filteredtimestamp);   
+	this->ToolUpdate(PROBEHOME_TO_PROBE_TRANSFORM, tProbeHomeToProbe->GetMatrix(), status, frameNum);   
 
   return PLUS_SUCCESS;
 }
@@ -442,10 +434,14 @@ PlusStatus vtkAMSTracker::GetTrackerToolBufferStringList(double timestamp,
   }
 
 	std::ostringstream strProbeHomeToProbeTransform; 
-	for ( int i = 0; i < 16; ++i )
-	{
-		strProbeHomeToProbeTransform << probehome2probeMatrix[i] << " ";
-	}
+  for ( int r = 0; r < 4; ++r )
+  {
+    for ( int c = 0; c < 4; ++c )
+    {
+      strProbeHomeToProbeTransform << probehome2probeMatrix->GetElement(r,c) << " ";
+    }
+  }
+
 	toolsBufferMatrices[ this->GetTool(PROBEHOME_TO_PROBE_TRANSFORM)->GetToolName() ] = strProbeHomeToProbeTransform.str(); 
 	toolsStatuses[ this->GetTool(PROBEHOME_TO_PROBE_TRANSFORM)->GetToolName() ] = vtkTracker::ConvertTrackerStatusToString(probehome2probeStatus); 
 
@@ -459,11 +455,15 @@ PlusStatus vtkAMSTracker::GetTrackerToolBufferStringList(double timestamp,
   }
 
 	std::ostringstream strTemplHomeToTemplTransform; 
-	for ( int i = 0; i < 16; ++i )
-	{
-		strTemplHomeToTemplTransform << templhome2templMatrix[i] << " ";
-	}
-	toolsBufferMatrices[ this->GetTool(TEMPLATEHOME_TO_TEMPLATE_TRANSFORM)->GetToolName() ] = strTemplHomeToTemplTransform.str(); 
+  for ( int r = 0; r < 4; ++r )
+  {
+    for ( int c = 0; c < 4; ++c )
+    {
+      strTemplHomeToTemplTransform << templhome2templMatrix->GetElement(r,c) << " ";
+    }
+  }
+	
+  toolsBufferMatrices[ this->GetTool(TEMPLATEHOME_TO_TEMPLATE_TRANSFORM)->GetToolName() ] = strTemplHomeToTemplTransform.str(); 
 	toolsStatuses[ this->GetTool(TEMPLATEHOME_TO_TEMPLATE_TRANSFORM)->GetToolName() ] = vtkTracker::ConvertTrackerStatusToString(templhome2templStatus); 
 
 	// RAW_ENCODER_VALUES
@@ -476,11 +476,15 @@ PlusStatus vtkAMSTracker::GetTrackerToolBufferStringList(double timestamp,
   }
 
 	std::ostringstream strRawEncoderValuesTransform; 
-	for ( int i = 0; i < 16; ++i )
-	{
-		strRawEncoderValuesTransform << rawEncoderValuesMatrix[i] << " ";
-	}
-	toolsBufferMatrices[ this->GetTool(RAW_ENCODER_VALUES)->GetToolName() ] = strRawEncoderValuesTransform.str(); 
+  for ( int r = 0; r < 4; ++r )
+  {
+    for ( int c = 0; c < 4; ++c )
+    {
+      strRawEncoderValuesTransform << rawEncoderValuesMatrix->GetElement(r,c) << " ";
+    }
+  }
+	
+  toolsBufferMatrices[ this->GetTool(RAW_ENCODER_VALUES)->GetToolName() ] = strRawEncoderValuesTransform.str(); 
 	toolsStatuses[ this->GetTool(RAW_ENCODER_VALUES)->GetToolName() ] = vtkTracker::ConvertTrackerStatusToString(rawEncoderValuesStatus); 
 	
 	// Get value for PROBE_POSITION, PROBE_ROTATION, TEMPLATE_POSITION tools

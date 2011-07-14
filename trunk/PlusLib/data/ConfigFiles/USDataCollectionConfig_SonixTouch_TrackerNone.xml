@@ -1,19 +1,18 @@
 <USDataCollection version="2.0" StartupDelaySec="1.0">
     <DeviceSet 
-        Name="SonixRP without tracking" 
+        Name="SonixTouch L14-5 with no tracker" 
         Description="" 
         />
 
-    <Tracker Type="NONE"></Tracker>
+    <Tracker Type="NONE" ></Tracker>
 
     <ImageAcqusition Type="SonixVideo" 
             BufferSize="500" 
-            FrameSize="640 480" 
+            FrameSize="820 616" 
             UsImageOrientation="MN"
-            FrameRate="10" 
             SmoothingFactor="0.001" 
             LocalTimeOffset="0.0"
-            IP="130.15.7.212" 
+            IP="130.15.7.20" 
             ImagingMode="0" 
             AcquisitionDataType="4" 
             Depth="-1" 
@@ -26,5 +25,5 @@
             CompressionStatus="0" 
             />
 
-    <Synchronization Type="None" />
+    <Synchronization Type="NONE" />
 </USDataCollection>

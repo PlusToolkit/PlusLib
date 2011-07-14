@@ -10,7 +10,7 @@
 ##--------------------------------------------------------
 
 ## Set the terminal mode 
-set terminal jpeg
+#set terminal jpeg
 # BufferTimestamps.jpg
 set output o.".jpg"
 
@@ -28,3 +28,4 @@ plot f using 1:($5*1000) with lines t columnhead, \
 	 f using 1:($6*1000) with lines t columnhead, \
 	 f using 1:($7*1000) with lines t columnhead
 
+pause -1

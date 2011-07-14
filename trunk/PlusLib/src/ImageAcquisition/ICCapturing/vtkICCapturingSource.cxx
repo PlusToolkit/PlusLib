@@ -151,13 +151,12 @@ bool vtkICCapturingSource::vtkICCapturingSourceNewFrameCallback(unsigned char * 
 PlusStatus vtkICCapturingSource::LocalInternalGrab(unsigned char * dataPtr, unsigned long size, unsigned long frameNumber)
 {
 	this->FrameNumber = frameNumber; 
-	double unfilteredTimestamp(0), filteredTimestamp(0); 
-	this->CreateTimeStampForFrame(this->FrameNumber, unfilteredTimestamp, filteredTimestamp);
-    const int frameSize[2] = {static_cast<DShowLib::Grabber*>(FrameGrabber)->getAcqSizeMaxX(), static_cast<DShowLib::Grabber*>(FrameGrabber)->getAcqSizeMaxY()}; 
-	int frameBufferBitsPerPixel = static_cast<DShowLib::Grabber*>(FrameGrabber)->getVideoFormat().getBitsPerPixel(); 
 
-	PlusStatus status = this->Buffer->AddItem(dataPtr, this->GetUsImageOrientation(), frameSize, frameBufferBitsPerPixel, 0, unfilteredTimestamp, filteredTimestamp, this->FrameNumber); 
-	this->Modified();
+  const int frameSize[2] = {static_cast<DShowLib::Grabber*>(FrameGrabber)->getAcqSizeMaxX(), static_cast<DShowLib::Grabber*>(FrameGrabber)->getAcqSizeMaxY()}; 
+	int frameBufferBitsPerPixel = static_cast<DShowLib::Grabber*>(FrameGrabber)->getVideoFormat().getBitsPerPixel(); 
+  PlusStatus status = this->Buffer->AddItem(dataPtr, this->GetUsImageOrientation(), frameSize, frameBufferBitsPerPixel, 0, this->FrameNumber); 
+
+  this->Modified();
 
 	return status;
 }

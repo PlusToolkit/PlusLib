@@ -157,11 +157,6 @@ vtkSonixVideoSource::vtkSonixVideoSource()
 
     this->NumberOfOutputFrames = 1;
 
-    //// for accurate timing
-    this->LastTimeStamp = 0;
-    this->LastFrameCount = 0;
-    this->EstimatedFramePeriod = 0;
-
     this->SetFrameBufferSize(200); 
 }
 
@@ -264,6 +259,11 @@ bool vtkSonixVideoSource::vtkSonixVideoSourceNewFrameCallback(void * data, int t
 // vtkVideoSource framebuffer (don't do the unpacking yet)
 PlusStatus vtkSonixVideoSource::LocalInternalGrab(void* dataPtr, int type, int sz, bool cine, int frmnum)
 {
+    if (this->Recording==0)
+    {
+      // drop the frame, we are not recording data now
+      return PLUS_SUCCESS;
+    }
     if ( !this->Initialized )
     {
         //LOG_ERROR("Cannot grab, the video source has not been initialized yet");
@@ -279,8 +279,6 @@ PlusStatus vtkSonixVideoSource::LocalInternalGrab(void* dataPtr, int type, int s
     // use the information about data type and frmnum to do cross checking that you are maintaining correct frame index, & receiving
     // expected data type
     this->FrameNumber = frmnum; 
-    double unfilteredTimestamp(0), filteredTimestamp(0); 
-    this->CreateTimeStampForFrame(this->FrameNumber, unfilteredTimestamp, filteredTimestamp);
 
     const int* frameSize = this->GetFrameSize(); 
     int frameBufferBitsPerPixel = this->Buffer->GetNumberOfBitsPerPixel(); 
@@ -305,7 +303,7 @@ PlusStatus vtkSonixVideoSource::LocalInternalGrab(void* dataPtr, int type, int s
     // get the pointer to actual incoming data on to a local pointer
     unsigned char *deviceDataPtr = static_cast<unsigned char*>(dataPtr);
 
-    PlusStatus status = this->Buffer->AddItem(deviceDataPtr, this->GetUsImageOrientation(), frameSize, frameBufferBitsPerPixel, numberOfBytesToSkip, unfilteredTimestamp, filteredTimestamp, this->FrameNumber); 
+    PlusStatus status = this->Buffer->AddItem(deviceDataPtr, this->GetUsImageOrientation(), frameSize, frameBufferBitsPerPixel, numberOfBytesToSkip, this->FrameNumber); 
     this->Modified(); 
 
     return status;

@@ -11,8 +11,9 @@
     -->
     <Tracker
       Type="Ascension3DG"
-      BufferSize="200"
+      BufferSize="500"
       Frequency="20"
+      SmoothingFactor="0.001"
       LocalTimeOffset="0.0"
       DefaultToolName="Tool1"
       SequenceMetafile=""
@@ -42,7 +43,7 @@
     
     
     <ImageAcqusition Type="None" 
-            BufferSize="200" 
+            BufferSize="500" 
             FrameSize="820 616" 
             UsImageOrientation="MF"
             FrameRate="5" 

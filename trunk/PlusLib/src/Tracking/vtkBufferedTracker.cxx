@@ -6,7 +6,6 @@
 #include "vtkTrackerBuffer.h"
 
 #include "vtkMatrix4x4.h"
-#include "vtkFrameToTimeConverter.h"
 #include "vtkObjectFactory.h"
 #include "vtksys/SystemTools.hxx"
 
@@ -29,10 +28,6 @@ vtkBufferedTracker::vtkBufferedTracker()
 {
 	this->SetNumberOfTools(1); 
 	this->ToolNumber = 0; 
-
-	// for accurate timing
-	this->Timer = vtkFrameToTimeConverter::New();
-	this->Timer->SetNominalFrequency(60.0);
 }
 
 //----------------------------------------------------------------------------
@@ -41,11 +36,6 @@ vtkBufferedTracker::~vtkBufferedTracker()
 	if (this->Tracking)
 	{
 		this->StopTracking();
-	}
-	
-	if (this->Timer)
-	{
-		this->Timer->Delete();
 	}
 }
 
@@ -74,10 +64,6 @@ PlusStatus vtkBufferedTracker::InternalStartTracking()
 		return PLUS_SUCCESS;
 	}
 
-	// for accurate timing
-	this->Timer->Initialize();
-	this->Tracking = 1;
-
 	return PLUS_SUCCESS;
 }
 
@@ -105,5 +91,5 @@ void vtkBufferedTracker::AddTransform( vtkMatrix4x4* transformMatrix, double tim
 
 	unsigned long frameNum = this->GetTool(this->ToolNumber)->GetFrameNumber() + 1; 
 	// send the transformation matrix and status to the tool
-	this->ToolUpdate(this->ToolNumber, transformMatrix, status, frameNum, timestamp, timestamp);   
+	this->ToolTimeStampedUpdate(this->ToolNumber, transformMatrix, status, frameNum, timestamp);   
 }

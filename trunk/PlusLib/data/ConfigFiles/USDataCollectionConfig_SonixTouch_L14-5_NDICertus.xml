@@ -4,7 +4,7 @@
         Description="" 
         />
 
-    <Tracker Type="CertusTracker" BufferSize="1000" Frequency="50" LocalTimeOffset="0.0" ReferenceToolName="Reference" DefaultToolName="Probe" >
+    <Tracker Type="CertusTracker" BufferSize="500" Frequency="50" SmoothingFactor="0.001" LocalTimeOffset="0.0" ReferenceToolName="Reference" DefaultToolName="Probe" >
         
         <Tool Name="Probe" PortNumber="0" SendTo="127.0.0.1:1111">
         <Calibration 
@@ -47,7 +47,7 @@
     </Tracker>
 
     <ImageAcqusition Type="SonixVideo" 
-            BufferSize="200" 
+            BufferSize="500" 
             FrameSize="820 616" 
             UsImageOrientation="MN"
             FrameRate="30" 

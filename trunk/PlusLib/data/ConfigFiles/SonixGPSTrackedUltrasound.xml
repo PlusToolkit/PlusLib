@@ -7,9 +7,10 @@
 
   <Tracker
     Type="Ascension3DG"
-    BufferSize="1000"
+    BufferSize="500"
     Frequency="5"
     LocalTimeOffset="0.0"
+    SmoothingFactor="0.001"
     ReferenceToolName="Reference"
     DefaultToolName="Probe"
     >
@@ -38,7 +39,7 @@
 
   <ImageAcqusition
     Type="SonixVideo" 
-    BufferSize="200" 
+    BufferSize="500" 
     FrameSize="640 480" 
     UsImageOrientation="MN"
     FrameRate="30" 

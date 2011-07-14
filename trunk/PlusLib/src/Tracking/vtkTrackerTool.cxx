@@ -451,16 +451,23 @@ PlusStatus vtkTrackerTool::ReadConfiguration(vtkXMLDataElement* config)
 	}
 
 	// Read tool definition file
-	if (STRCASECMP(this->ToolDefinitionFileName, "") != 0) {
-		if (STRCASECMP(vtkFileFinder::GetInstance()->GetConfigurationDirectory(), "") != 0) {
+	if ( this->ToolDefinitionFileName ) 
+  {
+		if (STRCASECMP(vtkFileFinder::GetInstance()->GetConfigurationDirectory(), "") != 0) 
+    {
 			std::string searchResult = vtkFileFinder::GetFirstFileFoundInConfigurationDirectory(this->ToolDefinitionFileName);
-			if (STRCASECMP(searchResult.c_str(), "") != 0) {
+			if (STRCASECMP(searchResult.c_str(), "") != 0) 
+      {
 				vtkSmartPointer<vtkXMLDataElement> toolDefinition = vtkXMLUtilities::ReadElementFromFile(searchResult.c_str()); 
 				this->ReadToolDefinitionConfiguration(toolDefinition);
-			} else {
+			} 
+      else 
+      {
 				LOG_WARNING("Tool definition file " << this->ToolDefinitionFileName << " cannot be found in the parent of the configuration directory (" << vtkFileFinder::GetInstance()->GetConfigurationDirectory() << ")");
 			}
-		} else {
+		} 
+    else 
+    {
 			LOG_WARNING("No configuration directory is specified, tool definition file " << this->ToolDefinitionFileName << " cannot be searched for."); 
 		}
 	}

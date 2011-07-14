@@ -68,8 +68,11 @@ int main(int argc, char **argv)
 		gnuplot->AddArgument(inputGnuplotArguments[i].c_str() ); 
 	}
 
-	gnuplot->Execute(); 
-	
-	
+	if ( gnuplot->Execute() != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to run gnuplot executer!"); 
+    exit(EXIT_FAILURE); 
+  }
+		
 	return EXIT_SUCCESS; 
  }

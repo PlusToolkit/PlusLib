@@ -4,11 +4,11 @@
             Description="Test configuration file for vtkDataCollectorTest to use saved dataset. The SequenceMetafile names should be defined either from command line argument or from configuration file!" 
             />
 
-    <Tracker Type="SavedDataset" BufferSize="200" Frequency="9" LocalTimeOffset="0.0" DefaultToolName="Probe" SequenceMetafile="d:\devel\_Images\2011-06-14_ThomasPhantom_SonixVideo_SonixTOUCH_NDICertus-10fps-Sync.mha" ReplayEnabled="TRUE">
+    <Tracker Type="SavedDataset" BufferSize="500" Frequency="9" SmoothingFactor="0.001" LocalTimeOffset="0.0" DefaultToolName="Probe" SequenceMetafile="d:\devel\_Images\2011-06-14_ThomasPhantom_SonixVideo_SonixTOUCH_NDICertus-10fps-Sync.mha" ReplayEnabled="TRUE">
     </Tracker>
 
     <ImageAcqusition Type="SavedDataset" 
-            BufferSize="200" 
+            BufferSize="500" 
             FrameSize="820 616" 
             FrameRate="9" 
             SmoothingFactor="0.001" 
