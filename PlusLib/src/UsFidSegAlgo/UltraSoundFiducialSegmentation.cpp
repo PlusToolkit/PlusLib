@@ -2184,9 +2184,9 @@ void SegImpl::print_results( )
 	cout << "===== 3-POINT LINES =====" << endl;
 	print_lines( lines.begin(), lines.size() );
 
-	if ( npairs > 0 ) {
+	if ( pairs.size() > 0 ) {
 		cout << "===== PARALLEL PAIRS =====" << endl;
-		for ( int p = 0; p < npairs; p++ ) {
+		for ( int p = 0; p < pairs.size(); p++ ) {
 			print_pair( pairs.begin()+p, lines, dots );
 			cout << endl;
 		}
@@ -2200,7 +2200,7 @@ void SegImpl::print_results( )
 
 void SegImpl::draw_results( PixelType *image )
 {
-	if ( npairs > 0 )
+	if ( pairs.size() > 0 )
 		draw_pair( image, pairs.begin() );
 	else
 	{
