@@ -103,7 +103,9 @@ vtkTrackerTool::vtkTrackerTool()
 
 	this->ModelToToolTransform = vtkTransform::New();
 	this->ToolToToolReferenceTransform = vtkTransform::New();
+	this->SetToolName("");
 	this->SetToolModelFileName("");
+	this->SetToolDefinitionFileName("");
 
 	this->Buffer = vtkTrackerBuffer::New();
 	this->Buffer->SetToolCalibrationMatrix(this->CalibrationMatrix);
