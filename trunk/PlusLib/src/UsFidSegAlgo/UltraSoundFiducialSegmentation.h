@@ -446,10 +446,9 @@ class SegImpl
 		PixelType *unalteredImage; 
 
 		/* Dot, line and pair data. */
-		std::vector<Dot> dots;
-		std::vector<Line> lines;
-		std::vector<LinePair> pairs;
-		int ndots, nlines, npairs;
+		std::vector<Dot> m_DotsVector;
+		std::vector<Line> m_LinesVector;
+		std::vector<LinePair> m_PairsVector;
 
 		/* Cluster data. */
 		Position test[MAX_CLUSTER_VALS];
@@ -458,8 +457,7 @@ class SegImpl
 		int ntest, nset;
 
 		/* Line finding. */
-		std::vector<Line> lines2pt;
-		int nlines2pt;
+		std::vector<Line> m_TwoPointsLinesVector;
 		std::vector< std::vector<Line> > uShapes;
 
 		bool m_DebugOutput; 

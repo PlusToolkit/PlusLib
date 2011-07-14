@@ -179,19 +179,14 @@ void SegImpl::cluster()
 						dot.SetDotIntensity(total);
 					}
 
-					dots.push_back(dot);
-				}
-
-				if ( ndots == MAX_DOTS ) {
-					UltraSoundFiducialSegmentationTools::sort<Dot, Dot>( dots, dots.size() );
-					return;
+					m_DotsVector.push_back(dot);
 				}
 			}
 		}
 	}
 
 	//UltraSoundFiducialSegmentationTools::sort<Dot, Dot>( dots, dots.size() );
-	std::sort (dots.begin(), dots.end(), Dot::lessThan);
+	std::sort (m_DotsVector.begin(), m_DotsVector.end(), Dot::lessThan);
 }
 
 //-----------------------------------------------------------------------------
@@ -303,18 +298,18 @@ void SegImpl::compute_line( Line &line, std::vector<Dot> dots )
 
 void SegImpl::find_lines2pt()
 {
-	for ( int b1 = 0; b1 < dots.size(); b1++ ) {
-		float x1 = dots[b1].GetX() - 1;
-		float y1 = rows - dots[b1].GetY();
+	for ( int b1 = 0; b1 < m_DotsVector.size(); b1++ ) {
+		float x1 = m_DotsVector[b1].GetX() - 1;
+		float y1 = rows - m_DotsVector[b1].GetY();
 
-		for ( int b2 = b1+1; b2 < dots.size(); b2++ ) {
+		for ( int b2 = b1+1; b2 < m_DotsVector.size(); b2++ ) {
 			Line twoPointsLine;
 			twoPointsLine.GetLinePoints()->resize(2);
 			//lines2pt[nlines2pt].GetLinePoints()->resize(2);//TODO: make it more general
-			float x2 = dots[b2].GetX() - 1;
-			float y2 = rows - dots[b2].GetY();
+			float x2 = m_DotsVector[b2].GetX() - 1;
+			float y2 = rows - m_DotsVector[b2].GetY();
 
-			float t = compute_t( &dots[b1], &dots[b2] ); // get degree of slope (0 deg = parallel to -y axis)
+			float t = compute_t( &m_DotsVector[b1], &m_DotsVector[b2] ); // get degree of slope (0 deg = parallel to -y axis)
 
 			float p1 = x1 * cos(t) + y1 * sin(t);
 			float p2 = x2 * cos(t) + y2 * sin(t);
@@ -324,11 +319,7 @@ void SegImpl::find_lines2pt()
 			twoPointsLine.SetLinePosition(p);
 			twoPointsLine.SetLinePoint(0, b1);
 			twoPointsLine.SetLinePoint(1, b2);
-			lines2pt.push_back(twoPointsLine);
-			nlines2pt += 1;
-
-			if ( nlines2pt == MAX_LINES_2PT )
-				return;
+			m_TwoPointsLinesVector.push_back(twoPointsLine);
 		}
 	}
 }
@@ -373,10 +364,6 @@ SegImpl::SegImpl(int sizeX, int sizeY, int searchOriginX, int searchOriginY, int
 
 	m_DebugOutput=debugOutput; 
 	possibleFiducialsImageFilename=inputPossibleFiducialsImageFilename; 
-
-	//dots.resize(MAX_DOTS);
-	//lines.resize(MAX_LINES);
-	//pairs.resize(MAX_PAIRS);
 }
 
 //-----------------------------------------------------------------------------
@@ -401,15 +388,15 @@ void SegImpl::find_lines3pt( )
 	
 	int points[3];
 	float dist = m_SegParams.GetFindLines3PtDist();
-	for ( int b3 = 0; b3 < dots.size(); b3++ ) {
-		float x3 = dots[b3].GetX() - 1;
-		float y3 = rows - dots[b3].GetY();
+	for ( int b3 = 0; b3 < m_DotsVector.size(); b3++ ) {
+		float x3 = m_DotsVector[b3].GetX() - 1;
+		float y3 = rows - m_DotsVector[b3].GetY();
 
-		for ( int l = 0; l < lines2pt.size(); l++ ) {
-			float t = lines2pt[l].GetLineSlope();
-			float p = lines2pt[l].GetLinePosition();
-			int b1 = lines2pt[l].GetLinePoint(0);
-			int b2 = lines2pt[l].GetLinePoint(1);
+		for ( int l = 0; l < m_TwoPointsLinesVector.size(); l++ ) {
+			float t = m_TwoPointsLinesVector[l].GetLineSlope();
+			float p = m_TwoPointsLinesVector[l].GetLinePosition();
+			int b1 = m_TwoPointsLinesVector[l].GetLinePoint(0);
+			int b2 = m_TwoPointsLinesVector[l].GetLinePoint(1);
 
 			if ( b3 != b1 && b3 != b2 ) {
 				float pb3 = x3 * cos(t) + y3 * sin(t);
@@ -431,16 +418,16 @@ void SegImpl::find_lines3pt( )
 						line.SetLinePoint(i,points[i]);
 					}					
 
-					if ( ! UltraSoundFiducialSegmentationTools::BinarySearchFind<Line, Line>( line, lines, lines.size() ) ) {
-						compute_line( line, dots );
+					if ( ! UltraSoundFiducialSegmentationTools::BinarySearchFind<Line, Line>( line, m_LinesVector, m_LinesVector.size() ) ) {
+						compute_line( line, m_DotsVector );
 						if ( accept_line( line ) ) 
 						{
 							//line.SetLineSlope(0);
 							//line.SetLinePosition(0);
-							lines.push_back(line);
+							m_LinesVector.push_back(line);
 							//UltraSoundFiducialSegmentationTools::sort<Line, Line>( lines, lines.size() );
               // sort the lines so that lines that are already in the list can be quickly found by a binary search
-							std::sort (lines.begin(), lines.end(), Line::compareLines);
+							std::sort (m_LinesVector.begin(), m_LinesVector.end(), Line::compareLines);
 							//UltraSoundFiducialSegmentationTools::BinarySearchInsert<Line, Line>( line, lines, nlines );
 						}
 					}
@@ -463,7 +450,7 @@ void SegImpl::find_lines( )
 
 	// Sort by intensity.
 	//UltraSoundFiducialSegmentationTools::sort<Line, Line>( lines, lines.size() );
-	std::sort (lines.begin(), lines.end(), Line::lessThan);
+	std::sort (m_LinesVector.begin(), m_LinesVector.end(), Line::lessThan);
 }
 
 //-----------------------------------------------------------------------------
@@ -479,16 +466,16 @@ void SegImpl::find_pairs()
 	int minLinePairDistPx = floor(m_SegParams.GetMinLinePairDistMm() / scalingEstimation + 0.5 );
 	double maxLineErrorPx = m_SegParams.GetMaxLineErrorMm() / scalingEstimation;
 
-	for ( int l1 = 0; l1 < lines.size(); l1++ ) {
-		for ( int l2 = l1+1; l2 < lines.size(); l2++ ) {
-			float t1 = lines[l1].GetLineSlope();
-			float p1 = lines[l1].GetLinePosition();
+	for ( int l1 = 0; l1 < m_LinesVector.size(); l1++ ) {
+		for ( int l2 = l1+1; l2 < m_LinesVector.size(); l2++ ) {
+			float t1 = m_LinesVector[l1].GetLineSlope();
+			float p1 = m_LinesVector[l1].GetLinePosition();
 
-			float t2 = lines[l2].GetLineSlope();
-			float p2 = lines[l2].GetLinePosition();
+			float t2 = m_LinesVector[l2].GetLineSlope();
+			float p2 = m_LinesVector[l2].GetLinePosition();
 
 			float angle_diff = fabsf( t2 - t1 );
-			float line_error = lines[l1].GetLineError() + lines[l2].GetLineError();
+			float line_error = m_LinesVector[l1].GetLineError() + m_LinesVector[l2].GetLineError();
 
 			bool test1 = angle_diff < maxAngleDifference;
 			bool test2 = line_error < maxLineErrorPx;
@@ -504,7 +491,7 @@ void SegImpl::find_pairs()
 				float angle_conf = angle_diff / ( 1 - line_error );
 
 				if ( angle_conf < maxAngleDifference ) {
-					float intensity = lines[l1].GetLineIntensity() + lines[l2].GetLineIntensity();
+					float intensity = m_LinesVector[l1].GetLineIntensity() + m_LinesVector[l2].GetLineIntensity();
 					LinePair linePair;
 					linePair.SetLine1(l1);
 					linePair.SetLine2(l2);
@@ -513,7 +500,7 @@ void SegImpl::find_pairs()
 					linePair.SetAngleDifference(angle_diff / maxAngleDifference);
 					linePair.SetAngleConf(angle_conf / maxAngleDifference);
 
-					pairs.push_back(linePair);
+					m_PairsVector.push_back(linePair);
 				}
 			}
 		}
@@ -521,7 +508,7 @@ void SegImpl::find_pairs()
 
 	/* Rank the pairs by intensity. */
 	//UltraSoundFiducialSegmentationTools::sort<LinePair, LinePair>( pairs, pairs.size() );
-	std::sort (pairs.begin(), pairs.end(), LinePair::lessThan);
+	std::sort (m_PairsVector.begin(), m_PairsVector.end(), LinePair::lessThan);
 }
 
 //-----------------------------------------------------------------------------
@@ -529,7 +516,7 @@ void SegImpl::find_pairs()
 void SegImpl::sort_top_to_bottom( LinePair *pair )
 {
 	/* check if we need to swap the pairs. */
-	if ( lines[pair->GetLine1()].GetLinePosition() < lines[pair->GetLine2()].GetLinePosition() ) {
+	if ( m_LinesVector[pair->GetLine1()].GetLinePosition() < m_LinesVector[pair->GetLine2()].GetLinePosition() ) {
 		int swp_tmp = pair->GetLine1();
 		pair->SetLine1(pair->GetLine2());
 		pair->SetLine2(swp_tmp);
@@ -546,7 +533,7 @@ void SegImpl::sort_right_to_left( Line *line )
 
 	for (int i=0; i<3; i++)
 	{
-		pointsIterator[i] = dots.begin() + line->GetLinePoint(i);
+		pointsIterator[i] = m_DotsVector.begin() + line->GetLinePoint(i);
 	}
 	//UltraSoundFiducialSegmentationTools::sort<std::vector<Dot>::iterator, Position>( pointsIterator, line->GetLinePoints()->size() );
 	std::sort (pointsIterator.begin(), pointsIterator.end(), Position::lessThan);
@@ -554,7 +541,7 @@ void SegImpl::sort_right_to_left( Line *line )
 
 	for (int i=0; i<3; i++)
 	{
-		line->SetLinePoint(i,pointsIterator[i] - dots.begin());
+		line->SetLinePoint(i,pointsIterator[i] - m_DotsVector.begin());
 	}
 }
 
@@ -601,7 +588,7 @@ void SegImpl::WritePossibleFiducialOverlayImage(std::vector<Dot> fiducials, Pixe
 	}
 
 	// Set pixelValue to red (it will be used to mark the centroid of the clusters)
-	for(int numDots=0; numDots<dots.size(); numDots++)
+	for(int numDots=0; numDots<m_DotsVector.size(); numDots++)
 	{
 		const int markerPosCount=5;
 		const int markerPos[markerPosCount][2]={{0,0}, {+1,0}, {-1,0}, {0,+1}, {0,-1}};
@@ -707,18 +694,15 @@ void SegmentationParameters::UpdateParameters()
 
 void SegImpl::uscseg( PixelType *image, SegmentationParameters &segParams, SegmentationResults &segResult )
 {
-	ndots = nlines = npairs = 0;
-	ntest = nset = nlines2pt = 0;
+	ntest = nset = 0;
 	m_SegParams = segParams; 
-  lines.clear();
 
-  dots.clear();
-  lines.clear();
-  pairs.clear();
-  
-  lines2pt.clear();
-  nlines2pt=0;
-  uShapes.clear();
+	m_DotsVector.clear();
+	m_LinesVector.clear();
+	m_PairsVector.clear();
+
+	m_TwoPointsLinesVector.clear();
+	uShapes.clear();
 
 	memcpy( working, image, bytes );
 	memcpy( unalteredImage, image, bytes); 
@@ -729,8 +713,8 @@ void SegImpl::uscseg( PixelType *image, SegmentationParameters &segParams, Segme
 
 	cluster();
 
-	segResult.SetNumDots(dots.size()); 
-	segResult.SetCandidateFidValues(dots);	  
+	segResult.SetNumDots(m_DotsVector.size()); 
+	segResult.SetCandidateFidValues(m_DotsVector);	  
 	 
 	if(m_DebugOutput) 
 	{
@@ -827,17 +811,17 @@ bool SortedAngle::lessThan( SortedAngle &pt1, SortedAngle &pt2 )
 void SegImpl::find_double_n_lines(SegmentationResults &segResult)
 {	
 	find_pairs();
-	if ( pairs.size() > 0 ) {
-		LinePair *  pair = &pairs[0];
+	if ( m_PairsVector.size() > 0 ) {
+		LinePair *  pair = &m_PairsVector[0];
 		sort_top_to_bottom( pair );
 
-		Line *line1 = &lines[pair->GetLine1()];
-		Line *line2 = &lines[pair->GetLine2()];
+		Line *line1 = &m_LinesVector[pair->GetLine1()];
+		Line *line2 = &m_LinesVector[pair->GetLine2()];
 
 		sort_right_to_left( line1 );
 		sort_right_to_left( line2 );
 	}
-	else if ( pairs.size() < 1 ) 
+	else if ( m_PairsVector.size() < 1 ) 
 	{
 		LOG_DEBUG("Segmentation was NOT successful! (Number of dots found: " << segResult.GetFoundDotsCoordinateValue().size() << " Number of possible fiducial points: " << segResult.GetNumDots() << ")"); 
 		segResult.SetDotsFound(false);				
@@ -846,23 +830,23 @@ void SegImpl::find_double_n_lines(SegmentationResults &segResult)
 
 	segResult.SetDotsFound(true);
 
-	LinePair *pair = &pairs[0];
-	Line *line1 = &lines[pair->GetLine1()];
-	Line *line2 = &lines[pair->GetLine2()];
+	LinePair *pair = &m_PairsVector[0];
+	Line *line1 = &m_LinesVector[pair->GetLine1()];
+	Line *line2 = &m_LinesVector[pair->GetLine2()];
 
 	std::vector<double> dotCoords;
 	std::vector< std::vector<double> > foundDotsCoordinateValues = segResult.GetFoundDotsCoordinateValue();
 	for (int i=0; i<3; i++)
 	{
-		dotCoords.push_back(dots[line1->GetLinePoint(i)].GetX());
-		dotCoords.push_back(dots[line1->GetLinePoint(i)].GetY());
+		dotCoords.push_back(m_DotsVector[line1->GetLinePoint(i)].GetX());
+		dotCoords.push_back(m_DotsVector[line1->GetLinePoint(i)].GetY());
 		foundDotsCoordinateValues.push_back(dotCoords);
 		dotCoords.clear();
 	}
 	for (int i=0; i<3; i++)
 	{
-		dotCoords.push_back(dots[line2->GetLinePoint(i)].GetX());
-		dotCoords.push_back(dots[line2->GetLinePoint(i)].GetY());
+		dotCoords.push_back(m_DotsVector[line2->GetLinePoint(i)].GetX());
+		dotCoords.push_back(m_DotsVector[line2->GetLinePoint(i)].GetY());
 		foundDotsCoordinateValues.push_back(dotCoords);
 		dotCoords.clear();
 	}
@@ -872,7 +856,7 @@ void SegImpl::find_double_n_lines(SegmentationResults &segResult)
 
 	segResult.SetAngles(pair->GetAngleConf());
 	segResult.SetIntensity(pair->GetLinePairIntensity());
-	segResult.SetNumDots(dots.size()); 
+	segResult.SetNumDots(m_DotsVector.size()); 
 }
 
 //-----------------------------------------------------------------------------
@@ -887,14 +871,14 @@ void SegImpl::find_u_shape_line_triad(SegmentationResults &segResult)
 	std::vector<vnl_vector<double>> threePointLine(3); // position of the 3 points
 	
 	const int EXPECTED_FIDUCIAL_COUNT=5;
-	if(dots.size()<EXPECTED_FIDUCIAL_COUNT) 
+	if(m_DotsVector.size()<EXPECTED_FIDUCIAL_COUNT) 
 	{
 		// it is impossible to find all the fiducials, because there are not enough candidates
 		return;
 	}
 
 	const double MINIMUM_LINE_INTENSITY=1.0;
-	if(lines[0].GetLineIntensity()<MINIMUM_LINE_INTENSITY)
+	if(m_LinesVector[0].GetLineIntensity()<MINIMUM_LINE_INTENSITY)
 	{
 		// even the brightest line is too dark, the segmentation failed
 		return;
@@ -905,8 +889,8 @@ void SegImpl::find_u_shape_line_triad(SegmentationResults &segResult)
 		for(int linePointPosition=0; linePointPosition<3; linePointPosition++)// three for three points
 		{
 			vnl_vector<double> pt(3);
-			pt(0) = dots[lines[threePointLineRank].GetLinePoint(linePointPosition)].GetX(); // first three point line =  line with fiducials with greatest intensity 
-			pt(1) = dots[lines[threePointLineRank].GetLinePoint(linePointPosition)].GetY();
+			pt(0) = m_DotsVector[m_LinesVector[threePointLineRank].GetLinePoint(linePointPosition)].GetX(); // first three point line =  line with fiducials with greatest intensity 
+			pt(1) = m_DotsVector[m_LinesVector[threePointLineRank].GetLinePoint(linePointPosition)].GetY();
 			pt(2) = 1; // position
 			threePointLine[linePointPosition]=pt;
 		}
@@ -953,11 +937,11 @@ void SegImpl::find_u_shape_line_triad(SegmentationResults &segResult)
 		std::vector<int> potentialBvectors;	
 		double minUsideLineLength = m_SegParams.GetMinUsideLineLength();
 		double maxUsideLineLength = m_SegParams.GetMaxUsideLineLength();
-		for(int dotPosition=0; dotPosition<dots.size(); dotPosition++)
+		for(int dotPosition=0; dotPosition<m_DotsVector.size(); dotPosition++)
 		{	
 			vnl_vector<double> vectorFromCurrentDot(3);
-			vectorFromCurrentDot(0) = (dots[dotPosition].GetX() - threePointLine[ptAindex](0)); 
-			vectorFromCurrentDot(1) = (dots[dotPosition].GetY() - threePointLine[ptAindex](1));
+			vectorFromCurrentDot(0) = (m_DotsVector[dotPosition].GetX() - threePointLine[ptAindex](0)); 
+			vectorFromCurrentDot(1) = (m_DotsVector[dotPosition].GetY() - threePointLine[ptAindex](1));
 			vectorFromCurrentDot(2) = 0;
 			if (vectorFromCurrentDot.magnitude()>minUsideLineLength &&
 				vectorFromCurrentDot.magnitude()<maxUsideLineLength)
@@ -973,8 +957,8 @@ void SegImpl::find_u_shape_line_triad(SegmentationResults &segResult)
 				}
 			}
 
-			vectorFromCurrentDot(0) = (dots[dotPosition].GetX() - threePointLine[ptBindex](0)); 
-			vectorFromCurrentDot(1) = (dots[dotPosition].GetY() - threePointLine[ptBindex](1));
+			vectorFromCurrentDot(0) = (m_DotsVector[dotPosition].GetX() - threePointLine[ptBindex](0)); 
+			vectorFromCurrentDot(1) = (m_DotsVector[dotPosition].GetY() - threePointLine[ptBindex](1));
 			vectorFromCurrentDot(2) = 0;
 			if (vectorFromCurrentDot.magnitude()>minUsideLineLength &&
 				vectorFromCurrentDot.magnitude()<maxUsideLineLength)
@@ -995,22 +979,22 @@ void SegImpl::find_u_shape_line_triad(SegmentationResults &segResult)
 		{
 			int aIndex = potentialAvectors[aVecCandidate]; 		
 			vnl_vector<double> aVec(3); // side line A vector
-			aVec(0) = (dots[aIndex].GetX() - threePointLine[ptAindex](0)); 
-			aVec(1) = (dots[aIndex].GetY() - threePointLine[ptAindex](1)); 
+			aVec(0) = (m_DotsVector[aIndex].GetX() - threePointLine[ptAindex](0)); 
+			aVec(1) = (m_DotsVector[aIndex].GetY() - threePointLine[ptAindex](1)); 
 			aVec(2) = 1;
 			for(int bVecCandidate = 0; bVecCandidate< potentialBvectors.size(); bVecCandidate++)
 			{
 				int bIndex = potentialBvectors[bVecCandidate]; 
 				vnl_vector<double> bVec(3); // side line B vector
-				bVec(0) = (dots[bIndex].GetX() - threePointLine[ptBindex](0)); 
-				bVec(1) = (dots[bIndex].GetY() - threePointLine[ptBindex](1)); 
+				bVec(0) = (m_DotsVector[bIndex].GetX() - threePointLine[ptBindex](0)); 
+				bVec(1) = (m_DotsVector[bIndex].GetY() - threePointLine[ptBindex](1)); 
 				bVec(2) = 1;
 
 				if( (aVec-bVec).magnitude()<m_SegParams.GetMaxUsideLineDiff())
 				{
 					std::vector<Dot> twoFiducials;
-					twoFiducials.push_back(dots[aIndex]);
-					twoFiducials.push_back(dots[bIndex]); 
+					twoFiducials.push_back(m_DotsVector[aIndex]);
+					twoFiducials.push_back(m_DotsVector[bIndex]); 
 					twoFiducialCombos.push_back(twoFiducials); 
 				} 
 			}
@@ -1021,7 +1005,7 @@ void SegImpl::find_u_shape_line_triad(SegmentationResults &segResult)
 			// we've found a fiducial combo (pair of side lines)
 			fiducialsFound = true; 
 		}
-		else if (threePointLineRank < nlines-1)
+		else if (threePointLineRank < m_LinesVector.size()-1)
 		{
 			// segmentation failed with this line, but there are other lines to try
 			threePointLineRank++;
@@ -2137,7 +2121,7 @@ void SegImpl::draw_lines( PixelType *image, std::vector<Line>::iterator linesIte
 
 		for (int i=0; i<3; i++)
 		{
-			draw_dots( image, dots.begin()+linesIterator[l].GetLinePoint(i), 1 );//watch out, check for iterators problems if errors
+			draw_dots( image, m_DotsVector.begin()+linesIterator[l].GetLinePoint(i), 1 );//watch out, check for iterators problems if errors
 		}		
 
 		if ( theta < M_PI/4 || theta > 3*M_PI/4 ) {
@@ -2170,8 +2154,8 @@ void SegImpl::draw_lines( PixelType *image, std::vector<Line>::iterator linesIte
 void SegImpl::draw_pair( PixelType *image, std::vector<LinePair>::iterator pairIterator )
 {
 	/* Drawing on the original. */
-	draw_lines( image, lines.begin()+pairIterator->GetLine1(), 1 );
-	draw_lines( image, lines.begin()+pairIterator->GetLine2(), 1 );
+	draw_lines( image, m_LinesVector.begin()+pairIterator->GetLine1(), 1 );
+	draw_lines( image, m_LinesVector.begin()+pairIterator->GetLine2(), 1 );
 }
 
 //-----------------------------------------------------------------------------
@@ -2179,15 +2163,15 @@ void SegImpl::draw_pair( PixelType *image, std::vector<LinePair>::iterator pairI
 void SegImpl::print_results( )
 {
 	cout << "===== DOTS =====" << endl;
-	print_dots( dots.begin(), dots.size() );
+	print_dots( m_DotsVector.begin(), m_DotsVector.size() );
 
 	cout << "===== 3-POINT LINES =====" << endl;
-	print_lines( lines.begin(), lines.size() );
+	print_lines( m_LinesVector.begin(), m_LinesVector.size() );
 
-	if ( pairs.size() > 0 ) {
+	if ( m_PairsVector.size() > 0 ) {
 		cout << "===== PARALLEL PAIRS =====" << endl;
-		for ( int p = 0; p < pairs.size(); p++ ) {
-			print_pair( pairs.begin()+p, lines, dots );
+		for ( int p = 0; p < m_PairsVector.size(); p++ ) {
+			print_pair( m_PairsVector.begin()+p, m_LinesVector, m_DotsVector );
 			cout << endl;
 		}
 	}
@@ -2200,13 +2184,13 @@ void SegImpl::print_results( )
 
 void SegImpl::draw_results( PixelType *image )
 {
-	if ( pairs.size() > 0 )
-		draw_pair( image, pairs.begin() );
+	if ( m_PairsVector.size() > 0 )
+		draw_pair( image, m_PairsVector.begin() );
 	else
 	{
 		cout << "ERROR: could not find the pair of the wires!  See other drawing outputs for more information!" << endl;
-		draw_lines( image, lines.begin(), lines.size() );
-		draw_dots( image, dots.begin(), dots.size() );
+		draw_lines( image, m_LinesVector.begin(), m_LinesVector.size() );
+		draw_dots( image, m_DotsVector.begin(), m_DotsVector.size() );
 	}
 
 }
