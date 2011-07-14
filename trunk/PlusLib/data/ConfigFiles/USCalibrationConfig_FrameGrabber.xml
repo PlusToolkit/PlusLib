@@ -96,8 +96,8 @@
                 MorphologicalOpeningCircleRadiusMm="0.55"
 				MorphologicalOpeningBarSizeMm="2.0"
 
-                SearchRegionX="100 360"
-                SearchRegionY="170 220"
+                SearchRegionX="50 550"
+                SearchRegionY="40 300"
 
 				MaxLineLengthErrorPercent="5.0"
 				MaxLinePairDistanceErrorPercent="10.0"

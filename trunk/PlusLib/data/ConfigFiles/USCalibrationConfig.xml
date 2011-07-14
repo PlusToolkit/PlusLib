@@ -97,7 +97,7 @@
 				MorphologicalOpeningBarSizeMm="2.0"
 
                 SearchRegionX="50 550"
-                SearchRegionY="140 300"
+                SearchRegionY="40 300"
 
 				MaxLineLengthErrorPercent="5.0"
 				MaxLinePairDistanceErrorPercent="10.0"
