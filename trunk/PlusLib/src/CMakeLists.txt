@@ -241,11 +241,11 @@ configure_file(PlusLibConfigVersion.cmake.in
 
 #-----------------------------------------------------------------------------
 # Generate include file for projects that use this library 
-#
-
+# 
 configure_file(
 	${CMAKE_CURRENT_SOURCE_DIR}/UsePlusLib.cmake.in 
 	${CMAKE_CURRENT_BINARY_DIR}/UsePlusLib.cmake
+    @ONLY
 	)	
 
 # --------------------------------------------------------------------------

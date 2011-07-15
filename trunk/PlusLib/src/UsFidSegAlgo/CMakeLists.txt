@@ -31,9 +31,17 @@ ENDIF( BUILD_TESTING )
 # --------------------------------------------------------------------------
 # Build the library
 
+SET(UsFidSegAlgo_LIBS itkvnl_algo ${ITK_LIBRARIES} vtkPlusCommon)
 ADD_LIBRARY( UsFidSegAlgo STATIC ${UsFidSegAlgo_SRCS} ${UsFidSegAlgo_HDRS} )
 
-TARGET_LINK_LIBRARIES( UsFidSegAlgo itkvnl_algo ${ITK_LIBRARIES} vtkPlusCommon)
+TARGET_LINK_LIBRARIES( UsFidSegAlgo ${UsFidSegAlgo_LIBS})
+
+# --------------------------------------------------------------------------
+# Set external MS project 
+SET(PLUSLIB_DEPENDENCIES ${PLUSLIB_DEPENDENCIES} UsFidSegAlgo CACHE INTERNAL "" FORCE)
+LIST(REMOVE_DUPLICATES PLUSLIB_DEPENDENCIES)
+# Add this variable to UsePlusLib.cmake.in INCLUDE_PLUSLIB_MS_PROJECTS macro
+SET(vcProj_UsFidSegAlgo UsFidSegAlgo "${PlusLib_BINARY_DIR}/src/UsFidSegAlgo/UsFidSegAlgo.vcproj" vtkPlusCommon CACHE INTERNAL "" FORCE)
 
 # --------------------------------------------------------------------------
 # Install
