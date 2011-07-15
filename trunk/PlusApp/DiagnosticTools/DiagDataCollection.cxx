@@ -31,9 +31,7 @@ int main(int argc, char **argv)
 	args.AddArgument("--output-folder", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputFolder, "Output folder (Default: ./)");
 	args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug)");	
 
-	PlusLogger::Instance()->SetLogLevel(verboseLevel);
-
-	if ( !args.Parse() )
+  if ( !args.Parse() )
 	{
 		std::cerr << "Problem parsing arguments" << std::endl;
 		std::cout << "Help: " << args.GetHelp() << std::endl;
@@ -55,6 +53,9 @@ int main(int argc, char **argv)
 
 	///////////////
 
+  PlusLogger::Instance()->SetLogLevel(verboseLevel);
+  PlusLogger::Instance()->SetDisplayLogLevel(verboseLevel); 
+
 	VTK_LOG_TO_CONSOLE_ON; 
 
 	//************************************************************************************
@@ -70,8 +71,17 @@ int main(int argc, char **argv)
 	// Initialize data collector
 	vtkSmartPointer<vtkDataCollector> dataCollector = vtkSmartPointer<vtkDataCollector>::New(); 
 	dataCollector->ReadConfigurationFromFile(inputConfigFileName.c_str());
-	dataCollector->Initialize(); 
-	dataCollector->Start();
+	if ( dataCollector->Initialize() != PLUS_SUCCESS )
+  {
+     LOG_ERROR("Failed to initialize data collector!"); 
+     exit(EXIT_FAILURE); 
+  }
+
+	if ( dataCollector->Start() != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to start data collection!"); 
+    exit(EXIT_FAILURE);
+  }
 
 	const int mainToolNumber = dataCollector->GetDefaultToolPortNumber(); 
 	const double acqStartTime = vtkTimerLog::GetUniversalTime(); 
@@ -139,27 +149,44 @@ int main(int argc, char **argv)
 	const std::string gnuplotPath = vtksys::SystemTools::CollapseFullPath("../gnuplot/gnuplot.exe", programPath.c_str()); 
 	const std::string gnuplotScriptsFolder = vtksys::SystemTools::CollapseFullPath("../scripts/"  , programPath.c_str()); 
 
-	vtkSmartPointer<vtkHTMLGenerator> htmlReport = vtkSmartPointer<vtkHTMLGenerator>::New(); 
-	htmlReport->SetTitle("iCAL Temporal Calibration Report"); 
+  if ( vtksys::SystemTools::FileExists(gnuplotPath.c_str(), true) && vtksys::SystemTools::FileExists(gnuplotScriptsFolder.c_str(), false) )
+  {
+    vtkSmartPointer<vtkHTMLGenerator> htmlReport = vtkSmartPointer<vtkHTMLGenerator>::New(); 
+    htmlReport->SetTitle("iCAL Temporal Calibration Report"); 
 
-	vtkSmartPointer<vtkGnuplotExecuter> plotter = vtkSmartPointer<vtkGnuplotExecuter>::New(); 
-	plotter->SetGnuplotCommand(gnuplotPath.c_str()); 
-	plotter->SetWorkingDirectory( programPath.c_str() ); 
-	plotter->SetHideWindow(true); 
+    vtkSmartPointer<vtkGnuplotExecuter> plotter = vtkSmartPointer<vtkGnuplotExecuter>::New(); 
+    plotter->SetGnuplotCommand(gnuplotPath.c_str()); 
+    plotter->SetWorkingDirectory( programPath.c_str() ); 
+    plotter->SetHideWindow(true); 
 
-	// Generate tracking data acq report
-	if ( dataCollector->GetTracker() != NULL )
-	{
-		dataCollector->GetTracker()->GenerateTrackingDataAcquisitionReport(htmlReport, plotter, gnuplotScriptsFolder.c_str()); 
-	}
+    // Generate tracking data acq report
+    if ( dataCollector->GetTracker() != NULL )
+    {
+      dataCollector->GetTracker()->GenerateTrackingDataAcquisitionReport(htmlReport, plotter, gnuplotScriptsFolder.c_str()); 
+    }
 
-	// Generate video data acq report
-	if ( dataCollector->GetVideoSource() != NULL ) 
-	{
-		dataCollector->GetVideoSource()->GenerateVideoDataAcquisitionReport(htmlReport, plotter, gnuplotScriptsFolder.c_str()); 
-	}
+    // Generate video data acq report
+    if ( dataCollector->GetVideoSource() != NULL ) 
+    {
+      dataCollector->GetVideoSource()->GenerateVideoDataAcquisitionReport(htmlReport, plotter, gnuplotScriptsFolder.c_str()); 
+    }
 
-	htmlReport->SaveHtmlPage("iCALDataCollectionReport.html"); 
+    std::string reportFileName = plotter->GetWorkingDirectory() + std::string("/iCALDataCollectionReport.html"); 
+    htmlReport->SaveHtmlPage(reportFileName.c_str()); 
+
+  } 
+  else
+  {
+    if ( !vtksys::SystemTools::FileExists(gnuplotPath.c_str(), true) )
+    {
+      LOG_WARNING("Failed to generate report: Unable to find gnuplot executer at " << gnuplotPath); 
+    }
+
+    if ( !vtksys::SystemTools::FileExists(gnuplotScriptsFolder.c_str(), false) )
+    {
+      LOG_WARNING("Failed to generate report: Unable to find gnuplot scripts folder at " << gnuplotPath); 
+    }
+  }
 
 	//************************************************************************************
 	// Dump buffers to file 

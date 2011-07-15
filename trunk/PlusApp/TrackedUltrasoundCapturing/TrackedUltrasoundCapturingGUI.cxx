@@ -963,18 +963,22 @@ std::string TrackedUltrasoundCapturingGUI::GetToolID( int tool)
 
 	vtkTracker * tracker = this->m_USCapturing->GetDataCollector()->GetTracker(); 
 
-	std::string toolPartNumber = tracker->GetTool(tool)->GetToolPartNumber(); 
-	std::string toolName = tracker->GetTool(tool)->GetToolName(); 
+	const char* toolPartNumber = tracker->GetTool(tool)->GetToolPartNumber(); 
+	const char* toolName = tracker->GetTool(tool)->GetToolName(); 
 	std::ostringstream toolID; 
 
-	if ( !toolPartNumber.empty() )
+	if ( toolPartNumber )
 	{
 		toolID << "(" << tool << ") " << toolPartNumber; 
 	}
-	else
+	else if ( toolName )
 	{
 		toolID << "(" << tool << ") " << toolName; 
 	}
+  else
+  {
+    toolID << "(" << tool << ") "; 
+  }
 
 	return toolID.str(); 
 }

@@ -298,12 +298,30 @@ PlusStatus TrackedUltrasoundCapturing::UpdateRecording()
 	}
 
 	double lastTimestamp = this->GetLastRecordedFrameTimestamp(); 
+
+  double oldestTimestamp(0); 
+  if ( this->DataCollector->GetVideoSource()->GetBuffer()->GetOldestTimeStamp(oldestTimestamp) != ITEM_OK )
+  {
+    LOG_WARNING("Failed to get oldest frame timestamp from video buffer"); 
+  }
+ 
+  if ( oldestTimestamp == 0 || lastTimestamp < oldestTimestamp )
+  {
+    if ( this->DataCollector->GetVideoSource()->GetBuffer()->GetLatestTimeStamp(lastTimestamp) != ITEM_OK )
+    {
+      LOG_WARNING("Failed to get latest frame timestamp from video buffer"); 
+    }
+  }
 	
-	while ( lastTimestamp + samplingTime <= newestTimestamp )
+  PlusStatus status = PLUS_SUCCESS; 
+	while ( status == PLUS_SUCCESS && lastTimestamp + samplingTime <= newestTimestamp )
 	{
-		this->RecordTrackedFrame(lastTimestamp + samplingTime ); 
-		lastTimestamp = lastTimestamp + samplingTime; 
-		vtksys::SystemTools::Delay(0); 
+		status = this->RecordTrackedFrame(lastTimestamp + samplingTime ); 
+    if ( status == PLUS_SUCCESS )
+    {
+		  lastTimestamp = lastTimestamp + samplingTime; 
+		  vtksys::SystemTools::Delay(0); 
+    }
 	}
 
   return PLUS_SUCCESS;
@@ -316,15 +334,21 @@ PlusStatus TrackedUltrasoundCapturing::RecordTrackedFrame( const double time /*=
 
 	TrackedFrame trackedFrame; 
 
+  PlusStatus status = PLUS_FAIL; 
 	if ( time == 0 )
 	{
-		this->GetDataCollector()->GetTrackedFrame(&trackedFrame); 
+		status = this->GetDataCollector()->GetTrackedFrame(&trackedFrame); 
 	}
 	else
 	{
-		this->GetDataCollector()->GetTrackedFrameByTime(time, &trackedFrame); 
+		status = this->GetDataCollector()->GetTrackedFrameByTime(time, &trackedFrame); 
 	}
-
+  
+  if ( status == PLUS_FAIL )
+  {
+    LOG_ERROR("Failed to get tracked frame!"); 
+    return PLUS_FAIL; 
+  }
 
 	if ( trackedFrame.Status != TR_OK )
 	{
