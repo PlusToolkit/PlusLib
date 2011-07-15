@@ -295,7 +295,7 @@ public:
 
   // Description:
   // Update the input slice, for the reconstruction thread
-  virtual int UpdateSlice(vtkImageData* inData);
+  virtual PlusStatus UpdateSlice(vtkImageData* inData, int& insertNow);
 
   // Description:
   // Update the accumulation buffer, for the reconstruction thread

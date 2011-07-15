@@ -1,7 +1,7 @@
 #ifndef __vtkVolumeReconstructor_h
 #define __vtkVolumeReconstructor_h
 
-
+#include "PlusConfigure.h"
 #include "vtkBufferedTracker.h"
 #include "vtkBufferedVideoSource.h"
 #include "vtkImageAlgorithm.h"
@@ -29,6 +29,9 @@
 class VTK_EXPORT vtkVolumeReconstructor : public vtkImageAlgorithm
 {
 public:
+  typedef UsImageConverterCommon::ImageType ImageType; 
+  typedef UsImageConverterCommon::PixelType PixelType; 
+
   static vtkVolumeReconstructor *New();
   vtkTypeRevisionMacro(vtkVolumeReconstructor, vtkImageAlgorithm);
   virtual void PrintSelf(ostream& os, vtkIndent indent);
@@ -42,21 +45,7 @@ public:
   virtual PlusStatus ReadConfiguration( const char* configFileName ); 
   virtual PlusStatus ReadConfiguration(); 
 
-  virtual void AddTrackedFrame( vtkImageData* frame, US_IMAGE_ORIENTATION usImageOrientation, vtkMatrix4x4* mToolToReference, double timestamp); 
-
-  virtual void AddTrackedFrame( unsigned char* imageData, 
-    US_IMAGE_ORIENTATION usImageOrientation, 
-    const int imageWidthInPixels, 
-    const int imageHeightInPixels, 
-    const double transformMatrix[16], 
-    double timestamp); 
-
-  virtual void AddTrackedFrame( unsigned char* imageData, 
-    US_IMAGE_ORIENTATION usImageOrientation, 
-    const int imageWidthInPixels, 
-    const int imageHeightInPixels, 
-    vtkMatrix4x4* transformMatrix, 
-    double timestamp); 
+  virtual PlusStatus AddTrackedFrame( ImageType::Pointer frame, US_IMAGE_ORIENTATION usImageOrientation, vtkMatrix4x4* mToolToReference, double timestamp ); 
 
   virtual void FindOutputExtent( vtkMatrix4x4* frame2TrackerTransMatrix, int* frameExtent); 
 

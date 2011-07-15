@@ -1369,8 +1369,9 @@ double vtkFreehandUltrasound2::CalculateCurrentVideoTime(vtkImageData* inData)
 // Update the input slice - returns whether the slice has to be inserted now,
 // even if it is not a new slice
 // Override in derived classes
-int vtkFreehandUltrasound2::UpdateSlice(vtkImageData* inData)
+PlusStatus vtkFreehandUltrasound2::UpdateSlice(vtkImageData* inData, int& insertNow)
 {
+    insertNow = 0; 
     if ( this->RealTimeReconstruction )
     {
         inData->Update();
@@ -1383,7 +1384,7 @@ int vtkFreehandUltrasound2::UpdateSlice(vtkImageData* inData)
             if ( this->VideoSource->GetBuffer()->GetVideoBufferItem( this->VideoBufferUid, &bufferItem) != PLUS_SUCCESS )
             {
                 LOG_ERROR("Failed to get video item from buffer with UID: " << this->VideoBufferUid ); 
-                return 1; 
+                return PLUS_FAIL; 
             }
 
             UsImageConverterCommon::ConvertItkImageToVtkImage(bufferItem.GetFrame(), inData); 
@@ -1394,9 +1395,10 @@ int vtkFreehandUltrasound2::UpdateSlice(vtkImageData* inData)
         else
         {
             LOG_WARNING("We've reached the last frame in the buffer..."); 
+            return PLUS_FAIL; 
         }
     }
-	return 0;
+  return PLUS_SUCCESS; 
 }
 
 //----------------------------------------------------------------------------

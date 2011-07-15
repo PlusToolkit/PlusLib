@@ -180,21 +180,25 @@ PlusStatus vtkBufferedVideoSource::StopRecording()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkBufferedVideoSource::AddFrame( vtkImageData* image, US_IMAGE_ORIENTATION usImageOrientation, double timestamp )
+PlusStatus vtkBufferedVideoSource::AddFrame( ImageType::Pointer image, US_IMAGE_ORIENTATION usImageOrientation, double timestamp )
 {
 	// We don't have information about the unfiltered timestamp, use the filtered one
 	const long frameNumber = this->FrameNumber + 1; 
-	PlusStatus status = this->Buffer->AddTimeStampedItem(image, usImageOrientation, timestamp, frameNumber); 
+  
+  int frameSize[2] = {image->GetLargestPossibleRegion().GetSize()[0], image->GetLargestPossibleRegion().GetSize()[1]}; 
+  int pixelSizeInBits = sizeof(PixelType)*8;
+
+	PlusStatus status = this->Buffer->AddTimeStampedItem(image->GetBufferPointer(), usImageOrientation, frameSize, pixelSizeInBits, 0, timestamp, frameNumber); 
 
 	if ( status == PLUS_SUCCESS )
 	{
 		this->FrameNumber = frameNumber; 
 	}
-    else
-    {
-        LOG_ERROR("Failed to add frame to buffer (timestamp: " << std::fixed << timestamp << ")!"); 
-    }
+  else
+  {
+    LOG_ERROR("Failed to add frame to buffer (timestamp: " << std::fixed << timestamp << ")!"); 
+  }
 
-	this->Modified();
-	return status; 
+  this->Modified();
+  return status; 
 }

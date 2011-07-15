@@ -384,7 +384,7 @@ PlusStatus vtkVideoBuffer::AddTimeStampedItem(vtkImageData* frame, US_IMAGE_ORIE
   }
 
   const int* frameExtent = mfOrientedImage->GetExtent(); 
-  const int frameSize[3] = {(frameExtent[1] - frameExtent[0] + 1), (frameExtent[3] - frameExtent[2] + 1), (frameExtent[5] - frameExtent[4] + 1) }; 
+  const int frameSize[2] = {(frameExtent[1] - frameExtent[0] + 1), (frameExtent[3] - frameExtent[2] + 1)}; 
   const int numberOfBits = mfOrientedImage->GetScalarSize() * 8; 
   return this->AddTimeStampedItem( reinterpret_cast<unsigned char*>(mfOrientedImage->GetScalarPointer()), US_IMG_ORIENT_MF , frameSize, numberOfBits, 0, unfilteredTimestamp, frameNumber); 
 }
