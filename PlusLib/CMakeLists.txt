@@ -12,7 +12,7 @@ SET(PLUSLIB_VERSION_MINOR "1")
 SET(PLUSLIB_VERSION_PATCH "1")
 SET(PLUSLIB_VERSION ${PLUSLIB_VERSION_MAJOR}.${PLUSLIB_VERSION_MINOR}.${PLUSLIB_VERSION_PATCH})
 
-MESSAGE(STATUS "PlusLib version: ${PLUSLIB_VERSION}" )
+SET(PLUSLIB_EXTERNAL_MSPROJECTS "" CACHE INTERNAL "" )
 
 # --------------------------------------------------------------------------
 # User options
@@ -49,7 +49,7 @@ ADD_SUBDIRECTORY(src)
 #-----------------------------------------------------------------------------
 # Generate convenience files for automatic build, test, and packaging
 #
- 
+
 configure_file(
 	${CMAKE_CURRENT_SOURCE_DIR}/BuildAndTest.bat.in 
 	${CMAKE_CURRENT_BINARY_DIR}/BuildAndTest.bat

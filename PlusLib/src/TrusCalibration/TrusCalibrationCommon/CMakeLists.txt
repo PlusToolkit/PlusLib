@@ -40,4 +40,12 @@ ENDIF (WIN32)
 ADD_LIBRARY( vtkTrusCalibrationCommon STATIC ${TrusCalibrationCommon_SRCS} ${TrusCalibrationCommon_HDRS} )
 
 TARGET_LINK_LIBRARIES(vtkTrusCalibrationCommon vtkCommon )
+
+# --------------------------------------------------------------------------
+# Set external MS project 
+SET(PLUSLIB_DEPENDENCIES ${PLUSLIB_DEPENDENCIES} vtkTrusCalibrationCommon CACHE INTERNAL "" FORCE)
+LIST(REMOVE_DUPLICATES PLUSLIB_DEPENDENCIES)
+# Add this variable to UsePlusLib.cmake.in INCLUDE_PLUSLIB_MS_PROJECTS macro
+SET(vcProj_vtkTrusCalibrationCommon vtkTrusCalibrationCommon "${PlusLib_BINARY_DIR}/src/TrusCalibration/TrusCalibrationCommon/vtkTrusCalibrationCommon.vcproj" vtkPlusCommon CACHE INTERNAL "" FORCE)
+
 		

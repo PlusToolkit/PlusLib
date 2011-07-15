@@ -244,6 +244,13 @@ ADD_LIBRARY(vtkImageAcquisition ${ImageAcquisition_SRCS} ${ImageAcquisition_HDRS
 TARGET_LINK_LIBRARIES(vtkImageAcquisition ${ImageAcquisition_LIBS})
 
 # --------------------------------------------------------------------------
+# Set external MS project 
+SET(PLUSLIB_DEPENDENCIES ${PLUSLIB_DEPENDENCIES} vtkImageAcquisition CACHE INTERNAL "" FORCE)
+LIST(REMOVE_DUPLICATES PLUSLIB_DEPENDENCIES)
+# Add this variable to UsePlusLib.cmake.in INCLUDE_PLUSLIB_MS_PROJECTS macro
+SET(vcProj_vtkImageAcquisition vtkImageAcquisition ${PlusLib_BINARY_DIR}/src/ImageAcquisition/vtkImageAcquisition.vcproj vtkPlusCommon CACHE INTERNAL "" FORCE)
+
+# --------------------------------------------------------------------------
 # Install
 #
 

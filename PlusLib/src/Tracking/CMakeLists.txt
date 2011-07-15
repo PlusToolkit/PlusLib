@@ -280,13 +280,19 @@ ENDIF (BUILD_TESTING)
 # --------------------------------------------------------------------------
 # Build the library
 
-SET (Tracking_LIBS 	vtkPlusCommon ${Tracking_LIBS} ${CERTUS_LIBRARY} ${POLARIS_LIBRARY} ${FLOCK_LIBRARY} ${MICRONTRACKER_LIBRARY} ${AMSTRACKER_LIBRARY} ${ATC_LIBRARY} )
+SET (Tracking_LIBS 	vtkPlusCommon vtkImageAcquisition vtkCommon vtkHybrid vtkFiltering ${Tracking_LIBS} ${CERTUS_LIBRARY} ${POLARIS_LIBRARY} ${FLOCK_LIBRARY} ${MICRONTRACKER_LIBRARY} ${AMSTRACKER_LIBRARY} ${ATC_LIBRARY} )
 
 ADD_LIBRARY(vtkTracking ${Tracking_SRCS} ${Tracking_HDRS})
 
-TARGET_LINK_LIBRARIES(	vtkTracking vtkImageAcquisition vtkCommon vtkHybrid vtkFiltering 
-						${Tracking_LIBS}
-						)
+TARGET_LINK_LIBRARIES(	vtkTracking ${Tracking_LIBS} )
+
+
+# --------------------------------------------------------------------------
+# Set external MS project 
+SET(PLUSLIB_DEPENDENCIES ${PLUSLIB_DEPENDENCIES} vtkTracking CACHE INTERNAL "" FORCE)
+LIST(REMOVE_DUPLICATES PLUSLIB_DEPENDENCIES)
+# Add this variable to UsePlusLib.cmake.in INCLUDE_PLUSLIB_MS_PROJECTS macro
+SET(vcProj_vtkTracking vtkTracking "${PlusLib_BINARY_DIR}/src/Tracking/vtkTracking.vcproj" vtkPlusCommon vtkImageAcquisition CACHE INTERNAL "" FORCE)
 
 # --------------------------------------------------------------------------
 # Install
