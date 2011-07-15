@@ -91,11 +91,23 @@ int main (int argc, char* argv[])
 			LOG_ERROR("Unable to get default frame transform for frame #" << imgNumber); 
 			continue; 
 		}
-		
+
+    // Get Timestamp
+    double timestamp(0); 
+		const char* strTimestamp = trackedFrameList->GetTrackedFrame(imgNumber)->GetCustomFrameField("Timestamp"); 
+		if ( strTimestamp == NULL ) 
+		{
+			timestamp = imgNumber;  // Just to make sure its increasing. This is not a normal case.
+		}
+		else
+		{
+		  timestamp = atof(strTimestamp); 
+		}
+
 		int* frameSize = trackedFrameList->GetTrackedFrame(imgNumber)->GetFrameSize();
 
-		  // Add each tracked frame to reconstructor - US image orientation always MF in tracked frame list
-		reconstructor->AddTrackedFrame(trackedFrameList->GetTrackedFrame(imgNumber)->ImageData->GetBufferPointer(), US_IMG_ORIENT_MF , frameSize[0] , frameSize[1], mToolToReference );
+		// Add each tracked frame to reconstructor - US image orientation always MF in tracked frame list
+		reconstructor->AddTrackedFrame(trackedFrameList->GetTrackedFrame(imgNumber)->ImageData->GetBufferPointer(), US_IMG_ORIENT_MF , frameSize[0] , frameSize[1], mToolToReference, timestamp );
 	}
 	
 	PlusLogger::PrintProgressbar( 100 ); 

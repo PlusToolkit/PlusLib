@@ -26,7 +26,7 @@ public:
   // to the tools.  This should only be used within vtkTracker.cxx.
   PlusStatus InternalUpdate();
 
-  virtual void AddTransform( vtkMatrix4x4* transformMatrix, double timestamp ); 
+  virtual PlusStatus AddTransform( vtkMatrix4x4* transformMatrix, double timestamp ); 
 
 
 protected:
