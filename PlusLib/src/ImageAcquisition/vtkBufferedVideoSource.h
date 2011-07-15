@@ -1,6 +1,7 @@
 #ifndef __vtkBufferedVideoSource_h
 #define __vtkBufferedVideoSource_h
 
+#include "PlusConfigure.h"
 #include "vtkVideoSource2.h"
 
 class VTK_EXPORT vtkBufferedVideoSource;
@@ -16,6 +17,9 @@ public:
 class VTK_EXPORT vtkBufferedVideoSource : public vtkVideoSource2
 {
 public:
+  typedef UsImageConverterCommon::ImageType ImageType; 
+  typedef UsImageConverterCommon::PixelType PixelType;
+
 	//static vtkBufferedVideoSource *New();
 	vtkTypeRevisionMacro(vtkBufferedVideoSource,vtkVideoSource2);
 	void PrintSelf(ostream& os, vtkIndent indent);   
@@ -42,7 +46,7 @@ public:
 	//ETX
 
 
-	virtual PlusStatus AddFrame( vtkImageData* image, US_IMAGE_ORIENTATION usImageOrientation, double timestamp ); 
+	virtual PlusStatus AddFrame( ImageType::Pointer image, US_IMAGE_ORIENTATION usImageOrientation, double timestamp); 
 
 	// Description:
 	// Record incoming video at the specified FrameRate.  The recording

@@ -370,11 +370,18 @@ public:
   // Update the input slice, for the reconstruction thread
   // Returns whether the slice has to be inserted now, even if it is not a
   // new slice
-  virtual int UpdateSlice(vtkImageData* inData);
+  virtual PlusStatus UpdateSlice(vtkImageData* inData, int& insertNow);
 
   // Description:
   // Update the accumulation buffer, for the reconstruction thread
   virtual void UpdateAccumulationBuffers();
+
+  // Description:
+  // Return true if the reconstruction thread finished
+  //virtual bool GetReconstructionFinished(); 
+  vtkSetMacro(ReconstructionFinished, bool); 
+  vtkGetMacro(ReconstructionFinished, bool); 
+  vtkBooleanMacro(ReconstructionFinished, bool); 
 
   double ReconstructionRate;
   int RealTimeReconstruction; // # real-time or buffered
@@ -405,6 +412,7 @@ protected:
   double VideoLag;
   int NeedsClear;
   BufferItemUidType VideoBufferUid; 
+  bool ReconstructionFinished; 
 
   // parameters for fan/image
   vtkFloatingPointType OutputOrigin[3];

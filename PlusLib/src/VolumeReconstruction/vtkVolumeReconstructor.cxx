@@ -122,78 +122,34 @@ void vtkVolumeReconstructor::FillHoles()
   this->GetReconstructor()->FillHolesInOutput(); 
 }
 
-
 //----------------------------------------------------------------------------
-void vtkVolumeReconstructor::AddTrackedFrame( unsigned char* imageData, 
-                                             US_IMAGE_ORIENTATION usImageOrientation, 
-                                             const int imageWidthInPixels, 
-                                             const int imageHeightInPixels, 
-                                             const double transformMatrix[16],
-                                             double timestamp)
-{
-  vtkSmartPointer<vtkMatrix4x4> vtkMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
-  vtkMatrix->DeepCopy(transformMatrix);
-
-  this->AddTrackedFrame(imageData, usImageOrientation, imageWidthInPixels, imageHeightInPixels, vtkMatrix, timestamp); 
-
-}
-
-
-//----------------------------------------------------------------------------
-void vtkVolumeReconstructor::AddTrackedFrame( unsigned char* imageData, 
-                                             US_IMAGE_ORIENTATION usImageOrientation, 
-                                             const int imageWidthInPixels, 
-                                             const int imageHeightInPixels, 
-                                             vtkMatrix4x4* transformMatrix,
-                                             double timestamp)
-{
-  vtkSmartPointer< vtkImageImport > importer = vtkSmartPointer<vtkImageImport>::New();
-  importer->SetWholeExtent(0,imageWidthInPixels - 1,0,imageHeightInPixels - 1,0,0);
-  importer->SetDataExtentToWholeExtent();
-  importer->SetDataScalarTypeToUnsignedChar();
-  importer->SetImportVoidPointer(imageData);
-  importer->SetNumberOfScalarComponents(1); 
-  importer->Update();
-
-  vtkSmartPointer< vtkImageFlip > imageFlip = vtkSmartPointer<vtkImageFlip>::New(); 
-  imageFlip->SetInput( importer->GetOutput() ); 
-  imageFlip->SetFilteredAxis(1); 
-  imageFlip->Update(); 
-
-  this->AddTrackedFrame( imageFlip->GetOutput(), usImageOrientation, transformMatrix, timestamp ); 
-}
-
-
-//----------------------------------------------------------------------------
-void vtkVolumeReconstructor::AddTrackedFrame( vtkImageData* frame, US_IMAGE_ORIENTATION usImageOrientation, vtkMatrix4x4* mToolToReference, double timestamp )
+PlusStatus vtkVolumeReconstructor::AddTrackedFrame( ImageType::Pointer frame, US_IMAGE_ORIENTATION usImageOrientation, vtkMatrix4x4* mToolToReference, double timestamp )
 {
   if ( !this->GetInitialized() ) 
   {
     LOG_WARNING( "Unable to add tracked frame to the volume: First need to initalize!" ); 
-    return; 
+    return PLUS_FAIL; 
   }
 
-
-  vtkSmartPointer< vtkTransform > tToolToReference = vtkSmartPointer< vtkTransform >::New();
-  tToolToReference->SetMatrix( mToolToReference );
-  tToolToReference->Update();
-
   PlusStatus  videoStatus = this->GetVideoSource()->AddFrame( frame, usImageOrientation, timestamp ); 
-  PlusStatus trackerStatus = this->GetTracker()->AddTransform( tToolToReference->GetMatrix(), timestamp ); 
+  PlusStatus trackerStatus = this->GetTracker()->AddTransform( mToolToReference, timestamp ); 
+
+  int extent[6] = {0, frame->GetLargestPossibleRegion().GetSize()[0] - 1, 0, frame->GetLargestPossibleRegion().GetSize()[1] - 1, 0, 0 }; 
 
   if ( videoStatus == PLUS_SUCCESS && trackerStatus == PLUS_SUCCESS )
   {
-    this->FindOutputExtent( tToolToReference->GetMatrix(), frame->GetExtent() ); 
+    this->FindOutputExtent( mToolToReference, extent ); 
   }
   else
   {
     LOG_ERROR("Failed to add tracked frame to buffer!"); 
+    return PLUS_FAIL; 
   }
 
+  return PLUS_SUCCESS; 
 }
 
-
-
+//----------------------------------------------------------------------------
 void vtkVolumeReconstructor::FindOutputExtent( vtkMatrix4x4* mToolToReference, int* frameExtent )
 {
   vtkSmartPointer< vtkTransform > tImageToTool = this->GetImageToToolTransform();
