@@ -139,3 +139,8 @@ configure_file(
 	${CMAKE_CURRENT_SOURCE_DIR}/DevEnv_Release.bat.in 
 	${CMAKE_CURRENT_BINARY_DIR}/DevEnv_Release.bat
 	)
+
+#-----------------------------------------------------------------------------
+# Install files 
+INCLUDE(InstallFiles.cmake)    
+
