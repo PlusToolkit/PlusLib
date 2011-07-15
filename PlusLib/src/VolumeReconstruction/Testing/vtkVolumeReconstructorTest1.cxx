@@ -104,10 +104,8 @@ int main (int argc, char* argv[])
 		  timestamp = atof(strTimestamp); 
 		}
 
-		int* frameSize = trackedFrameList->GetTrackedFrame(imgNumber)->GetFrameSize();
-
 		// Add each tracked frame to reconstructor - US image orientation always MF in tracked frame list
-		reconstructor->AddTrackedFrame(trackedFrameList->GetTrackedFrame(imgNumber)->ImageData->GetBufferPointer(), US_IMG_ORIENT_MF , frameSize[0] , frameSize[1], mToolToReference, timestamp );
+		reconstructor->AddTrackedFrame(trackedFrameList->GetTrackedFrame(imgNumber)->ImageData, US_IMG_ORIENT_MF, mToolToReference, timestamp );
 	}
 	
 	PlusLogger::PrintProgressbar( 100 ); 
@@ -115,7 +113,7 @@ int main (int argc, char* argv[])
 	LOG_INFO("Start reconstruction...");
 	reconstructor->StartReconstruction(); 
 
-	while ( reconstructor->GetReconstructor()->ReconstructionFrameCount > 0 ) 
+	while ( !reconstructor->GetReconstructor()->GetReconstructionFinished() ) 
 	{
 		PlusLogger::PrintProgressbar( ( 1 - ( 1.0 * reconstructor->GetReconstructor()->ReconstructionFrameCount /  numberOfFrames )) * 100 ); 
 		vtksys::SystemTools::Delay(200); 
