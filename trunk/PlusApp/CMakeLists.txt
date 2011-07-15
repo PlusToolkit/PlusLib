@@ -14,8 +14,6 @@ ELSE( PlusLib_FOUND )
     MESSAGE( FATAL_ERROR "This project requires PlusLib. One of these components is missing. Please verify configuration")
 ENDIF( PlusLib_FOUND )
 
-SET(PLUSLIB_DEPENDENCIES vtkPlusCommon vtkImageAcquisition vtkPlusCommon vtkTracking vtkDataCollection UsFidSegAlgo vtkTrusCalibration vtkVolumeReconstruction)
-
 # ------------------------------------------------------------------------
 # Set project version number: PlusApp version should identical to Plus version 
 SET(PLUSAPP_VERSION_MAJOR ${PLUSLIB_VERSION_MAJOR})
@@ -122,14 +120,9 @@ IF(PLUSAPP_BUILD_OpenIGTLinkBroadcaster)
     ENDIF (PLUS_USE_OpenIGTLink)
 ENDIF(PLUSAPP_BUILD_OpenIGTLinkBroadcaster)
 
-INCLUDE_EXTERNAL_MSPROJECT(vtkDataCollection "${PLUSLIB_DIR}/src/DataCollection/vtkDataCollection.vcproj" vtkPlusCommon vtkImageAcquisition vtkTracking)
-INCLUDE_EXTERNAL_MSPROJECT(vtkImageAcquisition "${PLUSLIB_DIR}/src/ImageAcquisition/vtkImageAcquisition.vcproj" vtkPlusCommon)
-INCLUDE_EXTERNAL_MSPROJECT(vtkPlusCommon "${PLUSLIB_DIR}/src/PlusCommon/vtkPlusCommon.vcproj")
-INCLUDE_EXTERNAL_MSPROJECT(vtkTracking "${PLUSLIB_DIR}/src/Tracking/vtkTracking.vcproj" vtkPlusCommon vtkImageAcquisition)
-INCLUDE_EXTERNAL_MSPROJECT(vtkTrusCalibration "${PLUSLIB_DIR}/src/TrusCalibration/vtkTrusCalibration.vcproj" vtkPlusCommon UsFidSegAlgo)
-INCLUDE_EXTERNAL_MSPROJECT(UsFidSegAlgo "${PLUSLIB_DIR}/src/UsFidSegAlgo/UsFidSegAlgo.vcproj" vtkPlusCommon )
-INCLUDE_EXTERNAL_MSPROJECT(vtkSignaling "${PLUSLIB_DIR}/src/Signaling/vtkSignaling.vcproj" vtkPlusCommon )
-INCLUDE_EXTERNAL_MSPROJECT(vtkVolumeReconstruction "${PLUSLIB_DIR}/src/VolumeReconstruction/vtkVolumeReconstruction.vcproj" vtkPlusCommon vtkSignaling vtkTracking vtkImageAcquisition)
+#-----------------------------------------------------------------------------
+# Include PlusLib MS projects 
+INCLUDE_PLUSLIB_MS_PROJECTS()
 
 #-----------------------------------------------------------------------------
 # Generate convenience files for automatic build, test, and packaging
