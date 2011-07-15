@@ -533,7 +533,7 @@ int vtkVideoSource2::RequestData(vtkInformation *vtkNotUsed(request),
 		if ( itemStatus != ITEM_OK )
 		{
 			LOG_ERROR("Unable to copy video data to the requested output!"); 
-			return 0; 
+			return 1; 
 		}	
 	}
 	else
@@ -543,7 +543,7 @@ int vtkVideoSource2::RequestData(vtkInformation *vtkNotUsed(request),
 		if ( itemStatus != ITEM_OK )
 		{
 			LOG_ERROR("Unable to copy video data to the requested output!"); 
-			return 0; 
+			return 1; 
 		}
 	}
 
