@@ -1200,23 +1200,29 @@ PlusStatus vtkDataCollector::GetTrackedFrameByTime(double time, vtkImageData* fr
 int vtkDataCollector::RequestData( vtkInformation* vtkNotUsed( request ), vtkInformationVector**  inputVector, vtkInformationVector* outputVector )
 {
   LOG_TRACE("vtkDataCollector::RequestData");
+
+  vtkInformation *outInfo = outputVector->GetInformationObject(0);
+  vtkImageData *outData = vtkImageData::SafeDownCast( outInfo->Get(vtkDataObject::DATA_OBJECT()) );
+
   if ( this->GetVideoSource()->GetBuffer()->GetNumberOfItems() < 1 ) 
   {
+    int* size = this->GetVideoSource()->GetFrameSize();
+    outData->SetExtent( 0, size[0] -1, 0, size[1] - 1, 0, 0);
+    outData->SetScalarTypeToUnsignedChar();
+    outData->SetNumberOfScalarComponents(1); 
+    outData->AllocateScalars(); 
+    unsigned long memorysize = size[0]*size[1]*outData->GetScalarSize(); 
+    memset(outData->GetScalarPointer(), 0, memorysize); 
     // If the video buffer is empty, we can return immediately 
     LOG_DEBUG("Cannot request data from video source, the video buffer is empty!"); 
     return 1;
   }
 
-  vtkInformation *outInfo = outputVector->GetInformationObject(0);
-
-  vtkImageData *outData = vtkImageData::SafeDownCast(
-    outInfo->Get(vtkDataObject::DATA_OBJECT()));
-
   VideoBufferItem currentVideoBufferItem; 
   if ( this->GetVideoSource()->GetBuffer()->GetLatestVideoBufferItem( &currentVideoBufferItem ) != ITEM_OK )
   {
     LOG_WARNING("Failed to get latest video buffer item!"); 
-    return 0; 
+    return 1; 
   }
 
   UsImageConverterCommon::ConvertItkImageToVtkImage(currentVideoBufferItem.GetFrame(), outData); 
@@ -1231,7 +1237,7 @@ int vtkDataCollector::RequestData( vtkInformation* vtkNotUsed( request ), vtkInf
       if ( this->GetTracker()->GetTool(i)->GetBuffer()->GetLatestTrackerBufferItem(&bufferItem, false) != ITEM_OK )
       {
         LOG_ERROR("Failed to get latest tracker buffer item!"); 
-        return 0; 
+        return 1; 
       }
 
       this->ToolTransMatrices[i]->DeepCopy(bufferItem.GetMatrix()); 
