@@ -23,117 +23,118 @@ vtkStandardNewMacro(vtkVolumeReconstructor);
 //----------------------------------------------------------------------------
 vtkVolumeReconstructor::vtkVolumeReconstructor()
 {
-	this->Tracker = NULL; 
-	this->VideoSource = NULL; 
-	this->Reconstructor = NULL; 
+  this->Tracker = NULL; 
+  this->VideoSource = NULL; 
+  this->Reconstructor = NULL; 
 
-	this->ConfigFileName = NULL; 
+  this->ConfigFileName = NULL; 
 
-	this->NumberOfFrames = -1; 
+  this->NumberOfFrames = -1; 
 
-	this->TrackerToolID = 0;
+  this->TrackerToolID = 0;
 
-    this->SetNumberOfBitsPerPixel(0); 
+  this->SetNumberOfBitsPerPixel(0); 
 
-    this->SetFrameSize(0, 0); 
+  this->SetFrameSize(0, 0); 
 
-	this->InitializedOff(); 
+  this->InitializedOff(); 
 
-	vtkSmartPointer<vtkBufferedTracker> tracker = vtkSmartPointer<vtkBufferedTracker>::New();
-	this->SetTracker(tracker); 
+  vtkSmartPointer<vtkBufferedTracker> tracker = vtkSmartPointer<vtkBufferedTracker>::New();
+  this->SetTracker(tracker); 
 
-	vtkSmartPointer<vtkBufferedVideoSource> videoSource = vtkSmartPointer<vtkBufferedVideoSource>::New(); 
-	this->SetVideoSource(videoSource); 
+  vtkSmartPointer<vtkBufferedVideoSource> videoSource = vtkSmartPointer<vtkBufferedVideoSource>::New(); 
+  this->SetVideoSource(videoSource); 
 
-	vtkSmartPointer<vtkFreehandUltrasound2Dynamic> reconstructor = vtkSmartPointer<vtkFreehandUltrasound2Dynamic>::New(); 
-	this->SetReconstructor(reconstructor); 
+  vtkSmartPointer<vtkFreehandUltrasound2Dynamic> reconstructor = vtkSmartPointer<vtkFreehandUltrasound2Dynamic>::New(); 
+  this->SetReconstructor(reconstructor); 
 
-	this->GetReconstructor()->SetVideoSource( this->GetVideoSource() ); 
-	this->GetReconstructor()->SetTrackerTool( this->GetTracker()->GetTool( this->TrackerToolID ) ); 
-	this->GetReconstructor()->TrackerBuffer = this->GetTracker()->GetTool( this->TrackerToolID )->GetBuffer(); 
+  this->GetReconstructor()->SetVideoSource( this->GetVideoSource() ); 
+  this->GetReconstructor()->SetTrackerTool( this->GetTracker()->GetTool( this->TrackerToolID ) ); 
+  this->GetReconstructor()->TrackerBuffer = this->GetTracker()->GetTool( this->TrackerToolID )->GetBuffer(); 
 }
 
 //----------------------------------------------------------------------------
 vtkVolumeReconstructor::~vtkVolumeReconstructor()
 {
-	this->SetReconstructor(NULL); 
+  this->SetReconstructor(NULL); 
 
-	this->SetTracker(NULL); 
+  this->SetTracker(NULL); 
 
-	this->SetVideoSource(NULL); 
+  this->SetVideoSource(NULL); 
 }
 
 //----------------------------------------------------------------------------
 void vtkVolumeReconstructor::PrintSelf(ostream& os, vtkIndent indent)
 {
-	this->Superclass::PrintSelf(os,indent);
+  this->Superclass::PrintSelf(os,indent);
 }
 
 
 //----------------------------------------------------------------------------
 void vtkVolumeReconstructor::Initialize()
 {
-	if ( this->GetNumberOfFrames() > 0 )
-	{
-		this->GetVideoSource()->SetFrameSize(this->GetFrameSize()); 
-        this->GetVideoSource()->GetBuffer()->SetNumberOfBitsPerPixel( this->GetNumberOfBitsPerPixel() ); 
+  if ( this->GetNumberOfFrames() > 0 )
+  {
+    this->GetVideoSource()->SetFrameSize(this->GetFrameSize()); 
+    this->GetVideoSource()->GetBuffer()->SetNumberOfBitsPerPixel( this->GetNumberOfBitsPerPixel() ); 
 
-		if ( this->GetVideoSource()->GetBuffer()->SetBufferSize( this->GetNumberOfFrames() ) != PLUS_SUCCESS )
-        {
-            LOG_ERROR("Failed to set video buffer size!"); 
-            return; 
-        }
+    if ( this->GetVideoSource()->GetBuffer()->SetBufferSize( this->GetNumberOfFrames() ) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Failed to set video buffer size!"); 
+      return; 
+    }
 
-		this->GetTracker()->GetTool( this->TrackerToolID )->GetBuffer()->SetBufferSize( this->GetNumberOfFrames() ); 
-	}
+    this->GetTracker()->GetTool( this->TrackerToolID )->GetBuffer()->SetBufferSize( this->GetNumberOfFrames() ); 
+  }
 
-	this->GetVideoSource()->Initialize(); 
+  this->GetVideoSource()->Initialize(); 
 
-	// Min and max values of double indicate intial values of max and min.
+  // Min and max values of double indicate intial values of max and min.
 
-	this->SetVolumeExtentMax( - std::numeric_limits< double >::max(),
-		- std::numeric_limits< double >::max(),
-		- std::numeric_limits< double >::max() ); 
-	this->SetVolumeExtentMin( std::numeric_limits< double >::max(),
-		std::numeric_limits< double >::max(),
-		std::numeric_limits< double >::max() ); 
+  this->SetVolumeExtentMax( - std::numeric_limits< double >::max(),
+    - std::numeric_limits< double >::max(),
+    - std::numeric_limits< double >::max() ); 
+  this->SetVolumeExtentMin( std::numeric_limits< double >::max(),
+    std::numeric_limits< double >::max(),
+    std::numeric_limits< double >::max() ); 
 
 
-	this->InitializedOn(); 
+  this->InitializedOn(); 
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkVolumeReconstructor::StartReconstruction()
 {
 
-	if ( !this->GetInitialized() ) 
-	{
-		LOG_ERROR( "Unable to start reconstruction: First need to initialize!"); 
-		return PLUS_FAIL; 
-	}
+  if ( !this->GetInitialized() ) 
+  {
+    LOG_ERROR( "Unable to start reconstruction: First need to initialize!"); 
+    return PLUS_FAIL; 
+  }
 
-	return this->Reconstructor->StartReconstruction( this->GetNumberOfFrames() ) ;
+  return this->Reconstructor->StartReconstruction( this->GetNumberOfFrames() ) ;
 }
 
 
 //----------------------------------------------------------------------------
 void vtkVolumeReconstructor::FillHoles()
 {
-	this->GetReconstructor()->FillHolesInOutput(); 
+  this->GetReconstructor()->FillHolesInOutput(); 
 }
 
 
 //----------------------------------------------------------------------------
 void vtkVolumeReconstructor::AddTrackedFrame( unsigned char* imageData, 
                                              US_IMAGE_ORIENTATION usImageOrientation, 
-											 const int imageWidthInPixels, 
-											 const int imageHeightInPixels, 
-											 const double transformMatrix[16] )
+                                             const int imageWidthInPixels, 
+                                             const int imageHeightInPixels, 
+                                             const double transformMatrix[16],
+                                             double timestamp)
 {
-	vtkSmartPointer<vtkMatrix4x4> vtkMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
-	vtkMatrix->DeepCopy(transformMatrix);
+  vtkSmartPointer<vtkMatrix4x4> vtkMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
+  vtkMatrix->DeepCopy(transformMatrix);
 
-	this->AddTrackedFrame(imageData, usImageOrientation, imageWidthInPixels, imageHeightInPixels, vtkMatrix); 
+  this->AddTrackedFrame(imageData, usImageOrientation, imageWidthInPixels, imageHeightInPixels, vtkMatrix, timestamp); 
 
 }
 
@@ -141,155 +142,151 @@ void vtkVolumeReconstructor::AddTrackedFrame( unsigned char* imageData,
 //----------------------------------------------------------------------------
 void vtkVolumeReconstructor::AddTrackedFrame( unsigned char* imageData, 
                                              US_IMAGE_ORIENTATION usImageOrientation, 
-											 const int imageWidthInPixels, 
-											 const int imageHeightInPixels, 
-											 vtkMatrix4x4* transformMatrix )
+                                             const int imageWidthInPixels, 
+                                             const int imageHeightInPixels, 
+                                             vtkMatrix4x4* transformMatrix,
+                                             double timestamp)
 {
-	vtkSmartPointer< vtkImageImport > importer = vtkSmartPointer<vtkImageImport>::New();
-	importer->SetWholeExtent(0,imageWidthInPixels - 1,0,imageHeightInPixels - 1,0,0);
-	importer->SetDataExtentToWholeExtent();
-	importer->SetDataScalarTypeToUnsignedChar();
-	importer->SetImportVoidPointer(imageData);
-	importer->SetNumberOfScalarComponents(1); 
-	importer->Update();
+  vtkSmartPointer< vtkImageImport > importer = vtkSmartPointer<vtkImageImport>::New();
+  importer->SetWholeExtent(0,imageWidthInPixels - 1,0,imageHeightInPixels - 1,0,0);
+  importer->SetDataExtentToWholeExtent();
+  importer->SetDataScalarTypeToUnsignedChar();
+  importer->SetImportVoidPointer(imageData);
+  importer->SetNumberOfScalarComponents(1); 
+  importer->Update();
 
-	vtkSmartPointer< vtkImageFlip > imageFlip = vtkSmartPointer<vtkImageFlip>::New(); 
-	imageFlip->SetInput( importer->GetOutput() ); 
-	imageFlip->SetFilteredAxis(1); 
-	imageFlip->Update(); 
+  vtkSmartPointer< vtkImageFlip > imageFlip = vtkSmartPointer<vtkImageFlip>::New(); 
+  imageFlip->SetInput( importer->GetOutput() ); 
+  imageFlip->SetFilteredAxis(1); 
+  imageFlip->Update(); 
 
-	this->AddTrackedFrame( imageFlip->GetOutput(), usImageOrientation, transformMatrix ); 
+  this->AddTrackedFrame( imageFlip->GetOutput(), usImageOrientation, transformMatrix, timestamp ); 
 }
 
 
 //----------------------------------------------------------------------------
-void vtkVolumeReconstructor::AddTrackedFrame( vtkImageData* frame, US_IMAGE_ORIENTATION usImageOrientation, vtkMatrix4x4* mToolToReference )
+void vtkVolumeReconstructor::AddTrackedFrame( vtkImageData* frame, US_IMAGE_ORIENTATION usImageOrientation, vtkMatrix4x4* mToolToReference, double timestamp )
 {
-	if ( !this->GetInitialized() ) 
-	{
-		LOG_WARNING( "Unable to add tracked frame to the volume: First need to initalize!" ); 
-		return; 
-	}
+  if ( !this->GetInitialized() ) 
+  {
+    LOG_WARNING( "Unable to add tracked frame to the volume: First need to initalize!" ); 
+    return; 
+  }
 
 
-	vtkSmartPointer< vtkTransform > tToolToReference = vtkSmartPointer< vtkTransform >::New();
-	tToolToReference->SetMatrix( mToolToReference );
-	tToolToReference->Update();
+  vtkSmartPointer< vtkTransform > tToolToReference = vtkSmartPointer< vtkTransform >::New();
+  tToolToReference->SetMatrix( mToolToReference );
+  tToolToReference->Update();
 
+  PlusStatus  videoStatus = this->GetVideoSource()->AddFrame( frame, usImageOrientation, timestamp ); 
+  PlusStatus trackerStatus = this->GetTracker()->AddTransform( tToolToReference->GetMatrix(), timestamp ); 
 
-	double timestamp = vtkAccurateTimer::GetSystemTime(); 
-	PlusStatus  videoStatus = this->GetVideoSource()->AddFrame( frame, usImageOrientation, timestamp ); 
+  if ( videoStatus == PLUS_SUCCESS && trackerStatus == PLUS_SUCCESS )
+  {
+    this->FindOutputExtent( tToolToReference->GetMatrix(), frame->GetExtent() ); 
+  }
+  else
+  {
+    LOG_ERROR("Failed to add tracked frame to buffer!"); 
+  }
 
-	/*PlusStatus trackerStatus = */ this->GetTracker()->AddTransform( tToolToReference->GetMatrix(), timestamp ); 
-
-	if ( videoStatus == PLUS_SUCCESS /*&& trackerStatus == PLUS_SUCCESS*/ )
-	{
-		this->FindOutputExtent( tToolToReference->GetMatrix(), frame->GetExtent() ); 
-	}
-    else
-    {
-        LOG_ERROR("Failed to add tracked frame to buffer!"); 
-    }
-
-    // Need to wait a bit to have unique timestamps
-    vtkAccurateTimer::Delay(0.001); 
 }
 
 
 
 void vtkVolumeReconstructor::FindOutputExtent( vtkMatrix4x4* mToolToReference, int* frameExtent )
 {
-	vtkSmartPointer< vtkTransform > tImageToTool = this->GetImageToToolTransform();
+  vtkSmartPointer< vtkTransform > tImageToTool = this->GetImageToToolTransform();
 
-	// Prepare the full ImageToReference transform.
-	// Output volume is in the Reference coordinate system.
+  // Prepare the full ImageToReference transform.
+  // Output volume is in the Reference coordinate system.
 
-	vtkSmartPointer< vtkTransform > tToolToReference = vtkSmartPointer< vtkTransform >::New();
-	tToolToReference->PostMultiply();
-	tToolToReference->SetMatrix( mToolToReference );
-	tToolToReference->Update();
-
-
-	vtkSmartPointer< vtkTransform > tImageToReference = vtkSmartPointer< vtkTransform >::New();
-	tImageToReference->PostMultiply();
-	tImageToReference->Identity();
-	tImageToReference->Concatenate( tImageToTool );
-	tImageToReference->Concatenate( tToolToReference );
-	tImageToReference->Update();
+  vtkSmartPointer< vtkTransform > tToolToReference = vtkSmartPointer< vtkTransform >::New();
+  tToolToReference->PostMultiply();
+  tToolToReference->SetMatrix( mToolToReference );
+  tToolToReference->Update();
 
 
-	// Prepare the four corner points of the input US image.
-
-	std::vector< double* > cornersImage;
-	double c0[ 4 ] = { frameExtent[ 0 ], frameExtent[ 2 ], 0,  1 };
-	double c1[ 4 ] = { frameExtent[ 0 ], frameExtent[ 3 ], 0,  1 };
-	double c2[ 4 ] = { frameExtent[ 1 ], frameExtent[ 2 ], 0,  1 };
-	double c3[ 4 ] = { frameExtent[ 1 ], frameExtent[ 3 ], 0,  1 };
-	cornersImage.push_back( c0 );
-	cornersImage.push_back( c1 );
-	cornersImage.push_back( c2 );
-	cornersImage.push_back( c3 );
+  vtkSmartPointer< vtkTransform > tImageToReference = vtkSmartPointer< vtkTransform >::New();
+  tImageToReference->PostMultiply();
+  tImageToReference->Identity();
+  tImageToReference->Concatenate( tImageToTool );
+  tImageToReference->Concatenate( tToolToReference );
+  tImageToReference->Update();
 
 
-	// Transform the corners to Reference. Check for MIN MAX update.
+  // Prepare the four corner points of the input US image.
 
-	for ( unsigned int i = 0; i < cornersImage.size(); ++ i )
-	{
-		double cRef[ 4 ] = { 0, 0, 0, 1 };
-		tImageToReference->MultiplyPoint( cornersImage[ i ], cRef );
+  std::vector< double* > cornersImage;
+  double c0[ 4 ] = { frameExtent[ 0 ], frameExtent[ 2 ], 0,  1 };
+  double c1[ 4 ] = { frameExtent[ 0 ], frameExtent[ 3 ], 0,  1 };
+  double c2[ 4 ] = { frameExtent[ 1 ], frameExtent[ 2 ], 0,  1 };
+  double c3[ 4 ] = { frameExtent[ 1 ], frameExtent[ 3 ], 0,  1 };
+  cornersImage.push_back( c0 );
+  cornersImage.push_back( c1 );
+  cornersImage.push_back( c2 );
+  cornersImage.push_back( c3 );
 
-		for ( int ii = 0; ii < 3; ii ++ )
-		{
-			if ( cRef[ ii ] > this->VolumeExtentMax[ ii ] ) this->VolumeExtentMax[ ii ] = cRef[ ii ];
-			if ( cRef[ ii ] < this->VolumeExtentMin[ ii ] ) this->VolumeExtentMin[ ii ] = cRef[ ii ];
-		}
 
-	}
+  // Transform the corners to Reference. Check for MIN MAX update.
 
-	// Set the output extent from the current min and max values.
+  for ( unsigned int i = 0; i < cornersImage.size(); ++ i )
+  {
+    double cRef[ 4 ] = { 0, 0, 0, 1 };
+    tImageToReference->MultiplyPoint( cornersImage[ i ], cRef );
 
-	int outputExtent[ 6 ] = { 0, 0, 0, 0, 0, 0 };
-	double* outputSpacing = this->GetReconstructor()->GetOutputSpacing();
-	outputExtent[ 1 ] = int( ( this->VolumeExtentMax[ 0 ] - this->VolumeExtentMin[ 0 ] ) / outputSpacing[ 0 ] );
-	outputExtent[ 3 ] = int( ( this->VolumeExtentMax[ 1 ] - this->VolumeExtentMin[ 1 ] ) / outputSpacing[ 1 ] );
-	outputExtent[ 5 ] = int( ( this->VolumeExtentMax[ 2 ] - this->VolumeExtentMin[ 2 ] ) / outputSpacing[ 2 ] );
+    for ( int ii = 0; ii < 3; ii ++ )
+    {
+      if ( cRef[ ii ] > this->VolumeExtentMax[ ii ] ) this->VolumeExtentMax[ ii ] = cRef[ ii ];
+      if ( cRef[ ii ] < this->VolumeExtentMin[ ii ] ) this->VolumeExtentMin[ ii ] = cRef[ ii ];
+    }
 
-	this->Reconstructor->SetOutputExtent( outputExtent );
+  }
 
-	// Set the output origin from the current min and max values
+  // Set the output extent from the current min and max values.
 
-	this->Reconstructor->SetOutputOrigin( this->VolumeExtentMin ); 
+  int outputExtent[ 6 ] = { 0, 0, 0, 0, 0, 0 };
+  double* outputSpacing = this->GetReconstructor()->GetOutputSpacing();
+  outputExtent[ 1 ] = int( ( this->VolumeExtentMax[ 0 ] - this->VolumeExtentMin[ 0 ] ) / outputSpacing[ 0 ] );
+  outputExtent[ 3 ] = int( ( this->VolumeExtentMax[ 1 ] - this->VolumeExtentMin[ 1 ] ) / outputSpacing[ 1 ] );
+  outputExtent[ 5 ] = int( ( this->VolumeExtentMax[ 2 ] - this->VolumeExtentMin[ 2 ] ) / outputSpacing[ 2 ] );
+
+  this->Reconstructor->SetOutputExtent( outputExtent );
+
+  // Set the output origin from the current min and max values
+
+  this->Reconstructor->SetOutputOrigin( this->VolumeExtentMin ); 
 }
 
 
 //----------------------------------------------------------------------------
 PlusStatus vtkVolumeReconstructor::ReadConfiguration( const char* configFileName )
 {
-	this->SetConfigFileName( configFileName ); 
-	return this->ReadConfiguration(); 
+  this->SetConfigFileName( configFileName ); 
+  return this->ReadConfiguration(); 
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkVolumeReconstructor::ReadConfiguration()
 {
-	if ( this->GetConfigFileName() == NULL ) 
-	{
-		LOG_ERROR( "You need to specify the configuration file name!" ); 
+  if ( this->GetConfigFileName() == NULL ) 
+  {
+    LOG_ERROR( "You need to specify the configuration file name!" ); 
     return PLUS_FAIL;
-	}
+  }
 
-	return this->GetReconstructor()->ReadSummaryFile(this->GetConfigFileName()); 
+  return this->GetReconstructor()->ReadSummaryFile(this->GetConfigFileName()); 
 }
 
 //----------------------------------------------------------------------------
 vtkSmartPointer< vtkTransform > vtkVolumeReconstructor::GetImageToToolTransform()
 { 
-	vtkSmartPointer< vtkTransform > tImageToTool = vtkSmartPointer< vtkTransform >::New();
-	tImageToTool->PostMultiply();
-	tImageToTool->Identity();
-	tImageToTool->SetMatrix( this->GetReconstructor()->GetTrackerTool()->GetCalibrationMatrix() );
-	tImageToTool->Update();
+  vtkSmartPointer< vtkTransform > tImageToTool = vtkSmartPointer< vtkTransform >::New();
+  tImageToTool->PostMultiply();
+  tImageToTool->Identity();
+  tImageToTool->SetMatrix( this->GetReconstructor()->GetTrackerTool()->GetCalibrationMatrix() );
+  tImageToTool->Update();
 
-	return tImageToTool;
+  return tImageToTool;
 }
 
