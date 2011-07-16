@@ -4,7 +4,7 @@
             Description="Test mode for vtkDataCollectorTest with SonixTouch and Fake tracker. The SonixTouch US device should be in research mode." 
             />
 
-    <Tracker Type="FakeTracker" BufferSize="200" Frequency="30" LocalTimeOffset="0.0" DefaultToolName="Stylus" Mode="PivotCalibration" ReferenceToolName="Reference" >
+    <Tracker Type="FakeTracker" BufferSize="200" Frequency="30" LocalTimeOffset="0.0" DefaultToolName="Stylus" Mode="PivotCalibration" ReferenceToolName="Reference" SmoothingFactor="0.001" >
         <Tool Name="Reference" PortNumber="0"></Tool> 
         <Tool Name="Stylus" PortNumber="1" SendTo="localhost:18944">
             <Calibration 
