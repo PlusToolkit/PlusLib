@@ -104,15 +104,16 @@ SET_TESTS_PROPERTIES( vtkPhantomRegistrationTest PROPERTIES FAIL_REGULAR_EXPRESS
 ADD_EXECUTABLE(vtkFreehandCalibrationTest vtkFreehandCalibrationTest.cxx)
 TARGET_LINK_LIBRARIES(vtkFreehandCalibrationTest itkvnl itkvnl_algo vtkCommon vtkTrusCalibration vtkDataCollection )
 
-ADD_TEST(vtkFreehandCalibrationTest
-		${EXECUTABLE_OUTPUT_PATH}/vtkFreehandCalibrationTest
-		--input-calibration-config-file-name=${ConfigFilesDir}/USCalibrationConfig_fCal_SonixTouch.xml
-		--input-data-collection-config-file-name=${ConfigFilesDir}/Test_USDataCollectionConfig_VideoNone_FakeTracker_RecordPhantomLandmarks.xml
-		--input-freehand-motion-1-sequence-metafile=${TestDataDir}/fCAL_Calibration_Test_MN.mha 
-        --input-freehand-motion-2-sequence-metafile=${TestDataDir}/fCAL_Validation_Test_MN.mha 
-		--input-baseline-file-name=${TestDataDir}/FreehandCalibration.results.xml
-		--input-phantom-registration-xml-file-name=${TestDataDir}/PhantomRegistration.results.xml
-		--input-stylus-calibration-xml-file-name=${TestDataDir}/StylusCalibration.results.xml
-		--error-threshold=1.0
-		)
-SET_TESTS_PROPERTIES( vtkFreehandCalibrationTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+# This test has not been completed yet, see #138
+#ADD_TEST(vtkFreehandCalibrationTest
+#		${EXECUTABLE_OUTPUT_PATH}/vtkFreehandCalibrationTest
+#		--input-calibration-config-file-name=${ConfigFilesDir}/USCalibrationConfig_fCal_SonixTouch.xml
+#		--input-data-collection-config-file-name=${ConfigFilesDir}/Test_USDataCollectionConfig_VideoNone_FakeTracker_RecordPhantomLandmarks.xml
+#		--input-freehand-motion-1-sequence-metafile=${TestDataDir}/fCAL_Calibration_Test_MN.mha 
+#		--input-freehand-motion-2-sequence-metafile=${TestDataDir}/fCAL_Validation_Test_MN.mha 
+#		--input-baseline-file-name=${TestDataDir}/FreehandCalibration.results.xml
+#		--input-phantom-registration-xml-file-name=${TestDataDir}/PhantomRegistration.results.xml
+#		--input-stylus-calibration-xml-file-name=${TestDataDir}/StylusCalibration.results.xml
+#		--error-threshold=1.0
+#		)
+#SET_TESTS_PROPERTIES( vtkFreehandCalibrationTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
