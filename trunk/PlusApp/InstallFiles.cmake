@@ -27,6 +27,7 @@ SET ( PLUSLIB_CONFIG_FILES
     ${PLUSLIB_DATA_DIR}/ConfigFiles/VolRec_SonixRP_Linear14-5_D45mm.xml 
     ${PLUSLIB_DATA_DIR}/ConfigFiles/VolRec_SonixRP_TRUS_D70mm.xml 
     ${PLUSLIB_DATA_DIR}/ConfigFiles/VolumeReconstructionConfig.xml 
+    ${PLUSLIB_DATA_DIR}/ConfigFiles/USDataCollectionConfig_SonixTouch_BlackTargetGuideStepper.xml 
 )
 
 IF(PLUSAPP_INSTALL_GNUPLOT_DIR)
