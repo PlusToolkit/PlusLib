@@ -211,6 +211,12 @@ public:
 	vtkGetObjectMacro(TransformTemplateHolderHomeToTemplateHome, vtkTransform);
 	vtkSetObjectMacro(TransformTemplateHolderHomeToTemplateHome, vtkTransform);
 	
+  //! Attributes: Get/set the constant transformation between template holder home 
+	// and template home position
+	// Should be defined in config file
+  vtkGetObjectMacro(TransformTemplateHolderHomeToPhantomHome, vtkTransform);
+	vtkSetObjectMacro(TransformTemplateHolderHomeToPhantomHome, vtkTransform);
+
 	//! Attributes: Get/set the transformation between the template holder home
 	// and template holder position (e.g read from stepper)
 	vtkGetObjectMacro(TransformTemplateHolderHomeToTemplateHolder, vtkTransform);
@@ -510,7 +516,8 @@ protected:
 	vtkTransform * TransformProbeToUserImage;						// Invert of TransformUserImageHomeToProbeHome
 	vtkTransform * TransformUserImageToImage;						// Invert of TransformImageHomeToUserImageHome
 	vtkTransform * TransformProbeHomeToTemplateHolderHome;			// Result of the TemplateToStepperCalibrator
-	vtkTransform * TransformTemplateHolderHomeToTemplateHome;		// Constant transform, read from file 
+	vtkTransform * TransformTemplateHolderHomeToTemplateHome;		// Constant transform (specific to the current template), read from file 
+  vtkTransform * TransformTemplateHolderHomeToPhantomHome;		// Constant transform (specific to the current calibration phantom), read from file 
 	vtkTransform * TransformTemplateHolderHomeToTemplateHolder;		// Read from stepper (tool number 0) -> TODO: 
 	vtkTransform * TransformTemplateHomeToTemplate;					// Read from stepper (tool number 0), identical to TransformTemplateHolderHomeToTemplateHolder
 

@@ -4,7 +4,6 @@
 SET (TrusCalibration_SRCS
 	BrachyTRUSCalibrator.cxx
 	Phantom.cxx
-	vtkTemplateToStepperCalibrator.cxx
 	vtkCalibratorVisualizationComponent.cxx 
 	vtkCalibrationController.cxx 
 	vtkProbeCalibrationController.cxx 
@@ -23,7 +22,6 @@ IF (WIN32)
 	SET (TrusCalibration_HDRS
 		BrachyTRUSCalibrator.h 
 		Phantom.h 
-		vtkTemplateToStepperCalibrator.h
 		vtkCalibratorVisualizationComponent.h
 		vtkCalibrationController.h
 		vtkProbeCalibrationController.h

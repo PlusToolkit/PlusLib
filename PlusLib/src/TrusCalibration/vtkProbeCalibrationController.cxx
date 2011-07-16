@@ -92,6 +92,10 @@ MinElevationBeamwidthAndFocalZoneInUSImageFrame(2,0)
 	this->TransformTemplateHolderHomeToTemplateHome = NULL;
 	this->SetTransformTemplateHolderHomeToTemplateHome(transformTemplateHolderHomeToTemplateHome); 
 
+  vtkSmartPointer<vtkTransform> transformTemplateHolderHomeToPhantomHome = vtkSmartPointer<vtkTransform>::New(); 
+	this->TransformTemplateHolderHomeToPhantomHome = NULL;
+	this->SetTransformTemplateHolderHomeToPhantomHome(transformTemplateHolderHomeToPhantomHome); 
+
 	vtkSmartPointer<vtkTransform> transformUserImageHomeToProbeHome = vtkSmartPointer<vtkTransform>::New(); 
 	this->TransformUserImageHomeToProbeHome = NULL;
 	this->SetTransformUserImageHomeToProbeHome(transformUserImageHomeToProbeHome); 
@@ -144,6 +148,7 @@ vtkProbeCalibrationController::~vtkProbeCalibrationController()
 	this->SetTransformUserImageToImage(NULL);
 	this->SetTransformProbeHomeToTemplateHolderHome(NULL);
 	this->SetTransformTemplateHolderHomeToTemplateHome(NULL);
+  this->SetTransformTemplateHolderHomeToPhantomHome(NULL); 
 	this->SetTransformTemplateHolderHomeToTemplateHolder(NULL);
 	this->SetTransformTemplateHomeToTemplate(NULL);
 	this->SetCalibrationControllerIO(NULL); 
@@ -242,23 +247,37 @@ void vtkProbeCalibrationController::RegisterPhantomGeometry( double phantomToPro
 	LOG_TRACE("vtkProbeCalibrationController::RegisterPhantomGeometry: " << phantomToProbeDistanceInMm[0] << "  " << phantomToProbeDistanceInMm[1]); 
 	// Vertical distance from the template mounter hole center
 	// to the TRUS Rotation Center
-	double verticalDistanceTemplateMounterHoleToTRUSRotationCenterInMM = 
+	/*double verticalDistanceTemplateMounterHoleToTRUSRotationCenterInMM = 
 			this->GetCalibrator()->GetPhantomPoints().WirePositionFrontWall[0].y
             + phantomToProbeDistanceInMm[1]
     - this->GetCalibrator()->GetPhantomPoints().TemplateHolderPosition.y; 
+    */
+
+  double verticalDistanceTemplateMounterHoleToTRUSRotationCenterInMM = 
+			this->GetCalibrator()->GetNWire(1).wires[0].endPointFront[1] // WIRE1 y
+            + phantomToProbeDistanceInMm[1]
+            - GetTransformTemplateHolderHomeToPhantomHome()->GetPosition()[1]; // :TODO: transform with the whole matrix instead of just using the XY position values
 
     // Horizontal distance from the template mounter hole center
     // to the TRUS Rotation Center
-    double horizontalDistanceTemplateMounterHoleToTRUSRotationCenterInMM = 
+    /*double horizontalDistanceTemplateMounterHoleToTRUSRotationCenterInMM = 
         this->GetCalibrator()->GetPhantomPoints().WirePositionFrontWall[2].x
         + phantomToProbeDistanceInMm[0]
-    - this->GetCalibrator()->GetPhantomPoints().TemplateHolderPosition.x; 
+    - this->GetCalibrator()->GetPhantomPoints().TemplateHolderPosition.x; */
+    double horizontalDistanceTemplateMounterHoleToTRUSRotationCenterInMM = 
+        this->GetCalibrator()->GetNWire(0).wires[2].endPointFront[0] // WIRE3 x
+        + phantomToProbeDistanceInMm[0]
+    - GetTransformTemplateHolderHomeToPhantomHome()->GetPosition()[0]; // :TODO: transform with the whole matrix instead of just using the XY position values
 
-    double horizontalTemplateToStepper = horizontalDistanceTemplateMounterHoleToTRUSRotationCenterInMM + this->GetCalibrator()->GetPhantomPoints().TemplateHolderPosition.x;
-    double verticalTemplateToStepper = verticalDistanceTemplateMounterHoleToTRUSRotationCenterInMM + this->GetCalibrator()->GetPhantomPoints().TemplateHolderPosition.y;
+    double templateHolderPositionX=GetTransformTemplateHolderHomeToPhantomHome()->GetPosition()[0];
+    double templateHolderPositionY=GetTransformTemplateHolderHomeToPhantomHome()->GetPosition()[1];
+    double templateHolderPositionZ=GetTransformTemplateHolderHomeToPhantomHome()->GetPosition()[2];
+
+    double horizontalTemplateToStepper = horizontalDistanceTemplateMounterHoleToTRUSRotationCenterInMM + templateHolderPositionX;
+    double verticalTemplateToStepper = verticalDistanceTemplateMounterHoleToTRUSRotationCenterInMM + templateHolderPositionY;
 
     vtkSmartPointer<vtkTransform> tTemplateHolderToTemplate = vtkSmartPointer<vtkTransform>::New();
-    tTemplateHolderToTemplate->Translate( this->GetCalibrator()->GetPhantomPoints().TemplateHolderPosition.x, this->GetCalibrator()->GetPhantomPoints().TemplateHolderPosition.y, this->GetCalibrator()->GetPhantomPoints().TemplateHolderPosition.z);
+    tTemplateHolderToTemplate->Translate( templateHolderPositionX, templateHolderPositionY, templateHolderPositionZ);
     this->GetTransformTemplateHolderHomeToTemplateHome()->SetMatrix( tTemplateHolderToTemplate->GetMatrix() ); 
 
     vtkSmartPointer<vtkTransform> tProbeHomeToTemplateHolderHome = vtkSmartPointer<vtkTransform>::New();
@@ -589,12 +608,12 @@ void vtkProbeCalibrationController::PopulateSegmentedFiducialsToDataContainer(vn
 
 	if ( !segResults.GetDotsFound() )
 	{
-		LOG_DEBUG("Segmantation failed! Unable to populate segmentation result!"); 
+		LOG_DEBUG("Segmentation failed! Unable to populate segmentation result!"); 
 		return; 
 	}
 
-	// Top layer:		3, 2, 1 
-	// Bottom Layer:	6, 5, 4 
+	// Top layer (far from probe): 6, 5, 4 
+	// Bottom Layer (close to probe): 3, 2, 1 
 	std::vector<vnl_vector_double> SegmentedNFiducialsInFixedCorrespondence;
 	SegmentedNFiducialsInFixedCorrespondence.resize(0);
 	for (int i=0; i<segResults.GetFoundDotsCoordinateValue().size(); i++)
@@ -641,19 +660,24 @@ void vtkProbeCalibrationController::SetUSImageFrameOriginInPixels( int* origin )
 PlusStatus vtkProbeCalibrationController::GetWirePosInTemplateCoordinate( int wireNum, double* wirePosInTemplate )
 {
 	LOG_TRACE("vtkProbeCalibrationController::GetWirePosInTemplateCoordinate (wire #" << wireNum << ")"); 
+
+  // wireNum is 1-based (values are between 1..6)
+  int nwireIndex=(wireNum-1)/3;
+  int wireIndex=(wireNum-1)%3;
+
 	// Wire position on the front wall in template coordinate system
-	double p1[3] = {
-		this->GetCalibrator()->GetPhantomPoints().WirePositionFrontWall[wireNum - 1].x, 
-		this->GetCalibrator()->GetPhantomPoints().WirePositionFrontWall[wireNum - 1].y, 
-		this->GetCalibrator()->GetPhantomPoints().WirePositionFrontWall[wireNum - 1].z
-	}; 
+  double p1[3] = {
+    this->GetCalibrator()->GetNWire(nwireIndex).wires[wireIndex].endPointFront[0],
+    this->GetCalibrator()->GetNWire(nwireIndex).wires[wireIndex].endPointFront[1],
+    this->GetCalibrator()->GetNWire(nwireIndex).wires[wireIndex].endPointFront[2]
+  }; 
 
 	// Wire position on the back wall in template coordinate system
-	double p2[3] = {
-		this->GetCalibrator()->GetPhantomPoints().WirePositionBackWall[wireNum - 1].x, 
-		this->GetCalibrator()->GetPhantomPoints().WirePositionBackWall[wireNum - 1].y, 
-		this->GetCalibrator()->GetPhantomPoints().WirePositionBackWall[wireNum - 1].z
-	}; 
+  double p2[3] = {
+    this->GetCalibrator()->GetNWire(nwireIndex).wires[wireIndex].endPointBack[0],
+    this->GetCalibrator()->GetNWire(nwireIndex).wires[wireIndex].endPointBack[1],
+    this->GetCalibrator()->GetNWire(nwireIndex).wires[wireIndex].endPointBack[2]
+  }; 
 
 	vtkSmartPointer<vtkTransform> tTemplateToTemplateHome = vtkSmartPointer<vtkTransform>::New();
 	tTemplateToTemplateHome->Concatenate(this->TransformTemplateHomeToTemplate); 
@@ -663,7 +687,6 @@ PlusStatus vtkProbeCalibrationController::GetWirePosInTemplateCoordinate( int wi
 	tImageToTemplate->PostMultiply(); 
 	tImageToTemplate->Concatenate(this->TransformImageToTemplate); 
 	tImageToTemplate->Concatenate(tTemplateToTemplateHome); 
-
 
 	// Normal vector
 	double n[3] = { 
@@ -802,6 +825,7 @@ PlusStatus vtkProbeCalibrationController::ReadConfiguration( const char* configF
     LOG_ERROR("Failed to read calibration controller configuration from " << this->GetConfigurationFileName());
     return PLUS_FAIL;
   }
+
 	PlusStatus status=this->ReadConfiguration(calibrationController); 
   return status;
 }
@@ -825,6 +849,40 @@ PlusStatus vtkProbeCalibrationController::ReadConfiguration( vtkXMLDataElement* 
 	//*********************************
 	vtkXMLDataElement* probeCalibration = calibrationController->FindNestedElementWithName("ProbeCalibration"); 
 	this->CalibrationControllerIO->ReadProbeCalibrationConfiguration(probeCalibration); 
+
+  // Load TemplateHolderToPhantomTransform from the phantom definition file
+	//*********************************
+  // :TODO: move this to the IO class
+  const char* phantomDefFileName=GetPhantomDefinitionFileName();
+  if (phantomDefFileName==NULL)
+  {
+    LOG_ERROR("PhantomDefinition file name not found");
+    return PLUS_FAIL;
+  }
+	vtkSmartPointer<vtkXMLDataElement> phantomDefinition = vtkXMLUtilities::ReadElementFromFile(phantomDefFileName);
+	if (phantomDefinition == NULL) 
+  {	
+		LOG_ERROR("Unable to read the phantom definition file: " << phantomDefFileName); 
+		return PLUS_FAIL;
+	}
+	vtkXMLDataElement* customTransforms = phantomDefinition->FindNestedElementWithName("CustomTransforms"); 
+	if (customTransforms == NULL) 
+  {
+		LOG_ERROR("Custom transforms are not found in phantom model");
+    return PLUS_FAIL;
+	}
+  
+  double templateHolderToPhantomTransformVector[16]={0}; 
+  if (customTransforms->GetVectorAttribute("TemplateHolderToPhantomTransform", 16, templateHolderToPhantomTransformVector)) 
+  {
+    vtkSmartPointer<vtkTransform> transformTemplateHolderHomeToPhantomHome = vtkSmartPointer<vtkTransform>::New(); 
+    transformTemplateHolderHomeToPhantomHome->SetMatrix(templateHolderToPhantomTransformVector); 
+    SetTransformTemplateHolderHomeToPhantomHome( transformTemplateHolderHomeToPhantomHome  ); 
+  }
+  else
+	{
+		LOG_ERROR("Unable to read template origin from template holder from template model file!"); 
+	}
 
   return PLUS_SUCCESS;
 }

@@ -321,6 +321,13 @@ class SegmentationParameters
 
 //-----------------------------------------------------------------------------
 
+#define WIRE1 3
+#define WIRE2 4
+#define WIRE3 5
+#define WIRE4 0
+#define WIRE5 1
+#define WIRE6 2
+
 class SegmentationResults
 {
 	public:
