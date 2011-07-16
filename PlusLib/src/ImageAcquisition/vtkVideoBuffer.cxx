@@ -420,6 +420,12 @@ void vtkVideoBuffer::SetStartTime( double startTime)
 }
 
 //----------------------------------------------------------------------------
+double vtkVideoBuffer::GetStartTime()
+{
+  return this->VideoBuffer->GetStartTime(); 
+}
+
+//----------------------------------------------------------------------------
 PlusStatus vtkVideoBuffer::GetTimeStampReportTable(vtkTable* timeStampReportTable)
 {
   return this->VideoBuffer->GetTimeStampReportTable(timeStampReportTable); 

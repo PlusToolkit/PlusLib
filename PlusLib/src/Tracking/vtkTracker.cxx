@@ -586,6 +586,12 @@ void vtkTracker::SetStartTime( double startTime)
   }
 }
 
+//----------------------------------------------------------------------------
+double vtkTracker::GetStartTime()
+{
+  return this->GetTool(this->GetDefaultTool())->GetBuffer()->GetStartTime();  
+}
+
 //-----------------------------------------------------------------------------
 PlusStatus vtkTracker::WriteConfiguration(vtkXMLDataElement* config)
 {

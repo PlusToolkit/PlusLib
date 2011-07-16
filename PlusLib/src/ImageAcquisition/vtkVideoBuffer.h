@@ -174,8 +174,9 @@ public:
   virtual void SetSmoothingFactor( double smoothingFactor); 
 
   // Description:
-  // Set recording start time
+  // Set/get recording start time
   virtual void SetStartTime( double startTime ); 
+  virtual double GetStartTime(); 
 
   // Description: 
   // Get the table report of the timestamped buffer 

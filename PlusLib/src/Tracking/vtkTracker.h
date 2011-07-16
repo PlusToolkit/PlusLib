@@ -130,8 +130,9 @@ public:
 	virtual int IsTracking() { return this->Tracking; };
 
   // Description:
-  // Set recording start time for each tool
+  // Set/get recording start time for each tool
   virtual void SetStartTime( double startTime ); 
+  virtual double GetStartTime(); 
 
 	// Description:
 	// This method will call Update() on each of the tools.  Note that

@@ -35,8 +35,10 @@ vtkSavedDataVideoSource::vtkSavedDataVideoSource()
 	this->FrameBufferRowAlignment = 1;
 	this->LocalVideoBuffer = NULL;
 	this->SequenceMetafile = NULL; 
-	this->StartTimestamp = 0.0; 
 	this->ReplayEnabled = false; 
+  this->LoopStartTime = 0.0; 
+  this->LoopTime = 0.0; 
+
 }
 
 //----------------------------------------------------------------------------
@@ -118,14 +120,7 @@ PlusStatus vtkSavedDataVideoSource::InternalGrab()
 	}
 
 	// Compute elapsed time since we restarted the timer
-	const double elapsedTime = vtkAccurateTimer::GetSystemTime() - this->GetStartTimestamp(); 
-
-	double oldestFrameTimestamp(0);  
-  if ( this->LocalVideoBuffer->GetOldestTimeStamp(oldestFrameTimestamp) != ITEM_OK )
-  {
-    LOG_ERROR("vtkSavedDataVideoSource: Unable to get oldest timestamp from local buffer!");
-		return PLUS_FAIL; 
-  }
+	double elapsedTime = vtkAccurateTimer::GetSystemTime() - this->GetBuffer()->GetStartTime(); 
 
 	double latestFrameTimestamp(0); 
   if ( this->LocalVideoBuffer->GetLatestTimeStamp(latestFrameTimestamp) != ITEM_OK )
@@ -134,16 +129,13 @@ PlusStatus vtkSavedDataVideoSource::InternalGrab()
 		return PLUS_FAIL; 
   }
 
-	
 	// Compute the next timestamp 
-	double nextFrameTimestamp = oldestFrameTimestamp + elapsedTime; 
+	double nextFrameTimestamp = this->LoopStartTime + elapsedTime; 
 	if ( nextFrameTimestamp > latestFrameTimestamp )
 	{
 		if ( this->ReplayEnabled )
 		{
-			// Start again from the oldest frame
-			nextFrameTimestamp = oldestFrameTimestamp;
-			this->SetStartTimestamp(vtkAccurateTimer::GetSystemTime()); 
+      nextFrameTimestamp = this->LoopStartTime + fmod(elapsedTime, this->LoopTime); 
 		}
 		else
 		{
@@ -173,7 +165,14 @@ PlusStatus vtkSavedDataVideoSource::InternalGrab()
 
 	// use the information about data type and frmnum to do cross checking that you are maintaining correct frame index, & receiving
 	// expected data type
-	this->FrameNumber = nextVideoBufferItem.GetIndex(); 
+  if ( this->FrameNumber < nextVideoBufferItem.GetIndex() )
+  {
+	  this->FrameNumber = nextVideoBufferItem.GetIndex(); 
+  }
+  else
+  {
+    this->FrameNumber++; 
+  }
 
   VideoBufferItem::PixelType* deviceDataPtr = nextVideoBufferItem.GetFrame()->GetBufferPointer(); 
   const int frameSize[2] = {nextVideoBufferItem.GetFrame()->GetLargestPossibleRegion().GetSize()[0], nextVideoBufferItem.GetFrame()->GetLargestPossibleRegion().GetSize()[1]}; 
@@ -356,7 +355,6 @@ PlusStatus vtkSavedDataVideoSource::StartRecording()
 
 	if (!this->Recording)
 	{
-		this->SetStartTimestamp(vtkAccurateTimer::GetSystemTime()); 
 		this->vtkVideoSource2::StartRecording(); 
 	}
 
