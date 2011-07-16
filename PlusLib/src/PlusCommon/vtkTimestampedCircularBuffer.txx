@@ -47,6 +47,13 @@ vtkTimestampedCircularBuffer<BufferItemType>::~vtkTimestampedCircularBuffer()
 		this->Mutex->Delete();
 		this->Mutex = NULL; 
 	}
+
+  if ( this->TimeStampReportTable != NULL )
+  {
+    this->TimeStampReportTable->Delete();
+    this->TimeStampReportTable = NULL; 
+  }
+
 }
 
 //----------------------------------------------------------------------------
@@ -588,15 +595,15 @@ PlusStatus vtkTimestampedCircularBuffer<BufferItemType>::CreateFilteredTimeStamp
 			this->AveragedFramePeriods.clear(); 
 			this->EstimatedFramePeriod = 0; 
 		}
-		else if ( frameCountDiff > 1 )
-		{
-			LOG_DEBUG("CreateTimeStampForFrame: frames lost (" << frameCountDiff - 1 << "), the previous frame period was ignored!"); 
-			if ( AveragedFramePeriods.size() > 0 ) 
-			{
-				// we have some lost frames, ignore the previous frame period
-				AveragedFramePeriods.pop_back(); 
-			}
-		}
+		//else if ( frameCountDiff > 1 )
+		//{
+		//	LOG_DEBUG("CreateTimeStampForFrame: frames lost (" << frameCountDiff - 1 << "), the previous frame period was ignored!"); 
+		//	if ( AveragedFramePeriods.size() > 0 ) 
+		//	{
+		//		// we have some lost frames, ignore the previous frame period
+		//		AveragedFramePeriods.pop_back(); 
+		//	}
+		//}
 		else
 		{
 			AveragedFramePeriods.push_back(frameperiod); 

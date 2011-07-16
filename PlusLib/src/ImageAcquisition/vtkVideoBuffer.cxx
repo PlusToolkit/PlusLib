@@ -307,17 +307,38 @@ PlusStatus vtkVideoBuffer::AddItem(unsigned char* imageDataPtr,
   return this->AddTimeStampedItem(imageDataPtr, usImageOrientation, frameSizeInPx, numberOfBitsPerPixel, numberOfBytesToSkip, unfilteredTimestamp, frameNumber); 
 }
 
+//----------------------------------------------------------------------------
+PlusStatus vtkVideoBuffer::AddTimeStampedItem(unsigned char* imageDataPtr,                               
+                                              US_IMAGE_ORIENTATION  usImageOrientation, 
+                                              const int    frameSizeInPx[2],
+                                              int    numberOfBitsPerPixel, 
+                                              int	numberOfBytesToSkip, 
+                                              double unfilteredTimestamp, 
+                                              long   frameNumber)
+{
+
+  double filteredTimestamp(0); 
+  if ( this->VideoBuffer->CreateFilteredTimeStampForItem(frameNumber, unfilteredTimestamp, filteredTimestamp) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to create filtered timestamp for buffer item with item index: " << frameNumber ); 
+    return PLUS_FAIL; 
+  }
+
+  return this->AddTimeStampedItem(imageDataPtr, usImageOrientation, frameSizeInPx, numberOfBitsPerPixel, numberOfBytesToSkip, unfilteredTimestamp, filteredTimestamp, frameNumber); 
+}
+
 
 //----------------------------------------------------------------------------
 PlusStatus vtkVideoBuffer::AddTimeStampedItem(unsigned char* imageDataPtr,                               
-                                   US_IMAGE_ORIENTATION  usImageOrientation, 
-                                   const int    frameSizeInPx[2],
-                                   int    numberOfBitsPerPixel, 
-                                   int	numberOfBytesToSkip, 
-                                   double unfilteredTimestamp, 
-                                   long   frameNumber)
+                                              US_IMAGE_ORIENTATION  usImageOrientation, 
+                                              const int    frameSizeInPx[2],
+                                              int    numberOfBitsPerPixel, 
+                                              int	numberOfBytesToSkip, 
+                                              double unfilteredTimestamp, 
+                                              double filteredTimestamp,
+                                              long   frameNumber)
 {
-   if ( imageDataPtr == NULL )
+  if ( imageDataPtr == NULL )
   {
     LOG_ERROR( "vtkVideoBuffer: Unable to add NULL frame to video buffer!"); 
     return PLUS_FAIL; 
@@ -326,13 +347,6 @@ PlusStatus vtkVideoBuffer::AddTimeStampedItem(unsigned char* imageDataPtr,
   if ( !this->CheckFrameFormat(frameSizeInPx, numberOfBitsPerPixel) )
   {
     LOG_ERROR( "vtkVideoBuffer: Unable to add frame to video buffer - frame format doesn't match!"); 
-    return PLUS_FAIL; 
-  }
-
-  double filteredTimestamp(0); 
-  if ( this->VideoBuffer->CreateFilteredTimeStampForItem(frameNumber, unfilteredTimestamp, filteredTimestamp) != PLUS_SUCCESS )
-  {
-    LOG_ERROR("Failed to create filtered timestamp for buffer item with item index: " << frameNumber ); 
     return PLUS_FAIL; 
   }
 
@@ -387,6 +401,22 @@ PlusStatus vtkVideoBuffer::AddTimeStampedItem(vtkImageData* frame, US_IMAGE_ORIE
   const int frameSize[2] = {(frameExtent[1] - frameExtent[0] + 1), (frameExtent[3] - frameExtent[2] + 1)}; 
   const int numberOfBits = mfOrientedImage->GetScalarSize() * 8; 
   return this->AddTimeStampedItem( reinterpret_cast<unsigned char*>(mfOrientedImage->GetScalarPointer()), US_IMG_ORIENT_MF , frameSize, numberOfBits, 0, unfilteredTimestamp, frameNumber); 
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkVideoBuffer::AddTimeStampedItem(vtkImageData* frame, US_IMAGE_ORIENTATION usImageOrientation, double unfilteredTimestamp, double filteredTimestamp, long frameNumber)
+{
+  vtkSmartPointer<vtkImageData> mfOrientedImage = vtkSmartPointer<vtkImageData>::New(); 
+  if ( UsImageConverterCommon::GetMFOrientedImage(frame, usImageOrientation, mfOrientedImage) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to add video item to buffer: couldn't get MF oriented frame!"); 
+    return PLUS_FAIL; 
+  }
+
+  const int* frameExtent = mfOrientedImage->GetExtent(); 
+  const int frameSize[2] = {(frameExtent[1] - frameExtent[0] + 1), (frameExtent[3] - frameExtent[2] + 1)}; 
+  const int numberOfBits = mfOrientedImage->GetScalarSize() * 8; 
+  return this->AddTimeStampedItem( reinterpret_cast<unsigned char*>(mfOrientedImage->GetScalarPointer()), US_IMG_ORIENT_MF , frameSize, numberOfBits, 0, unfilteredTimestamp, filteredTimestamp, frameNumber); 
 }
 
 //----------------------------------------------------------------------------

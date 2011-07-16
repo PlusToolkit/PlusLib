@@ -70,6 +70,7 @@ public:
   // less than or equal to the previous timestamp, then nothing
   // will be done.
   PlusStatus AddTimeStampedItem(vtkMatrix4x4 *matrix, TrackerStatus status, unsigned long frameNumber, double unfilteredTimestamp);
+  PlusStatus AddTimeStampedItem(vtkMatrix4x4 *matrix, TrackerStatus status, unsigned long frameNumber, double unfilteredTimestamp, double filteredTimestamp);
 
   // Description:
   // Get tracker item from buffer 

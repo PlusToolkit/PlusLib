@@ -648,7 +648,6 @@ PlusStatus vtkVideoSource2::GenerateVideoDataAcquisitionReport( vtkHTMLGenerator
   }
 
   std::string reportFile = vtksys::SystemTools::GetCurrentWorkingDirectory() + std::string("/VideoBufferTimestamps.txt"); 
-  LOG_INFO(reportFile); 
 
   if ( vtkGnuplotExecuter::DumpTableToFileInGnuplotFormat( timestampReportTable, reportFile.c_str() ) != PLUS_SUCCESS )
   {
