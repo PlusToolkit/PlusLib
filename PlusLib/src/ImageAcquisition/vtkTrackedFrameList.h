@@ -63,7 +63,7 @@ public:
 	void SetCustomFrameTransform(std::string frameTransformName, vtkMatrix4x4* transform); 
 
 	//! Operation: 
-	// Get tracked frame size in pixel
+	// Returns: int[2]. Get tracked frame size in pixel
 	int* GetFrameSize(); 
 
     //! Operation: 

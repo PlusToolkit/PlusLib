@@ -234,8 +234,11 @@ PlusStatus vtkVolumeReconstructor::ReadConfiguration()
   return this->GetReconstructor()->ReadSummaryFile(this->GetConfigFileName()); 
 }
 
-//----------------------------------------------------------------------------
-vtkSmartPointer< vtkTransform > vtkVolumeReconstructor::GetImageToToolTransform()
+
+
+vtkSmartPointer< vtkTransform >
+vtkVolumeReconstructor
+::GetImageToToolTransform()
 { 
   vtkSmartPointer< vtkTransform > tImageToTool = vtkSmartPointer< vtkTransform >::New();
   tImageToTool->PostMultiply();
@@ -244,5 +247,17 @@ vtkSmartPointer< vtkTransform > vtkVolumeReconstructor::GetImageToToolTransform(
   tImageToTool->Update();
 
   return tImageToTool;
+}
+
+
+
+const vtkMatrix4x4*
+vtkVolumeReconstructor
+::GetImageToToolMatrix()
+{
+  vtkMatrix4x4* matrix = this->GetReconstructor()->GetTrackerTool()->GetCalibrationMatrix();
+  const vtkMatrix4x4* constMatrix = const_cast< const vtkMatrix4x4* >( matrix );
+  
+  return constMatrix;
 }
 

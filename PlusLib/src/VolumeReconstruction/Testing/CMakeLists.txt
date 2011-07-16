@@ -11,3 +11,7 @@ ADD_TEST(vtkVolumeReconstructorTest1
   --output-volume-file-name=_GeneratedUsVolume.vtk
   )
 SET_TESTS_PROPERTIES( vtkVolumeReconstructorTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+
+# This program helps debugging geometry problems in volume reconstruction.
+ADD_EXECUTABLE( CreateSliceModels CreateSliceModels.cxx )
+TARGET_LINK_LIBRARIES( CreateSliceModels vtkPlusCommon vtkVolumeReconstruction )
