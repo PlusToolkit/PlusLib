@@ -29,10 +29,12 @@ vtkSavedDataTracker::vtkSavedDataTracker()
 {
 	this->LocalTrackerBuffer = NULL;
 	this->SequenceMetafile = NULL; 
-	this->StartTimestamp = 0.0; 
 	this->Tracking = 0;
 	this->Initialized = false;
 	this->ReplayEnabled = false; 
+  this->LoopStartTime = 0.0; 
+  this->LoopTime = 0.0; 
+  this->FrameNumber = 0; 
 
 	// TODO: Do we need other tools than the default tool? 
 	this->SetNumberOfTools(1);
@@ -220,8 +222,6 @@ PlusStatus vtkSavedDataTracker::InternalStartTracking()
 		return PLUS_FAIL;
 	} 
 
-	this->SetStartTimestamp(vtkAccurateTimer::GetSystemTime()); 
-
 	this->Tracking = 1;
 
 	return PLUS_SUCCESS;
@@ -244,14 +244,7 @@ PlusStatus vtkSavedDataTracker::InternalUpdate()
 		return PLUS_FAIL;
 	}
 
-	const double elapsedTime = vtkAccurateTimer::GetSystemTime() - this->GetStartTimestamp(); 
-
-  double oldestFrameTimestamp(0);  
-  if ( this->LocalTrackerBuffer->GetOldestTimeStamp(oldestFrameTimestamp) != ITEM_OK )
-  {
-    LOG_ERROR("vtkSavedDataTracker: Unable to get oldest timestamp from local buffer!");
-		return PLUS_FAIL; 
-  }
+	double elapsedTime = vtkAccurateTimer::GetSystemTime() - this->GetStartTime(); 
 
 	double latestFrameTimestamp(0); 
   if ( this->LocalTrackerBuffer->GetLatestTimeStamp(latestFrameTimestamp) != ITEM_OK )
@@ -262,14 +255,12 @@ PlusStatus vtkSavedDataTracker::InternalUpdate()
 
 	
 	// Compute the next timestamp 
-	double nextFrameTimestamp = oldestFrameTimestamp + elapsedTime; 
+	double nextFrameTimestamp = this->LoopStartTime + elapsedTime; 
 	if ( nextFrameTimestamp > latestFrameTimestamp )
 	{
 		if ( this->ReplayEnabled )
 		{
-			// Start again from the oldest frame
-			nextFrameTimestamp = oldestFrameTimestamp;
-			this->SetStartTimestamp(vtkAccurateTimer::GetSystemTime()); 
+      nextFrameTimestamp = this->LoopStartTime + fmod(elapsedTime, this->LoopTime); 
 		}
 		else
 		{
@@ -298,7 +289,14 @@ PlusStatus vtkSavedDataTracker::InternalUpdate()
 	}
 
 	// Get frame number 
-	int frameNumber = bufferItem.GetIndex(); 
+  if ( this->FrameNumber < bufferItem.GetIndex() )
+  {
+	  this->FrameNumber = bufferItem.GetIndex(); 
+  }
+  else
+  {
+    this->FrameNumber++; 
+  }
 
 	// Get default transfom
 	vtkMatrix4x4* defaultTransMatrix = bufferItem.GetMatrix(); 
@@ -309,7 +307,7 @@ PlusStatus vtkSavedDataTracker::InternalUpdate()
   double unfilteredtimestamp = bufferItem.GetUnfilteredTimestamp( this->LocalTrackerBuffer->GetLocalTimeOffset() ); 
 
 	// send the transformation matrix and flags to the tool
-	PlusStatus updateStatus = this->ToolTimeStampedUpdate(0, defaultTransMatrix, trackerStatus, frameNumber, unfilteredtimestamp);   
+	PlusStatus updateStatus = this->ToolUpdate(0, defaultTransMatrix, trackerStatus, this->FrameNumber);   
   
   return updateStatus;
 }

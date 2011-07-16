@@ -261,6 +261,11 @@ protected:
 	// Description:
 	// Read synchronization properties from xml file 
 	virtual PlusStatus ReadSynchronizationProperties(vtkXMLDataElement* synchronizationConfig); 
+  
+  // Description: 
+  // Compute loop times for saved datasets (time intersection of the two buffers)
+  // itemTimestamp = loopStartTime + (actualTimestamp - startTimestamp) % loopTime 
+  virtual PlusStatus SetLoopTimes(); 
 
 	//! Pointer to the progress bar update callback function 
 	ProgressBarUpdatePtr ProgressBarUpdateCallbackFunction; 

@@ -42,17 +42,28 @@ public:
 	vtkSetStringMacro(SequenceMetafile);
 	vtkGetStringMacro(SequenceMetafile);
 
-	// Description:
-	// Set/get tracking start timestamp 
-	vtkSetMacro(StartTimestamp, double); 
-	vtkGetMacro(StartTimestamp, double); 
-	
+  // Description: 
+  // Set/get loop start time 
+  // itemTimestamp = loopStartTime + (actualTimestamp - startTimestamp) % loopTime 
+	vtkSetMacro(LoopStartTime, double); 
+	vtkGetMacro(LoopStartTime, double); 
+
+  // Description: 
+  // Set/get loop time 
+  // itemTimestamp = loopStartTime + (actualTimestamp - startTimestamp) % loopTime 
+	vtkSetMacro(LoopTime, double); 
+	vtkGetMacro(LoopTime, double); 
+
 	//! Description 
 	// Flag to to enable saved dataset reply
 	// If it's enabled, the video source will continuously play saved data
 	vtkGetMacro(ReplayEnabled, bool);
 	vtkSetMacro(ReplayEnabled, bool);
 	vtkBooleanMacro(ReplayEnabled, bool);
+
+  //! Description 
+  // Get local tracker buffer 
+  vtkGetObjectMacro(LocalTrackerBuffer, vtkTrackerBuffer); 
 
 protected:
 	vtkSavedDataTracker();
@@ -75,12 +86,15 @@ protected:
 	PlusStatus InternalStopTracking();
 
 	char* SequenceMetafile; 
-	double StartTimestamp; 
 	bool ReplayEnabled; 
 
 	vtkTrackerBuffer* LocalTrackerBuffer; 
 	
 	bool Initialized;
+  long FrameNumber; 
+
+  double LoopStartTime; 
+  double LoopTime; 
 	
 	
 private:

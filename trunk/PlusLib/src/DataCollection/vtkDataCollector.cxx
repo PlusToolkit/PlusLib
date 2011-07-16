@@ -203,8 +203,114 @@ PlusStatus vtkDataCollector::Connect()
     }
   }
 
+  // Set saved datasets loop time
+  if ( this->SetLoopTimes() != PLUS_SUCCESS )
+  {
+    LOG_WARNING("Failed to set loop times!"); 
+    return PLUS_FAIL;
+  }
+
   return PLUS_SUCCESS;
 }
+
+//----------------------------------------------------------------------------
+PlusStatus vtkDataCollector::SetLoopTimes()
+{
+  if ( this->GetTrackerType() != TRACKER_SAVEDDATASET )
+  {
+    // No need to compute loop time 
+    return PLUS_SUCCESS; 
+  }
+
+  if( this->GetAcquisitionType() != SYNCHRO_VIDEO_SAVEDDATASET )
+  {
+    // No need to compute loop time 
+    return PLUS_SUCCESS; 
+  }
+
+  vtkSavedDataVideoSource* savedDataVideoSource = dynamic_cast<vtkSavedDataVideoSource*>(this->GetVideoSource()); 
+
+  if ( savedDataVideoSource == NULL )
+  {
+    LOG_ERROR("Failed to dynamic cast saved data video source!"); 
+    return PLUS_FAIL; 
+  }
+
+  vtkSavedDataTracker* savedDataTracker = dynamic_cast<vtkSavedDataTracker*>(this->GetTracker()); 
+
+  if ( savedDataTracker == NULL )
+  {
+    LOG_ERROR("Failed to dynamic cast saved data tracker!"); 
+    return PLUS_FAIL; 
+  }
+
+  double oldestVideoTimeStamp(0); 
+  if ( savedDataVideoSource->GetLocalVideoBuffer()->GetOldestTimeStamp(oldestVideoTimeStamp) !=  ITEM_OK ) 
+  {
+    LOG_WARNING("Failed to get oldest timestamp from local video buffer!"); 
+    return PLUS_FAIL;
+  }
+
+  double latestVideoTimeStamp(0); 
+  if ( savedDataVideoSource->GetLocalVideoBuffer()->GetLatestTimeStamp(latestVideoTimeStamp) !=  ITEM_OK ) 
+  {
+    LOG_WARNING("Failed to get latest timestamp from local video buffer!"); 
+    return PLUS_FAIL;
+  }
+
+  double oldestTrackerTimeStamp(0); 
+  if ( savedDataTracker->GetLocalTrackerBuffer()->GetOldestTimeStamp(oldestTrackerTimeStamp) !=  ITEM_OK ) 
+  {
+    LOG_WARNING("Failed to get oldest timestamp from local tracker buffer!"); 
+    return PLUS_FAIL;
+  }
+
+  double latestTrackerTimeStamp(0); 
+  if ( savedDataTracker->GetLocalTrackerBuffer()->GetLatestTimeStamp(latestTrackerTimeStamp) !=  ITEM_OK ) 
+  {
+    LOG_WARNING("Failed to get latest timestamp from local tracker buffer!"); 
+    return PLUS_FAIL;
+  }
+
+  // Item timestamps should computed in the following way for saved datasets (time intersection of the two buffers)
+  // itemTimestamp = loopStartTime + (actualTimestamp - startTimestamp) % loopTime 
+
+  // Compute the loop start time 
+  double loopStartTime(0); 
+  if ( oldestVideoTimeStamp > oldestTrackerTimeStamp )
+  {
+    loopStartTime = oldestVideoTimeStamp; 
+  }
+  else
+  {
+    loopStartTime = oldestTrackerTimeStamp; 
+  }
+  savedDataTracker->SetLoopStartTime( loopStartTime ); 
+  savedDataVideoSource->SetLoopStartTime( loopStartTime );
+
+  // Compute the loop time 
+  double loopTime(0); 
+  if ( latestVideoTimeStamp > latestTrackerTimeStamp )
+  {
+   loopTime = latestTrackerTimeStamp - loopStartTime; 
+  }
+  else
+  {
+    loopTime = latestVideoTimeStamp - loopStartTime; 
+  }
+
+  if ( loopTime < 0 )
+  {
+    LOG_ERROR("The two saved dataset doesn't intersect each other!"); 
+    return PLUS_FAIL; 
+  }
+
+  savedDataVideoSource->SetLoopTime( loopTime ); 
+  savedDataTracker->SetLoopTime( loopTime ); 
+
+  return PLUS_SUCCESS; 
+}
+
 
 //----------------------------------------------------------------------------
 PlusStatus vtkDataCollector::Disconnect()
@@ -500,7 +606,7 @@ PlusStatus vtkDataCollector::WriteVideoBufferToMetafile( vtkVideoBuffer* videoBu
   vtkSmartPointer<vtkTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New(); 
 
   PlusStatus status=PLUS_SUCCESS;
-  
+
   for ( BufferItemUidType frameUid = videoBuffer->GetOldestItemUidInBuffer(); frameUid <= videoBuffer->GetLatestItemUidInBuffer(); ++frameUid ) 
   {
 

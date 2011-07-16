@@ -182,6 +182,12 @@ void vtkTrackerBuffer::SetStartTime( double startTime)
 }
 
 //----------------------------------------------------------------------------
+double vtkTrackerBuffer::GetStartTime()
+{
+  return this->TrackerBuffer->GetStartTime(); 
+}
+
+//----------------------------------------------------------------------------
 PlusStatus vtkTrackerBuffer::GetTimeStampReportTable(vtkTable* timeStampReportTable) 
 {
   return this->TrackerBuffer->GetTimeStampReportTable(timeStampReportTable); 
