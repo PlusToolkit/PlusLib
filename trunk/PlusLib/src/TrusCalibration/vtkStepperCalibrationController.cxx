@@ -308,27 +308,29 @@ PlusStatus vtkStepperCalibrationController::CalibrateRotationAxis()
   centerOfRotReportFileName << this->OutputPath << "/" << this->CalibrationStartTime  << ".CenterOfRotationCalculationError.txt"; 
   this->SetCenterOfRotationCalculationErrorReportFilePath(centerOfRotReportFileName.str().c_str()); 
 
-  if ( clusteredFrames.size() < this->MinNumberOfRotationClusters )
+  if ( clusteredFrames.size() < this->MinNumberOfRotationClusters)
   {
-    if ( clusteredFrames.size() > 0 )
-    {
-      LOG_WARNING("Unable to calibrate rotation axis: Number of rotation clusters are less than the minimum requirements (" << clusteredFrames.size() << " of " << this->MinNumberOfRotationClusters << ")." ); 
-      double centerOfRotationPx[2] = {0, 0}; 
-      this->CalculateCenterOfRotation(clusteredFrames[0], centerOfRotationPx, centerOfRotationCalculationErrorTable); 
-      if ( centerOfRotationCalculationErrorTable )
-      {
-        vtkGnuplotExecuter::DumpTableToFileInGnuplotFormat(centerOfRotationCalculationErrorTable, this->GetCenterOfRotationCalculationErrorReportFilePath()); 
-      }
+    LOG_WARNING("Unable to calibrate rotation axis reliably: Number of rotation clusters are less than the minimum requirements (" << clusteredFrames.size() << " of " << this->MinNumberOfRotationClusters << ")." ); 
+  }
 
-      this->SetCenterOfRotationPx( centerOfRotationPx[0], centerOfRotationPx[1]); 
-      this->CenterOfRotationCalculatedOn(); 
-      return PLUS_SUCCESS; 
-    }
-    else
-    {
+  if ( clusteredFrames.size()==0 )
+  {
       LOG_ERROR("Failed to calibrate rotation axis: Unable to find any rotation clusters!" ); 
       return PLUS_FAIL; 
+  }
+
+  if ( clusteredFrames.size()==1 )
+  {
+    // Not enough clusters to use LSQR fitting, so just use the one single cluster result
+    double centerOfRotationPx[2] = {0, 0}; 
+    this->CalculateCenterOfRotation(clusteredFrames[0], centerOfRotationPx, centerOfRotationCalculationErrorTable); 
+    if ( centerOfRotationCalculationErrorTable )
+    {
+      vtkGnuplotExecuter::DumpTableToFileInGnuplotFormat(centerOfRotationCalculationErrorTable, this->GetCenterOfRotationCalculationErrorReportFilePath()); 
     }
+    this->SetCenterOfRotationPx( centerOfRotationPx[0], centerOfRotationPx[1]); 
+    this->CenterOfRotationCalculatedOn(); 
+    return PLUS_SUCCESS; 
   }
 
   std::vector< std::pair<double, double> > listOfCenterOfRotations; 

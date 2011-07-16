@@ -1,7 +1,7 @@
 <USCalibration version="1.0">
 	<!-- CalibrationMode: OFFLINE or REALTIME -->
     <CalibrationController LogLevel="INFO" OutputPath="./Output" EnableTrackedSequenceDataSaving="FALSE" EnableErroneouslySegmentedDataSaving="FALSE" EnableSegmentationAnalysis="FALSE" CalibrationMode="OFFLINE" EnableVisualization="FALSE">
-        <StepperCalibration MinNumberOfRotationClusters="4" >
+        <StepperCalibration MinNumberOfRotationClusters="1" >
 			<!-- TemplateTranslationData: These are the data files used to calculate the template translation axis  -->
 			<TemplateTranslationData 
                     NumberOfImagesToUse="100" 
