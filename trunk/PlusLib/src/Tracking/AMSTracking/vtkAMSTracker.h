@@ -71,36 +71,6 @@ public:
 	// Get stepper encoder values in a particular timestamp, where the timestamp is
 	// in system time as returned by vtkAccurateTimer::GetSystemTime().
 	PlusStatus GetStepperEncoderValues(double timestamp, double &probePosition, double &probeRotation, double &templatePosition, TrackerStatus &status ); 
-
-	// Description:
-	// Get probe position from the buffer, where '0' is the most recent and
-	// (NumberOfItems-1) is the oldest.
-	double GetProbePosition( int bufferIndex, long &flags ); 
-
-	//// Description:
-	//// Get probe position in a particular timestamp, where the timestamp is
-	//// in system time as returned by vtkAccurateTimer::GetSystemTime().
-	//double GetProbePosition( double timestamp, long &flags ); 
-
-	//// Description:
-	////  Get probe rotation from the buffer, where '0' is the most recent and
-	//// (NumberOfItems-1) is the oldest.
-	//double GetProbeRotation( int bufferIndex, long &flags  ); 
-
-	//// Description:
-	//// Get probe rotation in a particular timestamp, where the timestamp is
-	//// in system time as returned by vtkAccurateTimer::GetSystemTime().
-	//double GetProbeRotation( double timestamp, long &flags  );
-
-	//// Description:
-	//// Get template position from the buffer, where '0' is the most recent and
-	//// (NumberOfItems-1) is the oldest.
-	//double GetTemplatePosition( int bufferIndex, long &flags  ); 
-
-	//// Description:
-	//// Get template position in a particular timestamp, where the timestamp is
-	//// in system time as returned by vtkAccurateTimer::GetSystemTime().
-	//double GetTemplatePosition( double timestamp, long &flags  ); 
 	
 	// Description:
 	// Get probe home to probe transform from the buffer, where '0' is the most recent and

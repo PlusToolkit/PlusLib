@@ -549,54 +549,6 @@ PlusStatus vtkAMSTracker::GetStepperEncoderValues( double timestamp, double &pro
   return this->GetStepperEncoderValues(uid, probePosition, probeRotation, templatePosition, status); 
 }
 
-/*//----------------------------------------------------------------------------
-double vtkAMSTracker::GetProbePosition( int bufferIndex, long &flags)
-{
-	double probePos(0), probeRot(0), templatePos(0); 
-	this->GetStepperEncoderValues(bufferIndex, probePos, probeRot, templatePos, flags); 
-	return probePos; 
-}
-
-//----------------------------------------------------------------------------
-double vtkAMSTracker::GetProbePosition( double timestamp, long &flags )
-{
-	double probePos(0), probeRot(0), templatePos(0); 
-	this->GetStepperEncoderValues(timestamp, probePos, probeRot, templatePos, flags); 
-	return probePos; 
-}
-
-//----------------------------------------------------------------------------
-double vtkAMSTracker::GetProbeRotation( int bufferIndex, long &flags)
-{
-	double probePos(0), probeRot(0), templatePos(0); 
-	this->GetStepperEncoderValues(bufferIndex, probePos, probeRot, templatePos, flags); 
-	return probeRot; 
-}
-
-//----------------------------------------------------------------------------
-double vtkAMSTracker::GetProbeRotation( double timestamp, long &flags )
-{
-	double probePos(0), probeRot(0), templatePos(0); 
-	this->GetStepperEncoderValues(timestamp, probePos, probeRot, templatePos, flags); 
-	return probeRot; 
-}
-
-//----------------------------------------------------------------------------
-double vtkAMSTracker::GetTemplatePosition( int bufferIndex, long &flags)
-{
-	double probePos(0), probeRot(0), templatePos(0); 
-	this->GetStepperEncoderValues(bufferIndex, probePos, probeRot, templatePos, flags); 
-	return templatePos; 
-}
-
-//----------------------------------------------------------------------------
-double vtkAMSTracker::GetTemplatePosition( double timestamp, long &flags )
-{
-	double probePos(0), probeRot(0), templatePos(0); 
-	this->GetStepperEncoderValues(timestamp, probePos, probeRot, templatePos, flags); 
-	return templatePos;
-}
-*/
 //----------------------------------------------------------------------------
 PlusStatus vtkAMSTracker::GetProbeHomeToProbeTransform( BufferItemUidType uid, vtkMatrix4x4* probeHomeToProbeMatrix, TrackerStatus &status, bool calibratedTransform /*= false*/ )
 {
