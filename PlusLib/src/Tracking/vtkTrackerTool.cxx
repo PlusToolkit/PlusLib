@@ -451,7 +451,7 @@ PlusStatus vtkTrackerTool::ReadConfiguration(vtkXMLDataElement* config)
 	}
 
 	// Read tool definition file
-	if ( this->ToolDefinitionFileName ) 
+	if ( this->ToolDefinitionFileName && STRCASECMP(this->ToolDefinitionFileName, "")!=0 ) 
   {
 		if (STRCASECMP(vtkFileFinder::GetInstance()->GetConfigurationDirectory(), "") != 0) 
     {
