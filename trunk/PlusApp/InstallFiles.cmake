@@ -1,3 +1,6 @@
+# --------------------------------------------------------------------------
+# Install
+# 
 SET ( PLUSLIB_CONFIG_FILES
     ${PLUSLIB_DATA_DIR}/ConfigFiles/PhantomDefinition_fCal_1.0_Wiring_1.0.xml 
     ${PLUSLIB_DATA_DIR}/ConfigFiles/PhantomDefinition_iCal_1.0_Wiring_1.0.xml 
@@ -26,8 +29,33 @@ SET ( PLUSLIB_CONFIG_FILES
     ${PLUSLIB_DATA_DIR}/ConfigFiles/VolumeReconstructionConfig.xml 
 )
 
+IF(PLUSAPP_INSTALL_GNUPLOT_DIR)
+  INSTALL(
+    DIRECTORY ${GNUPLOT_BIN_DIR}/
+    DESTINATION ${PLUSAPP_INSTALL_GNUPLOT_DIR}
+    CONFIGURATIONS Release
+    COMPONENT Scripts
+    PATTERN ".svn" EXCLUDE
+  )
+ENDIF()
+
+
+IF(PLUSAPP_INSTALL_SCRIPTS_DIR)
+    FILE(GLOB GNUSCRIPTS "${PLUSLIB_SCRIPTS_DIR}/gnuplot/[^.]*.gnu")
+    INSTALL( FILES
+        ${GNUSCRIPTS}
+        DESTINATION ${PLUSAPP_INSTALL_SCRIPTS_DIR}
+        CONFIGURATIONS Release
+        COMPONENT Scripts
+    )
+
+ENDIF()
+
+
+IF(PLUSAPP_INSTALL_CONFIG_DIR)
 INSTALL(FILES 
 	${PLUSLIB_CONFIG_FILES}
 	DESTINATION ${PLUSAPP_INSTALL_CONFIG_DIR}
 	COMPONENT RuntimeLibraries
   )
+ENDIF()
