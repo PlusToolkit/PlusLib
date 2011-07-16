@@ -109,7 +109,7 @@ int main (int argc, char* argv[])
 		const char* strTimestamp = trackedFrameList->GetTrackedFrame(imgNumber)->GetCustomFrameField("Timestamp"); 
 		if ( strTimestamp == NULL ) 
 		{
-			timestamp = imgNumber;  // Just to make sure its increasing. This is not a normal case.
+			timestamp = imgNumber + 1;  // Just to make sure its increasing and not zero. This is not a normal case.
 		}
 		else
 		{
@@ -122,6 +122,7 @@ int main (int argc, char* argv[])
 	
 	PlusLogger::PrintProgressbar( 100 ); 
 
+	trackedFrameList->Clear(); 
 	LOG_INFO("Start reconstruction...");
 	reconstructor->StartReconstruction(); 
 
