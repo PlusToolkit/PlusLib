@@ -105,6 +105,15 @@ public:
     double unfilteredTimestamp, 
     long   frameNumber); 
 
+  virtual PlusStatus AddTimeStampedItem(unsigned char* imageDataPtr,                               
+    US_IMAGE_ORIENTATION  usImageOrientation, 
+    const int    frameSizeInPx[2],
+    int    numberOfBitsPerPixel, 
+    int	numberOfBytesToSkip, 
+    double unfilteredTimestamp, 
+    double filteredTimestamp, 
+    long   frameNumber); 
+
   virtual PlusStatus AddItem(unsigned char* imageDataPtr,                               
     US_IMAGE_ORIENTATION  usImageOrientation, 
     const int    frameSizeInPx[2],
@@ -114,6 +123,7 @@ public:
 
   virtual PlusStatus AddItem(vtkImageData* frame, US_IMAGE_ORIENTATION usImageOrientation, long frameNumber); 
   virtual PlusStatus AddTimeStampedItem(vtkImageData* frame, US_IMAGE_ORIENTATION usImageOrientation, double unfilteredTimestamp, long frameNumber); 
+  virtual PlusStatus AddTimeStampedItem(vtkImageData* frame, US_IMAGE_ORIENTATION usImageOrientation, double unfilteredTimestamp, double filteredTimestamp, long frameNumber); 
 
   // Description:
   // Get tracker item from buffer 

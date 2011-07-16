@@ -126,6 +126,10 @@ public:
 	vtkSetMacro(StartupDelaySec, double); 
 	vtkGetMacro(StartupDelaySec, double);
 
+  // Description: 
+  // Get the table report of the timestamped buffer 
+  PlusStatus GetSyncReportTable(vtkTable* syncReportTable); 
+
 	//! Description 
 	// Callback function for progress bar refreshing
 	typedef void (*ProgressBarUpdatePtr)(int percent);
@@ -160,7 +164,7 @@ protected:
 	virtual void FindStillFrame( BufferItemUidType& baseIndex, BufferItemUidType& currentIndex ); 
 
 	virtual PlusStatus ComputeTransformThreshold( BufferItemUidType& bufferIndex ); 
-	virtual PlusStatus FindTransformTimestamp( BufferItemUidType& bufferIndex, double& movedTransformTimestamp ); 
+	virtual PlusStatus FindTransformMotionTimestamp( BufferItemUidType& bufferIndex, double& movedTransformTimestamp ); 
 	virtual bool IsTransformBelowThreshold( vtkTransform* transform, double timestamp); 
 	virtual void FindStillTransform( BufferItemUidType& baseIndex, BufferItemUidType& currentIndex ); 
 	virtual double GetRotationError(vtkMatrix4x4* baseTransMatrix, vtkMatrix4x4* currentTransMatrix); 
@@ -168,12 +172,14 @@ protected:
 
 	virtual void RemoveOutliers(); 
 
-	virtual void ConvertFrameToRGB( vtkImageData* pFrame, vtkImageData* pFrameRGB ); 
+	virtual void ConvertFrameToRGB( vtkImageData* pFrame, vtkImageData* pFrameRGB, double resampleFactor ); 
 	virtual double GetFrameDifference(vtkImageData* frame); 
 	virtual double GetImageAcquisitionFrameRate(double& mean, double& deviation); 
 	virtual double GetPositionAcquisitionFrameRate(double& mean, double& deviation); 
 
 	virtual void SaveFrameToFile(vtkImageData* frame, char* fileName); 
+
+  virtual void InitSyncReportTable(); 
 
 	vtkImageData* BaseFrame; 
 
@@ -211,7 +217,7 @@ protected:
 
 	int MinNumOfSyncSteps; 
 	
-	std::ofstream DebugInfoStream;
+  vtkTable* SyncReportTable; 
 
 	//! Pointer to the progress bar update callback function 
 	ProgressBarUpdatePtr ProgressBarUpdateCallbackFunction; 

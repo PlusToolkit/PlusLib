@@ -208,7 +208,6 @@ public:
   vtkSetMacro(StartTime, double); 
   vtkGetMacro(StartTime, double); 
   
-
   // Description: 
   // Get the table report of the timestamped buffer 
   PlusStatus GetTimeStampReportTable(vtkTable* timeStampReportTable); 

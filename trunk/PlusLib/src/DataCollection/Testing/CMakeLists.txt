@@ -31,6 +31,7 @@ ADD_TEST(vtkDataCollectorSynchronizerTest1
   --input-threshold-multiplier=5
   --input-video-buffer-seq-file-name=${TestDataDir}/DataCollectorSyncVideoBuffer.mha 
   --input-tracker-buffer-seq-file-name=${TestDataDir}/DataCollectorSyncTrackerBuffer.mha 
+  --input-baseline-report-file=${TestDataDir}/DataCollectorSyncReportBaseline.txt
   --input-number-of-averaged-frames=6
   --input-max-frame-difference=10
   --input-min-frame-threshold=200
