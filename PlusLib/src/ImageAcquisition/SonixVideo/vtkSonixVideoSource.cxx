@@ -123,6 +123,9 @@ vtkSonixVideoSourceCleanup vtkSonixVideoSource::Cleanup;
 #  define vtkGWL_USERDATA GWL_USERDATA
 #endif // 
 
+static const int CONNECT_RETRY=5;
+static const int CONNECT_RETRY_DELAY_SEC=1.0;
+
 //----------------------------------------------------------------------------
 vtkSonixVideoSourceCleanup::vtkSonixVideoSourceCleanup()
 {
@@ -317,12 +320,21 @@ PlusStatus vtkSonixVideoSource::Initialize()
         return PLUS_SUCCESS;
     }
 
-    // Connect to device
-    if ( !this->Connect() ) 
+    // Connect to device. Sometimes it just fails so try to make it more robust by retrying
+    // the connection a few times.
+    int connectionRetried=0;
+    while (!this->Connect())
     {
-        LOG_ERROR("Unable to connect to video device!"); 
-        return PLUS_FAIL; 
+      if (connectionRetried>=CONNECT_RETRY)
+      {
+        LOG_ERROR("Failed to connect to video device");
+        return PLUS_FAIL;
+      }
+      connectionRetried++;
+      LOG_DEBUG("Failed to connect to video device, retry ("<<connectionRetried<<")");      
+      vtkAccurateTimer::Delay(CONNECT_RETRY_DELAY_SEC);
     }
+    LOG_DEBUG("Successfully connected to video device");
 
     // update the frame buffer now just in case there is an error
     this->UpdateFrameBuffer();
