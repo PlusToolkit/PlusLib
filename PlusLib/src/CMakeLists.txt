@@ -247,27 +247,3 @@ configure_file(
 	${CMAKE_CURRENT_BINARY_DIR}/UsePlusLib.cmake
     @ONLY
 	)	
-
-# --------------------------------------------------------------------------
-# Install
-#
-
-IF(PLUS_INSTALL_SCRIPTS_DIR)
-
-  INSTALL(
-    DIRECTORY ${GNUPLOT_BIN_DIR}/
-    DESTINATION ${PLUS_INSTALL_GNUPLOT_DIR}
-    CONFIGURATIONS Release
-    COMPONENT Scripts
-    PATTERN ".svn" EXCLUDE
-  )
-
-    INSTALL(
-    DIRECTORY ${PLUSLIB_DATA_DIR}/ConfigFiles/
-    DESTINATION ${PLUSAPP_INSTALL_CONFIG_DIR}
-    CONFIGURATIONS Release
-    COMPONENT Scripts
-    PATTERN "Test_" EXCLUDE
-  )
-
-ENDIF(PLUS_INSTALL_SCRIPTS_DIR)
