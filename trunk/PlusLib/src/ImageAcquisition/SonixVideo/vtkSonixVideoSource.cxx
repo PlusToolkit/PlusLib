@@ -246,7 +246,7 @@ bool vtkSonixVideoSource::vtkSonixVideoSourceNewFrameCallback(void * data, int t
 {    
     if(!data || !sz)
     {
-        LOG_WARNING("Error: no actual frame data received"); 
+        LOG_DEBUG("Error: no actual frame data received"); 
         return false;
     }
 
