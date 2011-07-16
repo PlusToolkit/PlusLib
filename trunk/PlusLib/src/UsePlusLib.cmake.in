@@ -9,7 +9,13 @@ IF(NOT PLUSLIB_USE_FILE_INCLUDED)
 
     ## Set Plus binary dir path 
     SET(PLUSLIB_DIR "@PlusLib_BINARY_DIR@" )
+    
+    ## Set Plus binary dir path 
+    SET(PLUSLIB_SCRIPTS_DIR "@PlusLib_SOURCE_DIR@/src/scripts" )
 
+    ## Set gnuplot binary dir path 
+    SET(GNUPLOT_BIN_DIR "@GNUPLOT_BIN_DIR@" )
+    
     ## Find ITK 
 	FIND_PACKAGE(ITK PATHS @ITK_DIR@ NO_DEFAULT_PATH)
 	IF (ITK_FOUND)
