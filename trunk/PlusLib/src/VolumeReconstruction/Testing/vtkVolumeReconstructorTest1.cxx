@@ -21,20 +21,22 @@ typedef itk::ImageFileReader< ImageSequenceType > ImageSequenceReaderType;
 
 int main (int argc, char* argv[])
 { 
+	  // Parse command line arguments.
+	
 	std::string inputImgSeqFileName;
 	std::string inputConfigFileName;
 	std::string outputVolumeFileName;
 
 	int verboseLevel=PlusLogger::LOG_LEVEL_INFO;
 	VTK_LOG_TO_CONSOLE_ON; 
-
+  
 	vtksys::CommandLineArguments cmdargs;
 	cmdargs.Initialize(argc, argv);
 
-	cmdargs.AddArgument("--input-img-seq-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputImgSeqFileName, "");
-	cmdargs.AddArgument("--input-config-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "");
-	cmdargs.AddArgument("--output-volume-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputVolumeFileName, "");
-	cmdargs.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug)");	
+	cmdargs.AddArgument( "--input-img-seq-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputImgSeqFileName, "" );
+	cmdargs.AddArgument( "--input-config-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "" );
+	cmdargs.AddArgument( "--output-volume-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputVolumeFileName, "" );
+	cmdargs.AddArgument( "--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug)" );
 
 	if ( !cmdargs.Parse() )
 	{
@@ -42,15 +44,25 @@ int main (int argc, char* argv[])
 		std::cout << "Help: " << cmdargs.GetHelp() << std::endl;
 		exit(EXIT_FAILURE);
 	}
-
-	// Set the log level
+  
+  if ( inputConfigFileName.empty() )
+    {
+    std::cout << "ERROR: Input config file missing!" << std::endl;
+    std::cout << "Help: " << cmdargs.GetHelp() << std::endl;
+		exit( EXIT_FAILURE );
+    }
+  
+  
+	  // Set the log level
+	
 	PlusLogger::Instance()->SetLogLevel(verboseLevel);
 	PlusLogger::Instance()->SetDisplayLogLevel(verboseLevel);
 
 
 	vtkSmartPointer<vtkVolumeReconstructor> reconstructor = vtkSmartPointer<vtkVolumeReconstructor>::New(); 
-
-	LOG_INFO("Reading configuration file...");
+  
+  
+	LOG_INFO( "Reading configuration file:" << inputConfigFileName );
 	reconstructor->ReadConfiguration(inputConfigFileName.c_str()); 
 
 	//***************************  Image sequence reading *****************************
@@ -74,7 +86,7 @@ int main (int argc, char* argv[])
 	reconstructor->GetImageToToolTransform()->GetMatrix()->Print( osTransformImageToTool );
 	LOG_DEBUG("Image to tool (probe calibration) transform: \n" << osTransformImageToTool.str());  
 	
-		 
+	
 	const int numberOfFrames = trackedFrameList->GetNumberOfTrackedFrames(); 
 	for ( int imgNumber = 0; imgNumber < numberOfFrames; ++imgNumber )
 	{
