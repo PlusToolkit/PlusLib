@@ -45,4 +45,11 @@
 			Date="2011.05.17"
 			Error="0.0" />
 	</Geometry>
+
+  <CustomTransforms TemplateHolderToPhantomTransform="
+                1 0 0 5
+                0 1 0 63.5
+                0 0 1 0
+                0 0 0 1" />
+
 </PhantomDefinition>

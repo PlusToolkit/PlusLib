@@ -1,8 +1,13 @@
-<TemplateModel version="1.0">
+<TemplateModel version="1.0" 
+  TemplateHolderToTemplateTransform="1 0 0 5
+                                     0 1 0 63.5
+                                     0 0 1 0
+                                     0 0 0 1" >
 	<TemplateHole Representation="Sphere" Radius="0.2"/>
 	<!--TemplateHole Representation="Disk" Radius="0.6"/-->
 	<OriginFromTemplateHolder OriginX="5" OriginY="63.5" />
-	<LetterPositions>
+  
+  <LetterPositions>
 		<Letter ID="A" PositionXYZ="0  -5 0" Type="Char"/>
 		<Letter ID="a" PositionXYZ="5  -5 0" Type="Char"/>
 		<Letter ID="B" PositionXYZ="10 -5 0" Type="Char"/>

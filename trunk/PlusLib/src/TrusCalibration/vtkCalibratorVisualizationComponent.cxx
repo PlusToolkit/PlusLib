@@ -1354,31 +1354,19 @@ void vtkCalibratorVisualizationComponent::ReadTemplateModelConfiguration(vtkXMLD
 	if ( configTemplateModel == NULL ) 
 	{
 		LOG_ERROR("Unable to read template model file: " << this->GetTemplateModelConfigFileName()); 
-	}
+	}	
 
-	vtkXMLDataElement* originFromTemplateHolder = configTemplateModel->FindNestedElementWithName("OriginFromTemplateHolder"); 
-	if ( originFromTemplateHolder == NULL ) 
+  double templateHolderToTemplateTransformVector[16]={0}; 
+  if (configTemplateModel->GetVectorAttribute("TemplateHolderToTemplateTransform", 16, templateHolderToTemplateTransformVector)) 
+  {
+    vtkSmartPointer<vtkTransform> transformTemplateHolderHomeToTemplateHome = vtkSmartPointer<vtkTransform>::New(); 
+    transformTemplateHolderHomeToTemplateHome->SetMatrix(templateHolderToTemplateTransformVector); 
+    this->GetCalibrationController()->SetTransformTemplateHolderHomeToTemplateHome( transformTemplateHolderHomeToTemplateHome ); 
+  }
+  else
 	{
 		LOG_ERROR("Unable to read template origin from template holder from template model file!"); 
 	}
-
-	vtkSmartPointer<vtkTransform> transformTemplateHolderHomeToTemplateHome = vtkSmartPointer<vtkTransform>::New(); 
-
-	double originX(0); 
-	if ( originFromTemplateHolder->GetScalarAttribute("OriginX",originX) )
-	{
-		transformTemplateHolderHomeToTemplateHome->Translate(originX, 0, 0); 
-
-	}
-
-	double originY(0); 
-	if ( originFromTemplateHolder->GetScalarAttribute("OriginY",originY) )
-	{
-		transformTemplateHolderHomeToTemplateHome->Translate(0, originY, 0); 
-
-	}
-
-	this->GetCalibrationController()->SetTransformTemplateHolderHomeToTemplateHome( transformTemplateHolderHomeToTemplateHome ); 
 
 	// ************************* Template model letters *************************
 	vtkXMLDataElement* letterPositions = configTemplateModel->FindNestedElementWithName("LetterPositions");

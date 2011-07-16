@@ -680,20 +680,20 @@ void vtkStepperCalibrationController::ConstrLinEqForRotEncCalc( std::vector<vnl_
       }
 
       // Wire #1 coordinate in mm 
-      double w1xmm = this->SegmentedFrameContainer[frame].SegResults.GetFoundDotsCoordinateValue()[0][0] * this->GetSpacing()[0]; 
-      double w1ymm = this->SegmentedFrameContainer[frame].SegResults.GetFoundDotsCoordinateValue()[0][1] * this->GetSpacing()[1]; 
+      double w1xmm = this->SegmentedFrameContainer[frame].SegResults.GetFoundDotsCoordinateValue()[WIRE1][0] * this->GetSpacing()[0]; 
+      double w1ymm = this->SegmentedFrameContainer[frame].SegResults.GetFoundDotsCoordinateValue()[WIRE1][1] * this->GetSpacing()[1]; 
 
       // Wire #3 coordinate in mm 
-      double w3xmm = this->SegmentedFrameContainer[frame].SegResults.GetFoundDotsCoordinateValue()[2][0] * this->GetSpacing()[0]; 
-      double w3ymm = this->SegmentedFrameContainer[frame].SegResults.GetFoundDotsCoordinateValue()[2][1] * this->GetSpacing()[1]; 
+      double w3xmm = this->SegmentedFrameContainer[frame].SegResults.GetFoundDotsCoordinateValue()[WIRE3][0] * this->GetSpacing()[0]; 
+      double w3ymm = this->SegmentedFrameContainer[frame].SegResults.GetFoundDotsCoordinateValue()[WIRE3][1] * this->GetSpacing()[1]; 
 
       // Wire #4 coordinate in mm 
-      double w4xmm = this->SegmentedFrameContainer[frame].SegResults.GetFoundDotsCoordinateValue()[3][0] * this->GetSpacing()[0]; 
-      double w4ymm = this->SegmentedFrameContainer[frame].SegResults.GetFoundDotsCoordinateValue()[3][1] * this->GetSpacing()[1]; 
+      double w4xmm = this->SegmentedFrameContainer[frame].SegResults.GetFoundDotsCoordinateValue()[WIRE4][0] * this->GetSpacing()[0]; 
+      double w4ymm = this->SegmentedFrameContainer[frame].SegResults.GetFoundDotsCoordinateValue()[WIRE4][1] * this->GetSpacing()[1]; 
 
       // Wire #6 coordinate in mm 
-      double w6xmm = this->SegmentedFrameContainer[frame].SegResults.GetFoundDotsCoordinateValue()[5][0] * this->GetSpacing()[0]; 
-      double w6ymm = this->SegmentedFrameContainer[frame].SegResults.GetFoundDotsCoordinateValue()[5][1] * this->GetSpacing()[1]; 
+      double w6xmm = this->SegmentedFrameContainer[frame].SegResults.GetFoundDotsCoordinateValue()[WIRE6][0] * this->GetSpacing()[0]; 
+      double w6ymm = this->SegmentedFrameContainer[frame].SegResults.GetFoundDotsCoordinateValue()[WIRE6][1] * this->GetSpacing()[1]; 
 
       double b1 = vtkMath::DegreesFromRadians(atan2( (w3ymm - w1ymm), (w1xmm - w3xmm) )); 
       bVector.push_back(b1); 
@@ -1074,7 +1074,7 @@ void vtkStepperCalibrationController::ConstrLinEqForTransAxisCalib( std::vector<
       }
 
       // Wire #1 X coordinate in mm 
-      double b1 = this->SegmentedFrameContainer[frame].SegResults.GetFoundDotsCoordinateValue()[0][0] * this->GetSpacing()[0]; 
+      double b1 = this->SegmentedFrameContainer[frame].SegResults.GetFoundDotsCoordinateValue()[WIRE1][0] * this->GetSpacing()[0]; 
       vnl_vector<double> a1(10,0); 
       a1.put(0, z); 
       a1.put(2, 1); 
@@ -1083,7 +1083,7 @@ void vtkStepperCalibrationController::ConstrLinEqForTransAxisCalib( std::vector<
       aMatrix.push_back(a1); 
 
       // Wire #1 Y coordinate in mm 
-      double b2 = this->SegmentedFrameContainer[frame].SegResults.GetFoundDotsCoordinateValue()[0][1] * this->GetSpacing()[1]; 
+      double b2 = this->SegmentedFrameContainer[frame].SegResults.GetFoundDotsCoordinateValue()[WIRE1][1] * this->GetSpacing()[1]; 
       vnl_vector<double> a2(10,0); 
       a2.put(1, z); 
       a2.put(3, 1); 
@@ -1092,7 +1092,7 @@ void vtkStepperCalibrationController::ConstrLinEqForTransAxisCalib( std::vector<
       aMatrix.push_back(a2); 
 
       // Wire #3 X coordinate in mm 
-      double b3 = this->SegmentedFrameContainer[frame].SegResults.GetFoundDotsCoordinateValue()[2][0] * this->GetSpacing()[0]; 
+      double b3 = this->SegmentedFrameContainer[frame].SegResults.GetFoundDotsCoordinateValue()[WIRE3][0] * this->GetSpacing()[0]; 
       vnl_vector<double> a3(10,0); 
       a3.put(0, z); 
       a3.put(4, 1); 
@@ -1101,7 +1101,7 @@ void vtkStepperCalibrationController::ConstrLinEqForTransAxisCalib( std::vector<
       aMatrix.push_back(a3); 
 
       // Wire #3 Y coordinate in mm 
-      double b4 = this->SegmentedFrameContainer[frame].SegResults.GetFoundDotsCoordinateValue()[2][1] * this->GetSpacing()[1]; 
+      double b4 = this->SegmentedFrameContainer[frame].SegResults.GetFoundDotsCoordinateValue()[WIRE3][1] * this->GetSpacing()[1]; 
       vnl_vector<double> a4(10,0); 
       a4.put(1, z); 
       a4.put(5, 1); 
@@ -1110,7 +1110,7 @@ void vtkStepperCalibrationController::ConstrLinEqForTransAxisCalib( std::vector<
       aMatrix.push_back(a4); 
 
       // Wire #4 X coordinate in mm 
-      double b5 = this->SegmentedFrameContainer[frame].SegResults.GetFoundDotsCoordinateValue()[3][0] * this->GetSpacing()[0]; 
+      double b5 = this->SegmentedFrameContainer[frame].SegResults.GetFoundDotsCoordinateValue()[WIRE4][0] * this->GetSpacing()[0]; 
       vnl_vector<double> a5(10,0); 
       a5.put(0, z); 
       a5.put(6, 1); 
@@ -1119,7 +1119,7 @@ void vtkStepperCalibrationController::ConstrLinEqForTransAxisCalib( std::vector<
       aMatrix.push_back(a5); 
 
       // Wire #4 Y coordinate in mm 
-      double b6 = this->SegmentedFrameContainer[frame].SegResults.GetFoundDotsCoordinateValue()[3][1] * this->GetSpacing()[1]; 
+      double b6 = this->SegmentedFrameContainer[frame].SegResults.GetFoundDotsCoordinateValue()[WIRE4][1] * this->GetSpacing()[1]; 
       vnl_vector<double> a6(10,0); 
       a6.put(1, z); 
       a6.put(7, 1); 
@@ -1128,7 +1128,7 @@ void vtkStepperCalibrationController::ConstrLinEqForTransAxisCalib( std::vector<
       aMatrix.push_back(a6); 
 
       // Wire #6 X coordinate in mm 
-      double b7 = this->SegmentedFrameContainer[frame].SegResults.GetFoundDotsCoordinateValue()[5][0] * this->GetSpacing()[0]; 
+      double b7 = this->SegmentedFrameContainer[frame].SegResults.GetFoundDotsCoordinateValue()[WIRE6][0] * this->GetSpacing()[0]; 
       vnl_vector<double> a7(10,0); 
       a7.put(0, z); 
       a7.put(8, 1); 
@@ -1137,7 +1137,7 @@ void vtkStepperCalibrationController::ConstrLinEqForTransAxisCalib( std::vector<
       aMatrix.push_back(a7); 
 
       // Wire #6 Y coordinate in mm 
-      double b8 = this->SegmentedFrameContainer[frame].SegResults.GetFoundDotsCoordinateValue()[5][1] * this->GetSpacing()[1]; 
+      double b8 = this->SegmentedFrameContainer[frame].SegResults.GetFoundDotsCoordinateValue()[WIRE6][1] * this->GetSpacing()[1]; 
       vnl_vector<double> a8(10,0); 
       a8.put(1, z); 
       a8.put(9, 1); 
@@ -1552,8 +1552,8 @@ void vtkStepperCalibrationController::ConstrLinEqForSpacingCalc( std::vector<vnl
     // Compute distance between line #1 and #3 for scaling computation 
     // Constant Distance Measurements from iCAL phantom design in mm
     const double distanceN1ToN3inMm(40); // TODO: read it from pahantom design
-    double xDistanceN1ToN3Px = this->SegmentedFrameContainer[frame].SegResults.GetFoundDotsCoordinateValue()[0][0] - this->SegmentedFrameContainer[frame].SegResults.GetFoundDotsCoordinateValue()[2][0]; 
-    double yDistanceN1ToN3Px = this->SegmentedFrameContainer[frame].SegResults.GetFoundDotsCoordinateValue()[0][1] - this->SegmentedFrameContainer[frame].SegResults.GetFoundDotsCoordinateValue()[2][1]; 
+    double xDistanceN1ToN3Px = this->SegmentedFrameContainer[frame].SegResults.GetFoundDotsCoordinateValue()[WIRE1][0] - this->SegmentedFrameContainer[frame].SegResults.GetFoundDotsCoordinateValue()[WIRE3][0]; 
+    double yDistanceN1ToN3Px = this->SegmentedFrameContainer[frame].SegResults.GetFoundDotsCoordinateValue()[WIRE1][1] - this->SegmentedFrameContainer[frame].SegResults.GetFoundDotsCoordinateValue()[WIRE3][1]; 
 
     // Populate the sparse matrix with squared distances in pixel 
     vnl_vector<double> scaleFactorN1ToN3(2,0); 
@@ -1567,8 +1567,8 @@ void vtkStepperCalibrationController::ConstrLinEqForSpacingCalc( std::vector<vnl
     // Compute distance between line #3 and #6 for scaling computation 
     // Constant Distance Measurements from iCAL phantom design in mm
     const double distanceN3ToN6inMm(20); // TODO: read it from pahantom design
-    double xDistanceN3ToN6Px = this->SegmentedFrameContainer[frame].SegResults.GetFoundDotsCoordinateValue()[2][0] - this->SegmentedFrameContainer[frame].SegResults.GetFoundDotsCoordinateValue()[5][0]; 
-    double yDistanceN3ToN6Px = this->SegmentedFrameContainer[frame].SegResults.GetFoundDotsCoordinateValue()[2][1] - this->SegmentedFrameContainer[frame].SegResults.GetFoundDotsCoordinateValue()[5][1]; 
+    double xDistanceN3ToN6Px = this->SegmentedFrameContainer[frame].SegResults.GetFoundDotsCoordinateValue()[WIRE3][0] - this->SegmentedFrameContainer[frame].SegResults.GetFoundDotsCoordinateValue()[WIRE6][0]; 
+    double yDistanceN3ToN6Px = this->SegmentedFrameContainer[frame].SegResults.GetFoundDotsCoordinateValue()[WIRE3][1] - this->SegmentedFrameContainer[frame].SegResults.GetFoundDotsCoordinateValue()[WIRE6][1]; 
 
     // Populate the sparse matrix with squared distances in pixel 
     vnl_vector<double> scaleFactorN3ToN6(2,0); 
@@ -1759,16 +1759,16 @@ PlusStatus vtkStepperCalibrationController::CalculateCenterOfRotation( Segmented
     std::vector<HomogenousVector4x1> vectorOfWirePoints; 
 
     // Add Line #1 pixel coordinates to center of rotation point set 
-    vectorOfWirePoints.push_back( HomogenousVector4x1( frameListForCenterOfRotation[frame].SegResults.GetFoundDotsCoordinateValue()[0][0], frameListForCenterOfRotation[frame].SegResults.GetFoundDotsCoordinateValue()[0][1], 0 ) ); 
+    vectorOfWirePoints.push_back( HomogenousVector4x1( frameListForCenterOfRotation[frame].SegResults.GetFoundDotsCoordinateValue()[WIRE1][0], frameListForCenterOfRotation[frame].SegResults.GetFoundDotsCoordinateValue()[WIRE1][1], 0 ) ); 
 
     // Add Line #3 pixel coordinates to center of rotation point set 
-    vectorOfWirePoints.push_back( HomogenousVector4x1( frameListForCenterOfRotation[frame].SegResults.GetFoundDotsCoordinateValue()[2][0], frameListForCenterOfRotation[frame].SegResults.GetFoundDotsCoordinateValue()[2][1], 0 ) ); 
+    vectorOfWirePoints.push_back( HomogenousVector4x1( frameListForCenterOfRotation[frame].SegResults.GetFoundDotsCoordinateValue()[WIRE3][0], frameListForCenterOfRotation[frame].SegResults.GetFoundDotsCoordinateValue()[WIRE3][1], 0 ) ); 
 
     // Add Line #4 pixel coordinates to center of rotation point set 
-    vectorOfWirePoints.push_back( HomogenousVector4x1( frameListForCenterOfRotation[frame].SegResults.GetFoundDotsCoordinateValue()[3][0], frameListForCenterOfRotation[frame].SegResults.GetFoundDotsCoordinateValue()[3][1], 0 ) ); 
+    vectorOfWirePoints.push_back( HomogenousVector4x1( frameListForCenterOfRotation[frame].SegResults.GetFoundDotsCoordinateValue()[WIRE4][0], frameListForCenterOfRotation[frame].SegResults.GetFoundDotsCoordinateValue()[WIRE4][1], 0 ) ); 
 
     // Add Line #6 pixel coordinates to center of rotation point set 
-    vectorOfWirePoints.push_back( HomogenousVector4x1( frameListForCenterOfRotation[frame].SegResults.GetFoundDotsCoordinateValue()[5][0], frameListForCenterOfRotation[frame].SegResults.GetFoundDotsCoordinateValue()[5][1], 0 ) ); 
+    vectorOfWirePoints.push_back( HomogenousVector4x1( frameListForCenterOfRotation[frame].SegResults.GetFoundDotsCoordinateValue()[WIRE6][0], frameListForCenterOfRotation[frame].SegResults.GetFoundDotsCoordinateValue()[WIRE6][1], 0 ) ); 
 
     pointSetForCenterOfRotationCalculation.push_back(vectorOfWirePoints); 
   }
@@ -1994,17 +1994,17 @@ void vtkStepperCalibrationController::SaveCenterOfRotationCalculationError(Segme
     tableRow->InsertNextValue(templatePos); 
 
     // Compute radius from Wire #1, #3, #4, #6
-    double w1x = frameListForCenterOfRotation[i].SegResults.GetFoundDotsCoordinateValue()[0][0]; 
-    double w1y = frameListForCenterOfRotation[i].SegResults.GetFoundDotsCoordinateValue()[0][1]; 
+    double w1x = frameListForCenterOfRotation[i].SegResults.GetFoundDotsCoordinateValue()[WIRE1][0]; 
+    double w1y = frameListForCenterOfRotation[i].SegResults.GetFoundDotsCoordinateValue()[WIRE1][1]; 
 
-    double w3x = frameListForCenterOfRotation[i].SegResults.GetFoundDotsCoordinateValue()[2][0]; 
-    double w3y = frameListForCenterOfRotation[i].SegResults.GetFoundDotsCoordinateValue()[2][1]; 
+    double w3x = frameListForCenterOfRotation[i].SegResults.GetFoundDotsCoordinateValue()[WIRE3][0]; 
+    double w3y = frameListForCenterOfRotation[i].SegResults.GetFoundDotsCoordinateValue()[WIRE3][1]; 
 
-    double w4x = frameListForCenterOfRotation[i].SegResults.GetFoundDotsCoordinateValue()[3][0]; 
-    double w4y = frameListForCenterOfRotation[i].SegResults.GetFoundDotsCoordinateValue()[3][1]; 
+    double w4x = frameListForCenterOfRotation[i].SegResults.GetFoundDotsCoordinateValue()[WIRE4][0]; 
+    double w4y = frameListForCenterOfRotation[i].SegResults.GetFoundDotsCoordinateValue()[WIRE4][1]; 
 
-    double w6x = frameListForCenterOfRotation[i].SegResults.GetFoundDotsCoordinateValue()[5][0]; 
-    double w6y = frameListForCenterOfRotation[i].SegResults.GetFoundDotsCoordinateValue()[5][1]; 
+    double w6x = frameListForCenterOfRotation[i].SegResults.GetFoundDotsCoordinateValue()[WIRE6][0]; 
+    double w6y = frameListForCenterOfRotation[i].SegResults.GetFoundDotsCoordinateValue()[WIRE6][1]; 
 
     tableRow->InsertNextValue( sqrt( pow( (w1x - centerOfRotationPx[0])*sX, 2) + pow((w1y - centerOfRotationPx[1])*sY, 2) ) ); 
     tableRow->InsertNextValue( sqrt( pow( (w3x - centerOfRotationPx[0])*sX, 2) + pow((w3y - centerOfRotationPx[1])*sY, 2) ) ); 
@@ -2143,9 +2143,9 @@ PlusStatus vtkStepperCalibrationController::CalculatePhantomToProbeDistance()
 
       // Add Line #1 (point A) Line #3 (point B) and Line #6 (point C) pixel coordinates to phantom to probe distance point set 
       this->AddPointsForPhantomToProbeDistanceCalculation(
-        this->SegmentedFrameContainer[frame].SegResults.GetFoundDotsCoordinateValue()[0][0], this->SegmentedFrameContainer[frame].SegResults.GetFoundDotsCoordinateValue()[0][1], 0, 
-        this->SegmentedFrameContainer[frame].SegResults.GetFoundDotsCoordinateValue()[2][0], this->SegmentedFrameContainer[frame].SegResults.GetFoundDotsCoordinateValue()[2][1], 0, 
-        this->SegmentedFrameContainer[frame].SegResults.GetFoundDotsCoordinateValue()[5][0], this->SegmentedFrameContainer[frame].SegResults.GetFoundDotsCoordinateValue()[5][1], 0 
+        this->SegmentedFrameContainer[frame].SegResults.GetFoundDotsCoordinateValue()[WIRE1][0], this->SegmentedFrameContainer[frame].SegResults.GetFoundDotsCoordinateValue()[WIRE1][1], 0, 
+        this->SegmentedFrameContainer[frame].SegResults.GetFoundDotsCoordinateValue()[WIRE3][0], this->SegmentedFrameContainer[frame].SegResults.GetFoundDotsCoordinateValue()[WIRE3][1], 0, 
+        this->SegmentedFrameContainer[frame].SegResults.GetFoundDotsCoordinateValue()[WIRE6][0], this->SegmentedFrameContainer[frame].SegResults.GetFoundDotsCoordinateValue()[WIRE6][1], 0 
         ); 
 
     }

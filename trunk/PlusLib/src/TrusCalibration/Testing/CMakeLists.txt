@@ -62,10 +62,6 @@ ADD_TEST(vtkUSCalibrationControllerTest_FrameGrabber
 SET_TESTS_PROPERTIES( vtkUSCalibrationControllerTest_FrameGrabber PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 		
 #--------------------------------------------------------------------------------------------
-ADD_EXECUTABLE(vtkTemplateToStepperCalibratorTest1 vtkTemplateToStepperCalibratorTest1.cxx)
-TARGET_LINK_LIBRARIES(vtkTemplateToStepperCalibratorTest1 itkvnl itkvnl_algo vtkCommon vtkIO vtkImageAcquisition vtkTrusCalibration UsFidSegAlgo )		
-
-#--------------------------------------------------------------------------------------------
 ADD_EXECUTABLE(vtkStepperCalibrationControllerTest vtkStepperCalibrationControllerTest.cxx)
 TARGET_LINK_LIBRARIES(vtkStepperCalibrationControllerTest itkvnl itkvnl_algo vtkCommon vtkTrusCalibration vtkDataCollection vtkImageAcquisition )
 

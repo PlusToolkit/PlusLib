@@ -49,6 +49,7 @@
 #include <vector>
 
 // Phantom known points in template coordinate system
+/*
 class PhantomPoints
 {
 public: 
@@ -62,7 +63,7 @@ public:
 	PhantomPoints::PhantomPoints() 
 	{
 		// Template holder position 
-		TemplateHolderPosition.x = 5.0; 
+		TemplateHolderPosition.x = 5.0;   TemplateHolderFrameOriginToTemplateFrameOriginInTemplateFrame
 		TemplateHolderPosition.y = 63.5; 
 		TemplateHolderPosition.z = 0; 
 
@@ -154,6 +155,7 @@ public:
 	PhantomPointPosition TemplateHolderPosition; 
 	
 };
+*/
 
 //================================================ 
 // class BrachyTRUSCalibrator
@@ -282,7 +284,8 @@ class BrachyTRUSCalibrator : public Phantom
 			const vnl_matrix<double> TransformMatrixUSProbe2DRB4x4 ) const;
 
 
-		PhantomPoints GetPhantomPoints() { return this->mPhantomPoints; }; 
+//		PhantomPoints GetPhantomPoints() { return this->mPhantomPoints; }; 
+    const NWire& GetNWire(int i) { return this->mNWires[i]; }; 
 
 		//! Compute wire intersections from phantom geometry
 		virtual PlusStatus loadGeometry();
@@ -292,12 +295,13 @@ class BrachyTRUSCalibrator : public Phantom
 		// N-wire's Start and End Positions in the Front and Back Inner Walls
 		// There are 5x5 matrix of holes on both front and back inner walls
 		// [FORMAT: Front/Back [i][j], i & j are rows/columns of the hole matrix]
-		vnl_vector<double> mPhantomGeometryOnFrontInnerWall[5][5];
-		vnl_vector<double> mPhantomGeometryOnBackInnerWall[5][5];
+		//vnl_vector<double> mPhantomGeometryOnFrontInnerWall[5][5];
+		//vnl_vector<double> mPhantomGeometryOnBackInnerWall[5][5];
 
-		PhantomPoints mPhantomPoints;
+		//PhantomPoints mPhantomPoints;
 
 		std::vector<NWire> mNWires;
+
 };
 
 

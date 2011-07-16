@@ -84,13 +84,14 @@ BrachyTRUSCalibrator::BrachyTRUSCalibrator( SegmentationParameters* aSegmentatio
 {
 	try
 	{
-		for( int i = 0; i < 5; i++ )
+/*
+for( int i = 0; i < 5; i++ )
 			for( int j = 0; j < 5; j++ )
 		{
 			mPhantomGeometryOnFrontInnerWall[i][j].set_size(4);
 			mPhantomGeometryOnBackInnerWall[i][j].set_size(4);
 		}
-
+*/
 		// The reference points on BrachyTRUSCalibrator
 		// 1. All positions are all kept w.r.t the phantom frame.
 		// 2. These are fixed physical positions measurable using a Stylus probe.
