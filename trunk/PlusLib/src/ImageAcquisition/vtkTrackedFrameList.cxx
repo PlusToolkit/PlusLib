@@ -132,7 +132,10 @@ const char* TrackedFrame::GetCustomField( std::string name )
 }
 
 
-//----------------------------------------------------------------------------
+
+/**
+ * @param transform 16 elements of the transform matrix.
+ */
 bool TrackedFrame::GetDefaultFrameTransform(double transform[16]) 
 {
   // Find default frame transform 

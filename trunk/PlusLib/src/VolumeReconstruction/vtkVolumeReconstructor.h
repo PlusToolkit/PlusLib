@@ -82,6 +82,7 @@ public:
 
 
   vtkSmartPointer< vtkTransform > GetImageToToolTransform();
+  const vtkMatrix4x4* GetImageToToolMatrix();
 
 
 protected: 
