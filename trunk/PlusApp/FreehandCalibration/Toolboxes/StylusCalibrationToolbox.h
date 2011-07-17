@@ -4,7 +4,6 @@
 #include "ui_StylusCalibrationToolbox.h"
 
 #include "AbstractToolbox.h"
-#include "StylusCalibrationController.h"
 
 #include <QWidget>
 

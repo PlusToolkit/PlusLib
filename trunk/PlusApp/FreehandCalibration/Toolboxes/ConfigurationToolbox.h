@@ -4,7 +4,6 @@
 #include "ui_ConfigurationToolbox.h"
 
 #include "AbstractToolbox.h"
-//#include "ConfigurationController.h"
 
 #include <QWidget>
 

@@ -10,18 +10,20 @@
 
 //-----------------------------------------------------------------------------
 
-ToolStateDisplayWidget::ToolStateDisplayWidget(vtkDataCollector* aDataCollector, QWidget* aParent, Qt::WFlags aFlags)
+ToolStateDisplayWidget::ToolStateDisplayWidget(QWidget* aParent, Qt::WFlags aFlags)
 	: QWidget(aParent, aFlags)
-	, m_DataCollector(aDataCollector)
+	, m_DataCollector(NULL)
 	, m_Initialized(false)
 {
 	m_ToolNameLabels.clear();
-	m_ToolStatusLabels.clear();
+	m_ToolStateLabels.clear();
 
 	// Create default appearance
-	QGridLayout* grid = new QGridLayout(ui.deviceSetSelectionWidget, 1, 1, 0, 0, "");
+	QGridLayout* grid = new QGridLayout(this, 1, 1, 0, 0, "");
 	QLabel* uninitializedLabel = new QLabel(tr("Tool state display is unavailable until not connected to a device set."), this);
+	uninitializedLabel->setWordWrap(true);
 	grid->addWidget(uninitializedLabel);
+	m_ToolNameLabels.push_back(uninitializedLabel);
 	this->setLayout(grid);
 
 	// Install event filter that is called on any event
@@ -33,19 +35,32 @@ ToolStateDisplayWidget::ToolStateDisplayWidget(vtkDataCollector* aDataCollector,
 ToolStateDisplayWidget::~ToolStateDisplayWidget()
 {
 	m_ToolNameLabels.clear();
-	m_ToolStatusLabels.clear();
+	m_ToolStateLabels.clear();
 
 	m_DataCollector = NULL;
 }
 
 //-----------------------------------------------------------------------------
 
-PlusStatus ToolStateDisplayWidget::InitializeTools()
+PlusStatus ToolStateDisplayWidget::InitializeTools(vtkDataCollector* aDataCollector)
 {
+	m_DataCollector = aDataCollector;
+
 	if ((m_DataCollector == NULL) || (m_DataCollector->GetTracker() == NULL)) {
 		LOG_ERROR("Data collector or tracker is missing!");
 		return PLUS_FAIL;
 	}
+
+	// Clear former content
+	for (std::vector<QLabel*>::iterator it = m_ToolNameLabels.begin(); it != m_ToolNameLabels.end(); ++it) {
+		delete (*it);
+	}
+	m_ToolNameLabels.clear();
+	for (std::vector<QTextEdit*>::iterator it = m_ToolStateLabels.begin(); it != m_ToolStateLabels.end(); ++it) {
+		delete (*it);
+	}
+	m_ToolStateLabels.clear();
+	delete this->layout();
 
 	// Set up layout
 	QGridLayout* grid = new QGridLayout();
@@ -79,8 +94,8 @@ PlusStatus ToolStateDisplayWidget::InitializeTools()
 		m_ToolNameLabels.push_back(toolNameLabel);
 
 		// Create tool status label and add it to layout and label list
-		QTextEdit* toolStatusLabel = new QTextEdit("N/A", this);
-		m_ToolStatusLabels.push_back(toolStatusLabel);
+		QTextEdit* toolStateLabel = new QTextEdit("N/A", this);
+		m_ToolStateLabels.push_back(toolStateLabel);
 	}
 	
 	this->setLayout(grid);
@@ -105,7 +120,7 @@ PlusStatus ToolStateDisplayWidget::Update()
 		LOG_ERROR("Widget is not inialized!");
 		return PLUS_FAIL;
 	}
-	if (m_ToolStatusLabels.size() != m_DataCollector->GetTracker()->GetNumberOfTools()) {
+	if (m_ToolStateLabels.size() != m_DataCollector->GetTracker()->GetNumberOfTools()) {
 		LOG_ERROR("Tool number inconsistency!");
 		return PLUS_FAIL;
 	}
@@ -120,33 +135,33 @@ PlusStatus ToolStateDisplayWidget::Update()
 		TrackerBufferItem* latestItem = NULL;
 		if (tool->GetBuffer()->GetLatestTrackerBufferItem(latestItem) != ITEM_OK) {
 			LOG_WARNING("Latest tracker buffer item is not available");
-			m_ToolStatusLabels.at(i)->setText("BUFFER ERROR");
-			m_ToolStatusLabels.at(i)->setTextColor(QColor::fromRgb(223, 0, 0));
+			m_ToolStateLabels.at(i)->setText("BUFFER ERROR");
+			m_ToolStateLabels.at(i)->setTextColor(QColor::fromRgb(223, 0, 0));
 		} else {
 			switch (latestItem->GetStatus()) {
 				case (TR_OK):
-					m_ToolStatusLabels.at(i)->setText("OK");
-					m_ToolStatusLabels.at(i)->setTextColor(Qt::green);
+					m_ToolStateLabels.at(i)->setText("OK");
+					m_ToolStateLabels.at(i)->setTextColor(Qt::green);
 					break;
 				case (TR_MISSING):
-					m_ToolStatusLabels.at(i)->setText("MISSING");
-					m_ToolStatusLabels.at(i)->setTextColor(QColor::fromRgb(223, 0, 0));
+					m_ToolStateLabels.at(i)->setText("MISSING");
+					m_ToolStateLabels.at(i)->setTextColor(QColor::fromRgb(223, 0, 0));
 					break;
 				case (TR_OUT_OF_VIEW):
-					m_ToolStatusLabels.at(i)->setText("OUT OF VIEW");
-					m_ToolStatusLabels.at(i)->setTextColor(QColor::fromRgb(255, 128, 0));
+					m_ToolStateLabels.at(i)->setText("OUT OF VIEW");
+					m_ToolStateLabels.at(i)->setTextColor(QColor::fromRgb(255, 128, 0));
 					break;
 				case (TR_OUT_OF_VOLUME):
-					m_ToolStatusLabels.at(i)->setText("OUT OF VOLUME");
-					m_ToolStatusLabels.at(i)->setTextColor(QColor::fromRgb(255, 128, 0));
+					m_ToolStateLabels.at(i)->setText("OUT OF VOLUME");
+					m_ToolStateLabels.at(i)->setTextColor(QColor::fromRgb(255, 128, 0));
 					break;
 				case (TR_REQ_TIMEOUT):
-					m_ToolStatusLabels.at(i)->setText("TIMEOUT");
-					m_ToolStatusLabels.at(i)->setTextColor(QColor::fromRgb(223, 0, 0));
+					m_ToolStateLabels.at(i)->setText("TIMEOUT");
+					m_ToolStateLabels.at(i)->setTextColor(QColor::fromRgb(223, 0, 0));
 					break;
 				default:
-					m_ToolStatusLabels.at(i)->setText("UNKNOWN");
-					m_ToolStatusLabels.at(i)->setTextColor(QColor::fromRgb(223, 0, 0));
+					m_ToolStateLabels.at(i)->setText("UNKNOWN");
+					m_ToolStateLabels.at(i)->setTextColor(QColor::fromRgb(223, 0, 0));
 					break;
 			}
 		}

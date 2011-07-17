@@ -11,6 +11,7 @@ SET (FreehandCalibration_SRCS
 	FreehandMain.cxx
 	FreehandMainWindow.cxx
 	Toolboxes/ConfigurationToolbox.cxx
+	Toolboxes/ConfigurationController.cxx
 	Toolboxes/FreehandCalibrationToolbox.cxx
 	Toolboxes/StylusCalibrationToolbox.cxx
 	Toolboxes/PhantomRegistrationToolbox.cxx
@@ -26,6 +27,7 @@ endif (WIN32)
 SET (FreehandCalibration_UI_HDRS
 		FreehandMainWindow.h
 		Toolboxes/ConfigurationToolbox.h
+		Toolboxes/ConfigurationController.h
 		Toolboxes/FreehandCalibrationToolbox.h
 		Toolboxes/StylusCalibrationToolbox.h
 		Toolboxes/PhantomRegistrationToolbox.h

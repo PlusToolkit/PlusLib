@@ -1,5 +1,6 @@
 #include "PhantomRegistrationToolbox.h"
 
+#include "PhantomRegistrationController.h"
 #include "FreehandMainWindow.h"
 #include "vtkFreehandController.h"
 #include "StylusCalibrationController.h"

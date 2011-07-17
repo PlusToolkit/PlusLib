@@ -24,12 +24,19 @@ public:
 	* \param aParent parent
 	* \param aFlags widget flag
 	*/
-	ToolStateDisplayWidget(vtkDataCollector* aDataCollector, QWidget* aParent = 0, Qt::WFlags aFlags = 0);
+	ToolStateDisplayWidget(QWidget* aParent = 0, Qt::WFlags aFlags = 0);
 
 	/*!
 	* \brief Destructor
 	*/
 	~ToolStateDisplayWidget();
+
+	/*!
+	* \brief Read tools and set up widget
+	* \param aDataCollector Data collector instance
+	* \return Success flag
+	*/
+	PlusStatus InitializeTools(vtkDataCollector* aDataCollector);
 
 	/*!
 	* \brief Get tool statuses and display them
@@ -51,12 +58,6 @@ protected:
 	*/
 	bool eventFilter(QObject *obj, QEvent *ev);
 
-	/*!
-	* \brief Read tools and set up widget
-	* \return Success flag
-	*/
-	PlusStatus InitializeTools();
-
 protected:
 	//! Data collector
 	vtkDataCollector*		m_DataCollector;
@@ -65,8 +66,9 @@ protected:
 	std::vector<QLabel*>	m_ToolNameLabels;
 
 	//! List of tool status labels
-	std::vector<QTextEdit*>	m_ToolStatusLabels;
+	std::vector<QTextEdit*>	m_ToolStateLabels;
 
+	//! Flag showing if the widget is initialized (the tools are loaded)
 	bool					m_Initialized;
 
 };

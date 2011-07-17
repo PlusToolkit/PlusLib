@@ -1,5 +1,6 @@
 #include "ConfigurationToolbox.h"
 
+#include "ConfigurationController.h"
 #include "vtkFreehandController.h"
 #include "vtkFileFinder.h"
 #include "FreehandMainWindow.h"
@@ -17,33 +18,31 @@ ConfigurationToolbox::ConfigurationToolbox(QWidget* aParent, Qt::WFlags aFlags)
 {
 	ui.setupUi(this);
 
-	vtkFreehandController* controller = vtkFreehandController::GetInstance();
-	if ((controller == NULL) || (controller->GetInitialized() == false)) {
-		LOG_ERROR("vtkFreehandController is not initialized!");
+	// Initialize toolbox controller
+	ConfigurationController* toolboxController = ConfigurationController::GetInstance();
+	if (toolboxController == NULL) {
+		LOG_ERROR("Configuration calibration toolbox controller is not initialized!");
 		return;
 	}
-	vtkDataCollector* dataCollector = controller->GetDataCollector();
-	if (dataCollector == NULL) {
-		LOG_ERROR("Data collector is not initialized!");
-		return PLUS_FAIL;
-	}
-	if (dataCollector->GetTracker() == NULL) {
-		LOG_ERROR("Tracker is not initialized!");
-		return PLUS_FAIL;
-	}
+
+	toolboxController->SetToolbox(this);
 
 	// Create and setup device set selector widget
 	m_DeviceSetSelectorWidget = new DeviceSetSelectorWidget(this);
 	m_DeviceSetSelectorWidget->SetConfigurationDirectory(vtkFileFinder::GetInstance()->GetConfigurationDirectory());
 
-	m_ToolStateDisplayWidget = new ToolStateDisplayWidget(dataCollector, this);
+	m_ToolStateDisplayWidget = new ToolStateDisplayWidget(this);
 
 	connect( m_DeviceSetSelectorWidget, SIGNAL( ConfigurationDirectoryChanged(std::string) ), this, SLOT( SetConfigurationDirectory(std::string) ) );
 	connect( m_DeviceSetSelectorWidget, SIGNAL( ConnectToDevicesByConfigFileInvoked(std::string) ), this, SLOT( ConnectToDevicesByConfigFile(std::string) ) );
 
-	QGridLayout* grid = new QGridLayout(ui.deviceSetSelectionWidget, 1, 1, 0, 0, "");
-	grid->addWidget(m_DeviceSetSelectorWidget);
-	ui.deviceSetSelectionWidget->setLayout(grid);
+	QGridLayout* gridDeviceSetSelection = new QGridLayout(ui.deviceSetSelectionWidget, 1, 1, 0, 4, "");
+	gridDeviceSetSelection->addWidget(m_DeviceSetSelectorWidget);
+	ui.deviceSetSelectionWidget->setLayout(gridDeviceSetSelection);
+
+	QGridLayout* gridToolStateDisplay = new QGridLayout(ui.toolStateDisplayWidget, 1, 1, 0, 4, "");
+	gridToolStateDisplay->addWidget(m_ToolStateDisplayWidget);
+	ui.toolStateDisplayWidget->setLayout(gridToolStateDisplay);
 
 	//TODO tooltips
 }
@@ -125,7 +124,7 @@ void ConfigurationToolbox::ConnectToDevicesByConfigFile(std::string aConfigFile)
 		} else {
 			m_DeviceSetSelectorWidget->SetConnectionSuccessful(true);
 
-			m_ToolStateDisplayWidget->InitializeTools();
+			m_ToolStateDisplayWidget->InitializeTools(vtkFreehandController::GetInstance()->GetDataCollector());
 		}
 	}
 

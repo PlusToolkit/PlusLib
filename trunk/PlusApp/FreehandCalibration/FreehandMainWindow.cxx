@@ -2,10 +2,15 @@
 
 #include "vtkFreehandController.h"
 #include "ConfigurationToolbox.h"
+#include "ConfigurationController.h"
 #include "StylusCalibrationToolbox.h"
+#include "StylusCalibrationController.h"
 #include "PhantomRegistrationToolbox.h"
+#include "PhantomRegistrationController.h"
 #include "FreehandCalibrationToolbox.h"
+#include "vtkFreehandCalibrationController.h"
 #include "VolumeReconstructionToolbox.h"
+#include "VolumeReconstructionController.h"
 #include "StatusIcon.h"
 
 #include <QTimer>
@@ -44,7 +49,7 @@ void FreehandMainWindow::Initialize()
 	controller->SetCanvas(ui.canvas);
 	controller->Initialize();
 
-	// Locate directories and set them to freehand controller
+	// Locate directories and set them to file finder
 	LocateDirectories();
 
 	// Create toolboxes
@@ -179,7 +184,7 @@ AbstractToolboxController* FreehandMainWindow::GetToolboxControllerByType(Toolbo
 {
 	switch (aType) {
 		case ToolboxType_Configuration:
-			return NULL; //TODO If there will be a ConfigurationController, it has to go here
+			return ConfigurationController::GetInstance();
 		case ToolboxType_StylusCalibration:
 			return StylusCalibrationController::GetInstance();
 		case ToolboxType_PhantomRegistration:
@@ -201,6 +206,7 @@ void FreehandMainWindow::CurrentTabChanged(int aTabIndex)
 	LOG_DEBUG("Change tab"); 
 
 	if ((vtkFreehandController::GetInstance() == NULL)
+		|| (ConfigurationController::GetInstance() == NULL)
 		|| (StylusCalibrationController::GetInstance() == NULL)
 		|| (PhantomRegistrationController::GetInstance() == NULL)
 		|| (vtkFreehandCalibrationController::GetInstance() == NULL)
@@ -221,7 +227,7 @@ void FreehandMainWindow::CurrentTabChanged(int aTabIndex)
 	// Initialize new tab
 	if (ui.tabWidgetToolbox->tabText(aTabIndex) == "Configuration") {
 		// Initialize configuration
-		//ConfigurationController::GetInstance()->Initialize();
+		ConfigurationController::GetInstance()->Initialize();
 
 		m_ActiveToolbox = ToolboxType_Configuration;
 
@@ -293,9 +299,10 @@ void FreehandMainWindow::UpdateGUI()
 
 	vtkFreehandController* controller = vtkFreehandController::GetInstance();
 	if ((controller == NULL)
+		|| (ConfigurationController::GetInstance() == NULL)
 		|| (StylusCalibrationController::GetInstance() == NULL)
 		|| (PhantomRegistrationController::GetInstance() == NULL)
-		|| (vtkFreehandCalibrationController::GetInstance() == NULL)) { //TODO add VolumeReconstructor and possibly Configuration if needed
+		|| (vtkFreehandCalibrationController::GetInstance() == NULL)) { //TODO add VolumeReconstructor
 		LOG_ERROR("Some controllers are not initialized!");
 		return;
 	}
@@ -303,7 +310,13 @@ void FreehandMainWindow::UpdateGUI()
 	int tabIndex = ui.tabWidgetToolbox->currentIndex();
 
 	if (ui.tabWidgetToolbox->tabText(tabIndex) == "Configuration") {
-		// No update action
+		// Update toolbox (device states)
+		ConfigurationController* toolboxController = ConfigurationController::GetInstance();
+
+		if (toolboxController->State() != ToolboxState_Uninitialized) {
+			toolboxController->GetToolbox()->RefreshToolboxContent();
+		}
+
 	} else if (ui.tabWidgetToolbox->tabText(tabIndex) == "Stylus Calibration") {
 		StylusCalibrationController* toolboxController = StylusCalibrationController::GetInstance();
 
@@ -374,6 +387,11 @@ void FreehandMainWindow::UpdateGUI()
 		// TODO
 	} else {
 		LOG_ERROR("No tab with this title found!");
+	}
+
+	// Refresh tool state display if detached
+	if ((ui.tabWidgetToolbox->tabText(tabIndex) != "Configuration") && (ConfigurationController::GetInstance()->State() != ToolboxState_Uninitialized) && (ConfigurationController::GetInstance()->IsToolDisplayDetached())) {
+		ConfigurationController::GetInstance()->GetToolbox()->RefreshToolboxContent();
 	}
 
 	// Update canvas

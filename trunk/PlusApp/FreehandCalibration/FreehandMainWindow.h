@@ -51,7 +51,7 @@ public:
 
 public slots:
 	/*!
-	* \brief Determint configuration files location
+	* \brief Enable/disable tab changing
 	* \param Enable/Disable flag
 	*/
 	void SetTabsEnabled(bool);

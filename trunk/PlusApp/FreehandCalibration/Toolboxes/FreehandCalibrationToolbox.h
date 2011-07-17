@@ -4,7 +4,6 @@
 #include "ui_FreehandCalibrationToolbox.h"
 
 #include "AbstractToolbox.h"
-#include "vtkFreehandCalibrationController.h"
 
 #include <QWidget>
 

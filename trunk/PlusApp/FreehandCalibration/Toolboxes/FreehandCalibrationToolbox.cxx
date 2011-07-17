@@ -1,5 +1,6 @@
 #include "FreehandCalibrationToolbox.h"
 
+#include "vtkFreehandCalibrationController.h"
 #include "FreehandMainWindow.h"
 #include "vtkFreehandController.h"
 #include "PhantomRegistrationController.h"

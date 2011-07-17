@@ -1,5 +1,6 @@
 #include "StylusCalibrationToolbox.h"
 
+#include "StylusCalibrationController.h"
 #include "FreehandMainWindow.h"
 #include "vtkFileFinder.h"
 #include "vtkFreehandController.h"

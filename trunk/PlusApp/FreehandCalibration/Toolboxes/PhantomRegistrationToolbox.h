@@ -4,7 +4,6 @@
 #include "ui_PhantomRegistrationToolbox.h"
 
 #include "AbstractToolbox.h"
-#include "PhantomRegistrationController.h"
 
 #include <QWidget>
 
