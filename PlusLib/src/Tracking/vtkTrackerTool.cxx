@@ -452,23 +452,23 @@ PlusStatus vtkTrackerTool::ReadConfiguration(vtkXMLDataElement* config)
 
 	// Read tool definition file
 	if ( this->ToolDefinitionFileName && STRCASECMP(this->ToolDefinitionFileName, "")!=0 ) 
-  {
+	{
 		if (STRCASECMP(vtkFileFinder::GetInstance()->GetConfigurationDirectory(), "") != 0) 
-    {
+		{
 			std::string searchResult = vtkFileFinder::GetFirstFileFoundInConfigurationDirectory(this->ToolDefinitionFileName);
 			if (STRCASECMP(searchResult.c_str(), "") != 0) 
-      {
+			{
 				vtkSmartPointer<vtkXMLDataElement> toolDefinition = vtkXMLUtilities::ReadElementFromFile(searchResult.c_str()); 
 				this->ReadToolDefinitionConfiguration(toolDefinition);
 			} 
-      else 
-      {
-				LOG_WARNING("Tool definition file " << this->ToolDefinitionFileName << " cannot be found in the parent of the configuration directory (" << vtkFileFinder::GetInstance()->GetConfigurationDirectory() << ")");
+			else 
+			{
+				LOG_WARNING("Tool definition file '" << this->ToolDefinitionFileName << "' cannot be found in the parent of the configuration directory (" << vtkFileFinder::GetInstance()->GetConfigurationDirectory() << ")");
 			}
 		} 
-    else 
-    {
-			LOG_WARNING("No configuration directory is specified, tool definition file " << this->ToolDefinitionFileName << " cannot be searched for."); 
+		else 
+		{
+			LOG_WARNING("No configuration directory is specified, tool definition file '" << this->ToolDefinitionFileName << "' cannot be searched for."); 
 		}
 	}
 
@@ -491,7 +491,7 @@ PlusStatus vtkTrackerTool::ReadToolDefinitionConfiguration(vtkXMLDataElement* to
 		const char* name = descriptionDataElement->GetAttribute("Name");
 		if ( name == NULL )
 		{
-			LOG_ERROR("Tool name is not set in tool definition file " << this->ToolDefinitionFileName); 
+			LOG_ERROR("Tool name is not set in tool definition file '" << this->ToolDefinitionFileName << "'");
 			return PLUS_FAIL;
 		}
 		else if (STRCASECMP(this->ToolType, name) != 0)
