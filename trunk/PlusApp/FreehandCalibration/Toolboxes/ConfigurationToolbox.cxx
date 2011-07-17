@@ -4,6 +4,9 @@
 #include "vtkFileFinder.h"
 #include "FreehandMainWindow.h"
 
+#include "DeviceSetSelectorWidget.h"
+#include "ToolStateDisplayWidget.h"
+
 #include <QDialog>
 
 //-----------------------------------------------------------------------------
@@ -19,10 +22,21 @@ ConfigurationToolbox::ConfigurationToolbox(QWidget* aParent, Qt::WFlags aFlags)
 		LOG_ERROR("vtkFreehandController is not initialized!");
 		return;
 	}
+	vtkDataCollector* dataCollector = controller->GetDataCollector();
+	if (dataCollector == NULL) {
+		LOG_ERROR("Data collector is not initialized!");
+		return PLUS_FAIL;
+	}
+	if (dataCollector->GetTracker() == NULL) {
+		LOG_ERROR("Tracker is not initialized!");
+		return PLUS_FAIL;
+	}
 
 	// Create and setup device set selector widget
 	m_DeviceSetSelectorWidget = new DeviceSetSelectorWidget(this);
 	m_DeviceSetSelectorWidget->SetConfigurationDirectory(vtkFileFinder::GetInstance()->GetConfigurationDirectory());
+
+	m_ToolStateDisplayWidget = new ToolStateDisplayWidget(dataCollector, this);
 
 	connect( m_DeviceSetSelectorWidget, SIGNAL( ConfigurationDirectoryChanged(std::string) ), this, SLOT( SetConfigurationDirectory(std::string) ) );
 	connect( m_DeviceSetSelectorWidget, SIGNAL( ConnectToDevicesByConfigFileInvoked(std::string) ), this, SLOT( ConnectToDevicesByConfigFile(std::string) ) );
@@ -50,6 +64,9 @@ void ConfigurationToolbox::Initialize()
 
 void ConfigurationToolbox::RefreshToolboxContent()
 {
+	if (m_ToolStateDisplayWidget->IsInitialized()) {
+		m_ToolStateDisplayWidget->Update();
+	}
 }
 
 //-----------------------------------------------------------------------------
@@ -107,6 +124,8 @@ void ConfigurationToolbox::ConnectToDevicesByConfigFile(std::string aConfigFile)
 			m_DeviceSetSelectorWidget->SetConnectionSuccessful(false);
 		} else {
 			m_DeviceSetSelectorWidget->SetConnectionSuccessful(true);
+
+			m_ToolStateDisplayWidget->InitializeTools();
 		}
 	}
 

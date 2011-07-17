@@ -11,6 +11,7 @@ INCLUDE(${QT_USE_FILE})
 SET (CommonWidgets_SRCS
 	DeviceSetSelectorWidget.cxx
 	StatusIcon.cxx
+	ToolStateDisplayWidget.cxx
 	)
 
 if (WIN32)	
@@ -22,6 +23,7 @@ endif (WIN32)
 SET (CommonWidgets_UI_HDRS
 		DeviceSetSelectorWidget.h
 		StatusIcon.h
+		ToolStateDisplayWidget.h
 	)
 
 SET (CommonWidgets_UI_SRCS

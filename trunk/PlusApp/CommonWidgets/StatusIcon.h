@@ -11,7 +11,7 @@
 //-----------------------------------------------------------------------------
 
 /*!
-* \brief TODO
+* \brief Widget that shows the current status of the application and displays all log messages occurred
 */
 class StatusIcon : public QWidget
 {
@@ -52,20 +52,35 @@ protected:
 	*/
 	bool eventFilter(QObject *obj, QEvent *ev);
 
-	//TODO
+	/*!
+	* \brief Creates message frame and fills up message field with the massages
+	* \return Success flag
+	*/
 	PlusStatus ConstructMessageListWidget();
 
-	//TODO
+	/*!
+	* \brief Getter function
+	* \return List of messages (pair of message:level)
+	*/
 	QList<QPair<QString, int>>* GetMessageList();
 
-	//TODO
+	/*!
+	* \brief Getter function
+	* \return Dot label for inserting it to host layout
+	*/
+	QLabel* GetDotLabel();
+
+	/*!
+	* \brief Setter function
+	* \param aLevel Level of the widget (determines color)
+	*/
 	void SetLevel(int aLevel);
 
-	//TODO
+	/*!
+	* \brief Getter function
+	* \return Level of the widget (determines color)
+	*/
 	int GetLevel();
-
-	//TODO
-	QLabel* GetDotLabel();
 
 private:
 	/*!
@@ -79,17 +94,17 @@ protected:
 	//! List of messages to display
 	QList<QPair<QString, int>>*	m_MessageList;
 
-	//! TODO
+	//! State level of the widget ( no errors (>2): green , warning (2): orange , error (1): red )
+	int							m_Level;
+
+	//! Label representing the colored dot for of this widget
 	QLabel*						m_DotLabel;
 
-	//! TODO
+	//! Frame containing the field of messages
 	QFrame*						m_MessageListWidget;
 
-	//! TODO
+	//! Field containing the messages
 	QTextEdit*					m_MessageTextEdit;
-
-	//! TODO
-	int							m_Level;
 
 	// Hack: move cursor to bottom of page if it is at the top (could not solve simple scrolling, had to play with cursot)
 	int							m_PreviousScroll;

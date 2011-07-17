@@ -4,10 +4,12 @@
 #include "ui_ConfigurationToolbox.h"
 
 #include "AbstractToolbox.h"
-#include "DeviceSetSelectorWidget.h"
 //#include "ConfigurationController.h"
 
 #include <QWidget>
+
+class DeviceSetSelectorWidget;
+class ToolStateDisplayWidget;
 
 //-----------------------------------------------------------------------------
 
@@ -59,12 +61,24 @@ signals:
 	void SetTabsEnabled(bool);
 
 protected slots:
-	//TODO
+	/*!
+	* \brief Slot setting the configuration directory according to device set selector
+	* \param aDirectory Configuration directory path
+	*/
 	void SetConfigurationDirectory(std::string aDirectory);
+	
+	/*!
+	* \brief Connect to devices described in the argument configuration file in response by clicking on the Connect button
+	* \param aConfigFile DeviceSet configuration file path and name
+	*/
 	void ConnectToDevicesByConfigFile(std::string aConfigFile);
 
 protected:
+	//! Device set selector widget
 	DeviceSetSelectorWidget*	m_DeviceSetSelectorWidget;
+
+	//! Tool state display widget
+	ToolStateDisplayWidget*		m_ToolStateDisplayWidget;
 
 protected:
 	Ui::ConfigurationToolbox	ui;
