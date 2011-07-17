@@ -990,7 +990,7 @@ PlusStatus vtkCalibrationController::ReadPhantomDefinition()
 						this->SetPhantomModelFileName(searchResult.c_str());
 					}
 				} else {
-					LOG_INFO(file << " does not appear to be a valid phantom model file name, so it was not searched for");
+					LOG_INFO("'" << file << "' does not appear to be a valid phantom model file name, so it was not searched for");
 				}
 			}
 

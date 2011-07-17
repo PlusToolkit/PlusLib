@@ -426,9 +426,6 @@ vtkAscension3DGTracker
     this->ConfigurationData = vtkXMLDataElement::New(); 
   }
 
-  // Save config data
-  this->ConfigurationData->DeepCopy( config ); 
-
   return PLUS_SUCCESS;
 }
 

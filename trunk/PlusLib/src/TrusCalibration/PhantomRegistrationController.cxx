@@ -728,7 +728,7 @@ PlusStatus PhantomRegistrationController::LoadPhantomDefinitionFromFile(std::str
 		LOG_ERROR("Unable to read the phantom definition file: " << aFile); 
 		return PLUS_FAIL;
 	} else if (STRCASECMP("PhantomDefinition", phantomDefinition->GetName()) != NULL) {
-		LOG_INFO(aFile << " is not a phantom definition file! The registration data cannot be used by calibration.");
+		LOG_INFO("'" << aFile << "' is not a phantom definition file! The registration data cannot be used by calibration.");
 	} else {
 		m_PhantomDefinitionFileName = aFile;
 	}
