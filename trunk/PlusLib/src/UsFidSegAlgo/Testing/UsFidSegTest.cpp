@@ -4,12 +4,6 @@
 #include <strstream>
 #include "UsFidSegResultFile.h"
 
-#include "itkImage.h"
-#include "itkImageFileReader.h"
-#include "itkImageFileWriter.h" 
-#include "itkImageRegionConstIterator.h" 
-#include "itkMetaImageSequenceIO.h"
-
 #include "UltraSoundFiducialSegmentation.h"
 #include "vtkCalibrationController.h"
 
@@ -17,23 +11,6 @@
 #include "vtkXMLDataElement.h"
 #include "vtkXMLUtilities.h"
 #include "vtkSmartPointer.h"
-
-#include "itkImageHelper.h"
-#include "itkFcsvReader.h"
-#include "itkLandmarkSpatialObject.h"
-
-
-///////////////////////////////////////////////////////////////////
-// Image type definition
-
-typedef unsigned char          PixelType; // define type for pixel representation
-const unsigned int             imageDimension = 2; 
-const unsigned int             imageSequenceDimension = 3; 
-
-typedef itk::Image< PixelType, imageDimension > ImageType;
-typedef itk::Image< PixelType, imageSequenceDimension > ImageSequenceType;
-
-typedef itk::ImageFileReader< ImageSequenceType > ImageSequenceReaderType;
 
 ///////////////////////////////////////////////////////////////////
 // Other constants
