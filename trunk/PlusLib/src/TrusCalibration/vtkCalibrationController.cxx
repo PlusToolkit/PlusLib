@@ -986,28 +986,6 @@ PlusStatus vtkCalibrationController::ReadPhantomDefinition()
 					LOG_INFO("'" << file << "' does not appear to be a valid phantom model file name, so it was not searched for");
 				}
 			}
-    // Load model information
-    vtkXMLDataElement* model = phantomDefinition->FindNestedElementWithName("Model"); 
-    if (model == NULL) {
-      LOG_WARNING("Phantom model information not found - no model displayed");
-    } else {
-      const char* file = model->GetAttribute("File");
-      if (file) {
-        if ((strstr(file, ".stl") != NULL) || ((strstr(file, ".STL") != NULL))) { // If filename contains ".stl" or ".STL" then it is valid, else we do not search for it (and do not return with warning either, because some time we just do not fill that field because we do not have the file)
-          std::string searchResult;
-          if (STRCASECMP(vtkFileFinder::GetInstance()->GetConfigurationDirectory(), "") == 0) {
-            std::string configurationDirectory = vtksys::SystemTools::GetFilenamePath(this->ConfigurationFileName);
-            searchResult = vtkFileFinder::GetFirstFileFoundInParentOfDirectory(file, configurationDirectory.c_str());
-          } else {
-            searchResult = vtkFileFinder::GetFirstFileFoundInConfigurationDirectory(file);
-          }
-          if (STRCASECMP("", searchResult.c_str()) != 0) {
-            this->SetPhantomModelFileName(searchResult.c_str());
-          }
-        } else {
-          LOG_INFO(file << " does not appear to be a valid phantom model file name, so it was not searched for");
-        }
-      }
 
       // ModelToPhantomOriginTransform - Transforming input model for proper visualization
       double* modelToPhantomOriginTransformVector = new double[16]; 
@@ -1093,11 +1071,9 @@ PlusStatus vtkCalibrationController::ReadPhantomDefinition()
     }
 
     this->GetSegParameters()->SetNWires(tempNWires);
-  }
-   // TODO: What was this commented out below? This part of code has to be reviewed.
-   //  else {
-   //  LOG_ERROR("Phantom definition file name is not set!"); 
-   //  return PLUS_FAIL;
+  } else {
+    LOG_ERROR("Phantom definition file name is not set!"); 
+    return PLUS_FAIL;
   }
 
   //TODO Load registration
