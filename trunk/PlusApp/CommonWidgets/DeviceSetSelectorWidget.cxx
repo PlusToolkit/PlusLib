@@ -14,8 +14,8 @@ DeviceSetSelectorWidget::DeviceSetSelectorWidget(QWidget* aParent)
 {
 	ui.setupUi(this);
 
-	connect( ui.pushButton_OpenConfigurationDirectory, SIGNAL( pressed() ), this, SLOT( OpenConfigurationDirectoryClicked() ) );
-	connect( ui.pushButton_Connect, SIGNAL( pressed() ), this, SLOT( InvokeConnect() ) );
+	connect( ui.pushButton_OpenConfigurationDirectory, SIGNAL( clicked() ), this, SLOT( OpenConfigurationDirectoryClicked() ) );
+	connect( ui.pushButton_Connect, SIGNAL( clicked() ), this, SLOT( InvokeConnect() ) );
 	connect( ui.comboBox_DeviceSet, SIGNAL( currentIndexChanged(int) ), this, SLOT( DeviceSetSelected(int) ) );
 
 	// Get configuration directory from registry if possible

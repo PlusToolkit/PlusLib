@@ -99,8 +99,9 @@ protected slots:
 
 	/*!
 	* \brief Slot handling show devices combobox state change
+	* \param Slot aOn True if toggled, false otherwise
 	*/
-	void ShowDevicesToggled();
+	void ShowDevicesToggled(bool aOn);
 
 protected:
 	Ui::FreehandCalibrationToolbox ui;

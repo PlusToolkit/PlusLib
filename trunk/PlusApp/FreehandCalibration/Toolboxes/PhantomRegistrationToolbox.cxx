@@ -35,13 +35,13 @@ PhantomRegistrationToolbox::PhantomRegistrationToolbox(QWidget* aParent, Qt::WFl
 	ui.canvasPhantom->GetRenderWindow()->AddRenderer(toolboxController->GetPhantomRenderer());
 
 	// Connect events
-	connect( ui.pushButton_OpenPhantomDefinition, SIGNAL( pressed() ), this, SLOT( OpenPhantomDefinitionClicked() ) );
-	connect( ui.pushButton_OpenStylusCalibration, SIGNAL( pressed() ), this, SLOT( OpenStylusCalibrationClicked() ) );
-	connect( ui.pushButton_RecordPoint, SIGNAL( pressed() ), this, SLOT( RecordPointClicked() ) );
-	connect( ui.pushButton_Undo, SIGNAL( pressed() ), this, SLOT( UndoClicked() ) );
-	connect( ui.pushButton_Reset, SIGNAL( pressed() ), this, SLOT( ResetClicked() ) );
-	connect( ui.pushButton_Register, SIGNAL( pressed() ), this, SLOT( RegisterClicked() ) );
-	connect( ui.pushButton_Save, SIGNAL( pressed() ), this, SLOT( SaveClicked() ) );
+	connect( ui.pushButton_OpenPhantomDefinition, SIGNAL( clicked() ), this, SLOT( OpenPhantomDefinitionClicked() ) );
+	connect( ui.pushButton_OpenStylusCalibration, SIGNAL( clicked() ), this, SLOT( OpenStylusCalibrationClicked() ) );
+	connect( ui.pushButton_RecordPoint, SIGNAL( clicked() ), this, SLOT( RecordPointClicked() ) );
+	connect( ui.pushButton_Undo, SIGNAL( clicked() ), this, SLOT( UndoClicked() ) );
+	connect( ui.pushButton_Reset, SIGNAL( clicked() ), this, SLOT( ResetClicked() ) );
+	connect( ui.pushButton_Register, SIGNAL( clicked() ), this, SLOT( RegisterClicked() ) );
+	connect( ui.pushButton_Save, SIGNAL( clicked() ), this, SLOT( SaveClicked() ) );
 
 	connect( m_AcquisitionTimer, SIGNAL( timeout() ), this, SLOT( RequestDoAcquisition() ) );
 

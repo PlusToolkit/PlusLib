@@ -15,6 +15,7 @@
 ConfigurationToolbox::ConfigurationToolbox(QWidget* aParent, Qt::WFlags aFlags)
 	: AbstractToolbox()
 	, QWidget(aParent, aFlags)
+	, m_ToolStatePopOutWindow(NULL)
 {
 	ui.setupUi(this);
 
@@ -32,10 +33,14 @@ ConfigurationToolbox::ConfigurationToolbox(QWidget* aParent, Qt::WFlags aFlags)
 	m_DeviceSetSelectorWidget->SetConfigurationDirectory(vtkFileFinder::GetInstance()->GetConfigurationDirectory());
 
 	m_ToolStateDisplayWidget = new ToolStateDisplayWidget(this);
+	m_ToolStateDisplayWidget->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
 
+	// Make connections
 	connect( m_DeviceSetSelectorWidget, SIGNAL( ConfigurationDirectoryChanged(std::string) ), this, SLOT( SetConfigurationDirectory(std::string) ) );
 	connect( m_DeviceSetSelectorWidget, SIGNAL( ConnectToDevicesByConfigFileInvoked(std::string) ), this, SLOT( ConnectToDevicesByConfigFile(std::string) ) );
+	connect( ui.pushButton_PopOut, SIGNAL( toggled(bool) ), this, SLOT( PopOutToggled(bool) ) );
 
+	// Insert widgets into placeholders
 	QGridLayout* gridDeviceSetSelection = new QGridLayout(ui.deviceSetSelectionWidget, 1, 1, 0, 4, "");
 	gridDeviceSetSelection->addWidget(m_DeviceSetSelectorWidget);
 	ui.deviceSetSelectionWidget->setLayout(gridDeviceSetSelection);
@@ -121,10 +126,10 @@ void ConfigurationToolbox::ConnectToDevicesByConfigFile(std::string aConfigFile)
 		if (vtkFreehandController::GetInstance()->StartDataCollection() != PLUS_SUCCESS) {
 			LOG_ERROR("Unable to start collecting data!");
 			m_DeviceSetSelectorWidget->SetConnectionSuccessful(false);
+			m_ToolStateDisplayWidget->InitializeTools(NULL, false);
 		} else {
 			m_DeviceSetSelectorWidget->SetConnectionSuccessful(true);
-
-			m_ToolStateDisplayWidget->InitializeTools(vtkFreehandController::GetInstance()->GetDataCollector());
+			m_ToolStateDisplayWidget->InitializeTools(vtkFreehandController::GetInstance()->GetDataCollector(), true);
 		}
 	}
 
@@ -132,4 +137,57 @@ void ConfigurationToolbox::ConnectToDevicesByConfigFile(std::string aConfigFile)
 	connectDialog->done(0);
 
 	QApplication::restoreOverrideCursor();
+}
+
+//-----------------------------------------------------------------------------
+
+void ConfigurationToolbox::PopOutToggled(bool aOn)
+{
+	if (aOn) {
+		// Create pop out window
+		m_ToolStatePopOutWindow = new QWidget(this, Qt::Tool);
+		m_ToolStatePopOutWindow->setMinimumSize(QSize(180, 60));
+		m_ToolStatePopOutWindow->setMaximumSize(QSize(180, 180));
+		m_ToolStatePopOutWindow->setCaption(tr("Tool state display"));
+		m_ToolStatePopOutWindow->setBackgroundColor(QColor::fromRgb(255, 255, 255));
+
+		QGridLayout* gridToolStateDisplay = new QGridLayout(m_ToolStatePopOutWindow, 1, 1, 0, 4, "");
+		gridToolStateDisplay->addWidget(m_ToolStateDisplayWidget);
+		m_ToolStatePopOutWindow->setLayout(gridToolStateDisplay);
+		m_ToolStatePopOutWindow->move( mapToGlobal( QPoint( ui.pushButton_PopOut->x(), ui.pushButton_PopOut->y() ) ) );
+		m_ToolStatePopOutWindow->show();
+
+		// Install event filter that is called on closing the window
+		m_ToolStatePopOutWindow->installEventFilter(this);
+
+		// Delete layout from the toolbox (to be able to add again)
+		delete ui.toolStateDisplayWidget->layout();
+	} else {
+		// Insert tool state display back in toolbox
+		QGridLayout* gridToolStateDisplay = new QGridLayout(ui.toolStateDisplayWidget, 1, 1, 0, 4, "");
+		gridToolStateDisplay->addWidget(m_ToolStateDisplayWidget);
+		ui.toolStateDisplayWidget->setLayout(gridToolStateDisplay);
+
+		// Delete pop out window
+		if (m_ToolStatePopOutWindow) {
+			delete m_ToolStatePopOutWindow;
+		}
+		m_ToolStatePopOutWindow = NULL;
+	}
+}
+
+//-----------------------------------------------------------------------------
+
+bool ConfigurationToolbox::eventFilter(QObject *obj, QEvent *ev)
+{
+	if ( obj == m_ToolStatePopOutWindow ) {
+		if ( ev->type() == QEvent::Close ) {
+			ui.pushButton_PopOut->setChecked(false);
+		} else {
+			// Pass the event on to the parent class
+			return QWidget::eventFilter( obj, ev );
+		}
+	}
+
+	return true;
 }

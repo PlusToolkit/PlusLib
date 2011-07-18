@@ -5,7 +5,6 @@
 #include "vtkTrackerTool.h"
 #include "vtkTrackerBuffer.h"
 
-//#include <QEvent>
 #include <QGridLayout>
 
 //-----------------------------------------------------------------------------
@@ -42,16 +41,12 @@ ToolStateDisplayWidget::~ToolStateDisplayWidget()
 
 //-----------------------------------------------------------------------------
 
-PlusStatus ToolStateDisplayWidget::InitializeTools(vtkDataCollector* aDataCollector)
+PlusStatus ToolStateDisplayWidget::InitializeTools(vtkDataCollector* aDataCollector, bool aConnectionSuccessful)
 {
-	m_DataCollector = aDataCollector;
-
-	if ((m_DataCollector == NULL) || (m_DataCollector->GetTracker() == NULL)) {
-		LOG_ERROR("Data collector or tracker is missing!");
-		return PLUS_FAIL;
-	}
-
 	// Clear former content
+	if (this->layout()) {
+		delete this->layout();
+	}
 	for (std::vector<QLabel*>::iterator it = m_ToolNameLabels.begin(); it != m_ToolNameLabels.end(); ++it) {
 		delete (*it);
 	}
@@ -60,11 +55,33 @@ PlusStatus ToolStateDisplayWidget::InitializeTools(vtkDataCollector* aDataCollec
 		delete (*it);
 	}
 	m_ToolStateLabels.clear();
-	delete this->layout();
+
+	// If connection was unsuccessful, create default appearance
+	if (! aConnectionSuccessful) {
+		QGridLayout* grid = new QGridLayout(this, 1, 1, 0, 0, "");
+		QLabel* uninitializedLabel = new QLabel(tr("Tool state display is unavailable until not connected to a device set."), this);
+		uninitializedLabel->setWordWrap(true);
+		grid->addWidget(uninitializedLabel);
+		m_ToolNameLabels.push_back(uninitializedLabel);
+		this->setLayout(grid);
+
+		m_Initialized = false;
+
+		return PLUS_SUCCESS;
+	}
+
+
+	m_DataCollector = aDataCollector;
+
+	// Fail if data collector or tracker is not initialized (once the content was deleted)
+	if ((m_DataCollector == NULL) || (m_DataCollector->GetTracker() == NULL)) {
+		LOG_ERROR("Data collector or tracker is missing!");
+		return PLUS_FAIL;
+	}
 
 	// Set up layout
-	QGridLayout* grid = new QGridLayout();
-	grid->setHorizontalSpacing(9);
+	QGridLayout* grid = new QGridLayout(this, m_DataCollector->GetTracker()->GetNumberOfTools(), 2, 1);
+	grid->setHorizontalSpacing(2);
 	grid->setVerticalSpacing(4);
 	grid->setContentsMargins(4, 4, 4, 4);
 
@@ -80,21 +97,36 @@ PlusStatus ToolStateDisplayWidget::InitializeTools(vtkDataCollector* aDataCollec
 		// Assemble tool name and add label to layout and label list
 		QString role("");
 		if (i == defaultToolNumber) {
-			role.append(tr(" (Default)"));
+			role.append(tr(" (Main)"));
 		}
 		if (i == referenceToolNumber) {
-			role.append(tr(" (Reference)"));
+			role.append(tr(" (Ref)"));
 		}
 
 		QString toolNameString = QString("%1%2: %3").arg(i).arg(role).arg(tool->GetToolName());
 
 		QLabel* toolNameLabel = new QLabel(this);
 		toolNameLabel->setText(toolNameString);
-		grid->addWidget(toolNameLabel, i, 0);
+		QSizePolicy sizePolicyNameLabel(QSizePolicy::Expanding, QSizePolicy::Preferred);
+		sizePolicyNameLabel.setHorizontalStretch(2);
+		toolNameLabel->setSizePolicy(sizePolicyNameLabel);
+		grid->addWidget(toolNameLabel, i, 0, Qt::AlignLeft);
 		m_ToolNameLabels.push_back(toolNameLabel);
 
 		// Create tool status label and add it to layout and label list
 		QTextEdit* toolStateLabel = new QTextEdit("N/A", this);
+		toolStateLabel->setTextColor(QColor::fromRgb(96, 96, 96));
+		toolStateLabel->setMaximumHeight(18);
+		toolStateLabel->setLineWrapMode(QTextEdit::NoWrap);
+		toolStateLabel->setReadOnly(true);
+		toolStateLabel->setFrameShape(QFrame::NoFrame);
+		toolStateLabel->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+		toolStateLabel->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+		toolStateLabel->setAlignment(Qt::AlignRight);
+		QSizePolicy sizePolicyStateLabel(QSizePolicy::Preferred, QSizePolicy::Fixed);
+		sizePolicyStateLabel.setHorizontalStretch(1);
+		toolStateLabel->setSizePolicy(sizePolicyStateLabel);
+		grid->addWidget(toolStateLabel, i, 1, Qt::AlignRight);
 		m_ToolStateLabels.push_back(toolStateLabel);
 	}
 	
@@ -132,13 +164,13 @@ PlusStatus ToolStateDisplayWidget::Update()
 		}
 
 		TrackerStatus status = TR_MISSING;
-		TrackerBufferItem* latestItem = NULL;
-		if (tool->GetBuffer()->GetLatestTrackerBufferItem(latestItem) != ITEM_OK) {
+		TrackerBufferItem latestItem;
+		if (tool->GetBuffer()->GetLatestTrackerBufferItem(&latestItem) != ITEM_OK) {
 			LOG_WARNING("Latest tracker buffer item is not available");
 			m_ToolStateLabels.at(i)->setText("BUFFER ERROR");
 			m_ToolStateLabels.at(i)->setTextColor(QColor::fromRgb(223, 0, 0));
 		} else {
-			switch (latestItem->GetStatus()) {
+			switch (latestItem.GetStatus()) {
 				case (TR_OK):
 					m_ToolStateLabels.at(i)->setText("OK");
 					m_ToolStateLabels.at(i)->setTextColor(Qt::green);
@@ -168,30 +200,4 @@ PlusStatus ToolStateDisplayWidget::Update()
 	}
 
 	return PLUS_SUCCESS;
-}
-
-//-----------------------------------------------------------------------------
-
-bool ToolStateDisplayWidget::eventFilter(QObject *obj, QEvent *ev)
-{
-	/*
-	if ( obj == this ) {
-		if ( ev->type() == QEvent::Enter ) {
-			m_PreviousScroll = 0;
-			// Construct and show message list widget
-			if (ConstructMessageListWidget() == PLUS_SUCCESS) {
-				m_MessageListWidget->move( mapToGlobal( QPoint( m_DotLabel->x() - m_MessageListWidget->maximumWidth() + 38, m_DotLabel->y() - m_MessageListWidget->maximumHeight() - 6 ) ) );
-				m_MessageListWidget->show();
-			}
-		} else if ( ev->type() == QEvent::Leave ) {
-			if (m_MessageListWidget) {
-				m_MessageListWidget->hide();
-			}
-		} else {
-			// Pass the event on to the parent class
-			return QWidget::eventFilter( obj, ev );
-		}
-	}
-	*/
-	return true;
 }

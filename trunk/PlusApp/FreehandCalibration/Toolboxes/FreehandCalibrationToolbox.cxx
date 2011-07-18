@@ -32,15 +32,15 @@ FreehandCalibrationToolbox::FreehandCalibrationToolbox(QWidget* aParent, Qt::WFl
 	ui.label_TemporalCalibration->setFont(QFont("SansSerif", 9, QFont::Bold));
 
 	// Connect events
-	connect( ui.pushButton_OpenPhantomRegistration, SIGNAL( pressed() ), this, SLOT( OpenPhantomRegistrationClicked() ) );
-	connect( ui.pushButton_OpenCalibrationConfiguration, SIGNAL( pressed() ), this, SLOT( OpenCalibrationConfigurationClicked() ) );
-	connect( ui.pushButton_StartTemporal, SIGNAL( pressed() ), this, SLOT( StartTemporalClicked() ) );
-	connect( ui.pushButton_ResetTemporal, SIGNAL( pressed() ), this, SLOT( ResetTemporalClicked() ) );
-	connect( ui.pushButton_SkipTemporal, SIGNAL( pressed() ), this, SLOT( SkipTemporalClicked() ) );
-	connect( ui.pushButton_StartSpatial, SIGNAL( pressed() ), this, SLOT( StartSpatialClicked() ) );
-	connect( ui.pushButton_ResetSpatial, SIGNAL( pressed() ), this, SLOT( ResetSpatialClicked() ) );
-	connect( ui.pushButton_Save, SIGNAL( pressed() ), this, SLOT( SaveClicked() ) );
-	connect( ui.checkBox_ShowDevices, SIGNAL( pressed() ), this, SLOT( ShowDevicesToggled() ) ); // Note: stateChanged(int) did not work because the processEvents
+	connect( ui.pushButton_OpenPhantomRegistration, SIGNAL( clicked() ), this, SLOT( OpenPhantomRegistrationClicked() ) );
+	connect( ui.pushButton_OpenCalibrationConfiguration, SIGNAL( clicked() ), this, SLOT( OpenCalibrationConfigurationClicked() ) );
+	connect( ui.pushButton_StartTemporal, SIGNAL( clicked() ), this, SLOT( StartTemporalClicked() ) );
+	connect( ui.pushButton_ResetTemporal, SIGNAL( clicked() ), this, SLOT( ResetTemporalClicked() ) );
+	connect( ui.pushButton_SkipTemporal, SIGNAL( clicked() ), this, SLOT( SkipTemporalClicked() ) );
+	connect( ui.pushButton_StartSpatial, SIGNAL( clicked() ), this, SLOT( StartSpatialClicked() ) );
+	connect( ui.pushButton_ResetSpatial, SIGNAL( clicked() ), this, SLOT( ResetSpatialClicked() ) );
+	connect( ui.pushButton_Save, SIGNAL( clicked() ), this, SLOT( SaveClicked() ) );
+	connect( ui.checkBox_ShowDevices, SIGNAL( toggled(bool) ), this, SLOT( ShowDevicesToggled(bool) ) );
 
 }
 
@@ -336,8 +336,7 @@ void FreehandCalibrationToolbox::SaveClicked()
 
 //-----------------------------------------------------------------------------
 
-void FreehandCalibrationToolbox::ShowDevicesToggled()
+void FreehandCalibrationToolbox::ShowDevicesToggled(bool aOn)
 {
-	ui.checkBox_ShowDevices->setChecked(! ui.checkBox_ShowDevices->isChecked());
-	vtkFreehandCalibrationController::GetInstance()->ToggleDeviceVisualization(ui.checkBox_ShowDevices->isChecked());
+	vtkFreehandCalibrationController::GetInstance()->ToggleDeviceVisualization(aOn);
 }

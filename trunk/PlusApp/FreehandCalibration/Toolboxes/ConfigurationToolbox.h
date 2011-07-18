@@ -72,12 +72,30 @@ protected slots:
 	*/
 	void ConnectToDevicesByConfigFile(std::string aConfigFile);
 
+	/*!
+	* \brief Slot handling pop out toggle button state change
+	* \param Slot aOn True if toggled, false otherwise
+	*/
+	void PopOutToggled(bool aOn);
+
+protected:
+	/*!
+	* \brief Filters events if this object has been installed as an event filter for the watched object
+	* \param obj object
+	* \param ev event
+	* \return if you want to filter the event out, i.e. stop it being handled further, return true; otherwise return false
+	*/
+	bool eventFilter(QObject *obj, QEvent *ev);
+
 protected:
 	//! Device set selector widget
 	DeviceSetSelectorWidget*	m_DeviceSetSelectorWidget;
 
 	//! Tool state display widget
 	ToolStateDisplayWidget*		m_ToolStateDisplayWidget;
+
+	//! Window that is created when tool state display widget is popped out
+	QWidget*					m_ToolStatePopOutWindow;
 
 protected:
 	Ui::ConfigurationToolbox	ui;

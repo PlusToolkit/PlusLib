@@ -295,7 +295,12 @@ void FreehandMainWindow::ChangeBackTab(int aTabIndex)
 
 void FreehandMainWindow::UpdateGUI()
 {
-	//LOG_TRACE("Update GUI"); 
+	//LOG_TRACE("Update GUI");
+
+	// We do not update the gui when a mouse button is pressed
+	if (QApplication::mouseButtons() != Qt::NoButton) {
+		return;
+	}
 
 	vtkFreehandController* controller = vtkFreehandController::GetInstance();
 	if ((controller == NULL)
@@ -398,7 +403,7 @@ void FreehandMainWindow::UpdateGUI()
 	ui.canvas->update();
 
 	// Process all events
-	QApplication::processEvents();
+	QApplication::processEvents(); //TODO is it needed here?
 }
 
 //-----------------------------------------------------------------------------

@@ -34,9 +34,10 @@ public:
 	/*!
 	* \brief Read tools and set up widget
 	* \param aDataCollector Data collector instance
+	* \param aConnectionSuccessful Flag if connection was successful (sets to uninitialized if not and displays default appearance)
 	* \return Success flag
 	*/
-	PlusStatus InitializeTools(vtkDataCollector* aDataCollector);
+	PlusStatus InitializeTools(vtkDataCollector* aDataCollector, bool aConnectionSuccessful);
 
 	/*!
 	* \brief Get tool statuses and display them
@@ -48,15 +49,6 @@ public:
 	* \return Initialization state
 	*/
 	bool IsInitialized();
-
-protected:
-	/*!
-	* \brief Filters events if this object has been installed as an event filter for the watched object
-	* \param obj object
-	* \param ev event
-	* \return if you want to filter the event out, i.e. stop it being handled further, return true; otherwise return false
-	*/
-	bool eventFilter(QObject *obj, QEvent *ev);
 
 protected:
 	//! Data collector
