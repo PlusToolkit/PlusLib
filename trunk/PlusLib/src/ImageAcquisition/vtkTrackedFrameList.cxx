@@ -9,7 +9,6 @@
 #include "itkImageFileWriter.h"
 #include "itkMetaImageSequenceIO.h"
 #include "itkFixedArray.h"
-#include "itkFlipImageFilter.h"
 
 
 //----------------------------------------------------------------------------
@@ -515,11 +514,11 @@ void vtkTrackedFrameList::SaveToSequenceMetafile(const char* outputFolder, const
 
   const int numberOfFilesToWrite = ceil( (1.0 * TrackedFrameList.size()) / (1.0 * this->MaxNumOfFramesToWrite) ); 
 
+  typedef itk::Image< TrackedFrame::PixelType, 3 > ImageSequenceType;
+  typedef itk::ImageFileWriter< ImageSequenceType > ImageSequenceWriterType;
+
   for ( int fileNumber = 1; fileNumber <= numberOfFilesToWrite; fileNumber++ )
   {
-
-    typedef itk::Image< TrackedFrame::PixelType, 3 > ImageSequenceType;
-    typedef itk::ImageFileWriter< ImageSequenceType > ImageSequenceWriterType;
 
     ImageSequenceType::Pointer imageDataSequence = ImageSequenceType::New();
 

@@ -1,10 +1,10 @@
-<USDataCollection version="2.0">
+<USDataCollection version="2.0" StartupDelaySec="1.0">
     <DeviceSet 
-        Name="SonixTouch with NDI Black Target guide stepper" 
+        Name="SonixTouch with Black Target guide stepper" 
         Description="" 
         />
 
-    <Tracker Type="AMSTracker" BufferSize="1000" Frequency="25" LocalTimeOffset="0.0" DefaultToolName="ProbeHomeToProbe" SerialPort="COM2" BaudRate="19200" >
+    <Tracker Type="AMSTracker" BufferSize="1000" Frequency="20" SmoothingFactor="0.001" LocalTimeOffset="0.0" DefaultToolName="ProbeHomeToProbe" SerialPort="COM6" BaudRate="19200" >
 		<Tool Name="ProbeHomeToProbe" PortNumber="0" SendTo="127.0.0.1:1111">
 		<Calibration 
                 MatrixName="ImageToProbe" 
@@ -25,11 +25,12 @@
     </Tracker>
 
     <ImageAcqusition Type="SonixVideo" 
-            BufferSize="200" 
-            FrameSize="640 480 1" 
+            BufferSize="500" 
+            FrameSize="640 480" 
             FrameRate="30" 
             SmoothingFactor="0.001" 
             LocalTimeOffset="0.0"
+			UsImageOrientation="MN"
             IP="130.15.7.20" 
             ImagingMode="0" 
             AcquisitionDataType="4" 

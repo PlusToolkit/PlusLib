@@ -9,8 +9,6 @@
 #include "vtkInformationVector.h"
 #include "vtkInformation.h"
 #include "vtkPointData.h"
-#include "vtkImageFlip.h"
-#include "vtkImageExport.h"
 
 #include "itkImage.h"
 #include "itkImageFileReader.h"
@@ -471,10 +469,10 @@ PlusStatus vtkDataCollector::WriteTrackerToMetafile( vtkTracker* tracker, const 
   for ( int i = 0 ; i < numberOfItems; i++ ) 
   {
     //Create fake image 
-    TrackedFrame::ImageType::Pointer frame = TrackedFrame::ImageType::New(); 
-    TrackedFrame::ImageType::SizeType size = {1, 1};
-    TrackedFrame::ImageType::IndexType start = {0,0};
-    TrackedFrame::ImageType::RegionType region;
+    ImageType::Pointer frame = TrackedFrame::ImageType::New(); 
+    ImageType::SizeType size = {1, 1};
+    ImageType::IndexType start = {0,0};
+    ImageType::RegionType region;
     region.SetSize(size);
     region.SetIndex(start);
     frame->SetRegions(region);
@@ -972,10 +970,28 @@ PlusStatus vtkDataCollector::GetDefaultToolStatus( double time, TrackerStatus &s
 //----------------------------------------------------------------------------
 PlusStatus vtkDataCollector::GetFrameByTime(double time, vtkImageData* frame, double& frameTimestamp)
 {
+  ImageType::Pointer itkImage = ImageType::New(); 
+  if ( this->GetFrameByTime(time, itkImage, frameTimestamp) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to get frame by time: " << std::fixed << time ); 
+    return PLUS_FAIL; 
+  }
+  return UsImageConverterCommon::ConvertItkImageToVtkImage(itkImage, frame); 
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkDataCollector::GetFrameByTime(double time, ImageType::Pointer& frame, double& frameTimestamp)
+{
   //LOG_TRACE("vtkDataCollector::GetFrameByTime"); 
   if ( this->GetVideoSource() == NULL ) 
   {	
     LOG_ERROR("Unable to get frame - there is no video source selected!"); 
+    return PLUS_FAIL; 
+  }
+
+  if ( frame.IsNull() )
+  {
+    LOG_ERROR("Unable to get frame - input frame is NULL!"); 
     return PLUS_FAIL; 
   }
 
@@ -1008,13 +1024,10 @@ PlusStatus vtkDataCollector::GetFrameByTime(double time, vtkImageData* frame, do
     return PLUS_FAIL; 
   }
 
-  if ( UsImageConverterCommon::ConvertItkImageToVtkImage(currentVideoBufferItem.GetFrame(), frame) != PLUS_SUCCESS )
-  {
-    LOG_ERROR("Failed to copy image data for UID: " << frameUID);
-    return PLUS_FAIL;
-  }
+  // Copy frame 
+  frame = currentVideoBufferItem.GetFrame(); 
 
-  // Get frame timestamp 
+  // Copy frame timestamp 
   frameTimestamp = currentVideoBufferItem.GetTimestamp( this->GetVideoSource()->GetBuffer()->GetLocalTimeOffset() ); 
   return PLUS_SUCCESS; 
 }
@@ -1188,25 +1201,17 @@ PlusStatus vtkDataCollector::GetTrackedFrameByTime(double time, TrackedFrame* tr
 
   if ( this->GetVideoEnabled() )
   {
-    // Allocate memory for new frame
-    vtkSmartPointer<vtkImageData> vtkimage = vtkSmartPointer<vtkImageData>::New(); 
-    vtkimage->CopyStructure( this->GetOutput() ); 
-    vtkimage->SetScalarTypeToUnsignedChar(); 
-    vtkimage->AllocateScalars(); 
+    ImageType::Pointer frame = ImageType::New(); 
 
     // Get the frame by time
-    if ( ! this->GetFrameByTime(time, vtkimage, synchronizedTime) )
+    if ( ! this->GetFrameByTime(time, frame, synchronizedTime) )
     {
       LOG_ERROR("Failed to get tracked frame by time: " << std::fixed << time ); 
       return PLUS_FAIL; 
     }
 
-    // Convert vtkImage to itkimage
-    TrackedFrame::ImageType::Pointer itkimage = TrackedFrame::ImageType::New(); 
-    UsImageConverterCommon::ConvertVtkImageToItkImage(vtkimage, itkimage); 
-
     //Add all information to the tracked frame
-    trackedFrame->ImageData = itkimage; 
+    trackedFrame->ImageData = frame; 
   }
 
   if ( this->GetTrackingEnabled() && this->GetTracker() != NULL )
