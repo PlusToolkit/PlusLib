@@ -74,6 +74,7 @@ SET (FreehandCalibration_LIBS
     ${QT_LIBRARIES} 
 	CommonWidgets
     vtkImageAcquisition 
+	vtkPlusCommon
     ITKIO
     itkvnl 
     itkvnl_algo 
@@ -83,7 +84,6 @@ SET (FreehandCalibration_LIBS
     vtkTrusCalibration 
     vtkTracking 
     vtkDataCollection 
-    vtkPlusCommon
     )
 
 IF (PLUS_USE_OpenIGTLink)
