@@ -1093,9 +1093,11 @@ PlusStatus vtkCalibrationController::ReadPhantomDefinition()
     }
 
     this->GetSegParameters()->SetNWires(tempNWires);
-  } else {
-    LOG_ERROR("Phantom definition file name is not set!"); 
-    return PLUS_FAIL;
+  }
+   // TODO: What was this commented out below? This part of code has to be reviewed.
+   //  else {
+   //  LOG_ERROR("Phantom definition file name is not set!"); 
+   //  return PLUS_FAIL;
   }
 
   //TODO Load registration
