@@ -231,7 +231,7 @@ PlusStatus vtkFakeTracker::InternalUpdate()
 			random->Next();
 			double outOfView = random->GetValue();
 			if (outOfView < 0.02) {
-				flags = TR_OUT_OF_VIEW;
+				trackerStatus = TR_OUT_OF_VIEW;
 			}
 			*/
 
