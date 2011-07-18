@@ -450,9 +450,9 @@ PlusStatus vtkFreehandCalibrationController::DoAcquisition()
 		controller->GetDataCollector()->GetTrackedFrame(&trackedFrame); 
 
 		if (trackedFrame.Status & (TR_MISSING | TR_OUT_OF_VIEW)) {
-			LOG_WARNING("Tracker out of view"); 
+			LOG_DEBUG("Tracker out of view"); 
 		} else if ( trackedFrame.Status & (TR_REQ_TIMEOUT)) {
-			LOG_WARNING("Tracker request timeout"); 
+			LOG_DEBUG("Tracker request timeout"); 
 		} else { // TR_OK
 			if (numberOfAcquiredImages < maxNumberOfValidationImages) {
 				// Validation data
