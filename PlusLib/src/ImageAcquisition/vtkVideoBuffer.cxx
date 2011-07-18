@@ -193,7 +193,7 @@ PlusStatus VideoBufferItem::SetFrame(unsigned char *imageDataPtr,
   if ( frameSizeInPx[0] != imageWidthInPixels 
     || frameSizeInPx[1] != imageHeightInPixels )
   {
-    LOG_ERROR("Input frame size is different from buffer frame size (input: " << frameSizeInPx[0] << "x" << frameSizeInPx[1] << "x" 
+    LOG_ERROR("Input frame size is different from buffer frame size (input: " << frameSizeInPx[0] << "x" << frameSizeInPx[1]
       << ",   buffer: " << imageWidthInPixels << "x" << imageHeightInPixels << ")!"); 
     return PLUS_FAIL; 
   }
@@ -348,6 +348,12 @@ PlusStatus vtkVideoBuffer::AddTimeStampedItem(unsigned char* imageDataPtr,
   {
     LOG_ERROR( "vtkVideoBuffer: Unable to add frame to video buffer - frame format doesn't match!"); 
     return PLUS_FAIL; 
+  }
+
+  if ( UsImageConverterCommon::GetMFOrientedImage(imageDataPtr, usImageOrientation, frameSizeInPx, numberOfBitsPerPixel) != PLUS_SUCCESS )
+  {
+	LOG_ERROR("Failed to convert input US image to MF orientation!"); 
+	return PLUS_FAIL; 
   }
 
   int bufferIndex(0); 

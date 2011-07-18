@@ -3,7 +3,6 @@
 #include <limits>
 
 #include "vtkBMPWriter.h"
-#include "vtkImageFlip.h" 
 #include "vtkImageImport.h" 
 #include "vtkImageData.h" 
 #include "vtkImageViewer.h"

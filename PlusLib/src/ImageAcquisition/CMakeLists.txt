@@ -233,8 +233,8 @@ INCLUDE_DIRECTORIES( ${PLUSLIB_INCLUDE_DIRS} )
 SET (ImageAcquisition_LIBS 
         vtkCommon 
         vtkHybrid 
-        ITKIO
-        vtkPlusCommon 
+        vtkPlusCommon
+		ITKIO
         ${SONIX_LIBRARY} 
         ${VFW_LIBRARY} 
         ${ICCapturing_LIBRARY} 

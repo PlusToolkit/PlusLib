@@ -194,7 +194,7 @@ PlusStatus vtkAMSTracker::InternalUpdate()
 	const double compensatedProbeRotation = this->ProbeRotationEncoderScale * dProbeRotation; 
 	tProbeHomeToProbe->RotateZ(compensatedProbeRotation);
 	// Translate back the probe to the original position
-	tProbeHomeToProbe->Translate(-probeRotationVector[0], -probeRotationVector[1], probeRotationVector[2]); 
+	tProbeHomeToProbe->Translate(-probeRotationVector[0], -probeRotationVector[1], -probeRotationVector[2]); 
 	// send the transformation matrix and status to the tool
 	this->ToolUpdate(PROBEHOME_TO_PROBE_TRANSFORM, tProbeHomeToProbe->GetMatrix(), status, frameNum);   
 

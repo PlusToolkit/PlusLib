@@ -35,7 +35,7 @@ SET (External_Libraries_Install)
 # --------------------------------------------------------------------------
 # Build the library
 
-SET (PlusCommon_LIBS vtkCommon vtkHybrid vtkFiltering ITKIO ${PlusCommon_LIBS} )
+SET (PlusCommon_LIBS ITKIO vtkCommon vtkHybrid vtkFiltering ${PlusCommon_LIBS} )
 
 if (WIN32)	
 	SET (PlusCommon_LIBS ${PlusCommon_LIBS} Winmm )
