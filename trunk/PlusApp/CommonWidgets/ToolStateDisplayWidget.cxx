@@ -13,6 +13,7 @@ ToolStateDisplayWidget::ToolStateDisplayWidget(QWidget* aParent, Qt::WFlags aFla
 	: QWidget(aParent, aFlags)
 	, m_DataCollector(NULL)
 	, m_Initialized(false)
+	, m_NumberOfActiveTools(-1)
 {
 	m_ToolNameLabels.clear();
 	m_ToolStateLabels.clear();
@@ -87,11 +88,15 @@ PlusStatus ToolStateDisplayWidget::InitializeTools(vtkDataCollector* aDataCollec
 
 	int defaultToolNumber = m_DataCollector->GetTracker()->GetDefaultTool();
 	int referenceToolNumber = m_DataCollector->GetTracker()->GetReferenceTool();
+	m_NumberOfActiveTools = 0;
 
 	for (int i=0; i<m_DataCollector->GetTracker()->GetNumberOfTools(); ++i) {
 		vtkTrackerTool *tool = m_DataCollector->GetTracker()->GetTool(i);
 		if ((tool == NULL) || (!tool->GetEnabled())) {
-			LOG_WARNING("Tool " << i << " is not enabled or not present");
+			LOG_INFO("Tool " << i << " is not enabled or not present");
+			continue;
+		} else {
+			m_NumberOfActiveTools++;
 		}
 
 		// Assemble tool name and add label to layout and label list
@@ -146,13 +151,20 @@ bool ToolStateDisplayWidget::IsInitialized()
 
 //-----------------------------------------------------------------------------
 
+int ToolStateDisplayWidget::GetDesiredHeight()
+{
+	return m_NumberOfActiveTools * 23;
+}
+
+//-----------------------------------------------------------------------------
+
 PlusStatus ToolStateDisplayWidget::Update()
 {
 	if (! m_Initialized) {
 		LOG_ERROR("Widget is not inialized!");
 		return PLUS_FAIL;
 	}
-	if (m_ToolStateLabels.size() != m_DataCollector->GetTracker()->GetNumberOfTools()) {
+	if (m_ToolStateLabels.size() != m_NumberOfActiveTools) {
 		LOG_ERROR("Tool number inconsistency!");
 		return PLUS_FAIL;
 	}
@@ -160,7 +172,7 @@ PlusStatus ToolStateDisplayWidget::Update()
 	for (int i=0; i<m_DataCollector->GetTracker()->GetNumberOfTools(); ++i) {
 		vtkTrackerTool *tool = m_DataCollector->GetTracker()->GetTool(i);
 		if ((tool == NULL) || (!tool->GetEnabled())) {
-			LOG_WARNING("Tool " << i << " is not enabled or not present");
+			continue;
 		}
 
 		TrackerStatus status = TR_MISSING;

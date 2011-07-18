@@ -129,7 +129,10 @@ void ConfigurationToolbox::ConnectToDevicesByConfigFile(std::string aConfigFile)
 			m_ToolStateDisplayWidget->InitializeTools(NULL, false);
 		} else {
 			m_DeviceSetSelectorWidget->SetConnectionSuccessful(true);
-			m_ToolStateDisplayWidget->InitializeTools(vtkFreehandController::GetInstance()->GetDataCollector(), true);
+			if (m_ToolStateDisplayWidget->InitializeTools(vtkFreehandController::GetInstance()->GetDataCollector(), true)) {
+				ui.toolStateDisplayWidget->setMinimumHeight(m_ToolStateDisplayWidget->GetDesiredHeight());
+				ui.toolStateDisplayWidget->setMaximumHeight(m_ToolStateDisplayWidget->GetDesiredHeight());
+			}
 		}
 	}
 
@@ -146,8 +149,8 @@ void ConfigurationToolbox::PopOutToggled(bool aOn)
 	if (aOn) {
 		// Create pop out window
 		m_ToolStatePopOutWindow = new QWidget(this, Qt::Tool);
-		m_ToolStatePopOutWindow->setMinimumSize(QSize(180, 60));
-		m_ToolStatePopOutWindow->setMaximumSize(QSize(180, 180));
+		m_ToolStatePopOutWindow->setMinimumSize(QSize(180, m_ToolStateDisplayWidget->GetDesiredHeight()));
+		m_ToolStatePopOutWindow->setMaximumSize(QSize(180, m_ToolStateDisplayWidget->GetDesiredHeight()));
 		m_ToolStatePopOutWindow->setCaption(tr("Tool state display"));
 		m_ToolStatePopOutWindow->setBackgroundColor(QColor::fromRgb(255, 255, 255));
 
@@ -164,6 +167,8 @@ void ConfigurationToolbox::PopOutToggled(bool aOn)
 		delete ui.toolStateDisplayWidget->layout();
 	} else {
 		// Insert tool state display back in toolbox
+		ui.toolStateDisplayWidget->setMinimumHeight(m_ToolStateDisplayWidget->GetDesiredHeight());
+		ui.toolStateDisplayWidget->setMaximumHeight(m_ToolStateDisplayWidget->GetDesiredHeight());
 		QGridLayout* gridToolStateDisplay = new QGridLayout(ui.toolStateDisplayWidget, 1, 1, 0, 4, "");
 		gridToolStateDisplay->addWidget(m_ToolStateDisplayWidget);
 		ui.toolStateDisplayWidget->setLayout(gridToolStateDisplay);
@@ -174,6 +179,9 @@ void ConfigurationToolbox::PopOutToggled(bool aOn)
 		}
 		m_ToolStatePopOutWindow = NULL;
 	}
+
+	// Set detached flag in controller
+	ConfigurationController::GetInstance()->SetToolDisplayDetached(aOn);
 }
 
 //-----------------------------------------------------------------------------
