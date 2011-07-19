@@ -2022,6 +2022,9 @@ static void *vtkReconstructionThread(ThreadInfoStruct *data)
       }
     }
   }
+  
+  self->ReconstructionFinishedOn(); 
+  return NULL;
 }
 
 

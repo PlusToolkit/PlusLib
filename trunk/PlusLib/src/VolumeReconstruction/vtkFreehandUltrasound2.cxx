@@ -168,6 +168,8 @@ vtkFreehandUltrasound2::vtkFreehandUltrasound2()
 	// pipeline, and creates the accumulation buffer
 	this->SetupOutputVolumes();
 	this->SetupAccumulationBuffers();
+	
+	this->ReconstructionFinishedOn();
 }
 
 //----------------------------------------------------------------------------
@@ -762,7 +764,7 @@ void vtkFreehandUltrasound2::StartRealTimeReconstruction()
 		if (this->InitializeRealTimeReconstruction())
 		{
 			this->InternalExecuteInformation();
-
+      this->ReconstructionFinishedOff();    
 			this->ReconstructionThreadId = \
 				this->Threader->SpawnThread((vtkThreadFunctionType)\
 				&vtkReconstructionThread,
@@ -856,6 +858,7 @@ PlusStatus vtkFreehandUltrasound2::StartReconstruction(int frames)
 		// initialize the reconstruction - this is overridden in derived classes
 		if (this->InitializeReconstruction())
 		{  
+		  this->ReconstructionFinishedOff();    
 			this->ReconstructionThreadId = \
 				this->Threader->SpawnThread((vtkThreadFunctionType)\
 				&vtkReconstructionThread,
