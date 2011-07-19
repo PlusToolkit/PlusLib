@@ -24,12 +24,20 @@ static const float FIDUCIAL_POSITION_TOLERANCE = 0.1;  // in pixel
 static const double BASELINE_TO_ALGORITHM_TOLERANCE = 5; 
 ///////////////////////////////////////////////////////////////////
 
-void SegmentImageSequence( vtkTrackedFrameList* trackedFrameList, std::ofstream &outFile, const std::string &inputTestcaseName, const std::string &inputImageSequenceFileName, vtkCalibrationController* calibrationController) 
+void SegmentImageSequence( vtkTrackedFrameList* trackedFrameList, std::ofstream &outFile, const std::string &inputTestcaseName, const std::string &inputImageSequenceFileName, vtkCalibrationController* calibrationController, const char* fidPositionOutputFilename)
 {
 	double sumFiducialNum = 0;// divide by framenum
 	double sumFiducialCandidate = 0;// divide by framenum
 
 	SegmentationParameters segParams = *(calibrationController->GetSegParameters());
+
+  bool writeFidPositionsToFile=(fidPositionOutputFilename!=NULL);  
+  std::ofstream outFileFidPositions; 
+  if (writeFidPositionsToFile)
+  {
+	  outFileFidPositions.open(fidPositionOutputFilename);
+	  outFileFidPositions<< "Unfiltered timestamp, Timestamp, w1x, w1y, w2x, w2y, w3x, w3y, w4x, w4y, w5x, w5y, w6x, w6y " <<std::endl;
+  }
 
 	for (int currentFrameIndex=0; currentFrameIndex<trackedFrameList->GetNumberOfTrackedFrames(); currentFrameIndex++)
 	{
@@ -65,7 +73,22 @@ void SegmentImageSequence( vtkTrackedFrameList* trackedFrameList, std::ofstream 
 			} 
 		}
 		sumFiducialNum = sumFiducialNum + numFid; 		
-		
+
+    if (writeFidPositionsToFile)
+    {
+
+      const char* strTimestamp = trackedFrameList->GetTrackedFrame(currentFrameIndex)->GetCustomFrameField("Timestamp"); 
+      const char* strUnfilteredTimestamp = trackedFrameList->GetTrackedFrame(currentFrameIndex)->GetCustomFrameField("UnfilteredTimestamp"); 
+
+      outFileFidPositions<< strUnfilteredTimestamp << ", " << strTimestamp;
+      for(int fidPosition = 0; fidPosition<segResults.GetFoundDotsCoordinateValue().size();fidPosition++)
+      { 
+        std::vector<double> currentFid = segResults.GetFoundDotsCoordinateValue()[fidPosition]; 
+        outFileFidPositions << ", " << currentFid[0] << ", " << currentFid[1];
+      }
+      outFileFidPositions << std::endl;
+    }
+
 		possibleFiducialsImageFilename.rdbuf()->freeze(); 
 		
 		UsFidSegResultFile::WriteSegmentationResults(outFile, segResults, inputTestcaseName, currentFrameIndex, inputImageSequenceFileName);
@@ -76,10 +99,14 @@ void SegmentImageSequence( vtkTrackedFrameList* trackedFrameList, std::ofstream 
 		}
 	}
 
-
 	double meanFid = sumFiducialNum/trackedFrameList->GetNumberOfTrackedFrames();
 	double meanFidCandidate = sumFiducialCandidate/trackedFrameList->GetNumberOfTrackedFrames();
 	UsFidSegResultFile::WriteSegmentationResultsStats(outFile,  meanFid, meanFidCandidate);
+
+  if (writeFidPositionsToFile)
+  {
+	  outFileFidPositions.close(); 
+  }
 }
 
 // return the number of differences
@@ -366,6 +393,7 @@ int main(int argc, char **argv)
 	std::string inputTestDataDir;
 	std::string inputConfigFileName;
 	std::string outputTestResultsFileName;
+  std::string outputFiducialPositionsFileName;
 	int thresholdTop = 0; 
 	int thresholdBottom = 0; 
 	std::string fiducialGeomString;	
@@ -381,6 +409,7 @@ int main(int argc, char **argv)
 	args.AddArgument("--input-baseline-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputBaselineFileName, "Name of file storing baseline results (fiducial coordinates, intensity, angle)");
 
 	args.AddArgument("--output-result-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputTestResultsFileName, "Name of file storing results of a new segmentation (fiducial coordinates, intensity, angle)");
+  args.AddArgument("--output-fiducial-positions-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputFiducialPositionsFileName, "Name of file for storing fiducial positions in time");
 	args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug)");		
 
 	args.AddArgument("--input-config-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "Calibration configuration file name");
@@ -395,9 +424,9 @@ int main(int argc, char **argv)
   PlusLogger::Instance()->SetDisplayLogLevel(verboseLevel);
   PlusLogger::Instance()->SetLogLevel(verboseLevel);
 
-	if (inputImageSequenceFileName.empty() || inputBaselineFileName.empty() || inputConfigFileName.empty())
+	if (inputImageSequenceFileName.empty() || inputConfigFileName.empty())
 	{
-		std::cerr << "At lease one of the following parameters is missing: input-img-seq-file-name, input-baseline-file-name, input-config-file-name" << std::endl;
+		std::cerr << "At lease one of the following parameters is missing: input-img-seq-file-name, input-config-file-name" << std::endl;
 		exit(EXIT_FAILURE);
 	}
 
@@ -418,8 +447,14 @@ int main(int argc, char **argv)
 	UsFidSegResultFile::WriteSegmentationResultsHeader(outFile);
 	UsFidSegResultFile::WriteSegmentationResultsParameters(outFile, *(calibrationController->GetSegParameters()), "");
 
+  const char* fidPositionOutputFilename=NULL;
+  if (!outputFiducialPositionsFileName.empty())
+  {
+    fidPositionOutputFilename=outputFiducialPositionsFileName.c_str();
+  }
+
   LOG_INFO("Segment image sequence");
-	SegmentImageSequence(trackedFrameList.GetPointer(), outFile, inputTestcaseName, inputImageSequenceFileName, calibrationController); 
+	SegmentImageSequence(trackedFrameList.GetPointer(), outFile, inputTestcaseName, inputImageSequenceFileName, calibrationController, fidPositionOutputFilename); 
 
 	UsFidSegResultFile::WriteSegmentationResultsFooter(outFile);
 	outFile.close();
