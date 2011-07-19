@@ -334,6 +334,11 @@ void vtkFreehandCalibrationController::ToggleDeviceVisualization(bool aOn)
 		renderer->AddActor(this->NeedleActor);
 
 		// Reset camera to show all devices and the image
+		vtkSmartPointer<vtkCamera> imageCamera = vtkSmartPointer<vtkCamera>::New(); 
+		imageCamera->SetViewUp(0, -1, 0);
+		imageCamera->ParallelProjectionOff();
+		this->SetImageCamera(imageCamera);
+		renderer->SetActiveCamera(this->ImageCamera);
 		renderer->ResetCamera();
 	}
 
@@ -380,20 +385,17 @@ PlusStatus vtkFreehandCalibrationController::CalculateImageCameraParameters()
 	imageCamera->SetViewUp(0, -1, 0);
 	imageCamera->SetClippingRange(0.1, 2000.0);
 	imageCamera->ParallelProjectionOn();
-	imageCamera->SetParallelScale(imageCenterY);
 
 	// Calculate distance of camera from the plane
-	double positionZ = -200.0;
-
 	int *size = controller->GetCanvasRenderer()->GetSize();
 	if ((double)size[0] / (double)size[1] > imageCenterX / imageCenterY) {
 		// If canvas aspect ratio is more elongenated in the X position then compute the distance according to the Y axis
-		positionZ = (-1.0) * imageCenterY / tan(imageCamera->GetViewAngle()*M_PI/180.0);
+		imageCamera->SetParallelScale(imageCenterY);
 	} else {
-		positionZ = (-1.0) * imageCenterX / tan(imageCamera->GetViewAngle()*M_PI/180.0);
+		imageCamera->SetParallelScale(imageCenterX);
 	}
 
-	imageCamera->SetPosition(imageCenterX, imageCenterY, positionZ - 500.0);
+	imageCamera->SetPosition(imageCenterX, imageCenterY, -200.0);
 
 	// Set camera
 	this->SetImageCamera(imageCamera);
