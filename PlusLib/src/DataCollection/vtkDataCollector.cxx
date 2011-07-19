@@ -1226,7 +1226,11 @@ PlusStatus vtkDataCollector::GetTrackedFrameByTime(double time, TrackedFrame* tr
       synchronizedTime = time;  
     }
 
-    this->GetTracker()->GetTrackerToolBufferStringList(synchronizedTime, toolsBufferMatrices, toolsCalibrationMatrices, toolsStatuses, calibratedTransform); 
+    if ( this->GetTracker()->GetTrackerToolBufferStringList(synchronizedTime, toolsBufferMatrices, toolsCalibrationMatrices, toolsStatuses, calibratedTransform) != PLUS_SUCCESS )
+	{
+	  LOG_ERROR("Failed to get tracker tool buffer stringlist: " << std::fixed << synchronizedTime ); 
+      return PLUS_FAIL; 
+	}
 
     if ( this->GetDefaultToolStatus(synchronizedTime, trackedFrame->Status ) != PLUS_SUCCESS )
     {

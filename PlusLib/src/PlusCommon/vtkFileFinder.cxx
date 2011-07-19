@@ -49,6 +49,8 @@ vtkFileFinder::~vtkFileFinder()
 
 std::string vtkFileFinder::GetFirstFileFoundInConfigurationDirectory(const char* aFileName)
 {
+	LOG_TRACE("vtkFileFinder::GetFirstFileFoundInConfigurationDirectory(" << aFileName << ")"); 
+
 	return GetFirstFileFoundInParentOfDirectory(aFileName, vtkFileFinder::GetInstance()->GetConfigurationDirectory());
 };
 
@@ -56,6 +58,8 @@ std::string vtkFileFinder::GetFirstFileFoundInConfigurationDirectory(const char*
 
 std::string vtkFileFinder::GetFirstFileFoundInParentOfDirectory(const char* aFileName, const char* aDirectory)
 {
+	LOG_TRACE("vtkFileFinder::GetFirstFileFoundInParentOfDirectory(" << aFileName << ", " << aDirectory << ")"); 
+
 	std::string parentDirectory = vtksys::SystemTools::GetParentDirectory(aDirectory);
 
 	return GetFirstFileFoundInDirectory(aFileName, parentDirectory.c_str());
@@ -65,6 +69,8 @@ std::string vtkFileFinder::GetFirstFileFoundInParentOfDirectory(const char* aFil
 
 std::string vtkFileFinder::GetFirstFileFoundInDirectory(const char* aFileName, const char* aDirectory)
 {
+	LOG_TRACE("vtkFileFinder::GetFirstFileFoundInDirectory(" << aFileName << ", " << aDirectory << ")"); 
+
 	std::string result = FindFileRecursivelyInDirectory(aFileName, aDirectory);
 	if (STRCASECMP("", result.c_str()) == 0) {
 		LOG_WARNING("File " << aFileName << " was not found in directory " << aDirectory);
@@ -77,6 +83,8 @@ std::string vtkFileFinder::GetFirstFileFoundInDirectory(const char* aFileName, c
 
 std::string vtkFileFinder::FindFileRecursivelyInDirectory(const char* aFileName, const char* aDirectory)
 {
+	LOG_TRACE("vtkFileFinder::FindFileRecursivelyInDirectory(" << aFileName << ", " << aDirectory << ")"); 
+
 	std::vector<std::string> directoryList;
 	directoryList.push_back(aDirectory);
 
