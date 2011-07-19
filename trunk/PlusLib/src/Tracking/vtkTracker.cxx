@@ -654,7 +654,14 @@ PlusStatus vtkTracker::GetTrackerToolBufferStringList(double timestamp,
       if ( this->GetTool(tool)->GetBuffer()->GetTrackerBufferItemFromTime(timestamp, &bufferItem, calibratedTransform ) != ITEM_OK )
       {
         LOG_ERROR("Failed to get tracker item from buffer by time: " << std::fixed << timestamp); 
-        return PLUS_FAIL; 
+		
+		double latestTimestamp(0); 
+		this->GetTool(tool)->GetBuffer()->GetLatestTimeStamp(latestTimestamp); 
+		double oldestTimestamp(0); 
+		this->GetTool(tool)->GetBuffer()->GetOldestTimeStamp(oldestTimestamp); 
+		LOG_DEBUG("Oldest timestamp: " << std::fixed << oldestTimestamp << "   latest timestamp: " << latestTimestamp); 
+        
+		return PLUS_FAIL; 
       }
 
       vtkMatrix4x4* dMatrix = bufferItem.GetMatrix(); 

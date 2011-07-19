@@ -167,6 +167,8 @@ PlusStatus PhantomRegistrationController::Initialize()
 
 void PhantomRegistrationController::InitializeVisualization()
 {
+	LOG_TRACE("PhantomRegistrationController::InitializeVisualization"); 
+
 	if (m_State == ToolboxState_Uninitialized) {
 		//Initialize polydatas
 		m_LandmarksPolyData = vtkPolyData::New();
@@ -300,7 +302,7 @@ void PhantomRegistrationController::InitializeVisualization()
 
 PlusStatus PhantomRegistrationController::Clear()
 {
-	LOG_DEBUG("Clear PhantomRegistrationController");
+	LOG_TRACE("PhantomRegistrationController::Clear"); 
 
 	// Remove all actors from the renderers
 	vtkRenderer* renderer = vtkFreehandController::GetInstance()->GetCanvasRenderer();
@@ -315,18 +317,22 @@ PlusStatus PhantomRegistrationController::Clear()
 
 	m_Toolbox->Clear();
 
-  return PLUS_SUCCESS;
+	return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
 
 std::string PhantomRegistrationController::GetPositionString() {
+	LOG_TRACE("PhantomRegistrationController::GetPositionString"); 
+
 	return m_PositionString;
 }
 
 //-----------------------------------------------------------------------------
 
 std::string PhantomRegistrationController::GetPhantomDefinitionFileName() {
+	LOG_TRACE("PhantomRegistrationController::GetPhantomDefinitionFileName"); 
+
 	return m_PhantomDefinitionFileName;
 }
 
@@ -334,6 +340,8 @@ std::string PhantomRegistrationController::GetPhantomDefinitionFileName() {
 
 int PhantomRegistrationController::GetNumberOfLandmarks()
 {
+	LOG_TRACE("PhantomRegistrationController::GetNumberOfLandmarks"); 
+
 	if (m_DefinedLandmarks == NULL) {
 		return 0;
 	} else {
@@ -345,6 +353,8 @@ int PhantomRegistrationController::GetNumberOfLandmarks()
 
 int PhantomRegistrationController::GetCurrentLandmarkIndex()
 {
+	LOG_TRACE("PhantomRegistrationController::GetCurrentLandmarkIndex"); 
+
 	return m_CurrentLandmarkIndex;
 }
 
@@ -352,6 +362,8 @@ int PhantomRegistrationController::GetCurrentLandmarkIndex()
 
 vtkTransform* PhantomRegistrationController::GetPhantomToPhantomReferenceTransform()
 {
+	LOG_TRACE("PhantomRegistrationController::GetPhantomToPhantomReferenceTransform"); 
+
 	return m_PhantomToPhantomReferenceTransform;
 }
 
@@ -359,6 +371,8 @@ vtkTransform* PhantomRegistrationController::GetPhantomToPhantomReferenceTransfo
 
 std::string PhantomRegistrationController::GetCurrentLandmarkName()
 {
+	LOG_TRACE("PhantomRegistrationController::GetCurrentLandmarkName"); 
+
 	return m_LandmarkNames[m_CurrentLandmarkIndex];
 }
 
@@ -366,6 +380,8 @@ std::string PhantomRegistrationController::GetCurrentLandmarkName()
 
 vtkRenderer* PhantomRegistrationController::GetPhantomRenderer()
 {
+	LOG_TRACE("PhantomRegistrationController::GetPhantomRenderer"); 
+
 	return m_PhantomRenderer;
 }
 
@@ -373,6 +389,8 @@ vtkRenderer* PhantomRegistrationController::GetPhantomRenderer()
 
 PlusStatus PhantomRegistrationController::Start()
 {
+	LOG_TRACE("PhantomRegistrationController::Start"); 
+
 	if ( (m_DefinedLandmarks != NULL) && (m_DefinedLandmarks->GetNumberOfPoints() >= 4)
 		&& (StylusCalibrationController::GetInstance() != NULL)
 		&& (StylusCalibrationController::GetInstance()->GetStylusToStylustipTransform() != NULL))
@@ -381,24 +399,30 @@ PlusStatus PhantomRegistrationController::Start()
 
 		m_State = ToolboxState_InProgress;
 	}
-  return PLUS_SUCCESS;
+
+	return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
 
 PlusStatus PhantomRegistrationController::Stop()
 {
+	LOG_TRACE("PhantomRegistrationController::Stop"); 
+
 	m_RequestedLandmarkPolyData->GetPoints()->GetData()->RemoveTuple(0);
 	m_RequestedLandmarkPolyData->GetPoints()->Modified();
 
 	m_State = ToolboxState_Done;
-  return PLUS_SUCCESS;
+
+	return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
 
 void PhantomRegistrationController::Undo()
 {
+	LOG_TRACE("PhantomRegistrationController::Undo"); 
+
 	if (m_State == ToolboxState_Done) {
 		m_State = ToolboxState_InProgress;
 	}
@@ -433,6 +457,8 @@ void PhantomRegistrationController::Undo()
 
 void PhantomRegistrationController::Reset()
 {
+	LOG_TRACE("PhantomRegistrationController::Reset"); 
+
 	if (m_State == ToolboxState_Done) {
 		m_State = ToolboxState_InProgress;
 	}
@@ -466,6 +492,8 @@ void PhantomRegistrationController::Reset()
 
 void PhantomRegistrationController::Register()
 {
+	LOG_TRACE("PhantomRegistrationController::Register"); 
+
 	// Get recorded landmark point list
 	vtkPoints* recordedLandmarks;
 	if (m_LandmarksPolyData->GetPoints() != NULL) {
@@ -556,6 +584,8 @@ void PhantomRegistrationController::Register()
 
 void PhantomRegistrationController::RequestRecording()
 {
+	LOG_TRACE("PhantomRegistrationController::RequestRecording"); 
+
 	// Turn on record request flag
 	m_RecordRequested = true;
 
@@ -570,6 +600,8 @@ void PhantomRegistrationController::RequestRecording()
 
 vtkMatrix4x4* PhantomRegistrationController::AcquireStylusTipTrackerPosition(double aPosition[4], bool aReference)
 {
+	//LOG_TRACE("PhantomRegistrationController::AcquireStylusTipTrackerPosition"); 
+
 	vtkFreehandController* controller = vtkFreehandController::GetInstance();
 	if ((controller == NULL) || (controller->GetInitialized() == false)) {
 		LOG_ERROR("vtkFreehandController is not initialized!");
@@ -651,6 +683,8 @@ vtkMatrix4x4* PhantomRegistrationController::AcquireStylusTipTrackerPosition(dou
 
 PlusStatus PhantomRegistrationController::DoAcquisition()
 {
+	//LOG_TRACE("PhantomRegistrationController::DoAcquisition"); 
+
 	if ((m_State == ToolboxState_InProgress) || (m_State == ToolboxState_Done)) {
 		// Display stylus
 		double stylusTipPosition[4];
@@ -722,6 +756,8 @@ PlusStatus PhantomRegistrationController::DoAcquisition()
 
 PlusStatus PhantomRegistrationController::LoadPhantomDefinitionFromFile(std::string aFile)
 {
+	LOG_TRACE("PhantomRegistrationController::LoadPhantomDefinitionFromFile(" << aFile << ")"); 
+
 	vtkSmartPointer<vtkXMLDataElement> phantomDefinition = vtkXMLUtilities::ReadElementFromFile(aFile.c_str());
 
 	if (phantomDefinition == NULL) {	
@@ -858,6 +894,8 @@ PlusStatus PhantomRegistrationController::LoadPhantomDefinitionFromFile(std::str
 
 PlusStatus PhantomRegistrationController::LoadPhantomRegistrationFromFile(std::string aFile)
 {
+	LOG_TRACE("PhantomRegistrationController::LoadPhantomRegistrationFromFile(" << aFile << ")"); 
+
 	vtkSmartPointer<vtkXMLDataElement> phantomRegistration = vtkXMLUtilities::ReadElementFromFile(aFile.c_str());
 
 	if (phantomRegistration == NULL) {	
@@ -889,6 +927,8 @@ PlusStatus PhantomRegistrationController::LoadPhantomRegistrationFromFile(std::s
 
 void PhantomRegistrationController::SavePhantomRegistrationToFile(std::string aFile)
 {
+	LOG_TRACE("PhantomRegistrationController::SavePhantomRegistrationToFile(" << aFile << ")"); 
+
 	vtkSmartPointer<vtkXMLDataElement> phantomRegistration = vtkSmartPointer<vtkXMLDataElement>::New();
 	phantomRegistration->SetName("PhantomRegistration");
 	phantomRegistration->SetAttribute("version", "1.0");

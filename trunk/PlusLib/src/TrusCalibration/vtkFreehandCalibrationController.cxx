@@ -378,7 +378,7 @@ PlusStatus vtkFreehandCalibrationController::CalculateImageCameraParameters()
 	vtkSmartPointer<vtkCamera> imageCamera = vtkSmartPointer<vtkCamera>::New(); 
 	imageCamera->SetFocalPoint(imageCenterX, imageCenterY, 0);
 	imageCamera->SetViewUp(0, -1, 0);
-	imageCamera->SetClippingRange(0.1, 1000);
+	imageCamera->SetClippingRange(0.1, 2000.0);
 	imageCamera->ParallelProjectionOn();
 	imageCamera->SetParallelScale(imageCenterY);
 
@@ -393,7 +393,7 @@ PlusStatus vtkFreehandCalibrationController::CalculateImageCameraParameters()
 		positionZ = (-1.0) * imageCenterX / tan(imageCamera->GetViewAngle()*M_PI/180.0);
 	}
 
-	imageCamera->SetPosition(imageCenterX, imageCenterY, positionZ);
+	imageCamera->SetPosition(imageCenterX, imageCenterY, positionZ - 500.0);
 
 	// Set camera
 	this->SetImageCamera(imageCamera);
@@ -409,10 +409,20 @@ PlusStatus vtkFreehandCalibrationController::Clear()
 {
 	LOG_DEBUG("Clear vtkFreehandCalibrationController");
 
-	// Remove actor and reset background color
-	vtkFreehandController::GetInstance()->GetCanvasRenderer()->RemoveActor(this->CanvasImageActor);
-	vtkFreehandController::GetInstance()->GetCanvasRenderer()->SetBackground(0.6, 0.6, 0.6);
-	vtkFreehandController::GetInstance()->GetCanvasRenderer()->InteractiveOn();
+	vtkRenderer* renderer = vtkFreehandController::GetInstance()->GetCanvasRenderer();
+
+	// Remove image actor and reset background color
+	renderer->RemoveActor(this->CanvasImageActor);
+	renderer->SetBackground(0.6, 0.6, 0.6);
+	renderer->InteractiveOn();
+
+	// If device visualization is on, remove those actors too
+	if (this->ShowDevices) {
+		renderer->RemoveActor(this->PhantomBodyActor);
+		renderer->RemoveActor(this->ProbeActor);
+		renderer->RemoveActor(this->StylusActor);
+		renderer->RemoveActor(this->NeedleActor);
+	}
 
 	m_Toolbox->Clear();  
 
@@ -432,6 +442,7 @@ PlusStatus vtkFreehandCalibrationController::DoAcquisition()
 	const int maxNumberOfValidationImages = this->GetRealtimeImageDataInfo(FREEHAND_MOTION_2).NumberOfImagesToAcquire; 
 	const int maxNumberOfCalibrationImages = this->GetRealtimeImageDataInfo(FREEHAND_MOTION_1).NumberOfImagesToAcquire; 
 	int numberOfAcquiredImages = 0;
+	int numberOfFailedSegmentations = 0;
 
 	this->CancelRequestOff();
 
@@ -446,6 +457,7 @@ PlusStatus vtkFreehandCalibrationController::DoAcquisition()
 			return PLUS_FAIL;
 		}
 
+		// Get latest tracked frame from data collector
 		TrackedFrame trackedFrame; 
 		controller->GetDataCollector()->GetTrackedFrame(&trackedFrame); 
 
@@ -476,12 +488,16 @@ PlusStatus vtkFreehandCalibrationController::DoAcquisition()
 		if (segmentationSuccessful) {
 			++numberOfAcquiredImages;
 			this->SetProgressPercent( (int)((numberOfAcquiredImages / (double)(maxNumberOfValidationImages + maxNumberOfCalibrationImages)) * 100.0) );
+		} else {
+			++numberOfFailedSegmentations;
 		}
 
 		if (m_Toolbox) {
 			m_Toolbox->RefreshToolboxContent();
 		}
 	}
+
+	LOG_INFO("Segmentation success rate: " << numberOfAcquiredImages << " out of " << numberOfAcquiredImages + numberOfFailedSegmentations << " (" << (double)numberOfAcquiredImages / (double)(numberOfAcquiredImages + numberOfFailedSegmentations) << " percent)");
   
 	return PLUS_SUCCESS;
 }
@@ -490,56 +506,59 @@ PlusStatus vtkFreehandCalibrationController::DoAcquisition()
 
 PlusStatus vtkFreehandCalibrationController::Start()
 {
-	// Initialize vtkCalibrationController
-	if (this->GetSegParameters() == NULL) {
-		LOG_ERROR( "Unable to start spatial calibration: calibration configuration is not loaded!" );  
-		return PLUS_FAIL; 
+	LOG_TRACE("vtkFreehandCalibrationController::Start");
+
+	if (this->TemporalCalibrationDone) {
+		// Initialize vtkCalibrationController
+		if (this->GetSegParameters() == NULL) {
+			LOG_ERROR( "Unable to start spatial calibration: calibration configuration is not loaded!" );  
+			return PLUS_FAIL; 
+		}
+
+		// Initialize the segmentation component
+		if (this->mptrAutomatedSegmentation == NULL) {
+			this->mptrAutomatedSegmentation = new KPhantomSeg( 
+				this->GetImageWidthInPixels(), this->GetImageHeightInPixels(), 
+				this->GetSearchStartAtX(), this->GetSearchStartAtY(), 
+				this->GetSearchDimensionX(), this->GetSearchDimensionY(), this->GetEnableSegmentationAnalysis(), "frame.jpg");
+		}	
+
+		// Initialize the calibration component
+		if (this->Calibrator == NULL) {
+			this->Calibrator = new BrachyTRUSCalibrator( this->SegParameters, this->GetEnableSystemLog() );
+		}
+
+		// Set the ultrasound image frame in pixels
+		// This defines the US image frame origin in pixels W.R.T. the left-upper corner of the original image, with X pointing to the right (column) and Y pointing down to the bottom (row).
+		this->SetUSImageFrameOriginInPixels( this->GetUSImageFrameOriginXInPixels(), this->GetUSImageFrameOriginYInPixels() ); 
+
+		// STEP-OPTIONAL. Apply the US 3D beamwidth data to calibration if desired
+		// This will pass the US 3D beamwidth data and their predefined weights to the calibration component.
+		/*
+		if( this->GetUS3DBeamwidthDataReady() )
+		{
+			this->GetCalibrator()->setUltrasoundBeamwidthAndWeightFactorsTable(
+				this->GetIncorporatingUS3DBeamProfile(),
+				*this->GetInterpUS3DBeamwidthAndWeightFactorsInUSImageFrameTable5xM(),
+				*this->GetSortedUS3DBeamwidthAndWeightFactorsInAscendingAxialDepthInUSImageFrameMatrix5xN(),
+				*this->GetMinElevationBeamwidthAndFocalZoneInUSImageFrame() );
+		}
+		*/
+
+		// TEMPORARY CODE ////////////
+		vtkSmartPointer<vtkMatrix4x4> identity = vtkSmartPointer<vtkMatrix4x4>::New();
+		identity->Identity();
+		vnl_matrix<double> transformOrigImageFrame2TRUSImageFrameMatrix4x4(4,4);
+		ConvertVtkMatrixToVnlMatrix(identity, transformOrigImageFrame2TRUSImageFrameMatrix4x4); 
+		this->GetCalibrator()->setTransformOrigImageToTRUSImageFrame4x4(transformOrigImageFrame2TRUSImageFrameMatrix4x4);
+		// TEMPORARY CODE ////////////
+
+		// Register the phantom geometry to the DRB frame in the "Emulator" mode.
+		vnl_matrix<double> transformMatrixPhantom2DRB4x4InEmulatorMode(4,4);
+		this->ConvertVtkMatrixToVnlMatrixInMeter(PhantomRegistrationController::GetInstance()->GetPhantomToPhantomReferenceTransform()->GetMatrix(), transformMatrixPhantom2DRB4x4InEmulatorMode);
+
+		this->Calibrator->registerPhantomGeometryInEmulatorMode(transformMatrixPhantom2DRB4x4InEmulatorMode);
 	}
-
-	// Initialize the segmentation component
-	if (this->mptrAutomatedSegmentation == NULL) {
-		this->mptrAutomatedSegmentation = new KPhantomSeg( 
-			this->GetImageWidthInPixels(), this->GetImageHeightInPixels(), 
-			this->GetSearchStartAtX(), this->GetSearchStartAtY(), 
-			this->GetSearchDimensionX(), this->GetSearchDimensionY(), this->GetEnableSegmentationAnalysis(), "frame.jpg");
-	}	
-
-	// Initialize the calibration component
-	if (this->Calibrator == NULL) {
-		this->Calibrator = new BrachyTRUSCalibrator( this->SegParameters, this->GetEnableSystemLog() );
-	}
-
-	// Set the ultrasound image frame in pixels
-	// This defines the US image frame origin in pixels W.R.T. the left-upper corner of the original image, with X pointing to the right (column) and Y pointing down to the bottom (row).
-	this->SetUSImageFrameOriginInPixels( this->GetUSImageFrameOriginXInPixels(), this->GetUSImageFrameOriginYInPixels() ); 
-
-	// STEP-OPTIONAL. Apply the US 3D beamwidth data to calibration if desired
-	// This will pass the US 3D beamwidth data and their predefined weights to the calibration component.
-	/*
-	if( this->GetUS3DBeamwidthDataReady() )
-	{
-		this->GetCalibrator()->setUltrasoundBeamwidthAndWeightFactorsTable(
-			this->GetIncorporatingUS3DBeamProfile(),
-			*this->GetInterpUS3DBeamwidthAndWeightFactorsInUSImageFrameTable5xM(),
-			*this->GetSortedUS3DBeamwidthAndWeightFactorsInAscendingAxialDepthInUSImageFrameMatrix5xN(),
-			*this->GetMinElevationBeamwidthAndFocalZoneInUSImageFrame() );
-	}
-	*/
-
-	// TEMPORARY CODE ////////////
-	vtkSmartPointer<vtkMatrix4x4> identity = vtkSmartPointer<vtkMatrix4x4>::New();
-	identity->Identity();
-	vnl_matrix<double> transformOrigImageFrame2TRUSImageFrameMatrix4x4(4,4);
-	ConvertVtkMatrixToVnlMatrix(identity, transformOrigImageFrame2TRUSImageFrameMatrix4x4); 
-	this->GetCalibrator()->setTransformOrigImageToTRUSImageFrame4x4(transformOrigImageFrame2TRUSImageFrameMatrix4x4);
-	// TEMPORARY CODE ////////////
-
-	// Register the phantom geometry to the DRB frame in the "Emulator" mode.
-	vnl_matrix<double> transformMatrixPhantom2DRB4x4InEmulatorMode(4,4);
-	this->ConvertVtkMatrixToVnlMatrixInMeter(PhantomRegistrationController::GetInstance()->GetPhantomToPhantomReferenceTransform()->GetMatrix(), transformMatrixPhantom2DRB4x4InEmulatorMode);
-
-	this->Calibrator->registerPhantomGeometryInEmulatorMode(transformMatrixPhantom2DRB4x4InEmulatorMode);
-
 
 	m_State = ToolboxState_InProgress;
 
@@ -550,10 +569,16 @@ PlusStatus vtkFreehandCalibrationController::Start()
 
 PlusStatus vtkFreehandCalibrationController::Stop()
 {
-	// Load models and initialize device actors (entering this function means that the calibration is successful)
-	InitializeDeviceVisualization();
+	LOG_TRACE("vtkFreehandCalibrationController::Stop");
 
-	m_State = ToolboxState_Done;
+	// Load models and initialize device actors (entering this function means that the calibration is successful)
+	if (this->TemporalCalibrationDone) {
+		InitializeDeviceVisualization();
+
+		m_State = ToolboxState_Done;
+	} else {
+		m_State = ToolboxState_Idle;
+	}
 
 	return PLUS_SUCCESS;
 }
@@ -562,10 +587,13 @@ PlusStatus vtkFreehandCalibrationController::Stop()
 
 PlusStatus vtkFreehandCalibrationController::Reset()
 {
-	this->CancelRequestOn();
+	LOG_TRACE("vtkFreehandCalibrationController::Reset");
 
 	// Delete object related to calibration (removing previously acquired data)
 	if (this->TemporalCalibrationDone == true) {
+		// Turn on cancel flag
+		this->CancelRequestOn();
+
 		if (this->Calibrator != NULL) {
 			delete this->Calibrator;
 			this->Calibrator = NULL;
@@ -574,6 +602,20 @@ PlusStatus vtkFreehandCalibrationController::Reset()
 		// Empty tracked frame containers
 		this->TrackedFrameListContainer[FREEHAND_MOTION_1]->Clear();
 		this->TrackedFrameListContainer[FREEHAND_MOTION_2]->Clear();
+	} else {
+		vtkFreehandController* controller = vtkFreehandController::GetInstance();
+		if ((controller == NULL) || (controller->GetInitialized() == false)) {
+			LOG_ERROR("vtkFreehandController is not initialized!");
+			return PLUS_FAIL;
+		}
+		vtkDataCollector* dataCollector = controller->GetDataCollector();
+		if (dataCollector == NULL) {
+			LOG_ERROR("Data collector is not initialized!");
+			return PLUS_FAIL;
+		}
+
+		// Cancel synchronization (temporal calibration) in data collector
+		dataCollector->CancelSyncRequestOn();
 	}
 
 	// Reset progress
@@ -589,6 +631,8 @@ PlusStatus vtkFreehandCalibrationController::Reset()
 
 bool vtkFreehandCalibrationController::IsReadyToStartSpatialCalibration()
 {
+	LOG_TRACE("vtkFreehandCalibrationController::IsReadyToStartSpatialCalibration");
+
 	if ((m_State == ToolboxState_Uninitialized)
 		|| (! this->TemporalCalibrationDone)
 		|| (this->PhantomDefinitionFileName == NULL)
@@ -605,6 +649,8 @@ bool vtkFreehandCalibrationController::IsReadyToStartSpatialCalibration()
 //-----------------------------------------------------------------------------
 
 void vtkFreehandCalibrationController::UpdateProgress(int aPercent) {
+	LOG_TRACE("vtkFreehandCalibrationController::UpdateProgress(" << aPercent << ")");
+
 	// Calls this way because it is a static function
 	vtkFreehandCalibrationController::GetInstance()->SetProgressPercent(aPercent);
 }
@@ -613,6 +659,8 @@ void vtkFreehandCalibrationController::UpdateProgress(int aPercent) {
 
 PlusStatus vtkFreehandCalibrationController::DoTemporalCalibration()
 {
+	LOG_TRACE("vtkFreehandCalibrationController::DoTemporalCalibration");
+
 	if (GetCalibrationMode() != REALTIME) {
 		LOG_ERROR( "Unable to start temporal calibration in offline mode!" );  
 		return PLUS_FAIL; 
@@ -682,7 +730,8 @@ void vtkFreehandCalibrationController::Calibrate()
 
 PlusStatus vtkFreehandCalibrationController::PopulateSegmentedFiducialsToDataContainer(vnl_matrix<double> &transformUSProbe2StepperFrameMatrix4x4, IMAGE_DATA_TYPE dataType)
 {
-	LOG_TRACE("vtkFreehandCalibrationController::PopulateSegmentedFiducialsToDataContainer"); 
+	LOG_TRACE("vtkFreehandCalibrationController::PopulateSegmentedFiducialsToDataContainer");
+
 	// ========================================================================
 	// Populate the segmented N-fiducials to the data container
 	// Indices defined in the input std::vector array.
@@ -736,7 +785,7 @@ PlusStatus vtkFreehandCalibrationController::PopulateSegmentedFiducialsToDataCon
 
 PlusStatus vtkFreehandCalibrationController::DoOfflineCalibration()
 {
-	LOG_TRACE("vtkFreehandCalibrationController::OfflineUSToTemplateCalibration"); 
+	LOG_TRACE("vtkFreehandCalibrationController::DoOfflineCalibration"); 
 
 	try {
 		if (m_State == ToolboxState_Uninitialized) {
@@ -808,12 +857,16 @@ PlusStatus vtkFreehandCalibrationController::DoOfflineCalibration()
 //-----------------------------------------------------------------------------
 
 void vtkFreehandCalibrationController::SetUSImageFrameOriginInPixels(int* origin) {
+	LOG_TRACE("vtkFreehandCalibrationController::SetUSImageFrameOriginInPixels"); 
+
 	this->SetUSImageFrameOriginInPixels(origin[0], origin[1]); 
 }
 
 //-----------------------------------------------------------------------------
 
 vtkCalibrationController::RealtimeImageDataInfo vtkFreehandCalibrationController::GetRealtimeImageDataInfo(IMAGE_DATA_TYPE dataType) {
+	LOG_TRACE("vtkFreehandCalibrationController::GetRealtimeImageDataInfo"); 
+
 	return this->RealtimeImageDataInfoContainer[dataType];
 }
 
@@ -1132,6 +1185,7 @@ PlusStatus vtkFreehandCalibrationController::ComputeCalibrationResults()
 
 void vtkFreehandCalibrationController::DisplayCalibrationResults()
 {
+	//TODO
 }
 
 //-----------------------------------------------------------------------------

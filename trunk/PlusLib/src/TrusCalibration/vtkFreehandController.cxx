@@ -47,9 +47,6 @@ vtkFreehandController::vtkFreehandController()
 	this->CanvasRenderer = NULL;
 
 	VTK_LOG_TO_CONSOLE_ON
-
-	//PlusLogger::Instance()->SetLogLevel(PlusLogger::LOG_LEVEL_DEBUG);
-	//PlusLogger::Instance()->SetDisplayLogLevel(PlusLogger::LOG_LEVEL_DEBUG);
 }
 
 //-----------------------------------------------------------------------------
