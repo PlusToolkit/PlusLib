@@ -44,6 +44,8 @@ ToolStateDisplayWidget::~ToolStateDisplayWidget()
 
 PlusStatus ToolStateDisplayWidget::InitializeTools(vtkDataCollector* aDataCollector, bool aConnectionSuccessful)
 {
+	LOG_TRACE("ToolStateDisplayWidget::InitializeTools"); 
+
 	// Clear former content
 	if (this->layout()) {
 		delete this->layout();
@@ -146,6 +148,8 @@ PlusStatus ToolStateDisplayWidget::InitializeTools(vtkDataCollector* aDataCollec
 
 bool ToolStateDisplayWidget::IsInitialized()
 {
+	LOG_TRACE("ToolStateDisplayWidget::IsInitialized"); 
+
 	return m_Initialized;
 }
 
@@ -153,7 +157,9 @@ bool ToolStateDisplayWidget::IsInitialized()
 
 int ToolStateDisplayWidget::GetDesiredHeight()
 {
-	return m_NumberOfActiveTools * 23;
+	LOG_TRACE("ToolStateDisplayWidget::GetDesiredHeight"); 
+
+	return (m_NumberOfActiveTools>0 ? m_NumberOfActiveTools * 23 : 23);
 }
 
 //-----------------------------------------------------------------------------

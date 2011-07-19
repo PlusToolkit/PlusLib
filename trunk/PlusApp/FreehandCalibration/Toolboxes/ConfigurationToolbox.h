@@ -74,9 +74,21 @@ protected slots:
 
 	/*!
 	* \brief Slot handling pop out toggle button state change
-	* \param Slot aOn True if toggled, false otherwise
+	* \param aOn True if toggled, false otherwise
 	*/
 	void PopOutToggled(bool aOn);
+
+	/*!
+	* \brief Slot handling log level combobox item change
+	* \param aLevel New log level
+	*/
+	void LogLevelChanged(int aLevel);
+
+	/*!
+	* \brief Slot handling change of stylus calibration number of points
+	* \param aLevel New number of points
+	*/
+	void NumberOfStylusCalibrationPointsChanged(int aNumberOfPoints);
 
 protected:
 	/*!

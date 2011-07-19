@@ -97,6 +97,8 @@ QList<QPair<QString, int>>* StatusIcon::GetMessageList()
 
 void StatusIcon::SetLevel(int aLevel)
 {
+	LOG_TRACE("ToolStateDisplayWidget::SetLevel(" << aLevel << ")"); 
+
 	m_Level = aLevel;
 }
 
@@ -104,6 +106,8 @@ void StatusIcon::SetLevel(int aLevel)
 
 int StatusIcon::GetLevel()
 {
+	LOG_TRACE("ToolStateDisplayWidget::GetLevel"); 
+
 	return m_Level;
 }
 
@@ -146,6 +150,8 @@ void StatusIcon::AddMessage(const char* aMessage, const int aLevel)
 
 PlusStatus StatusIcon::ConstructMessageListWidget()
 {
+	LOG_TRACE("ToolStateDisplayWidget::ConstructMessageListWidget"); 
+
 	// (Re-)Create message list widget
 	if (m_MessageListWidget != NULL) {
 		delete m_MessageListWidget;

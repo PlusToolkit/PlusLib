@@ -154,7 +154,7 @@ void StylusCalibrationToolbox::RefreshToolboxContent()
 
 void StylusCalibrationToolbox::StartClicked()
 {
-	LOG_DEBUG("StylusCalibrationToolbox: Start button clicked"); 
+	LOG_TRACE("StylusCalibrationToolbox: Start button clicked"); 
 
 	emit SetTabsEnabled(false);
 	QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
@@ -178,7 +178,7 @@ void StylusCalibrationToolbox::StopClicked()
 
 void StylusCalibrationToolbox::Stop()
 {
-	LOG_INFO("Stop stylus calibration"); 
+	LOG_TRACE("StylusCalibrationToolbox::Stop"); 
 
 	emit SetTabsEnabled(true);
 	QApplication::restoreOverrideCursor();
@@ -190,7 +190,7 @@ void StylusCalibrationToolbox::Stop()
 
 void StylusCalibrationToolbox::Clear()
 {
-	LOG_INFO("Clear stylus calibration"); 
+	LOG_TRACE("StylusCalibrationToolbox::Clear"); 
 
 	// Stop the acquisition timer
 	m_AcquisitionTimer->stop();
@@ -214,5 +214,7 @@ void StylusCalibrationToolbox::SaveResultClicked()
 
 void StylusCalibrationToolbox::RequestDoAcquisition()
 {
+	LOG_TRACE("StylusCalibrationToolbox::RequestDoAcquisition"); 
+
 	StylusCalibrationController::GetInstance()->DoAcquisition(); //TODO Singleton AbstractToolboxController? (so that it calls the constructor of this class too! then this function could go to abstract)
 }

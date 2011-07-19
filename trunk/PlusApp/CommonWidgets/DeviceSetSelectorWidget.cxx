@@ -65,6 +65,8 @@ void DeviceSetSelectorWidget::OpenConfigurationDirectoryClicked()
 
 void DeviceSetSelectorWidget::InvokeConnect()
 {
+	LOG_TRACE("ToolStateDisplayWidget::InvokeConnect"); 
+
 	emit ConnectToDevicesByConfigFileInvoked(ui.comboBox_DeviceSet->itemData(ui.comboBox_DeviceSet->currentIndex()).toStringList().at(0).toStdString());
 
 	if (m_ConnectionSuccessful) {
@@ -79,6 +81,8 @@ void DeviceSetSelectorWidget::InvokeConnect()
 
 void DeviceSetSelectorWidget::DeviceSetSelected(int aIndex)
 {
+	LOG_TRACE("ToolStateDisplayWidget::DeviceSetSelected(" << aIndex << ")"); 
+
 	if ((aIndex < 0) || (aIndex >= ui.comboBox_DeviceSet->count())) {
 		return;
 	}
@@ -99,6 +103,8 @@ void DeviceSetSelectorWidget::DeviceSetSelected(int aIndex)
 
 void DeviceSetSelectorWidget::SetConfigurationDirectory(std::string aDirectory, bool aForce)
 {
+	LOG_TRACE("ToolStateDisplayWidget::SetConfigurationDirectory(" << aDirectory << ", " << (aForce?"true":"false") << ")"); 
+
 	if (m_ConfigurationDirectory.isEmpty() || aForce) {
 		if (ParseDirectory(QString::fromStdString(aDirectory))) {
 			m_ConfigurationDirectory = QString::fromStdString(aDirectory);
@@ -119,6 +125,8 @@ void DeviceSetSelectorWidget::SetConfigurationDirectory(std::string aDirectory, 
 
 void DeviceSetSelectorWidget::SetConnectionSuccessful(bool aConnectionSuccessful)
 {
+	LOG_TRACE("ToolStateDisplayWidget::SetConnectionSuccessful(" << (aConnectionSuccessful?"true":"false") << ")"); 
+
 	m_ConnectionSuccessful = aConnectionSuccessful;
 }
 
@@ -126,6 +134,8 @@ void DeviceSetSelectorWidget::SetConnectionSuccessful(bool aConnectionSuccessful
 
 PlusStatus DeviceSetSelectorWidget::ParseDirectory(QString aDirectory)
 {
+	LOG_TRACE("ToolStateDisplayWidget::ParseDirectory(" << aDirectory.toStdString() << ")"); 
+
 	ui.comboBox_DeviceSet->clear();
 
 	QDir configDir(aDirectory);

@@ -60,6 +60,8 @@ PlusStatus ConfigurationController::Clear()
 
 bool ConfigurationController::IsToolDisplayDetached()
 {
+	LOG_TRACE("ConfigurationController::IsToolDisplayDetached");
+
 	return m_IsToolDisplayDetached;
 }
 
@@ -67,6 +69,8 @@ bool ConfigurationController::IsToolDisplayDetached()
 
 void ConfigurationController::SetToolDisplayDetached(bool aDetached)
 {
+	LOG_TRACE("ConfigurationController::SetToolDisplayDetached(" << (aDetached?"true":"false") << ")");
+
 	m_IsToolDisplayDetached = aDetached;
 }
 
@@ -74,6 +78,8 @@ void ConfigurationController::SetToolDisplayDetached(bool aDetached)
 
 PlusStatus ConfigurationController::DoAcquisition()
 {
+	LOG_TRACE("ConfigurationController::DoAcquisition");
+	LOG_WARNING("ConfigurationController cannot do acquisition");
 	return PLUS_SUCCESS;
 }
 
@@ -81,6 +87,7 @@ PlusStatus ConfigurationController::DoAcquisition()
 
 PlusStatus ConfigurationController::Start()
 {
+	LOG_TRACE("ConfigurationController::Start");
 	LOG_WARNING("ConfigurationController cannot be started");
 	return PLUS_FAIL;
 }
@@ -89,6 +96,7 @@ PlusStatus ConfigurationController::Start()
 
 PlusStatus ConfigurationController::Stop()
 {
+	LOG_TRACE("ConfigurationController::Stop");
 	LOG_WARNING("ConfigurationController cannot be started (or stopped)");
 	return PLUS_FAIL;
 }

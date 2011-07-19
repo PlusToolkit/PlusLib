@@ -2,6 +2,7 @@
 
 #include "ConfigurationController.h"
 #include "vtkFreehandController.h"
+#include "StylusCalibrationController.h"
 #include "vtkFileFinder.h"
 #include "FreehandMainWindow.h"
 
@@ -39,15 +40,24 @@ ConfigurationToolbox::ConfigurationToolbox(QWidget* aParent, Qt::WFlags aFlags)
 	connect( m_DeviceSetSelectorWidget, SIGNAL( ConfigurationDirectoryChanged(std::string) ), this, SLOT( SetConfigurationDirectory(std::string) ) );
 	connect( m_DeviceSetSelectorWidget, SIGNAL( ConnectToDevicesByConfigFileInvoked(std::string) ), this, SLOT( ConnectToDevicesByConfigFile(std::string) ) );
 	connect( ui.pushButton_PopOut, SIGNAL( toggled(bool) ), this, SLOT( PopOutToggled(bool) ) );
+	connect( ui.comboBox_LogLevel, SIGNAL( currentIndexChanged(int) ), this, SLOT( LogLevelChanged(int) ) );
+	connect( ui.spinBox_NumberOfStylusCalibrationPoints, SIGNAL( valueChanged(int) ), this, SLOT( NumberOfStylusCalibrationPointsChanged(int) ) );
 
 	// Insert widgets into placeholders
 	QGridLayout* gridDeviceSetSelection = new QGridLayout(ui.deviceSetSelectionWidget, 1, 1, 0, 4, "");
 	gridDeviceSetSelection->addWidget(m_DeviceSetSelectorWidget);
+	ui.deviceSetSelectionWidget->setMinimumHeight(196);
 	ui.deviceSetSelectionWidget->setLayout(gridDeviceSetSelection);
 
 	QGridLayout* gridToolStateDisplay = new QGridLayout(ui.toolStateDisplayWidget, 1, 1, 0, 4, "");
 	gridToolStateDisplay->addWidget(m_ToolStateDisplayWidget);
 	ui.toolStateDisplayWidget->setLayout(gridToolStateDisplay);
+
+	// Feed number of points from stylus calibration
+	ui.spinBox_NumberOfStylusCalibrationPoints->setValue(StylusCalibrationController::GetInstance()->GetNumberOfPoints());
+
+	// Change log level to info (program default)
+	ui.comboBox_LogLevel->setCurrentText("Info");
 
 	//TODO tooltips
 }
@@ -62,12 +72,17 @@ ConfigurationToolbox::~ConfigurationToolbox()
 
 void ConfigurationToolbox::Initialize()
 {
+	LOG_TRACE("ConfigurationToolbox::Initialize"); 
+
+	// No action
 }
 
 //-----------------------------------------------------------------------------
 
 void ConfigurationToolbox::RefreshToolboxContent()
 {
+	//LOG_TRACE("ConfigurationToolbox::RefreshToolboxContent"); 
+
 	if (m_ToolStateDisplayWidget->IsInitialized()) {
 		m_ToolStateDisplayWidget->Update();
 	}
@@ -77,18 +92,26 @@ void ConfigurationToolbox::RefreshToolboxContent()
 
 void ConfigurationToolbox::Stop()
 {
+	LOG_TRACE("ConfigurationToolbox::Stop"); 
+
+	// No action
 }
 
 //-----------------------------------------------------------------------------
 
 void ConfigurationToolbox::Clear()
 {
+	LOG_TRACE("ConfigurationToolbox::Clear"); 
+
+	// No action
 }
 
 //-----------------------------------------------------------------------------
 
 void ConfigurationToolbox::SetConfigurationDirectory(std::string aDirectory)
 {
+	LOG_TRACE("ConfigurationToolbox::SetConfigurationDirectory");
+
 	vtkFileFinder::GetInstance()->SetConfigurationDirectory(aDirectory.c_str());
 }
 
@@ -96,6 +119,8 @@ void ConfigurationToolbox::SetConfigurationDirectory(std::string aDirectory)
 
 void ConfigurationToolbox::ConnectToDevicesByConfigFile(std::string aConfigFile)
 {
+	LOG_TRACE("ConfigurationToolbox::ConnectToDevicesByConfigFile");
+
 	vtkFreehandController::GetInstance()->SetInputConfigFileName(aConfigFile.data());
 
 	LOG_INFO("Connect to devices"); 
@@ -146,6 +171,8 @@ void ConfigurationToolbox::ConnectToDevicesByConfigFile(std::string aConfigFile)
 
 void ConfigurationToolbox::PopOutToggled(bool aOn)
 {
+	LOG_TRACE("ConfigurationToolbox::PopOutToggled");
+
 	if (aOn) {
 		// Create pop out window
 		m_ToolStatePopOutWindow = new QWidget(this, Qt::Tool);
@@ -157,7 +184,7 @@ void ConfigurationToolbox::PopOutToggled(bool aOn)
 		QGridLayout* gridToolStateDisplay = new QGridLayout(m_ToolStatePopOutWindow, 1, 1, 0, 4, "");
 		gridToolStateDisplay->addWidget(m_ToolStateDisplayWidget);
 		m_ToolStatePopOutWindow->setLayout(gridToolStateDisplay);
-		m_ToolStatePopOutWindow->move( mapToGlobal( QPoint( ui.pushButton_PopOut->x(), ui.pushButton_PopOut->y() ) ) );
+		m_ToolStatePopOutWindow->move( mapToGlobal( QPoint( ui.pushButton_PopOut->x() + ui.pushButton_PopOut->width(), ui.pushButton_PopOut->y() ) ) );
 		m_ToolStatePopOutWindow->show();
 
 		// Install event filter that is called on closing the window
@@ -165,6 +192,11 @@ void ConfigurationToolbox::PopOutToggled(bool aOn)
 
 		// Delete layout from the toolbox (to be able to add again)
 		delete ui.toolStateDisplayWidget->layout();
+
+		// Reduce size of empty space in toolbox
+		ui.toolStateDisplayWidget->setMinimumHeight(0);
+		ui.toolStateDisplayWidget->setMaximumHeight(0);
+
 	} else {
 		// Insert tool state display back in toolbox
 		ui.toolStateDisplayWidget->setMinimumHeight(m_ToolStateDisplayWidget->GetDesiredHeight());
@@ -188,6 +220,8 @@ void ConfigurationToolbox::PopOutToggled(bool aOn)
 
 bool ConfigurationToolbox::eventFilter(QObject *obj, QEvent *ev)
 {
+	LOG_TRACE("ConfigurationToolbox::eventFilter"); 
+
 	if ( obj == m_ToolStatePopOutWindow ) {
 		if ( ev->type() == QEvent::Close ) {
 			ui.pushButton_PopOut->setChecked(false);
@@ -198,4 +232,48 @@ bool ConfigurationToolbox::eventFilter(QObject *obj, QEvent *ev)
 	}
 
 	return true;
+}
+
+//-----------------------------------------------------------------------------
+
+void ConfigurationToolbox::LogLevelChanged(int aLevel)
+{
+	LOG_TRACE("ConfigurationToolbox::LogLevelChanged");
+
+	if ( STRCASECMP(ui.comboBox_LogLevel->currentText().ascii(), "Error") == 0 )
+	{
+		PlusLogger::Instance()->SetLogLevel(PlusLogger::LOG_LEVEL_ERROR); 
+        PlusLogger::Instance()->SetDisplayLogLevel(PlusLogger::LOG_LEVEL_ERROR); 
+	}
+	else if ( STRCASECMP(ui.comboBox_LogLevel->currentText().ascii(), "Warning") == 0 )
+	{
+		PlusLogger::Instance()->SetLogLevel(PlusLogger::LOG_LEVEL_WARNING); 
+        PlusLogger::Instance()->SetDisplayLogLevel(PlusLogger::LOG_LEVEL_WARNING);
+	}
+	else if ( STRCASECMP(ui.comboBox_LogLevel->currentText().ascii(), "Info") == 0 )
+	{
+		PlusLogger::Instance()->SetLogLevel(PlusLogger::LOG_LEVEL_INFO); 
+        PlusLogger::Instance()->SetDisplayLogLevel(PlusLogger::LOG_LEVEL_INFO);
+	}
+	else if ( STRCASECMP(ui.comboBox_LogLevel->currentText().ascii(), "Debug") == 0 )
+	{
+		PlusLogger::Instance()->SetLogLevel(PlusLogger::LOG_LEVEL_DEBUG); 
+        PlusLogger::Instance()->SetDisplayLogLevel(PlusLogger::LOG_LEVEL_DEBUG);
+	}
+	else if ( STRCASECMP(ui.comboBox_LogLevel->currentText().ascii(), "Trace") == 0 )
+	{
+		PlusLogger::Instance()->SetLogLevel(PlusLogger::LOG_LEVEL_TRACE); 
+        PlusLogger::Instance()->SetDisplayLogLevel(PlusLogger::LOG_LEVEL_TRACE);
+	}
+
+	LOG_INFO("Log level changed to: " << ui.comboBox_LogLevel->currentText().ascii() )
+}
+
+//-----------------------------------------------------------------------------
+
+void ConfigurationToolbox::NumberOfStylusCalibrationPointsChanged(int aNumberOfPoints)
+{
+	LOG_TRACE("ConfigurationToolbox::NumberOfStylusCalibrationPointsChanged");
+
+	StylusCalibrationController::GetInstance()->SetNumberOfPoints(aNumberOfPoints);
 }

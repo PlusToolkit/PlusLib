@@ -70,6 +70,8 @@ PhantomRegistrationToolbox::~PhantomRegistrationToolbox()
 
 void PhantomRegistrationToolbox::Initialize()
 {
+	LOG_TRACE("PhantomRegistrationToolbox::Initialize"); 
+
 	// If stylus calibration has just been done, then indicate it
 	if (StylusCalibrationController::GetInstance()->GetStylusToStylustipTransform() != NULL) {
 		ui.lineEdit_StylusCalibration->setText(tr("Using session calibration data"));
@@ -202,6 +204,8 @@ void PhantomRegistrationToolbox::RefreshToolboxContent()
 
 void PhantomRegistrationToolbox::Stop()
 {
+	LOG_TRACE("PhantomRegistrationToolbox::Stop"); 
+
 	PhantomRegistrationController::GetInstance()->Stop();
 }
 
@@ -209,7 +213,7 @@ void PhantomRegistrationToolbox::Stop()
 
 void PhantomRegistrationToolbox::Clear()
 {
-	LOG_INFO("Clear phantom registration"); 
+	LOG_TRACE("PhantomRegistrationToolbox::Clear"); 
 
 	// Stop the acquisition timer
 	m_AcquisitionTimer->stop();
@@ -219,6 +223,8 @@ void PhantomRegistrationToolbox::Clear()
 
 void PhantomRegistrationToolbox::RequestDoAcquisition()
 {
+	LOG_TRACE("PhantomRegistrationToolbox::RequestDoAcquisition"); 
+
 	PhantomRegistrationController::GetInstance()->DoAcquisition();
 }
 
@@ -300,7 +306,7 @@ void PhantomRegistrationToolbox::UndoClicked()
 
 void PhantomRegistrationToolbox::ResetClicked()
 {
-	LOG_DEBUG("PhantomRegistrationToolbox: Reset button clicked"); 
+	LOG_TRACE("PhantomRegistrationToolbox: Reset button clicked"); 
 
 	PhantomRegistrationController::GetInstance()->Reset();
 
