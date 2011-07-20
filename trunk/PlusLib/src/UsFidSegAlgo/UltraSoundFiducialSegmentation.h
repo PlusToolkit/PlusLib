@@ -69,8 +69,12 @@ class Dot
 		float	GetY() { return m_Y; };
 		void	SetDotIntensity(float value) { m_DotIntensity = value; };
 		float	GetDotIntensity() { return m_DotIntensity; };
+		void	SetPhantomIndex(int value) { m_PhantomIndex = value; };
+		int		GetPhantomIndex() { return m_PhantomIndex; };
+
 
 	protected:
+		int		m_PhantomIndex;
 		float	m_X;
 		float	m_Y;
 		float	m_DotIntensity;
@@ -217,6 +221,7 @@ class SegmentationParameters
 		SegmentationParameters::SegmentationParameters();
 
 		void					UpdateParameters();
+		void					ComputeParameters();
 		
 		void					SetUseOriginalImageIntensityForDotIntensityScore(bool value) { m_UseOriginalImageIntensityForDotIntensityScore = value; };
 		bool					GetUseOriginalImageIntensityForDotIntensityScore() { return m_UseOriginalImageIntensityForDotIntensityScore; };
@@ -266,8 +271,6 @@ class SegmentationParameters
 		double					GetMorphologicalOpeningBarSizeMm() { return m_MorphologicalOpeningBarSizeMm; };
 		void					SetMorphologicalOpeningCircleRadiusMm(double value) { m_MorphologicalOpeningCircleRadiusMm = value; };
 		double					GetMorphologicalOpeningCircleRadiusMm() { return m_MorphologicalOpeningCircleRadiusMm; };
-		void					SetScalingEstimation(double value) { m_ScalingEstimation = value; };
-		double					GetScalingEstimation() { return m_ScalingEstimation; };
 
 		void					SetFiducialGeometry(FiducialGeometryType value) { m_FiducialGeometry = value; };
 		FiducialGeometryType	GetFiducialGeometry() { return m_FiducialGeometry; };
@@ -276,6 +279,15 @@ class SegmentationParameters
 
 		void SetMorphologicalCircle(std::vector<Item> value) { m_MorphologicalCircle = value; };
 		std::vector<Item> GetMorphologicalCircle() { return m_MorphologicalCircle; };
+
+		void					SetScalingEstimation(double value) {m_ScalingEstimation = value; };
+		double					GetScalingEstimation() {return m_ScalingEstimation; };
+		void					SetImageScalingTolerancePercent(int aIndex, int aValue) { m_ImageScalingTolerancePercent[aIndex] = aValue; };
+		double *				GetImageScalingTolerancePercent() { return m_ImageScalingTolerancePercent; };
+		void					SetImageNormalVectorInPhantomFrameEstimation(int aIndex, int aValue) { m_ImageNormalVectorInPhantomFrameEstimation[aIndex] = aValue; };
+		double *				GetImageNormalVectorInPhantomFrameEstimation() { return m_ImageNormalVectorInPhantomFrameEstimation; };
+		void					SetImageNormalVectorInPhantomFrameMaximumRotationAngleDeg(int aIndex, int aValue) { m_ImageNormalVectorInPhantomFrameMaximumRotationAngleDeg[aIndex] = aValue; };
+		double *				GetImageNormalVectorInPhantomFrameMaximumRotationAngleDeg() { return m_ImageNormalVectorInPhantomFrameMaximumRotationAngleDeg; };
 
 	protected:
 			
@@ -311,12 +323,16 @@ class SegmentationParameters
 
 		double					m_MorphologicalOpeningBarSizeMm; 
 		double					m_MorphologicalOpeningCircleRadiusMm; 
-		double					m_ScalingEstimation; 
 		
 		FiducialGeometryType	m_FiducialGeometry;
 		std::vector<NWire>		m_NWires;
 		
 		std::vector<Item>		m_MorphologicalCircle; 
+
+		double					m_ScalingEstimation;
+        double			        m_ImageScalingTolerancePercent[2];
+        double			        m_ImageNormalVectorInPhantomFrameEstimation[3];
+        double			        m_ImageNormalVectorInPhantomFrameMaximumRotationAngleDeg[6];
 };
 
 //-----------------------------------------------------------------------------
@@ -349,27 +365,27 @@ class SegmentationResults
 		void								SetNumDots(double value) { m_NumDots = value; };
 		double								GetNumDots() { return m_NumDots; };
 		void								SetCandidateFidValues(std::vector<Dot> value) { m_CandidateFidValues = value; };
-		std::vector<Dot>								GetCandidateFidValues() { return m_CandidateFidValues; };
+		std::vector<Dot>					GetCandidateFidValues() { return m_CandidateFidValues; };
 		
 	protected:
 		/* True if the dots are found, false otherwise. */
-		bool m_DotsFound;
+		bool								m_DotsFound;
 
 		/* X and Y values of found dots. */
 		//vector<vector<double>> m_FoundDotsCoordinateValue;
-		std::vector< std::vector<double> > m_FoundDotsCoordinateValue; 
+		std::vector< std::vector<double> >	m_FoundDotsCoordinateValue; 
 		/* The degree to which the lines are parallel and the dots linear.  On the
 		 * range 0-1, with 0 being a very good angles score and 1 being the
 		 * threshold of acceptability. */
-		float	m_Angles;
+		float								m_Angles;
 
 		/* The combined intensity of the six dots. This is the sum of the pixel
 		 * values after the morphological operations, with the pixel values on the
 		 * range 0-1.  A good intensity score is over 100. A bad one (but still
 		 * valid) is below 25. */
-		float	m_Intensity;
-		double	m_NumDots; // number of possibel fiducial points
-		std::vector<Dot>	m_CandidateFidValues; // pointer to the fiducial candidates coordinates
+		float								m_Intensity;
+		double								m_NumDots; // number of possibel fiducial points
+		std::vector<Dot>					m_CandidateFidValues; // pointer to the fiducial candidates coordinates
 };
 
 //-----------------------------------------------------------------------------

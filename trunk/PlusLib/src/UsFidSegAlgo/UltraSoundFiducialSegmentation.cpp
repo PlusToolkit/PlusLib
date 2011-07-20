@@ -637,38 +637,38 @@ void SegImpl::WritePossibleFiducialOverlayImage(std::vector<Dot> fiducials, Pixe
 //-----------------------------------------------------------------------------
 
 SegmentationParameters::SegmentationParameters() :
-		m_ThresholdImageTop( 10.0 ),
-		m_ThresholdImageBottom( 10.0 ),
+		m_ThresholdImageTop( -1.0 ),
+		m_ThresholdImageBottom( -1.0 ),
 
 		m_MaxLineLenMm ( -1.0 ), 
 		m_MinLineLenMm ( -1.0 ),
 		m_MaxLinePairDistMm ( -1.0 ),
 		m_MinLinePairDistMm ( -1.0 ),
 
-		m_MaxLineLengthErrorPercent( 5.0 ),
-		m_MaxLinePairDistanceErrorPercent( 10.0 ),
-		m_MaxLineErrorMm ( 2.0 ),
+		m_MaxLineLengthErrorPercent( -1.0 ),
+		m_MaxLinePairDistanceErrorPercent( -1.0 ),
+		m_MaxLineErrorMm ( -1.0 ),
 
-		m_FindLines3PtDist ( 5.3f ),
+		m_FindLines3PtDist ( -1.0f ),
 
-		m_MaxAngleDiff ( 11.0 * M_PI / 180.0 ),
-		m_MinTheta( 20.0 * M_PI / 180.0 ),
-		m_MaxTheta( 160.0 * M_PI / 180.0 ),
+		m_MaxAngleDiff ( -1.0 ),
+		m_MinTheta( -1.0 ),
+		m_MaxTheta( -1.0 ),
 
-		m_MaxUangleDiff( 10.0 * M_PI / 180.0 ),
-		m_MaxUsideLineDiff (30), 
-		m_MinUsideLineLength (280),//320
-		m_MaxUsideLineLength (300),//350
+		m_MaxUangleDiff( -1.0 ),
+		m_MaxUsideLineDiff (-1), 
+		m_MinUsideLineLength (-1),//320
+		m_MaxUsideLineLength (-1),//350
 
-		m_MorphologicalOpeningBarSizeMm(2.0), 
-		m_MorphologicalOpeningCircleRadiusMm(0.55), 
-		m_ScalingEstimation(0.2), 
+		m_MorphologicalOpeningBarSizeMm(-1.0), 
+		m_MorphologicalOpeningCircleRadiusMm(-1.0), 
+		m_ScalingEstimation(-1.0), 
 
 		m_FiducialGeometry(CALIBRATION_PHANTOM_6_POINT),
 
 		m_UseOriginalImageIntensityForDotIntensityScore (false) 
 {
-	this->UpdateParameters(); 
+	this->UpdateParameters();
 }
 
 //-----------------------------------------------------------------------------
@@ -688,6 +688,26 @@ void SegmentationParameters::UpdateParameters()
 			}
 		}
 	}
+}
+
+//-----------------------------------------------------------------------------
+
+void SegmentationParameters::ComputeParameters()
+{
+	double maxAngleY = std::max(fabs(m_ImageNormalVectorInPhantomFrameMaximumRotationAngleDeg[2]),m_ImageNormalVectorInPhantomFrameMaximumRotationAngleDeg[3]);//the maximum of the rotation around the Y axis
+	m_MaxLineLengthErrorPercent = 1/cos(maxAngleY) - 1;
+
+	double maxAngleX = std::max(fabs(m_ImageNormalVectorInPhantomFrameMaximumRotationAngleDeg[0]),m_ImageNormalVectorInPhantomFrameMaximumRotationAngleDeg[1]);//the maximum of the rotation around the X axis
+	m_MaxLinePairDistanceErrorPercent = 1/cos(maxAngleX) - 1;
+
+	//m_MaxLineLengthErrorPercent = 5.0;//Relative tolerance about the length of a line in percent
+	//m_MaxLinePairDistanceErrorPercent = 10.0;//The maximum error on the distance between two lines
+	//m_MaxLineErrorMm = 2.0;//The absolute tolerance on the length of a line
+
+	//m_FindLines3PtDist = 5.3f;//distance of the third point to line it tries to be added to
+	//m_MaxAngleDiff = 11.0 * M_PI / 180.0;//maximum angle allowed between 2 lines
+	//m_MinTheta = 20.0 * M_PI / 180.0;//minimum angle allowed for a single line (cannot be vertical for example)
+	//m_MaxTheta = 160.0 * M_PI / 180.0;//maximum angle allowed for a single line (cannot be vertical for example)
 }
 
 //-----------------------------------------------------------------------------
