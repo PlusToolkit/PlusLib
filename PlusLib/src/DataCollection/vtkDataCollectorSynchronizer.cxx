@@ -447,7 +447,15 @@ PlusStatus vtkDataCollectorSynchronizer::ComputeTransformThreshold( BufferItemUi
     if ( bufferItem.GetStatus() == TR_OK )
     {
       vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New(); 
-      transform->SetMatrix( bufferItem.GetMatrix() ); 
+
+      vtkSmartPointer<vtkMatrix4x4> transformMatrix=vtkSmartPointer<vtkMatrix4x4>::New();
+      if (bufferItem.GetMatrix(transformMatrix)!=PLUS_SUCCESS)
+      {
+        LOG_ERROR("Failed to get transformMatrix"); 
+        return PLUS_FAIL; 
+      }
+
+      transform->SetMatrix( transformMatrix ); 
       avgTransforms.push_back(transform); 
       sizeOfAvgPositons++; 
     }
@@ -545,7 +553,14 @@ PlusStatus vtkDataCollectorSynchronizer::FindTransformMotionTimestamp( BufferIte
       unsigned long frameNumber = bufferItem.GetIndex();
 
       vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New(); 
-      transform->SetMatrix( bufferItem.GetMatrix() ); 
+
+      vtkSmartPointer<vtkMatrix4x4> transformMatrix=vtkSmartPointer<vtkMatrix4x4>::New();
+      if (bufferItem.GetMatrix(transformMatrix)!=PLUS_SUCCESS)
+      {
+        LOG_ERROR("Failed to get transformMatrix"); 
+        return PLUS_FAIL; 
+      }
+      transform->SetMatrix( transformMatrix ); 
 
       if ( ! this->IsTransformBelowThreshold(transform, timestamp) )
       {
@@ -607,8 +622,21 @@ void vtkDataCollectorSynchronizer::FindStillTransform( BufferItemUidType& baseIn
       continue; 
     }
 
-    if ( this->GetTranslationError(baseItem.GetMatrix(), currentItem.GetMatrix() ) < this->MaxTransformDifference 
-      && this->GetRotationError(baseItem.GetMatrix(), currentItem.GetMatrix()) < this->MaxTransformDifference )
+    vtkSmartPointer<vtkMatrix4x4> baseMatrix=vtkSmartPointer<vtkMatrix4x4>::New();
+    if (baseItem.GetMatrix(baseMatrix)!=PLUS_SUCCESS)
+    {
+      LOG_ERROR("Failed to get baseMatrix"); 
+      continue; 
+    }
+    vtkSmartPointer<vtkMatrix4x4> currentMatrix=vtkSmartPointer<vtkMatrix4x4>::New();
+    if (currentItem.GetMatrix(currentMatrix)!=PLUS_SUCCESS)
+    {
+      LOG_ERROR("Failed to get currentMatrix"); 
+      continue; 
+    }
+      
+    if ( this->GetTranslationError(baseMatrix, currentMatrix ) < this->MaxTransformDifference 
+      && this->GetRotationError(baseMatrix, currentMatrix) < this->MaxTransformDifference )
     {
       // This item is below threshold, continue with the preceding item in the buffer
       currentIndex = currentIndex - 1; 

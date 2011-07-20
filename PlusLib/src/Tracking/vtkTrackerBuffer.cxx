@@ -42,7 +42,8 @@ TrackerBufferItem& TrackerBufferItem::operator=(TrackerBufferItem const& tracker
   }
 
   this->Status = trackerBufferItem.Status; 
-  this->Matrix->DeepCopy( trackerBufferItem.GetMatrix() ); 
+  this->Matrix->DeepCopy( trackerBufferItem.Matrix ); 
+
   this->FilteredTimeStamp = trackerBufferItem.FilteredTimeStamp; 
   this->UnfilteredTimeStamp = trackerBufferItem.UnfilteredTimeStamp; 
   this->Index = trackerBufferItem.Index; 
@@ -61,7 +62,7 @@ PlusStatus TrackerBufferItem::DeepCopy(TrackerBufferItem* trackerBufferItem)
   }
 
   this->Status = trackerBufferItem->Status; 
-  this->Matrix->DeepCopy( trackerBufferItem->GetMatrix() ); 
+  this->Matrix->DeepCopy( trackerBufferItem->Matrix ); 
   this->FilteredTimeStamp = trackerBufferItem->FilteredTimeStamp; 
   this->UnfilteredTimeStamp = trackerBufferItem->UnfilteredTimeStamp; 
   this->Index = trackerBufferItem->Index; 
@@ -84,6 +85,19 @@ PlusStatus TrackerBufferItem::SetMatrix(vtkMatrix4x4* matrix)
   return PLUS_SUCCESS; 
 }
 
+//----------------------------------------------------------------------------
+PlusStatus TrackerBufferItem::GetMatrix(vtkMatrix4x4* outputMatrix)
+{
+  if ( outputMatrix == NULL ) 
+  {
+    LOG_ERROR("Failed to copy matrix - output matrix is NULL!"); 
+    return PLUS_FAIL; 
+  }
+
+  outputMatrix->DeepCopy(this->Matrix);
+
+  return PLUS_SUCCESS; 
+}
 
 //----------------------------------------------------------------------------
 //						vtkTrackerBuffer
@@ -304,7 +318,14 @@ ItemStatus vtkTrackerBuffer::GetTrackerBufferItem(BufferItemUidType uid, Tracker
   // Apply Tool calibration and World calibration matrix to tool matrix if desired 
   if ( calibratedItem ) 
   {
-    vtkMatrix4x4* toolMatrix = trackerItem->GetMatrix(); 
+    
+    vtkSmartPointer<vtkMatrix4x4> toolMatrix=vtkSmartPointer<vtkMatrix4x4>::New();
+    if (trackerItem->GetMatrix(toolMatrix)!=PLUS_SUCCESS)
+    {
+      LOG_ERROR("Failed to get toolMatrix"); 
+      return ITEM_UNKNOWN_ERROR;
+    }
+
     if (this->ToolCalibrationMatrix)
     {
       vtkMatrix4x4::Multiply4x4(toolMatrix, this->ToolCalibrationMatrix, toolMatrix);
@@ -314,7 +335,7 @@ ItemStatus vtkTrackerBuffer::GetTrackerBufferItem(BufferItemUidType uid, Tracker
     {
       vtkMatrix4x4::Multiply4x4(this->WorldCalibrationMatrix, toolMatrix, toolMatrix);
     }
-    trackerItem->SetMatrix(toolMatrix); 
+    bufferItem->SetMatrix(toolMatrix); 
   }
 
   // Check the status again to make sure the writer didn't change it
@@ -420,14 +441,21 @@ ItemStatus vtkTrackerBuffer::GetTrackerBufferItemFromTime( double time, TrackerB
     return status; 
   }
 
+  vtkSmartPointer<vtkMatrix4x4> item_0Matrix=vtkSmartPointer<vtkMatrix4x4>::New();
+  if (item_0.GetMatrix(item_0Matrix)!=PLUS_SUCCESS)
+  {
+    LOG_ERROR("Failed to get item_0"); 
+    return ITEM_UNKNOWN_ERROR;
+  }
+
   double matrix0[3][3] = {0};
   double xyz0[3] = {0};
   for (int i = 0; i < 3; i++)
   {
-    matrix0[i][0] = item_0.GetMatrix()->GetElement(i,0);
-    matrix0[i][1] = item_0.GetMatrix()->GetElement(i,1);
-    matrix0[i][2] = item_0.GetMatrix()->GetElement(i,2);
-    xyz0[i] = item_0.GetMatrix()->GetElement(i,3);
+    matrix0[i][0] = item_0Matrix->GetElement(i,0);
+    matrix0[i][1] = item_0Matrix->GetElement(i,1);
+    matrix0[i][2] = item_0Matrix->GetElement(i,2);
+    xyz0[i] = item_0Matrix->GetElement(i,3);
   }
 
   //============== item 1 ==================
@@ -439,14 +467,21 @@ ItemStatus vtkTrackerBuffer::GetTrackerBufferItemFromTime( double time, TrackerB
     return status; 
   }
 
+  vtkSmartPointer<vtkMatrix4x4> item_1Matrix=vtkSmartPointer<vtkMatrix4x4>::New();
+  if (item_1.GetMatrix(item_1Matrix)!=PLUS_SUCCESS)
+  {
+    LOG_ERROR("Failed to get item_1"); 
+    return ITEM_UNKNOWN_ERROR;
+  }
+
   double matrix1[3][3] = {0};
   double xyz1[3] = {0};
   for (int i = 0; i < 3; i++)
   {
-    matrix1[i][0] = item_1.GetMatrix()->GetElement(i,0);
-    matrix1[i][1] = item_1.GetMatrix()->GetElement(i,1);
-    matrix1[i][2] = item_1.GetMatrix()->GetElement(i,2);
-    xyz1[i] = item_1.GetMatrix()->GetElement(i,3);
+    matrix1[i][0] = item_1Matrix->GetElement(i,0);
+    matrix1[i][1] = item_1Matrix->GetElement(i,1);
+    matrix1[i][2] = item_1Matrix->GetElement(i,2);
+    xyz1[i] = item_1Matrix->GetElement(i,3);
   }
 
 

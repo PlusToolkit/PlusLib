@@ -20,7 +20,7 @@ public:
 
   // Set/get tracker matrix
   PlusStatus SetMatrix(vtkMatrix4x4* matrix); 
-  vtkSmartPointer<vtkMatrix4x4> GetMatrix() const { return this->Matrix; }
+  PlusStatus GetMatrix(vtkMatrix4x4* outputMatrix);
 
   // Set/get tracker item status 
   void SetStatus(TrackerStatus status) { this->Status = status; }  

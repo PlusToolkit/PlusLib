@@ -557,6 +557,9 @@ vtkMatrix4x4 *vtkFreehandUltrasound2::GetIndexMatrixHelper(vtkMatrix4x4* sliceAx
 		transform->SetMatrix(sliceAxes);
 	}
 
+  vtkSmartPointer< vtkMatrix4x4 > sliceTransformMatrix = vtkSmartPointer< vtkMatrix4x4 >::New();
+  sliceTransform->GetMatrix(sliceTransformMatrix);
+
 	// transform = sliceTransform * sliceAxes
 	// sliceAxes == sliceTransform, so we shouldn't multiply them
 	/*if (sliceTransform)
