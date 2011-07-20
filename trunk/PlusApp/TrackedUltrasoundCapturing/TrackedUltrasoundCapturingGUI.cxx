@@ -412,7 +412,11 @@ void TrackedUltrasoundCapturingGUI::UpdateWidgets()
       {
 
         vtkSmartPointer<vtkMatrix4x4> transformMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
-        transformMatrix->DeepCopy( bufferItem.GetMatrix() ); 
+        if (bufferItem.GetMatrix(transformMatrix)!=PLUS_SUCCESS)
+        {
+          LOG_ERROR("Failed to get transformMatrix"); 
+          return;
+        }
 
         if ( bufferItem.GetStatus() == TR_OK )
         {

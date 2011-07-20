@@ -58,6 +58,7 @@ int main (int argc, char* argv[])
 
 	// Set the log level
 	PlusLogger::Instance()->SetLogLevel(verboseLevel);
+  PlusLogger::Instance()->SetDisplayLogLevel(verboseLevel);
 
 	vtkSmartPointer<vtkVolumeReconstructor> reconstructor = vtkSmartPointer<vtkVolumeReconstructor>::New(); 
 

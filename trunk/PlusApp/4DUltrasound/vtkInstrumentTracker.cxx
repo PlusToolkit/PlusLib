@@ -289,7 +289,7 @@ static void *vtkInstrumentTrackerThread(vtkMultiThreader::ThreadInfo *data)
   double sectionTime;
   double loopTime;
   int errors = 0;
-  vtkMatrix4x4 *trackerMatrix = vtkMatrix4x4::New();
+  vtkSmartPointer<vtkMatrix4x4> trackerMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
   double trackingRate = self->GetTrackingRate();
 
   igtl::TransformMessage::Pointer transMsg;
@@ -319,7 +319,11 @@ static void *vtkInstrumentTrackerThread(vtkMultiThreader::ThreadInfo *data)
     }
 
       status = bufferItem.GetStatus(); 
-      trackerMatrix->DeepCopy( bufferItem.GetMatrix() ); 
+      if (bufferItem.GetMatrix(trackerMatrix)!=PLUS_SUCCESS)
+      {
+        LOG_ERROR("Failed to get trackerMatrix"); 
+        continue;
+      }
       
       #ifdef DEBUG_INST_TRACKER
       self->GetLogStream() <<  self->GetUpTime() << " |I-INFO: New Matrix " << endl;
@@ -385,9 +389,7 @@ static void *vtkInstrumentTrackerThread(vtkMultiThreader::ThreadInfo *data)
 
     frame++;
     }
-  while(vtkThreadSleep(data, startTime + frame/trackingRate));
-
-  trackerMatrix->Delete();
+  while(vtkThreadSleep(data, startTime + frame/trackingRate));  
 
 return NULL;
 }
