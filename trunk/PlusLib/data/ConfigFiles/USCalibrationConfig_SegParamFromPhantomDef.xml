@@ -102,9 +102,14 @@
                 UseOriginalImageIntensityForDotIntensityScore="0"
 
                 ScalingEstimation="0.19"
-                ImageScalingTolerancePercent="10 10"                                
+                ImageScalingTolerancePercent="-10 10 -10 10"                                
                 ImageNormalVectorInPhantomFrameEstimation="0 0 1"
                 ImageNormalVectorInPhantomFrameMaximumRotationAngleDeg="-10 10 -10 10 -5 5"
+				
+				ImageToPhantomTransform="1  0 0 35
+										 0  0 1 20
+										 0 -1 0 2.5
+										 0  0 0  1"
 
                 PhantomDefinition="PhantomDefinition_iCal_1.0_Wiring_1.0.xml" 
                 >
