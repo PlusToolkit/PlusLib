@@ -664,7 +664,13 @@ PlusStatus vtkTracker::GetTrackerToolBufferStringList(double timestamp,
 		return PLUS_FAIL; 
       }
 
-      vtkMatrix4x4* dMatrix = bufferItem.GetMatrix(); 
+      vtkSmartPointer<vtkMatrix4x4> dMatrix=vtkSmartPointer<vtkMatrix4x4>::New();
+      if (bufferItem.GetMatrix(dMatrix)!=PLUS_SUCCESS)
+      {
+        LOG_ERROR("Failed to get dMatrix"); 
+        return PLUS_FAIL;
+      }
+
       std::ostringstream strToolTransform; 
       for ( int r = 0; r < 4; ++r )
       {

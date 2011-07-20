@@ -1320,6 +1320,12 @@ static void vtkFreehandUltrasound2InsertSlice(vtkFreehandUltrasound2 *self,
                                               vtkMatrix4x4 *matrix)
 {
 
+  LOG_TRACE("sliceToOutpuVolumeMatrix="<<matrix->GetElement(0,0)<<" "<<matrix->GetElement(0,1)<<" "<<matrix->GetElement(0,2)<<" "<<matrix->GetElement(0,3)<<"; "
+    <<matrix->GetElement(1,0)<<" "<<matrix->GetElement(1,1)<<" "<<matrix->GetElement(1,2)<<" "<<matrix->GetElement(1,3)<<"; "
+    <<matrix->GetElement(2,0)<<" "<<matrix->GetElement(2,1)<<" "<<matrix->GetElement(2,2)<<" "<<matrix->GetElement(2,3)<<"; "
+    <<matrix->GetElement(3,0)<<" "<<matrix->GetElement(3,1)<<" "<<matrix->GetElement(3,2)<<" "<<matrix->GetElement(3,3)
+    );
+
   // local variables
   int numscalars;
   int idX, idY, idZ;
@@ -1437,6 +1443,12 @@ static void vtkOptimizedInsertSlice(vtkFreehandUltrasound2 *self, // the freehan
                                     F matrix[4][4], // index matrix, output indices -> input indices
                                     int threadId) // current thread id
 {
+  LOG_TRACE("sliceToOutpuVolumeMatrix="<<(float)matrix[0][0]<<" "<<(float)matrix[0][1]<<" "<<(float)matrix[0][2]<<" "<<(float)matrix[0][3]<<"; "
+    <<(float)matrix[1][0]<<" "<<(float)matrix[1][1]<<" "<<(float)matrix[1][2]<<" "<<(float)matrix[1][3]<<"; "
+    <<(float)matrix[2][0]<<" "<<(float)matrix[2][1]<<" "<<(float)matrix[2][2]<<" "<<(float)matrix[2][3]<<"; "
+    <<(float)matrix[3][0]<<" "<<(float)matrix[3][1]<<" "<<(float)matrix[3][2]<<" "<<(float)matrix[3][3]
+    );
+  
   int prevPixelCount = self->GetPixelCount();
 
   // local variables
@@ -1734,9 +1746,6 @@ static void *vtkReconstructionThread(ThreadInfoStruct *data)
     //printf("Found Tracker Tool\n");
   }
 
-  // tracker tool transforms
-  vtkMatrix4x4 *matrix = self->GetSliceAxes();
-
   // get the buffer for the tracking information
   // is the buffer for the tracker tool if we are doing a real-time reconstruction
   // is the buffer given in self->TrackerBuffer if we are doing non-real-time reconstruction
@@ -1780,7 +1789,6 @@ static void *vtkReconstructionThread(ThreadInfoStruct *data)
   // Loop continuously until reconstruction thread is halted
   double starttime = 0;
   vtkSmartPointer<vtkTransform> tempTransform = vtkSmartPointer<vtkTransform>::New();
-  vtkSmartPointer<vtkMatrix4x4> sliceAxesInverseMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
   int rot; // current rotation in degrees
   int rotating = self->GetRotating();
   vtkImageClip* clipper = self->GetRotationClipper();
@@ -1836,7 +1844,7 @@ static void *vtkReconstructionThread(ThreadInfoStruct *data)
     self->ReconstructOldSlice((lastcurrtime - videolag), inData);
 
     // Get the tracking transform, using temporal calibration if applicable
-    // recall that matrix = this->SliceAxes
+    // recall that imageToRefTransform = this->SliceAxes
     TrackerBufferItem trackerItem; 
     if (video && (videolag > 0.0 || !self->RealTimeReconstruction)) // TODO add "or retrospective" for when doing offline recon with retro gating?
     {
@@ -1858,7 +1866,16 @@ static void *vtkReconstructionThread(ThreadInfoStruct *data)
         currtime = trackerItem.GetTimestamp(0);
       }
     }
-    matrix = trackerItem.GetMatrix(); 
+
+    // tracker tool transforms
+    vtkSmartPointer<vtkMatrix4x4> imageToRefTransform=vtkSmartPointer<vtkMatrix4x4>::New();
+    if (trackerItem.GetMatrix(imageToRefTransform)!=PLUS_SUCCESS)
+    {
+      LOG_ERROR("Failed to get imageToRefTransform"); 
+      continue;
+    }
+
+    self->SetSliceAxes(imageToRefTransform);    
 
     // get the rotation and apply 
     if (rotating)
@@ -1911,7 +1928,8 @@ static void *vtkReconstructionThread(ThreadInfoStruct *data)
     // now use the rotation to change the SliceTransform (vtkTransform)
     // (if not rotating, then fan rotation and previous fan rotation are zero and don't do anything)
     // TODO this probably won't work if there is an actual set slice transform here...
-    vtkMatrix4x4::Invert(matrix, sliceAxesInverseMatrix);
+    vtkSmartPointer<vtkMatrix4x4> refToImageTransform = vtkSmartPointer<vtkMatrix4x4>::New();
+    vtkMatrix4x4::Invert(imageToRefTransform, refToImageTransform);
     if (self->GetSliceTransform())
     {
       //if (self->GetFanRotation() != self->GetPreviousFanRotation()) // messes up big jumps
@@ -1921,9 +1939,9 @@ static void *vtkReconstructionThread(ThreadInfoStruct *data)
       tempTransform->Identity();
       tempTransform->RotateY(self->GetFanRotation());
       tempTransform->PostMultiply();
-      tempTransform->Concatenate(matrix);
+      tempTransform->Concatenate(imageToRefTransform);
       tempTransform->PreMultiply();
-      tempTransform->Concatenate(sliceAxesInverseMatrix);
+      tempTransform->Concatenate(refToImageTransform);
       //}
     }
 

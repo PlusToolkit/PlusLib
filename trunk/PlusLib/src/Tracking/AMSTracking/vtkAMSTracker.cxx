@@ -527,9 +527,15 @@ PlusStatus vtkAMSTracker::GetStepperEncoderValues( BufferItemUidType uid, double
     return PLUS_FAIL; 
   }
 
-  probePosition = bufferItem.GetMatrix()->GetElement(ROW_PROBE_POSITION,3); 
-	probeRotation = bufferItem.GetMatrix()->GetElement(ROW_PROBE_ROTATION,3); 
-	templatePosition = bufferItem.GetMatrix()->GetElement(ROW_TEMPLATE_POSITION,3); 
+  vtkSmartPointer<vtkMatrix4x4> mx=vtkSmartPointer<vtkMatrix4x4>::New();
+  if (bufferItem.GetMatrix(mx)!=PLUS_SUCCESS)
+  {
+    LOG_ERROR("Failed to get bufferitem matrix by UID: " << uid ); 
+    return PLUS_FAIL;
+  }
+  probePosition = mx->GetElement(ROW_PROBE_POSITION,3); 
+	probeRotation = mx->GetElement(ROW_PROBE_ROTATION,3); 
+	templatePosition = mx->GetElement(ROW_TEMPLATE_POSITION,3); 
   status = bufferItem.GetStatus(); 
 	
   return PLUS_SUCCESS; 
@@ -566,7 +572,11 @@ PlusStatus vtkAMSTracker::GetProbeHomeToProbeTransform( BufferItemUidType uid, v
   }
 
   status = bufferItem.GetStatus(); 
-  probeHomeToProbeMatrix->DeepCopy( bufferItem.GetMatrix() ); 
+  if (bufferItem.GetMatrix(probeHomeToProbeMatrix)!=PLUS_SUCCESS)
+  {
+    LOG_ERROR("Failed to get probeHomeToProbeMatrix"); 
+    return PLUS_FAIL;
+  }
 
 	return PLUS_SUCCESS; 
 }
@@ -601,7 +611,11 @@ PlusStatus vtkAMSTracker::GetTemplateHomeToTemplateTransform( BufferItemUidType 
   }
 
   status = bufferItem.GetStatus(); 
-  templateHomeToTemplateMatrix->DeepCopy( bufferItem.GetMatrix() ); 
+  if (bufferItem.GetMatrix(templateHomeToTemplateMatrix)!=PLUS_SUCCESS)
+  {
+    LOG_ERROR("Failed to get templateHomeToTemplateMatrix"); 
+    return PLUS_FAIL;
+  }
 
 	return PLUS_SUCCESS; 
 }
@@ -635,7 +649,12 @@ PlusStatus vtkAMSTracker::GetRawEncoderValuesTransform( BufferItemUidType uid, v
     return PLUS_FAIL;
   }
 
-  rawEncoderValuesTransform->DeepCopy( bufferItem.GetMatrix() ); 
+  if (bufferItem.GetMatrix(rawEncoderValuesTransform)!=PLUS_SUCCESS)
+  {
+    LOG_ERROR("Failed to get rawEncoderValuesTransform"); 
+    return PLUS_FAIL;
+  }
+
   status = bufferItem.GetStatus(); 
 
   return PLUS_SUCCESS; 

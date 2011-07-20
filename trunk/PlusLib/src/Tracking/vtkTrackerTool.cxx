@@ -210,7 +210,12 @@ PlusStatus vtkTrackerTool::InsertNextCalibrationPoint()
     return PLUS_FAIL; 
   }
 
-  vtkMatrix4x4* tempMatrix = bufferItem.GetMatrix(); 
+  vtkSmartPointer<vtkMatrix4x4> tempMatrix=vtkSmartPointer<vtkMatrix4x4>::New();
+  if (bufferItem.GetMatrix(tempMatrix)!=PLUS_SUCCESS)
+  {
+    LOG_ERROR("Failed to get tempMatrix"); 
+    return PLUS_FAIL;
+  }
 
 	this->CalibrationArray->InsertNextTuple(*tempMatrix->Element);
 

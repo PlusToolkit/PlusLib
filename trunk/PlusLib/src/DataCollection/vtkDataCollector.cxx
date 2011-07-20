@@ -539,7 +539,14 @@ PlusStatus vtkDataCollector::WriteTrackerToMetafile( vtkTracker* tracker, const 
           continue; 
         }
 
-        trackedFrame.SetCustomFrameTransform(tracker->GetTool(tool)->GetToolName(), toolBufferItem.GetMatrix() ); 
+        vtkSmartPointer<vtkMatrix4x4> toolMatrix=vtkSmartPointer<vtkMatrix4x4>::New();
+        if (toolBufferItem.GetMatrix(toolMatrix)!=PLUS_SUCCESS)
+        {
+          LOG_ERROR("Failed to get toolMatrix"); 
+          return PLUS_FAIL; 
+        }
+
+        trackedFrame.SetCustomFrameTransform(tracker->GetTool(tool)->GetToolName(), toolMatrix ); 
 
         const char* calibMatrixName = tracker->GetTool(tool)->GetCalibrationMatrixName(); 
         vtkMatrix4x4* calibmatrix = tracker->GetTool(tool)->GetCalibrationMatrix(); 
@@ -1059,7 +1066,11 @@ PlusStatus vtkDataCollector::GetTransformWithTimestamp(vtkMatrix4x4* toolTransMa
 
   status = bufferItem.GetStatus(); 
 
-  toolTransMatrix->DeepCopy( bufferItem.GetMatrix() ); 
+  if (bufferItem.GetMatrix(toolTransMatrix)!=PLUS_SUCCESS)
+  {
+    LOG_ERROR("Failed to get currentMatrix"); 
+    return PLUS_FAIL; 
+  }
 
   transformTimestamp = bufferItem.GetTimestamp( this->GetTracker()->GetTool(toolNumber)->GetBuffer()->GetLocalTimeOffset() ); 
 
@@ -1085,7 +1096,11 @@ PlusStatus vtkDataCollector::GetTransformByTimestamp(vtkMatrix4x4* toolTransMatr
 
   status = bufferItem.GetStatus(); 
 
-  toolTransMatrix->DeepCopy( bufferItem.GetMatrix() ); 
+  if (bufferItem.GetMatrix(toolTransMatrix)!=PLUS_SUCCESS)
+  {
+    LOG_ERROR("Failed to get toolTransMatrix"); 
+    return PLUS_FAIL; 
+  }
 
   return PLUS_SUCCESS; 
 }
@@ -1144,7 +1159,15 @@ double vtkDataCollector::GetTransformsByTimeInterval(std::vector<vtkMatrix4x4*> 
       LOG_ERROR("Failed to get tracker buffer item with UID: " << i ); 
       continue; 
     }
-    toolTransMatrixVector.push_back( bufferItem.GetMatrix() );
+
+    vtkSmartPointer<vtkMatrix4x4> toolTransMatrix=vtkSmartPointer<vtkMatrix4x4>::New();
+    if (bufferItem.GetMatrix(toolTransMatrix)!=PLUS_SUCCESS)
+    {
+      LOG_ERROR("Failed to get toolTransMatrix"); 
+      continue; 
+    }
+
+    toolTransMatrixVector.push_back( toolTransMatrix );
     statusVector.push_back( bufferItem.GetStatus() );
   }
 
@@ -1363,7 +1386,14 @@ int vtkDataCollector::RequestData( vtkInformation* vtkNotUsed( request ), vtkInf
         return 1; 
       }
 
-      this->ToolTransMatrices[i]->DeepCopy(bufferItem.GetMatrix()); 
+      vtkSmartPointer<vtkMatrix4x4> toolTransMatrix=vtkSmartPointer<vtkMatrix4x4>::New();
+      if (bufferItem.GetMatrix(toolTransMatrix)!=PLUS_SUCCESS)
+      {
+        LOG_ERROR("Failed to get toolTransMatrix"); 
+        return 1; 
+      }
+
+      this->ToolTransMatrices[i]->DeepCopy(toolTransMatrix); 
       this->ToolTransMatrices[i]->Modified(); 
       this->ToolStatus[i] = bufferItem.GetStatus(); 
     }

@@ -298,8 +298,13 @@ PlusStatus vtkSavedDataTracker::InternalUpdate()
     this->FrameNumber++; 
   }
 
-	// Get default transfom
-	vtkMatrix4x4* defaultTransMatrix = bufferItem.GetMatrix(); 
+	// Get default transfom	
+  vtkSmartPointer<vtkMatrix4x4> defaultTransMatrix=vtkSmartPointer<vtkMatrix4x4>::New();
+  if (bufferItem.GetMatrix(defaultTransMatrix)!=PLUS_SUCCESS)
+  {
+    LOG_ERROR("Failed to get defaultTransMatrix"); 
+    return PLUS_FAIL;
+  }
 
 	// Get flags
 	TrackerStatus trackerStatus = bufferItem.GetStatus(); 
