@@ -305,7 +305,7 @@ PlusStatus vtkSonixVideoSource::LocalInternalGrab(void* dataPtr, int type, int s
     
     // get the pointer to actual incoming data on to a local pointer
     unsigned char *deviceDataPtr = static_cast<unsigned char*>(dataPtr);
-
+    
     PlusStatus status = this->Buffer->AddItem(deviceDataPtr, this->GetUsImageOrientation(), frameSize, frameBufferBitsPerPixel, numberOfBytesToSkip, this->FrameNumber); 
     this->Modified(); 
 
