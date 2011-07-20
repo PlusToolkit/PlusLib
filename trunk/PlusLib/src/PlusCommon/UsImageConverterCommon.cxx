@@ -140,7 +140,9 @@ PlusStatus UsImageConverterCommon::GetMFOrientedImage( vtkImageData* inUsImage, 
 PlusStatus UsImageConverterCommon::GetMFOrientedImage( unsigned char* imageDataPtr,                               
                                                       US_IMAGE_ORIENTATION  inUsImageOrientation, 
                                                       const int    frameSizeInPx[2],
-                                                      int    numberOfBitsPerPixel )
+                                                      int    numberOfBitsPerPixel, 
+                                                      ImageType::Pointer& outUsOrintedImage
+                                                      )
 {
 
   if ( imageDataPtr == NULL )
@@ -149,45 +151,30 @@ PlusStatus UsImageConverterCommon::GetMFOrientedImage( unsigned char* imageDataP
     return PLUS_FAIL; 
   }
 
-   if ( inUsImageOrientation == US_IMG_ORIENT_XX ) 
+  if ( outUsOrintedImage.IsNull() )
   {
-    LOG_WARNING("Failed to convert image data MF orientation - unknown input image orientation, return identical copy!"); 
-    return PLUS_SUCCESS; 
+    LOG_ERROR("Failed to convert image data to MF orientation - output image is null!"); 
+    return PLUS_FAIL; 
   }
 
-  if ( inUsImageOrientation == US_IMG_ORIENT_MF )
+  if ( numberOfBitsPerPixel != sizeof(PixelType)*8 )
   {
-    return PLUS_SUCCESS; 
+    LOG_ERROR("Failed to convert image data to MF orientation - pixel size mismatch (input: " << numberOfBitsPerPixel << " bits, output: " << sizeof(PixelType)*8 << " bits)!"); 
+    return PLUS_FAIL; 
   }
 
-  long bufferSize = frameSizeInPx[0]*frameSizeInPx[1]*(numberOfBitsPerPixel/8.0); 
-
-  ImageType::Pointer image = ImageType::New(); 
+  ImageType::Pointer inUsImage = ImageType::New(); 
   ImageType::SizeType size = {frameSizeInPx[0], frameSizeInPx[1]};
   ImageType::IndexType start = {0,0};
   ImageType::RegionType region;
   region.SetSize(size);
   region.SetIndex(start);
-  image->SetRegions(region);
-
-  try 
-  {
-    image->Allocate(); 
-  }
-  catch(itk::ExceptionObject & err)
-  {
-    LOG_ERROR("Failed to allocate memory for the image conversion: " << err.GetDescription() ); 
-    return PLUS_FAIL; 
-  }
-
-  memcpy(image->GetBufferPointer(), imageDataPtr, bufferSize); 
-
-  ImageType::Pointer orientedImage = ImageType::New(); 
+  inUsImage->SetRegions(region);
   ImageType::PixelContainer::Pointer pixelContainer = ImageType::PixelContainer::New(); 
   pixelContainer->SetImportPointer(imageDataPtr, frameSizeInPx[0]*frameSizeInPx[1], false); 
-  orientedImage->SetPixelContainer(pixelContainer); 
+  inUsImage->SetPixelContainer(pixelContainer); 
 
-  return UsImageConverterCommon::GetMFOrientedImage(image, inUsImageOrientation, orientedImage); 
+  return UsImageConverterCommon::GetMFOrientedImage(inUsImage, inUsImageOrientation, outUsOrintedImage); 
 }
 
 //----------------------------------------------------------------------------
@@ -262,6 +249,30 @@ PlusStatus UsImageConverterCommon::FlipImage(const UsImageConverterCommon::Image
   }
 
   return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+static PlusStatus SaveImageToFile(unsigned char* imageDataPtr, const int frameSizeInPx[2], int numberOfBitsPerPixel, const char* fileName)
+{
+
+  if ( numberOfBitsPerPixel != sizeof(UsImageConverterCommon::PixelType)*8 )
+  {
+    LOG_ERROR("Failed to save image to file - pixel size mismatch (expected: " <<  sizeof(UsImageConverterCommon::PixelType)*8 << " bits, current: " << numberOfBitsPerPixel << " bits)!)"); 
+    return PLUS_FAIL; 
+  }
+
+  UsImageConverterCommon::ImageType::Pointer inUsImage = UsImageConverterCommon::ImageType::New(); 
+  UsImageConverterCommon::ImageType::SizeType size = {frameSizeInPx[0], frameSizeInPx[1]};
+  UsImageConverterCommon::ImageType::IndexType start = {0,0};
+  UsImageConverterCommon::ImageType::RegionType region;
+  region.SetSize(size);
+  region.SetIndex(start);
+  inUsImage->SetRegions(region);
+  UsImageConverterCommon::ImageType::PixelContainer::Pointer pixelContainer = UsImageConverterCommon::ImageType::PixelContainer::New(); 
+  pixelContainer->SetImportPointer(imageDataPtr, frameSizeInPx[0]*frameSizeInPx[1], false); 
+  inUsImage->SetPixelContainer(pixelContainer); 
+
+  return UsImageConverterCommon::SaveImageToFile(inUsImage, "_IncomingFrame.jpg"); 
 }
 
 //----------------------------------------------------------------------------
@@ -345,13 +356,18 @@ PlusStatus UsImageConverterCommon::GetMFOrientedImage( const ImageType::Pointer 
   if ( inUsImageOrientation == US_IMG_ORIENT_XX ) 
   {
     LOG_WARNING("Failed to convert image data MF orientation - unknown input image orientation, return identical copy!"); 
-    outUsOrintedImage = inUsImage; 
+    // We need to copy the raw data since we're using the image array as an ImageType::PixelContainer
+    long bufferSize = inUsImage->GetLargestPossibleRegion().GetSize()[0]*inUsImage->GetLargestPossibleRegion().GetSize()[1]*sizeof(PixelType); 
+    memcpy(outUsOrintedImage->GetBufferPointer(), inUsImage->GetBufferPointer(), bufferSize); 
     return PLUS_SUCCESS; 
   }
 
   if ( inUsImageOrientation == US_IMG_ORIENT_MF )
   {
-    outUsOrintedImage = inUsImage; 
+    // We need to copy the raw data since we're using the image array as an ImageType::PixelContainer
+    long bufferSize = inUsImage->GetLargestPossibleRegion().GetSize()[0]*inUsImage->GetLargestPossibleRegion().GetSize()[1]*sizeof(PixelType); 
+    memcpy(outUsOrintedImage->GetBufferPointer(), inUsImage->GetBufferPointer(), bufferSize); 
+
     return PLUS_SUCCESS; 
   }
 

@@ -30,7 +30,7 @@
             FrameRate="30" 
             SmoothingFactor="0.001" 
             LocalTimeOffset="0.0"
-			UsImageOrientation="MN"
+			UsImageOrientation="MF"
             IP="130.15.7.20" 
             ImagingMode="0" 
             AcquisitionDataType="4" 

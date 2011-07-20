@@ -50,7 +50,7 @@
 			IP="130.15.7.212" 
             BufferSize="500" 
             FrameSize="640 480"
-            UsImageOrientation="MN"
+            UsImageOrientation="MF"
             FrameRate="30" 
             SmoothingFactor="0.001" 
             LocalTimeOffset="0.0"

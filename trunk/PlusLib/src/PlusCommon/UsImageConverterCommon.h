@@ -36,6 +36,7 @@ public:
   //! Operation: 
   // Save image to file
   static PlusStatus SaveImageToFile(const ImageType::Pointer image, const char* fileName); 
+  static PlusStatus SaveImageToFile(unsigned char* imageDataPtr, const int frameSizeInPx[2], int numberOfBitsPerPixel, const char* fileName); 
   static PlusStatus SaveImageToJpeg(vtkImageData* image, const char* fileName); 
 
   //! Operation: 
@@ -46,7 +47,8 @@ public:
   static PlusStatus GetMFOrientedImage( unsigned char* imageDataPtr,                               
     US_IMAGE_ORIENTATION  inUsImageOrientation, 
     const int frameSizeInPx[2],
-    int numberOfBitsPerPixel ); 
+    int numberOfBitsPerPixel, 
+    ImageType::Pointer& outUsOrintedImage); 
 
   /*static PlusStatus GetMFOrientedImage( const unsigned char* inImageDataPtr, 
   US_IMAGE_ORIENTATION inUsImageOrientation,

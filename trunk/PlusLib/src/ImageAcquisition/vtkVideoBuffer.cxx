@@ -350,12 +350,6 @@ PlusStatus vtkVideoBuffer::AddTimeStampedItem(unsigned char* imageDataPtr,
     return PLUS_FAIL; 
   }
 
-  if ( UsImageConverterCommon::GetMFOrientedImage(imageDataPtr, usImageOrientation, frameSizeInPx, numberOfBitsPerPixel) != PLUS_SUCCESS )
-  {
-	LOG_ERROR("Failed to convert input US image to MF orientation!"); 
-	return PLUS_FAIL; 
-  }
-
   int bufferIndex(0); 
   BufferItemUidType itemUid; 
   this->VideoBuffer->Lock(); 
@@ -376,14 +370,35 @@ PlusStatus vtkVideoBuffer::AddTimeStampedItem(unsigned char* imageDataPtr,
     return PLUS_FAIL; 
   }
 
-  PlusStatus status = newObjectInBuffer->SetFrame(imageDataPtr, frameSizeInPx, numberOfBitsPerPixel, numberOfBytesToSkip); 
+  VideoBufferItem::ImageType::Pointer newFrameInBuffer = newObjectInBuffer->GetFrame(); 
+
+  const unsigned long imageWidthInPixels = newFrameInBuffer->GetLargestPossibleRegion().GetSize()[0]; 
+  const unsigned long imageHeightInPixels = newFrameInBuffer->GetLargestPossibleRegion().GetSize()[1]; 
+
+  if ( frameSizeInPx[0] != imageWidthInPixels 
+    || frameSizeInPx[1] != imageHeightInPixels )
+  {
+    LOG_ERROR("Input frame size is different from buffer frame size (input: " << frameSizeInPx[0] << "x" << frameSizeInPx[1]
+      << ",   buffer: " << imageWidthInPixels << "x" << imageHeightInPixels << ")!"); 
+    return PLUS_FAIL; 
+  }
+
+  // Skip the numberOfBytesToSkip bytes, e.g. header size
+  imageDataPtr += numberOfBytesToSkip; 
+
+  if ( UsImageConverterCommon::GetMFOrientedImage(imageDataPtr, usImageOrientation, frameSizeInPx, numberOfBitsPerPixel, newFrameInBuffer) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to convert input US image to MF orientation!"); 
+    return PLUS_FAIL; 
+  }
+
   newObjectInBuffer->SetFilteredTimestamp(filteredTimestamp); 
   newObjectInBuffer->SetUnfilteredTimestamp(unfilteredTimestamp); 
   newObjectInBuffer->SetIndex(frameNumber); 
   newObjectInBuffer->SetUid(itemUid); 
   this->VideoBuffer->Unlock(); 
 
-  return status; 
+  return PLUS_SUCCESS; 
 }
 
 //----------------------------------------------------------------------------

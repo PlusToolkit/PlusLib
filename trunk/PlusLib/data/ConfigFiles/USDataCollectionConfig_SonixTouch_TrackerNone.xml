@@ -9,7 +9,7 @@
     <ImageAcqusition Type="SonixVideo" 
             BufferSize="500" 
             FrameSize="820 616" 
-            UsImageOrientation="MN"
+            UsImageOrientation="MF"
             SmoothingFactor="0.001" 
             LocalTimeOffset="0.0"
             IP="130.15.7.20" 
