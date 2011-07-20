@@ -41,10 +41,10 @@ public:
 	virtual void Initialize(); 
 	
 	// Description:
-	virtual void SaveData(); 
+	virtual PlusStatus SaveData(); 
 
 	// Description:
-	virtual void SaveAsData( const char* filePath ); 
+	virtual PlusStatus SaveAsData( const char* filePath ); 
 
 	// Description:
 	virtual void StartRecording(); 

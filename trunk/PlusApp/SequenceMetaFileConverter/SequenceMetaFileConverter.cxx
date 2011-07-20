@@ -659,7 +659,11 @@ void SaveImages( vtkTrackedFrameList* trackedFrameList, SAVING_METHOD savingMeth
                     }
                 }
             }
-			trackedFrameList->SaveToSequenceMetafile(outputFolder.c_str(), outputSequenceFileName.c_str(), vtkTrackedFrameList::SEQ_METAFILE_MHA, inputUseCompression); 
+			if ( trackedFrameList->SaveToSequenceMetafile(outputFolder.c_str(), outputSequenceFileName.c_str(), vtkTrackedFrameList::SEQ_METAFILE_MHA, inputUseCompression) != PLUS_SUCCESS )
+      {
+        LOG_ERROR("Failed to save tracked frames to sequence metafile!"); 
+        return; 
+      }
 		}
 	}
 }

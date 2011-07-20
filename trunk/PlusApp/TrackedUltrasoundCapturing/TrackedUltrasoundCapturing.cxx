@@ -396,17 +396,23 @@ double TrackedUltrasoundCapturing::GetVideoOffsetMs()
 
 
 //----------------------------------------------------------------------------
-void TrackedUltrasoundCapturing::SaveData()
+PlusStatus TrackedUltrasoundCapturing::SaveData()
 {
 	LOG_TRACE("TrackedUltrasoundCapturing::SaveData");
 	std::ostringstream filename; 
 	filename << vtkAccurateTimer::GetDateAndTimeString() << "_" << this->ImageSequenceFileName; 
-	this->TrackedFrameContainer->SaveToSequenceMetafile(this->OutputFolder, filename.str().c_str() , vtkTrackedFrameList::SEQ_METAFILE_MHA, false); 
-	this->TrackedFrameContainer->Clear(); 
+	if ( this->TrackedFrameContainer->SaveToSequenceMetafile(this->OutputFolder, filename.str().c_str() , vtkTrackedFrameList::SEQ_METAFILE_MHA, false) != PLUS_SUCCESS )
+  {
+     LOG_ERROR("Failed to save tracked frames to sequence metafile - try to free some memory!"); 
+     return PLUS_FAIL; 
+  }
+
+  this->TrackedFrameContainer->Clear(); 
+  return PLUS_SUCCESS; 
 }
 
 //----------------------------------------------------------------------------
-void TrackedUltrasoundCapturing::SaveAsData( const char* filePath )
+PlusStatus TrackedUltrasoundCapturing::SaveAsData( const char* filePath )
 {
 	LOG_TRACE("TrackedUltrasoundCapturing::SaveAsData");
 	std::string path = vtksys::SystemTools::GetFilenamePath(filePath); 
@@ -423,8 +429,14 @@ void TrackedUltrasoundCapturing::SaveAsData( const char* filePath )
 		ext = vtkTrackedFrameList::SEQ_METAFILE_MHA; 
 	}
 
-	this->TrackedFrameContainer->SaveToSequenceMetafile(path.c_str(), filename.c_str() , ext, false); 
+	if ( this->TrackedFrameContainer->SaveToSequenceMetafile(path.c_str(), filename.c_str() , ext, false) != PLUS_SUCCESS )
+  {
+     LOG_ERROR("Failed to save tracked frames to sequence metafile!"); 
+     return PLUS_FAIL;
+  }
+
 	this->TrackedFrameContainer->Clear(); 
+  return PLUS_SUCCESS; 
 }
 
 /*int main(int argc, char* argv[])
