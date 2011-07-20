@@ -566,7 +566,11 @@ PlusStatus vtkDataCollector::WriteTrackerToMetafile( vtkTracker* tracker, const 
   }
 
   // Save tracked frames to metafile
-  trackedFrameList->SaveToSequenceMetafile(outputFolder, metaFileName, vtkTrackedFrameList::SEQ_METAFILE_MHA, useCompression); 
+  if ( trackedFrameList->SaveToSequenceMetafile(outputFolder, metaFileName, vtkTrackedFrameList::SEQ_METAFILE_MHA, useCompression) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to save tracked frames to sequence metafile!"); 
+    return PLUS_FAIL;
+  }
 
   return status;
 }
@@ -650,7 +654,11 @@ PlusStatus vtkDataCollector::WriteVideoBufferToMetafile( vtkVideoBuffer* videoBu
   }
 
   // Save tracked frames to metafile
-  trackedFrameList->SaveToSequenceMetafile(outputFolder, metaFileName, vtkTrackedFrameList::SEQ_METAFILE_MHA, useCompression); 
+  if ( trackedFrameList->SaveToSequenceMetafile(outputFolder, metaFileName, vtkTrackedFrameList::SEQ_METAFILE_MHA, useCompression) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to save tracked frames to sequence metafile!"); 
+    return PLUS_FAIL;
+  }
 
   return status;
 }

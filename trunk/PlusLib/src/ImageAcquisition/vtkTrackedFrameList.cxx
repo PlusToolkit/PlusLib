@@ -422,41 +422,20 @@ PlusStatus vtkTrackedFrameList::ReadFromSequenceMetafile(const char* trackedSequ
 
   ImageSequenceType::Pointer imageSeq = reader->GetOutput();
 
-  const unsigned long ImageWidthInPixels = imageSeq->GetLargestPossibleRegion().GetSize()[0]; 
-  const unsigned long ImageHeightInPixels = imageSeq->GetLargestPossibleRegion().GetSize()[1]; 
+  const int frameSizeInPx[2] = {imageSeq->GetLargestPossibleRegion().GetSize()[0], imageSeq->GetLargestPossibleRegion().GetSize()[1]};  
   const unsigned long numberOfFrames = imageSeq->GetLargestPossibleRegion().GetSize()[2];	
-
+  const int pixelSizeInBits = sizeof(TrackedFrame::PixelType)*8; 
   US_IMAGE_ORIENTATION usImageOrientation = UsImageConverterCommon::GetUsImageOrientationFromString(readerMetaImageSequenceIO->GetUltrasoundImageOrientation()); 
-
-  unsigned int frameSizeInBytes=ImageWidthInPixels*ImageHeightInPixels*sizeof(TrackedFrame::PixelType);
+  
+  unsigned int frameSizeInBytes=frameSizeInPx[0]*frameSizeInPx[1]*sizeof(TrackedFrame::PixelType);
 
   TrackedFrame::PixelType* imageSeqData = imageSeq->GetBufferPointer(); // pointer to the image pixel buffer
 
   for ( int imgNumber = 0; imgNumber < numberOfFrames; imgNumber++ )
   {
 
-    TrackedFrame::PixelType *currentFrameImageData= imageSeqData + imgNumber * frameSizeInBytes;
-
-    TrackedFrame::ImageType::Pointer frame = TrackedFrame::ImageType::New();
-    TrackedFrame::ImageType::SizeType size = {ImageWidthInPixels, ImageHeightInPixels };
-    TrackedFrame::ImageType::IndexType start = {0,0};
-    TrackedFrame::ImageType::RegionType region;
-    region.SetSize(size);
-    region.SetIndex(start);
-    frame->SetRegions(region);
-    try 
-    {
-      frame->Allocate();
-    }
-    catch (itk::ExceptionObject & err)
-    {
-      LOG_ERROR("Failed to allocate memory for new image: " << err.GetDescription() ); 
-      continue; 
-    }
-
-    memcpy(frame->GetBufferPointer() , currentFrameImageData, frameSizeInBytes);
-
     TrackedFrame trackedFrame; 
+    TrackedFrame::PixelType *currentFrameImageData= imageSeqData + imgNumber * frameSizeInBytes;
 
     // Get Default transform name 
     std::string defaultFrameTransformName = readerMetaImageSequenceIO->GetDefaultFrameTransformName(); 
@@ -483,7 +462,7 @@ PlusStatus vtkTrackedFrameList::ReadFromSequenceMetafile(const char* trackedSequ
     }
 
     trackedFrame.ImageData = TrackedFrame::ImageType::New(); 
-    if ( UsImageConverterCommon::GetMFOrientedImage(frame, usImageOrientation, trackedFrame.ImageData) != PLUS_SUCCESS )
+    if ( UsImageConverterCommon::GetMFOrientedImage(currentFrameImageData, usImageOrientation, frameSizeInPx, pixelSizeInBits, trackedFrame.ImageData) != PLUS_SUCCESS )
     {
       LOG_ERROR("Failed to get MF oriented image from sequence metafile (frame number: " << imgNumber << ")!"); 
       continue; 
@@ -496,14 +475,14 @@ PlusStatus vtkTrackedFrameList::ReadFromSequenceMetafile(const char* trackedSequ
 }
 
 //----------------------------------------------------------------------------
-void vtkTrackedFrameList::SaveToSequenceMetafile(const char* outputFolder, const char* sequenceDataFileName, SEQ_METAFILE_EXTENSION extension /*=SEQ_METAFILE_MHA*/ , bool useCompression /*=true*/)
+PlusStatus vtkTrackedFrameList::SaveToSequenceMetafile(const char* outputFolder, const char* sequenceDataFileName, SEQ_METAFILE_EXTENSION extension /*=SEQ_METAFILE_MHA*/ , bool useCompression /*=true*/)
 {
   LOG_TRACE("vtkTrackedFrameList::SaveToSequenceMetafile - outputFolder: " << outputFolder << "  sequenceDataFileName: " << sequenceDataFileName); 
 
   if ( TrackedFrameList.empty() )
   {
     LOG_ERROR("Unable to save tracked frame list to sequence metafile - tracked frame list empty!"); 
-    return; 
+    return PLUS_FAIL; 
   }
 
   if ( !vtksys::SystemTools::FileExists(outputFolder, false) )
@@ -553,7 +532,7 @@ void vtkTrackedFrameList::SaveToSequenceMetafile(const char* outputFolder, const
     catch (itk::ExceptionObject & err) 
     {		
       LOG_ERROR("Unable to allocate memory for image sequence : " << err.GetDescription() );
-      return; 
+      return PLUS_FAIL; 
     }	
 
     itk::MetaImageSequenceIO::Pointer writerMetaImageSequenceIO = itk::MetaImageSequenceIO::New();
@@ -601,7 +580,6 @@ void vtkTrackedFrameList::SaveToSequenceMetafile(const char* outputFolder, const
     }
 
 
-
     ImageSequenceWriterType::Pointer writer = ImageSequenceWriterType::New(); 
 
     std::ostringstream sequenceDataFilePath; 
@@ -630,8 +608,6 @@ void vtkTrackedFrameList::SaveToSequenceMetafile(const char* outputFolder, const
       break; 
     }
 
-
-
     writer->SetFileName(sequenceDataFilePath.str().c_str());
     writer->SetInput(imageDataSequence); 
     writer->SetImageIO(writerMetaImageSequenceIO); 
@@ -644,7 +620,10 @@ void vtkTrackedFrameList::SaveToSequenceMetafile(const char* outputFolder, const
     catch (itk::ExceptionObject & err) 
     {		
       LOG_ERROR(" Unable to update sequence writer: " << err.GetDescription() );
+      return PLUS_FAIL; 
     }	
   }
+
+  return PLUS_SUCCESS; 
 }
 

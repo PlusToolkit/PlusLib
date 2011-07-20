@@ -567,14 +567,22 @@ void vtkProbeCalibrationController::ComputeCalibrationResults()
 			// Save calibration dataset 
 			std::ostringstream calibrationDataFileName; 
 			calibrationDataFileName << this->GetCalibrator()->getCalibrationTimeStampInString() << this->GetRealtimeImageDataInfo(RANDOM_STEPPER_MOTION_1).OutputSequenceMetaFileSuffix; 
-			this->SaveTrackedFrameListToMetafile( RANDOM_STEPPER_MOTION_1, this->GetOutputPath(), calibrationDataFileName.str().c_str(), false ); 
+			if ( this->SaveTrackedFrameListToMetafile( RANDOM_STEPPER_MOTION_1, this->GetOutputPath(), calibrationDataFileName.str().c_str(), false ) != PLUS_SUCCESS ) 
+      {
+        LOG_ERROR("Failed to save tracked frames to sequence metafile!"); 
+        return;
+      }
 
 			LOG_INFO(">>>>>>>> Save validation data to sequence metafile..."); 
 			// TODO add validation file name to config file
 			// Save validation dataset
 			std::ostringstream validationDataFileName; 
 			validationDataFileName << this->GetCalibrator()->getCalibrationTimeStampInString() << this->GetRealtimeImageDataInfo(RANDOM_STEPPER_MOTION_2).OutputSequenceMetaFileSuffix; 
-			this->SaveTrackedFrameListToMetafile( RANDOM_STEPPER_MOTION_2, this->GetOutputPath(), validationDataFileName.str().c_str(), false ); 
+			if ( this->SaveTrackedFrameListToMetafile( RANDOM_STEPPER_MOTION_2, this->GetOutputPath(), validationDataFileName.str().c_str(), false ) != PLUS_SUCCESS )
+      {
+        LOG_ERROR("Failed to save tracked frames to sequence metafile!"); 
+        return;
+      }
 		}
 
 		this->CalibrationDoneOn(); 
