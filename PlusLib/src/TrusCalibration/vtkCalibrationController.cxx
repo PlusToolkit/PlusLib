@@ -135,11 +135,18 @@ vtkTrackedFrameList* vtkCalibrationController::GetTrackedFrameList( IMAGE_DATA_T
 }
 
 //----------------------------------------------------------------------------
-void vtkCalibrationController::SaveTrackedFrameListToMetafile( IMAGE_DATA_TYPE dataType, const char* outputFolder, const char* sequenceMetafileName, bool useCompression /*= false*/ )
+PlusStatus vtkCalibrationController::SaveTrackedFrameListToMetafile( IMAGE_DATA_TYPE dataType, const char* outputFolder, const char* sequenceMetafileName, bool useCompression /*= false*/ )
 {
-	LOG_TRACE("vtkCalibrationController::SaveTrackedFrameListToMetafile"); 
-	this->TrackedFrameListContainer[dataType]->SaveToSequenceMetafile(outputFolder, sequenceMetafileName, vtkTrackedFrameList::SEQ_METAFILE_MHA, useCompression); 
-	this->TrackedFrameListContainer[dataType]->Clear(); 
+  LOG_TRACE("vtkCalibrationController::SaveTrackedFrameListToMetafile"); 
+  if ( this->TrackedFrameListContainer[dataType]->SaveToSequenceMetafile(outputFolder, sequenceMetafileName, vtkTrackedFrameList::SEQ_METAFILE_MHA, useCompression) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to save tracked frames to sequence metafile!"); 
+    return PLUS_FAIL;
+  }
+
+  this->TrackedFrameListContainer[dataType]->Clear(); 
+
+  return PLUS_SUCCESS; 
 }
 
 //----------------------------------------------------------------------------

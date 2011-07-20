@@ -285,7 +285,11 @@ PlusStatus vtkStepperCalibrationController::CalibrateProbeRotationAxis()
     // Save calibration dataset 
     std::ostringstream probeRotationDataFileName; 
     probeRotationDataFileName << this->CalibrationStartTime << this->GetRealtimeImageDataInfo(PROBE_ROTATION).OutputSequenceMetaFileSuffix; 
-    this->SaveTrackedFrameListToMetafile( PROBE_ROTATION, this->GetOutputPath(), probeRotationDataFileName.str().c_str(), false ); 
+    if ( this->SaveTrackedFrameListToMetafile( PROBE_ROTATION, this->GetOutputPath(), probeRotationDataFileName.str().c_str(), false ) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Failed to save tracked frames to sequence metafile!"); 
+      return PLUS_FAIL;
+    }
   }
 
   if (!this->GetProbeRotationAxisCalibrated())
@@ -917,7 +921,11 @@ PlusStatus vtkStepperCalibrationController::CalibrateProbeTranslationAxis()
     // Save calibration dataset 
     std::ostringstream probeTranslationDataFileName; 
     probeTranslationDataFileName << this->CalibrationStartTime << this->GetRealtimeImageDataInfo(PROBE_TRANSLATION).OutputSequenceMetaFileSuffix; 
-    this->SaveTrackedFrameListToMetafile( PROBE_TRANSLATION, this->GetOutputPath(), probeTranslationDataFileName.str().c_str(), false ); 
+    if ( this->SaveTrackedFrameListToMetafile( PROBE_TRANSLATION, this->GetOutputPath(), probeTranslationDataFileName.str().c_str(), false ) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Failed to save tracked frames to sequence metafile!"); 
+      return PLUS_FAIL;
+    }
   }
 
   if (!this->GetProbeTranslationAxisCalibrated())
@@ -965,7 +973,11 @@ PlusStatus vtkStepperCalibrationController::CalibrateTemplateTranslationAxis()
     // Save calibration dataset 
     std::ostringstream templateTranslationDataFileName; 
     templateTranslationDataFileName << this->CalibrationStartTime << this->GetRealtimeImageDataInfo(TEMPLATE_TRANSLATION).OutputSequenceMetaFileSuffix; 
-    this->SaveTrackedFrameListToMetafile( TEMPLATE_TRANSLATION, this->GetOutputPath(), templateTranslationDataFileName.str().c_str(), false ); 
+    if ( this->SaveTrackedFrameListToMetafile( TEMPLATE_TRANSLATION, this->GetOutputPath(), templateTranslationDataFileName.str().c_str(), false ) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Failed to save tracked frames to sequence metafile!"); 
+      return PLUS_FAIL;
+    }
   }
 
   if (!this->GetTemplateTranslationAxisCalibrated())

@@ -114,7 +114,7 @@ public:
 	
 	//! Description 
 	// Save the selected data type to sequence metafile 
-	virtual void SaveTrackedFrameListToMetafile( IMAGE_DATA_TYPE dataType, const char* outputFolder, const char* sequenceMetafileName, bool useCompression = false ); 
+	virtual PlusStatus SaveTrackedFrameListToMetafile( IMAGE_DATA_TYPE dataType, const char* outputFolder, const char* sequenceMetafileName, bool useCompression = false ); 
 
 	//! Description 
 	// Flag to show the initialized state

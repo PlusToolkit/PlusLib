@@ -233,7 +233,7 @@ public:
 
   //! Operation: 
   // Save the tracked data to sequence metafile 
-  virtual void SaveToSequenceMetafile(const char* outputFolder, const char* sequenceDataFileName, SEQ_METAFILE_EXTENSION extension = SEQ_METAFILE_MHA, bool useCompression = true);
+  virtual PlusStatus SaveToSequenceMetafile(const char* outputFolder, const char* sequenceDataFileName, SEQ_METAFILE_EXTENSION extension = SEQ_METAFILE_MHA, bool useCompression = true);
 
   //! Operation: 
   // Read the tracked data from sequence metafile 
