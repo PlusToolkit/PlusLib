@@ -17,6 +17,7 @@ SET SVNCOMMAND=${Subversion_SVN_EXECUTABLE}
 if "%1" == "" goto experimental
 if "%1" == "-E" goto experimental
 if "%1" == "-N" goto nightly
+if "%1" == "-C" goto continuous
 if "%1" == "-I" goto individual
 
 :experimental
@@ -27,6 +28,12 @@ goto END
 @REM Clean before the nightly build to enforce all build warnings appear on all nightly dashboard submissions
 "${CMAKE_MAKE_PROGRAM}" PlusLib.sln /clean Release /project ALL_BUILD
 "${CMAKE_CTEST_COMMAND}" -D Nightly
+goto END
+
+:continuous
+@REM Clean before the continuous build to enforce all build warnings appear on the dashboard submissions
+"${CMAKE_MAKE_PROGRAM}" PlusLib.sln /clean Release /project ALL_BUILD
+"${CMAKE_CTEST_COMMAND}" -D Continuous
 goto END
 
 :individual 
