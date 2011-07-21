@@ -852,11 +852,13 @@ PlusStatus vtkCalibrationController::ReadSegmentationParametersConfiguration( vt
 			this->GetSegParameters()->SetScalingEstimation(scalingEstimation); 
 		}
 
-		double* imageScalingTolerancePercent = new double[2];
-		if ( segmentationParameters->GetVectorAttribute("ImageScalingTolerancePercent", 2, imageScalingTolerancePercent) )
+		double* imageScalingTolerancePercent = new double[4];
+		if ( segmentationParameters->GetVectorAttribute("ImageScalingTolerancePercent", 4, imageScalingTolerancePercent) )
 		{
-			this->GetSegParameters()->SetImageScalingTolerancePercent(0, imageScalingTolerancePercent[0]);
-			this->GetSegParameters()->SetImageScalingTolerancePercent(1, imageScalingTolerancePercent[1]);
+			for( int i = 0; i<4 ; i++)
+			{
+				this->GetSegParameters()->SetImageScalingTolerancePercent(i, imageScalingTolerancePercent[i]);
+			}
 		}
 		delete [] imageScalingTolerancePercent;
 
