@@ -1379,6 +1379,13 @@ int vtkDataCollector::RequestData( vtkInformation* vtkNotUsed( request ), vtkInf
   {
     for ( int i = 0; i < this->GetTracker()->GetNumberOfTools(); i++)
     {
+      if ( this->GetTracker()->GetTool(i)->GetBuffer()->GetNumberOfItems() < 1 )
+      {
+        // If the tracker tool buffer is empty, we can return immediately 
+        LOG_DEBUG("Cannot request data from tracker, the tracker tool buffer is empty!"); 
+        return 1;
+      }
+
       TrackerBufferItem bufferItem; 
       if ( this->GetTracker()->GetTool(i)->GetBuffer()->GetLatestTrackerBufferItem(&bufferItem, false) != ITEM_OK )
       {

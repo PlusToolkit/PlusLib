@@ -225,6 +225,8 @@ vtkAscension3DGTracker
     return PLUS_FAIL;
   }
 
+  this->Tracking = 1; 
+
   return PLUS_SUCCESS;
 }
 
@@ -257,12 +259,6 @@ vtkAscension3DGTracker
 ::InternalUpdate()
 {
   LOG_TRACE( "vtkAscension3DGTracker::InternalUpdate" ); 
-  if ( ! this->Tracking )
-  {
-    LOG_ERROR( "Called Update() when SavedDataTracker was not tracking" );
-    return PLUS_FAIL;
-  }
-
 
   if ( ! this->Tracking )
   {
