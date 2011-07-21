@@ -702,7 +702,7 @@ void SegmentationParameters::ComputeParameters()
 
 	//m_MaxLineLengthErrorPercent = 5.0;//Relative tolerance about the length of a line in percent
 	//m_MaxLinePairDistanceErrorPercent = 10.0;//The maximum error on the distance between two lines
-	//m_MaxLineErrorMm = 2.0;//The absolute tolerance on the length of a line
+	//m_MaxLineErrorMm = 2.0;//The absolute tolerance on the acceptance of a line
 
 	//m_FindLines3PtDist = 5.3f;//distance of the third point to line it tries to be added to
 	//m_MaxAngleDiff = 11.0 * M_PI / 180.0;//maximum angle allowed between 2 lines

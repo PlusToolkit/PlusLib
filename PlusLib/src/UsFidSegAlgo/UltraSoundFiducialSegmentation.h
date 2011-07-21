@@ -330,7 +330,7 @@ class SegmentationParameters
 		std::vector<Item>		m_MorphologicalCircle; 
 
 		double					m_ScalingEstimation;
-        double			        m_ImageScalingTolerancePercent[2];
+        double			        m_ImageScalingTolerancePercent[4];
         double			        m_ImageNormalVectorInPhantomFrameEstimation[3];
         double			        m_ImageNormalVectorInPhantomFrameMaximumRotationAngleDeg[6];
 };
