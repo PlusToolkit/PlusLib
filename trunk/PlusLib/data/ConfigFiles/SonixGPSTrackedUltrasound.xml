@@ -8,7 +8,7 @@
   <Tracker
     Type="Ascension3DG"
     BufferSize="500"
-    Frequency="5"
+    Frequency="20"
     LocalTimeOffset="0.0"
     SmoothingFactor="0.001"
     ReferenceToolName="Reference"
