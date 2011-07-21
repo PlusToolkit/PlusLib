@@ -7,10 +7,10 @@
 		Institution="Queen's University PerkLab"
 	/>
 	
-	<!-- ModelToPhantomOriginTransform - transforming model into phantom origin coordinate system for proper visualization -->
+	<!-- ModelToPhantomTransform - transforming model into phantom coordinate system for proper visualization -->
 	<Model
 		File="FCal_1.0.stl"
-		ModelToPhantomOriginTransform="
+		ModelToPhantomTransform="
 			1 0 0 -15.0
 			0 1 0 10.0
 			0 0 1 -5.0

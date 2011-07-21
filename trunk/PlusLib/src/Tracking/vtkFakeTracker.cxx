@@ -343,6 +343,7 @@ PlusStatus vtkFakeTracker::InternalUpdate()
 
 			vtkSmartPointer<vtkTransform> phantomReferenceToLandmarkTransform = vtkSmartPointer<vtkTransform>::New();
 			phantomReferenceToLandmarkTransform->Identity();
+
 			phantomReferenceToLandmarkTransform->Concatenate(phantomReferenceToPhantomTransform);
 			phantomReferenceToLandmarkTransform->Concatenate(phantomToLandmarkTransform);
 			phantomReferenceToLandmarkTransform->Concatenate(stylustipToStylusTransform);

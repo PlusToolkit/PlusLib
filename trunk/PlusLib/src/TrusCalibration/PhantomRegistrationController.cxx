@@ -56,7 +56,7 @@ PhantomRegistrationController::PhantomRegistrationController()
 	,m_RequestedLandmarkPolyData(NULL)
 	,m_DefinedLandmarks(NULL)
 	,m_PhantomToPhantomReferenceTransform(NULL)
-	,m_ModelToPhantomOriginTransform(NULL)
+	,m_ModelToPhantomTransform(NULL)
 	,m_PositionString("")
 	,m_PhantomDefinitionFileName("")
 	,m_CurrentLandmarkIndex(-1)
@@ -122,9 +122,9 @@ PhantomRegistrationController::~PhantomRegistrationController()
 		m_PhantomToPhantomReferenceTransform = NULL;
 	}
 	
-	if (m_ModelToPhantomOriginTransform != NULL) {
-		m_ModelToPhantomOriginTransform->Delete();
-		m_ModelToPhantomOriginTransform = NULL;
+	if (m_ModelToPhantomTransform != NULL) {
+		m_ModelToPhantomTransform->Delete();
+		m_ModelToPhantomTransform = NULL;
 	}
 
 	if (m_DefinedLandmarks != NULL) {
@@ -568,8 +568,8 @@ void PhantomRegistrationController::Register()
 	if (vtkFreehandController::GetInstance()->GetCanvas() != NULL) {
 		vtkSmartPointer<vtkTransform> modelToPhantomReferenceTransform = vtkSmartPointer<vtkTransform>::New();
 		modelToPhantomReferenceTransform->Identity();
-		modelToPhantomReferenceTransform->Concatenate(m_ModelToPhantomOriginTransform);
 		modelToPhantomReferenceTransform->Concatenate(m_PhantomToPhantomReferenceTransform);
+		modelToPhantomReferenceTransform->Concatenate(m_ModelToPhantomTransform);
 		modelToPhantomReferenceTransform->Modified();
 
 		m_RegisteredPhantomBodyActor->SetUserTransform(modelToPhantomReferenceTransform);
@@ -637,18 +637,37 @@ vtkMatrix4x4* PhantomRegistrationController::AcquireStylusTipTrackerPosition(dou
 		}
 	}
 
+	// Refurn NUMM (fail) if reference is not visible in normal mode
+	if (!aReference) {
+		int referenceToolNumber = dataCollector->GetTracker()->GetReferenceTool();
+
+		if (dataCollector->GetTracker()->GetTool(referenceToolNumber)->GetEnabled()) {
+			double tempTimestamp;
+			TrackerStatus tempStatus = TR_MISSING;
+			vtkSmartPointer<vtkMatrix4x4> tempMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
+			dataCollector->GetTransformWithTimestamp(tempMatrix, tempTimestamp, tempStatus, referenceToolNumber); 
+
+			if (tempStatus != TR_OK) {
+				LOG_DEBUG("Reference out of view!");
+				return NULL;
+			}
+		} else {
+			return NULL;
+		}
+	}
+
 	// Acquire position from tracker
 	if (dataCollector->GetTracker()->GetTool(toolNumber)->GetEnabled()) {
 		referenceToolToStylusTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
 		dataCollector->GetTransformWithTimestamp(referenceToolToStylusTransformMatrix, timestamp, status, toolNumber); 
 	}
 
-  if (status == TR_MISSING || status == TR_OUT_OF_VIEW ) {
-		LOG_DEBUG("Tracker out of view!");
-		m_PositionString = std::string("Tracker out of view!");
+	if (status == TR_MISSING || status == TR_OUT_OF_VIEW ) {
+		LOG_DEBUG("Stylus out of view!");
+		m_PositionString = std::string("Stylus out of view!");
 		return NULL;
 	} else if (status == TR_REQ_TIMEOUT ) {
-		LOG_WARNING("Tracker request timeout!");
+		LOG_DEBUG("Tracker request timeout!");
 		m_PositionString = std::string("Tracker request timeout!");
 		return NULL;
 	} else if (aPosition != NULL) { // TR_OK
@@ -691,12 +710,6 @@ PlusStatus PhantomRegistrationController::DoAcquisition()
 		vtkSmartPointer<vtkMatrix4x4> referenceToolToStylusTipTransformMatrix;
 		
 		if (referenceToolToStylusTipTransformMatrix = AcquireStylusTipTrackerPosition(stylusTipPosition)) {
-			// If first acquisition, then reset camera and determine FOV
-			bool firstAcquisition = false;
-			if ((m_StylusActor != NULL) && (m_StylusActor->GetUserMatrix() == NULL)) {
-				firstAcquisition = true;
-			}
-
 			// Display stylus
 			if (vtkFreehandController::GetInstance()->GetCanvas() != NULL) {
 				// If acquisition was successful
@@ -741,15 +754,16 @@ PlusStatus PhantomRegistrationController::DoAcquisition()
 				}
 
 				m_RecordRequested = false;
-			}
 
-			if ((firstAcquisition) && (vtkFreehandController::GetInstance()->GetCanvas() != NULL)) {
-				vtkFreehandController::GetInstance()->GetCanvasRenderer()->ResetCamera();
-				vtkFreehandController::GetInstance()->GetCanvasRenderer()->GetActiveCamera()->Zoom(0.5);
+				// Reset camera after each recording
+				if (vtkFreehandController::GetInstance()->GetCanvas() != NULL) {
+					vtkFreehandController::GetInstance()->GetCanvasRenderer()->ResetCamera();
+				}
 			}
 		}
 	}
-  return PLUS_SUCCESS;
+
+	return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
@@ -803,14 +817,14 @@ PlusStatus PhantomRegistrationController::LoadPhantomDefinitionFromFile(std::str
 				modelToPhantomOriginTransformMatrix->Identity();
 				modelToPhantomOriginTransformMatrix->DeepCopy(modelToPhantomOriginTransformVector);
 
-				if (m_ModelToPhantomOriginTransform != NULL) {
-					m_ModelToPhantomOriginTransform->Delete();
+				if (m_ModelToPhantomTransform != NULL) {
+					m_ModelToPhantomTransform->Delete();
 				}
-				m_ModelToPhantomOriginTransform = vtkTransform::New();
-				m_ModelToPhantomOriginTransform->SetMatrix(modelToPhantomOriginTransformMatrix);
+				m_ModelToPhantomTransform = vtkTransform::New();
+				m_ModelToPhantomTransform->SetMatrix(modelToPhantomOriginTransformMatrix);
 
 				if (vtkFreehandController::GetInstance()->GetCanvas() != NULL) {
-					m_PhantomBodyActor->SetUserTransform(m_ModelToPhantomOriginTransform);
+					m_PhantomBodyActor->SetUserTransform(m_ModelToPhantomTransform);
 				}
 			}
 			delete[] modelToPhantomOriginTransformVector;
