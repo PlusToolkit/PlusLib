@@ -14,6 +14,9 @@
 #include "vtkRenderWindowInteractor.h"
 #include "vtkSTLReader.h"
 #include "vtkPolyDataMapper.h"
+#include "vtkGlyph3D.h"
+#include "vtkSphereSource.h"
+#include "vtkProperty.h"
 
 //-----------------------------------------------------------------------------
 
@@ -73,6 +76,8 @@ vtkFreehandCalibrationController::vtkFreehandCalibrationController()
 	this->ProbeActor = NULL;
 	this->StylusActor = NULL;
 	this->NeedleActor = NULL;
+	this->SegmentedPointsActor = NULL;
+	this->SegmentedPointsPolyData = NULL;
 	this->ImageCamera = NULL;
 	this->CalibrationResultFileNameWithPath = NULL;
 	this->CalibrationResultFileSuffix = NULL;
@@ -99,6 +104,8 @@ vtkFreehandCalibrationController::~vtkFreehandCalibrationController()
 	this->SetProbeActor(NULL);
 	this->SetStylusActor(NULL);
 	this->SetNeedleActor(NULL);
+	this->SetSegmentedPointsActor(NULL);
+	this->SetSegmentedPointsPolyData(NULL);
 	this->SetTransformImageToProbe(NULL);
 	this->SetTransformProbeToPhantomReference(NULL);
 
@@ -167,10 +174,33 @@ PlusStatus vtkFreehandCalibrationController::InitializeVisualization()
 
 			// Compute image camera parameters and set it to display live image
 			CalculateImageCameraParameters();
+
+			// Create segmented points actor
+			vtkSmartPointer<vtkActor> segmentedPointsActor = vtkSmartPointer<vtkActor>::New();
+
+			vtkSmartPointer<vtkPolyData> segmentedPointsPolyData = vtkSmartPointer<vtkPolyData>::New();
+			segmentedPointsPolyData->Initialize();
+			this->SetSegmentedPointsPolyData(segmentedPointsPolyData);
+
+			vtkSmartPointer<vtkPolyDataMapper> segmentedPointMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+			vtkSmartPointer<vtkGlyph3D> segmentedPointGlyph = vtkSmartPointer<vtkGlyph3D>::New();
+			vtkSmartPointer<vtkSphereSource> segmentedPointSphereSource = vtkSmartPointer<vtkSphereSource>::New();
+			segmentedPointSphereSource->SetRadius(4.0);
+
+			segmentedPointGlyph->SetInputConnection(this->SegmentedPointsPolyData->GetProducerPort());
+			segmentedPointGlyph->SetSourceConnection(segmentedPointSphereSource->GetOutputPort());
+			segmentedPointMapper->SetInputConnection(segmentedPointGlyph->GetOutputPort());
+
+			segmentedPointsActor->SetMapper(segmentedPointMapper);
+			segmentedPointsActor->GetProperty()->SetColor(0.0, 0.8, 0.0);
+			segmentedPointsActor->VisibilityOff();
+
+			this->SetSegmentedPointsActor(segmentedPointsActor);
 			
-			// Add image actor to the realtime renderer, and add renderer to Canvas
+			// Add actors to the realtime renderer, and add renderer to Canvas
 			// If already initialized (it can occur if tab change - and so clear - happened)
 			controller->GetCanvasRenderer()->AddActor(this->CanvasImageActor);
+			controller->GetCanvasRenderer()->AddActor(this->SegmentedPointsActor);
 			controller->GetCanvasRenderer()->SetBackground(0.2, 0.2, 0.2);
 			controller->GetCanvasRenderer()->InteractiveOff(); // TODO it doesn't work - find a way to disable interactions (also re-enable on Clear)
 			//controller->GetCanvasRenderer()->GetRenderWindow()->GetInteractor()->Disable();
@@ -181,6 +211,7 @@ PlusStatus vtkFreehandCalibrationController::InitializeVisualization()
 		vtkRenderer* renderer = vtkFreehandController::GetInstance()->GetCanvasRenderer();
 
 		renderer->AddActor(this->CanvasImageActor);
+		renderer->AddActor(this->SegmentedPointsActor);
 
 		if (this->ShowDevices) {
 			renderer->AddActor(this->PhantomBodyActor);
@@ -240,16 +271,16 @@ PlusStatus vtkFreehandCalibrationController::InitializeDeviceVisualization()
 				this->SetPhantomBodyActor(phantomBodyActor);
 			}
 
-			// ModelToPhantomOriginTransform - Transforming input model for proper visualization
-			if ((this->ModelToPhantomOriginTransform != NULL) && (PhantomRegistrationController::GetInstance()->GetPhantomToPhantomReferenceTransform() != NULL)) {
+			// ModelToPhantomTransform - Transforming input model for proper visualization
+			if ((this->ModelToPhantomTransform != NULL) && (PhantomRegistrationController::GetInstance()->GetPhantomToPhantomReferenceTransform() != NULL)) {
 				vtkSmartPointer<vtkTransform> modelToPhantomReferenceTransform = vtkSmartPointer<vtkTransform>::New();
 				modelToPhantomReferenceTransform->Identity();
-				modelToPhantomReferenceTransform->Concatenate(this->ModelToPhantomOriginTransform);
+				modelToPhantomReferenceTransform->Concatenate(this->ModelToPhantomTransform);
 				modelToPhantomReferenceTransform->Concatenate(PhantomRegistrationController::GetInstance()->GetPhantomToPhantomReferenceTransform());
 				modelToPhantomReferenceTransform->Modified();
 
 				this->PhantomBodyActor->SetUserTransform(modelToPhantomReferenceTransform);
-				renderer->AddActor(this->PhantomBodyActor);
+				//renderer->AddActor(this->PhantomBodyActor);
 			}
 		} else {
 			LOG_WARNING("Phantom definiton file is not specified, phantom will not be displayed");
@@ -289,13 +320,13 @@ PlusStatus vtkFreehandCalibrationController::InitializeDeviceVisualization()
 					// Set proper members
 					if (STRCASECMP(tool->GetToolName(), "Probe") != 0) {
 						this->SetProbeActor(deviceActor);
-						renderer->AddActor(this->ProbeActor);
+						//renderer->AddActor(this->ProbeActor);
 					} else if (STRCASECMP(tool->GetToolName(), "Stylus") != 0) {
 						this->SetStylusActor(deviceActor);
-						renderer->AddActor(this->StylusActor);
+						//renderer->AddActor(this->StylusActor);
 					} else if (STRCASECMP(tool->GetToolName(), "Needle") != 0) {
 						this->SetNeedleActor(deviceActor);
-						renderer->AddActor(this->NeedleActor);
+						//renderer->AddActor(this->NeedleActor);
 					}
 				}
 			}
@@ -415,6 +446,7 @@ PlusStatus vtkFreehandCalibrationController::Clear()
 
 	// Remove image actor and reset background color
 	renderer->RemoveActor(this->CanvasImageActor);
+	renderer->RemoveActor(this->SegmentedPointsActor);
 	renderer->SetBackground(0.6, 0.6, 0.6);
 	renderer->InteractiveOn();
 
@@ -440,6 +472,9 @@ PlusStatus vtkFreehandCalibrationController::DoAcquisition()
 		LOG_ERROR("vtkFreehandController is not initialized!");
 		return PLUS_FAIL;
 	}
+
+	// Make segmented point actor visible
+	this->SegmentedPointsActor->VisibilityOn();
 
 	const int maxNumberOfValidationImages = this->GetRealtimeImageDataInfo(FREEHAND_MOTION_2).NumberOfImagesToAcquire; 
 	const int maxNumberOfCalibrationImages = this->GetRealtimeImageDataInfo(FREEHAND_MOTION_1).NumberOfImagesToAcquire; 
@@ -470,18 +505,23 @@ PlusStatus vtkFreehandCalibrationController::DoAcquisition()
 		} else { // TR_OK
 			if (numberOfAcquiredImages < maxNumberOfValidationImages) {
 				// Validation data
-				//TODO Validate data like "if ( this->ProbeCalibrationController->GetTrackedFrameList(dataType)->ValidateData(&trackedFrame) )"
-				if (AddTrackedFrameData(&trackedFrame, FREEHAND_MOTION_2)) {
-					segmentationSuccessful = true;
-				} else {
-					LOG_DEBUG("Adding tracked frame " << this->GetRealtimeImageDataInfo(FREEHAND_MOTION_2).NumberOfSegmentedImages << " (for validation) failed!");
+				if ( this->GetTrackedFrameList(FREEHAND_MOTION_2)->ValidateData(&trackedFrame) ) {
+					if (AddTrackedFrameData(&trackedFrame, FREEHAND_MOTION_2)) {
+						segmentationSuccessful = true;
+					} else {
+						++numberOfFailedSegmentations;
+						LOG_DEBUG("Adding tracked frame " << this->GetRealtimeImageDataInfo(FREEHAND_MOTION_2).NumberOfSegmentedImages << " (for validation) failed!");
+					}
 				}
 			} else {
 				// Calibration data
-				if (AddTrackedFrameData(&trackedFrame, FREEHAND_MOTION_1)) {
-					segmentationSuccessful = true;
-				} else {
-					LOG_DEBUG("Adding tracked frame " << this->GetRealtimeImageDataInfo(FREEHAND_MOTION_1).NumberOfSegmentedImages << " (for calibration) failed!");
+				if ( this->GetTrackedFrameList(FREEHAND_MOTION_1)->ValidateData(&trackedFrame) ) {
+					if (AddTrackedFrameData(&trackedFrame, FREEHAND_MOTION_1)) {
+						segmentationSuccessful = true;
+					} else {
+						++numberOfFailedSegmentations;
+						LOG_DEBUG("Adding tracked frame " << this->GetRealtimeImageDataInfo(FREEHAND_MOTION_1).NumberOfSegmentedImages << " (for calibration) failed!");
+					}
 				}
 			}
 		}
@@ -490,17 +530,21 @@ PlusStatus vtkFreehandCalibrationController::DoAcquisition()
 		if (segmentationSuccessful) {
 			++numberOfAcquiredImages;
 			this->SetProgressPercent( (int)((numberOfAcquiredImages / (double)(maxNumberOfValidationImages + maxNumberOfCalibrationImages)) * 100.0) );
-		} else {
-			++numberOfFailedSegmentations;
 		}
+
+		// Display segmented points (or hide them if unsuccessful)
+		DisplaySegmentedPoints(segmentationSuccessful);
 
 		if (m_Toolbox) {
 			m_Toolbox->RefreshToolboxContent();
 		}
 	}
 
-	LOG_INFO("Segmentation success rate: " << numberOfAcquiredImages << " out of " << numberOfAcquiredImages + numberOfFailedSegmentations << " (" << (double)numberOfAcquiredImages / (double)(numberOfAcquiredImages + numberOfFailedSegmentations) << " percent)");
+	LOG_INFO("Segmentation success rate: " << numberOfAcquiredImages << " out of " << numberOfAcquiredImages + numberOfFailedSegmentations << " (" << (int)(((double)numberOfAcquiredImages / (double)(numberOfAcquiredImages + numberOfFailedSegmentations)) * 100.0 + 0.49) << " percent)");
   
+	// Make the segmented results disappear
+	this->SegmentedPointsActor->VisibilityOff();
+
 	return PLUS_SUCCESS;
 }
 
@@ -852,6 +896,40 @@ PlusStatus vtkFreehandCalibrationController::DoOfflineCalibration()
 		LOG_ERROR("AddAllSavedData: Failed to add saved data!");  
 		return PLUS_FAIL;
 	}
+
+	return PLUS_SUCCESS;
+}
+
+//-----------------------------------------------------------------------------
+
+PlusStatus vtkFreehandCalibrationController::DisplaySegmentedPoints(bool aSuccess)
+{
+	if (! aSuccess) {
+		this->SegmentedPointsActor->VisibilityOff();
+		//this->SegmentedPointsActor->GetProperty()->SetColor(0.5, 0.5, 0.5);
+
+		return PLUS_SUCCESS;
+	}
+
+	// Get last results and feed the points into vtkPolyData for displaying
+	SegmentedFrame lastSegmentedFrame = this->SegmentedFrameContainer.at(this->SegmentedFrameContainer.size() - 1);
+	SegmentationResults results = lastSegmentedFrame.SegResults;
+	int height = lastSegmentedFrame.TrackedFrameInfo->FrameSize[1];
+
+	vtkSmartPointer<vtkPoints> inputPoints = vtkSmartPointer<vtkPoints>::New();
+	inputPoints->SetNumberOfPoints(results.GetFoundDotsCoordinateValue().size());
+
+	std::vector<std::vector<double>> dots = results.GetFoundDotsCoordinateValue();
+	for (int i=0; i<dots.size(); ++i) {
+		inputPoints->InsertPoint(i, dots[i][0], height - dots[i][1], 0.0);
+	}
+	inputPoints->Modified();
+
+	this->SegmentedPointsPolyData->Initialize();
+	this->SegmentedPointsPolyData->SetPoints(inputPoints);
+
+	this->SegmentedPointsActor->VisibilityOn();
+	//this->SegmentedPointsActor->GetProperty()->SetColor(0.0, 0.8, 0.0);
 
 	return PLUS_SUCCESS;
 }

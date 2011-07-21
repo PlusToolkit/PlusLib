@@ -192,9 +192,9 @@ public:
 	vtkGetStringMacro(PhantomModelFileName);
 
 	//! Description 
-	// Set/get the phantom origin to model transform
-	vtkSetObjectMacro(ModelToPhantomOriginTransform, vtkTransform); 
-	vtkGetObjectMacro(ModelToPhantomOriginTransform, vtkTransform);
+	// Set/get the phantom to model transform
+	vtkSetObjectMacro(ModelToPhantomTransform, vtkTransform); 
+	vtkGetObjectMacro(ModelToPhantomTransform, vtkTransform);
 
 	//! Attribute: Flag to enable the Segmentation Analysis
 	vtkGetMacro(EnableSegmentationAnalysis, bool);
@@ -327,8 +327,8 @@ protected:
 	//! Attributes: phantom model file name for visualization
 	char* PhantomModelFileName;
 
-	//! Attributes: phantom origin to model transform
-	vtkTransform* ModelToPhantomOriginTransform;
+	//! Attributes: phantom to model transform
+	vtkTransform* ModelToPhantomTransform;
 
 	//! Pointer to the callback function that is executed each time a segmentation is finished
     SegmentationProgressPtr SegmentationProgressCallbackFunction;

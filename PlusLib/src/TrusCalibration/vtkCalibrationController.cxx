@@ -53,7 +53,7 @@ SegmentationProgressCallbackFunction(NULL)
 	this->ProgramFolderPath = NULL; 
 	this->ConfigurationFileName = NULL;
 	this->PhantomDefinitionFileName = NULL;
-	this->ModelToPhantomOriginTransform = NULL;
+	this->ModelToPhantomTransform = NULL;
 	this->PhantomModelFileName = NULL;
 	this->SegParameters = NULL; 
 
@@ -1042,18 +1042,18 @@ PlusStatus vtkCalibrationController::ReadPhantomDefinition()
 				}
 			}
 
-			// ModelToPhantomOriginTransform - Transforming input model for proper visualization
-			double* modelToPhantomOriginTransformVector = new double[16]; 
-			if (model->GetVectorAttribute("ModelToPhantomOriginTransform", 16, modelToPhantomOriginTransformVector)) {
-				vtkSmartPointer<vtkMatrix4x4> modelToPhantomOriginTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-				modelToPhantomOriginTransformMatrix->Identity();
-				modelToPhantomOriginTransformMatrix->DeepCopy(modelToPhantomOriginTransformVector);
+			// ModelToPhantomTransform - Transforming input model for proper visualization
+			double* modelToPhantomTransformVector = new double[16]; 
+			if (model->GetVectorAttribute("ModelToPhantomTransform", 16, modelToPhantomTransformVector)) {
+				vtkSmartPointer<vtkMatrix4x4> modelToPhantomTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+				modelToPhantomTransformMatrix->Identity();
+				modelToPhantomTransformMatrix->DeepCopy(modelToPhantomTransformVector);
 
-				vtkSmartPointer<vtkTransform> modelToPhantomOriginTransform = vtkSmartPointer<vtkTransform>::New();
-				modelToPhantomOriginTransform->SetMatrix(modelToPhantomOriginTransformMatrix);
-				this->SetModelToPhantomOriginTransform(modelToPhantomOriginTransform);
+				vtkSmartPointer<vtkTransform> modelToPhantomTransform = vtkSmartPointer<vtkTransform>::New();
+				modelToPhantomTransform->SetMatrix(modelToPhantomTransformMatrix);
+				this->SetModelToPhantomTransform(modelToPhantomTransform);
 			}
-			delete[] modelToPhantomOriginTransformVector;
+			delete[] modelToPhantomTransformVector;
 		}
 
 		// Load geometry

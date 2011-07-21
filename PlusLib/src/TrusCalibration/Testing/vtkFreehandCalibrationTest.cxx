@@ -106,7 +106,8 @@ int main (int argc, char* argv[])
 	freehandMotion2DataInfo.SequenceMetaFileName.assign(inputFreehandMotion2SeqMetafile.c_str());
 	freehandCalibration->SetSavedImageDataInfo(FREEHAND_MOTION_2, freehandMotion2DataInfo);
 
-	freehandCalibration->Initialize(); 
+	freehandCalibration->Initialize();
+	freehandCalibration->SetTemporalCalibrationDone(true);
 	freehandCalibration->Start();
 
 	// Register phantom geometry before calibration 
