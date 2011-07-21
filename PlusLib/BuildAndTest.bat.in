@@ -31,10 +31,10 @@ goto END
 goto END
 
 :continuous
-"${CMAKE_CTEST_COMMAND}" -D Continuous
 @REM Clean before the build to enforce all build warnings appear on the dashboard submissions
 "${CMAKE_MAKE_PROGRAM}" PlusLib.sln /clean Release /project ALL_BUILD
 @REM Wait for some time before continue to allow checking the results of the executions
+"${CMAKE_CTEST_COMMAND}" -D Continuous
 timeout /t 15
 goto END
 
