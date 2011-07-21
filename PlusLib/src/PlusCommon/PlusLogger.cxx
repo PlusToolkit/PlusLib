@@ -2,8 +2,9 @@
 #include <Windows.h> // required for setting the text color on the console output
 #endif
 
-#include "PlusLogger.h"
 #include "PlusConfigure.h"
+
+#include "PlusLogger.h"
 #include <string>
 #include <sstream>
 #include "vtkCriticalSection.h"

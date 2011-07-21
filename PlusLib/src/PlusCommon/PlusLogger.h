@@ -1,13 +1,11 @@
 #ifndef __PLUSLOGGER_H
 #define __PLUSLOGGER_H
 
-#define DllExport   __declspec( dllexport )
-
 #include <fstream>
 
 class vtkSimpleCriticalSection; 
 
-class DllExport PlusLogger
+class VTK_EXPORT PlusLogger
 {
 	typedef void (*DisplayMessageCallbackPtr)(const char *msg, const int level);
 
