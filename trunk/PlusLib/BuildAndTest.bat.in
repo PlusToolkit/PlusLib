@@ -31,8 +31,6 @@ goto END
 goto END
 
 :continuous
-@REM Clean before the continuous build to enforce all build warnings appear on the dashboard submissions
-"${CMAKE_MAKE_PROGRAM}" PlusLib.sln /clean Release /project ALL_BUILD
 "${CMAKE_CTEST_COMMAND}" -D Continuous
 goto END
 
