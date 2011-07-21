@@ -1,7 +1,7 @@
-#include "UsImageConverterCommon.h"
-
-#include "PlusLogger.h"
 #include "PlusConfigure.h"
+
+#include "UsImageConverterCommon.h"
+#include "PlusLogger.h"
 #include "vtkImageData.h"
 #include "vtkImageFlip.h"
 #include "vtkImageExport.h"

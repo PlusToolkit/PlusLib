@@ -1,8 +1,6 @@
 #ifndef __USIMAGECONVERTERCOMMON_H
 #define __USIMAGECONVERTERCOMMON_H
 
-#define DllExport   __declspec( dllexport )
-
 #include "PlusConfigure.h"
 #include "itkImage.h" 
 #include "itkImageFileWriter.h"
@@ -22,7 +20,7 @@ enum US_IMAGE_ORIENTATION
   US_IMG_ORIENT_XX  // undefined
 }; 
 
-class DllExport UsImageConverterCommon
+class VTK_EXPORT UsImageConverterCommon
 {
 public:
 
