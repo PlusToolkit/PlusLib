@@ -561,18 +561,19 @@ PlusStatus vtkTimestampedCircularBuffer<BufferItemType>::CreateFilteredTimeStamp
   // create a new row for the timestamp report table 
   vtkSmartPointer<vtkVariantArray> timeStampReportTableRow = vtkSmartPointer<vtkVariantArray>::New(); 
 
+  // We store the last NumberOfAveragedItems unfiltered timestamp and item indexes, because these are used for computing the filtered timestamp.
   this->UnfilteredTimestampQueue.push_back(inUnfilteredTimestamp); 
   while ( this->UnfilteredTimestampQueue.size() > this->NumberOfAveragedItems )
   {
     this->UnfilteredTimestampQueue.pop_front(); 
-  }
-  
+  }  
   this->ItemIndexQueue.push_back(itemIndex); 
   while ( this->ItemIndexQueue.size() > this->NumberOfAveragedItems )
   {
     this->ItemIndexQueue.pop_front(); 
   }
   
+  // If we don't have enough unfiltered timestamps then we just use the unfiltered timestamps
   if ( this->UnfilteredTimestampQueue.size() < this->NumberOfAveragedItems 
     || this->ItemIndexQueue.size() < this->NumberOfAveragedItems )
   {
@@ -595,6 +596,33 @@ PlusStatus vtkTimestampedCircularBuffer<BufferItemType>::CreateFilteredTimeStamp
     return PLUS_SUCCESS; 
   }
   
+  // The items are acquired periodically, with quite accurate frame periods. The data is not timestamped
+  // by the source, only Plus attaches a timestamp when it receives the data. The timestamp that Plus attaches
+  // (the unfiltered timestamp) may be inaccurate, due to random delays in transferring the data.
+  // Without the random delays (and if the acquisition frame rate is constant) the itemIndex vs. timestamp function would be a straight line.
+  // With the random delays small spikes appear on this line, causing inaccuracies.
+  // Get rid of the small spikes and get a smooth straight line by fitting a line (timestamp = itemIndex * framePeriod + timeOffset) to the
+  // itemIndex vs. unfiltered timestamp function and compute the current filtered timestamp
+  // by extrapolation of this line to the current item index.
+  // The line parameters (framePeriod and timeOffset) are computed from the (NumberOfAveragedItems) elements of the
+  // unfiltered timestamps and item indexes.
+  // 
+  //   timestamp = itemIndex * framePeriod + timeOffset
+  // 
+  // In matrix format:
+  //   [itemIndex 1] * [framePeriod   =  [timestamp]
+  //                    timeOffset ]
+  //
+  // Including all the available items:
+  //   [itemIndex01 1 * [framePeriod   =  [timestamp01
+  //    itemIndex02 1   timeOffset ]       timestamp02
+  //    itemIndex03 1                      timestamp03
+  //    ...                                ...
+  //    itemIndexN  1]                     timestampN]
+  // 
+  // This is an overdetermined linear system (A*x=b). The unknown line parameters (framePeriod, timeOffset) can be computed by LSQR.
+  //
+
   std::vector<vnl_vector<double>> aMatrix; 
   std::vector<double> bVector; 
   vnl_vector<double> row(2); 
