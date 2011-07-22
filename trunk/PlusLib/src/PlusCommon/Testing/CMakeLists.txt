@@ -11,7 +11,7 @@ TARGET_LINK_LIBRARIES(TimestampFilteringTest vtkPlusCommon vtkImageAcquisition v
 
 ADD_TEST(TimestampFilteringTest 
   ${EXECUTABLE_OUTPUT_PATH}/TimestampFilteringTest
-  --input-metafile=${TestDataDir}/
+  --input-metafile=${TestDataDir}/TimestampFilteringTest.mha 
   --input-averaged-items-for-filtering=20
   --input-max-timestamp-difference=0.08
   --input-min-stdev-reduction-factor=3.0

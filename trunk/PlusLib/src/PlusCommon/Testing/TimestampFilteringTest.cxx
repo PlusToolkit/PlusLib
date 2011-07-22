@@ -58,7 +58,10 @@ int main(int argc, char **argv)
   // Read buffer 
   LOG_INFO("Reading meta file..."); 
   vtkSmartPointer<vtkTrackedFrameList> trackerFrameList = vtkSmartPointer<vtkTrackedFrameList>::New(); 
-  trackerFrameList->ReadFromSequenceMetafile(inputMetafile.c_str()); 
+  if ( trackerFrameList->ReadFromSequenceMetafile(inputMetafile.c_str()) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to read sequence metafile from file: " << inputMetafile ); 
+  }
 
   LOG_INFO("Copy buffer to tracker buffer..."); 
   int numberOfFrames = trackerFrameList->GetNumberOfTrackedFrames();
