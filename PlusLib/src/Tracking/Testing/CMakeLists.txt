@@ -12,3 +12,14 @@ IF (PLUS_USE_AMS_TRACKER)
     ADD_EXECUTABLE(AMSStepperTest AMSStepperTest.cxx)
     TARGET_LINK_LIBRARIES(AMSStepperTest vtkTracking vtkCommon vtkPlusCommon)
 ENDIF (PLUS_USE_AMS_TRACKER) 
+
+#***************************  TransformInterpolationTest ***************************
+ADD_EXECUTABLE(TransformInterpolationTest TransformInterpolationTest.cxx)
+TARGET_LINK_LIBRARIES(TransformInterpolationTest vtkTracking vtkPlusCommon vtkImageAcquisition)
+
+ADD_TEST(TransformInterpolationTest 
+  ${EXECUTABLE_OUTPUT_PATH}/TransformInterpolationTest
+  --input-metafile=${TestDataDir}/TransformInterpolationTest.mha 
+  --input-max-rotation-difference=1.0
+  --input-max-translation-difference=0.5
+  )
