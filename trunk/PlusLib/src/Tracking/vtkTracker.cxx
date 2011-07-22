@@ -464,17 +464,17 @@ PlusStatus vtkTracker::ReadConfiguration(vtkXMLDataElement* config)
     this->SetFrequency(frequency);  
   }
 
-  double smoothingFactor = 0; 
-  if ( config->GetScalarAttribute("SmoothingFactor", smoothingFactor) )
+  double numberOfAveragedItems = 0; 
+  if ( config->GetScalarAttribute("NumberOfAveragedItems", numberOfAveragedItems) )
   {
     for ( int i = 0; i < this->GetNumberOfTools(); i++)
     {
-      this->GetTool(i)->GetBuffer()->SetSmoothingFactor(smoothingFactor);
+      this->GetTool(i)->GetBuffer()->SetNumberOfAveragedItems(numberOfAveragedItems);
     }
   }
   else
   {
-    LOG_WARNING("Unable to find Tracker SmoothingFactor attribute in configuration file!"); 
+    LOG_WARNING("Unable to find Tracker NumberOfAveragedItems attribute in configuration file!"); 
   }
 
   double localTimeOffset = 0; 

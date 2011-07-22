@@ -1,4 +1,5 @@
 #include "PlusConfigure.h"
+#include "PlusMath.h"
 #include "vtkStepperCalibrationController.h"
 #include "vtkObjectFactory.h"
 #include "vtkTransform.h"
@@ -117,56 +118,6 @@ PlusStatus vtkStepperCalibrationController::AddItkImageData( const ImageType::Po
   this->CreateTrackedFrame(frame, probePosition, probeRotation, templatePosition, dataType, trackedFrame); 
   return this->AddTrackedFrameData(&trackedFrame, dataType); 
 }
-
-//----------------------------------------------------------------------------
-PlusStatus vtkStepperCalibrationController::LSQRMinimize(const std::vector<vnl_vector<double>> &aMatrix, const std::vector<double> &bVector, vnl_vector<double> &resultVector)
-{
-  LOG_TRACE("vtkStepperCalibrationController::LSQRMinimize"); 
-
-  if (aMatrix.size()==0)
-  {
-    LOG_ERROR("LSQRMinimize: A matrix is empty");
-    resultVector.clear();
-    return PLUS_FAIL;
-  }
-  if (bVector.size()==0)
-  {
-    LOG_ERROR("LSQRMinimize: b vector is empty");
-    resultVector.clear();
-    return PLUS_FAIL;
-  }
-
-  // The coefficient matrix aMatrix should be m-by-n and the column vector bVector must have length m.
-  const int n = aMatrix.begin()->size(); 
-  const int m = bVector.size();
-
-  vnl_sparse_matrix<double> sparseMatrixLeftSide(m, n);
-  vnl_vector<double> vectorRightSide(m);
-
-  for(int row = 0; row < m; row++)
-  {
-    // Populate the sparse matrix
-    for ( int i = 0; i < n; i++)
-    {
-      sparseMatrixLeftSide(row,i) = aMatrix[row].get(i);
-    }
-
-    // Populate the vector
-    vectorRightSide.put(row, bVector[row]);
-  }
-
-  // Construct linear system defined in VNL
-  vnl_sparse_matrix_linear_system<double> linearSystem( sparseMatrixLeftSide, vectorRightSide );
-
-  // Instantiate the LSQR solver
-  vnl_lsqr lsqr( linearSystem );
-
-  // call minimize on the solver
-  lsqr.minimize( resultVector );
-
-  return PLUS_SUCCESS; 
-}
-
 
 //----------------------------------------------------------------------------
 PlusStatus vtkStepperCalibrationController::ComputeStatistics(const std::vector< std::vector<double> > &diffVector, std::vector<double> &mean, std::vector<double> &stdev)
@@ -380,9 +331,13 @@ PlusStatus vtkStepperCalibrationController::CalibrateRotationAxis()
   do 
   {
     numberOfEquations = bVector.size(); 
-    if ( this->LSQRMinimize(aMatrix, bVector, rotationAxisCalibResult) )
+    if ( PlusMath::LSQRMinimize(aMatrix, bVector, rotationAxisCalibResult) == PLUS_SUCCESS )
     {
       this->RemoveOutliersFromRotAxisCalibData(aMatrix, bVector, rotationAxisCalibResult); 
+    }
+    else
+    {
+      LOG_WARNING("Failed to run LSQRMinimize!"); 
     }
   } 
   while (numberOfEquations != bVector.size()); 
@@ -643,9 +598,13 @@ PlusStatus vtkStepperCalibrationController::CalibrateRotationEncoder()
   do
   {
     numberOfEquations = bVector.size(); 
-    if ( this->LSQRMinimize(aMatrix, bVector, rotationEncoderCalibrationResult) )
+    if ( PlusMath::LSQRMinimize(aMatrix, bVector, rotationEncoderCalibrationResult) == PLUS_SUCCESS )
     {
       this->RemoveOutliersFromRotEncCalibData(aMatrix, bVector, rotationEncoderCalibrationResult); 
+    }
+    else
+    {
+      LOG_WARNING("Failed to run LSQRMinimize!"); 
     }
   }
   while ( numberOfEquations != bVector.size() ); 
@@ -1012,9 +971,13 @@ PlusStatus vtkStepperCalibrationController::CalibrateTranslationAxis( IMAGE_DATA
   do 
   {
     numberOfEquations = bVector.size(); 
-    if ( this->LSQRMinimize(aMatrix, bVector, translationAxisCalibResult) )
+    if ( PlusMath::LSQRMinimize(aMatrix, bVector, translationAxisCalibResult) == PLUS_SUCCESS)
     {
       this->RemoveOutliersFromTransAxisCalibData(aMatrix, bVector, translationAxisCalibResult); 
+    }
+    else
+    {
+      LOG_WARNING("Failed to run LSQRMinimize!"); 
     }
   }
   while ( numberOfEquations != bVector.size() ); 
@@ -1530,9 +1493,13 @@ PlusStatus vtkStepperCalibrationController::CalculateSpacing()
   do 
   {
     numberOfEquations = bVector.size(); 
-    if ( this->LSQRMinimize(aMatrix, bVector, TRUSSquaredScaleFactorsInMMperPixel2x1) )
+    if ( PlusMath::LSQRMinimize(aMatrix, bVector, TRUSSquaredScaleFactorsInMMperPixel2x1) == PLUS_SUCCESS )
     {
       this->RemoveOutliersFromSpacingCalcData(aMatrix, bVector, TRUSSquaredScaleFactorsInMMperPixel2x1); 
+    }
+    else
+    {
+      LOG_WARNING("Failed to run LSQRMinimize!"); 
     }
   } 
   while (numberOfEquations != bVector.size()); 
@@ -1841,9 +1808,13 @@ PlusStatus vtkStepperCalibrationController::CalculateCenterOfRotation( Segmented
   do 
   {
     numberOfEquations = bVector.size(); 
-    if ( this->LSQRMinimize(aMatrix, bVector, TRUSRotationCenterInOriginalImageFrameInMm2x1) )
+    if ( PlusMath::LSQRMinimize(aMatrix, bVector, TRUSRotationCenterInOriginalImageFrameInMm2x1) == PLUS_SUCCESS )
     {
       this->RemoveOutliersFromCenterOfRotCalcData(aMatrix, bVector, TRUSRotationCenterInOriginalImageFrameInMm2x1); 
+    }
+    else
+    {
+      LOG_WARNING("Failed to run LSQRMinimize!"); 
     }
   } 
   while (numberOfEquations != bVector.size()); 

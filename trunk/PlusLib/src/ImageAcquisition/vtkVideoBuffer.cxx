@@ -459,9 +459,9 @@ ItemStatus vtkVideoBuffer::GetTimeStamp( BufferItemUidType uid, double& timestam
 }
 
 //----------------------------------------------------------------------------
-void vtkVideoBuffer::SetSmoothingFactor( double smoothingFactor)
+void vtkVideoBuffer::SetNumberOfAveragedItems( double numberOfAveragedItems)
 {
-  this->VideoBuffer->SetSmoothingFactor(smoothingFactor); 
+  this->VideoBuffer->SetNumberOfAveragedItems(numberOfAveragedItems); 
 }
 
 //----------------------------------------------------------------------------

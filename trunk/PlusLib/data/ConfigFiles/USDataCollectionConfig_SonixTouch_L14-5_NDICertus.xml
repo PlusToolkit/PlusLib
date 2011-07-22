@@ -4,7 +4,7 @@
         Description="" 
         />
 
-    <Tracker Type="CertusTracker" BufferSize="2500" Frequency="50" SmoothingFactor="0.001" LocalTimeOffset="0.0" ReferenceToolName="Reference" DefaultToolName="Probe" >
+    <Tracker Type="CertusTracker" BufferSize="2500" Frequency="50" NumberOfAveragedItems="10" LocalTimeOffset="0.0" ReferenceToolName="Reference" DefaultToolName="Probe" >
         
         <Tool Name="Probe" PortNumber="0" SendTo="127.0.0.1:1111">
         <Calibration 
@@ -51,7 +51,7 @@
             FrameSize="820 616" 
             UsImageOrientation="MF"
             FrameRate="30" 
-            SmoothingFactor="0.001" 
+            NumberOfAveragedItems="10" 
             LocalTimeOffset="0.0"
             IP="130.15.7.20" 
             ImagingMode="0" 

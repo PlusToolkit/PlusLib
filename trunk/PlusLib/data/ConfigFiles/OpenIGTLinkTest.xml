@@ -37,7 +37,7 @@
             FrameSize="820 616" 
             UsImageOrientation="MF"
             FrameRate="5" 
-            SmoothingFactor="0.001" 
+            NumberOfAveragedItems="10" 
             LocalTimeOffset="0.0" 
             />
 

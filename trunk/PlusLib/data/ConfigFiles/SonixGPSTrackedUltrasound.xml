@@ -10,7 +10,7 @@
     BufferSize="500"
     Frequency="20"
     LocalTimeOffset="0.0"
-    SmoothingFactor="0.001"
+    NumberOfAveragedItems="10"
     ReferenceToolName="Reference"
     DefaultToolName="Probe"
     >
@@ -43,7 +43,7 @@
     FrameSize="640 480" 
     UsImageOrientation="MF"
     FrameRate="30" 
-    SmoothingFactor="0.001" 
+    NumberOfAveragedItems="10" 
     LocalTimeOffset="0.0"
     IP="130.15.7.20" 
     ImagingMode="0" 

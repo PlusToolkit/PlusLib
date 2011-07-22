@@ -2,11 +2,13 @@
 #define __vtkTimestampedCircularBuffer_h
 
 #include "PlusConfigure.h"
+#include "PlusMath.h"
 #include "vtkObject.h"
 #include "vtkObjectFactory.h"
 #include "vtkTypeTemplate.h"
 #include <deque>
 #include <vector>
+#include <queue>
 #include "vtkCriticalSection.h"
 #include "vtkTable.h"
 #include "vtkVariantArray.h"
@@ -190,18 +192,9 @@ public:
   virtual PlusStatus CreateFilteredTimeStampForItem(unsigned long itemIndex, double inUnfilteredTimestamp, double &outFilteredTimestamp); 
   
   // Description:
-  // Set/Get maximum allowed difference of the frame delay compared to average delay, in seconds
-  vtkSetMacro(MaximumFramePeriodJitter, double); 
-  vtkGetMacro(MaximumFramePeriodJitter, double); 
-
-  // Description:
-  // Set/Get smoothing factor for accurate timing of the frames 
-  // an exponential moving average is computed to smooth out the 
-  // jitter in the times that are returned by the system clock:
-  // EstimatedFramePeriod[t] = EstimatedFramePeriod[t-1] * (1-SmoothingFactor) + FramePeriod[t] * SmoothingFactor
-  // Smaller SmoothingFactor results leads to less jitter.
-  vtkSetMacro(SmoothingFactor, double); 
-  vtkGetMacro(SmoothingFactor, double); 
+  // Set/Get number of items used for timestamp filtering (with LSQR mimimizer)
+  vtkSetMacro(NumberOfAveragedItems, double); 
+  vtkGetMacro(NumberOfAveragedItems, double); 
 
   // Description:
   // Recording start time
@@ -238,13 +231,9 @@ protected:
   std::deque<BufferItemType> BufferItemContainer; 
 
   // Timestamp generation 
-  double LastTimeStamp;
-  double LastUnfilteredTimeStamp;
-  unsigned long LastItemIndex;
-  double EstimatedFramePeriod;
-  std::vector<double> AveragedFramePeriods; 
-  double MaximumFramePeriodJitter; 
-  double SmoothingFactor; 
+  std::deque<double> UnfilteredTimestampQueue; 
+  std::deque<long> ItemIndexQueue; 
+  int NumberOfAveragedItems; 
   
   double StartTime; 
 

@@ -23,12 +23,7 @@ vtkTimestampedCircularBuffer<BufferItemType>::vtkTimestampedCircularBuffer()
 	this->LocalTimeOffset = 0.0; 
 	this->LatestItemUid = 0; 
 
-  this->LastTimeStamp = 0;
-	this->LastUnfilteredTimeStamp = 0;
-	this->LastItemIndex = 0;
-	this->EstimatedFramePeriod = 0;
-	this->MaximumFramePeriodJitter = 0.100; 
-	this->SmoothingFactor = 0.001; 
+  this->NumberOfAveragedItems = 10; 
   this->TimeStampReportTable = NULL; 
 
   this->StartTime = 0; 
@@ -566,123 +561,80 @@ PlusStatus vtkTimestampedCircularBuffer<BufferItemType>::CreateFilteredTimeStamp
   // create a new row for the timestamp report table 
   vtkSmartPointer<vtkVariantArray> timeStampReportTableRow = vtkSmartPointer<vtkVariantArray>::New(); 
 
-	if ( this->LastItemIndex == 0 )
-	{
-		this->LastItemIndex = itemIndex; 
-		this->LastTimeStamp = inUnfilteredTimestamp; 
-		this->LastUnfilteredTimeStamp = inUnfilteredTimestamp; 
-	}
-
-	if ( itemIndex == this->LastItemIndex )
-	{
-		outFilteredTimestamp = this->LastTimeStamp; 
-    this->Unlock(); 
-		return PLUS_SUCCESS; 
-	}
-
-	// maximum allowed difference of the frame delay compared to average delay, in seconds
-	const unsigned int numberOfAveragedPeriods = 20; 
-
-	unsigned long frameCountDiff = itemIndex - this->LastItemIndex; 
-	double frameperiod = ((inUnfilteredTimestamp - this->LastTimeStamp)/ frameCountDiff);
-
-	if ( this->AveragedFramePeriods.size() < numberOfAveragedPeriods ) 
-	{
-		if ( this->LastTimeStamp == 0 ) 
-		{
-			frameperiod = 0; 
-			this->LastUnfilteredTimeStamp = inUnfilteredTimestamp;
-			this->AveragedFramePeriods.clear(); 
-			this->EstimatedFramePeriod = 0; 
-		}
-		//else if ( frameCountDiff > 1 )
-		//{
-		//	LOG_DEBUG("CreateTimeStampForFrame: frames lost (" << frameCountDiff - 1 << "), the previous frame period was ignored!"); 
-		//	if ( AveragedFramePeriods.size() > 0 ) 
-		//	{
-		//		// we have some lost frames, ignore the previous frame period
-		//		AveragedFramePeriods.pop_back(); 
-		//	}
-		//}
-		else
-		{
-			AveragedFramePeriods.push_back(frameperiod); 
-		}
-
-		double diffUnfilteredTimestamp = ((inUnfilteredTimestamp - this->LastUnfilteredTimeStamp)/ frameCountDiff);
-		this->LastTimeStamp = inUnfilteredTimestamp;
-		this->LastUnfilteredTimeStamp = inUnfilteredTimestamp; 
-		this->LastItemIndex = itemIndex;
-		outFilteredTimestamp = inUnfilteredTimestamp;
-
+  this->UnfilteredTimestampQueue.push_back(inUnfilteredTimestamp); 
+  while ( this->UnfilteredTimestampQueue.size() > this->NumberOfAveragedItems )
+  {
+    this->UnfilteredTimestampQueue.pop_front(); 
+  }
+  
+  this->ItemIndexQueue.push_back(itemIndex); 
+  while ( this->ItemIndexQueue.size() > this->NumberOfAveragedItems )
+  {
+    this->ItemIndexQueue.pop_front(); 
+  }
+  
+  if ( this->UnfilteredTimestampQueue.size() < this->NumberOfAveragedItems 
+    || this->ItemIndexQueue.size() < this->NumberOfAveragedItems )
+  {
+    outFilteredTimestamp = inUnfilteredTimestamp; 
     // save the current results into the timestamp report table
     timeStampReportTableRow->InsertNextValue(itemIndex); 
-    timeStampReportTableRow->InsertNextValue(frameCountDiff); 
-    timeStampReportTableRow->InsertNextValue(inUnfilteredTimestamp - this->StartTime); 
-    timeStampReportTableRow->InsertNextValue(outFilteredTimestamp - this->StartTime); 
-    timeStampReportTableRow->InsertNextValue(diffUnfilteredTimestamp); 
-    timeStampReportTableRow->InsertNextValue(frameperiod); 
-    timeStampReportTableRow->InsertNextValue(this->EstimatedFramePeriod); 
+    //timeStampReportTableRow->InsertNextValue(frameCountDiff); 
+    std::ostringstream strUnfilteredTimestamp; 
+    strUnfilteredTimestamp << std::fixed << inUnfilteredTimestamp - this->StartTime; 
+    timeStampReportTableRow->InsertNextValue(vtkVariant(strUnfilteredTimestamp.str())); 
+
+    std::ostringstream strFilteredTimestamp; 
+    strFilteredTimestamp << std::fixed << outFilteredTimestamp - this->StartTime; 
+    timeStampReportTableRow->InsertNextValue(vtkVariant(strFilteredTimestamp.str())); 
+    //timeStampReportTableRow->InsertNextValue(diffUnfilteredTimestamp); 
+    //timeStampReportTableRow->InsertNextValue(frameperiod); 
+    //timeStampReportTableRow->InsertNextValue(this->EstimatedFramePeriod); 
     this->TimeStampReportTable->InsertNextRow(timeStampReportTableRow); 
     this->Unlock(); 
-		return PLUS_SUCCESS; 
+    return PLUS_SUCCESS; 
+  }
+  
+  std::vector<vnl_vector<double>> aMatrix; 
+  std::vector<double> bVector; 
+  vnl_vector<double> row(2); 
+  for ( int i = 0; i < this->NumberOfAveragedItems; ++i )
+  {
+    row[0] = this->ItemIndexQueue[i]; 
+    row[1] = 1; 
+    aMatrix.push_back(row); 
+    bVector.push_back(this->UnfilteredTimestampQueue[i]); 
+  }
+    
+  vnl_vector<double> resultVector(2,0); 
 
-	}
-	else if ( this->AveragedFramePeriods.size() == numberOfAveragedPeriods )
-	{
-		this->EstimatedFramePeriod = 0; 
-		for ( int i = 0; i < numberOfAveragedPeriods; i++ )
-		{
-			this->EstimatedFramePeriod += this->AveragedFramePeriods[i] / numberOfAveragedPeriods; 
-		}
-		AveragedFramePeriods.push_back(this->EstimatedFramePeriod); 
-	}
+  if ( PlusMath::LSQRMinimize(aMatrix, bVector, resultVector) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to run LSQR mimize on timestamp filtering dataset!"); 
+    return PLUS_FAIL; 
+  }
 
-	double diffUnfilteredTimestamp = ((inUnfilteredTimestamp - this->LastUnfilteredTimeStamp)/ frameCountDiff);
-	this->LastUnfilteredTimeStamp = inUnfilteredTimestamp; 
+  const double framePeriod = resultVector[0]; 
+  const double timeOffset = resultVector[1]; 
 
-	this->LastTimeStamp += ((itemIndex - this->LastItemIndex)* this->EstimatedFramePeriod);
-	double diffperiod = (inUnfilteredTimestamp - this->LastTimeStamp);
-
-	//if (diffperiod < -this->MaximumFramePeriodJitter || diffperiod > this->MaximumFramePeriodJitter )
-	//{ 
-	//	// Frame delay is very large, most probably because the frame transfer 
-	//	// was delayed, therefore the current time doesn't represent well the actual acquisition time.
-	//	// Ignore this outlier and use the average delay instead.
-	//	this->LastTimeStamp = inUnfilteredTimestamp;
-	//	this->LastItemIndex = itemIndex;
-	//	outFilteredTimestamp = inUnfilteredTimestamp;
-
- //   // save the current results into the timestamp report table
- //   timeStampReportTableRow->InsertNextValue(itemIndex); 
- //   timeStampReportTableRow->InsertNextValue(frameCountDiff); 
- //   timeStampReportTableRow->InsertNextValue(inUnfilteredTimestamp - this->StartTime); 
- //   timeStampReportTableRow->InsertNextValue(outFilteredTimestamp - this->StartTime); 
- //   timeStampReportTableRow->InsertNextValue(diffUnfilteredTimestamp); 
- //   timeStampReportTableRow->InsertNextValue(frameperiod); 
- //   timeStampReportTableRow->InsertNextValue(this->EstimatedFramePeriod); 
- //   this->TimeStampReportTable->InsertNextRow(timeStampReportTableRow); 
- //   this->Unlock(); 
-	//	return PLUS_SUCCESS; 
-	//}
-
-	this->EstimatedFramePeriod = this->EstimatedFramePeriod * (1-this->SmoothingFactor) + frameperiod * this->SmoothingFactor;
-	this->LastItemIndex = itemIndex;
-	outFilteredTimestamp = this->LastTimeStamp; 
+  outFilteredTimestamp = timeOffset + itemIndex * framePeriod; 
 
   // save the current results into the timestamp report table
   timeStampReportTableRow->InsertNextValue(itemIndex); 
-  timeStampReportTableRow->InsertNextValue(frameCountDiff); 
-  timeStampReportTableRow->InsertNextValue(inUnfilteredTimestamp - this->StartTime); 
-  timeStampReportTableRow->InsertNextValue(outFilteredTimestamp - this->StartTime); 
-  timeStampReportTableRow->InsertNextValue(diffUnfilteredTimestamp); 
-  timeStampReportTableRow->InsertNextValue(frameperiod); 
-  timeStampReportTableRow->InsertNextValue(this->EstimatedFramePeriod); 
+  //timeStampReportTableRow->InsertNextValue(frameCountDiff); 
+  std::ostringstream strUnfilteredTimestamp; 
+  strUnfilteredTimestamp << std::fixed << inUnfilteredTimestamp - this->StartTime; 
+  timeStampReportTableRow->InsertNextValue(vtkVariant(strUnfilteredTimestamp.str())); 
+
+  std::ostringstream strFilteredTimestamp; 
+  strFilteredTimestamp << std::fixed << outFilteredTimestamp - this->StartTime; 
+  timeStampReportTableRow->InsertNextValue(vtkVariant(strFilteredTimestamp.str())); 
+  //timeStampReportTableRow->InsertNextValue(diffUnfilteredTimestamp); 
+  //timeStampReportTableRow->InsertNextValue(frameperiod); 
+  //timeStampReportTableRow->InsertNextValue(this->EstimatedFramePeriod); 
   this->TimeStampReportTable->InsertNextRow(timeStampReportTableRow); 
-
   this->Unlock(); 
-
-	return PLUS_SUCCESS;
+  return PLUS_SUCCESS; 
 }
 
 
@@ -703,35 +655,35 @@ void vtkTimestampedCircularBuffer<BufferItemType>::InitTimeStampReportTable()
   colFrameNumber->SetName(colFrameNumberName); 
   this->TimeStampReportTable->AddColumn(colFrameNumber); 
 
-  const char* colFrameNumberDifferenceName = "FrameNumberDifference"; 
+  /*const char* colFrameNumberDifferenceName = "FrameNumberDifference"; 
   vtkSmartPointer<vtkDoubleArray> colFrameNumberDifference = vtkSmartPointer<vtkDoubleArray>::New(); 
   colFrameNumberDifference->SetName(colFrameNumberDifferenceName); 
-  this->TimeStampReportTable->AddColumn(colFrameNumberDifference); 
+  this->TimeStampReportTable->AddColumn(colFrameNumberDifference); */
 
   const char* colUnfilteredTimestampName = "UnfilteredTimestamp"; 
-  vtkSmartPointer<vtkDoubleArray> colUnfilteredTimestamp = vtkSmartPointer<vtkDoubleArray>::New(); 
+  vtkSmartPointer<vtkStringArray> colUnfilteredTimestamp = vtkSmartPointer<vtkStringArray>::New(); 
   colUnfilteredTimestamp->SetName(colUnfilteredTimestampName); 
   this->TimeStampReportTable->AddColumn(colUnfilteredTimestamp); 
 
   const char* colFilteredTimestampName = "FilteredTimestamp"; 
-  vtkSmartPointer<vtkDoubleArray> colFilteredTimestamp = vtkSmartPointer<vtkDoubleArray>::New(); 
+  vtkSmartPointer<vtkStringArray> colFilteredTimestamp = vtkSmartPointer<vtkStringArray>::New(); 
   colFilteredTimestamp->SetName(colFilteredTimestampName); 
   this->TimeStampReportTable->AddColumn(colFilteredTimestamp); 
 
-  const char* colUnfilteredTimeDifferenceName = "UnfilteredTimeDifference"; 
+  /*const char* colUnfilteredTimeDifferenceName = "UnfilteredTimeDifference"; 
   vtkSmartPointer<vtkDoubleArray> colUnfilteredTimeDifference = vtkSmartPointer<vtkDoubleArray>::New(); 
   colUnfilteredTimeDifference->SetName(colUnfilteredTimeDifferenceName); 
-  this->TimeStampReportTable->AddColumn(colUnfilteredTimeDifference); 
+  this->TimeStampReportTable->AddColumn(colUnfilteredTimeDifference); */
 
-  const char* colSamplingPeriodName = "SamplingPeriod"; 
+  /*const char* colSamplingPeriodName = "SamplingPeriod"; 
   vtkSmartPointer<vtkDoubleArray> colSamplingPeriod = vtkSmartPointer<vtkDoubleArray>::New(); 
   colSamplingPeriod->SetName(colSamplingPeriodName); 
-  this->TimeStampReportTable->AddColumn(colSamplingPeriod); 
+  this->TimeStampReportTable->AddColumn(colSamplingPeriod); */
 
-  const char* colEstimatedFramePeriodName = "EstimatedFramePeriod"; 
+  /*const char* colEstimatedFramePeriodName = "EstimatedFramePeriod"; 
   vtkSmartPointer<vtkDoubleArray> colEstimatedFramePeriod = vtkSmartPointer<vtkDoubleArray>::New(); 
   colEstimatedFramePeriod->SetName(colEstimatedFramePeriodName); 
-  this->TimeStampReportTable->AddColumn(colEstimatedFramePeriod); 
+  this->TimeStampReportTable->AddColumn(colEstimatedFramePeriod); */
 
 }
 //----------------------------------------------------------------------------
