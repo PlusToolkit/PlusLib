@@ -184,9 +184,9 @@ PlusStatus vtkTrackerBuffer::SetBufferSize(int bufsize)
 }
 
 //----------------------------------------------------------------------------
-void vtkTrackerBuffer::SetSmoothingFactor(double smoothingFactor)
+void vtkTrackerBuffer::SetNumberOfAveragedItems(double numberOfAveragedItems)
 {
-  this->TrackerBuffer->SetSmoothingFactor(smoothingFactor); 
+  this->TrackerBuffer->SetNumberOfAveragedItems(numberOfAveragedItems); 
 }
 
 //----------------------------------------------------------------------------

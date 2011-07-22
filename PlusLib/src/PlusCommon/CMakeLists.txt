@@ -8,6 +8,7 @@ SET ( PlusCommon_SRCS
 		vtkGnuplotExecuter.cxx
         UsImageConverterCommon.cxx
 		vtkFileFinder.cxx
+        PlusMath.cxx 
 		)
 
 SET (PlusCommon_HDRS)
@@ -23,6 +24,7 @@ if (WIN32)
         vtkTimestampedCircularBuffer.txx
 		vtkFileFinder.h
         UsImageConverterCommon.h
+        PlusMath.h
 		)
 endif (WIN32)	
 

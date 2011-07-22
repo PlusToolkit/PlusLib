@@ -270,16 +270,6 @@ protected:
 	// Set the calibration start time
 	virtual void SaveCalibrationStartTime(); 
 
-	//! Description: 
-	// Solve Ax = b sparse linear equations with linear least squares method (vnl_lsqr)
-	// The coefficient matrix aMatrix should be m-by-n and the column vector bVector must have length m. 
-	// resultVector size need to be fixed by constructor time
-	// The method will return false in case of any error
-	virtual PlusStatus LSQRMinimize(
-		const std::vector<vnl_vector<double>> &aMatrix, 
-		const std::vector<double> &bVector, 
-		vnl_vector<double> &resultVector);
-
 	// Description:
 	// Compute mean and stddev from dataset
 	virtual PlusStatus ComputeStatistics(const std::vector< std::vector<double> > &diffVector, std::vector<double> &mean, std::vector<double> &stdev); 

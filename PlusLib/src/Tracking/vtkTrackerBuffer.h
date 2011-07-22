@@ -45,12 +45,8 @@ public:
   virtual int GetBufferSize();
 
   // Description:
-  // Set/Get smoothing factor for accurate timing of the frames 
-  // an exponential moving average is computed to smooth out the 
-  // jitter in the times that are returned by the system clock:
-  // EstimatedFramePeriod[t] = EstimatedFramePeriod[t-1] * (1-SmoothingFactor) + FramePeriod[t] * SmoothingFactor
-  // Smaller SmoothingFactor results leads to less jitter.
-  virtual void SetSmoothingFactor(double smoothingFactor); 
+  // Set/Get number of items used for timestamp filtering (with LSQR mimimizer)
+  virtual void SetNumberOfAveragedItems(double numberOfAveragedItems); 
 
   // Description:
   // Set/get recording start time

@@ -593,14 +593,14 @@ PlusStatus vtkVideoSource2::ReadConfiguration(vtkXMLDataElement* config)
 		this->SetFrameRate(frameRate); 
 	}
 
-	double smoothingFactor = 0; 
-	if ( config->GetScalarAttribute("SmoothingFactor", smoothingFactor) )
+	double numberOfAveragedItems = 0; 
+	if ( config->GetScalarAttribute("NumberOfAveragedItems", numberOfAveragedItems) )
 	{
-		this->GetBuffer()->SetSmoothingFactor(smoothingFactor); 
+		this->GetBuffer()->SetNumberOfAveragedItems(numberOfAveragedItems); 
 	}
   else
   {
-    LOG_WARNING("Unable to find ImageAcqusition SmoothingFactor attribute in configuration file!"); 
+    LOG_WARNING("Unable to find ImageAcqusition NumberOfAveragedItems attribute in configuration file!"); 
   }
 
 	double localTimeOffset = 0; 
