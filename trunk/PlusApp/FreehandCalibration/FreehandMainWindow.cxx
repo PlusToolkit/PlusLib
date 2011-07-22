@@ -134,7 +134,16 @@ void FreehandMainWindow::CreateToolboxes()
 		connect( freehandCalibrationToolbox, SIGNAL( SetTabsEnabled(bool) ), this, SLOT( SetTabsEnabled(bool) ) );
 	}
 
-	//TODO Volume reconstruction
+	// volume reconstruction widget
+	VolumeReconstructionToolbox* volumeReconstructionToolbox = new VolumeReconstructionToolbox(ui.tab_VolumeReconstruction);
+
+	if (volumeReconstructionToolbox != NULL) {
+		QGridLayout* grid = new QGridLayout(ui.tab_VolumeReconstruction, 1, 1, 0, 0, "");
+		grid->addWidget(volumeReconstructionToolbox);
+		ui.tab_VolumeReconstruction->setLayout(grid);
+
+		connect( volumeReconstructionToolbox, SIGNAL( SetTabsEnabled(bool) ), this, SLOT( SetTabsEnabled(bool) ) );
+	}
 }
 
 //-----------------------------------------------------------------------------
@@ -307,7 +316,8 @@ void FreehandMainWindow::UpdateGUI()
 		|| (ConfigurationController::GetInstance() == NULL)
 		|| (StylusCalibrationController::GetInstance() == NULL)
 		|| (PhantomRegistrationController::GetInstance() == NULL)
-		|| (vtkFreehandCalibrationController::GetInstance() == NULL)) { //TODO add VolumeReconstructor
+		|| (vtkFreehandCalibrationController::GetInstance() == NULL)
+		|| (VolumeReconstructionController::GetInstance() == NULL)) {
 		LOG_ERROR("Some controllers are not initialized!");
 		return;
 	}
@@ -369,7 +379,7 @@ void FreehandMainWindow::UpdateGUI()
 	} else if (ui.tabWidgetToolbox->tabText(tabIndex) == "Freehand Calibration") {
 		vtkFreehandCalibrationController* toolboxController = vtkFreehandCalibrationController::GetInstance();
 
-		// Update progress bar TODO
+		// Update progress bar
 		if (toolboxController->State() == ToolboxState_InProgress) {
 			m_StatusBarLabel->setText(QString(" Acquiring and adding images to calibrator"));
 			m_StatusBarProgress->setVisible(true);
@@ -387,9 +397,29 @@ void FreehandMainWindow::UpdateGUI()
 		}
 
 		// Refresh toolbox content
-		toolboxController->GetToolbox()->RefreshToolboxContent(); // TODO put outside block (toolboxController should be AbstractToolboxController)
+		toolboxController->GetToolbox()->RefreshToolboxContent();
 	} else if (ui.tabWidgetToolbox->tabText(tabIndex) == "Volume Reconstruction") {
-		// TODO
+		VolumeReconstructionController* toolboxController = VolumeReconstructionController::GetInstance();
+
+		// Update progress bar
+		if (toolboxController->State() == ToolboxState_InProgress) {
+			m_StatusBarLabel->setText(QString::fromStdString(toolboxController->GetProgressMessage()));
+			m_StatusBarProgress->setVisible(true);
+			m_StatusBarProgress->setValue(toolboxController->GetProgressPercent());
+		} else
+		// If done
+		if (toolboxController->State() == ToolboxState_Done) {
+			m_StatusBarLabel->setText(QString(" Reconstruction done"));
+			m_StatusBarProgress->setVisible(false);
+			m_StatusBarProgress->setValue(100);
+		} else {
+			m_StatusBarLabel->setText(QString(""));
+			m_StatusBarProgress->setVisible(false);
+			m_StatusBarProgress->setValue(0);
+		}
+
+		// Refresh toolbox content
+		toolboxController->GetToolbox()->RefreshToolboxContent();
 	} else {
 		LOG_ERROR("No tab with this title found!");
 	}

@@ -63,12 +63,12 @@ protected slots:
 	void RequestDoAcquisition();
 
 	/*!
-	* \brief Slot handling open phantom definition button press
+	* \brief Slot handling open phantom definition button click
 	*/
 	void OpenPhantomDefinitionClicked();
 
 	/*!
-	* \brief Slot handling open stylus calibration button press
+	* \brief Slot handling open stylus calibration button click
 	*/
 	void OpenStylusCalibrationClicked();
 

@@ -4,7 +4,6 @@
 #include "ui_VolumeReconstructionToolbox.h"
 
 #include "AbstractToolbox.h"
-#include "VolumeReconstructionController.h"
 
 #include <QWidget>
 
@@ -58,8 +57,28 @@ protected slots:
 	*/
 	void RequestDoAcquisition();
 
+	/*!
+	* \brief Slot handling open volume reconstruction config button click
+	*/
+	void OpenVolumeReconstructionConfigClicked();
+
+	/*!
+	* \brief Slot handling open input image button click
+	*/
+	void OpenInputImageClicked();
+
+	/*!
+	* \brief Slot handling open reconstruct button click
+	*/
+	void ReconstructClicked();
+
+	/*!
+	* \brief Slot handling open save button click
+	*/
+	void SaveClicked();
+
 protected:
-	//Ui::VolumeReconstructionToolbox ui;
+	Ui::VolumeReconstructionToolbox ui;
 };
 
 #endif

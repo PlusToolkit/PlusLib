@@ -1,11 +1,11 @@
 #include "FreehandCalibrationToolbox.h"
 
 #include "vtkFreehandCalibrationController.h"
-#include "FreehandMainWindow.h"
 #include "vtkFreehandController.h"
 #include "PhantomRegistrationController.h"
 #include "vtkFileFinder.h"
 
+#include <QVTKWidget.h>
 #include <QFileDialog>
 #include <QTimer>
 

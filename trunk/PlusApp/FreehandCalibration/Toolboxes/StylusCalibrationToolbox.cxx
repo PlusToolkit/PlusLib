@@ -1,10 +1,10 @@
 #include "StylusCalibrationToolbox.h"
 
 #include "StylusCalibrationController.h"
-#include "FreehandMainWindow.h"
 #include "vtkFileFinder.h"
 #include "vtkFreehandController.h"
 
+#include <QVTKWidget.h>
 #include <QFileDialog>
 #include <QTimer>
 
