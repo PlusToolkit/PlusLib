@@ -270,16 +270,12 @@ PlusStatus VolumeReconstructionController::ReconstructVolumeFromInputImage(std::
 	}
 
 	m_ProgressPercent = 0;
-	if (m_Toolbox) {
-		m_Toolbox->RefreshToolboxContent();
-	}
-
 	m_ProgressMessage = " Filling holes in output volume...";
-	m_VolumeReconstructor->FillHoles(); 
-
 	if (m_Toolbox) {
 		m_Toolbox->RefreshToolboxContent();
 	}
+
+	m_VolumeReconstructor->FillHoles(); 
 
 
 	// Extract the 0th component
@@ -311,6 +307,9 @@ void VolumeReconstructionController::DisplayReconstructedVolume()
 {
 	if (vtkFreehandController::GetInstance()->GetCanvas() != NULL) {
 		m_ProgressMessage = " Generating contour for displaying...";
+		if (m_Toolbox) {
+			m_Toolbox->RefreshToolboxContent();
+		}
 
 		vtkSmartPointer<vtkMarchingContourFilter> contourFilter = vtkSmartPointer<vtkMarchingContourFilter>::New();
 		contourFilter->SetInput(m_ReconstructedVolume);
@@ -323,8 +322,6 @@ void VolumeReconstructionController::DisplayReconstructedVolume()
 		m_ContourActor->GetProperty()->SetColor(0.0, 0.0, 1.0);
 
 		vtkFreehandController::GetInstance()->GetCanvasRenderer()->ResetCamera();
-
-		m_ProgressMessage = "";
 	}
 }
 
