@@ -71,7 +71,7 @@ PhantomRegistrationController::PhantomRegistrationController()
 
 PhantomRegistrationController::~PhantomRegistrationController()
 {
-	//TODO use vtkSmartPointer when creating these
+	//TODO use vtkSmartPointer when creating these (only could do if this class was descendant of vtkObkject and we used set/get macros)
 	if (m_PhantomRenderer != NULL) {
 		m_PhantomRenderer->Delete();
 		m_PhantomRenderer = NULL;
@@ -137,17 +137,17 @@ PhantomRegistrationController::~PhantomRegistrationController()
 
 PlusStatus PhantomRegistrationController::Initialize()
 {
-	LOG_DEBUG("Initialize PhantomRegistrationController");
+	LOG_TRACE("Initialize PhantomRegistrationController");
 
 	vtkFreehandController* controller = vtkFreehandController::GetInstance();
 	if (controller == NULL) {
 		LOG_ERROR("vtkFreehandController is invalid!");
 		return PLUS_FAIL;
 	}
-  if (controller->GetInitialized() == false) {
-    LOG_ERROR("vtkFreehandController is not initialized!");
-    return PLUS_FAIL;
-  }
+	if (controller->GetInitialized() == false) {
+		LOG_ERROR("vtkFreehandController is not initialized!");
+		return PLUS_FAIL;
+	}
 
 	if (m_Toolbox) {
 		m_Toolbox->Initialize();
@@ -160,7 +160,7 @@ PlusStatus PhantomRegistrationController::Initialize()
 		m_State = ToolboxState_Idle;
 	}
 
-  return PLUS_SUCCESS;
+	return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
