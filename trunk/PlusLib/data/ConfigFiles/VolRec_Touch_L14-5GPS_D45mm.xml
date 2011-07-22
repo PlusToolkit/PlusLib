@@ -1,6 +1,6 @@
 <!--
   This configuration is for volume reconstruction from US image slices recorded with
-  Sonix RP machine, 14-5 linear probe.
+  Sonix Touch GPS machine, 14-5 linear probe.
   Image geometry: depth = 45mm, zoom = 100%.
 -->
 <Freehand>
@@ -13,10 +13,10 @@
   <RotationOptions ImageFlipped="Off" Rotation="Off" MaxRotationChange="90" Threshold1="0" Threshold2="255" ShiftX="0" ShiftY="0" />
   <ReconstructionOptions Interpolation="Linear" Optimization="On" Compounding="On"/>
   
-  <!-- Goodwin Hall #757, 2011-01-30 -->  
-  <SpatialCalibration CalibrationMatrix=" -0.00730984 -0.102716    0  -114.981
-                                           0.11048    -0.00743626  0   -28.068
-                                          -0.00296621 -0.0229123   0  -101.308
-                                           0           0           0     1     "/>
+  
+  <SpatialCalibration CalibrationMatrix="  0.0000 0.1000  0  12.4790
+                                           0.1000 0.0000  0  15.1253
+                                           0.0000 0.0000  0   0.0213
+                                           0      0       0   1.0000 "/>
   
 </Freehand>
