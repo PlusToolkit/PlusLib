@@ -17,6 +17,9 @@
 #include <iostream>
 #include <sstream>
 
+#include "vnl/vnl_matrix.h"
+#include "vnl/vnl_vector.h"
+
 typedef unsigned __int64 BufferItemUidType;
 enum ItemStatus { ITEM_OK, ITEM_NOT_AVAILABLE_YET, ITEM_NOT_AVAILABLE_ANYMORE, ITEM_UNKNOWN_ERROR };
 
@@ -193,8 +196,8 @@ public:
   
   // Description:
   // Set/Get number of items used for timestamp filtering (with LSQR mimimizer)
-  vtkSetMacro(NumberOfAveragedItems, double); 
-  vtkGetMacro(NumberOfAveragedItems, double); 
+  vtkSetMacro(AveragedItemsForFiltering, int); 
+  vtkGetMacro(AveragedItemsForFiltering, int); 
 
   // Description:
   // Recording start time
@@ -227,16 +230,28 @@ protected:
 	double LocalTimeOffset; 
 	
 	BufferItemUidType LatestItemUid; 
-
+  
   std::deque<BufferItemType> BufferItemContainer; 
 
-  // Timestamp generation 
-  std::deque<double> UnfilteredTimestampQueue; 
-  std::deque<long> ItemIndexQueue; 
-  int NumberOfAveragedItems; 
+  // Matrix used for storing the last number of AveragedItemsForFiltering frame index 
+  vnl_sparse_matrix<double> FilterContainerIndexMatrix; 
   
+  // Vector used for storing the last number of AveragedItemsForFiltering unfiltered timestamps
+  vnl_vector<double> FilterContainerTimestampVector; 
+  
+  // Pointer to the next item index to write in the containers (usually the oldest one)
+  int FilterContainersOldestIndex; 
+  
+  // Number of valid elements in the frame index and timestamp containers (maximum can be equal to AveragedItemsForFiltering)
+  int FilterContainersNumberOfValidElements; 
+
+  // Number of averaged items used for filtering - read from config files
+  int AveragedItemsForFiltering; 
+  
+  // Acquisition start time
   double StartTime; 
 
+  // Table used for storing timestamp filtering results 
   vtkTable* TimeStampReportTable; 
 
 private:

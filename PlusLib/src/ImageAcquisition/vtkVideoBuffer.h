@@ -177,7 +177,7 @@ public:
 
   // Description:
   // Set/Get number of items used for timestamp filtering (with LSQR mimimizer)
-  virtual void SetNumberOfAveragedItems(double numberOfAveragedItems); 
+  virtual void SetAveragedItemsForFiltering(int averagedItemsForFiltering); 
 
   // Description:
   // Set/get recording start time
