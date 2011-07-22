@@ -4,7 +4,7 @@
         Description="vtkPhantomRegistrationTest uses this configuration" 
         />
 
-    <Tracker Type="FakeTracker" BufferSize="1000" Frequency="50" LocalTimeOffset="0.0" ReferenceToolName="Reference" DefaultToolName="Stylus" Mode="RecordPhantomLandmarks" NumberOfAveragedItems="10" >
+    <Tracker Type="FakeTracker" BufferSize="1000" Frequency="50" LocalTimeOffset="0.0" ReferenceToolName="Reference" DefaultToolName="Stylus" Mode="RecordPhantomLandmarks" AveragedItemsForFiltering="20" >
         
         <Tool Name="Reference" PortNumber="0">
         </Tool>

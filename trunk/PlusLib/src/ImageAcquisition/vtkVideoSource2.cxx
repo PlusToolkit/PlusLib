@@ -593,10 +593,10 @@ PlusStatus vtkVideoSource2::ReadConfiguration(vtkXMLDataElement* config)
 		this->SetFrameRate(frameRate); 
 	}
 
-	double numberOfAveragedItems = 0; 
-	if ( config->GetScalarAttribute("NumberOfAveragedItems", numberOfAveragedItems) )
+	int averagedItemsForFiltering = 0; 
+	if ( config->GetScalarAttribute("AveragedItemsForFiltering", averagedItemsForFiltering) )
 	{
-		this->GetBuffer()->SetNumberOfAveragedItems(numberOfAveragedItems); 
+		this->GetBuffer()->SetAveragedItemsForFiltering(averagedItemsForFiltering); 
 	}
   else
   {

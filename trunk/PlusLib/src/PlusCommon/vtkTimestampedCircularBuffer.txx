@@ -23,7 +23,12 @@ vtkTimestampedCircularBuffer<BufferItemType>::vtkTimestampedCircularBuffer()
 	this->LocalTimeOffset = 0.0; 
 	this->LatestItemUid = 0; 
 
-  this->NumberOfAveragedItems = 10; 
+  this->FilterContainerIndexMatrix.set_size(0, 0); 
+  this->FilterContainerTimestampVector.set_size(0); 
+  this->FilterContainersOldestIndex = 0; 
+  this->FilterContainersNumberOfValidElements = 0; 
+
+  this->AveragedItemsForFiltering = 10; 
   this->TimeStampReportTable = NULL; 
 
   this->StartTime = 0; 
@@ -561,21 +566,38 @@ PlusStatus vtkTimestampedCircularBuffer<BufferItemType>::CreateFilteredTimeStamp
   // create a new row for the timestamp report table 
   vtkSmartPointer<vtkVariantArray> timeStampReportTableRow = vtkSmartPointer<vtkVariantArray>::New(); 
 
-  // We store the last NumberOfAveragedItems unfiltered timestamp and item indexes, because these are used for computing the filtered timestamp.
-  this->UnfilteredTimestampQueue.push_back(inUnfilteredTimestamp); 
-  while ( this->UnfilteredTimestampQueue.size() > this->NumberOfAveragedItems )
+  if ( this->FilterContainerIndexMatrix.rows() != this->AveragedItemsForFiltering 
+    || this->FilterContainerTimestampVector.size() != this->AveragedItemsForFiltering )
   {
-    this->UnfilteredTimestampQueue.pop_front(); 
-  }  
-  this->ItemIndexQueue.push_back(itemIndex); 
-  while ( this->ItemIndexQueue.size() > this->NumberOfAveragedItems )
+    // this call set elements to null
+    this->FilterContainerIndexMatrix.set_size(this->AveragedItemsForFiltering, 2); 
+    this->FilterContainerTimestampVector.set_size(this->AveragedItemsForFiltering); 
+    this->FilterContainersOldestIndex = 0; 
+    this->FilterContainersNumberOfValidElements = 0; 
+  }
+
+  // We store the last AveragedItemsForFiltering unfiltered timestamp and item indexes, because these are used for computing the filtered timestamp.
+  if ( this->AveragedItemsForFiltering > 1 )
   {
-    this->ItemIndexQueue.pop_front(); 
+    this->FilterContainerIndexMatrix(this->FilterContainersOldestIndex, 0) = static_cast<double>(itemIndex); 
+    this->FilterContainerIndexMatrix(this->FilterContainersOldestIndex, 1) = 1; 
+    this->FilterContainerTimestampVector[this->FilterContainersOldestIndex] = inUnfilteredTimestamp; 
+    this->FilterContainersNumberOfValidElements++; 
+    this->FilterContainersOldestIndex++; 
+
+    if ( this->FilterContainersNumberOfValidElements > this->AveragedItemsForFiltering )
+    {
+      this->FilterContainersNumberOfValidElements = this->AveragedItemsForFiltering; 
+    }
+
+    if ( this->FilterContainersOldestIndex >= this->AveragedItemsForFiltering )
+    {
+      this->FilterContainersOldestIndex = 0; 
+    }
   }
   
-  // If we don't have enough unfiltered timestamps then we just use the unfiltered timestamps
-  if ( this->UnfilteredTimestampQueue.size() < this->NumberOfAveragedItems 
-    || this->ItemIndexQueue.size() < this->NumberOfAveragedItems )
+  // If we don't have enough unfiltered timestamps or we don't want to use afiltering then just use the unfiltered timestamps
+  if ( this->AveragedItemsForFiltering < 2 || this->FilterContainersNumberOfValidElements < this->AveragedItemsForFiltering )
   {
     outFilteredTimestamp = inUnfilteredTimestamp; 
     // save the current results into the timestamp report table
@@ -604,7 +626,7 @@ PlusStatus vtkTimestampedCircularBuffer<BufferItemType>::CreateFilteredTimeStamp
   // Get rid of the small spikes and get a smooth straight line by fitting a line (timestamp = itemIndex * framePeriod + timeOffset) to the
   // itemIndex vs. unfiltered timestamp function and compute the current filtered timestamp
   // by extrapolation of this line to the current item index.
-  // The line parameters (framePeriod and timeOffset) are computed from the (NumberOfAveragedItems) elements of the
+  // The line parameters (framePeriod and timeOffset) are computed from the (AveragedItemsForFiltering) elements of the
   // unfiltered timestamps and item indexes.
   // 
   //   timestamp = itemIndex * framePeriod + timeOffset
@@ -622,21 +644,10 @@ PlusStatus vtkTimestampedCircularBuffer<BufferItemType>::CreateFilteredTimeStamp
   // 
   // This is an overdetermined linear system (A*x=b). The unknown line parameters (framePeriod, timeOffset) can be computed by LSQR.
   //
-
-  std::vector<vnl_vector<double>> aMatrix; 
-  std::vector<double> bVector; 
-  vnl_vector<double> row(2); 
-  for ( int i = 0; i < this->NumberOfAveragedItems; ++i )
-  {
-    row[0] = this->ItemIndexQueue[i]; 
-    row[1] = 1; 
-    aMatrix.push_back(row); 
-    bVector.push_back(this->UnfilteredTimestampQueue[i]); 
-  }
     
   vnl_vector<double> resultVector(2,0); 
 
-  if ( PlusMath::LSQRMinimize(aMatrix, bVector, resultVector) != PLUS_SUCCESS )
+  if ( PlusMath::LSQRMinimize(this->FilterContainerIndexMatrix, this->FilterContainerTimestampVector, resultVector) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to run LSQR mimize on timestamp filtering dataset!"); 
     return PLUS_FAIL; 

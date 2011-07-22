@@ -464,17 +464,17 @@ PlusStatus vtkTracker::ReadConfiguration(vtkXMLDataElement* config)
     this->SetFrequency(frequency);  
   }
 
-  double numberOfAveragedItems = 0; 
-  if ( config->GetScalarAttribute("NumberOfAveragedItems", numberOfAveragedItems) )
+  int averagedItemsForFiltering = 0; 
+  if ( config->GetScalarAttribute("AveragedItemsForFiltering", averagedItemsForFiltering) )
   {
     for ( int i = 0; i < this->GetNumberOfTools(); i++)
     {
-      this->GetTool(i)->GetBuffer()->SetNumberOfAveragedItems(numberOfAveragedItems);
+      this->GetTool(i)->GetBuffer()->SetAveragedItemsForFiltering(averagedItemsForFiltering);
     }
   }
   else
   {
-    LOG_WARNING("Unable to find Tracker NumberOfAveragedItems attribute in configuration file!"); 
+    LOG_WARNING("Unable to find Tracker AveragedItemsForFiltering attribute in configuration file!"); 
   }
 
   double localTimeOffset = 0; 

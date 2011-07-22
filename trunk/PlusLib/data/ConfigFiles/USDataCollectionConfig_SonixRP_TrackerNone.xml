@@ -11,7 +11,7 @@
             FrameSize="640 480" 
             UsImageOrientation="MF"
             FrameRate="10" 
-            NumberOfAveragedItems="10" 
+            AveragedItemsForFiltering="20" 
             LocalTimeOffset="0.0"
             IP="130.15.7.212" 
             ImagingMode="0" 

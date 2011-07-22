@@ -13,7 +13,7 @@
       Type="Ascension3DG"
       BufferSize="500"
       Frequency="20"
-      NumberOfAveragedItems="10"
+      AveragedItemsForFiltering="20"
       LocalTimeOffset="0.0"
       DefaultToolName="Tool1"
       SequenceMetafile=""
@@ -47,7 +47,7 @@
             FrameSize="820 616" 
             UsImageOrientation="MF"
             FrameRate="5" 
-            NumberOfAveragedItems="10" 
+            AveragedItemsForFiltering="20" 
             LocalTimeOffset="0.0" 
             />
 

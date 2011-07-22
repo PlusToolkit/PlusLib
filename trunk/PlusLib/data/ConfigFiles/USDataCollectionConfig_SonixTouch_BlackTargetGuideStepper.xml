@@ -4,7 +4,7 @@
         Description="" 
         />
 
-    <Tracker Type="AMSTracker" BufferSize="1000" Frequency="20" NumberOfAveragedItems="10" LocalTimeOffset="0.0" DefaultToolName="ProbeHomeToProbe" SerialPort="COM6" BaudRate="19200" >
+    <Tracker Type="AMSTracker" BufferSize="1000" Frequency="20" AveragedItemsForFiltering="20" LocalTimeOffset="0.0" DefaultToolName="ProbeHomeToProbe" SerialPort="COM6" BaudRate="19200" >
 		<Tool Name="ProbeHomeToProbe" PortNumber="0" SendTo="127.0.0.1:1111">
 		<Calibration 
                 MatrixName="ImageToProbe" 
@@ -28,7 +28,7 @@
             BufferSize="500" 
             FrameSize="640 480" 
             FrameRate="30" 
-            NumberOfAveragedItems="10" 
+            AveragedItemsForFiltering="20" 
             LocalTimeOffset="0.0"
 			UsImageOrientation="MF"
             IP="130.15.7.20" 

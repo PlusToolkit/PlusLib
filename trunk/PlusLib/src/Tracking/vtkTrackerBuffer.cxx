@@ -184,9 +184,9 @@ PlusStatus vtkTrackerBuffer::SetBufferSize(int bufsize)
 }
 
 //----------------------------------------------------------------------------
-void vtkTrackerBuffer::SetNumberOfAveragedItems(double numberOfAveragedItems)
+void vtkTrackerBuffer::SetAveragedItemsForFiltering(int averagedItemsForFiltering)
 {
-  this->TrackerBuffer->SetNumberOfAveragedItems(numberOfAveragedItems); 
+  this->TrackerBuffer->SetAveragedItemsForFiltering(averagedItemsForFiltering); 
 }
 
 //----------------------------------------------------------------------------

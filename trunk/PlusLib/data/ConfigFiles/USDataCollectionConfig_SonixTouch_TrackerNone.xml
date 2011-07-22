@@ -10,7 +10,7 @@
             BufferSize="500" 
             FrameSize="820 616" 
             UsImageOrientation="MF"
-            NumberOfAveragedItems="10" 
+            AveragedItemsForFiltering="20" 
             LocalTimeOffset="0.0"
             IP="130.15.7.20" 
             ImagingMode="0" 
