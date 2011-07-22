@@ -1,4 +1,7 @@
 #include "UltraSoundFiducialSegmentation.h"
+#include "vnl/vnl_vector.h"
+#include "vnl/vnl_matrix.h"
+#include "vnl/vnl_cross.h"
 
 const int BLACK = 0; 
 const int WHITE = 255; 
@@ -699,6 +702,110 @@ void SegmentationParameters::ComputeParameters()
 
 	double maxAngleX = std::max(fabs(m_ImageNormalVectorInPhantomFrameMaximumRotationAngleDeg[0]),m_ImageNormalVectorInPhantomFrameMaximumRotationAngleDeg[1]);//the maximum of the rotation around the X axis
 	m_MaxLinePairDistanceErrorPercent = 1/cos(maxAngleX) - 1;
+
+	std::vector<double> thetaX, thetaY, thetaZ;
+	thetaX.push_back(GetImageNormalVectorInPhantomFrameMaximumRotationAngleDeg()[0]);
+	thetaX.push_back(0);
+	thetaX.push_back(GetImageNormalVectorInPhantomFrameMaximumRotationAngleDeg()[1]);
+	thetaY.push_back(GetImageNormalVectorInPhantomFrameMaximumRotationAngleDeg()[2]);
+	thetaY.push_back(0);
+	thetaY.push_back(GetImageNormalVectorInPhantomFrameMaximumRotationAngleDeg()[3]);
+	thetaZ.push_back(GetImageNormalVectorInPhantomFrameMaximumRotationAngleDeg()[4]);
+	thetaZ.push_back(0);
+	thetaZ.push_back(GetImageNormalVectorInPhantomFrameMaximumRotationAngleDeg()[5]);
+
+	vnl_matrix<double> imageToPhantomTransform(4,4);
+
+	for( int i = 0 ; i<4 ;i++)
+	{
+		for( int j = 0 ; j<4 ;j++)
+		{
+			imageToPhantomTransform.put(i,j,GetImageToPhantomTransform()[j+4*i]);
+		}
+	}
+	
+	
+	vnl_vector<double> pointA(3), pointB(3), pointC(3);
+
+	for( int i = 0; i<3 ;i++)
+	{
+		pointA.put(i,m_NWires[0].wires[0].endPointFront[i]);
+		pointB.put(i,m_NWires[0].wires[0].endPointBack[i]);
+		pointC.put(i,m_NWires[0].wires[1].endPointFront[i]);
+	}
+
+	vnl_vector<double> AB(3);
+	AB = pointB - pointA;
+	vnl_vector<double> AC(3);
+	AC = pointC - pointA;
+
+	vnl_vector<double> normalVectorInPhantomCoord(3);
+	normalVectorInPhantomCoord = vnl_cross_3d(AB,AC);
+
+	vnl_vector<double> normalVectorInPhantomCoordExtended(4,0);
+
+	for( int i = 0 ;i<normalVectorInPhantomCoord.size() ;i++)
+	{
+		normalVectorInPhantomCoordExtended.put(i,normalVectorInPhantomCoord.get(i));
+	}
+
+	vnl_vector<double> normalImagePlane(3,0);//vector normal to the image plane
+	normalImagePlane.put(2,1);
+
+	vnl_vector<double> imageYunitVector(3,0);
+	imageYunitVector.put(1,1);//(0,1,0)
+
+	std::vector<double> finalAngleTable;
+
+	double tempThetaX, tempThetaY, tempThetaZ;
+
+	for(int i = 0 ; i<3 ; i++)
+	{
+		tempThetaX = thetaX[i];
+		for(int j = 0 ; j<3 ; i++)
+		{
+			tempThetaY = thetaY[j];
+			for(int k = 0 ; k<3 ; i++)
+			{
+				tempThetaZ = thetaZ[k];
+				vnl_matrix<double> totalRotation(4,4,0);
+
+				totalRotation.put(0,0,cos(tempThetaY)*cos(tempThetaZ));
+				totalRotation.put(0,1,-cos(tempThetaX)*sin(tempThetaZ)+sin(tempThetaX)*sin(tempThetaY)*cos(tempThetaZ));
+				totalRotation.put(0,2,sin(tempThetaX)*sin(tempThetaZ)+cos(tempThetaX)*sin(tempThetaY)*cos(tempThetaZ));
+				totalRotation.put(1,0,cos(tempThetaY)*sin(tempThetaZ));
+				totalRotation.put(1,1,cos(tempThetaX)*cos(tempThetaZ)+sin(tempThetaX)*sin(tempThetaY)*sin(tempThetaZ));
+				totalRotation.put(1,2,-sin(tempThetaX)*cos(tempThetaZ)+cos(tempThetaX)*sin(tempThetaY)*sin(tempThetaZ));
+				totalRotation.put(2,0,-sin(tempThetaY));
+				totalRotation.put(2,1,sin(tempThetaX)*cos(tempThetaY));
+				totalRotation.put(2,2,cos(tempThetaX)*cos(tempThetaY));
+				totalRotation.put(3,3,1);
+
+				vnl_matrix<double> totalTranform(4,4);
+				totalTranform = totalRotation*imageToPhantomTransform;
+
+				vnl_vector<double> normalVectorInImageCoordExtended(4);
+				normalVectorInImageCoordExtended = totalTranform*normalVectorInPhantomCoordExtended;
+
+				vnl_vector<double> normalVectorInImageCoord(3);
+				
+				for( int i = 0 ;i<normalVectorInImageCoord.size() ;i++)
+				{
+					normalVectorInImageCoord.put(i,normalVectorInImageCoordExtended.get(i));
+				}
+
+				vnl_vector<double> lineDirectionVector(3);
+				lineDirectionVector = vnl_cross_3d(normalVectorInImageCoord,normalImagePlane);
+				double dotProductValue = dot_product(lineDirectionVector,imageYunitVector);
+				double normOfLineDirectionvector = lineDirectionVector.two_norm();
+				double angle = acos(dotProductValue/normOfLineDirectionvector);
+				finalAngleTable.push_back(angle);
+			}
+		}
+	}
+
+	m_MaxTheta = *std::max(finalAngleTable.begin(),finalAngleTable.end());
+	m_MinTheta = *std::min(finalAngleTable.begin(),finalAngleTable.end());
 
 	//m_MaxLineLengthErrorPercent = 5.0;//Relative tolerance about the length of a line in percent
 	//m_MaxLinePairDistanceErrorPercent = 10.0;//The maximum error on the distance between two lines

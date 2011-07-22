@@ -881,6 +881,16 @@ PlusStatus vtkCalibrationController::ReadSegmentationParametersConfiguration( vt
 		}
 		delete [] imageNormalVectorInPhantomFrameMaximumRotationAngleDeg;
 
+		double* imageToPhantomTransform = new double[16];
+		if ( segmentationParameters->GetVectorAttribute("ImageToPhantomTransform", 16, imageToPhantomTransform) )
+		{
+			for( int i = 0; i<16 ; i++)
+			{
+				this->GetSegParameters()->SetImageToPhantomTransform(i, imageToPhantomTransform[i]);
+			}
+		}
+		delete [] imageToPhantomTransform;
+
 		//Compute the tolerances parameters automatically
 		this->GetSegParameters()->ComputeParameters();
 	}
