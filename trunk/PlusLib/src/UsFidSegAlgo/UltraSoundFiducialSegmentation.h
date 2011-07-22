@@ -288,6 +288,8 @@ class SegmentationParameters
 		double *				GetImageNormalVectorInPhantomFrameEstimation() { return m_ImageNormalVectorInPhantomFrameEstimation; };
 		void					SetImageNormalVectorInPhantomFrameMaximumRotationAngleDeg(int aIndex, int aValue) { m_ImageNormalVectorInPhantomFrameMaximumRotationAngleDeg[aIndex] = aValue; };
 		double *				GetImageNormalVectorInPhantomFrameMaximumRotationAngleDeg() { return m_ImageNormalVectorInPhantomFrameMaximumRotationAngleDeg; };
+		void					SetImageToPhantomTransform(int aIndex, int aValue) { m_ImageToPhantomTransform[aIndex] = aValue; };
+		double *				GetImageToPhantomTransform() { return m_ImageToPhantomTransform; };
 
 	protected:
 			
@@ -333,6 +335,7 @@ class SegmentationParameters
         double			        m_ImageScalingTolerancePercent[4];
         double			        m_ImageNormalVectorInPhantomFrameEstimation[3];
         double			        m_ImageNormalVectorInPhantomFrameMaximumRotationAngleDeg[6];
+		double					m_ImageToPhantomTransform[16];
 };
 
 //-----------------------------------------------------------------------------
