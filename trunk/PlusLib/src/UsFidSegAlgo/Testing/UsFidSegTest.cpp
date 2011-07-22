@@ -36,7 +36,7 @@ void SegmentImageSequence( vtkTrackedFrameList* trackedFrameList, std::ofstream 
   if (writeFidPositionsToFile)
   {
 	  outFileFidPositions.open(fidPositionOutputFilename);
-	  outFileFidPositions<< "Unfiltered timestamp, Timestamp, w1x, w1y, w2x, w2y, w3x, w3y, w4x, w4y, w5x, w5y, w6x, w6y " <<std::endl;
+	  outFileFidPositions<< "Frame number, Unfiltered timestamp, Timestamp, w1x, w1y, w2x, w2y, w3x, w3y, w4x, w4y, w5x, w5y, w6x, w6y " <<std::endl;
   }
 
 	for (int currentFrameIndex=0; currentFrameIndex<trackedFrameList->GetNumberOfTrackedFrames(); currentFrameIndex++)
@@ -77,10 +77,11 @@ void SegmentImageSequence( vtkTrackedFrameList* trackedFrameList, std::ofstream 
     if (writeFidPositionsToFile)
     {
 
+      const char* strFrameNumber = trackedFrameList->GetTrackedFrame(currentFrameIndex)->GetCustomFrameField("FrameNumber"); 
       const char* strTimestamp = trackedFrameList->GetTrackedFrame(currentFrameIndex)->GetCustomFrameField("Timestamp"); 
       const char* strUnfilteredTimestamp = trackedFrameList->GetTrackedFrame(currentFrameIndex)->GetCustomFrameField("UnfilteredTimestamp"); 
 
-      outFileFidPositions<< strUnfilteredTimestamp << ", " << strTimestamp;
+      outFileFidPositions<< strFrameNumber << ", " << strUnfilteredTimestamp << ", " << strTimestamp;
       for(int fidPosition = 0; fidPosition<segResults.GetFoundDotsCoordinateValue().size();fidPosition++)
       { 
         std::vector<double> currentFid = segResults.GetFoundDotsCoordinateValue()[fidPosition]; 
