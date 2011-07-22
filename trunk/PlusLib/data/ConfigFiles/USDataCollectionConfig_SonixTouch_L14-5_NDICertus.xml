@@ -49,7 +49,7 @@
     <ImageAcqusition Type="SonixVideo" 
             BufferSize="500" 
             FrameSize="820 616" 
-            UsImageOrientation="MF"
+            UsImageOrientation="UF"
             FrameRate="30" 
             AveragedItemsForFiltering="20" 
             LocalTimeOffset="0.0"

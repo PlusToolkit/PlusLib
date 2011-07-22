@@ -3,6 +3,10 @@
 
 #include "AbstractToolboxController.h"
 
+class vtkVolumeReconstructor;
+class vtkImageData;
+class vtkActor;
+
 //-----------------------------------------------------------------------------
 
 /*!
@@ -52,13 +56,94 @@ public:
 	*/
 	PlusStatus Stop();
 
+	/*!
+	* \brief Load volume reconstruction configuration from XML file
+	* \param aFile XML file name and path
+	* \return Success flag
+	*/
+	PlusStatus LoadVolumeReconstructionConfigFromFile(std::string aFile);
+
+	/*!
+	* \brief Reconstructs volume from input file
+	* \param aInputImage Input sequence metafile image
+	* \return Success flag
+	*/
+	PlusStatus ReconstructVolumeFromInputImage(std::string aInputImage);
+
+	/*!
+	* \brief Saves volume to file
+	* \param aOutput Output file
+	* \return Success flag
+	*/
+	PlusStatus SaveVolumeToFile(std::string aOutput);
+
+	/*!
+	* \brief Get whether a volume reconstruction config file has been loaded successfully
+	* \return Success flag
+	*/
+	bool GetVolumeReconstructionConfigFileLoaded();
+
+	/*!
+	* \brief Getter function
+	* \return Progress percent
+	*/
+	int GetProgressPercent();
+
+	/*!
+	* \brief Getter function
+	* \return Progress message
+	*/
+	std::string GetProgressMessage();
+
+	/*!
+	* \brief Getter function
+	* \return Reconstructed volume
+	*/
+	vtkImageData* GetReconstructedVolume();
+
+	/*!
+	* \brief Setter function
+	* \param aThreshold Contouring threshold
+	*/
+	void SetContouringThreshold(double aThreshold);
+
 protected:
 	/*!
 	* \brief Constructor
 	*/
 	VolumeReconstructionController();
 
+	/*!
+	* \brief Initialize 3D visualization
+	*/
+	void InitializeVisualization();
+
+	/*!
+	* \brief Display reconstructed volume in canvas
+	*/
+	void DisplayReconstructedVolume();
+
 protected:
+	//! Volume reconstructor instance
+	vtkVolumeReconstructor*	m_VolumeReconstructor;
+
+	//! Flag indicating whether a volume reconstruction config file has been loaded successfully
+	bool					m_VolumeReconstructionConfigFileLoaded;
+
+	//! Progress percent
+	int						m_ProgressPercent;
+
+	//! Progress message
+	std::string				m_ProgressMessage;
+
+	//! Reconstructed volume
+	vtkImageData*			m_ReconstructedVolume;
+
+	//! Contour actor
+	vtkActor*				m_ContourActor;
+
+	//! Contouring threshold
+	double					m_ContouringThreshold;
 
 private:
 	//! Instance of the singleton

@@ -736,14 +736,13 @@ PlusStatus vtkFreehandCalibrationController::AddTrackedFrameData(TrackedFrame* t
 		double tProbeToPhantomReference[16];
 
 		if (trackedFrame->GetDefaultFrameTransform(tProbeToPhantomReference)) {
-			// TODO Is it sure that the transform is not its name inverted?
 			vtkSmartPointer<vtkMatrix4x4> tProbeToPhantomReferenceMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
 			tProbeToPhantomReferenceMatrix->DeepCopy(tProbeToPhantomReference);
 			vnl_matrix<double> transformProbeToPhantomReferenceMatrix4x4(4,4);
 
 			ConvertVtkMatrixToVnlMatrixInMeter(tProbeToPhantomReferenceMatrix, transformProbeToPhantomReferenceMatrix4x4);
 
-			this->GetTransformProbeToPhantomReference()->SetMatrix(tProbeToPhantomReferenceMatrix);
+			this->TransformProbeToPhantomReference->SetMatrix(tProbeToPhantomReferenceMatrix);
 
 			this->PopulateSegmentedFiducialsToDataContainer(transformProbeToPhantomReferenceMatrix4x4, dataType);
 
