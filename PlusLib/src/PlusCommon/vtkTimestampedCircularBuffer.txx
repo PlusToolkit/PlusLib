@@ -21,7 +21,7 @@ vtkTimestampedCircularBuffer<BufferItemType>::vtkTimestampedCircularBuffer()
 	this->WritePointer = 0;
 	this->CurrentTimeStamp = 0.0;
 	this->LocalTimeOffset = 0.0; 
-	this->LatestItemUid = 0; 
+	this->NextItemUid = 0; 
 
   this->FilterContainerIndexMatrix.set_size(0, 0); 
   this->FilterContainerTimestampVector.set_size(0); 
@@ -66,7 +66,7 @@ void vtkTimestampedCircularBuffer<BufferItemType>::PrintSelf(ostream& os, vtkInd
 	os << indent << "NumberOfItems: " << this->NumberOfItems << "\n";
 	os << indent << "CurrentTimeStamp: " << this->CurrentTimeStamp << "\n";
 	os << indent << "Local time offset: " << this->LocalTimeOffset << "\n";
-	os << indent << "Latest Item Uid: " << this->LatestItemUid << "\n";
+	os << indent << "Next Item Uid: " << this->NextItemUid << "\n";
 
 }
 
@@ -99,7 +99,7 @@ PlusStatus vtkTimestampedCircularBuffer<BufferItemType>::PrepareForNewItem(const
 
 	// Increase frame unique ID
 	this->Lock();
-	newFrameUid = this->LatestItemUid++; 
+	newFrameUid = this->NextItemUid++; 
 	bufferIndex = this->WritePointer; 
 	this->CurrentTimeStamp = timestamp; 
 	
@@ -247,7 +247,7 @@ ItemStatus vtkTimestampedCircularBuffer<BufferItemType>::GetBufferIndex( const B
 		return currentStatus; 
 	}
 	
-	bufferIndex = (this->WritePointer - 1) - (this->LatestItemUid - uid); 
+	bufferIndex = (this->WritePointer - 1) - (this->GetLatestItemUidInBuffer() - uid); 
 	
 	if ( bufferIndex < 0 )
 	{
@@ -260,7 +260,7 @@ ItemStatus vtkTimestampedCircularBuffer<BufferItemType>::GetBufferIndex( const B
 
 //----------------------------------------------------------------------------
 template<class BufferItemType>
-BufferItemType* vtkTimestampedCircularBuffer<BufferItemType>::GetBufferItem(const BufferItemUidType uid) 
+BufferItemType* vtkTimestampedCircularBuffer<BufferItemType>::GetBufferItemFromUid(const BufferItemUidType uid) 
 { 
 	int bufferIndex(0); 
 	ItemStatus status = this->GetBufferIndex(uid, bufferIndex); 
@@ -270,12 +270,12 @@ BufferItemType* vtkTimestampedCircularBuffer<BufferItemType>::GetBufferItem(cons
 		return NULL; 
 	}
 	
-	return this->GetBufferItem(bufferIndex); 
+	return this->GetBufferItemFromBufferIndex(bufferIndex); 
 }
 
 //----------------------------------------------------------------------------
 template<class BufferItemType>
-BufferItemType* vtkTimestampedCircularBuffer<BufferItemType>::GetBufferItem(const int bufferIndex) 
+BufferItemType* vtkTimestampedCircularBuffer<BufferItemType>::GetBufferItemFromBufferIndex(const int bufferIndex) 
 { 
 	if (this->GetBufferSize() <= 0 
 		|| bufferIndex >= this->GetBufferSize() 
@@ -469,7 +469,7 @@ void vtkTimestampedCircularBuffer<BufferItemType>::DeepCopy(vtkTimestampedCircul
 	this->NumberOfItems = buffer->NumberOfItems;
 	this->CurrentTimeStamp = buffer->CurrentTimeStamp;
 	this->LocalTimeOffset = buffer->LocalTimeOffset;
-	this->LatestItemUid = buffer->LatestItemUid; 
+	this->NextItemUid = buffer->NextItemUid; 
 
 	this->BufferItemContainer = buffer->BufferItemContainer; 
 	this->Unlock(); 

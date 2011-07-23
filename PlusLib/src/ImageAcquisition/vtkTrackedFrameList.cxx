@@ -213,6 +213,47 @@ void TrackedFrame::SetCustomFrameTransform(std::string frameTransformName, vtkMa
 }
 
 //----------------------------------------------------------------------------
+TrackerStatus TrackedFrame::GetStatus() 
+{
+  return this->Status;
+}
+
+
+//----------------------------------------------------------------------------
+void TrackedFrame::SetStatus(TrackerStatus status)
+{
+  this->Status=status;
+}
+
+//----------------------------------------------------------------------------
+TrackerStatus TrackedFrame::GetStatusFromString(const char* statusStr) 
+{
+  TrackerStatus status = TR_OK;
+  std::string strFlag(statusStr); 
+  if ( strFlag.find("OK") != std::string::npos )
+  {
+    status = TR_OK;
+  }
+  else if ( strFlag.find("TR_MISSING") != std::string::npos )
+  {
+    status = TR_MISSING;
+  }
+  else if ( strFlag.find("TR_OUT_OF_VIEW") != std::string::npos )
+  {
+    status = TR_OUT_OF_VIEW;
+  }
+  else if ( strFlag.find("TR_OUT_OF_VOLUME") != std::string::npos )
+  {
+    status = TR_OUT_OF_VOLUME;
+  }
+  else if ( strFlag.find("TR_REQ_TIMEOUT") != std::string::npos )
+  {
+    status = TR_REQ_TIMEOUT;
+  }
+  return status;
+}
+
+//----------------------------------------------------------------------------
 // ************************* vtkTrackedFrameList *****************************
 //----------------------------------------------------------------------------
 vtkCxxRevisionMacro(vtkTrackedFrameList, "$Revision: 1.0 $");
@@ -467,6 +508,19 @@ PlusStatus vtkTrackedFrameList::ReadFromSequenceMetafile(const char* trackedSequ
       LOG_ERROR("Failed to get MF oriented image from sequence metafile (frame number: " << imgNumber << ")!"); 
       continue; 
     }
+
+    const char* cFlag = trackedFrame.GetCustomFrameField("Status"); 
+    TrackerStatus status = TR_OK;
+    if ( cFlag != NULL )
+    {
+      status=TrackedFrame::GetStatusFromString(cFlag);
+    }
+    else
+    {
+      LOG_TRACE("Unable to read Status field of image #" << imgNumber); 
+    }
+    trackedFrame.SetStatus(status);
+
 
     this->AddTrackedFrame(&trackedFrame); 
   }

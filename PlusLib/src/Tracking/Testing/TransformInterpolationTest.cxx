@@ -73,7 +73,9 @@ int main(int argc, char **argv)
   {
     PlusLogger::PrintProgressbar( (100.0 * frameNumber) / numberOfFrames ); 
 
-    const char* strUnfilteredTimestamp = trackerFrameList->GetTrackedFrame(frameNumber)->GetCustomFrameField("UnfilteredTimestamp"); 
+    TrackedFrame* frameItem=trackerFrameList->GetTrackedFrame(frameNumber);
+
+    const char* strUnfilteredTimestamp = frameItem->GetCustomFrameField("UnfilteredTimestamp"); 
     double unfilteredtimestamp(0); 
     if ( strUnfilteredTimestamp != NULL )
     {
@@ -86,7 +88,7 @@ int main(int argc, char **argv)
       continue; 
     }
 
-    const char* strFrameNumber = trackerFrameList->GetTrackedFrame(frameNumber)->GetCustomFrameField("FrameNumber"); 
+    const char* strFrameNumber = frameItem->GetCustomFrameField("FrameNumber"); 
     unsigned long frmnum(0); 
     if ( strFrameNumber != NULL )
     {
@@ -100,7 +102,7 @@ int main(int argc, char **argv)
     }
 
     double defaultTransform[16]={0}; 
-    if ( !trackerFrameList->GetTrackedFrame(frameNumber)->GetDefaultFrameTransform(defaultTransform) )
+    if ( !frameItem->GetDefaultFrameTransform(defaultTransform) )
     {
       LOG_ERROR("Unable to get default frame transform for frame #" << frameNumber); 
       numberOfErrors++; 
@@ -110,7 +112,7 @@ int main(int argc, char **argv)
     vtkSmartPointer<vtkMatrix4x4> defaultTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
     defaultTransformMatrix->DeepCopy(defaultTransform); 
 
-    trackerBuffer->AddTimeStampedItem(defaultTransformMatrix, TR_OK, frmnum, unfilteredtimestamp); 
+    trackerBuffer->AddTimeStampedItem(defaultTransformMatrix, frameItem->GetStatus(), frmnum, unfilteredtimestamp); 
   }
 
   PlusLogger::PrintProgressbar( 100 ); 
@@ -158,7 +160,7 @@ int main(int argc, char **argv)
       continue; 
     }
 
-    if ( abs(newTime - startTime) < 0.0001 )
+    if ( fabs(newTime - startTime) < 0.0001 )
     {
       // this is the first matrix, we cannot compare it with the previous one. 
       prevmatrix->DeepCopy(matrix); 
@@ -180,6 +182,8 @@ int main(int argc, char **argv)
       LOG_ERROR("Translation difference is larger than the max translation difference (difference=" << std::fixed << transDiff << ", threshold=" << inputMaxTranslationDifference << ", itemIndex=" << bufferIndex << ", timestamp=" << newTime << ")!"); 
       numberOfErrors++; 
     }
+
+    LOG_DEBUG("bufferIndex = " << bufferIndex << " Rotation diff = " << rotDiff << ",   translation diff = " << transDiff);
 
     prevmatrix->DeepCopy(matrix); 
     newTime += 1.0 / (frameRate * 5.0); 

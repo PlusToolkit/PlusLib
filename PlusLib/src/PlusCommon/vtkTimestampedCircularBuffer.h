@@ -109,11 +109,11 @@ public:
 	virtual ItemStatus GetItemUidFromBufferIndex(const int bufferIndex, BufferItemUidType &uid ); 
 
 	// Description:
-	// Get the most recent frame UID 
+	// Get the most recent frame UID that is already in the buffer (NextItemUid-1)
 	virtual BufferItemUidType GetLatestItemUidInBuffer() 
 	{ 
     this->Lock(); 
-		BufferItemUidType latestUid = this->LatestItemUid;
+		BufferItemUidType latestUid = this->NextItemUid-1;
 		this->Unlock(); 
 		return latestUid; 
 	}
@@ -124,7 +124,7 @@ public:
 	{ 
     this->Lock(); 
 		// LatestItemUid - ( NumberOfItems - 1 ) is the oldest element in the buffer
-		BufferItemUidType oldestUid = ( this->LatestItemUid - ( this->NumberOfItems - 1 ) ); 
+		BufferItemUidType oldestUid = ( this->GetLatestItemUidInBuffer() - (this->NumberOfItems - 1) ); 
     this->Unlock();
 		return oldestUid; 
 	} 
@@ -181,8 +181,8 @@ public:
 	// Description:
 	// Get next writable buffer object
 	// INTERNAL USE ONLY! Need to lock buffer until we use the buffer index 
-	virtual BufferItemType* GetBufferItem(const int bufferIndex); 
-	virtual BufferItemType* GetBufferItem(const BufferItemUidType uid); 
+	virtual BufferItemType* GetBufferItemFromBufferIndex(const int bufferIndex); 
+	virtual BufferItemType* GetBufferItemFromUid(const BufferItemUidType uid); 
 
 	virtual PlusStatus PrepareForNewItem(const double timestamp, BufferItemUidType& newFrameUid, int& bufferIndex); 
 
@@ -229,7 +229,9 @@ protected:
 	double CurrentTimeStamp;
 	double LocalTimeOffset; 
 	
-	BufferItemUidType LatestItemUid; 
+  // This will be the UID of the next item that will be added.
+  // The UID is monotonously increasing for each new frame.
+	BufferItemUidType NextItemUid; 
   
   std::deque<BufferItemType> BufferItemContainer; 
 

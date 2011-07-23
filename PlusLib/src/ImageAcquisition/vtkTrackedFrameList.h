@@ -70,6 +70,19 @@ public:
   // Get tracked frame pixel size in bits 
   int GetNumberOfBitsPerPixel(); 
 
+  //! Operation: 
+  // Get status of the item (out of view, ...)
+  TrackerStatus GetStatus(); 
+
+  //! Operation: 
+  // Set status of the item (out of view, ...)
+  void SetStatus(TrackerStatus status); 
+
+
+  //! Operation: 
+  // Convert from status string to status enum
+  static TrackerStatus GetStatusFromString(const char* statusStr);
+
   bool operator< (TrackedFrame data) { return Timestamp < data.Timestamp; }
   bool operator== (const TrackedFrame& data) const 
   {
