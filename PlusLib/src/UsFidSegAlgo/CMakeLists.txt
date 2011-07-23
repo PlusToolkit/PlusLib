@@ -31,7 +31,7 @@ ENDIF( BUILD_TESTING )
 # --------------------------------------------------------------------------
 # Build the library
 
-SET(UsFidSegAlgo_LIBS itkvnl_algo ${ITK_LIBRARIES} vtkPlusCommon)
+SET(UsFidSegAlgo_LIBS itkvnl_algo ${ITK_LIBRARIES} vtkPlusCommon vtkCommon )
 ADD_LIBRARY( UsFidSegAlgo STATIC ${UsFidSegAlgo_SRCS} ${UsFidSegAlgo_HDRS} )
 
 TARGET_LINK_LIBRARIES( UsFidSegAlgo ${UsFidSegAlgo_LIBS})

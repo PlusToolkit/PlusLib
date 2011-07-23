@@ -15,6 +15,8 @@
 //#include <math.h>
 #include <assert.h>
 
+#include "vtkXMLDataElement.h"
+
 #include "itkRGBPixel.h"
 #include "itkPointSet.h"
 #include "itkImage.h"
@@ -218,11 +220,20 @@ class SegmentationParameters
 			TAB2_6_POINT // Tissue Ablation Box version 2, with 2 horizontal 3 point lines 
 		};
 
-		SegmentationParameters::SegmentationParameters();
+		SegmentationParameters();
+		~SegmentationParameters();
+
+		PlusStatus				ReadSegmentationParametersConfiguration( vtkXMLDataElement* segmentationParameters );
 
 		void					UpdateParameters();
 		void					ComputeParameters();
 		
+		void					SetFrameSize(int frameSizeX, int frameSizeY) { m_FrameSize[0] = frameSizeX; m_FrameSize[1] = frameSizeY; };
+		int  *					GetFrameSize() { return m_FrameSize; };
+
+		void					SetRegionOfInterest(int minX, int minY, int maxX, int maxY) { m_RegionOfInterest[0] = minX; m_RegionOfInterest[1] = minY; m_RegionOfInterest[2] = maxX; m_RegionOfInterest[3] = maxY;};
+		int  *					GetRegionOfInterest() { return m_RegionOfInterest; };
+
 		void					SetUseOriginalImageIntensityForDotIntensityScore(bool value) { m_UseOriginalImageIntensityForDotIntensityScore = value; };
 		bool					GetUseOriginalImageIntensityForDotIntensityScore() { return m_UseOriginalImageIntensityForDotIntensityScore; };
 
@@ -293,6 +304,9 @@ class SegmentationParameters
 
 	protected:
 			
+
+		int						m_FrameSize[2];
+		int						m_RegionOfInterest[4];
 		bool					m_UseOriginalImageIntensityForDotIntensityScore;
 
 		double 					m_ThresholdImageTop;  // segmentation threshold (in percentage, minimum is 0, maximum is 100 at the top half of the image
@@ -396,7 +410,7 @@ class SegmentationResults
 class SegImpl
 {	
 	public:
-		SegImpl(int sizeX, int sizeY, int searchOriginX, int searchOriginY, int searchSizeX, int searchSizeY , bool debugOutput /*=false*/, std::string);
+		SegImpl(int FrameSize[2], int RegionOfInterest[4] , bool debugOutput /*=false*/, std::string);
 		~SegImpl();
 
 		void find_lines3pt();
@@ -520,9 +534,8 @@ class KPhantomSeg
 		 * DebugOutput: if it is set to true, then intermediate results 
 		   are written into files.
 		 */
-		KPhantomSeg(int sizeX, int sizeY, 
-				int searchOriginX, int searchOriginY, 
-				int searchSizeX, int searchSizeY, bool debugOutput=false, std::string possibleFiducialsImageFilename="");
+		KPhantomSeg(int FrameSize[2], 
+				int RegionOfInterest[4], bool debugOutput=false, std::string possibleFiducialsImageFilename="");
 		
 		~KPhantomSeg();
 		
@@ -543,7 +556,7 @@ class KPhantomSeg
 		
 		static std::vector<std::vector<double> > sortInAscendingOrder(std::vector<std::vector<double> > fiducials);  
 
-		void					SetSizeX(int value) { m_SizeX = value; };
+		/*void					SetSizeX(int value) { m_SizeX = value; };
 		int						GetSizeX() { return m_SizeX; };
 		void					SetSizeY(int value) { m_SizeY = value; };
 		int						GetSizeY() { return m_SizeY; };
@@ -556,7 +569,7 @@ class KPhantomSeg
 		void					SetSearchSizeX(int value) { m_SearchSizeX = value; };
 		int						GetSearchSizeX() { return m_SearchSizeX; };
 		void					SetSearchSizeY(int value) { m_SearchSizeY = value; };
-		int						GetSearchSizeY() { return m_SearchSizeY; };
+		int						GetSearchSizeY() { return m_SearchSizeY; };*/
 
 		void					SetPossibleFiducialsImageFilename(std::string value) { m_PossibleFiducialsImageFilename = value; };
 		std::string				GetPossibleFiducialsImageFilename() { return m_PossibleFiducialsImageFilename; };

@@ -43,12 +43,6 @@ void SegmentImageSequence( vtkTrackedFrameList* trackedFrameList, std::ofstream 
 	{
     LOG_INFO("Frame: "<<currentFrameIndex);
 
-		// Search in the whole image
-		int SearchStartAtX=calibrationController->GetSearchStartAtX();
-		int SearchStartAtY=calibrationController->GetSearchStartAtY();
-		int SearchDimensionX=calibrationController->GetSearchDimensionX();
-		int SearchDimensionY=calibrationController->GetSearchDimensionY();
-
 		// Set to false if you don't want images produced after each morphological operation
 		bool debugOutput=PlusLogger::Instance()->GetLogLevel()>=PlusLogger::LOG_LEVEL_TRACE; 
 
@@ -57,8 +51,9 @@ void SegmentImageSequence( vtkTrackedFrameList* trackedFrameList, std::ofstream 
 		
 		SegmentationResults segResults;
 
-		KPhantomSeg TheSegmentationStruct(trackedFrameList->GetFrameSize()[0],trackedFrameList->GetFrameSize()[1], 
-			SearchStartAtX,SearchStartAtY, SearchDimensionX,SearchDimensionY,debugOutput,possibleFiducialsImageFilename.str());
+		KPhantomSeg TheSegmentationStruct(trackedFrameList->GetFrameSize(), 
+			segParams.GetRegionOfInterest(),debugOutput,possibleFiducialsImageFilename.str());
+		TheSegmentationStruct.SetSegParams(segParams); 
 		TheSegmentationStruct.segment(trackedFrameList->GetTrackedFrame(currentFrameIndex)->ImageData->GetBufferPointer(), segParams);
 	
 		TheSegmentationStruct.GetSegmentationResults(segResults);

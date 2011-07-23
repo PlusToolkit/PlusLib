@@ -56,7 +56,7 @@ void vtkProbeCalibrationControllerIO::SaveSegmentationResultToImage( int imgInde
 
 	// create an importer to read the data back in VTK image pipeline
 	vtkSmartPointer<vtkImageImport> importer = vtkSmartPointer<vtkImageImport>::New();
-	importer->SetWholeExtent(0,this->CalibrationController->GetImageWidthInPixels() - 1,0,this->CalibrationController->GetImageHeightInPixels() - 1,0,0);
+	importer->SetWholeExtent(0,this->CalibrationController->GetSegParameters()->GetFrameSize()[0] - 1,0,this->CalibrationController->GetSegParameters()->GetFrameSize()[1] - 1,0,0);
 	importer->SetDataExtentToWholeExtent();
 	importer->SetDataScalarTypeToUnsignedChar();
 	importer->SetImportVoidPointer(duplicator->GetOutput()->GetBufferPointer() );
@@ -322,8 +322,8 @@ void vtkProbeCalibrationControllerIO::SaveCalibrationResultsAndErrorReportsToXML
 	// <UltrasoundImageDimensions>
 	vtkSmartPointer<vtkXMLDataElement> tagUltrasoundImageDimensions = vtkSmartPointer<vtkXMLDataElement>::New(); 
 	tagUltrasoundImageDimensions->SetName("UltrasoundImageDimensions"); 
-	tagUltrasoundImageDimensions->SetIntAttribute("Width", this->CalibrationController->GetImageWidthInPixels()); 
-	tagUltrasoundImageDimensions->SetIntAttribute("Height", this->CalibrationController->GetImageHeightInPixels()); 
+	tagUltrasoundImageDimensions->SetIntAttribute("Width", this->CalibrationController->GetSegParameters()->GetFrameSize()[0]); 
+	tagUltrasoundImageDimensions->SetIntAttribute("Height",this->CalibrationController->GetSegParameters()->GetFrameSize()[1]); 
 	vtkstd::string commentUltrasoundImageDimensions("# UltrasoundImageDimensions format: image width and height in pixels."); 
 	tagUltrasoundImageDimensions->AddCharacterData(commentUltrasoundImageDimensions.c_str(), commentUltrasoundImageDimensions.size()); 
 	// </UltrasoundImageDimensions>

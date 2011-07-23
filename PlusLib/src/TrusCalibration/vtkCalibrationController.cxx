@@ -40,14 +40,6 @@ SegmentationProgressCallbackFunction(NULL)
 	this->EnableSegmentationAnalysisOff();
 	this->InitializedOff(); 
 
-	// Segmentation parameters
-	this->SetImageWidthInPixels(0); 
-	this->SetImageHeightInPixels(0); 
-	this->SetSearchStartAtX(-1);
-	this->SetSearchStartAtY(-1);
-	this->SetSearchDimensionX(0);
-	this->SetSearchDimensionY(0);
-
 	this->VisualizationComponent = NULL;
 	this->OutputPath = NULL; 
 	this->ProgramFolderPath = NULL; 
@@ -55,7 +47,8 @@ SegmentationProgressCallbackFunction(NULL)
 	this->PhantomDefinitionFileName = NULL;
 	this->ModelToPhantomTransform = NULL;
 	this->PhantomModelFileName = NULL;
-	this->SegParameters = NULL; 
+	
+	this->SegParameters = new SegmentationParameters(); 
 
 	this->SetCalibrationMode(REALTIME); 
 
@@ -112,17 +105,11 @@ vtkCalibrationController::~vtkCalibrationController()
 PlusStatus vtkCalibrationController::Initialize()
 {
 	LOG_TRACE("vtkCalibrationController::Initialize"); 
-	if ( this->GetSegParameters() == NULL )
-	{
-		this->SegParameters = new SegmentationParameters(); 
-	}
 
 	// Initialize the segmenation component
 	// ====================================
 	this->mptrAutomatedSegmentation = new KPhantomSeg( 
-		this->GetImageWidthInPixels(), this->GetImageHeightInPixels(), 
-		this->GetSearchStartAtX(), this->GetSearchStartAtY(), 
-		this->GetSearchDimensionX(), this->GetSearchDimensionY(), this->GetEnableSegmentationAnalysis(), "frame.jpg");
+		this->GetSegParameters()->GetFrameSize(),this->GetSegParameters()->GetRegionOfInterest(), this->GetEnableSegmentationAnalysis(), "frame.jpg");
 
 	return PLUS_SUCCESS;
 }
@@ -177,16 +164,6 @@ PlusStatus vtkCalibrationController::AddTrackedFrameData(TrackedFrame* trackedFr
 	LOG_TRACE("vtkCalibrationController::AddData - TrackedFrame"); 
 	try
 	{
-		// Check frame size before segmentation 
-		int * frameSize = trackedFrame->GetFrameSize(); 
-		if ( this->ImageWidthInPixels != frameSize[0] || this->ImageHeightInPixels != frameSize[1] )
-		{
-			LOG_ERROR("Unable to add frame to calibrator! Frame size mismatch: actual (" 
-				<< frameSize[0] << "x" << frameSize[1] << ") expected (" 
-				<< this->ImageWidthInPixels << "x" << this->ImageHeightInPixels << ")"); 
-			return PLUS_FAIL; 
-		}
-
 		// Check to see if the segmentation has returned the targets
 		SegmentationResults segResults; 
         if ( this->SegmentImage(trackedFrame->ImageData, segResults) != PLUS_SUCCESS )
@@ -269,6 +246,16 @@ PlusStatus vtkCalibrationController::SegmentImage(const ImageType::Pointer& imag
 		if ( ! this->GetInitialized() )
 		{
 			this->Initialize(); 
+		}
+
+		// Check frame size before segmentation 
+		int frameSize[2] = {imageData->GetLargestPossibleRegion().GetSize()[0], imageData->GetLargestPossibleRegion().GetSize()[1]}; 
+		if ( this->GetSegParameters()->GetFrameSize()[0] != frameSize[0] || this->GetSegParameters()->GetFrameSize()[1] != frameSize[1] )
+		{
+			LOG_ERROR("Unable to add frame to calibrator! Frame size mismatch: actual (" 
+				<< frameSize[0] << "x" << frameSize[1] << ") expected (" 
+				<< this->GetSegParameters()->GetFrameSize()[0] << "x" << this->GetSegParameters()->GetFrameSize()[1] << ")"); 
+			return PLUS_FAIL; 
 		}
 
 		// Send the image to the Segmentation component for segmentation
@@ -419,9 +406,7 @@ PlusStatus vtkCalibrationController::ReadConfiguration( const char* configFileNa
 	this->SetConfigurationFileName(configFileNameWithPath); 
 
 	vtkSmartPointer<vtkXMLDataElement> calibrationController = vtkXMLUtilities::ReadElementFromFile(this->GetConfigurationFileName()); 
-	this->ReadConfiguration(calibrationController); 
-
-	return PLUS_SUCCESS;
+	return this->ReadConfiguration(calibrationController); 
 }
 
 //----------------------------------------------------------------------------
@@ -437,9 +422,7 @@ PlusStatus vtkCalibrationController::ReadConfiguration( vtkXMLDataElement* confi
 	// Calibration controller specifications
 	//********************************************************************
 	vtkXMLDataElement* calibrationController = configData->FindNestedElementWithName("CalibrationController"); 
-	this->ReadCalibrationControllerConfiguration(calibrationController); 
-
-	return PLUS_SUCCESS;
+	return this->ReadCalibrationControllerConfiguration(calibrationController); 
 }
 
 //----------------------------------------------------------------------------
@@ -547,16 +530,221 @@ PlusStatus vtkCalibrationController::ReadCalibrationControllerConfiguration( vtk
 	// RealtimeCalibration specifications
 	//********************************************************************
 	vtkXMLDataElement* realtimeCalibration = calibrationController->FindNestedElementWithName("RealtimeCalibration"); 
-	this->ReadRealtimeCalibrationConfiguration(realtimeCalibration); 
+	if ( this->ReadRealtimeCalibrationConfiguration(realtimeCalibration) != PLUS_SUCCESS )
+	{
+		LOG_ERROR("Failed to read calibration configuration file!"); 
+		return PLUS_FAIL; 
+	}
+
+	//Phantom Definition specifications
+	//********************************************************************
+	vtkXMLDataElement* phantomDefinition =  calibrationController->FindNestedElementWithName("PhantomDefinition");
+	if ( this->ReadPhantomDefinition(phantomDefinition) != PLUS_SUCCESS )
+	{
+		LOG_ERROR("Failed to read phantom definition file!"); 
+		return PLUS_FAIL; 
+	}
 
 	// SegmentationParameters specifications
 	//********************************************************************
 	vtkXMLDataElement* segmentationParameters = calibrationController->FindNestedElementWithName("SegmentationParameters"); 
-	this->ReadSegmentationParametersConfiguration(segmentationParameters); 
+	if ( this->GetSegParameters()->ReadSegmentationParametersConfiguration(segmentationParameters) != PLUS_SUCCESS )
+	{
+		LOG_ERROR("Failed to read segmentation parameters configuration file!"); 
+		return PLUS_FAIL; 
+	}
 
-	// Phantom definition
-	//********************************************************************
-	this->ReadPhantomDefinition();
+	//Updating parameters
+	this->GetSegParameters()->UpdateParameters();
+
+	return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+
+PlusStatus vtkCalibrationController::ReadPhantomDefinition(vtkXMLDataElement* config)
+{
+	LOG_TRACE("vtkCalibrationController::ReadPhantomDefinition");
+
+	if ( config == NULL )
+	{
+		LOG_ERROR("Unable to read the phantom definition FileName attribute from configuration file - XML data element is NULL"); 
+		return PLUS_FAIL;
+	}
+
+	// Search for the phantom definition file found in the configuration file
+	const char* phantomDefinitionFile =  config->GetAttribute("FileName");
+	if (phantomDefinitionFile != NULL) 
+	{
+		std::string searchResult;
+		if (STRCASECMP(vtkFileFinder::GetInstance()->GetConfigurationDirectory(), "") == 0) 
+		{
+			std::string configurationDirectory = vtksys::SystemTools::GetFilenamePath(this->ConfigurationFileName);
+			searchResult = vtkFileFinder::GetFirstFileFoundInParentOfDirectory(phantomDefinitionFile, configurationDirectory.c_str());
+		} 
+		else 
+		{
+			searchResult = vtkFileFinder::GetFirstFileFoundInConfigurationDirectory(phantomDefinitionFile);
+		}
+
+		if (STRCASECMP("", searchResult.c_str()) == 0) 
+		{
+			LOG_WARNING("Phantom model file is not found with name: " << phantomDefinitionFile);
+		}
+
+		if ( vtksys::SystemTools::FileExists(searchResult.c_str(), true) ) 
+		{
+			this->SetPhantomDefinitionFileName(searchResult.c_str());
+		}
+	}
+
+	if ( this->PhantomDefinitionFileName != NULL )
+	{
+		std::vector<NWire> tempNWires = this->GetSegParameters()->GetNWires();
+
+		vtkXMLDataElement* phantomDefinition = vtkXMLUtilities::ReadElementFromFile(this->PhantomDefinitionFileName);
+
+		if (phantomDefinition == NULL) {
+			LOG_ERROR("Unable to read the phantom definition file: " << this->PhantomDefinitionFileName); 
+			return PLUS_FAIL;
+		}
+
+		// Verify XML type
+		if (STRCASECMP("PhantomDefinition", phantomDefinition->GetName()) != NULL) {
+			LOG_ERROR(this->PhantomDefinitionFileName << " is not a phantom definition file!");
+		}
+
+		// Load type
+		vtkXMLDataElement* description = phantomDefinition->FindNestedElementWithName("Description"); 
+		if (description == NULL) {
+			LOG_ERROR("Phantom description not found!");
+			return PLUS_FAIL;
+		} else {
+			const char* type =  description->GetAttribute("Type"); 
+			if ( type != NULL ) {
+				if (STRCASECMP("Double-N", type) == 0) {
+					this->GetSegParameters()->SetFiducialGeometry(SegmentationParameters::CALIBRATION_PHANTOM_6_POINT);
+				} else if (STRCASECMP("U-Shaped-N", type) == 0) {
+					this->GetSegParameters()->SetFiducialGeometry(SegmentationParameters::TAB2_5_POINT);
+				}
+			} else {
+				LOG_ERROR("Phantom type not found!");
+			}
+		}
+
+		// Load model information
+		vtkXMLDataElement* model = phantomDefinition->FindNestedElementWithName("Model"); 
+		if (model == NULL) {
+			LOG_WARNING("Phantom model information not found - no model displayed");
+		} else {
+			const char* file = model->GetAttribute("File");
+			if (file) {
+				if ((strstr(file, ".stl") != NULL) || ((strstr(file, ".STL") != NULL))) { // If filename contains ".stl" or ".STL" then it is valid, else we do not search for it (and do not return with warning either, because some time we just do not fill that field because we do not have the file)
+					std::string searchResult;
+					if (STRCASECMP(vtkFileFinder::GetInstance()->GetConfigurationDirectory(), "") == 0) {
+						std::string configurationDirectory = vtksys::SystemTools::GetFilenamePath(this->ConfigurationFileName);
+						searchResult = vtkFileFinder::GetFirstFileFoundInParentOfDirectory(file, configurationDirectory.c_str());
+					} else {
+						searchResult = vtkFileFinder::GetFirstFileFoundInConfigurationDirectory(file);
+					}
+					if (STRCASECMP("", searchResult.c_str()) != 0) {
+						this->SetPhantomModelFileName(searchResult.c_str());
+					}
+				} else {
+					LOG_INFO("'" << file << "' does not appear to be a valid phantom model file name, so it was not searched for");
+				}
+			}
+
+			// ModelToPhantomTransform - Transforming input model for proper visualization
+			double* modelToPhantomTransformVector = new double[16]; 
+			if (model->GetVectorAttribute("ModelToPhantomTransform", 16, modelToPhantomTransformVector)) {
+				vtkSmartPointer<vtkMatrix4x4> modelToPhantomTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+				modelToPhantomTransformMatrix->Identity();
+				modelToPhantomTransformMatrix->DeepCopy(modelToPhantomTransformVector);
+
+				vtkSmartPointer<vtkTransform> modelToPhantomTransform = vtkSmartPointer<vtkTransform>::New();
+				modelToPhantomTransform->SetMatrix(modelToPhantomTransformMatrix);
+				this->SetModelToPhantomTransform(modelToPhantomTransform);
+			}
+			delete[] modelToPhantomTransformVector;
+		}
+
+		// Load geometry
+		vtkXMLDataElement* geometry = phantomDefinition->FindNestedElementWithName("Geometry"); 
+		if (geometry == NULL) {
+			LOG_ERROR("Phantom geometry information not found!");
+			return PLUS_FAIL;
+		} else {
+
+			tempNWires.clear();
+
+			// Finding of NWires and extracting the endpoints
+			int numberOfGeometryChildren = geometry->GetNumberOfNestedElements();
+			for (int i=0; i<numberOfGeometryChildren; ++i) {
+				vtkSmartPointer<vtkXMLDataElement> nWireElement = geometry->GetNestedElement(i);
+
+				if ((nWireElement == NULL) || (STRCASECMP("NWire", nWireElement->GetName()))) {
+					continue;
+				}
+
+				NWire nWire;
+
+				int numberOfWires = nWireElement->GetNumberOfNestedElements();
+
+				if (numberOfWires != 3) {
+					LOG_WARNING("NWire contains unexpected number of wires - skipped");
+					continue;
+				}
+
+				for (int j=0; j<numberOfWires; ++j) {
+					vtkSmartPointer<vtkXMLDataElement> wireElement = nWireElement->GetNestedElement(j);
+
+					if (wireElement == NULL) {
+						LOG_WARNING("Invalid Wire description in NWire - skipped");
+						break;
+					}
+
+					Wire wire;
+
+					int wireId = -1;
+					if ( wireElement->GetScalarAttribute("Id", wireId) ) 
+					{
+						wire.id = wireId; 
+					}
+					else
+					{
+						LOG_WARNING("Wire id not found - skipped");
+						continue;
+					}
+
+					const char* wireName =  wireElement->GetAttribute("Name"); 
+					if ( wireName != NULL )
+					{
+						strcpy_s(wire.name, 128, wireName);
+					}
+					if (! wireElement->GetVectorAttribute("EndPointFront", 3, wire.endPointFront)) {
+						LOG_WARNING("Wrong wire end point detected - skipped");
+						continue;
+					}
+					if (! wireElement->GetVectorAttribute("EndPointBack", 3, wire.endPointBack)) {
+						LOG_WARNING("Wrong wire end point detected - skipped");
+						continue;
+					}
+
+					nWire.wires[j] = wire;
+				}
+
+				tempNWires.push_back(nWire);
+			}
+		}
+
+		this->GetSegParameters()->SetNWires(tempNWires);
+	} else {
+		LOG_ERROR("Phantom definition file name is not set!"); 
+		return PLUS_FAIL;
+	}
+
+	//TODO Load registration
 
 	return PLUS_SUCCESS;
 }
@@ -764,456 +952,3 @@ PlusStatus vtkCalibrationController::ReadRealtimeCalibrationConfiguration( vtkXM
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkCalibrationController::ReadSegmentationParametersConfiguration( vtkXMLDataElement* segmentationParameters )
-{
-	LOG_TRACE("vtkCalibrationController::ReadSegmentationParametersConfiguration"); 
-	if ( segmentationParameters == NULL) 
-	{
-		LOG_WARNING("Unable to read the SegmentationParameters XML data element!"); 
-		return PLUS_FAIL; 
-	}
-
-	if ( this->GetSegParameters() == NULL )
-	{
-		this->SegParameters = new SegmentationParameters(); 
-	}
-
-	// The input image dimensions (in pixels)
-	int* frameSize = new int[2]; 
-	if ( segmentationParameters->GetVectorAttribute("FrameSize", 2, frameSize) ) 
-	{
-		this->SetImageWidthInPixels(frameSize[0]); 
-		this->SetImageHeightInPixels(frameSize[1]);
-	}
-	delete [] frameSize; 
-
-	double scalingEstimation(0.0); 
-	if ( segmentationParameters->GetScalarAttribute("ScalingEstimation", scalingEstimation) )
-	{
-		this->GetSegParameters()->SetScalingEstimation(scalingEstimation); 
-	}
-
-	double morphologicalOpeningCircleRadiusMm(0.0); 
-	if ( segmentationParameters->GetScalarAttribute("MorphologicalOpeningCircleRadiusMm", morphologicalOpeningCircleRadiusMm) )
-	{
-		this->GetSegParameters()->SetMorphologicalOpeningCircleRadiusMm(morphologicalOpeningCircleRadiusMm); 
-	}
-
-	double morphologicalOpeningBarSizeMm(0.0); 
-	if ( segmentationParameters->GetScalarAttribute("MorphologicalOpeningBarSizeMm", morphologicalOpeningBarSizeMm) )
-	{
-		this->GetSegParameters()->SetMorphologicalOpeningBarSizeMm(morphologicalOpeningBarSizeMm); 
-	}
-
-	// Segmentation search region X direction
-	int* searchRegionX = new int[2]; 
-	if ( segmentationParameters->GetVectorAttribute("SearchRegionX", 2, searchRegionX) )
-	{
-		this->SetSearchStartAtX(searchRegionX[0]); 
-		this->SetSearchDimensionX(searchRegionX[1]);
-	}
-	delete [] searchRegionX; 
-
-	// Segmentation search region Y direction
-	int* searchRegionY = new int[2]; 
-	if ( segmentationParameters->GetVectorAttribute("SearchRegionY", 2, searchRegionY) )
-	{
-		this->SetSearchStartAtY(searchRegionY[0]); 
-		this->SetSearchDimensionY(searchRegionY[1]);
-	}
-	delete [] searchRegionY; 
-
-	double thresholdImageTop(0.0); 
-	if ( segmentationParameters->GetScalarAttribute("ThresholdImageTop", thresholdImageTop) )
-	{
-		this->GetSegParameters()->SetThresholdImageTop(thresholdImageTop); 
-	}
-
-	double thresholdImageBottom(0.0); 
-	if ( segmentationParameters->GetScalarAttribute("ThresholdImageBottom", thresholdImageBottom) )
-	{
-		this->GetSegParameters()->SetThresholdImageBottom(thresholdImageBottom); 
-	}
-
-	int useOriginalImageIntensityForDotIntensityScore(0); 
-	if ( segmentationParameters->GetScalarAttribute("UseOriginalImageIntensityForDotIntensityScore", useOriginalImageIntensityForDotIntensityScore) )
-	{
-		this->GetSegParameters()->SetUseOriginalImageIntensityForDotIntensityScore((useOriginalImageIntensityForDotIntensityScore?true:false)); 
-	}
-	
-	//if the tolerance parameters are computed automatically
-	int computeSegmentationParametersFromPhantomDefinition(0);
-	if(segmentationParameters->GetScalarAttribute("ComputeSegmentationParametersFromPhantomDefinition", computeSegmentationParametersFromPhantomDefinition)
-		&& computeSegmentationParametersFromPhantomDefinition!=0 )
-	{
-		double scalingEstimation(0.0);
-		if ( segmentationParameters->GetScalarAttribute("ScalingEstimation", scalingEstimation) )
-		{
-			this->GetSegParameters()->SetScalingEstimation(scalingEstimation); 
-		}
-
-		double* imageScalingTolerancePercent = new double[4];
-		if ( segmentationParameters->GetVectorAttribute("ImageScalingTolerancePercent", 4, imageScalingTolerancePercent) )
-		{
-			for( int i = 0; i<4 ; i++)
-			{
-				this->GetSegParameters()->SetImageScalingTolerancePercent(i, imageScalingTolerancePercent[i]);
-			}
-		}
-		delete [] imageScalingTolerancePercent;
-
-        double* imageNormalVectorInPhantomFrameEstimation = new double[3];
-		if ( segmentationParameters->GetVectorAttribute("ImageNormalVectorInPhantomFrameEstimation", 3, imageNormalVectorInPhantomFrameEstimation) )
-		{
-			this->GetSegParameters()->SetImageNormalVectorInPhantomFrameEstimation(0, imageNormalVectorInPhantomFrameEstimation[0]);
-			this->GetSegParameters()->SetImageNormalVectorInPhantomFrameEstimation(1, imageNormalVectorInPhantomFrameEstimation[1]);
-			this->GetSegParameters()->SetImageNormalVectorInPhantomFrameEstimation(2, imageNormalVectorInPhantomFrameEstimation[2]);
-		}
-		delete [] imageNormalVectorInPhantomFrameEstimation;
-
-        double* imageNormalVectorInPhantomFrameMaximumRotationAngleDeg = new double[6];
-		if ( segmentationParameters->GetVectorAttribute("ImageNormalVectorInPhantomFrameMaximumRotationAngleDeg", 6, imageNormalVectorInPhantomFrameMaximumRotationAngleDeg) )
-		{
-			for( int i = 0; i<6 ; i++)
-			{
-				this->GetSegParameters()->SetImageNormalVectorInPhantomFrameMaximumRotationAngleDeg(i, imageNormalVectorInPhantomFrameMaximumRotationAngleDeg[i]);
-			}
-		}
-		delete [] imageNormalVectorInPhantomFrameMaximumRotationAngleDeg;
-
-		double* imageToPhantomTransform = new double[16];
-		if ( segmentationParameters->GetVectorAttribute("ImageToPhantomTransform", 16, imageToPhantomTransform) )
-		{
-			for( int i = 0; i<16 ; i++)
-			{
-				this->GetSegParameters()->SetImageToPhantomTransform(i, imageToPhantomTransform[i]);
-			}
-		}
-		delete [] imageToPhantomTransform;
-
-		//Compute the tolerances parameters automatically
-		this->GetSegParameters()->ComputeParameters();
-	}
-	else//if the tolerances parameters are given by the configuration file
-	{
-		double maxLineLengthErrorPercent(0.0); 
-		if ( segmentationParameters->GetScalarAttribute("MaxLineLengthErrorPercent", maxLineLengthErrorPercent) )
-		{
-			this->GetSegParameters()->SetMaxLineLengthErrorPercent(maxLineLengthErrorPercent); 
-		}
-
-		double maxLinePairDistanceErrorPercent(0.0); 
-		if ( segmentationParameters->GetScalarAttribute("MaxLinePairDistanceErrorPercent", maxLinePairDistanceErrorPercent) )
-		{
-			this->GetSegParameters()->SetMaxLinePairDistanceErrorPercent(maxLinePairDistanceErrorPercent); 
-		}
-
-		double findLines3PtDist(0.0); 
-		if ( segmentationParameters->GetScalarAttribute("FindLines3PtDist", findLines3PtDist) )
-		{
-			this->GetSegParameters()->SetFindLines3PtDist(findLines3PtDist); 
-		}
-
-		double maxLineErrorMm(0.0); 
-		if ( segmentationParameters->GetScalarAttribute("MaxLineErrorMm", maxLineErrorMm) )
-		{
-			this->GetSegParameters()->SetMaxLineErrorMm(maxLineErrorMm); 
-		}
-
-		double maxAngleDifferenceDegrees(0.0); 
-		if ( segmentationParameters->GetScalarAttribute("MaxAngleDifferenceDegrees", maxAngleDifferenceDegrees) )
-		{
-			this->GetSegParameters()->SetMaxAngleDiff(maxAngleDifferenceDegrees * M_PI / 180.0); 
-		}
-
-		double minThetaDegrees(0.0); 
-		if ( segmentationParameters->GetScalarAttribute("MinThetaDegrees", minThetaDegrees) )
-		{
-			this->GetSegParameters()->SetMinTheta(minThetaDegrees * M_PI / 180.0); 
-		}
-
-		double maxThetaDegrees(0.0); 
-		if ( segmentationParameters->GetScalarAttribute("MaxThetaDegrees", maxThetaDegrees) )
-		{
-			this->GetSegParameters()->SetMaxTheta(maxThetaDegrees * M_PI / 180.0); 
-		}
-	}
-
-	
-
-	/* Temporarily removed (also from config file) - these are the parameters for the U shaped ablation phantom
-	double maxUangleDiffInRad(0.0); 
-	if ( segmentationParameters->GetScalarAttribute("MaxUangleDiffInRad", maxUangleDiffInRad) )
-	{
-		this->GetSegParameters()->mMaxUangleDiff = maxUangleDiffInRad; 
-	}
-
-	double maxUsideLineDiff(0.0); 
-	if ( segmentationParameters->GetScalarAttribute("MaxUsideLineDiff", maxUsideLineDiff) )
-	{
-		this->GetSegParameters()->mMaxUsideLineDiff = maxUsideLineDiff; 
-	}
-
-	double minUsideLineLength(0.0); 
-	if ( segmentationParameters->GetScalarAttribute("MinUsideLineLength", minUsideLineLength) )
-	{
-		this->GetSegParameters()->mMinUsideLineLength = minUsideLineLength; 
-	}
-
-	double maxUsideLineLength(0.0); 
-	if ( segmentationParameters->GetScalarAttribute("MaxUsideLineLength", maxUsideLineLength) )
-	{
-		this->GetSegParameters()->mMaxUsideLineLength = maxUsideLineLength; 
-	}
-	*/
-
-	// Search for the phantom definition file found in the configuration file
-	const char* phantomDefinitionFile =  segmentationParameters->GetAttribute("PhantomDefinition");
-	if (phantomDefinitionFile != NULL) {
-		std::string searchResult;
-		if (STRCASECMP(vtkFileFinder::GetInstance()->GetConfigurationDirectory(), "") == 0) {
-			std::string configurationDirectory = vtksys::SystemTools::GetFilenamePath(this->ConfigurationFileName);
-			searchResult = vtkFileFinder::GetFirstFileFoundInParentOfDirectory(phantomDefinitionFile, configurationDirectory.c_str());
-		} else {
-			searchResult = vtkFileFinder::GetFirstFileFoundInConfigurationDirectory(phantomDefinitionFile);
-		}
-		if (STRCASECMP("", searchResult.c_str()) == 0) {
-			LOG_WARNING("Phantom model file is not found with name: " << phantomDefinitionFile);
-		}
-
-		if ( vtksys::SystemTools::FileExists(searchResult.c_str(), true) ) {
-			this->SetPhantomDefinitionFileName(searchResult.c_str());
-		}
-	}
-
-	this->GetSegParameters()->UpdateParameters(); 
-
-	return PLUS_SUCCESS;
-}
-
-//----------------------------------------------------------------------------
-PlusStatus vtkCalibrationController::ReadPhantomDefinition()
-{
-	LOG_TRACE("vtkCalibrationController::ReadPhantomDefinition");
-
-	if ( this->PhantomDefinitionFileName != NULL )
-	{
-		std::vector<NWire> tempNWires = this->GetSegParameters()->GetNWires();
-		vtkSmartPointer<vtkXMLDataElement> phantomDefinition = vtkXMLUtilities::ReadElementFromFile(this->PhantomDefinitionFileName);
-
-		if (phantomDefinition == NULL) {
-			LOG_ERROR("Unable to read the phantom definition file: " << this->PhantomDefinitionFileName); 
-			return PLUS_FAIL;
-		}
-
-		// Verify XML type
-		if (STRCASECMP("PhantomDefinition", phantomDefinition->GetName()) != NULL) {
-			LOG_ERROR(this->PhantomDefinitionFileName << " is not a phantom definition file!");
-		}
-
-		// Load type
-		vtkXMLDataElement* description = phantomDefinition->FindNestedElementWithName("Description"); 
-		if (description == NULL) {
-			LOG_ERROR("Phantom description not found!");
-			return PLUS_FAIL;
-		} else {
-			const char* type =  description->GetAttribute("Type"); 
-			if ( type != NULL ) {
-				if (STRCASECMP("Double-N", type) == 0) {
-					this->GetSegParameters()->SetFiducialGeometry(SegmentationParameters::CALIBRATION_PHANTOM_6_POINT);
-				} else if (STRCASECMP("U-Shaped-N", type) == 0) {
-					this->GetSegParameters()->SetFiducialGeometry(SegmentationParameters::TAB2_5_POINT);
-				}
-			} else {
-				LOG_ERROR("Phantom type not found!");
-			}
-		}
-
-		// Load model information
-		vtkXMLDataElement* model = phantomDefinition->FindNestedElementWithName("Model"); 
-		if (model == NULL) {
-			LOG_WARNING("Phantom model information not found - no model displayed");
-		} else {
-			const char* file = model->GetAttribute("File");
-			if (file) {
-				if ((strstr(file, ".stl") != NULL) || ((strstr(file, ".STL") != NULL))) { // If filename contains ".stl" or ".STL" then it is valid, else we do not search for it (and do not return with warning either, because some time we just do not fill that field because we do not have the file)
-					std::string searchResult;
-					if (STRCASECMP(vtkFileFinder::GetInstance()->GetConfigurationDirectory(), "") == 0) {
-						std::string configurationDirectory = vtksys::SystemTools::GetFilenamePath(this->ConfigurationFileName);
-						searchResult = vtkFileFinder::GetFirstFileFoundInParentOfDirectory(file, configurationDirectory.c_str());
-					} else {
-						searchResult = vtkFileFinder::GetFirstFileFoundInConfigurationDirectory(file);
-					}
-					if (STRCASECMP("", searchResult.c_str()) != 0) {
-						this->SetPhantomModelFileName(searchResult.c_str());
-					}
-				} else {
-					LOG_INFO("'" << file << "' does not appear to be a valid phantom model file name, so it was not searched for");
-				}
-			}
-
-			// ModelToPhantomTransform - Transforming input model for proper visualization
-			double* modelToPhantomTransformVector = new double[16]; 
-			if (model->GetVectorAttribute("ModelToPhantomTransform", 16, modelToPhantomTransformVector)) {
-				vtkSmartPointer<vtkMatrix4x4> modelToPhantomTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-				modelToPhantomTransformMatrix->Identity();
-				modelToPhantomTransformMatrix->DeepCopy(modelToPhantomTransformVector);
-
-				vtkSmartPointer<vtkTransform> modelToPhantomTransform = vtkSmartPointer<vtkTransform>::New();
-				modelToPhantomTransform->SetMatrix(modelToPhantomTransformMatrix);
-				this->SetModelToPhantomTransform(modelToPhantomTransform);
-			}
-			delete[] modelToPhantomTransformVector;
-		}
-
-		// Load geometry
-		vtkXMLDataElement* geometry = phantomDefinition->FindNestedElementWithName("Geometry"); 
-		if (geometry == NULL) {
-			LOG_ERROR("Phantom geometry information not found!");
-			return PLUS_FAIL;
-		} else {
-
-			tempNWires.clear();
-
-			// Finding of NWires and extracting the endpoints
-			int numberOfGeometryChildren = geometry->GetNumberOfNestedElements();
-			for (int i=0; i<numberOfGeometryChildren; ++i) {
-				vtkSmartPointer<vtkXMLDataElement> nWireElement = geometry->GetNestedElement(i);
-
-				if ((nWireElement == NULL) || (STRCASECMP("NWire", nWireElement->GetName()))) {
-					continue;
-				}
-
-				NWire nWire;
-
-				int numberOfWires = nWireElement->GetNumberOfNestedElements();
-
-				if (numberOfWires != 3) {
-					LOG_WARNING("NWire contains unexpected number of wires - skipped");
-					continue;
-				}
-
-				for (int j=0; j<numberOfWires; ++j) {
-					vtkSmartPointer<vtkXMLDataElement> wireElement = nWireElement->GetNestedElement(j);
-
-					if (wireElement == NULL) {
-						LOG_WARNING("Invalid Wire description in NWire - skipped");
-						break;
-					}
-
-					Wire wire;
-
-					int wireId = -1;
-					if ( wireElement->GetScalarAttribute("Id", wireId) ) 
-					{
-						wire.id = wireId; 
-					}
-					else
-					{
-						LOG_WARNING("Wire id not found - skipped");
-						continue;
-					}
-
-					const char* wireName =  wireElement->GetAttribute("Name"); 
-					if ( wireName != NULL )
-					{
-						strcpy_s(wire.name, 128, wireName);
-					}
-					if (! wireElement->GetVectorAttribute("EndPointFront", 3, wire.endPointFront)) {
-						LOG_WARNING("Wrong wire end point detected - skipped");
-						continue;
-					}
-					if (! wireElement->GetVectorAttribute("EndPointBack", 3, wire.endPointBack)) {
-						LOG_WARNING("Wrong wire end point detected - skipped");
-						continue;
-					}
-
-					nWire.wires[j] = wire;
-				}
-
-				tempNWires.push_back(nWire);
-			}
-		}
-
-		this->GetSegParameters()->SetNWires(tempNWires);
-	} else {
-		LOG_ERROR("Phantom definition file name is not set!"); 
-		return PLUS_FAIL;
-	}
-
-	//TODO Load registration
-
-	// Compute error boundaries based on error percents and the NWire definition (supposing that the NWire is regular - parallel sides)
-	// Line length of an N-wire: the maximum distance between its wires' front endpoints
-	double maxLineLengthSquared = -1.0;
-	double minLineLengthSquared = FLT_MAX;
-	std::vector<NWire> nWires = this->GetSegParameters()->GetNWires();
-
-	for (std::vector<NWire>::iterator it = nWires.begin(); it != nWires.end(); ++it) {
-		Wire wire0 = it->wires[0];
-		Wire wire1 = it->wires[1];
-		Wire wire2 = it->wires[2];
-
-		double distance01Squared = vtkMath::Distance2BetweenPoints(wire0.endPointFront, wire1.endPointFront);
-		double distance02Squared = vtkMath::Distance2BetweenPoints(wire0.endPointFront, wire2.endPointFront);
-		double distance12Squared = vtkMath::Distance2BetweenPoints(wire1.endPointFront, wire2.endPointFront);
-		double lineLengthSquared = std::max( std::max(distance01Squared, distance02Squared), distance12Squared );
-
-		if (maxLineLengthSquared < lineLengthSquared) {
-			maxLineLengthSquared = lineLengthSquared;
-		}
-		if (minLineLengthSquared > lineLengthSquared) {
-			minLineLengthSquared = lineLengthSquared;
-		}
-	}
-
-	this->GetSegParameters()->SetMaxLineLenMm(sqrt(maxLineLengthSquared) * (1.0 + (this->GetSegParameters()->GetMaxLineLengthErrorPercent() / 100.0)));
-	this->GetSegParameters()->SetMinLineLenMm(sqrt(minLineLengthSquared) * (1.0 - (this->GetSegParameters()->GetMaxLineLengthErrorPercent() / 100.0)));
-	LOG_DEBUG("Line length - computed min: " << sqrt(minLineLengthSquared) << " , max: " << sqrt(maxLineLengthSquared) << ";  allowed min: " << this->GetSegParameters()->GetMinLineLenMm() << ", max: " << this->GetSegParameters()->GetMaxLineLenMm());
-
-	// Distance between lines (= distance between planes of the N-wires)
-	double maxNPlaneDistance = -1.0;
-	double minNPlaneDistance = FLT_MAX;
-	int numOfNWires = nWires.size();
-	double epsilon = 0.001;
-
-	// Compute normal of each NWire and evaluate the other wire endpoints if they are on the computed plane
-	std::vector<vtkSmartPointer<vtkPlane>> planes;
-	for (int i=0; i<numOfNWires; ++i) {
-		double normal[3];
-		vtkTriangle::ComputeNormal(nWires.at(i).wires[0].endPointFront, nWires.at(i).wires[0].endPointBack, nWires.at(i).wires[2].endPointFront, normal);
-
-		vtkSmartPointer<vtkPlane> plane = vtkSmartPointer<vtkPlane>::New();
-		plane->SetNormal(normal);
-		plane->SetOrigin(nWires.at(i).wires[0].endPointFront);
-		planes.push_back(plane);
-
-		double distance1F = plane->DistanceToPlane(nWires.at(i).wires[1].endPointFront);
-		double distance1B = plane->DistanceToPlane(nWires.at(i).wires[1].endPointBack);
-		double distance2B = plane->DistanceToPlane(nWires.at(i).wires[2].endPointBack);
-
-		if (distance1F > epsilon || distance1B > epsilon || distance2B > epsilon) {
-			LOG_ERROR("NWire number " << i << " is invalid: the endpoints are not on the same plane");
-		}
-	}
-
-	// Compute distances between each NWire pairs and determine the smallest and the largest distance
-	for (int i=numOfNWires-1; i>0; --i) {
-		for (int j=i-1; j>=0; --j) {
-			double distance = planes.at(i)->DistanceToPlane(planes.at(j)->GetOrigin());
-
-			if (maxNPlaneDistance < distance) {
-				maxNPlaneDistance = distance;
-			}
-			if (minNPlaneDistance > distance) {
-				minNPlaneDistance = distance;
-			}
-		}
-	}
-
-	this->GetSegParameters()->SetMaxLinePairDistMm(maxNPlaneDistance * (1.0 + (this->GetSegParameters()->GetMaxLinePairDistanceErrorPercent() / 100.0)));
-	this->GetSegParameters()->SetMinLinePairDistMm(minNPlaneDistance * (1.0 - (this->GetSegParameters()->GetMaxLinePairDistanceErrorPercent() / 100.0)));
-	LOG_DEBUG("Line pair distance - computed min: " << minNPlaneDistance << " , max: " << maxNPlaneDistance << ";  allowed min: " << this->GetSegParameters()->GetMinLinePairDistMm() << ", max: " << this->GetSegParameters()->GetMaxLinePairDistMm());
-
-	return PLUS_SUCCESS;
-}

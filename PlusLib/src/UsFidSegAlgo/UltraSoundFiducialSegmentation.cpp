@@ -3,6 +3,13 @@
 #include "vnl/vnl_matrix.h"
 #include "vnl/vnl_cross.h"
 
+#include "vtkMath.h"
+#include "vtkTriangle.h"
+#include "vtkPlane.h"
+#include "vtkFileFinder.h"
+#include "vtkTransform.h"
+#include "vtksys/SystemTools.hxx"
+
 const int BLACK = 0; 
 const int WHITE = 255; 
 
@@ -346,24 +353,24 @@ bool SegImpl::accept_line( Line &line )
 
 //-----------------------------------------------------------------------------
 
-SegImpl::SegImpl(int sizeX, int sizeY, int searchOriginX, int searchOriginY, int searchSizeX, int searchSizeY , bool debugOutput /*=false*/, std::string inputPossibleFiducialsImageFilename)
+SegImpl::SegImpl(int FrameSize[2], int RegionOfInterest[4] , bool debugOutput /*=false*/, std::string inputPossibleFiducialsImageFilename)
 {
-	size = sizeX*sizeY;
-	bytes = sizeX*sizeY*sizeof(PixelType);
+	size = FrameSize[0]*FrameSize[1];
+	bytes = size*sizeof(PixelType);
 
 	dilated = new PixelType[size];
 	eroded = new PixelType[size];
 	working = new PixelType[size];
 	unalteredImage = new PixelType[size]; 
 
-	rows = sizeY;
-	cols = sizeX;
+	rows = FrameSize[1];
+	cols = FrameSize[0];
 
-	vertLow = searchOriginY;
-	horzLow = searchOriginX;
+	vertLow = RegionOfInterest[1];
+	horzLow = RegionOfInterest[0];
 
-	vertHigh = searchOriginY + searchSizeY;
-	horzHigh = searchOriginX + searchSizeX;
+	vertHigh = RegionOfInterest[3];
+	horzHigh = RegionOfInterest[2];
 
 	m_DebugOutput=debugOutput; 
 	possibleFiducialsImageFilename=inputPossibleFiducialsImageFilename; 
@@ -669,9 +676,22 @@ SegmentationParameters::SegmentationParameters() :
 
 		m_FiducialGeometry(CALIBRATION_PHANTOM_6_POINT),
 
-		m_UseOriginalImageIntensityForDotIntensityScore (false) 
+		m_UseOriginalImageIntensityForDotIntensityScore (false)
 {
-	this->UpdateParameters();
+	this->m_FrameSize[0] = -1;
+	this->m_FrameSize[1] = -1;
+
+	this->m_RegionOfInterest[0] = -1;
+	this->m_RegionOfInterest[1] = -1;
+	this->m_RegionOfInterest[2] = -1;
+	this->m_RegionOfInterest[3] = -1;
+}
+
+//-----------------------------------------------------------------------------
+
+SegmentationParameters::~SegmentationParameters()
+{
+
 }
 
 //-----------------------------------------------------------------------------
@@ -691,6 +711,272 @@ void SegmentationParameters::UpdateParameters()
 			}
 		}
 	}
+	// Compute error boundaries based on error percents and the NWire definition (supposing that the NWire is regular - parallel sides)
+	// Line length of an N-wire: the maximum distance between its wires' front endpoints
+	double maxLineLengthSquared = -1.0;
+	double minLineLengthSquared = FLT_MAX;
+	std::vector<NWire> nWires = this->GetNWires();
+
+	for (std::vector<NWire>::iterator it = nWires.begin(); it != nWires.end(); ++it) {
+		Wire wire0 = it->wires[0];
+		Wire wire1 = it->wires[1];
+		Wire wire2 = it->wires[2];
+
+		double distance01Squared = vtkMath::Distance2BetweenPoints(wire0.endPointFront, wire1.endPointFront);
+		double distance02Squared = vtkMath::Distance2BetweenPoints(wire0.endPointFront, wire2.endPointFront);
+		double distance12Squared = vtkMath::Distance2BetweenPoints(wire1.endPointFront, wire2.endPointFront);
+		double lineLengthSquared = std::max( std::max(distance01Squared, distance02Squared), distance12Squared );
+
+		if (maxLineLengthSquared < lineLengthSquared) {
+			maxLineLengthSquared = lineLengthSquared;
+		}
+		if (minLineLengthSquared > lineLengthSquared) {
+			minLineLengthSquared = lineLengthSquared;
+		}
+	}
+
+	this->SetMaxLineLenMm(sqrt(maxLineLengthSquared) * (1.0 + (this->GetMaxLineLengthErrorPercent() / 100.0)));
+	this->SetMinLineLenMm(sqrt(minLineLengthSquared) * (1.0 - (this->GetMaxLineLengthErrorPercent() / 100.0)));
+	LOG_DEBUG("Line length - computed min: " << sqrt(minLineLengthSquared) << " , max: " << sqrt(maxLineLengthSquared) << ";  allowed min: " << this->GetMinLineLenMm() << ", max: " << this->GetMaxLineLenMm());
+
+	// Distance between lines (= distance between planes of the N-wires)
+	double maxNPlaneDistance = -1.0;
+	double minNPlaneDistance = FLT_MAX;
+	int numOfNWires = nWires.size();
+	double epsilon = 0.001;
+
+	// Compute normal of each NWire and evaluate the other wire endpoints if they are on the computed plane
+	std::vector<vtkSmartPointer<vtkPlane>> planes;
+	for (int i=0; i<numOfNWires; ++i) {
+		double normal[3];
+		vtkTriangle::ComputeNormal(nWires.at(i).wires[0].endPointFront, nWires.at(i).wires[0].endPointBack, nWires.at(i).wires[2].endPointFront, normal);
+
+		vtkSmartPointer<vtkPlane> plane = vtkSmartPointer<vtkPlane>::New();
+		plane->SetNormal(normal);
+		plane->SetOrigin(nWires.at(i).wires[0].endPointFront);
+		planes.push_back(plane);
+
+		double distance1F = plane->DistanceToPlane(nWires.at(i).wires[1].endPointFront);
+		double distance1B = plane->DistanceToPlane(nWires.at(i).wires[1].endPointBack);
+		double distance2B = plane->DistanceToPlane(nWires.at(i).wires[2].endPointBack);
+
+		if (distance1F > epsilon || distance1B > epsilon || distance2B > epsilon) {
+			LOG_ERROR("NWire number " << i << " is invalid: the endpoints are not on the same plane");
+		}
+	}
+
+	// Compute distances between each NWire pairs and determine the smallest and the largest distance
+	for (int i=numOfNWires-1; i>0; --i) {
+		for (int j=i-1; j>=0; --j) {
+			double distance = planes.at(i)->DistanceToPlane(planes.at(j)->GetOrigin());
+
+			if (maxNPlaneDistance < distance) {
+				maxNPlaneDistance = distance;
+			}
+			if (minNPlaneDistance > distance) {
+				minNPlaneDistance = distance;
+			}
+		}
+	}
+
+	this->SetMaxLinePairDistMm(maxNPlaneDistance * (1.0 + (this->GetMaxLinePairDistanceErrorPercent() / 100.0)));
+	this->SetMinLinePairDistMm(minNPlaneDistance * (1.0 - (this->GetMaxLinePairDistanceErrorPercent() / 100.0)));
+	LOG_DEBUG("Line pair distance - computed min: " << minNPlaneDistance << " , max: " << maxNPlaneDistance << ";  allowed min: " << this->GetMinLinePairDistMm() << ", max: " << this->GetMaxLinePairDistMm());
+}
+
+//-----------------------------------------------------------------------------
+
+PlusStatus SegmentationParameters::ReadSegmentationParametersConfiguration( vtkXMLDataElement* segmentationParameters )
+{
+	LOG_TRACE("SegmentationParameters::ReadSegmentationParametersConfiguration"); 
+	if ( segmentationParameters == NULL) 
+	{
+		LOG_WARNING("Unable to read the SegmentationParameters XML data element!"); 
+		return PLUS_FAIL; 
+	}
+
+	// The input image dimensions (in pixels)
+	int frameSize[2] = {0}; 
+	if ( segmentationParameters->GetVectorAttribute("FrameSize", 2, frameSize) ) 
+	{
+		this->SetFrameSize(frameSize[0],frameSize[1]); 
+	}
+
+	double scalingEstimation(0.0); 
+	if ( segmentationParameters->GetScalarAttribute("ScalingEstimation", scalingEstimation) )
+	{
+		this->SetScalingEstimation(scalingEstimation); 
+	}
+
+	double morphologicalOpeningCircleRadiusMm(0.0); 
+	if ( segmentationParameters->GetScalarAttribute("MorphologicalOpeningCircleRadiusMm", morphologicalOpeningCircleRadiusMm) )
+	{
+		this->SetMorphologicalOpeningCircleRadiusMm(morphologicalOpeningCircleRadiusMm); 
+	}
+
+	double morphologicalOpeningBarSizeMm(0.0); 
+	if ( segmentationParameters->GetScalarAttribute("MorphologicalOpeningBarSizeMm", morphologicalOpeningBarSizeMm) )
+	{
+		this->SetMorphologicalOpeningBarSizeMm(morphologicalOpeningBarSizeMm); 
+	}
+
+	// Segmentation search region Y direction
+	int regionOfInterest[4] = {0}; 
+	if ( segmentationParameters->GetVectorAttribute("RegionOfInterest", 4, regionOfInterest) )
+	{
+		this->SetRegionOfInterest(regionOfInterest[0], regionOfInterest[1], regionOfInterest[2], regionOfInterest[3]); 
+	}
+	else
+	{
+		LOG_WARNING("Cannot find RegionOfInterest attribute in the SegmentationParameters configuration file.");
+	}
+
+	double thresholdImageTop(0.0); 
+	if ( segmentationParameters->GetScalarAttribute("ThresholdImageTop", thresholdImageTop) )
+	{
+		this->SetThresholdImageTop(thresholdImageTop); 
+	}
+
+	double thresholdImageBottom(0.0); 
+	if ( segmentationParameters->GetScalarAttribute("ThresholdImageBottom", thresholdImageBottom) )
+	{
+		this->SetThresholdImageBottom(thresholdImageBottom); 
+	}
+
+	int useOriginalImageIntensityForDotIntensityScore(0); 
+	if ( segmentationParameters->GetScalarAttribute("UseOriginalImageIntensityForDotIntensityScore", useOriginalImageIntensityForDotIntensityScore) )
+	{
+		this->SetUseOriginalImageIntensityForDotIntensityScore((useOriginalImageIntensityForDotIntensityScore?true:false)); 
+	}
+
+
+	//if the tolerance parameters are computed automatically
+	int computeSegmentationParametersFromPhantomDefinition(0);
+	if(segmentationParameters->GetScalarAttribute("ComputeSegmentationParametersFromPhantomDefinition", computeSegmentationParametersFromPhantomDefinition)
+		&& computeSegmentationParametersFromPhantomDefinition!=0 )
+	{
+		double scalingEstimation(0.0);
+		if ( segmentationParameters->GetScalarAttribute("ScalingEstimation", scalingEstimation) )
+		{
+			this->SetScalingEstimation(scalingEstimation); 
+		}
+
+		double* imageScalingTolerancePercent = new double[4];
+		if ( segmentationParameters->GetVectorAttribute("ImageScalingTolerancePercent", 4, imageScalingTolerancePercent) )
+		{
+			for( int i = 0; i<4 ; i++)
+			{
+				this->SetImageScalingTolerancePercent(i, imageScalingTolerancePercent[i]);
+			}
+		}
+		delete [] imageScalingTolerancePercent;
+
+        double* imageNormalVectorInPhantomFrameEstimation = new double[3];
+		if ( segmentationParameters->GetVectorAttribute("ImageNormalVectorInPhantomFrameEstimation", 3, imageNormalVectorInPhantomFrameEstimation) )
+		{
+			this->SetImageNormalVectorInPhantomFrameEstimation(0, imageNormalVectorInPhantomFrameEstimation[0]);
+			this->SetImageNormalVectorInPhantomFrameEstimation(1, imageNormalVectorInPhantomFrameEstimation[1]);
+			this->SetImageNormalVectorInPhantomFrameEstimation(2, imageNormalVectorInPhantomFrameEstimation[2]);
+		}
+		delete [] imageNormalVectorInPhantomFrameEstimation;
+
+        double* imageNormalVectorInPhantomFrameMaximumRotationAngleDeg = new double[6];
+		if ( segmentationParameters->GetVectorAttribute("ImageNormalVectorInPhantomFrameMaximumRotationAngleDeg", 6, imageNormalVectorInPhantomFrameMaximumRotationAngleDeg) )
+		{
+			for( int i = 0; i<6 ; i++)
+			{
+				this->SetImageNormalVectorInPhantomFrameMaximumRotationAngleDeg(i, imageNormalVectorInPhantomFrameMaximumRotationAngleDeg[i]);
+			}
+		}
+		delete [] imageNormalVectorInPhantomFrameMaximumRotationAngleDeg;
+
+		double* imageToPhantomTransform = new double[16];
+		if ( segmentationParameters->GetVectorAttribute("ImageToPhantomTransform", 16, imageToPhantomTransform) )
+		{
+			for( int i = 0; i<16 ; i++)
+			{
+				this->SetImageToPhantomTransform(i, imageToPhantomTransform[i]);
+			}
+		}
+		delete [] imageToPhantomTransform;
+
+		//Compute the tolerances parameters automatically
+		this->ComputeParameters();
+	}
+	else//if the tolerances parameters are given by the configuration file
+	{
+		double maxLineLengthErrorPercent(0.0); 
+		if ( segmentationParameters->GetScalarAttribute("MaxLineLengthErrorPercent", maxLineLengthErrorPercent) )
+		{
+			this->SetMaxLineLengthErrorPercent(maxLineLengthErrorPercent); 
+		}
+
+		double maxLinePairDistanceErrorPercent(0.0); 
+		if ( segmentationParameters->GetScalarAttribute("MaxLinePairDistanceErrorPercent", maxLinePairDistanceErrorPercent) )
+		{
+			this->SetMaxLinePairDistanceErrorPercent(maxLinePairDistanceErrorPercent); 
+		}
+
+		double findLines3PtDist(0.0); 
+		if ( segmentationParameters->GetScalarAttribute("FindLines3PtDist", findLines3PtDist) )
+		{
+			this->SetFindLines3PtDist(findLines3PtDist); 
+		}
+
+		double maxLineErrorMm(0.0); 
+		if ( segmentationParameters->GetScalarAttribute("MaxLineErrorMm", maxLineErrorMm) )
+		{
+			this->SetMaxLineErrorMm(maxLineErrorMm); 
+		}
+
+		double maxAngleDifferenceDegrees(0.0); 
+		if ( segmentationParameters->GetScalarAttribute("MaxAngleDifferenceDegrees", maxAngleDifferenceDegrees) )
+		{
+			this->SetMaxAngleDiff(maxAngleDifferenceDegrees * M_PI / 180.0); 
+		}
+
+		double minThetaDegrees(0.0); 
+		if ( segmentationParameters->GetScalarAttribute("MinThetaDegrees", minThetaDegrees) )
+		{
+			this->SetMinTheta(minThetaDegrees * M_PI / 180.0); 
+		}
+
+		double maxThetaDegrees(0.0); 
+		if ( segmentationParameters->GetScalarAttribute("MaxThetaDegrees", maxThetaDegrees) )
+		{
+			this->SetMaxTheta(maxThetaDegrees * M_PI / 180.0); 
+		}
+	}
+
+	
+
+	/* Temporarily removed (also from config file) - these are the parameters for the U shaped ablation phantom
+	double maxUangleDiffInRad(0.0); 
+	if ( segmentationParameters->GetScalarAttribute("MaxUangleDiffInRad", maxUangleDiffInRad) )
+	{
+		this->mMaxUangleDiff = maxUangleDiffInRad; 
+	}
+
+	double maxUsideLineDiff(0.0); 
+	if ( segmentationParameters->GetScalarAttribute("MaxUsideLineDiff", maxUsideLineDiff) )
+	{
+		this->mMaxUsideLineDiff = maxUsideLineDiff; 
+	}
+
+	double minUsideLineLength(0.0); 
+	if ( segmentationParameters->GetScalarAttribute("MinUsideLineLength", minUsideLineLength) )
+	{
+		this->mMinUsideLineLength = minUsideLineLength; 
+	}
+
+	double maxUsideLineLength(0.0); 
+	if ( segmentationParameters->GetScalarAttribute("MaxUsideLineLength", maxUsideLineLength) )
+	{
+		this->mMaxUsideLineLength = maxUsideLineLength; 
+	}
+	*/	
+
+	return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
@@ -761,13 +1047,13 @@ void SegmentationParameters::ComputeParameters()
 
 	for(int i = 0 ; i<3 ; i++)
 	{
-		tempThetaX = thetaX[i];
-		for(int j = 0 ; j<3 ; i++)
+		tempThetaX = thetaX[i]*M_PI/180;
+		for(int j = 0 ; j<3 ; j++)
 		{
-			tempThetaY = thetaY[j];
-			for(int k = 0 ; k<3 ; i++)
+			tempThetaY = thetaY[j]*M_PI/180;
+			for(int k = 0 ; k<3 ; k++)
 			{
-				tempThetaZ = thetaZ[k];
+				tempThetaZ = thetaZ[k]*M_PI/180;
 				vnl_matrix<double> totalRotation(4,4,0);
 
 				totalRotation.put(0,0,cos(tempThetaY)*cos(tempThetaZ));
@@ -804,15 +1090,16 @@ void SegmentationParameters::ComputeParameters()
 		}
 	}
 
-	m_MaxTheta = *std::max(finalAngleTable.begin(),finalAngleTable.end());
-	m_MinTheta = *std::min(finalAngleTable.begin(),finalAngleTable.end());
+	m_MaxTheta = *std::max_element(finalAngleTable.begin(),finalAngleTable.end());
+	m_MinTheta = *std::min_element(finalAngleTable.begin(),finalAngleTable.end());
 
-	//m_MaxLineLengthErrorPercent = 5.0;//Relative tolerance about the length of a line in percent
-	//m_MaxLinePairDistanceErrorPercent = 10.0;//The maximum error on the distance between two lines
-	//m_MaxLineErrorMm = 2.0;//The absolute tolerance on the acceptance of a line
+	m_MaxLineLengthErrorPercent = 8.0;//Relative tolerance about the length of a line in percent
+	m_MaxLinePairDistanceErrorPercent = 10.0;//The maximum error on the distance between two lines
+	m_MaxLineErrorMm = 2.0;//The absolute tolerance on the acceptance of a line
 
-	//m_FindLines3PtDist = 5.3f;//distance of the third point to line it tries to be added to
-	//m_MaxAngleDiff = 11.0 * M_PI / 180.0;//maximum angle allowed between 2 lines
+	
+	m_FindLines3PtDist = 5.3f;//distance of the third point to line it tries to be added to
+	m_MaxAngleDiff = 11.0 * M_PI / 180.0;//maximum angle allowed between 2 lines
 	//m_MinTheta = 20.0 * M_PI / 180.0;//minimum angle allowed for a single line (cannot be vertical for example)
 	//m_MaxTheta = 160.0 * M_PI / 180.0;//maximum angle allowed for a single line (cannot be vertical for example)
 }
@@ -1239,16 +1526,10 @@ void SegImpl::find_u_shape_line_triad(SegmentationResults &segResult)
 
 //-----------------------------------------------------------------------------
 
-KPhantomSeg::KPhantomSeg(int sizeX, int sizeY,
-						 int searchOriginX, int searchOriginY, int searchSizeX, int searchSizeY , bool debugOutput /*=false*/, std::string possibleFiducialsImageFilename)
-:
-	m_SizeX(sizeX), m_SizeY(sizeY), 
-	m_SearchOriginX(searchOriginX), m_SearchOriginY(searchOriginY), 
-	m_SearchSizeX(searchSizeX), m_SearchSizeY(searchSizeY), m_PossibleFiducialsImageFilename(possibleFiducialsImageFilename)
-
+KPhantomSeg::KPhantomSeg(int FrameSize[2], int RegionOfInterest[4] , bool debugOutput /*=false*/, std::string possibleFiducialsImageFilename)
 {
 	//TODO make SegImpl the class instead of KPhantomSeg (KPhantomSeg's members are not used anywhere)
-	m_SegImpl = new SegImpl(sizeX, sizeY, searchOriginX, searchOriginY, searchSizeX, searchSizeY, debugOutput, possibleFiducialsImageFilename);
+	m_SegImpl = new SegImpl(FrameSize, RegionOfInterest, debugOutput, possibleFiducialsImageFilename);
 }
 
 //-----------------------------------------------------------------------------

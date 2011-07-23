@@ -87,9 +87,7 @@ PlusStatus vtkStepperCalibrationController::Initialize()
   // Initialize the segmenation component
   // ====================================
   this->mptrAutomatedSegmentation = new KPhantomSeg( 
-    this->GetImageWidthInPixels(), this->GetImageHeightInPixels(), 
-    this->GetSearchStartAtX(), this->GetSearchStartAtY(), 
-    this->GetSearchDimensionX(), this->GetSearchDimensionY(), this->GetEnableSegmentationAnalysis(), "frame.jpg");
+	  this->GetSegParameters()->GetFrameSize(),this->GetSegParameters()->GetRegionOfInterest(), this->GetEnableSegmentationAnalysis(), "frame.jpg");
 
   this->InitializedOn(); 
 

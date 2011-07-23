@@ -400,14 +400,14 @@ PlusStatus vtkFreehandCalibrationController::CalculateImageCameraParameters()
 	// Calculate image center
 	double imageCenterX = 0;
 	double imageCenterY = 0;
-	if ((this->GetImageWidthInPixels() == 0) || (this->GetImageHeightInPixels() == 0)) {
+	if ((this->GetSegParameters()->GetFrameSize()[0] == 0) || (this->GetSegParameters()->GetFrameSize()[1] == 0)) {
 		int dimensions[3];
 		dataCollector->GetVideoSource()->GetFrameSize(dimensions);
 		imageCenterX = dimensions[0] / 2.0;
 		imageCenterY = dimensions[1] / 2.0;
 	} else {
-		imageCenterX = this->GetImageWidthInPixels() / 2.0; 
-		imageCenterY = this->GetImageHeightInPixels() / 2.0; 
+		imageCenterX = this->GetSegParameters()->GetFrameSize()[0] / 2.0; 
+		imageCenterY = this->GetSegParameters()->GetFrameSize()[1] / 2.0; 
 	}
 
 	// Set up camera
@@ -564,9 +564,7 @@ PlusStatus vtkFreehandCalibrationController::Start()
 		// Initialize the segmentation component
 		if (this->mptrAutomatedSegmentation == NULL) {
 			this->mptrAutomatedSegmentation = new KPhantomSeg( 
-				this->GetImageWidthInPixels(), this->GetImageHeightInPixels(), 
-				this->GetSearchStartAtX(), this->GetSearchStartAtY(), 
-				this->GetSearchDimensionX(), this->GetSearchDimensionY(), this->GetEnableSegmentationAnalysis(), "frame.jpg");
+				this->GetSegParameters()->GetFrameSize(), this->GetSegParameters()->GetRegionOfInterest(), this->GetEnableSegmentationAnalysis(), "frame.jpg");
 		}	
 
 		// Initialize the calibration component
@@ -1338,8 +1336,8 @@ PlusStatus vtkFreehandCalibrationController::SaveCalibrationResultsAndErrorRepor
 	// <UltrasoundImageDimensions>
 	vtkSmartPointer<vtkXMLDataElement> tagUltrasoundImageDimensions = vtkSmartPointer<vtkXMLDataElement>::New(); 
 	tagUltrasoundImageDimensions->SetName("UltrasoundImageDimensions"); 
-	tagUltrasoundImageDimensions->SetIntAttribute("Width", this->GetImageWidthInPixels()); 
-	tagUltrasoundImageDimensions->SetIntAttribute("Height", this->GetImageHeightInPixels()); 
+	tagUltrasoundImageDimensions->SetIntAttribute("Width", this->GetSegParameters()->GetFrameSize()[0]); 
+	tagUltrasoundImageDimensions->SetIntAttribute("Height", this->GetSegParameters()->GetFrameSize()[1]); 
 	vtkstd::string commentUltrasoundImageDimensions("# UltrasoundImageDimensions format: image width and height in pixels."); 
 	tagUltrasoundImageDimensions->AddCharacterData(commentUltrasoundImageDimensions.c_str(), commentUltrasoundImageDimensions.size()); 
 	// </UltrasoundImageDimensions>
