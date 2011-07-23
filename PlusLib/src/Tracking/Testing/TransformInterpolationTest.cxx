@@ -1,4 +1,5 @@
 #include "PlusConfigure.h"
+#include "PlusMath.h"
 #include "vtksys/CommandLineArguments.hxx"
 #include "vtkTrackerBuffer.h"
 #include "vtkHTMLGenerator.h"
@@ -6,9 +7,6 @@
 #include "vtkTrackedFrameList.h"
 #include "vtksys/SystemTools.hxx"
 #include "vtkMath.h"
-
-double GetTranslationError(vtkMatrix4x4* baseTransMatrix, vtkMatrix4x4* currentTransMatrix); 
-double GetRotationError(vtkMatrix4x4* baseTransMatrix, vtkMatrix4x4* currentTransMatrix); 
 
 int main(int argc, char **argv)
 {
@@ -169,14 +167,14 @@ int main(int argc, char **argv)
     }
 
 
-    double rotDiff = GetRotationError(matrix, prevmatrix); 
+    double rotDiff = PlusMath::GetOrientationDifference(matrix, prevmatrix); 
     if ( rotDiff > inputMaxRotationDifference )
     {
       LOG_ERROR("Rotation difference is larger than the max rotation difference (difference=" << std::fixed << rotDiff << ", threshold=" << inputMaxRotationDifference << ", itemIndex=" << bufferIndex << ", timestamp=" << newTime << ")!"); 
       numberOfErrors++; 
     }
 
-    double transDiff = GetTranslationError(matrix, prevmatrix); 
+    double transDiff = PlusMath::GetPositionDifference(matrix, prevmatrix); 
     if ( transDiff > inputMaxTranslationDifference)
     {
       LOG_ERROR("Translation difference is larger than the max translation difference (difference=" << std::fixed << transDiff << ", threshold=" << inputMaxTranslationDifference << ", itemIndex=" << bufferIndex << ", timestamp=" << newTime << ")!"); 
@@ -199,43 +197,3 @@ int main(int argc, char **argv)
 	return EXIT_SUCCESS; 
  } 
 
- double GetTranslationError(vtkMatrix4x4* baseTransMatrix, vtkMatrix4x4* currentTransMatrix)
-{
-	vtkSmartPointer<vtkTransform> baseTransform = vtkSmartPointer<vtkTransform>::New(); 
-	baseTransform->SetMatrix(baseTransMatrix); 
-
-	vtkSmartPointer<vtkTransform> currentTransform = vtkSmartPointer<vtkTransform>::New(); 
-	currentTransform->SetMatrix(currentTransMatrix); 
-
-	double bx = baseTransform->GetPosition()[0]; 
-	double by = baseTransform->GetPosition()[1]; 
-	double bz = baseTransform->GetPosition()[2]; 
-
-	double cx = currentTransform->GetPosition()[0]; 
-	double cy = currentTransform->GetPosition()[1]; 
-	double cz = currentTransform->GetPosition()[2]; 
-
-	// Euclidean distance
-	double distance = sqrt( pow(bx-cx,2) + pow(by-cy,2) + pow(bz-cz,2) ); 
-
-	return distance; 
-}
-
-double GetRotationError(vtkMatrix4x4* baseTransMatrix, vtkMatrix4x4* currentTransMatrix)
-{
-	vtkSmartPointer<vtkMatrix4x4> diffTransMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
-	vtkSmartPointer<vtkMatrix4x4> invCurrentTransMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
-	
-	vtkMatrix4x4::Invert(currentTransMatrix, invCurrentTransMatrix);  
-	
-	vtkMatrix4x4::Multiply4x4(baseTransMatrix, invCurrentTransMatrix, diffTransMatrix); 
-
-	vtkSmartPointer<vtkTransform> diffTransform = vtkSmartPointer<vtkTransform>::New(); 
-	diffTransform->SetMatrix(diffTransMatrix); 
-
-	double angleDiff_rad= vtkMath::RadiansFromDegrees(diffTransform->GetOrientationWXYZ()[0]);
-
-	double normalizedAngleDiff_rad = atan2( sin(angleDiff_rad), cos(angleDiff_rad) ); // normalize angle to domain -pi, pi 
-
-	return vtkMath::DegreesFromRadians(normalizedAngleDiff_rad);
-}

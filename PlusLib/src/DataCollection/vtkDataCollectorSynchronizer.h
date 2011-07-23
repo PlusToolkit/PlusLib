@@ -167,8 +167,6 @@ protected:
 	virtual PlusStatus FindTransformMotionTimestamp( BufferItemUidType& bufferIndex, double& movedTransformTimestamp ); 
 	virtual bool IsTransformBelowThreshold( vtkTransform* transform, double timestamp); 
 	virtual void FindStillTransform( BufferItemUidType& baseIndex, BufferItemUidType& currentIndex ); 
-	virtual double GetRotationError(vtkMatrix4x4* baseTransMatrix, vtkMatrix4x4* currentTransMatrix); 
-	virtual double GetTranslationError(vtkMatrix4x4* baseTransMatrix, vtkMatrix4x4* currentTransMatrix); 
 
 	virtual void RemoveOutliers(); 
 

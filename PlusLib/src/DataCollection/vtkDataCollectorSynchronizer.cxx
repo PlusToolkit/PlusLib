@@ -1,4 +1,5 @@
 #include "PlusConfigure.h"
+#include "PlusMath.h"
 #include "vtkDataCollectorSynchronizer.h"
 #include "vtkObjectFactory.h"
 #include "vtkImageDifference.h"
@@ -635,8 +636,8 @@ void vtkDataCollectorSynchronizer::FindStillTransform( BufferItemUidType& baseIn
       continue; 
     }
       
-    if ( this->GetTranslationError(baseMatrix, currentMatrix ) < this->MaxTransformDifference 
-      && this->GetRotationError(baseMatrix, currentMatrix) < this->MaxTransformDifference )
+    if ( PlusMath::GetPositionDifference(baseMatrix, currentMatrix ) < this->MaxTransformDifference 
+      && PlusMath::GetOrientationDifference(baseMatrix, currentMatrix) < this->MaxTransformDifference )
     {
       // This item is below threshold, continue with the preceding item in the buffer
       currentIndex = currentIndex - 1; 
@@ -650,47 +651,6 @@ void vtkDataCollectorSynchronizer::FindStillTransform( BufferItemUidType& baseIn
       FindStillTransform(baseIndex, currentIndex); 
     }
   }
-}
-
-//----------------------------------------------------------------------------
-double vtkDataCollectorSynchronizer::GetRotationError(vtkMatrix4x4* baseTransMatrix, vtkMatrix4x4* currentTransMatrix)
-{
-  LOG_TRACE("vtkDataCollectorSynchronizer::GetRotationError"); 
-  vtkSmartPointer<vtkMatrix4x4> diffTransMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
-  vtkSmartPointer<vtkMatrix4x4> invCurrentTransMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
-
-  vtkMatrix4x4::Invert(currentTransMatrix, invCurrentTransMatrix);  
-
-  vtkMatrix4x4::Multiply4x4(baseTransMatrix, invCurrentTransMatrix, diffTransMatrix); 
-
-  vtkSmartPointer<vtkTransform> diffTransform = vtkSmartPointer<vtkTransform>::New(); 
-  diffTransform->SetMatrix(diffTransMatrix); 
-
-  return diffTransform->GetOrientationWXYZ()[0]; 
-}
-
-//----------------------------------------------------------------------------
-double vtkDataCollectorSynchronizer::GetTranslationError(vtkMatrix4x4* baseTransMatrix, vtkMatrix4x4* currentTransMatrix)
-{
-  LOG_TRACE("vtkDataCollectorSynchronizer::GetTranslationError"); 
-  vtkSmartPointer<vtkTransform> baseTransform = vtkSmartPointer<vtkTransform>::New(); 
-  baseTransform->SetMatrix(baseTransMatrix); 
-
-  vtkSmartPointer<vtkTransform> currentTransform = vtkSmartPointer<vtkTransform>::New(); 
-  currentTransform->SetMatrix(currentTransMatrix); 
-
-  double bx = baseTransform->GetPosition()[0]; 
-  double by = baseTransform->GetPosition()[1]; 
-  double bz = baseTransform->GetPosition()[2]; 
-
-  double cx = currentTransform->GetPosition()[0]; 
-  double cy = currentTransform->GetPosition()[1]; 
-  double cz = currentTransform->GetPosition()[2]; 
-
-  // Euclidean distance
-  double distance = sqrt( pow(bx-cx,2) + pow(by-cy,2) + pow(bz-cz,2) ); 
-
-  return distance; 
 }
 
 //----------------------------------------------------------------------------

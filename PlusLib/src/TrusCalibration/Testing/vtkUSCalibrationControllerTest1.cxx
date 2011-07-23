@@ -1,4 +1,5 @@
 #include "PlusConfigure.h"
+#include "PlusMath.h"
 #include "vtkProbeCalibrationController.h"
 #include "vtkStepperCalibrationController.h"
 #include "vtkBMPReader.h"
@@ -20,9 +21,6 @@
 const double ERROR_THRESHOLD = 0.05; // error threshold is 5% 
 
 int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const char* currentResultFileName, int translationErrorThreshold, int rotationErrorThreshold); 
-void PrintLogsCallback(vtkObject* obj, unsigned long eid, void* clientdata, void* calldata); 
-double GetTranslationError(vtkMatrix4x4* baseTransMatrix, vtkMatrix4x4* currentTransMatrix); 
-double GetRotationError(vtkMatrix4x4* baseTransMatrix, vtkMatrix4x4* currentTransMatrix); 
 
 int main (int argc, char* argv[])
 { 
@@ -369,14 +367,14 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
 					}
 
 				}
-					double translationError = GetTranslationError(baseTransMatrix, currentTransMatrix); 
+					double translationError = PlusMath::GetPositionDifference(baseTransMatrix, currentTransMatrix); 
 					if ( translationError > translationErrorThreshold )
 					{
 						LOG_ERROR("TransformImageHomeToUserImageHome translation error is higher than expected: " << translationError << " mm (threshold: " << translationErrorThreshold << " mm). " );
 						numberOfFailures++;
 					}
 
-					double rotationError = GetRotationError(baseTransMatrix, currentTransMatrix); 
+					double rotationError = PlusMath::GetOrientationDifference(baseTransMatrix, currentTransMatrix); 
 					if ( rotationError > rotationErrorThreshold )
 					{
 						LOG_ERROR("TransformImageHomeToUserImageHome rotation error is higher than expected: " << rotationError << " degree (threshold: " << rotationErrorThreshold << " degree). " );
@@ -416,14 +414,14 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
 					}
 
 				}
-					double translationError = GetTranslationError(baseTransMatrix, currentTransMatrix); 
+					double translationError = PlusMath::GetPositionDifference(baseTransMatrix, currentTransMatrix); 
 					if ( translationError > translationErrorThreshold )
 					{
 						LOG_ERROR("TransformUserImageHomeToProbeHome translation error is higher than expected: " << translationError << " mm (threshold: " << translationErrorThreshold << " mm). " );
 						numberOfFailures++;
 					}
 
-					double rotationError = GetRotationError(baseTransMatrix, currentTransMatrix); 
+					double rotationError = PlusMath::GetOrientationDifference(baseTransMatrix, currentTransMatrix); 
 					if ( rotationError > rotationErrorThreshold )
 					{
 						LOG_ERROR("TransformUserImageHomeToProbeHome rotation error is higher than expected: " << rotationError << " degree (threshold: " << rotationErrorThreshold << " degree). " );
@@ -463,14 +461,14 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
 					}
 
 				}
-					double translationError = GetTranslationError(baseTransMatrix, currentTransMatrix); 
+					double translationError = PlusMath::GetPositionDifference(baseTransMatrix, currentTransMatrix); 
 					if ( translationError > translationErrorThreshold )
 					{
 						LOG_ERROR("TransformProbeHomeToTemplateHolderHome translation error is higher than expected: " << translationError << " mm (threshold: " << translationErrorThreshold << " mm). " );
 						numberOfFailures++;
 					}
 
-					double rotationError = GetRotationError(baseTransMatrix, currentTransMatrix); 
+					double rotationError = PlusMath::GetOrientationDifference(baseTransMatrix, currentTransMatrix); 
 					if ( rotationError > rotationErrorThreshold )
 					{
 						LOG_ERROR("TransformProbeHomeToTemplateHolderHome rotation error is higher than expected: " << rotationError << " degree (threshold: " << rotationErrorThreshold << " degree). " );
@@ -509,14 +507,14 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
 					}
 
 				}
-					double translationError = GetTranslationError(baseTransMatrix, currentTransMatrix); 
+					double translationError = PlusMath::GetPositionDifference(baseTransMatrix, currentTransMatrix); 
 					if ( translationError > translationErrorThreshold )
 					{
 						LOG_ERROR("TransformTemplateHolderHomeToTemplateHome translation error is higher than expected: " << translationError << " mm (threshold: " << translationErrorThreshold << " mm). " );
 						numberOfFailures++;
 					}
 
-					double rotationError = GetRotationError(baseTransMatrix, currentTransMatrix); 
+					double rotationError = PlusMath::GetOrientationDifference(baseTransMatrix, currentTransMatrix); 
 					if ( rotationError > rotationErrorThreshold )
 					{
 						LOG_ERROR("TransformTemplateHolderHomeToTemplateHome rotation error is higher than expected: " << rotationError << " degree (threshold: " << rotationErrorThreshold << " degree). " );
@@ -555,14 +553,14 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
 					}
 
 				}
-					double translationError = GetTranslationError(baseTransMatrix, currentTransMatrix); 
+					double translationError = PlusMath::GetPositionDifference(baseTransMatrix, currentTransMatrix); 
 					if ( translationError > translationErrorThreshold )
 					{
 						LOG_ERROR("TransformTemplateHomeToTemplate translation error is higher than expected: " << translationError << " mm (threshold: " << translationErrorThreshold << " mm). " );
 						numberOfFailures++;
 					}
 
-					double rotationError = GetRotationError(baseTransMatrix, currentTransMatrix); 
+					double rotationError = PlusMath::GetOrientationDifference(baseTransMatrix, currentTransMatrix); 
 					if ( rotationError > rotationErrorThreshold )
 					{
 						LOG_ERROR("TransformTemplateHomeToTemplate rotation error is higher than expected: " << rotationError << " degree (threshold: " << rotationErrorThreshold << " degree). " );
@@ -601,14 +599,14 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
 					}
 
 				}
-					double translationError = GetTranslationError(baseTransMatrix, currentTransMatrix); 
+					double translationError = PlusMath::GetPositionDifference(baseTransMatrix, currentTransMatrix); 
 					if ( translationError > translationErrorThreshold )
 					{
 						LOG_ERROR("TransformImageToTemplate translation error is higher than expected: " << translationError << " mm (threshold: " << translationErrorThreshold << " mm). " );
 						numberOfFailures++;
 					}
 
-					double rotationError = GetRotationError(baseTransMatrix, currentTransMatrix); 
+					double rotationError = PlusMath::GetOrientationDifference(baseTransMatrix, currentTransMatrix); 
 					if ( rotationError > rotationErrorThreshold )
 					{
 						LOG_ERROR("TransformImageToTemplate rotation error is higher than expected: " << rotationError << " degree (threshold: " << rotationErrorThreshold << " degree). " );
@@ -787,59 +785,4 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
 	return numberOfFailures; 
 
 }
-
-double GetTranslationError(vtkMatrix4x4* baseTransMatrix, vtkMatrix4x4* currentTransMatrix)
-{
-	vtkSmartPointer<vtkTransform> baseTransform = vtkSmartPointer<vtkTransform>::New(); 
-	baseTransform->SetMatrix(baseTransMatrix); 
-
-	vtkSmartPointer<vtkTransform> currentTransform = vtkSmartPointer<vtkTransform>::New(); 
-	currentTransform->SetMatrix(currentTransMatrix); 
-
-	double bx = baseTransform->GetPosition()[0]; 
-	double by = baseTransform->GetPosition()[1]; 
-	double bz = baseTransform->GetPosition()[2]; 
-
-	double cx = currentTransform->GetPosition()[0]; 
-	double cy = currentTransform->GetPosition()[1]; 
-	double cz = currentTransform->GetPosition()[2]; 
-
-	// Euclidean distance
-	double distance = sqrt( pow(bx-cx,2) + pow(by-cy,2) + pow(bz-cz,2) ); 
-
-	return distance; 
-}
-
-double GetRotationError(vtkMatrix4x4* baseTransMatrix, vtkMatrix4x4* currentTransMatrix)
-{
-	vtkSmartPointer<vtkMatrix4x4> diffTransMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
-	vtkSmartPointer<vtkMatrix4x4> invCurrentTransMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
-	
-	vtkMatrix4x4::Invert(currentTransMatrix, invCurrentTransMatrix);  
-	
-	vtkMatrix4x4::Multiply4x4(baseTransMatrix, invCurrentTransMatrix, diffTransMatrix); 
-
-	vtkSmartPointer<vtkTransform> diffTransform = vtkSmartPointer<vtkTransform>::New(); 
-	diffTransform->SetMatrix(diffTransMatrix); 
-
-	double angleDiff_rad= vtkMath::RadiansFromDegrees(diffTransform->GetOrientationWXYZ()[0]);
-
-	double normalizedAngleDiff_rad = atan2( sin(angleDiff_rad), cos(angleDiff_rad) ); // normalize angle to domain -pi, pi 
-
-	return vtkMath::DegreesFromRadians(normalizedAngleDiff_rad);
-}
-
-// Callback function for error and warning redirects
-void PrintLogsCallback(vtkObject* obj, unsigned long eid, void* clientdata, void* calldata)
-{
-	if ( eid == vtkCommand::GetEventIdFromString("WarningEvent") )
-	{
-		LOG_WARNING((const char*)calldata);
-	}
-	else if ( eid == vtkCommand::GetEventIdFromString("ErrorEvent") )
-	{
-		LOG_ERROR((const char*)calldata);
-	}
-}
-
 

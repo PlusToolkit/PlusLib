@@ -7,6 +7,7 @@
 #include "vnl/vnl_matrix.h"
 #include "vnl/vnl_vector.h"
 #include "vnl/vnl_sparse_matrix.h"   
+#include "vtkMatrix4x4.h"
 
 class VTK_EXPORT PlusMath
 {
@@ -19,6 +20,14 @@ public:
   static PlusStatus LSQRMinimize(const std::vector< std::vector<double> > &aMatrix, const std::vector<double> &bVector, vnl_vector<double> &resultVector); 
   static PlusStatus LSQRMinimize(const std::vector<vnl_vector<double>> &aMatrix, const std::vector<double> &bVector, vnl_vector<double> &resultVector); 
   static PlusStatus LSQRMinimize(const vnl_sparse_matrix<double> &sparseMatrixLeftSide, const vnl_vector<double> &vectorRightSide, vnl_vector<double> &resultVector); 
+
+  //! Description: 
+  // Returns the Euclidean distance between two 4x4 homogeneous transformation matrix
+  static double GetPositionDifference(vtkMatrix4x4* aMatrix, vtkMatrix4x4* bMatrix); 
+
+  //! Description: 
+  // Returns the oriantation difference in degrees between two 4x4 homogeneous transformation matrix
+  static double GetOrientationDifference(vtkMatrix4x4* aMatrix, vtkMatrix4x4* bMatrix); 
 
 protected:
   PlusMath(); 
