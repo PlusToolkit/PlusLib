@@ -515,7 +515,7 @@ ItemStatus vtkTrackerBuffer::GetTrackerBufferItemFromTime( double time, TrackerB
   {
     if ( GetNextValidItemUid(itemAuid, DIR_BACKWARD, itemBuid)!= ITEM_OK )
     {
-      LOG_WARNING("vtkTrackerBuffer: Cannot perform interpolation, there is no available item before the closest item" << " ( closest time = " << itemAtime << ", requested time = " << time << "). Using the closest item." );    
+      LOG_WARNING("vtkTrackerBuffer: Cannot perform interpolation, there is no available item before the closest item" << std::fixed << " ( closest time = " << itemAtime << ", requested time = " << time << "). Using the closest item." );    
       this->TrackerBuffer->Unlock();
       return ITEM_OK;
     }
@@ -524,7 +524,7 @@ ItemStatus vtkTrackerBuffer::GetTrackerBufferItemFromTime( double time, TrackerB
   {
     if ( GetNextValidItemUid(itemAuid, DIR_FORWARD, itemBuid)!= ITEM_OK )
     {
-      LOG_WARNING("vtkTrackerBuffer: Cannot perform interpolation, there is no available item after the closest item" << " ( closest time = " << itemAtime << ", requested time = " << time << "). Using the closest item." );    
+      LOG_WARNING("vtkTrackerBuffer: Cannot perform interpolation, there is no available item after the closest item" << std::fixed << " ( closest time = " << itemAtime << ", requested time = " << time << "). Using the closest item." );    
       this->TrackerBuffer->Unlock();
       return ITEM_OK;
     }
@@ -549,7 +549,8 @@ ItemStatus vtkTrackerBuffer::GetTrackerBufferItemFromTime( double time, TrackerB
   }
   if ( itemB.GetStatus() != TR_OK )
   {
-    LOG_WARNING("Cannot get a second element (uid="<<itemBuid<<") on the other side of the requested time ("<<time<<"). Just use the closest element (uid="<<itemAuid<<", time="<<itemAtime<<").");
+    LOG_WARNING("Cannot get a second element (uid="<<itemBuid<<") on the other side of the requested time ("<< std::fixed <<  time 
+      <<"). Just use the closest element (uid=" << std::dec <<itemAuid <<", time=" << std::fixed << itemAtime<<").");
     this->TrackerBuffer->Unlock();
     return ITEM_OK; 
   }

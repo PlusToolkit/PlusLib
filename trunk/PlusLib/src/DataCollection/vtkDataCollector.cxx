@@ -901,10 +901,19 @@ PlusStatus vtkDataCollector::GetMostRecentTimestamp(double &ts)
       return PLUS_FAIL; 
     }
 
-    // Get the most recent timestamp from the buffer
-    if ( this->GetTracker()->GetTool(this->GetDefaultToolPortNumber())->GetBuffer()->GetLatestTimeStamp( latestTrackerTimestamp ) != ITEM_OK )
+    
+    vtkTrackerBuffer* trackerBuffer = this->GetTracker()->GetTool(this->GetDefaultToolPortNumber())->GetBuffer(); 
+    BufferItemUidType uid = trackerBuffer->GetLatestItemUidInBuffer(); 
+    if ( uid - 1 > 0 )
     {
-      LOG_WARNING("Unable to get latest timestamp from default tool tracker buffer!"); 
+      // Always use the latestItemUid - 1 to be able to interpolate transforms
+      uid = uid - 1; 
+    }
+
+    // Get the most recent valid timestamp from the tracker buffer
+    if ( trackerBuffer->GetTimeStamp(uid, latestTrackerTimestamp ) != ITEM_OK )
+    {
+      LOG_WARNING("Unable to get timestamp from default tool tracker buffer with UID: " << uid); 
       return PLUS_FAIL;
     }
   }
@@ -928,7 +937,13 @@ PlusStatus vtkDataCollector::GetMostRecentTimestamp(double &ts)
       return PLUS_FAIL; 
     }
 
-    if ( this->GetVideoSource()->GetBuffer()->GetTimeStamp(videoUid - 1, latestVideoTimestamp) != ITEM_OK )
+    if ( videoUid - 1 > 0 ) 
+    {
+      // Always use the preceding video UID to have time for transform interpolation 
+      videoUid = videoUid - 1; 
+    }
+
+    if ( this->GetVideoSource()->GetBuffer()->GetTimeStamp(videoUid, latestVideoTimestamp) != ITEM_OK )
     {
       LOG_ERROR("Failed to get video buffer timestamp from UID: " << videoUid); 
       return PLUS_FAIL; 
