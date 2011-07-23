@@ -633,7 +633,7 @@ vtkMatrix4x4* PhantomRegistrationController::AcquireStylusTipTrackerPosition(dou
 	if (m_RecordRequested) { // Save the time of dynamic cast is record has not been requested
 		vtkFakeTracker *fakeTracker = dynamic_cast<vtkFakeTracker*>(dataCollector->GetTracker());
 		if (fakeTracker != NULL) {
-			vtkAccurateTimer::Delay(1.0 / fakeTracker->GetFrequency());
+			vtkAccurateTimer::Delay(1.1 / fakeTracker->GetFrequency());
 		}
 	}
 
