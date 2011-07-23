@@ -1,9 +1,27 @@
 @ECHO off 
+REM Hide all your directories from users
+
+SET ORIGPATH=%PATH%
+SET DIRCMD=0 
+
+REM Set up PATH env variable
+CALL DevEnv_Release.bat no-sln 
+
 REM First we need to build a Release version 
+"${CMAKE_MAKE_PROGRAM}" PlusApp.sln /build Release /project ALL_BUILD
 
-SET PATH=c:/cygwin/bin;%PATH%
-SET SVNCOMMAND=svn.exe
+IF ERRORLEVEL 1  GOTO BUILDFAILED
+IF ERRORLEVEL 0 GOTO PACKAGE
 
-"${CMAKE_CPACK_COMMAND}"
+:BUILDFAILED
+ECHO ERROR: Build failed...
+GOTO END 
 
-ECHO DONE
+:PACKAGE
+REM Build the package 
+"C:/Program Files/CMake 2.8/bin/cpack.exe" --config ./CPackConfig.cmake
+ECHO Package generation DONE!
+GOTO END
+
+:END
+SET PATH=%ORIGPATH%
