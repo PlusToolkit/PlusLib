@@ -179,7 +179,7 @@ int main (int argc, char* argv[])
 			continue; 
 		}
 
-		KPhantomSeg segmenter(ImageWidthInPixels, ImageHeightInPixels, SearchRegionXMin, SearchRegionYMin, SearchRegionXSize, SearchRegionYSize); 
+		KPhantomSeg segmenter(SegParameters.GetFrameSize(), SegParameters.GetRegionOfInterest()); 
 		segmenter.SetSegParams(SegParameters); 
 
 		try

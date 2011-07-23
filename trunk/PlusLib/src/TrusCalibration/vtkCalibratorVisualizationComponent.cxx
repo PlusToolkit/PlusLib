@@ -263,8 +263,8 @@ void vtkCalibratorVisualizationComponent::Initialize(vtkProbeCalibrationControll
 	this->SetTemplateCamera(templateCamera); 
 
 	vtkSmartPointer<vtkCamera> imageCamera = vtkSmartPointer<vtkCamera>::New(); 
-	double imageCenterX = this->GetCalibrationController()->GetImageWidthInPixels()/2.0; 
-	double imageCenterY = this->GetCalibrationController()->GetImageHeightInPixels()/2.0; 
+	double imageCenterX = this->GetCalibrationController()->GetSegParameters()->GetFrameSize()[0]/2.0; 
+	double imageCenterY = this->GetCalibrationController()->GetSegParameters()->GetFrameSize()[1]/2.0; 
 	imageCamera->SetPosition(imageCenterX, imageCenterY, 150); 
 	imageCamera->SetFocalPoint(imageCenterX, imageCenterY, 0); 
 	imageCamera->SetViewUp(0, 1, 0);
@@ -318,7 +318,7 @@ void vtkCalibratorVisualizationComponent::OverlayCenterOfRotation()
 	this->GetCenterOfRotationActor()->GetProperty()->SetColor(1,0,0);
 
 	int originX = this->GetCalibrationController()->GetUSImageFrameOriginXInPixels(); 
-	int originY = this->GetCalibrationController()->GetImageHeightInPixels() - this->GetCalibrationController()->GetUSImageFrameOriginYInPixels(); 
+	int originY = this->GetCalibrationController()->GetSegParameters()->GetFrameSize()[1] - this->GetCalibrationController()->GetUSImageFrameOriginYInPixels(); 
 	this->GetCenterOfRotationActor()->SetPosition(originX, originY, 0); 
 	this->GetCenterOfRotationActor()->Modified(); 
 	this->ShowCenterOfRotation(); 
@@ -333,10 +333,10 @@ void vtkCalibratorVisualizationComponent::OverlayTemplate()
 	}
 
 	int originX = this->GetCalibrationController()->GetUSImageFrameOriginXInPixels(); 
-	int originY = this->GetCalibrationController()->GetImageHeightInPixels() - this->GetCalibrationController()->GetUSImageFrameOriginYInPixels(); 
+	int originY = this->GetCalibrationController()->GetSegParameters()->GetFrameSize()[1] - this->GetCalibrationController()->GetUSImageFrameOriginYInPixels(); 
 
 	// Set upper left corner as image origin
-	this->GetRealtimeImageActor()->SetPosition( 0, -this->GetCalibrationController()->GetImageHeightInPixels(), 0);
+	this->GetRealtimeImageActor()->SetPosition( 0, -this->GetCalibrationController()->GetSegParameters()->GetFrameSize()[1], 0);
 	this->GetRealtimeImageActor()->SetUserTransform( this->GetTransformUSImageToWorld() ); 
 
 	// Create template grid actors
@@ -595,7 +595,7 @@ void vtkCalibratorVisualizationComponent::SetupImageViewers()
 		// Render Window size: [mImageWidthInPixels*1.125, mImageHeightInPixels]
 		// This is to ensure there is enough space for the color bar display
 		mptrPRE3DonUSImageViewerX->GetRenderWindow()->SetSize( 
-			int(this->GetCalibrationController()->GetImageWidthInPixels()*1.125), this->GetCalibrationController()->GetImageHeightInPixels() );
+			int(this->GetCalibrationController()->GetSegParameters()->GetFrameSize()[0]*1.125), this->GetCalibrationController()->GetSegParameters()->GetFrameSize()[1] );
 		// The background is set to be all black for the renderer
 		mptrPRE3DonUSImageViewerX->GetRenderer()->SetBackground(0, 0, 0);
 		mptrPRE3DonUSImageViewerX->GetRenderer()->AddActor( mptrPRE3DScalarBarActorX );
@@ -607,7 +607,7 @@ void vtkCalibratorVisualizationComponent::SetupImageViewers()
 		// Render Window size: [mImageWidthInPixels*1.125, mImageHeightInPixels]
 		// This is to ensure there is enough space for the color bar display
 		mptrPRE3DonUSImageViewerY->GetRenderWindow()->SetSize( 
-			int(this->GetCalibrationController()->GetImageWidthInPixels()*1.125), this->GetCalibrationController()->GetImageHeightInPixels() );
+			int(this->GetCalibrationController()->GetSegParameters()->GetFrameSize()[0]*1.125), this->GetCalibrationController()->GetSegParameters()->GetFrameSize()[1] );
 		// The background is set to be all black for the renderer
 		mptrPRE3DonUSImageViewerY->GetRenderer()->SetBackground(0, 0, 0);
 		mptrPRE3DonUSImageViewerY->GetRenderer()->AddActor( mptrPRE3DScalarBarActorY );
@@ -619,7 +619,7 @@ void vtkCalibratorVisualizationComponent::SetupImageViewers()
 		// Render Window size: [mImageWidthInPixels*1.125, mImageHeightInPixels]
 		// This is to ensure there is enough space for the color bar display
 		mptrPRE3DonUSImageViewerZ->GetRenderWindow()->SetSize( 
-			int(this->GetCalibrationController()->GetImageWidthInPixels()*1.125), this->GetCalibrationController()->GetImageHeightInPixels() );
+			int(this->GetCalibrationController()->GetSegParameters()->GetFrameSize()[0]*1.125), this->GetCalibrationController()->GetSegParameters()->GetFrameSize()[1] );
 		// The background is set to be all black for the renderer
 		mptrPRE3DonUSImageViewerZ->GetRenderer()->SetBackground(0, 0, 0);
 		mptrPRE3DonUSImageViewerZ->GetRenderer()->AddActor( mptrPRE3DScalarBarActorZ );
@@ -833,7 +833,7 @@ void vtkCalibratorVisualizationComponent::MapPRE3DdistributionToUSImage( unsigne
 
 		// create an importer to read the data back in
 		vtkSmartPointer<vtkImageImport> importer = vtkSmartPointer<vtkImageImport>::New();
-		importer->SetWholeExtent(0,this->GetCalibrationController()->GetImageWidthInPixels() - 1,0,this->GetCalibrationController()->GetImageHeightInPixels() - 1,0,0);
+		importer->SetWholeExtent(0,this->GetCalibrationController()->GetSegParameters()->GetFrameSize()[0] - 1,0,this->GetCalibrationController()->GetSegParameters()->GetFrameSize()[1] - 1,0,0);
 		importer->SetDataExtentToWholeExtent();
 		importer->SetDataScalarTypeToUnsignedChar();
 		importer->SetImportVoidPointer(imageData);
@@ -870,9 +870,9 @@ void vtkCalibratorVisualizationComponent::MapPRE3DdistributionToUSImage( unsigne
 		xPRE3DonUSImage->SetScalarTypeToUnsignedChar(); 
 		xPRE3DonUSImage->Update(); 
 
-		for (int y = 0; y < this->GetCalibrationController()->GetImageHeightInPixels(); y++)
+		for (int y = 0; y < this->GetCalibrationController()->GetSegParameters()->GetFrameSize()[1]; y++)
 		{
-			for (int x = 0; x < this->GetCalibrationController()->GetImageWidthInPixels(); x++)
+			for (int x = 0; x < this->GetCalibrationController()->GetSegParameters()->GetFrameSize()[0]; x++)
 			{
 				unsigned char* xPRE3DPointer = static_cast<unsigned char*> ( xPRE3DonUSImage->GetScalarPointer(x, y, 0) ); 
 				unsigned char* importedImgPointer = static_cast<unsigned char*> ( imageFlip->GetOutput()->GetScalarPointer(x, y, 0) ); 
@@ -942,7 +942,7 @@ void vtkCalibratorVisualizationComponent::MapPRE3DdistributionToUSImage( unsigne
 			const int PixelCoordsXInVTKImageFrame = 
 				floor( ThisValidationPointInOrigImageFrame.get(0) + 0.5 );
 			const int PixelCoordsYInVTKImageFrame = 
-				this->GetCalibrationController()->GetImageHeightInPixels() - floor( ThisValidationPointInOrigImageFrame.get(1) + 0.5 ) ;
+				this->GetCalibrationController()->GetSegParameters()->GetFrameSize()[1] - floor( ThisValidationPointInOrigImageFrame.get(1) + 0.5 ) ;
 
 
 			// ========================================================

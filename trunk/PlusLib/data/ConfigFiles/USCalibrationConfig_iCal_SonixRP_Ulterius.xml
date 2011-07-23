@@ -87,6 +87,8 @@
                     OutputSequenceMetaFileSuffix=".RandomStepperMotionData2"
                     />
 		</RealtimeCalibration>
+		
+		<PhantomDefinition FileName="PhantomDefinition_iCal_1.0_Wiring_1.0.xml" /> 
 
         <!-- SearchRegionX: X-axis points to the right in pixels (there must be at least 8-pixel-wide black border outside of the search region.) -->
         <!-- SearchRegionY: Y-axis points to the bottom in pixels (there must be at least 8-pixel-wide black border outside of the search region.) -->
@@ -96,8 +98,7 @@
                 MorphologicalOpeningCircleRadiusMm="0.55"
 				MorphologicalOpeningBarSizeMm="2.0"
 
-                SearchRegionX="50 550"
-                SearchRegionY="40 300"
+				RegionOfInterest="50 40 600 340"
 
 				MaxLineLengthErrorPercent="8.0"
 				MaxLinePairDistanceErrorPercent="10.0"
@@ -114,7 +115,6 @@
 
                 UseOriginalImageIntensityForDotIntensityScore="0"
 
-                PhantomDefinition="PhantomDefinition_iCal_1.0_Wiring_1.0.xml" 
                 >
         </SegmentationParameters>
     </CalibrationController>

@@ -139,31 +139,6 @@ public:
 	vtkBooleanMacro(EnableVisualization, bool);
 
 	//! Description 
-	// The input image dimensions (in pixels)
-	vtkGetMacro(ImageWidthInPixels, int);
-	vtkSetMacro(ImageWidthInPixels, int);
-
-	//! Description 
-	// The input image dimensions (in pixels)
-	vtkGetMacro(ImageHeightInPixels, int);
-	vtkSetMacro(ImageHeightInPixels, int);
-
-	//! Description 
-	// Segmentation search region
-	// These define the region within the image where we should search for 
-	// the dots. Outside of this region the image data must be null. Around 
-	// all sides of this region there must be at least 8 pixels of this null 
-	// space (searchOrigin >= 8 and searchSize <= imageSize-16). 
-	vtkGetMacro(SearchStartAtX, int);
-	vtkSetMacro(SearchStartAtX, int);
-	vtkGetMacro(SearchStartAtY, int);
-	vtkSetMacro(SearchStartAtY, int);
-	vtkGetMacro(SearchDimensionX, int);
-	vtkSetMacro(SearchDimensionX, int);
-	vtkGetMacro(SearchDimensionY, int);
-	vtkSetMacro(SearchDimensionY, int);
-
-	//! Description 
 	// Set/get the calibration mode (see CALIBRATION_MODE)
 	vtkGetMacro(CalibrationMode, int);
 	vtkSetMacro(CalibrationMode, int);
@@ -258,17 +233,12 @@ protected:
 	virtual PlusStatus ReadCalibrationControllerConfiguration( vtkXMLDataElement* calibrationController ); 
 
 	//! Description 
-	// Read SegmentationParameters data element
-	virtual PlusStatus ReadSegmentationParametersConfiguration( vtkXMLDataElement* segmentationParameters );
-
-	//! Description 
 	// Read RealtimeCalibration data element
 	virtual PlusStatus ReadRealtimeCalibrationConfiguration( vtkXMLDataElement* realtimeCalibration );
 
 	//! Description 
 	// Read Phantom definition from XML
-	virtual PlusStatus ReadPhantomDefinition();
-	
+	virtual PlusStatus ReadPhantomDefinition(vtkXMLDataElement* phantomDefinition);
 
 protected:
 	//! Attributes: a reference to the automated segmenation component
@@ -294,20 +264,6 @@ protected:
 
 	//! Attribute: Flag to show the initialized state
 	bool Initialized; 
-
-	//! Attributes: The input image dimensions (in pixels)
-	int ImageWidthInPixels;
-	int ImageHeightInPixels;
-
-	//! Attributes: Segmentation search region
-	// These define the region within the image where we should search for 
-	// the dots. Outside of this region the image data must be null. Around 
-	// all sides of this region there must be at least 8 pixels of this null 
-	// space (searchOrigin >= 8 and searchSize <= imageSize-16). 
-	int SearchStartAtX;
-	int SearchStartAtY;
-	int SearchDimensionX;
-	int SearchDimensionY;
 
 	//! Attributes: calibration mode (see CALIBRATION_MODE)
 	int CalibrationMode; 
