@@ -42,6 +42,12 @@ public:
 	*/
 	void SetConnectionSuccessful(bool aConnectionSuccessful);
 
+	/*!
+	* \brief Get connection successful flag (if true then it is connected so on InvokeConnect, the application should disconnect)
+	* \return Connection successful flag
+	*/
+	bool GetConnectionSuccessful();
+
 signals:
 	/*!
 	* \brief Emmitted when configuration directory is changed (notifies application)
@@ -77,6 +83,11 @@ protected slots:
 	* \brief Called when Connect button is pushed - connects to devices
 	*/
 	void InvokeConnect();
+
+	/*!
+	* \brief Called when Disconnect button is pushed - disconnects from devices
+	*/
+	void InvokeDisconnect();
 
 protected:
 	//! Configuration directory path

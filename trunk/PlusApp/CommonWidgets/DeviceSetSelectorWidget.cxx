@@ -14,6 +14,8 @@ DeviceSetSelectorWidget::DeviceSetSelectorWidget(QWidget* aParent)
 {
 	ui.setupUi(this);
 
+	ui.comboBox_DeviceSet->setMinimumWidth(400);
+
 	connect( ui.pushButton_OpenConfigurationDirectory, SIGNAL( clicked() ), this, SLOT( OpenConfigurationDirectoryClicked() ) );
 	connect( ui.pushButton_Connect, SIGNAL( clicked() ), this, SLOT( InvokeConnect() ) );
 	connect( ui.comboBox_DeviceSet, SIGNAL( currentIndexChanged(int) ), this, SLOT( DeviceSetSelected(int) ) );
@@ -70,10 +72,33 @@ void DeviceSetSelectorWidget::InvokeConnect()
 	emit ConnectToDevicesByConfigFileInvoked(ui.comboBox_DeviceSet->itemData(ui.comboBox_DeviceSet->currentIndex()).toStringList().at(0).toStdString());
 
 	if (m_ConnectionSuccessful) {
-		ui.pushButton_Connect->setEnabled(false);
+		ui.pushButton_Connect->setText(tr("Disconnect"));
+
+		// Change the function to be invoked on clicking on the now Disconnect button to InvokeDisconnect
+		disconnect( ui.pushButton_Connect, SIGNAL( clicked() ), this, SLOT( InvokeConnect() ) );
+		connect( ui.pushButton_Connect, SIGNAL( clicked() ), this, SLOT( InvokeDisconnect() ) );
 	} else {
 		ui.textEdit_Description->setTextColor(QColor(Qt::darkRed));
 		ui.textEdit_Description->setText("Connection failed!\n\nPlease select another device set and try again!");
+	}
+}
+
+//-----------------------------------------------------------------------------
+
+void DeviceSetSelectorWidget::InvokeDisconnect()
+{
+	LOG_TRACE("ToolStateDisplayWidget::InvokeDisconnect"); 
+
+	emit ConnectToDevicesByConfigFileInvoked("");
+
+	if (! m_ConnectionSuccessful) {
+		ui.pushButton_Connect->setText(tr("Connect"));
+
+		// Change the function to be invoked on clicking on the now Connect button to InvokeConnect
+		disconnect( ui.pushButton_Connect, SIGNAL( clicked() ), this, SLOT( InvokeDisconnect() ) );
+		connect( ui.pushButton_Connect, SIGNAL( clicked() ), this, SLOT( InvokeConnect() ) );
+	} else {
+		LOG_ERROR("Disconnect failed!");
 	}
 }
 
@@ -95,8 +120,6 @@ void DeviceSetSelectorWidget::DeviceSetSelected(int aIndex)
 		);
 
 	ui.comboBox_DeviceSet->setToolTip(ui.comboBox_DeviceSet->currentText() + " (" + ui.comboBox_DeviceSet->itemData(aIndex).toStringList().at(0) + ")");
-
-	ui.pushButton_Connect->setEnabled(true);
 }
 
 //-----------------------------------------------------------------------------
@@ -128,6 +151,15 @@ void DeviceSetSelectorWidget::SetConnectionSuccessful(bool aConnectionSuccessful
 	LOG_TRACE("ToolStateDisplayWidget::SetConnectionSuccessful(" << (aConnectionSuccessful?"true":"false") << ")"); 
 
 	m_ConnectionSuccessful = aConnectionSuccessful;
+}
+
+//-----------------------------------------------------------------------------
+
+bool DeviceSetSelectorWidget::GetConnectionSuccessful()
+{
+	LOG_TRACE("ToolStateDisplayWidget::GetConnectionSuccessful"); 
+
+	return m_ConnectionSuccessful;
 }
 
 //-----------------------------------------------------------------------------

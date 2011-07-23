@@ -123,48 +123,65 @@ void ConfigurationToolbox::ConnectToDevicesByConfigFile(std::string aConfigFile)
 
 	vtkFreehandController::GetInstance()->SetInputConfigFileName(aConfigFile.data());
 
-	LOG_INFO("Connect to devices"); 
+	// If connection has been successfully created then this action should disconnect
+	if (! m_DeviceSetSelectorWidget->GetConnectionSuccessful()) {
+		LOG_INFO("Connect to devices"); 
 
-	QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
+		QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
 
-	// Create dialog
-	QDialog* connectDialog = new QDialog(this, Qt::Dialog);
-	connectDialog->setModal(true);
-	connectDialog->setMinimumSize(QSize(360,80));
-	connectDialog->setCaption(tr("Freehand Ultrasound Calibration"));
-	connectDialog->setBackgroundColor(QColor(224, 224, 224));
+		// Create dialog
+		QDialog* connectDialog = new QDialog(this, Qt::Dialog);
+		connectDialog->setModal(true);
+		connectDialog->setMinimumSize(QSize(360,80));
+		connectDialog->setCaption(tr("Freehand Ultrasound Calibration"));
+		connectDialog->setBackgroundColor(QColor(224, 224, 224));
 
-	QLabel* connectLabel = new QLabel(QString("Connecting to devices, please wait..."), connectDialog);
-	connectLabel->setFont(QFont("SansSerif", 16));
+		QLabel* connectLabel = new QLabel(QString("Connecting to devices, please wait..."), connectDialog);
+		connectLabel->setFont(QFont("SansSerif", 16));
 
-	QHBoxLayout* layout = new QHBoxLayout();
-	layout->addWidget(connectLabel);
+		QHBoxLayout* layout = new QHBoxLayout();
+		layout->addWidget(connectLabel);
 
-	connectDialog->setLayout(layout);
-	connectDialog->show();
+		connectDialog->setLayout(layout);
+		connectDialog->show();
 
-	QApplication::processEvents();
+		QApplication::processEvents();
 
-	// Connect to devices
-	vtkFreehandController* controller = vtkFreehandController::GetInstance();
-	if ((controller != NULL) && (controller->GetInitialized() == true)) {
-		if (vtkFreehandController::GetInstance()->StartDataCollection() != PLUS_SUCCESS) {
-			LOG_ERROR("Unable to start collecting data!");
-			m_DeviceSetSelectorWidget->SetConnectionSuccessful(false);
-			m_ToolStateDisplayWidget->InitializeTools(NULL, false);
-		} else {
-			m_DeviceSetSelectorWidget->SetConnectionSuccessful(true);
-			if (m_ToolStateDisplayWidget->InitializeTools(vtkFreehandController::GetInstance()->GetDataCollector(), true)) {
-				ui.toolStateDisplayWidget->setMinimumHeight(m_ToolStateDisplayWidget->GetDesiredHeight());
-				ui.toolStateDisplayWidget->setMaximumHeight(m_ToolStateDisplayWidget->GetDesiredHeight());
+		// Connect to devices
+		vtkFreehandController* controller = vtkFreehandController::GetInstance();
+		if ((controller != NULL) && (controller->GetInitialized() == true)) {
+			if (vtkFreehandController::GetInstance()->StartDataCollection() != PLUS_SUCCESS) {
+				LOG_ERROR("Unable to start collecting data!");
+				m_DeviceSetSelectorWidget->SetConnectionSuccessful(false);
+				m_ToolStateDisplayWidget->InitializeTools(NULL, false);
+			} else {
+				m_DeviceSetSelectorWidget->SetConnectionSuccessful(true);
+				if (m_ToolStateDisplayWidget->InitializeTools(vtkFreehandController::GetInstance()->GetDataCollector(), true)) {
+					ui.toolStateDisplayWidget->setMinimumHeight(m_ToolStateDisplayWidget->GetDesiredHeight());
+					ui.toolStateDisplayWidget->setMaximumHeight(m_ToolStateDisplayWidget->GetDesiredHeight());
+				}
+			}
+		}
+
+		// Close dialog
+		connectDialog->done(0);
+
+		QApplication::restoreOverrideCursor();
+	} else {
+		vtkFreehandController* controller = vtkFreehandController::GetInstance();
+		if ((controller != NULL) && (controller->GetInitialized() == true)) {
+
+			vtkDataCollector* dataCollector = controller->GetDataCollector();
+			if ((dataCollector != NULL) && (dataCollector->GetInitialized())) {
+
+				dataCollector->Stop();
+				dataCollector->Disconnect();
+
+				m_DeviceSetSelectorWidget->SetConnectionSuccessful(false);
+				m_ToolStateDisplayWidget->InitializeTools(NULL, false);
 			}
 		}
 	}
-
-	// Close dialog
-	connectDialog->done(0);
-
-	QApplication::restoreOverrideCursor();
 }
 
 //-----------------------------------------------------------------------------
