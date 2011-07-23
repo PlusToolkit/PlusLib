@@ -106,6 +106,11 @@ void PlusLogger::LogMessage(LogLevelType level, const char *msg, const char* fil
 		log << "[UNKNOWN]"; 
 		break;
 	}
+
+  // Add timestamp to the log message
+  double currentTime = vtkAccurateTimer::GetSystemTime(); 
+  log << " [" << std::fixed << currentTime << "] "; 
+
 	log << msg;
 	if ( level != LOG_LEVEL_INFO )
 	{
