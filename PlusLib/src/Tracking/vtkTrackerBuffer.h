@@ -106,9 +106,15 @@ public:
   vtkGetObjectMacro(WorldCalibrationMatrix,vtkMatrix4x4);
 
   // Description:
+  // Set/get maximum allowed time difference in seconds between the desired and the closest valid timestamp
+  vtkSetMacro(MaxAllowedTimeDifference, double); 
+  vtkGetMacro(MaxAllowedTimeDifference, double); 
+
+  // Description:
   // Make this buffer into a copy of another buffer.  You should
   // Lock both of the buffers before doing this.
   void DeepCopy(vtkTrackerBuffer *buffer);
+
 
   // Description:
   // Get the frame rate from the buffer based on the number of frames in the buffer
@@ -150,6 +156,9 @@ protected:
   vtkMatrix4x4 *WorldCalibrationMatrix;
 
   vtkTimestampedCircularBuffer<TrackerBufferItem>* TrackerBuffer; 
+
+  // Maximum allowed time difference in seconds between the desired and the closest valid timestamp
+  double MaxAllowedTimeDifference;
 
 private:
   vtkTrackerBuffer(const vtkTrackerBuffer&);

@@ -29,6 +29,14 @@ public:
   // Returns the oriantation difference in degrees between two 4x4 homogeneous transformation matrix
   static double GetOrientationDifference(vtkMatrix4x4* aMatrix, vtkMatrix4x4* bMatrix); 
 
+  //! Description:
+  // Spherical linear interpolation between two rotation quaternions.
+  // t is a value between 0 and 1 that interpolates between from and to (t=0 means the results is the same as "from").
+  // Precondition: no aliasing problems to worry about ("result" can be "from" or "to" param).
+  // Parameters: adjustSign - If true, then slerp will operate by adjusting the sign of the slerp to take shortest path
+  // References: From Adv Anim and Rendering Tech. Pg 364
+  static void Slerp(double *result, double t, double *from, double *to, bool adjustSign = true); 
+
 protected:
   PlusMath(); 
   ~PlusMath();

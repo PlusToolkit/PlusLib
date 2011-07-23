@@ -159,3 +159,58 @@ double PlusMath::GetOrientationDifference(vtkMatrix4x4* aMatrix, vtkMatrix4x4* b
   return vtkMath::DegreesFromRadians(normalizedAngleDiff_rad);
 }
 
+//----------------------------------------------------------------------------
+// Spherical linear interpolation between two rotation quaternions.
+// t is a value between 0 and 1 that interpolates between from and to (t=0 means the results is the same as "from").
+// Precondition: no aliasing problems to worry about ("result" can be "from" or "to" param).
+// Parameters: adjustSign - If true, then slerp will operate by adjusting the sign of the slerp to take shortest path
+// References: From Adv Anim and Rendering Tech. Pg 364
+void PlusMath::Slerp(double *result, double t, double *from, double *to, bool adjustSign /*= true*/) 	
+{
+  const double* p = from; // just an alias to match q
+
+  // calc cosine theta
+  double cosom = from[0]*to[0]+from[1]*to[1]+from[2]*to[2]+from[3]*to[3]; // dot( from, to )
+
+  // adjust signs (if necessary)
+  double q[4];
+  if (adjustSign && (cosom < (double)0.0))
+  {
+    cosom = -cosom;
+    q[0] = -to[0];   // Reverse all signs
+    q[1] = -to[1];
+    q[2] = -to[2];
+    q[3] = -to[3];
+  }
+  else
+  {
+    q[0] = to[0];
+    q[1] = to[1];
+    q[2] = to[2];
+    q[3] = to[3];
+  }
+
+  // Calculate coefficients
+  double sclp, sclq;
+  if (((double)1.0 - cosom) > (double)0.0001) // 0.0001 -> some epsillon
+  {
+    // Standard case (slerp)
+    double omega, sinom;
+    omega = acos( cosom ); // extract theta from dot product's cos theta
+    sinom = sin( omega );
+    sclp  = sin( ((double)1.0 - t) * omega ) / sinom;
+    sclq  = sin( t * omega ) / sinom;
+  }
+  else
+  {
+    // Very close, do linear interp (because it's faster)
+    sclp = (double)1.0 - t;
+    sclq = t;
+  }
+
+  for (int i=0; i<4; i++)
+  {
+    result[i] = sclp * p[i] + sclq * q[i];
+  }
+}
+
