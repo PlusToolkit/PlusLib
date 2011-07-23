@@ -372,6 +372,7 @@ ItemStatus vtkTrackerBuffer::GetNextValidItemUid(BufferItemUidType startUid, Fin
   return ITEM_NOT_AVAILABLE_YET;
 }
 
+//----------------------------------------------------------------------------
 ItemStatus vtkTrackerBuffer::GetClosestValidItemUid(double time, BufferItemUidType &closestValidUid)
 {
   // itemA is the item that is the closest to the requested time
@@ -501,10 +502,10 @@ ItemStatus vtkTrackerBuffer::GetTrackerBufferItemFromTime( double time, TrackerB
     return ITEM_OK;
   }
 
-  // If the closest item is too far, then we don't do interpolation just return the closest item
+  // If the closest item is too far, then we don't do interpolation 
   if ( fabs(itemAtime-time)>this->GetMaxAllowedTimeDifference() )
   {
-    LOG_ERROR("vtkTrackerBuffer: Cannot perform interpolation, time difference is too big " << std::fixed << fabs(itemAtime-time) << " ( " << itemAtime << ", " << time << "). Using the closest item." );    
+    LOG_ERROR("vtkTrackerBuffer: Cannot perform interpolation, time difference is too big " << std::fixed << fabs(itemAtime-time) << " ( " << itemAtime << ", " << time << ")." );    
     this->TrackerBuffer->Unlock();
     return ITEM_UNKNOWN_ERROR;
   }
@@ -515,7 +516,8 @@ ItemStatus vtkTrackerBuffer::GetTrackerBufferItemFromTime( double time, TrackerB
   {
     if ( GetNextValidItemUid(itemAuid, DIR_BACKWARD, itemBuid)!= ITEM_OK )
     {
-      LOG_WARNING("vtkTrackerBuffer: Cannot perform interpolation, there is no available item before the closest item" << std::fixed << " ( closest time = " << itemAtime << ", requested time = " << time << "). Using the closest item." );    
+      // This is just a debug because if there is no valid item, then the TrackerStatus is not OK, so we won't use it 
+      LOG_DEBUG("vtkTrackerBuffer: Cannot perform interpolation, there is no available valid item before the closest item" << std::fixed << " ( closest time = " << itemAtime << ", requested time = " << time << "). Using the closest item." );    
       this->TrackerBuffer->Unlock();
       return ITEM_OK;
     }
@@ -524,7 +526,8 @@ ItemStatus vtkTrackerBuffer::GetTrackerBufferItemFromTime( double time, TrackerB
   {
     if ( GetNextValidItemUid(itemAuid, DIR_FORWARD, itemBuid)!= ITEM_OK )
     {
-      LOG_WARNING("vtkTrackerBuffer: Cannot perform interpolation, there is no available item after the closest item" << std::fixed << " ( closest time = " << itemAtime << ", requested time = " << time << "). Using the closest item." );    
+      // This is just a debug because if there is no valid item, then the TrackerStatus is not TR_OK, so we won't use it 
+      LOG_DEBUG("vtkTrackerBuffer: Cannot perform interpolation, there is no available valid item after the closest item" << std::fixed << " ( closest time = " << itemAtime << ", requested time = " << time << "). Using the closest item." );    
       this->TrackerBuffer->Unlock();
       return ITEM_OK;
     }
@@ -539,6 +542,15 @@ ItemStatus vtkTrackerBuffer::GetTrackerBufferItemFromTime( double time, TrackerB
     this->TrackerBuffer->Unlock();
     return status; 
   }
+
+  // If the next closest item is too far, then we don't do interpolation 
+  if ( fabs(itemBtime-time)>this->GetMaxAllowedTimeDifference() )
+  {
+    LOG_ERROR("vtkTrackerBuffer: Cannot perform interpolation, time difference is too big " << std::fixed << fabs(itemBtime-time) << " ( " << itemBtime << ", " << time << ")." );    
+    this->TrackerBuffer->Unlock();
+    return ITEM_UNKNOWN_ERROR;
+  }
+
   TrackerBufferItem itemB; 
   status = this->GetTrackerBufferItem(itemBuid, &itemB, calibratedItem); 
   if ( status != ITEM_OK )
