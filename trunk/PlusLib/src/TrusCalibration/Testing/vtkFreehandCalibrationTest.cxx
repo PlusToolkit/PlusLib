@@ -334,14 +334,14 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
 					}
 
 				}
-					double translationError = GetTranslationError(baseTransMatrix, currentTransMatrix); 
+					double translationError = PlusMath::GetPositionDifference(baseTransMatrix, currentTransMatrix); 
 					if ( translationError > translationErrorThreshold )
 					{
 						LOG_ERROR("TransformImageHomeToUserImageHome translation error is higher than expected: " << translationError << " mm (threshold: " << translationErrorThreshold << " mm). " );
 						numberOfFailures++;
 					}
 
-					double rotationError = GetRotationError(baseTransMatrix, currentTransMatrix); 
+					double rotationError = PlusMath::GetOrientationDifference(baseTransMatrix, currentTransMatrix); 
 					if ( rotationError > rotationErrorThreshold )
 					{
 						LOG_ERROR("TransformImageHomeToUserImageHome rotation error is higher than expected: " << rotationError << " degree (threshold: " << rotationErrorThreshold << " degree). " );
@@ -381,14 +381,14 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
 					}
 
 				}
-					double translationError = GetTranslationError(baseTransMatrix, currentTransMatrix); 
+					double translationError = PlusMath::GetPositionDifference(baseTransMatrix, currentTransMatrix); 
 					if ( translationError > translationErrorThreshold )
 					{
 						LOG_ERROR("TransformUserImageHomeToProbeHome translation error is higher than expected: " << translationError << " mm (threshold: " << translationErrorThreshold << " mm). " );
 						numberOfFailures++;
 					}
 
-					double rotationError = GetRotationError(baseTransMatrix, currentTransMatrix); 
+					double rotationError = PlusMath::GetOrientationDifference(baseTransMatrix, currentTransMatrix); 
 					if ( rotationError > rotationErrorThreshold )
 					{
 						LOG_ERROR("TransformUserImageHomeToProbeHome rotation error is higher than expected: " << rotationError << " degree (threshold: " << rotationErrorThreshold << " degree). " );
@@ -428,14 +428,14 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
 					}
 
 				}
-					double translationError = GetTranslationError(baseTransMatrix, currentTransMatrix); 
+					double translationError = PlusMath::GetPositionDifference(baseTransMatrix, currentTransMatrix); 
 					if ( translationError > translationErrorThreshold )
 					{
 						LOG_ERROR("TransformProbeHomeToTemplateHolderHome translation error is higher than expected: " << translationError << " mm (threshold: " << translationErrorThreshold << " mm). " );
 						numberOfFailures++;
 					}
 
-					double rotationError = GetRotationError(baseTransMatrix, currentTransMatrix); 
+					double rotationError = PlusMath::GetOrientationDifference(baseTransMatrix, currentTransMatrix); 
 					if ( rotationError > rotationErrorThreshold )
 					{
 						LOG_ERROR("TransformProbeHomeToTemplateHolderHome rotation error is higher than expected: " << rotationError << " degree (threshold: " << rotationErrorThreshold << " degree). " );
@@ -474,14 +474,14 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
 					}
 
 				}
-					double translationError = GetTranslationError(baseTransMatrix, currentTransMatrix); 
+					double translationError = PlusMath::GetPositionDifference(baseTransMatrix, currentTransMatrix); 
 					if ( translationError > translationErrorThreshold )
 					{
 						LOG_ERROR("TransformTemplateHolderHomeToTemplateHome translation error is higher than expected: " << translationError << " mm (threshold: " << translationErrorThreshold << " mm). " );
 						numberOfFailures++;
 					}
 
-					double rotationError = GetRotationError(baseTransMatrix, currentTransMatrix); 
+					double rotationError = PlusMath::GetOrientationDifference(baseTransMatrix, currentTransMatrix); 
 					if ( rotationError > rotationErrorThreshold )
 					{
 						LOG_ERROR("TransformTemplateHolderHomeToTemplateHome rotation error is higher than expected: " << rotationError << " degree (threshold: " << rotationErrorThreshold << " degree). " );
@@ -520,14 +520,14 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
 					}
 
 				}
-					double translationError = GetTranslationError(baseTransMatrix, currentTransMatrix); 
+					double translationError = PlusMath::GetPositionDifference(baseTransMatrix, currentTransMatrix); 
 					if ( translationError > translationErrorThreshold )
 					{
 						LOG_ERROR("TransformTemplateHomeToTemplate translation error is higher than expected: " << translationError << " mm (threshold: " << translationErrorThreshold << " mm). " );
 						numberOfFailures++;
 					}
 
-					double rotationError = GetRotationError(baseTransMatrix, currentTransMatrix); 
+					double rotationError = PlusMath::GetOrientationDifference(baseTransMatrix, currentTransMatrix); 
 					if ( rotationError > rotationErrorThreshold )
 					{
 						LOG_ERROR("TransformTemplateHomeToTemplate rotation error is higher than expected: " << rotationError << " degree (threshold: " << rotationErrorThreshold << " degree). " );
@@ -566,14 +566,14 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
 					}
 
 				}
-					double translationError = GetTranslationError(baseTransMatrix, currentTransMatrix); 
+					double translationError = PlusMath::GetPositionDifference(baseTransMatrix, currentTransMatrix); 
 					if ( translationError > translationErrorThreshold )
 					{
 						LOG_ERROR("TransformImageToTemplate translation error is higher than expected: " << translationError << " mm (threshold: " << translationErrorThreshold << " mm). " );
 						numberOfFailures++;
 					}
 
-					double rotationError = GetRotationError(baseTransMatrix, currentTransMatrix); 
+					double rotationError = PlusMath::GetOrientationDifference(baseTransMatrix, currentTransMatrix); 
 					if ( rotationError > rotationErrorThreshold )
 					{
 						LOG_ERROR("TransformImageToTemplate rotation error is higher than expected: " << rotationError << " degree (threshold: " << rotationErrorThreshold << " degree). " );
