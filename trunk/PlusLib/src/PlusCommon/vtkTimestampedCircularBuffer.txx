@@ -21,7 +21,7 @@ vtkTimestampedCircularBuffer<BufferItemType>::vtkTimestampedCircularBuffer()
 	this->WritePointer = 0;
 	this->CurrentTimeStamp = 0.0;
 	this->LocalTimeOffset = 0.0; 
-	this->NextItemUid = 0; 
+	this->LatestItemUid = 0; 
 
   this->FilterContainerIndexMatrix.set_size(0, 0); 
   this->FilterContainerTimestampVector.set_size(0); 
@@ -66,7 +66,7 @@ void vtkTimestampedCircularBuffer<BufferItemType>::PrintSelf(ostream& os, vtkInd
 	os << indent << "NumberOfItems: " << this->NumberOfItems << "\n";
 	os << indent << "CurrentTimeStamp: " << this->CurrentTimeStamp << "\n";
 	os << indent << "Local time offset: " << this->LocalTimeOffset << "\n";
-	os << indent << "Next Item Uid: " << this->NextItemUid << "\n";
+	os << indent << "Latest Item Uid: " << this->LatestItemUid << "\n";
 
 }
 
@@ -99,7 +99,7 @@ PlusStatus vtkTimestampedCircularBuffer<BufferItemType>::PrepareForNewItem(const
 
 	// Increase frame unique ID
 	this->Lock();
-	newFrameUid = this->NextItemUid++; 
+	newFrameUid = ++this->LatestItemUid; 
 	bufferIndex = this->WritePointer; 
 	this->CurrentTimeStamp = timestamp; 
 	
@@ -469,7 +469,7 @@ void vtkTimestampedCircularBuffer<BufferItemType>::DeepCopy(vtkTimestampedCircul
 	this->NumberOfItems = buffer->NumberOfItems;
 	this->CurrentTimeStamp = buffer->CurrentTimeStamp;
 	this->LocalTimeOffset = buffer->LocalTimeOffset;
-	this->NextItemUid = buffer->NextItemUid; 
+	this->LatestItemUid = buffer->LatestItemUid; 
 
 	this->BufferItemContainer = buffer->BufferItemContainer; 
 	this->Unlock(); 
