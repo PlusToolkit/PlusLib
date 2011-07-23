@@ -177,6 +177,8 @@ vtkImageData* VolumeReconstructionController::GetReconstructedVolume()
 
 void VolumeReconstructionController::SetContouringThreshold(double aThreshold)
 {
+	LOG_TRACE("VolumeReconstructionController::SetContouringThreshold(" << aThreshold << ")"); 
+
 	m_ContouringThreshold = aThreshold;
 }
 
@@ -305,6 +307,8 @@ PlusStatus VolumeReconstructionController::ReconstructVolumeFromInputImage(std::
 
 void VolumeReconstructionController::DisplayReconstructedVolume()
 {
+	LOG_TRACE("VolumeReconstructionController::DisplayReconstructedVolume"); 
+
 	if (vtkFreehandController::GetInstance()->GetCanvas() != NULL) {
 		m_ProgressMessage = " Generating contour for displaying...";
 		if (m_Toolbox) {
@@ -329,6 +333,8 @@ void VolumeReconstructionController::DisplayReconstructedVolume()
 
 PlusStatus VolumeReconstructionController::SaveVolumeToFile(std::string aOutput)
 {
+	LOG_TRACE("VolumeReconstructionController::SaveVolumeToFile(" << aOutput << ")"); 
+
 	// Write out to file
 	vtkSmartPointer<vtkDataSetWriter> writer = vtkSmartPointer<vtkDataSetWriter>::New();
 	writer->SetFileTypeToBinary();
