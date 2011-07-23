@@ -244,7 +244,7 @@ void vtkVideoBuffer::UpdateBufferFrameFormats()
   this->VideoBuffer->Lock(); 
   for ( int i = 0; i < this->VideoBuffer->GetBufferSize(); ++i )
   {
-    this->VideoBuffer->GetBufferItem(i)->AllocateFrame(this->GetFrameSize()); 
+    this->VideoBuffer->GetBufferItemFromBufferIndex(i)->AllocateFrame(this->GetFrameSize()); 
   }
   this->VideoBuffer->Unlock(); 
 }
@@ -362,7 +362,7 @@ PlusStatus vtkVideoBuffer::AddTimeStampedItem(unsigned char* imageDataPtr,
   }
 
   // get the pointer to the correct location in the frame buffer, where this data needs to be copied
-  VideoBufferItem* newObjectInBuffer = this->VideoBuffer->GetBufferItem(bufferIndex); 
+  VideoBufferItem* newObjectInBuffer = this->VideoBuffer->GetBufferItemFromBufferIndex(bufferIndex); 
   if ( newObjectInBuffer == NULL )
   {
     this->VideoBuffer->Unlock(); 
@@ -509,7 +509,7 @@ ItemStatus vtkVideoBuffer::GetVideoBufferItem(BufferItemUidType uid, VideoBuffer
     return status; 
   }
 
-  VideoBufferItem* videoItem = this->VideoBuffer->GetBufferItem(uid); 
+  VideoBufferItem* videoItem = this->VideoBuffer->GetBufferItemFromUid(uid); 
 
   if ( bufferItem->DeepCopy(videoItem) != PLUS_SUCCESS )
   {

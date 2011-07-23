@@ -125,31 +125,10 @@ int main(int argc, char **argv)
     }
 
     const char* cFlag = trackerFrameList->GetTrackedFrame(frameNumber)->GetCustomFrameField("Status"); 
-
     TrackerStatus status = TR_OK;
     if ( cFlag != NULL )
     {
-      std::string strFlag(cFlag); 
-      if ( strFlag.find("OK") != std::string::npos )
-      {
-        status = TR_OK;
-      }
-      else if ( strFlag.find("TR_MISSING") != std::string::npos )
-      {
-        status = TR_MISSING;
-      }
-      else if ( strFlag.find("TR_OUT_OF_VIEW") != std::string::npos )
-      {
-        status = TR_OUT_OF_VIEW;
-      }
-      else if ( strFlag.find("TR_OUT_OF_VOLUME") != std::string::npos )
-      {
-        status = TR_OUT_OF_VOLUME;
-      }
-      else if ( strFlag.find("TR_REQ_TIMEOUT") != std::string::npos )
-      {
-        status = TR_REQ_TIMEOUT;
-      }
+      status=TrackedFrame::GetStatusFromString(cFlag);      
     }
     else
     {

@@ -130,6 +130,22 @@ protected:
   vtkTrackerBuffer();
   ~vtkTrackerBuffer();
 
+  enum FindDirection
+  {
+    DIR_FORWARD,
+    DIR_BACKWARD
+  };
+
+  // Description:
+	// Find the first valid item before/after the startUid
+  // Internal use only, no locking
+  virtual ItemStatus GetNextValidItemUid(BufferItemUidType startUid, FindDirection dir, BufferItemUidType& foundUid );
+
+  // Description:
+	// Find the closest valid item (item status is TR_OK) to the specified time
+  // Internal use only, no locking
+  virtual ItemStatus GetClosestValidItemUid(double time, BufferItemUidType &closestValidUid);
+
   vtkMatrix4x4 *ToolCalibrationMatrix;
   vtkMatrix4x4 *WorldCalibrationMatrix;
 
