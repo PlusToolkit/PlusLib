@@ -144,6 +144,7 @@ PlusStatus vtkSavedDataTracker::Connect()
 		double timestamp = -1;
 		if ( strTimestamp == NULL ) 
 		{
+			LOG_WARNING("Timestamp is missing, simulate a timestamp value with 10fps frame rate");
 			timestamp = frameNumber / 10.0;  // This is not a normal behaviour.
 		}
 		else

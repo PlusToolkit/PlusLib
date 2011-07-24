@@ -249,7 +249,12 @@ protected:
 
   // Number of averaged items used for filtering - read from config files
   int AveragedItemsForFiltering; 
-  
+
+  // Maximum time difference that is allowed between filtered and the non-filtered timestamp (in seconds).
+  // If the filtered value differs too much from the non-filtered one, then it rejects the filtering result.
+  // This useful for making the timestamp filtering more robust (the LSQR fitting sometimes fails).
+  double MaxAllowedFilteringTimeDifference;
+
   // Acquisition start time
   double StartTime; 
 

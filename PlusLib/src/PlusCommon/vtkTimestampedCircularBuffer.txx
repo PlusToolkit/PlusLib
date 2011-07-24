@@ -28,7 +28,9 @@ vtkTimestampedCircularBuffer<BufferItemType>::vtkTimestampedCircularBuffer()
   this->FilterContainersOldestIndex = 0; 
   this->FilterContainersNumberOfValidElements = 0; 
 
-  this->AveragedItemsForFiltering = 10; 
+  this->AveragedItemsForFiltering = 20;
+  this->MaxAllowedFilteringTimeDifference=0.500; // sec
+   
   this->TimeStampReportTable = NULL; 
 
   this->StartTime = 0; 
@@ -657,6 +659,12 @@ PlusStatus vtkTimestampedCircularBuffer<BufferItemType>::CreateFilteredTimeStamp
   const double timeOffset = resultVector[1]; 
 
   outFilteredTimestamp = timeOffset + itemIndex * framePeriod; 
+
+  if (fabs(outFilteredTimestamp-inUnfilteredTimestamp)>this->MaxAllowedFilteringTimeDifference)
+  {
+	LOG_ERROR("Difference between unfiltered timestamp ("<<inUnfilteredTimestamp<<") and unfiltered timestamp "<<outFilteredTimestamp<<") is larger than the threshold ("<<this->MaxAllowedFilteringTimeDifference<<"). Probably the LSQR minimization failed to converge.");
+	return PLUS_FAIL;
+  }
 
   // save the current results into the timestamp report table
   timeStampReportTableRow->InsertNextValue(itemIndex); 

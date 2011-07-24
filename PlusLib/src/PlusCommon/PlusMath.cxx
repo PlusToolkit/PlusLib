@@ -108,9 +108,45 @@ PlusStatus PlusMath::LSQRMinimize(const vnl_sparse_matrix<double> &sparseMatrixL
   vnl_lsqr lsqr( linearSystem );
 
   // call minimize on the solver
-  lsqr.minimize( resultVector );
+  int returnCode=lsqr.minimize( resultVector );
 
-  return PLUS_SUCCESS; 
+  switch (returnCode)
+  {
+  case 0: // x = 0  is the exact solution. No iterations were performed.
+	return PLUS_SUCCESS;
+  case 1: // The equations A*x = b are probably compatible.  "
+		// Norm(A*x - b) is sufficiently small, given the "
+		// "values of ATOL and BTOL.",
+	  return PLUS_SUCCESS;
+  case 2: // "The system A*x = b is probably not compatible.  "
+		// "A least-squares solution has been obtained that is "
+		// "sufficiently accurate, given the value of ATOL.",
+	  return PLUS_SUCCESS;
+  case 3: // "An estimate of cond(Abar) has exceeded CONLIM.  "
+		//"The system A*x = b appears to be ill-conditioned.  "
+		// "Otherwise, there could be an error in subroutine APROD.",
+	  LOG_WARNING("LSQR fit may be inaccurate, CONLIM exceeded");
+	  return PLUS_SUCCESS;
+  case 4: // "The equations A*x = b are probably compatible.  "
+		// "Norm(A*x - b) is as small as seems reasonable on this machine.",
+	  return PLUS_SUCCESS;
+  case 5: // "The system A*x = b is probably not compatible.  A least-squares "
+		// "solution has been obtained that is as accurate as seems "
+		// "reasonable on this machine.",
+	  LOG_WARNING("LSQR fit may be inaccurate, system is not compatible, based on machine accuracy");
+	  return PLUS_SUCCESS;
+  case 6: // "Cond(Abar) seems to be so large that there is no point in doing further "
+		// "iterations, given the precision of this machine. "
+		// "There could be an error in subroutine APROD.",
+	  LOG_ERROR("LSQR fit may be inaccurate, ill-conditioned matrix");
+	  return PLUS_FAIL;
+  case 7: // "The iteration limit ITNLIM was reached."
+	  LOG_WARNING("LSQR fit may be inaccurate, ITNLIM was reached");
+	  return PLUS_SUCCESS;
+  default:
+	  LOG_ERROR("Unkown LSQR return code "<<returnCode);
+	  return PLUS_FAIL;
+  }
 }
 
 //----------------------------------------------------------------------------
