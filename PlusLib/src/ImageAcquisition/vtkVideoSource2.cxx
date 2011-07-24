@@ -421,6 +421,12 @@ static void *vtkVideoSourceRecordThread(vtkMultiThreader::ThreadInfo *data)
 
 	do
 	{
+		if (!self->GetRecording())
+		{
+			// recording stopped
+			LOG_DEBUG("Recording stopped");
+			return NULL;
+		}
 		self->InternalGrab();
 		frame++;
 	}
@@ -455,8 +461,6 @@ PlusStatus vtkVideoSource2::StopRecording()
 {
 	if (this->Recording)
 	{
-		this->RecordThreader->TerminateThread(this->RecordThreadId);
-		this->RecordThreadId = -1;
 		this->Recording = 0;
 		this->Modified();
 	}
