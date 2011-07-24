@@ -651,7 +651,8 @@ PlusStatus vtkTimestampedCircularBuffer<BufferItemType>::CreateFilteredTimeStamp
 
   if ( PlusMath::LSQRMinimize(this->FilterContainerIndexMatrix, this->FilterContainerTimestampVector, resultVector) != PLUS_SUCCESS )
   {
-    LOG_ERROR("Failed to run LSQR mimize on timestamp filtering dataset!"); 
+    LOG_ERROR("Failed to run LSQR mimize on timestamp filtering dataset!");
+	this->Unlock();    
     return PLUS_FAIL; 
   }
 
@@ -661,8 +662,9 @@ PlusStatus vtkTimestampedCircularBuffer<BufferItemType>::CreateFilteredTimeStamp
   outFilteredTimestamp = timeOffset + itemIndex * framePeriod; 
 
   if (fabs(outFilteredTimestamp-inUnfilteredTimestamp)>this->MaxAllowedFilteringTimeDifference)
-  {
+  {    
 	LOG_ERROR("Difference between unfiltered timestamp ("<<inUnfilteredTimestamp<<") and unfiltered timestamp "<<outFilteredTimestamp<<") is larger than the threshold ("<<this->MaxAllowedFilteringTimeDifference<<"). Probably the LSQR minimization failed to converge.");
+	this->Unlock();  
 	return PLUS_FAIL;
   }
 

@@ -106,14 +106,7 @@ vtkTracker::vtkTracker()
 //----------------------------------------------------------------------------
 vtkTracker::~vtkTracker()
 {
-  // The thread should have been stopped before the
-  // subclass destructor was called, but just in case
-  // se stop it here.
-  if (this->ThreadId != -1)
-  {
-    this->Threader->TerminateThread(this->ThreadId);
-    this->ThreadId = -1;
-  }
+  this->Tracking=false;
 
   for (int i = 0; i < this->NumberOfTools; i++)
   { 
@@ -230,8 +223,14 @@ static void *vtkTrackerThread(vtkMultiThreader::ThreadInfo *data)
     int activeFlag = *(data->ActiveFlag);
     data->ActiveFlagLock->Unlock();
 
-    if (activeFlag == 0)
+    if (!activeFlag)
     {
+      LOG_DEBUG("Stopped tracking");
+      return NULL;
+    }
+	if (!self->IsTracking())
+    {
+      LOG_DEBUG("Stopped tracking");
       return NULL;
     }
 
@@ -318,8 +317,6 @@ PlusStatus vtkTracker::StartTracking()
 //----------------------------------------------------------------------------
 PlusStatus vtkTracker::StopTracking()
 {
-  this->Threader->TerminateThread(this->ThreadId);
-  this->ThreadId = -1;
 
   if ( this->InternalStopTracking() != PLUS_SUCCESS )
   {

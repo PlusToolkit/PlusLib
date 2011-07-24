@@ -241,8 +241,8 @@ PlusStatus vtkSavedDataTracker::InternalUpdate()
 	LOG_TRACE("vtkSavedDataTracker::InternalUpdate"); 
 	if (!this->Tracking)
 	{
-		LOG_ERROR("Called Update() when SavedDataTracker was not tracking");
-		return PLUS_FAIL;
+		//not tracking (probably tracker is being started/stopped), ignore the received data
+		return PLUS_SUCCESS;
 	}
 
 	double elapsedTime = vtkAccurateTimer::GetSystemTime() - this->GetStartTime(); 

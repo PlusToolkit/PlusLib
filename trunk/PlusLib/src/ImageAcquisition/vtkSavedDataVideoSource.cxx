@@ -113,6 +113,11 @@ void vtkSavedDataVideoSource::PrintSelf(ostream& os, vtkIndent indent)
 PlusStatus vtkSavedDataVideoSource::InternalGrab()
 {
   /*LOG_TRACE("vtkSavedDataVideoSource::InternalGrab");*/
+  if (this->Recording==0)
+  {
+    // drop the frame, we are not recording data now
+    return PLUS_SUCCESS;
+  }
   if ( !this->Initialized )
   {
     LOG_ERROR("Called InternalGrab() when SavedDataVideoSource was not initialized!");
