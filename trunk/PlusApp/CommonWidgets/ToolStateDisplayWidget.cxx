@@ -88,8 +88,8 @@ PlusStatus ToolStateDisplayWidget::InitializeTools(vtkDataCollector* aDataCollec
 	grid->setVerticalSpacing(4);
 	grid->setContentsMargins(4, 4, 4, 4);
 
-	int defaultToolNumber = m_DataCollector->GetTracker()->GetDefaultTool();
-	int referenceToolNumber = m_DataCollector->GetTracker()->GetReferenceTool();
+	int defaultToolNumber = m_DataCollector->GetTracker()->GetDefaultToolNumber();
+	int referenceToolNumber = m_DataCollector->GetTracker()->GetReferenceToolNumber();
 	m_NumberOfActiveTools = 0;
 
 	for (int i=0; i<m_DataCollector->GetTracker()->GetNumberOfTools(); ++i) {
