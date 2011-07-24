@@ -48,7 +48,7 @@ vtkOpenIGTLinkBroadcaster
   
     // Check default tool port.
   
-  int defaultToolPort = this->DataCollector->GetTracker()->GetDefaultTool();
+  int defaultToolPort = this->DataCollector->GetTracker()->GetDefaultToolNumber();
   
   if ( defaultToolPort < 0 )
     {

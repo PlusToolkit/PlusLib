@@ -257,6 +257,8 @@ PlusStatus vtkSavedDataVideoSource::Connect()
   if ( this->LocalVideoBuffer == NULL )
   {
     this->LocalVideoBuffer = vtkVideoBuffer::New(); 
+    // Copy all the settings from the video buffer 
+    this->LocalVideoBuffer->DeepCopy( this->Buffer );
   }
 
   this->LocalVideoBuffer->SetFrameSize( savedDataBuffer->GetFrameSize() ); 

@@ -494,9 +494,9 @@ static VLEDState vtkNDICertusMapVLEDState[] = {
 		delete [] rigidBodyData;
 
 		// get reference tool transform
-		if (this->GetReferenceTool() >= 0)
+		if (this->GetReferenceToolNumber() >= 0)
 		{ 
-			referenceTransform = transform[this->GetReferenceTool()];
+			referenceTransform = transform[this->GetReferenceToolNumber()];
 		}
 
 		for (tool = 0; tool < VTK_CERTUS_NTOOLS; tool++) 
@@ -507,15 +507,11 @@ static VLEDState vtkNDICertusMapVLEDState[] = {
 			{
 				status = TR_MISSING;
 			}
-			else if ((statusFlags[tool] & OPTOTRAK_UNDETERMINED_FLAG) != 0)
-			{
-				status = TR_OUT_OF_VIEW;
-			}
 
 			// if tracking relative to another tool
-			if (this->GetReferenceTool() >= 0 && tool != this->GetReferenceTool())
+			if (this->GetReferenceToolNumber() >= 0 && tool != this->GetReferenceToolNumber())
 			{
-				if ( statusFlags[this->GetReferenceTool()] & (TR_MISSING | TR_OUT_OF_VIEW) ) 
+				if ( statusFlags[this->GetReferenceToolNumber()] & OPTOTRAK_UNDETERMINED_FLAG ) 
 				{
 					status = TR_OUT_OF_VIEW;
 				}
