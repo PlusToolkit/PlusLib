@@ -272,7 +272,6 @@ PlusStatus vtkTracker::Probe()
 //----------------------------------------------------------------------------
 PlusStatus vtkTracker::StartTracking()
 {
-  int tracking = this->Tracking;
 
   if ( this->InternalStartTracking() != PLUS_SUCCESS )
   {
@@ -289,6 +288,8 @@ PlusStatus vtkTracker::StartTracking()
 
   // this will block the tracking thread until we're ready
   this->UpdateMutex->Lock();
+
+  this->Tracking = true;
 
   // start the tracking thread
   this->ThreadId = this->Threader->SpawnThread((vtkThreadFunctionType)\
@@ -317,13 +318,14 @@ PlusStatus vtkTracker::StartTracking()
 //----------------------------------------------------------------------------
 PlusStatus vtkTracker::StopTracking()
 {
-
+  
   if ( this->InternalStopTracking() != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to stop tracking thread!"); 
     return PLUS_FAIL; 
   }
 
+  this->ThreadId = -1;
   this->Tracking = 0;
 
   return PLUS_SUCCESS;
