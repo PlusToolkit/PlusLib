@@ -117,15 +117,6 @@ void VolumeReconstructionToolbox::Clear()
 
 //-----------------------------------------------------------------------------
 
-void VolumeReconstructionToolbox::RequestDoAcquisition()
-{
-	LOG_TRACE("VolumeReconstructionToolbox::RequestDoAcquisition");
-
-	// No action
-}
-
-//-----------------------------------------------------------------------------
-
 void VolumeReconstructionToolbox::OpenVolumeReconstructionConfigClicked()
 {
 	LOG_TRACE("VolumeReconstructionToolbox::OpenVolumeReconstructionConfigClicked"); 

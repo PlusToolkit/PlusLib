@@ -93,6 +93,11 @@ void StylusCalibrationToolbox::RefreshToolboxContent()
 		if (!(ui.pushButton_Start->hasFocus() || vtkFreehandController::GetInstance()->GetCanvas()->hasFocus())) {
 			ui.pushButton_Start->setFocus();
 		}
+
+		// If tab changed, then restart timer (clearing stops the timer)
+		if (! m_AcquisitionTimer->isActive()) {
+			m_AcquisitionTimer->start();
+		}
 	} else
 	// If in progress
 	if (toolboxController->State() == ToolboxState_InProgress) {
@@ -131,6 +136,11 @@ void StylusCalibrationToolbox::RefreshToolboxContent()
 		//if (!(ui.pushButton_Start->hasFocus() || vtkFreehandController::GetInstance()->GetCanvas()->hasFocus())) {
 		//	ui.pushButton_Start->setFocus();
 		//}
+
+		// If tab changed, then restart timer (clearing stops the timer)
+		if (! m_AcquisitionTimer->isActive()) {
+			m_AcquisitionTimer->start();
+		}
 	}
 	// If error occured
 	if (toolboxController->State() == ToolboxState_Error) {

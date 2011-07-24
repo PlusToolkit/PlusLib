@@ -19,6 +19,9 @@ FreehandCalibrationToolbox::FreehandCalibrationToolbox(QWidget* aParent, Qt::WFl
 
 	//TODO tooltips
 
+	// Create timer
+	m_AcquisitionTimer = new QTimer(this);
+
 	// Initialize toolbox controller
 	vtkFreehandCalibrationController* toolboxController = vtkFreehandCalibrationController::GetInstance();
 	if (toolboxController == NULL) {
@@ -42,6 +45,7 @@ FreehandCalibrationToolbox::FreehandCalibrationToolbox(QWidget* aParent, Qt::WFl
 	connect( ui.pushButton_Save, SIGNAL( clicked() ), this, SLOT( SaveClicked() ) );
 	connect( ui.checkBox_ShowDevices, SIGNAL( toggled(bool) ), this, SLOT( ShowDevicesToggled(bool) ) );
 
+	connect( m_AcquisitionTimer, SIGNAL( timeout() ), this, SLOT( RequestDoAcquisition() ) );
 }
 
 //-----------------------------------------------------------------------------
@@ -51,6 +55,11 @@ FreehandCalibrationToolbox::~FreehandCalibrationToolbox()
 	vtkFreehandCalibrationController* freehandCalibrationController = vtkFreehandCalibrationController::GetInstance();
 	if (freehandCalibrationController != NULL) {
 		delete freehandCalibrationController;
+	}
+
+	if (m_AcquisitionTimer != NULL) {
+		delete m_AcquisitionTimer;
+		m_AcquisitionTimer = NULL;
 	}
 }
 
@@ -191,6 +200,11 @@ void FreehandCalibrationToolbox::RefreshToolboxContent()
 		ui.pushButton_Save->setEnabled(false);
 
 		QApplication::restoreOverrideCursor();
+
+		// If tab changed, then restart timer (clearing stops the timer)
+		if ((! m_AcquisitionTimer->isActive()) && (toolboxController->GetShowDevices())) {
+			m_AcquisitionTimer->start();
+		}
 	}
 
 	// Needed for forced refreshing the UI (without this, no progress is shown)
@@ -214,7 +228,10 @@ void FreehandCalibrationToolbox::Clear()
 {
 	LOG_TRACE("FreehandCalibrationToolbox::Clear"); 
 
-	// No action
+	// Stop the acquisition timer
+	if (vtkFreehandCalibrationController::GetInstance()->GetShowDevices()) {
+		m_AcquisitionTimer->stop();
+	}
 }
 
 //-----------------------------------------------------------------------------
@@ -301,7 +318,7 @@ void FreehandCalibrationToolbox::SkipTemporalClicked()
 
 	////////////TEMPORARY CODE///////////// TODO
 	QString configPath(vtkFileFinder::GetInstance()->GetConfigurationDirectory());
-	QString fileName(configPath + "/PhantomRegistration_fCal_20110529.xml");
+	QString fileName(configPath + "/PhantomRegistration_fCal_20110720.xml");
 	if (PhantomRegistrationController::GetInstance()->LoadPhantomRegistrationFromFile(fileName.toStdString())) {
 		ui.lineEdit_PhantomRegistration->setText(fileName);
 		ui.lineEdit_PhantomRegistration->setToolTip(fileName);
@@ -338,7 +355,7 @@ void FreehandCalibrationToolbox::StartSpatialClicked()
 	toolboxController->Start();
 
 	// Start calibration and compute results on success
-	if (toolboxController->DoAcquisition() == PLUS_SUCCESS) {
+	if (toolboxController->DoSpatialCalibration() == PLUS_SUCCESS) {
 
 		toolboxController->ComputeCalibrationResults();
 	}
@@ -374,5 +391,22 @@ void FreehandCalibrationToolbox::ShowDevicesToggled(bool aOn)
 {
 	LOG_TRACE("FreehandCalibrationToolbox::ShowDevicesToggled(" << (aOn?"true":"false") << ")"); 
 
+	if (aOn) {
+		// Start timer for acquisition
+		m_AcquisitionTimer->start(1000 / vtkFreehandController::GetInstance()->GetRecordingFrameRate());
+	} else {
+		// Stop acquisition timer
+		m_AcquisitionTimer->stop();
+	}
+
 	vtkFreehandCalibrationController::GetInstance()->ToggleDeviceVisualization(aOn);
+}
+
+//-----------------------------------------------------------------------------
+
+void FreehandCalibrationToolbox::RequestDoAcquisition()
+{
+	LOG_TRACE("FreehandCalibrationToolbox::RequestDoAcquisition"); 
+
+	vtkFreehandCalibrationController::GetInstance()->DoAcquisition();
 }

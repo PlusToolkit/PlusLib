@@ -68,7 +68,7 @@ protected slots:
 	void SaveResultClicked();
 
 	/*!
-	* \brief Calls acquire positions function in controller (called by the acquisition timer) - implementation of a pure virtual function
+	* \brief Calls acquire positions function in controller (called by the acquisition timer)
 	*/
 	void RequestDoAcquisition();
 

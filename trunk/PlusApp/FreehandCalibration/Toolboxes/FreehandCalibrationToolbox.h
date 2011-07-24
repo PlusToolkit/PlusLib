@@ -103,9 +103,16 @@ protected slots:
 	*/
 	void ShowDevicesToggled(bool aOn);
 
+	/*!
+	* \brief Calls acquire positions function in controller (called by the acquisition timer)
+	*/
+	void RequestDoAcquisition();
+
 protected:
 	Ui::FreehandCalibrationToolbox ui;
 
+	//! Timer for acquisition (in device visualization mode)
+	QTimer*	m_AcquisitionTimer;
 };
 
 #endif

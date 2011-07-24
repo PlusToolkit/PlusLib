@@ -53,11 +53,6 @@ signals:
 
 protected slots:
 	/*!
-	* \brief Calls acquire positions function in controller (called by the acquisition timer) - implementation of a pure virtual function
-	*/
-	void RequestDoAcquisition();
-
-	/*!
 	* \brief Slot handling open volume reconstruction config button click
 	*/
 	void OpenVolumeReconstructionConfigClicked();
