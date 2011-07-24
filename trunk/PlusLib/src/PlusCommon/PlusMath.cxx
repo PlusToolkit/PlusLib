@@ -133,7 +133,6 @@ PlusStatus PlusMath::LSQRMinimize(const vnl_sparse_matrix<double> &sparseMatrixL
   case 5: // "The system A*x = b is probably not compatible.  A least-squares "
 		// "solution has been obtained that is as accurate as seems "
 		// "reasonable on this machine.",
-	  LOG_WARNING("LSQR fit may be inaccurate, system is not compatible, based on machine accuracy");
 	  return PLUS_SUCCESS;
   case 6: // "Cond(Abar) seems to be so large that there is no point in doing further "
 		// "iterations, given the precision of this machine. "
