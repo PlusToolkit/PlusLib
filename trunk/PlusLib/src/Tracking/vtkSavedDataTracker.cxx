@@ -103,11 +103,13 @@ PlusStatus vtkSavedDataTracker::Connect()
 	this->SetDefaultToolName(savedDataBuffer->GetDefaultFrameTransformName().c_str()); 
 	
 	// TODO: Read this from the config file.
-	this->GetTool( this->GetDefaultTool() )->SetSendToLink( "localhost:18944" );
+  this->GetDefaultTool()->SetSendToLink( "localhost:18944" );
 	
 	if ( this->LocalTrackerBuffer == NULL )
 	{
 		this->LocalTrackerBuffer = vtkTrackerBuffer::New(); 
+    // Copy all the settings from the default tool buffer 
+    this->LocalTrackerBuffer->DeepCopy( this->GetDefaultTool()->GetBuffer() ); 
 	}
 
 	this->LocalTrackerBuffer->SetBufferSize(savedDataBuffer->GetNumberOfTrackedFrames()); 

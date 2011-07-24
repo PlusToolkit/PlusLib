@@ -189,6 +189,20 @@ vtkTrackerTool *vtkTracker::GetTool(int tool)
 }
 
 //----------------------------------------------------------------------------
+vtkTrackerTool *vtkTracker::GetDefaultTool()
+{
+  int defaultToolNumber = this->GetDefaultToolNumber(); 
+
+  if ( defaultToolNumber < 0 || defaultToolNumber > this->GetNumberOfTools() ) 
+  {
+    LOG_ERROR("Failed to get default tool - returns tool 0!"); 
+    defaultToolNumber = 0; 
+  }
+
+  return this->Tools[defaultToolNumber];
+}
+
+//----------------------------------------------------------------------------
 // this thread is run whenever the tracker is tracking
 static void *vtkTrackerThread(vtkMultiThreader::ThreadInfo *data)
 {
@@ -558,7 +572,7 @@ int vtkTracker::GetToolPortByName( const char* toolName)
 
 
 //------------------------------------------------------------------------------
-int vtkTracker::GetDefaultTool()
+int vtkTracker::GetDefaultToolNumber()
 {
   int toolPort = this->GetToolPortByName(this->GetDefaultToolName()); 
 
@@ -571,7 +585,7 @@ int vtkTracker::GetDefaultTool()
 }
 
 //-----------------------------------------------------------------------------
-int vtkTracker::GetReferenceTool()
+int vtkTracker::GetReferenceToolNumber()
 {
   return this->GetToolPortByName(this->GetReferenceToolName()); 
 }
@@ -588,7 +602,7 @@ void vtkTracker::SetStartTime( double startTime)
 //----------------------------------------------------------------------------
 double vtkTracker::GetStartTime()
 {
-  return this->GetTool(this->GetDefaultTool())->GetBuffer()->GetStartTime();  
+  return this->GetDefaultTool()->GetBuffer()->GetStartTime();  
 }
 
 //-----------------------------------------------------------------------------
@@ -711,7 +725,7 @@ PlusStatus vtkTracker::GenerateTrackingDataAcquisitionReport( vtkHTMLGenerator* 
   }
 
   vtkSmartPointer<vtkTable> timestampReportTable = vtkSmartPointer<vtkTable>::New(); 
-  if ( this->GetTool( this->GetDefaultTool() )->GetBuffer()->GetTimeStampReportTable(timestampReportTable) != PLUS_SUCCESS )
+  if ( this->GetDefaultTool()->GetBuffer()->GetTimeStampReportTable(timestampReportTable) != PLUS_SUCCESS )
   { 
     LOG_ERROR("Failed to get timestamp report table from default tool buffer!"); 
     return PLUS_FAIL; 

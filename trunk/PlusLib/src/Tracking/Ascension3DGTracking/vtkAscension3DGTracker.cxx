@@ -304,9 +304,9 @@ vtkAscension3DGTracker
   vtkSmartPointer< vtkMatrix4x4 > mTrackerToReference = vtkSmartPointer< vtkMatrix4x4 >::New();
   mTrackerToReference->Identity();
 
-  if ( this->GetReferenceTool() >= 0 )
+  if ( this->GetReferenceToolNumber() >= 0 )
   {
-    atc::DEVICE_STATUS status = atc::GetSensorStatus( this->GetReferenceTool() );
+    atc::DEVICE_STATUS status = atc::GetSensorStatus( this->GetReferenceToolNumber() );
 
     saturated = status & SATURATED;
     attached = ! ( status & NOT_ATTACHED );
@@ -329,13 +329,13 @@ vtkAscension3DGTracker
       {
         for ( int col = 0; col < 3; ++ col )
         {
-          mTrackerToReference->SetElement( row, col, record[ this->GetReferenceTool() ].s[ row ][ col ] );
+          mTrackerToReference->SetElement( row, col, record[ this->GetReferenceToolNumber() ].s[ row ][ col ] );
         }
       }
 
-      mTrackerToReference->SetElement( 0, 3, record[ this->GetReferenceTool() ].x );
-      mTrackerToReference->SetElement( 1, 3, record[ this->GetReferenceTool() ].y );
-      mTrackerToReference->SetElement( 2, 3, record[ this->GetReferenceTool() ].z );
+      mTrackerToReference->SetElement( 0, 3, record[ this->GetReferenceToolNumber() ].x );
+      mTrackerToReference->SetElement( 1, 3, record[ this->GetReferenceToolNumber() ].y );
+      mTrackerToReference->SetElement( 2, 3, record[ this->GetReferenceToolNumber() ].z );
 
     }
     mTrackerToReference->Invert();
@@ -377,7 +377,7 @@ vtkAscension3DGTracker
 
     vtkSmartPointer< vtkMatrix4x4 > mToolToReference = vtkSmartPointer< vtkMatrix4x4 >::New();
 
-    if ( sensorIndex != this->GetReferenceTool() )
+    if ( sensorIndex != this->GetReferenceToolNumber() )
     {
       vtkMatrix4x4::Multiply4x4( mTrackerToReference, mToolToTracker, mToolToReference );
       this->ToolUpdate( sensorIndex, mToolToReference, trackerStatus, this->FrameNumber);

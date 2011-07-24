@@ -141,7 +141,7 @@ PlusStatus StylusCalibrationController::DetermineStylusPortNumber()
 		m_StylusPortNumber = toolNumber;
 	} else {
 		LOG_WARNING("Stylus port number not found in configuration file, default tool used!");
-		m_StylusPortNumber = dataCollector->GetTracker()->GetDefaultTool();
+		m_StylusPortNumber = dataCollector->GetTracker()->GetDefaultToolNumber();
 	}
 
 	return PLUS_SUCCESS;
@@ -400,7 +400,7 @@ vtkMatrix4x4* StylusCalibrationController::AcquireStylusTrackerPosition(double a
 	double timestamp;
 	unsigned int toolNumber;
 	if (aReference) {
-		toolNumber = dataCollector->GetTracker()->GetReferenceTool();
+		toolNumber = dataCollector->GetTracker()->GetReferenceToolNumber();
 	} else {
 		toolNumber = m_StylusPortNumber;
 	}

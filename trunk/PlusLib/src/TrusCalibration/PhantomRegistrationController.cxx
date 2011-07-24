@@ -624,7 +624,7 @@ vtkMatrix4x4* PhantomRegistrationController::AcquireStylusTipTrackerPosition(dou
 	double timestamp;
 	unsigned int toolNumber;
 	if (aReference) {
-		toolNumber = dataCollector->GetTracker()->GetReferenceTool();
+		toolNumber = dataCollector->GetTracker()->GetReferenceToolNumber();
 	} else {
 		toolNumber = StylusCalibrationController::GetInstance()->GetStylusPortNumber();
 	}
@@ -639,7 +639,7 @@ vtkMatrix4x4* PhantomRegistrationController::AcquireStylusTipTrackerPosition(dou
 
 	// Refurn NUMM (fail) if reference is not visible in normal mode
 	if (!aReference) {
-		int referenceToolNumber = dataCollector->GetTracker()->GetReferenceTool();
+		int referenceToolNumber = dataCollector->GetTracker()->GetReferenceToolNumber();
 
 		if (dataCollector->GetTracker()->GetTool(referenceToolNumber)->GetEnabled()) {
 			double tempTimestamp;

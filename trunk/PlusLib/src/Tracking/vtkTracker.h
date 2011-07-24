@@ -196,11 +196,15 @@ public:
 	// Get one of the ports to be a reference, i.e. track other
 	// tools relative to this one.  Set this to -1 (the default)
 	// if a reference tool is not desired.
-	virtual int GetReferenceTool(); 
+	virtual int GetReferenceToolNumber(); 
 
 	// Description:
 	// Get default tool port number
-	virtual int GetDefaultTool(); 
+	virtual int GetDefaultToolNumber(); 
+
+  // Description:
+  // Get default tool object 
+  virtual vtkTrackerTool* GetDefaultTool(); 
 
 	// Description:
 	// Get tool port by name 

@@ -97,7 +97,7 @@ protected:
 	vtkNDICertusTracker();
 	~vtkNDICertusTracker();
 
-	// Description:
+  // Description:
 	// Set the version information.
 	vtkSetStringMacro(Version);
 

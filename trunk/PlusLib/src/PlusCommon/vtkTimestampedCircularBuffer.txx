@@ -472,6 +472,12 @@ void vtkTimestampedCircularBuffer<BufferItemType>::DeepCopy(vtkTimestampedCircul
 	this->CurrentTimeStamp = buffer->CurrentTimeStamp;
 	this->LocalTimeOffset = buffer->LocalTimeOffset;
 	this->LatestItemUid = buffer->LatestItemUid; 
+  this->StartTime = buffer->StartTime; 
+  this->AveragedItemsForFiltering = buffer->AveragedItemsForFiltering; 
+  this->FilterContainersNumberOfValidElements = buffer->FilterContainersNumberOfValidElements; 
+  this->FilterContainersOldestIndex = buffer->FilterContainersOldestIndex; 
+  this->FilterContainerTimestampVector = buffer->FilterContainerTimestampVector; 
+  this->FilterContainerIndexMatrix = buffer->FilterContainerIndexMatrix; 
 
 	this->BufferItemContainer = buffer->BufferItemContainer; 
 	this->Unlock(); 

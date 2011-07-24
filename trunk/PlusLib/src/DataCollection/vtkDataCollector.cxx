@@ -491,7 +491,7 @@ PlusStatus vtkDataCollector::WriteTrackerToMetafile( vtkTracker* tracker, const 
     TrackedFrame trackedFrame; 
     trackedFrame.ImageData = frame;
 
-    const int defaultToolPortNumber = tracker->GetDefaultTool(); 
+    const int defaultToolPortNumber = tracker->GetDefaultToolNumber(); 
 
 
 
@@ -1835,7 +1835,7 @@ int vtkDataCollector::GetDefaultToolPortNumber()
   int defaultToolPortNumber(0); 
   if ( this->GetTracker() != NULL )
   {
-    defaultToolPortNumber = this->GetTracker()->GetDefaultTool(); 
+    defaultToolPortNumber = this->GetTracker()->GetDefaultToolNumber(); 
   }
 
   return defaultToolPortNumber; 
