@@ -96,6 +96,7 @@ public:
 	void DisplayCalibrationResults();
 	PlusStatus CalculateImageCameraParameters();
 	PlusStatus Reset();
+	PlusStatus DoSpatialCalibration();
 
 	virtual void SetUSImageFrameOriginInPixels(int originX, int originY); 
 	virtual void SetUSImageFrameOriginInPixels(int* origin); 

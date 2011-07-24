@@ -617,7 +617,7 @@ vtkMatrix4x4* PhantomRegistrationController::AcquireStylusTipTrackerPosition(dou
 		return NULL;
 	}
 
-	vtkSmartPointer<vtkMatrix4x4> referenceToolToStylusTransformMatrix = NULL; // stylus to reference tool transform
+	vtkSmartPointer<vtkMatrix4x4> referenceToolToStylusTransformMatrix = NULL;
 	vtkSmartPointer<vtkMatrix4x4> referenceToolToStylusTipTransformMatrix = NULL;
 
 	TrackerStatus status = TR_MISSING;
@@ -637,7 +637,7 @@ vtkMatrix4x4* PhantomRegistrationController::AcquireStylusTipTrackerPosition(dou
 		}
 	}
 
-	// Refurn NUMM (fail) if reference is not visible in normal mode
+	// Refurn NULL (fail) if reference is not visible in normal mode
 	if (!aReference) {
 		int referenceToolNumber = dataCollector->GetTracker()->GetReferenceToolNumber();
 
