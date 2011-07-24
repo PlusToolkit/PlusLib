@@ -398,7 +398,7 @@ PlusStatus UsImageConverterCommon::GetMFOrientedImage( const ImageType::Pointer 
   // therefore, an alternative implementation was tried, which does not use this filter.
   // Execution time of the alternative implementation in releaes mode does not seem to be
   // much faster, so for now keep using the flip image filter.
-  const bool useItkFlipImageFilter=true;
+  const bool useItkFlipImageFilter=false;
 
   if (useItkFlipImageFilter)
   {

@@ -461,6 +461,7 @@ PlusStatus vtkVideoSource2::StopRecording()
 {
 	if (this->Recording)
 	{
+    this->RecordThreadId = -1;
 		this->Recording = 0;
 		this->Modified();
 	}
