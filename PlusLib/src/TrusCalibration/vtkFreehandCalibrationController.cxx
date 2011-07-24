@@ -119,7 +119,7 @@ vtkFreehandCalibrationController::~vtkFreehandCalibrationController()
 
 PlusStatus vtkFreehandCalibrationController::Initialize()
 {
-	LOG_DEBUG("Initialize vtkFreehandCalibrationController");
+	LOG_TRACE("vtkFreehandCalibrationController::Initialize");
 
 	if (m_Toolbox) {
 		m_Toolbox->Initialize();
@@ -145,6 +145,8 @@ PlusStatus vtkFreehandCalibrationController::Initialize()
 
 PlusStatus vtkFreehandCalibrationController::InitializeVisualization()
 {
+	LOG_TRACE("vtkFreehandCalibrationController::InitializeVisualization");
+
 	vtkFreehandController* controller = vtkFreehandController::GetInstance();
 	if ((controller == NULL) || (controller->GetInitialized() == false)) {
 		LOG_ERROR("vtkFreehandController is not initialized!");
@@ -233,6 +235,8 @@ PlusStatus vtkFreehandCalibrationController::InitializeVisualization()
 
 PlusStatus vtkFreehandCalibrationController::InitializeDeviceVisualization()
 {
+	LOG_TRACE("vtkFreehandCalibrationController::InitializeDeviceVisualization");
+
 	vtkFreehandController* controller = vtkFreehandController::GetInstance();
 	if (controller == NULL) {
 		LOG_ERROR("vtkFreehandController is invalid");
@@ -270,18 +274,6 @@ PlusStatus vtkFreehandCalibrationController::InitializeDeviceVisualization()
 				phantomBodyActor->SetMapper(stlMapper);
 				this->SetPhantomBodyActor(phantomBodyActor);
 			}
-
-			// ModelToPhantomTransform - Transforming input model for proper visualization
-			if ((this->ModelToPhantomTransform != NULL) && (PhantomRegistrationController::GetInstance()->GetPhantomToPhantomReferenceTransform() != NULL)) {
-				vtkSmartPointer<vtkTransform> modelToPhantomReferenceTransform = vtkSmartPointer<vtkTransform>::New();
-				modelToPhantomReferenceTransform->Identity();
-				modelToPhantomReferenceTransform->Concatenate(this->ModelToPhantomTransform);
-				modelToPhantomReferenceTransform->Concatenate(PhantomRegistrationController::GetInstance()->GetPhantomToPhantomReferenceTransform());
-				modelToPhantomReferenceTransform->Modified();
-
-				this->PhantomBodyActor->SetUserTransform(modelToPhantomReferenceTransform);
-				//renderer->AddActor(this->PhantomBodyActor);
-			}
 		} else {
 			LOG_WARNING("Phantom definiton file is not specified, phantom will not be displayed");
 		}
@@ -311,8 +303,8 @@ PlusStatus vtkFreehandCalibrationController::InitializeDeviceVisualization()
 					// Create and apply actor transform
 					vtkSmartPointer<vtkTransform> modelToToolReferenceTransform = vtkSmartPointer<vtkTransform>::New();
 					modelToToolReferenceTransform->Identity();
-					modelToToolReferenceTransform->Concatenate(tool->GetModelToToolTransform());
 					modelToToolReferenceTransform->Concatenate(tool->GetToolToToolReferenceTransform());
+					modelToToolReferenceTransform->Concatenate(tool->GetModelToToolTransform());
 					modelToToolReferenceTransform->Modified();
 
 					deviceActor->SetUserTransform(modelToToolReferenceTransform);
@@ -320,13 +312,12 @@ PlusStatus vtkFreehandCalibrationController::InitializeDeviceVisualization()
 					// Set proper members
 					if (STRCASECMP(tool->GetToolName(), "Probe") != 0) {
 						this->SetProbeActor(deviceActor);
-						//renderer->AddActor(this->ProbeActor);
+
 					} else if (STRCASECMP(tool->GetToolName(), "Stylus") != 0) {
 						this->SetStylusActor(deviceActor);
-						//renderer->AddActor(this->StylusActor);
+
 					} else if (STRCASECMP(tool->GetToolName(), "Needle") != 0) {
 						this->SetNeedleActor(deviceActor);
-						//renderer->AddActor(this->NeedleActor);
 					}
 				}
 			}
@@ -341,6 +332,8 @@ PlusStatus vtkFreehandCalibrationController::InitializeDeviceVisualization()
 
 void vtkFreehandCalibrationController::ToggleDeviceVisualization(bool aOn)
 {
+	LOG_TRACE("vtkFreehandCalibrationController::ToggleDeviceVisualization(" << (aOn?"true":"false") << ")");
+
 	vtkFreehandController* controller = vtkFreehandController::GetInstance();
 	if ((controller == NULL) || (controller->GetInitialized() == false)) {
 		LOG_ERROR("vtkFreehandController is not initialized!");
@@ -349,6 +342,11 @@ void vtkFreehandCalibrationController::ToggleDeviceVisualization(bool aOn)
 	vtkRenderer* renderer = controller->GetCanvasRenderer();
 
 	if (aOn == false) {
+		// Reset image canvas position
+		vtkSmartPointer<vtkTransform> identity = vtkSmartPointer<vtkTransform>::New();
+		identity->Identity();
+		this->CanvasImageActor->SetUserTransform(identity);
+
 		// Remove device actors
 		renderer->RemoveActor(this->PhantomBodyActor);
 		renderer->RemoveActor(this->ProbeActor);
@@ -380,7 +378,7 @@ void vtkFreehandCalibrationController::ToggleDeviceVisualization(bool aOn)
 
 PlusStatus vtkFreehandCalibrationController::CalculateImageCameraParameters()
 {
-	LOG_DEBUG("Calculate image camera parameters");
+	LOG_TRACE("vtkFreehandCalibrationController::CalculateImageCameraParameters");
 
 	vtkFreehandController* controller = vtkFreehandController::GetInstance();
 	if ((controller == NULL) || (controller->GetInitialized() == false)) {
@@ -440,7 +438,7 @@ PlusStatus vtkFreehandCalibrationController::CalculateImageCameraParameters()
 
 PlusStatus vtkFreehandCalibrationController::Clear()
 {
-	LOG_DEBUG("Clear vtkFreehandCalibrationController");
+	LOG_TRACE("vtkFreehandCalibrationController::Clear");
 
 	vtkRenderer* renderer = vtkFreehandController::GetInstance()->GetCanvasRenderer();
 
@@ -465,8 +463,10 @@ PlusStatus vtkFreehandCalibrationController::Clear()
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkFreehandCalibrationController::DoAcquisition()
+PlusStatus vtkFreehandCalibrationController::DoSpatialCalibration()
 {
+	LOG_TRACE("vtkFreehandCalibrationController::DoSpatialCalibration");
+
 	vtkFreehandController* controller = vtkFreehandController::GetInstance();
 	if ((controller == NULL) || (controller->GetInitialized() == false)) {
 		LOG_ERROR("vtkFreehandController is not initialized!");
@@ -550,6 +550,87 @@ PlusStatus vtkFreehandCalibrationController::DoAcquisition()
 
 //-----------------------------------------------------------------------------
 
+PlusStatus vtkFreehandCalibrationController::DoAcquisition()
+{
+	LOG_TRACE("vtkFreehandCalibrationController::DoAcquisition");
+
+	// This function can only be called if show devices is on
+	if (! this->ShowDevices) {
+		LOG_WARNING("DoAcquisition function should only be called if show devices is on");
+		return PLUS_FAIL;
+	}
+
+	vtkFreehandController* controller = vtkFreehandController::GetInstance();
+	if ((controller == NULL) || (controller->GetInitialized() == false)) {
+		LOG_ERROR("vtkFreehandController is not initialized!");
+		return PLUS_FAIL;
+	}
+	vtkDataCollector* dataCollector = controller->GetDataCollector();
+	if (dataCollector == NULL) {
+		LOG_ERROR("Data collector is not initialized!");
+		return PLUS_FAIL;
+	}
+	if ((dataCollector->GetTracker() == NULL) || (dataCollector->GetTracker()->GetTool(dataCollector->GetDefaultToolPortNumber()) < 0)) {
+		LOG_ERROR("Tracker is not initialized properly!");
+		return PLUS_FAIL;
+	}
+
+	int referenceToolNumber = dataCollector->GetTracker()->GetReferenceToolNumber();
+
+	for (int toolNumber=0; toolNumber<dataCollector->GetTracker()->GetNumberOfTools(); ++toolNumber) {
+		vtkTrackerTool *tool = dataCollector->GetTracker()->GetTool(toolNumber);
+		if ((tool == NULL) || (!tool->GetEnabled())) {
+			continue;
+		}
+
+		TrackerStatus status = TR_MISSING;
+		double timestamp;
+
+		vtkSmartPointer<vtkMatrix4x4> referenceToToolTransformMatrix = NULL;
+
+		// Acquire position from tracker
+		if (dataCollector->GetTracker()->GetTool(toolNumber)->GetEnabled()) {
+			referenceToToolTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
+			dataCollector->GetTransformWithTimestamp(referenceToToolTransformMatrix, timestamp, status, toolNumber); 
+		}
+
+		// Compute and set transforms for actors
+		if (status == TR_OK) {
+			// If reference then set phantom actor
+			if (toolNumber == referenceToolNumber) {
+				if ((this->ModelToPhantomTransform != NULL) && (PhantomRegistrationController::GetInstance()->GetPhantomToPhantomReferenceTransform() != NULL)) {
+					vtkSmartPointer<vtkTransform> modelToPhantomReferenceTransform = vtkSmartPointer<vtkTransform>::New();
+					modelToPhantomReferenceTransform->Identity();
+					modelToPhantomReferenceTransform->Concatenate(PhantomRegistrationController::GetInstance()->GetPhantomToPhantomReferenceTransform());
+					modelToPhantomReferenceTransform->Concatenate(this->ModelToPhantomTransform);
+					modelToPhantomReferenceTransform->Modified();
+
+					this->PhantomBodyActor->SetUserTransform(modelToPhantomReferenceTransform);
+				}
+
+				continue;
+			}
+
+			// If other tool, set the transform according to the tool name
+			if (STRCASECMP(tool->GetToolName(), "Probe") != 0) {
+				//this->ProbeActor->SetUserTransform(); TODO
+
+				//this->CanvasImageActor->SetUserTransform(); TODO
+
+			} else if (STRCASECMP(tool->GetToolName(), "Stylus") != 0) {
+				//this->StylusActor->SetUserTransform(); TODO
+
+			} else if (STRCASECMP(tool->GetToolName(), "Needle") != 0) {
+				//this->NeedleActor->SetUserTransform(); TODO
+			}
+		}
+	} // for each tool
+
+	return PLUS_SUCCESS;
+}
+
+//-----------------------------------------------------------------------------
+
 PlusStatus vtkFreehandCalibrationController::Start()
 {
 	LOG_TRACE("vtkFreehandCalibrationController::Start");
@@ -576,8 +657,7 @@ PlusStatus vtkFreehandCalibrationController::Start()
 		// This defines the US image frame origin in pixels W.R.T. the left-upper corner of the original image, with X pointing to the right (column) and Y pointing down to the bottom (row).
 		this->SetUSImageFrameOriginInPixels( this->GetUSImageFrameOriginXInPixels(), this->GetUSImageFrameOriginYInPixels() ); 
 
-		// STEP-OPTIONAL. Apply the US 3D beamwidth data to calibration if desired
-		// This will pass the US 3D beamwidth data and their predefined weights to the calibration component.
+		// Apply the US 3D beamwidth data to calibration if desired (pass the US 3D beamwidth data and their predefined weights to the calibration component)
 		/*
 		if( this->GetUS3DBeamwidthDataReady() )
 		{
@@ -589,13 +669,12 @@ PlusStatus vtkFreehandCalibrationController::Start()
 		}
 		*/
 
-		// TEMPORARY CODE ////////////
+		// Set identity for image frame shifting transform
 		vtkSmartPointer<vtkMatrix4x4> identity = vtkSmartPointer<vtkMatrix4x4>::New();
 		identity->Identity();
 		vnl_matrix<double> transformOrigImageFrame2TRUSImageFrameMatrix4x4(4,4);
 		ConvertVtkMatrixToVnlMatrix(identity, transformOrigImageFrame2TRUSImageFrameMatrix4x4); 
 		this->GetCalibrator()->setTransformOrigImageToTRUSImageFrame4x4(transformOrigImageFrame2TRUSImageFrameMatrix4x4);
-		// TEMPORARY CODE ////////////
 
 		// Register the phantom geometry to the DRB frame in the "Emulator" mode.
 		vnl_matrix<double> transformMatrixPhantom2DRB4x4InEmulatorMode(4,4);
@@ -808,13 +887,9 @@ PlusStatus vtkFreehandCalibrationController::PopulateSegmentedFiducialsToDataCon
 		NFiducial[3]=1;
 
 		SegmentedNFiducialsInFixedCorrespondence.push_back(NFiducial);
-
-		//std::cout << i << ": " << NFiducial[0] << "\t" << NFiducial[1] << "\t"; //TEST
 	}
 
-	//std::cout << std::endl; //TEST
-
-	// Add the data for calibration
+	// Add the data for calibration or validation
 	if (dataType == FREEHAND_MOTION_1) {
 		this->GetCalibrator()->addDataPositionsPerImage( SegmentedNFiducialsInFixedCorrespondence, transformUSProbe2StepperFrameMatrix4x4 );
 	} else if (dataType == FREEHAND_MOTION_2) {
@@ -901,6 +976,8 @@ PlusStatus vtkFreehandCalibrationController::DoOfflineCalibration()
 
 PlusStatus vtkFreehandCalibrationController::DisplaySegmentedPoints(bool aSuccess)
 {
+	LOG_TRACE("vtkFreehandCalibrationController::DisplaySegmentedPoints(" << (aSuccess?"true":"false") << ")");
+
 	if (! aSuccess) {
 		this->SegmentedPointsActor->VisibilityOff();
 		//this->SegmentedPointsActor->GetProperty()->SetColor(0.5, 0.5, 0.5);
@@ -941,7 +1018,8 @@ void vtkFreehandCalibrationController::SetUSImageFrameOriginInPixels(int* origin
 
 //-----------------------------------------------------------------------------
 
-vtkCalibrationController::RealtimeImageDataInfo vtkFreehandCalibrationController::GetRealtimeImageDataInfo(IMAGE_DATA_TYPE dataType) {
+vtkCalibrationController::RealtimeImageDataInfo vtkFreehandCalibrationController::GetRealtimeImageDataInfo(IMAGE_DATA_TYPE dataType)
+{
 	LOG_TRACE("vtkFreehandCalibrationController::GetRealtimeImageDataInfo"); 
 
 	return this->RealtimeImageDataInfoContainer[dataType];
@@ -949,7 +1027,8 @@ vtkCalibrationController::RealtimeImageDataInfo vtkFreehandCalibrationController
 
 //-----------------------------------------------------------------------------
 
-void vtkFreehandCalibrationController::SetRealtimeImageDataInfo(IMAGE_DATA_TYPE dataType, RealtimeImageDataInfo realtimeImageDataInfo) {
+void vtkFreehandCalibrationController::SetRealtimeImageDataInfo(IMAGE_DATA_TYPE dataType, RealtimeImageDataInfo realtimeImageDataInfo)
+{
 	this->RealtimeImageDataInfoContainer[dataType] = realtimeImageDataInfo;
 }
 
@@ -1012,6 +1091,8 @@ PlusStatus vtkFreehandCalibrationController::ReadConfiguration(vtkXMLDataElement
 
 PlusStatus vtkFreehandCalibrationController::ReadFreehandCalibrationConfiguration(vtkXMLDataElement* probeCalibration)
 {
+	LOG_TRACE("vtkFreehandCalibrationController::ReadFreehandCalibrationConfiguration"); 
+
 	if (probeCalibration == NULL) {	
 		LOG_WARNING("Unable to read ProbeCalibration XML data element!"); 
 		return PLUS_FAIL; 
@@ -1304,6 +1385,8 @@ PlusStatus vtkFreehandCalibrationController::PrintCalibrationResultsAndErrorRepo
 
 PlusStatus vtkFreehandCalibrationController::SaveCalibrationResultsAndErrorReportsToXML()
 {
+	LOG_TRACE("vtkFreehandCalibrationController::SaveCalibrationResultsAndErrorReportsToXML"); 
+
 	vtkFreehandController* controller = vtkFreehandController::GetInstance();
 	if ((controller == NULL) || (controller->GetInitialized() == false)) {
 		LOG_ERROR("vtkFreehandController is not initialized!");
@@ -1668,15 +1751,16 @@ PlusStatus vtkFreehandCalibrationController::SaveCalibrationResultsAndErrorRepor
 
 void vtkFreehandCalibrationController::SaveCalibrationDataToSequenceMetafile()
 {
-	LOG_INFO("Save calibration data to sequence metafile"); 
+	LOG_TRACE("vtkFreehandCalibrationController::SaveCalibrationDataToSequenceMetafile"); 
+
 	// Save calibration dataset 
 	std::ostringstream calibrationDataFileName; 
 	calibrationDataFileName << this->GetCalibrator()->getCalibrationTimeStampInString() << this->GetRealtimeImageDataInfo(FREEHAND_MOTION_1).OutputSequenceMetaFileSuffix; 
 	if ( this->SaveTrackedFrameListToMetafile( FREEHAND_MOTION_1, this->GetOutputPath(), calibrationDataFileName.str().c_str(), false ) != PLUS_SUCCESS )
-  {
-    LOG_ERROR("Failed to save tracked frames to sequence metafile!"); 
-    return;
-  }
+	{
+		LOG_ERROR("Failed to save tracked frames to sequence metafile!"); 
+		return;
+	}
 
 	LOG_INFO("Save validation data to sequence metafile"); 
 	// TODO add validation file name to config file
@@ -1684,17 +1768,18 @@ void vtkFreehandCalibrationController::SaveCalibrationDataToSequenceMetafile()
 	std::ostringstream validationDataFileName; 
 	validationDataFileName << this->GetCalibrator()->getCalibrationTimeStampInString() << this->GetRealtimeImageDataInfo(FREEHAND_MOTION_2).OutputSequenceMetaFileSuffix; 
 	if ( this->SaveTrackedFrameListToMetafile( FREEHAND_MOTION_2, this->GetOutputPath(), validationDataFileName.str().c_str(), false ) != PLUS_SUCCESS )
-  {
-    LOG_ERROR("Failed to save tracked frames to sequence metafile!"); 
-    return; 
-  }
+	{
+		LOG_ERROR("Failed to save tracked frames to sequence metafile!"); 
+		return; 
+	}
 }
 
 //-----------------------------------------------------------------------------
 
 std::vector<double> vtkFreehandCalibrationController::GetLineReconstructionErrorAnalysisVector(int wireNumber)
 {
-	LOG_TRACE("vtkProbeCalibrationController::GetLineReconstructionErrorAnalysisVector (wire #" << wireNumber << ")"); 
+	LOG_TRACE("vtkProbeCalibrationController::GetLineReconstructionErrorAnalysisVector (wire #" << wireNumber << ")");
+
 	std::vector<double> absLREAnalysisInUSProbeFrame; 
 	switch (wireNumber)
 	{
@@ -1726,6 +1811,7 @@ std::vector<double> vtkFreehandCalibrationController::GetLineReconstructionError
 vnl_matrix<double> vtkFreehandCalibrationController::GetLineReconstructionErrorMatrix(int wireNumber)
 {
 	//LOG_TRACE("vtkProbeCalibrationController::GetLineReconstructionErrorMatrix (wire #" << wireNumber << ")"); 
+
 	vnl_matrix<double> mLREOrigInUSProbeFrameMatrix; 
 	switch (wireNumber)
 	{
