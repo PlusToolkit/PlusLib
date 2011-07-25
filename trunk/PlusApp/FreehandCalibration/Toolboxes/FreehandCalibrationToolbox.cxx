@@ -154,6 +154,7 @@ void FreehandCalibrationToolbox::RefreshToolboxContent()
 
 			ui.checkBox_ShowDevices->setEnabled(false);
 			ui.pushButton_Save->setEnabled(false);
+
 		} else { // If temporal calibration is finished
 			ui.label_InstructionsTemporal->setText(tr("Temporal calibration is ready to save"));
 			ui.pushButton_StartTemporal->setEnabled(false);
@@ -167,6 +168,10 @@ void FreehandCalibrationToolbox::RefreshToolboxContent()
 			ui.checkBox_ShowDevices->setEnabled(false);
 			ui.pushButton_Save->setEnabled(false);
 		}
+
+		// Needed for forced refreshing the UI (without this, no progress is shown)
+		QApplication::processEvents();
+
 	} else
 	// If done
 	if (toolboxController->State() == ToolboxState_Done) {
@@ -206,9 +211,6 @@ void FreehandCalibrationToolbox::RefreshToolboxContent()
 			m_AcquisitionTimer->start();
 		}
 	}
-
-	// Needed for forced refreshing the UI (without this, no progress is shown)
-	QApplication::processEvents();
 }
 
 //-----------------------------------------------------------------------------
@@ -315,20 +317,6 @@ void FreehandCalibrationToolbox::SkipTemporalClicked()
 	LOG_TRACE("FreehandCalibrationToolbox::SkipTemporalClicked"); 
 
 	vtkFreehandCalibrationController::GetInstance()->TemporalCalibrationDoneOn();
-
-	////////////TEMPORARY CODE///////////// TODO
-	QString configPath(vtkFileFinder::GetInstance()->GetConfigurationDirectory());
-	QString fileName(configPath + "/PhantomRegistration_fCal_20110720.xml");
-	if (PhantomRegistrationController::GetInstance()->LoadPhantomRegistrationFromFile(fileName.toStdString())) {
-		ui.lineEdit_PhantomRegistration->setText(fileName);
-		ui.lineEdit_PhantomRegistration->setToolTip(fileName);
-	}
-	fileName = QString(configPath + "/USCalibrationConfig_fCal_SonixTouch.xml");
-	vtkFreehandCalibrationController::GetInstance()->ReadConfiguration(fileName.toStdString().c_str()); //TODO error handling
-	vtkFreehandCalibrationController::GetInstance()->CalculateImageCameraParameters();
-	ui.lineEdit_CalibrationConfiguration->setText(fileName);
-	ui.lineEdit_CalibrationConfiguration->setToolTip(fileName);
-	////////////TEMPORARY CODE/////////////
 }
 
 //-----------------------------------------------------------------------------
