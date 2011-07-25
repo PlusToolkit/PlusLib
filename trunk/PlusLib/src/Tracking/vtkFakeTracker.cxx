@@ -49,6 +49,8 @@ vtkFakeTracker::~vtkFakeTracker()
 //----------------------------------------------------------------------------
 void vtkFakeTracker::SetMode(FakeTrackerMode mode)
 {
+  LOG_TRACE("vtkFakeTracker::SetMode(" << mode << ")"); 
+
   this->Mode = mode;
 
   switch (this->Mode)
@@ -146,24 +148,32 @@ void vtkFakeTracker::SetMode(FakeTrackerMode mode)
 //----------------------------------------------------------------------------
 PlusStatus vtkFakeTracker::Connect()
 {
+  LOG_TRACE("vtkFakeTracker::Connect"); 
+
   return PLUS_SUCCESS; 
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkFakeTracker::Disconnect()
 {
+  LOG_TRACE("vtkFakeTracker::Disconnect"); 
+
   return this->StopTracking(); 
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkFakeTracker::Probe()
 {
+  LOG_TRACE("vtkFakeTracker::Probe"); 
+
   return PLUS_SUCCESS; 
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkFakeTracker::InternalStartTracking()
 {
+  LOG_TRACE("vtkFakeTracker::InternalStartTracking"); 
+
   this->RandomSeed = 0;
 
   for (int i=0; i<this->GetNumberOfTools(); ++i) 
@@ -177,6 +187,8 @@ PlusStatus vtkFakeTracker::InternalStartTracking()
 //----------------------------------------------------------------------------
 PlusStatus vtkFakeTracker::InternalStopTracking()
 {
+  LOG_TRACE("vtkFakeTracker::InternalStopTracking"); 
+
   this->Tracking = 0;
 
   return PLUS_SUCCESS; 
@@ -185,6 +197,8 @@ PlusStatus vtkFakeTracker::InternalStopTracking()
 //----------------------------------------------------------------------------
 PlusStatus vtkFakeTracker::InternalUpdate()
 {
+  //LOG_TRACE("vtkFakeTracker::InternalUpdate"); 
+
   if (this->Frame++ > 355559)
   {
     this->Frame = 0;
@@ -404,7 +418,8 @@ PlusStatus vtkFakeTracker::InternalUpdate()
 //----------------------------------------------------------------------------
 PlusStatus vtkFakeTracker::ReadConfiguration(vtkXMLDataElement* config)
 {
-  LOG_TRACE("vtkFakeTracker::ReadConfiguration"); 
+  LOG_TRACE("vtkFakeTracker::ReadConfiguration");
+
   if ( config == NULL ) 
   {
     LOG_WARNING("Unable to find FakeTracker XML data element");

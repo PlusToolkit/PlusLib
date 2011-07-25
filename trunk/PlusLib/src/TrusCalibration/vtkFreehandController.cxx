@@ -53,7 +53,9 @@ vtkFreehandController::vtkFreehandController()
 
 vtkFreehandController::~vtkFreehandController()
 {
-	this->DataCollector->Stop();
+	if (this->DataCollector != NULL) {
+		this->DataCollector->Stop();
+	}
 
 	this->SetDataCollector(NULL);
 	this->SetCanvasRenderer(NULL);
