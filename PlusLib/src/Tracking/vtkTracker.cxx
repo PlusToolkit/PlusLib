@@ -106,7 +106,7 @@ vtkTracker::vtkTracker()
 //----------------------------------------------------------------------------
 vtkTracker::~vtkTracker()
 {
-  this->Tracking=false;
+  this->Tracking = 0;
 
   for (int i = 0; i < this->NumberOfTools; i++)
   { 

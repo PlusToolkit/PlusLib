@@ -35,7 +35,7 @@ VolumeReconstructionController::VolumeReconstructionController()
 	, m_ProgressMessage("")
 	, m_ReconstructedVolume(NULL)
 	, m_ContourActor(NULL)
-	, m_ContouringThreshold(1.0)
+	, m_ContouringThreshold(64.0)
 {
 	m_VolumeReconstructor = vtkVolumeReconstructor::New();
 
