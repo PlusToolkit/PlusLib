@@ -88,10 +88,6 @@ vtkFreehandCalibrationController::vtkFreehandCalibrationController()
 	this->TransformImageToProbe = NULL;
 	this->SetTransformImageToProbe(transformImageToProbe); 
 
-	vtkSmartPointer<vtkTransform> transformProbeToPhantomReference = vtkSmartPointer<vtkTransform>::New(); 
-	this->TransformProbeToPhantomReference = NULL;
-	this->SetTransformProbeToPhantomReference(transformProbeToPhantomReference); 
-
 	VTK_LOG_TO_CONSOLE_ON
 }
 
@@ -107,7 +103,6 @@ vtkFreehandCalibrationController::~vtkFreehandCalibrationController()
 	this->SetSegmentedPointsActor(NULL);
 	this->SetSegmentedPointsPolyData(NULL);
 	this->SetTransformImageToProbe(NULL);
-	this->SetTransformProbeToPhantomReference(NULL);
 
 	if (this->Calibrator != NULL) {
 		delete this->Calibrator;
@@ -299,15 +294,6 @@ PlusStatus vtkFreehandCalibrationController::InitializeDeviceVisualization()
 
 					vtkSmartPointer<vtkActor> deviceActor = vtkSmartPointer<vtkActor>::New();
 					deviceActor->SetMapper(stlMapper);
-
-					// Create and apply actor transform
-					vtkSmartPointer<vtkTransform> modelToToolReferenceTransform = vtkSmartPointer<vtkTransform>::New();
-					modelToToolReferenceTransform->Identity();
-					modelToToolReferenceTransform->Concatenate(tool->GetToolToToolReferenceTransform());
-					modelToToolReferenceTransform->Concatenate(tool->GetModelToToolTransform());
-					modelToToolReferenceTransform->Modified();
-
-					deviceActor->SetUserTransform(modelToToolReferenceTransform);
 
 					// Set proper members
 					if (STRCASECMP(tool->GetToolName(), "Probe") != 0) {
@@ -589,39 +575,52 @@ PlusStatus vtkFreehandCalibrationController::DoAcquisition()
 		vtkSmartPointer<vtkMatrix4x4> referenceToToolTransformMatrix = NULL;
 
 		// Acquire position from tracker
-		if (dataCollector->GetTracker()->GetTool(toolNumber)->GetEnabled()) {
-			referenceToToolTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
-			dataCollector->GetTransformWithTimestamp(referenceToToolTransformMatrix, timestamp, status, toolNumber); 
-		}
+		referenceToToolTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
+		dataCollector->GetTransformWithTimestamp(referenceToToolTransformMatrix, timestamp, status, toolNumber); 
 
 		// Compute and set transforms for actors
 		if (status == TR_OK) {
 			// If reference then set phantom actor
 			if (toolNumber == referenceToolNumber) {
 				if ((this->ModelToPhantomTransform != NULL) && (PhantomRegistrationController::GetInstance()->GetPhantomToPhantomReferenceTransform() != NULL)) {
-					vtkSmartPointer<vtkTransform> modelToPhantomReferenceTransform = vtkSmartPointer<vtkTransform>::New();
-					modelToPhantomReferenceTransform->Identity();
-					modelToPhantomReferenceTransform->Concatenate(PhantomRegistrationController::GetInstance()->GetPhantomToPhantomReferenceTransform());
-					modelToPhantomReferenceTransform->Concatenate(this->ModelToPhantomTransform);
-					modelToPhantomReferenceTransform->Modified();
+					vtkSmartPointer<vtkTransform> phantomModelToPhantomReferenceTransform = vtkSmartPointer<vtkTransform>::New();
+					phantomModelToPhantomReferenceTransform->Identity();
+					phantomModelToPhantomReferenceTransform->Concatenate(PhantomRegistrationController::GetInstance()->GetPhantomToPhantomReferenceTransform());
+					phantomModelToPhantomReferenceTransform->Concatenate(this->ModelToPhantomTransform);
+					phantomModelToPhantomReferenceTransform->Modified();
 
-					this->PhantomBodyActor->SetUserTransform(modelToPhantomReferenceTransform);
+					this->PhantomBodyActor->SetUserTransform(phantomModelToPhantomReferenceTransform);
 				}
 
 				continue;
 			}
 
+			// Create and apply actor transform
+			vtkSmartPointer<vtkTransform> toolModelToPhantomReferenceTransform = vtkSmartPointer<vtkTransform>::New();
+			toolModelToPhantomReferenceTransform->Identity();
+			toolModelToPhantomReferenceTransform->Concatenate(referenceToToolTransformMatrix);
+			toolModelToPhantomReferenceTransform->Concatenate(tool->GetToolToToolReferenceTransform());
+			toolModelToPhantomReferenceTransform->Concatenate(tool->GetModelToToolTransform());
+			toolModelToPhantomReferenceTransform->Modified();
+
 			// If other tool, set the transform according to the tool name
 			if (STRCASECMP(tool->GetToolName(), "Probe") != 0) {
-				//this->ProbeActor->SetUserTransform(); TODO
+				this->ProbeActor->SetUserTransform(toolModelToPhantomReferenceTransform);
 
-				//this->CanvasImageActor->SetUserTransform(); TODO
+				// Image canvas transform
+				vtkSmartPointer<vtkTransform> imageToPhantomReferenceTransform = vtkSmartPointer<vtkTransform>::New();
+				imageToPhantomReferenceTransform->Identity();
+				imageToPhantomReferenceTransform->Concatenate(referenceToToolTransformMatrix);
+				imageToPhantomReferenceTransform->Concatenate(tool->GetToolToToolReferenceTransform());
+				imageToPhantomReferenceTransform->Concatenate(this->TransformImageToProbe);
+				
+				this->CanvasImageActor->SetUserTransform(imageToPhantomReferenceTransform);
 
 			} else if (STRCASECMP(tool->GetToolName(), "Stylus") != 0) {
-				//this->StylusActor->SetUserTransform(); TODO
+				this->StylusActor->SetUserTransform(toolModelToPhantomReferenceTransform);
 
 			} else if (STRCASECMP(tool->GetToolName(), "Needle") != 0) {
-				//this->NeedleActor->SetUserTransform(); TODO
+				this->NeedleActor->SetUserTransform(toolModelToPhantomReferenceTransform);
 			}
 		}
 	} // for each tool
@@ -818,8 +817,6 @@ PlusStatus vtkFreehandCalibrationController::AddTrackedFrameData(TrackedFrame* t
 			vnl_matrix<double> transformProbeToPhantomReferenceMatrix4x4(4,4);
 
 			ConvertVtkMatrixToVnlMatrixInMeter(tProbeToPhantomReferenceMatrix, transformProbeToPhantomReferenceMatrix4x4);
-
-			this->TransformProbeToPhantomReference->SetMatrix(tProbeToPhantomReferenceMatrix);
 
 			this->PopulateSegmentedFiducialsToDataContainer(transformProbeToPhantomReferenceMatrix4x4, dataType);
 
