@@ -213,9 +213,6 @@ public:
 	vtkGetMacro(USImageFrameOriginYInPixels, int);
 	vtkSetMacro(USImageFrameOriginYInPixels, int);
 
-	vtkGetObjectMacro(TransformProbeToPhantomReference, vtkTransform);
-	vtkSetObjectMacro(TransformProbeToPhantomReference, vtkTransform);
-
 	vtkGetObjectMacro(TransformImageToProbe, vtkTransform);
 	vtkSetObjectMacro(TransformImageToProbe, vtkTransform);
 
@@ -254,9 +251,6 @@ protected:
 
 	//! Camera of the scene
 	vtkCamera*		ImageCamera;
-
-	//! The current transformation matrix of the main tool (the probe)
-	vtkTransform*	TransformProbeToPhantomReference;
 
 	//! Result of the calibration - Image to Probe transform
 	vtkTransform*	TransformImageToProbe;
