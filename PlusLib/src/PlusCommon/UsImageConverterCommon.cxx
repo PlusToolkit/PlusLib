@@ -230,7 +230,7 @@ PlusStatus UsImageConverterCommon::FlipImage(const UsImageConverterCommon::Image
         inputPixel++;
         outputPixel--;
       }
-      outputPixel+=2*width-1;
+      outputPixel+=2*width;
     }
   }
   else if (flipAxes[0] && flipAxes[1])
