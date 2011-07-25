@@ -169,9 +169,6 @@ PlusStatus vtkFreehandCalibrationController::InitializeVisualization()
 				this->SetCanvasImageActor(canvasImageActor);
 			}
 
-			// Compute image camera parameters and set it to display live image
-			CalculateImageCameraParameters();
-
 			// Create segmented points actor
 			vtkSmartPointer<vtkActor> segmentedPointsActor = vtkSmartPointer<vtkActor>::New();
 
@@ -202,6 +199,9 @@ PlusStatus vtkFreehandCalibrationController::InitializeVisualization()
 			controller->GetCanvasRenderer()->InteractiveOff(); // TODO it doesn't work - find a way to disable interactions (also re-enable on Clear)
 			//controller->GetCanvasRenderer()->GetRenderWindow()->GetInteractor()->Disable();
 			controller->GetCanvasRenderer()->Modified();
+
+			// Compute image camera parameters and set it to display live image
+			CalculateImageCameraParameters();
 		}
 	} else if (vtkFreehandController::GetInstance()->GetCanvas() != NULL) {  // If already initialized (it can occur if tab change - and so clear - happened)
 		// Add all actors to the renderer again - state must be "Done", because tab cannot be changed if "In progress"
@@ -384,7 +384,7 @@ PlusStatus vtkFreehandCalibrationController::CalculateImageCameraParameters()
 	// Calculate image center
 	double imageCenterX = 0;
 	double imageCenterY = 0;
-	if ((this->GetSegParameters()->GetFrameSize()[0] == 0) || (this->GetSegParameters()->GetFrameSize()[1] == 0)) {
+	if ((this->GetSegParameters()->GetFrameSize()[0] <= 0) || (this->GetSegParameters()->GetFrameSize()[1] <= 0)) {
 		int dimensions[3];
 		dataCollector->GetVideoSource()->GetFrameSize(dimensions);
 		imageCenterX = dimensions[0] / 2.0;
@@ -521,6 +521,7 @@ PlusStatus vtkFreehandCalibrationController::DoSpatialCalibration()
 		// Display segmented points (or hide them if unsuccessful)
 		DisplaySegmentedPoints(segmentationSuccessful);
 
+		// It makes the GUI update while acquiring the data
 		if (m_Toolbox) {
 			m_Toolbox->RefreshToolboxContent();
 		}
@@ -604,7 +605,7 @@ PlusStatus vtkFreehandCalibrationController::DoAcquisition()
 			toolModelToPhantomReferenceTransform->Modified();
 
 			// If other tool, set the transform according to the tool name
-			if (STRCASECMP(tool->GetToolName(), "Probe") != 0) {
+			if ((this->ProbeActor != NULL) && (STRCASECMP(tool->GetToolName(), "Probe") == 0)) {
 				this->ProbeActor->SetUserTransform(toolModelToPhantomReferenceTransform);
 
 				// Image canvas transform
@@ -616,10 +617,10 @@ PlusStatus vtkFreehandCalibrationController::DoAcquisition()
 				
 				this->CanvasImageActor->SetUserTransform(imageToPhantomReferenceTransform);
 
-			} else if (STRCASECMP(tool->GetToolName(), "Stylus") != 0) {
+			} else if ((this->StylusActor != NULL) && (STRCASECMP(tool->GetToolName(), "Stylus") == 0)) {
 				this->StylusActor->SetUserTransform(toolModelToPhantomReferenceTransform);
 
-			} else if (STRCASECMP(tool->GetToolName(), "Needle") != 0) {
+			} else if ((this->NeedleActor != NULL) && (STRCASECMP(tool->GetToolName(), "Needle") == 0)) {
 				this->NeedleActor->SetUserTransform(toolModelToPhantomReferenceTransform);
 			}
 		}
@@ -694,7 +695,7 @@ PlusStatus vtkFreehandCalibrationController::Stop()
 	LOG_TRACE("vtkFreehandCalibrationController::Stop");
 
 	// Load models and initialize device actors (entering this function means that the calibration is successful)
-	if (this->TemporalCalibrationDone) {
+	if (this->SpatialCalibrationDone) {
 		InitializeDeviceVisualization();
 
 		m_State = ToolboxState_Done;
@@ -711,20 +712,8 @@ PlusStatus vtkFreehandCalibrationController::Reset()
 {
 	LOG_TRACE("vtkFreehandCalibrationController::Reset");
 
-	// Delete object related to calibration (removing previously acquired data)
-	if (this->TemporalCalibrationDone == true) {
-		// Turn on cancel flag
-		this->CancelRequestOn();
-
-		if (this->Calibrator != NULL) {
-			delete this->Calibrator;
-			this->Calibrator = NULL;
-		}
-
-		// Empty tracked frame containers
-		this->TrackedFrameListContainer[FREEHAND_MOTION_1]->Clear();
-		this->TrackedFrameListContainer[FREEHAND_MOTION_2]->Clear();
-	} else {
+	// If temporal calibration still in progress
+	if ((this->TemporalCalibrationDone == false) && (m_State == ToolboxState_InProgress)) {
 		vtkFreehandController* controller = vtkFreehandController::GetInstance();
 		if ((controller == NULL) || (controller->GetInitialized() == false)) {
 			LOG_ERROR("vtkFreehandController is not initialized!");
@@ -738,6 +727,24 @@ PlusStatus vtkFreehandCalibrationController::Reset()
 
 		// Cancel synchronization (temporal calibration) in data collector
 		dataCollector->CancelSyncRequestOn();
+
+	// If temporal calibration is done but spatial has not been started
+	} else if ((this->TemporalCalibrationDone == true) && (m_State != ToolboxState_InProgress)) {
+		this->SetTemporalCalibrationDone(false);
+
+	// If spatial calibration is in progress
+	} else if (this->TemporalCalibrationDone == true) {
+		// Turn on cancel flag
+		this->CancelRequestOn();
+
+		if (this->Calibrator != NULL) {
+			delete this->Calibrator;
+			this->Calibrator = NULL;
+		}
+
+		// Empty tracked frame containers
+		this->TrackedFrameListContainer[FREEHAND_MOTION_1]->Clear();
+		this->TrackedFrameListContainer[FREEHAND_MOTION_2]->Clear();
 	}
 
 	// Reset progress
@@ -775,6 +782,11 @@ void vtkFreehandCalibrationController::UpdateProgress(int aPercent) {
 
 	// Calls this way because it is a static function
 	vtkFreehandCalibrationController::GetInstance()->SetProgressPercent(aPercent);
+
+	// It makes the GUI update while data collector is acquiring the data
+	if (vtkFreehandCalibrationController::GetInstance()->GetToolbox()) {
+		vtkFreehandCalibrationController::GetInstance()->GetToolbox()->RefreshToolboxContent();
+	}
 }
 
 //-----------------------------------------------------------------------------
@@ -798,6 +810,7 @@ PlusStatus vtkFreehandCalibrationController::DoTemporalCalibration()
 	controller->GetDataCollector()->Synchronize();
 
 	this->TemporalCalibrationDoneOn();
+	this->ProgressPercent = 0;
 
 	return PLUS_SUCCESS;
 }
