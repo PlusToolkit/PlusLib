@@ -136,6 +136,12 @@ public:
 	*/
 	std::string GetStylusToStylustipTransformString();
 
+	/*!
+	* \brief Re-initialize stylus calibration matrix to stylus tool from m_StylusToStylustipTransform (in case the user has changed device set in the meantime)
+	* \return Success flag
+	*/
+	PlusStatus FeedStylusCalibrationMatrixToTool();
+
 protected:
 	/*!
 	* \brief Constructor
