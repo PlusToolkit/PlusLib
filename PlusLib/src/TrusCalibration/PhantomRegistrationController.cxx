@@ -71,7 +71,9 @@ PhantomRegistrationController::PhantomRegistrationController()
 
 PhantomRegistrationController::~PhantomRegistrationController()
 {
-	//TODO use vtkSmartPointer when creating these (only could do if this class was descendant of vtkObkject and we used set/get macros)
+	m_PhantomRenderer->RemoveActor(m_PhantomBodyActor);
+	m_PhantomRenderer->RemoveActor(m_RequestedLandmarksActor);
+
 	if (m_PhantomRenderer != NULL) {
 		m_PhantomRenderer->Delete();
 		m_PhantomRenderer = NULL;
@@ -306,10 +308,12 @@ PlusStatus PhantomRegistrationController::Clear()
 
 	// Remove all actors from the renderers
 	vtkRenderer* renderer = vtkFreehandController::GetInstance()->GetCanvasRenderer();
-	renderer->RemoveActor(m_StylusActor);
-	renderer->RemoveActor(m_LandmarksActor);
-	renderer->RemoveActor(m_RegisteredPhantomBodyActor);
-	renderer->Modified();
+	if (renderer != NULL) {
+		renderer->RemoveActor(m_StylusActor);
+		renderer->RemoveActor(m_LandmarksActor);
+		renderer->RemoveActor(m_RegisteredPhantomBodyActor);
+		renderer->Modified();
+	}
 
 	m_PhantomRenderer->RemoveActor(m_PhantomBodyActor);
 	m_PhantomRenderer->RemoveActor(m_RequestedLandmarksActor);
@@ -566,6 +570,11 @@ void PhantomRegistrationController::Register()
 
 	// Display phantom model in the main canvas
 	if (vtkFreehandController::GetInstance()->GetCanvas() != NULL) {
+		if (m_ModelToPhantomTransform == NULL) {
+			LOG_ERROR("ModelToPhantomTransform is not loaded, registration result cannot be visualized!");
+			return;
+		}
+
 		vtkSmartPointer<vtkTransform> modelToPhantomReferenceTransform = vtkSmartPointer<vtkTransform>::New();
 		modelToPhantomReferenceTransform->Identity();
 		modelToPhantomReferenceTransform->Concatenate(m_PhantomToPhantomReferenceTransform);
@@ -633,6 +642,7 @@ vtkMatrix4x4* PhantomRegistrationController::AcquireStylusTipTrackerPosition(dou
 	if (m_RecordRequested) { // Save the time of dynamic cast is record has not been requested
 		vtkFakeTracker *fakeTracker = dynamic_cast<vtkFakeTracker*>(dataCollector->GetTracker());
 		if (fakeTracker != NULL) {
+			// This method is not 100% sure, because depending on the CPU usage, changing tracker state can take even more than 110% of the theoretical update time
 			vtkAccurateTimer::Delay(1.1 / fakeTracker->GetFrequency());
 		}
 	}
@@ -810,24 +820,24 @@ PlusStatus PhantomRegistrationController::LoadPhantomDefinitionFromFile(std::str
 				}
 			}
 
-			// ModelToPhantomOriginTransform - Transforming input model for proper visualization
-			double* modelToPhantomOriginTransformVector = new double[16]; 
-			if (model->GetVectorAttribute("ModelToPhantomOriginTransform", 16, modelToPhantomOriginTransformVector)) {
-				vtkSmartPointer<vtkMatrix4x4> modelToPhantomOriginTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-				modelToPhantomOriginTransformMatrix->Identity();
-				modelToPhantomOriginTransformMatrix->DeepCopy(modelToPhantomOriginTransformVector);
+			// ModelToPhantomTransform - Transforming input model for proper visualization
+			double* modelToPhantomTransformVector = new double[16]; 
+			if (model->GetVectorAttribute("ModelToPhantomTransform", 16, modelToPhantomTransformVector)) {
+				vtkSmartPointer<vtkMatrix4x4> modelToPhantomTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+				modelToPhantomTransformMatrix->Identity();
+				modelToPhantomTransformMatrix->DeepCopy(modelToPhantomTransformVector);
 
 				if (m_ModelToPhantomTransform != NULL) {
 					m_ModelToPhantomTransform->Delete();
 				}
 				m_ModelToPhantomTransform = vtkTransform::New();
-				m_ModelToPhantomTransform->SetMatrix(modelToPhantomOriginTransformMatrix);
+				m_ModelToPhantomTransform->SetMatrix(modelToPhantomTransformMatrix);
 
 				if (vtkFreehandController::GetInstance()->GetCanvas() != NULL) {
 					m_PhantomBodyActor->SetUserTransform(m_ModelToPhantomTransform);
 				}
 			}
-			delete[] modelToPhantomOriginTransformVector;
+			delete[] modelToPhantomTransformVector;
 
 			if (vtkFreehandController::GetInstance()->GetCanvas() != NULL) {
 				m_PhantomRenderer->ResetCamera();

@@ -774,3 +774,26 @@ PlusStatus StylusCalibrationController::CalibrateStylus()
 
 	return PLUS_SUCCESS;
 }
+
+//-----------------------------------------------------------------------------
+
+PlusStatus StylusCalibrationController::FeedStylusCalibrationMatrixToTool()
+{
+	LOG_TRACE("StylusCalibrationController::FeedStylusCalibrationMatrixToTool");
+
+	vtkDataCollector* dataCollector = vtkFreehandController::GetInstance()->GetDataCollector();
+	if (dataCollector == NULL) {
+		LOG_ERROR("Data collector is not initialized!");
+		return PLUS_FAIL;
+	}
+	if ((dataCollector->GetTracker() == NULL) || (dataCollector->GetTracker()->GetTool(m_StylusPortNumber) < 0)) {
+		LOG_ERROR("Tracker is not initialized properly!");
+		return PLUS_FAIL;
+	}
+
+	vtkSmartPointer<vtkMatrix4x4> stylusToStylusTipTransformMatrix = dataCollector->GetTracker()->GetTool(m_StylusPortNumber)->GetCalibrationMatrix();
+	// If translation values are 0 (no calibration)
+	if ((stylusToStylusTipTransformMatrix == NULL) || ((stylusToStylusTipTransformMatrix->GetElement(0,3) == 0.0) && (stylusToStylusTipTransformMatrix->GetElement(1,3) == 0.0) && (stylusToStylusTipTransformMatrix->GetElement(2,3) == 0.0)) ) {
+		dataCollector->GetTracker()->GetTool(m_StylusPortNumber)->SetCalibrationMatrix(m_StylusToStylustipTransform->GetMatrix());		
+	}
+}

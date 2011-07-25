@@ -177,6 +177,8 @@ PlusStatus vtkFakeTracker::InternalStartTracking()
 //----------------------------------------------------------------------------
 PlusStatus vtkFakeTracker::InternalStopTracking()
 {
+  this->Tracking = 0;
+
   return PLUS_SUCCESS; 
 }
 
@@ -378,7 +380,7 @@ PlusStatus vtkFakeTracker::InternalUpdate()
       // Apply inverse calibration so that when applying calibration during acquisition, the position is right
       vtkSmartPointer<vtkTransform> stylustipToStylusTransform = vtkSmartPointer<vtkTransform>::New();
       stylustipToStylusTransform->Identity();
-      stylustipToStylusTransform->SetMatrix(this->GetTool(1)->GetCalibrationMatrix());
+	  stylustipToStylusTransform->SetMatrix(this->GetTool(this->GetToolPortByName("Stylus"))->GetCalibrationMatrix());
       stylustipToStylusTransform->Inverse();
       stylustipToStylusTransform->Modified();
 
