@@ -52,10 +52,10 @@ PhantomRegistrationToolbox::PhantomRegistrationToolbox(QWidget* aParent, Qt::WFl
 
 PhantomRegistrationToolbox::~PhantomRegistrationToolbox()
 {
-	ui.canvasPhantom->GetRenderWindow()->RemoveRenderer(PhantomRegistrationController::GetInstance()->GetPhantomRenderer());
-
 	PhantomRegistrationController* phantomRegistrationController = PhantomRegistrationController::GetInstance();
 	if (phantomRegistrationController != NULL) {
+		ui.canvasPhantom->GetRenderWindow()->RemoveRenderer(PhantomRegistrationController::GetInstance()->GetPhantomRenderer());
+
 		delete phantomRegistrationController;
 	}
 
@@ -73,6 +73,10 @@ void PhantomRegistrationToolbox::Initialize()
 
 	// If stylus calibration has just been done, then indicate it
 	if (StylusCalibrationController::GetInstance()->GetStylusToStylustipTransform() != NULL) {
+
+		// If the user changed device set since calibration, set the calibration to the tool
+		StylusCalibrationController::GetInstance()->FeedStylusCalibrationMatrixToTool();
+
 		ui.lineEdit_StylusCalibration->setText(tr("Using session calibration data"));
 	}
 }
