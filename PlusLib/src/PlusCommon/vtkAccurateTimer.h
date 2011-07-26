@@ -47,8 +47,12 @@ public:
 
 	// Description:
 	// Get system time (elapsed time since last reboot 
-	static double GetSystemTime(); 
-
+	static double GetInternalSystemTime(); 
+  
+  // Description:
+	// Get the elapsed time since class instantiation
+  static double GetSystemTime(); 
+  
 	// Description:
 	// Get current date in string 
 	// Format: [MMDDYY]
@@ -76,6 +80,7 @@ protected:
 private:
 	vtkAccurateTimer(const vtkAccurateTimer&);  // Not implemented.
 	void operator=(const vtkAccurateTimer&);  // Not implemented.
+  static double SystemStartTime; 
 
 	// The singleton instance and the singleton cleanup instance
 	static vtkAccurateTimer* Instance;
