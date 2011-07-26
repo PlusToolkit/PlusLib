@@ -77,6 +77,9 @@ void VolumeReconstructionToolbox::RefreshToolboxContent()
 
 		ui.pushButton_Reconstruct->setEnabled(false);
 		ui.pushButton_Save->setEnabled(false);
+
+		// Needed for forced refreshing the UI (without this, no progress is shown)
+		QApplication::processEvents();
 	} else
 	// If done
 	if (toolboxController->State() == ToolboxState_Done) {
@@ -92,9 +95,6 @@ void VolumeReconstructionToolbox::RefreshToolboxContent()
 		ui.pushButton_Reconstruct->setEnabled(false);
 		ui.pushButton_Save->setEnabled(false);
 	}
-
-	// Needed for forced refreshing the UI (without this, no progress is shown)
-	QApplication::processEvents();
 }
 
 //-----------------------------------------------------------------------------

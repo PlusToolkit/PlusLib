@@ -95,7 +95,7 @@ PlusStatus ToolStateDisplayWidget::InitializeTools(vtkDataCollector* aDataCollec
 	for (int i=0; i<m_DataCollector->GetTracker()->GetNumberOfTools(); ++i) {
 		vtkTrackerTool *tool = m_DataCollector->GetTracker()->GetTool(i);
 		if ((tool == NULL) || (!tool->GetEnabled())) {
-			LOG_INFO("Tool " << i << " is not enabled or not present");
+			LOG_DEBUG("Tool " << i << " is not enabled or not present");
 			continue;
 		} else {
 			m_NumberOfActiveTools++;
