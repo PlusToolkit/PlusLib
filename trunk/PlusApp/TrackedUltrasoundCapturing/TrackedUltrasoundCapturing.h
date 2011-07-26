@@ -38,7 +38,7 @@ public:
 	typedef itk::Image< PixelType, 2 > ImageType;
 
 	// Description:	
-	virtual void Initialize(); 
+	virtual PlusStatus Initialize(); 
 	
 	// Description:
 	virtual PlusStatus SaveData(); 
@@ -137,8 +137,8 @@ public:
 protected: 
 	TrackedUltrasoundCapturing();
 	virtual ~TrackedUltrasoundCapturing();
-	
-	vtkDataCollector* DataCollector; 
+
+  vtkDataCollector* DataCollector; 
 	vtkRenderer* RealtimeRenderer; 
 	vtkImageActor* RealtimeImageActor; 
 
@@ -154,7 +154,7 @@ protected:
 	double RecordingStartTime; 
 
 	//! Pointer to the callback function that is executed each time an update requested
-    UpdateRequestPtr UpdateRequestCallbackFunction;
+  UpdateRequestPtr UpdateRequestCallbackFunction;
 
 	//! Pointer to the progress bar update callback function 
 	ProgressBarUpdatePtr ProgressBarUpdateCallbackFunction; 

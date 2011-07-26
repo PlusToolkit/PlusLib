@@ -146,23 +146,26 @@ TrackedUltrasoundCapturing::~TrackedUltrasoundCapturing()
 }
 
 //----------------------------------------------------------------------------
-void TrackedUltrasoundCapturing::Initialize()
+PlusStatus TrackedUltrasoundCapturing::Initialize()
 {
 	LOG_TRACE("TrackedUltrasoundCapturing::Initialize"); 
 	vtkSmartPointer<vtkDataCollector> dataCollector = vtkSmartPointer<vtkDataCollector>::New(); 
 	this->SetDataCollector(dataCollector); 
 
 	this->DataCollector->ReadConfigurationFromFile(this->GetInputConfigFileName());
-	this->DataCollector->Initialize(); 
-	this->DataCollector->Start();
+	if ( this->DataCollector->Initialize() != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to initialize DataCollector!"); 
+		return PLUS_FAIL; 
+  }
 
 	if ( !this->DataCollector->GetInitialized() )
 	{
-		vtkErrorMacro("Unable to initialize DataCollector!"); 
-		exit(EXIT_FAILURE); 
+		LOG_ERROR("Unable to initialize DataCollector!"); 
+		return PLUS_FAIL; 
 	}
 
-	if ( this->TrackedFrameContainer == NULL )
+  if ( this->TrackedFrameContainer == NULL )
 	{
 		this->TrackedFrameContainer = vtkTrackedFrameList::New(); 
 	}
@@ -186,6 +189,8 @@ void TrackedUltrasoundCapturing::Initialize()
 	{	
 		dir->MakeDirectory(this->GetOutputFolder()); 
 	}
+
+  return PLUS_SUCCESS; 
 }; 
 
 //----------------------------------------------------------------------------

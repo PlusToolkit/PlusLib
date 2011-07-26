@@ -14,8 +14,6 @@ DeviceSetSelectorWidget::DeviceSetSelectorWidget(QWidget* aParent)
 {
 	ui.setupUi(this);
 
-	ui.comboBox_DeviceSet->setMinimumWidth(400);
-
 	connect( ui.pushButton_OpenConfigurationDirectory, SIGNAL( clicked() ), this, SLOT( OpenConfigurationDirectoryClicked() ) );
 	connect( ui.pushButton_Connect, SIGNAL( clicked() ), this, SLOT( InvokeConnect() ) );
 	connect( ui.comboBox_DeviceSet, SIGNAL( currentIndexChanged(int) ), this, SLOT( DeviceSetSelected(int) ) );
@@ -222,4 +220,12 @@ PlusStatus DeviceSetSelectorWidget::ParseDirectory(QString aDirectory)
 	}
 
 	return PLUS_SUCCESS;
+}
+
+
+//-----------------------------------------------------------------------------
+
+void DeviceSetSelectorWidget::SetComboBoxMinWidth(int minWidth)
+{
+  ui.comboBox_DeviceSet->setMinimumWidth(minWidth);
 }

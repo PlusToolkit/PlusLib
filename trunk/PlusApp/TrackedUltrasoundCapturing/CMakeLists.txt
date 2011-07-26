@@ -25,6 +25,10 @@ SET (TrackedUltrasoundCapturing_UI_HDRS
 SET (TrackedUltrasoundCapturing_UI_SRCS
 	TrackedUltrasoundCapturing.ui 
 	)
+
+SET (QT_Resources
+	${PlusApp_SOURCE_DIR}/CommonWidgets/CommonWidgets.qrc
+	)
 	
 # --------------------------------------------------------------------------
 # Qt specific commands
@@ -32,8 +36,15 @@ SET (TrackedUltrasoundCapturing_UI_SRCS
 QT4_WRAP_CPP( QT_MOC_Files ${TrackedUltrasoundCapturing_UI_HDRS} )			  
 QT4_WRAP_UI( QT_UI_Headers ${TrackedUltrasoundCapturing_UI_SRCS} )
 QT4_WRAP_CPP( QT_MOC_UI_Files ${QT_UI_Headers} )	
+QT4_ADD_RESOURCES( QT_RCC_Files ${QT_Resources} )
+
+
+SOURCE_GROUP("Generated Files" FILES ${QT_MOC_Files} ${QT_UI_Headers} ${QT_MOC_UI_Files} ${QT_RCC_Files})
+SOURCE_GROUP("UI Files" FILES ${TrackedUltrasoundCapturing_UI_SRCS})
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
+include_directories(${PlusApp_BINARY_DIR}/CommonWidgets)
+include_directories(${PlusApp_SOURCE_DIR}/CommonWidgets)
 
 # --------------------------------------------------------------------------
 # Build the library
@@ -41,6 +52,7 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR})
 SET (TrackedUltrasoundCapturing_LIBS 
     ${TrackedUltrasoundCapturing_LIBS} 
     ${QT_LIBRARIES} 
+    CommonWidgets
     vtkCommon
     vtkFiltering
     vtkHybrid
@@ -55,7 +67,7 @@ IF (PLUS_USE_OpenIGTLink)
     SET (TrackedUltrasoundCapturing_LIBS ${TrackedUltrasoundCapturing_LIBS} OpenIGTLink)
 ENDIF(PLUS_USE_OpenIGTLink)
     
-ADD_EXECUTABLE( TrackedUltrasoundCapturing MACOSX_BUNDLE ${TrackedUltrasoundCapturing_SRCS} ${TrackedUltrasoundCapturing_UI_HDRS} ${QT_UI_Sources} ${QT_UI_Headers} ${QT_MOC_Files} ${QT_MOC_UI_Files})
+ADD_EXECUTABLE( TrackedUltrasoundCapturing MACOSX_BUNDLE ${TrackedUltrasoundCapturing_SRCS} ${TrackedUltrasoundCapturing_UI_HDRS} ${QT_UI_Sources} ${QT_UI_Headers} ${QT_MOC_Files} ${QT_MOC_UI_Files} ${QT_RCC_Files})
 
 TARGET_LINK_LIBRARIES( TrackedUltrasoundCapturing QVTK ${TrackedUltrasoundCapturing_LIBS} )
 

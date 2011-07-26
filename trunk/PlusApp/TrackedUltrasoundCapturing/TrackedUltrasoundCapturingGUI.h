@@ -1,14 +1,18 @@
 #ifndef TRACKEDULTRASOUNDCAPTURINGGUI_H
 #define TRACKEDULTRASOUNDCAPTURINGGUI_H
 
-
+#include "PlusConfigure.h"
 // QT parental class includes
 #include "ui_TrackedUltrasoundCapturing.h"
+#include <QWidget>
 
 class TrackedUltrasoundCapturing; 
 class QProgressDialog; 
 class QCloseEvent;
 class QTimer;
+class DeviceSetSelectorWidget;
+class ToolStateDisplayWidget; 
+class StatusIcon; 
 
 class TrackedUltrasoundCapturingGUI : public QWizard, public Ui::Wizard
 {
@@ -27,9 +31,7 @@ public:
 
 	std::string GetProgramPath(); 
 	
-	void Initialize(); 
-
-	void SetRendererAspectRatio(double ratio); 
+	PlusStatus Initialize(); 
 
 	// Constructor
 	TrackedUltrasoundCapturingGUI(QWidget* parent = 0);
@@ -48,14 +50,6 @@ protected:
 	virtual void DisableWizardButtons(); 
 
 	virtual void EnableWizardButtons(); 
-
-	virtual void HideTrackerToolWidgets(); 
-
-	virtual void ShowTrackerToolWidgets(); 
-
-	virtual std::string GetToolID( int tool ); 
-
-	virtual void ChangeTransformNames(); 
 
 	virtual void initializePage ( int id ); 
 
@@ -96,23 +90,17 @@ protected slots:
 
 	void ZeroOffsetButtonClicked(); 
 
-	void OpenConfigFileButtonClicked(); 
-
 	void OpenOutputFolderButtonClicked(); 
-
-	void ConnectToDevicesButtonClicked(); 
-
-	void DisconnectButtonClicked(); 
 
 	void ResetBufferButtonClicked(); 
 
 	void ChangeLogLevel(); 
 
-	void ChangeMainToolID(); 
-
-	void ChangeReferenceToolID(); 
-
 	void SetFrameRate(); 
+
+  void SetConfigurationDirectory(std::string aDirectory); 
+
+  void ConnectToDevicesByConfigFile(std::string aConfigFile); 
 
 signals: 
 	void UpdateProgressBar(int); 
@@ -120,11 +108,17 @@ signals:
 	void Update(); 
 	
 protected:
+
 	TrackedUltrasoundCapturing* m_USCapturing; 
 
-	double m_RendererAspectRatio; 
-
 	QTimer* m_RecordingTimer; 
+
+  //! Device set selector widget
+	DeviceSetSelectorWidget*	m_DeviceSetSelectorWidget;
+
+  //! Tool state display widget
+	ToolStateDisplayWidget*		m_SyncToolStateDisplayWidget;
+  ToolStateDisplayWidget*		m_RecordingToolStateDisplayWidget;
 
 	bool Initialized; 
 

@@ -48,6 +48,11 @@ public:
 	*/
 	bool GetConnectionSuccessful();
 
+  /*!
+	* \brief Set device set combo box minimum width 
+	*/
+  void SetComboBoxMinWidth(int minWidth);
+
 signals:
 	/*!
 	* \brief Emmitted when configuration directory is changed (notifies application)
