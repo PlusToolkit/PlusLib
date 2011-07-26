@@ -8,6 +8,7 @@
 #include "vtkTransform.h"
 #include "vtkPolyData.h"
 #include "vtkXMLUtilities.h"
+#include "vtkFileFinder.h"
 
 #include "vtkActor.h"
 #include "vtkPolyDataMapper.h"
@@ -21,6 +22,7 @@
 #include "vtkTransformPolyDataFilter.h"
 #include "vtkMath.h"
 #include "vtkAxesActor.h"
+#include "vtkSTLReader.h"
 
 //-----------------------------------------------------------------------------
 
@@ -197,46 +199,13 @@ void StylusCalibrationController::InitializeVisualization()
 			m_StylusTipActor->SetMapper(stylusTipMapper);
 			m_StylusTipActor->GetProperty()->SetColor(0.0, 0.5, 0.0);
 
-			// Initialize stylus visualization - in ReferenceTool coordinate system
-			//TODO If a tool definition file for the stylus exists, use that model instead (this can remain in case it is undefined - just in a separate function, probably in the same that loads the stl (in the else branch of the loading))
+			// Load stylus model
 			m_StylusActor = vtkActor::New();
-			vtkSmartPointer<vtkPolyDataMapper> stylusMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-			vtkSmartPointer<vtkCylinderSource> stylusBigCylinderSource = vtkSmartPointer<vtkCylinderSource>::New();
-			stylusBigCylinderSource->SetRadius(3.0); // mm
-			stylusBigCylinderSource->SetHeight(120.0); // mm
-			stylusBigCylinderSource->SetCenter(0.0, 150.0, 0.0);
-			vtkSmartPointer<vtkCylinderSource> stylusSmallCylinderSource = vtkSmartPointer<vtkCylinderSource>::New();
-			stylusSmallCylinderSource->SetRadius(1.5); // mm
-			stylusSmallCylinderSource->SetHeight(80.0); // mm
-			stylusSmallCylinderSource->SetCenter(0.0, 50.0, 0.0);
-			vtkSmartPointer<vtkConeSource> stylusTipConeSource = vtkSmartPointer<vtkConeSource>::New();
-			stylusTipConeSource->SetRadius(1.5); // mm
-			stylusTipConeSource->SetHeight(10.0); //mm
-			vtkSmartPointer<vtkTransform> coneTransform = vtkSmartPointer<vtkTransform>::New();
-			coneTransform->Identity();
-			coneTransform->RotateZ(-90.0);
-			coneTransform->Translate(-5.0, 0.0, 0.0);
-			vtkSmartPointer<vtkTransformPolyDataFilter> coneTransformFilter = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
-			coneTransformFilter->AddInputConnection(stylusTipConeSource->GetOutputPort());
-			coneTransformFilter->SetTransform(coneTransform);
 
-			vtkSmartPointer<vtkAppendPolyData> appendFilter = vtkSmartPointer<vtkAppendPolyData>::New();
-			appendFilter->AddInputConnection(stylusBigCylinderSource->GetOutputPort());
-			appendFilter->AddInputConnection(stylusSmallCylinderSource->GetOutputPort());
-			appendFilter->AddInputConnection(coneTransformFilter->GetOutputPort());
-			vtkSmartPointer<vtkTransform> stylusTransform = vtkSmartPointer<vtkTransform>::New();
-			stylusTransform->Identity();
-			stylusTransform->RotateZ(90.0);
-			vtkSmartPointer<vtkTransformPolyDataFilter> stylusTransformFilter = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
-			stylusTransformFilter->AddInputConnection(appendFilter->GetOutputPort());
-			stylusTransformFilter->SetTransform(stylusTransform);
-
-			stylusMapper->SetInputConnection(stylusTransformFilter->GetOutputPort());
-			m_StylusActor->SetMapper(stylusMapper);
-			m_StylusActor->GetProperty()->SetColor(0.0, 0.0, 0.0);
+			LoadStylusModel();
 
 			// Axes actor
-			/* TODO reference-re rakni
+			/*
 			vtkSmartPointer<vtkAxesActor> axesActor = vtkSmartPointer<vtkAxesActor>::New();
 			axesActor->SetShaftTypeToCylinder();
 			axesActor->SetXAxisLabelText("X");
@@ -244,7 +213,6 @@ void StylusCalibrationController::InitializeVisualization()
 			axesActor->SetZAxisLabelText("Z");
 			axesActor->SetAxisLabels(0);
 			axesActor->SetTotalLength(50, 50, 50);
-			axesActor->SetPosition(1400, 1200, 100);
 			renderer->AddActor(axesActor);
 			*/
 
@@ -305,7 +273,7 @@ int StylusCalibrationController::GetCurrentPointNumber() {
 
 //-----------------------------------------------------------------------------
 
-unsigned int StylusCalibrationController::GetStylusPortNumber() {
+int StylusCalibrationController::GetStylusPortNumber() {
 	LOG_TRACE("StylusCalibrationController::GetStylusPortNumber");
 
 	return m_StylusPortNumber;
@@ -795,6 +763,101 @@ PlusStatus StylusCalibrationController::FeedStylusCalibrationMatrixToTool()
 	// If translation values are 0 (no calibration)
 	if ((stylusToStylusTipTransformMatrix == NULL) || ((stylusToStylusTipTransformMatrix->GetElement(0,3) == 0.0) && (stylusToStylusTipTransformMatrix->GetElement(1,3) == 0.0) && (stylusToStylusTipTransformMatrix->GetElement(2,3) == 0.0)) ) {
 		dataCollector->GetTracker()->GetTool(m_StylusPortNumber)->SetCalibrationMatrix(m_StylusToStylustipTransform->GetMatrix());		
+	}
+
+	return PLUS_SUCCESS;
+}
+
+//-----------------------------------------------------------------------------
+
+PlusStatus StylusCalibrationController::LoadStylusModel(vtkActor* aActor)
+{
+	LOG_TRACE("StylusCalibrationController::FeedStylusCalibrationMatrixToTool");
+
+	vtkDataCollector* dataCollector = vtkFreehandController::GetInstance()->GetDataCollector();
+	if (dataCollector == NULL) {
+		LOG_ERROR("Data collector is not initialized!");
+		return PLUS_FAIL;
+	}
+	if (dataCollector->GetTracker() == NULL) {
+		LOG_ERROR("Tracker is not initialized properly!");
+		return PLUS_FAIL;
+	}
+	if (m_StylusPortNumber < 0) {
+		DetermineStylusPortNumber();
+	}
+	vtkTrackerTool *tool = dataCollector->GetTracker()->GetTool(m_StylusPortNumber);
+	if ((tool == NULL) || (!tool->GetEnabled())) {
+		return PLUS_FAIL;
+	}
+
+	if (aActor == NULL) {
+		aActor = m_StylusActor;
+	}
+
+	std::string modelFileName = tool->GetToolModelFileName();
+
+	std::string searchResult = "";
+	if ((modelFileName != "") && (STRCASECMP(vtkFileFinder::GetInstance()->GetConfigurationDirectory(), "") != 0)) {
+		searchResult = vtkFileFinder::GetFirstFileFoundInConfigurationDirectory(modelFileName.c_str());
+	}
+
+	if (searchResult != "") {
+		// Load model and transform it to the tool reference (stylus) coordinate system
+		vtkSmartPointer<vtkSTLReader> stlReader = vtkSmartPointer<vtkSTLReader>::New();
+		stlReader->SetFileName(searchResult.c_str());
+
+		vtkSmartPointer<vtkTransform> stylusModelToStylusReferenceTransform = vtkSmartPointer<vtkTransform>::New();
+		stylusModelToStylusReferenceTransform->Identity();
+		stylusModelToStylusReferenceTransform->Concatenate(tool->GetToolToToolReferenceTransform());
+		stylusModelToStylusReferenceTransform->Concatenate(tool->GetModelToToolTransform());
+		stylusModelToStylusReferenceTransform->Modified();
+
+		vtkSmartPointer<vtkTransformPolyDataFilter> stylusModelToStylusReferenceTransformFilter = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
+		stylusModelToStylusReferenceTransformFilter->AddInputConnection(stlReader->GetOutputPort());
+		stylusModelToStylusReferenceTransformFilter->SetTransform(stylusModelToStylusReferenceTransform);
+
+		vtkSmartPointer<vtkPolyDataMapper> stylusMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+		stylusMapper->SetInputConnection(stylusModelToStylusReferenceTransformFilter->GetOutputPort());
+		aActor->SetMapper(stylusMapper);
+		aActor->GetProperty()->SetColor(0.0, 0.0, 0.0);
+
+	} else {
+		// Create default model
+		vtkSmartPointer<vtkPolyDataMapper> stylusMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+		vtkSmartPointer<vtkCylinderSource> stylusBigCylinderSource = vtkSmartPointer<vtkCylinderSource>::New();
+		stylusBigCylinderSource->SetRadius(3.0); // mm
+		stylusBigCylinderSource->SetHeight(120.0); // mm
+		stylusBigCylinderSource->SetCenter(0.0, 150.0, 0.0);
+		vtkSmartPointer<vtkCylinderSource> stylusSmallCylinderSource = vtkSmartPointer<vtkCylinderSource>::New();
+		stylusSmallCylinderSource->SetRadius(1.5); // mm
+		stylusSmallCylinderSource->SetHeight(80.0); // mm
+		stylusSmallCylinderSource->SetCenter(0.0, 50.0, 0.0);
+		vtkSmartPointer<vtkConeSource> stylusTipConeSource = vtkSmartPointer<vtkConeSource>::New();
+		stylusTipConeSource->SetRadius(1.5); // mm
+		stylusTipConeSource->SetHeight(10.0); //mm
+		vtkSmartPointer<vtkTransform> coneTransform = vtkSmartPointer<vtkTransform>::New();
+		coneTransform->Identity();
+		coneTransform->RotateZ(-90.0);
+		coneTransform->Translate(-5.0, 0.0, 0.0);
+		vtkSmartPointer<vtkTransformPolyDataFilter> coneTransformFilter = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
+		coneTransformFilter->AddInputConnection(stylusTipConeSource->GetOutputPort());
+		coneTransformFilter->SetTransform(coneTransform);
+
+		vtkSmartPointer<vtkAppendPolyData> appendFilter = vtkSmartPointer<vtkAppendPolyData>::New();
+		appendFilter->AddInputConnection(stylusBigCylinderSource->GetOutputPort());
+		appendFilter->AddInputConnection(stylusSmallCylinderSource->GetOutputPort());
+		appendFilter->AddInputConnection(coneTransformFilter->GetOutputPort());
+		vtkSmartPointer<vtkTransform> stylusTransform = vtkSmartPointer<vtkTransform>::New();
+		stylusTransform->Identity();
+		stylusTransform->RotateZ(90.0);
+		vtkSmartPointer<vtkTransformPolyDataFilter> stylusTransformFilter = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
+		stylusTransformFilter->AddInputConnection(appendFilter->GetOutputPort());
+		stylusTransformFilter->SetTransform(stylusTransform);
+
+		stylusMapper->SetInputConnection(stylusTransformFilter->GetOutputPort());
+		aActor->SetMapper(stylusMapper);
+		aActor->GetProperty()->SetColor(0.0, 0.0, 0.0);
 	}
 
 	return PLUS_SUCCESS;

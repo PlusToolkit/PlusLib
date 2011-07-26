@@ -104,7 +104,7 @@ public:
 	* \brief Getter function
 	* \return Stylus port number
 	*/
-	unsigned int GetStylusPortNumber();
+	int GetStylusPortNumber();
 
 	/*!
 	* \brief Getter function
@@ -141,6 +141,13 @@ public:
 	* \return Success flag
 	*/
 	PlusStatus FeedStylusCalibrationMatrixToTool();
+
+	/*!
+	* \brief Load stylus model from tracker tool object. If it is not present then create a default model
+	* \param aActor Actor to add the model to. If NULL, the model is added to m_StylusActor member actor of this class
+	* \return Success flag
+	*/
+	PlusStatus LoadStylusModel(vtkActor* aActor = NULL);
 
 protected:
 	/*!
@@ -187,7 +194,7 @@ protected:
 	int									m_StartingFrame;
 
 	//! Port number of the stylus tool found in the configuration file
-	unsigned int						m_StylusPortNumber;
+	int									m_StylusPortNumber;
 
 	//! Bounding box (0,1 - min and max of X axis; 2,3 - Y; 4,5 - Z)
 	double								m_BoundingBox[6];

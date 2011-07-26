@@ -4,11 +4,13 @@
 
 #include "vtkFreehandController.h"
 #include "PhantomRegistrationController.h"
+#include "StylusCalibrationController.h"
 
 #include "vtkObjectFactory.h"
 #include "vtkAccurateTimer.h"
 #include "vtkTrackerTool.h"
 #include "vtkFileFinder.h"
+
 #include "vtkMath.h"
 #include "vtkRenderWindow.h"
 #include "vtkRenderWindowInteractor.h"
@@ -17,6 +19,7 @@
 #include "vtkGlyph3D.h"
 #include "vtkSphereSource.h"
 #include "vtkProperty.h"
+#include "vtkTransformPolyDataFilter.h"
 
 //-----------------------------------------------------------------------------
 
@@ -255,22 +258,32 @@ PlusStatus vtkFreehandCalibrationController::InitializeDeviceVisualization()
 
 	if (vtkFreehandController::GetInstance()->GetCanvas() != NULL) {
 		// Load phantom model and create phantom body actor
-		if (this->PhantomDefinitionFileName != NULL) {
+		if ((this->PhantomDefinitionFileName != NULL) && (this->ModelToPhantomTransform != NULL) && (PhantomRegistrationController::GetInstance()->GetPhantomToPhantomReferenceTransform() != NULL)) {
 			// Initialize phantom model visualization
-			vtkSmartPointer<vtkSTLReader> stlReader = vtkSmartPointer<vtkSTLReader>::New();
 			if (! vtksys::SystemTools::FileExists(this->PhantomModelFileName)) {
 				LOG_WARNING("Phantom model file is not found in the specified path: " << this->PhantomModelFileName);
 			} else {
+				vtkSmartPointer<vtkSTLReader> stlReader = vtkSmartPointer<vtkSTLReader>::New();
 				stlReader->SetFileName(this->PhantomModelFileName);
-				vtkSmartPointer<vtkPolyDataMapper> stlMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-				stlMapper->SetInputConnection(stlReader->GetOutputPort());
+				
+				vtkSmartPointer<vtkTransform> phantomModelToPhantomReferenceTransform = vtkSmartPointer<vtkTransform>::New();
+				phantomModelToPhantomReferenceTransform->Identity();
+				phantomModelToPhantomReferenceTransform->Concatenate(PhantomRegistrationController::GetInstance()->GetPhantomToPhantomReferenceTransform());
+				phantomModelToPhantomReferenceTransform->Concatenate(this->ModelToPhantomTransform);
+				phantomModelToPhantomReferenceTransform->Modified();
 
+				vtkSmartPointer<vtkTransformPolyDataFilter> phantomModelToPhantomReferenceTransformFilter = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
+				phantomModelToPhantomReferenceTransformFilter->AddInputConnection(stlReader->GetOutputPort());
+				phantomModelToPhantomReferenceTransformFilter->SetTransform(phantomModelToPhantomReferenceTransform);
+
+				vtkSmartPointer<vtkPolyDataMapper> phantomMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+				phantomMapper->SetInputConnection(phantomModelToPhantomReferenceTransformFilter->GetOutputPort());
 				vtkSmartPointer<vtkActor> phantomBodyActor = vtkSmartPointer<vtkActor>::New();
-				phantomBodyActor->SetMapper(stlMapper);
+				phantomBodyActor->SetMapper(phantomMapper);
 				this->SetPhantomBodyActor(phantomBodyActor);
 			}
 		} else {
-			LOG_WARNING("Phantom definiton file is not specified, phantom will not be displayed");
+			LOG_WARNING("Phantom definiton file or its related transforms are not specified, phantom will not be displayed");
 		}
 
 		// Load device models and create actors
@@ -282,28 +295,44 @@ PlusStatus vtkFreehandCalibrationController::InitializeDeviceVisualization()
 
 			// Load model if file name exists and file can be found
 			if (STRCASECMP(tool->GetToolModelFileName(), "") != 0) {
-				vtkSmartPointer<vtkSTLReader> stlReader = vtkSmartPointer<vtkSTLReader>::New();
-
 				std::string searchResult = vtkFileFinder::GetFirstFileFoundInConfigurationDirectory(tool->GetToolModelFileName());
+
 				if (STRCASECMP("", searchResult.c_str()) == 0) {
 					LOG_WARNING("Tool (" << tool->GetToolName() << ") model file is not found with name: " << tool->GetToolModelFileName());
 				} else {
+					vtkSmartPointer<vtkSTLReader> stlReader = vtkSmartPointer<vtkSTLReader>::New();
 					stlReader->SetFileName(searchResult.c_str());
-					vtkSmartPointer<vtkPolyDataMapper> stlMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-					stlMapper->SetInputConnection(stlReader->GetOutputPort());
 
 					vtkSmartPointer<vtkActor> deviceActor = vtkSmartPointer<vtkActor>::New();
-					deviceActor->SetMapper(stlMapper);
 
 					// Set proper members
-					if (STRCASECMP(tool->GetToolName(), "Probe") != 0) {
-						this->SetProbeActor(deviceActor);
+					if (STRCASECMP(tool->GetToolName(), "Stylus") != 0) {
+						StylusCalibrationController::GetInstance()->LoadStylusModel(deviceActor);
 
-					} else if (STRCASECMP(tool->GetToolName(), "Stylus") != 0) {
 						this->SetStylusActor(deviceActor);
 
-					} else if (STRCASECMP(tool->GetToolName(), "Needle") != 0) {
-						this->SetNeedleActor(deviceActor);
+					} else {
+						vtkSmartPointer<vtkTransform> toolModelToToolReferenceTransform = vtkSmartPointer<vtkTransform>::New();
+						toolModelToToolReferenceTransform->Identity();
+						toolModelToToolReferenceTransform->Concatenate(tool->GetToolToToolReferenceTransform());
+						toolModelToToolReferenceTransform->Concatenate(tool->GetModelToToolTransform());
+						toolModelToToolReferenceTransform->Modified();
+
+						vtkSmartPointer<vtkTransformPolyDataFilter> toolModelToToolReferenceTransformFilter = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
+						toolModelToToolReferenceTransformFilter->AddInputConnection(stlReader->GetOutputPort());
+						toolModelToToolReferenceTransformFilter->SetTransform(toolModelToToolReferenceTransform);
+
+						vtkSmartPointer<vtkPolyDataMapper> toolMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+						toolMapper->SetInputConnection(toolModelToToolReferenceTransformFilter->GetOutputPort());
+
+						deviceActor->SetMapper(toolMapper);
+
+						if (STRCASECMP(tool->GetToolName(), "Probe") != 0) {
+							this->SetProbeActor(deviceActor);
+
+						} else if (STRCASECMP(tool->GetToolName(), "Needle") != 0) {
+							this->SetNeedleActor(deviceActor);
+						}
 					}
 				}
 			}
@@ -573,55 +602,37 @@ PlusStatus vtkFreehandCalibrationController::DoAcquisition()
 		TrackerStatus status = TR_MISSING;
 		double timestamp;
 
-		vtkSmartPointer<vtkMatrix4x4> referenceToToolTransformMatrix = NULL;
+		vtkSmartPointer<vtkMatrix4x4> toolToReferenceTransformMatrix = NULL;
 
 		// Acquire position from tracker
-		referenceToToolTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
-		dataCollector->GetTransformWithTimestamp(referenceToToolTransformMatrix, timestamp, status, toolNumber); 
+		toolToReferenceTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
+		dataCollector->GetTransformWithTimestamp(toolToReferenceTransformMatrix, timestamp, status, toolNumber); 
 
 		// Compute and set transforms for actors
 		if (status == TR_OK) {
-			// If reference then set phantom actor
+			// If reference then no need for setting transform (the phantom is fixed to the reference)
 			if (toolNumber == referenceToolNumber) {
-				if ((this->ModelToPhantomTransform != NULL) && (PhantomRegistrationController::GetInstance()->GetPhantomToPhantomReferenceTransform() != NULL)) {
-					vtkSmartPointer<vtkTransform> phantomModelToPhantomReferenceTransform = vtkSmartPointer<vtkTransform>::New();
-					phantomModelToPhantomReferenceTransform->Identity();
-					phantomModelToPhantomReferenceTransform->Concatenate(PhantomRegistrationController::GetInstance()->GetPhantomToPhantomReferenceTransform());
-					phantomModelToPhantomReferenceTransform->Concatenate(this->ModelToPhantomTransform);
-					phantomModelToPhantomReferenceTransform->Modified();
-
-					this->PhantomBodyActor->SetUserTransform(phantomModelToPhantomReferenceTransform);
-				}
-
 				continue;
 			}
 
-			// Create and apply actor transform
-			vtkSmartPointer<vtkTransform> toolModelToPhantomReferenceTransform = vtkSmartPointer<vtkTransform>::New();
-			toolModelToPhantomReferenceTransform->Identity();
-			toolModelToPhantomReferenceTransform->Concatenate(referenceToToolTransformMatrix);
-			toolModelToPhantomReferenceTransform->Concatenate(tool->GetToolToToolReferenceTransform());
-			toolModelToPhantomReferenceTransform->Concatenate(tool->GetModelToToolTransform());
-			toolModelToPhantomReferenceTransform->Modified();
-
 			// If other tool, set the transform according to the tool name
 			if ((this->ProbeActor != NULL) && (STRCASECMP(tool->GetToolName(), "Probe") == 0)) {
-				this->ProbeActor->SetUserTransform(toolModelToPhantomReferenceTransform);
+				this->ProbeActor->SetUserMatrix(toolToReferenceTransformMatrix);
 
 				// Image canvas transform
 				vtkSmartPointer<vtkTransform> imageToPhantomReferenceTransform = vtkSmartPointer<vtkTransform>::New();
 				imageToPhantomReferenceTransform->Identity();
-				imageToPhantomReferenceTransform->Concatenate(referenceToToolTransformMatrix);
+				imageToPhantomReferenceTransform->Concatenate(toolToReferenceTransformMatrix);
 				imageToPhantomReferenceTransform->Concatenate(tool->GetToolToToolReferenceTransform());
 				imageToPhantomReferenceTransform->Concatenate(this->TransformImageToProbe);
 				
 				this->CanvasImageActor->SetUserTransform(imageToPhantomReferenceTransform);
 
 			} else if ((this->StylusActor != NULL) && (STRCASECMP(tool->GetToolName(), "Stylus") == 0)) {
-				this->StylusActor->SetUserTransform(toolModelToPhantomReferenceTransform);
+				this->StylusActor->SetUserMatrix(toolToReferenceTransformMatrix);
 
 			} else if ((this->NeedleActor != NULL) && (STRCASECMP(tool->GetToolName(), "Needle") == 0)) {
-				this->NeedleActor->SetUserTransform(toolModelToPhantomReferenceTransform);
+				this->NeedleActor->SetUserMatrix(toolToReferenceTransformMatrix);
 			}
 		}
 	} // for each tool
