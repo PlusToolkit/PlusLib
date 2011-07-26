@@ -97,16 +97,16 @@
                     OutputSequenceMetaFileSuffix=".FreehandMotionData2"
                     />
 		</RealtimeCalibration>
+		
+		<PhantomDefinition FileName="PhantomDefinition_fCal_1.0_Wiring_1.0.xml" /> 
 
- 		<PhantomDefinition FileName="PhantomDefinition_fCal_1.0_Wiring_1.0.xml" /> 
-
-		<!-- SearchRegionX: X-axis points to the right in pixels (there must be at least 8-pixel-wide black border outside of the search region.) -->
+        <!-- SearchRegionX: X-axis points to the right in pixels (there must be at least 8-pixel-wide black border outside of the search region.) -->
         <!-- SearchRegionY: Y-axis points to the bottom in pixels (there must be at least 8-pixel-wide black border outside of the search region.) -->
         <SegmentationParameters
                 FrameSize="820 616"
                 ScalingEstimation="0.078"
-                MorphologicalOpeningCircleRadiusMm="0.47"
-				MorphologicalOpeningBarSizeMm="1.0"
+                MorphologicalOpeningCircleRadiusMm="0.55"
+				MorphologicalOpeningBarSizeMm="2.0"
 
 				RegionOfInterest="27 27 793 589"
 
@@ -124,6 +124,7 @@
                 FindLines3PtDist="5.3"
 
                 UseOriginalImageIntensityForDotIntensityScore="0"
+
                 >
         </SegmentationParameters>
     </CalibrationController>
