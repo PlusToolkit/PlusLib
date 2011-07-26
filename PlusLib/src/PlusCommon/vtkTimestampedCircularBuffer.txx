@@ -23,7 +23,7 @@ vtkTimestampedCircularBuffer<BufferItemType>::vtkTimestampedCircularBuffer()
 	this->LocalTimeOffset = 0.0; 
 	this->LatestItemUid = 0; 
 
-  this->FilterContainerIndexMatrix.set_size(0, 0); 
+  this->FilterContainerIndexVector.set_size(0); 
   this->FilterContainerTimestampVector.set_size(0); 
   this->FilterContainersOldestIndex = 0; 
   this->FilterContainersNumberOfValidElements = 0; 
@@ -477,7 +477,7 @@ void vtkTimestampedCircularBuffer<BufferItemType>::DeepCopy(vtkTimestampedCircul
   this->FilterContainersNumberOfValidElements = buffer->FilterContainersNumberOfValidElements; 
   this->FilterContainersOldestIndex = buffer->FilterContainersOldestIndex; 
   this->FilterContainerTimestampVector = buffer->FilterContainerTimestampVector; 
-  this->FilterContainerIndexMatrix = buffer->FilterContainerIndexMatrix; 
+  this->FilterContainerIndexVector = buffer->FilterContainerIndexVector; 
 
 	this->BufferItemContainer = buffer->BufferItemContainer; 
 	this->Unlock(); 
@@ -574,11 +574,11 @@ PlusStatus vtkTimestampedCircularBuffer<BufferItemType>::CreateFilteredTimeStamp
   // create a new row for the timestamp report table 
   vtkSmartPointer<vtkVariantArray> timeStampReportTableRow = vtkSmartPointer<vtkVariantArray>::New(); 
 
-  if ( this->FilterContainerIndexMatrix.rows() != this->AveragedItemsForFiltering 
+  if ( this->FilterContainerIndexVector.size() != this->AveragedItemsForFiltering 
     || this->FilterContainerTimestampVector.size() != this->AveragedItemsForFiltering )
   {
     // this call set elements to null
-    this->FilterContainerIndexMatrix.set_size(this->AveragedItemsForFiltering, 2); 
+    this->FilterContainerIndexVector.set_size(this->AveragedItemsForFiltering); 
     this->FilterContainerTimestampVector.set_size(this->AveragedItemsForFiltering); 
     this->FilterContainersOldestIndex = 0; 
     this->FilterContainersNumberOfValidElements = 0; 
@@ -587,8 +587,7 @@ PlusStatus vtkTimestampedCircularBuffer<BufferItemType>::CreateFilteredTimeStamp
   // We store the last AveragedItemsForFiltering unfiltered timestamp and item indexes, because these are used for computing the filtered timestamp.
   if ( this->AveragedItemsForFiltering > 1 )
   {
-    this->FilterContainerIndexMatrix(this->FilterContainersOldestIndex, 0) = static_cast<double>(itemIndex); 
-    this->FilterContainerIndexMatrix(this->FilterContainersOldestIndex, 1) = 1; 
+    this->FilterContainerIndexVector(this->FilterContainersOldestIndex) = itemIndex; 
     this->FilterContainerTimestampVector[this->FilterContainersOldestIndex] = inUnfilteredTimestamp; 
     this->FilterContainersNumberOfValidElements++; 
     this->FilterContainersOldestIndex++; 
@@ -634,45 +633,49 @@ PlusStatus vtkTimestampedCircularBuffer<BufferItemType>::CreateFilteredTimeStamp
   // Get rid of the small spikes and get a smooth straight line by fitting a line (timestamp = itemIndex * framePeriod + timeOffset) to the
   // itemIndex vs. unfiltered timestamp function and compute the current filtered timestamp
   // by extrapolation of this line to the current item index.
-  // The line parameters (framePeriod and timeOffset) are computed from the (AveragedItemsForFiltering) elements of the
-  // unfiltered timestamps and item indexes.
-  // 
-  //   timestamp = itemIndex * framePeriod + timeOffset
-  // 
-  // In matrix format:
-  //   [itemIndex 1] * [framePeriod   =  [timestamp]
-  //                    timeOffset ]
+  // The line parameters computed by linear regression. 
   //
-  // Including all the available items:
-  //   [itemIndex01 1 * [framePeriod   =  [timestamp01
-  //    itemIndex02 1   timeOffset ]       timestamp02
-  //    itemIndex03 1                      timestamp03
-  //    ...                                ...
-  //    itemIndexN  1]                     timestampN]
-  // 
-  // This is an overdetermined linear system (A*x=b). The unknown line parameters (framePeriod, timeOffset) can be computed by LSQR.
+  // timestamp = framePeriod * itemIndex+ timeOffset
+  //   x = itemIndex
+  //   y = timestamp
+  //   a = framePeriod
+  //   b = timeOffset
   //
-    
-  vnl_vector<double> resultVector(2,0); 
+  // Ordinary least squares estimation:
+  //   y(i) = a * x(i) + b;
+  //   a = sum( (x(i)-xMean) * (y(i)-yMean) ) / sum( (x(i)-xMean) * (x(i)-xMean) )
+  //   b = yMean - a*xMean
+  // 
 
-  if ( PlusMath::LSQRMinimize(this->FilterContainerIndexMatrix, this->FilterContainerTimestampVector, resultVector) != PLUS_SUCCESS )
+  double xMean=this->FilterContainerIndexVector.mean();
+  double yMean=this->FilterContainerTimestampVector.mean();
+  double covarianceXY=0;
+  double varianceX=0;
+  for (int i=this->FilterContainerTimestampVector.size()-1; i>=0; i--)
   {
-    LOG_ERROR("Failed to run LSQR mimize on timestamp filtering dataset!");
-	this->Unlock();    
-    return PLUS_FAIL; 
+    double xiMinusXmean=(this->FilterContainerIndexVector(i)-xMean);
+    covarianceXY+=xiMinusXmean*(this->FilterContainerTimestampVector(i)-yMean);
+    varianceX+=xiMinusXmean*xiMinusXmean;    
   }
+  double a=covarianceXY/varianceX;
+  double b=yMean-a*xMean;
 
-  const double framePeriod = resultVector[0]; 
-  const double timeOffset = resultVector[1]; 
-
-  outFilteredTimestamp = timeOffset + itemIndex * framePeriod; 
+  outFilteredTimestamp = a * itemIndex + b; 
 
   if (fabs(outFilteredTimestamp-inUnfilteredTimestamp)>this->MaxAllowedFilteringTimeDifference)
   {    
-	LOG_ERROR("Difference between unfiltered timestamp ("<<inUnfilteredTimestamp<<") and filtered timestamp "<<outFilteredTimestamp<<") is larger than the threshold ("<<this->MaxAllowedFilteringTimeDifference<<"). Probably the LSQR minimization failed to converge.");
-	this->Unlock();  
-	return PLUS_FAIL;
+    LOG_ERROR("Difference between unfiltered timestamp ("<<inUnfilteredTimestamp<<") and filtered timestamp ("<<outFilteredTimestamp<<") is larger than the threshold ("<<this->MaxAllowedFilteringTimeDifference<<").");	
+
+    // Write current timestamps and frame indexes to the log to allow investigation of the problem
+    LOG_ERROR("timestamps = [" << std::fixed << this->FilterContainerTimestampVector << "];");
+    LOG_ERROR("frameindexes = [" << std::fixed << this->FilterContainerIndexVector << "];");
+
+    this->Unlock();  
+    return PLUS_FAIL;
   }
+
+  LOG_DEBUG("timestamps = [" << std::fixed << this->FilterContainerTimestampVector << "];");
+  LOG_DEBUG("frameindexes = [" << std::fixed << this->FilterContainerIndexVector << "];");
 
   // save the current results into the timestamp report table
   timeStampReportTableRow->InsertNextValue(itemIndex); 

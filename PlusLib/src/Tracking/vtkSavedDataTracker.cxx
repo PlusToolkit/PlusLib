@@ -291,15 +291,9 @@ PlusStatus vtkSavedDataTracker::InternalUpdate()
 		return PLUS_FAIL; 
 	}
 
-	// Get frame number 
-  if ( this->FrameNumber < bufferItem.GetIndex() )
-  {
-	  this->FrameNumber = bufferItem.GetIndex(); 
-  }
-  else
-  {
-    this->FrameNumber++; 
-  }
+  // The sampling rate is constant, so to have a constant frame rate we have to increase the FrameNumber by a constant.
+  // For simplicity, we increase it always by 1.
+  this->FrameNumber++;
 
 	// Get default transfom	
   vtkSmartPointer<vtkMatrix4x4> defaultTransMatrix=vtkSmartPointer<vtkMatrix4x4>::New();
