@@ -679,6 +679,21 @@ PlusStatus PhantomRegistrationController::DoAcquisition()
 {
 	//LOG_TRACE("PhantomRegistrationController::DoAcquisition"); 
 
+	// TODO Try to use the vtkTransformPolyDataFilter (like in StylusCalibrationController::LoadStylusModel) instead of always setting all these transforms on every acquisition
+	vtkDataCollector* dataCollector = vtkFreehandController::GetInstance()->GetDataCollector();
+	if (dataCollector == NULL) {
+		LOG_ERROR("Data collector is not initialized!");
+		return PLUS_FAIL;
+	}
+	if (dataCollector->GetTracker() == NULL) {
+		LOG_ERROR("Tracker is not initialized properly!");
+		return PLUS_FAIL;
+	}
+	vtkTrackerTool *tool = dataCollector->GetTracker()->GetTool(StylusCalibrationController::GetInstance()->GetStylusPortNumber());
+	if ((tool == NULL) || (!tool->GetEnabled())) {
+		return PLUS_FAIL;
+	}
+
 	if ((m_State == ToolboxState_InProgress) || (m_State == ToolboxState_Done)) {
 		// Display stylus
 		double stylusTipPosition[4];
@@ -692,7 +707,13 @@ PlusStatus PhantomRegistrationController::DoAcquisition()
 					m_StylusActor->GetProperty()->SetOpacity(1.0);
 					m_StylusActor->GetProperty()->SetColor(0.0, 0.0, 0.0);
 
-					m_StylusActor->SetUserMatrix(referenceToolToStylusTipTransformMatrix);
+					vtkSmartPointer<vtkTransform> referenceToolToStylusTipTransform = vtkSmartPointer<vtkTransform>::New();
+					referenceToolToStylusTipTransform->Identity();
+					referenceToolToStylusTipTransform->Concatenate(referenceToolToStylusTipTransformMatrix);
+					referenceToolToStylusTipTransform->Concatenate(tool->GetModelToToolTransform());
+					referenceToolToStylusTipTransform->Modified();
+
+					m_StylusActor->SetUserTransform(referenceToolToStylusTipTransform);
 				} else {
 					m_StylusActor->GetProperty()->SetOpacity(0.3);
 					m_StylusActor->GetProperty()->SetColor(1.0, 0.0, 0.0);

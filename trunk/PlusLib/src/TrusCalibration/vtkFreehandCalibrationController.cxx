@@ -312,18 +312,20 @@ PlusStatus vtkFreehandCalibrationController::InitializeDeviceVisualization()
 						vtkSmartPointer<vtkSTLReader> stlReader = vtkSmartPointer<vtkSTLReader>::New();
 						stlReader->SetFileName(searchResult.c_str());
 
-						vtkSmartPointer<vtkTransform> toolModelToToolReferenceTransform = vtkSmartPointer<vtkTransform>::New();
-						toolModelToToolReferenceTransform->Identity();
-						toolModelToToolReferenceTransform->Concatenate(tool->GetToolToToolReferenceTransform());
-						toolModelToToolReferenceTransform->Concatenate(tool->GetModelToToolTransform());
-						toolModelToToolReferenceTransform->Modified();
+						// TODO Try to use this filter instead of always setting all these transforms on every acquisition
+						//vtkSmartPointer<vtkTransform> toolModelToToolReferenceTransform = vtkSmartPointer<vtkTransform>::New();
+						//toolModelToToolReferenceTransform->Identity();
+						//toolModelToToolReferenceTransform->Concatenate(tool->GetToolToToolReferenceTransform());
+						//toolModelToToolReferenceTransform->Concatenate(tool->GetModelToToolTransform());
+						//toolModelToToolReferenceTransform->Modified();
 
-						vtkSmartPointer<vtkTransformPolyDataFilter> toolModelToToolReferenceTransformFilter = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
-						toolModelToToolReferenceTransformFilter->AddInputConnection(stlReader->GetOutputPort());
-						toolModelToToolReferenceTransformFilter->SetTransform(toolModelToToolReferenceTransform);
+						//vtkSmartPointer<vtkTransformPolyDataFilter> toolModelToToolReferenceTransformFilter = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
+						//toolModelToToolReferenceTransformFilter->AddInputConnection(stlReader->GetOutputPort());
+						//toolModelToToolReferenceTransformFilter->SetTransform(toolModelToToolReferenceTransform);
 
 						vtkSmartPointer<vtkPolyDataMapper> toolMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-						toolMapper->SetInputConnection(toolModelToToolReferenceTransformFilter->GetOutputPort());
+						//toolMapper->SetInputConnection(toolModelToToolReferenceTransformFilter->GetOutputPort());
+						toolMapper->SetInputConnection(stlReader->GetOutputPort());
 
 						deviceActor->SetMapper(toolMapper);
 
@@ -637,13 +639,24 @@ PlusStatus vtkFreehandCalibrationController::DoAcquisition()
 				
 				this->CanvasImageActor->SetUserTransform(imageToPhantomReferenceTransform);
 
-			} else if ((this->StylusActor != NULL) && (STRCASECMP(tool->GetToolName(), "Stylus") == 0)) {
-				this->StylusActor->GetProperty()->SetOpacity(1.0);
-				this->StylusActor->SetUserMatrix(toolToReferenceTransformMatrix);
+			} else {
 
-			} else if ((this->NeedleActor != NULL) && (STRCASECMP(tool->GetToolName(), "Needle") == 0)) {
-				this->NeedleActor->GetProperty()->SetOpacity(1.0);
-				this->NeedleActor->SetUserMatrix(toolToReferenceTransformMatrix);
+				// Create and apply actor transform
+				vtkSmartPointer<vtkTransform> toolModelToPhantomReferenceTransform = vtkSmartPointer<vtkTransform>::New();
+				toolModelToPhantomReferenceTransform->Identity();
+				toolModelToPhantomReferenceTransform->Concatenate(toolToReferenceTransformMatrix);
+				toolModelToPhantomReferenceTransform->Concatenate(tool->GetToolToToolReferenceTransform());
+				toolModelToPhantomReferenceTransform->Concatenate(tool->GetModelToToolTransform());
+				toolModelToPhantomReferenceTransform->Modified();
+
+				if ((this->StylusActor != NULL) && (STRCASECMP(tool->GetToolName(), "Stylus") == 0)) {
+					this->StylusActor->GetProperty()->SetOpacity(1.0);
+					this->StylusActor->SetUserTransform(toolModelToPhantomReferenceTransform);
+
+				} else if ((this->NeedleActor != NULL) && (STRCASECMP(tool->GetToolName(), "Needle") == 0)) {
+					this->NeedleActor->GetProperty()->SetOpacity(1.0);
+					this->NeedleActor->SetUserTransform(toolModelToPhantomReferenceTransform);
+				}
 			}
 		} else {
 			if ((this->ProbeActor != NULL) && (STRCASECMP(tool->GetToolName(), "Probe") == 0)) {

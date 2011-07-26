@@ -276,6 +276,10 @@ int StylusCalibrationController::GetCurrentPointNumber() {
 int StylusCalibrationController::GetStylusPortNumber() {
 	LOG_TRACE("StylusCalibrationController::GetStylusPortNumber");
 
+	if (m_StylusPortNumber < 0) {
+		DetermineStylusPortNumber();
+	}
+
 	return m_StylusPortNumber;
 }
 
@@ -496,6 +500,20 @@ void StylusCalibrationController::DisplayStylus()
 {
 	LOG_TRACE("StylusCalibrationController::DisplayStylus");
 
+	vtkDataCollector* dataCollector = vtkFreehandController::GetInstance()->GetDataCollector();
+	if (dataCollector == NULL) {
+		LOG_ERROR("Data collector is not initialized!");
+		return;
+	}
+	if (dataCollector->GetTracker() == NULL) {
+		LOG_ERROR("Tracker is not initialized properly!");
+		return;
+	}
+	vtkTrackerTool *tool = dataCollector->GetTracker()->GetTool(m_StylusPortNumber);
+	if ((tool == NULL) || (!tool->GetEnabled())) {
+		return;
+	}
+
 	double stylusPosition[4];
 	vtkSmartPointer<vtkMatrix4x4> referenceToolToStylusTransformMatrix = NULL;
 
@@ -503,12 +521,14 @@ void StylusCalibrationController::DisplayStylus()
 		m_StylusActor->GetProperty()->SetOpacity(1.0);
 		m_StylusActor->GetProperty()->SetColor(0.0, 0.0, 0.0);
 
-		// Apply calibration
-		vtkSmartPointer<vtkMatrix4x4> referenceToolToStylusTipTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-		referenceToolToStylusTipTransformMatrix->Identity();
-		vtkMatrix4x4::Multiply4x4(referenceToolToStylusTransformMatrix, m_StylusToStylustipTransform->GetMatrix(), referenceToolToStylusTipTransformMatrix);
+		vtkSmartPointer<vtkTransform> referenceToolToStylusTipTransform = vtkSmartPointer<vtkTransform>::New();
+		referenceToolToStylusTipTransform->Identity();
+		referenceToolToStylusTipTransform->Concatenate(referenceToolToStylusTransformMatrix);
+		referenceToolToStylusTipTransform->Concatenate(m_StylusToStylustipTransform);
+		referenceToolToStylusTipTransform->Concatenate(tool->GetModelToToolTransform());
+		referenceToolToStylusTipTransform->Modified();
 
-		m_StylusActor->SetUserMatrix(referenceToolToStylusTipTransformMatrix);
+		m_StylusActor->SetUserTransform(referenceToolToStylusTipTransform);
 	} else {
 		m_StylusActor->GetProperty()->SetOpacity(0.3);
 		m_StylusActor->GetProperty()->SetColor(1.0, 0.0, 0.0);
@@ -553,6 +573,7 @@ PlusStatus StylusCalibrationController::Start()
 	vtkSmartPointer<vtkTransform> initialTransform = vtkSmartPointer<vtkTransform>::New();
 	initialTransform->Identity();
 	dataCollector->GetTracker()->GetTool(m_StylusPortNumber)->SetCalibrationMatrix(initialTransform->GetMatrix());
+	dataCollector->GetTracker()->GetTool(m_StylusPortNumber)->SetToolToToolReferenceTransform(initialTransform);
 
 	// Reset polydatas (make it look like empty)
 	m_InputPolyData->GetPoints()->Reset();
@@ -629,18 +650,18 @@ PlusStatus StylusCalibrationController::LoadStylusCalibrationFromFile(std::strin
 		LOG_ERROR("Stylus calibration transform not found!");
 		return PLUS_FAIL;
 	} else {
-		double* transform = new double[16]; 
-		if (stylusToStylusTipTransform->GetVectorAttribute("Transform", 16, transform)) {
+		double* stylusToStylusTipTransformVector = new double[16]; 
+		if (stylusToStylusTipTransform->GetVectorAttribute("Transform", 16, stylusToStylusTipTransformVector)) {
 			// Create matrix and set it to controller member variable
-			vtkSmartPointer<vtkMatrix4x4> transformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-			transformMatrix->Identity();
-			transformMatrix->DeepCopy(transform);
+			vtkSmartPointer<vtkMatrix4x4> stylusToStylusTipTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+			stylusToStylusTipTransformMatrix->Identity();
+			stylusToStylusTipTransformMatrix->DeepCopy(stylusToStylusTipTransformVector);
 
 			if (m_StylusToStylustipTransform == NULL) {
 				m_StylusToStylustipTransform = vtkTransform::New();
 			}
 			m_StylusToStylustipTransform->Identity();
-			m_StylusToStylustipTransform->SetMatrix(transformMatrix);
+			m_StylusToStylustipTransform->SetMatrix(stylusToStylusTipTransformMatrix);
 
 			// Set calibration matrix to stylus tool
 			vtkDataCollector* dataCollector = vtkFreehandController::GetInstance()->GetDataCollector();
@@ -650,12 +671,14 @@ PlusStatus StylusCalibrationController::LoadStylusCalibrationFromFile(std::strin
 					DetermineStylusPortNumber();
 				}
 
-				dataCollector->GetTracker()->GetTool(m_StylusPortNumber)->SetCalibrationMatrix(transformMatrix);
+				dataCollector->GetTracker()->GetTool(m_StylusPortNumber)->SetCalibrationMatrix(stylusToStylusTipTransformMatrix);
+				dataCollector->GetTracker()->GetTool(m_StylusPortNumber)->SetToolToToolReferenceTransform(m_StylusToStylustipTransform);
+
 			} else {
 				LOG_WARNING("Data collector is not initialized!");
 			}
 		}
-		delete[] transform; 
+		delete[] stylusToStylusTipTransformVector; 
 	}
 
 	return PLUS_SUCCESS;
@@ -807,18 +830,20 @@ PlusStatus StylusCalibrationController::LoadStylusModel(vtkActor* aActor)
 		vtkSmartPointer<vtkSTLReader> stlReader = vtkSmartPointer<vtkSTLReader>::New();
 		stlReader->SetFileName(searchResult.c_str());
 
-		vtkSmartPointer<vtkTransform> stylusModelToStylusReferenceTransform = vtkSmartPointer<vtkTransform>::New();
-		stylusModelToStylusReferenceTransform->Identity();
-		stylusModelToStylusReferenceTransform->Concatenate(tool->GetToolToToolReferenceTransform());
-		stylusModelToStylusReferenceTransform->Concatenate(tool->GetModelToToolTransform());
-		stylusModelToStylusReferenceTransform->Modified();
+		// TODO Try to use this filter instead of always setting all these transforms on every acquisition
+		//vtkSmartPointer<vtkTransform> stylusModelToStylusReferenceTransform = vtkSmartPointer<vtkTransform>::New();
+		//stylusModelToStylusReferenceTransform->Identity();
+		//stylusModelToStylusReferenceTransform->Concatenate(tool->GetToolToToolReferenceTransform());
+		//stylusModelToStylusReferenceTransform->Concatenate(tool->GetModelToToolTransform());
+		//stylusModelToStylusReferenceTransform->Modified();
 
-		vtkSmartPointer<vtkTransformPolyDataFilter> stylusModelToStylusReferenceTransformFilter = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
-		stylusModelToStylusReferenceTransformFilter->AddInputConnection(stlReader->GetOutputPort());
-		stylusModelToStylusReferenceTransformFilter->SetTransform(stylusModelToStylusReferenceTransform);
+		//vtkSmartPointer<vtkTransformPolyDataFilter> stylusModelToStylusReferenceTransformFilter = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
+		//stylusModelToStylusReferenceTransformFilter->AddInputConnection(stlReader->GetOutputPort());
+		//stylusModelToStylusReferenceTransformFilter->SetTransform(stylusModelToStylusReferenceTransform);
 
 		vtkSmartPointer<vtkPolyDataMapper> stylusMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-		stylusMapper->SetInputConnection(stylusModelToStylusReferenceTransformFilter->GetOutputPort());
+		//stylusMapper->SetInputConnection(stylusModelToStylusReferenceTransformFilter->GetOutputPort());
+		stylusMapper->SetInputConnection(stlReader->GetOutputPort());
 		aActor->SetMapper(stylusMapper);
 		aActor->GetProperty()->SetColor(0.0, 0.0, 0.0);
 

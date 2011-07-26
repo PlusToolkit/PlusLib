@@ -1,0 +1,37 @@
+<ToolDefinition version="1.0">
+	<!-- Supported types are: Double-N, U-Shaped-N -->
+	<Description
+		Name="Example"
+		Type="Stylus"
+		Version="1.0"
+		Institution="Queen's University PerkLab"
+	/>
+	
+	<!-- ModelToToolTransform - transforming model into tool origin coordinate system for proper visualization ( Note2: All tools that are not phantoms should use ModelToToolTransform as the entity name) -->
+	<Model
+		File="Stylus_Example.stl"
+		ModelToToolTransform="
+			1 0 0 -210.0
+			0 1 0 0
+			0 0 1 0
+			0 0 0 1"
+	/>
+
+	<Geometry>
+		<!-- Landmark list for registration -->
+		<Landmarks>
+			<Landmark Name="Something" Position="-1.0 -1.0 -1.0" />
+		</Landmarks>
+		
+		<!-- Landmark list for registration -->
+		<Registration
+			MatrixName="ToolToToolReference" 
+			MatrixValue="
+				1 0 0 210.0
+				0 1 0 0
+				0 0 1 0
+				0 0 0 1"
+			Date="2011.07.26"
+			Error="0.0" />
+	</Geometry>
+</ToolDefinition>
