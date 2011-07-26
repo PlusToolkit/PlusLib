@@ -221,7 +221,7 @@ static void *vtkTrackerThread(vtkMultiThreader::ThreadInfo *data)
     if (i > 10 && difftime != 0)
     {
       self->InternalUpdateRate = (10.0/difftime);
-    }
+    }    
 
     self->UpdateMutex->Lock();
     self->InternalUpdate();
@@ -259,12 +259,12 @@ static void *vtkTrackerThread(vtkMultiThreader::ThreadInfo *data)
 //----------------------------------------------------------------------------
 PlusStatus vtkTracker::Probe()
 {
-  this->UpdateMutex->Lock();
+  PlusLockGuard<vtkCriticalSection> updateMutexGuardedLock(this->UpdateMutex);
+
   // Client
 
   if (this->InternalStartTracking() == 0)
   {
-    this->UpdateMutex->Unlock();
     return PLUS_FAIL;
   }
 
@@ -273,12 +273,10 @@ PlusStatus vtkTracker::Probe()
   if (this->InternalStopTracking() == 0)
   {
     this->Tracking = 0;
-    this->UpdateMutex->Unlock();
     return PLUS_FAIL;
   }
 
   this->Tracking = 0;
-  this->UpdateMutex->Unlock();
 
   return PLUS_SUCCESS;
 }

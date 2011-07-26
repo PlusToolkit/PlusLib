@@ -241,12 +241,11 @@ void vtkVideoBuffer::PrintSelf(ostream& os, vtkIndent indent)
 //----------------------------------------------------------------------------
 void vtkVideoBuffer::UpdateBufferFrameFormats()
 {
-  this->VideoBuffer->Lock(); 
+  PlusLockGuard<VideoBufferType> videoBufferGuardedLock(this->VideoBuffer);
   for ( int i = 0; i < this->VideoBuffer->GetBufferSize(); ++i )
   {
     this->VideoBuffer->GetBufferItemFromBufferIndex(i)->AllocateFrame(this->GetFrameSize()); 
   }
-  this->VideoBuffer->Unlock(); 
 }
 
 //----------------------------------------------------------------------------
@@ -352,10 +351,9 @@ PlusStatus vtkVideoBuffer::AddTimeStampedItem(unsigned char* imageDataPtr,
 
   int bufferIndex(0); 
   BufferItemUidType itemUid; 
-  this->VideoBuffer->Lock(); 
+  PlusLockGuard<VideoBufferType> videoBufferGuardedLock(this->VideoBuffer);
   if ( this->VideoBuffer->PrepareForNewItem(filteredTimestamp, itemUid, bufferIndex) != PLUS_SUCCESS )
   {
-    this->VideoBuffer->Unlock(); 
     // Just a debug message, because we want to avoid unnecessary warning messages if the timestamp is the same as last one
     LOG_DEBUG( "vtkVideoBuffer: Failed to prepare for adding new frame to video buffer!"); 
     return PLUS_FAIL; 
@@ -365,7 +363,6 @@ PlusStatus vtkVideoBuffer::AddTimeStampedItem(unsigned char* imageDataPtr,
   VideoBufferItem* newObjectInBuffer = this->VideoBuffer->GetBufferItemFromBufferIndex(bufferIndex); 
   if ( newObjectInBuffer == NULL )
   {
-    this->VideoBuffer->Unlock(); 
     LOG_ERROR( "vtkVideoBuffer: Failed to get pointer to video buffer object from the video buffer for the new frame!"); 
     return PLUS_FAIL; 
   }
@@ -396,7 +393,6 @@ PlusStatus vtkVideoBuffer::AddTimeStampedItem(unsigned char* imageDataPtr,
   newObjectInBuffer->SetUnfilteredTimestamp(unfilteredTimestamp); 
   newObjectInBuffer->SetIndex(frameNumber); 
   newObjectInBuffer->SetUid(itemUid); 
-  this->VideoBuffer->Unlock(); 
 
   return PLUS_SUCCESS; 
 }

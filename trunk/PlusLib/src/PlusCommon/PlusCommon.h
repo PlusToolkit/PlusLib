@@ -96,5 +96,28 @@ public:
 
 /////////////////////////////////////////////////////////////////// 
 
+// This class is used for locking a objects (buffers, mutexes, etc.)
+// and releasing the lock automatically when the object is deleted
+template <typename T> class PlusLockGuard
+{
+public:
+  PlusLockGuard(T* lockableObject)
+  {
+    m_LockableObject=lockableObject;
+    m_LockableObject->Lock();
+  }
+  ~PlusLockGuard()
+  {    
+    m_LockableObject->Unlock();
+    m_LockableObject=NULL;
+  }
+private:
+  PlusLockGuard(PlusLockGuard&);
+  void operator=(PlusLockGuard&);
+
+  T* m_LockableObject;
+};
+
+
 
 #endif //__PlusCommon_h

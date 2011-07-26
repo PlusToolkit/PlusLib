@@ -138,14 +138,13 @@ int main(int argc, char **argv)
 
   vtkSmartPointer<vtkMatrix4x4> matrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
   vtkSmartPointer<vtkMatrix4x4> prevmatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
-  double newTime = startTime; 
-  while ( newTime < endTime )
+
+  for ( double newTime = startTime; newTime < endTime; newTime += 1.0 / (frameRate * 5.0) )
   {
     TrackerBufferItem bufferItem;
     if ( trackerBuffer->GetTrackerBufferItemFromTime(newTime, &bufferItem, false) != ITEM_OK )
     {
-      LOG_ERROR("Failed to get tracker buffer item from time: " << std::fixed << newTime ); 
-      numberOfErrors++; 
+      LOG_DEBUG("Failed to get tracker buffer item from time: " << std::fixed << newTime ); 
       continue; 
     }
     
@@ -183,8 +182,7 @@ int main(int argc, char **argv)
 
     LOG_DEBUG("bufferIndex = " << bufferIndex << " Rotation diff = " << rotDiff << ",   translation diff = " << transDiff);
 
-    prevmatrix->DeepCopy(matrix); 
-    newTime += 1.0 / (frameRate * 5.0); 
+    prevmatrix->DeepCopy(matrix);      
   }
 
   if ( numberOfErrors != 0 )
