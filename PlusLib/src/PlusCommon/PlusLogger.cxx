@@ -112,12 +112,12 @@ void PlusLogger::LogMessage(LogLevelType level, const char *msg, const char* fil
   log << " [" << std::fixed << currentTime << "] "; 
 
 	log << msg;
-	if ( level != LOG_LEVEL_INFO )
+  if ( m_LogLevel > LOG_LEVEL_INFO || level != LOG_LEVEL_INFO )
 	{
 		log << " [in " << fileName << "(" << lineNumber << ")]"; // add filename and line number
 	}
 
-	m_CriticalSection->Lock(); 
+  m_CriticalSection->Lock(); 
 
 	if (m_DisplayLogLevel>=level)
 	{ 
