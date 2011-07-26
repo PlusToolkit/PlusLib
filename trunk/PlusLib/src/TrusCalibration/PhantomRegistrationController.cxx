@@ -205,40 +205,7 @@ void PhantomRegistrationController::InitializeVisualization()
 
 			// Initialize stylus visualization - in ReferenceTool coordinate system
 			m_StylusActor = vtkActor::New();
-			vtkSmartPointer<vtkPolyDataMapper> stylusMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-			vtkSmartPointer<vtkCylinderSource> stylusBigCylinderSource = vtkSmartPointer<vtkCylinderSource>::New();
-			stylusBigCylinderSource->SetRadius(3.0); // mm
-			stylusBigCylinderSource->SetHeight(120.0); // mm
-			stylusBigCylinderSource->SetCenter(0.0, 150.0, 0.0);
-			vtkSmartPointer<vtkCylinderSource> stylusSmallCylinderSource = vtkSmartPointer<vtkCylinderSource>::New();
-			stylusSmallCylinderSource->SetRadius(1.5); // mm
-			stylusSmallCylinderSource->SetHeight(80.0); // mm
-			stylusSmallCylinderSource->SetCenter(0.0, 50.0, 0.0);
-			vtkSmartPointer<vtkConeSource> stylusTipConeSource = vtkSmartPointer<vtkConeSource>::New();
-			stylusTipConeSource->SetRadius(1.5); // mm
-			stylusTipConeSource->SetHeight(10.0); //mm
-			vtkSmartPointer<vtkTransform> coneTransform = vtkSmartPointer<vtkTransform>::New();
-			coneTransform->Identity();
-			coneTransform->RotateZ(-90.0);
-			coneTransform->Translate(-5.0, 0.0, 0.0);
-			vtkSmartPointer<vtkTransformPolyDataFilter> coneTransformFilter = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
-			coneTransformFilter->AddInputConnection(stylusTipConeSource->GetOutputPort());
-			coneTransformFilter->SetTransform(coneTransform);
-
-			vtkSmartPointer<vtkAppendPolyData> appendFilter = vtkSmartPointer<vtkAppendPolyData>::New();
-			appendFilter->AddInputConnection(stylusBigCylinderSource->GetOutputPort());
-			appendFilter->AddInputConnection(stylusSmallCylinderSource->GetOutputPort());
-			appendFilter->AddInputConnection(coneTransformFilter->GetOutputPort());
-			vtkSmartPointer<vtkTransform> stylusTransform = vtkSmartPointer<vtkTransform>::New();
-			stylusTransform->Identity();
-			stylusTransform->RotateZ(90.0);
-			vtkSmartPointer<vtkTransformPolyDataFilter> stylusTransformFilter = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
-			stylusTransformFilter->AddInputConnection(appendFilter->GetOutputPort());
-			stylusTransformFilter->SetTransform(stylusTransform);
-
-			stylusMapper->SetInputConnection(stylusTransformFilter->GetOutputPort());
-			m_StylusActor->SetMapper(stylusMapper);
-			m_StylusActor->GetProperty()->SetColor(0.0, 0.0, 0.0);
+			StylusCalibrationController::GetInstance()->LoadStylusModel(m_StylusActor);
 
 			// Initialize registered phantom body actor
 			m_RegisteredPhantomBodyActor = vtkActor::New();
@@ -280,10 +247,8 @@ void PhantomRegistrationController::InitializeVisualization()
 			m_AxesActor->SetZAxisLabelText("Z");
 			m_AxesActor->SetAxisLabels(0);
 			m_AxesActor->SetTotalLength(50, 50, 50);
-			//m_AxesActor->SetPosition(1400, 1200, 100);
-			//m_AxesActor->SetVisibility(0);
-			//renderer->AddActor(m_AxesActor);
-			//m_PhantomRenderer->AddActor(m_AxesActor);
+			renderer->AddActor(m_AxesActor);
+			m_PhantomRenderer->AddActor(m_AxesActor);
 			*/
 		}
 	} else if (vtkFreehandController::GetInstance()->GetCanvas() != NULL) { // If already initialized (it can occur if tab change - and so clear - happened)

@@ -98,11 +98,13 @@ vtkTrackerTool::vtkTrackerTool()
 
 	this->SendToLink = 0; 
 
-  // Set tool enabled off by default 
+	// Set tool enabled off by default 
 	this->EnabledOff(); 
 
 	this->ModelToToolTransform = vtkTransform::New();
+	this->ModelToToolTransform->Identity();
 	this->ToolToToolReferenceTransform = vtkTransform::New();
+	this->ToolToToolReferenceTransform->Identity();
 	this->SetToolName("");
 	this->SetToolModelFileName("");
 	this->SetToolDefinitionFileName("");
@@ -122,13 +124,13 @@ vtkTrackerTool::~vtkTrackerTool()
 
 	this->SetToolType(NULL); 
 	this->SetToolModelFileName(NULL); 
-  this->SetToolRevision(NULL); 
-  this->SetToolSerialNumber(NULL); 
-  this->SetToolManufacturer(NULL); 
+	this->SetToolRevision(NULL); 
+	this->SetToolSerialNumber(NULL); 
+	this->SetToolManufacturer(NULL); 
 
-  this->SetModelToToolTransform(NULL); 
-  this->SetToolDefinitionFileName(NULL); 
-  this->SetToolModelFileName(NULL); 
+	this->SetModelToToolTransform(NULL); 
+	this->SetToolDefinitionFileName(NULL); 
+	this->SetToolModelFileName(NULL); 
 	
 	if ( this->Buffer )
 	{
