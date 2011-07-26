@@ -796,4 +796,6 @@ PlusStatus StylusCalibrationController::FeedStylusCalibrationMatrixToTool()
 	if ((stylusToStylusTipTransformMatrix == NULL) || ((stylusToStylusTipTransformMatrix->GetElement(0,3) == 0.0) && (stylusToStylusTipTransformMatrix->GetElement(1,3) == 0.0) && (stylusToStylusTipTransformMatrix->GetElement(2,3) == 0.0)) ) {
 		dataCollector->GetTracker()->GetTool(m_StylusPortNumber)->SetCalibrationMatrix(m_StylusToStylustipTransform->GetMatrix());		
 	}
+
+	return PLUS_SUCCESS;
 }
