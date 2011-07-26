@@ -669,7 +669,7 @@ PlusStatus vtkTimestampedCircularBuffer<BufferItemType>::CreateFilteredTimeStamp
 
   if (fabs(outFilteredTimestamp-inUnfilteredTimestamp)>this->MaxAllowedFilteringTimeDifference)
   {    
-	LOG_ERROR("Difference between unfiltered timestamp ("<<inUnfilteredTimestamp<<") and unfiltered timestamp "<<outFilteredTimestamp<<") is larger than the threshold ("<<this->MaxAllowedFilteringTimeDifference<<"). Probably the LSQR minimization failed to converge.");
+	LOG_ERROR("Difference between unfiltered timestamp ("<<inUnfilteredTimestamp<<") and filtered timestamp "<<outFilteredTimestamp<<") is larger than the threshold ("<<this->MaxAllowedFilteringTimeDifference<<"). Probably the LSQR minimization failed to converge.");
 	this->Unlock();  
 	return PLUS_FAIL;
   }

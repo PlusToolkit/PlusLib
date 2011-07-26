@@ -8,6 +8,7 @@
 #ifdef _WIN32
 #include "WindowsAccurateTimer.h"
 WindowsAccurateTimer WindowsAccurateTimer::instance;
+double vtkAccurateTimer::SystemStartTime=0;
 volatile double  WindowsAccurateTimer::error=0;
 volatile int     WindowsAccurateTimer::count=0;
 #endif
@@ -42,6 +43,7 @@ vtkAccurateTimer* vtkAccurateTimer::GetInstance()
 		{
 			vtkAccurateTimer::Instance = new vtkAccurateTimer;
 		}
+    vtkAccurateTimer::Instance->SystemStartTime = vtkAccurateTimer::Instance->GetInternalSystemTime(); 
 	}
 	return vtkAccurateTimer::Instance;
 }
@@ -112,7 +114,7 @@ void vtkAccurateTimer::Delay(double sec)
 }
 
 //----------------------------------------------------------------------------
-double vtkAccurateTimer::GetSystemTime()
+double vtkAccurateTimer::GetInternalSystemTime()
 {
 #ifdef _WIN32
 	return WindowsAccurateTimer::GetSystemTime(); 
@@ -121,6 +123,11 @@ double vtkAccurateTimer::GetSystemTime()
 #endif
 }
 
+//----------------------------------------------------------------------------
+double vtkAccurateTimer::GetSystemTime()
+{
+  return (vtkAccurateTimer::GetInternalSystemTime() - vtkAccurateTimer::SystemStartTime); 
+}
 
 //----------------------------------------------------------------------------
 std::string vtkAccurateTimer::GetDateString()
