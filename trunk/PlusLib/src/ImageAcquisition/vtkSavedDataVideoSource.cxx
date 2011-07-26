@@ -168,16 +168,9 @@ PlusStatus vtkSavedDataVideoSource::InternalGrab()
     return PLUS_FAIL; 
   }
 
-  // use the information about data type and frmnum to do cross checking that you are maintaining correct frame index, & receiving
-  // expected data type
-  if ( this->FrameNumber < nextVideoBufferItem.GetIndex() )
-  {
-    this->FrameNumber = nextVideoBufferItem.GetIndex(); 
-  }
-  else
-  {
-    this->FrameNumber++; 
-  }
+  // The sampling rate is constant, so to have a constant frame rate we have to increase the FrameNumber by a constant.
+  // For simplicity, we increase it always by 1.
+  this->FrameNumber++;
 
   VideoBufferItem::PixelType* deviceDataPtr = nextVideoBufferItem.GetFrame()->GetBufferPointer(); 
   const int frameSize[2] = {nextVideoBufferItem.GetFrame()->GetLargestPossibleRegion().GetSize()[0], nextVideoBufferItem.GetFrame()->GetLargestPossibleRegion().GetSize()[1]}; 

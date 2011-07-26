@@ -236,7 +236,7 @@ protected:
   std::deque<BufferItemType> BufferItemContainer; 
 
   // Matrix used for storing the last number of AveragedItemsForFiltering frame index 
-  vnl_sparse_matrix<double> FilterContainerIndexMatrix; 
+  vnl_vector<double> FilterContainerIndexVector; 
   
   // Vector used for storing the last number of AveragedItemsForFiltering unfiltered timestamps
   vnl_vector<double> FilterContainerTimestampVector; 
