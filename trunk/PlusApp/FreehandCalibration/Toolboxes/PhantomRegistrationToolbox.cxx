@@ -43,9 +43,6 @@ PhantomRegistrationToolbox::PhantomRegistrationToolbox(QWidget* aParent, Qt::WFl
 	connect( ui.pushButton_Save, SIGNAL( clicked() ), this, SLOT( SaveClicked() ) );
 
 	connect( m_AcquisitionTimer, SIGNAL( timeout() ), this, SLOT( RequestDoAcquisition() ) );
-
-	// Start timer for acquisition
-	m_AcquisitionTimer->start(1000 / vtkFreehandController::GetInstance()->GetRecordingFrameRate());
 }
 
 //-----------------------------------------------------------------------------
@@ -70,6 +67,9 @@ PhantomRegistrationToolbox::~PhantomRegistrationToolbox()
 void PhantomRegistrationToolbox::Initialize()
 {
 	LOG_TRACE("PhantomRegistrationToolbox::Initialize"); 
+
+	// Start timer for acquisition
+	m_AcquisitionTimer->start(1000 / vtkFreehandController::GetInstance()->GetRecordingFrameRate());
 
 	// If stylus calibration has just been done, then indicate it
 	if (StylusCalibrationController::GetInstance()->GetStylusToStylustipTransform() != NULL) {
