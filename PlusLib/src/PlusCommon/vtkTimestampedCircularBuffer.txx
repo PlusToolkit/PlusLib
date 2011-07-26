@@ -674,8 +674,8 @@ PlusStatus vtkTimestampedCircularBuffer<BufferItemType>::CreateFilteredTimeStamp
     return PLUS_FAIL;
   }
 
-  LOG_DEBUG("timestamps = [" << std::fixed << this->FilterContainerTimestampVector << "];");
-  LOG_DEBUG("frameindexes = [" << std::fixed << this->FilterContainerIndexVector << "];");
+  LOG_TRACE("timestamps = [" << std::fixed << this->FilterContainerTimestampVector << "];");
+  LOG_TRACE("frameindexes = [" << std::fixed << this->FilterContainerIndexVector << "];");
 
   // save the current results into the timestamp report table
   timeStampReportTableRow->InsertNextValue(itemIndex); 

@@ -34,8 +34,6 @@ int main(int argc, char **argv)
   args.AddArgument("--output-compressed", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputCompressed, "Compressed output (0=non-compressed, 1=compressed, default:compressed)");	
   args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug)");	
 
-  PlusLogger::Instance()->SetLogLevel(verboseLevel);
-
   if ( !args.Parse() )
   {
     std::cerr << "Problem parsing arguments" << std::endl;
@@ -55,6 +53,9 @@ int main(int argc, char **argv)
 
   vtkSmartPointer<vtkDataCollector> dataCollector = vtkSmartPointer<vtkDataCollector>::New(); 
   dataCollector->ReadConfigurationFromFile(inputConfigFileName.c_str());
+
+  PlusLogger::Instance()->SetLogLevel(verboseLevel);
+  PlusLogger::Instance()->SetDisplayLogLevel(verboseLevel);
 
   if ( dataCollector->GetAcquisitionType() == SYNCHRO_VIDEO_SAVEDDATASET )
   {

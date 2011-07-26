@@ -9,7 +9,6 @@
 #include "vtkCriticalSection.h"
 #include "vtkObjectFactory.h"
 
-
 ///----------------------------------------------------------------------------
 //						TrackerBufferItem
 //----------------------------------------------------------------------------
@@ -233,10 +232,9 @@ PlusStatus vtkTrackerBuffer::AddTimeStampedItem(vtkMatrix4x4 *matrix, TrackerSta
   int bufferIndex(0); 
   BufferItemUidType itemUid; 
 
-  this->TrackerBuffer->Lock(); 
+  PlusLockGuard<TrackerBufferType> trackerBufferGuardedLock(this->TrackerBuffer);
   if ( this->TrackerBuffer->PrepareForNewItem(filteredTimestamp, itemUid, bufferIndex) != PLUS_SUCCESS )
   {
-    this->TrackerBuffer->Unlock(); 
     // Just a debug message, because we want to avoid unnecessary warning messages if the timestamp is the same as last one
     LOG_DEBUG( "vtkTrackerBuffer: Failed to prepare for adding new frame to tracker buffer!"); 
     return PLUS_FAIL; 
@@ -246,7 +244,6 @@ PlusStatus vtkTrackerBuffer::AddTimeStampedItem(vtkMatrix4x4 *matrix, TrackerSta
   TrackerBufferItem* newObjectInBuffer = this->TrackerBuffer->GetBufferItemFromBufferIndex(bufferIndex); 
   if ( newObjectInBuffer == NULL )
   {
-    this->TrackerBuffer->Unlock(); 
     LOG_ERROR( "vtkTrackerBuffer: Failed to get pointer to tracker buffer object from the tracker buffer for the new frame!"); 
     return PLUS_FAIL; 
   }
@@ -257,7 +254,6 @@ PlusStatus vtkTrackerBuffer::AddTimeStampedItem(vtkMatrix4x4 *matrix, TrackerSta
   newObjectInBuffer->SetUnfilteredTimestamp( unfilteredTimestamp ); 
   newObjectInBuffer->SetIndex( frameNumber ); 
   newObjectInBuffer->SetUid( itemUid ); 
-  this->TrackerBuffer->Unlock(); 
 
   return itemStatus; 
 }
@@ -342,235 +338,158 @@ ItemStatus vtkTrackerBuffer::GetTrackerBufferItem(BufferItemUidType uid, Tracker
   return this->TrackerBuffer->GetFrameStatus(uid); 
 }
 
-//----------------------------------------------------------------------------
-ItemStatus vtkTrackerBuffer::GetNextValidItemUid(BufferItemUidType startUid, FindDirection dir, BufferItemUidType& foundUid )
-{ 
-  foundUid=startUid; // by default return the start uid (if cannot find a better uid)
-  int uidIncrement=1;
-  if (dir==DIR_BACKWARD)
-  {
-    uidIncrement=-1;
-  }
-  BufferItemUidType uid=startUid+uidIncrement;
-  while (uid>=this->GetOldestItemUidInBuffer()
-    && uid<=this->GetLatestItemUidInBuffer())
-  { 
-    TrackerBufferItem* bufferItem=this->TrackerBuffer->GetBufferItemFromUid(uid);
-    if (bufferItem!=NULL && bufferItem->GetStatus()==TR_OK)
-    {
-      // found a valid item
-      foundUid=uid;
-      return ITEM_OK;
-    }
-    // found an item, but it's not valid, try the next one
-    uid+=uidIncrement;
-  }  
-  if (dir==DIR_BACKWARD)
-  {
-    return ITEM_NOT_AVAILABLE_ANYMORE;
-  }
-  return ITEM_NOT_AVAILABLE_YET;
-}
-
-//----------------------------------------------------------------------------
-ItemStatus vtkTrackerBuffer::GetClosestValidItemUid(double time, BufferItemUidType &closestValidUid)
+// Returns the two buffer items that are closest previous and next buffer items relative to the specified time.
+// itemA is the closest item
+PlusStatus vtkTrackerBuffer::GetPrevNextBufferItemFromTime(double time, TrackerBufferItem& itemA, TrackerBufferItem& itemB, bool calibratedItem /*= false*/)
 {
-  // itemA is the item that is the closest to the requested time
-  // get its uid and time
-  BufferItemUidType closestItemUid(0); 
-  ItemStatus status = this->TrackerBuffer->GetItemUidFromTime(time, closestItemUid); 
+  PlusLockGuard<TrackerBufferType> trackerBufferGuardedLock(this->TrackerBuffer);
+
+  // The returned item is computed by interpolation between itemA and itemB in time. The itemA is the closest item to the requested time.
+  // Accept itemA (the closest item) as is if it is very close to the requested time.
+  // Accept interpolation between itemA and itemB if all the followings are true:
+  //   - both itemA and itemB exist and are valid  
+  //   - time difference between the requested time and itemA is below a threshold
+  //   - time difference between the requested time and itemB is below a threshold
+
+  // itemA is the item that is the closest to the requested time, get its UID and time
+  BufferItemUidType itemAuid(0); 
+  ItemStatus status = this->TrackerBuffer->GetItemUidFromTime(time, itemAuid); 
   if ( status != ITEM_OK )
   {
-    double lt(0); 
-    this->TrackerBuffer->GetLatestTimeStamp(lt); 
-    LOG_INFO("Latest timestamp: " << std::fixed << lt ); 
-    LOG_WARNING("Failed to get tracker buffer item from time: " << std::fixed << time); 
-    return status; 
+    LOG_DEBUG("vtkTrackerBuffer: Cannot get any item from the tracker buffer for time: " << std::fixed << time <<". Probably the buffer is empty.");
+    return PLUS_FAIL;
   }
-  TrackerBufferItem closestItem; 
-  status = this->GetTrackerBufferItem(closestItemUid, &closestItem); 
-  if ( status != ITEM_OK )
-  {
-    LOG_ERROR("Failed to get tracker buffer item with Uid: " << closestItemUid );
-    return status; 
-  }
-  // If the status is OK then we found the closest valid item
-  if ( closestItem.GetStatus() == TR_OK )
-  {
-    // the closest item is valid
-    closestValidUid=closestItemUid;
-    return ITEM_OK;
-  }
-
-  // The closest item is not valid (e.g., out of view), so search for 
-  // the closest valid item
-
-  LOG_TRACE("The closest element (uid="<<closestItemUid<<") to the requested timestamp ("<<time<<") is invalid");
-
-  BufferItemUidType validItemBeforeUid=0;
-  BufferItemUidType validItemAfterUid=0;
-  bool foundValidElementBefore = GetNextValidItemUid(closestItemUid, DIR_BACKWARD, validItemBeforeUid)== ITEM_OK;
-  bool foundValidElementAfter = GetNextValidItemUid(closestItemUid, DIR_FORWARD, validItemAfterUid)== ITEM_OK;
-
-  if (!validItemBeforeUid && !validItemAfterUid)
-  {
-    LOG_ERROR("Cannot find any valid element in the buffer");  
-    closestValidUid=-1;
-    return ITEM_UNKNOWN_ERROR;
-  }
-  else if (validItemBeforeUid && !validItemAfterUid)
-  {
-    closestValidUid=validItemBeforeUid;
-  }
-  else if (!validItemBeforeUid && validItemAfterUid)
-  {
-    closestValidUid=validItemAfterUid;
-  }
-  else
-  {
-    // found a valid item before and after itemA, choose the one that is closer to the requested time
-    double validItemBeforeClosestTime(0);
-    double validItemAfterClosestTime(0);
-    this->TrackerBuffer->GetTimeStamp(validItemBeforeUid, validItemBeforeClosestTime); 
-    this->TrackerBuffer->GetTimeStamp(validItemAfterUid, validItemAfterClosestTime); 
-    if (fabs(time-validItemBeforeClosestTime) < fabs(time-validItemAfterClosestTime))
-    {
-      // before is closer
-      closestValidUid=validItemBeforeUid;
-    }
-    else
-    {
-      // after is closer
-      closestValidUid=validItemAfterUid;
-    }
-  }    
-  
-  return ITEM_OK;
-}
-
-
-
-//----------------------------------------------------------------------------
-// Interpolate the matrix for the given timestamp from the two nearest
-// transforms in the buffer.
-// The rotation is interpolated with SLERP interpolation, and the
-// position is interpolated with linear interpolation.
-// The flags are the logical 'or' of the two transformations that
-// are used in the interpolation.
-ItemStatus vtkTrackerBuffer::GetTrackerBufferItemFromTime( double time, TrackerBufferItem* bufferItem, bool calibratedItem /*= false*/)
-{
-  this->TrackerBuffer->Lock(); 
-
-  // itemA is the item that is the closest to the requested time
-  // get its uid and time
-  BufferItemUidType itemAuid(0);   
-  ItemStatus status=GetClosestValidItemUid(time, itemAuid);
-  if ( status != ITEM_OK )
-  {
-    LOG_ERROR("Failed to get any valid item in the buffer");
-    this->TrackerBuffer->Unlock();
-    return status; 
-  }
-
-  TrackerBufferItem itemA; 
   status = this->GetTrackerBufferItem(itemAuid, &itemA, calibratedItem); 
   if ( status != ITEM_OK )
   {
-    LOG_ERROR("Failed to get tracker buffer item with Uid: " << itemAuid );
-    this->TrackerBuffer->Unlock();
-    return status; 
+    LOG_ERROR("vtkTrackerBuffer: Failed to get tracker buffer item with Uid: " << itemAuid );
+    return PLUS_FAIL;
+  }
+
+  // If tracker is out of view, etc. then we don't have a valid before and after the requested time, so we cannot do interpolation
+  if (itemA.GetStatus()!=TR_OK)
+  {
+    // tracker is out of view, ...
+    LOG_DEBUG("vtkTrackerBuffer: Cannot do tracker data interpolation. The closest item to the requested time (time: " << std::fixed << time <<", uid: "<<itemAuid<<") is invalid.");
+    return PLUS_FAIL;
   }
 
   double itemAtime(0);
   status = this->TrackerBuffer->GetTimeStamp(itemAuid, itemAtime); 
   if ( status != ITEM_OK )
   {
-    LOG_WARNING("Failed to get tracker buffer timestamp with Uid: " << itemAuid ); 
-    this->TrackerBuffer->Unlock();
-    return status; 
+    LOG_ERROR("vtkTrackerBuffer: Failed to get tracker buffer timestamp (time: " << std::fixed << time <<", uid: "<<itemAuid<<")" ); 
+    return PLUS_FAIL;
   }
 
-  // By default return the closest element (if cannot do or no need for interpolation)
-  bufferItem->DeepCopy(&itemA);
-
-  // If the time difference is negligible then don't interpolate
+  // If the time difference is negligible then don't interpolate, just return the closest item
   const double NEGLIGIBLE_TIME_DIFFERENCE=0.00001; // in seconds
   if (fabs(itemAtime-time)<NEGLIGIBLE_TIME_DIFFERENCE)
   {
     //No need for interpolation, it's very close to the closest element
-    this->TrackerBuffer->Unlock();
-    return ITEM_OK;
-  }
+    itemB.DeepCopy(&itemA);
+    return PLUS_SUCCESS;
+  }  
 
   // If the closest item is too far, then we don't do interpolation 
   if ( fabs(itemAtime-time)>this->GetMaxAllowedTimeDifference() )
   {
-    LOG_ERROR("vtkTrackerBuffer: Cannot perform interpolation, time difference is too big " << std::fixed << fabs(itemAtime-time) << " ( " << itemAtime << ", " << time << ")." );    
-    this->TrackerBuffer->Unlock();
-    return ITEM_UNKNOWN_ERROR;
+    LOG_ERROR("vtkTrackerBuffer: Cannot perform interpolation, time difference compared to itemA is too big " << std::fixed << fabs(itemAtime-time) << " ( closest item time: " << itemAtime << ", requested time: " << time << ")." );
+    return PLUS_FAIL;
   }
 
   // Find the closest item on the other side of the timescale (so that time is between itemAtime and itemBtime) 
   BufferItemUidType itemBuid(0);
   if (time < itemAtime)
   {
-    if ( GetNextValidItemUid(itemAuid, DIR_BACKWARD, itemBuid)!= ITEM_OK )
-    {
-      // This is just a debug because if there is no valid item, then the TrackerStatus is not OK, so we won't use it 
-      LOG_DEBUG("vtkTrackerBuffer: Cannot perform interpolation, there is no available valid item before the closest item" << std::fixed << " ( closest time = " << itemAtime << ", requested time = " << time << "). Using the closest item." );    
-      this->TrackerBuffer->Unlock();
-      return ITEM_OK;
-    }
+    // itemBtime < time <itemAtime
+    itemBuid=itemAuid-1;
   }
-  else // itemAtime <= time
+  else
   {
-    if ( GetNextValidItemUid(itemAuid, DIR_FORWARD, itemBuid)!= ITEM_OK )
-    {
-      // This is just a debug because if there is no valid item, then the TrackerStatus is not TR_OK, so we won't use it 
-      LOG_DEBUG("vtkTrackerBuffer: Cannot perform interpolation, there is no available valid item after the closest item" << std::fixed << " ( closest time = " << itemAtime << ", requested time = " << time << "). Using the closest item." );    
-      this->TrackerBuffer->Unlock();
-      return ITEM_OK;
-    }
+    // itemAtime < time <itemBtime
+    itemBuid=itemAuid+1;
   }
-
+  if (itemBuid<this->GetOldestItemUidInBuffer()
+    || itemBuid>this->GetLatestItemUidInBuffer())
+  {
+    // itemB is not available
+    LOG_ERROR("vtkTrackerBuffer: Cannot perform interpolation, itemB is not available " << std::fixed << " ( itemBuid: " << itemBuid << ", oldest UID: " << this->GetOldestItemUidInBuffer() << ", latest UID: " << this->GetLatestItemUidInBuffer() );
+    return PLUS_FAIL;
+  }
   // Get item B details
-  double itemBtime(0); 
+  double itemBtime(0);
   status = this->TrackerBuffer->GetTimeStamp(itemBuid, itemBtime); 
   if ( status != ITEM_OK )
   {
-    LOG_WARNING("Cannot do interpolation: Failed to get tracker buffer timestamp with Uid: " << itemBuid ); 
-    this->TrackerBuffer->Unlock();
-    return status; 
+    LOG_ERROR("Cannot do interpolation: Failed to get tracker buffer timestamp with Uid: " << itemBuid ); 
+    return PLUS_FAIL;
   }
-
   // If the next closest item is too far, then we don't do interpolation 
   if ( fabs(itemBtime-time)>this->GetMaxAllowedTimeDifference() )
   {
-    LOG_ERROR("vtkTrackerBuffer: Cannot perform interpolation, time difference is too big " << std::fixed << fabs(itemBtime-time) << " ( " << itemBtime << ", " << time << ")." );    
-    this->TrackerBuffer->Unlock();
-    return ITEM_UNKNOWN_ERROR;
+    LOG_ERROR("vtkTrackerBuffer: Cannot perform interpolation, time difference compared to itemB is too big " << std::fixed << fabs(itemBtime-time) << " ( itemBtime: " << itemBtime << ", requested time: " << time << ")." );
+    return PLUS_FAIL;
   }
-
-  TrackerBufferItem itemB; 
+  // Get the item
   status = this->GetTrackerBufferItem(itemBuid, &itemB, calibratedItem); 
   if ( status != ITEM_OK )
   {
-    LOG_WARNING("Failed to get tracker buffer item with Uid: " << itemBuid ); 
-    this->TrackerBuffer->Unlock();
-    return status; 
+    LOG_ERROR("vtkTrackerBuffer: Failed to get tracker buffer item with Uid: " << itemBuid ); 
+    return PLUS_FAIL;
   }
+  // If there is no valid element on the other side of the requested time, then we cannot do an interpolation
   if ( itemB.GetStatus() != TR_OK )
   {
-    LOG_WARNING("Cannot get a second element (uid="<<itemBuid<<") on the other side of the requested time ("<< std::fixed <<  time 
-      <<"). Just use the closest element (uid=" << std::dec <<itemAuid <<", time=" << std::fixed << itemAtime<<").");
-    this->TrackerBuffer->Unlock();
-    return ITEM_OK; 
+    LOG_DEBUG("vtkTrackerBuffer: Cannot get a second element (uid="<<itemBuid<<") on the other side of the requested time ("<< std::fixed << time <<")");
+    return PLUS_FAIL;
   }
 
-  // We can unlock the buffer, we have all the data that we need to use
-  this->TrackerBuffer->Unlock();
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+// Interpolate the matrix for the given timestamp from the two nearest
+// transforms in the buffer.
+// The rotation is interpolated with SLERP interpolation, and the
+// position is interpolated with linear interpolation.
+// The flags correspond to the closest element.
+ItemStatus vtkTrackerBuffer::GetTrackerBufferItemFromTime( double time, TrackerBufferItem* bufferItem, bool calibratedItem /*= false*/)
+{
+  TrackerBufferItem itemA; 
+  TrackerBufferItem itemB; 
+
+  if (GetPrevNextBufferItemFromTime(time, itemA, itemB, calibratedItem)!=PLUS_SUCCESS)
+  {
+    // cannot get two neighbors, so cannot do interpolation
+    // it may be normal (e.g., when tracker out of view), so don't return with an error
+    return ITEM_UNKNOWN_ERROR;
+  }
+
+  // Initialize the returned item with the closest element (if we cannot do or there is no need for interpolation)
+  bufferItem->DeepCopy(&itemA);
+
+  if (itemA.GetUid()==itemB.GetUid())
+  {
+    // exact match, no need for interpolation
+    return ITEM_OK;
+  }
 
   //============== Get item weights ==================
+
+  double itemAtime(0);
+  if ( this->TrackerBuffer->GetTimeStamp(itemA.GetUid(), itemAtime) != ITEM_OK )
+  {
+    LOG_ERROR("vtkTrackerBuffer: Failed to get tracker buffer timestamp (time: " << std::fixed << time <<", uid: "<<itemA.GetUid()<<")" ); 
+    return ITEM_UNKNOWN_ERROR;
+  }
+  
+  double itemBtime(0);   
+  if ( this->TrackerBuffer->GetTimeStamp(itemB.GetUid(), itemBtime) != ITEM_OK )
+  {
+    LOG_ERROR("vtkTrackerBuffer: Failed to get tracker buffer timestamp (time: " << std::fixed << time <<", uid: "<<itemB.GetUid()<<")" ); 
+    return ITEM_UNKNOWN_ERROR;
+  }
 
   double itemAweight=fabs(itemBtime-time)/fabs(itemAtime-itemBtime);
   double itemBweight=1-itemAweight;

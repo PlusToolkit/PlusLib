@@ -210,7 +210,8 @@ protected:
   int FrameSize[2]; 
   int NumberOfBitsPerPixel; 
 
-  vtkTimestampedCircularBuffer<VideoBufferItem>* VideoBuffer; 
+  typedef vtkTimestampedCircularBuffer<VideoBufferItem> VideoBufferType;
+  VideoBufferType* VideoBuffer; 
 
 private:
   vtkVideoBuffer(const vtkVideoBuffer&);
