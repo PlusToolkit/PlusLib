@@ -89,6 +89,18 @@ public:
 	*/
 	void ToggleDeviceVisualization(bool aOn);
 
+	/*!
+	* \brief Gets video time offset from video source
+	* \return Currently used video time offset in seconds
+	*/
+	double GetVideoTimeOffset();
+
+	/*!
+	* \brief Assembles the result string to display
+	* \return String containing results
+	*/
+	std::string GetResultString();
+
 	//TODO--------------------------
 	PlusStatus DoTemporalCalibration();
 	static void UpdateProgress(int aPercent);
