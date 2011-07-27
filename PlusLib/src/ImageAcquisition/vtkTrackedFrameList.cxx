@@ -155,7 +155,7 @@ bool TrackedFrame::GetDefaultFrameTransform(double transform[16])
     }
   }
 
-  LOG_ERROR("Unable to find default transform in sequence metafile!"); 
+  LOG_ERROR("Unable to find default transform in tracked frame!"); 
   return false; 
 }
 

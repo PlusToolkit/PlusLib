@@ -91,7 +91,7 @@ public:
 
   // Description:
   // Synchronize the connected devices
-  virtual PlusStatus Synchronize(); 
+  virtual PlusStatus Synchronize( const char* bufferOutputFolder = NULL, bool acquireDataOnly = false ); 
 
   // Description:
   // Copy the current state of the tracker buffer 

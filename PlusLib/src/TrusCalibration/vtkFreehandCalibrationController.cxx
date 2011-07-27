@@ -856,7 +856,7 @@ PlusStatus vtkFreehandCalibrationController::DoTemporalCalibration()
 	}
 
 	controller->GetDataCollector()->SetProgressBarUpdateCallbackFunction(UpdateProgress);
-	controller->GetDataCollector()->Synchronize();
+	controller->GetDataCollector()->Synchronize( "./", true );
 
 	this->TemporalCalibrationDoneOn();
 	this->ProgressPercent = 0;

@@ -664,14 +664,19 @@ PlusStatus vtkTracker::GetTrackerToolBufferStringList(double timestamp,
       TrackerBufferItem bufferItem; 
       if ( this->GetTool(tool)->GetBuffer()->GetTrackerBufferItemFromTime(timestamp, &bufferItem, calibratedTransform ) != ITEM_OK )
       {
-        LOG_ERROR("Failed to get tracker item from buffer by time: " << std::fixed << timestamp); 
-
         double latestTimestamp(0); 
-        this->GetTool(tool)->GetBuffer()->GetLatestTimeStamp(latestTimestamp); 
-        double oldestTimestamp(0); 
-        this->GetTool(tool)->GetBuffer()->GetOldestTimeStamp(oldestTimestamp); 
-        LOG_DEBUG("Oldest timestamp: " << std::fixed << oldestTimestamp << "   latest timestamp: " << latestTimestamp); 
+        if ( this->GetTool(tool)->GetBuffer()->GetLatestTimeStamp(latestTimestamp) != ITEM_OK )
+        {
+          LOG_ERROR("Failed to get latest timestamp!"); 
+        }
 
+        double oldestTimestamp(0); 
+        if ( this->GetTool(tool)->GetBuffer()->GetOldestTimeStamp(oldestTimestamp) != ITEM_OK )
+        {
+          LOG_ERROR("Failed to get oldest timestamp!"); 
+        }
+
+        LOG_ERROR("Failed to get tracker item from buffer by time: " << std::fixed << timestamp << " (Latest timestamp: " << latestTimestamp << "   Oldest timestamp: " << oldestTimestamp << ")."); 
         return PLUS_FAIL; 
       }
 
