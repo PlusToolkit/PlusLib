@@ -191,7 +191,8 @@ vtkOpenIGTLinkBroadcaster
   vtkSmartPointer< vtkImageData > frameImage = vtkSmartPointer< vtkImageData >::New();
   
     
-  if ( this->DataCollector->GetAcquisitionType() != SYNCHRO_VIDEO_NONE )
+  if (    this->DataCollector->GetAcquisitionType() != SYNCHRO_VIDEO_NONE
+       && this->DataCollector->GetVideoSource() != NULL )
     {
     frameImage->SetDimensions( this->DataCollector->GetVideoSource()->GetFrameSize() );
     frameImage->SetOrigin( this->DataCollector->GetVideoSource()->GetDataOrigin() );
@@ -245,7 +246,8 @@ vtkOpenIGTLinkBroadcaster
   
   int success = 0;
   
-  if ( this->DataCollector->GetAcquisitionType() != SYNCHRO_VIDEO_NONE )
+  if (    this->DataCollector->GetAcquisitionType() != SYNCHRO_VIDEO_NONE
+       && this->DataCollector->GetVideoSource() != NULL )
     {
     int    imageSizePixels[ 3 ] = { 0, 0, 0 };
     double imageSpacingMm[ 3 ] = { 0, 0, 0 };
