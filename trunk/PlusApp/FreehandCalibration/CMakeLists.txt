@@ -84,6 +84,7 @@ SET (FreehandCalibration_LIBS
     vtkTrusCalibration 
     vtkTracking 
     vtkDataCollection 
+    vtkVolumeReconstruction
     )
 
 IF (PLUS_USE_OpenIGTLink)
