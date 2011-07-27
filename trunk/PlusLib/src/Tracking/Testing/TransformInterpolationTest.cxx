@@ -142,9 +142,15 @@ int main(int argc, char **argv)
   for ( double newTime = startTime; newTime < endTime; newTime += 1.0 / (frameRate * 5.0) )
   {
     TrackerBufferItem bufferItem;
-    if ( trackerBuffer->GetTrackerBufferItemFromTime(newTime, &bufferItem, false) != ITEM_OK )
+    if ( trackerBuffer->GetTrackerBufferItemFromTime(newTime, &bufferItem, vtkTrackerBuffer::INTERPOLATED, false) != ITEM_OK )
     {
       LOG_DEBUG("Failed to get tracker buffer item from time: " << std::fixed << newTime ); 
+      continue; 
+    }
+
+    if ( bufferItem.GetStatus()!=TR_OK )
+    {
+      LOG_DEBUG("Tracker item is missing or invalid (index: " << bufferItem.GetIndex() << ")" ); 
       continue; 
     }
     

@@ -29,7 +29,6 @@ vtkSavedDataTracker::vtkSavedDataTracker()
 {
 	this->LocalTrackerBuffer = NULL;
 	this->SequenceMetafile = NULL; 
-	this->Tracking = 0;
 	this->Initialized = false;
 	this->ReplayEnabled = false; 
   this->LoopStartTime = 0.0; 
@@ -221,11 +220,8 @@ PlusStatus vtkSavedDataTracker::InternalStartTracking()
 	if (!this->InitSavedDataTracker())
 	{
 		LOG_ERROR("Couldn't initialize SavedDataTracker");
-		this->Tracking = 0;
 		return PLUS_FAIL;
 	} 
-
-	this->Tracking = 1;
 
 	return PLUS_SUCCESS;
 }
@@ -273,7 +269,7 @@ PlusStatus vtkSavedDataTracker::InternalUpdate()
 	}
 
   TrackerBufferItem bufferItem;  
-  ItemStatus itemStatus = this->LocalTrackerBuffer->GetTrackerBufferItemFromTime(nextFrameTimestamp, &bufferItem); 
+  ItemStatus itemStatus = this->LocalTrackerBuffer->GetTrackerBufferItemFromTime(nextFrameTimestamp, &bufferItem, vtkTrackerBuffer::INTERPOLATED); 
   if ( itemStatus != ITEM_OK )
 	{
 		if ( itemStatus == ITEM_NOT_AVAILABLE_YET )
@@ -295,6 +291,8 @@ PlusStatus vtkSavedDataTracker::InternalUpdate()
   // For simplicity, we increase it always by 1.
   this->FrameNumber++;
 
+  const double unfilteredTimestamp = vtkAccurateTimer::GetSystemTime();
+
 	// Get default transfom	
   vtkSmartPointer<vtkMatrix4x4> defaultTransMatrix=vtkSmartPointer<vtkMatrix4x4>::New();
   if (bufferItem.GetMatrix(defaultTransMatrix)!=PLUS_SUCCESS)
@@ -306,10 +304,8 @@ PlusStatus vtkSavedDataTracker::InternalUpdate()
 	// Get flags
 	TrackerStatus trackerStatus = bufferItem.GetStatus(); 
 
-  double unfilteredtimestamp = bufferItem.GetUnfilteredTimestamp( this->LocalTrackerBuffer->GetLocalTimeOffset() ); 
-
 	// send the transformation matrix and flags to the tool
-	PlusStatus updateStatus = this->ToolUpdate(0, defaultTransMatrix, trackerStatus, this->FrameNumber);   
+	PlusStatus updateStatus = this->ToolTimeStampedUpdate(0, defaultTransMatrix, trackerStatus, this->FrameNumber, unfilteredTimestamp);   
   
   return updateStatus;
 }

@@ -51,7 +51,6 @@ vtkAscension3DGTracker
 ::vtkAscension3DGTracker()
 {
   this->LocalTrackerBuffer = NULL;
-  this->Tracking = 0;
 
   this->TransmitterAttached = false;
   this->FrameNumber = 0;
@@ -193,7 +192,6 @@ vtkAscension3DGTracker
   if ( ! this->InitAscension3DGTracker() )
   {
     LOG_ERROR( "Couldn't initialize vtkAscension3DGTracker" );
-    this->Tracking = 0;
     return PLUS_FAIL;
   } 
 
@@ -224,8 +222,6 @@ vtkAscension3DGTracker
     LOG_ERROR("Select transmitter failed");
     return PLUS_FAIL;
   }
-
-  this->Tracking = 1; 
 
   return PLUS_SUCCESS;
 }
@@ -341,6 +337,7 @@ vtkAscension3DGTracker
     mTrackerToReference->Invert();
   }
 
+  const double unfilteredTimestamp = vtkAccurateTimer::GetSystemTime();
 
   for ( unsigned short sensorIndex = 0; sensorIndex < sysConfig.numberSensors; ++ sensorIndex )
   {
@@ -380,11 +377,11 @@ vtkAscension3DGTracker
     if ( sensorIndex != this->GetReferenceToolNumber() )
     {
       vtkMatrix4x4::Multiply4x4( mTrackerToReference, mToolToTracker, mToolToReference );
-      this->ToolUpdate( sensorIndex, mToolToReference, trackerStatus, this->FrameNumber);
+      this->ToolTimeStampedUpdate( sensorIndex, mToolToReference, trackerStatus, this->FrameNumber, unfilteredTimestamp);
     }
     else
     {
-      this->ToolUpdate( sensorIndex, mToolToTracker, trackerStatus, this->FrameNumber);
+      this->ToolTimeStampedUpdate( sensorIndex, mToolToTracker, trackerStatus, this->FrameNumber, unfilteredTimestamp);
     }
   }
 

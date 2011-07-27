@@ -106,7 +106,8 @@ vtkTracker::vtkTracker()
 //----------------------------------------------------------------------------
 vtkTracker::~vtkTracker()
 {
-  this->Tracking = 0;
+  this->StopTracking();
+  this->Disconnect();
 
   for (int i = 0; i < this->NumberOfTools; i++)
   { 
@@ -263,20 +264,15 @@ PlusStatus vtkTracker::Probe()
 
   // Client
 
-  if (this->InternalStartTracking() == 0)
+  if (this->InternalStartTracking() != PLUS_SUCCESS)
   {
     return PLUS_FAIL;
   }
 
-  this->Tracking = 1;
-
-  if (this->InternalStopTracking() == 0)
+  if (this->InternalStopTracking() != PLUS_SUCCESS)
   {
-    this->Tracking = 0;
     return PLUS_FAIL;
   }
-
-  this->Tracking = 0;
 
   return PLUS_SUCCESS;
 }
@@ -285,23 +281,23 @@ PlusStatus vtkTracker::Probe()
 PlusStatus vtkTracker::StartTracking()
 {
 
+   // start the tracking thread
+  if ( this->Tracking )
+  {
+    LOG_ERROR("Cannot start the tracking thread - tracking still running!");
+    return PLUS_FAIL;
+  }
+
   if ( this->InternalStartTracking() != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to start tracking!"); 
     return PLUS_FAIL; 
   } 
 
-  // start the tracking thread
-  if ( !this->Tracking && this->ThreadId != -1 )
-  {
-    LOG_ERROR("Cannot start the tracking thread - tracking still running!");
-    return PLUS_FAIL;
-  }
-
   // this will block the tracking thread until we're ready
   this->UpdateMutex->Lock();
 
-  this->Tracking = true;
+  this->Tracking = 1;
 
   // start the tracking thread
   this->ThreadId = this->Threader->SpawnThread((vtkThreadFunctionType)\
@@ -330,46 +326,27 @@ PlusStatus vtkTracker::StartTracking()
 //----------------------------------------------------------------------------
 PlusStatus vtkTracker::StopTracking()
 {
-  
+
+  if (!this->Tracking)
+  {
+    // tracking already stopped, nothing to do
+    return PLUS_SUCCESS;
+  }
+
+  this->ThreadId = -1;
+  this->Tracking = 0;
+
+  // Let's give a chance to the thread to stop before we kill the tracker connection
+  // TODO: we should wait until the thread is actually stopped, not by a fixed amount
+  vtkAccurateTimer::Delay(0.5);
+
   if ( this->InternalStopTracking() != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to stop tracking thread!"); 
     return PLUS_FAIL; 
   }
 
-  this->ThreadId = -1;
-  this->Tracking = 0;
-
   return PLUS_SUCCESS;
-}
-
-//----------------------------------------------------------------------------
-//PlusStatus vtkTracker::Update()
-//{
-//	if (!this->Tracking)
-//	{ 
-//    LOG_ERROR("Cannot update, tracking is not active");
-//		return PLUS_FAIL; 
-//	}
-//
-//	for (int tool = 0; tool < this->NumberOfTools; tool++)
-//	{
-//		vtkTrackerTool *trackerTool = this->Tools[tool];
-//		trackerTool->Update();
-//		this->UpdateTimeStamp = trackerTool->GetTimeStamp();
-//	}
-//
-//	this->LastUpdateTime = this->UpdateTime.GetMTime();
-//
-//  return PLUS_SUCCESS;
-//}
-
-
-//----------------------------------------------------------------------------
-PlusStatus vtkTracker::ToolUpdate(int tool, vtkMatrix4x4 *matrix, TrackerStatus status, unsigned long frameNumber) 
-{
-  double unfilteredTimestamp = vtkAccurateTimer::GetSystemTime();
-  return this->ToolTimeStampedUpdate(tool, matrix, status, frameNumber, unfilteredTimestamp); 
 }
 
 //----------------------------------------------------------------------------
@@ -662,7 +639,7 @@ PlusStatus vtkTracker::GetTrackerToolBufferStringList(double timestamp,
       TrackerStatus trackerStatus = TR_OK; 
 
       TrackerBufferItem bufferItem; 
-      if ( this->GetTool(tool)->GetBuffer()->GetTrackerBufferItemFromTime(timestamp, &bufferItem, calibratedTransform ) != ITEM_OK )
+      if ( this->GetTool(tool)->GetBuffer()->GetTrackerBufferItemFromTime(timestamp, &bufferItem, vtkTrackerBuffer::INTERPOLATED, calibratedTransform ) != ITEM_OK )
       {
         double latestTimestamp(0); 
         if ( this->GetTool(tool)->GetBuffer()->GetLatestTimeStamp(latestTimestamp) != ITEM_OK )

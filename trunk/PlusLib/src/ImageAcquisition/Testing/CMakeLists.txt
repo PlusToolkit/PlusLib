@@ -64,7 +64,7 @@ IF (PLUS_USE_SONIX_VIDEO)
 	 --rendering-off
      --sonix-ip=130.15.7.20
 	)
-	SET_TESTS_PROPERTIES( vtkSonixVideoSourceTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+	SET_TESTS_PROPERTIES( vtkSonixVideoSourceTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "\\[ERROR\\];\\[WARNING\\]" )
 ENDIF (PLUS_USE_SONIX_VIDEO)
 
 #***************************  vtkICCapturingSourceTest1.cxx ***************************

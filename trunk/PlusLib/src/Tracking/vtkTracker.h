@@ -295,7 +295,6 @@ protected:
 	// This function is called by InternalUpdate() so that the subclasses
 	// can communicate information back to the vtkTracker base class, which
 	// will in turn relay the information to the appropriate vtkTrackerTool.
-  PlusStatus ToolUpdate(int tool, vtkMatrix4x4 *matrix, TrackerStatus status, unsigned long frameNumber); 
 	PlusStatus ToolTimeStampedUpdate(int tool, vtkMatrix4x4 *matrix, TrackerStatus status, unsigned long frameNumber, 
 		double unfilteredtimestamp);
 

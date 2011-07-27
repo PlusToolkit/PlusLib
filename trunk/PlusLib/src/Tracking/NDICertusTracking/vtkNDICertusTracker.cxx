@@ -97,7 +97,6 @@ static VLEDState vtkNDICertusMapVLEDState[] = {
 	{
 		this->Version = NULL;
 		this->SendMatrix = vtkMatrix4x4::New();
-		this->Tracking = 0;
 		this->NumberOfMarkers = 0;
 		this->NumberOfRigidBodies = 0;
 		this->SetNumberOfTools(VTK_CERTUS_NTOOLS);
@@ -322,10 +321,8 @@ static VLEDState vtkNDICertusMapVLEDState[] = {
 #if VTK_CERTUS_NO_THREADING
 		if (this->InternalStartTracking()!=PLUS_SUCCESS)
     {
-      this->Tracking=0;
       return PLUS_FAIL;
     }
-    this->Tracking=1;
     return PLUS_SUCCESS;
 #else
 		return this->vtkTracker::StartTracking();
@@ -358,8 +355,6 @@ static VLEDState vtkNDICertusMapVLEDState[] = {
 			return PLUS_FAIL;
 		}
 
-		this->Tracking = 1;
-
 		return PLUS_SUCCESS;
 	}
 
@@ -367,7 +362,6 @@ static VLEDState vtkNDICertusMapVLEDState[] = {
 	PlusStatus vtkNDICertusTracker::StopTracking()
 	{
 #if VTK_CERTUS_NO_THREADING
-    this->Tracking = 0;
 		return this->InternalStopTracking();
 #else
 		return this->vtkTracker::StopTracking();
@@ -381,7 +375,6 @@ static VLEDState vtkNDICertusMapVLEDState[] = {
 		{
 			vtkPrintCertusErrorMacro();
 		}
-		this->Tracking = 0;
 
 		if (!this->DisableToolPorts())
 		{
@@ -390,23 +383,6 @@ static VLEDState vtkNDICertusMapVLEDState[] = {
 
 		return PLUS_SUCCESS;
 	}
-
-	//----------------------------------------------------------------------------
-//	PlusStatus vtkNDICertusTracker::Update()
-//	{
-//#if VTK_CERTUS_NO_THREADING
-//		if (this->Tracking)
-//		{
-//			return this->InternalUpdate();
-//		}
-//    else
-//    {
-//      return PLUS_FAIL;
-//    }
-//#endif
-//
-//		return this->vtkTracker::Update();
-//	}
 
 	//----------------------------------------------------------------------------
 	PlusStatus vtkNDICertusTracker::InternalUpdate()
@@ -499,6 +475,8 @@ static VLEDState vtkNDICertusMapVLEDState[] = {
 			referenceTransform = transform[this->GetReferenceToolNumber()];
 		}
 
+    const double unfilteredTimestamp = vtkAccurateTimer::GetSystemTime();
+
 		for (tool = 0; tool < VTK_CERTUS_NTOOLS; tool++) 
 		{
 			// convert status flags from Optotrak format to vtkTracker format
@@ -529,7 +507,7 @@ static VLEDState vtkNDICertusMapVLEDState[] = {
 			this->SendMatrix->Transpose();
 
 			// send the matrix and status to the tool's vtkTrackerBuffer
-			this->ToolUpdate(tool, this->SendMatrix, status, uFrameNumber);
+			this->ToolTimeStampedUpdate(tool, this->SendMatrix, status, uFrameNumber, unfilteredTimestamp);
 		}
 
     return PLUS_SUCCESS;
@@ -729,8 +707,7 @@ static VLEDState vtkNDICertusMapVLEDState[] = {
 						// assume only one strober: index tools by SubPort
 						int port = nSubPort - 1;
 
-						LOG_DEBUG("Found tool for port " << port);
-						std::cout << "Found tool port " << port << " for device " << deviceName << std::endl; 
+						LOG_INFO("Found tool port " << port << " for device " << deviceName); 
 
 						if (port >= 0 && port < VTK_CERTUS_NTOOLS)
 						{
