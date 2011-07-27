@@ -245,7 +245,7 @@ void PhantomRegistrationToolbox::OpenPhantomDefinitionClicked()
 	}
 
 	// Load phantom definition xml
-	if (PhantomRegistrationController::GetInstance()->LoadPhantomDefinitionFromFile(fileName.toStdString())) {
+	if (PhantomRegistrationController::GetInstance()->LoadPhantomDefinitionFromFile(fileName.toStdString()) == PLUS_SUCCESS) {
 		// Refresh phantom canvas
 		ui.canvasPhantom->update();
 
@@ -254,6 +254,9 @@ void PhantomRegistrationToolbox::OpenPhantomDefinitionClicked()
 
 		// Set to InProgress if both stylus calibration and phantom definition are available
 		PhantomRegistrationController::GetInstance()->Start();
+	} else {
+		ui.lineEdit_PhantomDefinition->setText(tr("Invalid file!"));
+		ui.lineEdit_PhantomDefinition->setToolTip("");
 	}
 }
 
@@ -271,12 +274,15 @@ void PhantomRegistrationToolbox::OpenStylusCalibrationClicked()
 	}
 
 	// Load phantom definition xml
-	if (StylusCalibrationController::GetInstance()->LoadStylusCalibrationFromFile(fileName.toStdString())) {
+	if (StylusCalibrationController::GetInstance()->LoadStylusCalibrationFromFile(fileName.toStdString()) == PLUS_SUCCESS) {
 		ui.lineEdit_StylusCalibration->setText(fileName);
 		ui.lineEdit_StylusCalibration->setToolTip(fileName);
 
 		// Set to InProgress if both stylus calibration and phantom definition are available
 		PhantomRegistrationController::GetInstance()->Start();
+	} else {
+		ui.lineEdit_StylusCalibration->setText(tr("Invalid file!"));
+		ui.lineEdit_StylusCalibration->setToolTip("");
 	}
 }
 

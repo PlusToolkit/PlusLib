@@ -34,6 +34,8 @@ FreehandCalibrationToolbox::FreehandCalibrationToolbox(QWidget* aParent, Qt::WFl
 	ui.label_SpatialCalibration->setFont(QFont("SansSerif", 9, QFont::Bold));
 	ui.label_TemporalCalibration->setFont(QFont("SansSerif", 9, QFont::Bold));
 
+	//ui.label_Results->setFont(QFont("Courier", 7));
+
 	// Connect events
 	connect( ui.pushButton_OpenPhantomRegistration, SIGNAL( clicked() ), this, SLOT( OpenPhantomRegistrationClicked() ) );
 	connect( ui.pushButton_OpenCalibrationConfiguration, SIGNAL( clicked() ), this, SLOT( OpenCalibrationConfigurationClicked() ) );
@@ -104,7 +106,7 @@ void FreehandCalibrationToolbox::RefreshToolboxContent()
 	// If initialized
 	if (toolboxController->State() == ToolboxState_Idle) {
 		if (toolboxController->GetTemporalCalibrationDone() == false) { // If temporal calibration has not been done yet
-			ui.label_InstructionsTemporal->setText(tr("Press Start and to perform temporal calibration or Skip"));
+			ui.label_InstructionsTemporal->setText(tr("Press Start and to perform temporal calibration or Skip\n\nCurrent video time offset: %1 ms").arg(toolboxController->GetVideoTimeOffset()));
 
 			ui.pushButton_StartTemporal->setEnabled(true);
 			ui.pushButton_ResetTemporal->setEnabled(false);
@@ -115,12 +117,13 @@ void FreehandCalibrationToolbox::RefreshToolboxContent()
 
 			ui.checkBox_ShowDevices->setEnabled(false);
 			ui.pushButton_Save->setEnabled(false);
+			ui.label_Results->setText(tr(""));
 
 			if (!(ui.pushButton_StartTemporal->hasFocus() || vtkFreehandController::GetInstance()->GetCanvas()->hasFocus())) {
 				ui.pushButton_StartTemporal->setFocus();
 			}
 		} else { // If temporal calibration is finished
-			ui.label_InstructionsTemporal->setText(tr(""));
+			ui.label_InstructionsTemporal->setText(tr("Current video time offset: %1 ms").arg(toolboxController->GetVideoTimeOffset()));
 			ui.pushButton_StartTemporal->setEnabled(false);
 			ui.pushButton_ResetTemporal->setEnabled(true);
 			ui.pushButton_SkipTemporal->setEnabled(false);
@@ -131,6 +134,7 @@ void FreehandCalibrationToolbox::RefreshToolboxContent()
 
 			ui.checkBox_ShowDevices->setEnabled(false);
 			ui.pushButton_Save->setEnabled(false);
+			ui.label_Results->setText(tr(""));
 
 			if (!(ui.pushButton_StartSpatial->hasFocus() || vtkFreehandController::GetInstance()->GetCanvas()->hasFocus())) {
 				ui.pushButton_StartSpatial->setFocus();
@@ -154,9 +158,14 @@ void FreehandCalibrationToolbox::RefreshToolboxContent()
 
 			ui.checkBox_ShowDevices->setEnabled(false);
 			ui.pushButton_Save->setEnabled(false);
+			ui.label_Results->setText(tr(""));
+
+			if (!(ui.pushButton_ResetTemporal->hasFocus() || vtkFreehandController::GetInstance()->GetCanvas()->hasFocus())) {
+				ui.pushButton_ResetTemporal->setFocus();
+			}
 
 		} else { // If temporal calibration is finished
-			ui.label_InstructionsTemporal->setText(tr("Temporal calibration is ready to save"));
+			ui.label_InstructionsTemporal->setText(tr("Temporal calibration is ready to save\n(video time offset: %1 ms)").arg(toolboxController->GetVideoTimeOffset()));
 			ui.pushButton_StartTemporal->setEnabled(false);
 			ui.pushButton_ResetTemporal->setEnabled(true);
 
@@ -167,6 +176,11 @@ void FreehandCalibrationToolbox::RefreshToolboxContent()
 
 			ui.checkBox_ShowDevices->setEnabled(false);
 			ui.pushButton_Save->setEnabled(false);
+			ui.label_Results->setText(tr(""));
+
+			if (!(ui.pushButton_ResetSpatial->hasFocus() || vtkFreehandController::GetInstance()->GetCanvas()->hasFocus())) {
+				ui.pushButton_ResetSpatial->setFocus();
+			}
 		}
 
 		// Needed for forced refreshing the UI (without this, no progress is shown)
@@ -175,7 +189,7 @@ void FreehandCalibrationToolbox::RefreshToolboxContent()
 	} else
 	// If done
 	if (toolboxController->State() == ToolboxState_Done) {
-		ui.label_InstructionsTemporal->setText(tr("Temporal calibration is ready to save"));
+		ui.label_InstructionsTemporal->setText(tr("Temporal calibration is ready to save\n(video time offset: %1 ms)").arg(toolboxController->GetVideoTimeOffset()));
 		ui.pushButton_StartTemporal->setEnabled(false);
 		ui.pushButton_ResetTemporal->setEnabled(true);
 
@@ -186,6 +200,11 @@ void FreehandCalibrationToolbox::RefreshToolboxContent()
 
 		ui.checkBox_ShowDevices->setEnabled(true);
 		ui.pushButton_Save->setEnabled(true);
+		ui.label_Results->setText(QString::fromStdString(toolboxController->GetResultString()));
+
+		if (!(ui.pushButton_Save->hasFocus() || vtkFreehandController::GetInstance()->GetCanvas()->hasFocus())) {
+			ui.pushButton_Save->setFocus();
+		}
 
 		QApplication::restoreOverrideCursor();
 	}
@@ -250,9 +269,12 @@ void FreehandCalibrationToolbox::OpenPhantomRegistrationClicked()
 	}
 
 	// Load phantom registration xml
-	if (PhantomRegistrationController::GetInstance()->LoadPhantomRegistrationFromFile(fileName.toStdString())) {
+	if (PhantomRegistrationController::GetInstance()->LoadPhantomRegistrationFromFile(fileName.toStdString()) == PLUS_SUCCESS) {
 		ui.lineEdit_PhantomRegistration->setText(fileName);
 		ui.lineEdit_PhantomRegistration->setToolTip(fileName);
+	} else {
+		ui.lineEdit_PhantomRegistration->setText(tr("Invalid file!"));
+		ui.lineEdit_PhantomRegistration->setToolTip("");
 	}
 }
 
@@ -271,6 +293,9 @@ void FreehandCalibrationToolbox::OpenCalibrationConfigurationClicked()
 
 	// Load calibration configuration xml
 	if (vtkFreehandCalibrationController::GetInstance()->ReadConfiguration(fileName.toStdString().c_str()) != PLUS_SUCCESS) {
+		ui.lineEdit_CalibrationConfiguration->setText(tr("Invalid file!"));
+		ui.lineEdit_CalibrationConfiguration->setToolTip("");
+
 		LOG_ERROR("Calibration configuration file " << fileName.toStdString().c_str() << " cannot be loaded!");
 		return;
 	}

@@ -128,13 +128,17 @@ void VolumeReconstructionToolbox::OpenVolumeReconstructionConfigClicked()
 		return;
 	}
 
-	ui.lineEdit_VolumeReconstructionConfig->setText(fileName);
-	ui.lineEdit_VolumeReconstructionConfig->setToolTip(fileName);
-
 	// Load volume reconstruction configuration xml
 	if (VolumeReconstructionController::GetInstance()->LoadVolumeReconstructionConfigFromFile(fileName.toStdString()) != PLUS_SUCCESS) {
-		LOG_ERROR("Failed to open volume reconstruction file: " << fileName.toStdString()); 
+		ui.lineEdit_VolumeReconstructionConfig->setText(tr("Invalid file!"));
+		ui.lineEdit_VolumeReconstructionConfig->setToolTip("");
+
+		LOG_ERROR("Failed to open volume reconstruction file: " << fileName.toStdString());
+		return;
 	}
+
+	ui.lineEdit_VolumeReconstructionConfig->setText(fileName);
+	ui.lineEdit_VolumeReconstructionConfig->setToolTip(fileName);
 }
 
 //-----------------------------------------------------------------------------
