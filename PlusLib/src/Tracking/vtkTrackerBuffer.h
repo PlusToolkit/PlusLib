@@ -78,7 +78,13 @@ public:
   // Description:
   // Get interpolated tracker item from buffer by time
   // If calibratedItem true, it returns the calibrated tracker item ( apply ToolCalibrationMatrix and WorldCalibrationMatrix to tool calibration matrix)
-  virtual ItemStatus GetTrackerBufferItemFromTime( double time, TrackerBufferItem* bufferItem, bool calibratedItem = false); 
+  enum TrackerItemTemporalInterpolationType
+  {
+    EXACT_TIME, // only returns the item if the requested timestamp exactly matches the timestamp of an existing element
+    INTERPOLATED // returns interpolated transform (requires valid transform at the requested timestamp)
+  };
+
+  virtual ItemStatus GetTrackerBufferItemFromTime( double time, TrackerBufferItem* bufferItem, TrackerItemTemporalInterpolationType interpolation, bool calibratedItem = false); 
 
   // Description:
   // Get latest timestamp in the buffer 
@@ -136,7 +142,10 @@ protected:
   vtkTrackerBuffer();
   ~vtkTrackerBuffer();
 
-  PlusStatus GetPrevNextBufferItemFromTime(double time, TrackerBufferItem& itemA, TrackerBufferItem& itemB, bool calibratedItem = false);
+  PlusStatus GetPrevNextBufferItemFromTime(double time, TrackerBufferItem& itemA, TrackerBufferItem& itemB, bool calibratedItem);
+  virtual ItemStatus GetInterpolatedTrackerBufferItemFromTime( double time, TrackerBufferItem* bufferItem, bool calibratedItem); 
+  virtual ItemStatus GetTrackerBufferItemFromExactTime( double time, TrackerBufferItem* bufferItem, bool calibratedItem); 
+  virtual ItemStatus GetTrackerBufferItemFromClosestTime( double time, TrackerBufferItem* bufferItem, bool calibratedItem);
 
   vtkMatrix4x4 *ToolCalibrationMatrix;
   vtkMatrix4x4 *WorldCalibrationMatrix;

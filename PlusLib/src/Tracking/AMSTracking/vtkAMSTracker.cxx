@@ -34,7 +34,6 @@ vtkAMSTracker::vtkAMSTracker()
 	this->Version = NULL;
 	this->ModelNumber = 0; 
 	this->SerialNumber = 0; 
-	this->Tracking = 0;
 	this->SerialPort = NULL;
 	this->SetSerialPort("COM1");
 	this->BaudRate = 19200;
@@ -120,11 +119,8 @@ PlusStatus vtkAMSTracker::InternalStartTracking()
 	if (!this->InitAMSTracker())
 	{
 		LOG_ERROR("Couldn't initialize AMS stepper.");
-		this->Tracking = 0;
 		return PLUS_FAIL;
 	} 
-
-  this->Tracking = 1;
 
 	return PLUS_SUCCESS;
 }
@@ -159,6 +155,8 @@ PlusStatus vtkAMSTracker::InternalUpdate()
 		status = TR_REQ_TIMEOUT; 
 	}
 
+  const double unfilteredTimestamp = vtkAccurateTimer::GetSystemTime();
+
 	// Save probe position to the matrix (0,3) element
 	// Save probe rotation to the matrix (1,3) element
 	// Save grid position to the matrix (2,3) element
@@ -167,7 +165,7 @@ PlusStatus vtkAMSTracker::InternalUpdate()
 	probePosition->SetElement(ROW_PROBE_ROTATION, 3, dProbeRotation); 
 	probePosition->SetElement(ROW_TEMPLATE_POSITION, 3, dTemplatePosition); 
 	// send the transformation matrix and status to the tool
-	this->ToolUpdate(RAW_ENCODER_VALUES, probePosition, status, frameNum);   
+	this->ToolTimeStampedUpdate(RAW_ENCODER_VALUES, probePosition, status, frameNum, unfilteredTimestamp);   
 
 	// Save template home to template transform
 	vtkSmartPointer<vtkTransform> tTemplateHomeToTemplate = vtkSmartPointer<vtkTransform>::New(); 
@@ -176,7 +174,7 @@ PlusStatus vtkAMSTracker::InternalUpdate()
 	vtkMath::MultiplyScalar(templateTranslationAxisVector, dTemplatePosition); 
 	tTemplateHomeToTemplate->Translate(templateTranslationAxisVector); 
 	// send the transformation matrix and status to the tool
-	this->ToolUpdate(TEMPLATEHOME_TO_TEMPLATE_TRANSFORM, tTemplateHomeToTemplate->GetMatrix(), status, frameNum);   
+	this->ToolTimeStampedUpdate(TEMPLATEHOME_TO_TEMPLATE_TRANSFORM, tTemplateHomeToTemplate->GetMatrix(), status, frameNum, unfilteredTimestamp);   
 
 	// Save probehome to probe transform
 	vtkSmartPointer<vtkTransform> tProbeHomeToProbe = vtkSmartPointer<vtkTransform>::New(); 
@@ -196,7 +194,7 @@ PlusStatus vtkAMSTracker::InternalUpdate()
 	// Translate back the probe to the original position
 	tProbeHomeToProbe->Translate(-probeRotationVector[0], -probeRotationVector[1], -probeRotationVector[2]); 
 	// send the transformation matrix and status to the tool
-	this->ToolUpdate(PROBEHOME_TO_PROBE_TRANSFORM, tProbeHomeToProbe->GetMatrix(), status, frameNum);   
+	this->ToolTimeStampedUpdate(PROBEHOME_TO_PROBE_TRANSFORM, tProbeHomeToProbe->GetMatrix(), status, frameNum, unfilteredTimestamp);   
 
   return PLUS_SUCCESS;
 }

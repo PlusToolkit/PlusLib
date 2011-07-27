@@ -1848,7 +1848,7 @@ static void *vtkReconstructionThread(ThreadInfoStruct *data)
     TrackerBufferItem trackerItem; 
     if (video && (videolag > 0.0 || !self->RealTimeReconstruction)) // TODO add "or retrospective" for when doing offline recon with retro gating?
     {
-      if ( buffer->GetTrackerBufferItemFromTime(timestamp, &trackerItem, true) != ITEM_OK )
+      if ( buffer->GetTrackerBufferItemFromTime(timestamp, &trackerItem, vtkTrackerBuffer::INTERPOLATED, true) != ITEM_OK )
       {
         LOG_ERROR("Failed to get tracker item from buffer with timestamp: " << std::fixed << timestamp ); 
         continue; 

@@ -412,7 +412,7 @@ PlusStatus vtkSonixVideoSource::Connect()
         char *err = new char[256];  
         int sz = 256;
         this->ult->getLastError(err,sz);
-        LOG_ERROR("Initialize: couldn't retrieve data descriptor (" << err << ")");
+        LOG_DEBUG("Initialize: couldn't retrieve data descriptor (" << err << ")"); // error is reported at higher level, as it often happens that this call fails but after a few attempts it succeeds
         this->ReleaseSystemResources();
         return PLUS_FAIL;
     }

@@ -533,7 +533,7 @@ PlusStatus vtkDataCollector::WriteTrackerToMetafile( vtkTracker* tracker, const 
       if ( tracker->GetTool(tool)->GetEnabled() )
       {
         TrackerBufferItem toolBufferItem; 
-        if ( tracker->GetTool(tool)->GetBuffer()->GetTrackerBufferItemFromTime( frameTimestamp, &toolBufferItem, false ) != ITEM_OK )
+        if ( tracker->GetTool(tool)->GetBuffer()->GetTrackerBufferItemFromTime( frameTimestamp, &toolBufferItem, vtkTrackerBuffer::EXACT_TIME, false ) != ITEM_OK )
         {
           LOG_ERROR("Failed to get tracker buffer item from time: " << std::fixed << frameTimestamp ); 
           continue; 
@@ -1002,7 +1002,7 @@ PlusStatus vtkDataCollector::GetDefaultToolStatus( double time, TrackerStatus &s
   vtkTrackerBuffer* buffer = this->GetTracker()->GetTool(this->GetDefaultToolPortNumber())->GetBuffer(); 
 
   TrackerBufferItem bufferItem; 
-  if ( buffer->GetTrackerBufferItemFromTime(time, &bufferItem, false) != ITEM_OK )
+  if ( buffer->GetTrackerBufferItemFromTime(time, &bufferItem, vtkTrackerBuffer::INTERPOLATED, false) != ITEM_OK )
   {
     LOG_ERROR("Failed to get tracker item from buffer by timestamp: " << std::fixed << time ); 
     return PLUS_FAIL; 
@@ -1118,7 +1118,7 @@ PlusStatus vtkDataCollector::GetTransformByTimestamp(vtkMatrix4x4* toolTransMatr
   }
 
   TrackerBufferItem bufferItem; 
-  if ( this->GetTracker()->GetTool(toolNumber)->GetBuffer()->GetTrackerBufferItemFromTime(synchronizedTime, &bufferItem, calibratedTransform) != ITEM_OK )
+  if ( this->GetTracker()->GetTool(toolNumber)->GetBuffer()->GetTrackerBufferItemFromTime(synchronizedTime, &bufferItem, vtkTrackerBuffer::INTERPOLATED, calibratedTransform) != ITEM_OK )
   { 
     LOG_ERROR("Failed to get tracker buffer item from time: " << std::fixed << synchronizedTime); 
     return PLUS_FAIL; 

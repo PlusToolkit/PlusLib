@@ -9,6 +9,8 @@
 #include "vtkCriticalSection.h"
 #include "vtkObjectFactory.h"
 
+static const double NEGLIGIBLE_TIME_DIFFERENCE=0.00001; // in seconds, used for comparing between exact timestamps
+
 ///----------------------------------------------------------------------------
 //						TrackerBufferItem
 //----------------------------------------------------------------------------
@@ -314,7 +316,7 @@ ItemStatus vtkTrackerBuffer::GetTrackerBufferItem(BufferItemUidType uid, Tracker
   // Apply Tool calibration and World calibration matrix to tool matrix if desired 
   if ( calibratedItem ) 
   {
-    
+
     vtkSmartPointer<vtkMatrix4x4> toolMatrix=vtkSmartPointer<vtkMatrix4x4>::New();
     if (trackerItem->GetMatrix(toolMatrix)!=PLUS_SUCCESS)
     {
@@ -338,6 +340,7 @@ ItemStatus vtkTrackerBuffer::GetTrackerBufferItem(BufferItemUidType uid, Tracker
   return this->TrackerBuffer->GetFrameStatus(uid); 
 }
 
+//----------------------------------------------------------------------------
 // Returns the two buffer items that are closest previous and next buffer items relative to the specified time.
 // itemA is the closest item
 PlusStatus vtkTrackerBuffer::GetPrevNextBufferItemFromTime(double time, TrackerBufferItem& itemA, TrackerBufferItem& itemB, bool calibratedItem /*= false*/)
@@ -383,7 +386,6 @@ PlusStatus vtkTrackerBuffer::GetPrevNextBufferItemFromTime(double time, TrackerB
   }
 
   // If the time difference is negligible then don't interpolate, just return the closest item
-  const double NEGLIGIBLE_TIME_DIFFERENCE=0.00001; // in seconds
   if (fabs(itemAtime-time)<NEGLIGIBLE_TIME_DIFFERENCE)
   {
     //No need for interpolation, it's very close to the closest element
@@ -449,12 +451,81 @@ PlusStatus vtkTrackerBuffer::GetPrevNextBufferItemFromTime(double time, TrackerB
 }
 
 //----------------------------------------------------------------------------
+ItemStatus vtkTrackerBuffer::GetTrackerBufferItemFromTime( double time, TrackerBufferItem* bufferItem, TrackerItemTemporalInterpolationType interpolation, bool calibratedItem /*= false*/)
+{
+  switch (interpolation)
+  {
+  case EXACT_TIME:
+    return GetTrackerBufferItemFromExactTime(time, bufferItem, calibratedItem); 
+  case INTERPOLATED:
+    return GetInterpolatedTrackerBufferItemFromTime(time, bufferItem, calibratedItem); 
+  default:
+    LOG_ERROR("Unknown interpolation type: " <<interpolation);
+    return ITEM_UNKNOWN_ERROR;
+  }
+}
+
+//---------------------------------------------------------------------------- 
+ItemStatus vtkTrackerBuffer::GetTrackerBufferItemFromExactTime( double time, TrackerBufferItem* bufferItem, bool calibratedItem)
+{
+  ItemStatus status=GetTrackerBufferItemFromClosestTime(time, bufferItem, calibratedItem);
+  if ( status != ITEM_OK )
+  {
+    LOG_WARNING("vtkTrackerBuffer: Failed to get tracker buffer timestamp (time: " << std::fixed << time <<")" ); 
+    return status;
+  }
+
+  double itemTime(0);
+  BufferItemUidType uid=bufferItem->GetUid();
+  status = this->TrackerBuffer->GetTimeStamp(uid, itemTime); 
+  if ( status != ITEM_OK )
+  {
+    LOG_ERROR("vtkTrackerBuffer: Failed to get tracker buffer timestamp (time: " << std::fixed << time <<", UID: "<<uid<<")" ); 
+    return status;
+  }
+
+  // If the time difference is negligible then don't interpolate, just return the closest item
+  if (fabs(itemTime-time)>NEGLIGIBLE_TIME_DIFFERENCE)
+  {
+    LOG_WARNING("vtkTrackerBuffer: Cannot find an item exactly at the requested time (requested time: " << std::fixed << time <<", item time: "<<itemTime<<")" ); 
+    return ITEM_UNKNOWN_ERROR;
+  }
+
+  return status;
+}
+
+//----------------------------------------------------------------------------
+ItemStatus vtkTrackerBuffer::GetTrackerBufferItemFromClosestTime( double time, TrackerBufferItem* bufferItem, bool calibratedItem)
+{
+  PlusLockGuard<TrackerBufferType> trackerBufferGuardedLock(this->TrackerBuffer);
+
+  BufferItemUidType itemUid(0); 
+  ItemStatus status = this->TrackerBuffer->GetItemUidFromTime(time, itemUid); 
+  if ( status != ITEM_OK )
+  {
+    LOG_WARNING("vtkTrackerBuffer: Cannot get any item from the tracker buffer for time: " << std::fixed << time <<". Probably the buffer is empty.");
+    return status;
+  }
+
+  status = this->GetTrackerBufferItem(itemUid, bufferItem, calibratedItem); 
+  if ( status != ITEM_OK )
+  {
+    LOG_ERROR("vtkTrackerBuffer: Failed to get tracker buffer item with Uid: " << itemUid );
+    return status;
+  }
+
+  return status;
+
+}
+
+
+//----------------------------------------------------------------------------
 // Interpolate the matrix for the given timestamp from the two nearest
 // transforms in the buffer.
 // The rotation is interpolated with SLERP interpolation, and the
 // position is interpolated with linear interpolation.
 // The flags correspond to the closest element.
-ItemStatus vtkTrackerBuffer::GetTrackerBufferItemFromTime( double time, TrackerBufferItem* bufferItem, bool calibratedItem /*= false*/)
+ItemStatus vtkTrackerBuffer::GetInterpolatedTrackerBufferItemFromTime( double time, TrackerBufferItem* bufferItem, bool calibratedItem)
 {
   TrackerBufferItem itemA; 
   TrackerBufferItem itemB; 
@@ -462,16 +533,21 @@ ItemStatus vtkTrackerBuffer::GetTrackerBufferItemFromTime( double time, TrackerB
   if (GetPrevNextBufferItemFromTime(time, itemA, itemB, calibratedItem)!=PLUS_SUCCESS)
   {
     // cannot get two neighbors, so cannot do interpolation
-    // it may be normal (e.g., when tracker out of view), so don't return with an error
-    return ITEM_UNKNOWN_ERROR;
+    // it may be normal (e.g., when tracker out of view), so don't return with an error   
+    ItemStatus status = GetTrackerBufferItemFromClosestTime(time, bufferItem, calibratedItem);
+    if ( status != ITEM_OK )
+    {
+      LOG_ERROR("vtkTrackerBuffer: Failed to get tracker buffer timestamp (time: " << std::fixed << time << ")" ); 
+      return status;
+    }
+    bufferItem->SetStatus(TR_MISSING); // if we return at any point due to an error then it means that the interpolation is not successful, so the item is missing
+    return ITEM_OK;
   }
-
-  // Initialize the returned item with the closest element (if we cannot do or there is no need for interpolation)
-  bufferItem->DeepCopy(&itemA);
 
   if (itemA.GetUid()==itemB.GetUid())
   {
     // exact match, no need for interpolation
+    bufferItem->DeepCopy(&itemA);
     return ITEM_OK;
   }
 
@@ -483,7 +559,7 @@ ItemStatus vtkTrackerBuffer::GetTrackerBufferItemFromTime( double time, TrackerB
     LOG_ERROR("vtkTrackerBuffer: Failed to get tracker buffer timestamp (time: " << std::fixed << time <<", uid: "<<itemA.GetUid()<<")" ); 
     return ITEM_UNKNOWN_ERROR;
   }
-  
+
   double itemBtime(0);   
   if ( this->TrackerBuffer->GetTimeStamp(itemB.GetUid(), itemBtime) != ITEM_OK )
   {
@@ -549,15 +625,17 @@ ItemStatus vtkTrackerBuffer::GetTrackerBufferItemFromTime( double time, TrackerB
     //fprintf(stderr, "%f %f %f %f\n", xyz0[i], xyz1[i],  matrix->Element[i][3], f);
   } 
 
-  bufferItem->SetMatrix(interpolatedMatrix); 
-
   //============== Interpolate time ==================
-
-  bufferItem->SetFilteredTimestamp(time);
 
   double itemAunfilteredTimestamp = itemA.GetUnfilteredTimestamp(0); 
   double itemBunfilteredTimestamp = itemB.GetUnfilteredTimestamp(0); 
   double interpolatedUnfilteredTimestamp = itemAunfilteredTimestamp*itemAweight + itemBunfilteredTimestamp*itemBweight;
+
+  //============== Write interpolated results into the bufferItem ==================
+
+  bufferItem->DeepCopy(&itemA);
+  bufferItem->SetMatrix(interpolatedMatrix); 
+  bufferItem->SetFilteredTimestamp(time);
   bufferItem->SetUnfilteredTimestamp(interpolatedUnfilteredTimestamp); 
 
   return ITEM_OK; 

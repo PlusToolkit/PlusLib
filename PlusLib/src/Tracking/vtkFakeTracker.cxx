@@ -189,8 +189,6 @@ PlusStatus vtkFakeTracker::InternalStopTracking()
 {
   LOG_TRACE("vtkFakeTracker::InternalStopTracking"); 
 
-  this->Tracking = 0;
-
   return PLUS_SUCCESS; 
 }
 
@@ -208,6 +206,7 @@ PlusStatus vtkFakeTracker::InternalUpdate()
   {
   case (FakeTrackerMode_Default): // Spins the tools around different axis to fake movement
     {
+      const double unfilteredTimestamp = vtkAccurateTimer::GetSystemTime();
       for (int tool = 0; tool < 4; tool++) 
       {
         TrackerStatus trackerStatus = TR_OK;
@@ -241,7 +240,7 @@ PlusStatus vtkFakeTracker::InternalUpdate()
           break;
         }
 
-        this->ToolUpdate(tool,this->InternalTransform->GetMatrix(),trackerStatus,this->Frame);   
+        this->ToolTimeStampedUpdate(tool,this->InternalTransform->GetMatrix(),trackerStatus,this->Frame, unfilteredTimestamp);   
       }
     }
     break;
@@ -254,6 +253,7 @@ PlusStatus vtkFakeTracker::InternalUpdate()
         trackerStatus = TR_MISSING; 
       }
 
+      const double unfilteredTimestamp = vtkAccurateTimer::GetSystemTime();
       double tx = (this->Frame % 100 ); // 0 - 99
       double ty = (this->Frame % 100 ) + 100; // 100 - 199 
       double tz = (this->Frame % 100 ) + 200; // 200 - 299  
@@ -264,13 +264,13 @@ PlusStatus vtkFakeTracker::InternalUpdate()
       this->InternalTransform->Translate(tx, ty, tz);
       this->InternalTransform->RotateY(ry); 
       // Probe transform 
-      this->ToolUpdate(0,this->InternalTransform->GetMatrix(),trackerStatus,this->Frame);   
+      this->ToolTimeStampedUpdate(0,this->InternalTransform->GetMatrix(),trackerStatus,this->Frame, unfilteredTimestamp);   
 
       this->InternalTransform->Identity();
       this->InternalTransform->Translate(0, 0, 50); 
       // Reference transform 
-      this->ToolUpdate(1,this->InternalTransform->GetMatrix(),trackerStatus,this->Frame);   
-      this->ToolUpdate(2,this->InternalTransform->GetMatrix(),TR_MISSING,this->Frame);   
+      this->ToolTimeStampedUpdate(1,this->InternalTransform->GetMatrix(),trackerStatus,this->Frame, unfilteredTimestamp);   
+      this->ToolTimeStampedUpdate(2,this->InternalTransform->GetMatrix(),TR_MISSING,this->Frame, unfilteredTimestamp);   
 
     }
     break;
@@ -292,13 +292,15 @@ PlusStatus vtkFakeTracker::InternalUpdate()
       }
       */
 
+      const double unfilteredTimestamp = vtkAccurateTimer::GetSystemTime();
+
       // create stationary position for reference (tool 0)
       vtkSmartPointer<vtkTransform> trackerToReferenceToolTransform = vtkSmartPointer<vtkTransform>::New();
       trackerToReferenceToolTransform->Identity();
       trackerToReferenceToolTransform->Translate(300, 400, 700);
       trackerToReferenceToolTransform->RotateZ(90);
 
-      this->ToolUpdate(0, trackerToReferenceToolTransform->GetMatrix(), trackerStatus, this->Frame);   
+      this->ToolTimeStampedUpdate(0, trackerToReferenceToolTransform->GetMatrix(), trackerStatus, this->Frame, unfilteredTimestamp);   
 
       // create random positions along a sphere (with built-in error)
       double exactRadius = 210.0;
@@ -329,7 +331,7 @@ PlusStatus vtkFakeTracker::InternalUpdate()
       referenceToolToStylusTipTransform->Concatenate(trackerToStylusTipTransform);
 
       random->Delete();
-      this->ToolUpdate(1, referenceToolToStylusTipTransform->GetMatrix(), trackerStatus, this->Frame);   
+      this->ToolTimeStampedUpdate(1, referenceToolToStylusTipTransform->GetMatrix(), trackerStatus, this->Frame, unfilteredTimestamp);   
     }
     break;
 
@@ -337,6 +339,7 @@ PlusStatus vtkFakeTracker::InternalUpdate()
     {
       // Set flags - one in every 50 request, the tracker provides 'out of view' flag
       TrackerStatus trackerStatus = TR_OK;
+      const double unfilteredTimestamp = vtkAccurateTimer::GetSystemTime();
 
       // create stationary position for phantom reference (tool 0)
       vtkSmartPointer<vtkTransform> phantomReferenceToTrackerTransform = vtkSmartPointer<vtkTransform>::New();
@@ -345,7 +348,7 @@ PlusStatus vtkFakeTracker::InternalUpdate()
       phantomReferenceToTrackerTransform->Translate(300, 400, 700);
       phantomReferenceToTrackerTransform->RotateZ(90);
 
-      this->ToolUpdate(0, phantomReferenceToTrackerTransform->GetMatrix(), trackerStatus, this->Frame);   
+      this->ToolTimeStampedUpdate(0, phantomReferenceToTrackerTransform->GetMatrix(), trackerStatus, this->Frame, unfilteredTimestamp);   
 
       // touch landmark points
       vtkSmartPointer<vtkTransform> phantomToLandmarkTransform = vtkSmartPointer<vtkTransform>::New();
@@ -405,7 +408,7 @@ PlusStatus vtkFakeTracker::InternalUpdate()
       phantomReferenceToLandmarkTransform->Concatenate(phantomToLandmarkTransform);
       phantomReferenceToLandmarkTransform->Concatenate(stylustipToStylusTransform);
 
-      this->ToolUpdate(1, phantomReferenceToLandmarkTransform->GetMatrix(), trackerStatus, this->Frame);   
+      this->ToolTimeStampedUpdate(1, phantomReferenceToLandmarkTransform->GetMatrix(), trackerStatus, this->Frame, unfilteredTimestamp);   
     }
     break;
   default:
