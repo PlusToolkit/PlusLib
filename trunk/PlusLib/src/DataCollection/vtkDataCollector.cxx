@@ -671,7 +671,7 @@ PlusStatus vtkDataCollector::WriteVideoBufferToMetafile( vtkVideoBuffer* videoBu
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkDataCollector::Synchronize()
+PlusStatus vtkDataCollector::Synchronize( const char* bufferOutputFolder /*= NULL*/ , bool acquireDataOnly /*= false*/ )
 {
   LOG_TRACE("vtkDataCollector::Synchronize"); 
 
@@ -795,30 +795,45 @@ PlusStatus vtkDataCollector::Synchronize()
     this->CopyTracker(tracker); 
   }
 
-  if ( PlusLogger::Instance()->GetLogLevel() >=  PlusLogger::LOG_LEVEL_DEBUG )
+  if ( acquireDataOnly || PlusLogger::Instance()->GetLogLevel() >=  PlusLogger::LOG_LEVEL_DEBUG )
   {
     LOG_INFO(">>>>>>>>>>>> Save temporal calibration buffers to file ... "); 
-    this->WriteTrackerToMetafile(tracker, "./", "DataCollectorSyncTrackerBuffer", false );
-    this->WriteVideoBufferToMetafile(videobuffer, "./", "DataCollectorSyncVideoBuffer", false ); 
+    if ( bufferOutputFolder == NULL )
+    {
+      bufferOutputFolder = "./"; 
+    }
+
+    std::string strDateAndTime = vtkAccurateTimer::GetDateAndTimeString(); 
+    std::ostringstream trackerBufferFileName; 
+    trackerBufferFileName << strDateAndTime << "_DataCollectorSyncTrackerBuffer"; 
+    std::ostringstream videoBufferFileName; 
+    videoBufferFileName << strDateAndTime << "_DataCollectorSyncVideoBuffer"; 
+
+    this->WriteTrackerToMetafile(tracker, bufferOutputFolder, trackerBufferFileName.str().c_str(), false );
+    this->WriteVideoBufferToMetafile(videobuffer, bufferOutputFolder, videoBufferFileName.str().c_str() , false ); 
   }
 
 
   //************************************************************************************
   // Start synchronization 
-  this->GetSynchronizer()->SetProgressBarUpdateCallbackFunction(ProgressBarUpdateCallbackFunction); 
-  this->GetSynchronizer()->SetSyncStartTime(syncStartTime); 
 
   vtkTrackerBuffer* trackerbuffer = tracker->GetTool(this->GetDefaultToolPortNumber())->GetBuffer(); 
-
   LOG_DEBUG("Tracker buffer size: " << trackerbuffer->GetBufferSize()); 
   LOG_DEBUG("Tracker buffer elements: " << trackerbuffer->GetNumberOfItems()); 
   LOG_DEBUG("Video buffer size: " << videobuffer->GetBufferSize()); 
   LOG_DEBUG("Video buffer elements: " << videobuffer->GetNumberOfItems()); 
-  this->GetSynchronizer()->SetTrackerBuffer(trackerbuffer); 
-  this->GetSynchronizer()->SetVideoBuffer(videobuffer); 
-  this->GetSynchronizer()->SetStartupDelaySec( this->GetStartupDelaySec() ); 
+  
+  if ( !acquireDataOnly )
+  {
+    this->GetSynchronizer()->SetProgressBarUpdateCallbackFunction(ProgressBarUpdateCallbackFunction); 
+    this->GetSynchronizer()->SetSyncStartTime(syncStartTime); 
 
-  this->GetSynchronizer()->Synchronize(); 
+    this->GetSynchronizer()->SetTrackerBuffer(trackerbuffer); 
+    this->GetSynchronizer()->SetVideoBuffer(videobuffer); 
+    this->GetSynchronizer()->SetStartupDelaySec( this->GetStartupDelaySec() ); 
+
+    this->GetSynchronizer()->Synchronize(); 
+  }
 
   //************************************************************************************
   // Set the local time for buffers if the calibration was done
