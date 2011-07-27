@@ -442,7 +442,7 @@ PlusStatus vtkFreehandCalibrationController::CalculateImageCameraParameters()
 		// If canvas aspect ratio is more elongenated in the X position then compute the distance according to the Y axis
 		imageCamera->SetParallelScale(imageCenterY);
 	} else {
-		imageCamera->SetParallelScale(imageCenterX);
+		imageCamera->SetParallelScale(imageCenterY * sqrt((double)size[0] / (double)size[1]));
 	}
 
 	imageCamera->SetPosition(imageCenterX, imageCenterY, -200.0);
@@ -840,6 +840,62 @@ void vtkFreehandCalibrationController::UpdateProgress(int aPercent) {
 
 //-----------------------------------------------------------------------------
 
+double vtkFreehandCalibrationController::GetVideoTimeOffset()
+{
+	LOG_TRACE("vtkFreehandCalibrationController::GetVideoTimeOffset");
+
+	vtkFreehandController* controller = vtkFreehandController::GetInstance();
+	if ((controller == NULL) || (controller->GetInitialized() == false)) {
+		LOG_ERROR("vtkFreehandController is not initialized!");
+		return PLUS_FAIL;
+	}
+	vtkDataCollector* dataCollector = controller->GetDataCollector();
+	if (dataCollector == NULL) {
+		LOG_ERROR("Data collector is not initialized!");
+		return PLUS_FAIL;
+	}
+
+	if ((dataCollector->GetVideoSource() != NULL) && (dataCollector->GetVideoSource()->GetBuffer() != NULL)) {
+		return dataCollector->GetVideoSource()->GetBuffer()->GetLocalTimeOffset();
+	} else {
+		return 0.0;
+	}
+}
+
+//-----------------------------------------------------------------------------
+
+std::string vtkFreehandCalibrationController::GetResultString()
+{
+	LOG_TRACE("vtkFreehandCalibrationController::GetResultString");
+
+	std::ostringstream matrixStringStream;
+	matrixStringStream << "Image to probe transform:" << std::endl;
+
+	// Print matrix rows
+	for (int i = 0; i < 4; i++) {
+		for (int j = 0; j < 4; j++) {
+			matrixStringStream << std::fixed << std::setprecision(3) << std::setw(6) << std::right << this->GetTransformImageToProbe()->GetMatrix()->GetElement(i,j) << " ";
+		}
+
+		matrixStringStream << std::endl;
+	}
+
+	std::ostringstream errorsStringStream;
+
+	errorsStringStream << "Point-line distance errors" << std::endl << "(mean, rms, std):" << std::endl;
+	errorsStringStream << std::fixed << std::setprecision(3) << "  " << GetPointLineDistanceErrorAnalysisVector()[0] * 1000.0 << ", " << GetPointLineDistanceErrorAnalysisVector()[1] * 1000.0 << ", " << GetPointLineDistanceErrorAnalysisVector()[2] * 1000.0 << std::endl;
+
+	std::ostringstream resultStringStream;
+	resultStringStream << matrixStringStream.str() << errorsStringStream.str() << std::endl;
+
+	resultStringStream << "Validation data confidence:" << std::endl;
+	resultStringStream << "  " << GetPointLineDistanceErrorAnalysisVector()[3];
+
+	return resultStringStream.str();
+}
+
+//-----------------------------------------------------------------------------
+
 PlusStatus vtkFreehandCalibrationController::DoTemporalCalibration()
 {
 	LOG_TRACE("vtkFreehandCalibrationController::DoTemporalCalibration");
@@ -854,9 +910,14 @@ PlusStatus vtkFreehandCalibrationController::DoTemporalCalibration()
 		LOG_ERROR("vtkFreehandController is not initialized!");
 		return PLUS_FAIL;
 	}
+	vtkDataCollector* dataCollector = controller->GetDataCollector();
+	if (dataCollector == NULL) {
+		LOG_ERROR("Data collector is not initialized!");
+		return PLUS_FAIL;
+	}
 
-	controller->GetDataCollector()->SetProgressBarUpdateCallbackFunction(UpdateProgress);
-	controller->GetDataCollector()->Synchronize( "./", true );
+	dataCollector->SetProgressBarUpdateCallbackFunction(UpdateProgress);
+	dataCollector->Synchronize(controller->GetOutputFolder(), true );
 
 	this->TemporalCalibrationDoneOn();
 	this->ProgressPercent = 0;
@@ -1135,12 +1196,20 @@ PlusStatus vtkFreehandCalibrationController::ReadConfiguration(vtkXMLDataElement
 
 	// Calibration controller specifications
 	vtkXMLDataElement* calibrationController = configData->FindNestedElementWithName("CalibrationController"); 
+	if (calibrationController == NULL) {
+		LOG_ERROR("Unable to read configuration");
+		return PLUS_FAIL;
+	}
 	this->ReadCalibrationControllerConfiguration(calibrationController);
 
 	vtkFreehandController::GetInstance()->SetOutputFolder(this->GetOutputPath());
 
 	// Freehand Calibration specifications (from ProbeCalibration section of the config file)
 	vtkXMLDataElement* freehandCalibration = calibrationController->FindNestedElementWithName("ProbeCalibration");
+	if (freehandCalibration == NULL) {
+		LOG_ERROR("Unable to read configuration");
+		return PLUS_FAIL;
+	}
 	this->ReadFreehandCalibrationConfiguration(freehandCalibration);
   
 	return PLUS_SUCCESS;
