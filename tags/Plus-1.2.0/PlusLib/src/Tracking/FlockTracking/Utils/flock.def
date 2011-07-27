@@ -1,0 +1,46 @@
+LIBRARY  flock
+DESCRIPTION "RS232 Driver for the Flock of Birds"
+EXPORTS
+   fbDeviceName @1
+   fbNew @2
+   fbDelete @3
+   fbOpen @4
+   fbClose @5
+   fbReset @6
+   fbSetHemisphere @7
+   fbSetFormat @8
+   fbSetButtonMode @9
+   fbPoint @10
+   fbStream @11
+   fbEndStream @12
+   fbUpdate @13
+   fbGetPosition @14
+   fbGetAngles @15
+   fbGetMatrix @16
+   fbGetQuaternion @17
+   fbGetButton @18
+   fbGetBird @19
+   fbGetTime @20
+   fbMatrixFromAngles @21
+   fbAnglesFromMatrix @22
+   fbFBBReset @23
+   fbFBBAutoConfig @24
+   fbRS232ToFBB @25
+   fbSendCommand @26
+   fbSendCommandWords @27
+   fbSendCommandBytes @28
+   fbExamineValue @29
+   fbExamineValueWords @30
+   fbExamineValueBytes @31
+   fbChangeValue @32
+   fbChangeValueWords @33
+   fbChangeValueBytes @34
+   fbGetError @35
+   fbGetErrorMessage @36
+   fbSetErrorCallback @37
+   fbButtonRead @38
+   fbUnpack @39
+   fbGetShort @40
+   fbPutShort @41
+   fbReceiveRaw @42
+   fbSendRaw @43

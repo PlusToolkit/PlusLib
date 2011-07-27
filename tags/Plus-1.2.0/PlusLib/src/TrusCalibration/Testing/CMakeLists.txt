@@ -1,0 +1,119 @@
+#--------------------------------------------------------------------------------------------
+ADD_EXECUTABLE(vtkUSCalibrationControllerTest1 vtkUSCalibrationControllerTest1.cxx)
+TARGET_LINK_LIBRARIES(vtkUSCalibrationControllerTest1 itkvnl itkvnl_algo vtkCommon vtkRendering vtkHybrid vtkTrusCalibration vtkDataCollection )
+
+SET( TestDataDir ${PLUSLIB_DATA_DIR}/TestImages )
+SET( ConfigFilesDir ${PLUSLIB_DATA_DIR}/ConfigFiles )
+
+ADD_TEST(vtkUSCalibrationControllerTest-Exact
+		${EXECUTABLE_OUTPUT_PATH}/vtkUSCalibrationControllerTest1
+        --input-random-stepper-motion-1-sequence-metafile=${TestDataDir}/USTC_Ulterius_RandomStepperMotionData1.mha 
+        --input-random-stepper-motion-2-sequence-metafile=${TestDataDir}/USTC_Ulterius_RandomStepperMotionData2.mha 
+        --input-probe-rotation-sequence-metafile=${TestDataDir}/USTC_Ulterius_ProbeRotationData.mha 
+		--input-probe-translation-sequence-metafile=${TestDataDir}/USTC_Ulterius_ProbeTranslationData.mha 
+		--input-template-translation-sequence-metafile=${TestDataDir}/USTC_Ulterius_TemplateTranslationData.mha 
+		--input-config-file-name=${ConfigFilesDir}/USCalibrationConfig.xml
+		--input-template-model-config-file-name=${ConfigFilesDir}/TemplateModel.xml 
+		--input-baseline-file-name=${TestDataDir}/UsTemplateCalibration.results.xml 
+		)
+SET_TESTS_PROPERTIES( vtkUSCalibrationControllerTest-Exact PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+
+ADD_TEST(vtkUSCalibrationControllerTest
+		${EXECUTABLE_OUTPUT_PATH}/vtkUSCalibrationControllerTest1
+		--input-random-stepper-motion-1-sequence-metafile=${TestDataDir}/USTC_Ulterius_RandomStepperMotionData1.mha 
+        --input-random-stepper-motion-2-sequence-metafile=${TestDataDir}/USTC_Ulterius_RandomStepperMotionData2.mha 
+        --input-probe-rotation-sequence-metafile=${TestDataDir}/USTC_Ulterius_ProbeRotationData.mha 
+		--input-probe-translation-sequence-metafile=${TestDataDir}/USTC_Ulterius_ProbeTranslationData.mha 
+		--input-template-translation-sequence-metafile=${TestDataDir}/USTC_Ulterius_TemplateTranslationData.mha 
+		--input-config-file-name=${ConfigFilesDir}/USCalibrationConfig.xml
+		--input-template-model-config-file-name=${ConfigFilesDir}/TemplateModel.xml 
+		--input-baseline-file-name=${TestDataDir}/UsTemplateCalibration.results.xml 
+		--translation-error-threshold=1.0
+		--rotation-error-threshold=1.0
+		)
+SET_TESTS_PROPERTIES( vtkUSCalibrationControllerTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+
+ADD_TEST(vtkUSCalibrationControllerTest_FrameGrabber-Exact
+		${EXECUTABLE_OUTPUT_PATH}/vtkUSCalibrationControllerTest1
+		--input-random-stepper-motion-1-sequence-metafile=${TestDataDir}/USTC_FrameGrabber_RandomStepperMotionData1.mha 
+        --input-random-stepper-motion-2-sequence-metafile=${TestDataDir}/USTC_FrameGrabber_RandomStepperMotionData2.mha 
+        --input-probe-rotation-sequence-metafile=${TestDataDir}/USTC_FrameGrabber_ProbeRotationData.mha 
+		--input-probe-translation-sequence-metafile=${TestDataDir}/USTC_FrameGrabber_ProbeTranslationData.mha 
+		--input-template-translation-sequence-metafile=${TestDataDir}/USTC_FrameGrabber_TemplateTranslationData.mha 
+		--input-config-file-name=${ConfigFilesDir}/USCalibrationConfig_FrameGrabber.xml
+		--input-template-model-config-file-name=${ConfigFilesDir}/TemplateModel.xml 
+		--input-baseline-file-name=${TestDataDir}/UsTemplateCalibration_FrameGrabber.results.xml 
+		)
+SET_TESTS_PROPERTIES( vtkUSCalibrationControllerTest_FrameGrabber-Exact PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+
+ADD_TEST(vtkUSCalibrationControllerTest_FrameGrabber
+		${EXECUTABLE_OUTPUT_PATH}/vtkUSCalibrationControllerTest1
+		--input-random-stepper-motion-1-sequence-metafile=${TestDataDir}/USTC_FrameGrabber_RandomStepperMotionData1.mha 
+        --input-random-stepper-motion-2-sequence-metafile=${TestDataDir}/USTC_FrameGrabber_RandomStepperMotionData2.mha 
+        --input-probe-rotation-sequence-metafile=${TestDataDir}/USTC_FrameGrabber_ProbeRotationData.mha 
+		--input-probe-translation-sequence-metafile=${TestDataDir}/USTC_FrameGrabber_ProbeTranslationData.mha 
+		--input-template-translation-sequence-metafile=${TestDataDir}/USTC_FrameGrabber_TemplateTranslationData.mha 
+		--input-config-file-name=${ConfigFilesDir}/USCalibrationConfig_FrameGrabber.xml
+		--input-template-model-config-file-name=${ConfigFilesDir}/TemplateModel.xml 
+		--input-baseline-file-name=${TestDataDir}/UsTemplateCalibration_FrameGrabber.results.xml 
+		--translation-error-threshold=1.0
+		--rotation-error-threshold=1.0
+		)
+SET_TESTS_PROPERTIES( vtkUSCalibrationControllerTest_FrameGrabber PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+		
+#--------------------------------------------------------------------------------------------
+ADD_EXECUTABLE(vtkStepperCalibrationControllerTest vtkStepperCalibrationControllerTest.cxx)
+TARGET_LINK_LIBRARIES(vtkStepperCalibrationControllerTest itkvnl itkvnl_algo vtkCommon vtkTrusCalibration vtkDataCollection vtkImageAcquisition )
+
+# ADD_TEST(vtkStepperCalibrationControllerTest
+		# ${EXECUTABLE_OUTPUT_PATH}/vtkStepperCalibrationControllerTest
+        # --input-calibration-sequence-metafile=${TestDataDir}/UsTemplateCalibrationBaseline.mha
+        # --input-validation-sequence-metafile=${TestDataDir}/UsTemplateCalibrationBaseline.mha
+        # --input-centerofrotation-sequence-metafile=${TestDataDir}/UsTemplateCalibrationRotationBaseline.mha
+		# --input-config-file-name=${ConfigFilesDir}/USCalibrationConfig.xml
+		# --input-baseline-file-name=${TestDataDir}/UsTemplateCalibration.results.xml 
+		# )
+#SET_TESTS_PROPERTIES( vtkStepperCalibrationControllerTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+
+#--------------------------------------------------------------------------------------------
+ADD_EXECUTABLE(vtkStylusCalibrationTest vtkStylusCalibrationTest.cxx)
+TARGET_LINK_LIBRARIES(vtkStylusCalibrationTest itkvnl itkvnl_algo vtkCommon vtkTrusCalibration vtkDataCollection )
+
+ADD_TEST(vtkStylusCalibrationTest
+		${EXECUTABLE_OUTPUT_PATH}/vtkStylusCalibrationTest
+		--input-config-file-name=${ConfigFilesDir}/Test_USDataCollectionConfig_VideoNone_FakeTracker_PivotCalibration.xml
+		--input-baseline-file-name=${TestDataDir}/StylusCalibration.results.xml 
+		--number-of-acquired-points=100
+		)
+SET_TESTS_PROPERTIES( vtkStylusCalibrationTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+
+#--------------------------------------------------------------------------------------------
+ADD_EXECUTABLE(vtkPhantomRegistrationTest vtkPhantomRegistrationTest.cxx)
+TARGET_LINK_LIBRARIES(vtkPhantomRegistrationTest itkvnl itkvnl_algo vtkCommon vtkTrusCalibration vtkDataCollection )
+
+ADD_TEST(vtkPhantomRegistrationTest
+		${EXECUTABLE_OUTPUT_PATH}/vtkPhantomRegistrationTest
+		--input-config-file-name=${ConfigFilesDir}/Test_USDataCollectionConfig_VideoNone_FakeTracker_RecordPhantomLandmarks.xml
+		--input-baseline-file-name=${TestDataDir}/PhantomRegistration.results.xml
+		--input-stylus-calibration-xml-file-name=${TestDataDir}/StylusCalibration.results.xml
+		--input-phantom-definition-xml-file-name=${ConfigFilesDir}/PhantomDefinition_fCal_1.0_Wiring_1.0.xml
+		)
+SET_TESTS_PROPERTIES( vtkPhantomRegistrationTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+
+#--------------------------------------------------------------------------------------------
+ADD_EXECUTABLE(vtkFreehandCalibrationTest vtkFreehandCalibrationTest.cxx)
+TARGET_LINK_LIBRARIES(vtkFreehandCalibrationTest itkvnl itkvnl_algo vtkCommon vtkTrusCalibration vtkDataCollection )
+
+# This test has not been completed yet, see #138
+#ADD_TEST(vtkFreehandCalibrationTest
+#		${EXECUTABLE_OUTPUT_PATH}/vtkFreehandCalibrationTest
+#		--input-calibration-config-file-name=${ConfigFilesDir}/USCalibrationConfig_fCal_SonixTouch.xml
+#		--input-data-collection-config-file-name=${ConfigFilesDir}/Test_USDataCollectionConfig_VideoNone_FakeTracker_RecordPhantomLandmarks.xml
+#		--input-freehand-motion-1-sequence-metafile=${TestDataDir}/fCAL_Calibration_Test_MN.mha 
+#		--input-freehand-motion-2-sequence-metafile=${TestDataDir}/fCAL_Validation_Test_MN.mha 
+#		--input-baseline-file-name=${TestDataDir}/FreehandCalibration.results.xml
+#		--input-phantom-registration-xml-file-name=${TestDataDir}/PhantomRegistration.results.xml
+#		--input-stylus-calibration-xml-file-name=${TestDataDir}/StylusCalibration.results.xml
+#		--error-threshold=1.0
+#		)
+#SET_TESTS_PROPERTIES( vtkFreehandCalibrationTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
