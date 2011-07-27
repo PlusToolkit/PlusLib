@@ -715,7 +715,6 @@ PlusStatus vtkTracker::GetTrackerToolBufferStringList(double timestamp,
 //-----------------------------------------------------------------------------
 PlusStatus vtkTracker::GenerateTrackingDataAcquisitionReport( vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter, const char* gnuplotScriptsFolder)
 {
-#ifdef PLUS_PRINT_TRACKER_TIMESTAMP_DEBUG_INFO
   if ( htmlReport == NULL || plotter == NULL )
   {
     LOG_ERROR("Caller should define HTML report generator and gnuplot plotter before report generation!"); 
@@ -765,8 +764,6 @@ PlusStatus vtkTracker::GenerateTrackingDataAcquisitionReport( vtkHTMLGenerator* 
   htmlReport->AddImage("TrackerBufferTimestamps.jpg", "Tracking Data Acquisition Analysis"); 
 
   htmlReport->AddHorizontalLine(); 
-
-#endif
 
   return PLUS_SUCCESS; 
 }

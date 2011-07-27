@@ -160,7 +160,6 @@ public:
 	// Description:
 	// Add generated html report from tracking data acquisition to the existing html report
 	// htmlReport and plotter arguments has to be defined by the caller function
-	// Solution should build with PLUS_PRINT_TRACKER_TIMESTAMP_DEBUG_INFO to generate this report
 	virtual PlusStatus GenerateTrackingDataAcquisitionReport( vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter, const char* gnuplotScriptsFolder); 
 
 	// Description:

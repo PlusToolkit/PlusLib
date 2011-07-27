@@ -7,7 +7,6 @@ OPTION (PLUS_USE_MICRONTRACKER "Provide support for the Claron MicronTracker" OF
 OPTION (PLUS_USE_AMS_TRACKER "Provide support for the AMS Stepper tracking device" ON)
 OPTION (PLUS_USE_Ascension3DG "Provide support for the Ascension 3DG Tracker" OFF)
 OPTION (PLUS_USE_Ascension3DGm "Provide support for the Ascension 3DGm MedSafe Tracker" OFF)
-OPTION (PLUS_PRINT_TRACKER_TIMESTAMP_DEBUG_INFO "Print tracker timestamp filtering debug info to file in gnuplot data format" ON)
 
 # --------------------------------------------------------------------------
 # Sources
