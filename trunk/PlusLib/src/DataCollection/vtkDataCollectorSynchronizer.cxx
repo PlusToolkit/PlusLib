@@ -1159,7 +1159,6 @@ void vtkDataCollectorSynchronizer::SaveFrameToFile(vtkImageData* frame, char* fi
 PlusStatus vtkDataCollectorSynchronizer::GenerateSynchronizationReport( vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter, const char* gnuplotScriptsFolder)
 {
   LOG_TRACE("vtkDataCollectorSynchronizer::GenerateSynchronizationReport"); 
-#ifdef PLUS_PRINT_SYNC_DEBUG_INFO 
   if ( !this->GetSynchronized() )
   {
     LOG_ERROR("Unable to generate synchronization report: synchronization not yet finished!"); 
@@ -1224,7 +1223,6 @@ PlusStatus vtkDataCollectorSynchronizer::GenerateSynchronizationReport( vtkHTMLG
   htmlReport->AddImage("SyncResult.jpg", "Video and Tracking Data Synchronization Analysis"); 
 
   htmlReport->AddHorizontalLine(); 
-#endif
 
   return PLUS_SUCCESS;
 }

@@ -1,7 +1,7 @@
 
 # --------------------------------------------------------------------------
 # Options 
-OPTION (PLUS_PRINT_SYNC_DEBUG_INFO "Print synchronizer debugging info to file in gnuplot data format" ON)
+
 
 # --------------------------------------------------------------------------
 # Sources

@@ -84,13 +84,8 @@ vtkVideoSource2::vtkVideoSource2()
 
 	this->PseudoRandomNoiseFrame = NULL; 
 
-    this->UsImageOrientation = US_IMG_ORIENT_XX;  
+  this->UsImageOrientation = US_IMG_ORIENT_XX;  
 
-#ifdef PLUS_PRINT_VIDEO_TIMESTAMP_DEBUG_INFO 
-	this->DebugInfoStream.open ("VideoBufferTimestamps.txt", ios::out);
-	this->DebugInfoStream << "FrameNumber\tFrameNumberDifference\tUnfilteredTimestamp\tFilteredTimestamp\tUnfilteredTimeDifference\tSamplingPeriod\tEstimatedFramePeriod" << std::endl; 
-	this->DebugInfoStream.flush(); 
-#endif
 }
 
 //----------------------------------------------------------------------------
@@ -112,10 +107,6 @@ vtkVideoSource2::~vtkVideoSource2()
 		delete this->CurrentVideoBufferItem; 
 		this->CurrentVideoBufferItem = NULL; 
 	}
-
-#ifdef PLUS_PRINT_VIDEO_TIMESTAMP_DEBUG_INFO
-	this->DebugInfoStream.close(); 
-#endif
 
 }
 
@@ -638,7 +629,6 @@ PlusStatus vtkVideoSource2::ReadConfiguration(vtkXMLDataElement* config)
 //----------------------------------------------------------------------------
 PlusStatus vtkVideoSource2::GenerateVideoDataAcquisitionReport( vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter, const char* gnuplotScriptsFolder)
 {
-#ifdef PLUS_PRINT_VIDEO_TIMESTAMP_DEBUG_INFO 
 	if ( htmlReport == NULL || plotter == NULL )
 	{
 		LOG_ERROR("Caller should define HTML report generator and gnuplot plotter before report generation!"); 
@@ -693,6 +683,4 @@ PlusStatus vtkVideoSource2::GenerateVideoDataAcquisitionReport( vtkHTMLGenerator
 	htmlReport->AddHorizontalLine(); 
 
   return PLUS_SUCCESS; 
-
-#endif
 }

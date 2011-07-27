@@ -35,7 +35,6 @@ public:
 	// Description:
 	// Add generated html report from synchronization to the existing html report
 	// htmlReport and plotter arguments has to be defined by the caller function
-	// Solution should build with PLUS_PRINT_SYNC_DEBUG_INFO to generate this report
 	virtual PlusStatus GenerateSynchronizationReport( vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter, const char* gnuplotScriptsFolder); 
 	
 	// Description:	

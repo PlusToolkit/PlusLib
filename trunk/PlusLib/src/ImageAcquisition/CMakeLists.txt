@@ -4,7 +4,6 @@
 OPTION (PLUS_USE_SONIX_VIDEO "Provide support for the SonixRP video source" OFF)
 OPTION (PLUS_USE_ICCAPTURING_VIDEO "Provide support for the IC framegrabber device" OFF)
 OPTION (PLUS_USE_VFW_VIDEO "Provide support for the Video-for-Windows video digitizer" OFF)
-OPTION (PLUS_PRINT_VIDEO_TIMESTAMP_DEBUG_INFO "Print video timestamp filtering debug info to file in gnuplot data format" ON)
 SET (ULTERIUS_MAJOR_VERSION 5 CACHE STRING "Set Ultrasonix Ulterius SDK major version")
 
 # --------------------------------------------------------------------------
