@@ -886,6 +886,11 @@ void TrackedUltrasoundCapturingGUI::ConnectToDevicesByConfigFile(std::string aCo
       m_DeviceSetSelectorWidget->SetConnectionSuccessful(false);
       m_SyncToolStateDisplayWidget->InitializeTools(NULL, false);
       m_RecordingToolStateDisplayWidget->InitializeTools(NULL, false);
+
+	  // Close dialog
+	  connectDialog->done(0);
+      QApplication::restoreOverrideCursor();
+	  return;
     }
 
     // Start data collection 
@@ -893,8 +898,14 @@ void TrackedUltrasoundCapturingGUI::ConnectToDevicesByConfigFile(std::string aCo
     {
       LOG_ERROR("Unable to start collecting data!");
       m_DeviceSetSelectorWidget->SetConnectionSuccessful(false);
+
       m_SyncToolStateDisplayWidget->InitializeTools(NULL, false);
       m_RecordingToolStateDisplayWidget->InitializeTools(NULL, false);
+
+	  // Close dialog
+	  connectDialog->done(0);
+      QApplication::restoreOverrideCursor();
+	  return;
     }
     else
     {
