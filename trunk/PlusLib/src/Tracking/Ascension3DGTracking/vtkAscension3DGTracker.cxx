@@ -328,6 +328,8 @@ vtkAscension3DGTracker
           mTrackerToReference->SetElement( row, col, record[ this->GetReferenceToolNumber() ].s[ row ][ col ] );
         }
       }
+      
+      mTrackerToReference->Invert();
 
       mTrackerToReference->SetElement( 0, 3, record[ this->GetReferenceToolNumber() ].x );
       mTrackerToReference->SetElement( 1, 3, record[ this->GetReferenceToolNumber() ].y );

@@ -15,28 +15,29 @@
       Frequency="20"
       AveragedItemsForFiltering="20"
       LocalTimeOffset="0.0"
-      DefaultToolName="Tool1"
+      DefaultToolName="Probe"
+      ReferenceToolName="Reference"
       SequenceMetafile=""
       >
       
       <Tool
-        Name="Tool1"
+        Name="Probe"
         PortNumber="0"
         SendTo="localhost:18944"
         >
-        
-        <!--
-        <Calibration 
-          MatrixName="NeedleToNeedletip" 
-          MatrixValue="1 0 0 0 
-                       0 1 0 0 
-                       0 0 1 0
-                       0 0 0 1" 
-          Date="2011.05.02"
-          Error="0.0"
-        />
-        -->
-        
+      </Tool>
+      
+      <Tool
+        Name="Reference"
+        PortNumber="1"
+        >
+      </Tool>
+      
+      <Tool
+        Name="Stylus"
+        PortNumber="2"
+        SendTo="localhost:18944"
+        >
       </Tool>
       
     </Tracker>
