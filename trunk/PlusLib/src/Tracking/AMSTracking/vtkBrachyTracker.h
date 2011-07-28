@@ -1,14 +1,14 @@
-#ifndef __vtkAMSTracker_h
-#define __vtkAMSTracker_h
+#ifndef __vtkBrachyTracker_h
+#define __vtkBrachyTracker_h
 
 #include "PlusConfigure.h"
 #include "vtkTracker.h"
-#include "AMSStepper.h"
 
+class CmsBrachyStepper; 
 class vtkTransform;
 
 
-class VTK_EXPORT vtkAMSTracker : public vtkTracker
+class VTK_EXPORT vtkBrachyTracker : public vtkTracker
 {
 public:
 
@@ -27,8 +27,8 @@ public:
 		ROW_TEMPLATE_POSITION=2
 	}; 
 
-	static vtkAMSTracker *New();
-	vtkTypeMacro(vtkAMSTracker,vtkTracker);
+	static vtkBrachyTracker *New();
+	vtkTypeMacro(vtkBrachyTracker,vtkTracker);
 	void PrintSelf(ostream& os, vtkIndent indent);
 
 	// Description:
@@ -157,8 +157,8 @@ public:
 	PlusStatus WriteConfiguration(vtkXMLDataElement* config); 
 
 protected:
-	vtkAMSTracker();
-	~vtkAMSTracker();
+	vtkBrachyTracker();
+	~vtkBrachyTracker();
 
 	// Description:
 	// Set the version information.
@@ -177,10 +177,10 @@ protected:
 	PlusStatus InternalStopTracking();
 
 	// Description:
-	// Initialize the tracking machine
-	PlusStatus InitAMSTracker();
+	// Initialize the tracking device
+	PlusStatus InitBrachyTracker();
 
-	AMSStepper *Device;
+	BrachyStepper *Device;
 
 	char *Version;
 	int ModelNumber; 
@@ -201,8 +201,8 @@ protected:
 	double ProbeRotationEncoderScale; 
 
 private:
-	vtkAMSTracker(const vtkAMSTracker&);
-	void operator=(const vtkAMSTracker&);  
+	vtkBrachyTracker(const vtkBrachyTracker&);
+	void operator=(const vtkBrachyTracker&);  
 };
 
 #endif

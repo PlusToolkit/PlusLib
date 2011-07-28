@@ -4,7 +4,7 @@ OPTION (PLUS_USE_POLARIS "Provide support for the NDI POLARIS and AURORA" OFF)
 OPTION (PLUS_USE_CERTUS "Provide support for the NDI Certus" OFF)
 OPTION (PLUS_USE_FLOCK "Provide support for the Ascension Flock of Birds" OFF)
 OPTION (PLUS_USE_MICRONTRACKER "Provide support for the Claron MicronTracker" OFF)
-OPTION (PLUS_USE_AMS_TRACKER "Provide support for the AMS Stepper tracking device" ON)
+OPTION (PLUS_USE_BRACHY_TRACKER "Provide support for the brachy stepper tracking device" ON)
 OPTION (PLUS_USE_Ascension3DG "Provide support for the Ascension 3DG Tracker" OFF)
 OPTION (PLUS_USE_Ascension3DGm "Provide support for the Ascension 3DGm MedSafe Tracker" OFF)
 
@@ -177,18 +177,18 @@ ENDIF (PLUS_USE_MICRONTRACKER)
 
 
 #--------------------------------------------------------------------------
-# AMSTRACKER support
-SET (AMSTRACKER_LIBRARY)
-IF (PLUS_USE_AMS_TRACKER)
+# BrachyTracker support
+SET (BRACHY_TRACKER_LIBRARY)
+IF (PLUS_USE_BRACHY_TRACKER)
 	SET (Tracking_SRCS
 		${Tracking_SRCS}
-		AMSTracking/vtkAMSTracker.cxx
+		AMSTracking/vtkBrachyTracker.cxx
 	)
 	
 	if (WIN32)	
 		SET (Tracking_HDRS
 			${Tracking_HDRS}
-			AMSTracking/vtkAMSTracker.h
+			AMSTracking/vtkBrachyTracker.h
 			)
 	endif (WIN32)
 	
@@ -196,13 +196,13 @@ IF (PLUS_USE_AMS_TRACKER)
 	
     SET (PLUSLIB_INCLUDE_DIRS 
                 ${PLUSLIB_INCLUDE_DIRS} 
-                ${AMSStepper_SOURCE_DIR}
-                ${AMSStepper_BINARY_DIR}
+                ${BrachyStepper_SOURCE_DIR}
+                ${BrachyStepper_BINARY_DIR}
                 CACHE INTERNAL ""
 				)
  
-  SET (AMSTRACKER_LIBRARY vtkAMSStepper)
-ENDIF (PLUS_USE_AMS_TRACKER)
+  SET (BRACHY_TRACKER_LIBRARY BrachyStepper)
+ENDIF (PLUS_USE_BRACHY_TRACKER)
 
 
 #--------------------------------------------------------------------------
@@ -279,7 +279,7 @@ ENDIF (BUILD_TESTING)
 # --------------------------------------------------------------------------
 # Build the library
 
-SET (Tracking_LIBS 	vtkPlusCommon vtkImageAcquisition vtkCommon vtkHybrid vtkFiltering ${Tracking_LIBS} ${CERTUS_LIBRARY} ${POLARIS_LIBRARY} ${FLOCK_LIBRARY} ${MICRONTRACKER_LIBRARY} ${AMSTRACKER_LIBRARY} ${ATC_LIBRARY} )
+SET (Tracking_LIBS 	vtkPlusCommon vtkImageAcquisition vtkCommon vtkHybrid vtkFiltering ${Tracking_LIBS} ${CERTUS_LIBRARY} ${POLARIS_LIBRARY} ${FLOCK_LIBRARY} ${MICRONTRACKER_LIBRARY} ${BRACHY_TRACKER_LIBRARY} ${ATC_LIBRARY} )
 
 ADD_LIBRARY(vtkTracking ${Tracking_SRCS} ${Tracking_HDRS})
 

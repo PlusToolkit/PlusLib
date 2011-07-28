@@ -1,17 +1,21 @@
-PROJECT(AMSStepper)
+PROJECT(BrachyStepper)
 
-SET ( AMSStepper_SRCS 
-  AMSStepper.cxx
+SET ( BrachyStepper_SRCS 
+  CmsBrachyStepper.cxx
   SerialLine.cxx
+  BrachyStepper.cxx 
+  CivcoBrachyStepper.cxx 
 )
 
-SET (AMSStepper_HDRS)
+SET (BrachyStepper_HDRS)
 if (WIN32)	
-	SET (AMSStepper_HDRS
-		AMSStepper.h 
+	SET (BrachyStepper_HDRS
+		CmsBrachyStepper.h 
 		SerialLine.h 
 		vtkStepperWin32Header.h 
+        BrachyStepper.h 
+        CivcoBrachyStepper.h
 		)
 endif (WIN32)	
 
-ADD_LIBRARY(vtkAMSStepper STATIC ${AMSStepper_SRCS} ${AMSStepper_HDRS})
+ADD_LIBRARY(BrachyStepper STATIC ${BrachyStepper_SRCS} ${BrachyStepper_HDRS})

@@ -1,6 +1,7 @@
 #include "PlusConfigure.h"
 #include "vtksys/CommandLineArguments.hxx"
-#include "AMSStepper.h"
+#include "BrachyStepper.h"
+#include "CmsBrachyStepper.h"
 #include <stdlib.h>
 #include <iostream>
 
@@ -29,13 +30,13 @@ int main (int argc, char* argv[])
 	if ( !args.Parse() )
 	{
 		std::cerr << "Problem parsing arguments" << std::endl;
-		std::cout << "\n\nAMSStepperTest help:" << args.GetHelp() << std::endl;
+		std::cout << "\n\nCmsBrachyStepperTest help:" << args.GetHelp() << std::endl;
 		exit(EXIT_FAILURE);
 	}
 
 	if ( printHelp ) 
 	{
-		std::cout << "\n\nAMSStepperTest help:" << args.GetHelp() << std::endl;
+		std::cout << "\n\nCmsBrachyStepperTest help:" << args.GetHelp() << std::endl;
 		exit(EXIT_SUCCESS); 
 
 	}
@@ -47,19 +48,19 @@ int main (int argc, char* argv[])
 	{
 		LOG_INFO("Starting test " << reconnect + 1 ); 
 
-		AMSStepper *myStepper = new AMSStepper(inputComPort.c_str(), 19200);
+		CmsBrachyStepper *myStepper = new CmsBrachyStepper(inputComPort.c_str(), 19200);
 
 		if ( STRCASECMP("Burdette Medical Systems Digital Stepper", stepperType.c_str()) == 0 )
 		{
-			myStepper->SetBrachyStepperType(AMSStepper::BURDETTE_MEDICAL_SYSTEMS_DIGITAL_STEPPER); 
+			myStepper->SetBrachyStepperType(BrachyStepper::BURDETTE_MEDICAL_SYSTEMS_DIGITAL_STEPPER); 
 		}
 		else if ( STRCASECMP("Burdette Medical Systems Digital Motorized Stepper", stepperType.c_str()) == 0 )
 		{
-			myStepper->SetBrachyStepperType(AMSStepper::BURDETTE_MEDICAL_SYSTEMS_DIGITAL_MOTORIZED_STEPPER); 
+			myStepper->SetBrachyStepperType(BrachyStepper::BURDETTE_MEDICAL_SYSTEMS_DIGITAL_MOTORIZED_STEPPER); 
 		}
 		else if ( STRCASECMP("CMS Accuseed DS300", stepperType.c_str()) == 0 )
 		{
-			myStepper->SetBrachyStepperType(AMSStepper::CMS_ACCUSEED_DS300); 
+			myStepper->SetBrachyStepperType(BrachyStepper::CMS_ACCUSEED_DS300); 
 		}
 
 		if (!myStepper->StartTracking())
