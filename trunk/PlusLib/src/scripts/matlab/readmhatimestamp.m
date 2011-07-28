@@ -1,21 +1,22 @@
-function [ts ind]=readmhatimestamp(fname)
+function [fts uts ind]=readmhatimestamp(fname)
 
-% readmhatimestamp: Read (unfiltered) timestamps and frame indexes from a sequence metafile header
+% readmhatimestamp: Read filtered and unfiltered timestamps and frame indexes from a sequence metafile header
 %
 %   Description
 %     This is a helper function for reading frame indexes and corresponding
 %     timestamps from a sequence metafile (mha). This can be used for
 %     investigating potential item timestamping issues.
-%     The [ts, ind] plot is a straight line if the frame rate is constant.
+%     The [uts, ind] plot is a straight line if the frame rate is constant.
 %
 %   Example
-%     [ts ind]=readmhatimestamp('01_Heart_NDI_Certus_Buffer_01.mha'); 
-%     plot(ts, ind, '.')
+%     [fts uts ind]=readmhatimestamp('01_Heart_NDI_Certus_Buffer_01.mha'); 
+%     plot(uts, ind, '.')
 %
 
 fid = fopen(fname);
 
-ts=[];
+fts=[];
+uts=[];
 ind=[];
 
 while 1
@@ -23,7 +24,6 @@ while 1
     if ~ischar(tline)
         break
     end
-%    tline
     
     token=regexp(tline, 'Seq_Frame[0-9]*_FrameNumber = (.*)', 'tokens');
     if (length(token)>0)
@@ -34,9 +34,15 @@ while 1
     token=regexp(tline, 'Seq_Frame[0-9]*_UnfilteredTimestamp = (.*)', 'tokens');
     if (length(token)>0)
         n=str2num(cell2mat(token{1}));
-        ts=[ts; n];
+        uts=[uts; n];
     end
 
+    token=regexp(tline, 'Seq_Frame[0-9]*_Timestamp = (.*)', 'tokens');
+    if (length(token)>0)
+        n=str2num(cell2mat(token{1}));
+        fts=[fts; n];
+    end
+   
     if (regexp(tline, 'ElementDataFile')>0)
         break
     end
