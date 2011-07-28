@@ -40,7 +40,7 @@ public:
   virtual PlusStatus GetEncoderValues(double &PPosition, 
     double &GPosition, double &RPosition, unsigned long &PositionRequestNumber);
 
-  virtual PlusStatus GetDeviceInfo( std::string& version, std::string& model, std::string& serial ); 
+  virtual PlusStatus GetDeviceModelInfo( std::string& version, std::string& model, std::string& serial ); 
 
   virtual PlusStatus ResetStepper();
 

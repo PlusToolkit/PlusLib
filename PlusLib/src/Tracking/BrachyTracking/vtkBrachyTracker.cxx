@@ -218,7 +218,7 @@ PlusStatus vtkBrachyTracker::InitBrachyTracker()
   std::string version; 
   std::string model; 
   std::string serial; 
-	if ( this->Device->GetDeviceInfo(version, model, serial) != PLUS_SUCCESS )
+	if ( this->Device->GetDeviceModelInfo(version, model, serial) != PLUS_SUCCESS )
 	{
 		LOG_ERROR("Couldn't get version info from stepper.");
 		return PLUS_FAIL; 

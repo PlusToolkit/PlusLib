@@ -53,13 +53,8 @@ IF (PLUS_USE_CERTUS)
 			)
 	endif (WIN32)
 	
-    IF(PLUS_USE_PLTools)
-       SET(NDIOAPI_INCLUDE_DIR ${PLTOOLS_DIR}/NDI/Certus/NDIoapi-3.0.0.66/include CACHE PATH "Path to the NDI oapi SDK include directory." FORCE)
-       SET(NDIOAPI_BINARY_DIR ${PLTOOLS_DIR}/NDI/Certus/NDIoapi-3.0.0.66/bin CACHE PATH "Path to the NDI oapi SDK binary directory." FORCE)
-    ELSE(PLUS_USE_PLTools)
-        FIND_PATH(NDIOAPI_INCLUDE_DIR ndopto.h DOC "Path to the NDI oapi SDK include directory.")
-        FIND_PATH(NDIOAPI_BINARY_DIR oapi.dll DOC "Path to the NDI oapi SDK binary directory.")
-    ENDIF(PLUS_USE_PLTools)
+    SET(NDIOAPI_INCLUDE_DIR ${PLTOOLS_DIR}/NDI/Certus/NDIoapi-3.0.0.66/include CACHE PATH "Path to the NDI oapi SDK include directory." FORCE)
+    SET(NDIOAPI_BINARY_DIR ${PLTOOLS_DIR}/NDI/Certus/NDIoapi-3.0.0.66/bin CACHE PATH "Path to the NDI oapi SDK binary directory." FORCE)
 
     SET (PLUSLIB_INCLUDE_DIRS 
             ${PLUSLIB_INCLUDE_DIRS} 
@@ -191,7 +186,7 @@ IF (PLUS_USE_BRACHY_TRACKER)
 			BrachyTracking/vtkBrachyTracker.h
 			)
 	endif (WIN32)
-	
+    
 	ADD_SUBDIRECTORY(BrachyTracking/Utils)
 	
     SET (PLUSLIB_INCLUDE_DIRS 
@@ -201,7 +196,8 @@ IF (PLUS_USE_BRACHY_TRACKER)
                 CACHE INTERNAL ""
 				)
  
-  SET (BRACHY_TRACKER_LIBRARY BrachyStepper)
+  SET (BRACHY_TRACKER_LIBRARY BrachyStepper )
+  
 ENDIF (PLUS_USE_BRACHY_TRACKER)
 
 
@@ -210,16 +206,10 @@ ENDIF (PLUS_USE_BRACHY_TRACKER)
 SET(ATC_LIBRARY CACHE INTERNAL FORCE)
 IF( PLUS_USE_Ascension3DG )
 
-    # Use non MedSafe version
-    IF( PLUS_USE_PLTools )
-      SET( ATC_INCLUDE_DIRECTORY ${PLTOOLS_DIR}/Ascension/Ascension3DG/inc CACHE PATH "Directory where the ATC3DG.h file is located" FORCE )
-      SET( ATC_LIBRARY_DIRECTORY ${PLTOOLS_DIR}/Ascension/Ascension3DG/lib CACHE PATH "Path to the Ascension 3D Guidance library folder" FORCE )
-      SET( ATC_BINARY_DIRECTORY ${PLTOOLS_DIR}/Ascension/Ascension3DG/bin CACHE PATH "Path to the Ascension 3D Guidance dll folder" FORCE )
-    ELSE( PLUS_USE_PLTools )
-      FIND_PATH( ATC_INCLUDE_DIRECTORY ATC3DG.h PATHS "C:/Program Files/Ascension/3D Guidance (Rev D)/3D Guidance API" DOC "Directory where the ATC3DG.h file is located")
-      FIND_PATH( ATC_LIBRARY_DIRECTORY ATC3DG${CMAKE_STATIC_LIBRARY_SUFFIX} PATHS "C:/Program Files/Ascension/3D Guidance (Rev D)/3D Guidance API" DOC "Path to the Ascension 3D Guidance library folder" )
-      FIND_PATH( ATC_BINARY_DIRECTORY ATC3DG${CMAKE_SHARED_LIBRARY_SUFFIX} PATHS "C:/Program Files/Ascension/3D Guidance (Rev D)/3D Guidance API" DOC "Path to the Ascension 3D Guidance library folder" )
-    ENDIF( PLUS_USE_PLTools )
+  # Use non MedSafe version
+  SET( ATC_INCLUDE_DIRECTORY ${PLTOOLS_DIR}/Ascension/Ascension3DG/inc CACHE PATH "Directory where the ATC3DG.h file is located" FORCE )
+  SET( ATC_LIBRARY_DIRECTORY ${PLTOOLS_DIR}/Ascension/Ascension3DG/lib CACHE PATH "Path to the Ascension 3D Guidance library folder" FORCE )
+  SET( ATC_BINARY_DIRECTORY ${PLTOOLS_DIR}/Ascension/Ascension3DG/bin CACHE PATH "Path to the Ascension 3D Guidance dll folder" FORCE )
   
   SET (PLUSLIB_INCLUDE_DIRS ${PLUSLIB_INCLUDE_DIRS} 
             ${ATC_INCLUDE_DIRECTORY}
@@ -243,14 +233,9 @@ ENDIF( PLUS_USE_Ascension3DG )
 # Ascension 3DGm support (MedSafe!!!)
 IF( PLUS_USE_Ascension3DGm )
   
-    # MedSafe version
-    IF(PLUS_USE_PLTools)
-        SET(ATCM_INCLUDE_DIRECTORY ${PLTOOLS_DIR}/Ascension/Ascension3DGm/inc CACHE PATH "Directory where the ATC3DGm.h file is located" FORCE)
-        SET(ATCM_LIBRARY_DIRECTORY ${PLTOOLS_DIR}/Ascension/Ascension3DGm/lib CACHE PATH "Path to the Ascension 3D Guidance medSAFE library folder" FORCE)
-    ELSE(PLUS_USE_PLTools)
-         FIND_PATH( ATCM_INCLUDE_DIRECTORY ATC3DGm.h PATHS "C:/Program Files/Ascension/3D Guidance medSAFE (Rev F)/3D Guidance API" DOC "Directory where the ATC3DGm.h file is located")
-         FIND_PATH( ATCM_LIBRARY_DIRECTORY ATC3DGm${CMAKE_STATIC_LIBRARY_SUFFIX} PATHS "C:/Program Files/Ascension/3D Guidance medSAFE (Rev F)/3D Guidance API" DOC "Path to the Ascension 3D Guidance medSAFE library folder" )
-    ENDIF(PLUS_USE_PLTools)
+  # MedSafe version
+  SET(ATCM_INCLUDE_DIRECTORY ${PLTOOLS_DIR}/Ascension/Ascension3DGm/inc CACHE PATH "Directory where the ATC3DGm.h file is located" FORCE)
+  SET(ATCM_LIBRARY_DIRECTORY ${PLTOOLS_DIR}/Ascension/Ascension3DGm/lib CACHE PATH "Path to the Ascension 3D Guidance medSAFE library folder" FORCE)
     
   SET (PLUSLIB_INCLUDE_DIRS ${PLUSLIB_INCLUDE_DIRS} 
             ${ATCM_INCLUDE_DIRECTORY}

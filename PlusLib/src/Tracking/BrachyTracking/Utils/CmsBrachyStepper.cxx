@@ -167,7 +167,7 @@ PlusStatus CmsBrachyStepper::Disconnect()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus CmsBrachyStepper::GetDeviceInfo( std::string& version, std::string& model, std::string& serial )
+PlusStatus CmsBrachyStepper::GetDeviceModelInfo( std::string& version, std::string& model, std::string& serial )
 {
   int iVerHi=0; int iVerLo=0; int iModelNum=0; int iSerialNum=0;
   if ( this->GetVersionInfo(iVerHi, iVerLo, iModelNum, iSerialNum) != PLUS_SUCCESS )

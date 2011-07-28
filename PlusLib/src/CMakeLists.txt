@@ -50,11 +50,7 @@ MARK_AS_ADVANCED(LIBRARY_OUTPUT_PATH EXECUTABLE_OUTPUT_PATH INCLUDES_OUTPUT_PATH
 # --------------------------------------------------------------------------
 # gnuplot binary directory path.
 # 
-IF(PLUS_USE_PLTools)
-    SET(GNUPLOT_BIN_DIR ${PLTOOLS_DIR}/Gnuplot/binary/ CACHE PATH "Path to the Gnuplot binary directory." FORCE)
-ELSE(PLUS_USE_PLTools)
-    FIND_PATH(GNUPLOT_BIN_DIR "Gnuplot/binary/" DOC "Path to the Gnuplot binary directory." )
-ENDIF(PLUS_USE_PLTools) 
+SET(GNUPLOT_BIN_DIR ${PLTOOLS_DIR}/Gnuplot/binary/ CACHE PATH "Path to the Gnuplot binary directory." FORCE)
 
 # --------------------------------------------------------------------------
 # The project library directories.

@@ -32,7 +32,7 @@ public:
   virtual PlusStatus GetEncoderValues(double &PPosition, 
     double &GPosition, double &RPosition, unsigned long &PositionRequestNumber);
 
-  virtual PlusStatus GetDeviceInfo( std::string& version, std::string& model, std::string& serial ); 
+  virtual PlusStatus GetDeviceModelInfo( std::string& version, std::string& model, std::string& serial ); 
 
   virtual PlusStatus ResetStepper();
 
@@ -44,6 +44,13 @@ public:
 
   virtual PlusStatus IsStepperAlive();
 
+protected: 
+
+  long GetNumberOfSeiDevices(); 
+
+  PlusStatus GetSeiDeviceInfo(long devnum, long &model, long &serialnum, long &version, long &addr); 
+
+  long m_COMPort; 
 
 };
 

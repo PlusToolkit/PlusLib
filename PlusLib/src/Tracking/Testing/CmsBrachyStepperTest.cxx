@@ -156,7 +156,7 @@ int main (int argc, char* argv[])
     std::string version; 
     std::string model; 
     std::string serial; 
-		if (myStepper->GetDeviceInfo(version, model, serial) == PLUS_SUCCESS )
+		if (myStepper->GetDeviceModelInfo(version, model, serial) == PLUS_SUCCESS )
 		{
 			LOG_INFO("Version = " << version << "\tModel = " << model << "\tSerial = " << serial ); 
 		}
