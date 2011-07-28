@@ -1,5 +1,12 @@
 # --------------------------------------------------------------------------
 # PlusApp
+SET(PLUSBUILD_SVN_REVISION_ARGS)
+IF ( NOT PLUS_SVN_REVISION STREQUAL "0" )
+    SET(PLUSBUILD_SVN_REVISION_ARGS 
+        SVN_REVISION -r "${PLUS_SVN_REVISION}"
+        )
+ENDIF() 
+
 SET (PLUS_PLUSAPP_DIR ${CMAKE_BINARY_DIR}/PlusApp CACHE INTERNAL "Path to store PlusApp contents.")
 ExternalProject_Add(PlusApp
             SOURCE_DIR "${PLUS_PLUSAPP_DIR}" 
@@ -8,6 +15,7 @@ ExternalProject_Add(PlusApp
             SVN_USERNAME ${PLUSBUILD_ASSEMBLA_USERNAME}
             SVN_PASSWORD ${PLUSBUILD_ASSEMBLA_PASSWORD}
             SVN_REPOSITORY https://subversion.assembla.com/svn/plus/trunk/PlusApp
+            ${PLUSBUILD_SVN_REVISION_ARGS}
             #--Configure step-------------
             CMAKE_ARGS 
                 -DPLUSLIB_DIR:PATH=${PLUSLIB_DIR}

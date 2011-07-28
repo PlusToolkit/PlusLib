@@ -11,25 +11,19 @@ ELSE()
         )
 ENDIF ()
 
-SET(PLUSBUILD_PLTools_ARGS)
-IF(PLUSBUILD_USE_PLTools)
-    SET(PLUSBUILD_PLTools_ARGS
-            -DPLUS_USE_PLTools:BOOL=${PLUSBUILD_USE_PLTools}
-            -DPLTOOLS_DIR:PATH=${PLTOOLS_DIR}
-    )
-ELSE()
-     SET(PLUSBUILD_PLTools_ARGS
-            -DPLUS_USE_PLTools:BOOL=${PLUSBUILD_USE_PLTools}
-    )
-ENDIF()
-
-
 SET(PLUSBUILD_Slicer_ARGS -DPLUS_USE_SLICER:BOOL=${PLUSBUILD_USE_3DSlicer} )
 IF (PLUSBUILD_USE_3DSlicer)
     SET(PLUSBUILD_Slicer_ARGS ${PLUSBUILD_Slicer_ARGS}
             -DSLICER_BIN_DIRECTORY=${PLUSBUILD_SLICER_BIN_DIRECTORY}
         )
-ENDIF()        
+ENDIF()      
+
+SET(PLUSBUILD_SVN_REVISION_ARGS)
+IF ( NOT PLUS_SVN_REVISION STREQUAL "0" )
+    SET(PLUSBUILD_SVN_REVISION_ARGS 
+        SVN_REVISION -r "${PLUS_SVN_REVISION}"
+        )
+ENDIF() 
 
 # --------------------------------------------------------------------------
 # PlusLib
@@ -41,14 +35,16 @@ ExternalProject_Add(PlusLib
             SVN_USERNAME ${PLUSBUILD_ASSEMBLA_USERNAME}
             SVN_PASSWORD ${PLUSBUILD_ASSEMBLA_PASSWORD}
             SVN_REPOSITORY https://subversion.assembla.com/svn/plus/trunk/PlusLib
+            ${PLUSBUILD_SVN_REVISION_ARGS}
             #--Configure step-------------
             CMAKE_ARGS 
                 -DVTK_DIR:PATH=${VTK_DIR}
                 -DITK_DIR:PATH=${ITK_DIR}
                 -DSubversion_SVN_EXECUTABLE:FILEPATH=${Subversion_SVN_EXECUTABLE}
                 ${PLUSBUILD_OpenIGTLink_ARGS}
-                ${PLUSBUILD_PLTools_ARGS}
                 ${PLUSBUILD_Slicer_ARGS}
+                -DPLUS_USE_PLTools:BOOL=${PLUSBUILD_USE_PLTools}
+                -DPLTOOLS_DIR:PATH=${PLTOOLS_DIR}
                 -DPLUS_USE_SONIX_VIDEO:BOOL=${PLUS_USE_SONIX_VIDEO}
                 -DPLUS_USE_ICCAPTURING_VIDEO:BOOL=${PLUS_USE_ICCAPTURING_VIDEO}
                 -DPLUS_USE_VFW_VIDEO:BOOL=${PLUS_USE_VFW_VIDEO}

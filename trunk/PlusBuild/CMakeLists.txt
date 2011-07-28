@@ -19,17 +19,11 @@ FIND_FILE(Subversion_SVN_EXECUTABLE svn${CMAKE_EXECUTABLE_SUFFIX}
   )
 FIND_PACKAGE(Subversion REQUIRED)
 
-SET(PLUSBUILD_ASSEMBLA_USERNAME "PLUSBUILD_ASSEMBLA_USERNAME-NOT-FOUND" CACHE STRING "Username for Plus assembla server: https://subversion.assembla.com/svn/plus/" )
-SET(PLUSBUILD_ASSEMBLA_PASSWORD "PLUSBUILD_ASSEMBLA_PASSWORD-NOT-FOUND" CACHE STRING "Password for Plus assembla server: https://subversion.assembla.com/svn/plus/" )
-
-IF("${PLUSBUILD_ASSEMBLA_USERNAME}" STREQUAL "PLUSBUILD_ASSEMBLA_USERNAME-NOT-FOUND")
-  MESSAGE(FATAL_ERROR "Cannot download necessary files from the Plus repository if PLUSBUILD_ASSEMBLA_USERNAME is not defined.")
-ENDIF() 
-
-IF("${PLUSBUILD_ASSEMBLA_PASSWORD}" STREQUAL "PLUSBUILD_ASSEMBLA_PASSWORD-NOT-FOUND")
-  MESSAGE(FATAL_ERROR "Cannot download necessary files from the Plus repository if PLUSBUILD_ASSEMBLA_PASSWORD is not defined.")
-ENDIF() 
-
+#-----------------------------------------------------------------------------
+# ASSEMBLA - Set username and password for assembla 
+#-----------------------------------------------------------------------------
+SET(PLUSBUILD_ASSEMBLA_USERNAME "perklab_anonymous" CACHE STRING "Username for Plus assembla server: https://subversion.assembla.com/svn/plus/" )
+SET(PLUSBUILD_ASSEMBLA_PASSWORD "anonymous" CACHE STRING "Password for Plus assembla server: https://subversion.assembla.com/svn/plus/" )
 
 #-----------------------------------------------------------------------------
 # GIT - Let's check if a valid version of GIT is available
@@ -57,46 +51,30 @@ ENDIF()
 #-----------------------------------------------------------------------------
 # Options to control build process
 #-----------------------------------------------------------------------------
-OPTION(PLUSBUILD_USE_PLTools "Use the PLTools repository" OFF)
 OPTION(PLUSBUILD_USE_3DSlicer "Use 3D Slicer and it's external projects (like ITK, VTK, OpenIGTLink)" OFF)
 OPTION(PLUSBUILD_USE_OpenIGTLink "Use OpenIGTLink" ON)
 OPTION(PLUSBUILD_BUILD_SHARED_LIBS "Build shared libs" ON)
 OPTION(PLUSBUILD_BUILD_PLUSAPP "Build PlusApp applications" ON)
 
-OPTION(PLUS_USE_SONIX_VIDEO "Provide support for the Sonix video source with the Ulterius SDK" OFF)
-OPTION(PLUS_USE_ICCAPTURING_VIDEO "Provide support for the IC framegrabber device" OFF)
+OPTION(PLUS_USE_SONIX_VIDEO "Provide support for the Sonix video source with the Ulterius SDK" ON)
+OPTION(PLUS_USE_ICCAPTURING_VIDEO "Provide support for the IC framegrabber device" ON)
 OPTION(PLUS_USE_VFW_VIDEO "Provide support for the Video-for-Windows video digitizer" OFF)
 
 OPTION(PLUS_USE_POLARIS "Provide support for the NDI POLARIS and AURORA" OFF)
-OPTION(PLUS_USE_CERTUS "Provide support for the NDI Certus" OFF)
+OPTION(PLUS_USE_CERTUS "Provide support for the NDI Certus" ON)
 OPTION(PLUS_USE_FLOCK "Provide support for the Ascension Flock of Birds" OFF)
 OPTION(PLUS_USE_MICRONTRACKER "Provide support for the Claron MicronTracker" OFF)
-OPTION(PLUS_USE_AMS_TRACKER "Provide support for the AMS Stepper tracking device" OFF)
-OPTION(PLUS_USE_Ascension3DG "Provide support for the Ascension 3DG Tracker" OFF)
+OPTION(PLUS_USE_BRACHY_TRACKER "Provide support for the Brachy Steppers" ON)
+OPTION(PLUS_USE_Ascension3DG "Provide support for the Ascension 3DG Tracker" ON)
 
 OPTION(PLUS_USE_HEARTSIGNALBOX "Enable Heart Signal Box" OFF)
 OPTION(PLUS_USE_USBECGBOX "Enable USB ECG Signal Box" OFF)
 SET (PLUS_ULTERIUS_MAJOR_VERSION 5 CACHE STRING "Set Ultrasonix Ulterius SDK major version")
 
 #-----------------------------------------------------------------------------
-# Turn on default options if we use PLTools
+# Plus revision - Set Plus stable relase revision (0 means latest)
 #-----------------------------------------------------------------------------
-IF(PLUSBUILD_USE_PLTools)
-    # if we want to use PLTools, turn on default PLUS options
-    IF (NOT PLTOOLS_DEFAULT_PLUS_OPTIONS)
-        MESSAGE(STATUS "Chose to build with PLTools: default PLUS_USE options have been turned on!")
-        SET(PLTOOLS_DEFAULT_PLUS_OPTIONS 1 CACHE INTERNAL "Ensure to turn on default PLUS options only once" FORCE )
-       
-        SET(PLUS_USE_SONIX_VIDEO ON CACHE BOOL "Provide support for the Sonix video source with the Ulterius SDK" FORCE)
-        SET(PLUS_USE_ICCAPTURING_VIDEO ON CACHE BOOL "Provide support for the IC framegrabber device" FORCE)
-        SET(PLUS_USE_CERTUS ON CACHE BOOL "Provide support for the NDI Certus" FORCE)
-        SET(PLUS_USE_AMS_TRACKER ON CACHE BOOL "Provide support for the AMS Stepper tracking device" FORCE)
-        SET(PLUS_USE_Ascension3DG ON CACHE BOOL "Provide support for the Ascension 3DG Tracker" FORCE)
-    ENDIF (NOT PLTOOLS_DEFAULT_PLUS_OPTIONS)
-ELSE()
-    # TODO: Need to set third party libraries...
-    
-ENDIF()
+SET (PLUS_SVN_REVISION 0 CACHE STRING "Set Plus desired SVN revision number (0 means latest)")
 
 #-----------------------------------------------------------------------------
 # Qt - Let's check if a valid version of Qt is available
@@ -154,9 +132,7 @@ IF ( NOT PLUSBUILD_USE_3DSlicer )
 
 ENDIF ( NOT PLUSBUILD_USE_3DSlicer )
 
-IF(PLUSBUILD_USE_PLTools)
-    LIST(APPEND PlusLib_DEPENDENCIES PLTools)
-ENDIF() 
+LIST(APPEND PlusLib_DEPENDENCIES PLTools)
 
 SET(PlusApp_DEPENDENCIES PlusLib)
 
@@ -209,11 +185,7 @@ ELSE ( PLUSBUILD_USE_3DSlicer )
     ENDIF(PLUSBUILD_USE_OpenIGTLink)
 ENDIF ( PLUSBUILD_USE_3DSlicer )
 
-
-IF(PLUSBUILD_USE_PLTools)
-    INCLUDE(External_PLTools.cmake)
-ENDIF(PLUSBUILD_USE_PLTools)    
-
+INCLUDE(External_PLTools.cmake)
 INCLUDE(External_PlusLib.cmake)
 
 IF(PLUSBUILD_BUILD_PLUSAPP) 
