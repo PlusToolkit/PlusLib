@@ -32,7 +32,7 @@ public:
 
   // Description:
   // Get stepper model specific information from device 
-  virtual PlusStatus GetDeviceInfo( std::string& version, std::string& model, std::string& serial ) = 0; 
+  virtual PlusStatus GetDeviceModelInfo( std::string& version, std::string& model, std::string& serial ) = 0; 
 
   // Description:
   // Reset stepper 
