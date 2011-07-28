@@ -86,8 +86,8 @@ SET (PLUSLIB_INCLUDE_DIRS
 	${CMAKE_CURRENT_SOURCE_DIR}/PlusCommon
 	${CMAKE_CURRENT_SOURCE_DIR}/Tracking
     ${CMAKE_CURRENT_SOURCE_DIR}/Tracking/Ascension3DGTracking
-	${CMAKE_CURRENT_SOURCE_DIR}/Tracking/AMSTracking
-	${CMAKE_CURRENT_SOURCE_DIR}/Tracking/AMSTracking/Utils	
+	${CMAKE_CURRENT_SOURCE_DIR}/Tracking/BrachyTracking
+	${CMAKE_CURRENT_SOURCE_DIR}/Tracking/BrachyTracking/Utils	
 	${CMAKE_CURRENT_SOURCE_DIR}/Tracking/FakeTracking 
 	${CMAKE_CURRENT_SOURCE_DIR}/Tracking/FlockTracking 
 	${CMAKE_CURRENT_SOURCE_DIR}/Tracking/FlockTracking/Utils

@@ -4,6 +4,7 @@
 #include "PlusConfigure.h"
 #include "vtkTracker.h"
 
+class BrachyStepper; 
 class CmsBrachyStepper; 
 class vtkTransform;
 
