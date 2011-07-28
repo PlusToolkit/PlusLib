@@ -1,6 +1,7 @@
 #include "PlusConfigure.h"
 #include "BrachyStepper.h"
 #include "CmsBrachyStepper.h"
+#include "CivcoBrachyStepper.h"
 #include "vtkBrachyTracker.h"
 #include <sstream>
 #include "vtkTracker.h"
@@ -31,21 +32,21 @@ vtkBrachyTracker* vtkBrachyTracker::New()
 //----------------------------------------------------------------------------
 vtkBrachyTracker::vtkBrachyTracker()
 {
-	this->Device = 0;
-	this->Version = NULL;
-	this->ModelNumber = 0; 
-	this->SerialNumber = 0; 
-	this->SerialPort = NULL;
-	this->SetSerialPort("COM1");
+	this->Device = NULL;
+	this->ModelVersion = NULL;
+	this->ModelNumber = NULL; 
+	this->ModelSerialNumber = NULL; 
+  this->CalibrationAlgorithmVersion = NULL; 
+  this->CalibrationDate = NULL; 
+
+	this->SetSerialPort(1);
 	this->BaudRate = 19200;
 	this->SetNumberOfTools(NUMBER_OF_BRACHY_TOOLS); 
 	this->SetToolName(PROBEHOME_TO_PROBE_TRANSFORM, "ProbeHomeToProbeUncalibrated"); 
 	this->SetToolName(TEMPLATEHOME_TO_TEMPLATE_TRANSFORM, "TemplateHomeToTemplateUncalibrated"); 
 	this->SetToolName(RAW_ENCODER_VALUES, "StepperEncoderValues"); 
 
-	this->Frequency = 50; 
-
-	// Stepper calibration parameters
+  // Stepper calibration parameters
 	this->SetProbeTranslationAxisOrientation(0,0,1); 
 	this->SetTemplateTranslationAxisOrientation(0,0,1); 
 	this->SetProbeRotationAxisOrientation(0,0,1); 
@@ -60,10 +61,12 @@ vtkBrachyTracker::~vtkBrachyTracker()
 		this->StopTracking();
 	}
 
-	if (this->Version)
-	{
-		delete [] this->Version;
-	}
+  this->SetModelVersion(NULL); 
+  this->SetModelNumber(NULL); 
+  this->SetModelSerialNumber(NULL); 
+  this->SetCalibrationAlgorithmVersion(NULL); 
+  this->SetCalibrationDate(NULL); 
+
 }
 
 //----------------------------------------------------------------------------
@@ -80,13 +83,15 @@ PlusStatus vtkBrachyTracker::Connect()
 		this->Device = new CmsBrachyStepper(this->GetSerialPort(), this->GetBaudRate() ) ; 
 	}
 
-	return this->Device->StartTracking(); 
+  return PLUS_SUCCESS; 
+
+	return this->Device->Connect(); 
 }
 
 //-----------------------------------------------------------------------------
 PlusStatus vtkBrachyTracker::Disconnect()
 {
-	this->Device->StopTracking(); 
+	this->Device->Disconnect(); 
 	return this->StopTracking(); 
 }
 
@@ -112,7 +117,7 @@ PlusStatus vtkBrachyTracker::Probe()
 //----------------------------------------------------------------------------
 PlusStatus vtkBrachyTracker::InternalStartTracking()
 {
-	if (this->Tracking)
+	if ( this->IsTracking() )
 	{
 		return PLUS_SUCCESS;
 	}
@@ -149,7 +154,7 @@ PlusStatus vtkBrachyTracker::InternalUpdate()
 	// get the transforms from stepper
 	double dProbePosition(0), dTemplatePosition(0), dProbeRotation(0); 
 	unsigned long frameNum(0); 
-	if (!this->Device->GetProbePositions(dProbePosition, dTemplatePosition, dProbeRotation, frameNum)) 
+	if (!this->Device->GetEncoderValues(dProbePosition, dTemplatePosition, dProbeRotation, frameNum)) 
 	{
 		LOG_DEBUG("Tracker request timeout..."); 
 		// Unable to get tracking information from tracker
@@ -210,8 +215,10 @@ PlusStatus vtkBrachyTracker::InitBrachyTracker()
 		return PLUS_FAIL; 
 	}
 
-	int iVerHi=0; int iVerLo=0; int iModelNum=0; int iSerialNum=0;
-	if (!this->Device->GetVersionInfo(iVerHi, iVerLo, iModelNum, iSerialNum))
+  std::string version; 
+  std::string model; 
+  std::string serial; 
+	if ( this->Device->GetDeviceInfo(version, model, serial) != PLUS_SUCCESS )
 	{
 		LOG_ERROR("Couldn't get version info from stepper.");
 		return PLUS_FAIL; 
@@ -222,13 +229,9 @@ PlusStatus vtkBrachyTracker::InitBrachyTracker()
 		this->GetTool(tool)->EnabledOn(); 
 	}
 
-	std::ostringstream version; 
-	version << iVerHi << "." << iVerLo; 
-
-	this->SetVersion(version.str().c_str());
-
-	this->SetModelNumber(iModelNum); 
-	this->SetSerialNumber(iSerialNum); 
+  this->SetModelVersion(version.c_str());
+	this->SetModelNumber(model.c_str()); 
+	this->SetModelSerialNumber(serial.c_str()); 
 
 	if ( this->TrackerCalibrated )
 	{
@@ -251,10 +254,10 @@ PlusStatus vtkBrachyTracker::ReadConfiguration(vtkXMLDataElement* config)
 		return PLUS_FAIL; 
 	}
 
-	const char* serialPort = config->GetAttribute("SerialPort"); 
-	if ( serialPort != NULL ) 
+	unsigned long serialPort(0); 
+  if ( config->GetScalarAttribute("SerialPort", serialPort) ) 
 	{
-		if ( !this->Tracking )
+		if ( !this->IsTracking() )
 		{
 			this->SetSerialPort(serialPort); 
 		}
@@ -263,79 +266,100 @@ PlusStatus vtkBrachyTracker::ReadConfiguration(vtkXMLDataElement* config)
 	unsigned long baudRate = 0; 
 	if ( config->GetScalarAttribute("BaudRate", baudRate) ) 
 	{
-		if ( !this->Tracking )
+		if ( !this->IsTracking() )
 		{
 			this->SetBaudRate(baudRate); 
 		}
 	}
 
-	if ( !this->Tracking )
-	{
-		vtkXMLDataElement* modelInformation = config->FindNestedElementWithName("ModelInformation"); 
-		if ( modelInformation != NULL ) 
-		{
-			const char* modelName = modelInformation->GetAttribute("Name"); 
-			if ( modelName != NULL )
-			{
-				if (this->Device == NULL)
-				{
-					this->Device = new CmsBrachyStepper(this->GetSerialPort(), this->GetBaudRate() ) ; 
-				}
+  if ( !this->IsTracking() )
+  {
+    const char* brachyStepperType = config->GetAttribute("BrachyStepperType"); 
+    if ( brachyStepperType != NULL )
+    {
+      // Delete device before we change it 
+      if (this->Device != NULL)
+      {
+        delete this->Device; 
+      }
+      
+      if ( STRCASECMP(BrachyStepper::GetBrachyStepperTypeInString(BrachyStepper::BURDETTE_MEDICAL_SYSTEMS_DIGITAL_STEPPER), brachyStepperType) == 0 )
+      {
+        this->Device = new CmsBrachyStepper(this->GetSerialPort(), this->GetBaudRate() ) ; 
+        this->Device->SetBrachyStepperType(BrachyStepper::BURDETTE_MEDICAL_SYSTEMS_DIGITAL_STEPPER); 
 
-				if ( STRCASECMP("Burdette Medical Systems Digital Stepper", modelName) == 0 )
-				{
-					this->Device->SetBrachyStepperType(BrachyStepper::BURDETTE_MEDICAL_SYSTEMS_DIGITAL_STEPPER); 
-				}
-				else if ( STRCASECMP("Burdette Medical Systems Digital Motorized Stepper", modelName) == 0 )
-				{
-					this->Device->SetBrachyStepperType(BrachyStepper::BURDETTE_MEDICAL_SYSTEMS_DIGITAL_MOTORIZED_STEPPER); 
-				}
-				else if ( STRCASECMP("CMS Accuseed DS300", modelName) == 0 )
-				{
-					this->Device->SetBrachyStepperType(BrachyStepper::CMS_ACCUSEED_DS300); 
-				}
-				else
-				{
-					LOG_WARNING("Unable to recognize brachy stepper name: " << modelName << "(Use default: Burdette Medical Systems Digital Stepper)");
-					this->Device->SetBrachyStepperType(BrachyStepper::BURDETTE_MEDICAL_SYSTEMS_DIGITAL_STEPPER); 
-				}
+      }
+      else if ( STRCASECMP(BrachyStepper::GetBrachyStepperTypeInString(BrachyStepper::BURDETTE_MEDICAL_SYSTEMS_DIGITAL_MOTORIZED_STEPPER), brachyStepperType) == 0 )
+      {
+        this->Device = new CmsBrachyStepper(this->GetSerialPort(), this->GetBaudRate() ) ; 
+        this->Device->SetBrachyStepperType(BrachyStepper::BURDETTE_MEDICAL_SYSTEMS_DIGITAL_MOTORIZED_STEPPER); 
+      }
+      else if ( STRCASECMP(BrachyStepper::GetBrachyStepperTypeInString(BrachyStepper::CMS_ACCUSEED_DS300), brachyStepperType) == 0 )
+      {
+        this->Device = new CmsBrachyStepper(this->GetSerialPort(), this->GetBaudRate() ) ; 
+        this->Device->SetBrachyStepperType(BrachyStepper::CMS_ACCUSEED_DS300); 
+      }
+      else if ( STRCASECMP(BrachyStepper::GetBrachyStepperTypeInString(BrachyStepper::CIVCO_STEPPER), brachyStepperType) == 0 )
+      {
+        this->Device = new CivcoBrachyStepper(); 
+        this->Device->SetBrachyStepperType(BrachyStepper::CIVCO_STEPPER); 
+      }
+      else
+      {
+        LOG_ERROR("Unable to recognize brachy stepper type: " << brachyStepperType);
+        return PLUS_FAIL; 
+      }
+    }
+    else
+    {
+      LOG_ERROR("unable to find BrachyStepperType attribute in configuration file!"); 
+      return PLUS_FAIL; 
+    }
 
-			}
+    const char* modelNumber =  config->GetAttribute("ModelNumber"); 
+    if ( modelNumber != NULL ) 
+    {
+      this->SetModelNumber(modelNumber); 
+    }
 
-			double modelNumber = 0; 
-			if ( modelInformation->GetScalarAttribute("Number", modelNumber) ) 
-			{
+    const char* modelVersion =  config->GetAttribute("ModelVersion"); 
+    if ( modelVersion != NULL ) 
+    {
+      this->SetModelVersion(modelVersion); 
+    }
 
-			}
+    const char* modelSerialNumber = config->GetAttribute("ModelSerialNumber");
+    if ( modelSerialNumber != NULL ) 
+    {
+      this->SetModelSerialNumber(modelSerialNumber); 
+    }
 
-			double modelVersion = 0; 
-			if ( modelInformation->GetScalarAttribute("Version", modelVersion) ) 
-			{
+  }
 
-			}
-
-			double modelSerialNumber = 0; 
-			if ( modelInformation->GetScalarAttribute("SerialNumber", modelSerialNumber) ) 
-			{
-
-			}
-		}
-	}
-
-	vtkXMLDataElement* calibration = config->FindNestedElementWithName("Calibration"); 
+	vtkXMLDataElement* calibration = config->FindNestedElementWithName("StepperCalibration"); 
 	if ( calibration != NULL ) 
 	{
 		const char* calibrationAlgorithmVersion = calibration->GetAttribute("AlgorithmVersion"); 
 		if ( calibrationAlgorithmVersion != NULL )
 		{
-
+      this->SetCalibrationAlgorithmVersion(calibrationAlgorithmVersion); 
 		}
+    else
+    {
+      LOG_WARNING("Failed to read stepper calibration algorithm version from config file!"); 
+      this->SetCalibrationAlgorithmVersion("Unknown"); 
+    }
 
 		const char* calibrationDate = calibration->GetAttribute("Date"); 
 		if ( calibrationDate != NULL )
 		{
-
+      this->SetCalibrationDate(calibrationDate); 
 		}
+    else
+    {
+      LOG_WARNING("Failed to read stepper calibration date from config file!"); 
+      this->SetCalibrationDate("Unknown"); 
+    }
 
 		double probeTranslationAxisOrientation[3] = {0,0,1}; 
 		if ( calibration->GetVectorAttribute("ProbeTranslationAxisOrientation", 3, probeTranslationAxisOrientation) ) 
@@ -370,7 +394,7 @@ PlusStatus vtkBrachyTracker::ReadConfiguration(vtkXMLDataElement* config)
 
 	if ( this->TrackerCalibrated )
 	{
-		LOG_INFO("AMSTracker is calibrated"); 
+    LOG_INFO("AMSTracker is calibrated (Calibration date: " << this->GetCalibrationDate() << "  CalibrationAlgorithmVersion: " << this->GetCalibrationAlgorithmVersion() << ")" ); 
 	}
 	else
 	{
@@ -390,11 +414,19 @@ PlusStatus vtkBrachyTracker::WriteConfiguration(vtkXMLDataElement* config)
 	}
 
 	config->SetName("BrachyStepper");  
-	config->SetAttribute( "SerialPort", this->GetSerialPort() ); 
+  
+  if ( this->Device != NULL )
+  {
+    BrachyStepper::BRACHY_STEPPER_TYPE stepperType = this->Device->GetBrachyStepperType(); 
+    std::string strStepperType = BrachyStepper::GetBrachyStepperTypeInString(stepperType); 
+    config->SetAttribute("BrachyStepperType", strStepperType.c_str()); 
+  }
+
+  config->SetUnsignedLongAttribute( "SerialPort", this->GetSerialPort() ); 
 	config->SetDoubleAttribute( "BaudRate", this->GetBaudRate() ); 
-	config->SetAttribute( "VersionNumber", this->GetVersion() ); 
-	config->SetIntAttribute( "ModelNumber", this->GetModelNumber() ); 
-	config->SetIntAttribute( "SerialNumber", this->GetSerialNumber() ); 
+	config->SetAttribute( "ModelVersion", this->GetModelVersion() ); 
+	config->SetAttribute( "ModelNumber", this->GetModelNumber() ); 
+	config->SetAttribute( "ModelSerialNumber", this->GetModelSerialNumber() ); 
 
   return PLUS_SUCCESS;
 }

@@ -10,7 +10,7 @@ int main (int argc, char* argv[])
 	bool printHelp(false); 
 	bool resetStepper(false); 
 	std::string stepperType("Burdette Medical Systems Digital Stepper"); 
-	std::string inputComPort("COM2");
+	int inputComPort(2);
 	int inputNumberOfTrials(20); 
 	int samplingTimeMs(50);
 
@@ -21,7 +21,7 @@ int main (int argc, char* argv[])
 
 	args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");	
 	args.AddArgument("--reset", vtksys::CommandLineArguments::NO_ARGUMENT, &resetStepper, "Reset the stepper (need's to calibrate it).");	
-	args.AddArgument("--com-port", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputComPort, "Com port number (Default: COM2)." );
+	args.AddArgument("--com-port", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputComPort, "Com port number (Default: 2)." );
 	args.AddArgument("--number-of-trials", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputNumberOfTrials, "Number of trials (Default: 20)." );
 	args.AddArgument("--sampling-time", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &samplingTimeMs, "Sampling time in milliseconds (Default: 20)." );
 	args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (Default: 3; 1=error only, 2=warning, 3=info, 4=debug.)");	
@@ -48,7 +48,7 @@ int main (int argc, char* argv[])
 	{
 		LOG_INFO("Starting test " << reconnect + 1 ); 
 
-		CmsBrachyStepper *myStepper = new CmsBrachyStepper(inputComPort.c_str(), 19200);
+		CmsBrachyStepper *myStepper = new CmsBrachyStepper(inputComPort, 19200);
 
 		if ( STRCASECMP("Burdette Medical Systems Digital Stepper", stepperType.c_str()) == 0 )
 		{
@@ -63,9 +63,9 @@ int main (int argc, char* argv[])
 			myStepper->SetBrachyStepperType(BrachyStepper::CMS_ACCUSEED_DS300); 
 		}
 
-		if (!myStepper->StartTracking())
+		if (!myStepper->Connect())
 		{
-			LOG_ERROR("Couldn't start tracking!");
+			LOG_ERROR("Couldn't connect to tracker!");
 			//return EXIT_FAILURE; 
 		}
 
@@ -98,7 +98,7 @@ int main (int argc, char* argv[])
 		int pState(0), gState(0), rState(0);
 		if (myStepper->GetCalibrationState(pState, gState, rState))
 		{
-			std::cout << "Probe state = " << pState << "  Grid state = " << gState  << "  Rotation state = " << rState << std::endl;
+			LOG_INFO("Probe state = " << pState << "  Grid state = " << gState  << "  Rotation state = " << rState );
 		}
 		else
 		{
@@ -110,7 +110,7 @@ int main (int argc, char* argv[])
 		int State=-1;
 		if (myStepper->GetRotateState(State))
 		{
-			std::cout << "Rotate state = " << State << std::endl;
+			LOG_INFO("Rotate state = " << State);
 		}
 		else
 		{
@@ -123,11 +123,11 @@ int main (int argc, char* argv[])
 		if (myStepper->GetMotorizationCode(MotorizationCode)) {
 			if (MotorizationCode > 0)
 			{
-				std::cout << "Tick count = " << MotorizationCode << std::endl;
+				LOG_INFO("Tick count = " << MotorizationCode);
 			}
 			else
 			{
-				std::cout << "Stepper is not motorized" << std::endl;
+				LOG_INFO("Stepper is not motorized"); 
 				//LOG_ERROR("Wrong answer received!");
 				//return EXIT_FAILURE; 
 			}
@@ -142,7 +142,7 @@ int main (int argc, char* argv[])
 		unsigned int Status=-1;
 		if (myStepper->GetStatusInfo(Status))
 		{
-			std::cout << "Status: " << std::hex << Status << std::dec << std::endl;
+			LOG_INFO("Status: " << std::hex << Status << std::dec);
 		}
 		else
 		{
@@ -151,11 +151,14 @@ int main (int argc, char* argv[])
 		}
 
 
-		LOG_INFO( "Getting stepper's version info...");
-		int iVerHi=0; int iVerLo=0; int iModelNum=0; int iSerialNum=0;
-		if (myStepper->GetVersionInfo(iVerHi, iVerLo, iModelNum, iSerialNum))
+		LOG_INFO( "Getting stepper's device info...");
+
+    std::string version; 
+    std::string model; 
+    std::string serial; 
+		if (myStepper->GetDeviceInfo(version, model, serial) == PLUS_SUCCESS )
 		{
-			std::cout << "Version = " << iVerHi << "." << iVerLo << "\tModel = " << iModelNum << "\tSerialno = " << iSerialNum << std::endl;
+			LOG_INFO("Version = " << version << "\tModel = " << model << "\tSerial = " << serial ); 
 		}
 		else
 		{
@@ -167,7 +170,7 @@ int main (int argc, char* argv[])
 		double count = 0; double dist = 0; double scale = 0;
 		if (myStepper->GetProbeReferenceData(count, dist, scale))
 		{
-			std::cout << "Count = " << count << "\tDist = " << dist << "\tScale = " << scale << " mm" << std::endl;
+			LOG_INFO("Count = " << count << "\tDist = " << dist << "\tScale = " << scale << " mm" );
 		}
 		else
 		{
@@ -178,7 +181,7 @@ int main (int argc, char* argv[])
 		LOG_INFO( "Getting stepper's grid reference data...");
 		if (myStepper->GetGridReferenceData(count, dist, scale))
 		{
-			std::cout << "Count = " << count << "\tDist = " << dist << "\tScale = " << scale << " mm" << std::endl;
+			LOG_INFO("Count = " << count << "\tDist = " << dist << "\tScale = " << scale << " mm");
 		}
 		else
 		{
@@ -189,7 +192,7 @@ int main (int argc, char* argv[])
 		LOG_INFO( "Getting stepper's rotation reference data...");
 		if (myStepper->GetRotationReferenceData(count, dist, scale))
 		{
-			std::cout << "Count = " << count << "\tDist = " << dist << "\tScale = " << scale << " deg" << std::endl;
+			LOG_INFO("Count = " << count << "\tDist = " << dist << "\tScale = " << scale << " deg" );
 		}
 		else
 		{
@@ -239,9 +242,9 @@ int main (int argc, char* argv[])
 		{
 			double pposition=0, gposition=0, rposition=0;
 			unsigned long positionRequestNumber(0); 
-			if (myStepper->GetProbePositions(pposition, gposition, rposition, positionRequestNumber))
+			if (myStepper->GetEncoderValues(pposition, gposition, rposition, positionRequestNumber))
 			{
-				std::cout << "Probe = " << pposition << " mm\tGrid = " << gposition << " mm\tRotate = " << rposition << " deg\tRequestNumber = " << positionRequestNumber << std::endl << std::flush;
+				LOG_INFO("Probe = " << pposition << " mm\tGrid = " << gposition << " mm\tRotate = " << rposition << " deg\tRequestNumber = " << positionRequestNumber);
 			}
 			else
 			{
@@ -253,7 +256,7 @@ int main (int argc, char* argv[])
 		}
 
 		LOG_INFO( "Stopping stepper...\n");
-		myStepper->StopTracking(); 
+		myStepper->Disconnect(); 
 	}
 
 	LOG_INFO( "Exit successfully...");

@@ -14,24 +14,81 @@ public:
     CIVCO_STEPPER
   };
 
-  BrachyStepper();
-  virtual ~BrachyStepper(); 
+  BrachyStepper(){};
+  virtual ~BrachyStepper(){}; 
 
-  virtual PlusStatus StartTracking() = 0; 
-  virtual PlusStatus StopTracking() = 0; 
+  // Description:
+  // Connect to stepper
+  virtual PlusStatus Connect() = 0; 
 
-  virtual PlusStatus GetProbePositions(double &PPosition, 
+  // Description:
+  // Disconnect from stepper 
+  virtual PlusStatus Disconnect() = 0; 
+
+  // Description:
+  // Get raw encoder values from stepper 
+  virtual PlusStatus GetEncoderValues(double &PPosition, 
     double &GPosition, double &RPosition, unsigned long &PositionRequestNumber) = 0; 
 
-  virtual PlusStatus GetVersionInfo(int &iVerHi, int &iVerLo, int &iModelNum, int &iSerialNum) = 0; 
+  // Description:
+  // Get stepper model specific information from device 
+  virtual PlusStatus GetDeviceInfo( std::string& version, std::string& model, std::string& serial ) = 0; 
 
+  // Description:
+  // Reset stepper 
   virtual PlusStatus ResetStepper() = 0; 
 
+  // Description:
+  // Set baud rate for communication with the stepper
+  virtual void SetBaudRate(unsigned long BaudRate) = 0; 
+
+  // Description:
+  // Set COM port number for cummunication with the stepper 
+  virtual void SetCOMPort(unsigned long COMPort) = 0; 
+
+  // Description:
+  // Get notification from the stepper 
+  virtual PlusStatus IsStepperAlive() = 0; 
+
+  // Description:
+  // Calibrate stepper 
   virtual PlusStatus CalibrateStepper(std::string &CalibMsg) = 0; 
 
-
-   void SetBrachyStepperType( BRACHY_STEPPER_TYPE type ) { m_BarchyStepperType = type; }
+  // Description:
+  // Set/get bracy stepper type from BRACHY_STEPPER_TYPE
+  void SetBrachyStepperType( BRACHY_STEPPER_TYPE type ) { m_BarchyStepperType = type; }
   BRACHY_STEPPER_TYPE GetBrachyStepperType() { return m_BarchyStepperType; }
+
+  // Description:
+  // Get brachy stepper type in string format
+  static const char* GetBrachyStepperTypeInString(BRACHY_STEPPER_TYPE stepperType) 
+  { 
+    std::string strStepperType = ""; 
+
+    switch(stepperType)
+    { 
+    case BURDETTE_MEDICAL_SYSTEMS_DIGITAL_STEPPER: 
+      strStepperType = "Burdette Medical Systems Digital Stepper"; 
+      break;
+      
+    case BURDETTE_MEDICAL_SYSTEMS_DIGITAL_MOTORIZED_STEPPER: 
+        strStepperType = "Burdette Medical Systems Digital Motorized Stepper"; 
+        break; 
+    
+    case CMS_ACCUSEED_DS300: 
+        strStepperType = "CMS Accuseed DS300"; 
+        break; 
+
+    case CIVCO_STEPPER: 
+        strStepperType = "CIVCO"; 
+        break; 
+    default: 
+      LOG_ERROR("Unable to recognize stepper type: " << stepperType); 
+      strStepperType = ""; 
+    }
+
+    return strStepperType.c_str(); 
+  }
 
 protected: 
 

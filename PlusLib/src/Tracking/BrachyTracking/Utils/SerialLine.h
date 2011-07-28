@@ -4,56 +4,58 @@
 #include <windows.h>
 #include <string>
 
-typedef unsigned long       DWORD;
-typedef unsigned int		UINT;
-typedef unsigned char       BYTE;
-
 class SerialLine  
 {
 public:
 
-	DWORD ClearError();
 
-	SerialLine();
+  typedef unsigned long       DWORD;
+  typedef unsigned int		    UINT;
+  typedef unsigned char       BYTE;
 
-	virtual ~SerialLine();
 
-	bool Open();
+  DWORD ClearError();
 
-	void Close();
+  SerialLine();
 
-	int Write(const BYTE data);
+  virtual ~SerialLine();
 
-	bool Read(BYTE &data);
+  bool Open();
 
-	void SetPortName(const std::string &name) { m_PortName=name; };
-	
-	std::string GetPortName() { return m_PortName; };
+  void Close();
 
-	void SetSerialPortSpeed(DWORD speed) { m_SerialPortSpeed=speed; };
+  int Write(const BYTE data);
 
-	void SetMaxReplyTime(int maxreply) { m_MaxReplyTime=maxreply; };
+  bool Read(BYTE &data);
 
-	int GetMaxReplyTime() { return m_MaxReplyTime; };
+  void SetPortName(const std::string &name) { m_PortName=name; };
 
-	bool IsHandleAlive(){ return (m_CommHandle != INVALID_HANDLE_VALUE); };
+  std::string GetPortName() { return m_PortName; };
+
+  void SetSerialPortSpeed(DWORD speed) { m_SerialPortSpeed=speed; };
+
+  void SetMaxReplyTime(int maxreply) { m_MaxReplyTime=maxreply; };
+
+  int GetMaxReplyTime() { return m_MaxReplyTime; };
+
+  bool IsHandleAlive(){ return (m_CommHandle != INVALID_HANDLE_VALUE); };
 
 private:
-	HANDLE m_CommHandle;
+  HANDLE m_CommHandle;
 
-	std::string m_PortName;
+  std::string m_PortName;
 
-	UINT m_EolDelay;
+  UINT m_EolDelay;
 
-	UINT m_ReplyTimeout;
+  UINT m_ReplyTimeout;
 
-	DWORD m_SerialPortSpeed;
+  DWORD m_SerialPortSpeed;
 
-	int m_MaxReplyTime;
+  int m_MaxReplyTime;
 
-	int UpdateSerialBuffer();
+  int UpdateSerialBuffer();
 
-	OVERLAPPED m_osReadWrite;
+  OVERLAPPED m_osReadWrite;
 };
 
 #endif 

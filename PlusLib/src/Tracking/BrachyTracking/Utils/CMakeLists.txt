@@ -3,7 +3,6 @@ PROJECT(BrachyStepper)
 SET ( BrachyStepper_SRCS 
   CmsBrachyStepper.cxx
   SerialLine.cxx
-  BrachyStepper.cxx 
   CivcoBrachyStepper.cxx 
 )
 

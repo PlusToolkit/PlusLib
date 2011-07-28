@@ -1,10 +1,9 @@
-#include "PlusConfigure.h"
-
 #include "CmsBrachyStepper.h"
 #include <iostream>
 #include <assert.h>
 #include <math.h>
 #include "vtkAccurateTimer.h" 
+#include <sstream>
 
 #define STEPPERDEBUGMSG 0
 
@@ -85,28 +84,28 @@ static CmsBrachyStepper::STEPPERRESPCODE SRC_COUNTERS_INVALID = "29";
 //----------------------------------------------------------------------------
 CmsBrachyStepper::CmsBrachyStepper()
 {
-	CmsBrachyStepper("COM1", 19200); 
+	CmsBrachyStepper(1, 19200); 
 }
 
 //----------------------------------------------------------------------------
-CmsBrachyStepper::CmsBrachyStepper( const char* COMPort, unsigned long BaudRate)
+CmsBrachyStepper::CmsBrachyStepper( unsigned long COMPort, unsigned long BaudRate)
 {
 	m_StepperCOMPort = new SerialLine(); 
-	m_StepperCOMPort->SetPortName(COMPort);
-	m_StepperCOMPort->SetSerialPortSpeed(BaudRate);
+  this->SetCOMPort(COMPort); 
+  this->SetBaudRate(BaudRate); 
 	m_StepperCOMPort->SetMaxReplyTime(1000);
-	m_ProbeScale = 0; 
+
+  m_ProbeScale = 0; 
 	m_GridScale = 0; 
 	m_RotationScale = 0; 
-	m_IsCalibrated = false; 
+
+  m_IsCalibrated = false; 
 	m_PositionRequestNumber = 0; 
 	m_RepeatedPositionErrorCount = 0; 
 
 	m_BarchyStepperType = BURDETTE_MEDICAL_SYSTEMS_DIGITAL_STEPPER; 
 
 	InitializeCriticalSection(&m_CriticalSection);
-
-
 }
 
 //----------------------------------------------------------------------------
@@ -123,14 +122,23 @@ CmsBrachyStepper::~CmsBrachyStepper()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus CmsBrachyStepper::StartTracking()
+void CmsBrachyStepper::SetCOMPort(unsigned long COMPort) 
+{ 
+  std::ostringstream strComPort; 
+  strComPort << "COM" << COMPort; 
+
+  this->m_StepperCOMPort->SetPortName(strComPort.str()); 
+}
+
+//----------------------------------------------------------------------------
+PlusStatus CmsBrachyStepper::Connect()
 {
 	if (!this->m_StepperCOMPort->IsHandleAlive())
 	{
 		this->m_StepperCOMPort->Open(); 
 	}
 
-  if ( !this->IsStepperAlive() )
+  if ( this->IsStepperAlive() != PLUS_SUCCESS )
   {
     LOG_ERROR("Stepper is not alive");
     return PLUS_FAIL;
@@ -151,10 +159,35 @@ PlusStatus CmsBrachyStepper::StartTracking()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus CmsBrachyStepper::StopTracking()
+PlusStatus CmsBrachyStepper::Disconnect()
 {
 	this->m_StepperCOMPort->Close();
 
+  return PLUS_SUCCESS; 
+}
+
+//----------------------------------------------------------------------------
+PlusStatus CmsBrachyStepper::GetDeviceInfo( std::string& version, std::string& model, std::string& serial )
+{
+  int iVerHi=0; int iVerLo=0; int iModelNum=0; int iSerialNum=0;
+  if ( this->GetVersionInfo(iVerHi, iVerLo, iModelNum, iSerialNum) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to get version info from stepper!"); 
+    return PLUS_FAIL; 
+  }
+
+  std::ostringstream strVersion; 
+  strVersion << iVerHi << "." << iVerLo; 
+  version = strVersion.str(); 
+
+  std::ostringstream strModel; 
+  strModel << iModelNum; 
+  model = strModel.str(); 
+
+  std::ostringstream strSerial; 
+  strSerial << iSerialNum; 
+  serial = strSerial.str(); 
+  
   return PLUS_SUCCESS; 
 }
 
@@ -266,7 +299,7 @@ PlusStatus CmsBrachyStepper::GetRotationReferenceData(double &count, double &dis
 }
 
 //----------------------------------------------------------------------------
-PlusStatus CmsBrachyStepper::GetProbePositions(double &PPosition, double &GPosition, double &RPosition, unsigned long &PositionRequestNumber)
+PlusStatus CmsBrachyStepper::GetEncoderValues(double &PPosition, double &GPosition, double &RPosition, unsigned long &PositionRequestNumber)
 {
 	// Increase the m_PositionNumber on every position request
 	PositionRequestNumber = ++m_PositionRequestNumber; 
@@ -305,8 +338,8 @@ PlusStatus CmsBrachyStepper::GetProbePositions(double &PPosition, double &GPosit
 	if ( m_RepeatedPositionErrorCount >= MAX_REPEATED_POSITION_ERROR_COUNT )
 	{
 		m_RepeatedPositionErrorCount = 0; 
-		this->StopTracking(); 
-		this->StartTracking(); 
+		this->Disconnect(); 
+		this->Connect(); 
 	}
 
 	return retValue;
@@ -392,7 +425,7 @@ bool CmsBrachyStepper::IsStepperCalibrated()
 }
 
 //----------------------------------------------------------------------------
-bool CmsBrachyStepper::IsStepperAlive()
+PlusStatus CmsBrachyStepper::IsStepperAlive()
 {
 	unsigned int Status;
 	if (!this->GetStatusInfo(Status))
@@ -589,7 +622,7 @@ PlusStatus CmsBrachyStepper::MoveProbeToPosition(double PositionInMm, int &Retur
 
 	double pPosition(0), gPosition(0), pRotation(0); 
 	unsigned long positionRequestNumber(0); 
-	if ( !this->GetProbePositions(pPosition, gPosition, pRotation, positionRequestNumber) )
+	if ( !this->GetEncoderValues(pPosition, gPosition, pRotation, positionRequestNumber) )
 	{
 		// Unable to get probe position
 		return PLUS_FAIL; 
