@@ -182,17 +182,17 @@ SET (BRACHY_TRACKER_LIBRARY)
 IF (PLUS_USE_BRACHY_TRACKER)
 	SET (Tracking_SRCS
 		${Tracking_SRCS}
-		AMSTracking/vtkBrachyTracker.cxx
+		BrachyTracking/vtkBrachyTracker.cxx
 	)
 	
 	if (WIN32)	
 		SET (Tracking_HDRS
 			${Tracking_HDRS}
-			AMSTracking/vtkBrachyTracker.h
+			BrachyTracking/vtkBrachyTracker.h
 			)
 	endif (WIN32)
 	
-	ADD_SUBDIRECTORY(AMSTracking/Utils)
+	ADD_SUBDIRECTORY(BrachyTracking/Utils)
 	
     SET (PLUSLIB_INCLUDE_DIRS 
                 ${PLUSLIB_INCLUDE_DIRS} 
