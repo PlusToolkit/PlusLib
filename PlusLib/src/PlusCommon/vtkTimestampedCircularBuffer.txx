@@ -663,13 +663,12 @@ PlusStatus vtkTimestampedCircularBuffer<BufferItemType>::CreateFilteredTimeStamp
   outFilteredTimestamp = a * itemIndex + b; 
 
   if (fabs(outFilteredTimestamp-inUnfilteredTimestamp)>this->MaxAllowedFilteringTimeDifference)
-  {    
-    LOG_ERROR("Difference between unfiltered timestamp ("<<inUnfilteredTimestamp<<") and filtered timestamp ("<<outFilteredTimestamp<<") is larger than the threshold ("<<this->MaxAllowedFilteringTimeDifference<<").");	
-
+  { 
     // Write current timestamps and frame indexes to the log to allow investigation of the problem
-    LOG_ERROR("timestamps = [" << std::fixed << this->FilterContainerTimestampVector << "];");
-    LOG_ERROR("frameindexes = [" << std::fixed << this->FilterContainerIndexVector << "];");
-
+    LOG_WARNING("Difference between unfiltered timestamp is larger than the threshold. The unfiltered timestamp may be incorrect."
+      << " Unfiltered timestamp: "<<inUnfilteredTimestamp<<", filtered timestamp: "<<outFilteredTimestamp<<", difference: "<<fabs(outFilteredTimestamp-inUnfilteredTimestamp)<<", threshold: "<<this->MaxAllowedFilteringTimeDifference<<"."
+      << " timestamps = [" << std::fixed << this->FilterContainerTimestampVector << "];"
+      << " frameindexes = [" << std::fixed << this->FilterContainerIndexVector << "];");	
     this->Unlock();  
     return PLUS_FAIL;
   }
