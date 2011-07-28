@@ -1,7 +1,7 @@
 
 #ifndef _RAWSERIALLINE_H_
 #define _RAWSERIALLINE_H_
-#include "vtkStepperWin32Header.h"
+#include <windows.h>
 #include <string>
 
 typedef unsigned long       DWORD;

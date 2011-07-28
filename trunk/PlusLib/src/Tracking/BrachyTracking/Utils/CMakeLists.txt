@@ -12,7 +12,6 @@ if (WIN32)
 	SET (BrachyStepper_HDRS
 		CmsBrachyStepper.h 
 		SerialLine.h 
-		vtkStepperWin32Header.h 
         BrachyStepper.h 
         CivcoBrachyStepper.h
 		)
