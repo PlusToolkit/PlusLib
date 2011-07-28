@@ -160,6 +160,8 @@ vtkOpenIGTLinkBroadcaster::Status
 vtkOpenIGTLinkBroadcaster
 ::SendMessages( std::string strError )
 {
+    // Check status and possible errors.
+  
   if ( this->InternalStatus == STATUS_NOT_INITIALIZED )
     {
     LOG_WARNING( "Broadcaster not initialized." );
