@@ -27,25 +27,33 @@ public:
 
   CmsBrachyStepper();
 
-  CmsBrachyStepper(const char* COMPort, unsigned long BaudRate);
-
+  CmsBrachyStepper(unsigned long COMPort, unsigned long BaudRate);
   virtual ~CmsBrachyStepper();
 
-  
-  virtual PlusStatus StartTracking(); 
+  // Connect to CMS stepper    
+  virtual PlusStatus Connect(); 
 
-  virtual PlusStatus StopTracking(); 
+  // Disconnect from CMS stepper 
+  virtual PlusStatus Disconnect(); 
 
-  virtual PlusStatus GetProbePositions(double &PPosition, 
+  // Get raw encoder values from stepper 
+  virtual PlusStatus GetEncoderValues(double &PPosition, 
     double &GPosition, double &RPosition, unsigned long &PositionRequestNumber);
 
-  virtual PlusStatus GetVersionInfo(int &iVerHi, int &iVerLo, int &iModelNum, int &iSerialNum);
+  virtual PlusStatus GetDeviceInfo( std::string& version, std::string& model, std::string& serial ); 
 
   virtual PlusStatus ResetStepper();
 
   virtual PlusStatus CalibrateStepper(std::string &CalibMsg);
 
+  virtual void SetBaudRate(unsigned long BaudRate) { this->m_StepperCOMPort->SetSerialPortSpeed(BaudRate); }
 
+  virtual void SetCOMPort(unsigned long COMPort); 
+
+  virtual PlusStatus IsStepperAlive();
+
+
+  //*********************************************
 
   PlusStatus GetStatusInfo(unsigned int &Status);
 
@@ -55,31 +63,26 @@ public:
 
   PlusStatus GetRotationReferenceData(double &count, double &dist, double &scale);
 
-  
-
   PlusStatus GetCalibrationState(int &PState, int &GState, int &RState);
 
   PlusStatus GetRotateState(int &State);
 
-  void SetBaudRate(unsigned long BaudRate) { this->m_StepperCOMPort->SetSerialPortSpeed(BaudRate); }
-
-  void SetCOMPort(const char* COMPort) { this->m_StepperCOMPort->SetPortName(COMPort); }
-
   bool IsStepperCalibrated();
-
-  bool IsStepperAlive();
-
-  
-
-  PlusStatus TurnMotorOn(); 
-
-  PlusStatus TurnMotorOff(); 
 
   PlusStatus GetMotorizationCode(int &MotorizationCode); 
 
   bool IsStepperMotorized(); 
 
   PlusStatus MoveProbeToPosition(double PositionInMm, int &ReturnCode); 
+ 
+
+protected:	
+
+  PlusStatus GetVersionInfo(int &iVerHi, int &iVerLo, int &iModelNum, int &iSerialNum); 
+
+  PlusStatus TurnMotorOn(); 
+
+  PlusStatus TurnMotorOff(); 
 
   PlusStatus StepperButtonEnable();
 
@@ -92,10 +95,9 @@ public:
   void SetScalingParameters();
 
   void ClearBuffer(); 
+  
 
- 
 
-private:	
   unsigned int AsciiToBin(unsigned int i, unsigned int j);
 
   void BinToAscii(unsigned int n, unsigned char *c1, unsigned char *c2);

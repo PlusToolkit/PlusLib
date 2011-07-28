@@ -40,7 +40,7 @@ public:
 	// Disconnect from device 
 	virtual PlusStatus Disconnect();
 
-	// Description:
+  // Description:
 	// Probe to see if the tracking system is present on the
 	// specified serial port.  If the SerialPort is set to -1,
 	// then all serial ports will be checked.
@@ -105,28 +105,34 @@ public:
 	// Description:
 	// Get the a string (perhaps a long one) describing the type and version
 	// of the device.
-	vtkGetStringMacro(Version);
+	vtkGetStringMacro(ModelVersion);
+
+ 	// Description:
+	// Get stepper model number
+	vtkGetStringMacro(ModelNumber);
+
+	// Description:
+	// Get stepper serial number 
+	vtkGetStringMacro(ModelSerialNumber);
 
 	// Description:
 	// Set which serial port to use, COM1 through COM4.
-	vtkSetStringMacro(SerialPort);
-	vtkGetStringMacro(SerialPort);
+	vtkSetMacro(SerialPort, unsigned long);
+	vtkGetMacro(SerialPort, unsigned long);
 
 	// Description:
 	// Set the desired baud rate.  Default: 9600.  
 	vtkSetMacro(BaudRate, unsigned long);
 	vtkGetMacro(BaudRate, unsigned long);
 
-	// Description:
-	// Set/get stepper model number
-	vtkSetMacro(ModelNumber, int);
-	vtkGetMacro(ModelNumber, int);
+  // Description:
+	// Get stepper calibration algorithm version 
+	vtkGetStringMacro(CalibrationAlgorithmVersion);
 
-	// Description:
-	// Set/get stepper serial number 
-	vtkSetMacro(SerialNumber, int);
-	vtkGetMacro(SerialNumber, int);
-
+  // Description:
+	// Get stepper calibration date
+	vtkGetStringMacro(CalibrationDate);
+  
 	// Description:
 	// Set/get probe translation axis orientation vector[Tx, Ty, 1]
 	vtkSetVector3Macro(ProbeTranslationAxisOrientation, double); 
@@ -162,9 +168,25 @@ protected:
 	~vtkBrachyTracker();
 
 	// Description:
-	// Set the version information.
-	vtkSetStringMacro(Version);
+	// Set the stepper model version information.
+	vtkSetStringMacro(ModelVersion);
 
+  // Description:
+	// Set the stepper model number
+	vtkSetStringMacro(ModelNumber);
+
+  // Description:
+	// Set the stepper serial number
+	vtkSetStringMacro(ModelSerialNumber);
+
+  // Description:
+	// Set stepper calibration algorithm version 
+	vtkSetStringMacro(CalibrationAlgorithmVersion);
+
+  // Description:
+	// Set stepper calibration date
+	vtkSetStringMacro(CalibrationDate);
+  
 	// Description:
 	// Start the tracking system.  The tracking system is brought from
 	// its ground state into full tracking mode.  The device will
@@ -183,12 +205,20 @@ protected:
 
 	BrachyStepper *Device;
 
-	char *Version;
-	int ModelNumber; 
-	int SerialNumber; 
+	char *ModelVersion;
+	char *ModelNumber; 
+	char *ModelSerialNumber; 
 
-	char* SerialPort; 
+	unsigned long SerialPort; 
 	unsigned long BaudRate;
+
+  //========== Stepper calibration ==================
+  
+  // Stepper calibration algorithm version 
+  char* CalibrationAlgorithmVersion; 
+
+  // Stepper calibration data
+  char* CalibrationDate; 
 
 	// Probe translation axis orientation vector[Tx, Ty, 1]
 	double ProbeTranslationAxisOrientation[3]; 
