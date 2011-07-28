@@ -13,7 +13,6 @@
 **************************************************************/
 
 #include "PlusConfigure.h"
-#include "vtkStepperWin32Header.h"
 #include "BrachyStepper.h"
 #include "SerialLine.h"
 #include <vector>
