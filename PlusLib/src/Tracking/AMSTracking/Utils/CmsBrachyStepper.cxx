@@ -1,6 +1,6 @@
 #include "PlusConfigure.h"
 
-#include "AMSStepper.h"
+#include "CmsBrachyStepper.h"
 #include <iostream>
 #include <assert.h>
 #include <math.h>
@@ -33,63 +33,63 @@ static const char* CALIB_MSG_ROTATION_TO_HOME = "Rotate the probe to zero degree
 
 static const char* CALIB_MSG_COMPLETED = "Calibration completed!";
 
-static STEPPERCOMMAND SC_VERSION_INFO = "5151";
-static STEPPERRESPCODE SRC_VERSION_INFO = "37";
+static CmsBrachyStepper::STEPPERCOMMAND SC_VERSION_INFO = "5151";
+static CmsBrachyStepper::STEPPERRESPCODE SRC_VERSION_INFO = "37";
 
-static STEPPERCOMMAND SC_STATUS_INFO = "2121";
-static STEPPERRESPCODE SRC_STATUS_INFO = "22";
+static CmsBrachyStepper::STEPPERCOMMAND SC_STATUS_INFO = "2121";
+static CmsBrachyStepper::STEPPERRESPCODE SRC_STATUS_INFO = "22";
 
-static STEPPERCOMMAND SC_PROBE_REFERENCE_DATA = "3939";
-static STEPPERRESPCODE SRC_PROBE_REFERENCE_DATA = "4D";
+static CmsBrachyStepper::STEPPERCOMMAND SC_PROBE_REFERENCE_DATA = "3939";
+static CmsBrachyStepper::STEPPERRESPCODE SRC_PROBE_REFERENCE_DATA = "4D";
 
-static STEPPERCOMMAND SC_GRID_REFERENCE_DATA = "4141";
-static STEPPERRESPCODE SRC_GRID_REFERENCE_DATA = "55";
+static CmsBrachyStepper::STEPPERCOMMAND SC_GRID_REFERENCE_DATA = "4141";
+static CmsBrachyStepper::STEPPERRESPCODE SRC_GRID_REFERENCE_DATA = "55";
 
-static STEPPERCOMMAND SC_ROTATION_REFERENCE_DATA = "4949";
-static STEPPERRESPCODE SRC_ROTATION_REFERENCE_DATA = "5D";
+static CmsBrachyStepper::STEPPERCOMMAND SC_ROTATION_REFERENCE_DATA = "4949";
+static CmsBrachyStepper::STEPPERRESPCODE SRC_ROTATION_REFERENCE_DATA = "5D";
 
-static STEPPERCOMMAND SC_CALIBRATION_STATES = "7171";
-static STEPPERRESPCODE SRC_CALIBRATION_STATES = "74";
+static CmsBrachyStepper::STEPPERCOMMAND SC_CALIBRATION_STATES = "7171";
+static CmsBrachyStepper::STEPPERRESPCODE SRC_CALIBRATION_STATES = "74";
 
-static STEPPERCOMMAND SC_ROTATE_STATE = "5959";
-static STEPPERRESPCODE SRC_ROTATE_STATE = "8A";
+static CmsBrachyStepper::STEPPERCOMMAND SC_ROTATE_STATE = "5959";
+static CmsBrachyStepper::STEPPERRESPCODE SRC_ROTATE_STATE = "8A";
 
-static STEPPERCOMMAND SC_POSITION_DATA_1 = "1919" ;
-static STEPPERCOMMAND SC_POSITION_DATA_2 = "9999";
-static STEPPERRESPCODE SRC_POSITION_DATA_BUTTON_OFF = "07";
-static STEPPERRESPCODE SRC_POSITION_DATA_BUTTON_ON = "47";
-static STEPPERRESPCODE SRC_POSITION_DATA_BUTTON_LATCH = "67";
+static CmsBrachyStepper::STEPPERCOMMAND SC_POSITION_DATA_1 = "1919" ;
+static CmsBrachyStepper::STEPPERCOMMAND SC_POSITION_DATA_2 = "9999";
+static CmsBrachyStepper::STEPPERRESPCODE SRC_POSITION_DATA_BUTTON_OFF = "07";
+static CmsBrachyStepper::STEPPERRESPCODE SRC_POSITION_DATA_BUTTON_ON = "47";
+static CmsBrachyStepper::STEPPERRESPCODE SRC_POSITION_DATA_BUTTON_LATCH = "67";
 
 // For motorized steppers
-static STEPPERCOMMAND SC_MOTOR_ON = "8A018B";
-static STEPPERCOMMAND SC_MOTOR_OFF = "8A008A";
-static STEPPERCOMMAND SC_IS_MOTORIZED = "8181";
-static STEPPERRESPCODE SRC_MOTORIZATION_CODE = "82";
-static STEPPERRESPCODE SRC_MOVE_COMPLETE = "7A";
+static CmsBrachyStepper::STEPPERCOMMAND SC_MOTOR_ON = "8A018B";
+static CmsBrachyStepper::STEPPERCOMMAND SC_MOTOR_OFF = "8A008A";
+static CmsBrachyStepper::STEPPERCOMMAND SC_IS_MOTORIZED = "8181";
+static CmsBrachyStepper::STEPPERRESPCODE SRC_MOTORIZATION_CODE = "82";
+static CmsBrachyStepper::STEPPERRESPCODE SRC_MOVE_COMPLETE = "7A";
 
-static STEPPERCOMMAND SC_RESET_SYSTEM = "0101";
+static CmsBrachyStepper::STEPPERCOMMAND SC_RESET_SYSTEM = "0101";
 
-static STEPPERCOMMAND SC_BUTTON_ENABLE = "2929";
+static CmsBrachyStepper::STEPPERCOMMAND SC_BUTTON_ENABLE = "2929";
 
-static STEPPERCOMMAND SC_BUTTON_DISABLE = "3131";
+static CmsBrachyStepper::STEPPERCOMMAND SC_BUTTON_DISABLE = "3131";
 
-static STEPPERCOMMAND SC_ENABLE_ROTATE_CALIBRATION = "920193";
+static CmsBrachyStepper::STEPPERCOMMAND SC_ENABLE_ROTATE_CALIBRATION = "920193";
 
-static STEPPERCOMMAND SC_DISABLE_ROTATE_CALIBRATION = "920092";
+static CmsBrachyStepper::STEPPERCOMMAND SC_DISABLE_ROTATE_CALIBRATION = "920092";
 
-static STEPPERRESPCODE SRC_COUNTERS_INVALID = "29";
+static CmsBrachyStepper::STEPPERRESPCODE SRC_COUNTERS_INVALID = "29";
 
 //******************************************************************
 //******************************************************************
 
 //----------------------------------------------------------------------------
-AMSStepper::AMSStepper()
+CmsBrachyStepper::CmsBrachyStepper()
 {
-	AMSStepper("COM1", 19200); 
+	CmsBrachyStepper("COM1", 19200); 
 }
 
 //----------------------------------------------------------------------------
-AMSStepper::AMSStepper( const char* COMPort, unsigned long BaudRate)
+CmsBrachyStepper::CmsBrachyStepper( const char* COMPort, unsigned long BaudRate)
 {
 	m_StepperCOMPort = new SerialLine(); 
 	m_StepperCOMPort->SetPortName(COMPort);
@@ -110,7 +110,7 @@ AMSStepper::AMSStepper( const char* COMPort, unsigned long BaudRate)
 }
 
 //----------------------------------------------------------------------------
-AMSStepper::~AMSStepper()
+CmsBrachyStepper::~CmsBrachyStepper()
 {
 	if (m_StepperCOMPort->IsHandleAlive())
 	{
@@ -123,7 +123,7 @@ AMSStepper::~AMSStepper()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus AMSStepper::StartTracking()
+PlusStatus CmsBrachyStepper::StartTracking()
 {
 	if (!this->m_StepperCOMPort->IsHandleAlive())
 	{
@@ -151,13 +151,15 @@ PlusStatus AMSStepper::StartTracking()
 }
 
 //----------------------------------------------------------------------------
-void AMSStepper::StopTracking()
+PlusStatus CmsBrachyStepper::StopTracking()
 {
 	this->m_StepperCOMPort->Close();
+
+  return PLUS_SUCCESS; 
 }
 
 //----------------------------------------------------------------------------
-PlusStatus AMSStepper::GetStatusInfo(unsigned int &Status)
+PlusStatus CmsBrachyStepper::GetStatusInfo(unsigned int &Status)
 {
 	std::vector<BYTE> vDecodedMessage;
 	PlusStatus retValue(PLUS_FAIL); 
@@ -178,7 +180,7 @@ PlusStatus AMSStepper::GetStatusInfo(unsigned int &Status)
 }
 
 //----------------------------------------------------------------------------
-PlusStatus AMSStepper::GetVersionInfo(int &iVerHi, int &iVerLo, int &iModelNum, int &iSerialNum)
+PlusStatus CmsBrachyStepper::GetVersionInfo(int &iVerHi, int &iVerLo, int &iModelNum, int &iSerialNum)
 {
 	std::vector<BYTE> vDecodedMessage; 
 	PlusStatus retValue(PLUS_FAIL); 
@@ -202,7 +204,7 @@ PlusStatus AMSStepper::GetVersionInfo(int &iVerHi, int &iVerLo, int &iModelNum, 
 }
 
 //----------------------------------------------------------------------------
-PlusStatus AMSStepper::GetReferenceData(STEPPERCOMMAND command, STEPPERRESPCODE respcode, double &count, double &dist, double &scale)
+PlusStatus CmsBrachyStepper::GetReferenceData(STEPPERCOMMAND command, STEPPERRESPCODE respcode, double &count, double &dist, double &scale)
 {
 	std::vector<BYTE> vDecodedMessage; 
 	PlusStatus retValue(PLUS_FAIL); 
@@ -225,7 +227,7 @@ PlusStatus AMSStepper::GetReferenceData(STEPPERCOMMAND command, STEPPERRESPCODE 
 }
 
 //----------------------------------------------------------------------------
-PlusStatus AMSStepper::GetProbeReferenceData(double &count, double &dist, double &scale)
+PlusStatus CmsBrachyStepper::GetProbeReferenceData(double &count, double &dist, double &scale)
 {	
 	count = 0; dist = 0; scale = 0; 
 	if (GetReferenceData(SC_PROBE_REFERENCE_DATA,SRC_PROBE_REFERENCE_DATA,count, dist, scale))
@@ -238,7 +240,7 @@ PlusStatus AMSStepper::GetProbeReferenceData(double &count, double &dist, double
 }
 
 //----------------------------------------------------------------------------
-PlusStatus AMSStepper::GetGridReferenceData(double &count, double &dist, double &scale)
+PlusStatus CmsBrachyStepper::GetGridReferenceData(double &count, double &dist, double &scale)
 {
 	count = 0; dist = 0; scale = 0; 
 	if (GetReferenceData(SC_GRID_REFERENCE_DATA,SRC_GRID_REFERENCE_DATA,count, dist, scale)) 
@@ -251,7 +253,7 @@ PlusStatus AMSStepper::GetGridReferenceData(double &count, double &dist, double 
 }
 
 //----------------------------------------------------------------------------
-PlusStatus AMSStepper::GetRotationReferenceData(double &count, double &dist, double &scale)
+PlusStatus CmsBrachyStepper::GetRotationReferenceData(double &count, double &dist, double &scale)
 {
 	count = 0; dist = 0; scale = 0; 
 	if (GetReferenceData(SC_ROTATION_REFERENCE_DATA,SRC_ROTATION_REFERENCE_DATA,count, dist, scale))
@@ -264,7 +266,7 @@ PlusStatus AMSStepper::GetRotationReferenceData(double &count, double &dist, dou
 }
 
 //----------------------------------------------------------------------------
-PlusStatus AMSStepper::GetProbePositions(double &PPosition, double &GPosition, double &RPosition, unsigned long &PositionRequestNumber)
+PlusStatus CmsBrachyStepper::GetProbePositions(double &PPosition, double &GPosition, double &RPosition, unsigned long &PositionRequestNumber)
 {
 	// Increase the m_PositionNumber on every position request
 	PositionRequestNumber = ++m_PositionRequestNumber; 
@@ -311,7 +313,7 @@ PlusStatus AMSStepper::GetProbePositions(double &PPosition, double &GPosition, d
 }
 
 //----------------------------------------------------------------------------
-PlusStatus AMSStepper::GetCalibrationState(int &PState, int &GState, int &RState)
+PlusStatus CmsBrachyStepper::GetCalibrationState(int &PState, int &GState, int &RState)
 {
 	std::vector<BYTE> vDecodedMessage; 
 	PlusStatus retValue(PLUS_FAIL); 
@@ -334,7 +336,7 @@ PlusStatus AMSStepper::GetCalibrationState(int &PState, int &GState, int &RState
 }
 
 //----------------------------------------------------------------------------
-PlusStatus AMSStepper::GetRotateState(int &State)
+PlusStatus CmsBrachyStepper::GetRotateState(int &State)
 {
 	std::vector<BYTE> vDecodedMessage; 
 	PlusStatus retValue(PLUS_FAIL); 
@@ -356,7 +358,7 @@ PlusStatus AMSStepper::GetRotateState(int &State)
 }
 
 //----------------------------------------------------------------------------
-bool AMSStepper::IsStepperCalibrated()
+bool CmsBrachyStepper::IsStepperCalibrated()
 {
 	int PState = 0, GState = 0, RState = 0;
 	this->m_IsCalibrated = false; 
@@ -390,7 +392,7 @@ bool AMSStepper::IsStepperCalibrated()
 }
 
 //----------------------------------------------------------------------------
-bool AMSStepper::IsStepperAlive()
+bool CmsBrachyStepper::IsStepperAlive()
 {
 	unsigned int Status;
 	if (!this->GetStatusInfo(Status))
@@ -401,7 +403,7 @@ bool AMSStepper::IsStepperAlive()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus AMSStepper::CalibrateStepper(std::string &CalibMsg)
+PlusStatus CmsBrachyStepper::CalibrateStepper(std::string &CalibMsg)
 {
 	int PState = 0, GState = 0, RState = 0;
 	this->GetCalibrationState(PState, GState, RState);
@@ -464,7 +466,7 @@ PlusStatus AMSStepper::CalibrateStepper(std::string &CalibMsg)
 }
 
 //----------------------------------------------------------------------------
-PlusStatus AMSStepper::ResetStepper()
+PlusStatus CmsBrachyStepper::ResetStepper()
 {
 	PlusStatus retValue(PLUS_FAIL); 
 	EnterCriticalSection(&m_CriticalSection);
@@ -484,7 +486,7 @@ PlusStatus AMSStepper::ResetStepper()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus AMSStepper::TurnMotorOn()
+PlusStatus CmsBrachyStepper::TurnMotorOn()
 {
 	PlusStatus retValue(PLUS_FAIL); 
 	EnterCriticalSection(&m_CriticalSection);
@@ -504,7 +506,7 @@ PlusStatus AMSStepper::TurnMotorOn()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus AMSStepper::TurnMotorOff()
+PlusStatus CmsBrachyStepper::TurnMotorOff()
 {
 	PlusStatus retValue(PLUS_FAIL); 
 	EnterCriticalSection(&m_CriticalSection);
@@ -524,7 +526,7 @@ PlusStatus AMSStepper::TurnMotorOff()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus AMSStepper::GetMotorizationCode(int &MotorizationCode)
+PlusStatus CmsBrachyStepper::GetMotorizationCode(int &MotorizationCode)
 {
 	PlusStatus retValue(PLUS_FAIL); 
 	EnterCriticalSection(&m_CriticalSection);
@@ -548,7 +550,7 @@ PlusStatus AMSStepper::GetMotorizationCode(int &MotorizationCode)
 }
 
 //----------------------------------------------------------------------------
-bool AMSStepper::IsStepperMotorized()
+bool CmsBrachyStepper::IsStepperMotorized()
 {
 	bool retValue(false);
 	int motorizationCode(0); 
@@ -564,7 +566,7 @@ bool AMSStepper::IsStepperMotorized()
 
 
 //----------------------------------------------------------------------------
-PlusStatus AMSStepper::MoveProbeToPosition(double PositionInMm, int &ReturnCode)
+PlusStatus CmsBrachyStepper::MoveProbeToPosition(double PositionInMm, int &ReturnCode)
 {
 	int motorizationCode(0); 
 	if ( !this->IsStepperMotorized() )
@@ -654,7 +656,7 @@ PlusStatus AMSStepper::MoveProbeToPosition(double PositionInMm, int &ReturnCode)
 }
 
 //----------------------------------------------------------------------------
-PlusStatus AMSStepper::StepperButtonEnable()
+PlusStatus CmsBrachyStepper::StepperButtonEnable()
 {
 	PlusStatus retValue(PLUS_FAIL); 
 	EnterCriticalSection(&m_CriticalSection);
@@ -674,7 +676,7 @@ PlusStatus AMSStepper::StepperButtonEnable()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus AMSStepper::StepperButtonDisable()
+PlusStatus CmsBrachyStepper::StepperButtonDisable()
 {
 	PlusStatus retValue(PLUS_FAIL); 
 	EnterCriticalSection(&m_CriticalSection);
@@ -694,7 +696,7 @@ PlusStatus AMSStepper::StepperButtonDisable()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus AMSStepper::StepperRotateCalibrationEnable()
+PlusStatus CmsBrachyStepper::StepperRotateCalibrationEnable()
 {
 	PlusStatus retValue(PLUS_FAIL); 
 	EnterCriticalSection(&m_CriticalSection);
@@ -714,7 +716,7 @@ PlusStatus AMSStepper::StepperRotateCalibrationEnable()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus AMSStepper::StepperRotateCalibrationDisable()
+PlusStatus CmsBrachyStepper::StepperRotateCalibrationDisable()
 {
 	PlusStatus retValue(PLUS_FAIL); 
 	EnterCriticalSection(&m_CriticalSection);
@@ -734,7 +736,7 @@ PlusStatus AMSStepper::StepperRotateCalibrationDisable()
 }
 
 //----------------------------------------------------------------------------
-void AMSStepper::SendStepperCommand(STEPPERCOMMAND command, STEPPERRESPCODE Response, std::vector<BYTE> &vRawMessage)
+void CmsBrachyStepper::SendStepperCommand(STEPPERCOMMAND command, STEPPERRESPCODE Response, std::vector<BYTE> &vRawMessage)
 {
 	vRawMessage.clear(); 
 
@@ -744,7 +746,7 @@ void AMSStepper::SendStepperCommand(STEPPERCOMMAND command, STEPPERRESPCODE Resp
 }
 
 //----------------------------------------------------------------------------
-void AMSStepper::SendPositionRequestCommand(STEPPERCOMMAND command, std::vector<BYTE> &vRawMessage)
+void CmsBrachyStepper::SendPositionRequestCommand(STEPPERCOMMAND command, std::vector<BYTE> &vRawMessage)
 {
 	vRawMessage.clear(); 
 
@@ -775,7 +777,7 @@ void AMSStepper::SendPositionRequestCommand(STEPPERCOMMAND command, std::vector<
 }
 
 //----------------------------------------------------------------------------
-void AMSStepper::StepperInstruction(STEPPERCOMMAND command)
+void CmsBrachyStepper::StepperInstruction(STEPPERCOMMAND command)
 {
 	const char* p = command; 
 
@@ -805,7 +807,7 @@ void AMSStepper::StepperInstruction(STEPPERCOMMAND command)
 }
 
 //----------------------------------------------------------------------------
-void AMSStepper::ReadStepperAnswer(std::vector<BYTE> &stepperAnswer)
+void CmsBrachyStepper::ReadStepperAnswer(std::vector<BYTE> &stepperAnswer)
 {
 	stepperAnswer.clear(); 
 	BYTE buff = 0;
@@ -838,7 +840,7 @@ void AMSStepper::ReadStepperAnswer(std::vector<BYTE> &stepperAnswer)
 }
 
 //----------------------------------------------------------------------------
-bool AMSStepper::IsStepperACKRecieved(std::vector<BYTE> &ackMessage, STEPPERCOMMAND command )
+bool CmsBrachyStepper::IsStepperACKRecieved(std::vector<BYTE> &ackMessage, STEPPERCOMMAND command )
 {
 	this->ReadStepperAnswer(ackMessage);
 
@@ -866,7 +868,7 @@ bool AMSStepper::IsStepperACKRecieved(std::vector<BYTE> &ackMessage, STEPPERCOMM
 }
 
 //----------------------------------------------------------------------------
-void AMSStepper::GetStepperMessage(STEPPERCOMMAND command, const char* Response, std::vector<BYTE> &DecodedMessage )
+void CmsBrachyStepper::GetStepperMessage(STEPPERCOMMAND command, const char* Response, std::vector<BYTE> &DecodedMessage )
 {
 	DecodedMessage.clear(); 
 
@@ -905,7 +907,7 @@ void AMSStepper::GetStepperMessage(STEPPERCOMMAND command, const char* Response,
 }
 
 //----------------------------------------------------------------------------
-void AMSStepper::SendAckMessage(std::vector<BYTE> StepperMessage)
+void CmsBrachyStepper::SendAckMessage(std::vector<BYTE> StepperMessage)
 {
 	// Don't respond ack to an ack message
 	if ( StepperMessage.size() < 2 || StepperMessage[1] == 'F' )
@@ -923,7 +925,7 @@ void AMSStepper::SendAckMessage(std::vector<BYTE> StepperMessage)
 }
 
 //----------------------------------------------------------------------------
-void AMSStepper::GetPositionMessage(std::vector<BYTE> &StepperMessage, std::vector<BYTE> &DecodedMessage)
+void CmsBrachyStepper::GetPositionMessage(std::vector<BYTE> &StepperMessage, std::vector<BYTE> &DecodedMessage)
 {
 	DecodedMessage.clear(); 
 
@@ -960,7 +962,7 @@ void AMSStepper::GetPositionMessage(std::vector<BYTE> &StepperMessage, std::vect
 }
 
 //----------------------------------------------------------------------------
-void AMSStepper::DecodeStepperMessage(std::vector<BYTE> StepperMessage, std::vector<BYTE> &DecodedMessage)
+void CmsBrachyStepper::DecodeStepperMessage(std::vector<BYTE> StepperMessage, std::vector<BYTE> &DecodedMessage)
 {
 	DecodedMessage.clear(); 
 	DecodedMessage.reserve(50);
@@ -986,7 +988,7 @@ void AMSStepper::DecodeStepperMessage(std::vector<BYTE> StepperMessage, std::vec
 }
 
 //----------------------------------------------------------------------------
-void AMSStepper::SetScalingParameters()
+void CmsBrachyStepper::SetScalingParameters()
 {
 	// get reference data for scaling
 	double count = 0, dist = 0, scale = 0;
@@ -997,14 +999,14 @@ void AMSStepper::SetScalingParameters()
 }
 
 //----------------------------------------------------------------------------
-void AMSStepper::ClearBuffer()
+void CmsBrachyStepper::ClearBuffer()
 {
 	BYTE buff;
 	while ( m_StepperCOMPort->Read(buff)){}
 }
 
 //----------------------------------------------------------------------------
-void AMSStepper::CreateAckMessage(BYTE opcode, std::string *sMessage)
+void CmsBrachyStepper::CreateAckMessage(BYTE opcode, std::string *sMessage)
 {
 	unsigned int ck;
 	unsigned char c1,c2, c3, c4, c5, c6;
@@ -1026,7 +1028,7 @@ void AMSStepper::CreateAckMessage(BYTE opcode, std::string *sMessage)
 }
 
 //----------------------------------------------------------------------------
-unsigned int AMSStepper::AsciiToBin(unsigned int i, unsigned int j)
+unsigned int CmsBrachyStepper::AsciiToBin(unsigned int i, unsigned int j)
 {
 	i -= 0x30;
 	if (i > 9)
@@ -1044,7 +1046,7 @@ unsigned int AMSStepper::AsciiToBin(unsigned int i, unsigned int j)
 }
 
 //----------------------------------------------------------------------------
-void AMSStepper::BinToAscii(unsigned int n, unsigned char *c1, unsigned char *c2)
+void CmsBrachyStepper::BinToAscii(unsigned int n, unsigned char *c1, unsigned char *c2)
 {                                                                                                                                         
 	unsigned int t1,t2;
 	t1 = (n/16);

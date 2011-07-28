@@ -1,6 +1,7 @@
 #include "PlusConfigure.h"
-#include "AMSStepper.h"
-#include "vtkAMSTracker.h"
+#include "BrachyStepper.h"
+#include "CmsBrachyStepper.h"
+#include "vtkBrachyTracker.h"
 #include <sstream>
 #include "vtkTracker.h"
 #include "vtkTrackerTool.h"
@@ -15,20 +16,20 @@
 
 
 //----------------------------------------------------------------------------
-vtkAMSTracker* vtkAMSTracker::New()
+vtkBrachyTracker* vtkBrachyTracker::New()
 {
 	// First try to create the object from the vtkObjectFactory
-	vtkObject* ret = vtkObjectFactory::CreateInstance("vtkAMSTracker");
+	vtkObject* ret = vtkObjectFactory::CreateInstance("vtkBrachyTracker");
 	if(ret)
 	{
-		return (vtkAMSTracker*)ret;
+		return (vtkBrachyTracker*)ret;
 	}
 	// If the factory was unable to create the object, then create it here.
-	return new vtkAMSTracker;
+	return new vtkBrachyTracker;
 }
 
 //----------------------------------------------------------------------------
-vtkAMSTracker::vtkAMSTracker()
+vtkBrachyTracker::vtkBrachyTracker()
 {
 	this->Device = 0;
 	this->Version = NULL;
@@ -52,7 +53,7 @@ vtkAMSTracker::vtkAMSTracker()
 }
 
 //----------------------------------------------------------------------------
-vtkAMSTracker::~vtkAMSTracker() 
+vtkBrachyTracker::~vtkBrachyTracker() 
 {
 	if (this->Tracking)
 	{
@@ -66,31 +67,31 @@ vtkAMSTracker::~vtkAMSTracker()
 }
 
 //----------------------------------------------------------------------------
-void vtkAMSTracker::PrintSelf(ostream& os, vtkIndent indent)
+void vtkBrachyTracker::PrintSelf(ostream& os, vtkIndent indent)
 {
 	vtkTracker::PrintSelf(os,indent);
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkAMSTracker::Connect()
+PlusStatus vtkBrachyTracker::Connect()
 {
 	if (this->Device == NULL)
 	{
-		this->Device = new AMSStepper(this->GetSerialPort(), this->GetBaudRate() ) ; 
+		this->Device = new CmsBrachyStepper(this->GetSerialPort(), this->GetBaudRate() ) ; 
 	}
 
 	return this->Device->StartTracking(); 
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkAMSTracker::Disconnect()
+PlusStatus vtkBrachyTracker::Disconnect()
 {
 	this->Device->StopTracking(); 
 	return this->StopTracking(); 
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkAMSTracker::Probe()
+PlusStatus vtkBrachyTracker::Probe()
 {
 	if (this->Tracking)
 	{
@@ -109,16 +110,16 @@ PlusStatus vtkAMSTracker::Probe()
 } 
 
 //----------------------------------------------------------------------------
-PlusStatus vtkAMSTracker::InternalStartTracking()
+PlusStatus vtkBrachyTracker::InternalStartTracking()
 {
 	if (this->Tracking)
 	{
 		return PLUS_SUCCESS;
 	}
 
-	if (!this->InitAMSTracker())
+	if (this->InitBrachyTracker() != PLUS_SUCCESS)
 	{
-		LOG_ERROR("Couldn't initialize AMS stepper.");
+		LOG_ERROR("Couldn't initialize brachy stepper.");
 		return PLUS_FAIL;
 	} 
 
@@ -126,7 +127,7 @@ PlusStatus vtkAMSTracker::InternalStartTracking()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkAMSTracker::InternalStopTracking()
+PlusStatus vtkBrachyTracker::InternalStopTracking()
 {
 	delete this->Device; 
 	this->Device = 0;
@@ -135,7 +136,7 @@ PlusStatus vtkAMSTracker::InternalStopTracking()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkAMSTracker::InternalUpdate()
+PlusStatus vtkBrachyTracker::InternalUpdate()
 {
 	TrackerStatus status = TR_OK;
 
@@ -200,7 +201,7 @@ PlusStatus vtkAMSTracker::InternalUpdate()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkAMSTracker::InitAMSTracker()
+PlusStatus vtkBrachyTracker::InitBrachyTracker()
 {
 	// Connect to device 
 	if ( !this->Connect() )
@@ -212,7 +213,7 @@ PlusStatus vtkAMSTracker::InitAMSTracker()
 	int iVerHi=0; int iVerLo=0; int iModelNum=0; int iSerialNum=0;
 	if (!this->Device->GetVersionInfo(iVerHi, iVerLo, iModelNum, iSerialNum))
 	{
-		LOG_ERROR("Couldn't get version info from AMS stepper.");
+		LOG_ERROR("Couldn't get version info from stepper.");
 		return PLUS_FAIL; 
 	}
 
@@ -239,7 +240,7 @@ PlusStatus vtkAMSTracker::InitAMSTracker()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkAMSTracker::ReadConfiguration(vtkXMLDataElement* config)
+PlusStatus vtkBrachyTracker::ReadConfiguration(vtkXMLDataElement* config)
 {
 	// Read superclass configuration first
 	Superclass::ReadConfiguration(config); 
@@ -278,25 +279,25 @@ PlusStatus vtkAMSTracker::ReadConfiguration(vtkXMLDataElement* config)
 			{
 				if (this->Device == NULL)
 				{
-					this->Device = new AMSStepper(this->GetSerialPort(), this->GetBaudRate() ) ; 
+					this->Device = new CmsBrachyStepper(this->GetSerialPort(), this->GetBaudRate() ) ; 
 				}
 
 				if ( STRCASECMP("Burdette Medical Systems Digital Stepper", modelName) == 0 )
 				{
-					this->Device->SetBrachyStepperType(AMSStepper::BURDETTE_MEDICAL_SYSTEMS_DIGITAL_STEPPER); 
+					this->Device->SetBrachyStepperType(BrachyStepper::BURDETTE_MEDICAL_SYSTEMS_DIGITAL_STEPPER); 
 				}
 				else if ( STRCASECMP("Burdette Medical Systems Digital Motorized Stepper", modelName) == 0 )
 				{
-					this->Device->SetBrachyStepperType(AMSStepper::BURDETTE_MEDICAL_SYSTEMS_DIGITAL_MOTORIZED_STEPPER); 
+					this->Device->SetBrachyStepperType(BrachyStepper::BURDETTE_MEDICAL_SYSTEMS_DIGITAL_MOTORIZED_STEPPER); 
 				}
 				else if ( STRCASECMP("CMS Accuseed DS300", modelName) == 0 )
 				{
-					this->Device->SetBrachyStepperType(AMSStepper::CMS_ACCUSEED_DS300); 
+					this->Device->SetBrachyStepperType(BrachyStepper::CMS_ACCUSEED_DS300); 
 				}
 				else
 				{
 					LOG_WARNING("Unable to recognize brachy stepper name: " << modelName << "(Use default: Burdette Medical Systems Digital Stepper)");
-					this->Device->SetBrachyStepperType(AMSStepper::BURDETTE_MEDICAL_SYSTEMS_DIGITAL_STEPPER); 
+					this->Device->SetBrachyStepperType(BrachyStepper::BURDETTE_MEDICAL_SYSTEMS_DIGITAL_STEPPER); 
 				}
 
 			}
@@ -380,7 +381,7 @@ PlusStatus vtkAMSTracker::ReadConfiguration(vtkXMLDataElement* config)
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkAMSTracker::WriteConfiguration(vtkXMLDataElement* config)
+PlusStatus vtkBrachyTracker::WriteConfiguration(vtkXMLDataElement* config)
 {
 	if ( config == NULL )
 	{
@@ -400,19 +401,19 @@ PlusStatus vtkAMSTracker::WriteConfiguration(vtkXMLDataElement* config)
 
 
 //----------------------------------------------------------------------------
-void vtkAMSTracker::ResetCalibration()
+void vtkBrachyTracker::ResetCalibration()
 {
 	this->Device->ResetStepper(); 
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkAMSTracker::CalibrateStepper( std::string &calibMsg )
+PlusStatus vtkBrachyTracker::CalibrateStepper( std::string &calibMsg )
 {
 	return this->Device->CalibrateStepper(calibMsg); 
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkAMSTracker::GetTrackerToolBufferStringList(double timestamp, 
+PlusStatus vtkBrachyTracker::GetTrackerToolBufferStringList(double timestamp, 
 												   std::map<std::string, std::string> &toolsBufferMatrices, 
 												   std::map<std::string, std::string> &toolsCalibrationMatrices, 
 												   std::map<std::string, std::string> &toolsStatuses,
@@ -516,7 +517,7 @@ PlusStatus vtkAMSTracker::GetTrackerToolBufferStringList(double timestamp,
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkAMSTracker::GetStepperEncoderValues( BufferItemUidType uid, double &probePosition, double &probeRotation, double &templatePosition, TrackerStatus &status )
+PlusStatus vtkBrachyTracker::GetStepperEncoderValues( BufferItemUidType uid, double &probePosition, double &probeRotation, double &templatePosition, TrackerStatus &status )
 {
   TrackerBufferItem bufferItem; 
 	if ( this->GetTool(RAW_ENCODER_VALUES)->GetBuffer()->GetTrackerBufferItem(uid, &bufferItem, false) != ITEM_OK )
@@ -541,7 +542,7 @@ PlusStatus vtkAMSTracker::GetStepperEncoderValues( BufferItemUidType uid, double
 
 
 //----------------------------------------------------------------------------
-PlusStatus vtkAMSTracker::GetStepperEncoderValues( double timestamp, double &probePosition, double &probeRotation, double &templatePosition, TrackerStatus &status )
+PlusStatus vtkBrachyTracker::GetStepperEncoderValues( double timestamp, double &probePosition, double &probeRotation, double &templatePosition, TrackerStatus &status )
 {
   BufferItemUidType uid(0); 
   if ( this->GetTool(RAW_ENCODER_VALUES)->GetBuffer()->GetItemUidFromTime(timestamp, uid) != ITEM_OK )
@@ -554,7 +555,7 @@ PlusStatus vtkAMSTracker::GetStepperEncoderValues( double timestamp, double &pro
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkAMSTracker::GetProbeHomeToProbeTransform( BufferItemUidType uid, vtkMatrix4x4* probeHomeToProbeMatrix, TrackerStatus &status, bool calibratedTransform /*= false*/ )
+PlusStatus vtkBrachyTracker::GetProbeHomeToProbeTransform( BufferItemUidType uid, vtkMatrix4x4* probeHomeToProbeMatrix, TrackerStatus &status, bool calibratedTransform /*= false*/ )
 {
   if ( probeHomeToProbeMatrix == NULL )
   {
@@ -580,7 +581,7 @@ PlusStatus vtkAMSTracker::GetProbeHomeToProbeTransform( BufferItemUidType uid, v
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkAMSTracker::GetProbeHomeToProbeTransform( double timestamp, vtkMatrix4x4* probeHomeToProbeMatrix, TrackerStatus &status, bool calibratedTransform /*= false*/ )
+PlusStatus vtkBrachyTracker::GetProbeHomeToProbeTransform( double timestamp, vtkMatrix4x4* probeHomeToProbeMatrix, TrackerStatus &status, bool calibratedTransform /*= false*/ )
 {
   BufferItemUidType uid(0); 
   if ( this->GetTool(PROBEHOME_TO_PROBE_TRANSFORM)->GetBuffer()->GetItemUidFromTime(timestamp, uid) != ITEM_OK )
@@ -593,7 +594,7 @@ PlusStatus vtkAMSTracker::GetProbeHomeToProbeTransform( double timestamp, vtkMat
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkAMSTracker::GetTemplateHomeToTemplateTransform( BufferItemUidType uid, vtkMatrix4x4* templateHomeToTemplateMatrix, TrackerStatus &status, bool calibratedTransform /*= false*/ )
+PlusStatus vtkBrachyTracker::GetTemplateHomeToTemplateTransform( BufferItemUidType uid, vtkMatrix4x4* templateHomeToTemplateMatrix, TrackerStatus &status, bool calibratedTransform /*= false*/ )
 {
   if ( templateHomeToTemplateMatrix == NULL )
   {
@@ -619,7 +620,7 @@ PlusStatus vtkAMSTracker::GetTemplateHomeToTemplateTransform( BufferItemUidType 
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkAMSTracker::GetTemplateHomeToTemplateTransform( double timestamp, vtkMatrix4x4* templateHomeToTemplateMatrix, TrackerStatus &status, bool calibratedTransform /*= false*/ )
+PlusStatus vtkBrachyTracker::GetTemplateHomeToTemplateTransform( double timestamp, vtkMatrix4x4* templateHomeToTemplateMatrix, TrackerStatus &status, bool calibratedTransform /*= false*/ )
 {
   BufferItemUidType uid(0); 
   if ( this->GetTool(TEMPLATEHOME_TO_TEMPLATE_TRANSFORM)->GetBuffer()->GetItemUidFromTime(timestamp, uid) != ITEM_OK )
@@ -632,7 +633,7 @@ PlusStatus vtkAMSTracker::GetTemplateHomeToTemplateTransform( double timestamp, 
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkAMSTracker::GetRawEncoderValuesTransform( BufferItemUidType uid, vtkMatrix4x4* rawEncoderValuesTransform, TrackerStatus &status )
+PlusStatus vtkBrachyTracker::GetRawEncoderValuesTransform( BufferItemUidType uid, vtkMatrix4x4* rawEncoderValuesTransform, TrackerStatus &status )
 {
   if ( rawEncoderValuesTransform == NULL )
   {
@@ -659,7 +660,7 @@ PlusStatus vtkAMSTracker::GetRawEncoderValuesTransform( BufferItemUidType uid, v
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkAMSTracker::GetRawEncoderValuesTransform( double timestamp, vtkMatrix4x4* rawEncoderValuesTransform, TrackerStatus &status )
+PlusStatus vtkBrachyTracker::GetRawEncoderValuesTransform( double timestamp, vtkMatrix4x4* rawEncoderValuesTransform, TrackerStatus &status )
 {
   BufferItemUidType uid(0); 
   if ( this->GetTool(RAW_ENCODER_VALUES)->GetBuffer()->GetItemUidFromTime(timestamp, uid) != ITEM_OK )

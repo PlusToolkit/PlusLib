@@ -34,8 +34,8 @@
 #ifdef PLUS_USE_MICRONTRACKER
 #include "vtkMicronTracker.h"
 #endif
-#ifdef PLUS_USE_AMS_TRACKER
-#include "vtkAMSTracker.h"
+#ifdef PLUS_USE_BRACHY_TRACKER
+#include "vtkBrachyTracker.h"
 #endif
 #ifdef PLUS_USE_Ascension3DG
 #include "vtkAscension3DGTracker.h"
@@ -1536,7 +1536,7 @@ PlusStatus vtkDataCollector::ReadTrackerProperties(vtkXMLDataElement* trackerCon
 #ifdef PLUS_USE_AMS_TRACKER
     LOG_DEBUG("Tracker type: AMS tracker"); 
     this->SetTrackerType(TRACKER_AMS); 
-    vtkSmartPointer<vtkAMSTracker> tracker = vtkSmartPointer<vtkAMSTracker>::New();
+    vtkSmartPointer<vtkBrachyTracker> tracker = vtkSmartPointer<vtkBrachyTracker>::New();
     this->SetTracker(tracker); 
     tracker->ReadConfiguration(trackerConfig); 
 #endif
