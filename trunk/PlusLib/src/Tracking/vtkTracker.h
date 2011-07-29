@@ -92,12 +92,22 @@ class vtkGnuplotExecuter;
 //
 //};
 
-// flags for tool LEDs (specifically for the POLARIS)
+// Flags for tool LEDs (specifically for the POLARIS)
 enum {
 	TR_LED_OFF   = 0,
 	TR_LED_ON    = 1,
 	TR_LED_FLASH = 2
 };
+
+// Tracker tool types
+enum TRACKER_TOOL_TYPE
+{
+  TRACKER_TOOL_NONE=0, 
+  TRACKER_TOOL_REFERENCE,
+  TRACKER_TOOL_PROBE,
+  TRACKER_TOOL_STYLUS, 
+  TRACKER_TOOL_NEEDLE, 
+}; 
 
 class VTK_EXPORT vtkTracker : public vtkObject
 {
@@ -147,7 +157,13 @@ public:
 
 	// Description:
 	// Convert tracker status to string 
+	// TODO the retudn valus should be PLusStatus and the result should be got using parameter by reference
 	static std::string ConvertTrackerStatusToString(TrackerStatus status); 
+
+	// Description:
+	// Get tool type enum from string and vice versa
+	static PlusStatus ConvertStringToToolType(const char* typeString, TRACKER_TOOL_TYPE &type);
+	static PlusStatus ConvertToolTypeToString(const TRACKER_TOOL_TYPE type, char* &typeString);
 
 	// Description:
 	// Get the buffer element values of each tool in a string list by timestamp. 
@@ -192,22 +208,21 @@ public:
 	vtkGetMacro(UpdateTimeStamp,double);
 
 	// Description:
-	// Get one of the ports to be a reference, i.e. track other
-	// tools relative to this one.  Set this to -1 (the default)
-	// if a reference tool is not desired.
-	virtual int GetReferenceToolNumber(); 
-
-	// Description:
-	// Get default tool port number
-	virtual int GetDefaultToolNumber(); 
-
-  // Description:
-  // Get default tool object 
-  virtual vtkTrackerTool* GetDefaultTool(); 
-
-	// Description:
 	// Get tool port by name 
 	int GetToolPortByName( const char* toolName); 
+
+	// Description:
+	// Get tool ports by type
+	PlusStatus GetToolPortNumbersByType(TRACKER_TOOL_TYPE type, std::vector<int> &toolNumbersVector);
+	int GetFirstPortNumberByType(TRACKER_TOOL_TYPE type);
+
+	// Description:
+	// Get port number of reference tool
+	int GetReferenceToolNumber();
+
+	// Description:
+	// Get port number of the first active tool tool
+	PlusStatus GetFirstActiveTool(int &tool);
 
 	// Description:
 	// Set/get the acquisition frequency
@@ -219,16 +234,6 @@ public:
 	vtkSetMacro(TrackerCalibrated, bool);
 	vtkGetMacro(TrackerCalibrated, bool);
 	vtkBooleanMacro(TrackerCalibrated, bool); 
-
-	// Description:
-	// Set/get the reference tool name (read from config file)
-	vtkSetStringMacro(ReferenceToolName);
-	vtkGetStringMacro(ReferenceToolName);
-
-	// Description:
-	// Set/get the default tool name (read from config file)
-	vtkSetStringMacro(DefaultToolName);
-	vtkGetStringMacro(DefaultToolName);
 
 	// Description:
 	// Set/get main configuration data
@@ -344,9 +349,6 @@ protected:
 	bool TrackerCalibrated; 
 
 	vtkXMLDataElement*	ConfigurationData;
-
-	char* ReferenceToolName; 
-	char* DefaultToolName; 
 
 private:
 	vtkTracker(const vtkTracker&);

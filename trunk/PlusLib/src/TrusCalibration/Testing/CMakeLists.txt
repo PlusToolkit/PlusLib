@@ -81,7 +81,7 @@ TARGET_LINK_LIBRARIES(vtkStylusCalibrationTest itkvnl itkvnl_algo vtkCommon vtkT
 
 ADD_TEST(vtkStylusCalibrationTest
 		${EXECUTABLE_OUTPUT_PATH}/vtkStylusCalibrationTest
-		--input-config-file-name=${ConfigFilesDir}/Test_USDataCollectionConfig_VideoNone_FakeTracker_PivotCalibration.xml
+		--input-config-file-name=${ConfigFilesDir}/Test_PlusConfiguration_VideoNone_FakeTracker_PivotCalibration.xml
 		--input-baseline-file-name=${TestDataDir}/StylusCalibration.results.xml 
 		--number-of-acquired-points=100
 		)

@@ -118,18 +118,6 @@ vtkOpenIGTLinkBroadcaster
     }
   
   
-    // Check default tool port.
-  
-  int defaultToolPort = this->DataCollector->GetTracker()->GetDefaultToolNumber();
-  
-  if ( defaultToolPort < 0 )
-    {
-    LOG_ERROR( "Default tool port number missing in DataCollector." );
-    this->InternalStatus = STATUS_MISSING_DEFAULT_TOOL;
-    return this->InternalStatus;
-    }
-  
-  
     // Everything worked.
   
   LOG_DEBUG( "Number of non-reference tools = " << this->NonReferenceToolInfos.size() );
@@ -293,7 +281,7 @@ vtkOpenIGTLinkBroadcaster
 {
     // Get the socket information for the default tool;
   
-  int defaultTool = this->DataCollector->GetDefaultToolPortNumber();
+  int defaultTool = this->DataCollector->GetTracker()->GetFirstPortNumberByType(TRACKER_TOOL_PROBE);
   igtl::ClientSocket::Pointer defaultSocket;
   bool found = false;
   for ( int i = 0; i < this->NonReferenceToolInfos.size(); ++ i )

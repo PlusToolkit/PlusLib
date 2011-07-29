@@ -58,25 +58,25 @@ void vtkFakeTracker::SetMode(FakeTrackerMode mode)
   case (FakeTrackerMode_Default):
     this->SetNumberOfTools(4);
 
-    this->Tools[0]->SetToolType("Marker");
+    this->Tools[0]->SetToolType(TRACKER_TOOL_REFERENCE);
     this->Tools[0]->SetToolRevision("1.3");
     this->Tools[0]->SetToolManufacturer("ACME Inc.");
     this->Tools[0]->SetToolPartNumber("Stationary");
     this->Tools[0]->SetToolSerialNumber("A34643");
 
-    this->Tools[1]->SetToolType("Pointer");
+    this->Tools[1]->SetToolType(TRACKER_TOOL_STYLUS);
     this->Tools[1]->SetToolRevision("1.1");
     this->Tools[1]->SetToolManufacturer("ACME Inc.");
     this->Tools[1]->SetToolPartNumber("Rotate");
     this->Tools[1]->SetToolSerialNumber("B3464C");
 
-    this->Tools[2]->SetToolType("Pointer");
+    this->Tools[2]->SetToolType(TRACKER_TOOL_STYLUS);
     this->Tools[2]->SetToolRevision("1.1");
     this->Tools[2]->SetToolManufacturer("ACME Inc.");
     this->Tools[2]->SetToolPartNumber("Rotate");
     this->Tools[2]->SetToolSerialNumber("Q45P5");
 
-    this->Tools[3]->SetToolType("Pointer");
+    this->Tools[3]->SetToolType(TRACKER_TOOL_STYLUS);
     this->Tools[3]->SetToolRevision("2.0");
     this->Tools[3]->SetToolManufacturer("ACME Inc.");
     this->Tools[3]->SetToolPartNumber("Spin");
@@ -92,50 +92,42 @@ void vtkFakeTracker::SetMode(FakeTrackerMode mode)
     this->Tools[1]->EnabledOn(); 
     this->Tools[2]->SetToolName("DisabledTool"); 
     this->Tools[2]->EnabledOff();
-    this->SetReferenceToolName("Reference");
-    this->SetDefaultToolName("Probe");
     break; 
 
   case (FakeTrackerMode_PivotCalibration):
     this->SetNumberOfTools(2);
 
-    this->Tools[0]->SetToolType("Marker");
+    this->Tools[0]->SetToolType(TRACKER_TOOL_REFERENCE);
     this->Tools[0]->SetToolRevision("1.3");
     this->Tools[0]->SetToolManufacturer("ACME Inc.");
     this->Tools[0]->SetToolPartNumber("Stationary");
     this->Tools[0]->SetToolSerialNumber("A11111");
     this->Tools[0]->SetToolName("Reference");
 
-    this->Tools[1]->SetToolType("Pointer");
+    this->Tools[1]->SetToolType(TRACKER_TOOL_STYLUS);
     this->Tools[1]->SetToolRevision("1.1");
     this->Tools[1]->SetToolManufacturer("ACME Inc.");
     this->Tools[1]->SetToolPartNumber("Stylus");
     this->Tools[1]->SetToolSerialNumber("B22222");
     this->Tools[1]->SetToolName("Stylus");
-
-    this->SetReferenceToolName("Reference");
-    this->SetDefaultToolName("Stylus");
 
     break;
   case (FakeTrackerMode_RecordPhantomLandmarks):
     this->SetNumberOfTools(2);
 
-    this->Tools[0]->SetToolType("Marker");
+    this->Tools[0]->SetToolType(TRACKER_TOOL_REFERENCE);
     this->Tools[0]->SetToolRevision("1.3");
     this->Tools[0]->SetToolManufacturer("ACME Inc.");
     this->Tools[0]->SetToolPartNumber("Stationary");
     this->Tools[0]->SetToolSerialNumber("A11111");
     this->Tools[0]->SetToolName("Reference");
 
-    this->Tools[1]->SetToolType("Pointer");
+    this->Tools[1]->SetToolType(TRACKER_TOOL_STYLUS);
     this->Tools[1]->SetToolRevision("1.1");
     this->Tools[1]->SetToolManufacturer("ACME Inc.");
     this->Tools[1]->SetToolPartNumber("Stylus");
     this->Tools[1]->SetToolSerialNumber("B22222");
     this->Tools[1]->SetToolName("Stylus");
-
-    this->SetReferenceToolName("Reference");
-    this->SetDefaultToolName("Stylus");
 
     this->Counter = -1;
 

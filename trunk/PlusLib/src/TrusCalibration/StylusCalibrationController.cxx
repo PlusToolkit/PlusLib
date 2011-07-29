@@ -138,12 +138,12 @@ PlusStatus StylusCalibrationController::DetermineStylusPortNumber()
 	}
 
 	// Get stylus tool port number
-	unsigned int toolNumber = dataCollector->GetTracker()->GetToolPortByName("Stylus");
+	int toolNumber = dataCollector->GetTracker()->GetFirstPortNumberByType(TRACKER_TOOL_STYLUS);
 	if (toolNumber != -1) {
 		m_StylusPortNumber = toolNumber;
 	} else {
-		LOG_WARNING("Stylus port number not found in configuration file, default tool used!");
-		m_StylusPortNumber = dataCollector->GetTracker()->GetDefaultToolNumber();
+		LOG_ERROR("Stylus port number not found in configuration file!");
+		return PLUS_FAIL;
 	}
 
 	return PLUS_SUCCESS;
@@ -362,10 +362,6 @@ vtkMatrix4x4* StylusCalibrationController::AcquireStylusTrackerPosition(double a
 		LOG_ERROR("Tracker is invalid!");
 		return NULL;
 	}
-	if ((dataCollector->GetTracker()->GetTool(dataCollector->GetDefaultToolPortNumber()) < 0)) {
-		LOG_ERROR("Tracker is not initialized properly!");
-		return NULL;
-	}
 
 	vtkSmartPointer<vtkMatrix4x4> transformMatrix = NULL; // stylus to reference tool transform
 	TrackerStatus status = TR_MISSING;
@@ -426,10 +422,6 @@ PlusStatus StylusCalibrationController::DoAcquisition()
 		}
 		if (dataCollector->GetTracker() == NULL) {
 			LOG_ERROR("Tracker is invalid");
-			return PLUS_FAIL;
-		}
-		if (dataCollector->GetTracker()->GetTool(dataCollector->GetDefaultToolPortNumber()) < 0) {
-			LOG_ERROR("Tracker is not initialized properly");
 			return PLUS_FAIL;
 		}
 
@@ -559,10 +551,6 @@ PlusStatus StylusCalibrationController::Start()
 		LOG_ERROR("Tracker is invalid");
 		return PLUS_FAIL;
 	}
-	if (dataCollector->GetTracker()->GetTool(dataCollector->GetDefaultToolPortNumber()) < 0) {
-		LOG_ERROR("Tracker is not initialized properly");
-		return PLUS_FAIL;
-	}
 
 	m_CurrentPointNumber = 0;
 
@@ -573,7 +561,6 @@ PlusStatus StylusCalibrationController::Start()
 	vtkSmartPointer<vtkTransform> initialTransform = vtkSmartPointer<vtkTransform>::New();
 	initialTransform->Identity();
 	dataCollector->GetTracker()->GetTool(m_StylusPortNumber)->SetCalibrationMatrix(initialTransform->GetMatrix());
-	dataCollector->GetTracker()->GetTool(m_StylusPortNumber)->SetToolToToolReferenceTransform(initialTransform);
 
 	// Reset polydatas (make it look like empty)
 	m_InputPolyData->GetPoints()->Reset();
@@ -586,7 +573,7 @@ PlusStatus StylusCalibrationController::Start()
 	// Set state to in progress
 	m_State = ToolboxState_InProgress;
 
-  return PLUS_SUCCESS;
+	return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
@@ -631,28 +618,21 @@ PlusStatus StylusCalibrationController::LoadStylusCalibration(vtkXMLDataElement*
 	LOG_TRACE("StylusCalibrationController::LoadStylusCalibration");
 
 	// Find stylus definition element
-	vtkXMLDataElement* stylusDefinition = vtkFreehandController::LookupElementWithNameContainingChildWithNameAndAttribute(aConfig, "ToolDefinition", "Description", "Type", "Stylus");
+	vtkXMLDataElement* stylusDefinition = vtkFreehandController::LookupElementWithNameContainingChildWithNameAndAttribute(aConfig, "Tracker", "Tool", "Type", "Stylus");
 	if (stylusDefinition == NULL) {
 		LOG_ERROR("No stylus definition is found in the XML tree!");
 		return PLUS_FAIL;
 	}
 
-	// Find registration element
-	vtkXMLDataElement* geometry = stylusDefinition->FindNestedElementWithName("Geometry");
-	if (geometry == NULL) {
-		LOG_ERROR("No geometry section is found in stylus definition!");
-		return PLUS_FAIL;
-	}
-
-	vtkXMLDataElement* registration = geometry->FindNestedElementWithName("Registration");
-	if (registration == NULL) {
-		LOG_ERROR("No registration section is found in stylus definition geometry!");
+	vtkXMLDataElement* calibration = stylusDefinition->FindNestedElementWithName("Calibration");
+	if (calibration == NULL) {
+		LOG_ERROR("No calibration section is found in stylus definition!");
 		return PLUS_FAIL;
 	}
 
 	// Get transform
 	double* stylustipToStylusTransformVector = new double[16]; 
-	if ( (STRCASECMP(registration->GetAttribute("MatrixName"), "ToolToToolReference") == 0) && (registration->GetVectorAttribute("MatrixValue", 16, stylustipToStylusTransformVector)) ) {
+	if (calibration->GetVectorAttribute("MatrixValue", 16, stylustipToStylusTransformVector)) {
 		// Create matrix and set it to controller member variable
 		vtkSmartPointer<vtkMatrix4x4> stylustipToStylusTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
 		stylustipToStylusTransformMatrix->Identity();
@@ -673,7 +653,6 @@ PlusStatus StylusCalibrationController::LoadStylusCalibration(vtkXMLDataElement*
 			}
 
 			dataCollector->GetTracker()->GetTool(m_StylusPortNumber)->SetCalibrationMatrix(stylustipToStylusTransformMatrix);
-			dataCollector->GetTracker()->GetTool(m_StylusPortNumber)->SetToolToToolReferenceTransform(m_StylustipToStylusTransform);
 
 		} else {
 			LOG_WARNING("Data collector is not initialized!");
@@ -692,8 +671,13 @@ PlusStatus StylusCalibrationController::SaveStylusCalibrationToFile(std::string 
 
 	vtkSmartPointer<vtkXMLDataElement> rootElement = vtkXMLUtilities::ReadElementFromFile(aFile.c_str());
 	if (rootElement == NULL) {	
-		LOG_ERROR("Unable to read the configuration file: " << aFile); 
-		return PLUS_FAIL;
+	} else {
+		rootElement = vtkFreehandController::GetInstance()->GetConfigurationData();
+
+		if (rootElement == NULL) {	
+			LOG_ERROR("Unable to get the configuration data from neither the file " << aFile << " nor from vtkFreehandController"); 
+			return PLUS_FAIL;
+		}
 	}
 
 	if (SaveStylusCalibration(rootElement) != PLUS_SUCCESS) {
@@ -713,22 +697,15 @@ PlusStatus StylusCalibrationController::SaveStylusCalibration(vtkXMLDataElement*
 	LOG_TRACE("StylusCalibrationController::SaveStylusCalibration");
 
 	// Find stylus definition element
-	vtkXMLDataElement* stylusDefinition = vtkFreehandController::LookupElementWithNameContainingChildWithNameAndAttribute(aConfig, "ToolDefinition", "Description", "Type", "Stylus");
+	vtkXMLDataElement* stylusDefinition = vtkFreehandController::LookupElementWithNameContainingChildWithNameAndAttribute(aConfig, "Tracker", "Tool", "Type", "Stylus");
 	if (stylusDefinition == NULL) {
 		LOG_ERROR("No stylus definition is found in the XML tree!");
 		return PLUS_FAIL;
 	}
 
-	// Find registration element
-	vtkXMLDataElement* geometry = stylusDefinition->FindNestedElementWithName("Geometry");
-	if (geometry == NULL) {
-		LOG_ERROR("No geometry section is found in stylus definition!");
-		return PLUS_FAIL;
-	}
-
-	vtkXMLDataElement* registration = geometry->FindNestedElementWithName("Registration");
-	if (registration == NULL) {
-		LOG_ERROR("No registration section is found in stylus definition geometry!");
+	vtkXMLDataElement* calibration = stylusDefinition->FindNestedElementWithName("Calibration");
+	if (calibration == NULL) {
+		LOG_ERROR("No calibration section is found in stylus definition!");
 		return PLUS_FAIL;
 	}
 
@@ -737,11 +714,12 @@ PlusStatus StylusCalibrationController::SaveStylusCalibration(vtkXMLDataElement*
 	vtkSmartPointer<vtkMatrix4x4> transformMatrix = m_StylustipToStylusTransform->GetMatrix();
 	sprintf_s(stylustipToStylusTransformChars, 256, "\n\t1 0 0 %.4lf\n\t0 1 0 %.4lf\n\t0 0 1 %.4lf\n\t0 0 0 1", transformMatrix->GetElement(0,3), transformMatrix->GetElement(1,3), transformMatrix->GetElement(2,3));
 
-	registration->SetAttribute("MatrixValue", stylustipToStylusTransformChars);
+	calibration->SetAttribute("MatrixValue", stylustipToStylusTransformChars);
 
-	// Save date and error
-	registration->SetAttribute("Date", vtksys::SystemTools::GetCurrentDateTime("%Y.%m.%d %X").c_str());
-	registration->SetDoubleAttribute("Error", m_Precision);
+	// Save matrix name, date and error
+	calibration->SetAttribute("MatrixName", "StylusTipToStylus");
+	calibration->SetAttribute("Date", vtksys::SystemTools::GetCurrentDateTime("%Y.%m.%d %X").c_str());
+	calibration->SetDoubleAttribute("Error", m_Precision);
 
 	return PLUS_SUCCESS;
 }
@@ -855,7 +833,7 @@ PlusStatus StylusCalibrationController::LoadStylusModel(vtkActor* aActor)
 		aActor = m_StylusActor;
 	}
 
-	std::string modelFileName = tool->GetToolModelFileName();
+	std::string modelFileName = tool->GetTool3DModelFileName();
 
 	std::string searchResult = "";
 	if ((modelFileName != "") && (STRCASECMP(vtkFileFinder::GetInstance()->GetConfigurationDirectory(), "") != 0)) {

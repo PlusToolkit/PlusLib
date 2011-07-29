@@ -34,7 +34,14 @@ public:
     TrackerStatus status = TR_OK; 
     double synchronizedTime(0); 
     vtkSmartPointer<vtkMatrix4x4> tFrame2Tracker = vtkSmartPointer<vtkMatrix4x4>::New(); 
-    if ( dataCollector->GetTrackedFrame(realtimeImage, tFrame2Tracker, status, synchronizedTime, dataCollector->GetDefaultToolPortNumber()) == PLUS_SUCCESS )
+
+	int probeToolNumber = dataCollector->GetTracker()->GetFirstPortNumberByType(TRACKER_TOOL_PROBE);
+	if ( probeToolNumber < 0 )
+	{
+		LOG_ERROR("Unable to find probe!");
+		return;
+	}
+    if ( dataCollector->GetTrackedFrame(realtimeImage, tFrame2Tracker, status, synchronizedTime, probeToolNumber) == PLUS_SUCCESS )
     {
       viewer->SetInput(realtimeImage); 
       viewer->Modified(); 

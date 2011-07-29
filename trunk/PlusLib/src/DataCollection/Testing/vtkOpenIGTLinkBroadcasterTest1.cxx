@@ -162,7 +162,7 @@ int main( int argc, char** argv )
       {
       double timestamp( 0 ); 
       TrackerStatus status = TR_OK; 
-      dataCollector->GetTransformWithTimestamp( tFrame2Tracker, timestamp, status, dataCollector->GetDefaultToolPortNumber() ); 
+      dataCollector->GetTransformWithTimestamp( tFrame2Tracker, timestamp, status, dataCollector->GetTracker()->GetFirstPortNumberByType(TRACKER_TOOL_PROBE) ); 
       
       ss << "Timestamp: " << timestamp << std::endl;
       

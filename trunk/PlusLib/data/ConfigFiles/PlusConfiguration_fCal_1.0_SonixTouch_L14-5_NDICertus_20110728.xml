@@ -7,46 +7,89 @@
 			Description="Unified configuration file for SonixRP L14-5 + NDI Certus + fCal 1.0" 
 			/>
 
-		<Tracker Type="CertusTracker" BufferSize="2500" Frequency="50" AveragedItemsForFiltering="20" LocalTimeOffset="0.0" ReferenceToolName="PhantomReference" DefaultToolName="Probe" >
+		<Tracker Type="CertusTracker" BufferSize="2500" Frequency="50" AveragedItemsForFiltering="20" LocalTimeOffset="0.0" >
 			
-			<Tool Name="Probe" Type="L14-5_38" PortNumber="0" SendTo="127.0.0.1:1111">
-			<Calibration 
+			<!-- PROBE -->
+			<Tool PortNumber="0" Type="Probe" Model="L14-5_38" Name="Probe" SendTo="127.0.0.1:1111">
+				<!-- Supported types are: Probe, Stylus, Needle, Reference -->
+				
+				<!-- ModelToToolTransform - transforming model into tool origin coordinate system for proper visualization ( Note2: All tools that are not phantoms should use ModelToToolTransform as the entity name) -->
+				<Model
+					File="L14-5_38_ProbeModel.stl"
+					ModelToToolTransform="
+						1 0 0 29.2
+						0 1 0 0
+						0 0 1 14.2
+						0 0 0 1"
+				/>
+									
+				<!-- Calibration transform -->
+				<Calibration
 					MatrixName="ImageToProbe" 
-					MatrixValue="1 0 0 0 
-								 0 1 0 0 
-								 0 0 1 0
-								 0 0 0 1" 
-					Date="2011.05.02"
-					Error="0.0"
-					/>
+					MatrixValue="
+						1 0 0 0
+						0 1 0 0
+						0 0 1 0
+						0 0 0 1"
+					Date="2011.07.28 21:42:34"
+					Error="0.0" />
 			</Tool>
 			
-			<Tool Name="PhantomReference" PortNumber="1">
+			<!-- REFERENCE -->
+			<Tool Type="Reference" Name="PhantomReference" PortNumber="1" SendTo="127.0.0.1:1111">
 			</Tool>
 
-			<Tool Name="Stylus" PortNumber="2" SendTo="127.0.0.1:1112" >
-				<Calibration 
+			<!-- STYLUS -->
+			<Tool PortNumber="2" Type="Stylus" Model="Example" Name="Stylus" SendTo="127.0.0.1:1112">
+				<!-- Supported types are: Probe, Stylus, Needle, Reference -->
+				
+				<!-- ModelToToolTransform - transforming model into tool origin coordinate system for proper visualization ( Note2: All tools that are not phantoms should use ModelToToolTransform as the entity name) -->
+				<Model
+					File="Stylus_Example.stl"
+					ModelToToolTransform="
+						1 0 0 -210.0
+						0 1 0 0
+						0 0 1 0
+						0 0 0 1"
+				/>
+				
+				<!-- Calibration transform -->
+				<Calibration
 					MatrixName="StylusTipToStylus" 
-					MatrixValue="1 0 0 0 
-								 0 1 0 0 
-								 0 0 1 0
-								 0 0 0 1" 
-					Date="2011.05.02"
-					Error="0.0"
-					/>
+					MatrixValue="
+						1 0 0 0
+						0 1 0 0
+						0 0 1 0
+						0 0 0 1"
+					Date="2011.07.28 21:42:34"
+					Error="0.0" />
 			</Tool>
 
-			<Tool Name="Needle" PortNumber="3" SendTo="127.0.0.1:1112" > 
-				<Calibration 
+			<!-- NEEDLE -->
+			<Tool PortNumber="3" Type="Needle" Model="Example" Name="Needle" SendTo="127.0.0.1:1112">
+				<!-- Supported types are: Probe, Stylus, Needle, Reference -->
+				
+				<!-- ModelToToolTransform - transforming model into tool origin coordinate system for proper visualization ( Note2: All tools that are not phantoms should use ModelToToolTransform as the entity name) -->
+				<Model
+					File=""
+					ModelToToolTransform="
+						1 0 0 0
+						0 1 0 0
+						0 0 1 0
+						0 0 0 1"
+				/>
+				
+				<!-- Calibration transform -->
+				<Calibration
 					MatrixName="NeedleTipToNeedle" 
-					MatrixValue="1 0 0 0 
-								 0 1 0 0 
-								 0 0 1 0
-								 0 0 0 1" 
-					Date="2011.05.02"
-					Error="0.0"
-					/>
-			</Tool>        
+					MatrixValue="
+						1 0 0 0
+						0 1 0 0
+						0 0 1 0
+						0 0 0 1"
+					Date="2011.07.28 21:42:34"
+					Error="0.0" />
+			</Tool>
 		</Tracker>
 
 		<ImageAcqusition Type="SonixVideo" 
@@ -272,86 +315,6 @@
 				Error="0.0" />
 		</Geometry>
 	</PhantomDefinition>
-
-	<!-- TOOLS -->
-	
-	<!-- PROBE -->
-	<ToolDefinition version="1.0">
-		<!-- Supported types are: LinearProbe, BrachyProbe, Stylus, Needle -->
-		<Description
-			Name="L14-5_38"
-			Type="LinearProbe"
-			Version="1.0"
-			Institution="Queen's University PerkLab"
-		/>
-		
-		<!-- ModelToToolTransform - transforming model into tool origin coordinate system for proper visualization ( Note2: All tools that are not phantoms should use ModelToToolTransform as the entity name) -->
-		<Model
-			File="L14-5_38_ProbeModel.stl"
-			ModelToToolTransform="
-				1 0 0 29.2
-				0 1 0 0
-				0 0 1 14.2
-				0 0 0 1"
-		/>
-
-		<Geometry>
-			<!-- Landmark list for registration -->
-			<Landmarks>
-				<Landmark Name="Something" Position="-1.0 -1.0 -1.0" />
-			</Landmarks>
-			
-			<!-- Landmark list for registration -->
-			<Registration
-				MatrixName="ToolToToolReference" 
-				MatrixValue="
-					0.107721 -0.993248 -0.0430609 0.979859
-					0.113395 -0.164373 0.168146 -0.0244871
-					0.985458 -35.566 -127.293 91.8781
-					0 0 0 1"
-				Date="2011.05.17"
-				Error="0.0" />
-		</Geometry>
-	</ToolDefinition>
-
-	<!-- STYLUS -->
-	<ToolDefinition version="1.0">
-		<!-- Supported types are: LinearProbe, BrachyProbe, Stylus, Needle -->
-		<Description
-			Name="Example"
-			Type="Stylus"
-			Version="1.0"
-			Institution="Queen's University PerkLab"
-		/>
-		
-		<!-- ModelToToolTransform - transforming model into tool origin coordinate system for proper visualization ( Note2: All tools that are not phantoms should use ModelToToolTransform as the entity name) -->
-		<Model
-			File="Stylus_Example.stl"
-			ModelToToolTransform="
-				1 0 0 -210.0
-				0 1 0 0
-				0 0 1 0
-				0 0 0 1"
-		/>
-
-		<Geometry>
-			<!-- Landmark list for registration -->
-			<Landmarks>
-				<Landmark Name="Something" Position="-1.0 -1.0 -1.0" />
-			</Landmarks>
-			
-			<!-- Landmark list for registration -->
-			<Registration
-				MatrixName="ToolToToolReference" 
-				MatrixValue="
-					1 0 0 210.4976
-					0 1 0 -6.4673
-					0 0 1 -0.7243
-					0 0 0 1"
-				Date="2011.07.26"
-				Error="0.0" />
-		</Geometry>
-	</ToolDefinition>
 
 	<!-- VOLUME RECONSTRUCTION -->
 	<VolumeReconstruction>

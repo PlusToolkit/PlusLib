@@ -303,11 +303,11 @@ PlusStatus vtkFreehandCalibrationController::InitializeDeviceVisualization()
 
 			} else {
 				// Load model if file name exists and file can be found
-				if (STRCASECMP(tool->GetToolModelFileName(), "") != 0) {
-					std::string searchResult = vtkFileFinder::GetFirstFileFoundInConfigurationDirectory(tool->GetToolModelFileName());
+				if (STRCASECMP(tool->GetTool3DModelFileName(), "") != 0) {
+					std::string searchResult = vtkFileFinder::GetFirstFileFoundInConfigurationDirectory(tool->GetTool3DModelFileName());
 
 					if (STRCASECMP("", searchResult.c_str()) == 0) {
-						LOG_WARNING("Tool (" << tool->GetToolName() << ") model file is not found with name: " << tool->GetToolModelFileName());
+						LOG_WARNING("Tool (" << tool->GetToolName() << ") model file is not found with name: " << tool->GetTool3DModelFileName());
 					} else {
 						vtkSmartPointer<vtkSTLReader> stlReader = vtkSmartPointer<vtkSTLReader>::New();
 						stlReader->SetFileName(searchResult.c_str());
@@ -592,9 +592,15 @@ PlusStatus vtkFreehandCalibrationController::DoAcquisition()
 		LOG_ERROR("Data collector is not initialized!");
 		return PLUS_FAIL;
 	}
-	if ((dataCollector->GetTracker() == NULL) || (dataCollector->GetTracker()->GetTool(dataCollector->GetDefaultToolPortNumber()) < 0)) {
+	if (dataCollector->GetTracker() == NULL) {
 		LOG_ERROR("Tracker is not initialized properly!");
 		return PLUS_FAIL;
+	}
+	int firstActiveToolNumber = -1; 
+	if (dataCollector->GetTracker()->GetFirstActiveTool(firstActiveToolNumber) != PLUS_SUCCESS)
+	{
+		LOG_ERROR("There are no active tracker tools!"); 
+		return PLUS_FAIL; 
 	}
 
 	int referenceToolNumber = dataCollector->GetTracker()->GetReferenceToolNumber();
@@ -634,7 +640,7 @@ PlusStatus vtkFreehandCalibrationController::DoAcquisition()
 				vtkSmartPointer<vtkTransform> imageToPhantomReferenceTransform = vtkSmartPointer<vtkTransform>::New();
 				imageToPhantomReferenceTransform->Identity();
 				imageToPhantomReferenceTransform->Concatenate(toolToReferenceTransformMatrix);
-				imageToPhantomReferenceTransform->Concatenate(tool->GetToolToToolReferenceTransform());
+				imageToPhantomReferenceTransform->Concatenate(tool->GetCalibrationMatrix());
 				imageToPhantomReferenceTransform->Concatenate(this->TransformImageToProbe);
 				
 				this->CanvasImageActor->SetUserTransform(imageToPhantomReferenceTransform);
@@ -645,7 +651,7 @@ PlusStatus vtkFreehandCalibrationController::DoAcquisition()
 				vtkSmartPointer<vtkTransform> toolModelToPhantomReferenceTransform = vtkSmartPointer<vtkTransform>::New();
 				toolModelToPhantomReferenceTransform->Identity();
 				toolModelToPhantomReferenceTransform->Concatenate(toolToReferenceTransformMatrix);
-				toolModelToPhantomReferenceTransform->Concatenate(tool->GetToolToToolReferenceTransform());
+				toolModelToPhantomReferenceTransform->Concatenate(tool->GetCalibrationMatrix());
 				toolModelToPhantomReferenceTransform->Concatenate(tool->GetModelToToolTransform());
 				toolModelToPhantomReferenceTransform->Modified();
 
