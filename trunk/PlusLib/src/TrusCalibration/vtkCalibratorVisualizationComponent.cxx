@@ -1369,7 +1369,7 @@ void vtkCalibratorVisualizationComponent::ReadTemplateModelConfiguration(vtkXMLD
 	}
 
 	// ************************* Template model letters *************************
-	vtkXMLDataElement* letterPositions = configTemplateModel->FindNestedElementWithName("LetterPositions");
+	vtkSmartPointer<vtkXMLDataElement> letterPositions = configTemplateModel->FindNestedElementWithName("LetterPositions");
 	if (letterPositions!=NULL)
 	{ 
 
@@ -1418,7 +1418,7 @@ void vtkCalibratorVisualizationComponent::ReadTemplateModelConfiguration(vtkXMLD
 	TEMPLATE_LETTER_TYPE letterType = LETTER_NUM; 
 	double holeRadius=0.2; 
 
-	vtkXMLDataElement* templateHole = configTemplateModel->FindNestedElementWithName("TemplateHole");
+	vtkSmartPointer<vtkXMLDataElement> templateHole = configTemplateModel->FindNestedElementWithName("TemplateHole");
 	if (templateHole != NULL) 
 	{
 		const char* representation = templateHole->GetAttribute("Representation"); 
@@ -1435,7 +1435,7 @@ void vtkCalibratorVisualizationComponent::ReadTemplateModelConfiguration(vtkXMLD
 
 	}
 
-	vtkXMLDataElement* holePositions = configTemplateModel->FindNestedElementWithName("HolePositions");
+	vtkSmartPointer<vtkXMLDataElement> holePositions = configTemplateModel->FindNestedElementWithName("HolePositions");
 	if (holePositions!=NULL)
 	{ 
 		for (int i = 0; i < holePositions->GetNumberOfNestedElements(); i++)

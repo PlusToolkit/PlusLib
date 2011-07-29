@@ -117,12 +117,12 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
 		LOG_ERROR("Unable to read the current configuration file: " << currentResultFileName); 
 		numberOfFailures++;
 	}
-	vtkXMLDataElement* stylusDefinitionCurrent = vtkFreehandController::LookupElementWithNameContainingChildWithNameAndAttribute(rootElementCurrent, "Tracker", "Tool", "Type", "Stylus");
+	vtkSmartPointer<vtkXMLDataElement> stylusDefinitionCurrent = vtkFreehandController::LookupElementWithNameContainingChildWithNameAndAttribute(rootElementCurrent, "Tracker", "Tool", "Type", "Stylus");
 	if (stylusDefinitionCurrent == NULL) {
 		LOG_ERROR("No stylus definition is found in the test result XML tree!");
 		numberOfFailures++;
 	}
-	vtkXMLDataElement* calibrationCurrent = stylusDefinitionCurrent->FindNestedElementWithName("Calibration");
+	vtkSmartPointer<vtkXMLDataElement> calibrationCurrent = stylusDefinitionCurrent->FindNestedElementWithName("Calibration");
 	if (calibrationCurrent == NULL) {
 		LOG_ERROR("No calibration section is found in stylus definition in test result!");
 		numberOfFailures++;
@@ -136,12 +136,12 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
 		LOG_ERROR("Unable to read the baseline configuration file: " << baselineFileName); 
 		numberOfFailures++;
 	}
-	vtkXMLDataElement* stylusDefinitionBaseline = vtkFreehandController::LookupElementWithNameContainingChildWithNameAndAttribute(rootElementBaseline, "Tracker", "Tool", "Type", "Stylus");
+	vtkSmartPointer<vtkXMLDataElement> stylusDefinitionBaseline = vtkFreehandController::LookupElementWithNameContainingChildWithNameAndAttribute(rootElementBaseline, "Tracker", "Tool", "Type", "Stylus");
 	if (stylusDefinitionBaseline == NULL) {
 		LOG_ERROR("No stylus definition is found in the baseline XML tree!");
 		numberOfFailures++;
 	}
-	vtkXMLDataElement* calibrationBaseline = stylusDefinitionBaseline->FindNestedElementWithName("Calibration");
+	vtkSmartPointer<vtkXMLDataElement> calibrationBaseline = stylusDefinitionBaseline->FindNestedElementWithName("Calibration");
 	if (calibrationBaseline == NULL) {
 		LOG_ERROR("No calibration section is found in stylus definition in baseline!");
 		numberOfFailures++;

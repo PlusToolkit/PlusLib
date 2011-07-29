@@ -111,8 +111,8 @@ int CompareSegmentationResults(const std::string& inputBaselineFileName, const s
 	const bool reportWarningsAsFailure=true;
 	int numberOfFailures=0;
 	
-	vtkXMLDataElement* currentRootElem = vtkXMLUtilities::ReadElementFromFile( outputTestResultsFileName.c_str()); 
-	vtkXMLDataElement* baselineRootElem = vtkXMLUtilities::ReadElementFromFile(inputBaselineFileName.c_str());
+	vtkSmartPointer<vtkXMLDataElement> currentRootElem = vtkXMLUtilities::ReadElementFromFile( outputTestResultsFileName.c_str()); 
+	vtkSmartPointer<vtkXMLDataElement> baselineRootElem = vtkXMLUtilities::ReadElementFromFile(inputBaselineFileName.c_str());
 
   bool writeFidFoundRatioToFile=PlusLogger::Instance()->GetLogLevel()>=PlusLogger::LOG_LEVEL_TRACE; 
 	

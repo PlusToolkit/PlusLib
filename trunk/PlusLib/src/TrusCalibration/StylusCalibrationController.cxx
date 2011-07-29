@@ -46,7 +46,7 @@ StylusCalibrationController::StylusCalibrationController()
 	,m_StartingFrame(-1)
 	,m_StylusPortNumber(-1)
 	,m_StylustipToStylusTransform(NULL)
-	,m_Precision(-1.0)
+	,m_CalibrationError(-1.0)
 	,m_InputPolyData(NULL)
 	,m_InputActor(NULL)
 	,m_StylusTipPolyData(NULL)
@@ -288,7 +288,7 @@ int StylusCalibrationController::GetStylusPortNumber() {
 double StylusCalibrationController::GetPrecision() {
 	LOG_TRACE("StylusCalibrationController::GetPrecision");
 
-	return m_Precision;
+	return m_CalibrationError;
 }
 
 //-----------------------------------------------------------------------------
@@ -618,13 +618,13 @@ PlusStatus StylusCalibrationController::LoadStylusCalibration(vtkXMLDataElement*
 	LOG_TRACE("StylusCalibrationController::LoadStylusCalibration");
 
 	// Find stylus definition element
-	vtkXMLDataElement* stylusDefinition = vtkFreehandController::LookupElementWithNameContainingChildWithNameAndAttribute(aConfig, "Tracker", "Tool", "Type", "Stylus");
+	vtkSmartPointer<vtkXMLDataElement> stylusDefinition = vtkFreehandController::LookupElementWithNameContainingChildWithNameAndAttribute(aConfig, "Tracker", "Tool", "Type", "Stylus");
 	if (stylusDefinition == NULL) {
 		LOG_ERROR("No stylus definition is found in the XML tree!");
 		return PLUS_FAIL;
 	}
 
-	vtkXMLDataElement* calibration = stylusDefinition->FindNestedElementWithName("Calibration");
+	vtkSmartPointer<vtkXMLDataElement> calibration = stylusDefinition->FindNestedElementWithName("Calibration");
 	if (calibration == NULL) {
 		LOG_ERROR("No calibration section is found in stylus definition!");
 		return PLUS_FAIL;
@@ -697,13 +697,13 @@ PlusStatus StylusCalibrationController::SaveStylusCalibration(vtkXMLDataElement*
 	LOG_TRACE("StylusCalibrationController::SaveStylusCalibration");
 
 	// Find stylus definition element
-	vtkXMLDataElement* stylusDefinition = vtkFreehandController::LookupElementWithNameContainingChildWithNameAndAttribute(aConfig, "Tracker", "Tool", "Type", "Stylus");
+	vtkSmartPointer<vtkXMLDataElement> stylusDefinition = vtkFreehandController::LookupElementWithNameContainingChildWithNameAndAttribute(aConfig, "Tracker", "Tool", "Type", "Stylus");
 	if (stylusDefinition == NULL) {
 		LOG_ERROR("No stylus definition is found in the XML tree!");
 		return PLUS_FAIL;
 	}
 
-	vtkXMLDataElement* calibration = stylusDefinition->FindNestedElementWithName("Calibration");
+	vtkSmartPointer<vtkXMLDataElement> calibration = stylusDefinition->FindNestedElementWithName("Calibration");
 	if (calibration == NULL) {
 		LOG_ERROR("No calibration section is found in stylus definition!");
 		return PLUS_FAIL;
@@ -719,7 +719,7 @@ PlusStatus StylusCalibrationController::SaveStylusCalibration(vtkXMLDataElement*
 	// Save matrix name, date and error
 	calibration->SetAttribute("MatrixName", "StylusTipToStylus");
 	calibration->SetAttribute("Date", vtksys::SystemTools::GetCurrentDateTime("%Y.%m.%d %X").c_str());
-	calibration->SetDoubleAttribute("Error", m_Precision);
+	calibration->SetDoubleAttribute("Error", m_CalibrationError);
 
 	return PLUS_SUCCESS;
 }
@@ -741,7 +741,7 @@ PlusStatus StylusCalibrationController::CalibrateStylus()
 	}
 
 	// Do the calibration
-	m_Precision = dataCollector->GetTracker()->GetTool(m_StylusPortNumber)->DoToolTipCalibration();
+	m_CalibrationError = dataCollector->GetTracker()->GetTool(m_StylusPortNumber)->DoToolTipCalibration();
 
 	// Get the calibration result
 	if (m_StylustipToStylusTransform == NULL) {

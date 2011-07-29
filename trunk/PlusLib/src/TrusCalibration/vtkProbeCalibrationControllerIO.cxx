@@ -1135,7 +1135,7 @@ void vtkProbeCalibrationControllerIO::ReadProbeCalibrationConfiguration(vtkXMLDa
 
 	// RandomStepperMotionData2 data set specifications
 	//********************************************************************
-	vtkXMLDataElement* randomStepperMotionData_2 = probeCalibration->FindNestedElementWithName("RandomStepperMotionData2"); 
+	vtkSmartPointer<vtkXMLDataElement> randomStepperMotionData_2 = probeCalibration->FindNestedElementWithName("RandomStepperMotionData2"); 
 	if ( randomStepperMotionData_2 != NULL) 
 	{
 		vtkCalibrationController::SavedImageDataInfo imageDataInfo; 
@@ -1167,7 +1167,7 @@ void vtkProbeCalibrationControllerIO::ReadProbeCalibrationConfiguration(vtkXMLDa
 
 	// RandomStepperMotionData_1 data set specifications
 	//********************************************************************
-	vtkXMLDataElement* randomStepperMotionData_1 = probeCalibration->FindNestedElementWithName("RandomStepperMotionData1"); 
+	vtkSmartPointer<vtkXMLDataElement> randomStepperMotionData_1 = probeCalibration->FindNestedElementWithName("RandomStepperMotionData1"); 
 	if ( randomStepperMotionData_1 != NULL) 
 	{
 		vtkCalibrationController::SavedImageDataInfo imageDataInfo; 
@@ -1199,7 +1199,7 @@ void vtkProbeCalibrationControllerIO::ReadProbeCalibrationConfiguration(vtkXMLDa
 
 	// Template model specifications
 	//********************************************************************
-	vtkXMLDataElement* templateModel = probeCalibration->FindNestedElementWithName("TemplateModel"); 
+	vtkSmartPointer<vtkXMLDataElement> templateModel = probeCalibration->FindNestedElementWithName("TemplateModel"); 
 	if ( templateModel != NULL) 
 	{
 		// Path to the template model config file 
@@ -1217,7 +1217,7 @@ void vtkProbeCalibrationControllerIO::ReadProbeCalibrationConfiguration(vtkXMLDa
 
 	// US3DBeamwidth specifications
 	//********************************************************************
-	vtkXMLDataElement* us3DBeamProfile = probeCalibration->FindNestedElementWithName("US3DBeamProfile"); 
+	vtkSmartPointer<vtkXMLDataElement> us3DBeamProfile = probeCalibration->FindNestedElementWithName("US3DBeamProfile"); 
 	if ( us3DBeamProfile != NULL) 
 	{
 		// To incorporate the ultrasound beam profile (3D beam width)
