@@ -1537,8 +1537,7 @@ PlusStatus vtkDataCollector::ReadTrackerProperties(vtkXMLDataElement* trackerCon
   {
 #ifdef PLUS_USE_BRACHY_TRACKER
     LOG_DEBUG("Tracker type: Brachy tracker"); 
-    this->SetTrackerType(
-		); 
+    this->SetTrackerType(TRACKER_BRACHY); 
     vtkSmartPointer<vtkBrachyTracker> tracker = vtkSmartPointer<vtkBrachyTracker>::New();
     this->SetTracker(tracker); 
     tracker->ReadConfiguration(trackerConfig); 
