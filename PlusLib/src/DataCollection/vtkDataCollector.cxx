@@ -1500,19 +1500,19 @@ PlusStatus vtkDataCollector::ReadConfiguration(vtkXMLDataElement* aDataCollectio
   }
 
 
-  vtkXMLDataElement* imageAcqusitionConfig = this->ConfigurationData->FindNestedElementWithName("ImageAcqusition"); 
+  vtkSmartPointer<vtkXMLDataElement> imageAcqusitionConfig = this->ConfigurationData->FindNestedElementWithName("ImageAcqusition"); 
   if ( imageAcqusitionConfig != NULL) 
   {
     this->ReadImageAcqusitionProperties(imageAcqusitionConfig); 
   }
 
-  vtkXMLDataElement* trackerConfig = this->ConfigurationData->FindNestedElementWithName("Tracker"); 
+  vtkSmartPointer<vtkXMLDataElement> trackerConfig = this->ConfigurationData->FindNestedElementWithName("Tracker"); 
   if ( trackerConfig != NULL) 
   {
     this->ReadTrackerProperties(trackerConfig); 
   }
 
-  vtkXMLDataElement* synchronizationConfig = this->ConfigurationData->FindNestedElementWithName("Synchronization"); 
+  vtkSmartPointer<vtkXMLDataElement> synchronizationConfig = this->ConfigurationData->FindNestedElementWithName("Synchronization"); 
   if ( synchronizationConfig != NULL) 
   {
     this->ReadSynchronizationProperties(synchronizationConfig); 

@@ -1201,7 +1201,7 @@ PlusStatus vtkFreehandCalibrationController::ReadConfiguration(vtkXMLDataElement
 	}
 
 	// Calibration controller specifications
-	vtkXMLDataElement* calibrationController = configData->FindNestedElementWithName("CalibrationController"); 
+	vtkSmartPointer<vtkXMLDataElement> calibrationController = configData->FindNestedElementWithName("CalibrationController"); 
 	if (calibrationController == NULL) {
 		LOG_ERROR("Unable to read configuration");
 		return PLUS_FAIL;
@@ -1211,7 +1211,7 @@ PlusStatus vtkFreehandCalibrationController::ReadConfiguration(vtkXMLDataElement
 	vtkFreehandController::GetInstance()->SetOutputFolder(this->GetOutputPath());
 
 	// Freehand Calibration specifications (from ProbeCalibration section of the config file)
-	vtkXMLDataElement* freehandCalibration = calibrationController->FindNestedElementWithName("ProbeCalibration");
+	vtkSmartPointer<vtkXMLDataElement> freehandCalibration = calibrationController->FindNestedElementWithName("ProbeCalibration");
 	if (freehandCalibration == NULL) {
 		LOG_ERROR("Unable to read configuration");
 		return PLUS_FAIL;
@@ -1303,7 +1303,7 @@ PlusStatus vtkFreehandCalibrationController::ReadFreehandCalibrationConfiguratio
 	*/
 
 	// RandomStepperMotionData2 data set specifications
-	vtkXMLDataElement* randomStepperMotionData_2 = probeCalibration->FindNestedElementWithName("RandomStepperMotionData2"); 
+	vtkSmartPointer<vtkXMLDataElement> randomStepperMotionData_2 = probeCalibration->FindNestedElementWithName("RandomStepperMotionData2"); 
 	if (randomStepperMotionData_2 != NULL) {
 		SavedImageDataInfo imageDataInfo; 
 		int numberOfImagesToUse = -1;
@@ -1328,7 +1328,7 @@ PlusStatus vtkFreehandCalibrationController::ReadFreehandCalibrationConfiguratio
 	}
 
 	// RandomStepperMotionData_1 data set specifications
-	vtkXMLDataElement* randomStepperMotionData_1 = probeCalibration->FindNestedElementWithName("RandomStepperMotionData1"); 
+	vtkSmartPointer<vtkXMLDataElement> randomStepperMotionData_1 = probeCalibration->FindNestedElementWithName("RandomStepperMotionData1"); 
 	if (randomStepperMotionData_1 != NULL) {
 		SavedImageDataInfo imageDataInfo; 
 		int numberOfImagesToUse = -1;
@@ -1355,7 +1355,7 @@ PlusStatus vtkFreehandCalibrationController::ReadFreehandCalibrationConfiguratio
 	/* TODO
 	// US3DBeamwidth specifications
 	//********************************************************************
-	vtkXMLDataElement* us3DBeamProfile = probeCalibration->FindNestedElementWithName("US3DBeamProfile"); 
+	vtkSmartPointer<vtkXMLDataElement> us3DBeamProfile = probeCalibration->FindNestedElementWithName("US3DBeamProfile"); 
 	if ( us3DBeamProfile != NULL) 
 	{
 		// To incorporate the ultrasound beam profile (3D beam width)

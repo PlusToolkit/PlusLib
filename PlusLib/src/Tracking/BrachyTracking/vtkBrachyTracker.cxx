@@ -336,7 +336,7 @@ PlusStatus vtkBrachyTracker::ReadConfiguration(vtkXMLDataElement* config)
 
   }
 
-	vtkXMLDataElement* calibration = config->FindNestedElementWithName("StepperCalibration"); 
+	vtkSmartPointer<vtkXMLDataElement> calibration = config->FindNestedElementWithName("StepperCalibration"); 
 	if ( calibration != NULL ) 
 	{
 		const char* calibrationAlgorithmVersion = calibration->GetAttribute("AlgorithmVersion"); 

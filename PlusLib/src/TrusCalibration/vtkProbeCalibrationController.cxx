@@ -848,12 +848,12 @@ PlusStatus vtkProbeCalibrationController::ReadConfiguration( vtkXMLDataElement* 
 
 	// Calibration controller specifications
 	//********************************************************************
-	vtkXMLDataElement* calibrationController = configData->FindNestedElementWithName("CalibrationController"); 
+	vtkSmartPointer<vtkXMLDataElement> calibrationController = configData->FindNestedElementWithName("CalibrationController"); 
 	this->ReadCalibrationControllerConfiguration(calibrationController); 
 
 	// ProbeCalibration specifications
 	//*********************************
-	vtkXMLDataElement* probeCalibration = calibrationController->FindNestedElementWithName("ProbeCalibration"); 
+	vtkSmartPointer<vtkXMLDataElement> probeCalibration = calibrationController->FindNestedElementWithName("ProbeCalibration"); 
 	this->CalibrationControllerIO->ReadProbeCalibrationConfiguration(probeCalibration); 
 
   // Load TemplateHolderToPhantomTransform from the phantom definition file
@@ -871,7 +871,7 @@ PlusStatus vtkProbeCalibrationController::ReadConfiguration( vtkXMLDataElement* 
 		LOG_ERROR("Unable to read the phantom definition file: " << phantomDefFileName); 
 		return PLUS_FAIL;
 	}
-	vtkXMLDataElement* customTransforms = phantomDefinition->FindNestedElementWithName("CustomTransforms"); 
+	vtkSmartPointer<vtkXMLDataElement> customTransforms = phantomDefinition->FindNestedElementWithName("CustomTransforms"); 
 	if (customTransforms == NULL) 
   {
 		LOG_ERROR("Custom transforms are not found in phantom model");

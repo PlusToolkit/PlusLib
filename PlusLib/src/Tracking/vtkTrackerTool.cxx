@@ -426,7 +426,7 @@ PlusStatus vtkTrackerTool::ReadConfiguration(vtkXMLDataElement* config)
 		this->SetSendToLink(sendToLink); 
 	}
 
-	vtkXMLDataElement* toolCalibrationDataElement = config->FindNestedElementWithName("Calibration"); 
+	vtkSmartPointer<vtkXMLDataElement> toolCalibrationDataElement = config->FindNestedElementWithName("Calibration"); 
 	if ( toolCalibrationDataElement != NULL ) 
 	{
 		const char* matrixName = toolCalibrationDataElement->GetAttribute("MatrixName"); 
@@ -454,7 +454,7 @@ PlusStatus vtkTrackerTool::ReadConfiguration(vtkXMLDataElement* config)
 		}
 	}
 
-	vtkXMLDataElement* modelDataElement = config->FindNestedElementWithName("Model"); 
+	vtkSmartPointer<vtkXMLDataElement> modelDataElement = config->FindNestedElementWithName("Model"); 
 	if ( modelDataElement != NULL ) 
 	{
 		const char* file = modelDataElement->GetAttribute("File");

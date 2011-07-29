@@ -2477,12 +2477,12 @@ void vtkFreehandUltrasound2::FillHolesInOutput()
 // Get the XML element describing the freehand object
 vtkXMLDataElement* vtkFreehandUltrasound2::MakeXMLElement()
 {
-	vtkXMLDataElement* elem = vtkXMLDataElement::New();
+	vtkSmartPointer<vtkXMLDataElement> elem = vtkXMLDataElement::New();
 	elem->SetName("Freehand");
 
 	// input slice parameters
 	vtkImageData *image = this->GetSlice();
-	vtkXMLDataElement* sliceParams = vtkXMLDataElement::New();
+	vtkSmartPointer<vtkXMLDataElement> sliceParams = vtkXMLDataElement::New();
 	sliceParams->SetName("SliceParameters");
 	if (image)
 	{
@@ -2498,7 +2498,7 @@ vtkXMLDataElement* vtkFreehandUltrasound2::MakeXMLElement()
 	elem->AddNestedElement(sliceParams);
 
 	// output parameters
-	vtkXMLDataElement* outputParams = vtkXMLDataElement::New();
+	vtkSmartPointer<vtkXMLDataElement> outputParams = vtkXMLDataElement::New();
 	outputParams->SetName("OutputParameters");
 	outputParams->SetVectorAttribute("OutputSpacing", 3, this->OutputSpacing);
 	outputParams->SetVectorAttribute("OutputOrigin", 3, this->OutputOrigin);
@@ -2506,13 +2506,13 @@ vtkXMLDataElement* vtkFreehandUltrasound2::MakeXMLElement()
 	elem->AddNestedElement(outputParams);
 
 	// clipping parameters
-	vtkXMLDataElement* clipParams = vtkXMLDataElement::New();
+	vtkSmartPointer<vtkXMLDataElement> clipParams = vtkXMLDataElement::New();
 	clipParams->SetName("ClippingParameters");
 	clipParams->SetVectorAttribute("ClipRectangle", 4, this->ClipRectangle);
 	elem->AddNestedElement(clipParams);
 
 	// fan parameters
-	vtkXMLDataElement* fanParams = vtkXMLDataElement::New();
+	vtkSmartPointer<vtkXMLDataElement> fanParams = vtkXMLDataElement::New();
 	fanParams->SetName("FanParameters");
 	fanParams->SetVectorAttribute("FanAngles", 2, this->FanAngles);
 	fanParams->SetVectorAttribute("FanOrigin", 2, this->FanOrigin);
@@ -2520,7 +2520,7 @@ vtkXMLDataElement* vtkFreehandUltrasound2::MakeXMLElement()
 	elem->AddNestedElement(fanParams);
 
 	// reconstruction options
-	vtkXMLDataElement* reconOptions = vtkXMLDataElement::New();
+	vtkSmartPointer<vtkXMLDataElement> reconOptions = vtkXMLDataElement::New();
 	reconOptions->SetName("ReconstructionOptions");
 	reconOptions->SetAttribute("Interpolation", this->GetInterpolationModeAsString());
 	(this->Optimization ? reconOptions->SetAttribute("Optimization", "On") : reconOptions->SetAttribute("Optimization", "Off"));
@@ -2539,13 +2539,13 @@ vtkXMLDataElement* vtkFreehandUltrasound2::MakeXMLElement()
 	elem->AddNestedElement(spatialParams);
 
 	// temporal calibration
-	vtkXMLDataElement* temporalParams = vtkXMLDataElement::New();
+	vtkSmartPointer<vtkXMLDataElement> temporalParams = vtkXMLDataElement::New();
 	temporalParams->SetName("TemporalCalibration");
 	temporalParams->SetDoubleAttribute("VideoLag", this->VideoLag);
 	elem->AddNestedElement(temporalParams);
 
 	// rotation options
-	vtkXMLDataElement* rotationOptions = vtkXMLDataElement::New();
+	vtkSmartPointer<vtkXMLDataElement> rotationOptions = vtkXMLDataElement::New();
 	rotationOptions->SetName("RotationOptions");
 	(this->Rotating ? rotationOptions->SetAttribute("Rotation", "On") : rotationOptions->SetAttribute("Rotation", "Off"));
 	rotationOptions->SetIntAttribute("MaxRotationChange", this->MaximumRotationChange);
@@ -2557,7 +2557,7 @@ vtkXMLDataElement* vtkFreehandUltrasound2::MakeXMLElement()
 	elem->AddNestedElement(rotationOptions);
 
 	// buffer options
-	vtkXMLDataElement* bufferOptions = vtkXMLDataElement::New();
+	vtkSmartPointer<vtkXMLDataElement> bufferOptions = vtkXMLDataElement::New();
 	bufferOptions->SetName("BufferOptions");
 	if (this->VideoSource)
 	{
@@ -2615,7 +2615,7 @@ void vtkFreehandUltrasound2::SaveSummaryFile(const char *directory)
 #endif
 
 	// get the XML element that describes the freehand object and write to file
-	vtkXMLDataElement* elem = this->MakeXMLElement();
+	vtkSmartPointer<vtkXMLDataElement> elem = this->MakeXMLElement();
 	vtkXMLUtilities::WriteElementToFile(elem, path);
 
 	// clean up
@@ -2652,7 +2652,7 @@ PlusStatus vtkFreehandUltrasound2::ReadSummaryFile(const char *filename)
 	}
 
 	// slice parameters
-	vtkXMLDataElement* sliceParams = elem->FindNestedElementWithName("SliceParameters");
+	vtkSmartPointer<vtkXMLDataElement> sliceParams = elem->FindNestedElementWithName("SliceParameters");
 	if (sliceParams)
 	{
 		if (this->VideoSource == NULL)
@@ -2676,7 +2676,7 @@ PlusStatus vtkFreehandUltrasound2::ReadSummaryFile(const char *filename)
 	}
 
 	// output parameters
-	vtkXMLDataElement* outputParams = elem->FindNestedElementWithName("OutputParameters");
+	vtkSmartPointer<vtkXMLDataElement> outputParams = elem->FindNestedElementWithName("OutputParameters");
 	if (outputParams)
 	{
 		outputParams->GetVectorAttribute("OutputSpacing", 3, this->OutputSpacing);
@@ -2752,7 +2752,7 @@ PlusStatus vtkFreehandUltrasound2::ReadSummaryFile(const char *filename)
 	delete [] elements;
 
 	// temporal parameters
-	vtkXMLDataElement* temporalParams = elem->FindNestedElementWithName("TemporalCalibration");
+	vtkSmartPointer<vtkXMLDataElement> temporalParams = elem->FindNestedElementWithName("TemporalCalibration");
 	if (temporalParams)
 	{
 		temporalParams->GetScalarAttribute("VideoLag", this->VideoLag);
@@ -2760,7 +2760,7 @@ PlusStatus vtkFreehandUltrasound2::ReadSummaryFile(const char *filename)
 
 	// rotation options
 	int tempi;
-	vtkXMLDataElement* rotationOptions = elem->FindNestedElementWithName("RotationOptions");
+	vtkSmartPointer<vtkXMLDataElement> rotationOptions = elem->FindNestedElementWithName("RotationOptions");
 	if (rotationOptions)
 	{
 		if (rotationOptions->GetAttribute("Rotation"))
@@ -2783,7 +2783,7 @@ PlusStatus vtkFreehandUltrasound2::ReadSummaryFile(const char *filename)
 	}
 
 	// buffer options
-	vtkXMLDataElement* bufferOptions = elem->FindNestedElementWithName("BufferOptions");
+	vtkSmartPointer<vtkXMLDataElement> bufferOptions = elem->FindNestedElementWithName("BufferOptions");
 	double tempd = 0;
 	if (bufferOptions)
 	{

@@ -12,6 +12,7 @@ class vtkPolyData;
 class vtkPoints;
 class vtkTransform;
 class vtkAxesActor;
+class vtkXMLDataElement;
 
 //-----------------------------------------------------------------------------
 
@@ -70,10 +71,24 @@ public:
 	PlusStatus LoadPhantomRegistrationFromFile(std::string aFile);
 
 	/*!
+	* \brief Load phantom registration from file
+	* \param aConfig XML data element containing the phantom registration
+	* \return Success flag
+	*/
+	PlusStatus LoadPhantomRegistration(vtkXMLDataElement* aConfig);
+
+	/*!
 	* \brief Save result to XML file
 	* \param aFile XML file name and path
 	*/
-	void SavePhantomRegistrationToFile(std::string aFile);
+	PlusStatus SavePhantomRegistrationToFile(std::string aFile);
+
+	/*!
+	* \brief Save result to XML file
+	* \param aConfig XML data element containing the phantom registration
+	* \return Success flag
+	*/
+	PlusStatus SavePhantomRegistration(vtkXMLDataElement* aConfig);
 
 	/*!
 	* \brief Get current stylus position string to display
@@ -106,7 +121,7 @@ public:
 	std::string GetCurrentLandmarkName();
 
 	/*!
-	* \brief Getter function
+	* \brief Getter function TODO there will be no separate phantom definition file
 	* \return String containing the phantom definition file path and name
 	*/
 	std::string GetPhantomDefinitionFileName();
@@ -122,6 +137,13 @@ public:
 	* \param Path and filename of input XML
 	*/
 	PlusStatus LoadPhantomDefinitionFromFile(std::string aFile);
+
+	/*!
+	* \brief Load phantom definition from file
+	* \param aConfig XML data element containing the phantom definition
+	* \return Success flag
+	*/
+	PlusStatus LoadPhantomDefinition(vtkXMLDataElement* aConfig);
 
 	/*!
 	* \brief Sets request recording flag to true, so at the next acquisition the position is recorded
@@ -210,6 +232,9 @@ protected:
 
 	//! Flag to trigger landmark recording - if it is set then at the next acquisition the position is recorded
 	bool									m_RecordRequested;
+
+	//! The mean error of the landmark registration in mm
+	double									m_RegistrationError;
 
 private:
 	//! Instance of the singleton

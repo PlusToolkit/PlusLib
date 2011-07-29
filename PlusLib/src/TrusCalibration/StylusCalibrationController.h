@@ -75,6 +75,7 @@ public:
 	/*!
 	* \brief Save result to XML file
 	* \param aFile XML file name and path
+	* \return Success flag
 	*/
 	PlusStatus SaveStylusCalibrationToFile(std::string aFile);
 
@@ -205,8 +206,8 @@ protected:
 	//! Stylustip to stylus transform - the result of the calibration
 	vtkTransform*						m_StylustipToStylusTransform;
 
-	//! Uncertainty (standard deviation), precision of the calibration result
-	double								m_Precision;
+	//! Uncertainty (standard deviation), error of the calibration result in mm
+	double								m_CalibrationError;
 
 	//! Stylus or stylus tip position (depenting on the state) as string
 	std::string							m_PositionString;

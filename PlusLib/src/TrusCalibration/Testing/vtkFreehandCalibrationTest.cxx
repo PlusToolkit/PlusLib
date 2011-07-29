@@ -150,8 +150,8 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
 	}
 
 	{	//<CalibrationResults>
-		vtkXMLDataElement* calibrationResultsBaseline = baselineRootElem->FindNestedElementWithName("CalibrationResults"); 
-		vtkXMLDataElement* calibrationResults = currentRootElem->FindNestedElementWithName("CalibrationResults"); 
+		vtkSmartPointer<vtkXMLDataElement> calibrationResultsBaseline = baselineRootElem->FindNestedElementWithName("CalibrationResults"); 
+		vtkSmartPointer<vtkXMLDataElement> calibrationResults = currentRootElem->FindNestedElementWithName("CalibrationResults"); 
 
 		if ( calibrationResultsBaseline == NULL) 
 		{
@@ -170,8 +170,8 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
 
 		{	// <UltrasoundImageDimensions>
 
-			vtkXMLDataElement* ultrasoundImageDimensionsBaseline = calibrationResultsBaseline->FindNestedElementWithName("UltrasoundImageDimensions"); 
-			vtkXMLDataElement* ultrasoundImageDimensions = calibrationResults->FindNestedElementWithName("UltrasoundImageDimensions");
+			vtkSmartPointer<vtkXMLDataElement> ultrasoundImageDimensionsBaseline = calibrationResultsBaseline->FindNestedElementWithName("UltrasoundImageDimensions"); 
+			vtkSmartPointer<vtkXMLDataElement> ultrasoundImageDimensions = calibrationResults->FindNestedElementWithName("UltrasoundImageDimensions");
 
 			if ( ultrasoundImageDimensionsBaseline == NULL) 
 			{
@@ -230,8 +230,8 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
 
 
 		{	// <UltrasoundImageOrigin>
-			vtkXMLDataElement* ultrasoundImageOriginBaseline = calibrationResultsBaseline->FindNestedElementWithName("UltrasoundImageOrigin"); 
-			vtkXMLDataElement* ultrasoundImageOrigin = calibrationResults->FindNestedElementWithName("UltrasoundImageOrigin");
+			vtkSmartPointer<vtkXMLDataElement> ultrasoundImageOriginBaseline = calibrationResultsBaseline->FindNestedElementWithName("UltrasoundImageOrigin"); 
+			vtkSmartPointer<vtkXMLDataElement> ultrasoundImageOrigin = calibrationResults->FindNestedElementWithName("UltrasoundImageOrigin");
 
 			if ( ultrasoundImageOriginBaseline == NULL) 
 			{
@@ -290,8 +290,8 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
 		}// </UltrasoundImageOrigin>
 
 		{	// <CalibrationTransform>
-			vtkXMLDataElement* calibrationTransformBaseline = calibrationResultsBaseline->FindNestedElementWithName("CalibrationTransform"); 
-			vtkXMLDataElement* calibrationTransform = calibrationResults->FindNestedElementWithName("CalibrationTransform");
+			vtkSmartPointer<vtkXMLDataElement> calibrationTransformBaseline = calibrationResultsBaseline->FindNestedElementWithName("CalibrationTransform"); 
+			vtkSmartPointer<vtkXMLDataElement> calibrationTransform = calibrationResults->FindNestedElementWithName("CalibrationTransform");
 
 			if ( calibrationTransformBaseline == NULL) 
 			{
@@ -590,8 +590,8 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
 	}//</CalibrationResults>
 
 	{	// <ErrorReports>
-		vtkXMLDataElement* errorReportsBaseline = baselineRootElem->FindNestedElementWithName("ErrorReports"); 
-		vtkXMLDataElement* errorReports = currentRootElem->FindNestedElementWithName("ErrorReports");
+		vtkSmartPointer<vtkXMLDataElement> errorReportsBaseline = baselineRootElem->FindNestedElementWithName("ErrorReports"); 
+		vtkSmartPointer<vtkXMLDataElement> errorReports = currentRootElem->FindNestedElementWithName("ErrorReports");
 
 		if ( errorReportsBaseline == NULL) 
 		{
@@ -608,8 +608,8 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
 		}
 
 		{	// <PointReconstructionErrorAnalysis>
-			vtkXMLDataElement* pointReconstructionErrorAnalysisBaseline = errorReportsBaseline->FindNestedElementWithName("PointReconstructionErrorAnalysis"); 
-			vtkXMLDataElement* pointReconstructionErrorAnalysis = errorReports->FindNestedElementWithName("PointReconstructionErrorAnalysis");
+			vtkSmartPointer<vtkXMLDataElement> pointReconstructionErrorAnalysisBaseline = errorReportsBaseline->FindNestedElementWithName("PointReconstructionErrorAnalysis"); 
+			vtkSmartPointer<vtkXMLDataElement> pointReconstructionErrorAnalysis = errorReports->FindNestedElementWithName("PointReconstructionErrorAnalysis");
 
 			if ( pointReconstructionErrorAnalysisBaseline == NULL) 
 			{
@@ -679,8 +679,8 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
 		}// </PointReconstructionErrorAnalysis>
 
 		{	// <PointLineDistanceErrorAnalysis>
-			vtkXMLDataElement* pointLineDistanceErrorAnalysisBaseline = errorReportsBaseline->FindNestedElementWithName("PointLineDistanceErrorAnalysis"); 
-			vtkXMLDataElement* pointLineDistanceErrorAnalysis = errorReports->FindNestedElementWithName("PointLineDistanceErrorAnalysis");
+			vtkSmartPointer<vtkXMLDataElement> pointLineDistanceErrorAnalysisBaseline = errorReportsBaseline->FindNestedElementWithName("PointLineDistanceErrorAnalysis"); 
+			vtkSmartPointer<vtkXMLDataElement> pointLineDistanceErrorAnalysis = errorReports->FindNestedElementWithName("PointLineDistanceErrorAnalysis");
 
 			if ( pointLineDistanceErrorAnalysisBaseline == NULL) 
 			{

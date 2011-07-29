@@ -60,6 +60,7 @@ PhantomRegistrationController::PhantomRegistrationController()
 	,m_PositionString("")
 	,m_CurrentLandmarkIndex(-1)
 	,m_RecordRequested(false)
+	,m_RegistrationError(-1.0)
 {
 	m_LandmarkNames.clear();
 
@@ -763,21 +764,32 @@ PlusStatus PhantomRegistrationController::DoAcquisition()
 
 PlusStatus PhantomRegistrationController::LoadPhantomDefinitionFromFile(std::string aFile)
 {
-	LOG_TRACE("PhantomRegistrationController::LoadPhantomDefinitionFromFile(" << aFile << ")"); 
+	LOG_TRACE("PhantomRegistrationController::LoadPhantomDefinitionFromFile(" << aFile << ")");
 
 	vtkSmartPointer<vtkXMLDataElement> rootElement = vtkXMLUtilities::ReadElementFromFile(aFile.c_str());
 	if (rootElement == NULL) {	
-		LOG_ERROR("Unable to read the phantom definition file: " << aFile); 
+		LOG_ERROR("Unable to read the configuration file: " << aFile); 
 		return PLUS_FAIL;
 	}
 
-	vtkXMLDataElement* phantomDefinition = rootElement->FindNestedElementWithName("PhantomDefinition"); 
+	return LoadPhantomDefinition(rootElement);
+}
+
+//-----------------------------------------------------------------------------
+
+PlusStatus PhantomRegistrationController::LoadPhantomDefinition(vtkXMLDataElement* aConfig)
+{
+	LOG_TRACE("PhantomRegistrationController::LoadPhantomDefinition");
+
+	// Find phantom definition element
+	vtkSmartPointer<vtkXMLDataElement> phantomDefinition = vtkFreehandController::GetInstance()->GetConfigurationData()->LookupElementWithName("PhantomDefinition");
 	if (phantomDefinition == NULL) {
-		LOG_INFO("'" << aFile << "' is not a phantom definition file! The registration data cannot be used by calibration.");
+		LOG_ERROR("No phantom definition is found in the XML tree!");
+		return PLUS_FAIL;
 	}
 
 	// Load model information
-	vtkXMLDataElement* model = phantomDefinition->FindNestedElementWithName("Model"); 
+	vtkSmartPointer<vtkXMLDataElement> model = phantomDefinition->FindNestedElementWithName("Model"); 
 	if (model == NULL) {
 		LOG_WARNING("Phantom model information not found - no model displayed");
 	} else {
@@ -841,7 +853,7 @@ PlusStatus PhantomRegistrationController::LoadPhantomDefinitionFromFile(std::str
 	m_LandmarksPolyData->Modified();
 
 	// Load geometry
-	vtkXMLDataElement* geometry = phantomDefinition->FindNestedElementWithName("Geometry"); 
+	vtkSmartPointer<vtkXMLDataElement> geometry = phantomDefinition->FindNestedElementWithName("Geometry"); 
 	if (geometry == NULL) {
 		LOG_ERROR("Phantom geometry information not found!");
 		if (vtkFreehandController::GetInstance()->GetCanvas() != NULL) {
@@ -901,23 +913,44 @@ PlusStatus PhantomRegistrationController::LoadPhantomDefinitionFromFile(std::str
 
 PlusStatus PhantomRegistrationController::LoadPhantomRegistrationFromFile(std::string aFile)
 {
-	LOG_TRACE("PhantomRegistrationController::LoadPhantomRegistrationFromFile(" << aFile << ")"); 
+	LOG_TRACE("PhantomRegistrationController::LoadPhantomRegistrationFromFile(" << aFile << ")");
 
-	vtkSmartPointer<vtkXMLDataElement> phantomRegistration = vtkXMLUtilities::ReadElementFromFile(aFile.c_str());
+	vtkSmartPointer<vtkXMLDataElement> rootElement = vtkXMLUtilities::ReadElementFromFile(aFile.c_str());
+	if (rootElement == NULL) {	
+		LOG_ERROR("Unable to read the configuration file: " << aFile); 
+		return PLUS_FAIL;
+	}
 
-	if (phantomRegistration == NULL) {	
-		LOG_ERROR("Unable to read the phantom registration file: " << aFile); 
+	return LoadPhantomRegistration(rootElement);
+}
+
+//-----------------------------------------------------------------------------
+
+PlusStatus PhantomRegistrationController::LoadPhantomRegistration(vtkXMLDataElement* aConfig)
+{
+	LOG_TRACE("PhantomRegistrationController::LoadPhantomRegistration"); 
+
+	// Find phantom definition element
+	vtkSmartPointer<vtkXMLDataElement> phantomDefinition = vtkFreehandController::GetInstance()->GetConfigurationData()->LookupElementWithName("PhantomDefinition");
+	if (phantomDefinition == NULL) {
+		LOG_ERROR("No phantom definition is found in the XML tree!");
+		return PLUS_FAIL;
+	}
+
+	vtkSmartPointer<vtkXMLDataElement> geometry = phantomDefinition->FindNestedElementWithName("Geometry"); 
+	if (geometry == NULL) {
+		LOG_ERROR("Phantom geometry information not found!");
 		return PLUS_FAIL;
 	}
 
 	// Load stylus calibration transform
-	vtkXMLDataElement* phantomRegistrationTransform = phantomRegistration->FindNestedElementWithName("PhantomToPhantomReferenceTransform"); 
-	if (phantomRegistrationTransform == NULL) {
-		LOG_ERROR("Phantom registration transform not found!");
+	vtkSmartPointer<vtkXMLDataElement> registration = geometry->FindNestedElementWithName("Registration"); 
+	if (registration == NULL) {
+		LOG_ERROR("Registration element not found!");
 		return PLUS_FAIL;
 	} else {
 		double* transform = new double[16]; 
-		if (phantomRegistrationTransform->GetVectorAttribute("Transform", 16, transform)) {
+		if (registration->GetVectorAttribute("MatrixValue", 16, transform)) {
 			if (m_PhantomToPhantomReferenceTransform == NULL) {
 				m_PhantomToPhantomReferenceTransform = vtkTransform::New();
 			}
@@ -932,16 +965,58 @@ PlusStatus PhantomRegistrationController::LoadPhantomRegistrationFromFile(std::s
 
 //-----------------------------------------------------------------------------
 
-void PhantomRegistrationController::SavePhantomRegistrationToFile(std::string aFile)
+PlusStatus PhantomRegistrationController::SavePhantomRegistrationToFile(std::string aFile)
 {
-	LOG_TRACE("PhantomRegistrationController::SavePhantomRegistrationToFile(" << aFile << ")"); 
+	LOG_TRACE("PhantomRegistrationController::SavePhantomRegistrationToFile(" << aFile << ")");
 
-	vtkSmartPointer<vtkXMLDataElement> phantomRegistration = vtkSmartPointer<vtkXMLDataElement>::New();
-	phantomRegistration->SetName("PhantomRegistration");
-	phantomRegistration->SetAttribute("version", "1.0");
+	vtkSmartPointer<vtkXMLDataElement> rootElement = vtkXMLUtilities::ReadElementFromFile(aFile.c_str());
+	if (rootElement == NULL) {	
+	} else {
+		rootElement = vtkFreehandController::GetInstance()->GetConfigurationData();
 
-	vtkSmartPointer<vtkXMLDataElement> phantomRegistrationTransform = vtkSmartPointer<vtkXMLDataElement>::New();
+		if (rootElement == NULL) {	
+			LOG_ERROR("Unable to get the configuration data from neither the file " << aFile << " nor from vtkFreehandController"); 
+			return PLUS_FAIL;
+		}
+	}
 
+	if (SavePhantomRegistration(rootElement) != PLUS_SUCCESS) {
+		LOG_ERROR("Phantom registration result could not be saved!");
+		return PLUS_FAIL;
+	}
+
+	rootElement->PrintXML(aFile.c_str());
+
+	return PLUS_SUCCESS;
+}
+
+//-----------------------------------------------------------------------------
+
+PlusStatus PhantomRegistrationController::SavePhantomRegistration(vtkXMLDataElement* aConfig)
+{
+	LOG_TRACE("PhantomRegistrationController::SavePhantomRegistration");
+
+	// Find phantom definition element
+	vtkSmartPointer<vtkXMLDataElement> phantomDefinition = vtkFreehandController::GetInstance()->GetConfigurationData()->LookupElementWithName("PhantomDefinition");
+	if (phantomDefinition == NULL) {
+		LOG_ERROR("No phantom definition is found in the XML tree!");
+		return PLUS_FAIL;
+	}
+
+	vtkSmartPointer<vtkXMLDataElement> geometry = phantomDefinition->FindNestedElementWithName("Geometry"); 
+	if (geometry == NULL) {
+		LOG_ERROR("Phantom geometry information not found!");
+		return PLUS_FAIL;
+	}
+
+	// Load stylus calibration transform
+	vtkSmartPointer<vtkXMLDataElement> registration = geometry->FindNestedElementWithName("Registration"); 
+	if (registration == NULL) {
+		LOG_ERROR("Registration element not found!");
+		return PLUS_FAIL;
+	}
+
+	// Assemble and save transform
 	char phantomRegistrationChars[256];
 	vtkSmartPointer<vtkMatrix4x4> transformMatrix = m_PhantomToPhantomReferenceTransform->GetMatrix();
 	sprintf_s(phantomRegistrationChars, 256, "\n\t%.4lf %.4lf %.4lf %.4lf\n\t%.4lf %.4lf %.4lf %.4lf\n\t%.4lf %.4lf %.4lf %.1lf\n\t0 0 0 1", 
@@ -949,11 +1024,12 @@ void PhantomRegistrationController::SavePhantomRegistrationToFile(std::string aF
 		transformMatrix->GetElement(1,0), transformMatrix->GetElement(1,1), transformMatrix->GetElement(1,2), transformMatrix->GetElement(1,3), 
 		transformMatrix->GetElement(2,0), transformMatrix->GetElement(2,1), transformMatrix->GetElement(2,2), transformMatrix->GetElement(2,3));
 
-	phantomRegistrationTransform->SetName("PhantomToPhantomReferenceTransform");
+	registration->SetAttribute("MatrixValue", phantomRegistrationChars);
 
-	phantomRegistrationTransform->SetAttribute("Transform", phantomRegistrationChars);
+	// Save matrix name, date and error
+	registration->SetAttribute("MatrixName", "PhantomToPhantomReference");
+	registration->SetAttribute("Date", vtksys::SystemTools::GetCurrentDateTime("%Y.%m.%d %X").c_str());
+	registration->SetDoubleAttribute("Error", m_RegistrationError);
 
-	phantomRegistration->AddNestedElement(phantomRegistrationTransform);
-
-	phantomRegistration->PrintXML(aFile.c_str());
+	return PLUS_SUCCESS;
 }

@@ -143,7 +143,7 @@ PlusStatus vtkFreehandController::StartDataCollection()
 	vtkSmartPointer<vtkDataCollector> dataCollector = vtkSmartPointer<vtkDataCollector>::New(); 
 	this->SetDataCollector(dataCollector);
 
-	vtkXMLDataElement* dataCollectionConfig = this->ConfigurationData->FindNestedElementWithName("USDataCollection");
+	vtkSmartPointer<vtkXMLDataElement> dataCollectionConfig = this->ConfigurationData->FindNestedElementWithName("USDataCollection");
 	if (dataCollectionConfig == NULL) { // Check if it is a separate data collection configuration file
 		if (STRCASECMP(this->ConfigurationData->GetName(), "USDataCollection") == 0) {
 			dataCollectionConfig = this->ConfigurationData;
@@ -183,9 +183,9 @@ vtkXMLDataElement* vtkFreehandController::LookupElementWithNameContainingChildWi
 {
 	LOG_TRACE("vtkFreehandController::LookupElementWithNameContainingChildWithNameAndAttribute(" << aElementName << ", " << aChildName << ", " << aChildAttributeName << ", " << aChildAttributeValue << ")");
 
-	vtkXMLDataElement* childElement = NULL;
+	vtkSmartPointer<vtkXMLDataElement> childElement = NULL;
 
-	vtkXMLDataElement* firstElement = aConfig->LookupElementWithName(aElementName);
+	vtkSmartPointer<vtkXMLDataElement> firstElement = aConfig->LookupElementWithName(aElementName);
 	if (firstElement == NULL) {
 		return NULL;
 	} else {

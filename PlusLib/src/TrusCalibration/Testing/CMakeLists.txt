@@ -93,10 +93,8 @@ TARGET_LINK_LIBRARIES(vtkPhantomRegistrationTest itkvnl itkvnl_algo vtkCommon vt
 
 ADD_TEST(vtkPhantomRegistrationTest
 		${EXECUTABLE_OUTPUT_PATH}/vtkPhantomRegistrationTest
-		--input-config-file-name=${ConfigFilesDir}/Test_USDataCollectionConfig_VideoNone_FakeTracker_RecordPhantomLandmarks.xml
+		--input-config-file-name=${ConfigFilesDir}/Test_PlusConfiguration_VideoNone_FakeTracker_RecordPhantomLandmarks.xml
 		--input-baseline-file-name=${TestDataDir}/PhantomRegistration.results.xml
-		--input-stylus-calibration-xml-file-name=${TestDataDir}/StylusCalibration.results.xml
-		--input-phantom-definition-xml-file-name=${ConfigFilesDir}/PhantomDefinition_fCal_1.0_Wiring_1.0.xml
 		)
 SET_TESTS_PROPERTIES( vtkPhantomRegistrationTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 

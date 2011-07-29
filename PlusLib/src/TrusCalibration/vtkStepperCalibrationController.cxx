@@ -2549,7 +2549,7 @@ PlusStatus vtkStepperCalibrationController::ReadConfiguration( vtkXMLDataElement
 
   // Calibration controller specifications
   //********************************************************************
-  vtkXMLDataElement* calibrationController = configData->FindNestedElementWithName("CalibrationController"); 
+  vtkSmartPointer<vtkXMLDataElement> calibrationController = configData->FindNestedElementWithName("CalibrationController"); 
   if (this->ReadCalibrationControllerConfiguration(calibrationController)!=PLUS_SUCCESS)
   {
     LOG_ERROR("Cannot find calibrationController element");
@@ -2558,7 +2558,7 @@ PlusStatus vtkStepperCalibrationController::ReadConfiguration( vtkXMLDataElement
 
   // StepperCalibration specifications
   //*********************************
-  vtkXMLDataElement* stepperCalibration = calibrationController->FindNestedElementWithName("StepperCalibration"); 
+  vtkSmartPointer<vtkXMLDataElement> stepperCalibration = calibrationController->FindNestedElementWithName("StepperCalibration"); 
   if (this->ReadStepperCalibrationConfiguration(stepperCalibration)!=PLUS_SUCCESS)
   {
     LOG_ERROR("Cannot find stepperCalibration element");
@@ -2586,7 +2586,7 @@ PlusStatus vtkStepperCalibrationController::ReadStepperCalibrationConfiguration(
 
   // ProbeRotationData data set specifications
   //********************************************************************
-  vtkXMLDataElement* probeRotationData = stepperCalibration->FindNestedElementWithName("ProbeRotationData"); 
+  vtkSmartPointer<vtkXMLDataElement> probeRotationData = stepperCalibration->FindNestedElementWithName("ProbeRotationData"); 
   if ( probeRotationData != NULL) 
   {
     vtkCalibrationController::SavedImageDataInfo imageDataInfo; 
@@ -2619,7 +2619,7 @@ PlusStatus vtkStepperCalibrationController::ReadStepperCalibrationConfiguration(
 
   // TemplateTranslationData data set specifications
   //********************************************************************
-  vtkXMLDataElement* templateTranslationData = stepperCalibration->FindNestedElementWithName("TemplateTranslationData"); 
+  vtkSmartPointer<vtkXMLDataElement> templateTranslationData = stepperCalibration->FindNestedElementWithName("TemplateTranslationData"); 
   if ( templateTranslationData != NULL) 
   {
     vtkCalibrationController::SavedImageDataInfo imageDataInfo; 
@@ -2651,7 +2651,7 @@ PlusStatus vtkStepperCalibrationController::ReadStepperCalibrationConfiguration(
 
   // ProbeTranslationData data set specifications
   //********************************************************************
-  vtkXMLDataElement* probeTranslationData = stepperCalibration->FindNestedElementWithName("ProbeTranslationData"); 
+  vtkSmartPointer<vtkXMLDataElement> probeTranslationData = stepperCalibration->FindNestedElementWithName("ProbeTranslationData"); 
   if ( probeTranslationData != NULL) 
   {
     vtkCalibrationController::SavedImageDataInfo imageDataInfo; 
@@ -2712,7 +2712,7 @@ PlusStatus vtkStepperCalibrationController::WriteCalibrationResultToXml(vtkXMLDa
     return PLUS_FAIL; 
   }
 
-  vtkXMLDataElement* calibration = config->FindNestedElementWithName("Calibration"); 
+  vtkSmartPointer<vtkXMLDataElement> calibration = config->FindNestedElementWithName("Calibration"); 
 
   if ( calibration != NULL )
   {

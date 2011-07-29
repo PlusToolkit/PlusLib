@@ -24,9 +24,6 @@ int main (int argc, char* argv[])
 	std::string inputConfigFileName;
 	std::string inputBaselineFileName;
 
-	std::string inputStylusCalibrationXmlFileName;
-	std::string inputPhantomDefinitionXmlFileName;
-
 	int verboseLevel=PlusLogger::LOG_LEVEL_INFO;
 
 	vtksys::CommandLineArguments cmdargs;
@@ -34,8 +31,6 @@ int main (int argc, char* argv[])
 
 	cmdargs.AddArgument("--input-config-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "Configuration file name");
 	cmdargs.AddArgument("--input-baseline-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputBaselineFileName, "Name of file storing baseline calibration results");
-	cmdargs.AddArgument("--input-stylus-calibration-xml-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputStylusCalibrationXmlFileName, "Name of file storing stylus calibration transform");
-	cmdargs.AddArgument("--input-phantom-definition-xml-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputPhantomDefinitionXmlFileName, "Phantom definition file name");
 	cmdargs.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug)");	
 
 	if ( !cmdargs.Parse() )
@@ -67,11 +62,11 @@ int main (int argc, char* argv[])
 
 	StylusCalibrationController* stylusCalibrationController = StylusCalibrationController::GetInstance();
 	stylusCalibrationController->Initialize();
-	stylusCalibrationController->LoadStylusCalibrationFromFile(inputStylusCalibrationXmlFileName);
+	stylusCalibrationController->LoadStylusCalibrationFromFile(inputConfigFileName);
 
 	PhantomRegistrationController* phantomRegistrationController = PhantomRegistrationController::GetInstance();
 	phantomRegistrationController->Initialize();
-	phantomRegistrationController->LoadPhantomDefinitionFromFile(inputPhantomDefinitionXmlFileName);
+	phantomRegistrationController->LoadPhantomDefinitionFromFile(inputConfigFileName);
 	phantomRegistrationController->Start();
 	
 	// Acquire landmarks
@@ -121,42 +116,51 @@ int CompareRegistrationResultsWithBaseline(const char* baselineFileName, const c
 	double* transformBaseline = new double[16]; 
 
 	// Load current phantom registration
-	vtkSmartPointer<vtkXMLDataElement> phantomRegistrationCurrent = vtkXMLUtilities::ReadElementFromFile(currentResultFileName);
-
-	if (phantomRegistrationCurrent == NULL) {	
-		LOG_ERROR("Current phantom registration file not found!"); 
+	vtkSmartPointer<vtkXMLDataElement> rootElementCurrent = vtkXMLUtilities::ReadElementFromFile(currentResultFileName);
+	if (rootElementCurrent == NULL) {	
+		LOG_ERROR("Unable to read the current configuration file: " << currentResultFileName); 
 		numberOfFailures++;
 	}
-
-	vtkXMLDataElement* phantomRegistrationTransformCurrent = phantomRegistrationCurrent->FindNestedElementWithName("PhantomToPhantomReferenceTransform"); 
-	if (phantomRegistrationTransformCurrent == NULL) {
-		LOG_ERROR("Phantom registration transform not found!");
+	vtkSmartPointer<vtkXMLDataElement> phantomDefinitionCurrent = rootElementCurrent->LookupElementWithName("PhantomDefinition");
+	if (phantomDefinitionCurrent == NULL) {
+		LOG_ERROR("No phantom definition section is found in test result!");
+		numberOfFailures++;
+	}
+	vtkSmartPointer<vtkXMLDataElement> geometryCurrent = phantomDefinitionCurrent->FindNestedElementWithName("Geometry"); 
+	if (geometryCurrent == NULL) {
+		LOG_ERROR("Phantom geometry information not found in test result!");
+		numberOfFailures++;
+	}
+	vtkSmartPointer<vtkXMLDataElement> registrationCurrent = geometryCurrent->FindNestedElementWithName("Registration"); 
+	if (registrationCurrent == NULL) {
+		LOG_ERROR("Registration element not found in test result!");
 		numberOfFailures++;
 	} else {
-		phantomRegistrationTransformCurrent->GetVectorAttribute("Transform", 16, transformCurrent);
+		registrationCurrent->GetVectorAttribute("Transform", 16, transformCurrent);
 	}
 
 	// Load baseline phantom registration
-	vtkSmartPointer<vtkXMLDataElement> phantomRegistrationBaseline = vtkXMLUtilities::ReadElementFromFile(baselineFileName);
-
-	if (phantomRegistrationBaseline == NULL) {	
-		LOG_ERROR("Current phantom registration file not found!"); 
+	vtkSmartPointer<vtkXMLDataElement> rootElementBaseline = vtkXMLUtilities::ReadElementFromFile(baselineFileName);
+	if (rootElementBaseline == NULL) {	
+		LOG_ERROR("Unable to read the baseline configuration file: " << baselineFileName); 
 		numberOfFailures++;
 	}
-
-	vtkXMLDataElement* phantomRegistrationTransformBaseline = phantomRegistrationBaseline->FindNestedElementWithName("PhantomToPhantomReferenceTransform"); 
-	if (phantomRegistrationTransformBaseline == NULL) {
-		LOG_ERROR("Phantom registration transform not found!");
+	vtkSmartPointer<vtkXMLDataElement> phantomDefinitionBaseline = rootElementBaseline->LookupElementWithName("PhantomDefinition");
+	if (phantomDefinitionBaseline == NULL) {
+		LOG_ERROR("No phantom definition section is found in baseline!");
+		numberOfFailures++;
+	}
+	vtkSmartPointer<vtkXMLDataElement> geometryBaseline = phantomDefinitionBaseline->FindNestedElementWithName("Geometry"); 
+	if (geometryBaseline == NULL) {
+		LOG_ERROR("Phantom geometry information not found in baseline!");
+		numberOfFailures++;
+	}
+	vtkSmartPointer<vtkXMLDataElement> registrationBaseline = geometryBaseline->FindNestedElementWithName("Registration"); 
+	if (registrationBaseline == NULL) {
+		LOG_ERROR("Registration element not found in baseline!");
 		numberOfFailures++;
 	} else {
-		phantomRegistrationTransformBaseline->GetVectorAttribute("Transform", 16, transformBaseline);
-	}
-
-	if (numberOfFailures > 0) {
-		delete[] transformCurrent;
-		delete[] transformBaseline;
-
-		return numberOfFailures;
+		registrationBaseline->GetVectorAttribute("Transform", 16, transformBaseline);
 	}
 
 	// Compare the transforms
