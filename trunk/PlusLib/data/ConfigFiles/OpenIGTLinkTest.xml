@@ -10,31 +10,21 @@
       BufferSize="200"
       Frequency="5"
       LocalTimeOffset="0.0"
-      DefaultToolName="Tool2"
-      SequenceMetafile=""
+      DefaultToolName="Probe"
       >
       <!-- DefaultToolName="Probe" -->
       
       <Tool
-      Name="Tool2"
+      Name="Probe"
       PortNumber="0"
       SendTo="localhost:18944">
-      <Calibration 
-        MatrixName="ProbeToImage" 
-        MatrixValue="1 0 0 0 
-                     0 1 0 0 
-                     0 0 1 0
-                     0 0 0 1" 
-        Date="2011.05.02"
-        Error="0.0"
-        />
       </Tool>
       
     </Tracker>
 
     <ImageAcqusition Type="SavedDataset" 
-            BufferSize="200" 
-            FrameSize="820 616" 
+            BufferSize="20" 
+            FrameSize="320 240" 
             UsImageOrientation="MF"
             FrameRate="5" 
             AveragedItemsForFiltering="20" 

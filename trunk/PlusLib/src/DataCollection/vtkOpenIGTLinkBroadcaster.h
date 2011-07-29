@@ -27,7 +27,10 @@ struct IgtToolInfo
 };
 
 
-
+/**
+ * Sockets have to be stored separately. Exactly one socket has to be created
+ * for a host:port combination. Even if more tools are broadcasted to this address.
+ */
 struct SocketInfo
 {
   std::string                 Host;
@@ -38,7 +41,10 @@ struct SocketInfo
 
 
 /**
- * Broadcasts tracked ultrasound through OpenIGTLink network protocol.
+ * Broadcasts tracking data and ultrasound images through OpenIGTLink network protocol.
+ * Input is read from the configuration xml file for DataCollector.
+ * To broadcast a tracker tool, specify a SendTo attribute in the tool tag.
+ * E.g. <Tool Name="Probe" PortNumber="0" SendTo="localhost:18944"></Tool>
  */
 class
 VTK_EXPORT 
@@ -87,8 +93,8 @@ private:
   vtkDataCollector*  DataCollector;
   
   
-  std::vector< IgtToolInfo > NonReferenceToolInfos;
-  std::vector< SocketInfo > SocketInfos;
+  std::vector< IgtToolInfo > NonReferenceToolInfos;  // List of tools.
+  std::vector< SocketInfo >  SocketInfos;            // List of sockets.
   
 };
 
