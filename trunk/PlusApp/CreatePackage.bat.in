@@ -19,7 +19,16 @@ GOTO END
 
 :PACKAGE
 REM Build the package 
-"C:/Program Files/CMake 2.8/bin/cpack.exe" --config ./CPackConfig.cmake
+"${CMAKE_CPACK_COMMAND}" --config ./CPackConfig.cmake
+
+IF ERRORLEVEL 1  GOTO PACKAGINGFAILED
+IF ERRORLEVEL 0 GOTO PACKAGINGDONE
+
+:PACKAGINGFAILED
+ECHO ERROR: Package generation failed...
+GOTO END
+
+:PACKAGINGDONE
 ECHO Package generation DONE!
 GOTO END
 

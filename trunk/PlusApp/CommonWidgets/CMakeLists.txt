@@ -58,12 +58,3 @@ SET (CommonWidgets_LIBS
 
 ADD_LIBRARY(CommonWidgets STATIC ${CommonWidgets_SRCS} ${CommonWidgets_UI_HDRS} ${QT_UI_Sources} ${QT_UI_Headers} ${QT_MOC_Files} ${QT_MOC_UI_Files} ${QT_RCC_Files})
 TARGET_LINK_LIBRARIES(CommonWidgets ${CommonWidgets_LIBS})
-
-# --------------------------------------------------------------------------
-# Install
-#
-#INSTALL(TARGETS CommonWidgets
-#    RUNTIME
-#    DESTINATION bin
-#    CONFIGURATIONS Release
-#    COMPONENT RuntimeLibraries)
