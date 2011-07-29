@@ -204,6 +204,7 @@ IF (PLUS_USE_BRACHY_TRACKER)
 
   SET ( External_Libraries_Install ${External_Libraries_Install}
       ${CIVCO_SEI_BINARY_DIR}/SEIDrv32${CMAKE_SHARED_LIBRARY_SUFFIX}
+      ${CIVCO_SEI_BINARY_DIR}/SEISrv32.exe
       )
 
   ADD_SUBDIRECTORY(BrachyTracking/Utils)
@@ -211,7 +212,6 @@ IF (PLUS_USE_BRACHY_TRACKER)
   SET (BRACHY_TRACKER_LIBRARY BrachyStepper ${BrachyStepper_LIBS})
     
 ENDIF (PLUS_USE_BRACHY_TRACKER)
-
 
 #--------------------------------------------------------------------------
 # Ascension 3DG support
