@@ -148,8 +148,6 @@ int main( int argc, char** argv )
   
   
   for ( int i = 0; i < NUMBER_OF_BROADCASTED_MESSAGES; ++ i )
-  // for ( int i = 0; i > -1; ++ i )
-  // while( true )
     {
     vtkAccurateTimer::Delay( DELAY_BETWEEN_MESSAGES_SEC );
     
@@ -165,14 +163,16 @@ int main( int argc, char** argv )
       double timestamp( 0 ); 
       TrackerStatus status = TR_OK; 
       dataCollector->GetTransformWithTimestamp( tFrame2Tracker, timestamp, status, dataCollector->GetDefaultToolPortNumber() ); 
-
+      
+      ss << "Timestamp: " << timestamp << std::endl;
+      
       if ( status == TR_MISSING || status == TR_OUT_OF_VIEW ) 
         {
-        ss  << "Tracker out of view..."; 
+        ss  << "Tracker out of view..." << std::endl; 
         }
       else if ( status == TR_REQ_TIMEOUT ) 
         {
-        ss  << "Tracker request timeout..."; 
+        ss  << "Tracker request timeout..." << std::endl; 
         }
       else
         {
