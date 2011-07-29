@@ -114,6 +114,10 @@ int CompareRegistrationResultsWithBaseline(const char* baselineFileName, const c
 
 	double* transformCurrent = new double[16]; 
 	double* transformBaseline = new double[16]; 
+	for (int i=0; i<16; ++i) {
+		transformCurrent[i] = 0.0;
+		transformBaseline[i] = 0.0;
+	}
 
 	// Load current phantom registration
 	vtkSmartPointer<vtkXMLDataElement> rootElementCurrent = vtkXMLUtilities::ReadElementFromFile(currentResultFileName);

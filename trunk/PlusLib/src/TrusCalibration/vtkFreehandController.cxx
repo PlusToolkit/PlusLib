@@ -120,10 +120,7 @@ PlusStatus vtkFreehandController::StartDataCollection()
 		return PLUS_FAIL;
 	}
 
-	this->ConfigurationData = NULL; 
-	this->ConfigurationData = vtkSmartPointer<vtkXMLDataElement>::New();
-
-	this->ConfigurationData = vtkXMLUtilities::ReadElementFromFile(this->ConfigurationFileName);
+	this->SetConfigurationData(vtkXMLUtilities::ReadElementFromFile(this->ConfigurationFileName));
 	if (this->ConfigurationData == NULL) {	
 		LOG_ERROR("Unable to read configuration from file " << this->ConfigurationFileName); 
 		return PLUS_FAIL;
@@ -183,7 +180,7 @@ vtkXMLDataElement* vtkFreehandController::LookupElementWithNameContainingChildWi
 {
 	LOG_TRACE("vtkFreehandController::LookupElementWithNameContainingChildWithNameAndAttribute(" << aElementName << ", " << aChildName << ", " << aChildAttributeName << ", " << aChildAttributeValue << ")");
 
-	vtkSmartPointer<vtkXMLDataElement> childElement = NULL;
+	vtkXMLDataElement* childElement = NULL;
 
 	vtkSmartPointer<vtkXMLDataElement> firstElement = aConfig->LookupElementWithName(aElementName);
 	if (firstElement == NULL) {
@@ -191,4 +188,31 @@ vtkXMLDataElement* vtkFreehandController::LookupElementWithNameContainingChildWi
 	} else {
 		return childElement = firstElement->FindNestedElementWithNameAndAttribute(aChildName, aChildAttributeName, aChildAttributeValue);
 	}
+}
+
+//-----------------------------------------------------------------------------
+
+vtkXMLDataElement* vtkFreehandController::ParseXMLOrFillWithInternalData(const char* aFile)
+{
+	vtkXMLDataElement* rootElement = NULL;
+
+	if (vtksys::SystemTools::FileExists(aFile, true)) {
+		rootElement = vtkXMLUtilities::ReadElementFromFile(aFile);
+
+		if (rootElement == NULL) {	
+			LOG_ERROR("Unable to get the configuration data from file " << aFile << " !"); 
+			return NULL;
+		}
+	} else {
+		LOG_DEBUG("Configuration file " << aFile << " does not exist, using configuration data in vtkFreehandController"); 
+
+		rootElement = vtkFreehandController::GetInstance()->GetConfigurationData();
+
+		if (rootElement == NULL) {	
+			LOG_ERROR("Unable to get the configuration data from neither the file " << aFile << " nor from vtkFreehandController"); 
+			return NULL;
+		}
+	}
+
+	return rootElement;
 }

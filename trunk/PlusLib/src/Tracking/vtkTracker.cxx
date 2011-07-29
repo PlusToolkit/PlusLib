@@ -752,6 +752,10 @@ PlusStatus vtkTracker::ConvertStringToToolType(const char* typeString, TRACKER_T
 	{
 		type = TRACKER_TOOL_NEEDLE;
 	}
+	else if (STRCASECMP(typeString, "General") == 0)
+	{
+		type = TRACKER_TOOL_GENERAL;
+	}
 	else
 	{
 		type = TRACKER_TOOL_NONE;
@@ -778,6 +782,9 @@ PlusStatus vtkTracker::ConvertToolTypeToString(const TRACKER_TOOL_TYPE type, cha
 		break;
 	case TRACKER_TOOL_NEEDLE:
 		typeString = "Needle";
+		break;
+	case TRACKER_TOOL_GENERAL:
+		typeString = "General";
 		break;
 	default:
 		typeString = "Invalid";

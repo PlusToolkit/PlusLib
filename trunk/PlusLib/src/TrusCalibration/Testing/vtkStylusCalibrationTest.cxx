@@ -56,12 +56,12 @@ int main (int argc, char* argv[])
 	// Initialize the controllers
 	vtkSmartPointer<vtkFreehandController> controller = vtkFreehandController::GetInstance();
 	controller->SetConfigurationFileName(inputConfigFileName.c_str());
+	controller->TrackingOnlyOn();
+	controller->StartDataCollection();
 	if (controller->Initialize() != PLUS_SUCCESS) {
 		LOG_ERROR("Initializing acquisition failed!");
 		return EXIT_FAILURE;
 	}
-	controller->TrackingOnlyOn();
-	controller->StartDataCollection();
 
 	StylusCalibrationController* stylusCalibrationController = StylusCalibrationController::GetInstance();
 	stylusCalibrationController->Initialize();
@@ -109,7 +109,11 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
 	int numberOfFailures=0;
 
 	double* transformCurrent = new double[16]; 
-	double* transformBaseline = new double[16]; 
+	double* transformBaseline = new double[16];
+	for (int i=0; i<16; ++i) {
+		transformCurrent[i] = 0.0;
+		transformBaseline[i] = 0.0;
+	}
 
 	// Load current stylus calibration
 	vtkSmartPointer<vtkXMLDataElement> rootElementCurrent = vtkXMLUtilities::ReadElementFromFile(currentResultFileName);
