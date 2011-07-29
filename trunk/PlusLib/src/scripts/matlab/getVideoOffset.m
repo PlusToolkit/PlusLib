@@ -1,7 +1,7 @@
 function videoOffset=getVideoOffset(videoCsvFile, trackerMhaFile)
 
-%videoCsvFile='06_VideoPositions.csv'; 
-%trackerMhaFile='06_SNXTCH_AscensionTracker_Buffer.mha'; 
+% Computes video offset from video and tracker data acquired from a
+% calibration phantom, using a motorized positioner
 
 videoOffset=0.0; % second
 maxVideoOffset=3.0; % second
@@ -21,7 +21,7 @@ figure(1);
 plot(trackerTimestamp, trackerPosNormalized, videoTimestamp-videoOffset, videoPosNormalized);
 title('Without video offset');
 
-%%%%%
+% Find alignment between the tracker and video
 
 commonRangeMin=max([min(videoTimestamp); min(trackerTimestamp)]);
 commonRangeMax=min([max(videoTimestamp); max(trackerTimestamp)]);
