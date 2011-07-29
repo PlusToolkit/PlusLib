@@ -669,15 +669,10 @@ PlusStatus StylusCalibrationController::SaveStylusCalibrationToFile(std::string 
 {
 	LOG_TRACE("StylusCalibrationController::SaveStylusCalibrationToFile(" << aFile << ")");
 
-	vtkSmartPointer<vtkXMLDataElement> rootElement = vtkXMLUtilities::ReadElementFromFile(aFile.c_str());
-	if (rootElement == NULL) {	
-	} else {
-		rootElement = vtkFreehandController::GetInstance()->GetConfigurationData();
-
-		if (rootElement == NULL) {	
-			LOG_ERROR("Unable to get the configuration data from neither the file " << aFile << " nor from vtkFreehandController"); 
-			return PLUS_FAIL;
-		}
+	vtkSmartPointer<vtkXMLDataElement> rootElement = NULL;
+	if ((rootElement = vtkFreehandController::ParseXMLOrFillWithInternalData(aFile.c_str())) == NULL) {
+		LOG_ERROR("Neither input file not internal configuration data is valid!");
+		return PLUS_FAIL;
 	}
 
 	if (SaveStylusCalibration(rootElement) != PLUS_SUCCESS) {

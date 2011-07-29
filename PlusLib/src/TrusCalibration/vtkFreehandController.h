@@ -48,6 +48,9 @@ public:
 	//TODO
 	static vtkXMLDataElement* LookupElementWithNameContainingChildWithNameAndAttribute(vtkXMLDataElement* aConfig, const char* aElementName, const char* aChildName, const char* aChildAttributeName, const char* aChildAttributeValue);
 
+	//TODO
+	static vtkXMLDataElement* vtkFreehandController::ParseXMLOrFillWithInternalData(const char* aConfigFile);
+
 public:
 	// Set/Get functions for canvas
 	QVTKWidget* GetCanvas() { return this->Canvas; };
@@ -66,7 +69,7 @@ public:
 
 	vtkSetStringMacro(ConfigurationFileName); 
 	vtkGetStringMacro(ConfigurationFileName); 
-	
+
 	vtkSetStringMacro(OutputFolder); 
 	vtkGetStringMacro(OutputFolder); 
 
@@ -77,6 +80,9 @@ public:
 	vtkSetObjectMacro(CanvasRenderer, vtkRenderer);
 
 	vtkGetObjectMacro(ConfigurationData, vtkXMLDataElement); 
+
+protected:
+	vtkSetObjectMacro(ConfigurationData, vtkXMLDataElement); 
 
 protected:
 	/*!
