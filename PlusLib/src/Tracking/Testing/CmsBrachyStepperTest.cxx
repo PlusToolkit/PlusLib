@@ -42,6 +42,7 @@ int main (int argc, char* argv[])
 	}
 
 	PlusLogger::Instance()->SetLogLevel(verboseLevel);
+  PlusLogger::Instance()->SetDisplayLogLevel(verboseLevel);
 
 
 	for ( int reconnect = 0; reconnect < 5; reconnect++ )
