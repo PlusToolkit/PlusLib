@@ -83,7 +83,6 @@ int main(int argc, char **argv)
     exit(EXIT_FAILURE);
   }
 
-	const int mainToolNumber = dataCollector->GetDefaultToolPortNumber(); 
 	const double acqStartTime = vtkTimerLog::GetUniversalTime(); 
 
 	//************************************************************************************

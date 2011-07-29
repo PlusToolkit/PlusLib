@@ -181,13 +181,14 @@ int main( int argc, char *argv[] )
   LOG_INFO( "Start data collector..." );
   dataCollector->Start();
   
+  int defaultTool = dataCollector->GetTracker()->GetFirstPortNumberByType(TRACKER_TOOL_PROBE);
+
   unsigned int numBroadcastedMessages = UINT_MAX;
   
   if (    dataCollector->GetTrackerType() == TRACKER_SAVEDDATASET
        && dataCollector->GetTrackerType() == SYNCHRO_VIDEO_SAVEDDATASET )
     {
-    numBroadcastedMessages
-      = dataCollector->GetTracker()->GetTool( dataCollector->GetDefaultToolPortNumber() )->GetBuffer()->GetBufferSize();
+      numBroadcastedMessages = dataCollector->GetTracker()->GetTool( defaultTool )->GetBuffer()->GetBufferSize();
     }
   
   
@@ -204,7 +205,7 @@ int main( int argc, char *argv[] )
       double timeTracker = 0.0;
       TrackerStatus status = TR_OK;
       dataCollector->GetTransformWithTimestamp(
-        mToolToReference, timeTracker, status, dataCollector->GetDefaultToolPortNumber() );
+        mToolToReference, timeTracker, status, defaultTool );
       int error = ProcessTrackerStatus( status );
       if ( error == 0 )
         {

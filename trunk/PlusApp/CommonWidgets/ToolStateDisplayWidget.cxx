@@ -88,8 +88,6 @@ PlusStatus ToolStateDisplayWidget::InitializeTools(vtkDataCollector* aDataCollec
 	grid->setVerticalSpacing(4);
 	grid->setContentsMargins(4, 4, 4, 4);
 
-	int defaultToolNumber = m_DataCollector->GetTracker()->GetDefaultToolNumber();
-	int referenceToolNumber = m_DataCollector->GetTracker()->GetReferenceToolNumber();
 	m_NumberOfActiveTools = 0;
 
 	for (int i=0; i<m_DataCollector->GetTracker()->GetNumberOfTools(); ++i) {
@@ -102,15 +100,9 @@ PlusStatus ToolStateDisplayWidget::InitializeTools(vtkDataCollector* aDataCollec
 		}
 
 		// Assemble tool name and add label to layout and label list
-		QString role("");
-		if (i == defaultToolNumber) {
-			role.append(tr(" (Main)"));
-		}
-		if (i == referenceToolNumber) {
-			role.append(tr(" (Ref)"));
-		}
-
-		QString toolNameString = QString("%1%2: %3").arg(i).arg(role).arg(tool->GetToolName());
+		char* toolType = NULL;
+		vtkTracker::ConvertToolTypeToString(tool->GetToolType(), toolType);
+		QString toolNameString = QString("%1: %2.%3").arg(i).arg(toolType).arg(tool->GetToolName());
 
 		QLabel* toolNameLabel = new QLabel(this);
 		toolNameLabel->setText(toolNameString);

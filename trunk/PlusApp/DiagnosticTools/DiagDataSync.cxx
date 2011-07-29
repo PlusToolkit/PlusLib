@@ -80,7 +80,7 @@ int main(int argc, char **argv)
 	dataCollector->Initialize(); 
 	dataCollector->Start();
 
-	const int mainToolNumber = dataCollector->GetDefaultToolPortNumber(); 
+	const int mainToolNumber = dataCollector->GetTracker()->GetFirstPortNumberByType(TRACKER_TOOL_PROBE);
 	const double acqStartTime = vtkTimerLog::GetUniversalTime(); 
 
 	//************************************************************************************
