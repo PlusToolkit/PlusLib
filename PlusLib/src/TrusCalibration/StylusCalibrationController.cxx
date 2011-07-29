@@ -45,7 +45,7 @@ StylusCalibrationController::StylusCalibrationController()
 	,m_CurrentPointNumber(0)
 	,m_StartingFrame(-1)
 	,m_StylusPortNumber(-1)
-	,m_StylusToStylustipTransform(NULL)
+	,m_StylustipToStylusTransform(NULL)
 	,m_Precision(-1.0)
 	,m_InputPolyData(NULL)
 	,m_InputActor(NULL)
@@ -61,9 +61,9 @@ StylusCalibrationController::StylusCalibrationController()
 
 StylusCalibrationController::~StylusCalibrationController()
 {
-	if (m_StylusToStylustipTransform != NULL) {
-		m_StylusToStylustipTransform->Delete();
-		m_StylusToStylustipTransform = NULL;
+	if (m_StylustipToStylusTransform != NULL) {
+		m_StylustipToStylusTransform->Delete();
+		m_StylustipToStylusTransform = NULL;
 	}
 
 	if (m_InputActor != NULL) {
@@ -306,27 +306,27 @@ std::string StylusCalibrationController::GetBoundingBoxString()
 
 //-----------------------------------------------------------------------------
 
-vtkTransform* StylusCalibrationController::GetStylusToStylustipTransform()
+vtkTransform* StylusCalibrationController::GetStylustipToStylusTransform()
 {
-	LOG_TRACE("StylusCalibrationController::GetStylusToStylustipTransform");
+	LOG_TRACE("StylusCalibrationController::GetStylustipToStylusTransform");
 
-	return m_StylusToStylustipTransform;
+	return m_StylustipToStylusTransform;
 }
 
 //-----------------------------------------------------------------------------
 
-std::string StylusCalibrationController::GetStylusToStylustipTransformString()
+std::string StylusCalibrationController::GetStylustipToStylusTransformString()
 {
-	//LOG_TRACE("StylusCalibrationController::GetStylusToStylustipTransformString");
+	//LOG_TRACE("StylusCalibrationController::GetStylustipToStylusTransformString");
 
 	vtkSmartPointer<vtkMatrix4x4> transform = vtkSmartPointer<vtkMatrix4x4>::New();
-	m_StylusToStylustipTransform->GetMatrix(transform);
+	m_StylustipToStylusTransform->GetMatrix(transform);
 
-	char stylusToStylustipTransformChars[32];
-	sprintf_s(stylusToStylustipTransformChars, 32, "%.1lf X %.1lf X %.1lf", transform->GetElement(0,3), transform->GetElement(1,3), transform->GetElement(2,3));
-	std::string stylusToStylustipTransformString(stylusToStylustipTransformChars);
+	char stylustipToStylusTransformChars[32];
+	sprintf_s(stylustipToStylusTransformChars, 32, "%.3lf X %.3lf X %.3lf", transform->GetElement(0,3), transform->GetElement(1,3), transform->GetElement(2,3));
+	std::string stylustipToStylusTransformString(stylustipToStylusTransformChars);
 
-	return stylusToStylustipTransformString;
+	return stylustipToStylusTransformString;
 }
 
 //-----------------------------------------------------------------------------
@@ -515,16 +515,16 @@ void StylusCalibrationController::DisplayStylus()
 	}
 
 	double stylusPosition[4];
-	vtkSmartPointer<vtkMatrix4x4> referenceToolToStylusTransformMatrix = NULL;
+	vtkSmartPointer<vtkMatrix4x4> stylusToReferenceTransformMatrix = NULL;
 
-	if (referenceToolToStylusTransformMatrix = AcquireStylusTrackerPosition(stylusPosition)) {
+	if (stylusToReferenceTransformMatrix = AcquireStylusTrackerPosition(stylusPosition)) {
 		m_StylusActor->GetProperty()->SetOpacity(1.0);
 		m_StylusActor->GetProperty()->SetColor(0.0, 0.0, 0.0);
 
 		vtkSmartPointer<vtkTransform> referenceToolToStylusTipTransform = vtkSmartPointer<vtkTransform>::New();
 		referenceToolToStylusTipTransform->Identity();
-		referenceToolToStylusTipTransform->Concatenate(referenceToolToStylusTransformMatrix);
-		referenceToolToStylusTipTransform->Concatenate(m_StylusToStylustipTransform);
+		referenceToolToStylusTipTransform->Concatenate(stylusToReferenceTransformMatrix);
+		referenceToolToStylusTipTransform->Concatenate(m_StylustipToStylusTransform);
 		referenceToolToStylusTipTransform->Concatenate(tool->GetModelToToolTransform());
 		referenceToolToStylusTipTransform->Modified();
 
@@ -611,102 +611,139 @@ PlusStatus StylusCalibrationController::Stop()
 
 //-----------------------------------------------------------------------------
 
-PlusStatus StylusCalibrationController::LoadStylusCalibrationFromDataCollectionConfigFile()
-{
-	LOG_TRACE("StylusCalibrationController::LoadStylusCalibrationFromDataCollectionConfigFile");
-
-	//TODO
-
-	return PLUS_SUCCESS;
-}
-
-//-----------------------------------------------------------------------------
-
-PlusStatus StylusCalibrationController::SaveStylusCalibrationToDataCollectionConfigFile()
-{
-	LOG_TRACE("StylusCalibrationController::SaveStylusCalibrationToDataCollectionConfigFile");
-
-	//TODO
-
-	return PLUS_SUCCESS;
-}
-
-//-----------------------------------------------------------------------------
-
 PlusStatus StylusCalibrationController::LoadStylusCalibrationFromFile(std::string aFile)
 {
 	LOG_TRACE("StylusCalibrationController::LoadStylusCalibrationFromFile(" << aFile << ")");
 
-	vtkSmartPointer<vtkXMLDataElement> stylusCalibration = vtkXMLUtilities::ReadElementFromFile(aFile.c_str());
-
-	if (stylusCalibration == NULL) {	
-		LOG_ERROR("Unable to read the stylus calibration file: " << aFile); 
+	vtkSmartPointer<vtkXMLDataElement> rootElement = vtkXMLUtilities::ReadElementFromFile(aFile.c_str());
+	if (rootElement == NULL) {	
+		LOG_ERROR("Unable to read the configuration file: " << aFile); 
 		return PLUS_FAIL;
 	}
 
-	// Load stylus calibration transform
-	vtkXMLDataElement* stylusToStylusTipTransform = stylusCalibration->FindNestedElementWithName("StylusToStylusTipTransform"); 
-	if (stylusToStylusTipTransform == NULL) {
-		LOG_ERROR("Stylus calibration transform not found!");
+	return LoadStylusCalibration(rootElement);
+}
+
+//-----------------------------------------------------------------------------
+
+PlusStatus StylusCalibrationController::LoadStylusCalibration(vtkXMLDataElement* aConfig)
+{
+	LOG_TRACE("StylusCalibrationController::LoadStylusCalibration");
+
+	// Find stylus definition element
+	vtkXMLDataElement* stylusDefinition = vtkFreehandController::LookupElementWithNameContainingChildWithNameAndAttribute(aConfig, "ToolDefinition", "Description", "Type", "Stylus");
+	if (stylusDefinition == NULL) {
+		LOG_ERROR("No stylus definition is found in the XML tree!");
 		return PLUS_FAIL;
-	} else {
-		double* stylusToStylusTipTransformVector = new double[16]; 
-		if (stylusToStylusTipTransform->GetVectorAttribute("Transform", 16, stylusToStylusTipTransformVector)) {
-			// Create matrix and set it to controller member variable
-			vtkSmartPointer<vtkMatrix4x4> stylusToStylusTipTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-			stylusToStylusTipTransformMatrix->Identity();
-			stylusToStylusTipTransformMatrix->DeepCopy(stylusToStylusTipTransformVector);
+	}
 
-			if (m_StylusToStylustipTransform == NULL) {
-				m_StylusToStylustipTransform = vtkTransform::New();
-			}
-			m_StylusToStylustipTransform->Identity();
-			m_StylusToStylustipTransform->SetMatrix(stylusToStylusTipTransformMatrix);
+	// Find registration element
+	vtkXMLDataElement* geometry = stylusDefinition->FindNestedElementWithName("Geometry");
+	if (geometry == NULL) {
+		LOG_ERROR("No geometry section is found in stylus definition!");
+		return PLUS_FAIL;
+	}
 
-			// Set calibration matrix to stylus tool
-			vtkDataCollector* dataCollector = vtkFreehandController::GetInstance()->GetDataCollector();
-			if (dataCollector != NULL) {
-				// If one jumped to Phantom registration toolbox right away
-				if (m_State == ToolboxState_Uninitialized) {
-					DetermineStylusPortNumber();
-				}
+	vtkXMLDataElement* registration = geometry->FindNestedElementWithName("Registration");
+	if (registration == NULL) {
+		LOG_ERROR("No registration section is found in stylus definition geometry!");
+		return PLUS_FAIL;
+	}
 
-				dataCollector->GetTracker()->GetTool(m_StylusPortNumber)->SetCalibrationMatrix(stylusToStylusTipTransformMatrix);
-				dataCollector->GetTracker()->GetTool(m_StylusPortNumber)->SetToolToToolReferenceTransform(m_StylusToStylustipTransform);
+	// Get transform
+	double* stylustipToStylusTransformVector = new double[16]; 
+	if ( (STRCASECMP(registration->GetAttribute("MatrixName"), "ToolToToolReference") == 0) && (registration->GetVectorAttribute("MatrixValue", 16, stylustipToStylusTransformVector)) ) {
+		// Create matrix and set it to controller member variable
+		vtkSmartPointer<vtkMatrix4x4> stylustipToStylusTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+		stylustipToStylusTransformMatrix->Identity();
+		stylustipToStylusTransformMatrix->DeepCopy(stylustipToStylusTransformVector);
 
-			} else {
-				LOG_WARNING("Data collector is not initialized!");
-			}
+		if (m_StylustipToStylusTransform == NULL) {
+			m_StylustipToStylusTransform = vtkTransform::New();
 		}
-		delete[] stylusToStylusTipTransformVector; 
+		m_StylustipToStylusTransform->Identity();
+		m_StylustipToStylusTransform->SetMatrix(stylustipToStylusTransformMatrix);
+
+		// Set calibration matrix to stylus tool
+		vtkDataCollector* dataCollector = vtkFreehandController::GetInstance()->GetDataCollector();
+		if (dataCollector != NULL) {
+			// If one jumped to Phantom registration toolbox right away
+			if (m_State == ToolboxState_Uninitialized) {
+				DetermineStylusPortNumber();
+			}
+
+			dataCollector->GetTracker()->GetTool(m_StylusPortNumber)->SetCalibrationMatrix(stylustipToStylusTransformMatrix);
+			dataCollector->GetTracker()->GetTool(m_StylusPortNumber)->SetToolToToolReferenceTransform(m_StylustipToStylusTransform);
+
+		} else {
+			LOG_WARNING("Data collector is not initialized!");
+		}
 	}
+	delete[] stylustipToStylusTransformVector; 
 
 	return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
 
-void StylusCalibrationController::SaveStylusCalibrationToFile(std::string aFile)
+PlusStatus StylusCalibrationController::SaveStylusCalibrationToFile(std::string aFile)
 {
 	LOG_TRACE("StylusCalibrationController::SaveStylusCalibrationToFile(" << aFile << ")");
 
-	vtkSmartPointer<vtkXMLDataElement> stylusCalibration = vtkSmartPointer<vtkXMLDataElement>::New();
-	stylusCalibration->SetName("StylusCalibration");
-	stylusCalibration->SetAttribute("version", "1.0");
+	vtkSmartPointer<vtkXMLDataElement> rootElement = vtkXMLUtilities::ReadElementFromFile(aFile.c_str());
+	if (rootElement == NULL) {	
+		LOG_ERROR("Unable to read the configuration file: " << aFile); 
+		return PLUS_FAIL;
+	}
 
-	vtkSmartPointer<vtkXMLDataElement> stylusToStylusTipTransform = vtkSmartPointer<vtkXMLDataElement>::New();
+	if (SaveStylusCalibration(rootElement) != PLUS_SUCCESS) {
+		LOG_ERROR("Stylus calibration result could not be saved!");
+		return PLUS_FAIL;
+	}
 
-	char stylusToStylustipTransformChars[256];
-	vtkSmartPointer<vtkMatrix4x4> transformMatrix = m_StylusToStylustipTransform->GetMatrix();
-	sprintf_s(stylusToStylustipTransformChars, 256, "\n\t1 0 0 %.4lf\n\t0 1 0 %.4lf\n\t0 0 1 %.4lf\n\t0 0 0 1", transformMatrix->GetElement(0,3), transformMatrix->GetElement(1,3), transformMatrix->GetElement(2,3));
+	rootElement->PrintXML(aFile.c_str());
 
-	stylusToStylusTipTransform->SetName("StylusToStylusTipTransform");
+	return PLUS_SUCCESS;
+}
 
-	stylusToStylusTipTransform->SetAttribute("Transform", stylusToStylustipTransformChars);
+//-----------------------------------------------------------------------------
 
-	stylusCalibration->AddNestedElement(stylusToStylusTipTransform);
+PlusStatus StylusCalibrationController::SaveStylusCalibration(vtkXMLDataElement* aConfig)
+{
+	LOG_TRACE("StylusCalibrationController::SaveStylusCalibration");
 
-	stylusCalibration->PrintXML(aFile.c_str());
+	// Find stylus definition element
+	vtkXMLDataElement* stylusDefinition = vtkFreehandController::LookupElementWithNameContainingChildWithNameAndAttribute(aConfig, "ToolDefinition", "Description", "Type", "Stylus");
+	if (stylusDefinition == NULL) {
+		LOG_ERROR("No stylus definition is found in the XML tree!");
+		return PLUS_FAIL;
+	}
+
+	// Find registration element
+	vtkXMLDataElement* geometry = stylusDefinition->FindNestedElementWithName("Geometry");
+	if (geometry == NULL) {
+		LOG_ERROR("No geometry section is found in stylus definition!");
+		return PLUS_FAIL;
+	}
+
+	vtkXMLDataElement* registration = geometry->FindNestedElementWithName("Registration");
+	if (registration == NULL) {
+		LOG_ERROR("No registration section is found in stylus definition geometry!");
+		return PLUS_FAIL;
+	}
+
+	// Assemble and save transform
+	char stylustipToStylusTransformChars[256];
+	vtkSmartPointer<vtkMatrix4x4> transformMatrix = m_StylustipToStylusTransform->GetMatrix();
+	sprintf_s(stylustipToStylusTransformChars, 256, "\n\t1 0 0 %.4lf\n\t0 1 0 %.4lf\n\t0 0 1 %.4lf\n\t0 0 0 1", transformMatrix->GetElement(0,3), transformMatrix->GetElement(1,3), transformMatrix->GetElement(2,3));
+
+	registration->SetAttribute("MatrixValue", stylustipToStylusTransformChars);
+
+	// Save date and error
+	registration->SetAttribute("Date", vtksys::SystemTools::GetCurrentDateTime("%Y.%m.%d %X").c_str());
+	registration->SetDoubleAttribute("Error", m_Precision);
+
+	return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
@@ -729,12 +766,12 @@ PlusStatus StylusCalibrationController::CalibrateStylus()
 	m_Precision = dataCollector->GetTracker()->GetTool(m_StylusPortNumber)->DoToolTipCalibration();
 
 	// Get the calibration result
-	if (m_StylusToStylustipTransform == NULL) {
-		m_StylusToStylustipTransform = vtkTransform::New();
+	if (m_StylustipToStylusTransform == NULL) {
+		m_StylustipToStylusTransform = vtkTransform::New();
 	}
-	m_StylusToStylustipTransform->Identity();
+	m_StylustipToStylusTransform->Identity();
 	vtkMatrix4x4* transform = dataCollector->GetTracker()->GetTool(m_StylusPortNumber)->GetCalibrationMatrix();
-	m_StylusToStylustipTransform->SetMatrix(transform);
+	m_StylustipToStylusTransform->SetMatrix(transform);
 
 	// Display calibration result stylus tip (by acquiring a new point and using it) //TODO do it an other way, without getting a new point
 	if (vtkFreehandController::GetInstance()->GetCanvas() != NULL) {
@@ -745,7 +782,7 @@ PlusStatus StylusCalibrationController::CalibrateStylus()
 			// Apply calibration
 			vtkSmartPointer<vtkMatrix4x4> referenceToolToStylusTipTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
 			referenceToolToStylusTipTransformMatrix->Identity();
-			vtkMatrix4x4::Multiply4x4(referenceToolToStylusTransformMatrix, m_StylusToStylustipTransform->GetMatrix(), referenceToolToStylusTipTransformMatrix);
+			vtkMatrix4x4::Multiply4x4(referenceToolToStylusTransformMatrix, m_StylustipToStylusTransform->GetMatrix(), referenceToolToStylusTipTransformMatrix);
 
 			double elements[16]; //TODO find other way
 			for (int i=0; i<4; ++i) for (int j=0; j<4; ++j) elements[4*j+i] = referenceToolToStylusTipTransformMatrix->GetElement(i,j);
@@ -785,7 +822,7 @@ PlusStatus StylusCalibrationController::FeedStylusCalibrationMatrixToTool()
 	vtkSmartPointer<vtkMatrix4x4> stylusToStylusTipTransformMatrix = dataCollector->GetTracker()->GetTool(m_StylusPortNumber)->GetCalibrationMatrix();
 	// If translation values are 0 (no calibration)
 	if ((stylusToStylusTipTransformMatrix == NULL) || ((stylusToStylusTipTransformMatrix->GetElement(0,3) == 0.0) && (stylusToStylusTipTransformMatrix->GetElement(1,3) == 0.0) && (stylusToStylusTipTransformMatrix->GetElement(2,3) == 0.0)) ) {
-		dataCollector->GetTracker()->GetTool(m_StylusPortNumber)->SetCalibrationMatrix(m_StylusToStylustipTransform->GetMatrix());		
+		dataCollector->GetTracker()->GetTool(m_StylusPortNumber)->SetCalibrationMatrix(m_StylustipToStylusTransform->GetMatrix());		
 	}
 
 	return PLUS_SUCCESS;

@@ -125,11 +125,7 @@ vtkDataCollector::~vtkDataCollector()
     this->ToolTransMatrices[i]=NULL; 
   }
 
-  if ( this->ConfigurationData != NULL ) 
-  {
-    this->ConfigurationData->Delete(); 
-    this->ConfigurationData = NULL; 
-  }
+  this->ConfigurationData->UnRegister(this);
 }
 
 
@@ -1459,18 +1455,24 @@ PlusStatus vtkDataCollector::ReadConfigurationFromFile()
     return PLUS_FAIL;
   }
 
-  if ( this->ConfigurationData != NULL ) 
-  {
-    this->ConfigurationData->Delete(); 
-    this->ConfigurationData = NULL; 
-  }
+  this->ConfigurationData = NULL;
+  this->ConfigurationData = vtkSmartPointer<vtkXMLDataElement>::New();
 
   this->ConfigurationData = vtkXMLUtilities::ReadElementFromFile(configFn); 
   if ( this->ConfigurationData == NULL) 
   {	
     LOG_ERROR("Unable to read configuration from file " << configFn); 
     return PLUS_FAIL;
-  } 
+  }
+
+  this->ConfigurationData->Register(this);
+  return this->ReadConfiguration(this->ConfigurationData);
+}
+
+//------------------------------------------------------------------------------
+PlusStatus vtkDataCollector::ReadConfiguration(vtkXMLDataElement* aDataCollectionConfig)
+{
+  this->ConfigurationData = aDataCollectionConfig;
 
   double version(0); 
   if ( this->ConfigurationData->GetScalarAttribute("version", version) )
@@ -1507,9 +1509,9 @@ PlusStatus vtkDataCollector::ReadConfigurationFromFile()
   {
     this->ReadSynchronizationProperties(synchronizationConfig); 
   }
+
   return PLUS_SUCCESS;
 }
-
 
 //------------------------------------------------------------------------------
 PlusStatus vtkDataCollector::ReadTrackerProperties(vtkXMLDataElement* trackerConfig)

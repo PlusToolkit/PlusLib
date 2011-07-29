@@ -52,6 +52,8 @@ Version:   $Revision: $
 #include "PlusLogger.h"
 
 #cmakedefine PLUSLIB_VERSION "${PLUSLIB_VERSION}"
+#cmakedefine PLUSLIB_VERSION_MAJOR ${PLUSLIB_VERSION_MAJOR}
+#cmakedefine PLUSLIB_VERSION_MINOR ${PLUSLIB_VERSION_MINOR}
 #cmakedefine DATA_PATH "${DATA_PATH}"
 
 #cmakedefine PLUS_USE_FAKE_TRACKER

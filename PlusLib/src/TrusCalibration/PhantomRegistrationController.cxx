@@ -58,7 +58,6 @@ PhantomRegistrationController::PhantomRegistrationController()
 	,m_PhantomToPhantomReferenceTransform(NULL)
 	,m_ModelToPhantomTransform(NULL)
 	,m_PositionString("")
-	,m_PhantomDefinitionFileName("")
 	,m_CurrentLandmarkIndex(-1)
 	,m_RecordRequested(false)
 {
@@ -299,14 +298,6 @@ std::string PhantomRegistrationController::GetPositionString() {
 
 //-----------------------------------------------------------------------------
 
-std::string PhantomRegistrationController::GetPhantomDefinitionFileName() {
-	LOG_TRACE("PhantomRegistrationController::GetPhantomDefinitionFileName"); 
-
-	return m_PhantomDefinitionFileName;
-}
-
-//-----------------------------------------------------------------------------
-
 int PhantomRegistrationController::GetNumberOfLandmarks()
 {
 	LOG_TRACE("PhantomRegistrationController::GetNumberOfLandmarks"); 
@@ -362,7 +353,7 @@ PlusStatus PhantomRegistrationController::Start()
 
 	if ( (m_DefinedLandmarks != NULL) && (m_DefinedLandmarks->GetNumberOfPoints() >= 4)
 		&& (StylusCalibrationController::GetInstance() != NULL)
-		&& (StylusCalibrationController::GetInstance()->GetStylusToStylustipTransform() != NULL))
+		&& (StylusCalibrationController::GetInstance()->GetStylustipToStylusTransform() != NULL))
 	{
 		m_CurrentLandmarkIndex = 0;
 
@@ -591,8 +582,8 @@ vtkMatrix4x4* PhantomRegistrationController::AcquireStylusTipTrackerPosition(dou
 		return NULL;
 	}
 
-	vtkSmartPointer<vtkMatrix4x4> referenceToolToStylusTransformMatrix = NULL;
-	vtkSmartPointer<vtkMatrix4x4> referenceToolToStylusTipTransformMatrix = NULL;
+	vtkSmartPointer<vtkMatrix4x4> stylusToReferenceTransformMatrix = NULL;
+	vtkSmartPointer<vtkMatrix4x4> stylustipToReferenceTransformMatrix = NULL;
 
 	TrackerStatus status = TR_MISSING;
 	double timestamp;
@@ -633,8 +624,8 @@ vtkMatrix4x4* PhantomRegistrationController::AcquireStylusTipTrackerPosition(dou
 
 	// Acquire position from tracker
 	if (dataCollector->GetTracker()->GetTool(toolNumber)->GetEnabled()) {
-		referenceToolToStylusTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
-		dataCollector->GetTransformWithTimestamp(referenceToolToStylusTransformMatrix, timestamp, status, toolNumber); 
+		stylusToReferenceTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
+		dataCollector->GetTransformWithTimestamp(stylusToReferenceTransformMatrix, timestamp, status, toolNumber); 
 	}
 
 	if (status == TR_MISSING || status == TR_OUT_OF_VIEW ) {
@@ -647,18 +638,18 @@ vtkMatrix4x4* PhantomRegistrationController::AcquireStylusTipTrackerPosition(dou
 		return NULL;
 	} else if (aPosition != NULL) { // TR_OK
 		// Apply calibration if stylus was requested
-		referenceToolToStylusTipTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-		referenceToolToStylusTipTransformMatrix->Identity();
+		stylustipToReferenceTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+		stylustipToReferenceTransformMatrix->Identity();
 		if (! aReference) {
-			vtkMatrix4x4::Multiply4x4(referenceToolToStylusTransformMatrix, StylusCalibrationController::GetInstance()->GetStylusToStylustipTransform()->GetMatrix(), referenceToolToStylusTipTransformMatrix);
+			vtkMatrix4x4::Multiply4x4(stylusToReferenceTransformMatrix, StylusCalibrationController::GetInstance()->GetStylustipToStylusTransform()->GetMatrix(), stylustipToReferenceTransformMatrix);
 		} else {
-			referenceToolToStylusTipTransformMatrix->DeepCopy(referenceToolToStylusTransformMatrix);
+			stylustipToReferenceTransformMatrix->DeepCopy(stylusToReferenceTransformMatrix);
 		}
-		referenceToolToStylusTipTransformMatrix->Register(NULL);
+		stylustipToReferenceTransformMatrix->Register(NULL);
 
 		// Compute the new position
 		double elements[16]; //TODO find other way
-		for (int i=0; i<4; ++i) for (int j=0; j<4; ++j) elements[4*j+i] = referenceToolToStylusTipTransformMatrix->GetElement(i,j);
+		for (int i=0; i<4; ++i) for (int j=0; j<4; ++j) elements[4*j+i] = stylustipToReferenceTransformMatrix->GetElement(i,j);
 		double origin[4] = {0.0, 0.0, 0.0, 1.0};
 
 		vtkMatrix4x4::PointMultiply(elements, origin, aPosition);
@@ -670,7 +661,7 @@ vtkMatrix4x4* PhantomRegistrationController::AcquireStylusTipTrackerPosition(dou
 		m_PositionString = std::string(stylusPositionChars);
 	}
 
-	return referenceToolToStylusTipTransformMatrix;
+	return stylustipToReferenceTransformMatrix;
 }
 
 //-----------------------------------------------------------------------------
@@ -768,15 +759,15 @@ PlusStatus PhantomRegistrationController::LoadPhantomDefinitionFromFile(std::str
 {
 	LOG_TRACE("PhantomRegistrationController::LoadPhantomDefinitionFromFile(" << aFile << ")"); 
 
-	vtkSmartPointer<vtkXMLDataElement> phantomDefinition = vtkXMLUtilities::ReadElementFromFile(aFile.c_str());
-
-	if (phantomDefinition == NULL) {	
+	vtkSmartPointer<vtkXMLDataElement> rootElement = vtkXMLUtilities::ReadElementFromFile(aFile.c_str());
+	if (rootElement == NULL) {	
 		LOG_ERROR("Unable to read the phantom definition file: " << aFile); 
 		return PLUS_FAIL;
-	} else if (STRCASECMP("PhantomDefinition", phantomDefinition->GetName()) != NULL) {
+	}
+
+	vtkXMLDataElement* phantomDefinition = rootElement->FindNestedElementWithName("PhantomDefinition"); 
+	if (phantomDefinition == NULL) {
 		LOG_INFO("'" << aFile << "' is not a phantom definition file! The registration data cannot be used by calibration.");
-	} else {
-		m_PhantomDefinitionFileName = aFile;
 	}
 
 	// Load model information

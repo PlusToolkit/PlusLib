@@ -105,7 +105,7 @@ public:
 	PlusStatus DoTemporalCalibration();
 	static void UpdateProgress(int aPercent);
 	bool IsReadyToStartSpatialCalibration();
-	void DisplayCalibrationResults();
+	PlusStatus SaveCalibrationResults();
 	PlusStatus CalculateImageCameraParameters();
 	PlusStatus Reset();
 	PlusStatus DoSpatialCalibration();

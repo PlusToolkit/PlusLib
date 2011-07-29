@@ -4,6 +4,7 @@
 
 #include "vtkObjectFactory.h"
 #include "vtkDirectory.h"
+#include "vtkXMLUtilities.h"
 
 //-----------------------------------------------------------------------------
 
@@ -38,9 +39,9 @@ vtkFreehandController::vtkFreehandController()
 {
 	this->DataCollector = NULL;
 	this->RecordingFrameRate = 20;
-	this->InputConfigFileName = NULL;
+	this->ConfigurationFileName = NULL;
+	this->ConfigurationData = NULL;
 	this->OutputFolder = NULL;
-	this->ProgramPath = NULL;
 	this->InitializedOff();
 	this->TrackingOnlyOn();
 	this->Canvas = NULL;
@@ -59,17 +60,19 @@ vtkFreehandController::~vtkFreehandController()
 
 	this->SetDataCollector(NULL);
 	this->SetCanvasRenderer(NULL);
+
+	this->ConfigurationData->UnRegister(this);
 }
 
 //-----------------------------------------------------------------------------
 
 PlusStatus vtkFreehandController::Initialize()
 {
+	LOG_TRACE("vtkFreehandController::Initialize"); 
+
 	if (this->Initialized) {
 		return PLUS_SUCCESS;
 	}
-
-	LOG_TRACE("Initialize vtkFreehandController"); 
 
 	// Set up canvas renderer
 	vtkSmartPointer<vtkRenderer> canvasRenderer = vtkSmartPointer<vtkRenderer>::New(); 
@@ -91,7 +94,7 @@ PlusStatus vtkFreehandController::Initialize()
 
 void vtkFreehandController::SetTrackingOnly(bool aOn)
 {
-	LOG_DEBUG("Set tracking only to " << (aOn ? "true" : "false"));
+	LOG_TRACE("vtkFreehandController::SetTrackingOnly(" << (aOn ? "true" : "false") << ")");
 
 	this->TrackingOnly = aOn;
 
@@ -104,21 +107,53 @@ void vtkFreehandController::SetTrackingOnly(bool aOn)
 
 PlusStatus vtkFreehandController::StartDataCollection()
 {
+	LOG_TRACE("vtkFreehandController::StartDataCollection"); 
+
 	// Stop data collection if already started
 	if (this->GetDataCollector() != NULL) {
 		this->GetDataCollector()->Stop();
 	}
 
-	// Set up data collector
+	// Read configuration file
+	if ((this->ConfigurationFileName == NULL) || (STRCASECMP(this->ConfigurationFileName, "") == 0)) {
+		LOG_ERROR("Cannot start data collection: Invalid configuration file name");
+		return PLUS_FAIL;
+	}
+
+	this->ConfigurationData = NULL; 
+	this->ConfigurationData = vtkSmartPointer<vtkXMLDataElement>::New();
+
+	this->ConfigurationData = vtkXMLUtilities::ReadElementFromFile(this->ConfigurationFileName);
+	if (this->ConfigurationData == NULL) {	
+		LOG_ERROR("Unable to read configuration from file " << this->ConfigurationFileName); 
+		return PLUS_FAIL;
+	} 
+
+	// Check version
+	double version = 0;
+	if (this->ConfigurationData->GetScalarAttribute("version", version)) {
+		double currentVersion = (double)PLUSLIB_VERSION_MAJOR + ((double)PLUSLIB_VERSION_MINOR / 10.0);
+		if (version < currentVersion) {
+			LOG_ERROR("This version of configuration file is no longer supported! Please update to version " << std::fixed << currentVersion); 
+			return PLUS_FAIL;
+		}
+	}
+
+	// Initialize data collector and read configuration
 	vtkSmartPointer<vtkDataCollector> dataCollector = vtkSmartPointer<vtkDataCollector>::New(); 
 	this->SetDataCollector(dataCollector);
 
-	if (this->DataCollector->ReadConfigurationFromFile(this->InputConfigFileName) != PLUS_SUCCESS) {
-		return PLUS_FAIL;
+	vtkXMLDataElement* dataCollectionConfig = this->ConfigurationData->FindNestedElementWithName("USDataCollection"); 
+	if (dataCollectionConfig != NULL) {
+		if (this->DataCollector->ReadConfiguration(dataCollectionConfig) != PLUS_SUCCESS) {
+			return PLUS_FAIL;
+		}
 	}
+
 	if (this->DataCollector->Initialize() != PLUS_SUCCESS) {
 		return PLUS_FAIL;
 	}
+
 	if (this->DataCollector->Start() != PLUS_SUCCESS) {
 		return PLUS_FAIL;
 	}
@@ -132,5 +167,43 @@ PlusStatus vtkFreehandController::StartDataCollection()
 		return PLUS_FAIL;
 	}
 
+	this->ConfigurationData->Register(this);
+
 	return PLUS_SUCCESS;
+}
+
+//-----------------------------------------------------------------------------
+
+vtkXMLDataElement* vtkFreehandController::LookupElementWithNameContainingChildWithNameAndAttribute(vtkXMLDataElement* aConfig, const char* aElementName, const char* aChildName, const char* aChildAttributeName, const char* aChildAttributeValue)
+{
+	LOG_TRACE("vtkFreehandController::LookupElementWithNameContainingChildWithNameAndAttribute(" << aElementName << ", " << aChildName << ", " << aChildAttributeName << ", " << aChildAttributeValue << ")");
+
+	vtkXMLDataElement* childElement = NULL;
+
+	vtkXMLDataElement* firstElement = aConfig->LookupElementWithName(aElementName);
+	if (firstElement == NULL) {
+		return NULL;
+	} else {
+		vtkXMLDataElement* parentOfElements = firstElement->GetParent();
+		if (parentOfElements == NULL) { // If there is no parent then it is the only element with aElementName we have
+			if ( (childElement = firstElement->FindNestedElementWithNameAndAttribute(aChildName, aChildAttributeName, aChildAttributeValue)) == NULL) {
+				return NULL;
+			}
+		} else { // If there is a parent then check its siblings for the right element
+			for (int i=0; i<parentOfElements->GetNumberOfNestedElements(); ++i) {
+				vtkXMLDataElement* toolDefinitionCandidate = parentOfElements->GetNestedElement(i);
+
+				if ( (STRCASECMP(toolDefinitionCandidate->GetName(), aElementName) == 0) && ( (childElement = toolDefinitionCandidate->FindNestedElementWithNameAndAttribute(aChildName, aChildAttributeName, aChildAttributeValue)) != NULL)) {
+					// We found the element
+					break;
+				}
+			}
+
+			if (childElement == NULL) {
+				return NULL;
+			}
+		}
+	}
+
+	return childElement->GetParent();
 }
