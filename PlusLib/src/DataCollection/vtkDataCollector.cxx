@@ -462,6 +462,13 @@ PlusStatus vtkDataCollector::WriteTrackerToMetafile( vtkTracker* tracker, const 
 
   PlusStatus status=PLUS_SUCCESS;
 
+  int firstActiveToolNumber = -1; 
+  if ( tracker->GetFirstActiveTool(firstActiveToolNumber) != PLUS_SUCCESS )
+  {
+	  LOG_ERROR("Failed to get first active tool number!"); 
+	  return PLUS_FAIL; 
+  }
+
   for ( int i = 0 ; i < numberOfItems; i++ ) 
   {
     //Create fake image 
@@ -487,20 +494,16 @@ PlusStatus vtkDataCollector::WriteTrackerToMetafile( vtkTracker* tracker, const 
     TrackedFrame trackedFrame; 
     trackedFrame.ImageData = frame;
 
-    const int defaultToolPortNumber = tracker->GetDefaultToolNumber(); 
-
-
-
     TrackerBufferItem bufferItem; 
-    BufferItemUidType uid = tracker->GetTool(defaultToolPortNumber)->GetBuffer()->GetOldestItemUidInBuffer() + i; 
+    BufferItemUidType uid = tracker->GetTool(firstActiveToolNumber)->GetBuffer()->GetOldestItemUidInBuffer() + i; 
 
-    if ( tracker->GetTool(defaultToolPortNumber)->GetBuffer()->GetTrackerBufferItem(uid, &bufferItem, false) != ITEM_OK )
+    if ( tracker->GetTool(firstActiveToolNumber)->GetBuffer()->GetTrackerBufferItem(uid, &bufferItem, false) != ITEM_OK )
     {
       LOG_ERROR("Failed to get tracker buffer item with UID: " << uid ); 
       continue; 
     }
 
-    const double frameTimestamp = bufferItem.GetFilteredTimestamp(tracker->GetTool(defaultToolPortNumber)->GetBuffer()->GetLocalTimeOffset()); 
+    const double frameTimestamp = bufferItem.GetFilteredTimestamp(tracker->GetTool(firstActiveToolNumber)->GetBuffer()->GetLocalTimeOffset()); 
 
     // Add main tool timestamp
     std::ostringstream timestampFieldValue; 
@@ -509,7 +512,7 @@ PlusStatus vtkDataCollector::WriteTrackerToMetafile( vtkTracker* tracker, const 
 
     // Add main tool unfiltered timestamp
     std::ostringstream unfilteredtimestampFieldValue; 
-    unfilteredtimestampFieldValue << std::fixed << bufferItem.GetUnfilteredTimestamp(tracker->GetTool(defaultToolPortNumber)->GetBuffer()->GetLocalTimeOffset()); 
+    unfilteredtimestampFieldValue << std::fixed << bufferItem.GetUnfilteredTimestamp(tracker->GetTool(firstActiveToolNumber)->GetBuffer()->GetLocalTimeOffset()); 
     trackedFrame.SetCustomFrameField("UnfilteredTimestamp", unfilteredtimestampFieldValue.str()); 
 
     // Add main tool frameNumber
@@ -521,7 +524,7 @@ PlusStatus vtkDataCollector::WriteTrackerToMetafile( vtkTracker* tracker, const 
     trackedFrame.SetCustomFrameField("Status", vtkTracker::ConvertTrackerStatusToString(bufferItem.GetStatus()) ); 
 
     // Set default transform name
-    trackedFrame.DefaultFrameTransformName = tracker->GetTool(defaultToolPortNumber)->GetToolName(); 
+    trackedFrame.DefaultFrameTransformName = tracker->GetTool(firstActiveToolNumber)->GetToolName(); 
 
     // Add transforms
     for ( int tool = 0; tool < tracker->GetNumberOfTools(); tool++ )
@@ -691,10 +694,16 @@ PlusStatus vtkDataCollector::Synchronize( const char* bufferOutputFolder /*= NUL
 
   this->CancelSyncRequestOff(); 
 
+  int firstActiveTool = -1;
+  if (this->GetTracker()->GetFirstActiveTool(firstActiveTool) != PLUS_SUCCESS) {
+	  LOG_ERROR("Unable to get first active tool!");
+	  return PLUS_FAIL;
+  }
+
   //************************************************************************************
   // Save local time offsets before sync
   const double prevVideoOffset = this->GetVideoSource()->GetBuffer()->GetLocalTimeOffset(); 
-  const double prevTrackerOffset = this->GetTracker()->GetTool(this->GetDefaultToolPortNumber())->GetBuffer()->GetLocalTimeOffset(); 
+  const double prevTrackerOffset = this->GetTracker()->GetTool(firstActiveTool)->GetBuffer()->GetLocalTimeOffset(); 
 
   //************************************************************************************
   // Set the local timeoffset to 0 before synchronization 
@@ -705,12 +714,12 @@ PlusStatus vtkDataCollector::Synchronize( const char* bufferOutputFolder /*= NUL
   const double syncTimeLength = this->GetSynchronizer()->GetSynchronizationTimeLength(); 
 
   // Get the realtime tracking frequency
-  double trackerFrameRate = this->GetTracker()->GetTool(this->GetDefaultToolPortNumber())->GetBuffer()->GetFrameRate(); 
+  double trackerFrameRate = this->GetTracker()->GetTool(firstActiveTool)->GetBuffer()->GetFrameRate(); 
 
   // Get the realtime video frame rate
   double videoFrameRate = this->GetVideoSource()->GetBuffer()->GetFrameRate(); 
 
-  const int trackerBufferSize = this->GetTracker()->GetTool(this->GetDefaultToolPortNumber())->GetBuffer()->GetBufferSize(); 
+  const int trackerBufferSize = this->GetTracker()->GetTool(firstActiveTool)->GetBuffer()->GetBufferSize(); 
   const int videoBufferSize = this->GetVideoSource()->GetBuffer()->GetBufferSize(); 
   int syncTrackerBufferSize = trackerFrameRate * syncTimeLength + 100; 
   int syncVideoBufferSize = videoFrameRate * syncTimeLength + 100; 
@@ -813,7 +822,7 @@ PlusStatus vtkDataCollector::Synchronize( const char* bufferOutputFolder /*= NUL
   //************************************************************************************
   // Start synchronization 
 
-  vtkTrackerBuffer* trackerbuffer = tracker->GetTool(this->GetDefaultToolPortNumber())->GetBuffer(); 
+  vtkTrackerBuffer* trackerbuffer = tracker->GetTool(firstActiveTool)->GetBuffer(); 
   LOG_DEBUG("Tracker buffer size: " << trackerbuffer->GetBufferSize()); 
   LOG_DEBUG("Tracker buffer elements: " << trackerbuffer->GetNumberOfItems()); 
   LOG_DEBUG("Video buffer size: " << videobuffer->GetBufferSize()); 
@@ -913,7 +922,14 @@ PlusStatus vtkDataCollector::GetMostRecentTimestamp(double &ts)
     }
 
     
-    vtkTrackerBuffer* trackerBuffer = this->GetTracker()->GetTool(this->GetDefaultToolPortNumber())->GetBuffer(); 
+	int firstActiveToolNumber = -1; 
+	if ( this->GetTracker()->GetFirstActiveTool(firstActiveToolNumber) != PLUS_SUCCESS )
+	{
+		LOG_ERROR("There are no active tracker tools!"); 
+		return PLUS_FAIL; 
+	}
+
+	vtkTrackerBuffer* trackerBuffer = this->GetTracker()->GetTool(firstActiveToolNumber)->GetBuffer(); 
     BufferItemUidType uid = trackerBuffer->GetLatestItemUidInBuffer(); 
     if ( uid - 1 > 0 )
     {
@@ -967,35 +983,17 @@ PlusStatus vtkDataCollector::GetMostRecentTimestamp(double &ts)
 }
 
 //----------------------------------------------------------------------------
-std::string vtkDataCollector::GetDefaultToolName()
+PlusStatus vtkDataCollector::GetToolStatus( double time, int toolNumber, TrackerStatus &status )
 {
-  LOG_TRACE("vtkDataCollector::GetDefaultToolName"); 
-
-  std::string defToolName; 
-  if ( this->GetTracker() != NULL )
-  {
-    defToolName = this->GetTracker()->GetTool(this->GetDefaultToolPortNumber())->GetToolName(); 
-  }
-  else
-  {
-    LOG_ERROR("Unable to get default tool name without tracking device!"); 
-  }
-
-  return defToolName; 
-}
-
-//----------------------------------------------------------------------------
-PlusStatus vtkDataCollector::GetDefaultToolStatus( double time, TrackerStatus &status )
-{
-  LOG_TRACE("vtkDataCollector::GetDefaultToolStatus"); 
+  LOG_TRACE("vtkDataCollector::GetToolStatus"); 
   if ( this->GetTracker() == NULL )
   {
-    LOG_ERROR("Unable to get default tool status without tracking device!"); 
+    LOG_ERROR("Unable to get tool status without tracking device!"); 
     status = TR_MISSING; 
     return PLUS_FAIL; 
   }
 
-  vtkTrackerBuffer* buffer = this->GetTracker()->GetTool(this->GetDefaultToolPortNumber())->GetBuffer(); 
+  vtkTrackerBuffer* buffer = this->GetTracker()->GetTool(toolNumber)->GetBuffer(); 
 
   TrackerBufferItem bufferItem; 
   if ( buffer->GetTrackerBufferItemFromTime(time, &bufferItem, vtkTrackerBuffer::INTERPOLATED, false) != ITEM_OK )
@@ -1289,13 +1287,23 @@ PlusStatus vtkDataCollector::GetTrackedFrameByTime(double time, TrackedFrame* tr
       return PLUS_FAIL; 
 	}
 
-    if ( this->GetDefaultToolStatus(synchronizedTime, trackedFrame->Status ) != PLUS_SUCCESS )
+	int toolNumber = this->GetTracker()->GetFirstPortNumberByType(TRACKER_TOOL_PROBE);
+	if (toolNumber < 0)
+	{
+		if (this->GetTracker()->GetFirstActiveTool(toolNumber) != PLUS_SUCCESS)
+		{
+			LOG_ERROR("There are no active tools!"); 
+			return PLUS_FAIL; 
+		}
+	}
+
+	if ( this->GetToolStatus(synchronizedTime, toolNumber, trackedFrame->Status ) != PLUS_SUCCESS )
     {
-      LOG_ERROR("Failed to get default tool status by time: " << std::fixed << synchronizedTime ); 
+      LOG_ERROR("Failed to get tool status by time: " << std::fixed << synchronizedTime ); 
       return PLUS_FAIL; 
     }
 
-    trackedFrame->DefaultFrameTransformName = this->GetDefaultToolName(); 
+	trackedFrame->DefaultFrameTransformName = this->GetTracker()->GetTool(toolNumber)->GetToolName(); 
 
     for ( std::map<std::string, std::string>::iterator it = toolsBufferMatrices.begin(); it != toolsBufferMatrices.end(); it++ )
     {
@@ -1844,18 +1852,6 @@ void vtkDataCollector::SetVideoOnly(bool videoOnly)
       this->GetTracker()->StopTracking();
     }
   }
-}
-
-//------------------------------------------------------------------------------
-int vtkDataCollector::GetDefaultToolPortNumber()
-{
-  int defaultToolPortNumber(0); 
-  if ( this->GetTracker() != NULL )
-  {
-    defaultToolPortNumber = this->GetTracker()->GetDefaultToolNumber(); 
-  }
-
-  return defaultToolPortNumber; 
 }
 
 //------------------------------------------------------------------------------

@@ -71,7 +71,6 @@ vtkTrackerTool* vtkTrackerTool::New()
 vtkTrackerTool::vtkTrackerTool()
 {  
 	this->Tracker = 0;
-	//this->Transform = vtkTransform::New();
 	this->CalibrationMatrix = vtkMatrix4x4::New();
 
 	this->Minimizer = vtkAmoebaMinimizer::New();
@@ -82,14 +81,14 @@ vtkTrackerTool::vtkTrackerTool()
 	this->LED2 = 0;
 	this->LED3 = 0;
 
-	this->ToolType = 0;
+	this->ToolType = TRACKER_TOOL_NONE;
 	this->ToolRevision = 0;
 	this->ToolSerialNumber = 0;
 	this->ToolPartNumber = 0;
 	this->ToolManufacturer = 0;
 	this->ToolName = 0;
-	this->ToolDefinitionFileName = 0;
-	this->ToolModelFileName = 0;
+	this->ToolModel = 0;
+	this->Tool3DModelFileName = 0;
 	this->ToolPort = 0;
 
 	this->CalibrationMatrixName = 0; 
@@ -103,11 +102,12 @@ vtkTrackerTool::vtkTrackerTool()
 
 	this->ModelToToolTransform = vtkTransform::New();
 	this->ModelToToolTransform->Identity();
-	this->ToolToToolReferenceTransform = vtkTransform::New();
-	this->ToolToToolReferenceTransform->Identity();
+	//this->ToolToToolReferenceTransform = vtkTransform::New();
+	//this->ToolToToolReferenceTransform->Identity();
 	this->SetToolName("");
-	this->SetToolModelFileName("");
-	this->SetToolDefinitionFileName("");
+	this->SetTool3DModelFileName("");
+	this->SetToolModel("");
+	this->SetCalibrationDate("");
 
 	this->Buffer = vtkTrackerBuffer::New();
 	this->Buffer->SetToolCalibrationMatrix(this->CalibrationMatrix);
@@ -122,15 +122,14 @@ vtkTrackerTool::~vtkTrackerTool()
 	this->CalibrationArray->Delete();
 	this->Minimizer->Delete();
 
-	this->SetToolType(NULL); 
-	this->SetToolModelFileName(NULL); 
+	this->SetTool3DModelFileName(NULL); 
 	this->SetToolRevision(NULL); 
 	this->SetToolSerialNumber(NULL); 
 	this->SetToolManufacturer(NULL); 
 
 	this->SetModelToToolTransform(NULL); 
-	this->SetToolDefinitionFileName(NULL); 
-	this->SetToolModelFileName(NULL); 
+	this->SetToolModel(NULL); 
+	this->SetTool3DModelFileName(NULL); 
 	
 	if ( this->Buffer )
 	{
@@ -150,15 +149,13 @@ void vtkTrackerTool::PrintSelf(ostream& os, vtkIndent indent)
 	os << indent << "LED3: " << this->GetLED3() << "\n";
 	os << indent << "SendTo: " << this->GetSendToLink() << "\n";
 	os << indent << "ToolType: " << this->GetToolType() << "\n";
-	os << indent << "ToolDefinitionFileName: " << this->GetToolDefinitionFileName() << "\n";
+	os << indent << "ToolModel: " << this->GetToolModel() << "\n";
 	os << indent << "ModelToToolTransform: " << this->GetModelToToolTransform() << "\n";
-	os << indent << "ToolToToolReferenceTransform: " << this->GetToolToToolReferenceTransform() << "\n";
+	//os << indent << "ToolToToolReferenceTransform: " << this->GetToolToToolReferenceTransform() << "\n";
 	os << indent << "ToolRevision: " << this->GetToolRevision() << "\n";
 	os << indent << "ToolManufacturer: " << this->GetToolManufacturer() << "\n";
 	os << indent << "ToolPartNumber: " << this->GetToolPartNumber() << "\n";
 	os << indent << "ToolSerialNumber: " << this->GetToolSerialNumber() << "\n";
-	/*os << indent << "Transform: " << this->Transform << "\n";
-	this->Transform->PrintSelf(os,indent.GetNextIndent());*/
 	os << indent << "CalibrationMatrix: " << this->CalibrationMatrix << "\n";
 	this->CalibrationMatrix->PrintSelf(os,indent.GetNextIndent());
 	os << indent << "Buffer: " << this->Buffer << "\n";
@@ -177,7 +174,6 @@ void vtkTrackerTool::PrintSelf(ostream& os, vtkIndent indent)
 //  }
 //
 //  this->Status = bufferItem.GetStatus(); 
-//  this->Transform->SetMatrix( bufferItem.GetMatrix() ); 
 //  this->TimeStamp = bufferItem.GetTimestamp( this-
 //	this->Buffer->Lock();
 //
@@ -186,7 +182,6 @@ void vtkTrackerTool::PrintSelf(ostream& os, vtkIndent indent)
 //	if ((this->Flags & (TR_MISSING | TR_OUT_OF_VIEW | TR_REQ_TIMEOUT))  == 0) 
 //	{
 //		this->Buffer->GetMatrix(this->TempMatrix, 0);
-//		this->Transform->SetMatrix(this->TempMatrix);
 //	} 
 //
 //	this->TimeStamp = this->Buffer->GetTimeStamp(0);
@@ -357,7 +352,7 @@ void vtkTrackerTool::SetTracker(vtkTracker *tracker)
 void vtkTrackerTool::DeepCopy(vtkTrackerTool *tool)
 {
 	LOG_TRACE("vtkTrackerTool::DeepCopy"); 
-	//this->Transform->DeepCopy( tool->GetTransform() );
+
 	this->CalibrationMatrix->DeepCopy( tool->GetCalibrationMatrix() ); 
 
 	this->SetLED1( tool->GetLED1() );
@@ -367,8 +362,8 @@ void vtkTrackerTool::DeepCopy(vtkTrackerTool *tool)
 	this->SetSendToLink( tool->GetSendToLink() );
 
 	this->SetToolType( tool->GetToolType() );
-	this->SetToolDefinitionFileName( tool->GetToolDefinitionFileName() );
-	this->SetToolModelFileName( tool->GetToolModelFileName() );
+	this->SetToolModel( tool->GetToolModel() );
+	this->SetTool3DModelFileName( tool->GetTool3DModelFileName() );
 	this->SetToolRevision( tool->GetToolRevision() );
 	this->SetToolSerialNumber( tool->GetToolSerialNumber() );
 	this->SetToolPartNumber( tool->GetToolPartNumber() );
@@ -376,7 +371,7 @@ void vtkTrackerTool::DeepCopy(vtkTrackerTool *tool)
 	this->SetToolName( tool->GetToolName() ); 
 
 	this->ModelToToolTransform->DeepCopy( tool->GetModelToToolTransform() );
-	this->ToolToToolReferenceTransform->DeepCopy( tool->GetToolToToolReferenceTransform() );
+	//this->ToolToToolReferenceTransform->DeepCopy( tool->GetToolToToolReferenceTransform() );
 
 	this->SetCalibrationMatrix( tool->GetCalibrationMatrix() ); 
 	this->SetCalibrationMatrixName( tool->GetCalibrationMatrixName() ); 
@@ -406,27 +401,29 @@ PlusStatus vtkTrackerTool::ReadConfiguration(vtkXMLDataElement* config)
 	{
 		this->SetToolName(toolName); 
 	}
+	else
+	{
+		LOG_ERROR("Unable to find tool name! Name attribute is mandatory in tool definition."); 
+		return PLUS_FAIL; 
+	}
+
+	const char* typeString = config->GetAttribute("Type"); 
+	if ( typeString != NULL ) 
+	{
+		TRACKER_TOOL_TYPE type;
+		vtkTracker::ConvertStringToToolType(typeString, type);
+		this->SetToolType(type);
+	}
+	else
+	{
+		LOG_ERROR("Unable to find tool type! Type attribute is mandatory in tool definition."); 
+		return PLUS_FAIL; 
+	}
 
 	const char* sendToLink = config->GetAttribute("SendTo"); 
 	if ( sendToLink != NULL ) 
 	{
 		this->SetSendToLink(sendToLink); 
-	}
-
-	const char* type = config->GetAttribute("Type"); 
-	if ( type != NULL ) 
-	{
-		this->SetToolType(type);
-
-		if ( toolName != NULL )
-		{
-			std::string toolDefinitionFileName(toolName);
-			toolDefinitionFileName.append("_");
-			toolDefinitionFileName.append(type);
-			toolDefinitionFileName.append(".xml");
-
-			this->SetToolDefinitionFileName(toolDefinitionFileName.c_str());
-		}
 	}
 
 	vtkXMLDataElement* toolCalibrationDataElement = config->FindNestedElementWithName("Calibration"); 
@@ -457,84 +454,19 @@ PlusStatus vtkTrackerTool::ReadConfiguration(vtkXMLDataElement* config)
 		}
 	}
 
-	// Read tool definition file
-	if ( this->ToolDefinitionFileName && STRCASECMP(this->ToolDefinitionFileName, "")!=0 ) 
-	{
-		if (STRCASECMP(vtkFileFinder::GetInstance()->GetConfigurationDirectory(), "") != 0) 
-		{
-			std::string searchResult = vtkFileFinder::GetFirstFileFoundInConfigurationDirectory(this->ToolDefinitionFileName);
-			if (STRCASECMP(searchResult.c_str(), "") != 0) 
-			{
-				vtkSmartPointer<vtkXMLDataElement> toolDefinition = vtkXMLUtilities::ReadElementFromFile(searchResult.c_str()); 
-				this->ReadToolDefinitionConfiguration(toolDefinition);
-			} 
-			else 
-			{
-				LOG_WARNING("Tool definition file '" << this->ToolDefinitionFileName << "' cannot be found in the parent of the configuration directory (" << vtkFileFinder::GetInstance()->GetConfigurationDirectory() << ")");
-			}
-		} 
-		else 
-		{
-			LOG_WARNING("No configuration directory is specified, tool definition file '" << this->ToolDefinitionFileName << "' cannot be searched for."); 
-		}
-	}
-
-	return PLUS_SUCCESS;
-}
-
-//-----------------------------------------------------------------------------
-PlusStatus vtkTrackerTool::ReadToolDefinitionConfiguration(vtkXMLDataElement* toolDefinition)
-{
-	LOG_TRACE("vtkTrackerTool::ReadToolDefinitionConfiguration"); 
-	if ( toolDefinition == NULL )
-	{
-		LOG_ERROR("Unable to load tracker tool definition from file: " << this->ToolDefinitionFileName); 
-		return PLUS_FAIL;
-	}
-
-	vtkXMLDataElement* descriptionDataElement = toolDefinition->FindNestedElementWithName("Description"); 
-	if ( descriptionDataElement != NULL ) 
-	{
-		const char* name = descriptionDataElement->GetAttribute("Name");
-		if ( name == NULL )
-		{
-			LOG_ERROR("Tool name is not set in tool definition file '" << this->ToolDefinitionFileName << "'");
-			return PLUS_FAIL;
-		}
-		else if (STRCASECMP(this->ToolType, name) != 0)
-		{
-			LOG_ERROR("Tool type from the device set configuration file (" << this->ToolType << ") and from the tool definition file (" << name << ") do not match!"); 
-			return PLUS_FAIL;
-		}
-	}
-
-	vtkXMLDataElement* modelDataElement = toolDefinition->FindNestedElementWithName("Model"); 
+	vtkXMLDataElement* modelDataElement = config->FindNestedElementWithName("Model"); 
 	if ( modelDataElement != NULL ) 
 	{
 		const char* file = modelDataElement->GetAttribute("File");
 		if ( file != NULL )
 		{
-			this->SetToolModelFileName(file);
+			this->SetTool3DModelFileName(file);
 		}
 
 		double modelToToolTransformMatrixValue[16] = {0}; 
 		if ( modelDataElement->GetVectorAttribute("ModelToToolTransform", 16, modelToToolTransformMatrixValue ) )
 		{
 			this->ModelToToolTransform->SetMatrix(modelToToolTransformMatrixValue);
-		}
-	}
-		
-	vtkXMLDataElement* geometryDataElement = toolDefinition->FindNestedElementWithName("Geometry"); 
-	if ( geometryDataElement != NULL ) 
-	{
-		vtkXMLDataElement* registrationDataElement = geometryDataElement->FindNestedElementWithName("Registration"); 
-		if ( registrationDataElement != NULL ) 
-		{
-			double toolToToolReferenceTransformMatrixValue[16] = {0}; 
-			if ( registrationDataElement->GetVectorAttribute("MatrixValue", 16, toolToToolReferenceTransformMatrixValue ) )
-			{
-				this->ToolToToolReferenceTransform->SetMatrix(toolToToolReferenceTransformMatrixValue);
-			}
 		}
 	}
 

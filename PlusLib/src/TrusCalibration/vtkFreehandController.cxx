@@ -143,7 +143,12 @@ PlusStatus vtkFreehandController::StartDataCollection()
 	vtkSmartPointer<vtkDataCollector> dataCollector = vtkSmartPointer<vtkDataCollector>::New(); 
 	this->SetDataCollector(dataCollector);
 
-	vtkXMLDataElement* dataCollectionConfig = this->ConfigurationData->FindNestedElementWithName("USDataCollection"); 
+	vtkXMLDataElement* dataCollectionConfig = this->ConfigurationData->FindNestedElementWithName("USDataCollection");
+	if (dataCollectionConfig == NULL) { // Check if it is a separate data collection configuration file
+		if (STRCASECMP(this->ConfigurationData->GetName(), "USDataCollection") == 0) {
+			dataCollectionConfig = this->ConfigurationData;
+		}
+	}
 	if (dataCollectionConfig != NULL) {
 		if (this->DataCollector->ReadConfiguration(dataCollectionConfig) != PLUS_SUCCESS) {
 			return PLUS_FAIL;
@@ -184,26 +189,6 @@ vtkXMLDataElement* vtkFreehandController::LookupElementWithNameContainingChildWi
 	if (firstElement == NULL) {
 		return NULL;
 	} else {
-		vtkXMLDataElement* parentOfElements = firstElement->GetParent();
-		if (parentOfElements == NULL) { // If there is no parent then it is the only element with aElementName we have
-			if ( (childElement = firstElement->FindNestedElementWithNameAndAttribute(aChildName, aChildAttributeName, aChildAttributeValue)) == NULL) {
-				return NULL;
-			}
-		} else { // If there is a parent then check its siblings for the right element
-			for (int i=0; i<parentOfElements->GetNumberOfNestedElements(); ++i) {
-				vtkXMLDataElement* toolDefinitionCandidate = parentOfElements->GetNestedElement(i);
-
-				if ( (STRCASECMP(toolDefinitionCandidate->GetName(), aElementName) == 0) && ( (childElement = toolDefinitionCandidate->FindNestedElementWithNameAndAttribute(aChildName, aChildAttributeName, aChildAttributeValue)) != NULL)) {
-					// We found the element
-					break;
-				}
-			}
-
-			if (childElement == NULL) {
-				return NULL;
-			}
-		}
+		return childElement = firstElement->FindNestedElementWithNameAndAttribute(aChildName, aChildAttributeName, aChildAttributeValue);
 	}
-
-	return childElement->GetParent();
 }

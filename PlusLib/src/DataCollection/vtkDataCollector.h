@@ -119,12 +119,8 @@ public:
   virtual PlusStatus GetMostRecentTimestamp(double &ts); 
 
   // Description:
-  // Return the default tool status at a given time
-  virtual PlusStatus GetDefaultToolStatus( double time, TrackerStatus &status ); 
-
-  // Description:
-  // Return the default tool name
-  virtual std::string GetDefaultToolName(); 
+  // Return the tool status at a given time
+  virtual PlusStatus GetToolStatus( double time, int toolNumber, TrackerStatus &status ); 
 
   // Description:
   // Get the most recent tracked frame from devices 
@@ -207,10 +203,6 @@ public:
   // Set/Get the tracker 
   vtkSetObjectMacro(Tracker,vtkTracker);
   vtkGetObjectMacro(Tracker,vtkTracker);
-
-  // Description:	
-  // Get default tool port number 
-  int GetDefaultToolPortNumber(); 
 
   // Description:
   // Set/get the Initialized flag 

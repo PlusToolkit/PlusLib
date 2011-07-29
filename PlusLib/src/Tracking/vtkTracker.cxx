@@ -97,9 +97,6 @@ vtkTracker::vtkTracker()
   this->UpdateMutex = vtkCriticalSection::New();
   this->RequestUpdateMutex = vtkCriticalSection::New();
 
-  this->ReferenceToolName = NULL; 
-  this->DefaultToolName = NULL; 
-
   this->ConfigurationData = NULL; 
 }
 
@@ -187,20 +184,6 @@ vtkTrackerTool *vtkTracker::GetTool(int tool)
     LOG_ERROR("GetTool(" << tool << "): only " << this->NumberOfTools << " are available");
   }
   return this->Tools[tool];
-}
-
-//----------------------------------------------------------------------------
-vtkTrackerTool *vtkTracker::GetDefaultTool()
-{
-  int defaultToolNumber = this->GetDefaultToolNumber(); 
-
-  if ( defaultToolNumber < 0 || defaultToolNumber > this->GetNumberOfTools() ) 
-  {
-    LOG_ERROR("Failed to get default tool - returns tool 0!"); 
-    defaultToolNumber = 0; 
-  }
-
-  return this->Tools[defaultToolNumber];
 }
 
 //----------------------------------------------------------------------------
@@ -414,8 +397,6 @@ void vtkTracker::DeepCopy(vtkTracker *tracker)
   this->SetFrequency(tracker->GetFrequency()); 
   this->SetTrackerCalibrated(tracker->GetTrackerCalibrated()); 
   this->SetConfigurationData( tracker->GetConfigurationData() ); 
-  this->SetReferenceToolName( tracker->GetReferenceToolName() ); 
-  this->SetDefaultToolName( tracker->GetDefaultToolName() ); 
 }
 
 
@@ -475,23 +456,6 @@ PlusStatus vtkTracker::ReadConfiguration(vtkXMLDataElement* config)
     }
   }
 
-  const char* referenceToolName = config->GetAttribute("ReferenceToolName"); 
-  if ( referenceToolName != NULL ) 
-  {
-    this->SetReferenceToolName(referenceToolName); 
-  }
-
-  const char* defaultToolName = config->GetAttribute("DefaultToolName"); 
-  if ( defaultToolName != NULL ) 
-  {
-    this->SetDefaultToolName(defaultToolName); 
-  }
-  else
-  {
-    LOG_WARNING("Unable to find Tracker DefaultToolName attribute in configuration file!"); 
-  }
-
-
   // Read tool configurations 
   for ( int tool = 0; tool < config->GetNumberOfNestedElements(); tool++ )
   {
@@ -518,7 +482,11 @@ PlusStatus vtkTracker::ReadConfiguration(vtkXMLDataElement* config)
       {
         LOG_WARNING("Unable to read tool data element configuration for port: " << portNumber << " - number of tools are: " << this->GetNumberOfTools() ); 
       }
-
+    }
+    else
+    {
+      LOG_ERROR("Unable to find tool port number! PortNumber attribute is mandatory in tool definition."); 
+      return PLUS_FAIL; 
     }
   }
 
@@ -545,26 +513,6 @@ int vtkTracker::GetToolPortByName( const char* toolName)
   return -1; 
 }
 
-
-//------------------------------------------------------------------------------
-int vtkTracker::GetDefaultToolNumber()
-{
-  int toolPort = this->GetToolPortByName(this->GetDefaultToolName()); 
-
-  if ( toolPort < 0 )
-  {
-    LOG_ERROR("Unable to find default tool port number! Please set default tool name in the configuration file!" ); 
-  }
-
-  return toolPort; 
-}
-
-//-----------------------------------------------------------------------------
-int vtkTracker::GetReferenceToolNumber()
-{
-  return this->GetToolPortByName(this->GetReferenceToolName()); 
-}
-
 //----------------------------------------------------------------------------
 void vtkTracker::SetStartTime( double startTime)
 {
@@ -577,7 +525,13 @@ void vtkTracker::SetStartTime( double startTime)
 //----------------------------------------------------------------------------
 double vtkTracker::GetStartTime()
 {
-  return this->GetDefaultTool()->GetBuffer()->GetStartTime();  
+  double sumStartTime = 0.0;
+  for ( int i = 0; i < this->GetNumberOfTools(); ++i )
+  {
+    sumStartTime += this->GetTool(i)->GetBuffer()->GetStartTime(); 
+  }
+
+  return sumStartTime / (double)this->GetNumberOfTools();
 }
 
 //-----------------------------------------------------------------------------
@@ -693,6 +647,28 @@ PlusStatus vtkTracker::GetTrackerToolBufferStringList(double timestamp,
   return PLUS_SUCCESS; 
 }
 
+//-----------------------------------------------------------------------------
+PlusStatus vtkTracker::GetFirstActiveTool(int &tool)
+{
+  tool = -1;
+
+  for ( int i = 0; i < this->GetNumberOfTools(); ++i )
+  {
+    if( this->GetTool(i)->GetEnabled() )
+	{
+		tool = i; 
+		return PLUS_SUCCESS; 
+	}
+  }
+
+  if ( tool < 0 ) 
+  {
+	LOG_ERROR("There are no active tools!");
+	return PLUS_FAIL;
+  }
+
+  return PLUS_SUCCESS;
+}
 
 //-----------------------------------------------------------------------------
 PlusStatus vtkTracker::GenerateTrackingDataAcquisitionReport( vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter, const char* gnuplotScriptsFolder)
@@ -703,8 +679,15 @@ PlusStatus vtkTracker::GenerateTrackingDataAcquisitionReport( vtkHTMLGenerator* 
     return PLUS_FAIL; 
   }
 
+
   vtkSmartPointer<vtkTable> timestampReportTable = vtkSmartPointer<vtkTable>::New(); 
-  if ( this->GetDefaultTool()->GetBuffer()->GetTimeStampReportTable(timestampReportTable) != PLUS_SUCCESS )
+  int firstActiveTool = -1;
+  if ( GetFirstActiveTool(firstActiveTool) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Cannot get first active tool!");
+    return PLUS_FAIL;
+  }
+  if ( this->GetTool(firstActiveTool)->GetBuffer()->GetTimeStampReportTable(timestampReportTable) != PLUS_SUCCESS )
   { 
     LOG_ERROR("Failed to get timestamp report table from default tool buffer!"); 
     return PLUS_FAIL; 
@@ -748,4 +731,98 @@ PlusStatus vtkTracker::GenerateTrackingDataAcquisitionReport( vtkHTMLGenerator* 
   htmlReport->AddHorizontalLine(); 
 
   return PLUS_SUCCESS; 
+}
+
+//-----------------------------------------------------------------------------
+PlusStatus vtkTracker::ConvertStringToToolType(const char* typeString, TRACKER_TOOL_TYPE &type)
+{
+	if (STRCASECMP(typeString, "Reference") == 0)
+	{
+		type = TRACKER_TOOL_REFERENCE;
+	}
+	else if (STRCASECMP(typeString, "Probe") == 0)
+	{
+		type = TRACKER_TOOL_PROBE;
+	}
+	else if (STRCASECMP(typeString, "Stylus") == 0)
+	{
+		type = TRACKER_TOOL_STYLUS;
+	}
+	else if (STRCASECMP(typeString, "Needle") == 0)
+	{
+		type = TRACKER_TOOL_NEEDLE;
+	}
+	else
+	{
+		type = TRACKER_TOOL_NONE;
+		LOG_ERROR("Invalid tool type: " << typeString);
+		return PLUS_FAIL;
+	}
+
+	return PLUS_SUCCESS;
+}
+
+//-----------------------------------------------------------------------------
+PlusStatus vtkTracker::ConvertToolTypeToString(const TRACKER_TOOL_TYPE type, char* &typeString)
+{
+	switch (type)
+	{
+	case TRACKER_TOOL_REFERENCE:
+		typeString = "Reference";
+		break;
+	case TRACKER_TOOL_PROBE:
+		typeString = "Probe";
+		break;
+	case TRACKER_TOOL_STYLUS:
+		typeString = "Stylus";
+		break;
+	case TRACKER_TOOL_NEEDLE:
+		typeString = "Needle";
+		break;
+	default:
+		typeString = "Invalid";
+		LOG_ERROR("Invalid tool type!");
+		return PLUS_FAIL;
+	}
+
+	return PLUS_SUCCESS;
+}
+
+//-----------------------------------------------------------------------------
+PlusStatus vtkTracker::GetToolPortNumbersByType(TRACKER_TOOL_TYPE type, std::vector<int> &toolNumbersVector)
+{
+	PlusStatus success = PLUS_FAIL;
+
+	toolNumbersVector.clear();
+
+    for ( int tool = 0; tool < this->GetNumberOfTools(); tool++ )
+    {
+      if ( this->GetTool(tool)->GetToolType() == type )
+      {
+        toolNumbersVector.push_back(tool);
+		success = PLUS_SUCCESS;
+      }
+    }
+
+	return success;
+}
+
+//-----------------------------------------------------------------------------
+int vtkTracker::GetFirstPortNumberByType(TRACKER_TOOL_TYPE type)
+{
+    for ( int tool = 0; tool < this->GetNumberOfTools(); tool++ )
+    {
+      if ( this->GetTool(tool)->GetToolType() == type )
+      {
+        return tool;
+      }
+    }
+
+	return -1;
+}
+
+//-----------------------------------------------------------------------------
+int vtkTracker::GetReferenceToolNumber()
+{
+	return this->GetFirstPortNumberByType(TRACKER_TOOL_REFERENCE);
 }

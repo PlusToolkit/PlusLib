@@ -73,7 +73,6 @@ public:
   // Read/write main configuration from/to xml data
   virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config); 
   virtual PlusStatus WriteConfiguration(vtkXMLDataElement* config); 
-  virtual PlusStatus ReadToolDefinitionConfiguration(vtkXMLDataElement* toolDefinition);
 
   // Description:
   // Get a reference to the transform associated with this tool.  The
@@ -148,37 +147,40 @@ public:
   // Description:
   // Get miscellaneous information about the tool.  Most
   // tracking systems only support a subset of these (or none at all).
-  vtkGetStringMacro(ToolType);
   vtkGetStringMacro(ToolRevision);
   vtkGetStringMacro(ToolManufacturer);
   vtkGetStringMacro(ToolPartNumber);
   vtkGetStringMacro(ToolSerialNumber);
   vtkGetStringMacro(ToolName); 
-  vtkGetStringMacro(ToolDefinitionFileName); 
+  vtkGetStringMacro(ToolModel); 
 
   //BTX
   // Description:
   // To be used only by the vtkTracker class
   void SetTracker(vtkTracker *tracker);
   vtkSetMacro(ToolPort, int);
-  vtkSetStringMacro(ToolType);
   vtkSetStringMacro(ToolRevision);
   vtkSetStringMacro(ToolManufacturer);
   vtkSetStringMacro(ToolPartNumber);
   vtkSetStringMacro(ToolSerialNumber);
   vtkSetStringMacro(ToolName);
-  vtkSetStringMacro(ToolDefinitionFileName); 
+  vtkSetStringMacro(ToolModel); 
   //void Update();
   //ETX
+
+  // Description:
+  // Set/Get the tool type 
+  void SetToolType(TRACKER_TOOL_TYPE type) { ToolType = type; }
+  TRACKER_TOOL_TYPE GetToolType() { return this->ToolType; }
 
   // Description
   // Set/Get Tool definition data (model to tool transform, tool registration transform, model file path and filename)
   vtkGetObjectMacro(ModelToToolTransform,vtkTransform);
   vtkSetObjectMacro(ModelToToolTransform,vtkTransform);
-  vtkGetObjectMacro(ToolToToolReferenceTransform,vtkTransform);
-  vtkSetObjectMacro(ToolToToolReferenceTransform,vtkTransform);
-  vtkGetStringMacro(ToolModelFileName); 
-  vtkSetStringMacro(ToolModelFileName); 
+  //vtkGetObjectMacro(ToolToToolReferenceTransform,vtkTransform);
+  //vtkSetObjectMacro(ToolToToolReferenceTransform,vtkTransform);
+  vtkGetStringMacro(Tool3DModelFileName); 
+  vtkSetStringMacro(Tool3DModelFileName); 
 
   // Description:
   // Set/get calibration matrix name
@@ -216,8 +218,11 @@ protected:
   ~vtkTrackerTool();
 
   vtkTracker *Tracker;
+
   int ToolPort;
-  //vtkTransform *Transform;
+
+  TRACKER_TOOL_TYPE ToolType;
+
   vtkMatrix4x4 *CalibrationMatrix;
 
   vtkAmoebaMinimizer *Minimizer;
@@ -231,7 +236,6 @@ protected:
 
   bool Enabled; 
 
-  char *ToolType;
   char *ToolRevision;
   char *ToolSerialNumber;
   char *ToolPartNumber;
@@ -240,11 +244,11 @@ protected:
   char *CalibrationMatrixName; 
   char *CalibrationDate; 
   char *SendToLink;
-  char *ToolDefinitionFileName;
+  char *ToolModel;
 
-  char *ToolModelFileName;
+  char *Tool3DModelFileName;
   vtkTransform *ModelToToolTransform;
-  vtkTransform *ToolToToolReferenceTransform;
+  //vtkTransform *ToolToToolReferenceTransform;
 
   double CalibrationError; 
 

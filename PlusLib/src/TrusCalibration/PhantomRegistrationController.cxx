@@ -577,9 +577,15 @@ vtkMatrix4x4* PhantomRegistrationController::AcquireStylusTipTrackerPosition(dou
 		LOG_ERROR("Data collector is not initialized!");
 		return NULL;
 	}
-	if ((dataCollector->GetTracker() == NULL) || (dataCollector->GetTracker()->GetTool(dataCollector->GetDefaultToolPortNumber()) < 0)) {
+	if (dataCollector->GetTracker() == NULL) {
 		LOG_ERROR("Tracker is not initialized properly!");
 		return NULL;
+	}
+	int firstActiveToolNumber = -1; 
+	if (dataCollector->GetTracker()->GetFirstActiveTool(firstActiveToolNumber) != PLUS_SUCCESS)
+	{
+		LOG_ERROR("There are no active tracker tools!"); 
+		return NULL; 
 	}
 
 	vtkSmartPointer<vtkMatrix4x4> stylusToReferenceTransformMatrix = NULL;
