@@ -395,7 +395,7 @@ void FreehandCalibrationToolbox::SaveClicked()
 {
 	LOG_TRACE("FreehandCalibrationToolbox::SaveClicked"); 
 
-	//TODO into DataCollection config
+	vtkFreehandCalibrationController::GetInstance()->SaveCalibrationResults();
 }
 
 //-----------------------------------------------------------------------------

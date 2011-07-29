@@ -447,10 +447,8 @@ void FreehandMainWindow::LocateDirectories()
 	}
 	programPath = vtksys::SystemTools::GetParentDirectory(programPath.c_str()); 
 
-	vtkFreehandController::GetInstance()->SetProgramPath(programPath.c_str());
-
 	// Locate configuration files directory
-	QDir configDir(QString::fromStdString(vtkFreehandController::GetInstance()->GetProgramPath()));
+	QDir configDir(QString::fromStdString(programPath));
 	bool success = configDir.cdUp();
 	if (success) {
 		configDir.cd("config");
@@ -464,7 +462,7 @@ void FreehandMainWindow::LocateDirectories()
 	vtkFileFinder::GetInstance()->SetConfigurationDirectory(configDir.path().toStdString().c_str());
 
 	// Make output directory
-	std::string outputPath = vtksys::SystemTools::CollapseFullPath("./Output", vtkFreehandController::GetInstance()->GetProgramPath()); 
+	std::string outputPath = vtksys::SystemTools::CollapseFullPath("./Output", programPath.c_str()); 
 	if (vtksys::SystemTools::MakeDirectory(outputPath.c_str())) {
 		vtkFreehandController::GetInstance()->SetOutputFolder(outputPath.c_str());
 	}

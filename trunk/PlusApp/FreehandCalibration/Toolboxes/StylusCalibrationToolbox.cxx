@@ -131,7 +131,7 @@ void StylusCalibrationToolbox::RefreshToolboxContent()
 		ui.label_BoundingBox->setText(QString::fromStdString(toolboxController->GetBoundingBoxString()));
 		ui.label_Precision->setText(QString("%1 mm").arg(toolboxController->GetPrecision(), 2));
 		ui.label_CurrentPosition->setText(QString::fromStdString(toolboxController->GetPositionString()));
-		ui.label_StylusTipTransform->setText(QString::fromStdString(toolboxController->GetStylusToStylustipTransformString()));
+		ui.label_StylusTipTransform->setText(QString::fromStdString(toolboxController->GetStylustipToStylusTransformString()));
 
 		//if (!(ui.pushButton_Start->hasFocus() || vtkFreehandController::GetInstance()->GetCanvas()->hasFocus())) {
 		//	ui.pushButton_Start->setFocus();

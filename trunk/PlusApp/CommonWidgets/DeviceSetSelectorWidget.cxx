@@ -6,6 +6,8 @@
 #include <QDomDocument>
 #include <QSettings>
 
+#include "vtkFileFinder.h"
+
 //-----------------------------------------------------------------------------
 
 DeviceSetSelectorWidget::DeviceSetSelectorWidget(QWidget* aParent)
@@ -109,6 +111,8 @@ void DeviceSetSelectorWidget::SetConfigurationDirectory(std::string aDirectory, 
 		if (ParseDirectory(QString::fromStdString(aDirectory))) {
 			m_ConfigurationDirectory = QString::fromStdString(aDirectory);
 
+			vtkFileFinder::GetInstance()->SetConfigurationDirectory(m_ConfigurationDirectory.toStdString().c_str());
+
 			ui.lineEdit_ConfigurationDirectory->setText(m_ConfigurationDirectory);
 			ui.lineEdit_ConfigurationDirectory->setToolTip(m_ConfigurationDirectory);
 
@@ -195,8 +199,18 @@ PlusStatus DeviceSetSelectorWidget::ParseDirectory(QString aDirectory)
 		if (doc.setContent(&file)) {
 			QDomElement docElem = doc.documentElement();
 			
-			// If the root element is not USDataCollection then skip
-			if (docElem.tagName().compare("USDataCollection")) {
+			// If the root element is PlusConfiguration then find its USDataCollection child
+			if (! docElem.tagName().compare("PlusConfiguration")) {
+				QDomNodeList list = docElem.elementsByTagName("USDataCollection");
+
+				if (list.count() > 0) { // If it has a USDataCollection children then use the first one
+					docElem = list.at(0).toElement();
+				} else { // If it does not have a USDataCollection then it cannot be used for connecting
+					continue;
+				}
+			}
+			// If the element is not USDataCollection then skip
+			else if (docElem.tagName().compare("USDataCollection")) {
 				continue;
 			}
 

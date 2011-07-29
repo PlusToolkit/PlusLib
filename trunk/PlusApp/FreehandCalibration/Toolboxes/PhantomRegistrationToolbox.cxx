@@ -72,7 +72,7 @@ void PhantomRegistrationToolbox::Initialize()
 	m_AcquisitionTimer->start(1000 / vtkFreehandController::GetInstance()->GetRecordingFrameRate());
 
 	// If stylus calibration has just been done, then indicate it
-	if (StylusCalibrationController::GetInstance()->GetStylusToStylustipTransform() != NULL) {
+	if (StylusCalibrationController::GetInstance()->GetStylustipToStylusTransform() != NULL) {
 
 		// If the user changed device set since calibration, set the calibration to the tool
 		StylusCalibrationController::GetInstance()->FeedStylusCalibrationMatrixToTool();
