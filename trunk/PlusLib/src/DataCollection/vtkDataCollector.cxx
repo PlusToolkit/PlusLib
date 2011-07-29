@@ -1530,12 +1530,13 @@ PlusStatus vtkDataCollector::ReadTrackerProperties(vtkXMLDataElement* trackerCon
     this->SetTracker(NULL); 
     this->TrackingEnabled = false; 
   }
-  //******************* AMS Tracker ***************************
-  else if ( STRCASECMP("AMSTracker", type)==0) 
+  //******************* Brachy Tracker ***************************
+  else if ( STRCASECMP("BrachyTracker", type)==0) 
   {
-#ifdef PLUS_USE_AMS_TRACKER
-    LOG_DEBUG("Tracker type: AMS tracker"); 
-    this->SetTrackerType(TRACKER_AMS); 
+#ifdef PLUS_USE_BRACHY_TRACKER
+    LOG_DEBUG("Tracker type: Brachy tracker"); 
+    this->SetTrackerType(
+		); 
     vtkSmartPointer<vtkBrachyTracker> tracker = vtkSmartPointer<vtkBrachyTracker>::New();
     this->SetTracker(tracker); 
     tracker->ReadConfiguration(trackerConfig); 
