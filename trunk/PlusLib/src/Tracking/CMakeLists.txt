@@ -187,17 +187,29 @@ IF (PLUS_USE_BRACHY_TRACKER)
 			)
 	endif (WIN32)
     
-	ADD_SUBDIRECTORY(BrachyTracking/Utils)
-	
-    SET (PLUSLIB_INCLUDE_DIRS 
+  SET(CIVCO_SEI_INCLUDE_DIR ${PLTOOLS_DIR}/CIVCO/SEI/inc CACHE PATH "Path to the Ulterius SDK include directory." FORCE)
+  SET(CIVCO_SEI_BINARY_DIR ${PLTOOLS_DIR}/CIVCO/SEI/bin CACHE PATH "Path to the Ulterius SDK binary directory." FORCE)
+  SET(CIVCO_SEI_LIB_DIR ${PLTOOLS_DIR}/CIVCO/SEI/lib CACHE PATH "Path to the Ulterius SDK library directory." FORCE)
+
+  SET (PLUSLIB_INCLUDE_DIRS 
                 ${PLUSLIB_INCLUDE_DIRS} 
+				 ${CIVCO_SEI_INCLUDE_DIR}
                 ${BrachyStepper_SOURCE_DIR}
                 ${BrachyStepper_BINARY_DIR}
                 CACHE INTERNAL ""
 				)
- 
-  SET (BRACHY_TRACKER_LIBRARY BrachyStepper )
-  
+  SET (BrachyStepper_LIBS
+    ${CIVCO_SEI_LIB_DIR}/SEIDrv32${CMAKE_STATIC_LIBRARY_SUFFIX}
+    )
+
+  SET ( External_Libraries_Install ${External_Libraries_Install}
+      ${CIVCO_SEI_BINARY_DIR}/SEIDrv32${CMAKE_SHARED_LIBRARY_SUFFIX}
+      )
+
+  ADD_SUBDIRECTORY(BrachyTracking/Utils)
+
+  SET (BRACHY_TRACKER_LIBRARY BrachyStepper ${BrachyStepper_LIBS})
+    
 ENDIF (PLUS_USE_BRACHY_TRACKER)
 
 
