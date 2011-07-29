@@ -9,6 +9,7 @@
 
 class vtkTrackedFrameList;
 class QVTKWidget;
+class vtkXMLDataElement;
 
 //-----------------------------------------------------------------------------
 
@@ -44,6 +45,9 @@ public:
 	//TODO
 	PlusStatus StartDataCollection();
 
+	//TODO
+	static vtkXMLDataElement* LookupElementWithNameContainingChildWithNameAndAttribute(vtkXMLDataElement* aConfig, const char* aElementName, const char* aChildName, const char* aChildAttributeName, const char* aChildAttributeValue);
+
 public:
 	// Set/Get functions for canvas
 	QVTKWidget* GetCanvas() { return this->Canvas; };
@@ -60,8 +64,8 @@ public:
 	vtkSetMacro(RecordingFrameRate, int); 
 	vtkGetMacro(RecordingFrameRate, int); 
 
-	vtkSetStringMacro(InputConfigFileName); 
-	vtkGetStringMacro(InputConfigFileName); 
+	vtkSetStringMacro(ConfigurationFileName); 
+	vtkGetStringMacro(ConfigurationFileName); 
 	
 	vtkSetStringMacro(OutputFolder); 
 	vtkGetStringMacro(OutputFolder); 
@@ -72,8 +76,7 @@ public:
 	vtkGetObjectMacro(CanvasRenderer, vtkRenderer);
 	vtkSetObjectMacro(CanvasRenderer, vtkRenderer);
 
-	vtkSetStringMacro(ProgramPath); 
-	vtkGetStringMacro(ProgramPath); 
+	vtkGetObjectMacro(ConfigurationData, vtkXMLDataElement); 
 
 protected:
 	/*!
@@ -99,8 +102,11 @@ protected:
 	//! Desired frame rate of synchronized recording
 	int								RecordingFrameRate;
 
-	//! Input configuration file name
-	char*							InputConfigFileName;
+	//! Used configuration file name
+	char*							ConfigurationFileName;
+
+	//! Configuration root element
+	vtkXMLDataElement*				ConfigurationData;
 
 	//! Output folder
 	char*							OutputFolder;
@@ -110,9 +116,6 @@ protected:
 
 	//! Renderer for the canvas
 	vtkRenderer*					CanvasRenderer; 
-
-	//! Program path
-	char*							ProgramPath;
 
 private:
 	//! Instance of the singleton

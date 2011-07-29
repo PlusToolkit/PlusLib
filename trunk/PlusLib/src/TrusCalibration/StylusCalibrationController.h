@@ -7,6 +7,7 @@ class vtkTransform;
 class vtkMatrix4x4;
 class vtkPolyData;
 class vtkActor;
+class vtkXMLDataElement;
 
 //-----------------------------------------------------------------------------
 
@@ -58,29 +59,31 @@ public:
 	PlusStatus Stop();
 
 	/*!
-	* \brief Load stylus calibration (stylus to stylustip transform) from data collection config file
-	* \return Success flag
-	*/
-	PlusStatus LoadStylusCalibrationFromDataCollectionConfigFile();
-
-	/*!
-	* \brief Save result to data collection config XML file
-	* \return Success flag
-	*/
-	PlusStatus SaveStylusCalibrationToDataCollectionConfigFile();
-
-	/*!
-	* \brief Load stylus calibration (stylus to stylustip transform) from file - obsolete (data collection config file is used now)
+	* \brief Load stylus calibration (stylus tip to stylus transform) from file
 	* \param aFile Stylus cailbration transform XML
 	* \return Success flag
 	*/
 	PlusStatus LoadStylusCalibrationFromFile(std::string aFile);
 
 	/*!
-	* \brief Save result to XML file - obsolete (data collection config file is used now)
+	* \brief Load stylus calibration (stylus tip to stylus transform) from file
+	* \param aConfig XML data element containing the stylus calibration
+	* \return Success flag
+	*/
+	PlusStatus LoadStylusCalibration(vtkXMLDataElement* aConfig);
+
+	/*!
+	* \brief Save result to XML file
 	* \param aFile XML file name and path
 	*/
-	void SaveStylusCalibrationToFile(std::string aFile);
+	PlusStatus SaveStylusCalibrationToFile(std::string aFile);
+
+	/*!
+	* \brief Save result to XML file
+	* \param aConfig XML data element containing the stylus calibration
+	* \return Success flag
+	*/
+	PlusStatus SaveStylusCalibration(vtkXMLDataElement* aConfig);
 
 	/*!
 	* \brief Getter function
@@ -113,10 +116,10 @@ public:
 	double GetPrecision();
 
 	/*!
-	* \brief Get stylus to stylus tip transform (calibration result)
-	* \return Stylus to stylus tip transform
+	* \brief Get stylus tip to stylus transform (calibration result)
+	* \return Stylus tip to stylus transform
 	*/
-	vtkTransform* GetStylusToStylustipTransform();
+	vtkTransform* GetStylustipToStylusTransform();
 
 	/*!
 	* \brief Assembles the bounding box string to display
@@ -132,12 +135,12 @@ public:
 
 	/*!
 	* \brief Get calibration result string to display
-	* \return Calibration result - stylus to stylus tip transform - string
+	* \return Calibration result - stylus tip to stylus transform - string
 	*/
-	std::string GetStylusToStylustipTransformString();
+	std::string GetStylustipToStylusTransformString();
 
 	/*!
-	* \brief Re-initialize stylus calibration matrix to stylus tool from m_StylusToStylustipTransform (in case the user has changed device set in the meantime)
+	* \brief Re-initialize stylus calibration matrix to stylus tool from m_StylustipToStylusTransform (in case the user has changed device set in the meantime)
 	* \return Success flag
 	*/
 	PlusStatus FeedStylusCalibrationMatrixToTool();
@@ -200,7 +203,7 @@ protected:
 	double								m_BoundingBox[6];
 
 	//! Stylustip to stylus transform - the result of the calibration
-	vtkTransform*						m_StylusToStylustipTransform;
+	vtkTransform*						m_StylustipToStylusTransform;
 
 	//! Uncertainty (standard deviation), precision of the calibration result
 	double								m_Precision;

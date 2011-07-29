@@ -60,7 +60,7 @@ int main (int argc, char* argv[])
 
 	// Initialize the controllers
 	vtkSmartPointer<vtkFreehandController> controller = vtkFreehandController::GetInstance();
-	controller->SetInputConfigFileName(inputConfigFileName.c_str());
+	controller->SetConfigurationFileName(inputConfigFileName.c_str());
 	controller->Initialize();
 	controller->TrackingOnlyOn();
 	controller->StartDataCollection();

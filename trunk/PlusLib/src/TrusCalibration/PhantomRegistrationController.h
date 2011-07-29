@@ -211,9 +211,6 @@ protected:
 	//! Flag to trigger landmark recording - if it is set then at the next acquisition the position is recorded
 	bool									m_RecordRequested;
 
-	//! Phantom definition file name for later use (eg. in freehand calibration)
-	std::string								m_PhantomDefinitionFileName;
-
 private:
 	//! Instance of the singleton
 	static PhantomRegistrationController*	m_Instance;

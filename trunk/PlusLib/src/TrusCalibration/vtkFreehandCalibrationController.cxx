@@ -1457,8 +1457,6 @@ PlusStatus vtkFreehandCalibrationController::ComputeCalibrationResults()
 
 		this->SpatialCalibrationDoneOn();
 
-		DisplayCalibrationResults();
-
 	} catch(...) {
 		LOG_ERROR("ComputeCalibrationResults: Failed to compute calibration results!");
 		return PLUS_FAIL;
@@ -1469,9 +1467,11 @@ PlusStatus vtkFreehandCalibrationController::ComputeCalibrationResults()
 
 //-----------------------------------------------------------------------------
 
-void vtkFreehandCalibrationController::DisplayCalibrationResults()
+PlusStatus vtkFreehandCalibrationController::SaveCalibrationResults()
 {
-	//TODO
+	//TODO imageToProba AND localTimeOffset
+
+	return PLUS_FAIL;
 }
 
 //-----------------------------------------------------------------------------

@@ -72,6 +72,7 @@ public:
   // Read the configuration file in XML format and set up the devices
   virtual PlusStatus ReadConfigurationFromFile( const char* configFileName); 
   virtual PlusStatus ReadConfigurationFromFile(); 
+  virtual PlusStatus ReadConfiguration( vtkXMLDataElement* aDataCollectionConfig ); 
 
   // Description:
   // Disconnect from devices

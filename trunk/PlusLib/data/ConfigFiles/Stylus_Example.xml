@@ -1,5 +1,5 @@
 <ToolDefinition version="1.0">
-	<!-- Supported types are: Double-N, U-Shaped-N -->
+	<!-- Supported types are: LinearProbe, BrachyProbe, Stylus, Needle -->
 	<Description
 		Name="Example"
 		Type="Stylus"

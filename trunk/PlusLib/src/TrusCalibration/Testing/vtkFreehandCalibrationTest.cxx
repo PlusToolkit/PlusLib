@@ -85,7 +85,7 @@ int main (int argc, char* argv[])
 
 	// Initialize related controllers with the input data
 	vtkSmartPointer<vtkFreehandController> controller = vtkFreehandController::GetInstance();
-	controller->SetInputConfigFileName(inputDataCollectionConfigFileName.c_str());
+	controller->SetConfigurationFileName(inputDataCollectionConfigFileName.c_str());
 	controller->Initialize();
 	controller->StartDataCollection(); // Make it so that these are not needed in case of offline calibration (input-data-collection-config won't be needed either)
 
