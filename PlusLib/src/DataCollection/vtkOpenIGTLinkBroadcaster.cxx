@@ -46,6 +46,78 @@ vtkOpenIGTLinkBroadcaster
     }
   
   
+    // Create a socket for all non-reference tools that need to be broadcasted.
+  
+  int refToolNumber = this->DataCollector->GetTracker()->GetReferenceToolNumber();
+  
+  for ( int toolNumber = 0; toolNumber < this->DataCollector->GetTracker()->GetNumberOfTools(); ++ toolNumber )
+    {
+    if ( toolNumber == refToolNumber ) continue;  // We never broadcast the reference tool.
+    
+      // Check if SendTo address exists for non reference tools.
+    
+    vtkTrackerTool* tool = this->DataCollector->GetTracker()->GetTool( toolNumber );
+    const char* constCharSendTo = tool->GetSendToLink();
+    
+    if ( constCharSendTo == NULL ) continue;  // This tool is not broadcasted.
+    
+    std::string strSendTo( constCharSendTo );
+    char* charSendTo     = new char[ strSendTo.size() + 1 ];
+    strcpy( charSendTo, strSendTo.c_str() );
+    const char* hostname = strtok( charSendTo, ":");
+    char*       charPort = strtok( NULL, ":\n" );
+    int         port     = atoi( charPort );
+    
+    
+    if ( hostname == NULL || charPort == NULL || port == 0 )
+      {
+      LOG_WARNING( "SendTo address could not be parsed for tool: " << toolNumber );
+      continue;
+      }
+      
+    
+      // Check if new socket has to be created.
+    
+    bool socketFound = false;
+    igtl::ClientSocket::Pointer socket;
+    for ( int socketIndex = 0; socketIndex < this->SocketInfos.size(); ++ socketIndex )
+      {
+      if (    strcmp( hostname, this->SocketInfos[ socketIndex ].Host.c_str() ) == 0
+           && this->SocketInfos[ socketIndex ].Port == port )
+        {
+        socketFound = true;
+        socket = this->SocketInfos[ socketIndex ].Socket;
+        }
+      }
+    
+    if ( socketFound == false )
+      {
+      socket = igtl::ClientSocket::New();
+      int fail = socket->ConnectToServer( hostname, port );
+      
+      if ( fail )
+        {
+        LOG_WARNING( "Could not connect to OpenIGTLink host: " << tool->GetSendToLink() );
+        continue;
+        }
+      
+      SocketInfo sInfo;
+      sInfo.Host = std::string( hostname );
+      sInfo.Port = port;
+      sInfo.Socket = socket;
+      
+      this->SocketInfos.push_back( sInfo );
+      }
+    
+    IgtToolInfo info;
+    info.Socket = socket;
+    info.ToolName = tool->GetToolName();
+    info.TrackerPortNumber = toolNumber;
+    
+    this->NonReferenceToolInfos.push_back( info );
+    }
+  
+  
     // Check default tool port.
   
   int defaultToolPort = this->DataCollector->GetTracker()->GetDefaultToolNumber();
@@ -58,51 +130,10 @@ vtkOpenIGTLinkBroadcaster
     }
   
   
-    // Check SendTo address for default tool.
-  
-  vtkTrackerTool* defaultTool = this->DataCollector->GetTracker()->GetTool( defaultToolPort );
-  const char* constCharSendTo = defaultTool->GetSendToLink();
-   
-  if ( constCharSendTo == NULL )
-    {
-    LOG_ERROR( "No SendTo address defined for default tracker tool." );
-    this->InternalStatus = STATUS_NOT_INITIALIZED;
-    return this->InternalStatus;
-    }
-  
-  std::string strSendTo( constCharSendTo );
-
-  char* charSendTo = new char[ strSendTo.size() + 1 ];
-  strcpy( charSendTo, strSendTo.c_str() );
-  const char* hostname = strtok( charSendTo, ":");
-  char*       charPort = strtok( NULL, ":\n" );
-  int         port = atoi( charPort );
-  
-  
-  if ( hostname == NULL || charPort == NULL || port == 0 )
-    {
-    charSendTo = defaultTool->GetSendToLink();
-    LOG_ERROR( "Could not connect to OpenIGTLink host: " << defaultTool->GetSendToLink() );
-    this->InternalStatus = STATUS_HOST_NOT_FOUND;
-    strError = std::string( defaultTool->GetSendToLink() );
-    return this->InternalStatus;
-    }
-  
-  
-    // Try to connect.
-  
-  int fail = this->DefaultSocket->ConnectToServer( hostname, port );
-  
-  if ( fail )
-    {
-    LOG_ERROR( "Could not connect to OpenIGTLink host: " << defaultTool->GetSendToLink() );
-    this->InternalStatus = STATUS_HOST_NOT_FOUND;
-    strError = defaultTool->GetSendToLink();
-    return this->InternalStatus;
-    }
-  
-  
     // Everything worked.
+  
+  LOG_DEBUG( "Number of non-reference tools = " << this->NonReferenceToolInfos.size() );
+  
   
   this->InternalStatus = STATUS_OK;
   return this->InternalStatus;
@@ -117,7 +148,6 @@ vtkOpenIGTLinkBroadcaster
 {
   this->DataCollector = NULL;
   this->InternalStatus = STATUS_NOT_INITIALIZED;
-  this->DefaultSocket = igtl::ClientSocket::New();
 }
 
 
@@ -127,7 +157,12 @@ vtkOpenIGTLinkBroadcaster
 vtkOpenIGTLinkBroadcaster
 ::~vtkOpenIGTLinkBroadcaster()
 {
-  this->DefaultSocket->CloseSocket();
+  for ( int i = 0; i < this->SocketInfos.size(); ++ i )
+    {
+    this->SocketInfos[ i ].Socket->CloseSocket();
+    }
+  
+  this->SocketInfos.clear();
 }
 
 
@@ -183,125 +218,182 @@ vtkOpenIGTLinkBroadcaster
     }
   
   
-    // Read the default transform relative to the reference from the DataCollector.
+    // If we should broadcast the image slice too, set up the image container.
   
-  const int defaultTool = this->DataCollector->GetDefaultToolPortNumber();
-  vtkSmartPointer< vtkMatrix4x4 > probeToTrackerMatrix = vtkSmartPointer< vtkMatrix4x4 >::New();
-  double timestamp( 0 ); 
-  TrackerStatus status = TR_OK; 
-  
-  vtkSmartPointer< vtkImageData > frameImage = vtkSmartPointer< vtkImageData >::New();
-  
-    
-  if (    this->DataCollector->GetAcquisitionType() != SYNCHRO_VIDEO_NONE
-       && this->DataCollector->GetVideoSource() != NULL )
+  if (    this->DataCollector->GetVideoSource() != NULL
+       && this->DataCollector->GetAcquisitionType() != SYNCHRO_VIDEO_NONE )
     {
-    frameImage->SetDimensions( this->DataCollector->GetVideoSource()->GetFrameSize() );
-    frameImage->SetOrigin( this->DataCollector->GetVideoSource()->GetDataOrigin() );
-    frameImage->SetSpacing( this->DataCollector->GetVideoSource()->GetDataSpacing() );
-    frameImage->SetScalarTypeToUnsignedChar();
-    frameImage->AllocateScalars();
-  
-    if ( this->DataCollector->GetTrackedFrame( frameImage, probeToTrackerMatrix, status, timestamp, defaultTool, true ) != PLUS_SUCCESS )
-    {
-	    LOG_WARNING( "Failed to get tracked frame..." );
-	    this->InternalStatus = STATUS_MISSING_TRACKED_FRAME;
-	    return this->InternalStatus;
+    this->SendImageMessage( strError );
     }
-   
-    if ( status == TR_MISSING || status == TR_OUT_OF_VIEW ) 
+  
+  
+    // Read the non-reference transforms to be broadcasted
+    // relative to the reference from the DataCollector.
+  
+  for ( int igtIndex = 0; igtIndex < this->NonReferenceToolInfos.size(); ++ igtIndex )
+    {
+    double                          timestamp       = 0.0;
+    TrackerStatus                   status          = TR_OK;
+    vtkSmartPointer< vtkMatrix4x4 > mToolToTracker  = vtkSmartPointer< vtkMatrix4x4 >::New();
+    
+    int toolNumber = this->NonReferenceToolInfos[ igtIndex ].TrackerPortNumber;
+    const char* toolName = this->NonReferenceToolInfos[ igtIndex ].ToolName.c_str();
+    igtl::ClientSocket::Pointer toolSocket = this->NonReferenceToolInfos[ igtIndex ].Socket;
+    
+    PlusStatus pStatus = this->DataCollector->GetTransformWithTimestamp( mToolToTracker, timestamp, status,
+                                                                         toolNumber, true );
+    
+    if ( pStatus != PLUS_SUCCESS )
       {
-      LOG_WARNING( "Tracker out of view..." );
-      this->InternalStatus = STATUS_NOT_TRACKING;
-      return this->InternalStatus;
+      LOG_INFO( "No tracking data for tool: " << toolNumber );
+      continue;
       }
-    else if ( status == TR_REQ_TIMEOUT ) 
+    
+      
+      // Prepare the igtl matrix and timestamp.
+    
+    igtl::Matrix4x4 igtlMatrix;
+    
+    for ( int row = 0; row < 4; ++ row )
       {
-      LOG_WARNING( "Tracker request timeout..." );
-      this->InternalStatus = STATUS_NOT_TRACKING;
-      return this->InternalStatus;
-      } 
-    }
-  else
-    {
-    this->DataCollector->GetTransformWithTimestamp( probeToTrackerMatrix, timestamp, status, defaultTool, true );
-    }
-  
-    // Prepare the transform matrices.
-  
-  igtl::Matrix4x4 igtlMatrix;
-  
-  for ( int row = 0; row < 4; ++ row )
-    {
-    for ( int col = 0; col < 4; ++ col )
-      {
-      igtlMatrix[ row ][ col ] = probeToTrackerMatrix->GetElement( row, col );
+      for ( int col = 0; col < 4; ++ col )
+        {
+        igtlMatrix[ row ][ col ] = mToolToTracker->GetElement( row, col );
+        }
       }
-    }
-  
-  
-  igtl::TimeStamp::Pointer igtlFrameTime = igtl::TimeStamp::New();
-  igtlFrameTime->SetTime( timestamp );
-  
-  
-    // Create and send OpenIGTLink message.
-  
-  int success = 0;
-  
-  if (    this->DataCollector->GetAcquisitionType() != SYNCHRO_VIDEO_NONE
-       && this->DataCollector->GetVideoSource() != NULL )
-    {
-    int    imageSizePixels[ 3 ] = { 0, 0, 0 };
-    double imageSpacingMm[ 3 ] = { 0, 0, 0 };
-    int    subSizePixels[ 3 ] = { 0, 0, 0 };
-    int    subOffset[ 3 ] = { 0, 0, 0 };
-    int    scalarType = igtl::ImageMessage::TYPE_UINT8;
     
-    frameImage->GetDimensions( imageSizePixels );
-    frameImage->GetSpacing( imageSpacingMm );
-    frameImage->GetDimensions( subSizePixels );
+    igtl::TimeStamp::Pointer igtlTime = igtl::TimeStamp::New();
+    igtlTime->SetTime( timestamp );
     
-    float spacingFloat[ 3 ];
-    for ( int i = 0; i < 3; ++ i ) spacingFloat[ i ] = (float)imageSpacingMm[ i ];
     
-    igtl::ImageMessage::Pointer imageMessage = igtl::ImageMessage::New();
-      imageMessage->SetDimensions( imageSizePixels );
-      imageMessage->SetSpacing( spacingFloat );
-      imageMessage->SetScalarType( scalarType );
-      imageMessage->SetDeviceName( this->DataCollector->GetTracker()->GetTool( defaultTool )->GetToolName() );
-      imageMessage->SetSubVolume( subSizePixels, subOffset );
-      imageMessage->AllocateScalars();
+      // Create and send OpenIGTLink Message for non ref transforms.
     
-    unsigned char* igtlImagePointer = (unsigned char*)( imageMessage->GetScalarPointer() );
-    unsigned char* vtkImagePointer = (unsigned char*)( frameImage->GetScalarPointer() );
-    
-    memcpy(igtlImagePointer, vtkImagePointer, imageMessage->GetImageSize());
-    
-    imageMessage->SetMatrix( igtlMatrix );
-    imageMessage->SetTimeStamp( igtlFrameTime );
-    imageMessage->Pack();
-    
-    success = this->DefaultSocket->Send( imageMessage->GetPackPointer(), imageMessage->GetPackSize() );
-    }
-  else
-    {
     igtl::TransformMessage::Pointer transformMessage = igtl::TransformMessage::New();
     transformMessage->SetMatrix( igtlMatrix );
-    transformMessage->SetTimeStamp( igtlFrameTime );
-    transformMessage->SetDeviceName( this->DataCollector->GetTracker()->GetTool( defaultTool )->GetToolName() );
+    transformMessage->SetTimeStamp( igtlTime );
+    transformMessage->SetDeviceName( toolName );
     transformMessage->Pack();
     
-    success = this->DefaultSocket->Send( transformMessage->GetPackPointer(), transformMessage->GetPackSize() );
-    }
-  
-  
-  if ( success == 0 )
-    {
-    this->InternalStatus = STATUS_SEND_ERROR;
-    return this->InternalStatus;
+    int success = toolSocket->Send( transformMessage->GetPackPointer(), transformMessage->GetPackSize() );
+    
+    if ( success == 0 )
+      {
+      LOG_WARNING( "Could not broadcast tool: " << toolNumber );
+      }
     }
   
   this->InternalStatus = STATUS_OK;
   return this->InternalStatus;
 }
 
+
+void
+vtkOpenIGTLinkBroadcaster
+::SendImageMessage( std::string strError )
+{
+    // Get the socket information for the default tool;
+  
+  int defaultTool = this->DataCollector->GetDefaultToolPortNumber();
+  igtl::ClientSocket::Pointer defaultSocket;
+  bool found = false;
+  for ( int i = 0; i < this->NonReferenceToolInfos.size(); ++ i )
+    {
+    if ( defaultTool == this->NonReferenceToolInfos[ i ].TrackerPortNumber )
+      {
+      defaultSocket = this->NonReferenceToolInfos[ i ].Socket;
+      found = true;
+      }
+    }
+  if ( ! found )
+    {
+    LOG_DEBUG( "No SendTo address found for default port." );
+    return;
+    }
+  
+  
+    // Set up image container.
+  
+  vtkSmartPointer< vtkImageData > frameImage    = vtkSmartPointer< vtkImageData >::New();
+  frameImage->SetDimensions( this->DataCollector->GetVideoSource()->GetFrameSize() );
+  frameImage->SetOrigin( this->DataCollector->GetVideoSource()->GetDataOrigin() );
+  frameImage->SetSpacing( this->DataCollector->GetVideoSource()->GetDataSpacing() );
+  frameImage->SetScalarTypeToUnsignedChar();
+  frameImage->AllocateScalars();
+  
+  
+    // Read the actual image data with transform.
+  
+  double timestamp = 0.0;
+  TrackerStatus status = TR_OK;
+  vtkSmartPointer< vtkMatrix4x4 > mProbeToReference = vtkSmartPointer< vtkMatrix4x4 >::New();
+  PlusStatus pStatus = this->DataCollector->GetTrackedFrame( frameImage, mProbeToReference, status,
+                                                             timestamp, defaultTool, true );
+  
+  if ( pStatus != PLUS_SUCCESS )
+    {
+    LOG_INFO( "Failed to get tracked image frame" );
+    this->InternalStatus = STATUS_MISSING_TRACKED_FRAME;
+    return;
+    }
+  
+  
+    // Convert matrix and time formats.
+  
+  igtl::Matrix4x4 igtlMatrix;
+  for ( int row = 0; row < 4; ++ row )
+    {
+    for ( int col = 0; col < 4; ++ col )
+      {
+      igtlMatrix[ row ][ col ] = mProbeToReference->GetElement( row, col );
+      }
+    }
+  
+  igtl::TimeStamp::Pointer igtlFrameTime = igtl::TimeStamp::New();
+  igtlFrameTime->SetTime( timestamp );
+  
+  
+    // Create and send the image message.
+  
+  int    imageSizePixels[ 3 ] = { 0, 0, 0 };
+  double imageSpacingMm[ 3 ] = { 0, 0, 0 };
+  int    subSizePixels[ 3 ] = { 0, 0, 0 };
+  int    subOffset[ 3 ] = { 0, 0, 0 };
+  int    scalarType = igtl::ImageMessage::TYPE_UINT8;
+  
+  frameImage->GetDimensions( imageSizePixels );
+  frameImage->GetSpacing( imageSpacingMm );
+  frameImage->GetDimensions( subSizePixels );
+  
+  float spacingFloat[ 3 ];
+  for ( int i = 0; i < 3; ++ i ) spacingFloat[ i ] = (float)imageSpacingMm[ i ];
+  
+  igtl::ImageMessage::Pointer imageMessage = igtl::ImageMessage::New();
+    imageMessage->SetDimensions( imageSizePixels );
+    imageMessage->SetSpacing( spacingFloat );
+    imageMessage->SetScalarType( scalarType );
+    imageMessage->SetDeviceName( "Ultrasound" );
+    imageMessage->SetSubVolume( subSizePixels, subOffset );
+    imageMessage->AllocateScalars();
+  
+  unsigned char* igtlImagePointer = (unsigned char*)( imageMessage->GetScalarPointer() );
+  unsigned char* vtkImagePointer = (unsigned char*)( frameImage->GetScalarPointer() );
+  
+  memcpy(igtlImagePointer, vtkImagePointer, imageMessage->GetImageSize());
+  
+  imageMessage->SetMatrix( igtlMatrix );
+  imageMessage->SetTimeStamp( igtlFrameTime );
+  imageMessage->Pack();
+  
+  int success = defaultSocket->Send( imageMessage->GetPackPointer(), imageMessage->GetPackSize() );
+  
+  if ( success == 0 )
+    {
+    LOG_ERROR( "Could send image through OpenIGTLink port" );
+    this->InternalStatus = STATUS_SEND_ERROR;
+    return;
+    }
+  else
+    {
+    this->InternalStatus = STATUS_OK;
+    }
+}

@@ -3,6 +3,7 @@
 #define OPENIGTLINKBROADCASTER_H
 
 
+#include <string>
 #include <vector>
 
 #include "vtkObject.h"
@@ -12,6 +13,27 @@
 #include "igtlClientSocket.h"
 
 #include "vtkDataCollector.h"
+
+
+
+/**
+ * Stores information necessary for broadcasting non reference tools.
+ */
+struct IgtToolInfo
+{
+  std::string                  ToolName;
+  int                          TrackerPortNumber;
+  igtl::ClientSocket::Pointer  Socket;
+};
+
+
+
+struct SocketInfo
+{
+  std::string                 Host;
+  int                         Port;
+  igtl::ClientSocket::Pointer Socket;
+};
 
 
 
@@ -58,11 +80,15 @@ private:
   vtkOpenIGTLinkBroadcaster( const vtkOpenIGTLinkBroadcaster& );
 	void operator=( const vtkOpenIGTLinkBroadcaster& );
   
+  void SendImageMessage( std::string strError );
+  
   
   Status             InternalStatus;
   vtkDataCollector*  DataCollector;
   
-  igtl::ClientSocket::Pointer DefaultSocket;
+  
+  std::vector< IgtToolInfo > NonReferenceToolInfos;
+  std::vector< SocketInfo > SocketInfos;
   
 };
 
