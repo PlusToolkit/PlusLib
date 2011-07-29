@@ -52,6 +52,9 @@ protected:
 
   long m_COMPort; 
 
+  long m_DeviceNumber; 
+  long m_DeviceAddress;
+
 };
 
 #endif

@@ -13,6 +13,12 @@ IF (PLUS_USE_BRACHY_TRACKER)
     TARGET_LINK_LIBRARIES(CmsBrachyStepperTest vtkTracking vtkCommon vtkPlusCommon)
 ENDIF (PLUS_USE_BRACHY_TRACKER) 
 
+#*************************** CivcoBrachyStepperTest ***************************
+IF (PLUS_USE_BRACHY_TRACKER)
+    ADD_EXECUTABLE(CivcoBrachyStepperTest CivcoBrachyStepperTest.cxx)
+    TARGET_LINK_LIBRARIES(CivcoBrachyStepperTest vtkTracking vtkCommon vtkPlusCommon)
+ENDIF (PLUS_USE_BRACHY_TRACKER) 
+
 #*************************** TransformInterpolationTest ***************************
 ADD_EXECUTABLE(TransformInterpolationTest TransformInterpolationTest.cxx)
 TARGET_LINK_LIBRARIES(TransformInterpolationTest vtkTracking vtkPlusCommon vtkImageAcquisition)
