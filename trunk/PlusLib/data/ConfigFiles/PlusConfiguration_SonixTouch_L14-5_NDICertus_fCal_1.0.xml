@@ -99,7 +99,7 @@
 				UsImageOrientation="UF"
 				FrameRate="30" 
 				AveragedItemsForFiltering="20" 
-				LocalTimeOffset="0.0"
+				LocalTimeOffset="-0.1908"
 				ImagingMode="0" 
 				AcquisitionDataType="4" 
 				Depth="-1" 

@@ -1,0 +1,29 @@
+<PlusConfiguration version="1.2">
+
+	<!--
+	  This configuration is for volume reconstruction from US image slices recorded with
+	  Sonix RP machine, TRUS probe.
+	  Image geometry: depth = 70mm, zoom = 100%.
+	-->
+	
+	<!-- VOLUME RECONSTRUCTION -->
+	<VolumeReconstruction>
+		<SliceParameters SliceSpacing="1 1 1" SliceOrigin="0 0 0" NumScalarComponents="1" />
+
+		<OutputParameters OutputSpacing="0.3 0.3 0.3" />
+
+		<ClippingParameters ClipRectangle="-1e+008 -1e+008 1e+008 1e+008"/>
+		<!--FanParameters FanAngles="-45 45" FanOrigin="320 465" FanDepth="300"/-->
+		<FanParameters FanAngles="0 0" FanOrigin="0 0" FanDepth="300"/>
+		<RotationOptions ImageFlipped="Off" Rotation="Off" MaxRotationChange="90" Threshold1="0" Threshold2="255" ShiftX="0" ShiftY="0" />
+		<ReconstructionOptions Interpolation="Linear" Optimization="On" Compounding="On"/>
+
+
+		<SpatialCalibration CalibrationMatrix="0.191647 0.00743877 0.0242208 -65.3006 
+											-0.00410587 0.183884 -0.00547576 -86.7768 
+											-0.0249356 0.0044197 0.187056 160.661 
+											0 0 0 1"
+										/>
+	</VolumeReconstruction>
+
+</PlusConfiguration>
