@@ -56,9 +56,15 @@ int main (int argc, char* argv[])
 	// Initialize the controllers
 	vtkSmartPointer<vtkFreehandController> controller = vtkFreehandController::GetInstance();
 	controller->SetConfigurationFileName(inputConfigFileName.c_str());
-	controller->Initialize();
 	controller->TrackingOnlyOn();
-	controller->StartDataCollection();
+	if (controller->Initialize() != PLUS_SUCCESS) {
+		LOG_ERROR("Initialize failed!");
+		return EXIT_FAILURE;
+	}
+	if (controller->StartDataCollection() != PLUS_SUCCESS) {
+		LOG_ERROR("Initializing acquisition failed!");
+		return EXIT_FAILURE;
+	}
 
 	StylusCalibrationController* stylusCalibrationController = StylusCalibrationController::GetInstance();
 	stylusCalibrationController->Initialize();
@@ -85,6 +91,7 @@ int main (int argc, char* argv[])
 
 	// Save result
 	vtkstd::string registrationResultFileName = "PhantomRegistrationTest.xml";
+	vtksys::SystemTools::RemoveFile(registrationResultFileName.c_str());
 	phantomRegistrationController->SavePhantomRegistrationToFile(registrationResultFileName);
 
 	if ( CompareRegistrationResultsWithBaseline( inputBaselineFileName.c_str(), registrationResultFileName.c_str() ) !=0 )
@@ -123,22 +130,22 @@ int CompareRegistrationResultsWithBaseline(const char* baselineFileName, const c
 	vtkSmartPointer<vtkXMLDataElement> rootElementCurrent = vtkXMLUtilities::ReadElementFromFile(currentResultFileName);
 	if (rootElementCurrent == NULL) {	
 		LOG_ERROR("Unable to read the current configuration file: " << currentResultFileName); 
-		numberOfFailures++;
+		return ++numberOfFailures;
 	}
 	vtkSmartPointer<vtkXMLDataElement> phantomDefinitionCurrent = rootElementCurrent->LookupElementWithName("PhantomDefinition");
 	if (phantomDefinitionCurrent == NULL) {
 		LOG_ERROR("No phantom definition section is found in test result!");
-		numberOfFailures++;
+		return ++numberOfFailures;
 	}
 	vtkSmartPointer<vtkXMLDataElement> geometryCurrent = phantomDefinitionCurrent->FindNestedElementWithName("Geometry"); 
 	if (geometryCurrent == NULL) {
 		LOG_ERROR("Phantom geometry information not found in test result!");
-		numberOfFailures++;
+		return ++numberOfFailures;
 	}
 	vtkSmartPointer<vtkXMLDataElement> registrationCurrent = geometryCurrent->FindNestedElementWithName("Registration"); 
 	if (registrationCurrent == NULL) {
 		LOG_ERROR("Registration element not found in test result!");
-		numberOfFailures++;
+		return ++numberOfFailures;
 	} else {
 		registrationCurrent->GetVectorAttribute("Transform", 16, transformCurrent);
 	}
@@ -147,22 +154,22 @@ int CompareRegistrationResultsWithBaseline(const char* baselineFileName, const c
 	vtkSmartPointer<vtkXMLDataElement> rootElementBaseline = vtkXMLUtilities::ReadElementFromFile(baselineFileName);
 	if (rootElementBaseline == NULL) {	
 		LOG_ERROR("Unable to read the baseline configuration file: " << baselineFileName); 
-		numberOfFailures++;
+		return ++numberOfFailures;
 	}
 	vtkSmartPointer<vtkXMLDataElement> phantomDefinitionBaseline = rootElementBaseline->LookupElementWithName("PhantomDefinition");
 	if (phantomDefinitionBaseline == NULL) {
 		LOG_ERROR("No phantom definition section is found in baseline!");
-		numberOfFailures++;
+		return ++numberOfFailures;
 	}
 	vtkSmartPointer<vtkXMLDataElement> geometryBaseline = phantomDefinitionBaseline->FindNestedElementWithName("Geometry"); 
 	if (geometryBaseline == NULL) {
 		LOG_ERROR("Phantom geometry information not found in baseline!");
-		numberOfFailures++;
+		return ++numberOfFailures;
 	}
 	vtkSmartPointer<vtkXMLDataElement> registrationBaseline = geometryBaseline->FindNestedElementWithName("Registration"); 
 	if (registrationBaseline == NULL) {
 		LOG_ERROR("Registration element not found in baseline!");
-		numberOfFailures++;
+		return ++numberOfFailures;
 	} else {
 		registrationBaseline->GetVectorAttribute("Transform", 16, transformBaseline);
 	}

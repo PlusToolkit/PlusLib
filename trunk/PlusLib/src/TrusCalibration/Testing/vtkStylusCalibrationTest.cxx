@@ -57,8 +57,12 @@ int main (int argc, char* argv[])
 	vtkSmartPointer<vtkFreehandController> controller = vtkFreehandController::GetInstance();
 	controller->SetConfigurationFileName(inputConfigFileName.c_str());
 	controller->TrackingOnlyOn();
-	controller->StartDataCollection();
+
 	if (controller->Initialize() != PLUS_SUCCESS) {
+		LOG_ERROR("Initialize failed!");
+		return EXIT_FAILURE;
+	}
+	if (controller->StartDataCollection() != PLUS_SUCCESS) {
 		LOG_ERROR("Initializing acquisition failed!");
 		return EXIT_FAILURE;
 	}
@@ -83,6 +87,7 @@ int main (int argc, char* argv[])
 
 	// Save result
 	vtkstd::string calibrationResultFileName = "StylusCalibrationTest.xml";
+	vtksys::SystemTools::RemoveFile(calibrationResultFileName.c_str());
 	stylusCalibrationController->SaveStylusCalibrationToFile(calibrationResultFileName);
 
 	if ( CompareCalibrationResultsWithBaseline( inputBaselineFileName.c_str(), calibrationResultFileName.c_str() ) !=0 )
@@ -119,17 +124,17 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
 	vtkSmartPointer<vtkXMLDataElement> rootElementCurrent = vtkXMLUtilities::ReadElementFromFile(currentResultFileName);
 	if (rootElementCurrent == NULL) {	
 		LOG_ERROR("Unable to read the current configuration file: " << currentResultFileName); 
-		numberOfFailures++;
+		return ++numberOfFailures;
 	}
 	vtkSmartPointer<vtkXMLDataElement> stylusDefinitionCurrent = vtkFreehandController::LookupElementWithNameContainingChildWithNameAndAttribute(rootElementCurrent, "Tracker", "Tool", "Type", "Stylus");
 	if (stylusDefinitionCurrent == NULL) {
 		LOG_ERROR("No stylus definition is found in the test result XML tree!");
-		numberOfFailures++;
+		return ++numberOfFailures;
 	}
 	vtkSmartPointer<vtkXMLDataElement> calibrationCurrent = stylusDefinitionCurrent->FindNestedElementWithName("Calibration");
 	if (calibrationCurrent == NULL) {
 		LOG_ERROR("No calibration section is found in stylus definition in test result!");
-		numberOfFailures++;
+		return ++numberOfFailures;
 	} else {
 		calibrationCurrent->GetVectorAttribute("Transform", 16, transformCurrent);
 	}
@@ -138,17 +143,17 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
 	vtkSmartPointer<vtkXMLDataElement> rootElementBaseline = vtkXMLUtilities::ReadElementFromFile(baselineFileName);
 	if (rootElementBaseline == NULL) {	
 		LOG_ERROR("Unable to read the baseline configuration file: " << baselineFileName); 
-		numberOfFailures++;
+		return ++numberOfFailures;
 	}
 	vtkSmartPointer<vtkXMLDataElement> stylusDefinitionBaseline = vtkFreehandController::LookupElementWithNameContainingChildWithNameAndAttribute(rootElementBaseline, "Tracker", "Tool", "Type", "Stylus");
 	if (stylusDefinitionBaseline == NULL) {
 		LOG_ERROR("No stylus definition is found in the baseline XML tree!");
-		numberOfFailures++;
+		return ++numberOfFailures;
 	}
 	vtkSmartPointer<vtkXMLDataElement> calibrationBaseline = stylusDefinitionBaseline->FindNestedElementWithName("Calibration");
 	if (calibrationBaseline == NULL) {
 		LOG_ERROR("No calibration section is found in stylus definition in baseline!");
-		numberOfFailures++;
+		return ++numberOfFailures;
 	} else {
 		calibrationBaseline->GetVectorAttribute("Transform", 16, transformBaseline);
 	}
