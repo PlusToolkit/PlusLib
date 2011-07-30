@@ -122,12 +122,34 @@ CmsBrachyStepper::~CmsBrachyStepper()
 }
 
 //----------------------------------------------------------------------------
-void CmsBrachyStepper::SetCOMPort(unsigned long COMPort) 
+PlusStatus CmsBrachyStepper::SetCOMPort(unsigned long COMPort) 
 { 
   std::ostringstream strComPort; 
   strComPort << "COM" << COMPort; 
 
+  // Change only if we not yet connected
+  if (!this->m_StepperCOMPort->IsHandleAlive())  
+  {
+    LOG_ERROR("Unable to set serial port number, stepper already connected!"); 
+    return PLUS_FAIL;
+  }
+
   this->m_StepperCOMPort->SetPortName(strComPort.str()); 
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus CmsBrachyStepper::SetBaudRate(unsigned long BaudRate)
+{ 
+  // Change only if we not yet connected
+  if (this->m_StepperCOMPort->IsHandleAlive())  
+  {
+    LOG_ERROR("Unable to set serial port speed, stepper already connected!"); 
+    return PLUS_FAIL;
+  }
+
+  this->m_StepperCOMPort->SetSerialPortSpeed(BaudRate); 
+  return PLUS_SUCCESS; 
 }
 
 //----------------------------------------------------------------------------

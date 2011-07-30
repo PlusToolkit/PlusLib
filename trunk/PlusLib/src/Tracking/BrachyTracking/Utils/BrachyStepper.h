@@ -40,11 +40,11 @@ public:
 
   // Description:
   // Set baud rate for communication with the stepper
-  virtual void SetBaudRate(unsigned long BaudRate) = 0; 
+  virtual PlusStatus SetBaudRate(unsigned long BaudRate) = 0; 
 
   // Description:
   // Set COM port number for cummunication with the stepper 
-  virtual void SetCOMPort(unsigned long COMPort) = 0; 
+  virtual PlusStatus SetCOMPort(unsigned long COMPort) = 0; 
 
   // Description:
   // Get notification from the stepper 
@@ -93,6 +93,8 @@ public:
 protected: 
 
   BRACHY_STEPPER_TYPE m_BarchyStepperType;
+
+  unsigned long m_PositionRequestNumber; 
 
 }; 
 

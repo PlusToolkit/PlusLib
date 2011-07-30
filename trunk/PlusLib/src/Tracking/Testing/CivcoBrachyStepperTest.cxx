@@ -52,7 +52,7 @@ int main (int argc, char* argv[])
 		if ( myStepper->Connect() != PLUS_SUCCESS )
 		{
 			LOG_ERROR("Couldn't connect to tracker!");
-			//return EXIT_FAILURE; 
+			return EXIT_FAILURE; 
 		}
 
 
