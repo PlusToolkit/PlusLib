@@ -95,7 +95,7 @@ int main (int argc, char* argv[])
 
 	PhantomRegistrationController* phantomRegistrationController = PhantomRegistrationController::GetInstance();
 	phantomRegistrationController->Initialize();
-	phantomRegistrationController->LoadPhantomDefinitionFromFile(freehandCalibration->GetPhantomDefinitionFileName());
+  phantomRegistrationController->LoadPhantomDefinitionFromFile(controller->GetConfigurationFileName());
 	phantomRegistrationController->LoadPhantomRegistrationFromFile(inputPhantomRegistrationXmlFileName);
 
 	// Continue initializing freehand calibration controller

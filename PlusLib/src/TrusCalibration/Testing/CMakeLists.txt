@@ -12,7 +12,7 @@ ADD_TEST(vtkUSCalibrationControllerTest-Exact
         --input-probe-rotation-sequence-metafile=${TestDataDir}/USTC_Ulterius_ProbeRotationData.mha 
 		--input-probe-translation-sequence-metafile=${TestDataDir}/USTC_Ulterius_ProbeTranslationData.mha 
 		--input-template-translation-sequence-metafile=${TestDataDir}/USTC_Ulterius_TemplateTranslationData.mha 
-		--input-config-file-name=${ConfigFilesDir}/USCalibrationConfig.xml
+		--input-config-file-name=${ConfigFilesDir}/Test_PlusConfiguration_CalibrationOnly_iCal.xml
 		--input-template-model-config-file-name=${ConfigFilesDir}/TemplateModel.xml 
 		--input-baseline-file-name=${TestDataDir}/UsTemplateCalibration.results.xml 
 		)
@@ -25,7 +25,7 @@ ADD_TEST(vtkUSCalibrationControllerTest
         --input-probe-rotation-sequence-metafile=${TestDataDir}/USTC_Ulterius_ProbeRotationData.mha 
 		--input-probe-translation-sequence-metafile=${TestDataDir}/USTC_Ulterius_ProbeTranslationData.mha 
 		--input-template-translation-sequence-metafile=${TestDataDir}/USTC_Ulterius_TemplateTranslationData.mha 
-		--input-config-file-name=${ConfigFilesDir}/USCalibrationConfig.xml
+		--input-config-file-name=${ConfigFilesDir}/Test_PlusConfiguration_CalibrationOnly_iCal.xml
 		--input-template-model-config-file-name=${ConfigFilesDir}/TemplateModel.xml 
 		--input-baseline-file-name=${TestDataDir}/UsTemplateCalibration.results.xml 
 		--translation-error-threshold=1.0
@@ -40,7 +40,7 @@ ADD_TEST(vtkUSCalibrationControllerTest_FrameGrabber-Exact
         --input-probe-rotation-sequence-metafile=${TestDataDir}/USTC_FrameGrabber_ProbeRotationData.mha 
 		--input-probe-translation-sequence-metafile=${TestDataDir}/USTC_FrameGrabber_ProbeTranslationData.mha 
 		--input-template-translation-sequence-metafile=${TestDataDir}/USTC_FrameGrabber_TemplateTranslationData.mha 
-		--input-config-file-name=${ConfigFilesDir}/USCalibrationConfig_FrameGrabber.xml
+		--input-config-file-name=${ConfigFilesDir}/Test_PlusConfiguration_CalibrationOnly_FrameGrabber_iCal.xml
 		--input-template-model-config-file-name=${ConfigFilesDir}/TemplateModel.xml 
 		--input-baseline-file-name=${TestDataDir}/UsTemplateCalibration_FrameGrabber.results.xml 
 		)
@@ -53,7 +53,7 @@ ADD_TEST(vtkUSCalibrationControllerTest_FrameGrabber
         --input-probe-rotation-sequence-metafile=${TestDataDir}/USTC_FrameGrabber_ProbeRotationData.mha 
 		--input-probe-translation-sequence-metafile=${TestDataDir}/USTC_FrameGrabber_ProbeTranslationData.mha 
 		--input-template-translation-sequence-metafile=${TestDataDir}/USTC_FrameGrabber_TemplateTranslationData.mha 
-		--input-config-file-name=${ConfigFilesDir}/USCalibrationConfig_FrameGrabber.xml
+		--input-config-file-name=${ConfigFilesDir}/Test_PlusConfiguration_CalibrationOnly_FrameGrabber_iCal.xml
 		--input-template-model-config-file-name=${ConfigFilesDir}/TemplateModel.xml 
 		--input-baseline-file-name=${TestDataDir}/UsTemplateCalibration_FrameGrabber.results.xml 
 		--translation-error-threshold=1.0
@@ -81,7 +81,7 @@ TARGET_LINK_LIBRARIES(vtkStylusCalibrationTest itkvnl itkvnl_algo vtkCommon vtkT
 
 ADD_TEST(vtkStylusCalibrationTest
 		${EXECUTABLE_OUTPUT_PATH}/vtkStylusCalibrationTest
-		--input-config-file-name=${ConfigFilesDir}/Test_PlusConfiguration_VideoNone_FakeTracker_PivotCalibration.xml
+		--input-config-file-name=${ConfigFilesDir}/Test_PlusConfiguration_VideoNone_FakeTracker_PivotCalibration_fCal.xml
 		--input-baseline-file-name=${TestDataDir}/StylusCalibration.results.xml 
 		--number-of-acquired-points=100
 		)
@@ -93,7 +93,7 @@ TARGET_LINK_LIBRARIES(vtkPhantomRegistrationTest itkvnl itkvnl_algo vtkCommon vt
 
 ADD_TEST(vtkPhantomRegistrationTest
 		${EXECUTABLE_OUTPUT_PATH}/vtkPhantomRegistrationTest
-		--input-config-file-name=${ConfigFilesDir}/Test_PlusConfiguration_VideoNone_FakeTracker_RecordPhantomLandmarks.xml
+		--input-config-file-name=${ConfigFilesDir}/Test_PlusConfiguration_VideoNone_FakeTracker_RecordPhantomLandmarks_fCal.xml
 		--input-baseline-file-name=${TestDataDir}/PhantomRegistration.results.xml
 		)
 SET_TESTS_PROPERTIES( vtkPhantomRegistrationTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )

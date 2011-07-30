@@ -258,7 +258,7 @@ PlusStatus vtkFreehandCalibrationController::InitializeDeviceVisualization()
 
 	if (vtkFreehandController::GetInstance()->GetCanvas() != NULL) {
 		// Load phantom model and create phantom body actor
-		if ((this->PhantomDefinitionFileName != NULL) && (this->ModelToPhantomTransform != NULL) && (PhantomRegistrationController::GetInstance()->GetPhantomToPhantomReferenceTransform() != NULL)) {
+		if ((this->ModelToPhantomTransform != NULL) && (PhantomRegistrationController::GetInstance()->GetPhantomToPhantomReferenceTransform() != NULL)) {
 			// Initialize phantom model visualization
 			if (! vtksys::SystemTools::FileExists(this->PhantomModelFileName)) {
 				LOG_WARNING("Phantom model file is not found in the specified path: " << this->PhantomModelFileName);
@@ -819,7 +819,6 @@ bool vtkFreehandCalibrationController::IsReadyToStartSpatialCalibration()
 
 	if ((m_State == ToolboxState_Uninitialized)
 		|| (! this->TemporalCalibrationDone)
-		|| (this->PhantomDefinitionFileName == NULL)
 		|| (PhantomRegistrationController::GetInstance() == NULL)
 		|| (PhantomRegistrationController::GetInstance()->GetPhantomToPhantomReferenceTransform() == NULL)
 		|| (this->ConfigurationFileName == NULL))
@@ -1180,34 +1179,38 @@ PlusStatus vtkFreehandCalibrationController::ReadConfiguration(const char* confi
 
 	this->SetConfigurationFileName(configFileNameWithPath);
 	
-	vtkSmartPointer<vtkXMLDataElement> calibrationController = vtkXMLUtilities::ReadElementFromFile(this->GetConfigurationFileName());
-	if (calibrationController == NULL) {
+	vtkSmartPointer<vtkXMLDataElement> rootElement = vtkXMLUtilities::ReadElementFromFile(this->GetConfigurationFileName());
+	if (rootElement == NULL) {
 		LOG_ERROR("Failed to read configuration from file: " << this->GetConfigurationFileName());
 		return PLUS_FAIL;
 	}
 
-	return ReadConfiguration(calibrationController);
+	return ReadConfiguration(rootElement);
 }
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkFreehandCalibrationController::ReadConfiguration(vtkXMLDataElement* configData)
+PlusStatus vtkFreehandCalibrationController::ReadConfiguration(vtkXMLDataElement* aConfig)
 {
 	LOG_TRACE("vtkProbeCalibrationController::ReadConfiguration");
 
-	if (configData == NULL) {
+	if (aConfig == NULL) {
 		LOG_ERROR("Unable to read configuration");
 		return PLUS_FAIL;
 	}
 
-	// Calibration controller specifications
-	vtkSmartPointer<vtkXMLDataElement> calibrationController = configData->FindNestedElementWithName("CalibrationController"); 
+	// Find and load calibration configuration
+	vtkSmartPointer<vtkXMLDataElement> usCalibration = aConfig->FindNestedElementWithName("USCalibration");
+	if (usCalibration == NULL) {
+		LOG_ERROR("No calibration configuration is found in the XML tree!");
+		return PLUS_FAIL;
+	}
+	vtkSmartPointer<vtkXMLDataElement> calibrationController = usCalibration->FindNestedElementWithName("CalibrationController"); 
 	if (calibrationController == NULL) {
 		LOG_ERROR("Unable to read configuration");
 		return PLUS_FAIL;
 	}
 	this->ReadCalibrationControllerConfiguration(calibrationController);
-
 	vtkFreehandController::GetInstance()->SetOutputFolder(this->GetOutputPath());
 
 	// Freehand Calibration specifications (from ProbeCalibration section of the config file)
@@ -1217,7 +1220,10 @@ PlusStatus vtkFreehandCalibrationController::ReadConfiguration(vtkXMLDataElement
 		return PLUS_FAIL;
 	}
 	this->ReadFreehandCalibrationConfiguration(freehandCalibration);
-  
+
+	// Find and load phantom definition
+	this->ReadPhantomDefinition(aConfig);
+
 	return PLUS_SUCCESS;
 }
 

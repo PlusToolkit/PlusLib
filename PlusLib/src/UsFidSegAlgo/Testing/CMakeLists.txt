@@ -79,7 +79,7 @@ TARGET_LINK_LIBRARIES( UsFidSegTest
 	vtkImageAcquisition
 	vtkTrusCalibration
   ) 
- 
+
 
 ###################################################
 ADD_TEST(UsFidSegTest_CALIBRATION_PHANTOM_6_POINT_UsTestSeqBaselineThomasShortened
@@ -89,7 +89,7 @@ ADD_TEST(UsFidSegTest_CALIBRATION_PHANTOM_6_POINT_UsTestSeqBaselineThomasShorten
 	--input-testcase-name=UsTestSeqBaselineThomasShortened
 	--input-baseline-file=${TestDataDir}/UsTestSeqBaselineThomasShortened_baseline.xml
 	--output-result-file=testcomparisons.xml
-	--input-config-file-name=${ConfigFilesDir}/USCalibrationConfig_iCal_SonixRP_Ulterius.xml
+	--input-config-file-name=${ConfigFilesDir}/Test_PlusConfiguration_CalibrationOnly_SonixRP_Ulterius_iCal.xml
 	)
 SET_TESTS_PROPERTIES( UsFidSegTest_CALIBRATION_PHANTOM_6_POINT_UsTestSeqBaselineThomasShortened PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
@@ -100,7 +100,7 @@ ADD_TEST(UsFidSegTest_CALIBRATION_PHANTOM_6_POINT_BKMedical_RandomStepperMotionD
 	--input-testcase-name=SegmentationTest_BKMedical_RandomStepperMotionData2
 	--input-baseline-file=${TestDataDir}/SegmentationTest_BKMedical_RandomStepperMotionData2_Segmentation_baseline.xml
 	--output-result-file=testcomparisons.xml
-	--input-config-file-name=${ConfigFilesDir}/USCalibrationConfig_iCal_BKMedical_FrameGrabber.xml
+	--input-config-file-name=${ConfigFilesDir}/Test_PlusConfiguration_CalibrationOnly_BKMedical_FrameGrabber_iCal.xml
 	)
 SET_TESTS_PROPERTIES( UsFidSegTest_CALIBRATION_PHANTOM_6_POINT_BKMedical_RandomStepperMotionData2 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
@@ -111,7 +111,7 @@ ADD_TEST(UsFidSegTest_CALIBRATION_PHANTOM_6_POINT_VLCUS_RandomStepperMotionData2
 	--input-testcase-name=SegmentationTest_VLCUS_RandomStepperMotionData2
 	--input-baseline-file=${TestDataDir}/SegmentationTest_VLCUS_RandomStepperMotionData2_Segmentation_baseline.xml
 	--output-result-file=testcomparisons.xml
-	--input-config-file-name=${ConfigFilesDir}/USCalibrationConfig_iCal_VLCUS_FrameGrabber.xml
+	--input-config-file-name=${ConfigFilesDir}/Test_PlusConfiguration_CalibrationOnly_VLCUS_FrameGrabber_iCal.xml
 	)
 SET_TESTS_PROPERTIES( UsFidSegTest_CALIBRATION_PHANTOM_6_POINT_VLCUS_RandomStepperMotionData2 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
@@ -122,7 +122,7 @@ ADD_TEST(UsFidSegTest_CALIBRATION_PHANTOM_6_POINT_USTC_FrameGrabber_ProbeRotatio
 	--input-testcase-name=USTC_FrameGrabber_ProbeRotationData
 	--input-baseline-file=${TestDataDir}/USTC_FrameGrabber_ProbeRotationData_Segmentation_baseline.xml
 	--output-result-file=testcomparisons.xml
-	--input-config-file-name=${ConfigFilesDir}/USCalibrationConfig_iCal_SonixRP_FrameGrabber.xml
+	--input-config-file-name=${ConfigFilesDir}/Test_PlusConfiguration_CalibrationOnly_SonixRP_FrameGrabber_iCal.xml
 	)
 SET_TESTS_PROPERTIES( UsFidSegTest_CALIBRATION_PHANTOM_6_POINT_USTC_FrameGrabber_ProbeRotationData PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
@@ -133,7 +133,7 @@ ADD_TEST(UsFidSegTest_CALIBRATION_PHANTOM_6_POINT_USTC_Ulterius_ProbeRotationDat
 	--input-testcase-name=USTC_Ulterius_ProbeRotationData
 	--input-baseline-file=${TestDataDir}/USTC_Ulterius_ProbeRotationData_Segmentation_baseline.xml
 	--output-result-file=testcomparisons.xml
-	--input-config-file-name=${ConfigFilesDir}/USCalibrationConfig_iCal_SonixRP_Ulterius.xml
+	--input-config-file-name=${ConfigFilesDir}/Test_PlusConfiguration_CalibrationOnly_SonixRP_Ulterius_iCal.xml
 	)
 SET_TESTS_PROPERTIES( UsFidSegTest_CALIBRATION_PHANTOM_6_POINT_USTC_Ulterius_ProbeRotationData PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
@@ -175,7 +175,7 @@ SET_TESTS_PROPERTIES( UsFidSegTest_CALIBRATION_PHANTOM_6_POINT_USTC_Ulterius_Pro
 	# --output-result-file=testcomparisons.xml
 	# )
 # SET_TESTS_PROPERTIES( vtkSegmentedWiresPositionsTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
- 
+
 ###################################################
 ADD_EXECUTABLE( vtkSegmentedWiresPositionsTest
   vtkSegmentedWiresPositionsTest.cxx
@@ -190,4 +190,3 @@ TARGET_LINK_LIBRARIES( vtkSegmentedWiresPositionsTest
 	vtkIO
 	vtkImageAcquisition
   ) 
- 

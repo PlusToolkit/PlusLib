@@ -565,7 +565,7 @@ void PhantomRegistrationController::RequestRecording()
 
 //-----------------------------------------------------------------------------
 
-vtkMatrix4x4* PhantomRegistrationController::AcquireStylusTipTrackerPosition(double aPosition[4], bool aReference)
+vtkSmartPointer<vtkMatrix4x4> PhantomRegistrationController::AcquireStylusTipTrackerPosition(double aPosition[4], bool aReference)
 {
 	//LOG_TRACE("PhantomRegistrationController::AcquireStylusTipTrackerPosition"); 
 
@@ -653,7 +653,6 @@ vtkMatrix4x4* PhantomRegistrationController::AcquireStylusTipTrackerPosition(dou
 		} else {
 			stylustipToReferenceTransformMatrix->DeepCopy(stylusToReferenceTransformMatrix);
 		}
-		stylustipToReferenceTransformMatrix->Register(NULL);
 
 		// Compute the new position
 		double elements[16]; //TODO find other way
@@ -783,7 +782,7 @@ PlusStatus PhantomRegistrationController::LoadPhantomDefinition(vtkXMLDataElemen
 	LOG_TRACE("PhantomRegistrationController::LoadPhantomDefinition");
 
 	// Find phantom definition element
-	vtkSmartPointer<vtkXMLDataElement> phantomDefinition = vtkFreehandController::GetInstance()->GetConfigurationData()->LookupElementWithName("PhantomDefinition");
+	vtkSmartPointer<vtkXMLDataElement> phantomDefinition = vtkFreehandController::GetInstance()->GetConfigurationData()->FindNestedElementWithName("PhantomDefinition");
 	if (phantomDefinition == NULL) {
 		LOG_ERROR("No phantom definition is found in the XML tree!");
 		return PLUS_FAIL;
@@ -932,7 +931,7 @@ PlusStatus PhantomRegistrationController::LoadPhantomRegistration(vtkXMLDataElem
 	LOG_TRACE("PhantomRegistrationController::LoadPhantomRegistration"); 
 
 	// Find phantom definition element
-	vtkSmartPointer<vtkXMLDataElement> phantomDefinition = vtkFreehandController::GetInstance()->GetConfigurationData()->LookupElementWithName("PhantomDefinition");
+	vtkSmartPointer<vtkXMLDataElement> phantomDefinition = aConfig->FindNestedElementWithName("PhantomDefinition");
 	if (phantomDefinition == NULL) {
 		LOG_ERROR("No phantom definition is found in the XML tree!");
 		return PLUS_FAIL;
@@ -993,7 +992,7 @@ PlusStatus PhantomRegistrationController::SavePhantomRegistration(vtkXMLDataElem
 	LOG_TRACE("PhantomRegistrationController::SavePhantomRegistration");
 
 	// Find phantom definition element
-	vtkSmartPointer<vtkXMLDataElement> phantomDefinition = vtkFreehandController::GetInstance()->GetConfigurationData()->LookupElementWithName("PhantomDefinition");
+	vtkSmartPointer<vtkXMLDataElement> phantomDefinition = vtkFreehandController::GetInstance()->GetConfigurationData()->FindNestedElementWithName("PhantomDefinition");
 	if (phantomDefinition == NULL) {
 		LOG_ERROR("No phantom definition is found in the XML tree!");
 		return PLUS_FAIL;

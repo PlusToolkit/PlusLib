@@ -65,7 +65,7 @@ int main (int argc, char* argv[])
 	}
 
 	PlusLogger::Instance()->SetLogLevel(verboseLevel);
-    PlusLogger::Instance()->SetDisplayLogLevel(verboseLevel); 
+  PlusLogger::Instance()->SetDisplayLogLevel(verboseLevel); 
 
 	VTK_LOG_TO_CONSOLE_ON; 
 

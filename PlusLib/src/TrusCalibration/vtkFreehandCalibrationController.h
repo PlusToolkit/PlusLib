@@ -118,7 +118,7 @@ public:
 
 	// Read XML based configuration of the calibration controller
 	virtual PlusStatus ReadConfiguration( const char* configFileNameWithPath ); 
-	virtual PlusStatus ReadConfiguration( vtkXMLDataElement* configData ); 
+	virtual PlusStatus ReadConfiguration( vtkXMLDataElement* aConfig ); 
 	// Read freehand calibration configurations (from probe calibration data element of the config file)
 	virtual PlusStatus ReadFreehandCalibrationConfiguration(vtkXMLDataElement* probeCalibration);
 

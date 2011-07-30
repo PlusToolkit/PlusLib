@@ -2547,9 +2547,21 @@ PlusStatus vtkStepperCalibrationController::ReadConfiguration( vtkXMLDataElement
     return PLUS_FAIL;
   }
 
+	vtkSmartPointer<vtkXMLDataElement> usCalibration = configData->FindNestedElementWithName("USCalibration");
+	if (usCalibration == NULL) { // Check if it is a separate data calibration configuration file
+		if (STRCASECMP(configData->GetName(), "USCalibration") == 0) {
+      LOG_WARNING("Non-unified configuration detected! Phantom definition has to be loaded from a separate file!");
+			usCalibration = configData;
+		}
+	}
+	if (usCalibration == NULL) {
+    LOG_ERROR("Cannot find USCalibration element in XML tree!");
+    return PLUS_FAIL;
+	}
+
   // Calibration controller specifications
   //********************************************************************
-  vtkSmartPointer<vtkXMLDataElement> calibrationController = configData->FindNestedElementWithName("CalibrationController"); 
+  vtkSmartPointer<vtkXMLDataElement> calibrationController = usCalibration->FindNestedElementWithName("CalibrationController"); 
   if (this->ReadCalibrationControllerConfiguration(calibrationController)!=PLUS_SUCCESS)
   {
     LOG_ERROR("Cannot find calibrationController element");
@@ -2564,6 +2576,10 @@ PlusStatus vtkStepperCalibrationController::ReadConfiguration( vtkXMLDataElement
     LOG_ERROR("Cannot find stepperCalibration element");
     return PLUS_FAIL;
   }
+
+	// Phantom definition
+	//*********************************
+	this->ReadPhantomDefinition(configData);
 
   return PLUS_SUCCESS;
 }

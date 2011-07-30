@@ -340,7 +340,7 @@ std::string StylusCalibrationController::GetPositionString()
 
 //-----------------------------------------------------------------------------
 
-vtkMatrix4x4* StylusCalibrationController::AcquireStylusTrackerPosition(double aPosition[4], bool aReference)
+vtkSmartPointer<vtkMatrix4x4> StylusCalibrationController::AcquireStylusTrackerPosition(double aPosition[4], bool aReference)
 {
 	//LOG_TRACE("StylusCalibrationController::AcquireStylusTrackerPosition");
 
@@ -376,8 +376,6 @@ vtkMatrix4x4* StylusCalibrationController::AcquireStylusTrackerPosition(double a
 	if (dataCollector->GetTracker()->GetTool(toolNumber)->GetEnabled()) {
 		transformMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
 		dataCollector->GetTransformWithTimestamp(transformMatrix, timestamp, status, toolNumber); 
-
-		transformMatrix->Register(NULL);
 	}
 
 	if (status == TR_MISSING || status == TR_OUT_OF_VIEW ) {

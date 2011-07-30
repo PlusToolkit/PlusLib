@@ -157,11 +157,6 @@ public:
 	vtkGetStringMacro(ConfigurationFileName); 
 
 	//! Description 
-	// Set/get the phantom definition file name
-	vtkSetStringMacro(PhantomDefinitionFileName); 
-	vtkGetStringMacro(PhantomDefinitionFileName);
-
-	//! Description 
 	// Set/get the phantom model file name
 	vtkSetStringMacro(PhantomModelFileName); 
 	vtkGetStringMacro(PhantomModelFileName);
@@ -276,9 +271,6 @@ protected:
 
 	//! Attributes: config file name
 	char* ConfigurationFileName;
-
-	//! Attributes: phantom definition file name
-	char* PhantomDefinitionFileName;
 
 	//! Attributes: phantom model file name for visualization
 	char* PhantomModelFileName;

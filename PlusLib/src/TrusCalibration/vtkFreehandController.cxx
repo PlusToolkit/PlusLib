@@ -60,8 +60,6 @@ vtkFreehandController::~vtkFreehandController()
 
 	this->SetDataCollector(NULL);
 	this->SetCanvasRenderer(NULL);
-
-	this->ConfigurationData->UnRegister(this);
 }
 
 //-----------------------------------------------------------------------------
@@ -120,7 +118,8 @@ PlusStatus vtkFreehandController::StartDataCollection()
 		return PLUS_FAIL;
 	}
 
-	this->SetConfigurationData(vtkXMLUtilities::ReadElementFromFile(this->ConfigurationFileName));
+	vtkSmartPointer<vtkXMLDataElement> configurationData = vtkXMLUtilities::ReadElementFromFile(this->ConfigurationFileName);
+	this->SetConfigurationData(configurationData);
 	if (this->ConfigurationData == NULL) {	
 		LOG_ERROR("Unable to read configuration from file " << this->ConfigurationFileName); 
 		return PLUS_FAIL;
@@ -143,6 +142,7 @@ PlusStatus vtkFreehandController::StartDataCollection()
 	vtkSmartPointer<vtkXMLDataElement> dataCollectionConfig = this->ConfigurationData->FindNestedElementWithName("USDataCollection");
 	if (dataCollectionConfig == NULL) { // Check if it is a separate data collection configuration file
 		if (STRCASECMP(this->ConfigurationData->GetName(), "USDataCollection") == 0) {
+      LOG_WARNING("Non-unified configuration detected! Phantom definition and calibration configuration have to be loaded from a separate files!");
 			dataCollectionConfig = this->ConfigurationData;
 		}
 	}
@@ -168,8 +168,6 @@ PlusStatus vtkFreehandController::StartDataCollection()
 		LOG_ERROR("Unable to initialize DataCollector!"); 
 		return PLUS_FAIL;
 	}
-
-	this->ConfigurationData->Register(this);
 
 	return PLUS_SUCCESS;
 }
