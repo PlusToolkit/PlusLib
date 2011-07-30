@@ -549,6 +549,14 @@ PlusStatus vtkBrachyTracker::GetTrackerToolBufferStringList(double timestamp,
 }
 
 //----------------------------------------------------------------------------
+PlusStatus vtkBrachyTracker::GetLatestStepperEncoderValues( double &probePosition, double &probeRotation, double &templatePosition, TrackerStatus &status )
+{
+  BufferItemUidType latestUid = this->GetTool(RAW_ENCODER_VALUES)->GetBuffer()->GetLatestItemUidInBuffer(); 
+
+  return this->GetStepperEncoderValues(latestUid, probePosition, probeRotation, templatePosition, status);
+}
+
+//----------------------------------------------------------------------------
 PlusStatus vtkBrachyTracker::GetStepperEncoderValues( BufferItemUidType uid, double &probePosition, double &probeRotation, double &templatePosition, TrackerStatus &status )
 {
   TrackerBufferItem bufferItem; 
