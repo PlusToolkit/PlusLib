@@ -46,6 +46,10 @@ public:
 
 protected: 
 
+  // Description: 
+  // IEEE Standard 754 floating point to double conversion 
+  double ConvertFloatToDecimal( long floatPoint ); 
+
   long GetNumberOfSeiDevices(); 
 
   PlusStatus GetSeiDeviceInfo(long devnum, long &model, long &serialnum, long &version, long &addr); 
