@@ -74,6 +74,7 @@ PhantomRegistrationController::~PhantomRegistrationController()
 	m_PhantomRenderer->RemoveActor(m_PhantomBodyActor);
 	m_PhantomRenderer->RemoveActor(m_RequestedLandmarksActor);
 
+	// TODO Use vtkSmartPointer::Take method on creation [ MySpecialClass* MyObjectRaw = new MyObject(arguments); vtkSmartPointer<MySpecialClass> MyObject; MyObject.Take(MyObjectRaw); ]
 	if (m_PhantomRenderer != NULL) {
 		m_PhantomRenderer->Delete();
 		m_PhantomRenderer = NULL;
