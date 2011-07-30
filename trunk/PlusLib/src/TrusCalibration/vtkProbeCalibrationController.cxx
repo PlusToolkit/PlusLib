@@ -846,9 +846,23 @@ PlusStatus vtkProbeCalibrationController::ReadConfiguration( vtkXMLDataElement* 
 		return PLUS_FAIL;
 	}
 
-	// Calibration controller specifications
+	// Calibration configuration
 	//********************************************************************
-	vtkSmartPointer<vtkXMLDataElement> calibrationController = configData->FindNestedElementWithName("CalibrationController"); 
+	vtkSmartPointer<vtkXMLDataElement> usCalibration = configData->FindNestedElementWithName("USCalibration");
+	if (usCalibration == NULL) { // Check if it is a separate data calibration configuration file
+		if (STRCASECMP(configData->GetName(), "USCalibration") == 0) {
+      LOG_WARNING("Non-unified configuration detected! Phantom definition has to be loaded from a separate file!");
+			usCalibration = configData;
+		}
+	}
+	if (usCalibration == NULL) {
+    LOG_ERROR("Cannot find USCalibration element in XML tree!");
+    return PLUS_FAIL;
+	}
+
+  // Calibration controller specifications
+	//********************************************************************
+	vtkSmartPointer<vtkXMLDataElement> calibrationController = usCalibration->FindNestedElementWithName("CalibrationController"); 
 	this->ReadCalibrationControllerConfiguration(calibrationController); 
 
 	// ProbeCalibration specifications
@@ -856,19 +870,16 @@ PlusStatus vtkProbeCalibrationController::ReadConfiguration( vtkXMLDataElement* 
 	vtkSmartPointer<vtkXMLDataElement> probeCalibration = calibrationController->FindNestedElementWithName("ProbeCalibration"); 
 	this->CalibrationControllerIO->ReadProbeCalibrationConfiguration(probeCalibration); 
 
-  // Load TemplateHolderToPhantomTransform from the phantom definition file
+	// Phantom definition
 	//*********************************
-  // :TODO: move this to the IO class
-  const char* phantomDefFileName=GetPhantomDefinitionFileName();
-  if (phantomDefFileName==NULL)
+	this->ReadPhantomDefinition(configData);
+
+	// Custom transforms
+	//*********************************
+	vtkSmartPointer<vtkXMLDataElement> phantomDefinition = configData->FindNestedElementWithName("PhantomDefinition");
+	if (phantomDefinition == NULL)
   {
-    LOG_ERROR("PhantomDefinition file name not found");
-    return PLUS_FAIL;
-  }
-	vtkSmartPointer<vtkXMLDataElement> phantomDefinition = vtkXMLUtilities::ReadElementFromFile(phantomDefFileName);
-	if (phantomDefinition == NULL) 
-  {	
-		LOG_ERROR("Unable to read the phantom definition file: " << phantomDefFileName); 
+		LOG_ERROR("No phantom definition is found in the XML tree!");
 		return PLUS_FAIL;
 	}
 	vtkSmartPointer<vtkXMLDataElement> customTransforms = phantomDefinition->FindNestedElementWithName("CustomTransforms"); 

@@ -480,7 +480,7 @@ PlusStatus vtkTracker::ReadConfiguration(vtkXMLDataElement* config)
       }
       else
       {
-        LOG_WARNING("Unable to read tool data element configuration for port: " << portNumber << " - number of tools are: " << this->GetNumberOfTools() ); 
+        LOG_WARNING("Unable to add tool data element configuration for port: " << portNumber << " - number of tools are: " << this->GetNumberOfTools() ); 
       }
     }
     else

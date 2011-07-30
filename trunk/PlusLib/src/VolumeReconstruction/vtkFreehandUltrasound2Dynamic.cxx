@@ -2552,6 +2552,7 @@ void vtkFreehandUltrasound2Dynamic::FillHolesInOutput()
 //----------------------------------------------------------------------------
 vtkXMLDataElement* vtkFreehandUltrasound2Dynamic::MakeXMLElement()
 {
+  //TODO fix saving according to the unified configuration file
   vtkXMLDataElement* elem;
   elem = this->Superclass::MakeXMLElement();
 
@@ -2635,26 +2636,24 @@ PlusStatus vtkFreehandUltrasound2Dynamic::ReadSummaryFile(const char *filename)
   }
 
   // read in the freehand information
-  vtkSmartPointer<vtkXMLDataElement> elem = vtkXMLUtilities::ReadElementFromFile(filename);
-
-  // check to make sure we have the right element
-  if (elem == NULL)
+  vtkSmartPointer<vtkXMLDataElement> rootElement = vtkXMLUtilities::ReadElementFromFile(filename);
+  if (rootElement == NULL)
   {
-    LOG_ERROR("ReadRawData - invalid file " << filename);
+    LOG_ERROR("Read volume reconstruction configuration - invalid file " << filename);
     return PLUS_FAIL;
   }
-
-  if (strcmp(elem->GetName(), "Freehand") != 0)
+	vtkSmartPointer<vtkXMLDataElement> volumeReconstruction = rootElement->FindNestedElementWithName("VolumeReconstruction");
+	if (volumeReconstruction == NULL)
   {
-    LOG_ERROR("ReadRawData - invalid file " << filename);
-    return PLUS_FAIL;
-  }
+		LOG_ERROR("No volume reconstruction is found in the XML tree!");
+		return PLUS_FAIL;
+	}
 
   // get the base information
   this->Superclass::ReadSummaryFile(filename);
 
   // triggering options
-  vtkXMLDataElement* triggeringParams = elem->FindNestedElementWithName("TriggeringParameters");
+  vtkXMLDataElement* triggeringParams = volumeReconstruction->FindNestedElementWithName("TriggeringParameters");
   if (triggeringParams)
   {
     if (triggeringParams->GetAttribute("Triggering"))
@@ -2675,7 +2674,7 @@ PlusStatus vtkFreehandUltrasound2Dynamic::ReadSummaryFile(const char *filename)
   }
 
   // signal box options
-  vtkXMLDataElement* signalBoxParams = elem->FindNestedElementWithName("SignalBox");
+  vtkXMLDataElement* signalBoxParams = volumeReconstruction->FindNestedElementWithName("SignalBox");
   if (signalBoxParams)
   {
     if (signalBoxParams->GetAttribute("SignalBox"))
@@ -2713,7 +2712,7 @@ PlusStatus vtkFreehandUltrasound2Dynamic::ReadSummaryFile(const char *filename)
     }
   }
 
-  vtkXMLDataElement* bufferOptions = elem->FindNestedElementWithName("BufferOptions");
+  vtkXMLDataElement* bufferOptions = volumeReconstruction->FindNestedElementWithName("BufferOptions");
   if (bufferOptions)
   {
     if (this->SignalBox)
@@ -2725,7 +2724,7 @@ PlusStatus vtkFreehandUltrasound2Dynamic::ReadSummaryFile(const char *filename)
   }
 
   //check heart rate parameters
-  vtkXMLDataElement* checkParams = elem->FindNestedElementWithName("CheckHeartRateParameters");
+  vtkXMLDataElement* checkParams = volumeReconstruction->FindNestedElementWithName("CheckHeartRateParameters");
   if (checkParams)
   {
     if (checkParams->GetAttribute("CheckHeartRate"))
@@ -2743,7 +2742,7 @@ PlusStatus vtkFreehandUltrasound2Dynamic::ReadSummaryFile(const char *filename)
   }
 
   // saving inserted timestamps/slices
-  //vtkXMLDataElement *saveParams = elem->FindNestedElementWithName("SaveInserted");
+  //vtkXMLDataElement *saveParams = volumeReconstruction->FindNestedElementWithName("SaveInserted");
   //if (saveParams)
   //  {
   //  if (saveParams->GetAttribute("SaveInsertedTimestamps"))
@@ -2757,7 +2756,7 @@ PlusStatus vtkFreehandUltrasound2Dynamic::ReadSummaryFile(const char *filename)
   //  }
 
   // using select phases
-  vtkXMLDataElement* selectingParams = elem->FindNestedElementWithName("UseSelectPhasesParameters");
+  vtkXMLDataElement* selectingParams = volumeReconstruction->FindNestedElementWithName("UseSelectPhasesParameters");
   if (selectingParams)
   {
     selectingParams->GetScalarAttribute("NumSignalBoxPhases", this->NumSignalBoxPhases);

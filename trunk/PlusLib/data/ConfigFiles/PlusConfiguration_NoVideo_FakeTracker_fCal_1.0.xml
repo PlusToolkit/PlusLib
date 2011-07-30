@@ -3,44 +3,17 @@
 	<!-- DATA COLLECTION -->
 	<USDataCollection version="2.0" StartupDelaySec="1.0">
 		<DeviceSet 
-			Name="Unified SonixRP L14-5 + NDI Certus" 
-			Description="Unified configuration file for SonixRP L14-5 + NDI Certus + fCal 1.0" 
+			Name="Unified NoVideo + FakeTracker" 
+			Description="Unified configuration file for NoVideo + FakeTracker + fCal 1.0" 
 			/>
 
-		<Tracker Type="CertusTracker" BufferSize="2500" Frequency="50" AveragedItemsForFiltering="20" LocalTimeOffset="0.0" >
+		<Tracker Type="FakeTracker" BufferSize="1000" Frequency="50" LocalTimeOffset="0.0" Mode="PivotCalibration" AveragedItemsForFiltering="20" >
 			
-			<!-- PROBE -->
-			<Tool PortNumber="0" Type="Probe" Model="L14-5_38" Name="Probe" SendTo="127.0.0.1:1111">
-				<!-- Supported types are: Probe, Stylus, Needle, Reference -->
-				
-				<!-- ModelToToolTransform - transforming model into tool origin coordinate system for proper visualization ( Note2: All tools that are not phantoms should use ModelToToolTransform as the entity name) -->
-				<Model
-					File="L14-5_38_ProbeModel.stl"
-					ModelToToolTransform="
-						1 0 0 29.2
-						0 1 0 0
-						0 0 1 14.2
-						0 0 0 1"
-				/>
-									
-				<!-- Calibration transform -->
-				<Calibration
-					MatrixName="ImageToProbe" 
-					MatrixValue="
-						1 0 0 0
-						0 1 0 0
-						0 0 1 0
-						0 0 0 1"
-					Date="2011.07.28 21:42:34"
-					Error="0.0" />
-			</Tool>
-			
-			<!-- REFERENCE -->
-			<Tool Type="Reference" Name="PhantomReference" PortNumber="1" SendTo="127.0.0.1:1111">
+			<Tool Type="Reference" Name="Reference" PortNumber="0" SendTo="127.0.0.1:1111">
 			</Tool>
 
 			<!-- STYLUS -->
-			<Tool PortNumber="2" Type="Stylus" Model="Example" Name="Stylus" SendTo="127.0.0.1:1112">
+			<Tool PortNumber="1" Type="Stylus" Model="Example" Name="Stylus" SendTo="127.0.0.1:1111">
 				<!-- Supported types are: Probe, Stylus, Needle, Reference -->
 				
 				<!-- ModelToToolTransform - transforming model into tool origin coordinate system for proper visualization ( Note2: All tools that are not phantoms should use ModelToToolTransform as the entity name) -->
@@ -57,60 +30,16 @@
 				<Calibration
 					MatrixName="StylusTipToStylus" 
 					MatrixValue="
-						1 0 0 0
-						0 1 0 0
-						0 0 1 0
+						1 0 0 210.0
+						0 1 0 -0.0
+						0 0 1 -0.0
 						0 0 0 1"
 					Date="2011.07.28 21:42:34"
-					Error="0.0" />
-			</Tool>
-
-			<!-- NEEDLE -->
-			<Tool PortNumber="3" Type="Needle" Model="Example" Name="Needle" SendTo="127.0.0.1:1112">
-				<!-- Supported types are: Probe, Stylus, Needle, Reference -->
-				
-				<!-- ModelToToolTransform - transforming model into tool origin coordinate system for proper visualization ( Note2: All tools that are not phantoms should use ModelToToolTransform as the entity name) -->
-				<Model
-					File=""
-					ModelToToolTransform="
-						1 0 0 0
-						0 1 0 0
-						0 0 1 0
-						0 0 0 1"
-				/>
-				
-				<!-- Calibration transform -->
-				<Calibration
-					MatrixName="NeedleTipToNeedle" 
-					MatrixValue="
-						1 0 0 0
-						0 1 0 0
-						0 0 1 0
-						0 0 0 1"
-					Date="2011.07.28 21:42:34"
-					Error="0.0" />
+					Error="0.566266" />
 			</Tool>
 		</Tracker>
 
-		<ImageAcqusition Type="SonixVideo" 
-				IP="130.15.7.212" 
-				BufferSize="500" 
-				FrameSize="640 480"
-				UsImageOrientation="UF"
-				FrameRate="30" 
-				AveragedItemsForFiltering="20" 
-				LocalTimeOffset="0.0"
-				ImagingMode="0" 
-				AcquisitionDataType="4" 
-				Depth="-1" 
-				Sector="-1" 
-				Gain="-1" 
-				DynRange="-1" 
-				Zoom="-1" 
-				Frequency="-1" 
-				Timeout="-1" 
-				CompressionStatus="0" 
-				/>
+		<ImageAcqusition Type="None" />
 
 		<Synchronization Type="ChangeDetection" 
 				SynchronizationTimeLength="30" 
@@ -227,8 +156,6 @@
 						OutputSequenceMetaFileSuffix=".FreehandMotionData2"
 						/>
 			</RealtimeCalibration>
-
-			<PhantomDefinition FileName="PhantomDefinition_fCal_1.0_Wiring_1.0.xml" /> 
 
 			<!-- SearchRegionX: X-axis points to the right in pixels (there must be at least 8-pixel-wide black border outside of the search region.) -->
 			<!-- SearchRegionY: Y-axis points to the bottom in pixels (there must be at least 8-pixel-wide black border outside of the search region.) -->

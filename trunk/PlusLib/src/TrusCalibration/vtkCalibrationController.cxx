@@ -44,7 +44,6 @@ SegmentationProgressCallbackFunction(NULL)
 	this->OutputPath = NULL; 
 	this->ProgramFolderPath = NULL; 
 	this->ConfigurationFileName = NULL;
-	this->PhantomDefinitionFileName = NULL;
 	this->ModelToPhantomTransform = NULL;
 	this->PhantomModelFileName = NULL;
 	
@@ -405,8 +404,8 @@ PlusStatus vtkCalibrationController::ReadConfiguration( const char* configFileNa
 	LOG_TRACE("vtkCalibrationController::ReadConfiguration"); 
 	this->SetConfigurationFileName(configFileNameWithPath); 
 
-	vtkSmartPointer<vtkXMLDataElement> calibrationController = vtkXMLUtilities::ReadElementFromFile(this->GetConfigurationFileName()); 
-	return this->ReadConfiguration(calibrationController); 
+	vtkSmartPointer<vtkXMLDataElement> rootElement = vtkXMLUtilities::ReadElementFromFile(this->GetConfigurationFileName()); 
+	return this->ReadConfiguration(rootElement); 
 }
 
 //----------------------------------------------------------------------------
@@ -419,10 +418,34 @@ PlusStatus vtkCalibrationController::ReadConfiguration( vtkXMLDataElement* confi
 		return PLUS_FAIL; 
 	}
 
+	vtkSmartPointer<vtkXMLDataElement> usCalibration = configData->FindNestedElementWithName("USCalibration");
+	if (usCalibration == NULL) { // Check if it is a separate data calibration configuration file
+		if (STRCASECMP(configData->GetName(), "USCalibration") == 0) {
+      LOG_WARNING("Non-unified configuration detected! Phantom definition has to be loaded from a separate file!");
+			usCalibration = configData;
+		}
+	}
+	if (usCalibration == NULL) {
+    LOG_ERROR("Cannot find USCalibration element in XML tree!");
+    return PLUS_FAIL;
+	}
+
 	// Calibration controller specifications
 	//********************************************************************
-	vtkSmartPointer<vtkXMLDataElement> calibrationController = configData->FindNestedElementWithName("CalibrationController"); 
-	return this->ReadCalibrationControllerConfiguration(calibrationController); 
+	vtkSmartPointer<vtkXMLDataElement> calibrationController = usCalibration->FindNestedElementWithName("CalibrationController"); 
+	if (this->ReadCalibrationControllerConfiguration(calibrationController) != PLUS_SUCCESS)
+  {
+    return PLUS_FAIL;
+  }
+
+	// Calibration controller specifications
+	//********************************************************************
+	if (this->ReadPhantomDefinition(configData) != PLUS_SUCCESS)
+  {
+    return PLUS_FAIL;
+  }
+
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
@@ -536,15 +559,6 @@ PlusStatus vtkCalibrationController::ReadCalibrationControllerConfiguration( vtk
 		return PLUS_FAIL; 
 	}
 
-	//Phantom Definition specifications
-	//********************************************************************
-	vtkSmartPointer<vtkXMLDataElement> phantomDefinition =  calibrationController->FindNestedElementWithName("PhantomDefinition");
-	if ( this->ReadPhantomDefinition(phantomDefinition) != PLUS_SUCCESS )
-	{
-		LOG_ERROR("Failed to read phantom definition file!"); 
-		return PLUS_FAIL; 
-	}
-
 	// SegmentationParameters specifications
 	//********************************************************************
 	vtkSmartPointer<vtkXMLDataElement> segmentationParameters = calibrationController->FindNestedElementWithName("SegmentationParameters"); 
@@ -553,9 +567,6 @@ PlusStatus vtkCalibrationController::ReadCalibrationControllerConfiguration( vtk
 		LOG_ERROR("Failed to read segmentation parameters configuration file!"); 
 		return PLUS_FAIL; 
 	}
-
-	//Updating parameters
-	this->GetSegParameters()->UpdateParameters();
 
 	return PLUS_SUCCESS;
 }
@@ -568,51 +579,19 @@ PlusStatus vtkCalibrationController::ReadPhantomDefinition(vtkXMLDataElement* co
 
 	if ( config == NULL )
 	{
-		LOG_ERROR("Unable to read the phantom definition FileName attribute from configuration file - XML data element is NULL"); 
+		LOG_ERROR("Configuration XML data element is NULL"); 
 		return PLUS_FAIL;
 	}
 
-	// Search for the phantom definition file found in the configuration file
-	const char* phantomDefinitionFile =  config->GetAttribute("FileName");
-	if (phantomDefinitionFile != NULL) 
-	{
-		std::string searchResult;
-		if (STRCASECMP(vtkFileFinder::GetInstance()->GetConfigurationDirectory(), "") == 0) 
-		{
-			std::string configurationDirectory = vtksys::SystemTools::GetFilenamePath(this->ConfigurationFileName);
-			searchResult = vtkFileFinder::GetFirstFileFoundInParentOfDirectory(phantomDefinitionFile, configurationDirectory.c_str());
-		} 
-		else 
-		{
-			searchResult = vtkFileFinder::GetFirstFileFoundInConfigurationDirectory(phantomDefinitionFile);
-		}
-
-		if (STRCASECMP("", searchResult.c_str()) == 0) 
-		{
-			LOG_WARNING("Phantom model file is not found with name: " << phantomDefinitionFile);
-		}
-
-		if ( vtksys::SystemTools::FileExists(searchResult.c_str(), true) ) 
-		{
-			this->SetPhantomDefinitionFileName(searchResult.c_str());
-		}
+	vtkSmartPointer<vtkXMLDataElement> phantomDefinition = config->FindNestedElementWithName("PhantomDefinition");
+	if (phantomDefinition == NULL)
+  {
+		LOG_ERROR("No phantom definition is found in the XML tree!");
+		return PLUS_FAIL;
 	}
-
-	if ( this->PhantomDefinitionFileName != NULL )
+  else
 	{
 		std::vector<NWire> tempNWires = this->GetSegParameters()->GetNWires();
-
-		vtkSmartPointer<vtkXMLDataElement> phantomDefinition = vtkXMLUtilities::ReadElementFromFile(this->PhantomDefinitionFileName);
-
-		if (phantomDefinition == NULL) {
-			LOG_ERROR("Unable to read the phantom definition file: " << this->PhantomDefinitionFileName); 
-			return PLUS_FAIL;
-		}
-
-		// Verify XML type
-		if (STRCASECMP("PhantomDefinition", phantomDefinition->GetName()) != NULL) {
-			LOG_ERROR(this->PhantomDefinitionFileName << " is not a phantom definition file!");
-		}
 
 		// Load type
 		vtkSmartPointer<vtkXMLDataElement> description = phantomDefinition->FindNestedElementWithName("Description"); 
@@ -739,14 +718,14 @@ PlusStatus vtkCalibrationController::ReadPhantomDefinition(vtkXMLDataElement* co
 		}
 
 		this->GetSegParameters()->SetNWires(tempNWires);
-	} else {
-		LOG_ERROR("Phantom definition file name is not set!"); 
-		return PLUS_FAIL;
 	}
 
-	//TODO Load registration
+	//TODO Load registration?
 
-	return PLUS_SUCCESS;
+	// Update parameters
+	this->GetSegParameters()->UpdateParameters();
+
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------

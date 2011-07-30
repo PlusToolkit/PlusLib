@@ -855,6 +855,7 @@ PlusStatus SegmentationParameters::ReadSegmentationParametersConfiguration( vtkX
 	if(segmentationParameters->GetScalarAttribute("ComputeSegmentationParametersFromPhantomDefinition", computeSegmentationParametersFromPhantomDefinition)
 		&& computeSegmentationParametersFromPhantomDefinition!=0 )
 	{
+    // TODO review - scalingEstimation parameter is read twice
 		double scalingEstimation(0.0);
 		if ( segmentationParameters->GetScalarAttribute("ScalingEstimation", scalingEstimation) )
 		{
