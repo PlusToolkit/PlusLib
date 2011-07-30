@@ -1,35 +1,40 @@
 % Analyze video offsets acquired by DiagDataCollectionScript.bat 
-
 videoOffsetSummary=[];
 
-videoOffset=getVideoOffset('01_VideoPositions.csv', '01_SNXTCH_AscensionTracker_Buffer.mha')
+trackerMhaFiles=['02_SNXTCH_NDICertusTracker_Buffer_01.mha'; '02_SNXTCH_NDICertusTracker_Buffer_02.mha'; '02_SNXTCH_NDICertusTracker_Buffer_03.mha']; 
+videoOffset=getVideoOffset('02_VideoPositions.csv', trackerMhaFiles)
 videoOffsetSummary=[videoOffsetSummary; videoOffset];
 pause
-videoOffset=getVideoOffset('02_VideoPositions.csv', '02_SNXTCH_AscensionTracker_Buffer.mha')
+trackerMhaFiles=['03_SNXTCH_NDICertusTracker_Buffer_01.mha'; '03_SNXTCH_NDICertusTracker_Buffer_02.mha'; '03_SNXTCH_NDICertusTracker_Buffer_03.mha']; 
+videoOffset=getVideoOffset('03_VideoPositions.csv', trackerMhaFiles)
 videoOffsetSummary=[videoOffsetSummary; videoOffset];
 pause
-videoOffset=getVideoOffset('03_VideoPositions.csv', '03_SNXTCH_AscensionTracker_Buffer.mha')
+trackerMhaFiles=['04_SNXTCH_NDICertusTracker_Buffer_01.mha'; '04_SNXTCH_NDICertusTracker_Buffer_02.mha'; '04_SNXTCH_NDICertusTracker_Buffer_03.mha']; 
+videoOffset=getVideoOffset('04_VideoPositions.csv', trackerMhaFiles)
 videoOffsetSummary=[videoOffsetSummary; videoOffset];
 pause
-videoOffset=getVideoOffset('04_VideoPositions.csv', '04_SNXTCH_AscensionTracker_Buffer.mha')
+trackerMhaFiles=['05_SNXTCH_NDICertusTracker_Buffer_01.mha'; '05_SNXTCH_NDICertusTracker_Buffer_02.mha'; '05_SNXTCH_NDICertusTracker_Buffer_03.mha']; 
+videoOffset=getVideoOffset('05_VideoPositions.csv', trackerMhaFiles)
 videoOffsetSummary=[videoOffsetSummary; videoOffset];
 pause
-videoOffset=getVideoOffset('05_VideoPositions.csv', '05_SNXTCH_AscensionTracker_Buffer.mha')
+%trackerMhaFiles=['06_SNXTCH_NDICertusTracker_Buffer_01.mha'; '06_SNXTCH_NDICertusTracker_Buffer_02.mha'; '06_SNXTCH_NDICertusTracker_Buffer_03.mha']; 
+%videoOffset=getVideoOffset('06_VideoPositions.csv', trackerMhaFiles)
+%videoOffsetSummary=[videoOffsetSummary; videoOffset];
+%pause
+%trackerMhaFiles=['07_SNXTCH_NDICertusTracker_Buffer_01.mha'; '07_SNXTCH_NDICertusTracker_Buffer_02.mha'; '07_SNXTCH_NDICertusTracker_Buffer_03.mha']; 
+%videoOffset=getVideoOffset('07_VideoPositions.csv', trackerMhaFiles)
+%videoOffsetSummary=[videoOffsetSummary; videoOffset];
+%pause
+trackerMhaFiles=['08_SNXTCH_NDICertusTracker_Buffer_01.mha'; '08_SNXTCH_NDICertusTracker_Buffer_02.mha'; '08_SNXTCH_NDICertusTracker_Buffer_03.mha'; '08_SNXTCH_NDICertusTracker_Buffer_04.mha']; 
+videoOffset=getVideoOffset('08_VideoPositions.csv', trackerMhaFiles)
 videoOffsetSummary=[videoOffsetSummary; videoOffset];
 pause
-videoOffset=getVideoOffset('06_VideoPositions.csv', '06_SNXTCH_AscensionTracker_Buffer.mha')
-videoOffsetSummary=[videoOffsetSummary; videoOffset];
-pause
-videoOffset=getVideoOffset('07_VideoPositions.csv', '07_SNXTCH_AscensionTracker_Buffer.mha')
-videoOffsetSummary=[videoOffsetSummary; videoOffset];
-pause
-videoOffset=getVideoOffset('08_VideoPositions.csv', '08_SNXTCH_AscensionTracker_Buffer.mha')
-videoOffsetSummary=[videoOffsetSummary; videoOffset];
-pause
-videoOffset=getVideoOffset('09_VideoPositions.csv', '09_SNXTCH_AscensionTracker_Buffer.mha')
-videoOffsetSummary=[videoOffsetSummary; videoOffset];
-pause
-videoOffset=getVideoOffset('10_VideoPositions.csv', '10_SNXTCH_AscensionTracker_Buffer.mha')
+%trackerMhaFiles=['09_SNXTCH_NDICertusTracker_Buffer_01.mha'; '09_SNXTCH_NDICertusTracker_Buffer_02.mha'; '09_SNXTCH_NDICertusTracker_Buffer_03.mha'; '09_SNXTCH_NDICertusTracker_Buffer_04.mha']; 
+%videoOffset=getVideoOffset('09_VideoPositions.csv', trackerMhaFiles)
+%videoOffsetSummary=[videoOffsetSummary; videoOffset];
+%pause
+trackerMhaFiles=['10_SNXTCH_NDICertusTracker_Buffer_01.mha'; '10_SNXTCH_NDICertusTracker_Buffer_02.mha'; '10_SNXTCH_NDICertusTracker_Buffer_03.mha']; 
+videoOffset=getVideoOffset('10_VideoPositions.csv', trackerMhaFiles)
 videoOffsetSummary=[videoOffsetSummary; videoOffset];
 
 meanVideoOffset=mean(videoOffsetSummary)

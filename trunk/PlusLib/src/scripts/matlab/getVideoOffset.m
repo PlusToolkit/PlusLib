@@ -1,4 +1,7 @@
-function videoOffset=getVideoOffset(videoCsvFile, trackerMhaFile)
+function videoOffset=getVideoOffset(videoCsvFile, trackerMhaFiles)
+
+% Display file name
+disp(videoCsvFile)
 
 % Computes video offset from video and tracker data acquired from a
 % calibration phantom, using a motorized positioner
@@ -12,7 +15,14 @@ videoPos=videoTimestampPosition(:,2);
 videoTimestamp=videoTimestampPosition(:,1);
 videoPosNormalized=(videoPos-mean(videoPos))/std(videoPos);
 
-[trackerFilteredTimestamp trackerUnfilteredTimestamp trackerFrameIndex trackerPosition]=readmhatimestamp(trackerMhaFile);
+[trackerFilteredTimestamp trackerUnfilteredTimestamp trackerFrameIndex trackerPosition]=readmhatimestamp(trackerMhaFiles(1,:)); 
+for file=2:size(trackerMhaFiles, 1)
+    [tfts tufts tfi tp]=readmhatimestamp(trackerMhaFiles(file,:));
+    trackerFilteredTimestamp = [trackerFilteredTimestamp; tfts]; 
+    trackerUnfilteredTimestamp = [ trackerUnfilteredTimestamp; tufts]; 
+    trackerFrameIndex = [trackerFrameIndex; tfi]; 
+    trackerPosition = [trackerPosition; tp]; 
+end
 trackerPos=trackerPosition(:,8);
 trackerTimestamp=trackerFilteredTimestamp;
 trackerPosNormalized=(trackerPos-mean(trackerPos))/std(trackerPos);
