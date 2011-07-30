@@ -120,7 +120,7 @@ public:
 class TrackedFramePositionFinder
 {	
 public:
-  TrackedFramePositionFinder(TrackedFrame* frame, char* frameTransformName = NULL, double translationDistanceThresholdMm = 0.5, double rotationAngleThresholdDeg = 0.2)
+  TrackedFramePositionFinder(TrackedFrame* frame, const char* frameTransformName = NULL, double translationDistanceThresholdMm = 0.5, double rotationAngleThresholdDeg = 0.2)
     : mTrackedFrame(frame), 
     mRotationAngleThresholdDeg(rotationAngleThresholdDeg),
     mTranslationDistanceThresholdMm(translationDistanceThresholdMm)
@@ -263,7 +263,7 @@ public:
   // validateStatus: the tracking flags should be valid (TR_OK)
   // validatePosition: the frame position should be different from the previous ones 
   // validateSpeed: the frame acquisition speed should be less than a threshold
-  virtual bool ValidateData(TrackedFrame* trackedFrame, bool validateTimestamp = true, bool validateStatus = true, bool validatePosition = true, char* frameTransformName = NULL, bool validateSpeed = true); 
+  virtual bool ValidateData(TrackedFrame* trackedFrame, bool validateTimestamp = true, bool validateStatus = true, bool validatePosition = true, const char* frameTransformName = NULL, bool validateSpeed = true); 
 
   //! Operation: 
   // Clear tracked frame list and free memory
@@ -299,7 +299,7 @@ protected:
 
   bool ValidateTimestamp(TrackedFrame* trackedFrame); 
   bool ValidateStatus(TrackedFrame* trackedFrame); 
-  bool ValidatePosition(TrackedFrame* trackedFrame, char* frameTransformName); 
+  bool ValidatePosition(TrackedFrame* trackedFrame, const char* frameTransformName); 
 
   TrackedFrameListType TrackedFrameList; 
 

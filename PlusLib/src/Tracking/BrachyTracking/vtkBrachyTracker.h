@@ -67,6 +67,10 @@ public:
 	// Description:
 	// Get stepper encoder values from the buffer by UID
 	PlusStatus GetStepperEncoderValues( BufferItemUidType uid, double &probePosition, double &probeRotation, double &templatePosition, TrackerStatus &status ); 
+  
+  // Description:
+	// Get latest stepper encoder values from the buffer
+  PlusStatus GetLatestStepperEncoderValues( double &probePosition, double &probeRotation, double &templatePosition, TrackerStatus &status ); 
 
 	// Description:
 	// Get stepper encoder values in a particular timestamp, where the timestamp is

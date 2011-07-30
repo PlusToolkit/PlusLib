@@ -314,7 +314,7 @@ int vtkTrackedFrameList::AddTrackedFrame(TrackedFrame *trackedFrame)
 
 //----------------------------------------------------------------------------
 bool vtkTrackedFrameList::ValidateData(TrackedFrame* trackedFrame, bool validateTimestamp/*=true*/, bool validateStatus/*=true*/, 
-                                       bool validatePosition/*=true*/, char* frameTransformName /*= NULL*/, bool validateSpeed/*=true*/)
+                                       bool validatePosition/*=true*/, const char* frameTransformName /*= NULL*/, bool validateSpeed/*=true*/)
 {
   bool validationResult(true); 
 
@@ -361,7 +361,7 @@ bool vtkTrackedFrameList::ValidateTimestamp(TrackedFrame* trackedFrame)
 }
 
 //----------------------------------------------------------------------------
-bool vtkTrackedFrameList::ValidatePosition(TrackedFrame* trackedFrame, char* frameTransformName)
+bool vtkTrackedFrameList::ValidatePosition(TrackedFrame* trackedFrame, const char* frameTransformName)
 {
   TrackedFrameListType::iterator searchIndex; 
   const int containerSize = this->TrackedFrameList.size(); 
