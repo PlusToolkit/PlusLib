@@ -38,9 +38,9 @@ public:
 
   virtual PlusStatus CalibrateStepper(std::string &CalibMsg);
 
-  virtual void SetBaudRate(unsigned long BaudRate); 
+  virtual PlusStatus SetBaudRate(unsigned long BaudRate); 
 
-  virtual void SetCOMPort(unsigned long COMPort); 
+  virtual PlusStatus SetCOMPort(unsigned long COMPort); 
 
   virtual PlusStatus IsStepperAlive();
 
@@ -55,6 +55,7 @@ protected:
   PlusStatus GetSeiDeviceInfo(long devnum, long &model, long &serialnum, long &version, long &addr); 
 
   long m_COMPort; 
+  long m_BaudRate; 
 
   long m_DeviceNumber; 
   long m_DeviceAddress;

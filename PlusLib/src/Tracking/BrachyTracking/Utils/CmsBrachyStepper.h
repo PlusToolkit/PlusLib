@@ -46,9 +46,9 @@ public:
 
   virtual PlusStatus CalibrateStepper(std::string &CalibMsg);
 
-  virtual void SetBaudRate(unsigned long BaudRate) { this->m_StepperCOMPort->SetSerialPortSpeed(BaudRate); }
+  virtual PlusStatus SetBaudRate(unsigned long BaudRate); 
 
-  virtual void SetCOMPort(unsigned long COMPort); 
+  virtual PlusStatus SetCOMPort(unsigned long COMPort); 
 
   virtual PlusStatus IsStepperAlive();
 
@@ -131,7 +131,7 @@ private:
   double m_GridScale;
   double m_RotationScale;
   bool m_IsCalibrated; 
-  unsigned long m_PositionRequestNumber; 
+  
   // Sometimes connection reset is needed on Win7 when position error query fails repeatedly.
   // When repeated error count reaches the defined maximum the connection is reset (close/reopen).
   int m_RepeatedPositionErrorCount; 

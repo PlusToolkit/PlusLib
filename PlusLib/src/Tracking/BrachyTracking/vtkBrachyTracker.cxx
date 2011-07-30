@@ -301,7 +301,7 @@ PlusStatus vtkBrachyTracker::ReadConfiguration(vtkXMLDataElement* config)
       }
       else if ( STRCASECMP(BrachyStepper::GetBrachyStepperTypeInString(BrachyStepper::CIVCO_STEPPER), brachyStepperType) == 0 )
       {
-        this->Device = new CivcoBrachyStepper(); 
+        this->Device = new CivcoBrachyStepper(this->GetSerialPort(), this->GetBaudRate()); 
         this->Device->SetBrachyStepperType(BrachyStepper::CIVCO_STEPPER); 
       }
       else
