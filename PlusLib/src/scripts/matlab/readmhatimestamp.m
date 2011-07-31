@@ -30,6 +30,7 @@ fts=[];
 uts=[];
 ind=[];
 pt=[];
+ptStatus=[]; % value is 1 if item position status is OK, 0 otherwise
 
 while 1
     tline = fgetl(fid);
@@ -60,10 +61,26 @@ while 1
         n=str2num(cell2mat(token{1}));
         pt=[pt; n];
     end
-       
+
+    token=regexp(tline, 'Seq_Frame[0-9]*_Status = (.*)', 'tokens');
+    if (length(token)>0)
+        n=cell2mat(token{1});
+        if (findstr(n,'OK')) 
+            ptStatus=[ptStatus; 1];
+        else
+            ptStatus=[ptStatus; 0];
+        end
+    end
+    
     if (regexp(tline, 'ElementDataFile')>0)
         break
     end
         
 end
+
+% Keep only those elements whose status was OK
+fts=fts(ptStatus==1);
+uts=uts(ptStatus==1);
+ind=ind(ptStatus==1);
+pt=pt(ptStatus==1,:);
 
