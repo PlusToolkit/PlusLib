@@ -419,15 +419,18 @@ PlusStatus vtkCalibrationController::ReadConfiguration( vtkXMLDataElement* confi
 	}
 
 	vtkSmartPointer<vtkXMLDataElement> usCalibration = configData->FindNestedElementWithName("USCalibration");
-	if (usCalibration == NULL) { // Check if it is a separate data calibration configuration file
-		if (STRCASECMP(configData->GetName(), "USCalibration") == 0) {
+	if (usCalibration == NULL) // Check if it is a separate data calibration configuration file
+  {
+		if (STRCASECMP(configData->GetName(), "USCalibration") == 0)
+    {
       LOG_WARNING("Non-unified configuration detected! Phantom definition has to be loaded from a separate file!");
 			usCalibration = configData;
 		}
-	}
-	if (usCalibration == NULL) {
-    LOG_ERROR("Cannot find USCalibration element in XML tree!");
-    return PLUS_FAIL;
+    else
+    {
+      LOG_ERROR("Cannot find USCalibration element in XML tree!");
+      return PLUS_FAIL;
+    }
 	}
 
 	// Calibration controller specifications

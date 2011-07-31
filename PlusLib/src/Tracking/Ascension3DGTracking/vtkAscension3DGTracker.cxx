@@ -416,11 +416,6 @@ vtkAscension3DGTracker
     return PLUS_FAIL; 
   }
 
-  if ( this->ConfigurationData == NULL ) 
-  {
-    this->ConfigurationData = vtkXMLDataElement::New(); 
-  }
-
   return PLUS_SUCCESS;
 }
 

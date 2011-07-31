@@ -1481,9 +1481,45 @@ PlusStatus vtkFreehandCalibrationController::ComputeCalibrationResults()
 
 PlusStatus vtkFreehandCalibrationController::SaveCalibrationResults()
 {
-	//TODO imageToProba AND localTimeOffset
+	LOG_TRACE("vtkFreehandCalibrationController::SaveCalibrationResults");
 
-	return PLUS_FAIL;
+	// Find stylus definition element
+	vtkSmartPointer<vtkXMLDataElement> probeDefinition = vtkFreehandController::LookupElementWithNameContainingChildWithNameAndAttribute(NULL, "Tracker", "Tool", "Type", "Probe");
+	if (probeDefinition == NULL) {
+		LOG_ERROR("No probe definition is found in the XML tree!");
+		return PLUS_FAIL;
+	}
+
+	vtkSmartPointer<vtkXMLDataElement> calibration = probeDefinition->FindNestedElementWithName("Calibration");
+	if (calibration == NULL) {
+		LOG_ERROR("No calibration section is found in probe definition!");
+		return PLUS_FAIL;
+	}
+
+	// Assemble and save transform
+	char imageToProbeTransformChars[256];
+  vtkSmartPointer<vtkMatrix4x4> transformMatrix = this->TransformImageToProbe->GetMatrix();
+	sprintf_s(imageToProbeTransformChars, 256, "\n\t%.4lf %.4lf %.4lf %.4lf\n\t%.4lf %.4lf %.4lf %.4lf\n\t%.4lf %.4lf %.4lf %.1lf\n\t0 0 0 1", 
+		transformMatrix->GetElement(0,0), transformMatrix->GetElement(0,1), transformMatrix->GetElement(0,2), transformMatrix->GetElement(0,3), 
+		transformMatrix->GetElement(1,0), transformMatrix->GetElement(1,1), transformMatrix->GetElement(1,2), transformMatrix->GetElement(1,3), 
+		transformMatrix->GetElement(2,0), transformMatrix->GetElement(2,1), transformMatrix->GetElement(2,2), transformMatrix->GetElement(2,3));
+
+	calibration->SetAttribute("MatrixValue", imageToProbeTransformChars);
+
+	// Save matrix name, date and error
+	calibration->SetAttribute("MatrixName", "ImageToProbe");
+	calibration->SetAttribute("Date", vtksys::SystemTools::GetCurrentDateTime("%Y.%m.%d %X").c_str());
+	calibration->SetDoubleAttribute("Error", GetPointLineDistanceErrorAnalysisVector()[0] * 1000.0); // TODO find the best error number
+
+  vtkDataCollector* dataCollector = vtkFreehandController::GetInstance()->GetDataCollector();
+	if (dataCollector == NULL) {
+		LOG_ERROR("Data collector is not initialized!");
+		return PLUS_FAIL;
+	}
+
+  dataCollector->GetConfigurationData()->PrintXML(vtkFreehandController::GetInstance()->GetConfigurationFileName());
+
+	return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------

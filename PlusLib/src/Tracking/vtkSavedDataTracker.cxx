@@ -100,7 +100,7 @@ PlusStatus vtkSavedDataTracker::Connect()
 	TRACKER_TOOL_TYPE defaultType = TRACKER_TOOL_NONE;
 	// TODO read the file properly and use proper types instead of DefaultFrameTransformName
 	char* toolType = NULL;
-	vtkTracker::ConvertToolTypeToString(TRACKER_TOOL_GENERAL, toolType);
+	vtkTracker::ConvertToolTypeToString(TRACKER_TOOL_PROBE, toolType);
 	this->ConvertStringToToolType(toolType/*savedDataBuffer->GetDefaultFrameTransformName().c_str()*/, defaultType);
 	this->GetTool(0)->SetToolType(defaultType);
 		

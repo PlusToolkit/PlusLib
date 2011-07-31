@@ -231,6 +231,10 @@ public:
   vtkSetMacro(StartupDelaySec, double); 
   vtkGetMacro(StartupDelaySec, double);
 
+  // Description:
+  // Get configuration data
+	vtkGetObjectMacro(ConfigurationData, vtkXMLDataElement); 
+
   int GetNumberOfTools();
 
   //! Description 
@@ -267,33 +271,34 @@ protected:
   //! Pointer to the progress bar update callback function 
   ProgressBarUpdatePtr ProgressBarUpdateCallbackFunction; 
 
+protected:
   vtkDataCollectorSynchronizer* Synchronizer; 
 
-  vtkVideoSource2*	VideoSource; 
-  vtkTracker*			Tracker; 
+  vtkVideoSource2*	            VideoSource; 
+  vtkTracker*		              	Tracker; 
 
-  ACQUISITION_TYPE	AcquisitionType; 
-  TRACKER_TYPE		TrackerType; 
-  SYNC_TYPE			SyncType; 
+  ACQUISITION_TYPE	            AcquisitionType; 
+  TRACKER_TYPE		              TrackerType; 
+  SYNC_TYPE			                SyncType; 
 
-  std::vector<vtkMatrix4x4*> ToolTransMatrices; 
-  std::vector<TrackerStatus>	ToolStatus; 
+  std::vector<vtkMatrix4x4*>    ToolTransMatrices; 
+  std::vector<TrackerStatus>	  ToolStatus; 
 
-  vtkXMLDataElement*	ConfigurationData;
-  char*				ConfigFileName; 
-  double				ConfigFileVersion; 
+  vtkXMLDataElement*        	  ConfigurationData;
+  char*				                  ConfigFileName; 
+  double			              	  ConfigFileVersion; 
 
-  double StartupDelaySec; 
+  double                        StartupDelaySec; 
 
-  bool Initialized; 
+  bool                          Initialized; 
 
-  bool TrackingEnabled;
-  bool VideoEnabled;
+  bool                          TrackingEnabled;
+  bool                          VideoEnabled;
 
-  bool CancelSyncRequest; 
+  bool                          CancelSyncRequest; 
 
-  char * DeviceSetName; 
-  char * DeviceSetDescription; 
+  char*                         DeviceSetName; 
+  char*                         DeviceSetDescription; 
 
 private:
   vtkDataCollector(const vtkDataCollector&);

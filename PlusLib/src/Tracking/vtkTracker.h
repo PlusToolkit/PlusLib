@@ -237,61 +237,56 @@ public:
 	vtkBooleanMacro(TrackerCalibrated, bool); 
 
 	// Description:
-	// Set/get main configuration data
-	vtkSetObjectMacro(ConfigurationData, vtkXMLDataElement); 
-	vtkGetObjectMacro(ConfigurationData, vtkXMLDataElement);
+	// Set the transformation matrix between tracking-system coordinates
+	// and the desired world coordinate system.  You can use 
+	// vtkLandmarkTransform to create this matrix from a set of 
+	// registration points.  Warning: the matrix is copied,
+	// not referenced.
+  vtkSetObjectMacro(WorldCalibrationMatrix, vtkMatrix4x4); 
+  vtkGetObjectMacro(WorldCalibrationMatrix, vtkMatrix4x4); 
 
-		// Description:
-		// Set the transformation matrix between tracking-system coordinates
-		// and the desired world coordinate system.  You can use 
-		// vtkLandmarkTransform to create this matrix from a set of 
-		// registration points.  Warning: the matrix is copied,
-		// not referenced.
-    vtkSetObjectMacro(WorldCalibrationMatrix, vtkMatrix4x4); 
-    vtkGetObjectMacro(WorldCalibrationMatrix, vtkMatrix4x4); 
+  // Description:
+	// Make the unit emit a string of audible beeps.  This is
+	// supported by the POLARIS.
+	void Beep(int n);
 
-    // Description:
-		// Make the unit emit a string of audible beeps.  This is
-		// supported by the POLARIS.
-		void Beep(int n);
+	// Description:
+	// Turn one of the LEDs on the specified tool on or off.  This
+	// is supported by the POLARIS.
+	void SetToolLED(int tool, int led, int state);
 
-		// Description:
-		// Turn one of the LEDs on the specified tool on or off.  This
-		// is supported by the POLARIS.
-		void SetToolLED(int tool, int led, int state);
+	// Description:
+	// The subclass will do all the hardware-specific update stuff
+	// in this function.   It should call ToolUpdate() for each tool.
+	// Note that vtkTracker.cxx starts up a separate thread after
+	// InternalStartTracking() is called, and that InternalUpdate() is
+	// called repeatedly from within that thread.  Therefore, any code
+	// within InternalUpdate() must be thread safe.  You can temporarily
+	// pause the thread by locking this->UpdateMutex->Lock() e.g. if you
+	// need to communicate with the device from outside of InternalUpdate().
+	// A call to this->UpdateMutex->Unlock() will resume the thread.
+	virtual PlusStatus InternalUpdate() { return PLUS_SUCCESS; };
 
-		// Description:
-		// The subclass will do all the hardware-specific update stuff
-		// in this function.   It should call ToolUpdate() for each tool.
-		// Note that vtkTracker.cxx starts up a separate thread after
-		// InternalStartTracking() is called, and that InternalUpdate() is
-		// called repeatedly from within that thread.  Therefore, any code
-		// within InternalUpdate() must be thread safe.  You can temporarily
-		// pause the thread by locking this->UpdateMutex->Lock() e.g. if you
-		// need to communicate with the device from outside of InternalUpdate().
-		// A call to this->UpdateMutex->Unlock() will resume the thread.
-		virtual PlusStatus InternalUpdate() { return PLUS_SUCCESS; };
+	//BTX
+	// These are used by static functions in vtkTracker.cxx, and since
+	// VTK doesn't generally use 'friend' functions they are public
+	// instead of protected.  Do not use them anywhere except inside
+	// vtkTracker.cxx.
+	vtkCriticalSection *UpdateMutex;
+	vtkCriticalSection *RequestUpdateMutex;
+	vtkTimeStamp UpdateTime;
+	double InternalUpdateRate;  
+	//ETX
 
-		//BTX
-		// These are used by static functions in vtkTracker.cxx, and since
-		// VTK doesn't generally use 'friend' functions they are public
-		// instead of protected.  Do not use them anywhere except inside
-		// vtkTracker.cxx.
-		vtkCriticalSection *UpdateMutex;
-		vtkCriticalSection *RequestUpdateMutex;
-		vtkTimeStamp UpdateTime;
-		double InternalUpdateRate;  
-		//ETX
+	// Description:
+	// The ServerTracker should call this function. This creates
+	// a thread that allows it to wait till a client connects. 
+	virtual PlusStatus Connect();
+	virtual PlusStatus Disconnect();
 
-		// Description:
-		// The ServerTracker should call this function. This creates
-		// a thread that allows it to wait till a client connects. 
-		virtual PlusStatus Connect();
-		virtual PlusStatus Disconnect();
-
-		// Description:
-		// Make this tracker into a copy of another tracker.
-		void DeepCopy(vtkTracker *tracker);
+	// Description:
+	// Make this tracker into a copy of another tracker.
+	void DeepCopy(vtkTracker *tracker);
 
 protected:
 	vtkTracker();
@@ -348,8 +343,6 @@ protected:
 	double Frequency; 
 
 	bool TrackerCalibrated; 
-
-	vtkXMLDataElement*	ConfigurationData;
 
 private:
 	vtkTracker(const vtkTracker&);

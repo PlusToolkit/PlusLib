@@ -56,6 +56,9 @@ public:
 	QVTKWidget* GetCanvas() { return this->Canvas; };
 	void SetCanvas(QVTKWidget* aCanvas) { this->Canvas = aCanvas; };
 
+  // Get function for vtkDataCollector's ConfigurationData
+  vtkXMLDataElement* GetConfigurationData();
+
 	// Set/Get macros for member variables
 	vtkSetMacro(Initialized, bool); 
 	vtkGetMacro(Initialized, bool); 
@@ -79,11 +82,6 @@ public:
 	vtkGetObjectMacro(CanvasRenderer, vtkRenderer);
 	vtkSetObjectMacro(CanvasRenderer, vtkRenderer);
 
-	vtkGetObjectMacro(ConfigurationData, vtkXMLDataElement); 
-
-protected:
-	vtkSetObjectMacro(ConfigurationData, vtkXMLDataElement); 
-
 protected:
 	/*!
 	* \brief Constructor
@@ -97,7 +95,7 @@ protected:
 
 protected:
 	//! Tracker object
-	vtkDataCollector*				DataCollector;
+	vtkDataCollector*	DataCollector;
 
 	//! Initialization flag
 	bool							Initialized;
@@ -111,17 +109,14 @@ protected:
 	//! Used configuration file name
 	char*							ConfigurationFileName;
 
-	//! Configuration root element
-	vtkXMLDataElement*				ConfigurationData;
-
 	//! Output folder
 	char*							OutputFolder;
 
 	//! Canvas object for real-time 3D visualization
-	QVTKWidget*						Canvas;
+	QVTKWidget*				Canvas;
 
 	//! Renderer for the canvas
-	vtkRenderer*					CanvasRenderer; 
+	vtkRenderer*			CanvasRenderer; 
 
 private:
 	//! Instance of the singleton

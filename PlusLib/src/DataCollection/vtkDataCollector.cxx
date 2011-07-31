@@ -329,6 +329,12 @@ PlusStatus vtkDataCollector::Start()
 {
   LOG_TRACE("vtkDataCollector::Start"); 
 
+  if (this->Tracker == NULL && this->VideoSource == NULL)
+  {
+    LOG_ERROR("Data collection cannot be started because devices have not been initialized properly!");
+    return PLUS_FAIL;
+  }
+
   const double startTime = vtkAccurateTimer::GetSystemTime(); 
 
   if ( this->GetVideoEnabled() )
@@ -1482,10 +1488,40 @@ PlusStatus vtkDataCollector::ReadConfiguration(vtkXMLDataElement* aDataCollectio
 {
   this->ConfigurationData = aDataCollectionConfig;
 
-  double version(0); 
-  if ( this->ConfigurationData->GetScalarAttribute("version", version) )
+	// Check plus configuration version
+	double plusConfigurationVersion = 0;
+	if (this->ConfigurationData->GetScalarAttribute("version", plusConfigurationVersion))
   {
-    if ( version < this->ConfigFileVersion )
+		double currentVersion = (double)PLUSLIB_VERSION_MAJOR + ((double)PLUSLIB_VERSION_MINOR / 10.0);
+
+		if (plusConfigurationVersion < currentVersion)
+    {
+			LOG_ERROR("This version of configuration file is no longer supported! Please update to version " << std::fixed << currentVersion); 
+			return PLUS_FAIL;
+		}
+	}
+
+  // Get data collection configuration element
+	vtkSmartPointer<vtkXMLDataElement> dataCollectionConfig = this->ConfigurationData->FindNestedElementWithName("USDataCollection");
+	if (dataCollectionConfig == NULL) // Check if it is a separate data collection configuration file
+  {
+		if (STRCASECMP(this->ConfigurationData->GetName(), "USDataCollection") == 0)
+    {
+      LOG_WARNING("Non-unified configuration detected! Phantom definition and calibration configuration have to be loaded from a separate files!");
+			dataCollectionConfig = this->ConfigurationData;
+		}
+    else
+    {
+      LOG_ERROR("Cannot find USDataCollection element in XML tree!");
+			return PLUS_FAIL;
+    }
+	}
+
+  // Check data collection configuration version
+  double usDataCollectionVersion = 0; 
+  if ( dataCollectionConfig->GetScalarAttribute("version", usDataCollectionVersion) )
+  {
+    if ( usDataCollectionVersion < this->ConfigFileVersion )
     {
       LOG_ERROR("This version of configuration file is no longer supported! Please update to version " << std::fixed << this->ConfigFileVersion ); 
       return PLUS_FAIL;
@@ -1493,26 +1529,26 @@ PlusStatus vtkDataCollector::ReadConfiguration(vtkXMLDataElement* aDataCollectio
   }
 
   double startupDelaySec(0.0); 
-  if ( this->ConfigurationData->GetScalarAttribute("StartupDelaySec", startupDelaySec) )
+  if ( dataCollectionConfig->GetScalarAttribute("StartupDelaySec", startupDelaySec) )
   {
     this->SetStartupDelaySec(startupDelaySec); 
     LOG_DEBUG("StartupDelaySec: " << std::fixed << startupDelaySec ); 
   }
 
 
-  vtkSmartPointer<vtkXMLDataElement> imageAcqusitionConfig = this->ConfigurationData->FindNestedElementWithName("ImageAcqusition"); 
+  vtkSmartPointer<vtkXMLDataElement> imageAcqusitionConfig = dataCollectionConfig->FindNestedElementWithName("ImageAcqusition"); 
   if ( imageAcqusitionConfig != NULL) 
   {
     this->ReadImageAcqusitionProperties(imageAcqusitionConfig); 
   }
 
-  vtkSmartPointer<vtkXMLDataElement> trackerConfig = this->ConfigurationData->FindNestedElementWithName("Tracker"); 
+  vtkSmartPointer<vtkXMLDataElement> trackerConfig = dataCollectionConfig->FindNestedElementWithName("Tracker"); 
   if ( trackerConfig != NULL) 
   {
     this->ReadTrackerProperties(trackerConfig); 
   }
 
-  vtkSmartPointer<vtkXMLDataElement> synchronizationConfig = this->ConfigurationData->FindNestedElementWithName("Synchronization"); 
+  vtkSmartPointer<vtkXMLDataElement> synchronizationConfig = dataCollectionConfig->FindNestedElementWithName("Synchronization"); 
   if ( synchronizationConfig != NULL) 
   {
     this->ReadSynchronizationProperties(synchronizationConfig); 
