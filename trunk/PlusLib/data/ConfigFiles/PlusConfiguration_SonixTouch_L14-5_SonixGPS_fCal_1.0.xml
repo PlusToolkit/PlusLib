@@ -20,22 +20,21 @@
 		  
 		<Tool
 		  Name="Probe"
+      Type="Probe"
 		  PortNumber="0"
 		  SendTo="localhost:18944">
-		  <Calibration 
-			MatrixName="ImageToProbe" 
-			MatrixValue="1 0 0 0 
-						 0 1 0 0 
-						 0 0 1 0
-						 0 0 0 1" 
-			Date="2011.05.02"
-			Error="0.0"
-			/>
 		</Tool>
 		
 		<Tool
 		  Name="Reference"
+      Type="Reference"
 		  PortNumber="1">
+		</Tool>
+	  
+		<Tool
+		  Name="Stylus"
+      Type="Stylus"
+		  PortNumber="2">
 		</Tool>
 	  
 	  </Tracker>
@@ -43,8 +42,8 @@
 	  <ImageAcqusition
 		Type="SonixVideo" 
 		BufferSize="500" 
-		FrameSize="640 480" 
-		UsImageOrientation="MF"
+		FrameSize="820 616" 
+		UsImageOrientation="UF"
 		FrameRate="30" 
 		AveragedItemsForFiltering="20" 
 		LocalTimeOffset="-0.2976"
