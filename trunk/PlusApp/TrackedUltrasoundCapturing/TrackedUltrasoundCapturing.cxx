@@ -152,7 +152,11 @@ PlusStatus TrackedUltrasoundCapturing::Initialize()
 	vtkSmartPointer<vtkDataCollector> dataCollector = vtkSmartPointer<vtkDataCollector>::New(); 
 	this->SetDataCollector(dataCollector); 
 
-	this->DataCollector->ReadConfigurationFromFile(this->GetInputConfigFileName());
+	if ( this->DataCollector->ReadConfigurationFromFile(this->GetInputConfigFileName()) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to read configuration file!"); 
+		return PLUS_FAIL; 
+  }
 	if ( this->DataCollector->Initialize() != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to initialize DataCollector!"); 
