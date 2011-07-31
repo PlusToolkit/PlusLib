@@ -406,7 +406,10 @@ void PhantomRegistrationController::Undo()
 		// Highlight previous landmark
 		m_RequestedLandmarkPolyData->GetPoints()->InsertPoint(0, m_DefinedLandmarks->GetPoint(m_CurrentLandmarkIndex));
 		m_RequestedLandmarkPolyData->GetPoints()->Modified();
-	}
+
+    // Hide phantom model from canvas
+    m_RegisteredPhantomBodyActor->VisibilityOff();
+  }
 
 	// If tracker is FakeTracker then set counter
 	vtkFakeTracker *fakeTracker = dynamic_cast<vtkFakeTracker*>(vtkFreehandController::GetInstance()->GetDataCollector()->GetTracker());
@@ -442,6 +445,9 @@ void PhantomRegistrationController::Reset()
 	// Highlight first landmark
 	m_RequestedLandmarkPolyData->GetPoints()->InsertPoint(0, m_DefinedLandmarks->GetPoint(0));
 	m_RequestedLandmarkPolyData->GetPoints()->Modified();
+
+   // Hide phantom model from canvas
+  m_RegisteredPhantomBodyActor->VisibilityOff();
 
 	// If tracker is FakeTracker then reset counter
 	vtkFakeTracker *fakeTracker = dynamic_cast<vtkFakeTracker*>(vtkFreehandController::GetInstance()->GetDataCollector()->GetTracker());
