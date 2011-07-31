@@ -57,7 +57,7 @@ OPTION (PLUSAPP_BUILD_DiagnosticTools "Build the DiagnosticTools" ON)
 OPTION (PLUSAPP_BUILD_OpenIGTLinkBroadcaster "Build the OpenIGTLinkBroadcaster application" OFF)
 OPTION (PLUSAPP_BUILD_SequenceMetaFileConverter "Build the SequenceMetaFileConverter application" ON)
 OPTION (PLUSAPP_BUILD_TrackedUltrasoundCapturing "Build the TrackedUltrasoundCapturing application (Qt version)" ON)
-OPTION (PLUSAPP_BUILD_FreehandCalibration "Build the Freehand Calibration application (Qt)" ON)
+OPTION (PLUSAPP_BUILD_fCal "Build the fCal application (Qt)" ON)
 
 # --------------------------------------------------------------------------
 # Packaging
@@ -105,11 +105,11 @@ IF (PLUSAPP_BUILD_4DUltrasound)
 ENDIF (PLUSAPP_BUILD_4DUltrasound)
 
 # --------------------------------------------------------------------------
-# Build the Freehand Calibration application (Qt)
-IF (PLUSAPP_BUILD_FreehandCalibration)
-	ADD_SUBDIRECTORY(FreehandCalibration)
-    ADD_DEPENDENCIES( FreehandCalibration ${PLUSLIB_DEPENDENCIES} )
-ENDIF (PLUSAPP_BUILD_FreehandCalibration)
+# Build the fCal application (Qt)
+IF (PLUSAPP_BUILD_fCal)
+	ADD_SUBDIRECTORY(fCal)
+    ADD_DEPENDENCIES( fCal ${PLUSLIB_DEPENDENCIES} )
+ENDIF (PLUSAPP_BUILD_fCal)
 
 IF(PLUSAPP_BUILD_OpenIGTLinkBroadcaster)
     IF (PLUS_USE_OpenIGTLink)

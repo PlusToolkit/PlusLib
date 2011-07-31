@@ -14,7 +14,7 @@
    <string>Freehand Ultrasound Calibration</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="FreehandCalibration.qrc">
+   <iconset resource="fCal.qrc">
     <normaloff>:/icons/Resources/icon_fCal.png</normaloff>:/icons/Resources/icon_fCal.png</iconset>
   </property>
   <widget class="QWidget" name="centralWidget">
@@ -107,7 +107,7 @@
   </customwidget>
  </customwidgets>
  <resources>
-  <include location="FreehandCalibration.qrc"/>
+  <include location="fCal.qrc"/>
  </resources>
  <connections/>
 </ui>
