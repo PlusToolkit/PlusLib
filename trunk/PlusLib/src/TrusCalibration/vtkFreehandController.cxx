@@ -40,7 +40,6 @@ vtkFreehandController::vtkFreehandController()
 	this->DataCollector = NULL;
 	this->RecordingFrameRate = 20;
 	this->ConfigurationFileName = NULL;
-	this->ConfigurationData = NULL;
 	this->OutputFolder = NULL;
 	this->InitializedOff();
 	this->TrackingOnlyOn();
@@ -103,6 +102,19 @@ void vtkFreehandController::SetTrackingOnly(bool aOn)
 
 //-----------------------------------------------------------------------------
 
+vtkXMLDataElement* vtkFreehandController::GetConfigurationData()
+{
+	LOG_TRACE("vtkFreehandController::GetConfigurationData"); 
+
+	if (this->DataCollector != NULL) {
+		return this->DataCollector->GetConfigurationData();
+  } else {
+    return NULL;
+  }
+}
+
+//-----------------------------------------------------------------------------
+
 PlusStatus vtkFreehandController::StartDataCollection()
 {
 	LOG_TRACE("vtkFreehandController::StartDataCollection"); 
@@ -112,44 +124,12 @@ PlusStatus vtkFreehandController::StartDataCollection()
 		this->GetDataCollector()->Stop();
 	}
 
-	// Read configuration file
-	if ((this->ConfigurationFileName == NULL) || (STRCASECMP(this->ConfigurationFileName, "") == 0)) {
-		LOG_ERROR("Cannot start data collection: Invalid configuration file name");
-		return PLUS_FAIL;
-	}
-
-	vtkSmartPointer<vtkXMLDataElement> configurationData = vtkXMLUtilities::ReadElementFromFile(this->ConfigurationFileName);
-	this->SetConfigurationData(configurationData);
-	if (this->ConfigurationData == NULL) {	
-		LOG_ERROR("Unable to read configuration from file " << this->ConfigurationFileName); 
-		return PLUS_FAIL;
-	} 
-
-	// Check version
-	double version = 0;
-	if (this->ConfigurationData->GetScalarAttribute("version", version)) {
-		double currentVersion = (double)PLUSLIB_VERSION_MAJOR + ((double)PLUSLIB_VERSION_MINOR / 10.0);
-		if (version < currentVersion) {
-			LOG_ERROR("This version of configuration file is no longer supported! Please update to version " << std::fixed << currentVersion); 
-			return PLUS_FAIL;
-		}
-	}
-
 	// Initialize data collector and read configuration
 	vtkSmartPointer<vtkDataCollector> dataCollector = vtkSmartPointer<vtkDataCollector>::New(); 
 	this->SetDataCollector(dataCollector);
 
-	vtkSmartPointer<vtkXMLDataElement> dataCollectionConfig = this->ConfigurationData->FindNestedElementWithName("USDataCollection");
-	if (dataCollectionConfig == NULL) { // Check if it is a separate data collection configuration file
-		if (STRCASECMP(this->ConfigurationData->GetName(), "USDataCollection") == 0) {
-      LOG_WARNING("Non-unified configuration detected! Phantom definition and calibration configuration have to be loaded from a separate files!");
-			dataCollectionConfig = this->ConfigurationData;
-		}
-	}
-	if (dataCollectionConfig != NULL) {
-		if (this->DataCollector->ReadConfiguration(dataCollectionConfig) != PLUS_SUCCESS) {
-			return PLUS_FAIL;
-		}
+	if (this->DataCollector->ReadConfigurationFromFile(this->ConfigurationFileName) != PLUS_SUCCESS) {
+		return PLUS_FAIL;
 	}
 
 	if (this->DataCollector->Initialize() != PLUS_SUCCESS) {
@@ -177,6 +157,10 @@ PlusStatus vtkFreehandController::StartDataCollection()
 vtkXMLDataElement* vtkFreehandController::LookupElementWithNameContainingChildWithNameAndAttribute(vtkXMLDataElement* aConfig, const char* aElementName, const char* aChildName, const char* aChildAttributeName, const char* aChildAttributeValue)
 {
 	LOG_TRACE("vtkFreehandController::LookupElementWithNameContainingChildWithNameAndAttribute(" << aElementName << ", " << aChildName << ", " << aChildAttributeName << ", " << aChildAttributeValue << ")");
+
+  if (aConfig == NULL) {
+    aConfig = vtkFreehandController::GetInstance()->GetConfigurationData();
+  }
 
 	vtkXMLDataElement* childElement = NULL;
 

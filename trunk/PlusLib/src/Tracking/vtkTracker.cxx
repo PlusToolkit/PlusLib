@@ -96,8 +96,6 @@ vtkTracker::vtkTracker()
   this->ThreadId = -1;
   this->UpdateMutex = vtkCriticalSection::New();
   this->RequestUpdateMutex = vtkCriticalSection::New();
-
-  this->ConfigurationData = NULL; 
 }
 
 //----------------------------------------------------------------------------
@@ -114,12 +112,6 @@ vtkTracker::~vtkTracker()
   if (this->Tools)
   {
     delete [] this->Tools;
-  }
-
-  if ( this->ConfigurationData != NULL ) 
-  {
-    this->ConfigurationData->Delete(); 
-    this->ConfigurationData = NULL; 
   }
 
   this->WorldCalibrationMatrix->Delete();
@@ -396,7 +388,6 @@ void vtkTracker::DeepCopy(vtkTracker *tracker)
   this->InternalUpdateRate = tracker->GetInternalUpdateRate();
   this->SetFrequency(tracker->GetFrequency()); 
   this->SetTrackerCalibrated(tracker->GetTrackerCalibrated()); 
-  this->SetConfigurationData( tracker->GetConfigurationData() ); 
 }
 
 
@@ -409,14 +400,6 @@ PlusStatus vtkTracker::ReadConfiguration(vtkXMLDataElement* config)
     LOG_ERROR("Unable to configure tracker! (XML data element is NULL)"); 
     return PLUS_FAIL; 
   }
-
-  if ( this->ConfigurationData == NULL ) 
-  {
-    this->ConfigurationData = vtkXMLDataElement::New(); 
-  }
-
-  // Save config data
-  this->ConfigurationData->DeepCopy(config);
 
   int bufferSize = 0; 
   if ( config->GetScalarAttribute("BufferSize", bufferSize) ) 
