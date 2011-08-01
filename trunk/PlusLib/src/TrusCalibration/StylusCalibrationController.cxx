@@ -218,11 +218,13 @@ void StylusCalibrationController::InitializeVisualization()
 
 			// Add actors
 			renderer->AddActor(m_InputActor);
+      m_InputActor->VisibilityOff();
 		}
 	} else if (vtkFreehandController::GetInstance()->GetCanvas() != NULL) {  // If already initialized (it can occur if tab change - and so clear - happened)
 		// Add all actors to the renderer again - state must be "Done", because tab cannot be changed if "In progress"
 		vtkRenderer* renderer = vtkFreehandController::GetInstance()->GetCanvasRenderer();
 		renderer->AddActor(m_InputActor);
+    m_InputActor->VisibilityOff();
 		renderer->AddActor(m_StylusActor);
 		renderer->AddActor(m_StylusTipActor);
 		renderer->Modified();
@@ -456,6 +458,9 @@ PlusStatus StylusCalibrationController::DoAcquisition()
 				points->ComputeBounds();
 				points->GetBounds(m_BoundingBox);
 
+        // If this is the first point (the calibration has just been started), then show input points
+        m_InputActor->VisibilityOn();
+
 				// Set new current point number
 				++m_CurrentPointNumber;
 
@@ -464,6 +469,7 @@ PlusStatus StylusCalibrationController::DoAcquisition()
 					vtkFreehandController::GetInstance()->GetCanvasRenderer()->ResetCamera();
 				}
 
+        // If enough points have been acquired, stop
 				if (m_CurrentPointNumber >= m_NumberOfPoints) {
 					if (m_Toolbox) {
 						m_Toolbox->Stop();
