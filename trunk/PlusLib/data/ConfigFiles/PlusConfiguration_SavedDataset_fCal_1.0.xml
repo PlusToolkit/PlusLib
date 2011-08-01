@@ -8,7 +8,7 @@
 			/>
 
 		<Tracker Type="SavedDataset" BufferSize="2500" Frequency="10" AveragedItemsForFiltering="20" LocalTimeOffset="0.0"
-		SequenceMetafile="d:\devel\_Images\2011-07-23_fCal-Test\2011-07-23_fCal_Test_01.mha"
+		SequenceMetafile=""
 		ReplayEnabled="TRUE"
 		>
 
@@ -76,7 +76,7 @@
 				FrameRate="10" 
 				AveragedItemsForFiltering="20" 
 				LocalTimeOffset="-0.1908" 
-				SequenceMetafile="d:\devel\_Images\2011-07-23_fCal-Test\2011-07-23_fCal_Test_01.mha"
+				SequenceMetafile=""
 				UsImageOrientation="MF"
 				ReplayEnabled="TRUE"
 				/>
