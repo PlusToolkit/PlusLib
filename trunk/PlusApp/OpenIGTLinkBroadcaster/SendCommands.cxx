@@ -3,9 +3,10 @@
 #include <sstream>
 #include <string>
 
-#include "igtlOSUtil.h"
-#include "igtlStringMessage1.h"
 #include "igtlClientSocket.h"
+#include "igtlOSUtil.h"
+#include "igtlServerSocket.h"
+#include "igtlStringMessage1.h"
 
 
 
@@ -24,7 +25,7 @@ int main( int argc, char** argv )
   int   port     = atoi( argv[ 2 ] );
   
   
-    // Set up connection.
+    // Set client.
   
   igtl::ClientSocket::Pointer socket;
   socket = igtl::ClientSocket::New();

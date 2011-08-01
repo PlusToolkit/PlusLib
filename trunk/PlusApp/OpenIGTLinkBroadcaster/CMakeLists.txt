@@ -30,4 +30,12 @@ ADD_EXECUTABLE( SendCommands
 TARGET_LINK_LIBRARIES( SendCommands
   OpenIGTLink
   )
+
   
+ADD_EXECUTABLE( PlusServer
+  PlusServer.cxx
+  igtlStringMessage1.cxx  igtlStringMessage1.h
+  )
+TARGET_LINK_LIBRARIES( PlusServer
+  OpenIGTLink
+  )

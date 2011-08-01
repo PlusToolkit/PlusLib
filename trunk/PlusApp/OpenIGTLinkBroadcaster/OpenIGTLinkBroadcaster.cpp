@@ -187,6 +187,13 @@ int main( int argc, char *argv[] )
   if ( error != 0 ) return error;
   
   
+  if ( clientMode )
+    {
+    
+    return 0;
+    }
+  
+  
     // Determine delay from frequency for the tracker.
   
   double delayTracking = 1.0 / dataCollector->GetTracker()->GetFrequency();
