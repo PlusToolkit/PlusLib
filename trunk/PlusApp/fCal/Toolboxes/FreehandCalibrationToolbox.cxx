@@ -84,7 +84,7 @@ void FreehandCalibrationToolbox::Initialize()
   }
 
   // If phantom registration controller does not have the calibration transform then try to load it from the device set configuration
-  if (phantomRegistrationController->GetPhantomToPhantomReferenceTransform() == NULL) {
+  if ((controller->GetConfigurationData()) && (phantomRegistrationController->GetPhantomToPhantomReferenceTransform() == NULL)) {
     phantomRegistrationController->LoadPhantomRegistration(controller->GetConfigurationData());
   }
 
@@ -93,7 +93,7 @@ void FreehandCalibrationToolbox::Initialize()
 	}
 
   // Try to load calibration configuration from the device set configuration
-  if (vtkFreehandCalibrationController::GetInstance()->ReadConfiguration(controller->GetConfigurationData()) == PLUS_SUCCESS) {
+  if ((controller->GetConfigurationData()) && (vtkFreehandCalibrationController::GetInstance()->ReadConfiguration(controller->GetConfigurationData()) == PLUS_SUCCESS)) {
     vtkFreehandCalibrationController::GetInstance()->SetConfigurationFileName(controller->GetConfigurationFileName());
     ui.lineEdit_CalibrationConfiguration->setText(tr("Using session calibration configuration"));
   }
@@ -112,6 +112,7 @@ void FreehandCalibrationToolbox::RefreshToolboxContent()
 		ui.label_InstructionsTemporal->setText(tr(""));
 		ui.pushButton_StartTemporal->setEnabled(false);
 		ui.pushButton_ResetTemporal->setEnabled(false);
+		ui.pushButton_SkipTemporal->setEnabled(false);
 
 		ui.label_InstructionsSpatial->setText(tr(""));
 		ui.frame_SpatialCalibration->setEnabled(false);

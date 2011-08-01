@@ -68,9 +68,6 @@ void PhantomRegistrationToolbox::Initialize()
 {
 	LOG_TRACE("PhantomRegistrationToolbox::Initialize"); 
 
-	// Start timer for acquisition
-	m_AcquisitionTimer->start(1000 / vtkFreehandController::GetInstance()->GetRecordingFrameRate());
-
 	// If stylus calibration has just been done, then indicate it
   StylusCalibrationController* stylusCalibrationController = StylusCalibrationController::GetInstance();
   if (stylusCalibrationController == NULL) {
@@ -84,7 +81,7 @@ void PhantomRegistrationToolbox::Initialize()
   }
 
   // If stylus calibration controller does not have the calibration transform then try to load it from the device set configuration
-  if (stylusCalibrationController->GetStylustipToStylusTransform() == NULL) {
+  if ((controller->GetConfigurationData()) && (stylusCalibrationController->GetStylustipToStylusTransform() == NULL)) {
     stylusCalibrationController->LoadStylusCalibration(controller->GetConfigurationData());
   }
 
@@ -95,6 +92,9 @@ void PhantomRegistrationToolbox::Initialize()
 
 		ui.lineEdit_StylusCalibration->setText(tr("Using session calibration data"));
 	}
+
+	// Start timer for acquisition
+	m_AcquisitionTimer->start(1000 / vtkFreehandController::GetInstance()->GetRecordingFrameRate());
 }
 
 //-----------------------------------------------------------------------------
