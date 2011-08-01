@@ -84,12 +84,6 @@ protected slots:
 	*/
 	void LogLevelChanged(int aLevel);
 
-	/*!
-	* \brief Slot handling change of stylus calibration number of points
-	* \param aLevel New number of points
-	*/
-	void NumberOfStylusCalibrationPointsChanged(int aNumberOfPoints);
-
 protected:
 	/*!
 	* \brief Filters events if this object has been installed as an event filter for the watched object

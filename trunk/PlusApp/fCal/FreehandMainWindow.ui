@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>932</width>
-    <height>620</height>
+    <width>1020</width>
+    <height>720</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -29,13 +29,13 @@
      <widget class="QTabWidget" name="tabWidgetToolbox">
       <property name="minimumSize">
        <size>
-        <width>212</width>
-        <height>500</height>
+        <width>250</width>
+        <height>700</height>
        </size>
       </property>
       <property name="maximumSize">
        <size>
-        <width>212</width>
+        <width>250</width>
         <height>16777215</height>
        </size>
       </property>
@@ -82,8 +82,8 @@
       </property>
       <property name="minimumSize">
        <size>
-        <width>720</width>
-        <height>600</height>
+        <width>770</width>
+        <height>700</height>
        </size>
       </property>
       <property name="sizeIncrement">

@@ -42,7 +42,6 @@ ConfigurationToolbox::ConfigurationToolbox(QWidget* aParent, Qt::WFlags aFlags)
 	connect( m_DeviceSetSelectorWidget, SIGNAL( ConnectToDevicesByConfigFileInvoked(std::string) ), this, SLOT( ConnectToDevicesByConfigFile(std::string) ) );
 	connect( ui.pushButton_PopOut, SIGNAL( toggled(bool) ), this, SLOT( PopOutToggled(bool) ) );
 	connect( ui.comboBox_LogLevel, SIGNAL( currentIndexChanged(int) ), this, SLOT( LogLevelChanged(int) ) );
-	connect( ui.spinBox_NumberOfStylusCalibrationPoints, SIGNAL( valueChanged(int) ), this, SLOT( NumberOfStylusCalibrationPointsChanged(int) ) );
 
 	// Insert widgets into placeholders
 	QGridLayout* gridDeviceSetSelection = new QGridLayout(ui.deviceSetSelectionWidget, 1, 1, 0, 4, "");
@@ -53,9 +52,6 @@ ConfigurationToolbox::ConfigurationToolbox(QWidget* aParent, Qt::WFlags aFlags)
 	QGridLayout* gridToolStateDisplay = new QGridLayout(ui.toolStateDisplayWidget, 1, 1, 0, 4, "");
 	gridToolStateDisplay->addWidget(m_ToolStateDisplayWidget);
 	ui.toolStateDisplayWidget->setLayout(gridToolStateDisplay);
-
-	// Feed number of points from stylus calibration
-	ui.spinBox_NumberOfStylusCalibrationPoints->setValue(StylusCalibrationController::GetInstance()->GetNumberOfPoints());
 
 	// Change log level to info (program default)
 	ui.comboBox_LogLevel->setCurrentText("Info");
@@ -285,13 +281,4 @@ void ConfigurationToolbox::LogLevelChanged(int aLevel)
 	}
 
 	LOG_INFO("Log level changed to: " << ui.comboBox_LogLevel->currentText().ascii() )
-}
-
-//-----------------------------------------------------------------------------
-
-void ConfigurationToolbox::NumberOfStylusCalibrationPointsChanged(int aNumberOfPoints)
-{
-	LOG_TRACE("ConfigurationToolbox::NumberOfStylusCalibrationPointsChanged");
-
-	StylusCalibrationController::GetInstance()->SetNumberOfPoints(aNumberOfPoints);
 }

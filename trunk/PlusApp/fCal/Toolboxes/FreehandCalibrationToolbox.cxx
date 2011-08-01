@@ -72,15 +72,31 @@ void FreehandCalibrationToolbox::Initialize()
 	LOG_TRACE("FreehandCalibrationToolbox::Initialize"); 
 
 	// If phantom registration has just been done, then indicate it
-	if (PhantomRegistrationController::GetInstance() == NULL) {
+	PhantomRegistrationController* phantomRegistrationController = PhantomRegistrationController::GetInstance();
+	if (phantomRegistrationController == NULL) {
 		LOG_ERROR("Phantom registration controller not initialized!");
 		return;
 	}
+  vtkFreehandController* controller = vtkFreehandController::GetInstance();
+  if (controller == NULL) {
+    LOG_ERROR("Freehand controller is not initialized!");
+    return;
+  }
 
-	PhantomRegistrationController* phantomRegistrationController = PhantomRegistrationController::GetInstance();
+  // If phantom registration controller does not have the calibration transform then try to load it from the device set configuration
+  if (phantomRegistrationController->GetPhantomToPhantomReferenceTransform() == NULL) {
+    phantomRegistrationController->LoadPhantomRegistration(controller->GetConfigurationData());
+  }
+
 	if (phantomRegistrationController->GetPhantomToPhantomReferenceTransform() != NULL) {
 		ui.lineEdit_PhantomRegistration->setText(tr("Using session registration data"));
 	}
+
+  // Try to load calibration configuration from the device set configuration
+  if (vtkFreehandCalibrationController::GetInstance()->ReadConfiguration(controller->GetConfigurationData()) == PLUS_SUCCESS) {
+    vtkFreehandCalibrationController::GetInstance()->SetConfigurationFileName(controller->GetConfigurationFileName());
+    ui.lineEdit_CalibrationConfiguration->setText(tr("Using session calibration configuration"));
+  }
 }
 
 //-----------------------------------------------------------------------------

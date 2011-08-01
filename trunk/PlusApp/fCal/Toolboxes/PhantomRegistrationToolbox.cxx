@@ -72,10 +72,26 @@ void PhantomRegistrationToolbox::Initialize()
 	m_AcquisitionTimer->start(1000 / vtkFreehandController::GetInstance()->GetRecordingFrameRate());
 
 	// If stylus calibration has just been done, then indicate it
-	if (StylusCalibrationController::GetInstance()->GetStylustipToStylusTransform() != NULL) {
+  StylusCalibrationController* stylusCalibrationController = StylusCalibrationController::GetInstance();
+  if (stylusCalibrationController == NULL) {
+    LOG_ERROR("Stylus calibration controller is not initialized!");
+    return;
+  }
+  vtkFreehandController* controller = vtkFreehandController::GetInstance();
+  if (controller == NULL) {
+    LOG_ERROR("Freehand controller is not initialized!");
+    return;
+  }
 
-		// If the user changed device set since calibration, set the calibration to the tool
-		StylusCalibrationController::GetInstance()->FeedStylusCalibrationMatrixToTool();
+  // If stylus calibration controller does not have the calibration transform then try to load it from the device set configuration
+  if (stylusCalibrationController->GetStylustipToStylusTransform() == NULL) {
+    stylusCalibrationController->LoadStylusCalibration(controller->GetConfigurationData());
+  }
+
+  if (stylusCalibrationController->GetStylustipToStylusTransform() != NULL) {
+
+		// In case the user changed device set since calibration, set the calibration to the tool
+		stylusCalibrationController->FeedStylusCalibrationMatrixToTool();
 
 		ui.lineEdit_StylusCalibration->setText(tr("Using session calibration data"));
 	}

@@ -30,12 +30,16 @@ StylusCalibrationToolbox::StylusCalibrationToolbox(QWidget* aParent, Qt::WFlags 
 	}
 
 	toolboxController->SetToolbox(this);
-	toolboxController->SetNumberOfPoints(100); //TODO configurable
+	toolboxController->SetNumberOfPoints(100);
+
+	// Feed number of points from controller
+	ui.spinBox_NumberOfStylusCalibrationPoints->setValue(StylusCalibrationController::GetInstance()->GetNumberOfPoints());
 
 	// Connect events
 	connect( ui.pushButton_Start, SIGNAL( clicked() ), this, SLOT( StartClicked() ) );
 	connect( ui.pushButton_Stop, SIGNAL( clicked() ), this, SLOT( StopClicked() ) );
 	connect( ui.pushButton_Save, SIGNAL( clicked() ), this, SLOT( SaveResultClicked() ) );
+	connect( ui.spinBox_NumberOfStylusCalibrationPoints, SIGNAL( valueChanged(int) ), this, SLOT( NumberOfStylusCalibrationPointsChanged(int) ) );
 
 	connect( m_AcquisitionTimer, SIGNAL( timeout() ), this, SLOT( RequestDoAcquisition() ) );
 }
@@ -227,4 +231,13 @@ void StylusCalibrationToolbox::RequestDoAcquisition()
 	LOG_TRACE("StylusCalibrationToolbox::RequestDoAcquisition"); 
 
 	StylusCalibrationController::GetInstance()->DoAcquisition(); //TODO Singleton AbstractToolboxController? (so that it calls the constructor of this class too! then this function could go to abstract)
+}
+
+//-----------------------------------------------------------------------------
+
+void StylusCalibrationToolbox::NumberOfStylusCalibrationPointsChanged(int aNumberOfPoints)
+{
+	LOG_TRACE("StylusCalibrationToolbox::NumberOfStylusCalibrationPointsChanged");
+
+	StylusCalibrationController::GetInstance()->SetNumberOfPoints(aNumberOfPoints);
 }

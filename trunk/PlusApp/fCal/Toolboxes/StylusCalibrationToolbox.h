@@ -72,6 +72,12 @@ protected slots:
 	*/
 	void RequestDoAcquisition();
 
+	/*!
+	* \brief Slot handling change of stylus calibration number of points
+	* \param aLevel New number of points
+	*/
+	void NumberOfStylusCalibrationPointsChanged(int aNumberOfPoints);
+
 protected:
 	Ui::StylusCalibrationToolbox ui;
 

@@ -6,19 +6,19 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>188</width>
+    <width>236</width>
     <height>560</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
-    <width>188</width>
+    <width>236</width>
     <height>560</height>
    </size>
   </property>
   <property name="maximumSize">
    <size>
-    <width>188</width>
+    <width>243</width>
     <height>16777215</height>
    </size>
   </property>
@@ -203,7 +203,7 @@
            <string/>
           </property>
           <property name="icon">
-           <iconset resource="../FreehandCalibration.qrc">
+           <iconset resource="../fCal.qrc">
             <normaloff>:/icons/CommonWidgets/Resources/icon_OpenFile.png</normaloff>:/icons/CommonWidgets/Resources/icon_OpenFile.png</iconset>
           </property>
           <property name="iconSize">
@@ -265,7 +265,7 @@
            <string/>
           </property>
           <property name="icon">
-           <iconset resource="../FreehandCalibration.qrc">
+           <iconset resource="../fCal.qrc">
             <normaloff>:/icons/CommonWidgets/Resources/icon_OpenFile.png</normaloff>:/icons/CommonWidgets/Resources/icon_OpenFile.png</iconset>
           </property>
           <property name="iconSize">
@@ -347,7 +347,7 @@
          <number>4</number>
         </property>
         <property name="leftMargin">
-         <number>40</number>
+         <number>64</number>
         </property>
         <item>
          <widget class="QCheckBox" name="checkBox_ShowDevices">
@@ -482,7 +482,7 @@
  </widget>
  <layoutdefault spacing="4" margin="4"/>
  <resources>
-  <include location="../FreehandCalibration.qrc"/>
+  <include location="../fCal.qrc"/>
  </resources>
  <connections/>
 </ui>
