@@ -74,6 +74,10 @@ ProcessTrackerStatus( TrackerStatus status )
 
 
 
+
+
+
+
 /**
  * This program implements broadcasting image and tracking data collected by
  * vtkDataCollector to OpenIGTLink servers. This is an OpenIGTLink client.
@@ -87,6 +91,7 @@ int main( int argc, char *argv[] )
   std::string inputVideoBufferMetafile;
   std::string inputTrackerBufferMetafile;
   int         verboseLevel = PlusLogger::LOG_LEVEL_INFO;
+  bool        clientMode = false;
   
   vtksys::CommandLineArguments args;
   args.Initialize( argc, argv );
@@ -99,6 +104,8 @@ int main( int argc, char *argv[] )
                       &inputTrackerBufferMetafile, "Tracker buffer sequence metafile." );
   args.AddArgument( "--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT,
                       &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug 5=trace)" );  
+  args.AddArgument( "--client", vtksys::CommandLineArguments::NO_ARGUMENT,
+                      &clientMode, "Set this if this Broadcaster will be controlled through OpenIGTLink." );
   
   
     // Try to parse command line arguments.
@@ -124,6 +131,18 @@ int main( int argc, char *argv[] )
   
   PlusLogger::Instance()->SetLogLevel( verboseLevel );
   PlusLogger::Instance()->SetDisplayLogLevel( verboseLevel );
+  
+  
+    // Check mode.
+  
+  if ( clientMode )
+    {
+    std::cout << "Running client mode." << std::endl;
+    }
+  else
+    {
+    std::cout << "Running automatic mode." << std::endl;
+    }
   
   
     // Prepare data collector object.
