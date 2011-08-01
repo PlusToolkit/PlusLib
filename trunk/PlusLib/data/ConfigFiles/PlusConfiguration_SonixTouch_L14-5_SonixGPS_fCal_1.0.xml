@@ -4,7 +4,7 @@
 	<USDataCollection version="2.0" StartupDelaySec="1.0">
 	  
 	  <DeviceSet 
-		Name="SonixTouch with GPS extension" 
+		Name="Unified SonixTouch with GPS extension" 
 		Description="Ultrasound probe is tracked by the GPS extension against a reference sensor." 
 		/>
 
@@ -14,53 +14,29 @@
 		Frequency="20"
 		LocalTimeOffset="0.0"
 		AveragedItemsForFiltering="20"
-		ReferenceToolName="Reference"
-		DefaultToolName="Probe"
 		>
 		  
 		<Tool
 		  Name="Probe"
-      Type="Probe"
+          Type="Probe"
 		  PortNumber="0"
 		  SendTo="localhost:18944">
 		</Tool>
 		
 		<Tool
 		  Name="Reference"
-      Type="Reference"
+          Type="Reference"
 		  PortNumber="1">
 		</Tool>
 	  
 		<Tool
 		  Name="Stylus"
-      Type="Stylus"
+          Type="Stylus"
 		  PortNumber="2">
 		</Tool>
 	  
 	  </Tracker>
 
-<<<<<<< .mine
-    <ImageAcqusition Type="SonixVideo" 
-            BufferSize="500" 
-            FrameSize="820 616" 
-            UsImageOrientation="UF"
-            FrameRate="30" 
-            AveragedItemsForFiltering="20" 
-            LocalTimeOffset="0.0"
-            IP="130.15.7.20" 
-            ImagingMode="0" 
-            AcquisitionDataType="4" 
-            Depth="-1" 
-            Sector="-1" 
-            Gain="-1" 
-            DynRange="-1" 
-            Zoom="-1" 
-            Frequency="-1" 
-            Timeout="-1" 
-            CompressionStatus="0" 
-            />
- 
-=======
 	  <ImageAcqusition
 		Type="SonixVideo" 
 		BufferSize="500" 
@@ -82,7 +58,6 @@
 		CompressionStatus="0" 
 		/>
 
->>>>>>> .r473
 	  <Synchronization
 		Type="ChangeDetection" 
 		SynchronizationTimeLength="30" 
