@@ -173,8 +173,9 @@ protected:
 
 	/*!
 	* \brief Initialize 3D visualization
+	* \return Success flag
 	*/
-	void InitializeVisualization();
+	PlusStatus InitializeVisualization();
 
 	/*!
 	* \brief Acquires new position from main tool of the tracker

@@ -411,7 +411,9 @@ PlusStatus vtkTrackerTool::ReadConfiguration(vtkXMLDataElement* config)
 	if ( typeString != NULL ) 
 	{
 		TRACKER_TOOL_TYPE type;
-		vtkTracker::ConvertStringToToolType(typeString, type);
+    if (vtkTracker::ConvertStringToToolType(typeString, type) != PLUS_SUCCESS) {
+      return PLUS_FAIL;
+    }
 		this->SetToolType(type);
 	}
 	else
