@@ -165,11 +165,11 @@ PlusStatus vtkCalibrationController::AddTrackedFrameData(TrackedFrame* trackedFr
 	{
 		// Check to see if the segmentation has returned the targets
 		SegmentationResults segResults; 
-        if ( this->SegmentImage(trackedFrame->ImageData, segResults) != PLUS_SUCCESS )
-        {
-            LOG_WARNING("Undefined error occured during frame segmentation!"); 
-            return PLUS_FAIL; 
-        }
+    if ( (trackedFrame->ImageData.GetPointer() != NULL) && (this->SegmentImage(trackedFrame->ImageData, segResults) != PLUS_SUCCESS) )
+    {
+        LOG_WARNING("Undefined error occured during frame segmentation!"); 
+        return PLUS_FAIL; 
+    }
 
 		// Add frame to the container 
 		int trackedFramePosition(-1); 
