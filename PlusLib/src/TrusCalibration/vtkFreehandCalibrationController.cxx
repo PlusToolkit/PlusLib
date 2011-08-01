@@ -1128,7 +1128,7 @@ PlusStatus vtkFreehandCalibrationController::DisplaySegmentedPoints(bool aSucces
 	// Get last results and feed the points into vtkPolyData for displaying
 	SegmentedFrame lastSegmentedFrame = this->SegmentedFrameContainer.at(this->SegmentedFrameContainer.size() - 1);
 	SegmentationResults results = lastSegmentedFrame.SegResults;
-	int height = lastSegmentedFrame.TrackedFrameInfo->FrameSize[1];
+	int height = lastSegmentedFrame.TrackedFrameInfo->GetFrameSize()[1];
 
 	vtkSmartPointer<vtkPoints> inputPoints = vtkSmartPointer<vtkPoints>::New();
 	inputPoints->SetNumberOfPoints(results.GetFoundDotsCoordinateValue().size());

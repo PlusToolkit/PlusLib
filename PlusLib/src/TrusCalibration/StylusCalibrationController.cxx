@@ -323,7 +323,7 @@ std::string StylusCalibrationController::GetStylustipToStylusTransformString()
 	m_StylustipToStylusTransform->GetMatrix(transform);
 
 	char stylustipToStylusTransformChars[32];
-	sprintf_s(stylustipToStylusTransformChars, 32, "%.3lf X %.3lf X %.3lf", transform->GetElement(0,3), transform->GetElement(1,3), transform->GetElement(2,3));
+	sprintf_s(stylustipToStylusTransformChars, 32, "%.2lf X %.2lf X %.2lf", transform->GetElement(0,3), transform->GetElement(1,3), transform->GetElement(2,3));
 	std::string stylustipToStylusTransformString(stylustipToStylusTransformChars);
 
 	return stylustipToStylusTransformString;
@@ -647,7 +647,10 @@ PlusStatus StylusCalibrationController::LoadStylusCalibration(vtkXMLDataElement*
 		if (dataCollector != NULL) {
 			// If one jumped to Phantom registration toolbox right away
 			if (m_State == ToolboxState_Uninitialized) {
-				DetermineStylusPortNumber();
+        if (DetermineStylusPortNumber() != PLUS_SUCCESS) {
+          LOG_ERROR("Unable to determine stylus port number!");
+          return PLUS_FAIL;
+        }
 			}
 
 			dataCollector->GetTracker()->GetTool(m_StylusPortNumber)->SetCalibrationMatrix(stylustipToStylusTransformMatrix);
@@ -741,13 +744,13 @@ PlusStatus StylusCalibrationController::CalibrateStylus()
 		m_StylustipToStylusTransform = vtkTransform::New();
 	}
 	m_StylustipToStylusTransform->Identity();
-	vtkMatrix4x4* transform = dataCollector->GetTracker()->GetTool(m_StylusPortNumber)->GetCalibrationMatrix();
+	vtkSmartPointer<vtkMatrix4x4> transform = dataCollector->GetTracker()->GetTool(m_StylusPortNumber)->GetCalibrationMatrix();
 	m_StylustipToStylusTransform->SetMatrix(transform);
 
 	// Display calibration result stylus tip (by acquiring a new point and using it) //TODO do it an other way, without getting a new point
 	if (vtkFreehandController::GetInstance()->GetCanvas() != NULL) {
 		double stylusTipPosition[4];
-		vtkMatrix4x4* referenceToolToStylusTransformMatrix = NULL;
+		vtkSmartPointer<vtkMatrix4x4> referenceToolToStylusTransformMatrix = NULL;
 
 		if (referenceToolToStylusTransformMatrix = AcquireStylusTrackerPosition(stylusTipPosition)) {
 			// Apply calibration
