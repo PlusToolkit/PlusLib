@@ -128,7 +128,11 @@ void FreehandCalibrationToolbox::RefreshToolboxContent()
 			ui.pushButton_ResetTemporal->setEnabled(true);
 			ui.pushButton_SkipTemporal->setEnabled(false);
 
-			ui.label_InstructionsSpatial->setText(tr("Press Start and start scanning the phantom"));
+      if (toolboxController->IsReadyToStartSpatialCalibration()) {
+			  ui.label_InstructionsSpatial->setText(tr("Press Start and start scanning the phantom"));
+      } else {
+			  ui.label_InstructionsSpatial->setText(tr("Configuration files need to be loaded"));
+      }
 			ui.frame_SpatialCalibration->setEnabled(true);
 			ui.pushButton_ResetSpatial->setEnabled(false);
 
@@ -167,7 +171,7 @@ void FreehandCalibrationToolbox::RefreshToolboxContent()
 		} else { // If temporal calibration is finished
 			ui.label_InstructionsTemporal->setText(tr("Temporal calibration is ready to save\n(video time offset: %1 ms)").arg(toolboxController->GetVideoTimeOffset()));
 			ui.pushButton_StartTemporal->setEnabled(false);
-			ui.pushButton_ResetTemporal->setEnabled(true);
+			ui.pushButton_ResetTemporal->setEnabled(false);
 
 			ui.label_InstructionsSpatial->setText(tr("Scan the phantom in the most degrees of freedom possible"));
 			ui.frame_SpatialCalibration->setEnabled(true);
@@ -191,7 +195,7 @@ void FreehandCalibrationToolbox::RefreshToolboxContent()
 	if (toolboxController->State() == ToolboxState_Done) {
 		ui.label_InstructionsTemporal->setText(tr("Temporal calibration is ready to save\n(video time offset: %1 ms)").arg(toolboxController->GetVideoTimeOffset()));
 		ui.pushButton_StartTemporal->setEnabled(false);
-		ui.pushButton_ResetTemporal->setEnabled(true);
+		ui.pushButton_ResetTemporal->setEnabled(false);
 
 		ui.label_InstructionsSpatial->setText(tr("Spatial calibration is ready to save"));
 		ui.frame_SpatialCalibration->setEnabled(true);
@@ -329,9 +333,10 @@ void FreehandCalibrationToolbox::ResetTemporalClicked()
 {
 	LOG_TRACE("FreehandCalibrationToolbox::ResetTemporalClicked"); 
 
+  // Reset controller
 	vtkFreehandCalibrationController::GetInstance()->Reset();
 
-	// Re-enable tab changing and stop controller
+  // Re-enable tab changing and stop controller
 	Stop();
 }
 
@@ -383,9 +388,15 @@ void FreehandCalibrationToolbox::ResetSpatialClicked()
 {
 	LOG_TRACE("FreehandCalibrationToolbox::ResetSpatialClicked"); 
 
-	vtkFreehandCalibrationController::GetInstance()->Reset();
+  // Turn off device visualization if it was on
+  if (vtkFreehandCalibrationController::GetInstance()->GetShowDevices() == true) {
+    ui.checkBox_ShowDevices->setChecked(false);
+  }
 
-	// Re-enable tab changing and stop controller
+  // Reset controller
+  vtkFreehandCalibrationController::GetInstance()->Reset();
+
+  // Re-enable tab changing and stop controller
 	Stop();
 }
 
