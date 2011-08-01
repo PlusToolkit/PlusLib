@@ -767,8 +767,39 @@ PlusStatus vtkFreehandCalibrationController::Reset()
 {
 	LOG_TRACE("vtkFreehandCalibrationController::Reset");
 
+	// If spatial calibration is done
+	if (this->SpatialCalibrationDone == true) {
+		this->SpatialCalibrationDoneOff();
+
+		// Empty tracked frame containers
+		this->TrackedFrameListContainer[FREEHAND_MOTION_1]->Clear();
+		this->TrackedFrameListContainer[FREEHAND_MOTION_2]->Clear();
+
+    // Reset segmented image counters
+    this->RealtimeImageDataInfoContainer[FREEHAND_MOTION_1].NumberOfSegmentedImages = 0;
+    this->RealtimeImageDataInfoContainer[FREEHAND_MOTION_2].NumberOfSegmentedImages = 0;
+
+  // If temporal calibration is done but spatial has not been started
+	} else if ((this->TemporalCalibrationDone == true) && (m_State != ToolboxState_InProgress)) {
+    this->TemporalCalibrationDoneOff();
+
+	// If spatial calibration is in progress
+	} else if ((this->TemporalCalibrationDone == true) && (m_State == ToolboxState_InProgress)) {
+		// Turn on cancel flag
+		this->CancelRequestOn();
+
+		if (this->Calibrator != NULL) {
+			delete this->Calibrator;
+			this->Calibrator = NULL;
+		}
+
+		// Empty tracked frame containers
+		this->TrackedFrameListContainer[FREEHAND_MOTION_1]->Clear();
+		this->TrackedFrameListContainer[FREEHAND_MOTION_2]->Clear();
+	}
+
 	// If temporal calibration still in progress
-	if ((this->TemporalCalibrationDone == false) && (m_State == ToolboxState_InProgress)) {
+	else if ((this->TemporalCalibrationDone == false) && (m_State == ToolboxState_InProgress)) {
 		vtkFreehandController* controller = vtkFreehandController::GetInstance();
 		if ((controller == NULL) || (controller->GetInitialized() == false)) {
 			LOG_ERROR("vtkFreehandController is not initialized!");
@@ -782,25 +813,9 @@ PlusStatus vtkFreehandCalibrationController::Reset()
 
 		// Cancel synchronization (temporal calibration) in data collector
 		dataCollector->CancelSyncRequestOn();
-
-	// If temporal calibration is done but spatial has not been started
-	} else if ((this->TemporalCalibrationDone == true) && (m_State != ToolboxState_InProgress)) {
-		this->SetTemporalCalibrationDone(false);
-
-	// If spatial calibration is in progress
-	} else if (this->TemporalCalibrationDone == true) {
-		// Turn on cancel flag
-		this->CancelRequestOn();
-
-		if (this->Calibrator != NULL) {
-			delete this->Calibrator;
-			this->Calibrator = NULL;
-		}
-
-		// Empty tracked frame containers
-		this->TrackedFrameListContainer[FREEHAND_MOTION_1]->Clear();
-		this->TrackedFrameListContainer[FREEHAND_MOTION_2]->Clear();
-	}
+  } else {
+    LOG_ERROR("Reset freehand calibration was called in an unexpected state!");
+  }
 
 	// Reset progress
 	this->SetProgressPercent(0);
