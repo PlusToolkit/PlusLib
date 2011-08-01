@@ -99,10 +99,16 @@ PlusStatus StylusCalibrationController::Initialize()
 	LOG_TRACE("Initialize StylusCalibrationController");
 
 	// Determine stylus tool port number
-	DetermineStylusPortNumber();
+  if (DetermineStylusPortNumber() != PLUS_SUCCESS) {
+    LOG_ERROR("Determining stylus port number failed!");
+    return PLUS_FAIL;
+  }
 
 	// Initialize visualization
-	InitializeVisualization();
+	if (InitializeVisualization() != PLUS_SUCCESS) {
+    LOG_ERROR("Initializing stylus calibration visualization failed!");
+    return PLUS_FAIL;
+  }
 
 	// Set state to idle
 	if (m_State == ToolboxState_Uninitialized) {
@@ -151,7 +157,7 @@ PlusStatus StylusCalibrationController::DetermineStylusPortNumber()
 
 //-----------------------------------------------------------------------------
 
-void StylusCalibrationController::InitializeVisualization()
+PlusStatus StylusCalibrationController::InitializeVisualization()
 {
 	LOG_TRACE("StylusCalibrationController::InitializeVisualization");
 
@@ -202,7 +208,10 @@ void StylusCalibrationController::InitializeVisualization()
 			// Load stylus model
 			m_StylusActor = vtkActor::New();
 
-			LoadStylusModel();
+      if (LoadStylusModel() != PLUS_SUCCESS) {
+        LOG_ERROR("Loading stylus model failed!");
+        return PLUS_FAIL;
+      }
 
 			// Axes actor
 			/*
@@ -229,6 +238,8 @@ void StylusCalibrationController::InitializeVisualization()
 		renderer->AddActor(m_StylusTipActor);
 		renderer->Modified();
 	}
+
+  return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
@@ -458,9 +469,6 @@ PlusStatus StylusCalibrationController::DoAcquisition()
 				points->ComputeBounds();
 				points->GetBounds(m_BoundingBox);
 
-        // If this is the first point (the calibration has just been started), then show input points
-        m_InputActor->VisibilityOn();
-
 				// Set new current point number
 				++m_CurrentPointNumber;
 
@@ -569,6 +577,9 @@ PlusStatus StylusCalibrationController::Start()
 	// Reset polydatas (make it look like empty)
 	m_InputPolyData->GetPoints()->Reset();
 	m_StylusTipPolyData->GetPoints()->Reset();
+
+  // Show input points
+  m_InputActor->VisibilityOn();
 
 	// Remove stylus tip actor
 	controller->GetCanvasRenderer()->RemoveActor(m_StylusTipActor);
@@ -824,7 +835,10 @@ PlusStatus StylusCalibrationController::LoadStylusModel(vtkActor* aActor)
 		return PLUS_FAIL;
 	}
 	if (m_StylusPortNumber < 0) {
-		DetermineStylusPortNumber();
+    if (DetermineStylusPortNumber() != PLUS_SUCCESS) {
+      LOG_ERROR("Unable to determine stylus port number!");
+      return PLUS_FAIL;
+    }
 	}
 	vtkTrackerTool *tool = dataCollector->GetTracker()->GetTool(m_StylusPortNumber);
 	if ((tool == NULL) || (!tool->GetEnabled())) {

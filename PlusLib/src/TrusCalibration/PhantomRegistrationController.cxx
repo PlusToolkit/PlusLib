@@ -152,13 +152,16 @@ PlusStatus PhantomRegistrationController::Initialize()
 		return PLUS_FAIL;
 	}
 
+  if (InitializeVisualization() != PLUS_SUCCESS) {
+    LOG_ERROR("Initializing phantom registration visualization failed!");
+    return PLUS_FAIL;
+  }
+
 	if (m_Toolbox) {
 		m_Toolbox->Initialize();
 	}
 
-	InitializeVisualization();
-
-	// Set state to idle
+  // Set state to idle
 	if (m_State == ToolboxState_Uninitialized) {
 		m_State = ToolboxState_Idle;
 	}
@@ -168,7 +171,7 @@ PlusStatus PhantomRegistrationController::Initialize()
 
 //-----------------------------------------------------------------------------
 
-void PhantomRegistrationController::InitializeVisualization()
+PlusStatus PhantomRegistrationController::InitializeVisualization()
 {
 	LOG_TRACE("PhantomRegistrationController::InitializeVisualization"); 
 
@@ -206,7 +209,10 @@ void PhantomRegistrationController::InitializeVisualization()
 
 			// Initialize stylus visualization - in ReferenceTool coordinate system
 			m_StylusActor = vtkActor::New();
-			StylusCalibrationController::GetInstance()->LoadStylusModel(m_StylusActor);
+      if (StylusCalibrationController::GetInstance()->LoadStylusModel(m_StylusActor) != PLUS_SUCCESS) {
+        LOG_ERROR("Unable to load stylus model");
+        return PLUS_FAIL;
+      }
 
 			// Initialize registered phantom body actor
 			m_RegisteredPhantomBodyActor = vtkActor::New();
@@ -264,6 +270,8 @@ void PhantomRegistrationController::InitializeVisualization()
 		m_PhantomRenderer->AddActor(m_RequestedLandmarksActor);
 		m_PhantomRenderer->Modified();
 	}
+
+  return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
@@ -687,14 +695,17 @@ PlusStatus PhantomRegistrationController::DoAcquisition()
 	vtkDataCollector* dataCollector = vtkFreehandController::GetInstance()->GetDataCollector();
 	if (dataCollector == NULL) {
 		LOG_ERROR("Data collector is not initialized!");
+    m_Toolbox->Clear();
 		return PLUS_FAIL;
 	}
 	if (dataCollector->GetTracker() == NULL) {
 		LOG_ERROR("Tracker is not initialized properly!");
+    m_Toolbox->Clear();
 		return PLUS_FAIL;
 	}
 	vtkTrackerTool *tool = dataCollector->GetTracker()->GetTool(StylusCalibrationController::GetInstance()->GetStylusPortNumber());
 	if ((tool == NULL) || (!tool->GetEnabled())) {
+    m_Toolbox->Clear();
 		return PLUS_FAIL;
 	}
 

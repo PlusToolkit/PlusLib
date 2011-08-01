@@ -161,13 +161,15 @@ protected:
 
 	/*!
 	* \brief Initialize 3D visualization
+	* \return Success flag
 	*/
 	PlusStatus DetermineStylusPortNumber();
 
 	/*!
 	* \brief Initialize 3D visualization
+	* \return Success flag
 	*/
-	void InitializeVisualization();
+	PlusStatus InitializeVisualization();
 
 	/*!
 	* \brief Acquires new position from stylus tool of the tracker
@@ -179,6 +181,7 @@ protected:
 
 	/*!
 	* \brief Do the stylus calibration
+	* \return Success flag
 	*/
 	PlusStatus CalibrateStylus();
 
