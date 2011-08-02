@@ -210,6 +210,8 @@ PlusStatus vtkFreehandCalibrationController::InitializeVisualization()
 		// Add all actors to the renderer again - state must be "Done", because tab cannot be changed if "In progress"
 		vtkRenderer* renderer = vtkFreehandController::GetInstance()->GetCanvasRenderer();
 
+		renderer->SetBackground(0.2, 0.2, 0.2);
+
 		renderer->AddActor(this->CanvasImageActor);
 		renderer->AddActor(this->SegmentedPointsActor);
 
@@ -218,12 +220,13 @@ PlusStatus vtkFreehandCalibrationController::InitializeVisualization()
 			renderer->AddActor(this->ProbeActor);
 			renderer->AddActor(this->StylusActor);
 			renderer->AddActor(this->NeedleActor);
-		}
 
-		renderer->Modified();
+      renderer->ResetCamera();
 
-		// Compute image camera parameters and set it to display live image
-		CalculateImageCameraParameters();
+    } else {
+		  // Compute image camera parameters and set it to display live image
+		  CalculateImageCameraParameters();
+    }
 	}
 
 	return PLUS_SUCCESS;
@@ -280,6 +283,7 @@ PlusStatus vtkFreehandCalibrationController::InitializeDeviceVisualization()
 				phantomMapper->SetInputConnection(phantomModelToPhantomReferenceTransformFilter->GetOutputPort());
 				vtkSmartPointer<vtkActor> phantomBodyActor = vtkSmartPointer<vtkActor>::New();
 				phantomBodyActor->SetMapper(phantomMapper);
+        phantomBodyActor->GetProperty()->SetOpacity(0.5);
 				this->SetPhantomBodyActor(phantomBodyActor);
 			}
 		} else {
@@ -296,7 +300,7 @@ PlusStatus vtkFreehandCalibrationController::InitializeDeviceVisualization()
 			vtkSmartPointer<vtkActor> deviceActor = vtkSmartPointer<vtkActor>::New();
 
 			// Set proper members
-			if (STRCASECMP(tool->GetToolName(), "Stylus") == 0) {
+			if (tool->GetToolType() == TRACKER_TOOL_STYLUS) {
 				StylusCalibrationController::GetInstance()->LoadStylusModel(deviceActor);
 
 				this->SetStylusActor(deviceActor);
@@ -313,15 +317,17 @@ PlusStatus vtkFreehandCalibrationController::InitializeDeviceVisualization()
 						stlReader->SetFileName(searchResult.c_str());
 
 						// TODO Try to use this filter instead of always setting all these transforms on every acquisition
-						//vtkSmartPointer<vtkTransform> toolModelToToolReferenceTransform = vtkSmartPointer<vtkTransform>::New();
-						//toolModelToToolReferenceTransform->Identity();
-						//toolModelToToolReferenceTransform->Concatenate(tool->GetToolToToolReferenceTransform());
-						//toolModelToToolReferenceTransform->Concatenate(tool->GetModelToToolTransform());
-						//toolModelToToolReferenceTransform->Modified();
+            /*
+						vtkSmartPointer<vtkTransform> toolModelToToolReferenceTransform = vtkSmartPointer<vtkTransform>::New();
+						toolModelToToolReferenceTransform->Identity();
+						toolModelToToolReferenceTransform->Concatenate(tool->GetToolToToolReferenceTransform());
+						toolModelToToolReferenceTransform->Concatenate(tool->GetModelToToolTransform());
+						toolModelToToolReferenceTransform->Modified();
 
-						//vtkSmartPointer<vtkTransformPolyDataFilter> toolModelToToolReferenceTransformFilter = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
-						//toolModelToToolReferenceTransformFilter->AddInputConnection(stlReader->GetOutputPort());
-						//toolModelToToolReferenceTransformFilter->SetTransform(toolModelToToolReferenceTransform);
+						vtkSmartPointer<vtkTransformPolyDataFilter> toolModelToToolReferenceTransformFilter = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
+						toolModelToToolReferenceTransformFilter->AddInputConnection(stlReader->GetOutputPort());
+						toolModelToToolReferenceTransformFilter->SetTransform(toolModelToToolReferenceTransform);
+            */
 
 						vtkSmartPointer<vtkPolyDataMapper> toolMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
 						//toolMapper->SetInputConnection(toolModelToToolReferenceTransformFilter->GetOutputPort());
@@ -329,10 +335,10 @@ PlusStatus vtkFreehandCalibrationController::InitializeDeviceVisualization()
 
 						deviceActor->SetMapper(toolMapper);
 
-						if (STRCASECMP(tool->GetToolName(), "Probe") == 0) {
+						if (tool->GetToolType() == TRACKER_TOOL_PROBE) {
 							this->SetProbeActor(deviceActor);
 
-						} else if (STRCASECMP(tool->GetToolName(), "Needle") == 0) {
+						} else if (tool->GetToolType() == TRACKER_TOOL_NEEDLE) {
 							this->SetNeedleActor(deviceActor);
 						}
 					}
@@ -376,6 +382,7 @@ void vtkFreehandCalibrationController::ToggleDeviceVisualization(bool aOn)
 
 		// Calculate camera to show only the image
 		CalculateImageCameraParameters();
+
 	} else if (aOn == true) {
 		// Add device actors
 		renderer->AddActor(this->PhantomBodyActor);
@@ -385,7 +392,7 @@ void vtkFreehandCalibrationController::ToggleDeviceVisualization(bool aOn)
 
 		// Reset camera to show all devices and the image
 		vtkSmartPointer<vtkCamera> imageCamera = vtkSmartPointer<vtkCamera>::New(); 
-		imageCamera->SetViewUp(0, -1, 0);
+		imageCamera->SetViewUp(0, 1, 0);
 		imageCamera->ParallelProjectionOff();
 		this->SetImageCamera(imageCamera);
 		renderer->SetActiveCamera(this->ImageCamera);
@@ -604,7 +611,7 @@ PlusStatus vtkFreehandCalibrationController::DoAcquisition()
 	}
 
 	int referenceToolNumber = dataCollector->GetTracker()->GetReferenceToolNumber();
-	bool resetCameraNeeded = false;
+	//bool resetCameraNeeded = false;
 
 	for (int toolNumber=0; toolNumber<dataCollector->GetTracker()->GetNumberOfTools(); ++toolNumber) {
 		// If reference then no need for setting transform (the phantom is fixed to the reference)
@@ -629,20 +636,28 @@ PlusStatus vtkFreehandCalibrationController::DoAcquisition()
 		// Compute and set transforms for actors
 		if (status == TR_OK) {
 			// If other tool, set the transform according to the tool name
-			if ((this->ProbeActor != NULL) && (STRCASECMP(tool->GetToolName(), "Probe") == 0)) {
+      if ((this->ProbeActor != NULL) && (tool->GetToolType() == TRACKER_TOOL_PROBE)) {
+        /*
 				if (this->ProbeActor->GetProperty()->GetOpacity() < 1.0) {
 					resetCameraNeeded = true;
 				}
-				this->ProbeActor->GetProperty()->SetOpacity(1.0);
-				this->ProbeActor->SetUserMatrix(toolToReferenceTransformMatrix);
+        */
+        // Probe transform
+				vtkSmartPointer<vtkTransform> probeModelToPhantomReferenceTransform = vtkSmartPointer<vtkTransform>::New();
+				probeModelToPhantomReferenceTransform->Identity();
+				probeModelToPhantomReferenceTransform->Concatenate(toolToReferenceTransformMatrix);
+        probeModelToPhantomReferenceTransform->Concatenate(tool->GetModelToToolTransform());
+
+        this->ProbeActor->GetProperty()->SetOpacity(1.0);
+				this->ProbeActor->SetUserTransform(probeModelToPhantomReferenceTransform);
 
 				// Image canvas transform
 				vtkSmartPointer<vtkTransform> imageToPhantomReferenceTransform = vtkSmartPointer<vtkTransform>::New();
 				imageToPhantomReferenceTransform->Identity();
 				imageToPhantomReferenceTransform->Concatenate(toolToReferenceTransformMatrix);
-				imageToPhantomReferenceTransform->Concatenate(tool->GetCalibrationMatrix());
 				imageToPhantomReferenceTransform->Concatenate(this->TransformImageToProbe);
 				
+        this->CanvasImageActor->SetOpacity(1.0);
 				this->CanvasImageActor->SetUserTransform(imageToPhantomReferenceTransform);
 
 			} else {
@@ -655,31 +670,34 @@ PlusStatus vtkFreehandCalibrationController::DoAcquisition()
 				toolModelToPhantomReferenceTransform->Concatenate(tool->GetModelToToolTransform());
 				toolModelToPhantomReferenceTransform->Modified();
 
-				if ((this->StylusActor != NULL) && (STRCASECMP(tool->GetToolName(), "Stylus") == 0)) {
+				if ((this->StylusActor != NULL) && (tool->GetToolType() == TRACKER_TOOL_STYLUS)) {
 					this->StylusActor->GetProperty()->SetOpacity(1.0);
 					this->StylusActor->SetUserTransform(toolModelToPhantomReferenceTransform);
 
-				} else if ((this->NeedleActor != NULL) && (STRCASECMP(tool->GetToolName(), "Needle") == 0)) {
+        } else if ((this->NeedleActor != NULL) && (tool->GetToolType() == TRACKER_TOOL_NEEDLE)) {
 					this->NeedleActor->GetProperty()->SetOpacity(1.0);
 					this->NeedleActor->SetUserTransform(toolModelToPhantomReferenceTransform);
 				}
 			}
 		} else {
-			if ((this->ProbeActor != NULL) && (STRCASECMP(tool->GetToolName(), "Probe") == 0)) {
+			if ((this->ProbeActor != NULL) && (tool->GetToolType() == TRACKER_TOOL_PROBE)) {
 				this->ProbeActor->GetProperty()->SetOpacity(0.3);
+        this->CanvasImageActor->SetOpacity(0.3);
 
-			} else if ((this->StylusActor != NULL) && (STRCASECMP(tool->GetToolName(), "Stylus") == 0)) {
+			} else if ((this->StylusActor != NULL) && (tool->GetToolType() == TRACKER_TOOL_STYLUS)) {
 				this->StylusActor->GetProperty()->SetOpacity(0.3);
 
-			} else if ((this->NeedleActor != NULL) && (STRCASECMP(tool->GetToolName(), "Needle") == 0)) {
+			} else if ((this->NeedleActor != NULL) && (tool->GetToolType() == TRACKER_TOOL_NEEDLE)) {
 				this->NeedleActor->GetProperty()->SetOpacity(0.3);
 			}
 		}
 	} // for each tool
 
+  /*
 	if (resetCameraNeeded) {
 		controller->GetCanvasRenderer()->ResetCamera();
 	}
+  */
 
 	return PLUS_SUCCESS;
 }
@@ -1499,7 +1517,9 @@ PlusStatus vtkFreehandCalibrationController::SaveCalibrationResults()
 	LOG_TRACE("vtkFreehandCalibrationController::SaveCalibrationResults");
 
 	// Find stylus definition element
-	vtkSmartPointer<vtkXMLDataElement> probeDefinition = vtkFreehandController::LookupElementWithNameContainingChildWithNameAndAttribute(NULL, "Tracker", "Tool", "Type", "Probe");
+	char* toolType = NULL;
+	vtkTracker::ConvertToolTypeToString(TRACKER_TOOL_PROBE, toolType);
+	vtkSmartPointer<vtkXMLDataElement> probeDefinition = vtkFreehandController::LookupElementWithNameContainingChildWithNameAndAttribute(NULL, "Tracker", "Tool", "Type", toolType);
 	if (probeDefinition == NULL) {
 		LOG_ERROR("No probe definition is found in the XML tree!");
 		return PLUS_FAIL;
