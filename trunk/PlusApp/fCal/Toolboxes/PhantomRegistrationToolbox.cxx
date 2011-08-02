@@ -85,16 +85,32 @@ void PhantomRegistrationToolbox::Initialize()
     stylusCalibrationController->LoadStylusCalibration(controller->GetConfigurationData());
   }
 
+  bool readyToStart = true;
+
   if (stylusCalibrationController->GetStylustipToStylusTransform() != NULL) {
 
 		// In case the user changed device set since calibration, set the calibration to the tool
 		stylusCalibrationController->FeedStylusCalibrationMatrixToTool();
 
 		ui.lineEdit_StylusCalibration->setText(tr("Using session calibration data"));
-	}
+  } else {
+    readyToStart = false;
+  }
 
-	// Start timer for acquisition
+  // Try to load phantom definition from the device set configuration
+  if ((controller->GetConfigurationData()) && (PhantomRegistrationController::GetInstance()->LoadPhantomDefinition(controller->GetConfigurationData()) == PLUS_SUCCESS)) {
+    ui.lineEdit_PhantomDefinition->setText(tr("Using session phantom definition"));
+  } else {
+    readyToStart = false;
+  }
+
+  // Start timer for acquisition
 	m_AcquisitionTimer->start(1000 / vtkFreehandController::GetInstance()->GetRecordingFrameRate());
+
+	// Set to InProgress if both stylus calibration and phantom definition are available
+  if (readyToStart) {
+		PhantomRegistrationController::GetInstance()->Start();
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -289,7 +305,7 @@ void PhantomRegistrationToolbox::OpenStylusCalibrationClicked()
 		return;
 	}
 
-	// Load phantom definition xml
+	// Load stylus calibration xml
 	if (StylusCalibrationController::GetInstance()->LoadStylusCalibrationFromFile(fileName.toStdString()) == PLUS_SUCCESS) {
 		ui.lineEdit_StylusCalibration->setText(fileName);
 		ui.lineEdit_StylusCalibration->setToolTip(fileName);

@@ -52,6 +52,8 @@ ConfigurationToolbox::ConfigurationToolbox(QWidget* aParent, Qt::WFlags aFlags)
 	QGridLayout* gridToolStateDisplay = new QGridLayout(ui.toolStateDisplayWidget, 1, 1, 0, 4, "");
 	gridToolStateDisplay->addWidget(m_ToolStateDisplayWidget);
 	ui.toolStateDisplayWidget->setLayout(gridToolStateDisplay);
+	ui.toolStateDisplayWidget->setMinimumHeight(m_ToolStateDisplayWidget->GetDesiredHeight());
+	ui.toolStateDisplayWidget->setMaximumHeight(m_ToolStateDisplayWidget->GetDesiredHeight());
 
 	// Change log level to info (program default)
 	ui.comboBox_LogLevel->setCurrentText("Info");

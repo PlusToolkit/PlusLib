@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Freehand Ultrasound Calibration</string>
+   <string>fCal</string>
   </property>
   <property name="windowIcon">
    <iconset resource="fCal.qrc">
