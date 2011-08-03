@@ -34,7 +34,7 @@
 						0 1 0 0
 						0 0 1 0
 						0 0 0 1"
-					Date="2011.07.28 21:42:34"
+					Date=""
 					Error="0.0" />
 			</Tool>
 			
@@ -60,12 +60,12 @@
 				<Calibration
 					MatrixName="StylusTipToStylus" 
 					MatrixValue="
-						1 0 0 210.0474
-						0 1 0 -0.0521
-						0 0 1 -0.0000
+						1 0 0 0
+						0 1 0 0
+						0 0 1 0
 						0 0 0 1"
-					Date="2011.07.29 17:22:12"
-					Error="0.561812" /> 
+					Date=""
+					Error="0.0" /> 
 			</Tool>
 
 		</Tracker>
@@ -274,12 +274,12 @@
 			<Registration
 				MatrixName="PhantomToPhantomReference" 
 				MatrixValue="
-					0.9968 0.0075 -0.0795 -35.6089
-					0.0794 0.0055 0.9968 -124.9852
-					0.0079 -1.0000 0.0049 -16.7
+					1 0 0 0
+					0 1 0 0
+					0 0 1 0
 					0 0 0 1" 
-				Date="2011.07.20 15:09:35"
-				Error="-1.0" />
+				Date=""
+				Error="0.0" />
 		</Geometry>
 	</PhantomDefinition>
 

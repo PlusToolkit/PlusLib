@@ -21,6 +21,23 @@
           Type="Probe"
 		  PortNumber="0"
 		  SendTo="localhost:18944">
+			<Model
+				File="L14-5_38_ProbeModel.stl"
+				ModelToToolTransform="
+					0.107721 0.979858 0.168146 -115.733132
+					-0.993248 0.113395 -0.024487 13.708913
+					-0.043061 -0.164373 0.985458 -107.578262
+					0 0 0 1"
+			/>
+			<Calibration
+				MatrixName="ImageToProbe" 
+				MatrixValue="
+					1 0 0 0
+					0 1 0 0
+					0 0 1 0
+					0 0 0 1"
+				Date=""
+				Error="0.0" />		  
 		</Tool>
 		
 		<Tool
@@ -33,6 +50,23 @@
 		  Name="Stylus"
           Type="Stylus"
 		  PortNumber="2">
+			<Model
+				File="Stylus_Example.stl"
+				ModelToToolTransform="
+					1 0 0 -210.0
+					0 1 0 0
+					0 0 1 0
+					0 0 0 1"
+			/>
+			<Calibration
+				MatrixName="StylusTipToStylus" 
+				MatrixValue="
+					1 0 0 0
+					0 1 0 0
+					0 0 1 0
+					0 0 0 1"
+				Date=""
+				Error="0.0" />
 		</Tool>
 	  
 	  </Tracker>
@@ -254,12 +288,12 @@
 			<Registration
 				MatrixName="PhantomToPhantomReference" 
 				MatrixValue="
-					0.9968 0.0075 -0.0795 -35.6089
-					0.0794 0.0055 0.9968 -124.9852
-					0.0079 -1.0000 0.0049 -16.7
+					1 0 0 0
+					0 1 0 0
+					0 0 1 0
 					0 0 0 1" 
-				Date="2011.07.20 15:09:35"
-				Error="-1.0" />
+				Date=""
+				Error="0.0" />
 		</Geometry>
 	</PhantomDefinition>
 

@@ -27,12 +27,12 @@
 				<Calibration
 					MatrixName="ImageToProbe" 
 					MatrixValue="
-						1 0 0 0
-						0 1 0 0
-						0 0 1 0
+						-0.0135 -0.0961 0.0013 -101.3679
+						0.1031 -0.0125 0.0031 -53.3969
+						-0.0030 0.0017 0.1004 -92.4
 						0 0 0 1"
-					Date=""
-					Error="0.0" />
+					Date="2011.08.03 14:22:27"
+					Error="0.424586" />
 			</Tool>
 			
 			<!-- REFERENCE -->
@@ -57,12 +57,12 @@
 				<Calibration
 					MatrixName="StylusTipToStylus" 
 					MatrixValue="
-						1 0 0 0
-						0 1 0 0
-						0 0 1 0
+						1 0 0 210.0648
+						0 1 0 -6.7057
+						0 0 1 0.0490
 						0 0 0 1"
-					Date=""
-					Error="0.0" /> 
+					Date="2011.08.03 14:07:52"
+					Error="0.469483" /> 
 			</Tool>
 
 			<!-- NEEDLE -->
@@ -87,7 +87,7 @@
 						0 1 0 0
 						0 0 1 0
 						0 0 0 1"
-					Date=""
+					Date="2011.07.28 21:42:34"
 					Error="0.0" />
 			</Tool>
 		</Tracker>
@@ -305,11 +305,11 @@
 			<Registration
 				MatrixName="PhantomToPhantomReference" 
 				MatrixValue="
-					1 0 0 0
-					0 1 0 0
-					0 0 1 0
-					0 0 0 1" 
-				Date=""
+					0.9955 -0.0286 -0.0898 -35.8654
+					0.0902 0.0125 0.9958 -125.0523
+					-0.0273 -0.9995 0.0150 -15.0
+					0 0 0 1"
+				Date="2011.08.03 14:20:09"
 				Error="0.0" />
 		</Geometry>
 	</PhantomDefinition>

@@ -30,12 +30,12 @@
 				<Calibration
 					MatrixName="StylusTipToStylus" 
 					MatrixValue="
-						1 0 0 210.0
-						0 1 0 -0.0
-						0 0 1 -0.0
+						1 0 0 0
+						0 1 0 0
+						0 0 1 0
 						0 0 0 1"
-					Date="2011.07.28 21:42:34"
-					Error="0.566266" />
+					Date=""
+					Error="0.0" />
 			</Tool>
 		</Tracker>
 
@@ -237,7 +237,7 @@
 							 0 1 0 0 
 							 0 0 1 0
 							 0 0 0 1" 
-				Date="2011.05.17"
+				Date=""
 				Error="0.0" />
 		</Geometry>
 	</PhantomDefinition>

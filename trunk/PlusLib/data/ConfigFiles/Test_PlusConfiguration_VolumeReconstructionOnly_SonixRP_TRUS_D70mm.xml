@@ -5,7 +5,44 @@
 	  Sonix RP machine, TRUS probe.
 	  Image geometry: depth = 70mm, zoom = 100%.
 	-->
-	
+
+	<!-- DATA COLLECTION -->
+	<USDataCollection version="2.0" StartupDelaySec="1.0">
+		<DeviceSet 
+			Name="Volume reconstruction test" 
+			Description="" 
+			/>
+
+		<Tracker Type="CertusTracker" BufferSize="2500" Frequency="50" AveragedItemsForFiltering="20" LocalTimeOffset="0.0" >
+			
+			<!-- PROBE -->
+			<Tool PortNumber="0" Type="Probe" Model="L14-5_38" Name="Probe" SendTo="127.0.0.1:1111">
+				<!-- Supported types are: Probe, Stylus, Needle, Reference -->
+				
+				<!-- ModelToToolTransform - transforming model into tool origin coordinate system for proper visualization ( Note2: All tools that are not phantoms should use ModelToToolTransform as the entity name) -->
+				<Model
+					File="L14-5_38_ProbeModel.stl"
+					ModelToToolTransform="
+						1 0 0 0
+						0 1 0 0
+						0 0 1 0
+						0 0 0 1"
+				/>
+									
+				<!-- Calibration transform -->
+				<Calibration
+					MatrixName="ImageToProbe" 
+					MatrixValue="
+						0.191647 0.00743877 0.0242208 -65.3006 
+						-0.00410587 0.183884 -0.00547576 -86.7768 
+						-0.0249356 0.0044197 0.187056 160.661 
+						0 0 0 1"
+					Date="2011.07.28 21:42:34"
+					Error="0.0" />
+			</Tool>
+		</Tracker>
+	</USDataCollection>
+
 	<!-- VOLUME RECONSTRUCTION -->
 	<VolumeReconstruction>
 		<SliceParameters SliceSpacing="1 1 1" SliceOrigin="0 0 0" NumScalarComponents="1" />
@@ -18,12 +55,6 @@
 		<RotationOptions ImageFlipped="Off" Rotation="Off" MaxRotationChange="90" Threshold1="0" Threshold2="255" ShiftX="0" ShiftY="0" />
 		<ReconstructionOptions Interpolation="Linear" Optimization="On" Compounding="On"/>
 
-
-		<SpatialCalibration CalibrationMatrix="0.191647 0.00743877 0.0242208 -65.3006 
-											-0.00410587 0.183884 -0.00547576 -86.7768 
-											-0.0249356 0.0044197 0.187056 160.661 
-											0 0 0 1"
-										/>
 	</VolumeReconstruction>
 
 </PlusConfiguration>
