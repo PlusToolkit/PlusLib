@@ -4,8 +4,8 @@
 	<USDataCollection version="2.0" StartupDelaySec="1.0">
 	  
 	  <DeviceSet 
-		Name="Unified SonixTouch with GPS extension" 
-		Description="Ultrasound probe is tracked by the GPS extension against a reference sensor." 
+		Name="Unified SonixTouch with GPS extension - calibrated" 
+		Description="Ultrasound probe is tracked by the GPS extension against a reference sensor with calibration matrices" 
 		/>
 
 	  <Tracker
