@@ -397,18 +397,23 @@ void SegImpl::find_lines3pt( )
 
 	
 	int points[3];
+	Line currentTwoPointsLine;
 	float dist = m_SegParams.GetFindLines3PtDist();
-	for ( int b3 = 0; b3 < m_DotsVector.size(); b3++ ) {
+	for ( int b3 = 0; b3 < m_DotsVector.size(); b3++ ) 
+	{
 		float x3 = m_DotsVector[b3].GetX() - 1;
 		float y3 = rows - m_DotsVector[b3].GetY();
 
-		for ( int l = 0; l < m_TwoPointsLinesVector.size(); l++ ) {
-			float t = m_TwoPointsLinesVector[l].GetLineSlope();
-			float p = m_TwoPointsLinesVector[l].GetLinePosition();
-			int b1 = m_TwoPointsLinesVector[l].GetLinePoint(0);
-			int b2 = m_TwoPointsLinesVector[l].GetLinePoint(1);
+		for ( int l = 0; l < m_TwoPointsLinesVector.size(); l++ ) 
+		{
+			currentTwoPointsLine = m_TwoPointsLinesVector[l];
+			float t = currentTwoPointsLine.GetLineSlope();
+			float p = currentTwoPointsLine.GetLinePosition();
+			int b1 = currentTwoPointsLine.GetLinePoint(0);
+			int b2 = currentTwoPointsLine.GetLinePoint(1);
 
-			if ( b3 != b1 && b3 != b2 ) {
+			if ( b3 != b1 && b3 != b2 ) 
+			{
 				float pb3 = x3 * cos(t) + y3 * sin(t);
 				if ( fabsf( p - pb3 ) <= dist ) {
 					//lines[nlines].SetLineSlope(0);
@@ -428,7 +433,8 @@ void SegImpl::find_lines3pt( )
 						line.SetLinePoint(i,points[i]);
 					}					
 
-					if ( ! UltraSoundFiducialSegmentationTools::BinarySearchFind<Line, Line>( line, m_LinesVector, m_LinesVector.size() ) ) {
+					if ( ! UltraSoundFiducialSegmentationTools::BinarySearchFind<Line, Line>( line, m_LinesVector, m_LinesVector.size() ) ) 
+					{
 						compute_line( line, m_DotsVector );
 						if ( accept_line( line ) ) 
 						{
@@ -436,7 +442,7 @@ void SegImpl::find_lines3pt( )
 							//line.SetLinePosition(0);
 							m_LinesVector.push_back(line);
 							//UltraSoundFiducialSegmentationTools::sort<Line, Line>( lines, lines.size() );
-              // sort the lines so that lines that are already in the list can be quickly found by a binary search
+							// sort the lines so that lines that are already in the list can be quickly found by a binary search
 							std::sort (m_LinesVector.begin(), m_LinesVector.end(), Line::compareLines);
 							//UltraSoundFiducialSegmentationTools::BinarySearchInsert<Line, Line>( line, lines, nlines );
 						}
@@ -445,6 +451,7 @@ void SegImpl::find_lines3pt( )
 			}
 		}
 	}
+	
   //std::sort (lines.begin(), lines.end(), Line::lessThan);
 }
 
@@ -476,16 +483,22 @@ void SegImpl::find_pairs()
 	int minLinePairDistPx = floor(m_SegParams.GetMinLinePairDistMm() / scalingEstimation + 0.5 );
 	double maxLineErrorPx = m_SegParams.GetMaxLineErrorMm() / scalingEstimation;
 
-	for ( int l1 = 0; l1 < m_LinesVector.size(); l1++ ) {
-		for ( int l2 = l1+1; l2 < m_LinesVector.size(); l2++ ) {
-			float t1 = m_LinesVector[l1].GetLineSlope();
-			float p1 = m_LinesVector[l1].GetLinePosition();
+	Line currentLine1, currentLine2;
 
-			float t2 = m_LinesVector[l2].GetLineSlope();
-			float p2 = m_LinesVector[l2].GetLinePosition();
+	for ( int l1 = 0; l1 < m_LinesVector.size(); l1++ ) 
+	{
+		currentLine1 = m_LinesVector[l1];
+		for ( int l2 = l1+1; l2 < m_LinesVector.size(); l2++ ) 
+		{
+			currentLine2 = m_LinesVector[l2];
+			float t1 = currentLine1.GetLineSlope();
+			float p1 = currentLine1.GetLinePosition();
+
+			float t2 = currentLine2.GetLineSlope();
+			float p2 = currentLine2.GetLinePosition();
 
 			float angle_diff = fabsf( t2 - t1 );
-			float line_error = m_LinesVector[l1].GetLineError() + m_LinesVector[l2].GetLineError();
+			float line_error = currentLine1.GetLineError() + currentLine2.GetLineError();
 
 			bool test1 = angle_diff < maxAngleDifference;
 			bool test2 = line_error < maxLineErrorPx;
@@ -496,12 +509,14 @@ void SegImpl::find_pairs()
 			// (old value was hardcoded as 25)
 			bool test6 = fabsf( p2 - p1 ) > minLinePairDistPx;
 
-			if ( test1 && test2 && test3 && test4 && test5 && test6 ) {
+			if ( test1 && test2 && test3 && test4 && test5 && test6 ) 
+			{
 				line_error = line_error / maxLineErrorPx;
 				float angle_conf = angle_diff / ( 1 - line_error );
 
-				if ( angle_conf < maxAngleDifference ) {
-					float intensity = m_LinesVector[l1].GetLineIntensity() + m_LinesVector[l2].GetLineIntensity();
+				if ( angle_conf < maxAngleDifference ) 
+				{
+					float intensity = currentLine1.GetLineIntensity() + currentLine2.GetLineIntensity();
 					LinePair linePair;
 					linePair.SetLine1(l1);
 					linePair.SetLine2(l2);
@@ -647,8 +662,7 @@ void SegImpl::WritePossibleFiducialOverlayImage(std::vector<Dot> fiducials, Pixe
 //-----------------------------------------------------------------------------
 
 SegmentationParameters::SegmentationParameters() :
-		m_ThresholdImageTop( -1.0 ),
-		m_ThresholdImageBottom( -1.0 ),
+		m_ThresholdImage( -1.0 ),
 
 		m_MaxLineLenMm ( -1.0 ), 
 		m_MinLineLenMm ( -1.0 ),
@@ -831,16 +845,10 @@ PlusStatus SegmentationParameters::ReadSegmentationParametersConfiguration( vtkX
 		LOG_WARNING("Cannot find RegionOfInterest attribute in the SegmentationParameters configuration file.");
 	}
 
-	double thresholdImageTop(0.0); 
-	if ( segmentationParameters->GetScalarAttribute("ThresholdImageTop", thresholdImageTop) )
+	double thresholdImage(0.0); 
+	if ( segmentationParameters->GetScalarAttribute("ThresholdImage", thresholdImage) )
 	{
-		this->SetThresholdImageTop(thresholdImageTop); 
-	}
-
-	double thresholdImageBottom(0.0); 
-	if ( segmentationParameters->GetScalarAttribute("ThresholdImageBottom", thresholdImageBottom) )
-	{
-		this->SetThresholdImageBottom(thresholdImageBottom); 
+		this->SetThresholdImage(thresholdImage); 
 	}
 
 	int useOriginalImageIntensityForDotIntensityScore(0); 
@@ -902,7 +910,7 @@ PlusStatus SegmentationParameters::ReadSegmentationParametersConfiguration( vtkX
 		delete [] imageToPhantomTransform;
 
 		//Compute the tolerances parameters automatically
-		this->ComputeParameters();
+		this->ComputeParameters(segmentationParameters);
 	}
 	else//if the tolerances parameters are given by the configuration file
 	{
@@ -982,7 +990,7 @@ PlusStatus SegmentationParameters::ReadSegmentationParametersConfiguration( vtkX
 
 //-----------------------------------------------------------------------------
 
-void SegmentationParameters::ComputeParameters()
+void SegmentationParameters::ComputeParameters(vtkXMLDataElement* segmentationParameters)
 {
 	double maxAngleY = std::max(fabs(m_ImageNormalVectorInPhantomFrameMaximumRotationAngleDeg[2]),m_ImageNormalVectorInPhantomFrameMaximumRotationAngleDeg[3]);//the maximum of the rotation around the Y axis
 	m_MaxLineLengthErrorPercent = 1/cos(maxAngleY) - 1;
@@ -1010,7 +1018,6 @@ void SegmentationParameters::ComputeParameters()
 			imageToPhantomTransform.put(i,j,GetImageToPhantomTransform()[j+4*i]);
 		}
 	}
-	
 	
 	vnl_vector<double> pointA(3), pointB(3), pointC(3);
 
@@ -1083,6 +1090,7 @@ void SegmentationParameters::ComputeParameters()
 
 				vnl_vector<double> lineDirectionVector(3);
 				lineDirectionVector = vnl_cross_3d(normalVectorInImageCoord,normalImagePlane);
+
 				double dotProductValue = dot_product(lineDirectionVector,imageYunitVector);
 				double normOfLineDirectionvector = lineDirectionVector.two_norm();
 				double angle = acos(dotProductValue/normOfLineDirectionvector);
@@ -1094,15 +1102,36 @@ void SegmentationParameters::ComputeParameters()
 	m_MaxTheta = *std::max_element(finalAngleTable.begin(),finalAngleTable.end());
 	m_MinTheta = *std::min_element(finalAngleTable.begin(),finalAngleTable.end());
 
-	m_MaxLineLengthErrorPercent = 8.0;//Relative tolerance about the length of a line in percent
-	m_MaxLinePairDistanceErrorPercent = 10.0;//The maximum error on the distance between two lines
-	m_MaxLineErrorMm = 2.0;//The absolute tolerance on the acceptance of a line
+	//So far the following values are not computed automatically (will be in future) so they need to be read from config file
+	double maxLineLengthErrorPercent(0.0); 
+	if ( segmentationParameters->GetScalarAttribute("MaxLineLengthErrorPercent", maxLineLengthErrorPercent) )
+	{
+		this->SetMaxLineLengthErrorPercent(maxLineLengthErrorPercent); 
+	}
 
-	
-	m_FindLines3PtDist = 5.3f;//distance of the third point to line it tries to be added to
-	m_MaxAngleDiff = 11.0 * M_PI / 180.0;//maximum angle allowed between 2 lines
-	//m_MinTheta = 20.0 * M_PI / 180.0;//minimum angle allowed for a single line (cannot be vertical for example)
-	//m_MaxTheta = 160.0 * M_PI / 180.0;//maximum angle allowed for a single line (cannot be vertical for example)
+	double maxLinePairDistanceErrorPercent(0.0); 
+	if ( segmentationParameters->GetScalarAttribute("MaxLinePairDistanceErrorPercent", maxLinePairDistanceErrorPercent) )
+	{
+		this->SetMaxLinePairDistanceErrorPercent(maxLinePairDistanceErrorPercent); 
+	}
+
+	double findLines3PtDist(0.0); 
+	if ( segmentationParameters->GetScalarAttribute("FindLines3PtDist", findLines3PtDist) )
+	{
+		this->SetFindLines3PtDist(findLines3PtDist); 
+	}
+
+	double maxLineErrorMm(0.0); 
+	if ( segmentationParameters->GetScalarAttribute("MaxLineErrorMm", maxLineErrorMm) )
+	{
+		this->SetMaxLineErrorMm(maxLineErrorMm); 
+	}
+
+	double maxAngleDifferenceDegrees(0.0); 
+	if ( segmentationParameters->GetScalarAttribute("MaxAngleDifferenceDegrees", maxAngleDifferenceDegrees) )
+	{
+		this->SetMaxAngleDiff(maxAngleDifferenceDegrees * M_PI / 180.0); 
+	}
 }
 
 //-----------------------------------------------------------------------------
@@ -1124,7 +1153,7 @@ void SegImpl::uscseg( PixelType *image, SegmentationParameters &segParams, Segme
 
 	morphological_operations();
 
-	suppress( working, m_SegParams.GetThresholdImageTop()/100.00, m_SegParams.GetThresholdImageBottom()/100.00 );
+	suppress( working, m_SegParams.GetThresholdImage()/100.00, m_SegParams.GetThresholdImage()/100.00 );
 
 	cluster();
 

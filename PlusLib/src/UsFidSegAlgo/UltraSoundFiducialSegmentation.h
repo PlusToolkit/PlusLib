@@ -226,7 +226,7 @@ class SegmentationParameters
 		PlusStatus				ReadSegmentationParametersConfiguration( vtkXMLDataElement* segmentationParameters );
 
 		void					UpdateParameters();
-		void					ComputeParameters();
+		void					ComputeParameters(vtkXMLDataElement* segmentationParameters);
 		
 		void					SetFrameSize(int frameSizeX, int frameSizeY) { m_FrameSize[0] = frameSizeX; m_FrameSize[1] = frameSizeY; };
 		int  *					GetFrameSize() { return m_FrameSize; };
@@ -237,11 +237,9 @@ class SegmentationParameters
 		void					SetUseOriginalImageIntensityForDotIntensityScore(bool value) { m_UseOriginalImageIntensityForDotIntensityScore = value; };
 		bool					GetUseOriginalImageIntensityForDotIntensityScore() { return m_UseOriginalImageIntensityForDotIntensityScore; };
 
-		void					SetThresholdImageTop(double value) { m_ThresholdImageTop = value; };
-		double					GetThresholdImageTop() { return m_ThresholdImageTop; };
-		void					SetThresholdImageBottom(double value) { m_ThresholdImageBottom = value; };
-		double					GetThresholdImageBottom() { return m_ThresholdImageBottom; };
-
+		void					SetThresholdImage(double value) { m_ThresholdImage = value; };
+		double					GetThresholdImage() { return m_ThresholdImage; };
+		
 		void					SetMaxLineLengthErrorPercent(double value) { m_MaxLineLengthErrorPercent = value; };
 		double					GetMaxLineLengthErrorPercent() { return m_MaxLineLengthErrorPercent; };
 		void					SetMaxLinePairDistanceErrorPercent(double value) { m_MaxLinePairDistanceErrorPercent = value; };
@@ -309,8 +307,7 @@ class SegmentationParameters
 		int						m_RegionOfInterest[4];
 		bool					m_UseOriginalImageIntensityForDotIntensityScore;
 
-		double 					m_ThresholdImageTop;  // segmentation threshold (in percentage, minimum is 0, maximum is 100 at the top half of the image
-		double 					m_ThresholdImageBottom;  // segmentation threshold (in percentage, minimum is 0, maximum is 100 at the bottom half of the image
+		double 					m_ThresholdImage;  // segmentation threshold (in percentage, minimum is 0, maximum is 100 at the top half of the image
 
 		// line length and line pair distance errors in percent - read from phantom definition
 		double 					m_MaxLineLengthErrorPercent;
