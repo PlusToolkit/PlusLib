@@ -100,14 +100,13 @@
 				
 				RegionOfInterest="50 40 600 340" 
                 
-				ThresholdImageTop="10.0"
-                ThresholdImageBottom="10.0"               
+				ThresholdImage="10.0"            
                 UseOriginalImageIntensityForDotIntensityScore="0"
 
                 ScalingEstimation="0.19"
                 ImageScalingTolerancePercent="-10 10 -10 10"                                
                 ImageNormalVectorInPhantomFrameEstimation="0 0 1"
-                ImageNormalVectorInPhantomFrameMaximumRotationAngleDeg="-5 5 -5 5 -5 5"
+                ImageNormalVectorInPhantomFrameMaximumRotationAngleDeg="-10 10 -10 10 -5 5"
 				
 				ImageToPhantomTransform="1  0 0 35
 										 0  0 1 20

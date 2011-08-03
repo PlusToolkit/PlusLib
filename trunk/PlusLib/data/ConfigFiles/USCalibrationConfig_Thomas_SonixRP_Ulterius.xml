@@ -118,8 +118,7 @@
                 MinThetaDegrees="20"
                 MaxThetaDegrees="160"
                 
-                ThresholdImageTop="10.0"
-                ThresholdImageBottom="10.0"
+                ThresholdImage="10.0"
 
                 FindLines3PtDist="5.3"
 
