@@ -93,8 +93,8 @@ public:
   virtual void FillHolesInOutput();
 
   // Description:
-  // Configure the freehand ultrasound reconstruction according to a summary file
-  virtual PlusStatus ReadSummaryFile(const char *filename);
+  // Configure the freehand ultrasound reconstruction according to summary XML data
+  virtual PlusStatus ReadSummary(vtkXMLDataElement* aConfig);
 
   // Description:
   // Cause the slice to be inserted into the first reconstruction volume

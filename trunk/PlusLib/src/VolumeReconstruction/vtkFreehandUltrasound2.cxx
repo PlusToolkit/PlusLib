@@ -2643,7 +2643,17 @@ PlusStatus vtkFreehandUltrasound2::ReadSummaryFile(const char *filename)
     LOG_ERROR("Read volume reconstruction configuration - invalid file " << filename);
     return PLUS_FAIL;
   }
-	vtkSmartPointer<vtkXMLDataElement> volumeReconstruction = rootElement->FindNestedElementWithName("VolumeReconstruction");
+
+  return ReadSummary(rootElement);
+}
+
+//----------------------------------------------------------------------------
+// Read the freehand parameters from the filename specified in the (relative!)
+// directory
+// File should have been created using SaveSummaryFile()
+PlusStatus vtkFreehandUltrasound2::ReadSummary(vtkXMLDataElement* aConfig)
+{
+	vtkSmartPointer<vtkXMLDataElement> volumeReconstruction = aConfig->FindNestedElementWithName("VolumeReconstruction");
 	if (volumeReconstruction == NULL)
   {
 		LOG_ERROR("No volume reconstruction is found in the XML tree!");
@@ -2727,27 +2737,39 @@ PlusStatus vtkFreehandUltrasound2::ReadSummaryFile(const char *filename)
 	// reconstruction transforms
 	double* elements = new double[16];
 
-	// spatial calibration
-	vtkXMLDataElement *spatialParams = volumeReconstruction->FindNestedElementWithName( "SpatialCalibration" );
-	if (spatialParams)
-	{
-		if (this->TrackerTool)
-		{
-			spatialParams->GetVectorAttribute( "CalibrationMatrix", 16, elements );
-
+	char* toolType = NULL;
+	vtkTracker::ConvertToolTypeToString(TRACKER_TOOL_PROBE, toolType);
+	vtkSmartPointer<vtkXMLDataElement> trackerDefinition = aConfig->LookupElementWithName("Tracker");
+	if (trackerDefinition == NULL) {
+    LOG_ERROR("Cannot find tracker definition in the XML tree")
+		return PLUS_FAIL;
+	}
+	vtkSmartPointer<vtkXMLDataElement> probeDefinition = trackerDefinition->FindNestedElementWithNameAndAttribute("Tool", "Type", toolType);
+	if (probeDefinition == NULL) {
+		LOG_ERROR("No probe definition is found in the XML tree!");
+		return PLUS_FAIL;
+	}
+	vtkSmartPointer<vtkXMLDataElement> calibration = probeDefinition->FindNestedElementWithName("Calibration");
+	if (calibration == NULL) {
+		LOG_ERROR("No calibration section is found in probe definition!");
+		return PLUS_FAIL;
+	}
+	if (calibration->GetVectorAttribute("MatrixValue", 16, elements)) {
 			vtkSmartPointer< vtkMatrix4x4 > mImageToTool = vtkSmartPointer< vtkMatrix4x4 >::New();
 			mImageToTool->DeepCopy( elements );
 
 			vtkSmartPointer< vtkTransform > tImageToTool = vtkSmartPointer< vtkTransform >::New();
-			tImageToTool->PostMultiply();
 			tImageToTool->Identity();
 			tImageToTool->SetMatrix( mImageToTool );
 			tImageToTool->Update();
 
 
 			this->TrackerTool->GetCalibrationMatrix()->DeepCopy( tImageToTool->GetMatrix() );
-		}
-	}
+  } else {
+		LOG_ERROR("No calibration matrix is found in probe definition!");
+		return PLUS_FAIL;
+  }
+
 	delete [] elements;
 
 	// temporal parameters

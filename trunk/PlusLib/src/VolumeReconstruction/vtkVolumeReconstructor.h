@@ -44,6 +44,7 @@ public:
 
   virtual PlusStatus ReadConfiguration( const char* configFileName ); 
   virtual PlusStatus ReadConfiguration(); 
+  virtual PlusStatus ReadConfiguration( vtkXMLDataElement* aConfig ); 
 
   virtual PlusStatus AddTrackedFrame( ImageType::Pointer frame, US_IMAGE_ORIENTATION usImageOrientation, vtkMatrix4x4* mToolToReference, double timestamp ); 
 

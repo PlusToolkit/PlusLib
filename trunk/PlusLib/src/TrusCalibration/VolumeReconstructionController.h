@@ -6,6 +6,7 @@
 class vtkVolumeReconstructor;
 class vtkImageData;
 class vtkActor;
+class vtkXMLDataElement;
 
 //-----------------------------------------------------------------------------
 
@@ -61,7 +62,14 @@ public:
 	* \param aFile XML file name and path
 	* \return Success flag
 	*/
-	PlusStatus LoadVolumeReconstructionConfigFromFile(std::string aFile);
+	PlusStatus LoadVolumeReconstructionConfigurationFromFile(std::string aFile);
+
+	/*!
+	* \brief Load volume reconstruction configuration XML data
+	* \param aConfig Root XML data element
+	* \return Success flag
+	*/
+	PlusStatus LoadVolumeReconstructionConfiguration(vtkXMLDataElement* aConfig);
 
 	/*!
 	* \brief Reconstructs volume from input file
