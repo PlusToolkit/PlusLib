@@ -37,6 +37,7 @@ typedef itk::Image< PixelType, 3 > ImageType3D;
 typedef itk::Image< PixelType, imageSequenceDimension > ImageSequenceType;
 
 typedef itk::ImageFileReader< ImageType > ImageReaderType;
+typedef itk::ImageFileReader< ImageType3D > ImageReaderType3D;
 typedef itk::ImageFileReader< RGBImageType > RGBImageReaderType;
 typedef itk::ImageFileReader< ImageSequenceType > ImageSequenceReaderType;
 
@@ -74,6 +75,7 @@ enum CONVERT_METHOD
 }; 
 
 
+void ConvertFromMetafile(SAVING_METHOD savingMethod); 
 void ConvertFromBitmap(SAVING_METHOD savingMethod); 
 void ConvertFromSequenceMetafile(std::vector<std::string> inputImageSequenceFileNames, SAVING_METHOD savingMethod ); 
 void ConvertFromOldSequenceMetafile(std::vector<std::string> inputImageSequenceFileNames, SAVING_METHOD savingMethod); 
@@ -302,7 +304,7 @@ int main (int argc, char* argv[])
 		break; 
 	case FROM_METAFILE: 
 		{
-			//ConvertFromMetafile(); 
+			ConvertFromMetafile(savingMethod); 
 		}
 		break; 
 	case FROM_BMP24: 
@@ -912,6 +914,102 @@ void SaveImageToMetaFile( TrackedFrame* trackedFrame, std::string metaFileName, 
 		LOG_ERROR( "Image writer couldn't update: " <<  err); 
 		exit(EXIT_FAILURE);
 	}
+}
+
+//-------------------------------------------------------------------------------
+void ConvertFromMetafile(SAVING_METHOD savingMethod)
+{
+  LOG_INFO("Converting metafile images..."); 
+	vtkSmartPointer<vtkTrackedFrameList> trackedFrameContainer = vtkSmartPointer<vtkTrackedFrameList>::New(); 
+	int numberOfImagesWritten(0); 
+	int frameNumber(0); 
+
+  US_IMAGE_ORIENTATION imgOrientation = UsImageConverterCommon::GetUsImageOrientationFromString(inputUsImageOrientation.c_str()); 
+  
+	LOG_INFO( "Opening directory" );
+	vtkSmartPointer<vtkDirectory> dir = vtkSmartPointer<vtkDirectory>::New(); 
+	dir->Open(inputDataDir.c_str()); 
+  
+	for ( int dirIndex = 0; dirIndex < dir->GetNumberOfFiles(); ++ dirIndex )
+	{
+		// Skip this file, if it's not a .bmp file.
+
+		PlusLogger::PrintProgressbar(dirIndex*100 / dir->GetNumberOfFiles() ); 
+
+		std::string fileName( dir->GetFile( dirIndex ) );
+
+    std::string extension = vtksys::SystemTools::GetFilenameLastExtension(fileName); 
+		if ( STRCASECMP(".mha", extension.c_str()) != 0 && STRCASECMP(".mhd", extension.c_str()) != 0 )
+    {
+      LOG_DEBUG(fileName << " is not a metafile - unknown extension: " <<extension); 
+      continue;
+    }
+
+    std::ostringstream metafileNameWithPath; 
+		metafileNameWithPath << inputDataDir << "/" << fileName;
+
+    if ( inputUsImageOrientation == "XX" )
+    {
+      LOG_ERROR("Failed to convert frame from bitmap without proper image orientation! Please set the --input-us-img-orientation partameter (" << metafileNameWithPath.str() << ")!"); 
+      exit(EXIT_FAILURE);
+    }
+
+    itk::MetaImageIO::Pointer readerMetaImageIO = itk::MetaImageIO::New(); 
+	  ImageReaderType3D::Pointer reader = ImageReaderType3D::New(); 
+    reader->SetImageIO(readerMetaImageIO); 
+		reader->SetFileName(metafileNameWithPath.str().c_str());
+
+		try
+		{
+			reader->Update(); 
+		}
+		catch (itk::ExceptionObject & err) 
+		{		
+			LOG_ERROR( "Meta image reader couldn't update: " <<  err); 
+			exit(EXIT_FAILURE);
+		}	
+
+    ImageType3D::Pointer imageData = reader->GetOutput(); 
+
+    const int frameSizeInPx[2] = {imageData->GetLargestPossibleRegion().GetSize()[0], imageData->GetLargestPossibleRegion().GetSize()[1]};  
+    const int pixelSizeInBits = sizeof(PixelType)*8; 
+
+    vtkSmartPointer<vtkMatrix4x4> tToolToReference = vtkSmartPointer<vtkMatrix4x4>::New(); 
+    tToolToReference->SetElement(0,0, readerMetaImageIO->GetMetaImagePointer()->Orientation()[0]); 
+    tToolToReference->SetElement(0,1, readerMetaImageIO->GetMetaImagePointer()->Orientation()[1]); 
+    tToolToReference->SetElement(0,2, readerMetaImageIO->GetMetaImagePointer()->Orientation()[2]); 
+
+    tToolToReference->SetElement(1,0, readerMetaImageIO->GetMetaImagePointer()->Orientation()[3]); 
+    tToolToReference->SetElement(1,1, readerMetaImageIO->GetMetaImagePointer()->Orientation()[4]); 
+    tToolToReference->SetElement(1,2, readerMetaImageIO->GetMetaImagePointer()->Orientation()[5]); 
+
+    tToolToReference->SetElement(2,0, readerMetaImageIO->GetMetaImagePointer()->Orientation()[6]); 
+    tToolToReference->SetElement(2,1, readerMetaImageIO->GetMetaImagePointer()->Orientation()[7]); 
+    tToolToReference->SetElement(2,2, readerMetaImageIO->GetMetaImagePointer()->Orientation()[8]); 
+
+    tToolToReference->SetElement(0,3, readerMetaImageIO->GetMetaImagePointer()->Offset()[0]); 
+    tToolToReference->SetElement(1,3, readerMetaImageIO->GetMetaImagePointer()->Offset()[1]); 
+    tToolToReference->SetElement(2,3, readerMetaImageIO->GetMetaImagePointer()->Offset()[2]); 
+
+    TrackedFrame trackedFrame;
+    trackedFrame.ImageData = TrackedFrame::ImageType::New(); 
+    if ( UsImageConverterCommon::GetMFOrientedImage(imageData->GetBufferPointer(), imgOrientation, frameSizeInPx, pixelSizeInBits, trackedFrame.ImageData) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Failed to get MF oriented image!"); 
+      continue; 
+    }
+
+    trackedFrame.SetCustomFrameTransform("ToolToReferenceTransform", tToolToReference ); 
+  	trackedFrame.DefaultFrameTransformName = "ToolToReferenceTransform"; 
+
+    trackedFrameContainer->AddTrackedFrame(&trackedFrame);
+	}
+
+
+  PlusLogger::PrintProgressbar(100); 
+
+  SaveImages(trackedFrameContainer, savingMethod, numberOfImagesWritten); 
+
 }
 
 
