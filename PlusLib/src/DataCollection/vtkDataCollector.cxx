@@ -1503,18 +1503,10 @@ PlusStatus vtkDataCollector::ReadConfiguration(vtkXMLDataElement* aDataCollectio
 
   // Get data collection configuration element
 	vtkSmartPointer<vtkXMLDataElement> dataCollectionConfig = this->ConfigurationData->FindNestedElementWithName("USDataCollection");
-	if (dataCollectionConfig == NULL) // Check if it is a separate data collection configuration file
+	if (dataCollectionConfig == NULL)
   {
-		if (STRCASECMP(this->ConfigurationData->GetName(), "USDataCollection") == 0)
-    {
-      LOG_WARNING("Non-unified configuration detected! Phantom definition and calibration configuration have to be loaded from a separate files!");
-			dataCollectionConfig = this->ConfigurationData;
-		}
-    else
-    {
-      LOG_ERROR("Cannot find USDataCollection element in XML tree!");
-			return PLUS_FAIL;
-    }
+    LOG_ERROR("Cannot find USDataCollection element in XML tree!");
+		return PLUS_FAIL;
 	}
 
   // Check data collection configuration version
