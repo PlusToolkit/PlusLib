@@ -20,7 +20,7 @@ void UsFidSegResultFile::WriteSegmentationResultsHeader(std::ostream &outFile)
 void UsFidSegResultFile::WriteSegmentationResultsParameters(std::ostream &outFile, SegmentationParameters &params, const std::string &trueFidFileName)
 {
 	
-	outFile << " <AlgorithmOptions SegmentationThresholdTop=\"" << params.GetThresholdImageTop() << "\" SegmentationThresholdBottom=\"" << params.GetThresholdImageBottom() << "\" ImportSegResultsFromFile=\"" << trueFidFileName.c_str() << "\" />" << std::endl;
+	outFile << " <AlgorithmOptions SegmentationThreshold=\"" << params.GetThresholdImage() <<  "\" ImportSegResultsFromFile=\"" << trueFidFileName.c_str() << "\" />" << std::endl;
 	
 	
 }
