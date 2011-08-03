@@ -471,7 +471,7 @@ PlusStatus vtkTrackerTool::ReadConfiguration(vtkXMLDataElement* config)
 
     // ModelToToolTransform stays identity if no model file has been found
 		double modelToToolTransformMatrixValue[16] = {0};
-		if ( (modelDataElement->GetVectorAttribute("ModelToToolTransform", 16, modelToToolTransformMatrixValue )) && (STRCASECMP(file, "") != 0) )
+		if ( (modelDataElement->GetVectorAttribute("ModelToToolTransform", 16, modelToToolTransformMatrixValue )) && (file != NULL) && (STRCASECMP(file, "") != 0) )
 		{
 			this->ModelToToolTransform->SetMatrix(modelToToolTransformMatrixValue);
 		}
