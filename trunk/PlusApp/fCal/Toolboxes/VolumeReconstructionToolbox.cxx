@@ -39,6 +39,23 @@ VolumeReconstructionToolbox::~VolumeReconstructionToolbox()
 
 //-----------------------------------------------------------------------------
 
+void VolumeReconstructionToolbox::Initialize()
+{
+	LOG_TRACE("VolumeReconstructionToolbox::Initialize"); 
+
+	vtkFreehandController* controller = vtkFreehandController::GetInstance();
+	if (controller == NULL) {
+		LOG_ERROR("vtkFreehandController is invalid");
+	}
+
+  // Try to load volume reconstruction configuration from the device set configuration
+  if ((controller->GetConfigurationData()) && (VolumeReconstructionController::GetInstance()->LoadVolumeReconstructionConfiguration(controller->GetConfigurationData()) == PLUS_SUCCESS)) {
+    ui.lineEdit_VolumeReconstructionConfig->setText(tr("Using session configuration"));
+  }
+}
+
+//-----------------------------------------------------------------------------
+
 void VolumeReconstructionToolbox::RefreshToolboxContent()
 {
 	//LOG_TRACE("VolumeReconstructionToolbox::RefreshToolboxContent");
@@ -129,7 +146,7 @@ void VolumeReconstructionToolbox::OpenVolumeReconstructionConfigClicked()
 	}
 
 	// Load volume reconstruction configuration xml
-	if (VolumeReconstructionController::GetInstance()->LoadVolumeReconstructionConfigFromFile(fileName.toStdString()) != PLUS_SUCCESS) {
+	if (VolumeReconstructionController::GetInstance()->LoadVolumeReconstructionConfigurationFromFile(fileName.toStdString()) != PLUS_SUCCESS) {
 		ui.lineEdit_VolumeReconstructionConfig->setText(tr("Invalid file!"));
 		ui.lineEdit_VolumeReconstructionConfig->setToolTip("");
 

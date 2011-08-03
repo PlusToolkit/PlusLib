@@ -8,6 +8,7 @@
 #include <QVTKWidget.h>
 #include <QFileDialog>
 #include <QTimer>
+#include <QMessageBox>
 
 //-----------------------------------------------------------------------------
 
@@ -423,7 +424,9 @@ void FreehandCalibrationToolbox::SaveClicked()
 {
 	LOG_TRACE("FreehandCalibrationToolbox::SaveClicked"); 
 
-	vtkFreehandCalibrationController::GetInstance()->SaveCalibrationResults();
+  if (vtkFreehandController::GetInstance()->SaveConfigurationToFile() == PLUS_SUCCESS) {
+    QMessageBox::message(tr("fCal"), tr("Configuration saved to %1").arg(vtkFreehandController::GetInstance()->GetConfigurationFileName()));
+  }
 }
 
 //-----------------------------------------------------------------------------

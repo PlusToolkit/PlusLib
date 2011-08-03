@@ -44,6 +44,11 @@ public:
 	*/
 	void Clear();
 
+	/*!
+	* \brief Initialize toolbox (load session data) - overridden method
+	*/
+	void Initialize();
+
 signals:
 	/*!
 	* \brief Executes operations needed after stopping the process
