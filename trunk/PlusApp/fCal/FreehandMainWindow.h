@@ -5,10 +5,10 @@
 
 #include <QtGui/QMainWindow>
 
-#include <QLabel>
-#include <QProgressBar>
-
 class AbstractToolboxController;
+class QLabel;
+class QProgressBar;
+class QTimer;
 
 //-----------------------------------------------------------------------------
 
@@ -104,16 +104,19 @@ protected slots:
 
 protected:
 	//! Label on the left of the statusbar
-	QLabel*						m_StatusBarLabel;
+	QLabel*					m_StatusBarLabel;
 
 	//! Progress bar on the right of the statusbar
-	QProgressBar*				m_StatusBarProgress;
+	QProgressBar*		m_StatusBarProgress;
 
 	//! Index of locked (current) tab if tabbing is disabled
 	int							m_LockedTabIndex;
 
 	//! Active toolbox identifier
-	ToolboxType					m_ActiveToolbox;
+	ToolboxType			m_ActiveToolbox;
+
+  //! Timer that refreshes the UI
+  QTimer*         m_UiRefreshTimer;
 
 private:
 	Ui::fCalMainWindow			ui;

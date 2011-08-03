@@ -16,6 +16,8 @@
 #include <QTimer>
 #include <QDir>
 #include <QMessageBox>
+#include <QLabel>
+#include <QProgressBar>
 
 #include "vtkRenderWindow.h"
 #include "vtkFileFinder.h"
@@ -65,9 +67,9 @@ void FreehandMainWindow::Initialize()
 	CurrentTabChanged(ui.tabWidgetToolbox->currentIndex());
 
 	// Set up timer for refreshing UI
-	QTimer *uiRefreshTimer = new QTimer(this);
-	connect(uiRefreshTimer, SIGNAL(timeout()), this, SLOT(UpdateGUI()));
-	uiRefreshTimer->start(50);
+	m_UiRefreshTimer = new QTimer(this);
+	connect(m_UiRefreshTimer, SIGNAL(timeout()), this, SLOT(UpdateGUI()));
+	m_UiRefreshTimer->start(50);
 }
 
 //-----------------------------------------------------------------------------
@@ -81,6 +83,12 @@ FreehandMainWindow::~FreehandMainWindow()
 	PlusLogger::Instance()->SetDisplayMessageCallbackFunction(NULL);
 	if (StatusIcon::GetInstance() != NULL) {
 		delete StatusIcon::GetInstance();
+	}
+
+	if (m_UiRefreshTimer != NULL) {
+    m_UiRefreshTimer->stop();
+		delete m_UiRefreshTimer;
+		m_UiRefreshTimer = NULL;
 	}
 }
 

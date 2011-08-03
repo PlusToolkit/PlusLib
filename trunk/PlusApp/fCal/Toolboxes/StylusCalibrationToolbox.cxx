@@ -54,6 +54,7 @@ StylusCalibrationToolbox::~StylusCalibrationToolbox()
 	}
 
 	if (m_AcquisitionTimer != NULL) {
+    m_AcquisitionTimer->stop();
 		delete m_AcquisitionTimer;
 		m_AcquisitionTimer = NULL;
 	}
