@@ -94,8 +94,7 @@ int main (int argc, char* argv[])
 
 	SegParameters.SetMorphologicalOpeningBarSizeMm(2.0);  
 	SegParameters.SetMorphologicalOpeningCircleRadiusMm(0.55);  
-	SegParameters.SetThresholdImageTop(10); 
-	SegParameters.SetThresholdImageBottom(10); 
+	SegParameters.SetThresholdImage(10); 
 	SegParameters.SetMaxLineLenMm(42); 
 	SegParameters.SetMinLineLenMm(38); 
 	SegParameters.SetMaxLinePairDistMm(22); 
