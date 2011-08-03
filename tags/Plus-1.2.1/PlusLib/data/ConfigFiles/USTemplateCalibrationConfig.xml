@@ -1,0 +1,55 @@
+<USTemplateCalibration version="1.0">
+	<ImageAcqusition Type="SonixVideo">
+		<SonixVideo IP="130.15.7.212" ImagingMode="0" AcquisitionDataType="4" Depth="70" Sector="100" Gain="55" DynRange="40" Zoom="100" Frequency="2" FrameRate="25.0" />
+		<SonixVolume FileName="" />
+		<ICCapturing />
+		<SavedDataset />
+		<MatroxImaging />
+		<VFWVideo />
+		<NoiseVideo />
+		<LinuxVideo VideoDevice="" VideoChannel="3" VideoMode="1" />
+	</ImageAcqusition>
+
+	<Tracking Type="AMSTracker">
+
+	</Tracking>
+
+	<Calibration>
+		<CoordinateCalibration>
+		</CoordinateCalibration>
+
+		<TRUSCalibration>
+		</TRUSCalibration>
+
+		<Segmentation>
+		</Segmentation>
+	</Calibration>
+
+	<PhantomModel>
+
+
+	</PhantomModel>
+
+	<TemplateModel>
+
+
+	</TemplateModel>
+
+	<Freehand>
+		<SliceParameters SliceSpacing="-0.2 -0.2 -1" SliceOrigin="64 -5 0" SliceExtent="0 639 0 479 0 0" NumScalarComponents="1" />
+		<OutputParameters OutputSpacing="0.4 0.4 -0.4" OutputOrigin="-128 -100 -40" OutputExtent="0 639 0 479 0 200"/>
+		<ClippingParameters ClipRectangle="-1e+008 -1e+008 1e+008 1e+008"/>
+		<FanParameters FanAngles="-60 60" FanOrigin="0 0" FanDepth="300"/>
+		<ReconstructionOptions Interpolation="Linear" Optimization="On" Compounding="On"/>
+		<SpatialCalibration CalibrationMatrix="1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1"/>
+		<TemporalCalibration VideoLag="0.032"/>
+		<RotationOptions Rotation="Off" MaxRotationChange="90" Threshold1="0" Threshold2="255" ShiftX="0" ShiftY="0" ImageFlipped="Off"/>
+		<BufferOptions FrameSize="640 480 1" VideoFrameRate="60" VideoBufferSize="100" TrackerBufferSize="1000" SignalBoxSleepInterval="5"/>
+		<TriggeringParameters Triggering="Off" Gating="Retrospective" NumOutputVolumes="2"/>
+		<SignalBox NumPhases="2"/>
+		<CheckHeartRateParameters CheckHeartRate="Off" ECGMonitoringTime="5" NumECGTrials="5" PercentIncreaseHRAllowed="1.5" PercentDecreasedHRAllowed="20" MeanHR="0"/>
+		<UseSelectPhasesParameters UseSelectPhases="Off" NumSignalBoxPhases="2" MapPhaseToOutputVolume="0 1"/>
+	</Freehand>
+
+
+</USTemplateCalibration>

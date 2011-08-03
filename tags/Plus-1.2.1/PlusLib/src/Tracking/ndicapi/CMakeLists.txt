@@ -1,0 +1,22 @@
+PROJECT(VTKNDICAPI)
+INCLUDE_REGULAR_EXPRESSION("^(ndicapi|polaris).*$")
+
+SET (PLUS_INCLUDE_DIRS ${PLUS_INCLUDE_DIRS} ${VTKNDICAPI_SOURCE_DIR} ${VTKNDICAPI_BINARY_DIR} CACHE INTERNAL "")
+
+SET(common_SRCS
+ndicapi.c ndicapi_math.c ndicapi_serial.c ndicapi_thread.c)
+
+IF (WIN32)
+  IF (NOT BORLAND)
+    IF (NOT CYGWIN)
+      SET(common_SRCS ${common_SRCS} vtkndicapi.def)
+    ENDIF (NOT CYGWIN)
+  ENDIF (NOT BORLAND)
+ENDIF (WIN32)
+
+INCLUDE_DIRECTORIES( ${PLUS_INCLUDE_DIRS} )
+
+ADD_LIBRARY(vtkndicapi STATIC ${common_SRCS})
+TARGET_LINK_LIBRARIES( vtkndicapi )
+
+INSTALL_TARGETS(/lib vtkndicapi)

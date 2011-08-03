@@ -1,0 +1,627 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TestResults>
+ <AlgorithmOptions SegmentationThresholdTop="10" SegmentationThresholdBottom="10" ImportSegResultsFromFile="scan3.fcsv" />
+  <TestCase id="Nov19_03_0">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="0" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-208.273 -103.488 0 0 -220.363 -390.624 -454.907 -386.997 0 0 -441.608 -92.6074 -228.826 -101.675" />
+  </TestCase>
+  <TestCase id="Nov19_03_1">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="1" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-207.064 -104.697 0 0 -220.967 -390.624 -453.698 -386.997 0 0 -442.817 -93.2119 -228.221 -101.07" />
+  </TestCase>
+  <TestCase id="Nov19_03_2">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="2" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-207.064 -105.302 0 0 -220.363 -390.624 -453.698 -386.393 0 0 -441.004 -93.8164 -229.43 -102.884" />
+  </TestCase>
+  <TestCase id="Nov19_03_3">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="3" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-207.064 -103.488 0 0 -219.758 -391.229 -453.094 -386.393 0 0 -440.399 -92.6074 -228.221 -101.07" />
+  </TestCase>
+  <TestCase id="Nov19_03_4">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="4" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-209.482 -104.093 0 0 -220.967 -390.624 -453.094 -386.393 0 0 -440.399 -95.0254 -230.639 -101.675" />
+  </TestCase>
+  <TestCase id="Nov19_03_5">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="5" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-214.318 -104.697 0 0 -224.594 -390.624 -454.907 -386.393 0 0 -443.422 -93.8164 -236.684 -101.07" />
+  </TestCase>
+  <TestCase id="Nov19_03_6">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="6" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-214.922 -104.093 0 0 -225.199 -391.229 -456.116 -387.602 0 0 -446.444 -95.0254 -237.893 -102.884" />
+  </TestCase>
+  <TestCase id="Nov19_03_7">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="7" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-215.527 -104.697 0 0 -225.803 -392.438 -457.325 -388.811 0 0 -446.444 -95.0254 -242.124 -102.279" />
+  </TestCase>
+  <TestCase id="Nov19_03_8">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="8" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-214.922 -105.906 0 0 -224.594 -393.647 -457.325 -390.02 0 0 -447.653 -96.8389 -246.96 -104.093" />
+  </TestCase>
+  <TestCase id="Nov19_03_9">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="9" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-212.504 -107.115 0 0 -222.176 -395.46 -456.721 -390.624 0 0 -447.653 -98.0479 -245.147 -104.093" />
+  </TestCase>
+  <TestCase id="Nov19_03_10">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="10" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-209.482 -107.72 0 0 -219.758 -394.251 -453.698 -390.624 0 0 -444.631 -99.2569 -247.565 -104.093" />
+  </TestCase>
+  <TestCase id="Nov19_03_11">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="11" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-206.459 -107.115 0 0 -216.131 -394.251 -447.653 -390.02 0 0 -440.399 -101.07 -245.147 -104.697" />
+  </TestCase>
+  <TestCase id="Nov19_03_12">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="12" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-205.25 -107.115 0 0 -213.713 -395.46 -447.653 -392.438 0 0 -437.981 -100.466 -246.356 -105.302" />
+  </TestCase>
+  <TestCase id="Nov19_03_13">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="13" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-202.832 -108.324 0 0 -210.691 -394.856 -445.235 -391.833 0 0 -435.563 -99.8614 -243.333 -105.302" />
+  </TestCase>
+  <TestCase id="Nov19_03_14">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="14" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-200.414 -107.72 0 0 -208.273 -395.46 -440.399 -391.833 0 0 -433.75 -101.07 -240.915 -105.302" />
+  </TestCase>
+  <TestCase id="Nov19_03_15">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="15" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-200.414 -108.324 0 0 -208.273 -394.856 -439.795 -392.438 0 0 -431.332 -101.675 -242.124 -105.906" />
+  </TestCase>
+  <TestCase id="Nov19_03_16">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="16" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-198.601 -106.511 0 0 -207.064 -395.46 -438.586 -392.438 0 0 -430.123 -102.279 -247.565 -105.906" />
+  </TestCase>
+  <TestCase id="Nov19_03_17">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="17" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-203.437 -109.533 0 0 -206.459 -396.669 -439.19 -393.647 0 0 -430.123 -102.279 -246.96 -105.302" />
+  </TestCase>
+  <TestCase id="Nov19_03_18">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="18" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-201.623 -109.533 0 0 -206.459 -396.065 -437.377 -393.042 0 0 -431.936 -102.884 -247.565 -106.511" />
+  </TestCase>
+  <TestCase id="Nov19_03_19">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="19" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-200.414 -108.929 0 0 -205.25 -396.065 -438.586 -393.042 0 0 -431.936 -104.093 -248.774 -106.511" />
+  </TestCase>
+  <TestCase id="Nov19_03_20">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="20" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-198.601 -108.929 0 0 -205.855 -396.065 -437.377 -394.251 0 0 -431.936 -103.488 -249.378 -107.115" />
+  </TestCase>
+  <TestCase id="Nov19_03_21">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="21" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-197.392 -109.533 0 0 -205.25 -397.274 -436.772 -393.647 0 0 -431.332 -104.093 -254.819 -107.115" />
+  </TestCase>
+  <TestCase id="Nov19_03_22">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="22" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-196.183 -109.533 0 0 -205.855 -396.669 -437.981 -394.251 0 0 -430.123 -103.488 -255.423 -105.906" />
+  </TestCase>
+  <TestCase id="Nov19_03_23">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="23" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-197.996 -108.929 0 0 -205.25 -396.669 -437.981 -394.856 0 0 -431.936 -103.488 -256.632 -107.115" />
+  </TestCase>
+  <TestCase id="Nov19_03_24">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="24" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-196.787 -109.533 0 0 -204.646 -397.274 -437.377 -394.251 0 0 -431.332 -103.488 -259.05 -107.115" />
+  </TestCase>
+  <TestCase id="Nov19_03_25">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="25" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-197.996 -109.533 0 0 -205.855 -397.274 -437.981 -394.251 0 0 -431.332 -104.093 -257.841 -106.511" />
+  </TestCase>
+  <TestCase id="Nov19_03_26">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="26" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-197.996 -108.929 0 0 -205.25 -396.669 -437.377 -395.46 0 0 -430.727 -103.488 -261.468 -106.511" />
+  </TestCase>
+  <TestCase id="Nov19_03_27">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="27" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-198.601 -110.742 0 0 -206.459 -397.878 -438.586 -396.065 0 0 -432.541 -104.697 -263.886 -105.906" />
+  </TestCase>
+  <TestCase id="Nov19_03_28">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="28" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-201.019 -110.138 0 0 -206.459 -397.878 -439.19 -394.856 0 0 -431.936 -102.884 -268.118 -107.115" />
+  </TestCase>
+  <TestCase id="Nov19_03_29">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="29" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-200.414 -109.533 0 0 -207.668 -397.878 -439.19 -394.251 0 0 -432.541 -104.093 -269.327 -106.511" />
+  </TestCase>
+  <TestCase id="Nov19_03_30">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="30" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-200.414 -108.324 0 0 -207.064 -397.878 -439.19 -394.856 0 0 -434.354 -104.093 -272.954 -107.115" />
+  </TestCase>
+  <TestCase id="Nov19_03_31">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="31" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-200.414 -110.138 0 0 -206.459 -396.669 -438.586 -396.065 0 0 -434.354 -104.697 -272.349 -106.511" />
+  </TestCase>
+  <TestCase id="Nov19_03_32">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="32" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-199.205 -108.324 0 0 -207.064 -396.065 -439.19 -395.46 0 0 -433.145 -104.697 -274.163 -107.72" />
+  </TestCase>
+  <TestCase id="Nov19_03_33">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="33" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-200.414 -108.929 0 0 -207.064 -397.274 -438.586 -395.46 0 0 -433.75 -104.697 -275.976 -106.511" />
+  </TestCase>
+  <TestCase id="Nov19_03_34">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="34" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-199.205 -109.533 0 0 -206.459 -397.274 -438.586 -396.065 0 0 -434.354 -105.302 -278.394 -105.906" />
+  </TestCase>
+  <TestCase id="Nov19_03_35">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="35" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-198.601 -108.324 0 0 -205.855 -397.274 -437.981 -394.251 0 0 -433.75 -104.697 -282.021 -106.511" />
+  </TestCase>
+  <TestCase id="Nov19_03_36">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="36" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-201.019 -108.324 0 0 -207.668 -397.878 -439.19 -395.46 0 0 -433.145 -105.302 -282.626 -105.906" />
+  </TestCase>
+  <TestCase id="Nov19_03_37">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="37" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-199.205 -107.72 0 0 -207.064 -396.065 -438.586 -394.856 0 0 -434.354 -104.697 -286.253 -105.906" />
+  </TestCase>
+  <TestCase id="Nov19_03_38">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="38" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-202.228 -108.929 0 0 -208.877 -397.274 -440.399 -394.856 0 0 -436.168 -104.697 -289.275 -105.906" />
+  </TestCase>
+  <TestCase id="Nov19_03_39">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="39" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-202.228 -107.72 0 0 -207.668 -397.274 -439.795 -394.856 0 0 -435.563 -104.697 -290.484 -105.906" />
+  </TestCase>
+  <TestCase id="Nov19_03_40">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="40" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-201.623 -107.115 0 0 -207.064 -396.669 -439.795 -394.856 0 0 -433.75 -104.093 -291.693 -105.906" />
+  </TestCase>
+  <TestCase id="Nov19_03_41">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="41" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-201.623 -108.324 0 0 -208.273 -397.274 -439.19 -394.856 0 0 -434.959 -104.697 -293.507 -105.906" />
+  </TestCase>
+  <TestCase id="Nov19_03_42">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="42" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-205.25 -108.324 0 0 -210.691 -396.669 -441.608 -394.251 0 0 -436.772 -104.093 -298.947 -104.697" />
+  </TestCase>
+  <TestCase id="Nov19_03_43">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="43" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-205.25 -108.324 0 0 -211.295 -397.274 -442.817 -394.856 0 0 -437.981 -104.697 -304.388 -105.302" />
+  </TestCase>
+  <TestCase id="Nov19_03_44">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="44" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-204.646 -107.72 0 0 -210.691 -396.065 -443.422 -393.647 0 0 -437.377 -103.488 -304.388 -104.697" />
+  </TestCase>
+  <TestCase id="Nov19_03_45">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="45" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-202.832 -108.929 0 0 -210.086 -396.065 -441.608 -393.647 0 0 -437.981 -103.488 -304.992 -105.906" />
+  </TestCase>
+  <TestCase id="Nov19_03_46">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="46" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-203.437 -107.72 0 0 -209.482 -395.46 -441.608 -394.251 0 0 -436.772 -103.488 -306.201 -105.302" />
+  </TestCase>
+  <TestCase id="Nov19_03_47">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="47" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-205.855 -107.115 0 0 -211.9 -396.669 -442.817 -393.647 0 0 -437.377 -103.488 -308.015 -104.093" />
+  </TestCase>
+  <TestCase id="Nov19_03_48">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="48" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-204.041 -108.324 0 0 -211.9 -396.065 -443.422 -393.042 0 0 -437.377 -103.488 -312.851 -104.697" />
+  </TestCase>
+  <TestCase id="Nov19_03_49">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="49" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-204.041 -107.72 0 0 -213.109 -396.065 -442.817 -393.042 0 0 -437.981 -101.675 -312.851 -104.697" />
+  </TestCase>
+  <TestCase id="Nov19_03_50">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="50" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-205.25 -107.72 0 0 -211.295 -396.669 -444.026 -393.042 0 0 -439.19 -103.488 -316.478 -104.697" />
+  </TestCase>
+  <TestCase id="Nov19_03_51">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="51" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-205.25 -107.72 0 0 -213.109 -395.46 -444.631 -393.042 0 0 -439.19 -103.488 -315.269 -107.115" />
+  </TestCase>
+  <TestCase id="Nov19_03_52">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="52" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-206.459 -107.115 0 0 -213.713 -396.065 -445.84 -393.647 0 0 -439.795 -103.488 -330.985 -107.72" />
+  </TestCase>
+  <TestCase id="Nov19_03_53">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="53" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-205.25 -107.72 0 0 -213.713 -395.46 -445.235 -393.042 0 0 -439.19 -102.884 -329.776 -108.929" />
+  </TestCase>
+  <TestCase id="Nov19_03_54">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="54" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-203.437 -108.324 0 0 -211.9 -396.065 -444.026 -392.438 0 0 -439.19 -103.488 -327.963 -107.72" />
+  </TestCase>
+  <TestCase id="Nov19_03_55">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="55" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-204.646 -108.324 0 0 -212.504 -395.46 -444.026 -392.438 0 0 -437.981 -102.884 -324.94 -108.929" />
+  </TestCase>
+  <TestCase id="Nov19_03_56">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="56" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-205.855 -108.929 0 0 -213.713 -395.46 -444.026 -392.438 0 0 -440.399 -103.488 -330.381 -108.324" />
+  </TestCase>
+  <TestCase id="Nov19_03_57">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="57" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-207.064 -108.929 0 0 -213.713 -396.065 -447.049 -393.647 0 0 -444.026 -104.093 -330.381 -109.533" />
+  </TestCase>
+  <TestCase id="Nov19_03_58">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="58" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-206.459 -108.324 0 0 -213.713 -395.46 -446.444 -392.438 0 0 -442.817 -102.884 -334.612 -108.929" />
+  </TestCase>
+  <TestCase id="Nov19_03_59">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="59" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-207.064 -108.929 0 0 -214.318 -394.856 -447.049 -392.438 0 0 -436.168 -105.302 -337.635 -108.324" />
+  </TestCase>
+  <TestCase id="Nov19_03_60">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="60" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-207.668 -107.72 0 0 -214.922 -394.856 -445.84 -392.438 0 0 -430.727 -107.115 -337.03 -107.72" />
+  </TestCase>
+  <TestCase id="Nov19_03_61">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="61" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-208.877 -108.324 0 0 -214.318 -394.251 -447.049 -393.647 0 0 -430.727 -107.115 -337.03 -108.929" />
+  </TestCase>
+  <TestCase id="Nov19_03_62">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="62" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-211.295 -108.324 0 0 -214.922 -394.856 -447.653 -390.624 0 0 -430.727 -108.324 -334.008 -108.929" />
+  </TestCase>
+  <TestCase id="Nov19_03_63">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="63" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-211.9 -105.906 0 0 -214.922 -394.251 -447.049 -392.438 0 0 -428.914 -107.115 -334.008 -108.324" />
+  </TestCase>
+  <TestCase id="Nov19_03_64">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="64" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-210.691 -107.115 0 0 -215.527 -394.251 -445.235 -392.438 0 0 -430.727 -107.115 -334.612 -108.929" />
+  </TestCase>
+  <TestCase id="Nov19_03_65">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="65" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-207.668 -107.115 0 0 -215.527 -394.856 -447.653 -393.042 0 0 -432.541 -108.324 -338.844 -108.324" />
+  </TestCase>
+  <TestCase id="Nov19_03_66">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="66" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-212.504 -106.511 0 0 -216.131 -394.856 -447.653 -392.438 0 0 -433.75 -109.533 -336.426 -108.324" />
+  </TestCase>
+  <TestCase id="Nov19_03_67">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="67" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-214.922 -107.115 0 0 -216.736 -394.251 -447.653 -392.438 0 0 -433.75 -107.72 -339.448 -108.324" />
+  </TestCase>
+  <TestCase id="Nov19_03_68">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="68" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-213.713 -105.906 0 0 -216.736 -394.856 -448.862 -391.833 0 0 -435.563 -108.324 -343.075 -107.72" />
+  </TestCase>
+  <TestCase id="Nov19_03_69">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="69" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-214.922 -106.511 0 0 -217.34 -394.251 -450.071 -391.833 0 0 -436.168 -108.324 -342.471 -107.115" />
+  </TestCase>
+  <TestCase id="Nov19_03_70">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="70" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-214.922 -107.72 0 0 -217.945 -394.251 -451.28 -392.438 0 0 -437.981 -108.929 -349.12 -108.324" />
+  </TestCase>
+  <TestCase id="Nov19_03_71">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="71" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-211.9 -106.511 0 0 -218.549 -394.251 -451.28 -391.833 0 0 -437.377 -108.929 -352.143 -108.929" />
+  </TestCase>
+  <TestCase id="Nov19_03_72">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="72" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-217.34 -107.72 0 0 -218.549 -393.647 -450.676 -393.647 0 0 -439.19 -108.929 -352.143 -109.533" />
+  </TestCase>
+  <TestCase id="Nov19_03_73">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="73" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-214.922 -108.324 0 0 -219.758 -394.251 -449.467 -392.438 0 0 -439.19 -107.115 -354.561 -108.929" />
+  </TestCase>
+  <TestCase id="Nov19_03_74">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="74" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-217.34 -108.324 0 0 -219.758 -394.856 -450.676 -392.438 0 0 -441.608 -108.324 -353.956 -108.324" />
+  </TestCase>
+  <TestCase id="Nov19_03_75">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="75" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-219.758 -108.324 0 0 -220.363 -393.647 -451.28 -392.438 0 0 -441.608 -106.511 -356.374 -107.72" />
+  </TestCase>
+  <TestCase id="Nov19_03_76">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="76" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-218.549 -107.72 0 0 -220.967 -394.856 -453.094 -393.042 0 0 -442.213 -107.72 -356.374 -108.324" />
+  </TestCase>
+  <TestCase id="Nov19_03_77">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="77" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-217.945 -107.72 0 0 -219.758 -393.042 -452.489 -392.438 0 0 -443.422 -108.324 -359.397 -108.324" />
+  </TestCase>
+  <TestCase id="Nov19_03_78">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="78" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-220.363 -108.929 0 0 -220.363 -393.647 -452.489 -393.042 0 0 -443.422 -108.324 -361.815 -108.929" />
+  </TestCase>
+  <TestCase id="Nov19_03_79">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="79" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-217.34 -109.533 0 0 -220.363 -394.251 -453.698 -392.438 0 0 -444.026 -108.324 -362.419 -109.533" />
+  </TestCase>
+  <TestCase id="Nov19_03_80">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="80" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-219.154 -107.115 0 0 -221.572 -393.647 -453.094 -392.438 0 0 -444.631 -107.72 -360.001 -109.533" />
+  </TestCase>
+  <TestCase id="Nov19_03_81">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="81" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-219.154 -109.533 0 0 -222.176 -394.251 -454.303 -393.042 0 0 -444.631 -107.72 -361.815 -108.929" />
+  </TestCase>
+  <TestCase id="Nov19_03_82">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="82" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-221.572 -108.324 0 0 -221.572 -394.251 -453.094 -392.438 0 0 -443.422 -108.324 -362.419 -108.929" />
+  </TestCase>
+  <TestCase id="Nov19_03_83">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="83" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-222.176 -107.72 0 0 -222.781 -394.856 -456.721 -393.647 0 0 -444.631 -106.511 -363.628 -108.324" />
+  </TestCase>
+  <TestCase id="Nov19_03_84">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="84" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-222.176 -108.929 0 0 -222.781 -394.251 -455.512 -393.042 0 0 -446.444 -107.72 -364.233 -108.929" />
+  </TestCase>
+  <TestCase id="Nov19_03_85">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="85" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-219.758 -108.929 0 0 -223.385 -394.856 -457.325 -393.042 0 0 -448.862 -105.906 -364.837 -108.929" />
+  </TestCase>
+  <TestCase id="Nov19_03_86">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="86" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-222.176 -108.929 0 0 -223.385 -393.647 -454.907 -394.251 0 0 -446.444 -105.302 -367.255 -107.72" />
+  </TestCase>
+  <TestCase id="Nov19_03_87">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="87" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-222.781 -107.72 0 0 -222.781 -394.251 -455.512 -393.042 0 0 -447.049 -105.906 -369.069 -108.324" />
+  </TestCase>
+  <TestCase id="Nov19_03_88">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="88" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-222.781 -107.72 0 0 -222.781 -394.856 -455.512 -392.438 0 0 -445.235 -105.302 -372.091 -108.929" />
+  </TestCase>
+  <TestCase id="Nov19_03_89">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="89" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-222.781 -107.115 0 0 -221.572 -394.856 -457.325 -394.251 0 0 -445.235 -105.906 -372.696 -108.324" />
+  </TestCase>
+  <TestCase id="Nov19_03_90">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="90" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-224.594 -107.115 0 0 -223.385 -393.647 -454.907 -392.438 0 0 -447.049 -105.906 -373.905 -107.72" />
+  </TestCase>
+  <TestCase id="Nov19_03_91">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="91" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-224.594 -107.72 0 0 -223.385 -393.647 -457.325 -393.647 0 0 -449.467 -105.906 -379.345 -108.324" />
+  </TestCase>
+  <TestCase id="Nov19_03_92">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="92" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-225.199 -108.324 0 0 -222.176 -394.856 -454.303 -393.042 0 0 -448.258 -106.511 -379.345 -108.324" />
+  </TestCase>
+  <TestCase id="Nov19_03_93">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="93" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-227.012 -107.115 0 0 -222.781 -395.46 -454.907 -394.251 0 0 -448.258 -107.115 -378.741 -108.929" />
+  </TestCase>
+  <TestCase id="Nov19_03_94">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="94" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-222.176 -105.906 0 0 -221.572 -395.46 -454.303 -394.251 0 0 -448.862 -105.302 -382.368 -107.115" />
+  </TestCase>
+  <TestCase id="Nov19_03_95">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="95" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-223.99 -106.511 0 0 -222.781 -395.46 -455.512 -396.065 0 0 -447.653 -105.906 -382.368 -107.72" />
+  </TestCase>
+  <TestCase id="Nov19_03_96">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="96" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-220.967 -106.511 0 0 -219.154 -396.669 -451.28 -395.46 0 0 -441.608 -105.302 -381.159 -108.324" />
+  </TestCase>
+  <TestCase id="Nov19_03_97">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="97" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-224.594 -106.511 0 0 -217.945 -395.46 -451.28 -393.647 0 0 -438.586 -105.906 -389.017 -107.72" />
+  </TestCase>
+  <TestCase id="Nov19_03_98">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="98" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-217.945 -105.302 0 0 -217.945 -396.065 -450.676 -394.251 0 0 -439.19 -104.697 -387.808 -107.72" />
+  </TestCase>
+  <TestCase id="Nov19_03_99">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="99" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-219.758 -105.906 0 0 -217.945 -396.669 -448.862 -392.438 0 0 -444.026 -103.488 -390.226 -107.72" />
+  </TestCase>
+  <TestCase id="Nov19_03_100">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="100" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-219.154 -107.115 0 0 -219.758 -396.065 -450.071 -394.251 0 0 -447.049 -101.07 -389.622 -107.115" />
+  </TestCase>
+  <TestCase id="Nov19_03_101">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="101" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-216.131 -106.511 0 0 -219.154 -395.46 -450.676 -394.251 0 0 -447.653 -102.279 -394.458 -106.511" />
+  </TestCase>
+  <TestCase id="Nov19_03_102">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="102" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-215.527 -105.906 0 0 -219.154 -396.065 -450.676 -394.856 0 0 -448.862 -103.488 -399.898 -103.488" />
+  </TestCase>
+  <TestCase id="Nov19_03_103">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="103" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-214.318 -106.511 0 0 -219.154 -396.065 -451.28 -393.647 0 0 -447.049 -102.884 -395.062 -104.093" />
+  </TestCase>
+  <TestCase id="Nov19_03_104">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="104" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-216.131 -106.511 0 0 -220.363 -397.274 -451.28 -394.251 0 0 -450.071 -102.279 -398.085 -102.884" />
+  </TestCase>
+  <TestCase id="Nov19_03_105">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="105" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-218.549 -107.115 0 0 -221.572 -396.065 -452.489 -394.251 0 0 -449.467 -102.279 -398.085 -102.884" />
+  </TestCase>
+  <TestCase id="Nov19_03_106">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="106" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-216.736 -105.302 0 0 -222.176 -396.065 -454.303 -393.647 0 0 -447.653 -101.675 -406.547 -101.675" />
+  </TestCase>
+  <TestCase id="Nov19_03_107">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="107" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-217.945 -106.511 0 0 -222.781 -396.669 -455.512 -394.251 0 0 -450.071 -102.279 -406.547 -102.884" />
+  </TestCase>
+  <TestCase id="Nov19_03_108">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="108" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-219.758 -105.906 0 0 -223.99 -396.669 -455.512 -394.856 0 0 -452.489 -102.884 -407.152 -102.279" />
+  </TestCase>
+  <TestCase id="Nov19_03_109">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="109" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-220.967 -106.511 0 0 -225.199 -397.274 -457.325 -394.251 0 0 -451.28 -102.279 -410.779 -103.488" />
+  </TestCase>
+  <TestCase id="Nov19_03_110">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="110" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-220.363 -105.906 0 0 -223.99 -396.065 -454.907 -394.251 0 0 -451.28 -102.279 -408.965 -103.488" />
+  </TestCase>
+  <TestCase id="Nov19_03_111">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="111" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-220.967 -105.906 0 0 -225.803 -396.669 -456.721 -394.856 0 0 -453.698 -102.279 -411.383 -102.279" />
+  </TestCase>
+  <TestCase id="Nov19_03_112">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="112" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-220.363 -104.697 0 0 -223.99 -397.274 -457.325 -393.647 0 0 -451.885 -101.675 -411.988 -102.279" />
+  </TestCase>
+  <TestCase id="Nov19_03_113">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="113" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-222.781 -105.906 0 0 -225.199 -395.46 -457.325 -395.46 0 0 -454.303 -101.675 -414.406 -101.675" />
+  </TestCase>
+  <TestCase id="Nov19_03_114">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="114" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-223.385 -104.697 0 0 -225.803 -395.46 -457.325 -394.251 0 0 -454.303 -102.279 -418.637 -101.675" />
+  </TestCase>
+  <TestCase id="Nov19_03_115">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="115" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-220.363 -104.697 0 0 -225.803 -396.065 -457.325 -394.251 0 0 -454.303 -102.279 -417.428 -101.07" />
+  </TestCase>
+  <TestCase id="Nov19_03_116">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="116" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-223.99 -104.697 0 0 -226.408 -396.065 -458.534 -395.46 0 0 -454.303 -101.675 -420.451 -101.675" />
+  </TestCase>
+  <TestCase id="Nov19_03_117">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="117" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-223.385 -105.906 0 0 -227.012 -396.065 -457.93 -394.856 0 0 -454.907 -102.884 -422.264 -101.675" />
+  </TestCase>
+  <TestCase id="Nov19_03_118">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="118" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-223.99 -104.093 0 0 -227.617 -395.46 -459.139 -394.251 0 0 -456.721 -102.884 -423.473 -101.675" />
+  </TestCase>
+  <TestCase id="Nov19_03_119">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="119" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-226.408 -103.488 0 0 -227.012 -394.251 -458.534 -393.647 0 0 -456.721 -102.279 -426.496 -101.07" />
+  </TestCase>
+  <TestCase id="Nov19_03_120">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="120" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-226.408 -104.093 0 0 -228.826 -394.251 -459.139 -394.251 0 0 -456.116 -101.07 -428.309 -101.07" />
+  </TestCase>
+  <TestCase id="Nov19_03_121">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="121" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-226.408 -104.093 0 0 -227.617 -394.251 -459.139 -393.042 0 0 -459.139 -101.07 -430.123 -101.07" />
+  </TestCase>
+  <TestCase id="Nov19_03_122">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="122" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-223.385 -103.488 0 0 -227.617 -394.856 -459.139 -394.856 0 0 -458.534 -101.07 -429.518 -101.07" />
+  </TestCase>
+  <TestCase id="Nov19_03_123">
+    <Input ImageSeqFileName="UsFidSegTestNov19_03.mhd" ImageSeqFrameIndex="123" />
+    <Output SegmentationSuccess="1"
+      SegmentationPoints="-225.199 -102.884 0 0 -227.012 -394.251 -459.743 -393.647 0 0 -457.93 -99.8614 -431.332 -101.07" />
+  </TestCase>
+ <Statistics>
+  <Segmentation MeanFoundFiducialsCount="5" />
+ </Statistics>
+</TestResults>

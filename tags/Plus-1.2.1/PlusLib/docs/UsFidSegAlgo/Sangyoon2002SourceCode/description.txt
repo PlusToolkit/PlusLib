@@ -1,0 +1,6 @@
+Received from Sangyoon Lee (Konkuk University in Korea, slee@konkuk.ac.kr) in June 2010.
+These are the implementation of the methods described in:
+Numerical algorithms for spatial registration of line fiducials
+from cross-sectional images
+Sangyoon Lee, Gabor Fichtinger, Gregory S. Chirikjian
+Med. Phys. 29 (8), August 2002
