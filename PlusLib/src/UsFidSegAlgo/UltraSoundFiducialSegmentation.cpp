@@ -1099,8 +1099,8 @@ void SegmentationParameters::ComputeParameters(vtkXMLDataElement* segmentationPa
 		}
 	}
 
-	m_MaxTheta = *std::max_element(finalAngleTable.begin(),finalAngleTable.end());
-	m_MinTheta = *std::min_element(finalAngleTable.begin(),finalAngleTable.end());
+	SetMaxTheta(*std::max_element(finalAngleTable.begin(),finalAngleTable.end()));
+	SetMinTheta(*std::min_element(finalAngleTable.begin(),finalAngleTable.end()));
 
 	//So far the following values are not computed automatically (will be in future) so they need to be read from config file
 	double maxLineLengthErrorPercent(0.0); 
