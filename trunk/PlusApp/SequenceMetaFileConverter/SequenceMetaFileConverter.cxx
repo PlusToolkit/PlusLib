@@ -644,28 +644,42 @@ void SaveImages( vtkTrackedFrameList* trackedFrameList, SAVING_METHOD savingMeth
 		break; 
 	case SEQUENCE_METAFILE:
 		{
-			if ( numberOfFrames > 1 )
-			{
-				LOG_INFO("Saving sequence meta file..."); 
-			}
+      if ( numberOfFrames > 1 )
+      {
+        LOG_INFO("Saving sequence meta file..."); 
+      }
 
-            if ( inputNoImageData ) 
-            {
-                for ( int i = 0; i < numberOfFrames; ++i )
-                {
-                    if ( trackedFrameList->GetTrackedFrame(i)->ImageData.IsNotNull() )
-                    {
-                        trackedFrameList->GetTrackedFrame(i)->ImageData = NULL; 
-                    }
-                }
-            }
-			if ( trackedFrameList->SaveToSequenceMetafile(outputFolder.c_str(), outputSequenceFileName.c_str(), vtkTrackedFrameList::SEQ_METAFILE_MHA, inputUseCompression) != PLUS_SUCCESS )
+      if ( inputNoImageData ) 
+      {
+        for ( int i = 0; i < numberOfFrames; ++i )
+        {
+          if ( trackedFrameList->GetTrackedFrame(i)->ImageData.IsNotNull() )
+          {
+            trackedFrameList->GetTrackedFrame(i)->ImageData = NULL; 
+          }
+        }
+      }
+
+      std::string fileName = vtksys::SystemTools::GetFilenameWithoutLastExtension(outputSequenceFileName); 
+      std::string extension = vtksys::SystemTools::GetFilenameLastExtension(outputSequenceFileName); 
+      
+      vtkTrackedFrameList::SEQ_METAFILE_EXTENSION metaExtension = vtkTrackedFrameList::SEQ_METAFILE_MHA; 
+      if ( STRCASECMP(".mha", extension.c_str() ) == 0 )
+      {
+        metaExtension = vtkTrackedFrameList::SEQ_METAFILE_MHA; 
+      }
+      else if ( STRCASECMP(".mhd", extension.c_str() ) == 0 )
+      {
+        metaExtension = vtkTrackedFrameList::SEQ_METAFILE_MHD; 
+      }
+       
+      if ( trackedFrameList->SaveToSequenceMetafile(outputFolder.c_str(), fileName.c_str(), metaExtension, inputUseCompression) != PLUS_SUCCESS )
       {
         LOG_ERROR("Failed to save tracked frames to sequence metafile!"); 
         return; 
       }
-		}
-	}
+    }
+  }
 }
 
 //-------------------------------------------------------------------------------
