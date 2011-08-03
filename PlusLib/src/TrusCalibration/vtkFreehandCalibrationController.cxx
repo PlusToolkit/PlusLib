@@ -835,6 +835,12 @@ PlusStatus vtkFreehandCalibrationController::Reset()
     LOG_ERROR("Reset freehand calibration was called in an unexpected state!");
   }
 
+  // If calibrator is present, delete it so that it can be re-initialized when calibration is started again
+	if (this->Calibrator != NULL) {
+		delete this->Calibrator;
+		this->Calibrator = NULL;
+	}
+
 	// Reset progress
 	this->SetProgressPercent(0);
 
@@ -1500,6 +1506,8 @@ PlusStatus vtkFreehandCalibrationController::ComputeCalibrationResults()
 		}
 		*/
 
+    this->SaveCalibrationResults();
+
 		this->SpatialCalibrationDoneOn();
 
 	} catch(...) {
@@ -1516,9 +1524,15 @@ PlusStatus vtkFreehandCalibrationController::SaveCalibrationResults()
 {
 	LOG_TRACE("vtkFreehandCalibrationController::SaveCalibrationResults");
 
-	// Find stylus definition element
+  // Save temporal calibration
+	vtkSmartPointer<vtkXMLDataElement> imageAcquisition = vtkFreehandController::LookupElementWithNameContainingChildWithNameAndAttribute(NULL, "USDataCollection", "ImageAcqusition", NULL, NULL);
+  imageAcquisition->SetDoubleAttribute("LocalTimeOffset", this->GetVideoTimeOffset());
+
+	// Save spatial calibration result
 	char* toolType = NULL;
 	vtkTracker::ConvertToolTypeToString(TRACKER_TOOL_PROBE, toolType);
+
+  //Find stylus definition element
 	vtkSmartPointer<vtkXMLDataElement> probeDefinition = vtkFreehandController::LookupElementWithNameContainingChildWithNameAndAttribute(NULL, "Tracker", "Tool", "Type", toolType);
 	if (probeDefinition == NULL) {
 		LOG_ERROR("No probe definition is found in the XML tree!");
@@ -1545,14 +1559,6 @@ PlusStatus vtkFreehandCalibrationController::SaveCalibrationResults()
 	calibration->SetAttribute("MatrixName", "ImageToProbe");
 	calibration->SetAttribute("Date", vtksys::SystemTools::GetCurrentDateTime("%Y.%m.%d %X").c_str());
 	calibration->SetDoubleAttribute("Error", GetPointLineDistanceErrorAnalysisVector()[0] * 1000.0); // TODO find the best error number
-
-  vtkDataCollector* dataCollector = vtkFreehandController::GetInstance()->GetDataCollector();
-	if (dataCollector == NULL) {
-		LOG_ERROR("Data collector is not initialized!");
-		return PLUS_FAIL;
-	}
-
-  dataCollector->GetConfigurationData()->PrintXML(vtkFreehandController::GetInstance()->GetConfigurationFileName());
 
 	return PLUS_SUCCESS;
 }

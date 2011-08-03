@@ -45,7 +45,10 @@ public:
 	//TODO
 	PlusStatus StartDataCollection();
 
-	//TODO
+  //TODO
+  PlusStatus SaveConfigurationToFile();
+
+  //TODO
 	static vtkXMLDataElement* LookupElementWithNameContainingChildWithNameAndAttribute(vtkXMLDataElement* aConfig, const char* aElementName, const char* aChildName, const char* aChildAttributeName, const char* aChildAttributeValue);
 
 	//TODO

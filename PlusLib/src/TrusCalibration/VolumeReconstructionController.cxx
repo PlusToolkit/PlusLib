@@ -11,6 +11,7 @@
 #include "vtkMarchingContourFilter.h"
 #include "vtkPolyDataMapper.h"
 #include "vtkProperty.h"
+#include "vtkXMLUtilities.h"
 
 //-----------------------------------------------------------------------------
 
@@ -184,11 +185,26 @@ void VolumeReconstructionController::SetContouringThreshold(double aThreshold)
 
 //-----------------------------------------------------------------------------
 
-PlusStatus VolumeReconstructionController::LoadVolumeReconstructionConfigFromFile(std::string aFile)
+PlusStatus VolumeReconstructionController::LoadVolumeReconstructionConfigurationFromFile(std::string aFile)
 {
-	LOG_TRACE("VolumeReconstructionController::LoadVolumeReconstructionConfigFromFile(" << aFile << ")");
+	LOG_TRACE("VolumeReconstructionController::LoadVolumeReconstructionConfigurationFromFile(" << aFile << ")");
 
-	bool success = m_VolumeReconstructor->ReadConfiguration(aFile.c_str());
+	vtkSmartPointer<vtkXMLDataElement> rootElement = vtkXMLUtilities::ReadElementFromFile(aFile.c_str());
+	if (rootElement == NULL) {	
+		LOG_ERROR("Unable to read the configuration file: " << aFile); 
+		return PLUS_FAIL;
+	}
+
+	return LoadVolumeReconstructionConfiguration(rootElement);
+}
+
+//-----------------------------------------------------------------------------
+
+PlusStatus VolumeReconstructionController::LoadVolumeReconstructionConfiguration(vtkXMLDataElement* aConfig)
+{
+	LOG_TRACE("VolumeReconstructionController::LoadVolumeReconstructionConfiguration");
+
+  bool success = m_VolumeReconstructor->ReadConfiguration(aConfig);
 
 	m_VolumeReconstructionConfigFileLoaded = success;
 
@@ -212,7 +228,7 @@ PlusStatus VolumeReconstructionController::ReconstructVolumeFromInputImage(std::
 	// Set the input frame parameters for volume reconstruction
 	m_VolumeReconstructor->SetNumberOfFrames( trackedFrameList->GetNumberOfTrackedFrames() ); 
 	m_VolumeReconstructor->SetFrameSize( trackedFrameList->GetFrameSize() ); 
-    m_VolumeReconstructor->SetNumberOfBitsPerPixel( trackedFrameList->GetNumberOfBitsPerPixel() ); 
+  m_VolumeReconstructor->SetNumberOfBitsPerPixel( trackedFrameList->GetNumberOfBitsPerPixel() ); 
 	
 	m_VolumeReconstructor->Initialize(); 
   

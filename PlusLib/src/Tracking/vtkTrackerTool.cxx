@@ -460,13 +460,18 @@ PlusStatus vtkTrackerTool::ReadConfiguration(vtkXMLDataElement* config)
 	if ( modelDataElement != NULL ) 
 	{
 		const char* file = modelDataElement->GetAttribute("File");
-		if ( file != NULL )
+    if ( (file != NULL) && (STRCASECMP(file, "") != 0) )
 		{
 			this->SetTool3DModelFileName(file);
 		}
+    else
+    {
+      LOG_WARNING("'" << typeString << "' CAD model has not been defined");
+    }
 
-		double modelToToolTransformMatrixValue[16] = {0}; 
-		if ( modelDataElement->GetVectorAttribute("ModelToToolTransform", 16, modelToToolTransformMatrixValue ) )
+    // ModelToToolTransform stays identity if no model file has been found
+		double modelToToolTransformMatrixValue[16] = {0};
+		if ( (modelDataElement->GetVectorAttribute("ModelToToolTransform", 16, modelToToolTransformMatrixValue )) && (STRCASECMP(file, "") != 0) )
 		{
 			this->ModelToToolTransform->SetMatrix(modelToToolTransformMatrixValue);
 		}

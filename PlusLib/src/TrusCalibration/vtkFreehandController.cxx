@@ -156,19 +156,21 @@ PlusStatus vtkFreehandController::StartDataCollection()
 
 vtkXMLDataElement* vtkFreehandController::LookupElementWithNameContainingChildWithNameAndAttribute(vtkXMLDataElement* aConfig, const char* aElementName, const char* aChildName, const char* aChildAttributeName, const char* aChildAttributeValue)
 {
-	LOG_TRACE("vtkFreehandController::LookupElementWithNameContainingChildWithNameAndAttribute(" << aElementName << ", " << aChildName << ", " << aChildAttributeName << ", " << aChildAttributeValue << ")");
+  LOG_TRACE("vtkFreehandController::LookupElementWithNameContainingChildWithNameAndAttribute(" << aElementName << ", " << aChildName << ", " << (aChildAttributeName==NULL ? "" : aChildAttributeName) << ", " << (aChildAttributeValue==NULL ? "" : aChildAttributeValue) << ")");
 
   if (aConfig == NULL) {
     aConfig = vtkFreehandController::GetInstance()->GetConfigurationData();
   }
 
-	vtkXMLDataElement* childElement = NULL;
-
 	vtkSmartPointer<vtkXMLDataElement> firstElement = aConfig->LookupElementWithName(aElementName);
 	if (firstElement == NULL) {
 		return NULL;
 	} else {
-		return childElement = firstElement->FindNestedElementWithNameAndAttribute(aChildName, aChildAttributeName, aChildAttributeValue);
+    if (aChildAttributeName && aChildAttributeValue) {
+		  return firstElement->FindNestedElementWithNameAndAttribute(aChildName, aChildAttributeName, aChildAttributeValue);
+    } else {
+      return firstElement->FindNestedElementWithName(aChildName);
+    }
 	}
 }
 
@@ -197,4 +199,29 @@ vtkXMLDataElement* vtkFreehandController::ParseXMLOrFillWithInternalData(const c
 	}
 
 	return rootElement;
+}
+
+//-----------------------------------------------------------------------------
+
+PlusStatus vtkFreehandController::SaveConfigurationToFile()
+{
+	if ((this->DataCollector == NULL) || (! this->DataCollector->GetInitialized())) {
+		LOG_ERROR("Data collector is not initialized!");
+		return PLUS_FAIL;
+	}
+
+  // Construct new file name with date and time
+  std::string resultFileName = this->ConfigurationFileName;
+  resultFileName = resultFileName.substr(0, resultFileName.find(".xml"));
+  resultFileName.append("_");
+  resultFileName.append(vtksys::SystemTools::GetCurrentDateTime("%Y%m%d_%H%M%S"));
+  resultFileName.append(".xml");
+
+  this->SetConfigurationFileName(resultFileName.c_str());
+
+  this->DataCollector->GetConfigurationData()->PrintXML(this->ConfigurationFileName);
+
+  LOG_INFO("Configuration file '" << this->ConfigurationFileName << "' saved");
+
+  return PLUS_SUCCESS;
 }

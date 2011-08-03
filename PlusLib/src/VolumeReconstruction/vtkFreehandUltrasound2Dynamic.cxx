@@ -2626,8 +2626,9 @@ vtkXMLDataElement* vtkFreehandUltrasound2Dynamic::MakeXMLElement()
 // Read the freehand parameters from the filename specified in the (relative!)
 // directory
 // File should have been created using SaveSummaryFile()
-PlusStatus vtkFreehandUltrasound2Dynamic::ReadSummaryFile(const char *filename)
+PlusStatus vtkFreehandUltrasound2Dynamic::ReadSummary(vtkXMLDataElement* aConfig)
 {
+	LOG_TRACE("vtkFreehandUltrasound2Dynamic::ReadSummary"); 
 
   if (this->ReconstructionThreadId != -1)
   {
@@ -2635,14 +2636,7 @@ PlusStatus vtkFreehandUltrasound2Dynamic::ReadSummaryFile(const char *filename)
     return PLUS_FAIL;
   }
 
-  // read in the freehand information
-  vtkSmartPointer<vtkXMLDataElement> rootElement = vtkXMLUtilities::ReadElementFromFile(filename);
-  if (rootElement == NULL)
-  {
-    LOG_ERROR("Read volume reconstruction configuration - invalid file " << filename);
-    return PLUS_FAIL;
-  }
-	vtkSmartPointer<vtkXMLDataElement> volumeReconstruction = rootElement->FindNestedElementWithName("VolumeReconstruction");
+	vtkSmartPointer<vtkXMLDataElement> volumeReconstruction = aConfig->FindNestedElementWithName("VolumeReconstruction");
 	if (volumeReconstruction == NULL)
   {
 		LOG_ERROR("No volume reconstruction is found in the XML tree!");
@@ -2650,7 +2644,7 @@ PlusStatus vtkFreehandUltrasound2Dynamic::ReadSummaryFile(const char *filename)
 	}
 
   // get the base information
-  this->Superclass::ReadSummaryFile(filename);
+  this->Superclass::ReadSummary(aConfig);
 
   // triggering options
   vtkXMLDataElement* triggeringParams = volumeReconstruction->FindNestedElementWithName("TriggeringParameters");

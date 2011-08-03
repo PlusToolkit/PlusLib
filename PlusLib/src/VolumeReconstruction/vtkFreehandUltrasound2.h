@@ -160,6 +160,10 @@ public:
   virtual PlusStatus ReadSummaryFile(const char *filename);
 
   // Description:
+  // Configure the freehand ultrasound reconstruction according to a summary XML data
+  virtual PlusStatus ReadSummary(vtkXMLDataElement* aConfig);
+
+  // Description:
   // Set the time by which the video lags behind the tracking information,
   // in seconds.  This value may be negative.  Default: 0.
   vtkSetMacro(VideoLag,double);

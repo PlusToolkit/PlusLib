@@ -14,6 +14,7 @@
 #include "vtkTransform.h"
 #include "vtkVideoBuffer.h"
 #include "vtkVolumeReconstructor.h"
+#include "vtkXMLUtilities.h"
 
 
 vtkCxxRevisionMacro(vtkVolumeReconstructor, "$Revisions: 1.0 $");
@@ -230,14 +231,26 @@ PlusStatus vtkVolumeReconstructor::ReadConfiguration()
     return PLUS_FAIL;
   }
 
-  return this->GetReconstructor()->ReadSummaryFile(this->GetConfigFileName()); 
+  // read in the freehand information
+  vtkSmartPointer<vtkXMLDataElement> rootElement = vtkXMLUtilities::ReadElementFromFile(this->GetConfigFileName());
+  if (rootElement == NULL)
+  {
+    LOG_ERROR("Read volume reconstruction configuration - invalid file " << this->GetConfigFileName());
+    return PLUS_FAIL;
+  }
+
+  return this->GetReconstructor()->ReadSummary(rootElement); 
 }
 
+//----------------------------------------------------------------------------
+PlusStatus vtkVolumeReconstructor::ReadConfiguration(vtkXMLDataElement* aConfig)
+{
+  return this->GetReconstructor()->ReadSummary(aConfig); 
+}
 
+//----------------------------------------------------------------------------
 
-vtkSmartPointer< vtkTransform >
-vtkVolumeReconstructor
-::GetImageToToolTransform()
+vtkSmartPointer< vtkTransform > vtkVolumeReconstructor::GetImageToToolTransform()
 { 
   vtkSmartPointer< vtkTransform > tImageToTool = vtkSmartPointer< vtkTransform >::New();
   tImageToTool->PostMultiply();
@@ -248,11 +261,9 @@ vtkVolumeReconstructor
   return tImageToTool;
 }
 
+//----------------------------------------------------------------------------
 
-
-const vtkMatrix4x4*
-vtkVolumeReconstructor
-::GetImageToToolMatrix()
+const vtkMatrix4x4* vtkVolumeReconstructor::GetImageToToolMatrix()
 {
   vtkMatrix4x4* matrix = this->GetReconstructor()->GetTrackerTool()->GetCalibrationMatrix();
   const vtkMatrix4x4* constMatrix = const_cast< const vtkMatrix4x4* >( matrix );
