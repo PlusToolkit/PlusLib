@@ -180,7 +180,7 @@ vtkXMLDataElement* vtkFreehandController::ParseXMLOrFillWithInternalData(const c
 {
 	vtkXMLDataElement* rootElement = NULL;
 
-	if (vtksys::SystemTools::FileExists(aFile, true)) {
+  if ((aFile != NULL) && (vtksys::SystemTools::FileExists(aFile, true))) {
 		rootElement = vtkXMLUtilities::ReadElementFromFile(aFile);
 
 		if (rootElement == NULL) {	
@@ -203,13 +203,8 @@ vtkXMLDataElement* vtkFreehandController::ParseXMLOrFillWithInternalData(const c
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkFreehandController::SaveConfigurationToFile()
+std::string vtkFreehandController::GetNewConfigurationFileName()
 {
-	if ((this->DataCollector == NULL) || (! this->DataCollector->GetInitialized())) {
-		LOG_ERROR("Data collector is not initialized!");
-		return PLUS_FAIL;
-	}
-
   // Construct new file name with date and time
   std::string resultFileName = this->ConfigurationFileName;
   resultFileName = resultFileName.substr(0, resultFileName.find(".xml"));
@@ -217,7 +212,19 @@ PlusStatus vtkFreehandController::SaveConfigurationToFile()
   resultFileName.append(vtksys::SystemTools::GetCurrentDateTime("%Y%m%d_%H%M%S"));
   resultFileName.append(".xml");
 
-  this->SetConfigurationFileName(resultFileName.c_str());
+  return resultFileName;
+}
+
+//-----------------------------------------------------------------------------
+
+PlusStatus vtkFreehandController::SaveConfigurationToFile(std::string aFile)
+{
+	if ((this->DataCollector == NULL) || (! this->DataCollector->GetInitialized())) {
+		LOG_ERROR("Data collector is not initialized!");
+		return PLUS_FAIL;
+	}
+
+  this->SetConfigurationFileName(aFile.c_str());
 
   this->DataCollector->GetConfigurationData()->PrintXML(this->ConfigurationFileName);
 

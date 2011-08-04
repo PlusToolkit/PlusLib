@@ -3,7 +3,7 @@
 	<!-- DATA COLLECTION -->
 	<USDataCollection version="2.0" StartupDelaySec="1.0">
 		<DeviceSet 
-			Name="No Video with Fake tracker in Pivot calibration mode" 
+			Name="TEST No Video with Fake tracker in Pivot calibration mode" 
 			Description="vtkStylusCalibrationTest uses this configuration" 
 			/>
 
@@ -34,7 +34,7 @@
 						0 1 0 0
 						0 0 1 0
 						0 0 0 1"
-					Date="2011.07.28 21:42:34"
+					Date=""
 					Error="0.0" />
 			</Tool>
 		</Tracker>
