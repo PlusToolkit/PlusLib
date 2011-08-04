@@ -178,6 +178,8 @@ vtkXMLDataElement* vtkFreehandController::LookupElementWithNameContainingChildWi
 
 vtkXMLDataElement* vtkFreehandController::ParseXMLOrFillWithInternalData(const char* aFile)
 {
+  LOG_TRACE("vtkFreehandController::ParseXMLOrFillWithInternalData(" << aFile << ")");
+
 	vtkXMLDataElement* rootElement = NULL;
 
   if ((aFile != NULL) && (vtksys::SystemTools::FileExists(aFile, true))) {
@@ -205,6 +207,8 @@ vtkXMLDataElement* vtkFreehandController::ParseXMLOrFillWithInternalData(const c
 
 std::string vtkFreehandController::GetNewConfigurationFileName()
 {
+  LOG_TRACE("vtkFreehandController::GetNewConfigurationFileName");
+
   // Construct new file name with date and time
   std::string resultFileName = this->ConfigurationFileName;
   resultFileName = resultFileName.substr(0, resultFileName.find(".xml"));
@@ -217,18 +221,50 @@ std::string vtkFreehandController::GetNewConfigurationFileName()
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkFreehandController::SaveConfigurationToFile(std::string aFile)
+PlusStatus vtkFreehandController::SaveConfigurationToFile(const char* aFile)
 {
-	if ((this->DataCollector == NULL) || (! this->DataCollector->GetInitialized())) {
+  LOG_TRACE("vtkFreehandController::SaveConfigurationToFile(" << aFile << ")");
+
+  if ((this->DataCollector == NULL) || (! this->DataCollector->GetInitialized())) {
 		LOG_ERROR("Data collector is not initialized!");
 		return PLUS_FAIL;
 	}
 
-  this->SetConfigurationFileName(aFile.c_str());
+  this->SetConfigurationFileName(aFile);
 
   this->DataCollector->GetConfigurationData()->PrintXML(this->ConfigurationFileName);
 
   LOG_INFO("Configuration file '" << this->ConfigurationFileName << "' saved");
 
   return PLUS_SUCCESS;
+}
+
+//-----------------------------------------------------------------------------
+
+PlusStatus vtkFreehandController::DumpBuffersToDirectory(const char* aDirectory)
+{
+  LOG_TRACE("vtkFreehandController::DumpBuffersToDirectory(" << aDirectory << ")");
+
+  if ((this->DataCollector == NULL) || (! this->DataCollector->GetInitialized())) {
+		LOG_ERROR("Data collector is not initialized!");
+		return PLUS_FAIL;
+	}
+
+  // Assemble file names
+  std::string dateAndTime = vtksys::SystemTools::GetCurrentDateTime("%Y%m%d_%H%M%S");
+  std::string outputVideoBufferSequenceFileName = "BufferDump_Video_";
+  outputVideoBufferSequenceFileName.append(dateAndTime);
+  std::string outputTrackerBufferSequenceFileName = "BufferDump_Tracker_";
+  outputTrackerBufferSequenceFileName.append(dateAndTime);
+
+  // Dump buffers to file 
+  if ( this->DataCollector->GetVideoSource() != NULL )  {
+    LOG_INFO("Write video buffer to " << outputVideoBufferSequenceFileName);
+    this->DataCollector->WriteVideoBufferToMetafile( this->DataCollector->GetVideoSource()->GetBuffer(), aDirectory, outputVideoBufferSequenceFileName.c_str(), false); 
+  }
+
+  if ( this->DataCollector->GetTracker() != NULL ) {
+    LOG_INFO("Write tracker buffer to " << outputTrackerBufferSequenceFileName);
+    this->DataCollector->WriteTrackerToMetafile( this->DataCollector->GetTracker(), aDirectory, outputTrackerBufferSequenceFileName.c_str(), false); 
+  }
 }
