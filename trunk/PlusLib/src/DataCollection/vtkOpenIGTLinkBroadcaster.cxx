@@ -314,8 +314,7 @@ vtkOpenIGTLinkBroadcaster
   double timestamp = 0.0;
   TrackerStatus status = TR_OK;
   vtkSmartPointer< vtkMatrix4x4 > mProbeToReference = vtkSmartPointer< vtkMatrix4x4 >::New();
-  PlusStatus pStatus = this->DataCollector->GetTrackedFrame( frameImage, mProbeToReference, status,
-                                                             timestamp, defaultTool, true );
+  PlusStatus pStatus = this->DataCollector->GetTrackedFrame( frameImage, mProbeToReference, status, timestamp, defaultTool, true );
   
   if ( pStatus != PLUS_SUCCESS )
     {
@@ -328,6 +327,7 @@ vtkOpenIGTLinkBroadcaster
     // Convert matrix and time formats.
   
   igtl::Matrix4x4 igtlMatrix;
+  
   for ( int row = 0; row < 4; ++ row )
     {
     for ( int col = 0; col < 4; ++ col )
@@ -335,6 +335,22 @@ vtkOpenIGTLinkBroadcaster
       igtlMatrix[ row ][ col ] = mProbeToReference->GetElement( row, col );
       }
     }
+  
+  
+  /*
+  //debug
+  std::cerr << "ProbeToReference:" << std::endl;
+  for ( int row = 0; row < 4; ++ row )
+    {
+    for ( int col = 0; col < 4; ++ col )
+      {
+      std::cerr << mProbeToReference->GetElement( row, col ) << "   ";
+      }
+    std::cerr << std::endl;
+    }
+  std::cerr << std::endl;
+  */
+  
   
   igtl::TimeStamp::Pointer igtlFrameTime = igtl::TimeStamp::New();
   igtlFrameTime->SetTime( timestamp );

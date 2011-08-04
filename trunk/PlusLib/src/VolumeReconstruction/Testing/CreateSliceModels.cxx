@@ -105,6 +105,20 @@ int main( int argc, char** argv )
     vtkSmartPointer< vtkMatrix4x4 > mToolToTracker = vtkSmartPointer< vtkMatrix4x4 >::New();
     mToolToTracker->DeepCopy( defaultTransform );
     
+    
+    //debug
+    std::cerr << "ToolToReference:" << std::endl;
+    for ( int r = 0; r < 4; ++ r )
+      {
+      for ( int c = 0; c < 4; ++ c )
+        {
+        std::cerr << mToolToTracker->GetElement( r, c ) << "   ";
+        }
+      std::cerr << std::endl;
+      }
+    std::cerr << std::endl;
+    
+    
     vtkSmartPointer< vtkTransform > tToolToTracker = vtkSmartPointer< vtkTransform >::New();
     tToolToTracker->SetMatrix( mToolToTracker );
     tToolToTracker->Update();
