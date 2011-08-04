@@ -39,3 +39,9 @@ ADD_EXECUTABLE( PlusServer
 TARGET_LINK_LIBRARIES( PlusServer
   OpenIGTLink
   )
+
+  
+INSTALL(TARGETS OpenIGTLinkBroadcaster
+  DESTINATION ${PLUSAPP_INSTALL_BIN_DIR}
+  COMPONENT RuntimeLibraries
+  )
