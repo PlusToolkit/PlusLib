@@ -1232,16 +1232,12 @@ PlusStatus vtkFreehandCalibrationController::ReadConfiguration(vtkXMLDataElement
 		LOG_ERROR("Unable to read configuration");
 		return PLUS_FAIL;
 	}
+
 	this->ReadCalibrationControllerConfiguration(calibrationController);
 	vtkFreehandController::GetInstance()->SetOutputFolder(this->GetOutputPath());
 
-	// Freehand Calibration specifications (from ProbeCalibration section of the config file)
-	vtkSmartPointer<vtkXMLDataElement> freehandCalibration = calibrationController->FindNestedElementWithName("ProbeCalibration");
-	if (freehandCalibration == NULL) {
-		LOG_ERROR("Unable to read configuration");
-		return PLUS_FAIL;
-	}
-	this->ReadFreehandCalibrationConfiguration(freehandCalibration);
+  // Load freehand calibration elements
+	this->ReadFreehandCalibrationConfiguration(aConfig);
 
 	// Find and load phantom definition
 	this->ReadPhantomDefinition(aConfig);
@@ -1251,10 +1247,26 @@ PlusStatus vtkFreehandCalibrationController::ReadConfiguration(vtkXMLDataElement
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkFreehandCalibrationController::ReadFreehandCalibrationConfiguration(vtkXMLDataElement* probeCalibration)
+PlusStatus vtkFreehandCalibrationController::ReadFreehandCalibrationConfiguration(vtkXMLDataElement* aConfig)
 {
 	LOG_TRACE("vtkFreehandCalibrationController::ReadFreehandCalibrationConfiguration"); 
 
+	// Find and load calibration configuration
+	vtkSmartPointer<vtkXMLDataElement> usCalibration = aConfig->FindNestedElementWithName("USCalibration");
+	if (usCalibration == NULL) {
+		LOG_ERROR("No calibration configuration is found in the XML tree!");
+		return PLUS_FAIL;
+	}
+	vtkSmartPointer<vtkXMLDataElement> calibrationController = usCalibration->FindNestedElementWithName("CalibrationController"); 
+	if (calibrationController == NULL) {
+		LOG_ERROR("Unable to read configuration");
+		return PLUS_FAIL;
+	}
+	this->ReadCalibrationControllerConfiguration(calibrationController);
+	vtkFreehandController::GetInstance()->SetOutputFolder(this->GetOutputPath());
+
+	// Probe Calibration specifications
+	vtkSmartPointer<vtkXMLDataElement> probeCalibration = calibrationController->FindNestedElementWithName("ProbeCalibration");
 	if (probeCalibration == NULL) {	
 		LOG_WARNING("Unable to read ProbeCalibration XML data element!"); 
 		return PLUS_FAIL; 
@@ -1361,23 +1373,23 @@ PlusStatus vtkFreehandCalibrationController::ReadFreehandCalibrationConfiguratio
 	}
 	*/
   
-  // Freehand Calibration specifications (from ProbeCalibration section of the config file)
-	vtkSmartPointer<vtkXMLDataElement> freehandCalibration = probeCalibration->FindNestedElementWithName("FreehandCalibration");
-	if (freehandCalibration == NULL) {
-		LOG_ERROR("Unable to find FreehandCalibration tag!");
-		return PLUS_FAIL;
-	}
+  // Freehand Calibration specifications
+	vtkSmartPointer<vtkXMLDataElement> freehandCalibration = calibrationController->FindNestedElementWithName("FreehandCalibration");
+	if (freehandCalibration == NULL) {	
+		LOG_WARNING("Unable to read FreehandCalibration XML data element!"); 
+		return PLUS_FAIL; 
+	} 
 
-	// RandomStepperMotionData2 data set specifications
-	vtkSmartPointer<vtkXMLDataElement> randomStepperMotionData_2 = freehandCalibration->FindNestedElementWithName("RandomStepperMotionData2"); 
-	if (randomStepperMotionData_2 != NULL) {
+	// FreehandMotionData2 data set specifications
+	vtkSmartPointer<vtkXMLDataElement> freehandMotionData_2 = freehandCalibration->FindNestedElementWithName("FreehandMotionData2"); 
+	if (freehandMotionData_2 != NULL) {
 		ImageDataInfo imageDataInfo; 
 		int numberOfImagesToUse = -1;
-		if (randomStepperMotionData_2->GetScalarAttribute("NumberOfImagesToAcquire", numberOfImagesToUse)) {
+		if (freehandMotionData_2->GetScalarAttribute("NumberOfImagesToAcquire", numberOfImagesToUse)) {
 			imageDataInfo.NumberOfImagesToAcquire = numberOfImagesToUse;
 		}
 
-    const char* sequenceMetaFile = randomStepperMotionData_2->GetAttribute("OutputSequenceMetaFileSuffix"); 
+    const char* sequenceMetaFile = freehandMotionData_2->GetAttribute("OutputSequenceMetaFileSuffix"); 
     if ( sequenceMetaFile != NULL) 
     {
       imageDataInfo.OutputSequenceMetaFileSuffix.assign(sequenceMetaFile); 
@@ -1388,16 +1400,16 @@ PlusStatus vtkFreehandCalibrationController::ReadFreehandCalibrationConfiguratio
 		LOG_WARNING("Unable to find RandomStepperMotionData2 XML data element"); 
 	}
 
-	// RandomStepperMotionData_1 data set specifications
-	vtkSmartPointer<vtkXMLDataElement> randomStepperMotionData_1 = freehandCalibration->FindNestedElementWithName("RandomStepperMotionData1"); 
-	if (randomStepperMotionData_1 != NULL) {
+	// FreehandMotionData1 data set specifications
+	vtkSmartPointer<vtkXMLDataElement> freehandMotionData_1 = freehandCalibration->FindNestedElementWithName("FreehandMotionData1"); 
+	if (freehandMotionData_1 != NULL) {
 		ImageDataInfo imageDataInfo; 
 		int numberOfImagesToUse = -1;
-		if (randomStepperMotionData_1->GetScalarAttribute("NumberOfImagesToAcquire", numberOfImagesToUse)) {
+		if (freehandMotionData_1->GetScalarAttribute("NumberOfImagesToAcquire", numberOfImagesToUse)) {
 			imageDataInfo.NumberOfImagesToAcquire = numberOfImagesToUse; 
 		}
 
-    const char* sequenceMetaFile = randomStepperMotionData_1->GetAttribute("OutputSequenceMetaFileSuffix"); 
+    const char* sequenceMetaFile = freehandMotionData_1->GetAttribute("OutputSequenceMetaFileSuffix"); 
     if ( sequenceMetaFile != NULL) 
     {
       imageDataInfo.OutputSequenceMetaFileSuffix.assign(sequenceMetaFile); 
