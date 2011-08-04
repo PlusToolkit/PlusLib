@@ -3,8 +3,8 @@ SET( ConfigFilesDir ${PLUSLIB_DATA_DIR}/ConfigFiles )
 
 ###################################################
 ADD_EXECUTABLE( ConvertFcsvToXml
-  ConvertFcsvToXml.cpp 
-  Segmentation.cpp
+  ConvertFcsvToXml.cxx 
+  Segmentation.cxx
   )
 
  SET(ITK_LIBRARIES
@@ -33,7 +33,7 @@ SET_TESTS_PROPERTIES( ConvertFcsvToXml PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR
 
 ###################################################
 ADD_EXECUTABLE( ConvertXmlToFcsv
-  ConvertXmlToFcsv.cpp 
+  ConvertXmlToFcsv.cxx 
   )
 
  SET(ITK_LIBRARIES
@@ -59,8 +59,8 @@ SET_TESTS_PROPERTIES( ConvertXmlToFcsv PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR
 
 ###################################################
 ADD_EXECUTABLE( UsFidSegTest
-  UsFidSegTest.cpp
-  Segmentation.cpp
+  UsFidSegTest.cxx
+  Segmentation.cxx
   )
 
 INCLUDE_DIRECTORIES( ${PlusLib_SOURCE_DIR}/src/TrusCalibration )

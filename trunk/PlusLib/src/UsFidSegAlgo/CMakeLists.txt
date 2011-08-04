@@ -2,8 +2,8 @@
 # Sources
 
 SET (UsFidSegAlgo_SRCS
-		UltraSoundFiducialSegmentation.cpp
-        UsFidSegResultFile.cpp 
+		UltraSoundFiducialSegmentation.cxx
+        UsFidSegResultFile.cxx
 	)
 
 SET (UsFidSegAlgo_HDRS)	
