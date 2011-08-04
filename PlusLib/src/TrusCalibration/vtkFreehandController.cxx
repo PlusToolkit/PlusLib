@@ -267,4 +267,6 @@ PlusStatus vtkFreehandController::DumpBuffersToDirectory(const char* aDirectory)
     LOG_INFO("Write tracker buffer to " << outputTrackerBufferSequenceFileName);
     this->DataCollector->WriteTrackerToMetafile( this->DataCollector->GetTracker(), aDirectory, outputTrackerBufferSequenceFileName.c_str(), false); 
   }
+
+  return PLUS_SUCCESS;
 }

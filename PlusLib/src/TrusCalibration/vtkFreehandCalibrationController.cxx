@@ -1383,7 +1383,7 @@ PlusStatus vtkFreehandCalibrationController::ReadFreehandCalibrationConfiguratio
 	// FreehandMotionData2 data set specifications
 	vtkSmartPointer<vtkXMLDataElement> freehandMotionData_2 = freehandCalibration->FindNestedElementWithName("FreehandMotionData2"); 
 	if (freehandMotionData_2 != NULL) {
-		ImageDataInfo imageDataInfo; 
+		ImageDataInfo imageDataInfo = this->GetImageDataInfo(FREEHAND_MOTION_2);
 		int numberOfImagesToUse = -1;
 		if (freehandMotionData_2->GetScalarAttribute("NumberOfImagesToAcquire", numberOfImagesToUse)) {
 			imageDataInfo.NumberOfImagesToAcquire = numberOfImagesToUse;
@@ -1403,7 +1403,7 @@ PlusStatus vtkFreehandCalibrationController::ReadFreehandCalibrationConfiguratio
 	// FreehandMotionData1 data set specifications
 	vtkSmartPointer<vtkXMLDataElement> freehandMotionData_1 = freehandCalibration->FindNestedElementWithName("FreehandMotionData1"); 
 	if (freehandMotionData_1 != NULL) {
-		ImageDataInfo imageDataInfo; 
+		ImageDataInfo imageDataInfo = this->GetImageDataInfo(FREEHAND_MOTION_1);
 		int numberOfImagesToUse = -1;
 		if (freehandMotionData_1->GetScalarAttribute("NumberOfImagesToAcquire", numberOfImagesToUse)) {
 			imageDataInfo.NumberOfImagesToAcquire = numberOfImagesToUse; 
@@ -1452,6 +1452,11 @@ PlusStatus vtkFreehandCalibrationController::ComputeCalibrationResults()
 		double xVector[3] = {imageToProbeMatrix->GetElement(0,0),imageToProbeMatrix->GetElement(1,0),imageToProbeMatrix->GetElement(2,0)};
 		double yVector[3] = {imageToProbeMatrix->GetElement(0,1),imageToProbeMatrix->GetElement(1,1),imageToProbeMatrix->GetElement(2,1)};
 		double zVector[3] = {0,0,0};
+
+    double dotProduct = vtkMath::Dot(xVector, yVector);
+    if (dotProduct > 0.001) {
+      LOG_WARNING("Calibration result axes are not orthogonal (dot product of X and Y axes is " << dotProduct << ")");
+    }
 
 		vtkMath::Cross(xVector, yVector, zVector);
 
