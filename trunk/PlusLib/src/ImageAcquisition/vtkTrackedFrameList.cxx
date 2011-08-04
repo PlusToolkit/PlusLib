@@ -186,7 +186,7 @@ bool TrackedFrame::GetCustomFrameTransform(const char* frameTransformName, doubl
     }
   }
 
-  LOG_ERROR("Unable to find custom transform (" << frameTransformName << ") in sequence metafile!"); 
+  LOG_ERROR("Unable to find custom transform (" << frameTransformName << ") custom frame field list!"); 
   return false; 
 }
 
