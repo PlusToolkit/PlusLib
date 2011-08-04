@@ -909,6 +909,37 @@ PlusStatus SegmentationParameters::ReadSegmentationParametersConfiguration( vtkX
 		}
 		delete [] imageToPhantomTransform;
 
+		//So far the following values are not computed automatically (will be in future) so they need to be read from config file
+		double maxLineLengthErrorPercent(0.0); 
+		if ( segmentationParameters->GetScalarAttribute("MaxLineLengthErrorPercent", maxLineLengthErrorPercent) )
+		{
+			this->SetMaxLineLengthErrorPercent(maxLineLengthErrorPercent); 
+		}
+
+		double maxLinePairDistanceErrorPercent(0.0); 
+		if ( segmentationParameters->GetScalarAttribute("MaxLinePairDistanceErrorPercent", maxLinePairDistanceErrorPercent) )
+		{
+			this->SetMaxLinePairDistanceErrorPercent(maxLinePairDistanceErrorPercent); 
+		}
+
+		double findLines3PtDist(0.0); 
+		if ( segmentationParameters->GetScalarAttribute("FindLines3PtDist", findLines3PtDist) )
+		{
+			this->SetFindLines3PtDist(findLines3PtDist); 
+		}
+
+		double maxLineErrorMm(0.0); 
+		if ( segmentationParameters->GetScalarAttribute("MaxLineErrorMm", maxLineErrorMm) )
+		{
+			this->SetMaxLineErrorMm(maxLineErrorMm); 
+		}
+
+		double maxAngleDifferenceDegrees(0.0); 
+		if ( segmentationParameters->GetScalarAttribute("MaxAngleDifferenceDegrees", maxAngleDifferenceDegrees) )
+		{
+			this->SetMaxAngleDiff(maxAngleDifferenceDegrees * M_PI / 180.0); 
+		}
+
 		//Compute the tolerances parameters automatically
 		this->ComputeParameters(segmentationParameters);
 	}
@@ -957,7 +988,7 @@ PlusStatus SegmentationParameters::ReadSegmentationParametersConfiguration( vtkX
 		}
 	}
 
-	
+	this->UpdateParameters();
 
 	/* Temporarily removed (also from config file) - these are the parameters for the U shaped ablation phantom
 	double maxUangleDiffInRad(0.0); 
@@ -992,11 +1023,11 @@ PlusStatus SegmentationParameters::ReadSegmentationParametersConfiguration( vtkX
 
 void SegmentationParameters::ComputeParameters(vtkXMLDataElement* segmentationParameters)
 {
-	double maxAngleY = std::max(fabs(m_ImageNormalVectorInPhantomFrameMaximumRotationAngleDeg[2]),m_ImageNormalVectorInPhantomFrameMaximumRotationAngleDeg[3]);//the maximum of the rotation around the Y axis
+	/*double maxAngleY = std::max(fabs(m_ImageNormalVectorInPhantomFrameMaximumRotationAngleDeg[2]),m_ImageNormalVectorInPhantomFrameMaximumRotationAngleDeg[3]);//the maximum of the rotation around the Y axis
 	m_MaxLineLengthErrorPercent = 1/cos(maxAngleY) - 1;
 
 	double maxAngleX = std::max(fabs(m_ImageNormalVectorInPhantomFrameMaximumRotationAngleDeg[0]),m_ImageNormalVectorInPhantomFrameMaximumRotationAngleDeg[1]);//the maximum of the rotation around the X axis
-	m_MaxLinePairDistanceErrorPercent = 1/cos(maxAngleX) - 1;
+	m_MaxLinePairDistanceErrorPercent = 1/cos(maxAngleX) - 1;*/
 
 	std::vector<double> thetaX, thetaY, thetaZ;
 	thetaX.push_back(GetImageNormalVectorInPhantomFrameMaximumRotationAngleDeg()[0]);
@@ -1101,37 +1132,6 @@ void SegmentationParameters::ComputeParameters(vtkXMLDataElement* segmentationPa
 
 	SetMaxTheta(*std::max_element(finalAngleTable.begin(),finalAngleTable.end()));
 	SetMinTheta(*std::min_element(finalAngleTable.begin(),finalAngleTable.end()));
-
-	//So far the following values are not computed automatically (will be in future) so they need to be read from config file
-	double maxLineLengthErrorPercent(0.0); 
-	if ( segmentationParameters->GetScalarAttribute("MaxLineLengthErrorPercent", maxLineLengthErrorPercent) )
-	{
-		this->SetMaxLineLengthErrorPercent(maxLineLengthErrorPercent); 
-	}
-
-	double maxLinePairDistanceErrorPercent(0.0); 
-	if ( segmentationParameters->GetScalarAttribute("MaxLinePairDistanceErrorPercent", maxLinePairDistanceErrorPercent) )
-	{
-		this->SetMaxLinePairDistanceErrorPercent(maxLinePairDistanceErrorPercent); 
-	}
-
-	double findLines3PtDist(0.0); 
-	if ( segmentationParameters->GetScalarAttribute("FindLines3PtDist", findLines3PtDist) )
-	{
-		this->SetFindLines3PtDist(findLines3PtDist); 
-	}
-
-	double maxLineErrorMm(0.0); 
-	if ( segmentationParameters->GetScalarAttribute("MaxLineErrorMm", maxLineErrorMm) )
-	{
-		this->SetMaxLineErrorMm(maxLineErrorMm); 
-	}
-
-	double maxAngleDifferenceDegrees(0.0); 
-	if ( segmentationParameters->GetScalarAttribute("MaxAngleDifferenceDegrees", maxAngleDifferenceDegrees) )
-	{
-		this->SetMaxAngleDiff(maxAngleDifferenceDegrees * M_PI / 180.0); 
-	}
 }
 
 //-----------------------------------------------------------------------------
