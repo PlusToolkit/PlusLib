@@ -427,7 +427,7 @@ void FreehandCalibrationToolbox::SaveClicked()
 	QString fileName = QFileDialog::getSaveFileName(NULL, tr("Save freehand calibration result"), QString::fromStdString(vtkFreehandController::GetInstance()->GetNewConfigurationFileName()), filter);
 
 	if (! fileName.isNull() ) {
-    if (vtkFreehandController::GetInstance()->SaveConfigurationToFile(fileName.toStdString()) != PLUS_SUCCESS) {
+    if (vtkFreehandController::GetInstance()->SaveConfigurationToFile(fileName.toStdString().c_str()) != PLUS_SUCCESS) {
       LOG_ERROR("Saving configuration file to '" << fileName.toStdString() << "' failed!");
       return;
     }

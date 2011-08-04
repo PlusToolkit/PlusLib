@@ -37,6 +37,10 @@ PlusStatus ConfigurationController::Initialize()
 {
 	LOG_DEBUG("Initialize StylusCalibrationController");
 
+	if (m_Toolbox) {
+		m_Toolbox->Initialize();
+	}
+
 	// Set state to idle
 	if (m_State == ToolboxState_Uninitialized) {
 		m_State = ToolboxState_Idle;

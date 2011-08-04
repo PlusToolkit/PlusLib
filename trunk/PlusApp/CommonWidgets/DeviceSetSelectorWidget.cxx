@@ -40,7 +40,7 @@ void DeviceSetSelectorWidget::OpenConfigurationDirectoryClicked()
 {
 	LOG_TRACE("DeviceSetSelectorWidget: Open configuration directory clicked"); 
 
-	// Directory open dialog for selecting phantom 
+	// Directory open dialog for selecting configuration directory 
 	QString dirName = QFileDialog::getExistingDirectory(NULL, QString( tr( "Open configuration directory" ) ), m_ConfigurationDirectory);
 	if (dirName.isNull()) {
 		return;

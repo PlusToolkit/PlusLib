@@ -10,6 +10,7 @@
 #include "ToolStateDisplayWidget.h"
 
 #include <QDialog>
+#include <QFileDialog>
 
 //-----------------------------------------------------------------------------
 
@@ -73,7 +74,12 @@ void ConfigurationToolbox::Initialize()
 {
 	LOG_TRACE("ConfigurationToolbox::Initialize"); 
 
-	// No action
+  // Install event filters to capture key event for dumping raw buffer data
+	this->installEventFilter(this);
+
+  if ((vtkFreehandController::GetInstance()) && (vtkFreehandController::GetInstance()->GetCanvas())) {
+    vtkFreehandController::GetInstance()->GetCanvas()->installEventFilter(this);
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -102,7 +108,12 @@ void ConfigurationToolbox::Clear()
 {
 	LOG_TRACE("ConfigurationToolbox::Clear"); 
 
-	// No action
+  // Remove event filters
+  this->removeEventFilter(this);
+
+  if ((vtkFreehandController::GetInstance()) && (vtkFreehandController::GetInstance()->GetCanvas())) {
+    vtkFreehandController::GetInstance()->GetCanvas()->removeEventFilter(this);
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -238,16 +249,31 @@ bool ConfigurationToolbox::eventFilter(QObject *obj, QEvent *ev)
 {
 	LOG_TRACE("ConfigurationToolbox::eventFilter"); 
 
-	if ( obj == m_ToolStatePopOutWindow ) {
-		if ( ev->type() == QEvent::Close ) {
-			ui.pushButton_PopOut->setChecked(false);
-		} else {
-			// Pass the event on to the parent class
-			return QWidget::eventFilter( obj, ev );
-		}
-	}
+  bool passToParent = true;
 
-	return true;
+	if (obj == m_ToolStatePopOutWindow) {
+		if (ev->type() == QEvent::Close) {
+			ui.pushButton_PopOut->setChecked(false);
+      return true;
+		}
+  } else {
+    if (ev->type() == QEvent::KeyPress) {
+      QKeyEvent* keyEvent = dynamic_cast<QKeyEvent*>(ev);
+      if (keyEvent) {
+	      if ( ( keyEvent->key() == Qt::Key_D ) && ( keyEvent->modifiers() == Qt::ControlModifier ) ) {
+	        // Directory open dialog for selecting directory to save the buffers into 
+          QString dirName = QFileDialog::getExistingDirectory(NULL, QString( tr( "Open output directory for buffer dump files" ) ), vtkFreehandController::GetInstance()->GetOutputFolder());
+	        if ( (dirName.isNull()) || (vtkFreehandController::GetInstance()->DumpBuffersToDirectory(dirName.toStdString().c_str()) != PLUS_SUCCESS) ) {
+              LOG_ERROR("Writing raw buffers into files failed (output directory: " << dirName.toStdString() << ")!");
+          }
+          return true;
+        }
+      }
+		}
+  }
+
+	// Pass the event on to the parent class
+	return QWidget::eventFilter( obj, ev );
 }
 
 //-----------------------------------------------------------------------------
