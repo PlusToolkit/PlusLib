@@ -86,11 +86,9 @@ void FreehandCalibrationToolbox::Initialize()
   }
 
   // If phantom registration controller does not have the calibration transform then try to load it from the device set configuration
-  if ((controller->GetConfigurationData()) && (phantomRegistrationController->GetPhantomToPhantomReferenceTransform() == NULL)) {
-    phantomRegistrationController->LoadPhantomRegistration(controller->GetConfigurationData());
-  }
+  if ((controller->GetConfigurationData())
+    && ((phantomRegistrationController->GetPhantomToPhantomReferenceTransform() != NULL) || (phantomRegistrationController->LoadPhantomRegistration(controller->GetConfigurationData()) == PLUS_SUCCESS))) {
 
-	if (phantomRegistrationController->GetPhantomToPhantomReferenceTransform() != NULL) {
 		ui.lineEdit_PhantomRegistration->setText(tr("Using session registration data"));
 	}
 
@@ -425,9 +423,15 @@ void FreehandCalibrationToolbox::SaveClicked()
 {
 	LOG_TRACE("FreehandCalibrationToolbox::SaveClicked"); 
 
-  if (vtkFreehandController::GetInstance()->SaveConfigurationToFile() == PLUS_SUCCESS) {
-    QMessageBox::message(tr("fCal"), tr("Configuration saved to %1").arg(vtkFreehandController::GetInstance()->GetConfigurationFileName()));
-  }
+	QString filter = QString( tr( "XML files ( *.xml );;" ) );
+	QString fileName = QFileDialog::getSaveFileName(NULL, tr("Save freehand calibration result"), QString::fromStdString(vtkFreehandController::GetInstance()->GetNewConfigurationFileName()), filter);
+
+	if (! fileName.isNull() ) {
+    if (vtkFreehandController::GetInstance()->SaveConfigurationToFile(fileName.toStdString()) != PLUS_SUCCESS) {
+      LOG_ERROR("Saving configuration file to '" << fileName.toStdString() << "' failed!");
+      return;
+    }
+	}	
 }
 
 //-----------------------------------------------------------------------------

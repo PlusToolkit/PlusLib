@@ -218,10 +218,13 @@ void StylusCalibrationToolbox::SaveResultClicked()
 	LOG_TRACE("StylusCalibrationToolbox: Save button clicked"); 
 
 	QString filter = QString( tr( "XML files ( *.xml );;" ) );
-	QString fileName = QFileDialog::getSaveFileName(NULL, tr("Save stylus calibration result"), vtkFileFinder::GetInstance()->GetConfigurationDirectory(), filter);
+  QString fileName = QFileDialog::getSaveFileName(NULL, tr("Save stylus calibration result"), QString::fromStdString(vtkFreehandController::GetInstance()->GetNewConfigurationFileName()), filter);
 
 	if (! fileName.isNull() ) {
-		StylusCalibrationController::GetInstance()->SaveStylusCalibrationToFile(fileName.toStdString());
+		if (StylusCalibrationController::GetInstance()->SaveStylusCalibrationToFile(fileName.toStdString()) != PLUS_SUCCESS) {
+      LOG_ERROR("Saving configuration file to '" << fileName.toStdString() << "' failed!");
+      return;
+    }
 	}	
 }
 

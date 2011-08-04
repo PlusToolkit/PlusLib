@@ -199,7 +199,7 @@ PlusStatus DeviceSetSelectorWidget::ParseDirectory(QString aDirectory)
 		if (doc.setContent(&file)) {
 			QDomElement docElem = doc.documentElement();
 			
-			// If the root element is PlusConfiguration then find its USDataCollection child
+			// Check if the root element is PlusConfiguration and contains a USDataCollection child
 			if (! docElem.tagName().compare("PlusConfiguration")) {
 				QDomNodeList list = docElem.elementsByTagName("USDataCollection");
 
@@ -208,9 +208,7 @@ PlusStatus DeviceSetSelectorWidget::ParseDirectory(QString aDirectory)
 				} else { // If it does not have a USDataCollection then it cannot be used for connecting
 					continue;
 				}
-			}
-			// If the element is not USDataCollection then skip
-			else if (docElem.tagName().compare("USDataCollection")) {
+			} else {
 				continue;
 			}
 

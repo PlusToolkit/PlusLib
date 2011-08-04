@@ -81,14 +81,11 @@ void PhantomRegistrationToolbox::Initialize()
     return;
   }
 
-  // If stylus calibration controller does not have the calibration transform then try to load it from the device set configuration
-  if ((controller->GetConfigurationData()) && (stylusCalibrationController->GetStylustipToStylusTransform() == NULL)) {
-    stylusCalibrationController->LoadStylusCalibration(controller->GetConfigurationData());
-  }
-
   bool readyToStart = true;
 
-  if (stylusCalibrationController->GetStylustipToStylusTransform() != NULL) {
+  // If stylus calibration controller does not have the calibration transform then try to load it from the device set configuration
+  if ((controller->GetConfigurationData())
+    && ((stylusCalibrationController->GetStylustipToStylusTransform() != NULL) || (stylusCalibrationController->LoadStylusCalibration(controller->GetConfigurationData()) == PLUS_SUCCESS))) {
 
 		// In case the user changed device set since calibration, set the calibration to the tool
 		stylusCalibrationController->FeedStylusCalibrationMatrixToTool();
@@ -361,7 +358,9 @@ void PhantomRegistrationToolbox::RegisterClicked()
 {
 	LOG_TRACE("PhantomRegistrationToolbox: Register button clicked"); 
 
-	PhantomRegistrationController::GetInstance()->Register();
+  if (PhantomRegistrationController::GetInstance()->Register() != PLUS_SUCCESS) {
+    LOG_ERROR("Phantom registration failed!");
+  }
 
 	emit SetTabsEnabled(true);
 }
@@ -373,9 +372,12 @@ void PhantomRegistrationToolbox::SaveClicked()
 	LOG_TRACE("PhantomRegistrationToolbox: Save button clicked"); 
 
 	QString filter = QString( tr( "XML files ( *.xml );;" ) );
-	QString fileName = QFileDialog::getSaveFileName(NULL, tr("Save phantom registration result"), vtkFileFinder::GetInstance()->GetConfigurationDirectory(), filter);
+  QString fileName = QFileDialog::getSaveFileName(NULL, tr("Save phantom registration result"), QString::fromStdString(vtkFreehandController::GetInstance()->GetNewConfigurationFileName()), filter);
 
 	if (! fileName.isNull() ) {
-		PhantomRegistrationController::GetInstance()->SavePhantomRegistrationToFile(fileName.toStdString());
+		if (PhantomRegistrationController::GetInstance()->SavePhantomRegistrationToFile(fileName.toStdString()) != PLUS_SUCCESS) {
+      LOG_ERROR("Saving configuration file to '" << fileName.toStdString() << "' failed!");
+      return;
+    }
 	}	
 }

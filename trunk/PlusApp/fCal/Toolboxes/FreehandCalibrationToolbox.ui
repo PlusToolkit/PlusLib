@@ -538,7 +538,7 @@
         <string>Save results into device set configuration XML file</string>
        </property>
        <property name="text">
-        <string>Save results</string>
+        <string>Save results...</string>
        </property>
       </widget>
      </item>
