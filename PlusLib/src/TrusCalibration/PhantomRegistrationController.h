@@ -162,8 +162,9 @@ public:
 
 	/*!
 	* \brief Performs landmark registration to determine transformation from phantom reference to phantom
+	* \return Success flag
 	*/
-	void Register();
+	PlusStatus Register();
 
 protected:
 	/*!

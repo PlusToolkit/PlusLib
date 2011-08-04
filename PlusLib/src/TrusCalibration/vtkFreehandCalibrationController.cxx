@@ -1486,7 +1486,10 @@ PlusStatus vtkFreehandCalibrationController::ComputeCalibrationResults()
 		}
 		*/
 
-    this->SaveCalibrationResults();
+    if (SaveCalibrationResults() != PLUS_SUCCESS) {
+		  LOG_ERROR("Freehand calibration result could not be saved into session configuration data!");
+		  return PLUS_FAIL;
+    }
 
 		this->SpatialCalibrationDoneOn();
 

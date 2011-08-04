@@ -46,7 +46,10 @@ public:
 	PlusStatus StartDataCollection();
 
   //TODO
-  PlusStatus SaveConfigurationToFile();
+  std::string GetNewConfigurationFileName();
+
+  //TODO
+  PlusStatus SaveConfigurationToFile(std::string aFile);
 
   //TODO
 	static vtkXMLDataElement* LookupElementWithNameContainingChildWithNameAndAttribute(vtkXMLDataElement* aConfig, const char* aElementName, const char* aChildName, const char* aChildAttributeName, const char* aChildAttributeValue);

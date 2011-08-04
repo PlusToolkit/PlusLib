@@ -649,6 +649,13 @@ PlusStatus StylusCalibrationController::LoadStylusCalibration(vtkXMLDataElement*
 		return PLUS_FAIL;
 	}
 
+  // Check date - if it is empty, the calibration is considered as invalid (as the calibration transforms in the installed config files are identity matrices with empty dates)
+  const char* date = calibration->GetAttribute("Date");
+  if ((date == NULL) || (STRCASECMP(date, "") == 0)) {
+    LOG_WARNING("Transform cannot be loaded with no date entered!");
+    return PLUS_FAIL;
+  }
+
 	// Get transform
 	double* stylustipToStylusTransformVector = new double[16]; 
 	if (calibration->GetVectorAttribute("MatrixValue", 16, stylustipToStylusTransformVector)) {
@@ -795,6 +802,12 @@ PlusStatus StylusCalibrationController::CalibrateStylus()
 			vtkFreehandController::GetInstance()->GetCanvasRenderer()->AddActor(m_StylusTipActor);
 			vtkFreehandController::GetInstance()->GetCanvasRenderer()->AddActor(m_StylusActor);
 		}
+	}
+
+  // Save result to session configuration
+	if (SaveStylusCalibration(vtkFreehandController::GetInstance()->GetConfigurationData()) != PLUS_SUCCESS) {
+		LOG_ERROR("Stylus calibration result could not be saved into session configuration data!");
+		return PLUS_FAIL;
 	}
 
 	return PLUS_SUCCESS;

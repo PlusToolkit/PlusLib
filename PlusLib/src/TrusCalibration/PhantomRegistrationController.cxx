@@ -466,7 +466,7 @@ void PhantomRegistrationController::Reset()
 
 //-----------------------------------------------------------------------------
 
-void PhantomRegistrationController::Register()
+PlusStatus PhantomRegistrationController::Register()
 {
 	LOG_TRACE("PhantomRegistrationController::Register"); 
 
@@ -477,12 +477,12 @@ void PhantomRegistrationController::Register()
 	} else {
 		LOG_ERROR("Data sets not inialized properly!");
 		m_State = ToolboxState_Error;
-		return;
+		return PLUS_FAIL;
 	}
 	if (m_DefinedLandmarks->GetNumberOfPoints() != recordedLandmarks->GetNumberOfPoints()) {
 		LOG_ERROR("Landmark counts do not match! Registration not possible");
 		m_State = ToolboxState_Error;
-		return;
+		return PLUS_FAIL;
 	}
 
 	// Create input point vectors
@@ -544,7 +544,7 @@ void PhantomRegistrationController::Register()
 	if (vtkFreehandController::GetInstance()->GetCanvas() != NULL) {
 		if (m_ModelToPhantomTransform == NULL) {
 			LOG_ERROR("ModelToPhantomTransform is not loaded, registration result cannot be visualized!");
-			return;
+			return PLUS_FAIL;
 		}
 
 		vtkSmartPointer<vtkTransform> modelToPhantomReferenceTransform = vtkSmartPointer<vtkTransform>::New();
@@ -559,6 +559,14 @@ void PhantomRegistrationController::Register()
 
 		vtkFreehandController::GetInstance()->GetCanvasRenderer()->ResetCamera();
 	}
+
+  // Save result to session configuration
+	if (SavePhantomRegistration(vtkFreehandController::GetInstance()->GetConfigurationData()) != PLUS_SUCCESS) {
+		LOG_ERROR("Phantom registration result could not be saved into session configuration data!");
+		return PLUS_FAIL;
+	}
+
+	return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
@@ -960,12 +968,20 @@ PlusStatus PhantomRegistrationController::LoadPhantomRegistration(vtkXMLDataElem
 		return PLUS_FAIL;
 	}
 
-	// Load stylus calibration transform
+	// Load phantom registration transform
 	vtkSmartPointer<vtkXMLDataElement> registration = geometry->FindNestedElementWithName("Registration"); 
 	if (registration == NULL) {
 		LOG_ERROR("Registration element not found!");
 		return PLUS_FAIL;
 	} else {
+    // Check date - if it is empty, the calibration is considered as invalid (as the calibration transforms in the installed config files are identity matrices with empty dates)
+    const char* date = registration->GetAttribute("Date");
+    if ((date == NULL) || (STRCASECMP(date, "") == 0)) {
+      LOG_WARNING("Transform cannot be loaded with no date entered!");
+      return PLUS_FAIL;
+    }
+
+    // Load transform
 		double* transform = new double[16]; 
 		if (registration->GetVectorAttribute("MatrixValue", 16, transform)) {
 			if (m_PhantomToPhantomReferenceTransform == NULL) {
