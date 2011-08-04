@@ -1002,6 +1002,29 @@ PlusStatus SegmentationParameters::ReadSegmentationParametersConfiguration( vtkX
 		}
 	}
 
+	//Checking the search region to make sure it won't make the program crash (if too big or if bar size goes out of image)
+	int barSize = GetMorphologicalOpeningBarSizePx();
+	if(GetRegionOfInterest()[0] - barSize < 0)
+	{
+		SetRegionOfInterest(0,barSize+1);
+		LOG_WARNING("The region of interest is too big, bar size is " << barSize);
+	}
+	if(GetRegionOfInterest()[1] - barSize < 0)
+	{
+		SetRegionOfInterest(1,barSize+1);
+		LOG_WARNING("The region of interest is too big, bar size is " << barSize);
+	}
+	if(GetRegionOfInterest()[2] + barSize > GetFrameSize()[0])
+	{
+		SetRegionOfInterest(2,GetFrameSize()[0]-barSize-1);
+		LOG_WARNING("The region of interest is too big, bar size is " << barSize);
+	}
+	if(GetRegionOfInterest()[3] + barSize > GetFrameSize()[1])
+	{
+		SetRegionOfInterest(3,GetFrameSize()[1]-barSize-1);
+		LOG_WARNING("The region of interest is too big, bar size is " << barSize);
+	}
+
 	this->UpdateParameters();
 
 	/* Temporarily removed (also from config file) - these are the parameters for the U shaped ablation phantom
@@ -1798,6 +1821,14 @@ inline PixelType SegImpl::erode_point_0( PixelType *image, unsigned int ir, unsi
 			break;
 	}
 	return dval;
+}
+
+//-----------------------------------------------------------------------------
+
+int SegmentationParameters::GetMorphologicalOpeningBarSizePx()
+{
+	int barsize = floor(GetMorphologicalOpeningBarSizeMm() / GetScalingEstimation() + 0.5 );
+	return barsize; 
 }
 
 //-----------------------------------------------------------------------------

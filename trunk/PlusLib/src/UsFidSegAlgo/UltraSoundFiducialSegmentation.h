@@ -232,6 +232,7 @@ class SegmentationParameters
 		int  *					GetFrameSize() { return m_FrameSize; };
 
 		void					SetRegionOfInterest(int minX, int minY, int maxX, int maxY) { m_RegionOfInterest[0] = minX; m_RegionOfInterest[1] = minY; m_RegionOfInterest[2] = maxX; m_RegionOfInterest[3] = maxY;};
+		void					SetRegionOfInterest(int index, int value) { m_RegionOfInterest[index] = value; };//overloaded constructor
 		int  *					GetRegionOfInterest() { return m_RegionOfInterest; };
 
 		void					SetUseOriginalImageIntensityForDotIntensityScore(bool value) { m_UseOriginalImageIntensityForDotIntensityScore = value; };
@@ -278,6 +279,9 @@ class SegmentationParameters
 
 		void					SetMorphologicalOpeningBarSizeMm(double value) { m_MorphologicalOpeningBarSizeMm = value; };
 		double					GetMorphologicalOpeningBarSizeMm() { return m_MorphologicalOpeningBarSizeMm; };
+
+		int						GetMorphologicalOpeningBarSizePx(); 
+
 		void					SetMorphologicalOpeningCircleRadiusMm(double value) { m_MorphologicalOpeningCircleRadiusMm = value; };
 		double					GetMorphologicalOpeningCircleRadiusMm() { return m_MorphologicalOpeningCircleRadiusMm; };
 
