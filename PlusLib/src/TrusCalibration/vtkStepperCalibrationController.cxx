@@ -233,7 +233,7 @@ PlusStatus vtkStepperCalibrationController::CalibrateProbeRotationAxis()
     LOG_INFO(">>>>>>>> Save probe rotation data to sequence metafile..."); 
     // Save calibration dataset 
     std::ostringstream probeRotationDataFileName; 
-    probeRotationDataFileName << this->CalibrationStartTime << this->GetRealtimeImageDataInfo(PROBE_ROTATION).OutputSequenceMetaFileSuffix; 
+    probeRotationDataFileName << this->CalibrationStartTime << this->GetImageDataInfo(PROBE_ROTATION).OutputSequenceMetaFileSuffix; 
     if ( this->SaveTrackedFrameListToMetafile( PROBE_ROTATION, this->GetOutputPath(), probeRotationDataFileName.str().c_str(), false ) != PLUS_SUCCESS )
     {
       LOG_ERROR("Failed to save tracked frames to sequence metafile!"); 
@@ -877,7 +877,7 @@ PlusStatus vtkStepperCalibrationController::CalibrateProbeTranslationAxis()
     LOG_INFO(">>>>>>>> Save probe translation data to sequence metafile..."); 
     // Save calibration dataset 
     std::ostringstream probeTranslationDataFileName; 
-    probeTranslationDataFileName << this->CalibrationStartTime << this->GetRealtimeImageDataInfo(PROBE_TRANSLATION).OutputSequenceMetaFileSuffix; 
+    probeTranslationDataFileName << this->CalibrationStartTime << this->GetImageDataInfo(PROBE_TRANSLATION).OutputSequenceMetaFileSuffix; 
     if ( this->SaveTrackedFrameListToMetafile( PROBE_TRANSLATION, this->GetOutputPath(), probeTranslationDataFileName.str().c_str(), false ) != PLUS_SUCCESS )
     {
       LOG_ERROR("Failed to save tracked frames to sequence metafile!"); 
@@ -929,7 +929,7 @@ PlusStatus vtkStepperCalibrationController::CalibrateTemplateTranslationAxis()
     LOG_INFO(">>>>>>>> Save template translation data to sequence metafile..."); 
     // Save calibration dataset 
     std::ostringstream templateTranslationDataFileName; 
-    templateTranslationDataFileName << this->CalibrationStartTime << this->GetRealtimeImageDataInfo(TEMPLATE_TRANSLATION).OutputSequenceMetaFileSuffix; 
+    templateTranslationDataFileName << this->CalibrationStartTime << this->GetImageDataInfo(TEMPLATE_TRANSLATION).OutputSequenceMetaFileSuffix; 
     if ( this->SaveTrackedFrameListToMetafile( TEMPLATE_TRANSLATION, this->GetOutputPath(), templateTranslationDataFileName.str().c_str(), false ) != PLUS_SUCCESS )
     {
       LOG_ERROR("Failed to save tracked frames to sequence metafile!"); 
@@ -2119,6 +2119,9 @@ PlusStatus vtkStepperCalibrationController::CalculatePhantomToProbeDistance()
     return PLUS_FAIL; 
   }
 
+  // Clear container before we start
+  this->PointSetForPhantomToProbeDistanceCalculation.clear(); 
+
   for ( int frame = 0; frame < this->SegmentedFrameContainer.size(); frame++ )
   {
     if ( this->SegmentedFrameContainer[frame].DataType == PROBE_ROTATION )
@@ -2361,9 +2364,9 @@ PlusStatus vtkStepperCalibrationController::OfflineProbeRotationAxisCalibration(
   }
 
   vtkSmartPointer<vtkTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New();
-  if ( !this->GetSavedImageDataInfo(PROBE_ROTATION).SequenceMetaFileName.empty() )
+  if ( !this->GetImageDataInfo(PROBE_ROTATION).InputSequenceMetaFileName.empty() )
   {
-    trackedFrameList->ReadFromSequenceMetafile(this->GetSavedImageDataInfo(PROBE_ROTATION).SequenceMetaFileName.c_str()); 
+    trackedFrameList->ReadFromSequenceMetafile(this->GetImageDataInfo(PROBE_ROTATION).InputSequenceMetaFileName.c_str()); 
   }
   else
   {
@@ -2371,9 +2374,18 @@ PlusStatus vtkStepperCalibrationController::OfflineProbeRotationAxisCalibration(
     return PLUS_FAIL; 
   }
 
+  // Reset the counter before we start
+  ImageDataInfo dataInfo = this->GetImageDataInfo(PROBE_ROTATION); 
+  dataInfo.NumberOfSegmentedImages = 0; 
+  if ( dataInfo.NumberOfImagesToAcquire > trackedFrameList->GetNumberOfTrackedFrames() )
+  {
+    dataInfo.NumberOfImagesToAcquire = trackedFrameList->GetNumberOfTrackedFrames(); 
+  }
+  this->SetImageDataInfo(PROBE_ROTATION, dataInfo); 
+
   int frameCounter(0); 
   int imgNumber(0); 
-  for( imgNumber = this->GetSavedImageDataInfo(PROBE_ROTATION).StartingIndex; frameCounter < this->GetSavedImageDataInfo(PROBE_ROTATION).NumberOfImagesToUse; imgNumber++ )
+  for( imgNumber = 0; frameCounter < this->GetImageDataInfo(PROBE_ROTATION).NumberOfImagesToAcquire; imgNumber++ )
   {
     if ( imgNumber >= trackedFrameList->GetNumberOfTrackedFrames() )
     {
@@ -2411,9 +2423,9 @@ PlusStatus vtkStepperCalibrationController::OfflineProbeTranslationAxisCalibrati
   }
 
   vtkSmartPointer<vtkTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New();
-  if ( !this->GetSavedImageDataInfo(PROBE_TRANSLATION).SequenceMetaFileName.empty() )
+  if ( !this->GetImageDataInfo(PROBE_TRANSLATION).InputSequenceMetaFileName.empty() )
   {
-    trackedFrameList->ReadFromSequenceMetafile(this->GetSavedImageDataInfo(PROBE_TRANSLATION).SequenceMetaFileName.c_str()); 
+    trackedFrameList->ReadFromSequenceMetafile(this->GetImageDataInfo(PROBE_TRANSLATION).InputSequenceMetaFileName.c_str()); 
   }
   else
   {
@@ -2421,9 +2433,18 @@ PlusStatus vtkStepperCalibrationController::OfflineProbeTranslationAxisCalibrati
     return PLUS_FAIL; 
   }
 
+  // Reset the counter before we start
+  ImageDataInfo dataInfo = this->GetImageDataInfo(PROBE_TRANSLATION); 
+  dataInfo.NumberOfSegmentedImages = 0; 
+  if ( dataInfo.NumberOfImagesToAcquire > trackedFrameList->GetNumberOfTrackedFrames() )
+  {
+    dataInfo.NumberOfImagesToAcquire = trackedFrameList->GetNumberOfTrackedFrames(); 
+  }
+  this->SetImageDataInfo(PROBE_TRANSLATION, dataInfo); 
+
   int frameCounter(0); 
   int imgNumber(0); 
-  for( imgNumber = this->GetSavedImageDataInfo(PROBE_TRANSLATION).StartingIndex; frameCounter < this->GetSavedImageDataInfo(PROBE_TRANSLATION).NumberOfImagesToUse; imgNumber++ )
+  for( imgNumber = 0; frameCounter < this->GetImageDataInfo(PROBE_TRANSLATION).NumberOfImagesToAcquire; imgNumber++ )
   {
     if ( imgNumber >= trackedFrameList->GetNumberOfTrackedFrames() )
     {
@@ -2461,9 +2482,9 @@ PlusStatus vtkStepperCalibrationController::OfflineTemplateTranslationAxisCalibr
   }
 
   vtkSmartPointer<vtkTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New();
-  if ( !this->GetSavedImageDataInfo(TEMPLATE_TRANSLATION).SequenceMetaFileName.empty() )
+  if ( !this->GetImageDataInfo(TEMPLATE_TRANSLATION).InputSequenceMetaFileName.empty() )
   {
-    trackedFrameList->ReadFromSequenceMetafile(this->GetSavedImageDataInfo(TEMPLATE_TRANSLATION).SequenceMetaFileName.c_str()); 
+    trackedFrameList->ReadFromSequenceMetafile(this->GetImageDataInfo(TEMPLATE_TRANSLATION).InputSequenceMetaFileName.c_str()); 
   }
   else
   {
@@ -2471,9 +2492,18 @@ PlusStatus vtkStepperCalibrationController::OfflineTemplateTranslationAxisCalibr
     return PLUS_FAIL; 
   }
 
+  // Reset the counter before we start
+  ImageDataInfo dataInfo = this->GetImageDataInfo(TEMPLATE_TRANSLATION); 
+  dataInfo.NumberOfSegmentedImages = 0; 
+  if ( dataInfo.NumberOfImagesToAcquire > trackedFrameList->GetNumberOfTrackedFrames() )
+  {
+    dataInfo.NumberOfImagesToAcquire = trackedFrameList->GetNumberOfTrackedFrames(); 
+  }
+  this->SetImageDataInfo(TEMPLATE_TRANSLATION, dataInfo); 
+
   int frameCounter(0); 
   int imgNumber(0); 
-  for( imgNumber = this->GetSavedImageDataInfo(TEMPLATE_TRANSLATION).StartingIndex; frameCounter < this->GetSavedImageDataInfo(TEMPLATE_TRANSLATION).NumberOfImagesToUse; imgNumber++ )
+  for( imgNumber = 0; frameCounter < this->GetImageDataInfo(TEMPLATE_TRANSLATION).NumberOfImagesToAcquire; imgNumber++ )
   {
     if ( imgNumber >= trackedFrameList->GetNumberOfTrackedFrames() )
     {
@@ -2594,102 +2624,90 @@ PlusStatus vtkStepperCalibrationController::ReadStepperCalibrationConfiguration(
     this->MinNumberOfRotationClusters = minNumberOfRotationClusters; 
   }
 
-  // ProbeRotationData data set specifications
-  //********************************************************************
-  vtkSmartPointer<vtkXMLDataElement> probeRotationData = stepperCalibration->FindNestedElementWithName("ProbeRotationData"); 
-  if ( probeRotationData != NULL) 
-  {
-    vtkCalibrationController::SavedImageDataInfo imageDataInfo; 
-    int numberOfImagesToUse = -1;
-    if ( probeRotationData->GetScalarAttribute("NumberOfImagesToUse", numberOfImagesToUse) ) 
-    {
-      imageDataInfo.NumberOfImagesToUse = numberOfImagesToUse; 
-    }
+  	// TemplateTranslationData data set specifications
+	//********************************************************************
+	vtkSmartPointer<vtkXMLDataElement> templateTranslationData = stepperCalibration->FindNestedElementWithName("TemplateTranslationData"); 
+	if ( templateTranslationData != NULL) 
+	{
+		vtkCalibrationController::ImageDataInfo imageDataInfo = this->GetImageDataInfo(TEMPLATE_TRANSLATION); 
+		int numberOfImagesToUse = -1;
+		if ( templateTranslationData->GetScalarAttribute("NumberOfImagesToAcquire", numberOfImagesToUse) ) 
+		{
+			imageDataInfo.NumberOfImagesToAcquire = numberOfImagesToUse; 
+		}
 
-    int startingIndex = 0;
-    if ( probeRotationData->GetScalarAttribute("StartingIndex", startingIndex) ) 
-    {
-      imageDataInfo.StartingIndex = startingIndex; 
-    }
+		const char* sequenceMetaFile = templateTranslationData->GetAttribute("OutputSequenceMetaFileSuffix"); 
+		if ( sequenceMetaFile != NULL) 
+		{
+			imageDataInfo.OutputSequenceMetaFileSuffix.assign(sequenceMetaFile); 
+		}
 
-    // Path to center of rotation input sequence metafile
-    const char* sequenceMetaFile = probeRotationData->GetAttribute("SequenceMetaFile"); 
-    if ( sequenceMetaFile != NULL) 
-    {
-      imageDataInfo.SequenceMetaFileName.assign(sequenceMetaFile); 
-    }
+		this->SetImageDataInfo(TEMPLATE_TRANSLATION, imageDataInfo); 
+	}
+	else
+	{
+		LOG_DEBUG("Unable to find TemplateTranslationData XML data element, default 100 is used"); 
+		vtkCalibrationController::ImageDataInfo imageDataInfo = this->GetImageDataInfo(TEMPLATE_TRANSLATION); 
+		imageDataInfo.NumberOfImagesToAcquire = 100;
+    this->SetImageDataInfo(TEMPLATE_TRANSLATION, imageDataInfo); 
+	}
 
-    this->SetSavedImageDataInfo(PROBE_ROTATION, imageDataInfo); 
-  }
-  else
-  {
-    LOG_WARNING("Unable to find ProbeRotationData XML data element"); 
-  }
+	// ProbeTranslationData data set specifications
+	//********************************************************************
+	vtkSmartPointer<vtkXMLDataElement> probeTranslationData = stepperCalibration->FindNestedElementWithName("ProbeTranslationData"); 
+	if ( probeTranslationData != NULL) 
+	{
+		vtkCalibrationController::ImageDataInfo imageDataInfo = this->GetImageDataInfo(PROBE_TRANSLATION); 
+		int numberOfImagesToUse = -1;
+		if ( probeTranslationData->GetScalarAttribute("NumberOfImagesToAcquire", numberOfImagesToUse) ) 
+		{
+			imageDataInfo.NumberOfImagesToAcquire = numberOfImagesToUse; 
+		}
 
+		const char* sequenceMetaFile = probeTranslationData->GetAttribute("OutputSequenceMetaFileSuffix"); 
+		if ( sequenceMetaFile != NULL) 
+		{
+			imageDataInfo.OutputSequenceMetaFileSuffix.assign(sequenceMetaFile); 
+		}
 
-  // TemplateTranslationData data set specifications
-  //********************************************************************
-  vtkSmartPointer<vtkXMLDataElement> templateTranslationData = stepperCalibration->FindNestedElementWithName("TemplateTranslationData"); 
-  if ( templateTranslationData != NULL) 
-  {
-    vtkCalibrationController::SavedImageDataInfo imageDataInfo; 
-    int numberOfImagesToUse = -1;
-    if ( templateTranslationData->GetScalarAttribute("NumberOfImagesToUse", numberOfImagesToUse) ) 
-    {
-      imageDataInfo.NumberOfImagesToUse = numberOfImagesToUse; 
-    }
+    this->SetImageDataInfo(PROBE_TRANSLATION, imageDataInfo); 
+	}
+	else
+	{
+		LOG_DEBUG("Unable to find ProbeTranslationData XML data element, default 200 is used"); 
+		vtkCalibrationController::ImageDataInfo imageDataInfo = this->GetImageDataInfo(PROBE_TRANSLATION); 
+		imageDataInfo.NumberOfImagesToAcquire = 200;
+    this->SetImageDataInfo(PROBE_TRANSLATION, imageDataInfo); 
+	}
+  
 
-    int startingIndex = 0;
-    if ( templateTranslationData->GetScalarAttribute("StartingIndex", startingIndex) ) 
-    {
-      imageDataInfo.StartingIndex = startingIndex; 
-    }
+	// ProbeRotationData data set specifications
+	//********************************************************************
+	vtkSmartPointer<vtkXMLDataElement> probeRotationData = stepperCalibration->FindNestedElementWithName("ProbeRotationData"); 
+	if ( probeRotationData != NULL) 
+	{
+		vtkCalibrationController::ImageDataInfo imageDataInfo = this->GetImageDataInfo(PROBE_ROTATION); 
+		int numberOfImagesToUse = -1;
+		if ( probeRotationData->GetScalarAttribute("NumberOfImagesToAcquire", numberOfImagesToUse) ) 
+		{
+			imageDataInfo.NumberOfImagesToAcquire = numberOfImagesToUse; 
+		}
 
-    // Path to center of rotation input sequence metafile
-    const char* sequenceMetaFile = templateTranslationData->GetAttribute("SequenceMetaFile"); 
-    if ( sequenceMetaFile != NULL) 
-    {
-      imageDataInfo.SequenceMetaFileName.assign(sequenceMetaFile); 
-    }
+		const char* sequenceMetaFile = probeRotationData->GetAttribute("OutputSequenceMetaFileSuffix"); 
+		if ( sequenceMetaFile != NULL) 
+		{
+			imageDataInfo.OutputSequenceMetaFileSuffix.assign(sequenceMetaFile); 
+		}
 
-    this->SetSavedImageDataInfo(TEMPLATE_TRANSLATION, imageDataInfo); 
-  }
-  else
-  {
-    LOG_WARNING("Unable to find TemplateTranslationData XML data element"); 
-  }
-
-  // ProbeTranslationData data set specifications
-  //********************************************************************
-  vtkSmartPointer<vtkXMLDataElement> probeTranslationData = stepperCalibration->FindNestedElementWithName("ProbeTranslationData"); 
-  if ( probeTranslationData != NULL) 
-  {
-    vtkCalibrationController::SavedImageDataInfo imageDataInfo; 
-    int numberOfImagesToUse = -1;
-    if ( probeTranslationData->GetScalarAttribute("NumberOfImagesToUse", numberOfImagesToUse) ) 
-    {
-      imageDataInfo.NumberOfImagesToUse = numberOfImagesToUse; 
-    }
-
-    int startingIndex = 0;
-    if ( probeTranslationData->GetScalarAttribute("StartingIndex", startingIndex) ) 
-    {
-      imageDataInfo.StartingIndex = startingIndex; 
-    }
-
-    // Path to center of rotation input sequence metafile
-    const char* sequenceMetaFile = probeTranslationData->GetAttribute("SequenceMetaFile"); 
-    if ( sequenceMetaFile != NULL) 
-    {
-      imageDataInfo.SequenceMetaFileName.assign(sequenceMetaFile); 
-    }
-
-    this->SetSavedImageDataInfo(PROBE_TRANSLATION, imageDataInfo); 
-  }
-  else
-  {
-    LOG_WARNING("Unable to find ProbeTranslationData XML data element"); 
-  }
+		this->SetImageDataInfo(PROBE_ROTATION, imageDataInfo); 
+	}
+	else
+	{
+		LOG_DEBUG("Unable to find ProbeRotationData XML data element, default 500 is used"); 
+		vtkCalibrationController::ImageDataInfo imageDataInfo = this->GetImageDataInfo(PROBE_ROTATION); 
+		imageDataInfo.NumberOfImagesToAcquire = 500;
+    this->SetImageDataInfo(PROBE_ROTATION, imageDataInfo); 
+	}
 
   return PLUS_SUCCESS;
 }

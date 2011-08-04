@@ -26,7 +26,7 @@ enum IMAGE_DATA_TYPE
 	NUMBER_OF_IMAGE_DATA_TYPES
 }; 
 
-enum CALIBRATION_MODE
+enum CalibrationMode
 {
 	REALTIME, 
 	OFFLINE
@@ -57,19 +57,11 @@ public:
 	typedef std::vector<SegmentedFrame> SegmentedFrameList;
 
 	//! Description 
-	// Helper structure for storing saved dataset info
-	struct SavedImageDataInfo
-	{
-		std::string SequenceMetaFileName;
-		int NumberOfImagesToUse; 
-		int StartingIndex; 
-	};
-
-	//! Description 
-	// Helper structure for storing realtime dataset info
-	struct RealtimeImageDataInfo
+	// Helper structure for storing image dataset info
+	struct ImageDataInfo
 	{
 		std::string OutputSequenceMetaFileSuffix;
+    std::string InputSequenceMetaFileName;
 		int NumberOfImagesToAcquire; 
 		int NumberOfSegmentedImages; 
 	};
@@ -140,8 +132,8 @@ public:
 
 	//! Description 
 	// Set/get the calibration mode (see CALIBRATION_MODE)
-	vtkGetMacro(CalibrationMode, int);
-	vtkSetMacro(CalibrationMode, int);
+  void SetCalibrationMode( CalibrationMode mode ) { this->CalibrationMode = mode; }
+  CalibrationMode GetCalibrationMode() { return this->CalibrationMode; }
 
 	//! Attribute: Path to output calibration results
 	vtkGetStringMacro(OutputPath);
@@ -190,18 +182,13 @@ public:
 
 	//! Description 
 	// Get/set the saved image data info
-	SavedImageDataInfo GetSavedImageDataInfo( IMAGE_DATA_TYPE dataType ) { return this->SavedImageDataInfoContainer[dataType]; }
-	virtual void SetSavedImageDataInfo( IMAGE_DATA_TYPE dataType, SavedImageDataInfo savedImageDataInfo ) { this->SavedImageDataInfoContainer[dataType] = savedImageDataInfo; }
-	
-	//! Description 
-	// Get/set the saved image data info
-	RealtimeImageDataInfo GetRealtimeImageDataInfo( IMAGE_DATA_TYPE dataType ) { return this->RealtimeImageDataInfoContainer[dataType]; }
-	virtual void SetRealtimeImageDataInfo( IMAGE_DATA_TYPE dataType, RealtimeImageDataInfo realtimeImageDataInfo ) { this->RealtimeImageDataInfoContainer[dataType] = realtimeImageDataInfo; }
+	ImageDataInfo GetImageDataInfo( IMAGE_DATA_TYPE dataType ) { return this->ImageDataInfoContainer[dataType]; }
+	virtual void SetImageDataInfo( IMAGE_DATA_TYPE dataType, ImageDataInfo imageDataInfo ) { this->ImageDataInfoContainer[dataType] = imageDataInfo; }
 	
 	//! Description 
 	// Callback function that is executed each time a segmentation is finished
-	typedef void (*SegmentationProgressPtr)(IMAGE_DATA_TYPE dataType);
-    void SetSegmentationProgressCallbackFunction(SegmentationProgressPtr cb) { SegmentationProgressCallbackFunction = cb; } 
+	typedef void (*SegmentationProgressPtr)(int percent);
+  void SetSegmentationProgressCallbackFunction(SegmentationProgressPtr cb) { SegmentationProgressCallbackFunction = cb; } 
 
 protected:
 
@@ -226,10 +213,6 @@ protected:
 	//! Description 
 	// Read CalibrationController data element
 	virtual PlusStatus ReadCalibrationControllerConfiguration( vtkXMLDataElement* calibrationController ); 
-
-	//! Description 
-	// Read RealtimeCalibration data element
-	virtual PlusStatus ReadRealtimeCalibrationConfiguration( vtkXMLDataElement* realtimeCalibration );
 
 	//! Description 
 	// Read Phantom definition from XML
@@ -261,7 +244,7 @@ protected:
 	bool Initialized; 
 
 	//! Attributes: calibration mode (see CALIBRATION_MODE)
-	int CalibrationMode; 
+	CalibrationMode CalibrationMode; 
 
 	//! Attribute: Path to program parent folder
 	char* ProgramFolderPath;
@@ -284,11 +267,8 @@ protected:
 	//! Stores the tracked frames for each data type 
 	std::vector<vtkTrackedFrameList*> TrackedFrameListContainer;
 
-	//! Stores saved dataset information
-	std::vector<SavedImageDataInfo> SavedImageDataInfoContainer; 
-	
-	//! Stores realtime dataset information
-	std::vector<RealtimeImageDataInfo> RealtimeImageDataInfoContainer; 
+	//! Stores dataset information
+	std::vector<ImageDataInfo> ImageDataInfoContainer; 
 	
 	//! Stores the segmentation results with transformation for each frame
 	SegmentedFrameList SegmentedFrameContainer; 

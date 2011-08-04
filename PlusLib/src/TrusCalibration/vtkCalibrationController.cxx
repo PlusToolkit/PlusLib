@@ -38,6 +38,7 @@ SegmentationProgressCallbackFunction(NULL)
 	this->EnableTrackedSequenceDataSavingOff();
 	this->EnableErroneouslySegmentedDataSavingOff(); 
 	this->EnableSegmentationAnalysisOff();
+  this->EnableVisualizationOn(); 
 	this->InitializedOff(); 
 
 	this->VisualizationComponent = NULL;
@@ -59,17 +60,12 @@ SegmentationProgressCallbackFunction(NULL)
 		vtkTrackedFrameList *trackedFrameList = vtkTrackedFrameList::New(); 
 		this->TrackedFrameListContainer.push_back(trackedFrameList); 
 
-		SavedImageDataInfo imageDataInfo; 
-		imageDataInfo.NumberOfImagesToUse = 0; 
-		imageDataInfo.StartingIndex = 0; 
-		imageDataInfo.SequenceMetaFileName.clear(); 
-		SavedImageDataInfoContainer.push_back(imageDataInfo); 
-
-		RealtimeImageDataInfo realtimeImageDataInfo; 
-		realtimeImageDataInfo.NumberOfImagesToAcquire = 0; 
-		realtimeImageDataInfo.NumberOfSegmentedImages = 0; 
-		realtimeImageDataInfo.OutputSequenceMetaFileSuffix.clear(); 
-		RealtimeImageDataInfoContainer.push_back(realtimeImageDataInfo); 
+		ImageDataInfo imageDataInfo; 
+		imageDataInfo.NumberOfImagesToAcquire = 0; 
+		imageDataInfo.NumberOfSegmentedImages = 0; 
+		imageDataInfo.OutputSequenceMetaFileSuffix.clear(); 
+    imageDataInfo.InputSequenceMetaFileName.clear(); 
+		ImageDataInfoContainer.push_back(imageDataInfo); 
 	}
 }
 
@@ -204,13 +200,14 @@ PlusStatus vtkCalibrationController::AddTrackedFrameData(TrackedFrame* trackedFr
 		segmentedFrame.DataType = dataType; 
 		this->SegmentedFrameContainer.push_back(segmentedFrame); 
 
-		this->RealtimeImageDataInfoContainer[dataType].NumberOfSegmentedImages++; 
+		this->ImageDataInfoContainer[dataType].NumberOfSegmentedImages++; 
 
 		// Notify the caller when a segmentation is done
 		if (this->SegmentationProgressCallbackFunction != NULL)
 		{
+      int percent = 100*this->ImageDataInfoContainer[dataType].NumberOfSegmentedImages / this->ImageDataInfoContainer[dataType].NumberOfImagesToAcquire; 
 			// Notify the caller 
-			(*SegmentationProgressCallbackFunction)(dataType);
+			(*SegmentationProgressCallbackFunction)(percent);
 		}
 
 		return PLUS_SUCCESS; 
@@ -523,37 +520,6 @@ PlusStatus vtkCalibrationController::ReadCalibrationControllerConfiguration( vtk
 		this->EnableSegmentationAnalysisOff(); 
 	}
 
-	// To enable/disable the visualization component
-	const char* enableVisualization = calibrationController->GetAttribute("EnableVisualization"); 
-	if ( enableVisualization != NULL &&  STRCASECMP( "TRUE", enableVisualization ) == 0 ) 
-	{
-		this->EnableVisualizationOn(); 
-	}
-	else
-	{
-		this->EnableVisualizationOff(); 
-	}
-
-	// Set the calibration mode
-	const char* calibrationMode = calibrationController->GetAttribute("CalibrationMode"); 
-	if ( calibrationMode != NULL && STRCASECMP( "REALTIME", calibrationMode ) == 0 )
-	{
-		this->SetCalibrationMode(REALTIME); 
-	}
-	else /* OFFLINE */
-	{
-		this->SetCalibrationMode(OFFLINE); 
-	}
-
-	// RealtimeCalibration specifications
-	//********************************************************************
-	vtkSmartPointer<vtkXMLDataElement> realtimeCalibration = calibrationController->FindNestedElementWithName("RealtimeCalibration"); 
-	if ( this->ReadRealtimeCalibrationConfiguration(realtimeCalibration) != PLUS_SUCCESS )
-	{
-		LOG_ERROR("Failed to read calibration configuration file!"); 
-		return PLUS_FAIL; 
-	}
-
 	// SegmentationParameters specifications
 	//********************************************************************
 	vtkSmartPointer<vtkXMLDataElement> segmentationParameters = calibrationController->FindNestedElementWithName("SegmentationParameters"); 
@@ -721,208 +687,6 @@ PlusStatus vtkCalibrationController::ReadPhantomDefinition(vtkXMLDataElement* co
 	this->GetSegParameters()->UpdateParameters();
 
   return PLUS_SUCCESS;
-}
-
-//----------------------------------------------------------------------------
-PlusStatus vtkCalibrationController::ReadRealtimeCalibrationConfiguration( vtkXMLDataElement* realtimeCalibration )
-{
-	LOG_TRACE("vtkCalibrationController::ReadRealtimeCalibrationConfiguration"); 
-	if ( realtimeCalibration == NULL) 
-	{
-		LOG_ERROR("Unable to read the RealtimeCalibration XML data element!"); 
-		return PLUS_FAIL; 
-	}
-
-	// TemplateTranslationData data set specifications
-	//********************************************************************
-	vtkSmartPointer<vtkXMLDataElement> templateTranslationData = realtimeCalibration->FindNestedElementWithName("TemplateTranslationData"); 
-	if ( templateTranslationData != NULL) 
-	{
-		vtkCalibrationController::RealtimeImageDataInfo imageDataInfo = this->GetRealtimeImageDataInfo(TEMPLATE_TRANSLATION); 
-		int numberOfImagesToUse = -1;
-		if ( templateTranslationData->GetScalarAttribute("NumberOfImagesToAcquire", numberOfImagesToUse) ) 
-		{
-			imageDataInfo.NumberOfImagesToAcquire = numberOfImagesToUse; 
-		}
-
-		const char* sequenceMetaFile = templateTranslationData->GetAttribute("OutputSequenceMetaFileSuffix"); 
-		if ( sequenceMetaFile != NULL) 
-		{
-			imageDataInfo.OutputSequenceMetaFileSuffix.assign(sequenceMetaFile); 
-		}
-
-		this->SetRealtimeImageDataInfo(TEMPLATE_TRANSLATION, imageDataInfo); 
-	}
-	else
-	{
-		LOG_DEBUG("Unable to find TemplateTranslationData XML data element, default 100 is used"); 
-		vtkCalibrationController::RealtimeImageDataInfo imageDataInfo = this->GetRealtimeImageDataInfo(TEMPLATE_TRANSLATION); 
-		imageDataInfo.NumberOfImagesToAcquire = 100;
-	}
-
-	// ProbeTranslationData data set specifications
-	//********************************************************************
-	vtkSmartPointer<vtkXMLDataElement> probeTranslationData = realtimeCalibration->FindNestedElementWithName("ProbeTranslationData"); 
-	if ( probeTranslationData != NULL) 
-	{
-		vtkCalibrationController::RealtimeImageDataInfo imageDataInfo = this->GetRealtimeImageDataInfo(PROBE_TRANSLATION); 
-		int numberOfImagesToUse = -1;
-		if ( probeTranslationData->GetScalarAttribute("NumberOfImagesToAcquire", numberOfImagesToUse) ) 
-		{
-			imageDataInfo.NumberOfImagesToAcquire = numberOfImagesToUse; 
-		}
-
-		const char* sequenceMetaFile = probeTranslationData->GetAttribute("OutputSequenceMetaFileSuffix"); 
-		if ( sequenceMetaFile != NULL) 
-		{
-			imageDataInfo.OutputSequenceMetaFileSuffix.assign(sequenceMetaFile); 
-		}
-
-		this->SetRealtimeImageDataInfo(PROBE_TRANSLATION, imageDataInfo); 
-	}
-	else
-	{
-		LOG_DEBUG("Unable to find ProbeTranslationData XML data element, default 200 is used"); 
-		vtkCalibrationController::RealtimeImageDataInfo imageDataInfo = this->GetRealtimeImageDataInfo(PROBE_TRANSLATION); 
-		imageDataInfo.NumberOfImagesToAcquire = 200;
-	}
-
-	// ProbeRotationData data set specifications
-	//********************************************************************
-	vtkSmartPointer<vtkXMLDataElement> probeRotationData = realtimeCalibration->FindNestedElementWithName("ProbeRotationData"); 
-	if ( probeRotationData != NULL) 
-	{
-		vtkCalibrationController::RealtimeImageDataInfo imageDataInfo = this->GetRealtimeImageDataInfo(PROBE_ROTATION); 
-		int numberOfImagesToUse = -1;
-		if ( probeRotationData->GetScalarAttribute("NumberOfImagesToAcquire", numberOfImagesToUse) ) 
-		{
-			imageDataInfo.NumberOfImagesToAcquire = numberOfImagesToUse; 
-		}
-
-		const char* sequenceMetaFile = probeRotationData->GetAttribute("OutputSequenceMetaFileSuffix"); 
-		if ( sequenceMetaFile != NULL) 
-		{
-			imageDataInfo.OutputSequenceMetaFileSuffix.assign(sequenceMetaFile); 
-		}
-
-		this->SetRealtimeImageDataInfo(PROBE_ROTATION, imageDataInfo); 
-	}
-	else
-	{
-		LOG_DEBUG("Unable to find ProbeRotationData XML data element, default 500 is used"); 
-		vtkCalibrationController::RealtimeImageDataInfo imageDataInfo = this->GetRealtimeImageDataInfo(PROBE_ROTATION); 
-		imageDataInfo.NumberOfImagesToAcquire = 500;
-	}
-
-	// RandomStepperMotionData1 data set specifications
-	//********************************************************************
-	vtkSmartPointer<vtkXMLDataElement> randomStepperMotionData1 = realtimeCalibration->FindNestedElementWithName("RandomStepperMotionData1"); 
-	if ( randomStepperMotionData1 != NULL) 
-	{
-		vtkCalibrationController::RealtimeImageDataInfo imageDataInfo = this->GetRealtimeImageDataInfo(RANDOM_STEPPER_MOTION_1); 
-		int numberOfImagesToUse = -1;
-		if ( randomStepperMotionData1->GetScalarAttribute("NumberOfImagesToAcquire", numberOfImagesToUse) ) 
-		{
-			imageDataInfo.NumberOfImagesToAcquire = numberOfImagesToUse; 
-		}
-
-		const char* sequenceMetaFile = randomStepperMotionData1->GetAttribute("OutputSequenceMetaFileSuffix"); 
-		if ( sequenceMetaFile != NULL) 
-		{
-			imageDataInfo.OutputSequenceMetaFileSuffix.assign(sequenceMetaFile); 
-		}
-
-		this->SetRealtimeImageDataInfo(RANDOM_STEPPER_MOTION_1, imageDataInfo); 
-	}
-	else
-	{
-		LOG_DEBUG("Unable to find RandomStepperMotionData1 XML data element, default 200 is used"); 
-		vtkCalibrationController::RealtimeImageDataInfo imageDataInfo = this->GetRealtimeImageDataInfo(RANDOM_STEPPER_MOTION_1); 
-		imageDataInfo.NumberOfImagesToAcquire = 200;
-	}
-
-	// RandomStepperMotionData2 data set specifications
-	//********************************************************************
-	vtkSmartPointer<vtkXMLDataElement> randomStepperMotionData2 = realtimeCalibration->FindNestedElementWithName("RandomStepperMotionData2"); 
-	if ( randomStepperMotionData2 != NULL) 
-	{
-		vtkCalibrationController::RealtimeImageDataInfo imageDataInfo = this->GetRealtimeImageDataInfo(RANDOM_STEPPER_MOTION_2); 
-		int numberOfImagesToUse = -1;
-		if ( randomStepperMotionData2->GetScalarAttribute("NumberOfImagesToAcquire", numberOfImagesToUse) ) 
-		{
-			imageDataInfo.NumberOfImagesToAcquire = numberOfImagesToUse; 
-		}
-
-		const char* sequenceMetaFile = randomStepperMotionData2->GetAttribute("OutputSequenceMetaFileSuffix"); 
-		if ( sequenceMetaFile != NULL) 
-		{
-			imageDataInfo.OutputSequenceMetaFileSuffix.assign(sequenceMetaFile); 
-		}
-
-		this->SetRealtimeImageDataInfo(RANDOM_STEPPER_MOTION_2, imageDataInfo); 
-	}
-	else
-	{
-		LOG_DEBUG("Unable to find RandomStepperMotionData2 XML data element, default 100 is used"); 
-		vtkCalibrationController::RealtimeImageDataInfo imageDataInfo = this->GetRealtimeImageDataInfo(RANDOM_STEPPER_MOTION_2); 
-		imageDataInfo.NumberOfImagesToAcquire = 100; 
-	}
-
-	// FreehandMotionData1 data set specifications
-	//********************************************************************
-	vtkSmartPointer<vtkXMLDataElement> freehandMotionData1 = realtimeCalibration->FindNestedElementWithName("FreehandMotionData1"); 
-	if ( freehandMotionData1 != NULL) 
-	{
-		vtkCalibrationController::RealtimeImageDataInfo imageDataInfo = this->GetRealtimeImageDataInfo(FREEHAND_MOTION_1); 
-		int numberOfImagesToUse = -1;
-		if ( freehandMotionData1->GetScalarAttribute("NumberOfImagesToAcquire", numberOfImagesToUse) ) 
-		{
-			imageDataInfo.NumberOfImagesToAcquire = numberOfImagesToUse; 
-		}
-
-		const char* sequenceMetaFile = freehandMotionData1->GetAttribute("OutputSequenceMetaFileSuffix"); 
-		if ( sequenceMetaFile != NULL) 
-		{
-			imageDataInfo.OutputSequenceMetaFileSuffix.assign(sequenceMetaFile); 
-		}
-
-		this->SetRealtimeImageDataInfo(FREEHAND_MOTION_1, imageDataInfo); 
-	}
-	else
-	{
-		LOG_DEBUG("Unable to find FreehandMotionData1 XML data element, default 200 is used"); 
-		vtkCalibrationController::RealtimeImageDataInfo imageDataInfo = this->GetRealtimeImageDataInfo(FREEHAND_MOTION_1); 
-		imageDataInfo.NumberOfImagesToAcquire = 200;
-	}
-
-	// FreehandMotionData2 data set specifications
-	//********************************************************************
-	vtkSmartPointer<vtkXMLDataElement> freehandMotionData2 = realtimeCalibration->FindNestedElementWithName("FreehandMotionData2"); 
-	if ( freehandMotionData2 != NULL) 
-	{
-		vtkCalibrationController::RealtimeImageDataInfo imageDataInfo = this->GetRealtimeImageDataInfo(FREEHAND_MOTION_2); 
-		int numberOfImagesToUse = -1;
-		if ( freehandMotionData2->GetScalarAttribute("NumberOfImagesToAcquire", numberOfImagesToUse) ) 
-		{
-			imageDataInfo.NumberOfImagesToAcquire = numberOfImagesToUse; 
-		}
-
-		const char* sequenceMetaFile = freehandMotionData2->GetAttribute("OutputSequenceMetaFileSuffix"); 
-		if ( sequenceMetaFile != NULL) 
-		{
-			imageDataInfo.OutputSequenceMetaFileSuffix.assign(sequenceMetaFile); 
-		}
-
-		this->SetRealtimeImageDataInfo(FREEHAND_MOTION_2, imageDataInfo); 
-	}
-	else
-	{
-		LOG_DEBUG("Unable to find FreehandMotionData2 XML data element, default 100 is used"); 
-		vtkCalibrationController::RealtimeImageDataInfo imageDataInfo = this->GetRealtimeImageDataInfo(FREEHAND_MOTION_2); 
-		imageDataInfo.NumberOfImagesToAcquire = 100; 
-	}
-
-	return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------

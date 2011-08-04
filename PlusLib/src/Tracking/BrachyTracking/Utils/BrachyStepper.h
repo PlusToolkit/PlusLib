@@ -51,8 +51,8 @@ public:
   virtual PlusStatus IsStepperAlive() = 0; 
 
   // Description:
-  // Calibrate stepper 
-  virtual PlusStatus CalibrateStepper(std::string &CalibMsg) = 0; 
+  // Initialize stepper 
+  virtual PlusStatus InitializeStepper(std::string &CalibMsg) = 0; 
 
   // Description:
   // Set/get bracy stepper type from BRACHY_STEPPER_TYPE

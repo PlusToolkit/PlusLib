@@ -64,87 +64,26 @@ Phantom::Phantom( const bool IsSystemLogOn )
 	{
 		// Initialize flags
 		mHasPhantomBeenRegistered = false;
-		mAreDataPositionsReady = false;
-		mAreValidationPositionsReady = false;
-		mArePRE3DsForValidationPositionsReady = false;
-		mAreIndependentPointLineReconErrorsReady = false;
 		mIsPhantomGeometryLoaded = false;
 		mIsUSBeamwidthAndWeightFactorsTableReady = false;
-		mHasBeenCalibrated = false;
 		mIsSystemLogOn = false;
 		mHasUSImageFrameOriginBeenSet = false;
-		mAreValidationDataMatricesConstructed = false;
-		mAreOutliersRemoved = false; 
-        	
-		// Initialize data containers
-		mSystemLogFileNameWithTimeStamp = "";
-		mUSImageFrameOriginInPixels.set_size(4);
-		mTransformOrigImageFrame2TRUSImageFrameMatrix4x4.set_size(4,4);
-		mTransformMatrixPhantom2DRB4x4.set_size(4,4);
-		mTransformMatrixDRB2Phantom4x4.set_size(4,4);
-		mPhantomSpecificReferencePoints.resize(0);
+		        	
+    this->resetDataContainers(); 
+
+    mUSImageFrameOriginInPixels.set_size(4);
+    mSystemLogFileNameWithTimeStamp = "";
+    mPhantomSpecificReferencePoints.resize(0);
 		mNamesOfPhantomSpecificReferencePoints.resize(0);
-		mDataPositionsInPhantomFrame.resize(0);
-		mDataPositionsInUSProbeFrame.resize(0);
-		mDataPositionsInUSImageFrame.resize(0);
-		mOutlierDataPositions.resize(0); 
-		mUS3DBeamwidthAndWeightFactorsInUSImageFrameTable5xM.set_size(0,0);
+    mMethodToIncorporateBeamWidth = 0;
+    mUS3DBeamwidthAndWeightFactorsInUSImageFrameTable5xM.set_size(0,0);
 		mOrigUS3DBeamwidthAndWeightFactorsInUSImageFrameTable5xN.set_size(0,0);
 		mMinimumUSElevationBeamwidthAndFocalZoneInUSImageFrame.set_size(2);
 		mUS3DBeamwidthAtNearestAxialDepth.set_size(3);
 		mUS3DBeamwidthAtFarestAxialDepth.set_size(3);
-		mMethodToIncorporateBeamWidth = 0;
 		mNumOfTotalBeamWidthData = 0;
-		mWeightsForDataPositions.resize(0);
-		mUSBeamWidthEuclideanMagAtDataPositions.resize(0);
-		mUSBeamWidthEuclideanMagAtValidationPositions.resize(0);
-		mValidationPositionsInPhantomFrame.resize(0);
-		mValidationPositionsInUSProbeFrame.resize(0);
-		mValidationPositionsNWireStartInUSProbeFrame.resize(0);
-		mValidationPositionsNWireEndInUSProbeFrame.resize(0);
+    mValidationDataConfidenceLevel = 0.95;
 
-		mValidationPositionsNWire1InUSImageFrame.resize(0);
-		mValidationPositionsNWire3InUSImageFrame.resize(0);
-		mValidationPositionsNWire4InUSImageFrame.resize(0);
-		mValidationPositionsNWire6InUSImageFrame.resize(0);
-
-		mValidationPositionsNWire1InUSProbeFrame.resize(0);
-		mValidationPositionsNWire3InUSProbeFrame.resize(0);
-		mValidationPositionsNWire4InUSProbeFrame.resize(0);
-		mValidationPositionsNWire6InUSProbeFrame.resize(0);
-
-		mValidationPositionsInUSImageFrame.resize(0);
-		mWeightsForValidationPositions.resize(0);
-		mValidationPositionsInUSImageFrameMatrix4xN.set_size(0,0);
-
-		mValidationPositionsNWire1InUSImageFrame4xN.set_size(0,0);
-		mValidationPositionsNWire3InUSImageFrame4xN.set_size(0,0);
-		mValidationPositionsNWire4InUSImageFrame4xN.set_size(0,0);
-		mValidationPositionsNWire6InUSImageFrame4xN.set_size(0,0);
-
-		mValidationPositionsNWire1InUSProbeFrame4xN.set_size(0,0);
-		mValidationPositionsNWire3InUSProbeFrame4xN.set_size(0,0);
-		mValidationPositionsNWire4InUSProbeFrame4xN.set_size(0,0);
-		mValidationPositionsNWire6InUSProbeFrame4xN.set_size(0,0);
-
-		mNWire1LREOrigInUSProbeFrameMatrix4xN.set_size(0,0);
-		mNWire3LREOrigInUSProbeFrameMatrix4xN.set_size(0,0);
-		mNWire4LREOrigInUSProbeFrameMatrix4xN.set_size(0,0);
-		mNWire6LREOrigInUSProbeFrameMatrix4xN.set_size(0,0);
-
-		mNWire1LRESortedAscendingInUSProbeFrameMatrix4xN.set_size(0,0);
-		mNWire3LRESortedAscendingInUSProbeFrameMatrix4xN.set_size(0,0);
-		mNWire4LRESortedAscendingInUSProbeFrameMatrix4xN.set_size(0,0);
-		mNWire6LRESortedAscendingInUSProbeFrameMatrix4xN.set_size(0,0);
-
-		mTransformUSImageFrame2USProbeFrameParameters.resize(0);
-		mAbsPRE3DAnalysis4ValidationPositionsInUSProbeFrame.resize(0);
-		mPLDEAnalysis4ValidationPositionsInUSProbeFrame.resize(0);
-		mRawPRE3DsforValidationPositionsInUSProbeFrameMatrix4xN.set_size(0,0);
-		mSortedRawPRE3DsInAscendingOrderInUSProbeFrameMatrix4xN.set_size(0,0);
-		mPLDEsforValidationPositionsInUSProbeFrame.set_size(0);
-		mSortedPLDEsAscendingforValidationInUSProbeFrame.set_size(0);
-		mValidationDataConfidenceLevel = 0.95;
 
 		// Record the system timestamp
 		char dateStr[9];
@@ -203,6 +142,79 @@ Phantom::Phantom( const bool IsSystemLogOn )
 
 		throw;
 	}
+}
+
+void Phantom::resetDataContainers()
+{
+    // Initialize flags
+ 	  mAreDataPositionsReady = false;
+		mAreValidationPositionsReady = false;
+		mArePRE3DsForValidationPositionsReady = false;
+		mAreIndependentPointLineReconErrorsReady = false;
+    mHasBeenCalibrated = false;
+    mAreValidationDataMatricesConstructed = false;
+		mAreOutliersRemoved = false; 
+
+  
+		// Initialize data containers
+		mTransformOrigImageFrame2TRUSImageFrameMatrix4x4.set_size(4,4);
+		mTransformMatrixPhantom2DRB4x4.set_size(4,4);
+		mTransformMatrixDRB2Phantom4x4.set_size(4,4);
+
+    mDataPositionsInPhantomFrame.resize(0);
+		mDataPositionsInUSProbeFrame.resize(0);
+		mDataPositionsInUSImageFrame.resize(0);
+		mOutlierDataPositions.resize(0); 
+		
+		mWeightsForDataPositions.resize(0);
+		mUSBeamWidthEuclideanMagAtDataPositions.resize(0);
+		mUSBeamWidthEuclideanMagAtValidationPositions.resize(0);
+		mValidationPositionsInPhantomFrame.resize(0);
+		mValidationPositionsInUSProbeFrame.resize(0);
+		mValidationPositionsNWireStartInUSProbeFrame.resize(0);
+		mValidationPositionsNWireEndInUSProbeFrame.resize(0);
+
+		mValidationPositionsNWire1InUSImageFrame.resize(0);
+		mValidationPositionsNWire3InUSImageFrame.resize(0);
+		mValidationPositionsNWire4InUSImageFrame.resize(0);
+		mValidationPositionsNWire6InUSImageFrame.resize(0);
+
+		mValidationPositionsNWire1InUSProbeFrame.resize(0);
+		mValidationPositionsNWire3InUSProbeFrame.resize(0);
+		mValidationPositionsNWire4InUSProbeFrame.resize(0);
+		mValidationPositionsNWire6InUSProbeFrame.resize(0);
+
+		mValidationPositionsInUSImageFrame.resize(0);
+		mWeightsForValidationPositions.resize(0);
+		mValidationPositionsInUSImageFrameMatrix4xN.set_size(0,0);
+
+		mValidationPositionsNWire1InUSImageFrame4xN.set_size(0,0);
+		mValidationPositionsNWire3InUSImageFrame4xN.set_size(0,0);
+		mValidationPositionsNWire4InUSImageFrame4xN.set_size(0,0);
+		mValidationPositionsNWire6InUSImageFrame4xN.set_size(0,0);
+
+		mValidationPositionsNWire1InUSProbeFrame4xN.set_size(0,0);
+		mValidationPositionsNWire3InUSProbeFrame4xN.set_size(0,0);
+		mValidationPositionsNWire4InUSProbeFrame4xN.set_size(0,0);
+		mValidationPositionsNWire6InUSProbeFrame4xN.set_size(0,0);
+
+		mNWire1LREOrigInUSProbeFrameMatrix4xN.set_size(0,0);
+		mNWire3LREOrigInUSProbeFrameMatrix4xN.set_size(0,0);
+		mNWire4LREOrigInUSProbeFrameMatrix4xN.set_size(0,0);
+		mNWire6LREOrigInUSProbeFrameMatrix4xN.set_size(0,0);
+
+		mNWire1LRESortedAscendingInUSProbeFrameMatrix4xN.set_size(0,0);
+		mNWire3LRESortedAscendingInUSProbeFrameMatrix4xN.set_size(0,0);
+		mNWire4LRESortedAscendingInUSProbeFrameMatrix4xN.set_size(0,0);
+		mNWire6LRESortedAscendingInUSProbeFrameMatrix4xN.set_size(0,0);
+
+		mTransformUSImageFrame2USProbeFrameParameters.resize(0);
+		mAbsPRE3DAnalysis4ValidationPositionsInUSProbeFrame.resize(0);
+		mPLDEAnalysis4ValidationPositionsInUSProbeFrame.resize(0);
+		mRawPRE3DsforValidationPositionsInUSProbeFrameMatrix4xN.set_size(0,0);
+		mSortedRawPRE3DsInAscendingOrderInUSProbeFrameMatrix4xN.set_size(0,0);
+		mPLDEsforValidationPositionsInUSProbeFrame.set_size(0);
+		mSortedPLDEsAscendingforValidationInUSProbeFrame.set_size(0);
 }
 
 Phantom::~Phantom()

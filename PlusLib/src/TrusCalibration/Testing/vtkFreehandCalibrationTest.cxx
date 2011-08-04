@@ -99,13 +99,13 @@ int main (int argc, char* argv[])
 	phantomRegistrationController->LoadPhantomRegistrationFromFile(inputPhantomRegistrationXmlFileName);
 
 	// Continue initializing freehand calibration controller
-	vtkCalibrationController::SavedImageDataInfo freehandMotion1DataInfo = freehandCalibration->GetSavedImageDataInfo(FREEHAND_MOTION_1);
-	freehandMotion1DataInfo.SequenceMetaFileName.assign(inputFreehandMotion1SeqMetafile.c_str());
-	freehandCalibration->SetSavedImageDataInfo(FREEHAND_MOTION_1, freehandMotion1DataInfo);
+	vtkCalibrationController::ImageDataInfo freehandMotion1DataInfo = freehandCalibration->GetImageDataInfo(FREEHAND_MOTION_1);
+	freehandMotion1DataInfo.InputSequenceMetaFileName.assign(inputFreehandMotion1SeqMetafile.c_str());
+	freehandCalibration->SetImageDataInfo(FREEHAND_MOTION_1, freehandMotion1DataInfo);
 
-	vtkCalibrationController::SavedImageDataInfo freehandMotion2DataInfo = freehandCalibration->GetSavedImageDataInfo(FREEHAND_MOTION_2);
-	freehandMotion2DataInfo.SequenceMetaFileName.assign(inputFreehandMotion2SeqMetafile.c_str());
-	freehandCalibration->SetSavedImageDataInfo(FREEHAND_MOTION_2, freehandMotion2DataInfo);
+	vtkCalibrationController::ImageDataInfo freehandMotion2DataInfo = freehandCalibration->GetImageDataInfo(FREEHAND_MOTION_2);
+	freehandMotion2DataInfo.InputSequenceMetaFileName.assign(inputFreehandMotion2SeqMetafile.c_str());
+	freehandCalibration->SetImageDataInfo(FREEHAND_MOTION_2, freehandMotion2DataInfo);
 
 	freehandCalibration->Initialize();
 	freehandCalibration->SetTemporalCalibrationDone(true);

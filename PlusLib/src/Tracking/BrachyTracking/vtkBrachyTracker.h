@@ -47,14 +47,13 @@ public:
 	PlusStatus Probe();
 
 	// Description:
-	// Reset the calibration state of the stepper
-	// After this, you should call CalibrateStepper() for calibration 
-	void ResetCalibration(); 
+	// Reset the stepper
+	// After this call, you should call InitializeStepper() 
+	PlusStatus ResetStepper(); 
 
 	// Description:
-	// Calibrates the stepper with the 9 steps factory specified calibration 
-	// process. It will returns true, if the calibration done. 
-	PlusStatus CalibrateStepper( std::string &calibMsg );
+	// Initialize the stepper with the factory specified init process. 
+	PlusStatus InitializeStepper( std::string &calibMsg );
 
 	// Description:
 	// Get the buffer element values of each tool in a string list by timestamp. 

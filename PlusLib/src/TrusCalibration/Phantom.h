@@ -70,7 +70,9 @@ class Phantom
 		Phantom ( const bool IsSystemLogOn = false );
 
 		//! Destructor
-		~Phantom ();
+		virtual ~Phantom ();
+
+    virtual void resetDataContainers(); 
 
 		//! Operation: set the ultrasound image frame in pixels.
 		// IMPORTANT:

@@ -1133,68 +1133,60 @@ void vtkProbeCalibrationControllerIO::ReadProbeCalibrationConfiguration(vtkXMLDa
 		this->CalibrationController->SetTemp2StepCalibAnalysisFileNameSuffix(".Template2StepperCalibration.analysis"); 
 	}
 
+  	// RandomStepperMotionData1 data set specifications
+	//********************************************************************
+	vtkSmartPointer<vtkXMLDataElement> randomStepperMotionData1 = probeCalibration->FindNestedElementWithName("RandomStepperMotionData1"); 
+	if ( randomStepperMotionData1 != NULL) 
+	{
+		vtkCalibrationController::ImageDataInfo imageDataInfo = this->CalibrationController->GetImageDataInfo(RANDOM_STEPPER_MOTION_1); 
+		int numberOfImagesToUse = -1;
+		if ( randomStepperMotionData1->GetScalarAttribute("NumberOfImagesToAcquire", numberOfImagesToUse) ) 
+		{
+			imageDataInfo.NumberOfImagesToAcquire = numberOfImagesToUse; 
+		}
+
+		const char* sequenceMetaFile = randomStepperMotionData1->GetAttribute("OutputSequenceMetaFileSuffix"); 
+		if ( sequenceMetaFile != NULL) 
+		{
+			imageDataInfo.OutputSequenceMetaFileSuffix.assign(sequenceMetaFile); 
+		}
+
+		this->CalibrationController->SetImageDataInfo(RANDOM_STEPPER_MOTION_1, imageDataInfo); 
+	}
+	else
+	{
+		LOG_DEBUG("Unable to find RandomStepperMotionData1 XML data element, default 200 is used"); 
+		vtkCalibrationController::ImageDataInfo imageDataInfo = this->CalibrationController->GetImageDataInfo(RANDOM_STEPPER_MOTION_1); 
+		imageDataInfo.NumberOfImagesToAcquire = 200;
+    this->CalibrationController->SetImageDataInfo(RANDOM_STEPPER_MOTION_1, imageDataInfo); 
+	}
+
 	// RandomStepperMotionData2 data set specifications
 	//********************************************************************
-	vtkSmartPointer<vtkXMLDataElement> randomStepperMotionData_2 = probeCalibration->FindNestedElementWithName("RandomStepperMotionData2"); 
-	if ( randomStepperMotionData_2 != NULL) 
+	vtkSmartPointer<vtkXMLDataElement> randomStepperMotionData2 = probeCalibration->FindNestedElementWithName("RandomStepperMotionData2"); 
+	if ( randomStepperMotionData2 != NULL) 
 	{
-		vtkCalibrationController::SavedImageDataInfo imageDataInfo; 
+		vtkCalibrationController::ImageDataInfo imageDataInfo = this->CalibrationController->GetImageDataInfo(RANDOM_STEPPER_MOTION_2); 
 		int numberOfImagesToUse = -1;
-		if ( randomStepperMotionData_2->GetScalarAttribute("NumberOfImagesToUse", numberOfImagesToUse) ) 
+		if ( randomStepperMotionData2->GetScalarAttribute("NumberOfImagesToAcquire", numberOfImagesToUse) ) 
 		{
-			imageDataInfo.NumberOfImagesToUse = numberOfImagesToUse; 
+			imageDataInfo.NumberOfImagesToAcquire = numberOfImagesToUse; 
 		}
 
-		int startingIndex = 0;
-		if ( randomStepperMotionData_2->GetScalarAttribute("StartingIndex", startingIndex) ) 
-		{
-			imageDataInfo.StartingIndex = startingIndex; 
-		}
-
-		// Path to validation input sequence metafile
-		const char* sequenceMetaFile = randomStepperMotionData_2->GetAttribute("SequenceMetaFile"); 
+		const char* sequenceMetaFile = randomStepperMotionData2->GetAttribute("OutputSequenceMetaFileSuffix"); 
 		if ( sequenceMetaFile != NULL) 
 		{
-			imageDataInfo.SequenceMetaFileName.assign(sequenceMetaFile); 
+			imageDataInfo.OutputSequenceMetaFileSuffix.assign(sequenceMetaFile); 
 		}
 
-		this->CalibrationController->SetSavedImageDataInfo(RANDOM_STEPPER_MOTION_2, imageDataInfo); 
+		this->CalibrationController->SetImageDataInfo(RANDOM_STEPPER_MOTION_2, imageDataInfo); 
 	}
 	else
 	{
-		LOG_WARNING("Unable to find RandomStepperMotionData2 XML data element"); 
-	}
-
-	// RandomStepperMotionData_1 data set specifications
-	//********************************************************************
-	vtkSmartPointer<vtkXMLDataElement> randomStepperMotionData_1 = probeCalibration->FindNestedElementWithName("RandomStepperMotionData1"); 
-	if ( randomStepperMotionData_1 != NULL) 
-	{
-		vtkCalibrationController::SavedImageDataInfo imageDataInfo; 
-		int numberOfImagesToUse = -1;
-		if ( randomStepperMotionData_1->GetScalarAttribute("NumberOfImagesToUse", numberOfImagesToUse) ) 
-		{
-			imageDataInfo.NumberOfImagesToUse = numberOfImagesToUse; 
-		}
-
-		int startingIndex = 0;
-		if ( randomStepperMotionData_1->GetScalarAttribute("StartingIndex", startingIndex) ) 
-		{
-			imageDataInfo.StartingIndex = startingIndex; 
-		}
-
-		// Path to calibration input sequence metafile
-		const char* sequenceMetaFile = randomStepperMotionData_1->GetAttribute("SequenceMetaFile"); 
-		if ( sequenceMetaFile != NULL) 
-		{
-			imageDataInfo.SequenceMetaFileName.assign(sequenceMetaFile); 
-		}
-
-		this->CalibrationController->SetSavedImageDataInfo(RANDOM_STEPPER_MOTION_1, imageDataInfo); 
-	}
-	else
-	{
-		LOG_WARNING("Unable to find RandomStepperMotionData1 XML data element"); 
+		LOG_DEBUG("Unable to find RandomStepperMotionData2 XML data element, default 100 is used"); 
+		vtkCalibrationController::ImageDataInfo imageDataInfo = this->CalibrationController->GetImageDataInfo(RANDOM_STEPPER_MOTION_2); 
+		imageDataInfo.NumberOfImagesToAcquire = 100; 
+    this->CalibrationController->SetImageDataInfo(RANDOM_STEPPER_MOTION_2, imageDataInfo); 
 	}
 
 	// Template model specifications
