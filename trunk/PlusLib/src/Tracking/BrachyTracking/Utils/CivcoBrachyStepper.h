@@ -36,7 +36,7 @@ public:
 
   virtual PlusStatus ResetStepper();
 
-  virtual PlusStatus CalibrateStepper(std::string &CalibMsg);
+  virtual PlusStatus InitializeStepper(std::string &CalibMsg);
 
   virtual PlusStatus SetBaudRate(unsigned long BaudRate); 
 

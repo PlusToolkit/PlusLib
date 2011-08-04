@@ -127,10 +127,6 @@ public:
 	// The class has to be initialized before the segmentation process. 
 	virtual PlusStatus AddTrackedFrameData( TrackedFrame* trackedFrame, IMAGE_DATA_TYPE dataType ); 
 
-	// Get/set the saved image data info
-	RealtimeImageDataInfo GetRealtimeImageDataInfo(IMAGE_DATA_TYPE dataType);
-	virtual void SetRealtimeImageDataInfo(IMAGE_DATA_TYPE dataType, RealtimeImageDataInfo realtimeImageDataInfo);
-
 	//! Operation: Computes the calibration results: 
 	// - Compute the overall Point-Line Distance Error (PLDE)
 	// - Print the final calibration results and error reports 

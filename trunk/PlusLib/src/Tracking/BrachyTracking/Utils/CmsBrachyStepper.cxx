@@ -458,7 +458,7 @@ PlusStatus CmsBrachyStepper::IsStepperAlive()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus CmsBrachyStepper::CalibrateStepper(std::string &CalibMsg)
+PlusStatus CmsBrachyStepper::InitializeStepper(std::string &CalibMsg)
 {
 	int PState = 0, GState = 0, RState = 0;
 	this->GetCalibrationState(PState, GState, RState);

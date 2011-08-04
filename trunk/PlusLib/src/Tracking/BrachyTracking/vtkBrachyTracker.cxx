@@ -433,15 +433,15 @@ PlusStatus vtkBrachyTracker::WriteConfiguration(vtkXMLDataElement* config)
 
 
 //----------------------------------------------------------------------------
-void vtkBrachyTracker::ResetCalibration()
+PlusStatus vtkBrachyTracker::ResetStepper()
 {
-	this->Device->ResetStepper(); 
+	return this->Device->ResetStepper(); 
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkBrachyTracker::CalibrateStepper( std::string &calibMsg )
+PlusStatus vtkBrachyTracker::InitializeStepper( std::string &calibMsg )
 {
-	return this->Device->CalibrateStepper(calibMsg); 
+	return this->Device->InitializeStepper(calibMsg); 
 }
 
 //----------------------------------------------------------------------------

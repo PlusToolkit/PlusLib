@@ -86,9 +86,9 @@ int main (int argc, char* argv[])
 		LOG_INFO( "Checking stepper's calibration state...");
 		if (!myStepper->IsStepperCalibrated())
 		{
-			std::cout << std::endl << "The stepper needs to be calibrated!" << std::endl << std::endl;
+			std::cout << std::endl << "The stepper needs to be initialized!" << std::endl << std::endl;
 			std::string CalibMsg;
-			while(!myStepper->CalibrateStepper(CalibMsg))
+			while(!myStepper->InitializeStepper(CalibMsg))
 			{
 				std::cout << CalibMsg << " ";
 				system("pause"); 

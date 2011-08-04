@@ -81,18 +81,20 @@ int main (int argc, char* argv[])
 	stepperCal->SetProgramFolderPath(programPath.c_str()); 
 	stepperCal->ReadConfiguration(inputConfigFileName.c_str()); 
 
-	vtkCalibrationController::SavedImageDataInfo probeRotationDataInfo = stepperCal->GetSavedImageDataInfo(PROBE_ROTATION); 
-	probeRotationDataInfo.SequenceMetaFileName.assign(inputProbeRotationSeqMetafile.c_str());
-	stepperCal->SetSavedImageDataInfo(PROBE_ROTATION, probeRotationDataInfo); 
+	vtkCalibrationController::ImageDataInfo probeRotationDataInfo = stepperCal->GetImageDataInfo(PROBE_ROTATION); 
+	probeRotationDataInfo.InputSequenceMetaFileName.assign(inputProbeRotationSeqMetafile.c_str());
+	stepperCal->SetImageDataInfo(PROBE_ROTATION, probeRotationDataInfo); 
 
-	vtkCalibrationController::SavedImageDataInfo probeTranslationDataInfo = stepperCal->GetSavedImageDataInfo(PROBE_TRANSLATION); 
-	probeTranslationDataInfo.SequenceMetaFileName.assign(inputProbeTranslationSeqMetafile.c_str());
-	stepperCal->SetSavedImageDataInfo(PROBE_TRANSLATION, probeTranslationDataInfo); 
+	vtkCalibrationController::ImageDataInfo probeTranslationDataInfo = stepperCal->GetImageDataInfo(PROBE_TRANSLATION); 
+	probeTranslationDataInfo.InputSequenceMetaFileName.assign(inputProbeTranslationSeqMetafile.c_str());
+	stepperCal->SetImageDataInfo(PROBE_TRANSLATION, probeTranslationDataInfo); 
 
-	vtkCalibrationController::SavedImageDataInfo templateTranslationDataInfo = stepperCal->GetSavedImageDataInfo(TEMPLATE_TRANSLATION); 
-	templateTranslationDataInfo.SequenceMetaFileName.assign(inputTemplateTranslationSeqMetafile.c_str());
-	stepperCal->SetSavedImageDataInfo(TEMPLATE_TRANSLATION, templateTranslationDataInfo); 
+	vtkCalibrationController::ImageDataInfo templateTranslationDataInfo = stepperCal->GetImageDataInfo(TEMPLATE_TRANSLATION); 
+	templateTranslationDataInfo.InputSequenceMetaFileName.assign(inputTemplateTranslationSeqMetafile.c_str());
+	stepperCal->SetImageDataInfo(TEMPLATE_TRANSLATION, templateTranslationDataInfo); 
 
+  stepperCal->SetCalibrationMode(OFFLINE); 
+  stepperCal->EnableVisualizationOff(); 
 	stepperCal->Initialize(); 
 
 	if ( stepperCal->OfflineProbeRotationAxisCalibration() != PLUS_SUCCESS )
@@ -120,14 +122,16 @@ int main (int argc, char* argv[])
 	probeCal->ReadConfiguration(inputConfigFileName.c_str()); 
 	probeCal->SetTemplateModelConfigFileName(inputTemplateModelConfigFileName.c_str()); 
 
-	vtkCalibrationController::SavedImageDataInfo randomStepperMotion1DataInfo = probeCal->GetSavedImageDataInfo(RANDOM_STEPPER_MOTION_1); 
-	randomStepperMotion1DataInfo.SequenceMetaFileName.assign(inputRandomStepperMotion1SeqMetafile.c_str());
-	probeCal->SetSavedImageDataInfo(RANDOM_STEPPER_MOTION_1, randomStepperMotion1DataInfo); 
+	vtkCalibrationController::ImageDataInfo randomStepperMotion1DataInfo = probeCal->GetImageDataInfo(RANDOM_STEPPER_MOTION_1); 
+	randomStepperMotion1DataInfo.InputSequenceMetaFileName.assign(inputRandomStepperMotion1SeqMetafile.c_str());
+	probeCal->SetImageDataInfo(RANDOM_STEPPER_MOTION_1, randomStepperMotion1DataInfo); 
 
-	vtkCalibrationController::SavedImageDataInfo randomStepperMotion2DataInfo = probeCal->GetSavedImageDataInfo(RANDOM_STEPPER_MOTION_2); 
-	randomStepperMotion2DataInfo.SequenceMetaFileName.assign(inputRandomStepperMotion2SeqMetafile.c_str());
-	probeCal->SetSavedImageDataInfo(RANDOM_STEPPER_MOTION_2, randomStepperMotion2DataInfo); 
+	vtkCalibrationController::ImageDataInfo randomStepperMotion2DataInfo = probeCal->GetImageDataInfo(RANDOM_STEPPER_MOTION_2); 
+	randomStepperMotion2DataInfo.InputSequenceMetaFileName.assign(inputRandomStepperMotion2SeqMetafile.c_str());
+	probeCal->SetImageDataInfo(RANDOM_STEPPER_MOTION_2, randomStepperMotion2DataInfo); 
 
+  probeCal->SetCalibrationMode(OFFLINE); 
+  probeCal->EnableVisualizationOff(); 
 	probeCal->Initialize(); 
 
 	// Register phantom geometry before calibration 

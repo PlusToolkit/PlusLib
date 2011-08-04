@@ -43,7 +43,6 @@ mptrCalibrationPhantom(NULL),
 MinElevationBeamwidthAndFocalZoneInUSImageFrame(2,0)
 {
 	this->EnableSystemLogOff();
-	this->EnableVisualizationOff();
 	this->EnableSegmentedWirePositionsSavingOff(); 
 	this->CalibrationDoneOff(); 
 
@@ -59,8 +58,6 @@ MinElevationBeamwidthAndFocalZoneInUSImageFrame(2,0)
 	this->SetIncorporatingUS3DBeamProfile(0);
 
 	this->SetAxialPositionOfCrystalSurfaceInTRUSImageFrame(-1);
-
-	this->SetCalibrationMode(REALTIME); 
 
 	this->CalibrationConfigFileNameWithPath = NULL; 
 	this->CalibrationResultFileNameWithPath = NULL;
@@ -308,11 +305,15 @@ PlusStatus vtkProbeCalibrationController::OfflineUSToTemplateCalibration()
         this->Initialize(); 
     }
 
-    vtkSmartPointer<vtkTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New();
-    const std::string validationDataFileName = this->GetSavedImageDataInfo(RANDOM_STEPPER_MOTION_2).SequenceMetaFileName; 
+    // Reset calibrator data containers 
+    this->GetCalibrator()->resetDataContainers(); 
+
+    // ****************************  Validation data ***********************
+    vtkSmartPointer<vtkTrackedFrameList> validationData = vtkSmartPointer<vtkTrackedFrameList>::New();
+    const std::string validationDataFileName = this->GetImageDataInfo(RANDOM_STEPPER_MOTION_2).InputSequenceMetaFileName; 
     if ( !validationDataFileName.empty() )
     {
-        if ( trackedFrameList->ReadFromSequenceMetafile(validationDataFileName.c_str()) != PLUS_SUCCESS )
+        if ( validationData->ReadFromSequenceMetafile(validationDataFileName.c_str()) != PLUS_SUCCESS )
         {
             LOG_ERROR("Failed to read tracked frames from sequence metafile from: " << validationDataFileName ); 
             return PLUS_FAIL; 
@@ -324,32 +325,41 @@ PlusStatus vtkProbeCalibrationController::OfflineUSToTemplateCalibration()
         return PLUS_FAIL; 
     }
 
+    // Reset the counter before we start
+    ImageDataInfo validationDataInfo = this->GetImageDataInfo(RANDOM_STEPPER_MOTION_2); 
+    validationDataInfo.NumberOfSegmentedImages = 0; 
+    if ( validationDataInfo.NumberOfImagesToAcquire > validationData->GetNumberOfTrackedFrames() )
+    {
+      validationDataInfo.NumberOfImagesToAcquire = validationData->GetNumberOfTrackedFrames(); 
+    }
+    this->SetImageDataInfo(RANDOM_STEPPER_MOTION_2, validationDataInfo); 
 
-    // ****************************  Validation data ***********************
     int validationCounter(0); 
     int vImgNumber(0);
-    for( vImgNumber = this->GetSavedImageDataInfo(RANDOM_STEPPER_MOTION_2).StartingIndex; validationCounter < this->GetSavedImageDataInfo(RANDOM_STEPPER_MOTION_2).NumberOfImagesToUse; vImgNumber++ )
+    for( vImgNumber = 0; validationCounter < this->GetImageDataInfo(RANDOM_STEPPER_MOTION_2).NumberOfImagesToAcquire; vImgNumber++ )
     {
-        if ( vImgNumber >= trackedFrameList->GetNumberOfTrackedFrames() )
+        if ( vImgNumber >= validationData->GetNumberOfTrackedFrames() )
         {
             break; 
         }
 
-        if ( this->AddTrackedFrameData(trackedFrameList->GetTrackedFrame(vImgNumber), RANDOM_STEPPER_MOTION_2) == PLUS_SUCCESS )
+        if ( this->AddTrackedFrameData(validationData->GetTrackedFrame(vImgNumber), RANDOM_STEPPER_MOTION_2) == PLUS_SUCCESS )
         {
             // The segmentation was successful 
             validationCounter++; 
         }
 
-        this->AddFrameToRenderer(trackedFrameList->GetTrackedFrame(vImgNumber)->ImageData); 
+        this->AddFrameToRenderer(validationData->GetTrackedFrame(vImgNumber)->ImageData); 
     }
 
-    int validSegmentationSuccessRate = 100*this->GetRealtimeImageDataInfo(RANDOM_STEPPER_MOTION_2).NumberOfSegmentedImages / vImgNumber; 
-    LOG_INFO ( "A total of " << this->GetRealtimeImageDataInfo(RANDOM_STEPPER_MOTION_2).NumberOfSegmentedImages << " images (" << validSegmentationSuccessRate << "%) have been successfully added for validation.");
+    int validSegmentationSuccessRate = 100*this->GetImageDataInfo(RANDOM_STEPPER_MOTION_2).NumberOfSegmentedImages / vImgNumber; 
+    LOG_INFO ( "A total of " << this->GetImageDataInfo(RANDOM_STEPPER_MOTION_2).NumberOfSegmentedImages << " images (" << validSegmentationSuccessRate << "%) have been successfully added for validation.");
+
+    validationData->Clear(); 
 
     // ****************************  Calibration data ***********************
     vtkSmartPointer<vtkTrackedFrameList> calibrationData = vtkSmartPointer<vtkTrackedFrameList>::New();
-    const std::string calibrationDataFileName = this->GetSavedImageDataInfo(RANDOM_STEPPER_MOTION_1).SequenceMetaFileName; 
+    const std::string calibrationDataFileName = this->GetImageDataInfo(RANDOM_STEPPER_MOTION_1).InputSequenceMetaFileName; 
     if ( !calibrationDataFileName.empty() )
     {
         if ( calibrationData->ReadFromSequenceMetafile(calibrationDataFileName.c_str()) != PLUS_SUCCESS )
@@ -364,9 +374,18 @@ PlusStatus vtkProbeCalibrationController::OfflineUSToTemplateCalibration()
         return PLUS_FAIL; 
     }
 
+    // Reset the counter before we start
+    ImageDataInfo calibrationDataInfo = this->GetImageDataInfo(RANDOM_STEPPER_MOTION_1); 
+    calibrationDataInfo.NumberOfSegmentedImages = 0; 
+    if ( calibrationDataInfo.NumberOfImagesToAcquire > calibrationData->GetNumberOfTrackedFrames() )
+    {
+      calibrationDataInfo.NumberOfImagesToAcquire = calibrationData->GetNumberOfTrackedFrames(); 
+    }
+    this->SetImageDataInfo(RANDOM_STEPPER_MOTION_1, calibrationDataInfo); 
+
     int calibrationCounter(0);
     int cImgNumber(0); 
-    for( cImgNumber = this->GetSavedImageDataInfo(RANDOM_STEPPER_MOTION_1).StartingIndex; calibrationCounter < this->GetSavedImageDataInfo(RANDOM_STEPPER_MOTION_1).NumberOfImagesToUse; cImgNumber++ )
+    for( cImgNumber = 0; calibrationCounter < this->GetImageDataInfo(RANDOM_STEPPER_MOTION_1).NumberOfImagesToAcquire; cImgNumber++ )
     {
         if ( cImgNumber >= calibrationData->GetNumberOfTrackedFrames() )
         {
@@ -382,8 +401,10 @@ PlusStatus vtkProbeCalibrationController::OfflineUSToTemplateCalibration()
         this->AddFrameToRenderer(calibrationData->GetTrackedFrame(cImgNumber)->ImageData); 
     }
 
-    int calibSegmentationSuccessRate = 100*this->GetRealtimeImageDataInfo(RANDOM_STEPPER_MOTION_1).NumberOfSegmentedImages / cImgNumber; 
-    LOG_INFO ("A total of " << this->GetRealtimeImageDataInfo(RANDOM_STEPPER_MOTION_1).NumberOfSegmentedImages << " images (" << calibSegmentationSuccessRate << "%) have been successfully added for calibration.");
+    int calibSegmentationSuccessRate = 100*this->GetImageDataInfo(RANDOM_STEPPER_MOTION_1).NumberOfSegmentedImages / cImgNumber; 
+    LOG_INFO ("A total of " << this->GetImageDataInfo(RANDOM_STEPPER_MOTION_1).NumberOfSegmentedImages << " images (" << calibSegmentationSuccessRate << "%) have been successfully added for calibration.");
+
+    calibrationData->Clear(); 
 
     return PLUS_SUCCESS; 
 }
@@ -429,7 +450,7 @@ PlusStatus vtkProbeCalibrationController::AddTrackedFrameData(TrackedFrame* trac
 				&& 
 				this->GetCalibrator()->areDataPositionsReadyForCalibration() 
 				&& 
-				this->GetRealtimeImageDataInfo(RANDOM_STEPPER_MOTION_1).NumberOfSegmentedImages % 10 == 0
+				this->GetImageDataInfo(RANDOM_STEPPER_MOTION_1).NumberOfSegmentedImages % 10 == 0
 				)
 			{
 				this->DoCalibration(); 
@@ -564,7 +585,7 @@ void vtkProbeCalibrationController::ComputeCalibrationResults()
 			LOG_INFO(">>>>>>>> Save calibration data to sequence metafile..."); 
 			// Save calibration dataset 
 			std::ostringstream calibrationDataFileName; 
-			calibrationDataFileName << this->GetCalibrator()->getCalibrationTimeStampInString() << this->GetRealtimeImageDataInfo(RANDOM_STEPPER_MOTION_1).OutputSequenceMetaFileSuffix; 
+			calibrationDataFileName << this->GetCalibrator()->getCalibrationTimeStampInString() << this->GetImageDataInfo(RANDOM_STEPPER_MOTION_1).OutputSequenceMetaFileSuffix; 
 			if ( this->SaveTrackedFrameListToMetafile( RANDOM_STEPPER_MOTION_1, this->GetOutputPath(), calibrationDataFileName.str().c_str(), false ) != PLUS_SUCCESS ) 
       {
         LOG_ERROR("Failed to save tracked frames to sequence metafile!"); 
@@ -575,7 +596,7 @@ void vtkProbeCalibrationController::ComputeCalibrationResults()
 			// TODO add validation file name to config file
 			// Save validation dataset
 			std::ostringstream validationDataFileName; 
-			validationDataFileName << this->GetCalibrator()->getCalibrationTimeStampInString() << this->GetRealtimeImageDataInfo(RANDOM_STEPPER_MOTION_2).OutputSequenceMetaFileSuffix; 
+			validationDataFileName << this->GetCalibrator()->getCalibrationTimeStampInString() << this->GetImageDataInfo(RANDOM_STEPPER_MOTION_2).OutputSequenceMetaFileSuffix; 
 			if ( this->SaveTrackedFrameListToMetafile( RANDOM_STEPPER_MOTION_2, this->GetOutputPath(), validationDataFileName.str().c_str(), false ) != PLUS_SUCCESS )
       {
         LOG_ERROR("Failed to save tracked frames to sequence metafile!"); 

@@ -73,7 +73,6 @@ vtkFreehandCalibrationController::vtkFreehandCalibrationController()
 	// Initializing vtkCalibrationController members
 	this->InitializedOff(); 
 	this->EnableSystemLogOff();
-	this->SetCalibrationMode(REALTIME); 
 	this->CanvasImageActor = NULL;
 	this->PhantomBodyActor = NULL;
 	this->ProbeActor = NULL;
@@ -504,16 +503,16 @@ PlusStatus vtkFreehandCalibrationController::DoSpatialCalibration()
 	// Make segmented point actor visible
 	this->SegmentedPointsActor->VisibilityOn();
 
-	const int maxNumberOfValidationImages = this->GetRealtimeImageDataInfo(FREEHAND_MOTION_2).NumberOfImagesToAcquire; 
-	const int maxNumberOfCalibrationImages = this->GetRealtimeImageDataInfo(FREEHAND_MOTION_1).NumberOfImagesToAcquire; 
+	const int maxNumberOfValidationImages = this->GetImageDataInfo(FREEHAND_MOTION_2).NumberOfImagesToAcquire; 
+	const int maxNumberOfCalibrationImages = this->GetImageDataInfo(FREEHAND_MOTION_1).NumberOfImagesToAcquire; 
 	int numberOfAcquiredImages = 0;
 	int numberOfFailedSegmentations = 0;
 
 	this->CancelRequestOff();
 
 	// Acquire and add validation and calibration data
-	while ((this->GetRealtimeImageDataInfo(FREEHAND_MOTION_2).NumberOfSegmentedImages < maxNumberOfValidationImages)
-		|| (this->GetRealtimeImageDataInfo(FREEHAND_MOTION_1).NumberOfSegmentedImages < maxNumberOfCalibrationImages)) {
+	while ((this->GetImageDataInfo(FREEHAND_MOTION_2).NumberOfSegmentedImages < maxNumberOfValidationImages)
+		|| (this->GetImageDataInfo(FREEHAND_MOTION_1).NumberOfSegmentedImages < maxNumberOfCalibrationImages)) {
 
 		bool segmentationSuccessful = false;
 
@@ -538,7 +537,7 @@ PlusStatus vtkFreehandCalibrationController::DoSpatialCalibration()
 						segmentationSuccessful = true;
 					} else {
 						++numberOfFailedSegmentations;
-						LOG_DEBUG("Adding tracked frame " << this->GetRealtimeImageDataInfo(FREEHAND_MOTION_2).NumberOfSegmentedImages << " (for validation) failed!");
+						LOG_DEBUG("Adding tracked frame " << this->GetImageDataInfo(FREEHAND_MOTION_2).NumberOfSegmentedImages << " (for validation) failed!");
 					}
 				}
 			} else {
@@ -548,7 +547,7 @@ PlusStatus vtkFreehandCalibrationController::DoSpatialCalibration()
 						segmentationSuccessful = true;
 					} else {
 						++numberOfFailedSegmentations;
-						LOG_DEBUG("Adding tracked frame " << this->GetRealtimeImageDataInfo(FREEHAND_MOTION_1).NumberOfSegmentedImages << " (for calibration) failed!");
+						LOG_DEBUG("Adding tracked frame " << this->GetImageDataInfo(FREEHAND_MOTION_1).NumberOfSegmentedImages << " (for calibration) failed!");
 					}
 				}
 			}
@@ -794,8 +793,8 @@ PlusStatus vtkFreehandCalibrationController::Reset()
 		this->TrackedFrameListContainer[FREEHAND_MOTION_2]->Clear();
 
     // Reset segmented image counters
-    this->RealtimeImageDataInfoContainer[FREEHAND_MOTION_1].NumberOfSegmentedImages = 0;
-    this->RealtimeImageDataInfoContainer[FREEHAND_MOTION_2].NumberOfSegmentedImages = 0;
+    this->ImageDataInfoContainer[FREEHAND_MOTION_1].NumberOfSegmentedImages = 0;
+    this->ImageDataInfoContainer[FREEHAND_MOTION_2].NumberOfSegmentedImages = 0;
 
   // If temporal calibration is done but spatial has not been started
 	} else if ((this->TemporalCalibrationDone == true) && (m_State != ToolboxState_InProgress)) {
@@ -1075,8 +1074,8 @@ PlusStatus vtkFreehandCalibrationController::DoOfflineCalibration()
 		}
 
 		vtkSmartPointer<vtkTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New();
-		if ( !this->GetSavedImageDataInfo(FREEHAND_MOTION_2).SequenceMetaFileName.empty() ) {
-			trackedFrameList->ReadFromSequenceMetafile(this->GetSavedImageDataInfo(FREEHAND_MOTION_2).SequenceMetaFileName.c_str()); 
+		if ( !this->GetImageDataInfo(FREEHAND_MOTION_2).InputSequenceMetaFileName.empty() ) {
+			trackedFrameList->ReadFromSequenceMetafile(this->GetImageDataInfo(FREEHAND_MOTION_2).InputSequenceMetaFileName.c_str()); 
 		} else {
 			LOG_ERROR("Unable to start OfflineCalibration with validation data: SequenceMetaFileName is empty!"); 
 			return PLUS_FAIL; 
@@ -1084,7 +1083,7 @@ PlusStatus vtkFreehandCalibrationController::DoOfflineCalibration()
 
 		// Validation data
 		int validationCounter = 0;
-		for (int imgNumber = this->GetSavedImageDataInfo(FREEHAND_MOTION_2).StartingIndex; validationCounter < this->GetSavedImageDataInfo(FREEHAND_MOTION_2).NumberOfImagesToUse; imgNumber++) {
+		for (int imgNumber = 0; validationCounter < this->GetImageDataInfo(FREEHAND_MOTION_2).NumberOfImagesToAcquire; imgNumber++) {
 			if ( imgNumber >= trackedFrameList->GetNumberOfTrackedFrames() ) {
 				break; 
 			}
@@ -1099,20 +1098,20 @@ PlusStatus vtkFreehandCalibrationController::DoOfflineCalibration()
 			this->AddFrameToRenderer(trackedFrameList->GetTrackedFrame(imgNumber)->ImageData);
 		}
 
-		LOG_INFO( "A total of " << this->GetRealtimeImageDataInfo(FREEHAND_MOTION_2).NumberOfSegmentedImages << " images have been successfully added for validation.");
+		LOG_INFO( "A total of " << this->GetImageDataInfo(FREEHAND_MOTION_2).NumberOfSegmentedImages << " images have been successfully added for validation.");
 
 
 		// Calibration data
 		vtkSmartPointer<vtkTrackedFrameList> calibrationData = vtkSmartPointer<vtkTrackedFrameList>::New();
-		if ( !this->GetSavedImageDataInfo(FREEHAND_MOTION_1).SequenceMetaFileName.empty() ) {
-			calibrationData->ReadFromSequenceMetafile(this->GetSavedImageDataInfo(FREEHAND_MOTION_1).SequenceMetaFileName.c_str()); 
+		if ( !this->GetImageDataInfo(FREEHAND_MOTION_1).InputSequenceMetaFileName.empty() ) {
+			calibrationData->ReadFromSequenceMetafile(this->GetImageDataInfo(FREEHAND_MOTION_1).InputSequenceMetaFileName.c_str()); 
 		} else {
 			LOG_ERROR("Unable to start OfflineCalibration with calibration data: SequenceMetaFileName is empty!"); 
 			return PLUS_FAIL; 
 		}
 
 		int calibrationCounter = 0;
-		for (int imgNumber = this->GetSavedImageDataInfo(FREEHAND_MOTION_1).StartingIndex; calibrationCounter < this->GetSavedImageDataInfo(FREEHAND_MOTION_1).NumberOfImagesToUse; imgNumber++) {
+		for (int imgNumber = 0; calibrationCounter < this->GetImageDataInfo(FREEHAND_MOTION_1).NumberOfImagesToAcquire; imgNumber++) {
 			if ( imgNumber >= calibrationData->GetNumberOfTrackedFrames() ) {
 				break; 
 			}
@@ -1127,7 +1126,7 @@ PlusStatus vtkFreehandCalibrationController::DoOfflineCalibration()
 			this->AddFrameToRenderer(calibrationData->GetTrackedFrame(imgNumber)->ImageData); 
 		}
 
-		LOG_INFO ("A total of " << this->GetRealtimeImageDataInfo(FREEHAND_MOTION_1).NumberOfSegmentedImages << " images have been successfully added for calibration.");
+		LOG_INFO ("A total of " << this->GetImageDataInfo(FREEHAND_MOTION_1).NumberOfSegmentedImages << " images have been successfully added for calibration.");
 	} catch(...) {
 		LOG_ERROR("AddAllSavedData: Failed to add saved data!");  
 		return PLUS_FAIL;
@@ -1178,22 +1177,6 @@ void vtkFreehandCalibrationController::SetUSImageFrameOriginInPixels(int* origin
 	LOG_TRACE("vtkFreehandCalibrationController::SetUSImageFrameOriginInPixels"); 
 
 	this->SetUSImageFrameOriginInPixels(origin[0], origin[1]); 
-}
-
-//-----------------------------------------------------------------------------
-
-vtkCalibrationController::RealtimeImageDataInfo vtkFreehandCalibrationController::GetRealtimeImageDataInfo(IMAGE_DATA_TYPE dataType)
-{
-	LOG_TRACE("vtkFreehandCalibrationController::GetRealtimeImageDataInfo"); 
-
-	return this->RealtimeImageDataInfoContainer[dataType];
-}
-
-//-----------------------------------------------------------------------------
-
-void vtkFreehandCalibrationController::SetRealtimeImageDataInfo(IMAGE_DATA_TYPE dataType, RealtimeImageDataInfo realtimeImageDataInfo)
-{
-	this->RealtimeImageDataInfoContainer[dataType] = realtimeImageDataInfo;
 }
 
 //-----------------------------------------------------------------------------
@@ -1347,56 +1330,6 @@ PlusStatus vtkFreehandCalibrationController::ReadFreehandCalibrationConfiguratio
 	}
 	*/
 
-	// RandomStepperMotionData2 data set specifications
-	vtkSmartPointer<vtkXMLDataElement> randomStepperMotionData_2 = probeCalibration->FindNestedElementWithName("RandomStepperMotionData2"); 
-	if (randomStepperMotionData_2 != NULL) {
-		SavedImageDataInfo imageDataInfo; 
-		int numberOfImagesToUse = -1;
-		if (randomStepperMotionData_2->GetScalarAttribute("NumberOfImagesToUse", numberOfImagesToUse)) {
-			imageDataInfo.NumberOfImagesToUse = numberOfImagesToUse;
-		}
-
-		int startingIndex = 0;
-		if (randomStepperMotionData_2->GetScalarAttribute("StartingIndex", startingIndex)) {
-			imageDataInfo.StartingIndex = startingIndex; 
-		}
-
-		// Path to validation input sequence metafile
-		const char* sequenceMetaFile = randomStepperMotionData_2->GetAttribute("SequenceMetaFile"); 
-		if (sequenceMetaFile != NULL) {
-			//imageDataInfo.SequenceMetaFileName.assign(sequenceMetaFile); TODO do we need this tag at all? sequence metafile path comes from data collection config
-		}
-
-		this->SetSavedImageDataInfo(FREEHAND_MOTION_2, imageDataInfo); 
-	} else {
-		LOG_WARNING("Unable to find RandomStepperMotionData2 XML data element"); 
-	}
-
-	// RandomStepperMotionData_1 data set specifications
-	vtkSmartPointer<vtkXMLDataElement> randomStepperMotionData_1 = probeCalibration->FindNestedElementWithName("RandomStepperMotionData1"); 
-	if (randomStepperMotionData_1 != NULL) {
-		SavedImageDataInfo imageDataInfo; 
-		int numberOfImagesToUse = -1;
-		if (randomStepperMotionData_1->GetScalarAttribute("NumberOfImagesToUse", numberOfImagesToUse)) {
-			imageDataInfo.NumberOfImagesToUse = numberOfImagesToUse; 
-		}
-
-		int startingIndex = 0;
-		if (randomStepperMotionData_1->GetScalarAttribute("StartingIndex", startingIndex)) {
-			imageDataInfo.StartingIndex = startingIndex; 
-		}
-
-		// Path to calibration input sequence metafile
-		const char* sequenceMetaFile = randomStepperMotionData_1->GetAttribute("SequenceMetaFile"); 
-		if (sequenceMetaFile != NULL) {
-			//imageDataInfo.SequenceMetaFileName.assign(sequenceMetaFile); 
-		}
-
-		this->SetSavedImageDataInfo(FREEHAND_MOTION_1, imageDataInfo); 
-	} else {
-		LOG_WARNING("Unable to find RandomStepperMotionData1 XML data element"); 
-	}
-
 	/* TODO
 	// US3DBeamwidth specifications
 	//********************************************************************
@@ -1428,6 +1361,53 @@ PlusStatus vtkFreehandCalibrationController::ReadFreehandCalibrationConfiguratio
 	}
 	*/
   
+  // Freehand Calibration specifications (from ProbeCalibration section of the config file)
+	vtkSmartPointer<vtkXMLDataElement> freehandCalibration = probeCalibration->FindNestedElementWithName("FreehandCalibration");
+	if (freehandCalibration == NULL) {
+		LOG_ERROR("Unable to find FreehandCalibration tag!");
+		return PLUS_FAIL;
+	}
+
+	// RandomStepperMotionData2 data set specifications
+	vtkSmartPointer<vtkXMLDataElement> randomStepperMotionData_2 = freehandCalibration->FindNestedElementWithName("RandomStepperMotionData2"); 
+	if (randomStepperMotionData_2 != NULL) {
+		ImageDataInfo imageDataInfo; 
+		int numberOfImagesToUse = -1;
+		if (randomStepperMotionData_2->GetScalarAttribute("NumberOfImagesToAcquire", numberOfImagesToUse)) {
+			imageDataInfo.NumberOfImagesToAcquire = numberOfImagesToUse;
+		}
+
+    const char* sequenceMetaFile = randomStepperMotionData_2->GetAttribute("OutputSequenceMetaFileSuffix"); 
+    if ( sequenceMetaFile != NULL) 
+    {
+      imageDataInfo.OutputSequenceMetaFileSuffix.assign(sequenceMetaFile); 
+    }
+
+		this->SetImageDataInfo(FREEHAND_MOTION_2, imageDataInfo); 
+	} else {
+		LOG_WARNING("Unable to find RandomStepperMotionData2 XML data element"); 
+	}
+
+	// RandomStepperMotionData_1 data set specifications
+	vtkSmartPointer<vtkXMLDataElement> randomStepperMotionData_1 = freehandCalibration->FindNestedElementWithName("RandomStepperMotionData1"); 
+	if (randomStepperMotionData_1 != NULL) {
+		ImageDataInfo imageDataInfo; 
+		int numberOfImagesToUse = -1;
+		if (randomStepperMotionData_1->GetScalarAttribute("NumberOfImagesToAcquire", numberOfImagesToUse)) {
+			imageDataInfo.NumberOfImagesToAcquire = numberOfImagesToUse; 
+		}
+
+    const char* sequenceMetaFile = randomStepperMotionData_1->GetAttribute("OutputSequenceMetaFileSuffix"); 
+    if ( sequenceMetaFile != NULL) 
+    {
+      imageDataInfo.OutputSequenceMetaFileSuffix.assign(sequenceMetaFile); 
+    }
+
+		this->SetImageDataInfo(FREEHAND_MOTION_1, imageDataInfo); 
+	} else {
+		LOG_WARNING("Unable to find RandomStepperMotionData1 XML data element"); 
+	}
+
 	return PLUS_SUCCESS;
 }
 
@@ -1972,7 +1952,7 @@ void vtkFreehandCalibrationController::SaveCalibrationDataToSequenceMetafile()
 
 	// Save calibration dataset 
 	std::ostringstream calibrationDataFileName; 
-	calibrationDataFileName << this->GetCalibrator()->getCalibrationTimeStampInString() << this->GetRealtimeImageDataInfo(FREEHAND_MOTION_1).OutputSequenceMetaFileSuffix; 
+	calibrationDataFileName << this->GetCalibrator()->getCalibrationTimeStampInString() << this->GetImageDataInfo(FREEHAND_MOTION_1).OutputSequenceMetaFileSuffix; 
 	if ( this->SaveTrackedFrameListToMetafile( FREEHAND_MOTION_1, this->GetOutputPath(), calibrationDataFileName.str().c_str(), false ) != PLUS_SUCCESS )
 	{
 		LOG_ERROR("Failed to save tracked frames to sequence metafile!"); 
@@ -1983,7 +1963,7 @@ void vtkFreehandCalibrationController::SaveCalibrationDataToSequenceMetafile()
 	// TODO add validation file name to config file
 	// Save validation dataset
 	std::ostringstream validationDataFileName; 
-	validationDataFileName << this->GetCalibrator()->getCalibrationTimeStampInString() << this->GetRealtimeImageDataInfo(FREEHAND_MOTION_2).OutputSequenceMetaFileSuffix; 
+	validationDataFileName << this->GetCalibrator()->getCalibrationTimeStampInString() << this->GetImageDataInfo(FREEHAND_MOTION_2).OutputSequenceMetaFileSuffix; 
 	if ( this->SaveTrackedFrameListToMetafile( FREEHAND_MOTION_2, this->GetOutputPath(), validationDataFileName.str().c_str(), false ) != PLUS_SUCCESS )
 	{
 		LOG_ERROR("Failed to save tracked frames to sequence metafile!"); 

@@ -1,26 +1,21 @@
 <USCalibration version="1.0">
 	<!-- CalibrationMode: OFFLINE or REALTIME -->
-    <CalibrationController LogLevel="INFO" OutputPath="./Output" EnableTrackedSequenceDataSaving="FALSE" EnableErroneouslySegmentedDataSaving="FALSE" EnableSegmentationAnalysis="FALSE" CalibrationMode="OFFLINE" EnableVisualization="FALSE">
+    <CalibrationController LogLevel="INFO" OutputPath="./Output" EnableTrackedSequenceDataSaving="FALSE" EnableErroneouslySegmentedDataSaving="FALSE" EnableSegmentationAnalysis="FALSE" >
         <StepperCalibration MinNumberOfRotationClusters="4" >
-			<!-- TemplateTranslationData: These are the data files used to calculate the template translation axis  -->
-			<TemplateTranslationData 
-                    NumberOfImagesToUse="100" 
-                    StartingIndex="0" 
-                    SequenceMetaFile="\\image\shared_data\images\TRUSCalibration\2011-02-09_iCALDemo_TestData\TemplateTranslationData.mha"
+            <!-- TemplateTranslationData: These are the data files used to calculate the template translation axis  -->
+            <TemplateTranslationData 
+                    NumberOfImagesToAcquire="100" 
+                    OutputSequenceMetaFileSuffix=".TemplateTranslationData"
                     />
-
 			<!-- ProbeTranslationData: These are the data files used to calculate the stepper translation axis  -->
             <ProbeTranslationData 
-                    NumberOfImagesToUse="200" 
-                    StartingIndex="0" 
-                    SequenceMetaFile="\\image\shared_data\images\TRUSCalibration\2011-02-09_iCALDemo_TestData\ProbeTranslationData.mha"
+                    NumberOfImagesToAcquire="200" 
+                    OutputSequenceMetaFileSuffix=".ProbeTranslationData"
                     />
-			
 			 <!-- ProbeRotationData: These are the data files used to calculate the frame center of rotation  -->
             <ProbeRotationData 
-                    NumberOfImagesToUse="500" 
-                    StartingIndex="0" 
-                    SequenceMetaFile="\\image\shared_data\images\TRUSCalibration\2011-02-09_iCALDemo_TestData\ProbeRotationData.mha"
+                    NumberOfImagesToAcquire="500" 
+                    OutputSequenceMetaFileSuffix=".ProbeRotationData"
                     />
 		</StepperCalibration>	
 		
@@ -38,45 +33,7 @@
                 Temp2StepCalibAnalysisFileNameSuffix = ".Template2StepperCalibration.analysis"
                 >
 			
-			 <!-- RandomStepperMotionData1: These are the data files used for calibration. -->
-            <RandomStepperMotionData1
-                    NumberOfImagesToUse="300" 
-                    StartingIndex="0" 
-                    SequenceMetaFile="\\image\shared_data\images\TRUSCalibration\2011-02-09_iCALDemo_TestData\RandomStepperMotionData1.mha"
-                    />
-
-            <!-- RandomStepperMotionData2: These are the data files used to validate the calibration accuracy.  -->
-            <RandomStepperMotionData2
-                    NumberOfImagesToUse="200" 
-                    StartingIndex="0" 
-                    SequenceMetaFile="\\image\shared_data\images\TRUSCalibration\2011-02-09_iCALDemo_TestData\RandomStepperMotionData2.mha"
-                    />
-
-			<TemplateModel ConfigFile="../config/TemplateModel.xml" >
-            </TemplateModel>
-
-            <!-- IncorporatingUS3DBeamProfile: 0 - NO | 1 - BeamwidthVariance | 2 - BeamwidthRatio | 3 - BeamwidthVarianceAndThresholding -->
-            <!-- ConfigFile: The name and the relative or absolute path of the US beam profile file -->
-            <US3DBeamProfile IncorporatingUS3DBeamProfile="0" ConfigFile="./Component_US3DBeamProfile.config" />
-        </ProbeCalibration>
-		
-		<RealtimeCalibration>
-			<!-- TemplateTranslationData: These are the data files used to calculate the template translation axis  -->
-			<TemplateTranslationData 
-                    NumberOfImagesToAcquire="100" 
-                    OutputSequenceMetaFileSuffix=".TemplateTranslationData"
-                    />
-			<!-- ProbeTranslationData: These are the data files used to calculate the stepper translation axis  -->
-            <ProbeTranslationData 
-                    NumberOfImagesToAcquire="200" 
-                    OutputSequenceMetaFileSuffix=".ProbeTranslationData"
-                    />
-			 <!-- ProbeRotationData: These are the data files used to calculate the frame center of rotation  -->
-            <ProbeRotationData 
-                    NumberOfImagesToAcquire="500" 
-                    OutputSequenceMetaFileSuffix=".ProbeRotationData"
-                    />
-			 <!-- RandomStepperMotionData1: These are the data files used for calibration. -->
+             <!-- RandomStepperMotionData1: These are the data files used for calibration. -->
             <RandomStepperMotionData1
                     NumberOfImagesToAcquire="200" 
                     OutputSequenceMetaFileSuffix=".RandomStepperMotionData1"
@@ -86,7 +43,14 @@
                     NumberOfImagesToAcquire="100" 
                     OutputSequenceMetaFileSuffix=".RandomStepperMotionData2"
                     />
-		</RealtimeCalibration>
+
+			<TemplateModel ConfigFile="../config/TemplateModel.xml" >
+            </TemplateModel>
+
+            <!-- IncorporatingUS3DBeamProfile: 0 - NO | 1 - BeamwidthVariance | 2 - BeamwidthRatio | 3 - BeamwidthVarianceAndThresholding -->
+            <!-- ConfigFile: The name and the relative or absolute path of the US beam profile file -->
+            <US3DBeamProfile IncorporatingUS3DBeamProfile="0" ConfigFile="./Component_US3DBeamProfile.config" />
+        </ProbeCalibration>
 		
 		<PhantomDefinition FileName="PhantomDefinition_iCal_1.0_Wiring_1.0.xml" /> 
 
