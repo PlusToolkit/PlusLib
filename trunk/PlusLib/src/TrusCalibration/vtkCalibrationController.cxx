@@ -427,15 +427,15 @@ PlusStatus vtkCalibrationController::ReadConfiguration( vtkXMLDataElement* confi
 
 	// Calibration controller specifications
 	//********************************************************************
-	vtkSmartPointer<vtkXMLDataElement> calibrationController = usCalibration->FindNestedElementWithName("CalibrationController"); 
-	if (this->ReadCalibrationControllerConfiguration(calibrationController) != PLUS_SUCCESS)
-  {
-    return PLUS_FAIL;
-  }
+	if (this->ReadPhantomDefinition(configData) != PLUS_SUCCESS)
+	{
+	return PLUS_FAIL;
+	}
 
 	// Calibration controller specifications
 	//********************************************************************
-	if (this->ReadPhantomDefinition(configData) != PLUS_SUCCESS)
+	vtkSmartPointer<vtkXMLDataElement> calibrationController = usCalibration->FindNestedElementWithName("CalibrationController"); 
+	if (this->ReadCalibrationControllerConfiguration(calibrationController) != PLUS_SUCCESS)
   {
     return PLUS_FAIL;
   }
