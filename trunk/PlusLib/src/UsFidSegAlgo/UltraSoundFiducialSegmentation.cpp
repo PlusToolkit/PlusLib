@@ -899,15 +899,29 @@ PlusStatus SegmentationParameters::ReadSegmentationParametersConfiguration( vtkX
 		}
 		delete [] imageNormalVectorInPhantomFrameMaximumRotationAngleDeg;
 
-		double* imageToPhantomTransform = new double[16];
-		if ( segmentationParameters->GetVectorAttribute("ImageToPhantomTransform", 16, imageToPhantomTransform) )
+		vtkSmartPointer<vtkXMLDataElement> phantomDefinition = segmentationParameters->GetRoot()->FindNestedElementWithName("PhantomDefinition");
+		if (phantomDefinition == NULL)
+		{
+			LOG_ERROR("No phantom definition is found in the XML tree!");
+		}
+		vtkSmartPointer<vtkXMLDataElement> customTransforms = phantomDefinition->FindNestedElementWithName("CustomTransforms"); 
+		if (customTransforms == NULL) 
+		{
+			LOG_ERROR("Custom transforms are not found in phantom model");
+		}
+
+		double imageToPhantomTransformVector[16]={0}; 
+		if (customTransforms->GetVectorAttribute("ImageToPhantomTransform", 16, imageToPhantomTransformVector)) 
 		{
 			for( int i = 0; i<16 ; i++)
 			{
-				this->SetImageToPhantomTransform(i, imageToPhantomTransform[i]);
+				this->SetImageToPhantomTransform(i, imageToPhantomTransformVector[i]);
 			}
 		}
-		delete [] imageToPhantomTransform;
+		else
+		{
+			LOG_ERROR("Unable to read image to phantom transform!"); 
+		}
 
 		//So far the following values are not computed automatically (will be in future) so they need to be read from config file
 		double maxLineLengthErrorPercent(0.0); 

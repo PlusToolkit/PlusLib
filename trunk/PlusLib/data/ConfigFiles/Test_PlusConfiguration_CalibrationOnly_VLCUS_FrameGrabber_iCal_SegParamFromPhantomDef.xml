@@ -118,12 +118,6 @@
 					ImageScalingTolerancePercent="-10 10 -10 10"                                
 					ImageNormalVectorInPhantomFrameEstimation="0 0 1"
 					ImageNormalVectorInPhantomFrameMaximumRotationAngleDeg="-30 30 -30 30 -50 50"
-					
-					ImageToPhantomTransform="-1  0 0 35
-											 0  1 0 20
-											 0  0 -1 2.5
-											 0  0 0  1"
-
 					>
 			</SegmentationParameters>
 		</CalibrationController>
@@ -181,7 +175,12 @@
 					1 0 0 5
 					0 1 0 63.5
 					0 0 1 0
-					0 0 0 1" />
+					0 0 0 1"
+						ImageToPhantomTransform="
+					-1  0 0 0
+					 0  1 0 0
+					 0  0 -1 0
+					 0  0 0  1"/>
 
 	</PhantomDefinition>
 
