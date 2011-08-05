@@ -249,3 +249,21 @@ void PlusMath::Slerp(double *result, double t, double *from, double *to, bool ad
   }
 }
 
+//----------------------------------------------------------------------------
+
+std::string PlusMath::GetTransformParametersString(vtkTransform* transform)
+{
+  double rotation[3];
+  double translation[3];
+  double scale[3];
+  transform->GetOrientation(rotation);
+  transform->GetPosition(translation);
+  transform->GetScale(scale);
+
+  std::ostringstream result;
+  result << std::setprecision(4) << "Rotation: (" << rotation[0] << ", " << rotation[1] << ", " << rotation[2]
+    << ")  Translation: (" << translation[0] << ", " << translation[1] << ", " << translation[2]
+    << ")  Scale: (" << scale[0] << ", " << scale[1] << ", " << scale[2] << ")";
+
+  return result.str();
+}

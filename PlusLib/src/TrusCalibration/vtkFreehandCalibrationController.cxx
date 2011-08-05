@@ -1470,7 +1470,7 @@ PlusStatus vtkFreehandCalibrationController::ComputeCalibrationResults()
 		imageToProbeMatrix->SetElement(1, 2, zVector[1]);
 		imageToProbeMatrix->SetElement(2, 2, zVector[2]);
 
-		this->GetTransformImageToProbe()->SetMatrix(imageToProbeMatrix);
+		this->TransformImageToProbe->SetMatrix(imageToProbeMatrix);
 
 		// Write transformations to log and output
 		std::ostringstream osImageToProbe;
@@ -1581,6 +1581,8 @@ PlusStatus vtkFreehandCalibrationController::PrintCalibrationResultsAndErrorRepo
 			}
 			LOG_INFO(matrixRow.str()); 
 		}
+
+    LOG_INFO("Transform parameters: " << PlusMath::GetTransformParametersString(this->TransformImageToProbe));
 
 		// Point-Line Distance Error Analysis for Validation Positions in US probe frame
 		LOG_INFO("---------------------------------------------------------------");

@@ -8,6 +8,7 @@
 #include "vnl/vnl_vector.h"
 #include "vnl/vnl_sparse_matrix.h"   
 #include "vtkMatrix4x4.h"
+#include "vtkTransform.h"
 
 class VTK_EXPORT PlusMath
 {
@@ -26,7 +27,7 @@ public:
   static double GetPositionDifference(vtkMatrix4x4* aMatrix, vtkMatrix4x4* bMatrix); 
 
   //! Description: 
-  // Returns the oriantation difference in degrees between two 4x4 homogeneous transformation matrix
+  // Returns the orientation difference in degrees between two 4x4 homogeneous transformation matrix
   static double GetOrientationDifference(vtkMatrix4x4* aMatrix, vtkMatrix4x4* bMatrix); 
 
   //! Description:
@@ -36,6 +37,10 @@ public:
   // Parameters: adjustSign - If true, then slerp will operate by adjusting the sign of the slerp to take shortest path
   // References: From Adv Anim and Rendering Tech. Pg 364
   static void Slerp(double *result, double t, double *from, double *to, bool adjustSign = true); 
+
+  //! Description: 
+  // Returns a string containing the parameters (rotation, translation, scaling) from a transformation
+  static std::string GetTransformParametersString(vtkTransform* transform);
 
 protected:
   PlusMath(); 
