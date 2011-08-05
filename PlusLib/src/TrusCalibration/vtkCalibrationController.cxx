@@ -94,6 +94,15 @@ vtkCalibrationController::~vtkCalibrationController()
 			this->TrackedFrameListContainer[i] = NULL; 
 		}
 	}
+
+  for ( int i = 0; i < this->SegmentedFrameContainer.size(); i++ )
+  {
+    if ( this->SegmentedFrameContainer[i].TrackedFrameInfo != NULL )
+    {
+      delete this->SegmentedFrameContainer[i].TrackedFrameInfo; 
+      this->SegmentedFrameContainer[i].TrackedFrameInfo = NULL; 
+    }
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -217,6 +226,27 @@ PlusStatus vtkCalibrationController::AddTrackedFrameData(TrackedFrame* trackedFr
 		LOG_ERROR("AddData: Failed to add tracked data!");  
 		return PLUS_FAIL;
 	}
+}
+
+//----------------------------------------------------------------------------
+void vtkCalibrationController::ClearSegmentedFrameContainer(IMAGE_DATA_TYPE dataType)
+{
+  for ( SegmentedFrameList::iterator it = this->SegmentedFrameContainer.begin(); it != this->SegmentedFrameContainer.end(); )
+  {
+    if ( it->DataType == dataType )
+    {
+      if ( it->TrackedFrameInfo != NULL )
+      {
+        delete it->TrackedFrameInfo; 
+        it->TrackedFrameInfo = NULL; 
+      }
+      it = this->SegmentedFrameContainer.erase(it); 
+    }
+    else
+    {
+      ++it;
+    }
+  } 
 }
 
 //----------------------------------------------------------------------------

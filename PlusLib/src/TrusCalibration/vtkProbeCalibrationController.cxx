@@ -463,7 +463,7 @@ PlusStatus vtkProbeCalibrationController::AddTrackedFrameData(TrackedFrame* trac
 }
 
 //----------------------------------------------------------------------------
-void vtkProbeCalibrationController::ComputeCalibrationResults()
+PlusStatus vtkProbeCalibrationController::ComputeCalibrationResults()
 {
 	LOG_TRACE("vtkProbeCalibrationController::ComputeCalibrationResults"); 
 	try
@@ -493,6 +493,13 @@ void vtkProbeCalibrationController::ComputeCalibrationResults()
 		double xVector[3] = {userImageHomeToProbeHomeMatrix->GetElement(0,0),userImageHomeToProbeHomeMatrix->GetElement(1,0),userImageHomeToProbeHomeMatrix->GetElement(2,0)}; 
 		double yVector[3] = {userImageHomeToProbeHomeMatrix->GetElement(0,1),userImageHomeToProbeHomeMatrix->GetElement(1,1),userImageHomeToProbeHomeMatrix->GetElement(2,1)};  
 		double zVector[3] = {0,0,0}; 
+
+    double dotProduct = vtkMath::Dot(xVector, yVector);
+    if (dotProduct > 0.001) 
+    {
+      LOG_WARNING("Calibration result axes are not orthogonal (dot product of X and Y axes is " << dotProduct << ")");
+      return PLUS_FAIL; 
+    }
 		
 		vtkMath::Cross(xVector, yVector, zVector); 
 						
@@ -589,7 +596,7 @@ void vtkProbeCalibrationController::ComputeCalibrationResults()
 			if ( this->SaveTrackedFrameListToMetafile( RANDOM_STEPPER_MOTION_1, this->GetOutputPath(), calibrationDataFileName.str().c_str(), false ) != PLUS_SUCCESS ) 
       {
         LOG_ERROR("Failed to save tracked frames to sequence metafile!"); 
-        return;
+        return PLUS_FAIL;
       }
 
 			LOG_INFO(">>>>>>>> Save validation data to sequence metafile..."); 
@@ -600,7 +607,7 @@ void vtkProbeCalibrationController::ComputeCalibrationResults()
 			if ( this->SaveTrackedFrameListToMetafile( RANDOM_STEPPER_MOTION_2, this->GetOutputPath(), validationDataFileName.str().c_str(), false ) != PLUS_SUCCESS )
       {
         LOG_ERROR("Failed to save tracked frames to sequence metafile!"); 
-        return;
+        return PLUS_FAIL;
       }
 		}
 
@@ -610,8 +617,10 @@ void vtkProbeCalibrationController::ComputeCalibrationResults()
 	catch(...)
 	{
 		LOG_ERROR("ComputeCalibrationResults: Failed to compute calibration results!"); 
-		throw;
+		return PLUS_FAIL; 
 	}
+
+  return PLUS_SUCCESS; 
 }
 
 //----------------------------------------------------------------------------

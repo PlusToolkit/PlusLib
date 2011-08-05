@@ -221,11 +221,17 @@ public:
 	vtkBooleanMacro(SpacingCalculated, bool); 
 
 	//! Description: 
-	// Set/get spacing calculated finished flag
+	// Set/get center of rotation finished flag
 	vtkSetMacro(CenterOfRotationCalculated, bool); 
 	vtkGetMacro(CenterOfRotationCalculated, bool); 
 	vtkBooleanMacro(CenterOfRotationCalculated, bool); 
-	
+
+  //! Description: 
+	// Set/get phantom to probe distance calculated finished flag
+	vtkSetMacro(PhantomToProbeDistanceCalculated, bool); 
+	vtkGetMacro(PhantomToProbeDistanceCalculated, bool); 
+	vtkBooleanMacro(PhantomToProbeDistanceCalculated, bool); 
+  	
 	//! Description: 
 	// Set/get calibration start time in string 
 	vtkSetStringMacro(CalibrationStartTime); 
@@ -502,6 +508,7 @@ protected:
 
 	bool SpacingCalculated; 
 	bool CenterOfRotationCalculated; 
+  bool PhantomToProbeDistanceCalculated; 
 	bool ProbeRotationAxisCalibrated; 
 	bool ProbeTranslationAxisCalibrated; 
 	bool TemplateTranslationAxisCalibrated; 
