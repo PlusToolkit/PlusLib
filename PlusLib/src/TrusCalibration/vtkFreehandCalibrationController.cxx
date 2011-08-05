@@ -1614,7 +1614,7 @@ PlusStatus vtkFreehandCalibrationController::SaveCalibrationResultsAndErrorRepor
 
 	// Construct the calibration result file name with path and timestamp
 	const std::string calibrationResultFileName = this->GetCalibrator()->getCalibrationTimeStampInString() + this->GetCalibrationResultFileSuffix() + ".xml";
-	const std::string calibrationResultFileNameWithPath = controller->GetOutputFolder() + std::string("/") + calibrationResultFileName;
+	const std::string calibrationResultFileNameWithPath = this->GetOutputPath() + std::string("/") + calibrationResultFileName;
 	this->SetCalibrationResultFileNameWithPath(calibrationResultFileNameWithPath.c_str()); 
 
 	// <USTemplateCalibrationResult>
