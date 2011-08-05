@@ -12,6 +12,7 @@
 #include "vnl/vnl_vector.h"
 #include <string>
 #include <vector>
+#include <deque>
 #include "UltraSoundFiducialSegmentation.h"
 
 enum IMAGE_DATA_TYPE
@@ -54,7 +55,7 @@ class vtkCalibrationController : public vtkObject
 public:
 	typedef unsigned char PixelType;
 	typedef itk::Image< PixelType, 2 > ImageType;
-	typedef std::vector<SegmentedFrame> SegmentedFrameList;
+	typedef std::deque<SegmentedFrame> SegmentedFrameList;
 
 	//! Description 
 	// Helper structure for storing image dataset info
@@ -175,6 +176,10 @@ public:
 	// Get the segmentation result container 
 	// Stores the segmentation results with transformation for each frame
 	SegmentedFrameList GetSegmentedFrameContainer() { return this->SegmentedFrameContainer; }
+
+  //! Description
+  // Clear all datatype segmented frames from container 
+  void ClearSegmentedFrameContainer(IMAGE_DATA_TYPE dataType); 
 
 	//! Return the visualization component
 	vtkCalibratorVisualizationComponent* GetVisualizationComponent() { return this->VisualizationComponent; }

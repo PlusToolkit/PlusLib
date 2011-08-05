@@ -36,6 +36,7 @@ vtkStepperCalibrationController::vtkStepperCalibrationController()
   this->SetMinNumberOfRotationClusters(4); 
   this->SpacingCalculatedOff(); 
   this->CenterOfRotationCalculatedOff(); 
+  this->PhantomToProbeDistanceCalculatedOff(); 
   this->ProbeRotationAxisCalibratedOff(); 
   this->ProbeTranslationAxisCalibratedOff(); 
   this->ProbeRotationEncoderCalibratedOff(); 
@@ -184,6 +185,7 @@ PlusStatus vtkStepperCalibrationController::CalibrateProbeRotationAxis()
   LOG_INFO( ">>>>>>>>>>>> Rotation axis calibration ..."); 
   if ( this->CalibrateRotationAxis() )
   {
+    this->ProbeRotationAxisCalibratedOn(); 
     LOG_INFO("CenterOfRotation (px): " << this->GetCenterOfRotationPx()[0] << "  " << this->GetCenterOfRotationPx()[1]); 
     LOG_INFO("CenterOfRotation (mm): " << this->GetCenterOfRotationPx()[0]*this->GetSpacing()[0] << "  " << this->GetCenterOfRotationPx()[1]*this->GetSpacing()[1]); 
     LOG_INFO("Probe rotation axis orientation: Rx=" << std::fixed << this->GetProbeRotationAxisOrientation()[0] << "  Ry=" << this->GetProbeRotationAxisOrientation()[1]); 
@@ -215,16 +217,14 @@ PlusStatus vtkStepperCalibrationController::CalibrateProbeRotationAxis()
   LOG_INFO( ">>>>>>>>>>>> Phantom to probe distance calculation ..."); 
   if ( this->CalculatePhantomToProbeDistance() )
   {
+    this->PhantomToProbeDistanceCalculatedOn(); 
     LOG_INFO("Phantom to probe distance: " << this->GetPhantomToProbeDistanceInMm()[0] << "  " << this->GetPhantomToProbeDistanceInMm()[1]); 
-    this->ProbeRotationAxisCalibratedOn(); 
   }
   else
   {
     LOG_ERROR("Failed to calculate phantom to probe distance!"); 
-    this->ProbeRotationAxisCalibratedOff(); 
+    this->PhantomToProbeDistanceCalculatedOff(); 
   }
-
-
 
   // save the input images to meta image
   if ( this->GetEnableTrackedSequenceDataSaving() )

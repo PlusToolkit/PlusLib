@@ -42,7 +42,7 @@ public:
 	// - Save the calibration results and error reports into a file 
 	// - Save the PRE3D distribution plot to an image file
 	// - Map the PRE3D distribution onto the US image
-	virtual void ComputeCalibrationResults();
+	virtual PlusStatus ComputeCalibrationResults();
 
 	//! Operation: Read and populate US to Template calibration image data in offline mode
 	virtual PlusStatus OfflineUSToTemplateCalibration(); 
