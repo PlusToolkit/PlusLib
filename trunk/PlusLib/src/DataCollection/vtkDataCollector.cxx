@@ -125,7 +125,9 @@ vtkDataCollector::~vtkDataCollector()
     this->ToolTransMatrices[i]=NULL; 
   }
 
-  this->ConfigurationData->UnRegister(this);
+  if (this->ConfigurationData != NULL) {
+    this->ConfigurationData->UnRegister(this);
+  }
 }
 
 

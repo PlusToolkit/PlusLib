@@ -7,9 +7,9 @@ SET( ConfigFilesDir ${PLUSLIB_DATA_DIR}/ConfigFiles )
 
 ADD_TEST(vtkUSCalibrationControllerTest-Exact
 		${EXECUTABLE_OUTPUT_PATH}/vtkUSCalibrationControllerTest1
-        --input-random-stepper-motion-1-sequence-metafile=${TestDataDir}/USTC_Ulterius_RandomStepperMotionData1.mha 
-        --input-random-stepper-motion-2-sequence-metafile=${TestDataDir}/USTC_Ulterius_RandomStepperMotionData2.mha 
-        --input-probe-rotation-sequence-metafile=${TestDataDir}/USTC_Ulterius_ProbeRotationData.mha 
+    --input-random-stepper-motion-1-sequence-metafile=${TestDataDir}/USTC_Ulterius_RandomStepperMotionData1.mha 
+    --input-random-stepper-motion-2-sequence-metafile=${TestDataDir}/USTC_Ulterius_RandomStepperMotionData2.mha 
+    --input-probe-rotation-sequence-metafile=${TestDataDir}/USTC_Ulterius_ProbeRotationData.mha 
 		--input-probe-translation-sequence-metafile=${TestDataDir}/USTC_Ulterius_ProbeTranslationData.mha 
 		--input-template-translation-sequence-metafile=${TestDataDir}/USTC_Ulterius_TemplateTranslationData.mha 
 		--input-config-file-name=${ConfigFilesDir}/Test_PlusConfiguration_CalibrationOnly_iCal.xml
@@ -21,8 +21,8 @@ SET_TESTS_PROPERTIES( vtkUSCalibrationControllerTest-Exact PROPERTIES FAIL_REGUL
 ADD_TEST(vtkUSCalibrationControllerTest
 		${EXECUTABLE_OUTPUT_PATH}/vtkUSCalibrationControllerTest1
 		--input-random-stepper-motion-1-sequence-metafile=${TestDataDir}/USTC_Ulterius_RandomStepperMotionData1.mha 
-        --input-random-stepper-motion-2-sequence-metafile=${TestDataDir}/USTC_Ulterius_RandomStepperMotionData2.mha 
-        --input-probe-rotation-sequence-metafile=${TestDataDir}/USTC_Ulterius_ProbeRotationData.mha 
+    --input-random-stepper-motion-2-sequence-metafile=${TestDataDir}/USTC_Ulterius_RandomStepperMotionData2.mha 
+    --input-probe-rotation-sequence-metafile=${TestDataDir}/USTC_Ulterius_ProbeRotationData.mha 
 		--input-probe-translation-sequence-metafile=${TestDataDir}/USTC_Ulterius_ProbeTranslationData.mha 
 		--input-template-translation-sequence-metafile=${TestDataDir}/USTC_Ulterius_TemplateTranslationData.mha 
 		--input-config-file-name=${ConfigFilesDir}/Test_PlusConfiguration_CalibrationOnly_iCal.xml
@@ -36,8 +36,8 @@ SET_TESTS_PROPERTIES( vtkUSCalibrationControllerTest PROPERTIES FAIL_REGULAR_EXP
 ADD_TEST(vtkUSCalibrationControllerTest_FrameGrabber-Exact
 		${EXECUTABLE_OUTPUT_PATH}/vtkUSCalibrationControllerTest1
 		--input-random-stepper-motion-1-sequence-metafile=${TestDataDir}/USTC_FrameGrabber_RandomStepperMotionData1.mha 
-        --input-random-stepper-motion-2-sequence-metafile=${TestDataDir}/USTC_FrameGrabber_RandomStepperMotionData2.mha 
-        --input-probe-rotation-sequence-metafile=${TestDataDir}/USTC_FrameGrabber_ProbeRotationData.mha 
+    --input-random-stepper-motion-2-sequence-metafile=${TestDataDir}/USTC_FrameGrabber_RandomStepperMotionData2.mha 
+    --input-probe-rotation-sequence-metafile=${TestDataDir}/USTC_FrameGrabber_ProbeRotationData.mha 
 		--input-probe-translation-sequence-metafile=${TestDataDir}/USTC_FrameGrabber_ProbeTranslationData.mha 
 		--input-template-translation-sequence-metafile=${TestDataDir}/USTC_FrameGrabber_TemplateTranslationData.mha 
 		--input-config-file-name=${ConfigFilesDir}/Test_PlusConfiguration_CalibrationOnly_FrameGrabber_iCal.xml
@@ -49,8 +49,8 @@ SET_TESTS_PROPERTIES( vtkUSCalibrationControllerTest_FrameGrabber-Exact PROPERTI
 ADD_TEST(vtkUSCalibrationControllerTest_FrameGrabber
 		${EXECUTABLE_OUTPUT_PATH}/vtkUSCalibrationControllerTest1
 		--input-random-stepper-motion-1-sequence-metafile=${TestDataDir}/USTC_FrameGrabber_RandomStepperMotionData1.mha 
-        --input-random-stepper-motion-2-sequence-metafile=${TestDataDir}/USTC_FrameGrabber_RandomStepperMotionData2.mha 
-        --input-probe-rotation-sequence-metafile=${TestDataDir}/USTC_FrameGrabber_ProbeRotationData.mha 
+    --input-random-stepper-motion-2-sequence-metafile=${TestDataDir}/USTC_FrameGrabber_RandomStepperMotionData2.mha 
+    --input-probe-rotation-sequence-metafile=${TestDataDir}/USTC_FrameGrabber_ProbeRotationData.mha 
 		--input-probe-translation-sequence-metafile=${TestDataDir}/USTC_FrameGrabber_ProbeTranslationData.mha 
 		--input-template-translation-sequence-metafile=${TestDataDir}/USTC_FrameGrabber_TemplateTranslationData.mha 
 		--input-config-file-name=${ConfigFilesDir}/Test_PlusConfiguration_CalibrationOnly_FrameGrabber_iCal.xml
@@ -67,9 +67,9 @@ TARGET_LINK_LIBRARIES(vtkStepperCalibrationControllerTest itkvnl itkvnl_algo vtk
 
 # ADD_TEST(vtkStepperCalibrationControllerTest
 		# ${EXECUTABLE_OUTPUT_PATH}/vtkStepperCalibrationControllerTest
-        # --input-calibration-sequence-metafile=${TestDataDir}/UsTemplateCalibrationBaseline.mha
-        # --input-validation-sequence-metafile=${TestDataDir}/UsTemplateCalibrationBaseline.mha
-        # --input-centerofrotation-sequence-metafile=${TestDataDir}/UsTemplateCalibrationRotationBaseline.mha
+    # --input-calibration-sequence-metafile=${TestDataDir}/UsTemplateCalibrationBaseline.mha
+    # --input-validation-sequence-metafile=${TestDataDir}/UsTemplateCalibrationBaseline.mha
+    # --input-centerofrotation-sequence-metafile=${TestDataDir}/UsTemplateCalibrationRotationBaseline.mha
 		# --input-config-file-name=${ConfigFilesDir}/USCalibrationConfig.xml
 		# --input-baseline-file-name=${TestDataDir}/UsTemplateCalibration.results.xml 
 		# )
@@ -103,15 +103,22 @@ ADD_EXECUTABLE(vtkFreehandCalibrationTest vtkFreehandCalibrationTest.cxx)
 TARGET_LINK_LIBRARIES(vtkFreehandCalibrationTest itkvnl itkvnl_algo vtkCommon vtkTrusCalibration vtkDataCollection )
 
 # This test has not been completed yet, see #138
-#ADD_TEST(vtkFreehandCalibrationTest
-#		${EXECUTABLE_OUTPUT_PATH}/vtkFreehandCalibrationTest
-#		--input-calibration-config-file-name=${ConfigFilesDir}/USCalibrationConfig_fCal_SonixTouch.xml
-#		--input-data-collection-config-file-name=${ConfigFilesDir}/Test_USDataCollectionConfig_VideoNone_FakeTracker_RecordPhantomLandmarks.xml
-#		--input-freehand-motion-1-sequence-metafile=${TestDataDir}/fCAL_Calibration_Test_MN.mha 
-#		--input-freehand-motion-2-sequence-metafile=${TestDataDir}/fCAL_Validation_Test_MN.mha 
-#		--input-baseline-file-name=${TestDataDir}/FreehandCalibration.results.xml
-#		--input-phantom-registration-xml-file-name=${TestDataDir}/PhantomRegistration.results.xml
-#		--input-stylus-calibration-xml-file-name=${TestDataDir}/StylusCalibration.results.xml
-#		--error-threshold=1.0
-#		)
-#SET_TESTS_PROPERTIES( vtkFreehandCalibrationTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+ADD_TEST(vtkFreehandCalibrationTest-Exact
+		${EXECUTABLE_OUTPUT_PATH}/vtkFreehandCalibrationTest
+		--input-config-file-name=${ConfigFilesDir}/Test_PlusConfiguration_CalibrationOnly_SonixTouch_Ulterius_fCal.xml
+		--input-freehand-motion-1-sequence-metafile=${TestDataDir}/fCal_Test_Calibration.mha 
+		--input-freehand-motion-2-sequence-metafile=${TestDataDir}/fCal_Test_Validation.mha 
+		--input-baseline-file-name=${TestDataDir}/FreehandCalibration.results.xml
+		)
+SET_TESTS_PROPERTIES( vtkFreehandCalibrationTest-Exact PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+
+ADD_TEST(vtkFreehandCalibrationTest
+		${EXECUTABLE_OUTPUT_PATH}/vtkFreehandCalibrationTest
+		--input-config-file-name=${ConfigFilesDir}/Test_PlusConfiguration_CalibrationOnly_SonixTouch_Ulterius_fCal.xml
+		--input-freehand-motion-1-sequence-metafile=${TestDataDir}/fCal_Test_Calibration.mha 
+		--input-freehand-motion-2-sequence-metafile=${TestDataDir}/fCal_Test_Validation.mha 
+		--input-baseline-file-name=${TestDataDir}/FreehandCalibration.results.xml
+		--translation-error-threshold=1.0
+		--rotation-error-threshold=1.0
+		)
+SET_TESTS_PROPERTIES( vtkFreehandCalibrationTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
