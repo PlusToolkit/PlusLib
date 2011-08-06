@@ -89,9 +89,3 @@ IF (PLUS_USE_OpenIGTLink )
     )
   SET_TESTS_PROPERTIES( vtkOpenIGTLinkBroadcasterTest1 PROPERTIES WILL_FAIL true)
 ENDIF (PLUS_USE_OpenIGTLink )
-
- #***************************  vtkTexoDataCollectorTest1 ***************************
-ADD_EXECUTABLE(vtkTexoDataCollectorTest1 vtkTexoDataCollectorTest1.cxx)
-TARGET_LINK_LIBRARIES(vtkTexoDataCollectorTest1 vtkDataCollection )
-#RF data acquisition executable. Test is purposefully not implemented yet.
-#To be added later.
