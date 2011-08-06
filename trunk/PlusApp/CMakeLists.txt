@@ -124,6 +124,40 @@ ENDIF(PLUSAPP_BUILD_OpenIGTLinkBroadcaster)
 # Include PlusLib MS projects 
 INCLUDE_PLUSLIB_MS_PROJECTS()
 
+SET (PLUSAPP_INCLUDE_DIRS 	
+	${CMAKE_CURRENT_SOURCE_DIR}
+	${CMAKE_CURRENT_BINARY_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/CommonWidgets
+    ${CMAKE_CURRENT_BINARY_DIR}/CommonWidgets
+    )
+# --------------------------------------------------------------------------
+# Create PlusApp target list 
+SET( PLUSAPP_TARGETS
+    CommonWidgets
+   )
+
+# Add all targets to the build-tree export set
+export(TARGETS ${PLUSAPP_TARGETS}
+  FILE "${CMAKE_CURRENT_BINARY_DIR}/PlusAppLibraryDepends.cmake") 
+  
+# Export the package for use from the build-tree
+# (this registers the build-tree with a global CMake-registry)
+export(PACKAGE PlusApp)
+
+# Create a PlusAppConfig.cmake file for the use from the build tree
+configure_file(PlusAppConfig.cmake.in
+  "${CMAKE_CURRENT_BINARY_DIR}/PlusAppConfig.cmake" @ONLY)
+configure_file(PlusAppConfigVersion.cmake.in
+  "${CMAKE_CURRENT_BINARY_DIR}/PlusAppConfigVersion.cmake" @ONLY)
+
+#-----------------------------------------------------------------------------
+# Generate include file for projects that use this library 
+# 
+configure_file(
+	${CMAKE_CURRENT_SOURCE_DIR}/UsePlusApp.cmake.in 
+	${CMAKE_CURRENT_BINARY_DIR}/UsePlusApp.cmake
+    @ONLY
+	)
 #-----------------------------------------------------------------------------
 # Generate convenience files for automatic build, test, and packaging
 # 
