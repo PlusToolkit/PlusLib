@@ -20,18 +20,24 @@ DeviceSetSelectorWidget::DeviceSetSelectorWidget(QWidget* aParent)
 	connect( ui.pushButton_Connect, SIGNAL( clicked() ), this, SLOT( InvokeConnect() ) );
 	connect( ui.comboBox_DeviceSet, SIGNAL( currentIndexChanged(int) ), this, SLOT( DeviceSetSelected(int) ) );
 
-	// Get configuration directory from registry if possible
-	QSettings settings( QSettings::NativeFormat, QSettings::UserScope, "PerkLab", "Common" );
-	m_ConfigurationDirectory = settings.value("ConfigurationDirectory", "").toString();
-	if (! m_ConfigurationDirectory.isEmpty()) {
-		SetConfigurationDirectory(m_ConfigurationDirectory.toStdString(), true);
-	}
+  ui.comboBox_DeviceSet->setSizeAdjustPolicy(QComboBox::AdjustToMinimumContentsLengthWithIcon); 
 }
 
 //-----------------------------------------------------------------------------
 
 DeviceSetSelectorWidget::~DeviceSetSelectorWidget()
 {
+
+}
+
+void DeviceSetSelectorWidget::SetConfigurationDirectoryFromRegistry()
+{
+  // Get configuration directory from registry if possible
+	QSettings settings( QSettings::NativeFormat, QSettings::UserScope, "PerkLab", "Common" );
+	m_ConfigurationDirectory = settings.value("ConfigurationDirectory", "").toString();
+	if (! m_ConfigurationDirectory.isEmpty()) {
+		SetConfigurationDirectory(m_ConfigurationDirectory.toStdString(), true);
+	}
 }
 
 //-----------------------------------------------------------------------------
@@ -45,6 +51,14 @@ void DeviceSetSelectorWidget::OpenConfigurationDirectoryClicked()
 	if (dirName.isNull()) {
 		return;
 	}
+
+  this->SetConfigurationDirectory(dirName.toStdString(), true); 
+  
+  // Write the selected directory to registry
+  QSettings settings( QSettings::NativeFormat, QSettings::UserScope, "PerkLab", "Common" );
+  settings.setValue("ConfigurationDirectory", dirName);
+  settings.sync();
+  return; 
 
 	// Parse up selected directory and populate combobox
 	if (ParseDirectory(dirName) == PLUS_SUCCESS) {
@@ -99,6 +113,14 @@ void DeviceSetSelectorWidget::DeviceSetSelected(int aIndex)
 		);
 
 	ui.comboBox_DeviceSet->setToolTip(ui.comboBox_DeviceSet->currentText() + " (" + ui.comboBox_DeviceSet->itemData(aIndex).toStringList().at(0) + ")");
+
+  QString configurationFilePath = ui.comboBox_DeviceSet->itemData(ui.comboBox_DeviceSet->currentIndex()).toStringList().at(0); 
+  // Write the selected configuration file path to registry
+  QSettings settings( QSettings::NativeFormat, QSettings::UserScope, "PerkLab", "Common" );
+  settings.setValue("ConfigurationFilePath", configurationFilePath);
+  settings.sync();
+
+  emit DeviceSetSelected( configurationFilePath.toStdString() ); 
 }
 
 //-----------------------------------------------------------------------------
@@ -106,12 +128,14 @@ void DeviceSetSelectorWidget::DeviceSetSelected(int aIndex)
 void DeviceSetSelectorWidget::SetConfigurationDirectory(std::string aDirectory, bool aForce)
 {
 	LOG_TRACE("ToolStateDisplayWidget::SetConfigurationDirectory(" << aDirectory << ", " << (aForce?"true":"false") << ")"); 
+  
+  // Set configuration directory before we parse it 
+  std::string oldDirectory = vtkFileFinder::GetInstance()->GetConfigurationDirectory();
+  vtkFileFinder::GetInstance()->SetConfigurationDirectory(aDirectory.c_str());
 
 	if (m_ConfigurationDirectory.isEmpty() || aForce) {
 		if (ParseDirectory(QString::fromStdString(aDirectory))) {
 			m_ConfigurationDirectory = QString::fromStdString(aDirectory);
-
-			vtkFileFinder::GetInstance()->SetConfigurationDirectory(m_ConfigurationDirectory.toStdString().c_str());
 
 			ui.lineEdit_ConfigurationDirectory->setText(m_ConfigurationDirectory);
 			ui.lineEdit_ConfigurationDirectory->setToolTip(m_ConfigurationDirectory);
@@ -119,6 +143,7 @@ void DeviceSetSelectorWidget::SetConfigurationDirectory(std::string aDirectory, 
 			// Notify the application about the directory change
 			emit ConfigurationDirectoryChanged(m_ConfigurationDirectory.toStdString());
 		} else {
+      vtkFileFinder::GetInstance()->SetConfigurationDirectory(oldDirectory.c_str());
 			ui.lineEdit_ConfigurationDirectory->setText(tr("Invalid configuration directory"));
 			ui.lineEdit_ConfigurationDirectory->setToolTip("No valid configuration files in directory, please select another");
 		}
@@ -184,6 +209,11 @@ PlusStatus DeviceSetSelectorWidget::ParseDirectory(QString aDirectory)
 		}
 	}
 
+  // Get last selected configuration file from registry if possible
+	QSettings settings( QSettings::NativeFormat, QSettings::UserScope, "PerkLab", "Common" );
+	QString lastSelectedConfigFile = settings.value("ConfigurationFilePath", "").toString();
+  int lastSelectedDeviceSetIndex(0); 
+
 	QStringListIterator filesIterator(fileList);
 	while (filesIterator.hasNext()) {
 		QString fileName(configDir.absoluteFilePath(filesIterator.next()));
@@ -231,8 +261,20 @@ PlusStatus DeviceSetSelectorWidget::ParseDirectory(QString aDirectory)
 			}
 
 			ui.comboBox_DeviceSet->addItem(name, userData);
+      int currentIndex = ui.comboBox_DeviceSet->findText(name, Qt::MatchExactly); 
+      // Add tooltip
+      ui.comboBox_DeviceSet->setItemData(currentIndex, name, Qt::ToolTipRole); 
+
+      // If this item is the same as in the registry, select it by default
+      if ( lastSelectedConfigFile == fileName )
+      {
+        lastSelectedDeviceSetIndex = currentIndex; 
+      }
+
 		}
 	}
+
+  ui.comboBox_DeviceSet->setCurrentIndex(lastSelectedDeviceSetIndex); 
 
 	return PLUS_SUCCESS;
 }

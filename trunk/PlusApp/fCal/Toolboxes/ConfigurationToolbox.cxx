@@ -32,6 +32,7 @@ ConfigurationToolbox::ConfigurationToolbox(QWidget* aParent, Qt::WFlags aFlags)
 
 	// Create and setup device set selector widget
 	m_DeviceSetSelectorWidget = new DeviceSetSelectorWidget(this);
+  m_DeviceSetSelectorWidget->SetConfigurationDirectoryFromRegistry(); 
 	m_DeviceSetSelectorWidget->SetConfigurationDirectory(vtkFileFinder::GetInstance()->GetConfigurationDirectory());
   m_DeviceSetSelectorWidget->SetComboBoxMinWidth(400); 
 

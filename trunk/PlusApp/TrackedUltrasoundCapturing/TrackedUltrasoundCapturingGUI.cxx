@@ -99,9 +99,15 @@ QWizard(parent)
   // Create the UI widgets 
   setupUi(this);
 
-  // Create and setup device set selector widget
+  // Create device set selector widget
   this->m_DeviceSetSelectorWidget = new DeviceSetSelectorWidget(this);
-  this->m_DeviceSetSelectorWidget->SetConfigurationDirectory(vtkFileFinder::GetInstance()->GetConfigurationDirectory());
+
+  // Make connections
+  connect( m_DeviceSetSelectorWidget, SIGNAL( ConfigurationDirectoryChanged(std::string) ), this, SLOT( SetConfigurationDirectory(std::string) ) );
+  connect( m_DeviceSetSelectorWidget, SIGNAL( ConnectToDevicesByConfigFileInvoked(std::string) ), this, SLOT( ConnectToDevicesByConfigFile(std::string) ) );
+  
+  // Setup device set selector widget
+  this->m_DeviceSetSelectorWidget->SetConfigurationDirectoryFromRegistry(); 
   this->m_DeviceSetSelectorWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
   this->m_DeviceSetSelectorWidget->SetComboBoxMinWidth(0); 
   this->m_DeviceSetSelectorWidget->resize(this->width(), this->height()); 
@@ -112,9 +118,9 @@ QWizard(parent)
   this->m_RecordingToolStateDisplayWidget = new ToolStateDisplayWidget(this);
   this->m_RecordingToolStateDisplayWidget->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
 
-  // Make connections
-  connect( m_DeviceSetSelectorWidget, SIGNAL( ConfigurationDirectoryChanged(std::string) ), this, SLOT( SetConfigurationDirectory(std::string) ) );
-  connect( m_DeviceSetSelectorWidget, SIGNAL( ConnectToDevicesByConfigFileInvoked(std::string) ), this, SLOT( ConnectToDevicesByConfigFile(std::string) ) );
+
+  
+  
 
   // Insert widgets into placeholders
   this->GridDeviceSetSelection->addWidget(m_DeviceSetSelectorWidget);

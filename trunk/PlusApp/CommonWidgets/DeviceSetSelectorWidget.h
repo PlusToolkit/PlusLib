@@ -29,6 +29,11 @@ public:
 	*/
 	~DeviceSetSelectorWidget();
 
+  /*!
+	* \brief Set configuration directory to search in from registry value
+	*/
+  void SetConfigurationDirectoryFromRegistry(); 
+
 	/*!
 	* \brief Set configuration directory to search in
 	* \param aDirectory Input configuration directory
@@ -59,6 +64,12 @@ signals:
 	* \param Configuration directory path
 	*/
 	void ConfigurationDirectoryChanged(std::string);
+
+  /*!
+	* \brief Emmitted when device set selected (notifies application)
+	* \param Configuration file path
+	*/
+	void DeviceSetSelected(std::string);
 
 	/*!
 	* \brief Emitted when connecting to devices
