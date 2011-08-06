@@ -45,6 +45,7 @@ vtkBrachyTracker::vtkBrachyTracker()
 	this->SetToolName(PROBEHOME_TO_PROBE_TRANSFORM, "ProbeHomeToProbeUncalibrated"); 
 	this->SetToolName(TEMPLATEHOME_TO_TEMPLATE_TRANSFORM, "TemplateHomeToTemplateUncalibrated"); 
 	this->SetToolName(RAW_ENCODER_VALUES, "StepperEncoderValues"); 
+  this->BrachyStepperType = BrachyStepper::BURDETTE_MEDICAL_SYSTEMS_DIGITAL_STEPPER; 
 
   // Stepper calibration parameters
 	this->SetProbeTranslationAxisOrientation(0,0,1); 
@@ -60,6 +61,12 @@ vtkBrachyTracker::~vtkBrachyTracker()
 	{
 		this->StopTracking();
 	}
+
+  if ( this->Device != NULL )
+  {
+    delete this->Device; 
+    this->Device = NULL; 
+  }
 
   this->SetModelVersion(NULL); 
   this->SetModelNumber(NULL); 
@@ -80,10 +87,9 @@ PlusStatus vtkBrachyTracker::Connect()
 {
 	if (this->Device == NULL)
 	{
-		this->Device = new CmsBrachyStepper(this->GetSerialPort(), this->GetBaudRate() ) ; 
+		LOG_ERROR("Failed to connect to brachy tracker - BrachyStepperType not selected, device is NULL!"); 
+    return PLUS_FAIL; 
 	}
-
-  return PLUS_SUCCESS; 
 
 	return this->Device->Connect(); 
 }
@@ -134,9 +140,6 @@ PlusStatus vtkBrachyTracker::InternalStartTracking()
 //----------------------------------------------------------------------------
 PlusStatus vtkBrachyTracker::InternalStopTracking()
 {
-	delete this->Device; 
-	this->Device = 0;
-
 	return PLUS_SUCCESS;
 }
 
@@ -147,7 +150,7 @@ PlusStatus vtkBrachyTracker::InternalUpdate()
 
 	if (!this->Tracking)
 	{
-		LOG_ERROR("called Update() when AMS stepper was not tracking");
+		LOG_ERROR("called Update() when Brachy stepper was not tracking");
 		return PLUS_FAIL;
 	}
 
@@ -250,7 +253,7 @@ PlusStatus vtkBrachyTracker::ReadConfiguration(vtkXMLDataElement* config)
 
 	if ( config == NULL ) 
 	{
-		LOG_WARNING("Unable to find AMSTracker XML data element");
+		LOG_WARNING("Unable to find BrachyTracker XML data element");
 		return PLUS_FAIL; 
 	}
 
@@ -283,26 +286,30 @@ PlusStatus vtkBrachyTracker::ReadConfiguration(vtkXMLDataElement* config)
         delete this->Device; 
       }
       
-      if ( STRCASECMP(BrachyStepper::GetBrachyStepperTypeInString(BrachyStepper::BURDETTE_MEDICAL_SYSTEMS_DIGITAL_STEPPER), brachyStepperType) == 0 )
+      if ( STRCASECMP(BrachyStepper::GetBrachyStepperTypeInString(BrachyStepper::BURDETTE_MEDICAL_SYSTEMS_DIGITAL_STEPPER).c_str(), brachyStepperType) == 0 )
       {
         this->Device = new CmsBrachyStepper(this->GetSerialPort(), this->GetBaudRate() ) ; 
         this->Device->SetBrachyStepperType(BrachyStepper::BURDETTE_MEDICAL_SYSTEMS_DIGITAL_STEPPER); 
+        this->BrachyStepperType = BrachyStepper::BURDETTE_MEDICAL_SYSTEMS_DIGITAL_STEPPER; 
 
       }
-      else if ( STRCASECMP(BrachyStepper::GetBrachyStepperTypeInString(BrachyStepper::BURDETTE_MEDICAL_SYSTEMS_DIGITAL_MOTORIZED_STEPPER), brachyStepperType) == 0 )
+      else if ( STRCASECMP(BrachyStepper::GetBrachyStepperTypeInString(BrachyStepper::BURDETTE_MEDICAL_SYSTEMS_DIGITAL_MOTORIZED_STEPPER).c_str(), brachyStepperType) == 0 )
       {
         this->Device = new CmsBrachyStepper(this->GetSerialPort(), this->GetBaudRate() ) ; 
         this->Device->SetBrachyStepperType(BrachyStepper::BURDETTE_MEDICAL_SYSTEMS_DIGITAL_MOTORIZED_STEPPER); 
+        this->BrachyStepperType = BrachyStepper::BURDETTE_MEDICAL_SYSTEMS_DIGITAL_MOTORIZED_STEPPER; 
       }
-      else if ( STRCASECMP(BrachyStepper::GetBrachyStepperTypeInString(BrachyStepper::CMS_ACCUSEED_DS300), brachyStepperType) == 0 )
+      else if ( STRCASECMP(BrachyStepper::GetBrachyStepperTypeInString(BrachyStepper::CMS_ACCUSEED_DS300).c_str(), brachyStepperType) == 0 )
       {
         this->Device = new CmsBrachyStepper(this->GetSerialPort(), this->GetBaudRate() ) ; 
         this->Device->SetBrachyStepperType(BrachyStepper::CMS_ACCUSEED_DS300); 
+        this->BrachyStepperType = BrachyStepper::CMS_ACCUSEED_DS300; 
       }
-      else if ( STRCASECMP(BrachyStepper::GetBrachyStepperTypeInString(BrachyStepper::CIVCO_STEPPER), brachyStepperType) == 0 )
+      else if ( STRCASECMP(BrachyStepper::GetBrachyStepperTypeInString(BrachyStepper::CIVCO_STEPPER).c_str(), brachyStepperType) == 0 )
       {
         this->Device = new CivcoBrachyStepper(this->GetSerialPort(), this->GetBaudRate()); 
         this->Device->SetBrachyStepperType(BrachyStepper::CIVCO_STEPPER); 
+        this->BrachyStepperType = BrachyStepper::CIVCO_STEPPER; 
       }
       else
       {
@@ -389,16 +396,16 @@ PlusStatus vtkBrachyTracker::ReadConfiguration(vtkXMLDataElement* config)
 	}
 	else
 	{
-		LOG_WARNING("Unable to find the stepper calibration result in AMSTracker XML data element"); 
+		LOG_WARNING("Unable to find the stepper calibration result in BrachyTracker XML data element"); 
 	}
 
 	if ( this->TrackerCalibrated )
 	{
-    LOG_INFO("AMSTracker is calibrated (Calibration date: " << this->GetCalibrationDate() << "  CalibrationAlgorithmVersion: " << this->GetCalibrationAlgorithmVersion() << ")" ); 
+    LOG_INFO("BrachyTracker is calibrated (Calibration date: " << this->GetCalibrationDate() << "  CalibrationAlgorithmVersion: " << this->GetCalibrationAlgorithmVersion() << ")" ); 
 	}
 	else
 	{
-		LOG_INFO("AMSTracker is uncalibrated"); 
+		LOG_INFO("BrachyTracker is uncalibrated"); 
 	}
 
   return PLUS_SUCCESS;

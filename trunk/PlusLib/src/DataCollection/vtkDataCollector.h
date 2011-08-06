@@ -211,6 +211,12 @@ public:
   vtkBooleanMacro(Initialized, bool); 
 
   // Description:
+  // Set/get the Connected flag 
+  vtkSetMacro(Connected,bool);
+  vtkGetMacro(Connected,bool);
+  vtkBooleanMacro(Connected, bool); 
+
+  // Description:
   // Set/get the Tracking only flag
   vtkGetMacro(TrackingEnabled,bool);
   void SetTrackingOnly(bool);
@@ -233,7 +239,7 @@ public:
 
   // Description:
   // Get configuration data
-	vtkGetObjectMacro(ConfigurationData, vtkXMLDataElement); 
+  vtkGetObjectMacro(ConfigurationData, vtkXMLDataElement); 
 
   int GetNumberOfTools();
 
@@ -291,6 +297,7 @@ protected:
   double                        StartupDelaySec; 
 
   bool                          Initialized; 
+  bool                          Connected; 
 
   bool                          TrackingEnabled;
   bool                          VideoEnabled;

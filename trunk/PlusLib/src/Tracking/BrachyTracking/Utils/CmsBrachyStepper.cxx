@@ -128,7 +128,7 @@ PlusStatus CmsBrachyStepper::SetCOMPort(unsigned long COMPort)
   strComPort << "COM" << COMPort; 
 
   // Change only if we not yet connected
-  if (!this->m_StepperCOMPort->IsHandleAlive())  
+  if (this->m_StepperCOMPort->IsHandleAlive())  
   {
     LOG_ERROR("Unable to set serial port number, stepper already connected!"); 
     return PLUS_FAIL;

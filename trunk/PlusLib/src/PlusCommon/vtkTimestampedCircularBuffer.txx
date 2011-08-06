@@ -393,6 +393,8 @@ ItemStatus vtkTimestampedCircularBuffer<BufferItemType>::GetBufferIndexFromTime(
 template<class BufferItemType>
 ItemStatus vtkTimestampedCircularBuffer<BufferItemType>::GetItemUidFromTime(const double time, BufferItemUidType& uid )
 {
+  PlusLockGuard< vtkTimestampedCircularBuffer<BufferItemType> > bufferGuardedLock(this);
+
 	BufferItemUidType lo = this->GetOldestItemUidInBuffer();
 	BufferItemUidType hi = this->GetLatestItemUidInBuffer();
 
@@ -459,6 +461,7 @@ ItemStatus vtkTimestampedCircularBuffer<BufferItemType>::GetItemUidFromTime(cons
 			tlo = tmid;
 		}
 	}
+
 }
 
 //----------------------------------------------------------------------------
