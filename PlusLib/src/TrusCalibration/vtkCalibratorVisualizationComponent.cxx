@@ -243,16 +243,6 @@ void vtkCalibratorVisualizationComponent::Initialize(vtkProbeCalibrationControll
 	phantomWiresActor->VisibilityOff(); 
 	this->SetPhantomWiresActor(phantomWiresActor); 
 	
-	// Set up the realtime renderer
-	vtkSmartPointer<vtkRenderer> realtimeRenderer = vtkSmartPointer<vtkRenderer>::New(); 
-	realtimeRenderer->SetBackground(0,0,0); 
-	this->SetRealtimeRenderer(realtimeRenderer); 
-	
-	// Add image actor to the realtime renderer 
-	this->GetRealtimeRenderer()->AddActor(this->GetRealtimeImageActor()); 
-	this->GetRealtimeRenderer()->AddActor(this->GetCenterOfRotationActor()); 
-	this->GetRealtimeRenderer()->AddActor(this->GetPhantomWiresActor()); 
-
 	vtkSmartPointer<vtkCamera> templateCamera = vtkSmartPointer<vtkCamera>::New(); 
 	templateCamera->SetPosition(30,30,-150); 
 	templateCamera->SetFocalPoint(30,30,0); 
@@ -262,19 +252,6 @@ void vtkCalibratorVisualizationComponent::Initialize(vtkProbeCalibrationControll
 	templateCamera->SetParallelScale(40);	
 	this->SetTemplateCamera(templateCamera); 
 
-	vtkSmartPointer<vtkCamera> imageCamera = vtkSmartPointer<vtkCamera>::New(); 
-	double imageCenterX = this->GetCalibrationController()->GetSegParameters()->GetFrameSize()[0]/2.0; 
-	double imageCenterY = this->GetCalibrationController()->GetSegParameters()->GetFrameSize()[1]/2.0; 
-	imageCamera->SetPosition(imageCenterX, imageCenterY, 150); 
-	imageCamera->SetFocalPoint(imageCenterX, imageCenterY, 0); 
-	imageCamera->SetViewUp(0, -1, 0);
-	imageCamera->SetClippingRange(0.1, 1000);
-	imageCamera->ParallelProjectionOn(); 
-	imageCamera->SetParallelScale(imageCenterY);	
-	this->SetImageCamera(imageCamera); 
-
-	this->GetRealtimeRenderer()->GetActiveCamera()->DeepCopy(this->GetImageCamera());
-	
 	this->SetupColorLUT(); 
 
 	this->SetupColorBars(); 
@@ -285,6 +262,37 @@ void vtkCalibratorVisualizationComponent::Initialize(vtkProbeCalibrationControll
 	
 	this->InitializedOn(); 
 
+}
+
+
+//----------------------------------------------------------------------------
+void vtkCalibratorVisualizationComponent::SetRealtimeRenderer( vtkRenderer* renderer )
+{
+	// Set up the realtime renderer
+  this->RealtimeRenderer = renderer; 
+
+  if ( this->RealtimeRenderer != NULL )
+  {
+    // Add image actor to the realtime renderer 
+    this->RealtimeRenderer->AddActor(this->GetRealtimeImageActor()); 
+    this->RealtimeRenderer->AddActor(this->GetCenterOfRotationActor()); 
+    this->RealtimeRenderer->AddActor(this->GetPhantomWiresActor()); 
+
+    // Set 
+    vtkSmartPointer<vtkCamera> imageCamera = vtkSmartPointer<vtkCamera>::New(); 
+    double imageCenterX = this->GetCalibrationController()->GetSegParameters()->GetFrameSize()[0]/2.0; 
+    double imageCenterY = this->GetCalibrationController()->GetSegParameters()->GetFrameSize()[1]/2.0; 
+    imageCamera->SetPosition(imageCenterX, imageCenterY, 150); 
+    imageCamera->SetFocalPoint(imageCenterX, imageCenterY, 0); 
+    imageCamera->SetViewUp(0, -1, 0);
+    imageCamera->SetClippingRange(0.1, 1000);
+    imageCamera->ParallelProjectionOn(); 
+    imageCamera->SetParallelScale(imageCenterY);	
+    this->SetImageCamera(imageCamera); 
+
+    this->RealtimeRenderer->GetActiveCamera()->DeepCopy(this->GetImageCamera());
+
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -402,9 +410,9 @@ void vtkCalibratorVisualizationComponent::RemoveTemplate()
 		return; 
 	}
 
-	this->GetRealtimeImageActor()->SetPosition( 0, 0, 0); 
-	vtkSmartPointer<vtkTransform> identity = vtkSmartPointer<vtkTransform>::New(); 
-	this->GetRealtimeImageActor()->SetUserTransform( identity ); 
+	//this->GetRealtimeImageActor()->SetPosition( 0, 0, 0); 
+	//vtkSmartPointer<vtkTransform> identity = vtkSmartPointer<vtkTransform>::New(); 
+	//this->GetRealtimeImageActor()->SetUserTransform( identity ); 
 	this->RemoveTemplateGridInTransverseMode(); 
 }
 
@@ -634,20 +642,20 @@ PlusStatus vtkCalibratorVisualizationComponent::AddFrameToRealtimeRenderer(vtkIm
 {
 	if ( !this->Initialized )
 	{
-        LOG_WARNING("Failed to add frame to the realtime renderer - vtkCalibratorVisualizationComponent not initialized!"); 
-		return PLUS_FAIL; 
+      LOG_WARNING("Failed to add frame to the realtime renderer - vtkCalibratorVisualizationComponent not initialized!"); 
+		  return PLUS_FAIL; 
 	}
 
     if ( this->GetRealtimeImageActor() == NULL )
     {
-        LOG_WARNING("Failed to add frame to the realtime renderer - realtime image actor is NULL!"); 
-		return PLUS_FAIL;
+      LOG_WARNING("Failed to add frame to the realtime renderer - realtime image actor is NULL!"); 
+		  return PLUS_FAIL;
     }
 
 	this->GetRealtimeImageActor()->SetInput(frame); 
 	this->GetRealtimeImageActor()->Modified(); 
 
-	if ( this->GetRealtimeRenderer()->GetRenderWindow() == NULL ) 
+	if ( this->GetRealtimeRenderer() == NULL || this->GetRealtimeRenderer()->GetRenderWindow() == NULL ) 
 	{
         LOG_WARNING("Failed to render realtime image - render window is NULL!"); 
 		return PLUS_FAIL; 
@@ -1287,7 +1295,7 @@ void vtkCalibratorVisualizationComponent::DisplayTemplateGridInLongitudinalMode(
 //----------------------------------------------------------------------
 void vtkCalibratorVisualizationComponent::DisplayTemplateGrid(vtkCollection* gridActors, vtkCollection* letterActors)
 {
-	if ( !this->Initialized )
+  if ( !this->Initialized || this->GetRealtimeRenderer() == NULL )
 	{
 		return; 
 	}
@@ -1330,7 +1338,7 @@ void vtkCalibratorVisualizationComponent::RemoveTemplateGridInLongitudinalMode()
 //----------------------------------------------------------------------
 void vtkCalibratorVisualizationComponent::RemoveTemplateGrid(vtkCollection* gridActors, vtkCollection* letterActors)
 {
-	if ( !this->Initialized )
+	if ( !this->Initialized || this->GetRealtimeRenderer() == NULL )
 	{
 		return; 
 	}
@@ -1345,7 +1353,7 @@ void vtkCalibratorVisualizationComponent::RemoveTemplateGrid(vtkCollection* grid
 		this->GetRealtimeRenderer()->RemoveActor(static_cast<vtkTextActor3D*>(letterActors->GetItemAsObject(i)));
 	}
 
-	this->GetRealtimeRenderer()->GetActiveCamera()->DeepCopy(this->GetImageCamera());
+	//this->GetRealtimeRenderer()->GetActiveCamera()->DeepCopy(this->GetImageCamera());
 }
 
 //----------------------------------------------------------------------------

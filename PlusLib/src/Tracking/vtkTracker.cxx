@@ -189,6 +189,12 @@ static void *vtkTrackerThread(vtkMultiThreader::ThreadInfo *data)
   // loop until cancelled
   for (int i = 0;; i++)
   {
+    if (!self->IsTracking())
+    {
+      LOG_DEBUG("Stopped tracking");
+      return NULL;
+    }
+
     double newtime = vtkAccurateTimer::GetSystemTime(); 
 
     // get current tracking rate over last 10 updates
@@ -214,11 +220,6 @@ static void *vtkTrackerThread(vtkMultiThreader::ThreadInfo *data)
     data->ActiveFlagLock->Unlock();
 
     if (!activeFlag)
-    {
-      LOG_DEBUG("Stopped tracking");
-      return NULL;
-    }
-	if (!self->IsTracking())
     {
       LOG_DEBUG("Stopped tracking");
       return NULL;

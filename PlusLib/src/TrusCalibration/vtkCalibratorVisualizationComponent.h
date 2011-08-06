@@ -81,8 +81,8 @@ public:
 	virtual void ShowCenterOfRotation() { this->CenterOfRotationActor->VisibilityOn();}; 
 
 	virtual void OverlayPhantom(); 
-	virtual void HidePhantom() { this->PhantomWiresActor->VisibilityOff(); }; 
-	virtual void ShowPhantom() { this->PhantomWiresActor->VisibilityOn(); }; 
+	virtual void HidePhantomWires() { this->PhantomWiresActor->VisibilityOff(); }; 
+	virtual void ShowPhantomWires() { this->PhantomWiresActor->VisibilityOn(); }; 
 
 
 	// This operation will draw the 3D Point Reconstruction Error (PRE3D)
@@ -114,7 +114,8 @@ public:
 	vtkSetObjectMacro(PlotRenderer, vtkRenderer);
 
 	vtkGetObjectMacro(RealtimeRenderer, vtkRenderer);
-	vtkSetObjectMacro(RealtimeRenderer, vtkRenderer);
+  void SetRealtimeRenderer( vtkRenderer* renderer ); 
+
 
 	vtkGetObjectMacro(ImageCamera, vtkCamera);
 	vtkSetObjectMacro(ImageCamera, vtkCamera);

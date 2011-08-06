@@ -61,7 +61,7 @@ public:
 
   // Description:
   // Get brachy stepper type in string format
-  static const char* GetBrachyStepperTypeInString(BRACHY_STEPPER_TYPE stepperType) 
+  static std::string GetBrachyStepperTypeInString(BRACHY_STEPPER_TYPE stepperType) 
   { 
     std::string strStepperType = ""; 
 
@@ -87,7 +87,7 @@ public:
       strStepperType = ""; 
     }
 
-    return strStepperType.c_str(); 
+    return strStepperType; 
   }
 
 protected: 

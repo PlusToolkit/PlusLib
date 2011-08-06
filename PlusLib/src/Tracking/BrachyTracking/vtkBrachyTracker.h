@@ -3,8 +3,8 @@
 
 #include "PlusConfigure.h"
 #include "vtkTracker.h"
+#include "BrachyStepper.h" 
 
-class BrachyStepper; 
 class CmsBrachyStepper; 
 class vtkTransform;
 
@@ -156,6 +156,10 @@ public:
 	vtkSetMacro(ProbeRotationEncoderScale, double); 
 	vtkGetMacro(ProbeRotationEncoderScale, double); 
 
+  // Description:
+	// Get brachy stepper type (see BrachyStepper::BRACHY_STEPPER_TYPE)
+  BrachyStepper::BRACHY_STEPPER_TYPE GetBrachyStepperType() { return this->BrachyStepperType; }
+
 	// Description:
 	// Get an update from the tracking system and push the new transforms
 	// to the tools.  This should only be used within vtkTracker.cxx.
@@ -207,6 +211,8 @@ protected:
 	PlusStatus InitBrachyTracker();
 
 	BrachyStepper *Device;
+
+  BrachyStepper::BRACHY_STEPPER_TYPE BrachyStepperType; 
 
 	char *ModelVersion;
 	char *ModelNumber; 

@@ -103,6 +103,7 @@ vtkDataCollector::vtkDataCollector()
   this->ToolStatus.reserve(0); 
 
   this->InitializedOff(); 
+  this->ConnectedOff(); 
   this->TrackingEnabled = true;
   this->VideoEnabled = true;
   this->CancelSyncRequestOff(); 
@@ -175,6 +176,12 @@ PlusStatus vtkDataCollector::Connect()
 {
   LOG_TRACE("vtkDataCollector::Connect"); 
 
+  if ( this->GetConnected() )
+  {
+    // Devices already connected
+    return PLUS_SUCCESS; 
+  }
+  
   // VideoSource can be null if the ACQUISITION_TYPE == SYNCHRO_VIDEO_NONE 
   if ( this->GetVideoSource() != NULL ) 
   {
@@ -205,6 +212,8 @@ PlusStatus vtkDataCollector::Connect()
     LOG_WARNING("Failed to set loop times!"); 
     return PLUS_FAIL;
   }
+
+  this->ConnectedOn(); 
 
   return PLUS_SUCCESS;
 }
@@ -313,6 +322,12 @@ PlusStatus vtkDataCollector::Disconnect()
 {
   LOG_TRACE("vtkDataCollector::Disconnect"); 
 
+  if ( !this->GetConnected() )
+  {
+    // Devices already disconnected 
+    return PLUS_SUCCESS; 
+  }
+
   if ( this->GetVideoSource() != NULL ) 
   {
     this->GetVideoSource()->Disconnect(); 
@@ -322,6 +337,8 @@ PlusStatus vtkDataCollector::Disconnect()
   {
     this->GetTracker()->Disconnect(); 
   }
+
+  this->ConnectedOff(); 
 
   return PLUS_SUCCESS;
 }
@@ -343,7 +360,11 @@ PlusStatus vtkDataCollector::Start()
   {
     if ( this->GetVideoSource() != NULL && !this->GetVideoSource()->GetRecording())
     {
-      this->GetVideoSource()->StartRecording();
+      if ( this->GetVideoSource()->StartRecording() != PLUS_SUCCESS )
+      {
+        LOG_ERROR("Failed to start video recording!"); 
+        return PLUS_FAIL; 
+      }
       this->GetVideoSource()->GetBuffer()->SetStartTime(startTime); 
     }
   }
@@ -366,7 +387,11 @@ PlusStatus vtkDataCollector::Start()
         this->ToolStatus.push_back(TR_OK); 
       }
 
-      this->GetTracker()->StartTracking(); 
+      if ( this->GetTracker()->StartTracking() != PLUS_SUCCESS )
+      {
+        LOG_ERROR("Failed to start tracking!"); 
+        return PLUS_FAIL; 
+      }
 
       this->GetTracker()->SetStartTime(startTime); 
     }
