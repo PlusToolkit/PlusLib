@@ -2,8 +2,8 @@
 
     <USDataCollection version="2.0" StartupDelaySec="1.0">
 		<DeviceSet 
-			Name="Unified SonixTouch + Burdette Medical Systems Digital Stepper (01-50-149)" 
-			Description="Unified configuration file for SonixTouch + Burdette Medical Systems Digital Stepper + iCal 1.0" 
+			Name="Unified SonixTouch TRUS probe + Burdette Medical Systems Digital Stepper (01-50-149) + 70mm depth" 
+			Description="Unified configuration file for SonixTouch TRUS + Burdette Medical Systems Digital Stepper + iCal 1.0 + 70mm depth" 
 			/>
 
         <Tracker Type="BrachyTracker" BufferSize="1000" Frequency="20" AveragedItemsForFiltering="20" LocalTimeOffset="0.0" SerialPort="6" BaudRate="19200" BrachyStepperType="Burdette Medical Systems Digital Stepper" ModelNumber="4012A18-a" ModelVersion="" ModelSerialNumber="01-50-149">
@@ -112,11 +112,11 @@
 			
 			<SegmentationParameters
 					FrameSize="820 616"
-					ScalingEstimation="0.078"
+					ScalingEstimation="0.145"
 					MorphologicalOpeningCircleRadiusMm="0.47"
-					MorphologicalOpeningBarSizeMm="1.0"
+					MorphologicalOpeningBarSizeMm="2.0"
 
-					RegionOfInterest="27 27 793 589"
+					RegionOfInterest="90 70 730 430"
 
 					MaxLineLengthErrorPercent="10.0"
 					MaxLinePairDistanceErrorPercent="10.0"
