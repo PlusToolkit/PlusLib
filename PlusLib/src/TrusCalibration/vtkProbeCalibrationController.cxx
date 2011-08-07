@@ -955,8 +955,14 @@ PlusStatus vtkProbeCalibrationController::GenerateProbeCalibrationReport( vtkHTM
 
 	if ( this->CalibrationDone && this->GetEnableSegmentedWirePositionsSaving() )
 	{
-		std::string reportFile = this->GetCalibrationSegWirePosInfoFileName();
-		if ( !vtksys::SystemTools::FileExists( reportFile.c_str(), true) )
+		const char* reportFile = this->GetCalibrationSegWirePosInfoFileName();
+    if ( reportFile == NULL )
+    {
+      LOG_ERROR("Failed to generate probe calibration report - report file name is NULL!"); 
+      return PLUS_FAIL; 
+    }
+
+		if ( !vtksys::SystemTools::FileExists( reportFile, true) )
 		{
 			LOG_ERROR("Unable to find segmented wire positions report file at: " << reportFile); 
 			return PLUS_FAIL; 

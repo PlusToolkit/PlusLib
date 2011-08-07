@@ -484,8 +484,14 @@ PlusStatus vtkStepperCalibrationController::GenerateProbeRotationAxisCalibration
 
   if ( this->GetProbeRotationAxisCalibrated() )
   {
-    std::string reportFile = this->GetProbeRotationAxisCalibrationErrorReportFilePath(); 
-    if ( !vtksys::SystemTools::FileExists( reportFile.c_str(), true) )
+    const char* reportFile = this->GetProbeRotationAxisCalibrationErrorReportFilePath(); 
+    if ( reportFile == NULL )
+    {
+      LOG_ERROR("Failed to generate probe rotation axis calibration report - report file name is NULL!"); 
+      return PLUS_FAIL; 
+    }
+
+    if ( !vtksys::SystemTools::FileExists( reportFile, true) )
     {
       LOG_ERROR("Unable to find rotation axis calibration report file at: " << reportFile); 
       return PLUS_FAIL; 
@@ -795,8 +801,14 @@ PlusStatus vtkStepperCalibrationController::GenerateProbeRotationEncoderCalibrat
 
   if ( this->GetProbeRotationEncoderCalibrated() )
   {
-    std::string reportFile = this->GetProbeRotationEncoderCalibrationErrorReportFilePath(); 
-    if ( !vtksys::SystemTools::FileExists( reportFile.c_str(), true) )
+    const char * reportFile = this->GetProbeRotationEncoderCalibrationErrorReportFilePath(); 
+    if ( reportFile == NULL )
+    {
+      LOG_ERROR("Failed to generate probe rotation encoder calibration report - report file name is NULL!"); 
+      return PLUS_FAIL; 
+    }
+
+    if ( !vtksys::SystemTools::FileExists( reportFile, true) )
     {
       LOG_ERROR("Unable to find rotation encoder calibration report file at: " << reportFile); 
       return PLUS_FAIL; 
@@ -1325,16 +1337,34 @@ PlusStatus vtkStepperCalibrationController::GenerateTranslationAxisCalibrationRe
 
   if ( calibrated )
   {
-    std::string reportFile;
+    std::string reportFile("");
     switch ( dataType )
     {
     case PROBE_TRANSLATION: 
-      reportFile = this->GetProbeTranslationAxisCalibrationErrorReportFilePath(); 
+      {
+        const char * report = this->GetProbeTranslationAxisCalibrationErrorReportFilePath(); 
+        if ( report == NULL )
+        {
+          LOG_ERROR("Failed to generate probe translation axis calibration report - report file name is NULL!"); 
+          return PLUS_FAIL; 
+        }
+        reportFile = report; 
+      }
       break; 
     case TEMPLATE_TRANSLATION: 
-      reportFile = this->GetTemplateTranslationAxisCalibrationErrorReportFilePath(); 
+      {
+        const char * report = this->GetTemplateTranslationAxisCalibrationErrorReportFilePath(); 
+        if ( report == NULL )
+        {
+          LOG_ERROR("Failed to generate template translation axis calibration report - report file name is NULL!"); 
+          return PLUS_FAIL; 
+        }
+        reportFile = report; 
+      }
       break; 
     }
+
+    
 
     if ( !vtksys::SystemTools::FileExists( reportFile.c_str(), true) )
     {
@@ -1675,8 +1705,14 @@ PlusStatus vtkStepperCalibrationController::GenerateSpacingCalculationReport( vt
 
   if ( this->GetSpacingCalculated() )
   {
-    std::string reportFile = this->GetSpacingCalculationErrorReportFilePath(); 
-    if ( !vtksys::SystemTools::FileExists( reportFile.c_str(), true) )
+    const char * reportFile = this->GetSpacingCalculationErrorReportFilePath(); 
+    if ( reportFile == NULL )
+    {
+      LOG_ERROR("Failed to generate spacing calculation report - report file name is NULL!"); 
+      return PLUS_FAIL; 
+    }
+
+    if ( !vtksys::SystemTools::FileExists( reportFile, true) )
     {
       LOG_ERROR("Unable to find spacing calculation report file at: " << reportFile); 
       return PLUS_FAIL; 
@@ -2030,8 +2066,15 @@ PlusStatus vtkStepperCalibrationController::GenerateCenterOfRotationReport( vtkH
 
   if ( this->GetCenterOfRotationCalculated() )
   {
-    std::string reportFile = this->GetCenterOfRotationCalculationErrorReportFilePath(); 
-    if ( !vtksys::SystemTools::FileExists( reportFile.c_str(), true) )
+    const char * reportFile = this->GetCenterOfRotationCalculationErrorReportFilePath();
+
+    if ( reportFile == NULL )
+    {
+      LOG_ERROR("Failed to generate center of rotation report - report file name is NULL!"); 
+      return PLUS_FAIL; 
+    }
+
+    if ( !vtksys::SystemTools::FileExists( reportFile, true) )
     {
       LOG_ERROR("Unable to find center of rotation calculation report file at: " << reportFile); 
       return PLUS_FAIL; 
