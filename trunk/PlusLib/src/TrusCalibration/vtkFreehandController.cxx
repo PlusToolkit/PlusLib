@@ -73,7 +73,9 @@ PlusStatus vtkFreehandController::Initialize()
 
 	// Set up canvas renderer
 	vtkSmartPointer<vtkRenderer> canvasRenderer = vtkSmartPointer<vtkRenderer>::New(); 
-	canvasRenderer->SetBackground(0.6, 0.6, 0.6);
+	canvasRenderer->SetBackground(0.1, 0.1, 0.1);
+  canvasRenderer->SetBackground2(255/255.0, 235/255.0, 158/255.0);
+  canvasRenderer->SetGradientBackground(true);
 	this->SetCanvasRenderer(canvasRenderer);
 
 	// Create directory for the output

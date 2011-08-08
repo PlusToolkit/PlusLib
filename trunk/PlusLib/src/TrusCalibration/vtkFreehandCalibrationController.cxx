@@ -197,7 +197,6 @@ PlusStatus vtkFreehandCalibrationController::InitializeVisualization()
 			// If already initialized (it can occur if tab change - and so clear - happened)
 			controller->GetCanvasRenderer()->AddActor(this->CanvasImageActor);
 			controller->GetCanvasRenderer()->AddActor(this->SegmentedPointsActor);
-			controller->GetCanvasRenderer()->SetBackground(0.2, 0.2, 0.2);
 			controller->GetCanvasRenderer()->InteractiveOff(); // TODO it doesn't work - find a way to disable interactions (also re-enable on Clear)
 			//controller->GetCanvasRenderer()->GetRenderWindow()->GetInteractor()->Disable();
 			controller->GetCanvasRenderer()->Modified();
@@ -209,8 +208,6 @@ PlusStatus vtkFreehandCalibrationController::InitializeVisualization()
 		// Add all actors to the renderer again - state must be "Done", because tab cannot be changed if "In progress"
 		vtkRenderer* renderer = vtkFreehandController::GetInstance()->GetCanvasRenderer();
 
-		renderer->SetBackground(0.2, 0.2, 0.2);
-
 		renderer->AddActor(this->CanvasImageActor);
 		renderer->AddActor(this->SegmentedPointsActor);
 
@@ -219,6 +216,7 @@ PlusStatus vtkFreehandCalibrationController::InitializeVisualization()
 			renderer->AddActor(this->ProbeActor);
 			renderer->AddActor(this->StylusActor);
 			renderer->AddActor(this->NeedleActor);
+      renderer->SetGradientBackground(true);
 
       renderer->ResetCamera();
 
@@ -256,8 +254,6 @@ PlusStatus vtkFreehandCalibrationController::InitializeDeviceVisualization()
 		return PLUS_FAIL;
 	}
 
-	vtkRenderer* renderer = vtkFreehandController::GetInstance()->GetCanvasRenderer();
-
 	if (vtkFreehandController::GetInstance()->GetCanvas() != NULL) {
 		// Load phantom model and create phantom body actor
 		if ((this->ModelToPhantomTransform != NULL) && (PhantomRegistrationController::GetInstance()->GetPhantomToPhantomReferenceTransform() != NULL)) {
@@ -282,7 +278,7 @@ PlusStatus vtkFreehandCalibrationController::InitializeDeviceVisualization()
 				phantomMapper->SetInputConnection(phantomModelToPhantomReferenceTransformFilter->GetOutputPort());
 				vtkSmartPointer<vtkActor> phantomBodyActor = vtkSmartPointer<vtkActor>::New();
 				phantomBodyActor->SetMapper(phantomMapper);
-        phantomBodyActor->GetProperty()->SetOpacity(0.5);
+        phantomBodyActor->GetProperty()->SetOpacity(0.6);
 				this->SetPhantomBodyActor(phantomBodyActor);
 			}
 		} else {
@@ -378,16 +374,21 @@ void vtkFreehandCalibrationController::ToggleDeviceVisualization(bool aOn)
 		renderer->RemoveActor(this->ProbeActor);
 		renderer->RemoveActor(this->StylusActor);
 		renderer->RemoveActor(this->NeedleActor);
+    renderer->SetGradientBackground(false);
 
 		// Calculate camera to show only the image
 		CalculateImageCameraParameters();
 
 	} else if (aOn == true) {
+    // Set initial probe actor opacity
+    this->ProbeActor->GetProperty()->SetOpacity(0.9);
+
 		// Add device actors
 		renderer->AddActor(this->PhantomBodyActor);
 		renderer->AddActor(this->ProbeActor);
 		renderer->AddActor(this->StylusActor);
 		renderer->AddActor(this->NeedleActor);
+    renderer->SetGradientBackground(true);
 
 		// Reset camera to show all devices and the image
 		vtkSmartPointer<vtkCamera> imageCamera = vtkSmartPointer<vtkCamera>::New(); 
@@ -457,6 +458,7 @@ PlusStatus vtkFreehandCalibrationController::CalculateImageCameraParameters()
 	this->SetImageCamera(imageCamera);
 
 	controller->GetCanvasRenderer()->SetActiveCamera(this->ImageCamera);
+  controller->GetCanvasRenderer()->SetGradientBackground(false);
 
 	return PLUS_SUCCESS;
 }
@@ -472,7 +474,6 @@ PlusStatus vtkFreehandCalibrationController::Clear()
 	// Remove image actor and reset background color
 	renderer->RemoveActor(this->CanvasImageActor);
 	renderer->RemoveActor(this->SegmentedPointsActor);
-	renderer->SetBackground(0.6, 0.6, 0.6);
 	renderer->InteractiveOn();
 
 	// If device visualization is on, remove those actors too
@@ -610,7 +611,7 @@ PlusStatus vtkFreehandCalibrationController::DoAcquisition()
 	}
 
 	int referenceToolNumber = dataCollector->GetTracker()->GetReferenceToolNumber();
-	//bool resetCameraNeeded = false;
+	bool resetCameraNeeded = false;
 
 	for (int toolNumber=0; toolNumber<dataCollector->GetTracker()->GetNumberOfTools(); ++toolNumber) {
 		// If reference then no need for setting transform (the phantom is fixed to the reference)
@@ -636,11 +637,10 @@ PlusStatus vtkFreehandCalibrationController::DoAcquisition()
 		if (status == TR_OK) {
 			// If other tool, set the transform according to the tool name
       if ((this->ProbeActor != NULL) && (tool->GetToolType() == TRACKER_TOOL_PROBE)) {
-        /*
-				if (this->ProbeActor->GetProperty()->GetOpacity() < 1.0) {
+				if (this->ProbeActor->GetProperty()->GetOpacity() == 0.9) {
 					resetCameraNeeded = true;
 				}
-        */
+
         // Probe transform
 				vtkSmartPointer<vtkTransform> probeModelToPhantomReferenceTransform = vtkSmartPointer<vtkTransform>::New();
 				probeModelToPhantomReferenceTransform->Identity();
@@ -692,13 +692,11 @@ PlusStatus vtkFreehandCalibrationController::DoAcquisition()
 		}
 	} // for each tool
 
-  /*
 	if (resetCameraNeeded) {
 		controller->GetCanvasRenderer()->ResetCamera();
 	}
-  */
 
-	return PLUS_SUCCESS;
+  return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
@@ -1387,7 +1385,12 @@ PlusStatus vtkFreehandCalibrationController::ReadFreehandCalibrationConfiguratio
 		int numberOfImagesToUse = -1;
 		if (freehandMotionData_2->GetScalarAttribute("NumberOfImagesToAcquire", numberOfImagesToUse)) {
 			imageDataInfo.NumberOfImagesToAcquire = numberOfImagesToUse;
-		}
+    }
+
+    if (imageDataInfo.NumberOfImagesToAcquire == 0) {
+      LOG_ERROR("Unable to read NumberOfImagesToAcquire XML data element (or zero)");
+      return PLUS_FAIL;
+    }
 
     const char* sequenceMetaFile = freehandMotionData_2->GetAttribute("OutputSequenceMetaFileSuffix"); 
     if ( sequenceMetaFile != NULL) 
@@ -1408,6 +1411,11 @@ PlusStatus vtkFreehandCalibrationController::ReadFreehandCalibrationConfiguratio
 		if (freehandMotionData_1->GetScalarAttribute("NumberOfImagesToAcquire", numberOfImagesToUse)) {
 			imageDataInfo.NumberOfImagesToAcquire = numberOfImagesToUse; 
 		}
+
+    if (imageDataInfo.NumberOfImagesToAcquire == 0) {
+      LOG_ERROR("Unable to read NumberOfImagesToAcquire XML data element (or zero)");
+      return PLUS_FAIL;
+    }
 
     const char* sequenceMetaFile = freehandMotionData_1->GetAttribute("OutputSequenceMetaFileSuffix"); 
     if ( sequenceMetaFile != NULL) 
