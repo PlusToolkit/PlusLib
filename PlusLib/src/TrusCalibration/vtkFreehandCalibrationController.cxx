@@ -533,7 +533,7 @@ PlusStatus vtkFreehandCalibrationController::DoSpatialCalibration()
 		} else { // TR_OK
 			if (numberOfAcquiredImages < maxNumberOfValidationImages) {
 				// Validation data
-				if ( this->GetTrackedFrameList(FREEHAND_MOTION_2)->ValidateData(&trackedFrame, true, true, true, NULL, false) ) {
+				if ( this->GetTrackedFrameList(FREEHAND_MOTION_2)->ValidateData(&trackedFrame) ) {
 					if (AddTrackedFrameData(&trackedFrame, FREEHAND_MOTION_2)) {
 						segmentationSuccessful = true;
 					} else {
@@ -543,7 +543,7 @@ PlusStatus vtkFreehandCalibrationController::DoSpatialCalibration()
 				}
 			} else {
 				// Calibration data
-				if ( this->GetTrackedFrameList(FREEHAND_MOTION_1)->ValidateData(&trackedFrame, true, true, true, NULL, false) ) {
+				if ( this->GetTrackedFrameList(FREEHAND_MOTION_1)->ValidateData(&trackedFrame) ) {
 					if (AddTrackedFrameData(&trackedFrame, FREEHAND_MOTION_1)) {
 						segmentationSuccessful = true;
 					} else {
