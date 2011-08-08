@@ -447,10 +447,9 @@ bool vtkTrackedFrameList::ValidateSpeed(TrackedFrame* trackedFrame)
   double diffOrientation = PlusMath::GetOrientationDifference( inputTransform->GetMatrix(), latestTransform->GetMatrix() );
 
   // Compute position and orientation speed and decide if they are acceptable
-  double velocityPosition = diffPosition / diffTime;
+  double velocityPosition = fabs( diffPosition / diffTime );
   double velocityOrientation = fabs( diffOrientation / diffTime );
 
-LOG_WARNING("---- VelocityPosition = " << velocityPosition << "  VelocityOrientation = " << velocityOrientation << " (size=" << this->TrackedFrameList.size() << ")");
   if ( velocityPosition > this->VelocityPositionThreshold || velocityOrientation > this->VelocityOrientationThreshold )
   {
     LOG_DEBUG("Tracked frame speed validation result: tracked frame change too fast (VelocityPosition = " << velocityPosition << ">" << this->VelocityPositionThreshold << " and/or VelocityOrientation = " << velocityOrientation << ">" << this->VelocityOrientationThreshold << ")"); 
