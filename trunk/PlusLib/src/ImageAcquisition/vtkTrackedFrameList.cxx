@@ -403,20 +403,34 @@ bool vtkTrackedFrameList::ValidateStatus(TrackedFrame* trackedFrame)
 //----------------------------------------------------------------------------
 bool vtkTrackedFrameList::ValidateSpeed(TrackedFrame* trackedFrame)
 {
-  if ( this->TrackedFrameList.size() <= 2 ) {
+  if ( this->TrackedFrameList.size() < 1 ) {
     return true;
   }
 
-  TrackedFrameListType::iterator latestFrame = this->TrackedFrameList.end() - 1;
-  TrackedFrameListType::iterator secondLatestFrame = this->TrackedFrameList.end() - 2;
+  TrackedFrameListType::iterator latestFrameInList = this->TrackedFrameList.end() - 1;
 
   // Compute difference between the last two timestamps
-  double diffTime = fabs( (*latestFrame)->Timestamp - (*secondLatestFrame)->Timestamp );
+  double diffTime = fabs( trackedFrame->Timestamp - (*latestFrameInList)->Timestamp );
+  if (diffTime <= 0.0) {
+    return false;
+  }
 
-  // Get default frame transform of latest and second latest frames
+  // Get default frame transform of the input frame and the latest frame in the list
+  vtkSmartPointer<vtkTransform> inputTransform = vtkSmartPointer<vtkTransform>::New(); 
+  double inputTransformVector[16]={0}; 
+  if ( trackedFrame->GetDefaultFrameTransform(inputTransformVector) )
+  {
+    inputTransform->SetMatrix(inputTransformVector); 
+  }
+  else
+  {
+    LOG_ERROR("Unable to get default frame transform for input frame!");
+    return false;
+  }
+
   vtkSmartPointer<vtkTransform> latestTransform = vtkSmartPointer<vtkTransform>::New(); 
   double latestTransformVector[16]={0}; 
-  if ( (*latestFrame)->GetDefaultFrameTransform(latestTransformVector) )
+  if ( (*latestFrameInList)->GetDefaultFrameTransform(latestTransformVector) )
   {
     latestTransform->SetMatrix(latestTransformVector); 
   }
@@ -426,28 +440,17 @@ bool vtkTrackedFrameList::ValidateSpeed(TrackedFrame* trackedFrame)
     return false;
   }
 
-  vtkSmartPointer<vtkTransform> secondLatestTransform = vtkSmartPointer<vtkTransform>::New(); 
-  double secondLatestTransformVector[16]={0}; 
-  if ( (*secondLatestFrame)->GetDefaultFrameTransform(secondLatestTransformVector) )
-  {
-    secondLatestTransform->SetMatrix(secondLatestTransformVector); 
-  }
-  else
-  {
-    LOG_ERROR("Unable to get default frame transform for second latest frame!");
-    return false;
-  }
-
   // Compute difference between the last two positions
-  double diffPosition = PlusMath::GetPositionDifference( latestTransform->GetMatrix(), secondLatestTransform->GetMatrix() );
+  double diffPosition = PlusMath::GetPositionDifference( inputTransform->GetMatrix(), latestTransform->GetMatrix() );
 
   // Compute difference between the last two orientations
-  double diffOrientation = PlusMath::GetOrientationDifference( latestTransform->GetMatrix(), secondLatestTransform->GetMatrix() );
+  double diffOrientation = PlusMath::GetOrientationDifference( inputTransform->GetMatrix(), latestTransform->GetMatrix() );
 
   // Compute position and orientation speed and decide if they are acceptable
   double velocityPosition = diffPosition / diffTime;
   double velocityOrientation = fabs( diffOrientation / diffTime );
 
+LOG_WARNING("---- VelocityPosition = " << velocityPosition << "  VelocityOrientation = " << velocityOrientation << " (size=" << this->TrackedFrameList.size() << ")");
   if ( velocityPosition > this->VelocityPositionThreshold || velocityOrientation > this->VelocityOrientationThreshold )
   {
     LOG_DEBUG("Tracked frame speed validation result: tracked frame change too fast (VelocityPosition = " << velocityPosition << ">" << this->VelocityPositionThreshold << " and/or VelocityOrientation = " << velocityOrientation << ">" << this->VelocityOrientationThreshold << ")"); 
