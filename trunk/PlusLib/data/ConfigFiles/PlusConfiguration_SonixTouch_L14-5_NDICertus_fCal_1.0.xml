@@ -131,29 +131,29 @@
 	<USCalibration version="1.0">
 		<CalibrationController LogLevel="INFO" OutputPath="./Output" EnableTrackedSequenceDataSaving="FALSE" EnableErroneouslySegmentedDataSaving="FALSE" EnableSegmentationAnalysis="FALSE" >
 			<ProbeCalibration
-					EnableLogFile="FALSE"  
-					EnableSegmentedWirePositionsSaving="FALSE"
-					ImageHomeToUserImageHomeTransform=" 1  0  0  0 
-														0  1  0  0 
-														0  0  1  0 
-														0  0  0  1"
-					DataFileSuffix=".data"
-					CalibrationResultFileSuffix=".Calibration.results"
-					SegmentationErrorLogFileNameSuffix=".Segmentation.errors"
-					SegmentationAnalysisFileNameSuffix = ".Segmentation.analysis"
-					Temp2StepCalibAnalysisFileNameSuffix = ".Template2StepperCalibration.analysis"
-					>
-				
-				 <!-- RandomStepperMotionData1: These are the data files used for calibration. -->
-                <RandomStepperMotionData1
-                        NumberOfImagesToAcquire="200" 
-                        OutputSequenceMetaFileSuffix=".RandomStepperMotionData1"
-                        />
-                <!-- RandomStepperMotionData2: These are the data files used to validate the calibration accuracy.  -->
-                <RandomStepperMotionData2
-                        NumberOfImagesToAcquire="100" 
-                        OutputSequenceMetaFileSuffix=".RandomStepperMotionData2"
-                        />
+        EnableLogFile="FALSE"  
+        EnableSegmentedWirePositionsSaving="FALSE"
+        ImageHomeToUserImageHomeTransform=" 1  0  0  0 
+                          0  1  0  0 
+                          0  0  1  0 
+                          0  0  0  1"
+        DataFileSuffix=".data"
+        CalibrationResultFileSuffix=".Calibration.results"
+        SegmentationErrorLogFileNameSuffix=".Segmentation.errors"
+        SegmentationAnalysisFileNameSuffix = ".Segmentation.analysis"
+        Temp2StepCalibAnalysisFileNameSuffix = ".Template2StepperCalibration.analysis"
+        >
+      
+        <!-- RandomStepperMotionData1: These are the data files used for calibration. -->
+        <RandomStepperMotionData1
+                NumberOfImagesToAcquire="200" 
+                OutputSequenceMetaFileSuffix=".RandomStepperMotionData1"
+                />
+        <!-- RandomStepperMotionData2: These are the data files used to validate the calibration accuracy.  -->
+        <RandomStepperMotionData2
+                NumberOfImagesToAcquire="100" 
+                OutputSequenceMetaFileSuffix=".RandomStepperMotionData2"
+                />
 
 				<TemplateModel ConfigFile="../config/TemplateModel.xml" >
 				</TemplateModel>
@@ -174,7 +174,7 @@
 						NumberOfImagesToAcquire="100" 
 						OutputSequenceMetaFileSuffix=".FreehandMotionData2"
 						/>
-            </FreehandCalibration>
+      </FreehandCalibration>
 			
 			<SegmentationParameters
 					FrameSize="820 616"

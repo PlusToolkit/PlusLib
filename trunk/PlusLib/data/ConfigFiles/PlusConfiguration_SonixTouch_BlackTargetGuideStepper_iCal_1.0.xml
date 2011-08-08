@@ -24,57 +24,57 @@
  
             
         <ImageAcqusition Type="SonixVideo" 
-				BufferSize="500" 
-				FrameSize="820 616" 
-				UsImageOrientation="UF"
-				FrameRate="30" 
-				AveragedItemsForFiltering="20" 
-				LocalTimeOffset="-0.2126"
-				IP="130.15.7.20" 
-				ImagingMode="0" 
-				AcquisitionDataType="4" 
-				Depth="-1" 
-				Sector="-1" 
-				Gain="-1" 
-				DynRange="-1" 
-				Zoom="-1" 
-				Frequency="-1" 
-				Timeout="-1" 
-				CompressionStatus="0" 
+          BufferSize="500" 
+          FrameSize="820 616" 
+          UsImageOrientation="UF"
+          FrameRate="30" 
+          AveragedItemsForFiltering="20" 
+          LocalTimeOffset="-0.2126"
+          IP="130.15.7.20" 
+          ImagingMode="0" 
+          AcquisitionDataType="4" 
+          Depth="-1" 
+          Sector="-1" 
+          Gain="-1" 
+          DynRange="-1" 
+          Zoom="-1" 
+          Frequency="-1" 
+          Timeout="-1" 
+          CompressionStatus="0" 
 				/>
  
-		<Synchronization Type="ChangeDetection" 
-				SynchronizationTimeLength="30" 
-				MinNumOfSyncSteps="5" 
-				ThresholdMultiplier="5"
+        <Synchronization Type="ChangeDetection" 
+          SynchronizationTimeLength="30" 
+          MinNumOfSyncSteps="5" 
+          ThresholdMultiplier="5"
 
-				NumberOfAveragedTransforms="20" 
-				MinTransformThreshold="2.0" 
-				MaxTransformDifference="2.0" 
+          NumberOfAveragedTransforms="20" 
+          MinTransformThreshold="2.0" 
+          MaxTransformDifference="2.0" 
 
-				NumberOfAveragedFrames="6" 
-				MinFrameThreshold="200.0" 
-				MaxFrameDifference="10.0" 
+          NumberOfAveragedFrames="6" 
+          MinFrameThreshold="200.0" 
+          MaxFrameDifference="10.0" 
 				/>
 	</USDataCollection>
 	<USCalibration version="1.0">
 		<CalibrationController LogLevel="INFO" OutputPath="./Output" EnableTrackedSequenceDataSaving="FALSE" EnableErroneouslySegmentedDataSaving="FALSE" EnableSegmentationAnalysis="FALSE">
-            <StepperCalibration MinNumberOfRotationClusters="1" >
-                <!-- TemplateTranslationData: These are the data files used to calculate the template translation axis  -->
-                <TemplateTranslationData 
-                        NumberOfImagesToAcquire="50" 
-                        OutputSequenceMetaFileSuffix=".TemplateTranslationData"
-                        />
-                <!-- ProbeTranslationData: These are the data files used to calculate the stepper translation axis  -->
-                <ProbeTranslationData 
-                        NumberOfImagesToAcquire="50" 
-                        OutputSequenceMetaFileSuffix=".ProbeTranslationData"
-                        />
-                 <!-- ProbeRotationData: These are the data files used to calculate the frame center of rotation  -->
-                <ProbeRotationData 
-                        NumberOfImagesToAcquire="50" 
-                        OutputSequenceMetaFileSuffix=".ProbeRotationData"
-                        />
+      <StepperCalibration MinNumberOfRotationClusters="1" >
+          <!-- TemplateTranslationData: These are the data files used to calculate the template translation axis  -->
+          <TemplateTranslationData 
+                  NumberOfImagesToAcquire="50" 
+                  OutputSequenceMetaFileSuffix=".TemplateTranslationData"
+                  />
+          <!-- ProbeTranslationData: These are the data files used to calculate the stepper translation axis  -->
+          <ProbeTranslationData 
+                  NumberOfImagesToAcquire="50" 
+                  OutputSequenceMetaFileSuffix=".ProbeTranslationData"
+                  />
+           <!-- ProbeRotationData: These are the data files used to calculate the frame center of rotation  -->
+          <ProbeRotationData 
+                  NumberOfImagesToAcquire="50" 
+                  OutputSequenceMetaFileSuffix=".ProbeRotationData"
+                  />
 			</StepperCalibration>	
 			
 			<ProbeCalibration
@@ -91,16 +91,16 @@
 					Temp2StepCalibAnalysisFileNameSuffix = ".Template2StepperCalibration.analysis"
 					>
 				
-                <!-- RandomStepperMotionData1: These are the data files used for calibration. -->
-                <RandomStepperMotionData1
-                        NumberOfImagesToAcquire="50" 
-                        OutputSequenceMetaFileSuffix=".RandomStepperMotionData1"
-                        />
-                <!-- RandomStepperMotionData2: These are the data files used to validate the calibration accuracy.  -->
-                <RandomStepperMotionData2
-                        NumberOfImagesToAcquire="50" 
-                        OutputSequenceMetaFileSuffix=".RandomStepperMotionData2"
-                        />
+        <!-- RandomStepperMotionData1: These are the data files used for calibration. -->
+        <RandomStepperMotionData1
+                NumberOfImagesToAcquire="50" 
+                OutputSequenceMetaFileSuffix=".RandomStepperMotionData1"
+                />
+        <!-- RandomStepperMotionData2: These are the data files used to validate the calibration accuracy.  -->
+        <RandomStepperMotionData2
+                NumberOfImagesToAcquire="50" 
+                OutputSequenceMetaFileSuffix=".RandomStepperMotionData2"
+                />
 
 				<TemplateModel ConfigFile="../config/TemplateModel.xml" >
 				</TemplateModel>

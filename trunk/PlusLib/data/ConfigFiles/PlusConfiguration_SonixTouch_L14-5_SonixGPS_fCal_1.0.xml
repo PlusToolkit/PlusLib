@@ -18,7 +18,7 @@
 		  
 		<Tool
 		  Name="Probe"
-          Type="Probe"
+      Type="Probe"
 		  PortNumber="0"
 		  SendTo="localhost:18944">
 			<Model
@@ -42,13 +42,13 @@
 		
 		<Tool
 		  Name="Reference"
-          Type="Reference"
+      Type="Reference"
 		  PortNumber="1">
 		</Tool>
 	  
 		<Tool
 		  Name="Stylus"
-          Type="Stylus"
+      Type="Stylus"
 		  PortNumber="2">
 			<Model
 				File="Stylus_Example.stl"
@@ -72,39 +72,39 @@
 	  </Tracker>
 
 	  <ImageAcqusition
-		Type="SonixVideo" 
-		BufferSize="500" 
-		FrameSize="820 616" 
-		UsImageOrientation="UF"
-		FrameRate="30" 
-		AveragedItemsForFiltering="20" 
-		LocalTimeOffset="-0.2976"
-		IP="130.15.7.20" 
-		ImagingMode="0" 
-		AcquisitionDataType="4" 
-		Depth="-1" 
-		Sector="-1" 
-		Gain="-1" 
-		DynRange="-1" 
-		Zoom="-1" 
-		Frequency="-1" 
-		Timeout="-1" 
-		CompressionStatus="0" 
+      Type="SonixVideo" 
+      BufferSize="500" 
+      FrameSize="820 616" 
+      UsImageOrientation="UF"
+      FrameRate="30" 
+      AveragedItemsForFiltering="20" 
+      LocalTimeOffset="-0.2976"
+      IP="130.15.7.20" 
+      ImagingMode="0" 
+      AcquisitionDataType="4" 
+      Depth="-1" 
+      Sector="-1" 
+      Gain="-1" 
+      DynRange="-1" 
+      Zoom="-1" 
+      Frequency="-1" 
+      Timeout="-1" 
+      CompressionStatus="0" 
 		/>
 
 	  <Synchronization
-		Type="ChangeDetection" 
-		SynchronizationTimeLength="30" 
-		MinNumOfSyncSteps="5" 
-		ThresholdMultiplier="5"
+      Type="ChangeDetection" 
+      SynchronizationTimeLength="30" 
+      MinNumOfSyncSteps="5" 
+      ThresholdMultiplier="5"
 
-		NumberOfAveragedTransforms="20" 
-		MinTransformThreshold="2.0" 
-		MaxTransformDifference="2.0" 
+      NumberOfAveragedTransforms="20" 
+      MinTransformThreshold="2.0" 
+      MaxTransformDifference="2.0" 
 
-		NumberOfAveragedFrames="6" 
-		MinFrameThreshold="200.0" 
-		MaxFrameDifference="10.0" 
+      NumberOfAveragedFrames="6" 
+      MinFrameThreshold="200.0" 
+      MaxFrameDifference="10.0" 
 		/>
 	  
 	</USDataCollection>
@@ -115,29 +115,30 @@
 		<CalibrationController LogLevel="INFO" OutputPath="./Output" EnableTrackedSequenceDataSaving="FALSE" EnableErroneouslySegmentedDataSaving="FALSE" EnableSegmentationAnalysis="FALSE" >
 			
 			<ProbeCalibration
-					EnableLogFile="FALSE"  
-					EnableSegmentedWirePositionsSaving="FALSE"
-					ImageHomeToUserImageHomeTransform=" 1  0  0  0 
-														0  1  0  0 
-														0  0  1  0 
-														0  0  0  1"
-					DataFileSuffix=".data"
-					CalibrationResultFileSuffix=".Calibration.results"
-					SegmentationErrorLogFileNameSuffix=".Segmentation.errors"
-					SegmentationAnalysisFileNameSuffix = ".Segmentation.analysis"
-					Temp2StepCalibAnalysisFileNameSuffix = ".Template2StepperCalibration.analysis"
-					>
+        EnableLogFile="FALSE"  
+        EnableSegmentedWirePositionsSaving="FALSE"
+        ImageHomeToUserImageHomeTransform=" 1  0  0  0 
+                          0  1  0  0 
+                          0  0  1  0 
+                          0  0  0  1"
+        DataFileSuffix=".data"
+        CalibrationResultFileSuffix=".Calibration.results"
+        SegmentationErrorLogFileNameSuffix=".Segmentation.errors"
+        SegmentationAnalysisFileNameSuffix = ".Segmentation.analysis"
+        Temp2StepCalibAnalysisFileNameSuffix = ".Template2StepperCalibration.analysis"
+        >
 				
-                <!-- RandomStepperMotionData1: These are the data files used for calibration. -->
-                <RandomStepperMotionData1
-                        NumberOfImagesToAcquire="200" 
-                        OutputSequenceMetaFileSuffix=".RandomStepperMotionData1"
-                        />
-                <!-- RandomStepperMotionData2: These are the data files used to validate the calibration accuracy.  -->
-                <RandomStepperMotionData2
-                        NumberOfImagesToAcquire="100" 
-                        OutputSequenceMetaFileSuffix=".RandomStepperMotionData2"
-                        />    
+        <!-- RandomStepperMotionData1: These are the data files used for calibration. -->
+        <RandomStepperMotionData1
+                NumberOfImagesToAcquire="200" 
+                OutputSequenceMetaFileSuffix=".RandomStepperMotionData1"
+                />
+        <!-- RandomStepperMotionData2: These are the data files used to validate the calibration accuracy.  -->
+        <RandomStepperMotionData2
+                NumberOfImagesToAcquire="100" 
+                OutputSequenceMetaFileSuffix=".RandomStepperMotionData2"
+                />
+                
 				<TemplateModel ConfigFile="../config/TemplateModel.xml" >
 				</TemplateModel>
 
@@ -146,7 +147,7 @@
 				<US3DBeamProfile IncorporatingUS3DBeamProfile="0" ConfigFile="./Component_US3DBeamProfile.config" />
 			</ProbeCalibration>
             
-            <FreehandCalibration>
+      <FreehandCalibration>
 				<!-- FreehandMotionData1: These are the data files used for calibration. -->
 				<FreehandMotionData1
 						NumberOfImagesToAcquire="200" 
@@ -157,7 +158,7 @@
 						NumberOfImagesToAcquire="100" 
 						OutputSequenceMetaFileSuffix=".FreehandMotionData2"
 						/>
-            </FreehandCalibration>
+      </FreehandCalibration>
             
 			<SegmentationParameters
 					FrameSize="820 616"
