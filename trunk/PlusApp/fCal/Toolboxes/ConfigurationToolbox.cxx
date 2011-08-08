@@ -286,27 +286,27 @@ void ConfigurationToolbox::LogLevelChanged(int aLevel)
 	if ( STRCASECMP(ui.comboBox_LogLevel->currentText().ascii(), "Error") == 0 )
 	{
 		PlusLogger::Instance()->SetLogLevel(PlusLogger::LOG_LEVEL_ERROR); 
-        PlusLogger::Instance()->SetDisplayLogLevel(PlusLogger::LOG_LEVEL_ERROR); 
+    PlusLogger::Instance()->SetDisplayLogLevel(PlusLogger::LOG_LEVEL_ERROR); 
 	}
 	else if ( STRCASECMP(ui.comboBox_LogLevel->currentText().ascii(), "Warning") == 0 )
 	{
 		PlusLogger::Instance()->SetLogLevel(PlusLogger::LOG_LEVEL_WARNING); 
-        PlusLogger::Instance()->SetDisplayLogLevel(PlusLogger::LOG_LEVEL_WARNING);
+    PlusLogger::Instance()->SetDisplayLogLevel(PlusLogger::LOG_LEVEL_WARNING);
 	}
 	else if ( STRCASECMP(ui.comboBox_LogLevel->currentText().ascii(), "Info") == 0 )
 	{
 		PlusLogger::Instance()->SetLogLevel(PlusLogger::LOG_LEVEL_INFO); 
-        PlusLogger::Instance()->SetDisplayLogLevel(PlusLogger::LOG_LEVEL_INFO);
+    PlusLogger::Instance()->SetDisplayLogLevel(PlusLogger::LOG_LEVEL_INFO);
 	}
 	else if ( STRCASECMP(ui.comboBox_LogLevel->currentText().ascii(), "Debug") == 0 )
 	{
 		PlusLogger::Instance()->SetLogLevel(PlusLogger::LOG_LEVEL_DEBUG); 
-        PlusLogger::Instance()->SetDisplayLogLevel(PlusLogger::LOG_LEVEL_DEBUG);
+    PlusLogger::Instance()->SetDisplayLogLevel(PlusLogger::LOG_LEVEL_DEBUG);
 	}
 	else if ( STRCASECMP(ui.comboBox_LogLevel->currentText().ascii(), "Trace") == 0 )
 	{
 		PlusLogger::Instance()->SetLogLevel(PlusLogger::LOG_LEVEL_TRACE); 
-        PlusLogger::Instance()->SetDisplayLogLevel(PlusLogger::LOG_LEVEL_TRACE);
+    PlusLogger::Instance()->SetDisplayLogLevel(PlusLogger::LOG_LEVEL_TRACE);
 	}
 
 	LOG_INFO("Log level changed to: " << ui.comboBox_LogLevel->currentText().ascii() )

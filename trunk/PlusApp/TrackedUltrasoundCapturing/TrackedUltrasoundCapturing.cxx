@@ -243,6 +243,7 @@ void TrackedUltrasoundCapturing::AddTrackedFrame( TrackedFrame* trackedFrame )
 	bool isDataUnique(false); 
 	if ( this->GetDataCollector()->GetTracker() != NULL )
 	{
+    // TODO Validate data does not determine uniqueness anymore, it validates speed too - in case it changes anything here...
 		isDataUnique = this->TrackedFrameContainer->ValidateData(trackedFrame); 
 	}
 	else
