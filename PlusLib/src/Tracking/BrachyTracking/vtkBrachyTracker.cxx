@@ -319,7 +319,7 @@ PlusStatus vtkBrachyTracker::ReadConfiguration(vtkXMLDataElement* config)
     }
     else
     {
-      LOG_ERROR("unable to find BrachyStepperType attribute in configuration file!"); 
+      LOG_ERROR("Unable to find BrachyStepperType attribute in configuration file!"); 
       return PLUS_FAIL; 
     }
 

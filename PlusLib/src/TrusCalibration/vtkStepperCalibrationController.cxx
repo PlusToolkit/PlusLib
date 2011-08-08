@@ -2765,48 +2765,42 @@ PlusStatus vtkStepperCalibrationController::WriteCalibrationResultToXml(vtkXMLDa
     return PLUS_FAIL;
   }
 
-  if ( !this->GetProbeRotationAxisCalibrated() )
+  vtkSmartPointer<vtkXMLDataElement> calibration = config->LookupElementWithName("StepperCalibration");
+  if ( calibration == NULL )
   {
-    LOG_ERROR("You have to calibrate probe rotation axis before saving calibration result!"); 
+    LOG_ERROR("StepperCalibration xml data element not found!"); 
     return PLUS_FAIL; 
-  }
+  } 
 
-  if ( !this->GetProbeTranslationAxisCalibrated() )
-  {
-    LOG_ERROR("You have to calibrate probe translation axis before saving calibration result!"); 
-    return PLUS_FAIL; 
-  }
-
-  if ( !this->GetTemplateTranslationAxisCalibrated() )
-  {
-    LOG_ERROR("You have to calibrate template translation axis before saving calibration result!"); 
-    return PLUS_FAIL; 
-  }
-
-  vtkSmartPointer<vtkXMLDataElement> calibration = config->FindNestedElementWithName("Calibration"); 
-
-  if ( calibration != NULL )
-  {
-    // already in the element, remove it to clean up
-    config->RemoveNestedElement(calibration); 
-  }
-
-  calibration = vtkSmartPointer<vtkXMLDataElement>::New(); 
-  calibration->SetName("Calibration");
+  calibration->SetAttribute("Date", vtksys::SystemTools::GetCurrentDateTime("%Y.%m.%d %X").c_str());
 
   calibration->SetAttribute("AlgorithmVersion", "1.0.0"); 
 
-  calibration->SetAttribute("Date", this->CalibrationStartTime); 
 
-  calibration->SetVectorAttribute("ProbeTranslationAxisOrientation", 3, this->GetProbeTranslationAxisOrientation() ); 
+  if ( this->GetProbeRotationAxisCalibrated() )
+  {
+    calibration->SetVectorAttribute("ProbeRotationAxisOrientation", 3, this->GetProbeRotationAxisOrientation() );		
+  }
 
-  calibration->SetVectorAttribute("TemplateTranslationAxisOrientation", 3, this->GetTemplateTranslationAxisOrientation() ); 
+  if ( this->GetProbeRotationEncoderCalibrated() )
+  {
+    calibration->SetDoubleAttribute("ProbeRotationEncoderScale", this->GetProbeRotationEncoderScale() ); 
+  }
 
-  calibration->SetVectorAttribute("ProbeRotationAxisOrientation", 3, this->GetProbeRotationAxisOrientation() );		
+  if ( this->GetPhantomToProbeDistanceCalculated() )
+  {
+    calibration->SetVectorAttribute("PhantomToProbeDistanceMm", 2, this->GetPhantomToProbeDistanceInMm() ); 
+  }
 
-  calibration->SetDoubleAttribute("ProbeRotationEncoderScale", this->GetProbeRotationEncoderScale() ); 
+  if ( this->GetProbeTranslationAxisCalibrated() )
+  {
+    calibration->SetVectorAttribute("ProbeTranslationAxisOrientation", 3, this->GetProbeTranslationAxisOrientation() ); 
+  }
 
-  config->AddNestedElement(calibration); 
+  if ( this->GetTemplateTranslationAxisCalibrated() )
+  {
+    calibration->SetVectorAttribute("TemplateTranslationAxisOrientation", 3, this->GetTemplateTranslationAxisOrientation() ); 
+  }
 
   return PLUS_SUCCESS;
 }

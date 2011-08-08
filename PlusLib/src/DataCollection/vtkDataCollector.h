@@ -75,6 +75,10 @@ public:
   virtual PlusStatus ReadConfiguration( vtkXMLDataElement* aDataCollectionConfig ); 
 
   // Description:
+  // Save unified configuration to xml file 
+  virtual PlusStatus SaveConfigurationToFile(const char* aFile); 
+
+  // Description:
   // Disconnect from devices
   virtual PlusStatus Disconnect(); 
 
