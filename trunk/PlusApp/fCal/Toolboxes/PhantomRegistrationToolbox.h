@@ -88,11 +88,6 @@ protected slots:
 	void ResetClicked();
 
 	/*!
-	* \brief Slot handling register button click
-	*/
-	void RegisterClicked();
-
-	/*!
 	* \brief Slot handling save button click
 	*/
 	void SaveClicked();

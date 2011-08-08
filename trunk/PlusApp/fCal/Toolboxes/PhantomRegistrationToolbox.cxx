@@ -39,7 +39,6 @@ PhantomRegistrationToolbox::PhantomRegistrationToolbox(QWidget* aParent, Qt::WFl
 	connect( ui.pushButton_RecordPoint, SIGNAL( clicked() ), this, SLOT( RecordPointClicked() ) );
 	connect( ui.pushButton_Undo, SIGNAL( clicked() ), this, SLOT( UndoClicked() ) );
 	connect( ui.pushButton_Reset, SIGNAL( clicked() ), this, SLOT( ResetClicked() ) );
-	connect( ui.pushButton_Register, SIGNAL( clicked() ), this, SLOT( RegisterClicked() ) );
 	connect( ui.pushButton_Save, SIGNAL( clicked() ), this, SLOT( SaveClicked() ) );
 
 	connect( m_AcquisitionTimer, SIGNAL( timeout() ), this, SLOT( RequestDoAcquisition() ) );
@@ -127,7 +126,6 @@ void PhantomRegistrationToolbox::RefreshToolboxContent()
 		ui.pushButton_OpenPhantomDefinition->setEnabled(false);
 		ui.pushButton_OpenStylusCalibration->setEnabled(false);
 		ui.pushButton_RecordPoint->setEnabled(false);
-		ui.pushButton_Register->setEnabled(false);
 		ui.pushButton_Reset->setEnabled(false);
 		ui.pushButton_Save->setEnabled(false);
 		ui.pushButton_Undo->setEnabled(false);
@@ -145,7 +143,6 @@ void PhantomRegistrationToolbox::RefreshToolboxContent()
 		ui.pushButton_OpenPhantomDefinition->setEnabled(true);
 		ui.pushButton_OpenStylusCalibration->setEnabled(true);
 		ui.pushButton_RecordPoint->setEnabled(false);
-		ui.pushButton_Register->setEnabled(false);
 		ui.pushButton_Reset->setEnabled(false);
 		ui.pushButton_Save->setEnabled(false);
 		ui.pushButton_Undo->setEnabled(false);
@@ -164,7 +161,6 @@ void PhantomRegistrationToolbox::RefreshToolboxContent()
 		ui.pushButton_OpenPhantomDefinition->setEnabled(true);
 		ui.pushButton_OpenStylusCalibration->setEnabled(true);
 		ui.pushButton_RecordPoint->setEnabled(true);
-		ui.pushButton_Register->setEnabled(false);
 		ui.pushButton_Save->setEnabled(false);
 
 		if (toolboxController->GetCurrentLandmarkIndex() < 1) {
@@ -188,7 +184,6 @@ void PhantomRegistrationToolbox::RefreshToolboxContent()
 
 			ui.pushButton_OpenPhantomDefinition->setEnabled(true);
 			ui.pushButton_OpenStylusCalibration->setEnabled(true);
-			ui.pushButton_Register->setEnabled(true);
 			ui.pushButton_Save->setEnabled(false);
 			ui.pushButton_RecordPoint->setEnabled(false);
 			ui.pushButton_Reset->setEnabled(true);
@@ -198,7 +193,6 @@ void PhantomRegistrationToolbox::RefreshToolboxContent()
 
 			ui.pushButton_OpenPhantomDefinition->setEnabled(true);
 			ui.pushButton_OpenStylusCalibration->setEnabled(true);
-			ui.pushButton_Register->setEnabled(false);
 			ui.pushButton_Save->setEnabled(true);
 			ui.pushButton_RecordPoint->setEnabled(false);
 			ui.pushButton_Reset->setEnabled(true);
@@ -224,7 +218,6 @@ void PhantomRegistrationToolbox::RefreshToolboxContent()
 		ui.pushButton_OpenPhantomDefinition->setEnabled(true);
 		ui.pushButton_OpenStylusCalibration->setEnabled(true);
 		ui.pushButton_RecordPoint->setEnabled(false);
-		ui.pushButton_Register->setEnabled(false);
 		ui.pushButton_Reset->setEnabled(false);
 		ui.pushButton_Save->setEnabled(false);
 		ui.pushButton_Undo->setEnabled(false);
@@ -240,6 +233,8 @@ void PhantomRegistrationToolbox::Stop()
 	LOG_TRACE("PhantomRegistrationToolbox::Stop"); 
 
 	PhantomRegistrationController::GetInstance()->Stop();
+
+  emit SetTabsEnabled(true);
 }
 
 //-----------------------------------------------------------------------------
@@ -348,19 +343,6 @@ void PhantomRegistrationToolbox::ResetClicked()
 	LOG_TRACE("PhantomRegistrationToolbox: Reset button clicked"); 
 
 	PhantomRegistrationController::GetInstance()->Reset();
-
-	emit SetTabsEnabled(true);
-}
-
-//-----------------------------------------------------------------------------
-
-void PhantomRegistrationToolbox::RegisterClicked()
-{
-	LOG_TRACE("PhantomRegistrationToolbox: Register button clicked"); 
-
-  if (PhantomRegistrationController::GetInstance()->Register() != PLUS_SUCCESS) {
-    LOG_ERROR("Phantom registration failed!");
-  }
 
 	emit SetTabsEnabled(true);
 }
