@@ -196,6 +196,13 @@ PlusStatus vtkCalibrationController::AddTrackedFrameData(TrackedFrame* trackedFr
 			this->GetSegmenter()->drawResults( trackedFrame->ImageData->GetBufferPointer() );
 		} 
 
+    // If acquisition was too fast, do not add add this as a valid result
+		if ( this->TrackedFrameListContainer[dataType]->ValidateData(trackedFrame, false, false, false, NULL, true) )
+    {
+			LOG_DEBUG("Aquisition is too fast, the last image was ignored!"); 
+			return PLUS_FAIL; 
+    }
+
 		if( !segResults.GetDotsFound() )
 		{
       if (this->SegmentationProgressCallbackFunction != NULL)
@@ -204,7 +211,7 @@ PlusStatus vtkCalibrationController::AddTrackedFrameData(TrackedFrame* trackedFr
         (*SegmentationProgressCallbackFunction)(percent);
       }
 
-			LOG_DEBUG("The segmentation cannot locate any meaningful targets, the image was ignored!!!"); 
+			LOG_DEBUG("The segmentation cannot locate any meaningful targets, the image was ignored!"); 
 			return PLUS_FAIL; 
 		}
 
