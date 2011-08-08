@@ -225,18 +225,14 @@ PlusStatus vtkFreehandController::SaveConfigurationToFile(const char* aFile)
 {
   LOG_TRACE("vtkFreehandController::SaveConfigurationToFile(" << aFile << ")");
 
-  if ((this->DataCollector == NULL) || (! this->DataCollector->GetInitialized())) {
-		LOG_ERROR("Data collector is not initialized!");
+  if ( this->DataCollector == NULL ) {
+		LOG_ERROR("Data collector is NULL!");
 		return PLUS_FAIL;
 	}
 
-  this->SetConfigurationFileName(aFile);
-
-  this->DataCollector->GetConfigurationData()->PrintXML(this->ConfigurationFileName);
-
-  LOG_INFO("Configuration file '" << this->ConfigurationFileName << "' saved");
-
-  return PLUS_SUCCESS;
+ this->SetConfigurationFileName(aFile);
+  
+ return this->DataCollector->SaveConfigurationToFile(aFile); 
 }
 
 //-----------------------------------------------------------------------------

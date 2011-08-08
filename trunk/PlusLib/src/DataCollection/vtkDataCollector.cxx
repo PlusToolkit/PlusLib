@@ -1921,3 +1921,20 @@ int vtkDataCollector::GetNumberOfTools()
   return ret;
 }
 
+//------------------------------------------------------------------------------
+PlusStatus vtkDataCollector::SaveConfigurationToFile(const char* aFile)
+{
+  if ( aFile == NULL )
+  {
+    LOG_ERROR("Failed to save configuration to file - file name is NULL!"); 
+    return PLUS_FAIL; 
+  }
+
+  LOG_TRACE("vtkDataCollector::SaveConfigurationToFile(" << aFile << ")");
+
+  this->GetConfigurationData()->PrintXML( aFile );
+
+  LOG_INFO("Configuration file '" << aFile << "' saved");
+
+  return PLUS_SUCCESS;
+}
