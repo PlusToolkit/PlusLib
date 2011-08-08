@@ -40,7 +40,7 @@ public:
 	 * \brief Sets tracking only flag and forwards the request to vtkDataCollector
 	 * \return Tracking only flag
 	 */
-	void SetTrackingOnly(bool); 
+	void SetTrackingOnly(bool);
 
 	/*!
 	 * \brief Read configuration file and start data collection

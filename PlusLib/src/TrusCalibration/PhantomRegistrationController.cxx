@@ -65,6 +65,9 @@ PhantomRegistrationController::PhantomRegistrationController()
 	m_LandmarkNames.clear();
 
 	m_PhantomRenderer = vtkRenderer::New();
+  m_PhantomRenderer->SetBackground(0.1, 0.1, 0.1);
+  m_PhantomRenderer->SetBackground2(255/255.0, 235/255.0, 158/255.0);
+  m_PhantomRenderer->SetGradientBackground(true);
 }
 
 //-----------------------------------------------------------------------------
@@ -190,9 +193,6 @@ PlusStatus PhantomRegistrationController::InitializeVisualization()
 		if (vtkFreehandController::GetInstance()->GetCanvas() != NULL) {
 			// Get renderer from freehand controller
 			vtkRenderer* renderer = vtkFreehandController::GetInstance()->GetCanvasRenderer();
-
-			// Initialize toolbox renderer
-			m_PhantomRenderer->SetBackground(0.6, 0.6, 0.6);
 			
 			// Initialize landmark actors
 			m_LandmarksActor = vtkActor::New();
@@ -216,17 +216,20 @@ PlusStatus PhantomRegistrationController::InitializeVisualization()
 
 			// Initialize registered phantom body actor
 			m_RegisteredPhantomBodyActor = vtkActor::New();
+      m_RegisteredPhantomBodyActor->GetProperty()->SetOpacity(0.6);
 			m_RegisteredPhantomBodyActor->VisibilityOff();
 
 			// Add actors
 			renderer->AddActor(m_StylusActor);
 			renderer->AddActor(m_LandmarksActor);
 			renderer->AddActor(m_RegisteredPhantomBodyActor);
+      renderer->SetGradientBackground(true);
 
 			renderer->ResetCamera();
 
 			// Phantom body
 			m_PhantomBodyActor = vtkActor::New();
+      m_PhantomBodyActor->GetProperty()->SetOpacity(0.6);
 
 			// Initialize defined landmark visualization
 			m_RequestedLandmarksActor = vtkActor::New();
@@ -264,6 +267,7 @@ PlusStatus PhantomRegistrationController::InitializeVisualization()
 		renderer->AddActor(m_StylusActor);
 		renderer->AddActor(m_LandmarksActor);
 		renderer->AddActor(m_RegisteredPhantomBodyActor);
+    renderer->SetGradientBackground(true);
 		renderer->Modified();
 
 		m_PhantomRenderer->AddActor(m_PhantomBodyActor);
@@ -479,18 +483,13 @@ PlusStatus PhantomRegistrationController::Register()
 		m_State = ToolboxState_Error;
 		return PLUS_FAIL;
 	}
-	if (m_DefinedLandmarks->GetNumberOfPoints() != recordedLandmarks->GetNumberOfPoints()) {
-		LOG_ERROR("Landmark counts do not match! Registration not possible");
-		m_State = ToolboxState_Error;
-		return PLUS_FAIL;
-	}
 
 	// Create input point vectors
-	int numberOfLandmarks = m_DefinedLandmarks->GetNumberOfPoints();
+	//int numberOfLandmarks = m_DefinedLandmarks->GetNumberOfPoints();
 	std::vector<itk::Point<double,3>> fixedPoints;
 	std::vector<itk::Point<double,3>> movingPoints;
 
-	for (int i=0; i<numberOfLandmarks; ++i) {
+  for (int i=0; i<m_CurrentLandmarkIndex; ++i) {
 		// Defined landmarks from xml are in the phantom coordinate system
 		double* fixedPointArray = m_DefinedLandmarks->GetPoint(i);
 		itk::Point<double,3> fixedPoint(fixedPointArray);
@@ -503,7 +502,7 @@ PlusStatus PhantomRegistrationController::Register()
 		movingPoints.push_back(movingPoint);
 	}
 
-	for (int i=0; i<numberOfLandmarks; ++i) {
+	for (int i=0; i<m_CurrentLandmarkIndex; ++i) {
 		LOG_DEBUG("Phantom point " << i << ": Defined: " << fixedPoints[i] << "  Recorded: " << movingPoints[i]);
 	}
 
@@ -770,6 +769,13 @@ PlusStatus PhantomRegistrationController::DoAcquisition()
 					// Highlight next landmark
 					m_RequestedLandmarkPolyData->GetPoints()->InsertPoint(0, m_DefinedLandmarks->GetPoint(m_CurrentLandmarkIndex));
 					m_RequestedLandmarkPolyData->GetPoints()->Modified();
+
+          // If there are at least 3 acuired points then register
+          if (m_CurrentLandmarkIndex >= 3) {
+            if (this->Register() != PLUS_SUCCESS) {
+              LOG_ERROR("Phantom registration failed!");
+            }
+          }
 				}
 
 				m_RecordRequested = false;

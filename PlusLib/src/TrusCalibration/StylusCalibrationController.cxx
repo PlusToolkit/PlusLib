@@ -227,6 +227,8 @@ PlusStatus StylusCalibrationController::InitializeVisualization()
 
 			// Add actors
 			renderer->AddActor(m_InputActor);
+      renderer->SetGradientBackground(true);
+
       m_InputActor->VisibilityOff();
 		}
 	} else if (vtkFreehandController::GetInstance()->GetCanvas() != NULL) {  // If already initialized (it can occur if tab change - and so clear - happened)
@@ -236,6 +238,7 @@ PlusStatus StylusCalibrationController::InitializeVisualization()
     m_InputActor->VisibilityOff();
 		renderer->AddActor(m_StylusActor);
 		renderer->AddActor(m_StylusTipActor);
+    renderer->SetGradientBackground(true);
 		renderer->Modified();
 	}
 
