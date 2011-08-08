@@ -135,8 +135,9 @@ public:
     }
   }
 
+  //! TODO Description
   bool operator()( TrackedFrame *newFrame )	
-  {		
+  {
     vtkSmartPointer<vtkTransform> baseTransform = vtkSmartPointer<vtkTransform>::New(); 
     double baseTransMatrix[16]={0}; 
     if ( mTrackedFrame->GetCustomFrameTransform(mFrameTransformName.c_str(), baseTransMatrix) )
@@ -282,6 +283,16 @@ public:
   vtkGetMacro(NumberOfUniqueFrames, int); 
 
   //! Operation: 
+  // Set/get the threshold of acceptable speed of position change
+  vtkSetMacro(VelocityPositionThreshold, double); 
+  vtkGetMacro(VelocityPositionThreshold, double); 
+
+  //! Operation: 
+  // Set/get the threshold of acceptable speed of orientation change in degrees
+  vtkSetMacro(VelocityOrientationThreshold, double); 
+  vtkGetMacro(VelocityOrientationThreshold, double); 
+
+  //! Operation: 
   // Get tracked frame size in pixel
   virtual int* GetFrameSize(); 
 
@@ -300,12 +311,16 @@ protected:
   bool ValidateTimestamp(TrackedFrame* trackedFrame); 
   bool ValidateStatus(TrackedFrame* trackedFrame); 
   bool ValidatePosition(TrackedFrame* trackedFrame, const char* frameTransformName); 
+  bool ValidateSpeed(TrackedFrame* trackedFrame);
 
   TrackedFrameListType TrackedFrameList; 
 
-  int MaxNumOfFramesToWrite; 
-  int NumberOfUniqueFrames; 
-  int FrameSize[2]; 
+  int MaxNumOfFramesToWrite;
+  int NumberOfUniqueFrames;
+  int FrameSize[2];
+
+  double VelocityPositionThreshold;
+  double VelocityOrientationThreshold;
 
 private:
   vtkTrackedFrameList(const vtkTrackedFrameList&);
