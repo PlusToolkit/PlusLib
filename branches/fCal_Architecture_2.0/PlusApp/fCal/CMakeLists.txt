@@ -26,6 +26,7 @@ endif (WIN32)
 
 SET (fCal_UI_HDRS
 		FreehandMainWindow.h
+		Toolboxes/AbstractToolbox.h
 		Toolboxes/ConfigurationToolbox.h
 		Toolboxes/ConfigurationController.h
 		Toolboxes/FreehandCalibrationToolbox.h

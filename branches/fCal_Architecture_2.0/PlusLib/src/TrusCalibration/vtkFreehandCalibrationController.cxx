@@ -104,6 +104,7 @@ vtkFreehandCalibrationController::~vtkFreehandCalibrationController()
 	this->SetNeedleActor(NULL);
 	this->SetSegmentedPointsActor(NULL);
 	this->SetSegmentedPointsPolyData(NULL);
+	this->SetImageCamera(NULL);
 	this->SetTransformImageToProbe(NULL);
 
 	if (this->Calibrator != NULL) {

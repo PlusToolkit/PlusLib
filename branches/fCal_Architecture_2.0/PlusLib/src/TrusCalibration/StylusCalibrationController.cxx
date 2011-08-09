@@ -1,6 +1,6 @@
 #include "PlusConfigure.h"
 
-#include "StylusCalibrationController.h"
+#include "StylusCalibrationAlgo.h"
 #include "vtkFreehandController.h"
 
 #include "vtkTrackerTool.h"
@@ -26,49 +26,46 @@
 
 //-----------------------------------------------------------------------------
 
-StylusCalibrationController *StylusCalibrationController::m_Instance = NULL;
+StylusCalibrationAlgo *StylusCalibrationAlgo::m_Instance = NULL;
 
 //-----------------------------------------------------------------------------
 
-StylusCalibrationController* StylusCalibrationController::GetInstance() { // macro-val TODO
+StylusCalibrationAlgo* StylusCalibrationAlgo::GetInstance() { // macro-val TODO
 	if (! m_Instance) {
-		m_Instance = new StylusCalibrationController();
+		m_Instance = new StylusCalibrationAlgo();
 	}
 	return m_Instance;
 }
 
 //-----------------------------------------------------------------------------
 
-StylusCalibrationController::StylusCalibrationController()
+StylusCalibrationAlgo::StylusCalibrationAlgo()
 	:AbstractToolboxController()
 	,m_NumberOfPoints(200)
 	,m_CurrentPointNumber(0)
-	,m_StartingFrame(-1)
 	,m_StylusPortNumber(-1)
 	,m_StylustipToStylusTransform(NULL)
 	,m_CalibrationError(-1.0)
 	,m_InputPolyData(NULL)
-	,m_InputActor(NULL)
 	,m_StylusTipPolyData(NULL)
-	,m_StylusTipActor(NULL)
-	,m_StylusActor(NULL)
 	,m_PositionString("")
 {
 	m_BoundingBox[0] = m_BoundingBox[1] = m_BoundingBox[2] = m_BoundingBox[3] = m_BoundingBox[4] = m_BoundingBox[5] = 0.0;
+
+	// Determine stylus tool port number
+  if (DetermineStylusPortNumber() != PLUS_SUCCESS) {
+    LOG_ERROR("Determining stylus port number failed!");
+    return PLUS_FAIL;
+  }
 }
 
 //-----------------------------------------------------------------------------
 
-StylusCalibrationController::~StylusCalibrationController()
+StylusCalibrationAlgo::~StylusCalibrationAlgo()
 {
 	if (m_StylustipToStylusTransform != NULL) {
 		m_StylustipToStylusTransform->Delete();
 		m_StylustipToStylusTransform = NULL;
-	}
-
-	if (m_InputActor != NULL) {
-		m_InputActor->Delete();
-		m_InputActor = NULL;
 	}
 
 	if (m_InputPolyData != NULL) {
@@ -80,49 +77,13 @@ StylusCalibrationController::~StylusCalibrationController()
 		m_StylusTipPolyData->Delete();
 		m_StylusTipPolyData = NULL;
 	}
-	
-	if (m_StylusTipActor != NULL) {
-		m_StylusTipActor->Delete();
-		m_StylusTipActor = NULL;
-	}
-	
-	if (m_StylusActor != NULL) {
-		m_StylusActor->Delete();
-		m_StylusActor = NULL;
-	}
 }
 
 //-----------------------------------------------------------------------------
-
-PlusStatus StylusCalibrationController::Initialize()
+/*
+PlusStatus StylusCalibrationAlgo::DetermineStylusPortNumber()
 {
-	LOG_TRACE("Initialize StylusCalibrationController");
-
-	// Determine stylus tool port number
-  if (DetermineStylusPortNumber() != PLUS_SUCCESS) {
-    LOG_ERROR("Determining stylus port number failed!");
-    return PLUS_FAIL;
-  }
-
-	// Initialize visualization
-	if (InitializeVisualization() != PLUS_SUCCESS) {
-    LOG_ERROR("Initializing stylus calibration visualization failed!");
-    return PLUS_FAIL;
-  }
-
-	// Set state to idle
-	if (m_State == ToolboxState_Uninitialized) {
-		m_State = ToolboxState_Idle;
-	}
-
-	return PLUS_SUCCESS;
-}
-
-//-----------------------------------------------------------------------------
-
-PlusStatus StylusCalibrationController::DetermineStylusPortNumber()
-{
-	LOG_TRACE("StylusCalibrationController::DetermineStylusPortNumber");
+	LOG_TRACE("StylusCalibrationAlgo::DetermineStylusPortNumber");
 
 	vtkFreehandController* controller = vtkFreehandController::GetInstance();
 	if (controller == NULL) {
@@ -157,9 +118,9 @@ PlusStatus StylusCalibrationController::DetermineStylusPortNumber()
 
 //-----------------------------------------------------------------------------
 
-PlusStatus StylusCalibrationController::InitializeVisualization()
+PlusStatus StylusCalibrationAlgo::InitializeVisualization()
 {
-	LOG_TRACE("StylusCalibrationController::InitializeVisualization");
+	LOG_TRACE("StylusCalibrationAlgo::InitializeVisualization");
 
 	if (m_State == ToolboxState_Uninitialized) {
 		// Initialize input poly data
@@ -214,16 +175,14 @@ PlusStatus StylusCalibrationController::InitializeVisualization()
       }
 
 			// Axes actor
-			/*
-			vtkSmartPointer<vtkAxesActor> axesActor = vtkSmartPointer<vtkAxesActor>::New();
-			axesActor->SetShaftTypeToCylinder();
-			axesActor->SetXAxisLabelText("X");
-			axesActor->SetYAxisLabelText("Y");
-			axesActor->SetZAxisLabelText("Z");
-			axesActor->SetAxisLabels(0);
-			axesActor->SetTotalLength(50, 50, 50);
-			renderer->AddActor(axesActor);
-			*/
+			//vtkSmartPointer<vtkAxesActor> axesActor = vtkSmartPointer<vtkAxesActor>::New();
+			//axesActor->SetShaftTypeToCylinder();
+			//axesActor->SetXAxisLabelText("X");
+			//axesActor->SetYAxisLabelText("Y");
+			//axesActor->SetZAxisLabelText("Z");
+			//axesActor->SetAxisLabels(0);
+			//axesActor->SetTotalLength(50, 50, 50);
+			//renderer->AddActor(axesActor);
 
 			// Add actors
 			renderer->AddActor(m_InputActor);
@@ -244,74 +203,45 @@ PlusStatus StylusCalibrationController::InitializeVisualization()
 
   return PLUS_SUCCESS;
 }
-
+*/
 //-----------------------------------------------------------------------------
 
-PlusStatus StylusCalibrationController::Clear()
-{
-	LOG_TRACE("StylusCalibrationController::Clear");
-
-	// Remove all actors from the renderer
-	vtkRenderer* renderer = vtkFreehandController::GetInstance()->GetCanvasRenderer();
-	renderer->RemoveActor(m_InputActor);
-	renderer->RemoveActor(m_StylusActor);
-	renderer->RemoveActor(m_StylusTipActor);
-	renderer->Modified();
-
-	m_Toolbox->Clear();
-
-	return PLUS_SUCCESS;
-}
-
-//-----------------------------------------------------------------------------
-
-int StylusCalibrationController::GetNumberOfPoints() {
-	LOG_TRACE("StylusCalibrationController::GetNumberOfPoints");
+int StylusCalibrationAlgo::GetNumberOfPoints() {
+	LOG_TRACE("StylusCalibrationAlgo::GetNumberOfPoints");
 
 	return m_NumberOfPoints;
 }
 
 //-----------------------------------------------------------------------------
 
-void StylusCalibrationController::SetNumberOfPoints(int aNumOfPoints) {
-	LOG_TRACE("StylusCalibrationController::SetNumberOfPoints(" << aNumOfPoints << ")");
+void StylusCalibrationAlgo::SetNumberOfPoints(int aNumOfPoints) {
+	LOG_TRACE("StylusCalibrationAlgo::SetNumberOfPoints(" << aNumOfPoints << ")");
 
 	m_NumberOfPoints = aNumOfPoints;
 }
 
 //-----------------------------------------------------------------------------
 
-int StylusCalibrationController::GetCurrentPointNumber() {
-	LOG_TRACE("StylusCalibrationController::GetCurrentPointNumber");
+int StylusCalibrationAlgo::GetCurrentPointNumber() {
+	LOG_TRACE("StylusCalibrationAlgo::GetCurrentPointNumber");
 
 	return m_CurrentPointNumber;
 }
 
-//-----------------------------------------------------------------------------
-
-int StylusCalibrationController::GetStylusPortNumber() {
-	LOG_TRACE("StylusCalibrationController::GetStylusPortNumber");
-
-	if (m_StylusPortNumber < 0) {
-		DetermineStylusPortNumber();
-	}
-
-	return m_StylusPortNumber;
-}
 
 //-----------------------------------------------------------------------------
 
-double StylusCalibrationController::GetPrecision() {
-	LOG_TRACE("StylusCalibrationController::GetPrecision");
+double StylusCalibrationAlgo::GetPrecision() {
+	LOG_TRACE("StylusCalibrationAlgo::GetPrecision");
 
 	return m_CalibrationError;
 }
 
 //-----------------------------------------------------------------------------
 
-std::string StylusCalibrationController::GetBoundingBoxString()
+std::string StylusCalibrationAlgo::GetBoundingBoxString()
 {
-	//LOG_TRACE("StylusCalibrationController::GetBoundingBoxString");
+	//LOG_TRACE("StylusCalibrationAlgo::GetBoundingBoxString");
 
 	char boundingBoxChars[32];
 	sprintf_s(boundingBoxChars, 32, "%.1lf X %.1lf X %.1lf", m_BoundingBox[1]-m_BoundingBox[0], m_BoundingBox[3]-m_BoundingBox[2], m_BoundingBox[5]-m_BoundingBox[4]);
@@ -322,18 +252,18 @@ std::string StylusCalibrationController::GetBoundingBoxString()
 
 //-----------------------------------------------------------------------------
 
-vtkTransform* StylusCalibrationController::GetStylustipToStylusTransform()
+vtkTransform* StylusCalibrationAlgo::GetStylustipToStylusTransform()
 {
-	LOG_TRACE("StylusCalibrationController::GetStylustipToStylusTransform");
+	LOG_TRACE("StylusCalibrationAlgo::GetStylustipToStylusTransform");
 
 	return m_StylustipToStylusTransform;
 }
 
 //-----------------------------------------------------------------------------
 
-std::string StylusCalibrationController::GetStylustipToStylusTransformString()
+std::string StylusCalibrationAlgo::GetStylustipToStylusTransformString()
 {
-	//LOG_TRACE("StylusCalibrationController::GetStylustipToStylusTransformString");
+	//LOG_TRACE("StylusCalibrationAlgo::GetStylustipToStylusTransformString");
 
 	vtkSmartPointer<vtkMatrix4x4> transform = vtkSmartPointer<vtkMatrix4x4>::New();
 	m_StylustipToStylusTransform->GetMatrix(transform);
@@ -347,165 +277,18 @@ std::string StylusCalibrationController::GetStylustipToStylusTransformString()
 
 //-----------------------------------------------------------------------------
 
-std::string StylusCalibrationController::GetPositionString()
+std::string StylusCalibrationAlgo::GetPositionString()
 {
-	//LOG_TRACE("StylusCalibrationController::GetPositionString");
+	//LOG_TRACE("StylusCalibrationAlgo::GetPositionString");
 
 	return m_PositionString;
 }
 
 //-----------------------------------------------------------------------------
-
-vtkSmartPointer<vtkMatrix4x4> StylusCalibrationController::AcquireStylusTrackerPosition(double aPosition[4], bool aReference)
+/*
+void StylusCalibrationAlgo::DisplayStylus()
 {
-	//LOG_TRACE("StylusCalibrationController::AcquireStylusTrackerPosition");
-
-	vtkFreehandController* controller = vtkFreehandController::GetInstance();
-	if (controller == NULL) {
-		LOG_ERROR("vtkFreehandController is invalid");
-		return NULL;
-	}
-	if (controller->GetInitialized() == false) {
-		LOG_ERROR("vtkFreehandController is not initialized!");
-		return NULL;
-	}
-	vtkDataCollector* dataCollector = controller->GetDataCollector();
-	if (dataCollector == NULL) {
-		LOG_ERROR("Data collector is not initialized!");
-		return NULL;
-	}
-	if (dataCollector->GetTracker() == NULL) {
-		LOG_ERROR("Tracker is invalid!");
-		return NULL;
-	}
-
-	vtkSmartPointer<vtkMatrix4x4> transformMatrix = NULL; // stylus to reference tool transform
-	TrackerStatus status = TR_MISSING;
-	double timestamp;
-	unsigned int toolNumber;
-	if (aReference) {
-		toolNumber = dataCollector->GetTracker()->GetReferenceToolNumber();
-	} else {
-		toolNumber = m_StylusPortNumber;
-	}
-
-	if (dataCollector->GetTracker()->GetTool(toolNumber)->GetEnabled()) {
-		transformMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
-		dataCollector->GetTransformWithTimestamp(transformMatrix, timestamp, status, toolNumber); 
-	}
-
-	if (status == TR_MISSING || status == TR_OUT_OF_VIEW ) {
-		LOG_DEBUG("Tracker out of view!");
-		m_PositionString = std::string("Tracker out of view!");
-		return NULL;
-	} else if (status == TR_REQ_TIMEOUT ) {
-		LOG_WARNING("Tracker request timeout!");
-		m_PositionString = std::string("Tracker request timeout!");
-		return NULL;
-	} else if (aPosition != NULL) { // TR_OK
-		// Compute the new position
-		double elements[16]; //TODO find other way
-		for (int i=0; i<4; ++i) for (int j=0; j<4; ++j) elements[4*j+i] = transformMatrix->GetElement(i,j);
-		double origin[4] = {0.0, 0.0, 0.0, 1.0};
-
-		vtkMatrix4x4::PointMultiply(elements, origin, aPosition);
-
-		// Assemble position string for toolbox
-		char stylusPositionChars[32];
-
-		sprintf_s(stylusPositionChars, 32, "%.1lf X %.1lf X %.1lf", aPosition[0], aPosition[1], aPosition[2]);
-		m_PositionString = std::string(stylusPositionChars);
-	}
-
-	return transformMatrix;
-}
-
-//-----------------------------------------------------------------------------
-
-PlusStatus StylusCalibrationController::DoAcquisition()
-{
-	//LOG_TRACE("StylusCalibrationController::DoAcquisition");
-
-	if (m_State == ToolboxState_InProgress) {
-		LOG_DEBUG("StylusCalibrationController: Acquire positions for stylus calibration"); 
-
-		vtkDataCollector* dataCollector = vtkFreehandController::GetInstance()->GetDataCollector();
-		if (dataCollector == NULL) {
-			LOG_ERROR("Data collector is not initialized");
-			return PLUS_FAIL;
-		}
-		if (dataCollector->GetTracker() == NULL) {
-			LOG_ERROR("Tracker is invalid");
-			return PLUS_FAIL;
-		}
-
-		double stylusPosition[4];
-
-		if (AcquireStylusTrackerPosition(stylusPosition)) {
-			vtkPoints* points = m_InputPolyData->GetPoints();
-			
-			double distance_lowThreshold_mm = 3.0; // TODO review this threshold with the guys
-			double distance_highThreshold_mm = 1000.0;
-			double distance = -1.0;
-			if (m_CurrentPointNumber < 1) {
-				distance = (distance_lowThreshold_mm + distance_highThreshold_mm) / 2.0;
-			} else {
-				double previousPosition[4];
-				points->GetPoint(m_CurrentPointNumber-1, previousPosition);
-				previousPosition[3] = 1.0;
-				// Square distance
-				distance = vtkMath::Distance2BetweenPoints(stylusPosition, previousPosition);
-			}
-
-			// If current point is close to the previous one, or too far (outlier), we do not insert it
-			if (distance < distance_lowThreshold_mm * distance_lowThreshold_mm) {
-				LOG_DEBUG("Acquired position is too close to the previous - it is skipped");
-			} else if (distance > distance_highThreshold_mm * distance_highThreshold_mm) {
-				LOG_DEBUG("Acquired position seems to be an outlier - it is skipped");
-			} else {
-				// Add the point into the calibration dataset
-				dataCollector->GetTracker()->GetTool(m_StylusPortNumber)->InsertNextCalibrationPoint();
-
-				// Add to polydata for rendering and re-compute bounding box
-				points->InsertPoint(m_CurrentPointNumber, stylusPosition[0], stylusPosition[1], stylusPosition[2]);
-				points->Modified();
-				points->ComputeBounds();
-				points->GetBounds(m_BoundingBox);
-
-				// Set new current point number
-				++m_CurrentPointNumber;
-
-				// Reset the camera once in a while
-				if ((m_CurrentPointNumber > 0) && ((m_CurrentPointNumber % 10 == 0) || (m_CurrentPointNumber == 5)) && (vtkFreehandController::GetInstance()->GetCanvas() != NULL)) {
-					vtkFreehandController::GetInstance()->GetCanvasRenderer()->ResetCamera();
-				}
-
-        // If enough points have been acquired, stop
-				if (m_CurrentPointNumber >= m_NumberOfPoints) {
-					if (m_Toolbox) {
-						m_Toolbox->Stop();
-					} else {
-						Stop();
-					}
-					if (vtkFreehandController::GetInstance()->GetCanvas() != NULL) {
-						DisplayStylus();
-						vtkFreehandController::GetInstance()->GetCanvasRenderer()->ResetCamera();
-					}
-				}
-			}
-		}
-	} else if ((m_State == ToolboxState_Done) && (vtkFreehandController::GetInstance()->GetCanvas() != NULL)) {
-		DisplayStylus();
-	}
-  
-	return PLUS_SUCCESS;
-}
-
-//-----------------------------------------------------------------------------
-
-void StylusCalibrationController::DisplayStylus()
-{
-	LOG_TRACE("StylusCalibrationController::DisplayStylus");
+	LOG_TRACE("StylusCalibrationAlgo::DisplayStylus");
 
 	vtkDataCollector* dataCollector = vtkFreehandController::GetInstance()->GetDataCollector();
 	if (dataCollector == NULL) {
@@ -541,86 +324,12 @@ void StylusCalibrationController::DisplayStylus()
 		m_StylusActor->GetProperty()->SetColor(1.0, 0.0, 0.0);
 	}
 }
-
+*/
 //-----------------------------------------------------------------------------
 
-PlusStatus StylusCalibrationController::Start()
+PlusStatus StylusCalibrationAlgo::LoadStylusCalibrationFromFile(std::string aFile)
 {
-	LOG_TRACE("StylusCalibrationController::Start");
-
-	vtkFreehandController* controller = vtkFreehandController::GetInstance();
-	if (controller == NULL) {
-		LOG_ERROR("vtkFreehandController is invalid");
-		return PLUS_FAIL;
-	}
-	if (controller->GetInitialized() == false) {
-		LOG_ERROR("vtkFreehandController is not initialized");
-		return PLUS_FAIL;
-	}
-	vtkDataCollector* dataCollector = controller->GetDataCollector();
-	if (dataCollector == NULL) {
-		LOG_ERROR("Data collector is not initialized");
-		return PLUS_FAIL;
-	}
-	if (dataCollector->GetTracker() == NULL) {
-		LOG_ERROR("Tracker is invalid");
-		return PLUS_FAIL;
-	}
-
-	m_CurrentPointNumber = 0;
-
-	// Initialize tracker tool
-	dataCollector->GetTracker()->GetTool(m_StylusPortNumber)->GetBuffer()->Clear();
-	dataCollector->GetTracker()->GetTool(m_StylusPortNumber)->InitializeToolTipCalibration();
-
-	vtkSmartPointer<vtkTransform> initialTransform = vtkSmartPointer<vtkTransform>::New();
-	initialTransform->Identity();
-	dataCollector->GetTracker()->GetTool(m_StylusPortNumber)->SetCalibrationMatrix(initialTransform->GetMatrix());
-
-	// Reset polydatas (make it look like empty)
-	m_InputPolyData->GetPoints()->Reset();
-	m_StylusTipPolyData->GetPoints()->Reset();
-
-  // Show input points
-  if (m_InputActor != NULL) {
-    m_InputActor->VisibilityOn();
-  }
-
-	// Remove stylus tip actor
-	controller->GetCanvasRenderer()->RemoveActor(m_StylusTipActor);
-	controller->GetCanvasRenderer()->RemoveActor(m_StylusActor);
-
-	// Set state to in progress
-	m_State = ToolboxState_InProgress;
-
-	return PLUS_SUCCESS;
-}
-
-//-----------------------------------------------------------------------------
-
-PlusStatus StylusCalibrationController::Stop()
-{
-	LOG_TRACE("StylusCalibrationController::Stop");
-
-	bool success = CalibrateStylus();
-
-	if (success) {
-		LOG_INFO("Stylus calibration successful");
-		m_State = ToolboxState_Done;
-	} else {
-		LOG_ERROR("Stylus calibration failed!");
-		m_CurrentPointNumber = 0;
-		m_State = ToolboxState_Error;
-	}
-  
-	return PLUS_SUCCESS;
-}
-
-//-----------------------------------------------------------------------------
-
-PlusStatus StylusCalibrationController::LoadStylusCalibrationFromFile(std::string aFile)
-{
-	LOG_TRACE("StylusCalibrationController::LoadStylusCalibrationFromFile(" << aFile << ")");
+	LOG_TRACE("StylusCalibrationAlgo::LoadStylusCalibrationFromFile(" << aFile << ")");
 
 	vtkSmartPointer<vtkXMLDataElement> rootElement = vtkXMLUtilities::ReadElementFromFile(aFile.c_str());
 	if (rootElement == NULL) {	
@@ -633,9 +342,9 @@ PlusStatus StylusCalibrationController::LoadStylusCalibrationFromFile(std::strin
 
 //-----------------------------------------------------------------------------
 
-PlusStatus StylusCalibrationController::LoadStylusCalibration(vtkXMLDataElement* aConfig)
+PlusStatus StylusCalibrationAlgo::LoadStylusCalibration(vtkXMLDataElement* aConfig)
 {
-	LOG_TRACE("StylusCalibrationController::LoadStylusCalibration");
+	LOG_TRACE("StylusCalibrationAlgo::LoadStylusCalibration");
 
 	// Find stylus definition element
 	char* toolType = NULL;
@@ -697,9 +406,9 @@ PlusStatus StylusCalibrationController::LoadStylusCalibration(vtkXMLDataElement*
 
 //-----------------------------------------------------------------------------
 
-PlusStatus StylusCalibrationController::SaveStylusCalibrationToFile(std::string aFile)
+PlusStatus StylusCalibrationAlgo::SaveStylusCalibrationToFile(std::string aFile)
 {
-	LOG_TRACE("StylusCalibrationController::SaveStylusCalibrationToFile(" << aFile << ")");
+	LOG_TRACE("StylusCalibrationAlgo::SaveStylusCalibrationToFile(" << aFile << ")");
 
 	vtkSmartPointer<vtkXMLDataElement> rootElement = NULL;
 	if ((rootElement = vtkFreehandController::ParseXMLOrFillWithInternalData(aFile.c_str())) == NULL) {
@@ -719,9 +428,9 @@ PlusStatus StylusCalibrationController::SaveStylusCalibrationToFile(std::string 
 
 //-----------------------------------------------------------------------------
 
-PlusStatus StylusCalibrationController::SaveStylusCalibration(vtkXMLDataElement* aConfig)
+PlusStatus StylusCalibrationAlgo::SaveStylusCalibration(vtkXMLDataElement* aConfig)
 {
-	LOG_TRACE("StylusCalibrationController::SaveStylusCalibration");
+	LOG_TRACE("StylusCalibrationAlgo::SaveStylusCalibration");
 
 	// Find stylus definition element
 	char* toolType = NULL;
@@ -755,9 +464,9 @@ PlusStatus StylusCalibrationController::SaveStylusCalibration(vtkXMLDataElement*
 
 //-----------------------------------------------------------------------------
 
-PlusStatus StylusCalibrationController::CalibrateStylus()
+PlusStatus StylusCalibrationAlgo::CalibrateStylus()
 {
-	LOG_TRACE("StylusCalibrationController::CalibrateStylus");
+	LOG_TRACE("StylusCalibrationAlgo::CalibrateStylus");
 
 	vtkDataCollector* dataCollector = vtkFreehandController::GetInstance()->GetDataCollector();
 	if (dataCollector == NULL) {
@@ -818,9 +527,9 @@ PlusStatus StylusCalibrationController::CalibrateStylus()
 
 //-----------------------------------------------------------------------------
 
-PlusStatus StylusCalibrationController::FeedStylusCalibrationMatrixToTool()
+PlusStatus StylusCalibrationAlgo::FeedStylusCalibrationMatrixToTool()
 {
-	LOG_TRACE("StylusCalibrationController::FeedStylusCalibrationMatrixToTool");
+	LOG_TRACE("StylusCalibrationAlgo::FeedStylusCalibrationMatrixToTool");
 
 	vtkDataCollector* dataCollector = vtkFreehandController::GetInstance()->GetDataCollector();
 	if (dataCollector == NULL) {
@@ -836,106 +545,6 @@ PlusStatus StylusCalibrationController::FeedStylusCalibrationMatrixToTool()
 	// If translation values are 0 (no calibration)
 	if ((stylusToStylusTipTransformMatrix == NULL) || ((stylusToStylusTipTransformMatrix->GetElement(0,3) == 0.0) && (stylusToStylusTipTransformMatrix->GetElement(1,3) == 0.0) && (stylusToStylusTipTransformMatrix->GetElement(2,3) == 0.0)) ) {
 		dataCollector->GetTracker()->GetTool(m_StylusPortNumber)->SetCalibrationMatrix(m_StylustipToStylusTransform->GetMatrix());		
-	}
-
-	return PLUS_SUCCESS;
-}
-
-//-----------------------------------------------------------------------------
-
-PlusStatus StylusCalibrationController::LoadStylusModel(vtkActor* aActor)
-{
-	LOG_TRACE("StylusCalibrationController::FeedStylusCalibrationMatrixToTool");
-
-	vtkDataCollector* dataCollector = vtkFreehandController::GetInstance()->GetDataCollector();
-	if (dataCollector == NULL) {
-		LOG_ERROR("Data collector is not initialized!");
-		return PLUS_FAIL;
-	}
-	if (dataCollector->GetTracker() == NULL) {
-		LOG_ERROR("Tracker is not initialized properly!");
-		return PLUS_FAIL;
-	}
-	if (m_StylusPortNumber < 0) {
-    if (DetermineStylusPortNumber() != PLUS_SUCCESS) {
-      LOG_ERROR("Unable to determine stylus port number!");
-      return PLUS_FAIL;
-    }
-	}
-	vtkTrackerTool *tool = dataCollector->GetTracker()->GetTool(m_StylusPortNumber);
-	if ((tool == NULL) || (!tool->GetEnabled())) {
-		return PLUS_FAIL;
-	}
-
-	if (aActor == NULL) {
-		aActor = m_StylusActor;
-	}
-
-	std::string modelFileName = tool->GetTool3DModelFileName();
-
-	std::string searchResult = "";
-	if ((modelFileName != "") && (STRCASECMP(vtkFileFinder::GetInstance()->GetConfigurationDirectory(), "") != 0)) {
-		searchResult = vtkFileFinder::GetFirstFileFoundInConfigurationDirectory(modelFileName.c_str());
-	}
-
-	if (searchResult != "") {
-		// Load model and transform it to the tool reference (stylus) coordinate system
-		vtkSmartPointer<vtkSTLReader> stlReader = vtkSmartPointer<vtkSTLReader>::New();
-		stlReader->SetFileName(searchResult.c_str());
-
-		// TODO Try to use this filter instead of always setting all these transforms on every acquisition
-		//vtkSmartPointer<vtkTransform> stylusModelToStylusReferenceTransform = vtkSmartPointer<vtkTransform>::New();
-		//stylusModelToStylusReferenceTransform->Identity();
-		//stylusModelToStylusReferenceTransform->Concatenate(tool->GetToolToToolReferenceTransform());
-		//stylusModelToStylusReferenceTransform->Concatenate(tool->GetModelToToolTransform());
-		//stylusModelToStylusReferenceTransform->Modified();
-
-		//vtkSmartPointer<vtkTransformPolyDataFilter> stylusModelToStylusReferenceTransformFilter = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
-		//stylusModelToStylusReferenceTransformFilter->AddInputConnection(stlReader->GetOutputPort());
-		//stylusModelToStylusReferenceTransformFilter->SetTransform(stylusModelToStylusReferenceTransform);
-
-		vtkSmartPointer<vtkPolyDataMapper> stylusMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-		//stylusMapper->SetInputConnection(stylusModelToStylusReferenceTransformFilter->GetOutputPort());
-		stylusMapper->SetInputConnection(stlReader->GetOutputPort());
-		aActor->SetMapper(stylusMapper);
-		aActor->GetProperty()->SetColor(0.0, 0.0, 0.0);
-
-	} else {
-		// Create default model
-		vtkSmartPointer<vtkPolyDataMapper> stylusMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-		vtkSmartPointer<vtkCylinderSource> stylusBigCylinderSource = vtkSmartPointer<vtkCylinderSource>::New();
-		stylusBigCylinderSource->SetRadius(3.0); // mm
-		stylusBigCylinderSource->SetHeight(120.0); // mm
-		stylusBigCylinderSource->SetCenter(0.0, 150.0, 0.0);
-		vtkSmartPointer<vtkCylinderSource> stylusSmallCylinderSource = vtkSmartPointer<vtkCylinderSource>::New();
-		stylusSmallCylinderSource->SetRadius(1.5); // mm
-		stylusSmallCylinderSource->SetHeight(80.0); // mm
-		stylusSmallCylinderSource->SetCenter(0.0, 50.0, 0.0);
-		vtkSmartPointer<vtkConeSource> stylusTipConeSource = vtkSmartPointer<vtkConeSource>::New();
-		stylusTipConeSource->SetRadius(1.5); // mm
-		stylusTipConeSource->SetHeight(10.0); //mm
-		vtkSmartPointer<vtkTransform> coneTransform = vtkSmartPointer<vtkTransform>::New();
-		coneTransform->Identity();
-		coneTransform->RotateZ(-90.0);
-		coneTransform->Translate(-5.0, 0.0, 0.0);
-		vtkSmartPointer<vtkTransformPolyDataFilter> coneTransformFilter = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
-		coneTransformFilter->AddInputConnection(stylusTipConeSource->GetOutputPort());
-		coneTransformFilter->SetTransform(coneTransform);
-
-		vtkSmartPointer<vtkAppendPolyData> appendFilter = vtkSmartPointer<vtkAppendPolyData>::New();
-		appendFilter->AddInputConnection(stylusBigCylinderSource->GetOutputPort());
-		appendFilter->AddInputConnection(stylusSmallCylinderSource->GetOutputPort());
-		appendFilter->AddInputConnection(coneTransformFilter->GetOutputPort());
-		vtkSmartPointer<vtkTransform> stylusTransform = vtkSmartPointer<vtkTransform>::New();
-		stylusTransform->Identity();
-		stylusTransform->RotateZ(90.0);
-		vtkSmartPointer<vtkTransformPolyDataFilter> stylusTransformFilter = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
-		stylusTransformFilter->AddInputConnection(appendFilter->GetOutputPort());
-		stylusTransformFilter->SetTransform(stylusTransform);
-
-		stylusMapper->SetInputConnection(stylusTransformFilter->GetOutputPort());
-		aActor->SetMapper(stylusMapper);
-		aActor->GetProperty()->SetColor(0.0, 0.0, 0.0);
 	}
 
 	return PLUS_SUCCESS;

@@ -1,11 +1,10 @@
-#ifndef __vtkFreehandController_h
-#define __vtkFreehandController_h
+#ifndef __vtkFCalController_h
+#define __vtkFCalController_h
 
 #include "PlusConfigure.h"
 
 #include "vtkObject.h"
 #include "vtkDataCollector.h"
-#include "vtkRenderer.h"
 
 class vtkTrackedFrameList;
 class QVTKWidget;
@@ -16,39 +15,30 @@ class vtkXMLDataElement;
 /*!
 * \brief Controller of the freehand calibration application
 */
-class vtkFreehandController : public vtkObject
+class vtkFCalController : public vtkObject
 {
 public:
 	/*!
 	* \brief New
 	*/
-	static vtkFreehandController *New();
+	static vtkFCalController *New();
 
-	/*!
-	* \brief Instance getter for the singleton class
-	* \return Instance object
-	*/
-	static vtkFreehandController* GetInstance();
+	vtkTypeRevisionMacro(vtkFCalController, vtkObject);
+	virtual void PrintSelf(ostream& os, vtkIndent indent); 
 
 public:
 	/*!
-	* \brief Initialize object, connect to devices, load configuration
-	*/
-	PlusStatus Initialize();
-
-	/*!
-	 * \brief Sets tracking only flag and forwards the request to vtkDataCollector
-	 * \return Tracking only flag
+   * \brief Initialize
 	 */
-	void SetTrackingOnly(bool);
+	PlusStatus Initialize();
 
 	/*!
 	 * \brief Read configuration file and start data collection
 	 * \return Success flag
 	 */
-	PlusStatus StartDataCollection();
+	PlusStatus InitializeDataCollection();
 
-	/*!
+  /*!
 	 * \brief Assembles a filename that is the same as the input file name, only with the current date and time in the end (for saving to a new file)
 	 * \return New configuration file nname
 	 */
@@ -86,11 +76,16 @@ public:
 	 */
   PlusStatus DumpBuffersToDirectory(const char* aDirectory);
 
-public:
-	// Set/Get functions for canvas
-	QVTKWidget* GetCanvas() { return this->Canvas; };
-	void SetCanvas(QVTKWidget* aCanvas) { this->Canvas = aCanvas; };
+	/*!
+	* \brief Locates and sets directory paths to freehand controller
+	 * \return Success flag
+	*/
+  PlusStatus LocateDirectories();
 
+  //TODO
+  PlusStatus StartStylusCalibration();
+
+public:
   // Get function for vtkDataCollector's ConfigurationData
   vtkXMLDataElement* GetConfigurationData();
 
@@ -98,9 +93,6 @@ public:
 	vtkSetMacro(Initialized, bool); 
 	vtkGetMacro(Initialized, bool); 
 	vtkBooleanMacro(Initialized, bool); 
-
-	vtkGetMacro(TrackingOnly, bool); 
-	vtkBooleanMacro(TrackingOnly, bool); 
 
 	vtkSetMacro(RecordingFrameRate, int); 
 	vtkGetMacro(RecordingFrameRate, int); 
@@ -113,9 +105,6 @@ public:
 
 	vtkGetObjectMacro(DataCollector, vtkDataCollector); 
 	vtkSetObjectMacro(DataCollector, vtkDataCollector); 
-
-	vtkGetObjectMacro(CanvasRenderer, vtkRenderer);
-	vtkSetObjectMacro(CanvasRenderer, vtkRenderer);
 
 protected:
 	/*!
@@ -133,29 +122,22 @@ protected:
 	vtkDataCollector*	DataCollector;
 
 	//! Initialization flag
-	bool							Initialized;
-
-	//! Flag determining if there is image recording beside tracker recording
-	bool							TrackingOnly;
+	bool							        Initialized;
 
 	//! Desired frame rate of synchronized recording
-	int								RecordingFrameRate;
+	int							          RecordingFrameRate;
 
 	//! Used configuration file name
-	char*							ConfigurationFileName;
+	char*						          ConfigurationFileName;
 
 	//! Output folder
-	char*							OutputFolder;
+	char*						          OutputFolder;
 
-	//! Canvas object for real-time 3D visualization
-	QVTKWidget*				Canvas;
+  //TODO
+  StylusCalibrationAlgo*    StylusCalibrationAlgo;
+  PhantomRegistrationAlgo*  PhantomRegistrationAlgo;
+  vtkFreehandCalibrationController*    FreehandCalibrationController; //TODO make this an algo (along with the other calibration controllers) (and the base class thing)
 
-	//! Renderer for the canvas
-	vtkRenderer*			CanvasRenderer; 
-
-private:
-	//! Instance of the singleton
-	static vtkFreehandController*	Instance;
 };
 
 #endif

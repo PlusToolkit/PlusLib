@@ -58,7 +58,7 @@ int main (int argc, char* argv[])
 	controller->SetConfigurationFileName(inputConfigFileName.c_str());
 	controller->TrackingOnlyOn();
 
-	if (controller->Initialize() != PLUS_SUCCESS) {
+	if (controller->Initialize(false) != PLUS_SUCCESS) {
 		LOG_ERROR("Initialize failed!");
 		return EXIT_FAILURE;
 	}

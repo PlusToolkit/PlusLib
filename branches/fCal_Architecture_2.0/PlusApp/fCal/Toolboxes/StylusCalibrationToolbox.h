@@ -22,7 +22,7 @@ public:
 	* \param aParent parent
 	* \param aFlags widget flag
 	*/
-	StylusCalibrationToolbox(QWidget* aParent = 0, Qt::WFlags aFlags = 0);
+	StylusCalibrationToolbox(vtkFCalVisualizer* aVisualizer, QWidget* aParent = 0, Qt::WFlags aFlags = 0);
 
 	/*!
 	* \brief Destructor

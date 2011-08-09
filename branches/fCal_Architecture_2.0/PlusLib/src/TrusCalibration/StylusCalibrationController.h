@@ -1,28 +1,19 @@
-#ifndef STYLUSCALIBRATIONCONTROLLER_H
-#define STYLUSCALIBRATIONCONTROLLER_H
-
-#include "AbstractToolboxController.h"
+#ifndef STYLUSCALIBRATIONALGO_H
+#define STYLUSCALIBRATIONALGO_H
 
 class vtkTransform;
 class vtkMatrix4x4;
 class vtkPolyData;
-class vtkActor;
 class vtkXMLDataElement;
 
 //-----------------------------------------------------------------------------
 
 /*!
-* \brief Control operations for stylus calibration toolbox - singleton class
+* \brief Algorithm class for stylus calibration
 */
-class StylusCalibrationController : public AbstractToolboxController
+class StylusCalibrationAlgo
 {
 public:
-	/*!
-	* \brief Instance getter for the singleton class
-	* \return Instance object
-	*/
-	static StylusCalibrationController* GetInstance();
-
 	/*!
 	* \brief Destructor
 	*/

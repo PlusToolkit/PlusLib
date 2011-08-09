@@ -5,22 +5,12 @@
 
 #include <QtGui/QMainWindow>
 
+#include "vtkFreehandController.h"
+
 class AbstractToolboxController;
 class QLabel;
 class QProgressBar;
 class QTimer;
-
-//-----------------------------------------------------------------------------
-
-enum ToolboxType
-{
-	ToolboxType_Undefined = -1,
-	ToolboxType_Configuration,
-	ToolboxType_StylusCalibration,
-	ToolboxType_PhantomRegistration,
-	ToolboxType_FreehandCalibration,
-	ToolboxType_VolumeReconstruction
-};
 
 //-----------------------------------------------------------------------------
 
@@ -72,18 +62,6 @@ protected:
 	*/
 	void SetupCanvas();
 
-	/*!
-	* \brief Get toolbox controller pointer by the type identifier
-	* \param aType Toolbox type (ToolboxType enum)
-	* \return Toolbox controller pointer as abstract toolbox controller
-	*/
-	AbstractToolboxController* GetToolboxControllerByType(ToolboxType aType);
-
-	/*!
-	* \brief Locates and sets directory paths to freehand controller
-	*/
-	void LocateDirectories();
-
 protected slots:
 	/*!
 	* \brief Handle tab change
@@ -111,9 +89,6 @@ protected:
 
 	//! Index of locked (current) tab if tabbing is disabled
 	int							m_LockedTabIndex;
-
-	//! Active toolbox identifier
-	ToolboxType			m_ActiveToolbox;
 
   //! Timer that refreshes the UI
   QTimer*         m_UiRefreshTimer;

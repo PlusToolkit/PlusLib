@@ -1,6 +1,19 @@
 #ifndef ABSTRACTTOOLBOX_H
 #define ABSTRACTTOOLBOX_H
 
+class vtkFCalVisualizer;
+
+//-----------------------------------------------------------------------------
+
+enum ToolboxState
+{
+	ToolboxState_Uninitialized = 0,
+	ToolboxState_Idle,
+	ToolboxState_InProgress,
+	ToolboxState_Done,
+	ToolboxState_Error
+};
+
 //-----------------------------------------------------------------------------
 
 /*!
@@ -22,22 +35,28 @@ public:
 	/*!
 	* \brief Refresh contents (e.g. GUI elements) of toolbox according to the state in the toolbox controller - pure virtual function
 	*/
-	virtual void RefreshToolboxContent() = 0;
+	virtual PlusStatus RefreshToolboxContent() = 0;
 
 	/*!
 	* \brief Initialize toolbox (eg. based on session data)
 	*/
-	virtual void Initialize() {};
+	virtual PlusStatus Initialize() = 0;
 
 	/*!
+	* \brief Start process - pure virtual function
+	* \return Success flag
+	*/
+	virtual PlusStatus Start() = 0;
+
+  /*!
 	* \brief Execute operations needed after stopping the process
 	*/
-	virtual void Stop() {};
+	virtual PlusStatus Stop() = 0;
 
 	/*!
 	* \brief Clear (deinitialize) the toolbox
 	*/
-	virtual void Clear() = 0;
+	virtual PlusStatus Clear() = 0;
 
 protected:
 	/*!
@@ -45,6 +64,12 @@ protected:
 	*/
 	virtual void RequestDoAcquisition() {};
 
+protected:
+	//! Toolbox state
+	ToolboxState						m_State;
+
+  //! TODO
+  vtkFCalVisualizer*      m_Visualizer;
 };
 
 #endif

@@ -161,7 +161,7 @@ void ConfigurationToolbox::ConnectToDevicesByConfigFile(std::string aConfigFile)
 		// Connect to devices
 		vtkFreehandController* controller = vtkFreehandController::GetInstance();
 		if ((controller != NULL) && (controller->GetInitialized() == true)) {
-			if (vtkFreehandController::GetInstance()->StartDataCollection() != PLUS_SUCCESS) {
+			if (vtkFreehandController::GetInstance()->InitializeDataCollection() != PLUS_SUCCESS) {
 				LOG_ERROR("Unable to start collecting data!");
 				m_DeviceSetSelectorWidget->SetConnectionSuccessful(false);
 				m_ToolStateDisplayWidget->InitializeTools(NULL, false);

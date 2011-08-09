@@ -90,7 +90,7 @@ int main (int argc, char* argv[])
 	freehandCalibration->ReadConfiguration(inputConfigFileName.c_str()); 
 
 	PhantomRegistrationController* phantomRegistrationController = PhantomRegistrationController::GetInstance();
-	phantomRegistrationController->Initialize();
+	phantomRegistrationController->Initialize(false);
   phantomRegistrationController->LoadPhantomDefinition(controller->GetConfigurationData());
 	phantomRegistrationController->LoadPhantomRegistration(controller->GetConfigurationData());
 
