@@ -91,3 +91,9 @@ IF (PLUS_USE_SONIX_VIDEO)
 	SET_TESTS_PROPERTIES( vtkSonixVolumeReaderTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 ENDIF (PLUS_USE_SONIX_VIDEO)
 
+#***************************  vtkURFSavedVideoSourceTest1.cxx ***************************
+IF (PLUS_USE_SONIX_VIDEO)
+	ADD_EXECUTABLE(vtkURFSavedVideoSourceTest1 vtkURFSavedVideoSourceTest1.cxx )
+	TARGET_LINK_LIBRARIES(vtkURFSavedVideoSourceTest1 vtkImageAcquisition )
+ENDIF (PLUS_USE_SONIX_VIDEO)
+#Test is to be added.
