@@ -33,7 +33,7 @@ int main(int argc, char* argv[])
 
 	bool printHelp(false); 
 	bool renderingOff(false);
-	std::string inputSonixIP("130.15.7.212");
+	std::string inputSonixIP("137.82.56.185");
 
 	vtksys::CommandLineArguments args;
 	args.Initialize(argc, argv);
@@ -41,7 +41,7 @@ int main(int argc, char* argv[])
 	int verboseLevel = PlusLogger::LOG_LEVEL_INFO;
 
 	args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");	
-	args.AddArgument("--sonix-ip", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputSonixIP, "SonixRP ip address (Default: 130.15.7.212)" );
+	args.AddArgument("--sonix-ip", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputSonixIP, "SonixRP ip address (Default: 137.82.56.185)" );
 	args.AddArgument("--rendering-off", vtksys::CommandLineArguments::NO_ARGUMENT, &renderingOff, "Run test without rendering.");	
 	args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (Default: 1; 1=error only, 2=warning, 3=info, 4=debug)");	
 
@@ -65,7 +65,7 @@ int main(int argc, char* argv[])
 	sonixGrabber = vtkSonixVideoSource::New();
 	sonixGrabber->SetSonixIP(inputSonixIP.c_str());
 	sonixGrabber->SetImagingMode(0);
-	sonixGrabber->SetAcquisitionDataType(0x00000004);
+	sonixGrabber->SetAcquisitionDataType(0x00000005);
 	if ( sonixGrabber->GetBuffer()->SetBufferSize(30) != PLUS_SUCCESS )
     {
         LOG_ERROR("Failed to set video buffer size!"); 
