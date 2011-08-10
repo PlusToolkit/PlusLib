@@ -6,9 +6,9 @@
 			Description="Unified configuration file for SonixTouch TRUS + Burdette Medical Systems Digital Stepper + iCal 1.0 + 70mm depth" 
 			/>
 
-        <Tracker Type="BrachyTracker" BufferSize="1000" Frequency="20" AveragedItemsForFiltering="20" LocalTimeOffset="0.0" SerialPort="6" BaudRate="19200" BrachyStepperType="Burdette Medical Systems Digital Stepper" ModelNumber="4012A18-a" ModelVersion="" ModelSerialNumber="01-50-149">
+        <Tracker Type="BrachyTracker" BufferSize="1000" Frequency="20" AveragedItemsForFiltering="20" LocalTimeOffset="0.0" SerialPort="3" BaudRate="19200" BrachyStepperType="Burdette Medical Systems Digital Stepper" ModelNumber="4012A18-a" ModelVersion="" ModelSerialNumber="01-50-149">
         
-            <StepperCalibration AlgorithmVersion="1.0.0" Date="" ProbeTranslationAxisOrientation="0.004635 -0.053440 1" TemplateTranslationAxisOrientation="-0.003557 0.031474 1" Rx="" Ry="" Rx0="" Ry0="" ProbeRotationEncoderScale="1.0" />
+            <StepperCalibration AlgorithmVersion="1.0.0" Date="2011.05.02" ProbeTranslationAxisOrientation="0.004635 -0.053440 1" TemplateTranslationAxisOrientation="-0.003557 0.031474 1" Rx="" Ry="" Rx0="" Ry0="" ProbeRotationEncoderScale="1.0" />
             <Tool PortNumber="0" Type="Probe" Name="ProbeHomeToProbe" SendTo="127.0.0.1:1111">
                 <Calibration 
                     MatrixName="ImageToProbe" 
@@ -102,7 +102,7 @@
                 OutputSequenceMetaFileSuffix=".RandomStepperMotionData2"
                 />
 
-				<TemplateModel ConfigFile="../config/TemplateModel.xml" >
+				<TemplateModel ConfigFile="TemplateModel.xml" >
 				</TemplateModel>
 
 				<!-- IncorporatingUS3DBeamProfile: 0 - NO | 1 - BeamwidthVariance | 2 - BeamwidthRatio | 3 - BeamwidthVarianceAndThresholding -->
@@ -147,12 +147,12 @@
 		
 		<!-- ModelToPhantomTransform - transforming model into phantom coordinate system for proper visualization -->
 		<Model
-			File="iCalPhantom.stl"
+			File="DoubleN-EG-Phantom-SolidEdge_DemoVersionSinglePiece_v1.0_R3-EngravedByCarolyn.stl"
 			ModelToPhantomTransform="
                         -1 0 0 36.5
                          0 0 -1 58
                          0 -1 0 61
-						 0 0 0 1"
+                         0 0 0 1"
 		/>
 
 		<Geometry>

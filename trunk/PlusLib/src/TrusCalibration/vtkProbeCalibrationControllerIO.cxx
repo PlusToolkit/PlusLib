@@ -9,6 +9,7 @@
 #include "vtkXMLUtilities.h"
 #include "vtkDirectory.h"
 #include "vtksys/SystemTools.hxx"
+#include "vtkFileFinder.h"
 
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
@@ -1198,8 +1199,21 @@ void vtkProbeCalibrationControllerIO::ReadProbeCalibrationConfiguration(vtkXMLDa
 		const char* configFile = templateModel->GetAttribute("ConfigFile"); 
 		if ( configFile != NULL) 
 		{
-			std::string fullTemplateModelPath = vtksys::SystemTools::CollapseFullPath(configFile, this->CalibrationController->GetProgramFolderPath()); 
-			this->CalibrationController->SetTemplateModelConfigFileName(fullTemplateModelPath.c_str()); 
+	    std::string searchResult = "";
+	    if (STRCASECMP(vtkFileFinder::GetInstance()->GetConfigurationDirectory(), "") != 0)
+      {
+		    searchResult = vtkFileFinder::GetFirstFileFoundInConfigurationDirectory(configFile);
+	    }
+
+	    if (searchResult != "")
+      {
+        this->CalibrationController->SetTemplateModelConfigFileName(searchResult.c_str()); 
+      }
+      else
+      {
+        LOG_ERROR("Template model configuration file not found!");
+        return;
+      }
 		}
 	}
 	else

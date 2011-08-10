@@ -1362,6 +1362,7 @@ void vtkCalibratorVisualizationComponent::ReadTemplateModelConfiguration(vtkXMLD
 	if ( configTemplateModel == NULL ) 
 	{
 		LOG_ERROR("Unable to read template model file: " << this->GetTemplateModelConfigFileName()); 
+    return;
 	}	
 
   double templateHolderToTemplateTransformVector[16]={0}; 
