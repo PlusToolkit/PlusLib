@@ -317,10 +317,16 @@ PlusStatus vtkVideoBuffer::AddTimeStampedItem(unsigned char* imageDataPtr,
 {
 
   double filteredTimestamp(0); 
-  if ( this->VideoBuffer->CreateFilteredTimeStampForItem(frameNumber, unfilteredTimestamp, filteredTimestamp) != PLUS_SUCCESS )
+  bool filteredTimestampProbablyValid=true;
+  if ( this->VideoBuffer->CreateFilteredTimeStampForItem(frameNumber, unfilteredTimestamp, filteredTimestamp, filteredTimestampProbablyValid) != PLUS_SUCCESS )
   {
-    LOG_WARNING("Failed to create filtered timestamp for video buffer item with item index: " << frameNumber << ". The item may have been tagged with an inaccurate timestamp, therefore it will not be recorded." ); 
+    LOG_WARNING("Failed to create filtered timestamp for video buffer item with item index: " << frameNumber ); 
     return PLUS_FAIL; 
+  }
+  if (!filteredTimestampProbablyValid)
+  {
+    LOG_DEBUG("Filtered timestamp is probably invalid for video buffer item with item index: " << frameNumber << ". The item may have been tagged with an inaccurate timestamp, therefore it will not be recorded." ); 
+    return PLUS_SUCCESS;
   }
 
   return this->AddTimeStampedItem(imageDataPtr, usImageOrientation, frameSizeInPx, numberOfBitsPerPixel, numberOfBytesToSkip, unfilteredTimestamp, filteredTimestamp, frameNumber); 
