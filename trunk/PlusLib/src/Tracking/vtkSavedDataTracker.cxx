@@ -99,9 +99,9 @@ PlusStatus vtkSavedDataTracker::Connect()
 	this->SetToolName(0, savedDataBuffer->GetDefaultFrameTransformName().c_str());
 	TRACKER_TOOL_TYPE defaultType = TRACKER_TOOL_NONE;
 	// TODO read the file properly and use proper types instead of DefaultFrameTransformName
-	char* toolType = NULL;
+  std::string toolType;
 	vtkTracker::ConvertToolTypeToString(TRACKER_TOOL_PROBE, toolType);
-	this->ConvertStringToToolType(toolType/*savedDataBuffer->GetDefaultFrameTransformName().c_str()*/, defaultType);
+	this->ConvertStringToToolType(toolType.c_str() /*savedDataBuffer->GetDefaultFrameTransformName().c_str()*/, defaultType);
 	this->GetTool(0)->SetToolType(defaultType);
 		
 	// TODO: Read this from the config file.

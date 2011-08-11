@@ -2737,14 +2737,14 @@ PlusStatus vtkFreehandUltrasound2::ReadSummary(vtkXMLDataElement* aConfig)
 	// reconstruction transforms
 	double* elements = new double[16];
 
-	char* toolType = NULL;
+  std::string toolType;
 	vtkTracker::ConvertToolTypeToString(TRACKER_TOOL_PROBE, toolType);
 	vtkSmartPointer<vtkXMLDataElement> trackerDefinition = aConfig->LookupElementWithName("Tracker");
 	if (trackerDefinition == NULL) {
     LOG_ERROR("Cannot find tracker definition in the XML tree")
 		return PLUS_FAIL;
 	}
-	vtkSmartPointer<vtkXMLDataElement> probeDefinition = trackerDefinition->FindNestedElementWithNameAndAttribute("Tool", "Type", toolType);
+	vtkSmartPointer<vtkXMLDataElement> probeDefinition = trackerDefinition->FindNestedElementWithNameAndAttribute("Tool", "Type", toolType.c_str());
 	if (probeDefinition == NULL) {
 		LOG_ERROR("No probe definition is found in the XML tree!");
 		return PLUS_FAIL;

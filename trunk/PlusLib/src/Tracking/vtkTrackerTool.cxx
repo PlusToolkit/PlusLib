@@ -483,6 +483,59 @@ PlusStatus vtkTrackerTool::ReadConfiguration(vtkXMLDataElement* config)
 //-----------------------------------------------------------------------------
 PlusStatus vtkTrackerTool::WriteConfiguration(vtkXMLDataElement* config)
 {
-	LOG_ERROR("Not implemented");
-	return PLUS_FAIL;
+
+  if ( config == NULL )
+  {
+    LOG_ERROR("Unable to write calibration result: xml data element is NULL!"); 
+    return PLUS_FAIL;
+  }
+
+  vtkSmartPointer<vtkXMLDataElement> trackerConfig = config->LookupElementWithName("Tracker"); 
+
+  if ( trackerConfig == NULL )
+  {
+    LOG_ERROR("Unable to find Tracker xml data element!"); 
+    return PLUS_FAIL; 
+  }
+	
+  std::string toolType; 
+  if ( vtkTracker::ConvertToolTypeToString(this->GetToolType(), toolType) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to get tool type in string format!"); 
+    return PLUS_FAIL; 
+  }
+
+  // TODO: find tracker tool with type and name
+  vtkSmartPointer<vtkXMLDataElement> trackerTool = config->FindNestedElementWithNameAndAttribute("Tool", "Type", toolType.c_str() );
+	if (trackerTool == NULL) 
+  {
+    LOG_ERROR("unable to find tracker tool configuration file for type: " << toolType);
+		return PLUS_FAIL;
+	}
+
+  vtkSmartPointer<vtkXMLDataElement> tool; 
+  vtkSmartPointer<vtkXMLDataElement> calibration = trackerTool->FindNestedElementWithName("Calibration"); 
+	if ( calibration == NULL ) 
+  {
+    // create new element and add to trackerTool 
+    calibration = vtkSmartPointer<vtkXMLDataElement>::New(); 
+    calibration->SetName("Calibration"); 
+    calibration->SetParent(trackerTool); 
+  }
+
+  // Set matrix name 
+  calibration->SetAttribute("MatrixName", this->GetCalibrationMatrixName()); 
+
+  // Set calibration matrix value
+  double matrixValue[16] = {0}; 
+  vtkMatrix4x4::DeepCopy(matrixValue, this->GetCalibrationMatrix() ); 
+  calibration->SetVectorAttribute("MatrixValue",16, matrixValue); 
+
+  // Set calibration date
+  calibration->SetAttribute("Date", this->GetCalibrationDate()); 
+
+  // Set calibration date
+  calibration->SetDoubleAttribute("Error", this->GetCalibrationError()); 
+
+  return PLUS_SUCCESS; 
 }

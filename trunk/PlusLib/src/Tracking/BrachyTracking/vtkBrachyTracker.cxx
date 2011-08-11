@@ -420,8 +420,6 @@ PlusStatus vtkBrachyTracker::WriteConfiguration(vtkXMLDataElement* config)
 		return PLUS_FAIL;
 	}
 
-	config->SetName("BrachyStepper");  
-  
   if ( this->Device != NULL )
   {
     BrachyStepper::BRACHY_STEPPER_TYPE stepperType = this->Device->GetBrachyStepperType(); 
@@ -430,10 +428,35 @@ PlusStatus vtkBrachyTracker::WriteConfiguration(vtkXMLDataElement* config)
   }
 
   config->SetUnsignedLongAttribute( "SerialPort", this->GetSerialPort() ); 
-	config->SetDoubleAttribute( "BaudRate", this->GetBaudRate() ); 
-	config->SetAttribute( "ModelVersion", this->GetModelVersion() ); 
-	config->SetAttribute( "ModelNumber", this->GetModelNumber() ); 
-	config->SetAttribute( "ModelSerialNumber", this->GetModelSerialNumber() ); 
+  config->SetDoubleAttribute( "BaudRate", this->GetBaudRate() ); 
+  config->SetAttribute( "ModelVersion", this->GetModelVersion() ); 
+  config->SetAttribute( "ModelNumber", this->GetModelNumber() ); 
+  config->SetAttribute( "ModelSerialNumber", this->GetModelSerialNumber() ); 
+
+  if ( this->GetTrackerCalibrated() )
+  {
+    // Save stepper calibration results to file
+    vtkSmartPointer<vtkXMLDataElement> calibration = config->LookupElementWithName("StepperCalibration");
+    if ( calibration == NULL )
+    {
+      // create new element and add to trackerTool 
+      calibration = vtkSmartPointer<vtkXMLDataElement>::New(); 
+      calibration->SetName("StepperCalibration"); 
+      calibration->SetParent(config); 
+    } 
+
+    calibration->SetAttribute("Date", this->GetCalibrationDate());
+
+    calibration->SetAttribute("AlgorithmVersion", this->GetCalibrationAlgorithmVersion() ); 
+
+    calibration->SetVectorAttribute("ProbeRotationAxisOrientation", 3, this->GetProbeRotationAxisOrientation() );		
+
+    calibration->SetDoubleAttribute("ProbeRotationEncoderScale", this->GetProbeRotationEncoderScale() ); 
+
+    calibration->SetVectorAttribute("ProbeTranslationAxisOrientation", 3, this->GetProbeTranslationAxisOrientation() ); 
+
+    calibration->SetVectorAttribute("TemplateTranslationAxisOrientation", 3, this->GetTemplateTranslationAxisOrientation() ); 
+  }
 
   return PLUS_SUCCESS;
 }

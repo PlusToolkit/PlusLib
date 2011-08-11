@@ -164,7 +164,7 @@ public:
 	// Description:
 	// Get tool type enum from string and vice versa
 	static PlusStatus ConvertStringToToolType(const char* typeString, TRACKER_TOOL_TYPE &type);
-	static PlusStatus ConvertToolTypeToString(const TRACKER_TOOL_TYPE type, char* &typeString);
+  static PlusStatus ConvertToolTypeToString(const TRACKER_TOOL_TYPE type, std::string &typeString);
 
 	// Description:
 	// Get the buffer element values of each tool in a string list by timestamp. 
