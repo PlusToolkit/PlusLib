@@ -325,7 +325,7 @@ PlusStatus vtkVideoBuffer::AddTimeStampedItem(unsigned char* imageDataPtr,
   }
   if (!filteredTimestampProbablyValid)
   {
-    LOG_DEBUG("Filtered timestamp is probably invalid for video buffer item with item index: " << frameNumber << ". The item may have been tagged with an inaccurate timestamp, therefore it will not be recorded." ); 
+    LOG_INFO("Filtered timestamp is probably invalid for video buffer item with item index=" << frameNumber << ", time="<<unfilteredTimestamp<<". The item may have been tagged with an inaccurate timestamp, therefore it will not be recorded." ); 
     return PLUS_SUCCESS;
   }
 

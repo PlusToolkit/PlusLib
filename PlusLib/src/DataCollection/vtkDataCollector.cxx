@@ -835,7 +835,6 @@ PlusStatus vtkDataCollector::Synchronize( const char* bufferOutputFolder /*= NUL
 
   if ( acquireDataOnly || PlusLogger::Instance()->GetLogLevel() >=  PlusLogger::LOG_LEVEL_DEBUG )
   {
-    LOG_INFO(">>>>>>>>>>>> Save temporal calibration buffers to file ... "); 
     if ( bufferOutputFolder == NULL )
     {
       bufferOutputFolder = "./"; 
@@ -846,6 +845,8 @@ PlusStatus vtkDataCollector::Synchronize( const char* bufferOutputFolder /*= NUL
     trackerBufferFileName << strDateAndTime << "_DataCollectorSyncTrackerBuffer"; 
     std::ostringstream videoBufferFileName; 
     videoBufferFileName << strDateAndTime << "_DataCollectorSyncVideoBuffer"; 
+
+	LOG_INFO("Save temporal calibration buffers to file in " << bufferOutputFolder << ", tracker: " << trackerBufferFileName.str().c_str() << ", video: " << videoBufferFileName.str().c_str()); 
 
     this->WriteTrackerToMetafile(tracker, bufferOutputFolder, trackerBufferFileName.str().c_str(), false );
     this->WriteVideoBufferToMetafile(videobuffer, bufferOutputFolder, videoBufferFileName.str().c_str() , false ); 
