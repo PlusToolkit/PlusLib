@@ -13,6 +13,7 @@
 #include "vtkMatrix4x4.h"
 #include "vtkTransform.h"
 #include "vtkMath.h"
+#include "vtkFileFinder.h"
 
 #include <stdlib.h>
 #include <iostream>
@@ -24,7 +25,7 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
 
 int main (int argc, char* argv[])
 { 
-    int numberOfFailures(0); 
+  int numberOfFailures(0); 
 	std::string inputRandomStepperMotion1SeqMetafile;
 	std::string inputRandomStepperMotion2SeqMetafile;
 	std::string inputProbeRotationSeqMetafile;
@@ -32,7 +33,6 @@ int main (int argc, char* argv[])
 	std::string inputTemplateTranslationSeqMetafile; 
 
 	std::string inputConfigFileName;
-	std::string inputTemplateModelConfigFileName; 
 	std::string inputBaselineFileName;
 	double inputTranslationErrorThreshold(0); 
 	double inputRotationErrorThreshold(0); 
@@ -48,9 +48,7 @@ int main (int argc, char* argv[])
 	cmdargs.AddArgument("--input-probe-translation-sequence-metafile", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputProbeTranslationSeqMetafile, "Sequence metafile name of saved probe translation dataset.");
 	cmdargs.AddArgument("--input-template-translation-sequence-metafile", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputTemplateTranslationSeqMetafile, "Sequence metafile name of saved template translation dataset.");
 	
-
 	cmdargs.AddArgument("--input-config-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "Configuration file name");
-	cmdargs.AddArgument("--input-template-model-config-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputTemplateModelConfigFileName, "Template model configuration file name");
 	
 	cmdargs.AddArgument("--input-baseline-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputBaselineFileName, "Name of file storing baseline calibration results");
 	cmdargs.AddArgument("--translation-error-threshold", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputTranslationErrorThreshold, "Translation error threshold in mm.");	
@@ -75,6 +73,7 @@ int main (int argc, char* argv[])
 		LOG_ERROR(errorMsg); 
 	}
 	programPath = vtksys::SystemTools::GetParentDirectory(programPath.c_str()); 
+  vtkFileFinder::GetInstance()->SetConfigurationDirectory(inputConfigFileName.c_str());
 
 	// Initialize the probe calibration controller 
 	vtkSmartPointer<vtkStepperCalibrationController> stepperCal = vtkSmartPointer<vtkStepperCalibrationController>::New(); 
@@ -120,7 +119,6 @@ int main (int argc, char* argv[])
 	vtkSmartPointer<vtkProbeCalibrationController> probeCal = vtkSmartPointer<vtkProbeCalibrationController>::New(); 
 	probeCal->SetProgramFolderPath(programPath.c_str());
 	probeCal->ReadConfiguration(inputConfigFileName.c_str()); 
-	probeCal->SetTemplateModelConfigFileName(inputTemplateModelConfigFileName.c_str()); 
 
 	vtkCalibrationController::ImageDataInfo randomStepperMotion1DataInfo = probeCal->GetImageDataInfo(RANDOM_STEPPER_MOTION_1); 
 	randomStepperMotion1DataInfo.InputSequenceMetaFileName.assign(inputRandomStepperMotion1SeqMetafile.c_str());

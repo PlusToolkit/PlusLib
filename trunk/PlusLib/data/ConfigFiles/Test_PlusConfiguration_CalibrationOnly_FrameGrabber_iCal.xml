@@ -47,7 +47,7 @@
                         OutputSequenceMetaFileSuffix=".RandomStepperMotionData2"
 						/>
 
-				<TemplateModel ConfigFile="../config/TemplateModel.xml" >
+				<TemplateModel ConfigFile="TemplateModel.xml" >
 				</TemplateModel>
 
 				<!-- IncorporatingUS3DBeamProfile: 0 - NO | 1 - BeamwidthVariance | 2 - BeamwidthRatio | 3 - BeamwidthVarianceAndThresholding -->

@@ -25,7 +25,7 @@
       <ImageAcqusition Type="ICCapturing" 
         BufferSize="500" 
         FrameSize="640 480" 
-        UsImageOrientation="UF"
+        UsImageOrientation="MF"
         FrameRate="30" 
         AveragedItemsForFiltering="20" 
         LocalTimeOffset="-0.2126"
@@ -33,7 +33,7 @@
         DeviceName="DFG/USB2-lt"
         VideoNorm="NTSC_M"
         VideoFormat="Y800 (640x480)"
-        InputChannel="00 Video: Composite"
+        InputChannel="01 Video: SVideo"
         LicenseKey="ISB3200016679"
         ICBufferSize="50"
       />
