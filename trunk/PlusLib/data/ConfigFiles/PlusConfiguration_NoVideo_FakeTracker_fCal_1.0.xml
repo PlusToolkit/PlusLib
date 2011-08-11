@@ -3,8 +3,8 @@
 	<!-- DATA COLLECTION -->
 	<USDataCollection version="2.0" StartupDelaySec="1.0">
 		<DeviceSet 
-			Name="Unified NoVideo + FakeTracker" 
-			Description="Unified configuration file for NoVideo + FakeTracker + fCal 1.0" 
+			Name="NoVideo + FakeTracker" 
+			Description="Configuration file for NoVideo + FakeTracker + fCal 1.0" 
 			/>
 
 		<Tracker Type="FakeTracker" BufferSize="1000" Frequency="50" LocalTimeOffset="0.0" Mode="PivotCalibration" AveragedItemsForFiltering="20" >
