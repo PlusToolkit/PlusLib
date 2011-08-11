@@ -13,7 +13,6 @@ ADD_TEST(vtkUSCalibrationControllerTest-Exact
 		--input-probe-translation-sequence-metafile=${TestDataDir}/USTC_Ulterius_ProbeTranslationData.mha 
 		--input-template-translation-sequence-metafile=${TestDataDir}/USTC_Ulterius_TemplateTranslationData.mha 
 		--input-config-file-name=${ConfigFilesDir}/Test_PlusConfiguration_CalibrationOnly_iCal.xml
-		--input-template-model-config-file-name=${ConfigFilesDir}/TemplateModel.xml 
 		--input-baseline-file-name=${TestDataDir}/UsTemplateCalibration.results.xml 
 		)
 SET_TESTS_PROPERTIES( vtkUSCalibrationControllerTest-Exact PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
@@ -26,7 +25,6 @@ ADD_TEST(vtkUSCalibrationControllerTest
 		--input-probe-translation-sequence-metafile=${TestDataDir}/USTC_Ulterius_ProbeTranslationData.mha 
 		--input-template-translation-sequence-metafile=${TestDataDir}/USTC_Ulterius_TemplateTranslationData.mha 
 		--input-config-file-name=${ConfigFilesDir}/Test_PlusConfiguration_CalibrationOnly_iCal.xml
-		--input-template-model-config-file-name=${ConfigFilesDir}/TemplateModel.xml 
 		--input-baseline-file-name=${TestDataDir}/UsTemplateCalibration.results.xml 
 		--translation-error-threshold=1.0
 		--rotation-error-threshold=1.0
@@ -41,7 +39,6 @@ ADD_TEST(vtkUSCalibrationControllerTest_FrameGrabber-Exact
 		--input-probe-translation-sequence-metafile=${TestDataDir}/USTC_FrameGrabber_ProbeTranslationData.mha 
 		--input-template-translation-sequence-metafile=${TestDataDir}/USTC_FrameGrabber_TemplateTranslationData.mha 
 		--input-config-file-name=${ConfigFilesDir}/Test_PlusConfiguration_CalibrationOnly_FrameGrabber_iCal.xml
-		--input-template-model-config-file-name=${ConfigFilesDir}/TemplateModel.xml 
 		--input-baseline-file-name=${TestDataDir}/UsTemplateCalibration_FrameGrabber.results.xml 
 		)
 SET_TESTS_PROPERTIES( vtkUSCalibrationControllerTest_FrameGrabber-Exact PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
@@ -54,7 +51,6 @@ ADD_TEST(vtkUSCalibrationControllerTest_FrameGrabber
 		--input-probe-translation-sequence-metafile=${TestDataDir}/USTC_FrameGrabber_ProbeTranslationData.mha 
 		--input-template-translation-sequence-metafile=${TestDataDir}/USTC_FrameGrabber_TemplateTranslationData.mha 
 		--input-config-file-name=${ConfigFilesDir}/Test_PlusConfiguration_CalibrationOnly_FrameGrabber_iCal.xml
-		--input-template-model-config-file-name=${ConfigFilesDir}/TemplateModel.xml 
 		--input-baseline-file-name=${TestDataDir}/UsTemplateCalibration_FrameGrabber.results.xml 
 		--translation-error-threshold=1.0
 		--rotation-error-threshold=1.0
