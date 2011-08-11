@@ -39,7 +39,7 @@
       />
 
       <Synchronization Type="ChangeDetection" 
-        SynchronizationTimeLength="30" 
+        SynchronizationTimeLength="15" 
         MinNumOfSyncSteps="5" 
         ThresholdMultiplier="5"
 
@@ -48,7 +48,7 @@
         MaxTransformDifference="2.0" 
 
         NumberOfAveragedFrames="6" 
-        MinFrameThreshold="200.0" 
+        MinFrameThreshold="10.0" 
         MaxFrameDifference="10.0" 
       />
 	</USDataCollection>

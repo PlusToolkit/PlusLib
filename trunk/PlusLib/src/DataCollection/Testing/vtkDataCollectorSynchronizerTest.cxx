@@ -65,9 +65,9 @@ int main(int argc, char **argv)
   }
 
 
-  if (inputVideoBufferSequenceFileName.empty() || inputTrackerBufferSequenceFileName.empty() || inputBaselineReportFilePath.empty() )
+  if (inputVideoBufferSequenceFileName.empty() || inputTrackerBufferSequenceFileName.empty() )
   {
-    std::cerr << "input-video-buffer-seq-file-name, input-tracker-buffer-seq-file-name and input-baseline-report-file arguments are required!" << std::endl;
+    std::cerr << "input-video-buffer-seq-file-name and input-tracker-buffer-seq-file-name arguments are required!" << std::endl;
     std::cout << "\nHelp: " << args.GetHelp() << std::endl;
     exit(EXIT_FAILURE);
   }
@@ -308,10 +308,17 @@ int main(int argc, char **argv)
     return PLUS_FAIL; 
   }
 
-  if ( vtksys::SystemTools::FilesDiffer(reportFile.c_str(), inputBaselineReportFilePath.c_str() ) )
+  if (!inputBaselineReportFilePath.empty())
   {
-    LOG_ERROR("Sync report differ from baseline!"); 
-    numberOfErrors++; 
+	  if ( vtksys::SystemTools::FilesDiffer(reportFile.c_str(), inputBaselineReportFilePath.c_str() ) )
+	  {
+		LOG_ERROR("Sync report differ from baseline!"); 
+		numberOfErrors++; 
+	  }
+  }
+  else
+  {
+	  LOG_INFO("Comparison to baseline data is skipped, no baseline file was specified");
   }
 
   //************************************************************************************
