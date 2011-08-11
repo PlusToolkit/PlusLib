@@ -72,10 +72,6 @@ public:
 	virtual PlusStatus GetStepperEncoderValues( TrackedFrame* trackedFrame, double &probePosition, double &probeRotation, double &templatePosition); 
 
 	//! Description 
-	// Write result to the XML data element
-	virtual PlusStatus WriteCalibrationResultToXml(vtkXMLDataElement* calibration);
-
-	//! Description 
 	// Run the probe rotation axis calibration algorithm 
 	// Returns true on success otherwise false
 	virtual PlusStatus CalibrateProbeRotationAxis(); 
@@ -231,7 +227,12 @@ public:
 	vtkSetMacro(PhantomToProbeDistanceCalculated, bool); 
 	vtkGetMacro(PhantomToProbeDistanceCalculated, bool); 
 	vtkBooleanMacro(PhantomToProbeDistanceCalculated, bool); 
-  	
+
+  //! Description: 
+	// Set/get algorithm version in string 
+	vtkSetStringMacro(AlgorithmVersion); 
+	vtkGetStringMacro(AlgorithmVersion); 
+  
 	//! Description: 
 	// Set/get calibration start time in string 
 	vtkSetStringMacro(CalibrationStartTime); 
@@ -553,6 +554,8 @@ protected:
 	char* ProbeRotationEncoderCalibrationErrorReportFilePath; 
 	char* SpacingCalculationErrorReportFilePath; 
 	char* CenterOfRotationCalculationErrorReportFilePath; 
+
+  char* AlgorithmVersion; 
 
 	int MinNumberOfRotationClusters; 
 	int MinNumOfFramesUsedForCenterOfRotCalc; 

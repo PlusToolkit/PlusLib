@@ -554,8 +554,28 @@ int vtkVideoSource2::RequestData(vtkInformation *vtkNotUsed(request),
 //-----------------------------------------------------------------------------
 PlusStatus vtkVideoSource2::WriteConfiguration(vtkXMLDataElement* config)
 {
-  LOG_ERROR("Not implemented");
-  return PLUS_FAIL;
+  LOG_TRACE("vtkVideoSource2::WriteConfiguration"); 
+	if ( config == NULL )
+	{
+		LOG_ERROR("Unable to write configuration from video source! (XML data element is NULL)"); 
+		return PLUS_FAIL; 
+	}
+
+  vtkSmartPointer<vtkXMLDataElement> videoConfig = config->LookupElementWithName("ImageAcqusition"); 
+
+  if ( videoConfig == NULL )
+  {
+    LOG_ERROR("Unable to find ImageAcqusition xml data element in configuration file!"); 
+		return PLUS_FAIL; 
+  }
+
+  videoConfig->SetIntAttribute("BufferSize", this->GetBuffer()->GetBufferSize()); 
+
+  videoConfig->SetVectorAttribute("FrameSize", 2, this->GetFrameSize()); 
+
+  videoConfig->SetDoubleAttribute("LocalTimeOffset", this->GetBuffer()->GetLocalTimeOffset() ); 
+
+  return PLUS_SUCCESS; 
 }
 
 //-----------------------------------------------------------------------------

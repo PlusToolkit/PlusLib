@@ -456,6 +456,7 @@ PlusStatus vtkBrachyTracker::WriteConfiguration(vtkXMLDataElement* config)
     calibration->SetVectorAttribute("ProbeTranslationAxisOrientation", 3, this->GetProbeTranslationAxisOrientation() ); 
 
     calibration->SetVectorAttribute("TemplateTranslationAxisOrientation", 3, this->GetTemplateTranslationAxisOrientation() ); 
+ 
   }
 
   return PLUS_SUCCESS;
