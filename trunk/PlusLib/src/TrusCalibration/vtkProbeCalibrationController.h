@@ -30,6 +30,7 @@ public:
 
 	//! Operation: Register phantom geometry for calibrator 
 	virtual void RegisterPhantomGeometry( double phantomToProbeDistanceInMm[2] );
+  virtual void RegisterPhantomGeometry(); 
 
 	//! Operation 
 	// Add new tracked data for segmentation and save the segmentation result to the SegmentedFrameContainer
@@ -51,6 +52,9 @@ public:
 	// Read XML based configuration of the calibration controller
 	virtual PlusStatus ReadConfiguration( const char* configFileNameWithPath ); 
 	virtual PlusStatus ReadConfiguration( vtkXMLDataElement* configData ); 
+
+  virtual PlusStatus WriteConfiguration( vtkXMLDataElement* configData ); 
+  
 		
 	//! Operations: get the wire position of the the US frame and phantom intersection in template coordinate system
 	virtual PlusStatus GetWirePosInTemplateCoordinate( int wireNum, double* wirePosInTemplate ); 
@@ -226,6 +230,19 @@ public:
 	// Should be identical to TransformTemplateHolderHomeToTemplateHolder transformation 
 	vtkGetObjectMacro(TransformTemplateHomeToTemplate, vtkTransform);
 	vtkSetObjectMacro(TransformTemplateHomeToTemplate, vtkTransform);
+
+  //! Description: 
+	// Set/Get the rotation center in pixels.
+	// Origin: Left-upper corner (the original image frame)
+	// Positive X: to the right;
+	// Positive Y: to the bottom;
+	vtkSetVector2Macro(CenterOfRotationPx, int); 
+	vtkGetVector2Macro(CenterOfRotationPx, int);
+
+  //! Description: 
+	// Set/get phantom to probe distance in mm
+  vtkSetVector2Macro(PhantomToProbeDistanceInMm, double); 
+	vtkGetVector2Macro(PhantomToProbeDistanceInMm, double);
 		
 	// The 3D Point Reconstruction Error (PRE3D) analysis for the 
 	// validation positions in the US probe frame.
@@ -461,6 +478,10 @@ protected:
 	// and Y pointing down to the bottom (row).
 	int USImageFrameOriginXInPixels;
 	int USImageFrameOriginYInPixels;
+
+  int CenterOfRotationPx[2]; 
+
+  double PhantomToProbeDistanceInMm[2]; 
 
 	//! Attribute: calibration config file name
 	char* CalibrationConfigFileNameWithPath;

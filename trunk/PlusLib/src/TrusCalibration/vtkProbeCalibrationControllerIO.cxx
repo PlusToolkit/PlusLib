@@ -1070,14 +1070,26 @@ void vtkProbeCalibrationControllerIO::ReadProbeCalibrationConfiguration(vtkXMLDa
 	}
 
 	//Transform: from image home position to user defined image home position
-	double* imageHomeToUserImageHomeTransform = new double[16]; 
+  double imageHomeToUserImageHomeTransform[16] = {0}; 
 	if ( probeCalibration->GetVectorAttribute("ImageHomeToUserImageHomeTransform", 16, imageHomeToUserImageHomeTransform) )
 	{
 		this->CalibrationController->GetTransformImageHomeToUserImageHome()->SetMatrix(imageHomeToUserImageHomeTransform); 
 		this->CalibrationController->GetTransformUserImageToImage()->SetMatrix(imageHomeToUserImageHomeTransform); 
 		this->CalibrationController->GetTransformUserImageToImage()->Inverse(); 
 	}
-	delete [] imageHomeToUserImageHomeTransform; 
+
+  //Image center of rotation in pixels
+  int centerOfRotationPx[2] = {0}; 
+	if ( probeCalibration->GetVectorAttribute("CenterOfRotationPx", 2, centerOfRotationPx) )
+	{
+		this->CalibrationController->SetCenterOfRotationPx(centerOfRotationPx); 
+	}
+
+  double phantomToProbeDistanceInMm[2] = {0}; 
+	if ( probeCalibration->GetVectorAttribute("PhantomToProbeDistanceInMm", 2, phantomToProbeDistanceInMm) )
+	{
+		this->CalibrationController->SetPhantomToProbeDistanceInMm(phantomToProbeDistanceInMm); 
+	}
 
 	// Sets the suffix of the data files
 	const char* dataFileSuffix = probeCalibration->GetAttribute("DataFileSuffix"); 
