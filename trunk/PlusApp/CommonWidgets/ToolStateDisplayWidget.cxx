@@ -100,9 +100,9 @@ PlusStatus ToolStateDisplayWidget::InitializeTools(vtkDataCollector* aDataCollec
 		}
 
 		// Assemble tool name and add label to layout and label list
-		char* toolType = NULL;
+    std::string toolType;
 		vtkTracker::ConvertToolTypeToString(tool->GetToolType(), toolType);
-		QString toolNameString = QString("%1: %2.%3").arg(i).arg(toolType).arg(tool->GetToolName());
+		QString toolNameString = QString("%1: %2.%3").arg(i).arg(toolType.c_str()).arg(tool->GetToolName());
 
 		QLabel* toolNameLabel = new QLabel(this);
 		toolNameLabel->setText(toolNameString);

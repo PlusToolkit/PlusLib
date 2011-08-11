@@ -198,7 +198,7 @@ PlusStatus DeviceSetSelectorWidget::ParseDirectory(QString aDirectory)
 {
 	LOG_TRACE("ToolStateDisplayWidget::ParseDirectory(" << aDirectory.toStdString() << ")"); 
 
-	ui.comboBox_DeviceSet->clear();
+	
 
 	QDir configDir(aDirectory);
 	QStringList fileList(configDir.entryList());
@@ -213,6 +213,10 @@ PlusStatus DeviceSetSelectorWidget::ParseDirectory(QString aDirectory)
 	QSettings settings( QSettings::NativeFormat, QSettings::UserScope, "PerkLab", "Common" );
 	QString lastSelectedConfigFile = settings.value("ConfigurationFilePath", "").toString();
   int lastSelectedDeviceSetIndex(0); 
+  
+  // Block signals before we add items
+  ui.comboBox_DeviceSet->blockSignals(true); 
+  ui.comboBox_DeviceSet->clear();
 
 	QStringListIterator filesIterator(fileList);
 	while (filesIterator.hasNext()) {
@@ -273,6 +277,11 @@ PlusStatus DeviceSetSelectorWidget::ParseDirectory(QString aDirectory)
 
 		}
 	}
+
+  ui.comboBox_DeviceSet->setCurrentIndex(-1); 
+
+  // Unblock signals after we add items
+  ui.comboBox_DeviceSet->blockSignals(false); 
 
   ui.comboBox_DeviceSet->setCurrentIndex(lastSelectedDeviceSetIndex); 
 
