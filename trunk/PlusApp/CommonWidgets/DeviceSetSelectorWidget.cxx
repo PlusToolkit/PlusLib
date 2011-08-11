@@ -162,6 +162,7 @@ void DeviceSetSelectorWidget::SetConnectionSuccessful(bool aConnectionSuccessful
 	if (ui.pushButton_Connect->text() == "Connect") {
 		if (m_ConnectionSuccessful) {
 			ui.pushButton_Connect->setText(tr("Disconnect"));
+      ui.comboBox_DeviceSet->setEnabled(false);
 
 			// Change the function to be invoked on clicking on the now Disconnect button to InvokeDisconnect
 			disconnect( ui.pushButton_Connect, SIGNAL( clicked() ), this, SLOT( InvokeConnect() ) );
@@ -173,6 +174,7 @@ void DeviceSetSelectorWidget::SetConnectionSuccessful(bool aConnectionSuccessful
 	} else { // If disconnect button has been pushed
 		if (! m_ConnectionSuccessful) {
 			ui.pushButton_Connect->setText(tr("Connect"));
+      ui.comboBox_DeviceSet->setEnabled(true);
 
 			// Change the function to be invoked on clicking on the now Connect button to InvokeConnect
 			disconnect( ui.pushButton_Connect, SIGNAL( clicked() ), this, SLOT( InvokeDisconnect() ) );
