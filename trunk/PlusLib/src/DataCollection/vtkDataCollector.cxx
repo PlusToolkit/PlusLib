@@ -864,7 +864,6 @@ PlusStatus vtkDataCollector::Synchronize( const char* bufferOutputFolder /*= NUL
   if ( !acquireDataOnly )
   {
     this->GetSynchronizer()->SetProgressBarUpdateCallbackFunction(ProgressBarUpdateCallbackFunction); 
-    this->GetSynchronizer()->SetSyncStartTime(syncStartTime); 
 
     this->GetSynchronizer()->SetTrackerBuffer(trackerbuffer); 
     this->GetSynchronizer()->SetVideoBuffer(videobuffer); 

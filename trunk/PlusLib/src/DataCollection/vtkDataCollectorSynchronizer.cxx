@@ -85,18 +85,15 @@ PlusStatus vtkDataCollectorSynchronizer::Synchronize()
     this->InitSyncReportTable(); 
   }
 
-  if ( this->SyncStartTime < 1 )
+  double oldestTimestamp(0); 
+  if ( this->TrackerBuffer->GetOldestTimeStamp(oldestTimestamp) != ITEM_OK )
   {
-    double oldestTimestamp(0); 
-    if ( this->TrackerBuffer->GetOldestTimeStamp(oldestTimestamp) != ITEM_OK )
-    {
-      LOG_ERROR("Failed to get oldest timestamp from tracker timestamp!"); 
-      return PLUS_FAIL; 
-    }
-
-    this->SetSyncStartTime( oldestTimestamp + this->StartupDelaySec ); 
-    LOG_DEBUG("Sync start time: " << this->SyncStartTime ); 
+    LOG_ERROR("Failed to get oldest timestamp from tracker timestamp!"); 
+    return PLUS_FAIL; 
   }
+
+  this->SetSyncStartTime( oldestTimestamp + this->StartupDelaySec ); 
+  LOG_DEBUG("Sync start time: " << this->SyncStartTime ); 
 
   // Set the time and index interval where the frames and transforms should be unchanged
   this->StillFrameIndexInterval = floor(1.0*this->GetNumberOfAveragedTransforms()/2.0); 

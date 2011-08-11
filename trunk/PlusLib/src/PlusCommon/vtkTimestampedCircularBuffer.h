@@ -187,12 +187,15 @@ public:
 	virtual PlusStatus PrepareForNewItem(const double timestamp, BufferItemUidType& newFrameUid, int& bufferIndex); 
 
   // Description:
-  // Create filtered and unfiltered timestamp 
-  // for accurate timing of the buffer item: an exponential moving average
-  // is computed to smooth out the jitter in the times that are returned by the system clock:
-  // EstimatedFramePeriod[t] = EstimatedFramePeriod[t-1] * (1-SmoothingFactor) + FramePeriod[t] * SmoothingFactor
-  // Smaller SmoothingFactor results leads to less jitter.
-  virtual PlusStatus CreateFilteredTimeStampForItem(unsigned long itemIndex, double inUnfilteredTimestamp, double &outFilteredTimestamp); 
+  // Create filtered and unfiltered timestamp for accurate timing of the buffer item.
+  // The timing may be inaccurate because the timestamp is attached to the item when Plus receives it
+  // and so the timestamp is affected by data transfer speed (which may slightly vary).
+  // A line is fitted to the index and timestamp of the last (AveragedItemsForFiltering) items.
+  // The filtered timestamp is the time value that corresponds to the frame index according to the fitted line.
+  // If the filtered timestamp is very different from the non-filtered timestamp then 
+  // filteredTimestampProbablyValid will be false and it is recommended not to use that item,
+  // because its timestamp is probably incorrect.
+  virtual PlusStatus CreateFilteredTimeStampForItem(unsigned long itemIndex, double inUnfilteredTimestamp, double &outFilteredTimestamp, bool &filteredTimestampProbablyValid); 
   
   // Description:
   // Set/Get number of items used for timestamp filtering (with LSQR mimimizer)

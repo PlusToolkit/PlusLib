@@ -212,10 +212,16 @@ PlusStatus vtkTrackerBuffer::GetTimeStampReportTable(vtkTable* timeStampReportTa
 PlusStatus vtkTrackerBuffer::AddTimeStampedItem(vtkMatrix4x4 *matrix, TrackerStatus status, unsigned long frameNumber, double unfilteredTimestamp)
 {
   double filteredTimestamp(0); 
-  if ( this->TrackerBuffer->CreateFilteredTimeStampForItem(frameNumber, unfilteredTimestamp, filteredTimestamp) != PLUS_SUCCESS )
+  bool filteredTimestampProbablyValid=true;
+  if ( this->TrackerBuffer->CreateFilteredTimeStampForItem(frameNumber, unfilteredTimestamp, filteredTimestamp, filteredTimestampProbablyValid) != PLUS_SUCCESS )
   {
-    LOG_WARNING("Failed to create filtered timestamp for tracker buffer item with item index: " << frameNumber  << ". The item may have been tagged with an inaccurate timestamp, therefore it will not be recorded."); 
+    LOG_DEBUG("Failed to create filtered timestamp for tracker buffer item with item index: " << frameNumber); 
     return PLUS_FAIL; 
+  }
+  if (!filteredTimestampProbablyValid)
+  {
+    LOG_DEBUG("Filtered timestamp is probably invalid for video buffer item with item index: " << frameNumber << ". The item may have been tagged with an inaccurate timestamp, therefore it will not be recorded." ); 
+    return PLUS_SUCCESS;
   }
   return this->AddTimeStampedItem(matrix, status, frameNumber, unfilteredTimestamp, filteredTimestamp); 
 
