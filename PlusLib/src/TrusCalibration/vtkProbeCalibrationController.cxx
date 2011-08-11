@@ -51,6 +51,8 @@ MinElevationBeamwidthAndFocalZoneInUSImageFrame(2,0)
 
 	this->USImageFrameOriginXInPixels = 0; 
 	this->USImageFrameOriginYInPixels = 0; 
+  this->SetCenterOfRotationPx(0,0);
+  this->SetPhantomToProbeDistanceInMm(0.0,0.0); 
 
 	this->SetCurrentPRE3DdistributionID(0); 
 
@@ -239,18 +241,25 @@ void vtkProbeCalibrationController::InitializeVisualizationComponents()
 //----------------------------------------------------------------------------
 void vtkProbeCalibrationController::RegisterPhantomGeometry( double phantomToProbeDistanceInMm[2] )
 {
-	LOG_TRACE("vtkProbeCalibrationController::RegisterPhantomGeometry: " << phantomToProbeDistanceInMm[0] << "  " << phantomToProbeDistanceInMm[1]); 
+  this->SetPhantomToProbeDistanceInMm(phantomToProbeDistanceInMm[0], phantomToProbeDistanceInMm[1]); 
+  this->RegisterPhantomGeometry(); 
+}
+
+//----------------------------------------------------------------------------
+void vtkProbeCalibrationController::RegisterPhantomGeometry()
+{
+	LOG_TRACE("vtkProbeCalibrationController::RegisterPhantomGeometry: " << this->GetPhantomToProbeDistanceInMm()[0] << "  " << this->GetPhantomToProbeDistanceInMm()[1]); 
 	// Vertical distance from the template mounter hole center
 	// to the TRUS Rotation Center
 	/*double verticalDistanceTemplateMounterHoleToTRUSRotationCenterInMM = 
 			this->GetCalibrator()->GetPhantomPoints().WirePositionFrontWall[0].y
-            + phantomToProbeDistanceInMm[1]
+            + this->GetPhantomToProbeDistanceInMm()[1]
     - this->GetCalibrator()->GetPhantomPoints().TemplateHolderPosition.y; 
     */
 
   double verticalDistanceTemplateMounterHoleToTRUSRotationCenterInMM = 
 			this->GetCalibrator()->GetNWire(1).wires[0].endPointFront[1] // WIRE1 y
-            + phantomToProbeDistanceInMm[1]
+            + this->GetPhantomToProbeDistanceInMm()[1]
             - GetTransformTemplateHolderHomeToPhantomHome()->GetPosition()[1]; // :TODO: transform with the whole matrix instead of just using the XY position values
 
     // Horizontal distance from the template mounter hole center
@@ -261,7 +270,7 @@ void vtkProbeCalibrationController::RegisterPhantomGeometry( double phantomToPro
     - this->GetCalibrator()->GetPhantomPoints().TemplateHolderPosition.x; */
     double horizontalDistanceTemplateMounterHoleToTRUSRotationCenterInMM = 
         this->GetCalibrator()->GetNWire(0).wires[2].endPointFront[0] // WIRE3 x
-        + phantomToProbeDistanceInMm[0]
+        + this->GetPhantomToProbeDistanceInMm()[0]
     - GetTransformTemplateHolderHomeToPhantomHome()->GetPosition()[0]; // :TODO: transform with the whole matrix instead of just using the XY position values
 
     double templateHolderPositionX=GetTransformTemplateHolderHomeToPhantomHome()->GetPosition()[0];
@@ -927,6 +936,30 @@ PlusStatus vtkProbeCalibrationController::ReadConfiguration( vtkXMLDataElement* 
 	}
 
   return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkProbeCalibrationController::WriteConfiguration( vtkXMLDataElement* configData )
+{
+	LOG_TRACE("vtkProbeCalibrationController::WriteConfiguration"); 
+	if ( configData == NULL )
+	{
+		LOG_ERROR("Unable to read configuration"); 
+		return PLUS_FAIL;
+	}
+
+  vtkSmartPointer<vtkXMLDataElement> probeCalibration = configData->LookupElementWithName("ProbeCalibration");
+  if ( probeCalibration == NULL )
+  {
+    LOG_ERROR("Failed to write results to ProbeCalibration XML data element - element not found!"); 
+    return PLUS_FAIL; 
+  }
+
+  probeCalibration->SetVectorAttribute("CenterOfRotationPx", 2, this->GetCenterOfRotationPx()); 
+
+  probeCalibration->SetVectorAttribute("PhantomToProbeDistanceInMm", 2, this->GetPhantomToProbeDistanceInMm()); 
+
+  return PLUS_SUCCESS; 
 }
 
 //----------------------------------------------------------------------------
