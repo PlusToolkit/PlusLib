@@ -391,6 +391,44 @@ void vtkTracker::DeepCopy(vtkTracker *tracker)
   this->SetTrackerCalibrated(tracker->GetTrackerCalibrated()); 
 }
 
+//-----------------------------------------------------------------------------
+PlusStatus vtkTracker::WriteConfiguration(vtkXMLDataElement* config)
+{
+  if ( config == NULL )
+  {
+    LOG_ERROR("Unable to write calibration result: xml data element is NULL!"); 
+    return PLUS_FAIL;
+  }
+
+  vtkSmartPointer<vtkXMLDataElement> trackerConfig = config->LookupElementWithName("Tracker"); 
+
+  if ( trackerConfig == NULL )
+  {
+    LOG_ERROR("Unable to find Tracker xml data element!"); 
+    return PLUS_FAIL; 
+  }
+
+  int firstActiveToolNumber(-1); 
+  if ( this->GetFirstActiveTool(firstActiveToolNumber) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to get first active tool from tracker!"); 
+    return PLUS_FAIL; 
+  }
+  
+  vtkTrackerTool* tool = this->GetTool(firstActiveToolNumber); 
+
+  if ( tool == NULL )
+  {
+    LOG_ERROR("Unable to get first active tool by tool number - tool is NULL!"); 
+    return PLUS_FAIL; 
+  }
+
+  config->SetIntAttribute("BufferSize", tool->GetBuffer()->GetBufferSize()); 
+
+  config->SetDoubleAttribute("LocalTimeOffset", tool->GetBuffer()->GetLocalTimeOffset() ); 
+
+  return PLUS_SUCCESS; 
+}
 
 //-----------------------------------------------------------------------------
 PlusStatus vtkTracker::ReadConfiguration(vtkXMLDataElement* config)
@@ -516,13 +554,6 @@ double vtkTracker::GetStartTime()
   }
 
   return sumStartTime / (double)this->GetNumberOfTools();
-}
-
-//-----------------------------------------------------------------------------
-PlusStatus vtkTracker::WriteConfiguration(vtkXMLDataElement* config)
-{
-  LOG_ERROR("Not implemented");
-  return PLUS_FAIL;
 }
 
 //----------------------------------------------------------------------------

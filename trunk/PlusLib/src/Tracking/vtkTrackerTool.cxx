@@ -505,11 +505,11 @@ PlusStatus vtkTrackerTool::WriteConfiguration(vtkXMLDataElement* config)
     return PLUS_FAIL; 
   }
 
-  // TODO: find tracker tool with type and name
-  vtkSmartPointer<vtkXMLDataElement> trackerTool = config->FindNestedElementWithNameAndAttribute("Tool", "Type", toolType.c_str() );
+  // Find tracker tool with type and name
+  vtkSmartPointer<vtkXMLDataElement> trackerTool = trackerConfig->FindNestedElementWithNameAndAttribute("Tool", "Type", toolType.c_str() );
 	if (trackerTool == NULL) 
   {
-    LOG_ERROR("unable to find tracker tool configuration file for type: " << toolType);
+    LOG_ERROR("Unable to find tracker tool configuration file for type: " << toolType);
 		return PLUS_FAIL;
 	}
 

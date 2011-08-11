@@ -129,12 +129,14 @@ public:
 	vtkGetMacro(BaudRate, unsigned long);
 
   // Description:
-	// Get stepper calibration algorithm version 
+	// Set/get stepper calibration algorithm version 
 	vtkGetStringMacro(CalibrationAlgorithmVersion);
+  vtkSetStringMacro(CalibrationAlgorithmVersion);
 
   // Description:
-	// Get stepper calibration date
+	// Set/get stepper calibration date
 	vtkGetStringMacro(CalibrationDate);
+	vtkSetStringMacro(CalibrationDate);
   
 	// Description:
 	// Set/get probe translation axis orientation vector[Tx, Ty, 1]
@@ -185,14 +187,6 @@ protected:
   // Description:
 	// Set the stepper serial number
 	vtkSetStringMacro(ModelSerialNumber);
-
-  // Description:
-	// Set stepper calibration algorithm version 
-	vtkSetStringMacro(CalibrationAlgorithmVersion);
-
-  // Description:
-	// Set stepper calibration date
-	vtkSetStringMacro(CalibrationDate);
   
 	// Description:
 	// Start the tracking system.  The tracking system is brought from
@@ -237,7 +231,7 @@ protected:
 
 	// Template translation axis orientation vector[Tx, Ty, 1]
 	double TemplateTranslationAxisOrientation[3]; 
-
+  
 	double ProbeRotationEncoderScale; 
 
 private:
