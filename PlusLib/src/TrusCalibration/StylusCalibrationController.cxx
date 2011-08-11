@@ -638,9 +638,9 @@ PlusStatus StylusCalibrationController::LoadStylusCalibration(vtkXMLDataElement*
 	LOG_TRACE("StylusCalibrationController::LoadStylusCalibration");
 
 	// Find stylus definition element
-	char* toolType = NULL;
+  std::string toolType;
 	vtkTracker::ConvertToolTypeToString(TRACKER_TOOL_STYLUS, toolType);
-  vtkSmartPointer<vtkXMLDataElement> stylusDefinition = vtkFreehandController::LookupElementWithNameContainingChildWithNameAndAttribute(aConfig, "Tracker", "Tool", "Type", toolType);
+  vtkSmartPointer<vtkXMLDataElement> stylusDefinition = vtkFreehandController::LookupElementWithNameContainingChildWithNameAndAttribute(aConfig, "Tracker", "Tool", "Type", toolType.c_str());
 	if (stylusDefinition == NULL) {
 		LOG_ERROR("No stylus definition is found in the XML tree!");
 		return PLUS_FAIL;
@@ -724,9 +724,9 @@ PlusStatus StylusCalibrationController::SaveStylusCalibration(vtkXMLDataElement*
 	LOG_TRACE("StylusCalibrationController::SaveStylusCalibration");
 
 	// Find stylus definition element
-	char* toolType = NULL;
+  std::string toolType;
 	vtkTracker::ConvertToolTypeToString(TRACKER_TOOL_STYLUS, toolType);
-	vtkSmartPointer<vtkXMLDataElement> stylusDefinition = vtkFreehandController::LookupElementWithNameContainingChildWithNameAndAttribute(aConfig, "Tracker", "Tool", "Type", toolType);
+	vtkSmartPointer<vtkXMLDataElement> stylusDefinition = vtkFreehandController::LookupElementWithNameContainingChildWithNameAndAttribute(aConfig, "Tracker", "Tool", "Type", toolType.c_str());
 	if (stylusDefinition == NULL) {
 		LOG_ERROR("No stylus definition is found in the XML tree!");
 		return PLUS_FAIL;

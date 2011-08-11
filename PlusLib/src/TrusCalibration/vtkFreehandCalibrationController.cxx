@@ -1537,11 +1537,11 @@ PlusStatus vtkFreehandCalibrationController::SaveCalibrationResults()
   imageAcquisition->SetDoubleAttribute("LocalTimeOffset", this->GetVideoTimeOffset());
 
 	// Save spatial calibration result
-	char* toolType = NULL;
+  std::string toolType;
 	vtkTracker::ConvertToolTypeToString(TRACKER_TOOL_PROBE, toolType);
 
   //Find stylus definition element
-	vtkSmartPointer<vtkXMLDataElement> probeDefinition = vtkFreehandController::LookupElementWithNameContainingChildWithNameAndAttribute(NULL, "Tracker", "Tool", "Type", toolType);
+	vtkSmartPointer<vtkXMLDataElement> probeDefinition = vtkFreehandController::LookupElementWithNameContainingChildWithNameAndAttribute(NULL, "Tracker", "Tool", "Type", toolType.c_str());
 	if (probeDefinition == NULL) {
 		LOG_ERROR("No probe definition is found in the XML tree!");
 		return PLUS_FAIL;

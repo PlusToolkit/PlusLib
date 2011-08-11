@@ -751,7 +751,7 @@ PlusStatus vtkTracker::ConvertStringToToolType(const char* typeString, TRACKER_T
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkTracker::ConvertToolTypeToString(const TRACKER_TOOL_TYPE type, char* &typeString)
+PlusStatus vtkTracker::ConvertToolTypeToString(const TRACKER_TOOL_TYPE type, std::string &typeString)
 {
 	switch (type)
 	{
