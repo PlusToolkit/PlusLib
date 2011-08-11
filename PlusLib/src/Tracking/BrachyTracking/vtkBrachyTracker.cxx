@@ -582,6 +582,15 @@ PlusStatus vtkBrachyTracker::GetTrackerToolBufferStringList(double timestamp,
 //----------------------------------------------------------------------------
 PlusStatus vtkBrachyTracker::GetLatestStepperEncoderValues( double &probePosition, double &probeRotation, double &templatePosition, TrackerStatus &status )
 {
+  if (this->GetTool(RAW_ENCODER_VALUES)->GetBuffer()->GetNumberOfItems()<1)
+  {
+    LOG_DEBUG("The buffer is empty"); // do not report as an error, it may be normal after a buffer clear
+    probePosition=0.0;
+    probeRotation=0.0;
+    templatePosition=0.0;
+    status=TR_MISSING;
+    return PLUS_SUCCESS;
+  }
   BufferItemUidType latestUid = this->GetTool(RAW_ENCODER_VALUES)->GetBuffer()->GetLatestItemUidInBuffer(); 
 
   return this->GetStepperEncoderValues(latestUid, probePosition, probeRotation, templatePosition, status);

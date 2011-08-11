@@ -1361,7 +1361,7 @@ void vtkCalibratorVisualizationComponent::ReadTemplateModelConfiguration(vtkXMLD
 {
 	if ( configTemplateModel == NULL ) 
 	{
-		LOG_ERROR("Unable to read template model file: " << this->GetTemplateModelConfigFileName()); 
+		LOG_ERROR("Unable to read template model file (xml data element is not found)"); 
     return;
 	}	
 

@@ -565,9 +565,10 @@ double vtkTimestampedCircularBuffer<BufferItemType>::GetFrameRate(bool ideal /*=
 // EstimatedFramePeriod[t] = EstimatedFramePeriod[t-1] * (1-SmoothingFactor) + FramePeriod[t] * SmoothingFactor
 // Smaller SmoothingFactor results leads to less jitter.
 template<class BufferItemType>
-PlusStatus vtkTimestampedCircularBuffer<BufferItemType>::CreateFilteredTimeStampForItem(unsigned long itemIndex, double inUnfilteredTimestamp, double &outFilteredTimestamp)
+PlusStatus vtkTimestampedCircularBuffer<BufferItemType>::CreateFilteredTimeStampForItem(unsigned long itemIndex, double inUnfilteredTimestamp, double &outFilteredTimestamp, bool &filteredTimestampProbablyValid)
 {
-  this->Lock(); 
+  this->Lock();   
+  filteredTimestampProbablyValid=true;
 
   if ( this->TimeStampReportTable == NULL )
   {
@@ -665,17 +666,6 @@ PlusStatus vtkTimestampedCircularBuffer<BufferItemType>::CreateFilteredTimeStamp
 
   outFilteredTimestamp = a * itemIndex + b; 
 
-  if (fabs(outFilteredTimestamp-inUnfilteredTimestamp)>this->MaxAllowedFilteringTimeDifference)
-  { 
-    // Write current timestamps and frame indexes to the log to allow investigation of the problem
-    LOG_WARNING("Difference between unfiltered timestamp is larger than the threshold. The unfiltered timestamp may be incorrect."
-      << " Unfiltered timestamp: "<<inUnfilteredTimestamp<<", filtered timestamp: "<<outFilteredTimestamp<<", difference: "<<fabs(outFilteredTimestamp-inUnfilteredTimestamp)<<", threshold: "<<this->MaxAllowedFilteringTimeDifference<<"."
-      << " timestamps = [" << std::fixed << this->FilterContainerTimestampVector << "];"
-      << " frameindexes = [" << std::fixed << this->FilterContainerIndexVector << "];");	
-    this->Unlock();  
-    return PLUS_FAIL;
-  }
-
   LOG_TRACE("timestamps = [" << std::fixed << this->FilterContainerTimestampVector << "];");
   LOG_TRACE("frameindexes = [" << std::fixed << this->FilterContainerIndexVector << "];");
 
@@ -693,6 +683,17 @@ PlusStatus vtkTimestampedCircularBuffer<BufferItemType>::CreateFilteredTimeStamp
   //timeStampReportTableRow->InsertNextValue(frameperiod); 
   //timeStampReportTableRow->InsertNextValue(this->EstimatedFramePeriod); 
   this->TimeStampReportTable->InsertNextRow(timeStampReportTableRow); 
+
+  if (fabs(outFilteredTimestamp-inUnfilteredTimestamp)>this->MaxAllowedFilteringTimeDifference)
+  { 
+    // Write current timestamps and frame indexes to the log to allow investigation of the problem
+    filteredTimestampProbablyValid=false;
+    LOG_DEBUG("Difference between unfiltered timestamp is larger than the threshold. The unfiltered timestamp may be incorrect."
+      << " Unfiltered timestamp: "<<inUnfilteredTimestamp<<", filtered timestamp: "<<outFilteredTimestamp<<", difference: "<<fabs(outFilteredTimestamp-inUnfilteredTimestamp)<<", threshold: "<<this->MaxAllowedFilteringTimeDifference<<"."
+      << " timestamps = [" << std::fixed << this->FilterContainerTimestampVector << "];"
+      << " frameindexes = [" << std::fixed << this->FilterContainerIndexVector << "];");	
+  }
+
   this->Unlock(); 
   return PLUS_SUCCESS; 
 }
