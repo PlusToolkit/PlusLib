@@ -268,7 +268,7 @@ vtkTrackedFrameList::vtkTrackedFrameList()
 
   // TODO from configuration file
   this->SetVelocityPositionThreshold(10.0);
-  this->SetVelocityOrientationThreshold(5.0);
+  this->SetVelocityOrientationThreshold(10.0);
 }
 
 //----------------------------------------------------------------------------
