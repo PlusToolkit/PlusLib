@@ -169,6 +169,12 @@ void vtkTracker::SetToolName(int tool, const char* name)
 }
 
 //----------------------------------------------------------------------------
+void vtkTracker::SetToolEnabled(int tool, bool enabled )
+{
+  this->Tools[tool]->SetEnabled(enabled); 	
+}
+
+//----------------------------------------------------------------------------
 vtkTrackerTool *vtkTracker::GetTool(int tool)
 {
   if (tool < 0 || tool > this->NumberOfTools) 

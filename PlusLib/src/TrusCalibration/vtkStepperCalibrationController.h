@@ -56,6 +56,8 @@ public:
 	virtual PlusStatus ReadConfiguration( const char* configFileNameWithPath ); 
 	virtual PlusStatus ReadConfiguration( vtkXMLDataElement* configData ); 
 
+  virtual PlusStatus WriteConfiguration( vtkXMLDataElement* configData ); 
+
 	//! Description 
 	// Add new tracked data for segmentation and save the segmentation result to the SegmentedFrameContainer
 	// The class has to be initialized before the segmentation process. 

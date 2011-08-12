@@ -588,12 +588,8 @@ PlusStatus vtkProbeCalibrationController::ComputeCalibrationResults()
 			this->CalibrationControllerIO->SaveSegmentedWirePositionsToFile(); 
 		}
 
-		if ( this->GetEnableVisualization() ) 
-		{
-			LOG_INFO(">>>>>>>> Save PRE3D plot to image..."); 
-			// save the PRE3D distribution plot to an image file
-			this->GetVisualizationComponent()->SavePRE3DplotToImage();
-		}
+    // Set calibration date
+    this->SetCalibrationDate(vtksys::SystemTools::GetCurrentDateTime("%Y.%m.%d %X").c_str()); 
 
 		// save the input images to meta image
 		if ( this->GetEnableTrackedSequenceDataSaving() )
@@ -791,37 +787,59 @@ void vtkProbeCalibrationController::PrintCalibrationResultsAndErrorReports ()
 }
 
 //----------------------------------------------------------------------------
-std::vector<double> vtkProbeCalibrationController::GetLineReconstructionErrorAnalysisVector(int wireNumber)
+PlusStatus vtkProbeCalibrationController::UpdateLineReconstructionErrorAnalysisVectors()
+{
+  LOG_TRACE("vtkProbeCalibrationController::UpdateLineReconstructionErrorAnalysisVectors"); 
+  this->LineReconstructionErrors.clear(); 
+  try 
+  {
+    // Add wire #1 LRE to map
+    this->LineReconstructionErrors[1] = this->GetCalibrator()->getLREAbsAnalysisForNWire1(); 
+
+    // Add wire #3 LRE to map
+    this->LineReconstructionErrors[3] = this->GetCalibrator()->getLREAbsAnalysisForNWire3(); 
+
+    // Add wire #4 LRE to map
+    this->LineReconstructionErrors[4] = this->GetCalibrator()->getLREAbsAnalysisForNWire4(); 
+
+    // Add wire #6 LRE to map
+    this->LineReconstructionErrors[6] = this->GetCalibrator()->getLREAbsAnalysisForNWire6(); 
+  }
+  catch(...)
+  {
+    LOG_ERROR("Unable to update line reconstruction error analysis vectors!"); 
+    return PLUS_FAIL; 
+  }
+
+  return PLUS_SUCCESS; 
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkProbeCalibrationController::GetLineReconstructionErrorAnalysisVector(int wireNumber, std::vector<double> &LRE)
 {
 	LOG_TRACE("vtkProbeCalibrationController::GetLineReconstructionErrorAnalysisVector (wire #" << wireNumber << ")"); 
-	std::vector<double> absLREAnalysisInUSProbeFrame; 
-	switch(wireNumber)
-	{
-	case 1: // wire #1
-		{
-			absLREAnalysisInUSProbeFrame = this->GetCalibrator()->getLREAbsAnalysisForNWire1();
-		}
-		break; 
-	case 3: // wire #3
-		{
-			absLREAnalysisInUSProbeFrame = this->GetCalibrator()->getLREAbsAnalysisForNWire3();
-		}
-		break; 
-	case 4: // wire #4
-		{
-			absLREAnalysisInUSProbeFrame = this->GetCalibrator()->getLREAbsAnalysisForNWire4();
-		}
-		break; 
-	case 6: // wire #6
-		{
-			absLREAnalysisInUSProbeFrame = this->GetCalibrator()->getLREAbsAnalysisForNWire6();
-		}
-		break; 
-	default: 
-		LOG_ERROR("Unable to get LRE analysis vector for wire #" << wireNumber ); 
-	}
 
-	return absLREAnalysisInUSProbeFrame; 
+  if ( this->LineReconstructionErrors.size() == 0 )
+  {
+    if ( this->UpdateLineReconstructionErrorAnalysisVectors() != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Unable to get line reconstruction error for wire " << wireNumber ); 
+      return PLUS_FAIL; 
+    }
+  }
+  
+  std::map<int, std::vector<double> >::iterator lreIterator = this->LineReconstructionErrors.find(wireNumber); 
+  if ( lreIterator != this->LineReconstructionErrors.end() )
+  {
+    LRE = lreIterator->second; 
+  }
+  else
+  {
+    LOG_WARNING("Unable to get LRE for wire #" << wireNumber ); 
+    return PLUS_FAIL; 
+  }
+
+  return PLUS_SUCCESS; 
 }
 
 //----------------------------------------------------------------------------
@@ -944,21 +962,96 @@ PlusStatus vtkProbeCalibrationController::WriteConfiguration( vtkXMLDataElement*
 	LOG_TRACE("vtkProbeCalibrationController::WriteConfiguration"); 
 	if ( configData == NULL )
 	{
-		LOG_ERROR("Unable to read configuration"); 
+		LOG_ERROR("Unable to write configuration - input xml data is NULL"); 
 		return PLUS_FAIL;
 	}
+  
+  vtkSmartPointer<vtkXMLDataElement> calibrationController = configData->LookupElementWithName("CalibrationController");
 
-  vtkSmartPointer<vtkXMLDataElement> probeCalibration = configData->LookupElementWithName("ProbeCalibration");
+  if ( calibrationController == NULL )
+  {
+    LOG_ERROR("Unable to find CalibrationController XML data element!"); 
+    return PLUS_FAIL; 
+  }
+
+  vtkSmartPointer<vtkXMLDataElement> probeCalibration = calibrationController->LookupElementWithName("ProbeCalibration");
   if ( probeCalibration == NULL )
   {
     LOG_ERROR("Failed to write results to ProbeCalibration XML data element - element not found!"); 
     return PLUS_FAIL; 
   }
 
-  probeCalibration->SetVectorAttribute("CenterOfRotationPx", 2, this->GetCenterOfRotationPx()); 
+  if ( this->GetCalibrationDone() )
+  {
 
-  probeCalibration->SetVectorAttribute("PhantomToProbeDistanceInMm", 2, this->GetPhantomToProbeDistanceInMm()); 
+    vtkSmartPointer<vtkXMLDataElement> calibrationResult = probeCalibration->FindNestedElementWithName("CalibrationResult");
 
+    if ( calibrationResult == NULL )
+    {
+      calibrationResult = vtkSmartPointer<vtkXMLDataElement>::New(); 
+      calibrationResult->SetName("CalibrationResult"); 
+      calibrationResult->SetParent(probeCalibration); 
+      probeCalibration->AddNestedElement(calibrationResult); 
+    }
+
+    if ( this->GetCalibrationDate() != NULL )
+    {
+      calibrationResult->SetAttribute("Date", this->GetCalibrationDate() ); 
+    }
+
+    calibrationResult->SetVectorAttribute("CenterOfRotationPx", 2, this->GetCenterOfRotationPx()); 
+    calibrationResult->SetVectorAttribute("PhantomToProbeDistanceInMm", 2, this->GetPhantomToProbeDistanceInMm()); 
+
+    std::vector<double> LRE_w1; 
+    if ( this->GetLineReconstructionErrorAnalysisVector(1, LRE_w1) == PLUS_SUCCESS )
+    {
+      calibrationResult->SetVectorAttribute("LRE-W1", 7, &LRE_w1[0] ); 
+    }
+
+    std::vector<double> LRE_w3; 
+    if ( this->GetLineReconstructionErrorAnalysisVector(3, LRE_w3) == PLUS_SUCCESS )
+    {
+      calibrationResult->SetVectorAttribute("LRE-W3", 7, &LRE_w3[0] ); 
+    }
+
+    std::vector<double> LRE_w4; 
+    if ( this->GetLineReconstructionErrorAnalysisVector(4, LRE_w4) == PLUS_SUCCESS )
+    {
+      calibrationResult->SetVectorAttribute("LRE-W4", 7, &LRE_w4[0] ); 
+    }
+
+    std::vector<double> LRE_w6; 
+    if ( this->GetLineReconstructionErrorAnalysisVector(6, LRE_w6) == PLUS_SUCCESS )
+    {
+      calibrationResult->SetVectorAttribute("LRE-W6", 7, &LRE_w6[0] ); 
+    }
+
+    // TransformImageToTemplate
+    double tImageToTemplate[16] = {0}; 
+    vtkMatrix4x4::DeepCopy(tImageToTemplate, this->GetTransformImageToTemplate()->GetMatrix() ); 
+    calibrationResult->SetVectorAttribute("TransformImageToTemplate", 16, tImageToTemplate); 
+
+    // TransformUserImageHomeToProbeHome
+    double tUserImageHomeToProbeHome[16] = {0}; 
+    vtkMatrix4x4::DeepCopy(tUserImageHomeToProbeHome, this->GetTransformUserImageHomeToProbeHome()->GetMatrix() ); 
+    calibrationResult->SetVectorAttribute("TransformUserImageHomeToProbeHome", 16, tUserImageHomeToProbeHome); 
+
+
+    // TransformProbeHomeToTemplateHolderHome
+    double tProbeHomeToTemplateHolderHome[16] = {0}; 
+    vtkMatrix4x4::DeepCopy(tProbeHomeToTemplateHolderHome, this->GetTransformProbeHomeToTemplateHolderHome()->GetMatrix() ); 
+    calibrationResult->SetVectorAttribute("TransformProbeHomeToTemplateHolderHome", 16, tProbeHomeToTemplateHolderHome); 
+
+    // TransformTemplateHolderHomeToTemplateHome
+    double tTemplateHolderHomeToTemplateHome[16] = {0}; 
+    vtkMatrix4x4::DeepCopy(tTemplateHolderHomeToTemplateHome, this->GetTransformTemplateHolderHomeToTemplateHome()->GetMatrix() ); 
+    calibrationResult->SetVectorAttribute("TransformTemplateHolderHomeToTemplateHome", 16, tTemplateHolderHomeToTemplateHome); 
+
+    // TransformImageHomeToUserImageHome
+    double tImageHomeToUserImageHome[16] = {0}; 
+    vtkMatrix4x4::DeepCopy(tImageHomeToUserImageHome, this->GetTransformImageHomeToUserImageHome()->GetMatrix() ); 
+    calibrationResult->SetVectorAttribute("TransformImageHomeToUserImageHome", 16, tImageHomeToUserImageHome); 
+  }
   return PLUS_SUCCESS; 
 }
 

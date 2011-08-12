@@ -510,22 +510,32 @@ void vtkProbeCalibrationControllerIO::SaveCalibrationResultsAndErrorReportsToXML
 	delete[] sortedPointLineDistanceErrors; 
 
 	//***********************************************************************************************
-	double *w1LREAnalysis = new double[6]; 
-	for (int i = 0; i < 6; i++)
-	{
-		w1LREAnalysis[i] = this->CalibrationController->GetLineReconstructionErrorAnalysisVector(1)[i]; 
-	}
+  std::vector<double> w1LREVector; 
+  if ( this->CalibrationController->GetLineReconstructionErrorAnalysisVector(1, w1LREVector) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to get LRE for wire #1."); 
+  }
+  else
+  {
+    double *w1LREAnalysis = new double[6]; 
+    for (int i = 0; i < 6; i++)
+    {
+      w1LREAnalysis[i] = w1LREVector[i]; 
+    }
 
-	// <Wire1LineReconstructionErrorAnalysis>
-	vtkSmartPointer<vtkXMLDataElement> tagWire1LineReconstructionErrorAnalysis = vtkSmartPointer<vtkXMLDataElement>::New(); 
-	tagWire1LineReconstructionErrorAnalysis->SetName("Wire1LineReconstructionErrorAnalysis"); 
-	tagWire1LineReconstructionErrorAnalysis->SetVectorAttribute("LRE", 6, w1LREAnalysis);  
-	// # The percentage of top-ranked validation data used for evaluation
-	tagWire1LineReconstructionErrorAnalysis->SetDoubleAttribute("ValidationDataConfidenceLevel", this->CalibrationController->GetLineReconstructionErrorAnalysisVector(1)[6]);  
-	vtkstd::string commentWire1LineReconstructionErrorAnalysis("# LRE format: LRE_X_mean, LRE_X_std, LRE_Y_mean, LRE_Y_std, LRE_EUC_mean, LRE_EUC_std"); 
-	tagWire1LineReconstructionErrorAnalysis->AddCharacterData(commentWire1LineReconstructionErrorAnalysis.c_str(), commentWire1LineReconstructionErrorAnalysis.size()); 
-	// </LineReconstructionErrorAnalysis>
-	delete[] w1LREAnalysis; 
+    // <Wire1LineReconstructionErrorAnalysis>
+    vtkSmartPointer<vtkXMLDataElement> tagWire1LineReconstructionErrorAnalysis = vtkSmartPointer<vtkXMLDataElement>::New(); 
+    tagWire1LineReconstructionErrorAnalysis->SetName("Wire1LineReconstructionErrorAnalysis"); 
+    tagWire1LineReconstructionErrorAnalysis->SetVectorAttribute("LRE", 6, w1LREAnalysis);  
+    // # The percentage of top-ranked validation data used for evaluation
+    tagWire1LineReconstructionErrorAnalysis->SetDoubleAttribute("ValidationDataConfidenceLevel", w1LREVector[6]);  
+    vtkstd::string commentWire1LineReconstructionErrorAnalysis("# LRE format: LRE_X_mean, LRE_X_std, LRE_Y_mean, LRE_Y_std, LRE_EUC_mean, LRE_EUC_std"); 
+    tagWire1LineReconstructionErrorAnalysis->AddCharacterData(commentWire1LineReconstructionErrorAnalysis.c_str(), commentWire1LineReconstructionErrorAnalysis.size()); 
+    // </LineReconstructionErrorAnalysis>
+    delete[] w1LREAnalysis; 
+
+    tagErrorReports->AddNestedElement(tagWire1LineReconstructionErrorAnalysis);
+  }
 
 	//***********************************************************************************************
 	const int w1NumOfRows = this->CalibrationController->GetLineReconstructionErrorMatrix(1).rows(); 
@@ -559,22 +569,32 @@ void vtkProbeCalibrationControllerIO::SaveCalibrationResultsAndErrorReportsToXML
 	delete[] w1rawEUCLineReconstructionErrors;
 
 	//***********************************************************************************************
-	double *w3LREAnalysis = new double[6]; 
-	for (int i = 0; i < 6; i++)
-	{
-		w3LREAnalysis[i] = this->CalibrationController->GetLineReconstructionErrorAnalysisVector(3)[i]; 
-	}
+	
+  std::vector<double> w3LREVector; 
+  if ( this->CalibrationController->GetLineReconstructionErrorAnalysisVector(3, w3LREVector) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to get LRE for wire #3."); 
+  }
+  else
+  {
+    double *w3LREAnalysis = new double[6]; 
+    for (int i = 0; i < 6; i++)
+    {
+      w3LREAnalysis[i] = w3LREVector[i]; 
+    }
+    // <Wire3LineReconstructionErrorAnalysis>
+    vtkSmartPointer<vtkXMLDataElement> tagWire3LineReconstructionErrorAnalysis = vtkSmartPointer<vtkXMLDataElement>::New(); 
+    tagWire3LineReconstructionErrorAnalysis->SetName("Wire3LineReconstructionErrorAnalysis"); 
+    tagWire3LineReconstructionErrorAnalysis->SetVectorAttribute("LRE", 6, w3LREAnalysis);  
+    // # The percentage of top-ranked validation data used for evaluation
+    tagWire3LineReconstructionErrorAnalysis->SetDoubleAttribute("ValidationDataConfidenceLevel", w3LREVector[6]);  
+    vtkstd::string commentWire3LineReconstructionErrorAnalysis("# LRE format: LRE_X_mean, LRE_X_std, LRE_Y_mean, LRE_Y_std, LRE_EUC_mean, LRE_EUC_std"); 
+    tagWire3LineReconstructionErrorAnalysis->AddCharacterData(commentWire3LineReconstructionErrorAnalysis.c_str(), commentWire3LineReconstructionErrorAnalysis.size()); 
+    // </LineReconstructionErrorAnalysis>
+    delete[] w3LREAnalysis;
 
-	// <Wire3LineReconstructionErrorAnalysis>
-	vtkSmartPointer<vtkXMLDataElement> tagWire3LineReconstructionErrorAnalysis = vtkSmartPointer<vtkXMLDataElement>::New(); 
-	tagWire3LineReconstructionErrorAnalysis->SetName("Wire3LineReconstructionErrorAnalysis"); 
-	tagWire3LineReconstructionErrorAnalysis->SetVectorAttribute("LRE", 6, w3LREAnalysis);  
-	// # The percentage of top-ranked validation data used for evaluation
-	tagWire3LineReconstructionErrorAnalysis->SetDoubleAttribute("ValidationDataConfidenceLevel", this->CalibrationController->GetLineReconstructionErrorAnalysisVector(3)[6]);  
-	vtkstd::string commentWire3LineReconstructionErrorAnalysis("# LRE format: LRE_X_mean, LRE_X_std, LRE_Y_mean, LRE_Y_std, LRE_EUC_mean, LRE_EUC_std"); 
-	tagWire3LineReconstructionErrorAnalysis->AddCharacterData(commentWire3LineReconstructionErrorAnalysis.c_str(), commentWire3LineReconstructionErrorAnalysis.size()); 
-	// </LineReconstructionErrorAnalysis>
-	delete[] w3LREAnalysis;
+    tagErrorReports->AddNestedElement(tagWire3LineReconstructionErrorAnalysis);
+  }
 
 	//***********************************************************************************************
 	const int w3NumOfRows = this->CalibrationController->GetLineReconstructionErrorMatrix(3).rows(); 
@@ -607,22 +627,32 @@ void vtkProbeCalibrationControllerIO::SaveCalibrationResultsAndErrorReportsToXML
 	delete[] w3rawEUCLineReconstructionErrors;
 
 	//***********************************************************************************************
-	double *w4LREAnalysis = new double[6]; 
-	for (int i = 0; i < 6; i++)
-	{
-		w4LREAnalysis[i] = this->CalibrationController->GetLineReconstructionErrorAnalysisVector(4)[i]; 
-	}
+  std::vector<double> w4LREVector; 
+  if ( this->CalibrationController->GetLineReconstructionErrorAnalysisVector(4, w4LREVector) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to get LRE for wire #4."); 
+  }
+  else
+  {
+    double *w4LREAnalysis = new double[6]; 
+    for (int i = 0; i < 6; i++)
+    {
+      w4LREAnalysis[i] = w4LREVector[i]; 
+    }
 
-	// <Wire4LineReconstructionErrorAnalysis>
-	vtkSmartPointer<vtkXMLDataElement> tagWire4LineReconstructionErrorAnalysis = vtkSmartPointer<vtkXMLDataElement>::New(); 
-	tagWire4LineReconstructionErrorAnalysis->SetName("Wire4LineReconstructionErrorAnalysis"); 
-	tagWire4LineReconstructionErrorAnalysis->SetVectorAttribute("LRE", 6, w4LREAnalysis);  
-	// # The percentage of top-ranked validation data used for evaluation
-	tagWire4LineReconstructionErrorAnalysis->SetDoubleAttribute("ValidationDataConfidenceLevel", this->CalibrationController->GetLineReconstructionErrorAnalysisVector(4)[6]);  
-	vtkstd::string commentWire4LineReconstructionErrorAnalysis("# LRE format: LRE_X_mean, LRE_X_std, LRE_Y_mean, LRE_Y_std, LRE_EUC_mean, LRE_EUC_std"); 
-	tagWire4LineReconstructionErrorAnalysis->AddCharacterData(commentWire4LineReconstructionErrorAnalysis.c_str(), commentWire4LineReconstructionErrorAnalysis.size()); 
-	// </LineReconstructionErrorAnalysis>
-	delete[] w4LREAnalysis;
+    // <Wire4LineReconstructionErrorAnalysis>
+    vtkSmartPointer<vtkXMLDataElement> tagWire4LineReconstructionErrorAnalysis = vtkSmartPointer<vtkXMLDataElement>::New(); 
+    tagWire4LineReconstructionErrorAnalysis->SetName("Wire4LineReconstructionErrorAnalysis"); 
+    tagWire4LineReconstructionErrorAnalysis->SetVectorAttribute("LRE", 6, w4LREAnalysis);  
+    // # The percentage of top-ranked validation data used for evaluation
+    tagWire4LineReconstructionErrorAnalysis->SetDoubleAttribute("ValidationDataConfidenceLevel", w4LREVector[6]);  
+    vtkstd::string commentWire4LineReconstructionErrorAnalysis("# LRE format: LRE_X_mean, LRE_X_std, LRE_Y_mean, LRE_Y_std, LRE_EUC_mean, LRE_EUC_std"); 
+    tagWire4LineReconstructionErrorAnalysis->AddCharacterData(commentWire4LineReconstructionErrorAnalysis.c_str(), commentWire4LineReconstructionErrorAnalysis.size()); 
+    // </LineReconstructionErrorAnalysis>
+    delete[] w4LREAnalysis;
+
+    tagErrorReports->AddNestedElement(tagWire4LineReconstructionErrorAnalysis);
+  }
 
 	//***********************************************************************************************
 	const int w4NumOfRows = this->CalibrationController->GetLineReconstructionErrorMatrix(4).rows(); 
@@ -654,23 +684,33 @@ void vtkProbeCalibrationControllerIO::SaveCalibrationResultsAndErrorReportsToXML
 	delete[] w4rawYLineReconstructionErrors; 
 	delete[] w4rawEUCLineReconstructionErrors;
 
-	//***********************************************************************************************
-	double *w6LREAnalysis = new double[6]; 
-	for (int i = 0; i < 6; i++)
-	{
-		w6LREAnalysis[i] = this->CalibrationController->GetLineReconstructionErrorAnalysisVector(6)[i]; 
-	}
+  //***********************************************************************************************
+  std::vector<double> w6LREVector; 
+  if ( this->CalibrationController->GetLineReconstructionErrorAnalysisVector(6, w6LREVector) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to get LRE for wire #6."); 
+  }
+  else
+  {
+    double *w6LREAnalysis = new double[6];
+    for (int i = 0; i < 6; i++)
+    {
+      w6LREAnalysis[i] = w6LREVector[i]; 
+    }
 
-	// <Wire6LineReconstructionErrorAnalysis>
-	vtkSmartPointer<vtkXMLDataElement> tagWire6LineReconstructionErrorAnalysis = vtkSmartPointer<vtkXMLDataElement>::New(); 
-	tagWire6LineReconstructionErrorAnalysis->SetName("Wire6LineReconstructionErrorAnalysis"); 
-	tagWire6LineReconstructionErrorAnalysis->SetVectorAttribute("LRE", 6, w6LREAnalysis);  
-	// # The percentage of top-ranked validation data used for evaluation
-	tagWire6LineReconstructionErrorAnalysis->SetDoubleAttribute("ValidationDataConfidenceLevel", this->CalibrationController->GetLineReconstructionErrorAnalysisVector(6)[6]);  
-	vtkstd::string commentWire6LineReconstructionErrorAnalysis("# LRE format: LRE_X_mean, LRE_X_std, LRE_Y_mean, LRE_Y_std, LRE_EUC_mean, LRE_EUC_std"); 
-	tagWire6LineReconstructionErrorAnalysis->AddCharacterData(commentWire6LineReconstructionErrorAnalysis.c_str(), commentWire6LineReconstructionErrorAnalysis.size()); 
-	// </LineReconstructionErrorAnalysis>
-	delete[] w6LREAnalysis;
+    // <Wire6LineReconstructionErrorAnalysis>
+    vtkSmartPointer<vtkXMLDataElement> tagWire6LineReconstructionErrorAnalysis = vtkSmartPointer<vtkXMLDataElement>::New(); 
+    tagWire6LineReconstructionErrorAnalysis->SetName("Wire6LineReconstructionErrorAnalysis"); 
+    tagWire6LineReconstructionErrorAnalysis->SetVectorAttribute("LRE", 6, w6LREAnalysis);  
+    // # The percentage of top-ranked validation data used for evaluation
+    tagWire6LineReconstructionErrorAnalysis->SetDoubleAttribute("ValidationDataConfidenceLevel", w6LREVector[6]);  
+    vtkstd::string commentWire6LineReconstructionErrorAnalysis("# LRE format: LRE_X_mean, LRE_X_std, LRE_Y_mean, LRE_Y_std, LRE_EUC_mean, LRE_EUC_std"); 
+    tagWire6LineReconstructionErrorAnalysis->AddCharacterData(commentWire6LineReconstructionErrorAnalysis.c_str(), commentWire6LineReconstructionErrorAnalysis.size()); 
+    // </LineReconstructionErrorAnalysis>
+    delete[] w6LREAnalysis;
+  
+    tagErrorReports->AddNestedElement(tagWire6LineReconstructionErrorAnalysis);
+  }
 
 	//***********************************************************************************************
 	const int w6NumOfRows = this->CalibrationController->GetLineReconstructionErrorMatrix(6).rows(); 
@@ -706,13 +746,9 @@ void vtkProbeCalibrationControllerIO::SaveCalibrationResultsAndErrorReportsToXML
 	tagErrorReports->AddNestedElement(tagPointReconstructionErrors);
 	tagErrorReports->AddNestedElement(tagPointLineDistanceErrorAnalysis);
 	tagErrorReports->AddNestedElement(tagPointLineDistanceErrors);
-	tagErrorReports->AddNestedElement(tagWire1LineReconstructionErrorAnalysis);
 	tagErrorReports->AddNestedElement(tagW1LineReconstructionErrors);
-	tagErrorReports->AddNestedElement(tagWire3LineReconstructionErrorAnalysis);
 	tagErrorReports->AddNestedElement(tagW3LineReconstructionErrors);
-	tagErrorReports->AddNestedElement(tagWire4LineReconstructionErrorAnalysis);
 	tagErrorReports->AddNestedElement(tagW4LineReconstructionErrors);
-	tagErrorReports->AddNestedElement(tagWire6LineReconstructionErrorAnalysis);
 	tagErrorReports->AddNestedElement(tagW6LineReconstructionErrors);
 	// <ErrorReports>
 
@@ -1078,20 +1114,7 @@ void vtkProbeCalibrationControllerIO::ReadProbeCalibrationConfiguration(vtkXMLDa
 		this->CalibrationController->GetTransformUserImageToImage()->Inverse(); 
 	}
 
-  //Image center of rotation in pixels
-  int centerOfRotationPx[2] = {0}; 
-	if ( probeCalibration->GetVectorAttribute("CenterOfRotationPx", 2, centerOfRotationPx) )
-	{
-		this->CalibrationController->SetCenterOfRotationPx(centerOfRotationPx); 
-	}
-
-  double phantomToProbeDistanceInMm[2] = {0}; 
-	if ( probeCalibration->GetVectorAttribute("PhantomToProbeDistanceInMm", 2, phantomToProbeDistanceInMm) )
-	{
-		this->CalibrationController->SetPhantomToProbeDistanceInMm(phantomToProbeDistanceInMm); 
-	}
-
-	// Sets the suffix of the data files
+  // Sets the suffix of the data files
 	const char* dataFileSuffix = probeCalibration->GetAttribute("DataFileSuffix"); 
 	if ( dataFileSuffix != NULL) 
 	{
@@ -1261,5 +1284,128 @@ void vtkProbeCalibrationControllerIO::ReadProbeCalibrationConfiguration(vtkXMLDa
 	{
 		LOG_WARNING("Unable to find US3DBeamProfile XML data element"); 
 	}
+
+  // CalibrationResult specifications
+	//********************************************************************
+
+  vtkSmartPointer<vtkXMLDataElement> calibrationResult = probeCalibration->FindNestedElementWithName("CalibrationResult"); 
+
+  if ( calibrationResult != NULL )
+  {
+    // Read calibration date
+    const char* calibrationDate = calibrationResult->GetAttribute("Date"); 
+    if ( calibrationDate != NULL )
+    {
+      this->CalibrationController->SetCalibrationDate(calibrationDate); 
+    }
+
+    //Image center of rotation in pixels
+    int centerOfRotationPx[2] = {0}; 
+    if ( calibrationResult->GetVectorAttribute("CenterOfRotationPx", 2, centerOfRotationPx) )
+    {
+      this->CalibrationController->SetCenterOfRotationPx(centerOfRotationPx); 
+    }
+
+    double phantomToProbeDistanceInMm[2] = {0}; 
+    if ( calibrationResult->GetVectorAttribute("PhantomToProbeDistanceInMm", 2, phantomToProbeDistanceInMm) )
+    {
+      this->CalibrationController->SetPhantomToProbeDistanceInMm(phantomToProbeDistanceInMm); 
+    }
+
+    // TransformImageToTemplate
+    double tImageToTemplate[16] = {0}; 
+    if ( calibrationResult->GetVectorAttribute("TransformImageToTemplate", 16, tImageToTemplate) )
+    {
+      this->CalibrationController->GetTransformImageToTemplate()->SetMatrix(tImageToTemplate); 
+    }
+
+    // TransformUserImageHomeToProbeHome
+    double tUserImageHomeToProbeHome[16] = {0}; 
+    if ( calibrationResult->GetVectorAttribute("TransformUserImageHomeToProbeHome", 16, tUserImageHomeToProbeHome) )
+    {
+      this->CalibrationController->GetTransformUserImageHomeToProbeHome()->SetMatrix(tUserImageHomeToProbeHome); 
+    }
+
+    // TransformProbeHomeToTemplateHolderHome
+    double tProbeHomeToTemplateHolderHome[16] = {0}; 
+    if ( calibrationResult->GetVectorAttribute("TransformProbeHomeToTemplateHolderHome", 16, tProbeHomeToTemplateHolderHome) )
+    {
+      this->CalibrationController->GetTransformProbeHomeToTemplateHolderHome()->SetMatrix(tProbeHomeToTemplateHolderHome); 
+    }
+
+    // TransformTemplateHolderHomeToTemplateHome
+    double tTemplateHolderHomeToTemplateHome[16] = {0}; 
+    if ( calibrationResult->GetVectorAttribute("TransformTemplateHolderHomeToTemplateHome", 16, tTemplateHolderHomeToTemplateHome) )
+    {
+      this->CalibrationController->GetTransformTemplateHolderHomeToTemplateHome()->SetMatrix(tTemplateHolderHomeToTemplateHome); 
+    }
+
+    // TransformImageHomeToUserImageHome
+    double tImageHomeToUserImageHome[16] = {0}; 
+    if ( calibrationResult->GetVectorAttribute("TransformImageHomeToUserImageHome", 16, tImageHomeToUserImageHome) )
+    {
+      this->CalibrationController->GetTransformImageHomeToUserImageHome()->SetMatrix(tImageHomeToUserImageHome); 
+    }
+
+    // Update LRE values
+    this->CalibrationController->GetLineReconstructionErrors()->clear(); 
+    
+    // Add wire #1 LRE to map
+    double LRE_w1[7]={0}; 
+    if ( calibrationResult->GetVectorAttribute("LRE-W1", 7, LRE_w1) )
+    {
+      std::vector<double> vectorLRE_w1;
+      for ( int i = 0; i < 7; ++i )
+      {
+        vectorLRE_w1.push_back(LRE_w1[i]); 
+      }
+
+      (*this->CalibrationController->GetLineReconstructionErrors())[1] = vectorLRE_w1; 
+    }
+
+    
+    // Add wire #3 LRE to map
+    double LRE_w3[7]={0}; 
+    if ( calibrationResult->GetVectorAttribute("LRE-W3", 7, LRE_w3) )
+    {
+      std::vector<double> vectorLRE_w3;
+      for ( int i = 0; i < 7; ++i )
+      {
+        vectorLRE_w3.push_back(LRE_w3[i]); 
+      }
+
+      (*this->CalibrationController->GetLineReconstructionErrors())[3] = vectorLRE_w3; 
+    }
+
+    // Add wire #4 LRE to map
+    double LRE_w4[7]={0}; 
+    if ( calibrationResult->GetVectorAttribute("LRE-W4", 7, LRE_w4) )
+    {
+      std::vector<double> vectorLRE_w4;
+      for ( int i = 0; i < 7; ++i )
+      {
+        vectorLRE_w4.push_back(LRE_w4[i]); 
+      }
+
+      (*this->CalibrationController->GetLineReconstructionErrors())[4] = vectorLRE_w4; 
+    }
+
+    // Add wire #6 LRE to map
+    double LRE_w6[7]={0}; 
+    if ( calibrationResult->GetVectorAttribute("LRE-W6", 7, LRE_w6) )
+    {
+      std::vector<double> vectorLRE_w6;
+      for ( int i = 0; i < 7; ++i )
+      {
+        vectorLRE_w6.push_back(LRE_w6[i]); 
+      }
+
+      (*this->CalibrationController->GetLineReconstructionErrors())[6] = vectorLRE_w6; 
+    }
+
+    this->CalibrationController->CalibrationDoneOn(); 
+
+  }
+
 }
 

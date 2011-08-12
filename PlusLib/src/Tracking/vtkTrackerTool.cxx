@@ -521,6 +521,7 @@ PlusStatus vtkTrackerTool::WriteConfiguration(vtkXMLDataElement* config)
     calibration = vtkSmartPointer<vtkXMLDataElement>::New(); 
     calibration->SetName("Calibration"); 
     calibration->SetParent(trackerTool); 
+    trackerTool->AddNestedElement(calibration); 
   }
 
   // Set matrix name 

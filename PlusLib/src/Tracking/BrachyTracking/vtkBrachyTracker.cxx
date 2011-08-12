@@ -43,8 +43,11 @@ vtkBrachyTracker::vtkBrachyTracker()
 	this->BaudRate = 19200;
 	this->SetNumberOfTools(NUMBER_OF_BRACHY_TOOLS); 
 	this->SetToolName(PROBEHOME_TO_PROBE_TRANSFORM, "ProbeHomeToProbeUncalibrated"); 
+  this->SetToolEnabled(PROBEHOME_TO_PROBE_TRANSFORM, true); 
 	this->SetToolName(TEMPLATEHOME_TO_TEMPLATE_TRANSFORM, "TemplateHomeToTemplateUncalibrated"); 
+  this->SetToolEnabled(TEMPLATEHOME_TO_TEMPLATE_TRANSFORM, true); 
 	this->SetToolName(RAW_ENCODER_VALUES, "StepperEncoderValues"); 
+  this->SetToolEnabled(RAW_ENCODER_VALUES, true); 
   this->BrachyStepperType = BrachyStepper::BURDETTE_MEDICAL_SYSTEMS_DIGITAL_STEPPER; 
 
   // Stepper calibration parameters
@@ -343,7 +346,7 @@ PlusStatus vtkBrachyTracker::ReadConfiguration(vtkXMLDataElement* config)
 
   }
 
-	vtkSmartPointer<vtkXMLDataElement> calibration = config->FindNestedElementWithName("StepperCalibration"); 
+	vtkSmartPointer<vtkXMLDataElement> calibration = config->FindNestedElementWithName("StepperCalibrationResult"); 
 	if ( calibration != NULL ) 
 	{
 		const char* calibrationAlgorithmVersion = calibration->GetAttribute("AlgorithmVersion"); 
@@ -436,12 +439,12 @@ PlusStatus vtkBrachyTracker::WriteConfiguration(vtkXMLDataElement* config)
   if ( this->GetTrackerCalibrated() )
   {
     // Save stepper calibration results to file
-    vtkSmartPointer<vtkXMLDataElement> calibration = config->LookupElementWithName("StepperCalibration");
+    vtkSmartPointer<vtkXMLDataElement> calibration = config->LookupElementWithName("StepperCalibrationResult");
     if ( calibration == NULL )
     {
       // create new element and add to trackerTool 
       calibration = vtkSmartPointer<vtkXMLDataElement>::New(); 
-      calibration->SetName("StepperCalibration"); 
+      calibration->SetName("StepperCalibrationResult"); 
       calibration->SetParent(config); 
     } 
 

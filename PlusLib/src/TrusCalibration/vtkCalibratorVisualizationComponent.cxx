@@ -278,7 +278,7 @@ void vtkCalibratorVisualizationComponent::SetRealtimeRenderer( vtkRenderer* rend
     this->RealtimeRenderer->AddActor(this->GetCenterOfRotationActor()); 
     this->RealtimeRenderer->AddActor(this->GetPhantomWiresActor()); 
 
-    // Set 
+    // Set image camera
     vtkSmartPointer<vtkCamera> imageCamera = vtkSmartPointer<vtkCamera>::New(); 
     double imageCenterX = this->GetCalibrationController()->GetSegParameters()->GetFrameSize()[0]/2.0; 
     double imageCenterY = this->GetCalibrationController()->GetSegParameters()->GetFrameSize()[1]/2.0; 
@@ -410,9 +410,6 @@ void vtkCalibratorVisualizationComponent::RemoveTemplate()
 		return; 
 	}
 
-	//this->GetRealtimeImageActor()->SetPosition( 0, 0, 0); 
-	//vtkSmartPointer<vtkTransform> identity = vtkSmartPointer<vtkTransform>::New(); 
-	//this->GetRealtimeImageActor()->SetUserTransform( identity ); 
 	this->RemoveTemplateGridInTransverseMode(); 
 }
 
