@@ -397,10 +397,6 @@ PlusStatus vtkBrachyTracker::ReadConfiguration(vtkXMLDataElement* config)
 
 		this->TrackerCalibratedOn(); 
 	}
-	else
-	{
-		LOG_WARNING("Unable to find the stepper calibration result in BrachyTracker XML data element"); 
-	}
 
 	if ( this->TrackerCalibrated )
 	{
