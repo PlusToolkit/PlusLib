@@ -200,12 +200,6 @@ PlusStatus vtkCalibrationController::AddTrackedFrameData(TrackedFrame* trackedFr
 
 		if( !segResults.GetDotsFound() )
 		{
-      if (this->SegmentationProgressCallbackFunction != NULL)
-      {
-        int percent = 100*this->ImageDataInfoContainer[dataType].NumberOfSegmentedImages / this->ImageDataInfoContainer[dataType].NumberOfImagesToAcquire; 
-        (*SegmentationProgressCallbackFunction)(percent);
-      }
-
 			LOG_DEBUG("The segmentation cannot locate any meaningful targets, the image was ignored!"); 
 			return PLUS_FAIL; 
 		}
@@ -218,14 +212,6 @@ PlusStatus vtkCalibrationController::AddTrackedFrameData(TrackedFrame* trackedFr
 		this->SegmentedFrameContainer.push_back(segmentedFrame); 
 
 		this->ImageDataInfoContainer[dataType].NumberOfSegmentedImages++; 
-
-		// Notify the caller when a segmentation is done
-		if (this->SegmentationProgressCallbackFunction != NULL)
-		{
-      int percent = 100*this->ImageDataInfoContainer[dataType].NumberOfSegmentedImages / this->ImageDataInfoContainer[dataType].NumberOfImagesToAcquire; 
-			// Notify the caller 
-			(*SegmentationProgressCallbackFunction)(percent);
-		}
 
 		return PLUS_SUCCESS; 
 	}
