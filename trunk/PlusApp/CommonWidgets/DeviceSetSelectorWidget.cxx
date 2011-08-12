@@ -83,6 +83,8 @@ void DeviceSetSelectorWidget::InvokeConnect()
 {
 	LOG_TRACE("ToolStateDisplayWidget::InvokeConnect"); 
 
+  ui.pushButton_Connect->setEnabled(false);
+
 	emit ConnectToDevicesByConfigFileInvoked(ui.comboBox_DeviceSet->itemData(ui.comboBox_DeviceSet->currentIndex()).toStringList().at(0).toStdString());
 }
 
@@ -91,6 +93,8 @@ void DeviceSetSelectorWidget::InvokeConnect()
 void DeviceSetSelectorWidget::InvokeDisconnect()
 {
 	LOG_TRACE("ToolStateDisplayWidget::InvokeDisconnect"); 
+
+  ui.pushButton_Connect->setEnabled(false);
 
 	emit ConnectToDevicesByConfigFileInvoked("");
 }
@@ -164,7 +168,13 @@ void DeviceSetSelectorWidget::SetConnectionSuccessful(bool aConnectionSuccessful
 			ui.pushButton_Connect->setText(tr("Disconnect"));
       ui.comboBox_DeviceSet->setEnabled(false);
 
-			// Change the function to be invoked on clicking on the now Disconnect button to InvokeDisconnect
+      ui.textEdit_Description->setTextColor(QColor(Qt::black));
+	    ui.textEdit_Description->setText("Connection successful!\n\n"
+        + ui.comboBox_DeviceSet->itemData(ui.comboBox_DeviceSet->currentIndex()).toStringList().at(1)
+		    + "\n\n(" + ui.comboBox_DeviceSet->itemData(ui.comboBox_DeviceSet->currentIndex()).toStringList().at(0) + ")"
+		    );
+
+      // Change the function to be invoked on clicking on the now Disconnect button to InvokeDisconnect
 			disconnect( ui.pushButton_Connect, SIGNAL( clicked() ), this, SLOT( InvokeConnect() ) );
 			connect( ui.pushButton_Connect, SIGNAL( clicked() ), this, SLOT( InvokeDisconnect() ) );
 		} else {
@@ -176,13 +186,21 @@ void DeviceSetSelectorWidget::SetConnectionSuccessful(bool aConnectionSuccessful
 			ui.pushButton_Connect->setText(tr("Connect"));
       ui.comboBox_DeviceSet->setEnabled(true);
 
-			// Change the function to be invoked on clicking on the now Connect button to InvokeConnect
+      ui.textEdit_Description->setTextColor(QColor(Qt::black));
+	    ui.textEdit_Description->setText(
+		    ui.comboBox_DeviceSet->itemData(ui.comboBox_DeviceSet->currentIndex()).toStringList().at(1)
+		    + "\n\n(" + ui.comboBox_DeviceSet->itemData(ui.comboBox_DeviceSet->currentIndex()).toStringList().at(0) + ")"
+		    );
+
+      // Change the function to be invoked on clicking on the now Connect button to InvokeConnect
 			disconnect( ui.pushButton_Connect, SIGNAL( clicked() ), this, SLOT( InvokeDisconnect() ) );
 			connect( ui.pushButton_Connect, SIGNAL( clicked() ), this, SLOT( InvokeConnect() ) );
 		} else {
 			LOG_ERROR("Disconnect failed!");
 		}
 	}
+
+  ui.pushButton_Connect->setEnabled(true);
 }
 
 //-----------------------------------------------------------------------------
@@ -199,8 +217,6 @@ bool DeviceSetSelectorWidget::GetConnectionSuccessful()
 PlusStatus DeviceSetSelectorWidget::ParseDirectory(QString aDirectory)
 {
 	LOG_TRACE("ToolStateDisplayWidget::ParseDirectory(" << aDirectory.toStdString() << ")"); 
-
-	
 
 	QDir configDir(aDirectory);
 	QStringList fileList(configDir.entryList());
