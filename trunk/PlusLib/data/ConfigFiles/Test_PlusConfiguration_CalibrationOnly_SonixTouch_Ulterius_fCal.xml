@@ -25,8 +25,11 @@
 			</Tool>
 		</Tracker>
 
-		<ImageAcqusition Type="None" />
-    
+		<ImageAcqusition Type="None"
+        SpeedThresholdPositionMm="10.0"
+        SpeedThresholdOrientationAngle="15.0"
+				/>
+
 		<Synchronization Type="None" />
     
 	</USDataCollection>
