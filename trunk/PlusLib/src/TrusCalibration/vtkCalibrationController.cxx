@@ -40,6 +40,7 @@ SegmentationProgressCallbackFunction(NULL)
 	this->EnableSegmentationAnalysisOff();
   this->EnableVisualizationOn(); 
 	this->InitializedOff(); 
+  this->CalibrationDoneOff(); 
 
 	this->VisualizationComponent = NULL;
 	this->OutputPath = NULL; 
@@ -47,6 +48,7 @@ SegmentationProgressCallbackFunction(NULL)
 	this->ConfigurationFileName = NULL;
 	this->ModelToPhantomTransform = NULL;
 	this->PhantomModelFileName = NULL;
+  this->CalibrationDate = NULL; 
 	
 	this->SegParameters = new SegmentationParameters(); 
 

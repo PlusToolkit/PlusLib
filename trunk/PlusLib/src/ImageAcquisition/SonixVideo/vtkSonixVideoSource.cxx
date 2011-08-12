@@ -741,7 +741,5 @@ PlusStatus vtkSonixVideoSource::ReadConfiguration(vtkXMLDataElement* config)
 //-----------------------------------------------------------------------------
 PlusStatus vtkSonixVideoSource::WriteConfiguration(vtkXMLDataElement* config)
 {
-    Superclass::WriteConfiguration(config); 
-    LOG_ERROR("vtkSonixVideoSource::WriteConfiguration is not implemented");
-    return PLUS_FAIL;
+    return Superclass::WriteConfiguration(config); 
 }

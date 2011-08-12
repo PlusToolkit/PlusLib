@@ -159,6 +159,16 @@ public:
 	vtkSetObjectMacro(ModelToPhantomTransform, vtkTransform); 
 	vtkGetObjectMacro(ModelToPhantomTransform, vtkTransform);
 
+  //! Description 
+	// Set/get the calibration date in string format
+	vtkSetStringMacro(CalibrationDate); 
+	vtkGetStringMacro(CalibrationDate);
+
+  //! Attribute: Flag to identify the calibration state 
+	vtkGetMacro(CalibrationDone, bool);
+	vtkSetMacro(CalibrationDone, bool);
+	vtkBooleanMacro(CalibrationDone, bool);
+  
 	//! Attribute: Flag to enable the Segmentation Analysis
 	vtkGetMacro(EnableSegmentationAnalysis, bool);
 	vtkSetMacro(EnableSegmentationAnalysis, bool);
@@ -248,6 +258,9 @@ protected:
 	//! Attribute: Flag to show the initialized state
 	bool Initialized; 
 
+  //! Attribute: Flag to identify the calibration state 
+	bool CalibrationDone; 
+
 	//! Attributes: calibration mode (see CALIBRATION_MODE)
 	CalibrationMode CalibrationMode; 
 
@@ -262,6 +275,9 @@ protected:
 
 	//! Attributes: phantom model file name for visualization
 	char* PhantomModelFileName;
+
+  //! Attributes: calibration date in string format 
+  char* CalibrationDate; 
 
 	//! Attributes: phantom to model transform
 	vtkTransform* ModelToPhantomTransform;

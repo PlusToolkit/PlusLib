@@ -79,11 +79,6 @@ public:
 	vtkSetMacro(EnableSegmentedWirePositionsSaving, bool);
 	vtkBooleanMacro(EnableSegmentedWirePositionsSaving, bool);
 
-	//! Attribute: Flag to identify the calibration state 
-	vtkGetMacro(CalibrationDone, bool);
-	vtkSetMacro(CalibrationDone, bool);
-	vtkBooleanMacro(CalibrationDone, bool);
-	
 	//! Attribute: Flags to incorporate the ultrasound 3D beam profile (beam width)
 	// The flag is set when the 3D US beam width data is to be incorporated into
 	// the calibration process (e.g., by adding weights to the least-squares 
@@ -337,7 +332,8 @@ public:
 	//   dataset.  Default value: 0.95 (or 95%), meaning the top 
 	//   ranked 95% of the ascendingly-ordered results from the 
 	//   validation data would be accepted as the valid error values.
-	std::vector<double> GetLineReconstructionErrorAnalysisVector(int wireNumber);  
+  PlusStatus UpdateLineReconstructionErrorAnalysisVectors();  
+	PlusStatus GetLineReconstructionErrorAnalysisVector(int wireNumber, std::vector<double> &LRE);  
 
 	//! Attribute: Line reconstruction error (LRE) matrix for validation positions in US probe frame
 	// This keeps all the original PRE3Ds for the validation dataset with signs in
@@ -416,6 +412,8 @@ public:
 	vtkSetObjectMacro(CalibrationControllerIO, vtkProbeCalibrationControllerIO); 
 	vtkGetObjectMacro(CalibrationControllerIO, vtkProbeCalibrationControllerIO); 
 
+  std::map<int, std::vector<double>>* GetLineReconstructionErrors() { return &this->LineReconstructionErrors; };  
+
 protected:
 
 	vtkProbeCalibrationController();
@@ -442,9 +440,6 @@ protected:
 
 	//! Attribute: Flag to enable the saving of segmented wire positions to file
 	bool EnableSegmentedWirePositionsSaving; 
-
-	//! Attribute: Flag to identify the calibration state 
-	bool CalibrationDone; 
 
 	// Flag to set if the US 3D beamwidth data is sucessfully loaded
 	bool US3DBeamwidthDataReady;
@@ -541,6 +536,8 @@ protected:
   vtkTransform * TransformTemplateHolderHomeToPhantomHome;		// Constant transform (specific to the current calibration phantom), read from file 
 	vtkTransform * TransformTemplateHolderHomeToTemplateHolder;		// Read from stepper (tool number 0) -> TODO: 
 	vtkTransform * TransformTemplateHomeToTemplate;					// Read from stepper (tool number 0), identical to TransformTemplateHolderHomeToTemplateHolder
+
+  std::map<int, std::vector<double> > LineReconstructionErrors; 
 
 private:
 	vtkProbeCalibrationController(const vtkProbeCalibrationController&);

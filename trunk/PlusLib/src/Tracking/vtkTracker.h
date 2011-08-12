@@ -308,6 +308,10 @@ protected:
 	// Set the tool name
 	void SetToolName(int tool, const char* name);
 
+  // Description:
+	// Set the tool enabled
+  void SetToolEnabled(int tool, bool enabled ); 
+
 	// Description:
 	// These methods should be overridden in derived classes: 
 	// InternalStartTracking() should initialize the tracking device, and

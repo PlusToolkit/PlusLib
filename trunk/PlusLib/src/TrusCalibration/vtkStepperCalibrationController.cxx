@@ -248,6 +248,10 @@ PlusStatus vtkStepperCalibrationController::CalibrateProbeRotationAxis()
   {
     return PLUS_FAIL;
   }
+
+  // Set calibration date
+  this->SetCalibrationDate(vtksys::SystemTools::GetCurrentDateTime("%Y.%m.%d %X").c_str()); 
+
   return PLUS_SUCCESS; 
 }
 
@@ -904,6 +908,10 @@ PlusStatus vtkStepperCalibrationController::CalibrateProbeTranslationAxis()
   {
     return PLUS_FAIL;
   }
+
+  // Set calibration date
+  this->SetCalibrationDate(vtksys::SystemTools::GetCurrentDateTime("%Y.%m.%d %X").c_str()); 
+
   return PLUS_SUCCESS;
 }
 
@@ -956,6 +964,10 @@ PlusStatus vtkStepperCalibrationController::CalibrateTemplateTranslationAxis()
   {
     return PLUS_FAIL;
   }
+
+  // Set calibration date
+  this->SetCalibrationDate(vtksys::SystemTools::GetCurrentDateTime("%Y.%m.%d %X").c_str()); 
+
   return PLUS_SUCCESS;
 }
 
@@ -2755,6 +2767,162 @@ PlusStatus vtkStepperCalibrationController::ReadStepperCalibrationConfiguration(
     this->SetImageDataInfo(PROBE_ROTATION, imageDataInfo); 
 	}
 
+  // Calibration result specifications
+	//********************************************************************
+  vtkSmartPointer<vtkXMLDataElement> calibrationResult = stepperCalibration->FindNestedElementWithName("CalibrationResult"); 
+
+  if ( calibrationResult != NULL )
+  {
+    const char* calibrationDate = calibrationResult->GetAttribute("Date"); 
+    if ( calibrationDate != NULL )
+    {
+      this->SetCalibrationDate(calibrationDate); 
+    }
+
+    const char* algorithmVersion = calibrationResult->GetAttribute("AlgorithmVersion"); 
+    if ( algorithmVersion != NULL )
+    {
+      this->SetAlgorithmVersion(algorithmVersion); 
+    }
+
+    int centerOfRotationPx[2]={0}; 
+    if ( calibrationResult->GetVectorAttribute("CenterOfRotationPx", 2, centerOfRotationPx ) )
+    {
+      this->SetCenterOfRotationPx(centerOfRotationPx); 
+      this->CenterOfRotationCalculatedOn(); 
+    }
+
+    double spacing[2]={0}; 
+    if ( calibrationResult->GetVectorAttribute("Spacing", 2, spacing ) )
+    {
+      this->SetSpacing(spacing); 
+      this->SpacingCalculatedOn(); 
+    }
+
+    double phantomToProbeDistanceInMm[2]={0}; 
+    if ( calibrationResult->GetVectorAttribute("PhantomToProbeDistanceInMm", 2, phantomToProbeDistanceInMm) )
+    {
+      this->SetPhantomToProbeDistanceInMm(phantomToProbeDistanceInMm); 
+      this->PhantomToProbeDistanceCalculatedOn(); 
+    }
+  
+    double probeTranslationAxisOrientation[3]={0}; 
+    if ( calibrationResult->GetVectorAttribute("ProbeTranslationAxisOrientation", 3, probeTranslationAxisOrientation) )
+    {
+      this->SetProbeTranslationAxisOrientation(probeTranslationAxisOrientation); 
+      this->ProbeTranslationAxisCalibratedOn(); 
+    }
+
+    double templateTranslationAxisOrientation[3]={0}; 
+    if ( calibrationResult->GetVectorAttribute("TemplateTranslationAxisOrientation", 3, templateTranslationAxisOrientation) )
+    {
+      this->SetTemplateTranslationAxisOrientation(templateTranslationAxisOrientation); 
+      this->TemplateTranslationAxisCalibratedOn(); 
+    }
+
+    double probeRotationAxisOrientation[3]={0}; 
+    if ( calibrationResult->GetVectorAttribute("ProbeRotationAxisOrientation", 3, probeRotationAxisOrientation) )
+    {
+      this->SetProbeRotationAxisOrientation(probeRotationAxisOrientation); 
+      this->ProbeRotationAxisCalibratedOn(); 
+    }
+
+    double probeRotationEncoderOffset=0; 
+    if ( calibrationResult->GetScalarAttribute("ProbeRotationEncoderOffset", probeRotationEncoderOffset) )
+    {
+      this->SetProbeRotationEncoderOffset(probeRotationEncoderOffset); 
+      this->ProbeRotationEncoderCalibratedOn(); 
+    }
+
+    double probeRotationEncoderScale=0;
+    if ( calibrationResult->GetScalarAttribute("ProbeRotationEncoderScale", probeRotationEncoderScale ) )
+    {
+      this->SetProbeRotationEncoderScale(probeRotationEncoderScale); 
+      this->ProbeRotationEncoderCalibratedOn(); 
+    }
+
+
+
+    this->CalibrationDoneOn(); 
+  }
+
   return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkStepperCalibrationController::WriteConfiguration( vtkXMLDataElement* configData )
+{
+	LOG_TRACE("vtkStepperCalibrationController::WriteConfiguration"); 
+	if ( configData == NULL )
+	{
+		LOG_ERROR("Unable to write configuration - input xml data is NULL"); 
+		return PLUS_FAIL;
+	}
+
+  vtkSmartPointer<vtkXMLDataElement> calibrationController = configData->LookupElementWithName("CalibrationController");
+
+  if ( calibrationController == NULL )
+  {
+    LOG_ERROR("Unable to find CalibrationController XML data element!"); 
+    return PLUS_FAIL; 
+  }
+
+  vtkSmartPointer<vtkXMLDataElement> stepperCalibration = calibrationController->LookupElementWithName("StepperCalibration");
+  if ( stepperCalibration == NULL )
+  {
+    LOG_ERROR("Failed to write results to ProbeCalibration XML data element - element not found!"); 
+    return PLUS_FAIL; 
+  }
+
+  vtkSmartPointer<vtkXMLDataElement> calibrationResult = stepperCalibration->FindNestedElementWithName("CalibrationResult");
+
+  if ( calibrationResult == NULL )
+  {
+    calibrationResult = vtkSmartPointer<vtkXMLDataElement>::New(); 
+    calibrationResult->SetName("CalibrationResult"); 
+    calibrationResult->SetParent(stepperCalibration); 
+    stepperCalibration->AddNestedElement(calibrationResult); 
+  }
+
+  calibrationResult->SetAttribute("Date", this->GetCalibrationDate()); 
+  calibrationResult->SetAttribute("AlgorithmVersion", this->GetAlgorithmVersion()); 
+  
+  if ( this->GetCenterOfRotationCalculated() )
+  {
+    calibrationResult->SetVectorAttribute("CenterOfRotationPx", 2, this->GetCenterOfRotationPx()); 
+  }
+
+  if ( this->GetSpacingCalculated() )
+  {
+    calibrationResult->SetVectorAttribute("Spacing", 2, this->GetSpacing()); 
+  }
+
+  if ( this->GetPhantomToProbeDistanceCalculated() )
+  {
+    calibrationResult->SetVectorAttribute("PhantomToProbeDistanceInMm", 2, this->GetPhantomToProbeDistanceInMm()); 
+  }
+  
+  if ( this->GetProbeTranslationAxisCalibrated() )
+  {
+    calibrationResult->SetVectorAttribute("ProbeTranslationAxisOrientation", 3, this->GetProbeTranslationAxisOrientation()); 
+  }
+
+  if ( this->GetTemplateTranslationAxisCalibrated() )
+  {
+    calibrationResult->SetVectorAttribute("TemplateTranslationAxisOrientation", 3, this->GetTemplateTranslationAxisOrientation()); 
+  }
+
+  if ( this->GetProbeRotationAxisCalibrated() )
+  {
+    calibrationResult->SetVectorAttribute("ProbeRotationAxisOrientation", 3, this->GetProbeRotationAxisOrientation()); 
+  }
+
+  if ( this->GetProbeRotationEncoderCalibrated() )
+  {
+    calibrationResult->SetDoubleAttribute("ProbeRotationEncoderOffset", this->GetProbeRotationEncoderOffset()); 
+    calibrationResult->SetDoubleAttribute("ProbeRotationEncoderScale", this->GetProbeRotationEncoderScale()); 
+  }
+  
+  return PLUS_SUCCESS; 
 }
 
