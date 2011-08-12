@@ -2456,6 +2456,13 @@ PlusStatus vtkStepperCalibrationController::OfflineProbeRotationAxisCalibration(
       frameCounter++; 
     }
 
+    if ( this->SegmentationProgressCallbackFunction != NULL )
+    {
+      int numberOfSegmentedImages = this->GetImageDataInfo(PROBE_ROTATION).NumberOfSegmentedImages; 
+      int percent = 100* numberOfSegmentedImages / this->GetImageDataInfo(PROBE_ROTATION).NumberOfImagesToAcquire; 
+      (*SegmentationProgressCallbackFunction)(percent); 
+    }
+
     this->AddFrameToRenderer(trackedFrameList->GetTrackedFrame(imgNumber)->ImageData); 
   }
 
@@ -2515,6 +2522,13 @@ PlusStatus vtkStepperCalibrationController::OfflineProbeTranslationAxisCalibrati
       frameCounter++; 
     }
 
+    if ( this->SegmentationProgressCallbackFunction != NULL )
+    {
+      int numberOfSegmentedImages = this->GetImageDataInfo(PROBE_TRANSLATION).NumberOfSegmentedImages; 
+      int percent = 100* numberOfSegmentedImages / this->GetImageDataInfo(PROBE_TRANSLATION).NumberOfImagesToAcquire; 
+      (*SegmentationProgressCallbackFunction)(percent); 
+    }
+
     this->AddFrameToRenderer(trackedFrameList->GetTrackedFrame(imgNumber)->ImageData); 
   }
 
@@ -2572,6 +2586,13 @@ PlusStatus vtkStepperCalibrationController::OfflineTemplateTranslationAxisCalibr
     {
       // The segmentation was successful 
       frameCounter++; 
+    }
+
+    if ( this->SegmentationProgressCallbackFunction != NULL )
+    {
+      int numberOfSegmentedImages = this->GetImageDataInfo(TEMPLATE_TRANSLATION).NumberOfSegmentedImages; 
+      int percent = 100* numberOfSegmentedImages / this->GetImageDataInfo(TEMPLATE_TRANSLATION).NumberOfImagesToAcquire; 
+      (*SegmentationProgressCallbackFunction)(percent); 
     }
 
     this->AddFrameToRenderer(trackedFrameList->GetTrackedFrame(imgNumber)->ImageData); 

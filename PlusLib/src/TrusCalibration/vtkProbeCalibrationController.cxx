@@ -343,29 +343,6 @@ PlusStatus vtkProbeCalibrationController::OfflineUSToTemplateCalibration()
     }
     this->SetImageDataInfo(RANDOM_STEPPER_MOTION_2, validationDataInfo); 
 
-    int validationCounter(0); 
-    int vImgNumber(0);
-    for( vImgNumber = 0; validationCounter < this->GetImageDataInfo(RANDOM_STEPPER_MOTION_2).NumberOfImagesToAcquire; vImgNumber++ )
-    {
-        if ( vImgNumber >= validationData->GetNumberOfTrackedFrames() )
-        {
-            break; 
-        }
-
-        if ( this->AddTrackedFrameData(validationData->GetTrackedFrame(vImgNumber), RANDOM_STEPPER_MOTION_2) == PLUS_SUCCESS )
-        {
-            // The segmentation was successful 
-            validationCounter++; 
-        }
-
-        this->AddFrameToRenderer(validationData->GetTrackedFrame(vImgNumber)->ImageData); 
-    }
-
-    int validSegmentationSuccessRate = 100*this->GetImageDataInfo(RANDOM_STEPPER_MOTION_2).NumberOfSegmentedImages / vImgNumber; 
-    LOG_INFO ( "A total of " << this->GetImageDataInfo(RANDOM_STEPPER_MOTION_2).NumberOfSegmentedImages << " images (" << validSegmentationSuccessRate << "%) have been successfully added for validation.");
-
-    validationData->Clear(); 
-
     // ****************************  Calibration data ***********************
     vtkSmartPointer<vtkTrackedFrameList> calibrationData = vtkSmartPointer<vtkTrackedFrameList>::New();
     const std::string calibrationDataFileName = this->GetImageDataInfo(RANDOM_STEPPER_MOTION_1).InputSequenceMetaFileName; 
@@ -383,7 +360,6 @@ PlusStatus vtkProbeCalibrationController::OfflineUSToTemplateCalibration()
         return PLUS_FAIL; 
     }
 
-    // Reset the counter before we start
     ImageDataInfo calibrationDataInfo = this->GetImageDataInfo(RANDOM_STEPPER_MOTION_1); 
     calibrationDataInfo.NumberOfSegmentedImages = 0; 
     if ( calibrationDataInfo.NumberOfImagesToAcquire > calibrationData->GetNumberOfTrackedFrames() )
@@ -392,6 +368,38 @@ PlusStatus vtkProbeCalibrationController::OfflineUSToTemplateCalibration()
     }
     this->SetImageDataInfo(RANDOM_STEPPER_MOTION_1, calibrationDataInfo); 
 
+
+    int validationCounter(0); 
+    int vImgNumber(0);
+    for( vImgNumber = 0; validationCounter < this->GetImageDataInfo(RANDOM_STEPPER_MOTION_2).NumberOfImagesToAcquire; vImgNumber++ )
+    {
+        if ( vImgNumber >= validationData->GetNumberOfTrackedFrames() )
+        {
+            break; 
+        }
+
+        if ( this->AddTrackedFrameData(validationData->GetTrackedFrame(vImgNumber), RANDOM_STEPPER_MOTION_2) == PLUS_SUCCESS )
+        {
+            // The segmentation was successful 
+            validationCounter++; 
+        }
+
+        if ( this->SegmentationProgressCallbackFunction != NULL )
+        {
+          int numberOfSegmentedImages = this->GetImageDataInfo(RANDOM_STEPPER_MOTION_2).NumberOfSegmentedImages + this->GetImageDataInfo(RANDOM_STEPPER_MOTION_1).NumberOfSegmentedImages; 
+          int percent = 100* numberOfSegmentedImages / (this->GetImageDataInfo(RANDOM_STEPPER_MOTION_2).NumberOfImagesToAcquire + this->GetImageDataInfo(RANDOM_STEPPER_MOTION_1).NumberOfImagesToAcquire); 
+          (*SegmentationProgressCallbackFunction)(percent); 
+        }
+
+        this->AddFrameToRenderer(validationData->GetTrackedFrame(vImgNumber)->ImageData); 
+    }
+
+    int validSegmentationSuccessRate = 100*this->GetImageDataInfo(RANDOM_STEPPER_MOTION_2).NumberOfSegmentedImages / vImgNumber; 
+    LOG_INFO ( "A total of " << this->GetImageDataInfo(RANDOM_STEPPER_MOTION_2).NumberOfSegmentedImages << " images (" << validSegmentationSuccessRate << "%) have been successfully added for validation.");
+
+    validationData->Clear(); 
+
+    
     int calibrationCounter(0);
     int cImgNumber(0); 
     for( cImgNumber = 0; calibrationCounter < this->GetImageDataInfo(RANDOM_STEPPER_MOTION_1).NumberOfImagesToAcquire; cImgNumber++ )
@@ -405,6 +413,13 @@ PlusStatus vtkProbeCalibrationController::OfflineUSToTemplateCalibration()
         {
             // The segmentation was successful
             calibrationCounter++; 
+        }
+
+        if ( this->SegmentationProgressCallbackFunction != NULL )
+        {
+          int numberOfSegmentedImages = this->GetImageDataInfo(RANDOM_STEPPER_MOTION_2).NumberOfSegmentedImages + this->GetImageDataInfo(RANDOM_STEPPER_MOTION_1).NumberOfSegmentedImages; 
+          int percent = 100* numberOfSegmentedImages / (this->GetImageDataInfo(RANDOM_STEPPER_MOTION_2).NumberOfImagesToAcquire + this->GetImageDataInfo(RANDOM_STEPPER_MOTION_1).NumberOfImagesToAcquire); 
+          (*SegmentationProgressCallbackFunction)(percent); 
         }
 
         this->AddFrameToRenderer(calibrationData->GetTrackedFrame(cImgNumber)->ImageData); 
