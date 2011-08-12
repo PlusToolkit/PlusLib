@@ -75,11 +75,6 @@ public:
 	PlusStatus Initialize();
 
 	// Description:
-	// Free the driver (this is called automatically inside the
-	// destructor).
-	void ReleaseSystemResources();
-
-	// Description:
 	// Set/Get the IC capturing device license key
 	// If you have a trial version, the license key is 0 without quotation marks
 	// Example: if(!DShowLib::InitLibrary( 0 ))
