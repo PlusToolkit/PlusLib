@@ -6,7 +6,7 @@
         Description="Configuration file for Terason through FrameGrabber TRUS + Burdette Medical Systems Digital Stepper + iCal 1.0 + 70mm depth" 
         />
 
-      <Tracker Type="BrachyTracker" BufferSize="1000" Frequency="20" AveragedItemsForFiltering="20" LocalTimeOffset="0.0" SerialPort="3" BaudRate="19200" BrachyStepperType="Burdette Medical Systems Digital Stepper" ModelNumber="4012A18-a" ModelVersion="" ModelSerialNumber="01-50-149">
+      <Tracker Type="BrachyTracker" BufferSize="300" Frequency="20" AveragedItemsForFiltering="20" LocalTimeOffset="0.0" SerialPort="3" BaudRate="19200" BrachyStepperType="Burdette Medical Systems Digital Stepper" ModelNumber="4012A18-a" ModelVersion="" ModelSerialNumber="01-50-149">
       
           <StepperCalibration AlgorithmVersion="1.0.0" Date="" ProbeTranslationAxisOrientation="0.004635 -0.053440 1" TemplateTranslationAxisOrientation="-0.003557 0.031474 1" Rx="" Ry="" Rx0="" Ry0="" ProbeRotationEncoderScale="1.0" />
           <Tool PortNumber="0" Type="Probe" Name="ProbeHomeToProbe" SendTo="127.0.0.1:1111">
@@ -23,7 +23,7 @@
       </Tracker>
 
       <ImageAcqusition Type="ICCapturing" 
-        BufferSize="500" 
+        BufferSize="100" 
         FrameSize="640 480" 
         UsImageOrientation="UF"
         FrameRate="30" 
@@ -54,7 +54,7 @@
 	</USDataCollection>
   
 	<USCalibration version="1.0">
-		<CalibrationController LogLevel="INFO" OutputPath="./Output" EnableTrackedSequenceDataSaving="FALSE" EnableErroneouslySegmentedDataSaving="FALSE" EnableSegmentationAnalysis="FALSE">
+		<CalibrationController LogLevel="INFO" OutputPath="./Output" EnableTrackedSequenceDataSaving="TRUE" EnableErroneouslySegmentedDataSaving="FALSE" EnableSegmentationAnalysis="FALSE">
       <StepperCalibration MinNumberOfRotationClusters="1" >
           <!-- TemplateTranslationData: These are the data files used to calculate the template translation axis  -->
           <TemplateTranslationData 
@@ -63,19 +63,19 @@
                   />
           <!-- ProbeTranslationData: These are the data files used to calculate the stepper translation axis  -->
           <ProbeTranslationData 
-                  NumberOfImagesToAcquire="200" 
+                  NumberOfImagesToAcquire="100" 
                   OutputSequenceMetaFileSuffix=".ProbeTranslationData"
                   />
            <!-- ProbeRotationData: These are the data files used to calculate the frame center of rotation  -->
           <ProbeRotationData 
-                  NumberOfImagesToAcquire="400" 
+                  NumberOfImagesToAcquire="100" 
                   OutputSequenceMetaFileSuffix=".ProbeRotationData"
                   />
 			</StepperCalibration>	
 			
 			<ProbeCalibration
 					EnableLogFile="FALSE"  
-					EnableSegmentedWirePositionsSaving="FALSE"
+					EnableSegmentedWirePositionsSaving="TRUE"
 					ImageHomeToUserImageHomeTransform=" 1  0  0  0 
 														0  1  0  0 
 														0  0  1  0 
@@ -108,11 +108,11 @@
 			
 			<SegmentationParameters
 					FrameSize="640 480"
-					ScalingEstimation="0.25"
+					ScalingEstimation="0.33"
 					MorphologicalOpeningCircleRadiusMm="0.47"
 					MorphologicalOpeningBarSizeMm="2.0"
 
-					RegionOfInterest="150 50 600 370"
+					RegionOfInterest="180 80 525 275"
 
 					MaxLineLengthErrorPercent="10.0"
 					MaxLinePairDistanceErrorPercent="10.0"

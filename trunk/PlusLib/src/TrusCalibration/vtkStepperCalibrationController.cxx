@@ -240,9 +240,10 @@ PlusStatus vtkStepperCalibrationController::CalibrateProbeRotationAxis()
     if ( this->SaveTrackedFrameListToMetafile( PROBE_ROTATION, this->GetOutputPath(), probeRotationDataFileName.str().c_str(), false ) != PLUS_SUCCESS )
     {
       LOG_ERROR("Failed to save tracked frames to sequence metafile!"); 
-      return PLUS_FAIL;
     }
   }
+
+  this->ClearSegmentedFrameContainer(PROBE_ROTATION); 
 
   if (!this->GetProbeRotationAxisCalibrated())
   {
@@ -900,9 +901,10 @@ PlusStatus vtkStepperCalibrationController::CalibrateProbeTranslationAxis()
     if ( this->SaveTrackedFrameListToMetafile( PROBE_TRANSLATION, this->GetOutputPath(), probeTranslationDataFileName.str().c_str(), false ) != PLUS_SUCCESS )
     {
       LOG_ERROR("Failed to save tracked frames to sequence metafile!"); 
-      return PLUS_FAIL;
     }
   }
+
+  this->ClearSegmentedFrameContainer(PROBE_TRANSLATION); 
 
   if (!this->GetProbeTranslationAxisCalibrated())
   {
@@ -955,10 +957,11 @@ PlusStatus vtkStepperCalibrationController::CalibrateTemplateTranslationAxis()
     templateTranslationDataFileName << this->CalibrationStartTime << this->GetImageDataInfo(TEMPLATE_TRANSLATION).OutputSequenceMetaFileSuffix; 
     if ( this->SaveTrackedFrameListToMetafile( TEMPLATE_TRANSLATION, this->GetOutputPath(), templateTranslationDataFileName.str().c_str(), false ) != PLUS_SUCCESS )
     {
-      LOG_ERROR("Failed to save tracked frames to sequence metafile!"); 
-      return PLUS_FAIL;
+      LOG_ERROR("Failed to save tracked frames to sequence metafile!");
     }
   }
+
+  this->ClearSegmentedFrameContainer(TEMPLATE_TRANSLATION); 
 
   if (!this->GetTemplateTranslationAxisCalibrated())
   {
