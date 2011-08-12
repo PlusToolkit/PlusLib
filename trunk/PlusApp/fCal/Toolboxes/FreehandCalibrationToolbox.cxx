@@ -173,6 +173,7 @@ void FreehandCalibrationToolbox::RefreshToolboxContent()
 			ui.label_InstructionsTemporal->setText(tr("Make abrupt movements with the probe every 2 seconds"));
 			ui.pushButton_StartTemporal->setEnabled(false);
 			ui.pushButton_ResetTemporal->setEnabled(true);
+		  ui.pushButton_SkipTemporal->setEnabled(false);
 
 			ui.label_InstructionsSpatial->setText(tr(""));
 			ui.frame_SpatialCalibration->setEnabled(false);
@@ -189,6 +190,7 @@ void FreehandCalibrationToolbox::RefreshToolboxContent()
 			ui.label_InstructionsTemporal->setText(tr("Temporal calibration is ready to save\n(video time offset: %1 ms)").arg(toolboxController->GetVideoTimeOffset()));
 			ui.pushButton_StartTemporal->setEnabled(false);
 			ui.pushButton_ResetTemporal->setEnabled(false);
+		  ui.pushButton_SkipTemporal->setEnabled(false);
 
 			ui.label_InstructionsSpatial->setText(tr("Scan the phantom in the most degrees of freedom possible"));
 			ui.frame_SpatialCalibration->setEnabled(true);
@@ -213,6 +215,7 @@ void FreehandCalibrationToolbox::RefreshToolboxContent()
 		ui.label_InstructionsTemporal->setText(tr("Temporal calibration is ready to save\n(video time offset: %1 ms)").arg(toolboxController->GetVideoTimeOffset()));
 		ui.pushButton_StartTemporal->setEnabled(false);
 		ui.pushButton_ResetTemporal->setEnabled(false);
+		ui.pushButton_SkipTemporal->setEnabled(false);
 
 		ui.label_InstructionsSpatial->setText(tr("Spatial calibration is ready to save"));
 		ui.frame_SpatialCalibration->setEnabled(true);
@@ -235,6 +238,7 @@ void FreehandCalibrationToolbox::RefreshToolboxContent()
 		ui.label_InstructionsTemporal->setFont(QFont("SansSerif", 8, QFont::Bold));
 		ui.pushButton_StartTemporal->setEnabled(false);
 		ui.pushButton_ResetTemporal->setEnabled(false);
+		ui.pushButton_SkipTemporal->setEnabled(false);
 
 		ui.label_InstructionsSpatial->setText(tr(""));
 		ui.frame_SpatialCalibration->setEnabled(false);
