@@ -60,7 +60,6 @@ vtkICCapturingSource::vtkICCapturingSource()
 //----------------------------------------------------------------------------
 vtkICCapturingSource::~vtkICCapturingSource()
 { 
-
 	this->Disconnect();
 
 	if ( this->FrameGrabber != NULL) 
@@ -243,7 +242,20 @@ PlusStatus vtkICCapturingSource::Connect()
 //----------------------------------------------------------------------------
 PlusStatus vtkICCapturingSource::Disconnect()
 {
-	this->ReleaseSystemResources(); 
+  if ( !this->Initialized )
+  {
+    return PLUS_SUCCESS; 
+  }
+
+	if (this->Recording)
+	{
+		this->StopRecording();
+	}
+
+	DShowLib::ExitLibrary(); 
+
+  this->Initialized = 0;
+
   return PLUS_SUCCESS;
 }
 
@@ -264,19 +276,6 @@ PlusStatus vtkICCapturingSource::Initialize()
 	
 	this->Initialized = 1;
   return PLUS_SUCCESS;
-}
-
-//----------------------------------------------------------------------------
-void vtkICCapturingSource::ReleaseSystemResources()
-{
-	if (this->Recording)
-	{
-		this->StopRecording();
-	}
-
-	DShowLib::ExitLibrary(); 
-
-	this->Initialized = 0;
 }
 
 //----------------------------------------------------------------------------
