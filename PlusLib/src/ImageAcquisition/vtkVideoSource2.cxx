@@ -626,21 +626,21 @@ PlusStatus vtkVideoSource2::ReadConfiguration(vtkXMLDataElement* config)
 		this->GetBuffer()->SetLocalTimeOffset(localTimeOffset); 
 	}
 
-    const char* usImageOrientation = config->GetAttribute("UsImageOrientation"); 
-    if ( usImageOrientation != NULL )
-    {
-        LOG_INFO("Selected US image orientation: " << usImageOrientation ); 
-        this->SetUsImageOrientation( UsImageConverterCommon::GetUsImageOrientationFromString(usImageOrientation) ); 
-        if ( this->GetUsImageOrientation() == US_IMG_ORIENT_XX )
-        {
-            LOG_ERROR("Ultrasound image orientation is undefined - please set a proper image orientation!"); 
-        }
-    }
-    else
-    {
-        LOG_ERROR("Ultrasound image orientation is not defined in the configuration file - set to undefined by default!"); 
-        this->SetUsImageOrientation(US_IMG_ORIENT_XX ); 
-    }
+  const char* usImageOrientation = config->GetAttribute("UsImageOrientation"); 
+  if ( usImageOrientation != NULL )
+  {
+      LOG_INFO("Selected US image orientation: " << usImageOrientation ); 
+      this->SetUsImageOrientation( UsImageConverterCommon::GetUsImageOrientationFromString(usImageOrientation) ); 
+      if ( this->GetUsImageOrientation() == US_IMG_ORIENT_XX )
+      {
+          LOG_ERROR("Ultrasound image orientation is undefined - please set a proper image orientation!"); 
+      }
+  }
+  else
+  {
+      LOG_ERROR("Ultrasound image orientation is not defined in the configuration file - set to undefined by default!"); 
+      this->SetUsImageOrientation(US_IMG_ORIENT_XX ); 
+  }
 
   return PLUS_SUCCESS;
 }

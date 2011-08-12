@@ -9,6 +9,7 @@
 #include "vtkMatrix4x4.h"
 #include "vtkTransform.h"
 #include "UsImageConverterCommon.h"
+#include "vtkXMLDataElement.h"
 
 
 //----------------------------------------------------------------------------
@@ -244,6 +245,10 @@ public:
   //! Operation: 
   // Get number of tracked frames
   virtual unsigned int GetNumberOfTrackedFrames() { return this->TrackedFrameList.size(); } 
+
+  // Description:
+  // Read configuration from xml data
+  virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config); 
 
   //! Operation: 
   // Save the tracked data to sequence metafile 
