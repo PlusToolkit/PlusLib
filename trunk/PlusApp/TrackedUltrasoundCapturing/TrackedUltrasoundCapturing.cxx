@@ -172,6 +172,7 @@ PlusStatus TrackedUltrasoundCapturing::Initialize()
   if ( this->TrackedFrameContainer == NULL )
 	{
 		this->TrackedFrameContainer = vtkTrackedFrameList::New(); 
+    this->TrackedFrameContainer->ReadConfiguration(this->DataCollector->GetConfigurationData());
 	}
 
 	vtkSmartPointer<vtkImageActor> realtimeImageActor = vtkSmartPointer<vtkImageActor>::New();
