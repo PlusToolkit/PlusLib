@@ -79,6 +79,8 @@
 				SequenceMetafile=""
 				UsImageOrientation="MF"
 				ReplayEnabled="TRUE"
+        SpeedThresholdPositionMm="10.0"
+        SpeedThresholdOrientationAngle="15.0"
 				/>
 
 		<Synchronization Type="ChangeDetection" 

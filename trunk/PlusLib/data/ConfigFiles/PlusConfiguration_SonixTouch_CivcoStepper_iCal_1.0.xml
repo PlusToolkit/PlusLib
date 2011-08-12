@@ -40,21 +40,23 @@
           Frequency="-1" 
           Timeout="-1" 
           CompressionStatus="0" 
-				/>
+          SpeedThresholdPositionMm="10.0"
+          SpeedThresholdOrientationAngle="15.0"
+		/>
  
         <Synchronization Type="ChangeDetection" 
           SynchronizationTimeLength="15" 
           MinNumOfSyncSteps="5" 
           ThresholdMultiplier="5"
 
-          NumberOfAveragedTransforms="20" 
-          MinTransformThreshold="2.0" 
-          MaxTransformDifference="2.0" 
+        NumberOfAveragedTransforms="20" 
+        MinTransformThreshold="2.0" 
+        MaxTransformDifference="2.0" 
 
-          NumberOfAveragedFrames="6" 
-          MinFrameThreshold="10.0" 
-          MaxFrameDifference="10.0" 
-				/>
+        NumberOfAveragedFrames="6" 
+        MinFrameThreshold="10.0" 
+        MaxFrameDifference="10.0" 
+      />
 	</USDataCollection>
 	<USCalibration version="1.0">
 		<CalibrationController LogLevel="INFO" OutputPath="./Output" EnableTrackedSequenceDataSaving="FALSE" EnableErroneouslySegmentedDataSaving="FALSE" EnableSegmentationAnalysis="FALSE">

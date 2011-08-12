@@ -17,6 +17,8 @@
 				AveragedItemsForFiltering="20" 
 				LocalTimeOffset="0.0" 
 				UsImageOrientation="MF"
+        SpeedThresholdPositionMm="10.0"
+        SpeedThresholdOrientationAngle="15.0"
 				/>
 
 		<Synchronization Type="ChangeDetection"

@@ -4,6 +4,7 @@
 #include <math.h>
 #include "vtkObjectFactory.h"
 #include "vtksys/SystemTools.hxx"
+#include "vtkXMLUtilities.h"
 
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
@@ -266,9 +267,8 @@ vtkTrackedFrameList::vtkTrackedFrameList()
   this->SetNumberOfUniqueFrames(5); 
   this->SetFrameSize(0,0); 
 
-  // TODO from configuration file
-  this->SetVelocityPositionThreshold(10.0);
-  this->SetVelocityOrientationThreshold(10.0);
+  this->SetVelocityPositionThreshold(0.0);
+  this->SetVelocityOrientationThreshold(0.0);
 }
 
 //----------------------------------------------------------------------------
@@ -320,29 +320,39 @@ int vtkTrackedFrameList::AddTrackedFrame(TrackedFrame *trackedFrame)
 bool vtkTrackedFrameList::ValidateData(TrackedFrame* trackedFrame, bool validateTimestamp/*=true*/, bool validateStatus/*=true*/, 
                                        bool validatePosition/*=true*/, const char* frameTransformName /*= NULL*/, bool validateSpeed/*=true*/)
 {
-  bool validationResult(true); 
-
   if ( validateTimestamp )
   {
-    validationResult &= this->ValidateTimestamp(trackedFrame); 
+    if (! this->ValidateTimestamp(trackedFrame))
+    {
+      return false;
+    }
   }
 
   if ( validateStatus )
   {
-    validationResult &= this->ValidateStatus(trackedFrame); 
+    if (! this->ValidateStatus(trackedFrame))
+    {
+      return false;
+    }
   }
 
   if ( validatePosition )
   {
-    validationResult &= this->ValidatePosition(trackedFrame, frameTransformName); 
+    if (! this->ValidatePosition(trackedFrame, frameTransformName))
+    {
+      return false;
+    }
   }
 
   if ( validateSpeed )
   {
-    validationResult &= this->ValidateSpeed(trackedFrame);
+    if (! this->ValidateSpeed(trackedFrame))
+    {
+      return false;
+    }
   }
 
-  return validationResult; 
+  return true; 
 }
 
 //----------------------------------------------------------------------------
@@ -744,3 +754,43 @@ PlusStatus vtkTrackedFrameList::SaveToSequenceMetafile(const char* outputFolder,
   return PLUS_SUCCESS; 
 }
 
+//-----------------------------------------------------------------------------
+PlusStatus vtkTrackedFrameList::ReadConfiguration(vtkXMLDataElement* config)
+{
+  LOG_TRACE("vtkTrackedFrameList::ReadConfiguration"); 
+	if ( config == NULL )
+	{
+		LOG_ERROR("Unable to read configuration from video source! (XML data element is NULL)"); 
+		return PLUS_FAIL; 
+	}
+
+  vtkSmartPointer<vtkXMLDataElement> videoConfig = config->LookupElementWithName("ImageAcqusition"); 
+
+  if ( videoConfig == NULL )
+  {
+    LOG_ERROR("Unable to find ImageAcqusition xml data element in configuration!"); 
+		return PLUS_FAIL; 
+  }
+
+  double speedThresholdPositionMm = 0;
+	if ( videoConfig->GetScalarAttribute("SpeedThresholdPositionMm", speedThresholdPositionMm) )
+	{
+    this->VelocityPositionThreshold = speedThresholdPositionMm;
+	}
+  else
+  {
+    LOG_WARNING("Unable to find ImageAcqusition SpeedThresholdPositionMm attribute in configuration!"); 
+  }
+
+  double speedThresholdOrientationAngle = 0;
+	if ( videoConfig->GetScalarAttribute("SpeedThresholdOrientationAngle", speedThresholdOrientationAngle) )
+	{
+    this->VelocityOrientationThreshold = speedThresholdOrientationAngle;
+	}
+  else
+  {
+    LOG_WARNING("Unable to find ImageAcqusition SpeedThresholdOrientationAngle attribute in configuration!"); 
+  }
+
+  return PLUS_SUCCESS;
+}

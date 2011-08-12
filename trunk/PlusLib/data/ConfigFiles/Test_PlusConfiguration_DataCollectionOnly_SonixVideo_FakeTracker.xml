@@ -39,8 +39,9 @@
 				FrameRate="-1" 
 				Timeout="-1" 
 				CompressionStatus="0" 
+        SpeedThresholdPositionMm="10.0"
+        SpeedThresholdOrientationAngle="15.0"
 				/>
-
 
 		<Synchronization Type="ChangeDetection" 
 				SynchronizationTimeLength="30" 

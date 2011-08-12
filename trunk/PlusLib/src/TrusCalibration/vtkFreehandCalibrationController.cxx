@@ -1219,26 +1219,13 @@ PlusStatus vtkFreehandCalibrationController::ReadConfiguration(vtkXMLDataElement
 		return PLUS_FAIL;
 	}
 
-	// Find and load calibration configuration
-	vtkSmartPointer<vtkXMLDataElement> usCalibration = aConfig->FindNestedElementWithName("USCalibration");
-	if (usCalibration == NULL) {
-		LOG_ERROR("No calibration configuration is found in the XML tree!");
-		return PLUS_FAIL;
-	}
-	vtkSmartPointer<vtkXMLDataElement> calibrationController = usCalibration->FindNestedElementWithName("CalibrationController"); 
-	if (calibrationController == NULL) {
-		LOG_ERROR("Unable to read configuration");
-		return PLUS_FAIL;
-	}
+  // Have base class read calibration controller configuration
+  Superclass::ReadConfiguration(aConfig);
 
-	this->ReadCalibrationControllerConfiguration(calibrationController);
 	vtkFreehandController::GetInstance()->SetOutputFolder(this->GetOutputPath());
 
   // Load freehand calibration elements
 	this->ReadFreehandCalibrationConfiguration(aConfig);
-
-	// Find and load phantom definition
-	this->ReadPhantomDefinition(aConfig);
 
 	return PLUS_SUCCESS;
 }

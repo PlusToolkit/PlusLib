@@ -446,11 +446,24 @@ PlusStatus vtkCalibrationController::ReadConfiguration( vtkXMLDataElement* confi
     return PLUS_FAIL;
 	}
 
+	// Tracked frame specifications
+	//********************************************************************
+  std::vector<vtkTrackedFrameList*>::iterator it;
+  for (it = this->TrackedFrameListContainer.begin(); it != this->TrackedFrameListContainer.end(); ++it)
+  {
+	  if ((*it)->ReadConfiguration(configData) != PLUS_SUCCESS)
+	  {
+      LOG_ERROR("Speed thresholds in ImageAcquisition cannot be read!");
+	    return PLUS_FAIL;
+	  }
+  }
+
 	// Calibration controller specifications
 	//********************************************************************
 	if (this->ReadPhantomDefinition(configData) != PLUS_SUCCESS)
 	{
-	return PLUS_FAIL;
+    LOG_ERROR("Unable to read phantom definition!");
+  	return PLUS_FAIL;
 	}
 
 	// Calibration controller specifications

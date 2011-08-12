@@ -36,6 +36,8 @@
         InputChannel="01 Video: SVideo"
         LicenseKey="ISB3200016679"
         ICBufferSize="50"
+        SpeedThresholdPositionMm="10.0"
+        SpeedThresholdOrientationAngle="15.0"
       />
 
       <Synchronization Type="ChangeDetection" 
