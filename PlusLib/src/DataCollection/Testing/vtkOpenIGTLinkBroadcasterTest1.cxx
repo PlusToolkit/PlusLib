@@ -16,6 +16,9 @@
 
 #include "vtkOpenIGTLinkBroadcaster.h"
 
+#include "OpenIGTLinkReceiveServer.h"
+
+
 
 enum {
   BC_EXIT_SUCCESS = 0,
@@ -104,6 +107,14 @@ int main( int argc, char** argv )
   dataCollector->Initialize();
   
   
+  
+    // Prepare server to receive messages.
+  
+  OpenIGTLinkReceiveServer receiveServer( 18944 );
+  receiveServer.Start();
+  
+  
+  
     // Prepare the OpenIGTLink broadcaster.
   
   vtkOpenIGTLinkBroadcaster::Status broadcasterStatus = vtkOpenIGTLinkBroadcaster::STATUS_NOT_INITIALIZED;
@@ -147,6 +158,9 @@ int main( int argc, char** argv )
     }
   
   
+  
+    // Send messages.
+  
   for ( int i = 0; i < NUMBER_OF_BROADCASTED_MESSAGES; ++ i )
     {
     vtkAccurateTimer::Delay( DELAY_BETWEEN_MESSAGES_SEC );
@@ -177,10 +191,14 @@ int main( int argc, char** argv )
       else
         {
         ss  << std::fixed 
-          << tFrame2Tracker->GetElement(0,0) << "   " << tFrame2Tracker->GetElement(0,1) << "   " << tFrame2Tracker->GetElement(0,2) << "   " << tFrame2Tracker->GetElement(0,3) << "\n"
-          << tFrame2Tracker->GetElement(1,0) << "   " << tFrame2Tracker->GetElement(1,1) << "   " << tFrame2Tracker->GetElement(1,2) << "   " << tFrame2Tracker->GetElement(1,3) << "\n"
-          << tFrame2Tracker->GetElement(2,0) << "   " << tFrame2Tracker->GetElement(2,1) << "   " << tFrame2Tracker->GetElement(2,2) << "   " << tFrame2Tracker->GetElement(2,3) << "\n"
-          << tFrame2Tracker->GetElement(3,0) << "   " << tFrame2Tracker->GetElement(3,1) << "   " << tFrame2Tracker->GetElement(3,2) << "   " << tFrame2Tracker->GetElement(3,3) << "\n"; 
+          << tFrame2Tracker->GetElement(0,0) << "   " << tFrame2Tracker->GetElement(0,1) << "   "
+            << tFrame2Tracker->GetElement(0,2) << "   " << tFrame2Tracker->GetElement(0,3) << "\n"
+          << tFrame2Tracker->GetElement(1,0) << "   " << tFrame2Tracker->GetElement(1,1) << "   "
+            << tFrame2Tracker->GetElement(1,2) << "   " << tFrame2Tracker->GetElement(1,3) << "\n"
+          << tFrame2Tracker->GetElement(2,0) << "   " << tFrame2Tracker->GetElement(2,1) << "   "
+            << tFrame2Tracker->GetElement(2,2) << "   " << tFrame2Tracker->GetElement(2,3) << "\n"
+          << tFrame2Tracker->GetElement(3,0) << "   " << tFrame2Tracker->GetElement(3,1) << "   "
+            << tFrame2Tracker->GetElement(3,2) << "   " << tFrame2Tracker->GetElement(3,3) << "\n"; 
         }
       
       }
@@ -220,6 +238,11 @@ int main( int argc, char** argv )
         LOG_WARNING("Unknown status while trying to send OpenIGTLink message.");
       }
     }
+  
+  
+  receiveServer.Stop();
+  int numReceivedMessages = receiveServer.GetNumberOfReceivedMessages();
+  LOG_INFO( "Received OpenIGTLink messages: " << numReceivedMessages );
   
   
   LOG_INFO("Stop data collector... ");

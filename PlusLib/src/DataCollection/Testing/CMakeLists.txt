@@ -78,14 +78,17 @@ TARGET_LINK_LIBRARIES(vtkDataCollectorVideoAcqTest vtkDataCollection )
 # ENDIF (PLUS_USE_SONIX_VIDEO)
 
 #***************************  vtkOpenIGTLinkBroadcasterTest1 ***************************
-ADD_EXECUTABLE( vtkOpenIGTLinkBroadcasterTest1 vtkOpenIGTLinkBroadcasterTest1.cxx)
+ADD_EXECUTABLE( vtkOpenIGTLinkBroadcasterTest1
+  vtkOpenIGTLinkBroadcasterTest1.cxx
+  OpenIGTLinkReceiveServer.cxx  OpenIGTLinkReceiveServer.h
+  )
 TARGET_LINK_LIBRARIES( vtkOpenIGTLinkBroadcasterTest1 vtkDataCollection vtkCommon )
 IF (PLUS_USE_OpenIGTLink )
   ADD_TEST( vtkOpenIGTLinkBroadcasterTest1
     ${EXECUTABLE_OUTPUT_PATH}/vtkOpenIGTLinkBroadcasterTest1
-    --input-config-file=${ConfigFilesDir}/OpenIGTLinkTest.xml
-    --input-video-buffer-metafile=${TestDataDir}/DataCollectorSyncVideoBuffer.mha 
-    --input-tracker-buffer-metafile=${TestDataDir}/DataCollectorSyncTrackerBuffer.mha 
+    --input-config-file=${ConfigFilesDir}/PlusConfiguration_OpenIGTLinkTest.xml
+    --input-video-buffer-metafile=${TestDataDir}/SyntheticVideoBuffer20.mha 
+    --input-tracker-buffer-metafile=${TestDataDir}/SyntheticTrackerBuffer20.mha
     )
-  SET_TESTS_PROPERTIES( vtkOpenIGTLinkBroadcasterTest1 PROPERTIES WILL_FAIL true)
+  SET_TESTS_PROPERTIES( vtkOpenIGTLinkBroadcasterTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR" )
 ENDIF (PLUS_USE_OpenIGTLink )
