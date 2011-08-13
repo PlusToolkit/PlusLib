@@ -25,7 +25,7 @@
       <ImageAcqusition Type="ICCapturing" 
         BufferSize="100" 
         FrameSize="640 480" 
-        UsImageOrientation="UF"
+        UsImageOrientation="MF"
         FrameRate="30" 
         AveragedItemsForFiltering="20" 
         LocalTimeOffset="-0.13"
