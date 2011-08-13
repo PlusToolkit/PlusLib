@@ -132,8 +132,8 @@ public:
 	vtkGetObjectMacro(PhantomWiresActor, vtkActor);
 	vtkSetObjectMacro(PhantomWiresActor, vtkActor);
 	
-	vtkGetObjectMacro(TransformUSImageToWorld, vtkTransform);
-	vtkSetObjectMacro(TransformUSImageToWorld, vtkTransform);
+	vtkGetObjectMacro(TransformVtkImageToTemplate, vtkTransform);
+	vtkSetObjectMacro(TransformVtkImageToTemplate, vtkTransform);
 			
 	vtkGetObjectMacro(CalibrationController, vtkProbeCalibrationController);
 	
@@ -241,7 +241,7 @@ protected:
 
 	vtkActor* PhantomWiresActor; 
 
-	vtkTransform* TransformUSImageToWorld; 
+	vtkTransform* TransformVtkImageToTemplate; 
 	
 	std::vector<TemplateModel> TemplateModelLetters; 
 	std::vector<TemplateModel> TemplateModelHoles; 

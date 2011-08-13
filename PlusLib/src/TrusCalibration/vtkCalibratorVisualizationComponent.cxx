@@ -64,7 +64,7 @@ vtkCalibratorVisualizationComponent::vtkCalibratorVisualizationComponent()
 	this->RealtimeImageActor = NULL; 
 	this->CenterOfRotationActor = NULL; 
 	this->PhantomWiresActor = NULL;
-	this->TransformUSImageToWorld = NULL; 
+	this->TransformVtkImageToTemplate = NULL; 
 	this->ImageCamera = NULL; 
 	this->TemplateCamera = NULL; 
 }
@@ -79,7 +79,7 @@ vtkCalibratorVisualizationComponent::~vtkCalibratorVisualizationComponent()
 	this->SetRealtimeImageActor(NULL); 
 	this->SetCenterOfRotationActor(NULL); 
 	this->SetPhantomWiresActor(NULL);
-	this->SetTransformUSImageToWorld(NULL); 
+	this->SetTransformVtkImageToTemplate(NULL); 
 	this->SetTemplateCamera(NULL); 
 	this->SetImageCamera(NULL); 
 	
@@ -219,11 +219,27 @@ void vtkCalibratorVisualizationComponent::Initialize(vtkProbeCalibrationControll
 	this->SetupDataObjects(); 
 	this->SetupPlotActors(); 
 
-	vtkSmartPointer<vtkTransform> transformUSImageToWorld = vtkSmartPointer<vtkTransform>::New(); 
-	transformUSImageToWorld->Concatenate(this->CalibrationController->GetTransformImageToTemplate()); 
-	transformUSImageToWorld->Scale(1,-1,-1); 
-	transformUSImageToWorld->Update(); 
-	this->SetTransformUSImageToWorld(transformUSImageToWorld); 
+  // Template == World coordinate system
+  // Image == itkImage coordinate system
+  // transformUser =
+  //   = transformVtkImageToWorld 
+  //   = transformVtkImageToTemplate
+  //   = transformImageToTemplate * transformVtkImageToImage
+
+  int * frameSize = this->GetCalibrationController()->GetSegParameters()->GetFrameSize(); 
+
+  // there is an in-place vertical flip between the coordinate systems of vtk and itk images
+  vtkSmartPointer<vtkMatrix4x4> transformVtkImageToImage = vtkSmartPointer<vtkMatrix4x4>::New(); 
+  transformVtkImageToImage->Identity();
+  transformVtkImageToImage->SetElement(1,1, -1);
+  transformVtkImageToImage->SetElement(1,3, frameSize[1]);
+
+	// Set upper left corner as image origin
+  vtkSmartPointer<vtkTransform> transformUser = vtkSmartPointer<vtkTransform>::New(); 
+  transformUser->Concatenate(this->CalibrationController->GetTransformImageToTemplate()); 
+  transformUser->Concatenate(transformVtkImageToImage); 
+	transformUser->Update(); 
+  this->SetTransformVtkImageToTemplate(transformUser); 
 
 	// Set up the main plot renderer
 	vtkSmartPointer<vtkRenderer> plotRenderer = vtkSmartPointer<vtkRenderer>::New(); 
@@ -339,15 +355,8 @@ void vtkCalibratorVisualizationComponent::OverlayTemplate()
 	{
 		return; 
 	}
-
-	int originX = this->GetCalibrationController()->GetUSImageFrameOriginXInPixels(); 
-	int originY = this->GetCalibrationController()->GetSegParameters()->GetFrameSize()[1] - this->GetCalibrationController()->GetUSImageFrameOriginYInPixels(); 
-
-	// Set upper left corner as image origin
-	this->GetRealtimeImageActor()->SetPosition( 0, -this->GetCalibrationController()->GetSegParameters()->GetFrameSize()[1], 0);
-	this->GetRealtimeImageActor()->SetUserTransform( this->GetTransformUSImageToWorld() ); 
-
-	// Create template grid actors
+ 
+  // Create template grid actors
 	this->CreateTemplateGridActors(); 
 
 	// Display the default transverse mode
@@ -371,7 +380,7 @@ void vtkCalibratorVisualizationComponent::OverlayPhantom()
 	this->GetPhantomWiresActor()->GetProperty()->SetColor(1,0,0);
 
 	vtkSmartPointer<vtkTransform> transformTemplateToUsImage = vtkSmartPointer<vtkTransform>::New(); 
-	transformTemplateToUsImage->DeepCopy(this->GetTransformUSImageToWorld()); 
+	transformTemplateToUsImage->DeepCopy(this->CalibrationController->GetTransformImageToTemplate()); 
 	transformTemplateToUsImage->Inverse(); 
 
 	for ( int wireNum = 1; wireNum < 7; wireNum++ )
@@ -398,7 +407,7 @@ void vtkCalibratorVisualizationComponent::OverlayPhantom()
 	}
 
 	///************************ Apply user transform to wires actor *********************************/
-	this->GetPhantomWiresActor()->SetUserTransform( this->GetTransformUSImageToWorld() );
+	this->GetPhantomWiresActor()->SetUserTransform( this->CalibrationController->GetTransformImageToTemplate() );
 	this->GetPhantomWiresActor()->Modified();
 }
 
@@ -1163,7 +1172,7 @@ void vtkCalibratorVisualizationComponent::CreateTemplateGridActors()
 		holeTransActor->SetPosition(TemplateModelHoles[i].PositionX, TemplateModelHoles[i].PositionY , TemplateModelHoles[i].PositionZ ); 
 		holeTransActor->Modified(); 
 
-		holeTransActor->SetUserTransform( this->GetCalibrationController()->GetTransformTemplateHomeToTemplate() ); 
+		//holeTransActor->SetUserTransform( this->GetCalibrationController()->GetTransformTemplateHomeToTemplate() ); 
 
 		TemplateGridActors.TransverseGridActors->AddItem(holeTransActor); 
 
@@ -1224,7 +1233,7 @@ void vtkCalibratorVisualizationComponent::CreateTemplateGridActors()
 		gridTransLettersActor->SetPosition(TemplateModelLetters[i].PositionX - XTRANSOFFSET_LETTER, TemplateModelLetters[i].PositionY + YTRANSOFFSET_LETTER, TemplateModelLetters[i].PositionZ); 
 		gridTransLettersActor->Modified(); 
 
-		gridTransLettersActor->SetUserTransform(this->GetCalibrationController()->GetTransformTemplateHomeToTemplate()); 
+		//gridTransLettersActor->SetUserTransform(this->GetCalibrationController()->GetTransformTemplateHomeToTemplate()); 
 
 
 		TemplateGridActors.TransverseLetterActors->AddItem(gridTransLettersActor); 
