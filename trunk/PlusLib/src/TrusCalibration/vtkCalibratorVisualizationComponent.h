@@ -80,7 +80,7 @@ public:
 	virtual void HideCenterOfRotation() { this->CenterOfRotationActor->VisibilityOff(); }; 
 	virtual void ShowCenterOfRotation() { this->CenterOfRotationActor->VisibilityOn();}; 
 
-	virtual void OverlayPhantom(); 
+	virtual void OverlayPhantomWires(); 
 	virtual void HidePhantomWires() { this->PhantomWiresActor->VisibilityOff(); }; 
 	virtual void ShowPhantomWires() { this->PhantomWiresActor->VisibilityOn(); }; 
 

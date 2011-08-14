@@ -365,7 +365,7 @@ void vtkCalibratorVisualizationComponent::OverlayTemplate()
 
 
 //----------------------------------------------------------------------------
-void vtkCalibratorVisualizationComponent::OverlayPhantom()
+void vtkCalibratorVisualizationComponent::OverlayPhantomWires()
 {
 	if ( !this->Initialized )
 	{

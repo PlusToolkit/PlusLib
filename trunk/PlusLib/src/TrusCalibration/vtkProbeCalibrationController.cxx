@@ -123,6 +123,16 @@ MinElevationBeamwidthAndFocalZoneInUSImageFrame(2,0)
 	this->TransformTemplateHomeToTemplate = NULL;
 	this->SetTransformTemplateHomeToTemplate(transformTemplateHomeToTemplate); 
 
+  this->TransformImageToTemplate->Identity(); 
+  this->TransformImageToTemplate->PostMultiply(); 
+  this->TransformImageToTemplate->Concatenate(this->TransformImageHomeToUserImageHome); 
+  this->TransformImageToTemplate->Concatenate(this->TransformUserImageHomeToProbeHome); 
+  this->TransformImageToTemplate->Concatenate(this->TransformProbeHomeToProbe); 
+  this->TransformImageToTemplate->Concatenate(this->TransformProbeHomeToTemplateHolderHome); 
+  this->TransformImageToTemplate->Concatenate(this->TransformTemplateHolderHomeToTemplateHome);
+  //this->TransformImageToTemplate->Concatenate(this->TransformTemplateHomeToTemplate);
+  this->TransformImageToTemplate->Update(); 
+
 	// Initialize calibration controller IO
 	vtkSmartPointer<vtkProbeCalibrationControllerIO> calibrationControllerIO = vtkSmartPointer<vtkProbeCalibrationControllerIO>::New(); 
 	calibrationControllerIO->Initialize( this ); 
@@ -554,16 +564,6 @@ PlusStatus vtkProbeCalibrationController::ComputeCalibrationResults()
 		std::ostringstream osTransformTemplateHomeToTemplate; 
 		this->GetTransformTemplateHomeToTemplate()->Print(osTransformTemplateHomeToTemplate);  
 		LOG_DEBUG("TransformTemplateHomeToTemplate:\n" << osTransformTemplateHomeToTemplate.str().c_str() );
-
-		this->TransformImageToTemplate->Identity(); 
-		this->TransformImageToTemplate->PostMultiply(); 
-		this->TransformImageToTemplate->Concatenate(this->TransformImageHomeToUserImageHome); 
-		this->TransformImageToTemplate->Concatenate(this->TransformUserImageHomeToProbeHome); 
-		this->TransformImageToTemplate->Concatenate(this->TransformProbeHomeToProbe); 
-		this->TransformImageToTemplate->Concatenate(this->TransformProbeHomeToTemplateHolderHome); 
-		this->TransformImageToTemplate->Concatenate(this->TransformTemplateHolderHomeToTemplateHome);
-		//this->TransformImageToTemplate->Concatenate(this->TransformTemplateHomeToTemplate);
-		this->TransformImageToTemplate->Update(); 
 
 		std::ostringstream osTransformImageToTemplate; 
 		this->GetTransformImageToTemplate()->Print(osTransformImageToTemplate);  

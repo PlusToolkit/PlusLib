@@ -1312,12 +1312,9 @@ void vtkProbeCalibrationControllerIO::ReadProbeCalibrationConfiguration(vtkXMLDa
       this->CalibrationController->SetPhantomToProbeDistanceInMm(phantomToProbeDistanceInMm); 
     }
 
-    // TransformImageToTemplate
-    double tImageToTemplate[16] = {0}; 
-    if ( calibrationResult->GetVectorAttribute("TransformImageToTemplate", 16, tImageToTemplate) )
-    {
-      this->CalibrationController->GetTransformImageToTemplate()->SetMatrix(tImageToTemplate); 
-    }
+    // TransformImageToTemplate - we don't want to read it from file, it will be concatenated with the other transforms: 
+    // TransformImageToTemplate = TransformTemplateHolderHomeToTemplateHome * TransformProbeHomeToTemplateHolderHome * 
+    // * TransformProbeHomeToProbe * TransformUserImageHomeToProbeHome * TransformImageHomeToUserImageHome
 
     // TransformUserImageHomeToProbeHome
     double tUserImageHomeToProbeHome[16] = {0}; 
