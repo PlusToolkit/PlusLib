@@ -85,7 +85,7 @@ void SegmentImageSequence( vtkTrackedFrameList* trackedFrameList, std::ofstream 
       outFileFidPositions << std::endl;
     }
 
-		possibleFiducialsImageFilename.rdbuf()->freeze(); 
+		possibleFiducialsImageFilename.rdbuf()->freeze(0); 
 		
 		UsFidSegResultFile::WriteSegmentationResults(outFile, segResults, inputTestcaseName, currentFrameIndex, inputImageSequenceFileName);
 

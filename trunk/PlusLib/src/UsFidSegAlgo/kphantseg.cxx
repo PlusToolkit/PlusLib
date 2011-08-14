@@ -689,7 +689,7 @@ void SegImpl::WritePossibleFiducialOverlayImage(Dot *fiducials, PixelType *unalt
 	typedef itk::ImageFileWriter< ImageType > WriterType; 
 	WriterType::Pointer writeImage = WriterType::New();  
 	writeImage->SetFileName(possibleFiducialsImageFilename);  
-	// possibleFiducialsImageFilename.rdbuf()->freeze();
+	// possibleFiducialsImageFilename.rdbuf()->freeze(0);
 
 	writeImage->SetInput( possibleFiducials );  
 		try
