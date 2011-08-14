@@ -43,7 +43,6 @@ ExternalProject_Add(PlusLib
                 -DSubversion_SVN_EXECUTABLE:FILEPATH=${Subversion_SVN_EXECUTABLE}
                 ${PLUSBUILD_OpenIGTLink_ARGS}
                 ${PLUSBUILD_Slicer_ARGS}
-                -DPLUS_USE_PLTools:BOOL=${PLUSBUILD_USE_PLTools}
                 -DPLTOOLS_DIR:PATH=${PLTOOLS_DIR}
                 -DPLUS_USE_SONIX_VIDEO:BOOL=${PLUS_USE_SONIX_VIDEO}
                 -DPLUS_USE_ICCAPTURING_VIDEO:BOOL=${PLUS_USE_ICCAPTURING_VIDEO}
@@ -52,7 +51,7 @@ ExternalProject_Add(PlusLib
                 -DPLUS_USE_CERTUS:BOOL=${PLUS_USE_CERTUS}
                 -DPLUS_USE_FLOCK:BOOL=${PLUS_USE_FLOCK}
                 -DPLUS_USE_MICRONTRACKER:BOOL=${PLUS_USE_MICRONTRACKER}
-                -DPLUS_USE_AMS_TRACKER:BOOL=${PLUS_USE_AMS_TRACKER}
+                -DPLUS_USE_BRACHY_TRACKER:BOOL=${PLUS_USE_AMS_TRACKER}
                 -DPLUS_USE_Ascension3DG:BOOL=${PLUS_USE_Ascension3DG}
                 -DPLUS_USE_HEARTSIGNALBOX:BOOL=${PLUS_USE_HEARTSIGNALBOX}
                 -DPLUS_USE_USBECGBOX:BOOL=${PLUS_USE_USBECGBOX}
