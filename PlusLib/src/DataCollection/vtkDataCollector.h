@@ -244,6 +244,7 @@ public:
   // Description:
   // Get configuration data
   vtkGetObjectMacro(ConfigurationData, vtkXMLDataElement); 
+  vtkSetObjectMacro(ConfigurationData, vtkXMLDataElement); 
 
   int GetNumberOfTools();
 

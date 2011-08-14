@@ -119,15 +119,12 @@ vtkDataCollector::~vtkDataCollector()
   this->SetConfigFileName(NULL); 
   this->SetDeviceSetName(NULL); 
   this->SetDeviceSetDescription(NULL); 
+  this->SetConfigurationData(NULL); 
 
   for ( unsigned int i = 0; i < this->ToolTransMatrices.size(); i++ ) 
   {
     this->ToolTransMatrices[i]->Delete(); 
     this->ToolTransMatrices[i]=NULL; 
-  }
-
-  if (this->ConfigurationData != NULL) {
-    this->ConfigurationData->UnRegister(this);
   }
 }
 
@@ -1498,24 +1495,27 @@ PlusStatus vtkDataCollector::ReadConfigurationFromFile()
     return PLUS_FAIL;
   }
 
-  this->ConfigurationData = NULL;
-  this->ConfigurationData = vtkSmartPointer<vtkXMLDataElement>::New();
-
-  this->ConfigurationData = vtkXMLUtilities::ReadElementFromFile(configFn); 
-  if ( this->ConfigurationData == NULL) 
+  vtkXMLDataElement * xmlRoot = vtkXMLUtilities::ReadElementFromFile(configFn); 
+  
+  if ( xmlRoot == NULL) 
   {	
     LOG_ERROR("Unable to read configuration from file " << configFn); 
     return PLUS_FAIL;
   }
 
-  this->ConfigurationData->Register(this);
+  vtkSmartPointer<vtkXMLDataElement> root = vtkSmartPointer<vtkXMLDataElement>::New(); 
+  root->DeepCopy(xmlRoot); 
+  xmlRoot->Delete(); 
+
+  this->SetConfigurationData(root); 
+
   return this->ReadConfiguration(this->ConfigurationData);
 }
 
 //------------------------------------------------------------------------------
 PlusStatus vtkDataCollector::ReadConfiguration(vtkXMLDataElement* aDataCollectionConfig)
 {
-  this->ConfigurationData = aDataCollectionConfig;
+  this->SetConfigurationData(aDataCollectionConfig);
 
 	// Check plus configuration version
 	double plusConfigurationVersion = 0;
@@ -1933,6 +1933,12 @@ PlusStatus vtkDataCollector::SaveConfigurationToFile(const char* aFile)
   }
 
   LOG_TRACE("vtkDataCollector::SaveConfigurationToFile(" << aFile << ")");
+
+  if ( this->GetConfigurationData() == NULL )
+  {
+    LOG_ERROR("Failed to save configuration data to file - configuration data is NULL!"); 
+    return PLUS_FAIL; 
+  }
 
   this->GetConfigurationData()->PrintXML( aFile );
 
