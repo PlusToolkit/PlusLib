@@ -41,7 +41,7 @@ enum TrackerStatus {
 	std::ostrstream msgStream; \
   msgStream << " " << msg << std::ends; \
 	PlusLogger::Instance()->LogMessage(PlusLogger::LOG_LEVEL_ERROR, msgStream.str(), __FILE__, __LINE__); \
-	msgStream.rdbuf()->freeze(); \
+	msgStream.rdbuf()->freeze(0); \
 	}	
 
 #define LOG_WARNING(msg) \
@@ -49,7 +49,7 @@ enum TrackerStatus {
 	std::ostrstream msgStream; \
 	msgStream << " " << msg << std::ends; \
   PlusLogger::Instance()->LogMessage(PlusLogger::LOG_LEVEL_WARNING, msgStream.str(), __FILE__, __LINE__); \
-  msgStream.rdbuf()->freeze(); \
+  msgStream.rdbuf()->freeze(0); \
 	}
 		
 #define LOG_INFO(msg) \
@@ -57,7 +57,7 @@ enum TrackerStatus {
 	std::ostrstream msgStream; \
 	msgStream << " " << msg << std::ends; \
 	PlusLogger::Instance()->LogMessage(PlusLogger::LOG_LEVEL_INFO, msgStream.str(), __FILE__, __LINE__); \
-	msgStream.rdbuf()->freeze(); \
+	msgStream.rdbuf()->freeze(0); \
 	}
 	
 #define LOG_DEBUG(msg) \
@@ -65,7 +65,7 @@ enum TrackerStatus {
 	std::ostrstream msgStream; \
 	msgStream << " " << msg << std::ends; \
 	PlusLogger::Instance()->LogMessage(PlusLogger::LOG_LEVEL_DEBUG, msgStream.str(), __FILE__, __LINE__); \
-	msgStream.rdbuf()->freeze(); \
+	msgStream.rdbuf()->freeze(0); \
 	}	
 	
 #define LOG_TRACE(msg) \
@@ -73,7 +73,7 @@ enum TrackerStatus {
 	std::ostrstream msgStream; \
 	msgStream << " " << msg << std::ends; \
 	PlusLogger::Instance()->LogMessage(PlusLogger::LOG_LEVEL_TRACE, msgStream.str(), __FILE__, __LINE__); \
-	msgStream.rdbuf()->freeze(); \
+	msgStream.rdbuf()->freeze(0); \
 	}	
 	
 class vtkConsoleOutputWindow : public vtkOutputWindow 
