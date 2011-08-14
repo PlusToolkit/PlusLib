@@ -1075,12 +1075,12 @@ void vtkProbeCalibrationControllerIO::LoadUS3DBeamProfileData()
 }
 
 //----------------------------------------------------------------------------
-void vtkProbeCalibrationControllerIO::ReadProbeCalibrationConfiguration(vtkXMLDataElement* probeCalibration)
+PlusStatus vtkProbeCalibrationControllerIO::ReadProbeCalibrationConfiguration(vtkXMLDataElement* probeCalibration)
 {
 	if ( probeCalibration == NULL) 
 	{	
 		LOG_WARNING("Unable to read ProbeCalibration XML data element!"); 
-		return; 
+		return PLUS_FAIL; 
 	} 
 
 	// To enable/disable the system logging
@@ -1247,7 +1247,7 @@ void vtkProbeCalibrationControllerIO::ReadProbeCalibrationConfiguration(vtkXMLDa
       else
       {
         LOG_ERROR("Template model configuration file not found!");
-        return;
+        return PLUS_FAIL;
       }
 		}
 	}
@@ -1404,5 +1404,6 @@ void vtkProbeCalibrationControllerIO::ReadProbeCalibrationConfiguration(vtkXMLDa
 
   }
 
+  return PLUS_SUCCESS; 
 }
 
