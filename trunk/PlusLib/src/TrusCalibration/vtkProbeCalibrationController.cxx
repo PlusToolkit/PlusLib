@@ -920,16 +920,28 @@ PlusStatus vtkProbeCalibrationController::ReadConfiguration( vtkXMLDataElement* 
   // Calibration controller specifications
 	//********************************************************************
 	vtkSmartPointer<vtkXMLDataElement> calibrationController = usCalibration->FindNestedElementWithName("CalibrationController"); 
-	this->ReadCalibrationControllerConfiguration(calibrationController); 
+	if ( this->ReadCalibrationControllerConfiguration(calibrationController) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to read calibration controller configuration from file!"); 
+    return PLUS_FAIL; 
+  }
 
 	// ProbeCalibration specifications
 	//*********************************
 	vtkSmartPointer<vtkXMLDataElement> probeCalibration = calibrationController->FindNestedElementWithName("ProbeCalibration"); 
-	this->CalibrationControllerIO->ReadProbeCalibrationConfiguration(probeCalibration); 
+	if ( this->CalibrationControllerIO->ReadProbeCalibrationConfiguration(probeCalibration) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to read probe calibration configuration from file!"); 
+    return PLUS_FAIL; 
+  }
 
 	// Phantom definition
 	//*********************************
-	this->ReadPhantomDefinition(configData);
+	if ( this->ReadPhantomDefinition(configData) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to read phantom definition from config file!"); 
+    return PLUS_FAIL; 
+  }
 
 	// Custom transforms
 	//*********************************

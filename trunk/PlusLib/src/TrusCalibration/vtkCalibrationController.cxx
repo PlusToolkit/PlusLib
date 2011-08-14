@@ -487,25 +487,6 @@ PlusStatus vtkCalibrationController::ReadCalibrationControllerConfiguration( vtk
 		return PLUS_FAIL; 
 	}
 
-	// Set the log level 
-	const char* logLevel = calibrationController->GetAttribute("LogLevel"); 
-	if ( logLevel!= NULL && STRCASECMP( "ERROR", logLevel ) == 0 )
-	{
-		PlusLogger::Instance()->SetLogLevel(PlusLogger::LOG_LEVEL_ERROR); 
-	}
-	else if ( logLevel!= NULL && STRCASECMP( "WARNING", logLevel ) == 0 )
-	{
-		PlusLogger::Instance()->SetLogLevel(PlusLogger::LOG_LEVEL_WARNING); 
-	}
-	else if ( logLevel!= NULL && STRCASECMP( "INFO", logLevel ) == 0 )
-	{
-		PlusLogger::Instance()->SetLogLevel(PlusLogger::LOG_LEVEL_INFO); 
-	}
-	else if ( logLevel!= NULL && STRCASECMP( "DEBUG", logLevel ) == 0 )
-	{
-		PlusLogger::Instance()->SetLogLevel(PlusLogger::LOG_LEVEL_DEBUG); 
-	}
-
 	// Path to output calibration results
 	const char* outputPath = calibrationController->GetAttribute("OutputPath"); 
 	if ( outputPath != NULL) 
