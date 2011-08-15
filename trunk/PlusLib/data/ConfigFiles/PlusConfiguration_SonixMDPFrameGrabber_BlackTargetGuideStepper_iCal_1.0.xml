@@ -108,11 +108,11 @@
 			
 			<SegmentationParameters
 					FrameSize="640 480"
-					ScalingEstimation="0.33"
+					ScalingEstimation="0.29"
 					MorphologicalOpeningCircleRadiusMm="0.47"
 					MorphologicalOpeningBarSizeMm="2.0"
 
-					RegionOfInterest="180 80 525 275"
+					RegionOfInterest="130 140 430 345"
 
 					MaxLineLengthErrorPercent="10.0"
 					MaxLinePairDistanceErrorPercent="10.0"
