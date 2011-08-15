@@ -731,6 +731,12 @@ void SegmentationParameters::UpdateParameters()
 	double minLineLengthSquared = FLT_MAX;
 	std::vector<NWire> nWires = this->GetNWires();
 
+  if (nWires.size()==0)
+  {
+    LOG_DEBUG("No wires are defined, cannot compute segmentation parameters now");
+    return;
+  }
+
 	for (std::vector<NWire>::iterator it = nWires.begin(); it != nWires.end(); ++it) {
 		Wire wire0 = it->wires[0];
 		Wire wire1 = it->wires[1];
