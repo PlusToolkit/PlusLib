@@ -34,10 +34,12 @@
 #include "vtkSphereSource.h"
 #include "vtkDiskSource.h"
 #include "vtkTextActor3D.h"
+#include "vtkTextSource.h" 
 #include "vtkAppendPolyData.h"
 #include "vtkVertex.h"
 #include "vtkDataObject.h"
 #include "vtkPolyData.h"
+#include "vtkTransformPolyDataFilter.h"
 
 const int vtkCalibratorVisualizationComponent::mColorGreen[] = {0, 255, 0};
 const int vtkCalibratorVisualizationComponent::mColorYellow[] = {255, 255, 0};
@@ -67,6 +69,8 @@ vtkCalibratorVisualizationComponent::vtkCalibratorVisualizationComponent()
 	this->TransformVtkImageToTemplate = NULL; 
 	this->ImageCamera = NULL; 
 	this->TemplateCamera = NULL; 
+  this->TemplateLetterActors = NULL; 
+  this->TemplateHolesActor = NULL; 
 }
 
 
@@ -82,6 +86,18 @@ vtkCalibratorVisualizationComponent::~vtkCalibratorVisualizationComponent()
 	this->SetTransformVtkImageToTemplate(NULL); 
 	this->SetTemplateCamera(NULL); 
 	this->SetImageCamera(NULL); 
+
+  if ( this->TemplateLetterActors != NULL )
+  {
+    this->TemplateLetterActors->Delete(); 
+    this->TemplateLetterActors = NULL; 
+  } 
+
+  if ( this->TemplateHolesActor != NULL )
+  {
+    this->TemplateHolesActor->Delete(); 
+    this->TemplateHolesActor = NULL; 
+  }
 	
 	if( mptrNumberOfData != NULL )
 	{
@@ -308,6 +324,8 @@ void vtkCalibratorVisualizationComponent::SetRealtimeRenderer( vtkRenderer* rend
 
     this->RealtimeRenderer->GetActiveCamera()->DeepCopy(this->GetImageCamera());
 
+    this->CreateTemplateGridActors(); 
+
   }
 }
 
@@ -318,11 +336,15 @@ void vtkCalibratorVisualizationComponent::SetupTemplateOverlay()
 	// Read Template model file 
 	this->ReadTemplateModelConfiguration(configTemplateModel); 
 
-	this->TemplateGridActors.TransverseGridActors = vtkSmartPointer<vtkCollection>::New(); 
-	this->TemplateGridActors.TransverseLetterActors = vtkSmartPointer<vtkCollection>::New(); 
-	this->TemplateGridActors.LongitudinalGridActors = vtkSmartPointer<vtkCollection>::New(); 
-	this->TemplateGridActors.LongitudinalLetterActors = vtkSmartPointer<vtkCollection>::New(); 
+  if ( this->TemplateLetterActors == NULL )
+  {
+    this->TemplateLetterActors = vtkCollection::New(); 
+  }
 
+  if ( this->TemplateHolesActor == NULL )
+  {
+    this->TemplateHolesActor = vtkActor::New(); 
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -346,21 +368,6 @@ void vtkCalibratorVisualizationComponent::OverlayCenterOfRotation()
 	this->GetCenterOfRotationActor()->SetPosition(originX, originY, 0); 
 	this->GetCenterOfRotationActor()->Modified(); 
 	this->ShowCenterOfRotation(); 
-}
-
-//----------------------------------------------------------------------------
-void vtkCalibratorVisualizationComponent::OverlayTemplate()
-{
-	if ( !this->Initialized )
-	{
-		return; 
-	}
- 
-  // Create template grid actors
-	this->CreateTemplateGridActors(); 
-
-	// Display the default transverse mode
-	this->DisplayTemplateGridInTransverseMode(); 
 }
 
 
@@ -409,17 +416,6 @@ void vtkCalibratorVisualizationComponent::OverlayPhantomWires()
 	///************************ Apply user transform to wires actor *********************************/
 	this->GetPhantomWiresActor()->SetUserTransform( this->CalibrationController->GetTransformImageToTemplate() );
 	this->GetPhantomWiresActor()->Modified();
-}
-
-//----------------------------------------------------------------------------
-void vtkCalibratorVisualizationComponent::RemoveTemplate()
-{
-	if ( !this->Initialized )
-	{
-		return; 
-	}
-
-	this->RemoveTemplateGridInTransverseMode(); 
 }
 
 //----------------------------------------------------------------------------
@@ -1135,232 +1131,83 @@ void vtkCalibratorVisualizationComponent::GetColorForPRE3Ddistribution( const do
 //----------------------------------------------------------------------
 void vtkCalibratorVisualizationComponent::CreateTemplateGridActors()
 {
-	if ( !this->Initialized )
-	{
-		return; 
-	}
+  if ( !this->Initialized )
+  {
+    return; 
+  }
 
-	const double XLONGOFFSET_HOLE = 2.5;
+  const double XLONGOFFSET_HOLE = 2.5;
 
-	vtkSmartPointer<vtkAppendPolyData> templateGridPolyData = vtkSmartPointer<vtkAppendPolyData>::New();
+  vtkSmartPointer<vtkAppendPolyData> templateGridPolyData = vtkSmartPointer<vtkAppendPolyData>::New();
+  vtkSmartPointer<vtkPolyDataMapper> polyMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+  polyMapper->SetInputConnection(templateGridPolyData->GetOutputPort());
+  this->TemplateHolesActor->SetMapper(polyMapper); 
+  this->TemplateHolesActor->GetProperty()->SetColor(0,1,0); 
+  this->GetRealtimeRenderer()->AddActor(this->TemplateHolesActor); 
 
-	for (unsigned int i = 0; i < TemplateModelHoles.size(); i++)
-	{
-		// Transverse actors
-		vtkSmartPointer<vtkActor> holeTransActor = vtkSmartPointer<vtkActor>::New();
-		vtkSmartPointer<vtkPolyDataMapper> holeTransMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-
-		if (TemplateModelHoles[i].Representation == HOLE_SPHERE ) 
-		{
-			vtkSmartPointer<vtkSphereSource> sphere = vtkSmartPointer<vtkSphereSource>::New();
-			sphere->SetRadius(TemplateModelHoles[i].Radius); 
-			holeTransMapper->SetInput(sphere->GetOutput());
-		}
-		else if (TemplateModelHoles[i].Representation == HOLE_DISK)
-		{
-			vtkSmartPointer<vtkDiskSource> point = vtkSmartPointer<vtkDiskSource>::New();
-			point->SetInnerRadius(TemplateModelHoles[i].Radius-0.15); 
-			point->SetOuterRadius(TemplateModelHoles[i].Radius); 
-			point->SetCircumferentialResolution(30); 
-			holeTransMapper->SetInput(point->GetOutput());
-		}
-
-		//templateGridPolyData->AddInput(
-		holeTransActor->SetMapper(holeTransMapper);
-		holeTransActor->GetProperty()->SetColor(0,1,0);
-
-		holeTransActor->SetPosition(TemplateModelHoles[i].PositionX, TemplateModelHoles[i].PositionY , TemplateModelHoles[i].PositionZ ); 
-		holeTransActor->Modified(); 
-
-		//holeTransActor->SetUserTransform( this->GetCalibrationController()->GetTransformTemplateHomeToTemplate() ); 
-
-		TemplateGridActors.TransverseGridActors->AddItem(holeTransActor); 
-
-		// Longitude actors
-		vtkSmartPointer<vtkPolyDataMapper> holeLongMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-		vtkSmartPointer<vtkActor> holeLongActor1 = vtkSmartPointer<vtkActor>::New();
-		vtkSmartPointer<vtkActor> holeLongActor2 = vtkSmartPointer<vtkActor>::New();
+  for (unsigned int i = 0; i < TemplateModelHoles.size(); i++)
+  {
+      vtkSmartPointer<vtkSphereSource> sphere = vtkSmartPointer<vtkSphereSource>::New();
+      sphere->SetRadius(TemplateModelHoles[i].Radius); 
+      //holeTransMapper->SetInput(sphere->GetOutput());
+      sphere->SetCenter(TemplateModelHoles[i].PositionX, TemplateModelHoles[i].PositionY , TemplateModelHoles[i].PositionZ); 
+      templateGridPolyData->AddInput( sphere->GetOutput() );
+  }
 
 
-		vtkSmartPointer<vtkSphereSource> sphere = vtkSmartPointer<vtkSphereSource>::New();
-		sphere->SetRadius(0.2); 
-		holeLongMapper->SetInput(sphere->GetOutput());
+  // --------------------  template letters ------------------------ //
 
-		holeLongActor1->SetMapper(holeLongMapper); 
-		holeLongActor1->GetProperty()->SetColor(0,1,0);
+  const double XTRANSOFFSET_LETTER = 0.9; 
+  const double YTRANSOFFSET_LETTER = 1.3; 
+  const double XLONGOFFSET_LETTER_CHAR = 0.9; 
+  const double YLONGOFFSET_LETTER_CHAR = 71.3; 
+  const double XLONGOFFSET_LETTER_NUM = 0.9; 
+  const double YLONGOFFSET_LETTER_NUM = 1.3; 
 
+  // Clean actors first
+  this->TemplateLetterActors->RemoveAllItems(); 
 
-		holeLongActor1->SetPosition(TemplateModelHoles[i].PositionX , TemplateModelHoles[i].PositionY , TemplateModelHoles[i].PositionZ); 
-		holeLongActor1->Modified(); 
-		holeLongActor1->SetUserTransform(this->GetCalibrationController()->GetTransformTemplateHomeToTemplate()); 
+  for (unsigned int i = 0; i < TemplateModelLetters.size(); i++)
+  {
 
-		holeLongActor2->SetMapper(holeLongMapper); 
-		holeLongActor2->GetProperty()->SetColor(0,1,0);
-		holeLongActor2->SetPosition(TemplateModelHoles[i].PositionX + XLONGOFFSET_HOLE, TemplateModelHoles[i].PositionY , TemplateModelHoles[i].PositionZ); 
-		holeLongActor2->Modified(); 
-		holeLongActor2->SetUserTransform(this->GetCalibrationController()->GetTransformTemplateHomeToTemplate()); 
+    vtkSmartPointer<vtkTextActor3D> gridTransLettersActor = vtkSmartPointer<vtkTextActor3D>::New();
+    gridTransLettersActor->GetTextProperty()->SetColor(0,1,0);
+    gridTransLettersActor->GetTextProperty()->SetFontFamilyToArial();
+    gridTransLettersActor->GetTextProperty()->SetFontSize(16);
+    gridTransLettersActor->GetTextProperty()->SetJustificationToLeft();
+    gridTransLettersActor->GetTextProperty()->SetVerticalJustificationToTop();
+    gridTransLettersActor->GetTextProperty()->BoldOn(); 
 
-		TemplateGridActors.LongitudinalGridActors->AddItem(holeLongActor1);
-		TemplateGridActors.LongitudinalGridActors->AddItem(holeLongActor2);
-	}
+    double * imageScaleTrans = this->GetCalibrationController()->GetTransformImageToTemplate()->GetScale(); 
+    gridTransLettersActor->SetScale(imageScaleTrans[0], imageScaleTrans[1], imageScaleTrans[2]);
+    gridTransLettersActor->RotateWXYZ(180, 1, 0, 0); 
+    //gridTransLettersActor->SetScale(0.2,0.2,0.2); 
+    gridTransLettersActor->SetInput(TemplateModelLetters[i].ID.c_str());
+    gridTransLettersActor->SetPosition(TemplateModelLetters[i].PositionX - XTRANSOFFSET_LETTER, TemplateModelLetters[i].PositionY + YTRANSOFFSET_LETTER, TemplateModelLetters[i].PositionZ); 
+    gridTransLettersActor->Modified(); 
 
+    this->TemplateLetterActors->AddItem(gridTransLettersActor); 
 
-	// --------------------  template letters ------------------------ //
+    this->GetRealtimeRenderer()->AddActor(gridTransLettersActor); 
 
-	const double XTRANSOFFSET_LETTER = 0.9; 
-	const double YTRANSOFFSET_LETTER = 1.3; 
-	const double XLONGOFFSET_LETTER_CHAR = 0.9; 
-	const double YLONGOFFSET_LETTER_CHAR = 71.3; 
-	const double XLONGOFFSET_LETTER_NUM = 0.9; 
-	const double YLONGOFFSET_LETTER_NUM = 1.3; 
+    //gridTransLettersActor->SetUserTransform(this->GetCalibrationController()->GetTransformTemplateHomeToTemplate()); 
+  }
 
-	for (unsigned int i = 0; i < TemplateModelLetters.size(); i++)
-	{
-		// Transverse actors
-		vtkSmartPointer<vtkTextActor3D> gridTransLettersActor = vtkSmartPointer<vtkTextActor3D>::New();
-		gridTransLettersActor->GetTextProperty()->SetColor(0,1,0);
-		gridTransLettersActor->GetTextProperty()->SetFontFamilyToArial();
-		gridTransLettersActor->GetTextProperty()->SetFontSize(16);
-		gridTransLettersActor->GetTextProperty()->SetJustificationToLeft();
-		gridTransLettersActor->GetTextProperty()->SetVerticalJustificationToTop();
-		gridTransLettersActor->GetTextProperty()->BoldOn(); 
-
-		double * imageScaleTrans = this->GetCalibrationController()->GetTransformImageToTemplate()->GetScale(); 
-		gridTransLettersActor->SetScale(imageScaleTrans[0], imageScaleTrans[1], imageScaleTrans[2]);
-		gridTransLettersActor->RotateWXYZ(180, 1, 0, 0); 
-		//gridTransLettersActor->SetScale(0.2,0.2,0.2); 
-		gridTransLettersActor->SetInput(TemplateModelLetters[i].ID.c_str());
-		gridTransLettersActor->SetPosition(TemplateModelLetters[i].PositionX - XTRANSOFFSET_LETTER, TemplateModelLetters[i].PositionY + YTRANSOFFSET_LETTER, TemplateModelLetters[i].PositionZ); 
-		gridTransLettersActor->Modified(); 
-
-		//gridTransLettersActor->SetUserTransform(this->GetCalibrationController()->GetTransformTemplateHomeToTemplate()); 
-
-
-		TemplateGridActors.TransverseLetterActors->AddItem(gridTransLettersActor); 
-
-		// Longitude actors
-
-		vtkSmartPointer<vtkTextActor3D> gridLongLettersActor = vtkSmartPointer<vtkTextActor3D>::New();
-		if (TemplateModelLetters[i].LetterType == LETTER_CHAR)
-		{
-			//gridLongLettersActor->SetPosition(TemplateModelLetters[i].PositionX - XLONGOFFSET_LETTER_CHAR,-TemplateModelLetters[i].PositionY - YLONGOFFSET_LETTER_CHAR,-TemplateModelLetters[i].PositionZ ); 
-			//gridLongLettersActor->GetTextProperty()->SetColor(0,1,0);
-			//gridLongLettersActor->GetTextProperty()->SetFontFamilyToArial();
-			//gridLongLettersActor->GetTextProperty()->SetFontSize(16);
-			//gridLongLettersActor->GetTextProperty()->SetJustificationToLeft();
-			//gridLongLettersActor->GetTextProperty()->SetVerticalJustificationToTop();
-			//gridLongLettersActor->GetTextProperty()->BoldOn(); 
-
-			//gridLongLettersActor->SetInput(TemplateModelLetters[i].ID);
-		}
-		else
-		{
-			gridLongLettersActor->GetTextProperty()->SetColor(0,1,0);
-			gridLongLettersActor->GetTextProperty()->SetFontFamilyToArial();
-			gridLongLettersActor->GetTextProperty()->SetFontSize(16);
-			gridLongLettersActor->GetTextProperty()->SetJustificationToLeft();
-			gridLongLettersActor->GetTextProperty()->SetVerticalJustificationToTop();
-			gridLongLettersActor->GetTextProperty()->BoldOn(); 
-			gridLongLettersActor->SetInput(TemplateModelLetters[i].ID.c_str());
-			gridLongLettersActor->SetPosition(TemplateModelLetters[i].PositionX - XLONGOFFSET_LETTER_NUM,TemplateModelLetters[i].PositionY + YLONGOFFSET_LETTER_NUM, TemplateModelLetters[i].PositionZ ); 
-		}
-
-		gridLongLettersActor->Modified(); 
-
-		gridLongLettersActor->SetUserTransform(this->GetCalibrationController()->GetTransformTemplateHomeToTemplate()); 
-		double * imageScaleLong = this->GetCalibrationController()->GetTransformImageToTemplate()->GetScale(); 
-		gridLongLettersActor->SetScale(imageScaleLong[0], imageScaleLong[1], imageScaleLong[2]);
-
-		TemplateGridActors.LongitudinalLetterActors->AddItem(gridLongLettersActor); 
-	}
+  this->SetTemplateVisibility(false); 
 }
 
 //----------------------------------------------------------------------
-void vtkCalibratorVisualizationComponent::DisplayTemplateGridInTransverseMode()
+void vtkCalibratorVisualizationComponent::SetTemplateVisibility( bool visibility )
 {
-	if ( !this->Initialized )
+for (int i = 0; i < this->TemplateLetterActors->GetNumberOfItems(); i++) 
 	{
-		return; 
+    vtkTextActor3D* actor = dynamic_cast<vtkTextActor3D*>(this->TemplateLetterActors->GetItemAsObject(i)); 
+    actor->SetVisibility( visibility ); 
 	}
 
-	this->DisplayTemplateGrid(this->TemplateGridActors.TransverseGridActors, this->TemplateGridActors.TransverseLetterActors); 
+  this->TemplateHolesActor->SetVisibility( visibility ); 
 }
 
-
-//----------------------------------------------------------------------
-void vtkCalibratorVisualizationComponent::DisplayTemplateGridInLongitudinalMode()
-{
-	if ( !this->Initialized )
-	{
-		return; 
-	}
-
-	this->DisplayTemplateGrid(this->TemplateGridActors.LongitudinalGridActors , this->TemplateGridActors.LongitudinalLetterActors); 
-}
-
-//----------------------------------------------------------------------
-void vtkCalibratorVisualizationComponent::DisplayTemplateGrid(vtkCollection* gridActors, vtkCollection* letterActors)
-{
-  if ( !this->Initialized || this->GetRealtimeRenderer() == NULL )
-	{
-		return; 
-	}
-
-	for (int i = 0; i < gridActors->GetNumberOfItems(); i++) 
-	{
-		this->GetRealtimeRenderer()->AddActor(static_cast<vtkActor*>(gridActors->GetItemAsObject(i)));
-	}
-
-	for (int i = 0; i < letterActors->GetNumberOfItems(); i++) 
-	{
-		this->GetRealtimeRenderer()->AddActor(static_cast<vtkTextActor3D*>(letterActors->GetItemAsObject(i)));
-	}
-
-	this->GetRealtimeRenderer()->GetActiveCamera()->DeepCopy(this->GetTemplateCamera());
-}
-
-//----------------------------------------------------------------------
-void vtkCalibratorVisualizationComponent::RemoveTemplateGridInTransverseMode()
-{
-	if ( !this->Initialized )
-	{
-		return; 
-	}
-
-	this->RemoveTemplateGrid(this->TemplateGridActors.TransverseGridActors, this->TemplateGridActors.TransverseLetterActors);
-}
-
-//----------------------------------------------------------------------
-void vtkCalibratorVisualizationComponent::RemoveTemplateGridInLongitudinalMode()
-{
-	if ( !this->Initialized )
-	{
-		return; 
-	}
-
-	this->RemoveTemplateGrid(this->TemplateGridActors.LongitudinalGridActors , this->TemplateGridActors.LongitudinalLetterActors);
-}
-
-//----------------------------------------------------------------------
-void vtkCalibratorVisualizationComponent::RemoveTemplateGrid(vtkCollection* gridActors, vtkCollection* letterActors)
-{
-	if ( !this->Initialized || this->GetRealtimeRenderer() == NULL )
-	{
-		return; 
-	}
-
-	for (int i = 0; i < gridActors->GetNumberOfItems(); i++) 
-	{
-		this->GetRealtimeRenderer()->RemoveActor(static_cast<vtkActor*>(gridActors->GetItemAsObject(i)));
-	}
-
-	for (int i = 0; i < letterActors->GetNumberOfItems(); i++) 
-	{
-		this->GetRealtimeRenderer()->RemoveActor(static_cast<vtkTextActor3D*>(letterActors->GetItemAsObject(i)));
-	}
-
-	//this->GetRealtimeRenderer()->GetActiveCamera()->DeepCopy(this->GetImageCamera());
-}
 
 //----------------------------------------------------------------------------
 void vtkCalibratorVisualizationComponent::ReadTemplateModelConfiguration(vtkXMLDataElement *configTemplateModel)

@@ -21,11 +21,8 @@ set grid
 set yrange [-200:200]
 
 ## Plot frame period
-set ylabel "Time difference (ms)"
+set ylabel "Filtered and Unfiltered Timestamps"
 set xlabel "Frame number"
-set title "Sample Timestamps" ; 
-plot f using 1:($5*1000) with lines t columnhead, \
-	 f using 1:($6*1000) with lines t columnhead, \
-	 f using 1:($7*1000) with lines t columnhead
-
+plot f using 1:$2 with lines t columnhead, \
+plot f using 1:$3 with lines t columnhead
 pause -1

@@ -54,14 +54,6 @@ struct TemplateModel
 
 }; 
 
-struct TemplateGridActors
-{
-	vtkSmartPointer<vtkCollection> TransverseGridActors;
-	vtkSmartPointer<vtkCollection> LongitudinalGridActors;
-	vtkSmartPointer<vtkCollection> TransverseLetterActors; 
-	vtkSmartPointer<vtkCollection> LongitudinalLetterActors;
-}; 
-
 class vtkCalibratorVisualizationComponent : public vtkObject
 {
 
@@ -73,8 +65,7 @@ public:
 	virtual void Initialize( vtkProbeCalibrationController* calibrationController ); 
 	virtual PlusStatus AddFrameToRealtimeRenderer(vtkImageData* frame); 
 	virtual void SaveFrameToFile(vtkImageData* frame, char* fileName); 
-	virtual void OverlayTemplate(); 
-	virtual void RemoveTemplate(); 
+	virtual void SetTemplateVisibility( bool visibility ); 
 
 	virtual void OverlayCenterOfRotation(); 
 	virtual void HideCenterOfRotation() { this->CenterOfRotationActor->VisibilityOff(); }; 
@@ -173,14 +164,6 @@ protected:
 	virtual void SetupTemplateOverlay(); 
 
 	virtual void CreateTemplateGridActors(); 
-
-	virtual void DisplayTemplateGridInLongitudinalMode(); 
-	virtual void DisplayTemplateGridInTransverseMode(); 
-	virtual void DisplayTemplateGrid(vtkCollection* gridActors, vtkCollection* letterActors); 
-	
-	virtual void RemoveTemplateGridInLongitudinalMode(); 
-	virtual void RemoveTemplateGridInTransverseMode(); 
-	virtual void RemoveTemplateGrid(vtkCollection* gridActors, vtkCollection* letterActors); 
 	
 	virtual void ReadTemplateModelConfiguration(vtkXMLDataElement *configTemplateModel); 
 	
@@ -235,8 +218,6 @@ protected:
 	char *OutputPath; 
 	char* TemplateModelConfigFileName; 
 
-	TemplateGridActors TemplateGridActors; 
-
 	vtkActor* CenterOfRotationActor; 
 
 	vtkActor* PhantomWiresActor; 
@@ -245,6 +226,9 @@ protected:
 	
 	std::vector<TemplateModel> TemplateModelLetters; 
 	std::vector<TemplateModel> TemplateModelHoles; 
+
+  vtkCollection* TemplateLetterActors;
+  vtkActor* TemplateHolesActor; 
 
 private:
 	vtkCalibratorVisualizationComponent(const vtkCalibratorVisualizationComponent&);

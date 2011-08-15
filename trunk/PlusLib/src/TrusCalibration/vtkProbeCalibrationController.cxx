@@ -488,6 +488,41 @@ PlusStatus vtkProbeCalibrationController::AddTrackedFrameData(TrackedFrame* trac
 }
 
 //----------------------------------------------------------------------------
+bool vtkProbeCalibrationController::IsUserImageHomeToProbeHomeTransformOrthogonal()
+{
+  vtkMatrix4x4* userImageHomeToProbeHomeMatrix = this->GetTransformUserImageHomeToProbeHome()->GetMatrix(); 
+
+  // Complete the transformation matrix from a projection matrix to a 3D-3D transformation matrix (so that it can be inverted or can be used to transform 3D widgets to the image plane)
+  double xVector[3] = {userImageHomeToProbeHomeMatrix->GetElement(0,0),userImageHomeToProbeHomeMatrix->GetElement(1,0),userImageHomeToProbeHomeMatrix->GetElement(2,0)}; 
+  double yVector[3] = {userImageHomeToProbeHomeMatrix->GetElement(0,1),userImageHomeToProbeHomeMatrix->GetElement(1,1),userImageHomeToProbeHomeMatrix->GetElement(2,1)};  
+  double zVector[3] = {userImageHomeToProbeHomeMatrix->GetElement(0,2),userImageHomeToProbeHomeMatrix->GetElement(1,2),userImageHomeToProbeHomeMatrix->GetElement(2,2)};  
+
+  double dotProductXY = vtkMath::Dot(xVector, yVector);
+  double dotProductXZ = vtkMath::Dot(xVector, zVector);
+  double dotProductYZ = vtkMath::Dot(yVector, zVector);
+
+  if (dotProductXY > 0.001) 
+  {
+    LOG_WARNING("Calibration result axes are not orthogonal (dot product of X and Y axes is " << dotProductXY << ")");
+    return false; 
+  }
+
+  if (dotProductYZ > 0.001) 
+  {
+    LOG_WARNING("Calibration result axes are not orthogonal (dot product of Y and Z axes is " << dotProductYZ << ")");
+    return false; 
+  }
+
+  if (dotProductXZ > 0.001) 
+  {
+    LOG_WARNING("Calibration result axes are not orthogonal (dot product of X and Z axes is " << dotProductXZ << ")");
+    return false; 
+  }
+
+  return true; 
+}
+
+//----------------------------------------------------------------------------
 PlusStatus vtkProbeCalibrationController::ComputeCalibrationResults()
 {
 	LOG_TRACE("vtkProbeCalibrationController::ComputeCalibrationResults"); 
