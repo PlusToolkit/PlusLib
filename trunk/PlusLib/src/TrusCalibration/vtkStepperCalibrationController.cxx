@@ -355,10 +355,20 @@ PlusStatus vtkStepperCalibrationController::CalibrateRotationAxis()
   // [rx, ry, rx0, ry0 ]
   vnl_vector<double> rotationAxisCalibResult(4, 0);
 
-  int numberOfEquations(0); 
+  int numberOfEquations = bVector.size(); 
+  int numberOfVariables = 0;
+  if (aMatrix.size() > 0) {
+    numberOfVariables = aMatrix[0].size();
+  }
+
+  if ((numberOfVariables == 0) || (numberOfEquations < numberOfVariables))
+  {
+    LOG_ERROR("There are more variables (" << numberOfVariables << ") than equations (" << numberOfEquations << "), least squares cannot be started!");
+    return PLUS_FAIL;
+  }
+
   do 
   {
-    numberOfEquations = bVector.size(); 
     if ( PlusMath::LSQRMinimize(aMatrix, bVector, rotationAxisCalibResult) == PLUS_SUCCESS )
     {
       this->RemoveOutliersFromRotAxisCalibData(aMatrix, bVector, rotationAxisCalibResult); 
