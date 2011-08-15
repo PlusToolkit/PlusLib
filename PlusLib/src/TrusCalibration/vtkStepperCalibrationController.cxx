@@ -2711,6 +2711,8 @@ PlusStatus vtkStepperCalibrationController::ReadConfiguration( vtkXMLDataElement
     return PLUS_FAIL;
   }
 
+  Superclass::ReadConfiguration(configData); 
+
 	vtkSmartPointer<vtkXMLDataElement> usCalibration = configData->FindNestedElementWithName("USCalibration");
 	if (usCalibration == NULL) {
     LOG_ERROR("Cannot find USCalibration element in XML tree!");
