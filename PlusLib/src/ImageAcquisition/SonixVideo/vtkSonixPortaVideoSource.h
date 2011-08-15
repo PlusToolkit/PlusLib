@@ -226,12 +226,27 @@ private:
   void LocalInternalGrab( void *param, unsigned char *data,
 			  int cineBlock, int reserved );
 
+  // Description:
+  // Get/Set the probe name
+  vtkSetStringMacro(PortaProbeName); 
+  vtkGetStringMacro(PortaProbeName); 
+
+  // Description:
+  // Get/Set the firmware path name
+  vtkSetStringMacro(PortaFirmwarePath); 
+  vtkGetStringMacro(PortaFirmwarePath); 
+
+  // Description:
+  // Get/Set the look-up table path name
+  vtkSetStringMacro(PortaLUTPath); 
+  vtkGetStringMacro(PortaLUTPath); 
+
   // data members
   static vtkSonixPortaVideoSource *Instance;
 
   // Description:
   // pointer to the Sonix RP hardware
-  porta *PtrPorta;
+  porta Porta;
 
   // Description:
   // The starting position of the motor
@@ -296,19 +311,8 @@ private:
   
   // Description:
   // storage for sonix frame buffer
-  unsigned char *ImageBuffer;
+  unsigned char *ImageBuffer;    
   
-  // Description:
-  // 0 if the PortaSettingPath is not set, 1 otherwise
-  int bIsPortaSettingPathSet;
-  
-  // Description:
-  // 0 if the PortaSettingPath is not set, 1 otherwise
-  int bIsPortaFirmwarePathSet;
-  
-  // Description:
-  // 0 if the PortaSettingPath is not set, 1 otherwise
-  int bIsPortaLUTPathSet;
 };
 
 

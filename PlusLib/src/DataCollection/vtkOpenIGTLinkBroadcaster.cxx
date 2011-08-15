@@ -60,29 +60,29 @@ vtkOpenIGTLinkBroadcaster
     const char* constCharSendTo = tool->GetSendToLink();
     
     if ( constCharSendTo == NULL ) continue;  // This tool is not broadcasted.
-    
-    std::string strSendTo( constCharSendTo );
-    char* charSendTo     = new char[ strSendTo.size() + 1 ];
-    strcpy( charSendTo, strSendTo.c_str() );
-    const char* hostname = strtok( charSendTo, ":");
-    char*       charPort = strtok( NULL, ":\n" );
-    int         port     = atoi( charPort );
-    
-    
-    if ( hostname == NULL || charPort == NULL || port == 0 )
+
+    // Parse the SendTo string to get hostname and port
+    std::istringstream iss(constCharSendTo);
+    std::string hostname;
+    getline(iss, hostname, ':');
+    int port=0;
+    iss >> port;    
+
+    if ( hostname.empty() || port <= 0 )
       {
-      LOG_WARNING( "SendTo address could not be parsed for tool: " << toolNumber );
+      LOG_WARNING( "SendTo address could not be parsed for tool: " << toolNumber << " (hostname="<<hostname<<", port="<<port<<")");
       continue;
-      }
-      
+      }      
     
+    LOG_DEBUG( "SendTo address for tool " << toolNumber << ": hostname="<<hostname<<", port="<<port);
+
       // Check if new socket has to be created.
     
     bool socketFound = false;
     igtl::ClientSocket::Pointer socket;
     for ( int socketIndex = 0; socketIndex < this->SocketInfos.size(); ++ socketIndex )
       {
-      if (    strcmp( hostname, this->SocketInfos[ socketIndex ].Host.c_str() ) == 0
+        if (    hostname.compare(this->SocketInfos[ socketIndex ].Host) == 0
            && this->SocketInfos[ socketIndex ].Port == port )
         {
         socketFound = true;
@@ -93,7 +93,7 @@ vtkOpenIGTLinkBroadcaster
     if ( socketFound == false )
       {
       socket = igtl::ClientSocket::New();
-      int fail = socket->ConnectToServer( hostname, port );
+      int fail = socket->ConnectToServer( hostname.c_str(), port );
       
       if ( fail )
         {

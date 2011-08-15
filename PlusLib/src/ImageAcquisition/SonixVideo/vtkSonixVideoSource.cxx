@@ -140,10 +140,8 @@ vtkSonixVideoSourceCleanup::~vtkSonixVideoSourceCleanup()
 //----------------------------------------------------------------------------
 vtkSonixVideoSource::vtkSonixVideoSource()
 {
-    this->ult = new ulterius();
-    this->DataDescriptor = new uDataDesc();
+    this->SonixIP = 0;
 
-    this->SonixHostIP = "130.15.7.212";
     this->FrameRate = -1; // in fps
     this->FrameCount = 0;
 
@@ -169,14 +167,7 @@ vtkSonixVideoSource::~vtkSonixVideoSource()
 
     this->vtkSonixVideoSource::ReleaseSystemResources();
 
-    if ( this->DataDescriptor != NULL ) 
-    {
-        delete this->DataDescriptor; 
-        this->DataDescriptor = NULL; 
-    }
-
-    this->ult->disconnect(); 
-    delete this->ult;
+    this->Ult.disconnect(); 
 }
 
 //----------------------------------------------------------------------------
@@ -347,24 +338,24 @@ PlusStatus vtkSonixVideoSource::Initialize()
 //----------------------------------------------------------------------------
 PlusStatus vtkSonixVideoSource::Connect()
 {
-    // 1) connect to sonix machine.
-    if(!this->ult->connect(this->SonixHostIP))
+    if (this->SonixIP==NULL)
     {
-        char *err = new char[256]; 
-        int sz = 256;
-        this->ult->getLastError(err,sz);
-        LOG_ERROR("Initialize: couldn't connect to Ultrasonix at " << this->SonixHostIP << " address (error message: " << err << ")");
+      LOG_ERROR("Sonix hsot IP address is undefined");
+      this->ReleaseSystemResources();
+      return PLUS_FAIL;
+    }
+    // 1) connect to sonix machine.
+    if(!this->Ult.connect(this->SonixIP))
+    {        
+        LOG_ERROR("Initialize: couldn't connect to Ultrasonix at " << this->SonixIP << " address (error message: " << GetLastUlteriusError() << ")");
         this->ReleaseSystemResources();
         return PLUS_FAIL;
     }
 
     // 2) set the imaging mode
-    if (!this->ult->selectMode(this->ImagingMode))
+    if (!this->Ult.selectMode(this->ImagingMode))
     {
-        char *err = new char[256]; 
-        int sz = 256;
-        this->ult->getLastError(err,sz);
-        LOG_ERROR("Initialize: couldn't select imaging mode (" << err << ")");
+        LOG_ERROR("Initialize: couldn't select imaging mode (" << GetLastUlteriusError() << ")");
         this->ReleaseSystemResources();
         return PLUS_FAIL;
     }
@@ -374,51 +365,39 @@ PlusStatus vtkSonixVideoSource::Connect()
     vtkAccurateTimer::Delay(2); 
 
     // double-check to see if the mode has actually been set
-    if (this->ImagingMode != this->ult->getActiveImagingMode())
+    if (this->ImagingMode != this->Ult.getActiveImagingMode())
     {
-        char *err = new char[256];  
-        int sz = 256;
-        this->ult->getLastError(err,sz);
-        LOG_ERROR("Initialize: Requested imaging mode could not be selected(" << err << ")");
+        LOG_ERROR("Initialize: Requested imaging mode could not be selected(" << GetLastUlteriusError() << ")");
         this->ReleaseSystemResources();
         return PLUS_FAIL;
     }
 
     // 3) set the data acquisition type
     // check if the desired acquisition type is actually available on desired imaging mode
-    if (!this->ult->isDataAvailable((uData)(AcquisitionDataType)))
+    if (!this->Ult.isDataAvailable((uData)(AcquisitionDataType)))
     {
-        char *err = new char[256];  
-        int sz = 256;
-        this->ult->getLastError(err,sz);
-        LOG_ERROR("Initialize: Requested the data aquisition type not available for selected imaging mode(" << err << ")");
+        LOG_ERROR("Initialize: Requested the data aquisition type not available for selected imaging mode(" << GetLastUlteriusError() << ")");
         this->ReleaseSystemResources();
         return PLUS_FAIL;
     }
     // actually request data, now that its available
-    if (!this->ult->setDataToAcquire(AcquisitionDataType))
+    if (!this->Ult.setDataToAcquire(AcquisitionDataType))
     {
-        char *err = new char[256];  
-        int sz = 256;
-        this->ult->getLastError(err,sz);
-        LOG_ERROR("Initialize: couldn't request the data aquisition type (" << err << ")");
+        LOG_ERROR("Initialize: couldn't request the data aquisition type (" << GetLastUlteriusError() << ")");
         this->ReleaseSystemResources();
         return PLUS_FAIL;
     }
 
     // 4) get the data descriptor
-    if (!this->ult->getDataDescriptor((uData)AcquisitionDataType, *this->DataDescriptor))
+    if (!this->Ult.getDataDescriptor((uData)AcquisitionDataType, this->DataDescriptor))
     {
-        char *err = new char[256];  
-        int sz = 256;
-        this->ult->getLastError(err,sz);
-        LOG_DEBUG("Initialize: couldn't retrieve data descriptor (" << err << ")"); // error is reported at higher level, as it often happens that this call fails but after a few attempts it succeeds
+        LOG_DEBUG("Initialize: couldn't retrieve data descriptor (" << GetLastUlteriusError() << ")"); // error is reported at higher level, as it often happens that this call fails but after a few attempts it succeeds
         this->ReleaseSystemResources();
         return PLUS_FAIL;
     }
 
-    this->SetFrameSize( this->DataDescriptor->w, this->DataDescriptor->h); 
-    this->Buffer->SetNumberOfBitsPerPixel( this->DataDescriptor->ss );
+    this->SetFrameSize( this->DataDescriptor.w, this->DataDescriptor.h); 
+    this->Buffer->SetNumberOfBitsPerPixel( this->DataDescriptor.ss );
 
 
     // Parameter setting doesn't work with Ulterius-2.x
@@ -426,160 +405,121 @@ PlusStatus vtkSonixVideoSource::Connect()
     // 6) set parameters, currently: frequency, frame rate, depth
 
 #if ULTERIUS_MAJOR_VERSION < 2
-    if (this->Frequency >= 0 && !this->ult->setParamValue(VARID_FREQ, this->Frequency))
+    if (this->Frequency >= 0 && !this->Ult.setParamValue(VARID_FREQ, this->Frequency))
 #else 
     uParam prmFrequency; 
-    if ( !this->ult->getParam(VARID_FREQ, prmFrequency) )
+    if ( !this->Ult.getParam(VARID_FREQ, prmFrequency) )
     {
-        char *err = new char[256];  
-        int sz = 256;
-        this->ult->getLastError(err,sz);
-        LOG_ERROR("Unable to get parameter: " << err); 
+        LOG_ERROR("Unable to get parameter: " << GetLastUlteriusError()); 
         return PLUS_FAIL; 
     }
-    if (this->Frequency >= 0 && !this->ult->setParamValue(prmFrequency.id, this->Frequency))
+    if (this->Frequency >= 0 && !this->Ult.setParamValue(prmFrequency.id, this->Frequency))
 #endif
     {
-        char *err = new char[256];  
-        int sz = 256;
-        this->ult->getLastError(err,sz);
-        LOG_ERROR("Initialize: couldn't set desired frequency (" << err << ")");
+        LOG_ERROR("Initialize: couldn't set desired frequency (" << GetLastUlteriusError() << ")");
         this->ReleaseSystemResources();
         return PLUS_FAIL;
     }
 
 #if ULTERIUS_MAJOR_VERSION < 2
-    if (this->Depth >= 0 && !this->ult->setParamValue(VARID_DEPTH, this->Depth))
+    if (this->Depth >= 0 && !this->Ult.setParamValue(VARID_DEPTH, this->Depth))
 #else
     uParam prmDepth; 
-    if ( ! this->ult->getParam(VARID_DEPTH, prmDepth) )
+    if ( ! this->Ult.getParam(VARID_DEPTH, prmDepth) )
     {
-        char *err = new char[256];  
-        int sz = 256;
-        this->ult->getLastError(err,sz);
-        LOG_ERROR("Unable to get parameter: " << err); 
+        LOG_ERROR("Unable to get parameter: " << GetLastUlteriusError()); 
         return PLUS_FAIL; 
     }
-    if (this->Depth >= 0 && !this->ult->setParamValue(prmDepth.id, this->Depth))
+    if (this->Depth >= 0 && !this->Ult.setParamValue(prmDepth.id, this->Depth))
 #endif
     {
-        char *err = new char[256];  
-        int sz = 256;
-        this->ult->getLastError(err,sz);
-        LOG_ERROR("Initialize: couldn't set desired depth (" << err << ")");
+        LOG_ERROR("Initialize: couldn't set desired depth (" << GetLastUlteriusError() << ")");
         this->ReleaseSystemResources();
         return PLUS_FAIL;
     }
 
 #if ULTERIUS_MAJOR_VERSION < 2
-    if (this->Sector >= 0 && !this->ult->setParamValue(VARID_SECTOR, this->Sector))
+    if (this->Sector >= 0 && !this->Ult.setParamValue(VARID_SECTOR, this->Sector))
 #else
     uParam prmSector; 
-    if ( !this->ult->getParam(VARID_SECTOR, prmSector) )
+    if ( !this->Ult.getParam(VARID_SECTOR, prmSector) )
     {
-        char *err = new char[256];  
-        int sz = 256;
-        this->ult->getLastError(err,sz);
-        LOG_ERROR("Unable to get parameter: " << err); 
+        LOG_ERROR("Unable to get parameter: " << GetLastUlteriusError()); 
         return PLUS_FAIL; 
     }
-    if (this->Sector >= 0 && !this->ult->setParamValue(prmSector.id, this->Sector))
+    if (this->Sector >= 0 && !this->Ult.setParamValue(prmSector.id, this->Sector))
 #endif
     {
-        char *err = new char[256];  
-        int sz = 256;
-        this->ult->getLastError(err,sz);
-        LOG_ERROR("Initialize: couldn't set desired sector (" << err << ")");
+        LOG_ERROR("Initialize: couldn't set desired sector (" << GetLastUlteriusError() << ")");
         this->ReleaseSystemResources();
         return PLUS_FAIL;
     }
 
 #if ULTERIUS_MAJOR_VERSION < 2
-    if (this->Gain >= 0 && !this->ult->setParamValue(VARID_GAIN, this->Gain))
+    if (this->Gain >= 0 && !this->Ult.setParamValue(VARID_GAIN, this->Gain))
 #else
     uParam prmGain; 
-    if ( !this->ult->getParam(VARID_GAIN, prmGain) )
+    if ( !this->Ult.getParam(VARID_GAIN, prmGain) )
     {
-        char *err = new char[256];  
-        int sz = 256;
-        this->ult->getLastError(err,sz);
-        LOG_ERROR("Unable to get parameter: " << err); 
+        LOG_ERROR("Unable to get parameter: " << GetLastUlteriusError()); 
         return PLUS_FAIL; 
     }
-    if (this->Gain >= 0 && !this->ult->setParamValue(prmGain.id, this->Gain))
+    if (this->Gain >= 0 && !this->Ult.setParamValue(prmGain.id, this->Gain))
 #endif 
     {
-        char *err = new char[256];  
-        int sz = 256;
-        this->ult->getLastError(err,sz);
-        LOG_ERROR("Initialize: couldn't set desired gain (" << err << ")");
+        LOG_ERROR("Initialize: couldn't set desired gain (" << GetLastUlteriusError() << ")");
         this->ReleaseSystemResources();
         return PLUS_FAIL;
     }
 
 #if ULTERIUS_MAJOR_VERSION < 2 
-    if (this->DynRange >= 0 && !this->ult->setParamValue(VARID_DYNRANGE, this->DynRange))
+    if (this->DynRange >= 0 && !this->Ult.setParamValue(VARID_DYNRANGE, this->DynRange))
 #else
     uParam prmDynRange; 
-    if ( !this->ult->getParam(VARID_DYNRANGE, prmDynRange) )
+    if ( !this->Ult.getParam(VARID_DYNRANGE, prmDynRange) )
     {
-        char *err = new char[256];  
-        int sz = 256;
-        this->ult->getLastError(err,sz);
-        LOG_ERROR("Unable to get parameter: " << err); 
+        LOG_ERROR("Unable to get parameter: " << GetLastUlteriusError() ); 
         return PLUS_FAIL; 
     }
-    if (this->DynRange >= 0 && !this->ult->setParamValue(prmDynRange.id, this->DynRange))
+    if (this->DynRange >= 0 && !this->Ult.setParamValue(prmDynRange.id, this->DynRange))
 #endif 
     {
-        char *err = new char[256];  
-        int sz = 256;
-        this->ult->getLastError(err,sz);
-        LOG_ERROR("Initialize: couldn't set desired dyn range (" << err << ")");
+        LOG_ERROR("Initialize: couldn't set desired dyn range (" << GetLastUlteriusError() << ")");
         this->ReleaseSystemResources();
         return PLUS_FAIL;
     }
 
 #if ULTERIUS_MAJOR_VERSION < 2 
-    if (this->Zoom >= 0 && !this->ult->setParamValue(VARID_ZOOM, this->Zoom))
+    if (this->Zoom >= 0 && !this->Ult.setParamValue(VARID_ZOOM, this->Zoom))
 #else
     uParam prmZoom; 
-    if ( !this->ult->getParam(VARID_ZOOM, prmZoom) )
+    if ( !this->Ult.getParam(VARID_ZOOM, prmZoom) )
     {
-        char *err = new char[256];  
-        int sz = 256;
-        this->ult->getLastError(err,sz);
-        LOG_ERROR("Unable to get parameter: " << err); 
+        LOG_ERROR("Unable to get parameter: " << GetLastUlteriusError() ); 
         return PLUS_FAIL; 
     }
-    if (this->Zoom >= 0 && !this->ult->setParamValue(prmZoom.id, this->Zoom))
+    if (this->Zoom >= 0 && !this->Ult.setParamValue(prmZoom.id, this->Zoom))
 #endif 
     {
-        char *err = new char[256];  
-        int sz = 256;
-        this->ult->getLastError(err,sz);
-        LOG_ERROR("Initialize: couldn't set desired zoom (" << err << ")");
+        LOG_ERROR("Initialize: couldn't set desired zoom (" << GetLastUlteriusError() << ")");
         this->ReleaseSystemResources();
         return PLUS_FAIL;
     }
 
-    if (!this->ult->setCompressionStatus(this->CompressionStatus))
+    if (!this->Ult.setCompressionStatus(this->CompressionStatus))
     {
-        char *err = new char[256];  
-        int sz = 256;
-        this->ult->getLastError(err,sz);
-        LOG_ERROR("Initialize: couldn't set compression status (" << err << ")");
+        LOG_ERROR("Initialize: couldn't set compression status (" << GetLastUlteriusError() << ")");
         this->ReleaseSystemResources();
         return PLUS_FAIL;
     }
 
     // set callback for receiving new frames
-    this->ult->setCallback(vtkSonixVideoSourceNewFrameCallback);
+    this->Ult.setCallback(vtkSonixVideoSourceNewFrameCallback);
 
     // Do not change the current settings if it's not set 
     if ( this->Timeout > 0 )
     {
-        this->ult->setTimeout(this->Timeout); 
+        this->Ult.setTimeout(this->Timeout); 
     }
 #else
     LOG_WARNING("Ultrasound imaging parameter setting is not supported with Ulterius-2.x");
@@ -592,7 +532,7 @@ PlusStatus vtkSonixVideoSource::Connect()
 PlusStatus vtkSonixVideoSource::Disconnect()
 {
     this->StopRecording();
-    this->ult->disconnect();
+    this->Ult.disconnect();
     return PLUS_SUCCESS;
 }
 
@@ -624,8 +564,8 @@ PlusStatus vtkSonixVideoSource::StartRecording()
     {
         this->Recording = 1;
         this->Modified();
-        if(this->ult->getFreezeState())
-            this->ult->toggleFreeze();
+        if(this->Ult.getFreezeState())
+            this->Ult.toggleFreeze();
     }
 
     return PLUS_SUCCESS;
@@ -639,21 +579,11 @@ PlusStatus vtkSonixVideoSource::StopRecording()
         this->Recording = 0;
         this->Modified();
 
-        if (!this->ult->getFreezeState())
-            this->ult->toggleFreeze();
+        if (!this->Ult.getFreezeState())
+            this->Ult.toggleFreeze();
     }
 
     return PLUS_SUCCESS;
-}
-
-//----------------------------------------------------------------------------
-void vtkSonixVideoSource::SetSonixIP(const char *SonixIP)
-{
-    if (SonixIP)
-    {
-        this->SonixHostIP = new char[256];
-        sprintf(this->SonixHostIP, "%s", SonixIP);    
-    }
 }
 
 //-----------------------------------------------------------------------------
@@ -742,4 +672,14 @@ PlusStatus vtkSonixVideoSource::ReadConfiguration(vtkXMLDataElement* config)
 PlusStatus vtkSonixVideoSource::WriteConfiguration(vtkXMLDataElement* config)
 {
     return Superclass::WriteConfiguration(config); 
+}
+
+std::string vtkSonixVideoSource::GetLastUlteriusError()
+{
+  const unsigned int MAX_ULTERIUS_ERROR_MSG_LENGTH=256;
+  char err[MAX_ULTERIUS_ERROR_MSG_LENGTH+1];
+  err[MAX_ULTERIUS_ERROR_MSG_LENGTH]=0; // make sure the string is null-terminated
+  this->Ult.getLastError(err,MAX_ULTERIUS_ERROR_MSG_LENGTH);
+
+  return err; 
 }
