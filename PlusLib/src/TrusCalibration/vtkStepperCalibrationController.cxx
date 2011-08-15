@@ -1904,10 +1904,14 @@ PlusStatus vtkStepperCalibrationController::CalculateCenterOfRotation( Segmented
   int numberOfEquations(0); 
   do 
   {
-    numberOfEquations = bVector.size(); 
+    numberOfEquations = bVector.size();     
     if ( PlusMath::LSQRMinimize(aMatrix, bVector, TRUSRotationCenterInOriginalImageFrameInMm2x1) == PLUS_SUCCESS )
     {
-      this->RemoveOutliersFromCenterOfRotCalcData(aMatrix, bVector, TRUSRotationCenterInOriginalImageFrameInMm2x1); 
+      if ( !TRUSRotationCenterInOriginalImageFrameInMm2x1.empty() )
+      {
+        LOG_DEBUG("Center of rotation in original image frame (outlier removal in progress): " << TRUSRotationCenterInOriginalImageFrameInMm2x1.get(0) <<", "<<TRUSRotationCenterInOriginalImageFrameInMm2x1.get(1)<< " mm");
+      }
+      this->RemoveOutliersFromCenterOfRotCalcData(aMatrix, bVector, TRUSRotationCenterInOriginalImageFrameInMm2x1);       
     }
     else
     {
@@ -1990,7 +1994,7 @@ void vtkStepperCalibrationController::RemoveOutliersFromCenterOfRotCalcData(std:
   {
     if ( abs (bVector[row] - aMatrix[row].get(0) * centerOfRotationX - aMatrix[row].get(1) * centerOfRotationY - statistics.Mean ) >  this->OutlierDetectionThreshold * statistics.Stdev ) 
     {
-      LOG_DEBUG("Outlier found at row " << row ); 
+      LOG_TRACE("Outlier found at row " << row ); 
       aMatrix.erase(aMatrix.begin() + row); 
       bVector.erase(bVector.begin() + row); 
     }
