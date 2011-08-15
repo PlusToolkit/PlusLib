@@ -44,10 +44,13 @@ vtkBrachyTracker::vtkBrachyTracker()
 	this->SetNumberOfTools(NUMBER_OF_BRACHY_TOOLS); 
 	this->SetToolName(PROBEHOME_TO_PROBE_TRANSFORM, "ProbeHomeToProbeUncalibrated"); 
   this->SetToolEnabled(PROBEHOME_TO_PROBE_TRANSFORM, true); 
+  this->GetTool(PROBEHOME_TO_PROBE_TRANSFORM)->SetToolType(TRACKER_TOOL_PROBE); 
 	this->SetToolName(TEMPLATEHOME_TO_TEMPLATE_TRANSFORM, "TemplateHomeToTemplateUncalibrated"); 
   this->SetToolEnabled(TEMPLATEHOME_TO_TEMPLATE_TRANSFORM, true); 
+  this->GetTool(TEMPLATEHOME_TO_TEMPLATE_TRANSFORM)->SetToolType(TRACKER_TOOL_GENERAL); 
 	this->SetToolName(RAW_ENCODER_VALUES, "StepperEncoderValues"); 
   this->SetToolEnabled(RAW_ENCODER_VALUES, true); 
+  this->GetTool(RAW_ENCODER_VALUES)->SetToolType(TRACKER_TOOL_GENERAL);
   this->BrachyStepperType = BrachyStepper::BURDETTE_MEDICAL_SYSTEMS_DIGITAL_STEPPER; 
 
   // Stepper calibration parameters
