@@ -61,7 +61,13 @@
    </property>
    <layout class="QVBoxLayout" name="verticalLayout_4">
     <property name="spacing">
-     <number>2</number>
+     <number>4</number>
+    </property>
+    <property name="topMargin">
+     <number>4</number>
+    </property>
+    <property name="bottomMargin">
+     <number>4</number>
     </property>
     <item>
      <layout class="QGridLayout" name="GridDeviceSetSelection"/>
@@ -256,6 +262,21 @@
     <string notr="true"/>
    </attribute>
    <layout class="QHBoxLayout" name="horizontalLayout_2">
+    <property name="spacing">
+     <number>4</number>
+    </property>
+    <property name="leftMargin">
+     <number>0</number>
+    </property>
+    <property name="topMargin">
+     <number>4</number>
+    </property>
+    <property name="rightMargin">
+     <number>0</number>
+    </property>
+    <property name="bottomMargin">
+     <number>4</number>
+    </property>
     <item>
      <widget class="QFrame" name="SynchronizationPageLeftFrame">
       <property name="minimumSize">
@@ -711,7 +732,7 @@
       <item>
        <widget class="QVTKWidget" name="SyncRealtimeRenderer" native="true">
         <property name="sizePolicy">
-         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
           <horstretch>1</horstretch>
           <verstretch>1</verstretch>
          </sizepolicy>
@@ -780,6 +801,21 @@
     <string>Image Capturing</string>
    </property>
    <layout class="QHBoxLayout" name="horizontalLayout_5">
+    <property name="spacing">
+     <number>4</number>
+    </property>
+    <property name="leftMargin">
+     <number>0</number>
+    </property>
+    <property name="topMargin">
+     <number>4</number>
+    </property>
+    <property name="rightMargin">
+     <number>0</number>
+    </property>
+    <property name="bottomMargin">
+     <number>4</number>
+    </property>
     <item>
      <widget class="QFrame" name="CapturingPageLeftFrame">
       <property name="minimumSize">
@@ -1363,7 +1399,7 @@
       <item>
        <widget class="QVTKWidget" name="CapturingRealtimeRenderer" native="true">
         <property name="sizePolicy">
-         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
           <horstretch>1</horstretch>
           <verstretch>1</verstretch>
          </sizepolicy>
