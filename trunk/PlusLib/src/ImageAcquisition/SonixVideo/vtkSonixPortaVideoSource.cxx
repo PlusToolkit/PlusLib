@@ -77,8 +77,6 @@ vtkSonixPortaVideoSourceCleanup::~vtkSonixPortaVideoSourceCleanup()
 vtkSonixPortaVideoSource::vtkSonixPortaVideoSource() 
 {
   // porta instantiation
-  this->PtrPorta = 0;
-  this->PtrPorta = new porta;
   this->PortaBModeWidth = 640;       // defaults to BMode, 640x480
   this->PortaBModeHeight = 480;
   this->ImageBuffer = 0;
@@ -101,7 +99,6 @@ vtkSonixPortaVideoSource::vtkSonixPortaVideoSource()
   this->PortaCineSize = 256 * 1024 * 1024; // defaults to 245MB of Cine
   this->Initialized = 0;
   this->bIsPortaSettingPathSet = 0;
-  this->bIsPortaFirmwarePathSet = 0;
   this->bIsPortaLUTPathSet = 0;
   
   // VTK
@@ -124,51 +121,15 @@ vtkSonixPortaVideoSource::~vtkSonixPortaVideoSource()
   // clean up porta related sources
   this->vtkSonixPortaVideoSource::ReleaseSystemResources();
   
-  
-  // finally, porta itself
-  if ( this->PtrPorta ) 
-    {
-      delete PtrPorta;
-      PtrPorta = 0;
-    }
-
   // release all previously allocated memory
-  if ( this->PortaProbeName ) 
-    {
-      delete [] this->PortaProbeName;
-      this->PortaProbeName = 0;
-    }
+  SetPortaProbeName(NULL);
+  SetPortaSettingPath(NULL);
+  SetPortaFirmwarePath(NULL);
+  SetPortaLUTPath(NULL);
 
-  if ( this->PortaSettingPath ) 
-    {
-      delete [] this->PortaSettingPath;
-      this->PortaSettingPath = 0;
-    }
-
-  if ( this->PortaFirmwarePath ) 
-    {
-      delete [] this->PortaFirmwarePath;
-      this->PortaFirmwarePath = 0;
-    }
-
-  if ( this->PortaLUTPath ) 
-    {
-      delete [] this->PortaLUTPath;
-      this->PortaLUTPath = 0;
-    }
-
-  if ( this->ImageBuffer ) 
-    {
-      delete [] this->ImageBuffer;
-      this->ImageBuffer = 0;
-    }
-  
-  // finally, port itself
-  if ( this->PtrPorta ) 
-    {
-      delete [] PtrPorta;
-      PtrPorta = 0;
-    }
+  delete [] this->ImageBuffer;
+  this->ImageBuffer = 0;
+    
 }
 
 
@@ -176,11 +137,8 @@ vtkSonixPortaVideoSource::~vtkSonixPortaVideoSource()
 void vtkSonixPortaVideoSource::ReleaseSystemResources() 
 {
   // if porta is instantiated, shut it down
-  if ( this->PtrPorta ) 
-    {
-      this->PtrPorta->stopImage();
-      this->PtrPorta->shutdown();
-    }
+  this->Porta.stopImage();
+  this->Porta.shutdown();
 }
 
 //----------------------------------------------------------------------------
@@ -261,7 +219,7 @@ void vtkSonixPortaVideoSource::LocalInternalGrab( void *param,
   int rows = this->FrameBufferExtent[3]-this->FrameBufferExtent[2]+1;
   
   // acquire an post-processed image
-  this->PtrPorta->getBwImage( 0, this->ImageBuffer, true );
+  this->PtrPorta.getBwImage( 0, this->ImageBuffer, true );
   
   // 4) copy the data to the local vtk frame buffer
   if ( outBytesPerRow == inBytesPerRow ) 
@@ -295,9 +253,9 @@ void vtkSonixPortaVideoSource::Initialize()
       return;
     }
 
-  if ( bIsPortaSettingPathSet == 0 ||
-       bIsPortaFirmwarePathSet == 0 ||
-       bIsPortaFirmwarePathSet == 0 ) 
+  if ( this->PortaSettingPath == 0 ||
+       this->PortaFirmwarePath == 0 ||
+       this->PortaLUTPath == 0 ) 
     {
       LOG_ERROR("One of the Porta paths has not been set" );
       return;
@@ -305,23 +263,22 @@ void vtkSonixPortaVideoSource::Initialize()
   
   int code;
   probeInfo nfo;
-  char name[80];
   int size = 256;
   char err[ 256 ];
   
-  if ( !this->PtrPorta->init( this->PortaCineSize,
+  if ( !this->PtrPorta.init( this->PortaCineSize,
 			      this->PortaFirmwarePath,
 			      this->PortaSettingPath,
 			      this->PortaLUTPath ) ) 
     {
-      this->PtrPorta->getLastError( err, size );
+      this->PtrPorta.getLastError( err, size );
       LOG_ERROR("Initialize: Porta could not be initialized: "
 		     << "(" << err << ")" );
       return;
     }
   
   // test if the nameing scheme matches
-  if ( this->PtrPorta->testParameterNames() != -1 ) 
+  if ( this->Porta.testParameterNames() != -1 ) 
     {
       LOG_ERROR("Porta naming scheme does not match" );
       this->ReleaseSystemResources();
@@ -329,54 +286,52 @@ void vtkSonixPortaVideoSource::Initialize()
     }
   
   // select the probe
-  if ( this->PtrPorta->isConnected() ) 
+  if ( this->Porta.isConnected() ) 
     {
-      code = (char)this->PtrPorta->getProbeID( 0 );
+      code = (char)this->Porta.getProbeID( 0 );
     }
    
   // select the code read and see if it is motorized
-  if ( this->PtrPorta->selectProbe( code ) &&
-       this->PtrPorta->getProbeInfo( nfo ) &&
+  if ( this->Porta.selectProbe( code ) &&
+       this->Porta.getProbeInfo( nfo ) &&
        nfo.motorized ) 
     {
-      
+      const int MAX_NAME_LENGTH=80;
+      char name[MAX_NAME_LENGTH+1];
+      name[MAX_NAME_LENGTH]=0;
+
       // the 3D/4D probe is always connected to port 0
-      this->PtrPorta->activateProbeConnector( 0 );
-      this->PtrPorta->getProbeName( name, 80, code );
-      
+      this->Porta.activateProbeConnector( 0 );
+      this->Porta.getProbeName( name, MAX_NAME_LENGTH, code );
+            
       // store the probe name
-      if ( this->PortaProbeName ) 
-	{
-	  delete [] this->PortaProbeName;
-	}
-      this->PortaProbeName = new char [ 80 ];
-      sprintf( this->PortaProbeName, "%s", name );
+      SetPortaProbeName(name);
       
-      if ( !this->PtrPorta->findMasterPreset( name, 80, code ) ) 
-	{
-	  LOG_ERROR("Initialize: master preset cannot be found" );
-	  return;
-	}
+      if ( !this->Porta.findMasterPreset( name, MAX_NAME_LENGTH, code ) ) 
+      {
+        LOG_ERROR("Initialize: master preset cannot be found" );
+        return;
+      }
       
-      if ( !this->PtrPorta->loadPreset( name ) ) 
-	{
-	  LOG_ERROR("Initialize: master preset could not be loaded" );
-	  return;
-	}
+      if ( !this->Porta.loadPreset( name ) ) 
+      {
+        LOG_ERROR("Initialize: master preset could not be loaded" );
+        return;
+      }
 
       // now we have successfully selected the probe
       this->PortaProbeSelected = 1;
     }
   
   // this is from propello
-  if( !this->PtrPorta->initImagingMode( BMode ) ) 
+  if( !this->Porta.initImagingMode( BMode ) ) 
     {
       LOG_ERROR("Initialize: cannot initialize imagingMode" );
       return;
     }
   else
     {
-      this->PtrPorta->setDisplayDimensions( 0,
+      this->Porta.setDisplayDimensions( 0,
 					    this->PortaBModeWidth,
 					    this->PortaBModeHeight );
     }
@@ -385,7 +340,7 @@ void vtkSonixPortaVideoSource::Initialize()
   this->PortaModeSelected = 1;
   
   // manual acquisition
-  this->PtrPorta->setParam( prmMotorStatus, 0 );
+  this->Porta.setParam( prmMotorStatus, 0 );
 
   // finally, update all the parameters
   if ( !this->UpdateSonixPortaParams() ) 
@@ -403,7 +358,7 @@ void vtkSonixPortaVideoSource::Initialize()
   // set up the callback function which is invocked upon arrival
   // of a new frame
   
-  this->PtrPorta->setRawDataCallback( vtkSonixPortaVideoSourceNewFrameCallback,
+  this->Porta.setRawDataCallback( vtkSonixPortaVideoSourceNewFrameCallback,
 				      (void*)this );
 
   this->Initialized = 1;
@@ -417,19 +372,19 @@ int vtkSonixPortaVideoSource::UpdateSonixPortaParams()
       return( 0 );
     }
   
-  bool bRunning = this->PtrPorta->isImaging();
+  bool bRunning = this->Porta.isImaging();
   
   if ( bRunning ) 
     {
-      this->PtrPorta->stopImage();
+      this->Porta.stopImage();
     }
   
-  if ( !this->PtrPorta->updateImageParams() ) 
+  if ( !this->Porta.updateImageParams() ) 
     {
       return( 0 );
     }
   
-  if ( !this->PtrPorta->uploadData() ) 
+  if ( !this->Porta.uploadData() ) 
     {
       return( 0 );
     }
@@ -440,13 +395,13 @@ int vtkSonixPortaVideoSource::UpdateSonixPortaParams()
   // frame rate is a function of several parameters, such as
   // bline density and image-depths.
   //
-  this->FrameRate = (float)(this->PtrPorta->getFrameRate() );
+  this->FrameRate = (float)(this->Porta.getFrameRate() );
   
-  this->PtrPorta->updateDisplayParams();
+  this->Porta.updateDisplayParams();
   
   if ( bRunning ) 
     {
-      this->PtrPorta->runImage();
+      this->Porta.runImage();
     }
   
   this->Modified();
@@ -508,8 +463,8 @@ void vtkSonixPortaVideoSource::Record()
       this->FrameCount = 0;
       this->Modified();
       
-      if ( !this->PtrPorta->isImaging() )
-	this->PtrPorta->runImage();
+      if ( !this->Porta.isImaging() )
+	this->Porta.runImage();
     }
 }
 
@@ -521,9 +476,9 @@ void vtkSonixPortaVideoSource::Stop()
       this->Recording = 0;
       this->Modified();
   
-      if ( this->PtrPorta->isImaging() )
+      if ( this->Porta.isImaging() )
 	{
-	  this->PtrPorta->stopImage();
+	  this->Porta.stopImage();
 	}
     }
 }
@@ -901,6 +856,7 @@ void vtkSonixPortaVideoSource::SetInstance( vtkSonixPortaVideoSource *instance )
   if ( vtkSonixPortaVideoSource::Instance ) 
     {
       vtkSonixPortaVideoSource::Instance->Delete();
+      vtkSonixPortaVideoSource::Instance=NULL;
     }
   
   vtkSonixPortaVideoSource::Instance = instance;
@@ -912,51 +868,6 @@ void vtkSonixPortaVideoSource::SetInstance( vtkSonixPortaVideoSource *instance )
   
   //user will call ->Delete() after setting instance
   instance->Register( NULL );
-}
-
-//----------------------------------------------------------------------------
-void vtkSonixPortaVideoSource::SetPortaFirmwarePath( char *path )
-{
-  if ( path ) 
-    {
-      if ( this->PortaFirmwarePath ) 
-	{
-	  delete [] PortaFirmwarePath;
-	}
-      this->PortaFirmwarePath = new char [256];
-      sprintf( this->PortaFirmwarePath, "%s", path );
-      this->bIsPortaFirmwarePathSet = 1;
-    }
-}
-
-//----------------------------------------------------------------------------
-void vtkSonixPortaVideoSource::SetPortaSettingPath( char *path )
-{
-  if ( path ) 
-    {
-      if ( this->PortaSettingPath ) 
-	{
-	  delete [] PortaSettingPath;
-	}
-      this->PortaSettingPath = new char [256];
-      sprintf( this->PortaSettingPath, "%s", path );
-      this->bIsPortaSettingPathSet = 1;
-    }
-}
-
-//----------------------------------------------------------------------------
-void vtkSonixPortaVideoSource::SetPortaLUTPath( char *path )
-{
-  if ( path ) 
-    {
-      if ( this->PortaLUTPath ) 
-	{
-	  delete [] PortaLUTPath;
-	}
-      this->PortaLUTPath = new char [256];
-      sprintf( this->PortaLUTPath, "%s", path );
-      this->bIsPortaLUTPathSet = 1;
-    }
 }
 
 //----------------------------------------------------------------------------
@@ -975,7 +886,7 @@ void vtkSonixPortaVideoSource::PrintSelf(ostream& os, vtkIndent indent) {
 //----------------------------------------------------------------------------
 int vtkSonixPortaVideoSource::SetImageDepth( int myDepth ) 
 {
-  if ( !this->PtrPorta->setParam( prmImageDepth, myDepth ) ) 
+  if ( !this->Porta.setParam( prmImageDepth, myDepth ) ) 
     {
       this->Depth = myDepth;
       LOG_ERROR("Problem setting depth manually" );
@@ -990,7 +901,7 @@ int vtkSonixPortaVideoSource::SetImageDepth( int myDepth )
 int vtkSonixPortaVideoSource::SetZoom( int percentage ) 
 {
   // 100% means full height of the display area
-  if ( !this->PtrPorta->setParam( prmZoom, percentage ) ) 
+  if ( !this->Porta.setParam( prmZoom, percentage ) ) 
     {
       LOG_ERROR("SetZoom:  cannot set the zoom value" );
       return( 0 );
@@ -1001,7 +912,7 @@ int vtkSonixPortaVideoSource::SetZoom( int percentage )
 
 //----------------------------------------------------------------------------
 int vtkSonixPortaVideoSource::SetBLineDensity( int density ) {
-  if ( !this->PtrPorta->setParam( prmBLineDensity, density ) ) 
+  if ( !this->Porta.setParam( prmBLineDensity, density ) ) 
     {
       LOG_ERROR("SetBLineDensity: cannot set the line density" );
       return( 0 );
@@ -1028,18 +939,18 @@ double vtkSonixPortaVideoSource::GetPortaMotorStartPosition()
 double vtkSonixPortaVideoSource::GoToPortaMotorStartPosition()
 {
 
-  bool bRunning = this->PtrPorta->isImaging();
+  bool bRunning = this->Porta.isImaging();
   
   if ( bRunning ) 
     {
-      this->PtrPorta->stopImage();
+      this->Porta.stopImage();
     }
   
-  this->PortaMotorPosition = this->PtrPorta->goToPosition( this->PortaMotorStartPosition );
+  this->PortaMotorPosition = this->Porta.goToPosition( this->PortaMotorStartPosition );
 
   if ( bRunning ) 
     {
-      this->PtrPorta->runImage();
+      this->Porta.runImage();
     }
   
   return ( this->PortaMotorPosition );
@@ -1050,18 +961,18 @@ double vtkSonixPortaVideoSource::GoToPortaMotorStartPosition()
 // thus we return the actual angle that is being set.
 double vtkSonixPortaVideoSource::GoToPosition( double angle ) 
 {
-  bool bRunning = this->PtrPorta->isImaging();
+  bool bRunning = this->Porta.isImaging();
   
   if ( bRunning ) 
     {
-      this->PtrPorta->stopImage();
+      this->Porta.stopImage();
     }
   
-  this->PortaMotorPosition = this->PtrPorta->goToPosition( angle );
+  this->PortaMotorPosition = this->Porta.goToPosition( angle );
 
   if ( bRunning ) 
     {
-      this->PtrPorta->runImage();
+      this->Porta.runImage();
     }
   
   return ( this->PortaMotorPosition );
@@ -1071,18 +982,18 @@ double vtkSonixPortaVideoSource::GoToPosition( double angle )
 // thus we return the actual angle that is being set.
 double vtkSonixPortaVideoSource::StepPortaMotor( bool cw, int steps )
 {
-  bool bRunning = this->PtrPorta->isImaging();
+  bool bRunning = this->Porta.isImaging();
   
   if ( bRunning ) 
     {
-      this->PtrPorta->stopImage();
+      this->Porta.stopImage();
     }
 
-  this->PortaMotorPosition = this->PtrPorta->stepMotor( cw, steps );
+  this->PortaMotorPosition = this->Porta.stepMotor( cw, steps );
   
   if ( bRunning ) 
     {
-      this->PtrPorta->runImage();
+      this->Porta.runImage();
     }
   
   return ( this->PortaMotorPosition );
@@ -1098,7 +1009,7 @@ double vtkSonixPortaVideoSource::GetPortaMotorPosition()
 //----------------------------------------------------------------------------
 int vtkSonixPortaVideoSource::GetPortaFrameRate()
 {
-  return( this->PtrPorta->getFrameRate() );
+  return( this->Porta.getFrameRate() );
 }
 
 //----------------------------------------------------------------------------
@@ -1108,11 +1019,8 @@ int vtkSonixPortaVideoSource::SetBModeFrameSize( int width, int height )
   this->PortaBModeHeight = height;
   
   // need to resize the ImageBuffer
-  if ( this->ImageBuffer ) 
-    {
-      delete [] this->ImageBuffer;
-      this->ImageBuffer = 0;
-    }
+  delete [] this->ImageBuffer;
+  this->ImageBuffer = 0;
   
   this->ImageBuffer = new unsigned char [ this->PortaBModeWidth *
 					  this->PortaBModeHeight * 4 ];
@@ -1135,7 +1043,7 @@ int vtkSonixPortaVideoSource::SetBModeFrameSize( int width, int height )
       this->DoFormatSetup();
       this->FrameBufferMutex->Unlock();
      
-      this->PtrPorta->setDisplayDimensions( 0,
+      this->Porta.setDisplayDimensions( 0,
 					    this->PortaBModeWidth,
 					    this->PortaBModeHeight );
 

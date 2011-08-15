@@ -67,6 +67,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include "PlusConfigure.h"
 #include "vtkVideoSource2.h"
+#include "ulterius.h"
 #include "ulterius_def.h"
 
 //BTX
@@ -144,9 +145,10 @@ public:
   void GetImagingMode(int & mode){mode = ImagingMode;};
 
   // Description:
-  // Give the IP address of the sonix machine
-  void SetSonixIP(const char *SonixIP);
-  
+  // Get/Set the IP address of the Ultrasonix host machine
+  vtkSetStringMacro(SonixIP); 
+  vtkGetStringMacro(SonixIP); 
+
   /* List of parameters which can be set or read in B-mode, other mode parameters not currently implemented*/
 
   // Description:
@@ -230,8 +232,10 @@ protected:
   vtkSonixVideoSource();
   virtual ~vtkSonixVideoSource();
 
-  ulterius *ult;
-  uDataDesc *DataDescriptor;
+  std::string GetLastUlteriusError();
+
+  ulterius Ult;
+  uDataDesc DataDescriptor;
   int Frequency;
   int Depth;
   int Sector; 
@@ -246,7 +250,7 @@ protected:
   int Timeout; 
 
   
-  char *SonixHostIP;
+  char *SonixIP;
 
   // Description:
   // For internal use only

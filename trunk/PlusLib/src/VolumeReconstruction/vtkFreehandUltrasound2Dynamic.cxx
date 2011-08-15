@@ -144,21 +144,16 @@ vtkFreehandUltrasound2Dynamic::~vtkFreehandUltrasound2Dynamic()
     this->SaveInsertedTimestampsOutputFile = NULL;
   }
 
-  if (this->SaveInsertedDirectory)
-  {
-    delete [] this->SaveInsertedDirectory;
-    this->SaveInsertedDirectory = NULL;
-  }
+  delete [] this->SaveInsertedDirectory;
+  this->SaveInsertedDirectory = NULL;
 
-  if (this->SaveInsertedTimestampsOutputFilename)
-  {
-    delete [] this->SaveInsertedTimestampsOutputFilename;
-    this->SaveInsertedTimestampsOutputFilename = NULL;
-  }
+  delete [] this->SaveInsertedTimestampsOutputFilename;
+  this->SaveInsertedTimestampsOutputFilename = NULL;
 
   if (this->SaveInsertedSlicesWriter)
   {
     this->SaveInsertedSlicesWriter->Delete();
+    this->SaveInsertedSlicesWriter = NULL;
   }
 }
 
@@ -1523,10 +1518,8 @@ void vtkFreehandUltrasound2Dynamic::SetSignalBox(vtkSignalBox *signalBox)
 
   // setup the array mapping phases to output volume indices
   // - by default every phase is recontructed
-  if (this->MapPhaseToOutputVolume)
-  {
-    delete [] this->MapPhaseToOutputVolume;
-  }
+  delete [] this->MapPhaseToOutputVolume;
+
   this->MapPhaseToOutputVolume = new int[this->NumSignalBoxPhases];
   for (int phase = 0; phase < this->NumSignalBoxPhases; phase++)
   {
@@ -1730,15 +1723,20 @@ double vtkFreehandUltrasound2Dynamic::GetSliceTimestampsBuffer(int phase)
 // Creates buffers for slice images, slice axes and slice transforms
 void vtkFreehandUltrasound2Dynamic::CreateSliceBuffers(int num)
 {
+  delete[] this->SliceBuffer;
   this->SliceBuffer = new vtkImageData*[num];
+  delete[] this->SliceAxesBuffer;
   this->SliceAxesBuffer = new vtkMatrix4x4*[num];
+  delete[] this->SliceTransformBuffer;
   this->SliceTransformBuffer = new vtkLinearTransform*[num];
+  delete[] this->SliceTimestampsBuffer;
   this->SliceTimestampsBuffer = new double[num];
   for (int i = 0; i < num; i++)
   {
     this->SliceBuffer[i] = vtkImageData::New();
     this->SliceAxesBuffer[i] = vtkMatrix4x4::New();
     this->SliceTransformBuffer[i] = vtkTransform::New();
+    this->SliceTimestampsBuffer = 0;
   }
 }
 
@@ -2232,12 +2230,6 @@ void vtkFreehandUltrasound2Dynamic::SetSaveInsertedDirectory(const char* directo
     return;
   }
 
-  // if we are switching directories
-  if (this->SaveInsertedDirectory)
-  {
-    delete [] this->SaveInsertedDirectory;
-  }
-
   // create the directory for the timestamps and/or slices
   int res;
 #ifdef _WIN32
@@ -2247,8 +2239,12 @@ void vtkFreehandUltrasound2Dynamic::SetSaveInsertedDirectory(const char* directo
   res = mkdir(directory, mode);
 #endif
 
-  this->SaveInsertedDirectory = new char[512];
-  sprintf(this->SaveInsertedDirectory, "%s", directory);
+  delete[] this->SaveInsertedDirectory;
+  this->SaveInsertedDirectory=NULL;
+
+  const int MAX_DIR_LEN=512;
+  this->SaveInsertedDirectory = new char[MAX_DIR_LEN];
+  strncpy(this->SaveInsertedDirectory, directory, MAX_DIR_LEN);
 
   // reset this to make the timestamps file for the new directory
   if (this->SaveInsertedTimestamps)
@@ -2280,42 +2276,39 @@ void vtkFreehandUltrasound2Dynamic::SaveInsertedTimestampsOn()
   if (this->SaveInsertedTimestampsOutputFile)
   {
     fclose(this->SaveInsertedTimestampsOutputFile);
-  }
-  if (this->SaveInsertedTimestampsOutputFilename)
-  {
-    delete [] this->SaveInsertedTimestampsOutputFilename;
+    this->SaveInsertedTimestampsOutputFile=NULL;
   }
 
   // create the timestamps file
 
-  char path[512];
+  const int MAX_PATH_LEN=1024;
+
+  delete [] this->SaveInsertedTimestampsOutputFilename;
+  this->SaveInsertedTimestampsOutputFilename = new char[MAX_PATH_LEN+1];
+  this->SaveInsertedTimestampsOutputFilename[MAX_PATH_LEN]=0;
+
 #ifdef _WIN32
-  sprintf(path, "%s\\%s", this->SaveInsertedDirectory, "frameTimestamps.txt");
+  _snprintf(this->SaveInsertedTimestampsOutputFilename, MAX_PATH_LEN, "%s\\%s", this->SaveInsertedDirectory, "frameTimestamps.txt");
 #else
-  sprintf(path, "%s/%s", this->SaveInsertedDirectory, "frameTimestamps.txt");
+  snprintf(this->SaveInsertedTimestampsOutputFilename, MAX_PATH_LEN, "%s/%s", this->SaveInsertedDirectory, "frameTimestamps.txt");
 #endif
 
-  this->SaveInsertedTimestampsOutputFilename = new char[512];
-  sprintf(this->SaveInsertedTimestampsOutputFilename, "%s", path);
-  this->SaveInsertedTimestampsOutputFile = fopen(path,"a");
+  // Test if the file can be created
+  FILE* fileHandle = fopen(this->SaveInsertedTimestampsOutputFilename,"a");
 
   // if it failed to open...
-  if (this->SaveInsertedTimestampsOutputFile == NULL)
+  if (fileHandle == NULL)
   {
+    LOG_ERROR("Failed to open timestamps output file for writing " << this->SaveInsertedTimestampsOutputFilename);
     this->SaveInsertedTimestamps = 0;
-    this->SaveInsertedTimestampsCounter = 0;
-    //delete [] this->SaveInsertedDirectory;
-    delete [] this->SaveInsertedTimestampsOutputFile;
     delete [] this->SaveInsertedTimestampsOutputFilename;
-    //this->SaveInsertedDirectory = NULL;
     this->SaveInsertedTimestampsOutputFilename = NULL;
     return;
   }
 
   //fprintf(this->SaveInsertedTimestampsOutputFile, "Slice#\tTimestamp\t\t\tPhase\t\tVideoTime\t\t\tECGRate\n");
   this->SaveInsertedTimestamps = 1;
-  //this->SaveInsertedTimestampsCounter = 0;
-  fclose(this->SaveInsertedTimestampsOutputFile); // will open again in initialize reconstruction
+  fclose(fileHandle); // will open again in initialize reconstruction
 
 }
 
@@ -2336,6 +2329,11 @@ void vtkFreehandUltrasound2Dynamic::SaveInsertedSlicesOn()
   }*/
 
   // create the image writer
+  if (this->SaveInsertedSlicesWriter!=NULL)
+  {
+    this->SaveInsertedSlicesWriter->Delete();
+    this->SaveInsertedSlicesWriter=NULL;
+  }
   this->SaveInsertedSlicesWriter = vtkBMPWriter::New();
   this->SaveInsertedSlicesWriter->SetFileDimensionality(2);
 
