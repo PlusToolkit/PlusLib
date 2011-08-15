@@ -316,7 +316,7 @@ void vtkCalibratorVisualizationComponent::SetRealtimeRenderer( vtkRenderer* rend
     double imageCenterY = this->GetCalibrationController()->GetSegParameters()->GetFrameSize()[1]/2.0; 
     imageCamera->SetPosition(imageCenterX, imageCenterY, 150); 
     imageCamera->SetFocalPoint(imageCenterX, imageCenterY, 0); 
-    imageCamera->SetViewUp(0, 1, 0);
+    imageCamera->SetViewUp(0, -1, 0);
     imageCamera->SetClippingRange(0.1, 1000);
     imageCamera->ParallelProjectionOn(); 
     imageCamera->SetParallelScale(imageCenterY);	
@@ -1173,15 +1173,16 @@ void vtkCalibratorVisualizationComponent::CreateTemplateGridActors()
     vtkSmartPointer<vtkTextActor3D> gridTransLettersActor = vtkSmartPointer<vtkTextActor3D>::New();
     gridTransLettersActor->GetTextProperty()->SetColor(0,1,0);
     gridTransLettersActor->GetTextProperty()->SetFontFamilyToArial();
-    gridTransLettersActor->GetTextProperty()->SetFontSize(16);
+    gridTransLettersActor->GetTextProperty()->SetFontSize(32);
     gridTransLettersActor->GetTextProperty()->SetJustificationToLeft();
     gridTransLettersActor->GetTextProperty()->SetVerticalJustificationToTop();
     gridTransLettersActor->GetTextProperty()->BoldOn(); 
 
     double * imageScaleTrans = this->GetCalibrationController()->GetTransformImageToTemplate()->GetScale(); 
-    gridTransLettersActor->SetScale(imageScaleTrans[0], imageScaleTrans[1], imageScaleTrans[2]);
+    //gridTransLettersActor->SetScale(imageScaleTrans[0], imageScaleTrans[1], imageScaleTrans[2]);
     gridTransLettersActor->RotateWXYZ(180, 1, 0, 0); 
     //gridTransLettersActor->SetScale(0.2,0.2,0.2); 
+    gridTransLettersActor->SetScale(0.1,0.1,0.1); 
     gridTransLettersActor->SetInput(TemplateModelLetters[i].ID.c_str());
     gridTransLettersActor->SetPosition(TemplateModelLetters[i].PositionX - XTRANSOFFSET_LETTER, TemplateModelLetters[i].PositionY + YTRANSOFFSET_LETTER, TemplateModelLetters[i].PositionZ); 
     gridTransLettersActor->Modified(); 
