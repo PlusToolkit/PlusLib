@@ -73,7 +73,7 @@ public:
   // Description:
   // Probe to see if the tracking system is present on the 
   // serial port specified by SetSerialPort.
-  int Probe();
+  PlusStatus Probe();
 
   // Description:
   // Set which serial port to use, 1 through 4.  Default: 1.
@@ -90,7 +90,7 @@ public:
   // Get an update from the tracking system and push the new transforms
   // to the tools.  This should only be called from the superclass,
   // i.e. within vtkTracker.cxx.
-  void InternalUpdate();
+  PlusStatus InternalUpdate();
 
 protected:
   vtkFlockTracker();
@@ -101,11 +101,11 @@ protected:
   // its ground state into full tracking mode.  Under Win32 and Linux
   // this will also clear all errors - under other operating systems,
   // you might have to use the 'FLY/STANDBY' switch to clear errors.
-  int InternalStartTracking();
+  PlusStatus InternalStartTracking();
 
   // Description:
   // Stop the tracking system and bring it back to its ground state.
-  int InternalStopTracking();
+  PlusStatus InternalStopTracking();
 
   fbird *Flock;
   int NumberOfBirds;
@@ -114,6 +114,11 @@ protected:
   int SerialPort;
   int BaudRate;
   int Mode;
+
+	// Description:
+  // An index of the current item, used for timestamp filtering. Currently it's just increased by 1 at each call to
+	// InternalUpdate(), but it would be better to get an index from the tracker.
+	int CurrentFrameNumber;
 
 private:
   vtkFlockTracker(const vtkFlockTracker&);
