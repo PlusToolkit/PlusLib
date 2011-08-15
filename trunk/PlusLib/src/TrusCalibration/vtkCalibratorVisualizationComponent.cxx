@@ -316,7 +316,7 @@ void vtkCalibratorVisualizationComponent::SetRealtimeRenderer( vtkRenderer* rend
     double imageCenterY = this->GetCalibrationController()->GetSegParameters()->GetFrameSize()[1]/2.0; 
     imageCamera->SetPosition(imageCenterX, imageCenterY, 150); 
     imageCamera->SetFocalPoint(imageCenterX, imageCenterY, 0); 
-    imageCamera->SetViewUp(0, -1, 0);
+    imageCamera->SetViewUp(0, 1, 0);
     imageCamera->SetClippingRange(0.1, 1000);
     imageCamera->ParallelProjectionOn(); 
     imageCamera->SetParallelScale(imageCenterY);	

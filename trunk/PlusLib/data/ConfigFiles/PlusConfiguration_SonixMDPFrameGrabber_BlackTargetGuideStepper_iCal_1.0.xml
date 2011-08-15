@@ -6,7 +6,7 @@
         Description="Configuration file for SonixMDP through FrameGrabber TRUS + Burdette Medical Systems Digital Stepper + iCal 1.0 + 70mm depth" 
         />
 
-      <Tracker Type="BrachyTracker" BufferSize="300" Frequency="20" AveragedItemsForFiltering="20" LocalTimeOffset="0.0" SerialPort="2" BaudRate="19200" BrachyStepperType="Burdette Medical Systems Digital Stepper" ModelNumber="4012A18-a" ModelVersion="" ModelSerialNumber="01-50-149">
+      <Tracker Type="BrachyTracker" BufferSize="300" Frequency="20" AveragedItemsForFiltering="20" LocalTimeOffset="0.0" SerialPort="3" BaudRate="19200" BrachyStepperType="Burdette Medical Systems Digital Stepper" ModelNumber="4012A18-a" ModelVersion="" ModelSerialNumber="01-50-149">
          <Tool PortNumber="0" Type="Probe" Name="ProbeHomeToProbe" SendTo="127.0.0.1:1111">
               <Calibration 
                   MatrixName="ImageToProbe" 
@@ -108,11 +108,11 @@
 			
 			<SegmentationParameters
 					FrameSize="640 480"
-					ScalingEstimation="0.29"
+					ScalingEstimation="0.3"
 					MorphologicalOpeningCircleRadiusMm="0.47"
 					MorphologicalOpeningBarSizeMm="2.0"
 
-					RegionOfInterest="130 140 430 345"
+					RegionOfInterest="130 120 435 330"
 
 					MaxLineLengthErrorPercent="10.0"
 					MaxLinePairDistanceErrorPercent="10.0"

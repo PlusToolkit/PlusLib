@@ -943,6 +943,12 @@ PlusStatus vtkProbeCalibrationController::ReadConfiguration( vtkXMLDataElement* 
 		return PLUS_FAIL;
 	}
 
+  if ( Superclass::ReadConfiguration(configData) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to read calibration controller configuration!"); 
+    return PLUS_FAIL; 
+  }
+
 	// Calibration configuration
 	//********************************************************************
 	vtkSmartPointer<vtkXMLDataElement> usCalibration = configData->FindNestedElementWithName("USCalibration");
@@ -955,9 +961,9 @@ PlusStatus vtkProbeCalibrationController::ReadConfiguration( vtkXMLDataElement* 
   // Calibration controller specifications
 	//********************************************************************
 	vtkSmartPointer<vtkXMLDataElement> calibrationController = usCalibration->FindNestedElementWithName("CalibrationController"); 
-	if ( this->ReadCalibrationControllerConfiguration(calibrationController) != PLUS_SUCCESS )
+	if ( calibrationController ==NULL )
   {
-    LOG_ERROR("Failed to read calibration controller configuration from file!"); 
+    LOG_ERROR("Unable to find calibration controller tag in configuration file!"); 
     return PLUS_FAIL; 
   }
 
