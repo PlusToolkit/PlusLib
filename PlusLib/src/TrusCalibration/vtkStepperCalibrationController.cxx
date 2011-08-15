@@ -122,43 +122,56 @@ PlusStatus vtkStepperCalibrationController::AddItkImageData( const ImageType::Po
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkStepperCalibrationController::ComputeStatistics(const std::vector< std::vector<double> > &diffVector, std::vector<double> &mean, std::vector<double> &stdev)
+PlusStatus vtkStepperCalibrationController::ComputeStatistics(const std::vector< std::vector<double> > &diffVector, std::vector<CalibStatistics> &statistics)
 {
   // copy differences to vnl_vectors 
+  double min(0), max(0);
+  statistics.clear();
   std::vector< vnl_vector<double> > posDifferences; 
   for ( unsigned int i = 0; i < diffVector.size(); ++i )
   {
+    CalibStatistics stat;
     vnl_vector<double> diff(diffVector[i].size()); 
     for ( unsigned int j = 0; j < diffVector[i].size(); ++j )
     {
       diff[j] = diffVector[i][j]; 
+      if ( min > diff[j] )
+      {
+        min = diff[j]; 
+      }
+
+      if ( max < diff[j] ) 
+      {
+        max = diff[j]; 
+      }
     }
+    stat.Max = max; 
+    stat.Min = min; 
+    statistics.push_back(stat); 
     posDifferences.push_back(diff); 
   }
 
   // calculate mean of difference between the computed and measured position for each wire 
-  mean.clear(); 
   std::vector< vnl_vector<double> > diffFromMean; 
   for ( unsigned int i = 0; i < posDifferences.size(); i++ )
   {
     const double meanValue = posDifferences[i].mean(); 
-    mean.push_back(meanValue); 
+    statistics[i].Mean = meanValue; 
     vnl_vector<double> diff = posDifferences[i] - meanValue; 
     diffFromMean.push_back(diff); 
   }
 
   // calculate standard deviation for each axis 
-  stdev.clear(); 
   for (unsigned int i = 0; i < diffFromMean.size(); i++ )
   {
     const double std = sqrt( diffFromMean[i].squared_magnitude() / (1.0 * diffFromMean[i].size()) ); 
-    stdev.push_back(std); 
+    statistics[i].Stdev = std; 
   }
 
   // print results
-  for ( unsigned int i = 0; i < mean.size(); i++ )
+  for ( unsigned int i = 0; i < statistics.size(); i++ )
   {
-    LOG_DEBUG("Mean=" << std::fixed << mean[i] << " Std=" << stdev[i]); 
+    LOG_DEBUG("Mean=" << std::fixed << statistics[i].Mean << " Std=" << statistics[i].Stdev); 
   }
 
   return PLUS_SUCCESS;
@@ -180,53 +193,61 @@ PlusStatus vtkStepperCalibrationController::CalibrateProbeRotationAxis()
   if ( !this->CalculateSpacing() )
   {
     LOG_ERROR("Failed to calibrate probe rotation axis without spacing information!"); 
-    this->ProbeRotationAxisCalibratedOff(); 
     return PLUS_FAIL;
   }
 
   LOG_INFO( "----------------------------------------------------"); 
   LOG_INFO( ">>>>>>>>>>>> Rotation axis calibration ..."); 
+  this->ProbeRotationAxisCalibratedOff(); 
   if ( this->CalibrateRotationAxis() )
   {
-    this->ProbeRotationAxisCalibratedOn(); 
-    LOG_INFO("CenterOfRotation (px): " << this->GetCenterOfRotationPx()[0] << "  " << this->GetCenterOfRotationPx()[1]); 
-    LOG_INFO("CenterOfRotation (mm): " << this->GetCenterOfRotationPx()[0]*this->GetSpacing()[0] << "  " << this->GetCenterOfRotationPx()[1]*this->GetSpacing()[1]); 
-    LOG_INFO("Probe rotation axis orientation: Rx=" << std::fixed << this->GetProbeRotationAxisOrientation()[0] << "  Ry=" << this->GetProbeRotationAxisOrientation()[1]); 
+    if ( this->GetCenterOfRotationCalculated() )
+    {
+      LOG_INFO("CenterOfRotation (px): " << this->GetCenterOfRotationPx()[0] << "  " << this->GetCenterOfRotationPx()[1]); 
+      LOG_INFO("CenterOfRotation (mm): " << this->GetCenterOfRotationPx()[0]*this->GetSpacing()[0] << "  " << this->GetCenterOfRotationPx()[1]*this->GetSpacing()[1]); 
+    }
+    if ( this->GetProbeRotationAxisCalibrated() )
+    {
+      LOG_INFO("Probe rotation axis orientation: Rx=" << std::fixed << this->GetProbeRotationAxisOrientation()[0] << "  Ry=" << this->GetProbeRotationAxisOrientation()[1]); 
+    }
   }
   else
   {
     LOG_ERROR("Failed to calibrate probe rotation axis!"); 
-    this->ProbeRotationAxisCalibratedOff(); 
     return PLUS_FAIL; 
   }
 
 
   LOG_INFO( "----------------------------------------------------"); 
   LOG_INFO( ">>>>>>>>>>>> Rotation encoder calibration ..."); 
+  this->ProbeRotationEncoderCalibratedOff(); 
   if ( this->CalibrateRotationEncoder() )
   {
-    this->ProbeRotationEncoderCalibratedOn(); 
-    LOG_INFO("ProbeRotationEncoderScale = " << ProbeRotationEncoderScale); 
-    LOG_INFO("ProbeRotationEncoderOffset = " << ProbeRotationEncoderOffset); 
+    if ( this->GetProbeRotationEncoderCalibrated() )
+    {
+      LOG_INFO("ProbeRotationEncoderScale = " << ProbeRotationEncoderScale); 
+      LOG_INFO("ProbeRotationEncoderOffset = " << ProbeRotationEncoderOffset); 
+    }
   }
   else
   {
     LOG_ERROR("Failed to calibrate probe rotation encoder!"); 
-    this->ProbeRotationEncoderCalibratedOff(); 
     return PLUS_FAIL; 
   }
 
   LOG_INFO( "----------------------------------------------------"); 
   LOG_INFO( ">>>>>>>>>>>> Phantom to probe distance calculation ..."); 
+  this->PhantomToProbeDistanceCalculatedOff(); 
   if ( this->CalculatePhantomToProbeDistance() )
   {
-    this->PhantomToProbeDistanceCalculatedOn(); 
-    LOG_INFO("Phantom to probe distance: " << this->GetPhantomToProbeDistanceInMm()[0] << "  " << this->GetPhantomToProbeDistanceInMm()[1]); 
+    if ( this->GetPhantomToProbeDistanceCalculated() )
+    {
+      LOG_INFO("Phantom to probe distance: " << this->GetPhantomToProbeDistanceInMm()[0] << "  " << this->GetPhantomToProbeDistanceInMm()[1]); 
+    }
   }
   else
   {
     LOG_ERROR("Failed to calculate phantom to probe distance!"); 
-    this->PhantomToProbeDistanceCalculatedOff(); 
   }
 
   // save the input images to meta image
@@ -244,11 +265,6 @@ PlusStatus vtkStepperCalibrationController::CalibrateProbeRotationAxis()
   }
 
   this->ClearSegmentedFrameContainer(PROBE_ROTATION); 
-
-  if (!this->GetProbeRotationAxisCalibrated())
-  {
-    return PLUS_FAIL;
-  }
 
   // Set calibration date
   this->SetCalibrationDate(vtksys::SystemTools::GetCurrentDateTime("%Y.%m.%d %X").c_str()); 
@@ -291,6 +307,12 @@ PlusStatus vtkStepperCalibrationController::CalibrateRotationAxis()
     }
     this->SetCenterOfRotationPx( centerOfRotationPx[0], centerOfRotationPx[1]); 
     this->CenterOfRotationCalculatedOn(); 
+
+    if ( centerOfRotationCalculationErrorTable )
+    {
+      vtkGnuplotExecuter::DumpTableToFileInGnuplotFormat(centerOfRotationCalculationErrorTable, this->GetCenterOfRotationCalculationErrorReportFilePath()); 
+    }
+
     return PLUS_SUCCESS; 
   }
 
@@ -355,19 +377,21 @@ PlusStatus vtkStepperCalibrationController::CalibrateRotationAxis()
   }
 
   // Calculate mean error and stdev of measured and computed wire positions for each wire
-  std::vector<double> mean, stdev;
-  this->GetRotationAxisCalibrationError(aMatrix, bVector, rotationAxisCalibResult, mean, stdev); 
+  std::vector<CalibStatistics> statistics;
+  this->GetRotationAxisCalibrationError(aMatrix, bVector, rotationAxisCalibResult, statistics); 
   this->SaveRotationAxisCalibrationError(aMatrix, bVector, rotationAxisCalibResult); 
 
   LOG_INFO("RotationAxisCalibResult: " << std::fixed << rotationAxisCalibResult[0] << "  " << rotationAxisCalibResult[1] << "  " << rotationAxisCalibResult[2] << "  " << rotationAxisCalibResult[3] ); 
 
   this->SetCenterOfRotationPx( rotationAxisCalibResult[2] / this->GetSpacing()[0], rotationAxisCalibResult[3] / this->GetSpacing()[1]); 
   this->CenterOfRotationCalculatedOn(); 
-
+  
   // Set rotation axis orientation 
   // NOTE: If the probe goes down the wires goes up on the image 
   // => we need to change the sign of the axis to compensate it
   this->SetProbeRotationAxisOrientation(-rotationAxisCalibResult[0], -rotationAxisCalibResult[1], 1); 
+
+  this->ProbeRotationAxisCalibratedOn(); 
 
   return PLUS_SUCCESS; 
 }
@@ -412,8 +436,7 @@ void vtkStepperCalibrationController::ConstrLinEqForRotationAxisCalib( const std
 void vtkStepperCalibrationController::GetRotationAxisCalibrationError(const std::vector<vnl_vector<double>> &aMatrix, 
                                                                       const std::vector<double> &bVector, 
                                                                       const vnl_vector<double> &resultVector, 
-                                                                      std::vector<double> &mean, 
-                                                                      std::vector<double> &stdev )
+                                                                      std::vector<CalibStatistics> &statistics )
 {
   LOG_TRACE("vtkStepperCalibrationController::GetRotationAxisCalibrationError"); 
   // The coefficient matrix aMatrix should be m-by-n and the column vector bVector must have length m.
@@ -436,7 +459,7 @@ void vtkStepperCalibrationController::GetRotationAxisCalibrationError(const std:
     diffVector[1].push_back( bVector[row + 1] - ry0 - aMatrix[row + 1].get(1) * ry ); 
   }
 
-  this->ComputeStatistics(diffVector, mean, stdev);
+  this->ComputeStatistics(diffVector, statistics);
 }
 
 //----------------------------------------------------------------------------
@@ -444,8 +467,8 @@ void vtkStepperCalibrationController::RemoveOutliersFromRotAxisCalibData(std::ve
 {
   LOG_TRACE("vtkStepperCalibrationController::RemoveOutliersFromRotAxisCalibData"); 
   // Calculate mean error and stdev of measured and computed rotation angles
-  std::vector<double> mean, stdev;
-  this->GetRotationAxisCalibrationError(aMatrix, bVector, resultVector, mean, stdev); 
+  std::vector<CalibStatistics> statistics;
+  this->GetRotationAxisCalibrationError(aMatrix, bVector, resultVector, statistics); 
 
   const int n = aMatrix.begin()->size(); 
   const int m = bVector.size();
@@ -460,9 +483,9 @@ void vtkStepperCalibrationController::RemoveOutliersFromRotAxisCalibData(std::ve
   // remove outliers
   for( int row = m - numberOfAxes; row >= 0; row = row - numberOfAxes)
   {
-    if (abs ( bVector[row     ] - rx0 - aMatrix[row    ].get(0) * rx - mean[0] ) >  this->OutlierDetectionThreshold * stdev[0] 
+    if (abs ( bVector[row     ] - rx0 - aMatrix[row    ].get(0) * rx - statistics[0].Mean ) >  this->OutlierDetectionThreshold * statistics[0].Stdev 
     ||
-      abs ( bVector[row + 1] - ry0 - aMatrix[row + 1].get(1) * ry - mean[1] ) >  this->OutlierDetectionThreshold * stdev[1] 
+      abs ( bVector[row + 1] - ry0 - aMatrix[row + 1].get(1) * ry - statistics[1].Mean ) >  this->OutlierDetectionThreshold * statistics[1].Stdev 
     )
 
     {
@@ -511,6 +534,10 @@ PlusStatus vtkStepperCalibrationController::GenerateProbeRotationAxisCalibration
     scriptOutputFilePrefix = "PlotProbeRotationAxisCalibrationError"; 
 
     htmlReport->AddText(title.c_str(), vtkHTMLGenerator::H1); 
+
+    std::ostringstream report; 
+    report << "Probe rotation axis orientation: " << this->GetProbeRotationAxisOrientation()[0] << "     " << this->GetProbeRotationAxisOrientation()[1] << "     " << this->GetProbeRotationAxisOrientation()[2] << "</br>" ; 
+    htmlReport->AddParagraph(report.str().c_str()); 
 
     htmlReport->AddText("Error Plot", vtkHTMLGenerator::H2); 
     plotter->ClearArguments(); 
@@ -628,12 +655,14 @@ PlusStatus vtkStepperCalibrationController::CalibrateRotationEncoder()
   }
 
   // Calculate mean error and stdev of measured and computed wire positions for each wire
-  double mean, stdev;
-  this->GetRotationEncoderCalibrationError(aMatrix, bVector, rotationEncoderCalibrationResult, mean, stdev); 
+  CalibStatistics statistics; 
+  this->GetRotationEncoderCalibrationError(aMatrix, bVector, rotationEncoderCalibrationResult, statistics); 
   this->SaveRotationEncoderCalibrationError(aMatrix, bVector, rotationEncoderCalibrationResult); 
 
   this->SetProbeRotationEncoderScale(rotationEncoderCalibrationResult.get(0)); 
   this->SetProbeRotationEncoderOffset(rotationEncoderCalibrationResult.get(1)); 
+
+  this->ProbeRotationEncoderCalibratedOn(); 
 
   return PLUS_SUCCESS; 
 }
@@ -695,8 +724,7 @@ void vtkStepperCalibrationController::ConstrLinEqForRotEncCalc( std::vector<vnl_
 void vtkStepperCalibrationController::GetRotationEncoderCalibrationError(const std::vector<vnl_vector<double>> &aMatrix, 
                                                                          const std::vector<double> &bVector, 
                                                                          const vnl_vector<double> &resultVector, 
-                                                                         double &mean, 
-                                                                         double &stdev ) 
+                                                                         CalibStatistics &statistics ) 
 {
   LOG_TRACE("vtkStepperCalibrationController::GetRotationEncoderCalibrationError"); 
   // The coefficient matrix aMatrix should be m-by-n and the column vector bVector must have length m.
@@ -708,7 +736,7 @@ void vtkStepperCalibrationController::GetRotationEncoderCalibrationError(const s
   const double offset = resultVector[1]; 
 
   // calculate difference between the computed and measured angles
-  std::vector< std::vector<double> > diffVector(1);
+  std::vector< std::vector<double> > diffVector;
   std::vector<double> diff; 
   for( int row = 0; row < m; row++ )
   {
@@ -716,20 +744,13 @@ void vtkStepperCalibrationController::GetRotationEncoderCalibrationError(const s
   }
   diffVector.push_back(diff); 
 
-  std::vector<double> meanVector, stdevVector; 
-  this->ComputeStatistics(diffVector, meanVector, stdevVector); 
+  std::vector<CalibStatistics> stat; 
+  this->ComputeStatistics(diffVector, stat); 
 
   // calculate mean of difference 
-  mean = 0; 
-  if ( !meanVector.empty() )
+  if ( !stat.empty() )
   {
-    mean = meanVector[0]; 
-  }
-
-  stdev = 0; 
-  if ( !stdevVector.empty() )
-  {
-    stdev = stdevVector[0]; 
+    statistics = stat[0]; 
   }
 }
 
@@ -738,8 +759,8 @@ void vtkStepperCalibrationController::RemoveOutliersFromRotEncCalibData(std::vec
 {
   LOG_TRACE("vtkStepperCalibrationController::RemoveOutliersFromRotEncCalibData"); 
   // Calculate mean error and stdev of measured and computed rotation angles
-  double mean(0), stdev(0);
-  this->GetRotationEncoderCalibrationError(aMatrix, bVector, resultVector, mean, stdev); 
+  CalibStatistics statistics; 
+  this->GetRotationEncoderCalibrationError(aMatrix, bVector, resultVector, statistics); 
 
   const int n = aMatrix.begin()->size(); 
   const int m = bVector.size();
@@ -751,7 +772,7 @@ void vtkStepperCalibrationController::RemoveOutliersFromRotEncCalibData(std::vec
   // remove outliers
   for( int row = m - 1; row >= 0; row--)
   {
-    if ( abs ( bVector[row] - offset - aMatrix[row].get(0) * scale - mean ) >  this->OutlierDetectionThreshold * stdev ) 
+    if ( abs ( bVector[row] - offset - aMatrix[row].get(0) * scale - statistics.Mean ) >  this->OutlierDetectionThreshold * statistics.Stdev) 
     {
       LOG_DEBUG("Outlier found at row " << row ); 
       aMatrix.erase(aMatrix.begin() + row); 
@@ -829,6 +850,11 @@ PlusStatus vtkStepperCalibrationController::GenerateProbeRotationEncoderCalibrat
 
     htmlReport->AddText(title.c_str(), vtkHTMLGenerator::H1); 
 
+    std::ostringstream report; 
+    report << "Probe rotation encoder scale: " << this->GetProbeRotationEncoderScale() << "</br>" ; 
+    report << "Probe rotation encoder offset: " << this->GetProbeRotationEncoderOffset() << "</br>" ; 
+    htmlReport->AddParagraph(report.str().c_str()); 
+
     plotter->ClearArguments(); 
     plotter->AddArgument("-e");
     std::ostringstream rotEncoderError; 
@@ -869,10 +895,10 @@ PlusStatus vtkStepperCalibrationController::CalibrateProbeTranslationAxis()
     this->Initialize(); 
   }
 
+  this->ProbeTranslationAxisCalibratedOff(); 
   if ( !this->CalculateSpacing() )
   {
     LOG_ERROR("Failed to calibrate probe translation axis without spacing information!"); 
-    this->ProbeTranslationAxisCalibratedOff(); 
     return PLUS_FAIL; 
   }
 
@@ -881,13 +907,14 @@ PlusStatus vtkStepperCalibrationController::CalibrateProbeTranslationAxis()
   LOG_INFO( ">>>>>>>>>>>> Probe translation axis calibration ..."); 
   if ( this->CalibrateTranslationAxis(PROBE_TRANSLATION) )
   {
-    LOG_INFO("Probe translation axis orientation: Tx=" << std::fixed << this->GetProbeTranslationAxisOrientation()[0] << "  Ty=" << this->GetProbeTranslationAxisOrientation()[1]); 
-    this->ProbeTranslationAxisCalibratedOn(); 
+    if ( this->GetProbeTranslationAxisCalibrated() )
+    {
+      LOG_INFO("Probe translation axis orientation: Tx=" << std::fixed << this->GetProbeTranslationAxisOrientation()[0] << "  Ty=" << this->GetProbeTranslationAxisOrientation()[1]); 
+    }
   }
   else
   {
     LOG_ERROR("Failed to calibrate probe translation axis!"); 
-    this->ProbeTranslationAxisCalibratedOff(); 
   }
 
   // save the input images to meta image
@@ -905,11 +932,6 @@ PlusStatus vtkStepperCalibrationController::CalibrateProbeTranslationAxis()
   }
 
   this->ClearSegmentedFrameContainer(PROBE_TRANSLATION); 
-
-  if (!this->GetProbeTranslationAxisCalibrated())
-  {
-    return PLUS_FAIL;
-  }
 
   // Set calibration date
   this->SetCalibrationDate(vtksys::SystemTools::GetCurrentDateTime("%Y.%m.%d %X").c_str()); 
@@ -929,17 +951,19 @@ PlusStatus vtkStepperCalibrationController::CalibrateTemplateTranslationAxis()
   if ( !this->CalculateSpacing() )
   {
     LOG_ERROR("Failed to calibrate template translation axis without spacing information!"); 
-    this->TemplateTranslationAxisCalibratedOff(); 
     return PLUS_FAIL; 
   }
 
   // Template translation axis calibration 
   LOG_INFO( "----------------------------------------------------"); 
   LOG_INFO( ">>>>>>>>>>>> Template translation axis calibration ..."); 
+  this->TemplateTranslationAxisCalibratedOff(); 
   if ( this->CalibrateTranslationAxis(TEMPLATE_TRANSLATION) )
   {
-    LOG_INFO("Template translation axis orientation: Tx=" << std::fixed << this->GetTemplateTranslationAxisOrientation()[0] << "  Ty=" << this->GetTemplateTranslationAxisOrientation()[1]); 
-    this->TemplateTranslationAxisCalibratedOn(); 
+    if ( this->GetTemplateTranslationAxisCalibrated() )
+    {
+      LOG_INFO("Template translation axis orientation: Tx=" << std::fixed << this->GetTemplateTranslationAxisOrientation()[0] << "  Ty=" << this->GetTemplateTranslationAxisOrientation()[1]); 
+    }
   }
   else
   {
@@ -1017,8 +1041,8 @@ PlusStatus vtkStepperCalibrationController::CalibrateTranslationAxis( IMAGE_DATA
   }
 
   // Calculate mean error and stdev of measured and computed wire positions for each wire
-  std::vector<double> mean, stdev;
-  this->GetTranslationAxisCalibrationError(aMatrix, bVector, translationAxisCalibResult, mean, stdev); 
+  std::vector<CalibStatistics> statistics; 
+  this->GetTranslationAxisCalibrationError(aMatrix, bVector, translationAxisCalibResult, statistics); 
 
   this->SaveTranslationAxisCalibrationError(aMatrix, bVector, translationAxisCalibResult, dataType); 
 
@@ -1028,10 +1052,12 @@ PlusStatus vtkStepperCalibrationController::CalibrateTranslationAxis( IMAGE_DATA
   if ( dataType == PROBE_TRANSLATION )
   {
     this->SetProbeTranslationAxisOrientation(-translationAxisCalibResult[0], -translationAxisCalibResult[1], 1); 
+    this->ProbeTranslationAxisCalibratedOn(); 
   }
   else if ( dataType == TEMPLATE_TRANSLATION )
   {
     this->SetTemplateTranslationAxisOrientation(-translationAxisCalibResult[0], -translationAxisCalibResult[1], 1); 
+    this->TemplateTranslationAxisCalibratedOn(); 
   }
 
   return PLUS_SUCCESS; 
@@ -1158,8 +1184,7 @@ void vtkStepperCalibrationController::ConstrLinEqForTransAxisCalib( std::vector<
 void vtkStepperCalibrationController::GetTranslationAxisCalibrationError(const std::vector<vnl_vector<double>> &aMatrix, 
                                                                          const std::vector<double> &bVector, 
                                                                          const vnl_vector<double> &resultVector, 
-                                                                         std::vector<double> &mean, 
-                                                                         std::vector<double> &stdev )
+                                                                         std::vector<CalibStatistics> &statistics)
 {
   LOG_TRACE("vtkStepperCalibrationController::GetTranslationAxisCalibrationError"); 
   // The coefficient matrix aMatrix should be m-by-n and the column vector bVector must have length m.
@@ -1197,7 +1222,7 @@ void vtkStepperCalibrationController::GetTranslationAxisCalibrationError(const s
     diffVector[7].push_back( bVector[row + 7] - w6y - aMatrix[row + 7].get(1) * ty ); 
   }
 
-  this->ComputeStatistics(diffVector, mean, stdev); 
+  this->ComputeStatistics(diffVector, statistics); 
 }
 
 //----------------------------------------------------------------------------
@@ -1258,8 +1283,8 @@ void vtkStepperCalibrationController::RemoveOutliersFromTransAxisCalibData(std::
 {
   LOG_TRACE("vtkStepperCalibrationController::RemoveOutliersFromTransAxisCalibData"); 
   // Calculate mean error and stdev of measured and computed wire positions for each wire
-  std::vector<double> mean, stdev;
-  this->GetTranslationAxisCalibrationError(aMatrix, bVector, resultVector, mean, stdev); 
+  std::vector<CalibStatistics> statistics; 
+  this->GetTranslationAxisCalibrationError(aMatrix, bVector, resultVector, statistics); 
 
   const int n = aMatrix.begin()->size(); 
   const int m = bVector.size();
@@ -1280,21 +1305,21 @@ void vtkStepperCalibrationController::RemoveOutliersFromTransAxisCalibData(std::
   // remove outliers
   for( int row = m - numOfSegmentedPoints; row > 0; row = row - numOfSegmentedPoints )
   {
-    if ( abs ( bVector[row    ] - w1x - aMatrix[row    ].get(0) * tx - mean[0] ) >  this->OutlierDetectionThreshold * stdev[0] 
+    if ( abs ( bVector[row    ] - w1x - aMatrix[row    ].get(0) * tx - statistics[0].Mean ) >  this->OutlierDetectionThreshold * statistics[0].Stdev 
     ||
-      abs ( bVector[row + 1] - w1y - aMatrix[row + 1].get(1) * ty - mean[1] ) >  this->OutlierDetectionThreshold * stdev[1] 
+      abs ( bVector[row + 1] - w1y - aMatrix[row + 1].get(1) * ty - statistics[1].Mean ) >  this->OutlierDetectionThreshold * statistics[1].Stdev  
     ||
-      abs ( bVector[row + 2] - w3x - aMatrix[row + 2].get(0) * tx - mean[2] ) >  this->OutlierDetectionThreshold * stdev[2] 
+      abs ( bVector[row + 2] - w3x - aMatrix[row + 2].get(0) * tx - statistics[2].Mean ) >  this->OutlierDetectionThreshold * statistics[2].Stdev  
     ||
-      abs ( bVector[row + 3] - w3y - aMatrix[row + 3].get(1) * ty - mean[3] ) >  this->OutlierDetectionThreshold * stdev[3] 
+      abs ( bVector[row + 3] - w3y - aMatrix[row + 3].get(1) * ty - statistics[3].Mean ) >  this->OutlierDetectionThreshold * statistics[3].Stdev  
     ||
-      abs ( bVector[row + 4] - w4x - aMatrix[row + 4].get(0) * tx - mean[4] ) >  this->OutlierDetectionThreshold * stdev[4] 
+      abs ( bVector[row + 4] - w4x - aMatrix[row + 4].get(0) * tx - statistics[4].Mean ) >  this->OutlierDetectionThreshold * statistics[4].Stdev  
     ||
-      abs ( bVector[row + 5] - w4y - aMatrix[row + 5].get(1) * ty - mean[5] ) >  this->OutlierDetectionThreshold * stdev[5] 
+      abs ( bVector[row + 5] - w4y - aMatrix[row + 5].get(1) * ty - statistics[5].Mean ) >  this->OutlierDetectionThreshold * statistics[5].Stdev  
     ||
-      abs ( bVector[row + 6] - w6x - aMatrix[row + 6].get(0) * tx - mean[6] ) >  this->OutlierDetectionThreshold * stdev[6] 
+      abs ( bVector[row + 6] - w6x - aMatrix[row + 6].get(0) * tx - statistics[6].Mean ) >  this->OutlierDetectionThreshold * statistics[6].Stdev  
     ||
-      abs ( bVector[row + 7] - w6y - aMatrix[row + 7].get(1) * ty - mean[7] ) >  this->OutlierDetectionThreshold * stdev[7] 
+      abs ( bVector[row + 7] - w6y - aMatrix[row + 7].get(1) * ty - statistics[7].Mean ) >  this->OutlierDetectionThreshold * statistics[7].Stdev  
     )
     {
       LOG_DEBUG("Outlier found at row " << row ); 
@@ -1390,6 +1415,7 @@ PlusStatus vtkStepperCalibrationController::GenerateTranslationAxisCalibrationRe
       return PLUS_FAIL; 
     }
 
+    std::ostringstream report; 
     std::string title; 
     std::string scriptOutputFilePrefixHistogram, scriptOutputFilePrefix; 
     switch ( dataType )
@@ -1397,16 +1423,22 @@ PlusStatus vtkStepperCalibrationController::GenerateTranslationAxisCalibrationRe
     case PROBE_TRANSLATION: 
       title = "Probe Translation Axis Calibration Analysis"; 
       scriptOutputFilePrefixHistogram = "ProbeTranslationAxisCalibrationErrorHistogram"; 
-      scriptOutputFilePrefix = "ProbeTranslationAxisCalibrationError"; 
+      scriptOutputFilePrefix = "ProbeTranslationAxisCalibrationError";
+      report << "Probe translation axis orientation: " << this->GetProbeTranslationAxisOrientation()[0] << "     " 
+        << this->GetProbeTranslationAxisOrientation()[1] << "     " << this->GetProbeTranslationAxisOrientation()[2] << "</br>" ; 
       break; 
     case TEMPLATE_TRANSLATION: 
       title = "Template Translation Axis Calibration Analysis";
       scriptOutputFilePrefixHistogram = "TemplateTranslationAxisCalibrationErrorHistogram"; 
       scriptOutputFilePrefix = "TemplateTranslationAxisCalibrationError"; 
+      report << "Probe translation axis orientation: " << this->GetTemplateTranslationAxisOrientation()[0] << "     " 
+        << this->GetTemplateTranslationAxisOrientation()[1] << "     " << this->GetTemplateTranslationAxisOrientation()[2] << "</br>" ; 
       break; 
     }
 
     htmlReport->AddText(title.c_str(), vtkHTMLGenerator::H1); 
+    
+    htmlReport->AddParagraph(report.str().c_str()); 
 
     htmlReport->AddText("Error Histogram", vtkHTMLGenerator::H2); 
 
@@ -1613,8 +1645,7 @@ void vtkStepperCalibrationController::GetSpacingCalculationError(
   const std::vector<vnl_vector<double>> &aMatrix, 
   const std::vector<double> &bVector, 
   const vnl_vector<double> &resultVector, 
-  std::vector<double> &mean, 
-  std::vector<double> &stdev )
+  std::vector<CalibStatistics> &statistics)
 {
 
   LOG_TRACE("vtkStepperCalibrationController::GetRotationAxisCalibrationError"); 
@@ -1635,7 +1666,7 @@ void vtkStepperCalibrationController::GetSpacingCalculationError(
     diffVector[1].push_back( bVector[row + 1] - aMatrix[row + 1].get(1) * sY ); 
   }
 
-  this->ComputeStatistics(diffVector, mean, stdev); 
+  this->ComputeStatistics(diffVector, statistics); 
 }
 
 //----------------------------------------------------------------------------
@@ -1647,8 +1678,8 @@ void vtkStepperCalibrationController::RemoveOutliersFromSpacingCalcData(
 
   LOG_TRACE("vtkStepperCalibrationController::RemoveOutliersFromSpacingCalcData"); 
   // Calculate mean error and stdev of measured and computed wire distances
-  std::vector<double> mean, stdev;
-  this->GetSpacingCalculationError(aMatrix, bVector, resultVector, mean, stdev); 
+  std::vector<CalibStatistics> statistics; 
+  this->GetSpacingCalculationError(aMatrix, bVector, resultVector, statistics); 
 
   const int n = aMatrix.begin()->size(); 
   const int m = bVector.size();
@@ -1661,9 +1692,9 @@ void vtkStepperCalibrationController::RemoveOutliersFromSpacingCalcData(
   // remove outliers
   for( int row = m - numberOfAxes; row >= 0; row = row - numberOfAxes)
   {
-    if (abs ( bVector[row    ] - aMatrix[row    ].get(0) * sX - mean[0] ) >  this->OutlierDetectionThreshold * stdev[0] 
+    if (abs ( bVector[row    ] - aMatrix[row    ].get(0) * sX - statistics[0].Mean ) >  this->OutlierDetectionThreshold * statistics[0].Stdev 
     ||
-      abs ( bVector[row + 1] - aMatrix[row + 1].get(1) * sY - mean[1] ) >  this->OutlierDetectionThreshold * stdev[1] )
+      abs ( bVector[row + 1] - aMatrix[row + 1].get(1) * sY - statistics[1].Mean ) >  this->OutlierDetectionThreshold * statistics[1].Stdev )
     {
       LOG_DEBUG("Outlier found at row " << row ); 
       aMatrix.erase(aMatrix.begin() + row, aMatrix.begin() + row + numberOfAxes); 
@@ -1742,6 +1773,10 @@ PlusStatus vtkStepperCalibrationController::GenerateSpacingCalculationReport( vt
     scriptOutputFilePrefix = "PlotSpacingCalculationErrorHistogram"; 
 
     htmlReport->AddText(title.c_str(), vtkHTMLGenerator::H1); 
+
+    std::ostringstream report; 
+    report << "Image spacing (mm/px): " << this->GetSpacing()[0] << "     " << this->GetSpacing()[1] << "</br>" ; 
+    htmlReport->AddParagraph(report.str().c_str()); 
 
     plotter->ClearArguments(); 
     plotter->AddArgument("-e");
@@ -1878,8 +1913,8 @@ PlusStatus vtkStepperCalibrationController::CalculateCenterOfRotation( Segmented
   }
 
   // Calculate mean error and stdev of measured and computed distances
-  double mean, stdev;
-  this->GetCenterOfRotationCalculationError(aMatrix, bVector, TRUSRotationCenterInOriginalImageFrameInMm2x1, mean, stdev); 
+  CalibStatistics statistics; 
+  this->GetCenterOfRotationCalculationError(aMatrix, bVector, TRUSRotationCenterInOriginalImageFrameInMm2x1, statistics); 
 
   centerOfRotationPx[0] = TRUSRotationCenterInOriginalImageFrameInMm2x1.get(0) / this->GetSpacing()[0]; 
   centerOfRotationPx[1] = TRUSRotationCenterInOriginalImageFrameInMm2x1.get(1) / this->GetSpacing()[1]; 
@@ -1893,8 +1928,7 @@ PlusStatus vtkStepperCalibrationController::CalculateCenterOfRotation( Segmented
 void vtkStepperCalibrationController::GetCenterOfRotationCalculationError(const std::vector<vnl_vector<double>> &aMatrix, 
                                                                           const std::vector<double> &bVector, 
                                                                           const vnl_vector<double> &resultVector, 
-                                                                          double &mean, 
-                                                                          double &stdev ) 
+                                                                          CalibStatistics &statistics ) 
 {
   LOG_TRACE("vtkStepperCalibrationController::GetCenterOfRotationCalculationError"); 
   // The coefficient matrix aMatrix should be m-by-n and the column vector bVector must have length m.
@@ -1906,7 +1940,7 @@ void vtkStepperCalibrationController::GetCenterOfRotationCalculationError(const 
   const double centerOfRotationY = resultVector[1]; 
 
   // calculate difference between the computed and measured angles
-  std::vector< std::vector<double> > diffVector(1);
+  std::vector< std::vector<double> > diffVector;
   std::vector<double> diff; 
   for( int row = 0; row < m; row++ )
   {
@@ -1914,20 +1948,13 @@ void vtkStepperCalibrationController::GetCenterOfRotationCalculationError(const 
   }
   diffVector.push_back(diff); 
 
-  std::vector<double> meanVector, stdevVector; 
-  this->ComputeStatistics(diffVector, meanVector, stdevVector); 
+  std::vector<CalibStatistics> stat; 
+  this->ComputeStatistics(diffVector, stat); 
 
   // calculate mean of difference 
-  mean = 0; 
-  if ( !meanVector.empty() )
+  if ( !stat.empty() )
   {
-    mean = meanVector[0]; 
-  }
-
-  stdev = 0; 
-  if ( !stdevVector.empty() )
-  {
-    stdev = stdevVector[0]; 
+    statistics = stat[0]; 
   }
 }
 
@@ -1938,8 +1965,8 @@ void vtkStepperCalibrationController::RemoveOutliersFromCenterOfRotCalcData(std:
 {
   LOG_TRACE("vtkStepperCalibrationController::RemoveOutliersFromCenterOfRotCalcData"); 
   // Calculate mean error and stdev of measured and computed rotation angles
-  double mean(0), stdev(0);
-  this->GetCenterOfRotationCalculationError(aMatrix, bVector, resultVector, mean, stdev); 
+  CalibStatistics statistics; 
+  this->GetCenterOfRotationCalculationError(aMatrix, bVector, resultVector, statistics); 
 
   const int n = aMatrix.begin()->size(); 
   const int m = bVector.size();
@@ -1951,7 +1978,7 @@ void vtkStepperCalibrationController::RemoveOutliersFromCenterOfRotCalcData(std:
   // remove outliers
   for( int row = m - 1; row >= 0; row--)
   {
-    if ( abs (bVector[row] - aMatrix[row].get(0) * centerOfRotationX - aMatrix[row].get(1) * centerOfRotationY - mean ) >  this->OutlierDetectionThreshold * stdev ) 
+    if ( abs (bVector[row] - aMatrix[row].get(0) * centerOfRotationX - aMatrix[row].get(1) * centerOfRotationY - statistics.Mean ) >  this->OutlierDetectionThreshold * statistics.Stdev ) 
     {
       LOG_DEBUG("Outlier found at row " << row ); 
       aMatrix.erase(aMatrix.begin() + row); 
@@ -2058,11 +2085,6 @@ void vtkStepperCalibrationController::SaveCenterOfRotationCalculationError(Segme
     }
 
   }
-
-  // insert 2 blank rows to separate different clusters
-  centerOfRotationCalculationErrorTable->InsertNextBlankRow(); 
-  centerOfRotationCalculationErrorTable->InsertNextBlankRow(); 
-
 }
 
 
@@ -2105,28 +2127,46 @@ PlusStatus vtkStepperCalibrationController::GenerateCenterOfRotationReport( vtkH
 
     htmlReport->AddText(title.c_str(), vtkHTMLGenerator::H1); 
 
-    plotter->ClearArguments(); 
-    plotter->AddArgument("-e");
-    std::ostringstream centerOfRotCalcError; 
-    centerOfRotCalcError << "f='" << reportFile << "'; o='" << scriptOutputFilePrefix << "';" << std::ends; 
-    plotter->AddArgument(centerOfRotCalcError.str().c_str()); 
-    plotter->AddArgument(plotCenterOfRotCalcErrorScript.c_str());  
-    if ( plotter->Execute() != PLUS_SUCCESS )
+    std::ostringstream report; 
+    report << "Center of rotation (px): " << this->GetCenterOfRotationPx()[0] << "     " << this->GetCenterOfRotationPx()[1] << "</br>" ; 
+    report << "Phantom to probe distance (mm): " << this->GetPhantomToProbeDistanceInMm()[0] << "     " << this->GetPhantomToProbeDistanceInMm()[1] << "</br>"; 
+    //report << "Mean: " << this->CenterOfRotationCalculationStat.Mean << "     Stdev: " << this->CenterOfRotationCalculationStat.Stdev 
+    //  << "     Min: " << this->CenterOfRotationCalculationStat.Min << "     Max: " << this->CenterOfRotationCalculationStat.Max;  
+    htmlReport->AddParagraph(report.str().c_str()); 
+
+    const int wires[4] = {1, 3, 4, 6}; 
+
+    for ( int i = 0; i < 4; i++ )
     {
-      LOG_ERROR("Failed to run gnuplot executer!"); 
-      return PLUS_FAIL; 
+      std::ostringstream wireName; 
+      wireName << "Wire #" << wires[i] << std::ends; 
+      htmlReport->AddText(wireName.str().c_str(), vtkHTMLGenerator::H3); 
+      plotter->ClearArguments(); 
+      plotter->AddArgument("-e");
+      std::ostringstream centerOfRotCalcError; 
+      centerOfRotCalcError << "f='" << reportFile << "'; o='" << scriptOutputFilePrefix << "'; w=" << wires[i] << std::ends; 
+      plotter->AddArgument(centerOfRotCalcError.str().c_str()); 
+      plotter->AddArgument(plotCenterOfRotCalcErrorScript.c_str());  
+      if ( plotter->Execute() != PLUS_SUCCESS )
+      {
+        LOG_ERROR("Failed to run gnuplot executer!"); 
+        return PLUS_FAIL; 
+      }
+      plotter->ClearArguments(); 
+
+      std::ostringstream imageSource; 
+      std::ostringstream imageAlt; 
+      imageSource << "w" << wires[i] << "_CenterOfRotationCalculationError.jpg" << std::ends; 
+      imageAlt << "Center of rotation calculation error - wire #" << wires[i] << std::ends; 
+
+      htmlReport->AddImage(imageSource.str().c_str(), imageAlt.str().c_str()); 
     }
-    plotter->ClearArguments(); 
-
-    std::ostringstream imageSource, imageAlt; 
-    imageSource << scriptOutputFilePrefix << ".jpg" << std::ends; 
-    imageAlt << "Center of rotation calculation error" << std::ends; 
-
-    htmlReport->AddImage(imageSource.str().c_str(), imageAlt.str().c_str()); 
-
-    htmlReport->AddHorizontalLine(); 
   }
-
+  else
+  {
+    LOG_WARNING("Generate center of rotation report failed - center of rotation not yet calulated!"); 
+  }
+  
   return PLUS_SUCCESS;
 }
 
@@ -2257,6 +2297,8 @@ PlusStatus vtkStepperCalibrationController::CalculatePhantomToProbeDistance()
   }
 
   this->SetPhantomToProbeDistanceInMm( listOfPhantomToProbeHorizontalDistanceInMm.mean(), listOfPhantomToProbeVerticalDistanceInMm.mean() ); 
+
+  this->PhantomToProbeDistanceCalculatedOn(); 
 
   return PLUS_SUCCESS; 
 }
@@ -2855,7 +2897,6 @@ PlusStatus vtkStepperCalibrationController::ReadStepperCalibrationConfiguration(
     if ( calibrationResult->GetScalarAttribute("ProbeRotationEncoderOffset", probeRotationEncoderOffset) )
     {
       this->SetProbeRotationEncoderOffset(probeRotationEncoderOffset); 
-      this->ProbeRotationEncoderCalibratedOn(); 
     }
 
     double probeRotationEncoderScale=0;
@@ -2864,8 +2905,6 @@ PlusStatus vtkStepperCalibrationController::ReadStepperCalibrationConfiguration(
       this->SetProbeRotationEncoderScale(probeRotationEncoderScale); 
       this->ProbeRotationEncoderCalibratedOn(); 
     }
-
-
 
     this->CalibrationDoneOn(); 
   }

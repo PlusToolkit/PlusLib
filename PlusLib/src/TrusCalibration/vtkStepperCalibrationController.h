@@ -43,6 +43,15 @@ protected:
 class vtkStepperCalibrationController : public vtkCalibrationController
 {
 public:
+
+  struct CalibStatistics
+  {
+    double Mean; 
+    double Stdev; 
+    double Min; 
+    double Max; 
+  }; 
+
 	static vtkStepperCalibrationController *New();
 	vtkTypeRevisionMacro(vtkStepperCalibrationController , vtkCalibrationController);
 	virtual void PrintSelf(ostream& os, vtkIndent indent); 
@@ -281,7 +290,7 @@ protected:
 
 	// Description:
 	// Compute mean and stddev from dataset
-	virtual PlusStatus ComputeStatistics(const std::vector< std::vector<double> > &diffVector, std::vector<double> &mean, std::vector<double> &stdev); 
+	virtual PlusStatus ComputeStatistics(const std::vector< std::vector<double> > &diffVector, std::vector<CalibStatistics> &statistics); 
 
 	//***************************************************************************
 	//					Translation axis calibration
@@ -309,8 +318,7 @@ protected:
 		const std::vector<vnl_vector<double>> &aMatrix, 
 		const std::vector<double> &bVector, 
 		const vnl_vector<double> &resultVector, 
-		std::vector<double> &mean, 
-		std::vector<double> &stdev ); 
+    std::vector<CalibStatistics> &statistics); 
 
 	//! Description: 
 	// Save translation axis calibration error in gnuplot format 
@@ -349,9 +357,8 @@ protected:
 	virtual void GetRotationAxisCalibrationError(
 		const std::vector<vnl_vector<double>> &aMatrix, 
 		const std::vector<double> &bVector, \
-		const vnl_vector<double> &resultVector, 
-		std::vector<double> &mean, 
-		std::vector<double> &stdev  ); 
+		const vnl_vector<double> &resultVector,
+    std::vector<CalibStatistics> &statistics); 
 
 	//! Description: 
 	// Remove outliers from rotation axis calibration dataset
@@ -395,8 +402,7 @@ protected:
 		const std::vector<vnl_vector<double>> &aMatrix, 
 		const std::vector<double> &bVector, 
 		const vnl_vector<double> &resultVector, 
-		double &mean, 
-		double &stdev ); 
+    CalibStatistics &statistics); 
 
 	//! Description: 
 	// Save rotation encoder calibration error in gnuplot format 
@@ -420,8 +426,7 @@ protected:
 		const std::vector<vnl_vector<double>> &aMatrix, 
 		const std::vector<double> &bVector, 
 		const vnl_vector<double> &resultVector, 
-		double &mean, 
-		double &stdev ); 
+		CalibStatistics &statistics); 
 
 	//! Description: 
 	// Remove outliers from center of rotation calculation dataset
@@ -462,8 +467,7 @@ protected:
 		const std::vector<vnl_vector<double>> &aMatrix, 
 		const std::vector<double> &bVector, 
 		const vnl_vector<double> &resultVector, 
-		std::vector<double> &mean, 
-		std::vector<double> &stdev ); 
+    std::vector<CalibStatistics> &statistics); 
 
 	//! Description: 
 	// Save spacing calculation error to file in gnuplot format 

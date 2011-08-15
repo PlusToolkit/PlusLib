@@ -45,6 +45,10 @@ public:
 	// - Map the PRE3D distribution onto the US image
 	virtual PlusStatus ComputeCalibrationResults();
 
+  //! Operation 
+	// Check user image home to probe home transform orthogonality 
+  virtual bool IsUserImageHomeToProbeHomeTransformOrthogonal(); 
+
 	//! Operation: Read and populate US to Template calibration image data in offline mode
 	virtual PlusStatus OfflineUSToTemplateCalibration(); 
 
