@@ -55,11 +55,6 @@ FreehandCalibrationToolbox::FreehandCalibrationToolbox(QWidget* aParent, Qt::WFl
 
 FreehandCalibrationToolbox::~FreehandCalibrationToolbox()
 {
-	vtkFreehandCalibrationController* freehandCalibrationController = vtkFreehandCalibrationController::GetInstance();
-	if (freehandCalibrationController != NULL) {
-		delete freehandCalibrationController;
-	}
-
 	if (m_AcquisitionTimer != NULL) {
     m_AcquisitionTimer->stop();
 		delete m_AcquisitionTimer;
