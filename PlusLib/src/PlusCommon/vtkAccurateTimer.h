@@ -46,7 +46,7 @@ public:
 	static void Delay(double sec); 
 
 	// Description:
-	// Get system time (elapsed time since last reboot 
+	// Get system time (elapsed time since last reboot)
 	static double GetInternalSystemTime(); 
   
   // Description:
