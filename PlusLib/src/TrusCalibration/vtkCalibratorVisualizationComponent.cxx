@@ -314,7 +314,7 @@ void vtkCalibratorVisualizationComponent::SetRealtimeRenderer( vtkRenderer* rend
     vtkSmartPointer<vtkCamera> imageCamera = vtkSmartPointer<vtkCamera>::New(); 
     double imageCenterX = this->GetCalibrationController()->GetSegParameters()->GetFrameSize()[0]/2.0; 
     double imageCenterY = this->GetCalibrationController()->GetSegParameters()->GetFrameSize()[1]/2.0; 
-    imageCamera->SetPosition(imageCenterX, imageCenterY, 150); 
+    imageCamera->SetPosition(imageCenterX, imageCenterY, -150); 
     imageCamera->SetFocalPoint(imageCenterX, imageCenterY, 0); 
     imageCamera->SetViewUp(0, -1, 0);
     imageCamera->SetClippingRange(0.1, 1000);
