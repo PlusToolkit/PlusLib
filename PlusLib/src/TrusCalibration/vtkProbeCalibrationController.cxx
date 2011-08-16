@@ -287,9 +287,6 @@ void vtkProbeCalibrationController::RegisterPhantomGeometry()
     double templateHolderPositionY=GetTransformTemplateHolderHomeToPhantomHome()->GetPosition()[1];
     double templateHolderPositionZ=GetTransformTemplateHolderHomeToPhantomHome()->GetPosition()[2];
 
-    double horizontalTemplateToStepper = horizontalDistanceTemplateMounterHoleToTRUSRotationCenterInMM + templateHolderPositionX;
-    double verticalTemplateToStepper = verticalDistanceTemplateMounterHoleToTRUSRotationCenterInMM + templateHolderPositionY;
-
     vtkSmartPointer<vtkTransform> tTemplateHolderToTemplate = vtkSmartPointer<vtkTransform>::New();
     tTemplateHolderToTemplate->Translate( templateHolderPositionX, templateHolderPositionY, templateHolderPositionZ);
     this->GetTransformTemplateHolderHomeToTemplateHome()->SetMatrix( tTemplateHolderToTemplate->GetMatrix() ); 

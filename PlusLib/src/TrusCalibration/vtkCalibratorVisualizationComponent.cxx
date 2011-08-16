@@ -1241,9 +1241,7 @@ void vtkCalibratorVisualizationComponent::ReadTemplateModelConfiguration(vtkXMLD
   double templateHolderToTemplateTransformVector[16]={0}; 
   if (configTemplateModel->GetVectorAttribute("TemplateHolderToTemplateTransform", 16, templateHolderToTemplateTransformVector)) 
   {
-    vtkSmartPointer<vtkTransform> transformTemplateHolderHomeToTemplateHome = vtkSmartPointer<vtkTransform>::New(); 
-    transformTemplateHolderHomeToTemplateHome->SetMatrix(templateHolderToTemplateTransformVector); 
-    this->GetCalibrationController()->SetTransformTemplateHolderHomeToTemplateHome( transformTemplateHolderHomeToTemplateHome ); 
+    this->GetCalibrationController()->GetTransformTemplateHolderHomeToTemplateHome()->SetMatrix( templateHolderToTemplateTransformVector ); 
   }
   else
 	{
