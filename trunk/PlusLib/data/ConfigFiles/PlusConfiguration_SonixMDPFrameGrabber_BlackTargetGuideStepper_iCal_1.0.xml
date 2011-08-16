@@ -6,7 +6,7 @@
         Description="Configuration file for SonixMDP through FrameGrabber TRUS + Burdette Medical Systems Digital Stepper + iCal 1.0 + 70mm depth" 
         />
 
-      <Tracker Type="BrachyTracker" BufferSize="300" Frequency="20" AveragedItemsForFiltering="20" LocalTimeOffset="0.0" SerialPort="3" BaudRate="19200" BrachyStepperType="Burdette Medical Systems Digital Stepper" ModelNumber="4012A18-a" ModelVersion="" ModelSerialNumber="01-50-149">
+      <Tracker Type="BrachyTracker" BufferSize="300" Frequency="20" AveragedItemsForFiltering="20" LocalTimeOffset="0.0" SerialPort="2" BaudRate="19200" BrachyStepperType="Burdette Medical Systems Digital Stepper" ModelNumber="4012A18-a" ModelVersion="" ModelSerialNumber="01-50-149">
          <Tool PortNumber="0" Type="Probe" Name="ProbeHomeToProbe" SendTo="127.0.0.1:1111">
               <Calibration 
                   MatrixName="ImageToProbe" 
@@ -54,7 +54,7 @@
 	</USDataCollection>
   
 	<USCalibration version="1.0">
-		<CalibrationController LogLevel="INFO" OutputPath="./Output" EnableTrackedSequenceDataSaving="TRUE" EnableErroneouslySegmentedDataSaving="FALSE" EnableSegmentationAnalysis="FALSE">
+		<CalibrationController LogLevel="INFO" OutputPath="./Output" EnableTrackedSequenceDataSaving="FALSE" EnableErroneouslySegmentedDataSaving="FALSE" EnableSegmentationAnalysis="FALSE">
       <StepperCalibration MinNumberOfRotationClusters="1" >
           <!-- TemplateTranslationData: These are the data files used to calculate the template translation axis  -->
           <TemplateTranslationData 
