@@ -78,6 +78,25 @@ vtkCalibratorVisualizationComponent::vtkCalibratorVisualizationComponent()
 vtkCalibratorVisualizationComponent::~vtkCalibratorVisualizationComponent()
 {
 
+  if ( this->RealtimeRenderer != NULL )
+  {
+    // Remove image actor to the realtime renderer 
+    if ( this->GetRealtimeImageActor() != NULL )
+    {
+      this->RealtimeRenderer->RemoveActor(this->GetRealtimeImageActor()); 
+    }
+
+    if ( this->GetCenterOfRotationActor() != NULL )
+    {
+      this->RealtimeRenderer->RemoveActor(this->GetCenterOfRotationActor()); 
+    }
+
+    if ( this->GetPhantomWiresActor() )
+    {
+      this->RealtimeRenderer->RemoveActor(this->GetPhantomWiresActor()); 
+    }
+  }
+
 	this->SetPlotRenderer(NULL); 
 	this->SetRealtimeRenderer(NULL); 
 	this->SetRealtimeImageActor(NULL); 
