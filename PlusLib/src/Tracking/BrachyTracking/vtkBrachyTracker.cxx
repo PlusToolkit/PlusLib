@@ -414,38 +414,53 @@ PlusStatus vtkBrachyTracker::ReadConfiguration(vtkXMLDataElement* config)
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkBrachyTracker::WriteConfiguration(vtkXMLDataElement* config)
+PlusStatus vtkBrachyTracker::WriteConfiguration(vtkXMLDataElement* rootConfigElement)
 {
-	if ( config == NULL )
+	if ( rootConfigElement == NULL )
 	{
     LOG_ERROR("Config is invalid");
 		return PLUS_FAIL;
 	}
 
+  // Get data collection and then Tracker configuration element
+	vtkSmartPointer<vtkXMLDataElement> dataCollectionConfig = rootConfigElement->FindNestedElementWithName("USDataCollection");
+	if (dataCollectionConfig == NULL)
+  {
+    LOG_ERROR("Cannot find USDataCollection element in XML tree!");
+		return PLUS_FAIL;
+	}
+
+  vtkSmartPointer<vtkXMLDataElement> trackerConfig = dataCollectionConfig->FindNestedElementWithName("Tracker"); 
+  if ( trackerConfig == NULL) 
+  {
+    LOG_ERROR("Cannot find Tracker element in XML tree!");
+		return PLUS_FAIL;
+  }
+
   if ( this->Device != NULL )
   {
     BrachyStepper::BRACHY_STEPPER_TYPE stepperType = this->Device->GetBrachyStepperType(); 
     std::string strStepperType = BrachyStepper::GetBrachyStepperTypeInString(stepperType); 
-    config->SetAttribute("BrachyStepperType", strStepperType.c_str()); 
+    trackerConfig->SetAttribute("BrachyStepperType", strStepperType.c_str()); 
   }
 
-  config->SetUnsignedLongAttribute( "SerialPort", this->GetSerialPort() ); 
-  config->SetDoubleAttribute( "BaudRate", this->GetBaudRate() ); 
-  config->SetAttribute( "ModelVersion", this->GetModelVersion() ); 
-  config->SetAttribute( "ModelNumber", this->GetModelNumber() ); 
-  config->SetAttribute( "ModelSerialNumber", this->GetModelSerialNumber() ); 
+  trackerConfig->SetUnsignedLongAttribute( "SerialPort", this->GetSerialPort() ); 
+  trackerConfig->SetDoubleAttribute( "BaudRate", this->GetBaudRate() ); 
+  trackerConfig->SetAttribute( "ModelVersion", this->GetModelVersion() ); 
+  trackerConfig->SetAttribute( "ModelNumber", this->GetModelNumber() ); 
+  trackerConfig->SetAttribute( "ModelSerialNumber", this->GetModelSerialNumber() ); 
 
   if ( this->GetTrackerCalibrated() )
   {
     // Save stepper calibration results to file
-    vtkSmartPointer<vtkXMLDataElement> calibration = config->LookupElementWithName("StepperCalibrationResult");
+    vtkSmartPointer<vtkXMLDataElement> calibration = trackerConfig->LookupElementWithName("StepperCalibrationResult");
     if ( calibration == NULL )
     {
       // create new element and add to trackerTool 
       calibration = vtkSmartPointer<vtkXMLDataElement>::New(); 
       calibration->SetName("StepperCalibrationResult"); 
-      calibration->SetParent(config); 
-      config->AddNestedElement(calibration);
+      calibration->SetParent(trackerConfig); 
+      trackerConfig->AddNestedElement(calibration);
     } 
 
     calibration->SetAttribute("Date", this->GetCalibrationDate());
