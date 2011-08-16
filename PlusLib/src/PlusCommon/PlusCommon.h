@@ -2,6 +2,7 @@
 #define __PlusCommon_h
 
 #include "vtkOutputWindow.h"
+#include "PlusLogger.h"
 
 enum PlusStatus
 {   

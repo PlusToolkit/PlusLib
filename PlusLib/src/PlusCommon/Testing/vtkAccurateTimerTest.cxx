@@ -21,6 +21,10 @@ vtkSmartPointer<vtkCriticalSection> gCritSec = vtkSmartPointer<vtkCriticalSectio
 // Thread function
 void* timerTestThread( vtkMultiThreader::ThreadInfo *data )
 {      
+  time_t seconds;
+  time(&seconds);
+  srand((unsigned int) seconds); // need to initialize random generation in each thread
+
   int heartbeatStepCount=1000; // a message will be logged after heartbeatStepCount steps (to indicate if the thread is still alive)
   int stepCount=0;
   while ( !gStopRequested )
@@ -46,13 +50,7 @@ void* timerTestThread( vtkMultiThreader::ThreadInfo *data )
       gCritSec->Lock();
       gNumberOfDelayErrors++;
       gCritSec->Unlock();
-      LOG_ERROR("Delay error = " << delayErrorSec*1000 << " (intended delay = " << delaySec*1000 << ", actual delay = " << elapsedTimeSec << ") ms");
-    }
-    else if (absDelayErrorSec>0.005)
-    {
-      LOG_WARNING("Delay error = " << delayErrorSec*1000 << " (intended delay = " << delaySec*1000 << ", actual delay = " << elapsedTimeSec << ") ms");
-      gCritSec->Lock();
-      gCritSec->Unlock();
+      LOG_ERROR("Delay error = " << delayErrorSec*1000 << " (intended delay = " << delaySec*1000 << ", actual delay = " << elapsedTimeSec*1000 << ") ms");
     }
     else
     {
@@ -61,7 +59,7 @@ void* timerTestThread( vtkMultiThreader::ThreadInfo *data )
       if (PlusLogger::Instance()->GetLogLevel()>=PlusLogger::LOG_LEVEL_DEBUG
         || PlusLogger::Instance()->GetDisplayLogLevel()>=PlusLogger::LOG_LEVEL_DEBUG)
       {
-        LOG_DEBUG("Delay error = " << delayErrorSec*1000 << " (intended delay = " << delaySec*1000 << ", actual delay = " << elapsedTimeSec << ") ms");
+        LOG_DEBUG("Delay error = " << delayErrorSec*1000 << " (intended delay = " << delaySec*1000 << ", actual delay = " << elapsedTimeSec*1000 << ") ms");
       }
     }
 
@@ -133,10 +131,6 @@ int main(int argc, char **argv)
   }
 
   vtkSmartPointer<vtkMultiThreader> multithreader = vtkSmartPointer<vtkMultiThreader>::New();
-
-  time_t seconds;
-  time(&seconds);
-  srand((unsigned int) seconds);
 
   for (int i=0; i<numberOfThreads; i++)
   {
