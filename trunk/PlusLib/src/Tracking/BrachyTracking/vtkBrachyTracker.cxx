@@ -445,6 +445,7 @@ PlusStatus vtkBrachyTracker::WriteConfiguration(vtkXMLDataElement* config)
       calibration = vtkSmartPointer<vtkXMLDataElement>::New(); 
       calibration->SetName("StepperCalibrationResult"); 
       calibration->SetParent(config); 
+      config->AddNestedElement(calibration);
     } 
 
     calibration->SetAttribute("Date", this->GetCalibrationDate());

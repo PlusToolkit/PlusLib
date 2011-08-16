@@ -397,9 +397,9 @@ PlusStatus vtkStepperCalibrationController::CalibrateRotationAxis()
   this->CenterOfRotationCalculatedOn(); 
   
   // Set rotation axis orientation 
-  // NOTE: If the probe goes down the wires goes up on the image 
+  // NOTE: If the probe goes down the wires goes down on the MF oriented image 
   // => we need to change the sign of the axis to compensate it
-  this->SetProbeRotationAxisOrientation(-rotationAxisCalibResult[0], -rotationAxisCalibResult[1], 1); 
+  this->SetProbeRotationAxisOrientation(-rotationAxisCalibResult[0], rotationAxisCalibResult[1], 1); 
 
   this->ProbeRotationAxisCalibratedOn(); 
 
@@ -1057,16 +1057,16 @@ PlusStatus vtkStepperCalibrationController::CalibrateTranslationAxis( IMAGE_DATA
   this->SaveTranslationAxisCalibrationError(aMatrix, bVector, translationAxisCalibResult, dataType); 
 
   // Set translation axis orientation 
-  // NOTE: If the probe goes down the wires goes up on the image 
+  // NOTE: If the probe goes down the wires goes down on the MF oriented image 
   // => we need to change the sign of the axis to compensate it
   if ( dataType == PROBE_TRANSLATION )
   {
-    this->SetProbeTranslationAxisOrientation(-translationAxisCalibResult[0], -translationAxisCalibResult[1], 1); 
+    this->SetProbeTranslationAxisOrientation(-translationAxisCalibResult[0], translationAxisCalibResult[1], 1); 
     this->ProbeTranslationAxisCalibratedOn(); 
   }
   else if ( dataType == TEMPLATE_TRANSLATION )
   {
-    this->SetTemplateTranslationAxisOrientation(-translationAxisCalibResult[0], -translationAxisCalibResult[1], 1); 
+    this->SetTemplateTranslationAxisOrientation(-translationAxisCalibResult[0], translationAxisCalibResult[1], 1); 
     this->TemplateTranslationAxisCalibratedOn(); 
   }
 

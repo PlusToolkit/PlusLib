@@ -23,7 +23,7 @@
       <ImageAcqusition Type="ICCapturing" 
         BufferSize="100" 
         FrameSize="640 480" 
-        UsImageOrientation="MN"
+        UsImageOrientation="MF"
         FrameRate="30" 
         AveragedItemsForFiltering="20" 
         LocalTimeOffset="-0.13"
@@ -58,12 +58,12 @@
       <StepperCalibration MinNumberOfRotationClusters="1" >
           <!-- TemplateTranslationData: These are the data files used to calculate the template translation axis  -->
           <TemplateTranslationData 
-                  NumberOfImagesToAcquire="100" 
+                  NumberOfImagesToAcquire="50" 
                   OutputSequenceMetaFileSuffix=".TemplateTranslationData"
                   />
           <!-- ProbeTranslationData: These are the data files used to calculate the stepper translation axis  -->
           <ProbeTranslationData 
-                  NumberOfImagesToAcquire="100" 
+                  NumberOfImagesToAcquire="50" 
                   OutputSequenceMetaFileSuffix=".ProbeTranslationData"
                   />
            <!-- ProbeRotationData: These are the data files used to calculate the frame center of rotation  -->
@@ -89,12 +89,12 @@
 				
         <!-- RandomStepperMotionData1: These are the data files used for calibration. -->
         <RandomStepperMotionData1
-                NumberOfImagesToAcquire="200" 
+                NumberOfImagesToAcquire="100" 
                 OutputSequenceMetaFileSuffix=".RandomStepperMotionData1"
                 />
         <!-- RandomStepperMotionData2: These are the data files used to validate the calibration accuracy.  -->
         <RandomStepperMotionData2
-                NumberOfImagesToAcquire="100" 
+                NumberOfImagesToAcquire="50" 
                 OutputSequenceMetaFileSuffix=".RandomStepperMotionData2"
                 />
 
