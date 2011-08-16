@@ -11,6 +11,7 @@
 // Global variables for communicating with the threads
 double gMaxDelaySec = 0.005;
 bool gStopRequested = false;
+const int MAX_DELAY_ERROR_SAMPLES=5e6; // limit the max number of samples to avoid crashes due to memory problems
 std::vector<double> gDelayErrorsSec; // access controlled by gCritSec
 int gNumberOfDelayErrors = 0; // access controlled by gCritSec
 int gNumberOfThreadCompletions = 0; // access controlled by gCritSec
@@ -21,9 +22,8 @@ vtkSmartPointer<vtkCriticalSection> gCritSec = vtkSmartPointer<vtkCriticalSectio
 // Thread function
 void* timerTestThread( vtkMultiThreader::ThreadInfo *data )
 {      
-  time_t seconds;
-  time(&seconds);
-  srand((unsigned int) seconds); // need to initialize random generation in each thread
+  // need to initialize random generation in each thread
+  srand((unsigned int)(vtkAccurateTimer::GetSystemTime()-floor(vtkAccurateTimer::GetSystemTime()))*1e6);
 
   int heartbeatStepCount=1000; // a message will be logged after heartbeatStepCount steps (to indicate if the thread is still alive)
   int stepCount=0;
@@ -42,7 +42,10 @@ void* timerTestThread( vtkMultiThreader::ThreadInfo *data )
     double absDelayErrorSec = fabs(delayErrorSec);
 
     gCritSec->Lock();
-    gDelayErrorsSec.push_back(delayErrorSec);
+    if (gDelayErrorsSec.size()<MAX_DELAY_ERROR_SAMPLES)
+    {
+      gDelayErrorsSec.push_back(delayErrorSec);
+    }
     gCritSec->Unlock();
 
     if (absDelayErrorSec>gMaxDelayErrorSec)
@@ -50,7 +53,7 @@ void* timerTestThread( vtkMultiThreader::ThreadInfo *data )
       gCritSec->Lock();
       gNumberOfDelayErrors++;
       gCritSec->Unlock();
-      LOG_ERROR("Delay error = " << delayErrorSec*1000 << " (intended delay = " << delaySec*1000 << ", actual delay = " << elapsedTimeSec*1000 << ") ms");
+      LOG_ERROR("Delay error = " << delayErrorSec*1000.0 << " ms (intended delay = " << delaySec*1000.0 << ", actual delay = " << elapsedTimeSec*1000.0 << "), thread="<<data->ThreadID);
     }
     else
     {
@@ -59,7 +62,7 @@ void* timerTestThread( vtkMultiThreader::ThreadInfo *data )
       if (PlusLogger::Instance()->GetLogLevel()>=PlusLogger::LOG_LEVEL_DEBUG
         || PlusLogger::Instance()->GetDisplayLogLevel()>=PlusLogger::LOG_LEVEL_DEBUG)
       {
-        LOG_DEBUG("Delay error = " << delayErrorSec*1000 << " (intended delay = " << delaySec*1000 << ", actual delay = " << elapsedTimeSec*1000 << ") ms");
+        LOG_DEBUG("Delay error = " << delayErrorSec*1000.0 << " ms (intended delay = " << delaySec*1000.0 << ", actual delay = " << elapsedTimeSec*1000.0 << "), thread="<<data->ThreadID);
       }
     }
 
@@ -134,8 +137,12 @@ int main(int argc, char **argv)
 
   for (int i=0; i<numberOfThreads; i++)
   {
-      int threadId = multithreader->SpawnThread( (vtkThreadFunctionType)&timerTestThread, NULL );
-      LOG_INFO("Thread started: "<<threadId);
+    // have some time between the startup of the threads to allow initialization of the accurate timer 
+    // and also to make the threads a bit less similar to each other in term of timing
+    vtkAccurateTimer::Delay(0.2); 
+
+    int threadId = multithreader->SpawnThread( (vtkThreadFunctionType)&timerTestThread, NULL );
+    LOG_INFO("Thread started: "<<threadId);
   }
 
   LOG_INFO("Testing delay timing accuracy... (test duration time = "<<testTimeSec<<"sec)");
