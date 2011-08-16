@@ -16,6 +16,7 @@ ADD_TEST(TimestampFilteringTest
   --input-max-timestamp-difference=0.08
   --input-min-stdev-reduction-factor=3.0
   )
+SET_TESTS_PROPERTIES( TimestampFilteringTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
 #--------------------------------------------------------------------------------------------
 ADD_EXECUTABLE(PlusLoggerTest PlusLoggerTest.cxx )
@@ -25,3 +26,16 @@ ADD_TEST(PlusLoggerTest
   ${EXECUTABLE_OUTPUT_PATH}/PlusLoggerTest
   --verbose=5
   )
+
+#--------------------------------------------------------------------------------------------
+ADD_EXECUTABLE(vtkAccurateTimerTest vtkAccurateTimerTest.cxx )
+TARGET_LINK_LIBRARIES(vtkAccurateTimerTest vtkPlusCommon )
+
+ADD_TEST(vtkAccurateTimerTest 
+  ${EXECUTABLE_OUTPUT_PATH}/vtkAccurateTimerTest
+  --testTimeSec=10
+  --averageIntendedDelaySec=0.005
+  --numberOfThreads=3
+  --verbose=3
+  )
+SET_TESTS_PROPERTIES( vtkAccurateTimerTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
