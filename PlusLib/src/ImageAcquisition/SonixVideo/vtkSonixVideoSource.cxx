@@ -340,7 +340,7 @@ PlusStatus vtkSonixVideoSource::Connect()
 {
     if (this->SonixIP==NULL)
     {
-      LOG_ERROR("Sonix hsot IP address is undefined");
+      LOG_ERROR("Sonix host IP address is undefined");
       this->ReleaseSystemResources();
       return PLUS_FAIL;
     }

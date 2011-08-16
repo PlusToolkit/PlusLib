@@ -1,3 +1,9 @@
+// Test basic connection to the Ultrasonix image acquisition
+// If the --rendering-off switch is defined then the connection is established, images are 
+// transferred for a few seconds, then the connection is closed (useful for automatic testing).
+// If the --rendering-off switch is not defined then the live ultrasound image is displayed
+// in a window (useful for quick interactive testing of the image transfer).
+
 #include "PlusConfigure.h"
 #include "vtksys/CommandLineArguments.hxx"
 #include <stdlib.h>
@@ -9,153 +15,123 @@
 #include "vtkCommand.h"
 #include "vtkSmartPointer.h"
 
-vtkSonixVideoSource *sonixGrabber = NULL;
-vtkImageViewer *viewer = NULL;
-vtkRenderWindowInteractor *iren = NULL;
-
 class vtkMyCallback : public vtkCommand
 {
 public:
-	static vtkMyCallback *New()
-	{return new vtkMyCallback;}
-	virtual void Execute(vtkObject *caller, unsigned long, void*)
-	{
-		viewer->Render();
-				
-		//update the timer so it will trigger again
-		//VTKI_TIMER_UPDATE = 1
-		iren->CreateTimer(VTKI_TIMER_UPDATE);
-	}
+  static vtkMyCallback *New()	{ return new vtkMyCallback; }
+
+  virtual void Execute(vtkObject *caller, unsigned long, void*)
+  {
+    m_Viewer->Render();
+
+    //update the timer so it will trigger again
+    //VTKI_TIMER_UPDATE = 1
+    m_Interactor->CreateTimer(VTKI_TIMER_UPDATE);
+  }
+
+  vtkRenderWindowInteractor *m_Interactor;
+  vtkImageViewer *m_Viewer;
+
+private:
+
+  vtkMyCallback()
+  { 
+    m_Interactor=NULL;
+    m_Viewer=NULL;
+  }
 };
 
 int main(int argc, char* argv[])
 {
 
-	bool printHelp(false); 
-	bool renderingOff(false);
-	std::string inputSonixIP("130.15.7.212");
+  bool printHelp(false); 
+  bool renderingOff(false);
+  std::string inputSonixIP("130.15.7.212");
 
-	vtksys::CommandLineArguments args;
-	args.Initialize(argc, argv);
+  vtksys::CommandLineArguments args;
+  args.Initialize(argc, argv);
 
-	int verboseLevel = PlusLogger::LOG_LEVEL_INFO;
+  int verboseLevel = PlusLogger::LOG_LEVEL_INFO;
 
-	args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");	
-	args.AddArgument("--sonix-ip", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputSonixIP, "SonixRP ip address (Default: 130.15.7.212)" );
-	args.AddArgument("--rendering-off", vtksys::CommandLineArguments::NO_ARGUMENT, &renderingOff, "Run test without rendering.");	
-	args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (Default: 1; 1=error only, 2=warning, 3=info, 4=debug)");	
+  args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");	
+  args.AddArgument("--sonix-ip", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputSonixIP, "SonixRP ip address (Default: 130.15.7.212)" );
+  args.AddArgument("--rendering-off", vtksys::CommandLineArguments::NO_ARGUMENT, &renderingOff, "Run test without rendering.");	
+  args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (Default: 1; 1=error only, 2=warning, 3=info, 4=debug)");	
 
-	if ( !args.Parse() )
-	{
-		std::cerr << "Problem parsing arguments" << std::endl;
-		std::cout << "\n\nvtkSonixVideoSourceTest1 help:" << args.GetHelp() << std::endl;
-		exit(EXIT_FAILURE);
-	}
+  if ( !args.Parse() )
+  {
+    std::cerr << "Problem parsing arguments" << std::endl;
+    std::cout << "\n\nvtkSonixVideoSourceTest1 help:" << args.GetHelp() << std::endl;
+    exit(EXIT_FAILURE);
+  }
 
-	if ( printHelp ) 
-	{
-		std::cout << "\n\nvtkSonixVideoSourceTest1 help:" << args.GetHelp() << std::endl;
-		exit(EXIT_SUCCESS); 
+  if ( printHelp ) 
+  {
+    std::cout << "\n\nvtkSonixVideoSourceTest1 help:" << args.GetHelp() << std::endl;
+    exit(EXIT_SUCCESS); 
+  }
 
-	}
+  PlusLogger::Instance()->SetLogLevel(verboseLevel);
 
-	PlusLogger::Instance()->SetLogLevel(verboseLevel);
+  vtkSmartPointer<vtkSonixVideoSource> sonixGrabber = vtkSmartPointer<vtkSonixVideoSource>::New();
 
-   //Add the video source here
-	sonixGrabber = vtkSonixVideoSource::New();
-	sonixGrabber->SetSonixIP(inputSonixIP.c_str());
-	sonixGrabber->SetImagingMode(0);
-	sonixGrabber->SetAcquisitionDataType(0x00000004);
-	if ( sonixGrabber->GetBuffer()->SetBufferSize(30) != PLUS_SUCCESS )
-    {
-        LOG_ERROR("Failed to set video buffer size!"); 
-        exit(EXIT_FAILURE);
-    }
+  sonixGrabber->SetSonixIP(inputSonixIP.c_str());
+  sonixGrabber->SetUsImageOrientation( US_IMG_ORIENT_UF ); // just randomly set an orientation (otherwise we would get an error that the orientation is undefined)
+  sonixGrabber->SetImagingMode(0);
+  sonixGrabber->SetAcquisitionDataType(udtBPost);
+  if ( sonixGrabber->GetBuffer()->SetBufferSize(30) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to set video buffer size!"); 
+    exit(EXIT_FAILURE);
+  }
 
-	sonixGrabber->Initialize(); 
+  if ( sonixGrabber->Initialize()!=PLUS_SUCCESS ) 
+  {
+    sonixGrabber->ReleaseSystemResources();
+    LOG_ERROR( "Unable to connect to Sonix RP machine at: " << inputSonixIP ); 
+    exit(EXIT_FAILURE); 
+  }
 
-	if ( sonixGrabber->GetInitialized() ) 
-	{
-		sonixGrabber->StartRecording();				//start recording frame from the video
-	} 
-	else 
-	{
-		sonixGrabber->ReleaseSystemResources();
-		if ( sonixGrabber != NULL ) 
-		{
-			sonixGrabber->Delete();
-		}
+  sonixGrabber->StartRecording();				//start recording frame from the video
 
-		if ( viewer != NULL ) 
-		{
-			viewer->Delete();
-		}
+  if (renderingOff)
+  {
+    // just run the recording for  a few seconds then exit
+    Sleep(5000); // no need to use accurate timer, it's just an approximate delay
+    sonixGrabber->StopRecording(); 
+    sonixGrabber->ReleaseSystemResources();
+    exit(EXIT_SUCCESS);
+  }
 
-		if ( iren != NULL ) 
-		{
-			iren->Delete();
-		}
+  // Show the live ultrasound image in a VTK renderer window
 
-		LOG_ERROR( "Unable to connect to Sonix RP machine at: " << inputSonixIP ); 
-		exit(EXIT_FAILURE); 
-	}
+  vtkSmartPointer<vtkImageViewer> viewer = vtkSmartPointer<vtkImageViewer>::New();
+  viewer->SetInput(sonixGrabber->GetOutput());   //set image to the render and window
+  viewer->SetColorWindow(255);
+  viewer->SetColorLevel(127.5);
+  viewer->SetZSlice(0);
 
-	if (renderingOff)
-	{
-		sonixGrabber->StopRecording(); 
-		sonixGrabber->ReleaseSystemResources();
+  //Create the interactor that handles the event loop
+  vtkSmartPointer<vtkRenderWindowInteractor> iren = vtkSmartPointer<vtkRenderWindowInteractor>::New();
+  iren->SetRenderWindow(viewer->GetRenderWindow());
+  viewer->SetupInteractor(iren);
 
-		if ( sonixGrabber != NULL ) 
-		{
-			sonixGrabber->Delete();
-		}
+  viewer->Render();	//must be called after iren and viewer are linked or there will be problems
 
-		if ( viewer != NULL ) 
-		{
-			viewer->Delete();
-		}
+  // Establish timer event and create timer to update the live image
+  vtkSmartPointer<vtkMyCallback> call = vtkSmartPointer<vtkMyCallback>::New();
+  call->m_Interactor=iren;
+  call->m_Viewer=viewer;
+  iren->AddObserver(vtkCommand::TimerEvent, call);
+  iren->CreateTimer(VTKI_TIMER_FIRST);		//VTKI_TIMER_FIRST = 0
 
-		if ( iren != NULL ) 
-		{
-			iren->Delete();
-		}
+  //iren must be initialized so that it can handle events
+  iren->Initialize();
+  iren->Start();
 
-		exit(EXIT_SUCCESS); 
-	}
+  sonixGrabber->ReleaseSystemResources();
 
-	viewer = vtkImageViewer::New();
-	viewer->SetInput(sonixGrabber->GetOutput());   //set image to the render and window
-	viewer->SetColorWindow(255);
-	viewer->SetColorLevel(127.5);
-	viewer->SetZSlice(0);
-	
-	//Create the interactor that handles the event loop
-	iren = vtkRenderWindowInteractor::New();
-	iren->SetRenderWindow(viewer->GetRenderWindow());
-	viewer->SetupInteractor(iren);
-
-	viewer->Render();	//must be called after iren and viewer are linked
-	//or there will be problems
-	
-	//establish timer event and create timer
-	vtkMyCallback* call = vtkMyCallback::New();
-	iren->AddObserver(vtkCommand::TimerEvent, call);
-	iren->CreateTimer(VTKI_TIMER_FIRST);		//VTKI_TIMER_FIRST = 0
-
-	//iren must be initialized so that it can handle events
-	iren->Initialize();
-	iren->Start();
-	
-	//delete all instances and release the hold the win32videosource
-	//has on the pci card	
-	sonixGrabber->ReleaseSystemResources();
-	sonixGrabber->Delete();
-
-	call->Delete(); 
-	viewer->Delete();
-	iren->Delete();
-	
-  return 0;
+  return EXIT_SUCCESS;
 }
 
 

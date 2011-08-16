@@ -152,7 +152,6 @@ public:
   /* List of parameters which can be set or read in B-mode, other mode parameters not currently implemented*/
 
   // Description:
-  // Request a particular mode of imaging (e.g. B-mode (0), M-mode(1), Color-doppler(2), pulsed-doppler(3); default: B-mode).
   // Frequency corresponds to paramID value of 414 for Uterius SDK
   vtkGetMacro(Frequency, int);
   vtkSetMacro(Frequency, int);
