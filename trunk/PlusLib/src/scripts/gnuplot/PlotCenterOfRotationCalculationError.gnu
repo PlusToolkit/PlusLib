@@ -34,27 +34,27 @@ set size 1,0.5;
 if (w==1) \
 	set title "Wire #1 Distance From Transducer" ; \
     set origin 0.0,0.5; \
-	plot f using 1:4 with points t "Distance on different positions"; \
+	plot f using 1:4 with points t "Distance in different positions"; \
     set origin 0.0,0.0; \
-	plot f using 2:4 with points t "Distance on different angles"; \
+	plot f using 2:4 with points t "Distance in different angles"; \
 else if (w==3) \
 	set title "Wire #3 Distance From Transducer" ; \
     set origin 0.0,0.5; \
-	plot f using 1:5 with points t "Distance on different positions"; \
+	plot f using 1:5 with points t "Distance in different positions"; \
     set origin 0.0,0.0; \
-	plot f using 2:5 with points t "Distance on different angles"; \
+	plot f using 2:5 with points t "Distance in different angles"; \
 else if (w==4) \
 	set title "Wire #4 Distance From Transducer" ; \
     set origin 0.0,0.5; \
-	plot f using 1:6 with points t "Distance on different positions"; \
+	plot f using 1:6 with points t "Distance in different positions"; \
     set origin 0.0,0.0; \
-	plot f using 2:6 with points t "Distance on different angles"; \
+	plot f using 2:6 with points t "Distance in different angles"; \
 else if (w==6) \
 	set title "Wire #6 Distance From Transducer" ; \
     set origin 0.0,0.5; \
-	plot f using 1:7 with points t "Distance on different positions"; \
+	plot f using 1:7 with points t "Distance in different positions"; \
     set origin 0.0,0.0; \
-	plot f using 2:7 with points t "Distance on different angles"; \
+	plot f using 2:7 with points t "Distance in different angles"; \
 
 unset multiplot     
 
