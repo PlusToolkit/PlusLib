@@ -66,7 +66,7 @@ public:
 
   bool IsStepperCalibrated();
 
-  PlusStatus GetMotorizationCode(int &MotorizationCode); 
+  PlusStatus GetMotorizationScaleFactor(int &scaleFactor); 
 
   bool IsStepperMotorized(); 
 
