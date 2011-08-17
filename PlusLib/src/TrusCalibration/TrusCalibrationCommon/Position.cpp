@@ -121,6 +121,11 @@ Constructor. Create a position from a string.
 //==================================================================
 Position::Position(const std::string& str)
 {
+	m_pfPosition[0] = 0;
+	m_pfPosition[1] = 0;
+	m_pfPosition[2] = 0;
+	m_pfPosition[3] = 1;
+	
     //================================================================== 
     // Author: Thomas K. Chen
     // Modifications Made:

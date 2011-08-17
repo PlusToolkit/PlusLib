@@ -44,7 +44,7 @@ int main(int argc, char *argv[])
 				(*it).selected=0;
 				(*it).visibility=1;
 			}
-			it++;
+			++it;
 			fidIndex++;
 		}
 	}
@@ -104,7 +104,7 @@ int main(int argc, char *argv[])
 					return EXIT_FAILURE;
 				}
 			}
-			it++;
+			++it;
 			fidIndex++;
 		}
 	}

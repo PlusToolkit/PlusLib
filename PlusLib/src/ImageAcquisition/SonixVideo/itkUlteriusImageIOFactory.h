@@ -31,7 +31,7 @@ public:
   /** Register one factory of this type  */
   static void RegisterOneFactory()
     {
-    UlteriusImageIOFactory::Pointer ulteriusFactory = UlteriusImageIOFactory::New();
+    Pointer ulteriusFactory = New();
     ObjectFactoryBase::RegisterFactory(ulteriusFactory);
     }
 

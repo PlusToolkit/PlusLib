@@ -166,7 +166,7 @@ Properties::~Properties()
             outStream << "# New properties added: " << ::ctime(&now) << std::endl;
 				
 			PropertiesMap::const_iterator itProps = m_mapDefaultProps.begin();
-			for (; itProps != m_mapDefaultProps.end(); itProps++)
+			for (; itProps != m_mapDefaultProps.end(); ++itProps)
 			{
                 outStream << itProps->first << "=" << itProps->second << std::endl;
 			}

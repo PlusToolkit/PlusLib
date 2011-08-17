@@ -215,7 +215,7 @@ class Exception : public std::exception
         // if an exception handler wanted to find out if the exception was a 
         // serial IO exception, it'll pass SerialIO::<nameScope> as the parameter.
 	    // Return true if the error in the exception has the given scope.
-	    bool Exception::hasScope(const string& strScope) const;
+	    bool hasScope(const string& strScope) const;
 
         // Operation	
 	    // Does this exception contain the given error?
@@ -225,7 +225,7 @@ class Exception : public std::exception
         // as the parameter.  Since the error string is not expanded until it is 
         // displayed then the handed in string can be compared to the stored ones.
         // Return true if the exception contains the given error.
-	    bool Exception::hasError(const string& strError)const;
+	    bool hasError(const string& strError)const;
 
         // Operation	
 	    // Get an iterator to the first error
