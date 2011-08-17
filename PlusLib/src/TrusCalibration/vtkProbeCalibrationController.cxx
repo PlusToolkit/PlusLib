@@ -20,6 +20,7 @@
 #include "vtksys/SystemTools.hxx"
 #include "vtkGnuplotExecuter.h"
 #include "vtkHTMLGenerator.h"
+#include "vtkStringArray.h"
 
 #include "itkImage.h"
 #include "itkImageFileReader.h"
@@ -1149,7 +1150,59 @@ PlusStatus vtkProbeCalibrationController::GenerateProbeCalibrationReport( vtkHTM
 			return PLUS_FAIL; 
 		}
 
-		htmlReport->AddText("Final Calibration Error", vtkHTMLGenerator::H1); 
+		htmlReport->AddText("Final Calibration Results", vtkHTMLGenerator::H1); 
+
+    vtkSmartPointer<vtkTable> lreTable = vtkSmartPointer<vtkTable>::New(); 
+    std::vector<double> lreVector; 
+
+
+    vtkSmartPointer<vtkStringArray> colTitle = vtkSmartPointer<vtkStringArray>::New(); 
+    vtkSmartPointer<vtkStringArray> colLreXMean = vtkSmartPointer<vtkStringArray>::New(); 
+    vtkSmartPointer<vtkStringArray> colLreXStdev = vtkSmartPointer<vtkStringArray>::New(); 
+    vtkSmartPointer<vtkStringArray> colLreYMean = vtkSmartPointer<vtkStringArray>::New();
+    vtkSmartPointer<vtkStringArray> colLreYStdev = vtkSmartPointer<vtkStringArray>::New(); 
+
+     const int wiresLRE[4] = {1, 3, 4, 6};
+     for ( int i = 0; i < 4; ++i )
+     {
+
+       colTitle->SetName("Wire"); 
+       std::ostringstream title; 
+       title << "Wire #" << wiresLRE[i]; 
+       colTitle->InsertNextValue(title.str()); 
+
+       this->GetLineReconstructionErrorAnalysisVector(wiresLRE[i], lreVector); 
+
+       colLreXMean->SetName("LRE-X Mean"); 
+       std::ostringstream lreXMean; 
+       lreXMean << lreVector[0]; 
+       colLreXMean->InsertNextValue(lreXMean.str()); 
+
+       colLreXStdev->SetName("LRE-X Stdev"); 
+       std::ostringstream lreXStdev; 
+       lreXStdev << lreVector[1]; 
+       colLreXStdev->InsertNextValue(lreXStdev.str()); 
+
+       colLreYMean->SetName("LRE-Y Mean"); 
+       std::ostringstream lreYMean; 
+       lreYMean << lreVector[2]; 
+       colLreYMean->InsertNextValue(lreYMean.str()); 
+
+       colLreYStdev->SetName("LRE-Y Stdev"); 
+       std::ostringstream lreYStdev; 
+       lreYStdev << lreVector[3]; 
+       colLreYStdev->InsertNextValue(lreYStdev.str()); 
+     }
+
+    lreTable->AddColumn(colTitle); 
+    lreTable->AddColumn(colLreXMean); 
+    lreTable->AddColumn(colLreXStdev); 
+    lreTable->AddColumn(colLreYMean); 
+    lreTable->AddColumn(colLreYStdev); 
+
+    htmlReport->AddText("Line Reconstruction Error Analysis", vtkHTMLGenerator::H2);
+
+    htmlReport->AddTable(lreTable, 1); 
 
 		htmlReport->AddText("Error Histogram", vtkHTMLGenerator::H2); 
 

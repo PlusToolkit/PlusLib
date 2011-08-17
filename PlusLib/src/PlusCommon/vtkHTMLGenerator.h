@@ -9,6 +9,7 @@
 #include <vector>
 #include <sstream>
 
+class vtkTable; 
 
 class VTK_EXPORT vtkHTMLGenerator : public vtkObject
 {
@@ -37,12 +38,16 @@ public:
 	virtual void AddImage(const char* imageSource, const char* alt, const int widthPx=0, const int heightPx=0); 
 
 	// Description: 
-	// 
+	// Add paragraph to document
 	virtual void AddParagraph( const char* paragraph ); 
 	
 	// Description: 
-	// 
+	// Add text to document 
 	virtual void AddText( const char* text, HEADINGS h, const char* style=NULL); 
+
+  // Description: 
+  // Add table to document
+  virtual void AddTable( vtkTable* table, int borderPx); 
 
 	// Description: 
 	// 

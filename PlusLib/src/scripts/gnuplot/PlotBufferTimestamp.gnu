@@ -10,7 +10,7 @@
 ##--------------------------------------------------------
 
 ## Set the terminal mode 
-#set terminal jpeg
+set terminal jpeg
 # BufferTimestamps.jpg
 set output o.".jpg"
 
