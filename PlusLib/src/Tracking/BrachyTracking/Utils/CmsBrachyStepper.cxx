@@ -82,13 +82,7 @@ static CmsBrachyStepper::STEPPERRESPCODE SRC_COUNTERS_INVALID = "29";
 //******************************************************************
 
 //----------------------------------------------------------------------------
-CmsBrachyStepper::CmsBrachyStepper()
-{
-	CmsBrachyStepper(1, 19200); 
-}
-
-//----------------------------------------------------------------------------
-CmsBrachyStepper::CmsBrachyStepper( unsigned long COMPort, unsigned long BaudRate)
+CmsBrachyStepper::CmsBrachyStepper( unsigned long COMPort/*=1*/, unsigned long BaudRate/*=19200*/)
 {
 	m_StepperCOMPort = new SerialLine(); 
   this->SetCOMPort(COMPort); 
@@ -100,10 +94,9 @@ CmsBrachyStepper::CmsBrachyStepper( unsigned long COMPort, unsigned long BaudRat
 	m_RotationScale = 0; 
 
   m_IsCalibrated = false; 
-	m_PositionRequestNumber = 0; 
 	m_RepeatedPositionErrorCount = 0; 
 
-	m_BarchyStepperType = BURDETTE_MEDICAL_SYSTEMS_DIGITAL_STEPPER; 
+	m_BrachyStepperType = BURDETTE_MEDICAL_SYSTEMS_DIGITAL_STEPPER; 
 
 	InitializeCriticalSection(&m_CriticalSection);
 }
@@ -423,21 +416,21 @@ bool CmsBrachyStepper::IsStepperCalibrated()
 	int motorizationCode(0); 
 	this->GetMotorizationCode(motorizationCode); 
 
-	if( m_BarchyStepperType == BURDETTE_MEDICAL_SYSTEMS_DIGITAL_STEPPER
+	if( m_BrachyStepperType == BURDETTE_MEDICAL_SYSTEMS_DIGITAL_STEPPER
 		&& 
 		PState == 5 && GState == 5 && RState == 9)
 	{
 		this->m_IsCalibrated = true; 
 		this->SetScalingParameters();
 	}
-	else if ( m_BarchyStepperType == BURDETTE_MEDICAL_SYSTEMS_DIGITAL_MOTORIZED_STEPPER
+	else if ( m_BrachyStepperType == BURDETTE_MEDICAL_SYSTEMS_DIGITAL_MOTORIZED_STEPPER
 		&& 
 		PState == 0 && GState == 5 && RState == 9)
 	{
 		this->m_IsCalibrated = true; 
 		this->SetScalingParameters();
 	} 
-	else if ( m_BarchyStepperType == CMS_ACCUSEED_DS300 )
+	else if ( m_BrachyStepperType == CMS_ACCUSEED_DS300 )
 	{
 		this->m_IsCalibrated = true; 
 		this->SetScalingParameters();
@@ -464,7 +457,7 @@ PlusStatus CmsBrachyStepper::InitializeStepper(std::string &CalibMsg)
 	this->GetCalibrationState(PState, GState, RState);
 	this->m_IsCalibrated = false;
 
-	if ((PState < 5) && (m_BarchyStepperType != BURDETTE_MEDICAL_SYSTEMS_DIGITAL_MOTORIZED_STEPPER))
+	if ((PState < 5) && (m_BrachyStepperType != BURDETTE_MEDICAL_SYSTEMS_DIGITAL_MOTORIZED_STEPPER))
 	{
 		switch (PState) 
 		{
@@ -481,7 +474,7 @@ PlusStatus CmsBrachyStepper::InitializeStepper(std::string &CalibMsg)
 		}
 		return PLUS_FAIL;
 	}
-	else if ((GState < 5) && (m_BarchyStepperType != BURDETTE_MEDICAL_SYSTEMS_DIGITAL_MOTORIZED_STEPPER)) //TODO: does motorized stepper need this? It works without it and does not flash the green light either
+	else if ((GState < 5) && (m_BrachyStepperType != BURDETTE_MEDICAL_SYSTEMS_DIGITAL_MOTORIZED_STEPPER)) //TODO: does motorized stepper need this? It works without it and does not flash the green light either
 	{
 		switch (GState) 
 		{

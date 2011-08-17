@@ -8,13 +8,18 @@ public:
 
   enum BRACHY_STEPPER_TYPE
   {
+    UNDEFINED_STEPPER,
     BURDETTE_MEDICAL_SYSTEMS_DIGITAL_STEPPER,
     BURDETTE_MEDICAL_SYSTEMS_DIGITAL_MOTORIZED_STEPPER,
     CMS_ACCUSEED_DS300, 
     CIVCO_STEPPER
   };
 
-  BrachyStepper(){};
+  BrachyStepper()
+  {
+    m_BrachyStepperType=UNDEFINED_STEPPER;
+    m_PositionRequestNumber=0;
+  };
   virtual ~BrachyStepper(){}; 
 
   // Description:
@@ -56,8 +61,8 @@ public:
 
   // Description:
   // Set/get bracy stepper type from BRACHY_STEPPER_TYPE
-  void SetBrachyStepperType( BRACHY_STEPPER_TYPE type ) { m_BarchyStepperType = type; }
-  BRACHY_STEPPER_TYPE GetBrachyStepperType() { return m_BarchyStepperType; }
+  void SetBrachyStepperType( BRACHY_STEPPER_TYPE type ) { m_BrachyStepperType = type; }
+  BRACHY_STEPPER_TYPE GetBrachyStepperType() const { return m_BrachyStepperType; }
 
   // Description:
   // Get brachy stepper type in string format
@@ -92,7 +97,7 @@ public:
 
 protected: 
 
-  BRACHY_STEPPER_TYPE m_BarchyStepperType;
+  BRACHY_STEPPER_TYPE m_BrachyStepperType;
 
   unsigned long m_PositionRequestNumber; 
 
