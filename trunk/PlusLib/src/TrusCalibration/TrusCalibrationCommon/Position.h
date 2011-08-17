@@ -109,16 +109,16 @@ class Position
 	    void setZ(double fZ) {m_pfPosition[2] = fZ;}
 	    
 	    //! Calculate the distance between two points.
-	    double Position::distance(const Position& position) const;
+	    double distance(const Position& position) const;
 
 	    //! Calculate the squared distance between two points.
-	    double Position::distanceSquared(const Position& position) const;
+	    double distanceSquared(const Position& position) const;
 
 	    //! Create a position that is the interpolation between two positions.
 	    Position interpolate(const Position& prevPosition, double fRatio) const;
 
 	    //! Get the magnitude of the position if representing a vector
-	    double Position::magnitude() const {return distance(Position());}
+	    double magnitude() const {return distance(Position());}
 
         //================================================================== 
         // Author: Thomas K. Chen

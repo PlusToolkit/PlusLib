@@ -122,8 +122,8 @@ void AppServices::initialize(const std::string& strAppName)
     }
     else if( getCurrentDirSuccessfully > 256 ) // BufferSize not enough
     {
-        char *extBufferDirectory = NULL;
-        const int extBufferSize(getCurrentDirSuccessfully);
+		const int extBufferSize(getCurrentDirSuccessfully);
+        char *extBufferDirectory = new char[extBufferSize];
         if(NULL == memset(extBufferDirectory, '\0', extBufferSize))
         {
             //================================================================== 
@@ -134,13 +134,15 @@ void AppServices::initialize(const std::string& strAppName)
             //   C++ library <exception>, therefore has maximum independence.
             //==================================================================				
             // unable to get memory buffer from windows
+			delete[] extBufferDirectory;
+			extBufferDirectory = NULL;
 		    throw Exception(__FILE__, __LINE__, kstrScope, kstrUnableToGetMemBuffer);                    
         }
 
         getCurrentDirSuccessfully = GetCurrentDirectory(extBufferSize, extBufferDirectory); 
         m_strAppPath = extBufferDirectory;
 
-        delete extBufferDirectory;
+        delete[] extBufferDirectory;
         extBufferDirectory = NULL;
     }
     else

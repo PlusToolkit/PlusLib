@@ -119,6 +119,11 @@ Constructor. Create an orientation from a string.
 //==================================================================
 Orientation::Orientation(const std::string& str)
 {
+	m_pfOrientation[0] = 0;
+	m_pfOrientation[1] = 0;
+	m_pfOrientation[2] = 0;
+	m_pfOrientation[3] = 0;
+	
     //================================================================== 
     // Author: Thomas K. Chen
     // Modifications Made:

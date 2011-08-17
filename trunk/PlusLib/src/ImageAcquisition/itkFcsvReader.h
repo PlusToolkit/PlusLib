@@ -47,9 +47,8 @@ class FcsvPoint
 ////////////////////////////////////////////////////////////////////////////////
 /// FCSV data file header.
 ////////////////////////////////////////////////////////////////////////////////
-class FcsvData
+struct FcsvData
 {
-	public:
 		std::string filePath;	// C:/Documents and Settings/peikarih/L.fcsv
 		std::string name;		//= L
 		int numPoints;			//= 16
@@ -101,7 +100,7 @@ public:
   FcsvData* GetFcsvDataObject() { return &m_FcsvDataObject; };
 protected:
   FcsvReader(const Self&);		//purposely not implemented
-  void operator=(const Self&);	//purposely not implemented
+  Self& operator=(const Self&);	//purposely not implemented
 
   std::string m_FileName;
 

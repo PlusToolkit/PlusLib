@@ -58,7 +58,7 @@ public:
   FcsvData* GetFcsvDataObject() { return &m_FcsvDataObject; };
 protected:
   FcsvWriter(const Self&);		//purposely not implemented
-  void operator=(const Self&);	//purposely not implemented
+  Self& operator=(const Self&);	//purposely not implemented
 
   std::string m_FileName;
 
