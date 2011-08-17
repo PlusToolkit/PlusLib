@@ -24,10 +24,7 @@ public:
   typedef const char* STEPPERCOMMAND;
   typedef const char* STEPPERRESPCODE;
 
-
-  CmsBrachyStepper();
-
-  CmsBrachyStepper(unsigned long COMPort, unsigned long BaudRate);
+  CmsBrachyStepper(unsigned long COMPort=1, unsigned long BaudRate=19200);
   virtual ~CmsBrachyStepper();
 
   // Connect to CMS stepper    
@@ -98,9 +95,9 @@ protected:
   
 
 
-  unsigned int AsciiToBin(unsigned int i, unsigned int j);
+  static unsigned int AsciiToBin(unsigned int i, unsigned int j);
 
-  void BinToAscii(unsigned int n, unsigned char *c1, unsigned char *c2);
+  static void BinToAscii(unsigned int n, unsigned char *c1, unsigned char *c2);
 
   void SendStepperCommand(STEPPERCOMMAND command, STEPPERRESPCODE Response, std::vector<BYTE> &vRawMessage);
 

@@ -15,8 +15,7 @@ class  CivcoBrachyStepper : public BrachyStepper
 {
 public:
 
-  CivcoBrachyStepper();
-  CivcoBrachyStepper(unsigned long COMPort, unsigned long BaudRate);
+  CivcoBrachyStepper(unsigned long COMPort=1, unsigned long BaudRate=9600);
   virtual ~CivcoBrachyStepper();
 
   // Description: 

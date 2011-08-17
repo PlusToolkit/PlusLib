@@ -5,6 +5,7 @@
 SerialLine::SerialLine()
 {
 	m_MaxReplyTime=1000;
+	m_SerialPortSpeed=9600;
 	m_CommHandle=INVALID_HANDLE_VALUE;
 
 	memset(&m_osReadWrite,0,sizeof(m_osReadWrite));
