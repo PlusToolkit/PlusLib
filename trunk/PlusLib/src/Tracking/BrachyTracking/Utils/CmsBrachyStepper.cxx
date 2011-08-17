@@ -63,7 +63,7 @@ static CmsBrachyStepper::STEPPERRESPCODE SRC_POSITION_DATA_BUTTON_LATCH = "67";
 static CmsBrachyStepper::STEPPERCOMMAND SC_MOTOR_ON = "8A018B";
 static CmsBrachyStepper::STEPPERCOMMAND SC_MOTOR_OFF = "8A008A";
 static CmsBrachyStepper::STEPPERCOMMAND SC_IS_MOTORIZED = "8181";
-static CmsBrachyStepper::STEPPERRESPCODE SRC_MOTORIZATION_CODE = "82";
+static CmsBrachyStepper::STEPPERRESPCODE SRC_MOTORIZATION_CODE = "82"; // scale factor (zero if stepper is not motorized)
 static CmsBrachyStepper::STEPPERRESPCODE SRC_MOVE_COMPLETE = "7A";
 
 static CmsBrachyStepper::STEPPERCOMMAND SC_RESET_SYSTEM = "0101";
@@ -291,7 +291,7 @@ PlusStatus CmsBrachyStepper::GetProbeReferenceData(double &count, double &dist, 
 PlusStatus CmsBrachyStepper::GetGridReferenceData(double &count, double &dist, double &scale)
 {
 	count = 0; dist = 0; scale = 0; 
-	if (GetReferenceData(SC_GRID_REFERENCE_DATA,SRC_GRID_REFERENCE_DATA,count, dist, scale)) 
+	if (GetReferenceData(SC_GRID_REFERENCE_DATA,SRC_GRID_REFERENCE_DATA,count, dist, scale)==PLUS_SUCCESS) 
 	{
 		m_GridScale = scale;
 		return PLUS_SUCCESS;
@@ -304,7 +304,7 @@ PlusStatus CmsBrachyStepper::GetGridReferenceData(double &count, double &dist, d
 PlusStatus CmsBrachyStepper::GetRotationReferenceData(double &count, double &dist, double &scale)
 {
 	count = 0; dist = 0; scale = 0; 
-	if (GetReferenceData(SC_ROTATION_REFERENCE_DATA,SRC_ROTATION_REFERENCE_DATA,count, dist, scale))
+	if (GetReferenceData(SC_ROTATION_REFERENCE_DATA,SRC_ROTATION_REFERENCE_DATA,count, dist, scale)==PLUS_SUCCESS)
 	{
 		m_RotationScale = scale;
 		return PLUS_SUCCESS;
@@ -321,6 +321,7 @@ PlusStatus CmsBrachyStepper::GetEncoderValues(double &PPosition, double &GPositi
 
 	if ( ! m_IsCalibrated )
 	{
+    LOG_ERROR("Cannot get encoder values, the stepper is not calibrated");
 		return PLUS_FAIL; 
 	}
 
@@ -412,9 +413,6 @@ bool CmsBrachyStepper::IsStepperCalibrated()
 	this->m_IsCalibrated = false; 
 
 	this->GetCalibrationState(PState, GState, RState);
-
-	int motorizationCode(0); 
-	this->GetMotorizationCode(motorizationCode); 
 
 	if( m_BrachyStepperType == BURDETTE_MEDICAL_SYSTEMS_DIGITAL_STEPPER
 		&& 
@@ -574,7 +572,7 @@ PlusStatus CmsBrachyStepper::TurnMotorOff()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus CmsBrachyStepper::GetMotorizationCode(int &MotorizationCode)
+PlusStatus CmsBrachyStepper::GetMotorizationScaleFactor(int &scaleFactor)
 {
 	PlusStatus retValue(PLUS_FAIL); 
 	EnterCriticalSection(&m_CriticalSection);
@@ -586,7 +584,7 @@ PlusStatus CmsBrachyStepper::GetMotorizationCode(int &MotorizationCode)
 
 		if (vDecodedMessage.size() >= 2) 
 		{
-			MotorizationCode = vDecodedMessage[1];
+			scaleFactor = vDecodedMessage[1];
 			retValue = PLUS_SUCCESS;
 			break; 
 		}
@@ -600,25 +598,20 @@ PlusStatus CmsBrachyStepper::GetMotorizationCode(int &MotorizationCode)
 //----------------------------------------------------------------------------
 bool CmsBrachyStepper::IsStepperMotorized()
 {
-	bool retValue(false);
-	int motorizationCode(0); 
-	this->GetMotorizationCode(motorizationCode); 
+	int scaleFactor(0); 
+	this->GetMotorizationScaleFactor(scaleFactor); 
 
-	if ( motorizationCode > 0 )
-	{
-		retValue = PLUS_SUCCESS; 
-	}
-	
-	return retValue; 
+  // scaleFactor==0 for non-motorized steppers, scaleFactor>0 for motorized steppers
+  return ( scaleFactor > 0 );
 }
 
 
 //----------------------------------------------------------------------------
 PlusStatus CmsBrachyStepper::MoveProbeToPosition(double PositionInMm, int &ReturnCode)
 {
-	int motorizationCode(0); 
 	if ( !this->IsStepperMotorized() )
 	{
+		LOG_ERROR("Cannot move probe, the stepper is not motorized");
 		return PLUS_FAIL; 
 	}
 
@@ -628,18 +621,18 @@ PlusStatus CmsBrachyStepper::MoveProbeToPosition(double PositionInMm, int &Retur
 	double count (0), dist(0), scale(0);
 	if ( !this->GetProbeReferenceData(count, dist, scale) )
 	{
-		// unable to get probe reference data
+		LOG_ERROR("Unable to get probe reference data");
 		return PLUS_FAIL; 
 	}
 
 	int scaleFactor(0); 
-	this->GetMotorizationCode(scaleFactor); 
+	this->GetMotorizationScaleFactor(scaleFactor); 
 
 	double pPosition(0), gPosition(0), pRotation(0); 
 	unsigned long positionRequestNumber(0); 
 	if ( !this->GetEncoderValues(pPosition, gPosition, pRotation, positionRequestNumber) )
 	{
-		// Unable to get probe position
+		LOG_ERROR("Unable to get probe position");
 		return PLUS_FAIL; 
 	}
 	

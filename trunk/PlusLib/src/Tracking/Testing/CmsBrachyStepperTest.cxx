@@ -120,11 +120,11 @@ int main (int argc, char* argv[])
 		}
 
 		LOG_INFO( "Getting motorized stepper's tick count...");
-		int MotorizationCode=-1;
-		if (myStepper->GetMotorizationCode(MotorizationCode)) {
-			if (MotorizationCode > 0)
+		int MotorizationScaleFactor=-1;
+		if (myStepper->GetMotorizationScaleFactor(MotorizationScaleFactor)) {
+			if (MotorizationScaleFactor > 0)
 			{
-				LOG_INFO("Tick count = " << MotorizationCode);
+				LOG_INFO("Tick count = " << MotorizationScaleFactor);
 			}
 			else
 			{
