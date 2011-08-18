@@ -89,6 +89,9 @@ public:
 	*/
 	void ToggleDeviceVisualization(bool aOn);
 
+  //TODO
+  void EnableCameraMovements(bool aEnabled);
+
 	/*!
 	* \brief Gets video time offset from video source
 	* \return Currently used video time offset in seconds
