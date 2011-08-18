@@ -460,9 +460,16 @@ bool vtkTrackedFrameList::ValidateSpeed(TrackedFrame* trackedFrame)
   double velocityPosition = fabs( diffPosition / diffTime );
   double velocityOrientation = fabs( diffOrientation / diffTime );
 
-  if ( velocityPosition > this->VelocityPositionThreshold || velocityOrientation > this->VelocityOrientationThreshold )
+  // if the threshold==0 it means that no checking is needed
+  
+  if ( this->VelocityPositionThreshold > 0 && velocityPosition > this->VelocityPositionThreshold)
   {
-    LOG_DEBUG("Tracked frame speed validation result: tracked frame change too fast (VelocityPosition = " << velocityPosition << ">" << this->VelocityPositionThreshold << " and/or VelocityOrientation = " << velocityOrientation << ">" << this->VelocityOrientationThreshold << ")"); 
+	LOG_DEBUG("Tracked frame speed validation result: tracked frame position change too fast (VelocityPosition = " << velocityPosition << ">" << this->VelocityPositionThreshold << ")"); 
+    return false; 
+  }
+  if ( this->VelocityOrientationThreshold >0 && velocityOrientation > this->VelocityOrientationThreshold )
+  {
+    LOG_DEBUG("Tracked frame speed validation result: tracked frame angle change too fast VelocityOrientation = " << velocityOrientation << ">" << this->VelocityOrientationThreshold << ")"); 
     return false; 
   }
 

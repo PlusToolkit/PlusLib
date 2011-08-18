@@ -324,6 +324,7 @@ protected:
   int NumberOfUniqueFrames;
   int FrameSize[2];
 
+  // if the threshold==0 it means that no checking is needed
   double VelocityPositionThreshold;
   double VelocityOrientationThreshold;
 
