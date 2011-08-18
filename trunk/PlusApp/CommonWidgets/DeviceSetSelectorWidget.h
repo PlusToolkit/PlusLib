@@ -58,6 +58,11 @@ public:
 	*/
   void SetComboBoxMinWidth(int minWidth);
 
+  /*!
+	* \brief Returns currently selected device set description 
+	*/
+  std::string GetSelectedDeviceSetDescription(); 
+
 signals:
 	/*!
 	* \brief Emmitted when configuration directory is changed (notifies application)
@@ -76,6 +81,7 @@ signals:
 	* \param Device set configuration file
 	*/
 	void ConnectToDevicesByConfigFileInvoked(std::string);
+
 
 protected:
 	/*!

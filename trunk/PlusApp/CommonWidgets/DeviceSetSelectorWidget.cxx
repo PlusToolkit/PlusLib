@@ -90,6 +90,15 @@ void DeviceSetSelectorWidget::InvokeConnect()
 
 //-----------------------------------------------------------------------------
 
+std::string DeviceSetSelectorWidget::GetSelectedDeviceSetDescription()
+{
+	LOG_TRACE("DeviceSetSelectorWidget::GetSelectedDeviceSetDescription"); 
+
+  return ui.comboBox_DeviceSet->itemData(ui.comboBox_DeviceSet->currentIndex()).toStringList().at(1).toStdString(); 
+}
+
+//-----------------------------------------------------------------------------
+
 void DeviceSetSelectorWidget::InvokeDisconnect()
 {
 	LOG_TRACE("ToolStateDisplayWidget::InvokeDisconnect"); 
