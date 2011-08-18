@@ -1,6 +1,6 @@
 #include "PlusConfigure.h"
 #include "vtkProbeCalibrationController.h"
-
+#include "PlusMath.h"
 #include "BrachyTRUSCalibrator.h"
 
 // VTK includes
@@ -1152,9 +1152,21 @@ PlusStatus vtkProbeCalibrationController::GenerateProbeCalibrationReport( vtkHTM
 
 		htmlReport->AddText("Final Calibration Results", vtkHTMLGenerator::H1); 
 
+    std::string strUserImageHomeToProbeHome = PlusMath::GetTransformParametersString(this->GetTransformUserImageHomeToProbeHome() ); 
+    std::string strProbeHomeToTemplateHolderHome = PlusMath::GetTransformParametersString(this->GetTransformProbeHomeToTemplateHolderHome() ); 
+    std::string strTemplateHolderHomeToTemplateHome = PlusMath::GetTransformParametersString(this->GetTransformTemplateHolderHomeToTemplateHome() ); 
+
+    htmlReport->AddText("Image to probe transform: ", vtkHTMLGenerator::H4);
+    htmlReport->AddParagraph(strUserImageHomeToProbeHome.c_str()); 
+
+    htmlReport->AddText("Probe to template holder transform: ", vtkHTMLGenerator::H4);
+    htmlReport->AddParagraph(strProbeHomeToTemplateHolderHome.c_str()); 
+
+    htmlReport->AddText("Template holder to template transform: ", vtkHTMLGenerator::H4);
+    htmlReport->AddParagraph(strTemplateHolderHomeToTemplateHome.c_str()); 
+
     vtkSmartPointer<vtkTable> lreTable = vtkSmartPointer<vtkTable>::New(); 
     std::vector<double> lreVector; 
-
 
     vtkSmartPointer<vtkStringArray> colTitle = vtkSmartPointer<vtkStringArray>::New(); 
     vtkSmartPointer<vtkStringArray> colLreXMean = vtkSmartPointer<vtkStringArray>::New(); 
@@ -1173,24 +1185,24 @@ PlusStatus vtkProbeCalibrationController::GenerateProbeCalibrationReport( vtkHTM
 
        this->GetLineReconstructionErrorAnalysisVector(wiresLRE[i], lreVector); 
 
-       colLreXMean->SetName("LRE-X Mean"); 
+       colLreXMean->SetName("LRE-X Mean (mm)"); 
        std::ostringstream lreXMean; 
-       lreXMean << lreVector[0]; 
+       lreXMean << lreVector[0]*1000; 
        colLreXMean->InsertNextValue(lreXMean.str()); 
 
-       colLreXStdev->SetName("LRE-X Stdev"); 
+       colLreXStdev->SetName("LRE-X Stdev (mm)"); 
        std::ostringstream lreXStdev; 
-       lreXStdev << lreVector[1]; 
+       lreXStdev << lreVector[1]*1000; 
        colLreXStdev->InsertNextValue(lreXStdev.str()); 
 
-       colLreYMean->SetName("LRE-Y Mean"); 
+       colLreYMean->SetName("LRE-Y Mean (mm)"); 
        std::ostringstream lreYMean; 
-       lreYMean << lreVector[2]; 
+       lreYMean << lreVector[2]*1000; 
        colLreYMean->InsertNextValue(lreYMean.str()); 
 
-       colLreYStdev->SetName("LRE-Y Stdev"); 
+       colLreYStdev->SetName("LRE-Y Stdev (mm)"); 
        std::ostringstream lreYStdev; 
-       lreYStdev << lreVector[3]; 
+       lreYStdev << lreVector[3]*1000; 
        colLreYStdev->InsertNextValue(lreYStdev.str()); 
      }
 
