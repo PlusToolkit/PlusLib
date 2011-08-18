@@ -20,6 +20,7 @@
 #include "vtkSphereSource.h"
 #include "vtkProperty.h"
 #include "vtkTransformPolyDataFilter.h"
+#include "vtkInteractorStyleTrackballCamera.h"
 
 //-----------------------------------------------------------------------------
 
@@ -197,9 +198,7 @@ PlusStatus vtkFreehandCalibrationController::InitializeVisualization()
 			// If already initialized (it can occur if tab change - and so clear - happened)
 			controller->GetCanvasRenderer()->AddActor(this->CanvasImageActor);
 			controller->GetCanvasRenderer()->AddActor(this->SegmentedPointsActor);
-			controller->GetCanvasRenderer()->InteractiveOff(); // TODO it doesn't work - find a way to disable interactions (also re-enable on Clear)
-			//controller->GetCanvasRenderer()->GetRenderWindow()->GetInteractor()->Disable();
-			controller->GetCanvasRenderer()->Modified();
+      this->EnableCameraMovements(false);
 
 			// Compute image camera parameters and set it to display live image
 			CalculateImageCameraParameters();
@@ -352,6 +351,29 @@ PlusStatus vtkFreehandCalibrationController::InitializeDeviceVisualization()
 
 //-----------------------------------------------------------------------------
 
+void vtkFreehandCalibrationController::EnableCameraMovements(bool aEnabled)
+{
+	LOG_TRACE("vtkFreehandCalibrationController::EnableCameraMovements(" << (aEnabled?"true":"false") << ")");
+
+	vtkFreehandController* controller = vtkFreehandController::GetInstance();
+	if ((controller == NULL) || (controller->GetInitialized() == false)) {
+		LOG_ERROR("vtkFreehandController is not initialized!");
+		return;
+	}
+	vtkRenderer* renderer = controller->GetCanvasRenderer();
+
+  if (aEnabled)
+  {
+    renderer->GetRenderWindow()->GetInteractor()->SetInteractorStyle(vtkInteractorStyleTrackballCamera::New());
+  }
+  else
+  {
+    renderer->GetRenderWindow()->GetInteractor()->RemoveAllObservers();
+  }
+}
+
+//-----------------------------------------------------------------------------
+
 void vtkFreehandCalibrationController::ToggleDeviceVisualization(bool aOn)
 {
 	LOG_TRACE("vtkFreehandCalibrationController::ToggleDeviceVisualization(" << (aOn?"true":"false") << ")");
@@ -398,6 +420,9 @@ void vtkFreehandCalibrationController::ToggleDeviceVisualization(bool aOn)
 		renderer->SetActiveCamera(this->ImageCamera);
 		renderer->ResetCamera();
 	}
+
+  // Set camera movement possibility
+  this->EnableCameraMovements(aOn);
 
 	this->SetShowDevices(aOn);
 }
@@ -471,7 +496,10 @@ PlusStatus vtkFreehandCalibrationController::Clear()
 
 	vtkRenderer* renderer = vtkFreehandController::GetInstance()->GetCanvasRenderer();
 
-	// Remove image actor and reset background color
+  // Re-enable camera movements
+  this->EnableCameraMovements(true);
+
+  // Remove image actor and reset background color
 	renderer->RemoveActor(this->CanvasImageActor);
 	renderer->RemoveActor(this->SegmentedPointsActor);
 	renderer->InteractiveOn();
