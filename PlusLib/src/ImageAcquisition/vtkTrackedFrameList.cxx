@@ -267,8 +267,11 @@ vtkTrackedFrameList::vtkTrackedFrameList()
   this->SetNumberOfUniqueFrames(5); 
   this->SetFrameSize(0,0); 
 
-  this->SetVelocityPositionThreshold(0.0);
-  this->SetVelocityOrientationThreshold(0.0);
+  this->MinRequiredTranslationDifferenceMm=0.0;
+  this->MinRequiredAngleDifferenceDeg=0.0;
+  this->MaxAllowedTranslationSpeedMmPerSec=0.0;
+  this->MaxAllowedRotationSpeedDegPerSec=0.0;
+
 }
 
 //----------------------------------------------------------------------------
@@ -388,7 +391,8 @@ bool vtkTrackedFrameList::ValidatePosition(TrackedFrame* trackedFrame, const cha
     searchIndex =this->TrackedFrameList.end() - this->NumberOfUniqueFrames; 
   }
 
-  if (std::find_if(searchIndex, this->TrackedFrameList.end(), TrackedFramePositionFinder(trackedFrame, frameTransformName) ) != this->TrackedFrameList.end() )
+  if (std::find_if(searchIndex, this->TrackedFrameList.end(), TrackedFramePositionFinder(trackedFrame, frameTransformName,
+    this->MinRequiredTranslationDifferenceMm, this->MinRequiredAngleDifferenceDeg) ) != this->TrackedFrameList.end() )
   {
     // We've already inserted this frame 
     LOG_DEBUG("Tracked frame position validation result: we've already inserted this frame to container!"); 
@@ -420,8 +424,11 @@ bool vtkTrackedFrameList::ValidateSpeed(TrackedFrame* trackedFrame)
   TrackedFrameListType::iterator latestFrameInList = this->TrackedFrameList.end() - 1;
 
   // Compute difference between the last two timestamps
-  double diffTime = fabs( trackedFrame->Timestamp - (*latestFrameInList)->Timestamp );
-  if (diffTime <= 0.0) {
+  double diffTimeSec = fabs( trackedFrame->Timestamp - (*latestFrameInList)->Timestamp );
+  if (diffTimeSec < 0.0001) 
+  { 
+    // the frames are almost acquired at the same time, cannot compute speed reliably
+    // better to invalidate the frame
     return false;
   }
 
@@ -449,28 +456,29 @@ bool vtkTrackedFrameList::ValidateSpeed(TrackedFrame* trackedFrame)
     LOG_ERROR("Unable to get default frame transform for latest frame!");
     return false;
   }
-
-  // Compute difference between the last two positions
-  double diffPosition = PlusMath::GetPositionDifference( inputTransform->GetMatrix(), latestTransform->GetMatrix() );
-
-  // Compute difference between the last two orientations
-  double diffOrientation = PlusMath::GetOrientationDifference( inputTransform->GetMatrix(), latestTransform->GetMatrix() );
-
-  // Compute position and orientation speed and decide if they are acceptable
-  double velocityPosition = fabs( diffPosition / diffTime );
-  double velocityOrientation = fabs( diffOrientation / diffTime );
-
-  // if the threshold==0 it means that no checking is needed
-  
-  if ( this->VelocityPositionThreshold > 0 && velocityPosition > this->VelocityPositionThreshold)
+ 
+  if ( this->MaxAllowedTranslationSpeedMmPerSec>0)
   {
-	LOG_DEBUG("Tracked frame speed validation result: tracked frame position change too fast (VelocityPosition = " << velocityPosition << ">" << this->VelocityPositionThreshold << ")"); 
-    return false; 
+    // Compute difference between the last two positions
+    double diffPosition = PlusMath::GetPositionDifference( inputTransform->GetMatrix(), latestTransform->GetMatrix() );
+    double velocityPositionMmPerSec = fabs( diffPosition / diffTimeSec );
+    if (velocityPositionMmPerSec > this->MaxAllowedTranslationSpeedMmPerSec)
+    {
+      LOG_DEBUG("Tracked frame speed validation result: tracked frame position change too fast (VelocityPosition = " << velocityPositionMmPerSec << ">" << this->MaxAllowedTranslationSpeedMmPerSec << " mm/sec)"); 
+      return false; 
+    }
   }
-  if ( this->VelocityOrientationThreshold >0 && velocityOrientation > this->VelocityOrientationThreshold )
+
+  if ( this->MaxAllowedRotationSpeedDegPerSec>0)
   {
-    LOG_DEBUG("Tracked frame speed validation result: tracked frame angle change too fast VelocityOrientation = " << velocityOrientation << ">" << this->VelocityOrientationThreshold << ")"); 
-    return false; 
+    // Compute difference between the last two orientations
+    double diffOrientationDeg = PlusMath::GetOrientationDifference( inputTransform->GetMatrix(), latestTransform->GetMatrix() );
+    double velocityOrientationDegPerSec = fabs( diffOrientationDeg / diffTimeSec );
+    if (velocityOrientationDegPerSec > this->MaxAllowedRotationSpeedDegPerSec )
+    {
+      LOG_DEBUG("Tracked frame speed validation result: tracked frame angle change too fast VelocityOrientation = " << velocityOrientationDegPerSec << ">" << this->MaxAllowedRotationSpeedDegPerSec << " deg/sec)"); 
+      return false; 
+    }
   }
 
   return true; 
@@ -771,32 +779,30 @@ PlusStatus vtkTrackedFrameList::ReadConfiguration(vtkXMLDataElement* config)
 		return PLUS_FAIL; 
 	}
 
-  vtkSmartPointer<vtkXMLDataElement> videoConfig = config->LookupElementWithName("ImageAcqusition"); 
+  vtkSmartPointer<vtkXMLDataElement> trackerConfig = config->LookupElementWithName("Tracker"); 
 
-  if ( videoConfig == NULL )
+  if ( trackerConfig == NULL )
   {
-    LOG_ERROR("Unable to find ImageAcqusition xml data element in configuration!"); 
-		return PLUS_FAIL; 
+    LOG_DEBUG("Unable to find ImageAcqusition xml data element in configuration. Use default values."); 
+		return PLUS_SUCCESS; 
   }
 
-  double speedThresholdPositionMm = 0;
-	if ( videoConfig->GetScalarAttribute("SpeedThresholdPositionMm", speedThresholdPositionMm) )
+	if ( !trackerConfig->GetScalarAttribute("MinRequiredTranslationDifferenceMm", this->MinRequiredTranslationDifferenceMm) )
 	{
-    this->VelocityPositionThreshold = speedThresholdPositionMm;
-	}
-  else
-  {
-    LOG_WARNING("Unable to find ImageAcqusition SpeedThresholdPositionMm attribute in configuration!"); 
+    LOG_DEBUG("ImageAcqusition MinRequiredTranslationDifferenceMm attribute is not defined, use default value"); 
+  }
+  if ( !trackerConfig->GetScalarAttribute("MinRequiredAngleDifferenceDeg", this->MinRequiredAngleDifferenceDeg) )
+	{
+    LOG_DEBUG("ImageAcqusition MinRequiredAngleDifferenceDeg attribute is not defined, use default value"); 
   }
 
-  double speedThresholdOrientationAngle = 0;
-	if ( videoConfig->GetScalarAttribute("SpeedThresholdOrientationAngle", speedThresholdOrientationAngle) )
-	{
-    this->VelocityOrientationThreshold = speedThresholdOrientationAngle;
-	}
-  else
+	if ( !trackerConfig->GetScalarAttribute("MaxAllowedTranslationSpeedMmPerSec", this->MaxAllowedTranslationSpeedMmPerSec) )
   {
-    LOG_WARNING("Unable to find ImageAcqusition SpeedThresholdOrientationAngle attribute in configuration!"); 
+    LOG_DEBUG("ImageAcqusition MaxAllowedTranslationSpeedMmPerSec attribute is not defined, use default value"); 
+  }
+	if ( !trackerConfig->GetScalarAttribute("MaxAllowedRotationSpeedDegPerSec", this->MaxAllowedRotationSpeedDegPerSec) )
+  {
+    LOG_DEBUG("ImageAcqusition MaxAllowedRotationSpeedDegPerSec attribute is not defined, use default value"); 
   }
 
   return PLUS_SUCCESS;
