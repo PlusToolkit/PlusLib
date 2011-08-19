@@ -24,14 +24,8 @@
 					Error="0.0" />
 			</Tool>
 		</Tracker>
-
-		<ImageAcqusition Type="None"
-        SpeedThresholdPositionMm="10.0"
-        SpeedThresholdOrientationAngle="15.0"
-				/>
-
-		<Synchronization Type="None" />
     
+		<Synchronization Type="None" />
 	</USDataCollection>
 
 	<!-- CALIBRATION -->

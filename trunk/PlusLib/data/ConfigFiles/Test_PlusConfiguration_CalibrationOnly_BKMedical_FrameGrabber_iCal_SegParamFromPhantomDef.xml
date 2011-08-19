@@ -1,12 +1,5 @@
 <PlusConfiguration version="1.2">
 
-	<USDataCollection version="2.0" StartupDelaySec="1.0">
-		<ImageAcqusition
-        SpeedThresholdPositionMm="10.0"
-        SpeedThresholdOrientationAngle="15.0"
-				/>
-	</USDataCollection>
-
 	<USCalibration version="1.0">
 		<!-- CalibrationMode: OFFLINE or REALTIME -->
 		<CalibrationController LogLevel="INFO" OutputPath="./Output" EnableTrackedSequenceDataSaving="FALSE" EnableErroneouslySegmentedDataSaving="FALSE" EnableSegmentationAnalysis="FALSE" CalibrationMode="OFFLINE" EnableVisualization="FALSE">

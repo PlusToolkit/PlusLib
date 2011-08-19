@@ -432,7 +432,6 @@ static VLEDState vtkNDICertusMapVLEDState[] = {
 		{
 			OptotrakRigidStruct& rigidBody = rigidBodyData[rigidCounter];
 			long rigidId = rigidBody.RigidId;
-			LOG_TRACE("rigidBody " << rigidCounter << " rigidId = " << rigidId);
 
 			std::map<int, int>::iterator rigidBodyMapIterator = this->RigidBodyMap.find(rigidId); 
 			if ( rigidBodyMapIterator != this->RigidBodyMap.end())
@@ -457,11 +456,11 @@ static VLEDState vtkNDICertusMapVLEDState[] = {
 				trans[5] = rigidBody.transformation.quaternion.translation.y;
 				trans[6] = rigidBody.transformation.quaternion.translation.z;
 				trans[7] = rigidBody.QuaternionError;
-				LOG_TRACE(" " << trans[4] << ", " << trans[5] << ", " << trans[6]);
+        LOG_TRACE("Rigid body "<<rigidCounter<<" (rigidId="<<rigidId<<") translation: "<< trans[4] << ", " << trans[5] << ", " << trans[6]);
 			}
 			else
 			{
-				LOG_TRACE("OPTOTRAK_UNDETERMINED_FLAG");
+        LOG_TRACE("Rigid body "<<rigidCounter<<" (rigidId="<<rigidId<<") undetermined");
 			}
 
 			statusFlags[tool] = rigidBody.flags;

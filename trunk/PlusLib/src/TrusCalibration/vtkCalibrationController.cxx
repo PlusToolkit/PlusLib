@@ -453,7 +453,7 @@ PlusStatus vtkCalibrationController::ReadConfiguration( vtkXMLDataElement* confi
   {
 	  if ((*it)->ReadConfiguration(configData) != PLUS_SUCCESS)
 	  {
-      LOG_ERROR("Speed thresholds in ImageAcquisition cannot be read!");
+      LOG_ERROR("TrackedFrameList configuration cannot be read!");
 	    return PLUS_FAIL;
 	  }
   }

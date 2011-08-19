@@ -121,10 +121,10 @@ public:
 class TrackedFramePositionFinder
 {	
 public:
-  TrackedFramePositionFinder(TrackedFrame* frame, const char* frameTransformName = NULL, double translationDistanceThresholdMm = 0.5, double rotationAngleThresholdDeg = 0.2)
+  TrackedFramePositionFinder(TrackedFrame* frame, const char* frameTransformName, double minRequiredTranslationDifferenceMm /*= 0.5*/, double minRequiredAngleDifferenceDeg /*= 0.2*/)
     : mTrackedFrame(frame), 
-    mRotationAngleThresholdDeg(rotationAngleThresholdDeg),
-    mTranslationDistanceThresholdMm(translationDistanceThresholdMm)
+    mMinRequiredTranslationDifferenceMm(minRequiredTranslationDifferenceMm),
+    mMinRequiredAngleDifferenceDeg(minRequiredAngleDifferenceDeg)
   {
     if ( frameTransformName == NULL ) 
     {
@@ -139,6 +139,12 @@ public:
   //! TODO Description
   bool operator()( TrackedFrame *newFrame )	
   {
+    if (mMinRequiredTranslationDifferenceMm<=0 || mMinRequiredAngleDifferenceDeg<=0)
+    {
+      // threshold is zero, so the frames are different for sure
+      return false;
+    }
+
     vtkSmartPointer<vtkTransform> baseTransform = vtkSmartPointer<vtkTransform>::New(); 
     double baseTransMatrix[16]={0}; 
     if ( mTrackedFrame->GetCustomFrameTransform(mFrameTransformName.c_str(), baseTransMatrix) )
@@ -204,8 +210,9 @@ public:
       angleDifference = diffTransform->GetOrientationWXYZ()[0]; 
     }
 
-    if ( distance < this->mTranslationDistanceThresholdMm && abs(angleDifference) < this->mRotationAngleThresholdDeg )
+    if ( distance < this->mMinRequiredTranslationDifferenceMm && abs(angleDifference) < this->mMinRequiredAngleDifferenceDeg )
     {
+      // same as the reference frame
       return true; 
     }
 
@@ -213,8 +220,8 @@ public:
   }	
 
   TrackedFrame* mTrackedFrame;
-  double mRotationAngleThresholdDeg; 
-  double mTranslationDistanceThresholdMm; 
+  double mMinRequiredTranslationDifferenceMm;
+  double mMinRequiredAngleDifferenceDeg;
   std::string mFrameTransformName;  
 
 };
@@ -289,13 +296,13 @@ public:
 
   //! Operation: 
   // Set/get the threshold of acceptable speed of position change
-  vtkSetMacro(VelocityPositionThreshold, double); 
-  vtkGetMacro(VelocityPositionThreshold, double); 
+  vtkSetMacro(MinRequiredTranslationDifferenceMm, double); 
+  vtkGetMacro(MinRequiredTranslationDifferenceMm, double); 
 
   //! Operation: 
   // Set/get the threshold of acceptable speed of orientation change in degrees
-  vtkSetMacro(VelocityOrientationThreshold, double); 
-  vtkGetMacro(VelocityOrientationThreshold, double); 
+  vtkSetMacro(MinRequiredAngleDifferenceDeg, double); 
+  vtkGetMacro(MinRequiredAngleDifferenceDeg, double); 
 
   //! Operation: 
   // Get tracked frame size in pixel
@@ -324,9 +331,13 @@ protected:
   int NumberOfUniqueFrames;
   int FrameSize[2];
 
-  // if the threshold==0 it means that no checking is needed
-  double VelocityPositionThreshold;
-  double VelocityOrientationThreshold;
+  // If the threshold==0 it means that no checking is needed (the frame is always accepted).
+  // If the threshold>0 then the frame is considered valid only if the position/angle difference compared to all previously acquired frames is larger than
+  // the position/angle minimum value and the translation/rotation speed is lower than the maximum allowed translation/rotation.
+  double MinRequiredTranslationDifferenceMm;
+  double MinRequiredAngleDifferenceDeg;
+  double MaxAllowedTranslationSpeedMmPerSec;
+  double MaxAllowedRotationSpeedDegPerSec;
 
 private:
   vtkTrackedFrameList(const vtkTrackedFrameList&);
