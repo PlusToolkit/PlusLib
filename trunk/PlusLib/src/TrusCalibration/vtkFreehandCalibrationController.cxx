@@ -451,14 +451,14 @@ PlusStatus vtkFreehandCalibrationController::CalculateImageCameraParameters()
 	// Calculate image center
 	double imageCenterX = 0;
 	double imageCenterY = 0;
-	if ((this->GetSegParameters()->GetFrameSize()[0] <= 0) || (this->GetSegParameters()->GetFrameSize()[1] <= 0)) {
+	if ((this->GetPatternRecognition()->GetFidSegmentation()->GetFrameSize()[0] <= 0) || (this->GetPatternRecognition()->GetFidSegmentation()->GetFrameSize()[1] <= 0)) {
 		int dimensions[3];
 		dataCollector->GetVideoSource()->GetFrameSize(dimensions);
 		imageCenterX = dimensions[0] / 2.0;
 		imageCenterY = dimensions[1] / 2.0;
 	} else {
-		imageCenterX = this->GetSegParameters()->GetFrameSize()[0] / 2.0; 
-		imageCenterY = this->GetSegParameters()->GetFrameSize()[1] / 2.0; 
+		imageCenterX = this->GetPatternRecognition()->GetFidSegmentation()->GetFrameSize()[0] / 2.0; 
+		imageCenterY = this->GetPatternRecognition()->GetFidSegmentation()->GetFrameSize()[1] / 2.0; 
 	}
 
 	// Set up camera
@@ -734,21 +734,15 @@ PlusStatus vtkFreehandCalibrationController::Start()
 	LOG_TRACE("vtkFreehandCalibrationController::Start");
 
 	if (this->TemporalCalibrationDone) {
-		// Initialize vtkCalibrationController
-		if (this->GetSegParameters() == NULL) {
-			LOG_ERROR( "Unable to start spatial calibration: calibration configuration is not loaded!" );  
-			return PLUS_FAIL; 
-		}
-
+		
 		// Initialize the segmentation component
-		if (this->mptrAutomatedSegmentation == NULL) {
-			this->mptrAutomatedSegmentation = new KPhantomSeg( 
-				this->GetSegParameters()->GetFrameSize(), this->GetSegParameters()->GetRegionOfInterest(), this->GetEnableSegmentationAnalysis(), "frame.jpg");
+    if (this->GetPatternRecognition() == NULL) {
+      this->PatternRecognition.ReadConfiguration(vtkFreehandController::GetInstance()->GetDataCollector()->GetConfigurationData());
 		}	
 
 		// Initialize the calibration component
 		if (this->Calibrator == NULL) {
-			this->Calibrator = new BrachyTRUSCalibrator( this->SegParameters, this->GetEnableSystemLog() );
+			this->Calibrator = new BrachyTRUSCalibrator( this->GetPatternRecognition(), this->GetEnableSystemLog() );
 		}
 
 		// Set the ultrasound image frame in pixels
@@ -1055,10 +1049,7 @@ PlusStatus vtkFreehandCalibrationController::PopulateSegmentedFiducialsToDataCon
 	// [ X, Y, 0, 1] all units in pixels
 	// ==================================================================
 
-	SegmentationResults segResults;
-	this->GetSegmenter()->GetSegmentationResults(segResults); 
-
-	if (! segResults.GetDotsFound()) {
+  if (! this->GetPatternRecognition()->GetFidLabelling()->GetDotsFound()) {
 		LOG_ERROR("Segmentation failed! Unable to populate segmentation result!"); 
 		return PLUS_FAIL; 
 	}
@@ -1068,10 +1059,10 @@ PlusStatus vtkFreehandCalibrationController::PopulateSegmentedFiducialsToDataCon
 	std::vector<vnl_vector<double>> SegmentedNFiducialsInFixedCorrespondence;
 	SegmentedNFiducialsInFixedCorrespondence.resize(0);
 
-	for (int i=0; i<segResults.GetFoundDotsCoordinateValue().size(); i++) {
+	for (int i=0; i<this->GetPatternRecognition()->GetFidLabelling()->GetFoundDotsCoordinateValue().size(); i++) {
 		vnl_vector<double> NFiducial(4,0);
-		NFiducial[0]=segResults.GetFoundDotsCoordinateValue()[i][0];
-		NFiducial[1]=segResults.GetFoundDotsCoordinateValue()[i][1];
+		NFiducial[0]=this->GetPatternRecognition()->GetFidLabelling()->GetFoundDotsCoordinateValue()[i][0];
+		NFiducial[1]=this->GetPatternRecognition()->GetFidLabelling()->GetFoundDotsCoordinateValue()[i][1];
 		NFiducial[2]=0;
 		NFiducial[3]=1;
 
@@ -1176,13 +1167,12 @@ PlusStatus vtkFreehandCalibrationController::DisplaySegmentedPoints(bool aSucces
 
 	// Get last results and feed the points into vtkPolyData for displaying
 	SegmentedFrame lastSegmentedFrame = this->SegmentedFrameContainer.at(this->SegmentedFrameContainer.size() - 1);
-	SegmentationResults results = lastSegmentedFrame.SegResults;
 	int height = lastSegmentedFrame.TrackedFrameInfo->GetFrameSize()[1];
 
 	vtkSmartPointer<vtkPoints> inputPoints = vtkSmartPointer<vtkPoints>::New();
-	inputPoints->SetNumberOfPoints(results.GetFoundDotsCoordinateValue().size());
+  inputPoints->SetNumberOfPoints(this->GetPatternRecognition()->GetFidLabelling()->GetFoundDotsCoordinateValue().size());
 
-	std::vector<std::vector<double>> dots = results.GetFoundDotsCoordinateValue();
+	std::vector<std::vector<double>> dots = this->GetPatternRecognition()->GetFidLabelling()->GetFoundDotsCoordinateValue();
 	for (int i=0; i<dots.size(); ++i) {
 		inputPoints->InsertPoint(i, dots[i][0], height - dots[i][1], 0.0);
 	}
@@ -1661,8 +1651,8 @@ PlusStatus vtkFreehandCalibrationController::SaveCalibrationResultsAndErrorRepor
 	// <UltrasoundImageDimensions>
 	vtkSmartPointer<vtkXMLDataElement> tagUltrasoundImageDimensions = vtkSmartPointer<vtkXMLDataElement>::New(); 
 	tagUltrasoundImageDimensions->SetName("UltrasoundImageDimensions"); 
-	tagUltrasoundImageDimensions->SetIntAttribute("Width", this->GetSegParameters()->GetFrameSize()[0]); 
-	tagUltrasoundImageDimensions->SetIntAttribute("Height", this->GetSegParameters()->GetFrameSize()[1]); 
+  tagUltrasoundImageDimensions->SetIntAttribute("Width", this->GetPatternRecognition()->GetFidSegmentation()->GetFrameSize()[0]); 
+	tagUltrasoundImageDimensions->SetIntAttribute("Height", this->GetPatternRecognition()->GetFidSegmentation()->GetFrameSize()[1]); 
 	vtkstd::string commentUltrasoundImageDimensions("# UltrasoundImageDimensions format: image width and height in pixels."); 
 	tagUltrasoundImageDimensions->AddCharacterData(commentUltrasoundImageDimensions.c_str(), commentUltrasoundImageDimensions.size()); 
 	// </UltrasoundImageDimensions>

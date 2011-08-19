@@ -79,7 +79,7 @@ const double BrachyTRUSCalibrator::mNUMOFTIMESOFMINBEAMWIDTH = 2.1;
 
 //-----------------------------------------------------------------------------
 
-BrachyTRUSCalibrator::BrachyTRUSCalibrator( SegmentationParameters* aSegmentationParameters, const bool IsSystemLogOn )
+BrachyTRUSCalibrator::BrachyTRUSCalibrator( FidPatternRecognition * patternRecognitionObject, const bool IsSystemLogOn )
 	: Phantom( IsSystemLogOn )	// Call the parent's constructor
 {
 	try
@@ -105,8 +105,8 @@ for( int i = 0; i < 5; i++ )
 		{
 			mPhantomSpecificReferencePoints[i].set_size(4);
 		}
-
-		mNWires = aSegmentationParameters->GetNWires();
+    
+    mNWires = patternRecognitionObject->GetFidSegmentation()->GetNWires();
 
 		// Load the phantom-specfic geometry
 		loadGeometry();

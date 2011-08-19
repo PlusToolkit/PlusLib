@@ -1,9 +1,7 @@
 #include "UsFidSegResultFile.h" 
-#include "UltraSoundFiducialSegmentation.h"
+#include "FidPatternRecognition.h"
 
 //----------------------------------------------------------------------------
-
-///////////////////////////////////////////////////////////////////
 
 // Write segmentation results
 
@@ -17,13 +15,11 @@ void UsFidSegResultFile::WriteSegmentationResultsHeader(std::ostream &outFile)
 	outFile << "<"<<TEST_RESULTS_ELEMENT_NAME<<">" << std::endl; 
 }
 
-void UsFidSegResultFile::WriteSegmentationResultsParameters(std::ostream &outFile, SegmentationParameters &params, const std::string &trueFidFileName)
+void UsFidSegResultFile::WriteSegmentationResultsParameters(std::ostream &outFile, FidPatternRecognition &patternRecognition, const std::string &trueFidFileName)
 {
-	
-	outFile << " <AlgorithmOptions SegmentationThreshold=\"" << params.GetThresholdImage() <<  "\" ImportSegResultsFromFile=\"" << trueFidFileName.c_str() << "\" />" << std::endl;
-	
-	
+	outFile << " <AlgorithmOptions SegmentationThreshold=\"" << patternRecognition.GetFidSegmentation()->GetThresholdImage() <<  "\" ImportSegResultsFromFile=\"" << trueFidFileName.c_str() << "\" />" << std::endl;
 }
+
 void UsFidSegResultFile::WriteSegmentationResultsStats(std::ostream &outFile, double meanFid, double meanFidCandidate/*=-1*/)
 {
 	outFile << " <Statistics>" << std::endl;
@@ -51,7 +47,7 @@ SegmentationQualityInIntensityScore="44.3"
 SegmentationPoints="12 12 23 23 34 34 45 45 56 56 67 67" />
 </TestCase>
 */
-void UsFidSegResultFile::WriteSegmentationResults(std::ostream &outFile, SegmentationResults &segResults, const std::string &inputTestcaseName, int currentFrameIndex, const std::string &inputImageSequenceFileName)
+void UsFidSegResultFile::WriteSegmentationResults(std::ostream &outFile, PatternRecognitionResult &segResults, const std::string &inputTestcaseName, int currentFrameIndex, const std::string &inputImageSequenceFileName)
 { 	
 	LOG_DEBUG("Writing test case " << inputTestcaseName.c_str() << " frame " << currentFrameIndex);
 	bool algoSuccessful=segResults.GetDotsFound() && (segResults.GetFoundDotsCoordinateValue().size()>0);

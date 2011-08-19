@@ -4,7 +4,7 @@
 #include <strstream>
 #include <limits>
 
-#include "UltraSoundFiducialSegmentation.h"
+#include "FidPatternRecognition.h"
 
 #include "vtksys/CommandLineArguments.hxx"
 #include "vtkXMLDataElement.h"
@@ -14,9 +14,6 @@
 #include "itkLandmarkSpatialObject.h"
 
 #include "UsFidSegResultFile.h"
-
-///////////////////////////////////////////////////////////////////
-// Other constants
 
 void WriteFiducialPositions(std::ofstream &outFile,const std::string &inputTestcaseName, const std::string &inputImageSequenceFileName, const std::string &fiducialPosFileName) 
 {
@@ -74,10 +71,8 @@ void WriteFiducialPositions(std::ofstream &outFile,const std::string &inputTestc
 		// Set to false if you don't want images produced after each morphological operation
 		bool debugOutput=PlusLogger::Instance()->GetLogLevel()>=PlusLogger::LOG_LEVEL_DEBUG; 
 		
-		SegmentationResults segResults;
-		
 		std::vector<itk::FcsvPoint>::iterator it = fcsvData->points.begin(); 
-		std::vector< std::vector<double> > foundDotsCoordinateValue = segResults.GetFoundDotsCoordinateValue();
+		std::vector< std::vector<double> > foundDotsCoordinateValue;
 		int validFidNum = 0;
 		while(it != fcsvData->points.end()) 
 		{	
@@ -98,16 +93,18 @@ void WriteFiducialPositions(std::ofstream &outFile,const std::string &inputTestc
 			}
 			it++; 
 		}
-		segResults.SetFoundDotsCoordinateValue( foundDotsCoordinateValue );
-		segResults.SetDotsFound(true);
+
+    PatternRecognitionResult patRecognitionResults;
+    patRecognitionResults.SetFoundDotsCoordinateValue( foundDotsCoordinateValue );
+		patRecognitionResults.SetDotsFound(true);
 
 		sumFiducialNum = sumFiducialNum + validFidNum; 
 		
-		UsFidSegResultFile::WriteSegmentationResults(outFile, segResults, inputTestcaseName, currentFrameIndex, inputImageSequenceFileName);
+		UsFidSegResultFile::WriteSegmentationResults(outFile, patRecognitionResults, inputTestcaseName, currentFrameIndex, inputImageSequenceFileName);
 
 		if (PlusLogger::Instance()->GetLogLevel()>=PlusLogger::LOG_LEVEL_DEBUG)
 		{
-			UsFidSegResultFile::WriteSegmentationResults(std::cout, segResults, inputTestcaseName, currentFrameIndex, inputImageSequenceFileName);
+			UsFidSegResultFile::WriteSegmentationResults(std::cout, patRecognitionResults, inputTestcaseName, currentFrameIndex, inputImageSequenceFileName);
 		}
 
 	}	
@@ -132,14 +129,6 @@ int main(int argc, char **argv)
 	vtksys::CommandLineArguments args;
 	args.Initialize(argc, argv);
 
-	/*
-	--input-test-data-dir=${TestDataDir}
-	--input-fcsv-file=UsTestSeqIla5ManualFidSeg.fcsv
-	--input-img-seq-file=ila5.mhd
-	--input-testcase-name=ila5
-	--output-xml-file=${TestDataDir}/UsTestSeqIla5ManualFidSeg.xml
-	*/
-
 	args.AddArgument("--input-test-data-dir", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputTestDataDir, "Test data directory");
 	args.AddArgument("--input-fcsv-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputFcsvFileName, "Name of file storing fiducial point coordinates");
 	args.AddArgument("--input-img-seq-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputImageSequenceFileName, "Filename of the input image sequence. Segmentation will be performed for all frames of the sequence.");
@@ -163,16 +152,13 @@ int main(int argc, char **argv)
 		std::cerr << "input-img-seq-file, input-fcsv-file, input-testcase-name, and output-xml-file parameters are required" << std::endl;
 		exit(EXIT_FAILURE);
 	}
-
-	/////////////////
-	 
 	
 	std::ofstream outputXmlFile; 
 	outputXmlFile.open( outputXmlFileName.c_str());
 	UsFidSegResultFile::WriteSegmentationResultsHeader(outputXmlFile);
 		
-	SegmentationParameters segParams;
-	UsFidSegResultFile::WriteSegmentationResultsParameters(outputXmlFile, segParams, inputFcsvFileName);
+  FidPatternRecognition patternRecognition;
+	UsFidSegResultFile::WriteSegmentationResultsParameters(outputXmlFile, patternRecognition, inputFcsvFileName);
 
 	
 	std::string inputFcsvFilePath=inputTestDataDir+"\\"+inputFcsvFileName;

@@ -4,7 +4,7 @@
 #include <strstream>
 #include "UsFidSegResultFile.h"
 
-#include "UltraSoundFiducialSegmentation.h"
+#include "FidPatternRecognition.h"
 #include "vtkCalibrationController.h"
 
 #include "vtksys/CommandLineArguments.hxx"
@@ -24,12 +24,10 @@ static const float FIDUCIAL_POSITION_TOLERANCE = 0.1;  // in pixel
 static const double BASELINE_TO_ALGORITHM_TOLERANCE = 5; 
 ///////////////////////////////////////////////////////////////////
 
-void SegmentImageSequence( vtkTrackedFrameList* trackedFrameList, std::ofstream &outFile, const std::string &inputTestcaseName, const std::string &inputImageSequenceFileName, vtkCalibrationController* calibrationController, const char* fidPositionOutputFilename)
+void SegmentImageSequence( vtkTrackedFrameList* trackedFrameList, std::ofstream &outFile, const std::string &inputTestcaseName, const std::string &inputImageSequenceFileName, vtkCalibrationController * calibrationController, const char* fidPositionOutputFilename)
 {
 	double sumFiducialNum = 0;// divide by framenum
 	double sumFiducialCandidate = 0;// divide by framenum
-
-	SegmentationParameters segParams = *(calibrationController->GetSegParameters());
 
   bool writeFidPositionsToFile=(fidPositionOutputFilename!=NULL);  
   std::ofstream outFileFidPositions; 
@@ -48,15 +46,11 @@ void SegmentImageSequence( vtkTrackedFrameList* trackedFrameList, std::ofstream 
 
 		std::ostrstream possibleFiducialsImageFilename; 
 		possibleFiducialsImageFilename << inputTestcaseName << std::setw(3) << std::setfill('0') << currentFrameIndex << ".bmp" << std::ends; 
-		
-		SegmentationResults segResults;
 
-		KPhantomSeg TheSegmentationStruct(trackedFrameList->GetFrameSize(), 
-			segParams.GetRegionOfInterest(),debugOutput,possibleFiducialsImageFilename.str());
-		TheSegmentationStruct.SetSegParams(segParams); 
-		TheSegmentationStruct.segment(trackedFrameList->GetTrackedFrame(currentFrameIndex)->ImageData->GetBufferPointer(), segParams);
-	
-		TheSegmentationStruct.GetSegmentationResults(segResults);
+    PatternRecognitionResult segResults;
+
+    calibrationController->GetPatternRecognition()->RecognizePattern(trackedFrameList->GetTrackedFrame(currentFrameIndex)->ImageData->GetBufferPointer(), segResults );
+		
 		sumFiducialCandidate += segResults.GetNumDots();
 		int numFid=0;
 		for(int fidPosition = 0; fidPosition<segResults.GetFoundDotsCoordinateValue().size();fidPosition++)
@@ -106,7 +100,7 @@ void SegmentImageSequence( vtkTrackedFrameList* trackedFrameList, std::ofstream 
 }
 
 // return the number of differences
-int CompareSegmentationResults(const std::string& inputBaselineFileName, const std::string& outputTestResultsFileName, SegmentationParameters &segParams)
+int CompareSegmentationResults(const std::string& inputBaselineFileName, const std::string& outputTestResultsFileName, vtkCalibrationController * calibrationController)
 {
 	const bool reportWarningsAsFailure=true;
 	int numberOfFailures=0;
@@ -148,7 +142,7 @@ int CompareSegmentationResults(const std::string& inputBaselineFileName, const s
   {
 	  outFileFidFindingResults.open("FiducialsFound.txt");
 	  outFileFidFindingResults<< "Baseline to algorithm Tolerance: "<<BASELINE_TO_ALGORITHM_TOLERANCE<<" pixel(s)" <<std::endl;
-	  outFileFidFindingResults<< "Threshold: "<< segParams.GetThresholdImage() <<std::endl; 
+    outFileFidFindingResults<< "Threshold: "<< calibrationController->GetPatternRecognition()->GetFidSegmentation()->GetThresholdImage() <<std::endl; 
   }
 	for (int nestedElemInd=0; nestedElemInd<currentRootElem->GetNumberOfNestedElements(); nestedElemInd++)
 	{
@@ -389,8 +383,6 @@ int main(int argc, char **argv)
 	std::string inputConfigFileName;
 	std::string outputTestResultsFileName;
   std::string outputFiducialPositionsFileName;
-	int thresholdTop = 0; 
-	int thresholdBottom = 0; 
 	std::string fiducialGeomString;	
 
 	int verboseLevel=PlusLogger::LOG_LEVEL_WARNING;
@@ -429,18 +421,18 @@ int main(int argc, char **argv)
 	calibrationController->ReadConfiguration(inputConfigFileName.c_str());
 
   LOG_INFO("Read from metafile");
-    std::string inputImageSequencePath=inputTestDataDir+"\\"+inputImageSequenceFileName;
-    vtkSmartPointer<vtkTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New(); 
-    if ( trackedFrameList->ReadFromSequenceMetafile(inputImageSequencePath.c_str()) != PLUS_SUCCESS )
-    {
-        LOG_ERROR("Failed to read sequence metafile: " << inputImageSequencePath); 
-        return EXIT_FAILURE;
-    }
+  std::string inputImageSequencePath=inputTestDataDir+"\\"+inputImageSequenceFileName;
+  vtkSmartPointer<vtkTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New(); 
+  if ( trackedFrameList->ReadFromSequenceMetafile(inputImageSequencePath.c_str()) != PLUS_SUCCESS )
+  {
+      LOG_ERROR("Failed to read sequence metafile: " << inputImageSequencePath); 
+      return EXIT_FAILURE;
+  }
 
 	std::ofstream outFile; 
 	outFile.open(outputTestResultsFileName.c_str());	
 	UsFidSegResultFile::WriteSegmentationResultsHeader(outFile);
-	UsFidSegResultFile::WriteSegmentationResultsParameters(outFile, *(calibrationController->GetSegParameters()), "");
+  UsFidSegResultFile::WriteSegmentationResultsParameters(outFile, *(calibrationController->GetPatternRecognition()), "");
 
   const char* fidPositionOutputFilename=NULL;
   if (!outputFiducialPositionsFileName.empty())
@@ -459,7 +451,7 @@ int main(int argc, char **argv)
 	if (!inputBaselineFileName.empty())
 	{		
     LOG_INFO("Compare results");
-		if (CompareSegmentationResults(inputBaselineFileName, outputTestResultsFileName, *(calibrationController->GetSegParameters()))!=0)
+		if (CompareSegmentationResults(inputBaselineFileName, outputTestResultsFileName, calibrationController)!=0)
 		{
 			LOG_ERROR("Comparison of segmentation data to baseline failed");
 			return EXIT_FAILURE;

@@ -261,7 +261,7 @@ void vtkCalibratorVisualizationComponent::Initialize(vtkProbeCalibrationControll
   //   = transformVtkImageToTemplate
   //   = transformImageToTemplate * transformVtkImageToImage
 
-  int * frameSize = this->GetCalibrationController()->GetSegParameters()->GetFrameSize(); 
+  int * frameSize = this->GetCalibrationController()->GetPatternRecognition()->GetFidSegmentation()->GetFrameSize(); 
 
   // there is an in-place vertical flip between the coordinate systems of vtk and itk images
   vtkSmartPointer<vtkMatrix4x4> transformVtkImageToImage = vtkSmartPointer<vtkMatrix4x4>::New(); 
@@ -331,8 +331,8 @@ void vtkCalibratorVisualizationComponent::SetRealtimeRenderer( vtkRenderer* rend
 
     // Set image camera
     vtkSmartPointer<vtkCamera> imageCamera = vtkSmartPointer<vtkCamera>::New(); 
-    double imageCenterX = this->GetCalibrationController()->GetSegParameters()->GetFrameSize()[0]/2.0; 
-    double imageCenterY = this->GetCalibrationController()->GetSegParameters()->GetFrameSize()[1]/2.0; 
+    double imageCenterX = this->GetCalibrationController()->GetPatternRecognition()->GetFidSegmentation()->GetFrameSize()[0]/2.0; 
+    double imageCenterY = this->GetCalibrationController()->GetPatternRecognition()->GetFidSegmentation()->GetFrameSize()[1]/2.0; 
     imageCamera->SetPosition(imageCenterX, imageCenterY, -150); 
     imageCamera->SetFocalPoint(imageCenterX, imageCenterY, 0); 
     imageCamera->SetViewUp(0, -1, 0);
@@ -383,7 +383,7 @@ void vtkCalibratorVisualizationComponent::OverlayCenterOfRotation()
 	this->GetCenterOfRotationActor()->GetProperty()->SetColor(1,0,0);
 
 	int originX = this->GetCalibrationController()->GetUSImageFrameOriginXInPixels(); 
-	int originY = this->GetCalibrationController()->GetSegParameters()->GetFrameSize()[1] - this->GetCalibrationController()->GetUSImageFrameOriginYInPixels(); 
+	int originY = this->GetCalibrationController()->GetPatternRecognition()->GetFidSegmentation()->GetFrameSize()[1] - this->GetCalibrationController()->GetUSImageFrameOriginYInPixels(); 
 	this->GetCenterOfRotationActor()->SetPosition(originX, originY, 0); 
 	this->GetCenterOfRotationActor()->Modified(); 
 	this->ShowCenterOfRotation(); 
@@ -624,7 +624,7 @@ void vtkCalibratorVisualizationComponent::SetupImageViewers()
 		// Render Window size: [mImageWidthInPixels*1.125, mImageHeightInPixels]
 		// This is to ensure there is enough space for the color bar display
 		mptrPRE3DonUSImageViewerX->GetRenderWindow()->SetSize( 
-			int(this->GetCalibrationController()->GetSegParameters()->GetFrameSize()[0]*1.125), this->GetCalibrationController()->GetSegParameters()->GetFrameSize()[1] );
+			int(this->GetCalibrationController()->GetPatternRecognition()->GetFidSegmentation()->GetFrameSize()[0]*1.125), this->GetCalibrationController()->GetPatternRecognition()->GetFidSegmentation()->GetFrameSize()[1] );
 		// The background is set to be all black for the renderer
 		mptrPRE3DonUSImageViewerX->GetRenderer()->SetBackground(0, 0, 0);
 		mptrPRE3DonUSImageViewerX->GetRenderer()->AddActor( mptrPRE3DScalarBarActorX );
@@ -636,7 +636,7 @@ void vtkCalibratorVisualizationComponent::SetupImageViewers()
 		// Render Window size: [mImageWidthInPixels*1.125, mImageHeightInPixels]
 		// This is to ensure there is enough space for the color bar display
 		mptrPRE3DonUSImageViewerY->GetRenderWindow()->SetSize( 
-			int(this->GetCalibrationController()->GetSegParameters()->GetFrameSize()[0]*1.125), this->GetCalibrationController()->GetSegParameters()->GetFrameSize()[1] );
+			int(this->GetCalibrationController()->GetPatternRecognition()->GetFidSegmentation()->GetFrameSize()[0]*1.125), this->GetCalibrationController()->GetPatternRecognition()->GetFidSegmentation()->GetFrameSize()[1] );
 		// The background is set to be all black for the renderer
 		mptrPRE3DonUSImageViewerY->GetRenderer()->SetBackground(0, 0, 0);
 		mptrPRE3DonUSImageViewerY->GetRenderer()->AddActor( mptrPRE3DScalarBarActorY );
@@ -648,7 +648,7 @@ void vtkCalibratorVisualizationComponent::SetupImageViewers()
 		// Render Window size: [mImageWidthInPixels*1.125, mImageHeightInPixels]
 		// This is to ensure there is enough space for the color bar display
 		mptrPRE3DonUSImageViewerZ->GetRenderWindow()->SetSize( 
-			int(this->GetCalibrationController()->GetSegParameters()->GetFrameSize()[0]*1.125), this->GetCalibrationController()->GetSegParameters()->GetFrameSize()[1] );
+			int(this->GetCalibrationController()->GetPatternRecognition()->GetFidSegmentation()->GetFrameSize()[0]*1.125), this->GetCalibrationController()->GetPatternRecognition()->GetFidSegmentation()->GetFrameSize()[1] );
 		// The background is set to be all black for the renderer
 		mptrPRE3DonUSImageViewerZ->GetRenderer()->SetBackground(0, 0, 0);
 		mptrPRE3DonUSImageViewerZ->GetRenderer()->AddActor( mptrPRE3DScalarBarActorZ );
@@ -862,7 +862,7 @@ void vtkCalibratorVisualizationComponent::MapPRE3DdistributionToUSImage( unsigne
 
 		// create an importer to read the data back in
 		vtkSmartPointer<vtkImageImport> importer = vtkSmartPointer<vtkImageImport>::New();
-		importer->SetWholeExtent(0,this->GetCalibrationController()->GetSegParameters()->GetFrameSize()[0] - 1,0,this->GetCalibrationController()->GetSegParameters()->GetFrameSize()[1] - 1,0,0);
+		importer->SetWholeExtent(0,this->GetCalibrationController()->GetPatternRecognition()->GetFidSegmentation()->GetFrameSize()[0] - 1,0,this->GetCalibrationController()->GetPatternRecognition()->GetFidSegmentation()->GetFrameSize()[1] - 1,0,0);
 		importer->SetDataExtentToWholeExtent();
 		importer->SetDataScalarTypeToUnsignedChar();
 		importer->SetImportVoidPointer(imageData);
@@ -899,9 +899,9 @@ void vtkCalibratorVisualizationComponent::MapPRE3DdistributionToUSImage( unsigne
 		xPRE3DonUSImage->SetScalarTypeToUnsignedChar(); 
 		xPRE3DonUSImage->Update(); 
 
-		for (int y = 0; y < this->GetCalibrationController()->GetSegParameters()->GetFrameSize()[1]; y++)
+		for (int y = 0; y < this->GetCalibrationController()->GetPatternRecognition()->GetFidSegmentation()->GetFrameSize()[1]; y++)
 		{
-			for (int x = 0; x < this->GetCalibrationController()->GetSegParameters()->GetFrameSize()[0]; x++)
+			for (int x = 0; x < this->GetCalibrationController()->GetPatternRecognition()->GetFidSegmentation()->GetFrameSize()[0]; x++)
 			{
 				unsigned char* xPRE3DPointer = static_cast<unsigned char*> ( xPRE3DonUSImage->GetScalarPointer(x, y, 0) ); 
 				unsigned char* importedImgPointer = static_cast<unsigned char*> ( imageFlip->GetOutput()->GetScalarPointer(x, y, 0) ); 
@@ -971,7 +971,7 @@ void vtkCalibratorVisualizationComponent::MapPRE3DdistributionToUSImage( unsigne
 			const int PixelCoordsXInVTKImageFrame = 
 				floor( ThisValidationPointInOrigImageFrame.get(0) + 0.5 );
 			const int PixelCoordsYInVTKImageFrame = 
-				this->GetCalibrationController()->GetSegParameters()->GetFrameSize()[1] - floor( ThisValidationPointInOrigImageFrame.get(1) + 0.5 ) ;
+				this->GetCalibrationController()->GetPatternRecognition()->GetFidSegmentation()->GetFrameSize()[1] - floor( ThisValidationPointInOrigImageFrame.get(1) + 0.5 ) ;
 
 
 			// ========================================================
@@ -1150,68 +1150,68 @@ void vtkCalibratorVisualizationComponent::GetColorForPRE3Ddistribution( const do
 //----------------------------------------------------------------------
 void vtkCalibratorVisualizationComponent::CreateTemplateGridActors()
 {
-  if ( !this->Initialized )
-  {
-    return; 
-  }
+	if ( !this->Initialized )
+	{
+		return; 
+	}
 
-  const double XLONGOFFSET_HOLE = 2.5;
+	const double XLONGOFFSET_HOLE = 2.5;
 
-  vtkSmartPointer<vtkAppendPolyData> templateGridPolyData = vtkSmartPointer<vtkAppendPolyData>::New();
+	vtkSmartPointer<vtkAppendPolyData> templateGridPolyData = vtkSmartPointer<vtkAppendPolyData>::New();
   vtkSmartPointer<vtkPolyDataMapper> polyMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
   polyMapper->SetInputConnection(templateGridPolyData->GetOutputPort());
   this->TemplateHolesActor->SetMapper(polyMapper); 
   this->TemplateHolesActor->GetProperty()->SetColor(0,1,0); 
   this->GetRealtimeRenderer()->AddActor(this->TemplateHolesActor); 
 
-  for (unsigned int i = 0; i < TemplateModelHoles.size(); i++)
-  {
-      vtkSmartPointer<vtkSphereSource> sphere = vtkSmartPointer<vtkSphereSource>::New();
-      sphere->SetRadius(TemplateModelHoles[i].Radius); 
+	for (unsigned int i = 0; i < TemplateModelHoles.size(); i++)
+	{
+			vtkSmartPointer<vtkSphereSource> sphere = vtkSmartPointer<vtkSphereSource>::New();
+			sphere->SetRadius(TemplateModelHoles[i].Radius); 
       //holeTransMapper->SetInput(sphere->GetOutput());
       sphere->SetCenter(TemplateModelHoles[i].PositionX, TemplateModelHoles[i].PositionY , TemplateModelHoles[i].PositionZ); 
       templateGridPolyData->AddInput( sphere->GetOutput() );
-  }
+		}
 
 
-  // --------------------  template letters ------------------------ //
+	// --------------------  template letters ------------------------ //
 
-  const double XTRANSOFFSET_LETTER = 0.9; 
-  const double YTRANSOFFSET_LETTER = 1.3; 
-  const double XLONGOFFSET_LETTER_CHAR = 0.9; 
-  const double YLONGOFFSET_LETTER_CHAR = 71.3; 
-  const double XLONGOFFSET_LETTER_NUM = 0.9; 
-  const double YLONGOFFSET_LETTER_NUM = 1.3; 
+	const double XTRANSOFFSET_LETTER = 0.9; 
+	const double YTRANSOFFSET_LETTER = 1.3; 
+	const double XLONGOFFSET_LETTER_CHAR = 0.9; 
+	const double YLONGOFFSET_LETTER_CHAR = 71.3; 
+	const double XLONGOFFSET_LETTER_NUM = 0.9; 
+	const double YLONGOFFSET_LETTER_NUM = 1.3; 
 
   // Clean actors first
   this->TemplateLetterActors->RemoveAllItems(); 
 
-  for (unsigned int i = 0; i < TemplateModelLetters.size(); i++)
-  {
+	for (unsigned int i = 0; i < TemplateModelLetters.size(); i++)
+	{
 
-    vtkSmartPointer<vtkTextActor3D> gridTransLettersActor = vtkSmartPointer<vtkTextActor3D>::New();
-    gridTransLettersActor->GetTextProperty()->SetColor(0,1,0);
-    gridTransLettersActor->GetTextProperty()->SetFontFamilyToArial();
+		vtkSmartPointer<vtkTextActor3D> gridTransLettersActor = vtkSmartPointer<vtkTextActor3D>::New();
+		gridTransLettersActor->GetTextProperty()->SetColor(0,1,0);
+		gridTransLettersActor->GetTextProperty()->SetFontFamilyToArial();
     gridTransLettersActor->GetTextProperty()->SetFontSize(32);
-    gridTransLettersActor->GetTextProperty()->SetJustificationToLeft();
-    gridTransLettersActor->GetTextProperty()->SetVerticalJustificationToTop();
-    gridTransLettersActor->GetTextProperty()->BoldOn(); 
+		gridTransLettersActor->GetTextProperty()->SetJustificationToLeft();
+		gridTransLettersActor->GetTextProperty()->SetVerticalJustificationToTop();
+		gridTransLettersActor->GetTextProperty()->BoldOn(); 
 
-    double * imageScaleTrans = this->GetCalibrationController()->GetTransformImageToTemplate()->GetScale(); 
+		double * imageScaleTrans = this->GetCalibrationController()->GetTransformImageToTemplate()->GetScale(); 
     //gridTransLettersActor->SetScale(imageScaleTrans[0], imageScaleTrans[1], imageScaleTrans[2]);
-    gridTransLettersActor->RotateWXYZ(180, 1, 0, 0); 
-    //gridTransLettersActor->SetScale(0.2,0.2,0.2); 
+		gridTransLettersActor->RotateWXYZ(180, 1, 0, 0); 
+		//gridTransLettersActor->SetScale(0.2,0.2,0.2); 
     gridTransLettersActor->SetScale(0.1,0.1,0.1); 
-    gridTransLettersActor->SetInput(TemplateModelLetters[i].ID.c_str());
-    gridTransLettersActor->SetPosition(TemplateModelLetters[i].PositionX - XTRANSOFFSET_LETTER, TemplateModelLetters[i].PositionY + YTRANSOFFSET_LETTER, TemplateModelLetters[i].PositionZ); 
-    gridTransLettersActor->Modified(); 
+		gridTransLettersActor->SetInput(TemplateModelLetters[i].ID.c_str());
+		gridTransLettersActor->SetPosition(TemplateModelLetters[i].PositionX - XTRANSOFFSET_LETTER, TemplateModelLetters[i].PositionY + YTRANSOFFSET_LETTER, TemplateModelLetters[i].PositionZ); 
+		gridTransLettersActor->Modified(); 
 
     this->TemplateLetterActors->AddItem(gridTransLettersActor); 
 
     this->GetRealtimeRenderer()->AddActor(gridTransLettersActor); 
 
     //gridTransLettersActor->SetUserTransform(this->GetCalibrationController()->GetTransformTemplateHomeToTemplate()); 
-  }
+		}
 
   this->SetTemplateVisibility(false); 
 }

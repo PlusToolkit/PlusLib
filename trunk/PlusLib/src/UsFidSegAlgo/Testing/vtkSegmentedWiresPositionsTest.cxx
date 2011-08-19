@@ -6,8 +6,9 @@
 #include "vtkMatrix4x4.h"
 #include "vtkTransform.h"
 #include "vtkMath.h"
+#include "vtkCalibrationController.h"
 
-#include "UltraSoundFiducialSegmentation.h"
+#include "FidPatternRecognition.h"
 
 #include "itkImage.h"
 #include "itkImageFileReader.h"
@@ -69,7 +70,6 @@ int main (int argc, char* argv[])
 
 	VTK_LOG_TO_CONSOLE_ON; 
 
-	SegmentationParameters SegParameters; 
 	int SearchRegionXMin(0), SearchRegionXSize(0), SearchRegionYMin(0), SearchRegionYSize(0); 
 
 	switch ( inputImageType )
@@ -78,123 +78,75 @@ int main (int argc, char* argv[])
 		SearchRegionXMin = 30; 
 		SearchRegionXSize = 565; 
 		SearchRegionYMin = 50; 
-		SearchRegionYSize = 370;  
-		SegParameters.SetScalingEstimation(0.19);
-
+		SearchRegionYSize = 370;
 
 		break; 
 	case 2: // FrameGrabber frames
 		SearchRegionXMin = 100; 
 		SearchRegionXSize = 360; 
 		SearchRegionYMin = 65; 
-		SearchRegionYSize = 280;  
-		SegParameters.SetScalingEstimation(0.26);  
+		SearchRegionYSize = 280;    
 		break; 
 	}
 
-	SegParameters.SetMorphologicalOpeningBarSizeMm(2.0);  
-	SegParameters.SetMorphologicalOpeningCircleRadiusMm(0.55);  
-	SegParameters.SetThresholdImage(10); 
-	SegParameters.SetMaxLineLenMm(42); 
-	SegParameters.SetMinLineLenMm(38); 
-	SegParameters.SetMaxLinePairDistMm(22); 
-	SegParameters.SetMinLinePairDistMm(18); 
-	SegParameters.SetFindLines3PtDist(5.3); 
-	SegParameters.SetMaxLineErrorMm(2.0); 
-	SegParameters.SetMaxAngleDiff(0.191986); 
-	SegParameters.SetMinTheta(0.349065); 
-	SegParameters.SetMaxTheta(2.792526); 
-	SegParameters.SetMaxUangleDiff(0.174532); 
-	SegParameters.SetMaxUsideLineDiff(30); 
-	SegParameters.SetMinUsideLineLength(320); 
-	SegParameters.SetMaxUsideLineLength(350); 
-	SegParameters.SetUseOriginalImageIntensityForDotIntensityScore(0); 
-	SegParameters.SetFiducialGeometry(SegmentationParameters::CALIBRATION_PHANTOM_6_POINT); 
-
-	SegParameters.UpdateParameters(); 
-
-	LOG_INFO( "Reading sequence meta file...");  
-	itk::MetaImageSequenceIO::Pointer readerMetaImageSequenceIO = itk::MetaImageSequenceIO::New(); 
-	ImageSequenceReaderType::Pointer reader = ImageSequenceReaderType::New(); 
-
-	// Set the image IO 
-	reader->SetImageIO(readerMetaImageSequenceIO); 
-	reader->SetFileName(inputTestDataPath.c_str());
-
-	try
-	{
-		reader->Update(); 
-	}
-	catch (itk::ExceptionObject & err) 
-	{		
-		LOG_ERROR(" Sequence image reader couldn't update: " <<  err); 
-		exit(EXIT_FAILURE);
-	}	
-
-	ImageSequenceType::Pointer imageSeq = reader->GetOutput();
-
-	const unsigned long ImageWidthInPixels = imageSeq->GetLargestPossibleRegion().GetSize()[0]; 
-	const unsigned long ImageHeightInPixels = imageSeq->GetLargestPossibleRegion().GetSize()[1]; 
-	const unsigned long numberOfFrames = imageSeq->GetLargestPossibleRegion().GetSize()[2];	
-
-	unsigned int frameSizeInBytes=ImageWidthInPixels*ImageHeightInPixels*sizeof(PixelType);
-
-	PixelType* imageSeqData = imageSeq->GetBufferPointer(); // pointer to the image pixel buffer
+	LOG_INFO( "Reading sequence meta file");  
+  vtkSmartPointer<vtkTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New(); 
+  if ( trackedFrameList->ReadFromSequenceMetafile(inputTestDataPath.c_str()) != PLUS_SUCCESS )
+  {
+      LOG_ERROR("Failed to read sequence metafile: " << inputTestDataPath); 
+      return EXIT_FAILURE;
+  }
 
 	std::ofstream positionInfo;
 	positionInfo.open (outputWirePositionFile.c_str(), ios::out );
 
 	LOG_INFO( "Segmenting frames..."); 
 
-	for ( int imgNumber = 0; imgNumber < numberOfFrames; imgNumber++ )
+	for ( int imgNumber = 0; imgNumber < trackedFrameList->GetNumberOfTrackedFrames(); imgNumber++ )
 	{
-		PrintProgressBar( (100.0 * imgNumber) / numberOfFrames ); 
-
-		PixelType *currentFrameImageData= imageSeqData + imgNumber * frameSizeInBytes;
+		PrintProgressBar( (100.0 * imgNumber) / trackedFrameList->GetNumberOfTrackedFrames() ); 
 
 		ImageType::Pointer frame = ImageType::New();
-		ImageType::SizeType size = {ImageWidthInPixels, ImageHeightInPixels };
+		ImageType::SizeType size = {trackedFrameList->GetFrameSize()[0], trackedFrameList->GetFrameSize()[1] };
 		ImageType::IndexType start = {0,0};
 		ImageType::RegionType region;
 		region.SetSize(size);
 		region.SetIndex(start);
 		frame->SetRegions(region);
-        try 
-        {
-            frame->Allocate();
-        }
-        catch (itk::ExceptionObject & err)
-        {
-            LOG_ERROR("Failed to allocate memory: " << err ); 
-            continue; 
-        }
+    try 
+    {
+        frame->Allocate();
+    }
+    catch (itk::ExceptionObject & err)
+    {
+        LOG_ERROR("Failed to allocate memory: " << err ); 
+        continue; 
+    }
 
-		memcpy(frame->GetBufferPointer() , currentFrameImageData, frameSizeInBytes);
+		memcpy(frame->GetBufferPointer() , trackedFrameList->GetTrackedFrame(imgNumber)->ImageData->GetBufferPointer(), trackedFrameList->GetFrameSize()[0]*trackedFrameList->GetFrameSize()[1]*sizeof(PixelType));
 
 		vtkSmartPointer<vtkMatrix4x4> transformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-		if ( !readerMetaImageSequenceIO->GetFrameTransform(imgNumber, transformMatrix) )
+		/*if ( !readerMetaImageSequenceIO->GetFrameTransform(imgNumber, transformMatrix) )
 		{
 			LOG_ERROR("Unable to get default frame transform for frame #" << imgNumber); 
 			continue; 
 		}
-
-		KPhantomSeg segmenter(SegParameters.GetFrameSize(), SegParameters.GetRegionOfInterest()); 
-		segmenter.SetSegParams(SegParameters); 
+*/
+    FidPatternRecognition patternRecognition;
+    PatternRecognitionResult segResults;
 
 		try
 		{
 			// Send the image to the Segmentation component to segment
-			segmenter.segment( frame->GetBufferPointer(), SegParameters);	}
+      patternRecognition.RecognizePattern( trackedFrameList->GetTrackedFrame(imgNumber)->ImageData->GetBufferPointer(), segResults );
+  	}
 		catch(...)
 		{
 			LOG_ERROR("SegmentImage: The segmentation has failed for due to UNKNOWN exception thrown, the image was ignored!!!"); 
 			continue; 
 		}
 
-		SegmentationResults segResults;
-		segmenter.GetSegmentationResults(segResults); 
-
-		if ( segResults.GetDotsFound() )
+    if ( segResults.GetDotsFound() )
 		{
 			vtkSmartPointer<vtkTransform> frameTransform = vtkSmartPointer<vtkTransform>::New(); 
 			frameTransform->SetMatrix(transformMatrix); 
@@ -205,7 +157,7 @@ int main (int argc, char* argv[])
 			int dataType = -1; 
 			positionInfo << dataType << "\t\t" << posZ << "\t" << rotZ << "\t\t"; 
 
-			for (int i=0; i<segResults.GetFoundDotsCoordinateValue().size(); i++)
+			for (int i=0; i < segResults.GetFoundDotsCoordinateValue().size(); i++)
 			{
 				positionInfo << segResults.GetFoundDotsCoordinateValue()[i][0] << "\t" << segResults.GetFoundDotsCoordinateValue()[i][1] << "\t\t"; 
 			}

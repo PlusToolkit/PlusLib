@@ -13,7 +13,9 @@
 #include <string>
 #include <vector>
 #include <deque>
-#include "UltraSoundFiducialSegmentation.h"
+#include "vtkXMLDataElement.h"
+#include "FidPatternRecognition.h"
+#include "FidPatternRecognitionCommon.h"
 
 enum IMAGE_DATA_TYPE
 {
@@ -45,7 +47,7 @@ public:
 	}
 
 	TrackedFrame* TrackedFrameInfo; 
-	SegmentationResults SegResults;
+	PatternRecognitionResult SegResults;
 	IMAGE_DATA_TYPE DataType; 
 };
 
@@ -159,6 +161,11 @@ public:
 	vtkSetObjectMacro(ModelToPhantomTransform, vtkTransform); 
 	vtkGetObjectMacro(ModelToPhantomTransform, vtkTransform);
 
+	//! Description 
+	// Set/get the phantom to config data
+	vtkSetObjectMacro(ConfigurationData, vtkXMLDataElement); 
+	vtkGetObjectMacro(ConfigurationData, vtkXMLDataElement);
+
   //! Description 
 	// Set/get the calibration date in string format
 	vtkSetStringMacro(CalibrationDate); 
@@ -175,17 +182,19 @@ public:
 	vtkBooleanMacro(EnableSegmentationAnalysis, bool);
 
 	//! Description 
-	// Get segmentation parameters
-	SegmentationParameters* GetSegParameters() { return this->SegParameters; };
-
-	//! Description 
-	// Returns the segmenter class 
-	KPhantomSeg* GetSegmenter() { return this->mptrAutomatedSegmentation; }
-
-	//! Description 
 	// Get the segmentation result container 
 	// Stores the segmentation results with transformation for each frame
-	SegmentedFrameList GetSegmentedFrameContainer() { return this->SegmentedFrameContainer; }
+	SegmentedFrameList GetSegmentedFrameContainer() { return this->SegmentedFrameContainer; };
+
+  //! Description
+  //Get the fiducial pattern recognition master object
+  FidPatternRecognition * GetPatternRecognition() { return & this->PatternRecognition; };
+  void SetPatternRecognition( FidPatternRecognition value) { PatternRecognition = value; };
+
+  //! Description
+  //Get the fiducial pattern recognition master object
+  PatternRecognitionResult * GetPatRecognitionResult() { return & this->PatRecognitionResult; };
+  void SetPatRecognitionResult( PatternRecognitionResult value) { PatRecognitionResult = value; };
 
   //! Description
   // Clear all datatype segmented frames from container 
@@ -213,8 +222,8 @@ protected:
 	//! Description 
 	// Run the segmentation algorithm on the image and return with the segmentation result 
 	// The class has to be initialized before the segmentation process. 
-	virtual PlusStatus SegmentImage(const ImageType::Pointer& imageData, SegmentationResults& segResult); 
-	virtual PlusStatus SegmentImage(vtkImageData * imageData, SegmentationResults& segResult); 
+	virtual PlusStatus SegmentImage(const ImageType::Pointer& imageData); 
+	virtual PlusStatus SegmentImage(vtkImageData * imageData); 
 
 	//! Description 
 	// Create tracked frame with the inputs specified
@@ -234,12 +243,6 @@ protected:
 	virtual PlusStatus ReadPhantomDefinition(vtkXMLDataElement* phantomDefinition);
 
 protected:
-	//! Attributes: a reference to the automated segmenation component
-	KPhantomSeg* mptrAutomatedSegmentation;
-	
-	//! Attributes: a reference to the segmentation parameter 
-	SegmentationParameters* SegParameters;  
-
 	//! Attributes: a reference to the visualization component
 	vtkCalibratorVisualizationComponent* VisualizationComponent; 
 
@@ -283,7 +286,7 @@ protected:
 	vtkTransform* ModelToPhantomTransform;
 
 	//! Pointer to the callback function that is executed each time a segmentation is finished
-    SegmentationProgressPtr SegmentationProgressCallbackFunction;
+  SegmentationProgressPtr SegmentationProgressCallbackFunction;
 
 	//! Stores the tracked frames for each data type 
 	std::vector<vtkTrackedFrameList*> TrackedFrameListContainer;
@@ -293,6 +296,15 @@ protected:
 	
 	//! Stores the segmentation results with transformation for each frame
 	SegmentedFrameList SegmentedFrameContainer; 
+
+  //! Stores the fiducial pattern recognition master object
+  FidPatternRecognition PatternRecognition;
+
+  //!Stores the segmentation results of a single frame
+  PatternRecognitionResult PatRecognitionResult;
+
+  //! Configuration data element - TODO the application should load it!
+  vtkXMLDataElement*  ConfigurationData;
 
 private:
 	vtkCalibrationController(const vtkCalibrationController&);
