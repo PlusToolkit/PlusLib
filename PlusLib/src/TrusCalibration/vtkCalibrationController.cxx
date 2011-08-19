@@ -6,7 +6,6 @@
 #include "vtkMatrix4x4.h"
 #include "vtkDirectory.h"
 #include "vtkImageImport.h"
-#include "vtkXMLDataElement.h"
 #include "vtkFileFinder.h"
 
 #include "itkImage.h"
@@ -32,7 +31,6 @@ void vtkCalibrationController::PrintSelf(ostream& os, vtkIndent indent)
 //----------------------------------------------------------------------------
 vtkCalibrationController::vtkCalibrationController() 
 : 
-mptrAutomatedSegmentation(NULL),
 SegmentationProgressCallbackFunction(NULL)
 {
 	this->EnableTrackedSequenceDataSavingOff();
@@ -48,10 +46,12 @@ SegmentationProgressCallbackFunction(NULL)
 	this->ConfigurationFileName = NULL;
 	this->ModelToPhantomTransform = NULL;
 	this->PhantomModelFileName = NULL;
+  
+  this->ConfigurationData = NULL;
+  
   this->CalibrationDate = NULL; 
+  
 	
-	this->SegParameters = new SegmentationParameters(); 
-
 	this->SetCalibrationMode(REALTIME); 
 
 	// Set program folder path to current working directory by default
@@ -74,20 +74,6 @@ SegmentationProgressCallbackFunction(NULL)
 //----------------------------------------------------------------------------
 vtkCalibrationController::~vtkCalibrationController() 
 {
-	// Destroy the segmentation parameters
-	if ( this->SegParameters != NULL )
-	{
-		delete this->SegParameters; 
-		this->SegParameters = NULL; 
-	}
-
-	// Destroy the segmentation component
-	if ( mptrAutomatedSegmentation != NULL )
-	{
-		delete mptrAutomatedSegmentation;
-		mptrAutomatedSegmentation = NULL;
-	}
-
 	for ( int i = 0; i < NUMBER_OF_IMAGE_DATA_TYPES; i++ )
 	{
 		if ( this->TrackedFrameListContainer[i] != NULL )
@@ -105,6 +91,8 @@ vtkCalibrationController::~vtkCalibrationController()
       this->SegmentedFrameContainer[i].TrackedFrameInfo = NULL; 
     }
   }
+
+  this->SetConfigurationData(NULL);
 }
 
 //----------------------------------------------------------------------------
@@ -114,8 +102,7 @@ PlusStatus vtkCalibrationController::Initialize()
 
 	// Initialize the segmenation component
 	// ====================================
-	this->mptrAutomatedSegmentation = new KPhantomSeg( 
-		this->GetSegParameters()->GetFrameSize(),this->GetSegParameters()->GetRegionOfInterest(), this->GetEnableSegmentationAnalysis(), "frame.jpg");
+  this->PatternRecognition.ReadConfiguration(this->GetConfigurationData());
 
 	return PLUS_SUCCESS;
 }
@@ -171,8 +158,7 @@ PlusStatus vtkCalibrationController::AddTrackedFrameData(TrackedFrame* trackedFr
 	try
 	{
 		// Check to see if the segmentation has returned the targets
-		SegmentationResults segResults; 
-    if ( (trackedFrame->ImageData.GetPointer() != NULL) && (this->SegmentImage(trackedFrame->ImageData, segResults) != PLUS_SUCCESS) )
+    if ( (trackedFrame->ImageData.GetPointer() != NULL) && (this->SegmentImage(trackedFrame->ImageData) != PLUS_SUCCESS) )
     {
         LOG_WARNING("Undefined error occured during frame segmentation!"); 
         return PLUS_FAIL; 
@@ -185,20 +171,20 @@ PlusStatus vtkCalibrationController::AddTrackedFrameData(TrackedFrame* trackedFr
 			// Save the erroneously segmented frames too 
 			trackedFramePosition = this->TrackedFrameListContainer[dataType]->AddTrackedFrame(trackedFrame); 
 		}
-		else if (segResults.GetDotsFound() )
+		else if (this->GetPatRecognitionResult()->GetDotsFound() )
 		{
 			// Segmentation was successful
 			trackedFramePosition = this->TrackedFrameListContainer[dataType]->AddTrackedFrame(trackedFrame); 
 		}
 
 		// Draw segmentation results to frame if needed
-		if ( segResults.GetDotsFound() && ( this->EnableSegmentationAnalysis || this->CalibrationMode == OFFLINE) )
+		if ( this->GetPatRecognitionResult()->GetDotsFound() && ( this->EnableSegmentationAnalysis || this->CalibrationMode == OFFLINE) )
 		{
 			// Draw segmentation result to image
-			this->GetSegmenter()->drawResults( trackedFrame->ImageData->GetBufferPointer() );
+      this->GetPatternRecognition()->DrawResults( trackedFrame->ImageData->GetBufferPointer() );
 		} 
 
-		if( !segResults.GetDotsFound() )
+		if( !this->GetPatRecognitionResult()->GetDotsFound() )
 		{
 			LOG_DEBUG("The segmentation cannot locate any meaningful targets, the image was ignored!"); 
 			return PLUS_FAIL; 
@@ -206,7 +192,7 @@ PlusStatus vtkCalibrationController::AddTrackedFrameData(TrackedFrame* trackedFr
 
 		// Add the segmentation result to the SegmentedFrameContainer
 		SegmentedFrame segmentedFrame; 
-		segmentedFrame.SegResults = segResults; 
+		segmentedFrame.SegResults = this->PatRecognitionResult; 
 		segmentedFrame.TrackedFrameInfo = new TrackedFrame(*this->TrackedFrameListContainer[dataType]->GetTrackedFrame(trackedFramePosition)); 
 		segmentedFrame.DataType = dataType; 
 		this->SegmentedFrameContainer.push_back(segmentedFrame); 
@@ -244,7 +230,7 @@ void vtkCalibrationController::ClearSegmentedFrameContainer(IMAGE_DATA_TYPE data
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkCalibrationController::SegmentImage(vtkImageData * imageData, SegmentationResults& segResult )
+PlusStatus vtkCalibrationController::SegmentImage(vtkImageData * imageData )
 {
 	LOG_TRACE("vtkCalibrationController::SegmentImage - vtkImage"); 
 	ImageType::Pointer frame = ImageType::New();
@@ -254,11 +240,11 @@ PlusStatus vtkCalibrationController::SegmentImage(vtkImageData * imageData, Segm
         return PLUS_FAIL; 
 
     }
-	return this->SegmentImage(frame, segResult);
+	return this->SegmentImage(frame);
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkCalibrationController::SegmentImage(const ImageType::Pointer& imageData, SegmentationResults& segResult)
+PlusStatus vtkCalibrationController::SegmentImage(const ImageType::Pointer& imageData)
 {
 	LOG_TRACE("vtkCalibrationController::SegmentImage - itkImage"); 
 	try
@@ -270,17 +256,17 @@ PlusStatus vtkCalibrationController::SegmentImage(const ImageType::Pointer& imag
 
 		// Check frame size before segmentation 
 		int frameSize[2] = {imageData->GetLargestPossibleRegion().GetSize()[0], imageData->GetLargestPossibleRegion().GetSize()[1]}; 
-		if ( this->GetSegParameters()->GetFrameSize()[0] != frameSize[0] || this->GetSegParameters()->GetFrameSize()[1] != frameSize[1] )
+    if ( this->GetPatternRecognition()->GetFidSegmentation()->GetFrameSize()[0] != frameSize[0] || this->GetPatternRecognition()->GetFidSegmentation()->GetFrameSize()[1] != frameSize[1] )
 		{
 			LOG_ERROR("Unable to add frame to calibrator! Frame size mismatch: actual (" 
 				<< frameSize[0] << "x" << frameSize[1] << ") expected (" 
-				<< this->GetSegParameters()->GetFrameSize()[0] << "x" << this->GetSegParameters()->GetFrameSize()[1] << ")"); 
+				<< this->GetPatternRecognition()->GetFidSegmentation()->GetFrameSize()[0] << "x" << this->GetPatternRecognition()->GetFidSegmentation()->GetFrameSize()[1] << ")"); 
 			return PLUS_FAIL; 
 		}
 
 		// Send the image to the Segmentation component for segmentation
-		this->GetSegmenter()->segment( imageData->GetBufferPointer(), *this->GetSegParameters());	
-		this->GetSegmenter()->GetSegmentationResults(segResult); 
+    this->GetPatternRecognition()->RecognizePattern( imageData->GetBufferPointer(), *(this->GetPatRecognitionResult()));	
+   
 		return PLUS_SUCCESS;
 	}
 	catch(...)
@@ -425,8 +411,8 @@ PlusStatus vtkCalibrationController::ReadConfiguration( const char* configFileNa
 	LOG_TRACE("vtkCalibrationController::ReadConfiguration"); 
 	this->SetConfigurationFileName(configFileNameWithPath); 
 
-	vtkSmartPointer<vtkXMLDataElement> rootElement = vtkXMLUtilities::ReadElementFromFile(this->GetConfigurationFileName()); 
-	return this->ReadConfiguration(rootElement); 
+	this->SetConfigurationData(vtkXMLUtilities::ReadElementFromFile(this->GetConfigurationFileName())); 
+	return this->ReadConfiguration(this->ConfigurationData);  //TODO temporary code
 }
 
 //----------------------------------------------------------------------------
@@ -445,6 +431,9 @@ PlusStatus vtkCalibrationController::ReadConfiguration( vtkXMLDataElement* confi
     LOG_ERROR("Cannot find USCalibration element in XML tree!");
     return PLUS_FAIL;
 	}
+
+  //Setting the fiducial pattern recognition
+  this->PatternRecognition.ReadConfiguration(configData);
 
 	// Tracked frame specifications
 	//********************************************************************
@@ -538,15 +527,6 @@ PlusStatus vtkCalibrationController::ReadCalibrationControllerConfiguration( vtk
 		this->EnableSegmentationAnalysisOff(); 
 	}
 
-	// SegmentationParameters specifications
-	//********************************************************************
-	vtkSmartPointer<vtkXMLDataElement> segmentationParameters = calibrationController->FindNestedElementWithName("SegmentationParameters"); 
-	if ( this->GetSegParameters()->ReadSegmentationParametersConfiguration(segmentationParameters) != PLUS_SUCCESS )
-	{
-		LOG_ERROR("Failed to read segmentation parameters configuration file!"); 
-		return PLUS_FAIL; 
-	}
-
 	return PLUS_SUCCESS;
 }
 
@@ -570,25 +550,7 @@ PlusStatus vtkCalibrationController::ReadPhantomDefinition(vtkXMLDataElement* co
 	}
   else
 	{
-		std::vector<NWire> tempNWires = this->GetSegParameters()->GetNWires();
-
-		// Load type
-		vtkSmartPointer<vtkXMLDataElement> description = phantomDefinition->FindNestedElementWithName("Description"); 
-		if (description == NULL) {
-			LOG_ERROR("Phantom description not found!");
-			return PLUS_FAIL;
-		} else {
-			const char* type =  description->GetAttribute("Type"); 
-			if ( type != NULL ) {
-				if (STRCASECMP("Double-N", type) == 0) {
-					this->GetSegParameters()->SetFiducialGeometry(SegmentationParameters::CALIBRATION_PHANTOM_6_POINT);
-				} else if (STRCASECMP("U-Shaped-N", type) == 0) {
-					this->GetSegParameters()->SetFiducialGeometry(SegmentationParameters::TAB2_5_POINT);
-				}
-			} else {
-				LOG_ERROR("Phantom type not found!");
-			}
-		}
+		std::vector<NWire> tempNWires;
 
 		// Load model information
 		vtkSmartPointer<vtkXMLDataElement> model = phantomDefinition->FindNestedElementWithName("Model"); 
@@ -678,7 +640,7 @@ PlusStatus vtkCalibrationController::ReadPhantomDefinition(vtkXMLDataElement* co
 					const char* wireName =  wireElement->GetAttribute("Name"); 
 					if ( wireName != NULL )
 					{
-						strcpy_s(wire.name, 128, wireName);
+						wire.name = wireName;
 					}
 					if (! wireElement->GetVectorAttribute("EndPointFront", 3, wire.endPointFront)) {
 						LOG_WARNING("Wrong wire end point detected - skipped");
@@ -696,13 +658,14 @@ PlusStatus vtkCalibrationController::ReadPhantomDefinition(vtkXMLDataElement* co
 			}
 		}
 
-		this->GetSegParameters()->SetNWires(tempNWires);
+    this->GetPatternRecognition()->GetFidSegmentation()->SetNWires(tempNWires);
+    this->GetPatternRecognition()->GetFidLineFinder()->SetNWires(tempNWires);
+    this->GetPatternRecognition()->GetFidLabelling()->SetNWires(tempNWires);
 	}
 
-	//TODO Load registration?
+  this->GetPatternRecognition()->ReadConfiguration(config);
 
-	// Update parameters
-	this->GetSegParameters()->UpdateParameters();
+	//TODO Load registration?
 
   return PLUS_SUCCESS;
 }

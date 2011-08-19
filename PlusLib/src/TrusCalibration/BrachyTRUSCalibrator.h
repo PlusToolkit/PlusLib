@@ -44,7 +44,7 @@
 #include "Phantom.h"  // The parent class
 #endif	
 
-#include "UltraSoundFiducialSegmentation.h"
+#include "FidPatternRecognition.h"
 
 #include <vector>
 
@@ -193,7 +193,7 @@ class BrachyTRUSCalibrator : public Phantom
 		// 2. The system log should be turned on before any calibration related 
 		//    activities (e.g., add data positions, validating, calibrating, etc.).
 		// [DEFAULT: OFF (FALSE)]
-		BrachyTRUSCalibrator ( SegmentationParameters* aSegmentationParameters, const bool IsSystemLogOn = false );
+		BrachyTRUSCalibrator ( FidPatternRecognition * patternRecognitionObject, const bool IsSystemLogOn = false );
 
 		//! Destructor
 		virtual ~BrachyTRUSCalibrator ();

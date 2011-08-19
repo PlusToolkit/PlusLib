@@ -82,17 +82,6 @@ PlusStatus vtkStepperCalibrationController::Initialize()
 {
   LOG_TRACE("vtkStepperCalibrationController::Initialize"); 
 
-  if ( this->GetSegParameters() == NULL )
-  {
-    LOG_DEBUG("SegParameters is NULL, create one..."); 
-    this->SegParameters = new SegmentationParameters(); 
-  }
-
-  // Initialize the segmenation component
-  // ====================================
-  this->mptrAutomatedSegmentation = new KPhantomSeg( 
-	  this->GetSegParameters()->GetFrameSize(),this->GetSegParameters()->GetRegionOfInterest(), this->GetEnableSegmentationAnalysis(), "frame.jpg");
-
   this->InitializedOn(); 
 
   return PLUS_SUCCESS;

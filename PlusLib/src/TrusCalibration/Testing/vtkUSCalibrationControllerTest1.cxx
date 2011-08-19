@@ -62,6 +62,8 @@ int main (int argc, char* argv[])
 		exit(EXIT_FAILURE);
 	}
 
+  
+
 	PlusLogger::Instance()->SetLogLevel(verboseLevel);
   PlusLogger::Instance()->SetDisplayLogLevel(verboseLevel); 
 
@@ -77,8 +79,11 @@ int main (int argc, char* argv[])
 
 	// Initialize the probe calibration controller 
 	vtkSmartPointer<vtkStepperCalibrationController> stepperCal = vtkSmartPointer<vtkStepperCalibrationController>::New(); 
-	stepperCal->SetProgramFolderPath(programPath.c_str()); 
+	stepperCal->SetProgramFolderPath(programPath.c_str());
 	stepperCal->ReadConfiguration(inputConfigFileName.c_str()); 
+
+  vtkSmartPointer<vtkCalibrationController> calController = vtkSmartPointer<vtkCalibrationController>::New(); 
+	calController->ReadConfiguration(inputConfigFileName.c_str()); 
 
 	vtkCalibrationController::ImageDataInfo probeRotationDataInfo = stepperCal->GetImageDataInfo(PROBE_ROTATION); 
 	probeRotationDataInfo.InputSequenceMetaFileName.assign(inputProbeRotationSeqMetafile.c_str());

@@ -290,8 +290,8 @@ class SegmentationParameters
 		void					SetNWires(std::vector<NWire> value) { m_NWires = value; };
 		std::vector<NWire>		GetNWires() { return m_NWires; };
 
-		void SetMorphologicalCircle(std::vector<Item> value) { m_MorphologicalCircle = value; };
-		std::vector<Item> GetMorphologicalCircle() { return m_MorphologicalCircle; };
+		void					SetMorphologicalCircle(std::vector<Item> value) { m_MorphologicalCircle = value; };
+		std::vector<Item>		GetMorphologicalCircle() { return m_MorphologicalCircle; };
 
 		void					SetScalingEstimation(double value) {m_ScalingEstimation = value; };
 		double					GetScalingEstimation() {return m_ScalingEstimation; };

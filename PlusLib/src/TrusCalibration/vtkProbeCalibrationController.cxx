@@ -182,22 +182,11 @@ vtkProbeCalibrationController::~vtkProbeCalibrationController()
 PlusStatus vtkProbeCalibrationController::Initialize()
 {
 	LOG_TRACE("vtkProbeCalibrationController::Initialize"); 
-	
-	if ( this->GetSegParameters() == NULL )
-	{
-		LOG_ERROR( "Unable to initialize calibration: calibration configuration is not loaded!" );  
-		return PLUS_FAIL; 
-	}
-
-	// Initialize the segmenation component
-	// ====================================
-	this->mptrAutomatedSegmentation = new KPhantomSeg( 
-		this->GetSegParameters()->GetFrameSize(),this->GetSegParameters()->GetRegionOfInterest(), this->GetEnableSegmentationAnalysis(), "frame.jpg");
 
 	// Initialize the calibration component
 	if ( this->GetCalibrator() == NULL ) 
 	{
-		mptrCalibrationPhantom = new BrachyTRUSCalibrator(this->SegParameters, this->GetEnableSystemLog() );
+		mptrCalibrationPhantom = new BrachyTRUSCalibrator(this->GetPatternRecognition(), this->GetEnableSystemLog() );
 	}
 
 	vnl_matrix<double> transformOrigImageFrame2TRUSImageFrameMatrix4x4(4,4);
@@ -269,7 +258,7 @@ void vtkProbeCalibrationController::RegisterPhantomGeometry()
     */
 
   double verticalDistanceTemplateMounterHoleToTRUSRotationCenterInMM = 
-			this->GetCalibrator()->GetNWire(1).wires[0].endPointFront[1] // WIRE1 y
+    this->GetPatternRecognition()->GetFidSegmentation()->GetNWires()[1].wires[0].endPointFront[1] // WIRE1 y
             + this->GetPhantomToProbeDistanceInMm()[1]
             - GetTransformTemplateHolderHomeToPhantomHome()->GetPosition()[1]; // :TODO: transform with the whole matrix instead of just using the XY position values
 
@@ -280,7 +269,7 @@ void vtkProbeCalibrationController::RegisterPhantomGeometry()
         + phantomToProbeDistanceInMm[0]
     - this->GetCalibrator()->GetPhantomPoints().TemplateHolderPosition.x; */
     double horizontalDistanceTemplateMounterHoleToTRUSRotationCenterInMM = 
-        this->GetCalibrator()->GetNWire(0).wires[2].endPointFront[0] // WIRE3 x
+        this->GetPatternRecognition()->GetFidSegmentation()->GetNWires()[0].wires[2].endPointFront[0] // WIRE3 x
         + this->GetPhantomToProbeDistanceInMm()[0]
     - GetTransformTemplateHolderHomeToPhantomHome()->GetPosition()[0]; // :TODO: transform with the whole matrix instead of just using the XY position values
 
@@ -330,6 +319,7 @@ PlusStatus vtkProbeCalibrationController::OfflineUSToTemplateCalibration()
     const std::string validationDataFileName = this->GetImageDataInfo(RANDOM_STEPPER_MOTION_2).InputSequenceMetaFileName; 
     if ( !validationDataFileName.empty() )
     {
+        LOG_TRACE("Read tracked frames from sequence metafile: " << validationDataFileName ); 
         if ( validationData->ReadFromSequenceMetafile(validationDataFileName.c_str()) != PLUS_SUCCESS )
         {
             LOG_ERROR("Failed to read tracked frames from sequence metafile from: " << validationDataFileName ); 
@@ -356,6 +346,7 @@ PlusStatus vtkProbeCalibrationController::OfflineUSToTemplateCalibration()
     const std::string calibrationDataFileName = this->GetImageDataInfo(RANDOM_STEPPER_MOTION_1).InputSequenceMetaFileName; 
     if ( !calibrationDataFileName.empty() )
     {
+        LOG_TRACE("Read tracked frames from sequence metafile: " << validationDataFileName ); 
         if ( calibrationData->ReadFromSequenceMetafile(calibrationDataFileName.c_str()) != PLUS_SUCCESS )
         {
             LOG_ERROR("Failed to read tracked frames from sequence metafile from: " << calibrationDataFileName ); 
@@ -682,10 +673,7 @@ void vtkProbeCalibrationController::PopulateSegmentedFiducialsToDataContainer(vn
 	// [ X, Y, 0, 1] all units in pixels
 	// ==================================================================
 
-	SegmentationResults segResults;
-	this->GetSegmenter()->GetSegmentationResults(segResults); 
-
-	if ( !segResults.GetDotsFound() )
+  if ( !this->GetPatternRecognition()->GetFidLabelling()->GetDotsFound() )
 	{
 		LOG_DEBUG("Segmentation failed! Unable to populate segmentation result!"); 
 		return; 
@@ -695,11 +683,11 @@ void vtkProbeCalibrationController::PopulateSegmentedFiducialsToDataContainer(vn
 	// Bottom Layer (close to probe): 3, 2, 1 
 	std::vector<vnl_vector_double> SegmentedNFiducialsInFixedCorrespondence;
 	SegmentedNFiducialsInFixedCorrespondence.resize(0);
-	for (int i=0; i<segResults.GetFoundDotsCoordinateValue().size(); i++)
+  for (int i=0; i<this->GetPatRecognitionResult()->GetFoundDotsCoordinateValue().size(); i++)
 	{
 		vnl_vector<double> NFiducial(4,0);
-		NFiducial[0]=segResults.GetFoundDotsCoordinateValue()[i][0];
-		NFiducial[1]=segResults.GetFoundDotsCoordinateValue()[i][1];
+		NFiducial[0]=this->GetPatRecognitionResult()->GetFoundDotsCoordinateValue()[i][0];
+		NFiducial[1]=this->GetPatRecognitionResult()->GetFoundDotsCoordinateValue()[i][1];
 		NFiducial[2]=0;
 		NFiducial[3]=1;
 		SegmentedNFiducialsInFixedCorrespondence.push_back(NFiducial);

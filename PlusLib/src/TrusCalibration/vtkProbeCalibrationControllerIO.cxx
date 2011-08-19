@@ -53,11 +53,11 @@ void vtkProbeCalibrationControllerIO::SaveSegmentationResultToImage( int imgInde
 	// These will modify the image buffer (only in the memory)
 	// to update the segmenation outcomes (dots, lines, and pairs).
 	//segmenter->printResults();
-	this->CalibrationController->GetSegmenter()->drawResults( resultImage->GetBufferPointer() );
+  this->CalibrationController->GetPatternRecognition()->DrawResults( resultImage->GetBufferPointer() );
 
 	// create an importer to read the data back in VTK image pipeline
 	vtkSmartPointer<vtkImageImport> importer = vtkSmartPointer<vtkImageImport>::New();
-	importer->SetWholeExtent(0,this->CalibrationController->GetSegParameters()->GetFrameSize()[0] - 1,0,this->CalibrationController->GetSegParameters()->GetFrameSize()[1] - 1,0,0);
+  importer->SetWholeExtent(0,this->CalibrationController->GetPatternRecognition()->GetFidSegmentation()->GetFrameSize()[0] - 1,0,this->CalibrationController->GetPatternRecognition()->GetFidSegmentation()->GetFrameSize()[1] - 1,0,0);
 	importer->SetDataExtentToWholeExtent();
 	importer->SetDataScalarTypeToUnsignedChar();
 	importer->SetImportVoidPointer(duplicator->GetOutput()->GetBufferPointer() );
@@ -156,7 +156,7 @@ void vtkProbeCalibrationControllerIO::SaveSegmentedWirePositionsToFile()
 		this->CalibrationController->GetTransformProbeHomeToProbe()->SetMatrix(probeHomeToProbe); 
 		this->CalibrationController->GetTransformImageToTemplate()->Update(); 
 
-		SegmentationResults segResults = this->CalibrationController->GetSegmentedFrameContainer()[frameNum].SegResults; 
+		PatternRecognitionResult segResults = this->CalibrationController->GetSegmentedFrameContainer()[frameNum].SegResults; 
 
 		std::string dataType; 
 		switch(this->CalibrationController->GetSegmentedFrameContainer()[frameNum].DataType)
@@ -323,8 +323,8 @@ void vtkProbeCalibrationControllerIO::SaveCalibrationResultsAndErrorReportsToXML
 	// <UltrasoundImageDimensions>
 	vtkSmartPointer<vtkXMLDataElement> tagUltrasoundImageDimensions = vtkSmartPointer<vtkXMLDataElement>::New(); 
 	tagUltrasoundImageDimensions->SetName("UltrasoundImageDimensions"); 
-	tagUltrasoundImageDimensions->SetIntAttribute("Width", this->CalibrationController->GetSegParameters()->GetFrameSize()[0]); 
-	tagUltrasoundImageDimensions->SetIntAttribute("Height",this->CalibrationController->GetSegParameters()->GetFrameSize()[1]); 
+  tagUltrasoundImageDimensions->SetIntAttribute("Width", this->CalibrationController->GetPatternRecognition()->GetFidSegmentation()->GetFrameSize()[0]); 
+	tagUltrasoundImageDimensions->SetIntAttribute("Height",this->CalibrationController->GetPatternRecognition()->GetFidSegmentation()->GetFrameSize()[1]); 
 	vtkstd::string commentUltrasoundImageDimensions("# UltrasoundImageDimensions format: image width and height in pixels."); 
 	tagUltrasoundImageDimensions->AddCharacterData(commentUltrasoundImageDimensions.c_str(), commentUltrasoundImageDimensions.size()); 
 	// </UltrasoundImageDimensions>

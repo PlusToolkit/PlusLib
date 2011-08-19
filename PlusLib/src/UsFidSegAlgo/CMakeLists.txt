@@ -2,14 +2,22 @@
 # Sources
 
 SET (UsFidSegAlgo_SRCS
-		UltraSoundFiducialSegmentation.cxx
-        UsFidSegResultFile.cxx
+		FidSegmentation.cxx
+		FidLineFinder.cxx
+		FidLabelling.cxx
+		FidPatternRecognitionCommon.cxx
+		FidPatternRecognition.cxx
+		UsFidSegResultFile.cxx
 	)
 
 SET (UsFidSegAlgo_HDRS)	
 IF (WIN32)	
 	SET (UsFidSegAlgo_HDRS
-		UltraSoundFiducialSegmentation.h
+		FidSegmentation.h
+		FidLineFinder.h
+		FidLabelling.h
+		FidPatternRecognitionCommon.h
+		FidPatternRecognition.h
 		UsFidSegResultFile.h
 		)
 ENDIF (WIN32)
