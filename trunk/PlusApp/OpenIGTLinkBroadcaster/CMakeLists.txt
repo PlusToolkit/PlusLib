@@ -38,6 +38,12 @@ ADD_EXECUTABLE( PlusServer
   )
 TARGET_LINK_LIBRARIES( PlusServer
   OpenIGTLink
+  vtkCommon
+  vtkFiltering
+  vtkPlusCommon
+  vtkDataCollection
+  vtkImageAcquisition 
+  vtkTracking
   )
 
   

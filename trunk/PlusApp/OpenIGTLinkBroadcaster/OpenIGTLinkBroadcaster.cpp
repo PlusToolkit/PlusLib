@@ -91,7 +91,6 @@ int main( int argc, char *argv[] )
   std::string inputVideoBufferMetafile;
   std::string inputTrackerBufferMetafile;
   int         verboseLevel = PlusLogger::LOG_LEVEL_INFO;
-  bool        clientMode = false;
   
   vtksys::CommandLineArguments args;
   args.Initialize( argc, argv );
@@ -104,8 +103,7 @@ int main( int argc, char *argv[] )
                       &inputTrackerBufferMetafile, "Tracker buffer sequence metafile." );
   args.AddArgument( "--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT,
                       &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug 5=trace)" );  
-  args.AddArgument( "--client", vtksys::CommandLineArguments::NO_ARGUMENT,
-                      &clientMode, "Set this if this Broadcaster will be controlled through OpenIGTLink." );
+  
   
   
     // Try to parse command line arguments.
@@ -132,17 +130,6 @@ int main( int argc, char *argv[] )
   PlusLogger::Instance()->SetLogLevel( verboseLevel );
   PlusLogger::Instance()->SetDisplayLogLevel( verboseLevel );
   
-  
-    // Check mode.
-  
-  if ( clientMode )
-    {
-    std::cout << "Running client mode." << std::endl;
-    }
-  else
-    {
-    std::cout << "Running automatic mode." << std::endl;
-    }
   
   
     // Prepare data collector object.
@@ -186,13 +173,7 @@ int main( int argc, char *argv[] )
   int error = ProcessBroadcasterStatus( broadcasterStatus, errorMessage );
   if ( error != 0 ) return error;
   
-  
-  if ( clientMode )
-    {
     
-    return 0;
-    }
-  
   
     // Determine delay from frequency for the tracker.
   
@@ -260,3 +241,4 @@ int main( int argc, char *argv[] )
   
   return 0;
 }
+
