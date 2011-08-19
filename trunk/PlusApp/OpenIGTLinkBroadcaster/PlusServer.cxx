@@ -25,6 +25,7 @@ int main( int argc, char** argv )
   
     // Define command line arguments.
   
+  int         portNumber;
   std::string inputConfigFileName;
   std::string inputVideoBufferMetafile;
   std::string inputTrackerBufferMetafile;
@@ -33,6 +34,8 @@ int main( int argc, char** argv )
   vtksys::CommandLineArguments args;
   args.Initialize( argc, argv );
   
+  args.AddArgument( "--port", vtksys::CommandLineArguments::EQUAL_ARGUMENT,
+                      &portNumber, "Port number for OpenIGTLink connection." );
   args.AddArgument( "--input-config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT,
                       &inputConfigFileName, "Name of the input configuration file." );
   args.AddArgument( "--input-video-buffer-metafile", vtksys::CommandLineArguments::EQUAL_ARGUMENT,
@@ -66,6 +69,19 @@ int main( int argc, char** argv )
   
   PlusLogger::Instance()->SetLogLevel( verboseLevel );
   PlusLogger::Instance()->SetDisplayLogLevel( verboseLevel );
+  
+  
+    // Create server socket.
+  
+  igtl::ServerSocket::Pointer serverSocket = igtl::ServerSocket::New();
+  int r = serverSocket->CreateServer( portNumber );
+
+  if ( r < 0 )
+    {
+    PLUS_WARNING( "Cannot create a server socket on port " << portNumber );
+    return 0;
+    }
+
   
   
   return 0;
