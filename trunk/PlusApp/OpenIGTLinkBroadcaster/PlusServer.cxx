@@ -78,7 +78,7 @@ int main( int argc, char** argv )
 
   if ( r < 0 )
     {
-    PLUS_WARNING( "Cannot create a server socket on port " << portNumber );
+    LOG_WARNING( "Cannot create a server socket on port " << portNumber );
     return 0;
     }
 
