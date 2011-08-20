@@ -1,7 +1,7 @@
 #ifndef __vtkICCapturingSource_h
 #define __vtkICCapturingSource_h
 
-#include "vtkVideoSource2.h"
+#include "vtkPlusVideoSource.h"
 class ICCapturingListener; 
 
 class VTK_EXPORT vtkICCapturingSource;
@@ -14,10 +14,10 @@ public:
 };
 
 
-class VTK_EXPORT vtkICCapturingSource : public vtkVideoSource2
+class VTK_EXPORT vtkICCapturingSource : public vtkPlusVideoSource
 {
 public:
-	vtkTypeRevisionMacro(vtkICCapturingSource,vtkVideoSource2);
+	vtkTypeRevisionMacro(vtkICCapturingSource,vtkPlusVideoSource);
 	void PrintSelf(ostream& os, vtkIndent indent);   
 	// Description:
 	// This is a singleton pattern New.  There will only be ONE
@@ -45,34 +45,6 @@ public:
 	// Read/write main configuration from/to xml data
 	virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config); 
 	virtual PlusStatus WriteConfiguration(vtkXMLDataElement* config);
-
-	// Description:
-	// Connect to device
-	// Should be overridden to connect to the hardware 
-	virtual PlusStatus Connect();
-
-	// Description:
-	// Disconnect from device
-	// Should be overridden to disconnect from the hardware 
-	virtual PlusStatus Disconnect();
-
-	// Description:
-	// Record incoming video at the specified FrameRate.  The recording
-	// continues indefinitely until StopRecording() is called. 
-	virtual PlusStatus StartRecording();
-
-	// Description:
-	// Stop recording or playing.
-	virtual PlusStatus StopRecording();
-
-	// Description:
-	// Grab a single video frame.
-	PlusStatus Grab();
-
-	// Description:
-	// Initialize the driver (this is called automatically when the
-	// first grab is done).
-	PlusStatus Initialize();
 
 	// Description:
 	// Set/Get the IC capturing device license key
@@ -115,8 +87,24 @@ protected:
 	~vtkICCapturingSource();
 
 	// Description:
-	// For internal use only
-	PlusStatus LocalInternalGrab(unsigned char * data, unsigned long size, unsigned long frameNumber);
+	// Device-specific connect
+	virtual PlusStatus InternalConnect();
+
+	// Description:
+  // Device-specific disconnect
+	virtual PlusStatus InternalDisconnect();
+
+	// Description:
+	// Device-specific recording start
+	virtual PlusStatus InternalStartRecording();
+
+	// Description:
+	// Device-specific recording stop
+	virtual PlusStatus InternalStopRecording();
+
+	// Description:
+	// Adds a frame to the frame buffer. Called whenever the driver notified a new frame acquisition.
+	PlusStatus AddFrameToBuffer(unsigned char * data, unsigned long size, unsigned long frameNumber);
 
 	void* FrameGrabber;
 	ICCapturingListener* FrameGrabberListener; 

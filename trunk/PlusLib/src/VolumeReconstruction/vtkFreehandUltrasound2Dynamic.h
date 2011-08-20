@@ -51,7 +51,7 @@ POSSIBILITY OF SUCH DAMAGES.
 // specify the coverage of each pixel in the output volume (i.e. whether or
 // not a voxel has been touched by the reconstruction)
 // .SECTION see also
-// vtkFreehandUltrasound2, vtkVideoSource2, vtkTracker, vtkTrackerTool
+// vtkFreehandUltrasound2, vtkPlusVideoSource, vtkTracker, vtkTrackerTool
 
 #ifndef __vtkFreehandUltrasound2Dynamic_h
 #define __vtkFreehandUltrasound2Dynamic_h

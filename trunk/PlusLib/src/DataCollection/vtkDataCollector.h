@@ -4,20 +4,20 @@
 #ifndef __vtkDataCollector_h
 #define __vtkDataCollector_h
 
-#include "vtkMultiThreader.h"
 #include "PlusConfigure.h"
+#include "vtkMultiThreader.h"
 #include "vtkImageAlgorithm.h" 
 #include "vtkXMLDataElement.h"
 #include "vtkImageData.h"
 #include "vtkTimerLog.h"
 #include "vtksys/SystemTools.hxx"
 
-#include "vtkVideoSource2.h"
 #include "vtkVideoBuffer.h"
 #include "vtkTracker.h"
 #include "vtkTrackerBuffer.h"
 #include "vtkTrackedFrameList.h"
 #include "vtkDataCollectorSynchronizer.h"
+#include "vtkPlusVideoSource.h"
 
 // Acquisition types
 enum ACQUISITION_TYPE 
@@ -195,8 +195,8 @@ public:
 
   // Description:
   // Set/Get the video source of ultrasound
-  vtkSetObjectMacro(VideoSource,vtkVideoSource2);
-  vtkGetObjectMacro(VideoSource,vtkVideoSource2);
+  vtkSetObjectMacro(VideoSource,vtkPlusVideoSource);
+  vtkGetObjectMacro(VideoSource,vtkPlusVideoSource);
 
   // Description:
   // Set/Get the video source of ultrasound
@@ -285,7 +285,7 @@ protected:
 protected:
   vtkDataCollectorSynchronizer* Synchronizer; 
 
-  vtkVideoSource2*	            VideoSource; 
+  vtkPlusVideoSource*	            VideoSource; 
   vtkTracker*		              	Tracker; 
 
   ACQUISITION_TYPE	            AcquisitionType; 

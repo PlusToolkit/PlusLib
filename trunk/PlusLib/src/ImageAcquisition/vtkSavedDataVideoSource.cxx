@@ -38,13 +38,16 @@ vtkSavedDataVideoSource::vtkSavedDataVideoSource()
   this->ReplayEnabled = false; 
   this->LoopStartTime = 0.0; 
   this->LoopTime = 0.0; 
-
+  this->SpawnThreadForRecording=true;
 }
 
 //----------------------------------------------------------------------------
 vtkSavedDataVideoSource::~vtkSavedDataVideoSource()
 { 
-  this->vtkSavedDataVideoSource::ReleaseSystemResources();
+  if (!this->Connected)
+  {
+    this->Disconnect();
+  }
 
   if ( this->LocalVideoBuffer != NULL )
   {
@@ -113,16 +116,6 @@ void vtkSavedDataVideoSource::PrintSelf(ostream& os, vtkIndent indent)
 PlusStatus vtkSavedDataVideoSource::InternalGrab()
 {
   /*LOG_TRACE("vtkSavedDataVideoSource::InternalGrab");*/
-  if (this->Recording==0)
-  {
-    // drop the frame, we are not recording data now
-    return PLUS_SUCCESS;
-  }
-  if ( !this->Initialized )
-  {
-    LOG_ERROR("Called InternalGrab() when SavedDataVideoSource was not initialized!");
-    return PLUS_FAIL; 	
-  }
 
   // Compute elapsed time since we restarted the timer
   double elapsedTime = vtkAccurateTimer::GetSystemTime() - this->GetBuffer()->GetStartTime(); 
@@ -182,35 +175,9 @@ PlusStatus vtkSavedDataVideoSource::InternalGrab()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkSavedDataVideoSource::Initialize()
+PlusStatus vtkSavedDataVideoSource::InternalConnect()
 {
-  LOG_TRACE("vtkSavedDataVideoSource::Initialize"); 
-  if (this->Initialized)
-  {
-    return PLUS_SUCCESS;
-  }
-
-  // Connect to device
-  if ( !this->Connect() ) 
-  {
-    LOG_ERROR("Unable to connect to saved data video device!"); 
-    return PLUS_FAIL; 
-  }
-
-  this->Initialized = 1;
-  return PLUS_SUCCESS;
-}
-
-//----------------------------------------------------------------------------
-PlusStatus vtkSavedDataVideoSource::Connect()
-{
-  LOG_TRACE("vtkSavedDataVideoSource::Connect"); 
-
-  if (this->Initialized)
-  {
-    return PLUS_SUCCESS;
-  }
-
+  LOG_TRACE("vtkSavedDataVideoSource::InternalConnect"); 
 
   if ( !vtksys::SystemTools::FileExists(this->GetSequenceMetafile(), true) )
   {
@@ -219,9 +186,6 @@ PlusStatus vtkSavedDataVideoSource::Connect()
   }
 
   vtkSmartPointer<vtkTrackedFrameList> savedDataBuffer = vtkSmartPointer<vtkTrackedFrameList>::New(); 
-
-  // Update framebuffer 
-  this->UpdateFrameBuffer();
 
   // Read metafile
   if ( savedDataBuffer->ReadFromSequenceMetafile(this->GetSequenceMetafile()) != PLUS_SUCCESS )
@@ -265,7 +229,6 @@ PlusStatus vtkSavedDataVideoSource::Connect()
     LOG_ERROR("Failed to set video buffer size!"); 
     return PLUS_FAIL;
   }
-  this->LocalVideoBuffer->UpdateBufferFrameFormats(); 
 
   // Fill local video buffers 
   for ( unsigned int frame = 0; frame < savedDataBuffer->GetNumberOfTrackedFrames(); ++frame)
@@ -324,56 +287,8 @@ PlusStatus vtkSavedDataVideoSource::Connect()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkSavedDataVideoSource::Disconnect()
+PlusStatus vtkSavedDataVideoSource::InternalDisconnect()
 {
-  LOG_TRACE("vtkSavedDataVideoSource::Disconnect"); 
-  return this->StopRecording();
-}
-
-//----------------------------------------------------------------------------
-void vtkSavedDataVideoSource::ReleaseSystemResources()
-{
-  LOG_TRACE("vtkSavedDataVideoSource::ReleaseSystemResources"); 
-  this->Disconnect(); 
-  this->Initialized = 0;
-}
-
-//----------------------------------------------------------------------------
-PlusStatus vtkSavedDataVideoSource::Grab()
-{
-  LOG_ERROR("Grab is not implemented for this video source");
-  return PLUS_FAIL;
-}
-
-//----------------------------------------------------------------------------
-PlusStatus vtkSavedDataVideoSource::StartRecording()
-{
-  LOG_TRACE("vtkSavedDataVideoSource::Record"); 
-
-  if (!this->Initialized)
-  {
-    LOG_ERROR("Unable to start recording: initialize the video device first!"); 
-    return PLUS_FAIL;
-  }
-
-  if (!this->Recording)
-  {
-    this->vtkVideoSource2::StartRecording(); 
-  }
-
-  return PLUS_SUCCESS;
-}
-
-//----------------------------------------------------------------------------
-PlusStatus vtkSavedDataVideoSource::StopRecording()
-{
-  LOG_TRACE("vtkSavedDataVideoSource::Stop"); 
-  if (this->Recording)
-  {
-    this->Recording = 0;
-    this->Modified();
-  }
-
   return PLUS_SUCCESS;
 }
 

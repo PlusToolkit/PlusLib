@@ -14,7 +14,7 @@ SET (ImageAcquisition_SRCS
 	itkFcsvReader.cxx
 	itkFcsvWriter.cxx
 	vtkVideoBuffer.cxx 
-	vtkVideoSource2.cxx 
+	vtkPlusVideoSource.cxx 
 	vtkBufferedVideoSource.cxx 
 	vtkTrackedFrameList.cxx 
     vtkSavedDataVideoSource.cxx
@@ -28,7 +28,7 @@ if (WIN32)
 		itkFcsvReader.h
 		itkFcsvWriter.h
 		vtkVideoBuffer.h 
-		vtkVideoSource2.h 
+		vtkPlusVideoSource.h 
 		vtkBufferedVideoSource.h
 		vtkTrackedFrameList.h
         vtkSavedDataVideoSource.h 

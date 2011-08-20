@@ -25,7 +25,7 @@
 // RGB and YUV formats, in top-down or bottom-up row ordering, and with
 // or without 4-byte row padding.
 // .SECTION See Also
-// vtkVideoBuffer2 vtkVideoSource2 vtkWin32VideoSource2 vtkMILVideoSource2
+// vtkVideoBuffer2 vtkPlusVideoSource vtkWin32VideoSource2 vtkMILVideoSource2
 
 #ifndef __vtkVideoFrame2_h
 #define __vtkVideoFrame2_h

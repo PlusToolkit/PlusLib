@@ -20,28 +20,28 @@
 // vtkWin32VideoSource2 grabs frames or streaming video from a
 // Video for Windows compatible device on the Win32 platform.
 // vtkWin32VideoSource2 is an updated version of vtkWin32VideoSource and uses
-// vtkVideoSource2 instead of vtkVideoSource
+// vtkPlusVideoSource instead of vtkVideoSource
 // .SECTION Caveats
 // With some capture cards, if this class is leaked and ReleaseSystemResources 
 // is not called, you may have to reboot before you can capture again.
-// vtkVideoSource2 used to keep a global list and delete the video sources
+// vtkPlusVideoSource used to keep a global list and delete the video sources
 // if your program leaked, due to exit crashes that was removed.
 //
 // .SECTION See Also
-// vtkVideoSource2 vtkMILVideoSource2 vtkWin32VideoSource
+// vtkPlusVideoSource vtkMILVideoSource2 vtkWin32VideoSource
 
 #ifndef __vtkWin32VideoSource2_h
 #define __vtkWin32VideoSource2_h
 
-#include "vtkVideoSource2.h"
+#include "vtkPlusVideoSource.h"
 
 class vtkWin32VideoSource2Internal;
 
-class VTK_HYBRID_EXPORT vtkWin32VideoSource2 : public vtkVideoSource2
+class VTK_HYBRID_EXPORT vtkWin32VideoSource2 : public vtkPlusVideoSource
 {
 public:
   static vtkWin32VideoSource2 *New();
-  vtkTypeRevisionMacro(vtkWin32VideoSource2,vtkVideoSource2);
+  vtkTypeRevisionMacro(vtkWin32VideoSource2,vtkPlusVideoSource);
   void PrintSelf(ostream& os, vtkIndent indent);   
 
   // Description:

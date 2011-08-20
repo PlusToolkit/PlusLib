@@ -1,7 +1,7 @@
 /*=========================================================================
 
 Program:   Visualization Toolkit
-Module:    $RCSfile: vtkVideoSource2.h,v $
+Module:    $RCSfile: vtkPlusVideoSource.h,v $
 
 Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen
 All rights reserved.
@@ -15,27 +15,27 @@ the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
 PURPOSE.  See the above copyright notice for more information. 
 
 =========================================================================*/
-// .NAME vtkVideoSource2 - Superclass of video input devices for VTK
+// .NAME vtkPlusVideoSource - Superclass of video input devices for VTK
 // .SECTION Description
-// vtkVideoSource2 is a superclass for video input interfaces for VTK.
-// This base class records input from a noise source.  vtkVideoSource2 uses
-// vtkVideoBuffer to hold its image data, and should be
-// used instead of vtkVideoSource if you want to be able to access data while
+// vtkPlusVideoSource is a superclass for video input interfaces for VTK.
+// This base class records input from a noise source.  vtkPlusVideoSource uses
+// vtkVideoBuffer to hold its image data. The output can be accessed while
 // recording.
 // .SECTION Caveats
-// You must call the ReleaseSystemResources() method before the application
+// You must call Disconnect() method before the application
 // exits.  Otherwise the application might hang while trying to exit.
 // .SECTION See Also
-// vtkWin32VideoSource2 vtkMILVideoSource2 vtkVideoBuffer2 
+// vtkWin32VideoSource2 vtkMILVideoSource2 vtkVideoBuffer2
 
-#ifndef __vtkVideoSource2_h
-#define __vtkVideoSource2_h
+#ifndef __vtkPlusVideoSource_h
+#define __vtkPlusVideoSource_h
 
 #include "PlusConfigure.h"
+#include <vector>
 #include "vtkImageAlgorithm.h"
 #include "vtkXMLDataElement.h"
+#include "vtkMultiThreader.h"
 #include "UsImageConverterCommon.h"
-#include <vector>
 
 class vtkTimerLog;
 class vtkCriticalSection;
@@ -48,15 +48,15 @@ class vtkHTMLGenerator;
 class vtkGnuplotExecuter; 
 class VideoBufferItem;
 
-class VTK_EXPORT vtkVideoSource2 : public vtkImageAlgorithm
+class VTK_EXPORT vtkPlusVideoSource : public vtkImageAlgorithm
 {
 public:
 
     typedef UsImageConverterCommon::PixelType PixelType;
 	typedef UsImageConverterCommon::ImageType ImageType;
 
-    static vtkVideoSource2 *New();
-    vtkTypeRevisionMacro(vtkVideoSource2,vtkImageAlgorithm);
+    static vtkPlusVideoSource *New();
+    vtkTypeRevisionMacro(vtkPlusVideoSource,vtkImageAlgorithm);
     void PrintSelf(ostream& os, vtkIndent indent);   
 
     // Description:
@@ -65,13 +65,13 @@ public:
     virtual PlusStatus WriteConfiguration(vtkXMLDataElement* config);
 
     // Description:
-    // Connect to device
-    // Should be overridden to connect to the hardware 
+    // Connect to device. Connection is needed for recording or single frame grabbing
     virtual PlusStatus Connect();
 
     // Description:
     // Disconnect from device
-    // Should be overridden to disconnect from the hardware 
+    // This method must be called before application exit, or else the
+    // application might hang during exit.
     virtual PlusStatus Disconnect();
 
     // Description:
@@ -85,12 +85,17 @@ public:
 
     // Description:
     // Grab a single video frame.
+    // It requires overriding of the InternalGrab() function in the child class.
     virtual PlusStatus Grab();
 
     // Description:
     // Are we in record mode?
-    // exclusive).
     vtkGetMacro(Recording,int);
+
+    // Description:
+    // Are we connected?
+    vtkGetMacro(Connected, int);
+
 
     // Description:
     // Set/Get the full-frame size.  This must be an allowed size for the device,
@@ -99,8 +104,8 @@ public:
     // The default is usually 320x240, but can be device specific.  
     // The 'depth' should always be 1 (unless you have a device that
     // can handle 3D acquisition).
-    virtual void SetFrameSize(int x, int y);
-    virtual void SetFrameSize(int dim[2]) { this->SetFrameSize(dim[0], dim[1]); };
+    virtual PlusStatus SetFrameSize(int x, int y);
+    virtual PlusStatus SetFrameSize(int dim[2]) { return this->SetFrameSize(dim[0], dim[1]); };
     virtual int* GetFrameSize();
     virtual void GetFrameSize(int &x, int &y);
     virtual void GetFrameSize(int dim[2]);
@@ -160,30 +165,6 @@ public:
     virtual vtkVideoBuffer *GetBuffer() { return this->Buffer; };
 
     // Description:
-    // Initialize the hardware.  This is called automatically
-    // on the first Update or Grab.
-    virtual PlusStatus Initialize();
-    virtual int GetInitialized() { return this->Initialized; };
-
-    // Description:
-    // Release the video driver.  This method must be called before
-    // application exit, or else the application might hang during
-    // exit.  
-    virtual void ReleaseSystemResources();
-
-    // Description:
-    // The internal function which actually does the grab.  You will
-    // definitely want to override this if you develop a vtkVideoSource2
-    // subclass. 
-    virtual PlusStatus InternalGrab();
-
-    // Description:
-    // And internal variable which marks the beginning of a Record session.
-    // These methods are for internal use only.
-    /*void SetStartTimeStamp(double t) { this->StartTimeStamp = t; };
-    virtual double GetStartTimeStamp() { return this->StartTimeStamp; };*/
-
-    // Description:
     // The result of GetOutput() will be the frame closest to DesiredTimestamp
     // if it is set and if UpdateWithDesiredTimestamp is set on (default off)
     vtkSetMacro(UpdateWithDesiredTimestamp, int);
@@ -211,11 +192,52 @@ public:
     virtual PlusStatus GenerateVideoDataAcquisitionReport( vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter, const char* gnuplotScriptsFolder); 
 
 protected:
-    vtkVideoSource2();
-    virtual ~vtkVideoSource2();
+    vtkPlusVideoSource();
+    virtual ~vtkPlusVideoSource();
     virtual int RequestInformation(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
 
-    int Initialized;
+    static void *vtkVideoSourceRecordThread(vtkMultiThreader::ThreadInfo *data);
+
+    // Description:
+    // Should be overridden to connect to the hardware
+    virtual PlusStatus InternalConnect() { return PLUS_SUCCESS; }
+
+    // Description:
+    // Should be overridden to disconnect from the hardware
+    // Release the video driver.
+    virtual PlusStatus InternalDisconnect() { return PLUS_SUCCESS; };
+
+    // Description:
+    // The internal function which actually grabs one frame. 
+    // This must be overridden in the class if SpawnThreadForRecording is enabled
+    // or the single frame grabbing (Grab()) functionality is needed.
+    virtual PlusStatus InternalGrab();
+
+    // Description:
+    // Called at the end of StartRecording to allow hardware-specific
+    // actions for starting the recording
+    virtual PlusStatus InternalStartRecording() { return PLUS_SUCCESS; };
+
+    // Description:
+    // Called at the beginning of StopRecording to allow hardware-specific
+    // actions for stopping the recording
+    virtual PlusStatus InternalStopRecording() { return PLUS_SUCCESS; };
+
+    // Description:
+    // These methods can be overridden in subclasses
+    virtual int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
+
+    ///////////////////////////
+
+    int Connected;
+
+    // Description:
+    // If SpawnThreadForRecording is true then when recording is started
+    // a new thread is created, which grabs frame in regular intervals.
+    // SpawnThreadForRecording shall be set to false if the driver notifies
+    // the application when a new frame is available (then the notification
+    // triggers the frame grabbing)
+    int SpawnThreadForRecording;
 
     double DataSpacing[3];
     double DataOrigin[3];
@@ -240,22 +262,15 @@ protected:
     vtkMultiThreader *RecordThreader;
     int RecordThreadId;
 
-    // The buffer used to hold the frames
+    // The buffer used to hold the last N frames
     vtkVideoBuffer *Buffer;
     VideoBufferItem *CurrentVideoBufferItem; 
 
     US_IMAGE_ORIENTATION UsImageOrientation; 
 
-    // Description:
-    // These methods can be overridden in subclasses
-    virtual void UpdateFrameBuffer();
-    virtual int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
-
 private:
-    vtkVideoSource2(const vtkVideoSource2&);  // Not implemented.
-    void operator=(const vtkVideoSource2&);  // Not implemented.
-
-    ImageType::Pointer PseudoRandomNoiseFrame; 
+    vtkPlusVideoSource(const vtkPlusVideoSource&);  // Not implemented.
+    void operator=(const vtkPlusVideoSource&);  // Not implemented.
 };
 
 #endif

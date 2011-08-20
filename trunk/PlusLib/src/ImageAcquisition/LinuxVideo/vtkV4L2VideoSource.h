@@ -27,9 +27,6 @@
 // capable of holding a preset number of video frames.  Specialized
 // versions of this class record input from various video input sources.
 // This base class records input from a noise source.
-// .SECTION Caveats
-// You must call the ReleaseSystemResources() method before the application
-// exits.  Otherwise the application might hang while trying to exit.
 // .SECTION See Also
 // vtkWin32VideoSource vtkMILVideoSource
 //New-End
@@ -271,12 +268,6 @@ public:
   //New-Start
   int GetInitialized() { return this->Initialized; };
   //New-End
-
-  // Description:
-   // Release the video driver.  This method must be called before
-  // application exit, or else the application might hang during
-  // exit. Automatically done at the destructor
-  void ReleaseSystemResources();
   
   // Description:
   // The internal function which actually does the grab.  You will

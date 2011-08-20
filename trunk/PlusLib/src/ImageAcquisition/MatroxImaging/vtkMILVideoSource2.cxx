@@ -21,7 +21,6 @@
 #include "vtkCriticalSection.h"
 #include "vtkDataArray.h"
 #include "vtkVideoBuffer.h"
-#include "vtkVideoFrame2.h"
 
 #include <mil.h>
 #include <ctype.h>
@@ -1162,7 +1161,7 @@ void vtkMILVideoSource2::AllocateMILBuffer()
   if (format != VTK_LUMINANCE && format != VTK_RGB && format != VTK_RGBA)
     {
     LOG_WARNING(<< "Initialize: unsupported OutputFormat");
-    this->vtkVideoSource2::SetOutputFormat(VTK_LUMINANCE);
+    this->vtkPlusVideoSource::SetOutputFormat(VTK_LUMINANCE);
     } 
 
   int frameSize[6];

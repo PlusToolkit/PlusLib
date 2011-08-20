@@ -77,17 +77,15 @@ void vtkVolumeReconstructor::Initialize()
   {
     this->GetVideoSource()->SetFrameSize(this->GetFrameSize()); 
     this->GetVideoSource()->GetBuffer()->SetNumberOfBitsPerPixel( this->GetNumberOfBitsPerPixel() ); 
-
     if ( this->GetVideoSource()->GetBuffer()->SetBufferSize( this->GetNumberOfFrames() ) != PLUS_SUCCESS )
     {
       LOG_ERROR("Failed to set video buffer size!"); 
       return; 
     }
+    //this->GetVideoSource()->GetBuffer()->UpdateBufferFrameFormats();
 
     this->GetTracker()->GetTool( this->TrackerToolID )->GetBuffer()->SetBufferSize( this->GetNumberOfFrames() ); 
   }
-
-  this->GetVideoSource()->Initialize(); 
 
   // Min and max values of double indicate intial values of max and min.
 
@@ -131,7 +129,7 @@ PlusStatus vtkVolumeReconstructor::AddTrackedFrame( ImageType::Pointer frame, US
     return PLUS_FAIL; 
   }
 
-  PlusStatus  videoStatus = this->GetVideoSource()->AddFrame( frame, usImageOrientation, timestamp ); 
+  PlusStatus  videoStatus = this->GetVideoSource()->AddFrameToBuffer( frame, usImageOrientation, timestamp ); 
   PlusStatus trackerStatus = this->GetTracker()->AddTransform( mToolToReference, timestamp ); 
 
   int extent[6] = {0, frame->GetLargestPossibleRegion().GetSize()[0] - 1, 0, frame->GetLargestPossibleRegion().GetSize()[1] - 1, 0, 0 }; 

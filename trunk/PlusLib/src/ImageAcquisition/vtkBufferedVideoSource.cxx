@@ -51,7 +51,6 @@ vtkBufferedVideoSource::vtkBufferedVideoSource()
 //----------------------------------------------------------------------------
 vtkBufferedVideoSource::~vtkBufferedVideoSource()
 { 
-	this->vtkBufferedVideoSource::ReleaseSystemResources();
 }
 
 
@@ -115,72 +114,8 @@ void vtkBufferedVideoSource::PrintSelf(ostream& os, vtkIndent indent)
 	this->Superclass::PrintSelf(os,indent);
 }
 
-
 //----------------------------------------------------------------------------
-PlusStatus vtkBufferedVideoSource::Initialize()
-{
-	if (this->Initialized)
-	{
-		return PLUS_SUCCESS;
-	}
-
-	// update framebuffer 
-	this->UpdateFrameBuffer();
-
-	this->Initialized = 1;
-
-  return PLUS_SUCCESS;
-}
-
-//----------------------------------------------------------------------------
-void vtkBufferedVideoSource::ReleaseSystemResources()
-{
-	if (this->Recording)
-	{
-		this->StopRecording();
-	}
-
-	this->Initialized = 0;
-}
-
-//----------------------------------------------------------------------------
-PlusStatus vtkBufferedVideoSource::Grab()
-{
-  LOG_ERROR("Grab is not implemented for this video source");
-	return PLUS_FAIL;
-}
-
-//----------------------------------------------------------------------------
-PlusStatus vtkBufferedVideoSource::StartRecording()
-{
-	this->Initialize();
-	if (!this->Initialized)
-	{
-		return PLUS_FAIL;
-	}
-
-	if (!this->Recording)
-	{
-		this->Recording = 1;
-		this->Modified();
-	}
-  return PLUS_SUCCESS;
-}
-
-//----------------------------------------------------------------------------
-PlusStatus vtkBufferedVideoSource::StopRecording()
-{
-	if (this->Recording)
-	{
-		this->Recording = 0;
-		this->Modified();
-	}
-
-  return PLUS_SUCCESS;
-}
-
-//----------------------------------------------------------------------------
-PlusStatus vtkBufferedVideoSource::AddFrame( ImageType::Pointer image, US_IMAGE_ORIENTATION usImageOrientation, double timestamp )
+PlusStatus vtkBufferedVideoSource::AddFrameToBuffer( ImageType::Pointer image, US_IMAGE_ORIENTATION usImageOrientation, double timestamp )
 {
 	// We don't have information about the unfiltered timestamp, use the filtered one
 	const long frameNumber = this->FrameNumber + 1; 

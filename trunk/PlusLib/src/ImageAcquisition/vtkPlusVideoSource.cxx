@@ -1,11 +1,10 @@
 #include "PlusConfigure.h"
 
-#include "vtkVideoSource2.h"
+#include "vtkPlusVideoSource.h"
 #include "vtkVideoBuffer.h"
 #include "vtkCriticalSection.h"
 #include "vtkDataArray.h"
 #include "vtkImageData.h"
-#include "vtkMultiThreader.h"
 #include "vtkMutexLock.h"
 #include "vtkInformation.h"
 #include "vtkInformationVector.h"
@@ -36,8 +35,8 @@
 #include <ctype.h>
 #include <time.h>
 
-vtkCxxRevisionMacro(vtkVideoSource2, "$Revision: 2.0 $");
-vtkStandardNewMacro(vtkVideoSource2);
+vtkCxxRevisionMacro(vtkPlusVideoSource, "$Revision: 2.0 $");
+vtkStandardNewMacro(vtkPlusVideoSource);
 
 #if ( _MSC_VER >= 1300 ) // Visual studio .NET
 #pragma warning ( disable : 4311 )
@@ -45,9 +44,11 @@ vtkStandardNewMacro(vtkVideoSource2);
 #endif 
 
 //----------------------------------------------------------------------------
-vtkVideoSource2::vtkVideoSource2()
+vtkPlusVideoSource::vtkPlusVideoSource()
 {
-	this->Initialized = 0;
+	this->Connected = 0;
+  
+  this->SpawnThreadForRecording=0;
 
 	this->Recording = 0;
 
@@ -82,24 +83,24 @@ vtkVideoSource2::vtkVideoSource2()
 
 	this->SetNumberOfInputPorts(0);
 
-	this->PseudoRandomNoiseFrame = NULL; 
-
   this->UsImageOrientation = US_IMG_ORIENT_XX;  
 
 }
 
 //----------------------------------------------------------------------------
-vtkVideoSource2::~vtkVideoSource2()
+vtkPlusVideoSource::~vtkPlusVideoSource()
 { 
 	// we certainly don't want to access a virtual 
 	// function after the subclass has destructed!!
-	this->vtkVideoSource2::ReleaseSystemResources();
+  if (this->Connected)
+  {
+    Disconnect();
+  }
 
-	this->SetFrameBufferSize(0);
-	this->Buffer->Delete();
 	if ( this->RecordThreader != NULL )
 	{
 		this->RecordThreader->Delete();
+    this->RecordThreader=NULL;
 	}
 
 	if ( this->CurrentVideoBufferItem != NULL )
@@ -108,96 +109,91 @@ vtkVideoSource2::~vtkVideoSource2()
 		this->CurrentVideoBufferItem = NULL; 
 	}
 
+	this->SetFrameBufferSize(0);
+  if (this->Buffer!=NULL)
+  {
+	  this->Buffer->Delete();
+    this->Buffer=NULL;
+  }
+
 }
 
 //----------------------------------------------------------------------------
-void vtkVideoSource2::PrintSelf(ostream& os, vtkIndent indent)
+void vtkPlusVideoSource::PrintSelf(ostream& os, vtkIndent indent)
 {
-	int idx;
-
 	this->Superclass::PrintSelf(os,indent);
 
-
 	os << indent << "DataSpacing: (" << this->DataSpacing[0];
-	for (idx = 1; idx < 3; ++idx)
+	for (int idx = 1; idx < 3; ++idx)
 	{
 		os << ", " << this->DataSpacing[idx];
 	}
 	os << ")\n";
 
 	os << indent << "DataOrigin: (" << this->DataOrigin[0];
-	for (idx = 1; idx < 3; ++idx)
+	for (int idx = 1; idx < 3; ++idx)
 	{
 		os << ", " << this->DataOrigin[idx];
 	}
 	os << ")\n";
 
 	os << indent << "FrameRate: " << this->FrameRate << "\n";
-
 	os << indent << "FrameCount: " << this->FrameCount << "\n";
-
+	os << indent << "Connected: " << (this->Connected ? "Yes\n" : "No\n");
+  os << indent << "SpawnThreadForRecording: " << (this->SpawnThreadForRecording ? "Yes\n" : "No\n");
 	os << indent << "Recording: " << (this->Recording ? "On\n" : "Off\n");
-
 	os << indent << "NumberOfOutputFrames: " << this->NumberOfOutputFrames << "\n";
-
 	os << indent << "Buffer:\n";
-	this->Buffer->PrintSelf(os, indent.GetNextIndent());
+
+  this->Buffer->PrintSelf(os, indent.GetNextIndent());
 }
 
 //----------------------------------------------------------------------------
-void vtkVideoSource2::SetFrameSize(int x, int y)
+PlusStatus vtkPlusVideoSource::SetFrameSize(int x, int y)
 {
 	int* frameSize = this->Buffer->GetFrameSize();
 
 	if (x == frameSize[0] && 
 		y == frameSize[1] )
 	{
-		return;
+		return PLUS_SUCCESS;
 	}
 
 	if (x < 1 || y < 1) 
 	{
 		LOG_ERROR("SetFrameSize: Illegal frame size");
-		return;
+		return PLUS_FAIL;
 	}
 
-	if (this->Initialized) 
-	{
-		this->Buffer->SetFrameSize(x,y);
-		this->UpdateFrameBuffer();
-	}
-	else
-	{
-        this->Buffer->SetFrameSize(x,y);
-	}
+  this->Buffer->SetFrameSize(x,y);	
 
 	this->Modified();
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-int* vtkVideoSource2::GetFrameSize()
+int* vtkPlusVideoSource::GetFrameSize()
 {
 	return this->Buffer->GetFrameSize();
 }
 
 //----------------------------------------------------------------------------
-void vtkVideoSource2::GetFrameSize(int &x, int &y)
+void vtkPlusVideoSource::GetFrameSize(int &x, int &y)
 {
-	int *dim = new int[2];
+	int dim[2];
 	this->GetFrameSize(dim);
 	x = dim[0];
 	y = dim[1];
-	delete[] dim;
 }
 
 //----------------------------------------------------------------------------
-void vtkVideoSource2::GetFrameSize(int dim[2])
+void vtkPlusVideoSource::GetFrameSize(int dim[2])
 {
 	this->Buffer->GetFrameSize(dim);
 }
 
 //----------------------------------------------------------------------------
-void vtkVideoSource2::SetFrameRate(float rate)
+void vtkPlusVideoSource::SetFrameRate(float rate)
 {
 	if (this->FrameRate == rate)
 	{
@@ -209,7 +205,7 @@ void vtkVideoSource2::SetFrameRate(float rate)
 }
 
 //----------------------------------------------------------------------------
-int vtkVideoSource2::GetFrameBufferSize()
+int vtkPlusVideoSource::GetFrameBufferSize()
 {
 	return this->Buffer->GetBufferSize();
 }
@@ -218,7 +214,7 @@ int vtkVideoSource2::GetFrameBufferSize()
 // set or change the circular buffer size
 // you will have to override this if you want the buffers 
 // to be device-specific (i.e. something other than vtkDataArray)
-PlusStatus vtkVideoSource2::SetFrameBufferSize(int bufsize)
+PlusStatus vtkPlusVideoSource::SetFrameBufferSize(int bufsize)
 {
 	if (bufsize < 0)
 	{
@@ -232,129 +228,48 @@ PlusStatus vtkVideoSource2::SetFrameBufferSize(int bufsize)
         LOG_ERROR("Failed to set video buffer size!"); 
         return PLUS_FAIL; 
     }
-	this->UpdateFrameBuffer();
-
-    return PLUS_SUCCESS; 
+	
+  return PLUS_SUCCESS; 
 }
 
 //----------------------------------------------------------------------------
-void vtkVideoSource2::UpdateFrameBuffer()
+PlusStatus vtkPlusVideoSource::Connect()
 {
-	this->Buffer->UpdateBufferFrameFormats(); 
-}
-
-//----------------------------------------------------------------------------
-// Initialize() should be overridden to initialize the hardware frame grabber
-PlusStatus vtkVideoSource2::Initialize()
-{
-	if (this->Initialized)
+	if (this->Connected)
 	{
+    LOG_DEBUG("Already connected to the video source");
 		return PLUS_SUCCESS;
 	}
-	this->Initialized = 1;
 
-	this->UpdateFrameBuffer();
+  if (this->InternalConnect()!=PLUS_SUCCESS)
+  {
+    LOG_ERROR("Cannot connect to video soruce, ConnectInternal failed");
+    return PLUS_FAIL;
+  }
+
+  this->Connected = 1;
+	
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-// Connect() should be overridden to connect to the hardware 
-PlusStatus vtkVideoSource2::Connect()
+PlusStatus vtkPlusVideoSource::Disconnect()
 {
-	return PLUS_SUCCESS;
-}
-
-//----------------------------------------------------------------------------
-// Disconnect() should be overridden to disconnect from the hardware 
-PlusStatus vtkVideoSource2::Disconnect()
-{
-  return PLUS_SUCCESS;
-}
-
-//----------------------------------------------------------------------------
-// ReleaseSystemResources() should be overridden to release the hardware
-void vtkVideoSource2::ReleaseSystemResources()
-{
+  if (!this->Connected)
+  {
+    LOG_DEBUG("Video source is already disconnected");
+    return PLUS_SUCCESS;
+  }
 	if (this->Recording)
 	{
 		this->StopRecording();
 	}
 
-	this->Initialized = 0;
-}
+  this->Connected = 0;
 
-//----------------------------------------------------------------------------
-// Copy pseudo-random noise into the frames.  This function may be called
-// asynchronously.
-PlusStatus vtkVideoSource2::InternalGrab()
-{
+  InternalDisconnect();
 
-	if ( this->PseudoRandomNoiseFrame.IsNull() )
-	{
-        this->PseudoRandomNoiseFrame = ImageType::New(); 
-        ImageType::SizeType size = { this->GetFrameSize()[0], this->GetFrameSize()[1]};
-        ImageType::IndexType start = {0,0};
-        ImageType::RegionType region;
-        region.SetSize(size);
-        region.SetIndex(start);
-        this->PseudoRandomNoiseFrame->SetRegions(region);
-        try 
-        {
-            this->PseudoRandomNoiseFrame->Allocate();
-        }
-        catch(itk::ExceptionObject & err)
-        {
-            LOG_ERROR("Failed to allocate memory for the image: " << err.GetDescription() ); 
-            return PLUS_FAIL; 
-        }
-	}
-
-	static int randsave = 0;
-	int randNum;
-	int *lptr;
-
-	// get the number of bytes needed to store one frame
-	int totalSize = this->GetFrameSize()[0] * this->GetFrameSize()[1] * sizeof(PixelType); 
-
-	randNum = randsave;
-
-	// get the pointer to the first pixel of the current frame
-	PixelType* ptr = this->PseudoRandomNoiseFrame->GetBufferPointer();
-
-	// Somebody should check this:
-	lptr = (int *)(((((long)ptr) + 3)/4)*4);
-	int i = totalSize/4;
-
-	while (--i >= 0)
-	{
-		randNum = 1664525*randNum + 1013904223;
-		*lptr++ = randNum;
-	}
-	unsigned char *ptr1 = ptr + 4;
-	i = (totalSize-4)/16;
-	while (--i >= 0)
-	{
-		randNum = 1664525*randNum + 1013904223;
-		*ptr1 = randNum;
-		ptr1 += 16;
-	}
-	randsave = randNum;
-
-	const long frameNumber = this->FrameNumber + 1; 
-  const int numberOfBitsPerPixel = this->PseudoRandomNoiseFrame->GetNumberOfComponentsPerPixel() * sizeof(PixelType)*8; 
-
-	PlusStatus status = this->Buffer->AddItem(ptr, this->GetUsImageOrientation(), this->GetFrameSize(), numberOfBitsPerPixel, 0, frameNumber);
-	if ( status != PLUS_SUCCESS )
-	{
-		LOG_WARNING("vtkVideoSource2: Failed to add frame to video buffer."); 
-	}
-	else
-	{
-		this->FrameNumber = frameNumber; 
-	}
-	this->Modified();
-
-	return status;
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
@@ -402,9 +317,9 @@ static int vtkThreadSleep(vtkMultiThreader::ThreadInfo *data, double time)
 
 //----------------------------------------------------------------------------
 // this function runs in an alternate thread to asyncronously grab frames
-static void *vtkVideoSourceRecordThread(vtkMultiThreader::ThreadInfo *data)
+void* vtkPlusVideoSource::vtkVideoSourceRecordThread(vtkMultiThreader::ThreadInfo *data)
 {
-	vtkVideoSource2 *self = (vtkVideoSource2 *)(data->UserData);
+	vtkPlusVideoSource *self = (vtkPlusVideoSource *)(data->UserData);
 
 	double startTime = vtkAccurateTimer::GetSystemTime();
 	double rate = self->GetFrameRate();
@@ -429,18 +344,41 @@ static void *vtkVideoSourceRecordThread(vtkMultiThreader::ThreadInfo *data)
 //----------------------------------------------------------------------------
 // Set the source to grab frames continuously.
 // You should override this as appropriate for your device.  
-PlusStatus vtkVideoSource2::StartRecording()
+PlusStatus vtkPlusVideoSource::StartRecording()
 {
-	if (!this->Recording)
+	if (this->Recording)
 	{
-		this->Initialize();
-		this->Recording = 1;
-		this->FrameCount = 0;
-		this->Modified();
-		this->RecordThreadId = 
-			this->RecordThreader->SpawnThread((vtkThreadFunctionType)\
-			&vtkVideoSourceRecordThread,this);
-	}
+    LOG_DEBUG("Recording is already active");
+    return PLUS_SUCCESS;
+  }
+
+  if (!this->Connected)
+  {
+    if (this->Connect()!=PLUS_SUCCESS)
+    {
+      LOG_ERROR("Cannot start recording, connection failed");
+      return PLUS_FAIL;
+    }
+  }
+  
+  this->FrameCount = 0;
+
+  if (this->InternalStartRecording()!=PLUS_SUCCESS)
+  {
+    LOG_ERROR("Cannot start recording, internal StartRecording failed");
+    return PLUS_FAIL;
+  }
+
+  this->Recording = 1;
+
+  if (SpawnThreadForRecording)
+  {
+    this->RecordThreadId = 
+      this->RecordThreader->SpawnThread((vtkThreadFunctionType)\
+      &vtkVideoSourceRecordThread,this);
+  }
+
+  this->Modified();
 
   return PLUS_SUCCESS;
 }
@@ -448,28 +386,34 @@ PlusStatus vtkVideoSource2::StartRecording()
 //----------------------------------------------------------------------------
 // Stop continuous grabbing.  You will have to override this
 // if your class overrides Record()
-PlusStatus vtkVideoSource2::StopRecording()
+PlusStatus vtkPlusVideoSource::StopRecording()
 {
-	if (this->Recording)
-	{
-    this->RecordThreadId = -1;
-		this->Recording = 0;
-		this->Modified();
-	}
+	if (!this->Recording)
+ 	{
+    LOG_DEBUG("Recording is already inactive");
+    return PLUS_SUCCESS;
+  }
+
+  this->Recording = 0;
+  this->RecordThreadId = -1; // it might be useful to actually wait for the thread completion
+
+  InternalStopRecording();
+  
+  this->Modified();
 
   return PLUS_SUCCESS;
 } 
 
 //----------------------------------------------------------------------------
-// The grab function, which should (of course) be overridden to do
-// the appropriate hardware stuff.  This function should never be
-// called asynchronously.
-PlusStatus vtkVideoSource2::Grab()
+PlusStatus vtkPlusVideoSource::Grab()
 {
-	// ensure that the hardware is initialized.
-	if (this->Initialize()!=PLUS_SUCCESS)
+  if (!this->Connected)
   {
-    return PLUS_FAIL;
+    if (this->Connect()!=PLUS_SUCCESS)
+    {
+      LOG_ERROR("Cannot grab a single frame, connection failed");
+      return PLUS_FAIL;
+    }
   }
 
 	return this->InternalGrab();
@@ -477,12 +421,14 @@ PlusStatus vtkVideoSource2::Grab()
 
 //----------------------------------------------------------------------------
 // This method returns the largest data that can be generated.
-int vtkVideoSource2::RequestInformation(vtkInformation * vtkNotUsed(request),
+int vtkPlusVideoSource::RequestInformation(vtkInformation * vtkNotUsed(request),
 										vtkInformationVector **vtkNotUsed(inputVector),
 										vtkInformationVector *outputVector)
 {
-    // ensure that the hardware is initialized.
-	this->Initialize();
+  if (!this->Connected)
+  {
+    Connect();
+  }
 
  	// get the info objects
 	vtkInformation* outInfo = outputVector->GetInformationObject(0);
@@ -505,9 +451,8 @@ int vtkVideoSource2::RequestInformation(vtkInformation * vtkNotUsed(request),
 
 //----------------------------------------------------------------------------
 // The Execute method is fairly complex, so I would not recommend overriding
-// it unless you have to.  Override the UnpackRasterLine() method in
-// vtkVideoFrame2 instead.
-int vtkVideoSource2::RequestData(vtkInformation *vtkNotUsed(request),
+// it unless you have to.  Override the UnpackRasterLine() method instead.
+int vtkPlusVideoSource::RequestData(vtkInformation *vtkNotUsed(request),
 								 vtkInformationVector **vtkNotUsed(inputVector),
 								 vtkInformationVector *vtkNotUsed(outputVector))
 {
@@ -546,15 +491,15 @@ int vtkVideoSource2::RequestData(vtkInformation *vtkNotUsed(request),
 	this->FrameTimeStamp = this->CurrentVideoBufferItem->GetTimestamp( this->Buffer->GetLocalTimeOffset() ); 
 	this->TimestampClosestToDesired = this->CurrentVideoBufferItem->GetTimestamp( this->Buffer->GetLocalTimeOffset() ); 
 
-    memcpy( outPtr, this->CurrentVideoBufferItem->GetFrame()->GetBufferPointer(), this->CurrentVideoBufferItem->GetFrameSizeInBytes() ); 
+  memcpy( outPtr, this->CurrentVideoBufferItem->GetFrame()->GetBufferPointer(), this->CurrentVideoBufferItem->GetFrameSizeInBytes() ); 
 
 	return 1;
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkVideoSource2::WriteConfiguration(vtkXMLDataElement* config)
+PlusStatus vtkPlusVideoSource::WriteConfiguration(vtkXMLDataElement* config)
 {
-  LOG_TRACE("vtkVideoSource2::WriteConfiguration"); 
+  LOG_TRACE("vtkPlusVideoSource::WriteConfiguration"); 
 	if ( config == NULL )
 	{
 		LOG_ERROR("Unable to write configuration from video source! (XML data element is NULL)"); 
@@ -579,9 +524,9 @@ PlusStatus vtkVideoSource2::WriteConfiguration(vtkXMLDataElement* config)
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkVideoSource2::ReadConfiguration(vtkXMLDataElement* config)
+PlusStatus vtkPlusVideoSource::ReadConfiguration(vtkXMLDataElement* config)
 {
-	LOG_TRACE("vtkVideoSource2::ReadConfiguration"); 
+	LOG_TRACE("vtkPlusVideoSource::ReadConfiguration"); 
 	if ( config == NULL )
 	{
 		LOG_ERROR("Unable to configure video source! (XML data element is NULL)"); 
@@ -647,7 +592,7 @@ PlusStatus vtkVideoSource2::ReadConfiguration(vtkXMLDataElement* config)
 
 
 //----------------------------------------------------------------------------
-PlusStatus vtkVideoSource2::GenerateVideoDataAcquisitionReport( vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter, const char* gnuplotScriptsFolder)
+PlusStatus vtkPlusVideoSource::GenerateVideoDataAcquisitionReport( vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter, const char* gnuplotScriptsFolder)
 {
 	if ( htmlReport == NULL || plotter == NULL )
 	{
@@ -703,4 +648,11 @@ PlusStatus vtkVideoSource2::GenerateVideoDataAcquisitionReport( vtkHTMLGenerator
 	htmlReport->AddHorizontalLine(); 
 
   return PLUS_SUCCESS; 
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusVideoSource::InternalGrab()
+{
+  LOG_ERROR("InternalGrab is not implemented");
+  return PLUS_FAIL;
 }
