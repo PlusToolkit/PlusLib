@@ -72,7 +72,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "vtkTrackerBuffer.h"
 #include "vtkTracker.h"
 #include "vtkSignalBox.h"
-#include "vtkVideoSource2.h"
+#include "vtkPlusVideoSource.h"
 #include "vtkDataSender.h"
 
 using namespace std;

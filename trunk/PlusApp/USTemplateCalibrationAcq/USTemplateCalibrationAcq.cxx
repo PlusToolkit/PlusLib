@@ -31,7 +31,7 @@
 #include "vtkAMSTracker.h"
 #endif
 
-#include "vtkVideoSource2.h"
+#include "vtkPlusVideoSource.h"
 #ifdef PLUS_USE_MATROX_IMAGING
 #include "vtkMILVideoSource2.h"
 #endif
@@ -110,7 +110,7 @@ struct ReconstructionParameters *reconParams);
 void goodByeScreen();
 void goodByeInput();
 static inline void vtkSleep(double duration);
-vtkVideoSource2* MakeVideoSource(int type, char* videoDeviceName, int videoChannel, int VideoMode);
+vtkPlusVideoSource* MakeVideoSource(int type, char* videoDeviceName, int videoChannel, int VideoMode);
 vtkTracker* MakeTracker(int type);
 vtkSignalBox* MakeSignalBox(int type);
 
@@ -231,7 +231,7 @@ int main(int argc, char **argv)
 		vtkOutputWindow::SetInstance(errOut);
 
 		// fix up the video source, tracker and signal box according to the command line arguments
-		vtkVideoSource2* videoSource = MakeVideoSource(reconParams.VideoSourceType, reconParams.VideoDeviceName, reconParams.VideoChannel, reconParams.VideoMode);
+		vtkPlusVideoSource* videoSource = MakeVideoSource(reconParams.VideoSourceType, reconParams.VideoDeviceName, reconParams.VideoChannel, reconParams.VideoMode);
 		vtkTracker* tracker = MakeTracker(reconParams.TrackerType);
 
 		// other user options
@@ -1122,14 +1122,14 @@ int GetVideoSourceType(string videoSourceString)
 
 
 //------------------------------------------------------------------------------
-vtkVideoSource2* MakeVideoSource(int type, char *videoDeviceName, int videoChannel, int VideoMode)
+vtkPlusVideoSource* MakeVideoSource(int type, char *videoDeviceName, int videoChannel, int VideoMode)
 {
 
-	vtkVideoSource2* videoSource;
+	vtkPlusVideoSource* videoSource;
 
 	if (type == SYNCHRO_VIDEO_NOISE)
 	{
-		videoSource = vtkVideoSource2::New();
+		videoSource = vtkPlusVideoSource::New();
 	}
 #ifdef PLUS_USE_MATROX_IMAGING
 	else if (type == SYNCHRO_VIDEO_MIL)

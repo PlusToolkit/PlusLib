@@ -88,7 +88,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "vtkAMSTracker.h"
 #endif
 
-#include "vtkVideoSource2.h"
+#include "vtkPlusVideoSource.h"
 #ifdef PLUS_USE_MATROX_IMAGING
 #include "vtkMILVideoSource2.h"
 #endif
@@ -167,7 +167,7 @@ bool parseCommandLineArguments(int argc, char** argv,
 void goodByeScreen();
 void goodByeInput();
 static inline void vtkSleep(double duration);
-vtkVideoSource2* MakeVideoSource(int type, char* videoDeviceName, int videoChannel, int VideoMode);
+vtkPlusVideoSource* MakeVideoSource(int type, char* videoDeviceName, int videoChannel, int VideoMode);
 vtkTracker* MakeTracker(int type);
 vtkSignalBox* MakeSignalBox(int type);
 
@@ -289,7 +289,7 @@ int main(int argc, char **argv)
     vtkOutputWindow::SetInstance(errOut);
 
     // fix up the video source, tracker and signal box according to the command line arguments
-    vtkVideoSource2* videoSource = MakeVideoSource(reconParams.VideoSourceType, reconParams.VideoDeviceName, reconParams.VideoChannel, reconParams.VideoMode);
+    vtkPlusVideoSource* videoSource = MakeVideoSource(reconParams.VideoSourceType, reconParams.VideoDeviceName, reconParams.VideoChannel, reconParams.VideoMode);
     vtkTracker* tracker = MakeTracker(reconParams.TrackerType);
     // TODO buggy when changing tracker buffer size, so we'll leave it to what the user has for now
     //tracker->GetTool(reconParams.TrackerPort)->GetBuffer()->SetBufferSize(1000);
@@ -635,7 +635,6 @@ int main(int argc, char **argv)
       }
     if (videoSource->GetRecording())
       {
-      videoSource->ReleaseSystemResources();
       videoSource->StopRecording();
       }
     if (reconParams.SignalBoxType != SYNCHRO_SIGNAL_NOGATING)
@@ -1233,14 +1232,14 @@ int GetVideoSourceType(string videoSourceString)
 
 
 //------------------------------------------------------------------------------
-vtkVideoSource2* MakeVideoSource(int type, char *videoDeviceName, int videoChannel, int VideoMode)
+vtkPlusVideoSource* MakeVideoSource(int type, char *videoDeviceName, int videoChannel, int VideoMode)
 {
 
-  vtkVideoSource2* videoSource;
+  vtkPlusVideoSource* videoSource;
 
   if (type == SYNCHRO_VIDEO_NOISE)
   {
-    videoSource = vtkVideoSource2::New();
+    videoSource = vtkPlusVideoSource::New();
   }
 #ifdef PLUS_USE_MATROX_IMAGING
   else if (type == SYNCHRO_VIDEO_MIL)

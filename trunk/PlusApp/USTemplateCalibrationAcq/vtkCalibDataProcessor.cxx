@@ -29,7 +29,7 @@
 #include "vtkTrackerBuffer.h"
 #include "vtkTracker.h"
 #include "vtkSignalBox.h"
-#include "vtkVideoSource2.h"
+#include "vtkPlusVideoSource.h"
 #include "vtkCalibDataSender.h"
 
 using namespace std;

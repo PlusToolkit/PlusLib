@@ -6,7 +6,7 @@
 // specify the coverage of each pixel in the output volume (i.e. whether or
 // not a voxel has been touched by the reconstruction)
 // .SECTION see also
-// vtkVideoSource2, vtkTracker, vtkTrackerTool
+// vtkPlusVideoSource, vtkTracker, vtkTrackerTool
 
 #ifndef __vtkUltrasoundDataCollectorHelper_h
 #define __vtkUltrasoundDataCollectorHelper_h
@@ -16,14 +16,14 @@
 #include "vtkMultiThreader.h"
 #include "vtkTimerLog.h"
 #include "vtkMatrix4x4.h"
-#include "vtkVideoSource2.h"
+#include "vtkPlusVideoSource.h"
 #include "vtkVideoBuffer.h"
 #include "vtkTransform.h"
 #include "vtkImageThreshold.h"
 #include "vtkImageClip.h"
 #include "vtkImageData.h"
 #include "vtkTrackerBuffer.h"
-#include "vtkVideoSource2.h"
+#include "vtkPlusVideoSource.h"
 #include "vtkTrackerTool.h"
 #include "fixed.h"
 
@@ -1709,7 +1709,7 @@ static void *vtkReconstructionThread(ThreadInfoStruct *data)
     }
 
   // get the video for the video information, and the current 2D slice
-  vtkVideoSource2 *video = self->GetVideoSource();
+  vtkPlusVideoSource *video = self->GetVideoSource();
   vtkImageData *inData = self->GetSlice();
 
   // wait for video to start before we start the reconstruction

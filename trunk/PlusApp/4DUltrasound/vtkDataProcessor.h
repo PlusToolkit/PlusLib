@@ -61,7 +61,7 @@ class vtkDataSender;
 class vtkMutexLock;
 class vtkMultiThreader;
 class vtkImageData;
-class vtkVideoSource2;
+class vtkPlusVideoSource;
 class vtkTracker;
 class vtkTrackerTool;
 class vtkImageExtractComponents;
