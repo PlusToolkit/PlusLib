@@ -24,7 +24,7 @@ PURPOSE.  See the above copyright notice for more information.
 // an additional class will be written that will take a vtkVideoBuffer
 // and compress it into a movie file.
 // .SECTION See Also
-// vtkVideoSource2 vtkWin32VideoSource2 vtkMILVideoSource2
+// vtkPlusVideoSource vtkWin32VideoSource2 vtkMILVideoSource2
 
 #ifndef __vtkVideoBuffer_h
 #define __vtkVideoBuffer_h
@@ -71,7 +71,7 @@ public:
   ImageType::Pointer GetFrame() const { return this->Frame; }
 
 protected:
-  ImageType::Pointer Frame; 
+  ImageType::Pointer Frame; // TODO: pixel type of ITK images cannot be changed dynamically, use vtkKWImage instead? (see http://www.insight-journal.org/browse/publication/146)
 }; 
 
 
@@ -88,10 +88,6 @@ public:
   // video frames that it will hold.  The default is 30.
   virtual PlusStatus SetBufferSize(int n);
   virtual int GetBufferSize(); 
-
-  // Description:
-  // Update video buffer by setting the frame format for each frame 
-  virtual void UpdateBufferFrameFormats(); 
 
   // Description:
   // Add a frame plus a timestamp to the buffer with frame index.  If the timestamp is
@@ -190,17 +186,23 @@ public:
 
   // Description:
   // Set/get frame size in pixel 
-  vtkSetVector2Macro(FrameSize, int); 
+  PlusStatus SetFrameSize(int x, int y); 
+  PlusStatus SetFrameSize(int frameSize[2]); 
   vtkGetVector2Macro(FrameSize, int); 
 
   // Description:
   // Set/get pixel size in bits 
-  vtkSetMacro(NumberOfBitsPerPixel, int); 
+  PlusStatus SetNumberOfBitsPerPixel(int bits); 
   vtkGetMacro(NumberOfBitsPerPixel, int); 
 
 protected:
   vtkVideoBuffer();
   ~vtkVideoBuffer();
+
+  // Description:
+  // Update video buffer by setting the frame format for each frame 
+  virtual PlusStatus AllocateMemoryForFrames(); 
+
 
   // Description:
   // Compares frame format with new frame imaging parameters

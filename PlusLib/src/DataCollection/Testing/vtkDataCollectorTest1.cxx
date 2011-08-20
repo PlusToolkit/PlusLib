@@ -9,7 +9,7 @@
 #include "vtkDataCollector.h"
 #include "vtkTextProperty.h"
 #include "vtkTextActor.h"
-#include "vtkVideoSource2.h"
+#include "vtkPlusVideoSource.h"
 #include "vtkSavedDataTracker.h"
 #include "vtkSavedDataVideoSource.h"
 #include "vtkOpenIGTLinkBroadcaster.h"

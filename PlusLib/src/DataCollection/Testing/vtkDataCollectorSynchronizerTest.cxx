@@ -197,8 +197,6 @@ int main(int argc, char **argv)
     numberOfErrors++; 
   }
 
-  videoBuffer->UpdateBufferFrameFormats(); 
-
   LOG_INFO("Copy buffer to video buffer..."); 
   for ( int frameNumber = 0; frameNumber < numberOfVideoFrames; frameNumber++ )
   {

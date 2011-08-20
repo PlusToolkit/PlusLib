@@ -21,7 +21,6 @@
 #include "vtkObjectFactory.h"
 #include "vtkUnsignedCharArray.h"
 #include "vtkVideoBuffer.h"
-#include "vtkVideoFrame2.h"
 
 
 #include <ctype.h>
@@ -500,7 +499,7 @@ void vtkWin32VideoSource2::OnParentWndDestroy()
 
 //----------------------------------------------------------------------------
 // copy the Device Independent Bitmap from the VFW framebuffer into the
-// vtkVideoSource2 framebuffer (don't do the unpacking yet)
+// vtkPlusVideoSource framebuffer (don't do the unpacking yet)
 void vtkWin32VideoSource2::LocalInternalGrab(void* lpptr)
 {
   LPVIDEOHDR lpVHdr = static_cast<LPVIDEOHDR>(lpptr);

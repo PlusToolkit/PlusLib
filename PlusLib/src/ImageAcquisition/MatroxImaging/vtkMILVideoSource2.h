@@ -22,19 +22,19 @@
 // interface.  In order to use this class, you must link VTK with mil.lib,
 // MIL version 5.0 or higher is required.
 // vtkMILVideoSource2 is an updated version of vtkMILVideoSource and uses
-// vtkVideoSource2 instead of vtkVideoSource
+// vtkPlusVideoSource instead of vtkVideoSource
 // .SECTION Caveats
 // With some capture cards, if this class is leaked and ReleaseSystemResources 
 // is not called, you may have to reboot before you can capture again.
 // vtkVideoSource used to keep a global list and delete the video sources
 // if your program leaked, due to exit crashes that was removed.
 // .SECTION See Also
-// vtkWin32VideoSource2 vtkVideoSource2 vtkMILVideoSource
+// vtkWin32VideoSource2 vtkPlusVideoSource vtkMILVideoSource
 
 #ifndef __vtkMILVideoSource2_h
 #define __vtkMILVideoSource2_h
 
-#include "vtkVideoSource2.h"
+#include "vtkPlusVideoSource.h"
 
 // digitizer hardware
 #define VTK_MIL_DEFAULT        0
@@ -73,11 +73,11 @@
 #define VTK_MIL_SECAM         4
 #define VTK_MIL_NONSTANDARD   5       
 
-class VTK_EXPORT vtkMILVideoSource2 : public vtkVideoSource2
+class VTK_EXPORT vtkMILVideoSource2 : public vtkPlusVideoSource
 {
 public:
   static vtkMILVideoSource2 *New();
-  vtkTypeRevisionMacro(vtkMILVideoSource2,vtkVideoSource2);
+  vtkTypeRevisionMacro(vtkMILVideoSource2,vtkPlusVideoSource);
   void PrintSelf(ostream& os, vtkIndent indent);   
 
   // Description:

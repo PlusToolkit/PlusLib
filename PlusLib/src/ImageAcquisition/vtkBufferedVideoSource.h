@@ -2,7 +2,7 @@
 #define __vtkBufferedVideoSource_h
 
 #include "PlusConfigure.h"
-#include "vtkVideoSource2.h"
+#include "vtkPlusVideoSource.h"
 
 class VTK_EXPORT vtkBufferedVideoSource;
 
@@ -14,14 +14,14 @@ public:
 };
 //ETX
 
-class VTK_EXPORT vtkBufferedVideoSource : public vtkVideoSource2
+class VTK_EXPORT vtkBufferedVideoSource : public vtkPlusVideoSource
 {
 public:
   typedef UsImageConverterCommon::ImageType ImageType; 
   typedef UsImageConverterCommon::PixelType PixelType;
 
 	//static vtkBufferedVideoSource *New();
-	vtkTypeRevisionMacro(vtkBufferedVideoSource,vtkVideoSource2);
+	vtkTypeRevisionMacro(vtkBufferedVideoSource,vtkPlusVideoSource);
 	void PrintSelf(ostream& os, vtkIndent indent);   
 	// Description:
 	// This is a singleton pattern New.  There will only be ONE
@@ -45,31 +45,7 @@ public:
 	static vtkBufferedVideoSourceCleanup Cleanup;
 	//ETX
 
-
-	virtual PlusStatus AddFrame( ImageType::Pointer image, US_IMAGE_ORIENTATION usImageOrientation, double timestamp); 
-
-	// Description:
-	// Record incoming video at the specified FrameRate.  The recording
-	// continues indefinitely until Stop() is called. 
-	virtual PlusStatus StartRecording();
-
-	// Description:
-	// Stop recording or playing.
-	virtual PlusStatus StopRecording();
-
-	// Description:
-	// Grab a single video frame.
-	PlusStatus Grab();
-
-	// Description:
-	// Initialize the driver (this is called automatically when the
-	// first grab is done).
-	PlusStatus Initialize();
-
-	// Description:
-	// Free the driver (this is called automatically inside the
-	// destructor).
-	void ReleaseSystemResources();
+	virtual PlusStatus AddFrameToBuffer( ImageType::Pointer image, US_IMAGE_ORIENTATION usImageOrientation, double timestamp); 
 
 protected:
 	vtkBufferedVideoSource();

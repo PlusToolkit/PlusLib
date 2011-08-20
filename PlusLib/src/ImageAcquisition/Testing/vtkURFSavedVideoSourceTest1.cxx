@@ -72,15 +72,15 @@ int main(int argc, char* argv[])
         exit(EXIT_FAILURE);
     }
 
-	sonixGrabber->Initialize(); 
+	sonixGrabber->Connect(); 
 
-	if ( sonixGrabber->GetInitialized() ) 
+	if ( sonixGrabber->GetConnected() ) 
 	{
 		sonixGrabber->StartRecording();				//start recording frame from the video
 	} 
 	else 
 	{
-		sonixGrabber->ReleaseSystemResources();
+		sonixGrabber->Disconnect();
 		if ( sonixGrabber != NULL ) 
 		{
 			sonixGrabber->Delete();
@@ -103,7 +103,7 @@ int main(int argc, char* argv[])
 	if (renderingOff)
 	{
 		sonixGrabber->StopRecording(); 
-		sonixGrabber->ReleaseSystemResources();
+		sonixGrabber->Disconnect();
 
 		if ( sonixGrabber != NULL ) 
 		{
@@ -148,7 +148,7 @@ int main(int argc, char* argv[])
 	
 	//delete all instances and release the hold the win32videosource
 	//has on the pci card	
-	sonixGrabber->ReleaseSystemResources();
+	sonixGrabber->Disconnect();
 	sonixGrabber->Delete();
 
 	call->Delete(); 

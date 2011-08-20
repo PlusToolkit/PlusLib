@@ -37,8 +37,6 @@ vtkICCapturingSourceCleanup::~vtkICCapturingSourceCleanup()
 //----------------------------------------------------------------------------
 vtkICCapturingSource::vtkICCapturingSource()
 {
-	this->Initialized = 0;
-
 	this->ICBufferSize = 50; 
 
 	this->LicenceKey = NULL; 
@@ -48,10 +46,9 @@ vtkICCapturingSource::vtkICCapturingSource()
 	this->InputChannel = NULL; 
 
 	this->SetFrameBufferSize(200); 
-	this->Buffer->Modified();
+  this->Buffer->Modified();
 
-	this->Modified();
-	this->UpdateFrameBuffer();
+  this->Modified();
 
 	this->FrameGrabber = NULL;
 
@@ -66,6 +63,12 @@ vtkICCapturingSource::~vtkICCapturingSource()
 	{
 		delete this->FrameGrabber; 
 		this->FrameGrabber = NULL;
+	}
+
+  if ( this->FrameGrabberListener != NULL) 
+	{
+		delete this->FrameGrabberListener; 
+		this->FrameGrabberListener = NULL;
 	}
 }
 
@@ -131,24 +134,28 @@ void vtkICCapturingSource::PrintSelf(ostream& os, vtkIndent indent)
 // the callback function used when there is a new frame of data received
 bool vtkICCapturingSource::vtkICCapturingSourceNewFrameCallback(unsigned char * data, unsigned long size, unsigned long frameNumber)
 {    
-	if(!data || !size)
+	if(data==NULL || size==0)
 	{
-		//printf("Error: no actual frame data received\n");
+		LOG_ERROR("No actual frame data received from the framegrabber");
 		return false;
 	}
 
-	if(data)
-	{
-		vtkICCapturingSource::GetInstance()->LocalInternalGrab(data, size, frameNumber);    
-	}
+  vtkICCapturingSource::GetInstance()->AddFrameToBuffer(data, size, frameNumber);    
+
 	return true;
 }
 
 //----------------------------------------------------------------------------
 // copy the Device Independent Bitmap from the VFW framebuffer into the
 // vtkVideoSource framebuffer (don't do the unpacking yet)
-PlusStatus vtkICCapturingSource::LocalInternalGrab(unsigned char * dataPtr, unsigned long size, unsigned long frameNumber)
+PlusStatus vtkICCapturingSource::AddFrameToBuffer(unsigned char * dataPtr, unsigned long size, unsigned long frameNumber)
 {
+  if (!this->Recording)
+  {
+    // drop the frame, we are not recording data now
+    return PLUS_SUCCESS;
+  }
+
 	this->FrameNumber = frameNumber; 
 
   const int frameSize[2] = {static_cast<DShowLib::Grabber*>(FrameGrabber)->getAcqSizeMaxX(), static_cast<DShowLib::Grabber*>(FrameGrabber)->getAcqSizeMaxY()}; 
@@ -161,20 +168,27 @@ PlusStatus vtkICCapturingSource::LocalInternalGrab(unsigned char * dataPtr, unsi
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkICCapturingSource::Connect()
+PlusStatus vtkICCapturingSource::InternalConnect()
 {
-	if ( this->FrameGrabber == NULL ) 
-	{
-		this->FrameGrabber = new DShowLib::Grabber; 
-	}
-
 	if( !DShowLib::InitLibrary( this->GetLicenceKey() ) )
 	{
 		LOG_ERROR("The IC capturing library could not be initialized - invalid license key: " << this->GetLicenceKey() );
 		return PLUS_FAIL;
 	}
 
-	atexit( DShowLib::ExitLibrary );
+  // Add DShowLib::ExitLibrary to the list of functions that are called on application exit.
+  // It is useful because when the application is forced to exit then the destructor may not be called.
+  static bool exitFunctionAdded=false;
+  if (!exitFunctionAdded)
+  {
+    atexit( DShowLib::ExitLibrary );
+    exitFunctionAdded=true;
+  }
+
+	if ( this->FrameGrabber == NULL ) 
+	{
+		this->FrameGrabber = new DShowLib::Grabber; 
+	}
 
 	// Set the device name (e.g. DFG/USB2-lt)
 	if ( this->GetDeviceName() == NULL || !static_cast<DShowLib::Grabber*>(FrameGrabber)->openDev(this->GetDeviceName() ) ) 
@@ -207,12 +221,18 @@ PlusStatus vtkICCapturingSource::Connect()
 		return PLUS_FAIL;
 	}
 
-	FrameGrabberListener = new ICCapturingListener(); 
+	if (this->FrameGrabberListener==NULL)
+  {
+    this->FrameGrabberListener = new ICCapturingListener(); 
+  }
+
+  this->FrameGrabberListener->SetICCapturingSourceNewFrameCallback(vtkICCapturingSource::vtkICCapturingSourceNewFrameCallback); 
 
 	// Assign the number of buffers to the cListener object.
-	FrameGrabberListener->setBufferSize( this->GetICBufferSize() );
+  this->FrameGrabberListener->setBufferSize( this->GetICBufferSize() );
 
 	// Register the FrameGrabberListener object for the frame ready 
+  // TODO: check if the listener should be removed (in disconnect, when reconnecting, ...)
 	static_cast<DShowLib::Grabber*>(FrameGrabber)->addListener( FrameGrabberListener, DShowLib::GrabberListener::eFRAMEREADY );
 
 	// Create a FrameTypeInfoArray data structure describing the allowed color formats.
@@ -228,91 +248,46 @@ PlusStatus vtkICCapturingSource::Connect()
 	// Apply the sink to the grabber.
 	static_cast<DShowLib::Grabber*>(FrameGrabber)->setSinkType( pSink );
 
-	static_cast<DShowLib::Grabber*>(FrameGrabber)->startLive(false);				// Start the grabber.
-
-	// 7) set callback for receiving new frames
-	this->FrameGrabberListener->SetICCapturingSourceNewFrameCallback(vtkICCapturingSource::vtkICCapturingSourceNewFrameCallback); 
-
-	// 8)update framebuffer 
-	this->UpdateFrameBuffer();
-
 	return PLUS_SUCCESS; 
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkICCapturingSource::Disconnect()
+PlusStatus vtkICCapturingSource::InternalDisconnect()
 {
-  if ( !this->Initialized )
-  {
-    return PLUS_SUCCESS; 
-  }
+  LOG_DEBUG("Disconnect from IC capturing");
 
-	if (this->Recording)
-	{
-		this->StopRecording();
-	}
+	static_cast<DShowLib::Grabber*>(FrameGrabber)->removeListener( FrameGrabberListener );
+  delete this->FrameGrabberListener; 
+  this->FrameGrabberListener=NULL;
+
+  delete FrameGrabber;
+  this->FrameGrabber=NULL;
 
 	DShowLib::ExitLibrary(); 
 
-  this->Initialized = 0;
-
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkICCapturingSource::Initialize()
+PlusStatus vtkICCapturingSource::InternalStartRecording()
 {
-	if (this->Initialized)
-	{
-		return PLUS_SUCCESS;
-	}
-
-	// Connect to device
-	if (this->Connect()!=PLUS_SUCCESS)
-	{
-		LOG_ERROR("Unable to connect video device!"); 
-		return PLUS_FAIL;
-	}
-	
-	this->Initialized = 1;
-  return PLUS_SUCCESS;
+  if (!static_cast<DShowLib::Grabber*>(FrameGrabber)->startLive(false))
+  {
+    LOG_ERROR("Framegrabber startLive failed, cannot start the recording");
+    return PLUS_FAIL;
+  }
+	return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkICCapturingSource::Grab()
+PlusStatus vtkICCapturingSource::InternalStopRecording()
 {
-  LOG_ERROR("Grab is not implemented for this video source");
-	return PLUS_FAIL;
-}
-
-//----------------------------------------------------------------------------
-PlusStatus vtkICCapturingSource::StartRecording()
-{
-	this->Initialize();
-	if (!this->Initialized)
-	{
-		return PLUS_FAIL;
-	}
-
-	if (!this->Recording)
-	{
-		this->Recording = 1;
-		this->Modified();
-	}
-  
-  return PLUS_SUCCESS;
-}
-
-//----------------------------------------------------------------------------
-PlusStatus vtkICCapturingSource::StopRecording()
-{
-	if (this->Recording)
-	{
-		this->Recording = 0;
-		this->Modified();
-	}
-  
-  return PLUS_SUCCESS;
+  if (!static_cast<DShowLib::Grabber*>(FrameGrabber)->stopLive())
+  {
+    LOG_ERROR("Framegrabber stopLive failed");
+    return PLUS_FAIL;
+  }
+	return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
@@ -369,7 +344,6 @@ PlusStatus vtkICCapturingSource::ReadConfiguration(vtkXMLDataElement* config)
 //-----------------------------------------------------------------------------
 PlusStatus vtkICCapturingSource::WriteConfiguration(vtkXMLDataElement* config)
 {
-	Superclass::WriteConfiguration(config); 
-  LOG_ERROR("Not implemented");
-  return PLUS_FAIL;
+  // TODO: implement this
+  return Superclass::WriteConfiguration(config); 
 }

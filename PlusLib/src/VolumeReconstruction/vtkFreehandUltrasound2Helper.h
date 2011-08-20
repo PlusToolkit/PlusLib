@@ -50,7 +50,7 @@ POSSIBILITY OF SUCH DAMAGES.
 // specify the coverage of each pixel in the output volume (i.e. whether or
 // not a voxel has been touched by the reconstruction)
 // .SECTION see also
-// vtkVideoSource2, vtkTracker, vtkTrackerTool
+// vtkPlusVideoSource, vtkTracker, vtkTrackerTool
 
 #ifndef __vtkFreehandUltrasound2Helper_h
 #define __vtkFreehandUltrasound2Helper_h
@@ -58,13 +58,13 @@ POSSIBILITY OF SUCH DAMAGES.
 #include "PlusConfigure.h"
 #include "vtkTimerLog.h"
 #include "vtkMatrix4x4.h"
-#include "vtkVideoSource2.h"
+#include "vtkPlusVideoSource.h"
 #include "vtkTransform.h"
 #include "vtkImageThreshold.h"
 #include "vtkImageClip.h"
 #include "vtkImageData.h"
 #include "vtkTrackerBuffer.h"
-#include "vtkVideoSource2.h"
+#include "vtkPlusVideoSource.h"
 #include "vtkTrackerTool.h"
 #include "fixed.h"
 #include "vtkSmartPointer.h"
@@ -204,7 +204,7 @@ static inline void vtkSleep(double duration)
 // Sleep until the specified absolute time has arrived.
 // You must pass a handle to the current thread.  
 // If '0' is returned, then the thread was aborted before or during the wait.
-static int vtkThreadSleep(ThreadInfoStruct *data, double time)
+static int vtkThreadSleep(vtkMultiThreader::ThreadInfo *data, double time)
 {
 
   for (;;)
@@ -1714,7 +1714,7 @@ static void vtkOptimizedInsertSlice(vtkFreehandUltrasound2 *self, // the freehan
 // This function is run in a background thread to perform the reconstruction.
 // By running it in the background, it doesn't interfere with the display
 // of the partially reconstructed volume.
-static void *vtkReconstructionThread(ThreadInfoStruct *data)
+static void *vtkReconstructionThread(vtkMultiThreader::ThreadInfo *data)
 {
 
   vtkFreehandUltrasound2 *self = (vtkFreehandUltrasound2 *)(data->UserData);
@@ -1756,7 +1756,7 @@ static void *vtkReconstructionThread(ThreadInfoStruct *data)
   }
 
   // get the video for the video information, and the current 2D slice
-  vtkVideoSource2 *video = self->GetVideoSource();
+  vtkPlusVideoSource *video = self->GetVideoSource();
   vtkImageData *inData = self->GetSlice();
 
   // wait for video to start before we start the reconstruction

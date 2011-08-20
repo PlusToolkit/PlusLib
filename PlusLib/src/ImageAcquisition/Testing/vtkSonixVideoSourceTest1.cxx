@@ -85,9 +85,8 @@ int main(int argc, char* argv[])
     exit(EXIT_FAILURE);
   }
 
-  if ( sonixGrabber->Initialize()!=PLUS_SUCCESS ) 
+  if ( sonixGrabber->Connect()!=PLUS_SUCCESS ) 
   {
-    sonixGrabber->ReleaseSystemResources();
     LOG_ERROR( "Unable to connect to Sonix RP machine at: " << inputSonixIP ); 
     exit(EXIT_FAILURE); 
   }
@@ -99,7 +98,7 @@ int main(int argc, char* argv[])
     // just run the recording for  a few seconds then exit
     Sleep(5000); // no need to use accurate timer, it's just an approximate delay
     sonixGrabber->StopRecording(); 
-    sonixGrabber->ReleaseSystemResources();
+    sonixGrabber->Disconnect();
     exit(EXIT_SUCCESS);
   }
 
@@ -129,7 +128,7 @@ int main(int argc, char* argv[])
   iren->Initialize();
   iren->Start();
 
-  sonixGrabber->ReleaseSystemResources();
+  sonixGrabber->Disconnect();
 
   return EXIT_SUCCESS;
 }

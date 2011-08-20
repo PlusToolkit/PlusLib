@@ -44,8 +44,6 @@ vtkURFSavedDataVideoSource::vtkURFSavedDataVideoSource()
 //----------------------------------------------------------------------------
 vtkURFSavedDataVideoSource::~vtkURFSavedDataVideoSource()
 { 
-  this->vtkURFSavedDataVideoSource::ReleaseSystemResources();
-
   if ( this->LocalVideoBuffer != NULL )
   {
     this->LocalVideoBuffer->Delete(); 
@@ -113,16 +111,6 @@ void vtkURFSavedDataVideoSource::PrintSelf(ostream& os, vtkIndent indent)
 PlusStatus vtkURFSavedDataVideoSource::InternalGrab()
 {
   /*LOG_TRACE("vtkURFSavedDataVideoSource::InternalGrab");*/
-  if (this->Recording==0)
-  {
-    // drop the frame, we are not recording data now
-    return PLUS_SUCCESS;
-  }
-  if ( !this->Initialized )
-  {
-    LOG_ERROR("Called InternalGrab() when SavedDataVideoSource was not initialized!");
-    return PLUS_FAIL; 	
-  }
 
   // Compute elapsed time since we restarted the timer
   double elapsedTime = vtkAccurateTimer::GetSystemTime() - this->GetBuffer()->GetStartTime(); 
@@ -182,35 +170,9 @@ PlusStatus vtkURFSavedDataVideoSource::InternalGrab()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkURFSavedDataVideoSource::Initialize()
-{
-  LOG_TRACE("vtkURFSavedDataVideoSource::Initialize"); 
-  if (this->Initialized)
-  {
-    return PLUS_SUCCESS;
-  }
-
-  // Connect to device
-  if ( !this->Connect() ) 
-  {
-    LOG_ERROR("Unable to connect to saved data video device!"); 
-    return PLUS_FAIL; 
-  }
-
-  this->Initialized = 1;
-  return PLUS_SUCCESS;
-}
-
-//----------------------------------------------------------------------------
-PlusStatus vtkURFSavedDataVideoSource::Connect()
+PlusStatus vtkURFSavedDataVideoSource::InternalConnect()
 {
   LOG_TRACE("vtkURFSavedDataVideoSource::Connect"); 
-
-  if (this->Initialized)
-  {
-    return PLUS_SUCCESS;
-  }
-
 
   if ( !vtksys::SystemTools::FileExists(this->GetSequenceMetafile(), true) )
   {
@@ -219,9 +181,6 @@ PlusStatus vtkURFSavedDataVideoSource::Connect()
   }
 
   vtkSmartPointer<vtkTrackedFrameList> savedDataBuffer = vtkSmartPointer<vtkTrackedFrameList>::New(); 
-
-  // Update framebuffer 
-  this->UpdateFrameBuffer();
 
   // Read metafile
   if ( savedDataBuffer->ReadFromSequenceMetafile(this->GetSequenceMetafile()) != PLUS_SUCCESS )
@@ -265,7 +224,6 @@ PlusStatus vtkURFSavedDataVideoSource::Connect()
     LOG_ERROR("Failed to set video buffer size!"); 
     return PLUS_FAIL;
   }
-  this->LocalVideoBuffer->UpdateBufferFrameFormats(); 
 
   // Fill local video buffers 
   for ( unsigned int frame = 0; frame < savedDataBuffer->GetNumberOfTrackedFrames(); ++frame)
@@ -324,56 +282,20 @@ PlusStatus vtkURFSavedDataVideoSource::Connect()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkURFSavedDataVideoSource::Disconnect()
+PlusStatus vtkURFSavedDataVideoSource::InternalDisconnect()
 {
-  LOG_TRACE("vtkURFSavedDataVideoSource::Disconnect"); 
-  return this->StopRecording();
-}
-
-//----------------------------------------------------------------------------
-void vtkURFSavedDataVideoSource::ReleaseSystemResources()
-{
-  LOG_TRACE("vtkURFSavedDataVideoSource::ReleaseSystemResources"); 
-  this->Disconnect(); 
-  this->Initialized = 0;
-}
-
-//----------------------------------------------------------------------------
-PlusStatus vtkURFSavedDataVideoSource::Grab()
-{
-  LOG_ERROR("Grab is not implemented for this video source");
-  return PLUS_FAIL;
-}
-
-//----------------------------------------------------------------------------
-PlusStatus vtkURFSavedDataVideoSource::StartRecording()
-{
-  LOG_TRACE("vtkURFSavedDataVideoSource::Record"); 
-
-  if (!this->Initialized)
-  {
-    LOG_ERROR("Unable to start recording: initialize the video device first!"); 
-    return PLUS_FAIL;
-  }
-
-  if (!this->Recording)
-  {
-    this->vtkVideoSource2::StartRecording(); 
-  }
-
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkURFSavedDataVideoSource::StopRecording()
+PlusStatus vtkURFSavedDataVideoSource::InternalStartRecording()
 {
-  LOG_TRACE("vtkURFSavedDataVideoSource::Stop"); 
-  if (this->Recording)
-  {
-    this->Recording = 0;
-    this->Modified();
-  }
+  return PLUS_SUCCESS;
+}
 
+//----------------------------------------------------------------------------
+PlusStatus vtkURFSavedDataVideoSource::InternalStopRecording()
+{
   return PLUS_SUCCESS;
 }
 

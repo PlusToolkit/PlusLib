@@ -87,16 +87,16 @@ int main(int argc, char **argv)
 	frameGrabber->AddObserver("ErrorEvent", callbackCommand); 
 
 	LOG_INFO("Initialize..."); 
-	frameGrabber->Initialize(); 
+	frameGrabber->Connect(); 
 
-	if ( frameGrabber->GetInitialized() )
+	if ( frameGrabber->GetConnected() )
 	{
 		LOG_INFO("Start recording..."); 
 		frameGrabber->StartRecording(); 
 	}
 	else
 	{
-		frameGrabber->ReleaseSystemResources();
+		frameGrabber->Disconnect();
 		if ( frameGrabber != NULL ) 
 		{
 			frameGrabber->Delete();
@@ -127,7 +127,7 @@ int main(int argc, char **argv)
 	{
 		LOG_INFO("No need for rendering, stop the device..."); 
 		frameGrabber->StopRecording(); 
-		frameGrabber->ReleaseSystemResources();
+		frameGrabber->Disconnect();
 
 		if ( frameGrabber != NULL ) 
 		{

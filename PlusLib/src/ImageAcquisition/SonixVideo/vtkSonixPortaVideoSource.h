@@ -32,7 +32,6 @@
 // /* not needed, defaults 256MB */
 // sonixGrabber->SetBLineDensity( 128 );
 // /* line density effect the frame rate */
-// sonixGrabber->Initialize();
 // sonixGrabber->Record();
 // imageviewer->SetInput( sonixGrabber->GetOutput() ); 
 // .SECTION See Also
@@ -86,11 +85,6 @@ public:
   // will delete the Instance singleton
   static vtkSonixPortaVideoSourceCleanup Cleanup;
   //ETX
-
-  // Description:
-  // Initialize the driver (this is called automatically 
-  // when the first grab is done)
-  void Initialize();
   
   // Description:
   // Record incoming video at the specified FrameRate.  The recording
@@ -208,6 +202,14 @@ protected:
 			 int start, int count );
 
   // Description:
+  // Connect to device
+  virtual PlusStatus InternalConnect();
+
+  // Description:
+  // Disconnect from device
+  virtual PlusStatus InternalDisconnect(); 
+
+  // Description:
   // Imaging depth
   int Depth;
   
@@ -223,7 +225,7 @@ private:
 
   // Description:
   // for internal use only
-  void LocalInternalGrab( void *param, unsigned char *data,
+  void AddFrameToBuffer( void *param, unsigned char *data,
 			  int cineBlock, int reserved );
 
   // Description:
@@ -303,12 +305,7 @@ private:
   // Description:
   // Size of the Cine buffer
   int PortaCineSize;
-  
-  // Description:
-  // 0 if porta has not been initialized, 1 otherwise
-  // use int since VTK doesn't quite support boolean
-  int Initialized;
-  
+    
   // Description:
   // storage for sonix frame buffer
   unsigned char *ImageBuffer;    

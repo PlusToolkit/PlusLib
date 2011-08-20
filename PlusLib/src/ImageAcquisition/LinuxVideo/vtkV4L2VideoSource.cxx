@@ -24,9 +24,6 @@
 // capable of holding a preset number of video frames.  Specialized
 // versions of this class record input from various video input sources.
 // This base class records input from a noise source.
-// .SECTION Caveats
-// You must call the ReleaseSystemResources() method before the application
-// exits.  Otherwise the application might hang while trying to exit.
 // .SECTION See Also
 // vtkWin32VideoSource vtkMILVideoSource
 
@@ -224,8 +221,6 @@ vtkV4L2VideoSource::vtkV4L2VideoSource()
 //----------------------------------------------------------------------------
 vtkV4L2VideoSource::~vtkV4L2VideoSource()
 { 
-  this->vtkV4L2VideoSource::ReleaseSystemResources();
-
   if(this->DeviceInitialized){
     this->UninitDevice();
     this->CloseDevice();
@@ -916,18 +911,6 @@ void vtkV4L2VideoSource::Initialize()
   this->Initialized = 1;
 
   this->UpdateFrameBuffer();
-}
-
-//----------------------------------------------------------------------------
-// ReleaseSystemResources() should be overridden to release the hardware
-void vtkV4L2VideoSource::ReleaseSystemResources()
-{
-  if (this->Recording)
-    {
-      this->Stop();
-    }
-
-  this->Initialized = 0;
 }
 
 //----------------------------------------------------------------------------

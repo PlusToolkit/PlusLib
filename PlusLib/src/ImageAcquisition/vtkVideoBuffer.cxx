@@ -217,7 +217,8 @@ vtkVideoBuffer::vtkVideoBuffer()
 {
   this->VideoBuffer = vtkTimestampedCircularBuffer<VideoBufferItem>::New(); 
   this->SetFrameSize(0,0); 
-  this->SetNumberOfBitsPerPixel(0); 
+  this->SetNumberOfBitsPerPixel(8); 
+  AllocateMemoryForFrames();
 }
 
 //----------------------------------------------------------------------------
@@ -239,13 +240,19 @@ void vtkVideoBuffer::PrintSelf(ostream& os, vtkIndent indent)
 }
 
 //----------------------------------------------------------------------------
-void vtkVideoBuffer::UpdateBufferFrameFormats()
+PlusStatus vtkVideoBuffer::AllocateMemoryForFrames()
 {
   PlusLockGuard<VideoBufferType> videoBufferGuardedLock(this->VideoBuffer);
+  PlusStatus result=PLUS_SUCCESS;
   for ( int i = 0; i < this->VideoBuffer->GetBufferSize(); ++i )
   {
-    this->VideoBuffer->GetBufferItemFromBufferIndex(i)->AllocateFrame(this->GetFrameSize()); 
+    if (this->VideoBuffer->GetBufferItemFromBufferIndex(i)->AllocateFrame(this->GetFrameSize())!=PLUS_SUCCESS)
+    {
+      LOG_ERROR("Failed to allocate memory for frame "<<i);
+      result=PLUS_FAIL;
+    }
   }
+  return result;
 }
 
 //----------------------------------------------------------------------------
@@ -269,7 +276,28 @@ int vtkVideoBuffer::GetBufferSize()
 //----------------------------------------------------------------------------
 PlusStatus vtkVideoBuffer::SetBufferSize(int bufsize)
 {
-  return this->VideoBuffer->SetBufferSize(bufsize); 
+  if (bufsize<0)
+  {
+    LOG_ERROR("Invalid buffer size requested: "<<bufsize);
+    return PLUS_FAIL;
+  }
+  if (this->VideoBuffer->GetBufferSize()==bufsize)
+  {
+    // no change
+    return PLUS_SUCCESS;
+  }
+  
+  PlusStatus result=PLUS_SUCCESS;
+  if (this->VideoBuffer->SetBufferSize(bufsize)!=PLUS_SUCCESS)
+  {
+    result=PLUS_FAIL;
+  }
+  if (AllocateMemoryForFrames()!=PLUS_SUCCESS)
+  {
+    result=PLUS_FAIL;
+  }
+
+  return result;
 }
 
 //----------------------------------------------------------------------------
@@ -315,7 +343,6 @@ PlusStatus vtkVideoBuffer::AddTimeStampedItem(unsigned char* imageDataPtr,
                                               double unfilteredTimestamp, 
                                               long   frameNumber)
 {
-
   double filteredTimestamp(0); 
   bool filteredTimestampProbablyValid=true;
   if ( this->VideoBuffer->CreateFilteredTimeStampForItem(frameNumber, unfilteredTimestamp, filteredTimestamp, filteredTimestampProbablyValid) != PLUS_SUCCESS )
@@ -556,7 +583,6 @@ void vtkVideoBuffer::DeepCopy(vtkVideoBuffer* buffer)
   this->SetFrameSize( buffer->GetFrameSize() ); 
   this->SetNumberOfBitsPerPixel( buffer->GetNumberOfBitsPerPixel() ); 
   this->SetBufferSize(buffer->GetBufferSize()); 
-  this->UpdateBufferFrameFormats(); 
 }
 
 //----------------------------------------------------------------------------
@@ -565,4 +591,44 @@ void vtkVideoBuffer::Clear()
   this->VideoBuffer->Clear(); 
 }
 
+//----------------------------------------------------------------------------
+PlusStatus vtkVideoBuffer::SetFrameSize(int x, int y)
+{
+  if (x<0 || y<0)
+  {
+    LOG_ERROR("Invalid frame size requested: "<<x<<", "<<y);
+    return PLUS_FAIL;
+  }
+  if (this->FrameSize[0]==x && this->FrameSize[1]==y)
+  {
+    // no change
+    return PLUS_SUCCESS;
+  }
+  this->FrameSize[0]=x;
+  this->FrameSize[1]=y;
+  return AllocateMemoryForFrames();
+}
 
+//----------------------------------------------------------------------------
+PlusStatus vtkVideoBuffer::SetFrameSize(int frameSize[2])
+{
+  return SetFrameSize(frameSize[0], frameSize[1]);
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkVideoBuffer::SetNumberOfBitsPerPixel(int bits)
+{
+  if (bits<0)
+  {
+    LOG_ERROR("Invalid NumberOfBitsPerPixel requested: "<<bits);
+    return PLUS_FAIL;
+  }
+  if (this->NumberOfBitsPerPixel==bits)
+  {
+    // no change
+    return PLUS_SUCCESS;
+  }
+  this->NumberOfBitsPerPixel=bits;
+  // TODO: would need to update the bits per pixel in the buffer as well
+  return AllocateMemoryForFrames();
+}

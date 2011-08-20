@@ -353,7 +353,7 @@ vtkImageData* vtkFreehandUltrasound2::GetSlice()
 
 //----------------------------------------------------------------------------
 // Set the video source to input the slices from
-vtkCxxSetObjectMacro(vtkFreehandUltrasound2,VideoSource,vtkVideoSource2);
+vtkCxxSetObjectMacro(vtkFreehandUltrasound2,VideoSource,vtkPlusVideoSource);
 
 //----------------------------------------------------------------------------
 // Set the tracker tool to input transforms from
@@ -2666,7 +2666,7 @@ PlusStatus vtkFreehandUltrasound2::ReadSummary(vtkXMLDataElement* aConfig)
 	{
 		if (this->VideoSource == NULL)
 		{
-			this->VideoSource = vtkVideoSource2::New();
+			this->VideoSource = vtkPlusVideoSource::New();
 		}
 
 		if (this->TrackerTool == NULL)

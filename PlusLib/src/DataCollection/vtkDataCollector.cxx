@@ -46,7 +46,7 @@
 
 //----------------------------------------------------------------------------
 // Video source
-#include "vtkVideoSource2.h"
+#include "vtkPlusVideoSource.h"
 //#ifdef PLUS_USE_MATROX_IMAGING
 //#include "vtkMILVideoSource2.h"
 //#endif
@@ -182,11 +182,11 @@ PlusStatus vtkDataCollector::Connect()
   // VideoSource can be null if the ACQUISITION_TYPE == SYNCHRO_VIDEO_NONE 
   if ( this->GetVideoSource() != NULL ) 
   {
-    this->GetVideoSource()->Initialize();
+    this->GetVideoSource()->Connect();
 
-    if (!this->GetVideoSource()->GetInitialized())
+    if (!this->GetVideoSource()->GetConnected())
     {
-      LOG_ERROR("Unable to initialize video source!"); 
+      LOG_ERROR("Unable to connect to video source!"); 
       return PLUS_FAIL;  
     }
 
@@ -1797,7 +1797,7 @@ PlusStatus vtkDataCollector::ReadImageAcqusitionProperties(vtkXMLDataElement* im
   {
     LOG_DEBUG("Image acquisition type: Noise Video"); 
     this->SetAcquisitionType(SYNCHRO_VIDEO_NOISE); 
-    vtkSmartPointer<vtkVideoSource2> videoSource = vtkSmartPointer<vtkVideoSource2>::New();
+    vtkSmartPointer<vtkPlusVideoSource> videoSource = vtkSmartPointer<vtkPlusVideoSource>::New();
     this->SetVideoSource(videoSource); 
     videoSource->ReadConfiguration(imageAcqusitionConfig); 
   }

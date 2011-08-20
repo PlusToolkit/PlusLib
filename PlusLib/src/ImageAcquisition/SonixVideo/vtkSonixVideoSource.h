@@ -49,9 +49,6 @@ POSSIBILITY OF SUCH DAMAGE.
 // and stream the frames to output. 
 // Note that the data coming out of the Sonix rp through ulterius is always RGB
 // This class talks to Ultrasonix's Ulterius SDK for executing the tasks 
-// .SECTION Caveats
-// You must call the ReleaseSystemResources() method before the application
-// exits.  Otherwise the application might hang while trying to exit.
 // .SECTION Usage
 //  sonixGrabber->SetSonixIP("130.15.7.212");
 //  sonixGrabber->SetImagingMode(0);
@@ -66,7 +63,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #define __vtkSonixVideoSource_h
 
 #include "PlusConfigure.h"
-#include "vtkVideoSource2.h"
+#include "vtkPlusVideoSource.h"
 #include "ulterius.h"
 #include "ulterius_def.h"
 
@@ -85,11 +82,11 @@ public:
 };
 //ETX
 
-class VTK_EXPORT vtkSonixVideoSource : public vtkVideoSource2
+class VTK_EXPORT vtkSonixVideoSource : public vtkPlusVideoSource
 {
 public:
   //static vtkSonixVideoSource *New();
-  vtkTypeRevisionMacro(vtkSonixVideoSource,vtkVideoSource2);
+  vtkTypeRevisionMacro(vtkSonixVideoSource,vtkPlusVideoSource);
   void PrintSelf(ostream& os, vtkIndent indent);   
   // Description:
   // This is a singleton pattern New.  There will only be ONE
@@ -117,27 +114,6 @@ public:
   // Read/write main configuration from/to xml data
   virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config); 
   virtual PlusStatus WriteConfiguration(vtkXMLDataElement* config);
-
-  // Description:
-  // Connect to device
-  virtual PlusStatus Connect();
-
-  // Description:
-  // Disconnect from device
-  virtual PlusStatus Disconnect();
-
-  // Description:
-  // Record incoming video at the specified FrameRate.  The recording
-  // continues indefinitely until StopRecording() is called. 
-  virtual PlusStatus StartRecording();
-
-  // Description:
-  // Stop recording or playing.
-  virtual PlusStatus StopRecording();
-
-  // Description:
-  // Grab a single video frame.
-  PlusStatus Grab();
 
   // Description:
   // Request a particular mode of imaging (e.g. B-mode (0), M-mode(1), Color-doppler(2), pulsed-doppler(3); default: B-mode).
@@ -215,21 +191,29 @@ public:
   // The mask must be applied before any data can be acquired via realtime imaging or cine retreival
   vtkGetMacro(AcquisitionDataType, int);
   vtkSetMacro(AcquisitionDataType, int);
-  
-
-  // Description:
-  // Initialize the driver (this is called automatically when the
-  // first grab is done).
-  PlusStatus Initialize();
-
-  // Description:
-  // Free the driver (this is called automatically inside the
-  // destructor).
-  void ReleaseSystemResources();
 
 protected:
   vtkSonixVideoSource();
   virtual ~vtkSonixVideoSource();
+
+  // Description:
+  // Connect to device
+  virtual PlusStatus InternalConnect();
+
+  // Description:
+  // Disconnect from device
+  virtual PlusStatus InternalDisconnect();
+
+  // Description:
+  // Record incoming video at the specified FrameRate.  The recording
+  // continues indefinitely until StopRecording() is called. 
+  virtual PlusStatus InternalStartRecording();
+
+  // Description:
+  // Stop recording or playing.
+  virtual PlusStatus InternalStopRecording();
+
+  ////////////////////////
 
   std::string GetLastUlteriusError();
 
@@ -253,7 +237,7 @@ protected:
 
   // Description:
   // For internal use only
-  PlusStatus LocalInternalGrab(void * data, int type, int sz, bool cine, int frmnum);
+  PlusStatus AddFrameToBuffer(void * data, int type, int sz, bool cine, int frmnum);
   
 private:
  

@@ -1,7 +1,7 @@
 #ifndef __vtkSavedDataVideoSource_h
 #define __vtkSavedDataVideoSource_h
 
-#include "vtkVideoSource2.h"
+#include "vtkPlusVideoSource.h"
 
 class vtkVideoBuffer; 
 
@@ -14,10 +14,10 @@ public:
 	~vtkSavedDataVideoSourceCleanup2();
 };
 
-class VTK_EXPORT vtkSavedDataVideoSource : public vtkVideoSource2
+class VTK_EXPORT vtkSavedDataVideoSource : public vtkPlusVideoSource
 {
 public:
-	vtkTypeRevisionMacro(vtkSavedDataVideoSource,vtkVideoSource2);
+	vtkTypeRevisionMacro(vtkSavedDataVideoSource,vtkPlusVideoSource);
 	void PrintSelf(ostream& os, vtkIndent indent);   
 	static vtkSavedDataVideoSource* New();
 	static vtkSavedDataVideoSource* GetInstance();
@@ -34,41 +34,6 @@ public:
 	// Read/write main configuration from/to xml data
 	virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config); 
 	virtual PlusStatus WriteConfiguration(vtkXMLDataElement* config);
-
-	// Description:
-	// Connect to device
-	virtual PlusStatus Connect();
-
-	// Description:
-	// Disconnect from device
-	virtual PlusStatus Disconnect();
-
-	// Description:
-	// Record incoming video at the specified FrameRate.  The recording
-	// continues indefinitely until StopRecording() is called. 
-	virtual PlusStatus StartRecording();
-
-	// Description:
-	// Stop recording or playing.
-	virtual PlusStatus StopRecording();
-
-	// Description:
-	// Grab a single video frame.
-	PlusStatus Grab();
-
-	// Description:
-	// Initialize the driver (this is called automatically when the
-	// first grab is done).
-	PlusStatus Initialize();
-
-	// Description:
-	// The internal function which actually does the grab. 
-	PlusStatus InternalGrab();
-
-	// Description:
-	// Free the driver (this is called automatically inside the
-	// destructor).
-	void ReleaseSystemResources();
 
 	// Description:
 	// Set/get SequenceMetafile name with path with tracking buffer data 
@@ -103,8 +68,20 @@ protected:
 	virtual ~vtkSavedDataVideoSource();
 
 	// Description:
+	// Connect to device
+	virtual PlusStatus InternalConnect();
+
+	// Description:
+	// Disconnect from device
+	virtual PlusStatus InternalDisconnect();
+
+	// Description:
+	// The internal function which actually does the grab. 
+	PlusStatus InternalGrab();
+
+	// Description:
 	// For internal use only
-	PlusStatus LocalInternalGrab(unsigned char * data, int type, int sz, bool cine, int frmnum);
+	PlusStatus AddFrameToBuffer(unsigned char * data, int type, int sz, bool cine, int frmnum);
 
 	// byte alignment of each row in the framebuffer
 	int FrameBufferRowAlignment;

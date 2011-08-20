@@ -303,12 +303,12 @@ void vtkTrackedFrameList::PrintSelf(std::ostream &os, vtkIndent indent)
 //----------------------------------------------------------------------------
 TrackedFrame* vtkTrackedFrameList::GetTrackedFrame(int frameNumber)
 {
-  if ( frameNumber < this->GetNumberOfTrackedFrames() )
+  if ( frameNumber >= this->GetNumberOfTrackedFrames() )
   {
-    return this->TrackedFrameList[frameNumber]; 
+    LOG_ERROR("vtkTrackedFrameList::GetTrackedFrame requested a non-existing frame (framenumber="<<frameNumber);
+    return NULL; 
   }
-
-  return NULL; 
+  return this->TrackedFrameList[frameNumber];   
 }
 
 //----------------------------------------------------------------------------

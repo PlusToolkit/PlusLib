@@ -50,7 +50,7 @@ POSSIBILITY OF SUCH DAMAGES.
 // specify the coverage of each pixel in the output volume (i.e. whether or
 // not a voxel has been touched by the reconstruction)
 // .SECTION see also
-// vtkVideoSource2, vtkTracker, vtkTrackerTool
+// vtkPlusVideoSource, vtkTracker, vtkTrackerTool
 
 
 #ifndef __vtkFreehandUltrasound2_h
@@ -63,7 +63,7 @@ POSSIBILITY OF SUCH DAMAGES.
 class vtkLinearTransform;
 class vtkMatrix4x4;
 class vtkMultiThreader;
-class vtkVideoSource2;
+class vtkPlusVideoSource;
 class vtkTrackerTool;
 class vtkTrackerBuffer;
 class vtkCriticalSection;
@@ -106,8 +106,8 @@ public:
 
   // Description:
   // Set/Get the video source to input the slices from
-  virtual void SetVideoSource(vtkVideoSource2 *);
-  vtkGetObjectMacro(VideoSource,vtkVideoSource2);
+  virtual void SetVideoSource(vtkPlusVideoSource *);
+  vtkGetObjectMacro(VideoSource,vtkPlusVideoSource);
 
   // Description:
   // Set/Get the tracker tool to input transforms from
@@ -411,7 +411,7 @@ protected:
   // basics
   vtkImageData *Slice;
   vtkImageData **AccumulationBuffers;
-  vtkVideoSource2 *VideoSource;
+  vtkPlusVideoSource *VideoSource;
   vtkTrackerTool *TrackerTool;
   double VideoLag;
   int NeedsClear;
