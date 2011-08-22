@@ -81,8 +81,71 @@ int main( int argc, char** argv )
     LOG_WARNING( "Cannot create a server socket on port " << portNumber );
     return 0;
     }
-
   
+  
+  igtl::Socket::Pointer socket;
+  
+  while ( 1 )
+    {
+    socket = serverSocket->WaitForConnection( 100 );
+    
+    
+    if ( socket.IsNotNull() )
+      {
+      std::cout << "A client is connected." << std::endl;
+      
+      
+        // Create a message buffer to receive header.
+      
+      igtl::MessageHeader::Pointer headerMsg;
+      headerMsg = igtl::MessageHeader::New();
+      
+      
+      for (int i = 0; i < 100; i ++)
+        {
+        headerMsg->InitPack();
+        
+        
+          // Receive generic header from the socket
+        
+        int rs = socket->Receive( headerMsg->GetPackPointer(), headerMsg->GetPackSize() );
+        if ( rs == 0 )
+          {
+          socket->CloseSocket();
+          }
+        if ( rs != headerMsg->GetPackSize() )
+          {
+          continue;
+          }
+        
+        
+          // Deserialize the header
+        
+        headerMsg->Unpack();
+        
+        
+          // Check data type and receive data body
+        
+        std::cout << "DeviceType: " << headerMsg->GetDeviceType() << std::endl;
+        
+        /*
+        if ( strcmp( headerMsg->GetDeviceType(), "GET_IMGMETA" ) == 0 )
+          {
+          std::cerr << "Received a GET_IMGMETA message." << std::endl;
+          //socket->Skip(headerMsg->GetBodySizeToRead(), 0);
+          SendImageMeta(socket, headerMsg->GetDeviceName());
+          }
+        else
+          {
+          // if the data type is unknown, skip reading.
+          std::cerr << "Receiving : " << headerMsg->GetDeviceType() << std::endl;
+          socket->Skip(headerMsg->GetBodySizeToRead(), 0);
+          }
+        */
+        
+        }
+      }
+    }
   
   return 0;
 }
