@@ -6,17 +6,21 @@
 # --------------------------------------------------------------------------
 # Sources
 SET (DataCollection_SRCS
+	igtlStringMessage1.cxx
 	vtkDataCollector.cxx 
 	vtkDataCollectorSynchronizer.cxx 
     vtkOpenIGTLinkBroadcaster.cxx
+	vtkPlusOpenIGTLinkServer.cxx
 	)
 
 SET (DataCollection_HDRS)
 if (WIN32)	
 	SET (DataCollection_HDRS
+		igtlStringMessage1.h
 		vtkDataCollector.h 
 		vtkDataCollectorSynchronizer.h
         vtkOpenIGTLinkBroadcaster.h
+		vtkPlusOpenIGTLinkServer.h
 		)
 endif (WIN32)	
 
