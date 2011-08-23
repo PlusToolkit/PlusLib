@@ -658,7 +658,8 @@ PlusStatus vtkStepperCalibrationController::CalibrateRotationEncoder()
   this->GetRotationEncoderCalibrationError(aMatrix, bVector, rotationEncoderCalibrationResult, statistics); 
   this->SaveRotationEncoderCalibrationError(aMatrix, bVector, rotationEncoderCalibrationResult); 
 
-  this->SetProbeRotationEncoderScale(rotationEncoderCalibrationResult.get(0)); 
+  // TODO: remove sign from scale  => we need to revise the equation instead 
+  this->SetProbeRotationEncoderScale(-rotationEncoderCalibrationResult.get(0)); 
   this->SetProbeRotationEncoderOffset(rotationEncoderCalibrationResult.get(1)); 
 
   this->ProbeRotationEncoderCalibratedOn(); 
