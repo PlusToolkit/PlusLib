@@ -51,7 +51,6 @@ MARK_AS_ADVANCED(LIBRARY_OUTPUT_PATH EXECUTABLE_OUTPUT_PATH)
 SET(CMAKE_INSTALL_PREFIX ${CMAKE_CURRENT_BINARY_DIR}/Install )
 SET( INSTALL_DESTINATION_DIR "PlusApp_v${PLUSAPP_VERSION_MAJOR}.${PLUSAPP_VERSION_MINOR}.${PLUSAPP_VERSION_PATCH}" )
 
-OPTION (PLUSAPP_BUILD_4DUltrasound "Build the 4DUltrasound application" ON)
 OPTION (PLUSAPP_BUILD_VolumeReconstructor "Build the VolumeReconstructor application" ON)
 OPTION (PLUSAPP_BUILD_DiagnosticTools "Build the DiagnosticTools" ON)
 OPTION (PLUSAPP_BUILD_OpenIGTLinkBroadcaster "Build the OpenIGTLinkBroadcaster application" OFF)
@@ -96,13 +95,6 @@ IF (PLUSAPP_BUILD_TrackedUltrasoundCapturing)
 	ADD_SUBDIRECTORY(TrackedUltrasoundCapturing)
     ADD_DEPENDENCIES( TrackedUltrasoundCapturing ${PLUSLIB_DEPENDENCIES} )
 ENDIF (PLUSAPP_BUILD_TrackedUltrasoundCapturing)
-
-# --------------------------------------------------------------------------
-# Build the 4DUltrasound application
-IF (PLUSAPP_BUILD_4DUltrasound)
-	ADD_SUBDIRECTORY(4DUltrasound)
-    ADD_DEPENDENCIES( 4DUltrasound ${PLUSLIB_DEPENDENCIES} )
-ENDIF (PLUSAPP_BUILD_4DUltrasound)
 
 # --------------------------------------------------------------------------
 # Build the fCal application (Qt)

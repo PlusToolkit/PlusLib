@@ -27,6 +27,7 @@ ADD_EXECUTABLE( SendCommands
   )
 TARGET_LINK_LIBRARIES( SendCommands
   OpenIGTLink
+  vtkDataCollection
   )
 
   
