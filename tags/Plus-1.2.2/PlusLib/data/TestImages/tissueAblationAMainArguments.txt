@@ -1,0 +1,5 @@
+--input-test-data-dir="c:\devel\TissueAblation-data\TestImages"
+--input-img-seq-file-name="UsTestSeqBaselineThomasShortened.mha" 
+--input-testcase-name="UsTestSeqBaselineThomasShortened" 
+--input-baseline-file-name="baselineTestWithThomasData.xml" 
+--output-result-file-name="testcomparisons.xml"

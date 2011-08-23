@@ -1,0 +1,1464 @@
+#include "FidSegmentation.h"
+#include "vtkMath.h"
+
+#include <iostream>
+#include <algorithm>
+
+#include "itkRGBPixel.h"
+#include "itkImage.h"
+#include "itkImageFileReader.h"
+#include "itkImageFileWriter.h" 
+#include "itkPNGImageIO.h"
+
+static const short BLACK            = 0; 
+static const short MIN_WINDOW_DIST  = 8;
+static const short MAX_CLUSTER_VALS = 16384;
+
+//-----------------------------------------------------------------------------
+
+FidSegmentation::FidSegmentation() :
+		m_ThresholdImage( -1.0 ),
+		
+		m_MorphologicalOpeningBarSizeMm(-1.0), 
+		m_MorphologicalOpeningCircleRadiusMm(-1.0), 
+		m_ScalingEstimation(-1.0), 
+
+		m_FiducialGeometry(CALIBRATION_PHANTOM_6_POINT),
+
+		m_UseOriginalImageIntensityForDotIntensityScore (false)
+{
+	m_FrameSize[0] = -1;
+	m_FrameSize[1] = -1;
+
+	m_RegionOfInterest[0] = -1;
+	m_RegionOfInterest[1] = -1;
+	m_RegionOfInterest[2] = -1;
+	m_RegionOfInterest[3] = -1;
+
+	m_PossibleFiducialsImageFilename = "";
+
+  for(int i= 0 ; i<4 ; i++)
+  {
+    m_ImageScalingTolerancePercent[i] = -1.0;
+  }
+  
+  for(int i= 0 ; i<3 ; i++)
+  {
+    m_ImageNormalVectorInPhantomFrameEstimation[i] = -1.0;
+  }
+
+  for(int i= 0 ; i<6 ; i++)
+  {
+	  m_ImageNormalVectorInPhantomFrameMaximumRotationAngleDeg[i] = -1.0;
+  }
+
+  for(int i= 0 ; i<16 ; i++)
+  {
+    m_ImageToPhantomTransform[i] = -1.0;
+  }
+
+	m_DotsFound = false;
+
+  m_NumDots = -1.0;
+
+  m_DebugOutput = false;
+
+  m_Dilated = new PixelType;
+	m_Eroded = new PixelType;
+	m_Working = new PixelType;
+	m_UnalteredImage = new PixelType;
+}
+
+//-----------------------------------------------------------------------------
+
+void FidSegmentation::UpdateParameters()
+{
+	// Create morphological circle
+	m_MorphologicalCircle.clear(); 
+	int radiuspx = floor((m_MorphologicalOpeningCircleRadiusMm / m_ScalingEstimation) + 0.5); 
+	for ( int x = -radiuspx; x <= radiuspx; x++ )
+	{
+		for ( int y = -radiuspx; y <= radiuspx; y++ )
+		{
+			if ( sqrt( pow(x,2.0) + pow(y,2.0) ) <= radiuspx )
+			{
+				m_MorphologicalCircle.push_back( Item(x, y) ); 
+			}
+		}
+	}
+}
+
+//-----------------------------------------------------------------------------
+
+PlusStatus FidSegmentation::ReadConfiguration( vtkXMLDataElement* configData )
+{
+	LOG_TRACE("FidSegmentation::ReadSegmentationParametersConfiguration"); 
+	if ( configData == NULL) 
+	{
+		LOG_WARNING("Unable to read the configData XML data element!"); 
+		return PLUS_FAIL; 
+	}
+
+  vtkSmartPointer<vtkXMLDataElement> usCalibration = configData->FindNestedElementWithName("USCalibration");
+	if (usCalibration == NULL)
+  {
+    LOG_ERROR("Cannot find USCalibration element in XML tree!");
+    return PLUS_FAIL;
+	}
+
+  vtkSmartPointer<vtkXMLDataElement> segmentationParameters = usCalibration->FindNestedElementWithName("CalibrationController")->FindNestedElementWithName("SegmentationParameters");
+	if (segmentationParameters == NULL)
+  {
+		LOG_ERROR("No Segmentation parameters is found in the XML tree!");
+		return PLUS_FAIL;
+	}
+
+  vtkSmartPointer<vtkXMLDataElement> phantomDefinition = configData->FindNestedElementWithName("PhantomDefinition");
+	if (phantomDefinition == NULL)
+  {
+		LOG_ERROR("No phantom definition is found in the XML tree!");
+		return PLUS_FAIL;
+	}
+
+  // Load type
+	vtkSmartPointer<vtkXMLDataElement> description = phantomDefinition->FindNestedElementWithName("Description"); 
+	if (description == NULL) 
+  {
+		LOG_ERROR("Phantom description not found!");
+		return PLUS_FAIL;
+	} 
+  else 
+  {
+		const char* type =  description->GetAttribute("Type"); 
+		if ( type != NULL ) 
+    {
+			if (STRCASECMP("Double-N", type) == 0) 
+      {
+        m_FiducialGeometry = CALIBRATION_PHANTOM_6_POINT;
+			} 
+      else if (STRCASECMP("U-Shaped-N", type) == 0) 
+      {
+				//SetFiducialGeometry(TAB2_5_POINT);
+			}
+		} 
+    else 
+    {
+			LOG_ERROR("Phantom type not found!");
+		}
+	}
+
+	// The input image dimensions (in pixels)
+	int frameSize[2] = {0}; 
+	if ( segmentationParameters->GetVectorAttribute("FrameSize", 2, frameSize) ) 
+	{
+		m_FrameSize[0] = frameSize[0];
+    m_FrameSize[1] = frameSize[1];  
+	}
+  else
+  {
+    LOG_WARNING("Could not read FrameSize from configuration file.");
+  }
+
+  int size = m_FrameSize[0]*m_FrameSize[1];
+
+	m_Dilated = new PixelType[size];
+	m_Eroded = new PixelType[size];
+	m_Working = new PixelType[size];
+	m_UnalteredImage = new PixelType[size];
+
+	double scalingEstimation(0.0); 
+	if ( segmentationParameters->GetScalarAttribute("ScalingEstimation", scalingEstimation) )
+	{
+		m_ScalingEstimation = scalingEstimation; 
+	}
+  else
+  {
+    LOG_WARNING("Could not read ScalingEstimation from configuration file.");
+  }
+
+	double morphologicalOpeningCircleRadiusMm(0.0); 
+	if ( segmentationParameters->GetScalarAttribute("MorphologicalOpeningCircleRadiusMm", morphologicalOpeningCircleRadiusMm) )
+	{
+		m_MorphologicalOpeningCircleRadiusMm = morphologicalOpeningCircleRadiusMm; 
+	}
+  else
+  {
+    LOG_WARNING("Could not read morphologicalOpeningCircleRadiusMm from configuration file.");
+  }
+
+	double morphologicalOpeningBarSizeMm(0.0); 
+	if ( segmentationParameters->GetScalarAttribute("MorphologicalOpeningBarSizeMm", morphologicalOpeningBarSizeMm) )
+	{
+		m_MorphologicalOpeningBarSizeMm = morphologicalOpeningBarSizeMm; 
+	}
+  else
+  {
+    LOG_WARNING("Could not read morphologicalOpeningBarSizeMm from configuration file.");
+  }
+
+	// Segmentation search region Y direction
+	int regionOfInterest[4] = {0}; 
+	if ( segmentationParameters->GetVectorAttribute("RegionOfInterest", 4, regionOfInterest) )
+	{
+    m_RegionOfInterest[0] = regionOfInterest[0];
+    m_RegionOfInterest[1] = regionOfInterest[1];
+    m_RegionOfInterest[2] = regionOfInterest[2];
+    m_RegionOfInterest[3] = regionOfInterest[3];
+	}
+	else
+	{
+		LOG_WARNING("Cannot find RegionOfInterest attribute in the SegmentationParameters configuration file.");
+	}
+
+	double thresholdImage(0.0); 
+	if ( segmentationParameters->GetScalarAttribute("ThresholdImage", thresholdImage) )
+	{
+		m_ThresholdImage = thresholdImage; 
+	}
+  else
+	{
+		LOG_WARNING("Cannot find ThresholdImage attribute in the SegmentationParameters configuration file.");
+	}
+
+	int useOriginalImageIntensityForDotIntensityScore(0); 
+	if ( segmentationParameters->GetScalarAttribute("UseOriginalImageIntensityForDotIntensityScore", useOriginalImageIntensityForDotIntensityScore) )
+	{
+		m_UseOriginalImageIntensityForDotIntensityScore = (useOriginalImageIntensityForDotIntensityScore?true:false); 
+	}
+  else
+	{
+		LOG_WARNING("Cannot find UseOriginalImageIntensityForDotIntensityScore attribute in the SegmentationParameters configuration file.");
+	}
+
+
+	//if the tolerance parameters are computed automatically
+	int computeSegmentationParametersFromPhantomDefinition(0);
+	if(segmentationParameters->GetScalarAttribute("ComputeSegmentationParametersFromPhantomDefinition", computeSegmentationParametersFromPhantomDefinition)
+		&& computeSegmentationParametersFromPhantomDefinition!=0 )
+	{
+		double* imageScalingTolerancePercent = new double[4];
+		if ( segmentationParameters->GetVectorAttribute("ImageScalingTolerancePercent", 4, imageScalingTolerancePercent) )
+		{
+			for( int i = 0; i<4 ; i++)
+			{
+				m_ImageScalingTolerancePercent[i] = imageScalingTolerancePercent[i];
+			}
+		}
+    else
+    {
+      LOG_WARNING("Could not read imageScalingTolerancePercent from configuration file.");
+    }
+		delete [] imageScalingTolerancePercent;
+
+    double* imageNormalVectorInPhantomFrameEstimation = new double[3];
+		if ( segmentationParameters->GetVectorAttribute("ImageNormalVectorInPhantomFrameEstimation", 3, imageNormalVectorInPhantomFrameEstimation) )
+		{
+			m_ImageNormalVectorInPhantomFrameEstimation[0] = imageNormalVectorInPhantomFrameEstimation[0];
+			m_ImageNormalVectorInPhantomFrameEstimation[1] = imageNormalVectorInPhantomFrameEstimation[1];
+			m_ImageNormalVectorInPhantomFrameEstimation[2] = imageNormalVectorInPhantomFrameEstimation[2];
+		}
+    else
+    {
+      LOG_WARNING("Could not read imageNormalVectorInPhantomFrameEstimation from configuration file.");
+    }
+		delete [] imageNormalVectorInPhantomFrameEstimation;
+
+		//Compute the tolerances parameters automatically
+		ComputeParameters();
+	}
+	else//if the tolerances parameters are given by the configuration file
+	{
+		
+	}
+
+	//Checking the search region to make sure it won't make the program crash (if too big or if bar size goes out of image)
+	int barSize = GetMorphologicalOpeningBarSizePx();
+	if(m_RegionOfInterest[0] - barSize < 0)
+	{
+		m_RegionOfInterest[0] = barSize+1;
+		LOG_WARNING("The region of interest is too big, bar size is " << barSize);
+	}
+	if(m_RegionOfInterest[1] - barSize < 0)
+	{
+		m_RegionOfInterest[1] = barSize+1;
+		LOG_WARNING("The region of interest is too big, bar size is " << barSize);
+	}
+	if(m_RegionOfInterest[2] + barSize > GetFrameSize()[0])
+	{
+		m_RegionOfInterest[2] = m_FrameSize[0]-barSize-1;
+		LOG_WARNING("The region of interest is too big, bar size is " << barSize);
+	}
+	if(m_RegionOfInterest[3] + barSize > GetFrameSize()[1])
+	{
+		m_RegionOfInterest[3] = m_FrameSize[1]-barSize-1;
+		LOG_WARNING("The region of interest is too big, bar size is " << barSize);
+	}
+  
+  UpdateParameters();
+
+	return PLUS_SUCCESS;
+}
+
+//-----------------------------------------------------------------------------
+
+void FidSegmentation::ComputeParameters()
+{
+	
+}
+
+//-----------------------------------------------------------------------------
+
+void FidSegmentation::Clear()
+{
+  m_DotsVector.clear();
+  m_CandidateFidValues.clear();
+}
+
+//-----------------------------------------------------------------------------
+
+int FidSegmentation::GetMorphologicalOpeningBarSizePx()
+{
+	int barsize = floor(m_MorphologicalOpeningBarSizeMm / m_ScalingEstimation + 0.5 );
+	return barsize; 
+}
+
+//-----------------------------------------------------------------------------
+
+inline PixelType FidSegmentation::ErodePoint0( PixelType *image, unsigned int ir, unsigned int ic )
+{
+	const int barSize = GetMorphologicalOpeningBarSizePx(); 
+	PixelType dval = UCHAR_MAX;
+	unsigned int p = ir*m_FrameSize[0] + ic - barSize; // current pixel - bar size (position of the start of the bar)
+	unsigned int p_max = ir*m_FrameSize[0] + ic + barSize;// current pixel +  bar size (position of the end  of the bar)
+
+	//find lowest intensity in bar shaped area in image
+	for ( ; p <= p_max; p++ ) {
+		if ( image[p] < dval )
+			dval = image[p];
+		if ( image[p] == 0 )
+			break;
+	}
+	return dval;
+}
+
+//-----------------------------------------------------------------------------
+
+void FidSegmentation::Erode0( PixelType *dest, PixelType *image )
+{
+	memset( dest, 0, m_FrameSize[1]*m_FrameSize[0]*sizeof(PixelType) );
+
+	const int barSize = GetMorphologicalOpeningBarSizePx(); 
+
+	for ( unsigned int ir = m_RegionOfInterest[1]; ir < m_RegionOfInterest[3]; ir++ ) {
+		unsigned int ic = m_RegionOfInterest[0];
+		unsigned int p_base = ir*m_FrameSize[0];
+
+		PixelType dval = ErodePoint0( image, ir, ic ); // find lowest pixel intensity in surroudning region ( postions +/- 8 of current pixel position) 
+		dest[p_base+ic] = dval; // p_base+ic = current pixel
+
+		for ( ic++; ic < m_RegionOfInterest[2]; ic++ ) {
+			PixelType new_val = image[p_base + ic + barSize];
+			PixelType del_val = image[p_base + ic - 1 - barSize];
+
+			dval = new_val <= dval ? new_val  : // dval = new val if new val is less than or equal to dval
+				del_val > dval ? std::min(dval, new_val) : // if del val is greater than dval, dval= min of dval and new val
+					ErodePoint0( image, ir, ic ); //else dval = result of erode function
+
+			dest[ir*m_FrameSize[0]+ic] = dval; // update new "eroded" picture
+		}
+	}
+}
+
+//-----------------------------------------------------------------------------
+
+inline PixelType FidSegmentation::ErodePoint45( PixelType *image, unsigned int ir, unsigned int ic )
+{
+	const int barSize = GetMorphologicalOpeningBarSizePx(); 
+
+	PixelType dval = UCHAR_MAX;
+	unsigned int p = (ir+barSize)*m_FrameSize[0] + ic-barSize;
+	unsigned int p_max = (ir-barSize)*m_FrameSize[0] + ic+barSize;
+
+	for ( ; p >= p_max; p = p - m_FrameSize[0] + 1 ) {
+		if ( image[p] < dval )
+			dval = image[p];
+		if ( image[p] == 0 )
+			break;
+	}
+	return dval;
+}
+
+//-----------------------------------------------------------------------------
+
+void FidSegmentation::Erode45( PixelType *dest, PixelType *image )
+{
+	memset( dest, 0, m_FrameSize[1]*m_FrameSize[0]*sizeof(PixelType) );
+	const int barSize = GetMorphologicalOpeningBarSizePx(); 
+
+	/* Down the left side. */
+	for ( unsigned int sr = m_RegionOfInterest[1]; sr < m_RegionOfInterest[3]; sr++ ) {
+		unsigned int ir = sr;
+		unsigned int ic = m_RegionOfInterest[0];
+
+		PixelType dval = ErodePoint45( image, ir, ic );
+		dest[ir*m_FrameSize[0]+ic] = dval;
+
+		for ( ir--, ic++; ir >= m_RegionOfInterest[1] && ic < m_RegionOfInterest[2]; ir--, ic++ ) {
+			PixelType new_val = image[(ir - barSize)*m_FrameSize[0]+(ic + barSize)];
+			PixelType del_val = image[(ir + 1 + barSize)*m_FrameSize[0]+(ic - 1 - barSize)];
+
+			dval = new_val <= dval ? new_val : 
+					del_val > dval ? std::min(dval, new_val) :
+					ErodePoint45( image, ir, ic );
+
+			dest[ir*m_FrameSize[0]+ic] = dval;
+		}
+	}
+
+	/* Accross the bottom */
+	for ( unsigned int sc = m_RegionOfInterest[0]; sc < m_RegionOfInterest[2]; sc++ ) {
+		unsigned int ic = sc;
+		unsigned int ir = m_RegionOfInterest[3]-1;
+
+		PixelType dval = ErodePoint45( image, ir, ic );
+		dest[ir*m_FrameSize[0]+ic] = dval;
+
+		for ( ir--, ic++; ir >= m_RegionOfInterest[1] && ic < m_RegionOfInterest[2]; ir--, ic++ ) {
+			PixelType new_val = image[(ir - barSize)*m_FrameSize[0]+(ic + barSize)];
+			PixelType del_val = image[(ir + 1 + barSize)*m_FrameSize[0]+(ic - 1 - barSize)];
+
+			dval = new_val <= dval ? new_val : 
+					del_val > dval ? std::min(dval, new_val) :
+					ErodePoint45( image, ir, ic );
+
+			dest[ir*m_FrameSize[0]+ic] = dval;
+		}
+	}
+}
+
+//-----------------------------------------------------------------------------
+
+inline PixelType FidSegmentation::ErodePoint90( PixelType *image, unsigned int ir, unsigned int ic )
+{
+	const int barSize = GetMorphologicalOpeningBarSizePx(); 
+	PixelType dval = UCHAR_MAX;
+	unsigned int p = (ir-barSize)*m_FrameSize[0] + ic;
+	unsigned int p_max = (ir+barSize)*m_FrameSize[0] + ic;
+
+	for ( ; p <= p_max; p += m_FrameSize[0] ) {
+		if ( image[p] < dval )
+			dval = image[p];
+		if ( image[p] == 0 )
+			break;
+	}
+	return dval;
+}
+
+//-----------------------------------------------------------------------------
+
+void FidSegmentation::Erode90( PixelType *dest, PixelType *image )
+{
+	memset( dest, 0, m_FrameSize[1]*m_FrameSize[0]*sizeof(PixelType) );
+
+	const int barSize = GetMorphologicalOpeningBarSizePx(); 
+
+	for ( unsigned int ic = m_RegionOfInterest[0]; ic < m_RegionOfInterest[2]; ic++ ) {
+		unsigned int ir = m_RegionOfInterest[1];
+
+		PixelType dval = ErodePoint90( image, ir, ic );
+		dest[ir*m_FrameSize[0]+ic] = dval;
+
+		for ( ir++; ir < m_RegionOfInterest[3]; ir++ ) {
+			PixelType new_val = image[(ir + barSize)*m_FrameSize[0]+ic];
+			PixelType del_val = image[(ir - 1 - barSize)*m_FrameSize[0]+ic];
+
+			dval = new_val <= dval ? new_val : 
+					del_val > dval ? std::min(dval, new_val) :
+					ErodePoint90( image, ir, ic );
+
+			dest[ir*m_FrameSize[0]+ic] = dval;
+		}
+	}
+}
+
+//-----------------------------------------------------------------------------
+
+inline PixelType FidSegmentation::ErodePoint135( PixelType *image, unsigned int ir, unsigned int ic )
+{
+	const int barSize = GetMorphologicalOpeningBarSizePx(); 
+	PixelType dval = UCHAR_MAX;
+	unsigned int p = (ir-barSize)*m_FrameSize[0] + ic-barSize;
+	unsigned int p_max = (ir+barSize)*m_FrameSize[0] + ic+barSize;
+
+	for ( ; p <= p_max; p = p + m_FrameSize[0] + 1 ) {
+		if ( image[p] < dval )
+			dval = image[p];
+		if ( image[p] == 0 )
+			break;
+	}
+	return dval;
+}
+
+//-----------------------------------------------------------------------------
+
+void FidSegmentation::Erode135( PixelType *dest, PixelType *image )
+{
+	memset( dest, 0, m_FrameSize[1]*m_FrameSize[0]*sizeof(PixelType) );
+
+	const int barSize = GetMorphologicalOpeningBarSizePx(); 
+
+	/* Up the left side. */
+	for ( unsigned int sr = m_RegionOfInterest[3]-1; sr >= m_RegionOfInterest[1]; sr-- ) {
+		unsigned int ir = sr;
+
+		unsigned int ic = m_RegionOfInterest[0];
+		PixelType dval = ErodePoint135( image, ir, ic );
+		dest[ir*m_FrameSize[0]+ic] = dval;
+
+		for ( ir++, ic++; ir < m_RegionOfInterest[3] && ic < m_RegionOfInterest[2]; ir++, ic++ ) {
+			PixelType new_val = image[(ir + barSize)*m_FrameSize[0]+(ic + barSize)];
+			PixelType del_val = image[(ir - 1 -barSize)*m_FrameSize[0]+(ic - 1 - barSize)];
+
+			dval = new_val <= dval ? new_val : 
+					del_val > dval ? std::min(dval, new_val) :
+					ErodePoint135( image, ir, ic );
+
+			dest[ir*m_FrameSize[0]+ic] = dval;
+		}
+	}
+
+	/* Across the top. */
+	for ( unsigned int sc = m_RegionOfInterest[0]; sc < m_RegionOfInterest[2]; sc++ ) {
+		unsigned int ic = sc;
+		unsigned int ir = m_RegionOfInterest[1];
+
+		PixelType dval = ErodePoint135( image, ir, ic );
+		dest[ir*m_FrameSize[0]+ic] = dval;
+
+		for ( ir++, ic++; ir < m_RegionOfInterest[3] && ic < m_RegionOfInterest[2]; ir++, ic++ ) {
+			PixelType new_val = image[(ir + barSize)*m_FrameSize[0]+(ic + barSize)];
+			PixelType del_val = image[(ir - 1 -barSize)*m_FrameSize[0]+(ic - 1 - barSize)];
+
+			dval = new_val <= dval ? new_val : 
+					del_val > dval ? std::min(dval, new_val) :
+					ErodePoint135( image, ir, ic );
+
+			dest[ir*m_FrameSize[0]+ic] = dval;
+		}
+	}
+}
+
+//-----------------------------------------------------------------------------
+
+void FidSegmentation::ErodeCircle( PixelType *dest, PixelType *image )
+{
+	std::vector<Item> morphologicalCircle = GetMorphologicalCircle();
+	unsigned int slen = morphologicalCircle.size();
+
+	memset( dest, 0, m_FrameSize[1]*m_FrameSize[0]*sizeof(PixelType) );
+
+	for ( unsigned int ir = m_RegionOfInterest[1]; ir < m_RegionOfInterest[3]; ir++ ) {
+		for ( unsigned int ic = m_RegionOfInterest[0]; ic < m_RegionOfInterest[2]; ic++ ) {
+			PixelType dval = UCHAR_MAX;
+			for ( unsigned int sp = 0; sp < slen; sp++ ) {
+				unsigned int sr = ir + morphologicalCircle[sp].roff;
+				unsigned int sc = ic + morphologicalCircle[sp].coff;
+        PixelType pixSrc=image[sr*m_FrameSize[0]+sc];
+				if ( pixSrc < dval )
+					dval = pixSrc;
+
+				if ( pixSrc == 0 )
+					break;
+			}
+			dest[ir*m_FrameSize[0]+ic] = dval;
+		}
+	}
+}
+
+//-----------------------------------------------------------------------------
+
+inline PixelType FidSegmentation::DilatePoint0( PixelType *image, unsigned int ir, unsigned int ic )
+{
+	const int barSize = GetMorphologicalOpeningBarSizePx(); 
+	PixelType dval = 0;
+	unsigned int p = ir*m_FrameSize[0] + ic - barSize;
+	unsigned int p_max = ir*m_FrameSize[0] + ic + barSize;
+
+	for ( ; p <= p_max; p++ ) {
+		if ( image[p] > dval )
+			dval = image[p];
+	}
+	return dval;
+}
+
+//-----------------------------------------------------------------------------
+
+void FidSegmentation::Dilate0( PixelType *dest, PixelType *image )
+{
+	memset( dest, 0, m_FrameSize[1]*m_FrameSize[0]*sizeof(PixelType) );
+
+	const int barSize = GetMorphologicalOpeningBarSizePx(); 
+
+	for ( unsigned int ir = m_RegionOfInterest[1]; ir < m_RegionOfInterest[3]; ir++ ) {
+		unsigned int ic = m_RegionOfInterest[0];
+		unsigned int p_base = ir*m_FrameSize[0];
+
+		PixelType dval = DilatePoint0( image, ir, ic );
+		dest[ir*m_FrameSize[0]+ic] = dval;
+		for ( ic++; ic < m_RegionOfInterest[2]; ic++ ) {
+			PixelType new_val = image[p_base + ic + barSize];
+			PixelType del_val = image[p_base + ic - 1 - barSize];
+
+			dval = new_val >= dval ? new_val :
+					(del_val < dval ? std::max(dval, new_val) :
+					DilatePoint0( image, ir, ic ));
+			dest[ir*m_FrameSize[0]+ic] = dval;
+		}
+	}
+}
+
+//-----------------------------------------------------------------------------
+
+inline PixelType FidSegmentation::DilatePoint45( PixelType *image, unsigned int ir, unsigned int ic )
+{
+	const int barSize = GetMorphologicalOpeningBarSizePx(); 
+	PixelType dval = 0;
+	unsigned int p = (ir+barSize)*m_FrameSize[0] + ic-barSize;
+	unsigned int p_max = (ir-barSize)*m_FrameSize[0] + ic+barSize;
+
+	for ( ; p >= p_max; p = p - m_FrameSize[0] + 1 ) {
+		if ( image[p] > dval )
+			dval = image[p];
+	}
+	return dval;
+}
+
+//-----------------------------------------------------------------------------
+
+void FidSegmentation::Dilate45( PixelType *dest, PixelType *image )
+{
+	memset( dest, 0, m_FrameSize[1]*m_FrameSize[0]*sizeof(PixelType) );
+	const int barSize = GetMorphologicalOpeningBarSizePx(); 
+
+	/* Down the left side. */
+	for ( unsigned int sr = m_RegionOfInterest[1]; sr < m_RegionOfInterest[3]; sr++ ) {
+		unsigned int ir = sr;
+		unsigned int ic = m_RegionOfInterest[0];
+
+		PixelType dval = DilatePoint45( image, ir, ic );
+		dest[ir*m_FrameSize[0]+ic] = dval ;
+		for ( ir--, ic++; ir >= m_RegionOfInterest[1] && ic < m_RegionOfInterest[2]; ir--, ic++ ) {
+			PixelType new_val = image[(ir - barSize)*m_FrameSize[0]+(ic + barSize)];
+			PixelType del_val = image[(ir + 1 + barSize)*m_FrameSize[0]+(ic - 1 - barSize)];
+
+			dval = new_val >= dval ? new_val :
+					(del_val < dval ? std::max(dval, new_val) :
+					DilatePoint45( image, ir, ic ));
+			dest[ir*m_FrameSize[0]+ic] = dval ;
+		}
+	}
+
+	/* Accross the bottom */
+	for ( unsigned int sc = m_RegionOfInterest[0]; sc < m_RegionOfInterest[2]; sc++ ) {
+		unsigned int ic = sc;
+		unsigned int ir = m_RegionOfInterest[3]-1;
+
+		PixelType dval = DilatePoint45( image, ir, ic );
+		dest[ir*m_FrameSize[0]+ic] = dval ;
+		for ( ir--, ic++; ir >= m_RegionOfInterest[1] && ic < m_RegionOfInterest[2]; ir--, ic++ ) {
+			PixelType new_val = image[(ir - barSize)*m_FrameSize[0]+(ic + barSize)];
+			PixelType del_val = image[(ir + 1 + barSize)*m_FrameSize[0]+(ic - 1 - barSize)];
+
+			dval = new_val >= dval ? new_val :
+					(del_val < dval ? std::max(dval, new_val) :
+					DilatePoint45( image, ir, ic ));
+			dest[ir*m_FrameSize[0]+ic] = dval ;
+		}
+	}
+}
+
+//-----------------------------------------------------------------------------
+
+inline PixelType FidSegmentation::DilatePoint90( PixelType *image, unsigned int ir, unsigned int ic )
+{
+	const int barSize = GetMorphologicalOpeningBarSizePx(); 
+	PixelType dval = 0;
+	unsigned int p = (ir-barSize)*m_FrameSize[0] + ic;
+	unsigned int p_max = (ir+barSize)*m_FrameSize[0] + ic;
+
+	for ( ; p <= p_max; p += m_FrameSize[0] ) {
+		if ( image[p] > dval )
+			dval = image[p];
+	}
+	return dval;
+}
+
+//-----------------------------------------------------------------------------
+
+void FidSegmentation::Dilate90( PixelType *dest, PixelType *image )
+{
+	memset( dest, 0, m_FrameSize[1]*m_FrameSize[0]*sizeof(PixelType) );
+	const int barSize = GetMorphologicalOpeningBarSizePx(); 
+
+	for ( unsigned int ic = m_RegionOfInterest[0]; ic < m_RegionOfInterest[2]; ic++ ) {
+		unsigned int ir = m_RegionOfInterest[1];
+		PixelType dval = DilatePoint90( image, ir, ic );
+		dest[ir*m_FrameSize[0]+ic] = dval ;
+		for ( ir++; ir < m_RegionOfInterest[3]; ir++ ) {
+			PixelType new_val = image[(ir + barSize)*m_FrameSize[0]+ic];
+			PixelType del_val = image[(ir - 1 - barSize)*m_FrameSize[0]+ic];
+
+			dval = new_val >= dval ? new_val :
+					(del_val < dval ? std::max(dval, new_val) :
+					DilatePoint90( image, ir, ic ));
+
+			dest[ir*m_FrameSize[0]+ic] = dval ;
+		}
+	}
+}
+
+//-----------------------------------------------------------------------------
+
+inline PixelType FidSegmentation::DilatePoint135( PixelType *image, unsigned int ir, unsigned int ic )
+{
+	const int barSize = GetMorphologicalOpeningBarSizePx(); 
+	PixelType dval = 0;
+	unsigned int p = (ir-barSize)*m_FrameSize[0] + ic-barSize;
+	unsigned int p_max = (ir+barSize)*m_FrameSize[0] + ic+barSize;
+
+	for ( ; p <= p_max; p = p + m_FrameSize[0] + 1 ) {
+		if ( image[p] > dval )
+			dval = image[p];
+	}
+	return dval;
+}
+
+//-----------------------------------------------------------------------------
+
+void FidSegmentation::Dilate135( PixelType *dest, PixelType *image )
+{
+	memset( dest, 0, m_FrameSize[1]*m_FrameSize[0]*sizeof(PixelType) );
+	const int barSize = GetMorphologicalOpeningBarSizePx(); 
+
+	/* Up the left side. */
+	for ( unsigned int sr = m_RegionOfInterest[3]-1; sr >= m_RegionOfInterest[1]; sr-- ) {
+		unsigned int ir = sr;
+		unsigned int ic = m_RegionOfInterest[0];
+		PixelType dval = DilatePoint135( image, ir, ic );
+		dest[ir*m_FrameSize[0]+ic] = dval ;
+		for ( ir++, ic++; ir < m_RegionOfInterest[3] && ic < m_RegionOfInterest[2]; ir++, ic++ ) {
+			PixelType new_val = image[(ir + barSize)*m_FrameSize[0]+(ic + barSize)];
+			PixelType del_val = image[(ir - 1 -barSize)*m_FrameSize[0]+(ic - 1 - barSize)];
+
+			dval = new_val >= dval ? new_val :
+					(del_val < dval ? std::max(dval, new_val) :
+					DilatePoint135( image, ir, ic ));
+			dest[ir*m_FrameSize[0]+ic] = dval;
+		}
+	}
+
+	/* Across the top. */
+	for ( unsigned int sc = m_RegionOfInterest[0]; sc < m_RegionOfInterest[2]; sc++ ) {
+		unsigned int ic = sc;
+		unsigned int ir = m_RegionOfInterest[1];
+		PixelType dval = DilatePoint135( image, ir, ic );
+		dest[ir*m_FrameSize[0]+ic] = dval;
+		for ( ir++, ic++; ir < m_RegionOfInterest[3] && ic < m_RegionOfInterest[2]; ir++, ic++ ) {
+			PixelType new_val = image[(ir + barSize)*m_FrameSize[0]+(ic + barSize)];
+			PixelType del_val = image[(ir - 1 -barSize)*m_FrameSize[0]+(ic - 1 - barSize)];
+
+			dval = new_val >= dval ? new_val :
+					(del_val < dval ? std::max(dval, new_val) : 
+					DilatePoint135( image, ir, ic ));
+			dest[ir*m_FrameSize[0]+ic] = dval;
+		}
+	}
+}
+
+//-----------------------------------------------------------------------------
+
+inline PixelType FidSegmentation::DilatePoint( PixelType *image, unsigned int ir, unsigned int ic, 
+                Item *shape, int slen )
+{
+	PixelType dval = 0;
+	for ( int sp = 0; sp < slen; sp++ ) {
+		unsigned int sr = ir + shape[sp].roff;
+		unsigned int sc = ic + shape[sp].coff;
+		if ( image[sr*m_FrameSize[0]+sc] > dval )
+			dval = image[sr*m_FrameSize[0]+sc];
+	}
+	return dval;
+}
+
+//-----------------------------------------------------------------------------
+
+void FidSegmentation::DilateCircle( PixelType *dest, PixelType *image )
+{
+	std::vector<Item> morphologicalCircle = GetMorphologicalCircle();
+	unsigned int slen = morphologicalCircle.size();
+
+	Item *shape = new Item[slen]; 
+
+	for ( unsigned int i = 0; i < slen; i++ )
+	{
+		shape[i] = morphologicalCircle[i]; 
+	}
+
+	/* Which elements stick around when you shift right? */
+	int n = 0;
+
+	bool *sr_exist = new bool[slen];	
+
+	memset( sr_exist, 0, slen*sizeof(bool) );
+	for ( int si = 0; si < slen; si++ ) 
+	{
+		if ( ShapeContains( morphologicalCircle, Item(morphologicalCircle[si].roff, morphologicalCircle[si].coff+1) ) )
+			sr_exist[si] = true, n++;
+	}
+	//cout << "shift_exist: " << n << endl;
+
+	Item *new_items = new Item[slen]; 
+	Item *old_items = new Item[slen];
+	
+	int n_new_items = 0, n_old_items = 0;
+	for ( int si = 0; si < slen; si++ ) {
+		if ( sr_exist[si] )
+			old_items[n_old_items++] = shape[si];
+		else
+			new_items[n_new_items++] = shape[si];
+	}
+
+	delete [] sr_exist; 
+
+	memset( dest, 0, m_FrameSize[1]*m_FrameSize[0]*sizeof(PixelType) );
+	for ( unsigned int ir = m_RegionOfInterest[1]; ir < m_RegionOfInterest[3]; ir++ ) {
+		unsigned int ic = m_RegionOfInterest[0];
+
+		PixelType dval = DilatePoint( image, ir, ic, shape, slen );
+		PixelType last = dest[ir*m_FrameSize[0]+ic] = dval;
+		
+		for ( ic++; ic < m_RegionOfInterest[2]; ic++ ) {
+			PixelType dval = DilatePoint( image, ir, ic, new_items, n_new_items );
+
+			if ( dval < last ) {
+				for ( int sp = 0; sp < n_old_items; sp++ ) {
+					unsigned int sr = ir + old_items[sp].roff;
+					unsigned int sc = ic + old_items[sp].coff;
+					if ( image[sr*m_FrameSize[0]+sc] > dval )
+						dval = image[sr*m_FrameSize[0]+sc];
+
+					if ( image[sr*m_FrameSize[0]+sc] == last )
+						break;
+				}
+			}
+			last = dest[ir*m_FrameSize[0]+ic] = dval ;
+		}
+	}
+	delete [] new_items; 
+	delete [] old_items; 
+}
+
+//-----------------------------------------------------------------------------
+
+bool FidSegmentation::ShapeContains( std::vector<Item> shape, Item newItem )
+{
+	for ( unsigned int si = 0; si < shape.size(); si++ ) 
+	{
+		if ( shape[si] == newItem )
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+//-----------------------------------------------------------------------------
+
+void FidSegmentation::WritePng(PixelType *modifiedImage, std::string outImageName, int cols, int rows) 
+{
+
+// output intermediate image
+	
+	typedef unsigned char          PixelType; // define type for pixel representation
+	const unsigned int             Dimension = 2; 
+
+	typedef itk::Image< PixelType, Dimension > ImageType;
+	ImageType::Pointer modImage = ImageType::New(); 
+	ImageType::SizeType size;
+	size[0] = cols;
+	size[1] = rows; 
+
+	ImageType::IndexType start; 
+	start[0] = 0; 
+	start[1] = 0; 
+
+	ImageType::RegionType wholeImage; 
+	wholeImage.SetSize(size);
+	wholeImage.SetIndex(start); 
+
+	modImage->SetRegions(wholeImage); 
+	modImage->Allocate(); 
+
+	typedef itk::ImageFileWriter< ImageType > WriterType; 
+	itk::PNGImageIO::Pointer pngImageIO = itk::PNGImageIO::New();
+	pngImageIO->SetCompressionLevel(0); 
+
+	WriterType::Pointer writer = WriterType::New();  
+	writer->SetImageIO(pngImageIO); 
+	writer->SetFileName(outImageName);   
+	
+	
+	typedef itk::ImageRegionIterator<ImageType> IterType; 
+	IterType iter(modImage, modImage->GetRequestedRegion() ); 
+	iter.GoToBegin(); 
+
+	int count = 0; 	
+
+	while( !iter.IsAtEnd())
+	{
+	iter.Set(modifiedImage[count]);
+	count++; 
+	++iter;
+	} 
+	
+	writer->SetInput( modImage );  // piping output of reader into input of writer
+		try
+	{
+		writer->Update(); // change to writing if want writing feature
+	}
+	catch (itk::ExceptionObject & err) 
+	{		
+		std::cerr << " Exception! writer did not update" << std::endl; //ditto 
+		std::cerr << err << std ::endl; 
+		//return EXIT_GENERIC_FAILURE;
+	}
+	// end output
+
+}
+
+//-----------------------------------------------------------------------------
+
+void FidSegmentation::WritePossibleFiducialOverlayImage(std::vector<Dot> fiducials, PixelType *unalteredImage)
+{
+	typedef itk::RGBPixel< unsigned char >    PixelType;
+	typedef itk::Image< PixelType, 2 >   ImageType;
+
+	ImageType::Pointer possibleFiducials = ImageType::New(); 
+	
+	ImageType::SizeType size;
+	size[0] = m_FrameSize[0];
+	size[1] = m_FrameSize[1]; 
+
+	ImageType::IndexType start; 
+	start[0] = 0; 
+	start[1] = 0; 
+
+	ImageType::RegionType wholeImage; 
+	wholeImage.SetSize(size);
+	wholeImage.SetIndex(start); 
+
+	possibleFiducials->SetRegions(wholeImage); 
+	possibleFiducials->Allocate(); 
+
+	ImageType::IndexType pixelLocation={0,0};
+
+	ImageType::PixelType pixelValue; 
+
+	// copy pixel by pixel (we need to do gray->RGB conversion and only a ROI is updated)
+	for ( unsigned int r = m_RegionOfInterest[1]; r < m_RegionOfInterest[3]; r++ ) 
+	{
+		for ( unsigned int c = m_RegionOfInterest[0]; c < m_RegionOfInterest[2]; c++ ) 
+		{
+			pixelValue[0] = 0; //unalteredImage[r*cols+c];
+			pixelValue[1] = unalteredImage[r*m_FrameSize[0]+c];
+			pixelValue[2] = unalteredImage[r*m_FrameSize[0]+c];
+			pixelLocation[0]= c;
+			pixelLocation[1]= r; 
+			possibleFiducials->SetPixel(pixelLocation,pixelValue);
+		}
+	}
+
+	// Set pixelValue to red (it will be used to mark the centroid of the clusters)
+	for(int numDots=0; numDots<m_DotsVector.size(); numDots++)
+	{
+		const int markerPosCount=5;
+		const int markerPos[markerPosCount][2]={{0,0}, {+1,0}, {-1,0}, {0,+1}, {0,-1}};
+
+		for (int i=0; i<markerPosCount; i++)
+		{
+			pixelLocation[0]= fiducials[numDots].GetX()+markerPos[i][0];
+			pixelLocation[1]= fiducials[numDots].GetY()+markerPos[i][1]; 
+			int clusterMarkerIntensity=fiducials[numDots].GetDotIntensity()*10;
+			if (clusterMarkerIntensity>255)
+			{
+				clusterMarkerIntensity=255;
+			}
+			pixelValue[0] = clusterMarkerIntensity;
+			pixelValue[1] = 0;
+			pixelValue[2] = 0;
+			possibleFiducials->SetPixel(pixelLocation,pixelValue); 
+		}
+	}
+	/*std::ostrstream possibleFiducialsImageFilename; 
+	possibleFiducialsImageFilename << "possibleFiducials" << std::setw(3) << std::setfill('0') << currentFrameIndex << ".bmp" << std::ends; 
+	
+	const char *test=possibleFiducialsImageFilename.str();
+	*/ 
+
+  std::string possibleFiducialsImageFilename = std::string("possibleFiducials") + std::string(".bmp"); 
+  SetPossibleFiducialsImageFilename(possibleFiducialsImageFilename); 
+
+	typedef itk::ImageFileWriter< ImageType > WriterType; 
+	WriterType::Pointer writeImage = WriterType::New();  
+	writeImage->SetFileName(m_PossibleFiducialsImageFilename);  
+	// possibleFiducialsImageFilename.rdbuf()->freeze();
+
+	writeImage->SetInput( possibleFiducials );  
+		try
+	{
+		writeImage->Update(); 
+	}
+	catch (itk::ExceptionObject & err) 
+	{		
+		std::cerr << " Exception! writer did not update" << std::endl; 
+		std::cerr << err << std ::endl; 
+		//return EXIT_GENERIC_FAILURE;
+	}
+}
+
+//-----------------------------------------------------------------------------
+
+void FidSegmentation::Subtract( PixelType *image, PixelType *vals )
+{
+	for ( unsigned int pos = m_FrameSize[1]*m_FrameSize[0]; pos>0; pos-- )
+  {    
+		*image = *vals > *image ? 0 : *image - *vals;
+    image++;
+    vals++;
+  }
+}
+
+//-----------------------------------------------------------------------------
+
+/* Possible additional criteria:
+ *  1. Track the frame-to-frame data?
+ *  2. Lines should be roughly of the same length? */
+
+void FidSegmentation::Suppress( PixelType *image, float percent_thresh )
+{
+  // Get the minimum and maximum pixel value
+	PixelType max = 0;
+  PixelType min = 255;
+  PixelType* pix=image;
+	for ( unsigned int pos = 0; pos < m_FrameSize[0]*m_FrameSize[1]; pos ++ ) 
+  {
+		if ( *pix > max )
+    {
+			max = *pix;
+    }
+    if ( *pix < min )
+    {
+			min = *pix;
+    }
+    pix++;
+	}
+
+	// Thomas Kuiran Chen
+	// NOTE: round/roundf are not ANSI C++ math functions. 
+	//       We use floor to calculate the round value here.
+	
+	PixelType thresh = min+(PixelType)floor( (float)(max-min) * percent_thresh + 0.5 );
+
+	//thresholding 
+  int pixelCount=m_FrameSize[0]*m_FrameSize[1];
+  PixelType* pixel=image;
+  for (int i=0; i<pixelCount; i++)
+  {
+    if (*pixel<thresh)
+    {
+      *pixel=BLACK;
+    }
+    pixel++;
+  }
+
+  if(m_DebugOutput) 
+	{
+		WritePng(image,"seg-suppress.png", m_FrameSize[0], m_FrameSize[1]); 
+	}
+
+}
+
+//-----------------------------------------------------------------------------
+
+inline void FidSegmentation::ClusteringAddNeighbors( PixelType *image, int r, int c, std::vector<Position> &testPosition, std::vector<Position> &setPosition, std::vector<PixelType>& valuesOfPosition)
+{
+  if ( image[r*m_FrameSize[0]+c] > 0 && testPosition.size() < MAX_CLUSTER_VALS && 
+			setPosition.size() < MAX_CLUSTER_VALS )
+	{
+    Position pos;
+    pos.SetY(r);
+    pos.SetX(c);
+    testPosition.push_back(pos);
+    setPosition.push_back(pos);  
+    valuesOfPosition.push_back(image[r*m_FrameSize[0]+c]);
+		image[r*m_FrameSize[0]+c] = 0;
+	}
+}
+
+//-----------------------------------------------------------------------------
+
+/* Should we accept a dot? */
+inline bool FidSegmentation::AcceptDot( Dot &dot )
+{
+	if ( dot.GetY() >= m_RegionOfInterest[1] + MIN_WINDOW_DIST &&
+		 dot.GetY() < m_RegionOfInterest[3] - MIN_WINDOW_DIST &&
+		 dot.GetX() >=  m_RegionOfInterest[0] + MIN_WINDOW_DIST &&
+		 dot.GetX() < m_RegionOfInterest[2] - MIN_WINDOW_DIST )
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
+//-----------------------------------------------------------------------------
+
+void FidSegmentation::Cluster()
+{
+	Dot dot;
+  
+  std::vector<Position> testPosition;
+  std::vector<Position> setPosition;
+  std::vector<PixelType> valuesOfPosition;
+
+	for ( unsigned int r = m_RegionOfInterest[1]; r < m_RegionOfInterest[3]; r++ ) 
+  {
+		for ( unsigned int c = m_RegionOfInterest[0]; c < m_RegionOfInterest[2]; c++ ) 
+    {
+			if ( m_Working[r*m_FrameSize[0]+c] > 0 ) 
+      {
+        testPosition.clear();
+
+        Position pos;
+        pos.SetX(c);
+        pos.SetY(r);
+        testPosition.push_back(pos);
+
+        setPosition.clear();
+        setPosition.push_back(pos);
+
+        valuesOfPosition.clear();
+        valuesOfPosition.push_back(m_Working[r*m_FrameSize[0]+c]);
+
+				m_Working[r*m_FrameSize[0]+c] = 0;
+
+        while ( testPosition.size() > 0 ) {
+          Position pos=testPosition.back();
+          testPosition.pop_back();
+
+          ClusteringAddNeighbors( m_Working, pos.GetY()-1, pos.GetX()-1, testPosition, setPosition, valuesOfPosition);
+					ClusteringAddNeighbors( m_Working, pos.GetY()-1, pos.GetX(), testPosition, setPosition, valuesOfPosition);
+					ClusteringAddNeighbors( m_Working, pos.GetY()-1, pos.GetX()+1, testPosition, setPosition, valuesOfPosition );
+
+					ClusteringAddNeighbors( m_Working, pos.GetY(), pos.GetX()-1, testPosition, setPosition, valuesOfPosition );
+					ClusteringAddNeighbors( m_Working, pos.GetY(), pos.GetX()+1, testPosition, setPosition, valuesOfPosition );
+
+					ClusteringAddNeighbors( m_Working, pos.GetY()+1, pos.GetX()-1, testPosition, setPosition, valuesOfPosition );
+					ClusteringAddNeighbors( m_Working, pos.GetY()+1, pos.GetX(), testPosition, setPosition, valuesOfPosition );
+					ClusteringAddNeighbors( m_Working, pos.GetY()+1, pos.GetX()+1, testPosition, setPosition, valuesOfPosition );
+				}
+
+				float dest_r = 0, dest_c = 0, total = 0;
+        for ( int p = 0; p < setPosition.size(); p++ ) {
+					float amount = (float)valuesOfPosition[p] / (float)UCHAR_MAX;
+					dest_r += setPosition[p].GetY() * amount;
+					dest_c += setPosition[p].GetX() * amount;
+					total += amount;
+				}
+
+				dot.SetY(dest_r / total);
+				dot.SetX(dest_c / total);
+				dot.SetDotIntensity(total);
+
+				if ( AcceptDot( dot ) )
+				{
+					if (m_UseOriginalImageIntensityForDotIntensityScore)
+					{
+						// Take into account intensities that are close to the dot center
+						const double dotRadius2=3.0*3.0;
+						float dest_r = 0, dest_c = 0, total = 0;
+						for ( int p = 0; p < setPosition.size(); p++ ) {
+							if ( (setPosition[p].GetY()-dot.GetY())*(setPosition[p].GetY()-dot.GetY())+(setPosition[p].GetX()-dot.GetX())*(setPosition[p].GetX()-dot.GetX())<=dotRadius2)
+							{
+								//float amount = (float)vals[p] / (float)UCHAR_MAX;
+								float amount = (float)m_UnalteredImage[setPosition[p].GetY()*m_FrameSize[0]+setPosition[p].GetX()] / (float)UCHAR_MAX;
+								dest_r += setPosition[p].GetY() * amount;
+								dest_c += setPosition[p].GetX() * amount;
+								total += amount;
+							}
+						}
+						dot.SetDotIntensity(total);
+					}
+
+					m_DotsVector.push_back(dot);
+				}
+			}
+		}
+	}
+
+	//UltraSoundFidSegmentationTools::sort<Dot, Dot>( dots, dots.size() );
+	std::sort (m_DotsVector.begin(), m_DotsVector.end(), Dot::lessThan);
+}
+
+//-----------------------------------------------------------------------------
+
+std::vector<std::vector<double>> FidSegmentation::SortInAscendingOrder(std::vector<std::vector<double>> fiducials) 
+{
+	std::vector<std::vector<double>> sortedFiducials; 
+
+	if( fiducials[0][0] < fiducials[1][0] )
+	{
+		if( fiducials[2][0] > fiducials[1][0] )
+		{
+			// pattern: X1 < X2 < X3
+			std::vector<double> N1 = fiducials[0];
+			std::vector<double> N2 = fiducials[1];
+			std::vector<double> N3 = fiducials[2];
+			sortedFiducials.push_back( N3 );
+			sortedFiducials.push_back( N2 );
+			sortedFiducials.push_back( N1 );
+		}
+		else if ( fiducials[2][0] < fiducials[1][0] )
+		{
+			// pattern: X3 < X1 < X2
+			std::vector<double> N1 =  fiducials[2];
+			std::vector<double> N2 =  fiducials[0];
+			std::vector<double> N3 =  fiducials[1];
+			sortedFiducials.push_back( N3 );
+			sortedFiducials.push_back( N2 );
+			sortedFiducials.push_back( N1 );
+		}
+		else
+		{
+			// pattern: X1 < X3 < X2
+			std::vector<double> N1 =  fiducials[0];
+			std::vector<double> N2 =  fiducials[2];
+			std::vector<double> N3 =  fiducials[1];
+			sortedFiducials.push_back( N3 );
+			sortedFiducials.push_back( N2 );
+			sortedFiducials.push_back( N1 );
+		}
+	}
+	else	// X1 >= X2
+	{
+		if( fiducials[2][0] < fiducials[1][0] )
+		{
+			// pattern: X3 < X2 < X1
+			std::vector<double> N1 =  fiducials[2];
+			std::vector<double> N2 =  fiducials[1];
+			std::vector<double> N3 =  fiducials[0];
+			sortedFiducials.push_back( N3 );
+			sortedFiducials.push_back( N2 );
+			sortedFiducials.push_back( N1 );
+		}
+		else if ( fiducials[2][0] > fiducials[0][0] )
+		{
+			// pattern: X2 < X1 < X3
+			std::vector<double> N1 =  fiducials[1];
+			std::vector<double> N2 =  fiducials[0];
+			std::vector<double> N3 =  fiducials[2];
+			sortedFiducials.push_back( N3 );
+			sortedFiducials.push_back( N2 );
+			sortedFiducials.push_back( N1 );
+		}
+		else
+		{
+			// pattern: X2 < X3 < X1
+			std::vector<double> N1 =  fiducials[1];
+			std::vector<double> N2 =  fiducials[2];
+			std::vector<double> N3 =  fiducials[0];
+			sortedFiducials.push_back( N3 );
+			sortedFiducials.push_back( N2 );
+			sortedFiducials.push_back( N1 );
+		}	
+	}
+
+	if( fiducials[3][0] < fiducials[4][0] )
+	{
+		if( fiducials[5][0] > fiducials[4][0] )
+		{
+			// pattern: X1 < X2 < X3
+			std::vector<double> N1 =  fiducials[3];
+			std::vector<double> N2 =  fiducials[4];
+			std::vector<double> N3 =  fiducials[5];
+			sortedFiducials.push_back( N3 );
+			sortedFiducials.push_back( N2 );
+			sortedFiducials.push_back( N1 );
+		}
+		else if ( fiducials[5][0] < fiducials[4][0] )
+		{
+			// pattern: X3 < X1 < X2
+			std::vector<double> N1 =  fiducials[5];
+			std::vector<double> N2 =  fiducials[3];
+			std::vector<double> N3 =  fiducials[4];
+			sortedFiducials.push_back( N3 );
+			sortedFiducials.push_back( N2 );
+			sortedFiducials.push_back( N1 );
+		}
+		else
+		{
+			// pattern: X1 < X3 < X2
+			std::vector<double> N1 =  fiducials[3];
+			std::vector<double> N2 =  fiducials[5];
+			std::vector<double> N3 =  fiducials[4];
+			sortedFiducials.push_back( N3 );
+			sortedFiducials.push_back( N2 );
+			sortedFiducials.push_back( N1 );
+		}
+	}
+	else	// X1 >= X2
+	{
+		if( fiducials[5][0] < fiducials[4][0] )
+		{
+			// pattern: X3 < X2 < X1
+			std::vector<double> N1 =  fiducials[5];
+			std::vector<double> N2 =  fiducials[4];
+			std::vector<double> N3 =  fiducials[3];
+			sortedFiducials.push_back( N3 );
+			sortedFiducials.push_back( N2 );
+			sortedFiducials.push_back( N1 );
+		}
+		else if ( fiducials[5][0] > fiducials[3][0] )
+		{
+			// pattern: X2 < X1 < X3
+			std::vector<double> N1 =  fiducials[4];
+			std::vector<double> N2 =  fiducials[3];
+			std::vector<double> N3 =  fiducials[5];
+			sortedFiducials.push_back( N3 );
+			sortedFiducials.push_back( N2 );
+			sortedFiducials.push_back( N1 );
+		}
+		else
+		{
+			// pattern: X2 < X3 < X1
+			std::vector<double> N1 =  fiducials[4];
+			std::vector<double> N2 =  fiducials[5];
+			std::vector<double> N3 =  fiducials[3];
+			sortedFiducials.push_back( N3 );
+			sortedFiducials.push_back( N2 );
+			sortedFiducials.push_back( N1 );
+		}
+	}
+	return sortedFiducials;
+}
+
+//-----------------------------------------------------------------------------
+
+void FidSegmentation::MorphologicalOperations()
+{
+  // Morphological operations with a stick-like structuring element
+	
+	if(m_DebugOutput) 
+	{
+		WritePng(m_Working,"seg01-initial.png", m_FrameSize[0], m_FrameSize[1]); 
+	}
+
+	Erode0( m_Eroded, m_Working );
+	if(m_DebugOutput) 
+	{
+		WritePng(m_Eroded,"seg02-morph-bar-deg0-erode.png", m_FrameSize[0], m_FrameSize[1]); 
+	}
+	
+	Dilate0( m_Dilated, m_Eroded );
+	if(m_DebugOutput) 
+	{
+		WritePng(m_Dilated,"seg03-morph-bar-deg0-dilated.png", m_FrameSize[0], m_FrameSize[1]); 
+	}
+	Subtract( m_Working, m_Dilated );
+	if(m_DebugOutput) 
+	{
+		WritePng(m_Working,"seg04-morph-bar-deg0-final.png", m_FrameSize[0], m_FrameSize[1]); 
+	}
+
+	Erode45( m_Eroded, m_Working );
+	if(m_DebugOutput) 
+	{
+		WritePng(m_Eroded,"seg05-morph-bar-deg45-erode.png", m_FrameSize[0], m_FrameSize[1]); 
+	}
+
+	Dilate45( m_Dilated, m_Eroded );
+	if(m_DebugOutput) 
+	{
+		WritePng(m_Dilated,"seg06-morph-bar-deg45-dilated.png", m_FrameSize[0], m_FrameSize[1]); 
+	}
+
+	Subtract( m_Working, m_Dilated );
+	if(m_DebugOutput) 
+	{
+		WritePng(m_Working,"seg07-morph-bar-deg45-final.png", m_FrameSize[0], m_FrameSize[1]); 
+	}
+
+	Erode90( m_Eroded, m_Working );
+	if(m_DebugOutput) 
+	{
+		WritePng(m_Eroded,"seg08-morph-bar-deg90-erode.png", m_FrameSize[0], m_FrameSize[1]); 
+	}
+
+	Dilate90( m_Dilated, m_Eroded );
+	if(m_DebugOutput) 
+	{
+		WritePng(m_Dilated,"seg09-morph-bar-deg90-dilated.png", m_FrameSize[0], m_FrameSize[1]); 
+	}
+
+	Subtract( m_Working, m_Dilated );
+	if(m_DebugOutput) 
+	{
+		WritePng(m_Working,"seg10-morph-bar-deg90-final.png", m_FrameSize[0], m_FrameSize[1]); 
+	}
+
+	Erode135( m_Eroded, m_Working );
+	if(m_DebugOutput) 
+	{
+		WritePng(m_Eroded,"seg11-morph-bar-deg135-erode.png", m_FrameSize[0], m_FrameSize[1]); 
+	}
+
+	Dilate135( m_Dilated, m_Eroded );
+	if(m_DebugOutput) 
+	{
+		WritePng(m_Dilated,"seg12-morph-bar-deg135-dilated.png", m_FrameSize[0], m_FrameSize[1]); 
+	}
+
+	Subtract( m_Working, m_Dilated );
+	if(m_DebugOutput) 
+	{
+		WritePng(m_Working,"seg13-morph-bar-deg135-final.png", m_FrameSize[0], m_FrameSize[1]); 
+	}
+
+	/* Circle operation. */
+	ErodeCircle( m_Eroded, m_Working );
+	if(m_DebugOutput) 
+	{
+		WritePng(m_Eroded,"seg14-morph-circle-erode.png", m_FrameSize[0], m_FrameSize[1]); 
+	}
+
+	DilateCircle( m_Working, m_Eroded );
+	if(m_DebugOutput) 
+	{
+		WritePng(m_Working,"seg15-morph-circle-final.png", m_FrameSize[0], m_FrameSize[1]); 
+	}
+	
+}
+
+//-----------------------------------------------------------------------------
+
+FidSegmentation::~FidSegmentation()
+{
+	delete[] m_Dilated;
+	delete[] m_Eroded;
+	delete[] m_Working;
+	delete[] m_UnalteredImage;
+}
+
+//-----------------------------------------------------------------------------
