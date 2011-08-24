@@ -25,7 +25,7 @@
           </Tool>
       </Tracker>
 
-      <ImageAcqusition Type="ICCapturing" 
+      <ImageAcquisition Type="ICCapturing" 
         BufferSize="100" 
         FrameSize="640 480" 
         UsImageOrientation="MF"

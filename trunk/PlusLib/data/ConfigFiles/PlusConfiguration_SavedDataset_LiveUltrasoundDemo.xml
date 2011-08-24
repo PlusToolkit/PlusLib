@@ -70,7 +70,7 @@
 
 		</Tracker>
 
-		<ImageAcqusition Type="SavedDataset" 
+		<ImageAcquisition Type="SavedDataset" 
 				BufferSize="200" 
 				FrameSize="820 616" 
 				FrameRate="10" 

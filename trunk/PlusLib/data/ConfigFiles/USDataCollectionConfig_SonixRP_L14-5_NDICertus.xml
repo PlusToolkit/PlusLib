@@ -46,7 +46,7 @@
         </Tool>        
     </Tracker>
 
-    <ImageAcqusition Type="SonixVideo" 
+    <ImageAcquisition Type="SonixVideo" 
 			IP="130.15.7.212" 
             BufferSize="500" 
             FrameSize="640 480"

@@ -19,7 +19,7 @@
         </Tool>
     </Tracker>
 
-    <ImageAcqusition Type="SonixVideo" 
+    <ImageAcquisition Type="SonixVideo" 
             BufferSize="1000" 
             FrameSize="640 480" 
             UsImageOrientation="MF"

@@ -10,7 +10,7 @@
 		<Tracker Type="SavedDataset" BufferSize="200" Frequency="10" LocalTimeOffset="0.0" DefaultToolName="Probe" SequenceMetafile="" AveragedItemsForFiltering="20" >
 		</Tracker>
 
-		<ImageAcqusition Type="SavedDataset" 
+		<ImageAcquisition Type="SavedDataset" 
 				BufferSize="200" 
 				FrameSize="640 480" 
 				FrameRate="10" 

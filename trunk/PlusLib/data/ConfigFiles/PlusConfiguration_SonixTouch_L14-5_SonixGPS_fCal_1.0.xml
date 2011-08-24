@@ -71,7 +71,7 @@
 	  
 	  </Tracker>
 
-	  <ImageAcqusition
+	  <ImageAcquisition
       Type="SonixVideo" 
       BufferSize="500" 
       FrameSize="820 616" 

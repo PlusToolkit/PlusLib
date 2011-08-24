@@ -24,7 +24,7 @@
       
     </Tracker>
 
-    <ImageAcqusition
+    <ImageAcquisition
 	  Type="SavedDataset" 
       BufferSize="20" 
       FrameSize="320 240" 

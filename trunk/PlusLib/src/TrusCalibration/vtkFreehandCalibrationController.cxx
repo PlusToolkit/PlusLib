@@ -1538,7 +1538,7 @@ PlusStatus vtkFreehandCalibrationController::SaveCalibrationResults()
 	LOG_TRACE("vtkFreehandCalibrationController::SaveCalibrationResults");
 
   // Save temporal calibration
-	vtkSmartPointer<vtkXMLDataElement> imageAcquisition = vtkFreehandController::LookupElementWithNameContainingChildWithNameAndAttribute(NULL, "USDataCollection", "ImageAcqusition", NULL, NULL);
+	vtkSmartPointer<vtkXMLDataElement> imageAcquisition = vtkFreehandController::LookupElementWithNameContainingChildWithNameAndAttribute(NULL, "USDataCollection", "ImageAcquisition", NULL, NULL);
   imageAcquisition->SetDoubleAttribute("LocalTimeOffset", this->GetVideoTimeOffset());
 
 	// Save spatial calibration result

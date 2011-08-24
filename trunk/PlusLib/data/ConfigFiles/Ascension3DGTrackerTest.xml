@@ -43,7 +43,7 @@
     </Tracker>
     
     
-    <ImageAcqusition Type="None" 
+    <ImageAcquisition Type="None" 
             BufferSize="500" 
             FrameSize="820 616" 
             UsImageOrientation="MF"

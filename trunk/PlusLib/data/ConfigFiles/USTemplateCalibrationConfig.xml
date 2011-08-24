@@ -1,5 +1,5 @@
 <USTemplateCalibration version="1.0">
-	<ImageAcqusition Type="SonixVideo">
+	<ImageAcquisition Type="SonixVideo">
 		<SonixVideo IP="130.15.7.212" ImagingMode="0" AcquisitionDataType="4" Depth="70" Sector="100" Gain="55" DynRange="40" Zoom="100" Frequency="2" FrameRate="25.0" />
 		<SonixVolume FileName="" />
 		<ICCapturing />
@@ -8,7 +8,7 @@
 		<VFWVideo />
 		<NoiseVideo />
 		<LinuxVideo VideoDevice="" VideoChannel="3" VideoMode="1" />
-	</ImageAcqusition>
+	</ImageAcquisition>
 
 	<Tracking Type="AMSTracker">
 

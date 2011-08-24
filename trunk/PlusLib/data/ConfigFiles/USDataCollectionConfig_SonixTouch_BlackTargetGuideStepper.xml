@@ -19,7 +19,7 @@
         </Tool>
     </Tracker>
 
-    <ImageAcqusition Type="SonixVideo" 
+    <ImageAcquisition Type="SonixVideo" 
             BufferSize="500" 
             FrameSize="640 480" 
             FrameRate="30" 

@@ -39,7 +39,7 @@
 			</Tool>
 		</Tracker>
 
-		<ImageAcqusition Type="None" />
+		<ImageAcquisition Type="None" />
 
 		<Synchronization Type="ChangeDetection" 
 				SynchronizationTimeLength="30" 
