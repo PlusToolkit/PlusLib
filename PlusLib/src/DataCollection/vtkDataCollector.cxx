@@ -1557,10 +1557,10 @@ PlusStatus vtkDataCollector::ReadConfiguration(vtkXMLDataElement* aDataCollectio
   }
 
 
-  vtkSmartPointer<vtkXMLDataElement> imageAcqusitionConfig = dataCollectionConfig->FindNestedElementWithName("ImageAcqusition"); 
-  if ( imageAcqusitionConfig != NULL) 
+  vtkSmartPointer<vtkXMLDataElement> imageAcquisitionConfig = dataCollectionConfig->FindNestedElementWithName("ImageAcquisition"); 
+  if ( imageAcquisitionConfig != NULL) 
   {
-    this->ReadImageAcqusitionProperties(imageAcqusitionConfig); 
+    this->ReadImageAcquisitionProperties(imageAcquisitionConfig); 
   }
 
   vtkSmartPointer<vtkXMLDataElement> trackerConfig = dataCollectionConfig->FindNestedElementWithName("Tracker"); 
@@ -1717,17 +1717,17 @@ PlusStatus vtkDataCollector::ReadTrackerProperties(vtkXMLDataElement* trackerCon
 
 
 //------------------------------------------------------------------------------
-PlusStatus vtkDataCollector::ReadImageAcqusitionProperties(vtkXMLDataElement* imageAcqusitionConfig)
+PlusStatus vtkDataCollector::ReadImageAcquisitionProperties(vtkXMLDataElement* imageAcquisitionConfig)
 {
-  LOG_TRACE("vtkDataCollector::ReadImageAcqusitionProperties");
+  LOG_TRACE("vtkDataCollector::ReadImageAcquisitionProperties");
 
-  if (imageAcqusitionConfig==NULL)
+  if (imageAcquisitionConfig==NULL)
   {
-    LOG_ERROR("ImageAcqusitionConfig element is invalid");
+    LOG_ERROR("ImageAcquisitionConfig element is invalid");
     return PLUS_FAIL;
   }
 
-  const char* type = imageAcqusitionConfig->GetAttribute("Type"); 
+  const char* type = imageAcquisitionConfig->GetAttribute("Type"); 
 
   if ( type == NULL ) 
   {
@@ -1745,7 +1745,7 @@ PlusStatus vtkDataCollector::ReadImageAcqusitionProperties(vtkXMLDataElement* im
     this->SetAcquisitionType(SYNCHRO_VIDEO_SONIX); 
     vtkSmartPointer<vtkSonixVideoSource> videoSource = vtkSmartPointer<vtkSonixVideoSource>::New();
     this->SetVideoSource(videoSource); 
-    videoSource->ReadConfiguration(imageAcqusitionConfig); 
+    videoSource->ReadConfiguration(imageAcquisitionConfig); 
 #endif
   }
   //******************* Matrox Imaging ***************************
@@ -1756,7 +1756,7 @@ PlusStatus vtkDataCollector::ReadImageAcqusitionProperties(vtkXMLDataElement* im
     this->SetAcquisitionType(SYNCHRO_VIDEO_MIL); 
     vtkSmartPointer<vtkMILVideoSource2> videoSource = vtkSmartPointer<vtkMILVideoSource2>::New();
     this->SetVideoSource(videoSource); 
-    videoSource->ReadConfiguration(imageAcqusitionConfig); 
+    videoSource->ReadConfiguration(imageAcquisitionConfig); 
 #endif
   }
   //******************* Video For Windows ***************************
@@ -1767,7 +1767,7 @@ PlusStatus vtkDataCollector::ReadImageAcqusitionProperties(vtkXMLDataElement* im
     this->SetAcquisitionType(SYNCHRO_VIDEO_WIN32); 	
     vtkSmartPointer<vtkWin32VideoSource2> videoSource = vtkSmartPointer<vtkWin32VideoSource2>::New();
     this->SetVideoSource(videoSource); 
-    videoSource->ReadConfiguration(imageAcqusitionConfig); 
+    videoSource->ReadConfiguration(imageAcquisitionConfig); 
 #endif
   }
   //******************* IC Capturing frame grabber ***************************
@@ -1778,7 +1778,7 @@ PlusStatus vtkDataCollector::ReadImageAcqusitionProperties(vtkXMLDataElement* im
     this->SetAcquisitionType(SYNCHRO_VIDEO_ICCAPTURING); 
     vtkSmartPointer<vtkICCapturingSource> videoSource = vtkSmartPointer<vtkICCapturingSource>::New();
     this->SetVideoSource(videoSource); 
-    videoSource->ReadConfiguration(imageAcqusitionConfig); 
+    videoSource->ReadConfiguration(imageAcquisitionConfig); 
 #endif
   }
   //******************* Linux Video ***************************
@@ -1789,7 +1789,7 @@ PlusStatus vtkDataCollector::ReadImageAcqusitionProperties(vtkXMLDataElement* im
     this->SetAcquisitionType(SYNCHRO_VIDEO_LINUX); 
     vtkSmartPointer<vtkV4L2LinuxSource2> videoSource = vtkSmartPointer<vtkV4L2LinuxSource2>::New();
     this->SetVideoSource(videoSource); 
-    videoSource->ReadConfiguration(imageAcqusitionConfig); 
+    videoSource->ReadConfiguration(imageAcquisitionConfig); 
 #endif
   }
   //******************* Noise Video ***************************
@@ -1799,7 +1799,7 @@ PlusStatus vtkDataCollector::ReadImageAcqusitionProperties(vtkXMLDataElement* im
     this->SetAcquisitionType(SYNCHRO_VIDEO_NOISE); 
     vtkSmartPointer<vtkPlusVideoSource> videoSource = vtkSmartPointer<vtkPlusVideoSource>::New();
     this->SetVideoSource(videoSource); 
-    videoSource->ReadConfiguration(imageAcqusitionConfig); 
+    videoSource->ReadConfiguration(imageAcquisitionConfig); 
   }
   //******************* Saved dataset ***************************
   else if ( STRCASECMP("SavedDataset", type)==0 ) 
@@ -1808,7 +1808,7 @@ PlusStatus vtkDataCollector::ReadImageAcqusitionProperties(vtkXMLDataElement* im
     this->SetAcquisitionType(SYNCHRO_VIDEO_SAVEDDATASET); 
     vtkSmartPointer<vtkSavedDataVideoSource> videoSource = vtkSmartPointer<vtkSavedDataVideoSource>::New();
     this->SetVideoSource(videoSource); 
-    videoSource->ReadConfiguration(imageAcqusitionConfig); 
+    videoSource->ReadConfiguration(imageAcquisitionConfig); 
   }
   else
   {

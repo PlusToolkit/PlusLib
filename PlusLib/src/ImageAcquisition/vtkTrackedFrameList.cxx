@@ -783,26 +783,26 @@ PlusStatus vtkTrackedFrameList::ReadConfiguration(vtkXMLDataElement* config)
 
   if ( trackerConfig == NULL )
   {
-    LOG_DEBUG("Unable to find ImageAcqusition xml data element in configuration. Use default values."); 
+    LOG_DEBUG("Unable to find ImageAcquisition xml data element in configuration. Use default values."); 
 		return PLUS_SUCCESS; 
   }
 
 	if ( !trackerConfig->GetScalarAttribute("MinRequiredTranslationDifferenceMm", this->MinRequiredTranslationDifferenceMm) )
 	{
-    LOG_DEBUG("ImageAcqusition MinRequiredTranslationDifferenceMm attribute is not defined, use default value"); 
+    LOG_DEBUG("ImageAcquisition MinRequiredTranslationDifferenceMm attribute is not defined, use default value"); 
   }
   if ( !trackerConfig->GetScalarAttribute("MinRequiredAngleDifferenceDeg", this->MinRequiredAngleDifferenceDeg) )
 	{
-    LOG_DEBUG("ImageAcqusition MinRequiredAngleDifferenceDeg attribute is not defined, use default value"); 
+    LOG_DEBUG("ImageAcquisition MinRequiredAngleDifferenceDeg attribute is not defined, use default value"); 
   }
 
 	if ( !trackerConfig->GetScalarAttribute("MaxAllowedTranslationSpeedMmPerSec", this->MaxAllowedTranslationSpeedMmPerSec) )
   {
-    LOG_DEBUG("ImageAcqusition MaxAllowedTranslationSpeedMmPerSec attribute is not defined, use default value"); 
+    LOG_DEBUG("ImageAcquisition MaxAllowedTranslationSpeedMmPerSec attribute is not defined, use default value"); 
   }
 	if ( !trackerConfig->GetScalarAttribute("MaxAllowedRotationSpeedDegPerSec", this->MaxAllowedRotationSpeedDegPerSec) )
   {
-    LOG_DEBUG("ImageAcqusition MaxAllowedRotationSpeedDegPerSec attribute is not defined, use default value"); 
+    LOG_DEBUG("ImageAcquisition MaxAllowedRotationSpeedDegPerSec attribute is not defined, use default value"); 
   }
 
   return PLUS_SUCCESS;

@@ -263,8 +263,8 @@ protected:
     vtkInformationVector* outputVector);
 
   // Description:
-  // Read image acqusition properties from xml file 
-  virtual PlusStatus ReadImageAcqusitionProperties(vtkXMLDataElement* imageAcqusitionConfig); 
+  // Read image acquisition properties from xml file 
+  virtual PlusStatus ReadImageAcquisitionProperties(vtkXMLDataElement* imageAcquisitionConfig); 
 
   // Description:
   // Read tracker properties from xml file 

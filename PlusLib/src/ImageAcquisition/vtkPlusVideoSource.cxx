@@ -506,11 +506,11 @@ PlusStatus vtkPlusVideoSource::WriteConfiguration(vtkXMLDataElement* config)
 		return PLUS_FAIL; 
 	}
 
-  vtkSmartPointer<vtkXMLDataElement> videoConfig = config->LookupElementWithName("ImageAcqusition"); 
+  vtkSmartPointer<vtkXMLDataElement> videoConfig = config->LookupElementWithName("ImageAcquisition"); 
 
   if ( videoConfig == NULL )
   {
-    LOG_ERROR("Unable to find ImageAcqusition xml data element in configuration file!"); 
+    LOG_ERROR("Unable to find ImageAcquisition xml data element in configuration file!"); 
 		return PLUS_FAIL; 
   }
 
@@ -561,7 +561,7 @@ PlusStatus vtkPlusVideoSource::ReadConfiguration(vtkXMLDataElement* config)
 	}
   else
   {
-    LOG_WARNING("Unable to find ImageAcqusition NumberOfAveragedItems attribute in configuration file!"); 
+    LOG_WARNING("Unable to find ImageAcquisition NumberOfAveragedItems attribute in configuration file!"); 
   }
 
 	double localTimeOffset = 0; 
