@@ -66,7 +66,7 @@ PhantomRegistrationController::PhantomRegistrationController()
 
 	m_PhantomRenderer = vtkRenderer::New();
   m_PhantomRenderer->SetBackground(0.1, 0.1, 0.1);
-  m_PhantomRenderer->SetBackground2(255/255.0, 235/255.0, 158/255.0);
+  m_PhantomRenderer->SetBackground2(0.4, 0.4, 0.4);
   m_PhantomRenderer->SetGradientBackground(true);
 }
 

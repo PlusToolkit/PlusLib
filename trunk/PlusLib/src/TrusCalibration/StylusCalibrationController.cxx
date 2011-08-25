@@ -190,7 +190,7 @@ PlusStatus StylusCalibrationController::InitializeVisualization()
 			inputGlyph->SetSourceConnection(inputSphereSource->GetOutputPort());
 			inputMapper->SetInputConnection(inputGlyph->GetOutputPort());
 			m_InputActor->SetMapper(inputMapper);
-			m_InputActor->GetProperty()->SetColor(0.0, 0.0, 1.0);
+			m_InputActor->GetProperty()->SetColor(0.0, 0.7, 1.0);
 
 			// Initialize stylustip visualization
 			m_StylusTipActor = vtkActor::New();
@@ -640,7 +640,7 @@ PlusStatus StylusCalibrationController::LoadStylusCalibration(vtkXMLDataElement*
 	// Find stylus definition element
   std::string toolType;
 	vtkTracker::ConvertToolTypeToString(TRACKER_TOOL_STYLUS, toolType);
-  vtkSmartPointer<vtkXMLDataElement> stylusDefinition = vtkFreehandController::LookupElementWithNameContainingChildWithNameAndAttribute(aConfig, "Tracker", "Tool", "Type", toolType.c_str());
+  vtkSmartPointer<vtkXMLDataElement> stylusDefinition = vtkFileFinder::LookupElementWithNameContainingChildWithNameAndAttribute(aConfig, "Tracker", "Tool", "Type", toolType.c_str());
 	if (stylusDefinition == NULL) {
 		LOG_ERROR("No stylus definition is found in the XML tree!");
 		return PLUS_FAIL;
@@ -726,7 +726,7 @@ PlusStatus StylusCalibrationController::SaveStylusCalibration(vtkXMLDataElement*
 	// Find stylus definition element
   std::string toolType;
 	vtkTracker::ConvertToolTypeToString(TRACKER_TOOL_STYLUS, toolType);
-	vtkSmartPointer<vtkXMLDataElement> stylusDefinition = vtkFreehandController::LookupElementWithNameContainingChildWithNameAndAttribute(aConfig, "Tracker", "Tool", "Type", toolType.c_str());
+	vtkSmartPointer<vtkXMLDataElement> stylusDefinition = vtkFileFinder::LookupElementWithNameContainingChildWithNameAndAttribute(aConfig, "Tracker", "Tool", "Type", toolType.c_str());
 	if (stylusDefinition == NULL) {
 		LOG_ERROR("No stylus definition is found in the XML tree!");
 		return PLUS_FAIL;

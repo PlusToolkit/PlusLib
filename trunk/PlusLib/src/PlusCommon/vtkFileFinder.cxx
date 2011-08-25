@@ -4,6 +4,8 @@
 
 #include "vtksys/SystemTools.hxx" 
 #include "vtkDirectory.h"
+#include "vtkXMLUtilities.h"
+#include "vtkXMLDataElement.h"
 
 //-----------------------------------------------------------------------------
 
@@ -35,8 +37,10 @@ vtkFileFinder* vtkFileFinder::GetInstance() {
 vtkFileFinder::vtkFileFinder()
 {
 	this->ConfigurationDirectory = NULL;
+	this->ConfigurationFileName = NULL;
 
 	this->SetConfigurationDirectory("");
+	this->SetConfigurationFileName("");
 }
 
 //-----------------------------------------------------------------------------
@@ -119,3 +123,51 @@ std::string vtkFileFinder::FindFileRecursivelyInDirectory(const char* aFileName,
 
 	return "";
 };
+
+//-----------------------------------------------------------------------------
+
+std::string vtkFileFinder::GetNewConfigurationFileName()
+{
+  LOG_TRACE("vtkFileFinder::GetNewConfigurationFileName");
+
+  std::string resultFileName = "";
+  if ((this->ConfigurationFileName == NULL) || (STRCASECMP(this->ConfigurationFileName, "") == 0)) {
+    LOG_WARNING("New configuration file name cannot be assembled due to absence of input configuration file name");
+
+    resultFileName = "PlusConfiguration";
+  } else {
+    resultFileName = this->ConfigurationFileName;
+    resultFileName = resultFileName.substr(0, resultFileName.find(".xml"));
+    resultFileName = resultFileName.substr(resultFileName.find_last_of("/\\") + 1);
+  }
+
+  // Construct new file name with date and time
+  resultFileName.append("_");
+  resultFileName.append(vtksys::SystemTools::GetCurrentDateTime("%Y%m%d_%H%M%S"));
+  resultFileName.append(".xml");
+
+  return resultFileName;
+}
+
+//-----------------------------------------------------------------------------
+
+vtkXMLDataElement* vtkFileFinder::LookupElementWithNameContainingChildWithNameAndAttribute(vtkXMLDataElement* aConfig, const char* aElementName, const char* aChildName, const char* aChildAttributeName, const char* aChildAttributeValue)
+{
+  LOG_TRACE("vtkFileFinder::LookupElementWithNameContainingChildWithNameAndAttribute(" << aElementName << ", " << aChildName << ", " << (aChildAttributeName==NULL ? "" : aChildAttributeName) << ", " << (aChildAttributeValue==NULL ? "" : aChildAttributeValue) << ")");
+
+  if (aConfig == NULL) {
+    LOG_ERROR("No input XML data element is specified!");
+    return NULL;
+  }
+
+	vtkSmartPointer<vtkXMLDataElement> firstElement = aConfig->LookupElementWithName(aElementName);
+	if (firstElement == NULL) {
+		return NULL;
+	} else {
+    if (aChildAttributeName && aChildAttributeValue) {
+		  return firstElement->FindNestedElementWithNameAndAttribute(aChildName, aChildAttributeName, aChildAttributeValue);
+    } else {
+      return firstElement->FindNestedElementWithName(aChildName);
+    }
+	}
+}

@@ -49,28 +49,11 @@ public:
 	PlusStatus StartDataCollection();
 
 	/*!
-	 * \brief Assembles a filename that is the same as the input file name, only with the current date and time in the end (for saving to a new file)
-	 * \return New configuration file nname
-	 */
-  std::string GetNewConfigurationFileName();
-
-	/*!
 	 * \brief Saves session configuratin data into file
    * \param aFile File path and name
 	 * \return Success flag
 	 */
   PlusStatus SaveConfigurationToFile(const char* aFile);
-
-	/*!
-	 * \brief Searches a data element in an XML tree: the child of aElementName that has the name aChildName and has an attribute aChildAttributeName with the value aChildAttributeValue
-   * \param aConfig Root XML element in that the search is conducted
-   * \param aElementName Name of the parent of the searched element
-   * \param aChildName Name of the searched element
-   * \param aChildAttributeName Name of the attribute based on which we want the element to be found
-   * \param aChildAttributeValue Value of the attribute based on which we want the element to be found
-	 * \return Found XML data element
-	 */
-	static vtkXMLDataElement* LookupElementWithNameContainingChildWithNameAndAttribute(vtkXMLDataElement* aConfig, const char* aElementName, const char* aChildName, const char* aChildAttributeName, const char* aChildAttributeValue);
 
 	/*!
 	 * \brief Try to parse the input file and return its content. If it fails (eg the file does not exist) then return the session configuration data
@@ -105,9 +88,6 @@ public:
 	vtkSetMacro(RecordingFrameRate, int); 
 	vtkGetMacro(RecordingFrameRate, int); 
 
-	vtkSetStringMacro(ConfigurationFileName); 
-	vtkGetStringMacro(ConfigurationFileName); 
-
 	vtkSetStringMacro(OutputFolder); 
 	vtkGetStringMacro(OutputFolder); 
 
@@ -140,9 +120,6 @@ protected:
 
 	//! Desired frame rate of synchronized recording
 	int								RecordingFrameRate;
-
-	//! Used configuration file name
-	char*							ConfigurationFileName;
 
 	//! Output folder
 	char*							OutputFolder;
