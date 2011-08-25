@@ -1,6 +1,8 @@
 #include "PlusConfigure.h"
 #include "vtkFreehandController.h"
 #include "StylusCalibrationController.h"
+#include "vtkConfigurationTools.h"
+
 #include "vtkSmartPointer.h"
 #include "vtkXMLDataElement.h"
 #include "vtkXMLUtilities.h"
@@ -51,11 +53,12 @@ int main (int argc, char* argv[])
 	}
 	programPath = vtksys::SystemTools::GetParentDirectory(programPath.c_str()); 
 
-	LOG_INFO("Initialize"); 
+  vtkConfigurationTools::GetInstance()->SetConfigurationFileName(inputConfigFileName.c_str());
+
+  LOG_INFO("Initialize"); 
 
 	// Initialize the controllers
 	vtkSmartPointer<vtkFreehandController> controller = vtkFreehandController::GetInstance();
-	controller->SetConfigurationFileName(inputConfigFileName.c_str());
 	controller->TrackingOnlyOn();
 
 	if (controller->Initialize() != PLUS_SUCCESS) {
@@ -126,7 +129,7 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
 		LOG_ERROR("Unable to read the current configuration file: " << currentResultFileName); 
 		return ++numberOfFailures;
 	}
-	vtkSmartPointer<vtkXMLDataElement> stylusDefinitionCurrent = vtkFreehandController::LookupElementWithNameContainingChildWithNameAndAttribute(rootElementCurrent, "Tracker", "Tool", "Type", "Stylus");
+	vtkSmartPointer<vtkXMLDataElement> stylusDefinitionCurrent = vtkConfigurationTools::LookupElementWithNameContainingChildWithNameAndAttribute(rootElementCurrent, "Tracker", "Tool", "Type", "Stylus");
 	if (stylusDefinitionCurrent == NULL) {
 		LOG_ERROR("No stylus definition is found in the test result XML tree!");
 		return ++numberOfFailures;
@@ -145,7 +148,7 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
 		LOG_ERROR("Unable to read the baseline configuration file: " << baselineFileName); 
 		return ++numberOfFailures;
 	}
-	vtkSmartPointer<vtkXMLDataElement> stylusDefinitionBaseline = vtkFreehandController::LookupElementWithNameContainingChildWithNameAndAttribute(rootElementBaseline, "Tracker", "Tool", "Type", "Stylus");
+	vtkSmartPointer<vtkXMLDataElement> stylusDefinitionBaseline = vtkConfigurationTools::LookupElementWithNameContainingChildWithNameAndAttribute(rootElementBaseline, "Tracker", "Tool", "Type", "Stylus");
 	if (stylusDefinitionBaseline == NULL) {
 		LOG_ERROR("No stylus definition is found in the baseline XML tree!");
 		return ++numberOfFailures;

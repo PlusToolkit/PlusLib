@@ -4,7 +4,7 @@
 
 #include "vtkObjectFactory.h"
 #include "vtkDirectory.h"
-#include "vtkFileFinder.h"
+#include "vtkConfigurationTools.h"
 #include "vtkXMLUtilities.h"
 
 //-----------------------------------------------------------------------------
@@ -130,7 +130,7 @@ PlusStatus vtkFreehandController::StartDataCollection()
 	vtkSmartPointer<vtkDataCollector> dataCollector = vtkSmartPointer<vtkDataCollector>::New(); 
 	this->SetDataCollector(dataCollector);
 
-  if (this->DataCollector->ReadConfigurationFromFile(vtkFileFinder::GetInstance()->GetConfigurationFileName()) != PLUS_SUCCESS) {
+  if (this->DataCollector->ReadConfigurationFromFile(vtkConfigurationTools::GetInstance()->GetConfigurationFileName()) != PLUS_SUCCESS) {
 		return PLUS_FAIL;
 	}
 
@@ -194,7 +194,7 @@ PlusStatus vtkFreehandController::SaveConfigurationToFile(const char* aFile)
 		return PLUS_FAIL;
 	}
 
-  vtkFileFinder::GetInstance()->SetConfigurationFileName(aFile);
+  vtkConfigurationTools::GetInstance()->SetConfigurationFileName(aFile);
   
  return this->DataCollector->SaveConfigurationToFile(aFile); 
 }

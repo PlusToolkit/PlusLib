@@ -9,7 +9,7 @@
 #include "vtkXMLUtilities.h"
 #include "vtkDirectory.h"
 #include "vtksys/SystemTools.hxx"
-#include "vtkFileFinder.h"
+#include "vtkConfigurationTools.h"
 
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
@@ -1235,9 +1235,9 @@ PlusStatus vtkProbeCalibrationControllerIO::ReadProbeCalibrationConfiguration(vt
 		if ( configFile != NULL) 
 		{
 	    std::string searchResult = "";
-	    if (STRCASECMP(vtkFileFinder::GetInstance()->GetConfigurationDirectory(), "") != 0)
+	    if (STRCASECMP(vtkConfigurationTools::GetInstance()->GetConfigurationDirectory(), "") != 0)
       {
-		    searchResult = vtkFileFinder::GetFirstFileFoundInConfigurationDirectory(configFile);
+		    searchResult = vtkConfigurationTools::GetFirstFileFoundInConfigurationDirectory(configFile);
 	    }
 
 	    if (searchResult != "")

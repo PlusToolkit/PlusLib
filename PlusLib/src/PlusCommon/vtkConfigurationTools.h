@@ -1,4 +1,4 @@
-// .NAME vtkFileFinder - class for finding files in a directory and its subdirectorys
+// .NAME vtkConfigurationTools - class for finding files in a directory and its subdirectorys
 // .SECTION Description
 // This class is used for finding files in a directory and its subdirectorys
 
@@ -11,26 +11,26 @@ class vtkXMLDataElement;
 
 //-----------------------------------------------------------------------------
 
-class VTK_EXPORT vtkFileFinder : public vtkObject
+class VTK_EXPORT vtkConfigurationTools : public vtkObject
 {
 public:
-	vtkTypeRevisionMacro(vtkFileFinder, vtkObject);
+	vtkTypeRevisionMacro(vtkConfigurationTools, vtkObject);
 
 	/*!
 	* \brief New
 	*/
-	static vtkFileFinder *New();
+	static vtkConfigurationTools *New();
 
 	/*!
 	* \brief Instance getter for the singleton class
 	* \return Instance object
 	*/
-	static vtkFileFinder* GetInstance();
+	static vtkConfigurationTools* GetInstance();
 
 	/*!
 	* \brief Destructor
 	*/
-	virtual	~vtkFileFinder();
+	virtual	~vtkConfigurationTools();
 
 	/*!
 	* \brief Search recursively for a file in the configuration directory
@@ -94,7 +94,7 @@ protected:
 	/*!
 	* \brief Constructor
 	*/
-	vtkFileFinder();
+	vtkConfigurationTools();
 
 protected:
 	//! Configuration directory path
@@ -105,7 +105,7 @@ protected:
 
 private:
 	//! Instance of the singleton
-	static vtkFileFinder*	Instance;
+	static vtkConfigurationTools*	Instance;
 }; 
 
 

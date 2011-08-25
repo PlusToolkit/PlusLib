@@ -3,7 +3,8 @@
 #include "vtkFreehandController.h"
 #include "StylusCalibrationController.h"
 #include "PhantomRegistrationController.h"
-
+#include "vtkConfigurationTools.h"
+vtkConfigurationTools
 #include "vtkBMPReader.h"
 #include "vtkSmartPointer.h"
 #include "vtkCommand.h"
@@ -72,9 +73,10 @@ int main (int argc, char* argv[])
 	}
 	programPath = vtksys::SystemTools::GetParentDirectory(programPath.c_str()); 
 
-	// Initialize related controllers with the input data
+  vtkConfigurationTools::GetInstance()->SetConfigurationFileName(inputConfigFileName.c_str());
+
+  // Initialize related controllers with the input data
 	vtkSmartPointer<vtkFreehandController> controller = vtkFreehandController::GetInstance();
-	controller->SetConfigurationFileName(inputConfigFileName.c_str());
 
 	vtkSmartPointer<vtkDataCollector> dataCollector = vtkSmartPointer<vtkDataCollector>::New(); 
   if (dataCollector->ReadConfigurationFromFile(inputConfigFileName.c_str()) != PLUS_SUCCESS) {

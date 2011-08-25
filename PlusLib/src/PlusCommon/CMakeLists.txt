@@ -6,9 +6,9 @@ SET ( PlusCommon_SRCS
 		PlusLogger.cxx
 		vtkHTMLGenerator.cxx 
 		vtkGnuplotExecuter.cxx
-        UsImageConverterCommon.cxx
-		vtkFileFinder.cxx
-        PlusMath.cxx 
+    UsImageConverterCommon.cxx
+		vtkConfigurationTools.cxx
+    PlusMath.cxx 
 		)
 
 SET (PlusCommon_HDRS)
@@ -20,11 +20,11 @@ if (WIN32)
 		PlusLogger.h
 		vtkHTMLGenerator.h
 		vtkGnuplotExecuter.h
-        vtkTimestampedCircularBuffer.h 
-        vtkTimestampedCircularBuffer.txx
-		vtkFileFinder.h
-        UsImageConverterCommon.h
-        PlusMath.h
+    vtkTimestampedCircularBuffer.h 
+    vtkTimestampedCircularBuffer.txx
+		vtkConfigurationTools.h
+    UsImageConverterCommon.h
+    PlusMath.h
 		)
 endif (WIN32)	
 

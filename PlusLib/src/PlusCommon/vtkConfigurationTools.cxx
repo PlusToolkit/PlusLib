@@ -1,4 +1,4 @@
-#include "vtkFileFinder.h"
+#include "vtkConfigurationTools.h"
 
 #include "PlusConfigure.h"
 
@@ -9,32 +9,32 @@
 
 //-----------------------------------------------------------------------------
 
-vtkCxxRevisionMacro(vtkFileFinder, "$Revision: 1.0 $");
+vtkCxxRevisionMacro(vtkConfigurationTools, "$Revision: 1.0 $");
 
-vtkFileFinder *vtkFileFinder::Instance = NULL;
+vtkConfigurationTools *vtkConfigurationTools::Instance = NULL;
 
 //-----------------------------------------------------------------------------
 
-vtkFileFinder* vtkFileFinder::New()
+vtkConfigurationTools* vtkConfigurationTools::New()
 {
-	return vtkFileFinder::GetInstance();
+	return vtkConfigurationTools::GetInstance();
 }
 
 //-----------------------------------------------------------------------------
 
-vtkFileFinder* vtkFileFinder::GetInstance() {
-	if(!vtkFileFinder::Instance) {
-		if(!vtkFileFinder::Instance) {
-			vtkFileFinder::Instance = new vtkFileFinder();	   
+vtkConfigurationTools* vtkConfigurationTools::GetInstance() {
+	if(!vtkConfigurationTools::Instance) {
+		if(!vtkConfigurationTools::Instance) {
+			vtkConfigurationTools::Instance = new vtkConfigurationTools();	   
 		}
 	}
 	// return the instance
-	return vtkFileFinder::Instance;
+	return vtkConfigurationTools::Instance;
 }
 
 //-----------------------------------------------------------------------------
 
-vtkFileFinder::vtkFileFinder()
+vtkConfigurationTools::vtkConfigurationTools()
 {
 	this->ConfigurationDirectory = NULL;
 	this->ConfigurationFileName = NULL;
@@ -45,24 +45,24 @@ vtkFileFinder::vtkFileFinder()
 
 //-----------------------------------------------------------------------------
 
-vtkFileFinder::~vtkFileFinder()
+vtkConfigurationTools::~vtkConfigurationTools()
 {
 }
 
 //-----------------------------------------------------------------------------
 
-std::string vtkFileFinder::GetFirstFileFoundInConfigurationDirectory(const char* aFileName)
+std::string vtkConfigurationTools::GetFirstFileFoundInConfigurationDirectory(const char* aFileName)
 {
-	LOG_TRACE("vtkFileFinder::GetFirstFileFoundInConfigurationDirectory(" << aFileName << ")"); 
+	LOG_TRACE("vtkConfigurationTools::GetFirstFileFoundInConfigurationDirectory(" << aFileName << ")"); 
 
-	return GetFirstFileFoundInParentOfDirectory(aFileName, vtkFileFinder::GetInstance()->GetConfigurationDirectory());
+	return GetFirstFileFoundInParentOfDirectory(aFileName, vtkConfigurationTools::GetInstance()->GetConfigurationDirectory());
 };
 
 //-----------------------------------------------------------------------------
 
-std::string vtkFileFinder::GetFirstFileFoundInParentOfDirectory(const char* aFileName, const char* aDirectory)
+std::string vtkConfigurationTools::GetFirstFileFoundInParentOfDirectory(const char* aFileName, const char* aDirectory)
 {
-	LOG_TRACE("vtkFileFinder::GetFirstFileFoundInParentOfDirectory(" << aFileName << ", " << aDirectory << ")"); 
+	LOG_TRACE("vtkConfigurationTools::GetFirstFileFoundInParentOfDirectory(" << aFileName << ", " << aDirectory << ")"); 
 
 	std::string parentDirectory = vtksys::SystemTools::GetParentDirectory(aDirectory);
 
@@ -71,9 +71,9 @@ std::string vtkFileFinder::GetFirstFileFoundInParentOfDirectory(const char* aFil
 
 //-----------------------------------------------------------------------------
 
-std::string vtkFileFinder::GetFirstFileFoundInDirectory(const char* aFileName, const char* aDirectory)
+std::string vtkConfigurationTools::GetFirstFileFoundInDirectory(const char* aFileName, const char* aDirectory)
 {
-	LOG_TRACE("vtkFileFinder::GetFirstFileFoundInDirectory(" << aFileName << ", " << aDirectory << ")"); 
+	LOG_TRACE("vtkConfigurationTools::GetFirstFileFoundInDirectory(" << aFileName << ", " << aDirectory << ")"); 
 
 	std::string result = FindFileRecursivelyInDirectory(aFileName, aDirectory);
 	if (STRCASECMP("", result.c_str()) == 0) {
@@ -85,9 +85,9 @@ std::string vtkFileFinder::GetFirstFileFoundInDirectory(const char* aFileName, c
 
 //-----------------------------------------------------------------------------
 
-std::string vtkFileFinder::FindFileRecursivelyInDirectory(const char* aFileName, const char* aDirectory)
+std::string vtkConfigurationTools::FindFileRecursivelyInDirectory(const char* aFileName, const char* aDirectory)
 {
-	LOG_TRACE("vtkFileFinder::FindFileRecursivelyInDirectory(" << aFileName << ", " << aDirectory << ")"); 
+	LOG_TRACE("vtkConfigurationTools::FindFileRecursivelyInDirectory(" << aFileName << ", " << aDirectory << ")"); 
 
 	std::vector<std::string> directoryList;
 	directoryList.push_back(aDirectory);
@@ -126,9 +126,9 @@ std::string vtkFileFinder::FindFileRecursivelyInDirectory(const char* aFileName,
 
 //-----------------------------------------------------------------------------
 
-std::string vtkFileFinder::GetNewConfigurationFileName()
+std::string vtkConfigurationTools::GetNewConfigurationFileName()
 {
-  LOG_TRACE("vtkFileFinder::GetNewConfigurationFileName");
+  LOG_TRACE("vtkConfigurationTools::GetNewConfigurationFileName");
 
   std::string resultFileName = "";
   if ((this->ConfigurationFileName == NULL) || (STRCASECMP(this->ConfigurationFileName, "") == 0)) {
@@ -151,9 +151,9 @@ std::string vtkFileFinder::GetNewConfigurationFileName()
 
 //-----------------------------------------------------------------------------
 
-vtkXMLDataElement* vtkFileFinder::LookupElementWithNameContainingChildWithNameAndAttribute(vtkXMLDataElement* aConfig, const char* aElementName, const char* aChildName, const char* aChildAttributeName, const char* aChildAttributeValue)
+vtkXMLDataElement* vtkConfigurationTools::LookupElementWithNameContainingChildWithNameAndAttribute(vtkXMLDataElement* aConfig, const char* aElementName, const char* aChildName, const char* aChildAttributeName, const char* aChildAttributeValue)
 {
-  LOG_TRACE("vtkFileFinder::LookupElementWithNameContainingChildWithNameAndAttribute(" << aElementName << ", " << aChildName << ", " << (aChildAttributeName==NULL ? "" : aChildAttributeName) << ", " << (aChildAttributeValue==NULL ? "" : aChildAttributeValue) << ")");
+  LOG_TRACE("vtkConfigurationTools::LookupElementWithNameContainingChildWithNameAndAttribute(" << aElementName << ", " << aChildName << ", " << (aChildAttributeName==NULL ? "" : aChildAttributeName) << ", " << (aChildAttributeValue==NULL ? "" : aChildAttributeValue) << ")");
 
   if (aConfig == NULL) {
     LOG_ERROR("No input XML data element is specified!");
