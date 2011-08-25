@@ -13,7 +13,7 @@
 #include "vtkMatrix4x4.h"
 #include "vtkTransform.h"
 #include "vtkMath.h"
-#include "vtkFileFinder.h"
+#include "vtkConfigurationTools.h"
 
 #include <stdlib.h>
 #include <iostream>
@@ -75,7 +75,7 @@ int main (int argc, char* argv[])
 		LOG_ERROR(errorMsg); 
 	}
 	programPath = vtksys::SystemTools::GetParentDirectory(programPath.c_str()); 
-  vtkFileFinder::GetInstance()->SetConfigurationDirectory(inputConfigFileName.c_str());
+  vtkConfigurationTools::GetInstance()->SetConfigurationDirectory(inputConfigFileName.c_str());
 
 	// Initialize the probe calibration controller 
 	vtkSmartPointer<vtkStepperCalibrationController> stepperCal = vtkSmartPointer<vtkStepperCalibrationController>::New(); 

@@ -9,7 +9,7 @@
 #include "vtkObjectFactory.h"
 #include "vtkAccurateTimer.h"
 #include "vtkTrackerTool.h"
-#include "vtkFileFinder.h"
+#include "vtkConfigurationTools.h"
 
 #include "vtkMath.h"
 #include "vtkRenderWindow.h"
@@ -302,7 +302,7 @@ PlusStatus vtkFreehandCalibrationController::InitializeDeviceVisualization()
 			} else {
 				// Load model if file name exists and file can be found
 				if (STRCASECMP(tool->GetTool3DModelFileName(), "") != 0) {
-					std::string searchResult = vtkFileFinder::GetFirstFileFoundInConfigurationDirectory(tool->GetTool3DModelFileName());
+					std::string searchResult = vtkConfigurationTools::GetFirstFileFoundInConfigurationDirectory(tool->GetTool3DModelFileName());
 
 					if (STRCASECMP("", searchResult.c_str()) == 0) {
 						LOG_WARNING("Tool (" << tool->GetToolName() << ") model file is not found with name: " << tool->GetTool3DModelFileName());
@@ -1538,7 +1538,7 @@ PlusStatus vtkFreehandCalibrationController::SaveCalibrationResults()
 	LOG_TRACE("vtkFreehandCalibrationController::SaveCalibrationResults");
 
   // Save temporal calibration
-	vtkSmartPointer<vtkXMLDataElement> imageAcquisition = vtkFreehandController::LookupElementWithNameContainingChildWithNameAndAttribute(NULL, "USDataCollection", "ImageAcquisition", NULL, NULL);
+	vtkSmartPointer<vtkXMLDataElement> imageAcquisition = vtkConfigurationTools::LookupElementWithNameContainingChildWithNameAndAttribute(NULL, "USDataCollection", "ImageAcquisition", NULL, NULL);
   imageAcquisition->SetDoubleAttribute("LocalTimeOffset", this->GetVideoTimeOffset());
 
 	// Save spatial calibration result
@@ -1546,7 +1546,7 @@ PlusStatus vtkFreehandCalibrationController::SaveCalibrationResults()
 	vtkTracker::ConvertToolTypeToString(TRACKER_TOOL_PROBE, toolType);
 
   //Find stylus definition element
-	vtkSmartPointer<vtkXMLDataElement> probeDefinition = vtkFreehandController::LookupElementWithNameContainingChildWithNameAndAttribute(NULL, "Tracker", "Tool", "Type", toolType.c_str());
+	vtkSmartPointer<vtkXMLDataElement> probeDefinition = vtkConfigurationTools::LookupElementWithNameContainingChildWithNameAndAttribute(NULL, "Tracker", "Tool", "Type", toolType.c_str());
 	if (probeDefinition == NULL) {
 		LOG_ERROR("No probe definition is found in the XML tree!");
 		return PLUS_FAIL;

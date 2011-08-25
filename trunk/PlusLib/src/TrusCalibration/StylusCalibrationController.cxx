@@ -8,7 +8,7 @@
 #include "vtkTransform.h"
 #include "vtkPolyData.h"
 #include "vtkXMLUtilities.h"
-#include "vtkFileFinder.h"
+#include "vtkConfigurationTools.h"
 
 #include "vtkActor.h"
 #include "vtkPolyDataMapper.h"
@@ -640,7 +640,7 @@ PlusStatus StylusCalibrationController::LoadStylusCalibration(vtkXMLDataElement*
 	// Find stylus definition element
   std::string toolType;
 	vtkTracker::ConvertToolTypeToString(TRACKER_TOOL_STYLUS, toolType);
-  vtkSmartPointer<vtkXMLDataElement> stylusDefinition = vtkFileFinder::LookupElementWithNameContainingChildWithNameAndAttribute(aConfig, "Tracker", "Tool", "Type", toolType.c_str());
+  vtkSmartPointer<vtkXMLDataElement> stylusDefinition = vtkConfigurationTools::LookupElementWithNameContainingChildWithNameAndAttribute(aConfig, "Tracker", "Tool", "Type", toolType.c_str());
 	if (stylusDefinition == NULL) {
 		LOG_ERROR("No stylus definition is found in the XML tree!");
 		return PLUS_FAIL;
@@ -726,7 +726,7 @@ PlusStatus StylusCalibrationController::SaveStylusCalibration(vtkXMLDataElement*
 	// Find stylus definition element
   std::string toolType;
 	vtkTracker::ConvertToolTypeToString(TRACKER_TOOL_STYLUS, toolType);
-	vtkSmartPointer<vtkXMLDataElement> stylusDefinition = vtkFileFinder::LookupElementWithNameContainingChildWithNameAndAttribute(aConfig, "Tracker", "Tool", "Type", toolType.c_str());
+	vtkSmartPointer<vtkXMLDataElement> stylusDefinition = vtkConfigurationTools::LookupElementWithNameContainingChildWithNameAndAttribute(aConfig, "Tracker", "Tool", "Type", toolType.c_str());
 	if (stylusDefinition == NULL) {
 		LOG_ERROR("No stylus definition is found in the XML tree!");
 		return PLUS_FAIL;
@@ -874,8 +874,8 @@ PlusStatus StylusCalibrationController::LoadStylusModel(vtkActor* aActor)
 	std::string modelFileName = tool->GetTool3DModelFileName();
 
 	std::string searchResult = "";
-	if ((modelFileName != "") && (STRCASECMP(vtkFileFinder::GetInstance()->GetConfigurationDirectory(), "") != 0)) {
-		searchResult = vtkFileFinder::GetFirstFileFoundInConfigurationDirectory(modelFileName.c_str());
+	if ((modelFileName != "") && (STRCASECMP(vtkConfigurationTools::GetInstance()->GetConfigurationDirectory(), "") != 0)) {
+		searchResult = vtkConfigurationTools::GetFirstFileFoundInConfigurationDirectory(modelFileName.c_str());
 	}
 
 	if (searchResult != "") {

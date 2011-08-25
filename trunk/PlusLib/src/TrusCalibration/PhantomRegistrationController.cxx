@@ -11,7 +11,7 @@
 #include "vtkPolyData.h"
 #include "vtkSTLReader.h"
 #include "vtkXMLUtilities.h"
-#include "vtkFileFinder.h"
+#include "vtkConfigurationTools.h"
 
 #include "vtkActor.h"
 #include "vtkPolyDataMapper.h"
@@ -831,7 +831,7 @@ PlusStatus PhantomRegistrationController::LoadPhantomDefinition(vtkXMLDataElemen
 			if (vtkFreehandController::GetInstance()->GetCanvas() != NULL) {
 				vtkSmartPointer<vtkSTLReader> stlReader = vtkSmartPointer<vtkSTLReader>::New();
 				
-				std::string searchResult = vtkFileFinder::GetFirstFileFoundInConfigurationDirectory(file);
+				std::string searchResult = vtkConfigurationTools::GetFirstFileFoundInConfigurationDirectory(file);
 				if (STRCASECMP("", searchResult.c_str()) == 0) {
 					LOG_ERROR("Phantom model file is not found with name: " << file);
 				} else {

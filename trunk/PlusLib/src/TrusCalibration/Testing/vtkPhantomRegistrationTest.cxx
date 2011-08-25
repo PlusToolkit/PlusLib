@@ -2,6 +2,8 @@
 #include "vtkFreehandController.h"
 #include "PhantomRegistrationController.h"
 #include "StylusCalibrationController.h"
+#include "vtkConfigurationTools.h"
+
 #include "vtkSmartPointer.h"
 #include "vtkXMLDataElement.h"
 #include "vtkXMLUtilities.h"
@@ -53,9 +55,10 @@ int main (int argc, char* argv[])
 
 	LOG_INFO("Initialize"); 
 
+  vtkConfigurationTools::GetInstance()->SetConfigurationFileName(inputConfigFileName.c_str());
+
 	// Initialize the controllers
 	vtkSmartPointer<vtkFreehandController> controller = vtkFreehandController::GetInstance();
-	controller->SetConfigurationFileName(inputConfigFileName.c_str());
 	controller->TrackingOnlyOn();
 	if (controller->Initialize() != PLUS_SUCCESS) {
 		LOG_ERROR("Initialize failed!");

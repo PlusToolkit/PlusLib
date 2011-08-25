@@ -6,7 +6,7 @@
 #include "vtkMatrix4x4.h"
 #include "vtkDirectory.h"
 #include "vtkImageImport.h"
-#include "vtkFileFinder.h"
+#include "vtkConfigurationTools.h"
 
 #include "itkImage.h"
 #include "itkImageFileReader.h"
@@ -561,11 +561,11 @@ PlusStatus vtkCalibrationController::ReadPhantomDefinition(vtkXMLDataElement* co
 			if (file) {
 				if ((strstr(file, ".stl") != NULL) || ((strstr(file, ".STL") != NULL))) { // If filename contains ".stl" or ".STL" then it is valid, else we do not search for it (and do not return with warning either, because some time we just do not fill that field because we do not have the file)
 					std::string searchResult;
-					if (STRCASECMP(vtkFileFinder::GetInstance()->GetConfigurationDirectory(), "") == 0) {
+					if (STRCASECMP(vtkConfigurationTools::GetInstance()->GetConfigurationDirectory(), "") == 0) {
 						std::string configurationDirectory = vtksys::SystemTools::GetFilenamePath(this->ConfigurationFileName);
-						searchResult = vtkFileFinder::GetFirstFileFoundInParentOfDirectory(file, configurationDirectory.c_str());
+						searchResult = vtkConfigurationTools::GetFirstFileFoundInParentOfDirectory(file, configurationDirectory.c_str());
 					} else {
-						searchResult = vtkFileFinder::GetFirstFileFoundInConfigurationDirectory(file);
+						searchResult = vtkConfigurationTools::GetFirstFileFoundInConfigurationDirectory(file);
 					}
 					if (STRCASECMP("", searchResult.c_str()) != 0) {
 						this->SetPhantomModelFileName(searchResult.c_str());
