@@ -107,12 +107,14 @@ protected:
     short* pixelBuffer=reinterpret_cast<short*>(inputImage->GetScalarPointer())+selectedRow*numPoints;
 
     outputTable->SetNumberOfRows(numPoints);
+    int timeIndex=numPoints-1; // the RF data set starts with the latest time
     for (int i = 0; i < numPoints; ++i)
     {
-      outputTable->SetValue(i, 0, i);
+      outputTable->SetValue(i, 0, timeIndex);
       short value=*pixelBuffer;
       outputTable->SetValue(i, 1, value);
       pixelBuffer++;
+      timeIndex--;
     }
 
     return 1;
