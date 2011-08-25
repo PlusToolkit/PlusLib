@@ -160,9 +160,9 @@ PlusStatus vtkURFSavedDataVideoSource::InternalGrab()
   // For simplicity, we increase it always by 1.
   this->FrameNumber++;
 
-  VideoBufferItem::PixelType* deviceDataPtr = nextVideoBufferItem.GetFrame()->GetBufferPointer(); 
+  VideoBufferItem::DisplayablePixelType* deviceDataPtr = nextVideoBufferItem.GetFrame()->GetBufferPointer(); 
   const int frameSize[2] = {nextVideoBufferItem.GetFrame()->GetLargestPossibleRegion().GetSize()[0], nextVideoBufferItem.GetFrame()->GetLargestPossibleRegion().GetSize()[1]}; 
-  const int numberOfBitsPerPixel = nextVideoBufferItem.GetFrame()->GetNumberOfComponentsPerPixel() * sizeof(VideoBufferItem::PixelType)*8; 
+  const int numberOfBitsPerPixel = nextVideoBufferItem.GetFrame()->GetNumberOfComponentsPerPixel() * sizeof(VideoBufferItem::DisplayablePixelType)*8; 
 
   PlusStatus status = this->Buffer->AddItem(deviceDataPtr, this->GetUsImageOrientation(), frameSize, numberOfBitsPerPixel, 0, this->FrameNumber); 
   this->Modified();

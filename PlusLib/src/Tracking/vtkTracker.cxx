@@ -212,9 +212,18 @@ static void *vtkTrackerThread(vtkMultiThreader::ThreadInfo *data)
     }    
 
     self->UpdateMutex->Lock();
-    self->InternalUpdate();
-    self->UpdateTime.Modified();
+    if (self->IsTracking())
+    {
+      self->InternalUpdate();
+      self->UpdateTime.Modified();
+    }
     self->UpdateMutex->Unlock();
+
+    if (!self->IsTracking())
+    {
+      LOG_DEBUG("Stopped tracking");
+      return NULL;
+    }
 
     // check to see if main thread wants to lock the UpdateMutex
     self->RequestUpdateMutex->Lock();
@@ -315,8 +324,11 @@ PlusStatus vtkTracker::StopTracking()
     return PLUS_SUCCESS;
   }
 
+  this->UpdateMutex->Lock();
+  // after lock we can be sure that InternalUpdate is not running, so we can safely stop the thread
   this->ThreadId = -1;
   this->Tracking = 0;
+  this->UpdateMutex->Unlock();
 
   // Let's give a chance to the thread to stop before we kill the tracker connection
   // TODO: we should wait until the thread is actually stopped, not by a fixed amount

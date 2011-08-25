@@ -10,7 +10,7 @@
 #include "vtkTransform.h"
 #include "UsImageConverterCommon.h"
 #include "vtkXMLDataElement.h"
-
+#include "PlusVideoFrame.h"
 
 //----------------------------------------------------------------------------
 // ************************* TrackedFrame ************************************
@@ -18,15 +18,13 @@
 class VTK_EXPORT TrackedFrame
 {
 public:
-  typedef UsImageConverterCommon::PixelType PixelType;
-  typedef UsImageConverterCommon::ImageType ImageType;
 
   // <CustomFrameFieldName, CustomFrameFieldValue>
   typedef std::pair<std::string, std::string> CustomFrameFieldPair; 
   // <CustomFieldName, CustomFieldValue>
   typedef std::pair<std::string, std::string> CustomFieldPair; 
 
-  TrackedFrame(); 
+  TrackedFrame();
   ~TrackedFrame(); 
   TrackedFrame(const TrackedFrame& frame); 
   TrackedFrame& TrackedFrame::operator=(TrackedFrame const&trackedFrame); 
@@ -93,11 +91,12 @@ public:
   std::string DefaultFrameTransformName; 
   double Timestamp; 
   TrackerStatus Status; 
-  ImageType::Pointer ImageData;
+  PlusVideoFrame ImageData;
 
   std::vector<CustomFrameFieldPair> CustomFrameFieldList; 
   std::vector<CustomFieldPair> CustomFieldList; 
   int FrameSize[2]; 
+
 };
 
 
@@ -259,11 +258,17 @@ public:
 
   //! Operation: 
   // Save the tracked data to sequence metafile 
-  virtual PlusStatus SaveToSequenceMetafile(const char* outputFolder, const char* sequenceDataFileName, SEQ_METAFILE_EXTENSION extension = SEQ_METAFILE_MHA, bool useCompression = true);
+  PlusStatus SaveToSequenceMetafile(const char* outputFolder, const char* sequenceDataFileName, SEQ_METAFILE_EXTENSION extension = SEQ_METAFILE_MHA, bool useCompression = true);
+  
+  template <class OutputPixelType>
+  PlusStatus SaveToSequenceMetafileGeneric(const char* outputFolder, const char* sequenceDataFileName, SEQ_METAFILE_EXTENSION extension = SEQ_METAFILE_MHA, bool useCompression = true);
 
   //! Operation: 
   // Read the tracked data from sequence metafile 
   virtual PlusStatus ReadFromSequenceMetafile(const char* trackedSequenceDataFileName); 
+
+  template <class OutputPixelType>
+  PlusStatus ReadFromSequenceMetafileGeneric(const char* trackedSequenceDataFileName);
 
   //! Operation: 
   // Get the tracked frame list 
@@ -311,6 +316,10 @@ public:
   //! Operation: 
   // Get tracked frame pixel size in bits 
   virtual int GetNumberOfBitsPerPixel(); 
+
+  //! Operation: 
+  // Get tracked frame pixel type 
+  PlusCommon::ITKScalarPixelType GetPixelType(); 
 
 protected:
   vtkTrackedFrameList();

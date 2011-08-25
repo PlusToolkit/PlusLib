@@ -36,6 +36,7 @@ PURPOSE.  See the above copyright notice for more information.
 #include "vtkXMLDataElement.h"
 #include "vtkMultiThreader.h"
 #include "UsImageConverterCommon.h"
+#include "PlusVideoFrame.h"
 
 class vtkTimerLog;
 class vtkCriticalSection;
@@ -51,9 +52,6 @@ class VideoBufferItem;
 class VTK_EXPORT vtkPlusVideoSource : public vtkImageAlgorithm
 {
 public:
-
-    typedef UsImageConverterCommon::PixelType PixelType;
-	typedef UsImageConverterCommon::ImageType ImageType;
 
     static vtkPlusVideoSource *New();
     vtkTypeRevisionMacro(vtkPlusVideoSource,vtkImageAlgorithm);
@@ -109,6 +107,12 @@ public:
     virtual int* GetFrameSize();
     virtual void GetFrameSize(int &x, int &y);
     virtual void GetFrameSize(int dim[2]);
+
+    // Description:
+    // Set/Get number of bits per pixel (by default: 8 bits/pixel)
+    virtual PlusStatus SetPixelType(PlusCommon::ITKScalarPixelType pixelType);
+    virtual PlusCommon::ITKScalarPixelType GetPixelType();
+    //virtual unsigned int GetNumberOfBitsPerPixel();
 
     // Description:
     // Set/Get a particular frame rate (default 30 frames per second).

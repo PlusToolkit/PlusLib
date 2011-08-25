@@ -228,7 +228,7 @@ PlusStatus VolumeReconstructionController::ReconstructVolumeFromInputImage(std::
 	// Set the input frame parameters for volume reconstruction
 	m_VolumeReconstructor->SetNumberOfFrames( trackedFrameList->GetNumberOfTrackedFrames() ); 
 	m_VolumeReconstructor->SetFrameSize( trackedFrameList->GetFrameSize() ); 
-  m_VolumeReconstructor->SetNumberOfBitsPerPixel( trackedFrameList->GetNumberOfBitsPerPixel() ); 
+  m_VolumeReconstructor->SetPixelType( trackedFrameList->GetPixelType() ); 
 	
 	m_VolumeReconstructor->Initialize(); 
   
@@ -264,7 +264,7 @@ PlusStatus VolumeReconstructionController::ReconstructVolumeFromInputImage(std::
 		}
 		
 		// Add each tracked frame to reconstructor - US image orientation always MF in tracked frame list
-		m_VolumeReconstructor->AddTrackedFrame(trackedFrameList->GetTrackedFrame(imgNumber)->ImageData, US_IMG_ORIENT_MF, mToolToReference, timestamp );
+    m_VolumeReconstructor->AddTrackedFrame(trackedFrameList->GetTrackedFrame(imgNumber)->ImageData, US_IMG_ORIENT_MF, mToolToReference, timestamp );
 	}
 	
 	m_ProgressPercent = 0;

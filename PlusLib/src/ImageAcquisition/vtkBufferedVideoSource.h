@@ -17,8 +17,6 @@ public:
 class VTK_EXPORT vtkBufferedVideoSource : public vtkPlusVideoSource
 {
 public:
-  typedef UsImageConverterCommon::ImageType ImageType; 
-  typedef UsImageConverterCommon::PixelType PixelType;
 
 	//static vtkBufferedVideoSource *New();
 	vtkTypeRevisionMacro(vtkBufferedVideoSource,vtkPlusVideoSource);
@@ -45,7 +43,7 @@ public:
 	static vtkBufferedVideoSourceCleanup Cleanup;
 	//ETX
 
-	virtual PlusStatus AddFrameToBuffer( ImageType::Pointer image, US_IMAGE_ORIENTATION usImageOrientation, double timestamp); 
+	virtual PlusStatus AddFrameToBuffer( const PlusVideoFrame &frame, US_IMAGE_ORIENTATION usImageOrientation, double timestamp); 
 
 protected:
 	vtkBufferedVideoSource();

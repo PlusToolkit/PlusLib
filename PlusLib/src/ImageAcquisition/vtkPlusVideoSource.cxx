@@ -193,6 +193,18 @@ void vtkPlusVideoSource::GetFrameSize(int dim[2])
 }
 
 //----------------------------------------------------------------------------
+PlusStatus vtkPlusVideoSource::SetPixelType(PlusCommon::ITKScalarPixelType pixelType)
+{
+  return this->Buffer->SetPixelType(pixelType);
+}
+
+//----------------------------------------------------------------------------
+PlusCommon::ITKScalarPixelType vtkPlusVideoSource::GetPixelType()
+{
+  return this->Buffer->GetPixelType();
+}
+
+//----------------------------------------------------------------------------
 void vtkPlusVideoSource::SetFrameRate(float rate)
 {
 	if (this->FrameRate == rate)
@@ -444,7 +456,7 @@ int vtkPlusVideoSource::RequestInformation(vtkInformation * vtkNotUsed(request),
 	outInfo->Set(vtkDataObject::ORIGIN(),this->DataOrigin,3);
 
 	// set default data type - unsigned char and number of components 1 
-	vtkDataObject::SetPointDataActiveScalarInfo(outInfo, VTK_UNSIGNED_CHAR, 1);
+  vtkDataObject::SetPointDataActiveScalarInfo(outInfo, UsImageConverterCommon::GetVTKScalarPixelType(this->Buffer->GetPixelType()), 1);
 
 	return 1;
 }
@@ -456,44 +468,57 @@ int vtkPlusVideoSource::RequestData(vtkInformation *vtkNotUsed(request),
 								 vtkInformationVector **vtkNotUsed(inputVector),
 								 vtkInformationVector *vtkNotUsed(outputVector))
 {
-	// the output data
-	vtkImageData *data = this->AllocateOutputData(this->GetOutput());
-    unsigned char *outPtr = (unsigned char *)data->GetScalarPointer();
+  // the output data
+  vtkImageData *data = this->AllocateOutputData(this->GetOutput());
+  unsigned char *outPtr = (unsigned char *)data->GetScalarPointer();
+  
+  if ( this->Buffer->GetNumberOfItems() < 1 ) 
+  {
+    // If the video buffer is empty, we can return immediately 
+    LOG_DEBUG("Cannot request data from video source, the video buffer is empty!"); 
+    return 1;
+  }
 
-    if ( this->Buffer->GetNumberOfItems() < 1 ) 
+  if (this->UpdateWithDesiredTimestamp && this->DesiredTimestamp != -1)
+  {
+    ItemStatus itemStatus = this->Buffer->GetVideoBufferItemFromTime(this->DesiredTimestamp, this->CurrentVideoBufferItem); 
+    if ( itemStatus != ITEM_OK )
     {
-        // If the video buffer is empty, we can return immediately 
-        LOG_DEBUG("Cannot request data from video source, the video buffer is empty!"); 
-        return 1;
+      LOG_ERROR("Unable to copy video data to the requested output!"); 
+      return 1; 
+    }	
+  }
+  else
+  {
+    // get the most recent frame if we are not updating with the desired timestamp
+    ItemStatus itemStatus = this->Buffer->GetLatestVideoBufferItem(this->CurrentVideoBufferItem); 
+    if ( itemStatus != ITEM_OK )
+    {
+      LOG_ERROR("Unable to copy video data to the requested output!"); 
+      return 1; 
     }
+  }
 
+  this->FrameTimeStamp = this->CurrentVideoBufferItem->GetTimestamp( this->Buffer->GetLocalTimeOffset() ); 
+  this->TimestampClosestToDesired = this->CurrentVideoBufferItem->GetTimestamp( this->Buffer->GetLocalTimeOffset() ); 
 
-	if (this->UpdateWithDesiredTimestamp && this->DesiredTimestamp != -1)
-	{
-		ItemStatus itemStatus = this->Buffer->GetVideoBufferItemFromTime(this->DesiredTimestamp, this->CurrentVideoBufferItem); 
-		if ( itemStatus != ITEM_OK )
-		{
-			LOG_ERROR("Unable to copy video data to the requested output!"); 
-			return 1; 
-		}	
-	}
-	else
-	{
-		// get the most recent frame if we are not updating with the desired timestamp
-		ItemStatus itemStatus = this->Buffer->GetLatestVideoBufferItem(this->CurrentVideoBufferItem); 
-		if ( itemStatus != ITEM_OK )
-		{
-			LOG_ERROR("Unable to copy video data to the requested output!"); 
-			return 1; 
-		}
-	}
+  void* sourcePtr=this->CurrentVideoBufferItem->GetFrame().GetBufferPointer();
+  int bytesToCopy=this->CurrentVideoBufferItem->GetFrame().GetFrameSizeInBytes();
 
-	this->FrameTimeStamp = this->CurrentVideoBufferItem->GetTimestamp( this->Buffer->GetLocalTimeOffset() ); 
-	this->TimestampClosestToDesired = this->CurrentVideoBufferItem->GetTimestamp( this->Buffer->GetLocalTimeOffset() ); 
+  int dimensions[3]={0,0,0};
+  data->GetDimensions(dimensions);
+  int outputSizeInBytes=dimensions[0]*dimensions[1]*dimensions[2]*data->GetScalarSize()*data->GetNumberOfScalarComponents();
 
-  memcpy( outPtr, this->CurrentVideoBufferItem->GetFrame()->GetBufferPointer(), this->CurrentVideoBufferItem->GetFrameSizeInBytes() ); 
+  // the actual output size may be smaller than the output available
+  // (e.g., when the rendering window is resized)
+  if (bytesToCopy>outputSizeInBytes)
+  {
+    bytesToCopy=outputSizeInBytes;
+  }
 
-	return 1;
+  memcpy( outPtr, sourcePtr, bytesToCopy); 
+
+  return 1;
 }
 
 //-----------------------------------------------------------------------------

@@ -3,6 +3,7 @@
 
 #include "vtkOutputWindow.h"
 #include "PlusLogger.h"
+#include "itkImageIOBase.h"
 
 enum PlusStatus
 {   
@@ -119,6 +120,10 @@ private:
   T* m_LockableObject;
 };
 
-
+namespace PlusCommon
+{
+  typedef itk::ImageIOBase::IOComponentType ITKScalarPixelType;
+  typedef int VTKScalarPixelType;
+};
 
 #endif //__PlusCommon_h

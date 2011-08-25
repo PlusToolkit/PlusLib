@@ -58,7 +58,7 @@ SET_TESTS_PROPERTIES( itkFcsvWriterTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERR
 #***************************  vtkSonixVideoSourceTest1.cxx ***************************
 IF (PLUS_USE_SONIX_VIDEO)
 	ADD_EXECUTABLE(vtkSonixVideoSourceTest1 vtkSonixVideoSourceTest1.cxx )
-	TARGET_LINK_LIBRARIES(vtkSonixVideoSourceTest1 vtkImageAcquisition )
+	TARGET_LINK_LIBRARIES(vtkSonixVideoSourceTest1 vtkImageAcquisition vtkCharts)
 	ADD_TEST(vtkSonixVideoSourceTest1 
 	${EXECUTABLE_OUTPUT_PATH}/vtkSonixVideoSourceTest1
 	 --rendering-off

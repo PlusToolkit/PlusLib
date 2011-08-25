@@ -33,47 +33,35 @@ PURPOSE.  See the above copyright notice for more information.
 #include "vtkObject.h"
 
 #include "vtkObjectFactory.h"
-#include "vtkTimestampedCircularBuffer.h"
 #include "itkImage.h"
-#include "UsImageConverterCommon.h"
 
-class vtkVideoBufferObject; 
+#include "UsImageConverterCommon.h"
+#include "PlusVideoFrame.h"
+
+#include "vtkTimestampedCircularBuffer.h"
+
 class vtkImageData; 
-class TimestampedBufferItem; 
 
 class VTK_EXPORT VideoBufferItem : public TimestampedBufferItem
 {
 public:
-  typedef UsImageConverterCommon::PixelType PixelType;
-  typedef UsImageConverterCommon::ImageType ImageType;
 
-  VideoBufferItem(); 
-  ~VideoBufferItem(); 
+  VideoBufferItem();
+  virtual ~VideoBufferItem();
+
   VideoBufferItem(const VideoBufferItem& videoBufferItem); 
-  VideoBufferItem& VideoBufferItem::operator=(VideoBufferItem const&videoItem); 
+  VideoBufferItem& operator=(VideoBufferItem const&videoItem); 
 
   // Copy video buffer item 
   PlusStatus DeepCopy(VideoBufferItem* videoBufferItem); 
+  
+  PlusVideoFrame& GetFrame() { return this->Frame; };
 
-  // Set/get video frame 
-  // Caller should clean the image data from memory after this call. 
-  PlusStatus SetFrame(const ImageType::Pointer& frame); 
-  PlusStatus SetFrame(vtkImageData* frame); 
-  PlusStatus SetFrame(unsigned char *imageDataPtr, 
-    const int frameSizeInPx[3],
-    int numberOfBitsPerPixel, 
-    int	numberOfBytesToSkip ); 
+private:
+  PlusVideoFrame Frame;
+};
 
-  PlusStatus AllocateFrame(int imageSize[2]); 
-
-  unsigned long GetFrameSizeInBytes(); 
-
-  ImageType::Pointer GetFrame() const { return this->Frame; }
-
-protected:
-  ImageType::Pointer Frame; // TODO: pixel type of ITK images cannot be changed dynamically, use vtkKWImage instead? (see http://www.insight-journal.org/browse/publication/146)
-}; 
-
+#define UNDEFINED_TIMESTAMP DBL_MAX
 
 class VTK_EXPORT vtkVideoBuffer : public vtkObject
 {
@@ -93,33 +81,9 @@ public:
   // Add a frame plus a timestamp to the buffer with frame index.  If the timestamp is
   // less than or equal to the previous timestamp, or if the frame's format
   // doesn't match the buffer's frame format, then nothing will be done.
-  virtual PlusStatus AddTimeStampedItem(unsigned char* imageDataPtr,                               
-    US_IMAGE_ORIENTATION  usImageOrientation, 
-    const int    frameSizeInPx[2],
-    int    numberOfBitsPerPixel, 
-    int	numberOfBytesToSkip, 
-    double unfilteredTimestamp, 
-    long   frameNumber); 
-
-  virtual PlusStatus AddTimeStampedItem(unsigned char* imageDataPtr,                               
-    US_IMAGE_ORIENTATION  usImageOrientation, 
-    const int    frameSizeInPx[2],
-    int    numberOfBitsPerPixel, 
-    int	numberOfBytesToSkip, 
-    double unfilteredTimestamp, 
-    double filteredTimestamp, 
-    long   frameNumber); 
-
-  virtual PlusStatus AddItem(unsigned char* imageDataPtr,                               
-    US_IMAGE_ORIENTATION  usImageOrientation, 
-    const int    frameSizeInPx[2],
-    int    numberOfBitsPerPixel, 
-    int	numberOfBytesToSkip, 
-    long   frameNumber); 
-
-  virtual PlusStatus AddItem(vtkImageData* frame, US_IMAGE_ORIENTATION usImageOrientation, long frameNumber); 
-  virtual PlusStatus AddTimeStampedItem(vtkImageData* frame, US_IMAGE_ORIENTATION usImageOrientation, double unfilteredTimestamp, long frameNumber); 
-  virtual PlusStatus AddTimeStampedItem(vtkImageData* frame, US_IMAGE_ORIENTATION usImageOrientation, double unfilteredTimestamp, double filteredTimestamp, long frameNumber); 
+  virtual PlusStatus AddItem(vtkImageData* frame, US_IMAGE_ORIENTATION usImageOrientation, long frameNumber, double unfilteredTimestamp=UNDEFINED_TIMESTAMP, double filteredTimestamp=UNDEFINED_TIMESTAMP); 
+  virtual PlusStatus AddItem(const PlusVideoFrame& frame, US_IMAGE_ORIENTATION usImageOrientation, long frameNumber, double unfilteredTimestamp=UNDEFINED_TIMESTAMP, double filteredTimestamp=UNDEFINED_TIMESTAMP); 
+  virtual PlusStatus AddItem(void* imageDataPtr, US_IMAGE_ORIENTATION  usImageOrientation, const int frameSizeInPx[2], PlusCommon::ITKScalarPixelType pixelType, int	numberOfBytesToSkip, long   frameNumber, double unfilteredTimestamp=UNDEFINED_TIMESTAMP, double filteredTimestamp=UNDEFINED_TIMESTAMP); 
 
   // Description:
   // Get tracker item from buffer 
@@ -192,8 +156,10 @@ public:
 
   // Description:
   // Set/get pixel size in bits 
-  PlusStatus SetNumberOfBitsPerPixel(int bits); 
-  vtkGetMacro(NumberOfBitsPerPixel, int); 
+  PlusStatus SetPixelType(PlusCommon::ITKScalarPixelType pixelType); 
+  vtkGetMacro(PixelType, PlusCommon::ITKScalarPixelType); 
+
+  int GetNumberOfBytesPerPixel();
 
 protected:
   vtkVideoBuffer();
@@ -207,10 +173,10 @@ protected:
   // Description:
   // Compares frame format with new frame imaging parameters
   // Returns true if it matches, otherwise false
-  virtual bool CheckFrameFormat( const int frameSizeInPx[2], int numberOfBitsPerPixel ); 
+  virtual bool CheckFrameFormat( const int frameSizeInPx[2], PlusCommon::ITKScalarPixelType pixelType ); 
 
   int FrameSize[2]; 
-  int NumberOfBitsPerPixel; 
+  PlusCommon::ITKScalarPixelType PixelType; 
 
   typedef vtkTimestampedCircularBuffer<VideoBufferItem> VideoBufferType;
   VideoBufferType* VideoBuffer; 

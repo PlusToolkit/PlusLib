@@ -1393,7 +1393,7 @@ PlusStatus vtkFreehandUltrasound2::UpdateSlice(vtkImageData* inData, int& insert
                 return PLUS_FAIL; 
             }
 
-            UsImageConverterCommon::ConvertItkImageToVtkImage(bufferItem.GetFrame(), inData); 
+            bufferItem.GetFrame().CopyToVtkImage(inData); 
             inData->Modified(); 
 
             this->VideoBufferUid++; 

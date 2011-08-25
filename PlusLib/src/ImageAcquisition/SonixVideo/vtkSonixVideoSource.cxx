@@ -153,8 +153,8 @@ vtkSonixVideoSource::vtkSonixVideoSource()
     this->Zoom = -1; //in %
     this->Timeout = -1; // in ms
     this->CompressionStatus = 0; // no compression by default
-    this->AcquisitionDataType = 0x00000004; //corresponds to type: BPost 8-bit  
-    this->ImagingMode = 0; //corresponds to BMode imaging  
+    this->AcquisitionDataType = udtBPost; //corresponds to type: BPost 8-bit  
+    this->ImagingMode = BMode; //corresponds to BMode imaging  
 
     this->NumberOfOutputFrames = 1;
 
@@ -265,8 +265,8 @@ PlusStatus vtkSonixVideoSource::AddFrameToBuffer(void* dataPtr, int type, int sz
     this->FrameNumber = frmnum; 
 
     const int* frameSize = this->GetFrameSize(); 
-    int frameBufferBitsPerPixel = this->Buffer->GetNumberOfBitsPerPixel(); 
-    const int frameSizeInBytes = frameSize[0] * frameSize[1] * sizeof( PixelType ); 
+    int frameBufferBytesPerPixel = this->Buffer->GetNumberOfBytesPerPixel(); 
+    const int frameSizeInBytes = frameSize[0] * frameSize[1] * frameBufferBytesPerPixel; 
 
     // for frame containing FC (frame count) in the beginning for data coming from cine, jump 2 bytes
     int numberOfBytesToSkip = 0; 
@@ -278,6 +278,19 @@ PlusStatus vtkSonixVideoSource::AddFrameToBuffer(void* dataPtr, int type, int sz
         numberOfBytesToSkip = 4;
     }
 
+    PlusCommon::ITKScalarPixelType pixelType=itk::ImageIOBase::UNKNOWNCOMPONENTTYPE;    
+    switch (type)
+    {
+    case udtBPost:
+      pixelType=itk::ImageIOBase::UCHAR;
+      break;
+    case udtRF:
+      pixelType=itk::ImageIOBase::SHORT;
+      break;
+    default:
+      LOG_ERROR("Uknown pixel type");
+    }
+
     if ( sz != frameSizeInBytes + numberOfBytesToSkip )
     {
         LOG_ERROR("Received frame size (" << sz << " bytes) doesn't match the buffer size (" << frameSizeInBytes + numberOfBytesToSkip << " bytes)!"); 
@@ -287,7 +300,7 @@ PlusStatus vtkSonixVideoSource::AddFrameToBuffer(void* dataPtr, int type, int sz
     // get the pointer to actual incoming data on to a local pointer
     unsigned char *deviceDataPtr = static_cast<unsigned char*>(dataPtr);
     
-    PlusStatus status = this->Buffer->AddItem(deviceDataPtr, this->GetUsImageOrientation(), frameSize, frameBufferBitsPerPixel, numberOfBytesToSkip, this->FrameNumber); 
+    PlusStatus status = this->Buffer->AddItem(deviceDataPtr, this->GetUsImageOrientation(), frameSize, pixelType, numberOfBytesToSkip, this->FrameNumber); 
     this->Modified(); 
 
     return status;
@@ -372,9 +385,28 @@ PlusStatus vtkSonixVideoSource::InternalConnect()
       this->Ult.disconnect();
       continue;
     }
-
+    
+    switch (this->DataDescriptor.ss)
+    {
+    case 8:
+      this->SetPixelType( itk::ImageIOBase::UCHAR );
+      break;
+    case 16:
+      this->SetPixelType( itk::ImageIOBase::SHORT );
+      // Swap w/h: in case of RF image acquisition the DataDescriptor.h is the width and the DataDescriptor.w is the height
+      {
+        int tmp=this->DataDescriptor.h;
+        this->DataDescriptor.h=this->DataDescriptor.w;
+        this->DataDescriptor.w=tmp;
+      }
+      break;
+    default:
+      LOG_ERROR("Unsupported Ulterius bit depth: "<<this->DataDescriptor.ss);
+      this->Ult.disconnect();
+      continue;
+    }
+    
     this->SetFrameSize( this->DataDescriptor.w, this->DataDescriptor.h); 
-    this->Buffer->SetNumberOfBitsPerPixel( this->DataDescriptor.ss );
 
     // Parameter setting doesn't work with Ulterius-2.x
 #if ULTERIUS_MAJOR_VERSION != 2
@@ -545,6 +577,31 @@ PlusStatus vtkSonixVideoSource::InternalStopRecording()
   return PLUS_SUCCESS;
 }
 
+PlusStatus vtkSonixVideoSource::SetAcquisitionDataType(int acquisitionDataType)
+{
+  if (acquisitionDataType==this->AcquisitionDataType)
+  {
+    // no change
+    return PLUS_SUCCESS;
+  }
+  switch (acquisitionDataType)
+  {
+  case udtBPost:
+    // post-processed data, 8-bit unsigned
+    GetBuffer()->SetPixelType(itk::ImageIOBase::UCHAR);
+    break;
+  case udtRF:
+    // RF data, 16-bit
+    GetBuffer()->SetPixelType(itk::ImageIOBase::SHORT);
+    break;
+  default:
+    LOG_ERROR("Unsupported AcquisitionDataType requested: "<<acquisitionDataType);
+    return PLUS_FAIL;
+  }
+  this->AcquisitionDataType=acquisitionDataType;
+  return PLUS_SUCCESS;
+}
+
 //-----------------------------------------------------------------------------
 PlusStatus vtkSonixVideoSource::ReadConfiguration(vtkXMLDataElement* config)
 {
@@ -564,16 +621,41 @@ PlusStatus vtkSonixVideoSource::ReadConfiguration(vtkXMLDataElement* config)
     }
     LOG_DEBUG("Sonix Video IP: " << ipAddress); 
 
-    int imagingMode = 0; 
-    if ( config->GetScalarAttribute("ImagingMode", imagingMode)) 
+    const char* imagingMode = config->GetAttribute("ImagingMode"); 
+    if ( imagingMode != NULL) 
     {
-        this->SetImagingMode(imagingMode); 
-    }
-
-    int acquisitionDataType = 0; 
-    if ( config->GetScalarAttribute("AcquisitionDataType", acquisitionDataType)) 
+      if (STRCASECMP(imagingMode, "BMode")==0)
+      {
+        LOG_DEBUG("Imaging mode set: BMode"); 
+        this->SetImagingMode(BMode); 
+      }
+      else if (STRCASECMP(imagingMode, "RfMode")==0)
+      {
+        LOG_DEBUG("Imaging mode set: RfMode"); 
+        this->SetImagingMode(RfMode); 
+      }
+      else
+      {
+        LOG_ERROR("Unsupported ImagingMode requested: "<<imagingMode);
+      }
+    }  
+    const char* acquisitionDataType = config->GetAttribute("AcquisitionDataType"); 
+    if ( acquisitionDataType != NULL) 
     {
-        this->SetAcquisitionDataType(acquisitionDataType); 
+      if (STRCASECMP(acquisitionDataType, "BPost")==0)
+      {
+        LOG_DEBUG("AcquisitionDataType set: BPost"); 
+        this->SetAcquisitionDataType(udtBPost); 
+      }
+      else if (STRCASECMP(acquisitionDataType, "RF")==0)
+      {
+        LOG_DEBUG("AcquisitionDataType set: RF"); 
+        this->SetAcquisitionDataType(udtRF); 
+      }
+      else
+      {
+        LOG_ERROR("Unsupported AcquisitionDataType requested: "<<acquisitionDataType);
+      }
     }
 
     int depth = -1; 

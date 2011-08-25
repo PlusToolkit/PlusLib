@@ -189,6 +189,12 @@ PlusStatus vtkFakeTracker::InternalUpdate()
 {
   //LOG_TRACE("vtkFakeTracker::InternalUpdate"); 
 
+  if (!this->IsTracking())
+  {
+    LOG_TRACE("vtkFakeTracker::InternalUpdate is called while not tracking any more"); 
+    return PLUS_SUCCESS;
+  }
+
   if (this->Frame++ > 355559)
   {
     this->Frame = 0;

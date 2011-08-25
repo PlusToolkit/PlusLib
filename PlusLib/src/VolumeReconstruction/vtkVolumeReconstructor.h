@@ -29,8 +29,6 @@
 class VTK_EXPORT vtkVolumeReconstructor : public vtkImageAlgorithm
 {
 public:
-  typedef UsImageConverterCommon::ImageType ImageType; 
-  typedef UsImageConverterCommon::PixelType PixelType; 
 
   static vtkVolumeReconstructor *New();
   vtkTypeRevisionMacro(vtkVolumeReconstructor, vtkImageAlgorithm);
@@ -46,15 +44,15 @@ public:
   virtual PlusStatus ReadConfiguration(); 
   virtual PlusStatus ReadConfiguration( vtkXMLDataElement* aConfig ); 
 
-  virtual PlusStatus AddTrackedFrame( ImageType::Pointer frame, US_IMAGE_ORIENTATION usImageOrientation, vtkMatrix4x4* mToolToReference, double timestamp ); 
+  virtual PlusStatus AddTrackedFrame( const PlusVideoFrame &frame, US_IMAGE_ORIENTATION usImageOrientation, vtkMatrix4x4* mToolToReference, double timestamp ); 
 
   virtual void FindOutputExtent( vtkMatrix4x4* frame2TrackerTransMatrix, int* frameExtent); 
 
   vtkSetVector2Macro( FrameSize, int ); 
   vtkGetVector2Macro( FrameSize, int ); 
 
-  vtkSetMacro(NumberOfBitsPerPixel, int); 
-  vtkGetMacro(NumberOfBitsPerPixel, int); 
+  vtkSetMacro(PixelType, PlusCommon::ITKScalarPixelType); 
+  vtkGetMacro(PixelType, PlusCommon::ITKScalarPixelType); 
 
   vtkSetMacro( NumberOfFrames, int ); 
   vtkGetMacro( NumberOfFrames, int ); 
@@ -97,7 +95,7 @@ protected:
 
   int NumberOfFrames; 
   int FrameSize[2];
-  int NumberOfBitsPerPixel; 
+  PlusCommon::ITKScalarPixelType PixelType; 
 
   bool Initialized; 
 

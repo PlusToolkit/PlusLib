@@ -165,11 +165,7 @@ PlusStatus vtkSavedDataVideoSource::InternalGrab()
   // For simplicity, we increase it always by 1.
   this->FrameNumber++;
 
-  VideoBufferItem::PixelType* deviceDataPtr = nextVideoBufferItem.GetFrame()->GetBufferPointer(); 
-  const int frameSize[2] = {nextVideoBufferItem.GetFrame()->GetLargestPossibleRegion().GetSize()[0], nextVideoBufferItem.GetFrame()->GetLargestPossibleRegion().GetSize()[1]}; 
-  const int numberOfBitsPerPixel = nextVideoBufferItem.GetFrame()->GetNumberOfComponentsPerPixel() * sizeof(VideoBufferItem::PixelType)*8; 
-
-  PlusStatus status = this->Buffer->AddItem(deviceDataPtr, this->GetUsImageOrientation(), frameSize, numberOfBitsPerPixel, 0, this->FrameNumber); 
+  PlusStatus status = this->Buffer->AddItem(nextVideoBufferItem.GetFrame(), this->GetUsImageOrientation(), this->FrameNumber); 
   this->Modified();
   return status;
 }
@@ -219,10 +215,10 @@ PlusStatus vtkSavedDataVideoSource::InternalConnect()
   }
 
   this->LocalVideoBuffer->SetFrameSize( savedDataBuffer->GetFrameSize() ); 
-  this->LocalVideoBuffer->SetNumberOfBitsPerPixel( savedDataBuffer->GetNumberOfBitsPerPixel() ); 
+  this->LocalVideoBuffer->SetPixelType( savedDataBuffer->GetPixelType() ); 
 
   this->Buffer->SetFrameSize( this->LocalVideoBuffer->GetFrameSize() ); 
-  this->Buffer->SetNumberOfBitsPerPixel( this->LocalVideoBuffer->GetNumberOfBitsPerPixel() ); 
+  this->Buffer->SetPixelType( this->LocalVideoBuffer->GetPixelType() ); 
 
   if ( this->LocalVideoBuffer->SetBufferSize(savedDataBuffer->GetNumberOfTrackedFrames()) != PLUS_SUCCESS )
   {
@@ -271,11 +267,7 @@ PlusStatus vtkSavedDataVideoSource::InternalConnect()
       unfilteredTimestamp = atof(strUnfilteredTimestamp); 
     }
 
-    TrackedFrame::PixelType *deviceDataPtr = trackedFrame->ImageData->GetBufferPointer(); 
-    const int frameSize[3] = {trackedFrame->ImageData->GetLargestPossibleRegion().GetSize()[0], trackedFrame->ImageData->GetLargestPossibleRegion().GetSize()[1], 1}; 
-    const int numberOfBitsPerPixel = trackedFrame->ImageData->GetNumberOfComponentsPerPixel() * sizeof(TrackedFrame::PixelType)*8; 
-
-    if ( this->LocalVideoBuffer->AddTimeStampedItem(deviceDataPtr, this->GetUsImageOrientation(), frameSize, numberOfBitsPerPixel, 0, unfilteredTimestamp, frameNumber) != PLUS_SUCCESS )
+    if ( this->LocalVideoBuffer->AddItem(trackedFrame->ImageData, this->GetUsImageOrientation(), frameNumber, unfilteredTimestamp) != PLUS_SUCCESS )
     {
       LOG_WARNING("vtkSavedDataVideoSource: Failed to add video frame to buffer from sequence metafile with frame #" << frame ); 
     }

@@ -161,8 +161,13 @@ PlusStatus vtkICCapturingSource::AddFrameToBuffer(unsigned char * dataPtr, unsig
 
   const int frameSize[2] = {static_cast<DShowLib::Grabber*>(FrameGrabber)->getAcqSizeMaxX(), static_cast<DShowLib::Grabber*>(FrameGrabber)->getAcqSizeMaxY()}; 
 	int frameBufferBitsPerPixel = static_cast<DShowLib::Grabber*>(FrameGrabber)->getVideoFormat().getBitsPerPixel(); 
-  PlusStatus status = this->Buffer->AddItem(dataPtr, this->GetUsImageOrientation(), frameSize, frameBufferBitsPerPixel, 0, this->FrameNumber); 
+  if (frameBufferBitsPerPixel!=8)
+  {
+    LOG_ERROR("vtkICCapturingSource::AddFrameToBuffer: only 8-bit acquisition is supported, current frameBufferBitsPerPixel="<<frameBufferBitsPerPixel);
+    return PLUS_FAIL;
+  }
 
+  PlusStatus status = this->Buffer->AddItem(dataPtr, this->GetUsImageOrientation(), frameSize, itk::ImageIOBase::UCHAR, 0, this->FrameNumber); 
   this->Modified();
 
 	return status;
@@ -212,7 +217,13 @@ PlusStatus vtkICCapturingSource::InternalConnect()
 		return PLUS_FAIL;
 	}
 
-    this->GetBuffer()->SetNumberOfBitsPerPixel(static_cast<DShowLib::Grabber*>(FrameGrabber)->getVideoFormat().getBitsPerPixel() );  
+  int bitsPerPixel=static_cast<DShowLib::Grabber*>(FrameGrabber)->getVideoFormat().getBitsPerPixel();
+  if (bitsPerPixel!=8)
+  {
+    LOG_ERROR("The IC capturing library could not be initialized - invalid bits per pixel: " << bitsPerPixel ); 
+		return PLUS_FAIL;    
+  }
+  this->GetBuffer()->SetPixelType(itk::ImageIOBase::UCHAR );  
 
     this->GetBuffer()->SetFrameSize( static_cast<DShowLib::Grabber*>(FrameGrabber)->getAcqSizeMaxX(), static_cast<DShowLib::Grabber*>(FrameGrabber)->getAcqSizeMaxY() ); 
 
