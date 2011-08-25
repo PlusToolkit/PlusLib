@@ -75,7 +75,7 @@ int main (int argc, char* argv[])
 	// Set the input frame parameters 
 	reconstructor->SetNumberOfFrames( trackedFrameList->GetNumberOfTrackedFrames() ); 
 	reconstructor->SetFrameSize( trackedFrameList->GetFrameSize() ); 
-    reconstructor->SetNumberOfBitsPerPixel( trackedFrameList->GetNumberOfBitsPerPixel() ); 
+  reconstructor->SetPixelType( trackedFrameList->GetPixelType() ); 
 	
 	LOG_INFO("Initialize reconstructor...");
 	reconstructor->Initialize(); 

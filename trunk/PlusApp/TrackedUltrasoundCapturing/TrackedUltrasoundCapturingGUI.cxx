@@ -427,7 +427,14 @@ void TrackedUltrasoundCapturingGUI::UpdateWidgets()
       this->SyncTrackerMatrix->show(); 
       this->CapturingTrackerMatrix->show(); 
 
-      const int defaultToolNumber = tracker->GetFirstPortNumberByType(TRACKER_TOOL_PROBE);
+      const int defaultToolNumber = tracker->GetFirstPortNumberByType(TRACKER_TOOL_REFERENCE);
+      if (tracker->GetTool( defaultToolNumber )==NULL)
+      {
+        LOG_WARNING("Cannot get tracker tool (number="<<defaultToolNumber<<")");        
+        this->SyncTrackerMatrix->hide(); 
+        this->CapturingTrackerMatrix->hide(); 
+        return;
+      }
       vtkTrackerBuffer* trackerBuffer = tracker->GetTool( defaultToolNumber )->GetBuffer();  
 
       vtkSmartPointer<vtkMatrix4x4> transformMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 

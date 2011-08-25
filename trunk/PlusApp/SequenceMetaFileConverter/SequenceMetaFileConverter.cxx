@@ -26,6 +26,8 @@
 ///////////////////////////////////////////////////////////////////
 // Image type definition
 
+typedef itk::Image<unsigned char, 2> UcharImageType;
+
 typedef unsigned char          PixelType; // define type for pixel representation
 typedef itk::RGBPixel< unsigned char >    RGBPixelType;
 const unsigned int             imageDimension = 2; 
@@ -386,10 +388,11 @@ void ConvertFromOldSequenceMetafile(std::vector<std::string> inputImageSequenceF
 
 			PlusLogger::PrintProgressbar( (100.0 * imgNumber) / numberOfFrames ); 
 
-			TrackedFrame::ImageType::Pointer frame = TrackedFrame::ImageType::New(); 
-			TrackedFrame::ImageType::SizeType size = {imageWidthInPixels, imageHeightInPixels};
-			TrackedFrame::ImageType::IndexType start = {0,0};
-			TrackedFrame::ImageType::RegionType region;
+      
+      UcharImageType::Pointer frame = UcharImageType::New(); 
+			UcharImageType::SizeType size = {imageWidthInPixels, imageHeightInPixels};
+			UcharImageType::IndexType start = {0,0};
+			UcharImageType::RegionType region;
 			region.SetSize(size);
 			region.SetIndex(start);
 			frame->SetRegions(region);
@@ -438,7 +441,7 @@ void ConvertFromOldSequenceMetafile(std::vector<std::string> inputImageSequenceF
 
 			// Create tracked frame struct
 			TrackedFrame trackedFrame;
-			trackedFrame.ImageData = mfOrientedImage;
+      trackedFrame.ImageData.SetITKImageBase(mfOrientedImage);
 			trackedFrame.SetCustomFrameTransform(defaultFrameTransformName, defaultTransformMatrix); 
 			trackedFrame.DefaultFrameTransformName = defaultFrameTransformName; 
 
@@ -547,7 +550,7 @@ void ConvertFromBitmap(SAVING_METHOD savingMethod)
         }
 		
 		TrackedFrame trackedFrame;
-		trackedFrame.ImageData = mfOrientedImage;
+    trackedFrame.ImageData.SetITKImageBase(mfOrientedImage);
 		ReadDRBTransformFile( transformFileNameWithPath.str(), &trackedFrame); 
 		trackedFrameContainer->AddTrackedFrame(&trackedFrame);
 
@@ -603,7 +606,7 @@ void SaveImages( vtkTrackedFrameList* trackedFrameList, SAVING_METHOD savingMeth
                 // Convert the internal MF oriented image into the desired image orientation 
                 ImageType::Pointer orientedImage = ImageType::New(); 
                 US_IMAGE_ORIENTATION desiredOrientation = UsImageConverterCommon::GetUsImageOrientationFromString( outputUsImageOrientation.c_str() ); 
-                if ( GetOrientedImage(trackedFrameList->GetTrackedFrame(imgNumber)->ImageData, desiredOrientation, orientedImage) != PLUS_SUCCESS )
+                if ( GetOrientedImage(trackedFrameList->GetTrackedFrame(imgNumber)->ImageData.GetImage<unsigned char>(), desiredOrientation, orientedImage) != PLUS_SUCCESS )
                 {
                     LOG_ERROR("Failed to get " << outputUsImageOrientation << " oriented image from MF orientation!"); 
                     exit(EXIT_FAILURE);
@@ -656,9 +659,9 @@ void SaveImages( vtkTrackedFrameList* trackedFrameList, SAVING_METHOD savingMeth
       {
         for ( int i = 0; i < numberOfFrames; ++i )
         {
-          if ( trackedFrameList->GetTrackedFrame(i)->ImageData.IsNotNull() )
+          if ( trackedFrameList->GetTrackedFrame(i)->ImageData.GetFrameSizeInBytes()>0 )
           {
-            trackedFrameList->GetTrackedFrame(i)->ImageData = NULL; 
+            trackedFrameList->GetTrackedFrame(i)->ImageData.SetITKImageBase(NULL); 
           }
         }
       }
@@ -833,10 +836,10 @@ void SaveTransformToFile(TrackedFrame* trackedFrame, std::string imageFileName, 
 //-------------------------------------------------------------------------------
 void SaveImageToMetaFile( TrackedFrame* trackedFrame, std::string metaFileName, bool useCompression)
 {
-	TrackedFrame::ImageType::Pointer mfOrientedImage = trackedFrame->ImageData; 
+  UcharImageType::Pointer mfOrientedImage = trackedFrame->ImageData.GetImage<unsigned char>(); 
 
     US_IMAGE_ORIENTATION desiredOrientation = UsImageConverterCommon::GetUsImageOrientationFromString( outputUsImageOrientation.c_str() ); 
-    TrackedFrame::ImageType::Pointer orientedImage = TrackedFrame::ImageType::New(); 
+    UcharImageType::Pointer orientedImage = UcharImageType::New(); 
     if ( GetOrientedImage(mfOrientedImage, desiredOrientation, orientedImage) != PLUS_SUCCESS )
     {
         LOG_ERROR("Failed to save oriented image to metafile (" << metaFileName << ")!"); 
@@ -992,8 +995,9 @@ void ConvertFromMetafile(SAVING_METHOD savingMethod)
     tToolToReference->SetElement(2,3, readerMetaImageIO->GetMetaImagePointer()->Offset()[2]); 
 
     TrackedFrame trackedFrame;
-    trackedFrame.ImageData = TrackedFrame::ImageType::New(); 
-    if ( UsImageConverterCommon::GetMFOrientedImage(imageData->GetBufferPointer(), imgOrientation, frameSizeInPx, pixelSizeInBits, trackedFrame.ImageData) != PLUS_SUCCESS )
+    UcharImageType::Pointer newImage=UcharImageType::New(); 
+    trackedFrame.ImageData.SetITKImageBase(newImage);
+    if ( UsImageConverterCommon::GetMFOrientedImage(imageData->GetBufferPointer(), imgOrientation, frameSizeInPx, itk::ImageIOBase::UCHAR, trackedFrame.ImageData.GetImage<unsigned char>()) != PLUS_SUCCESS )
     {
       LOG_ERROR("Failed to get MF oriented image!"); 
       continue; 
