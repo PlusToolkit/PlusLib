@@ -7,6 +7,8 @@
 
 #include "vtkObject.h"
 
+class vtkXMLDataElement;
+
 //-----------------------------------------------------------------------------
 
 class VTK_EXPORT vtkFileFinder : public vtkObject
@@ -53,11 +55,31 @@ public:
 	*/
 	static std::string GetFirstFileFoundInDirectory(const char* aFileName, const char* aDirectory);
 
+	/*!
+	 * \brief Assembles a filename that is the same as the input file name, only with the current date and time in the end (for saving to a new file)
+	 * \return New configuration file nname
+	 */
+  std::string GetNewConfigurationFileName();
+
+	/*!
+	 * \brief Searches a data element in an XML tree: the child of aElementName that has the name aChildName and has an attribute aChildAttributeName with the value aChildAttributeValue
+   * \param aConfig Root XML element in that the search is conducted
+   * \param aElementName Name of the parent of the searched element
+   * \param aChildName Name of the searched element
+   * \param aChildAttributeName Name of the attribute based on which we want the element to be found
+   * \param aChildAttributeValue Value of the attribute based on which we want the element to be found
+	 * \return Found XML data element
+	 */
+	static vtkXMLDataElement* LookupElementWithNameContainingChildWithNameAndAttribute(vtkXMLDataElement* aConfig, const char* aElementName, const char* aChildName, const char* aChildAttributeName, const char* aChildAttributeValue);
+
 public:
-	//! Get macro for configuration directory
+	//! Get/Set macro for configuration directory
 	vtkGetStringMacro(ConfigurationDirectory);
-	//! Set macro for configuration directory
 	vtkSetStringMacro(ConfigurationDirectory);
+
+	//! Get/Set macro for configuration file name
+	vtkGetStringMacro(ConfigurationFileName);
+	vtkSetStringMacro(ConfigurationFileName);
 
 protected:
 	/*!
@@ -76,7 +98,10 @@ protected:
 
 protected:
 	//! Configuration directory path
-	char *ConfigurationDirectory;
+	char* ConfigurationDirectory;
+
+  //! Used configuration file name
+	char*	ConfigurationFileName;
 
 private:
 	//! Instance of the singleton

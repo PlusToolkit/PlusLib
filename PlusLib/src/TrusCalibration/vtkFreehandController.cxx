@@ -4,6 +4,7 @@
 
 #include "vtkObjectFactory.h"
 #include "vtkDirectory.h"
+#include "vtkFileFinder.h"
 #include "vtkXMLUtilities.h"
 
 //-----------------------------------------------------------------------------
@@ -39,7 +40,6 @@ vtkFreehandController::vtkFreehandController()
 {
 	this->DataCollector = NULL;
 	this->RecordingFrameRate = 20;
-	this->ConfigurationFileName = NULL;
 	this->OutputFolder = NULL;
 	this->InitializedOff();
 	this->TrackingOnlyOn();
@@ -74,7 +74,7 @@ PlusStatus vtkFreehandController::Initialize()
 	// Set up canvas renderer
 	vtkSmartPointer<vtkRenderer> canvasRenderer = vtkSmartPointer<vtkRenderer>::New(); 
 	canvasRenderer->SetBackground(0.1, 0.1, 0.1);
-  canvasRenderer->SetBackground2(255/255.0, 235/255.0, 158/255.0);
+  canvasRenderer->SetBackground2(0.4, 0.4, 0.4);
   canvasRenderer->SetGradientBackground(true);
 	this->SetCanvasRenderer(canvasRenderer);
 
@@ -130,7 +130,7 @@ PlusStatus vtkFreehandController::StartDataCollection()
 	vtkSmartPointer<vtkDataCollector> dataCollector = vtkSmartPointer<vtkDataCollector>::New(); 
 	this->SetDataCollector(dataCollector);
 
-	if (this->DataCollector->ReadConfigurationFromFile(this->ConfigurationFileName) != PLUS_SUCCESS) {
+  if (this->DataCollector->ReadConfigurationFromFile(vtkFileFinder::GetInstance()->GetConfigurationFileName()) != PLUS_SUCCESS) {
 		return PLUS_FAIL;
 	}
 
@@ -152,28 +152,6 @@ PlusStatus vtkFreehandController::StartDataCollection()
 	}
 
 	return PLUS_SUCCESS;
-}
-
-//-----------------------------------------------------------------------------
-
-vtkXMLDataElement* vtkFreehandController::LookupElementWithNameContainingChildWithNameAndAttribute(vtkXMLDataElement* aConfig, const char* aElementName, const char* aChildName, const char* aChildAttributeName, const char* aChildAttributeValue)
-{
-  LOG_TRACE("vtkFreehandController::LookupElementWithNameContainingChildWithNameAndAttribute(" << aElementName << ", " << aChildName << ", " << (aChildAttributeName==NULL ? "" : aChildAttributeName) << ", " << (aChildAttributeValue==NULL ? "" : aChildAttributeValue) << ")");
-
-  if (aConfig == NULL) {
-    aConfig = vtkFreehandController::GetInstance()->GetConfigurationData();
-  }
-
-	vtkSmartPointer<vtkXMLDataElement> firstElement = aConfig->LookupElementWithName(aElementName);
-	if (firstElement == NULL) {
-		return NULL;
-	} else {
-    if (aChildAttributeName && aChildAttributeValue) {
-		  return firstElement->FindNestedElementWithNameAndAttribute(aChildName, aChildAttributeName, aChildAttributeValue);
-    } else {
-      return firstElement->FindNestedElementWithName(aChildName);
-    }
-	}
 }
 
 //-----------------------------------------------------------------------------
@@ -207,22 +185,6 @@ vtkXMLDataElement* vtkFreehandController::ParseXMLOrFillWithInternalData(const c
 
 //-----------------------------------------------------------------------------
 
-std::string vtkFreehandController::GetNewConfigurationFileName()
-{
-  LOG_TRACE("vtkFreehandController::GetNewConfigurationFileName");
-
-  // Construct new file name with date and time
-  std::string resultFileName = this->ConfigurationFileName;
-  resultFileName = resultFileName.substr(0, resultFileName.find(".xml"));
-  resultFileName.append("_");
-  resultFileName.append(vtksys::SystemTools::GetCurrentDateTime("%Y%m%d_%H%M%S"));
-  resultFileName.append(".xml");
-
-  return resultFileName;
-}
-
-//-----------------------------------------------------------------------------
-
 PlusStatus vtkFreehandController::SaveConfigurationToFile(const char* aFile)
 {
   LOG_TRACE("vtkFreehandController::SaveConfigurationToFile(" << aFile << ")");
@@ -232,7 +194,7 @@ PlusStatus vtkFreehandController::SaveConfigurationToFile(const char* aFile)
 		return PLUS_FAIL;
 	}
 
- this->SetConfigurationFileName(aFile);
+  vtkFileFinder::GetInstance()->SetConfigurationFileName(aFile);
   
  return this->DataCollector->SaveConfigurationToFile(aFile); 
 }
