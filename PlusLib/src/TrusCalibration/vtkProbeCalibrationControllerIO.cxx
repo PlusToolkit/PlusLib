@@ -1225,37 +1225,6 @@ PlusStatus vtkProbeCalibrationControllerIO::ReadProbeCalibrationConfiguration(vt
     this->CalibrationController->SetImageDataInfo(RANDOM_STEPPER_MOTION_2, imageDataInfo); 
 	}
 
-	// Template model specifications
-	//********************************************************************
-	vtkSmartPointer<vtkXMLDataElement> templateModel = probeCalibration->FindNestedElementWithName("TemplateModel"); 
-	if ( templateModel != NULL) 
-	{
-		// Path to the template model config file 
-		const char* configFile = templateModel->GetAttribute("ConfigFile"); 
-		if ( configFile != NULL) 
-		{
-	    std::string searchResult = "";
-	    if (STRCASECMP(vtkConfigurationTools::GetInstance()->GetConfigurationDirectory(), "") != 0)
-      {
-		    searchResult = vtkConfigurationTools::GetFirstFileFoundInConfigurationDirectory(configFile);
-	    }
-
-	    if (searchResult != "")
-      {
-        this->CalibrationController->SetTemplateModelConfigFileName(searchResult.c_str()); 
-      }
-      else
-      {
-        LOG_ERROR("Template model configuration file not found!");
-        return PLUS_FAIL;
-      }
-		}
-	}
-	else
-	{
-		LOG_WARNING("Unable to find TemplateModel XML data element"); 
-	}
-
 	// US3DBeamwidth specifications
 	//********************************************************************
 	vtkSmartPointer<vtkXMLDataElement> us3DBeamProfile = probeCalibration->FindNestedElementWithName("US3DBeamProfile"); 

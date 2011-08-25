@@ -24,10 +24,6 @@ public:
 	//! Operation: Initialize the calibration controller interface
 	virtual PlusStatus Initialize(); 
 
-	//! Operations: initialize the visualization parts for PRE3D distribution
-	//  Initialize plot components when calibration (re)starts
-	virtual void InitializeVisualizationComponents ();
-
 	//! Operation: Register phantom geometry for calibrator 
 	virtual void RegisterPhantomGeometry( double phantomToProbeDistanceInMm[2] );
   virtual void RegisterPhantomGeometry(); 
@@ -168,10 +164,6 @@ public:
 	//! Attributes: suffix of the template to stepper calibration analysis file
 	vtkGetStringMacro(Temp2StepCalibAnalysisFileNameSuffix);
 	vtkSetStringMacro(Temp2StepCalibAnalysisFileNameSuffix);
-
-	//! Attributes: path to template model configuration file 
-	vtkGetStringMacro(TemplateModelConfigFileName);
-	vtkSetStringMacro(TemplateModelConfigFileName);
 
 	//! Attributes: Get/set final calibration transform 
 	vtkGetObjectMacro(TransformImageToTemplate, vtkTransform);
@@ -517,9 +509,6 @@ protected:
 
 	//! Attributes: segmented wire positions of validation dataset
 	char* ValidationSegWirePosInfoFileName; 
-
-	//! Attributes: path to template model configuration file 
-	char* TemplateModelConfigFileName; 
 	
 	vnl_vector<double> MinElevationBeamwidthAndFocalZoneInUSImageFrame;
 
