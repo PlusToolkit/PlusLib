@@ -1,13 +1,14 @@
 #ifndef __PLUSLOGGER_H
 #define __PLUSLOGGER_H
 
+#include "vtkObject.h"
+
 #include <fstream>
 
 class vtkSimpleCriticalSection; 
 
-class VTK_EXPORT PlusLogger
+class VTK_EXPORT PlusLogger : public vtkObject
 {
-	typedef void (*DisplayMessageCallbackPtr)(const char *msg, const int level);
 
 public:
 	enum LogLevelType
@@ -32,8 +33,6 @@ public:
 
 	static void PrintProgressbar( int percent ); 
 
-  void SetDisplayMessageCallbackFunction( DisplayMessageCallbackPtr cb );
-
 protected:
 	PlusLogger(); 
 	~PlusLogger();
@@ -50,8 +49,6 @@ private:
 	std::ofstream m_LogStream;
 
 	vtkSimpleCriticalSection* m_CriticalSection; 
-
-	DisplayMessageCallbackPtr m_DisplayMessageCallbackFunction;
 };
 
 #endif

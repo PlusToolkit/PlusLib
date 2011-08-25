@@ -7,7 +7,9 @@
 #include "PlusLogger.h"
 #include <string>
 #include <sstream>
+
 #include "vtkCriticalSection.h"
+#include "vtkCommand.h"
 
 PlusLogger* PlusLogger::m_pInstance = NULL;
 
@@ -15,7 +17,6 @@ PlusLogger* PlusLogger::m_pInstance = NULL;
 PlusLogger::PlusLogger()
 {
 	m_CriticalSection = vtkSimpleCriticalSection::New(); 
-	m_DisplayMessageCallbackFunction = NULL;
 	m_LogLevel = LOG_LEVEL_WARNING;
 	m_DisplayLogLevel = LOG_LEVEL_WARNING;
 	std::ostringstream logfilename; 
@@ -166,11 +167,15 @@ void PlusLogger::LogMessage(LogLevelType level, const char *msg, const char* fil
 		}
 #endif
 
-		if (m_DisplayMessageCallbackFunction != NULL)
-		{
-			m_DisplayMessageCallbackFunction(log.str().c_str(), level);
-		}
-	}	
+    // Call display message callbacks if higher priority than trace
+    if (level < LOG_LEVEL_TRACE)
+    {
+    	std::ostringstream callDataStream;
+      callDataStream << level << "|" << log.str();
+
+      InvokeEvent(vtkCommand::UserEvent, (void*)(callDataStream.str().c_str()));
+    }
+	}
 
 	if (m_LogLevel>=level)
 	{
@@ -215,12 +220,4 @@ void PlusLogger::PrintProgressbar( int percent )
 	{
 		std::cout << std::endl << std::endl;
 	}
-}
-
-//-------------------------------------------------------
-void PlusLogger::SetDisplayMessageCallbackFunction( DisplayMessageCallbackPtr cb )
-{
-	m_CriticalSection->Lock(); 
-	m_DisplayMessageCallbackFunction = cb;
-	m_CriticalSection->Unlock(); 
 }
