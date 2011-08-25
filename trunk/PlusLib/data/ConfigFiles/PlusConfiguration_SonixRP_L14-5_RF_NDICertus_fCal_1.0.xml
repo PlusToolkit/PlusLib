@@ -3,8 +3,8 @@
 	<!-- DATA COLLECTION -->
 	<USDataCollection version="2.0" StartupDelaySec="1.0">
 		<DeviceSet 
-			Name="SonixTouch L14-5 + NDI Certus Calibrated" 
-			Description="Configuration file for SonixTouch L14-5 + NDI Certus + fCal 1.0 with calibration matrices" 
+			Name="SonixRP L14-5 in RF mode + NDI Certus" 
+			Description="Configuration file for SonixRP L14-5 in RF mode + NDI Certus + fCal 1.0" 
 			/>
 
 		<Tracker Type="CertusTracker" BufferSize="2500" Frequency="50" AveragedItemsForFiltering="20" LocalTimeOffset="0.0" >
@@ -27,12 +27,12 @@
 				<Calibration
 					MatrixName="ImageToProbe" 
 					MatrixValue="
-						-0.0135 -0.0961 0.0013 -101.3679
-						0.1031 -0.0125 0.0031 -53.3969
-						-0.0030 0.0017 0.1004 -92.4
+						1 0 0 0
+						0 1 0 0
+						0 0 1 0
 						0 0 0 1"
-					Date="2011.08.03 14:22:27"
-					Error="0.424586" />
+					Date=""
+					Error="0.0" />
 			</Tool>
 			
 			<!-- REFERENCE -->
@@ -57,12 +57,12 @@
 				<Calibration
 					MatrixName="StylusTipToStylus" 
 					MatrixValue="
-						1 0 0 210.0648
-						0 1 0 -6.7057
-						0 0 1 0.0490
+						1 0 0 0
+						0 1 0 0
+						0 0 1 0
 						0 0 0 1"
-					Date="2011.08.03 14:07:52"
-					Error="0.469483" /> 
+					Date=""
+					Error="0.0" /> 
 			</Tool>
 
 			<!-- NEEDLE -->
@@ -93,15 +93,15 @@
 		</Tracker>
 
 		<ImageAcquisition Type="SonixVideo" 
+				IP="130.15.7.212" 
 				BufferSize="500" 
-				FrameSize="820 616" 
+				FrameSize="640 480"
 				UsImageOrientation="UF"
 				FrameRate="30" 
 				AveragedItemsForFiltering="20" 
 				LocalTimeOffset="-0.2126"
-				IP="130.15.7.20" 
-				ImagingMode="BMode"
-                AcquisitionDataType="BPost" 
+				ImagingMode="RfMode"
+				AcquisitionDataType="RF"
 				Depth="-1" 
 				Sector="-1" 
 				Gain="-1" 
@@ -111,7 +111,7 @@
 				Timeout="-1" 
 				CompressionStatus="0" 
 				/>
- 
+
 		<Synchronization Type="ChangeDetection" 
 				SynchronizationTimeLength="30" 
 				MinNumOfSyncSteps="5" 
@@ -130,30 +130,30 @@
 	<!-- CALIBRATION -->
 	<USCalibration version="1.0">
 		<CalibrationController LogLevel="INFO" OutputPath="./Output" EnableTrackedSequenceDataSaving="FALSE" EnableErroneouslySegmentedDataSaving="FALSE" EnableSegmentationAnalysis="FALSE" >
-			<ProbeCalibration
-        EnableLogFile="FALSE"  
-        EnableSegmentedWirePositionsSaving="FALSE"
-        ImageHomeToUserImageHomeTransform=" 1  0  0  0 
-                          0  1  0  0 
-                          0  0  1  0 
-                          0  0  0  1"
-        DataFileSuffix=".data"
-        CalibrationResultFileSuffix=".Calibration.results"
-        SegmentationErrorLogFileNameSuffix=".Segmentation.errors"
-        SegmentationAnalysisFileNameSuffix = ".Segmentation.analysis"
-        Temp2StepCalibAnalysisFileNameSuffix = ".Template2StepperCalibration.analysis"
-        >
+            <ProbeCalibration
+					EnableLogFile="FALSE"  
+					EnableSegmentedWirePositionsSaving="FALSE"
+					ImageHomeToUserImageHomeTransform=" 1  0  0  0 
+														0  1  0  0 
+														0  0  1  0 
+														0  0  0  1"
+					DataFileSuffix=".data"
+					CalibrationResultFileSuffix=".Calibration.results"
+					SegmentationErrorLogFileNameSuffix=".Segmentation.errors"
+					SegmentationAnalysisFileNameSuffix = ".Segmentation.analysis"
+					Temp2StepCalibAnalysisFileNameSuffix = ".Template2StepperCalibration.analysis"
+					>
 				
-        <!-- RandomStepperMotionData1: These are the data files used for calibration. -->
-        <RandomStepperMotionData1
-                NumberOfImagesToAcquire="200" 
-                OutputSequenceMetaFileSuffix=".RandomStepperMotionData1"
-                />
-        <!-- RandomStepperMotionData2: These are the data files used to validate the calibration accuracy.  -->
-        <RandomStepperMotionData2
-                NumberOfImagesToAcquire="100" 
-                OutputSequenceMetaFileSuffix=".RandomStepperMotionData2"
-                />
+				 <!-- RandomStepperMotionData1: These are the data files used for calibration. -->
+                <RandomStepperMotionData1
+                        NumberOfImagesToAcquire="200" 
+                        OutputSequenceMetaFileSuffix=".RandomStepperMotionData1"
+                        />
+                <!-- RandomStepperMotionData2: These are the data files used to validate the calibration accuracy.  -->
+                <RandomStepperMotionData2
+                        NumberOfImagesToAcquire="100" 
+                        OutputSequenceMetaFileSuffix=".RandomStepperMotionData2"
+                        />
 
 				<TemplateModel ConfigFile="../config/TemplateModel.xml" >
 				</TemplateModel>
@@ -162,8 +162,8 @@
 				<!-- ConfigFile: The name and the relative or absolute path of the US beam profile file -->
 				<US3DBeamProfile IncorporatingUS3DBeamProfile="0" ConfigFile="./Component_US3DBeamProfile.config" />
 			</ProbeCalibration>
-
-      <FreehandCalibration>
+			
+            <FreehandCalibration>
 				<!-- FreehandMotionData1: These are the data files used for calibration. -->
 				<FreehandMotionData1
 						NumberOfImagesToAcquire="200" 
@@ -174,15 +174,17 @@
 						NumberOfImagesToAcquire="100" 
 						OutputSequenceMetaFileSuffix=".FreehandMotionData2"
 						/>
-      </FreehandCalibration>
+            </FreehandCalibration>			
+			
+            <PhantomDefinition FileName="PhantomDefinition_fCal_1.0_Wiring_1.0.xml" /> 
 
 			<SegmentationParameters
-					FrameSize="820 616"
-					ScalingEstimation="0.078"
-					MorphologicalOpeningCircleRadiusMm="0.47"
-					MorphologicalOpeningBarSizeMm="1.0"
+					FrameSize="640 480"
+					ScalingEstimation="0.098"
+					MorphologicalOpeningCircleRadiusMm="0.55"
+					MorphologicalOpeningBarSizeMm="2.0"
 
-					RegionOfInterest="27 27 793 589"
+					RegionOfInterest="25 25 615 455"
 
 					MaxLineLengthErrorPercent="10.0"
 					MaxLinePairDistanceErrorPercent="10.0"
@@ -197,6 +199,7 @@
 					FindLines3PtDist="5.3"
 
 					UseOriginalImageIntensityForDotIntensityScore="0"
+
 					>
 			</SegmentationParameters>
 		</CalibrationController>
@@ -251,11 +254,11 @@
 			<Registration
 				MatrixName="PhantomToPhantomReference" 
 				MatrixValue="
-					0.9955 -0.0286 -0.0898 -35.8654
-					0.0902 0.0125 0.9958 -125.0523
-					-0.0273 -0.9995 0.0150 -15.0
-					0 0 0 1"
-				Date="2011.08.03 14:20:09"
+					1 0 0 0
+					0 1 0 0
+					0 0 1 0
+					0 0 0 1" 
+				Date=""
 				Error="0.0" />
 		</Geometry>
 	</PhantomDefinition>

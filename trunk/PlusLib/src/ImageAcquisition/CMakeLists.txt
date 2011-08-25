@@ -18,7 +18,7 @@ SET (ImageAcquisition_SRCS
 	vtkBufferedVideoSource.cxx 
 	vtkTrackedFrameList.cxx 
     vtkSavedDataVideoSource.cxx
-	vtkURFSavedDataVideoSource.cxx
+	PlusVideoFrame.cxx
 	)
 	
 SET (ImageAcquisition_HDRS)
@@ -32,7 +32,7 @@ if (WIN32)
 		vtkBufferedVideoSource.h
 		vtkTrackedFrameList.h
         vtkSavedDataVideoSource.h 
-		vtkURFSavedDataVideoSource.h
+		PlusVideoFrame.h
 		)
 endif (WIN32)	
 

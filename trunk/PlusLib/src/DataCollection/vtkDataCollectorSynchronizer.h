@@ -16,6 +16,7 @@ class vtkGnuplotExecuter;
 class VTK_EXPORT vtkDataCollectorSynchronizer : public vtkObject
 {
 public:
+
 	static vtkDataCollectorSynchronizer *New();
 	vtkTypeRevisionMacro(vtkDataCollectorSynchronizer, vtkObject);
 	virtual void PrintSelf(ostream& os, vtkIndent indent);
@@ -159,8 +160,7 @@ protected:
 
 	virtual PlusStatus ComputeFrameThreshold( BufferItemUidType& bufferIndex ); 
 	virtual PlusStatus FindFrameTimestamp( BufferItemUidType& bufferIndex, double& movedFrameTimestamp, double nextMovedTimestamp ); 
-    virtual PlusStatus CopyVideoFrame( vtkImageData* frame, VideoBufferItem::ImageType::Pointer& frameInBuffer); 
-	virtual void FindStillFrame( BufferItemUidType& baseIndex, BufferItemUidType& currentIndex ); 
+ 	virtual void FindStillFrame( BufferItemUidType& baseIndex, BufferItemUidType& currentIndex ); 
 
 	virtual PlusStatus ComputeTransformThreshold( BufferItemUidType& bufferIndex ); 
 	virtual PlusStatus FindTransformMotionTimestamp( BufferItemUidType& bufferIndex, double& movedTransformTimestamp ); 

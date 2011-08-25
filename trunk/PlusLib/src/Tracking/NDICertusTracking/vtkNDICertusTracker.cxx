@@ -155,6 +155,7 @@ static VLEDState vtkNDICertusMapVLEDState[] = {
 			return PLUS_FAIL;
 		}
 
+    LOG_DEBUG("TransputerDetermineSystemCfg start...");
 		// Write to the internal NIF
 		if (TransputerDetermineSystemCfg(NULL) != OPTO_NO_ERROR_CODE)
 		{
@@ -162,6 +163,7 @@ static VLEDState vtkNDICertusMapVLEDState[] = {
 			vtkPrintCertusErrorMacro();
 			return PLUS_FAIL;
 		}
+    LOG_DEBUG("TransputerDetermineSystemCfg completed");
 
 		// Do the initial load.
 		if (TransputerLoadSystem("system") != OPTO_NO_ERROR_CODE)

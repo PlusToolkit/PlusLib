@@ -165,7 +165,14 @@ PlusStatus vtkCalibrationController::AddTrackedFrameData(TrackedFrame* trackedFr
 	try
 	{
 		// Check to see if the segmentation has returned the targets
-    if ( (trackedFrame->ImageData.GetPointer() != NULL) && (this->SegmentImage(trackedFrame->ImageData) != PLUS_SUCCESS) )
+
+	itk::Image<unsigned char, 2>::Pointer image=trackedFrame->ImageData.GetImage<unsigned char>();
+    if ( image.IsNull())
+    {
+        LOG_ERROR("vtkCalibrationController::AddTrackedFrameData no image data is available"); 
+        return PLUS_FAIL; 
+    }
+    if ( this->SegmentImage(image) != PLUS_SUCCESS)
     {
         LOG_WARNING("Undefined error occured during frame segmentation!"); 
         return PLUS_FAIL; 
@@ -188,7 +195,14 @@ PlusStatus vtkCalibrationController::AddTrackedFrameData(TrackedFrame* trackedFr
 		if ( this->GetPatRecognitionResult()->GetDotsFound() && ( this->EnableSegmentationAnalysis || this->CalibrationMode == OFFLINE) )
 		{
 			// Draw segmentation result to image
-      this->GetPatternRecognition()->DrawResults( trackedFrame->ImageData->GetBufferPointer() );
+      if (trackedFrame->ImageData.GetITKScalarPixelType()==itk::ImageIOBase::UCHAR)
+      {
+        this->GetPatternRecognition()->DrawResults( static_cast<PixelType*>(trackedFrame->ImageData.GetBufferPointer()) ); // :TODO: DrawResults should use an ITK image as input
+      }
+      else
+      {
+        LOG_ERROR("Draw results works only on UCHAR images");
+      }
 		} 
 
 		if( !this->GetPatRecognitionResult()->GetDotsFound() )
@@ -401,7 +415,7 @@ void  vtkCalibrationController::CreateTrackedFrame(const ImageType::Pointer& ima
 	strTemplatePosition << templatePosition; 
 	trackedFrame.SetCustomFrameField("TemplatePosition", strTemplatePosition.str()); 
 
-	trackedFrame.ImageData = imageData;
+	trackedFrame.ImageData.SetITKImageBase(imageData);
 }
 
 //----------------------------------------------------------------------------
@@ -421,7 +435,7 @@ void  vtkCalibrationController::CreateTrackedFrame(const ImageType::Pointer& ima
 
 	trackedFrame.SetCustomFrameField(trackedFrame.DefaultFrameTransformName, strToolToTracker.str()); 
 
-	trackedFrame.ImageData = imageData;
+	trackedFrame.ImageData.SetITKImageBase(imageData);
 }
 
 //----------------------------------------------------------------------------

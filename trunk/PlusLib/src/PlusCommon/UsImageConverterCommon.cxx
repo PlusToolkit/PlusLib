@@ -122,9 +122,9 @@ PlusStatus UsImageConverterCommon::GetMFOrientedImage( vtkImageData* inUsImage, 
 }
 
 //----------------------------------------------------------------------------
-PlusStatus UsImageConverterCommon::GetMFOrientedImage( vtkImageData* inUsImage, US_IMAGE_ORIENTATION inUsImageOrientation, ImageType::Pointer& outUsOrintedImage )
+PlusStatus UsImageConverterCommon::GetMFOrientedImage( vtkImageData* inUsImage, US_IMAGE_ORIENTATION inUsImageOrientation, itk::Image< unsigned char, 2 >::Pointer& outUsOrintedImage )
 {
-  ImageType::Pointer itkimage = ImageType::New(); 
+  itk::Image< unsigned char, 2 >::Pointer itkimage = itk::Image< unsigned char, 2 >::New(); 
   if ( UsImageConverterCommon::ConvertVtkImageToItkImage(inUsImage, itkimage) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to get MF oriented image from vtk image data!"); 
@@ -132,16 +132,57 @@ PlusStatus UsImageConverterCommon::GetMFOrientedImage( vtkImageData* inUsImage, 
   }
 
   return UsImageConverterCommon::GetMFOrientedImage(itkimage, inUsImageOrientation, outUsOrintedImage); 
-
-  return PLUS_SUCCESS; 
 }
 
 //----------------------------------------------------------------------------
-PlusStatus UsImageConverterCommon::GetMFOrientedImage( unsigned char* imageDataPtr,                               
+PlusStatus UsImageConverterCommon::GetMFOrientedImage( unsigned char* imageDataPtr,US_IMAGE_ORIENTATION  inUsImageOrientation, const int frameSizeInPx[2], int numberOfBitsPerPixel, itk::Image<unsigned char, 2>::Pointer& outUsOrintedImage)
+{
+  return GetMFOrientedImageGeneric<itk::Image<unsigned char, 2>>(imageDataPtr, inUsImageOrientation, frameSizeInPx, numberOfBitsPerPixel, outUsOrintedImage);
+}
+PlusStatus UsImageConverterCommon::GetMFOrientedImage( unsigned char* imageDataPtr,US_IMAGE_ORIENTATION  inUsImageOrientation, const int frameSizeInPx[2], int numberOfBitsPerPixel, itk::Image<char, 2>::Pointer& outUsOrintedImage)
+{
+  return GetMFOrientedImageGeneric<itk::Image<char, 2>>(imageDataPtr, inUsImageOrientation, frameSizeInPx, numberOfBitsPerPixel, outUsOrintedImage);
+}
+PlusStatus UsImageConverterCommon::GetMFOrientedImage( unsigned char* imageDataPtr,US_IMAGE_ORIENTATION  inUsImageOrientation, const int frameSizeInPx[2], int numberOfBitsPerPixel, itk::Image<unsigned short, 2>::Pointer& outUsOrintedImage)
+{
+  return GetMFOrientedImageGeneric<itk::Image<unsigned short, 2>>(imageDataPtr, inUsImageOrientation, frameSizeInPx, numberOfBitsPerPixel, outUsOrintedImage);
+}
+PlusStatus UsImageConverterCommon::GetMFOrientedImage( unsigned char* imageDataPtr,US_IMAGE_ORIENTATION  inUsImageOrientation, const int frameSizeInPx[2], int numberOfBitsPerPixel, itk::Image<short, 2>::Pointer& outUsOrintedImage)
+{
+  return GetMFOrientedImageGeneric<itk::Image<short, 2>>(imageDataPtr, inUsImageOrientation, frameSizeInPx, numberOfBitsPerPixel, outUsOrintedImage);
+}
+PlusStatus UsImageConverterCommon::GetMFOrientedImage( unsigned char* imageDataPtr,US_IMAGE_ORIENTATION  inUsImageOrientation, const int frameSizeInPx[2], int numberOfBitsPerPixel, itk::Image<unsigned int, 2>::Pointer& outUsOrintedImage)
+{
+  return GetMFOrientedImageGeneric<itk::Image<unsigned int, 2>>(imageDataPtr, inUsImageOrientation, frameSizeInPx, numberOfBitsPerPixel, outUsOrintedImage);
+}
+PlusStatus UsImageConverterCommon::GetMFOrientedImage( unsigned char* imageDataPtr,US_IMAGE_ORIENTATION  inUsImageOrientation, const int frameSizeInPx[2], int numberOfBitsPerPixel, itk::Image<int, 2>::Pointer& outUsOrintedImage)
+{
+  return GetMFOrientedImageGeneric<itk::Image<int, 2>>(imageDataPtr, inUsImageOrientation, frameSizeInPx, numberOfBitsPerPixel, outUsOrintedImage);
+}
+PlusStatus UsImageConverterCommon::GetMFOrientedImage( unsigned char* imageDataPtr,US_IMAGE_ORIENTATION  inUsImageOrientation, const int frameSizeInPx[2], int numberOfBitsPerPixel, itk::Image<unsigned long, 2>::Pointer& outUsOrintedImage)
+{
+  return GetMFOrientedImageGeneric<itk::Image<unsigned long, 2>>(imageDataPtr, inUsImageOrientation, frameSizeInPx, numberOfBitsPerPixel, outUsOrintedImage);
+}
+PlusStatus UsImageConverterCommon::GetMFOrientedImage( unsigned char* imageDataPtr,US_IMAGE_ORIENTATION  inUsImageOrientation, const int frameSizeInPx[2], int numberOfBitsPerPixel, itk::Image<long, 2>::Pointer& outUsOrintedImage)
+{
+  return GetMFOrientedImageGeneric<itk::Image<long, 2>>(imageDataPtr, inUsImageOrientation, frameSizeInPx, numberOfBitsPerPixel, outUsOrintedImage);
+}
+PlusStatus UsImageConverterCommon::GetMFOrientedImage( unsigned char* imageDataPtr,US_IMAGE_ORIENTATION  inUsImageOrientation, const int frameSizeInPx[2], int numberOfBitsPerPixel, itk::Image<float, 2>::Pointer& outUsOrintedImage)
+{
+  return GetMFOrientedImageGeneric<itk::Image<float, 2>>(imageDataPtr, inUsImageOrientation, frameSizeInPx, numberOfBitsPerPixel, outUsOrintedImage);
+}
+PlusStatus UsImageConverterCommon::GetMFOrientedImage( unsigned char* imageDataPtr,US_IMAGE_ORIENTATION  inUsImageOrientation, const int frameSizeInPx[2], int numberOfBitsPerPixel, itk::Image<double, 2>::Pointer& outUsOrintedImage)
+{
+  return GetMFOrientedImageGeneric<itk::Image<double, 2>>(imageDataPtr, inUsImageOrientation, frameSizeInPx, numberOfBitsPerPixel, outUsOrintedImage);
+}
+
+//----------------------------------------------------------------------------
+template<class OutputImageType>
+PlusStatus UsImageConverterCommon::GetMFOrientedImageGeneric( unsigned char* imageDataPtr,                               
                                                       US_IMAGE_ORIENTATION  inUsImageOrientation, 
                                                       const int    frameSizeInPx[2],
                                                       int    numberOfBitsPerPixel, 
-                                                      ImageType::Pointer& outUsOrintedImage
+                                                      typename OutputImageType::Pointer& outUsOrintedImage
                                                       )
 {
 
@@ -157,28 +198,29 @@ PlusStatus UsImageConverterCommon::GetMFOrientedImage( unsigned char* imageDataP
     return PLUS_FAIL; 
   }
 
-  if ( numberOfBitsPerPixel != sizeof(PixelType)*8 )
+  if ( numberOfBitsPerPixel != sizeof(OutputImageType::PixelType)*8 )
   {
-    LOG_ERROR("Failed to convert image data to MF orientation - pixel size mismatch (input: " << numberOfBitsPerPixel << " bits, output: " << sizeof(PixelType)*8 << " bits)!"); 
+    LOG_ERROR("Failed to convert image data to MF orientation - pixel size mismatch (input: " << numberOfBitsPerPixel << " bits, output: " << sizeof(OutputImageType::PixelType)*8 << " bits)!"); 
     return PLUS_FAIL; 
   }
 
-  ImageType::Pointer inUsImage = ImageType::New(); 
-  ImageType::SizeType size = {frameSizeInPx[0], frameSizeInPx[1]};
-  ImageType::IndexType start = {0,0};
-  ImageType::RegionType region;
+  OutputImageType::Pointer inUsImage = OutputImageType::New(); 
+  OutputImageType::SizeType size = {frameSizeInPx[0], frameSizeInPx[1]};
+  OutputImageType::IndexType start = {0,0};
+  OutputImageType::RegionType region;
   region.SetSize(size);
   region.SetIndex(start);
   inUsImage->SetRegions(region);
-  ImageType::PixelContainer::Pointer pixelContainer = ImageType::PixelContainer::New(); 
-  pixelContainer->SetImportPointer(imageDataPtr, frameSizeInPx[0]*frameSizeInPx[1], false); 
+  OutputImageType::PixelContainer::Pointer pixelContainer = OutputImageType::PixelContainer::New(); 
+  pixelContainer->SetImportPointer(reinterpret_cast<OutputImageType::PixelType*>(imageDataPtr), frameSizeInPx[0]*frameSizeInPx[1], false); 
   inUsImage->SetPixelContainer(pixelContainer); 
 
   return UsImageConverterCommon::GetMFOrientedImage(inUsImage, inUsImageOrientation, outUsOrintedImage); 
 }
 
 //----------------------------------------------------------------------------
-PlusStatus UsImageConverterCommon::FlipImage(const UsImageConverterCommon::ImageType::Pointer inUsImage, const itk::FixedArray<bool, 2> &flipAxes, UsImageConverterCommon::ImageType::Pointer& outUsOrintedImage)
+template<class OutputImageType>
+PlusStatus UsImageConverterCommon::FlipImage(typename const OutputImageType::Pointer inUsImage, const itk::FixedArray<bool, 2> &flipAxes, typename OutputImageType::Pointer& outUsOrintedImage)
 {
   outUsOrintedImage->SetOrigin(inUsImage->GetOrigin());
   outUsOrintedImage->SetSpacing(inUsImage->GetSpacing());
@@ -197,16 +239,16 @@ PlusStatus UsImageConverterCommon::FlipImage(const UsImageConverterCommon::Image
     return PLUS_FAIL; 
   }
 
-  ImageType::SizeType imageSize=inUsImage->GetLargestPossibleRegion().GetSize();
+  OutputImageType::SizeType imageSize=inUsImage->GetLargestPossibleRegion().GetSize();
   int width=imageSize[0];
   int height=imageSize[1];
 
   if (!flipAxes[0] && flipAxes[1])
   {
     // flip Y    
-    ImageType::PixelType *inputPixel=inUsImage->GetBufferPointer();
+    OutputImageType::PixelType *inputPixel=inUsImage->GetBufferPointer();
     // Set the target position pointer to the first pixel of the last row
-    ImageType::PixelType *outputPixel=outUsOrintedImage->GetBufferPointer()+width*(height-1);
+    OutputImageType::PixelType *outputPixel=outUsOrintedImage->GetBufferPointer()+width*(height-1);
     // Copy the image row-by-row, reversing the row order
     for (int y=height; y>0; y--)
     {
@@ -218,9 +260,9 @@ PlusStatus UsImageConverterCommon::FlipImage(const UsImageConverterCommon::Image
   else if (flipAxes[0] && !flipAxes[1])
   {
     // flip X    
-    ImageType::PixelType *inputPixel=inUsImage->GetBufferPointer();
+    OutputImageType::PixelType *inputPixel=inUsImage->GetBufferPointer();
     // Set the target position pointer to the last pixel of the first row
-    ImageType::PixelType *outputPixel=outUsOrintedImage->GetBufferPointer()+width-1;
+    OutputImageType::PixelType *outputPixel=outUsOrintedImage->GetBufferPointer()+width-1;
     // Copy the image row-by-row, reversing the pixel order in each row
     for (int y=height; y>0; y--)
     {
@@ -236,9 +278,9 @@ PlusStatus UsImageConverterCommon::FlipImage(const UsImageConverterCommon::Image
   else if (flipAxes[0] && flipAxes[1])
   {
     // flip X and Y
-    ImageType::PixelType *inputPixel=inUsImage->GetBufferPointer();
+    OutputImageType::PixelType *inputPixel=inUsImage->GetBufferPointer();
     // Set the target position pointer to the last pixel
-    ImageType::PixelType *outputPixel=outUsOrintedImage->GetBufferPointer()+height*width-1;
+    OutputImageType::PixelType *outputPixel=outUsOrintedImage->GetBufferPointer()+height*width-1;
     // Copy the image pixel-by-pixel, reversing the pixel order
     for (int p=width*height; p>0; p--)
     {
@@ -255,20 +297,20 @@ PlusStatus UsImageConverterCommon::FlipImage(const UsImageConverterCommon::Image
 static PlusStatus SaveImageToFile(unsigned char* imageDataPtr, const int frameSizeInPx[2], int numberOfBitsPerPixel, const char* fileName)
 {
 
-  if ( numberOfBitsPerPixel != sizeof(UsImageConverterCommon::PixelType)*8 )
+  if ( numberOfBitsPerPixel != sizeof(unsigned char)*8 )
   {
-    LOG_ERROR("Failed to save image to file - pixel size mismatch (expected: " <<  sizeof(UsImageConverterCommon::PixelType)*8 << " bits, current: " << numberOfBitsPerPixel << " bits)!)"); 
+    LOG_ERROR("Failed to save image to file - pixel size mismatch (expected: " <<  sizeof(unsigned char)*8 << " bits, current: " << numberOfBitsPerPixel << " bits)!)"); 
     return PLUS_FAIL; 
   }
 
-  UsImageConverterCommon::ImageType::Pointer inUsImage = UsImageConverterCommon::ImageType::New(); 
-  UsImageConverterCommon::ImageType::SizeType size = {frameSizeInPx[0], frameSizeInPx[1]};
-  UsImageConverterCommon::ImageType::IndexType start = {0,0};
-  UsImageConverterCommon::ImageType::RegionType region;
+  itk::Image< unsigned char, 2 >::Pointer inUsImage = itk::Image< unsigned char, 2 >::New(); 
+  itk::Image< unsigned char, 2 >::SizeType size = {frameSizeInPx[0], frameSizeInPx[1]};
+  itk::Image< unsigned char, 2 >::IndexType start = {0,0};
+  itk::Image< unsigned char, 2 >::RegionType region;
   region.SetSize(size);
   region.SetIndex(start);
   inUsImage->SetRegions(region);
-  UsImageConverterCommon::ImageType::PixelContainer::Pointer pixelContainer = UsImageConverterCommon::ImageType::PixelContainer::New(); 
+  itk::Image< unsigned char, 2 >::PixelContainer::Pointer pixelContainer = itk::Image< unsigned char, 2 >::PixelContainer::New(); 
   pixelContainer->SetImportPointer(imageDataPtr, frameSizeInPx[0]*frameSizeInPx[1], false); 
   inUsImage->SetPixelContainer(pixelContainer); 
 
@@ -276,7 +318,7 @@ static PlusStatus SaveImageToFile(unsigned char* imageDataPtr, const int frameSi
 }
 
 //----------------------------------------------------------------------------
-PlusStatus UsImageConverterCommon::SaveImageToFile(const ImageType::Pointer image, const char* fileName)
+PlusStatus UsImageConverterCommon::SaveImageToFile(const itk::Image< unsigned char, 2 >::Pointer image, const char* fileName)
 {
   if ( image.IsNull() )
   {
@@ -284,7 +326,7 @@ PlusStatus UsImageConverterCommon::SaveImageToFile(const ImageType::Pointer imag
     return PLUS_FAIL; 
   }
 
-  typedef itk::ImageFileWriter< ImageType > ImgWriterType;
+  typedef itk::ImageFileWriter< itk::Image< unsigned char, 2 > > ImgWriterType;
   ImgWriterType::Pointer writer = ImgWriterType::New();
   writer->SetFileName( fileName ); 
   writer->SetInput( image ); 
@@ -321,7 +363,50 @@ PlusStatus UsImageConverterCommon::SaveImageToJpeg(vtkImageData* image, const ch
 }
 
 //----------------------------------------------------------------------------
-PlusStatus UsImageConverterCommon::GetMFOrientedImage( const ImageType::Pointer inUsImage, US_IMAGE_ORIENTATION inUsImageOrientation, ImageType::Pointer& outUsOrintedImage )
+PlusStatus UsImageConverterCommon::GetMFOrientedImage( const itk::Image<unsigned char, 2>::Pointer inUsImage, US_IMAGE_ORIENTATION inUsImageOrientation, itk::Image<unsigned char, 2>::Pointer& outUsOrintedImage )
+{
+  return UsImageConverterCommon::GetMFOrientedImageGeneric<itk::Image<unsigned char, 2>>(inUsImage, inUsImageOrientation, outUsOrintedImage );
+}
+PlusStatus UsImageConverterCommon::GetMFOrientedImage( const itk::Image<char, 2>::Pointer inUsImage, US_IMAGE_ORIENTATION inUsImageOrientation, itk::Image<char, 2>::Pointer& outUsOrintedImage )
+{
+  return UsImageConverterCommon::GetMFOrientedImageGeneric<itk::Image<char, 2>>(inUsImage, inUsImageOrientation, outUsOrintedImage );
+}
+PlusStatus UsImageConverterCommon::GetMFOrientedImage( const itk::Image<unsigned short, 2>::Pointer inUsImage, US_IMAGE_ORIENTATION inUsImageOrientation, itk::Image<unsigned short, 2>::Pointer& outUsOrintedImage )
+{
+  return UsImageConverterCommon::GetMFOrientedImageGeneric<itk::Image<unsigned short, 2>>(inUsImage, inUsImageOrientation, outUsOrintedImage );
+}
+PlusStatus UsImageConverterCommon::GetMFOrientedImage( const itk::Image<short, 2>::Pointer inUsImage, US_IMAGE_ORIENTATION inUsImageOrientation, itk::Image<short, 2>::Pointer& outUsOrintedImage )
+{
+  return UsImageConverterCommon::GetMFOrientedImageGeneric<itk::Image<short, 2>>(inUsImage, inUsImageOrientation, outUsOrintedImage );
+}
+PlusStatus UsImageConverterCommon::GetMFOrientedImage( const itk::Image<unsigned int, 2>::Pointer inUsImage, US_IMAGE_ORIENTATION inUsImageOrientation, itk::Image<unsigned int, 2>::Pointer& outUsOrintedImage )
+{
+  return UsImageConverterCommon::GetMFOrientedImageGeneric<itk::Image<unsigned int, 2>>(inUsImage, inUsImageOrientation, outUsOrintedImage );
+}
+PlusStatus UsImageConverterCommon::GetMFOrientedImage( const itk::Image<int, 2>::Pointer inUsImage, US_IMAGE_ORIENTATION inUsImageOrientation, itk::Image<int, 2>::Pointer& outUsOrintedImage )
+{
+  return UsImageConverterCommon::GetMFOrientedImageGeneric<itk::Image<int, 2>>(inUsImage, inUsImageOrientation, outUsOrintedImage );
+}
+PlusStatus UsImageConverterCommon::GetMFOrientedImage( const itk::Image<unsigned long, 2>::Pointer inUsImage, US_IMAGE_ORIENTATION inUsImageOrientation, itk::Image<unsigned long, 2>::Pointer& outUsOrintedImage )
+{
+  return UsImageConverterCommon::GetMFOrientedImageGeneric<itk::Image<unsigned long, 2>>(inUsImage, inUsImageOrientation, outUsOrintedImage );
+}
+PlusStatus UsImageConverterCommon::GetMFOrientedImage( const itk::Image<long, 2>::Pointer inUsImage, US_IMAGE_ORIENTATION inUsImageOrientation, itk::Image<long, 2>::Pointer& outUsOrintedImage )
+{
+  return UsImageConverterCommon::GetMFOrientedImageGeneric<itk::Image<long, 2>>(inUsImage, inUsImageOrientation, outUsOrintedImage );
+}
+PlusStatus UsImageConverterCommon::GetMFOrientedImage( const itk::Image<float, 2>::Pointer inUsImage, US_IMAGE_ORIENTATION inUsImageOrientation, itk::Image<float, 2>::Pointer& outUsOrintedImage )
+{
+  return UsImageConverterCommon::GetMFOrientedImageGeneric<itk::Image<float, 2>>(inUsImage, inUsImageOrientation, outUsOrintedImage );
+}
+PlusStatus UsImageConverterCommon::GetMFOrientedImage( const itk::Image<double, 2>::Pointer inUsImage, US_IMAGE_ORIENTATION inUsImageOrientation, itk::Image<double, 2>::Pointer& outUsOrintedImage )
+{
+  return UsImageConverterCommon::GetMFOrientedImageGeneric<itk::Image<double, 2>>(inUsImage, inUsImageOrientation, outUsOrintedImage );
+}
+
+//----------------------------------------------------------------------------
+template<class OutputImageType>
+static PlusStatus UsImageConverterCommon::GetMFOrientedImageGeneric( typename const OutputImageType::Pointer inUsImage, US_IMAGE_ORIENTATION inUsImageOrientation, typename OutputImageType::Pointer& outUsOrintedImage )
 {
   if ( inUsImage.IsNull() )
   {
@@ -356,18 +441,17 @@ PlusStatus UsImageConverterCommon::GetMFOrientedImage( const ImageType::Pointer 
   if ( inUsImageOrientation == US_IMG_ORIENT_XX ) 
   {
     LOG_WARNING("Failed to convert image data MF orientation - unknown input image orientation, return identical copy!"); 
-    // We need to copy the raw data since we're using the image array as an ImageType::PixelContainer
-    long bufferSize = inUsImage->GetLargestPossibleRegion().GetSize()[0]*inUsImage->GetLargestPossibleRegion().GetSize()[1]*sizeof(PixelType); 
+    // We need to copy the raw data since we're using the image array as an OutputImageType::PixelContainer
+    long bufferSize = inUsImage->GetLargestPossibleRegion().GetSize()[0]*inUsImage->GetLargestPossibleRegion().GetSize()[1]*sizeof(OutputImageType::PixelType); 
     memcpy(outUsOrintedImage->GetBufferPointer(), inUsImage->GetBufferPointer(), bufferSize); 
     return PLUS_SUCCESS; 
   }
 
   if ( inUsImageOrientation == US_IMG_ORIENT_MF )
   {
-    // We need to copy the raw data since we're using the image array as an ImageType::PixelContainer
-    long bufferSize = inUsImage->GetLargestPossibleRegion().GetSize()[0]*inUsImage->GetLargestPossibleRegion().GetSize()[1]*sizeof(PixelType); 
+    // We need to copy the raw data since we're using the image array as an OutputImageType::PixelContainer
+    long bufferSize = inUsImage->GetLargestPossibleRegion().GetSize()[0]*inUsImage->GetLargestPossibleRegion().GetSize()[1]*sizeof(OutputImageType::PixelType); 
     memcpy(outUsOrintedImage->GetBufferPointer(), inUsImage->GetBufferPointer(), bufferSize); 
-
     return PLUS_SUCCESS; 
   }
 
@@ -402,25 +486,25 @@ PlusStatus UsImageConverterCommon::GetMFOrientedImage( const ImageType::Pointer 
 
   if (useItkFlipImageFilter)
   {
-    typedef itk::FlipImageFilter <ImageType> FlipImageFilterType;
+    typedef itk::FlipImageFilter <OutputImageType> FlipImageFilterType;
     FlipImageFilterType::Pointer flipFilter = FlipImageFilterType::New();
     flipFilter->SetInput(inUsImage);
     flipFilter->FlipAboutOriginOff(); 
     flipFilter->SetFlipAxes(flipAxes);
     flipFilter->Update();
-    // We need to copy the raw data since we're using the image array as an ImageType::PixelContainer
-    long bufferSize = flipFilter->GetOutput()->GetLargestPossibleRegion().GetSize()[0]*flipFilter->GetOutput()->GetLargestPossibleRegion().GetSize()[1]*sizeof(PixelType); 
+    // We need to copy the raw data since we're using the image array as an OutputImageType::PixelContainer
+    long bufferSize = flipFilter->GetOutput()->GetLargestPossibleRegion().GetSize()[0]*flipFilter->GetOutput()->GetLargestPossibleRegion().GetSize()[1]*sizeof(OutputImageType::PixelType); 
     memcpy(outUsOrintedImage->GetBufferPointer(), flipFilter->GetOutput()->GetBufferPointer(), bufferSize); 
     return PLUS_SUCCESS; 
   }
   else
   {
-    return FlipImage(inUsImage, flipAxes, outUsOrintedImage);
+    return FlipImage<OutputImageType>(inUsImage, flipAxes, outUsOrintedImage);
   }   
 }
 
 //----------------------------------------------------------------------------
-PlusStatus UsImageConverterCommon::ConvertItkImageToVtkImage(const ImageType::Pointer& inFrame, vtkImageData* outFrame)
+PlusStatus UsImageConverterCommon::ConvertItkImageToVtkImage(const itk::Image< unsigned char, 2 >::Pointer& inFrame, vtkImageData* outFrame)
 {
   if ( inFrame.IsNull() )
   {
@@ -454,7 +538,7 @@ PlusStatus UsImageConverterCommon::ConvertItkImageToVtkImage(const ImageType::Po
 }
 
 //----------------------------------------------------------------------------
-PlusStatus UsImageConverterCommon::ConvertVtkImageToItkImage(vtkImageData* inFrame, ImageType::Pointer& outFrame)
+PlusStatus UsImageConverterCommon::ConvertVtkImageToItkImage(vtkImageData* inFrame, itk::Image< unsigned char, 2 >::Pointer& outFrame)
 {
   LOG_TRACE("UsImageConverterCommon::ConvertVtkImageToItkImage"); 
 
@@ -481,9 +565,9 @@ PlusStatus UsImageConverterCommon::ConvertVtkImageToItkImage(vtkImageData* inFra
 
   double width = extent[1] - extent[0] + 1; 
   double height = extent[3] - extent[2] + 1; 
-  ImageType::SizeType size = { width, height };
-  ImageType::IndexType start = {0,0};
-  ImageType::RegionType region;
+  itk::Image< unsigned char, 2 >::SizeType size = { width, height };
+  itk::Image< unsigned char, 2 >::IndexType start = {0,0};
+  itk::Image< unsigned char, 2 >::RegionType region;
   region.SetSize(size);
   region.SetIndex(start);
   outFrame->SetRegions(region);
@@ -500,5 +584,114 @@ PlusStatus UsImageConverterCommon::ConvertVtkImageToItkImage(vtkImageData* inFra
   imageExport->Export( outFrame->GetBufferPointer() ); 
 
   return PLUS_SUCCESS; 
+}
+
+//----------------------------------------------------------------------------
+PlusStatus UsImageConverterCommon::GetMFOrientedImage( unsigned char* imageDataPtr, US_IMAGE_ORIENTATION  inUsImageOrientation, const int frameSizeInPx[2], PlusCommon::ITKScalarPixelType pixelType, PlusVideoFrame &outBufferItem)
+{
+  PlusStatus status=PLUS_FAIL;
+  int bitsPerPixel=UsImageConverterCommon::GetNumberOfBytesPerPixel(pixelType)*8;
+  switch (pixelType)
+  {
+  case itk::ImageIOBase::UCHAR:
+    status=UsImageConverterCommon::GetMFOrientedImage(imageDataPtr, inUsImageOrientation, frameSizeInPx, bitsPerPixel, outBufferItem.GetImage<unsigned char>());
+    break;
+  case itk::ImageIOBase::CHAR:
+    status=UsImageConverterCommon::GetMFOrientedImage(imageDataPtr, inUsImageOrientation, frameSizeInPx, bitsPerPixel, outBufferItem.GetImage<char>());
+    break;
+  case itk::ImageIOBase::USHORT:
+    status=UsImageConverterCommon::GetMFOrientedImage(imageDataPtr, inUsImageOrientation, frameSizeInPx, bitsPerPixel, outBufferItem.GetImage<unsigned short>());
+    break;
+  case itk::ImageIOBase::SHORT:
+    status=UsImageConverterCommon::GetMFOrientedImage(imageDataPtr, inUsImageOrientation, frameSizeInPx, bitsPerPixel, outBufferItem.GetImage<short>());
+    break;
+  case itk::ImageIOBase::UINT:
+    status=UsImageConverterCommon::GetMFOrientedImage(imageDataPtr, inUsImageOrientation, frameSizeInPx, bitsPerPixel, outBufferItem.GetImage<unsigned int>());
+    break;
+  case itk::ImageIOBase::INT:
+    status=UsImageConverterCommon::GetMFOrientedImage(imageDataPtr, inUsImageOrientation, frameSizeInPx, bitsPerPixel, outBufferItem.GetImage<int>());
+    break;
+  case itk::ImageIOBase::ULONG:
+    status=UsImageConverterCommon::GetMFOrientedImage(imageDataPtr, inUsImageOrientation, frameSizeInPx, bitsPerPixel, outBufferItem.GetImage<unsigned long>());
+    break;
+  case itk::ImageIOBase::LONG:
+    status=UsImageConverterCommon::GetMFOrientedImage(imageDataPtr, inUsImageOrientation, frameSizeInPx, bitsPerPixel, outBufferItem.GetImage<long>());
+    break;
+  case itk::ImageIOBase::FLOAT:
+    status=UsImageConverterCommon::GetMFOrientedImage(imageDataPtr, inUsImageOrientation, frameSizeInPx, bitsPerPixel, outBufferItem.GetImage<float>());
+    break;
+  case itk::ImageIOBase::DOUBLE:
+    status=UsImageConverterCommon::GetMFOrientedImage(imageDataPtr, inUsImageOrientation, frameSizeInPx, bitsPerPixel, outBufferItem.GetImage<double>());
+    break;
+  default:
+    {
+      LOG_ERROR("Unsupported pixel type: "<<pixelType); 
+      return PLUS_FAIL; 
+    }
+  }
+  return status;
+}
+
+//----------------------------------------------------------------------------
+int UsImageConverterCommon::GetNumberOfBytesPerPixel(PlusCommon::ITKScalarPixelType pixelType)
+{
+  switch (pixelType)
+  {
+    case itk::ImageIOBase::UCHAR: return sizeof(unsigned char);
+    case itk::ImageIOBase::CHAR: return sizeof(char);
+    case itk::ImageIOBase::USHORT: return sizeof(unsigned short);
+    case itk::ImageIOBase::SHORT: return sizeof(short);
+    case itk::ImageIOBase::UINT: return sizeof(unsigned int);
+    case itk::ImageIOBase::INT: return sizeof(int);
+    case itk::ImageIOBase::ULONG: return sizeof(unsigned long);
+    case itk::ImageIOBase::LONG: return sizeof(long);
+    case itk::ImageIOBase::FLOAT: return sizeof(float);
+    case itk::ImageIOBase::DOUBLE: return sizeof(double);
+    default:
+      LOG_ERROR("GetNumberOfBytesPerPixel: unknown pixel type "<<pixelType);
+      return itk::ImageIOBase::UNKNOWNCOMPONENTTYPE;
+  }
+}
+
+//----------------------------------------------------------------------------
+int UsImageConverterCommon::GetVTKScalarPixelType(PlusCommon::ITKScalarPixelType pixelType)
+{
+  switch (pixelType)
+  {
+  case itk::ImageIOBase::UCHAR: return VTK_UNSIGNED_CHAR;
+  case itk::ImageIOBase::CHAR: return VTK_CHAR;
+  case itk::ImageIOBase::USHORT: return VTK_UNSIGNED_SHORT;
+  case itk::ImageIOBase::SHORT: return VTK_SHORT;
+  case itk::ImageIOBase::UINT: return VTK_UNSIGNED_INT;
+  case itk::ImageIOBase::INT: return VTK_INT;
+  case itk::ImageIOBase::ULONG: return VTK_UNSIGNED_LONG;
+  case itk::ImageIOBase::LONG: return VTK_LONG;
+  case itk::ImageIOBase::FLOAT: return VTK_FLOAT;
+  case itk::ImageIOBase::DOUBLE: return VTK_DOUBLE;
+  case itk::ImageIOBase::UNKNOWNCOMPONENTTYPE:
+  default:
+    return VTK_VOID;      
+  }
+}
+
+
+//----------------------------------------------------------------------------
+PlusCommon::ITKScalarPixelType UsImageConverterCommon::GetITKScalarPixelType(int vtkScalarPixelType)
+{
+  switch (vtkScalarPixelType)
+  {
+  case VTK_UNSIGNED_CHAR: return itk::ImageIOBase::UCHAR;
+  case VTK_CHAR: return itk::ImageIOBase::CHAR;
+  case VTK_UNSIGNED_SHORT: return itk::ImageIOBase::USHORT;
+  case VTK_SHORT: return itk::ImageIOBase::SHORT;
+  case VTK_UNSIGNED_INT: return itk::ImageIOBase::UINT;
+  case VTK_INT: return itk::ImageIOBase::INT;
+  case VTK_UNSIGNED_LONG: return itk::ImageIOBase::ULONG;
+  case VTK_LONG: return itk::ImageIOBase::LONG;
+  case VTK_FLOAT: return itk::ImageIOBase::FLOAT;
+  case VTK_DOUBLE: return itk::ImageIOBase::DOUBLE;
+  default:
+    return itk::ImageIOBase::UNKNOWNCOMPONENTTYPE;      
+  }
 }
 

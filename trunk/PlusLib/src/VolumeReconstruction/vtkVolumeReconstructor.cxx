@@ -33,7 +33,7 @@ vtkVolumeReconstructor::vtkVolumeReconstructor()
 
   this->TrackerToolID = 0;
 
-  this->SetNumberOfBitsPerPixel(0); 
+  this->SetPixelType(itk::ImageIOBase::UCHAR); 
 
   this->SetFrameSize(0, 0); 
 
@@ -76,7 +76,7 @@ void vtkVolumeReconstructor::Initialize()
   if ( this->GetNumberOfFrames() > 0 )
   {
     this->GetVideoSource()->SetFrameSize(this->GetFrameSize()); 
-    this->GetVideoSource()->GetBuffer()->SetNumberOfBitsPerPixel( this->GetNumberOfBitsPerPixel() ); 
+    this->GetVideoSource()->GetBuffer()->SetPixelType( this->GetPixelType() ); 
     if ( this->GetVideoSource()->GetBuffer()->SetBufferSize( this->GetNumberOfFrames() ) != PLUS_SUCCESS )
     {
       LOG_ERROR("Failed to set video buffer size!"); 
@@ -121,7 +121,7 @@ void vtkVolumeReconstructor::FillHoles()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkVolumeReconstructor::AddTrackedFrame( ImageType::Pointer frame, US_IMAGE_ORIENTATION usImageOrientation, vtkMatrix4x4* mToolToReference, double timestamp )
+PlusStatus vtkVolumeReconstructor::AddTrackedFrame( const PlusVideoFrame &frame, US_IMAGE_ORIENTATION usImageOrientation, vtkMatrix4x4* mToolToReference, double timestamp )
 {
   if ( !this->GetInitialized() ) 
   {
@@ -132,7 +132,9 @@ PlusStatus vtkVolumeReconstructor::AddTrackedFrame( ImageType::Pointer frame, US
   PlusStatus  videoStatus = this->GetVideoSource()->AddFrameToBuffer( frame, usImageOrientation, timestamp ); 
   PlusStatus trackerStatus = this->GetTracker()->AddTransform( mToolToReference, timestamp ); 
 
-  int extent[6] = {0, frame->GetLargestPossibleRegion().GetSize()[0] - 1, 0, frame->GetLargestPossibleRegion().GetSize()[1] - 1, 0, 0 }; 
+  int frameSize[2]={0,0};
+  frame.GetFrameSize(frameSize);
+  int extent[6] = {0, frameSize[0] - 1, 0, frameSize[1] - 1, 0, 0 }; 
 
   if ( videoStatus == PLUS_SUCCESS && trackerStatus == PLUS_SUCCESS )
   {

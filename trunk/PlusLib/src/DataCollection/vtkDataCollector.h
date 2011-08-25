@@ -57,8 +57,6 @@ enum SYNC_TYPE
 class VTK_EXPORT vtkDataCollector: public vtkImageAlgorithm
 {
 public:
-  typedef UsImageConverterCommon::PixelType PixelType;
-  typedef UsImageConverterCommon::ImageType ImageType;
 
   static vtkDataCollector *New();
   vtkTypeRevisionMacro(vtkDataCollector,vtkImageAlgorithm);
@@ -157,7 +155,7 @@ public:
   // Description:
   // Get frame data by time 
   virtual PlusStatus GetFrameByTime(double time, vtkImageData* frame, double& frameTimestamp); 
-  virtual PlusStatus GetFrameByTime(double time, ImageType::Pointer& frame, double& frameTimestamp); 
+  virtual PlusStatus GetFrameByTime(double time, PlusVideoFrame& frame, double& frameTimestamp); 
 
   // Description:
   // Set/Get the acquisition type 

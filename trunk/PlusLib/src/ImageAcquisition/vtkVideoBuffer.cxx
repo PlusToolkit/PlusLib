@@ -6,7 +6,8 @@
 #include "vtkCriticalSection.h"
 #include "vtkImageData.h"
 
-#include "itkImage.h"
+vtkCxxRevisionMacro(vtkVideoBuffer, "$Revision: 1.0 $");
+vtkStandardNewMacro(vtkVideoBuffer);
 
 //----------------------------------------------------------------------------
 //						VideoBufferItem
@@ -23,7 +24,7 @@ VideoBufferItem::~VideoBufferItem()
 //----------------------------------------------------------------------------
 VideoBufferItem::VideoBufferItem(const VideoBufferItem &videoItem)
 {
-  *this = videoItem; 
+  *this = videoItem;
 }
 
 //----------------------------------------------------------------------------
@@ -35,19 +36,7 @@ VideoBufferItem& VideoBufferItem::operator=(VideoBufferItem const&videoItem)
     return *this;
   }
 
-  if ( videoItem.GetFrame().IsNotNull() )
-  {
-    int frameSize[2] = {videoItem.GetFrame()->GetLargestPossibleRegion().GetSize()[0], videoItem.GetFrame()->GetLargestPossibleRegion().GetSize()[1]}; 
-    if ( this->AllocateFrame(frameSize) != PLUS_SUCCESS )
-    {
-      LOG_ERROR("Failed to allocate memory for the new frame in the buffer!"); 
-    }
-    else
-    {
-      memcpy(this->Frame->GetBufferPointer(), videoItem.GetFrame()->GetBufferPointer(), this->GetFrameSizeInBytes() ); 
-    }
-  }
-
+  this->Frame = videoItem.Frame;
   this->FilteredTimeStamp = videoItem.FilteredTimeStamp; 
   this->UnfilteredTimeStamp = videoItem.UnfilteredTimeStamp; 
   this->Index = videoItem.Index; 
@@ -65,159 +54,20 @@ PlusStatus VideoBufferItem::DeepCopy(VideoBufferItem* videoItem)
     return PLUS_FAIL; 
   }
 
-  if ( videoItem->GetFrame().IsNotNull() )
-  {
-    int frameSize[2] = {videoItem->GetFrame()->GetLargestPossibleRegion().GetSize()[0], videoItem->GetFrame()->GetLargestPossibleRegion().GetSize()[1]}; 
-    if ( this->AllocateFrame(frameSize) != PLUS_SUCCESS )
-    {
-      LOG_ERROR("Failed to allocate memory for the new frame in the buffer!"); 
-    }
-    else
-    {
-      memcpy(this->Frame->GetBufferPointer(), videoItem->GetFrame()->GetBufferPointer(), this->GetFrameSizeInBytes() ); 
-    }
-  }
-
-  this->FilteredTimeStamp = videoItem->FilteredTimeStamp; 
-  this->UnfilteredTimeStamp = videoItem->UnfilteredTimeStamp; 
-  this->Index = videoItem->Index; 
-  this->Uid = videoItem->Uid; 
+  (*this)=(*videoItem);
 
   return PLUS_SUCCESS; 
 }
 
 //----------------------------------------------------------------------------
-PlusStatus VideoBufferItem::AllocateFrame(int imageSize[2])
-{
-  if ( this->Frame.IsNull() )
-  {
-    this->Frame = ImageType::New(); 
-  }
-
-  ImageType::SizeType size = {imageSize[0], imageSize[1]};
-  ImageType::IndexType start = {0,0};
-  ImageType::RegionType region;
-  region.SetSize(size);
-  region.SetIndex(start);
-  this->Frame->SetRegions(region);
-
-  try
-  {
-    this->Frame->Allocate();
-  }
-  catch (itk::ExceptionObject & err) 
-  {		
-    LOG_ERROR("Unable to allocate memory for image: " << err.GetDescription() );
-    return PLUS_FAIL;
-  }	
-
-  return PLUS_SUCCESS; 
-}
-
-//----------------------------------------------------------------------------
-PlusStatus VideoBufferItem::SetFrame(const ImageType::Pointer& frame)
-{
-  if ( this->Frame.IsNull() )
-  {
-    LOG_ERROR("Failed to add frame into video buffer item - frame is NULL!"); 
-    return PLUS_FAIL;     
-  }
-
-  if ( frame->GetLargestPossibleRegion() != this->Frame->GetLargestPossibleRegion() )
-  {
-    LOG_ERROR("Input image region doesn't match buffer image region!"); 
-    return PLUS_FAIL; 
-  }
-
-  memcpy(this->Frame->GetBufferPointer(), frame->GetBufferPointer(), this->GetFrameSizeInBytes() ); 
-
-  return PLUS_SUCCESS; 
-}
-
-
-//----------------------------------------------------------------------------
-unsigned long VideoBufferItem::GetFrameSizeInBytes()
-{
-  const unsigned long imageWidthInPixels = this->Frame->GetLargestPossibleRegion().GetSize()[0]; 
-  const unsigned long imageHeightInPixels = this->Frame->GetLargestPossibleRegion().GetSize()[1]; 
-  unsigned long frameSizeInBytes = imageWidthInPixels * imageHeightInPixels * sizeof(PixelType);
-
-  return frameSizeInBytes; 
-}
-
-//----------------------------------------------------------------------------
-PlusStatus VideoBufferItem::SetFrame(vtkImageData* frame)
-{
-  if ( this->Frame.IsNull() )
-  {
-    LOG_ERROR("Failed to add frame into video buffer item - frame is NULL!"); 
-    return PLUS_FAIL; 
-  }
-
-  const unsigned long imageWidthInPixels = this->Frame->GetLargestPossibleRegion().GetSize()[0]; 
-  const unsigned long imageHeightInPixels = this->Frame->GetLargestPossibleRegion().GetSize()[1]; 
-
-  int* frameExtent = frame->GetExtent(); 
-
-  if ( ( frameExtent[1] - frameExtent[0] + 1 ) != imageWidthInPixels ||
-    ( frameExtent[3] - frameExtent[2] + 1 ) != imageHeightInPixels )
-  {
-    LOG_ERROR("Input image size doesn't match buffer image size!"); 
-    return PLUS_FAIL; 
-  }
-
-  return UsImageConverterCommon::ConvertVtkImageToItkImage(frame, this->Frame); 
-}
-
-//----------------------------------------------------------------------------
-PlusStatus VideoBufferItem::SetFrame(unsigned char *imageDataPtr, 
-                                     const int frameSizeInPx[3],
-                                     int numberOfBitsPerPixel, 
-                                     int numberOfBytesToSkip )
-{
-  if ( imageDataPtr == NULL )
-  {
-    LOG_ERROR( "Failed to add NULL frame to video buffer!"); 
-    return PLUS_FAIL;
-  }
-
-  if ( this->Frame.IsNull() )
-  {
-    LOG_ERROR( "Unable to add frame to video buffer - need to allocate frame first!"); 
-    return PLUS_FAIL; 
-  }
-
-  const unsigned long imageWidthInPixels = this->Frame->GetLargestPossibleRegion().GetSize()[0]; 
-  const unsigned long imageHeightInPixels = this->Frame->GetLargestPossibleRegion().GetSize()[1]; 
-
-  if ( frameSizeInPx[0] != imageWidthInPixels 
-    || frameSizeInPx[1] != imageHeightInPixels )
-  {
-    LOG_ERROR("Input frame size is different from buffer frame size (input: " << frameSizeInPx[0] << "x" << frameSizeInPx[1]
-      << ",   buffer: " << imageWidthInPixels << "x" << imageHeightInPixels << ")!"); 
-    return PLUS_FAIL; 
-  }
-
-  // Skip the numberOfBytesToSkip bytes, e.g. header size
-  imageDataPtr += numberOfBytesToSkip; 
-
-  memcpy(this->Frame->GetBufferPointer(), imageDataPtr, this->GetFrameSizeInBytes() );
-
-  return PLUS_SUCCESS; 
-}
-
-//----------------------------------------------------------------------------
-//						vtkVideoBuffer
-//----------------------------------------------------------------------------
-vtkCxxRevisionMacro(vtkVideoBuffer, "$Revision: 1.0 $");
-vtkStandardNewMacro(vtkVideoBuffer);
-
+// vtkVideoBuffer
 //----------------------------------------------------------------------------
 vtkVideoBuffer::vtkVideoBuffer()
 {
+  this->FrameSize[0]=0; 
+  this->FrameSize[1]=0;
+  this->PixelType=itk::ImageIOBase::UCHAR; 
   this->VideoBuffer = vtkTimestampedCircularBuffer<VideoBufferItem>::New(); 
-  this->SetFrameSize(0,0); 
-  this->SetNumberOfBitsPerPixel(8); 
   AllocateMemoryForFrames();
 }
 
@@ -236,7 +86,7 @@ void vtkVideoBuffer::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os,indent);
   os << indent << "Frame size in pixel: " << this->GetFrameSize()[0] << "   " << this->GetFrameSize()[1] << std::endl; 
-  os << indent << "Number of bits per pixel: " << this->GetNumberOfBitsPerPixel() << std::endl; 
+  os << indent << "ITK scalar pixel type: " << this->GetPixelType() << std::endl; 
 }
 
 //----------------------------------------------------------------------------
@@ -244,9 +94,10 @@ PlusStatus vtkVideoBuffer::AllocateMemoryForFrames()
 {
   PlusLockGuard<VideoBufferType> videoBufferGuardedLock(this->VideoBuffer);
   PlusStatus result=PLUS_SUCCESS;
+
   for ( int i = 0; i < this->VideoBuffer->GetBufferSize(); ++i )
   {
-    if (this->VideoBuffer->GetBufferItemFromBufferIndex(i)->AllocateFrame(this->GetFrameSize())!=PLUS_SUCCESS)
+    if (this->VideoBuffer->GetBufferItemFromBufferIndex(i)->GetFrame().AllocateFrame(this->GetFrameSize(), this->GetPixelType())!=PLUS_SUCCESS)
     {
       LOG_ERROR("Failed to allocate memory for frame "<<i);
       result=PLUS_FAIL;
@@ -301,7 +152,7 @@ PlusStatus vtkVideoBuffer::SetBufferSize(int bufsize)
 }
 
 //----------------------------------------------------------------------------
-bool vtkVideoBuffer::CheckFrameFormat( const int frameSizeInPx[2], int numberOfBitsPerPixel )
+bool vtkVideoBuffer::CheckFrameFormat( const int frameSizeInPx[2], PlusCommon::ITKScalarPixelType pixelType)
 {
   // don't add a frame if it doesn't match the buffer frame format
   if (frameSizeInPx[0] != this->GetFrameSize()[0]||
@@ -312,10 +163,9 @@ bool vtkVideoBuffer::CheckFrameFormat( const int frameSizeInPx[2], int numberOfB
     return false;
   }
 
-  if ( numberOfBitsPerPixel != this->GetNumberOfBitsPerPixel() )
+  if ( pixelType != this->GetPixelType() )
   {
-    LOG_WARNING("Frame format and buffer frame format does not match (expected pixel size: " << this->GetNumberOfBitsPerPixel() 
-      << "bits  received:" << numberOfBitsPerPixel << "bits)!"); 
+    LOG_WARNING("Frame pixel type ("<<pixelType<<") and buffer pixel type (" << this->GetPixelType() <<") mismatch"); 
     return false; 
   }
 
@@ -323,60 +173,43 @@ bool vtkVideoBuffer::CheckFrameFormat( const int frameSizeInPx[2], int numberOfB
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkVideoBuffer::AddItem(unsigned char* imageDataPtr,                               
-                                   US_IMAGE_ORIENTATION  usImageOrientation, 
-                                   const int    frameSizeInPx[2],
-                                   int    numberOfBitsPerPixel, 
-                                   int	numberOfBytesToSkip, 
-                                   long   frameNumber)
-{
-  double unfilteredTimestamp = vtkAccurateTimer::GetSystemTime();
-  return this->AddTimeStampedItem(imageDataPtr, usImageOrientation, frameSizeInPx, numberOfBitsPerPixel, numberOfBytesToSkip, unfilteredTimestamp, frameNumber); 
-}
-
-//----------------------------------------------------------------------------
-PlusStatus vtkVideoBuffer::AddTimeStampedItem(unsigned char* imageDataPtr,                               
+PlusStatus vtkVideoBuffer::AddItem(void* imageDataPtr,                               
                                               US_IMAGE_ORIENTATION  usImageOrientation, 
                                               const int    frameSizeInPx[2],
-                                              int    numberOfBitsPerPixel, 
+                                              PlusCommon::ITKScalarPixelType pixelType, 
                                               int	numberOfBytesToSkip, 
-                                              double unfilteredTimestamp, 
-                                              long   frameNumber)
+                                              long   frameNumber,
+                                              double unfilteredTimestamp/*=UNDEFINED_TIMESTAMP*/, 
+                                              double filteredTimestamp/*=UNDEFINED_TIMESTAMP*/
+                                              )
 {
-  double filteredTimestamp(0); 
-  bool filteredTimestampProbablyValid=true;
-  if ( this->VideoBuffer->CreateFilteredTimeStampForItem(frameNumber, unfilteredTimestamp, filteredTimestamp, filteredTimestampProbablyValid) != PLUS_SUCCESS )
+  if (unfilteredTimestamp==UNDEFINED_TIMESTAMP)
   {
-    LOG_WARNING("Failed to create filtered timestamp for video buffer item with item index: " << frameNumber ); 
-    return PLUS_FAIL; 
-  }
-  if (!filteredTimestampProbablyValid)
-  {
-    LOG_INFO("Filtered timestamp is probably invalid for video buffer item with item index=" << frameNumber << ", time="<<unfilteredTimestamp<<". The item may have been tagged with an inaccurate timestamp, therefore it will not be recorded." ); 
-    return PLUS_SUCCESS;
+    unfilteredTimestamp = vtkAccurateTimer::GetSystemTime();
   }
 
-  return this->AddTimeStampedItem(imageDataPtr, usImageOrientation, frameSizeInPx, numberOfBitsPerPixel, numberOfBytesToSkip, unfilteredTimestamp, filteredTimestamp, frameNumber); 
-}
+  if (filteredTimestamp==UNDEFINED_TIMESTAMP)
+  {
+    bool filteredTimestampProbablyValid=true;
+    if ( this->VideoBuffer->CreateFilteredTimeStampForItem(frameNumber, unfilteredTimestamp, filteredTimestamp, filteredTimestampProbablyValid) != PLUS_SUCCESS )
+    {
+      LOG_WARNING("Failed to create filtered timestamp for video buffer item with item index: " << frameNumber ); 
+      return PLUS_FAIL; 
+    }
+    if (!filteredTimestampProbablyValid)
+    {
+      LOG_INFO("Filtered timestamp is probably invalid for video buffer item with item index=" << frameNumber << ", time="<<unfilteredTimestamp<<". The item may have been tagged with an inaccurate timestamp, therefore it will not be recorded." ); 
+      return PLUS_SUCCESS;
+    }
+  }
 
-
-//----------------------------------------------------------------------------
-PlusStatus vtkVideoBuffer::AddTimeStampedItem(unsigned char* imageDataPtr,                               
-                                              US_IMAGE_ORIENTATION  usImageOrientation, 
-                                              const int    frameSizeInPx[2],
-                                              int    numberOfBitsPerPixel, 
-                                              int	numberOfBytesToSkip, 
-                                              double unfilteredTimestamp, 
-                                              double filteredTimestamp,
-                                              long   frameNumber)
-{
   if ( imageDataPtr == NULL )
   {
     LOG_ERROR( "vtkVideoBuffer: Unable to add NULL frame to video buffer!"); 
     return PLUS_FAIL; 
   }
 
-  if ( !this->CheckFrameFormat(frameSizeInPx, numberOfBitsPerPixel) )
+  if ( !this->CheckFrameFormat(frameSizeInPx, pixelType) )
   {
     LOG_ERROR( "vtkVideoBuffer: Unable to add frame to video buffer - frame format doesn't match!"); 
     return PLUS_FAIL; 
@@ -400,23 +233,22 @@ PlusStatus vtkVideoBuffer::AddTimeStampedItem(unsigned char* imageDataPtr,
     return PLUS_FAIL; 
   }
 
-  VideoBufferItem::ImageType::Pointer newFrameInBuffer = newObjectInBuffer->GetFrame(); 
+  int receivedFrameSize[2]={0,0};
+  newObjectInBuffer->GetFrame().GetFrameSize(receivedFrameSize); 
 
-  const unsigned long imageWidthInPixels = newFrameInBuffer->GetLargestPossibleRegion().GetSize()[0]; 
-  const unsigned long imageHeightInPixels = newFrameInBuffer->GetLargestPossibleRegion().GetSize()[1]; 
-
-  if ( frameSizeInPx[0] != imageWidthInPixels 
-    || frameSizeInPx[1] != imageHeightInPixels )
+  if ( frameSizeInPx[0] != receivedFrameSize[0] 
+    || frameSizeInPx[1] != receivedFrameSize[1] )
   {
     LOG_ERROR("Input frame size is different from buffer frame size (input: " << frameSizeInPx[0] << "x" << frameSizeInPx[1]
-      << ",   buffer: " << imageWidthInPixels << "x" << imageHeightInPixels << ")!"); 
+      << ",   buffer: " << receivedFrameSize[0] << "x" << receivedFrameSize[1] << ")!"); 
     return PLUS_FAIL; 
   }
 
   // Skip the numberOfBytesToSkip bytes, e.g. header size
-  imageDataPtr += numberOfBytesToSkip; 
+  unsigned char* byteImageDataPtr=reinterpret_cast<unsigned char*>(imageDataPtr);
+  byteImageDataPtr += numberOfBytesToSkip; 
 
-  if ( UsImageConverterCommon::GetMFOrientedImage(imageDataPtr, usImageOrientation, frameSizeInPx, numberOfBitsPerPixel, newFrameInBuffer) != PLUS_SUCCESS )
+  if (UsImageConverterCommon::GetMFOrientedImage(byteImageDataPtr, usImageOrientation, frameSizeInPx, pixelType, newObjectInBuffer->GetFrame())!=PLUS_SUCCESS)
   {
     LOG_ERROR("Failed to convert input US image to MF orientation!"); 
     return PLUS_FAIL; 
@@ -431,15 +263,28 @@ PlusStatus vtkVideoBuffer::AddTimeStampedItem(unsigned char* imageDataPtr,
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkVideoBuffer::AddItem(vtkImageData* frame, US_IMAGE_ORIENTATION usImageOrientation, long frameNumber)
+PlusStatus vtkVideoBuffer::AddItem(vtkImageData* frame, US_IMAGE_ORIENTATION usImageOrientation, long frameNumber, double unfilteredTimestamp/*=UNDEFINED_TIMESTAMP*/, double filteredTimestamp/*=UNDEFINED_TIMESTAMP*/)
 {
-  double unfilteredTimestamp = vtkAccurateTimer::GetSystemTime();
-  return this->AddTimeStampedItem(frame, usImageOrientation, unfilteredTimestamp, frameNumber); 
-}
+  if (unfilteredTimestamp==UNDEFINED_TIMESTAMP)
+  {
+    unfilteredTimestamp = vtkAccurateTimer::GetSystemTime();
+  }
 
-//----------------------------------------------------------------------------
-PlusStatus vtkVideoBuffer::AddTimeStampedItem(vtkImageData* frame, US_IMAGE_ORIENTATION usImageOrientation, double unfilteredTimestamp, long frameNumber)
-{
+  if (filteredTimestamp==UNDEFINED_TIMESTAMP)
+  {
+    bool filteredTimestampProbablyValid=true;
+    if ( this->VideoBuffer->CreateFilteredTimeStampForItem(frameNumber, unfilteredTimestamp, filteredTimestamp, filteredTimestampProbablyValid) != PLUS_SUCCESS )
+    {
+      LOG_WARNING("Failed to create filtered timestamp for video buffer item with item index: " << frameNumber ); 
+      return PLUS_FAIL; 
+    }
+    if (!filteredTimestampProbablyValid)
+    {
+      LOG_INFO("Filtered timestamp is probably invalid for video buffer item with item index=" << frameNumber << ", time="<<unfilteredTimestamp<<". The item may have been tagged with an inaccurate timestamp, therefore it will not be recorded." ); 
+      return PLUS_SUCCESS;
+    }
+  }
+
   vtkSmartPointer<vtkImageData> mfOrientedImage = vtkSmartPointer<vtkImageData>::New(); 
   if ( UsImageConverterCommon::GetMFOrientedImage(frame, usImageOrientation, mfOrientedImage) != PLUS_SUCCESS )
   {
@@ -449,24 +294,39 @@ PlusStatus vtkVideoBuffer::AddTimeStampedItem(vtkImageData* frame, US_IMAGE_ORIE
 
   const int* frameExtent = mfOrientedImage->GetExtent(); 
   const int frameSize[2] = {(frameExtent[1] - frameExtent[0] + 1), (frameExtent[3] - frameExtent[2] + 1)}; 
-  const int numberOfBits = mfOrientedImage->GetScalarSize() * 8; 
-  return this->AddTimeStampedItem( reinterpret_cast<unsigned char*>(mfOrientedImage->GetScalarPointer()), US_IMG_ORIENT_MF , frameSize, numberOfBits, 0, unfilteredTimestamp, frameNumber); 
+  PlusCommon::ITKScalarPixelType pixelType=UsImageConverterCommon::GetITKScalarPixelType(frame->GetScalarType());
+  return this->AddItem( reinterpret_cast<unsigned char*>(mfOrientedImage->GetScalarPointer()), US_IMG_ORIENT_MF , frameSize, pixelType, 0, frameNumber, unfilteredTimestamp, filteredTimestamp); 
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkVideoBuffer::AddTimeStampedItem(vtkImageData* frame, US_IMAGE_ORIENTATION usImageOrientation, double unfilteredTimestamp, double filteredTimestamp, long frameNumber)
+PlusStatus vtkVideoBuffer::AddItem(const PlusVideoFrame& frame, US_IMAGE_ORIENTATION usImageOrientation, long frameNumber, double unfilteredTimestamp/*=UNDEFINED_TIMESTAMP*/, double filteredTimestamp/*=UNDEFINED_TIMESTAMP*/)
 {
-  vtkSmartPointer<vtkImageData> mfOrientedImage = vtkSmartPointer<vtkImageData>::New(); 
-  if ( UsImageConverterCommon::GetMFOrientedImage(frame, usImageOrientation, mfOrientedImage) != PLUS_SUCCESS )
+  if (unfilteredTimestamp==UNDEFINED_TIMESTAMP)
   {
-    LOG_ERROR("Failed to add video item to buffer: couldn't get MF oriented frame!"); 
-    return PLUS_FAIL; 
+    unfilteredTimestamp = vtkAccurateTimer::GetSystemTime();
   }
 
-  const int* frameExtent = mfOrientedImage->GetExtent(); 
-  const int frameSize[2] = {(frameExtent[1] - frameExtent[0] + 1), (frameExtent[3] - frameExtent[2] + 1)}; 
-  const int numberOfBits = mfOrientedImage->GetScalarSize() * 8; 
-  return this->AddTimeStampedItem( reinterpret_cast<unsigned char*>(mfOrientedImage->GetScalarPointer()), US_IMG_ORIENT_MF , frameSize, numberOfBits, 0, unfilteredTimestamp, filteredTimestamp, frameNumber); 
+  if (filteredTimestamp==UNDEFINED_TIMESTAMP)
+  {
+    bool filteredTimestampProbablyValid=true;
+    if ( this->VideoBuffer->CreateFilteredTimeStampForItem(frameNumber, unfilteredTimestamp, filteredTimestamp, filteredTimestampProbablyValid) != PLUS_SUCCESS )
+    {
+      LOG_WARNING("Failed to create filtered timestamp for video buffer item with item index: " << frameNumber ); 
+      return PLUS_FAIL; 
+    }
+    if (!filteredTimestampProbablyValid)
+    {
+      LOG_INFO("Filtered timestamp is probably invalid for video buffer item with item index=" << frameNumber << ", time="<<unfilteredTimestamp<<". The item may have been tagged with an inaccurate timestamp, therefore it will not be recorded." ); 
+      return PLUS_SUCCESS;
+    }
+  }
+
+  unsigned char* pixelBufferPointer = static_cast<unsigned char*>(frame.GetBufferPointer()); 
+  int frameSize[2]={0,0};
+  frame.GetFrameSize(frameSize);    
+
+  // Images in the tracked frame list always stored in MF orientation 
+  return this->AddItem(pixelBufferPointer, US_IMG_ORIENT_MF, frameSize, frame.GetITKScalarPixelType(), 0 /* no skip*/, frameNumber, unfilteredTimestamp, filteredTimestamp);  
 }
 
 //----------------------------------------------------------------------------
@@ -581,7 +441,7 @@ void vtkVideoBuffer::DeepCopy(vtkVideoBuffer* buffer)
 {
   this->VideoBuffer->DeepCopy( buffer->VideoBuffer ); 
   this->SetFrameSize( buffer->GetFrameSize() ); 
-  this->SetNumberOfBitsPerPixel( buffer->GetNumberOfBitsPerPixel() ); 
+  this->SetPixelType(buffer->GetPixelType());
   this->SetBufferSize(buffer->GetBufferSize()); 
 }
 
@@ -616,19 +476,19 @@ PlusStatus vtkVideoBuffer::SetFrameSize(int frameSize[2])
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkVideoBuffer::SetNumberOfBitsPerPixel(int bits)
+PlusStatus vtkVideoBuffer::SetPixelType(PlusCommon::ITKScalarPixelType pixelType) 
 {
-  if (bits<0)
-  {
-    LOG_ERROR("Invalid NumberOfBitsPerPixel requested: "<<bits);
-    return PLUS_FAIL;
-  }
-  if (this->NumberOfBitsPerPixel==bits)
+  if (pixelType==this->PixelType)
   {
     // no change
     return PLUS_SUCCESS;
   }
-  this->NumberOfBitsPerPixel=bits;
-  // TODO: would need to update the bits per pixel in the buffer as well
+  this->PixelType=pixelType;
   return AllocateMemoryForFrames();
+}
+
+//----------------------------------------------------------------------------
+int vtkVideoBuffer::GetNumberOfBytesPerPixel()
+{
+  return UsImageConverterCommon::GetNumberOfBytesPerPixel(GetPixelType());
 }

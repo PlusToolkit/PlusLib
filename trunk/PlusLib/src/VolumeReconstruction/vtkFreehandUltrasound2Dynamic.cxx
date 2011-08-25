@@ -1092,7 +1092,7 @@ PlusStatus vtkFreehandUltrasound2Dynamic::UpdateSlice(vtkImageData* inData, int&
         this->PreviousVideoTime = this->VideoTime;
         this->VideoTime = bufferItem.GetTimestamp(0); 
 
-        UsImageConverterCommon::ConvertItkImageToVtkImage(bufferItem.GetFrame(), inData); 
+        bufferItem.GetFrame().CopyToVtkImage(inData); 
         inData->Modified(); 
 
         this->VideoBufferUid++; 

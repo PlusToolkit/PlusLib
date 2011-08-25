@@ -66,6 +66,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "vtkPlusVideoSource.h"
 #include "ulterius.h"
 #include "ulterius_def.h"
+#include "ImagingModes.h" // Ulterius imaging modes
 
 //BTX
 
@@ -116,7 +117,39 @@ public:
   virtual PlusStatus WriteConfiguration(vtkXMLDataElement* config);
 
   // Description:
-  // Request a particular mode of imaging (e.g. B-mode (0), M-mode(1), Color-doppler(2), pulsed-doppler(3); default: B-mode).
+  // Request a particular mode of imaging
+  // Usable values are described in ImagingModes.h
+  // default: B-mode
+  /*
+    BMode = 0,
+    MMode = 1,
+    ColourMode = 2,
+    PwMode = 3,
+    TriplexMode = 4,
+    PanoMode = 5,
+    DualMode = 6,
+    QuadMode = 7,
+    CompoundMode = 8,
+    DualColourMode = 9,
+    DualCompoundMode = 10,
+    CwMode = 11,
+    RfMode = 12,
+    ColorSplitMode = 13,
+    F4DMode = 14,
+    TriplexCwMode = 15,
+    ColourMMode = 16,
+    ElastoMode = 17,
+    SDUVMode = 18,
+    AnatomicalMMode = 19,
+    ElastoComparativeMode = 20,
+    FusionMode = 21,
+    VecDopMode = 22,
+    BiplaneMode = 23,
+    ClinicalRfMode = 24,
+    RfCompoundMode = 25,
+    SHINEMode = 26,
+    ColourRfMode = 27,
+  */
   void SetImagingMode(int mode){ImagingMode = mode;};
   void GetImagingMode(int & mode){mode = ImagingMode;};
 
@@ -181,16 +214,30 @@ public:
   vtkSetMacro(Timeout, int);
 
   // Description:
-  // Request a particular data type from sonix machine by means of a mask.
-  // Range of types supported:  1) Screen (800 x 600); 2) B Pre Scan Converted; 3) B Post Scan Converted (8 bit);
-  //              4) B Post Scan Converted (32 bit); 5) RF; 6) M Pre Scan Converted;
-  //              7) M Post Scan Converted; 8) PW RF; 9) PW Spectrum;
-  //              10)Color RF; 11) Color Post; 12) Color Sigma;
-  //              13)Color Velocity; 14) Elasto + B-image (32); 15) Elasto Overlay (8 bit); 16) Elasto Pre Scan Coverted (8 bit)
-  // Currently supported data masks: 1) Screen
-  // The mask must be applied before any data can be acquired via realtime imaging or cine retreival
+  // Request a particular data type from sonix machine by means of a bitmask.
+  // The mask must be applied before any data can be acquired via realtime imaging or cine retrieval
+  /*
+    udtScreen = 0x00000001,   // Screen
+    udtBPre = 0x00000002,     // B Pre Scan Converted
+    udtBPost = 0x00000004,    // B Post Scan Converted (8 bit)
+    udtBPost32 = 0x00000008,  // B Post Scan Converted (32 bit)
+    udtRF = 0x00000010,       // RF
+    udtMPre = 0x00000020,     // M Pre Scan Converted
+    udtMPost = 0x00000040,    // M Post Scan Converted
+    udtPWRF = 0x00000080,     // PW RF
+    udtPWSpectrum = 0x00000100,           
+    udtColorRF = 0x00000200,              
+    udtColorCombined = 0x00000400,
+    udtColorVelocityVariance = 0x00000800,
+    udtElastoCombined = 0x00002000, // Elasto + B-image (32 bit)
+    udtElastoOverlay = 0x00004000,  // Elasto Overlay (8 bit)
+    udtElastoPre = 0x00008000,      // Elasto Pre Scan Coverted (8 bit)
+    udtECG = 0x00010000,
+    udtGPS = 0x00020000,
+    udtPNG = 0x10000000
+*/
   vtkGetMacro(AcquisitionDataType, int);
-  vtkSetMacro(AcquisitionDataType, int);
+  PlusStatus SetAcquisitionDataType(int acquisitionDataType);
 
 protected:
   vtkSonixVideoSource();
@@ -219,6 +266,7 @@ protected:
 
   ulterius Ult;
   uDataDesc DataDescriptor;
+
   int Frequency;
   int Depth;
   int Sector; 
@@ -231,7 +279,6 @@ protected:
   int OutputFormat;
   int CompressionStatus; 
   int Timeout; 
-
   
   char *SonixIP;
 

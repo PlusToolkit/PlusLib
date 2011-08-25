@@ -15,6 +15,192 @@
 #include "vtkCommand.h"
 #include "vtkSmartPointer.h"
 
+enum DisplayMode
+{
+  SHOW_IMAGE,
+  SHOW_PLOT
+};
+
+/*=========================================================================*/
+
+#include "vtkRenderer.h"
+#include "vtkRenderWindow.h"
+#include "vtkChartXY.h"
+#include "vtkPlot.h"
+#include "vtkTable.h"
+#include "vtkFloatArray.h"
+#include "vtkContextView.h"
+#include "vtkContextScene.h"
+#include "vtkTableAlgorithm.h"
+#include "vtkInformation.h"
+#include "vtkInformationVector.h"
+#include "vtkImageData.h"
+
+
+//----------------------------------------------------------------------------
+
+class vtkExtractImageRow : public vtkTableAlgorithm
+{
+public:
+  static vtkExtractImageRow* New();
+  vtkTypeMacro(vtkExtractImageRow,vtkTableAlgorithm);
+  void PrintSelf(ostream& os, vtkIndent indent)
+  {
+    this->Superclass::PrintSelf(os, indent);
+  }
+
+  // Description:
+  // Specify the first vtkGraph input and the second vtkSelection input.
+  int FillInputPortInformation(int port, vtkInformation* info)
+  {
+    if (port == 0)
+    {
+      info->Set(vtkAlgorithm::INPUT_REQUIRED_DATA_TYPE(), "vtkImageData");
+      return 1;
+    }
+    return 0;
+  }
+
+protected:
+  vtkExtractImageRow()
+  {
+    this->SetNumberOfInputPorts(1);
+  }
+  virtual ~vtkExtractImageRow()
+  {
+  }
+
+  int RequestData(vtkInformation* vtkNotUsed(request), vtkInformationVector** inputVector, vtkInformationVector* outputVector)
+  {
+    vtkImageData* inputImage = vtkImageData::GetData(inputVector[0]);
+    vtkInformation* outInfo = outputVector->GetInformationObject(0);
+    vtkTable* outputTable = vtkTable::SafeDownCast(outInfo->Get(vtkDataObject::DATA_OBJECT()));
+
+    if(!inputImage)
+    {
+      LOG_ERROR("No input image is available");
+      return 0;
+    }
+
+    // Create the tables if they haven't been created yet
+    if (outputTable->GetColumnByName("time")==NULL)
+    {
+      vtkSmartPointer<vtkFloatArray> arrXnew = vtkSmartPointer<vtkFloatArray>::New();
+      arrXnew->SetName("time");
+      outputTable->AddColumn(arrXnew);
+    }
+    if (outputTable->GetColumnByName("RF value")==NULL)
+    {
+      vtkSmartPointer<vtkFloatArray> arrRfValNew = vtkSmartPointer<vtkFloatArray>::New();
+      arrRfValNew->SetName("RF value");
+      outputTable->AddColumn(arrRfValNew);
+    }
+
+    if (inputImage->GetScalarType()!=VTK_SHORT)
+    {
+      LOG_ERROR("Plotting is only supported for signed short data");
+      return 0;
+    }
+    int rowCount=inputImage->GetDimensions()[1]; // number of transudcer crystals
+    int numPoints=inputImage->GetDimensions()[0]; // number of data points (RF data values) recorded for one crystal
+    int selectedRow=rowCount/2; // plot the center column of the image
+    short* pixelBuffer=reinterpret_cast<short*>(inputImage->GetScalarPointer())+selectedRow*numPoints;
+
+    outputTable->SetNumberOfRows(numPoints);
+    for (int i = 0; i < numPoints; ++i)
+    {
+      outputTable->SetValue(i, 0, i);
+      short value=*pixelBuffer;
+      outputTable->SetValue(i, 1, value);
+      pixelBuffer++;
+    }
+
+    return 1;
+  } 
+
+private:
+  vtkExtractImageRow(const vtkExtractImageRow&); // Not implemented
+  void operator=(const vtkExtractImageRow&);   // Not implemented
+};
+
+vtkStandardNewMacro(vtkExtractImageRow);
+
+//---------------------------------------------------------------------------------
+
+class vtkMyPlotCallback : public vtkCommand
+{
+public:
+  static vtkMyPlotCallback *New()	{ return new vtkMyPlotCallback; }
+
+  virtual void Execute(vtkObject *caller, unsigned long eventId, void* callData)
+  {   
+    if (eventId==vtkCommand::KeyPressEvent)
+    {
+      if (m_Interactor->GetKeyCode()=='q')
+      {
+        m_Interactor->ExitCallback();
+      }
+      return;
+    }
+
+    m_ImageToTableAdaptor->Update();
+    m_Viewer->Render();
+    //update the timer so it will trigger again
+    m_Interactor->CreateTimer(VTKI_TIMER_UPDATE);
+  }
+
+  vtkRenderWindowInteractor *m_Interactor;
+  vtkContextView *m_Viewer;
+  vtkExtractImageRow *m_ImageToTableAdaptor;
+
+private:
+
+  vtkMyPlotCallback()
+  { 
+    m_Interactor=NULL;
+    m_Viewer=NULL;
+    m_ImageToTableAdaptor=NULL;
+  }
+};
+
+//----------------------------------------------------------------------------
+void TestLinePlot(vtkSonixVideoSource *sonixGrabber)
+{
+  // Set up a 2D scene, add an XY chart to it
+  vtkSmartPointer<vtkContextView> view = vtkSmartPointer<vtkContextView>::New();
+  view->GetRenderer()->SetBackground(1.0, 1.0, 1.0);
+  view->GetRenderWindow()->SetSize(400, 300);
+  vtkSmartPointer<vtkChartXY> chart = vtkSmartPointer<vtkChartXY>::New();
+  view->GetScene()->AddItem(chart);
+
+  vtkSmartPointer<vtkExtractImageRow> imageToTableAdaptor=vtkSmartPointer<vtkExtractImageRow>::New();
+  imageToTableAdaptor->SetInputConnection(sonixGrabber->GetOutputPort());
+  imageToTableAdaptor->Update();
+
+  // Add multiple line plots, setting the colors etc
+  vtkPlot *line = chart->AddPlot(vtkChart::LINE);
+  line->SetInput(imageToTableAdaptor->GetOutput(), 0, 1);
+  line->SetColor(0, 255, 0, 255);
+  line->SetWidth(1.0);
+
+  vtkSmartPointer<vtkMyPlotCallback> call = vtkSmartPointer<vtkMyPlotCallback>::New();
+  call->m_Interactor=view->GetInteractor();
+  call->m_Viewer=view;
+  call->m_ImageToTableAdaptor=imageToTableAdaptor;
+
+  view->GetInteractor()->Initialize();
+
+  view->GetInteractor()->AddObserver(vtkCommand::TimerEvent, call);
+  view->GetInteractor()->CreateTimer(VTKI_TIMER_FIRST);
+
+  view->GetInteractor()->AddObserver(vtkCommand::KeyPressEvent, call);
+
+  view->GetInteractor()->Start();
+
+} 
+
+//---------------------------------------------------------------------------------
+
 class vtkMyCallback : public vtkCommand
 {
 public:
@@ -25,7 +211,6 @@ public:
     m_Viewer->Render();
 
     //update the timer so it will trigger again
-    //VTKI_TIMER_UPDATE = 1
     m_Interactor->CreateTimer(VTKI_TIMER_UPDATE);
   }
 
@@ -41,12 +226,14 @@ private:
   }
 };
 
+//-------------------------------------------------------------------------------------------
+
 int main(int argc, char* argv[])
 {
-
   bool printHelp(false); 
   bool renderingOff(false);
   std::string inputSonixIP("130.15.7.212");
+  std::string acqMode("B");
 
   vtksys::CommandLineArguments args;
   args.Initialize(argc, argv);
@@ -55,6 +242,7 @@ int main(int argc, char* argv[])
 
   args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");	
   args.AddArgument("--sonix-ip", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputSonixIP, "SonixRP ip address (Default: 130.15.7.212)" );
+  args.AddArgument("--acq-mode", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &acqMode, "Acquisition mode: B or RF (Default: B).");	
   args.AddArgument("--rendering-off", vtksys::CommandLineArguments::NO_ARGUMENT, &renderingOff, "Run test without rendering.");	
   args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (Default: 1; 1=error only, 2=warning, 3=info, 4=debug)");	
 
@@ -72,13 +260,35 @@ int main(int argc, char* argv[])
   }
 
   PlusLogger::Instance()->SetLogLevel(verboseLevel);
+  PlusLogger::Instance()->SetDisplayLogLevel(verboseLevel);
 
   vtkSmartPointer<vtkSonixVideoSource> sonixGrabber = vtkSmartPointer<vtkSonixVideoSource>::New();
 
   sonixGrabber->SetSonixIP(inputSonixIP.c_str());
   sonixGrabber->SetUsImageOrientation( US_IMG_ORIENT_UF ); // just randomly set an orientation (otherwise we would get an error that the orientation is undefined)
-  sonixGrabber->SetImagingMode(0);
-  sonixGrabber->SetAcquisitionDataType(udtBPost);
+
+  DisplayMode displayMode=SHOW_IMAGE;
+  
+  if (STRCASECMP(acqMode.c_str(), "B")==0)
+  {
+    LOG_DEBUG("Acquisition mode: B");
+    sonixGrabber->SetImagingMode(BMode);
+    sonixGrabber->SetAcquisitionDataType(udtBPost);
+    displayMode=SHOW_IMAGE;
+  }
+  else if (STRCASECMP(acqMode.c_str(), "RF")==0)
+  {
+    LOG_DEBUG("Acquisition mode: RF");
+    sonixGrabber->SetImagingMode(RfMode);
+    sonixGrabber->SetAcquisitionDataType(udtRF);
+    displayMode=SHOW_PLOT;
+  }
+  else
+  {
+    LOG_ERROR("Unsupported AcquisitionDataType requested: "<<acqMode);
+    exit(EXIT_FAILURE);
+  }
+
   if ( sonixGrabber->GetBuffer()->SetBufferSize(30) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to set video buffer size!"); 
@@ -102,31 +312,38 @@ int main(int argc, char* argv[])
     exit(EXIT_SUCCESS);
   }
 
-  // Show the live ultrasound image in a VTK renderer window
+  if (displayMode==SHOW_PLOT)
+  {
+    TestLinePlot(sonixGrabber);
+  }
+  else
+  {
+    // Show the live ultrasound image in a VTK renderer window
 
-  vtkSmartPointer<vtkImageViewer> viewer = vtkSmartPointer<vtkImageViewer>::New();
-  viewer->SetInput(sonixGrabber->GetOutput());   //set image to the render and window
-  viewer->SetColorWindow(255);
-  viewer->SetColorLevel(127.5);
-  viewer->SetZSlice(0);
+    vtkSmartPointer<vtkImageViewer> viewer = vtkSmartPointer<vtkImageViewer>::New();
+    viewer->SetInput(sonixGrabber->GetOutput());   //set image to the render and window
+    viewer->SetColorWindow(255);
+    viewer->SetColorLevel(127.5);
+    viewer->SetZSlice(0);
 
-  //Create the interactor that handles the event loop
-  vtkSmartPointer<vtkRenderWindowInteractor> iren = vtkSmartPointer<vtkRenderWindowInteractor>::New();
-  iren->SetRenderWindow(viewer->GetRenderWindow());
-  viewer->SetupInteractor(iren);
+    //Create the interactor that handles the event loop
+    vtkSmartPointer<vtkRenderWindowInteractor> iren = vtkSmartPointer<vtkRenderWindowInteractor>::New();
+    iren->SetRenderWindow(viewer->GetRenderWindow());
+    viewer->SetupInteractor(iren);
 
-  viewer->Render();	//must be called after iren and viewer are linked or there will be problems
+    viewer->Render();	//must be called after iren and viewer are linked or there will be problems
 
-  // Establish timer event and create timer to update the live image
-  vtkSmartPointer<vtkMyCallback> call = vtkSmartPointer<vtkMyCallback>::New();
-  call->m_Interactor=iren;
-  call->m_Viewer=viewer;
-  iren->AddObserver(vtkCommand::TimerEvent, call);
-  iren->CreateTimer(VTKI_TIMER_FIRST);		//VTKI_TIMER_FIRST = 0
+    // Establish timer event and create timer to update the live image
+    vtkSmartPointer<vtkMyCallback> call = vtkSmartPointer<vtkMyCallback>::New();
+    call->m_Interactor=iren;
+    call->m_Viewer=viewer;
+    iren->AddObserver(vtkCommand::TimerEvent, call);
+    iren->CreateTimer(VTKI_TIMER_FIRST);
 
-  //iren must be initialized so that it can handle events
-  iren->Initialize();
-  iren->Start();
+    //iren must be initialized so that it can handle events
+    iren->Initialize();
+    iren->Start();
+  }
 
   sonixGrabber->Disconnect();
 

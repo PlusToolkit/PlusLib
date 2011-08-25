@@ -181,15 +181,11 @@ int main(int argc, char **argv)
     return EXIT_FAILURE; 
   }
 
-
-  const unsigned long imageWidthInPixels = videoFrameList->GetTrackedFrame(0)->ImageData->GetLargestPossibleRegion().GetSize()[0]; 
-  const unsigned long imageHeightInPixels = videoFrameList->GetTrackedFrame(0)->ImageData->GetLargestPossibleRegion().GetSize()[1]; 
-  unsigned int frameSizeInBytes = imageWidthInPixels * imageHeightInPixels * sizeof(TrackedFrame::PixelType);
-  const int numberOfBitsPerPixel = videoFrameList->GetTrackedFrame(0)->ImageData->GetNumberOfComponentsPerPixel() * sizeof(TrackedFrame::PixelType)*8; 
-
   vtkSmartPointer<vtkVideoBuffer> videoBuffer = vtkSmartPointer<vtkVideoBuffer>::New(); 
-  videoBuffer->SetFrameSize(imageWidthInPixels, imageHeightInPixels); 
-  videoBuffer->SetNumberOfBitsPerPixel(numberOfBitsPerPixel); 
+  int frameSize[2]={0,0};
+  videoFrameList->GetTrackedFrame(0)->ImageData.GetFrameSize(frameSize);
+  videoBuffer->SetFrameSize(frameSize); 
+  videoBuffer->SetPixelType(videoFrameList->GetTrackedFrame(0)->ImageData.GetITKScalarPixelType());
 
   if ( videoBuffer->SetBufferSize(numberOfVideoFrames) != PLUS_SUCCESS )
   {
@@ -239,13 +235,9 @@ int main(int argc, char **argv)
       numberOfErrors++; 
       continue; 
     }
-
-    TrackedFrame::PixelType *deviceDataPtr = videoFrameList->GetTrackedFrame(frameNumber)->ImageData->GetBufferPointer(); 
-    const int frameSize[3] = {videoFrameList->GetTrackedFrame(frameNumber)->ImageData->GetLargestPossibleRegion().GetSize()[0], videoFrameList->GetTrackedFrame(frameNumber)->ImageData->GetLargestPossibleRegion().GetSize()[1], 1}; 
-    const int numberOfBitsPerPixel = videoFrameList->GetTrackedFrame(frameNumber)->ImageData->GetNumberOfComponentsPerPixel() * sizeof(TrackedFrame::PixelType) * 8; 
-
+    
     // Images in the tracked frame list always stored in MF orientation 
-    if ( videoBuffer->AddTimeStampedItem(deviceDataPtr, US_IMG_ORIENT_MF, frameSize, numberOfBitsPerPixel, 0, unfilteredtimestamp, timestamp, frmnum) != PLUS_SUCCESS )
+    if ( videoBuffer->AddItem(videoFrameList->GetTrackedFrame(frameNumber)->ImageData, US_IMG_ORIENT_MF, frmnum, unfilteredtimestamp, timestamp) != PLUS_SUCCESS )
     {
       LOG_WARNING("Failed to add video frame to buffer from sequence metafile with frame #" << frameNumber ); 
     }

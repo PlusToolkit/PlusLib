@@ -48,8 +48,13 @@ void SegmentImageSequence( vtkTrackedFrameList* trackedFrameList, std::ofstream 
 		possibleFiducialsImageFilename << inputTestcaseName << std::setw(3) << std::setfill('0') << currentFrameIndex << ".bmp" << std::ends; 
 
     PatternRecognitionResult segResults;
-
-    calibrationController->GetPatternRecognition()->RecognizePattern(trackedFrameList->GetTrackedFrame(currentFrameIndex)->ImageData->GetBufferPointer(), segResults );
+	
+    if ( trackedFrameList->GetTrackedFrame(currentFrameIndex)->ImageData.GetITKScalarPixelType()!=itk::ImageIOBase::UCHAR)
+    {
+        LOG_ERROR("UsFidSegTest only supports 8-bit images"); 
+        continue; 
+    }
+    calibrationController->GetPatternRecognition()->RecognizePattern(reinterpret_cast<PixelType*>(trackedFrameList->GetTrackedFrame(currentFrameIndex)->ImageData.GetBufferPointer()), segResults );
 		
 		sumFiducialCandidate += segResults.GetNumDots();
 		int numFid=0;

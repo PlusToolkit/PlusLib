@@ -502,7 +502,8 @@ PlusStatus vtkDataCollector::WriteTrackerToMetafile( vtkTracker* tracker, const 
   for ( int i = 0 ; i < numberOfItems; i++ ) 
   {
     //Create fake image 
-    ImageType::Pointer frame = TrackedFrame::ImageType::New(); 
+    typedef itk::Image<unsigned char, 2> ImageType;
+    ImageType::Pointer frame = ImageType::New(); 
     ImageType::SizeType size = {1, 1};
     ImageType::IndexType start = {0,0};
     ImageType::RegionType region;
@@ -522,7 +523,7 @@ PlusStatus vtkDataCollector::WriteTrackerToMetafile( vtkTracker* tracker, const 
     }	
 
     TrackedFrame trackedFrame; 
-    trackedFrame.ImageData = frame;
+    trackedFrame.ImageData.SetITKImageBase(frame);
 
     TrackerBufferItem bufferItem; 
     BufferItemUidType uid = tracker->GetTool(firstActiveToolNumber)->GetBuffer()->GetOldestItemUidInBuffer() + i; 
@@ -656,8 +657,8 @@ PlusStatus vtkDataCollector::WriteVideoBufferToMetafile( vtkVideoBuffer* videoBu
       continue; 
     }
 
-    TrackedFrame trackedFrame; 
-    trackedFrame.ImageData = videoItem.GetFrame();
+    TrackedFrame trackedFrame;
+    trackedFrame.ImageData=videoItem.GetFrame();
 
     // Set default transform name
     trackedFrame.DefaultFrameTransformName = "IdentityTransform"; 
@@ -1039,30 +1040,24 @@ PlusStatus vtkDataCollector::GetToolStatus( double time, int toolNumber, Tracker
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkDataCollector::GetFrameByTime(double time, vtkImageData* frame, double& frameTimestamp)
+PlusStatus vtkDataCollector::GetFrameByTime(double time, vtkImageData* vtkFrame, double& frameTimestamp)
 {
-  ImageType::Pointer itkImage = ImageType::New(); 
-  if ( this->GetFrameByTime(time, itkImage, frameTimestamp) != PLUS_SUCCESS )
+  PlusVideoFrame frame;
+  if ( this->GetFrameByTime(time, frame, frameTimestamp) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to get frame by time: " << std::fixed << time ); 
     return PLUS_FAIL; 
   }
-  return UsImageConverterCommon::ConvertItkImageToVtkImage(itkImage, frame); 
+  return frame.CopyToVtkImage(vtkFrame);
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkDataCollector::GetFrameByTime(double time, ImageType::Pointer& frame, double& frameTimestamp)
+PlusStatus vtkDataCollector::GetFrameByTime(double time, PlusVideoFrame& frame, double& frameTimestamp)
 {
   //LOG_TRACE("vtkDataCollector::GetFrameByTime"); 
   if ( this->GetVideoSource() == NULL ) 
   {	
     LOG_ERROR("Unable to get frame - there is no video source selected!"); 
-    return PLUS_FAIL; 
-  }
-
-  if ( frame.IsNull() )
-  {
-    LOG_ERROR("Unable to get frame - input frame is NULL!"); 
     return PLUS_FAIL; 
   }
 
@@ -1087,7 +1082,6 @@ PlusStatus vtkDataCollector::GetFrameByTime(double time, ImageType::Pointer& fra
     return PLUS_FAIL; 
   }
 
-
   VideoBufferItem currentVideoBufferItem; 
   if ( this->GetVideoSource()->GetBuffer()->GetVideoBufferItem(frameUID, &currentVideoBufferItem) != ITEM_OK )
   {
@@ -1096,7 +1090,7 @@ PlusStatus vtkDataCollector::GetFrameByTime(double time, ImageType::Pointer& fra
   }
 
   // Copy frame 
-  frame = currentVideoBufferItem.GetFrame(); 
+  frame=currentVideoBufferItem.GetFrame(); 
 
   // Copy frame timestamp 
   frameTimestamp = currentVideoBufferItem.GetTimestamp( this->GetVideoSource()->GetBuffer()->GetLocalTimeOffset() ); 
@@ -1288,7 +1282,7 @@ PlusStatus vtkDataCollector::GetTrackedFrameByTime(double time, TrackedFrame* tr
 
   if ( this->GetVideoEnabled() )
   {
-    ImageType::Pointer frame = ImageType::New(); 
+    PlusVideoFrame frame; 
 
     // Get the frame by time
     if ( ! this->GetFrameByTime(time, frame, synchronizedTime) )
@@ -1437,7 +1431,7 @@ int vtkDataCollector::RequestData( vtkInformation* vtkNotUsed( request ), vtkInf
     return 1; 
   }
 
-  UsImageConverterCommon::ConvertItkImageToVtkImage(currentVideoBufferItem.GetFrame(), outData); 
+  currentVideoBufferItem.GetFrame().CopyToVtkImage(outData);
 
   const double globalTime = currentVideoBufferItem.GetTimestamp( this->GetVideoSource()->GetBuffer()->GetLocalTimeOffset() ); 
 
