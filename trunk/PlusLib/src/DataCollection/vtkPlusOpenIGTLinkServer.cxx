@@ -1,10 +1,31 @@
 
 #include "vtkPlusOpenIGTLinkServer.h"
 
+#include "vtkMultiThreader.h"
+
+#include "igtlImageMessage.h"
+#include "igtlMessageHeader.h"
+#include "igtlOSUtil.h"
+#include "igtlServerSocket.h"
+
 
 
 vtkCxxRevisionMacro( vtkPlusOpenIGTLinkServer, "$Revision: 1.0 $" );
 vtkStandardNewMacro( vtkPlusOpenIGTLinkServer ); 
+
+
+
+static
+void*
+vtkCommunicationThread( vtkMultiThreader::ThreadInfo* data )
+{
+  vtkPlusOpenIGTLinkServer* self = (vtkPlusOpenIGTLinkServer*)( data->UserData );
+  
+  igtl::ServerSocket::Pointer serverSocket = igtl::ServerSocket::New();
+  int r = serverSocket->CreateServer( self->NetworkPort );
+  
+  
+}
 
 
 
@@ -68,6 +89,7 @@ vtkPlusOpenIGTLinkServer
 vtkPlusOpenIGTLinkServer
 ::vtkPlusOpenIGTLinkServer()
 {
+  this->NetworkPort = -1;
   this->DataCollector = NULL;
 }
 
