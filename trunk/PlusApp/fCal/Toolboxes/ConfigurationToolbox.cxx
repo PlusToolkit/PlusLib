@@ -132,7 +132,7 @@ void ConfigurationToolbox::ConnectToDevicesByConfigFile(std::string aConfigFile)
 {
 	LOG_TRACE("ConfigurationToolbox::ConnectToDevicesByConfigFile");
 
-	vtkFreehandController::GetInstance()->SetConfigurationFileName(aConfigFile.data());
+	vtkFileFinder::GetInstance()->SetConfigurationFileName(aConfigFile.data());
 
 	// If connection has been successfully created then this action should disconnect
 	if (! m_DeviceSetSelectorWidget->GetConnectionSuccessful()) {

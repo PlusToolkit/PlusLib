@@ -3,6 +3,7 @@
 #include "StylusCalibrationController.h"
 #include "vtkFileFinder.h"
 #include "vtkFreehandController.h"
+#include "ConfigFileSaverDialog.h"
 
 #include <QVTKWidget.h>
 #include <QFileDialog>
@@ -169,7 +170,7 @@ void StylusCalibrationToolbox::RefreshToolboxContent()
 
 void StylusCalibrationToolbox::StartClicked()
 {
-	LOG_TRACE("StylusCalibrationToolbox: Start button clicked"); 
+  LOG_TRACE("StylusCalibrationToolbox::StartClicked"); 
 
 	emit SetTabsEnabled(false);
 	QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
@@ -184,7 +185,7 @@ void StylusCalibrationToolbox::StartClicked()
 
 void StylusCalibrationToolbox::StopClicked()
 {
-	LOG_TRACE("StylusCalibrationToolbox: Stop button clicked"); 
+  LOG_TRACE("StylusCalibrationToolbox::StopClicked"); 
 
 	Stop();
 }
@@ -215,17 +216,12 @@ void StylusCalibrationToolbox::Clear()
 
 void StylusCalibrationToolbox::SaveResultClicked()
 {
-	LOG_TRACE("StylusCalibrationToolbox: Save button clicked"); 
+  LOG_TRACE("StylusCalibrationToolbox::SaveResultClicked"); 
 
-	QString filter = QString( tr( "XML files ( *.xml );;" ) );
-  QString fileName = QFileDialog::getSaveFileName(NULL, tr("Save stylus calibration result"), QString::fromStdString(vtkFreehandController::GetInstance()->GetNewConfigurationFileName()), filter);
+  ConfigFileSaverDialog* configSaverDialog = new ConfigFileSaverDialog(this, vtkFreehandController::GetInstance()->GetConfigurationData());
+  configSaverDialog->exec();
 
-	if (! fileName.isNull() ) {
-		if (StylusCalibrationController::GetInstance()->SaveStylusCalibrationToFile(fileName.toStdString()) != PLUS_SUCCESS) {
-      LOG_ERROR("Saving configuration file to '" << fileName.toStdString() << "' failed!");
-      return;
-    }
-	}	
+  delete configSaverDialog;
 }
 
 //-----------------------------------------------------------------------------

@@ -27,11 +27,14 @@ DeviceSetSelectorWidget::DeviceSetSelectorWidget(QWidget* aParent)
 
 DeviceSetSelectorWidget::~DeviceSetSelectorWidget()
 {
-
 }
+
+//-----------------------------------------------------------------------------
 
 void DeviceSetSelectorWidget::SetConfigurationDirectoryFromRegistry()
 {
+  LOG_TRACE("DeviceSetSelectorWidget:SetConfigurationDirectoryFromRegistry"); 
+
   // Get configuration directory from registry if possible
 	QSettings settings( QSettings::NativeFormat, QSettings::UserScope, "PerkLab", "Common" );
 	m_ConfigurationDirectory = settings.value("ConfigurationDirectory", "").toString();
@@ -44,7 +47,7 @@ void DeviceSetSelectorWidget::SetConfigurationDirectoryFromRegistry()
 
 void DeviceSetSelectorWidget::OpenConfigurationDirectoryClicked()
 {
-	LOG_TRACE("DeviceSetSelectorWidget: Open configuration directory clicked"); 
+  LOG_TRACE("DeviceSetSelectorWidget::OpenConfigurationDirectoryClicked"); 
 
 	// Directory open dialog for selecting configuration directory 
 	QString dirName = QFileDialog::getExistingDirectory(NULL, QString( tr( "Open configuration directory" ) ), m_ConfigurationDirectory);
@@ -58,23 +61,8 @@ void DeviceSetSelectorWidget::OpenConfigurationDirectoryClicked()
   QSettings settings( QSettings::NativeFormat, QSettings::UserScope, "PerkLab", "Common" );
   settings.setValue("ConfigurationDirectory", dirName);
   settings.sync();
+
   return; 
-
-	// Parse up selected directory and populate combobox
-	if (ParseDirectory(dirName) == PLUS_SUCCESS) {
-		m_ConfigurationDirectory = dirName;
-
-		ui.lineEdit_ConfigurationDirectory->setText(dirName);
-		ui.lineEdit_ConfigurationDirectory->setToolTip(dirName);
-
-		// Write the selected directory to registry
-		QSettings settings( QSettings::NativeFormat, QSettings::UserScope, "PerkLab", "Common" );
-		settings.setValue("ConfigurationDirectory", dirName);
-		settings.sync();
-
-		// Notify the application about the directory change
-		emit ConfigurationDirectoryChanged(m_ConfigurationDirectory.toStdString());
-	}
 }
 
 //-----------------------------------------------------------------------------

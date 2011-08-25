@@ -354,7 +354,7 @@ void PhantomRegistrationToolbox::SaveClicked()
 	LOG_TRACE("PhantomRegistrationToolbox: Save button clicked"); 
 
 	QString filter = QString( tr( "XML files ( *.xml );;" ) );
-  QString fileName = QFileDialog::getSaveFileName(NULL, tr("Save phantom registration result"), QString::fromStdString(vtkFreehandController::GetInstance()->GetNewConfigurationFileName()), filter);
+  QString fileName = QFileDialog::getSaveFileName(NULL, tr("Save phantom registration result"), QString::fromStdString(vtkFileFinder::GetInstance()->GetNewConfigurationFileName()), filter);
 
 	if (! fileName.isNull() ) {
 		if (PhantomRegistrationController::GetInstance()->SavePhantomRegistrationToFile(fileName.toStdString()) != PLUS_SUCCESS) {
