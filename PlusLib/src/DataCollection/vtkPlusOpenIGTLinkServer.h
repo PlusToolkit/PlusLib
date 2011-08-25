@@ -31,12 +31,18 @@ public:
   vtkTypeRevisionMacro( vtkPlusOpenIGTLinkServer, vtkObject );
   virtual void PrintSelf( ostream& os, vtkIndent indent );
   
+  vtkSetMacro( NetworkPort, int );
+  
+  vtkGetMacro( Active, bool );
+  
   
   void SetDataCollector( vtkDataCollector* dataCollector );
   int Initialize( std::string &strError );
   
   PlusStatus Start();
   PlusStatus Stop();
+  
+  friend static void* vtkCommunicationThread( vtkMultiThreader::ThreadInfo* data );
   
   
 protected:
@@ -53,6 +59,8 @@ private:
   
   vtkDataCollector*  DataCollector;
   
+  int  NetworkPort;
+  bool Active;
   
 };
 
