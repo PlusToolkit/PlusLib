@@ -70,11 +70,12 @@ vtkOpenIGTLinkBroadcaster
 
     if ( hostname.empty() || port <= 0 )
       {
-      LOG_WARNING( "SendTo address could not be parsed for tool: " << toolNumber << " (hostname="<<hostname<<", port="<<port<<")");
+      LOG_WARNING( "SendTo address could not be parsed for tool: " << toolNumber
+                   << " (hostname=" << hostname << ", port=" << port << ")" );
       continue;
       }      
     
-    LOG_DEBUG( "SendTo address for tool " << toolNumber << ": hostname="<<hostname<<", port="<<port);
+    LOG_TRACE( "SendTo address for tool " << toolNumber << ": hostname=" << hostname << ", port=" << port );
 
       // Check if new socket has to be created.
     
