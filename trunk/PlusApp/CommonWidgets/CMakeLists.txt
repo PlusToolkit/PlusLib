@@ -57,6 +57,8 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 SET (CommonWidgets_LIBS 
     ${CommonWidgets_LIBS} 
     ${QT_LIBRARIES} 
+    vtkCommon
+    vtkPlusCommon
     )
 
 ADD_LIBRARY(CommonWidgets STATIC ${CommonWidgets_SRCS} ${CommonWidgets_UI_HDRS} ${QT_UI_Sources} ${QT_UI_Headers} ${QT_MOC_Files} ${QT_MOC_UI_Files} ${QT_RCC_Files})

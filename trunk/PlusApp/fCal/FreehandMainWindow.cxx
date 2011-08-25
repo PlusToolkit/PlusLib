@@ -80,9 +80,9 @@ FreehandMainWindow::~FreehandMainWindow()
 		vtkFreehandController::GetInstance()->Delete();
 	}
 
-	PlusLogger::Instance()->SetDisplayMessageCallbackFunction(NULL);
-	if (StatusIcon::GetInstance() != NULL) {
-		delete StatusIcon::GetInstance();
+	if (m_StatusIcon != NULL) {
+		delete m_StatusIcon;
+    m_StatusIcon = NULL;
 	}
 
 	if (m_UiRefreshTimer != NULL) {
@@ -174,11 +174,8 @@ void FreehandMainWindow::SetupStatusBar()
 	ui.statusBar->addWidget(m_StatusBarLabel, 1);
 	ui.statusBar->addPermanentWidget(m_StatusBarProgress, 3);
 	
-	StatusIcon* statusIcon = StatusIcon::New(this);
-	ui.statusBar->addPermanentWidget(statusIcon);
-
-	// Set callback for logger to display errors
-	PlusLogger::Instance()->SetDisplayMessageCallbackFunction(StatusIcon::AddMessage);
+	m_StatusIcon = new StatusIcon(this);
+	ui.statusBar->addPermanentWidget(m_StatusIcon);
 }
 
 //-----------------------------------------------------------------------------

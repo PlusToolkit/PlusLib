@@ -1,48 +1,50 @@
 #include "StatusIcon.h"
 
+#include "vtkCallbackCommand.h"
+
 #include <QEvent>
 #include <QGridLayout>
 #include <QSizePolicy>
 
-//-----------------------------------------------------------------------------
-
-StatusIcon *StatusIcon::Instance = NULL;
-
-//-----------------------------------------------------------------------------
-
-StatusIcon* StatusIcon::GetInstance()
+//----------------------------------------------------------------------
+class vtkDisplayMessageCallback : public vtkCallbackCommand
 {
-  if(StatusIcon::Instance == NULL) {
-    LOG_WARNING("An instance must be created first using New method");
-    return NULL;
-  }
+public:
+	static vtkDisplayMessageCallback *New()
+	{
+		vtkDisplayMessageCallback *cb = new vtkDisplayMessageCallback();
+		return cb;
+	}
 
-  // return the instance
-  return StatusIcon::Instance;
-}
+	virtual void Execute(vtkObject *caller, unsigned long eventId, void *callData)
+	{
+    if (vtkCommand::UserEvent == eventId) {
+      char* callDataChars = reinterpret_cast<char*>(callData);
+      std::string callDataString(callDataChars);
 
-//-----------------------------------------------------------------------------
+      unsigned int pos = callDataString.find('|');
+      const int logLevel = atoi(callDataString.substr(0, pos).c_str());
+      callDataString = callDataString.substr(pos+1);
 
-StatusIcon* StatusIcon::New(QWidget* aParent)
-{
-  if (StatusIcon::Instance == NULL) {
-    StatusIcon::Instance = new StatusIcon(aParent);
-    return StatusIcon::Instance;
-  } else {
-    LOG_ERROR("An instance of StatusIcon has been already created");
-    return NULL; // Null instead of the instance because it is crucial that the application uses only one instance. Using the same instance multiple times can result in unexpexted behavior
-  }
-}
+      m_StatusIcon->AddMessage(callDataString.c_str(), logLevel);
+    }
+	}
 
+  void SetStatusIcon(StatusIcon* statusIcon) { m_StatusIcon = statusIcon; }
+
+private:
+  StatusIcon* m_StatusIcon;
+};
+ 
 //-----------------------------------------------------------------------------
 
 StatusIcon::StatusIcon(QWidget* aParent, Qt::WFlags aFlags)
-: QWidget(aParent, aFlags)
-, m_MessageListWidget(NULL)
-, m_MessageTextEdit(NULL)
-, m_MessageList(NULL)
-, m_Level(PlusLogger::LOG_LEVEL_INFO)
-, m_PreviousScroll(0)
+  : QWidget(aParent, aFlags)
+  , m_MessageListWidget(NULL)
+  , m_MessageTextEdit(NULL)
+  , m_MessageList(NULL)
+  , m_Level(PlusLogger::LOG_LEVEL_INFO)
+  , m_PreviousScroll(0)
 {
   this->setMinimumSize(18, 16);
   this->setMaximumSize(18, 16);
@@ -69,11 +71,13 @@ StatusIcon::StatusIcon(QWidget* aParent, Qt::WFlags aFlags)
     return;
   }
 
+	// Set callback for logger to display errors
+  vtkSmartPointer<vtkDisplayMessageCallback> cb = vtkSmartPointer<vtkDisplayMessageCallback>::New();
+  cb->SetStatusIcon(this);
+  m_DisplayMessageCallbackTag = PlusLogger::Instance()->AddObserver(vtkCommand::UserEvent, cb);
+
   // Install event filter that is called on any event
   this->installEventFilter(this);
-
-  // Set instance of the object to the recently created
-  this->Instance = this;
 }
 
 //-----------------------------------------------------------------------------
@@ -84,38 +88,8 @@ StatusIcon::~StatusIcon()
     delete m_MessageList;
     m_MessageList = NULL;
   }
-}
 
-//-----------------------------------------------------------------------------
-
-QList<QPair<QString, int>>* StatusIcon::GetMessageList()
-{
-  return m_MessageList;
-}
-
-//-----------------------------------------------------------------------------
-
-void StatusIcon::SetLevel(int aLevel)
-{
-  LOG_TRACE("ToolStateDisplayWidget::SetLevel(" << aLevel << ")"); 
-
-  m_Level = aLevel;
-}
-
-//-----------------------------------------------------------------------------
-
-int StatusIcon::GetLevel()
-{
-  LOG_TRACE("ToolStateDisplayWidget::GetLevel"); 
-
-  return m_Level;
-}
-
-//-----------------------------------------------------------------------------
-
-QLabel* StatusIcon::GetDotLabel()
-{
-  return m_DotLabel;
+  PlusLogger::Instance()->RemoveObserver(m_DisplayMessageCallbackTag);
 }
 
 //-----------------------------------------------------------------------------
@@ -124,21 +98,20 @@ void StatusIcon::AddMessage(const char* aMessage, const int aLevel)
 {
   QPair<QString, int> message(QString::fromAscii(aMessage), aLevel);
 
-  StatusIcon* statusIcon = StatusIcon::GetInstance();
-  statusIcon->GetMessageList()->append(message);
+  m_MessageList->append(message);
 
   // Re-color dot if necessary
   switch (aLevel) {
     case PlusLogger::LOG_LEVEL_ERROR:
-      if (statusIcon->GetLevel() > PlusLogger::LOG_LEVEL_ERROR) {
-        statusIcon->SetLevel(PlusLogger::LOG_LEVEL_ERROR);
-        statusIcon->GetDotLabel()->setPixmap( QPixmap( ":/icons/Resources/icon_DotRed.png" ) );
+      if (m_Level > PlusLogger::LOG_LEVEL_ERROR) {
+        m_Level = PlusLogger::LOG_LEVEL_ERROR;
+        m_DotLabel->setPixmap( QPixmap( ":/icons/Resources/icon_DotRed.png" ) );
       }
       break;
     case PlusLogger::LOG_LEVEL_WARNING:
-      if (statusIcon->GetLevel() > PlusLogger::LOG_LEVEL_WARNING) {
-        statusIcon->SetLevel(PlusLogger::LOG_LEVEL_WARNING);
-        statusIcon->GetDotLabel()->setPixmap( QPixmap( ":/icons/Resources/icon_DotOrange.png" ) );
+      if (m_Level > PlusLogger::LOG_LEVEL_WARNING) {
+        m_Level = PlusLogger::LOG_LEVEL_WARNING;
+        m_DotLabel->setPixmap( QPixmap( ":/icons/Resources/icon_DotOrange.png" ) );
       }
       break;
     default:

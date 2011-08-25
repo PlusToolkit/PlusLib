@@ -6,6 +6,8 @@
 #include <QtGui/QMainWindow>
 
 class AbstractToolboxController;
+class StatusIcon;
+
 class QLabel;
 class QProgressBar;
 class QTimer;
@@ -117,6 +119,9 @@ protected:
 
   //! Timer that refreshes the UI
   QTimer*         m_UiRefreshTimer;
+
+  //! Status icon instance
+  StatusIcon*     m_StatusIcon;
 
 private:
 	Ui::fCalMainWindow			ui;
