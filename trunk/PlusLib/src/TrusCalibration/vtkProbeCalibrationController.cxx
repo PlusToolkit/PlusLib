@@ -360,7 +360,7 @@ PlusStatus vtkProbeCalibrationController::OfflineUSToTemplateCalibration()
           (*SegmentationProgressCallbackFunction)(percent); 
         }
 
-        this->SetOfflineImageData(validationData->GetTrackedFrame(vImgNumber)->ImageData); 
+        this->SetOfflineImageData(validationData->GetTrackedFrame(vImgNumber)->ImageData.GetDisplayableImage()); 
     }
 
     int validSegmentationSuccessRate = 100*this->GetImageDataInfo(RANDOM_STEPPER_MOTION_2).NumberOfSegmentedImages / vImgNumber; 
@@ -391,7 +391,7 @@ PlusStatus vtkProbeCalibrationController::OfflineUSToTemplateCalibration()
           (*SegmentationProgressCallbackFunction)(percent); 
         }
 
-        this->SetOfflineImageData(calibrationData->GetTrackedFrame(cImgNumber)->ImageData); 
+        this->SetOfflineImageData(calibrationData->GetTrackedFrame(cImgNumber)->ImageData.GetDisplayableImage()); 
     }
 
     int calibSegmentationSuccessRate = 100*this->GetImageDataInfo(RANDOM_STEPPER_MOTION_1).NumberOfSegmentedImages / cImgNumber; 

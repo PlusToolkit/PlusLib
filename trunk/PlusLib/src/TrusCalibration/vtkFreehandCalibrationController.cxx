@@ -1112,7 +1112,7 @@ PlusStatus vtkFreehandCalibrationController::DoOfflineCalibration()
 				LOG_DEBUG("Adding tracked frame " << imgNumber << " (for validation) failed!");
 			}
 
-			this->SetOfflineImageData(trackedFrameList->GetTrackedFrame(imgNumber)->ImageData);
+			this->SetOfflineImageData(trackedFrameList->GetTrackedFrame(imgNumber)->ImageData.GetDisplayableImage());
 		}
 
 		LOG_INFO( "A total of " << this->GetImageDataInfo(FREEHAND_MOTION_2).NumberOfSegmentedImages << " images have been successfully added for validation.");
@@ -1140,7 +1140,7 @@ PlusStatus vtkFreehandCalibrationController::DoOfflineCalibration()
 				LOG_DEBUG("Adding tracked frame " << imgNumber << " (for calibration) failed!");
 			}
 
-			this->SetOfflineImageData(calibrationData->GetTrackedFrame(imgNumber)->ImageData); 
+			this->SetOfflineImageData(calibrationData->GetTrackedFrame(imgNumber)->ImageData.GetDisplayableImage()); 
 		}
 
 		LOG_INFO ("A total of " << this->GetImageDataInfo(FREEHAND_MOTION_1).NumberOfSegmentedImages << " images have been successfully added for calibration.");
