@@ -35,6 +35,9 @@ public:
   void SetDataCollector( vtkDataCollector* dataCollector );
   int Initialize( std::string &strError );
   
+  PlusStatus Start();
+  PlusStatus Stop();
+  
   
 protected:
   

@@ -92,3 +92,19 @@ IF (PLUS_USE_OpenIGTLink )
     )
   SET_TESTS_PROPERTIES( vtkOpenIGTLinkBroadcasterTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR" )
 ENDIF (PLUS_USE_OpenIGTLink )
+
+#***************************  vtkPlusOpenIGTLinkServerTest ***************************
+ADD_EXECUTABLE( vtkPlusOpenIGTLinkServerTest
+  vtkPlusOpenIGTLinkServerTest.cxx
+  )
+TARGET_LINK_LIBRARIES( vtkPlusOpenIGTLinkServerTest vtkDataCollection vtkCommon )
+IF (PLUS_USE_OpenIGTLink )
+  ADD_TEST( vtkPlusOpenIGTLinkServerTest
+    ${EXECUTABLE_OUTPUT_PATH}/vtkPlusOpenIGTLinkServerTest
+    --config-file=${ConfigFilesDir}/PlusConfiguration_OpenIGTLinkTest.xml
+    --input-video-buffer-metafile=${TestDataDir}/SyntheticVideoBuffer20.mha 
+    --input-tracker-buffer-metafile=${TestDataDir}/SyntheticTrackerBuffer20.mha
+    --port=18944
+    )
+  SET_TESTS_PROPERTIES( vtkPlusOpenIGTLinkServerTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR" )
+ENDIF (PLUS_USE_OpenIGTLink )

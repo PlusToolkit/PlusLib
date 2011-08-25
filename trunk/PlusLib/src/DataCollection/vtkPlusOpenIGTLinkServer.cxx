@@ -42,6 +42,26 @@ vtkPlusOpenIGTLinkServer
 
 
 
+PlusStatus
+vtkPlusOpenIGTLinkServer
+::Start()
+{
+  
+  return PLUS_SUCCESS;
+}
+
+
+
+PlusStatus
+vtkPlusOpenIGTLinkServer
+::Stop()
+{
+  
+  return PLUS_SUCCESS;
+}
+
+
+
 /**
  * Protected constructor.
  */
