@@ -20,7 +20,7 @@
 #include <QProgressBar>
 
 #include "vtkRenderWindow.h"
-#include "vtkFileFinder.h"
+#include "vtkConfigurationTools.h"
 
 //-----------------------------------------------------------------------------
 
@@ -467,7 +467,7 @@ void FreehandMainWindow::LocateDirectories()
 		configDir.makeAbsolute();
 	}
 
-	vtkFileFinder::GetInstance()->SetConfigurationDirectory(configDir.path().toStdString().c_str());
+	vtkConfigurationTools::GetInstance()->SetConfigurationDirectory(configDir.path().toStdString().c_str());
 
 	// Make output directory
 	std::string outputPath = vtksys::SystemTools::CollapseFullPath("./Output", programPath.c_str()); 

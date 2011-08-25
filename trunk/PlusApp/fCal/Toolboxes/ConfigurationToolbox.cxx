@@ -3,7 +3,7 @@
 #include "ConfigurationController.h"
 #include "vtkFreehandController.h"
 #include "StylusCalibrationController.h"
-#include "vtkFileFinder.h"
+#include "vtkConfigurationTools.h"
 #include "FreehandMainWindow.h"
 
 #include "DeviceSetSelectorWidget.h"
@@ -33,7 +33,7 @@ ConfigurationToolbox::ConfigurationToolbox(QWidget* aParent, Qt::WFlags aFlags)
 	// Create and setup device set selector widget
 	m_DeviceSetSelectorWidget = new DeviceSetSelectorWidget(this);
   m_DeviceSetSelectorWidget->SetConfigurationDirectoryFromRegistry(); 
-	m_DeviceSetSelectorWidget->SetConfigurationDirectory(vtkFileFinder::GetInstance()->GetConfigurationDirectory());
+	m_DeviceSetSelectorWidget->SetConfigurationDirectory(vtkConfigurationTools::GetInstance()->GetConfigurationDirectory());
   m_DeviceSetSelectorWidget->SetComboBoxMinWidth(400); 
 
 	m_ToolStateDisplayWidget = new ToolStateDisplayWidget(this);
@@ -123,7 +123,7 @@ void ConfigurationToolbox::SetConfigurationDirectory(std::string aDirectory)
 {
 	LOG_TRACE("ConfigurationToolbox::SetConfigurationDirectory");
 
-	vtkFileFinder::GetInstance()->SetConfigurationDirectory(aDirectory.c_str());
+	vtkConfigurationTools::GetInstance()->SetConfigurationDirectory(aDirectory.c_str());
 }
 
 //-----------------------------------------------------------------------------
@@ -132,7 +132,7 @@ void ConfigurationToolbox::ConnectToDevicesByConfigFile(std::string aConfigFile)
 {
 	LOG_TRACE("ConfigurationToolbox::ConnectToDevicesByConfigFile");
 
-	vtkFileFinder::GetInstance()->SetConfigurationFileName(aConfigFile.data());
+	vtkConfigurationTools::GetInstance()->SetConfigurationFileName(aConfigFile.data());
 
 	// If connection has been successfully created then this action should disconnect
 	if (! m_DeviceSetSelectorWidget->GetConnectionSuccessful()) {

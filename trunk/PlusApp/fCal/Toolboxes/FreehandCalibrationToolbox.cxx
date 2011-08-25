@@ -3,7 +3,7 @@
 #include "vtkFreehandCalibrationController.h"
 #include "vtkFreehandController.h"
 #include "PhantomRegistrationController.h"
-#include "vtkFileFinder.h"
+#include "vtkConfigurationTools.h"
 
 #include <QVTKWidget.h>
 #include <QFileDialog>
@@ -89,7 +89,7 @@ void FreehandCalibrationToolbox::Initialize()
 
   // Try to load calibration configuration from the device set configuration
   if ((controller->GetConfigurationData()) && (vtkFreehandCalibrationController::GetInstance()->ReadConfiguration(controller->GetConfigurationData()) == PLUS_SUCCESS)) {
-    vtkFreehandCalibrationController::GetInstance()->SetConfigurationFileName(vtkFileFinder::GetInstance()->GetConfigurationFileName());
+    vtkFreehandCalibrationController::GetInstance()->SetConfigurationFileName(vtkConfigurationTools::GetInstance()->GetConfigurationFileName());
     ui.lineEdit_CalibrationConfiguration->setText(tr("Using session calibration configuration"));
   }
 }
@@ -283,7 +283,7 @@ void FreehandCalibrationToolbox::OpenPhantomRegistrationClicked()
 
 	// File open dialog for selecting phantom registration xml
 	QString filter = QString( tr( "XML files ( *.xml );;" ) );
-	QString fileName = QFileDialog::getOpenFileName(NULL, QString( tr( "Open phantom registration XML" ) ), vtkFileFinder::GetInstance()->GetConfigurationDirectory(), filter);
+	QString fileName = QFileDialog::getOpenFileName(NULL, QString( tr( "Open phantom registration XML" ) ), vtkConfigurationTools::GetInstance()->GetConfigurationDirectory(), filter);
 	if (fileName.isNull()) {
 		return;
 	}
@@ -306,7 +306,7 @@ void FreehandCalibrationToolbox::OpenCalibrationConfigurationClicked()
 
 	// File open dialog for selecting calibration configuration xml
 	QString filter = QString( tr( "XML files ( *.xml );;" ) );
-	QString fileName = QFileDialog::getOpenFileName(NULL, QString( tr( "Open calibration configuration XML" ) ), vtkFileFinder::GetInstance()->GetConfigurationDirectory(), filter);
+	QString fileName = QFileDialog::getOpenFileName(NULL, QString( tr( "Open calibration configuration XML" ) ), vtkConfigurationTools::GetInstance()->GetConfigurationDirectory(), filter);
 	if (fileName.isNull()) {
 		return;
 	}
@@ -423,7 +423,7 @@ void FreehandCalibrationToolbox::SaveClicked()
 	LOG_TRACE("FreehandCalibrationToolbox::SaveClicked"); 
 
 	QString filter = QString( tr( "XML files ( *.xml );;" ) );
-	QString fileName = QFileDialog::getSaveFileName(NULL, tr("Save freehand calibration result"), QString::fromStdString(vtkFileFinder::GetInstance()->GetNewConfigurationFileName()), filter);
+	QString fileName = QFileDialog::getSaveFileName(NULL, tr("Save freehand calibration result"), QString::fromStdString(vtkConfigurationTools::GetInstance()->GetNewConfigurationFileName()), filter);
 
 	if (! fileName.isNull() ) {
     if (vtkFreehandController::GetInstance()->SaveConfigurationToFile(fileName.toStdString().c_str()) != PLUS_SUCCESS) {

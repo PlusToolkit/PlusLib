@@ -8,7 +8,7 @@
 #include <QTimer>
 
 #include "vtkRenderWindow.h"
-#include "vtkFileFinder.h"
+#include "vtkConfigurationTools.h"
 
 //-----------------------------------------------------------------------------
 
@@ -264,7 +264,7 @@ void PhantomRegistrationToolbox::OpenPhantomDefinitionClicked()
 
 	// File open dialog for selecting phantom definition xml
 	QString filter = QString( tr( "XML files ( *.xml );;" ) );
-	QString fileName = QFileDialog::getOpenFileName(NULL, QString( tr( "Open phantom descriptor XML" ) ), vtkFileFinder::GetInstance()->GetConfigurationDirectory(), filter);
+	QString fileName = QFileDialog::getOpenFileName(NULL, QString( tr( "Open phantom descriptor XML" ) ), vtkConfigurationTools::GetInstance()->GetConfigurationDirectory(), filter);
 	if (fileName.isNull()) {
 		return;
 	}
@@ -293,7 +293,7 @@ void PhantomRegistrationToolbox::OpenStylusCalibrationClicked()
 
 	// File open dialog for selecting phantom definition xml
 	QString filter = QString( tr( "XML files ( *.xml );;" ) );
-	QString fileName = QFileDialog::getOpenFileName(NULL, QString( tr( "Open stylus calibration XML" ) ), vtkFileFinder::GetInstance()->GetConfigurationDirectory(), filter);
+	QString fileName = QFileDialog::getOpenFileName(NULL, QString( tr( "Open stylus calibration XML" ) ), vtkConfigurationTools::GetInstance()->GetConfigurationDirectory(), filter);
 	if (fileName.isNull()) {
 		return;
 	}
@@ -354,7 +354,7 @@ void PhantomRegistrationToolbox::SaveClicked()
 	LOG_TRACE("PhantomRegistrationToolbox: Save button clicked"); 
 
 	QString filter = QString( tr( "XML files ( *.xml );;" ) );
-  QString fileName = QFileDialog::getSaveFileName(NULL, tr("Save phantom registration result"), QString::fromStdString(vtkFileFinder::GetInstance()->GetNewConfigurationFileName()), filter);
+  QString fileName = QFileDialog::getSaveFileName(NULL, tr("Save phantom registration result"), QString::fromStdString(vtkConfigurationTools::GetInstance()->GetNewConfigurationFileName()), filter);
 
 	if (! fileName.isNull() ) {
 		if (PhantomRegistrationController::GetInstance()->SavePhantomRegistrationToFile(fileName.toStdString()) != PLUS_SUCCESS) {

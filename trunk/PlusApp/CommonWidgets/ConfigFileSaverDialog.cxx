@@ -5,7 +5,7 @@
 #include <QSettings>
 
 #include "vtkXMLUtilities.h"
-#include "vtkFileFinder.h"
+#include "vtkConfigurationTools.h"
 #include "vtkXMLDataElement.h"
 
 //-----------------------------------------------------------------------------
@@ -134,7 +134,7 @@ void ConfigFileSaverDialog::SaveClicked()
 
   // Display file save dialog and save XML
 	QString filter = QString( tr( "XML files ( *.xml );;" ) );
-  QString destinationFile = QString("%1/%2").arg(m_DestinationDirectory).arg(QString::fromStdString(vtkFileFinder::GetInstance()->GetNewConfigurationFileName()));
+  QString destinationFile = QString("%1/%2").arg(m_DestinationDirectory).arg(QString::fromStdString(vtkConfigurationTools::GetInstance()->GetNewConfigurationFileName()));
   QString fileName = QFileDialog::getSaveFileName(NULL, tr("Save result configuration XML"), destinationFile, filter);
 
 	if (! fileName.isNull() ) {

@@ -1,7 +1,7 @@
 #include "StylusCalibrationToolbox.h"
 
 #include "StylusCalibrationController.h"
-#include "vtkFileFinder.h"
+#include "vtkConfigurationTools.h"
 #include "vtkFreehandController.h"
 #include "ConfigFileSaverDialog.h"
 

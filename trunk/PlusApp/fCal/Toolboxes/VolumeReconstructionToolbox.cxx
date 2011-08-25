@@ -5,7 +5,7 @@
 
 #include <QFileDialog>
 
-#include "vtkFileFinder.h"
+#include "vtkConfigurationTools.h"
 
 //-----------------------------------------------------------------------------
 
@@ -140,7 +140,7 @@ void VolumeReconstructionToolbox::OpenVolumeReconstructionConfigClicked()
 
 	// File open dialog for selecting phantom definition xml
 	QString filter = QString( tr( "XML files ( *.xml );;" ) );
-	QString fileName = QFileDialog::getOpenFileName(NULL, QString( tr( "Open volume reconstruction configuration XML" ) ), vtkFileFinder::GetInstance()->GetConfigurationDirectory(), filter);
+	QString fileName = QFileDialog::getOpenFileName(NULL, QString( tr( "Open volume reconstruction configuration XML" ) ), vtkConfigurationTools::GetInstance()->GetConfigurationDirectory(), filter);
 	if (fileName.isNull()) {
 		return;
 	}
