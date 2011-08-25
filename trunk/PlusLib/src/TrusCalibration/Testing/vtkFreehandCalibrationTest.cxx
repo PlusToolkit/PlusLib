@@ -4,7 +4,6 @@
 #include "StylusCalibrationController.h"
 #include "PhantomRegistrationController.h"
 #include "vtkConfigurationTools.h"
-vtkConfigurationTools
 #include "vtkBMPReader.h"
 #include "vtkSmartPointer.h"
 #include "vtkCommand.h"
