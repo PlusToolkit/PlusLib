@@ -3,7 +3,6 @@
 
 #include "vtkObject.h"
 #include "vtkTrackedFrameList.h"
-#include "vtkCalibratorVisualizationComponent.h"
 #include "vtkMatrix4x4.h"
 #include "vtkImageData.h"
 #include "vtkXMLUtilities.h"
@@ -167,6 +166,10 @@ public:
 	vtkGetObjectMacro(ConfigurationData, vtkXMLDataElement);
 
   //! Description 
+	// Get offline image data
+	vtkGetObjectMacro(OfflineImageData, vtkImageData);
+  
+  //! Description 
 	// Set/get the calibration date in string format
 	vtkSetStringMacro(CalibrationDate); 
 	vtkGetStringMacro(CalibrationDate);
@@ -200,10 +203,6 @@ public:
   // Clear all datatype segmented frames from container 
   void ClearSegmentedFrameContainer(IMAGE_DATA_TYPE dataType); 
 
-	//! Return the visualization component
-	vtkCalibratorVisualizationComponent* GetVisualizationComponent() { return this->VisualizationComponent; }
-	virtual void SetVisualizationComponent( vtkCalibratorVisualizationComponent* visualizationComponent) { this->VisualizationComponent = visualizationComponent; } 
-
 	//! Description 
 	// Get/set the saved image data info
 	ImageDataInfo GetImageDataInfo( IMAGE_DATA_TYPE dataType ) { return this->ImageDataInfoContainer[dataType]; }
@@ -231,8 +230,8 @@ protected:
 	virtual void CreateTrackedFrame(const ImageType::Pointer& imageData, const double probePosition, const double probeRotation, const double templatePosition, IMAGE_DATA_TYPE dataType, TrackedFrame& trackedFrame); 
 
 	//! Operation: Add frame to renderer in offline mode
-	virtual PlusStatus AddFrameToRenderer(vtkImageData* frame); 
-	virtual PlusStatus AddFrameToRenderer(const ImageType::Pointer& frame); 
+	virtual PlusStatus SetOfflineImageData(vtkImageData* frame); 
+	virtual PlusStatus SetOfflineImageData(const ImageType::Pointer& frame); 
 
 	//! Description 
 	// Read CalibrationController data element
@@ -243,9 +242,6 @@ protected:
 	virtual PlusStatus ReadPhantomDefinition(vtkXMLDataElement* phantomDefinition);
 
 protected:
-	//! Attributes: a reference to the visualization component
-	vtkCalibratorVisualizationComponent* VisualizationComponent; 
-
 	//! Attribute: Flag to enable the tracked sequence data saving to metafile
 	bool EnableTrackedSequenceDataSaving;
 
@@ -305,6 +301,9 @@ protected:
 
   //! Configuration data element - TODO the application should load it!
   vtkXMLDataElement*  ConfigurationData;
+
+  //! Stores the image data in offline mode
+  vtkImageData* OfflineImageData; 
 
 private:
 	vtkCalibrationController(const vtkCalibrationController&);

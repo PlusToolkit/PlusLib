@@ -40,17 +40,18 @@ SegmentationProgressCallbackFunction(NULL)
 	this->InitializedOff(); 
   this->CalibrationDoneOff(); 
 
-	this->VisualizationComponent = NULL;
 	this->OutputPath = NULL; 
 	this->ProgramFolderPath = NULL; 
 	this->ConfigurationFileName = NULL;
 	this->ModelToPhantomTransform = NULL;
 	this->PhantomModelFileName = NULL;
+  this->OfflineImageData = NULL;
   
   this->ConfigurationData = NULL;
   
   this->CalibrationDate = NULL; 
   
+  this->OfflineImageData = vtkImageData::New(); 
 	
 	this->SetCalibrationMode(REALTIME); 
 
@@ -93,6 +94,12 @@ vtkCalibrationController::~vtkCalibrationController()
   }
 
   this->SetConfigurationData(NULL);
+
+  if ( this->OfflineImageData != NULL )
+  {
+    this->OfflineImageData->Delete(); 
+    this->OfflineImageData = NULL; 
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -277,7 +284,7 @@ PlusStatus vtkCalibrationController::SegmentImage(const ImageType::Pointer& imag
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkCalibrationController::AddFrameToRenderer(const ImageType::Pointer& frame)
+PlusStatus vtkCalibrationController::SetOfflineImageData(const ImageType::Pointer& frame)
 {
 	LOG_TRACE("vtkCalibrationController::AddFrameToRenderer"); 
 	if ( ! this->GetEnableVisualization() ) 
@@ -286,35 +293,47 @@ PlusStatus vtkCalibrationController::AddFrameToRenderer(const ImageType::Pointer
 		return PLUS_SUCCESS; 
 	}
 
-    if ( frame.IsNull() )
-    {
-        LOG_ERROR("Failed to add frame to the renderer - frame is NULL!"); 
-        return PLUS_FAIL; 
-    }
+  if ( frame.IsNull() )
+  {
+    LOG_ERROR("Failed to add frame to the renderer - frame is NULL!"); 
+    return PLUS_FAIL; 
+  }
 
-	// create an importer to read the data back in
-  vtkSmartPointer<vtkImageData> vtkFrame = vtkSmartPointer<vtkImageData>::New(); 
-  if ( UsImageConverterCommon::ConvertItkImageToVtkImage(frame, vtkFrame) != PLUS_SUCCESS )
+  if ( this->OfflineImageData == NULL )
+  {
+    this->OfflineImageData = vtkImageData::New(); 
+  }
+
+  if ( UsImageConverterCommon::ConvertItkImageToVtkImage(frame, this->OfflineImageData) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to convert itk image to vtk image!"); 
     return PLUS_FAIL;
   }
 
-  return this->AddFrameToRenderer(vtkFrame); 
+  this->OfflineImageData->Modified();
+
+  return PLUS_SUCCESS; 
 }
 
 
 //----------------------------------------------------------------------------
-PlusStatus vtkCalibrationController::AddFrameToRenderer(vtkImageData* frame)
+PlusStatus vtkCalibrationController::SetOfflineImageData(vtkImageData* frame)
 {
 	LOG_TRACE("vtkCalibrationController::AddFrameToRenderer"); 
-	if ( ! this->GetEnableVisualization() || this->VisualizationComponent == NULL ) 
+	if ( ! this->GetEnableVisualization() ) 
 	{
 		// We don't want to render anything
 		return PLUS_SUCCESS; 
 	}
 
-	return this->GetVisualizationComponent()->AddFrameToRealtimeRenderer(frame); 
+  if ( this->OfflineImageData == NULL )
+  {
+    this->OfflineImageData = vtkImageData::New(); 
+  }
+
+  this->OfflineImageData->DeepCopy(frame); 
+
+  return PLUS_SUCCESS; 
 }
 
 //----------------------------------------------------------------------------

@@ -7,6 +7,8 @@
 #include "BrachyTRUSCalibrator.h"
 
 #include "vtkImageActor.h"
+#include "vtkActor.h"
+#include "vtkCamera.h"
 #include "vtkPolyData.h"
 
 //-----------------------------------------------------------------------------

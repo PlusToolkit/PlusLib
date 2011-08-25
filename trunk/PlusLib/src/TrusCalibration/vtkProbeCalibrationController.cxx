@@ -65,7 +65,6 @@ MinElevationBeamwidthAndFocalZoneInUSImageFrame(2,0)
 	this->CalibrationConfigFileNameWithPath = NULL; 
 	this->CalibrationResultFileNameWithPath = NULL;
 	this->US3DBeamProfileDataFileNameAndPath = NULL; 
-	this->TemplateModelConfigFileName = NULL; 
 	this->SegmentationAnalysisFileNameWithTimeStamp = NULL; 
 	this->SegmentationErrorLogFileNameWithTimeStamp = NULL;
 	this->DataFileSuffix = NULL;
@@ -75,8 +74,6 @@ MinElevationBeamwidthAndFocalZoneInUSImageFrame(2,0)
 	this->Temp2StepCalibAnalysisFileNameSuffix = NULL; 
 	this->CalibrationSegWirePosInfoFileName = NULL; 
 	this->ValidationSegWirePosInfoFileName = NULL; 
-
-	this->VisualizationComponent = NULL;
 
 	this->CalibrationControllerIO = NULL; 
 
@@ -169,13 +166,6 @@ vtkProbeCalibrationController::~vtkProbeCalibrationController()
 		delete mptrCalibrationPhantom;
 		mptrCalibrationPhantom = NULL;
 	}
-
-	// Destroy the visualization component
-	if (this->VisualizationComponent != NULL) 
-	{
-		this->VisualizationComponent->Delete(); 
-		this->VisualizationComponent = NULL; 
-	}
 }
 
 //----------------------------------------------------------------------------
@@ -192,13 +182,6 @@ PlusStatus vtkProbeCalibrationController::Initialize()
 	vnl_matrix<double> transformOrigImageFrame2TRUSImageFrameMatrix4x4(4,4);
 	ConvertVtkMatrixToVnlMatrix(this->GetTransformImageHomeToUserImageHome()->GetMatrix(), transformOrigImageFrame2TRUSImageFrameMatrix4x4); 
 	this->GetCalibrator()->setTransformOrigImageToTRUSImageFrame4x4( transformOrigImageFrame2TRUSImageFrameMatrix4x4 );
-
-	// Initialize the visualization component
-	// ====================================
-	if ( this->GetEnableVisualization() ) 
-	{
-		this->InitializeVisualizationComponents();
-	}
 
 	// Set the ultrasound image frame in pixels
 	// =================================================
@@ -223,19 +206,6 @@ PlusStatus vtkProbeCalibrationController::Initialize()
 	this->InitializedOn(); 
 
   return PLUS_SUCCESS;
-}
-
-//----------------------------------------------------------------------------
-void vtkProbeCalibrationController::InitializeVisualizationComponents()
-{
-	LOG_TRACE("vtkProbeCalibrationController::InitializeVisualizationComponents"); 
-	if ( this->VisualizationComponent == NULL ) 
-	{
-		this->VisualizationComponent = vtkCalibratorVisualizationComponent::New(); 
-		this->VisualizationComponent->SetTemplateModelConfigFileName( this->GetTemplateModelConfigFileName() ); 
-		this->VisualizationComponent->Initialize( this ); 
-		this->VisualizationComponent->SetOutputPath( this->GetOutputPath() ); 
-	}
 }
 
 //----------------------------------------------------------------------------
@@ -390,7 +360,7 @@ PlusStatus vtkProbeCalibrationController::OfflineUSToTemplateCalibration()
           (*SegmentationProgressCallbackFunction)(percent); 
         }
 
-        this->AddFrameToRenderer(validationData->GetTrackedFrame(vImgNumber)->ImageData); 
+        this->SetOfflineImageData(validationData->GetTrackedFrame(vImgNumber)->ImageData); 
     }
 
     int validSegmentationSuccessRate = 100*this->GetImageDataInfo(RANDOM_STEPPER_MOTION_2).NumberOfSegmentedImages / vImgNumber; 
@@ -421,7 +391,7 @@ PlusStatus vtkProbeCalibrationController::OfflineUSToTemplateCalibration()
           (*SegmentationProgressCallbackFunction)(percent); 
         }
 
-        this->AddFrameToRenderer(calibrationData->GetTrackedFrame(cImgNumber)->ImageData); 
+        this->SetOfflineImageData(calibrationData->GetTrackedFrame(cImgNumber)->ImageData); 
     }
 
     int calibSegmentationSuccessRate = 100*this->GetImageDataInfo(RANDOM_STEPPER_MOTION_1).NumberOfSegmentedImages / cImgNumber; 
@@ -441,13 +411,6 @@ void vtkProbeCalibrationController::DoCalibration()
 
 	// Instruct the calibrator to validate the calibration accuracy
 	this->GetCalibrator()->compute3DPointReconstructionError();
-
-	// Update the plot components for this particular iteration
-	if ( this->GetEnableVisualization() ) 
-	{
-		this->GetVisualizationComponent()->UpdatePlotComponents();
-		this->GetVisualizationComponent()->PlotPRE3Ddistribution();
-	}
 }
 
 //----------------------------------------------------------------------------
