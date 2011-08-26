@@ -71,11 +71,11 @@ int main (int argc, char* argv[])
 
 	StylusCalibrationController* stylusCalibrationController = StylusCalibrationController::GetInstance();
 	stylusCalibrationController->Initialize();
-	stylusCalibrationController->LoadStylusCalibrationFromFile(inputConfigFileName);
+  stylusCalibrationController->LoadStylusCalibration(controller->GetConfigurationData());
 
 	PhantomRegistrationController* phantomRegistrationController = PhantomRegistrationController::GetInstance();
 	phantomRegistrationController->Initialize();
-	phantomRegistrationController->LoadPhantomDefinitionFromFile(inputConfigFileName);
+	phantomRegistrationController->LoadPhantomDefinition(controller->GetConfigurationData());
 	phantomRegistrationController->Start();
 	
 	// Acquire landmarks
@@ -93,9 +93,10 @@ int main (int argc, char* argv[])
 	phantomRegistrationController->Register();
 
 	// Save result
+	phantomRegistrationController->SavePhantomRegistration(controller->GetConfigurationData());
 	vtkstd::string registrationResultFileName = "PhantomRegistrationTest.xml";
 	vtksys::SystemTools::RemoveFile(registrationResultFileName.c_str());
-	phantomRegistrationController->SavePhantomRegistrationToFile(registrationResultFileName);
+  controller->GetConfigurationData()->PrintXML(registrationResultFileName.c_str());
 
 	if ( CompareRegistrationResultsWithBaseline( inputBaselineFileName.c_str(), registrationResultFileName.c_str() ) !=0 )
 	{

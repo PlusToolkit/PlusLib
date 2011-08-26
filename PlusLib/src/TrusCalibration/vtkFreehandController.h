@@ -49,13 +49,6 @@ public:
 	PlusStatus StartDataCollection();
 
 	/*!
-	 * \brief Saves session configuratin data into file
-   * \param aFile File path and name
-	 * \return Success flag
-	 */
-  PlusStatus SaveConfigurationToFile(const char* aFile);
-
-	/*!
 	 * \brief Try to parse the input file and return its content. If it fails (eg the file does not exist) then return the session configuration data
    * \param aConfigFile File path and name
 	 * \return XML data element of either the input file or the session configuration data

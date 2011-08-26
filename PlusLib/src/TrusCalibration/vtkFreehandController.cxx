@@ -185,22 +185,6 @@ vtkXMLDataElement* vtkFreehandController::ParseXMLOrFillWithInternalData(const c
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkFreehandController::SaveConfigurationToFile(const char* aFile)
-{
-  LOG_TRACE("vtkFreehandController::SaveConfigurationToFile(" << aFile << ")");
-
-  if ( this->DataCollector == NULL ) {
-		LOG_ERROR("Data collector is NULL!");
-		return PLUS_FAIL;
-	}
-
-  vtkConfigurationTools::GetInstance()->SetConfigurationFileName(aFile);
-  
- return this->DataCollector->SaveConfigurationToFile(aFile); 
-}
-
-//-----------------------------------------------------------------------------
-
 PlusStatus vtkFreehandController::DumpBuffersToDirectory(const char* aDirectory)
 {
   LOG_TRACE("vtkFreehandController::DumpBuffersToDirectory(" << aDirectory << ")");

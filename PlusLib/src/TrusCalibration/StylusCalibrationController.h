@@ -74,13 +74,6 @@ public:
 
 	/*!
 	* \brief Save result to XML file
-	* \param aFile XML file name and path
-	* \return Success flag
-	*/
-	PlusStatus SaveStylusCalibrationToFile(std::string aFile);
-
-	/*!
-	* \brief Save result to XML file
 	* \param aConfig XML data element containing the stylus calibration
 	* \return Success flag
 	*/

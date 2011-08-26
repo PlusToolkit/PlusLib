@@ -89,9 +89,10 @@ int main (int argc, char* argv[])
 	} while (stylusCalibrationController->GetCurrentPointNumber() < numberOfAcquiredPoints);
 
 	// Save result
-	vtkstd::string calibrationResultFileName = "StylusCalibrationTest.xml";
+	stylusCalibrationController->SaveStylusCalibration(controller->GetConfigurationData());
+  vtkstd::string calibrationResultFileName = "StylusCalibrationTest.xml";
 	vtksys::SystemTools::RemoveFile(calibrationResultFileName.c_str());
-	stylusCalibrationController->SaveStylusCalibrationToFile(calibrationResultFileName);
+  controller->GetConfigurationData()->PrintXML(calibrationResultFileName.c_str());
 
 	if ( CompareCalibrationResultsWithBaseline( inputBaselineFileName.c_str(), calibrationResultFileName.c_str() ) !=0 )
 	{
