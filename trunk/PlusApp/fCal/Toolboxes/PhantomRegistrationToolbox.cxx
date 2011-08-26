@@ -3,6 +3,7 @@
 #include "PhantomRegistrationController.h"
 #include "vtkFreehandController.h"
 #include "StylusCalibrationController.h"
+#include "ConfigFileSaverDialog.h"
 
 #include <QFileDialog>
 #include <QTimer>
@@ -353,13 +354,13 @@ void PhantomRegistrationToolbox::SaveClicked()
 {
 	LOG_TRACE("PhantomRegistrationToolbox: Save button clicked"); 
 
-	QString filter = QString( tr( "XML files ( *.xml );;" ) );
-  QString fileName = QFileDialog::getSaveFileName(NULL, tr("Save phantom registration result"), QString::fromStdString(vtkConfigurationTools::GetInstance()->GetNewConfigurationFileName()), filter);
+  if (PhantomRegistrationController::GetInstance()->SavePhantomRegistration(vtkFreehandController::GetInstance()->GetConfigurationData()) != PLUS_SUCCESS) {
+		LOG_ERROR("Phantom registration result could not be saved!");
+		return;
+	}
 
-	if (! fileName.isNull() ) {
-		if (PhantomRegistrationController::GetInstance()->SavePhantomRegistrationToFile(fileName.toStdString()) != PLUS_SUCCESS) {
-      LOG_ERROR("Saving configuration file to '" << fileName.toStdString() << "' failed!");
-      return;
-    }
-	}	
+  ConfigFileSaverDialog* configSaverDialog = new ConfigFileSaverDialog(this, vtkFreehandController::GetInstance()->GetConfigurationData());
+  configSaverDialog->exec();
+
+  delete configSaverDialog;
 }

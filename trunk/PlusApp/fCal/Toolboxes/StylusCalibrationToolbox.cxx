@@ -218,6 +218,11 @@ void StylusCalibrationToolbox::SaveResultClicked()
 {
   LOG_TRACE("StylusCalibrationToolbox::SaveResultClicked"); 
 
+  if (StylusCalibrationController::GetInstance()->SaveStylusCalibration(vtkFreehandController::GetInstance()->GetConfigurationData()) != PLUS_SUCCESS) {
+		LOG_ERROR("Stylus calibration result could not be saved!");
+		return;
+	}
+
   ConfigFileSaverDialog* configSaverDialog = new ConfigFileSaverDialog(this, vtkFreehandController::GetInstance()->GetConfigurationData());
   configSaverDialog->exec();
 

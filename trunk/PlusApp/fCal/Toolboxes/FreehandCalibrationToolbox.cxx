@@ -4,6 +4,7 @@
 #include "vtkFreehandController.h"
 #include "PhantomRegistrationController.h"
 #include "vtkConfigurationTools.h"
+#include "ConfigFileSaverDialog.h"
 
 #include <QVTKWidget.h>
 #include <QFileDialog>
@@ -422,15 +423,10 @@ void FreehandCalibrationToolbox::SaveClicked()
 {
 	LOG_TRACE("FreehandCalibrationToolbox::SaveClicked"); 
 
-	QString filter = QString( tr( "XML files ( *.xml );;" ) );
-	QString fileName = QFileDialog::getSaveFileName(NULL, tr("Save freehand calibration result"), QString::fromStdString(vtkConfigurationTools::GetInstance()->GetNewConfigurationFileName()), filter);
+  ConfigFileSaverDialog* configSaverDialog = new ConfigFileSaverDialog(this, vtkFreehandController::GetInstance()->GetConfigurationData());
+  configSaverDialog->exec();
 
-	if (! fileName.isNull() ) {
-    if (vtkFreehandController::GetInstance()->SaveConfigurationToFile(fileName.toStdString().c_str()) != PLUS_SUCCESS) {
-      LOG_ERROR("Saving configuration file to '" << fileName.toStdString() << "' failed!");
-      return;
-    }
-	}	
+  delete configSaverDialog;
 }
 
 //-----------------------------------------------------------------------------
