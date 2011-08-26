@@ -30,7 +30,7 @@
    <item row="1" column="0">
     <layout class="QHBoxLayout" name="horizontalLayout">
      <property name="spacing">
-      <number>2</number>
+      <number>0</number>
      </property>
      <item>
       <widget class="QLineEdit" name="lineEdit_ConfigurationDirectory">
@@ -77,6 +77,35 @@
          <width>16</width>
          <height>16</height>
         </size>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="pushButton_RefreshFolder">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>23</width>
+         <height>23</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>23</width>
+         <height>23</height>
+        </size>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+       <property name="icon">
+        <iconset resource="CommonWidgets.qrc">
+         <normaloff>:/icons/Resources/icon_Refresh.png</normaloff>:/icons/Resources/icon_Refresh.png</iconset>
        </property>
       </widget>
      </item>

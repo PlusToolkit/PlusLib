@@ -6,6 +6,7 @@
     <file>Resources/icon_DotGreen.png</file>
     <file>Resources/icon_DotOrange.png</file>
     <file>Resources/icon_DotRed.png</file>
-	<file>Resources/icon_PopOut.png</file>
+    <file>Resources/icon_PopOut.png</file>
+    <file>Resources/icon_Refresh.png</file>
   </qresource>
 </RCC>

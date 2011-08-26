@@ -111,6 +111,11 @@ protected slots:
 	*/
 	void InvokeDisconnect();
 
+	/*!
+	* \brief Called when Refresh folder button is clicked - refreshes device set list
+	*/
+  void RefreshFolderClicked();
+
 protected:
 	//! Configuration directory path
 	QString	m_ConfigurationDirectory;

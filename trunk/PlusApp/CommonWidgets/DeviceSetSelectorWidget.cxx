@@ -18,6 +18,7 @@ DeviceSetSelectorWidget::DeviceSetSelectorWidget(QWidget* aParent)
 
 	connect( ui.pushButton_OpenConfigurationDirectory, SIGNAL( clicked() ), this, SLOT( OpenConfigurationDirectoryClicked() ) );
 	connect( ui.pushButton_Connect, SIGNAL( clicked() ), this, SLOT( InvokeConnect() ) );
+	connect( ui.pushButton_RefreshFolder, SIGNAL( clicked() ), this, SLOT( RefreshFolderClicked() ) );
 	connect( ui.comboBox_DeviceSet, SIGNAL( currentIndexChanged(int) ), this, SLOT( DeviceSetSelected(int) ) );
 
   ui.comboBox_DeviceSet->setSizeAdjustPolicy(QComboBox::AdjustToMinimumContentsLengthWithIcon); 
@@ -69,7 +70,7 @@ void DeviceSetSelectorWidget::OpenConfigurationDirectoryClicked()
 
 void DeviceSetSelectorWidget::InvokeConnect()
 {
-	LOG_TRACE("ToolStateDisplayWidget::InvokeConnect"); 
+	LOG_TRACE("DeviceSetSelectorWidget::InvokeConnect"); 
 
   ui.pushButton_Connect->setEnabled(false);
 
@@ -89,7 +90,7 @@ std::string DeviceSetSelectorWidget::GetSelectedDeviceSetDescription()
 
 void DeviceSetSelectorWidget::InvokeDisconnect()
 {
-	LOG_TRACE("ToolStateDisplayWidget::InvokeDisconnect"); 
+	LOG_TRACE("DeviceSetSelectorWidget::InvokeDisconnect"); 
 
   ui.pushButton_Connect->setEnabled(false);
 
@@ -100,7 +101,7 @@ void DeviceSetSelectorWidget::InvokeDisconnect()
 
 void DeviceSetSelectorWidget::DeviceSetSelected(int aIndex)
 {
-	LOG_TRACE("ToolStateDisplayWidget::DeviceSetSelected(" << aIndex << ")"); 
+	LOG_TRACE("DeviceSetSelectorWidget::DeviceSetSelected(" << aIndex << ")"); 
 
 	if ((aIndex < 0) || (aIndex >= ui.comboBox_DeviceSet->count())) {
 		return;
@@ -128,7 +129,7 @@ void DeviceSetSelectorWidget::DeviceSetSelected(int aIndex)
 
 void DeviceSetSelectorWidget::SetConfigurationDirectory(std::string aDirectory, bool aForce)
 {
-	LOG_TRACE("ToolStateDisplayWidget::SetConfigurationDirectory(" << aDirectory << ", " << (aForce?"true":"false") << ")"); 
+	LOG_TRACE("DeviceSetSelectorWidget::SetConfigurationDirectory(" << aDirectory << ", " << (aForce?"true":"false") << ")"); 
   
   // Set configuration directory before we parse it 
   std::string oldDirectory = vtkConfigurationTools::GetInstance()->GetConfigurationDirectory();
@@ -155,7 +156,7 @@ void DeviceSetSelectorWidget::SetConfigurationDirectory(std::string aDirectory, 
 
 void DeviceSetSelectorWidget::SetConnectionSuccessful(bool aConnectionSuccessful)
 {
-	LOG_TRACE("ToolStateDisplayWidget::SetConnectionSuccessful(" << (aConnectionSuccessful?"true":"false") << ")"); 
+	LOG_TRACE("DeviceSetSelectorWidget::SetConnectionSuccessful(" << (aConnectionSuccessful?"true":"false") << ")"); 
 
 	m_ConnectionSuccessful = aConnectionSuccessful;
 
@@ -204,7 +205,7 @@ void DeviceSetSelectorWidget::SetConnectionSuccessful(bool aConnectionSuccessful
 
 bool DeviceSetSelectorWidget::GetConnectionSuccessful()
 {
-	LOG_TRACE("ToolStateDisplayWidget::GetConnectionSuccessful"); 
+	LOG_TRACE("DeviceSetSelectorWidget::GetConnectionSuccessful"); 
 
 	return m_ConnectionSuccessful;
 }
@@ -213,7 +214,7 @@ bool DeviceSetSelectorWidget::GetConnectionSuccessful()
 
 PlusStatus DeviceSetSelectorWidget::ParseDirectory(QString aDirectory)
 {
-	LOG_TRACE("ToolStateDisplayWidget::ParseDirectory(" << aDirectory.toStdString() << ")"); 
+	LOG_TRACE("DeviceSetSelectorWidget::ParseDirectory(" << aDirectory.toStdString() << ")"); 
 
 	QDir configDir(aDirectory);
 	QStringList fileList(configDir.entryList());
@@ -308,5 +309,18 @@ PlusStatus DeviceSetSelectorWidget::ParseDirectory(QString aDirectory)
 
 void DeviceSetSelectorWidget::SetComboBoxMinWidth(int minWidth)
 {
+	LOG_TRACE("DeviceSetSelectorWidget::SetComboBoxMinWidth(" << minWidth << ")"); 
+
   ui.comboBox_DeviceSet->setMinimumWidth(minWidth);
+}
+
+//-----------------------------------------------------------------------------
+
+void DeviceSetSelectorWidget::RefreshFolderClicked()
+{
+	LOG_TRACE("DeviceSetSelectorWidget::RefreshFolderClicked"); 
+
+  if (ParseDirectory(m_ConfigurationDirectory) != PLUS_SUCCESS) {
+    LOG_ERROR("Parsing up configuration files failed in: " << m_ConfigurationDirectory.toStdString().c_str());
+  }
 }
