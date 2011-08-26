@@ -27,7 +27,7 @@ int main (int argc, char* argv[])
 	std::string inputConfigFileName;
 	std::string outputVolumeFileName;
 
-	int verboseLevel=PlusLogger::LOG_LEVEL_INFO;
+	int verboseLevel=vtkPlusLogger::LOG_LEVEL_INFO;
 	VTK_LOG_TO_CONSOLE_ON; 
   
 	vtksys::CommandLineArguments cmdargs;
@@ -55,8 +55,8 @@ int main (int argc, char* argv[])
   
 	  // Set the log level
 	
-	PlusLogger::Instance()->SetLogLevel(verboseLevel);
-	PlusLogger::Instance()->SetDisplayLogLevel(verboseLevel);
+	vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
+	vtkPlusLogger::Instance()->SetDisplayLogLevel(verboseLevel);
 
 
 	vtkSmartPointer<vtkVolumeReconstructor> reconstructor = vtkSmartPointer<vtkVolumeReconstructor>::New(); 
@@ -90,7 +90,7 @@ int main (int argc, char* argv[])
 	const int numberOfFrames = trackedFrameList->GetNumberOfTrackedFrames(); 
 	for ( int imgNumber = 0; imgNumber < numberOfFrames; ++imgNumber )
 	{
-		PlusLogger::PrintProgressbar( (100.0 * imgNumber) / numberOfFrames ); 
+		vtkPlusLogger::PrintProgressbar( (100.0 * imgNumber) / numberOfFrames ); 
   
 		vtkSmartPointer<vtkMatrix4x4> mToolToReference = vtkSmartPointer<vtkMatrix4x4>::New();
 		double tToolToReference[16]; 
@@ -120,7 +120,7 @@ int main (int argc, char* argv[])
 		reconstructor->AddTrackedFrame(trackedFrameList->GetTrackedFrame(imgNumber)->ImageData, US_IMG_ORIENT_MF, mToolToReference, timestamp );
 	}
 	
-	PlusLogger::PrintProgressbar( 100 ); 
+	vtkPlusLogger::PrintProgressbar( 100 ); 
 
 	trackedFrameList->Clear(); 
 	LOG_INFO("Start reconstruction...");
@@ -128,11 +128,11 @@ int main (int argc, char* argv[])
 
 	while ( !reconstructor->GetReconstructor()->GetReconstructionFinished() ) 
 	{
-		PlusLogger::PrintProgressbar( ( 1 - ( 1.0 * reconstructor->GetReconstructor()->ReconstructionFrameCount /  numberOfFrames )) * 100 ); 
+		vtkPlusLogger::PrintProgressbar( ( 1 - ( 1.0 * reconstructor->GetReconstructor()->ReconstructionFrameCount /  numberOfFrames )) * 100 ); 
 		vtksys::SystemTools::Delay(200); 
 	}
 
-	PlusLogger::PrintProgressbar( 100 ); 
+	vtkPlusLogger::PrintProgressbar( 100 ); 
 
 	LOG_INFO("Fill holes in output volume...");
 	reconstructor->FillHoles(); 

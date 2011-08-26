@@ -53,7 +53,7 @@ int main(int argc, char **argv)
 	bool cleanFiles(false); 
 	int inputSavingMethod(METAFILE);
 
-	int verboseLevel=PlusLogger::LOG_LEVEL_INFO;
+	int verboseLevel=vtkPlusLogger::LOG_LEVEL_INFO;
 
 	vtksys::CommandLineArguments args;
 	args.Initialize(argc, argv);
@@ -64,7 +64,7 @@ int main(int argc, char **argv)
 	args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug)");	
 	args.AddArgument("--saving-method", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputSavingMethod, "Saving method ( Default: 1; 1=Metafile, 2=BMP, 3=PNG, 4=JPG )" );
 
-	PlusLogger::Instance()->SetLogLevel(verboseLevel);
+	vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
 
 	if ( !args.Parse() )
 	{

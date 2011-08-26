@@ -32,7 +32,7 @@ int main(int argc, char **argv)
 	std::string outputImageSequenceFileName;
 	std::string inputTestDataDir;
 
-	int verboseLevel=PlusLogger::LOG_LEVEL_INFO;
+	int verboseLevel=vtkPlusLogger::LOG_LEVEL_INFO;
 
 	int numberOfFailures(0); 
 	
@@ -51,7 +51,7 @@ int main(int argc, char **argv)
 		exit(EXIT_FAILURE);
 	}
 
-	PlusLogger::Instance()->SetLogLevel(verboseLevel);
+	vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
 
 	if (inputImageSequenceFileName.empty())
 	{

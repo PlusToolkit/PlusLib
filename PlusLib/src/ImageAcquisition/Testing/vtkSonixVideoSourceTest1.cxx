@@ -240,7 +240,7 @@ int main(int argc, char* argv[])
   vtksys::CommandLineArguments args;
   args.Initialize(argc, argv);
 
-  int verboseLevel = PlusLogger::LOG_LEVEL_INFO;
+  int verboseLevel = vtkPlusLogger::LOG_LEVEL_INFO;
 
   args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");	
   args.AddArgument("--sonix-ip", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputSonixIP, "SonixRP ip address (Default: 130.15.7.212)" );
@@ -261,8 +261,8 @@ int main(int argc, char* argv[])
     exit(EXIT_SUCCESS); 
   }
 
-  PlusLogger::Instance()->SetLogLevel(verboseLevel);
-  PlusLogger::Instance()->SetDisplayLogLevel(verboseLevel);
+  vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
+  vtkPlusLogger::Instance()->SetDisplayLogLevel(verboseLevel);
 
   vtkSmartPointer<vtkSonixVideoSource> sonixGrabber = vtkSmartPointer<vtkSonixVideoSource>::New();
 

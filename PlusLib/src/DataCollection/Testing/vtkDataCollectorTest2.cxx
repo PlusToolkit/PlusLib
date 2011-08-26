@@ -19,7 +19,7 @@ int main(int argc, char **argv)
   std::string inputTrackerBufferMetafile;
   bool outputCompressed(true);
 
-  int verboseLevel=PlusLogger::LOG_LEVEL_INFO;
+  int verboseLevel=vtkPlusLogger::LOG_LEVEL_INFO;
 
   vtksys::CommandLineArguments args;
   args.Initialize(argc, argv);
@@ -54,8 +54,8 @@ int main(int argc, char **argv)
   vtkSmartPointer<vtkDataCollector> dataCollector = vtkSmartPointer<vtkDataCollector>::New(); 
   dataCollector->ReadConfigurationFromFile(inputConfigFileName.c_str());
 
-  PlusLogger::Instance()->SetLogLevel(verboseLevel);
-  PlusLogger::Instance()->SetDisplayLogLevel(verboseLevel);
+  vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
+  vtkPlusLogger::Instance()->SetDisplayLogLevel(verboseLevel);
 
   if ( dataCollector->GetAcquisitionType() == SYNCHRO_VIDEO_SAVEDDATASET )
   {

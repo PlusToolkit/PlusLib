@@ -19,7 +19,7 @@ int main(int argc, char **argv)
   double inputMaxTimestampDifference(0.080); 
   double inputMinStdevReductionFactor(3.0); 
 
-	int verboseLevel = PlusLogger::LOG_LEVEL_INFO;
+	int verboseLevel = vtkPlusLogger::LOG_LEVEL_INFO;
 
 	vtksys::CommandLineArguments args;
 	args.Initialize(argc, argv);
@@ -52,8 +52,8 @@ int main(int argc, char **argv)
 		exit(EXIT_FAILURE); 
   }
 
-	PlusLogger::Instance()->SetLogLevel(verboseLevel);
-  PlusLogger::Instance()->SetDisplayLogLevel(verboseLevel);
+	vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
+  vtkPlusLogger::Instance()->SetDisplayLogLevel(verboseLevel);
 
   // Read buffer 
   LOG_INFO("Reading meta file..."); 
@@ -71,7 +71,7 @@ int main(int argc, char **argv)
 
   for ( int frameNumber = 0; frameNumber < numberOfFrames; frameNumber++ )
   {
-    PlusLogger::PrintProgressbar( (100.0 * frameNumber) / numberOfFrames ); 
+    vtkPlusLogger::PrintProgressbar( (100.0 * frameNumber) / numberOfFrames ); 
 
     const char* strUnfilteredTimestamp = trackerFrameList->GetTrackedFrame(frameNumber)->GetCustomFrameField("UnfilteredTimestamp"); 
     double unfilteredtimestamp(0); 
@@ -104,7 +104,7 @@ int main(int argc, char **argv)
     trackerBuffer->AddTimeStampedItem(identityMatrix, TR_OK, frmnum, unfilteredtimestamp); 
   }
 
-  PlusLogger::PrintProgressbar( 100 ); 
+  vtkPlusLogger::PrintProgressbar( 100 ); 
   std::cout << std::endl; 
 
 
@@ -203,7 +203,7 @@ int main(int argc, char **argv)
     return PLUS_FAIL; 
   }
 
-  if ( PlusLogger::Instance()->GetLogLevel() >= PlusLogger::LOG_LEVEL_DEBUG )
+  if ( vtkPlusLogger::Instance()->GetLogLevel() >= vtkPlusLogger::LOG_LEVEL_DEBUG )
   {
     timestampReportTable->Dump(); 
   }

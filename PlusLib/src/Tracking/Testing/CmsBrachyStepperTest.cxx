@@ -14,7 +14,7 @@ int main (int argc, char* argv[])
 	int inputNumberOfTrials(20); 
 	int samplingTimeMs(50);
 
-	int verboseLevel=PlusLogger::LOG_LEVEL_INFO;
+	int verboseLevel=vtkPlusLogger::LOG_LEVEL_INFO;
 
 	vtksys::CommandLineArguments args;
 	args.Initialize(argc, argv);
@@ -41,8 +41,8 @@ int main (int argc, char* argv[])
 
 	}
 
-	PlusLogger::Instance()->SetLogLevel(verboseLevel);
-  PlusLogger::Instance()->SetDisplayLogLevel(verboseLevel);
+	vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
+  vtkPlusLogger::Instance()->SetDisplayLogLevel(verboseLevel);
 
 
 	for ( int reconnect = 0; reconnect < 5; reconnect++ )

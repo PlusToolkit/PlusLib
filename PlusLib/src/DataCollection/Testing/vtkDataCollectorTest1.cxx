@@ -100,7 +100,7 @@ int main(int argc, char **argv)
   bool inputReplay(false); 
   bool inputEnableBroadcasting(false); 
 
-  int verboseLevel=PlusLogger::LOG_LEVEL_INFO;
+  int verboseLevel=vtkPlusLogger::LOG_LEVEL_INFO;
 
   vtksys::CommandLineArguments args;
   args.Initialize(argc, argv);
@@ -126,8 +126,8 @@ int main(int argc, char **argv)
     exit(EXIT_FAILURE);
   }
 
-  PlusLogger::Instance()->SetLogLevel(verboseLevel);
-  PlusLogger::Instance()->SetDisplayLogLevel(verboseLevel);
+  vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
+  vtkPlusLogger::Instance()->SetDisplayLogLevel(verboseLevel);
 
   ///////////////
 

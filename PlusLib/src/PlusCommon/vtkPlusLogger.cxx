@@ -4,28 +4,28 @@
 
 #include "PlusConfigure.h"
 
-#include "PlusLogger.h"
+#include "vtkPlusLogger.h"
 #include <string>
 #include <sstream>
 
 #include "vtkCriticalSection.h"
 #include "vtkCommand.h"
 
-PlusLogger* PlusLogger::m_pInstance = NULL;
+vtkPlusLogger* vtkPlusLogger::m_pInstance = NULL;
 
 //-------------------------------------------------------
-PlusLogger::PlusLogger()
+vtkPlusLogger::vtkPlusLogger()
 {
-	m_CriticalSection = vtkSimpleCriticalSection::New(); 
+	m_CriticalSection = vtkSimpleCriticalSection::New();
 	m_LogLevel = LOG_LEVEL_WARNING;
 	m_DisplayLogLevel = LOG_LEVEL_WARNING;
-	std::ostringstream logfilename; 
-	logfilename << vtkAccurateTimer::GetInstance()->GetDateAndTimeString() << "_PlusLog.txt"; 
+	std::ostringstream logfilename;
+	logfilename << vtkAccurateTimer::GetInstance()->GetDateAndTimeString() << "_PlusLog.txt";
 	this->m_LogStream.open (logfilename.str().c_str(), ios::out);
 }
 
 //-------------------------------------------------------
-PlusLogger::~PlusLogger()
+vtkPlusLogger::~vtkPlusLogger()
 {
 	if ( this->m_CriticalSection != NULL ) 
 	{
@@ -37,23 +37,23 @@ PlusLogger::~PlusLogger()
 }
 
 //-------------------------------------------------------
-PlusLogger* PlusLogger::Instance() 
+vtkPlusLogger* vtkPlusLogger::Instance() 
 {
 	if (m_pInstance==NULL)
 	{
-		m_pInstance = new PlusLogger;
+		m_pInstance = new vtkPlusLogger;
 	}
 	return m_pInstance;
 }
 
 //-------------------------------------------------------
-int PlusLogger::GetLogLevel() 
+int vtkPlusLogger::GetLogLevel() 
 { 
 	return m_LogLevel; 
 }
 
 //-------------------------------------------------------
-void PlusLogger::SetLogLevel(int logLevel) 
+void vtkPlusLogger::SetLogLevel(int logLevel) 
 { 
 	m_CriticalSection->Lock(); 
 	m_LogLevel=logLevel; 
@@ -61,13 +61,13 @@ void PlusLogger::SetLogLevel(int logLevel)
 }
 
 //-------------------------------------------------------
-int PlusLogger::GetDisplayLogLevel() 
+int vtkPlusLogger::GetDisplayLogLevel() 
 { 
 	return m_DisplayLogLevel; 
 }
 
 //-------------------------------------------------------
-void PlusLogger::SetDisplayLogLevel(int logLevel) 
+void vtkPlusLogger::SetDisplayLogLevel(int logLevel) 
 { 
 	m_CriticalSection->Lock(); 
 	m_DisplayLogLevel=logLevel; 
@@ -75,7 +75,7 @@ void PlusLogger::SetDisplayLogLevel(int logLevel)
 }
 
 //-------------------------------------------------------
-void PlusLogger::LogMessage(LogLevelType level, const char *msg, const char* fileName, int lineNumber)
+void vtkPlusLogger::LogMessage(LogLevelType level, const char *msg, const char* fileName, int lineNumber)
 {
 	if (m_LogLevel<level && m_DisplayLogLevel<level)
 	{
@@ -188,9 +188,9 @@ void PlusLogger::LogMessage(LogLevelType level, const char *msg, const char* fil
 
 
 //-------------------------------------------------------
-void PlusLogger::PrintProgressbar( int percent )
+void vtkPlusLogger::PrintProgressbar( int percent )
 {
-	if ( PlusLogger::Instance()->GetLogLevel() != PlusLogger::LOG_LEVEL_INFO )
+	if ( vtkPlusLogger::Instance()->GetLogLevel() != vtkPlusLogger::LOG_LEVEL_INFO )
 	{
 		return; 
 	}

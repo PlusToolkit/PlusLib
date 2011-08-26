@@ -49,7 +49,7 @@ Version:   $Revision: $
 #include "vtkSmartPointer.h"
 #include "vtkAccurateTimer.h"
 #include "PlusCommon.h"
-#include "PlusLogger.h"
+#include "vtkPlusLogger.h"
 
 #cmakedefine PLUSLIB_VERSION "${PLUSLIB_VERSION}"
 #cmakedefine PLUSLIB_VERSION_MAJOR ${PLUSLIB_VERSION_MAJOR}

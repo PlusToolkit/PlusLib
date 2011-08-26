@@ -19,11 +19,11 @@ ADD_TEST(TimestampFilteringTest
 SET_TESTS_PROPERTIES( TimestampFilteringTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
 #--------------------------------------------------------------------------------------------
-ADD_EXECUTABLE(PlusLoggerTest PlusLoggerTest.cxx )
-TARGET_LINK_LIBRARIES(PlusLoggerTest vtkPlusCommon )
+ADD_EXECUTABLE(vtkPlusLoggerTest vtkPlusLoggerTest.cxx )
+TARGET_LINK_LIBRARIES(vtkPlusLoggerTest vtkPlusCommon )
 
-ADD_TEST(PlusLoggerTest 
-  ${EXECUTABLE_OUTPUT_PATH}/PlusLoggerTest
+ADD_TEST(vtkPlusLoggerTest 
+  ${EXECUTABLE_OUTPUT_PATH}/vtkPlusLoggerTest
   --verbose=5
   )
 
