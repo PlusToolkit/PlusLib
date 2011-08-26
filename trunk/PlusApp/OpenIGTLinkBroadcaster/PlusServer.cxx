@@ -29,7 +29,7 @@ int main( int argc, char** argv )
   std::string inputConfigFileName;
   std::string inputVideoBufferMetafile;
   std::string inputTrackerBufferMetafile;
-  int         verboseLevel = PlusLogger::LOG_LEVEL_INFO;
+  int         verboseLevel = vtkPlusLogger::LOG_LEVEL_INFO;
   
   vtksys::CommandLineArguments args;
   args.Initialize( argc, argv );
@@ -67,8 +67,8 @@ int main( int argc, char** argv )
   
     // Set the logging level.
   
-  PlusLogger::Instance()->SetLogLevel( verboseLevel );
-  PlusLogger::Instance()->SetDisplayLogLevel( verboseLevel );
+  vtkPlusLogger::Instance()->SetLogLevel( verboseLevel );
+  vtkPlusLogger::Instance()->SetDisplayLogLevel( verboseLevel );
   
   
     // Create server socket.

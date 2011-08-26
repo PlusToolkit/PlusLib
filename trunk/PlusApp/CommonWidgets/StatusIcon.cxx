@@ -42,7 +42,7 @@ StatusIcon::StatusIcon(QWidget* aParent, Qt::WFlags aFlags)
   : QWidget(aParent, aFlags)
   , m_MessageListWidget(NULL)
   , m_MessageTextEdit(NULL)
-  , m_Level(PlusLogger::LOG_LEVEL_INFO)
+  , m_Level(vtkPlusLogger::LOG_LEVEL_INFO)
 {
   this->setMinimumSize(18, 16);
   this->setMaximumSize(18, 16);
@@ -67,7 +67,7 @@ StatusIcon::StatusIcon(QWidget* aParent, Qt::WFlags aFlags)
 	// Set callback for logger to display errors
   vtkSmartPointer<vtkDisplayMessageCallback> cb = vtkSmartPointer<vtkDisplayMessageCallback>::New();
   cb->SetStatusIcon(this);
-  m_DisplayMessageCallbackTag = PlusLogger::Instance()->AddObserver(vtkCommand::UserEvent, cb);
+  m_DisplayMessageCallbackTag = vtkPlusLogger::Instance()->AddObserver(vtkCommand::UserEvent, cb);
 
   // Install event filter that is called on any event
   this->installEventFilter(this);
@@ -82,7 +82,7 @@ StatusIcon::StatusIcon(QWidget* aParent, Qt::WFlags aFlags)
 
 StatusIcon::~StatusIcon()
 {
-  PlusLogger::Instance()->RemoveObserver(m_DisplayMessageCallbackTag);
+  vtkPlusLogger::Instance()->RemoveObserver(m_DisplayMessageCallbackTag);
 }
 
 //-----------------------------------------------------------------------------
@@ -91,9 +91,9 @@ void StatusIcon::AddMessage(const char* aMessage, const int aLevel)
 {
   // Re-color dot if necessary
   switch (aLevel) {
-    case PlusLogger::LOG_LEVEL_ERROR:
-      if (m_Level > PlusLogger::LOG_LEVEL_ERROR) {
-        m_Level = PlusLogger::LOG_LEVEL_ERROR;
+    case vtkPlusLogger::LOG_LEVEL_ERROR:
+      if (m_Level > vtkPlusLogger::LOG_LEVEL_ERROR) {
+        m_Level = vtkPlusLogger::LOG_LEVEL_ERROR;
         m_DotLabel->setPixmap( QPixmap( ":/icons/Resources/icon_DotRed.png" ) );
       }
 
@@ -101,9 +101,9 @@ void StatusIcon::AddMessage(const char* aMessage, const int aLevel)
 
       break;
 
-    case PlusLogger::LOG_LEVEL_WARNING:
-      if (m_Level > PlusLogger::LOG_LEVEL_WARNING) {
-        m_Level = PlusLogger::LOG_LEVEL_WARNING;
+    case vtkPlusLogger::LOG_LEVEL_WARNING:
+      if (m_Level > vtkPlusLogger::LOG_LEVEL_WARNING) {
+        m_Level = vtkPlusLogger::LOG_LEVEL_WARNING;
         m_DotLabel->setPixmap( QPixmap( ":/icons/Resources/icon_DotOrange.png" ) );
       }
 
@@ -174,7 +174,7 @@ bool StatusIcon::eventFilter(QObject *obj, QEvent *ev)
           m_MessageListWidget->show();
 
         } else {
-          m_Level = PlusLogger::LOG_LEVEL_INFO;
+          m_Level = vtkPlusLogger::LOG_LEVEL_INFO;
           m_DotLabel->setPixmap( QPixmap( ":/icons/Resources/icon_DotGreen.png" ) );
 
           m_MessageListWidget->hide();
@@ -184,7 +184,7 @@ bool StatusIcon::eventFilter(QObject *obj, QEvent *ev)
       }
     }
   } else if ( (obj == m_MessageListWidget) && (ev->type() == QEvent::Close) ) {
-    m_Level = PlusLogger::LOG_LEVEL_INFO;
+    m_Level = vtkPlusLogger::LOG_LEVEL_INFO;
     m_DotLabel->setPixmap( QPixmap( ":/icons/Resources/icon_DotGreen.png" ) );
   }
 

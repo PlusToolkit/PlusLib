@@ -178,23 +178,23 @@ int main (int argc, char* argv[])
 
     if ( STRCASECMP("ERROR", verboseLevel.c_str())==0 )
 	{
-		PlusLogger::Instance()->SetLogLevel(PlusLogger::LOG_LEVEL_ERROR);
-        PlusLogger::Instance()->SetDisplayLogLevel(PlusLogger::LOG_LEVEL_ERROR);
+		vtkPlusLogger::Instance()->SetLogLevel(vtkPlusLogger::LOG_LEVEL_ERROR);
+        vtkPlusLogger::Instance()->SetDisplayLogLevel(vtkPlusLogger::LOG_LEVEL_ERROR);
 	}
 	else if ( STRCASECMP("WARNING", verboseLevel.c_str())==0 )
 	{
-		PlusLogger::Instance()->SetLogLevel(PlusLogger::LOG_LEVEL_WARNING);
-        PlusLogger::Instance()->SetDisplayLogLevel(PlusLogger::LOG_LEVEL_WARNING);
+		vtkPlusLogger::Instance()->SetLogLevel(vtkPlusLogger::LOG_LEVEL_WARNING);
+        vtkPlusLogger::Instance()->SetDisplayLogLevel(vtkPlusLogger::LOG_LEVEL_WARNING);
 	}
 	else if ( STRCASECMP("INFO", verboseLevel.c_str())==0 )
 	{
-		PlusLogger::Instance()->SetLogLevel(PlusLogger::LOG_LEVEL_INFO);
-        PlusLogger::Instance()->SetDisplayLogLevel(PlusLogger::LOG_LEVEL_INFO);
+		vtkPlusLogger::Instance()->SetLogLevel(vtkPlusLogger::LOG_LEVEL_INFO);
+        vtkPlusLogger::Instance()->SetDisplayLogLevel(vtkPlusLogger::LOG_LEVEL_INFO);
 	}
 	else if ( STRCASECMP("DEBUG", verboseLevel.c_str())==0 )
 	{
-		PlusLogger::Instance()->SetLogLevel(PlusLogger::LOG_LEVEL_DEBUG);
-        PlusLogger::Instance()->SetDisplayLogLevel(PlusLogger::LOG_LEVEL_DEBUG);
+		vtkPlusLogger::Instance()->SetLogLevel(vtkPlusLogger::LOG_LEVEL_DEBUG);
+        vtkPlusLogger::Instance()->SetDisplayLogLevel(vtkPlusLogger::LOG_LEVEL_DEBUG);
 	}
 
 	if ( STRCASECMP("METAFILE", inputSavingMethod.c_str())==0 )
@@ -386,7 +386,7 @@ void ConvertFromOldSequenceMetafile(std::vector<std::string> inputImageSequenceF
                 exit(EXIT_FAILURE);
             }
 
-			PlusLogger::PrintProgressbar( (100.0 * imgNumber) / numberOfFrames ); 
+			vtkPlusLogger::PrintProgressbar( (100.0 * imgNumber) / numberOfFrames ); 
 
       
       UcharImageType::Pointer frame = UcharImageType::New(); 
@@ -448,7 +448,7 @@ void ConvertFromOldSequenceMetafile(std::vector<std::string> inputImageSequenceF
 			trackedFrameContainer->AddTrackedFrame(&trackedFrame);
 		}
 
-		PlusLogger::PrintProgressbar(100); 
+		vtkPlusLogger::PrintProgressbar(100); 
 
 		SaveImages(trackedFrameContainer, savingMethod, ++numberOfImagesWritten); 
 	}
@@ -478,7 +478,7 @@ void ConvertFromBitmap(SAVING_METHOD savingMethod)
 	{
 		// Skip this file, if it's not a .bmp file.
 
-		PlusLogger::PrintProgressbar(frameNumber*100 / totalNumberOfImages ); 
+		vtkPlusLogger::PrintProgressbar(frameNumber*100 / totalNumberOfImages ); 
 
 		std::string fileName( dir->GetFile( dirIndex ) );
 		std::size_t pos = 0;
@@ -558,7 +558,7 @@ void ConvertFromBitmap(SAVING_METHOD savingMethod)
 		imageFileNameWithPath << inputDataDir << "/" << inputBitmapPrefix << std::setfill('0') << std::setw(4) << ++frameNumber << inputBitmapSuffix << ".bmp"; 
 	}
 
-	PlusLogger::PrintProgressbar(100); 
+	vtkPlusLogger::PrintProgressbar(100); 
 
 	SaveImages(trackedFrameContainer, savingMethod, numberOfImagesWritten); 
 }
@@ -584,7 +584,7 @@ void SaveImages( vtkTrackedFrameList* trackedFrameList, SAVING_METHOD savingMeth
 			{
 				if ( numberOfFrames > 1 )
 				{
-					PlusLogger::PrintProgressbar(imgNumber*100 / numberOfFrames ); 
+					vtkPlusLogger::PrintProgressbar(imgNumber*100 / numberOfFrames ); 
 				}
 
 				std::ostringstream fileName; 
@@ -618,7 +618,7 @@ void SaveImages( vtkTrackedFrameList* trackedFrameList, SAVING_METHOD savingMeth
 
 			if ( numberOfFrames > 1 )
 			{
-				PlusLogger::PrintProgressbar(100); 
+				vtkPlusLogger::PrintProgressbar(100); 
 			}
 		}
 		break; 
@@ -633,7 +633,7 @@ void SaveImages( vtkTrackedFrameList* trackedFrameList, SAVING_METHOD savingMeth
 			{
 				if ( numberOfFrames > 1 )
 				{
-					PlusLogger::PrintProgressbar(imgNumber*100 / numberOfFrames ); 
+					vtkPlusLogger::PrintProgressbar(imgNumber*100 / numberOfFrames ); 
 				}
 
 				std::ostringstream fileName; 
@@ -644,7 +644,7 @@ void SaveImages( vtkTrackedFrameList* trackedFrameList, SAVING_METHOD savingMeth
 
 			if ( numberOfFrames > 1 )
 			{
-				PlusLogger::PrintProgressbar(100); 
+				vtkPlusLogger::PrintProgressbar(100); 
 			}
 		}
 		break; 
@@ -937,7 +937,7 @@ void ConvertFromMetafile(SAVING_METHOD savingMethod)
 	{
 		// Skip this file, if it's not a .bmp file.
 
-		PlusLogger::PrintProgressbar(dirIndex*100 / dir->GetNumberOfFiles() ); 
+		vtkPlusLogger::PrintProgressbar(dirIndex*100 / dir->GetNumberOfFiles() ); 
 
 		std::string fileName( dir->GetFile( dirIndex ) );
 
@@ -1010,7 +1010,7 @@ void ConvertFromMetafile(SAVING_METHOD savingMethod)
 	}
 
 
-  PlusLogger::PrintProgressbar(100); 
+  vtkPlusLogger::PrintProgressbar(100); 
 
   SaveImages(trackedFrameContainer, savingMethod, numberOfImagesWritten); 
 

@@ -161,23 +161,23 @@ QWizard(parent)
   this->m_USCapturing->SetFrameRate(10); 
 
   // Select log level 
-  PlusLogger::Instance()->SetLogLevel(PlusLogger::LOG_LEVEL_INFO); 
+  vtkPlusLogger::Instance()->SetLogLevel(vtkPlusLogger::LOG_LEVEL_INFO); 
   QString strLogLevel; 
-  switch ( PlusLogger::Instance()->GetLogLevel() )
+  switch ( vtkPlusLogger::Instance()->GetLogLevel() )
   {
-  case PlusLogger::LOG_LEVEL_ERROR:
+  case vtkPlusLogger::LOG_LEVEL_ERROR:
     strLogLevel = "Error"; 
     break;
-  case PlusLogger::LOG_LEVEL_WARNING:
+  case vtkPlusLogger::LOG_LEVEL_WARNING:
     strLogLevel = "Warning"; 
     break;
-  case PlusLogger::LOG_LEVEL_INFO:
+  case vtkPlusLogger::LOG_LEVEL_INFO:
     strLogLevel = "Info"; 
     break;
-  case PlusLogger::LOG_LEVEL_DEBUG:
+  case vtkPlusLogger::LOG_LEVEL_DEBUG:
     strLogLevel = "Debug"; 
     break;
-  case PlusLogger::LOG_LEVEL_TRACE:
+  case vtkPlusLogger::LOG_LEVEL_TRACE:
     strLogLevel = "Trace"; 
     break;
   }
@@ -807,28 +807,28 @@ void TrackedUltrasoundCapturingGUI::ChangeLogLevel()
   LOG_TRACE("TrackedUltrasoundCapturingGUI::ChangeLogLevel");
   if ( STRCASECMP(this->LogLevelComboBox->currentText().ascii(), "ERROR") == 0 )
   {
-    PlusLogger::Instance()->SetLogLevel(PlusLogger::LOG_LEVEL_ERROR); 
-    PlusLogger::Instance()->SetDisplayLogLevel(PlusLogger::LOG_LEVEL_ERROR); 
+    vtkPlusLogger::Instance()->SetLogLevel(vtkPlusLogger::LOG_LEVEL_ERROR); 
+    vtkPlusLogger::Instance()->SetDisplayLogLevel(vtkPlusLogger::LOG_LEVEL_ERROR); 
   }
   else if ( STRCASECMP(this->LogLevelComboBox->currentText().ascii(), "WARNING") == 0 )
   {
-    PlusLogger::Instance()->SetLogLevel(PlusLogger::LOG_LEVEL_WARNING); 
-    PlusLogger::Instance()->SetDisplayLogLevel(PlusLogger::LOG_LEVEL_WARNING);
+    vtkPlusLogger::Instance()->SetLogLevel(vtkPlusLogger::LOG_LEVEL_WARNING); 
+    vtkPlusLogger::Instance()->SetDisplayLogLevel(vtkPlusLogger::LOG_LEVEL_WARNING);
   }
   else if ( STRCASECMP(this->LogLevelComboBox->currentText().ascii(), "INFO") == 0 )
   {
-    PlusLogger::Instance()->SetLogLevel(PlusLogger::LOG_LEVEL_INFO); 
-    PlusLogger::Instance()->SetDisplayLogLevel(PlusLogger::LOG_LEVEL_INFO);
+    vtkPlusLogger::Instance()->SetLogLevel(vtkPlusLogger::LOG_LEVEL_INFO); 
+    vtkPlusLogger::Instance()->SetDisplayLogLevel(vtkPlusLogger::LOG_LEVEL_INFO);
   }
   else if ( STRCASECMP(this->LogLevelComboBox->currentText().ascii(), "DEBUG") == 0 )
   {
-    PlusLogger::Instance()->SetLogLevel(PlusLogger::LOG_LEVEL_DEBUG); 
-    PlusLogger::Instance()->SetDisplayLogLevel(PlusLogger::LOG_LEVEL_DEBUG);
+    vtkPlusLogger::Instance()->SetLogLevel(vtkPlusLogger::LOG_LEVEL_DEBUG); 
+    vtkPlusLogger::Instance()->SetDisplayLogLevel(vtkPlusLogger::LOG_LEVEL_DEBUG);
   }
   else if ( STRCASECMP(this->LogLevelComboBox->currentText().ascii(), "TRACE") == 0 )
   {
-    PlusLogger::Instance()->SetLogLevel(PlusLogger::LOG_LEVEL_TRACE); 
-    PlusLogger::Instance()->SetDisplayLogLevel(PlusLogger::LOG_LEVEL_TRACE);
+    vtkPlusLogger::Instance()->SetLogLevel(vtkPlusLogger::LOG_LEVEL_TRACE); 
+    vtkPlusLogger::Instance()->SetDisplayLogLevel(vtkPlusLogger::LOG_LEVEL_TRACE);
   }
 
   LOG_INFO("Log level changed to: " << this->LogLevelComboBox->currentText().ascii() )

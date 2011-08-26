@@ -21,7 +21,7 @@ int main(int argc, char **argv)
 	int numberOfAveragedTransforms(20); 
 	double thresholdMultiplier(5); 
 
-	int verboseLevel=PlusLogger::LOG_LEVEL_INFO;
+	int verboseLevel=vtkPlusLogger::LOG_LEVEL_INFO;
 
 	vtksys::CommandLineArguments args;
 	args.Initialize(argc, argv);
@@ -38,7 +38,7 @@ int main(int argc, char **argv)
 
 	args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug)");	
 
-	PlusLogger::Instance()->SetLogLevel(verboseLevel);
+	vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
 
 	if ( !args.Parse() )
 	{
