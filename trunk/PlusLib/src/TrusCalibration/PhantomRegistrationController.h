@@ -79,12 +79,6 @@ public:
 
 	/*!
 	* \brief Save result to XML file
-	* \param aFile XML file name and path
-	*/
-	PlusStatus SavePhantomRegistrationToFile(std::string aFile);
-
-	/*!
-	* \brief Save result to XML file
 	* \param aConfig XML data element containing the phantom registration
 	* \return Success flag
 	*/

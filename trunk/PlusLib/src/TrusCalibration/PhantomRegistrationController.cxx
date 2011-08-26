@@ -1004,28 +1004,6 @@ PlusStatus PhantomRegistrationController::LoadPhantomRegistration(vtkXMLDataElem
 
 //-----------------------------------------------------------------------------
 
-PlusStatus PhantomRegistrationController::SavePhantomRegistrationToFile(std::string aFile)
-{
-	LOG_TRACE("PhantomRegistrationController::SavePhantomRegistrationToFile(" << aFile << ")");
-
-	vtkSmartPointer<vtkXMLDataElement> rootElement = NULL;
-	if ((rootElement = vtkFreehandController::ParseXMLOrFillWithInternalData(aFile.c_str())) == NULL) {
-		LOG_ERROR("Neither input file not internal configuration data is valid!");
-		return PLUS_FAIL;
-	}
-
-	if (SavePhantomRegistration(rootElement) != PLUS_SUCCESS) {
-		LOG_ERROR("Phantom registration result could not be saved!");
-		return PLUS_FAIL;
-	}
-
-	rootElement->PrintXML(aFile.c_str());
-
-	return PLUS_SUCCESS;
-}
-
-//-----------------------------------------------------------------------------
-
 PlusStatus PhantomRegistrationController::SavePhantomRegistration(vtkXMLDataElement* aConfig)
 {
 	LOG_TRACE("PhantomRegistrationController::SavePhantomRegistration");
