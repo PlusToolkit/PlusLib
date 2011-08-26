@@ -52,6 +52,9 @@ SegmentationProgressCallbackFunction(NULL)
   this->CalibrationDate = NULL; 
   
   this->OfflineImageData = vtkImageData::New(); 
+  this->OfflineImageData->SetExtent(0,1,0,1,0,0); 
+  this->OfflineImageData->SetScalarTypeToUnsignedChar(); 
+  this->OfflineImageData->AllocateScalars(); 
 	
 	this->SetCalibrationMode(REALTIME); 
 
