@@ -53,9 +53,6 @@ protected:
   PlusStatus ConstructMessageListWidget();
 
 protected:
-  //! List of messages to display
-  QList<QPair<QString, int>>*	m_MessageList;
-
   //! State level of the widget ( no errors (>2): green , warning (2): orange , error (1): red )
   int							            m_Level;
 
@@ -67,9 +64,6 @@ protected:
 
   //! Field containing the messages
   QTextEdit*					        m_MessageTextEdit;
-
-  // Hack: move cursor to bottom of page if it is at the top (could not solve simple scrolling, had to play with cursot)
-  int							            m_PreviousScroll;
 
   //! Tag number of the display message callback
   unsigned long               m_DisplayMessageCallbackTag;
