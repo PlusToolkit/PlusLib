@@ -14,7 +14,7 @@ int main(int argc, char **argv)
 	std::vector<std::string> inputGnuplotArguments;
 	double timeout(120); 
 
-	int verboseLevel = PlusLogger::LOG_LEVEL_INFO;
+	int verboseLevel = vtkPlusLogger::LOG_LEVEL_INFO;
 
 	vtksys::CommandLineArguments args;
 	args.Initialize(argc, argv);
@@ -47,7 +47,7 @@ int main(int argc, char **argv)
 		exit(EXIT_FAILURE);; 
 	}
 
-	PlusLogger::Instance()->SetLogLevel(verboseLevel);
+	vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
 
 	///////////////
 	

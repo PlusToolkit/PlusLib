@@ -37,7 +37,7 @@ int main (int argc, char* argv[])
 	double inputTranslationErrorThreshold(0);
 	double inputRotationErrorThreshold(0);
 
-	int verboseLevel=PlusLogger::LOG_LEVEL_WARNING;
+	int verboseLevel=vtkPlusLogger::LOG_LEVEL_WARNING;
 
 	vtksys::CommandLineArguments cmdargs;
 	cmdargs.Initialize(argc, argv);
@@ -60,8 +60,8 @@ int main (int argc, char* argv[])
 		exit(EXIT_FAILURE);
 	}
 
-	PlusLogger::Instance()->SetLogLevel(verboseLevel);
-  PlusLogger::Instance()->SetDisplayLogLevel(verboseLevel);
+	vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
+  vtkPlusLogger::Instance()->SetDisplayLogLevel(verboseLevel);
 
 	VTK_LOG_TO_CONSOLE_ON; 
 

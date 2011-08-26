@@ -19,7 +19,7 @@ int main(int argc, char **argv)
   double inputMaxTranslationDifference(0.5); 
   double inputMaxRotationDifference(1.0); 
 
-	int verboseLevel = PlusLogger::LOG_LEVEL_INFO;
+	int verboseLevel = vtkPlusLogger::LOG_LEVEL_INFO;
 
 	vtksys::CommandLineArguments args;
 	args.Initialize(argc, argv);
@@ -51,8 +51,8 @@ int main(int argc, char **argv)
 		exit(EXIT_FAILURE); 
   }
 
-	PlusLogger::Instance()->SetLogLevel(verboseLevel);
-  PlusLogger::Instance()->SetDisplayLogLevel(verboseLevel);
+	vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
+  vtkPlusLogger::Instance()->SetDisplayLogLevel(verboseLevel);
 
   // Read buffer 
   LOG_INFO("Reading tracker meta file..."); 
@@ -69,7 +69,7 @@ int main(int argc, char **argv)
 
   for ( int frameNumber = 0; frameNumber < numberOfFrames; frameNumber++ )
   {
-    PlusLogger::PrintProgressbar( (100.0 * frameNumber) / numberOfFrames ); 
+    vtkPlusLogger::PrintProgressbar( (100.0 * frameNumber) / numberOfFrames ); 
 
     TrackedFrame* frameItem=trackerFrameList->GetTrackedFrame(frameNumber);
 
@@ -113,7 +113,7 @@ int main(int argc, char **argv)
     trackerBuffer->AddTimeStampedItem(defaultTransformMatrix, frameItem->GetStatus(), frmnum, unfilteredtimestamp); 
   }
 
-  PlusLogger::PrintProgressbar( 100 ); 
+  vtkPlusLogger::PrintProgressbar( 100 ); 
   std::cout << std::endl; 
 
 

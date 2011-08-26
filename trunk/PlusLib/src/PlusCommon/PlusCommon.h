@@ -2,7 +2,7 @@
 #define __PlusCommon_h
 
 #include "vtkOutputWindow.h"
-#include "PlusLogger.h"
+#include "vtkPlusLogger.h"
 #include "itkImageIOBase.h"
 
 enum PlusStatus
@@ -42,7 +42,7 @@ enum TrackerStatus {
 	{ \
 	std::ostrstream msgStream; \
   msgStream << " " << msg << std::ends; \
-	PlusLogger::Instance()->LogMessage(PlusLogger::LOG_LEVEL_ERROR, msgStream.str(), __FILE__, __LINE__); \
+	vtkPlusLogger::Instance()->LogMessage(vtkPlusLogger::LOG_LEVEL_ERROR, msgStream.str(), __FILE__, __LINE__); \
 	msgStream.rdbuf()->freeze(0); \
 	}	
 
@@ -50,7 +50,7 @@ enum TrackerStatus {
 	{ \
 	std::ostrstream msgStream; \
 	msgStream << " " << msg << std::ends; \
-  PlusLogger::Instance()->LogMessage(PlusLogger::LOG_LEVEL_WARNING, msgStream.str(), __FILE__, __LINE__); \
+  vtkPlusLogger::Instance()->LogMessage(vtkPlusLogger::LOG_LEVEL_WARNING, msgStream.str(), __FILE__, __LINE__); \
   msgStream.rdbuf()->freeze(0); \
 	}
 		
@@ -58,7 +58,7 @@ enum TrackerStatus {
 	{ \
 	std::ostrstream msgStream; \
 	msgStream << " " << msg << std::ends; \
-	PlusLogger::Instance()->LogMessage(PlusLogger::LOG_LEVEL_INFO, msgStream.str(), __FILE__, __LINE__); \
+	vtkPlusLogger::Instance()->LogMessage(vtkPlusLogger::LOG_LEVEL_INFO, msgStream.str(), __FILE__, __LINE__); \
 	msgStream.rdbuf()->freeze(0); \
 	}
 	
@@ -66,7 +66,7 @@ enum TrackerStatus {
 	{ \
 	std::ostrstream msgStream; \
 	msgStream << " " << msg << std::ends; \
-	PlusLogger::Instance()->LogMessage(PlusLogger::LOG_LEVEL_DEBUG, msgStream.str(), __FILE__, __LINE__); \
+	vtkPlusLogger::Instance()->LogMessage(vtkPlusLogger::LOG_LEVEL_DEBUG, msgStream.str(), __FILE__, __LINE__); \
 	msgStream.rdbuf()->freeze(0); \
 	}	
 	
@@ -74,7 +74,7 @@ enum TrackerStatus {
 	{ \
 	std::ostrstream msgStream; \
 	msgStream << " " << msg << std::ends; \
-	PlusLogger::Instance()->LogMessage(PlusLogger::LOG_LEVEL_TRACE, msgStream.str(), __FILE__, __LINE__); \
+	vtkPlusLogger::Instance()->LogMessage(vtkPlusLogger::LOG_LEVEL_TRACE, msgStream.str(), __FILE__, __LINE__); \
 	msgStream.rdbuf()->freeze(0); \
 	}	
 	

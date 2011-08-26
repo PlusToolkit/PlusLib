@@ -7,7 +7,7 @@
 
 class vtkSimpleCriticalSection; 
 
-class VTK_EXPORT PlusLogger : public vtkObject
+class VTK_EXPORT vtkPlusLogger : public vtkObject
 {
 
 public:
@@ -20,7 +20,7 @@ public:
 		LOG_LEVEL_TRACE=5
 	};
 
-	static PlusLogger* Instance(); 
+	static vtkPlusLogger* Instance(); 
 
 	void LogMessage(LogLevelType level, const char *msg, const char* fileName, int lineNumber); 
 	
@@ -34,16 +34,16 @@ public:
 	static void PrintProgressbar( int percent ); 
 
 protected:
-	PlusLogger(); 
-	~PlusLogger();
+	vtkPlusLogger(); 
+	~vtkPlusLogger();
 
 	void WriteToFile(const char *msg); 
 
 private: 
-	PlusLogger(PlusLogger const&);
-	PlusLogger& operator=(PlusLogger const&);
+	vtkPlusLogger(vtkPlusLogger const&);
+	vtkPlusLogger& operator=(vtkPlusLogger const&);
 	
-	static PlusLogger* m_pInstance;
+	static vtkPlusLogger* m_pInstance;
 	int m_LogLevel;
 	int m_DisplayLogLevel;
 	std::ofstream m_LogStream;

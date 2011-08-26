@@ -69,7 +69,7 @@ void WriteFiducialPositions(std::ofstream &outFile,const std::string &inputTestc
 	for (int currentFrameIndex=firstFrameIndex; currentFrameIndex<=lastFrameIndex; currentFrameIndex++)
 	{
 		// Set to false if you don't want images produced after each morphological operation
-		bool debugOutput=PlusLogger::Instance()->GetLogLevel()>=PlusLogger::LOG_LEVEL_DEBUG; 
+		bool debugOutput=vtkPlusLogger::Instance()->GetLogLevel()>=vtkPlusLogger::LOG_LEVEL_DEBUG; 
 		
 		std::vector<itk::FcsvPoint>::iterator it = fcsvData->points.begin(); 
 		std::vector< std::vector<double> > foundDotsCoordinateValue;
@@ -102,7 +102,7 @@ void WriteFiducialPositions(std::ofstream &outFile,const std::string &inputTestc
 		
 		UsFidSegResultFile::WriteSegmentationResults(outFile, patRecognitionResults, inputTestcaseName, currentFrameIndex, inputImageSequenceFileName);
 
-		if (PlusLogger::Instance()->GetLogLevel()>=PlusLogger::LOG_LEVEL_DEBUG)
+		if (vtkPlusLogger::Instance()->GetLogLevel()>=vtkPlusLogger::LOG_LEVEL_DEBUG)
 		{
 			UsFidSegResultFile::WriteSegmentationResults(std::cout, patRecognitionResults, inputTestcaseName, currentFrameIndex, inputImageSequenceFileName);
 		}
@@ -124,7 +124,7 @@ int main(int argc, char **argv)
 	std::string inputTestcaseName;
 	std::string outputXmlFileName;
 
-	int verboseLevel=PlusLogger::LOG_LEVEL_WARNING;
+	int verboseLevel=vtkPlusLogger::LOG_LEVEL_WARNING;
 
 	vtksys::CommandLineArguments args;
 	args.Initialize(argc, argv);
@@ -143,7 +143,7 @@ int main(int argc, char **argv)
 		exit(EXIT_FAILURE);
 	}
 
-	PlusLogger::Instance()->SetLogLevel(verboseLevel);
+	vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
 	
 	
 

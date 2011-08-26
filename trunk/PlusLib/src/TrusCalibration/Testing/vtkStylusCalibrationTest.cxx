@@ -25,7 +25,7 @@ int main (int argc, char* argv[])
 	std::string inputBaselineFileName;
 
 	int numberOfAcquiredPoints=100;
-	int verboseLevel=PlusLogger::LOG_LEVEL_INFO;
+	int verboseLevel=vtkPlusLogger::LOG_LEVEL_INFO;
 
 	vtksys::CommandLineArguments cmdargs;
 	cmdargs.Initialize(argc, argv);
@@ -42,7 +42,7 @@ int main (int argc, char* argv[])
 		exit(EXIT_FAILURE);
 	}
 
-	PlusLogger::Instance()->SetLogLevel(verboseLevel);
+	vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
 
 	VTK_LOG_TO_CONSOLE_ON; 
 
@@ -78,10 +78,10 @@ int main (int argc, char* argv[])
 	// Acquire positions for pivot calibration
 	do {
 		vtksys::SystemTools::Delay(50);
-		PlusLogger::PrintProgressbar((100.0 * stylusCalibrationController->GetCurrentPointNumber()) / numberOfAcquiredPoints); 
+		vtkPlusLogger::PrintProgressbar((100.0 * stylusCalibrationController->GetCurrentPointNumber()) / numberOfAcquiredPoints); 
 
 		if (stylusCalibrationController->GetCurrentPointNumber() == numberOfAcquiredPoints - 1) {
-			PlusLogger::PrintProgressbar(100.0);
+			vtkPlusLogger::PrintProgressbar(100.0);
 		}
 
 		// Acquire point and do registration at last point

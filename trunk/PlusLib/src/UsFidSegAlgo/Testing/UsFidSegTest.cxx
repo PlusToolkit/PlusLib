@@ -42,7 +42,7 @@ void SegmentImageSequence( vtkTrackedFrameList* trackedFrameList, std::ofstream 
     LOG_INFO("Frame: "<<currentFrameIndex);
 
 		// Set to false if you don't want images produced after each morphological operation
-		bool debugOutput=PlusLogger::Instance()->GetLogLevel()>=PlusLogger::LOG_LEVEL_TRACE; 
+		bool debugOutput=vtkPlusLogger::Instance()->GetLogLevel()>=vtkPlusLogger::LOG_LEVEL_TRACE; 
 
 		std::ostrstream possibleFiducialsImageFilename; 
 		possibleFiducialsImageFilename << inputTestcaseName << std::setw(3) << std::setfill('0') << currentFrameIndex << ".bmp" << std::ends; 
@@ -88,7 +88,7 @@ void SegmentImageSequence( vtkTrackedFrameList* trackedFrameList, std::ofstream 
 		
 		UsFidSegResultFile::WriteSegmentationResults(outFile, segResults, inputTestcaseName, currentFrameIndex, inputImageSequenceFileName);
 
-		if (PlusLogger::Instance()->GetLogLevel()>=PlusLogger::LOG_LEVEL_DEBUG)
+		if (vtkPlusLogger::Instance()->GetLogLevel()>=vtkPlusLogger::LOG_LEVEL_DEBUG)
 		{
 			UsFidSegResultFile::WriteSegmentationResults(std::cout, segResults, inputTestcaseName, currentFrameIndex, inputImageSequenceFileName);
 		}
@@ -113,7 +113,7 @@ int CompareSegmentationResults(const std::string& inputBaselineFileName, const s
 	vtkSmartPointer<vtkXMLDataElement> currentRootElem = vtkXMLUtilities::ReadElementFromFile( outputTestResultsFileName.c_str()); 
 	vtkSmartPointer<vtkXMLDataElement> baselineRootElem = vtkXMLUtilities::ReadElementFromFile(inputBaselineFileName.c_str());
 
-  bool writeFidFoundRatioToFile=PlusLogger::Instance()->GetLogLevel()>=PlusLogger::LOG_LEVEL_TRACE; 
+  bool writeFidFoundRatioToFile=vtkPlusLogger::Instance()->GetLogLevel()>=vtkPlusLogger::LOG_LEVEL_TRACE; 
 	
 	// check to make sure we have the right element
 	if (baselineRootElem == NULL )
@@ -390,7 +390,7 @@ int main(int argc, char **argv)
   std::string outputFiducialPositionsFileName;
 	std::string fiducialGeomString;	
 
-	int verboseLevel=PlusLogger::LOG_LEVEL_WARNING;
+	int verboseLevel=vtkPlusLogger::LOG_LEVEL_WARNING;
 
 	vtksys::CommandLineArguments args;
 	args.Initialize(argc, argv);
@@ -413,8 +413,8 @@ int main(int argc, char **argv)
 		exit(EXIT_FAILURE);
 	}
 
-  PlusLogger::Instance()->SetDisplayLogLevel(verboseLevel);
-  PlusLogger::Instance()->SetLogLevel(verboseLevel);
+  vtkPlusLogger::Instance()->SetDisplayLogLevel(verboseLevel);
+  vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
 
 	if (inputImageSequenceFileName.empty() || inputConfigFileName.empty())
 	{

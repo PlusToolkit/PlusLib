@@ -17,7 +17,7 @@ int main (int argc, char* argv[])
 
 	std::string inputBaselineFileName;
 
-	int verboseLevel=PlusLogger::LOG_LEVEL_INFO;
+	int verboseLevel=vtkPlusLogger::LOG_LEVEL_INFO;
 
 	vtksys::CommandLineArguments cmdargs;
 	cmdargs.Initialize(argc, argv);
@@ -43,7 +43,7 @@ int main (int argc, char* argv[])
 
 	LOG_INFO("Read configuration file..."); 
 	stepperCalibrator->ReadConfiguration(inputConfigFileName.c_str()); 
-	PlusLogger::Instance()->SetLogLevel(verboseLevel);
+	vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
 
 	LOG_INFO("Initialize stepper calibrator..."); 
 	stepperCalibrator->Initialize(); 
@@ -59,7 +59,7 @@ int main (int argc, char* argv[])
 	int segmentedProbeRotFrameCounter(0); 
 	for ( int i = 0; i < numberOfProbeRotationAxisFrames; i++ )
 	{
-		PlusLogger::PrintProgressbar((100.0 * i) / numberOfProbeRotationAxisFrames); 
+		vtkPlusLogger::PrintProgressbar((100.0 * i) / numberOfProbeRotationAxisFrames); 
 
 		if ( stepperCalibrator->AddTrackedFrameData(probeRotationAxisTrackedFrameList->GetTrackedFrame(i), PROBE_ROTATION) )
 		{
@@ -67,7 +67,7 @@ int main (int argc, char* argv[])
 			segmentedProbeRotFrameCounter++; 
 		}
 	}
-	PlusLogger::PrintProgressbar(100); 
+	vtkPlusLogger::PrintProgressbar(100); 
 
 	LOG_INFO("Segmentation successful rate: " << 100 * (numberOfProbeRotationAxisFrames / segmentedProbeRotFrameCounter) ); 
 
@@ -89,7 +89,7 @@ int main (int argc, char* argv[])
 	int segmentedProbeTransFrameCounter(0); 
 	for ( int i = 0; i < numberOfProbeTranslationAxisFrames; i++ )
 	{
-		PlusLogger::PrintProgressbar((100.0 * i) / numberOfProbeTranslationAxisFrames); 
+		vtkPlusLogger::PrintProgressbar((100.0 * i) / numberOfProbeTranslationAxisFrames); 
 
 		if ( stepperCalibrator->AddTrackedFrameData(probeTranslationAxisTrackedFrameList->GetTrackedFrame(i), PROBE_TRANSLATION) )
 		{
@@ -97,7 +97,7 @@ int main (int argc, char* argv[])
 			segmentedProbeTransFrameCounter++; 
 		}
 	}
-	PlusLogger::PrintProgressbar(100); 
+	vtkPlusLogger::PrintProgressbar(100); 
 
 	LOG_INFO("Segmentation successful rate: " << 100 * (numberOfProbeTranslationAxisFrames / segmentedProbeTransFrameCounter) ); 
 
@@ -119,7 +119,7 @@ int main (int argc, char* argv[])
 	int segmentedTemplTransFrameCounter(0); 
 	for ( int i = 0; i < numberOfTemplateTranslationAxisFrames; i++ )
 	{
-		PlusLogger::PrintProgressbar((100.0 * i) / numberOfTemplateTranslationAxisFrames); 
+		vtkPlusLogger::PrintProgressbar((100.0 * i) / numberOfTemplateTranslationAxisFrames); 
 
 		if ( stepperCalibrator->AddTrackedFrameData(templateTranslationAxisTrackedFrameList->GetTrackedFrame(i), TEMPLATE_TRANSLATION) )
 		{
@@ -127,7 +127,7 @@ int main (int argc, char* argv[])
 			segmentedTemplTransFrameCounter++; 
 		}
 	}
-	PlusLogger::PrintProgressbar(100); 
+	vtkPlusLogger::PrintProgressbar(100); 
 
 	LOG_INFO("Segmentation successful rate: " << 100 * (numberOfTemplateTranslationAxisFrames / segmentedTemplTransFrameCounter) ); 
 

@@ -38,7 +38,7 @@ int main(int argc, char **argv)
 
   VTK_LOG_TO_CONSOLE_ON; 
 
-  int verboseLevel=PlusLogger::LOG_LEVEL_INFO;
+  int verboseLevel=vtkPlusLogger::LOG_LEVEL_INFO;
 
   vtksys::CommandLineArguments args;
   args.Initialize(argc, argv);
@@ -74,8 +74,8 @@ int main(int argc, char **argv)
 
   ///////////////
 
-  PlusLogger::Instance()->SetLogLevel(verboseLevel);
-  PlusLogger::Instance()->SetDisplayLogLevel(verboseLevel);
+  vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
+  vtkPlusLogger::Instance()->SetDisplayLogLevel(verboseLevel);
 
   std::string programPath("./"), errorMsg; 
   if ( !vtksys::SystemTools::FindProgramPath(argv[0], programPath, errorMsg) )
@@ -97,7 +97,7 @@ int main(int argc, char **argv)
 
   for ( int frameNumber = 0; frameNumber < numberOfFrames; frameNumber++ )
   {
-    PlusLogger::PrintProgressbar( (100.0 * frameNumber) / numberOfFrames ); 
+    vtkPlusLogger::PrintProgressbar( (100.0 * frameNumber) / numberOfFrames ); 
     const char* strTimestamp = trackerFrameList->GetTrackedFrame(frameNumber)->GetCustomFrameField("Timestamp"); 
     double timestamp(0); 
     if ( strTimestamp != NULL )
@@ -165,7 +165,7 @@ int main(int argc, char **argv)
     trackerBuffer->AddTimeStampedItem(defaultTransformMatrix, status, frmnum, unfilteredtimestamp, timestamp); 
   }
 
-  PlusLogger::PrintProgressbar( 100 ); 
+  vtkPlusLogger::PrintProgressbar( 100 ); 
   std::cout << std::endl; 
 
   // Read video buffer 
@@ -196,7 +196,7 @@ int main(int argc, char **argv)
   LOG_INFO("Copy buffer to video buffer..."); 
   for ( int frameNumber = 0; frameNumber < numberOfVideoFrames; frameNumber++ )
   {
-    PlusLogger::PrintProgressbar( (100.0 * frameNumber) / numberOfVideoFrames ); 
+    vtkPlusLogger::PrintProgressbar( (100.0 * frameNumber) / numberOfVideoFrames ); 
     const char* strTimestamp = videoFrameList->GetTrackedFrame(frameNumber)->GetCustomFrameField("Timestamp"); 
     double timestamp(0); 
     if ( strTimestamp != NULL )
@@ -243,7 +243,7 @@ int main(int argc, char **argv)
     }
   }
 
-  PlusLogger::PrintProgressbar( 100 ); 
+  vtkPlusLogger::PrintProgressbar( 100 ); 
   std::cout << std::endl; 
 
   LOG_INFO("Initialize synchronizer..."); 
@@ -260,7 +260,7 @@ int main(int argc, char **argv)
   synchronizer->SetMaxTransformDifference(maxTransformDifference); 
   synchronizer->SetTrackerBuffer(trackerBuffer); 
   synchronizer->SetVideoBuffer(videoBuffer); 
-  synchronizer->SetProgressBarUpdateCallbackFunction(PlusLogger::PrintProgressbar); 
+  synchronizer->SetProgressBarUpdateCallbackFunction(vtkPlusLogger::PrintProgressbar); 
 
   LOG_INFO("Synchronization Start Timestamp: " << std::fixed << inputSyncStartTimestamp); 
   LOG_INFO("Synchronization Time Length: " << synchronizationTimeLength << "s"); 

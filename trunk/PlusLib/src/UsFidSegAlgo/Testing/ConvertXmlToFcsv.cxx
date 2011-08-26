@@ -19,7 +19,7 @@ int main(int argc, char **argv)
 	std::string inputXmlFileName;
 	std::string outputFcsvFileName;
 
-	int verboseLevel=PlusLogger::LOG_LEVEL_WARNING;
+	int verboseLevel=vtkPlusLogger::LOG_LEVEL_WARNING;
 
 	vtksys::CommandLineArguments args;
 	args.Initialize(argc, argv);
@@ -35,7 +35,7 @@ int main(int argc, char **argv)
 		exit(EXIT_FAILURE);
 	}
 
-	PlusLogger::Instance()->SetLogLevel(verboseLevel);
+	vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
 	
 	if (inputXmlFileName.empty() || outputFcsvFileName.empty())
 	{

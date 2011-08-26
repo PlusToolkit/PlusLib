@@ -3,7 +3,7 @@
 
 SET ( PlusCommon_SRCS 
 		vtkAccurateTimer.cxx 
-		PlusLogger.cxx
+		vtkPlusLogger.cxx
 		vtkHTMLGenerator.cxx 
 		vtkGnuplotExecuter.cxx
     UsImageConverterCommon.cxx
@@ -17,7 +17,7 @@ if (WIN32)
 		PlusCommon.h
 		vtkAccurateTimer.h
 		WindowsAccurateTimer.h
-		PlusLogger.h
+		vtkPlusLogger.h
 		vtkHTMLGenerator.h
 		vtkGnuplotExecuter.h
     vtkTimestampedCircularBuffer.h 

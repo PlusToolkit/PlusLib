@@ -43,7 +43,7 @@ int main(int argc, char **argv)
 	vtksys::CommandLineArguments args;
 	args.Initialize(argc, argv);
 
-	int verboseLevel = PlusLogger::LOG_LEVEL_ERROR;
+	int verboseLevel = vtkPlusLogger::LOG_LEVEL_ERROR;
 
 	args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");	
 	args.AddArgument("--rendering-off", vtksys::CommandLineArguments::NO_ARGUMENT, &renderingOff, "Run test without rendering.");	
@@ -68,7 +68,7 @@ int main(int argc, char **argv)
 
 	}
 
-	PlusLogger::Instance()->SetLogLevel(verboseLevel);
+	vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
 
 	VTK_LOG_TO_CONSOLE_ON; 
 

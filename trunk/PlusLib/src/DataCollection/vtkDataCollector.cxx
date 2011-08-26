@@ -831,7 +831,7 @@ PlusStatus vtkDataCollector::Synchronize( const char* bufferOutputFolder /*= NUL
     this->CopyTracker(tracker); 
   }
 
-  if ( acquireDataOnly || PlusLogger::Instance()->GetLogLevel() >=  PlusLogger::LOG_LEVEL_DEBUG )
+  if ( acquireDataOnly || vtkPlusLogger::Instance()->GetLogLevel() >=  vtkPlusLogger::LOG_LEVEL_DEBUG )
   {
     if ( bufferOutputFolder == NULL )
     {
