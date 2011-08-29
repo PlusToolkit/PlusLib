@@ -12,6 +12,7 @@
 #include "vtkSavedDataVideoSource.h"
 
 #include "igtlStringMessage1.h"
+#include "vtkPlusOpenIGTLinkClient.h"
 #include "vtkPlusOpenIGTLinkServer.h"
 
 
@@ -106,12 +107,13 @@ int main( int argc, char** argv )
   
     // Create a client to connect to the server.
   
-  igtl::ClientSocket::Pointer clientSocket = igtl::ClientSocket::New();
-  int r = clientSocket->ConnectToServer( "localhost", Port );
+  vtkSmartPointer< vtkPlusOpenIGTLinkClient > plusClient = vtkSmartPointer< vtkPlusOpenIGTLinkClient >::New();
+  plusClient->SetNetworkPort( Port );
+  plusClient->SetServerAddress( "localhost" );
   
+  int r = plusClient->ConnectToServer();
   if ( r != 0 )
     {
-    LOG_ERROR( "Cannot connect to the server." );
     return 1;
     }
   
@@ -122,6 +124,7 @@ int main( int argc, char** argv )
     stringMessage->SetString( "<a><b/></a>" );
     stringMessage->Pack();
     
+    /*
     clientSocket->Send( stringMessage->GetPackPointer(), stringMessage->GetPackSize() );
     
     
@@ -160,6 +163,7 @@ int main( int argc, char** argv )
     strResponse->Unpack();
     
     std::cout << "  Message: " << strResponse->GetString() << std::endl;
+    */
     
     vtkAccurateTimer::Delay( 0.5 );
     }
