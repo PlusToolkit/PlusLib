@@ -393,7 +393,7 @@ PlusStatus PhantomRegistrationController::Stop()
 
 //-----------------------------------------------------------------------------
 
-void PhantomRegistrationController::Undo()
+PlusStatus PhantomRegistrationController::Undo()
 {
 	LOG_TRACE("PhantomRegistrationController::Undo"); 
 
@@ -428,11 +428,13 @@ void PhantomRegistrationController::Undo()
 	if (fakeTracker != NULL) {
 		fakeTracker->SetCounter(m_CurrentLandmarkIndex);
 	}
+
+  return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
 
-void PhantomRegistrationController::Reset()
+PlusStatus PhantomRegistrationController::Reset()
 {
 	LOG_TRACE("PhantomRegistrationController::Reset"); 
 
@@ -466,6 +468,8 @@ void PhantomRegistrationController::Reset()
 	if (fakeTracker != NULL) {
 		fakeTracker->SetCounter(m_CurrentLandmarkIndex);
 	}
+
+  return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
