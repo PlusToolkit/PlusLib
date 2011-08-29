@@ -11,6 +11,7 @@ SET (DataCollection_SRCS
 	vtkDataCollectorSynchronizer.cxx 
     vtkOpenIGTLinkBroadcaster.cxx
 	vtkPlusOpenIGTLinkServer.cxx
+    vtkPlusOpenIGTLinkClient.cxx
 	)
 
 SET (DataCollection_HDRS)
@@ -21,6 +22,7 @@ if (WIN32)
 		vtkDataCollectorSynchronizer.h
         vtkOpenIGTLinkBroadcaster.h
 		vtkPlusOpenIGTLinkServer.h
+        vtkPlusOpenIGTLinkClient.h
 		)
 endif (WIN32)	
 
