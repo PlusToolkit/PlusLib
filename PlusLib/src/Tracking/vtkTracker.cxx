@@ -418,7 +418,19 @@ PlusStatus vtkTracker::WriteConfiguration(vtkXMLDataElement* config)
     return PLUS_FAIL;
   }
 
-  vtkSmartPointer<vtkXMLDataElement> trackerConfig = config->LookupElementWithName("Tracker"); 
+	vtkSmartPointer<vtkXMLDataElement> dataCollectionConfig = config->FindNestedElementWithName("USDataCollection");
+	if (dataCollectionConfig == NULL)
+  {
+    LOG_ERROR("Cannot find USDataCollection element in XML tree!");
+		return PLUS_FAIL;
+	}
+
+  vtkSmartPointer<vtkXMLDataElement> trackerConfig = dataCollectionConfig->FindNestedElementWithName("Tracker"); 
+  if (trackerConfig == NULL) 
+  {
+    LOG_ERROR("Cannot find Tracker element in XML tree!");
+		return PLUS_FAIL;
+  }
 
   if ( trackerConfig == NULL )
   {
@@ -458,8 +470,22 @@ PlusStatus vtkTracker::ReadConfiguration(vtkXMLDataElement* config)
     return PLUS_FAIL; 
   }
 
+  vtkSmartPointer<vtkXMLDataElement> dataCollectionConfig = config->FindNestedElementWithName("USDataCollection");
+	if (dataCollectionConfig == NULL)
+  {
+    LOG_ERROR("Cannot find USDataCollection element in XML tree!");
+		return PLUS_FAIL;
+	}
+
+  vtkSmartPointer<vtkXMLDataElement> trackerConfig = dataCollectionConfig->FindNestedElementWithName("Tracker"); 
+  if (trackerConfig == NULL) 
+  {
+    LOG_ERROR("Cannot find Tracker element in XML tree!");
+		return PLUS_FAIL;
+  }
+
   int bufferSize = 0; 
-  if ( config->GetScalarAttribute("BufferSize", bufferSize) ) 
+  if ( trackerConfig->GetScalarAttribute("BufferSize", bufferSize) ) 
   {
     for ( int i = 0; i < this->GetNumberOfTools(); i++)
     {
@@ -468,13 +494,13 @@ PlusStatus vtkTracker::ReadConfiguration(vtkXMLDataElement* config)
   }
 
   double frequency = 0; 
-  if ( config->GetScalarAttribute("Frequency", frequency) ) 
+  if ( trackerConfig->GetScalarAttribute("Frequency", frequency) ) 
   {
     this->SetFrequency(frequency);  
   }
 
   int averagedItemsForFiltering = 0; 
-  if ( config->GetScalarAttribute("AveragedItemsForFiltering", averagedItemsForFiltering) )
+  if ( trackerConfig->GetScalarAttribute("AveragedItemsForFiltering", averagedItemsForFiltering) )
   {
     for ( int i = 0; i < this->GetNumberOfTools(); i++)
     {
@@ -487,7 +513,7 @@ PlusStatus vtkTracker::ReadConfiguration(vtkXMLDataElement* config)
   }
 
   double localTimeOffset = 0; 
-  if ( config->GetScalarAttribute("LocalTimeOffset", localTimeOffset) )
+  if ( trackerConfig->GetScalarAttribute("LocalTimeOffset", localTimeOffset) )
   {
     LOG_INFO("Tracker local time offset: " << 1000*localTimeOffset << "ms" ); 
     for ( int i = 0; i < this->GetNumberOfTools(); i++)
@@ -497,9 +523,9 @@ PlusStatus vtkTracker::ReadConfiguration(vtkXMLDataElement* config)
   }
 
   // Read tool configurations 
-  for ( int tool = 0; tool < config->GetNumberOfNestedElements(); tool++ )
+  for ( int tool = 0; tool < trackerConfig->GetNumberOfNestedElements(); tool++ )
   {
-    vtkSmartPointer<vtkXMLDataElement> toolDataElement = config->GetNestedElement(tool); 
+    vtkSmartPointer<vtkXMLDataElement> toolDataElement = trackerConfig->GetNestedElement(tool); 
     if ( STRCASECMP(toolDataElement->GetName(), "Tool") != 0 )
     {
       // if this is not a Tool element, skip it

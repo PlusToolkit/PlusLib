@@ -36,7 +36,7 @@ public:
 
 	//! Description
 	// Read probe calibration data element 
-	virtual PlusStatus ReadProbeCalibrationConfiguration(vtkXMLDataElement* probeCalibration); 
+	virtual PlusStatus ReadProbeCalibrationConfiguration(vtkXMLDataElement* rootElement); 
 
 	//! Description
 	// File the calibration results 

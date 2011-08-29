@@ -461,13 +461,6 @@ PlusStatus vtkCalibrationController::ReadConfiguration( vtkXMLDataElement* confi
 		return PLUS_FAIL; 
 	}
 
-	vtkSmartPointer<vtkXMLDataElement> usCalibration = configData->FindNestedElementWithName("USCalibration");
-	if (usCalibration == NULL)
-  {
-    LOG_ERROR("Cannot find USCalibration element in XML tree!");
-    return PLUS_FAIL;
-	}
-
   //Setting the fiducial pattern recognition
   this->PatternRecognition.ReadConfiguration(configData);
 
@@ -493,8 +486,7 @@ PlusStatus vtkCalibrationController::ReadConfiguration( vtkXMLDataElement* confi
 
 	// Calibration controller specifications
 	//********************************************************************
-	vtkSmartPointer<vtkXMLDataElement> calibrationController = usCalibration->FindNestedElementWithName("CalibrationController"); 
-	if (this->ReadCalibrationControllerConfiguration(calibrationController) != PLUS_SUCCESS)
+	if (this->ReadCalibrationControllerConfiguration(configData) != PLUS_SUCCESS)
   {
     return PLUS_FAIL;
   }
@@ -503,14 +495,28 @@ PlusStatus vtkCalibrationController::ReadConfiguration( vtkXMLDataElement* confi
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkCalibrationController::ReadCalibrationControllerConfiguration( vtkXMLDataElement* calibrationController )
+PlusStatus vtkCalibrationController::ReadCalibrationControllerConfiguration( vtkXMLDataElement* rootElement )
 {
 	LOG_TRACE("vtkCalibrationController::ReadCalibrationControllerConfiguration"); 
-	if ( calibrationController == NULL) 
+	if ( rootElement == NULL) 
 	{
-		LOG_WARNING("Unable to read the CalibrationController XML data element!"); 
+		LOG_WARNING("Invalid root XML configuration data element!"); 
 		return PLUS_FAIL; 
 	}
+
+	vtkSmartPointer<vtkXMLDataElement> usCalibration = rootElement->FindNestedElementWithName("USCalibration");
+	if (usCalibration == NULL)
+  {
+    LOG_ERROR("Cannot find USCalibration element in XML tree!");
+    return PLUS_FAIL;
+	}
+
+  vtkSmartPointer<vtkXMLDataElement> calibrationController = usCalibration->FindNestedElementWithName("CalibrationController"); 
+	if (calibrationController == NULL)
+  {
+    LOG_ERROR("Cannot find CalibrationController element in XML tree!");
+    return PLUS_FAIL;
+  }
 
 	// Path to output calibration results
 	const char* outputPath = calibrationController->GetAttribute("OutputPath"); 

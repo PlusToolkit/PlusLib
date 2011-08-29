@@ -531,19 +531,25 @@ PlusStatus vtkPlusVideoSource::WriteConfiguration(vtkXMLDataElement* config)
 		return PLUS_FAIL; 
 	}
 
-  vtkSmartPointer<vtkXMLDataElement> videoConfig = config->LookupElementWithName("ImageAcquisition"); 
-
-  if ( videoConfig == NULL )
+	vtkSmartPointer<vtkXMLDataElement> dataCollectionConfig = config->FindNestedElementWithName("USDataCollection");
+	if (dataCollectionConfig == NULL)
   {
-    LOG_ERROR("Unable to find ImageAcquisition xml data element in configuration file!"); 
-		return PLUS_FAIL; 
+    LOG_ERROR("Cannot find USDataCollection element in XML tree!");
+		return PLUS_FAIL;
+	}
+
+  vtkSmartPointer<vtkXMLDataElement> imageAcquisitionConfig = dataCollectionConfig->FindNestedElementWithName("ImageAcquisition"); 
+  if (imageAcquisitionConfig == NULL) 
+  {
+    LOG_ERROR("Unable to find ImageAcquisition element in configuration XML structure!");
+    return PLUS_FAIL;
   }
 
-  videoConfig->SetIntAttribute("BufferSize", this->GetBuffer()->GetBufferSize()); 
+  imageAcquisitionConfig->SetIntAttribute("BufferSize", this->GetBuffer()->GetBufferSize()); 
 
-  videoConfig->SetVectorAttribute("FrameSize", 2, this->GetFrameSize()); 
+  imageAcquisitionConfig->SetVectorAttribute("FrameSize", 2, this->GetFrameSize()); 
 
-  videoConfig->SetDoubleAttribute("LocalTimeOffset", this->GetBuffer()->GetLocalTimeOffset() ); 
+  imageAcquisitionConfig->SetDoubleAttribute("LocalTimeOffset", this->GetBuffer()->GetLocalTimeOffset() ); 
 
   return PLUS_SUCCESS; 
 }
@@ -558,14 +564,28 @@ PlusStatus vtkPlusVideoSource::ReadConfiguration(vtkXMLDataElement* config)
 		return PLUS_FAIL; 
 	}
 
-	int frameSize[2] = {0, 0}; 
-	if ( config->GetVectorAttribute("FrameSize", 2, frameSize) )
+	vtkSmartPointer<vtkXMLDataElement> dataCollectionConfig = config->FindNestedElementWithName("USDataCollection");
+	if (dataCollectionConfig == NULL)
+  {
+    LOG_ERROR("Cannot find USDataCollection element in XML tree!");
+		return PLUS_FAIL;
+	}
+
+  vtkSmartPointer<vtkXMLDataElement> imageAcquisitionConfig = dataCollectionConfig->FindNestedElementWithName("ImageAcquisition"); 
+  if (imageAcquisitionConfig == NULL) 
+  {
+    LOG_ERROR("Unable to find ImageAcquisition element in configuration XML structure!");
+    return PLUS_FAIL;
+  }
+
+  int frameSize[2] = {0, 0}; 
+	if ( imageAcquisitionConfig->GetVectorAttribute("FrameSize", 2, frameSize) )
 	{
 		this->SetFrameSize(frameSize[0], frameSize[1]); 
 	}
 
 	int bufferSize = 0; 
-	if ( config->GetScalarAttribute("BufferSize", bufferSize) )
+	if ( imageAcquisitionConfig->GetScalarAttribute("BufferSize", bufferSize) )
 	{
 		if ( this->GetBuffer()->SetBufferSize(bufferSize) != PLUS_SUCCESS )
         {
@@ -574,13 +594,13 @@ PlusStatus vtkPlusVideoSource::ReadConfiguration(vtkXMLDataElement* config)
 	}
 
 	int frameRate = 0; 
-	if ( config->GetScalarAttribute("FrameRate", frameRate) )
+	if ( imageAcquisitionConfig->GetScalarAttribute("FrameRate", frameRate) )
 	{
 		this->SetFrameRate(frameRate); 
 	}
 
 	int averagedItemsForFiltering = 0; 
-	if ( config->GetScalarAttribute("AveragedItemsForFiltering", averagedItemsForFiltering) )
+	if ( imageAcquisitionConfig->GetScalarAttribute("AveragedItemsForFiltering", averagedItemsForFiltering) )
 	{
 		this->GetBuffer()->SetAveragedItemsForFiltering(averagedItemsForFiltering); 
 	}
@@ -590,13 +610,13 @@ PlusStatus vtkPlusVideoSource::ReadConfiguration(vtkXMLDataElement* config)
   }
 
 	double localTimeOffset = 0; 
-	if ( config->GetScalarAttribute("LocalTimeOffset", localTimeOffset) )
+	if ( imageAcquisitionConfig->GetScalarAttribute("LocalTimeOffset", localTimeOffset) )
 	{
 		LOG_INFO("Image acqusition local time offset: " << 1000*localTimeOffset << "ms" ); 
 		this->GetBuffer()->SetLocalTimeOffset(localTimeOffset); 
 	}
 
-  const char* usImageOrientation = config->GetAttribute("UsImageOrientation"); 
+  const char* usImageOrientation = imageAcquisitionConfig->GetAttribute("UsImageOrientation"); 
   if ( usImageOrientation != NULL )
   {
       LOG_INFO("Selected US image orientation: " << usImageOrientation ); 

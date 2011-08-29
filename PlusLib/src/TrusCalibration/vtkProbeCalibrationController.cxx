@@ -898,28 +898,9 @@ PlusStatus vtkProbeCalibrationController::ReadConfiguration( vtkXMLDataElement* 
     return PLUS_FAIL; 
   }
 
-	// Calibration configuration
-	//********************************************************************
-	vtkSmartPointer<vtkXMLDataElement> usCalibration = configData->FindNestedElementWithName("USCalibration");
-	if (usCalibration == NULL)
-  {
-    LOG_ERROR("Cannot find USCalibration element in XML tree!");
-    return PLUS_FAIL;
-	}
-
-  // Calibration controller specifications
-	//********************************************************************
-	vtkSmartPointer<vtkXMLDataElement> calibrationController = usCalibration->FindNestedElementWithName("CalibrationController"); 
-	if ( calibrationController ==NULL )
-  {
-    LOG_ERROR("Unable to find calibration controller tag in configuration file!"); 
-    return PLUS_FAIL; 
-  }
-
 	// ProbeCalibration specifications
 	//*********************************
-	vtkSmartPointer<vtkXMLDataElement> probeCalibration = calibrationController->FindNestedElementWithName("ProbeCalibration"); 
-	if ( this->CalibrationControllerIO->ReadProbeCalibrationConfiguration(probeCalibration) != PLUS_SUCCESS )
+	if ( this->CalibrationControllerIO->ReadProbeCalibrationConfiguration(configData) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to read probe calibration configuration from file!"); 
     return PLUS_FAIL; 
@@ -973,15 +954,19 @@ PlusStatus vtkProbeCalibrationController::WriteConfiguration( vtkXMLDataElement*
 		return PLUS_FAIL;
 	}
   
-  vtkSmartPointer<vtkXMLDataElement> calibrationController = configData->LookupElementWithName("CalibrationController");
+	vtkSmartPointer<vtkXMLDataElement> usCalibration = configData->FindNestedElementWithName("USCalibration");
+	if (usCalibration == NULL) {
+		LOG_ERROR("No calibration configuration is found in the XML tree!");
+		return PLUS_FAIL;
+	}
 
-  if ( calibrationController == NULL )
-  {
-    LOG_ERROR("Unable to find CalibrationController XML data element!"); 
-    return PLUS_FAIL; 
-  }
+	vtkSmartPointer<vtkXMLDataElement> calibrationController = usCalibration->FindNestedElementWithName("CalibrationController"); 
+	if (calibrationController == NULL) {
+		LOG_ERROR("Unable to read configuration");
+		return PLUS_FAIL;
+	}
 
-  vtkSmartPointer<vtkXMLDataElement> probeCalibration = calibrationController->LookupElementWithName("ProbeCalibration");
+  vtkSmartPointer<vtkXMLDataElement> probeCalibration = calibrationController->FindNestedElementWithName("ProbeCalibration");
   if ( probeCalibration == NULL )
   {
     LOG_ERROR("Failed to write results to ProbeCalibration XML data element - element not found!"); 

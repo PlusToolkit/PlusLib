@@ -1211,15 +1211,28 @@ PlusStatus vtkDataCollectorSynchronizer::GenerateSynchronizationReport( vtkHTMLG
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkDataCollectorSynchronizer::ReadConfiguration(vtkXMLDataElement* synchronizationConfig)
+PlusStatus vtkDataCollectorSynchronizer::ReadConfiguration(vtkXMLDataElement* rootElement)
 {
   LOG_TRACE("vtkDataCollectorSynchronizer::ReadConfiguration"); 
-  if ( synchronizationConfig == NULL )
+  if ( rootElement == NULL )
   {
     LOG_ERROR("Unable to configure synchronizer! (XML data element is NULL)"); 
     return PLUS_FAIL; 
   }
 
+	vtkSmartPointer<vtkXMLDataElement> dataCollectionConfig = rootElement->FindNestedElementWithName("USDataCollection");
+	if (dataCollectionConfig == NULL)
+  {
+    LOG_ERROR("Cannot find USDataCollection element in XML tree!");
+		return PLUS_FAIL;
+	}
+
+  vtkSmartPointer<vtkXMLDataElement> synchronizationConfig = dataCollectionConfig->FindNestedElementWithName("Synchronization"); 
+  if (synchronizationConfig == NULL) 
+  {
+    LOG_ERROR("Cannot find Synchronization element in XML tree!");
+		return PLUS_FAIL;
+  }
 
   int synchronizationTimeLength = 0; 
   if ( synchronizationConfig->GetScalarAttribute("SynchronizationTimeLength", synchronizationTimeLength) )

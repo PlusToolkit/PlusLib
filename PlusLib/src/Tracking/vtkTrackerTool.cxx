@@ -390,6 +390,8 @@ void vtkTrackerTool::DeepCopy(vtkTrackerTool *tool)
 PlusStatus vtkTrackerTool::ReadConfiguration(vtkXMLDataElement* config)
 {
 	LOG_TRACE("vtkTrackerTool::ReadConfiguration"); 
+
+  // Parameter XMLDataElement is the Tool data element, not the root!
 	if ( config == NULL )
 	{
 		LOG_ERROR("Unable to configure tracker tool! (XML data element is NULL)"); 
@@ -490,12 +492,18 @@ PlusStatus vtkTrackerTool::WriteConfiguration(vtkXMLDataElement* config)
     return PLUS_FAIL;
   }
 
-  vtkSmartPointer<vtkXMLDataElement> trackerConfig = config->LookupElementWithName("Tracker"); 
-
-  if ( trackerConfig == NULL )
+	vtkSmartPointer<vtkXMLDataElement> dataCollectionConfig = config->FindNestedElementWithName("USDataCollection");
+	if (dataCollectionConfig == NULL)
   {
-    LOG_ERROR("Unable to find Tracker xml data element!"); 
-    return PLUS_FAIL; 
+    LOG_ERROR("Cannot find USDataCollection element in XML tree!");
+		return PLUS_FAIL;
+	}
+
+  vtkSmartPointer<vtkXMLDataElement> trackerConfig = dataCollectionConfig->FindNestedElementWithName("Tracker"); 
+  if ( trackerConfig == NULL) 
+  {
+    LOG_ERROR("Cannot find Tracker element in XML tree!");
+		return PLUS_FAIL;
   }
 	
   std::string toolType; 

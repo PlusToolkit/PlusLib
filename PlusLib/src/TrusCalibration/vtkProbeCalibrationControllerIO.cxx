@@ -1075,13 +1075,34 @@ void vtkProbeCalibrationControllerIO::LoadUS3DBeamProfileData()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkProbeCalibrationControllerIO::ReadProbeCalibrationConfiguration(vtkXMLDataElement* probeCalibration)
+PlusStatus vtkProbeCalibrationControllerIO::ReadProbeCalibrationConfiguration(vtkXMLDataElement* rootElement)
 {
-	if ( probeCalibration == NULL) 
+	if (rootElement == NULL) 
 	{	
 		LOG_WARNING("Unable to read ProbeCalibration XML data element!"); 
 		return PLUS_FAIL; 
-	} 
+	}
+
+	vtkSmartPointer<vtkXMLDataElement> usCalibration = rootElement->FindNestedElementWithName("USCalibration");
+	if (usCalibration == NULL)
+  {
+    LOG_ERROR("Cannot find USCalibration element in XML tree!");
+    return PLUS_FAIL;
+	}
+
+	vtkSmartPointer<vtkXMLDataElement> calibrationController = usCalibration->FindNestedElementWithName("CalibrationController"); 
+	if (calibrationController == NULL)
+  {
+    LOG_ERROR("Unable to find calibration controller tag in configuration file!"); 
+    return PLUS_FAIL; 
+  }
+
+	vtkSmartPointer<vtkXMLDataElement> probeCalibration = calibrationController->FindNestedElementWithName("ProbeCalibration"); 
+	if (probeCalibration == NULL)
+  {
+    LOG_ERROR("Unable to find probe calibration tag in configuration file!"); 
+    return PLUS_FAIL; 
+  }
 
 	// To enable/disable the system logging
 	const char* enableLogFile = probeCalibration->GetAttribute("EnableLogFile"); 

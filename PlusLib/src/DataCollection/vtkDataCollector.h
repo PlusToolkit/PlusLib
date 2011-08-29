@@ -262,15 +262,15 @@ protected:
 
   // Description:
   // Read image acquisition properties from xml file 
-  virtual PlusStatus ReadImageAcquisitionProperties(vtkXMLDataElement* imageAcquisitionConfig); 
+  virtual PlusStatus ReadImageAcquisitionProperties(); 
 
   // Description:
   // Read tracker properties from xml file 
-  virtual PlusStatus ReadTrackerProperties(vtkXMLDataElement* trackerConfig); 
+  virtual PlusStatus ReadTrackerProperties(); 
 
   // Description:
   // Read synchronization properties from xml file 
-  virtual PlusStatus ReadSynchronizationProperties(vtkXMLDataElement* synchronizationConfig); 
+  virtual PlusStatus ReadSynchronizationProperties(); 
 
   // Description: 
   // Compute loop times for saved datasets (time intersection of the two buffers)

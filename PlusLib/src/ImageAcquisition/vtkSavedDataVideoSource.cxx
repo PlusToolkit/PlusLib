@@ -296,13 +296,27 @@ PlusStatus vtkSavedDataVideoSource::ReadConfiguration(vtkXMLDataElement* config)
 
   Superclass::ReadConfiguration(config); 
 
-  const char* sequenceMetafile = config->GetAttribute("SequenceMetafile"); 
+	vtkSmartPointer<vtkXMLDataElement> dataCollectionConfig = config->FindNestedElementWithName("USDataCollection");
+	if (dataCollectionConfig == NULL)
+  {
+    LOG_ERROR("Cannot find USDataCollection element in XML tree!");
+		return PLUS_FAIL;
+	}
+
+  vtkSmartPointer<vtkXMLDataElement> imageAcquisitionConfig = dataCollectionConfig->FindNestedElementWithName("ImageAcquisition"); 
+  if (imageAcquisitionConfig == NULL) 
+  {
+    LOG_ERROR("Unable to find ImageAcquisition element in configuration XML structure!");
+    return PLUS_FAIL;
+  }
+
+  const char* sequenceMetafile = imageAcquisitionConfig->GetAttribute("SequenceMetafile"); 
   if ( sequenceMetafile != NULL ) 
   {
     this->SetSequenceMetafile(sequenceMetafile);
   }
 
-  const char* replayEnabled = config->GetAttribute("ReplayEnabled"); 
+  const char* replayEnabled = imageAcquisitionConfig->GetAttribute("ReplayEnabled"); 
   if ( replayEnabled != NULL ) 
   {
     if ( STRCASECMP("TRUE", replayEnabled ) == 0 )

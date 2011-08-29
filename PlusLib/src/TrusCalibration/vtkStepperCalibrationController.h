@@ -110,7 +110,7 @@ public:
 
 	//! Description 
 	// Read the stepper calibration configurations from xml data element
-	virtual PlusStatus ReadStepperCalibrationConfiguration(vtkXMLDataElement* stepperCalibration); 
+	virtual PlusStatus ReadStepperCalibrationConfiguration(vtkXMLDataElement* rootElement); 
 
 	// Description:
 	// Add generated html report from probe rotation axis calibration to the existing html report
