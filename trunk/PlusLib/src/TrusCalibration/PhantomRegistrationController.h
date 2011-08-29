@@ -147,12 +147,12 @@ public:
 	/*!
 	* \brief Undo last recording
 	*/
-	void Undo();
+	PlusStatus Undo();
 
 	/*!
 	* \brief Resets recording
 	*/
-	void Reset();
+	PlusStatus Reset();
 
 	/*!
 	* \brief Performs landmark registration to determine transformation from phantom reference to phantom
