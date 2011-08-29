@@ -1,41 +1,9 @@
 #include "StatusIcon.h"
 
-#include "vtkCallbackCommand.h"
-
 #include <QEvent>
 #include <QGridLayout>
 #include <QSizePolicy>
 
-//----------------------------------------------------------------------
-class vtkDisplayMessageCallback : public vtkCallbackCommand
-{
-public:
-	static vtkDisplayMessageCallback *New()
-	{
-		vtkDisplayMessageCallback *cb = new vtkDisplayMessageCallback();
-		return cb;
-	}
-
-	virtual void Execute(vtkObject *caller, unsigned long eventId, void *callData)
-	{
-    if (vtkCommand::UserEvent == eventId) {
-      char* callDataChars = reinterpret_cast<char*>(callData);
-      std::string callDataString(callDataChars);
-
-      unsigned int pos = callDataString.find('|');
-      const int logLevel = atoi(callDataString.substr(0, pos).c_str());
-      callDataString = callDataString.substr(pos+1);
-
-      m_StatusIcon->AddMessage(callDataString.c_str(), logLevel);
-    }
-	}
-
-  void SetStatusIcon(StatusIcon* statusIcon) { m_StatusIcon = statusIcon; }
-
-private:
-  StatusIcon* m_StatusIcon;
-};
- 
 //-----------------------------------------------------------------------------
 
 StatusIcon::StatusIcon(QWidget* aParent, Qt::WFlags aFlags)
@@ -66,8 +34,9 @@ StatusIcon::StatusIcon(QWidget* aParent, Qt::WFlags aFlags)
 
 	// Set callback for logger to display errors
   vtkSmartPointer<vtkDisplayMessageCallback> cb = vtkSmartPointer<vtkDisplayMessageCallback>::New();
-  cb->SetStatusIcon(this);
   m_DisplayMessageCallbackTag = vtkPlusLogger::Instance()->AddObserver(vtkCommand::UserEvent, cb);
+
+  connect( cb, SIGNAL( AddMessage(QString) ), this, SLOT( AddMessage(QString) ) );
 
   // Install event filter that is called on any event
   this->installEventFilter(this);
@@ -87,10 +56,19 @@ StatusIcon::~StatusIcon()
 
 //-----------------------------------------------------------------------------
 
-void StatusIcon::AddMessage(const char* aMessage, const int aLevel)
+void StatusIcon::AddMessage(QString aInputString)
 {
+  // Parse input string and extract log level and the message
+  bool ok;
+  unsigned int pos = aInputString.find('|');
+  int logLevel = aInputString.left(pos).toInt(&ok);
+  if (! ok) {
+    logLevel = -1;
+  }
+  QString message = aInputString.right( aInputString.size() - pos - 1 );
+
   // Re-color dot if necessary
-  switch (aLevel) {
+  switch (logLevel) {
     case vtkPlusLogger::LOG_LEVEL_ERROR:
       if (m_Level > vtkPlusLogger::LOG_LEVEL_ERROR) {
         m_Level = vtkPlusLogger::LOG_LEVEL_ERROR;
@@ -116,7 +94,7 @@ void StatusIcon::AddMessage(const char* aMessage, const int aLevel)
       break;
   }
 
-  m_MessageTextEdit->append(aMessage);
+  m_MessageTextEdit->append(message);
 }
 
 //-----------------------------------------------------------------------------
@@ -170,6 +148,11 @@ bool StatusIcon::eventFilter(QObject *obj, QEvent *ev)
       if (mouseEvent->buttons() == Qt::LeftButton) {
 
         if ((m_MessageListWidget == NULL) || (! m_MessageListWidget->isVisible())) {
+          QTextCursor cursor(m_MessageTextEdit->textCursor());
+          cursor.movePosition(QTextCursor::End);
+          cursor.movePosition(QTextCursor::StartOfLine);
+          m_MessageTextEdit->setTextCursor(cursor);
+
           m_MessageListWidget->move( mapToGlobal( QPoint( m_DotLabel->x() - m_MessageListWidget->width(), m_DotLabel->y() - m_MessageListWidget->height() - 40 ) ) );
           m_MessageListWidget->show();
 

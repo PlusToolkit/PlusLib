@@ -8,6 +8,41 @@
 #include <QLabel>
 #include <QTextEdit>
 
+#include "vtkCallbackCommand.h"
+
+//-----------------------------------------------------------------------------
+
+/*!
+* \brief Callback command class that catches the log message event and adds it to the text field of the status icon
+*/
+class vtkDisplayMessageCallback : public QObject, public vtkCallbackCommand
+{
+  Q_OBJECT
+
+public:
+	static vtkDisplayMessageCallback *New()
+	{
+		vtkDisplayMessageCallback *cb = new vtkDisplayMessageCallback();
+		return cb;
+	}
+
+  vtkDisplayMessageCallback::vtkDisplayMessageCallback()
+    : QObject()
+  { }
+
+	virtual void Execute(vtkObject *caller, unsigned long eventId, void *callData)
+	{
+    if (vtkCommand::UserEvent == eventId) {
+      char* callDataChars = reinterpret_cast<char*>(callData);
+
+      emit AddMessage(QString::fromAscii(callDataChars));
+    }
+	}
+
+signals:
+  void AddMessage(QString);
+};
+ 
 //-----------------------------------------------------------------------------
 
 /*!
@@ -30,13 +65,6 @@ public:
   */
   ~StatusIcon();
 
-  /*!
-  * \brief Callback function for logger to display messages in popup window
-  * \param aMessage Message string to display
-  * \param aLevel Log level of the message
-  */
-  void AddMessage(const char* aMessage, const int aLevel);
-
 protected:
   /*!
   * \brief Filters events if this object has been installed as an event filter for the watched object
@@ -51,6 +79,13 @@ protected:
   * \return Success flag
   */
   PlusStatus ConstructMessageListWidget();
+
+public slots:
+  /*!
+  * \brief Callback function for logger to display messages in popup window
+  * \return aInputString Log level and message in a string
+  */
+  void AddMessage(QString aInputString);
 
 protected:
   //! State level of the widget ( no errors (>2): green , warning (2): orange , error (1): red )
