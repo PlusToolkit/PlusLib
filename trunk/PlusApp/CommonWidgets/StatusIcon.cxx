@@ -170,7 +170,7 @@ bool StatusIcon::eventFilter(QObject *obj, QEvent *ev)
       if (mouseEvent->buttons() == Qt::LeftButton) {
 
         if ((m_MessageListWidget == NULL) || (! m_MessageListWidget->isVisible())) {
-          m_MessageListWidget->move( mapToGlobal( QPoint( m_DotLabel->x() - m_MessageListWidget->width() + 30, m_DotLabel->y() - m_MessageListWidget->height() - 40 ) ) );
+          m_MessageListWidget->move( mapToGlobal( QPoint( m_DotLabel->x() - m_MessageListWidget->width(), m_DotLabel->y() - m_MessageListWidget->height() - 40 ) ) );
           m_MessageListWidget->show();
 
         } else {

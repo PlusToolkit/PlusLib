@@ -3,6 +3,9 @@
 #include "ConfigurationController.h"
 #include "vtkFreehandController.h"
 #include "StylusCalibrationController.h"
+#include "PhantomRegistrationController.h"
+#include "vtkFreehandCalibrationController.h"
+#include "VolumeReconstructionController.h"
 #include "vtkConfigurationTools.h"
 #include "FreehandMainWindow.h"
 
@@ -165,6 +168,7 @@ void ConfigurationToolbox::ConnectToDevicesByConfigFile(std::string aConfigFile)
 				LOG_ERROR("Unable to start collecting data!");
 				m_DeviceSetSelectorWidget->SetConnectionSuccessful(false);
 				m_ToolStateDisplayWidget->InitializeTools(NULL, false);
+
 			} else {
 				m_DeviceSetSelectorWidget->SetConnectionSuccessful(true);
 				if (m_ToolStateDisplayWidget->InitializeTools(vtkFreehandController::GetInstance()->GetDataCollector(), true)) {
@@ -190,6 +194,8 @@ void ConfigurationToolbox::ConnectToDevicesByConfigFile(std::string aConfigFile)
 
 				m_DeviceSetSelectorWidget->SetConnectionSuccessful(false);
 				m_ToolStateDisplayWidget->InitializeTools(NULL, false);
+
+        ResetAllToolboxes();
 			}
 		}
 	}
@@ -310,4 +316,47 @@ void ConfigurationToolbox::LogLevelChanged(int aLevel)
 	}
 
 	LOG_INFO("Log level changed to: " << ui.comboBox_LogLevel->currentText().ascii() )
+}
+
+//-----------------------------------------------------------------------------
+
+void ConfigurationToolbox::ResetAllToolboxes()
+{
+	LOG_TRACE("ConfigurationToolbox::LogLevelChanged");
+
+  PlusStatus successFlag = PLUS_SUCCESS;
+
+  if (StylusCalibrationController::GetInstance()->State() != ToolboxState_Uninitialized) {
+    // Note: Stylus calibration does not have a reset
+
+    if (StylusCalibrationController::GetInstance()->Clear() != PLUS_SUCCESS) {
+      LOG_ERROR("Stylus calibration clear failed!");
+    }
+  }
+
+  if (PhantomRegistrationController::GetInstance()->State() != ToolboxState_Uninitialized) {
+    if (PhantomRegistrationController::GetInstance()->Reset() != PLUS_SUCCESS) {
+      LOG_ERROR("Phantom registration reset failed!");
+    }
+    if (PhantomRegistrationController::GetInstance()->Clear() != PLUS_SUCCESS) {
+      LOG_ERROR("Phantom registration clear failed!");
+    }
+  }
+
+  if (vtkFreehandCalibrationController::GetInstance()->State() != ToolboxState_Uninitialized) {
+    if (vtkFreehandCalibrationController::GetInstance()->Reset() != PLUS_SUCCESS) {
+      LOG_ERROR("Freehand calibration reset failed!");
+    }
+    if (vtkFreehandCalibrationController::GetInstance()->Clear() != PLUS_SUCCESS) {
+      LOG_ERROR("Freehand calibration clear failed!");
+    }
+  }
+
+  if (VolumeReconstructionController::GetInstance()->State() != ToolboxState_Uninitialized) {
+    // Note: Volume reconstruction does not have a reset
+
+    if (VolumeReconstructionController::GetInstance()->Clear() != PLUS_SUCCESS) {
+      LOG_ERROR("Volume reconstruction clear failed!");
+    }
+  }
 }

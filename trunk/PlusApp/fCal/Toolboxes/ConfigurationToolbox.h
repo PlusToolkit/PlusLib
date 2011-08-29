@@ -93,6 +93,11 @@ protected:
 	*/
 	bool eventFilter(QObject *obj, QEvent *ev);
 
+  /*!
+  * \brief Reset all toolboxes
+  */
+  void ResetAllToolboxes();
+
 protected:
 	//! Device set selector widget
 	DeviceSetSelectorWidget*	m_DeviceSetSelectorWidget;

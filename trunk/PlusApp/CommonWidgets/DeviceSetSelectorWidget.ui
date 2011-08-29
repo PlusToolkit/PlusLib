@@ -127,7 +127,7 @@
       </sizepolicy>
      </property>
      <property name="maxVisibleItems">
-      <number>20</number>
+      <number>35</number>
      </property>
      <property name="sizeAdjustPolicy">
       <enum>QComboBox::AdjustToContents</enum>
