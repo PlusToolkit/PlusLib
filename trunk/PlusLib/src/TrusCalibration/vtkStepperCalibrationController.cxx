@@ -2686,13 +2686,13 @@ PlusStatus vtkStepperCalibrationController::ReadConfiguration( const char* confi
   LOG_TRACE("vtkStepperCalibrationController::ReadConfiguration - " << configFileNameWithPath); 
   this->SetConfigurationFileName(configFileNameWithPath); 
 
-  vtkSmartPointer<vtkXMLDataElement> calibrationController = vtkXMLUtilities::ReadElementFromFile(this->GetConfigurationFileName()); 
-  if (calibrationController==NULL)
+  vtkSmartPointer<vtkXMLDataElement> rootElement = vtkXMLUtilities::ReadElementFromFile(this->GetConfigurationFileName()); 
+  if (rootElement==NULL)
   {
     LOG_ERROR("Failed to read configuration from " << configFileNameWithPath);
     return PLUS_FAIL;
   }
-  return this->ReadConfiguration(calibrationController);
+  return this->ReadConfiguration(rootElement);
 }
 
 //----------------------------------------------------------------------------
@@ -2707,16 +2707,9 @@ PlusStatus vtkStepperCalibrationController::ReadConfiguration( vtkXMLDataElement
 
   Superclass::ReadConfiguration(configData); 
 
-	vtkSmartPointer<vtkXMLDataElement> usCalibration = configData->FindNestedElementWithName("USCalibration");
-	if (usCalibration == NULL) {
-    LOG_ERROR("Cannot find USCalibration element in XML tree!");
-    return PLUS_FAIL;
-	}
-
   // Calibration controller specifications
   //********************************************************************
-  vtkSmartPointer<vtkXMLDataElement> calibrationController = usCalibration->FindNestedElementWithName("CalibrationController"); 
-  if (this->ReadCalibrationControllerConfiguration(calibrationController)!=PLUS_SUCCESS)
+  if (this->ReadCalibrationControllerConfiguration(configData)!=PLUS_SUCCESS)
   {
     LOG_ERROR("Cannot find calibrationController element");
     return PLUS_FAIL;
@@ -2724,8 +2717,7 @@ PlusStatus vtkStepperCalibrationController::ReadConfiguration( vtkXMLDataElement
 
   // StepperCalibration specifications
   //*********************************
-  vtkSmartPointer<vtkXMLDataElement> stepperCalibration = calibrationController->FindNestedElementWithName("StepperCalibration"); 
-  if (this->ReadStepperCalibrationConfiguration(stepperCalibration)!=PLUS_SUCCESS)
+  if (this->ReadStepperCalibrationConfiguration(configData)!=PLUS_SUCCESS)
   {
     LOG_ERROR("Cannot find stepperCalibration element");
     return PLUS_FAIL;
@@ -2739,14 +2731,34 @@ PlusStatus vtkStepperCalibrationController::ReadConfiguration( vtkXMLDataElement
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkStepperCalibrationController::ReadStepperCalibrationConfiguration(vtkXMLDataElement* stepperCalibration)
+PlusStatus vtkStepperCalibrationController::ReadStepperCalibrationConfiguration(vtkXMLDataElement* rootElement)
 {
   LOG_TRACE("vtkStepperCalibrationController::ReadStepperCalibrationConfiguration"); 
-  if ( stepperCalibration == NULL) 
+  if (rootElement == NULL) 
   {	
     LOG_ERROR("Unable to read StepperCalibration XML data element!"); 
     return PLUS_FAIL; 
   } 
+
+	vtkSmartPointer<vtkXMLDataElement> usCalibration = rootElement->FindNestedElementWithName("USCalibration");
+	if (usCalibration == NULL) {
+    LOG_ERROR("Cannot find USCalibration element in XML tree!");
+    return PLUS_FAIL;
+	}
+
+  vtkSmartPointer<vtkXMLDataElement> calibrationController = usCalibration->FindNestedElementWithName("CalibrationController"); 
+  if (calibrationController == NULL)
+  {
+    LOG_ERROR("Cannot find calibrationController element");
+    return PLUS_FAIL;
+  }
+
+  vtkSmartPointer<vtkXMLDataElement> stepperCalibration = calibrationController->FindNestedElementWithName("StepperCalibration"); 
+  if (stepperCalibration == NULL)
+  {
+    LOG_ERROR("Cannot find stepperCalibration element");
+    return PLUS_FAIL;
+  }
 
   int minNumberOfRotationClusters = 0;
   if ( stepperCalibration->GetScalarAttribute("MinNumberOfRotationClusters", minNumberOfRotationClusters) ) 
@@ -2928,15 +2940,19 @@ PlusStatus vtkStepperCalibrationController::WriteConfiguration( vtkXMLDataElemen
 		return PLUS_FAIL;
 	}
 
-  vtkSmartPointer<vtkXMLDataElement> calibrationController = configData->LookupElementWithName("CalibrationController");
+	vtkSmartPointer<vtkXMLDataElement> usCalibration = configData->FindNestedElementWithName("USCalibration");
+	if (usCalibration == NULL) {
+		LOG_ERROR("No calibration configuration is found in the XML tree!");
+		return PLUS_FAIL;
+	}
 
-  if ( calibrationController == NULL )
-  {
-    LOG_ERROR("Unable to find CalibrationController XML data element!"); 
-    return PLUS_FAIL; 
-  }
+	vtkSmartPointer<vtkXMLDataElement> calibrationController = usCalibration->FindNestedElementWithName("CalibrationController"); 
+	if (calibrationController == NULL) {
+		LOG_ERROR("Unable to read configuration");
+		return PLUS_FAIL;
+	}
 
-  vtkSmartPointer<vtkXMLDataElement> stepperCalibration = calibrationController->LookupElementWithName("StepperCalibration");
+  vtkSmartPointer<vtkXMLDataElement> stepperCalibration = calibrationController->FindNestedElementWithName("StepperCalibration");
   if ( stepperCalibration == NULL )
   {
     LOG_ERROR("Failed to write results to ProbeCalibration XML data element - element not found!"); 

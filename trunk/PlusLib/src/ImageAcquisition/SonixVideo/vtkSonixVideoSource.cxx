@@ -605,108 +605,122 @@ PlusStatus vtkSonixVideoSource::SetAcquisitionDataType(int acquisitionDataType)
 //-----------------------------------------------------------------------------
 PlusStatus vtkSonixVideoSource::ReadConfiguration(vtkXMLDataElement* config)
 {
-    LOG_TRACE("vtkSonixVideoSource::ReadConfiguration"); 
-    if ( config == NULL )
+  LOG_TRACE("vtkSonixVideoSource::ReadConfiguration"); 
+  if ( config == NULL )
+  {
+      LOG_ERROR("Unable to configure Sonix video source! (XML data element is NULL)"); 
+      return PLUS_FAIL; 
+  }
+
+  Superclass::ReadConfiguration(config); 
+
+	vtkSmartPointer<vtkXMLDataElement> dataCollectionConfig = config->FindNestedElementWithName("USDataCollection");
+	if (dataCollectionConfig == NULL)
+  {
+    LOG_ERROR("Cannot find USDataCollection element in XML tree!");
+		return PLUS_FAIL;
+	}
+
+  vtkSmartPointer<vtkXMLDataElement> imageAcquisitionConfig = dataCollectionConfig->FindNestedElementWithName("ImageAcquisition"); 
+  if (imageAcquisitionConfig == NULL) 
+  {
+    LOG_ERROR("Unable to find ImageAcquisition element in configuration XML structure!");
+    return PLUS_FAIL;
+  }
+
+  const char* ipAddress = imageAcquisitionConfig->GetAttribute("IP"); 
+  if ( ipAddress != NULL) 
+  {
+      this->SetSonixIP(ipAddress); 
+  }
+  LOG_DEBUG("Sonix Video IP: " << ipAddress); 
+
+  const char* imagingMode = imageAcquisitionConfig->GetAttribute("ImagingMode"); 
+  if ( imagingMode != NULL) 
+  {
+    if (STRCASECMP(imagingMode, "BMode")==0)
     {
-        LOG_ERROR("Unable to configure Sonix video source! (XML data element is NULL)"); 
-        return PLUS_FAIL; 
+      LOG_DEBUG("Imaging mode set: BMode"); 
+      this->SetImagingMode(BMode); 
     }
-
-    Superclass::ReadConfiguration(config); 
-
-    const char* ipAddress = config->GetAttribute("IP"); 
-    if ( ipAddress != NULL) 
+    else if (STRCASECMP(imagingMode, "RfMode")==0)
     {
-        this->SetSonixIP(ipAddress); 
+      LOG_DEBUG("Imaging mode set: RfMode"); 
+      this->SetImagingMode(RfMode); 
     }
-    LOG_DEBUG("Sonix Video IP: " << ipAddress); 
-
-    const char* imagingMode = config->GetAttribute("ImagingMode"); 
-    if ( imagingMode != NULL) 
+    else
     {
-      if (STRCASECMP(imagingMode, "BMode")==0)
-      {
-        LOG_DEBUG("Imaging mode set: BMode"); 
-        this->SetImagingMode(BMode); 
-      }
-      else if (STRCASECMP(imagingMode, "RfMode")==0)
-      {
-        LOG_DEBUG("Imaging mode set: RfMode"); 
-        this->SetImagingMode(RfMode); 
-      }
-      else
-      {
-        LOG_ERROR("Unsupported ImagingMode requested: "<<imagingMode);
-      }
-    }  
-    const char* acquisitionDataType = config->GetAttribute("AcquisitionDataType"); 
-    if ( acquisitionDataType != NULL) 
-    {
-      if (STRCASECMP(acquisitionDataType, "BPost")==0)
-      {
-        LOG_DEBUG("AcquisitionDataType set: BPost"); 
-        this->SetAcquisitionDataType(udtBPost); 
-      }
-      else if (STRCASECMP(acquisitionDataType, "RF")==0)
-      {
-        LOG_DEBUG("AcquisitionDataType set: RF"); 
-        this->SetAcquisitionDataType(udtRF); 
-      }
-      else
-      {
-        LOG_ERROR("Unsupported AcquisitionDataType requested: "<<acquisitionDataType);
-      }
+      LOG_ERROR("Unsupported ImagingMode requested: "<<imagingMode);
     }
-
-    int depth = -1; 
-    if ( config->GetScalarAttribute("Depth", depth)) 
+  }  
+  const char* acquisitionDataType = imageAcquisitionConfig->GetAttribute("AcquisitionDataType"); 
+  if ( acquisitionDataType != NULL) 
+  {
+    if (STRCASECMP(acquisitionDataType, "BPost")==0)
     {
-        this->SetDepth(depth); 
+      LOG_DEBUG("AcquisitionDataType set: BPost"); 
+      this->SetAcquisitionDataType(udtBPost); 
     }
-
-    int sector = -1; 
-    if ( config->GetScalarAttribute("Sector", sector)) 
+    else if (STRCASECMP(acquisitionDataType, "RF")==0)
     {
-        this->SetSector(sector); 
+      LOG_DEBUG("AcquisitionDataType set: RF"); 
+      this->SetAcquisitionDataType(udtRF); 
     }
-
-    int gain = -1; 
-    if ( config->GetScalarAttribute("Gain", gain)) 
+    else
     {
-        this->SetGain(gain); 
+      LOG_ERROR("Unsupported AcquisitionDataType requested: "<<acquisitionDataType);
     }
+  }
 
-    int dynRange = -1; 
-    if ( config->GetScalarAttribute("DynRange", dynRange)) 
-    {
-        this->SetDynRange(dynRange); 
-    }
+  int depth = -1; 
+  if ( imageAcquisitionConfig->GetScalarAttribute("Depth", depth)) 
+  {
+      this->SetDepth(depth); 
+  }
 
-    int zoom = -1; 
-    if ( config->GetScalarAttribute("Zoom", zoom)) 
-    {
-        this->SetZoom(zoom); 
-    }
+  int sector = -1; 
+  if ( imageAcquisitionConfig->GetScalarAttribute("Sector", sector)) 
+  {
+      this->SetSector(sector); 
+  }
 
-    int frequency = -1; 
-    if ( config->GetScalarAttribute("Frequency", frequency)) 
-    {
-        this->SetFrequency(frequency); 
-    }
+  int gain = -1; 
+  if ( imageAcquisitionConfig->GetScalarAttribute("Gain", gain)) 
+  {
+      this->SetGain(gain); 
+  }
 
-    int compressionStatus = 0; 
-    if ( config->GetScalarAttribute("CompressionStatus", compressionStatus)) 
-    {
-        this->SetCompressionStatus(compressionStatus); 
-    }
+  int dynRange = -1; 
+  if ( imageAcquisitionConfig->GetScalarAttribute("DynRange", dynRange)) 
+  {
+      this->SetDynRange(dynRange); 
+  }
 
-    int timeout = 0; 
-    if ( config->GetScalarAttribute("Timeout", timeout)) 
-    {
-        this->SetTimeout(timeout); 
-    }
+  int zoom = -1; 
+  if ( imageAcquisitionConfig->GetScalarAttribute("Zoom", zoom)) 
+  {
+      this->SetZoom(zoom); 
+  }
 
-    return PLUS_SUCCESS;
+  int frequency = -1; 
+  if ( imageAcquisitionConfig->GetScalarAttribute("Frequency", frequency)) 
+  {
+      this->SetFrequency(frequency); 
+  }
+
+  int compressionStatus = 0; 
+  if ( imageAcquisitionConfig->GetScalarAttribute("CompressionStatus", compressionStatus)) 
+  {
+      this->SetCompressionStatus(compressionStatus); 
+  }
+
+  int timeout = 0; 
+  if ( imageAcquisitionConfig->GetScalarAttribute("Timeout", timeout)) 
+  {
+      this->SetTimeout(timeout); 
+  }
+
+  return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------

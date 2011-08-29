@@ -314,38 +314,52 @@ PlusStatus vtkICCapturingSource::ReadConfiguration(vtkXMLDataElement* config)
 
 	Superclass::ReadConfiguration(config); 
 
-	const char* deviceName = config->GetAttribute("DeviceName"); 
+	vtkSmartPointer<vtkXMLDataElement> dataCollectionConfig = config->FindNestedElementWithName("USDataCollection");
+	if (dataCollectionConfig == NULL)
+  {
+    LOG_ERROR("Cannot find USDataCollection element in XML tree!");
+		return PLUS_FAIL;
+	}
+
+  vtkSmartPointer<vtkXMLDataElement> imageAcquisitionConfig = dataCollectionConfig->FindNestedElementWithName("ImageAcquisition"); 
+  if (imageAcquisitionConfig == NULL) 
+  {
+    LOG_ERROR("Unable to find ImageAcquisition element in configuration XML structure!");
+    return PLUS_FAIL;
+  }
+
+	const char* deviceName = imageAcquisitionConfig->GetAttribute("DeviceName"); 
 	if ( deviceName != NULL) 
 	{
 		this->SetDeviceName(deviceName); 
 	}
 
-	const char* videoNorm = config->GetAttribute("VideoNorm"); 
+	const char* videoNorm = imageAcquisitionConfig->GetAttribute("VideoNorm"); 
 	if ( videoNorm != NULL) 
 	{
 		this->SetVideoNorm(videoNorm); 
 	}
 
-	const char* videoFormat = config->GetAttribute("VideoFormat"); 
+	const char* videoFormat = imageAcquisitionConfig->GetAttribute("VideoFormat"); 
 	if ( videoFormat != NULL) 
 	{
 		this->SetVideoFormat(videoFormat); 
 	}
 
-	const char* inputChannel = config->GetAttribute("InputChannel"); 
+	const char* inputChannel = imageAcquisitionConfig->GetAttribute("InputChannel"); 
 	if ( inputChannel != NULL) 
 	{
 		this->SetInputChannel(inputChannel); 
 	}
 
-	const char* licenseKey = config->GetAttribute("LicenseKey"); 
+	const char* licenseKey = imageAcquisitionConfig->GetAttribute("LicenseKey"); 
 	if ( licenseKey != NULL) 
 	{
 		this->SetLicenceKey(licenseKey); 
 	}
 
 	int icBufferSize = 0; 
-	if ( config->GetScalarAttribute("ICBufferSize", icBufferSize) ) 
+	if ( imageAcquisitionConfig->GetScalarAttribute("ICBufferSize", icBufferSize) ) 
 	{
 		this->SetICBufferSize(icBufferSize); 
 	}

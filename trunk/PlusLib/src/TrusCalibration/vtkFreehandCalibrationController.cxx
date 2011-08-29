@@ -1254,18 +1254,19 @@ PlusStatus vtkFreehandCalibrationController::ReadFreehandCalibrationConfiguratio
 {
 	LOG_TRACE("vtkFreehandCalibrationController::ReadFreehandCalibrationConfiguration"); 
 
-	// Find and load calibration configuration
+  // Find and load calibration configuration
 	vtkSmartPointer<vtkXMLDataElement> usCalibration = aConfig->FindNestedElementWithName("USCalibration");
 	if (usCalibration == NULL) {
 		LOG_ERROR("No calibration configuration is found in the XML tree!");
 		return PLUS_FAIL;
 	}
+
 	vtkSmartPointer<vtkXMLDataElement> calibrationController = usCalibration->FindNestedElementWithName("CalibrationController"); 
 	if (calibrationController == NULL) {
 		LOG_ERROR("Unable to read configuration");
 		return PLUS_FAIL;
 	}
-	this->ReadCalibrationControllerConfiguration(calibrationController);
+
 	vtkFreehandController::GetInstance()->SetOutputFolder(this->GetOutputPath());
 
 	// Probe Calibration specifications

@@ -333,13 +333,27 @@ PlusStatus vtkSavedDataTracker::ReadConfiguration(vtkXMLDataElement* config)
 	
 	Superclass::ReadConfiguration(config); 
 
-	const char* sequenceMetafile = config->GetAttribute("SequenceMetafile"); 
+	vtkSmartPointer<vtkXMLDataElement> dataCollectionConfig = config->FindNestedElementWithName("USDataCollection");
+	if (dataCollectionConfig == NULL)
+  {
+    LOG_ERROR("Cannot find USDataCollection element in XML tree!");
+		return PLUS_FAIL;
+	}
+
+  vtkSmartPointer<vtkXMLDataElement> trackerConfig = dataCollectionConfig->FindNestedElementWithName("Tracker"); 
+  if (trackerConfig == NULL) 
+  {
+    LOG_ERROR("Cannot find Tracker element in XML tree!");
+		return PLUS_FAIL;
+  }
+
+	const char* sequenceMetafile = trackerConfig->GetAttribute("SequenceMetafile"); 
 	if ( sequenceMetafile != NULL ) 
 	{
 		this->SetSequenceMetafile(sequenceMetafile);
 	}
 
-	const char* replayEnabled = config->GetAttribute("ReplayEnabled"); 
+	const char* replayEnabled = trackerConfig->GetAttribute("ReplayEnabled"); 
 	if ( replayEnabled != NULL ) 
 	{
 		if ( STRCASECMP("TRUE", replayEnabled ) == 0 )
@@ -371,8 +385,22 @@ PlusStatus vtkSavedDataTracker::WriteConfiguration(vtkXMLDataElement* config)
     return PLUS_FAIL;
   }
 
-	config->SetName("SavedDataset");  
-	config->SetAttribute( "SequenceMetafile", this->GetSequenceMetafile() ); 
+	vtkSmartPointer<vtkXMLDataElement> dataCollectionConfig = config->FindNestedElementWithName("USDataCollection");
+	if (dataCollectionConfig == NULL)
+  {
+    LOG_ERROR("Cannot find USDataCollection element in XML tree!");
+		return PLUS_FAIL;
+	}
+
+  vtkSmartPointer<vtkXMLDataElement> trackerConfig = dataCollectionConfig->FindNestedElementWithName("Tracker"); 
+  if (trackerConfig == NULL) 
+  {
+    LOG_ERROR("Cannot find Tracker element in XML tree!");
+		return PLUS_FAIL;
+  }
+
+	trackerConfig->SetName("SavedDataset");  
+	trackerConfig->SetAttribute( "SequenceMetafile", this->GetSequenceMetafile() ); 
   
   return PLUS_SUCCESS;
 }

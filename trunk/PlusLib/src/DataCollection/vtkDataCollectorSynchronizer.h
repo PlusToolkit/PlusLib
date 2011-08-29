@@ -23,7 +23,7 @@ public:
 
 	// Description:
 	// Read/write main configuration from/to xml data
-	virtual PlusStatus ReadConfiguration(vtkXMLDataElement* synchronizationConfig); 
+	virtual PlusStatus ReadConfiguration(vtkXMLDataElement* rootElement); 
 
 	// Description:
 	// Start the synchronization 

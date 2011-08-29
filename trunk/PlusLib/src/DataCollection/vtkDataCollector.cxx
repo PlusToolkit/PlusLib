@@ -1507,9 +1507,9 @@ PlusStatus vtkDataCollector::ReadConfigurationFromFile()
 }
 
 //------------------------------------------------------------------------------
-PlusStatus vtkDataCollector::ReadConfiguration(vtkXMLDataElement* aDataCollectionConfig)
+PlusStatus vtkDataCollector::ReadConfiguration(vtkXMLDataElement* aConfigurationData)
 {
-  this->SetConfigurationData(aDataCollectionConfig);
+  this->SetConfigurationData(aConfigurationData);
 
 	// Check plus configuration version
 	double plusConfigurationVersion = 0;
@@ -1543,6 +1543,7 @@ PlusStatus vtkDataCollector::ReadConfiguration(vtkXMLDataElement* aDataCollectio
     }
   }
 
+  // Read StartupDelaySec
   double startupDelaySec(0.0); 
   if ( dataCollectionConfig->GetScalarAttribute("StartupDelaySec", startupDelaySec) )
   {
@@ -1550,36 +1551,53 @@ PlusStatus vtkDataCollector::ReadConfiguration(vtkXMLDataElement* aDataCollectio
     LOG_DEBUG("StartupDelaySec: " << std::fixed << startupDelaySec ); 
   }
 
-
-  vtkSmartPointer<vtkXMLDataElement> imageAcquisitionConfig = dataCollectionConfig->FindNestedElementWithName("ImageAcquisition"); 
-  if ( imageAcquisitionConfig != NULL) 
+  // Read ImageAcquisition
+  if (this->ReadImageAcquisitionProperties() != PLUS_SUCCESS)
   {
-    this->ReadImageAcquisitionProperties(imageAcquisitionConfig); 
+    LOG_ERROR("Unable to read image acquisition configuration!");
+    return PLUS_FAIL;
   }
 
-  vtkSmartPointer<vtkXMLDataElement> trackerConfig = dataCollectionConfig->FindNestedElementWithName("Tracker"); 
-  if ( trackerConfig != NULL) 
+  // Read Tracker
+  if (this->ReadTrackerProperties() != PLUS_SUCCESS)
   {
-    this->ReadTrackerProperties(trackerConfig); 
+    LOG_ERROR("Unable to read tracker configuration!");
+    return PLUS_FAIL;
   }
 
-  vtkSmartPointer<vtkXMLDataElement> synchronizationConfig = dataCollectionConfig->FindNestedElementWithName("Synchronization"); 
-  if ( synchronizationConfig != NULL) 
+  // Read Synchronization
+  if (this->ReadSynchronizationProperties() != PLUS_SUCCESS)
   {
-    this->ReadSynchronizationProperties(synchronizationConfig); 
+    LOG_ERROR("Unable to read synchronization configuration!");
+    return PLUS_FAIL;
   }
 
   return PLUS_SUCCESS;
 }
 
 //------------------------------------------------------------------------------
-PlusStatus vtkDataCollector::ReadTrackerProperties(vtkXMLDataElement* trackerConfig)
+PlusStatus vtkDataCollector::ReadTrackerProperties()
 {
-  if (trackerConfig==NULL)
+  if (this->ConfigurationData == NULL)
   {
-    LOG_ERROR("TrackerConfig element is invalid");
+    LOG_ERROR("Root configuration element is invalid");
     return PLUS_FAIL;
   }
+
+	vtkSmartPointer<vtkXMLDataElement> dataCollectionConfig = this->ConfigurationData->FindNestedElementWithName("USDataCollection");
+	if (dataCollectionConfig == NULL)
+  {
+    LOG_ERROR("Cannot find USDataCollection element in XML tree!");
+		return PLUS_FAIL;
+	}
+
+  vtkSmartPointer<vtkXMLDataElement> trackerConfig = dataCollectionConfig->FindNestedElementWithName("Tracker"); 
+  if (trackerConfig == NULL) 
+  {
+    LOG_ERROR("Cannot find Tracker element in XML tree!");
+		return PLUS_FAIL;
+  }
+
   LOG_TRACE("vtkDataCollector::ReadTrackerProperties");
   const char* type = trackerConfig->GetAttribute("Type"); 
   if ( type == NULL ) 
@@ -1599,7 +1617,7 @@ PlusStatus vtkDataCollector::ReadTrackerProperties(vtkXMLDataElement* trackerCon
     this->SetTrackerType(TRACKER_BRACHY); 
     vtkSmartPointer<vtkBrachyTracker> tracker = vtkSmartPointer<vtkBrachyTracker>::New();
     this->SetTracker(tracker); 
-    tracker->ReadConfiguration(trackerConfig); 
+    tracker->ReadConfiguration(this->ConfigurationData); 
 #endif
   }
   //******************* Certus Tracker ***************************
@@ -1610,7 +1628,7 @@ PlusStatus vtkDataCollector::ReadTrackerProperties(vtkXMLDataElement* trackerCon
     this->SetTrackerType(TRACKER_CERTUS); 
     vtkSmartPointer<vtkNDICertusTracker> tracker = vtkSmartPointer<vtkNDICertusTracker>::New();
     this->SetTracker(tracker); 
-    tracker->ReadConfiguration(trackerConfig); 
+    tracker->ReadConfiguration(this->ConfigurationData); 
 
     /*int referenceToolNumber(-1);
     if ( trackerCertus->GetScalarAttribute("ReferenceToolNumber", referenceToolNumber) ) 
@@ -1634,7 +1652,7 @@ PlusStatus vtkDataCollector::ReadTrackerProperties(vtkXMLDataElement* trackerCon
     this->SetTrackerType(TRACKER_POLARIS); 
     vtkSmartPointer<vtkPOLARISTracker> tracker = vtkSmartPointer<vtkPOLARISTracker>::New();
     this->SetTracker(tracker); 
-    tracker->ReadConfiguration(trackerConfig); 
+    tracker->ReadConfiguration(this->ConfigurationData); 
 #endif
   }
   //******************* Aurora Tracker ***************************
@@ -1645,7 +1663,7 @@ PlusStatus vtkDataCollector::ReadTrackerProperties(vtkXMLDataElement* trackerCon
     this->SetTrackerType(TRACKER_AURORA); 
     vtkSmartPointer<vtkNDITracker> tracker = vtkSmartPointer<vtkNDITracker>::New();
     this->SetTracker(tracker); 
-    tracker->ReadConfiguration(trackerConfig); 
+    tracker->ReadConfiguration(this->ConfigurationData); 
 #endif
   }
   //******************* Flock Tracker ***************************
@@ -1656,7 +1674,7 @@ PlusStatus vtkDataCollector::ReadTrackerProperties(vtkXMLDataElement* trackerCon
     this->SetTrackerType(TRACKER_FLOCK); 
     vtkSmartPointer<vtkFlockTracker> tracker = vtkSmartPointer<vtkFlockTracker>::New();
     this->SetTracker(tracker); 
-    tracker->ReadConfiguration(trackerConfig); 
+    tracker->ReadConfiguration(this->ConfigurationData); 
 #endif
   }
   //******************* Micron Tracker ***************************
@@ -1667,7 +1685,7 @@ PlusStatus vtkDataCollector::ReadTrackerProperties(vtkXMLDataElement* trackerCon
     this->SetTrackerType(TRACKER_MICRON); 
     vtkSmartPointer<vtkMicronTracker> tracker = vtkSmartPointer<vtkMicronTracker>::New();
     this->SetTracker(tracker); 
-    tracker->ReadConfiguration(trackerConfig); 
+    tracker->ReadConfiguration(this->ConfigurationData); 
 #endif
   }
   //******************* Saved dataset ***************************
@@ -1677,7 +1695,7 @@ PlusStatus vtkDataCollector::ReadTrackerProperties(vtkXMLDataElement* trackerCon
     this->SetTrackerType(TRACKER_SAVEDDATASET); 
     vtkSmartPointer<vtkSavedDataTracker> tracker = vtkSmartPointer<vtkSavedDataTracker>::New();
     this->SetTracker(tracker); 
-    tracker->ReadConfiguration(trackerConfig); 
+    tracker->ReadConfiguration(this->ConfigurationData); 
   }
   //******************* Ascension 3DG ***************************
   else if ( STRCASECMP( "Ascension3DG", type ) == 0 )
@@ -1687,7 +1705,7 @@ PlusStatus vtkDataCollector::ReadTrackerProperties(vtkXMLDataElement* trackerCon
     this->SetTrackerType( TRACKER_ASCENSION3DG );
     vtkSmartPointer< vtkAscension3DGTracker > tracker = vtkSmartPointer< vtkAscension3DGTracker >::New();
     this->SetTracker( tracker );
-    tracker->ReadConfiguration(trackerConfig); 
+    tracker->ReadConfiguration(this->ConfigurationData); 
 #endif
   }
   //******************* Fake Tracker ***************************
@@ -1697,7 +1715,7 @@ PlusStatus vtkDataCollector::ReadTrackerProperties(vtkXMLDataElement* trackerCon
     this->SetTrackerType(TRACKER_FAKE); 
     vtkSmartPointer<vtkFakeTracker> tracker = vtkSmartPointer<vtkFakeTracker>::New();
     this->SetTracker(tracker);
-    tracker->ReadConfiguration(trackerConfig);
+    tracker->ReadConfiguration(this->ConfigurationData);
   }
   else
   {
@@ -1711,13 +1729,27 @@ PlusStatus vtkDataCollector::ReadTrackerProperties(vtkXMLDataElement* trackerCon
 
 
 //------------------------------------------------------------------------------
-PlusStatus vtkDataCollector::ReadImageAcquisitionProperties(vtkXMLDataElement* imageAcquisitionConfig)
+PlusStatus vtkDataCollector::ReadImageAcquisitionProperties()
 {
   LOG_TRACE("vtkDataCollector::ReadImageAcquisitionProperties");
 
-  if (imageAcquisitionConfig==NULL)
+  if (this->ConfigurationData == NULL)
   {
-    LOG_ERROR("ImageAcquisitionConfig element is invalid");
+    LOG_ERROR("Root configuration element is invalid");
+    return PLUS_FAIL;
+  }
+
+	vtkSmartPointer<vtkXMLDataElement> dataCollectionConfig = this->ConfigurationData->FindNestedElementWithName("USDataCollection");
+	if (dataCollectionConfig == NULL)
+  {
+    LOG_ERROR("Cannot find USDataCollection element in XML tree!");
+		return PLUS_FAIL;
+	}
+
+  vtkSmartPointer<vtkXMLDataElement> imageAcquisitionConfig = dataCollectionConfig->FindNestedElementWithName("ImageAcquisition"); 
+  if (imageAcquisitionConfig == NULL) 
+  {
+    LOG_ERROR("Unable to find ImageAcquisition element in configuration XML structure!");
     return PLUS_FAIL;
   }
 
@@ -1739,7 +1771,7 @@ PlusStatus vtkDataCollector::ReadImageAcquisitionProperties(vtkXMLDataElement* i
     this->SetAcquisitionType(SYNCHRO_VIDEO_SONIX); 
     vtkSmartPointer<vtkSonixVideoSource> videoSource = vtkSmartPointer<vtkSonixVideoSource>::New();
     this->SetVideoSource(videoSource); 
-    videoSource->ReadConfiguration(imageAcquisitionConfig); 
+    videoSource->ReadConfiguration(this->ConfigurationData); 
 #endif
   }
   //******************* Matrox Imaging ***************************
@@ -1750,7 +1782,7 @@ PlusStatus vtkDataCollector::ReadImageAcquisitionProperties(vtkXMLDataElement* i
     this->SetAcquisitionType(SYNCHRO_VIDEO_MIL); 
     vtkSmartPointer<vtkMILVideoSource2> videoSource = vtkSmartPointer<vtkMILVideoSource2>::New();
     this->SetVideoSource(videoSource); 
-    videoSource->ReadConfiguration(imageAcquisitionConfig); 
+    videoSource->ReadConfiguration(this->ConfigurationData); 
 #endif
   }
   //******************* Video For Windows ***************************
@@ -1761,7 +1793,7 @@ PlusStatus vtkDataCollector::ReadImageAcquisitionProperties(vtkXMLDataElement* i
     this->SetAcquisitionType(SYNCHRO_VIDEO_WIN32); 	
     vtkSmartPointer<vtkWin32VideoSource2> videoSource = vtkSmartPointer<vtkWin32VideoSource2>::New();
     this->SetVideoSource(videoSource); 
-    videoSource->ReadConfiguration(imageAcquisitionConfig); 
+    videoSource->ReadConfiguration(this->ConfigurationData); 
 #endif
   }
   //******************* IC Capturing frame grabber ***************************
@@ -1772,7 +1804,7 @@ PlusStatus vtkDataCollector::ReadImageAcquisitionProperties(vtkXMLDataElement* i
     this->SetAcquisitionType(SYNCHRO_VIDEO_ICCAPTURING); 
     vtkSmartPointer<vtkICCapturingSource> videoSource = vtkSmartPointer<vtkICCapturingSource>::New();
     this->SetVideoSource(videoSource); 
-    videoSource->ReadConfiguration(imageAcquisitionConfig); 
+    videoSource->ReadConfiguration(this->ConfigurationData); 
 #endif
   }
   //******************* Linux Video ***************************
@@ -1783,7 +1815,7 @@ PlusStatus vtkDataCollector::ReadImageAcquisitionProperties(vtkXMLDataElement* i
     this->SetAcquisitionType(SYNCHRO_VIDEO_LINUX); 
     vtkSmartPointer<vtkV4L2LinuxSource2> videoSource = vtkSmartPointer<vtkV4L2LinuxSource2>::New();
     this->SetVideoSource(videoSource); 
-    videoSource->ReadConfiguration(imageAcquisitionConfig); 
+    videoSource->ReadConfiguration(this->ConfigurationData); 
 #endif
   }
   //******************* Noise Video ***************************
@@ -1793,7 +1825,7 @@ PlusStatus vtkDataCollector::ReadImageAcquisitionProperties(vtkXMLDataElement* i
     this->SetAcquisitionType(SYNCHRO_VIDEO_NOISE); 
     vtkSmartPointer<vtkPlusVideoSource> videoSource = vtkSmartPointer<vtkPlusVideoSource>::New();
     this->SetVideoSource(videoSource); 
-    videoSource->ReadConfiguration(imageAcquisitionConfig); 
+    videoSource->ReadConfiguration(this->ConfigurationData); 
   }
   //******************* Saved dataset ***************************
   else if ( STRCASECMP("SavedDataset", type)==0 ) 
@@ -1802,7 +1834,7 @@ PlusStatus vtkDataCollector::ReadImageAcquisitionProperties(vtkXMLDataElement* i
     this->SetAcquisitionType(SYNCHRO_VIDEO_SAVEDDATASET); 
     vtkSmartPointer<vtkSavedDataVideoSource> videoSource = vtkSmartPointer<vtkSavedDataVideoSource>::New();
     this->SetVideoSource(videoSource); 
-    videoSource->ReadConfiguration(imageAcquisitionConfig); 
+    videoSource->ReadConfiguration(this->ConfigurationData); 
   }
   else
   {
@@ -1815,14 +1847,28 @@ PlusStatus vtkDataCollector::ReadImageAcquisitionProperties(vtkXMLDataElement* i
 }
 
 //------------------------------------------------------------------------------
-PlusStatus vtkDataCollector::ReadSynchronizationProperties(vtkXMLDataElement* synchronizationConfig)
+PlusStatus vtkDataCollector::ReadSynchronizationProperties()
 {
   LOG_TRACE("vtkDataCollector::ReadSynchronizationProperties");
 
-  if (synchronizationConfig==NULL)
+  if (this->ConfigurationData == NULL)
   {
-    LOG_ERROR("SynchronizationConfig element is invalid");
+    LOG_ERROR("Root configuration element is invalid");
     return PLUS_FAIL;
+  }
+
+	vtkSmartPointer<vtkXMLDataElement> dataCollectionConfig = this->ConfigurationData->FindNestedElementWithName("USDataCollection");
+	if (dataCollectionConfig == NULL)
+  {
+    LOG_ERROR("Cannot find USDataCollection element in XML tree!");
+		return PLUS_FAIL;
+	}
+
+  vtkSmartPointer<vtkXMLDataElement> synchronizationConfig = dataCollectionConfig->FindNestedElementWithName("Synchronization"); 
+  if (synchronizationConfig == NULL) 
+  {
+    LOG_ERROR("Cannot find Synchronization element in XML tree!");
+		return PLUS_FAIL;
   }
 
   const char* type = synchronizationConfig->GetAttribute("Type"); 
@@ -1841,7 +1887,7 @@ PlusStatus vtkDataCollector::ReadSynchronizationProperties(vtkXMLDataElement* sy
     vtkSmartPointer<vtkDataCollectorSynchronizer> synchronizer = vtkSmartPointer<vtkDataCollectorSynchronizer>::New(); 
     this->SetSyncType(SYNC_CHANGE_DETECTION); 
     this->SetSynchronizer(synchronizer); 
-    synchronizer->ReadConfiguration(synchronizationConfig); 
+    synchronizer->ReadConfiguration(this->ConfigurationData); 
   }
   else
   {

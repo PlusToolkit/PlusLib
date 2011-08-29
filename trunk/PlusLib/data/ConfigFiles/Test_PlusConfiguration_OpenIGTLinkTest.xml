@@ -12,7 +12,7 @@
       BufferSize="20"
       Frequency="5"
       LocalTimeOffset="0.0"
-	  AveragedItemsForFiltering="4"
+      AveragedItemsForFiltering="4"
       >
       
       <Tool
@@ -25,7 +25,7 @@
     </Tracker>
 
     <ImageAcquisition
-	  Type="SavedDataset" 
+      Type="SavedDataset" 
       BufferSize="20" 
       FrameSize="320 240" 
       UsImageOrientation="MN"
@@ -33,6 +33,10 @@
       AveragedItemsForFiltering="4" 
       LocalTimeOffset="0.0" 
       />
+
+		<Synchronization
+      Type="None"
+    />
 
   </USDataCollection>
 

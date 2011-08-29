@@ -25,6 +25,8 @@
 			</Tool>
 		</Tracker>
     
+    <ImageAcquisition Type="None" />
+
 		<Synchronization Type="None" />
 	</USDataCollection>
 

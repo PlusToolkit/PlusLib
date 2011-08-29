@@ -86,7 +86,7 @@ TARGET_LINK_LIBRARIES( vtkOpenIGTLinkBroadcasterTest1 vtkDataCollection vtkCommo
 IF (PLUS_USE_OpenIGTLink )
   ADD_TEST( vtkOpenIGTLinkBroadcasterTest1
     ${EXECUTABLE_OUTPUT_PATH}/vtkOpenIGTLinkBroadcasterTest1
-    --input-config-file=${ConfigFilesDir}/PlusConfiguration_OpenIGTLinkTest.xml
+    --input-config-file=${ConfigFilesDir}/Test_PlusConfiguration_OpenIGTLinkTest.xml
     --input-video-buffer-metafile=${TestDataDir}/SyntheticVideoBuffer20.mha 
     --input-tracker-buffer-metafile=${TestDataDir}/SyntheticTrackerBuffer20.mha
     )
@@ -101,7 +101,7 @@ TARGET_LINK_LIBRARIES( vtkPlusOpenIGTLinkServerTest vtkDataCollection vtkCommon 
 IF (PLUS_USE_OpenIGTLink )
   ADD_TEST( vtkPlusOpenIGTLinkServerTest
     ${EXECUTABLE_OUTPUT_PATH}/vtkPlusOpenIGTLinkServerTest
-    --config-file=${ConfigFilesDir}/PlusConfiguration_OpenIGTLinkTest.xml
+    --config-file=${ConfigFilesDir}/Test_PlusConfiguration_OpenIGTLinkTest.xml
     --input-video-buffer-metafile=${TestDataDir}/SyntheticVideoBuffer20.mha 
     --input-tracker-buffer-metafile=${TestDataDir}/SyntheticTrackerBuffer20.mha
     --port=18944

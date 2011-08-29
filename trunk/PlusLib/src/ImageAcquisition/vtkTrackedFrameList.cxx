@@ -813,12 +813,18 @@ PlusStatus vtkTrackedFrameList::ReadConfiguration(vtkXMLDataElement* config)
 		return PLUS_FAIL; 
 	}
 
-  vtkSmartPointer<vtkXMLDataElement> trackerConfig = config->LookupElementWithName("Tracker"); 
-
-  if ( trackerConfig == NULL )
+  vtkSmartPointer<vtkXMLDataElement> dataCollectionConfig = config->FindNestedElementWithName("USDataCollection");
+	if (dataCollectionConfig == NULL)
   {
-    LOG_DEBUG("Unable to find ImageAcquisition xml data element in configuration. Use default values."); 
-		return PLUS_SUCCESS; 
+    LOG_DEBUG("Cannot find USDataCollection element in XML tree. Use default values");
+		return PLUS_SUCCESS;
+	}
+
+  vtkSmartPointer<vtkXMLDataElement> trackerConfig = dataCollectionConfig->FindNestedElementWithName("Tracker"); 
+  if (trackerConfig == NULL) 
+  {
+    LOG_DEBUG("Cannot find Tracker element in XML tree. Use default values");
+		return PLUS_SUCCESS;
   }
 
 	if ( !trackerConfig->GetScalarAttribute("MinRequiredTranslationDifferenceMm", this->MinRequiredTranslationDifferenceMm) )
