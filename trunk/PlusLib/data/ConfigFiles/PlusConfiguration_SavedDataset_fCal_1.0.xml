@@ -3,8 +3,8 @@
 	<!-- DATA COLLECTION -->
 	<USDataCollection version="2.0" StartupDelaySec="1.0">
 		<DeviceSet 
-			Name="Unified Saved dataset for both (fCal)" 
-			Description="Unified configuration file for Saved dataset + fCal 1.0" 
+			Name="Saved dataset for both (fCal)" 
+			Description="Configuration file for Saved dataset + fCal 1.0" 
 			/>
 
 		<Tracker Type="SavedDataset" BufferSize="2500" Frequency="10" AveragedItemsForFiltering="20" LocalTimeOffset="0.0"
