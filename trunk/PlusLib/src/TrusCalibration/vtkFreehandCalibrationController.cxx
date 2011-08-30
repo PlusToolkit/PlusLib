@@ -1199,7 +1199,7 @@ void vtkFreehandCalibrationController::SetUSImageFrameOriginInPixels(int* origin
 
 void vtkFreehandCalibrationController::SetUSImageFrameOriginInPixels(int originX, int originY)
 {
-	LOG_TRACE("vtkFreehandCalibrationController::SetUSImageFrameOriginInPixels: " << originX << "  " << originY); //TODO Copy these traces to the other functions as well
+	LOG_TRACE("vtkFreehandCalibrationController::SetUSImageFrameOriginInPixels: " << originX << "  " << originY);
 
 	this->SetUSImageFrameOriginXInPixels(originX);
 	this->SetUSImageFrameOriginYInPixels(originY);

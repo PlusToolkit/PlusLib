@@ -103,7 +103,7 @@
 				ThresholdImage="10.0"            
                 UseOriginalImageIntensityForDotIntensityScore="0"
 
-                ScalingEstimation="0.19"
+                ApproximateSpacingMmPerPixel="0.19"
                 ImageScalingTolerancePercent="-10 10 -10 10"                                
                 ImageNormalVectorInPhantomFrameEstimation="0 0 1"
                 ImageNormalVectorInPhantomFrameMaximumRotationAngleDeg="-10 10 -10 10 -5 5"
@@ -116,7 +116,7 @@
 
           <!-- These values should be computed (only for double N):
                 MaxLineErrorMm="2.0"
-                FindLines3PtDist="5.3"
+                FindLines3PtDistanceMm="5.3"
                 MaxLineLengthErrorPercent="5.0"
                 				        
                 MinThetaDegrees="20"

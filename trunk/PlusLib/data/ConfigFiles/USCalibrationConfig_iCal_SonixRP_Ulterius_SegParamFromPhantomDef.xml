@@ -106,12 +106,12 @@
 
                 MaxAngleDifferenceDegrees="11"
 				
-				FindLines3PtDist="5.3"
+				FindLines3PtDistanceMm="1.0"
                 
                 ThresholdImage="10.0"
                 UseOriginalImageIntensityForDotIntensityScore="0"
 				
-				ScalingEstimation="0.19"
+				ApproximateSpacingMmPerPixel="0.19"
 				ImageScalingTolerancePercent="-10 10 -10 10"                                
                 ImageNormalVectorInPhantomFrameEstimation="0 0 1"
                 ImageNormalVectorInPhantomFrameMaximumRotationAngleDeg="-30 30 -30 30 -50 50"

@@ -94,7 +94,7 @@
         <!-- SearchRegionY: Y-axis points to the bottom in pixels (there must be at least 8-pixel-wide black border outside of the search region.) -->
         <SegmentationParameters
                 FrameSize="640 480"
-                ScalingEstimation="0.19"
+                ApproximateSpacingMmPerPixel="0.19"
                 MorphologicalOpeningCircleRadiusMm="0.55"
 				MorphologicalOpeningBarSizeMm="2.0"
 				
@@ -110,7 +110,7 @@
                 
                 ThresholdImage="10.0"
 
-                FindLines3PtDist="5.3"
+                FindLines3PtDistanceMm="1.0"
 
                 UseOriginalImageIntensityForDotIntensityScore="0"
 

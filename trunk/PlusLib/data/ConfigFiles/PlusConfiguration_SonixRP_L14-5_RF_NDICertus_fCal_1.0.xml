@@ -180,7 +180,7 @@
 
 			<SegmentationParameters
 					FrameSize="640 480"
-					ScalingEstimation="0.098"
+					ApproximateSpacingMmPerPixel="0.098"
 					MorphologicalOpeningCircleRadiusMm="0.55"
 					MorphologicalOpeningBarSizeMm="2.0"
 
@@ -196,7 +196,7 @@
 					
 					ThresholdImage="10.0"
 
-					FindLines3PtDist="5.3"
+					FindLines3PtDistanceMm="0.52"
 
 					UseOriginalImageIntensityForDotIntensityScore="0"
 

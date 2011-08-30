@@ -21,7 +21,7 @@ FidSegmentation::FidSegmentation() :
 		
 		m_MorphologicalOpeningBarSizeMm(-1.0), 
 		m_MorphologicalOpeningCircleRadiusMm(-1.0), 
-		m_ScalingEstimation(-1.0), 
+		m_ApproximateSpacingMmPerPixel(-1.0), 
 
 		m_FiducialGeometry(CALIBRATION_PHANTOM_6_POINT),
 
@@ -75,7 +75,7 @@ void FidSegmentation::UpdateParameters()
 {
 	// Create morphological circle
 	m_MorphologicalCircle.clear(); 
-	int radiuspx = floor((m_MorphologicalOpeningCircleRadiusMm / m_ScalingEstimation) + 0.5); 
+	int radiuspx = floor((m_MorphologicalOpeningCircleRadiusMm / m_ApproximateSpacingMmPerPixel) + 0.5); 
 	for ( int x = -radiuspx; x <= radiuspx; x++ )
 	{
 		for ( int y = -radiuspx; y <= radiuspx; y++ )
@@ -166,14 +166,14 @@ PlusStatus FidSegmentation::ReadConfiguration( vtkXMLDataElement* configData )
 	m_Working = new PixelType[size];
 	m_UnalteredImage = new PixelType[size];
 
-	double scalingEstimation(0.0); 
-	if ( segmentationParameters->GetScalarAttribute("ScalingEstimation", scalingEstimation) )
+	double approximateSpacingMmPerPixel(0.0); 
+	if ( segmentationParameters->GetScalarAttribute("ApproximateSpacingMmPerPixel", approximateSpacingMmPerPixel) )
 	{
-		m_ScalingEstimation = scalingEstimation; 
+		m_ApproximateSpacingMmPerPixel = approximateSpacingMmPerPixel; 
 	}
   else
   {
-    LOG_WARNING("Could not read ScalingEstimation from configuration file.");
+    LOG_WARNING("Could not read ApproximateSpacingMmPerPixel from configuration file.");
   }
 
 	double morphologicalOpeningCircleRadiusMm(0.0); 
@@ -318,7 +318,7 @@ void FidSegmentation::Clear()
 
 int FidSegmentation::GetMorphologicalOpeningBarSizePx()
 {
-	int barsize = floor(m_MorphologicalOpeningBarSizeMm / m_ScalingEstimation + 0.5 );
+	int barsize = floor(m_MorphologicalOpeningBarSizeMm / m_ApproximateSpacingMmPerPixel + 0.5 );
 	return barsize; 
 }
 
