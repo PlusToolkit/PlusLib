@@ -17,7 +17,7 @@ FidLineFinder::FidLineFinder()
 {
 	m_FrameSize[0] = -1;
   m_FrameSize[1] = -1;
-	m_ScalingEstimation = -1.0;
+	m_ApproximateSpacingMmPerPixel = -1.0;
 
   for(int i= 0 ; i<6 ; i++)
   {
@@ -36,7 +36,7 @@ FidLineFinder::FidLineFinder()
 	m_MaxLineLenMm = -1.0;
 	m_MaxLineErrorMm = -1.0;
 
-	m_FindLines3PtDist = -1.0; 
+	m_FindLines3PtDistanceMm = -1.0; 
 
 	m_MinTheta = -1.0; 
 	m_MaxTheta = -1.0;
@@ -236,14 +236,14 @@ PlusStatus FidLineFinder::ReadConfiguration( vtkXMLDataElement* configData )
     LOG_WARNING("Could not read FrameSize from configuration file.");
   }
 
-  double scalingEstimation(0.0); 
-	if ( segmentationParameters->GetScalarAttribute("ScalingEstimation", scalingEstimation) )
+  double approximateSpacingMmPerPixel(0.0); 
+	if ( segmentationParameters->GetScalarAttribute("ApproximateSpacingMmPerPixel", approximateSpacingMmPerPixel) )
 	{
-		m_ScalingEstimation = scalingEstimation; 
+		m_ApproximateSpacingMmPerPixel = approximateSpacingMmPerPixel; 
 	}
   else
   {
-    LOG_WARNING("Could not read ScalingEstimation from configuration file.");
+    LOG_WARNING("Could not read ApproximateSpacingMmPerPixel from configuration file.");
   }
 	
 	//if the tolerance parameters are computed automatically
@@ -305,13 +305,13 @@ PlusStatus FidLineFinder::ReadConfiguration( vtkXMLDataElement* configData )
     }
 
 		double findLines3PtDist(0.0); 
-		if ( segmentationParameters->GetScalarAttribute("FindLines3PtDist", findLines3PtDist) )
+		if ( segmentationParameters->GetScalarAttribute("FindLines3PtDistanceMm", findLines3PtDist) )
 		{
-			m_FindLines3PtDist = findLines3PtDist; 
+			m_FindLines3PtDistanceMm = findLines3PtDist; 
 		}
     else
     {
-      LOG_WARNING("Could not read findLines3PtDist from configuration file.");
+      LOG_WARNING("Could not read FindLines3PtDistanceMm from configuration file.");
     }
 
 		double maxLineErrorMm(0.0); 
@@ -359,13 +359,13 @@ PlusStatus FidLineFinder::ReadConfiguration( vtkXMLDataElement* configData )
     }
 
 		double findLines3PtDist(0.0); 
-		if ( segmentationParameters->GetScalarAttribute("FindLines3PtDist", findLines3PtDist) )
+		if ( segmentationParameters->GetScalarAttribute("FindLines3PtDistanceMm", findLines3PtDist) )
 		{
-			m_FindLines3PtDist = findLines3PtDist; 
+			m_FindLines3PtDistanceMm = findLines3PtDist; 
 		}
     else
     {
-      LOG_WARNING("Could not read findLines3PtDist from configuration file.");
+      LOG_WARNING("Could not read FindLines3PtDistanceMm from configuration file.");
     }
 
 		double maxLineErrorMm(0.0); 
@@ -530,7 +530,7 @@ void FidLineFinder::FindLines3Points( )
 	
 	int points[3];
 	Line currentTwoPointsLine;
-	float dist = m_FindLines3PtDist;
+	float dist = m_FindLines3PtDistanceMm / m_ApproximateSpacingMmPerPixel;
 	for ( int b3 = 0; b3 < m_DotsVector.size(); b3++ ) 
 	{
 		float x3 = m_DotsVector[b3].GetX() - 1;
@@ -623,11 +623,9 @@ void FidLineFinder::SortRightToLeft( Line *line )
 
 bool FidLineFinder::AcceptLine( Line &line )
 {
-	double scalingEstimation = m_ScalingEstimation;
-
-	int maxLineLenPx = floor(m_MaxLineLenMm / scalingEstimation + 0.5 );
-	int minLineLenPx = floor(m_MinLineLenMm / scalingEstimation + 0.5 );
-	double maxLineErrorPx = m_MaxLineErrorMm / scalingEstimation;
+	int maxLineLenPx = floor(m_MaxLineLenMm / m_ApproximateSpacingMmPerPixel + 0.5 );
+	int minLineLenPx = floor(m_MinLineLenMm / m_ApproximateSpacingMmPerPixel + 0.5 );
+	double maxLineErrorPx = m_MaxLineErrorMm / m_ApproximateSpacingMmPerPixel;
 
 	if ( line.GetLineLength() <= maxLineLenPx && line.GetLineLength() >= minLineLenPx &&
 			line.GetLineError() <= maxLineErrorPx && 

@@ -52,7 +52,7 @@ class FidLineFinder
 
 	protected:
 		int					m_FrameSize[2];
-		double			m_ScalingEstimation;
+		double			m_ApproximateSpacingMmPerPixel;
 		double			m_ImageNormalVectorInPhantomFrameMaximumRotationAngleDeg[6];
 		double			m_ImageToPhantomTransform[16];
 
@@ -65,7 +65,7 @@ class FidLineFinder
 		double 			m_MaxLineLenMm;
 		double 			m_MaxLineErrorMm;
 
-		double 			m_FindLines3PtDist; 
+		double 			m_FindLines3PtDistanceMm; 
 
 		double 			m_MinTheta; 
 		double 			m_MaxTheta;

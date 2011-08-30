@@ -13,7 +13,7 @@ FidLabelling::FidLabelling()
   m_FrameSize[0] = -1;
   m_FrameSize[1] = -1;
 
-	m_ScalingEstimation = -1.0;
+	m_ApproximateSpacingMmPerPixel = -1.0;
 	m_MaxAngleDiff = -1.0;
 	m_MinLinePairDistMm = -1.0; 	
 	m_MaxLinePairDistMm = -1.0;
@@ -131,14 +131,14 @@ PlusStatus FidLabelling::ReadConfiguration( vtkXMLDataElement* configData, doubl
     LOG_WARNING("Could not read FrameSize from configuration file.");
   }
 
-  double scalingEstimation(0.0); 
-	if ( segmentationParameters->GetScalarAttribute("ScalingEstimation", scalingEstimation) )
+  double approximateSpacingMmPerPixel(0.0); 
+	if ( segmentationParameters->GetScalarAttribute("ApproximateSpacingMmPerPixel", approximateSpacingMmPerPixel) )
 	{
-		m_ScalingEstimation = scalingEstimation; 
+		m_ApproximateSpacingMmPerPixel = approximateSpacingMmPerPixel; 
 	}
   else
   {
-    LOG_WARNING("Could not read ScalingEstimation from configuration file.");
+    LOG_WARNING("Could not read ApproximateSpacingMmPerPixel from configuration file.");
   }
 
 	//if the tolerance parameters are computed automatically
@@ -383,16 +383,13 @@ void FidLabelling::FindDoubleNLines()
 
 void FidLabelling::FindPairs()
 {
-	double scalingEstimation = m_ScalingEstimation;
-	double maxAngleDifference = m_MaxAngleDiff;
-
 	//These are for extra checks not needed in case of parallel lines as they are already checked when accepting the line
 	double maxTheta = m_MaxTheta;
 	double minTheta = m_MinTheta;
 
-	int maxLinePairDistPx = floor(m_MaxLinePairDistMm / scalingEstimation + 0.5 );
-	int minLinePairDistPx = floor(m_MinLinePairDistMm / scalingEstimation + 0.5 );
-	double maxLineErrorPx = m_MaxLineErrorMm / scalingEstimation;
+	int maxLinePairDistPx = floor(m_MaxLinePairDistMm / m_ApproximateSpacingMmPerPixel + 0.5 );
+	int minLinePairDistPx = floor(m_MinLinePairDistMm / m_ApproximateSpacingMmPerPixel + 0.5 );
+	double maxLineErrorPx = m_MaxLineErrorMm / m_ApproximateSpacingMmPerPixel;
 
 	Line currentLine1, currentLine2;
 
@@ -411,7 +408,7 @@ void FidLabelling::FindPairs()
 			float angle_diff = fabsf( t2 - t1 );
 			float line_error = currentLine1.GetLineError() + currentLine2.GetLineError();
 
-			bool test1 = angle_diff < maxAngleDifference;
+			bool test1 = angle_diff < m_MaxAngleDiff;
 			bool test2 = line_error < maxLineErrorPx;
 			bool test3 = minTheta <= t1 && t1 <= maxTheta;
 			bool test4 = minTheta <= t2 && t2 <= maxTheta;		
@@ -423,7 +420,7 @@ void FidLabelling::FindPairs()
 				line_error = line_error / maxLineErrorPx;
 				float angle_conf = angle_diff / ( 1 - line_error );
 
-				if ( angle_conf < maxAngleDifference ) 
+				if ( angle_conf < m_MaxAngleDiff ) 
 				{
 					float intensity = currentLine1.GetLineIntensity() + currentLine2.GetLineIntensity();
 					LinePair linePair;
@@ -431,8 +428,8 @@ void FidLabelling::FindPairs()
 					linePair.SetLine2(l2);
 					linePair.SetLinePairIntensity(intensity);
 					linePair.SetLinePairError(line_error);
-					linePair.SetAngleDifference(angle_diff / maxAngleDifference);
-					linePair.SetAngleConf(angle_conf / maxAngleDifference);
+					linePair.SetAngleDifference(angle_diff / m_MaxAngleDiff);
+					linePair.SetAngleConf(angle_conf / m_MaxAngleDiff);
 
 					m_PairsVector.push_back(linePair);
 				}

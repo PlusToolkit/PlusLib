@@ -49,7 +49,7 @@ class FidLabelling
 	protected:
     int						  m_FrameSize[2];
 
-		double					m_ScalingEstimation;
+		double					m_ApproximateSpacingMmPerPixel;
 		double 					m_MaxAngleDiff;
 		double 					m_MinLinePairDistMm; 	
 		double 					m_MaxLinePairDistMm;
