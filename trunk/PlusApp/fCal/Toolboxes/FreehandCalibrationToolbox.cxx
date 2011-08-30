@@ -5,6 +5,7 @@
 #include "PhantomRegistrationController.h"
 #include "vtkConfigurationTools.h"
 #include "ConfigFileSaverDialog.h"
+#include "SegmentationParameterDialog.h"
 
 #include <QVTKWidget.h>
 #include <QFileDialog>
@@ -41,6 +42,7 @@ FreehandCalibrationToolbox::FreehandCalibrationToolbox(QWidget* aParent, Qt::WFl
 	// Connect events
 	connect( ui.pushButton_OpenPhantomRegistration, SIGNAL( clicked() ), this, SLOT( OpenPhantomRegistrationClicked() ) );
 	connect( ui.pushButton_OpenCalibrationConfiguration, SIGNAL( clicked() ), this, SLOT( OpenCalibrationConfigurationClicked() ) );
+	connect( ui.pushButton_EditCalibrationConfiguration, SIGNAL( clicked() ), this, SLOT( EditCalibrationConfigurationClicked() ) );
 	connect( ui.pushButton_StartTemporal, SIGNAL( clicked() ), this, SLOT( StartTemporalClicked() ) );
 	connect( ui.pushButton_ResetTemporal, SIGNAL( clicked() ), this, SLOT( ResetTemporalClicked() ) );
 	connect( ui.pushButton_SkipTemporal, SIGNAL( clicked() ), this, SLOT( SkipTemporalClicked() ) );
@@ -99,7 +101,7 @@ void FreehandCalibrationToolbox::Initialize()
 
 void FreehandCalibrationToolbox::RefreshToolboxContent()
 {
-	//LOG_TRACE("StylusCalibrationToolbox: Refresh stylus calibration toolbox content"); 
+	//LOG_TRACE("StylusCalibrationToolbox::RefreshToolboxContent"); 
 
 	vtkFreehandCalibrationController* toolboxController = vtkFreehandCalibrationController::GetInstance();
 
@@ -280,7 +282,7 @@ void FreehandCalibrationToolbox::Clear()
 
 void FreehandCalibrationToolbox::OpenPhantomRegistrationClicked()
 {
-	LOG_TRACE("FreehandCalibrationToolbox: Open phantom registration button clicked"); 
+  LOG_TRACE("FreehandCalibrationToolbox::OpenPhantomRegistrationClicked"); 
 
 	// File open dialog for selecting phantom registration xml
 	QString filter = QString( tr( "XML files ( *.xml );;" ) );
@@ -303,7 +305,7 @@ void FreehandCalibrationToolbox::OpenPhantomRegistrationClicked()
 
 void FreehandCalibrationToolbox::OpenCalibrationConfigurationClicked()
 {
-	LOG_TRACE("FreehandCalibrationToolbox: Open calibration configuration button clicked"); 
+  LOG_TRACE("FreehandCalibrationToolbox::OpenCalibrationConfigurationClicked"); 
 
 	// File open dialog for selecting calibration configuration xml
 	QString filter = QString( tr( "XML files ( *.xml );;" ) );
@@ -326,6 +328,25 @@ void FreehandCalibrationToolbox::OpenCalibrationConfigurationClicked()
 
 	ui.lineEdit_CalibrationConfiguration->setText(fileName);
 	ui.lineEdit_CalibrationConfiguration->setToolTip(fileName);
+}
+
+//-----------------------------------------------------------------------------
+
+void FreehandCalibrationToolbox::EditCalibrationConfigurationClicked()
+{
+  LOG_TRACE("FreehandCalibrationToolbox::EditCalibrationConfigurationClicked");
+
+  // Disconnect realtime image from main canvas
+  vtkFreehandCalibrationController::GetInstance()->GetCanvasImageActor()->SetInput(NULL);
+
+  // Show segmentation parameter dialog
+  SegmentationParameterDialog* segmentationParamDialog = new SegmentationParameterDialog(this, vtkFreehandController::GetInstance()->GetDataCollector());
+  segmentationParamDialog->exec();
+
+  delete segmentationParamDialog;
+
+  // Re-connect realtime image to canvas
+  vtkFreehandCalibrationController::GetInstance()->GetCanvasImageActor()->SetInput(vtkFreehandController::GetInstance()->GetDataCollector()->GetOutput());
 }
 
 //-----------------------------------------------------------------------------

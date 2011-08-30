@@ -110,7 +110,7 @@
      </property>
     </widget>
    </item>
-   <item row="7" column="0" rowspan="2" colspan="2">
+   <item row="7" column="0" colspan="2">
     <widget class="QFrame" name="frame_SpatialCalibration">
      <property name="frameShape">
       <enum>QFrame::NoFrame</enum>
@@ -120,7 +120,7 @@
      </property>
      <layout class="QGridLayout" name="gridLayout">
       <property name="margin">
-       <number>4</number>
+       <number>0</number>
       </property>
       <property name="spacing">
        <number>4</number>
@@ -251,6 +251,29 @@
             <width>16</width>
             <height>16</height>
            </size>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="pushButton_EditCalibrationConfiguration">
+          <property name="minimumSize">
+           <size>
+            <width>23</width>
+            <height>23</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>23</width>
+            <height>23</height>
+           </size>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+          <property name="icon">
+           <iconset resource="../fCal.qrc">
+            <normaloff>:/icons/CommonWidgets/Resources/icon_Edit.png</normaloff>:/icons/CommonWidgets/Resources/icon_Edit.png</iconset>
           </property>
          </widget>
         </item>

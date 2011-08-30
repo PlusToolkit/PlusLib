@@ -13,6 +13,7 @@ SET (CommonWidgets_SRCS
 	StatusIcon.cxx
 	ToolStateDisplayWidget.cxx
   ConfigFileSaverDialog.cxx
+  SegmentationParameterDialog.cxx
 	)
 
 if (WIN32)	
@@ -26,11 +27,13 @@ SET (CommonWidgets_UI_HDRS
 		StatusIcon.h
 		ToolStateDisplayWidget.h
     ConfigFileSaverDialog.h
+    SegmentationParameterDialog.h
 	)
 
 SET (CommonWidgets_UI_SRCS
 	DeviceSetSelectorWidget.ui
   ConfigFileSaverDialog.ui
+  SegmentationParameterDialog.ui
 	)	
 
 SET (QT_Resources

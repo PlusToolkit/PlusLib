@@ -68,6 +68,11 @@ protected slots:
 	void OpenCalibrationConfigurationClicked();
 
 	/*!
+	* \brief Slot handling edit calibration configuration button click
+	*/
+	void EditCalibrationConfigurationClicked();
+
+	/*!
 	* \brief Slot handling start temporal calibration button click
 	*/
 	void StartTemporalClicked();

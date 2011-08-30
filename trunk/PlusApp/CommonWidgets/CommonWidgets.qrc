@@ -8,5 +8,6 @@
     <file>Resources/icon_DotRed.png</file>
     <file>Resources/icon_PopOut.png</file>
     <file>Resources/icon_Refresh.png</file>
+    <file>Resources/icon_Edit.png</file>
   </qresource>
 </RCC>

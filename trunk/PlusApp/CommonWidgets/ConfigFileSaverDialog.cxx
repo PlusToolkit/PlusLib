@@ -34,6 +34,8 @@ ConfigFileSaverDialog::~ConfigFileSaverDialog()
 
 void ConfigFileSaverDialog::SetDestinationDirectoryFromRegistry()
 {
+  LOG_TRACE("ConfigFileSaverDialog::SetDestinationDirectoryFromRegistry");
+
   // Get configuration directory from registry if possible
 	QSettings settings( QSettings::NativeFormat, QSettings::UserScope, "PerkLab", "Common" );
 	m_DestinationDirectory = settings.value("ConfigurationDirectory", "").toString();
@@ -78,6 +80,8 @@ void ConfigFileSaverDialog::SetDestinationDirectory(std::string aDirectory)
 
 PlusStatus ConfigFileSaverDialog::FillFormWithConfigurationData()
 {
+  LOG_TRACE("ConfigFileSaverDialog::FillFormWithConfigurationData");
+
   //Find Device set element
 	vtkSmartPointer<vtkXMLDataElement> usDataCollection = m_ConfigurationData->FindNestedElementWithName("USDataCollection");
 	if (usDataCollection == NULL) {
@@ -115,7 +119,9 @@ PlusStatus ConfigFileSaverDialog::FillFormWithConfigurationData()
 
 void ConfigFileSaverDialog::SaveClicked()
 {
-  //Find Device set element
+  LOG_TRACE("ConfigFileSaverDialog::SaveClicked");
+
+  // Find Device set element
 	vtkSmartPointer<vtkXMLDataElement> usDataCollection = m_ConfigurationData->FindNestedElementWithName("USDataCollection");
 	if (usDataCollection == NULL) {
 		LOG_ERROR("No USDataCollection element is found in the XML tree!");

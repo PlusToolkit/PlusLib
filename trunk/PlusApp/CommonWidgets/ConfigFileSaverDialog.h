@@ -42,6 +42,7 @@ public:
 	*/
 	void SetDestinationDirectory(std::string aDirectory);
 
+protected:
   /*!
 	* \brief Parses configuration data and fills form (title and description)
   * \return Success flag
