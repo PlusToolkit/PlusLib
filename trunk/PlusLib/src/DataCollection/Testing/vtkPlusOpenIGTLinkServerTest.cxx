@@ -14,6 +14,7 @@
 #include "igtlStringMessage1.h"
 #include "vtkPlusOpenIGTLinkClient.h"
 #include "vtkPlusOpenIGTLinkServer.h"
+#include "vtkPlusStartDataCollectionCommand.h"
 
 
 
@@ -117,55 +118,14 @@ int main( int argc, char** argv )
     return 1;
     }
   
-  for ( int messageIndex = 0; messageIndex < 10; ++ messageIndex )
+  for ( int messageIndex = 0; messageIndex < 5; ++ messageIndex )
     {
-    igtl::StringMessage1::Pointer stringMessage = igtl::StringMessage1::New();
-    stringMessage->SetDeviceName( "PlusClient" );
-    stringMessage->SetString( "<a><b/></a>" );
-    stringMessage->Pack();
+    vtkSmartPointer< vtkPlusStartDataCollectionCommand > command =
+        vtkSmartPointer< vtkPlusStartDataCollectionCommand >::New();
     
-    /*
-    clientSocket->Send( stringMessage->GetPackPointer(), stringMessage->GetPackSize() );
+    bool success = plusClient->StartCommand( command );
     
-    
-      // Wait for a reply.
-    
-    igtl::MessageHeader::Pointer headerMsg = igtl::MessageHeader::New();
-    headerMsg->InitPack();
-    int rs = clientSocket->Receive( headerMsg->GetPackPointer(), headerMsg->GetPackSize() );
-    if ( rs == 0 )
-      {
-      std::cerr << "Connection closed." << std::endl;
-      clientSocket->CloseSocket();
-      continue;
-      }
-    if ( rs != headerMsg->GetPackSize() )
-      {
-      std::cerr << "Message size information and actual data size don't match." << std::endl; 
-      continue;
-      }
-    
-    headerMsg->Unpack();
-    
-    std::cout << "Client received message from device: " << headerMsg->GetDeviceType() << std::endl;
-    
-    if ( strcmp( headerMsg->GetDeviceType(), "STRING1" ) != 0 )
-      {
-      LOG_WARNING( "Response from server is not STRING1" );
-      clientSocket->Skip( headerMsg->GetBodySizeToRead() );
-      continue;
-      }
-    
-    igtl::StringMessage1::Pointer strResponse = igtl::StringMessage1::New();
-    strResponse->SetMessageHeader( headerMsg );
-    strResponse->AllocatePack();
-    clientSocket->Receive( strResponse->GetPackBodyPointer(), strResponse->GetPackBodySize() );
-    strResponse->Unpack();
-    
-    std::cout << "  Message: " << strResponse->GetString() << std::endl;
-    */
-    
-    vtkAccurateTimer::Delay( 0.5 );
+    vtkAccurateTimer::Delay( 0.4 );
     }
   
   

@@ -12,6 +12,7 @@
 #include "igtlClientSocket.h"
 
 #include "vtkDataCollector.h"
+#include "vtkPlusCommand.h"
 
 
 
@@ -38,6 +39,8 @@ public:
   int StartDataCollector();
   int StopDataCollector();
   
+  bool StartCommand( vtkPlusCommand* command );
+  
   friend static void* vtkCommunicationThread( vtkMultiThreader::ThreadInfo* data );
   
   
@@ -59,6 +62,9 @@ private:
   int         NetworkPort;
   std::string ServerAddress;
   int         ThreadId;
+  bool        CommandInProgress;
+  
+  vtkPlusCommand* ActiveCommand;
   
 };
 

@@ -40,19 +40,20 @@ vtkCommunicationThread( vtkMultiThreader::ThreadInfo* data )
     if ( self->GetActive() == false ) return NULL;
     
     socket = serverSocket->WaitForConnection( 100 );
-    
     if ( socket.IsNotNull() ) // if client connected
       {
       std::cerr << "A client is connected." << std::endl;
-
-      // Create a message buffer to receive header
+      
+        // Create a message buffer to receive header
+      
       igtl::MessageHeader::Pointer header = igtl::MessageHeader::New();
 
-      for ( int i = 0; i < 10; i ++ )  // TODO: Why 100?
+      for ( int i = 0; i < 10; i ++ )  // TODO: Why 10?
         {
         header->InitPack();
         
           // Receive generic header from the socket
+        
         int rs = socket->Receive( header->GetPackPointer(), header->GetPackSize() );
         if ( rs == 0 )
           {
@@ -63,18 +64,20 @@ vtkCommunicationThread( vtkMultiThreader::ThreadInfo* data )
           continue;
           }
         
-          // Deserialize the header
-        header->Unpack();
         
-        std::cout << "Server received message from device: " << header->GetDeviceType();
+        header->Unpack();  // Deserialize the header
+        
+        std::cout << "Server received message from device: " << header->GetDeviceType() << std::endl;
         
         
           // Check data type and receive data body
+        
         if ( strcmp( header->GetDeviceType(), "STRING1" ) == 0 )
           {
           std::cerr << "Received a string1 message." << std::endl;
-          // socket->Skip( headerMsg->GetBodySizeToRead(), 0 );
-          // SendImageMeta(socket, headerMsg->GetDeviceName());
+          
+            // socket->Skip( headerMsg->GetBodySizeToRead(), 0 );
+            // SendImageMeta(socket, headerMsg->GetDeviceName());
           
           igtl::StringMessage1::Pointer strMessage = igtl::StringMessage1::New();
           strMessage->SetMessageHeader( header );
