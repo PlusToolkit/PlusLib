@@ -178,9 +178,9 @@ PlusStatus SegmentationParameterDialog::InitializeVisualization()
 
 //-----------------------------------------------------------------------------
 
-PlusStatus SegmentationParameterDialog::FillFormWithConfigurationData()
+PlusStatus SegmentationParameterDialog::ReadConfiguration()
 {
-  LOG_TRACE("SegmentationParameterDialog::FillFormWithConfigurationData");
+  LOG_TRACE("SegmentationParameterDialog::ReadConfiguration");
 
   //Find Device set element
   vtkSmartPointer<vtkXMLDataElement> usCalibration = m_DataCollector->GetConfigurationData()->FindNestedElementWithName("USCalibration");
@@ -356,6 +356,8 @@ PlusStatus SegmentationParameterDialog::WriteConfiguration()
   deviceSet->SetAttribute("Name", ui.lineEdit_DeviceSetName->text());
   deviceSet->SetAttribute("Description", ui.textEdit_Description->text());
   */
+
+  return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
