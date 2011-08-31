@@ -19,12 +19,24 @@ vtkPlusStartDataCollectionCommand
 }
 
 
+bool
+vtkPlusStartDataCollectionCommand
+::CanExecute( std::string str )
+{
+  if ( str.compare( this->StringRepresentation ) == 0 )
+    {
+    return true;
+    }
+  return false;
+}
+
+  
 
 bool
 vtkPlusStartDataCollectionCommand
 ::Execute( std::string stringMessage )
 {
-  if ( stringMessage.compare( this->StringRepresentation ) == 0 )
+  if ( this->CanExecute( stringMessage ) )
     {
     PlusStatus status = this->DataCollector->Start();
     return true;

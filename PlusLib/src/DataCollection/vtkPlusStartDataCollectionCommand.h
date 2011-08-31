@@ -27,6 +27,7 @@ public:
   vtkTypeRevisionMacro( vtkPlusStartDataCollectionCommand, vtkObject );
   virtual void PrintSelf( ostream& os, vtkIndent indent );
   
+  virtual bool CanExecute( std::string str );
   virtual bool Execute( std::string stringMessage );
   virtual std::string GetStringRepresentation();
   virtual void ProcessResponse( igtl::MessageBase::Pointer header,
