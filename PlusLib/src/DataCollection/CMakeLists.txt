@@ -9,9 +9,11 @@ SET (DataCollection_SRCS
 	igtlStringMessage1.cxx
 	vtkDataCollector.cxx 
 	vtkDataCollectorSynchronizer.cxx 
-    vtkOpenIGTLinkBroadcaster.cxx
+  vtkOpenIGTLinkBroadcaster.cxx
 	vtkPlusOpenIGTLinkServer.cxx
-    vtkPlusOpenIGTLinkClient.cxx
+  vtkPlusOpenIGTLinkClient.cxx
+  vtkPlusCommand.cxx
+  vtkPlusStartDataCollectionCommand.cxx
 	)
 
 SET (DataCollection_HDRS)
@@ -20,9 +22,11 @@ if (WIN32)
 		igtlStringMessage1.h
 		vtkDataCollector.h 
 		vtkDataCollectorSynchronizer.h
-        vtkOpenIGTLinkBroadcaster.h
+    vtkOpenIGTLinkBroadcaster.h
 		vtkPlusOpenIGTLinkServer.h
-        vtkPlusOpenIGTLinkClient.h
+    vtkPlusOpenIGTLinkClient.h
+    vtkPlusCommand.h
+    vtkPlusStartDataCollectionCommand.h
 		)
 endif (WIN32)	
 
