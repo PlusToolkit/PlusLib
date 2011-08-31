@@ -32,6 +32,7 @@ public:
   vtkTypeRevisionMacro( vtkPlusCommand, vtkObject );
   virtual void PrintSelf( ostream& os, vtkIndent indent );
   
+  virtual bool CanExecute( std::string str ) = 0;
   virtual bool Execute( std::string stringMessage ) = 0;
   virtual std::string GetStringRepresentation() = 0;
   virtual void ProcessResponse( igtl::MessageBase::Pointer header,

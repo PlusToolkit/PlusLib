@@ -14,6 +14,8 @@ SET (DataCollection_SRCS
   vtkPlusOpenIGTLinkClient.cxx
   vtkPlusCommand.cxx
   vtkPlusStartDataCollectionCommand.cxx
+  vtkPlusCommandCollection.cxx
+  vtkPlusCommandFactory.cxx
 	)
 
 SET (DataCollection_HDRS)
@@ -27,6 +29,8 @@ if (WIN32)
     vtkPlusOpenIGTLinkClient.h
     vtkPlusCommand.h
     vtkPlusStartDataCollectionCommand.h
+    vtkPlusCommandCollection.h
+    vtkPlusCommandFactory.h
 		)
 endif (WIN32)	
 
