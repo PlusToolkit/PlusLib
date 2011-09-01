@@ -1,0 +1,448 @@
+<PlusConfiguration version="1.2">
+  <USDataCollection version="2.0" StartupDelaySec="1.0">
+    <DeviceSet Name="Temp SonixTouch L14-5 + NDI Certus" Description="Unified configuration file for SonixTouch L14-5 + NDI Certus + fCal 1.0">
+      
+      
+    
+    </DeviceSet>
+    <Tracker Type="CertusTracker" BufferSize="2500" Frequency="50" AveragedItemsForFiltering="20" LocalTimeOffset="0.0">
+      <Tool PortNumber="0" Type="Probe" Model="L14-5_38" Name="Probe" SendTo="127.0.0.1:1111">
+        <Model File="L14-5_38_ProbeModel.stl" ModelToToolTransform="       0.107721 0.979858 0.168146 -115.733132       -0.993248 0.113395 -0.024487 13.708913       -0.043061 -0.164373 0.985458 -107.578262       0 0 0 1">
+          
+          
+        
+        </Model>
+        <Calibration MatrixName="ImageToProbe" MatrixValue="
+	-0.0094 -0.0739 -0.0028 -103.5322
+	0.0774 -0.0076 -0.0049 -43.1227
+	0.0046 -0.0032 0.0760 -93.3
+	0 0 0 1" Error="0.508027" Date="2011.08.19 14:11:53">
+          
+          
+        
+        </Calibration>
+        
+        
+        
+        
+				
+				
+				
+				
+									
+				
+				
+			
+      
+      </Tool>
+      <Tool Type="Reference" Name="PhantomReference" PortNumber="1" SendTo="127.0.0.1:1111">
+        
+        
+			
+      
+      </Tool>
+      <Tool PortNumber="2" Type="Stylus" Model="Example" Name="Stylus" SendTo="127.0.0.1:1112">
+        <Model File="Stylus_Example.stl" ModelToToolTransform="       1 0 0 -210.0       0 1 0 0       0 0 1 0       0 0 0 1">
+          
+          
+        
+        </Model>
+        <Calibration MatrixName="StylusTipToStylus" MatrixValue="
+	1 0 0 210.2522
+	0 1 0 -6.2830
+	0 0 1 -0.4491
+	0 0 0 1" Error="0.0564557" Date="2011.08.19 14:09:20">
+          
+          
+        
+        </Calibration>
+        
+        
+        
+        
+				
+				
+				
+				
+				
+				
+				 
+			
+      
+      </Tool>
+      <Tool PortNumber="3" Type="Needle" Model="Example" Name="Needle" SendTo="127.0.0.1:1112">
+        <Model ModelToToolTransform="       1 0 0 0       0 1 0 0       0 0 1 0       0 0 0 1">
+          
+          
+        
+        </Model>
+        <Calibration MatrixName="NeedleTipToNeedle" MatrixValue="       1 0 0 0       0 1 0 0       0 0 1 0       0 0 0 1" Error="0.0">
+          
+          
+        
+        </Calibration>
+        
+        
+        
+        
+				
+				
+				
+				
+				
+				
+				
+			
+      
+      </Tool>
+      
+      
+      
+      
+      
+      
+			
+			
+			
+			
+			
+			
+
+			
+			
+
+			
+			
+		
+    
+    </Tracker>
+    <ImageAcqusition Type="SonixVideo" BufferSize="500" FrameSize="820 616" UsImageOrientation="UF" FrameRate="30" AveragedItemsForFiltering="20" LocalTimeOffset="-0.2126" IP="130.15.7.20" ImagingMode="0" AcquisitionDataType="4" Depth="-1" Sector="-1" Gain="-1" DynRange="-1" Zoom="-1" Frequency="-1" Timeout="-1" CompressionStatus="0">
+      
+      
+    
+    </ImageAcqusition>
+    <Synchronization Type="ChangeDetection" SynchronizationTimeLength="30" MinNumOfSyncSteps="5" ThresholdMultiplier="5" NumberOfAveragedTransforms="20" MinTransformThreshold="2.0" MaxTransformDifference="2.0" NumberOfAveragedFrames="6" MinFrameThreshold="200.0" MaxFrameDifference="10.0">
+      
+      
+    
+    </Synchronization>
+    
+    
+    
+    
+    
+    
+		
+
+		
+
+		
+ 
+		
+	
+  
+  </USDataCollection>
+  <USCalibration version="1.0">
+    <CalibrationController LogLevel="INFO" OutputPath="./Output" EnableTrackedSequenceDataSaving="FALSE" EnableErroneouslySegmentedDataSaving="FALSE" EnableSegmentationAnalysis="FALSE">
+      <ProbeCalibration EnableLogFile="FALSE" EnableSegmentedWirePositionsSaving="FALSE" ImageHomeToUserImageHomeTransform=" 1  0  0  0                            0  1  0  0                            0  0  1  0                            0  0  0  1" DataFileSuffix=".data" CalibrationResultFileSuffix=".Calibration.results" SegmentationErrorLogFileNameSuffix=".Segmentation.errors" SegmentationAnalysisFileNameSuffix=".Segmentation.analysis" Temp2StepCalibAnalysisFileNameSuffix=".Template2StepperCalibration.analysis">
+        <RandomStepperMotionData1 NumberOfImagesToAcquire="200" OutputSequenceMetaFileSuffix=".RandomStepperMotionData1">
+          
+          
+        
+        </RandomStepperMotionData1>
+        <RandomStepperMotionData2 NumberOfImagesToAcquire="100" OutputSequenceMetaFileSuffix=".RandomStepperMotionData2">
+          
+          
+        
+        </RandomStepperMotionData2>
+        <TemplateModel ConfigFile="../config/TemplateModel.xml">
+          
+          
+				
+        
+        </TemplateModel>
+        <US3DBeamProfile IncorporatingUS3DBeamProfile="0" ConfigFile="./Component_US3DBeamProfile.config">
+          
+          
+        
+        </US3DBeamProfile>
+        
+        
+        
+        
+        
+        
+      
+        
+        
+        
+        
+
+				
+
+				
+				
+				
+			
+      
+      </ProbeCalibration>
+      <FreehandCalibration>
+        <FreehandMotionData1 NumberOfImagesToAcquire="200" OutputSequenceMetaFileSuffix=".FreehandMotionData1">
+          
+          
+        
+        </FreehandMotionData1>
+        <FreehandMotionData2 NumberOfImagesToAcquire="100" OutputSequenceMetaFileSuffix=".FreehandMotionData2">
+          
+          
+        
+        </FreehandMotionData2>
+        
+        
+        
+        
+				
+				
+				
+				
+      
+      
+      </FreehandCalibration>
+      <xSegmentationParameters FrameSize="820 616" ScalingEstimation="0.078" MorphologicalOpeningCircleRadiusMm="0.47" MorphologicalOpeningBarSizeMm="1.0" RegionOfInterest="27 27 793 589" MaxLineLengthErrorPercent="10.0" MaxLinePairDistanceErrorPercent="10.0" MaxLineErrorMm="2.0" MaxAngleDifferenceDegrees="11" MinThetaDegrees="20" MaxThetaDegrees="160" ThresholdImage="10.0" FindLines3PtDist="5.3" UseOriginalImageIntensityForDotIntensityScore="0">
+        
+      
+      </xSegmentationParameters>
+      <SegmentationParameters FrameSize="820 616" ScalingEstimation="0.078" MorphologicalOpeningCircleRadiusMm="0.2" MorphologicalOpeningBarSizeMm="2.0" RegionOfInterest="27 27 793 589" MaxLineLengthErrorPercent="20.0" MaxLinePairDistanceErrorPercent="20.0" MaxLineErrorMm="4.0" MaxAngleDifferenceDegrees="11" MinThetaDegrees="20" MaxThetaDegrees="160" ThresholdImage="10.0" FindLines3PtDist="5.3" UseOriginalImageIntensityForDotIntensityScore="0">
+        
+      	  
+			
+      
+      </SegmentationParameters>
+      
+      
+      
+      
+	  
+
+      
+			
+			
+			
+			
+			
+		
+    
+    </CalibrationController>
+    
+    
+    
+		
+	
+  
+  </USCalibration>
+  <PhantomDefinition version="1.0">
+    <Description Name="fCAL" Type="Double-N" Version="1.0" Institution="Queen's University PerkLab">
+      
+      
+    
+    </Description>
+    <Model File="FCal_1.0.stl" ModelToPhantomTransform="     1 0 0 -15.0     0 1 0 10.0     0 0 1 -5.0     0 0 0 1">
+      
+      
+    
+    </Model>
+    <Geometry>
+      <NWire>
+        <Wire Id="1" Name="E3_e3" EndPointFront="20.0 0.0 5.0" EndPointBack="20.0 40.0 5.0">
+          
+          
+        
+        </Wire>
+        <Wire Id="2" Name="F3_j3" EndPointFront="25.0 0.0 5.0" EndPointBack="45.0 40.0 5.0">
+          
+          
+        
+        </Wire>
+        <Wire Id="3" Name="K3_k3" EndPointFront="50.0 0.0 5.0" EndPointBack="50.0 40.0 5.0">
+          
+          
+        
+        </Wire>
+        
+        
+        
+        
+        
+				
+				
+				
+			
+      
+      </NWire>
+      <NWire>
+        <Wire Id="4" Name="E4_e4" EndPointFront="20.0 0.0 0.0" EndPointBack="20.0 40.0 0.0">
+          
+          
+        
+        </Wire>
+        <Wire Id="5" Name="J4_f4" EndPointFront="45.0 0.0 0.0" EndPointBack="25.0 40.0 0.0">
+          
+          
+        
+        </Wire>
+        <Wire Id="6" Name="K4_k4" EndPointFront="50.0 0.0 0.0" EndPointBack="50.0 40.0 0.0">
+          
+          
+        
+        </Wire>
+        
+        
+        
+        
+        
+				
+				
+				
+			
+      
+      </NWire>
+      <Landmarks>
+        <Landmark Name="#1" Position="95.0 5.0 15.0">
+          
+          
+        
+        </Landmark>
+        <Landmark Name="#2" Position="95.0 40.0 15.0">
+          
+          
+        
+        </Landmark>
+        <Landmark Name="#3" Position="95.0 40.0 0.0">
+          
+          
+        
+        </Landmark>
+        <Landmark Name="#4" Position="95.0 0.0 0.0">
+          
+          
+        
+        </Landmark>
+        <Landmark Name="#5" Position="-25.0 40.0 15.0">
+          
+          
+        
+        </Landmark>
+        <Landmark Name="#6" Position="-25.0 0.0 10.0">
+          
+          
+        
+        </Landmark>
+        <Landmark Name="#7" Position="-25.0 0.0 0.0">
+          
+          
+        
+        </Landmark>
+        <Landmark Name="#8" Position="-25.0 40.0 0.0">
+          
+          
+        
+        </Landmark>
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+				
+				
+				
+				
+				
+				
+				
+				
+				
+			
+      
+      </Landmarks>
+      <Registration MatrixName="PhantomToPhantomReference" MatrixValue="
+	0.9969 0.0038 -0.0782 -35.8004
+	0.0781 0.0057 0.9969 -124.7711
+	0.0042 -1.0000 0.0054 -17.2
+	0 0 0 1" Error="-1" Date="2011.08.19 14:10:32">
+        
+        
+      
+      </Registration>
+      
+      
+      
+      
+      
+      
+			
+			
+			
+
+			
+			
+			
+			
+		
+    
+    </Geometry>
+    
+    
+    
+    
+    
+		
+		
+		
+		
+		
+
+		
+	
+  
+  </PhantomDefinition>
+  <VolumeReconstruction>
+    <SliceParameters SliceSpacing="1 1 1" SliceOrigin="0 0 0" NumScalarComponents="1">
+    </SliceParameters>
+    <OutputParameters OutputSpacing="0.5 0.5 0.5">
+    </OutputParameters>
+    <ClippingParameters ClipRectangleOrigin="167 62" ClipRectangleSize="495 488">
+    </ClippingParameters>
+    <FanParameters FanAngles="0 0" FanOrigin="0 0" FanDepth="300">
+    </FanParameters>
+    <RotationOptions ImageFlipped="Off" Rotation="Off" MaxRotationChange="90" Threshold1="0" Threshold2="255" ShiftX="0" ShiftY="0">
+    </RotationOptions>
+    <ReconstructionOptions Interpolation="Linear" Optimization="On" Compounding="On">
+    </ReconstructionOptions>
+  </VolumeReconstruction>
+  
+  
+  
+  
+  
+  
+
+	
+	
+
+	
+	
+	
+	
+	
+
+	
+	
+
+
+
+</PlusConfiguration>

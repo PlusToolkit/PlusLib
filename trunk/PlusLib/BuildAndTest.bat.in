@@ -35,7 +35,7 @@ goto END
 @REM Display the list of tests
 "${CMAKE_CTEST_COMMAND}" -R "%2" -N
 @REM Run selected tests
-"${CMAKE_CTEST_COMMAND}" -R "%2"
+"${CMAKE_CTEST_COMMAND}" -R "%2" -V
 goto END
 
 
