@@ -50,6 +50,13 @@ class FidLineFinder
     double *		GetImageNormalVectorInPhantomFrameMaximumRotationAngleDeg() { return m_ImageNormalVectorInPhantomFrameMaximumRotationAngleDeg; };
     double *		GetImageToPhantomTransform() { return m_ImageToPhantomTransform; };
 
+    void        SetApproximateSpacingMmPerPixel(double value) { m_ApproximateSpacingMmPerPixel = value; };
+    void        SetMaxLineLengthErrorPercent(double value) { m_MaxLineLengthErrorPercent = value; };
+    void        SetFindLines3PtDistanceMm(double value) { m_FindLines3PtDistanceMm = value; };
+    void        SetMaxLineErrorMm(double value) { m_MaxLineErrorMm = value; };
+    void        SetMinThetaDegrees(double value) { m_MinTheta = value; };
+    void        SetMaxThetaDegrees(double value) { m_MaxTheta = value; };
+
 	protected:
 		int					m_FrameSize[2];
 		double			m_ApproximateSpacingMmPerPixel;

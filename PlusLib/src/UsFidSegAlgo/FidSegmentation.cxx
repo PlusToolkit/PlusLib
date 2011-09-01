@@ -71,6 +71,16 @@ FidSegmentation::FidSegmentation() :
 
 //-----------------------------------------------------------------------------
 
+FidSegmentation::~FidSegmentation()
+{
+	delete[] m_Dilated;
+	delete[] m_Eroded;
+	delete[] m_Working;
+	delete[] m_UnalteredImage;
+}
+
+//-----------------------------------------------------------------------------
+
 void FidSegmentation::UpdateParameters()
 {
 	// Create morphological circle
@@ -1453,12 +1463,18 @@ void FidSegmentation::MorphologicalOperations()
 
 //-----------------------------------------------------------------------------
 
-FidSegmentation::~FidSegmentation()
+void FidSegmentation::SetRegionOfInterest(int xMin, int yMin, int xMax, int yMax)
 {
-	delete[] m_Dilated;
-	delete[] m_Eroded;
-	delete[] m_Working;
-	delete[] m_UnalteredImage;
+  if (xMin > 0) {
+    m_RegionOfInterest[0] = xMin;
+  }
+  if (yMin > 0) {
+    m_RegionOfInterest[1] = yMin;
+  }
+  if (xMax > 0) {
+    m_RegionOfInterest[2] = xMax;
+  }
+  if (yMax > 0) {
+    m_RegionOfInterest[3] = yMax;
+  }
 }
-
-//-----------------------------------------------------------------------------
