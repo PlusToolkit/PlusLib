@@ -14,6 +14,9 @@ class vtkActor;
 class vtkImageActor;
 class vtkPolyData;
 
+class vtkROIModeHandler;
+class vtkSpacingModeHandler;
+
 //-----------------------------------------------------------------------------
 
 /*!
@@ -35,6 +38,18 @@ public:
 	* \brief Destructor
 	*/
 	~SegmentationParameterDialog();
+
+	/*!
+	* \brief Return canvas renderer
+  * \return Canvas Renderer
+	*/
+  vtkRenderer* GetCanvasRenderer() { return m_CanvasRenderer; };
+
+  vtkDataCollector* GetDataCollector() { return m_DataCollector; };
+
+  //TODO
+  void SetROI(int aXMin, int aYMin, int aXMax, int aYMax);
+  void GetROI(int &aXMin, int &aYMin, int &aXMax, int &aYMax);
 
 protected:
 	/*!
@@ -108,30 +123,60 @@ protected slots:
 	*/
   void FreezeImage(bool aOn);
 
+	/*!
+	* \brief Slot handling ROI XMin value change
+  * \param aValue New value
+	*/
+  void ROIXMinChanged(int aValue);
+
+	/*!
+	* \brief Slot handling ROI YMin value change
+  * \param aValue New value
+	*/
+  void ROIYMinChanged(int aValue);
+
+	/*!
+	* \brief Slot handling ROI XMax value change
+  * \param aValue New value
+	*/
+  void ROIXMaxChanged(int aValue);
+
+	/*!
+	* \brief Slot handling ROI YMax value change
+  * \param aValue New value
+	*/
+  void ROIYMaxChanged(int aValue);
+
 protected:
   //! Data collector
-  vtkDataCollector* m_DataCollector;
+  vtkDataCollector*       m_DataCollector;
 
 	//! Actor displaying the image
-	vtkImageActor*	  m_CanvasImageActor;
+	vtkImageActor*	        m_CanvasImageActor;
 
 	//! Actor for displaying segmented points
-	vtkActor*         m_SegmentedPointsActor;
+	vtkActor*               m_SegmentedPointsActor;
 
 	//! Poly data for holding the segmented points
-	vtkPolyData*      m_SegmentedPointsPolyData;
+	vtkPolyData*            m_SegmentedPointsPolyData;
 
 	//! Actor for displaying fiducial candidates
-	vtkActor*         m_CandidatesActor;
+	vtkActor*               m_CandidatesActor;
 
 	//! Poly data for holding the fiducial candidates
-	vtkPolyData*      m_CandidatesPolyData;
+	vtkPolyData*            m_CandidatesPolyData;
 
-	//! Renderer for the canvas
-	vtkRenderer*			m_CanvasRenderer; 
+  //! ROI mode handler callback command instance
+  vtkROIModeHandler*      m_ROIModeHandler;
+
+  //! Spacing mode handler callback command instance
+  vtkSpacingModeHandler*  m_SpacingModeHandler;
+
+  //! Renderer for the canvas
+	vtkRenderer*			      m_CanvasRenderer; 
 
   //! Timer for refreshing the canvas
-  QTimer*           m_CanvasRefreshTimer;
+  QTimer*                 m_CanvasRefreshTimer;
 
 protected:
 	Ui::SegmentationParameterDialog ui;

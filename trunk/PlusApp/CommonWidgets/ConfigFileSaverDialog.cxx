@@ -21,7 +21,7 @@ ConfigFileSaverDialog::ConfigFileSaverDialog(QWidget* aParent, vtkXMLDataElement
 
   SetDestinationDirectoryFromRegistry();
 
-  FillFormWithConfigurationData();
+  ReadConfiguration();
 }
 
 //-----------------------------------------------------------------------------
@@ -78,9 +78,9 @@ void ConfigFileSaverDialog::SetDestinationDirectory(std::string aDirectory)
 
 //-----------------------------------------------------------------------------
 
-PlusStatus ConfigFileSaverDialog::FillFormWithConfigurationData()
+PlusStatus ConfigFileSaverDialog::ReadConfiguration()
 {
-  LOG_TRACE("ConfigFileSaverDialog::FillFormWithConfigurationData");
+  LOG_TRACE("ConfigFileSaverDialog::ReadConfiguration");
 
   //Find Device set element
 	vtkSmartPointer<vtkXMLDataElement> usDataCollection = m_ConfigurationData->FindNestedElementWithName("USDataCollection");

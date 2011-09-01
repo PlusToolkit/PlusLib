@@ -47,7 +47,7 @@ protected:
 	* \brief Parses configuration data and fills form (title and description)
   * \return Success flag
 	*/
-  PlusStatus FillFormWithConfigurationData(); 
+  PlusStatus ReadConfiguration(); 
 
 protected slots:
 	/*!
