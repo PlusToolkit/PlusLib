@@ -182,11 +182,16 @@ public:
   virtual void ClearOutput();
 
   // Description:
-  // Set the clip rectangle (x0,y0,x1,y1) to apply to the image. 
-  // Specify the rectange in millimeter coords, not pixel indices.
-  // TODO not currently implemented
-  vtkSetVector4Macro(ClipRectangle,double);
-  vtkGetVector4Macro(ClipRectangle,double);
+  // Set the clip rectangle origin to apply to the image in pixel coordinates. 
+  // The origin of the rectangle is the corner that is closest to the image origin
+  // (has the smallest x and y coordinate values).
+  vtkSetVector2Macro(ClipRectangleOrigin,double);
+  vtkGetVector2Macro(ClipRectangleOrigin,double);
+
+  // Description:
+  // Set the clip rectangle size in pixels. 
+  vtkSetVector2Macro(ClipRectangleSize,double);
+  vtkGetVector2Macro(ClipRectangleSize,double);
 
   // Description:
   // Get the clip rectangle as an extent, given a specific origin
@@ -422,7 +427,8 @@ protected:
   vtkFloatingPointType OutputOrigin[3];
   vtkFloatingPointType OutputSpacing[3];
   int OutputExtent[6];
-  double ClipRectangle[4];
+  double ClipRectangleOrigin[2];
+  double ClipRectangleSize[2];
   double FanAngles[2];
   double FanOrigin[2];
   double FanDepth;
@@ -460,12 +466,12 @@ protected:
   // Description:
   // Setup anything that needs to be done before real-time reconstruction
   // (override in derived classes)
-  virtual int InitializeRealTimeReconstruction();
+  virtual PlusStatus InitializeRealTimeReconstruction();
 
   // Description:
   // Setup anything that needs to be done before non-real-time reconstruction
   // (override in derived classes)
-  virtual int InitializeReconstruction();
+  virtual PlusStatus InitializeReconstruction();
 
   // Description:
   // Clean up any loose ends after real-time reconstruction
@@ -492,7 +498,7 @@ protected:
   // Description:
   // Actually clear the output volume(s), by calling InternalClearOutputHelperForOutput() and
   // InternalClearOutputHelperForAccumulation()
-  virtual void InternalClearOutput();
+  virtual PlusStatus InternalClearOutput();
 
   // Description:
   // Actually clear an output volume and accumulation buffer

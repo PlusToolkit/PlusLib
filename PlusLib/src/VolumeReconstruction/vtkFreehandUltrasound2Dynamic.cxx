@@ -237,9 +237,8 @@ vtkImageData *vtkFreehandUltrasound2Dynamic::GetOutput()
 // Get the reconstruction volume for a specified phase
 vtkImageData *vtkFreehandUltrasound2Dynamic::GetOutputFromPhase(int phase)
 {
-  int port = this->CalculatePortFromPhase(phase);
-
-  if (port == -1)
+  int port=-1;
+  if (this->CalculatePortFromPhase(phase, port)!=PLUS_SUCCESS)
   {
     return NULL;
   }
@@ -276,8 +275,8 @@ vtkImageData *vtkFreehandUltrasound2Dynamic::GetAccumulationBuffer()
 // Will be NULL if we are not compounding
 vtkImageData *vtkFreehandUltrasound2Dynamic::GetAccumulationBufferFromPhase(int phase)
 {
-  int port = this->CalculatePortFromPhase(phase);
-  if (port == -1)
+  int port=-1;
+  if (this->CalculatePortFromPhase(phase, port)!=PLUS_SUCCESS)
   {
     return NULL;
   }
@@ -329,7 +328,7 @@ void vtkFreehandUltrasound2Dynamic::ClearOutput()
 // Clear the output volume and the accumulation buffer
 // with no check for whether we are reconstructing
 // (basically just calls InternalInternalClearOutput)
-void vtkFreehandUltrasound2Dynamic::InternalClearOutput()
+PlusStatus vtkFreehandUltrasound2Dynamic::InternalClearOutput()
 {
   vtkImageData* outData;
   vtkImageData* accData;
@@ -338,11 +337,17 @@ void vtkFreehandUltrasound2Dynamic::InternalClearOutput()
     outData = this->GetOutputFromPort(port);
     accData = this->GetAccumulationBufferFromPort(port);
     this->InternalInternalClearOutput(outData, accData);
+    if (outData->GetScalarPointer()==NULL || accData->GetScalarPointer()==NULL)
+    {
+      LOG_ERROR("Unable to allocate memory for the output and accumulation buffer for port "<<port);
+      return PLUS_FAIL;
+    }
   }
 
   // clear the buffers for checking heart rate and saving inserted slice
   // timestamps
   this->ClearBuffers();
+  return PLUS_SUCCESS;
 }
 
 //****************************************************************************
@@ -468,7 +473,7 @@ vtkMatrix4x4 *vtkFreehandUltrasound2Dynamic::GetIndexMatrix(int phase)
 
 //----------------------------------------------------------------------------
 // Things to do before non-real-time reconstruction
-int vtkFreehandUltrasound2Dynamic::InitializeReconstruction()
+PlusStatus vtkFreehandUltrasound2Dynamic::InitializeReconstruction()
 {
 
   // if we are triggering, then make sure that the signal box is setup
@@ -477,13 +482,18 @@ int vtkFreehandUltrasound2Dynamic::InitializeReconstruction()
   {
     if (!this->TestBeforeReconstructingWithTriggering())
     {
-      return 0;
+      return PLUS_FAIL;
     }
   }
 
   for (int port = 0; port < this->GetNumberOfOutputPorts(); port++)
   {
     this->GetOutputFromPort(port)->Update();
+    if (this->GetOutputFromPort(port)->GetScalarPointer()==NULL)
+    {
+      LOG_ERROR("Failed to get output from port "<< port);
+      return PLUS_FAIL;
+    }
   }
 
   // setup more parameters for the beginning of a new reconstruction
@@ -539,12 +549,12 @@ int vtkFreehandUltrasound2Dynamic::InitializeReconstruction()
     }
   }
 
-  return 1;
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
 // Things to do before real-time reconstruction
-int vtkFreehandUltrasound2Dynamic::InitializeRealTimeReconstruction()
+PlusStatus vtkFreehandUltrasound2Dynamic::InitializeRealTimeReconstruction()
 {
 
   this->Superclass::InitializeRealTimeReconstruction();
@@ -555,7 +565,7 @@ int vtkFreehandUltrasound2Dynamic::InitializeRealTimeReconstruction()
   {
     if (!this->TestBeforeReconstructingWithTriggering())
     {
-      return 0;
+      return PLUS_FAIL;
     }
   }
 
@@ -565,7 +575,7 @@ int vtkFreehandUltrasound2Dynamic::InitializeRealTimeReconstruction()
     if (!this->CalculateHeartRateParameters())
     {
       LOG_WARNING("Could not calculate mean heart rate - the patient's heart rate is fluctuating too much");
-      return 0;
+      return PLUS_FAIL;
     }
   }
 
@@ -628,7 +638,7 @@ int vtkFreehandUltrasound2Dynamic::InitializeRealTimeReconstruction()
     }
   }
 
-  return 1;
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
@@ -682,32 +692,32 @@ void vtkFreehandUltrasound2Dynamic::UninitializeRealTimeReconstruction()
 //----------------------------------------------------------------------------
 // Makes sure that the signal box is running before starting the reconstruction
 // (will start it for you if it's not already running)
-int vtkFreehandUltrasound2Dynamic::TestBeforeReconstructingWithTriggering()
+PlusStatus vtkFreehandUltrasound2Dynamic::TestBeforeReconstructingWithTriggering()
 {
 
   if (!this->Triggering)
   {
-    return 1;
+    return PLUS_SUCCESS;
   }
 
   if (!this->SignalBox)
   {
     LOG_ERROR("Triggering is set on but there is no signal box");
-    return 0;
+    return PLUS_FAIL;
   }
 
   // want to make sure the user hasn't switched all signal boxes off
   if (this->NumberOfOutputVolumes < 1)
   {
     LOG_ERROR("The number of output volumes must be at least one");
-    return 0;
+    return PLUS_FAIL;
   }
 
   // want to make sure that the user hasn't change the parameters of the signal box since setting it
   if (this->NumSignalBoxPhases != this->SignalBox->GetNumberOfPhases())
   {
     LOG_ERROR("The number of phases in the signal box has changed since it was set");
-    return 0;
+    return PLUS_FAIL;
   }
 
   // start the signal box if necessary
@@ -722,7 +732,7 @@ int vtkFreehandUltrasound2Dynamic::TestBeforeReconstructingWithTriggering()
   if (!this->SignalBox->GetIsStarted())
   {
     LOG_ERROR("Signal box could not be started");
-    return 0;
+    return PLUS_FAIL;
   }
 
 
@@ -739,7 +749,7 @@ int vtkFreehandUltrasound2Dynamic::TestBeforeReconstructingWithTriggering()
   }
   }*/
 
-  return 1;
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
@@ -1610,8 +1620,8 @@ void vtkFreehandUltrasound2Dynamic::SetSliceBuffer(int phase, vtkImageData* inDa
     return;
   }
 
-  int port = this->CalculatePortFromPhase(phase);
-  if (port == -1)
+  int port=-1;
+  if (this->CalculatePortFromPhase(phase, port)!=PLUS_SUCCESS)
   {
     return;
   }
@@ -1630,8 +1640,8 @@ vtkImageData* vtkFreehandUltrasound2Dynamic::GetSliceBuffer(int phase)
     return NULL;
   }
 
-  int port = this->CalculatePortFromPhase(phase);
-  if (port == -1)
+  int port=-1;
+  if (this->CalculatePortFromPhase(phase, port)!=PLUS_SUCCESS)
   {
     return NULL;
   }
@@ -1651,8 +1661,8 @@ void vtkFreehandUltrasound2Dynamic::SetSliceAxesAndTransformsBuffers(int phase, 
     return;
   }
 
-  int port = this->CalculatePortFromPhase(phase);
-  if (port == -1)
+  int port=-1;
+  if (this->CalculatePortFromPhase(phase, port)!=PLUS_SUCCESS)
   {
     return;
   }
@@ -1673,8 +1683,8 @@ vtkMatrix4x4* vtkFreehandUltrasound2Dynamic::GetSliceAxesBuffer(int phase)
     return NULL;
   }
 
-  int port = this->CalculatePortFromPhase(phase);
-  if (port == -1)
+  int port=-1;
+  if (this->CalculatePortFromPhase(phase, port)!=PLUS_SUCCESS)
   {
     return NULL;
   }
@@ -1692,8 +1702,8 @@ vtkLinearTransform* vtkFreehandUltrasound2Dynamic::GetSliceTransformBuffer(int p
     return NULL;
   }
 
-  int port = this->CalculatePortFromPhase(phase);
-  if (port == -1)
+  int port=-1;
+  if (this->CalculatePortFromPhase(phase, port)!=PLUS_SUCCESS)
   {
     return NULL;
   }
@@ -1710,10 +1720,10 @@ double vtkFreehandUltrasound2Dynamic::GetSliceTimestampsBuffer(int phase)
     return -1;
   }
 
-  int port = this->CalculatePortFromPhase(phase);
-  if (port == -1)
+  int port=-1;
+  if (this->CalculatePortFromPhase(phase, port)!=PLUS_SUCCESS)
   {
-    return -1;
+    return NULL;
   }
 
   return this->SliceTimestampsBuffer[port];
@@ -1855,12 +1865,12 @@ void vtkFreehandUltrasound2Dynamic::DeleteSliceBuffers()
 // PercentageDecreasedHeartRateAllowed over the scan time.  If it does,
 // then it tries to calculate the expected heart rate again, for a maximum
 // number of trials specified by NumECGTrials
-int vtkFreehandUltrasound2Dynamic::CalculateHeartRateParameters()
+PlusStatus vtkFreehandUltrasound2Dynamic::CalculateHeartRateParameters()
 {
 
   if (!this->CheckHeartRate || !this->Triggering || !this->SignalBox)
   {
-    return 0;
+    return PLUS_FAIL;
   }
 
   int haveConsistentHeartRateMeasurement = 0;
@@ -1925,7 +1935,13 @@ int vtkFreehandUltrasound2Dynamic::CalculateHeartRateParameters()
     printf("max heart rate allowed = %f\n", maxAllowedHR);
   }
 
-  return haveConsistentHeartRateMeasurement;
+  if (!haveConsistentHeartRateMeasurement)
+  {
+    LOG_ERROR("Inconsistent heart rate measurement");
+    return PLUS_FAIL;
+  }
+  
+  return PLUS_SUCCESS;
 }
 
 //****************************************************************************
@@ -2135,83 +2151,93 @@ int vtkFreehandUltrasound2Dynamic::GetPhaseReconstruction(int phase)
 }
 
 //----------------------------------------------------------------------------
-int vtkFreehandUltrasound2Dynamic::CalculatePortFromPhase(int phase)
+PlusStatus vtkFreehandUltrasound2Dynamic::CalculatePortFromPhase(int phase, int &port)
 {
 
   // if we are not triggering or don't have a signal box yet, then the output
   // for multiple phases hasn't been allocated
   if (!this->Triggering || !this->SignalBox)
   {
-    return 0;
+    LOG_ERROR("No triggering or no signalbox is enabled");
+    return PLUS_FAIL;
   }
 
   // if the number of phases of the signal box has changed
   if (this->NumSignalBoxPhases != this->SignalBox->GetNumberOfPhases())
   {
-    return -1;
+    LOG_ERROR("Number of phases of the signal box has changed");
+    return PLUS_FAIL;
   }
 
   // if the phase is invalid...
   if (phase < 0 || phase >= this->NumSignalBoxPhases)
   {
-    return -1;
+    LOG_ERROR("Phase is invalid");
+    return PLUS_FAIL;
   }
 
   // if we are not selecting phases, then the index of the output volume is the
   // phase
   if (!this->UseSelectPhases)
   {
-    return phase;
+    port=phase;
+    return PLUS_SUCCESS;
   }
   // if we are selecting phases, then determine the index of the output volume
   // from the mapping array, and return if we are not reconstructing this phase
   // will return -1 on error
   else
   {
-    return this->MapPhaseToOutputVolume[phase];
+    port=this->MapPhaseToOutputVolume[phase];
+    return PLUS_SUCCESS;
   }
 }
 
 //----------------------------------------------------------------------------
-int vtkFreehandUltrasound2Dynamic::CalculatePhaseFromPort(int port)
+PlusStatus vtkFreehandUltrasound2Dynamic::CalculatePhaseFromPort(int port, int &phase)
 {
 
   // if we are not triggering or don't have a signal box yet, then the output
   // for multiple phases hasn't been allocated
   if (!this->Triggering || !this->SignalBox)
   {
-    return 0;
+    LOG_ERROR("No triggering or no signalbox is enabled");
+    return PLUS_FAIL;
   }
 
   // if the number of phases of the signal box has changed
   if (this->NumSignalBoxPhases != this->SignalBox->GetNumberOfPhases())
   {
-    return -1;
+    LOG_ERROR("Number of phases of the signal box has changed");
+    return PLUS_FAIL;
   }
 
-  // if the phase is invalid...
+  // if the port is invalid...
   if (port < 0 || port >= this->NumberOfOutputVolumes)
   {
-    return -1;
+    LOG_ERROR("Port is invalid");
+    return PLUS_FAIL;
   }
 
   // if we are selecting phases, then the phase is the index of the output volume
   if (!this->UseSelectPhases)
   {
-    return port;
+    phase=port;
+    return PLUS_SUCCESS;
   }
   // if we are selecting phases, then determine the phase corresponding to a port
   // by looking through the mapping array
   else
   {
-    for (int phase = 0; phase < this->NumSignalBoxPhases; phase++)
+    for (int p = 0; p < this->NumSignalBoxPhases; p++)
     {
-      if (this->MapPhaseToOutputVolume[phase] == port)
+      if (this->MapPhaseToOutputVolume[p] == port)
       {
-        return phase;
+        phase=p;
+        return PLUS_SUCCESS;
       }
     }
-    return -1;
+    return PLUS_FAIL;
   }
 
 }
