@@ -6,13 +6,13 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>860</width>
+    <width>998</width>
     <height>580</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
-    <width>860</width>
+    <width>998</width>
     <height>580</height>
    </size>
   </property>
@@ -334,12 +334,15 @@
            <item>
             <widget class="QLabel" name="label_Reference">
              <property name="text">
-              <string>References (mm):</string>
+              <string>References (mm): G</string>
              </property>
             </widget>
            </item>
            <item>
             <widget class="QSpinBox" name="spinBox_ReferenceWidth">
+             <property name="toolTip">
+              <string>Length of the  that is represented by green line</string>
+             </property>
              <property name="minimum">
               <number>1</number>
              </property>
@@ -350,14 +353,14 @@
               <number>5</number>
              </property>
              <property name="value">
-              <number>20</number>
+              <number>40</number>
              </property>
             </widget>
            </item>
            <item>
             <widget class="QLabel" name="label_By">
              <property name="text">
-              <string>and</string>
+              <string>B</string>
              </property>
              <property name="alignment">
               <set>Qt::AlignCenter</set>
@@ -366,6 +369,9 @@
            </item>
            <item>
             <widget class="QSpinBox" name="spinBox_ReferenceHeight">
+             <property name="toolTip">
+              <string>Length of the  that is represented by blue line</string>
+             </property>
              <property name="minimum">
               <number>1</number>
              </property>
@@ -901,8 +907,8 @@
      </property>
      <property name="minimumSize">
       <size>
-       <width>640</width>
-       <height>480</height>
+       <width>773</width>
+       <height>580</height>
       </size>
      </property>
      <property name="maximumSize">
