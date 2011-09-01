@@ -20,9 +20,10 @@
  * image slices in their tracked positions.
  * It can be used to debug geometry problems in volume reconstruction.
  *
- * Input:  .mha format tracked ultrasound recorded by Plus (e.g. TrackedUltrasoundCapturin app).
- *         .xml format config file used for volume reconstrucion (for calibration matrix).
- * Output: .vtk format vtkPolyData.
+ * Command-line parameters:
+ *  .mha format tracked ultrasound recorded by Plus (e.g. TrackedUltrasoundCapturin app).
+ *  .vtk format vtkPolyData.
+ *  .xml format config file used for volume reconstrucion (for calibration matrix).
  * 
  */
 int main( int argc, char** argv )
