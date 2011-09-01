@@ -125,7 +125,11 @@ int main (int argc, char* argv[])
 	trackedFrameList->Clear(); 
   
 	LOG_INFO("Start reconstruction...");
-	reconstructor->StartReconstruction(); 
+  if (reconstructor->StartReconstruction()!=PLUS_SUCCESS)
+  {
+    LOG_ERROR("Starting reconstruction failed");
+    return EXIT_FAILURE;
+  }
 
 	while ( !reconstructor->GetReconstructor()->GetReconstructionFinished() ) 
 	{
