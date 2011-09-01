@@ -250,7 +250,7 @@
 
 		<OutputParameters OutputSpacing="0.5 0.5 0.5" />
 
-		<ClippingParameters ClipRectangle="0 0 820 616"/>
+		<ClippingParameters ClipRectangleOrigin="0 0" ClipRectangleSize="820 616" />
 		<FanParameters FanAngles="0 0" FanOrigin="0 0" FanDepth="300"/>
 		<RotationOptions ImageFlipped="Off" Rotation="Off" MaxRotationChange="90" Threshold1="0" Threshold2="255" ShiftX="0" ShiftY="0" />
 		<ReconstructionOptions Interpolation="Linear" Optimization="On" Compounding="On"/>

@@ -202,7 +202,7 @@ public:
   // which volumes to reconstruct.  Returns 0 if not triggering or if
   // we don't have a signal box, -1 on error or if the phase is not reconstructed,
   // or the port corresponding to the phase if the phase is reconstructed
-  int CalculatePhaseFromPort(int port);
+  PlusStatus CalculatePhaseFromPort(int port, int &phase);
 
   // Directory:
   // Get the number of phases we think the signal box has
@@ -363,12 +363,12 @@ protected:
   // Description:
   // Setup anything that needs to be done before real-time reconstruction
   // (override in derived classes)
-  virtual int InitializeRealTimeReconstruction();
+  virtual PlusStatus InitializeRealTimeReconstruction();
 
   // Description:
   // Setup anything that needs to be done before non-real-time reconstruction
   // (override in derived classes)
-  virtual int InitializeReconstruction();
+  virtual PlusStatus InitializeReconstruction();
 
   // Description:
   // Clean up any loose ends after real-time reconstruction
@@ -398,11 +398,12 @@ protected:
   // Both StartReconstruction() and StartRealTimeReconstruction() need to run
   // this before reconstructing with triggering, to make sure that the signal
   // box is set up properly
-  int TestBeforeReconstructingWithTriggering();
+  PlusStatus TestBeforeReconstructingWithTriggering();
 
   // Description:
   // Actually clear the output volume(s), by calling InternalInternalClearOutput
-  virtual void InternalClearOutput();
+  // Also allocated memory for the buffers and so it may fail if there is not enough memory.
+  virtual PlusStatus InternalClearOutput();
 
   // Description:
   // Getting the IndexMatrix when discarding slices based on ECG signal
@@ -412,7 +413,7 @@ protected:
   // Description:
   // Calculate the mean heart rate and allowed maximum and minimum
   // heart rates
-  int CalculateHeartRateParameters();
+  PlusStatus CalculateHeartRateParameters();
 
   // Description:
   // Set/Get the image slice for a particular phase in the buffer, when
@@ -453,7 +454,7 @@ protected:
   // which volumes to reconstruct.  Returns 0 if not triggering or if
   // we don't have a signal box, -1 on error or if the phase is not reconstructed,
   // or the port corresponding to the phase if the phase is reconstructed
-  int CalculatePortFromPhase(int phase);
+  PlusStatus CalculatePortFromPhase(int phase, int &port);
 
   // Description:
   // Save the slice to .bmp and save the timestamp

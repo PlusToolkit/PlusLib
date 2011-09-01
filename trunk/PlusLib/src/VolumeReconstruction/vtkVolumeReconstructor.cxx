@@ -103,14 +103,21 @@ void vtkVolumeReconstructor::Initialize()
 //----------------------------------------------------------------------------
 PlusStatus vtkVolumeReconstructor::StartReconstruction()
 {
-
   if ( !this->GetInitialized() ) 
   {
     LOG_ERROR( "Unable to start reconstruction: First need to initialize!"); 
     return PLUS_FAIL; 
   }
-
-  return this->Reconstructor->StartReconstruction( this->GetNumberOfFrames() ) ;
+  try
+  {
+    return this->Reconstructor->StartReconstruction( this->GetNumberOfFrames() ) ;
+  }
+  catch(vtkstd::bad_alloc& e)
+  {
+    cerr << e.what() << endl;
+    LOG_ERROR("StartReconstruction failed with due to out of memory. Try to reduce the size or spacing of the output volume.");
+    return PLUS_FAIL;
+  }
 }
 
 

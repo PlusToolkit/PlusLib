@@ -110,10 +110,10 @@ vtkFreehandUltrasound2::vtkFreehandUltrasound2()
 	this->OutputExtent[4] = 0;
 	this->OutputExtent[5] = 255;
 
-	this->ClipRectangle[0] = -1e8;
-	this->ClipRectangle[1] = -1e8;
-	this->ClipRectangle[2] = +1e8;
-	this->ClipRectangle[3] = +1e8;
+	this->ClipRectangleOrigin[0] = 0;
+	this->ClipRectangleOrigin[1] = 0;
+	this->ClipRectangleSize[0] = 0;
+	this->ClipRectangleSize[1] = 0;
 
 	this->FanAngles[0] = 0.0;
 	this->FanAngles[1] = 0.0;
@@ -261,9 +261,10 @@ void vtkFreehandUltrasound2::PrintSelf(ostream& os, vtkIndent indent)
 		this->OutputExtent[1] << " " << this->OutputExtent[2] << " " <<
 		this->OutputExtent[3] << " " << this->OutputExtent[4] << " " <<
 		this->OutputExtent[5] << "\n";
-	os << indent << "ClipRectangle: " << this->ClipRectangle[0] << " " <<
-		this->ClipRectangle[1] << " " << this->ClipRectangle[2] << " " <<
-		this->ClipRectangle[3] << "\n";
+	os << indent << "ClipRectangleOrigin: " << this->ClipRectangleOrigin[0] << " " <<
+		this->ClipRectangleOrigin[1] << "\n";
+  os << indent << "ClipRectangleSize: " << this->ClipRectangleSize[0] << " " <<
+		this->ClipRectangleSize[1] << "\n";
 	os << indent << "FanAngles: " << this->FanAngles[0] << " " <<
 		this->FanAngles[1] << "\n";
 	os << indent << "FanOrigin: " << this->FanOrigin[0] << " " <<
@@ -402,11 +403,12 @@ void vtkFreehandUltrasound2::ClearOutput()
 // Clear the output volume and the accumulation buffer
 // with no check for whether we are reconstructing
 // (basically just calls InternalInternalClearOutput)
-void vtkFreehandUltrasound2::InternalClearOutput()
+PlusStatus vtkFreehandUltrasound2::InternalClearOutput()
 {
 	vtkImageData* outData = this->GetOutput();
 	vtkImageData* accData = this->GetAccumulationBuffer();
 	this->InternalInternalClearOutput(outData, accData);
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
@@ -440,10 +442,17 @@ void vtkFreehandUltrasound2::InternalClearOutputHelperForOutput(vtkImageData* ou
 		outData->SetExtent(outExtent);
 		outData->AllocateScalars();
 		void *outPtr = outData->GetScalarPointerForExtent(outExtent);
-		memset(outPtr,0,((outExtent[1]-outExtent[0]+1)*
-			(outExtent[3]-outExtent[2]+1)*
-			(outExtent[5]-outExtent[4]+1)*
-			outData->GetScalarSize()*outData->GetNumberOfScalarComponents()));
+    if (outPtr==NULL)
+    {
+      LOG_ERROR("Cannot allocate memory for output image extent: "<< outExtent[1]-outExtent[0] <<"x"<< outExtent[3]-outExtent[2] <<" x "<< outExtent[5]-outExtent[4]);
+    }
+    else
+    {
+      memset(outPtr,0,((outExtent[1]-outExtent[0]+1)*
+        (outExtent[3]-outExtent[2]+1)*
+        (outExtent[5]-outExtent[4]+1)*
+        outData->GetScalarSize()*outData->GetNumberOfScalarComponents()));
+    }
 	}
 }
 
@@ -458,10 +467,17 @@ void vtkFreehandUltrasound2::InternalClearOutputHelperForAccumulation(vtkImageDa
 		accData->SetExtent(outExtent);
 		accData->AllocateScalars();
 		void *accPtr = accData->GetScalarPointerForExtent(outExtent);
-		memset(accPtr,0,((outExtent[1]-outExtent[0]+1)*
-			(outExtent[3]-outExtent[2]+1)*
-			(outExtent[5]-outExtent[4]+1)*
-			accData->GetScalarSize()*accData->GetNumberOfScalarComponents()));
+    if (accPtr==NULL)
+    {
+      LOG_ERROR("Cannot allocate memory for accumulation image extent: "<< outExtent[1]-outExtent[0] <<"x"<< outExtent[3]-outExtent[2] <<" x "<< outExtent[5]-outExtent[4]);
+    }
+    else
+    {
+		  memset(accPtr,0,((outExtent[1]-outExtent[0]+1)*
+			  (outExtent[3]-outExtent[2]+1)*
+			  (outExtent[5]-outExtent[4]+1)*
+			  accData->GetScalarSize()*accData->GetNumberOfScalarComponents()));
+    }
 	}
 }
 
@@ -634,7 +650,7 @@ int vtkFreehandUltrasound2::GetPixelCount()
 }
 
 //----------------------------------------------------------------------------
-// convert the ClipRectangle (which is in millimetre coordinates) into a
+// convert the ClipRectangle into a
 // clip extent that can be applied to the input data - number of pixels (+ or -)
 // from the origin (the z component is copied from the inExt parameter)
 // 
@@ -650,10 +666,11 @@ void vtkFreehandUltrasound2::GetClipExtent(int clipExt[6],
 {
 	// Map the clip rectangle (millimetres) to pixels
 	// --> number of pixels (+ or -) from the origin
-	int x0 = (int)ceil((this->GetClipRectangle()[0]-inOrigin[0])/inSpacing[0]);
-	int x1 = (int)floor((this->GetClipRectangle()[2]-inOrigin[0])/inSpacing[0]);
-	int y0 = (int)ceil((this->GetClipRectangle()[1]-inOrigin[1])/inSpacing[1]);
-	int y1 = (int)floor((this->GetClipRectangle()[3]-inOrigin[1])/inSpacing[1]);
+
+	int x0 = (int)ceil((this->GetClipRectangleOrigin()[0]-inOrigin[0])/inSpacing[0]);
+	int x1 = (int)floor((this->GetClipRectangleOrigin()[0]-inOrigin[0]+this->GetClipRectangleSize()[0])/inSpacing[0]);
+	int y0 = (int)ceil((this->GetClipRectangleOrigin()[1]-inOrigin[1])/inSpacing[1]);
+	int y1 = (int)floor((this->GetClipRectangleOrigin()[1]-inOrigin[1]+this->GetClipRectangleSize()[1])/inSpacing[1]);
 
 	// Make sure that x0 <= x1 and y0 <= y1
 	if (x0 > x1)
@@ -712,7 +729,7 @@ void vtkFreehandUltrasound2::GetClipExtent(int clipExt[6],
 //----------------------------------------------------------------------------
 // Things to do before real-time reconstruction - in the base class we do
 // practically nothing!  This is overridden in derived classes
-int vtkFreehandUltrasound2::InitializeRealTimeReconstruction()
+PlusStatus vtkFreehandUltrasound2::InitializeRealTimeReconstruction()
 {
 
 	if (this->VideoSource)
@@ -734,7 +751,7 @@ int vtkFreehandUltrasound2::InitializeRealTimeReconstruction()
 	}
 
 	this->GetOutput()->Update();
-	return 1;
+	return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
@@ -810,11 +827,11 @@ void vtkFreehandUltrasound2::StopRealTimeReconstruction()
 //----------------------------------------------------------------------------
 // Things to do before non-real-time reconstruction.  This is overridden in
 // derived classes
-int vtkFreehandUltrasound2::InitializeReconstruction()
+PlusStatus vtkFreehandUltrasound2::InitializeReconstruction()
 {
-    this->VideoBufferUid = this->VideoSource->GetBuffer()->GetOldestItemUidInBuffer(); 
+  this->VideoBufferUid = this->VideoSource->GetBuffer()->GetOldestItemUidInBuffer(); 
 	this->GetOutput()->Update();
-	return 1;
+	return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
@@ -859,19 +876,14 @@ PlusStatus vtkFreehandUltrasound2::StartReconstruction(int frames)
 		this->Threader->SetNumberOfThreads(1);
 #endif
 		// initialize the reconstruction - this is overridden in derived classes
-		if (this->InitializeReconstruction())
-		{  
-		  this->ReconstructionFinishedOff();    
-			this->ReconstructionThreadId = \
-				this->Threader->SpawnThread((vtkThreadFunctionType)\
-				&vtkReconstructionThread,
-				this);
-		}
-		else
+		if (this->InitializeReconstruction()!=PLUS_SUCCESS)
 		{
 			LOG_ERROR("Could not initialize reconstruction ... stopping");
       return PLUS_FAIL;
 		}
+
+    this->ReconstructionFinishedOff();    
+    this->ReconstructionThreadId = this->Threader->SpawnThread((vtkThreadFunctionType) &vtkReconstructionThread, this);
 	}
   return PLUS_SUCCESS;
 }
@@ -1791,7 +1803,11 @@ int vtkFreehandUltrasound2::RequestData(vtkInformation* request,
 		// then clear
 		if (this->ReconstructionThreadId == -1 && this->NeedsClear == 1)
 		{
-			this->InternalClearOutput();
+			if (this->InternalClearOutput()!=PLUS_SUCCESS)
+      {
+        // failure
+        return 0;
+      }
 		}
 
 		// This would have been done already in the call to ProcessRequest, so don't do it here
@@ -2067,6 +2083,21 @@ static void vtkFreehandUltrasound2FillHolesInOutput(vtkFreehandUltrasound2 *self
 													unsigned short *accPtr,
 													int outExt[6])
 {
+  if (outData==NULL || outData->GetScalarPointer()==NULL)
+  {
+    LOG_ERROR("vtkFreehandUltrasound2FillHolesInOutput outData is invalid");
+    return;
+  }
+  if (outPtr==NULL)
+  {
+    LOG_ERROR("vtkFreehandUltrasound2FillHolesInOutput outPtr is invalid");
+    return;
+  }
+  if (accPtr==NULL)
+  {
+    LOG_ERROR("vtkFreehandUltrasound2FillHolesInOutput accPtr is invalid");
+    return;
+  }
 	int idX, idY, idZ;
 	int incX, incY, incZ;
 	int accIncX, accIncY, accIncZ;
@@ -2507,10 +2538,15 @@ vtkXMLDataElement* vtkFreehandUltrasound2::MakeXMLElement()
 	elem->AddNestedElement(outputParams);
 
 	// clipping parameters
-	vtkSmartPointer<vtkXMLDataElement> clipParams = vtkXMLDataElement::New();
-	clipParams->SetName("ClippingParameters");
-	clipParams->SetVectorAttribute("ClipRectangle", 4, this->ClipRectangle);
-	elem->AddNestedElement(clipParams);
+	vtkSmartPointer<vtkXMLDataElement> clipOrig = vtkXMLDataElement::New();
+	clipOrig->SetName("ClippingParameters");
+	clipOrig->SetVectorAttribute("ClipRectangleOrigin", 2, this->ClipRectangleOrigin);
+	elem->AddNestedElement(clipOrig);
+
+  vtkSmartPointer<vtkXMLDataElement> clipSize = vtkXMLDataElement::New();
+	clipSize->SetName("ClippingParameters");
+	clipSize->SetVectorAttribute("ClipRectangleSize", 2, this->ClipRectangleSize);
+	elem->AddNestedElement(clipSize);
 
 	// fan parameters
 	vtkSmartPointer<vtkXMLDataElement> fanParams = vtkXMLDataElement::New();
@@ -2529,7 +2565,7 @@ vtkXMLDataElement* vtkFreehandUltrasound2::MakeXMLElement()
 	elem->AddNestedElement(reconOptions);
 
 	// spatial calibration
-	double* elements = new double[16];
+	double elements[16];
 	vtkXMLDataElement *spatialParams = vtkXMLDataElement::New();
 	spatialParams->SetName("SpatialCalibration");
 	if (this->TrackerTool)
@@ -2571,18 +2607,6 @@ vtkXMLDataElement* vtkFreehandUltrasound2::MakeXMLElement()
 		bufferOptions->SetIntAttribute("TrackerBufferSize", this->TrackerBuffer->GetBufferSize());
 	}
 	elem->AddNestedElement(bufferOptions);
-
-	// clean up
-	sliceParams->Delete();
-	outputParams->Delete();
-	clipParams->Delete();
-	fanParams->Delete();
-	reconOptions->Delete();
-	delete [] elements;
-	spatialParams->Delete();
-	temporalParams->Delete();
-	rotationOptions->Delete();
-	bufferOptions->Delete();
 
 	return elem;
 }
@@ -2648,9 +2672,6 @@ PlusStatus vtkFreehandUltrasound2::ReadSummaryFile(const char *filename)
 }
 
 //----------------------------------------------------------------------------
-// Read the freehand parameters from the filename specified in the (relative!)
-// directory
-// File should have been created using SaveSummaryFile()
 PlusStatus vtkFreehandUltrasound2::ReadSummary(vtkXMLDataElement* aConfig)
 {
 	vtkSmartPointer<vtkXMLDataElement> volumeReconstruction = aConfig->FindNestedElementWithName("VolumeReconstruction");
@@ -2697,7 +2718,8 @@ PlusStatus vtkFreehandUltrasound2::ReadSummary(vtkXMLDataElement* aConfig)
 	vtkXMLDataElement *clipParams = volumeReconstruction->FindNestedElementWithName("ClippingParameters");
 	if (clipParams)
 	{
-		clipParams->GetVectorAttribute("ClipRectangle", 4, this->ClipRectangle);
+		clipParams->GetVectorAttribute("ClipRectangleOrigin", 4, this->ClipRectangleOrigin);
+    clipParams->GetVectorAttribute("ClipRectangleSize", 4, this->ClipRectangleSize);
 	}
 
 	// fan parameters

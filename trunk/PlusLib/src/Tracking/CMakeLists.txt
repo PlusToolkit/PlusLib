@@ -199,6 +199,7 @@ IF (PLUS_USE_BRACHY_TRACKER)
                 CACHE INTERNAL ""
 				)
   SET (BrachyStepper_LIBS
+    vtkPlusCommon
     ${CIVCO_SEI_LIB_DIR}/SEIDrv32${CMAKE_STATIC_LIBRARY_SUFFIX}
     )
 

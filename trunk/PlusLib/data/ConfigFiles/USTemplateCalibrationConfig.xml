@@ -38,7 +38,7 @@
 	<Freehand>
 		<SliceParameters SliceSpacing="-0.2 -0.2 -1" SliceOrigin="64 -5 0" SliceExtent="0 639 0 479 0 0" NumScalarComponents="1" />
 		<OutputParameters OutputSpacing="0.4 0.4 -0.4" OutputOrigin="-128 -100 -40" OutputExtent="0 639 0 479 0 200"/>
-		<ClippingParameters ClipRectangle="-1e+008 -1e+008 1e+008 1e+008"/>
+		<ClippingParameters ClipRectangleOrigin="0 0" ClipRectangleSize="0 0"/>
 		<FanParameters FanAngles="-60 60" FanOrigin="0 0" FanDepth="300"/>
 		<ReconstructionOptions Interpolation="Linear" Optimization="On" Compounding="On"/>
 		<SpatialCalibration CalibrationMatrix="1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1"/>
