@@ -87,6 +87,13 @@ class FidSegmentation
 		PixelType *				GetWorking() {return m_Working; };
 		PixelType *				GetUnalteredImage() {return m_UnalteredImage; };
 
+    void              SetApproximateSpacingMmPerPixel(double value) { m_ApproximateSpacingMmPerPixel = value; };
+    void              SetMorphologicalOpeningCircleRadiusMm(double value) { m_MorphologicalOpeningCircleRadiusMm = value; };
+    void              SetMorphologicalOpeningBarSizeMm(double value) { m_MorphologicalOpeningBarSizeMm = value; };
+    void              SetRegionOfInterest(int xMin, int yMin, int xMax, int yMax);
+    void              SetThresholdImage(double value) { m_ThresholdImage = value; };
+    void              SetUseOriginalImageIntensityForDotIntensityScore(bool value) { m_UseOriginalImageIntensityForDotIntensityScore = value; };
+
 	protected:
 		int						    m_FrameSize[2];
 		int						    m_RegionOfInterest[4];

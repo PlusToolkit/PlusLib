@@ -46,6 +46,10 @@ class FidLabelling
 
     int *					GetFrameSize() { return m_FrameSize; };
 
+    void          SetApproximateSpacingMmPerPixel(double value) { m_ApproximateSpacingMmPerPixel = value; };
+    void          SetMaxLinePairDistanceErrorPercent(double value) { m_MaxLinePairDistanceErrorPercent = value; };
+    void          SetMaxAngleDifferenceDegrees(double value) { m_MaxAngleDiff = value; };
+
 	protected:
     int						  m_FrameSize[2];
 
