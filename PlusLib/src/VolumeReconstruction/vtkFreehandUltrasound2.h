@@ -282,13 +282,6 @@ public:
   vtkGetObjectMacro(RotationClipper, vtkImageClip);
 
   // Description:
-  // Code to deal with whether the image is "flipped" (image is flipped if
-  // the point of the fan is at the top of screen)
-  vtkSetMacro(ImageFlipped,int);
-  vtkGetMacro(ImageFlipped,int);
-  vtkBooleanMacro(ImageFlipped, int);
-
-  // Description:
   // Get the current rotation of the fan (rotating probe)
   int CalculateFanRotationValue();
 
@@ -455,7 +448,6 @@ protected:
   int RotatingShiftY;
   vtkImageClip *RotationClipper;
   vtkImageThreshold* RotationThresholder;
-  int ImageFlipped; // 0 means no (good pizza), 1 means yes (bad pizza)
 
   // threading
   vtkCriticalSection *ActiveFlagLock;

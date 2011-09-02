@@ -1,15 +1,5 @@
 /*=========================================================================
 
-Program:   Visualization Toolkit
-Module:    $RCSfile: vtkFreehandUltrasound2Helper.h,v $
-Language:  C++
-Date:      $Date: 2009/07/20 18:48:07 $
-Version:   $Revision: 1.14 $
-Thanks:    Thanks to David G. Gobbi who developed this class. 
-Thanks:    Thanks to Danielle Pace who developed this class.
-
-==========================================================================
-
 Copyright (c) 2000-2007 Atamai, Inc.
 Copyright (c) 2008-2009 Danielle Pace
 
@@ -52,8 +42,8 @@ POSSIBILITY OF SUCH DAMAGES.
 // .SECTION see also
 // vtkPlusVideoSource, vtkTracker, vtkTrackerTool
 
-#ifndef __vtkFreehandUltrasound2Helper_h
-#define __vtkFreehandUltrasound2Helper_h
+#ifndef __vtkVolumeReconstructorFilterHelper_h
+#define __vtkVolumeReconstructorFilterHelper_h
 
 #include "PlusConfigure.h"
 #include "vtkTimerLog.h"
@@ -71,22 +61,6 @@ POSSIBILITY OF SUCH DAMAGES.
 #include "vtkMultiThreader.h"
 #include "vtkVideoBuffer.h"
 
-class vtkFreehandUltrasound2;
-
-// includes for sleep
-#ifdef _WIN32
-#include "vtkWindows.h"
-#else
-#include <time.h>
-#endif
-
-// includes for mkdir
-#ifdef _WIN32
-#include <direct.h>
-#else
-#include <sys/types.h>
-#include <sys/stat.h>
-#endif
 
 //****************************************************************************
 // ROUNDING CODE
@@ -188,56 +162,6 @@ static inline void vtkUltraRound(F val, T& rnd)
 }
 
 //****************************************************************************
-// SLEEP CODE
-//***************************************************************************
-
-//----------------------------------------------------------------------------
-// platform-independent sleep function (duration in seconds)
-static inline void vtkSleep(double duration)
-{
-  duration = duration; // avoid warnings
-  // sleep according to OS preference
-  vtkAccurateTimer::Delay(duration); 
-}
-
-//----------------------------------------------------------------------------
-// Sleep until the specified absolute time has arrived.
-// You must pass a handle to the current thread.  
-// If '0' is returned, then the thread was aborted before or during the wait.
-static int vtkThreadSleep(vtkMultiThreader::ThreadInfo *data, double time)
-{
-
-  for (;;)
-  {
-    // slice 10 millisecs off the time, since this is how long it will
-    // take for this thread to start executing once it has been
-    // re-scheduled
-    double remaining = time - vtkAccurateTimer::GetSystemTime() - 0.01;
-
-    // check to see if we have reached the specified time
-    if (remaining <= 0)
-    {
-      return 1;
-    }
-    // check the ActiveFlag at least every 0.1 seconds
-    if (remaining > 0.1)
-    {
-      remaining = 0.1;
-    }
-
-    // check to see if we are being told to quit 
-    if (*(data->ActiveFlag) == 0)
-    {
-      return 0;
-    }
-
-    vtkSleep(remaining);
-  }
-
-  return 1;
-}
-
-//****************************************************************************
 // INTERPOLATION CODE
 //****************************************************************************
 
@@ -245,15 +169,11 @@ static int vtkThreadSleep(vtkMultiThreader::ThreadInfo *data, double time)
 // Sets interpolate (pointer to a function) to match the current interpolation
 // mode - used for unoptimized versions only
 template <class F, class T>
-static void vtkGetUltraInterpFunc(vtkFreehandUltrasound2 *self, 
-                                  int (**interpolate)(F *point, 
-                                  T *inPtr, T *outPtr,
-                                  unsigned short *accPtr,
-                                  int numscalars, 
-                                  int outExt[6], 
-                                  int outInc[3]))
+static void vtkGetUltraInterpFunc(vtkVolumeReconstructorFilter::InterpolationType interpolationMode, 
+                                  int (**interpolate)(F *point, T *inPtr, T *outPtr, unsigned short *accPtr, int numscalars, int outExt[6], int outInc[3])
+                                  )
 {
-  switch (self->GetInterpolationMode())
+  switch (interpolationMode)
   {
   case VTK_FREEHAND_NEAREST:
     *interpolate = &vtkNearestNeighborInterpolation;
@@ -343,7 +263,7 @@ static int vtkNearestNeighborInterpolation(F *point, T *inPtr, T *outPtr,
 // vtkFreehand2OptimizedNNHelper - OPTIMIZED, WITHOUT INTEGER MATHEMATICS
 // Optimized nearest neighbor interpolation
 template<class T>
-static inline void vtkFreehand2OptimizedNNHelper(int r1, int r2,
+static inline void vtkFreehand2OptimizedNNHelper(int xIntersectionPixStart, int xIntersectionPixEnd,
                                                  double *outPoint,
                                                  double *outPoint1,
                                                  double *xAxis,
@@ -356,7 +276,7 @@ static inline void vtkFreehand2OptimizedNNHelper(int r1, int r2,
   if (accPtr)
   {
 
-    for (int idX = r1; idX <= r2; idX++)
+    for (int idX = xIntersectionPixStart; idX <= xIntersectionPixEnd; idX++)
     {
       outPoint[0] = outPoint1[0] + idX*xAxis[0]; 
       outPoint[1] = outPoint1[1] + idX*xAxis[1];
@@ -404,7 +324,7 @@ static inline void vtkFreehand2OptimizedNNHelper(int r1, int r2,
   // not compounding
   else
   {
-    for (int idX = r1; idX <= r2; idX++)
+    for (int idX = xIntersectionPixStart; idX <= xIntersectionPixEnd; idX++)
     {
       outPoint[0] = outPoint1[0] + idX*xAxis[0]; 
       outPoint[1] = outPoint1[1] + idX*xAxis[1];
@@ -445,7 +365,7 @@ static inline void vtkFreehand2OptimizedNNHelper(int r1, int r2,
 // point (i.e. integer) mathematics
 // Same as above, but with fixed type
 template <class T>
-static inline void vtkFreehand2OptimizedNNHelper(int r1, int r2,
+static inline void vtkFreehand2OptimizedNNHelper(int xIntersectionPixStart, int xIntersectionPixEnd,
                                                  fixed *outPoint,
                                                  fixed *outPoint1, fixed *xAxis,
                                                  T *&inPtr, T *outPtr,
@@ -453,14 +373,14 @@ static inline void vtkFreehand2OptimizedNNHelper(int r1, int r2,
                                                  int numscalars, 
                                                  unsigned short *accPtr)
 {
-  outPoint[0] = outPoint1[0] + r1*xAxis[0] - outExt[0];
-  outPoint[1] = outPoint1[1] + r1*xAxis[1] - outExt[2];
-  outPoint[2] = outPoint1[2] + r1*xAxis[2] - outExt[4];
+  outPoint[0] = outPoint1[0] + xIntersectionPixStart*xAxis[0] - outExt[0];
+  outPoint[1] = outPoint1[1] + xIntersectionPixStart*xAxis[1] - outExt[2];
+  outPoint[2] = outPoint1[2] + xIntersectionPixStart*xAxis[2] - outExt[4];
 
   // Nearest-Neighbor, no extent checks, with accumulation
   if (accPtr)
   {
-    for (int idX = r1; idX <= r2; idX++)
+    for (int idX = xIntersectionPixStart; idX <= xIntersectionPixEnd; idX++)
     {
       int outIdX = vtkUltraRound(outPoint[0]);
       int outIdY = vtkUltraRound(outPoint[1]);
@@ -508,7 +428,7 @@ static inline void vtkFreehand2OptimizedNNHelper(int r1, int r2,
   // Nearest-Neighbor, no extent checks, no accumulation
   else
   {
-    for (int idX = r1; idX <= r2; idX++)
+    for (int idX = xIntersectionPixStart; idX <= xIntersectionPixEnd; idX++)
     {
       int outIdX = vtkUltraRound(outPoint[0]);
       int outIdY = vtkUltraRound(outPoint[1]);
@@ -725,26 +645,6 @@ static int vtkTrilinearInterpolation(F *point, T *inPtr, T *outPtr,
 //****************************************************************************
 
 //----------------------------------------------------------------------------
-// check a matrix to see whether it is the identity matrix
-static int vtkIsIdentityMatrix(vtkMatrix4x4 *matrix)
-{
-  static double identity[16] = {1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1};
-  int i,j;
-
-  for (i = 0; i < 4; i++)
-  {
-    for (j = 0; j < 4; j++)
-    {
-      if (matrix->GetElement(i,j) != identity[4*i+j])
-      {
-        return 0;
-      }
-    }
-  }
-  return 1;
-}
-
-//----------------------------------------------------------------------------
 // find approximate intersection of line with the plane x = x_min,
 // y = y_min, or z = z_min (lower limit of data extent) 
 template<class F>
@@ -886,34 +786,34 @@ static int isBounded(F *point, F *xAxis, int *inMin,
 //----------------------------------------------------------------------------
 // This huge mess finds out where the current output raster
 // line intersects the input volume
-static void vtkUltraFindExtentHelper(int &r1, int &r2, int sign, int *inExt)
+static void vtkUltraFindExtentHelper(int &xIntersectionPixStart, int &xIntersectionPixEnd, int sign, int *inExt)
 {
   if (sign < 0)
   {
-    int i = r1;
-    r1 = r2;
-    r2 = i;
+    int i = xIntersectionPixStart;
+    xIntersectionPixStart = xIntersectionPixEnd;
+    xIntersectionPixEnd = i;
   }
 
-  // bound r1,r2 within reasonable limits
-  if (r1 < inExt[0]) 
+  // bound xIntersectionPixStart,xIntersectionPixEnd within reasonable limits
+  if (xIntersectionPixStart < inExt[0]) 
   {
-    r1 = inExt[0];
+    xIntersectionPixStart = inExt[0];
   }
-  if (r2 > inExt[1]) 
+  if (xIntersectionPixEnd > inExt[1]) 
   {
-    r2 = inExt[1];
+    xIntersectionPixEnd = inExt[1];
   }
-  if (r1 > r2) 
+  if (xIntersectionPixStart > xIntersectionPixEnd) 
   {
-    r1 = inExt[0];
-    r2 = inExt[0]-1;
+    xIntersectionPixStart = inExt[0];
+    xIntersectionPixEnd = inExt[0]-1;
   }
 }  
 
 //----------------------------------------------------------------------------
 template <class F>
-static void vtkUltraFindExtent(int& r1, int& r2, F *point, F *xAxis, 
+static void vtkUltraFindExtent(int& xIntersectionPixStart, int& xIntersectionPixEnd, F *point, F *xAxis, 
                                int *inMin, int *inMax, int *inExt)
 {
   int i, ix, iy, iz;
@@ -961,36 +861,36 @@ static void vtkUltraFindExtent(int& r1, int& r2, F *point, F *xAxis,
     iz = i;
   }
 
-  r1 = intersectionLow(point,xAxis,sign,inMin,ix,inExt);
-  r2 = intersectionHigh(point,xAxis,sign,inMax,ix,inExt);
+  xIntersectionPixStart = intersectionLow(point,xAxis,sign,inMin,ix,inExt);
+  xIntersectionPixEnd = intersectionHigh(point,xAxis,sign,inMax,ix,inExt);
 
   // find points of intersections
   // first, find w-value for perspective (will usually be 1)
   for (i = 0; i < 3; i++)
   {
-    p1 = point[i]+r1*xAxis[i];
-    p2 = point[i]+r2*xAxis[i];
+    p1 = point[i]+xIntersectionPixStart*xAxis[i];
+    p2 = point[i]+xIntersectionPixEnd*xAxis[i];
 
     indx1[i] = vtkUltraRound(p1);
     indx2[i] = vtkUltraRound(p2);
   }
 
   // passed through x face, check opposing face
-  if (isBounded(point,xAxis,inMin,inMax,ix,r1))
+  if (isBounded(point,xAxis,inMin,inMax,ix,xIntersectionPixStart))
   {
-    if (isBounded(point,xAxis,inMin,inMax,ix,r2))
+    if (isBounded(point,xAxis,inMin,inMax,ix,xIntersectionPixEnd))
     {
-      vtkUltraFindExtentHelper(r1,r2,sign[ix],inExt);
+      vtkUltraFindExtentHelper(xIntersectionPixStart,xIntersectionPixEnd,sign[ix],inExt);
       return;
     }
 
     // check y face
     if (indx2[iy] < inMin[iy])
     {
-      r2 = intersectionLow(point,xAxis,sign,inMin,iy,inExt);
-      if (isBounded(point,xAxis,inMin,inMax,iy,r2))
+      xIntersectionPixEnd = intersectionLow(point,xAxis,sign,inMin,iy,inExt);
+      if (isBounded(point,xAxis,inMin,inMax,iy,xIntersectionPixEnd))
       {
-        vtkUltraFindExtentHelper(r1,r2,sign[ix],inExt);
+        vtkUltraFindExtentHelper(xIntersectionPixStart,xIntersectionPixEnd,sign[ix],inExt);
         return;
       }
     }
@@ -998,10 +898,10 @@ static void vtkUltraFindExtent(int& r1, int& r2, F *point, F *xAxis,
     // check other y face
     else if (indx2[iy] > inMax[iy])
     {
-      r2 = intersectionHigh(point,xAxis,sign,inMax,iy,inExt);
-      if (isBounded(point,xAxis,inMin,inMax,iy,r2))
+      xIntersectionPixEnd = intersectionHigh(point,xAxis,sign,inMax,iy,inExt);
+      if (isBounded(point,xAxis,inMin,inMax,iy,xIntersectionPixEnd))
       {
-        vtkUltraFindExtentHelper(r1,r2,sign[ix],inExt);
+        vtkUltraFindExtentHelper(xIntersectionPixStart,xIntersectionPixEnd,sign[ix],inExt);
         return;
       }
     }
@@ -1009,10 +909,10 @@ static void vtkUltraFindExtent(int& r1, int& r2, F *point, F *xAxis,
     // check z face
     if (indx2[iz] < inMin[iz])
     {
-      r2 = intersectionLow(point,xAxis,sign,inMin,iz,inExt);
-      if (isBounded(point,xAxis,inMin,inMax,iz,r2))
+      xIntersectionPixEnd = intersectionLow(point,xAxis,sign,inMin,iz,inExt);
+      if (isBounded(point,xAxis,inMin,inMax,iz,xIntersectionPixEnd))
       {
-        vtkUltraFindExtentHelper(r1,r2,sign[ix],inExt);
+        vtkUltraFindExtentHelper(xIntersectionPixStart,xIntersectionPixEnd,sign[ix],inExt);
         return;
       }
     }
@@ -1020,35 +920,35 @@ static void vtkUltraFindExtent(int& r1, int& r2, F *point, F *xAxis,
     // check other z face
     else if (indx2[iz] > inMax[iz])
     {
-      r2 = intersectionHigh(point,xAxis,sign,inMax,iz,inExt);
-      if (isBounded(point,xAxis,inMin,inMax,iz,r2))
+      xIntersectionPixEnd = intersectionHigh(point,xAxis,sign,inMax,iz,inExt);
+      if (isBounded(point,xAxis,inMin,inMax,iz,xIntersectionPixEnd))
       {
-        vtkUltraFindExtentHelper(r1,r2,sign[ix],inExt);
+        vtkUltraFindExtentHelper(xIntersectionPixStart,xIntersectionPixEnd,sign[ix],inExt);
         return;
       }
     }
   }
 
   // passed through the opposite x face
-  if (isBounded(point,xAxis,inMin,inMax,ix,r2))
+  if (isBounded(point,xAxis,inMin,inMax,ix,xIntersectionPixEnd))
   {
     // check y face
     if (indx1[iy] < inMin[iy])
     {
-      r1 = intersectionLow(point,xAxis,sign,inMin,iy,inExt);
-      if (isBounded(point,xAxis,inMin,inMax,iy,r1))
+      xIntersectionPixStart = intersectionLow(point,xAxis,sign,inMin,iy,inExt);
+      if (isBounded(point,xAxis,inMin,inMax,iy,xIntersectionPixStart))
       {
-        vtkUltraFindExtentHelper(r1,r2,sign[ix],inExt);
+        vtkUltraFindExtentHelper(xIntersectionPixStart,xIntersectionPixEnd,sign[ix],inExt);
         return;
       }
     }
     // check other y face
     else if (indx1[iy] > inMax[iy])
     {
-      r1 = intersectionHigh(point,xAxis,sign,inMax,iy,inExt);
-      if (isBounded(point,xAxis,inMin,inMax,iy,r1))
+      xIntersectionPixStart = intersectionHigh(point,xAxis,sign,inMax,iy,inExt);
+      if (isBounded(point,xAxis,inMin,inMax,iy,xIntersectionPixStart))
       {
-        vtkUltraFindExtentHelper(r1,r2,sign[ix],inExt);
+        vtkUltraFindExtentHelper(xIntersectionPixStart,xIntersectionPixEnd,sign[ix],inExt);
         return;
       }
     }
@@ -1056,20 +956,20 @@ static void vtkUltraFindExtent(int& r1, int& r2, F *point, F *xAxis,
     // check other y face
     if (indx1[iz] < inMin[iz])
     {
-      r1 = intersectionLow(point,xAxis,sign,inMin,iz,inExt);
-      if (isBounded(point,xAxis,inMin,inMax,iz,r1))
+      xIntersectionPixStart = intersectionLow(point,xAxis,sign,inMin,iz,inExt);
+      if (isBounded(point,xAxis,inMin,inMax,iz,xIntersectionPixStart))
       {
-        vtkUltraFindExtentHelper(r1,r2,sign[ix],inExt);
+        vtkUltraFindExtentHelper(xIntersectionPixStart,xIntersectionPixEnd,sign[ix],inExt);
         return;
       }
     }
     // check other z face
     else if (indx1[iz] > inMax[iz])
     {
-      r1 = intersectionHigh(point,xAxis,sign,inMax,iz,inExt);
-      if (isBounded(point,xAxis,inMin,inMax,iz,r1))
+      xIntersectionPixStart = intersectionHigh(point,xAxis,sign,inMax,iz,inExt);
+      if (isBounded(point,xAxis,inMin,inMax,iz,xIntersectionPixStart))
       {
-        vtkUltraFindExtentHelper(r1,r2,sign[ix],inExt);
+        vtkUltraFindExtentHelper(xIntersectionPixStart,xIntersectionPixEnd,sign[ix],inExt);
         return;
       }
     }
@@ -1079,17 +979,17 @@ static void vtkUltraFindExtent(int& r1, int& r2, F *point, F *xAxis,
   if ((indx1[iy] >= inMin[iy] && indx2[iy] < inMin[iy]) ||
     (indx1[iy] < inMin[iy] && indx2[iy] >= inMin[iy]))
   {
-    r1 = intersectionLow(point,xAxis,sign,inMin,iy,inExt);
-    if (isBounded(point,xAxis,inMin,inMax,iy,r1))
+    xIntersectionPixStart = intersectionLow(point,xAxis,sign,inMin,iy,inExt);
+    if (isBounded(point,xAxis,inMin,inMax,iy,xIntersectionPixStart))
     {
       // line might pass through top face
       if ((indx1[iy] <= inMax[iy] && indx2[iy] > inMax[iy]) ||
         (indx1[iy] > inMax[iy] && indx2[iy] <= inMax[iy]))
       { 
-        r2 = intersectionHigh(point,xAxis,sign,inMax,iy,inExt);
-        if (isBounded(point,xAxis,inMin,inMax,iy,r2))
+        xIntersectionPixEnd = intersectionHigh(point,xAxis,sign,inMax,iy,inExt);
+        if (isBounded(point,xAxis,inMin,inMax,iy,xIntersectionPixEnd))
         {
-          vtkUltraFindExtentHelper(r1,r2,sign[iy],inExt);
+          vtkUltraFindExtentHelper(xIntersectionPixStart,xIntersectionPixEnd,sign[iy],inExt);
           return;
         }
       }
@@ -1098,10 +998,10 @@ static void vtkUltraFindExtent(int& r1, int& r2, F *point, F *xAxis,
       if (indx1[iz] < inMin[iz] && indx2[iy] < inMin[iy] ||
         indx2[iz] < inMin[iz] && indx1[iy] < inMin[iy])
       { 
-        r2 = intersectionLow(point,xAxis,sign,inMin,iz,inExt);
-        if (isBounded(point,xAxis,inMin,inMax,iz,r2))
+        xIntersectionPixEnd = intersectionLow(point,xAxis,sign,inMin,iz,inExt);
+        if (isBounded(point,xAxis,inMin,inMax,iz,xIntersectionPixEnd))
         {
-          vtkUltraFindExtentHelper(r1,r2,sign[iy],inExt);
+          vtkUltraFindExtentHelper(xIntersectionPixStart,xIntersectionPixEnd,sign[iy],inExt);
           return;
         }
       }
@@ -1109,10 +1009,10 @@ static void vtkUltraFindExtent(int& r1, int& r2, F *point, F *xAxis,
       else if (indx1[iz] > inMax[iz] && indx2[iy] < inMin[iy] ||
         indx2[iz] > inMax[iz] && indx1[iy] < inMin[iy])
       {
-        r2 = intersectionHigh(point,xAxis,sign,inMax,iz,inExt);
-        if (isBounded(point,xAxis,inMin,inMax,iz,r2))
+        xIntersectionPixEnd = intersectionHigh(point,xAxis,sign,inMax,iz,inExt);
+        if (isBounded(point,xAxis,inMin,inMax,iz,xIntersectionPixEnd))
         {
-          vtkUltraFindExtentHelper(r1,r2,sign[iy],inExt);
+          vtkUltraFindExtentHelper(xIntersectionPixStart,xIntersectionPixEnd,sign[iy],inExt);
           return;
         }
       } 
@@ -1123,17 +1023,17 @@ static void vtkUltraFindExtent(int& r1, int& r2, F *point, F *xAxis,
   if ((indx1[iy] <= inMax[iy] && indx2[iy] > inMax[iy]) ||
     (indx1[iy] > inMax[iy] && indx2[iy] <= inMax[iy]))
   {
-    r2 = intersectionHigh(point,xAxis,sign,inMax,iy,inExt);
-    if (isBounded(point,xAxis,inMin,inMax,iy,r2))
+    xIntersectionPixEnd = intersectionHigh(point,xAxis,sign,inMax,iy,inExt);
+    if (isBounded(point,xAxis,inMin,inMax,iy,xIntersectionPixEnd))
     {
       // line might pass through in-to-screen face
       if (indx1[iz] < inMin[iz] && indx2[iy] > inMax[iy] ||
         indx2[iz] < inMin[iz] && indx1[iy] > inMax[iy])
       {
-        r1 = intersectionLow(point,xAxis,sign,inMin,iz,inExt);
-        if (isBounded(point,xAxis,inMin,inMax,iz,r1))
+        xIntersectionPixStart = intersectionLow(point,xAxis,sign,inMin,iz,inExt);
+        if (isBounded(point,xAxis,inMin,inMax,iz,xIntersectionPixStart))
         {
-          vtkUltraFindExtentHelper(r1,r2,sign[iy],inExt);
+          vtkUltraFindExtentHelper(xIntersectionPixStart,xIntersectionPixEnd,sign[iy],inExt);
           return;
         }
       }
@@ -1141,10 +1041,10 @@ static void vtkUltraFindExtent(int& r1, int& r2, F *point, F *xAxis,
       else if (indx1[iz] > inMax[iz] && indx2[iy] > inMax[iy] || 
         indx2[iz] > inMax[iz] && indx1[iy] > inMax[iy])
       {
-        r1 = intersectionHigh(point,xAxis,sign,inMax,iz,inExt);
-        if (isBounded(point,xAxis,inMin,inMax,iz,r1))
+        xIntersectionPixStart = intersectionHigh(point,xAxis,sign,inMax,iz,inExt);
+        if (isBounded(point,xAxis,inMin,inMax,iz,xIntersectionPixStart))
         {
-          vtkUltraFindExtentHelper(r1,r2,sign[iy],inExt);
+          vtkUltraFindExtentHelper(xIntersectionPixStart,xIntersectionPixEnd,sign[iy],inExt);
           return;
         }
       }
@@ -1155,152 +1055,106 @@ static void vtkUltraFindExtent(int& r1, int& r2, F *point, F *xAxis,
   if ((indx1[iz] >= inMin[iz] && indx2[iz] < inMin[iz]) ||
     (indx1[iz] < inMin[iz] && indx2[iz] >= inMin[iz]))
   {
-    r1 = intersectionLow(point,xAxis,sign,inMin,iz,inExt);
-    if (isBounded(point,xAxis,inMin,inMax,iz,r1))
+    xIntersectionPixStart = intersectionLow(point,xAxis,sign,inMin,iz,inExt);
+    if (isBounded(point,xAxis,inMin,inMax,iz,xIntersectionPixStart))
     {
       // line might pass through out-of-screen face
       if (indx1[iz] > inMax[iz] || indx2[iz] > inMax[iz])
       {
-        r2 = intersectionHigh(point,xAxis,sign,inMax,iz,inExt);
-        if (isBounded(point,xAxis,inMin,inMax,iz,r2))
+        xIntersectionPixEnd = intersectionHigh(point,xAxis,sign,inMax,iz,inExt);
+        if (isBounded(point,xAxis,inMin,inMax,iz,xIntersectionPixEnd))
         {
-          vtkUltraFindExtentHelper(r1,r2,sign[iz],inExt);
+          vtkUltraFindExtentHelper(xIntersectionPixStart,xIntersectionPixEnd,sign[iz],inExt);
           return;
         }
       }
     }
   }
 
-  r1 = inExt[0];
-  r2 = inExt[0] - 1;
+  xIntersectionPixStart = inExt[0];
+  xIntersectionPixEnd = inExt[0] - 1;
 }
 
-//****************************************************************************
-// I/0
-//****************************************************************************
 
-//----------------------------------------------------------------------------
-// Combines a directory and a file to make a complete path
-// directory = the directory, file = the filename, n = the number of characters
-// in the array cp, result is stored in cp
-static char *vtkJoinPath2(char *cp, int n, const char *directory, const char *file)
-{
-  int dlen = strlen(directory);
-  int flen = strlen(file);
-
-  if (n < (dlen + flen + 2))
-  {
-    return 0;
-  }
-
-  strncpy(cp,directory,n);
-#ifdef _WIN32
-  strncpy(cp+dlen,"\\",n-dlen);
-#else
-  strncpy(cp+dlen,"/",n-dlen);
-#endif
-  strncpy(cp+dlen+1,file,n-dlen);
-
-  return cp;
-}
-
-//----------------------------------------------------------------------------
-// Eats leading whitespace
-static char *vtkFreehandUltrasound2EatWhitespace(char *text)
-{
-  int i = 0;
-
-  for (i = 0; i < 128; i++)
-  {
-    switch (*text)
-    {
-    case ' ':
-    case '\t':
-    case '\r':
-    case '\n':
-      text++;
-      break;
-    default:
-      return text;
-      break;
-    }
-  }
-
-  return 0;
-}
-
-//----------------------------------------------------------------------------
-// Eats leading whitespace
-static char *vtkFreehandUltrasound2EatWhitespaceWithEquals(char *text)
-{
-  int i = 0;
-
-  for (i = 0; i < 128; i++)
-  {
-    switch (*text)
-    {
-    case ' ':
-    case '\t':
-    case '\r':
-    case '\n':
-    case '=':
-      text++;
-      break;
-    default:
-      return text;
-      break;
-    }
-  }
-
-  return 0;
-}
-
-//----------------------------------------------------------------------------
-// T is either integer or double
-template <class T>
-int vtkExtractArrayComponentsFromString(char *text, T *arrayToFill, int numIndices)
-{
-
-  char delims[] = " ";
-  char *result = NULL;
-  T temp;
-
-  text = vtkFreehandUltrasound2EatWhitespace(text);
-
-  // loop through each component
-  for (int i = 0; i < numIndices; i++)
-  {
-
-    // find the next token
-    if (i == 0)
-    {
-      result = strtok(text, delims);
-    }
-    else
-    {
-      result = strtok(NULL, delims);
-    }
-    result = vtkFreehandUltrasound2EatWhitespace(result);
-
-    if (result != NULL)
-    {
-      temp = (T) atof(result);
-      arrayToFill[i] = temp;
-    }
-    else
-    {
-      return 0;
-    }
-
-  }
-
-  return 1;
-
-}
 
 //****************************************************************************
 // REAL-TIME RECONSTRUCTION - NOT OPTIMIZED
 //****************************************************************************
+
+//----------------------------------------------------------------------------
+// convert the ClipRectangle into a
+// clip extent that can be applied to the input data - number of pixels (+ or -)
+// from the origin (the z component is copied from the inExt parameter)
+// 
+// clipExt = {x0, x1, y0, y1, z0, z1} <-- the "output" of this function is to
+//                                        change this array
+// inOrigin = {x, y, z} <-- the origin in mm
+// inSpacing = {x, y, z} <-- the spacing in mm
+// inExt = {x0, x1, y0, y1, z0, z1} <-- min/max possible extent, in pixels
+void GetClipExtent(int clipExt[6],
+										   vtkFloatingPointType inOrigin[3],
+										   vtkFloatingPointType inSpacing[3],
+										   const int inExt[6],
+                       double clipRectangleOrigin[2],
+                       double clipRectangleSize[2])
+{
+	// Map the clip rectangle (millimetres) to pixels
+	// --> number of pixels (+ or -) from the origin
+
+	int x0 = (int)ceil((clipRectangleOrigin[0]-inOrigin[0])/inSpacing[0]);
+	int x1 = (int)floor((clipRectangleOrigin[0]-inOrigin[0]+clipRectangleSize[0])/inSpacing[0]);
+	int y0 = (int)ceil((clipRectangleOrigin[1]-inOrigin[1])/inSpacing[1]);
+	int y1 = (int)floor((clipRectangleOrigin[1]-inOrigin[1]+clipRectangleSize[1])/inSpacing[1]);
+
+	// Make sure that x0 <= x1 and y0 <= y1
+	if (x0 > x1)
+	{
+		int tmp = x0; x0 = x1; x1 = tmp;
+	}
+	if (y0 > y1)
+	{
+		int tmp = y0; y0 = y1; y1 = tmp;
+	}
+
+	// make sure the clip extent lies within the input extent
+	if (x0 < inExt[0])
+	{
+		x0 = inExt[0];
+	}
+	if (x1 > inExt[1])
+	{
+		x1 = inExt[1];
+	}
+	// clip extent was outside of range of input extent
+	if (x0 > x1)
+	{
+		x0 = inExt[0];
+		x1 = inExt[0]-1;
+	}
+
+	if (y0 < inExt[2])
+	{
+		y0 = inExt[2];
+	}
+	if (y1 > inExt[3])
+	{
+		y1 = inExt[3];
+	}
+	// clip extent was outside of range of input extent
+	if (y0 > y1)
+	{
+		y0 = inExt[2];
+		y1 = inExt[2]-1;
+	}
+
+	// Set the clip extent
+	clipExt[0] = x0;
+	clipExt[1] = x1;
+	clipExt[2] = y0;
+	clipExt[3] = y1;
+	clipExt[4] = inExt[4];
+	clipExt[5] = inExt[5];
+}
 
 //----------------------------------------------------------------------------
 // Actually inserts the slice - executes the filter for any type of data, for
@@ -1310,97 +1164,99 @@ int vtkExtractArrayComponentsFromString(char *text, T *arrayToFill, int numIndic
 // (this one function is pretty much the be-all and end-all of the
 // filter)
 template <class T>
-static void vtkFreehandUltrasound2InsertSlice(vtkFreehandUltrasound2 *self,
-                                              vtkImageData *outData,
-                                              T *outPtr,
-                                              unsigned short *accPtr,
-                                              vtkImageData *inData,
-                                              T *inPtr,
-                                              int inExt[6],
-                                              vtkMatrix4x4 *matrix)
+static void vtkFreehandUltrasound2InsertSlice(vtkImageData *outData, T *outPtr, unsigned short *accPtr, vtkImageData *inData, T *inPtr, int inExt[6], vtkMatrix4x4 *matrix,
+  double clipRectangleOrigin[2],double clipRectangleSize[2], double fanAngles[2], double fanOrigin[2], double fanDepth)
 {
 
-  LOG_TRACE("sliceToOutpuVolumeMatrix="<<matrix->GetElement(0,0)<<" "<<matrix->GetElement(0,1)<<" "<<matrix->GetElement(0,2)<<" "<<matrix->GetElement(0,3)<<"; "
+  LOG_TRACE("sliceToOutputVolumeMatrix="<<matrix->GetElement(0,0)<<" "<<matrix->GetElement(0,1)<<" "<<matrix->GetElement(0,2)<<" "<<matrix->GetElement(0,3)<<"; "
     <<matrix->GetElement(1,0)<<" "<<matrix->GetElement(1,1)<<" "<<matrix->GetElement(1,2)<<" "<<matrix->GetElement(1,3)<<"; "
     <<matrix->GetElement(2,0)<<" "<<matrix->GetElement(2,1)<<" "<<matrix->GetElement(2,2)<<" "<<matrix->GetElement(2,3)<<"; "
     <<matrix->GetElement(3,0)<<" "<<matrix->GetElement(3,1)<<" "<<matrix->GetElement(3,2)<<" "<<matrix->GetElement(3,3)
     );
-
-  // local variables
-  int numscalars;
-  int idX, idY, idZ;
-  int inIncX, inIncY, inIncZ;
-  int outExt[6], outInc[3], clipExt[6];
-  vtkFloatingPointType inSpacing[3], inOrigin[3];
-  // the resulting point in the output volume (outPoint) from a point in the input slice
-  // (inpoint)
-  double outPoint[4], inPoint[4]; 
-
-  // pointer to the nearest neighbor or trilinear interpolation function
-  int (*interpolate)(double *point, T *inPtr, T *outPtr,
-    unsigned short *accPtr, int numscalars, int outExt[6], int outInc[3]);
-
+      
   // slice spacing and origin
+  vtkFloatingPointType inSpacing[3];  
   inData->GetSpacing(inSpacing);
+  vtkFloatingPointType inOrigin[3];
   inData->GetOrigin(inOrigin);
-  // number of pixels in the x and y directions b/w the fan origin and the slice origin
-  double xf = (self->GetFanOrigin()[0]-inOrigin[0])/inSpacing[0];
-  double yf = (self->GetFanOrigin()[1]-inOrigin[1])/inSpacing[1]; 
-  // fan depth squared 
-  double d2 = self->GetFanDepth()*self->GetFanDepth();
-  // absolute value of slice spacing
-  double xs = fabs((double)(inSpacing[0]));
-  double ys = fabs((double)(inSpacing[1]));
-  // tan of the left and right fan angles
-  double ml = tan(vtkMath::RadiansFromDegrees(self->GetFanAngles()[0]))/xs*ys;
-  double mr = tan(vtkMath::RadiansFromDegrees(self->GetFanAngles()[1]))/xs*ys;
-  // the tan of the right fan angle is always greater than the left one
-  if (ml > mr)
+
+  // number of pixels in the x and y directions between the fan origin and the slice origin  
+  double fanOriginInPixels[2] =
   {
-    double tmp = ml; ml = mr; mr = tmp;
+    (fanOrigin()[0]-inOrigin[0])/inSpacing[0],
+    (fanOrigin()[1]-inOrigin[1])/inSpacing[1]
+  }
+  // fan depth squared 
+  double fanDepthSquaredMm = fanDepth()*fanDepth();
+
+  // absolute value of slice spacing
+  double inSpacingSquare[2]=
+  {
+    inSpacing[0]*inSpacing[0],
+    inSpacing[1]*inSpacing[1]
+  }
+
+  double pixelAspectRatio=fabs(inSpacing[1]/inSpacing[0]);
+  // tan of the left and right fan angles
+  double fanLinePixelRatioLeft = tan(vtkMath::RadiansFromDegrees(fanAngles()[0]))*pixelAspectRatio;
+  double fanLinePixelRatioRight = tan(vtkMath::RadiansFromDegrees(fanAngles()[1]))*pixelAspectRatio;
+  // the tan of the right fan angle is always greater than the left one
+  if (fanLinePixelRatioLeft > fanLinePixelRatioRight)
+  {
+    // swap left and right fan lines
+    double tmp = fanLinePixelRatioLeft; 
+    fanLinePixelRatioLeft = fanLinePixelRatioRight; 
+    fanLinePixelRatioRight = tmp;
   }
   // get the clip rectangle as an extent
-  self->GetClipExtent(clipExt, inOrigin, inSpacing, inExt);
+  int clipExt[6];
+  GetClipExtent(clipExt, inOrigin, inSpacing, inExt);
 
   // find maximum output range = output extent
+  int outExt[6];
   outData->GetExtent(outExt);
 
   // Get increments to march through data - ex move from the end of one x scanline of data to the
   // start of the next line
+  int outInc[3];
   outData->GetIncrements(outInc);
+  int inIncX, inIncY, inIncZ;
   inData->GetContinuousIncrements(inExt, inIncX, inIncY, inIncZ);
-  numscalars = inData->GetNumberOfScalarComponents();
+  int numscalars = inData->GetNumberOfScalarComponents();
 
-  // Set interpolation method - nearest neighbor or trilinear
+  // Set interpolation method - nearest neighbor or trilinear  
+  int (*interpolate)(double *, T *, T *, unsigned short *, int , int a[6], int b[3])=NULL; // pointer to the nearest neighbor or trilinear interpolation function  
   vtkGetUltraInterpFunc(self,&interpolate);
 
   // Loop through  slice pixels in the input extent and put them into the output volume
-  for (idZ = inExt[4]; idZ <= inExt[5]; idZ++)
+  // the resulting point in the output volume (outPoint) from a point in the input slice
+  // (inpoint)
+  double outPoint[4];
+  double inPoint[4]; 
+  inPoint[3] = 1;
+  for (int idZ = inExt[4]; idZ <= inExt[5]; idZ++)
   {
-    for (idY = inExt[2]; idY <= inExt[3]; idY++)
+    for (int idY = inExt[2]; idY <= inExt[3]; idY++)
     {
-      for (idX = inExt[0]; idX <= inExt[1]; idX++)
+      for (int idX = inExt[0]; idX <= inExt[1]; idX++)
       {
 
         // if we are within the current clip extent
         if (idX >= clipExt[0] && idX <= clipExt[1] && 
           idY >= clipExt[2] && idY <= clipExt[3])
         {
-          // current x/y index minus num pixels in the x/y direction b/w the fan origin and the slice origin
-          double x = (idX-xf);
-          double y = (idY-yf);
+          // x and y are the current pixel coordinates in fan coordinate system (in pixels)
+          double x = (idX-fanOriginInPixels[0]);
+          double y = (idY-fanOriginInPixels[1]);
 
           // if we are within the fan
-          if (((ml == 0 && mr == 0) || y > 0 &&
-            ((x*x)*(xs*xs)+(y*y)*(ys*ys) < d2 && x/y >= ml && x/y <= mr)))
+          if ( (fanLinePixelRatioLeft == 0 && fanLinePixelRatioRight == 0) /* rectangular clipping region */ ||
+            (y>0) && (x*x*inSpacingSquare[0]+y*y*inSpacingSquare[1]<fanDepthSquaredMm) && (x/y>=fanLinePixelRatioLeft) && (x/y<=fanLinePixelRatioRight) /* fan clipping region */ )
           {  
             inPoint[0] = idX;
             inPoint[1] = idY;
             inPoint[2] = idZ;
-            inPoint[3] = 1;
 
-            //recall matrix = the index matrix --> transform voxels in the slice to indices in the output
-            //formula: outPoint = matrix * inPoint
             matrix->MultiplyPoint(inPoint,outPoint);
 
             // deal with w (homogeneous transform) if the transform was a perspective transform
@@ -1410,11 +1266,7 @@ static void vtkFreehandUltrasound2InsertSlice(vtkFreehandUltrasound2 *self,
             outPoint[3] = 1;
 
             // interpolation functions return 1 if the interpolation was successful, 0 otherwise
-            int hit = interpolate(outPoint, inPtr, outPtr, accPtr, numscalars, 
-              outExt, outInc);
-
-            // increment the number of pixels inserted
-            self->IncrementPixelCount(0, hit);
+            int hit = interpolate(outPoint, inPtr, outPtr, accPtr, numscalars, outExt, outInc);
           }
         }
 
@@ -1433,101 +1285,107 @@ static void vtkFreehandUltrasound2InsertSlice(vtkFreehandUltrasound2 *self,
 //----------------------------------------------------------------------------
 // Actually inserts the slice, with optimization.
 template <class F, class T>
-static void vtkOptimizedInsertSlice(vtkFreehandUltrasound2 *self, // the freehand us
-                                    vtkImageData *outData, // the output volume
+static void vtkOptimizedInsertSlice(vtkImageData *outData, // the output volume
                                     T *outPtr, // scalar pointer to the output volume over the output extent
                                     unsigned short *accPtr, // scalar pointer to the accumulation buffer over the output extent
                                     vtkImageData *inData, // input slice
                                     T *inPtr, // scalar pointer to the input volume over the input slice extent
                                     int inExt[6], // input slice extent (could have been split for threading)
                                     F matrix[4][4], // index matrix, output indices -> input indices
-                                    int threadId) // current thread id
+                                    double clipRectangleOrigin[2],
+                                    double clipRectangleSize[2],
+                                    double fanAngles[2],
+                                    double fanOrigin[2],
+                                    double fanDepth,
+                                    vtkVolumeReconstructorFilter::InterpolationType interpolationMode)
 {
-  LOG_TRACE("sliceToOutpuVolumeMatrix="<<(float)matrix[0][0]<<" "<<(float)matrix[0][1]<<" "<<(float)matrix[0][2]<<" "<<(float)matrix[0][3]<<"; "
+  LOG_TRACE("sliceToOutputVolumeMatrix="<<(float)matrix[0][0]<<" "<<(float)matrix[0][1]<<" "<<(float)matrix[0][2]<<" "<<(float)matrix[0][3]<<"; "
     <<(float)matrix[1][0]<<" "<<(float)matrix[1][1]<<" "<<(float)matrix[1][2]<<" "<<(float)matrix[1][3]<<"; "
     <<(float)matrix[2][0]<<" "<<(float)matrix[2][1]<<" "<<(float)matrix[2][2]<<" "<<(float)matrix[2][3]<<"; "
     <<(float)matrix[3][0]<<" "<<(float)matrix[3][1]<<" "<<(float)matrix[3][2]<<" "<<(float)matrix[3][3]
     );
   
-  int prevPixelCount = self->GetPixelCount();
+  //////
 
-  // local variables
-  int id = 0;
-  int i, numscalars; // numscalars = number of scalar components in the input image
-  int idX, idY, idZ; // the x, y, and z pixel of the input image
-  int inIncX, inIncY, inIncZ; // increments for the input extent
-  int outExt[6]; // output extent
-  int outMax[3], outMin[3]; // the max and min values of the output extents -
+  // slice spacing and origin
+  vtkFloatingPointType inSpacing[3];  
+  inData->GetSpacing(inSpacing);
+  vtkFloatingPointType inOrigin[3];
+  inData->GetOrigin(inOrigin);
+
+  // number of pixels in the x and y directions between the fan origin and the slice origin  
+  double fanOriginInPixels[2] =
+  {
+    (fanOrigin[0]-inOrigin[0])/inSpacing[0],
+    (fanOrigin[1]-inOrigin[1])/inSpacing[1]
+  };
+  // fan depth squared 
+  double fanDepthSquaredMm = fanDepth*fanDepth;
+
+  // absolute value of slice spacing
+  double inSpacingSquare[2]=
+  {
+    inSpacing[0]*inSpacing[0],
+    inSpacing[1]*inSpacing[1]
+  };
+
+  double pixelAspectRatio=fabs(inSpacing[1]/inSpacing[0]);
+  // tan of the left and right fan angles
+  double fanLinePixelRatioLeft = tan(vtkMath::RadiansFromDegrees(fanAngles[0]))*pixelAspectRatio;
+  double fanLinePixelRatioRight = tan(vtkMath::RadiansFromDegrees(fanAngles[1]))*pixelAspectRatio;
+  // the tan of the right fan angle is always greater than the left one
+  if (fanLinePixelRatioLeft > fanLinePixelRatioRight)
+  {
+    // swap left and right fan lines
+    double tmp = fanLinePixelRatioLeft; 
+    fanLinePixelRatioLeft = fanLinePixelRatioRight; 
+    fanLinePixelRatioRight = tmp;
+  }
+
+  // get the clip rectangle as an extent
+  int clipExt[6];
+  GetClipExtent(clipExt, inOrigin, inSpacing, inExt, clipRectangleOrigin, clipRectangleSize);
+
+  // find maximum output range = output extent
+  int outExt[6];
+  outData->GetExtent(outExt);
+
+  // Get increments to march through data - ex move from the end of one x scanline of data to the
+  // start of the next line
+  int outInc[3];
+  outData->GetIncrements(outInc);
+  int inIncX, inIncY, inIncZ;
+  inData->GetContinuousIncrements(inExt, inIncX, inIncY, inIncZ);
+  int numscalars = inData->GetNumberOfScalarComponents();
+
+  //////
+
+  int outMax[3];
+  int outMin[3]; // the max and min values of the output extents -
   // if outextent = (x0, x1, y0, y1, z0, z1), then
   // outMax = (x1, y1, z1) and outMin = (x0, y0, z0)
-  int outInc[3]; // increments for the output extent
-  int clipExt[6];
-  unsigned long count = 0;
-  unsigned long target;
-  int r1,r2;
+  for (int i = 0; i < 3; i++)
+  {
+    outMin[i] = outExt[2*i];
+    outMax[i] = outExt[2*i+1];
+  }
+
   // outPoint0, outPoint1, outPoint is a fancy way of incremetally multiplying the input point by
   // the index matrix to get the output point...  Outpoint is the result
   F outPoint0[3]; // temp, see above
   F outPoint1[3]; // temp, see above
   F outPoint[3]; // this is the final output point, created using Output0 and Output1
   F xAxis[3], yAxis[3], zAxis[3], origin[3]; // the index matrix (transform), broken up into axes and an origin
-  vtkFloatingPointType inSpacing[3],inOrigin[3]; // input spacing and origin
-
-  // input spacing and origin
-  inData->GetSpacing(inSpacing);
-  inData->GetOrigin(inOrigin);
-
-  // number of pixels in the x and y directions b/w the fan origin and the slice origin
-  double xf = (self->GetFanOrigin()[0]-inOrigin[0])/inSpacing[0];
-  double yf = (self->GetFanOrigin()[1]-inOrigin[1])/inSpacing[1];
-
-  // fan depth squared
-  double d2 = self->GetFanDepth()*self->GetFanDepth();
-  // input spacing in the x and y directions
-  double xs = inSpacing[0];
-  double ys = inSpacing[1];
-  // tan of the left and right fan angles
-  double ml = tan(vtkMath::RadiansFromDegrees(self->GetFanAngles()[0]))/xs*ys;
-  double mr = tan(vtkMath::RadiansFromDegrees(self->GetFanAngles()[1]))/xs*ys;
-  // the tan of the right fan angle is always greater than the left one
-  if (ml > mr)
-  {
-    double tmp = ml; ml = mr; mr = tmp;
-  }
-
-  // get the clip rectangle as an extent
-  self->GetClipExtent(clipExt, inOrigin, inSpacing, inExt);
-
-  // find maximum output range
-  outData->GetExtent(outExt);
-
-  for (i = 0; i < 3; i++)
-  {
-    outMin[i] = outExt[2*i];
-    outMax[i] = outExt[2*i+1];
-  }
-
-  target = (unsigned long)
-    ((inExt[5]-inExt[4]+1)*(inExt[3]-inExt[2]+1)/50.0);
-  target++;
-
-  int wExtent[6]; // output whole extent
-  outData->GetWholeExtent(wExtent);
-  outData->GetIncrements(outInc);
-  inData->GetContinuousIncrements(inExt, inIncX, inIncY, inIncZ);
-  numscalars = inData->GetNumberOfScalarComponents();
 
   // break matrix into a set of axes plus an origin
   // (this allows us to calculate the transform Incrementally)
-  for (i = 0; i < 3; i++)
+  for (int i = 0; i < 3; i++)
   {
     xAxis[i]  = matrix[i][0]; // remember that the matrix is the indexMatrix, and transforms
     yAxis[i]  = matrix[i][1];  // output pixels to input pixels
     zAxis[i]  = matrix[i][2];
     origin[i] = matrix[i][3];
   }
-
-  static int firstFrame = 1;
 
   ///////////////////////////////////////////////
   // LOOP through output pixels and turn them all white
@@ -1552,75 +1410,54 @@ static void vtkOptimizedInsertSlice(vtkFreehandUltrasound2 *self, // the freehan
   }*/
   ///////////////////////////////////////////////
 
+  int xIntersectionPixStart,xIntersectionPixEnd;
+
   // Loop through INPUT pixels - remember this is a 3D cube represented by the input extent
-  for (idZ = inExt[4]; idZ <= inExt[5]; idZ++) // for each image...
+  for (int idZ = inExt[4]; idZ <= inExt[5]; idZ++) // for each image...
   {
     outPoint0[0] = origin[0]+idZ*zAxis[0]; // incremental transform
     outPoint0[1] = origin[1]+idZ*zAxis[1];
     outPoint0[2] = origin[2]+idZ*zAxis[2];
 
-    for (idY = inExt[2]; idY <= inExt[3]; idY++) // for each horizontal line in the image...
+    for (int idY = inExt[2]; idY <= inExt[3]; idY++) // for each horizontal line in the image...
     {
       outPoint1[0] = outPoint0[0]+idY*yAxis[0]; // incremental transform
       outPoint1[1] = outPoint0[1]+idY*yAxis[1];
       outPoint1[2] = outPoint0[2]+idY*yAxis[2];
 
-      if (!id)
-      {
-        if (!(count%target)) 
-        {
-          self->UpdateProgress(count/(50.0*target));  // progress between 0 and 1
-        }
-        count++;
-      }
-
       // find intersections of x raster line with the output extent
 
-      // this only changes r1 and r2
-      vtkUltraFindExtent(r1,r2,outPoint1,xAxis,outMin,outMax,inExt);
+      // this only changes xIntersectionPixStart and xIntersectionPixEnd
+      vtkUltraFindExtent(xIntersectionPixStart,xIntersectionPixEnd,outPoint1,xAxis,outMin,outMax,inExt);
 
       // next, handle the 'fan' shape of the input
-      //double y = (yf - idY);;
-      //if (ys < 0)
-      //{
-      //  y = -y;
-      // }
+      double y = idY - fanOriginInPixels[1];
 
-      double y;
-      /*if (flipped)
-      {
-        y = yf - idY;
-      }
-      else
-      {*/
-        y = idY - yf;
-      //}
-
-      // first, check the angle range of the fan - choose r1 and r2 based
+      // first, check the angle range of the fan - choose xIntersectionPixStart and xIntersectionPixEnd based
       // on the triangle that the fan makes from the fan origin to the bottom
       // line of the video image
-      if (!(ml == 0 && mr == 0))
+      if (!(fanLinePixelRatioLeft == 0 && fanLinePixelRatioRight == 0))
       {
-        // equivalent to: r1 < vtkUltraCeil(ml*y + xf + 1)
+        // equivalent to: xIntersectionPixStart < vtkUltraCeil(fanLinePixelRatioLeft*y + fanOriginInPixels[0] + 1)
         // this is what the radius would be based on tan(fanAngle)
-        if (r1 < -vtkUltraFloor(-(ml*y + xf + 1)))
+        if (xIntersectionPixStart < -vtkUltraFloor(-(fanLinePixelRatioLeft*y + fanOriginInPixels[0] + 1)))
         {
-          r1 = -vtkUltraFloor(-(ml*y + xf + 1));
+          xIntersectionPixStart = -vtkUltraFloor(-(fanLinePixelRatioLeft*y + fanOriginInPixels[0] + 1));
         }
-        if (r2 > vtkUltraFloor(mr*y + xf - 1))
+        if (xIntersectionPixEnd > vtkUltraFloor(fanLinePixelRatioRight*y + fanOriginInPixels[0] - 1))
         {
-          r2 = vtkUltraFloor(mr*y + xf - 1);
+          xIntersectionPixEnd = vtkUltraFloor(fanLinePixelRatioRight*y + fanOriginInPixels[0] - 1);
         }
 
         // next, check the radius of the fan - crop the triangle to the fan
         // depth
-        double dx = (d2 - (y*y)*(ys*ys))/(xs*xs);
+        double dx = (fanDepthSquaredMm - (y*y)*inSpacingSquare[1])/inSpacingSquare[0];
 
         // if we are outside the fan's radius, ex at the bottom lines
         if (dx < 0)
         {
-          r1 = inExt[0];
-          r2 = inExt[0]-1;
+          xIntersectionPixStart = inExt[0];
+          xIntersectionPixEnd = inExt[0]-1;
         }
         // if we are within the fan's radius, we have to adjust if we are in
         // the "ellipsoidal" (bottom) part of the fan instead of the top
@@ -1628,73 +1465,68 @@ static void vtkOptimizedInsertSlice(vtkFreehandUltrasound2 *self, // the freehan
         else
         {
           dx = sqrt(dx);
-          // this is what r1 would be if we calculated it based on the
+          // this is what xIntersectionPixStart would be if we calculated it based on the
           // pythagorean theorem
-          if (r1 < -vtkUltraFloor(-(xf - dx + 1)))
+          if (xIntersectionPixStart < -vtkUltraFloor(-(fanOriginInPixels[0] - dx + 1)))
           {
-            r1 = -vtkUltraFloor(-(xf - dx + 1));
+            xIntersectionPixStart = -vtkUltraFloor(-(fanOriginInPixels[0] - dx + 1));
           }
-          if (r2 > vtkUltraFloor(xf + dx - 1))
+          if (xIntersectionPixEnd > vtkUltraFloor(fanOriginInPixels[0] + dx - 1))
           {
-            r2 = vtkUltraFloor(xf + dx - 1);
+            xIntersectionPixEnd = vtkUltraFloor(fanOriginInPixels[0] + dx - 1);
           }
         }
       }
 
       // bound to the ultrasound clip rectangle
-      if (r1 < clipExt[0])
+      if (xIntersectionPixStart < clipExt[0])
       {
-        r1 = clipExt[0];
+        xIntersectionPixStart = clipExt[0];
       }
-      if (r2 > clipExt[1])
+      if (xIntersectionPixEnd > clipExt[1])
       {
-        r2 = clipExt[1];
+        xIntersectionPixEnd = clipExt[1];
       }
 
-      if (r1 > r2) // TODO synchrograb adds || idY < clipExt[2] || idY > clipExt[3])
+      if (xIntersectionPixStart > xIntersectionPixEnd) // TODO synchrograb adds || idY < clipExt[2] || idY > clipExt[3])
       {
-        r1 = inExt[0];
-        r2 = inExt[0]-1;
+        xIntersectionPixStart = inExt[0];
+        xIntersectionPixEnd = inExt[0]-1;
       }
 
       // skip the portion of the slice to the left of the fan
-      for (idX = inExt[0]; idX < r1; idX++)
+      for (int idX = inExt[0]; idX < xIntersectionPixStart; idX++)
       {
         inPtr += numscalars;
       }
       // multiplying the input point by the transform will give you fractional pixels,
       // so we need interpolation
-
-      // interpolating linearly (code 1)
-      if (self->GetInterpolationMode() == VTK_FREEHAND_LINEAR)
+      
+      if (interpolationMode == vtkVolumeReconstructorFilter::LINEAR_INTERPOLATION)
       { 
-
-        for (idX = r1; idX <= r2; idX++) // for all of the x pixels within the fan
+        // interpolating linearly (code 1)
+        for (int idX = xIntersectionPixStart; idX <= xIntersectionPixEnd; idX++) // for all of the x pixels within the fan
         {
           outPoint[0] = outPoint1[0] + idX*xAxis[0];
           outPoint[1] = outPoint1[1] + idX*xAxis[1];
           outPoint[2] = outPoint1[2] + idX*xAxis[2];
 
-          int hit = vtkTrilinearInterpolation(outPoint, inPtr, outPtr, accPtr, 
-            numscalars, outExt, outInc); // hit is either 1 or 0
+          int hit = vtkTrilinearInterpolation(outPoint, inPtr, outPtr, accPtr, numscalars, outExt, outInc); // hit is either 1 or 0
 
           inPtr += numscalars; // go to the next x pixel
-          self->IncrementPixelCount(threadId, hit);
         }
-      }
-
-      // interpolating with nearest neighbor (code 0)
+      }      
       else 
       {
-        vtkFreehand2OptimizedNNHelper(r1, r2, outPoint, outPoint1, xAxis, 
+        // interpolating with nearest neighbor
+        vtkFreehand2OptimizedNNHelper(xIntersectionPixStart, xIntersectionPixEnd, outPoint, outPoint1, xAxis, 
           inPtr, outPtr, outExt, outInc,
           numscalars, accPtr);
-        // we added all the pixels between r1 and r2, so increment our count of the number of pixels added
-        self->IncrementPixelCount(threadId, r2-r1+1); 
+        // we added all the pixels between xIntersectionPixStart and xIntersectionPixEnd, so increment our count of the number of pixels added
       }
 
       // skip the portion of the slice to the right of the fan
-      for (idX = r2+1; idX <= inExt[1]; idX++)
+      for (int idX = xIntersectionPixEnd+1; idX <= inExt[1]; idX++)
       {
         inPtr += numscalars;
       }
@@ -1704,346 +1536,5 @@ static void vtkOptimizedInsertSlice(vtkFreehandUltrasound2 *self, // the freehan
     inPtr += inIncZ; // move to the next image
   }
 }
-
-//****************************************************************************
-// THE MAIN LOOP FOR THE RECONSTRUCTION
-//****************************************************************************
-
-//----------------------------------------------------------------------------
-// This function is run in a background thread to perform the reconstruction.
-// By running it in the background, it doesn't interfere with the display
-// of the partially reconstructed volume.
-static void *vtkReconstructionThread(vtkMultiThreader::ThreadInfo *data)
-{
-
-  vtkFreehandUltrasound2 *self = (vtkFreehandUltrasound2 *)(data->UserData);
-
-  double prevtimes[10];
-  double currtime = 0;  // most recent timestamp for reconstruction time
-  double lastcurrtime = 0;  // previous timestamp for reconstructin time
-  double timestamp = 0;  // video timestamp, corrected for lag
-  double videolag = self->GetVideoLag();
-  int i;
-
-  self->ReconstructionFinishedOff(); 
-
-  for (i = 0; i < 10; i++)
-  {
-    prevtimes[i] = 0.0;
-  }
-
-  // the tracker tool provides the position of each inserted slice
-  // check that tracker tool exists
-  if (!self->GetTrackerTool())
-  {
-    printf("Reconstruction thread couldn't find tracker tool\n");
-    self->ReconstructionFinishedOn(); 
-    return NULL;
-  }
-  else
-  {
-    //printf("Found Tracker Tool\n");
-  }
-
-  // get the buffer for the tracking information
-  // is the buffer for the tracker tool if we are doing a real-time reconstruction
-  // is the buffer given in self->TrackerBuffer if we are doing non-real-time reconstruction
-  vtkTrackerBuffer *buffer = self->GetTrackerTool()->GetBuffer();
-  if (!self->RealTimeReconstruction)
-  { 
-    buffer = self->TrackerBuffer;
-  }
-
-  // get the video for the video information, and the current 2D slice
-  vtkPlusVideoSource *video = self->GetVideoSource();
-  vtkImageData *inData = self->GetSlice();
-
-  // wait for video to start before we start the reconstruction
-  // (i.e. wait for timestamp to change)
-  if (video && self->RealTimeReconstruction)
-  {
-    while (lastcurrtime == 0 || currtime == lastcurrtime)
-    {
-      int clipExt[6];
-      self->GetClipExtent(clipExt, inData->GetOrigin(), inData->GetSpacing(),
-        inData->GetWholeExtent()); 
-      // TODO clip extent implementation - 3DPanoramicVolumeReconstructor has SetUpdateExtent(clipExt) instead of
-      // SetUpdateExtentToWholeExtent()
-      inData->SetUpdateExtentToWholeExtent();
-      inData->Update();
-      self->UpdateAccumulationBuffers();
-
-      lastcurrtime = currtime;
-      currtime = video->GetFrameTimeStamp();
-      double timenow = vtkAccurateTimer::GetSystemTime();
-      double sleepuntil = currtime + 0.010;
-      if (sleepuntil > timenow)
-      {
-        vtkThreadSleep(data, sleepuntil);
-      }
-    }
-  }
-
-  // The reconstruction loop!
-  // Loop continuously until reconstruction thread is halted
-  double starttime = 0;
-  vtkSmartPointer<vtkTransform> tempTransform = vtkSmartPointer<vtkTransform>::New();
-  int rot; // current rotation in degrees
-  int rotating = self->GetRotating();
-  vtkImageClip* clipper = self->GetRotationClipper();
-  vtkImageThreshold* thresholder = self->GetRotationThresholder();
-  double sleeptime = self->GetSleepTime();
-  int maxRotation = self->GetMaximumRotationChange();
-  int problemWithThisSlice;
-  int insertSliceNow = 0;
-  double frametime = currtime;
-  double lastframetime;
-
-  for (i = 0;;)
-  {
-    lastcurrtime = currtime;
-    lastframetime = frametime;
-
-    problemWithThisSlice = 0; // so far, there's no problem yet!
-
-    // update the slice data - if reconstructing in real time, this is the only place
-    // where this->Slice is actually updated - this is because even though we grab
-    // from the video source in multiple places, we only do the Update() here!  Video
-    // source only copies from buffer to output on the updates()
-    // TODO clip extent implementation - 3DPanoramicVolumeReconstructor has SetUpdateExtent(clipExt) instead of
-    // SetUpdateExtentToWholeExtent()
-    int clipExt[6];
-    self->GetClipExtent(clipExt, inData->GetOrigin(), inData->GetSpacing(),  inData->GetWholeExtent()); // TODO clip extent implementation - clip extent
-    inData->SetUpdateExtentToWholeExtent();
-    if ( self->UpdateSlice(inData, insertSliceNow) != PLUS_SUCCESS )
-    {
-      LOG_ERROR("Failed to update slice!"); 
-      self->ReconstructionFinishedOn(); 
-      return NULL;
-    }
-
-    //inData->Update();
-
-    // get the updated timestamp
-    // if not triggering, this is the timestamp for the video data, so that the tracking
-    // transform corresponds with the video frames
-    // if triggering, we want the tracking transform to correspond to the signal box time instead
-    if (video)
-    {
-      currtime = self->CalculateCurrentVideoTime(inData);
-      timestamp = currtime - videolag;
-    }
-
-    if (starttime == 0)
-    {
-      starttime = timestamp;
-    }
-
-    // if we have a saved slice to insert before the current one, then insert it now
-    self->ReconstructOldSlice((lastcurrtime - videolag), inData);
-
-    // Get the tracking transform, using temporal calibration if applicable
-    // recall that imageToRefTransform = this->SliceAxes
-    TrackerBufferItem trackerItem; 
-    if (video && (videolag > 0.0 || !self->RealTimeReconstruction)) // TODO add "or retrospective" for when doing offline recon with retro gating?
-    {
-      if ( buffer->GetTrackerBufferItemFromTime(timestamp, &trackerItem, vtkTrackerBuffer::INTERPOLATED, true) != ITEM_OK )
-      {
-        LOG_ERROR("Failed to get tracker item from buffer with timestamp: " << std::fixed << timestamp ); 
-        continue; 
-      }
-    }
-    else
-    {
-      if ( buffer->GetLatestTrackerBufferItem(&trackerItem, true) != ITEM_OK )
-      {
-        LOG_ERROR("Failed to get latest tracker item from buffer!"); 
-        continue; 
-      }
-      if (!video)
-      {
-        currtime = trackerItem.GetTimestamp(0);
-      }
-    }
-
-    // tracker tool transforms
-    vtkSmartPointer<vtkMatrix4x4> imageToRefTransform=vtkSmartPointer<vtkMatrix4x4>::New();
-    if (trackerItem.GetMatrix(imageToRefTransform)!=PLUS_SUCCESS)
-    {
-      LOG_ERROR("Failed to get imageToRefTransform"); 
-      continue;
-    }
-
-    self->SetSliceAxes(imageToRefTransform);    
-
-    // get the rotation and apply 
-    if (rotating)
-    {
-      clipper->SetInput(inData);
-      thresholder->SetInput(clipper->GetOutput());
-      thresholder->Update();
-      rot = self->CalculateFanRotationValue();
-
-      // ignore rotations of -1
-      if (rot == -1)
-      {
-        self->SetPreviousFanRotation(self->GetFanRotation());
-        problemWithThisSlice = 1;
-      }
-      // ignore first rotation greater than maxRotation, but keep subsequent ones
-      else if (abs(self->GetPreviousFanRotation() - rot) > maxRotation)
-      {
-        self->SetPreviousFanRotation(rot); // this is the addition
-        self->SetFanRotation(rot); // this is the addition
-        problemWithThisSlice = 1;
-      }
-      // good slices
-      else
-      {
-        self->SetPreviousFanRotation(self->GetFanRotation());
-        self->SetFanRotation(rot);
-        problemWithThisSlice = 0;
-      }
-
-      /*// ignore rotations of -1 (error flag) - assume that there is no change in
-      // rotation, but don't insert the slice anyways
-      if (rot >= 0)
-      {
-      self->SetPreviousFanRotation(self->GetFanRotation());
-      self->SetFanRotation(rot);
-      // don't insert slices for rotation changes greater than maxRotation
-      if (abs(self->GetPreviousFanRotation() - rot) > maxRotation)
-      {
-      problemWithThisSlice = 1;
-      }
-      }
-      else
-      {
-      problemWithThisSlice = 1;
-      }*/
-
-    }
-
-    // now use the rotation to change the SliceTransform (vtkTransform)
-    // (if not rotating, then fan rotation and previous fan rotation are zero and don't do anything)
-    // TODO this probably won't work if there is an actual set slice transform here...
-    vtkSmartPointer<vtkMatrix4x4> refToImageTransform = vtkSmartPointer<vtkMatrix4x4>::New();
-    vtkMatrix4x4::Invert(imageToRefTransform, refToImageTransform);
-    if (self->GetSliceTransform())
-    {
-      //if (self->GetFanRotation() != self->GetPreviousFanRotation()) // messes up big jumps
-      //{
-      // formula: sliceAxes * sliceTransform(rotation) * inv(sliceAxes)
-      tempTransform = (vtkTransform *) (self->GetSliceTransform());
-      tempTransform->Identity();
-      tempTransform->RotateY(self->GetFanRotation());
-      tempTransform->PostMultiply();
-      tempTransform->Concatenate(imageToRefTransform);
-      tempTransform->PreMultiply();
-      tempTransform->Concatenate(refToImageTransform);
-      //}
-    }
-
-    // sleep if we don't have an updated video slice
-    if ( self->RealTimeReconstruction )
-    {
-      frametime = video->GetFrameTimeStamp();
-    }
-    else
-    {
-      frametime = timestamp; 
-    }
-
-    //if (currtime == lastcurrtime && self->RealTimeReconstruction && !insertSliceNow)
-    if (frametime == lastframetime && self->RealTimeReconstruction && !insertSliceNow)
-    {
-      double timenow = vtkAccurateTimer::GetSystemTime();
-      //double sleepuntil = currtime + sleeptime;
-      double sleepuntil = frametime + sleeptime;
-      if (sleepuntil > timenow)
-      {
-        // return if abort occurred during sleep
-        if (vtkThreadSleep(data, sleepuntil) == 0)
-        {
-          self->ReconstructionFinishedOn(); 
-          return NULL;
-        }
-      }
-    }
-
-    // sleep if tool is not tracking properly
-    else if ( trackerItem.GetStatus() != TR_OK )
-    {
-      insertSliceNow = 0;
-      printf("\ntracker out of view\n");
-      double timenow = vtkAccurateTimer::GetSystemTime();
-      //double sleepuntil = currtime + sleeptime;
-      double sleepuntil = frametime + sleeptime;
-      if (sleepuntil > timenow)
-      {
-        // return if abort occurred during sleep
-        if (vtkThreadSleep(data, sleepuntil) == 0)
-        {
-          self->ReconstructionFinishedOn(); 
-          return NULL;
-        }
-      }
-    }
-
-    // do the reconstruction if we have an updated frame and tool is tracking
-    else
-    {
-      insertSliceNow = 0;
-      // insert the slice!
-      if (!problemWithThisSlice)
-      {
-        self->ReconstructSlice(timestamp, inData);
-      }
-
-      // calculate frame rate using computer clock, not timestamps
-      // --> current reconstruction rate over last 10 updates
-      //double tmptime = currtime;
-      double tmptime = frametime;
-      if (!self->RealTimeReconstruction)
-      { 
-        tmptime = vtkAccurateTimer::GetSystemTime();
-      }
-      double difftime = tmptime - prevtimes[i%10];
-      prevtimes[i%10] = tmptime;
-      if (i > 10 && difftime != 0)
-      {
-        self->ReconstructionRate = (10.0/difftime);
-      }
-      i++;
-    }
-
-    // check to see if we are being told to quit 
-    int activeFlag = *(data->ActiveFlag);
-    if (activeFlag == 0)
-    {
-      self->ReconstructionFinishedOn(); 
-      return NULL;
-    }
-
-    // if we are not doing a real time reconstruction, sleep for a millisecond
-    // to give the main application thread some time, and seek to the next video frame
-    if (!self->RealTimeReconstruction)
-    {
-      vtkSleep(0.001);
-
-      --self->ReconstructionFrameCount;
-      if (video && self->GetVideoBufferUid() > video->GetBuffer()->GetLatestItemUidInBuffer())
-      {
-        self->ReconstructionFinishedOn(); 
-        return NULL;
-      }
-    }
-  }
-  
-  self->ReconstructionFinishedOn(); 
-  return NULL;
-}
-
-
 
 #endif

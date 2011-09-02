@@ -7,6 +7,7 @@ SET (VolumeReconstruction_SRCS
 	vtkFreehandUltrasound2.cxx 
 	vtkFreehandUltrasound2Dynamic.cxx 
 	vtkVolumeReconstructor.cxx 
+	vtkVolumeReconstructorFilter.cxx 
 	)
 
 SET (VolumeReconstruction_HDRS)
@@ -17,6 +18,7 @@ if (WIN32)
 		vtkFreehandUltrasound2Dynamic.h 
 		vtkFreehandUltrasound2Helper.h 
 		vtkVolumeReconstructor.h 
+		vtkVolumeReconstructorFilter.h 
 		)
 endif (WIN32)	
 
