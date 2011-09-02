@@ -3,7 +3,7 @@
   <OutputParameters OutputSpacing="-0.8 -0.8 0.8" />
   <ClippingParameters ClipRectangleOrigin="20 20" ClipRectangleSize="40 40"/>
   <FanParameters FanAngles="0 0" FanOrigin="0 0" FanDepth="300"/>
-  <RotationOptions Rotation="Off" MaxRotationChange="90" Threshold1="0" Threshold2="255" ShiftX="0" ShiftY="0" ImageFlipped="Off"/>
+  <RotationOptions Rotation="Off" MaxRotationChange="90" Threshold1="0" Threshold2="255" ShiftX="0" ShiftY="0" />
   <ReconstructionOptions Interpolation="Linear" Optimization="On" Compounding="On"/>
   <SpatialCalibration CalibrationMatrix="1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1"/>
 </Freehand>

@@ -6,7 +6,7 @@
   <ReconstructionOptions Interpolation="Linear" Optimization="On" Compounding="On"/>
   <SpatialCalibration CalibrationMatrix="1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1"/>
   <TemporalCalibration VideoLag="0.032"/>
-  <RotationOptions Rotation="Off" MaxRotationChange="90" Threshold1="0" Threshold2="255" ShiftX="0" ShiftY="0" ImageFlipped="Off"/>
+  <RotationOptions Rotation="Off" MaxRotationChange="90" Threshold1="0" Threshold2="255" ShiftX="0" ShiftY="0" />
   <BufferOptions FrameSize="640 480 1" VideoFrameRate="5" VideoBufferSize="1000" TrackerBufferSize="10000" SignalBoxSleepInterval="5"/>
   <TriggeringParameters Triggering="Off" Gating="Retrospective" NumOutputVolumes="2"/>
   <SignalBox NumPhases="2"/>

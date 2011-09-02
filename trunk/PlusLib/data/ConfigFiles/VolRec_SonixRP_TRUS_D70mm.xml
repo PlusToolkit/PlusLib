@@ -12,7 +12,7 @@
   <ClippingParameters ClipRectangleOrigin="0 0" ClipRectangleSize="0 0"/>
   <!--FanParameters FanAngles="-45 45" FanOrigin="320 465" FanDepth="300"/-->
   <FanParameters FanAngles="0 0" FanOrigin="0 0" FanDepth="300"/>
-  <RotationOptions ImageFlipped="Off" Rotation="Off" MaxRotationChange="90" Threshold1="0" Threshold2="255" ShiftX="0" ShiftY="0" />
+  <RotationOptions Rotation="Off" MaxRotationChange="90" Threshold1="0" Threshold2="255" ShiftX="0" ShiftY="0" />
   <ReconstructionOptions Interpolation="Linear" Optimization="On" Compounding="On"/>
   
  

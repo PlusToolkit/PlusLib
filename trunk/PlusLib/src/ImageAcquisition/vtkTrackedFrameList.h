@@ -1,3 +1,5 @@
+// Store a list of tracked frames (image + pose information)
+
 #ifndef __VTKTRACKEDFRAMELIST_H
 #define __VTKTRACKEDFRAMELIST_H
 

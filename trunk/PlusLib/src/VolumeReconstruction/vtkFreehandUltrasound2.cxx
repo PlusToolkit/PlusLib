@@ -121,8 +121,6 @@ vtkFreehandUltrasound2::vtkFreehandUltrasound2()
 	this->FanOrigin[1] = 0.0;
 	this->FanDepth = +1e8;
 
-	this->ImageFlippedOff(); 
-
 	// reconstruction options
 	this->InterpolationMode = VTK_FREEHAND_NEAREST;
 	this->Compounding = 0;
@@ -311,7 +309,6 @@ void vtkFreehandUltrasound2::PrintSelf(ostream& os, vtkIndent indent)
 	{
 		this->RotationThresholder->PrintSelf(os,indent.GetNextIndent());
 	}
-	os << indent << "ImageFlipped: " << (this->ImageFlipped ? "On\n":"Off\n");
 	os << indent << "NumberOfThreads: " << this->NumberOfThreads << "\n";
 	os << indent << "ReconstructionThreadId: " << this->ReconstructionThreadId << "\n";
 	os << indent << "Reconstruction Rate: " << this->ReconstructionRate << "\n";
@@ -2020,15 +2017,15 @@ int vtkFreehandUltrasound2::CalculateFanRotationValue()
 	int yShift = this->GetRotatingShiftY();
 
 	// not flipped
-	if (this->GetImageFlipped() == 0)
-	{
+//	if (this->ImageFlipped == 0)
+//	{
 		array3x = 73+xShift;
 		array2x = 63+xShift;
 		array1x = 53+xShift;
 		array3y = 300+yShift;
 		array2y = array3y;
 		array1y = array3y;
-	}
+/*	}
 	// flipped
 	else
 	{
@@ -2039,7 +2036,7 @@ int vtkFreehandUltrasound2::CalculateFanRotationValue()
 		array2y = array3y;
 		array1y = array3y;
 	}
-
+*/
 	d3 = this->GetFanRepresentation(array3x, array3y);
 	d2 = this->GetFanRepresentation(array2x, array2y);
 	d1 = this->GetFanRepresentation(array1x, array1y);
@@ -2590,7 +2587,6 @@ vtkXMLDataElement* vtkFreehandUltrasound2::MakeXMLElement()
 	rotationOptions->SetIntAttribute("Threshold2", this->RotatingThreshold2);
 	rotationOptions->SetIntAttribute("ShiftX", this->RotatingShiftX);
 	rotationOptions->SetIntAttribute("ShiftY", this->RotatingShiftY);
-	(this->ImageFlipped ? rotationOptions->SetAttribute("ImageFlipped", "On") : rotationOptions->SetAttribute("ImageFlipped", "Off"));
 	elem->AddNestedElement(rotationOptions);
 
 	// buffer options
@@ -2827,10 +2823,6 @@ PlusStatus vtkFreehandUltrasound2::ReadSummary(vtkXMLDataElement* aConfig)
 		this->SetRotatingShiftX(tempi);
 		rotationOptions->GetScalarAttribute("ShiftY", tempi);
 		this->SetRotatingShiftY(tempi);
-		if(rotationOptions->GetAttribute("ImageFlipped"))
-		{
-			((strcmp(rotationOptions->GetAttribute("ImageFlipped"), "On") == 0) ? this->ImageFlippedOn() : this->ImageFlippedOff());
-		}
 	}
 
 	// buffer options

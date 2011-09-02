@@ -40,7 +40,6 @@
 #ifdef PLUS_USE_Ascension3DG
 #include "vtkAscension3DGTracker.h"
 #endif
-#include "vtkBufferedTracker.h"
 #include "vtkFakeTracker.h"
 #include "vtkSavedDataTracker.h"
 
@@ -65,7 +64,6 @@
 #ifdef PLUS_USE_ICCAPTURING_VIDEO
 #include "vtkICCapturingSource.h"
 #endif
-#include "vtkBufferedVideoSource.h"
 #include "vtkSavedDataVideoSource.h"
 
 //----------------------------------------------------------------------------
