@@ -75,7 +75,7 @@ public:
   // (the output is the reconstruction volume, the second component
   // is the alpha component that stores whether or not a voxel has
   // been touched by the reconstruction)
-  virtual vtkImageData *GetReconstructedImage();
+  virtual vtkImageData *GetReconstructedVolume();
 
   // Description:
   // Get the accumulation buffer
@@ -91,7 +91,7 @@ public:
 
   // Description:
   // Cause the slice to be inserted into the first reconstruction volume
-  virtual PlusStatus InsertSlice(vtkImageData *image, vtkMatrix4x4* transform);
+  virtual PlusStatus InsertSlice(vtkImageData *image, vtkMatrix4x4* mImageToReference);
 
   // Description:
   // Creates the and clears all necessary image buffers.
@@ -153,11 +153,11 @@ public:
 
   // Description:
   // Configure the freehand ultrasound reconstruction according to summary XML data
-  virtual PlusStatus ReadConfig(vtkXMLDataElement* aConfig);
+  virtual PlusStatus ReadConfiguration(vtkXMLDataElement* aConfig);
 
   // Description:
   // Returns an XMLDataElement describing the freehand object
-  virtual PlusStatus WriteConfig(vtkXMLDataElement *elem);
+  virtual PlusStatus WriteConfiguration(vtkXMLDataElement *elem);
 
   //////////////////////////////////////////////////////////////////////////////////
 
@@ -174,7 +174,7 @@ protected:
   // Output: the split extent for the selected thread, number of threads to be used (return value)
   static int SplitSliceExtent(int splitExt[6], int fullExt[6], int threadId, int requestedNumberOfThreads);
 
-  vtkImageData *ReconstructedImage;
+  vtkImageData *ReconstructedVolume;
   vtkImageData *AccumulationBuffer;
 
   // parameters for fan/image
@@ -194,7 +194,6 @@ protected:
   int Compounding;
 
   vtkMultiThreader *Threader;
-  vtkMatrix4x4* TransformImageToProbe;
   
 private:
   vtkVolumeReconstructorFilter(const vtkVolumeReconstructorFilter&);
