@@ -59,7 +59,7 @@ vtkStandardNewMacro(vtkVolumeReconstructorFilter);
 struct InsertSliceThreadFunctionInfoStruct
 {
   vtkImageData* InputFrameImage;
-  vtkMatrix4x4* InputFrameTransform;
+  vtkMatrix4x4* TransformImageToReference;
 	vtkImageData* OutputVolume;
 	vtkImageData* Accumulator;
   vtkVolumeReconstructorFilter::OptimizationType Optimization;
@@ -75,7 +75,7 @@ struct InsertSliceThreadFunctionInfoStruct
 
 struct FillHoleThreadFunctionInfoStruct
 {
-	vtkImageData* Output;
+	vtkImageData* ReconstructedVolume;
 	vtkImageData* Accumulator;
   int Compounding;
 };
@@ -84,10 +84,9 @@ struct FillHoleThreadFunctionInfoStruct
 //----------------------------------------------------------------------------
 vtkVolumeReconstructorFilter::vtkVolumeReconstructorFilter()
 {
-  this->ReconstructedImage=vtkImageData::New();
+  this->ReconstructedVolume=vtkImageData::New();
   this->AccumulationBuffer=vtkImageData::New();
   this->Threader=vtkMultiThreader::New();
-  this->TransformImageToProbe=vtkMatrix4x4::New();
 
   this->OutputOrigin[0] = 0;
 	this->OutputOrigin[1] = 0;
@@ -125,10 +124,10 @@ vtkVolumeReconstructorFilter::vtkVolumeReconstructorFilter()
 //----------------------------------------------------------------------------
 vtkVolumeReconstructorFilter::~vtkVolumeReconstructorFilter()
 {  
-  if (this->ReconstructedImage)
+  if (this->ReconstructedVolume)
   {
-    this->ReconstructedImage->Delete();
-    this->ReconstructedImage=NULL;
+    this->ReconstructedVolume->Delete();
+    this->ReconstructedVolume=NULL;
   }
   if (this->AccumulationBuffer)
   {
@@ -140,21 +139,16 @@ vtkVolumeReconstructorFilter::~vtkVolumeReconstructorFilter()
     this->Threader->Delete();
     this->Threader=NULL;
   }
-  if (this->TransformImageToProbe)
-  {
-    this->TransformImageToProbe->Delete();
-    this->TransformImageToProbe=NULL;
-  }  
 }
 
 //----------------------------------------------------------------------------
 void vtkVolumeReconstructorFilter::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os,indent);
-  if (this->ReconstructedImage)
+  if (this->ReconstructedVolume)
 	{
-		os << indent << "ReconstructedImage:\n";
-		this->ReconstructedImage->PrintSelf(os,indent.GetNextIndent());
+		os << indent << "ReconstructedVolume:\n";
+		this->ReconstructedVolume->PrintSelf(os,indent.GetNextIndent());
 	}
 	if (this->AccumulationBuffer)
 	{
@@ -195,9 +189,9 @@ void vtkVolumeReconstructorFilter::PrintSelf(ostream& os, vtkIndent indent)
 // out output spacing - want to ensure that an output volume exists, even
 // if we are selecting which phases to reconstruct and the output for phase 0
 // is turned off
-vtkImageData *vtkVolumeReconstructorFilter::GetReconstructedImage()
+vtkImageData *vtkVolumeReconstructorFilter::GetReconstructedVolume()
 {
-  return this->ReconstructedImage;
+  return this->ReconstructedVolume;
 }
 
 //----------------------------------------------------------------------------
@@ -253,7 +247,7 @@ PlusStatus vtkVolumeReconstructorFilter::ResetOutput()
 
 	// Allocate memory for the reconstructed image and set all pixels to 0
 
-  vtkImageData* outData = this->ReconstructedImage;
+  vtkImageData* outData = this->ReconstructedVolume;
 	if (outData==NULL)
   {
     LOG_ERROR("Output image object is not created");
@@ -299,12 +293,12 @@ void vtkVolumeReconstructorFilter::SetCompounding(int compound)
 //----------------------------------------------------------------------------
 // Does the actual work of optimally inserting a slice, with optimization
 // Basically, just calls Multithread()
-PlusStatus vtkVolumeReconstructorFilter::InsertSlice(vtkImageData *image, vtkMatrix4x4* transform)
+PlusStatus vtkVolumeReconstructorFilter::InsertSlice(vtkImageData *image, vtkMatrix4x4* transformImageToReference)
 {
 	InsertSliceThreadFunctionInfoStruct str;
 	str.InputFrameImage = image;
-  str.InputFrameTransform = transform;
-  str.OutputVolume = this->ReconstructedImage;
+  str.TransformImageToReference = transformImageToReference;
+  str.OutputVolume = this->ReconstructedVolume;
   str.Accumulator = this->AccumulationBuffer;
   str.Compounding = this->Compounding;
   str.InterpolationMode = this->InterpolationMode;
@@ -374,6 +368,62 @@ VTK_THREAD_RETURN_TYPE vtkVolumeReconstructorFilter::InsertSliceThreadFunction( 
 		accPtr = str->Accumulator->GetScalarPointerForExtent(outExt);
 	}
 
+  /*
+
+  // Transform chain:
+  // VolumePixToImagePix = 
+  //  = ImagePixFromVolumePix
+  //  = ImagePixFromImage * ImageFromRef * RefFromVolumePix
+
+  vtkSmartPointer<vtkTransform> tImagePixFromImage = vtkSmartPointer<vtkTransform>::New();
+  tImagePixFromImage->Scale(1.0/str->InputFrameImage->GetSpacing()[0],
+    1.0/str->InputFrameImage->GetSpacing()[1],
+    1.0/str->InputFrameImage->GetSpacing()[2]);
+
+  vtkSmartPointer<vtkTransform> tImageFromRef = vtkSmartPointer<vtkTransform>::New();
+  tImageFromRef->SetMatrix(str->TransformImageToReference);
+  tImageFromRef->Inverse();
+
+  vtkSmartPointer<vtkTransform> tRefFromVolumePix = vtkSmartPointer<vtkTransform>::New();
+  tRefFromVolumePix->Translate(str->OutputVolume->GetOrigin());
+  tRefFromVolumePix->Scale(str->OutputVolume->GetSpacing());
+
+  vtkSmartPointer<vtkTransform> tVolumePixToImagePix = vtkSmartPointer<vtkTransform>::New();
+  tVolumePixToImagePix->Concatenate(tImagePixFromImage);
+  tVolumePixToImagePix->Concatenate(tImageFromRef);
+  tVolumePixToImagePix->Concatenate(tRefFromVolumePix);
+
+  vtkSmartPointer<vtkMatrix4x4> mVolumePixToImagePix = vtkSmartPointer<vtkMatrix4x4>::New();
+  tVolumePixToImagePix->GetMatrix(mVolumePixToImagePix);
+
+  mVolumePixToImagePix->Invert();
+
+  */
+
+  // Transform chain:
+  // ImagePixToVolumePix = 
+  //  = VolumePixFromImagePix
+  //  = VolumePixFromRef * RefFromImage * ImageFromImagePix 
+
+  vtkSmartPointer<vtkTransform> tVolumePixFromRef = vtkSmartPointer<vtkTransform>::New();
+  tVolumePixFromRef->Translate(str->OutputVolume->GetOrigin());
+  tVolumePixFromRef->Scale(str->OutputVolume->GetSpacing());
+  tVolumePixFromRef->Inverse();
+
+  vtkSmartPointer<vtkTransform> tRefFromImage = vtkSmartPointer<vtkTransform>::New();
+  tRefFromImage->SetMatrix(str->TransformImageToReference);
+
+  vtkSmartPointer<vtkTransform> tImageFromImagePix = vtkSmartPointer<vtkTransform>::New();
+  tImageFromImagePix->Scale(str->InputFrameImage->GetSpacing()); 
+
+  vtkSmartPointer<vtkTransform> tImagePixToVolumePix = vtkSmartPointer<vtkTransform>::New();
+  tImagePixToVolumePix->Concatenate(tVolumePixFromRef);
+  tImagePixToVolumePix->Concatenate(tRefFromImage);
+  tImagePixToVolumePix->Concatenate(tImageFromImagePix);
+
+  vtkSmartPointer<vtkMatrix4x4> mImagePixToVolumePix = vtkSmartPointer<vtkMatrix4x4>::New();
+  tImagePixToVolumePix->GetMatrix(mImagePixToVolumePix);
+
 	if (str->Optimization == FULL_OPTIMIZATION)
 	{
     // use fixed-point math
@@ -382,10 +432,10 @@ VTK_THREAD_RETURN_TYPE vtkVolumeReconstructorFilter::InsertSliceThreadFunction( 
 		fixed newmatrix[4][4]; // fixed because optimization = 2
 		for (int i = 0; i < 4; i++)
 		{
-      newmatrix[i][0] = str->InputFrameTransform->GetElement(i,0);
-			newmatrix[i][1] = str->InputFrameTransform->GetElement(i,1);
-			newmatrix[i][2] = str->InputFrameTransform->GetElement(i,2);
-			newmatrix[i][3] = str->InputFrameTransform->GetElement(i,3);
+      newmatrix[i][0] = mImagePixToVolumePix->GetElement(i,0);
+			newmatrix[i][1] = mImagePixToVolumePix->GetElement(i,1);
+			newmatrix[i][2] = mImagePixToVolumePix->GetElement(i,2);
+			newmatrix[i][3] = mImagePixToVolumePix->GetElement(i,3);
 		}
 
 		switch (str->InputFrameImage->GetScalarType())
@@ -430,10 +480,10 @@ VTK_THREAD_RETURN_TYPE vtkVolumeReconstructorFilter::InsertSliceThreadFunction( 
 		double newmatrix[4][4];
 		for (int i = 0; i < 4; i++)
 		{
-			newmatrix[i][0] = str->InputFrameTransform->GetElement(i,0);
-			newmatrix[i][1] = str->InputFrameTransform->GetElement(i,1);
-			newmatrix[i][2] = str->InputFrameTransform->GetElement(i,2);
-			newmatrix[i][3] = str->InputFrameTransform->GetElement(i,3);
+			newmatrix[i][0] = mImagePixToVolumePix->GetElement(i,0);
+			newmatrix[i][1] = mImagePixToVolumePix->GetElement(i,1);
+			newmatrix[i][2] = mImagePixToVolumePix->GetElement(i,2);
+			newmatrix[i][3] = mImagePixToVolumePix->GetElement(i,3);
 		}
 
 		switch (inData->GetScalarType())
@@ -852,7 +902,7 @@ VTK_THREAD_RETURN_TYPE vtkVolumeReconstructorFilter::FillHoleThreadFunction( voi
 	int threadId = threadInfo->ThreadID;
 	int threadCount = threadInfo->NumberOfThreads;
   int outputExtent[6];
-  str->Output->GetExtent(outputExtent);
+  str->ReconstructedVolume->GetExtent(outputExtent);
   int outputExtentForCurrentThread[6];
 	int totalUsedThreads = vtkVolumeReconstructorFilter::SplitSliceExtent(outputExtentForCurrentThread, outputExtent, threadId, threadCount);
 
@@ -867,28 +917,28 @@ VTK_THREAD_RETURN_TYPE vtkVolumeReconstructorFilter::FillHoleThreadFunction( voi
   
   vtkImageData *accData=str->Accumulator;
 
-  void *outPtr = str->Output->GetScalarPointerForExtent(outputExtentForCurrentThread);
+  void *outPtr = str->ReconstructedVolume->GetScalarPointerForExtent(outputExtentForCurrentThread);
 	void *accPtr = NULL;
 	if (str->Compounding)
 	{
 		accPtr = accData->GetScalarPointerForExtent(outputExtentForCurrentThread);
 	}
 
-	switch (str->Output->GetScalarType())
+	switch (str->ReconstructedVolume->GetScalarType())
 	{
 	case VTK_SHORT:
 		vtkVolumeReconstructorFilterFillHolesInOutput(
-			str->Output, (short *)(outPtr), 
+			str->ReconstructedVolume, (short *)(outPtr), 
 			(unsigned short *)(accPtr), outputExtentForCurrentThread);
 		break;
 	case VTK_UNSIGNED_SHORT:
 		vtkVolumeReconstructorFilterFillHolesInOutput(
-			str->Output, (unsigned short *)(outPtr),
+			str->ReconstructedVolume, (unsigned short *)(outPtr),
 			(unsigned short *)(accPtr), outputExtentForCurrentThread);
 		break;
 	case VTK_UNSIGNED_CHAR:
 		vtkVolumeReconstructorFilterFillHolesInOutput(
-			str->Output,(unsigned char *)(outPtr),
+			str->ReconstructedVolume,(unsigned char *)(outPtr),
 			(unsigned short *)(accPtr), outputExtentForCurrentThread); 
 		break;
 	default:
@@ -905,7 +955,7 @@ VTK_THREAD_RETURN_TYPE vtkVolumeReconstructorFilter::FillHoleThreadFunction( voi
 void vtkVolumeReconstructorFilter::FillHolesInOutput()
 {
 	FillHoleThreadFunctionInfoStruct str;
-  str.Output = this->ReconstructedImage;
+  str.ReconstructedVolume = this->ReconstructedVolume;
   str.Accumulator = this->AccumulationBuffer;
   str.Compounding = this->Compounding;
 
@@ -937,7 +987,7 @@ char* vtkVolumeReconstructorFilter::GetInterpolationModeAsString(InterpolationTy
 
 //----------------------------------------------------------------------------
 // Get the XML element describing the freehand object
-PlusStatus vtkVolumeReconstructorFilter::WriteConfig(vtkXMLDataElement *elem)
+PlusStatus vtkVolumeReconstructorFilter::WriteConfiguration(vtkXMLDataElement *elem)
 {
   //TODO fix saving according to the unified configuration file
 
@@ -978,21 +1028,11 @@ PlusStatus vtkVolumeReconstructorFilter::WriteConfig(vtkXMLDataElement *elem)
   reconOptions->SetAttribute("Compounding", this->Compounding?"On":"Off");
 	elem->AddNestedElement(reconOptions);
 
-	// spatial calibration
-
-	vtkXMLDataElement *calibration = vtkXMLDataElement::New();
-	calibration->SetName("Calibration");
-  calibration->SetAttribute("MatrixName", "ImageToProbe");  
-  double elements[16];
-  vtkMatrix4x4::DeepCopy(elements, TransformImageToProbe);
-  calibration->SetVectorAttribute("MatrixValue", 16, elements);
-	elem->AddNestedElement(calibration);
-
 	return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkVolumeReconstructorFilter::ReadConfig(vtkXMLDataElement* aConfig)
+PlusStatus vtkVolumeReconstructorFilter::ReadConfiguration(vtkXMLDataElement* aConfig)
 {
 	vtkSmartPointer<vtkXMLDataElement> volumeReconstruction = aConfig->FindNestedElementWithName("VolumeReconstruction");
 	if (volumeReconstruction == NULL)
@@ -1001,7 +1041,8 @@ PlusStatus vtkVolumeReconstructorFilter::ReadConfig(vtkXMLDataElement* aConfig)
 		return PLUS_FAIL;
 	}
 
-	// output parameters
+	// output volume parameters
+  // origin and spacing is defined in the reference coordinate system
 	vtkSmartPointer<vtkXMLDataElement> outputParams = volumeReconstruction->FindNestedElementWithName("OutputParameters");
 	if (outputParams)
 	{
@@ -1051,53 +1092,6 @@ PlusStatus vtkVolumeReconstructorFilter::ReadConfig(vtkXMLDataElement* aConfig)
 			((strcmp(reconOptions->GetAttribute("Compounding"), "On") == 0) ? this->SetCompounding(1) : this->SetCompounding(0));
 		}
 	}
-
-	// reconstruction transforms
-	double elements[16];
-
-  std::string toolType;
-	vtkTracker::ConvertToolTypeToString(TRACKER_TOOL_PROBE, toolType);
-
-	vtkSmartPointer<vtkXMLDataElement> dataCollectionConfig = aConfig->FindNestedElementWithName("USDataCollection");
-	if (dataCollectionConfig == NULL)
-  {
-    LOG_ERROR("Cannot find USDataCollection element in XML tree!");
-		return PLUS_FAIL;
-	}
-  vtkSmartPointer<vtkXMLDataElement> trackerDefinition = dataCollectionConfig->FindNestedElementWithName("Tracker"); 
-  if ( trackerDefinition == NULL) 
-  {
-    LOG_ERROR("Cannot find Tracker element in XML tree!");
-		return PLUS_FAIL;
-  }
-	vtkSmartPointer<vtkXMLDataElement> probeDefinition = trackerDefinition->FindNestedElementWithNameAndAttribute("Tool", "Type", toolType.c_str());
-	if (probeDefinition == NULL) 
-  {
-		LOG_ERROR("No probe definition is found in the XML tree!");
-		return PLUS_FAIL;
-	}
-	vtkSmartPointer<vtkXMLDataElement> calibration = probeDefinition->FindNestedElementWithName("Calibration");
-	if (calibration == NULL) 
-  {
-		LOG_ERROR("No calibration section is found in probe definition!");
-		return PLUS_FAIL;
-	}
-	if (calibration->GetVectorAttribute("MatrixValue", 16, elements)) {
-			vtkSmartPointer< vtkMatrix4x4 > mImageToTool = vtkSmartPointer< vtkMatrix4x4 >::New();
-			mImageToTool->DeepCopy( elements );
-
-			vtkSmartPointer< vtkTransform > tImageToTool = vtkSmartPointer< vtkTransform >::New();
-			tImageToTool->Identity();
-			tImageToTool->SetMatrix( mImageToTool );
-			tImageToTool->Update();
-
-			this->TransformImageToProbe->DeepCopy( tImageToTool->GetMatrix() );
-  } 
-  else 
-  {
-		LOG_ERROR("No calibration matrix is found in probe definition!");
-		return PLUS_FAIL;
-  }
 
 	return PLUS_SUCCESS;
 }
