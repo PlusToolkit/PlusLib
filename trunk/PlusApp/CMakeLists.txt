@@ -95,6 +95,12 @@ IF (PLUSAPP_BUILD_TrackedUltrasoundCapturing)
 	ADD_SUBDIRECTORY(TrackedUltrasoundCapturing)
     ADD_DEPENDENCIES( TrackedUltrasoundCapturing ${PLUSLIB_DEPENDENCIES} )
 ENDIF (PLUSAPP_BUILD_TrackedUltrasoundCapturing)
+# --------------------------------------------------------------------------
+# Build the TrackedUltrasoundCapturing application (Qt version)
+IF (PLUSAPP_BUILD_ProstateBiopsyGuidance)
+	ADD_SUBDIRECTORY(ProstateBiopsyGuidance)
+    ADD_DEPENDENCIES( ProstateBiopsyGuidance ${PLUSLIB_DEPENDENCIES} )
+ENDIF (PLUSAPP_BUILD_TProstateBiopsyGuidance)
 
 # --------------------------------------------------------------------------
 # Build the fCal application (Qt)
