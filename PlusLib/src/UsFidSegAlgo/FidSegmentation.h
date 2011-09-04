@@ -71,7 +71,7 @@ class FidSegmentation
  		std::vector<Item>	GetMorphologicalCircle() { return m_MorphologicalCircle; };
     void					    SetPossibleFiducialsImageFilename(std::string value) { m_PossibleFiducialsImageFilename = value; };
 
-    double				    GetThresholdImage() { return m_ThresholdImage; };
+    double				    GetThresholdImagePercent() { return m_ThresholdImagePercent; };
 
     bool					    GetDebugOutput() { return m_DebugOutput; };
 
@@ -92,7 +92,7 @@ class FidSegmentation
     void              SetMorphologicalOpeningCircleRadiusMm(double value) { m_MorphologicalOpeningCircleRadiusMm = value; };
     void              SetMorphologicalOpeningBarSizeMm(double value) { m_MorphologicalOpeningBarSizeMm = value; };
     void              SetRegionOfInterest(int xMin, int yMin, int xMax, int yMax);
-    void              SetThresholdImage(double value) { m_ThresholdImage = value; };
+    void              SetThresholdImagePercent(double value) { m_ThresholdImagePercent = value; };
     void              SetUseOriginalImageIntensityForDotIntensityScore(bool value) { m_UseOriginalImageIntensityForDotIntensityScore = value; };
 
 	protected:
@@ -100,7 +100,7 @@ class FidSegmentation
 		int						    m_RegionOfInterest[4];
 		bool					    m_UseOriginalImageIntensityForDotIntensityScore;
 
-		double 					  m_ThresholdImage;  // segmentation threshold (in percentage, minimum is 0, maximum is 100 at the top half of the image
+		double 					  m_ThresholdImagePercent;  // segmentation threshold (in percentage, minimum is 0, maximum is 100)
 
 		double					  m_MorphologicalOpeningBarSizeMm; 
 		double					  m_MorphologicalOpeningCircleRadiusMm; 

@@ -36,7 +36,7 @@ FidLineFinder::FidLineFinder()
 	m_MaxLineLenMm = -1.0;
 	m_MaxLineErrorMm = -1.0;
 
-	m_FindLines3PtDistanceMm = -1.0; 
+	m_CollinearPointsMaxDistanceFromLineMm = -1.0; 
 
 	m_MinTheta = -1.0; 
 	m_MaxTheta = -1.0;
@@ -297,14 +297,14 @@ PlusStatus FidLineFinder::ReadConfiguration( vtkXMLDataElement* configData )
       LOG_WARNING("Could not read maxLineLengthErrorPercent from configuration file.");
     }
 
-		double findLines3PtDist(0.0); 
-		if ( segmentationParameters->GetScalarAttribute("FindLines3PtDistanceMm", findLines3PtDist) )
+		double collinearPointsMaxDistanceFromLineMm(0.0); 
+		if ( segmentationParameters->GetScalarAttribute("CollinearPointsMaxDistanceFromLineMm", collinearPointsMaxDistanceFromLineMm) )
 		{
-			m_FindLines3PtDistanceMm = findLines3PtDist; 
+			m_CollinearPointsMaxDistanceFromLineMm = collinearPointsMaxDistanceFromLineMm; 
 		}
     else
     {
-      LOG_WARNING("Could not read FindLines3PtDistanceMm from configuration file.");
+      LOG_WARNING("Could not read CollinearPointsMaxDistanceFromLineMm from configuration file.");
     }
 
 		double maxLineErrorMm(0.0); 
@@ -351,14 +351,14 @@ PlusStatus FidLineFinder::ReadConfiguration( vtkXMLDataElement* configData )
       LOG_WARNING("Could not read maxThetaDegrees from configuration file.");
     }
 
-		double findLines3PtDist(0.0); 
-		if ( segmentationParameters->GetScalarAttribute("FindLines3PtDistanceMm", findLines3PtDist) )
+		double collinearPointsMaxDistanceFromLineMm(0.0); 
+		if ( segmentationParameters->GetScalarAttribute("CollinearPointsMaxDistanceFromLineMm", collinearPointsMaxDistanceFromLineMm) )
 		{
-			m_FindLines3PtDistanceMm = findLines3PtDist; 
+			m_CollinearPointsMaxDistanceFromLineMm = collinearPointsMaxDistanceFromLineMm; 
 		}
     else
     {
-      LOG_WARNING("Could not read FindLines3PtDistanceMm from configuration file.");
+      LOG_WARNING("Could not read CollinearPointsMaxDistanceFromLineMm from configuration file.");
     }
 
 		double maxLineErrorMm(0.0); 
@@ -556,7 +556,7 @@ void FidLineFinder::FindLines3Points( )
 
 	int points[3];
 	Line currentTwoPointsLine;
-	float dist = m_FindLines3PtDistanceMm / m_ApproximateSpacingMmPerPixel;
+	float dist = m_CollinearPointsMaxDistanceFromLineMm / m_ApproximateSpacingMmPerPixel;
 	for ( int b3 = 0; b3 < m_DotsVector.size(); b3++ ) 
 	{
 		float x3 = m_DotsVector[b3].GetX() - 1;

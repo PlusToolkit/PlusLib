@@ -17,7 +17,7 @@ void UsFidSegResultFile::WriteSegmentationResultsHeader(std::ostream &outFile)
 
 void UsFidSegResultFile::WriteSegmentationResultsParameters(std::ostream &outFile, FidPatternRecognition &patternRecognition, const std::string &trueFidFileName)
 {
-	outFile << " <AlgorithmOptions SegmentationThreshold=\"" << patternRecognition.GetFidSegmentation()->GetThresholdImage() <<  "\" ImportSegResultsFromFile=\"" << trueFidFileName.c_str() << "\" />" << std::endl;
+	outFile << " <AlgorithmOptions SegmentationThreshold=\"" << patternRecognition.GetFidSegmentation()->GetThresholdImagePercent() <<  "\" ImportSegResultsFromFile=\"" << trueFidFileName.c_str() << "\" />" << std::endl;
 }
 
 void UsFidSegResultFile::WriteSegmentationResultsStats(std::ostream &outFile, double meanFid, double meanFidCandidate/*=-1*/)
