@@ -139,7 +139,7 @@ int main (int argc, char* argv[])
 			LOG_ERROR("Unable to get default frame transform for frame #" << imgNumber); 
 			continue; 
 		}
-*/
+    */
     FidPatternRecognition patternRecognition;
     PatternRecognitionResult segResults;
 
@@ -152,7 +152,10 @@ int main (int argc, char* argv[])
       }
       else
       {
-        patternRecognition.RecognizePattern( reinterpret_cast<PixelType*>(trackedFrameList->GetTrackedFrame(imgNumber)->ImageData.GetBufferPointer()), segResults );
+        PlusVideoFrame videoFrame = trackedFrameList->GetTrackedFrame(imgNumber)->ImageData;
+        int frameSize[2];
+        videoFrame.GetFrameSize(frameSize);
+        patternRecognition.RecognizePattern( reinterpret_cast<PixelType*>(videoFrame.GetBufferPointer()), frameSize, segResults );
       }
   	}
 		catch(...)

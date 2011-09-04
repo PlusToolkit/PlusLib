@@ -55,6 +55,8 @@ FidLineFinder::~FidLineFinder()
 
 void FidLineFinder::UpdateParameters()
 {
+	LOG_TRACE("FidLineFinder::UpdateParameters");
+
 	// Compute error boundaries based on error percents and the NWire definition (supposing that the NWire is regular - parallel sides)
 	// Line length of an N-wire: the maximum distance between its wires' front endpoints
 	double maxLineLengthSquared = -1.0;
@@ -88,6 +90,8 @@ void FidLineFinder::UpdateParameters()
 
 void FidLineFinder::ComputeParameters()
 {
+	LOG_TRACE("FidLineFinder::ComputeParameters");
+
 	/*double maxAngleY = std::max(fabs(m_ImageNormalVectorInPhantomFrameMaximumRotationAngleDeg[2]),m_ImageNormalVectorInPhantomFrameMaximumRotationAngleDeg[3]);//the maximum of the rotation around the Y axis
 	m_MaxLineLengthErrorPercent = 1/cos(maxAngleY) - 1;
 
@@ -203,7 +207,8 @@ void FidLineFinder::ComputeParameters()
 
 PlusStatus FidLineFinder::ReadConfiguration( vtkXMLDataElement* configData )
 {
-	LOG_TRACE("FidSegmentation::ReadSegmentationParametersConfiguration"); 
+	LOG_TRACE("FidLineFinder::ReadConfiguration");
+
 	if ( configData == NULL) 
 	{
 		LOG_WARNING("Unable to read the SegmentationParameters XML data element!"); 
@@ -223,18 +228,6 @@ PlusStatus FidLineFinder::ReadConfiguration( vtkXMLDataElement* configData )
 		LOG_ERROR("No Segmentation parameters is found in the XML tree!");
 		return PLUS_FAIL;
 	}
-
-	// The input image dimensions (in pixels)
-	int frameSize[2] = {0}; 
-	if ( segmentationParameters->GetVectorAttribute("FrameSize", 2, frameSize) ) 
-	{
-		m_FrameSize[0] = frameSize[0];
-    m_FrameSize[1] = frameSize[1]; 
-	}
-  else
-  {
-    LOG_WARNING("Could not read FrameSize from configuration file.");
-  }
 
   double approximateSpacingMmPerPixel(0.0); 
 	if ( segmentationParameters->GetScalarAttribute("ApproximateSpacingMmPerPixel", approximateSpacingMmPerPixel) )
@@ -380,14 +373,38 @@ PlusStatus FidLineFinder::ReadConfiguration( vtkXMLDataElement* configData )
 	}
 
   UpdateParameters();
+
   return PLUS_SUCCESS; 
+}
+
+//-----------------------------------------------------------------------------
+
+void FidLineFinder::SetFrameSize(int frameSize[2])
+{
+	LOG_TRACE("FidLineFinder::SetFrameSize(" << frameSize[0] << ", " << frameSize[1] << ")");
+
+  if ((m_FrameSize[0] == frameSize[0]) && (m_FrameSize[1] == frameSize[1]))
+  {
+    return;
+  }
+
+  m_FrameSize[0] = frameSize[0];
+  m_FrameSize[1] = frameSize[1];
+
+  if (m_FrameSize[0] < 0 || m_FrameSize[1] < 0)
+  {
+    LOG_ERROR("Dimensions of the frame size are not positive!");
+    return;
+  }
 }
 
 //-----------------------------------------------------------------------------
 
 float FidLineFinder::ComputeSlope( Dot *dot1, Dot *dot2 )
 {
-	float x1 = dot1->GetX() - 1;
+	//LOG_TRACE("FidLineFinder::ComputeSlope");
+
+  float x1 = dot1->GetX() - 1;
 	float y1 = m_FrameSize[1] - dot1->GetY();
 
 	float x2 = dot2->GetX() - 1;
@@ -416,6 +433,8 @@ float FidLineFinder::ComputeSlope( Dot *dot1, Dot *dot2 )
 
 void FidLineFinder::ComputeLine( Line &line, std::vector<Dot> dots )
 {
+	//LOG_TRACE("FidLineFinder::ComputeLine");
+
 	int ptnum[3];
 	for (int i=0; i<3; i++)
 	{
@@ -470,6 +489,8 @@ void FidLineFinder::ComputeLine( Line &line, std::vector<Dot> dots )
 
 float FidLineFinder::SegmentLength( Dot *d1, Dot *d2 )
 {
+	//LOG_TRACE("FidLineFinder::SegmentLength");
+
 	float xd = d2->GetX() - d1->GetX();
 	float yd = d2->GetY() - d1->GetY();
 	return sqrtf( xd*xd + yd*yd );
@@ -479,6 +500,8 @@ float FidLineFinder::SegmentLength( Dot *d1, Dot *d2 )
 
 float FidLineFinder::LineLength( Line &line, std::vector<Dot> dots )
 {
+	//LOG_TRACE("FidLineFinder::LineLength");
+
 	float l1 = SegmentLength( &dots[line.GetLinePoint(0)], &dots[line.GetLinePoint(1)] );
 	float l2 = SegmentLength( &dots[line.GetLinePoint(0)], &dots[line.GetLinePoint(2)] );
 	float l3 = SegmentLength( &dots[line.GetLinePoint(1)], &dots[line.GetLinePoint(2)] );
@@ -492,6 +515,8 @@ float FidLineFinder::LineLength( Line &line, std::vector<Dot> dots )
 
 void FidLineFinder::FindLines2Points()
 {
+	LOG_TRACE("FidLineFinder::FindLines2Points");
+
 	for ( int b1 = 0; b1 < m_DotsVector.size(); b1++ ) {
 		float x1 = m_DotsVector[b1].GetX() - 1;
 		float y1 = m_FrameSize[1] - m_DotsVector[b1].GetY();
@@ -527,7 +552,8 @@ void FidLineFinder::FindLines3Points( )
 	 * for p. Accept the line if the compute p is within some small distance
 	 * of the 2-point line. */
 
-	
+	LOG_TRACE("FidLineFinder::FindLines3Points");
+
 	int points[3];
 	Line currentTwoPointsLine;
 	float dist = m_FindLines3PtDistanceMm / m_ApproximateSpacingMmPerPixel;
@@ -591,6 +617,8 @@ void FidLineFinder::FindLines3Points( )
 
 void FidLineFinder::Clear()
 {
+	//LOG_TRACE("FidLineFinder::Clear");
+
   m_DotsVector.clear();
   m_LinesVector.clear();
 	m_TwoPointsLinesVector.clear();
@@ -601,6 +629,8 @@ void FidLineFinder::Clear()
 
 void FidLineFinder::SortRightToLeft( Line *line )
 {
+	//LOG_TRACE("FidLineFinder::SortRightToLeft");
+
 	/* Since we prohibit stepp lines (see MAX_T and MIN_T) we can use the x
 	 * values to sort the points. */
 	std::vector<std::vector<Dot>::iterator> pointsIterator(3);//TODO Make it general
@@ -623,6 +653,8 @@ void FidLineFinder::SortRightToLeft( Line *line )
 
 bool FidLineFinder::AcceptLine( Line &line )
 {
+	//LOG_TRACE("FidLineFinder::AcceptLine");
+
 	int maxLineLenPx = floor(m_MaxLineLenMm / m_ApproximateSpacingMmPerPixel + 0.5 );
 	int minLineLenPx = floor(m_MinLineLenMm / m_ApproximateSpacingMmPerPixel + 0.5 );
 	double maxLineErrorPx = m_MaxLineErrorMm / m_ApproximateSpacingMmPerPixel;
@@ -638,6 +670,8 @@ bool FidLineFinder::AcceptLine( Line &line )
 
 void FidLineFinder::FindLines( )
 {
+	LOG_TRACE("FidLineFinder::FindLines");
+
 	// Make pairs of dots into 2-point lines.
 	FindLines2Points();
 

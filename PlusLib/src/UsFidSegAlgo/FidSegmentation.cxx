@@ -83,6 +83,8 @@ FidSegmentation::~FidSegmentation()
 
 void FidSegmentation::UpdateParameters()
 {
+  LOG_TRACE("FidSegmentation::UpdateParameters");
+
 	// Create morphological circle
 	m_MorphologicalCircle.clear(); 
 	int radiuspx = floor((m_MorphologicalOpeningCircleRadiusMm / m_ApproximateSpacingMmPerPixel) + 0.5); 
@@ -102,7 +104,8 @@ void FidSegmentation::UpdateParameters()
 
 PlusStatus FidSegmentation::ReadConfiguration( vtkXMLDataElement* configData )
 {
-	LOG_TRACE("FidSegmentation::ReadSegmentationParametersConfiguration"); 
+	LOG_TRACE("FidSegmentation::ReadConfiguration");
+
 	if ( configData == NULL) 
 	{
 		LOG_WARNING("Unable to read the configData XML data element!"); 
@@ -157,25 +160,6 @@ PlusStatus FidSegmentation::ReadConfiguration( vtkXMLDataElement* configData )
 		}
 	}
 
-	// The input image dimensions (in pixels)
-	int frameSize[2] = {0}; 
-	if ( segmentationParameters->GetVectorAttribute("FrameSize", 2, frameSize) ) 
-	{
-		m_FrameSize[0] = frameSize[0];
-    m_FrameSize[1] = frameSize[1];  
-	}
-  else
-  {
-    LOG_WARNING("Could not read FrameSize from configuration file.");
-  }
-
-  int size = m_FrameSize[0]*m_FrameSize[1];
-
-	m_Dilated = new PixelType[size];
-	m_Eroded = new PixelType[size];
-	m_Working = new PixelType[size];
-	m_UnalteredImage = new PixelType[size];
-
 	double approximateSpacingMmPerPixel(0.0); 
 	if ( segmentationParameters->GetScalarAttribute("ApproximateSpacingMmPerPixel", approximateSpacingMmPerPixel) )
 	{
@@ -217,7 +201,7 @@ PlusStatus FidSegmentation::ReadConfiguration( vtkXMLDataElement* configData )
 	}
 	else
 	{
-		LOG_WARNING("Cannot find RegionOfInterest attribute in the SegmentationParameters configuration file.");
+		LOG_INFO("Cannot find RegionOfInterest attribute in the SegmentationParameters configuration file; Using the largest ROI possible.");
 	}
 
 	double thresholdImage(0.0); 
@@ -241,7 +225,7 @@ PlusStatus FidSegmentation::ReadConfiguration( vtkXMLDataElement* configData )
 	}
 
 
-	//if the tolerance parameters are computed automatically
+	// If the tolerance parameters are computed automatically
 	int computeSegmentationParametersFromPhantomDefinition(0);
 	if(segmentationParameters->GetScalarAttribute("ComputeSegmentationParametersFromPhantomDefinition", computeSegmentationParametersFromPhantomDefinition)
 		&& computeSegmentationParametersFromPhantomDefinition!=0 )
@@ -273,35 +257,12 @@ PlusStatus FidSegmentation::ReadConfiguration( vtkXMLDataElement* configData )
     }
 		delete [] imageNormalVectorInPhantomFrameEstimation;
 
-		//Compute the tolerances parameters automatically
+		// Compute the tolerances parameters automatically
 		ComputeParameters();
 	}
-	else//if the tolerances parameters are given by the configuration file
+	else // If the tolerances parameters are given by the configuration file
 	{
-		
-	}
-
-	//Checking the search region to make sure it won't make the program crash (if too big or if bar size goes out of image)
-	int barSize = GetMorphologicalOpeningBarSizePx();
-	if(m_RegionOfInterest[0] - barSize < 0)
-	{
-		m_RegionOfInterest[0] = barSize+1;
-		LOG_WARNING("The region of interest is too big, bar size is " << barSize);
-	}
-	if(m_RegionOfInterest[1] - barSize < 0)
-	{
-		m_RegionOfInterest[1] = barSize+1;
-		LOG_WARNING("The region of interest is too big, bar size is " << barSize);
-	}
-	if(m_RegionOfInterest[2] + barSize > GetFrameSize()[0])
-	{
-		m_RegionOfInterest[2] = m_FrameSize[0]-barSize-1;
-		LOG_WARNING("The region of interest is too big, bar size is " << barSize);
-	}
-	if(m_RegionOfInterest[3] + barSize > GetFrameSize()[1])
-	{
-		m_RegionOfInterest[3] = m_FrameSize[1]-barSize-1;
-		LOG_WARNING("The region of interest is too big, bar size is " << barSize);
+		// TODO This block is empty. Should something be here? - Csaba
 	}
   
   UpdateParameters();
@@ -311,15 +272,88 @@ PlusStatus FidSegmentation::ReadConfiguration( vtkXMLDataElement* configData )
 
 //-----------------------------------------------------------------------------
 
+void FidSegmentation::SetFrameSize(int frameSize[2])
+{
+	LOG_TRACE("FidSegmentation::SetFrameSize(" << frameSize[0] << ", " << frameSize[1] << ")");
+
+  if ((m_FrameSize[0] == frameSize[0]) && (m_FrameSize[1] == frameSize[1]))
+  {
+    return;
+  }
+
+  if ((m_FrameSize[0] != -1) && (m_FrameSize[1] != -1))
+  {
+	  delete[] m_Dilated;
+	  delete[] m_Eroded;
+	  delete[] m_Working;
+	  delete[] m_UnalteredImage;
+  }
+
+  m_FrameSize[0] = frameSize[0];
+  m_FrameSize[1] = frameSize[1];
+
+  if (m_FrameSize[0] < 0 || m_FrameSize[1] < 0)
+  {
+    LOG_ERROR("Dimensions of the frame size are not positive!");
+    return;
+  }
+
+  // Create working images (after deleting them in case they were already created)
+  long size = m_FrameSize[0] * m_FrameSize[1];
+	m_Dilated = new PixelType[size];
+	m_Eroded = new PixelType[size];
+	m_Working = new PixelType[size];
+	m_UnalteredImage = new PixelType[size];
+
+  // Set ROI to the largest possible if not already set
+  if ((m_RegionOfInterest[0] == -1) && (m_RegionOfInterest[1] == -1) && (m_RegionOfInterest[2] == -1) && (m_RegionOfInterest[3] == -1))
+  {
+	  int barSize = GetMorphologicalOpeningBarSizePx();
+	  m_RegionOfInterest[0] = barSize+1;
+    m_RegionOfInterest[1] = barSize+1;
+	  m_RegionOfInterest[2] = m_FrameSize[0]-barSize-1;
+	  m_RegionOfInterest[3] = m_FrameSize[1]-barSize-1;
+  }
+  else
+  {
+	  // Check the search region in case it was set to too big (with the additional bar size it would go out of image)
+	  int barSize = GetMorphologicalOpeningBarSizePx();
+	  if(m_RegionOfInterest[0] - barSize < 0)
+	  {
+		  m_RegionOfInterest[0] = barSize+1;
+		  LOG_WARNING("The region of interest is too big, bar size is " << barSize);
+	  }
+	  if(m_RegionOfInterest[1] - barSize < 0)
+	  {
+		  m_RegionOfInterest[1] = barSize+1;
+		  LOG_WARNING("The region of interest is too big, bar size is " << barSize);
+	  }
+	  if(m_RegionOfInterest[2] + barSize > GetFrameSize()[0])
+	  {
+		  m_RegionOfInterest[2] = m_FrameSize[0]-barSize-1;
+		  LOG_WARNING("The region of interest is too big, bar size is " << barSize);
+	  }
+	  if(m_RegionOfInterest[3] + barSize > GetFrameSize()[1])
+	  {
+		  m_RegionOfInterest[3] = m_FrameSize[1]-barSize-1;
+		  LOG_WARNING("The region of interest is too big, bar size is " << barSize);
+	  }
+  }
+}
+
+//-----------------------------------------------------------------------------
+
 void FidSegmentation::ComputeParameters()
 {
-	
+	// TODO This function is empty. Should something be here? - Csaba
 }
 
 //-----------------------------------------------------------------------------
 
 void FidSegmentation::Clear()
 {
+	//LOG_TRACE("FidSegmentation::Clear");
+
   m_DotsVector.clear();
   m_CandidateFidValues.clear();
 }
@@ -328,6 +362,8 @@ void FidSegmentation::Clear()
 
 int FidSegmentation::GetMorphologicalOpeningBarSizePx()
 {
+	//LOG_TRACE("FidSegmentation::GetMorphologicalOpeningBarSizePx");
+
 	int barsize = floor(m_MorphologicalOpeningBarSizeMm / m_ApproximateSpacingMmPerPixel + 0.5 );
 	return barsize; 
 }
@@ -336,6 +372,8 @@ int FidSegmentation::GetMorphologicalOpeningBarSizePx()
 
 inline PixelType FidSegmentation::ErodePoint0( PixelType *image, unsigned int ir, unsigned int ic )
 {
+	//LOG_TRACE("FidSegmentation::ErodePoint0");
+
 	const int barSize = GetMorphologicalOpeningBarSizePx(); 
 	PixelType dval = UCHAR_MAX;
 	unsigned int p = ir*m_FrameSize[0] + ic - barSize; // current pixel - bar size (position of the start of the bar)
@@ -355,6 +393,8 @@ inline PixelType FidSegmentation::ErodePoint0( PixelType *image, unsigned int ir
 
 void FidSegmentation::Erode0( PixelType *dest, PixelType *image )
 {
+	//LOG_TRACE("FidSegmentation::Erode0");
+
 	memset( dest, 0, m_FrameSize[1]*m_FrameSize[0]*sizeof(PixelType) );
 
 	const int barSize = GetMorphologicalOpeningBarSizePx(); 
@@ -383,6 +423,8 @@ void FidSegmentation::Erode0( PixelType *dest, PixelType *image )
 
 inline PixelType FidSegmentation::ErodePoint45( PixelType *image, unsigned int ir, unsigned int ic )
 {
+	//LOG_TRACE("FidSegmentation::ErodePoint45");
+
 	const int barSize = GetMorphologicalOpeningBarSizePx(); 
 
 	PixelType dval = UCHAR_MAX;
@@ -402,6 +444,8 @@ inline PixelType FidSegmentation::ErodePoint45( PixelType *image, unsigned int i
 
 void FidSegmentation::Erode45( PixelType *dest, PixelType *image )
 {
+	//LOG_TRACE("FidSegmentation::Erode45");
+
 	memset( dest, 0, m_FrameSize[1]*m_FrameSize[0]*sizeof(PixelType) );
 	const int barSize = GetMorphologicalOpeningBarSizePx(); 
 
@@ -450,6 +494,8 @@ void FidSegmentation::Erode45( PixelType *dest, PixelType *image )
 
 inline PixelType FidSegmentation::ErodePoint90( PixelType *image, unsigned int ir, unsigned int ic )
 {
+	//LOG_TRACE("FidSegmentation::ErodePoint90");
+
 	const int barSize = GetMorphologicalOpeningBarSizePx(); 
 	PixelType dval = UCHAR_MAX;
 	unsigned int p = (ir-barSize)*m_FrameSize[0] + ic;
@@ -468,6 +514,8 @@ inline PixelType FidSegmentation::ErodePoint90( PixelType *image, unsigned int i
 
 void FidSegmentation::Erode90( PixelType *dest, PixelType *image )
 {
+	//LOG_TRACE("FidSegmentation::Erode90");
+
 	memset( dest, 0, m_FrameSize[1]*m_FrameSize[0]*sizeof(PixelType) );
 
 	const int barSize = GetMorphologicalOpeningBarSizePx(); 
@@ -495,6 +543,8 @@ void FidSegmentation::Erode90( PixelType *dest, PixelType *image )
 
 inline PixelType FidSegmentation::ErodePoint135( PixelType *image, unsigned int ir, unsigned int ic )
 {
+	//LOG_TRACE("FidSegmentation::ErodePoint135");
+
 	const int barSize = GetMorphologicalOpeningBarSizePx(); 
 	PixelType dval = UCHAR_MAX;
 	unsigned int p = (ir-barSize)*m_FrameSize[0] + ic-barSize;
@@ -513,6 +563,8 @@ inline PixelType FidSegmentation::ErodePoint135( PixelType *image, unsigned int 
 
 void FidSegmentation::Erode135( PixelType *dest, PixelType *image )
 {
+	//LOG_TRACE("FidSegmentation::Erode135");
+
 	memset( dest, 0, m_FrameSize[1]*m_FrameSize[0]*sizeof(PixelType) );
 
 	const int barSize = GetMorphologicalOpeningBarSizePx(); 
@@ -562,6 +614,8 @@ void FidSegmentation::Erode135( PixelType *dest, PixelType *image )
 
 void FidSegmentation::ErodeCircle( PixelType *dest, PixelType *image )
 {
+	//LOG_TRACE("FidSegmentation::ErodeCircle");
+
 	std::vector<Item> morphologicalCircle = GetMorphologicalCircle();
 	unsigned int slen = morphologicalCircle.size();
 
@@ -589,6 +643,8 @@ void FidSegmentation::ErodeCircle( PixelType *dest, PixelType *image )
 
 inline PixelType FidSegmentation::DilatePoint0( PixelType *image, unsigned int ir, unsigned int ic )
 {
+	//LOG_TRACE("FidSegmentation::DilatePoint0");
+
 	const int barSize = GetMorphologicalOpeningBarSizePx(); 
 	PixelType dval = 0;
 	unsigned int p = ir*m_FrameSize[0] + ic - barSize;
@@ -605,6 +661,8 @@ inline PixelType FidSegmentation::DilatePoint0( PixelType *image, unsigned int i
 
 void FidSegmentation::Dilate0( PixelType *dest, PixelType *image )
 {
+	//LOG_TRACE("FidSegmentation::Dilate0");
+
 	memset( dest, 0, m_FrameSize[1]*m_FrameSize[0]*sizeof(PixelType) );
 
 	const int barSize = GetMorphologicalOpeningBarSizePx(); 
@@ -631,6 +689,8 @@ void FidSegmentation::Dilate0( PixelType *dest, PixelType *image )
 
 inline PixelType FidSegmentation::DilatePoint45( PixelType *image, unsigned int ir, unsigned int ic )
 {
+	//LOG_TRACE("FidSegmentation::DilatePoint45");
+
 	const int barSize = GetMorphologicalOpeningBarSizePx(); 
 	PixelType dval = 0;
 	unsigned int p = (ir+barSize)*m_FrameSize[0] + ic-barSize;
@@ -647,6 +707,8 @@ inline PixelType FidSegmentation::DilatePoint45( PixelType *image, unsigned int 
 
 void FidSegmentation::Dilate45( PixelType *dest, PixelType *image )
 {
+	//LOG_TRACE("FidSegmentation::Dilate45");
+
 	memset( dest, 0, m_FrameSize[1]*m_FrameSize[0]*sizeof(PixelType) );
 	const int barSize = GetMorphologicalOpeningBarSizePx(); 
 
@@ -691,6 +753,8 @@ void FidSegmentation::Dilate45( PixelType *dest, PixelType *image )
 
 inline PixelType FidSegmentation::DilatePoint90( PixelType *image, unsigned int ir, unsigned int ic )
 {
+	//LOG_TRACE("FidSegmentation::DilatePoint90");
+
 	const int barSize = GetMorphologicalOpeningBarSizePx(); 
 	PixelType dval = 0;
 	unsigned int p = (ir-barSize)*m_FrameSize[0] + ic;
@@ -707,6 +771,8 @@ inline PixelType FidSegmentation::DilatePoint90( PixelType *image, unsigned int 
 
 void FidSegmentation::Dilate90( PixelType *dest, PixelType *image )
 {
+	//LOG_TRACE("FidSegmentation::Dilate90");
+
 	memset( dest, 0, m_FrameSize[1]*m_FrameSize[0]*sizeof(PixelType) );
 	const int barSize = GetMorphologicalOpeningBarSizePx(); 
 
@@ -731,6 +797,8 @@ void FidSegmentation::Dilate90( PixelType *dest, PixelType *image )
 
 inline PixelType FidSegmentation::DilatePoint135( PixelType *image, unsigned int ir, unsigned int ic )
 {
+	//LOG_TRACE("FidSegmentation::DilatePoint135");
+
 	const int barSize = GetMorphologicalOpeningBarSizePx(); 
 	PixelType dval = 0;
 	unsigned int p = (ir-barSize)*m_FrameSize[0] + ic-barSize;
@@ -747,6 +815,8 @@ inline PixelType FidSegmentation::DilatePoint135( PixelType *image, unsigned int
 
 void FidSegmentation::Dilate135( PixelType *dest, PixelType *image )
 {
+	//LOG_TRACE("FidSegmentation::Dilate135");
+
 	memset( dest, 0, m_FrameSize[1]*m_FrameSize[0]*sizeof(PixelType) );
 	const int barSize = GetMorphologicalOpeningBarSizePx(); 
 
@@ -790,6 +860,8 @@ void FidSegmentation::Dilate135( PixelType *dest, PixelType *image )
 inline PixelType FidSegmentation::DilatePoint( PixelType *image, unsigned int ir, unsigned int ic, 
                 Item *shape, int slen )
 {
+	//LOG_TRACE("FidSegmentation::DilatePoint");
+
 	PixelType dval = 0;
 	for ( int sp = 0; sp < slen; sp++ ) {
 		unsigned int sr = ir + shape[sp].roff;
@@ -804,6 +876,8 @@ inline PixelType FidSegmentation::DilatePoint( PixelType *image, unsigned int ir
 
 void FidSegmentation::DilateCircle( PixelType *dest, PixelType *image )
 {
+	//LOG_TRACE("FidSegmentation::DilateCircle");
+
 	std::vector<Item> morphologicalCircle = GetMorphologicalCircle();
 	unsigned int slen = morphologicalCircle.size();
 
@@ -872,6 +946,8 @@ void FidSegmentation::DilateCircle( PixelType *dest, PixelType *image )
 
 bool FidSegmentation::ShapeContains( std::vector<Item> shape, Item newItem )
 {
+	//LOG_TRACE("FidSegmentation::ShapeContains");
+
 	for ( unsigned int si = 0; si < shape.size(); si++ ) 
 	{
 		if ( shape[si] == newItem )
@@ -886,9 +962,9 @@ bool FidSegmentation::ShapeContains( std::vector<Item> shape, Item newItem )
 
 void FidSegmentation::WritePng(PixelType *modifiedImage, std::string outImageName, int cols, int rows) 
 {
+	//LOG_TRACE("FidSegmentation::WritePng");
 
-// output intermediate image
-	
+  // output intermediate image
 	typedef unsigned char          PixelType; // define type for pixel representation
 	const unsigned int             Dimension = 2; 
 
@@ -950,6 +1026,8 @@ void FidSegmentation::WritePng(PixelType *modifiedImage, std::string outImageNam
 
 void FidSegmentation::WritePossibleFiducialOverlayImage(std::vector<Dot> fiducials, PixelType *unalteredImage)
 {
+	//LOG_TRACE("FidSegmentation::WritePossibleFiducialOverlayImage");
+
 	typedef itk::RGBPixel< unsigned char >    PixelType;
 	typedef itk::Image< PixelType, 2 >   ImageType;
 
@@ -1040,6 +1118,8 @@ void FidSegmentation::WritePossibleFiducialOverlayImage(std::vector<Dot> fiducia
 
 void FidSegmentation::Subtract( PixelType *image, PixelType *vals )
 {
+	//LOG_TRACE("FidSegmentation::Subtract");
+
 	for ( unsigned int pos = m_FrameSize[1]*m_FrameSize[0]; pos>0; pos-- )
   {    
 		*image = *vals > *image ? 0 : *image - *vals;
@@ -1056,6 +1136,8 @@ void FidSegmentation::Subtract( PixelType *image, PixelType *vals )
 
 void FidSegmentation::Suppress( PixelType *image, float percent_thresh )
 {
+	LOG_TRACE("FidSegmentation::Suppress");
+
   // Get the minimum and maximum pixel value
 	PixelType max = 0;
   PixelType min = 255;
@@ -1102,6 +1184,8 @@ void FidSegmentation::Suppress( PixelType *image, float percent_thresh )
 
 inline void FidSegmentation::ClusteringAddNeighbors( PixelType *image, int r, int c, std::vector<Position> &testPosition, std::vector<Position> &setPosition, std::vector<PixelType>& valuesOfPosition)
 {
+	//LOG_TRACE("FidSegmentation::ClusteringAddNeighbors");
+
   if ( image[r*m_FrameSize[0]+c] > 0 && testPosition.size() < MAX_CLUSTER_VALS && 
 			setPosition.size() < MAX_CLUSTER_VALS )
 	{
@@ -1120,6 +1204,8 @@ inline void FidSegmentation::ClusteringAddNeighbors( PixelType *image, int r, in
 /* Should we accept a dot? */
 inline bool FidSegmentation::AcceptDot( Dot &dot )
 {
+	//LOG_TRACE("FidSegmentation::AcceptDot");
+
 	if ( dot.GetY() >= m_RegionOfInterest[1] + MIN_WINDOW_DIST &&
 		 dot.GetY() < m_RegionOfInterest[3] - MIN_WINDOW_DIST &&
 		 dot.GetX() >=  m_RegionOfInterest[0] + MIN_WINDOW_DIST &&
@@ -1137,6 +1223,8 @@ inline bool FidSegmentation::AcceptDot( Dot &dot )
 
 void FidSegmentation::Cluster()
 {
+	LOG_TRACE("FidSegmentation::Cluster");
+
 	Dot dot;
   
   std::vector<Position> testPosition;
@@ -1226,6 +1314,8 @@ void FidSegmentation::Cluster()
 
 std::vector<std::vector<double>> FidSegmentation::SortInAscendingOrder(std::vector<std::vector<double>> fiducials) 
 {
+	//LOG_TRACE("FidSegmentation::SortInAscendingOrder");
+
 	std::vector<std::vector<double>> sortedFiducials; 
 
 	if( fiducials[0][0] < fiducials[1][0] )
@@ -1368,103 +1458,107 @@ std::vector<std::vector<double>> FidSegmentation::SortInAscendingOrder(std::vect
 
 void FidSegmentation::MorphologicalOperations()
 {
+	LOG_TRACE("FidSegmentation::MorphologicalOperations");
+
   // Morphological operations with a stick-like structuring element
-	
 	if(m_DebugOutput) 
 	{
 		WritePng(m_Working,"seg01-initial.png", m_FrameSize[0], m_FrameSize[1]); 
 	}
 
-	Erode0( m_Eroded, m_Working );
+  Erode0( m_Eroded, m_Working );
 	if(m_DebugOutput) 
 	{
 		WritePng(m_Eroded,"seg02-morph-bar-deg0-erode.png", m_FrameSize[0], m_FrameSize[1]); 
 	}
-	
-	Dilate0( m_Dilated, m_Eroded );
+
+  Dilate0( m_Dilated, m_Eroded );
 	if(m_DebugOutput) 
 	{
 		WritePng(m_Dilated,"seg03-morph-bar-deg0-dilated.png", m_FrameSize[0], m_FrameSize[1]); 
 	}
-	Subtract( m_Working, m_Dilated );
+
+  Subtract( m_Working, m_Dilated );
 	if(m_DebugOutput) 
 	{
 		WritePng(m_Working,"seg04-morph-bar-deg0-final.png", m_FrameSize[0], m_FrameSize[1]); 
 	}
 
-	Erode45( m_Eroded, m_Working );
+  Erode45( m_Eroded, m_Working );
 	if(m_DebugOutput) 
 	{
 		WritePng(m_Eroded,"seg05-morph-bar-deg45-erode.png", m_FrameSize[0], m_FrameSize[1]); 
 	}
 
-	Dilate45( m_Dilated, m_Eroded );
+  Dilate45( m_Dilated, m_Eroded );
 	if(m_DebugOutput) 
 	{
 		WritePng(m_Dilated,"seg06-morph-bar-deg45-dilated.png", m_FrameSize[0], m_FrameSize[1]); 
 	}
 
-	Subtract( m_Working, m_Dilated );
+  Subtract( m_Working, m_Dilated );
 	if(m_DebugOutput) 
 	{
 		WritePng(m_Working,"seg07-morph-bar-deg45-final.png", m_FrameSize[0], m_FrameSize[1]); 
 	}
 
-	Erode90( m_Eroded, m_Working );
+  Erode90( m_Eroded, m_Working );
 	if(m_DebugOutput) 
 	{
 		WritePng(m_Eroded,"seg08-morph-bar-deg90-erode.png", m_FrameSize[0], m_FrameSize[1]); 
 	}
 
-	Dilate90( m_Dilated, m_Eroded );
+  Dilate90( m_Dilated, m_Eroded );
 	if(m_DebugOutput) 
 	{
 		WritePng(m_Dilated,"seg09-morph-bar-deg90-dilated.png", m_FrameSize[0], m_FrameSize[1]); 
 	}
 
-	Subtract( m_Working, m_Dilated );
+  Subtract( m_Working, m_Dilated );
 	if(m_DebugOutput) 
 	{
 		WritePng(m_Working,"seg10-morph-bar-deg90-final.png", m_FrameSize[0], m_FrameSize[1]); 
 	}
 
-	Erode135( m_Eroded, m_Working );
+  Erode135( m_Eroded, m_Working );
 	if(m_DebugOutput) 
 	{
 		WritePng(m_Eroded,"seg11-morph-bar-deg135-erode.png", m_FrameSize[0], m_FrameSize[1]); 
 	}
 
-	Dilate135( m_Dilated, m_Eroded );
+  Dilate135( m_Dilated, m_Eroded );
 	if(m_DebugOutput) 
 	{
 		WritePng(m_Dilated,"seg12-morph-bar-deg135-dilated.png", m_FrameSize[0], m_FrameSize[1]); 
 	}
 
-	Subtract( m_Working, m_Dilated );
+  Subtract( m_Working, m_Dilated );
 	if(m_DebugOutput) 
 	{
 		WritePng(m_Working,"seg13-morph-bar-deg135-final.png", m_FrameSize[0], m_FrameSize[1]); 
 	}
 
-	/* Circle operation. */
+  /* Circle operation. */
 	ErodeCircle( m_Eroded, m_Working );
 	if(m_DebugOutput) 
 	{
 		WritePng(m_Eroded,"seg14-morph-circle-erode.png", m_FrameSize[0], m_FrameSize[1]); 
 	}
 
-	DilateCircle( m_Working, m_Eroded );
+  DilateCircle( m_Working, m_Eroded );
 	if(m_DebugOutput) 
 	{
 		WritePng(m_Working,"seg15-morph-circle-final.png", m_FrameSize[0], m_FrameSize[1]); 
 	}
-	
+
 }
 
 //-----------------------------------------------------------------------------
 
 void FidSegmentation::SetRegionOfInterest(int xMin, int yMin, int xMax, int yMax)
 {
+	LOG_TRACE("FidSegmentation::SetRegionOfInterest(" << xMin << ", " << yMin << ", " << xMax << ", " << yMax << ")");
+
   if (xMin > 0) {
     m_RegionOfInterest[0] = xMin;
   }

@@ -4,7 +4,7 @@
 SET (UsFidSegAlgo_SRCS
 		FidSegmentation.cxx
 		FidLineFinder.cxx
-		FidLabelling.cxx
+		FidLabeling.cxx
 		FidPatternRecognitionCommon.cxx
 		FidPatternRecognition.cxx
 		UsFidSegResultFile.cxx
@@ -15,7 +15,7 @@ IF (WIN32)
 	SET (UsFidSegAlgo_HDRS
 		FidSegmentation.h
 		FidLineFinder.h
-		FidLabelling.h
+		FidLabeling.h
 		FidPatternRecognitionCommon.h
 		FidPatternRecognition.h
 		UsFidSegResultFile.h

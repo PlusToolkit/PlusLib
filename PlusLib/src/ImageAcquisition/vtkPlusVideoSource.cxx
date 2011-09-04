@@ -547,8 +547,6 @@ PlusStatus vtkPlusVideoSource::WriteConfiguration(vtkXMLDataElement* config)
 
   imageAcquisitionConfig->SetIntAttribute("BufferSize", this->GetBuffer()->GetBufferSize()); 
 
-  imageAcquisitionConfig->SetVectorAttribute("FrameSize", 2, this->GetFrameSize()); 
-
   imageAcquisitionConfig->SetDoubleAttribute("LocalTimeOffset", this->GetBuffer()->GetLocalTimeOffset() ); 
 
   return PLUS_SUCCESS; 
@@ -577,12 +575,6 @@ PlusStatus vtkPlusVideoSource::ReadConfiguration(vtkXMLDataElement* config)
     LOG_ERROR("Unable to find ImageAcquisition element in configuration XML structure!");
     return PLUS_FAIL;
   }
-
-  int frameSize[2] = {0, 0}; 
-	if ( imageAcquisitionConfig->GetVectorAttribute("FrameSize", 2, frameSize) )
-	{
-		this->SetFrameSize(frameSize[0], frameSize[1]); 
-	}
 
 	int bufferSize = 0; 
 	if ( imageAcquisitionConfig->GetScalarAttribute("BufferSize", bufferSize) )

@@ -18,6 +18,7 @@ class FidLineFinder
     void        Clear();
 
 		PlusStatus	ReadConfiguration( vtkXMLDataElement* segmentationParameters );
+    void        SetFrameSize( int frameSize[2] );
 
     void 				FindLines3Points();
 		void 				FindLines2Points();
