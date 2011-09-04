@@ -34,6 +34,9 @@ FreehandMainWindow::FreehandMainWindow(QWidget *parent, Qt::WFlags flags)
 	// Set up UI
 	ui.setupUi(this);
 
+  // Maximize window
+  this->setWindowState(this->windowState() ^ Qt::WindowMaximized);
+
 	// Make connections
 	connect(ui.tabWidgetToolbox, SIGNAL(currentChanged(int)), this, SLOT(CurrentTabChanged(int)) );
 }
