@@ -179,7 +179,6 @@
             <PhantomDefinition FileName="PhantomDefinition_fCal_1.0_Wiring_1.0.xml" /> 
 
 			<SegmentationParameters
-					FrameSize="640 480"
 					ApproximateSpacingMmPerPixel="0.098"
 					MorphologicalOpeningCircleRadiusMm="0.55"
 					MorphologicalOpeningBarSizeMm="2.0"
@@ -194,9 +193,9 @@
 					MinThetaDegrees="20"
 					MaxThetaDegrees="160"
 					
-					ThresholdImage="10.0"
+					ThresholdImage="10.0" ThresholdImagePercent
 
-					FindLines3PtDistanceMm="0.52"
+					FindLines3PtDistanceMm="0.52" CollinearPointsMaxDistanceFromLineMm
 
 					UseOriginalImageIntensityForDotIntensityScore="0"
 

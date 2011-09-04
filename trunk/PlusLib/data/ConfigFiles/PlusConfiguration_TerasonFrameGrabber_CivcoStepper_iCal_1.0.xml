@@ -111,7 +111,6 @@
 			</ProbeCalibration>
 			
 			<SegmentationParameters
-					FrameSize="640 480"
 					ApproximateSpacingMmPerPixel="0.33"
 					MorphologicalOpeningCircleRadiusMm="0.47"
 					MorphologicalOpeningBarSizeMm="2.0"

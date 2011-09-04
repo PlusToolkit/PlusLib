@@ -146,7 +146,6 @@
             </FreehandCalibration>
             
 			<SegmentationParameters
-					FrameSize="820 616"
 					ApproximateSpacingMmPerPixel="0.078"
 					MorphologicalOpeningCircleRadiusMm="0.47"
 					MorphologicalOpeningBarSizeMm="1.0"

@@ -1044,7 +1044,7 @@ PlusStatus vtkFreehandCalibrationController::PopulateSegmentedFiducialsToDataCon
 	// [ X, Y, 0, 1] all units in pixels
 	// ==================================================================
 
-  if (! this->GetPatternRecognition()->GetFidLabelling()->GetDotsFound()) {
+  if (! this->GetPatternRecognition()->GetFidLabeling()->GetDotsFound()) {
 		LOG_ERROR("Segmentation failed! Unable to populate segmentation result!"); 
 		return PLUS_FAIL; 
 	}
@@ -1054,10 +1054,10 @@ PlusStatus vtkFreehandCalibrationController::PopulateSegmentedFiducialsToDataCon
 	std::vector<vnl_vector<double>> SegmentedNFiducialsInFixedCorrespondence;
 	SegmentedNFiducialsInFixedCorrespondence.resize(0);
 
-	for (int i=0; i<this->GetPatternRecognition()->GetFidLabelling()->GetFoundDotsCoordinateValue().size(); i++) {
+	for (int i=0; i<this->GetPatternRecognition()->GetFidLabeling()->GetFoundDotsCoordinateValue().size(); i++) {
 		vnl_vector<double> NFiducial(4,0);
-		NFiducial[0]=this->GetPatternRecognition()->GetFidLabelling()->GetFoundDotsCoordinateValue()[i][0];
-		NFiducial[1]=this->GetPatternRecognition()->GetFidLabelling()->GetFoundDotsCoordinateValue()[i][1];
+		NFiducial[0]=this->GetPatternRecognition()->GetFidLabeling()->GetFoundDotsCoordinateValue()[i][0];
+		NFiducial[1]=this->GetPatternRecognition()->GetFidLabeling()->GetFoundDotsCoordinateValue()[i][1];
 		NFiducial[2]=0;
 		NFiducial[3]=1;
 
@@ -1165,9 +1165,9 @@ PlusStatus vtkFreehandCalibrationController::DisplaySegmentedPoints(bool aSucces
 	int height = lastSegmentedFrame.TrackedFrameInfo->GetFrameSize()[1];
 
 	vtkSmartPointer<vtkPoints> inputPoints = vtkSmartPointer<vtkPoints>::New();
-  inputPoints->SetNumberOfPoints(this->GetPatternRecognition()->GetFidLabelling()->GetFoundDotsCoordinateValue().size());
+  inputPoints->SetNumberOfPoints(this->GetPatternRecognition()->GetFidLabeling()->GetFoundDotsCoordinateValue().size());
 
-	std::vector<std::vector<double>> dots = this->GetPatternRecognition()->GetFidLabelling()->GetFoundDotsCoordinateValue();
+	std::vector<std::vector<double>> dots = this->GetPatternRecognition()->GetFidLabeling()->GetFoundDotsCoordinateValue();
 	for (int i=0; i<dots.size(); ++i) {
 		inputPoints->InsertPoint(i, dots[i][0], height - dots[i][1], 0.0);
 	}

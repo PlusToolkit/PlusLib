@@ -54,7 +54,10 @@ void SegmentImageSequence( vtkTrackedFrameList* trackedFrameList, std::ofstream 
         LOG_ERROR("UsFidSegTest only supports 8-bit images"); 
         continue; 
     }
-    calibrationController->GetPatternRecognition()->RecognizePattern(reinterpret_cast<PixelType*>(trackedFrameList->GetTrackedFrame(currentFrameIndex)->ImageData.GetBufferPointer()), segResults );
+    PlusVideoFrame videoFrame = trackedFrameList->GetTrackedFrame(currentFrameIndex)->ImageData;
+    int frameSize[2];
+    videoFrame.GetFrameSize(frameSize);
+    calibrationController->GetPatternRecognition()->RecognizePattern(reinterpret_cast<PixelType*>(videoFrame.GetBufferPointer()), frameSize, segResults );
 		
 		sumFiducialCandidate += segResults.GetNumDots();
 		int numFid=0;

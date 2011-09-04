@@ -636,7 +636,7 @@ void vtkProbeCalibrationController::PopulateSegmentedFiducialsToDataContainer(vn
 	// [ X, Y, 0, 1] all units in pixels
 	// ==================================================================
 
-  if ( !this->GetPatternRecognition()->GetFidLabelling()->GetDotsFound() )
+  if ( !this->GetPatternRecognition()->GetFidLabeling()->GetDotsFound() )
 	{
 		LOG_DEBUG("Segmentation failed! Unable to populate segmentation result!"); 
 		return; 

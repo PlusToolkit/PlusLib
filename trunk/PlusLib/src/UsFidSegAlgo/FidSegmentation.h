@@ -20,6 +20,7 @@ class FidSegmentation
 		virtual ~FidSegmentation();
 
 		PlusStatus				  ReadConfiguration( vtkXMLDataElement* segmentationParameters );
+    void                SetFrameSize( int frameSize[2] );
 
 		void					      UpdateParameters();
 		void				    	  ComputeParameters();
@@ -127,10 +128,10 @@ class FidSegmentation
 		double					  m_NumDots; // number of possibel fiducial points
 		std::vector<Dot>	m_CandidateFidValues; // pointer to the fiducial candidates coordinates
 
-		PixelType *				m_Working;
-		PixelType *				m_Dilated;
-		PixelType *				m_Eroded;
-		PixelType *				m_UnalteredImage; 
+		PixelType*				m_Working;
+		PixelType*				m_Dilated;
+		PixelType*				m_Eroded;
+		PixelType*				m_UnalteredImage; 
 
 		std::vector<Dot>	m_DotsVector;
 

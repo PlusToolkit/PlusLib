@@ -279,16 +279,13 @@ PlusStatus vtkCalibrationController::SegmentImage(const ImageType::Pointer& imag
 
 		// Check frame size before segmentation 
 		int frameSize[2] = {imageData->GetLargestPossibleRegion().GetSize()[0], imageData->GetLargestPossibleRegion().GetSize()[1]}; 
-    if ( this->PatternRecognition.GetFidSegmentation()->GetFrameSize()[0] != frameSize[0] || this->PatternRecognition.GetFidSegmentation()->GetFrameSize()[1] != frameSize[1] )
-		{
-			LOG_ERROR("Unable to add frame to calibrator! Frame size mismatch: actual (" 
-				<< frameSize[0] << "x" << frameSize[1] << ") expected (" 
-				<< this->PatternRecognition.GetFidSegmentation()->GetFrameSize()[0] << "x" << this->PatternRecognition.GetFidSegmentation()->GetFrameSize()[1] << ")"); 
-			return PLUS_FAIL; 
-		}
 
 		// Send the image to the Segmentation component for segmentation
-    this->PatternRecognition.RecognizePattern( imageData->GetBufferPointer(), this->PatRecognitionResult);	
+    if (this->PatternRecognition.RecognizePattern(imageData->GetBufferPointer(), frameSize, this->PatRecognitionResult) != PLUS_SUCCESS)
+    {
+      LOG_ERROR("Segmentation encountered errors!");
+      return PLUS_FAIL;
+    }
    
 		return PLUS_SUCCESS;
 	}
@@ -701,7 +698,7 @@ PlusStatus vtkCalibrationController::ReadPhantomDefinition(vtkXMLDataElement* co
 
     this->PatternRecognition.GetFidSegmentation()->SetNWires(tempNWires);
     this->PatternRecognition.GetFidLineFinder()->SetNWires(tempNWires);
-    this->PatternRecognition.GetFidLabelling()->SetNWires(tempNWires);
+    this->PatternRecognition.GetFidLabeling()->SetNWires(tempNWires);
 	}
 
   this->PatternRecognition.ReadConfiguration(config);

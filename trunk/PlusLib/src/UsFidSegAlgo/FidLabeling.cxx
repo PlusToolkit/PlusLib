@@ -1,4 +1,4 @@
-#include "FidLabelling.h"
+#include "FidLabeling.h"
 
 #include <algorithm>
 #include <float.h>
@@ -8,11 +8,8 @@
 
 //-----------------------------------------------------------------------------
 
-FidLabelling::FidLabelling()
+FidLabeling::FidLabeling()
 {
-  m_FrameSize[0] = -1;
-  m_FrameSize[1] = -1;
-
 	m_ApproximateSpacingMmPerPixel = -1.0;
 	m_MaxAngleDiff = -1.0;
 	m_MinLinePairDistMm = -1.0; 	
@@ -31,15 +28,17 @@ FidLabelling::FidLabelling()
 
 //-----------------------------------------------------------------------------
 
-FidLabelling::~FidLabelling()
+FidLabeling::~FidLabeling()
 {
 
 }
 
 //-----------------------------------------------------------------------------
 
-void FidLabelling::UpdateParameters()
+void FidLabeling::UpdateParameters()
 {
+	LOG_TRACE("FidLabeling::UpdateParameters");
+
 	std::vector<NWire> nWires = m_NWires;
 
 	// Distance between lines (= distance between planes of the N-wires)
@@ -89,16 +88,17 @@ void FidLabelling::UpdateParameters()
 
 //-----------------------------------------------------------------------------
 
-void FidLabelling::ComputeParameters()
+void FidLabeling::ComputeParameters()
 {
   // TODO: to be completed (currently the parameters are read from the config xml)
 }
 
 //-----------------------------------------------------------------------------
 
-PlusStatus FidLabelling::ReadConfiguration( vtkXMLDataElement* configData, double minTheta, double maxTheta, double maxLineErrorMm )
+PlusStatus FidLabeling::ReadConfiguration( vtkXMLDataElement* configData, double minTheta, double maxTheta, double maxLineErrorMm )
 {
-	LOG_TRACE("FidSegmentation::ReadSegmentationParametersConfiguration"); 
+	LOG_TRACE("FidLabeling::ReadConfiguration");
+
 	if ( configData == NULL) 
 	{
 		LOG_WARNING("Unable to read the SegmentationParameters XML data element!"); 
@@ -118,18 +118,6 @@ PlusStatus FidLabelling::ReadConfiguration( vtkXMLDataElement* configData, doubl
 		LOG_ERROR("No Segmentation parameters is found in the XML tree!");
 		return PLUS_FAIL;
 	}
-
-  // The input image dimensions (in pixels)
-	int frameSize[2] = {0}; 
-	if ( segmentationParameters->GetVectorAttribute("FrameSize", 2, frameSize) ) 
-	{
-		m_FrameSize[0] = frameSize[0];
-    m_FrameSize[1] = frameSize[1]; 
-	}
-  else
-  {
-    LOG_WARNING("Could not read FrameSize from configuration file.");
-  }
 
   double approximateSpacingMmPerPixel(0.0); 
 	if ( segmentationParameters->GetScalarAttribute("ApproximateSpacingMmPerPixel", approximateSpacingMmPerPixel) )
@@ -180,8 +168,10 @@ PlusStatus FidLabelling::ReadConfiguration( vtkXMLDataElement* configData, doubl
 
 //-----------------------------------------------------------------------------
 
-void FidLabelling::Clear()
+void FidLabeling::Clear()
 {
+	//LOG_TRACE("FidLabeling::Clear");
+
   m_DotsVector.clear();
   m_LinesVector.clear();
   m_PairsVector.clear();
@@ -190,8 +180,10 @@ void FidLabelling::Clear()
 
 //-----------------------------------------------------------------------------
 
-std::vector<std::vector<double>> FidLabelling::SortInAscendingOrder(std::vector<std::vector<double>> fiducials) 
+std::vector<std::vector<double>> FidLabeling::SortInAscendingOrder(std::vector<std::vector<double>> fiducials) 
 {
+	//LOG_TRACE("FidLabeling::SortInAscendingOrder");
+
 	std::vector<std::vector<double>> sortedFiducials; 
 
 	if( fiducials[0][0] < fiducials[1][0] )
@@ -332,8 +324,10 @@ std::vector<std::vector<double>> FidLabelling::SortInAscendingOrder(std::vector<
 
 //-----------------------------------------------------------------------------
 
-void FidLabelling::FindDoubleNLines()
+void FidLabeling::FindDoubleNLines()
 {	
+	LOG_TRACE("FidLabeling::FindDoubleNLines");
+
 	FindPairs();
 
   if ( m_PairsVector.size() < 1 ) 
@@ -381,8 +375,10 @@ void FidLabelling::FindDoubleNLines()
 
 //-----------------------------------------------------------------------------
 
-void FidLabelling::FindPairs()
+void FidLabeling::FindPairs()
 {
+	//LOG_TRACE("FidLabeling::FindPairs");
+
 	//These are for extra checks not needed in case of parallel lines as they are already checked when accepting the line
 	double maxTheta = m_MaxTheta;
 	double minTheta = m_MinTheta;
@@ -444,8 +440,10 @@ void FidLabelling::FindPairs()
 
 //-----------------------------------------------------------------------------
 
-void FidLabelling::SortTopToBottom( LinePair *pair )
+void FidLabeling::SortTopToBottom( LinePair *pair )
 {
+	//LOG_TRACE("FidLabeling::SortTopToBottom");
+
 	/* check if we need to swap the pairs. */
 	if ( m_LinesVector[pair->GetLine1()].GetLinePosition() < m_LinesVector[pair->GetLine2()].GetLinePosition() ) {
 		int swp_tmp = pair->GetLine1();
@@ -456,8 +454,10 @@ void FidLabelling::SortTopToBottom( LinePair *pair )
 
 //-----------------------------------------------------------------------------
 
-void FidLabelling::SortRightToLeft( Line *line )
+void FidLabeling::SortRightToLeft( Line *line )
 {
+	//LOG_TRACE("FidLabeling::SortRightToLeft");
+
 	/* Since we prohibit stepp lines (see MAX_T and MIN_T) we can use the x
 	 * values to sort the points. */
 	std::vector<std::vector<Dot>::iterator> pointsIterator(3);//TODO Make it general

@@ -5,11 +5,11 @@
 #include "PlusConfigure.h"
 #include "vtkXMLDataElement.h"
 
-class FidLabelling
+class FidLabeling
 {
 	public:
-		FidLabelling();
-		virtual ~FidLabelling();
+		FidLabeling();
+		virtual ~FidLabeling();
 
 		void					UpdateParameters();
 		void					ComputeParameters();
@@ -44,15 +44,11 @@ class FidLabelling
     std::vector< std::vector<double> >	GetFoundDotsCoordinateValue() { return m_FoundDotsCoordinateValue; };
     std::vector<Line>	GetLinesVector() { return m_LinesVector; };
 
-    int *					GetFrameSize() { return m_FrameSize; };
-
     void          SetApproximateSpacingMmPerPixel(double value) { m_ApproximateSpacingMmPerPixel = value; };
     void          SetMaxLinePairDistanceErrorPercent(double value) { m_MaxLinePairDistanceErrorPercent = value; };
     void          SetMaxAngleDifferenceDegrees(double value) { m_MaxAngleDiff = value; };
 
 	protected:
-    int						  m_FrameSize[2];
-
 		double					m_ApproximateSpacingMmPerPixel;
 		double 					m_MaxAngleDiff;
 		double 					m_MinLinePairDistMm; 	
