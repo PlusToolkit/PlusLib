@@ -262,7 +262,7 @@ protected slots:
 	* \brief Slot handling line 3rd point distance value change
   * \param aValue New value
 	*/
-  void Line3rdPointDistChanged(double aValue);
+  void CollinearPointsMaxDistanceFromLineChanged(double aValue);
 
 	/*!
 	* \brief Slot handling image threshold value change

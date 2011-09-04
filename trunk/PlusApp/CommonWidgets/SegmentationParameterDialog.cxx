@@ -934,7 +934,7 @@ SegmentationParameterDialog::SegmentationParameterDialog(QWidget* aParent, vtkDa
 	connect( ui.doubleSpinBox_AngleDifference, SIGNAL( valueChanged(double) ), this, SLOT( AngleDifferenceChanged(double) ) );
 	connect( ui.doubleSpinBox_MinTheta, SIGNAL( valueChanged(double) ), this, SLOT( MinThetaChanged(double) ) );
 	connect( ui.doubleSpinBox_MaxTheta, SIGNAL( valueChanged(double) ), this, SLOT( MaxThetaChanged(double) ) );
-	connect( ui.doubleSpinBox_Line3rdPointDist, SIGNAL( valueChanged(double) ), this, SLOT( Line3rdPointDistChanged(double) ) );
+	connect( ui.doubleSpinBox_CollinearPointsMaxDistanceFromLine, SIGNAL( valueChanged(double) ), this, SLOT( CollinearPointsMaxDistanceFromLineChanged(double) ) );
 	connect( ui.doubleSpinBox_ImageThreshold, SIGNAL( valueChanged(double) ), this, SLOT( ImageThresholdChanged(double) ) );
 	connect( ui.checkBox_OriginalIntensityForDots, SIGNAL( toggled(bool) ), this, SLOT( OriginalIntensityForDotsToggled(bool) ) );
 
@@ -1213,20 +1213,20 @@ PlusStatus SegmentationParameterDialog::ReadConfiguration()
     LOG_WARNING("Could not read MaxThetaDegrees from configuration");
   }
 
-	double thresholdImage(0.0); 
-	if ( segmentationParameters->GetScalarAttribute("ThresholdImage", thresholdImage) )
+	double thresholdImagePercent(0.0); 
+	if ( segmentationParameters->GetScalarAttribute("ThresholdImagePercent", thresholdImagePercent) )
 	{
-		ui.doubleSpinBox_ImageThreshold->setValue(thresholdImage);
+		ui.doubleSpinBox_ImageThreshold->setValue(thresholdImagePercent);
 	} else {
-    LOG_WARNING("Could not read ThresholdImage from configuration");
+    LOG_WARNING("Could not read ThresholdImagePercent from configuration");
   }
 
-	double findLines3PtDistanceMm(0.0); 
-	if ( segmentationParameters->GetScalarAttribute("FindLines3PtDistanceMm", findLines3PtDistanceMm) )
+	double collinearPointsMaxDistanceFromLineMm(0.0); 
+	if ( segmentationParameters->GetScalarAttribute("CollinearPointsMaxDistanceFromLineMm", collinearPointsMaxDistanceFromLineMm) )
 	{
-		ui.doubleSpinBox_Line3rdPointDist->setValue(findLines3PtDistanceMm);
+		ui.doubleSpinBox_CollinearPointsMaxDistanceFromLine->setValue(collinearPointsMaxDistanceFromLineMm);
 	} else {
-    LOG_WARNING("Could not read FindLines3PtDistanceMm from configuration");
+    LOG_WARNING("Could not read CollinearPointsMaxDistanceFromLineMm from configuration");
   }
 
 	double useOriginalImageIntensityForDotIntensityScore(-1); 
@@ -1317,9 +1317,9 @@ PlusStatus SegmentationParameterDialog::WriteConfiguration()
 
   segmentationParameters->SetDoubleAttribute("MaxThetaDegrees", ui.doubleSpinBox_MaxTheta->value());
 
-  segmentationParameters->SetDoubleAttribute("ThresholdImage", ui.doubleSpinBox_ImageThreshold->value());
+  segmentationParameters->SetDoubleAttribute("ThresholdImagePercent", ui.doubleSpinBox_ImageThreshold->value());
 
-  segmentationParameters->SetDoubleAttribute("FindLines3PtDistanceMm", ui.doubleSpinBox_Line3rdPointDist->value());
+  segmentationParameters->SetDoubleAttribute("CollinearPointsMaxDistanceFromLineMm", ui.doubleSpinBox_CollinearPointsMaxDistanceFromLine->value());
 
   segmentationParameters->SetIntAttribute("UseOriginalImageIntensityForDotIntensityScore", (ui.checkBox_OriginalIntensityForDots->isChecked() ? 1 : 0) );
 
@@ -1875,11 +1875,11 @@ void SegmentationParameterDialog::MaxThetaChanged(double aValue)
 
 //-----------------------------------------------------------------------------
 
-void SegmentationParameterDialog::Line3rdPointDistChanged(double aValue)
+void SegmentationParameterDialog::CollinearPointsMaxDistanceFromLineChanged(double aValue)
 {
-  LOG_TRACE("SegmentationParameterDialog::Line3rdPointDistChanged(" << aValue << ")");
+  LOG_TRACE("SegmentationParameterDialog::CollinearPointsMaxDistanceFromLineChanged(" << aValue << ")");
 
-  m_CalibrationController->GetPatternRecognition()->GetFidLineFinder()->SetFindLines3PtDistanceMm(aValue);
+  m_CalibrationController->GetPatternRecognition()->GetFidLineFinder()->SetCollinearPointsMaxDistanceFromLineMm(aValue);
 }
 
 //-----------------------------------------------------------------------------
@@ -1888,7 +1888,7 @@ void SegmentationParameterDialog::ImageThresholdChanged(double aValue)
 {
   LOG_TRACE("SegmentationParameterDialog::ImageThresholdChanged(" << aValue << ")");
 
-  m_CalibrationController->GetPatternRecognition()->GetFidSegmentation()->SetThresholdImage(aValue);
+  m_CalibrationController->GetPatternRecognition()->GetFidSegmentation()->SetThresholdImagePercent(aValue);
 }
 
 //-----------------------------------------------------------------------------
