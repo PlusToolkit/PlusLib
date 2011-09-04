@@ -150,7 +150,7 @@ int CompareSegmentationResults(const std::string& inputBaselineFileName, const s
   {
 	  outFileFidFindingResults.open("FiducialsFound.txt");
 	  outFileFidFindingResults<< "Baseline to algorithm Tolerance: "<<BASELINE_TO_ALGORITHM_TOLERANCE<<" pixel(s)" <<std::endl;
-    outFileFidFindingResults<< "Threshold: "<< calibrationController->GetPatternRecognition()->GetFidSegmentation()->GetThresholdImage() <<std::endl; 
+    outFileFidFindingResults<< "Threshold: "<< calibrationController->GetPatternRecognition()->GetFidSegmentation()->GetThresholdImagePercent() <<std::endl; 
   }
 	for (int nestedElemInd=0; nestedElemInd<currentRootElem->GetNumberOfNestedElements(); nestedElemInd++)
 	{

@@ -53,7 +53,7 @@ class FidLineFinder
 
     void        SetApproximateSpacingMmPerPixel(double value) { m_ApproximateSpacingMmPerPixel = value; };
     void        SetMaxLineLengthErrorPercent(double value) { m_MaxLineLengthErrorPercent = value; };
-    void        SetFindLines3PtDistanceMm(double value) { m_FindLines3PtDistanceMm = value; };
+    void        SetCollinearPointsMaxDistanceFromLineMm(double value) { m_CollinearPointsMaxDistanceFromLineMm = value; };
     void        SetMaxLineErrorMm(double value) { m_MaxLineErrorMm = value; };
     void        SetMinThetaDegrees(double value) { m_MinTheta = value; };
     void        SetMaxThetaDegrees(double value) { m_MaxTheta = value; };
@@ -73,7 +73,7 @@ class FidLineFinder
 		double 			m_MaxLineLenMm;
 		double 			m_MaxLineErrorMm;
 
-		double 			m_FindLines3PtDistanceMm; 
+		double 			m_CollinearPointsMaxDistanceFromLineMm; 
 
 		double 			m_MinTheta; 
 		double 			m_MaxTheta;

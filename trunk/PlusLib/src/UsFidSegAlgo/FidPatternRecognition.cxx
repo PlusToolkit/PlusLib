@@ -46,7 +46,7 @@ PlusStatus FidPatternRecognition::RecognizePattern(PixelType* image, int imageSi
 
   m_FidSegmentation.MorphologicalOperations();
 
-  m_FidSegmentation.Suppress( m_FidSegmentation.GetWorking(), m_FidSegmentation.GetThresholdImage()/100.00 );
+  m_FidSegmentation.Suppress( m_FidSegmentation.GetWorking(), m_FidSegmentation.GetThresholdImagePercent()/100.00 );
 
   m_FidSegmentation.Cluster();
 

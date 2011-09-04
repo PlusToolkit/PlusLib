@@ -121,9 +121,9 @@
 					MinThetaDegrees="20"
 					MaxThetaDegrees="160"
 					
-					ThresholdImage="10.0"
+					ThresholdImagePercent="10.0"
 
-					FindLines3PtDistanceMm="0.41"
+					CollinearPointsMaxDistanceFromLineMm="0.41"
 
 					UseOriginalImageIntensityForDotIntensityScore="0"
 					>

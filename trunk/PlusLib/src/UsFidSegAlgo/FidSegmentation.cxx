@@ -17,7 +17,7 @@ static const short MAX_CLUSTER_VALS = 16384;
 //-----------------------------------------------------------------------------
 
 FidSegmentation::FidSegmentation() :
-		m_ThresholdImage( -1.0 ),
+		m_ThresholdImagePercent( -1.0 ),
 		
 		m_MorphologicalOpeningBarSizeMm(-1.0), 
 		m_MorphologicalOpeningCircleRadiusMm(-1.0), 
@@ -204,14 +204,14 @@ PlusStatus FidSegmentation::ReadConfiguration( vtkXMLDataElement* configData )
 		LOG_INFO("Cannot find RegionOfInterest attribute in the SegmentationParameters configuration file; Using the largest ROI possible.");
 	}
 
-	double thresholdImage(0.0); 
-	if ( segmentationParameters->GetScalarAttribute("ThresholdImage", thresholdImage) )
+	double thresholdImagePercent(0.0); 
+	if ( segmentationParameters->GetScalarAttribute("ThresholdImagePercent", thresholdImagePercent) )
 	{
-		m_ThresholdImage = thresholdImage; 
+		m_ThresholdImagePercent = thresholdImagePercent; 
 	}
   else
 	{
-		LOG_WARNING("Cannot find ThresholdImage attribute in the SegmentationParameters configuration file.");
+		LOG_WARNING("Cannot find ThresholdImagePercent attribute in the SegmentationParameters configuration file.");
 	}
 
 	int useOriginalImageIntensityForDotIntensityScore(0); 

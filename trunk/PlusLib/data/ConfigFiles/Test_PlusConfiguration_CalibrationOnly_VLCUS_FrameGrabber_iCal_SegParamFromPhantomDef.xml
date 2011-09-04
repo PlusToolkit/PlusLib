@@ -106,9 +106,9 @@
 
 					MaxAngleDifferenceDegrees="11"
 					
-					ThresholdImage="10.0"
+					ThresholdImagePercent="10.0"
 
-					FindLines3PtDistanceMm="1.11"
+					CollinearPointsMaxDistanceFromLineMm="1.11"
 
 					UseOriginalImageIntensityForDotIntensityScore="0"
 					
