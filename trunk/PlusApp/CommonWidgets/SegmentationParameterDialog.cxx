@@ -1460,7 +1460,7 @@ PlusStatus SegmentationParameterDialog::SegmentCurrentImage()
 
   // Segment image
   PatternRecognitionResult segResults;
-  m_CalibrationController->GetPatternRecognition()->RecognizePattern(buffer, segResults);
+  m_CalibrationController->GetPatternRecognition()->RecognizePattern(buffer, imageSize, segResults);
 
   LOG_DEBUG("Candidate count: " << segResults.GetCandidateFidValues().size());
   if (segResults.GetFoundDotsCoordinateValue().size() > 0) {
@@ -1568,7 +1568,7 @@ PlusStatus SegmentationParameterDialog::ComputeSpacingFromMeasuredLengthSum()
 
   m_CalibrationController->GetPatternRecognition()->GetFidSegmentation()->SetApproximateSpacingMmPerPixel(spacing);
   m_CalibrationController->GetPatternRecognition()->GetFidLineFinder()->SetApproximateSpacingMmPerPixel(spacing);
-  m_CalibrationController->GetPatternRecognition()->GetFidLabelling()->SetApproximateSpacingMmPerPixel(spacing);
+  m_CalibrationController->GetPatternRecognition()->GetFidLabeling()->SetApproximateSpacingMmPerPixel(spacing);
 
   return PLUS_SUCCESS;
 }
@@ -1834,7 +1834,7 @@ void SegmentationParameterDialog::LinePairDistanceErrorChanged(double aValue)
 {
   LOG_TRACE("SegmentationParameterDialog::LinePairDistanceErrorChanged(" << aValue << ")");
 
-  m_CalibrationController->GetPatternRecognition()->GetFidLabelling()->SetMaxLinePairDistanceErrorPercent(aValue);
+  m_CalibrationController->GetPatternRecognition()->GetFidLabeling()->SetMaxLinePairDistanceErrorPercent(aValue);
 }
 
 //-----------------------------------------------------------------------------
@@ -1852,7 +1852,7 @@ void SegmentationParameterDialog::AngleDifferenceChanged(double aValue)
 {
   LOG_TRACE("SegmentationParameterDialog::AngleDifferenceChanged(" << aValue << ")");
 
-  m_CalibrationController->GetPatternRecognition()->GetFidLabelling()->SetMaxAngleDifferenceDegrees(aValue);
+  m_CalibrationController->GetPatternRecognition()->GetFidLabeling()->SetMaxAngleDifferenceDegrees(aValue);
 }
 
 //-----------------------------------------------------------------------------
