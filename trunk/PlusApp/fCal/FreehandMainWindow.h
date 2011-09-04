@@ -104,6 +104,12 @@ protected slots:
 	*/
 	void UpdateGUI();
 
+	/*!
+	* \brief Resize event handler
+  * \param aEvent Resize event
+	*/
+  virtual void resizeEvent(QResizeEvent* aEvent);
+
 protected:
 	//! Label on the left of the statusbar
 	QLabel*					m_StatusBarLabel;

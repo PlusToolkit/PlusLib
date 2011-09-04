@@ -475,3 +475,15 @@ void FreehandMainWindow::LocateDirectories()
 		vtkFreehandController::GetInstance()->SetOutputFolder(outputPath.c_str());
 	}
 }
+
+//-----------------------------------------------------------------------------
+
+void FreehandMainWindow::resizeEvent(QResizeEvent* aEvent)
+{
+  LOG_TRACE("FreehandMainWindow::resizeEvent");
+
+	vtkFreehandCalibrationController* freehandCalibrationController = vtkFreehandCalibrationController::GetInstance();
+  if (freehandCalibrationController->State() != ToolboxState_Uninitialized) {
+    freehandCalibrationController->CalculateImageCameraParameters();
+  }
+}
