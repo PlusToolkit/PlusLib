@@ -451,15 +451,10 @@ PlusStatus vtkFreehandCalibrationController::CalculateImageCameraParameters()
 	// Calculate image center
 	double imageCenterX = 0;
 	double imageCenterY = 0;
-	if ((this->GetPatternRecognition()->GetFidSegmentation()->GetFrameSize()[0] <= 0) || (this->GetPatternRecognition()->GetFidSegmentation()->GetFrameSize()[1] <= 0)) {
-		int dimensions[3];
-		dataCollector->GetVideoSource()->GetFrameSize(dimensions);
-		imageCenterX = dimensions[0] / 2.0;
-		imageCenterY = dimensions[1] / 2.0;
-	} else {
-		imageCenterX = this->GetPatternRecognition()->GetFidSegmentation()->GetFrameSize()[0] / 2.0; 
-		imageCenterY = this->GetPatternRecognition()->GetFidSegmentation()->GetFrameSize()[1] / 2.0; 
-	}
+	int dimensions[3];
+	dataCollector->GetVideoSource()->GetFrameSize(dimensions);
+	imageCenterX = dimensions[0] / 2.0;
+	imageCenterY = dimensions[1] / 2.0;
 
 	// Set up camera
 	vtkSmartPointer<vtkCamera> imageCamera = vtkSmartPointer<vtkCamera>::New(); 
@@ -469,15 +464,15 @@ PlusStatus vtkFreehandCalibrationController::CalculateImageCameraParameters()
 	imageCamera->ParallelProjectionOn();
 
 	// Calculate distance of camera from the plane
-	int *size = controller->GetCanvasRenderer()->GetSize();
+  int *size = controller->GetCanvasRenderer()->GetRenderWindow()->GetSize();
 	if ((double)size[0] / (double)size[1] > imageCenterX / imageCenterY) {
 		// If canvas aspect ratio is more elongenated in the X position then compute the distance according to the Y axis
 		imageCamera->SetParallelScale(imageCenterY);
 	} else {
-		imageCamera->SetParallelScale(imageCenterY * sqrt((double)size[0] / (double)size[1]));
+		imageCamera->SetParallelScale(imageCenterX * (double)size[1] / (double)size[0]);
 	}
 
-	imageCamera->SetPosition(imageCenterX, imageCenterY, -200.0);
+  imageCamera->SetPosition(imageCenterX, imageCenterY, -200.0);
 
 	// Set camera
 	this->SetImageCamera(imageCamera);
