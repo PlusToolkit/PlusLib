@@ -420,9 +420,9 @@ PlusStatus vtkVolumeReconstructor::AddTrackedFrame(TrackedFrame* frame)
 
 //----------------------------------------------------------------------------
 PlusStatus vtkVolumeReconstructor::GetReconstructedVolume(vtkImageData* reconstructedVolume)
-{
-  // keep only first component (the other component is the alpha channel)
+{  
   vtkSmartPointer<vtkImageExtractComponents> extract = vtkSmartPointer<vtkImageExtractComponents>::New();          
+  // keep only first component (the other component is the alpha channel)
   extract->SetComponents(0);
   if (this->FillHoles)
   {
@@ -441,3 +441,13 @@ PlusStatus vtkVolumeReconstructor::GetReconstructedVolume(vtkImageData* reconstr
   return PLUS_SUCCESS;
 }
 
+PlusStatus vtkVolumeReconstructor::GetReconstructedVolumeAlpha(vtkImageData* reconstructedVolume)
+{
+  vtkSmartPointer<vtkImageExtractComponents> extract = vtkSmartPointer<vtkImageExtractComponents>::New();          
+  // extract the second component (the alpha channel)
+  extract->SetComponents(1);
+  extract->SetInput(this->Reconstructor->GetReconstructedVolume());
+  extract->Update();
+  reconstructedVolume->DeepCopy(extract->GetOutput());
+  return PLUS_SUCCESS;
+}

@@ -43,6 +43,11 @@ public:
 
   virtual PlusStatus GetReconstructedVolume(vtkImageData* reconstructedVolume);
 
+  // Description:
+  // Returns the alpha channel of the reconstructed volume. If a voxel is filled in the
+  // reconstructed volume, then the corresponding voxel in the alpha channel is non-zero.
+  virtual PlusStatus GetReconstructedVolumeAlpha(vtkImageData* reconstructedVolume);
+
   vtkTransform* GetImageToToolTransform();
   void GetImageToReferenceTransformMatrix(vtkMatrix4x4* toolToReferenceTransformMatrix, vtkMatrix4x4* imageToReferenceTransformMatrix);
   PlusStatus GetImageToReferenceTransformMatrix(TrackedFrame* frame, vtkMatrix4x4* imageToReferenceTransformMatrix);

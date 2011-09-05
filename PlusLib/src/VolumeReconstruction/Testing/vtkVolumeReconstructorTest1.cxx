@@ -18,6 +18,7 @@ int main (int argc, char* argv[])
   std::string inputImgSeqFileName;
   std::string inputConfigFileName;
   std::string outputVolumeFileName;
+  std::string outputVolumeAlphaFileName;
   std::string outputFrameFileName; 
 
   int verboseLevel=vtkPlusLogger::LOG_LEVEL_INFO;
@@ -25,9 +26,10 @@ int main (int argc, char* argv[])
   vtksys::CommandLineArguments cmdargs;
   cmdargs.Initialize(argc, argv);
 
-  cmdargs.AddArgument( "--input-img-seq-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputImgSeqFileName, "" );
-  cmdargs.AddArgument( "--input-config-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "" );
-  cmdargs.AddArgument( "--output-volume-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputVolumeFileName, "" );
+  cmdargs.AddArgument( "--input-img-seq-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputImgSeqFileName, "Input sequence metafile filename (.mha)" );
+  cmdargs.AddArgument( "--input-config-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "Input configuration file name (.xml)" );
+  cmdargs.AddArgument( "--output-volume-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputVolumeFileName, "Output file name of the reconstructed volume (.vtk)" );
+  cmdargs.AddArgument( "--output-volume-alpha-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputVolumeAlphaFileName, "Output file name of the alpha channel of the reconstructed volume (.vtk)" );
   cmdargs.AddArgument( "--output-frame-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputFrameFileName, "A filename that will be used for storing the tracked image frames. Each frame will be exported individually, with the proper position and orientation in the reference coordinate system");
   cmdargs.AddArgument( "--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug)" );
 
@@ -124,6 +126,14 @@ int main (int argc, char* argv[])
   writer3D->SetInput(reconstructedVolume);
   writer3D->SetFileName(outputVolumeFileName.c_str());
   writer3D->Update();
+
+  if (!outputVolumeAlphaFileName.empty())
+  {
+    reconstructor->GetReconstructedVolumeAlpha(reconstructedVolume);
+    writer3D->SetInput(reconstructedVolume);
+    writer3D->SetFileName(outputVolumeAlphaFileName.c_str());
+    writer3D->Update();
+  }
 
   VTK_LOG_TO_CONSOLE_OFF; 
   return EXIT_SUCCESS; 
