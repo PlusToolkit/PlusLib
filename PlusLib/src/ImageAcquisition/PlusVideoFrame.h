@@ -15,6 +15,7 @@
 #include "itkImageIOBase.h"
 
 class vtkImageData;
+class vtkImageImport;
 
 class VTK_EXPORT PlusVideoFrame
 {
@@ -97,15 +98,22 @@ public:
   const ImageBaseType* GetITKImageBase() const;
 
   // Description:
-  // Copy pixel data to a VTK image, copies the pixel buffer
+  // Copy pixel data to a VTK image, copies the pixel buffer. The target image is vertically flipped.
   PlusStatus CopyToVtkImage( vtkImageData* targetFrame );
+
+  // Description:
+  // Gets a VTK image pointer to the image buffer
+  // Note that the same pixel buffer is used as for the ITK image,
+  // therefore no image flip and no pixel copying is performed.
+  vtkImageData* GetVtkImageNonFlipped();
 
   // Description:
   // Copy pixel data from another PlusVideoFrame object, same as operator=
   PlusStatus DeepCopy(PlusVideoFrame* videoBufferItem); 
 
   // Description:
-  // Sets the pixel buffer content by copying pixel data from a vtkImageData object
+  // Sets the pixel buffer content by copying pixel data from a vtkImageData object.
+  // The internally stored (ITK) image is vertically flipped compared to the input (VTK) image.
   PlusStatus SetFrame(vtkImageData* frame); 
 
   // Description:
@@ -116,9 +124,14 @@ public:
   // Sets the pixel buffer content from an ITK image, does not copy the pixel buffer
   void SetITKImageBase( ImageBaseType * );
 
+protected:
+  void UpdateVtkImage();
+
 private:
   ImageBasePointer ItkImage;
 
+  itk::ProcessObject::Pointer    Exporter;
+  vtkImageImport* Importer;
 };
 
 #endif

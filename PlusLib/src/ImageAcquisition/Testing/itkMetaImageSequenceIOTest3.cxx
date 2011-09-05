@@ -58,8 +58,6 @@ std::vector<vtkTransform*> imageTransforms;
 vtkImageActor* currentActor = NULL; 
 int frameNum = 0; 
 
-void PrintProgressBar( int percent ); 
-
 class vtkMyCallback : public vtkCommand
 {
 public:
@@ -199,7 +197,7 @@ int main(int argc, char **argv)
 	PixelType* imageSeqData = imageSeq->GetBufferPointer(); 
 	for ( int imgNumber = 0; imgNumber < numberOfFrames; imgNumber++ )
 	{
-		PrintProgressBar( (100.0 * imgNumber) / numberOfFrames ); 
+		vtkPlusLogger::PrintProgressbar( (100.0 * imgNumber) / numberOfFrames ); 
 		unsigned char* currentFrameImageData = imageSeqData + imgNumber * frameSizeInBytes;
 
 		vtkSmartPointer<vtkMatrix4x4> imageTransMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
@@ -243,7 +241,7 @@ int main(int argc, char **argv)
 		imageActors->AddItem(imageActor); 
 	}
 
-	PrintProgressBar( 100 ); 
+	vtkPlusLogger::PrintProgressbar( 100 ); 
 	std::cout << std::endl;
 
 	for (int i = 0; i < imageActors->GetNumberOfItems(); i++) 
@@ -359,29 +357,4 @@ int main(int argc, char **argv)
 	std::cout << "itkMetaImageSequenceIOTest2 completed successfully!" << std::endl;
 	return EXIT_SUCCESS; 
 
-}
-
-void PrintProgressBar( int percent )
-{
-	std::string bar;
-
-	for(int i = 0; i < 50; i++)
-	{
-		if( i < (percent/2))
-		{
-			bar.replace(i,1,"=");
-		}
-		else if( i == (percent/2))
-		{
-			bar.replace(i,1,">");
-		}
-		else
-		{
-			bar.replace(i,1," ");
-		}
-	}
-
-	std::cout<< "\r" "[" << bar << "] ";
-	std::cout.width( 3 );
-	std::cout<< percent << "%     " << std::flush;
 }

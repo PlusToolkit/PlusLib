@@ -43,8 +43,6 @@ enum SAVING_METHOD
 	JPG=4
 }; 
 
-void PrintProgressBar( int percent ); 
-
 int main(int argc, char **argv)
 {
 
@@ -122,7 +120,7 @@ int main(int argc, char **argv)
 		PixelType* imageSeqData = imageSeq->GetBufferPointer(); 
 		for ( int imgNumber = 0; imgNumber < numberOfFrames; imgNumber++ )
 		{
-			PrintProgressBar( (100.0 * imgNumber) / numberOfFrames ); 
+			vtkPlusLogger::PrintProgressbar( (100.0 * imgNumber) / numberOfFrames ); 
 			PixelType* currentFrameImageData = imageSeqData + imgNumber * frameSizeInBytes;
 
 			switch ( inputSavingMethod ) 
@@ -352,7 +350,7 @@ int main(int argc, char **argv)
 				}
 			}
 		}
-		PrintProgressBar( 100 ); 
+		vtkPlusLogger::PrintProgressbar( 100 ); 
 		std::cout << std::endl; 
 
 		numberOfImagesWritten += numberOfFrames; 
@@ -375,29 +373,4 @@ int main(int argc, char **argv)
 
 	LOG_INFO( "itkMetaImageSequenceIOTest2 completed successfully!" ); 
 	return EXIT_SUCCESS; 
-}
-
-void PrintProgressBar( int percent )
-{
-	std::string bar;
-
-	for(int i = 0; i < 50; i++)
-	{
-		if( i < (percent/2))
-		{
-			bar.replace(i,1,"=");
-		}
-		else if( i == (percent/2))
-		{
-			bar.replace(i,1,">");
-		}
-		else
-		{
-			bar.replace(i,1," ");
-		}
-	}
-
-	std::cout<< "\r" "[" << bar << "] ";
-	std::cout.width( 3 );
-	std::cout<< percent << "%     " << std::flush;
 }

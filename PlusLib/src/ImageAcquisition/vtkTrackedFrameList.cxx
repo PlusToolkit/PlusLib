@@ -10,6 +10,7 @@
 #include "itkImageFileWriter.h"
 #include "itkMetaImageSequenceIO.h"
 #include "itkFixedArray.h"
+#include "itkCastImageFilter.h"
 
 
 //----------------------------------------------------------------------------
@@ -242,6 +243,56 @@ TrackerStatus TrackedFrame::GetStatusFromString(const char* statusStr)
   }
   return status;
 }
+
+//----------------------------------------------------------------------------
+PlusStatus TrackedFrame::WriteToFile(std::string &filename, vtkMatrix4x4* mImageToTracker)
+{
+  typedef unsigned char			PixelType; 
+  typedef itk::Image< PixelType, 2 > Image2dType; 
+  typedef itk::Image< PixelType, 3 > Image3dType; 
+
+  typedef itk::CastImageFilter< Image2dType, Image3dType> CastFilterType;
+  CastFilterType::Pointer castFilter = CastFilterType::New(); 
+  castFilter->SetInput(this->ImageData.GetDisplayableImage());
+  castFilter->Update();
+  Image3dType::Pointer image=castFilter->GetOutput();     
+
+  double origin[3]=
+  {
+    mImageToTracker->Element[0][3],
+    mImageToTracker->Element[1][3],
+    mImageToTracker->Element[2][3],
+  };
+  image->SetOrigin(origin);
+
+  Image3dType::DirectionType dir;
+  for (int r=0; r<3; r++)
+  {
+    for (int c=0; c<3; c++)
+    {
+      dir.GetVnlMatrix().put(r,c, mImageToTracker->Element[r][c]);
+    }
+  }
+  image->SetDirection(dir);
+
+  typedef itk::ImageFileWriter< Image3dType > WriterType; 
+  WriterType::Pointer writeImage = WriterType::New();  
+
+  writeImage->SetFileName(filename.c_str());  
+  writeImage->SetInput( image );
+  try
+  {
+    writeImage->Update(); 
+  }
+  catch (itk::ExceptionObject & err) 
+  {		
+    LOG_ERROR(" Exception! writer did not update. Error: "<< err); 
+    return PLUS_FAIL;
+  }
+  return PLUS_SUCCESS;
+}
+
+
 
 //----------------------------------------------------------------------------
 // ************************* vtkTrackedFrameList *****************************
