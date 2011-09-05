@@ -9,7 +9,9 @@
 #include "vtkSmartPointer.h"
 #include "vtkTransform.h"
 
-
+class vtkVolumeReconstructorFilter;
+class vtkTrackedFrameList;
+class TrackedFrame;
 
 /**
 * Coordinate systems to be used in this class:
@@ -34,84 +36,36 @@ public:
   vtkTypeRevisionMacro(vtkVolumeReconstructor, vtkImageAlgorithm);
   virtual void PrintSelf(ostream& os, vtkIndent indent);
 
-  virtual void Initialize(); 
-
-  virtual PlusStatus StartReconstruction(); 
-
-  virtual void FillHoles(); 
-
-  virtual PlusStatus ReadConfiguration( const char* configFileName ); 
-  virtual PlusStatus ReadConfiguration(); 
   virtual PlusStatus ReadConfiguration( vtkXMLDataElement* aConfig ); 
 
-  virtual PlusStatus AddTrackedFrame( const PlusVideoFrame &frame, US_IMAGE_ORIENTATION usImageOrientation, vtkMatrix4x4* mToolToReference, double timestamp ); 
+  virtual PlusStatus SetOutputExtentFromFrameList(vtkTrackedFrameList* trackedFrameList);
 
-  virtual void FindOutputExtent( vtkMatrix4x4* frame2TrackerTransMatrix, int* frameExtent); 
+  virtual PlusStatus AddTrackedFrame(TrackedFrame* frame);
 
-  vtkSetVector2Macro( FrameSize, int ); 
-  vtkGetVector2Macro( FrameSize, int ); 
+  virtual void FillHoles();
 
-  vtkSetMacro(PixelType, PlusCommon::ITKScalarPixelType); 
-  vtkGetMacro(PixelType, PlusCommon::ITKScalarPixelType); 
+  virtual PlusStatus GetReconstructedVolume(vtkImageData* reconstructedVolume);
 
-  vtkSetMacro( NumberOfFrames, int ); 
-  vtkGetMacro( NumberOfFrames, int ); 
-
-  vtkSetMacro( Initialized, bool ); 
-  vtkGetMacro( Initialized, bool ); 
-  vtkBooleanMacro( Initialized, bool ); 
-
-  vtkSetVector3Macro(VolumeExtentMin, double);
-  vtkGetVector3Macro(VolumeExtentMin, double);
-
-  vtkSetVector3Macro(VolumeExtentMax, double);
-  vtkGetVector3Macro(VolumeExtentMax, double);
-
-  vtkSetObjectMacro( Tracker, vtkBufferedTracker ); 
-  vtkGetObjectMacro( Tracker, vtkBufferedTracker ); 
-
-  vtkSetObjectMacro( VideoSource, vtkBufferedVideoSource ); 
-  vtkGetObjectMacro( VideoSource, vtkBufferedVideoSource ); 
-
-  vtkSetObjectMacro( Reconstructor, vtkFreehandUltrasound2Dynamic ); 
-  vtkGetObjectMacro( Reconstructor, vtkFreehandUltrasound2Dynamic ); 
-
-  vtkSetStringMacro( ConfigFileName ); 
-  vtkGetStringMacro( ConfigFileName ); 
-
-
-  vtkSmartPointer< vtkTransform > GetImageToToolTransform();
-  const vtkMatrix4x4* GetImageToToolMatrix();
-
+  vtkTransform* GetImageToToolTransform();
+  void GetImageToReferenceTransformMatrix(vtkMatrix4x4* toolToReferenceTransformMatrix, vtkMatrix4x4* imageToReferenceTransformMatrix);
+  PlusStatus GetImageToReferenceTransformMatrix(TrackedFrame* frame, vtkMatrix4x4* imageToReferenceTransformMatrix);
 
 protected: 
 
   vtkVolumeReconstructor();
   virtual ~vtkVolumeReconstructor();
 
-  vtkBufferedTracker* Tracker; 
-  vtkBufferedVideoSource* VideoSource; 
-  vtkFreehandUltrasound2Dynamic* Reconstructor; 
+  static void AddImageToExtent( vtkImageData *image, vtkMatrix4x4* mImageToReference, double* extent_Ref);
 
-  int NumberOfFrames; 
-  int FrameSize[2];
-  PlusCommon::ITKScalarPixelType PixelType; 
-
-  bool Initialized; 
-
-  char* ConfigFileName; 
-
-  double VolumeExtentMin[ 3 ]; // X Y Z. In Reference coordinate system.
-  double VolumeExtentMax[ 3 ]; // X Y Z. In Reference coordinate system.
-
+  vtkVolumeReconstructorFilter* Reconstructor; 
+  
+  // The calibration matrix, constant throughout the reconstruction
+  vtkTransform* ImageToToolTransform;
 
 private: 
 
   vtkVolumeReconstructor(const vtkVolumeReconstructor&);  // Not implemented.
   void operator=(const vtkVolumeReconstructor&);  // Not implemented.
-
-  int TrackerToolID;
-
 }; 
 
 #endif

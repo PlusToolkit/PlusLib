@@ -39,6 +39,7 @@ VolumeReconstructionController::VolumeReconstructionController()
 	, m_ContouringThreshold(64.0)
 {
 	m_VolumeReconstructor = vtkVolumeReconstructor::New();
+  m_ReconstructedVolume = vtkImageData::New();
 
 	m_State = ToolboxState_Uninitialized;
 }
@@ -220,91 +221,51 @@ PlusStatus VolumeReconstructionController::ReconstructVolumeFromInputImage(std::
 	m_State = ToolboxState_InProgress;
 
 	// Read image
-	m_ProgressMessage = " Reading image sequence...";
+	m_ProgressMessage = " Reading image sequence ...";
 	m_ProgressPercent = 0;
-	vtkSmartPointer<vtkTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New(); 
+	if (m_Toolbox) 
+  {
+		m_Toolbox->RefreshToolboxContent();
+	}  
+  vtkSmartPointer<vtkTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New(); 
 	trackedFrameList->ReadFromSequenceMetafile(aInputImage.c_str()); 
 	
-	// Set the input frame parameters for volume reconstruction
-	m_VolumeReconstructor->SetNumberOfFrames( trackedFrameList->GetNumberOfTrackedFrames() ); 
-	m_VolumeReconstructor->SetFrameSize( trackedFrameList->GetFrameSize() ); 
-  m_VolumeReconstructor->SetPixelType( trackedFrameList->GetPixelType() ); 
-	
-	m_VolumeReconstructor->Initialize(); 
-  
-	// Feed images to the reconstructor	
-	std::ostringstream osTransformImageToTool; 
-	m_VolumeReconstructor->GetImageToToolTransform()->GetMatrix()->Print( osTransformImageToTool );
-	LOG_DEBUG("Image to tool (probe calibration) transform: \n" << osTransformImageToTool.str());  
-	
+  m_ProgressMessage = " Reconstructing volume ...";
+	m_ProgressPercent = 0;
+	if (m_Toolbox) 
+  {
+		m_Toolbox->RefreshToolboxContent();
+	}
 	const int numberOfFrames = trackedFrameList->GetNumberOfTrackedFrames(); 
-	for ( int imgNumber = 0; imgNumber < numberOfFrames; ++imgNumber ) {
+	for ( int imgNumber = 0; imgNumber < numberOfFrames; ++imgNumber ) 
+  {
 		// Set progress
-		m_ProgressPercent = (int)((100.0 * imgNumber) / numberOfFrames + 0.49);
-  		if (m_Toolbox) {
-			m_Toolbox->RefreshToolboxContent();
-		}
-
-		vtkSmartPointer<vtkMatrix4x4> mToolToReference = vtkSmartPointer<vtkMatrix4x4>::New();
-		double tToolToReference[16]; 
-		if ( trackedFrameList->GetTrackedFrame(imgNumber)->GetDefaultFrameTransform(tToolToReference) ) {
-			mToolToReference->DeepCopy(tToolToReference); 
-		} else {
-			LOG_ERROR("Unable to get default frame transform for frame #" << imgNumber); 
-			continue; 
-		}
-    
-		// Get Timestamp
-		double timestamp(0); 
-		const char* strTimestamp = trackedFrameList->GetTrackedFrame(imgNumber)->GetCustomFrameField("Timestamp"); 
-		if ( strTimestamp == NULL )  {
-			timestamp = imgNumber + 1;  // Just to make sure its increasing and not zero. This is not a normal case.
-		} else {
-			timestamp = atof(strTimestamp); 
-		}
-		
-		// Add each tracked frame to reconstructor - US image orientation always MF in tracked frame list
-    m_VolumeReconstructor->AddTrackedFrame(trackedFrameList->GetTrackedFrame(imgNumber)->ImageData, US_IMG_ORIENT_MF, mToolToReference, timestamp );
+    m_ProgressPercent = (int)((100.0 * imgNumber) / numberOfFrames + 0.49);
+    if (m_Toolbox) 
+    {
+      m_Toolbox->RefreshToolboxContent();
+    }		
+		// Add this tracked frame to the reconstructor
+    m_VolumeReconstructor->AddTrackedFrame(trackedFrameList->GetTrackedFrame(imgNumber));
 	}
 	
 	m_ProgressPercent = 0;
-	if (m_Toolbox) {
+	if (m_Toolbox) 
+  {
 		m_Toolbox->RefreshToolboxContent();
 	}
 
 	trackedFrameList->Clear(); 
-  
-	// Reconstruct
-	m_ProgressMessage = " Reconstructing...";
-	m_VolumeReconstructor->StartReconstruction(); 
-
-	while ( !m_VolumeReconstructor->GetReconstructor()->GetReconstructionFinished() ) {
-		m_ProgressPercent = (int)( ( 1 - ( 1.0 * m_VolumeReconstructor->GetReconstructor()->ReconstructionFrameCount / numberOfFrames )) * 100 + 0.49);
-  		if (m_Toolbox) {
-			m_Toolbox->RefreshToolboxContent();
-		}
-
-		vtksys::SystemTools::Delay(200); 
-	}
-
+  	
 	m_ProgressPercent = 0;
 	m_ProgressMessage = " Filling holes in output volume...";
-	if (m_Toolbox) {
+	if (m_Toolbox) 
+  {
 		m_Toolbox->RefreshToolboxContent();
 	}
-
 	m_VolumeReconstructor->FillHoles(); 
 
-
-	// Extract the 0th component
-	vtkSmartPointer<vtkImageExtractComponents> extract = vtkSmartPointer<vtkImageExtractComponents>::New();
-	extract->SetComponents(0);
-	extract->SetInput(m_VolumeReconstructor->GetReconstructor()->GetOutputFromPort(0));
-
-	m_ReconstructedVolume = vtkImageData::New();
-	m_ReconstructedVolume = extract->GetOutput();
-
-	m_ProgressPercent = 0;
+  m_VolumeReconstructor->GetReconstructedVolume(m_ReconstructedVolume);
 
 	// Display result
 	DisplayReconstructedVolume();

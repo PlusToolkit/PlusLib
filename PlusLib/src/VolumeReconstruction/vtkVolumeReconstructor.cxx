@@ -15,7 +15,10 @@
 #include "vtkVideoBuffer.h"
 #include "vtkVolumeReconstructor.h"
 #include "vtkXMLUtilities.h"
+#include "vtkImageExtractComponents.h"
 
+#include "vtkVolumeReconstructorFilter.h"
+#include "vtkTrackedFrameList.h"
 
 vtkCxxRevisionMacro(vtkVolumeReconstructor, "$Revisions: 1.0 $");
 vtkStandardNewMacro(vtkVolumeReconstructor);
@@ -23,44 +26,23 @@ vtkStandardNewMacro(vtkVolumeReconstructor);
 //----------------------------------------------------------------------------
 vtkVolumeReconstructor::vtkVolumeReconstructor()
 {
-  this->Tracker = NULL; 
-  this->VideoSource = NULL; 
-  this->Reconstructor = NULL; 
-
-  this->ConfigFileName = NULL; 
-
-  this->NumberOfFrames = -1; 
-
-  this->TrackerToolID = 0;
-
-  this->SetPixelType(itk::ImageIOBase::UCHAR); 
-
-  this->SetFrameSize(0, 0); 
-
-  this->InitializedOff(); 
-
-  vtkSmartPointer<vtkBufferedTracker> tracker = vtkSmartPointer<vtkBufferedTracker>::New();
-  this->SetTracker(tracker); 
-
-  vtkSmartPointer<vtkBufferedVideoSource> videoSource = vtkSmartPointer<vtkBufferedVideoSource>::New(); 
-  this->SetVideoSource(videoSource); 
-
-  vtkSmartPointer<vtkFreehandUltrasound2Dynamic> reconstructor = vtkSmartPointer<vtkFreehandUltrasound2Dynamic>::New(); 
-  this->SetReconstructor(reconstructor); 
-
-  this->GetReconstructor()->SetVideoSource( this->GetVideoSource() ); 
-  this->GetReconstructor()->SetTrackerTool( this->GetTracker()->GetTool( this->TrackerToolID ) ); 
-  this->GetReconstructor()->TrackerBuffer = this->GetTracker()->GetTool( this->TrackerToolID )->GetBuffer(); 
+  this->Reconstructor = vtkVolumeReconstructorFilter::New();  
+  this->ImageToToolTransform = vtkTransform::New();
 }
 
 //----------------------------------------------------------------------------
 vtkVolumeReconstructor::~vtkVolumeReconstructor()
 {
-  this->SetReconstructor(NULL); 
-
-  this->SetTracker(NULL); 
-
-  this->SetVideoSource(NULL); 
+  if (this->Reconstructor!=NULL)
+  {
+    this->Reconstructor->Delete();
+    this->Reconstructor=NULL;
+  }
+  if (this->ImageToToolTransform!=NULL)
+  {
+    this->ImageToToolTransform->Delete();
+    this->ImageToToolTransform=NULL;
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -69,48 +51,172 @@ void vtkVolumeReconstructor::PrintSelf(ostream& os, vtkIndent indent)
   this->Superclass::PrintSelf(os,indent);
 }
 
-
 //----------------------------------------------------------------------------
-void vtkVolumeReconstructor::Initialize()
+void vtkVolumeReconstructor::FillHoles()
 {
-  if ( this->GetNumberOfFrames() > 0 )
-  {
-    this->GetVideoSource()->SetFrameSize(this->GetFrameSize()); 
-    this->GetVideoSource()->GetBuffer()->SetPixelType( this->GetPixelType() ); 
-    if ( this->GetVideoSource()->GetBuffer()->SetBufferSize( this->GetNumberOfFrames() ) != PLUS_SUCCESS )
-    {
-      LOG_ERROR("Failed to set video buffer size!"); 
-      return; 
-    }
-    //this->GetVideoSource()->GetBuffer()->UpdateBufferFrameFormats();
-
-    this->GetTracker()->GetTool( this->TrackerToolID )->GetBuffer()->SetBufferSize( this->GetNumberOfFrames() ); 
-  }
-
-  // Min and max values of double indicate intial values of max and min.
-
-  this->SetVolumeExtentMax( - std::numeric_limits< double >::max(),
-    - std::numeric_limits< double >::max(),
-    - std::numeric_limits< double >::max() ); 
-  this->SetVolumeExtentMin( std::numeric_limits< double >::max(),
-    std::numeric_limits< double >::max(),
-    std::numeric_limits< double >::max() ); 
-
-
-  this->InitializedOn(); 
+  this->Reconstructor->FillHolesInOutput(); 
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkVolumeReconstructor::StartReconstruction()
+PlusStatus vtkVolumeReconstructor::ReadConfiguration(vtkXMLDataElement* config)
 {
-  if ( !this->GetInitialized() ) 
+  // Read reconstruction parameters
+  this->Reconstructor->ReadConfiguration(config); 
+
+  // Read calibration matrix (ImageToTool transform)
+  vtkSmartPointer<vtkXMLDataElement> dataCollectionConfig = config->FindNestedElementWithName("USDataCollection");
+  if (dataCollectionConfig == NULL)
   {
-    LOG_ERROR( "Unable to start reconstruction: First need to initialize!"); 
+    LOG_ERROR("Cannot find USDataCollection element in XML tree!");
+    return PLUS_FAIL;
+  }
+  vtkSmartPointer<vtkXMLDataElement> trackerDefinition = dataCollectionConfig->FindNestedElementWithName("Tracker"); 
+  if ( trackerDefinition == NULL) 
+  {
+    LOG_ERROR("Cannot find Tracker element in XML tree!");
+    return PLUS_FAIL;
+  }
+  std::string toolType;
+  vtkTracker::ConvertToolTypeToString(TRACKER_TOOL_PROBE, toolType);
+  vtkSmartPointer<vtkXMLDataElement> probeDefinition = trackerDefinition->FindNestedElementWithNameAndAttribute("Tool", "Type", toolType.c_str());
+  if (probeDefinition == NULL) {
+    LOG_ERROR("No probe definition is found in the XML tree!");
+    return PLUS_FAIL;
+  }
+  vtkSmartPointer<vtkXMLDataElement> calibration = probeDefinition->FindNestedElementWithName("Calibration");
+  if (calibration == NULL) {
+    LOG_ERROR("No calibration section is found in probe definition!");
+    return PLUS_FAIL;
+  }
+  double aImageToTool[16];
+  if (!calibration->GetVectorAttribute("MatrixValue", 16, aImageToTool)) 
+  {
+    LOG_ERROR("No calibration matrix is found in probe definition!");
+    return PLUS_FAIL;
+  }
+
+  this->ImageToToolTransform->SetMatrix( aImageToTool );
+
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+vtkTransform* vtkVolumeReconstructor::GetImageToToolTransform()
+{ 
+  return this->ImageToToolTransform;
+}
+
+//----------------------------------------------------------------------------
+void vtkVolumeReconstructor::GetImageToReferenceTransformMatrix(vtkMatrix4x4* toolToReferenceTransformMatrix, vtkMatrix4x4* imageToReferenceTransformMatrix)
+{
+  // Transformation chain: ImageToReference = ToolToReference * ImageToTool
+  vtkMatrix4x4::Multiply4x4(
+    toolToReferenceTransformMatrix, this->ImageToToolTransform->GetMatrix(),
+    imageToReferenceTransformMatrix);  
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkVolumeReconstructor::GetImageToReferenceTransformMatrix(TrackedFrame* frame, vtkMatrix4x4* imageToReferenceTransformMatrix)
+{
+  double defaultTransform[16]; 
+  if ( !frame->GetDefaultFrameTransform(defaultTransform) )		
+  {
+    LOG_ERROR("Unable to get default frame transform"); 
     return PLUS_FAIL; 
   }
+  vtkSmartPointer<vtkMatrix4x4> toolToReferenceTransformMatrix=vtkSmartPointer<vtkMatrix4x4>::New();
+  toolToReferenceTransformMatrix->DeepCopy(defaultTransform);
+
+  GetImageToReferenceTransformMatrix(toolToReferenceTransformMatrix, imageToReferenceTransformMatrix);
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+void vtkVolumeReconstructor::AddImageToExtent( vtkImageData *image, vtkMatrix4x4* mImageToReference, double* extent_Ref)
+{
+  // Output volume is in the Reference coordinate system.
+
+  // Prepare the four corner points of the input US image.
+  int* frameExtent=image->GetExtent();
+  std::vector< double* > corners_ImagePix;
+  double c0[ 4 ] = { frameExtent[ 0 ], frameExtent[ 2 ], 0,  1 };
+  double c1[ 4 ] = { frameExtent[ 0 ], frameExtent[ 3 ], 0,  1 };
+  double c2[ 4 ] = { frameExtent[ 1 ], frameExtent[ 2 ], 0,  1 };
+  double c3[ 4 ] = { frameExtent[ 1 ], frameExtent[ 3 ], 0,  1 };
+  corners_ImagePix.push_back( c0 );
+  corners_ImagePix.push_back( c1 );
+  corners_ImagePix.push_back( c2 );
+  corners_ImagePix.push_back( c3 );
+
+  // Transform the corners to Reference and expand the extent if needed
+  for ( unsigned int corner = 0; corner < corners_ImagePix.size(); ++corner )
+  {
+    double corner_Ref[ 4 ] = { 0, 0, 0, 1 }; // position of the corner in the Reference coordinate system
+    mImageToReference->MultiplyPoint( corners_ImagePix[corner], corner_Ref );
+
+    for ( int axis = 0; axis < 3; axis ++ )
+    {
+      if ( corner_Ref[axis] < extent_Ref[axis*2] )
+      {
+        // min extent along this coord axis has to be decreased
+        extent_Ref[axis*2]=corner_Ref[axis];
+      }
+      if ( corner_Ref[axis] > extent_Ref[axis*2+1] )
+      {
+        // max extent along this coord axis has to be increased
+        extent_Ref[axis*2+1]=corner_Ref[axis];
+      }
+    }
+  }
+} 
+
+//----------------------------------------------------------------------------
+PlusStatus vtkVolumeReconstructor::SetOutputExtentFromFrameList(vtkTrackedFrameList* trackedFrameList)
+{
+  double extent_Ref[6]=
+  {
+    VTK_DOUBLE_MAX, VTK_DOUBLE_MIN,
+    VTK_DOUBLE_MAX, VTK_DOUBLE_MIN,
+    VTK_DOUBLE_MAX, VTK_DOUBLE_MIN
+  };
+
+  const int numberOfFrames = trackedFrameList->GetNumberOfTrackedFrames(); 
+  for (int frameIndex = 0; frameIndex < numberOfFrames; ++frameIndex )
+  {
+    TrackedFrame* frame = trackedFrameList->GetTrackedFrame( frameIndex );
+
+    // Get transform
+    vtkSmartPointer<vtkMatrix4x4> imageToReferenceTransformMatrix=vtkSmartPointer<vtkMatrix4x4>::New();
+    if ( GetImageToReferenceTransformMatrix(frame, imageToReferenceTransformMatrix)!=PLUS_SUCCESS )		
+    {
+      LOG_ERROR("Unable to get image to reference transform for frame #" << frameIndex); 
+      continue; 
+    }
+
+    // Get image (only the frame extents are needed)
+    vtkImageData* frameImage=trackedFrameList->GetTrackedFrame(frameIndex)->ImageData.GetVtkImageNonFlipped();
+
+    // Expand the extent_Ref to include this frame
+    AddImageToExtent(frameImage, imageToReferenceTransformMatrix, extent_Ref);
+  }
+
+  // Set the output extent from the current min and max values, using the user-defined image resolution.
+
+  int outputExtent[ 6 ] = { 0, 0, 0, 0, 0, 0 };
+  double* outputSpacing = this->Reconstructor->GetOutputSpacing();
+  outputExtent[ 1 ] = int( ( extent_Ref[1] - extent_Ref[0] ) / outputSpacing[ 0 ] );
+  outputExtent[ 3 ] = int( ( extent_Ref[3] - extent_Ref[2] ) / outputSpacing[ 1 ] );
+  outputExtent[ 5 ] = int( ( extent_Ref[5] - extent_Ref[4] ) / outputSpacing[ 2 ] );
+
+  this->Reconstructor->SetOutputExtent( outputExtent );
+  this->Reconstructor->SetOutputOrigin( extent_Ref[0], extent_Ref[2], extent_Ref[4] ); 
   try
   {
-    return this->Reconstructor->StartReconstruction( this->GetNumberOfFrames() ) ;
+    if (this->Reconstructor->ResetOutput()!=PLUS_SUCCESS) // :TODO: call this automatically
+    {
+      LOG_ERROR("Failed to initialize output of the reconstructor");
+      return PLUS_FAIL;
+    }
   }
   catch(vtkstd::bad_alloc& e)
   {
@@ -118,163 +224,34 @@ PlusStatus vtkVolumeReconstructor::StartReconstruction()
     LOG_ERROR("StartReconstruction failed with due to out of memory. Try to reduce the size or spacing of the output volume.");
     return PLUS_FAIL;
   }
-}
 
-
-//----------------------------------------------------------------------------
-void vtkVolumeReconstructor::FillHoles()
-{
-  this->GetReconstructor()->FillHolesInOutput(); 
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkVolumeReconstructor::AddTrackedFrame( const PlusVideoFrame &frame, US_IMAGE_ORIENTATION usImageOrientation, vtkMatrix4x4* mToolToReference, double timestamp )
+PlusStatus vtkVolumeReconstructor::AddTrackedFrame(TrackedFrame* frame)
 {
-  if ( !this->GetInitialized() ) 
+  vtkSmartPointer<vtkMatrix4x4> imageToReferenceTransformMatrix=vtkSmartPointer<vtkMatrix4x4>::New();
+  if ( GetImageToReferenceTransformMatrix(frame, imageToReferenceTransformMatrix)!=PLUS_SUCCESS )		
   {
-    LOG_WARNING( "Unable to add tracked frame to the volume: First need to initalize!" ); 
+    LOG_ERROR("Unable to get image to reference transform for frame"); 
     return PLUS_FAIL; 
   }
 
-  PlusStatus  videoStatus = this->GetVideoSource()->AddFrameToBuffer( frame, usImageOrientation, timestamp ); 
-  PlusStatus trackerStatus = this->GetTracker()->AddTransform( mToolToReference, timestamp ); 
+  vtkImageData* frameImage=frame->ImageData.GetVtkImageNonFlipped();
 
-  int frameSize[2]={0,0};
-  frame.GetFrameSize(frameSize);
-  int extent[6] = {0, frameSize[0] - 1, 0, frameSize[1] - 1, 0, 0 }; 
-
-  if ( videoStatus == PLUS_SUCCESS && trackerStatus == PLUS_SUCCESS )
-  {
-    this->FindOutputExtent( mToolToReference, extent ); 
-  }
-  else
-  {
-    LOG_ERROR("Failed to add tracked frame to buffer!"); 
-    return PLUS_FAIL; 
-  }
-
-  return PLUS_SUCCESS; 
+  return this->Reconstructor->InsertSlice(frameImage, imageToReferenceTransformMatrix);
 }
 
 //----------------------------------------------------------------------------
-void vtkVolumeReconstructor::FindOutputExtent( vtkMatrix4x4* mToolToReference, int* frameExtent )
+PlusStatus vtkVolumeReconstructor::GetReconstructedVolume(vtkImageData* reconstructedVolume)
 {
-  vtkSmartPointer< vtkTransform > tImageToTool = this->GetImageToToolTransform();
-
-  // Prepare the full ImageToReference transform.
-  // Output volume is in the Reference coordinate system.
-
-  vtkSmartPointer< vtkTransform > tToolToReference = vtkSmartPointer< vtkTransform >::New();
-  tToolToReference->PostMultiply();
-  tToolToReference->SetMatrix( mToolToReference );
-  tToolToReference->Update();
-
-
-  vtkSmartPointer< vtkTransform > tImageToReference = vtkSmartPointer< vtkTransform >::New();
-  tImageToReference->PostMultiply();
-  tImageToReference->Identity();
-  tImageToReference->Concatenate( tImageToTool );
-  tImageToReference->Concatenate( tToolToReference );
-  tImageToReference->Update();
-
-
-  // Prepare the four corner points of the input US image.
-
-  std::vector< double* > cornersImage;
-  double c0[ 4 ] = { frameExtent[ 0 ], frameExtent[ 2 ], 0,  1 };
-  double c1[ 4 ] = { frameExtent[ 0 ], frameExtent[ 3 ], 0,  1 };
-  double c2[ 4 ] = { frameExtent[ 1 ], frameExtent[ 2 ], 0,  1 };
-  double c3[ 4 ] = { frameExtent[ 1 ], frameExtent[ 3 ], 0,  1 };
-  cornersImage.push_back( c0 );
-  cornersImage.push_back( c1 );
-  cornersImage.push_back( c2 );
-  cornersImage.push_back( c3 );
-
-
-  // Transform the corners to Reference. Check for MIN MAX update.
-
-  for ( unsigned int i = 0; i < cornersImage.size(); ++ i )
-  {
-    double cRef[ 4 ] = { 0, 0, 0, 1 };
-    tImageToReference->MultiplyPoint( cornersImage[ i ], cRef );
-
-    for ( int ii = 0; ii < 3; ii ++ )
-    {
-      if ( cRef[ ii ] > this->VolumeExtentMax[ ii ] ) this->VolumeExtentMax[ ii ] = cRef[ ii ];
-      if ( cRef[ ii ] < this->VolumeExtentMin[ ii ] ) this->VolumeExtentMin[ ii ] = cRef[ ii ];
-    }
-
-  }
-
-  // Set the output extent from the current min and max values.
-
-  int outputExtent[ 6 ] = { 0, 0, 0, 0, 0, 0 };
-  double* outputSpacing = this->GetReconstructor()->GetOutputSpacing();
-  outputExtent[ 1 ] = int( ( this->VolumeExtentMax[ 0 ] - this->VolumeExtentMin[ 0 ] ) / outputSpacing[ 0 ] );
-  outputExtent[ 3 ] = int( ( this->VolumeExtentMax[ 1 ] - this->VolumeExtentMin[ 1 ] ) / outputSpacing[ 1 ] );
-  outputExtent[ 5 ] = int( ( this->VolumeExtentMax[ 2 ] - this->VolumeExtentMin[ 2 ] ) / outputSpacing[ 2 ] );
-
-  this->Reconstructor->SetOutputExtent( outputExtent );
-
-  // Set the output origin from the current min and max values
-
-  this->Reconstructor->SetOutputOrigin( this->VolumeExtentMin ); 
-}
-
-
-//----------------------------------------------------------------------------
-PlusStatus vtkVolumeReconstructor::ReadConfiguration( const char* configFileName )
-{
-  this->SetConfigFileName( configFileName ); 
-  return this->ReadConfiguration(); 
-}
-
-//----------------------------------------------------------------------------
-PlusStatus vtkVolumeReconstructor::ReadConfiguration()
-{
-  if ( this->GetConfigFileName() == NULL ) 
-  {
-    LOG_ERROR( "You need to specify the configuration file name!" ); 
-    return PLUS_FAIL;
-  }
-
-  // read in the freehand information
-  vtkSmartPointer<vtkXMLDataElement> rootElement = vtkXMLUtilities::ReadElementFromFile(this->GetConfigFileName());
-  if (rootElement == NULL)
-  {
-    LOG_ERROR("Read volume reconstruction configuration - invalid file " << this->GetConfigFileName());
-    return PLUS_FAIL;
-  }
-
-  return this->GetReconstructor()->ReadSummary(rootElement); 
-}
-
-//----------------------------------------------------------------------------
-PlusStatus vtkVolumeReconstructor::ReadConfiguration(vtkXMLDataElement* aConfig)
-{
-  return this->GetReconstructor()->ReadSummary(aConfig); 
-}
-
-//----------------------------------------------------------------------------
-
-vtkSmartPointer< vtkTransform > vtkVolumeReconstructor::GetImageToToolTransform()
-{ 
-  vtkSmartPointer< vtkTransform > tImageToTool = vtkSmartPointer< vtkTransform >::New();
-  tImageToTool->PostMultiply();
-  tImageToTool->Identity();
-  tImageToTool->SetMatrix( this->GetReconstructor()->GetTrackerTool()->GetCalibrationMatrix() );
-  tImageToTool->Update();
-
-  return tImageToTool;
-}
-
-//----------------------------------------------------------------------------
-
-const vtkMatrix4x4* vtkVolumeReconstructor::GetImageToToolMatrix()
-{
-  vtkMatrix4x4* matrix = this->GetReconstructor()->GetTrackerTool()->GetCalibrationMatrix();
-  const vtkMatrix4x4* constMatrix = const_cast< const vtkMatrix4x4* >( matrix );
+  vtkSmartPointer<vtkImageExtractComponents> extract = vtkSmartPointer<vtkImageExtractComponents>::New();
   
-  return constMatrix;
+  // keep only 0th component (the other component is the mask that shows which voxels were pasted from slices)
+  extract->SetComponents(0);
+  extract->SetInput(this->Reconstructor->GetReconstructedVolume());
+  extract->Update();
+  reconstructedVolume->DeepCopy(extract->GetOutput());
+  return PLUS_SUCCESS;
 }
-
