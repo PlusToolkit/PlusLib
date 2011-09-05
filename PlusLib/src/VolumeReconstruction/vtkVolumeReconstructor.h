@@ -34,13 +34,12 @@ public:
   vtkTypeRevisionMacro(vtkVolumeReconstructor, vtkImageAlgorithm);
   virtual void PrintSelf(ostream& os, vtkIndent indent);
 
-  virtual PlusStatus ReadConfiguration( vtkXMLDataElement* aConfig ); 
+  virtual PlusStatus ReadConfiguration( vtkXMLDataElement* config); 
+  virtual PlusStatus WriteConfiguration(vtkXMLDataElement *config);
 
   virtual PlusStatus SetOutputExtentFromFrameList(vtkTrackedFrameList* trackedFrameList);
 
   virtual PlusStatus AddTrackedFrame(TrackedFrame* frame);
-
-  virtual void FillHoles();
 
   virtual PlusStatus GetReconstructedVolume(vtkImageData* reconstructedVolume);
 
@@ -56,6 +55,7 @@ protected:
   static void AddImageToExtent( vtkImageData *image, vtkMatrix4x4* mImageToReference, double* extent_Ref);
 
   vtkPasteSliceIntoVolume* Reconstructor; 
+  int FillHoles;
   
   // The calibration matrix, constant throughout the reconstruction
   vtkTransform* ImageToToolTransform;
