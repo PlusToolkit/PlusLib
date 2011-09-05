@@ -51,7 +51,7 @@ SET_TESTS_PROPERTIES( itkFcsvReaderTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERR
 ADD_EXECUTABLE(itkFcsvWriterTest1 itkFcsvWriterTest1.cxx )
 TARGET_LINK_LIBRARIES(itkFcsvWriterTest1 vtkImageAcquisition )
 ADD_TEST(itkFcsvWriterTest1 ${EXECUTABLE_OUTPUT_PATH}/itkFcsvWriterTest1
-  ${TestDataDir}/FcsvReaderTest1.fcsv ${TestDataDir}/FcsvWriterTest1.fcsv
+  ${TestDataDir}/FcsvReaderTest1.fcsv ${CMAKE_CURRENT_BINARY_DIR}/FcsvWriterTest1.fcsv
   )
 SET_TESTS_PROPERTIES( itkFcsvWriterTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
