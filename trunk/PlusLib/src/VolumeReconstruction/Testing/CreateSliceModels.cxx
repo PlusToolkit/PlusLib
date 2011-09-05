@@ -18,6 +18,7 @@
 #include "vtkSmartPointer.h"
 #include "vtkTransform.h"
 #include "vtkTransformPolyDataFilter.h"
+#include "vtkXMLUtilities.h"
 
 #include "vtkTrackedFrameList.h"
 #include "vtkVolumeReconstructor.h"
@@ -91,11 +92,14 @@ int main( int argc, char** argv )
   // Read volume reconstruction config file.
 
   LOG_DEBUG("Reading config file...");
-  vtkSmartPointer< vtkVolumeReconstructor > reconstructor = vtkSmartPointer< vtkVolumeReconstructor >::New(); 
-  reconstructor->ReadConfiguration( inputConfigFilename.c_str() );
+  vtkSmartPointer< vtkVolumeReconstructor > reconstructor = vtkSmartPointer< vtkVolumeReconstructor >::New();   
+  vtkXMLDataElement *configRead = vtkXMLUtilities::ReadElementFromFile(inputConfigFilename.c_str());
+  reconstructor->ReadConfiguration(configRead);
+  configRead->Delete();
+  configRead=NULL;
   LOG_DEBUG("Reading config file done.");
 
-  const vtkMatrix4x4* mImageToTool = reconstructor->GetImageToToolMatrix();
+  const vtkMatrix4x4* mImageToTool = reconstructor->GetImageToToolTransform()->GetMatrix();
   if ( mImageToTool == NULL )
   {
     LOG_ERROR("ERROR: ImageToTool calibration matrix not defined. Cannot continue.");
