@@ -1,18 +1,12 @@
 #include "PlusConfigure.h"
-#include "vtkVolumeReconstructor.h"
-#include "vtkSmartPointer.h"
-#include "vtksys/CommandLineArguments.hxx" 
-#include "vtksys/SystemTools.hxx"
-#include "vtkImageData.h"
 
+#include "vtksys/CommandLineArguments.hxx" 
+#include "vtkXMLUtilities.h"
+#include "vtkSmartPointer.h"
+#include "vtkImageData.h"
 #include "vtkDataSetWriter.h"
-#include "itkImage.h"
-#include "vtkImageExtractComponents.h"
-#include "itkImageFileReader.h"
-#include "itkImageFileWriter.h"
-#include "itkMetaImageSequenceIO.h"
-#include "vtkTrackerTool.h"
-#include "vtkXMLImageDataWriter.h"
+
+#include "vtkVolumeReconstructor.h"
 #include "vtkTrackedFrameList.h"
 
 int main (int argc, char* argv[])
@@ -58,103 +52,49 @@ int main (int argc, char* argv[])
 
 	// Set the log level
 	vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
-  vtkPlusLogger::Instance()->SetDisplayLogLevel(verboseLevel);
-
-	vtkSmartPointer<vtkVolumeReconstructor> reconstructor = vtkSmartPointer<vtkVolumeReconstructor>::New(); 
-
-	LOG_INFO("Reading configuration file...");
-	reconstructor->ReadConfiguration(inputConfigFileName.c_str()); 
-
-	//***************************  Image sequence reading *****************************
-	LOG_INFO("Reading image sequence...");
-	vtkSmartPointer<vtkTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New(); 
-	trackedFrameList->ReadFromSequenceMetafile(inputImgSeqFileName.c_str()); 
-
-	//***************************  Volume reconstruction ***************************** 
-	
-	// Set the input frame parameters 
-	reconstructor->SetNumberOfFrames( trackedFrameList->GetNumberOfTrackedFrames() ); 
-	reconstructor->SetFrameSize( trackedFrameList->GetFrameSize() ); 
-  reconstructor->SetPixelType( trackedFrameList->GetPixelType() ); 
-	
-	LOG_INFO("Initialize reconstructor...");
-	reconstructor->Initialize(); 
+  vtkPlusLogger::Instance()->SetDisplayLogLevel(verboseLevel);  
   
-	LOG_INFO("Adding images to reconstructor...");
-	
-	std::ostringstream osTransformImageToTool; 
-	reconstructor->GetImageToToolTransform()->GetMatrix()->Print( osTransformImageToTool );
-	LOG_DEBUG("Image to tool (probe calibration) transform: \n" << osTransformImageToTool.str());  
-	
-	
-	const int numberOfFrames = trackedFrameList->GetNumberOfTrackedFrames(); 
-	for ( int imgNumber = 0; imgNumber < numberOfFrames; ++imgNumber )
-	{
-		vtkPlusLogger::PrintProgressbar( (100.0 * imgNumber) / numberOfFrames ); 
+  vtkSmartPointer<vtkVolumeReconstructor> reconstructor = vtkSmartPointer<vtkVolumeReconstructor>::New(); 
+
+  LOG_INFO( "Reading configuration file:" << inputConfigFileName );
+  vtkXMLDataElement *configRead = vtkXMLUtilities::ReadElementFromFile(inputConfigFileName.c_str());
+  reconstructor->ReadConfiguration(configRead);
+  configRead->Delete();
+  configRead=NULL;
+
+  // Print calibration transform
+  std::ostringstream osTransformImageToTool; 
+  reconstructor->GetImageToToolTransform()->GetMatrix()->Print( osTransformImageToTool );
+  LOG_DEBUG("Image to tool (probe calibration) transform: \n" << osTransformImageToTool.str());  
+
+  LOG_INFO("Reading image sequence...");
+  vtkSmartPointer<vtkTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New(); 
+  trackedFrameList->ReadFromSequenceMetafile(inputImgSeqFileName.c_str()); 
   
-		vtkSmartPointer<vtkMatrix4x4> mToolToReference = vtkSmartPointer<vtkMatrix4x4>::New();
-		double tToolToReference[16]; 
-		if ( trackedFrameList->GetTrackedFrame(imgNumber)->GetDefaultFrameTransform(tToolToReference) )
-		{
-			mToolToReference->DeepCopy(tToolToReference); 
-		}
-		else
-		{
-			LOG_ERROR("Unable to get default frame transform for frame #" << imgNumber); 
-			continue; 
-		}
-    
-    // Get Timestamp
-    double timestamp(0); 
-		const char* strTimestamp = trackedFrameList->GetTrackedFrame(imgNumber)->GetCustomFrameField("Timestamp"); 
-		if ( strTimestamp == NULL ) 
-		{
-			timestamp = imgNumber + 1;  // Just to make sure its increasing and not zero. This is not a normal case.
-		}
-		else
-		{
-		  timestamp = atof(strTimestamp); 
-		}
-		
-		// Add each tracked frame to reconstructor - US image orientation always MF in tracked frame list
-		reconstructor->AddTrackedFrame(trackedFrameList->GetTrackedFrame(imgNumber)->ImageData, US_IMG_ORIENT_MF, mToolToReference, timestamp );
-	}
-	
-	vtkPlusLogger::PrintProgressbar( 100 ); 
-	
-	trackedFrameList->Clear(); 
-  
-	LOG_INFO("Start reconstruction...");
-  if (reconstructor->StartReconstruction()!=PLUS_SUCCESS)
+  LOG_INFO("Reconstruct volume...");
+  reconstructor->SetOutputExtentFromFrameList(trackedFrameList);
+  const int numberOfFrames = trackedFrameList->GetNumberOfTrackedFrames(); 
+  for ( int frameIndex = 0; frameIndex < numberOfFrames; ++frameIndex )
   {
-    LOG_ERROR("Starting reconstruction failed");
-    return EXIT_FAILURE;
+    LOG_DEBUG("Frame: "<<frameIndex);
+    vtkPlusLogger::PrintProgressbar( (100.0 * frameIndex) / numberOfFrames ); 
+    TrackedFrame* frame = trackedFrameList->GetTrackedFrame( frameIndex );
+    reconstructor->AddTrackedFrame(frame);
   }
+  vtkPlusLogger::PrintProgressbar( 100 ); 
 
-	while ( !reconstructor->GetReconstructor()->GetReconstructionFinished() ) 
-	{
-		vtkPlusLogger::PrintProgressbar( ( 1 - ( 1.0 * reconstructor->GetReconstructor()->ReconstructionFrameCount /  numberOfFrames )) * 100 ); 
-		vtksys::SystemTools::Delay(200); 
-	}
+  trackedFrameList->Clear(); 
 
-	vtkPlusLogger::PrintProgressbar( 100 ); 
+  LOG_INFO("Saving volume to file...");
+  vtkSmartPointer<vtkImageData> reconstructedVolume=vtkSmartPointer<vtkImageData>::New();
+  reconstructor->GetReconstructedVolume(reconstructedVolume);
 
-	LOG_INFO("Fill holes in output volume...");
-	reconstructor->FillHoles(); 
+  vtkSmartPointer<vtkDataSetWriter> writer3D = vtkSmartPointer<vtkDataSetWriter>::New();
+  writer3D->SetFileTypeToBinary();
+  writer3D->SetInput(reconstructedVolume);
+  writer3D->SetFileName(outputVolumeFileName.c_str());
+  writer3D->Update();
 
-	LOG_INFO("Saving volume to file...");
-	vtkSmartPointer<vtkImageExtractComponents> extract = vtkSmartPointer<vtkImageExtractComponents>::New();
-	vtkSmartPointer<vtkDataSetWriter> writer3D = vtkSmartPointer<vtkDataSetWriter>::New();
-	// keep only 0th component
-	extract->SetComponents(0);
-	extract->SetInput(reconstructor->GetReconstructor()->GetOutputFromPort(0));
-
-	// write out to file
-	writer3D->SetFileTypeToBinary();
-	writer3D->SetInput(extract->GetOutput());
-	writer3D->SetFileName(outputVolumeFileName.c_str());
-	writer3D->Update();
-  
-	VTK_LOG_TO_CONSOLE_OFF; 
-	return EXIT_SUCCESS; 
+  VTK_LOG_TO_CONSOLE_OFF; 
+  return EXIT_SUCCESS; 
 }
