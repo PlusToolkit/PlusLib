@@ -17,7 +17,7 @@
 #include "vtkXMLUtilities.h"
 #include "vtkImageExtractComponents.h"
 
-#include "vtkVolumeReconstructorFilter.h"
+#include "vtkPasteSliceIntoVolume.h"
 #include "vtkTrackedFrameList.h"
 
 vtkCxxRevisionMacro(vtkVolumeReconstructor, "$Revisions: 1.0 $");
@@ -26,7 +26,7 @@ vtkStandardNewMacro(vtkVolumeReconstructor);
 //----------------------------------------------------------------------------
 vtkVolumeReconstructor::vtkVolumeReconstructor()
 {
-  this->Reconstructor = vtkVolumeReconstructorFilter::New();  
+  this->Reconstructor = vtkPasteSliceIntoVolume::New();  
   this->ImageToToolTransform = vtkTransform::New();
 }
 

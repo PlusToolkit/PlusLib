@@ -15,7 +15,6 @@ SET (Tracking_SRCS
 	vtkTracker.cxx 
 	vtkTrackerBuffer.cxx 
 	vtkTrackerTool.cxx 
-	vtkBufferedTracker.cxx 
     vtkSavedDataTracker.cxx 
 	)
 
@@ -26,7 +25,6 @@ if (WIN32)
 		vtkTracker.h 
 		vtkTrackerBuffer.h 
 		vtkTrackerTool.h 
-		vtkBufferedTracker.h
         vtkSavedDataTracker.h
 		)
 endif (WIN32)	

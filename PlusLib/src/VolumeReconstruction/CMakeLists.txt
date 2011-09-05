@@ -4,21 +4,17 @@
 # --------------------------------------------------------------------------
 # Sources
 SET (VolumeReconstruction_SRCS
-	vtkFreehandUltrasound2.cxx 
-	vtkFreehandUltrasound2Dynamic.cxx 
+	vtkPasteSliceIntoVolume.cxx 
 	vtkVolumeReconstructor.cxx 
-	vtkVolumeReconstructorFilter.cxx 
 	)
 
 SET (VolumeReconstruction_HDRS)
 if (WIN32)	
 	SET (VolumeReconstruction_HDRS
 		fixed.h
-		vtkFreehandUltrasound2.h 
-		vtkFreehandUltrasound2Dynamic.h 
-		vtkFreehandUltrasound2Helper.h 
+		vtkPasteSliceIntoVolume.h 
+		vtkPasteSliceIntoVolumeHelper.h 
 		vtkVolumeReconstructor.h 
-		vtkVolumeReconstructorFilter.h 
 		)
 endif (WIN32)	
 

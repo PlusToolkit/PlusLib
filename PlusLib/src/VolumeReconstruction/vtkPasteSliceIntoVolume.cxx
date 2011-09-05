@@ -35,8 +35,8 @@ POSSIBILITY OF SUCH DAMAGES.
 
 #include "PlusConfigure.h"
 
-#include "vtkVolumeReconstructorFilter.h"
-#include "vtkVolumeReconstructorFilterHelper.h"
+#include "vtkPasteSliceIntoVolume.h"
+#include "vtkPasteSliceIntoVolumeHelper.h"
 #include "vtkObjectFactory.h"
 #include "vtkStreamingDemandDrivenPipeline.h"
 #include "vtkInformation.h"
@@ -52,8 +52,8 @@ POSSIBILITY OF SUCH DAMAGES.
 #include "vtkVideoBuffer.h"
 #include "vtkIndent.h"
 
-vtkCxxRevisionMacro(vtkVolumeReconstructorFilter, "$Revisions: 1.0 $");
-vtkStandardNewMacro(vtkVolumeReconstructorFilter);
+vtkCxxRevisionMacro(vtkPasteSliceIntoVolume, "$Revisions: 1.0 $");
+vtkStandardNewMacro(vtkPasteSliceIntoVolume);
 
 struct InsertSliceThreadFunctionInfoStruct
 {
@@ -61,9 +61,9 @@ struct InsertSliceThreadFunctionInfoStruct
   vtkMatrix4x4* TransformImageToReference;
 	vtkImageData* OutputVolume;
 	vtkImageData* Accumulator;
-  vtkVolumeReconstructorFilter::OptimizationType Optimization;
+  vtkPasteSliceIntoVolume::OptimizationType Optimization;
   int Compounding;
-  vtkVolumeReconstructorFilter::InterpolationType InterpolationMode;
+  vtkPasteSliceIntoVolume::InterpolationType InterpolationMode;
 
   double ClipRectangleOrigin[2];
   double ClipRectangleSize[2];
@@ -81,7 +81,7 @@ struct FillHoleThreadFunctionInfoStruct
 
 
 //----------------------------------------------------------------------------
-vtkVolumeReconstructorFilter::vtkVolumeReconstructorFilter()
+vtkPasteSliceIntoVolume::vtkPasteSliceIntoVolume()
 {
   this->ReconstructedVolume=vtkImageData::New();
   this->AccumulationBuffer=vtkImageData::New();
@@ -122,7 +122,7 @@ vtkVolumeReconstructorFilter::vtkVolumeReconstructorFilter()
 }
 
 //----------------------------------------------------------------------------
-vtkVolumeReconstructorFilter::~vtkVolumeReconstructorFilter()
+vtkPasteSliceIntoVolume::~vtkPasteSliceIntoVolume()
 {  
   if (this->ReconstructedVolume)
   {
@@ -142,7 +142,7 @@ vtkVolumeReconstructorFilter::~vtkVolumeReconstructorFilter()
 }
 
 //----------------------------------------------------------------------------
-void vtkVolumeReconstructorFilter::PrintSelf(ostream& os, vtkIndent indent)
+void vtkPasteSliceIntoVolume::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os,indent);
   if (this->ReconstructedVolume)
@@ -193,11 +193,11 @@ void vtkVolumeReconstructorFilter::PrintSelf(ostream& os, vtkIndent indent)
 //----------------------------------------------------------------------------
 // Get the reconstruction volume (for port 0)
 // Important that this be for port 0 and not for phase 0, because
-// GetIndexMatrixHelper in vtkVolumeReconstructorFilter uses GetOutput() to figure
+// GetIndexMatrixHelper in vtkPasteSliceIntoVolume uses GetOutput() to figure
 // out output spacing - want to ensure that an output volume exists, even
 // if we are selecting which phases to reconstruct and the output for phase 0
 // is turned off
-vtkImageData *vtkVolumeReconstructorFilter::GetReconstructedVolume()
+vtkImageData *vtkPasteSliceIntoVolume::GetReconstructedVolume()
 {
   return this->ReconstructedVolume;
 }
@@ -205,7 +205,7 @@ vtkImageData *vtkVolumeReconstructorFilter::GetReconstructedVolume()
 //----------------------------------------------------------------------------
 // Get the accumulation buffer (for port 0)
 // Will be NULL if we are not compounding
-vtkImageData *vtkVolumeReconstructorFilter::GetAccumulationBuffer()
+vtkImageData *vtkPasteSliceIntoVolume::GetAccumulationBuffer()
 {
   return this->AccumulationBuffer;
 }
@@ -213,7 +213,7 @@ vtkImageData *vtkVolumeReconstructorFilter::GetAccumulationBuffer()
 //----------------------------------------------------------------------------
 // Clear the output volume and the accumulation buffer
 // (basically just calls InternalInternalClearOutput)
-PlusStatus vtkVolumeReconstructorFilter::ResetOutput()
+PlusStatus vtkPasteSliceIntoVolume::ResetOutput()
 {   
   // Allocate memory for accumulation buffer and set all pixels to 0
   // Start with this buffer because if no compunding is needed then we release memory before allocating memory for the reconstructed image.
@@ -288,7 +288,7 @@ PlusStatus vtkVolumeReconstructorFilter::ResetOutput()
 
 //----------------------------------------------------------------------------
 // Set compounding setting
-void vtkVolumeReconstructorFilter::SetCompounding(int compound)
+void vtkPasteSliceIntoVolume::SetCompounding(int compound)
 {
 	this->Compounding = compound;
   ResetOutput();
@@ -301,7 +301,7 @@ void vtkVolumeReconstructorFilter::SetCompounding(int compound)
 //----------------------------------------------------------------------------
 // Does the actual work of optimally inserting a slice, with optimization
 // Basically, just calls Multithread()
-PlusStatus vtkVolumeReconstructorFilter::InsertSlice(vtkImageData *image, vtkMatrix4x4* transformImageToReference)
+PlusStatus vtkPasteSliceIntoVolume::InsertSlice(vtkImageData *image, vtkMatrix4x4* transformImageToReference)
 {
 	InsertSliceThreadFunctionInfoStruct str;
 	str.InputFrameImage = image;
@@ -334,7 +334,7 @@ PlusStatus vtkVolumeReconstructorFilter::InsertSlice(vtkImageData *image, vtkMat
 }
 
 //----------------------------------------------------------------------------
-VTK_THREAD_RETURN_TYPE vtkVolumeReconstructorFilter::InsertSliceThreadFunction( void *arg )
+VTK_THREAD_RETURN_TYPE vtkPasteSliceIntoVolume::InsertSliceThreadFunction( void *arg )
 {
   vtkMultiThreader::ThreadInfo* threadInfo = static_cast<vtkMultiThreader::ThreadInfo *>(arg);
  	InsertSliceThreadFunctionInfoStruct *str = static_cast<InsertSliceThreadFunctionInfoStruct*>(threadInfo->UserData);
@@ -345,7 +345,7 @@ VTK_THREAD_RETURN_TYPE vtkVolumeReconstructorFilter::InsertSliceThreadFunction( 
   int inputFrameExtent[6];
   str->InputFrameImage->GetExtent(inputFrameExtent);
   int inputFrameExtentForCurrentThread[6];
-	int totalUsedThreads = vtkVolumeReconstructorFilter::SplitSliceExtent(inputFrameExtentForCurrentThread, inputFrameExtent, threadId, threadCount);
+	int totalUsedThreads = vtkPasteSliceIntoVolume::SplitSliceExtent(inputFrameExtentForCurrentThread, inputFrameExtent, threadId, threadCount);
 
 	if (threadId >= totalUsedThreads)
 	{
@@ -573,7 +573,7 @@ VTK_THREAD_RETURN_TYPE vtkVolumeReconstructorFilter::InsertSliceThreadFunction( 
 // This method returns the number of pieces resulting from a successful split.
 // This can be from 1 to "requestedNumberOfThreads".  
 // If 1 is returned, the extent cannot be split.
-int vtkVolumeReconstructorFilter::SplitSliceExtent(int splitExt[6], int fullExt[6], int threadId, int requestedNumberOfThreads)
+int vtkPasteSliceIntoVolume::SplitSliceExtent(int splitExt[6], int fullExt[6], int threadId, int requestedNumberOfThreads)
 {
 	
 	int min, max; // the min and max indices of the axis of interest
@@ -634,7 +634,7 @@ int vtkVolumeReconstructorFilter::SplitSliceExtent(int splitExt[6], int fullExt[
 //----------------------------------------------------------------------------
 // Does the actual hole filling
 template <class T>
-static void vtkVolumeReconstructorFilterFillHolesInOutput(
+static void vtkPasteSliceIntoVolumeFillHolesInOutput(
 													vtkImageData *outData,
 													T *outPtr,
 													unsigned short *accPtr,
@@ -642,17 +642,17 @@ static void vtkVolumeReconstructorFilterFillHolesInOutput(
 {
   if (outData==NULL || outData->GetScalarPointer()==NULL)
   {
-    LOG_ERROR("vtkVolumeReconstructorFilterFillHolesInOutput outData is invalid");
+    LOG_ERROR("vtkPasteSliceIntoVolumeFillHolesInOutput outData is invalid");
     return;
   }
   if (outPtr==NULL)
   {
-    LOG_ERROR("vtkVolumeReconstructorFilterFillHolesInOutput outPtr is invalid");
+    LOG_ERROR("vtkPasteSliceIntoVolumeFillHolesInOutput outPtr is invalid");
     return;
   }
   if (accPtr==NULL)
   {
-    LOG_ERROR("vtkVolumeReconstructorFilterFillHolesInOutput accPtr is invalid");
+    LOG_ERROR("vtkPasteSliceIntoVolumeFillHolesInOutput accPtr is invalid");
     return;
   }
 	int idX, idY, idZ;
@@ -939,7 +939,7 @@ static void vtkVolumeReconstructorFilterFillHolesInOutput(
 // the ThreadedExecute method after setting the correct
 // extent for this thread.  Its just a pain to calculate
 // the correct extent.
-VTK_THREAD_RETURN_TYPE vtkVolumeReconstructorFilter::FillHoleThreadFunction( void *arg )
+VTK_THREAD_RETURN_TYPE vtkPasteSliceIntoVolume::FillHoleThreadFunction( void *arg )
 {	
   vtkMultiThreader::ThreadInfo* threadInfo = static_cast<vtkMultiThreader::ThreadInfo *>(arg);
 	FillHoleThreadFunctionInfoStruct *str = static_cast<FillHoleThreadFunctionInfoStruct *> (static_cast<vtkMultiThreader::ThreadInfo *>(arg)->UserData);
@@ -950,7 +950,7 @@ VTK_THREAD_RETURN_TYPE vtkVolumeReconstructorFilter::FillHoleThreadFunction( voi
   int outputExtent[6];
   str->ReconstructedVolume->GetExtent(outputExtent);
   int outputExtentForCurrentThread[6];
-	int totalUsedThreads = vtkVolumeReconstructorFilter::SplitSliceExtent(outputExtentForCurrentThread, outputExtent, threadId, threadCount);
+	int totalUsedThreads = vtkPasteSliceIntoVolume::SplitSliceExtent(outputExtentForCurrentThread, outputExtent, threadId, threadCount);
 
 	// if we can use this thread, then call FillHoleThreadFunction
 	if (threadId >= totalUsedThreads)
@@ -973,17 +973,17 @@ VTK_THREAD_RETURN_TYPE vtkVolumeReconstructorFilter::FillHoleThreadFunction( voi
 	switch (str->ReconstructedVolume->GetScalarType())
 	{
 	case VTK_SHORT:
-		vtkVolumeReconstructorFilterFillHolesInOutput(
+		vtkPasteSliceIntoVolumeFillHolesInOutput(
 			str->ReconstructedVolume, (short *)(outPtr), 
 			(unsigned short *)(accPtr), outputExtentForCurrentThread);
 		break;
 	case VTK_UNSIGNED_SHORT:
-		vtkVolumeReconstructorFilterFillHolesInOutput(
+		vtkPasteSliceIntoVolumeFillHolesInOutput(
 			str->ReconstructedVolume, (unsigned short *)(outPtr),
 			(unsigned short *)(accPtr), outputExtentForCurrentThread);
 		break;
 	case VTK_UNSIGNED_CHAR:
-		vtkVolumeReconstructorFilterFillHolesInOutput(
+		vtkPasteSliceIntoVolumeFillHolesInOutput(
 			str->ReconstructedVolume,(unsigned char *)(outPtr),
 			(unsigned short *)(accPtr), outputExtentForCurrentThread); 
 		break;
@@ -998,7 +998,7 @@ VTK_THREAD_RETURN_TYPE vtkVolumeReconstructorFilter::FillHoleThreadFunction( voi
 // Fills holes in the output by using the weighted average of the surrounding
 // voxels (see David Gobbi's thesis)
 // Basically, just calls MultiThreadFill()
-void vtkVolumeReconstructorFilter::FillHolesInOutput()
+void vtkPasteSliceIntoVolume::FillHolesInOutput()
 {
 	FillHoleThreadFunctionInfoStruct str;
   str.ReconstructedVolume = this->ReconstructedVolume;
@@ -1021,7 +1021,7 @@ void vtkVolumeReconstructorFilter::FillHolesInOutput()
 // I/O
 //****************************************************************************
 
-char* vtkVolumeReconstructorFilter::GetInterpolationModeAsString(InterpolationType type)
+char* vtkPasteSliceIntoVolume::GetInterpolationModeAsString(InterpolationType type)
 {
   switch (type)
   {
@@ -1033,7 +1033,7 @@ char* vtkVolumeReconstructorFilter::GetInterpolationModeAsString(InterpolationTy
   }
 }
 
-char* vtkVolumeReconstructorFilter::GetOptimizationModeAsString(OptimizationType type)
+char* vtkPasteSliceIntoVolume::GetOptimizationModeAsString(OptimizationType type)
 {
   switch (type)
   {
@@ -1049,7 +1049,7 @@ char* vtkVolumeReconstructorFilter::GetOptimizationModeAsString(OptimizationType
 
 //----------------------------------------------------------------------------
 // Get the XML element describing the freehand object
-PlusStatus vtkVolumeReconstructorFilter::WriteConfiguration(vtkXMLDataElement *config)
+PlusStatus vtkPasteSliceIntoVolume::WriteConfiguration(vtkXMLDataElement *config)
 {
   if ( config == NULL )
 	{
@@ -1102,7 +1102,7 @@ PlusStatus vtkVolumeReconstructorFilter::WriteConfiguration(vtkXMLDataElement *c
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkVolumeReconstructorFilter::ReadConfiguration(vtkXMLDataElement* aConfig)
+PlusStatus vtkPasteSliceIntoVolume::ReadConfiguration(vtkXMLDataElement* aConfig)
 {
   vtkSmartPointer<vtkXMLDataElement> reconConfig = aConfig->FindNestedElementWithName("VolumeReconstruction");
   if (reconConfig == NULL)
@@ -1177,7 +1177,7 @@ PlusStatus vtkVolumeReconstructorFilter::ReadConfiguration(vtkXMLDataElement* aC
 }
 
 //----------------------------------------------------------------------------
-bool vtkVolumeReconstructorFilter::FanParametersDefined()
+bool vtkPasteSliceIntoVolume::FanParametersDefined()
 {
   return this->FanAngles[0] != 0.0 || this->FanAngles[1] != 0.0;
 }
