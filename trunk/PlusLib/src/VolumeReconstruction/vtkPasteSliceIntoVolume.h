@@ -82,14 +82,9 @@ public:
   // Description:
   // Get the accumulation buffer
   // accumulation buffer is for compounding, there is a voxel in
-  // the accumulation buffer for each voxel in the output
+  // the accumulation buffer for each voxel in the output.
+  // Will be NULL if we are not compounding.
   virtual vtkImageData *GetAccumulationBuffer();
-
-  // Description:
-  // Fill holes in the output by using the weighted average of the
-  // surrounding voxels.  If Compounding is off, then all hit voxels
-  // are weighted equally. 
-  virtual void FillHolesInOutput();
 
   // Description:
   // Cause the slice to be inserted into the first reconstruction volume
@@ -140,9 +135,18 @@ public:
 
   // Description:
   // Turn on or off the compounding (default on, which means
-  // that scans will be compounded where they overlap instead of the
+  // that scans will be compounded where they overlap instead of just considering
+  // the last acquired slice.
   vtkGetMacro(Compounding,int);
   virtual void SetCompounding(int c);
+
+  // Description:
+  // Number of threads use for processing the data. If 0 is specified then
+  // the default number of threads are used (number of processors).
+  // Currently the results are slightly different depending on the number of 
+  // threads used (probably it is a bug).
+  vtkGetMacro(NumberOfThreads,int);
+  vtkSetMacro(NumberOfThreads,int);
 
   // Description:
   // Spacing, origin, and extent of output data
@@ -154,25 +158,14 @@ public:
   vtkSetVector6Macro(OutputExtent, int);
   vtkGetVector6Macro(OutputExtent, int);
 
-  // Description:
-  // Configure the freehand ultrasound reconstruction according to summary XML data
-  virtual PlusStatus ReadConfiguration(vtkXMLDataElement* aConfig);
-
-  // Description:
-  // Returns an XMLDataElement describing the freehand object
-  virtual PlusStatus WriteConfiguration(vtkXMLDataElement *elem);
-
-  //////////////////////////////////////////////////////////////////////////////////
+  bool FanParametersDefined();
 
 protected:
   vtkPasteSliceIntoVolume();
   ~vtkPasteSliceIntoVolume();
 
-  bool FanParametersDefined();
-
   static VTK_THREAD_RETURN_TYPE InsertSliceThreadFunction( void *arg );
-  static VTK_THREAD_RETURN_TYPE FillHoleThreadFunction( void *arg );
-
+  
   // Description:
   // To split the extent over many threads
   // Input: the full extent (fullExt), current thread index (threadId), total number of threads (requestedNumberOfThreads)

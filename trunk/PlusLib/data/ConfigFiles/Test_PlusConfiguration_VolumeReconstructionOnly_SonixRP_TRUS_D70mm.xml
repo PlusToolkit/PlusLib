@@ -46,6 +46,6 @@
 	<!-- VOLUME RECONSTRUCTION -->
 	<VolumeReconstruction OutputSpacing="0.3 0.3 0.3" 
                         FanAngles="-45 45" FanOrigin="320 465" FanDepth="300" 
-                        Interpolation="LINEAR" Optimization="FULL" Compounding="On"/>
+                        Interpolation="LINEAR" Optimization="FULL" Compounding="On" FillHoles="Off"/>
 
 </PlusConfiguration>

@@ -263,7 +263,6 @@ PlusStatus VolumeReconstructionController::ReconstructVolumeFromInputImage(std::
   {
 		m_Toolbox->RefreshToolboxContent();
 	}
-	m_VolumeReconstructor->FillHoles(); 
 
   m_VolumeReconstructor->GetReconstructedVolume(m_ReconstructedVolume);
 

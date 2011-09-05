@@ -18,6 +18,7 @@
 #include "vtkImageExtractComponents.h"
 
 #include "vtkPasteSliceIntoVolume.h"
+#include "vtkFillHolesInVolume.h"
 #include "vtkTrackedFrameList.h"
 
 vtkCxxRevisionMacro(vtkVolumeReconstructor, "$Revisions: 1.0 $");
@@ -28,6 +29,7 @@ vtkVolumeReconstructor::vtkVolumeReconstructor()
 {
   this->Reconstructor = vtkPasteSliceIntoVolume::New();  
   this->ImageToToolTransform = vtkTransform::New();
+  this->FillHoles=0;
 }
 
 //----------------------------------------------------------------------------
@@ -52,16 +54,126 @@ void vtkVolumeReconstructor::PrintSelf(ostream& os, vtkIndent indent)
 }
 
 //----------------------------------------------------------------------------
-void vtkVolumeReconstructor::FillHoles()
-{
-  this->Reconstructor->FillHolesInOutput(); 
-}
-
-//----------------------------------------------------------------------------
 PlusStatus vtkVolumeReconstructor::ReadConfiguration(vtkXMLDataElement* config)
 {
-  // Read reconstruction parameters
-  this->Reconstructor->ReadConfiguration(config); 
+  vtkSmartPointer<vtkXMLDataElement> reconConfig = config->FindNestedElementWithName("VolumeReconstruction");
+  if (reconConfig == NULL)
+  {
+    LOG_ERROR("No volume reconstruction is found in the XML tree!");
+    return PLUS_FAIL;
+  }
+
+  // output volume parameters
+  // origin and spacing is defined in the reference coordinate system
+  double outputSpacing[3]={0,0,0};
+  if (reconConfig->GetVectorAttribute("OutputSpacing", 3, outputSpacing))
+  {
+    this->Reconstructor->SetOutputSpacing(outputSpacing);
+  }
+  double outputOrigin[3]={0,0,0};
+  if (reconConfig->GetVectorAttribute("OutputOrigin", 3, outputOrigin))
+  {
+    this->Reconstructor->SetOutputOrigin(outputOrigin);
+  }
+  int outputExtent[6]={0,0,0,0,0,0};
+  if (reconConfig->GetVectorAttribute("OutputExtent", 6, outputExtent))
+  {
+    this->Reconstructor->SetOutputExtent(outputExtent);
+  }
+
+  // clipping parameters
+  double clipRectangleOrigin[2]={0,0};
+  if (reconConfig->GetVectorAttribute("ClipRectangleOrigin", 2, clipRectangleOrigin))
+  {
+    this->Reconstructor->SetClipRectangleOrigin(clipRectangleOrigin);
+  }
+  double clipRectangleSize[2]={0,0};
+  if (reconConfig->GetVectorAttribute("ClipRectangleSize", 2, clipRectangleSize))
+  {
+    this->Reconstructor->SetClipRectangleSize(clipRectangleSize);
+  }
+
+  // fan parameters
+  double fanAngles[2]={0,0};
+  if (reconConfig->GetVectorAttribute("FanAngles", 2, fanAngles))
+  {
+    this->Reconstructor->SetFanAngles(fanAngles);
+  }
+  double fanOrigin[2]={0,0};
+  if (reconConfig->GetVectorAttribute("FanOrigin", 2, fanOrigin))
+  {
+    this->Reconstructor->SetFanOrigin(fanOrigin);
+  }
+  double fanDepth=0;
+  if (reconConfig->GetScalarAttribute("FanDepth", fanDepth))
+  {
+    this->Reconstructor->SetFanDepth(fanDepth);
+  }
+
+  // reconstruction options
+  if (reconConfig->GetAttribute("Interpolation"))
+  {
+    if (STRCASECMP(reconConfig->GetAttribute("Interpolation"),
+      this->Reconstructor->GetInterpolationModeAsString(vtkPasteSliceIntoVolume::LINEAR_INTERPOLATION)) == 0)
+    {
+      this->Reconstructor->SetInterpolationMode(vtkPasteSliceIntoVolume::LINEAR_INTERPOLATION);
+    }
+    else if (STRCASECMP(reconConfig->GetAttribute("Interpolation"), 
+      this->Reconstructor->GetInterpolationModeAsString(vtkPasteSliceIntoVolume::NEAREST_NEIGHBOR_INTERPOLATION)) == 0)
+    {
+      this->Reconstructor->SetInterpolationMode(vtkPasteSliceIntoVolume::NEAREST_NEIGHBOR_INTERPOLATION);
+    }
+    else
+    {
+      LOG_ERROR("Unknown interpolation option: "<<reconConfig->GetAttribute("Interpolation")<<". Valid options: LINEAR, NEAREST_NEIGHBOR.");
+    }
+  }
+  if (reconConfig->GetAttribute("Optimization"))
+  {
+    if (STRCASECMP(reconConfig->GetAttribute("Optimization"), 
+      this->Reconstructor->GetOptimizationModeAsString(vtkPasteSliceIntoVolume::FULL_OPTIMIZATION)) == 0)
+    {
+      this->Reconstructor->SetOptimization(vtkPasteSliceIntoVolume::FULL_OPTIMIZATION);
+    }
+    else if (STRCASECMP(reconConfig->GetAttribute("Optimization"), 
+      this->Reconstructor->GetOptimizationModeAsString(vtkPasteSliceIntoVolume::PARTIAL_OPTIMIZATION)) == 0)
+    {
+      this->Reconstructor->SetOptimization(vtkPasteSliceIntoVolume::PARTIAL_OPTIMIZATION);
+    }
+    else if (STRCASECMP(reconConfig->GetAttribute("Optimization"), 
+      this->Reconstructor->GetOptimizationModeAsString(vtkPasteSliceIntoVolume::NO_OPTIMIZATION)) == 0)
+    {
+      this->Reconstructor->SetOptimization(vtkPasteSliceIntoVolume::NO_OPTIMIZATION);
+    }
+    else
+    {
+      LOG_ERROR("Unknown optimization option: "<<reconConfig->GetAttribute("Optimization")<<". Valid options: FULL, PARTIAL, NONE.");
+    }
+  }
+  if (reconConfig->GetAttribute("Compounding"))
+  {
+    ((STRCASECMP(reconConfig->GetAttribute("Compounding"), "On") == 0) ? 
+      this->Reconstructor->SetCompounding(1) : this->Reconstructor->SetCompounding(0));
+  }
+
+  int numberOfThreads=0;
+  if (reconConfig->GetScalarAttribute("NumberOfThreads", numberOfThreads))
+  {
+    this->Reconstructor->SetNumberOfThreads(numberOfThreads);
+  }
+
+  int fillHoles=0;
+  if (reconConfig->GetAttribute("FillHoles"))
+  {
+    if (STRCASECMP(reconConfig->GetAttribute("FillHoles"), "On") == 0) 
+    {
+      this->FillHoles=1;
+    }
+    else
+    {
+      this->FillHoles=0;
+    }
+  }
 
   // Read calibration matrix (ImageToTool transform)
   vtkSmartPointer<vtkXMLDataElement> dataCollectionConfig = config->FindNestedElementWithName("USDataCollection");
@@ -97,6 +209,69 @@ PlusStatus vtkVolumeReconstructor::ReadConfiguration(vtkXMLDataElement* config)
 
   this->ImageToToolTransform->SetMatrix( aImageToTool );
 
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+// Get the XML element describing the freehand object
+PlusStatus vtkVolumeReconstructor::WriteConfiguration(vtkXMLDataElement *config)
+{
+  if ( config == NULL )
+	{
+		LOG_ERROR("Unable to write configuration from volume reconstructor! (XML data element is NULL)"); 
+		return PLUS_FAIL; 
+	}
+
+	vtkSmartPointer<vtkXMLDataElement> reconConfig = config->FindNestedElementWithName("VolumeReconstruction");
+	if (reconConfig == NULL)
+  {
+    vtkSmartPointer<vtkXMLDataElement> newReconConfig = vtkXMLDataElement::New();
+    newReconConfig->SetName("VolumeReconstruction");
+    config->AddNestedElement(newReconConfig);
+    reconConfig = config->FindNestedElementWithName("VolumeReconstruction");
+    if (reconConfig == NULL)
+    {
+      LOG_ERROR("Failed to add VolumeReconstruction element");
+		  return PLUS_FAIL;
+    }
+	}
+
+	// output parameters
+  reconConfig->SetVectorAttribute("OutputSpacing", 3, this->Reconstructor->GetOutputSpacing());
+	reconConfig->SetVectorAttribute("OutputOrigin", 3, this->Reconstructor->GetOutputOrigin());
+	reconConfig->SetVectorAttribute("OutputExtent", 6, this->Reconstructor->GetOutputExtent());
+
+	// clipping parameters
+	reconConfig->SetVectorAttribute("ClipRectangleOrigin", 2, this->Reconstructor->GetClipRectangleOrigin());
+	reconConfig->SetVectorAttribute("ClipRectangleSize", 2, this->Reconstructor->GetClipRectangleSize());
+
+	// fan parameters
+  if (this->Reconstructor->FanParametersDefined())
+  {
+	  reconConfig->SetVectorAttribute("FanAngles", 2, this->Reconstructor->GetFanAngles());
+	  reconConfig->SetVectorAttribute("FanOrigin", 2, this->Reconstructor->GetFanOrigin());
+	  reconConfig->SetDoubleAttribute("FanDepth", this->Reconstructor->GetFanDepth());
+  }
+  else
+  {
+    reconConfig->RemoveAttribute("FanAngles");
+    reconConfig->RemoveAttribute("FanOrigin");
+    reconConfig->RemoveAttribute("FanDepth");
+  }
+
+	// reconstruction options
+  reconConfig->SetAttribute("Interpolation", this->Reconstructor->GetInterpolationModeAsString(this->Reconstructor->GetInterpolationMode()));
+  reconConfig->SetAttribute("Optimization", this->Reconstructor->GetOptimizationModeAsString(this->Reconstructor->GetOptimization()));
+  reconConfig->SetAttribute("Compounding", this->Reconstructor->GetCompounding()?"On":"Off");
+
+  if (this->Reconstructor->GetNumberOfThreads()>0)
+  {
+    reconConfig->SetIntAttribute("NumberOfThreads", this->Reconstructor->GetNumberOfThreads());
+  }
+  else
+  {
+    reconConfig->RemoveAttribute("NumberOfThreads");
+  }
   return PLUS_SUCCESS;
 }
 
@@ -246,12 +421,23 @@ PlusStatus vtkVolumeReconstructor::AddTrackedFrame(TrackedFrame* frame)
 //----------------------------------------------------------------------------
 PlusStatus vtkVolumeReconstructor::GetReconstructedVolume(vtkImageData* reconstructedVolume)
 {
-  vtkSmartPointer<vtkImageExtractComponents> extract = vtkSmartPointer<vtkImageExtractComponents>::New();
-  
-  // keep only 0th component (the other component is the mask that shows which voxels were pasted from slices)
+  // keep only first component (the other component is the alpha channel)
+  vtkSmartPointer<vtkImageExtractComponents> extract = vtkSmartPointer<vtkImageExtractComponents>::New();          
   extract->SetComponents(0);
-  extract->SetInput(this->Reconstructor->GetReconstructedVolume());
+  if (this->FillHoles)
+  {
+    vtkSmartPointer<vtkFillHolesInVolume> holeFiller = vtkSmartPointer<vtkFillHolesInVolume>::New();
+    holeFiller->SetReconstructedVolume(this->Reconstructor->GetReconstructedVolume());
+    holeFiller->SetAccumulationBuffer(this->Reconstructor->GetAccumulationBuffer());
+    holeFiller->Update();
+    extract->SetInput(holeFiller->GetOutput());
+  }
+  else
+  {
+    extract->SetInput(this->Reconstructor->GetReconstructedVolume());
+  }
   extract->Update();
   reconstructedVolume->DeepCopy(extract->GetOutput());
   return PLUS_SUCCESS;
 }
+
