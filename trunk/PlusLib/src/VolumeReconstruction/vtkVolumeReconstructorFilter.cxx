@@ -52,7 +52,6 @@ POSSIBILITY OF SUCH DAMAGES.
 #include "vtkVideoBuffer.h"
 #include "vtkIndent.h"
 
-
 vtkCxxRevisionMacro(vtkVolumeReconstructorFilter, "$Revisions: 1.0 $");
 vtkStandardNewMacro(vtkVolumeReconstructorFilter);
 
@@ -119,6 +118,7 @@ vtkVolumeReconstructorFilter::vtkVolumeReconstructorFilter()
 	this->Optimization = FULL_OPTIMIZATION;
   this->Compounding = 0;
 
+  this->NumberOfThreads=0; // 0 means not set, the default number of threads will be used
 }
 
 //----------------------------------------------------------------------------
@@ -173,9 +173,17 @@ void vtkVolumeReconstructorFilter::PrintSelf(ostream& os, vtkIndent indent)
 		this->FanOrigin[1] << "\n";
 	os << indent << "FanDepth: " << this->FanDepth << "\n";
   os << indent << "InterpolationMode: " << this->GetInterpolationModeAsString(this->InterpolationMode) << "\n";
-	os << indent << "Optimization: " << this->Optimization << "\n";
-	os << indent << "Compounding: " << (this->Compounding ? "On\n":"Off\n");
-
+	os << indent << "Optimization: " << this->GetOptimizationModeAsString(this->Optimization) << "\n";
+  os << indent << "Compounding: " << (this->Compounding ? "On\n":"Off\n");
+  os << indent << "NumberOfThreads: ";
+  if (this->NumberOfThreads>0)
+  {
+    os << this->NumberOfThreads << "\n";
+  }
+  else
+  {
+    os << "default\n";
+  }
 }
 
 //****************************************************************************
@@ -313,9 +321,10 @@ PlusStatus vtkVolumeReconstructorFilter::InsertSlice(vtkImageData *image, vtkMat
   str.FanOrigin[1]=this->FanOrigin[1];
   str.FanDepth=this->FanDepth;
 
-#ifdef DEBUG_RECONSTRUCTION
-	this->Threader->SetNumberOfThreads(1);
-#endif //DEBUG_RECONSTRUCTION
+  if (this->NumberOfThreads>0)
+  {
+	  this->Threader->SetNumberOfThreads(this->NumberOfThreads);
+  }
 	this->Threader->SetSingleMethod(InsertSliceThreadFunction, &str);
 	this->Threader->SingleMethodExecute();
 
@@ -469,12 +478,12 @@ VTK_THREAD_RETURN_TYPE vtkVolumeReconstructorFilter::InsertSliceThreadFunction( 
 			return VTK_THREAD_RETURN_VALUE;
 		}
 	}
-
-	// if we are not using fixed point math for optimization = 2, we are either:
-	// doing no optimization (0) OR
-	// breaking into x, y, z components with no bounds checking for nearest neighbor (1)
-	else
+  else
 	{
+    // if we are not using fixed point math for optimization = 2, we are either:
+    // doing no optimization (0) OR
+    // breaking into x, y, z components with no bounds checking for nearest neighbor (1)
+
 		// change transform matrix so that instead of taking 
 		// input coords -> output coords it takes output indices -> input indices
 		double newmatrix[4][4];
@@ -486,35 +495,72 @@ VTK_THREAD_RETURN_TYPE vtkVolumeReconstructorFilter::InsertSliceThreadFunction( 
 			newmatrix[i][3] = mImagePixToVolumePix->GetElement(i,3);
 		}
 
-		switch (inData->GetScalarType())
-		{
-		case VTK_SHORT:
-			vtkOptimizedInsertSlice(outData, (short *)(outPtr), 
-				(unsigned short *)(accPtr), 
-				inData, (short *)(inPtr), 
-				inputFrameExtentForCurrentThread, newmatrix,
-        str->ClipRectangleOrigin,str->ClipRectangleSize,
-        str->FanAngles,str->FanOrigin,str->FanDepth, str->InterpolationMode);
-			break;
-		case VTK_UNSIGNED_SHORT:
-			vtkOptimizedInsertSlice(outData,(unsigned short *)(outPtr),
-				(unsigned short *)(accPtr), 
-				inData, (unsigned short *)(inPtr), 
-				inputFrameExtentForCurrentThread, newmatrix,
-        str->ClipRectangleOrigin,str->ClipRectangleSize,
-        str->FanAngles,str->FanOrigin,str->FanDepth, str->InterpolationMode);
-			break;
-		case VTK_UNSIGNED_CHAR:
-			vtkOptimizedInsertSlice(outData,(unsigned char *)(outPtr),
-				(unsigned short *)(accPtr), 
-				inData, (unsigned char *)(inPtr), 
-				inputFrameExtentForCurrentThread, newmatrix,
-        str->ClipRectangleOrigin,str->ClipRectangleSize,
-        str->FanAngles,str->FanOrigin,str->FanDepth, str->InterpolationMode);
-			break;
-		default:
-			LOG_ERROR("OptimizedInsertSlice: Unknown input ScalarType");
-		}
+
+    if (str->Optimization==PARTIAL_OPTIMIZATION)
+    {
+      switch (inData->GetScalarType())
+      {
+      case VTK_SHORT:
+        vtkOptimizedInsertSlice(outData, (short *)(outPtr), 
+          (unsigned short *)(accPtr), 
+          inData, (short *)(inPtr), 
+          inputFrameExtentForCurrentThread, newmatrix,
+          str->ClipRectangleOrigin,str->ClipRectangleSize,
+          str->FanAngles,str->FanOrigin,str->FanDepth, str->InterpolationMode);
+        break;
+      case VTK_UNSIGNED_SHORT:
+        vtkOptimizedInsertSlice(outData,(unsigned short *)(outPtr),
+          (unsigned short *)(accPtr), 
+          inData, (unsigned short *)(inPtr), 
+          inputFrameExtentForCurrentThread, newmatrix,
+          str->ClipRectangleOrigin,str->ClipRectangleSize,
+          str->FanAngles,str->FanOrigin,str->FanDepth, str->InterpolationMode);
+        break;
+      case VTK_UNSIGNED_CHAR:
+        vtkOptimizedInsertSlice(outData,(unsigned char *)(outPtr),
+          (unsigned short *)(accPtr), 
+          inData, (unsigned char *)(inPtr), 
+          inputFrameExtentForCurrentThread, newmatrix,
+          str->ClipRectangleOrigin,str->ClipRectangleSize,
+          str->FanAngles,str->FanOrigin,str->FanDepth, str->InterpolationMode);
+        break;
+      default:
+        LOG_ERROR("OptimizedInsertSlice: Unknown input ScalarType");
+      }
+    }
+    else
+    {
+      // no optimization
+      switch (inData->GetScalarType())
+      {
+      case VTK_SHORT:
+        vtkUnoptimizedInsertSlice(outData, (short *)(outPtr), 
+          (unsigned short *)(accPtr), 
+          inData, (short *)(inPtr), 
+          inputFrameExtentForCurrentThread, mImagePixToVolumePix,
+          str->ClipRectangleOrigin,str->ClipRectangleSize,
+          str->FanAngles,str->FanOrigin,str->FanDepth, str->InterpolationMode);
+        break;
+      case VTK_UNSIGNED_SHORT:
+        vtkUnoptimizedInsertSlice(outData,(unsigned short *)(outPtr),
+          (unsigned short *)(accPtr), 
+          inData, (unsigned short *)(inPtr), 
+          inputFrameExtentForCurrentThread, mImagePixToVolumePix,
+          str->ClipRectangleOrigin,str->ClipRectangleSize,
+          str->FanAngles,str->FanOrigin,str->FanDepth, str->InterpolationMode);
+        break;
+      case VTK_UNSIGNED_CHAR:
+        vtkUnoptimizedInsertSlice(outData,(unsigned char *)(outPtr),
+          (unsigned short *)(accPtr), 
+          inData, (unsigned char *)(inPtr), 
+          inputFrameExtentForCurrentThread, mImagePixToVolumePix,
+          str->ClipRectangleOrigin,str->ClipRectangleSize,
+          str->FanAngles,str->FanOrigin,str->FanDepth, str->InterpolationMode);
+        break;
+      default:
+        LOG_ERROR("UnoptimizedInsertSlice: Unknown input ScalarType");
+      }
+    }
 	}
 
 	return VTK_THREAD_RETURN_VALUE;
@@ -960,10 +1006,11 @@ void vtkVolumeReconstructorFilter::FillHolesInOutput()
   str.Compounding = this->Compounding;
 
 	// run FillHoleThreadFunction
-#ifdef DEBUG_RECONSTRUCTION
-	this->Threader->SetNumberOfThreads(1);
-#endif //DEBUG_RECONSTRUCTION
-	this->Threader->SetSingleMethod(FillHoleThreadFunction, &str);
+  if (this->NumberOfThreads>0)
+  {
+    this->Threader->SetNumberOfThreads(this->NumberOfThreads);
+  }
+  this->Threader->SetSingleMethod(FillHoleThreadFunction, &str);
 	this->Threader->SingleMethodExecute();
 
 	this->Modified(); 
@@ -974,59 +1021,82 @@ void vtkVolumeReconstructorFilter::FillHolesInOutput()
 // I/O
 //****************************************************************************
 
-char* vtkVolumeReconstructorFilter::GetInterpolationModeAsString(InterpolationType interpEnum)
+char* vtkVolumeReconstructorFilter::GetInterpolationModeAsString(InterpolationType type)
 {
-  switch (interpEnum)
+  switch (type)
   {
-    case NEAREST_NEIGHBOR_INTERPOLATION: return "nearest neighbor";
-    case LINEAR_INTERPOLATION: return "nearest neighbor";
+    case NEAREST_NEIGHBOR_INTERPOLATION: return "NEAREST_NEIGHBOR";
+    case LINEAR_INTERPOLATION: return "LINEAR";
     default:
+      LOG_ERROR("Unknown interpolation option: "<<type);
       return "unknown";
   }
 }
 
+char* vtkVolumeReconstructorFilter::GetOptimizationModeAsString(OptimizationType type)
+{
+  switch (type)
+  {
+    case FULL_OPTIMIZATION: return "FULL";
+    case PARTIAL_OPTIMIZATION: return "PARTIAL";
+    case NO_OPTIMIZATION: return "NONE";
+    default:
+      LOG_ERROR("Unknown optimization option: "<<type);
+      return "unknown";
+  }
+}
+
+
 //----------------------------------------------------------------------------
 // Get the XML element describing the freehand object
-PlusStatus vtkVolumeReconstructorFilter::WriteConfiguration(vtkXMLDataElement *elem)
+PlusStatus vtkVolumeReconstructorFilter::WriteConfiguration(vtkXMLDataElement *config)
 {
-  //TODO fix saving according to the unified configuration file
+  if ( config == NULL )
+	{
+		LOG_ERROR("Unable to write configuration from volume reconstructor! (XML data element is NULL)"); 
+		return PLUS_FAIL; 
+	}
 
-	elem->SetName("VolumeReconstruction");
+	vtkSmartPointer<vtkXMLDataElement> reconConfig = config->FindNestedElementWithName("VolumeReconstruction");
+	if (reconConfig == NULL)
+  {
+    vtkSmartPointer<vtkXMLDataElement> newReconConfig = vtkXMLDataElement::New();
+    newReconConfig->SetName("VolumeReconstruction");
+    config->AddNestedElement(newReconConfig);
+    reconConfig = config->FindNestedElementWithName("VolumeReconstruction");
+    if (reconConfig == NULL)
+    {
+      LOG_ERROR("Failed to add VolumeReconstruction element");
+		  return PLUS_FAIL;
+    }
+	}
 
 	// output parameters
-	vtkSmartPointer<vtkXMLDataElement> outputParams = vtkXMLDataElement::New();
-	outputParams->SetName("OutputParameters");
-	outputParams->SetVectorAttribute("OutputSpacing", 3, this->OutputSpacing);
-	outputParams->SetVectorAttribute("OutputOrigin", 3, this->OutputOrigin);
-	outputParams->SetVectorAttribute("OutputExtent", 6, this->OutputExtent);
-	elem->AddNestedElement(outputParams);
+	reconConfig->SetVectorAttribute("OutputSpacing", 3, this->OutputSpacing);
+	reconConfig->SetVectorAttribute("OutputOrigin", 3, this->OutputOrigin);
+	reconConfig->SetVectorAttribute("OutputExtent", 6, this->OutputExtent);
 
 	// clipping parameters
-	vtkSmartPointer<vtkXMLDataElement> clipOrig = vtkXMLDataElement::New();
-	clipOrig->SetName("ClippingParameters");
-	clipOrig->SetVectorAttribute("ClipRectangleOrigin", 2, this->ClipRectangleOrigin);
-	elem->AddNestedElement(clipOrig);
-
-  vtkSmartPointer<vtkXMLDataElement> clipSize = vtkXMLDataElement::New();
-	clipSize->SetName("ClippingParameters");
-	clipSize->SetVectorAttribute("ClipRectangleSize", 2, this->ClipRectangleSize);
-	elem->AddNestedElement(clipSize);
+	reconConfig->SetVectorAttribute("ClipRectangleOrigin", 2, this->ClipRectangleOrigin);
+	reconConfig->SetVectorAttribute("ClipRectangleSize", 2, this->ClipRectangleSize);
 
 	// fan parameters
-	vtkSmartPointer<vtkXMLDataElement> fanParams = vtkXMLDataElement::New();
-	fanParams->SetName("FanParameters");
-	fanParams->SetVectorAttribute("FanAngles", 2, this->FanAngles);
-	fanParams->SetVectorAttribute("FanOrigin", 2, this->FanOrigin);
-	fanParams->SetDoubleAttribute("FanDepth", this->FanDepth);
-	elem->AddNestedElement(fanParams);
+  if (FanParametersDefined())
+  {
+	  reconConfig->SetVectorAttribute("FanAngles", 2, this->FanAngles);
+	  reconConfig->SetVectorAttribute("FanOrigin", 2, this->FanOrigin);
+	  reconConfig->SetDoubleAttribute("FanDepth", this->FanDepth);
+  }
 
 	// reconstruction options
-	vtkSmartPointer<vtkXMLDataElement> reconOptions = vtkXMLDataElement::New();
-	reconOptions->SetName("ReconstructionOptions");
-  reconOptions->SetAttribute("Interpolation", this->GetInterpolationModeAsString(this->InterpolationMode));
-  reconOptions->SetAttribute("Optimization", this->Optimization?"On":"Off");
-  reconOptions->SetAttribute("Compounding", this->Compounding?"On":"Off");
-	elem->AddNestedElement(reconOptions);
+  reconConfig->SetAttribute("Interpolation", this->GetInterpolationModeAsString(this->InterpolationMode));
+  reconConfig->SetAttribute("Optimization", this->GetOptimizationModeAsString(this->Optimization));
+  reconConfig->SetAttribute("Compounding", this->Compounding?"On":"Off");
+
+  if (this->NumberOfThreads>0)
+  {
+    reconConfig->SetIntAttribute("NumberOfThreads", this->NumberOfThreads);
+  }
 
 	return PLUS_SUCCESS;
 }
@@ -1034,64 +1104,80 @@ PlusStatus vtkVolumeReconstructorFilter::WriteConfiguration(vtkXMLDataElement *e
 //----------------------------------------------------------------------------
 PlusStatus vtkVolumeReconstructorFilter::ReadConfiguration(vtkXMLDataElement* aConfig)
 {
-	vtkSmartPointer<vtkXMLDataElement> volumeReconstruction = aConfig->FindNestedElementWithName("VolumeReconstruction");
-	if (volumeReconstruction == NULL)
+  vtkSmartPointer<vtkXMLDataElement> reconConfig = aConfig->FindNestedElementWithName("VolumeReconstruction");
+  if (reconConfig == NULL)
   {
-		LOG_ERROR("No volume reconstruction is found in the XML tree!");
-		return PLUS_FAIL;
-	}
+    LOG_ERROR("No volume reconstruction is found in the XML tree!");
+    return PLUS_FAIL;
+  }
 
-	// output volume parameters
+  // output volume parameters
   // origin and spacing is defined in the reference coordinate system
-	vtkSmartPointer<vtkXMLDataElement> outputParams = volumeReconstruction->FindNestedElementWithName("OutputParameters");
-	if (outputParams)
-	{
-		outputParams->GetVectorAttribute("OutputSpacing", 3, this->OutputSpacing);
-		outputParams->GetVectorAttribute("OutputOrigin", 3, this->OutputOrigin);
-		outputParams->GetVectorAttribute("OutputExtent", 6, this->OutputExtent);
-	}
+  reconConfig->GetVectorAttribute("OutputSpacing", 3, this->OutputSpacing);
+  reconConfig->GetVectorAttribute("OutputOrigin", 3, this->OutputOrigin);
+  reconConfig->GetVectorAttribute("OutputExtent", 6, this->OutputExtent);
 
-	// clipping parameters
-	vtkXMLDataElement *clipParams = volumeReconstruction->FindNestedElementWithName("ClippingParameters");
-	if (clipParams)
-	{
-		clipParams->GetVectorAttribute("ClipRectangleOrigin", 4, this->ClipRectangleOrigin);
-    clipParams->GetVectorAttribute("ClipRectangleSize", 4, this->ClipRectangleSize);
-	}
+  // clipping parameters
+  reconConfig->GetVectorAttribute("ClipRectangleOrigin", 4, this->ClipRectangleOrigin);
+  reconConfig->GetVectorAttribute("ClipRectangleSize", 4, this->ClipRectangleSize);
 
-	// fan parameters
-	vtkXMLDataElement *fanParams = volumeReconstruction->FindNestedElementWithName("FanParameters");
-	if (fanParams)
-	{
-		fanParams->GetVectorAttribute("FanAngles", 2, this->FanAngles);
-		fanParams->GetVectorAttribute("FanOrigin", 2, this->FanOrigin);
-		fanParams->GetScalarAttribute("FanDepth", this->FanDepth);
-	}
+  // fan parameters
+  reconConfig->GetVectorAttribute("FanAngles", 2, this->FanAngles);
+  reconConfig->GetVectorAttribute("FanOrigin", 2, this->FanOrigin);
+  reconConfig->GetScalarAttribute("FanDepth", this->FanDepth);
 
-	// reconstruction options
-	vtkXMLDataElement *reconOptions = volumeReconstruction->FindNestedElementWithName("ReconstructionOptions");
-	if (reconOptions)
-	{
-		if (reconOptions->GetAttribute("Interpolation"))
-		{
-			if (strcmp(reconOptions->GetAttribute("Interpolation"), "Linear") == 0)
-			{
-				this->SetInterpolationMode(LINEAR_INTERPOLATION);
-			}
-			else if (strcmp(reconOptions->GetAttribute("Interpolation"), "NearestNeighbor") == 0)
-			{
-				this->SetInterpolationMode(NEAREST_NEIGHBOR_INTERPOLATION);
-			}
-		}
-		if (reconOptions->GetAttribute("Optimization"))
-		{
-			((strcmp(reconOptions->GetAttribute("Optimization"), "On") == 0) ? this->SetOptimization(FULL_OPTIMIZATION) : this->SetOptimization(NO_OPTIMIZATION));
-		}
-		if (reconOptions->GetAttribute("Compounding"))
-		{
-			((strcmp(reconOptions->GetAttribute("Compounding"), "On") == 0) ? this->SetCompounding(1) : this->SetCompounding(0));
-		}
-	}
+  // reconstruction options
+  if (reconConfig->GetAttribute("Interpolation"))
+  {
+    if (STRCASECMP(reconConfig->GetAttribute("Interpolation"),
+      GetInterpolationModeAsString(LINEAR_INTERPOLATION)) == 0)
+    {
+      this->SetInterpolationMode(LINEAR_INTERPOLATION);
+    }
+    else if (STRCASECMP(reconConfig->GetAttribute("Interpolation"), 
+      GetInterpolationModeAsString(NEAREST_NEIGHBOR_INTERPOLATION)) == 0)
+    {
+      this->SetInterpolationMode(NEAREST_NEIGHBOR_INTERPOLATION);
+    }
+    else
+    {
+      LOG_ERROR("Unknown interpolation option: "<<reconConfig->GetAttribute("Interpolation")<<". Valid options: LINEAR, NEAREST_NEIGHBOR.");
+    }
+  }
+  if (reconConfig->GetAttribute("Optimization"))
+  {
+    if (STRCASECMP(reconConfig->GetAttribute("Optimization"), 
+      GetOptimizationModeAsString(FULL_OPTIMIZATION)) == 0)
+    {
+      this->SetOptimization(FULL_OPTIMIZATION);
+    }
+    else if (STRCASECMP(reconConfig->GetAttribute("Optimization"), 
+      GetOptimizationModeAsString(PARTIAL_OPTIMIZATION)) == 0)
+    {
+      this->SetOptimization(PARTIAL_OPTIMIZATION);
+    }
+    else if (STRCASECMP(reconConfig->GetAttribute("Optimization"), 
+      GetOptimizationModeAsString(NO_OPTIMIZATION)) == 0)
+    {
+      this->SetOptimization(NO_OPTIMIZATION);
+    }
+    else
+    {
+      LOG_ERROR("Unknown optimization option: "<<reconConfig->GetAttribute("Optimization")<<". Valid options: FULL, PARTIAL, NONE.");
+    }
+  }
+  if (reconConfig->GetAttribute("Compounding"))
+  {
+    ((strcmp(reconConfig->GetAttribute("Compounding"), "On") == 0) ? this->SetCompounding(1) : this->SetCompounding(0));
+  }
+
+  reconConfig->GetScalarAttribute("NumberOfThreads", this->NumberOfThreads);
 
 	return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+bool vtkVolumeReconstructorFilter::FanParametersDefined()
+{
+  return this->FanAngles[0] != 0.0 || this->FanAngles[1] != 0.0;
 }

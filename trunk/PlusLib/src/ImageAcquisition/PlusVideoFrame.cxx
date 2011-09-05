@@ -11,19 +11,102 @@
 #include "itkImageBase.h"
 #include "UsImageConverterCommon.h"
 
+/** \class PipelineCreator
+ *  This helper class will take care of instantiating the appropriate
+ *  ITK Export class corresponding to the actual pixel type of the 
+ *  input image. */
+template <class TPixel >
+class PipelineCreator
+{
+public:
+  
+  typedef itk::ImageBase<2>           ImageBaseType;
+  typedef ImageBaseType::Pointer      ImageBasePointer;
+  typedef itk::ProcessObject          ExporterBaseType;
+  typedef itk::ProcessObject::Pointer ExporterBasePointer;
+  typedef itk::Image< TPixel, 2 >     ImageType;
+
+  static void 
+  CreateExporter( ImageBasePointer    & imageBase, 
+                  ExporterBasePointer & exporter,
+                  vtkImageImport      * importer  )
+    {
+    ImageType * image = 
+      dynamic_cast< ImageType * >( imageBase.GetPointer() );
+
+    if( image )
+      {
+      typedef itk::VTKImageExport< ImageType >   ExportFilterType;
+      typedef typename ExportFilterType::Pointer ExportFilterPointer;
+      ExportFilterPointer itkExporter = ExportFilterType::New();
+      itkExporter->SetInput( image );
+
+      exporter = itkExporter;
+
+      importer->SetUpdateInformationCallback(
+        itkExporter->GetUpdateInformationCallback());
+      importer->SetPipelineModifiedCallback(
+        itkExporter->GetPipelineModifiedCallback());
+      importer->SetWholeExtentCallback(
+        itkExporter->GetWholeExtentCallback());
+      importer->SetSpacingCallback(
+        itkExporter->GetSpacingCallback());
+      importer->SetOriginCallback(
+        itkExporter->GetOriginCallback());
+      importer->SetScalarTypeCallback(
+        itkExporter->GetScalarTypeCallback());
+      importer->SetNumberOfComponentsCallback(
+        itkExporter->GetNumberOfComponentsCallback());
+      importer->SetPropagateUpdateExtentCallback(
+        itkExporter->GetPropagateUpdateExtentCallback());
+      importer->SetUpdateDataCallback(
+        itkExporter->GetUpdateDataCallback());
+      importer->SetDataExtentCallback(
+        itkExporter->GetDataExtentCallback());
+      importer->SetBufferPointerCallback(
+        itkExporter->GetBufferPointerCallback());
+      importer->SetCallbackUserData(
+        itkExporter->GetCallbackUserData());
+      }
+    }
+};
+
+
+/** This helper macro will instantiate the pipeline creator for a particular
+ * pixel type */
+#define CreatePipelineMacro( PixelType ) \
+  PipelineCreator< PixelType >::CreateExporter( \
+      this->ItkImage, this->Exporter, this->Importer );
+
+//----------------------------------------------------------------------------
+vtkImageData * PlusVideoFrame::GetVtkImageNonFlipped()
+{
+  return this->Importer->GetOutput();
+}
+
 //----------------------------------------------------------------------------
 PlusVideoFrame::PlusVideoFrame()
 {
+  this->Importer = vtkImageImport::New();
 }
 
 //----------------------------------------------------------------------------
 PlusVideoFrame::~PlusVideoFrame()
 {
+  if( this->Importer )
+  { 
+    this->Importer->Delete();
+    this->Importer=NULL;
+  }
 }
 
 //----------------------------------------------------------------------------
 PlusVideoFrame::PlusVideoFrame(const PlusVideoFrame &videoItem)
 {
+  // don't copy the importer, just create a new one
+  // it will be updated whenever the image is updated
+  this->Importer = vtkImageImport::New();
+  
   *this = videoItem;
 }
 
@@ -49,6 +132,7 @@ PlusVideoFrame& PlusVideoFrame::operator=(PlusVideoFrame const&videoItem)
     else
     {
       memcpy(this->GetBufferPointer(), videoItem.GetBufferPointer(), this->GetFrameSizeInBytes() ); 
+      UpdateVtkImage();
     }
   }
   else
@@ -141,7 +225,7 @@ PlusStatus PlusVideoFrame::AllocateFrame(int imageSize[2], PlusCommon::ITKScalar
       LOG_ERROR("AllocateFrame: unknown pixel type "<<pixType);
       return PLUS_FAIL;
   }
-
+  UpdateVtkImage();
   return status; 
 }
 //----------------------------------------------------------------------------
@@ -227,6 +311,7 @@ PlusStatus PlusVideoFrame::SetFrame(vtkImageData* frame)
   }
 
   this->ItkImage=newImage;
+  UpdateVtkImage();
 
   return PLUS_SUCCESS;
 }
@@ -265,6 +350,7 @@ PlusStatus PlusVideoFrame::SetFrame(unsigned char *imageDataPtr,
 
   memcpy(GetBufferPointer(), imageDataPtr, this->GetFrameSizeInBytes() );
 
+  UpdateVtkImage();
   return PLUS_SUCCESS; 
 }
 
@@ -431,6 +517,24 @@ void PlusVideoFrame::SetITKImageBase( ImageBaseType * image )
     }
 
   this->ItkImage = image;
+  
+  UpdateVtkImage();
+}
+
+void PlusVideoFrame::UpdateVtkImage()
+{
+  CreatePipelineMacro( unsigned char );
+  CreatePipelineMacro( char );
+  CreatePipelineMacro( unsigned short );
+  CreatePipelineMacro( short );
+  CreatePipelineMacro( unsigned int );
+  CreatePipelineMacro( int );
+  CreatePipelineMacro( unsigned long );
+  CreatePipelineMacro( long );
+  CreatePipelineMacro( float );
+  CreatePipelineMacro( double );
+
+  this->Importer->Update();
 }
 
 //----------------------------------------------------------------------------

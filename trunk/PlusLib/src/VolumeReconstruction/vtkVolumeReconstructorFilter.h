@@ -128,6 +128,7 @@ public:
   //   2 means used fixed-point (i.e. integer) math instead of float math
   vtkSetMacro(Optimization,OptimizationType);
   vtkGetMacro(Optimization,OptimizationType);
+  char* GetOptimizationModeAsString(OptimizationType type);
 
   // Description:
   // Set/Get the interpolation mode, default is nearest neighbor. 
@@ -165,6 +166,8 @@ protected:
   vtkVolumeReconstructorFilter();
   ~vtkVolumeReconstructorFilter();
 
+  bool FanParametersDefined();
+
   static VTK_THREAD_RETURN_TYPE InsertSliceThreadFunction( void *arg );
   static VTK_THREAD_RETURN_TYPE FillHoleThreadFunction( void *arg );
 
@@ -192,6 +195,9 @@ protected:
   InterpolationType InterpolationMode;
   OptimizationType Optimization;
   int Compounding;
+
+  // This can be used to limit the number of threads used for the reconstruction
+  int NumberOfThreads;
 
   vtkMultiThreader *Threader;
   

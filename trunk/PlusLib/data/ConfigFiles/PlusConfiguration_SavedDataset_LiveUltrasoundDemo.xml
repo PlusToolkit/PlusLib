@@ -281,15 +281,8 @@
 	</PhantomDefinition>
 
 	<!-- VOLUME RECONSTRUCTION -->
-	<VolumeReconstruction>
-		<SliceParameters SliceSpacing="1 1 1" SliceOrigin="0 0 0" NumScalarComponents="1" />
-
-		<OutputParameters OutputSpacing="0.5 0.5 0.5" />
-
-		<ClippingParameters ClipRectangleOrigin="0 0" ClipRectangleSize="820 616" />
-		<FanParameters FanAngles="0 0" FanOrigin="0 0" FanDepth="300"/>
-		<RotationOptions Rotation="Off" MaxRotationChange="90" Threshold1="0" Threshold2="255" ShiftX="0" ShiftY="0" />
-		<ReconstructionOptions Interpolation="Linear" Optimization="On" Compounding="On"/>
-	</VolumeReconstruction>
+  <VolumeReconstruction OutputSpacing="0.5 0.5 0.5"
+                        ClipRectangleOrigin="0 0" ClipRectangleSize="820 616"
+                        Interpolation="LINEAR" Optimization="FULL" Compounding="On"/>
 
 </PlusConfiguration>

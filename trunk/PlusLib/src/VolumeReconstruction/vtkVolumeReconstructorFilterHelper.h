@@ -1164,8 +1164,8 @@ void GetClipExtent(int clipExt[6],
 // (this one function is pretty much the be-all and end-all of the
 // filter)
 template <class T>
-static void vtkFreehandUltrasound2InsertSlice(vtkImageData *outData, T *outPtr, unsigned short *accPtr, vtkImageData *inData, T *inPtr, int inExt[6], vtkMatrix4x4 *matrix,
-  double clipRectangleOrigin[2],double clipRectangleSize[2], double fanAngles[2], double fanOrigin[2], double fanDepth)
+static void vtkUnoptimizedInsertSlice(vtkImageData *outData, T *outPtr, unsigned short *accPtr, vtkImageData *inData, T *inPtr, int inExt[6], vtkMatrix4x4 *matrix,
+  double clipRectangleOrigin[2],double clipRectangleSize[2], double fanAngles[2], double fanOrigin[2], double fanDepth, vtkVolumeReconstructorFilter::InterpolationType interpolationMode)
 {
 
   LOG_TRACE("sliceToOutputVolumeMatrix="<<matrix->GetElement(0,0)<<" "<<matrix->GetElement(0,1)<<" "<<matrix->GetElement(0,2)<<" "<<matrix->GetElement(0,3)<<"; "
@@ -1183,23 +1183,23 @@ static void vtkFreehandUltrasound2InsertSlice(vtkImageData *outData, T *outPtr, 
   // number of pixels in the x and y directions between the fan origin and the slice origin  
   double fanOriginInPixels[2] =
   {
-    (fanOrigin()[0]-inOrigin[0])/inSpacing[0],
-    (fanOrigin()[1]-inOrigin[1])/inSpacing[1]
-  }
+    (fanOrigin[0]-inOrigin[0])/inSpacing[0],
+    (fanOrigin[1]-inOrigin[1])/inSpacing[1]
+  };
   // fan depth squared 
-  double fanDepthSquaredMm = fanDepth()*fanDepth();
+  double fanDepthSquaredMm = fanDepth*fanDepth;
 
   // absolute value of slice spacing
   double inSpacingSquare[2]=
   {
     inSpacing[0]*inSpacing[0],
     inSpacing[1]*inSpacing[1]
-  }
+  };
 
   double pixelAspectRatio=fabs(inSpacing[1]/inSpacing[0]);
   // tan of the left and right fan angles
-  double fanLinePixelRatioLeft = tan(vtkMath::RadiansFromDegrees(fanAngles()[0]))*pixelAspectRatio;
-  double fanLinePixelRatioRight = tan(vtkMath::RadiansFromDegrees(fanAngles()[1]))*pixelAspectRatio;
+  double fanLinePixelRatioLeft = tan(vtkMath::RadiansFromDegrees(fanAngles[0]))*pixelAspectRatio;
+  double fanLinePixelRatioRight = tan(vtkMath::RadiansFromDegrees(fanAngles[1]))*pixelAspectRatio;
   // the tan of the right fan angle is always greater than the left one
   if (fanLinePixelRatioLeft > fanLinePixelRatioRight)
   {
@@ -1210,7 +1210,7 @@ static void vtkFreehandUltrasound2InsertSlice(vtkImageData *outData, T *outPtr, 
   }
   // get the clip rectangle as an extent
   int clipExt[6];
-  GetClipExtent(clipExt, inOrigin, inSpacing, inExt);
+  GetClipExtent(clipExt, inOrigin, inSpacing, inExt, clipRectangleOrigin, clipRectangleSize);
 
   // find maximum output range = output extent
   int outExt[6];
@@ -1226,7 +1226,7 @@ static void vtkFreehandUltrasound2InsertSlice(vtkImageData *outData, T *outPtr, 
 
   // Set interpolation method - nearest neighbor or trilinear  
   int (*interpolate)(double *, T *, T *, unsigned short *, int , int a[6], int b[3])=NULL; // pointer to the nearest neighbor or trilinear interpolation function  
-  vtkGetUltraInterpFunc(self,&interpolate);
+  vtkGetUltraInterpFunc(interpolationMode,&interpolate);
 
   // Loop through  slice pixels in the input extent and put them into the output volume
   // the resulting point in the output volume (outPoint) from a point in the input slice

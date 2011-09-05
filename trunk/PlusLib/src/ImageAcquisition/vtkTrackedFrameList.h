@@ -79,6 +79,7 @@ public:
   // Set status of the item (out of view, ...)
   void SetStatus(TrackerStatus status); 
 
+  PlusStatus WriteToFile(std::string &filename, vtkMatrix4x4* mImageToTracker);
 
   //! Operation: 
   // Convert from status string to status enum

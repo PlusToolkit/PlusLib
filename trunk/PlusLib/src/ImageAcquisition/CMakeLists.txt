@@ -214,6 +214,7 @@ SET (ImageAcquisition_LIBS
         vtkHybrid 
         vtkPlusCommon
 		ITKIO
+		ITKBasicFilters
         ${SONIX_LIBRARY} 
         ${VFW_LIBRARY} 
         ${ICCapturing_LIBRARY} 

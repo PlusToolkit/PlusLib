@@ -23,8 +23,6 @@ typedef itk::Image< PixelType, 2 > ImageType;
 typedef itk::Image< PixelType, 3 > ImageSequenceType;
 typedef itk::ImageFileReader< ImageSequenceType > ImageSequenceReaderType;
 
-void PrintProgressBar( int percent ); 
-
 ///////////////////////////////////////////////////////////////////
 
 int main (int argc, char* argv[])
@@ -104,7 +102,7 @@ int main (int argc, char* argv[])
 
 	for ( int imgNumber = 0; imgNumber < trackedFrameList->GetNumberOfTrackedFrames(); imgNumber++ )
 	{
-		PrintProgressBar( (100.0 * imgNumber) / trackedFrameList->GetNumberOfTrackedFrames() ); 
+		vtkPlusLogger::PrintProgressbar( (100.0 * imgNumber) / trackedFrameList->GetNumberOfTrackedFrames() ); 
 
 		ImageType::Pointer frame = ImageType::New();
 		ImageType::SizeType size = {trackedFrameList->GetFrameSize()[0], trackedFrameList->GetFrameSize()[1] };
@@ -186,34 +184,9 @@ int main (int argc, char* argv[])
 	}
 	
 	positionInfo.close(); 
-	PrintProgressBar(100); 
+	vtkPlusLogger::PrintProgressbar(100); 
 	std::cout << std::endl; 
 
 	std::cout << "Exit success!!!" << std::endl; 
 	return EXIT_SUCCESS; 
-}
-
-void PrintProgressBar( int percent )
-{
-	std::string bar;
-
-	for(int i = 0; i < 50; i++)
-	{
-		if( i < (percent/2))
-		{
-			bar.replace(i,1,"=");
-		}
-		else if( i == (percent/2))
-		{
-			bar.replace(i,1,">");
-		}
-		else
-		{
-			bar.replace(i,1," ");
-		}
-	}
-
-	std::cout<< "\r" "[" << bar << "] ";
-	std::cout.width( 3 );
-	std::cout<< percent << "%     " << std::flush;
 }

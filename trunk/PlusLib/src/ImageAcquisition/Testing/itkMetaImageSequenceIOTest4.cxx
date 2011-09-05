@@ -26,8 +26,6 @@ typedef itk::ImageFileWriter< ImageSequenceType > ImageSequenceWriterType;
 
 ///////////////////////////////////////////////////////////////////
 
-void PrintProgressBar( int percent ); 
-
 int main(int argc, char **argv)
 {
 
@@ -92,7 +90,7 @@ int main(int argc, char **argv)
 
 	for ( int i = 0 ; i < numberOfFrames; i++ ) 
 	{
-		PrintProgressBar( 100 * i / numberOfFrames ); 
+		vtkPlusLogger::PrintProgressbar( 100 * i / numberOfFrames ); 
 		PixelType *currentFrameImageData = imageData + i * frameSizeInBytes;
 
 		if ( i > numberOfFrames - 40 && i < numberOfFrames - 10 ) 
@@ -148,7 +146,7 @@ int main(int argc, char **argv)
 		writerMetaImageSequenceIO->SetFrameTransform(i, matrix); 
 	}
 
-	PrintProgressBar( 100 ); 
+	vtkPlusLogger::PrintProgressbar( 100 ); 
 	std::cout << std::endl; 
 
 	std::ostringstream sequenceDataFileName; 
@@ -176,28 +174,3 @@ int main(int argc, char **argv)
 	LOG_INFO( "itkMetaImageSequenceIOTest4 completed successfully!" ); 
 	return EXIT_SUCCESS; 
  }
-
-void PrintProgressBar( int percent )
-{
-	std::string bar;
-
-	for(int i = 0; i < 50; i++)
-	{
-		if( i < (percent/2))
-		{
-			bar.replace(i,1,"=");
-		}
-		else if( i == (percent/2))
-		{
-			bar.replace(i,1,">");
-		}
-		else
-		{
-			bar.replace(i,1," ");
-		}
-	}
-
-	std::cout<< "\r" "[" << bar << "] ";
-	std::cout.width( 3 );
-	std::cout<< percent << "%     " << std::flush;
-}
