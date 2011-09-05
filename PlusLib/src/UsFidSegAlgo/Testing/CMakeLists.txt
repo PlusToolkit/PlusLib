@@ -26,7 +26,7 @@ ADD_TEST(ConvertFcsvToXml
 	--input-fcsv-file=UsTestSeqIla5ManualFidSeg.fcsv
 	--input-img-seq-file=ila5.mhd
 	--input-testcase-name=ila5
-	--output-xml-file=${TestDataDir}/UsTestSeqIla5ManualFidSeg.xml
+	--output-xml-file=${CMAKE_CURRENT_BINARY_DIR}/UsTestSeqIla5ManualFidSeg.xml
 	)
 SET_TESTS_PROPERTIES( ConvertFcsvToXml PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
@@ -51,8 +51,8 @@ TARGET_LINK_LIBRARIES( ConvertXmlToFcsv
   
 ADD_TEST(ConvertXmlToFcsv
 	${EXECUTABLE_OUTPUT_PATH}/ConvertXmlToFcsv
-	--input=${TestDataDir}/UsTestSeqIla5ManualFidSeg.xml
-	--output=${TestDataDir}/UsTestSeqIla5ManualFidSeg2.xml
+	--input=${CMAKE_CURRENT_BINARY_DIR}/UsTestSeqIla5ManualFidSeg.xml
+	--output=${CMAKE_CURRENT_BINARY_DIR}/UsTestSeqIla5ManualFidSeg2.xml
 	)
 SET_TESTS_PROPERTIES( ConvertXmlToFcsv PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
