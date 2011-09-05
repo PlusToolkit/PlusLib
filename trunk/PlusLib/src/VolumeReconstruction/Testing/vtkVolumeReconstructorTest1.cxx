@@ -1,22 +1,18 @@
 #include "PlusConfigure.h"
-#include "vtkVolumeReconstructor.h"
-#include "vtkSmartPointer.h"
+
 #include "vtksys/CommandLineArguments.hxx" 
-#include "vtksys/SystemTools.hxx"
+#include "vtkSmartPointer.h"
 #include "vtkImageData.h"
 #include "vtkXMLUtilities.h"
-#include "vtkTrackedFrameList.h"
-
-#include "vtkTracker.h"
-#include "itkImage.h"
-#include "itkImageFileReader.h"
-#include "itkImageFileWriter.h"
-#include "itkMetaImageSequenceIO.h"
 #include "vtkDataSetWriter.h"
-#include "vtkXMLImageDataWriter.h"
+
+#include "vtkVolumeReconstructor.h"
+#include "vtkTrackedFrameList.h"
 
 int main (int argc, char* argv[])
 { 
+  VTK_LOG_TO_CONSOLE_ON; 
+
   // Parse command line arguments.
 
   std::string inputImgSeqFileName;
@@ -25,7 +21,6 @@ int main (int argc, char* argv[])
   std::string outputFrameFileName; 
 
   int verboseLevel=vtkPlusLogger::LOG_LEVEL_INFO;
-  VTK_LOG_TO_CONSOLE_ON; 
 
   vtksys::CommandLineArguments cmdargs;
   cmdargs.Initialize(argc, argv);
@@ -119,9 +114,6 @@ int main (int argc, char* argv[])
   vtkPlusLogger::PrintProgressbar( 100 ); 
 
   trackedFrameList->Clear(); 
-
-  LOG_INFO("Fill holes in output volume...");
-//  reconstructor->FillHoles(); :TODO: make this configurable from the XML config
 
   LOG_INFO("Saving volume to file...");
   vtkSmartPointer<vtkImageData> reconstructedVolume=vtkSmartPointer<vtkImageData>::New();
