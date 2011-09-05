@@ -32,7 +32,7 @@ THE USE OR INABILITY TO USE THE SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGES.
 
 =========================================================================*/
-// .NAME vtkVolumeReconstructorFilter - real-time freehand ultrasound reconstruction
+// .NAME vtkPasteSliceIntoVolume - real-time freehand ultrasound reconstruction
 // .SECTION Description
 // This filter incrementally compound ultrasound images into a
 // reconstruction volume, given a transform which specifies the location of
@@ -42,14 +42,16 @@ POSSIBILITY OF SUCH DAMAGES.
 // .SECTION see also
 // 
 
-#ifndef __vtkVolumeReconstructorFilter_h
-#define __vtkVolumeReconstructorFilter_h
-
-#include "vtkFreehandUltrasound2.h"
+#ifndef __vtkPasteSliceIntoVolume_h
+#define __vtkPasteSliceIntoVolume_h
 
 class TrackedFrame;
+class vtkImageData;
+class vtkMatrix4x4;
+class vtkXMLDataElement;
+class vtkMultiThreader;
 
-class VTK_EXPORT vtkVolumeReconstructorFilter : public vtkObject
+class VTK_EXPORT vtkPasteSliceIntoVolume : public vtkObject
 {
 
 public:
@@ -66,8 +68,8 @@ public:
     FULL_OPTIMIZATION // fixed point computation
   };
 
-  static vtkVolumeReconstructorFilter *New();
-  vtkTypeRevisionMacro(vtkVolumeReconstructorFilter, vtkObject);
+  static vtkPasteSliceIntoVolume *New();
+  vtkTypeRevisionMacro(vtkPasteSliceIntoVolume, vtkObject);
   virtual void PrintSelf(ostream& os, vtkIndent indent);
 
   // Description:
@@ -163,8 +165,8 @@ public:
   //////////////////////////////////////////////////////////////////////////////////
 
 protected:
-  vtkVolumeReconstructorFilter();
-  ~vtkVolumeReconstructorFilter();
+  vtkPasteSliceIntoVolume();
+  ~vtkPasteSliceIntoVolume();
 
   bool FanParametersDefined();
 
@@ -202,8 +204,8 @@ protected:
   vtkMultiThreader *Threader;
   
 private:
-  vtkVolumeReconstructorFilter(const vtkVolumeReconstructorFilter&);
-  void operator=(const vtkVolumeReconstructorFilter&);
+  vtkPasteSliceIntoVolume(const vtkPasteSliceIntoVolume&);
+  void operator=(const vtkPasteSliceIntoVolume&);
 };
 
 #endif

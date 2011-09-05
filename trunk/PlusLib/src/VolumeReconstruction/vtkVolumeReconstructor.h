@@ -2,14 +2,12 @@
 #define __vtkVolumeReconstructor_h
 
 #include "PlusConfigure.h"
-#include "vtkBufferedTracker.h"
-#include "vtkBufferedVideoSource.h"
 #include "vtkImageAlgorithm.h"
-#include "vtkFreehandUltrasound2Dynamic.h"
+#include "vtkPasteSliceIntoVolume.h"
 #include "vtkSmartPointer.h"
 #include "vtkTransform.h"
 
-class vtkVolumeReconstructorFilter;
+class vtkPasteSliceIntoVolume;
 class vtkTrackedFrameList;
 class TrackedFrame;
 
@@ -57,7 +55,7 @@ protected:
 
   static void AddImageToExtent( vtkImageData *image, vtkMatrix4x4* mImageToReference, double* extent_Ref);
 
-  vtkVolumeReconstructorFilter* Reconstructor; 
+  vtkPasteSliceIntoVolume* Reconstructor; 
   
   // The calibration matrix, constant throughout the reconstruction
   vtkTransform* ImageToToolTransform;

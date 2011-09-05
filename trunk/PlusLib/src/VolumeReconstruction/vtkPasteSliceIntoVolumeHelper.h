@@ -42,8 +42,8 @@ POSSIBILITY OF SUCH DAMAGES.
 // .SECTION see also
 // vtkPlusVideoSource, vtkTracker, vtkTrackerTool
 
-#ifndef __vtkVolumeReconstructorFilterHelper_h
-#define __vtkVolumeReconstructorFilterHelper_h
+#ifndef __vtkPasteSliceIntoVolumeHelper_h
+#define __vtkPasteSliceIntoVolumeHelper_h
 
 #include "PlusConfigure.h"
 #include "vtkTimerLog.h"
@@ -169,16 +169,16 @@ static inline void vtkUltraRound(F val, T& rnd)
 // Sets interpolate (pointer to a function) to match the current interpolation
 // mode - used for unoptimized versions only
 template <class F, class T>
-static void vtkGetUltraInterpFunc(vtkVolumeReconstructorFilter::InterpolationType interpolationMode, 
+static void vtkGetUltraInterpFunc(vtkPasteSliceIntoVolume::InterpolationType interpolationMode, 
                                   int (**interpolate)(F *point, T *inPtr, T *outPtr, unsigned short *accPtr, int numscalars, int outExt[6], int outInc[3])
                                   )
 {
   switch (interpolationMode)
   {
-  case VTK_FREEHAND_NEAREST:
+  case vtkPasteSliceIntoVolume::NEAREST_NEIGHBOR_INTERPOLATION:
     *interpolate = &vtkNearestNeighborInterpolation;
     break;
-  case VTK_FREEHAND_LINEAR:
+  case vtkPasteSliceIntoVolume::LINEAR_INTERPOLATION:
     *interpolate = &vtkTrilinearInterpolation;
     break;
   }
@@ -1165,7 +1165,7 @@ void GetClipExtent(int clipExt[6],
 // filter)
 template <class T>
 static void vtkUnoptimizedInsertSlice(vtkImageData *outData, T *outPtr, unsigned short *accPtr, vtkImageData *inData, T *inPtr, int inExt[6], vtkMatrix4x4 *matrix,
-  double clipRectangleOrigin[2],double clipRectangleSize[2], double fanAngles[2], double fanOrigin[2], double fanDepth, vtkVolumeReconstructorFilter::InterpolationType interpolationMode)
+  double clipRectangleOrigin[2],double clipRectangleSize[2], double fanAngles[2], double fanOrigin[2], double fanDepth, vtkPasteSliceIntoVolume::InterpolationType interpolationMode)
 {
 
   LOG_TRACE("sliceToOutputVolumeMatrix="<<matrix->GetElement(0,0)<<" "<<matrix->GetElement(0,1)<<" "<<matrix->GetElement(0,2)<<" "<<matrix->GetElement(0,3)<<"; "
@@ -1297,7 +1297,7 @@ static void vtkOptimizedInsertSlice(vtkImageData *outData, // the output volume
                                     double fanAngles[2],
                                     double fanOrigin[2],
                                     double fanDepth,
-                                    vtkVolumeReconstructorFilter::InterpolationType interpolationMode)
+                                    vtkPasteSliceIntoVolume::InterpolationType interpolationMode)
 {
   LOG_TRACE("sliceToOutputVolumeMatrix="<<(float)matrix[0][0]<<" "<<(float)matrix[0][1]<<" "<<(float)matrix[0][2]<<" "<<(float)matrix[0][3]<<"; "
     <<(float)matrix[1][0]<<" "<<(float)matrix[1][1]<<" "<<(float)matrix[1][2]<<" "<<(float)matrix[1][3]<<"; "
@@ -1502,7 +1502,7 @@ static void vtkOptimizedInsertSlice(vtkImageData *outData, // the output volume
       // multiplying the input point by the transform will give you fractional pixels,
       // so we need interpolation
       
-      if (interpolationMode == vtkVolumeReconstructorFilter::LINEAR_INTERPOLATION)
+      if (interpolationMode == vtkPasteSliceIntoVolume::LINEAR_INTERPOLATION)
       { 
         // interpolating linearly (code 1)
         for (int idX = xIntersectionPixStart; idX <= xIntersectionPixEnd; idX++) // for all of the x pixels within the fan
