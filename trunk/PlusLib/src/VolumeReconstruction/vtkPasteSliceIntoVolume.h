@@ -32,15 +32,15 @@ THE USE OR INABILITY TO USE THE SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGES.
 
 =========================================================================*/
-// .NAME vtkPasteSliceIntoVolume - real-time freehand ultrasound reconstruction
+// .NAME vtkPasteSliceIntoVolume - paste image slice(s) into a volume
 // .SECTION Description
 // This filter incrementally compound ultrasound images into a
 // reconstruction volume, given a transform which specifies the location of
-// each ultrasound slice.  An alpha component is appended to the output to
+// each ultrasound slice. An alpha component is appended to the output to
 // specify the coverage of each pixel in the output volume (i.e. whether or
 // not a voxel has been touched by the reconstruction)
 // .SECTION see also
-// 
+// vtkVolumeReconstructor
 
 #ifndef __vtkPasteSliceIntoVolume_h
 #define __vtkPasteSliceIntoVolume_h
@@ -65,12 +65,29 @@ public:
   {
     NO_OPTIMIZATION,
     PARTIAL_OPTIMIZATION,
-    FULL_OPTIMIZATION // fixed point computation
+    FULL_OPTIMIZATION
   };
 
   static vtkPasteSliceIntoVolume *New();
   vtkTypeRevisionMacro(vtkPasteSliceIntoVolume, vtkObject);
   virtual void PrintSelf(ostream& os, vtkIndent indent);
+
+  // Description:
+  // Spacing, origin, and extent of output data in Reference coordinate system.
+  // This is required to be set, otherwise the reconstructed volume will be empty.
+  vtkSetVector3Macro(OutputSpacing, vtkFloatingPointType);
+  vtkGetVector3Macro(OutputSpacing, vtkFloatingPointType);
+  vtkSetVector3Macro(OutputOrigin, vtkFloatingPointType);
+  vtkGetVector3Macro(OutputOrigin, vtkFloatingPointType);
+  vtkSetVector6Macro(OutputExtent, int);
+  vtkGetVector6Macro(OutputExtent, int);  
+
+  // Description:
+  // Insert the slice into the reconstructed volume
+  // The origin of the image is at the first pixel stored in the memory (follows the ITK convention).
+  // Note that this is origin not the one that is used by VTK when displaying a 2D image on screen
+  // (VTK normally shows the first pixel of the last image line at the origin).
+  virtual PlusStatus InsertSlice(vtkImageData *image, vtkMatrix4x4* mImageToReference);
 
   // Description:
   // Get the output reconstructed 3D ultrasound volume
@@ -87,83 +104,89 @@ public:
   virtual vtkImageData *GetAccumulationBuffer();
 
   // Description:
-  // Cause the slice to be inserted into the first reconstruction volume
-  virtual PlusStatus InsertSlice(vtkImageData *image, vtkMatrix4x4* mImageToReference);
-
-  // Description:
   // Creates the and clears all necessary image buffers.
   virtual PlusStatus ResetOutput();
 
   // Description:
-  // Set the clip rectangle origin to apply to the image in pixel coordinates. 
-  // The origin of the rectangle is the corner that is closest to the image origin
-  // (has the smallest x and y coordinate values).
-  vtkSetVector2Macro(ClipRectangleOrigin,double);
-  vtkGetVector2Macro(ClipRectangleOrigin,double);
+  // Set the clip rectangle origin to apply to the image in pixel coordinates.
+  // Pixels outside the clip rectangle will not be pasted into the volume.
+  // The origin of the rectangle is at its corner that is closest to the image origin.
+  vtkSetVector2Macro(ClipRectangleOrigin,int);
+  vtkGetVector2Macro(ClipRectangleOrigin,int);
 
   // Description:
-  // Set the clip rectangle size in pixels. 
-  vtkSetVector2Macro(ClipRectangleSize,double);
-  vtkGetVector2Macro(ClipRectangleSize,double);
+  // Set the clip rectangle size in pixels.
+  vtkSetVector2Macro(ClipRectangleSize,int);
+  vtkGetVector2Macro(ClipRectangleSize,int);
 
   // Description:
-  // If the ultrasound probe collects a fan of data, specify the position and
-  // dimensions of the fan in mm.
-  vtkSetVector2Macro(FanAngles,double);
-  vtkGetVector2Macro(FanAngles,double);
+  // Set the fan-shaped clipping region for curvilinear probes.
+  // The origin of the fan is defined in the image coordinate system, in mm.
   vtkSetVector2Macro(FanOrigin,double);
   vtkGetVector2Macro(FanOrigin,double);
+
+  // Description:
+  // Set the fan-shaped clipping region for curvilinear probes.
+  // Fan angles is a vector containing the angles of the two straight edge of the fan, in degrees.
+  // If both angles are 0 then no fan-shaped clipping is performed.
+  vtkSetVector2Macro(FanAngles,double);
+  vtkGetVector2Macro(FanAngles,double);
+  
+  // Description:
+  // Set the fan-shaped clipping region for curvilinear probes.
+  // Fan depth is the radius of the fan, in mm.
   vtkSetMacro(FanDepth,double);
   vtkGetMacro(FanDepth,double);
 
   // Description:
+  // Returns true if fan-shaped clipping is applied (true, if any of the
+  // fan angles are non-zero).
+  bool FanClippingApplied();
+
+  // Description:
   // Turn on and off optimizations (default on, turn them off only if
   // they are not stable on your architecture).
-  //   0 means no optimization (almost never used)
-  //   1 means break transformation into x, y and z components, and
-  //      don't do bounds checking for nearest-neighbor interpolation
-  //   2 means used fixed-point (i.e. integer) math instead of float math
+  // NO_OPTIMIZATION: means no optimization (almost never used) 
+  // PARTIAL_OPTIMIZATION: break transformation into x, y and z components, and
+  //   don't do bounds checking for nearest-neighbor interpolation
+  // FULL_OPTIMIZATION: fixed-point (i.e. integer) math is used instead of float math,
+  //   it is only useful with NEAREST_NEIGHBOR interpolation
+  //  (when used with LINEAR interpolation then it is slower than NO_OPTIMIZATION)
   vtkSetMacro(Optimization,OptimizationType);
   vtkGetMacro(Optimization,OptimizationType);
   char* GetOptimizationModeAsString(OptimizationType type);
 
   // Description:
-  // Set/Get the interpolation mode, default is nearest neighbor. 
+  // Set/Get the interpolation mode
+  // LINEAR: better image quality, slower
+  // NEAREST_NEIGHBOR: lower image quality, faster (default)
   vtkSetMacro(InterpolationMode,InterpolationType);
   vtkGetMacro(InterpolationMode,InterpolationType);
   char *GetInterpolationModeAsString(InterpolationType interpEnum);
 
   // Description:
   // Turn on or off the compounding (default on, which means
-  // that scans will be compounded where they overlap instead of just considering
-  // the last acquired slice.
+  // that scans will be averaged where they overlap instead of just considering
+  // the last acquired slice).
   vtkGetMacro(Compounding,int);
   virtual void SetCompounding(int c);
 
   // Description:
-  // Number of threads use for processing the data. If 0 is specified then
-  // the default number of threads are used (number of processors).
-  // Currently the results are slightly different depending on the number of 
-  // threads used (probably it is a bug).
+  // Number of threads use for processing the data.
+  // The reconstruction result is slightly different if more than one thread is used
+  // because due to interpolation and rounding errors is influenced by the order the pixels
+  // are processed.
+  // Choose 0 (this is the default) for maximum speed, in this case the default number of
+  // used threads equals the number of processors. Choose 1 for reproducible results.
   vtkGetMacro(NumberOfThreads,int);
   vtkSetMacro(NumberOfThreads,int);
-
-  // Description:
-  // Spacing, origin, and extent of output data
-  // You MUST set this information.
-  vtkSetVector3Macro(OutputSpacing, vtkFloatingPointType);
-  vtkGetVector3Macro(OutputSpacing, vtkFloatingPointType);
-  vtkSetVector3Macro(OutputOrigin, vtkFloatingPointType);
-  vtkGetVector3Macro(OutputOrigin, vtkFloatingPointType);
-  vtkSetVector6Macro(OutputExtent, int);
-  vtkGetVector6Macro(OutputExtent, int);
-
-  bool FanParametersDefined();
 
 protected:
   vtkPasteSliceIntoVolume();
   ~vtkPasteSliceIntoVolume();
 
+  // Description:
+  // Thread function that actually performs the pasting of frame pixels into the volume
   static VTK_THREAD_RETURN_TYPE InsertSliceThreadFunction( void *arg );
   
   // Description:
@@ -175,26 +198,26 @@ protected:
   vtkImageData *ReconstructedVolume;
   vtkImageData *AccumulationBuffer;
 
-  // parameters for fan/image
+  // Output image position and size
   vtkFloatingPointType OutputOrigin[3];
   vtkFloatingPointType OutputSpacing[3];
   int OutputExtent[6];
   
-  double ClipRectangleOrigin[2];
-  double ClipRectangleSize[2];
+  // Clipping parameters
+  int ClipRectangleOrigin[2];
+  int ClipRectangleSize[2];
   double FanAngles[2];
   double FanOrigin[2];
   double FanDepth;
 
-  // reconstruction options
+  // Reconstruction options
   InterpolationType InterpolationMode;
   OptimizationType Optimization;
   int Compounding;
 
-  // This can be used to limit the number of threads used for the reconstruction
-  int NumberOfThreads;
-
+  // Multithreading
   vtkMultiThreader *Threader;
+  int NumberOfThreads;
   
 private:
   vtkPasteSliceIntoVolume(const vtkPasteSliceIntoVolume&);

@@ -1,5 +1,4 @@
 /*=========================================================================
-
 Copyright (c) 2000-2007 Atamai, Inc.
 Copyright (c) 2008-2009 Danielle Pace
 
@@ -33,12 +32,14 @@ POSSIBILITY OF SUCH DAMAGES.
 =========================================================================*/
 
 // .NAME vtkFillHolesInVolume - Fill holes in a volume reconstructed from slices.
-
 // .SECTION Description
+// This class has not been tested extensively and it may not work properly!
 // Fill holes in the output by using the weighted average of the
 // surrounding voxels.  If Compounding is off, then all hit voxels
 // are weighted equally. 
-
+// These papers could be useful to study when reviewing/updating the algorithm:
+//  http://www.irma-international.org/viewtitle/46058/
+//  http://www.3dmed.net/paper/daiyakang_TITB.pdf
 // .SECTION See Also
 // vtkPasteSliceIntoVolume
 

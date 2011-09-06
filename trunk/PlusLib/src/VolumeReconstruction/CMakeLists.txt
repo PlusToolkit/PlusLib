@@ -14,7 +14,9 @@ if (WIN32)
 	SET (VolumeReconstruction_HDRS
 		fixed.h
 		vtkPasteSliceIntoVolume.h 
-		vtkPasteSliceIntoVolumeHelper.h 
+		vtkPasteSliceIntoVolumeHelperCommon.h 
+		vtkPasteSliceIntoVolumeHelperOptimized.h 
+		vtkPasteSliceIntoVolumeHelperUnoptimized.h 
 		vtkVolumeReconstructor.h 
 		vtkFillHolesInVolume.h
 		)

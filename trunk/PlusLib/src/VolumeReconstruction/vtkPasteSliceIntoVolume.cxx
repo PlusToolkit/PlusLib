@@ -35,22 +35,20 @@ POSSIBILITY OF SUCH DAMAGES.
 
 #include "PlusConfigure.h"
 
-#include "vtkPasteSliceIntoVolume.h"
-#include "vtkPasteSliceIntoVolumeHelper.h"
 #include "vtkObjectFactory.h"
-#include "vtkStreamingDemandDrivenPipeline.h"
-#include "vtkInformation.h"
-#include "vtkInformationVector.h"
-#include "vtkMath.h"
+#include "vtkSmartPointer.h"
+#include "vtkMultiThreader.h"
 #include "vtkCriticalSection.h"
 #include "vtkMutexLock.h"
-#include "vtkSignalBox.h"
 #include "vtkXMLUtilities.h"
 #include "vtkXMLDataElement.h"
-#include "vtkBMPWriter.h"
-#include "vtkTimestampedCircularBuffer.h"
-#include "vtkVideoBuffer.h"
 #include "vtkIndent.h"
+#include "vtkMath.h"
+#include "vtkTransform.h"
+
+#include "vtkPasteSliceIntoVolume.h"
+#include "vtkPasteSliceIntoVolumeHelperUnoptimized.h"
+#include "vtkPasteSliceIntoVolumeHelperOptimized.h"
 
 vtkCxxRevisionMacro(vtkPasteSliceIntoVolume, "$Revisions: 1.0 $");
 vtkStandardNewMacro(vtkPasteSliceIntoVolume);
@@ -607,7 +605,7 @@ char* vtkPasteSliceIntoVolume::GetOptimizationModeAsString(OptimizationType type
 }
 
 //----------------------------------------------------------------------------
-bool vtkPasteSliceIntoVolume::FanParametersDefined()
+bool vtkPasteSliceIntoVolume::FanClippingApplied()
 {
   return this->FanAngles[0] != 0.0 || this->FanAngles[1] != 0.0;
 }
