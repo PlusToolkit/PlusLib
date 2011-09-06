@@ -64,12 +64,6 @@ vtkPlusVideoSource::vtkPlusVideoSource()
 
 	this->NumberOfOutputFrames = 1;
 
-	for (int i = 0; i < 3; i++)
-	{
-		this->DataSpacing[i] = 1.0;
-		this->DataOrigin[i] = 0.0;
-	}
-
 	this->RecordThreader = vtkMultiThreader::New();
 	this->RecordThreadId = -1;
 
@@ -122,20 +116,6 @@ vtkPlusVideoSource::~vtkPlusVideoSource()
 void vtkPlusVideoSource::PrintSelf(ostream& os, vtkIndent indent)
 {
 	this->Superclass::PrintSelf(os,indent);
-
-	os << indent << "DataSpacing: (" << this->DataSpacing[0];
-	for (int idx = 1; idx < 3; ++idx)
-	{
-		os << ", " << this->DataSpacing[idx];
-	}
-	os << ")\n";
-
-	os << indent << "DataOrigin: (" << this->DataOrigin[0];
-	for (int idx = 1; idx < 3; ++idx)
-	{
-		os << ", " << this->DataOrigin[idx];
-	}
-	os << ")\n";
 
 	os << indent << "FrameRate: " << this->FrameRate << "\n";
 	os << indent << "FrameCount: " << this->FrameCount << "\n";
@@ -449,11 +429,11 @@ int vtkPlusVideoSource::RequestInformation(vtkInformation * vtkNotUsed(request),
     int extent[6] = {0, this->Buffer->GetFrameSize()[0] - 1, 0, this->Buffer->GetFrameSize()[1] - 1, 0, 0 }; 
 	outInfo->Set(vtkStreamingDemandDrivenPipeline::WHOLE_EXTENT(),extent,6);
 
-	// set the spacing
-	outInfo->Set(vtkDataObject::SPACING(),this->DataSpacing,3);
-
-	// set the origin.
-	outInfo->Set(vtkDataObject::ORIGIN(),this->DataOrigin,3);
+	// Set the origin and spacing. The video source provides raw pixel output, therefore the spacing is (1,1,1) and the origin is (0,0)
+  double spacing[3]={1,1,1};
+	outInfo->Set(vtkDataObject::SPACING(),spacing,3);
+  double origin[3]={0,0,0};
+	outInfo->Set(vtkDataObject::ORIGIN(),origin,3);
 
 	// set default data type - unsigned char and number of components 1 
   vtkDataObject::SetPointDataActiveScalarInfo(outInfo, UsImageConverterCommon::GetVTKScalarPixelType(this->Buffer->GetPixelType()), 1);

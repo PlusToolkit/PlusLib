@@ -299,19 +299,8 @@ vtkOpenIGTLinkBroadcaster
     return;
     }
   
-  
-    // Set up image container.
-  
-  vtkSmartPointer< vtkImageData > frameImage    = vtkSmartPointer< vtkImageData >::New();
-  frameImage->SetDimensions( this->DataCollector->GetVideoSource()->GetFrameSize() );
-  frameImage->SetOrigin( this->DataCollector->GetVideoSource()->GetDataOrigin() );
-  frameImage->SetSpacing( this->DataCollector->GetVideoSource()->GetDataSpacing() );
-  frameImage->SetScalarTypeToUnsignedChar();
-  frameImage->AllocateScalars();
-  
-  
-    // Read the actual image data with transform.
-  
+  // Read the actual image data with transform.
+  vtkSmartPointer< vtkImageData > frameImage = vtkSmartPointer< vtkImageData >::New();
   double timestamp = 0.0;
   TrackerStatus status = TR_OK;
   vtkSmartPointer< vtkMatrix4x4 > mProbeToReference = vtkSmartPointer< vtkMatrix4x4 >::New();

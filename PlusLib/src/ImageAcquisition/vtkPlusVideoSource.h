@@ -133,18 +133,6 @@ public:
     vtkGetMacro(NumberOfOutputFrames,int);
 
     // Description:
-    // Set/Get the pixel spacing. 
-    // Default: (1.0,1.0,1.0)
-    vtkSetVector3Macro(DataSpacing,double);
-    vtkGetVector3Macro(DataSpacing,double);
-
-    // Description:
-    // Set/Get the coordinates of the lower, left corner of the frame. 
-    // Default: (0.0,0.0,0.0)
-    vtkSetVector3Macro(DataOrigin,double);
-    vtkGetVector3Macro(DataOrigin,double);
-
-    // Description:
     // This value is incremented each time a frame is grabbed.
     // reset it to zero (or any other value) at any time.
     vtkGetMacro(FrameCount, int);
@@ -242,9 +230,6 @@ protected:
     // the application when a new frame is available (then the notification
     // triggers the frame grabbing)
     int SpawnThreadForRecording;
-
-    double DataSpacing[3];
-    double DataOrigin[3];
 
     // if we want to update according to the frame closest to the timestamp specifified by desiredTimestamp
     double DesiredTimestamp;
