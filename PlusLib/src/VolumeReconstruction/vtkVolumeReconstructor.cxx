@@ -82,12 +82,12 @@ PlusStatus vtkVolumeReconstructor::ReadConfiguration(vtkXMLDataElement* config)
   }
 
   // clipping parameters
-  double clipRectangleOrigin[2]={0,0};
+  int clipRectangleOrigin[2]={0,0};
   if (reconConfig->GetVectorAttribute("ClipRectangleOrigin", 2, clipRectangleOrigin))
   {
     this->Reconstructor->SetClipRectangleOrigin(clipRectangleOrigin);
   }
-  double clipRectangleSize[2]={0,0};
+  int clipRectangleSize[2]={0,0};
   if (reconConfig->GetVectorAttribute("ClipRectangleSize", 2, clipRectangleSize))
   {
     this->Reconstructor->SetClipRectangleSize(clipRectangleSize);
@@ -246,7 +246,7 @@ PlusStatus vtkVolumeReconstructor::WriteConfiguration(vtkXMLDataElement *config)
 	reconConfig->SetVectorAttribute("ClipRectangleSize", 2, this->Reconstructor->GetClipRectangleSize());
 
 	// fan parameters
-  if (this->Reconstructor->FanParametersDefined())
+  if (this->Reconstructor->FanClippingApplied())
   {
 	  reconConfig->SetVectorAttribute("FanAngles", 2, this->Reconstructor->GetFanAngles());
 	  reconConfig->SetVectorAttribute("FanOrigin", 2, this->Reconstructor->GetFanOrigin());
@@ -282,12 +282,13 @@ vtkTransform* vtkVolumeReconstructor::GetImageToToolTransform()
 }
 
 //----------------------------------------------------------------------------
-void vtkVolumeReconstructor::GetImageToReferenceTransformMatrix(vtkMatrix4x4* toolToReferenceTransformMatrix, vtkMatrix4x4* imageToReferenceTransformMatrix)
+PlusStatus vtkVolumeReconstructor::GetImageToReferenceTransformMatrix(vtkMatrix4x4* toolToReferenceTransformMatrix, vtkMatrix4x4* imageToReferenceTransformMatrix)
 {
   // Transformation chain: ImageToReference = ToolToReference * ImageToTool
   vtkMatrix4x4::Multiply4x4(
     toolToReferenceTransformMatrix, this->ImageToToolTransform->GetMatrix(),
     imageToReferenceTransformMatrix);  
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
@@ -302,8 +303,7 @@ PlusStatus vtkVolumeReconstructor::GetImageToReferenceTransformMatrix(TrackedFra
   vtkSmartPointer<vtkMatrix4x4> toolToReferenceTransformMatrix=vtkSmartPointer<vtkMatrix4x4>::New();
   toolToReferenceTransformMatrix->DeepCopy(defaultTransform);
 
-  GetImageToReferenceTransformMatrix(toolToReferenceTransformMatrix, imageToReferenceTransformMatrix);
-  return PLUS_SUCCESS;
+  return GetImageToReferenceTransformMatrix(toolToReferenceTransformMatrix, imageToReferenceTransformMatrix);
 }
 
 //----------------------------------------------------------------------------
@@ -368,7 +368,9 @@ PlusStatus vtkVolumeReconstructor::SetOutputExtentFromFrameList(vtkTrackedFrameL
       continue; 
     }
 
-    // Get image (only the frame extents are needed)
+    // Get image (only the frame extents will be used)
+    // Image is requested by ImageData.GetVtkImageNonFlipped(), because the reconstructor uses stores the image data in VTK format
+    // but the origin of the image follows the ITK convention (it is the first pixel in memory).
     vtkImageData* frameImage=trackedFrameList->GetTrackedFrame(frameIndex)->ImageData.GetVtkImageNonFlipped();
 
     // Expand the extent_Ref to include this frame
@@ -413,6 +415,8 @@ PlusStatus vtkVolumeReconstructor::AddTrackedFrame(TrackedFrame* frame)
     return PLUS_FAIL; 
   }
 
+  // Image is requested by ImageData.GetVtkImageNonFlipped(), because the reconstructor uses stores the image data in VTK format
+  // but the origin of the image follows the ITK convention (it is the first pixel in memory).
   vtkImageData* frameImage=frame->ImageData.GetVtkImageNonFlipped();
 
   return this->Reconstructor->InsertSlice(frameImage, imageToReferenceTransformMatrix);
