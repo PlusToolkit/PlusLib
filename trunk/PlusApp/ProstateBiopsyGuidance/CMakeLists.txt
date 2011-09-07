@@ -56,11 +56,12 @@ SET (ProstateBiopsyGuidance_LIBS
     vtkCommon
     vtkFiltering
     vtkHybrid
-    #vtkImageAcquisition
+    vtkImageAcquisition
     ITKIO
     vtkTracking
     vtkDataCollection
     vtkPlusCommon
+	${CMAKE_CURRENT_SOURCE_DIR}/VibroLib.lib
     )
 
 IF (PLUS_USE_OpenIGTLink)
