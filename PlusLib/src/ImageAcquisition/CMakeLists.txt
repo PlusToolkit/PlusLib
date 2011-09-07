@@ -4,7 +4,8 @@
 OPTION (PLUS_USE_SONIX_VIDEO "Provide support for the SonixRP video source" OFF)
 OPTION (PLUS_USE_ICCAPTURING_VIDEO "Provide support for the IC framegrabber device" OFF)
 OPTION (PLUS_USE_VFW_VIDEO "Provide support for the Video-for-Windows video digitizer" OFF)
-SET (ULTERIUS_MAJOR_VERSION 5 CACHE STRING "Set Ultrasonix Ulterius SDK major version")
+SET (PLUS_ULTERIUS_MAJOR_VERSION 5 CACHE STRING "Set Ultrasonix Ulterius SDK major version")
+SET (PLUS_ULTERIUS_MINOR_VERSION 7 CACHE STRING "Set Ultrasonix Ulterius SDK minor version")
 
 # --------------------------------------------------------------------------
 # Sources
@@ -64,7 +65,7 @@ IF (PLUS_USE_SONIX_VIDEO)
 			)
 	endif (WIN32)	
 
-	IF (ULTERIUS_MAJOR_VERSION EQUAL 1)
+	IF (PLUS_ULTERIUS_MAJOR_VERSION EQUAL 1)
 		# Look for SonixRP Ulterius SDK 1.2
         SET(ULTERIUS_INCLUDE_DIR ${PLTOOLS_DIR}/Ultrasonix/Ulterius-1.2/inc CACHE PATH "Path to the Ulterius SDK include directory." FORCE)
         SET(ULTERIUS_BINARY_DIR ${PLTOOLS_DIR}/Ultrasonix/Ulterius-1.2/bin CACHE PATH "Path to the Ulterius SDK binary directory." FORCE)
@@ -79,7 +80,7 @@ IF (PLUS_USE_SONIX_VIDEO)
 			${ULTERIUS_BINARY_DIR}/r/ulterius${CMAKE_SHARED_LIBRARY_SUFFIX}
 			${ULTERIUS_BINARY_DIR}/r/utx_utils${CMAKE_SHARED_LIBRARY_SUFFIX}
 			)
-	ELSEIF (ULTERIUS_MAJOR_VERSION EQUAL 2)
+	ELSEIF (PLUS_ULTERIUS_MAJOR_VERSION EQUAL 2)
     
         SET(ULTERIUS_INCLUDE_DIR ${PLTOOLS_DIR}/Ultrasonix/Ulterius-2.0/inc CACHE PATH "Path to the Ulterius SDK include directory." FORCE)
         SET(ULTERIUS_BINARY_DIR ${PLTOOLS_DIR}/Ultrasonix/Ulterius-2.0/bin CACHE PATH "Path to the Ulterius SDK binary directory." FORCE)
@@ -96,26 +97,53 @@ IF (PLUS_USE_SONIX_VIDEO)
 			${ULTERIUS_BINARY_DIR}/umc_xml${CMAKE_SHARED_LIBRARY_SUFFIX}
 			${ULTERIUS_BINARY_DIR}/xerces-c_2_7_u_vc6${CMAKE_SHARED_LIBRARY_SUFFIX}
 			)
-	ELSEIF (ULTERIUS_MAJOR_VERSION EQUAL 5)
-		# Look for SonixRP Ulterius SDK 5.6.5
-        SET(ULTERIUS_INCLUDE_DIR ${PLTOOLS_DIR}/Ultrasonix/Ulterius-5.6.5/inc CACHE PATH "Path to the Ulterius SDK include directory." FORCE)
-        SET(ULTERIUS_BINARY_DIR ${PLTOOLS_DIR}/Ultrasonix/Ulterius-5.6.5/bin CACHE PATH "Path to the Ulterius SDK binary directory." FORCE)
-        SET(ULTERIUS_LIB_DIR ${PLTOOLS_DIR}/Ultrasonix/Ulterius-5.6.5/lib CACHE PATH "Path to the Ulterius SDK library directory." FORCE)
+	ELSEIF (PLUS_ULTERIUS_MAJOR_VERSION EQUAL 5)
 		
-		SET (SONIX_LIBRARY 
-			${ULTERIUS_LIB_DIR}/ulterius.lib
-			)
-		SET ( External_Libraries_Install ${External_Libraries_Install}
-			${ULTERIUS_BINARY_DIR}/ulterius${CMAKE_SHARED_LIBRARY_SUFFIX}
-			${ULTERIUS_BINARY_DIR}/ftd2xx${CMAKE_SHARED_LIBRARY_SUFFIX}
-			${ULTERIUS_BINARY_DIR}/umc_utils${CMAKE_SHARED_LIBRARY_SUFFIX}
-			${ULTERIUS_BINARY_DIR}/umc_xml${CMAKE_SHARED_LIBRARY_SUFFIX}
-			${ULTERIUS_BINARY_DIR}/umc_string_convert${CMAKE_SHARED_LIBRARY_SUFFIX}
-			${ULTERIUS_BINARY_DIR}/umc_unit_convert${CMAKE_SHARED_LIBRARY_SUFFIX}
-            ${ULTERIUS_BINARY_DIR}/xerces-c_2_7_u_vc6${CMAKE_SHARED_LIBRARY_SUFFIX}
-			)
+		IF (PLUS_ULTERIUS_MINOR_VERSION EQUAL 6)
+			# Look for SonixRP Ulterius SDK 5.6.5
+			SET(ULTERIUS_INCLUDE_DIR ${PLTOOLS_DIR}/Ultrasonix/Ulterius-5.6.5/inc CACHE PATH "Path to the Ulterius SDK include directory." FORCE)
+			SET(ULTERIUS_BINARY_DIR ${PLTOOLS_DIR}/Ultrasonix/Ulterius-5.6.5/bin CACHE PATH "Path to the Ulterius SDK binary directory." FORCE)
+			SET(ULTERIUS_LIB_DIR ${PLTOOLS_DIR}/Ultrasonix/Ulterius-5.6.5/lib CACHE PATH "Path to the Ulterius SDK library directory." FORCE)
 			
-	ENDIF (ULTERIUS_MAJOR_VERSION EQUAL 1)
+			SET (SONIX_LIBRARY 
+				${ULTERIUS_LIB_DIR}/ulterius.lib
+				)
+			SET ( External_Libraries_Install ${External_Libraries_Install}
+				${ULTERIUS_BINARY_DIR}/ulterius${CMAKE_SHARED_LIBRARY_SUFFIX}
+				${ULTERIUS_BINARY_DIR}/ftd2xx${CMAKE_SHARED_LIBRARY_SUFFIX}
+				${ULTERIUS_BINARY_DIR}/umc_utils${CMAKE_SHARED_LIBRARY_SUFFIX}
+				${ULTERIUS_BINARY_DIR}/umc_xml${CMAKE_SHARED_LIBRARY_SUFFIX}
+				${ULTERIUS_BINARY_DIR}/umc_string_convert${CMAKE_SHARED_LIBRARY_SUFFIX}
+				${ULTERIUS_BINARY_DIR}/umc_unit_convert${CMAKE_SHARED_LIBRARY_SUFFIX}
+				${ULTERIUS_BINARY_DIR}/xerces-c_2_7_u_vc6${CMAKE_SHARED_LIBRARY_SUFFIX}
+				)
+		ELSEIF (PLUS_ULTERIUS_MINOR_VERSION EQUAL 7)
+		
+			# Look for SonixRP Ulterius SDK 5.7.0
+			SET(ULTERIUS_INCLUDE_DIR ${PLTOOLS_DIR}/Ultrasonix/Ulterius-5.7.0/inc CACHE PATH "Path to the Ulterius SDK include directory." FORCE)
+			SET(ULTERIUS_BINARY_DIR ${PLTOOLS_DIR}/Ultrasonix/Ulterius-5.7.0/bin CACHE PATH "Path to the Ulterius SDK binary directory." FORCE)
+			SET(ULTERIUS_LIB_DIR ${PLTOOLS_DIR}/Ultrasonix/Ulterius-5.7.0/lib CACHE PATH "Path to the Ulterius SDK library directory." FORCE)
+			
+			SET (SONIX_LIBRARY 
+				${ULTERIUS_LIB_DIR}/ulterius.lib
+				)
+			SET ( External_Libraries_Install ${External_Libraries_Install}
+				${ULTERIUS_BINARY_DIR}/ulterius${CMAKE_SHARED_LIBRARY_SUFFIX}
+				${ULTERIUS_BINARY_DIR}/ftd2xx${CMAKE_SHARED_LIBRARY_SUFFIX}
+				${ULTERIUS_BINARY_DIR}/umc_utils${CMAKE_SHARED_LIBRARY_SUFFIX}
+				${ULTERIUS_BINARY_DIR}/umc_xml${CMAKE_SHARED_LIBRARY_SUFFIX}
+				${ULTERIUS_BINARY_DIR}/umc_string_convert${CMAKE_SHARED_LIBRARY_SUFFIX}
+				${ULTERIUS_BINARY_DIR}/umc_unit_convert${CMAKE_SHARED_LIBRARY_SUFFIX}
+				${ULTERIUS_BINARY_DIR}/xerces-c_2_7_u_vc6${CMAKE_SHARED_LIBRARY_SUFFIX}
+				)
+		
+		ELSE (PLUS_ULTERIUS_MINOR_VERSION EQUAL 6)
+			MESSAGE( FATAL_ERROR "The chosen ULTERIUS_MINOR_VERSION value is not supported.")
+		ENDIF (PLUS_ULTERIUS_MINOR_VERSION EQUAL 6)
+			
+	ELSE (PLUS_ULTERIUS_MAJOR_VERSION EQUAL 1)
+		MESSAGE( FATAL_ERROR "The chosen ULTERIUS_MAJOR_VERSION value is not supported.")
+	ENDIF (PLUS_ULTERIUS_MAJOR_VERSION EQUAL 1)
     
     SET (PLUSLIB_INCLUDE_DIRS ${PLUSLIB_INCLUDE_DIRS} ${ULTERIUS_INCLUDE_DIR} CACHE INTERNAL "" )
     
