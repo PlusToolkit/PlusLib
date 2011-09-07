@@ -70,6 +70,7 @@ OPTION(PLUS_USE_Ascension3DG "Provide support for the Ascension 3DG Tracker" ON)
 OPTION(PLUS_USE_HEARTSIGNALBOX "Enable Heart Signal Box" OFF)
 OPTION(PLUS_USE_USBECGBOX "Enable USB ECG Signal Box" OFF)
 SET (PLUS_ULTERIUS_MAJOR_VERSION 5 CACHE STRING "Set Ultrasonix Ulterius SDK major version")
+SET (PLUS_ULTERIUS_MINOR_VERSION 7 CACHE STRING "Set Ultrasonix Ulterius SDK minor version")
 
 #-----------------------------------------------------------------------------
 # Plus revision - Set Plus stable relase revision (0 means latest)
