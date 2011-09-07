@@ -6,6 +6,9 @@
 #include "vtkCommand.h"
 #include "vtkRenderWindow.h"
 #include <string>
+#include <stdio.h>
+#include <conio.h>
+#include <time.h>
 
 // QT includes
 #include <qapplication.h>
@@ -21,932 +24,141 @@
 #include "ToolStateDisplayWidget.h"
 #include "vtkConfigurationTools.h"
 #include "StatusIcon.h"
+#include <qlayout.h>
 
 const QString LABEL_RECORDING_FRAME_RATE("Recording Frame Rate:");
 const QString LABEL_SYNC_VIDEO_OFFSET("Video offset:");
 
+#include "PlusConfigure.h"
+#include "vtksys/CommandLineArguments.hxx"
+#include "vtkSmartPointer.h"
+#include "vtkDataCollector.h"
+#include "vtkVideoBuffer.h"
 
 
-class vtkInteractorCallback : public vtkCommand
+ #include <QtGui>
+
+ #include "ProstateBiopsyGuidanceGUI.h"
+	double inputAcqTimeLength(3);
+void ProstateBiopsyGuidanceGUI::SaveRFData(void)
 {
-public:
-  static vtkInteractorCallback *New()
-  {
-    vtkInteractorCallback *cb = new vtkInteractorCallback;
-    return cb;
-  }
 
-  virtual void Execute(vtkObject *vtkNotUsed(caller), unsigned long eventId,
-    void *vtkNotUsed(callData))
-  {
-    ProstateBiopsyGuidanceGUI* tucGUI = ProstateBiopsyGuidanceGUI::GetInstance(); 
+	std::string inputConfigFileName("Test_PlusConfiguration_DataCollectionOnly_SonixVideo_FakeTracker.xml");//"Test_PlusConfiguration_DataCollectionOnly_SonixVideo_FakeTracker.xml");
+	std::string outputFolder("./RFDATA");
+	std::string outputVideoBufferSequenceFileName("VideoBufferMetafile"); 
 
-    if (vtkCommand::CharEvent == eventId)
-    {
-      //char keycode = tucGUI->GetRenderer(tucGUI->currentPage())->GetRenderWindow()->GetInteractor()->GetKeyCode(); 
-    }
-  }
-};
+	int verboseLevel=vtkPlusLogger::LOG_LEVEL_INFO;
 
-ProstateBiopsyGuidanceGUI* ProstateBiopsyGuidanceGUI::Instance = 0;
 
-//----------------------------------------------------------------------
-ProstateBiopsyGuidanceGUI* ProstateBiopsyGuidanceGUI::New()
-{
-  return ProstateBiopsyGuidanceGUI::GetInstance();
-}
+	vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
 
-//----------------------------------------------------------------------
-ProstateBiopsyGuidanceGUI* ProstateBiopsyGuidanceGUI::GetInstance()
-{
-  if(!ProstateBiopsyGuidanceGUI::Instance)
-  {
-    ProstateBiopsyGuidanceGUI::Instance = new ProstateBiopsyGuidanceGUI;	   
-  }
-  // return the instance
-  return ProstateBiopsyGuidanceGUI::Instance;
-}
-
-//----------------------------------------------------------------------
-void ProstateBiopsyGuidanceGUI::SetInstance(ProstateBiopsyGuidanceGUI* instance)
-{
-  if (ProstateBiopsyGuidanceGUI::Instance==instance)
-  {
-    return;
-  }
-  // preferably this will be NULL
-  if (ProstateBiopsyGuidanceGUI::Instance)
-  {
-    delete ProstateBiopsyGuidanceGUI::Instance;
-  }
-
-  ProstateBiopsyGuidanceGUI::Instance = instance;
-  if (!instance)
-  {
-    return;
-  }
-}
-
-//----------------------------------------------------------------------
-ProstateBiopsyGuidanceGUI::ProstateBiopsyGuidanceGUI( QWidget* parent ) 
-: 
-QWizard(parent)
-{
-  VTK_LOG_TO_CONSOLE_ON;
-
-  this->Initialized = false; 
-
-  // Create the UI widgets 
-  setupUi(this);
-
-  // Create device set selector widget
-  this->m_DeviceSetSelectorWidget = new DeviceSetSelectorWidget(this);
-
-  // Make connections
-  connect( m_DeviceSetSelectorWidget, SIGNAL( ConfigurationDirectoryChanged(std::string) ), this, SLOT( SetConfigurationDirectory(std::string) ) );
-  connect( m_DeviceSetSelectorWidget, SIGNAL( ConnectToDevicesByConfigFileInvoked(std::string) ), this, SLOT( ConnectToDevicesByConfigFile(std::string) ) );
-  
-  // Setup device set selector widget
-  this->m_DeviceSetSelectorWidget->SetConfigurationDirectoryFromRegistry(); 
-  this->m_DeviceSetSelectorWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-  this->m_DeviceSetSelectorWidget->SetComboBoxMinWidth(0); 
-  this->m_DeviceSetSelectorWidget->resize(this->width(), this->height()); 
-
-  // Create and setup tool display widget
-  this->m_SyncToolStateDisplayWidget = new ToolStateDisplayWidget(this);
-  this->m_SyncToolStateDisplayWidget->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
-  this->m_RecordingToolStateDisplayWidget = new ToolStateDisplayWidget(this);
-  this->m_RecordingToolStateDisplayWidget->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
-
-
-  
-  
-
-  // Insert widgets into placeholders
-  this->GridDeviceSetSelection->addWidget(m_DeviceSetSelectorWidget);
-  this->RecordingGridToolStateDisplay->addWidget(m_RecordingToolStateDisplayWidget); 
-  this->SyncGridToolStateDisplay->addWidget(m_SyncToolStateDisplayWidget); 
-  
-  // Hide buttons/labels
-  this->StopButton->hide(); 
-  this->CancelSyncButton->hide(); 
-  this->CapturingProgressBar->hide(); 
-  this->SyncProgressBar->hide(); 
-
-  // Create timer event to update widgets
-  QTimer *timer = new QTimer(this);
-  connect(timer, SIGNAL(timeout()), this, SLOT(UpdateWidgets()) );
-  timer->start(50);
-
-  // Timer event for recording
-  this->m_RecordingTimer = new QTimer(this); 
-  connect(this->m_RecordingTimer, SIGNAL(timeout()), this, SLOT(RecordTrackedFrame()) );
-
-  // Connect signals and slots
-  connect(this, SIGNAL(Update()), this, SLOT(UpdateWidgets()) );
-  connect(this, SIGNAL(UpdateProgressBar(int)), this, SLOT(UpdateProgressBarRequest(int)) );
-
-  this->m_USCapturing = ProstateBiopsyGuidance::New(); 
-
-  // Set output directory
-  std::string outputPath = vtksys::SystemTools::CollapseFullPath("./Output", this->GetProgramPath().c_str()); 
-  this->m_USCapturing->SetOutputFolder(outputPath.c_str()); 
-  this->SettingsOutputFolderName->setText(outputPath.c_str()); 
-
-  // Set image sequence file name
-  this->m_USCapturing->SetImageSequenceFileName("TrackedUltrasound"); 
-  this->SettingsOutputImageSequenceFileName->setText(this->m_USCapturing->GetImageSequenceFileName()); 
-
-  // Set frame rate 
-  this->m_USCapturing->SetFrameRate(10); 
-
-  // Select log level 
-  vtkPlusLogger::Instance()->SetLogLevel(vtkPlusLogger::LOG_LEVEL_INFO); 
-  QString strLogLevel; 
-  switch ( vtkPlusLogger::Instance()->GetLogLevel() )
-  {
-  case vtkPlusLogger::LOG_LEVEL_ERROR:
-    strLogLevel = "Error"; 
-    break;
-  case vtkPlusLogger::LOG_LEVEL_WARNING:
-    strLogLevel = "Warning"; 
-    break;
-  case vtkPlusLogger::LOG_LEVEL_INFO:
-    strLogLevel = "Info"; 
-    break;
-  case vtkPlusLogger::LOG_LEVEL_DEBUG:
-    strLogLevel = "Debug"; 
-    break;
-  case vtkPlusLogger::LOG_LEVEL_TRACE:
-    strLogLevel = "Trace"; 
-    break;
-  }
-
-  this->LogLevelComboBox->setCurrentIndex( this->LogLevelComboBox->findText( strLogLevel, Qt::MatchContains )); 
-
-  this->UpdateWidgets();
-}
-
-//----------------------------------------------------------------------
-std::string ProstateBiopsyGuidanceGUI::GetProgramPath()
-{
-  LOG_TRACE("ProstateBiopsyGuidanceGUI::GetProgramPath");
-  std::string programPath("./"), errorMsg; 
-  if ( !vtksys::SystemTools::FindProgramPath(qApp->argv()[0], programPath, errorMsg) )
-  {
-    LOG_ERROR(errorMsg); 
-  }
-  programPath = vtksys::SystemTools::GetParentDirectory(programPath.c_str()); 
-
-  return programPath; 
-}
-
-//----------------------------------------------------------------------
-ProstateBiopsyGuidanceGUI::~ProstateBiopsyGuidanceGUI() 
-{
-  if ( this->m_USCapturing != NULL )
-  {
-    this->m_USCapturing->Delete(); 
-    this->m_USCapturing = NULL; 
-  }
-
-  if ( this->m_RecordingToolStateDisplayWidget != NULL )
-  {
-    delete m_RecordingToolStateDisplayWidget; 
-    m_RecordingToolStateDisplayWidget = NULL; 
-  }
-
-  if ( this->m_SyncToolStateDisplayWidget != NULL )
-  {
-    delete m_SyncToolStateDisplayWidget; 
-    m_SyncToolStateDisplayWidget = NULL; 
-  }
-
-}
-
-//----------------------------------------------------------------------
-PlusStatus ProstateBiopsyGuidanceGUI::Initialize()
-{
-  LOG_TRACE("ProstateBiopsyGuidanceGUI::Initialize");
-
-  this->Initialized = false; 
-
-  // Initialize the tracked US capturing class 
-  if ( this->m_USCapturing->Initialize() != PLUS_SUCCESS )
-  {
-    LOG_ERROR("Failed to initialize ProstateBiopsyGuidance!"); 
-    return PLUS_FAIL; 
-  }
-
-  // Update labels
-  this->SyncVideoOffsetLabel->setText(tr(LABEL_SYNC_VIDEO_OFFSET + "  " + QString::number(this->m_USCapturing->GetVideoOffsetMs(), 'f', 2) + " ms")); 
-  this->RecordingFrameRateLabel->setText(tr(LABEL_RECORDING_FRAME_RATE + "  " + QString::number(this->m_USCapturing->GetFrameRate()) + " fps")); 
-  this->RecordingFrameRateSlider->setValue( this->m_USCapturing->GetFrameRate() ); 
-
-  // Add an observer for progress bar
-  this->m_USCapturing->SetUpdateRequestCallbackFunction(UpdateRequestCallback);
-  this->m_USCapturing->SetProgressBarUpdateCallbackFunction(UpdateProgressBarRequestCallback); 
-
-  // Sign up interactor to receive char event
-  vtkSmartPointer<vtkInteractorCallback> cb = vtkSmartPointer<vtkInteractorCallback>::New();
-  this->CapturingRealtimeRenderer->GetRenderWindow()->GetInteractor()->AddObserver(vtkCommand::CharEvent, cb);
-  this->SyncRealtimeRenderer->GetRenderWindow()->GetInteractor()->AddObserver(vtkCommand::CharEvent, cb);
-
-  // Set the focus 
-  this->button(this->NextButton)->setFocus(); 
-
-  this->Initialized = true;
-
-  return PLUS_SUCCESS; 
-}
-
-//----------------------------------------------------------------------
-bool ProstateBiopsyGuidanceGUI::validateCurrentPage()
-{
-  LOG_TRACE("ProstateBiopsyGuidanceGUI::validateCurrentPage");
-  if ( !this->Initialized )
-  {
-    int init = QMessageBox::message(tr("Tracked Ultrasound Capturing"),
-      tr("Tracked Ultrasound Capturing needs to connect to devices."));
-
-    return false; 
-  }
-
-  if ( this->currentPage() == this->SettingsPage )
-  {
-    if ( STRCASECMP(this->m_USCapturing->GetOutputFolder(), this->SettingsOutputFolderName->text().ascii()) != 0 )
-    {
-      this->m_USCapturing->SetOutputFolder(this->SettingsOutputFolderName->text().ascii()); 
-      LOG_INFO("Output folder changed to: " << this->m_USCapturing->GetOutputFolder() ); 
-    }
-
-    if ( !vtksys::SystemTools::FileExists(this->m_USCapturing->GetOutputFolder(), false) )
-    {
-      vtksys::SystemTools::MakeDirectory(this->m_USCapturing->GetOutputFolder()); 
-      LOG_DEBUG("Created new folder: " << this->m_USCapturing->GetOutputFolder() ); 
-    }
-
-    if ( STRCASECMP(this->m_USCapturing->GetImageSequenceFileName(), this->SettingsOutputImageSequenceFileName->text().ascii()) != 0 )
-    {
-      this->m_USCapturing->SetImageSequenceFileName(this->SettingsOutputImageSequenceFileName->text().ascii()); 
-      LOG_INFO("Default image  sequence file name changed to: " << this->m_USCapturing->GetImageSequenceFileName() ); 
-    }
-
-  }
-
-  return QWizard::validateCurrentPage(); 
-}
-
-//----------------------------------------------------------------------
-void ProstateBiopsyGuidanceGUI::initializePage( int id )
-{
-  LOG_TRACE("ProstateBiopsyGuidanceGUI::initializePage");
-  if ( this->page(id) )
-  {
-    this->page(id)->initializePage(); 
-  }
-
-  if ( this->GetRenderer(id) )
-  {
-    if (this->GetRenderer(id)->GetRenderWindow()->HasRenderer(this->m_USCapturing->GetRealtimeRenderer()))
-    {
-      this->GetRenderer(id)->GetRenderWindow()->RemoveRenderer(this->m_USCapturing->GetRealtimeRenderer()); 
-    }
-    this->GetRenderer(id)->GetRenderWindow()->AddRenderer(this->m_USCapturing->GetRealtimeRenderer()); 
-  }
-}
-
-//----------------------------------------------------------------------
-void ProstateBiopsyGuidanceGUI::cleanupPage( int id )
-{
-  LOG_TRACE("ProstateBiopsyGuidanceGUI::cleanupPage");
-  if ( this->page(id) )
-  {
-    this->page(id)->cleanupPage(); 
-  }
-
-  if ( this->GetRenderer(id) )
-  {
-    if (this->GetRenderer(id)->GetRenderWindow()->HasRenderer(this->m_USCapturing->GetRealtimeRenderer()))
-    {
-      this->GetRenderer(id)->GetRenderWindow()->RemoveRenderer(this->m_USCapturing->GetRealtimeRenderer()); 
-    }
-  }
-
-  this->initializePage(this->previousId()); 
-}
-
-//----------------------------------------------------------------------
-int ProstateBiopsyGuidanceGUI::previousId()
-{
-  LOG_TRACE("ProstateBiopsyGuidanceGUI::previousId");
-  int previousIdIndex = this->pageIds().indexOf(this->currentId()) - 1; 
-
-  if ( previousIdIndex < 0 )
-  {
-    previousIdIndex = 0; 
-  }
-
-  return this->pageIds()[previousIdIndex]; 
-}
-
-//----------------------------------------------------------------------
-int ProstateBiopsyGuidanceGUI::nextId() const
-{
-  LOG_TRACE("ProstateBiopsyGuidanceGUI::nextId");
-
-  if ( this->m_USCapturing == NULL || this->m_USCapturing->GetDataCollector() == NULL )
-  {
-    return this->currentPage()->nextId(); 
-  }
-
-  // if we don't have tracking skip SynchronizationPage
-  vtkTracker* tracker = this->m_USCapturing->GetDataCollector()->GetTracker(); 
-  if ( this->currentPage() == this->SettingsPage && tracker == NULL ) 
-  {
-    return this->SynchronizationPage->nextId(); 
-  } 
-
-  return this->currentPage()->nextId(); 
-}
-
-
-//----------------------------------------------------------------------
-void ProstateBiopsyGuidanceGUI::done( int r )
-{
-  LOG_TRACE("ProstateBiopsyGuidanceGUI::done");
-  if ( this->close() )
-  {	
-    QWizard::done(r); 
-  }
-}
-
-// Callback function for progress notification.
-//----------------------------------------------------------------------
-void ProstateBiopsyGuidanceGUI::UpdateRequestCallback()
-{
-  LOG_TRACE("ProstateBiopsyGuidanceGUI::UpdateRequestCallback");
-  emit ProstateBiopsyGuidanceGUI::GetInstance()->Update(); 
-}
-
-//----------------------------------------------------------------------
-void ProstateBiopsyGuidanceGUI::UpdateWidgets()
-{
-  LOG_TRACE("ProstateBiopsyGuidanceGUI::UpdateWidgets");
-
-  // Update renderer window
-  if ( this->GetRenderer(this->currentId()) != NULL )
-  {
-    this->GetRenderer(this->currentId())->update(); 
-  }
-
-  // Update recorded frame numbers
-  this->RecordedFrames->setText(QString::number(this->m_USCapturing->GetNumberOfRecordedFrames())); 
-
-  if (this->m_RecordingToolStateDisplayWidget->IsInitialized()) 
-  {
-		this->m_RecordingToolStateDisplayWidget->Update();
+	if (inputConfigFileName.empty())
+	{
+		std::cerr << "input-config-file-name is required" << std::endl;
+		exit(EXIT_FAILURE);
 	}
 
-  if (this->m_SyncToolStateDisplayWidget->IsInitialized()) 
-  {
-		this->m_SyncToolStateDisplayWidget->Update();
+	///////////////
+
+	VTK_LOG_TO_CONSOLE_ON; 
+
+	vtkSmartPointer<vtkDataCollector> dataCollector = vtkSmartPointer<vtkDataCollector>::New(); 
+	dataCollector->ReadConfigurationFromFile(inputConfigFileName.c_str());
+	dataCollector->Initialize();
+
+	while (getch() != 'a') // wait until a is pressed to start acquisition
+	{;}
+	dataCollector->Start();
+
+	const double acqStartTime = vtkTimerLog::GetUniversalTime(); 
+
+	while ( acqStartTime + inputAcqTimeLength > vtkTimerLog::GetUniversalTime() )
+	{
+		printf("%f seconds left...\n", acqStartTime + inputAcqTimeLength - vtkTimerLog::GetUniversalTime() );
+		vtksys::SystemTools::Delay(1000); 
 	}
 
-  // Update transform matrix 
-  if ( this->m_USCapturing->GetDataCollector() != NULL )
-  {
-    vtkTracker* tracker = this->m_USCapturing->GetDataCollector()->GetTracker(); 
-    if ( tracker == NULL || !tracker->IsTracking() )
-    {
-      this->SyncTrackerMatrix->hide(); 
-      this->CapturingTrackerMatrix->hide(); 
-    }
-    else
-    {
-      this->SyncTrackerMatrix->show(); 
-      this->CapturingTrackerMatrix->show(); 
 
-      const int defaultToolNumber = tracker->GetFirstPortNumberByType(TRACKER_TOOL_REFERENCE);
-      if (tracker->GetTool( defaultToolNumber )==NULL)
-      {
-        LOG_WARNING("Cannot get tracker tool (number="<<defaultToolNumber<<")");        
-        this->SyncTrackerMatrix->hide(); 
-        this->CapturingTrackerMatrix->hide(); 
-        return;
-      }
-      vtkTrackerBuffer* trackerBuffer = tracker->GetTool( defaultToolNumber )->GetBuffer();  
+	printf("Copy video buffer\n" );
+	vtkVideoBuffer *buffer = vtkVideoBuffer::New(); 
+	dataCollector->CopyVideoBuffer(buffer); 
 
-      vtkSmartPointer<vtkMatrix4x4> transformMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
-      TrackerBufferItem bufferItem; 
-      if ( trackerBuffer->GetLatestTrackerBufferItem(&bufferItem, false) != ITEM_OK )
-      {
-        LOG_WARNING("Failed to get latest tracker item from buffer!"); 
-      }
-      else
-      {
-        if (bufferItem.GetMatrix(transformMatrix)!=PLUS_SUCCESS)
-        {
-          LOG_ERROR("Failed to get transformMatrix"); 
-        }
+	printf("write video buffer: %s \n",outputVideoBufferSequenceFileName );
+	dataCollector->WriteVideoBufferToMetafile( buffer, outputFolder.c_str(), outputVideoBufferSequenceFileName.c_str(), true); 
 
-        if ( bufferItem.GetStatus() != TR_OK )
-        {
-          // if the buffer item status is not valid, display only identity matrix
-          transformMatrix->Identity(); 
-        }
+	buffer->Delete(); 
+	dataCollector->Stop();
+	VTK_LOG_TO_CONSOLE_OFF; 
+	std::cout << "RF_Data is Saved !\n" << std::endl;
 
-      }
+/*********************************************************************************/
+	///////////////
 
-      // Copy matrix to the table widget
-      for ( int r = 0; r < 4; r++ )
-      {
-        for ( int c = 0; c < 4; c++ )
-        {
-          this->SyncTrackerMatrix->item(r,c)->setText(QString::number(transformMatrix->GetElement(r,c), 'f', 2)); 
-          this->CapturingTrackerMatrix->item(r,c)->setText(QString::number(transformMatrix->GetElement(r,c), 'f', 2)); 
-        }
-      }
+	VTK_LOG_TO_CONSOLE_ON; 
+	std::string outputVideoBufferSequenceFileName_V("VideoBufferMetafile_v"); 
+	while (getch() != 'a') // wait until a is pressed to start acquisition
+	{;}
+	dataCollector->Start();
 
-    }
+	const double acqStartTime_V = vtkTimerLog::GetUniversalTime(); 
 
-  }
+	while ( acqStartTime_V + inputAcqTimeLength > vtkTimerLog::GetUniversalTime() )
+	{
+		printf("%f seconds left...\n", acqStartTime_V + inputAcqTimeLength - vtkTimerLog::GetUniversalTime() );
+		vtksys::SystemTools::Delay(1000); 
+	}
+	printf("Copy video buffer\n" );
+	vtkVideoBuffer *v_buffer = vtkVideoBuffer::New(); 
+	dataCollector->CopyVideoBuffer(v_buffer); 
+	printf("write video buffer: %s \n",outputVideoBufferSequenceFileName_V );
+	dataCollector->WriteVideoBufferToMetafile( v_buffer, outputFolder.c_str(), outputVideoBufferSequenceFileName_V.c_str(), true); 
 
-  qApp->processEvents();
+	v_buffer->Delete(); 
+	dataCollector->Stop();
+	std::cout << "Vibro_Data is Saved !\n" << std::endl;
+
+	VTK_LOG_TO_CONSOLE_OFF; 
+
 }
 
-// Callback function for progress notification.
-//----------------------------------------------------------------------
-void ProstateBiopsyGuidanceGUI::UpdateProgressBarRequestCallback( int percent )
-{
-  LOG_TRACE("ProstateBiopsyGuidanceGUI::UpdateProgressBarRequestCallback");
-  emit ProstateBiopsyGuidanceGUI::GetInstance()->UpdateProgressBar(percent); 
-}
-
-//----------------------------------------------------------------------
-void ProstateBiopsyGuidanceGUI::UpdateProgressBarRequest( int percent )
-{
-  LOG_TRACE("ProstateBiopsyGuidanceGUI::UpdateProgressBarRequest");
-  const int pageID = this->currentId(); 
-
-  if ( this->GetProgressBar(pageID) == NULL )
-  {
-    return; 
-  }
-
-  this->GetProgressBar(pageID)->setMinimum(0); 
-  this->GetProgressBar(pageID)->setMaximum(100); 
-  this->GetProgressBar(pageID)->setValue(percent); 
-  this->GetProgressBar(pageID)->update(); 
-
-  this->UpdateWidgets(); 
-}
-
-//----------------------------------------------------------------------
-void ProstateBiopsyGuidanceGUI::closeEvent(QCloseEvent* closeEvent)
-{
-  LOG_TRACE("ProstateBiopsyGuidanceGUI::closeEvent");
-  int quit = QMessageBox::question (this, tr("Tracked Ultrasound Capturing"),
-    tr("Do you want to close the application?"),
-    QMessageBox::Yes | QMessageBox::No,
-    QMessageBox::No);
-
-  if ( quit == QMessageBox::No )
-  {
-    closeEvent->ignore();
-    return; 
-  }
-  else
-  {
-    closeEvent->accept(); 
-  }
-
-  if ( this->m_USCapturing->GetSynchronizing() )
-  {
-    this->CancelSyncButtonClicked(); 
-
-    while ( this->m_USCapturing->GetSynchronizing() )
-    {
-      vtkAccurateTimer::GetInstance()->Delay(0.1); 
-      this->UpdateWidgets(); 
-    }
-  }
-
-  if ( this->m_USCapturing->GetRecording() )
-  {
-    this->StopButtonClicked(); 
-  }
-
-  if ( this->m_USCapturing->GetNumberOfRecordedFrames() > 0 )
-  {
-    int save = QMessageBox::question (this, tr("Tracked Ultrasound Capturing"),
-      tr("Dou you want save your changes?"),
-      QMessageBox::Save | QMessageBox::Discard ,
-      QMessageBox::Save);
-
-    if ( save == QMessageBox::Save)
-    {
-      this->SaveButtonClicked(); 
-    }
-  }
-}
-
-//----------------------------------------------------------------------
-QProgressBar* ProstateBiopsyGuidanceGUI::GetProgressBar( int pageID )
-{
-  LOG_TRACE("ProstateBiopsyGuidanceGUI::GetProgressBar");
-  QProgressBar* progressbar = NULL; 
-  if ( this->page(pageID) == this->CapturingPage )
-  {
-    progressbar = this->CapturingProgressBar; 
-  }
-  else if ( this->page(pageID) == this->SynchronizationPage )
-  {
-    progressbar = this->SyncProgressBar; 
-  }
-  return progressbar; 
-}
-
-
-//----------------------------------------------------------------------
-QVTKWidget* ProstateBiopsyGuidanceGUI::GetRenderer( int pageID )
-{
-  LOG_TRACE("ProstateBiopsyGuidanceGUI::GetRenderer");
-  QVTKWidget* renderer = NULL; 
-  if ( this->page(pageID) == this->CapturingPage )
-  {
-    renderer = this->CapturingRealtimeRenderer; 
-  }
-  else if ( this->page(pageID) == this->SynchronizationPage )
-  {
-    renderer = this->SyncRealtimeRenderer; 
-  }
-
-  return renderer; 
-}
-
-//----------------------------------------------------------------------
-void ProstateBiopsyGuidanceGUI::DisableWizardButtons()
-{
-  LOG_TRACE("ProstateBiopsyGuidanceGUI::DisableWizardButtons");
-  this->button(this->BackButton)->setEnabled(false); 
-  this->button(this->NextButton)->setEnabled(false); 
-  this->button(this->CommitButton)->setEnabled(false); 
-  this->button(this->FinishButton)->setEnabled(false); 
-  this->button(this->CancelButton)->setEnabled(false); 
-  this->button(this->HelpButton)->setEnabled(false); 
-  this->button(this->CustomButton1)->setEnabled(false); 
-  this->button(this->CustomButton2)->setEnabled(false); 
-  this->button(this->CustomButton3)->setEnabled(false); 
-}
-
-//----------------------------------------------------------------------
-void ProstateBiopsyGuidanceGUI::EnableWizardButtons()
-{
-  LOG_TRACE("ProstateBiopsyGuidanceGUI::EnableWizardButtons");
-  this->button(this->BackButton)->setEnabled(true); 
-  this->button(this->NextButton)->setEnabled(true); 
-  this->button(this->CommitButton)->setEnabled(true); 
-  this->button(this->FinishButton)->setEnabled(true); 
-  this->button(this->CancelButton)->setEnabled(true); 
-  this->button(this->HelpButton)->setEnabled(true); 
-  this->button(this->CustomButton1)->setEnabled(true); 
-  this->button(this->CustomButton2)->setEnabled(true); 
-  this->button(this->CustomButton3)->setEnabled(true); 
-}
-
-//----------------------------------------------------------------------
-void ProstateBiopsyGuidanceGUI::SnapshotButtonClicked()
-{
-  LOG_TRACE("ProstateBiopsyGuidanceGUI::SnapshotButtonClicked");
-  LOG_INFO( "Frame captured..." ); 
-  this->m_USCapturing->RecordTrackedFrame(); 
-}
-
-//----------------------------------------------------------------------
-void ProstateBiopsyGuidanceGUI::RecordTrackedFrame()
-{
-  LOG_TRACE("ProstateBiopsyGuidanceGUI::RecordTrackedFrame");
-  this->m_USCapturing->UpdateRecording();
-}
-
-//----------------------------------------------------------------------
-void ProstateBiopsyGuidanceGUI::RecordButtonClicked()
-{
-  LOG_TRACE("ProstateBiopsyGuidanceGUI::RecordButtonClicked");
-  this->SnapshotButton->setEnabled(false); 
-  this->SaveButton->setEnabled(false); 
-  this->SaveAsButton->setEnabled(false); 
-  this->ResetBufferButton->setEnabled(false); 
-  this->StopButton->setEnabled(true); 
-  this->RecordButton->hide(); 
-  this->StopButton->show();
-  this->StopButton->setFocus();
-  this->DisableWizardButtons(); 
-  this->UpdateWidgets(); 
-
-  QApplication::setOverrideCursor(QCursor(Qt::BusyCursor)); 
-
-  this->m_RecordingTimer->start(1000.0 / this->m_USCapturing->GetFrameRate()); 
-
-  this->m_USCapturing->StartRecording(); 
-}
-
-//----------------------------------------------------------------------
-void ProstateBiopsyGuidanceGUI::StopButtonClicked()
-{
-  LOG_TRACE("ProstateBiopsyGuidanceGUI::StopButtonClicked");
-  this->StopButton->setEnabled(false); 
-  this->UpdateWidgets(); 
-
-  this->m_RecordingTimer->stop(); 
-  this->m_USCapturing->StopRecording(); 
-
-  this->StopButton->hide(); 
-  this->RecordButton->show(); 
-  this->SnapshotButton->setEnabled(true); 
-  this->RecordButton->setEnabled(true); 
-  this->StopButton->setEnabled(true); 
-  this->SaveButton->setEnabled(true); 
-  this->SaveAsButton->setEnabled(true); 
-  this->ResetBufferButton->setEnabled(true); 
-  this->RecordButton->setFocus(); 
-  QApplication::restoreOverrideCursor(); 
-  this->EnableWizardButtons(); 
-  this->UpdateWidgets(); 
-}
-
-//----------------------------------------------------------------------
-void ProstateBiopsyGuidanceGUI::SaveButtonClicked()
-{
-  LOG_TRACE("ProstateBiopsyGuidanceGUI::SaveButtonClicked");
-  this->SaveButton->setEnabled(false); 
-  this->SaveAsButton->setEnabled(false); 
-  this->SnapshotButton->setEnabled(false); 
-  this->RecordButton->setEnabled(false); 
-  this->DisableWizardButtons(); 
-  QApplication::setOverrideCursor(QCursor(Qt::WaitCursor)); 
-  this->UpdateWidgets(); 
-
-  this->m_USCapturing->SaveData(); 
-
-  this->SaveButton->setEnabled(true); 
-  this->SaveAsButton->setEnabled(true); 
-  this->SnapshotButton->setEnabled(true); 
-  this->RecordButton->setEnabled(true); 
-  this->EnableWizardButtons(); 
-  QApplication::restoreOverrideCursor(); 
-  this->UpdateWidgets(); 
-}
-
-//----------------------------------------------------------------------
-void ProstateBiopsyGuidanceGUI::SaveAsButtonClicked()
-{
-  LOG_TRACE("ProstateBiopsyGuidanceGUI::SaveAsButtonClicked");
-  QString fileName = QFileDialog::getSaveFileName(this,tr("Save As"), QString(this->m_USCapturing->GetOutputFolder()), tr("SequenceMetaFiles (*.mha *.mhd)") );
-
-  if (fileName.isEmpty())
-  {
-    return ;
-  }
-
-  this->SaveButton->setEnabled(false); 
-  this->SaveAsButton->setEnabled(false); 
-  this->SnapshotButton->setEnabled(false); 
-  this->RecordButton->setEnabled(false); 
-  this->DisableWizardButtons(); 
-  QApplication::setOverrideCursor(QCursor(Qt::WaitCursor)); 
-  this->UpdateWidgets(); 
-
-  this->m_USCapturing->SaveAsData(fileName.ascii()); 
-
-  this->SaveButton->setEnabled(true); 
-  this->SaveAsButton->setEnabled(true); 
-  this->SnapshotButton->setEnabled(true); 
-  this->RecordButton->setEnabled(true); 
-  this->EnableWizardButtons(); 
-  QApplication::restoreOverrideCursor(); 
-  this->UpdateWidgets(); 
-}
-
-//----------------------------------------------------------------------
-void ProstateBiopsyGuidanceGUI::SynchronizeButtonClicked()
-{
-  LOG_TRACE("ProstateBiopsyGuidanceGUI::SynchronizeButtonClicked");
-  this->DisableWizardButtons(); 
-  this->GetProgressBar( this->currentId() )->show(); 
-  this->SynchronizeButton->hide();
-  this->CancelSyncButton->show(); 
-  this->UpdateWidgets();
-
-  this->m_USCapturing->SynchronizeFrameToTracker(); 
-
-  this->EnableWizardButtons();	
-  this->GetProgressBar( this->currentId() )->hide(); 
-  this->SynchronizeButton->show();
-  this->CancelSyncButton->hide(); 
-  this->SyncVideoOffsetLabel->setText(tr(LABEL_SYNC_VIDEO_OFFSET + "  " + QString::number(this->m_USCapturing->GetVideoOffsetMs(), 'f', 2) + " ms")); 
-  this->UpdateWidgets();
-}
-
-//----------------------------------------------------------------------
-void ProstateBiopsyGuidanceGUI::CancelSyncButtonClicked()
-{
-  LOG_TRACE("ProstateBiopsyGuidanceGUI::CancelSyncButtonClicked");
-  this->m_USCapturing->GetDataCollector()->CancelSyncRequestOn(); 
-  this->EnableWizardButtons(); 
-  this->GetProgressBar( this->currentId() )->hide(); 
-  this->SynchronizeButton->show();
-  this->CancelSyncButton->hide(); 
-  this->SyncVideoOffsetLabel->setText(tr(LABEL_SYNC_VIDEO_OFFSET + "  " + QString::number(this->m_USCapturing->GetVideoOffsetMs(), 'f', 2) + " ms")); 
-  this->UpdateWidgets();
-}
-
-//----------------------------------------------------------------------
-void ProstateBiopsyGuidanceGUI::ZeroOffsetButtonClicked()
-{
-  LOG_TRACE("ProstateBiopsyGuidanceGUI::ZeroOffsetButtonClicked");
-  this->m_USCapturing->SetLocalTimeOffset(0,0); 
-  this->SyncVideoOffsetLabel->setText(tr(LABEL_SYNC_VIDEO_OFFSET + "  " + QString::number(this->m_USCapturing->GetVideoOffsetMs(), 'f', 2) + " ms")); 
-  this->UpdateWidgets();
-}
-
-
-//----------------------------------------------------------------------
-void ProstateBiopsyGuidanceGUI::SetFrameRate()
-{
-  LOG_TRACE("ProstateBiopsyGuidanceGUI::SetFrameRate");
-  double frameRate = this->RecordingFrameRateSlider->value(); 
-  this->m_USCapturing->SetFrameRate( frameRate ); 
-  this->m_RecordingTimer->setInterval(1000.0 / this->m_USCapturing->GetFrameRate());
-  this->RecordingFrameRateLabel->setText(tr(LABEL_RECORDING_FRAME_RATE + "  " + QString::number(this->m_USCapturing->GetFrameRate()) + " fps")); 
-  this->UpdateWidgets(); 
-}
-
-//----------------------------------------------------------------------
-void ProstateBiopsyGuidanceGUI::OpenOutputFolderButtonClicked()
-{
-  LOG_TRACE("ProstateBiopsyGuidanceGUI::OpenOutputFolderButtonClicked");
-  QString folderName = QFileDialog::getExistingDirectory(this,tr("Open Folder"), QString(this->GetProgramPath().c_str()));
-
-  if (folderName.isEmpty())
-  {
-    return ;
-  }
-
-  this->SettingsOutputFolderName->setText(folderName); 
-  this->m_USCapturing->SetOutputFolder(folderName.ascii()); 
-  LOG_INFO("Output folder changed to: " << this->m_USCapturing->GetOutputFolder() ); 
-
-  this->UpdateWidgets(); 
-}
-
-//----------------------------------------------------------------------
-void ProstateBiopsyGuidanceGUI::ChangeLogLevel()
-{
-  LOG_TRACE("ProstateBiopsyGuidanceGUI::ChangeLogLevel");
-  if ( STRCASECMP(this->LogLevelComboBox->currentText().ascii(), "ERROR") == 0 )
-  {
-    vtkPlusLogger::Instance()->SetLogLevel(vtkPlusLogger::LOG_LEVEL_ERROR); 
-    vtkPlusLogger::Instance()->SetDisplayLogLevel(vtkPlusLogger::LOG_LEVEL_ERROR); 
-  }
-  else if ( STRCASECMP(this->LogLevelComboBox->currentText().ascii(), "WARNING") == 0 )
-  {
-    vtkPlusLogger::Instance()->SetLogLevel(vtkPlusLogger::LOG_LEVEL_WARNING); 
-    vtkPlusLogger::Instance()->SetDisplayLogLevel(vtkPlusLogger::LOG_LEVEL_WARNING);
-  }
-  else if ( STRCASECMP(this->LogLevelComboBox->currentText().ascii(), "INFO") == 0 )
-  {
-    vtkPlusLogger::Instance()->SetLogLevel(vtkPlusLogger::LOG_LEVEL_INFO); 
-    vtkPlusLogger::Instance()->SetDisplayLogLevel(vtkPlusLogger::LOG_LEVEL_INFO);
-  }
-  else if ( STRCASECMP(this->LogLevelComboBox->currentText().ascii(), "DEBUG") == 0 )
-  {
-    vtkPlusLogger::Instance()->SetLogLevel(vtkPlusLogger::LOG_LEVEL_DEBUG); 
-    vtkPlusLogger::Instance()->SetDisplayLogLevel(vtkPlusLogger::LOG_LEVEL_DEBUG);
-  }
-  else if ( STRCASECMP(this->LogLevelComboBox->currentText().ascii(), "TRACE") == 0 )
-  {
-    vtkPlusLogger::Instance()->SetLogLevel(vtkPlusLogger::LOG_LEVEL_TRACE); 
-    vtkPlusLogger::Instance()->SetDisplayLogLevel(vtkPlusLogger::LOG_LEVEL_TRACE);
-  }
-
-  LOG_INFO("Log level changed to: " << this->LogLevelComboBox->currentText().ascii() )
-}
-
-//----------------------------------------------------------------------
-void ProstateBiopsyGuidanceGUI::ResetBufferButtonClicked()
-{
-  LOG_TRACE("ProstateBiopsyGuidanceGUI::ResetBufferButtonClicked");
-
-  int reset = QMessageBox::question (this, tr("Tracked Ultrasound Capturing"),
-    tr("Dou you want to discard recorded frames from the buffer?"),
-    QMessageBox::Yes | QMessageBox::No,
-    QMessageBox::No);
-
-  if ( reset == QMessageBox::No )
-  {
-    return; 
-  }
-
-  this->m_USCapturing->ClearTrackedFrameContainer(); 
-}
-
-//-----------------------------------------------------------------------------
-void ProstateBiopsyGuidanceGUI::SetConfigurationDirectory(std::string aDirectory)
-{
-  LOG_TRACE("ProstateBiopsyGuidanceGUI::SetConfigurationDirectory");
-
-  vtkConfigurationTools::GetInstance()->SetConfigurationDirectory(aDirectory.c_str());
-}
-
-//-----------------------------------------------------------------------------
-void ProstateBiopsyGuidanceGUI::ConnectToDevicesByConfigFile(std::string aConfigFile)
-{
-  LOG_TRACE("ProstateBiopsyGuidanceGUI::ConnectToDevicesByConfigFile");
-
-  this->m_USCapturing->SetInputConfigFileName( aConfigFile.c_str() ); 
-
-  // If connection has been successfully created then this action should disconnect
-  if (! m_DeviceSetSelectorWidget->GetConnectionSuccessful()) 
-  {
-    LOG_INFO("Connect to devices"); 
-
-    QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
-
-    // Create dialog
-    QDialog* connectDialog = new QDialog(this, Qt::Dialog);
-    connectDialog->setModal(true);
-    connectDialog->setMinimumSize(QSize(360,80));
-    connectDialog->setCaption(tr("Tracked Ultrasound Capturing"));
-    connectDialog->setBackgroundColor(QColor(224, 224, 224));
-
-    QLabel* connectLabel = new QLabel(QString("Connecting to devices, please wait..."), connectDialog);
-    connectLabel->setFont(QFont("SansSerif", 16));
-
-    QHBoxLayout* layout = new QHBoxLayout();
-    layout->addWidget(connectLabel);
-
-    connectDialog->setLayout(layout);
-    connectDialog->show();
-
-    QApplication::processEvents();
-
-    // Initialize the calibrator 
-    if ( this->Initialize() != PLUS_SUCCESS )
-    { 
-      LOG_ERROR("Failed to initialize Trackedultrasound Capturing!"); 
-      m_DeviceSetSelectorWidget->SetConnectionSuccessful(false);
-      m_SyncToolStateDisplayWidget->InitializeTools(NULL, false);
-      m_RecordingToolStateDisplayWidget->InitializeTools(NULL, false);
-
-	  // Close dialog
-	  connectDialog->done(0);
-      QApplication::restoreOverrideCursor();
-	  return;
-    }
-
-    // Start data collection 
-    if ( this->m_USCapturing->GetDataCollector()->Start() != PLUS_SUCCESS )
-    {
-      LOG_ERROR("Unable to start collecting data!");
-      m_DeviceSetSelectorWidget->SetConnectionSuccessful(false);
-
-      m_SyncToolStateDisplayWidget->InitializeTools(NULL, false);
-      m_RecordingToolStateDisplayWidget->InitializeTools(NULL, false);
-
-	  // Close dialog
-	  connectDialog->done(0);
-      QApplication::restoreOverrideCursor();
-	  return;
-    }
-    else
-    {
-      m_DeviceSetSelectorWidget->SetConnectionSuccessful(true);
-      if (m_RecordingToolStateDisplayWidget->InitializeTools(this->m_USCapturing->GetDataCollector(), true) != PLUS_SUCCESS )
-      {
-        LOG_ERROR("Failed to initialize tools for tool display widget!"); 
-      }
-
-      if (m_SyncToolStateDisplayWidget->InitializeTools(this->m_USCapturing->GetDataCollector(), true) != PLUS_SUCCESS )
-      {
-        LOG_ERROR("Failed to initialize tools for tool display widget!"); 
-      }
-    }
-
-    // Close dialog
-    connectDialog->done(0);
-
-    QApplication::restoreOverrideCursor();
-  } 
-  else 
-  {
-    this->m_USCapturing->GetDataCollector()->Stop(); 
-    this->m_USCapturing->GetDataCollector()->Disconnect(); 
-
-    m_DeviceSetSelectorWidget->SetConnectionSuccessful(false);
-    m_SyncToolStateDisplayWidget->InitializeTools(NULL, false);
-    m_RecordingToolStateDisplayWidget->InitializeTools(NULL, false);
-  }
-}
+ ProstateBiopsyGuidanceGUI::ProstateBiopsyGuidanceGUI(QWidget *parent)
+     : QDialog(parent)
+ {
+
+		ifstream inFile("inputAcqTimeLength.txt");
+		double n;
+		inFile >> n;
+		inputAcqTimeLength = n;
+		inFile.close();
+		label = new QLabel(tr("Acquisition Time: "));
+		lineEdit = new QLineEdit;
+		label->setBuddy(lineEdit);
+		QString valueAsString = QString::number(inputAcqTimeLength);
+		lineEdit->setText(valueAsString);
+
+		findButton = new QPushButton(tr("Initialize"));
+		findButton->setDefault(true);
+
+
+		buttonBox = new QDialogButtonBox(Qt::Vertical);
+	    buttonBox->addButton(findButton, QDialogButtonBox::ActionRole);
+
+		connect ( findButton, SIGNAL( clicked() ), this, SLOT( SaveRFData() ) );
+
+		QHBoxLayout *topLeftLayout = new QHBoxLayout;
+		topLeftLayout->addWidget(label);
+		topLeftLayout->addWidget(lineEdit);
+
+		QVBoxLayout *leftLayout = new QVBoxLayout;
+		leftLayout->addLayout(topLeftLayout);
+		leftLayout->addStretch(1);
+		QGridLayout *mainLayout = new QGridLayout;
+		mainLayout->setSizeConstraint(QLayout::SetFixedSize);
+		mainLayout->addLayout(leftLayout, 0, 0);
+		mainLayout->addWidget(buttonBox, 0, 1);
+		setLayout(mainLayout);
+
+     setWindowTitle(tr("Save RF Data"));
+//     extension->hide();
+ }
 

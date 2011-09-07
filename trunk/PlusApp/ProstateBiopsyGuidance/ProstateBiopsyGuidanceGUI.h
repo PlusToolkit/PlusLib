@@ -14,122 +14,37 @@ class DeviceSetSelectorWidget;
 class ToolStateDisplayWidget; 
 class StatusIcon; 
 
-class ProstateBiopsyGuidanceGUI : public QWizard, public Ui::Wizard
-{
-	Q_OBJECT
+ #include <QDialog>
 
-public:
-	static ProstateBiopsyGuidanceGUI* New();
-	// Description:
-	// Return the singleton instance with no reference counting.
-	static ProstateBiopsyGuidanceGUI* GetInstance();
+ class QCheckBox;
+ class QDialogButtonBox;
+ class QGroupBox;
+ class QLabel;
+ class QLineEdit;
+ class QPushButton;
 
-	// Description:
-	// Supply a user defined output window. Call ->Delete() on the supplied
-	// instance after setting it.
-	static void SetInstance(ProstateBiopsyGuidanceGUI *instance);
+ class ProstateBiopsyGuidanceGUI : public QDialog
+ {
+     Q_OBJECT
 
-	std::string GetProgramPath(); 
-	
-	PlusStatus Initialize(); 
-
-	// Constructor
-	ProstateBiopsyGuidanceGUI(QWidget* parent = 0);
-
-	//Destructor
-	virtual ~ProstateBiopsyGuidanceGUI();
-
-	QProgressBar* GetProgressBar( int pageID ); 
-
-	QVTKWidget* GetRenderer( int pageID ); 
-
-	virtual bool validateCurrentPage(); 
-
-protected:
-
-	virtual void DisableWizardButtons(); 
-
-	virtual void EnableWizardButtons(); 
-
-	virtual void initializePage ( int id ); 
-
-	virtual int previousId(); 
-
-	virtual int nextId() const; 
-
-	virtual void cleanupPage ( int id ); 
-
-	// QT events 
-	virtual void closeEvent(QCloseEvent *);
-
-// QT slots
+ public:
+     ProstateBiopsyGuidanceGUI(QWidget *parent = 0);
+	 	 
+ private:
+     QLabel *label;
+     QLineEdit *lineEdit;
+     QCheckBox *caseCheckBox;
+     QCheckBox *fromStartCheckBox;
+     QCheckBox *wholeWordsCheckBox;
+     QCheckBox *searchSelectionCheckBox;
+     QCheckBox *backwardCheckBox;
+     QDialogButtonBox *buttonBox;
+     QPushButton *findButton;
+     QPushButton *moreButton;
+     QWidget *extension;
 public slots:
-	virtual void done ( int r ); 
-	
-protected slots:
+		void SaveRFData(void);
 
-	void UpdateWidgets(); 
+ };
 
-	void UpdateProgressBarRequest( int percent ); 
-
-	void RecordTrackedFrame(); 
-	
-	void SnapshotButtonClicked(); 
-
-	void RecordButtonClicked(); 
-
-	void StopButtonClicked(); 
-
-	void SaveButtonClicked(); 
-	
-	void SaveAsButtonClicked(); 
-
-	void SynchronizeButtonClicked(); 
-	
-	void CancelSyncButtonClicked(); 
-
-	void ZeroOffsetButtonClicked(); 
-
-	void OpenOutputFolderButtonClicked(); 
-
-	void ResetBufferButtonClicked(); 
-
-	void ChangeLogLevel(); 
-
-	void SetFrameRate(); 
-
-  void SetConfigurationDirectory(std::string aDirectory); 
-
-  void ConnectToDevicesByConfigFile(std::string aConfigFile); 
-
-signals: 
-	void UpdateProgressBar(int); 
-	
-	void Update(); 
-	
-protected:
-
-	ProstateBiopsyGuidance* m_USCapturing; 
-
-	QTimer* m_RecordingTimer; 
-
-  //! Device set selector widget
-	DeviceSetSelectorWidget*	m_DeviceSetSelectorWidget;
-
-  //! Tool state display widget
-	ToolStateDisplayWidget*		m_SyncToolStateDisplayWidget;
-  ToolStateDisplayWidget*		m_RecordingToolStateDisplayWidget;
-
-	bool Initialized; 
-
-private:
-
-	ProstateBiopsyGuidanceGUI(const ProstateBiopsyGuidanceGUI&);
-	void operator=(const ProstateBiopsyGuidanceGUI&);
-	static ProstateBiopsyGuidanceGUI* Instance;
-
-	static void UpdateProgressBarRequestCallback( int percent ); 
-	static void UpdateRequestCallback(); 
-}; 
-
-#endif //ProstateBiopsyGuidanceGUI_H
+ #endif
