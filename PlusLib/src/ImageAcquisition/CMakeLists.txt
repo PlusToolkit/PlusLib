@@ -5,7 +5,7 @@ OPTION (PLUS_USE_SONIX_VIDEO "Provide support for the SonixRP video source" OFF)
 OPTION (PLUS_USE_ICCAPTURING_VIDEO "Provide support for the IC framegrabber device" OFF)
 OPTION (PLUS_USE_VFW_VIDEO "Provide support for the Video-for-Windows video digitizer" OFF)
 SET (PLUS_ULTERIUS_MAJOR_VERSION 5 CACHE STRING "Set Ultrasonix Ulterius SDK major version")
-SET (PLUS_ULTERIUS_MINOR_VERSION 7 CACHE STRING "Set Ultrasonix Ulterius SDK minor version")
+SET (PLUS_ULTERIUS_MINOR_VERSION 6 CACHE STRING "Set Ultrasonix Ulterius SDK minor version")
 
 # --------------------------------------------------------------------------
 # Sources
