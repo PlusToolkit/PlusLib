@@ -185,9 +185,9 @@ IF (PLUS_USE_BRACHY_TRACKER)
 			)
 	endif (WIN32)
     
-  SET(CIVCO_SEI_INCLUDE_DIR ${PLTOOLS_DIR}/CIVCO/SEI/inc CACHE PATH "Path to the Ulterius SDK include directory." FORCE)
-  SET(CIVCO_SEI_BINARY_DIR ${PLTOOLS_DIR}/CIVCO/SEI/bin CACHE PATH "Path to the Ulterius SDK binary directory." FORCE)
-  SET(CIVCO_SEI_LIB_DIR ${PLTOOLS_DIR}/CIVCO/SEI/lib CACHE PATH "Path to the Ulterius SDK library directory." FORCE)
+  SET(CIVCO_SEI_INCLUDE_DIR ${PLTOOLS_DIR}/CIVCO/SEI/inc CACHE PATH "Path to the CIVCO SEI include directory." FORCE)
+  SET(CIVCO_SEI_BINARY_DIR ${PLTOOLS_DIR}/CIVCO/SEI/bin CACHE PATH "Path to the CIVCO SEI binary directory." FORCE)
+  SET(CIVCO_SEI_LIB_DIR ${PLTOOLS_DIR}/CIVCO/SEI/lib CACHE PATH "Path to the CIVCO SEI library directory." FORCE)
 
   SET (PLUSLIB_INCLUDE_DIRS 
                 ${PLUSLIB_INCLUDE_DIRS} 
