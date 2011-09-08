@@ -65,7 +65,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <string>
 #include "ulterius.h"
 #include "ulterius_def.h"
-#if ULTERIUS_MAJOR_VERSION == 1
+#if PLUS_ULTERIUS_MAJOR_VERSION == 1
 #include "utx_imaging_modes.h"
 #endif
 
@@ -409,10 +409,10 @@ PlusStatus vtkSonixVideoSource::InternalConnect()
     this->SetFrameSize( this->DataDescriptor.w, this->DataDescriptor.h); 
 
     // Parameter setting doesn't work with Ulterius-2.x
-#if ULTERIUS_MAJOR_VERSION != 2
+#if PLUS_ULTERIUS_MAJOR_VERSION != 2
     // 6) set parameters, currently: frequency, frame rate, depth
 
-#if ULTERIUS_MAJOR_VERSION < 2
+#if PLUS_ULTERIUS_MAJOR_VERSION < 2
     if (this->Frequency >= 0 && !this->Ult.setParamValue(VARID_FREQ, this->Frequency))
 #else 
     uParam prmFrequency; 
@@ -430,7 +430,7 @@ PlusStatus vtkSonixVideoSource::InternalConnect()
       continue;
     }
 
-#if ULTERIUS_MAJOR_VERSION < 2
+#if PLUS_ULTERIUS_MAJOR_VERSION < 2
     if (this->Depth >= 0 && !this->Ult.setParamValue(VARID_DEPTH, this->Depth))
 #else
     uParam prmDepth; 
@@ -448,7 +448,7 @@ PlusStatus vtkSonixVideoSource::InternalConnect()
       continue;
     }
 
-#if ULTERIUS_MAJOR_VERSION < 2
+#if PLUS_ULTERIUS_MAJOR_VERSION < 2
     if (this->Sector >= 0 && !this->Ult.setParamValue(VARID_SECTOR, this->Sector))
 #else
     uParam prmSector; 
@@ -466,7 +466,7 @@ PlusStatus vtkSonixVideoSource::InternalConnect()
       continue;
     }
 
-#if ULTERIUS_MAJOR_VERSION < 2
+#if PLUS_ULTERIUS_MAJOR_VERSION < 2
     if (this->Gain >= 0 && !this->Ult.setParamValue(VARID_GAIN, this->Gain))
 #else
     uParam prmGain; 
@@ -484,7 +484,7 @@ PlusStatus vtkSonixVideoSource::InternalConnect()
       continue;
     }
 
-#if ULTERIUS_MAJOR_VERSION < 2 
+#if PLUS_ULTERIUS_MAJOR_VERSION < 2 
     if (this->DynRange >= 0 && !this->Ult.setParamValue(VARID_DYNRANGE, this->DynRange))
 #else
     uParam prmDynRange; 
@@ -502,7 +502,7 @@ PlusStatus vtkSonixVideoSource::InternalConnect()
       continue;
     }
 
-#if ULTERIUS_MAJOR_VERSION < 2 
+#if PLUS_ULTERIUS_MAJOR_VERSION < 2 
     if (this->Zoom >= 0 && !this->Ult.setParamValue(VARID_ZOOM, this->Zoom))
 #else
     uParam prmZoom; 
