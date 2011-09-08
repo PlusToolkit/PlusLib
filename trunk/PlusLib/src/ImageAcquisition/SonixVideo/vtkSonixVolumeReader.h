@@ -9,7 +9,7 @@
 
 #include "ulterius_def.h"
 
-#if ULTERIUS_MAJOR_VERSION == 1
+#if PLUS_ULTERIUS_MAJOR_VERSION == 1
 #include "utx_imaging_modes.h"
 #endif
 
