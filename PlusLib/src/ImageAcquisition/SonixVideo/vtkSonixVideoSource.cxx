@@ -270,6 +270,7 @@ PlusStatus vtkSonixVideoSource::AddFrameToBuffer(void* dataPtr, int type, int sz
 
     // for frame containing FC (frame count) in the beginning for data coming from cine, jump 2 bytes
     int numberOfBytesToSkip = 0; 
+#if (PLUS_ULTERIUS_MAJOR_VERSION < 5) || (PLUS_ULTERIUS_MAJOR_VERSION == 5 && PLUS_ULTERIUS_MINOR_VERSION < 7)
     if(    (type == udtBPre) || (type == udtRF) 
         ||  (type == udtMPre) || (type == udtPWRF)
         ||  (type == udtColorRF)
@@ -277,6 +278,17 @@ PlusStatus vtkSonixVideoSource::AddFrameToBuffer(void* dataPtr, int type, int sz
     {
         numberOfBytesToSkip = 4;
     }
+#else 
+	// It's Ulterius 5.7 or newer.
+	// RF images don't have a 4-byte header. It's possible that none of the types have the 4-byte header anymore.
+	if(    (type == udtBPre) 
+        ||  (type == udtMPre) || (type == udtPWRF)
+        ||  (type == udtColorRF)
+        )
+    {
+        numberOfBytesToSkip = 4;
+    }
+#endif
 
     PlusCommon::ITKScalarPixelType pixelType=itk::ImageIOBase::UNKNOWNCOMPONENTTYPE;    
     switch (type)
