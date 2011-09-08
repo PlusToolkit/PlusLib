@@ -1,0 +1,44 @@
+@ECHO off
+REM Hide all your directories from users
+
+SET ORIGPATH=%PATH%
+
+SET DIRCMD=0 
+CALL DevEnv_Release.bat no-sln 
+
+if "%1" == "" goto experimental
+if "%1" == "-E" goto experimental
+if "%1" == "-N" goto nightly
+if "%1" == "-C" goto continuous
+if "%1" == "-I" goto individual
+
+:experimental
+"${CMAKE_CTEST_COMMAND}" -D Experimental
+goto END
+
+:nightly
+@REM Clean before the nightly build to enforce all build warnings appear on all nightly dashboard submissions
+"${CMAKE_MAKE_PROGRAM}" PlusApp.sln /clean Release /project ALL_BUILD
+"${CMAKE_CTEST_COMMAND}" -D Nightly
+goto END
+
+:continuous
+@REM Clean before the build to enforce all build warnings appear on the dashboard submissions
+"${CMAKE_MAKE_PROGRAM}" PlusApp.sln /clean Release /project ALL_BUILD
+@REM Wait for some time before continue to allow checking the results of the executions
+"${CMAKE_CTEST_COMMAND}" -D Continuous
+timeout /t 15
+goto END
+
+:individual 
+@REM Run individual tests with regexp search 
+@REM Display the list of tests
+"${CMAKE_CTEST_COMMAND}" -R "%2" -N
+@REM Run selected tests
+"${CMAKE_CTEST_COMMAND}" -R "%2" -V
+goto END
+
+
+:END
+SET PATH=%ORIGPATH%
+ECHO DONE

@@ -22,9 +22,20 @@ SET(PLUSAPP_VERSION_PATCH ${PLUSLIB_VERSION_PATCH})
 SET(PLUSAPP_VERSION ${PLUSAPP_VERSION_MAJOR}.${PLUSAPP_VERSION_MINOR}.${PLUSAPP_VERSION_PATCH})
 
 MESSAGE(STATUS "PlusApp version: ${PLUSAPP_VERSION}" )
+       
+# --------------------------------------------------------------------------
+# Testing
+#
+
+# Standard CMake option for testing.
+OPTION(BUILD_TESTING
+       "Build test programs"
+       ON)
+
+INCLUDE(CTest)
 
 # --------------------------------------------------------------------------
-# Find SVN for revision information status
+# Find SVN for revision information status and automatic update of the repository
 #
 FIND_PACKAGE(Subversion)
 IF(Subversion_FOUND)
@@ -32,6 +43,7 @@ IF(Subversion_FOUND)
   MESSAGE(STATUS "Current revision is ${PLUSAPP_SVN_INFO_WC_REVISION}") 
   SET(PLUSAPP_REVISION ${PLUSAPP_SVN_INFO_WC_REVISION})
 ENDIF(Subversion_FOUND) 
+SET( PLUSAPP_SVN_EXECUTABLE ${Subversion_SVN_EXECUTABLE} )
 
 # Standard CMake option for building libraries shared or static by default.
 OPTION(BUILD_SHARED_LIBS
@@ -100,7 +112,7 @@ ENDIF (PLUSAPP_BUILD_TrackedUltrasoundCapturing)
 IF (PLUSAPP_BUILD_ProstateBiopsyGuidance)
 	ADD_SUBDIRECTORY(ProstateBiopsyGuidance)
     ADD_DEPENDENCIES( ProstateBiopsyGuidance ${PLUSLIB_DEPENDENCIES} )
-ENDIF (PLUSAPP_BUILD_TProstateBiopsyGuidance)
+ENDIF (PLUSAPP_BUILD_ProstateBiopsyGuidance)
 
 # --------------------------------------------------------------------------
 # Build the fCal application (Qt)
@@ -171,7 +183,10 @@ configure_file(
 	${CMAKE_CURRENT_SOURCE_DIR}/DevEnv_Release.bat.in 
 	${CMAKE_CURRENT_BINARY_DIR}/DevEnv_Release.bat
 	)
-
+configure_file(
+	${CMAKE_CURRENT_SOURCE_DIR}/BuildAndTest.bat.in 
+	${CMAKE_CURRENT_BINARY_DIR}/BuildAndTest.bat
+	)
 #-----------------------------------------------------------------------------
 # Install files 
 INCLUDE(InstallFiles.cmake)    
