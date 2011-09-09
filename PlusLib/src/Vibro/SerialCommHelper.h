@@ -7,6 +7,7 @@
 #include "SerialBuffer.h"
 //#include "DebugDump.h"
 #include <map>
+#include <tchar.h>
 
 typedef enum tagSERIAL_STATE
 {

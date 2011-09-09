@@ -6,12 +6,6 @@
 
 #include <vector>
 
-#ifdef VIBROLIB_EXPORTS
-#define VIBROLIB_API __declspec(dllexport)
-#else
-#define VIBROLIB_API __declspec(dllimport)
-#endif
-
 namespace VibroLib
 {
 	namespace AudioCard
@@ -22,7 +16,7 @@ namespace VibroLib
 			header related to the format of the audio wave, frequency, bits per
 			sample, which is taken care of by this class.
 		*/
-		class VIBROLIB_API Wave
+		class VTK_EXPORT Wave
 		{
 		private:
 			struct WaveRIFF 

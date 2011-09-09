@@ -15,7 +15,6 @@ SET (Vibro_SRCS
 	SerialBuffer.cpp
 	SerialCommHelper.cpp
 	SignalGenerator.cpp
-	stdafx.cpp
 	Timer.cpp
 	VibroLib.cpp
 	Wave.cpp
@@ -32,7 +31,6 @@ if (WIN32)
 	SerialBuffer.h
 	SerialCommHelper.h
 	SignalGenerator.h
-	stdafx.h
 	Timer.h
 	VibroLib.h
 	Wave.h
@@ -46,6 +44,7 @@ SET (Vibro_LIBS
 	${CMAKE_CURRENT_SOURCE_DIR}/dsound${CMAKE_STATIC_LIBRARY_SUFFIX}
 	${CMAKE_CURRENT_SOURCE_DIR}/VibroLib${CMAKE_STATIC_LIBRARY_SUFFIX}
 	winmm.lib
+	vtkPlusCommon
     )     
 
 ADD_LIBRARY(Vibro ${Vibro_SRCS} ${Vibro_HDRS})

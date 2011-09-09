@@ -1,7 +1,8 @@
 // VibroLib.cpp : Defines the entry point for the DLL application.
 //
 
-#include "stdafx.h"
+#include "PlusConfigure.h"
+
 #include "VibroLib.h"
 
 
@@ -30,10 +31,10 @@ BOOL APIENTRY DllMain( HMODULE hModule,
 #endif
 
 // This is an example of an exported variable
-VIBROLIB_API int nVibroLib=0;
+VTK_EXPORT int nVibroLib=0;
 
 // This is an example of an exported function.
-VIBROLIB_API int fnVibroLib(void)
+VTK_EXPORT int fnVibroLib(void)
 {
 	return 42;
 }

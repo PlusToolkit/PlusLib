@@ -5,19 +5,13 @@
 // VIBROLIB_API functions as being imported from a DLL, whereas this DLL sees symbols
 // defined with this macro as being exported.
 
-#ifndef VIBROLIB_EXPORTS
-#define VIBROLIB_API __declspec(dllexport)
-#else
-#define VIBROLIB_API __declspec(dllimport)
-#endif
-
 // This class is exported from the VibroLib.dll
-class VIBROLIB_API CVibroLib {
+class VTK_EXPORT CVibroLib {
 public:
 	CVibroLib(void);
 	// TODO: add your methods here.
 };
 
-extern VIBROLIB_API int nVibroLib;
+extern VTK_EXPORT int nVibroLib;
 
-VIBROLIB_API int fnVibroLib(void);
+VTK_EXPORT int fnVibroLib(void);

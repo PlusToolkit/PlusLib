@@ -1,11 +1,11 @@
-#include "StdAfx.h"
+#include "PlusConfigure.h"
 #include "SignalGenerator.h"
 
 #include <fstream>
 namespace VibroLib
 {
 	using namespace std;
-	VIBROLIB_API vector<int> GenerateSinusoid(double signal_frequency, double sampling_frequency, int amplitude, int offset, int nsamples)
+	VTK_EXPORT vector<int> GenerateSinusoid(double signal_frequency, double sampling_frequency, int amplitude, int offset, int nsamples)
 	{
 		double T = 1/sampling_frequency;
 		vector<int> signal;
@@ -14,7 +14,7 @@ namespace VibroLib
 		return signal;
 	}
 
-	VIBROLIB_API std::vector<double> GenerateSinusoid(double signal_frequency, double sampling_frequency, int nsamples)
+	VTK_EXPORT std::vector<double> GenerateSinusoid(double signal_frequency, double sampling_frequency, int nsamples)
 	{
 		double T = 1/sampling_frequency;
 		vector<double> signal;
@@ -23,12 +23,12 @@ namespace VibroLib
 		return signal;
 	}
 
-	VIBROLIB_API std::vector<int> GenerateSinusoidRepeatable(double signal_frequency, double sampling_frequency, int amplitude, int offset)
+	VTK_EXPORT std::vector<int> GenerateSinusoidRepeatable(double signal_frequency, double sampling_frequency, int amplitude, int offset)
 	{
 		return GenerateSinusoid(signal_frequency, sampling_frequency, amplitude, offset, (int)ceil(sampling_frequency/signal_frequency) - 1);
 	}
 
-	VIBROLIB_API vector<int> GenerateMultiFrequencyClamped(vector<double> frequencies, double sampling_frequency, int amplitude, int offset, int nsamples)
+	VTK_EXPORT vector<int> GenerateMultiFrequencyClamped(vector<double> frequencies, double sampling_frequency, int amplitude, int offset, int nsamples)
 	{
 		vector<double> signal = GenerateMultiFrequencyClamped(frequencies, sampling_frequency, nsamples);
 		vector<int> sig_int(nsamples,0);
@@ -37,7 +37,7 @@ namespace VibroLib
 		return sig_int;
 	}
 
-	VIBROLIB_API std::vector<double> GenerateMultiFrequencyClamped(std::vector<double> frequencies, double sampling_frequency, int nsamples)
+	VTK_EXPORT std::vector<double> GenerateMultiFrequencyClamped(std::vector<double> frequencies, double sampling_frequency, int nsamples)
 	{
 		double T = 1/sampling_frequency;
 		vector<double> signal(nsamples, 0);
@@ -52,7 +52,7 @@ namespace VibroLib
 		return signal;
 	}
 
-	VIBROLIB_API std::vector<double> GenerateMultiFrequency(std::vector<double> frequencies, double sampling_frequency, int nsamples)
+	VTK_EXPORT std::vector<double> GenerateMultiFrequency(std::vector<double> frequencies, double sampling_frequency, int nsamples)
 	{
 		double T = 1/sampling_frequency;
 		vector<double> signal(nsamples, 0);
