@@ -5,18 +5,11 @@
 #include <string>
 #include <sstream>
 
-#ifdef VIBROLIB_EXPORTS
-#define VIBROLIB_API __declspec(dllexport)
-#else
-#define VIBROLIB_API __declspec(dllimport)
-#endif
-
-
 namespace VibroLib
 {
 	namespace MCDC
 	{
-		class VIBROLIB_API MCDCProgrammer
+		class VTK_EXPORT MCDCProgrammer
 		{
 		private:
 			CSerialCommHelper CommInterface;

@@ -1,4 +1,5 @@
-#include "StdAfx.h"
+#include "PlusConfigure.h"
+
 #include "DirectSoundBuffer.h"
 
 

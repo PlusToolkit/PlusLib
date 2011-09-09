@@ -4,19 +4,13 @@
 #include <mmsystem.h>
 #include "dsound.h"
 
-#ifdef VIBROLIB_EXPORTS
-#define VIBROLIB_API __declspec(dllexport)
-#else
-#define VIBROLIB_API __declspec(dllimport)
-#endif
-
 #include "Wave.h"
 
 namespace VibroLib
 {
 	namespace AudioCard
 	{
-		class VIBROLIB_API DirectSoundCapture
+		class VTK_EXPORT DirectSoundCapture
 		{
 		public:
 			DirectSoundCapture(void);

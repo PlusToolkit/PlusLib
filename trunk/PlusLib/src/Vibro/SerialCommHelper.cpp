@@ -2,7 +2,7 @@
 //
 //////////////////////////////////////////////////////////////////////
 
-#include "stdafx.h"
+#include "PlusConfigure.h"
 
 #include "SerialCommHelper.h"
 #include <Process.h>
