@@ -6,18 +6,18 @@
 # --------------------------------------------------------------------------
 # Sources
 SET (Vibro_SRCS
-	DirectSoundBuffer.cpp
-	DirectSoundCapture.cpp
-	DirectSoundCaptureBuffer.cpp
-	DirectSoundInstance.cpp
-	#MCDCController.cpp
-	MCDCProgrammer.cpp
-	SerialBuffer.cpp
-	SerialCommHelper.cpp
-	SignalGenerator.cpp
-	Timer.cpp
-	VibroLib.cpp
-	Wave.cpp
+	DirectSoundBuffer.cxx
+	DirectSoundCapture.cxx
+	DirectSoundCaptureBuffer.cxx
+	DirectSoundInstance.cxx
+	#MCDCController.cxx
+	MCDCProgrammer.cxx
+	SerialBuffer.cxx
+	SerialCommHelper.cxx
+	SignalGenerator.cxx
+	Timer.cxx
+	VibroLib.cxx
+	Wave.cxx
 	)
 
 SET (Vibro_HDRS)
