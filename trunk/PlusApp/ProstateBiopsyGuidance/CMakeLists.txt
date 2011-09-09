@@ -44,7 +44,6 @@ SOURCE_GROUP("UI Files" FILES ${ProstateBiopsyGuidance_UI_SRCS})
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 include_directories(${PlusApp_BINARY_DIR}/CommonWidgets)
-include_directories(${PlusApp_SOURCE_DIR}/CommonWidgets)
 
 # --------------------------------------------------------------------------
 # Build the library
@@ -61,7 +60,7 @@ SET (ProstateBiopsyGuidance_LIBS
     vtkTracking
     vtkDataCollection
     vtkPlusCommon
-	${CMAKE_CURRENT_SOURCE_DIR}/VibroLib.lib
+    VibroAudioCard
     )
 
 IF (PLUS_USE_OpenIGTLink)
