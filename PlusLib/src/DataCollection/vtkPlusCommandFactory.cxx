@@ -4,6 +4,7 @@
 
 #include "vtkObjectFactory.h"
 #include "vtkObjectFactoryCollection.h"
+#include "vtkVersion.h"
 
 #include "vtkPlusCommand.h"
 #include "vtkPlusCommandCollection.h"
@@ -55,9 +56,28 @@ vtkPlusCommandFactory
 
 
 
+const char*
+vtkPlusCommandFactory
+::GetVTKSourceVersion()
+{
+  return VTK_SOURCE_VERSION;
+}
+
+
+
+const char*
+vtkPlusCommandFactory
+::GetDescription()
+{
+  return "VTK PlusCommand Factory";
+}
+
+
+
 vtkPlusCommandFactory
 ::vtkPlusCommandFactory()
 {
+  
 }
 
 
@@ -71,7 +91,7 @@ vtkPlusCommandFactory
 
 void
 vtkPlusCommandFactory
-::RegisterCommand( vtkPlusCommand* r)
+::RegisterPlusCommand( vtkPlusCommand* r)
 {
   vtkPlusCommandFactory::InitializeCommands();
   AvailableCommands->AddItem( r );
@@ -106,16 +126,28 @@ vtkPlusCommandFactory
     }
   collection->Delete();
   
+  vtkSmartPointer< vtkPlusStartDataCollectionCommand > plusStartDataCollectionCommand
+    = vtkSmartPointer< vtkPlusStartDataCollectionCommand >::New();
+  if ( plusStartDataCollectionCommand->CanExecute( str ) )
+    {
+    return vtkPlusStartDataCollectionCommand::New();
+    }
   
+  /*
   vtkCollectionSimpleIterator sit;
   for( vtkPlusCommandFactory::AvailableCommands->InitTraversal( sit );
       ( ret = vtkPlusCommandFactory::AvailableCommands->GetNextPlusCommand( sit ) ); )
     {
     if( ret->CanExecute( str ) )
       {
-      return ret->NewInstance(); // like a new call
+      vtkPlusCommand* command = ret->NewInstance();  // like a new call
+      return command;
       }
     }
+  */
+  
+  
+  
   return 0;
 }
 

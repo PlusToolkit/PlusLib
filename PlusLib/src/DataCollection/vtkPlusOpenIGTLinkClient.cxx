@@ -2,6 +2,7 @@
 #include "vtkPlusOpenIGTLinkClient.h"
 
 #include "vtkMultiThreader.h"
+#include "vtkMutexLock.h"
 
 #include "igtlMessageHeader.h"
 #include "igtlOSUtil.h"
@@ -17,54 +18,6 @@ vtkStandardNewMacro( vtkPlusOpenIGTLinkClient );
 
 
 
-static
-void*
-vtkCommunicationThread( vtkMultiThreader::ThreadInfo* data )
-{
-  vtkPlusOpenIGTLinkClient* self = (vtkPlusOpenIGTLinkClient*)( data->UserData );
-  
-  
-    // Prepare and send request.
-  
-  igtl::StringMessage1::Pointer stringMessage = igtl::StringMessage1::New();
-    stringMessage->SetDeviceName( "PlusClient" );
-    stringMessage->SetString( self->ActiveCommand->GetStringRepresentation() );
-    stringMessage->Pack();
-    
-  self->ClientSocket->Send( stringMessage->GetPackPointer(), stringMessage->GetPackSize() );
-  
-   
-    // Wait for a response.
-  
-  igtl::MessageHeader::Pointer headerMsg = igtl::MessageHeader::New();
-  headerMsg->InitPack();
-  int rs = self->ClientSocket->Receive( headerMsg->GetPackPointer(), headerMsg->GetPackSize() );
-  if ( rs == 0 )
-    {
-    LOG_WARNING( "Connection closed." );
-    self->ClientSocket->CloseSocket();
-    return NULL;
-    }
-  if ( rs != headerMsg->GetPackSize() )
-    {
-    LOG_ERROR( "Message size information and actual data size don't match." ); 
-    return NULL;
-    }
-  
-  headerMsg->Unpack();
-  
-  //debug
-  std::cout << "Client received message from device type: " << headerMsg->GetDeviceType() << std::endl;
-  
-  self->ActiveCommand->ProcessResponse( headerMsg, self->ClientSocket );
-  
-  
-  self->ActiveCommand = NULL;
-  self->CommandInProgress = false;
-  return NULL;
-}
-
-
 
 int
 vtkPlusOpenIGTLinkClient
@@ -74,7 +27,7 @@ vtkPlusOpenIGTLinkClient
   
   if ( r != 0 )
     {
-    LOG_WARNING( "Cannot connect to the server." );
+    LOG_ERROR( "Cannot connect to the server." );
     return r;
     }
   
@@ -103,18 +56,48 @@ vtkPlusOpenIGTLinkClient
 
 bool
 vtkPlusOpenIGTLinkClient
-::StartCommand( vtkPlusCommand* command )
+::SendCommand( vtkPlusCommand* command )
 {
-  if ( this->CommandInProgress == true )
+  
+    // Convert the command to a string message.
+  
+  std::string strToBeSent = command->GetStringRepresentation();
+  
+  igtl::StringMessage1::Pointer stringMessage = igtl::StringMessage1::New();
+    stringMessage->SetDeviceName( "PlusClient" );
+    stringMessage->SetString( strToBeSent );
+    stringMessage->Pack();
+  
+  
+    // Send the string message to the server.
+  
+  int success = this->ClientSocket->Send( stringMessage->GetPackPointer(), stringMessage->GetPackSize() );
+  
+  if ( success == 1 )
     {
-    return false;
+    return true;
     }
   
-  this->ActiveCommand = command;
-  this->CommandInProgress = true;
-  this->ThreadId = this->Threader->SpawnThread( (vtkThreadFunctionType)&vtkCommunicationThread, this );
-  
-  return true;
+  LOG_WARNING( "OpenIGTLink client couldn't send command to server." );
+  return false;
+}
+
+
+
+void
+vtkPlusOpenIGTLinkClient
+::Lock()
+{
+  this->Mutex->Lock();
+}
+
+
+
+void
+vtkPlusOpenIGTLinkClient
+::Unlock()
+{
+  this->Mutex->Unlock();
 }
 
 
@@ -140,7 +123,9 @@ vtkPlusOpenIGTLinkClient
   this->ActiveCommand = NULL;
   
   this->Threader = vtkMultiThreader::New();
+  this->Mutex = vtkMutexLock::New();
   this->ClientSocket = igtl::ClientSocket::New();
+  this->SocketMutex = vtkMutexLock::New();
 }
 
 
@@ -151,5 +136,18 @@ vtkPlusOpenIGTLinkClient
 vtkPlusOpenIGTLinkClient
 ::~vtkPlusOpenIGTLinkClient()
 {
+  if ( this->Threader )
+    {
+    this->Threader->Delete();
+    }
   
+  if ( this->Mutex )
+    {
+    this->Mutex->Delete();
+    }
+    
+  if ( this->SocketMutex )
+    {
+    this->SocketMutex->Delete();
+    }
 }

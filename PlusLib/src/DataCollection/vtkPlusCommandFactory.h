@@ -5,6 +5,8 @@
 #include <string>
 
 #include "vtkObject.h"
+#include "vtkObjectFactory.h"
+
 
 class vtkPlusCommand;
 class vtkPlusCommandCollection;
@@ -12,19 +14,21 @@ class vtkPlusCommandCleanup;
 
 class
 VTK_EXPORT
-vtkPlusCommandFactory : public vtkObject
+vtkPlusCommandFactory : public vtkObjectFactory
 {
 public:
   static vtkPlusCommandFactory *New();
   vtkTypeMacro( vtkPlusCommandFactory, vtkObject );
   void PrintSelf(ostream& os, vtkIndent indent);   
   
-  static void RegisterCommand( vtkPlusCommand* r );
+  static void RegisterPlusCommand( vtkPlusCommand* r );
   
   static vtkPlusCommand* CreatePlusCommand( std::string str ); 
   
   static void GetRegisteredCommands( vtkPlusCommandCollection* );
   
+  virtual const char* GetVTKSourceVersion();
+  virtual const char* GetDescription();
   
 protected:
   vtkPlusCommandFactory();

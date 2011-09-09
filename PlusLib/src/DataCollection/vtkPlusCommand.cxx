@@ -2,6 +2,8 @@
 #include "vtkPlusCommand.h"
 
 
+#include "vtkVersion.h"
+
 
 vtkCxxRevisionMacro( vtkPlusCommand, "$Revision: 1.0 $" );
 
@@ -21,6 +23,24 @@ vtkPlusCommand
 ::GetSupportedCommandStrings() const
 {
   return this->CommandStrings;
+}
+
+
+
+const char*
+vtkPlusCommand
+::GetVTKSourceVersion()
+{
+  return VTK_SOURCE_VERSION;
+}
+
+
+
+const char*
+vtkPlusCommand
+::GetDescription()
+{
+  return "VTK PlusCommand";
 }
 
 

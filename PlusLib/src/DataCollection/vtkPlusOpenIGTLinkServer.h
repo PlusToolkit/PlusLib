@@ -6,6 +6,7 @@
 #include <string>
 #include <vector>
 
+#include "vtkMutexLock.h"
 #include "vtkObject.h"
 
 #include "igtlOSUtil.h"
@@ -58,11 +59,12 @@ private:
   vtkPlusOpenIGTLinkServer( const vtkPlusOpenIGTLinkServer& );
   void operator=( const vtkPlusOpenIGTLinkServer& );
   
-  void Respond( igtl::Socket::Pointer& socket, std::string input );
+  void React( igtl::Socket::Pointer& socket, std::string input );
   
   
   vtkDataCollector*  DataCollector;
   vtkMultiThreader*  Threader;
+  vtkMutexLock*      Mutex;
   
   int  NetworkPort;
   bool Active;
