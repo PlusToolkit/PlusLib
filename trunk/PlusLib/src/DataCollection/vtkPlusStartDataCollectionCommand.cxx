@@ -34,14 +34,15 @@ vtkPlusStartDataCollectionCommand
 
 bool
 vtkPlusStartDataCollectionCommand
-::Execute( std::string stringMessage )
+::Execute()
 {
-  if ( this->CanExecute( stringMessage ) )
+  PlusStatus status = this->DataCollector->Start();
+  if ( status == PLUS_FAIL )
     {
-    PlusStatus status = this->DataCollector->Start();
-    return true;
+    LOG_WARNING( "Data collector could not be started." );
+    return false;
     }
-  return false;
+  return true;
 }
 
 

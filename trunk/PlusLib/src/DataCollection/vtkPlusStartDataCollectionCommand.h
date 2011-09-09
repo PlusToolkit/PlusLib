@@ -28,7 +28,7 @@ public:
   virtual void PrintSelf( ostream& os, vtkIndent indent );
   
   virtual bool CanExecute( std::string str );
-  virtual bool Execute( std::string stringMessage );
+  virtual bool Execute();
   virtual std::string GetStringRepresentation();
   virtual void ProcessResponse( igtl::MessageBase::Pointer header,
                                 igtl::ClientSocket::Pointer clientSocket );

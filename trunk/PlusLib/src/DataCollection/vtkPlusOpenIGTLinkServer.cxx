@@ -2,6 +2,7 @@
 #include "vtkPlusOpenIGTLinkServer.h"
 
 #include "vtkMultiThreader.h"
+#include "vtkSmartPointer.h"
 
 #include "igtlImageMessage.h"
 #include "igtlMessageHeader.h"
@@ -11,6 +12,7 @@
 #include "igtlStringMessage1.h"
 
 #include "vtkPlusCommand.h"
+#include "vtkPlusCommandFactory.h"
 
 
 
@@ -37,11 +39,12 @@ vtkCommunicationThread( vtkMultiThreader::ThreadInfo* data )
 
   igtl::Socket::Pointer socket;
   
-  while ( 1 )
+  while ( self->GetActive() )
     {
-    if ( self->GetActive() == false ) return NULL;
+    self->Mutex->Lock();
+    socket = serverSocket->WaitForConnection( 1000 );
+    self->Mutex->Unlock();
     
-    socket = serverSocket->WaitForConnection( 100 );
     if ( socket.IsNotNull() ) // if client connected
       {
       igtl::MessageHeader::Pointer header = igtl::MessageHeader::New();
@@ -50,6 +53,7 @@ vtkCommunicationThread( vtkMultiThreader::ThreadInfo* data )
       int rs = socket->Receive( header->GetPackPointer(), header->GetPackSize() );
       if ( rs == 0 )
         {
+        LOG_ERROR( "No OpenIGTLink header read." );
         socket->CloseSocket();
         continue;
         }
@@ -71,6 +75,7 @@ vtkCommunicationThread( vtkMultiThreader::ThreadInfo* data )
         
         socket->Receive( strMessage->GetPackBodyPointer(), strMessage->GetPackBodySize() );
         
+        LOG_INFO( "Server received message." );
         int c = strMessage->Unpack( 1 );
         if ( ! ( c & igtl::MessageHeader::UNPACK_BODY ) )
           {
@@ -78,7 +83,9 @@ vtkCommunicationThread( vtkMultiThreader::ThreadInfo* data )
           continue;
           }
         
-        self->Respond( socket, strMessage->GetString() );
+        LOG_INFO( "  String: " << strMessage->GetString() );
+        
+        self->React( socket, strMessage->GetString() );
         }
       else
         {
@@ -87,6 +94,11 @@ vtkCommunicationThread( vtkMultiThreader::ThreadInfo* data )
         }
       
       }
+    }
+  
+  if ( socket.IsNotNull() )
+    {
+    socket->CloseSocket();
     }
 }
 
@@ -148,7 +160,18 @@ PlusStatus
 vtkPlusOpenIGTLinkServer
 ::Stop()
 {
+  if ( this->ThreadId < 0 )
+    {
+    return PLUS_SUCCESS;
+    }
+  
   this->Active = false;
+  
+  this->Mutex->Lock();
+  this->Mutex->Unlock();
+  
+  this->Threader->TerminateThread( this->ThreadId );
+  this->ThreadId = -1;
   
   return PLUS_SUCCESS;
 }
@@ -166,6 +189,8 @@ vtkPlusOpenIGTLinkServer
   this->ThreadId = -1;
   
   this->Threader = vtkMultiThreader::New();
+  
+  this->Mutex = vtkMutexLock::New();
 }
 
 
@@ -177,22 +202,32 @@ vtkPlusOpenIGTLinkServer
 ::~vtkPlusOpenIGTLinkServer()
 {
   this->Stop();
-  vtkAccurateTimer::Delay( 0.3 );
+  
+  if ( this->Mutex )
+    {
+    this->Mutex->Delete();
+    }
 }
 
 
 
 void
 vtkPlusOpenIGTLinkServer
-::Respond( igtl::Socket::Pointer& socket, std::string input )
+::React( igtl::Socket::Pointer& socket, std::string input )
 {
+  vtkSmartPointer< vtkPlusCommandFactory > commandFactory = vtkSmartPointer< vtkPlusCommandFactory >::New();
+  vtkPlusCommand* command = commandFactory->CreatePlusCommand( input );
   
-  
-  igtl::StringMessage1::Pointer response = igtl::StringMessage1::New();
-  response->SetDeviceName( "PlusServer" );
-  response->SetString( "<c></c>" );
-  response->Pack();
-  
-  socket->Send( response->GetPackPointer(), response->GetPackSize() );
+  if ( command != NULL )
+    {
+    command->SetDataCollector( this->DataCollector );
+    command->Execute();
+    }
+  else
+    {
+    LOG_ERROR( "Command could not be created from message: " << input );
+    }
+    
+  command->Delete();
 }
 

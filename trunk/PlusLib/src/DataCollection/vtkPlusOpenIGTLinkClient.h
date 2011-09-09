@@ -15,6 +15,9 @@
 #include "vtkPlusCommand.h"
 
 
+class vtkMutexLock;
+
+
 
 /**
  * This class provides a network interface to access Plus functions
@@ -35,13 +38,16 @@ public:
   vtkSetMacro( NetworkPort, int );
   vtkSetMacro( ServerAddress, std::string );
   
+  vtkSetObjectMacro( ActiveCommand, vtkPlusCommand );
+  
   int ConnectToServer();
   int StartDataCollector();
   int StopDataCollector();
   
-  bool StartCommand( vtkPlusCommand* command );
+  bool SendCommand( vtkPlusCommand* command );
   
-  friend static void* vtkCommunicationThread( vtkMultiThreader::ThreadInfo* data );
+  void Lock();
+  void Unlock();
   
   
 protected:
@@ -56,8 +62,10 @@ private:
   void operator=( const vtkPlusOpenIGTLinkClient& );
   
   vtkMultiThreader*  Threader;
+  vtkMutexLock*      Mutex;
   
   igtl::ClientSocket::Pointer ClientSocket;
+  vtkMutexLock*               SocketMutex;
   
   int         NetworkPort;
   std::string ServerAddress;

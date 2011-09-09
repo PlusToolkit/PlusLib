@@ -6,7 +6,7 @@
 #include <string>
 #include <vector>
 
-#include "vtkObject.h"
+#include "vtkObjectFactory.h"
 
 #include "igtlClientSocket.h"
 #include "igtlMessageHeader.h"
@@ -25,7 +25,7 @@
 class
 VTK_EXPORT 
 vtkPlusCommand
-: public vtkObject
+: public vtkObjectFactory
 {
 public:
   
@@ -33,7 +33,7 @@ public:
   virtual void PrintSelf( ostream& os, vtkIndent indent );
   
   virtual bool CanExecute( std::string str ) = 0;
-  virtual bool Execute( std::string stringMessage ) = 0;
+  virtual bool Execute() = 0;
   virtual std::string GetStringRepresentation() = 0;
   virtual void ProcessResponse( igtl::MessageBase::Pointer header,
                                 igtl::ClientSocket::Pointer clientSocket ) = 0;
@@ -42,6 +42,9 @@ public:
   const CommandStringsType GetSupportedCommandStrings() const;
   
   vtkSetObjectMacro( DataCollector, vtkDataCollector );  // void SetDataCollector( vtkDataCollector* d ) {...}
+  
+  const char* GetVTKSourceVersion();
+  const char* GetDescription();
   
   
 protected:

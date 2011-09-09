@@ -12,6 +12,7 @@
 #include "vtkSavedDataVideoSource.h"
 
 #include "igtlStringMessage1.h"
+#include "vtkPlusCommandFactory.h"
 #include "vtkPlusOpenIGTLinkClient.h"
 #include "vtkPlusOpenIGTLinkServer.h"
 #include "vtkPlusStartDataCollectionCommand.h"
@@ -20,6 +21,9 @@
 
 int main( int argc, char** argv )
 {
+  vtkObjectFactory::RegisterFactory( vtkSmartPointer< vtkPlusCommandFactory >::New() );
+  vtkObjectFactory::RegisterFactory( vtkSmartPointer< vtkPlusStartDataCollectionCommand >::New() );
+  
   
     // Check command line arguments.
   
@@ -123,9 +127,9 @@ int main( int argc, char** argv )
     vtkSmartPointer< vtkPlusStartDataCollectionCommand > command =
         vtkSmartPointer< vtkPlusStartDataCollectionCommand >::New();
     
-    bool success = plusClient->StartCommand( command );
+    bool success = plusClient->SendCommand( command );
     
-    vtkAccurateTimer::Delay( 0.4 );
+    vtkAccurateTimer::Delay( 0.9 );
     }
   
   
