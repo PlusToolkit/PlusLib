@@ -107,6 +107,7 @@ IF(NOT PLUSLIB_USE_FILE_INCLUDED)
         INCLUDE_EXTERNAL_MSPROJECT(@vcProj_vtkTrusCalibrationCommon@)
         INCLUDE_EXTERNAL_MSPROJECT(@vcProj_UsFidSegAlgo@)
         INCLUDE_EXTERNAL_MSPROJECT(@vcProj_vtkVolumeReconstruction@)
+		INCLUDE_EXTERNAL_MSPROJECT(@vcProj_Vibro@)
 	ENDIF ()
     endmacro()
     
