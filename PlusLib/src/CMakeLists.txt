@@ -71,7 +71,8 @@ configure_file(
 SET (PLUSLIB_INCLUDE_DIRS 	
 	${CMAKE_CURRENT_SOURCE_DIR}
 	${CMAKE_CURRENT_BINARY_DIR}
-	${CMAKE_CURRENT_SOURCE_DIR}/DataCollection 
+	${CMAKE_CURRENT_SOURCE_DIR}/DataCollection
+	${CMAKE_CURRENT_SOURCE_DIR}/Vibro
 	${CMAKE_CURRENT_SOURCE_DIR}/Signaling
 	${CMAKE_CURRENT_SOURCE_DIR}/ImageAcquisition 
 	${CMAKE_CURRENT_SOURCE_DIR}/ImageAcquisition/ICCapturing 
@@ -111,6 +112,7 @@ ADD_SUBDIRECTORY(PlusCommon)
 ADD_SUBDIRECTORY(UsFidSegAlgo)
 ADD_SUBDIRECTORY(Tracking)
 ADD_SUBDIRECTORY(DataCollection)
+ADD_SUBDIRECTORY(Vibro)
 ADD_SUBDIRECTORY(VolumeReconstruction)
 ADD_SUBDIRECTORY(scripts)
 
@@ -129,7 +131,7 @@ SET( PLUSLIB_TARGETS
         UsFidSegAlgo 
         vtkTracking 
         vtkDataCollection 
-        vtkVolumeReconstruction 
+        vtkVolumeReconstruction
         )
 
 IF ( PLUS_USE_BRACHY_TRACKER )
