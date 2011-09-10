@@ -2,7 +2,6 @@
 #include <qapplication.h>
 #include <qpushbutton.h>
 #include <qfont.h>
-#include "VibroLib.h" // vibro lab
 // QT includes
 #include <qapplication.h>
 #include "ProstateBiopsyGuidance.h"

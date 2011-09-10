@@ -20,10 +20,7 @@
 #include <QMessageBox>
 #include <QCloseEvent>
 #include <QDesktopServices>
-#include "DeviceSetSelectorWidget.h"
-#include "ToolStateDisplayWidget.h"
 #include "vtkConfigurationTools.h"
-#include "StatusIcon.h"
 #include <qlayout.h>
 
 const QString LABEL_RECORDING_FRAME_RATE("Recording Frame Rate:");
@@ -66,7 +63,7 @@ void ProstateBiopsyGuidanceGUI::SaveRFData(void)
 	dataCollector->ReadConfigurationFromFile(inputConfigFileName.c_str());
 	dataCollector->Initialize();
 
-	while (getch() != 'a') // wait until a is pressed to start acquisition
+	while (_getch() != 'a') // wait until a is pressed to start acquisition
 	{;}
 	dataCollector->Start();
 
@@ -96,7 +93,7 @@ void ProstateBiopsyGuidanceGUI::SaveRFData(void)
 
 	VTK_LOG_TO_CONSOLE_ON; 
 	std::string outputVideoBufferSequenceFileName_V("VideoBufferMetafile_v"); 
-	while (getch() != 'a') // wait until a is pressed to start acquisition
+	while (_getch() != 'a') // wait until a is pressed to start acquisition
 	{;}
 	dataCollector->Start();
 
