@@ -34,7 +34,7 @@ vtkCommunicationThread( vtkMultiThreader::ThreadInfo* data )
   if ( r < 0 )
     {
     std::cerr << "Cannot create a server socket." << std::endl;
-    exit( 0 );
+    return NULL;
     }
 
   igtl::Socket::Pointer socket;
@@ -42,55 +42,62 @@ vtkCommunicationThread( vtkMultiThreader::ThreadInfo* data )
   while ( self->GetActive() )
     {
     self->Mutex->Lock();
-    socket = serverSocket->WaitForConnection( 1000 );
+    std::cerr << "wait for connection" << std::endl;
+    socket = serverSocket->WaitForConnection( 500 );
     self->Mutex->Unlock();
     
     if ( socket.IsNotNull() ) // if client connected
       {
+      std::cerr << "socket not null" << std::endl;
+      
       igtl::MessageHeader::Pointer header = igtl::MessageHeader::New();
-      header->InitPack();
       
-      int rs = socket->Receive( header->GetPackPointer(), header->GetPackSize() );
-      if ( rs == 0 )
+      for ( int i = 0; i < 100; ++ i )
         {
-        LOG_ERROR( "No OpenIGTLink header read." );
-        socket->CloseSocket();
-        continue;
-        }
-      if ( rs != header->GetPackSize() )
-        {
-        LOG_WARNING( "Failed to read message from the Plus client." );
-        continue;
-        }
-      
-      header->Unpack();  // Deserialize the header
-      
-        // Check data type and receive data body
-      
-      if ( strcmp( header->GetDeviceType(), "STRING1" ) == 0 )
-        {
-        igtl::StringMessage1::Pointer strMessage = igtl::StringMessage1::New();
-        strMessage->SetMessageHeader( header );
-        strMessage->AllocatePack();
+        header->InitPack();
         
-        socket->Receive( strMessage->GetPackBodyPointer(), strMessage->GetPackBodySize() );
-        
-        LOG_INFO( "Server received message." );
-        int c = strMessage->Unpack( 1 );
-        if ( ! ( c & igtl::MessageHeader::UNPACK_BODY ) )
+        int rs = socket->Receive( header->GetPackPointer(), header->GetPackSize() );
+        if ( rs == 0 )
           {
-          LOG_WARNING( "Lost OpenIGTLink package detected!" );
+          LOG_ERROR( "No OpenIGTLink header read." );
+          socket->CloseSocket();
+          continue;
+          }
+        if ( rs != header->GetPackSize() )
+          {
+          LOG_WARNING( "Failed to read message from the Plus client." );
           continue;
           }
         
-        LOG_INFO( "  String: " << strMessage->GetString() );
+        header->Unpack();  // Deserialize the header
         
-        self->React( socket, strMessage->GetString() );
-        }
-      else
-        {
-        LOG_WARNING( "Unexpected message type received: " << header->GetDeviceType() );
-        socket->Skip( header->GetBodySizeToRead(), 0 );
+          // Check data type and receive data body
+        
+        if ( strcmp( header->GetDeviceType(), "STRING1" ) == 0 )
+          {
+          igtl::StringMessage1::Pointer strMessage = igtl::StringMessage1::New();
+          strMessage->SetMessageHeader( header );
+          strMessage->AllocatePack();
+          
+          socket->Receive( strMessage->GetPackBodyPointer(), strMessage->GetPackBodySize() );
+          
+          LOG_INFO( "Server received message." );
+          int c = strMessage->Unpack( 1 );
+          if ( ! ( c & igtl::MessageHeader::UNPACK_BODY ) )
+            {
+            LOG_WARNING( "Lost OpenIGTLink package detected!" );
+            continue;
+            }
+          
+          LOG_INFO( "  String: " << strMessage->GetString() );
+          
+          self->React( socket, strMessage->GetString() );
+          }
+        else
+          {
+          LOG_WARNING( "Unexpected message type received: " << header->GetDeviceType() );
+          socket->Skip( header->GetBodySizeToRead(), 0 );
+          }
         }
       
       }
@@ -100,6 +107,8 @@ vtkCommunicationThread( vtkMultiThreader::ThreadInfo* data )
     {
     socket->CloseSocket();
     }
+  
+  return NULL;
 }
 
 

@@ -71,6 +71,7 @@ vtkPlusOpenIGTLinkClient
   
     // Send the string message to the server.
   
+  // int alive = this->ClientSocket->GetConnected();
   int success = this->ClientSocket->Send( stringMessage->GetPackPointer(), stringMessage->GetPackSize() );
   
   if ( success == 1 )
