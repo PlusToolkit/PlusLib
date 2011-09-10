@@ -42,13 +42,11 @@ vtkCommunicationThread( vtkMultiThreader::ThreadInfo* data )
   while ( self->GetActive() )
     {
     self->Mutex->Lock();
-    std::cerr << "wait for connection" << std::endl;
     socket = serverSocket->WaitForConnection( 500 );
     self->Mutex->Unlock();
     
     if ( socket.IsNotNull() ) // if client connected
       {
-      std::cerr << "socket not null" << std::endl;
       
       igtl::MessageHeader::Pointer header = igtl::MessageHeader::New();
       
@@ -56,7 +54,10 @@ vtkCommunicationThread( vtkMultiThreader::ThreadInfo* data )
         {
         header->InitPack();
         
+        std::cerr << "socket receive" << std::endl;
         int rs = socket->Receive( header->GetPackPointer(), header->GetPackSize() );
+        std::cerr << "socket receive done" << std::endl;
+        
         if ( rs == 0 )
           {
           LOG_ERROR( "No OpenIGTLink header read." );
@@ -157,6 +158,12 @@ vtkPlusOpenIGTLinkServer
     return PLUS_FAIL;
     }
   
+  if ( this->ThreadId >= 0 )
+    {
+    LOG_DEBUG( "Tried to start OpenIGTLink server, but it was already running." );
+    return PLUS_SUCCESS;
+    }
+  
   this->Active = true;
   this->ThreadId = this->Threader->SpawnThread( (vtkThreadFunctionType)&vtkCommunicationThread, this );
   
@@ -175,9 +182,6 @@ vtkPlusOpenIGTLinkServer
     }
   
   this->Active = false;
-  
-  this->Mutex->Lock();
-  this->Mutex->Unlock();
   
   this->Threader->TerminateThread( this->ThreadId );
   this->ThreadId = -1;

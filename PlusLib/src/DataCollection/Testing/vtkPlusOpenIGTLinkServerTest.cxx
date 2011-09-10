@@ -122,16 +122,15 @@ int main( int argc, char** argv )
     return 1;
     }
   
-  for ( int messageIndex = 0; messageIndex < 5; ++ messageIndex )
+  for ( int messageIndex = 0; messageIndex < 4; ++ messageIndex )
     {
     vtkSmartPointer< vtkPlusStartDataCollectionCommand > command =
         vtkSmartPointer< vtkPlusStartDataCollectionCommand >::New();
     
     bool success = plusClient->SendCommand( command );
     
-    vtkAccurateTimer::Delay( 0.9 );
+    vtkAccurateTimer::Delay( 0.5 );
     }
-  
   
   server->Stop();
   vtkAccurateTimer::Delay( 0.2 );
