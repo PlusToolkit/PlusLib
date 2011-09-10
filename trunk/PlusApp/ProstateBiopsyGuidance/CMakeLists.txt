@@ -60,7 +60,7 @@ SET (ProstateBiopsyGuidance_LIBS
     vtkTracking
     vtkDataCollection
     vtkPlusCommon
-    VibroAudioCard
+  #  VibroAudioCard
     )
 
 IF (PLUS_USE_OpenIGTLink)
