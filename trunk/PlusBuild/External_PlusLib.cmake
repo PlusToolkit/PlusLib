@@ -57,7 +57,8 @@ ExternalProject_Add(PlusLib
                 -DPLUS_USE_USBECGBOX:BOOL=${PLUS_USE_USBECGBOX}
                 -DQT_QMAKE_EXECUTABLE:FILEPATH=${QT_QMAKE_EXECUTABLE}
                 -DQT_BINARY_DIR:PATH=${QT_BINARY_DIR}
-                -DULTERIUS_MAJOR_VERSION=${PLUS_ULTERIUS_MAJOR_VERSION}
+                -DPLUS_ULTERIUS_MAJOR_VERSION=${PLUS_ULTERIUS_MAJOR_VERSION}
+                -DPLUS_ULTERIUS_MINOR_VERSION=${PLUS_ULTERIUS_MINOR_VERSION}
                 -DCMAKE_CXX_FLAGS:STRING=${ep_common_cxx_flags}
                 -DCMAKE_C_FLAGS:STRING=${ep_common_c_flags}
             #--Build step-----------------

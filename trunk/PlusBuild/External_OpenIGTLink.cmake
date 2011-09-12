@@ -12,7 +12,6 @@ ExternalProject_Add( OpenIGTLink
                 -DBUILD_SHARED_LIBS:BOOL=${PLUSBUILD_BUILD_SHARED_LIBS}
                 -DBUILD_TESTING:BOOL=OFF 
                 -DBUILD_EXAMPLES:BOOL=OFF
-                -DOpenIGTLink_DIR:FILEPATH=${PLUS_OPENIGTLINK_DIR}/bin
                 -DOpenIGTLink_PROTOCOL_VERSION_2:BOOL=ON
                 -DCMAKE_CXX_FLAGS:STRING=${ep_common_cxx_flags}
                 -DCMAKE_C_FLAGS:STRING=${ep_common_c_flags}

@@ -20,14 +20,13 @@ ExternalProject_Add(PlusApp
             CMAKE_ARGS 
                 -DPLUSLIB_DIR:PATH=${PLUSLIB_DIR}
                 -DSubversion_SVN_EXECUTABLE:FILEPATH=${Subversion_SVN_EXECUTABLE}
-                -DPLUSAPP_BUILD_4DUltrasound:BOOL=ON
                 -DPLUSAPP_BUILD_VolumeReconstructor:BOOL=ON
                 -DPLUSAPP_BUILD_DiagnosticTools:BOOL=ON
                 -DPLUSAPP_BUILD_OpenIGTLinkBroadcaster:BOOL=${PLUSBUILD_USE_OpenIGTLink}
                 -DPLUSAPP_BUILD_SequenceMetaFileConverter:BOOL=ON
                 -DPLUSAPP_BUILD_TrackedUltrasoundCapturing:BOOL=ON
 				-DPLUSAPP_BUILD_ProstateBiopsyGuidance:BOOL=ON
-                -DPLUSAPP_BUILD_FreehandCalibration:BOOL=ON
+                -DPLUSAPP_BUILD_fCal:BOOL=ON
                 -DQT_QMAKE_EXECUTABLE:FILEPATH=${QT_QMAKE_EXECUTABLE}
                 -DCMAKE_CXX_FLAGS:STRING=${ep_common_cxx_flags}
                 -DCMAKE_C_FLAGS:STRING=${ep_common_c_flags}
