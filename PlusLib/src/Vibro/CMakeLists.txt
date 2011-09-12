@@ -1,2 +1,8 @@
 ADD_SUBDIRECTORY(AudioCard)
 ADD_SUBDIRECTORY(Mcdc)
+
+SET (Vibro_INCLUDE_DIRS 
+  ${VibroAudioCard_INCLUDE_DIRS}
+  ${VibroAudioCard_INCLUDE_DIRS}
+  CACHE INTERNAL "" FORCE
+  )

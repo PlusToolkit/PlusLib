@@ -9,7 +9,7 @@ SET (TrusCalibration_SRCS
 	vtkProbeCalibrationController.cxx 
 	vtkProbeCalibrationControllerIO.cxx 
 	vtkStepperCalibrationController.cxx 
-    vtkMeanShiftClustering.cxx 
+  vtkMeanShiftClustering.cxx 
 	StylusCalibrationController.cxx
 	PhantomRegistrationController.cxx
 	vtkFreehandCalibrationController.cxx
@@ -27,7 +27,7 @@ IF (WIN32)
 		vtkProbeCalibrationController.h
 		vtkProbeCalibrationControllerIO.h
 		vtkStepperCalibrationController.h 
-        vtkMeanShiftClustering.h
+    vtkMeanShiftClustering.h
 		AbstractToolbox.h
 		AbstractToolboxController.h
 		StylusCalibrationController.h
@@ -38,25 +38,30 @@ IF (WIN32)
 		)
 ENDIF (WIN32)
 
-ADD_SUBDIRECTORY (TrusCalibrationCommon)
+SET (TrusCalibration_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} CACHE INTERNAL "" FORCE)
 
-IF (BUILD_TESTING)
-	ADD_SUBDIRECTORY (Testing)
-ENDIF (BUILD_TESTING)
-		
+ADD_SUBDIRECTORY (TrusCalibrationCommon)
+				
 # --------------------------------------------------------------------------
 # Build the library
 
-SET (TrusCalibration_LIBS vtkCommon vtkInfovis itkvnl itkvnl_algo UsFidSegAlgo vtkTrusCalibrationCommon vtkPlusCommon)
+SET (TrusCalibration_LIBS 
+  vtkCommon 
+  vtkInfovis 
+  itkvnl 
+  itkvnl_algo 
+  UsFidSegAlgo 
+  vtkTrusCalibrationCommon 
+  vtkPlusCommon
+  )
 
+INCLUDE_DIRECTORIES( ${TrusCalibration_INCLUDE_DIRS} )
 ADD_LIBRARY( vtkTrusCalibration STATIC ${TrusCalibration_SRCS} ${TrusCalibration_HDRS} )
-
 TARGET_LINK_LIBRARIES(vtkTrusCalibration ${TrusCalibration_LIBS})
-
 
 # --------------------------------------------------------------------------
 # Set external MS project 
-SET(PLUSLIB_DEPENDENCIES ${PLUSLIB_DEPENDENCIES} vtkTrusCalibration CACHE INTERNAL "" FORCE)
+SET (PLUSLIB_DEPENDENCIES ${PLUSLIB_DEPENDENCIES} vtkTrusCalibration CACHE INTERNAL "" FORCE)
 LIST(REMOVE_DUPLICATES PLUSLIB_DEPENDENCIES)
 # Add this variable to UsePlusLib.cmake.in INCLUDE_PLUSLIB_MS_PROJECTS macro
 SET(vcProj_vtkTrusCalibration vtkTrusCalibration "${PlusLib_BINARY_DIR}/src/TrusCalibration/vtkTrusCalibration.vcproj" vtkPlusCommon UsFidSegAlgo CACHE INTERNAL "" FORCE)
@@ -69,3 +74,11 @@ SET(vcProj_vtkTrusCalibration vtkTrusCalibration "${PlusLib_BINARY_DIR}/src/Trus
   # DESTINATION bin
   # CONFIGURATIONS Release
   # COMPONENT RuntimeLibraries)
+    
+# --------------------------------------------------------------------------
+# Testing
+#
+
+IF (BUILD_TESTING)
+	ADD_SUBDIRECTORY (Testing)
+ENDIF (BUILD_TESTING)

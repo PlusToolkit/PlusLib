@@ -33,12 +33,14 @@ IF (WIN32)
 		)
 ENDIF (WIN32)
 
+SET (TrusCalibrationCommon_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} )
 
 # --------------------------------------------------------------------------
 # Build the library
 
+SET (TrusCalibration_INCLUDE_DIRS ${TrusCalibration_INCLUDE_DIRS} ${TrusCalibrationCommon_INCLUDE_DIRS} CACHE INTERNAL "" FORCE	)
+INCLUDE_DIRECTORIES( ${TrusCalibrationCommon_INCLUDE_DIRS} )
 ADD_LIBRARY( vtkTrusCalibrationCommon STATIC ${TrusCalibrationCommon_SRCS} ${TrusCalibrationCommon_HDRS} )
-
 TARGET_LINK_LIBRARIES(vtkTrusCalibrationCommon vtkCommon )
 
 # --------------------------------------------------------------------------

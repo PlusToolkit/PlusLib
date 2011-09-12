@@ -22,17 +22,23 @@ if (WIN32)
 		)
 endif (WIN32)	
 
-IF (BUILD_TESTING)
-	SUBDIRS (Testing)
-ENDIF (BUILD_TESTING)
+SET (VolumeReconstruction_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} CACHE INTERNAL "" FORCE )
 
 # --------------------------------------------------------------------------
 # Build the library
 
-SET (VolumeReconstruction_LIBS vtkCommon vtkHybrid vtkFiltering vtkPlusCommon vtkSignaling vtkTracking vtkImageAcquisition )
+SET (VolumeReconstruction_LIBS 
+  vtkCommon 
+  vtkHybrid 
+  vtkFiltering 
+  vtkPlusCommon 
+  vtkSignaling 
+  vtkTracking 
+  vtkImageAcquisition 
+  )
 
+INCLUDE_DIRECTORIES( ${VolumeReconstruction_INCLUDE_DIRS} )
 ADD_LIBRARY(vtkVolumeReconstruction ${VolumeReconstruction_SRCS} ${VolumeReconstruction_HDRS})
-
 TARGET_LINK_LIBRARIES(	vtkVolumeReconstruction  ${VolumeReconstruction_LIBS} )
 
 # --------------------------------------------------------------------------
@@ -52,4 +58,10 @@ INSTALL(TARGETS vtkVolumeReconstruction
     CONFIGURATIONS Release
     COMPONENT RuntimeLibraries)
 
+# --------------------------------------------------------------------------
+# Testing
+#
 
+IF (BUILD_TESTING)
+	SUBDIRS (Testing)
+ENDIF (BUILD_TESTING)

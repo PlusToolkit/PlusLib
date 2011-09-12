@@ -28,9 +28,6 @@ namespace atc
 #include "vtkTracker.h"
 #include "vtkTrackerTool.h"
 #include "vtkTrackerBuffer.h"
-#include "vtkTrackedFrameList.h"
-
-
 
 vtkAscension3DGTracker*
 vtkAscension3DGTracker::New()
