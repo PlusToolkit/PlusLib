@@ -21,98 +21,6 @@ vtkStandardNewMacro( vtkPlusOpenIGTLinkServer );
 
 
 
-static
-void*
-vtkCommunicationThread( vtkMultiThreader::ThreadInfo* data )
-{
-  vtkPlusOpenIGTLinkServer* self = (vtkPlusOpenIGTLinkServer*)( data->UserData );
-  
-  igtl::ServerSocket::Pointer serverSocket = igtl::ServerSocket::New();
-  int r = serverSocket->CreateServer( self->NetworkPort );
-  
-  
-  if ( r < 0 )
-    {
-    std::cerr << "Cannot create a server socket." << std::endl;
-    return NULL;
-    }
-
-  igtl::Socket::Pointer socket;
-  
-  while ( self->GetActive() )
-    {
-    self->Mutex->Lock();
-    socket = serverSocket->WaitForConnection( 500 );
-    self->Mutex->Unlock();
-    
-    if ( socket.IsNotNull() ) // if client connected
-      {
-      
-      igtl::MessageHeader::Pointer header = igtl::MessageHeader::New();
-      
-      for ( int i = 0; i < 100; ++ i )
-        {
-        header->InitPack();
-        
-        std::cerr << "socket receive" << std::endl;
-        int rs = socket->Receive( header->GetPackPointer(), header->GetPackSize() );
-        std::cerr << "socket receive done" << std::endl;
-        
-        if ( rs == 0 )
-          {
-          LOG_ERROR( "No OpenIGTLink header read." );
-          socket->CloseSocket();
-          continue;
-          }
-        if ( rs != header->GetPackSize() )
-          {
-          LOG_WARNING( "Failed to read message from the Plus client." );
-          continue;
-          }
-        
-        header->Unpack();  // Deserialize the header
-        
-          // Check data type and receive data body
-        
-        if ( strcmp( header->GetDeviceType(), "STRING1" ) == 0 )
-          {
-          igtl::StringMessage1::Pointer strMessage = igtl::StringMessage1::New();
-          strMessage->SetMessageHeader( header );
-          strMessage->AllocatePack();
-          
-          socket->Receive( strMessage->GetPackBodyPointer(), strMessage->GetPackBodySize() );
-          
-          LOG_INFO( "Server received message." );
-          int c = strMessage->Unpack( 1 );
-          if ( ! ( c & igtl::MessageHeader::UNPACK_BODY ) )
-            {
-            LOG_WARNING( "Lost OpenIGTLink package detected!" );
-            continue;
-            }
-          
-          LOG_INFO( "  String: " << strMessage->GetString() );
-          
-          self->React( socket, strMessage->GetString() );
-          }
-        else
-          {
-          LOG_WARNING( "Unexpected message type received: " << header->GetDeviceType() );
-          socket->Skip( header->GetBodySizeToRead(), 0 );
-          }
-        }
-      
-      }
-    }
-  
-  if ( socket.IsNotNull() )
-    {
-    socket->CloseSocket();
-    }
-  
-  return NULL;
-}
-
-
 
 void
 vtkPlusOpenIGTLinkServer
@@ -191,6 +99,56 @@ vtkPlusOpenIGTLinkServer
 
 
 
+void*
+vtkPlusOpenIGTLinkServer
+::vtkCommunicationThread( vtkMultiThreader::ThreadInfo* data )
+{
+  vtkPlusOpenIGTLinkServer* self = (vtkPlusOpenIGTLinkServer*)( data->UserData );
+  
+  int r = self->ServerSocket->CreateServer( self->NetworkPort );
+  
+  // igtl::ServerSocket::Pointer serverSocket = igtl::ServerSocket::New();
+  // int r = serverSocket->CreateServer( self->NetworkPort );
+  
+  if ( r < 0 )
+    {
+    std::cerr << "Cannot create a server socket." << std::endl;
+    return NULL;
+    }
+  
+  
+  // igtl::Socket::Pointer socket;
+  
+  
+  while ( self->GetActive() )
+    {
+    self->Mutex->Lock();
+    // socket = serverSocket->WaitForConnection( 500 );
+    self->WaitForConnection();
+    self->Mutex->Unlock();
+    
+    if ( self->ClientSocket.IsNotNull() ) // if client connected
+      {
+      self->ReceiveController();
+      }
+    }
+  
+  if ( self->ClientSocket.IsNotNull() )
+    {
+    self->ClientSocket->CloseSocket();
+    }
+  
+  if ( self->ServerSocket.IsNotNull() )
+    {
+    self->ServerSocket->CloseSocket();
+    }
+  
+  self->ThreadId = -1;
+  return NULL;
+}
+
+
+
 /**
  * Protected constructor.
  */
@@ -204,6 +162,9 @@ vtkPlusOpenIGTLinkServer
   this->Threader = vtkMultiThreader::New();
   
   this->Mutex = vtkMutexLock::New();
+  
+  this->ServerSocket = igtl::ServerSocket::New();
+  // this->ClientSocket = igtl::ClientSocket::New();
 }
 
 
@@ -224,11 +185,106 @@ vtkPlusOpenIGTLinkServer
 
 
 
+int
+vtkPlusOpenIGTLinkServer
+::WaitForConnection()
+{
+  while ( ! this->GetActive() )
+    {
+    this->ClientSocket = this->ServerSocket->WaitForConnection( 500 );
+    if ( this->ClientSocket.IsNotNull() )
+      {
+      return 1;
+      }
+    }
+  
+  if ( this->ClientSocket.IsNotNull() )
+    {
+    this->ClientSocket->CloseSocket();
+    }
+  
+  return 0;
+}
+
+
+
 void
 vtkPlusOpenIGTLinkServer
-::React( igtl::Socket::Pointer& socket, std::string input )
+::ReceiveController()
 {
-  vtkSmartPointer< vtkPlusCommandFactory > commandFactory = vtkSmartPointer< vtkPlusCommandFactory >::New();
+  igtl::MessageHeader::Pointer header = igtl::MessageHeader::New();
+  
+  if ( this->ClientSocket.IsNull() )
+    {
+    return;
+    }
+  
+  
+  while ( this->GetActive() )
+    {
+    if ( ! this->ClientSocket->GetConnected() )
+      {
+      break;
+      }
+    
+    header->InitPack();
+    
+    int rs = this->ClientSocket->Receive( header->GetPackPointer(), header->GetPackSize() );
+    if ( rs == 0 )
+      {
+      LOG_INFO( "Server could not receive package." );
+      this->ClientSocket->CloseSocket();
+      break;
+      }
+    else if ( rs != header->GetPackSize() )
+      {
+      LOG_WARNING( "Irregluar size " << rs << " expecting " << header->GetPackSize() );
+      break;
+      }
+    
+    header->Unpack();  // Deserialize the header
+    
+    
+      // Check data type and receive data body
+    
+    if ( strcmp( header->GetDeviceType(), "STRING1" ) != 0 )
+      {
+      LOG_WARNING( "Unexpected message type received: " << header->GetDeviceType() );
+      this->ClientSocket->Skip( header->GetBodySizeToRead() );
+      }
+      
+    igtl::StringMessage1::Pointer strMessage = igtl::StringMessage1::New();
+    strMessage->SetMessageHeader( header );
+    strMessage->AllocatePack();
+    
+    this->ClientSocket->Receive( strMessage->GetPackBodyPointer(), strMessage->GetPackBodySize() );
+    
+    LOG_INFO( "Server received message." );
+    int c = strMessage->Unpack( 1 );
+    if ( ! ( c & igtl::MessageHeader::UNPACK_BODY ) )
+      {
+      LOG_WARNING( "Lost OpenIGTLink package detected!" );
+      continue;
+      }
+    
+    LOG_INFO( "Server received string: " << strMessage->GetString() );
+    
+      // TODO: Instead of doing this on the thread, message would have to be placed
+      // in a thread-safe buffer.
+    
+    this->React( strMessage->GetString() );
+    }
+}
+
+
+
+void
+vtkPlusOpenIGTLinkServer
+::React( std::string input )
+{
+  vtkSmartPointer< vtkPlusCommandFactory > commandFactory =
+      vtkSmartPointer< vtkPlusCommandFactory >::New();
+  
   vtkPlusCommand* command = commandFactory->CreatePlusCommand( input );
   
   if ( command != NULL )

@@ -1,5 +1,6 @@
 
 #include <iostream>
+#include <string>
 
 #include "igtlClientSocket.h"
 
@@ -95,14 +96,15 @@ int main( int argc, char** argv )
     tracker->Connect();
     }
   
-  LOG_DEBUG("Initializing data collector... ");
+  LOG_DEBUG( "Initializing data collector... " );
   dataCollector->Initialize();
   
   
     // Create a server.
   
-  LOG_DEBUG("Initializing server... ");
-  vtkSmartPointer< vtkPlusOpenIGTLinkServer > server = vtkSmartPointer< vtkPlusOpenIGTLinkServer >::New();
+  LOG_DEBUG( "Initializing server... " );
+  vtkSmartPointer< vtkPlusOpenIGTLinkServer > server =
+      vtkSmartPointer< vtkPlusOpenIGTLinkServer >::New();
   server->SetDataCollector( dataCollector );
   server->SetNetworkPort( Port );
   server->Start();
@@ -112,7 +114,8 @@ int main( int argc, char** argv )
   
     // Create a client to connect to the server.
   
-  vtkSmartPointer< vtkPlusOpenIGTLinkClient > plusClient = vtkSmartPointer< vtkPlusOpenIGTLinkClient >::New();
+  vtkSmartPointer< vtkPlusOpenIGTLinkClient > plusClient =
+      vtkSmartPointer< vtkPlusOpenIGTLinkClient >::New();
   plusClient->SetNetworkPort( Port );
   plusClient->SetServerAddress( "localhost" );
   
@@ -132,9 +135,10 @@ int main( int argc, char** argv )
     vtkAccurateTimer::Delay( 0.5 );
     }
 
-LOG_ERROR("Exit the test before it hangs - need to be fixed");
-return EXIT_FAILURE;
+//LOG_ERROR("Exit the test before it hangs - need to be fixed");
+//return EXIT_FAILURE;
 
+  vtkAccurateTimer::Delay( 1.0 );
   server->Stop();
   vtkAccurateTimer::Delay( 0.2 );
   
