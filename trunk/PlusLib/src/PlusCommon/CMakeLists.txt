@@ -6,7 +6,6 @@ SET ( PlusCommon_SRCS
 		vtkPlusLogger.cxx
 		vtkHTMLGenerator.cxx 
 		vtkGnuplotExecuter.cxx
-    UsImageConverterCommon.cxx
 		vtkConfigurationTools.cxx
     PlusMath.cxx 
 		)
@@ -23,16 +22,11 @@ if (WIN32)
     vtkTimestampedCircularBuffer.h 
     vtkTimestampedCircularBuffer.txx
 		vtkConfigurationTools.h
-    UsImageConverterCommon.h
     PlusMath.h
 		)
 endif (WIN32)	
 
-IF (BUILD_TESTING)
-	SUBDIRS (Testing)
-ENDIF (BUILD_TESTING)
-
-SET (External_Libraries_Install)
+SET (PlusCommon_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} CACHE INTERNAL "" FORCE)
 
 # --------------------------------------------------------------------------
 # Build the library
@@ -43,8 +37,8 @@ if (WIN32)
 	SET (PlusCommon_LIBS ${PlusCommon_LIBS} Winmm )
 endif (WIN32)
 
+INCLUDE_DIRECTORIES( ${PlusCommon_INCLUDE_DIRS} )
 ADD_LIBRARY(vtkPlusCommon ${PlusCommon_SRCS} ${PlusCommon_HDRS})
-
 TARGET_LINK_LIBRARIES(	vtkPlusCommon ${PlusCommon_LIBS} )
 
 # --------------------------------------------------------------------------
@@ -57,16 +51,18 @@ SET(vcProj_vtkPlusCommon vtkPlusCommon ${PlusLib_BINARY_DIR}/src/PlusCommon/vtkP
 # --------------------------------------------------------------------------
 # Install
 #
-
-INSTALL(FILES 
-	${External_Libraries_Install}
-	DESTINATION bin
-    CONFIGURATIONS Release
-	COMPONENT RuntimeLibraries
-	)
 	
 INSTALL(TARGETS vtkPlusCommon
     RUNTIME
     DESTINATION bin
     CONFIGURATIONS Release
-    COMPONENT RuntimeLibraries)
+    COMPONENT RuntimeLibraries
+    )
+
+# --------------------------------------------------------------------------
+# Testing
+#
+
+IF (BUILD_TESTING)
+	SUBDIRS (Testing)
+ENDIF (BUILD_TESTING)

@@ -1,6 +1,19 @@
 SET( TestDataDir ${PLUSLIB_DATA_DIR}/TestImages )
 SET( ConfigFilesDir ${PLUSLIB_DATA_DIR}/ConfigFiles )
 
+#--------------------------------------------------------------------------------------------
+ADD_EXECUTABLE(TimestampFilteringTest TimestampFilteringTest.cxx )
+TARGET_LINK_LIBRARIES(TimestampFilteringTest vtkPlusCommon vtkImageAcquisition vtkTracking )
+
+ADD_TEST(TimestampFilteringTest 
+  ${EXECUTABLE_OUTPUT_PATH}/TimestampFilteringTest
+  --input-metafile=${TestDataDir}/TimestampFilteringTest.mha 
+  --input-averaged-items-for-filtering=20
+  --input-max-timestamp-difference=0.08
+  --input-min-stdev-reduction-factor=3.0
+  )
+SET_TESTS_PROPERTIES( TimestampFilteringTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+
 #***************************  vtkDataCollectorTest1 ***************************
 ADD_EXECUTABLE(vtkDataCollectorTest1 vtkDataCollectorTest1.cxx)
 TARGET_LINK_LIBRARIES(vtkDataCollectorTest1 vtkDataCollection )

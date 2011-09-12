@@ -131,10 +131,13 @@ int main( int argc, char** argv )
     
     vtkAccurateTimer::Delay( 0.5 );
     }
-  
+
+LOG_ERROR("Exit the test before it hangs - need to be fixed");
+return EXIT_FAILURE;
+
   server->Stop();
   vtkAccurateTimer::Delay( 0.2 );
   
   
-  return 0;
+  return EXIT_SUCCESS;
 }

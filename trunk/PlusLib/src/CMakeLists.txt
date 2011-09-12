@@ -64,57 +64,74 @@ configure_file(
 	${CMAKE_CURRENT_BINARY_DIR}/PlusConfigure.h
 	)
 
+# --------------------------------------------------------------------------
+# Initialize variables that will be filled by makefiles in subdirectories
+#
+
+# PLUSLIB_DEPENDENCIES contain all the exported targets that will be
+# available to applications that use PlusLib
+SET(PLUSLIB_DEPENDENCIES "" CACHE INTERNAL "" )
+
+# PLUSLIB_INCLUDE_DIRS contain all the include directories that will be
+# available to applications that use PlusLib
+SET(PLUSLIB_INCLUDE_DIRS "" CACHE INTERNAL "" )
 
 # --------------------------------------------------------------------------
-# Include dirs
+# Current directory
 
-SET (PLUSLIB_INCLUDE_DIRS 	
+SET (BASIC_INCLUDE_DIRS 	
 	${CMAKE_CURRENT_SOURCE_DIR}
 	${CMAKE_CURRENT_BINARY_DIR}
-	${CMAKE_CURRENT_SOURCE_DIR}/DataCollection
-	#${CMAKE_CURRENT_SOURCE_DIR}/Vibro/AudioCard
-	#${CMAKE_CURRENT_SOURCE_DIR}/Vibro/Mcdc	  
-	${CMAKE_CURRENT_SOURCE_DIR}/Signaling
-	${CMAKE_CURRENT_SOURCE_DIR}/ImageAcquisition 
-	${CMAKE_CURRENT_SOURCE_DIR}/ImageAcquisition/ICCapturing 
-	${CMAKE_CURRENT_SOURCE_DIR}/ImageAcquisition/LinuxVideo 
-	${CMAKE_CURRENT_SOURCE_DIR}/ImageAcquisition/MatroxImaging 
-	${CMAKE_CURRENT_SOURCE_DIR}/ImageAcquisition/SonixVideo 
-	${CMAKE_CURRENT_SOURCE_DIR}/ImageAcquisition/VideoForWindows 
-	${CMAKE_CURRENT_SOURCE_DIR}/PlusCommon
-	${CMAKE_CURRENT_SOURCE_DIR}/Tracking
-    ${CMAKE_CURRENT_SOURCE_DIR}/Tracking/Ascension3DGTracking
-	${CMAKE_CURRENT_SOURCE_DIR}/Tracking/BrachyTracking
-	${CMAKE_CURRENT_SOURCE_DIR}/Tracking/BrachyTracking/Utils	
-	${CMAKE_CURRENT_SOURCE_DIR}/Tracking/FakeTracking 
-	${CMAKE_CURRENT_SOURCE_DIR}/Tracking/FlockTracking 
-	${CMAKE_CURRENT_SOURCE_DIR}/Tracking/FlockTracking/Utils
-	${CMAKE_CURRENT_SOURCE_DIR}/Tracking/MicronTracking 
-	${CMAKE_CURRENT_SOURCE_DIR}/Tracking/MicronTracking/Utils
-	${CMAKE_CURRENT_SOURCE_DIR}/Tracking/ndicapi 
-	${CMAKE_CURRENT_SOURCE_DIR}/Tracking/NDICertusTracking 
-	${CMAKE_CURRENT_SOURCE_DIR}/Tracking/PolarisTracking 
-	${CMAKE_CURRENT_SOURCE_DIR}/TrusCalibration
-	${CMAKE_CURRENT_SOURCE_DIR}/TrusCalibration/TrusCalibrationCommon  
-	${CMAKE_CURRENT_SOURCE_DIR}/UsFidSegAlgo
-	${CMAKE_CURRENT_SOURCE_DIR}/VolumeReconstruction 
-	CACHE INTERNAL "" FORCE
 	)
-
-
-INCLUDE_DIRECTORIES( ${PLUSLIB_INCLUDE_DIRS} )
+INCLUDE_DIRECTORIES( ${BASIC_INCLUDE_DIRS} )
+SET(PLUSLIB_INCLUDE_DIRS ${PLUSLIB_INCLUDE_DIRS} ${BASIC_INCLUDE_DIRS} CACHE INTERNAL "" )
 
 # --------------------------------------------------------------------------
-# Subdirs
-ADD_SUBDIRECTORY(ImageAcquisition)
-ADD_SUBDIRECTORY(TrusCalibration)
-ADD_SUBDIRECTORY(Signaling)
+# Subdirectories
+
+# Variables sent back from subdirectories (through CACHE):
+# ..._INCLUDE_DIRS
+# vcProj_...
+# PLUSLIB_DEPENDENCIES
+
 ADD_SUBDIRECTORY(PlusCommon)
-ADD_SUBDIRECTORY(UsFidSegAlgo)
+INCLUDE_DIRECTORIES( ${PlusCommon_INCLUDE_DIRS} )
+SET(PLUSLIB_INCLUDE_DIRS ${PLUSLIB_INCLUDE_DIRS} ${PlusCommon_INCLUDE_DIRS} CACHE INTERNAL "" )
+
+ADD_SUBDIRECTORY(ImageAcquisition)
+INCLUDE_DIRECTORIES( ${ImageAcquisition_INCLUDE_DIRS} )
+SET(PLUSLIB_INCLUDE_DIRS ${PLUSLIB_INCLUDE_DIRS} ${ImageAcquisition_INCLUDE_DIRS} CACHE INTERNAL "" )
+
+# Tracking uses vtkTrackedFrameList class from ImageAcquisition
 ADD_SUBDIRECTORY(Tracking)
+INCLUDE_DIRECTORIES( ${Tracking_INCLUDE_DIRS} )
+SET(PLUSLIB_INCLUDE_DIRS ${PLUSLIB_INCLUDE_DIRS} ${Tracking_INCLUDE_DIRS} CACHE INTERNAL "" )
+
+ADD_SUBDIRECTORY(Signaling)
+INCLUDE_DIRECTORIES( ${Signaling_INCLUDE_DIRS} )
+SET(PLUSLIB_INCLUDE_DIRS ${PLUSLIB_INCLUDE_DIRS} ${Signaling_INCLUDE_DIRS} CACHE INTERNAL "" )
+
+# DataCollection uses ImageAcquisition and Tracking
 ADD_SUBDIRECTORY(DataCollection)
-#ADD_SUBDIRECTORY(Vibro)
+INCLUDE_DIRECTORIES( ${DataCollection_INCLUDE_DIRS} )
+SET(PLUSLIB_INCLUDE_DIRS ${PLUSLIB_INCLUDE_DIRS} ${DataCollection_INCLUDE_DIRS} CACHE INTERNAL "" )
+
+ADD_SUBDIRECTORY(UsFidSegAlgo)
+INCLUDE_DIRECTORIES( ${UsFidSegAlgo_INCLUDE_DIRS} )
+SET(PLUSLIB_INCLUDE_DIRS ${PLUSLIB_INCLUDE_DIRS} ${UsFidSegAlgo_INCLUDE_DIRS} CACHE INTERNAL "" )
+
 ADD_SUBDIRECTORY(VolumeReconstruction)
+INCLUDE_DIRECTORIES( ${VolumeReconstruction_INCLUDE_DIRS} )
+SET(PLUSLIB_INCLUDE_DIRS ${PLUSLIB_INCLUDE_DIRS} ${VolumeReconstruction_INCLUDE_DIRS} CACHE INTERNAL "" )
+
+ADD_SUBDIRECTORY(TrusCalibration)
+INCLUDE_DIRECTORIES( ${TrusCalibration_INCLUDE_DIRS} )
+SET(PLUSLIB_INCLUDE_DIRS ${PLUSLIB_INCLUDE_DIRS} ${TrusCalibration_INCLUDE_DIRS} CACHE INTERNAL "" )
+
+ADD_SUBDIRECTORY(Vibro)
+INCLUDE_DIRECTORIES( ${Vibro_INCLUDE_DIRS} )
+SET(PLUSLIB_INCLUDE_DIRS ${PLUSLIB_INCLUDE_DIRS} ${Vibro_INCLUDE_DIRS} CACHE INTERNAL "" )
+
 ADD_SUBDIRECTORY(scripts)
 
 file(GLOB headers 
@@ -123,37 +140,12 @@ file(GLOB headers
 
 # --------------------------------------------------------------------------
 # Create Plus target list 
-SET( PLUSLIB_TARGETS 
-        vtkImageAcquisition 
-        vtkTrusCalibration 
-        vtkTrusCalibrationCommon 
-        vtkSignaling 
-        vtkPlusCommon 
-        UsFidSegAlgo 
-        vtkTracking 
-        vtkDataCollection 
-        vtkVolumeReconstruction
-        )
-
-IF ( PLUS_USE_BRACHY_TRACKER )
-    SET( PLUSLIB_TARGETS ${PLUSLIB_TARGETS} BrachyStepper )
-ENDIF ( PLUS_USE_BRACHY_TRACKER )
-
-IF ( PLUS_USE_CERTUS OR PLUS_USE_POLARIS )
-    SET( PLUSLIB_TARGETS ${PLUSLIB_TARGETS} vtkndicapi )
-ENDIF ( PLUS_USE_CERTUS OR PLUS_USE_POLARIS )
-
-IF ( PLUS_USE_FLOCK )
-    SET( PLUSLIB_TARGETS ${PLUSLIB_TARGETS} vtkflock )
-ENDIF ( PLUS_USE_FLOCK )
-
-IF ( PLUS_USE_MICRONTRACKER )
-    SET( PLUSLIB_TARGETS ${PLUSLIB_TARGETS} vtkMicrontrackerfiles )
-ENDIF ( PLUS_USE_MICRONTRACKER )
 
 # Add all targets to the build-tree export set
-export(TARGETS ${PLUSLIB_TARGETS}
-  FILE "${CMAKE_CURRENT_BINARY_DIR}/PlusLibLibraryDepends.cmake")    
+export(TARGETS 
+  ${PLUSLIB_DEPENDENCIES}
+  FILE "${CMAKE_CURRENT_BINARY_DIR}/PlusLibLibraryDepends.cmake"
+  )    
  
 # Export the package for use from the build-tree
 # (this registers the build-tree with a global CMake-registry)
@@ -165,12 +157,9 @@ configure_file(PlusLibConfig.cmake.in
 configure_file(PlusLibConfigVersion.cmake.in
   "${CMAKE_CURRENT_BINARY_DIR}/PlusLibConfigVersion.cmake" @ONLY)
   
-
 #-----------------------------------------------------------------------------
 # Generate include file for projects that use this library 
 # 
 configure_file(
 	${CMAKE_CURRENT_SOURCE_DIR}/UsePlusLib.cmake.in 
-	${CMAKE_CURRENT_BINARY_DIR}/UsePlusLib.cmake
-    @ONLY
-	)	
+	${CMAKE_CURRENT_BINARY_DIR}/UsePlusLib.cmake @ONLY)	

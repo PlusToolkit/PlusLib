@@ -1,8 +1,3 @@
-
-# --------------------------------------------------------------------------
-# Options 
-
-
 # --------------------------------------------------------------------------
 # Sources
 SET (DataCollection_SRCS
@@ -34,28 +29,28 @@ if (WIN32)
 		)
 endif (WIN32)	
 
-IF (BUILD_TESTING)
-	SUBDIRS (Testing)
-ENDIF (BUILD_TESTING)
+SET (DataCollection_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} CACHE INTERNAL "" FORCE)
 
 # --------------------------------------------------------------------------
 # Build the library
 
 SET (DataCollection_LIBS 
-        vtkCommon 
-        vtkHybrid 
-        vtkFiltering 
-        vtkImageAcquisition 
-        vtkPlusCommon 
-        vtkTracking 
-        vtkSignaling
-    )
+  vtkCommon 
+  vtkHybrid 
+  vtkFiltering 
+  vtkImageAcquisition 
+  vtkPlusCommon 
+  vtkTracking 
+  vtkSignaling
+  )
     
 IF (PLUS_USE_OpenIGTLink)
-    SET (DataCollection_LIBS ${DataCollection_LIBS} OpenIGTLink)
+  SET (DataCollection_LIBS ${DataCollection_LIBS} 
+    OpenIGTLink
+    )
 ENDIF(PLUS_USE_OpenIGTLink)        
 
-INCLUDE_DIRECTORIES( ${PLUSLIB_INCLUDE_DIRS} )
+INCLUDE_DIRECTORIES( ${DataCollection_INCLUDE_DIRS} )
 ADD_LIBRARY(vtkDataCollection ${DataCollection_SRCS} ${DataCollection_HDRS})
 TARGET_LINK_LIBRARIES(vtkDataCollection ${DataCollection_LIBS})
 
@@ -75,4 +70,10 @@ INSTALL(TARGETS vtkDataCollection
     CONFIGURATIONS Release
     COMPONENT RuntimeLibraries)
 
+# --------------------------------------------------------------------------
+# Testing
+#
 
+IF (BUILD_TESTING)
+	SUBDIRS (Testing)
+ENDIF (BUILD_TESTING)
