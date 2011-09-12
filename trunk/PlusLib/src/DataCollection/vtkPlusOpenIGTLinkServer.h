@@ -9,9 +9,10 @@
 #include "vtkMutexLock.h"
 #include "vtkObject.h"
 
+#include "igtlClientSocket.h"
 #include "igtlOSUtil.h"
 #include "igtlPositionMessage.h"
-#include "igtlClientSocket.h"
+#include "igtlServerSocket.h"
 
 #include "vtkDataCollector.h"
 
@@ -44,8 +45,7 @@ public:
   
   PlusStatus Start();
   PlusStatus Stop();
-  
-  friend static void* vtkCommunicationThread( vtkMultiThreader::ThreadInfo* data );
+  static void* vtkCommunicationThread( vtkMultiThreader::ThreadInfo* data );
   
   
 protected:
@@ -59,8 +59,12 @@ private:
   vtkPlusOpenIGTLinkServer( const vtkPlusOpenIGTLinkServer& );
   void operator=( const vtkPlusOpenIGTLinkServer& );
   
-  void React( igtl::Socket::Pointer& socket, std::string input );
+  int WaitForConnection();
+  void ReceiveController();
+  void React( std::string input );
   
+  igtl::ClientSocket::Pointer ClientSocket;
+  igtl::ServerSocket::Pointer ServerSocket;
   
   vtkDataCollector*  DataCollector;
   vtkMultiThreader*  Threader;
