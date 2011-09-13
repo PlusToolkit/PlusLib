@@ -1,9 +1,5 @@
 PROJECT(BrachyStepper)
 
-SET(CIVCO_SEI_INCLUDE_DIR ${PLTOOLS_DIR}/CIVCO/SEI/inc CACHE PATH "Path to the CIVCO SEI include directory." FORCE)
-SET(CIVCO_SEI_BINARY_DIR ${PLTOOLS_DIR}/CIVCO/SEI/bin CACHE PATH "Path to the CIVCO SEI binary directory." FORCE)
-SET(CIVCO_SEI_LIB_DIR ${PLTOOLS_DIR}/CIVCO/SEI/lib CACHE PATH "Path to the CIVCO SEI library directory." FORCE)
-
 SET ( BrachyStepper_SRCS 
   CmsBrachyStepper.cxx
   SerialLine.cxx

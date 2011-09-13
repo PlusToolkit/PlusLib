@@ -178,6 +178,10 @@ ENDIF (PLUS_USE_MICRONTRACKER)
 # BrachyTracker support
 IF (PLUS_USE_BRACHY_TRACKER)
 
+  SET(CIVCO_SEI_INCLUDE_DIR ${PLTOOLS_DIR}/CIVCO/SEI/inc CACHE PATH "Path to the CIVCO SEI include directory." FORCE)
+  SET(CIVCO_SEI_BINARY_DIR ${PLTOOLS_DIR}/CIVCO/SEI/bin CACHE PATH "Path to the CIVCO SEI binary directory." FORCE)
+  SET(CIVCO_SEI_LIB_DIR ${PLTOOLS_DIR}/CIVCO/SEI/lib CACHE PATH "Path to the CIVCO SEI library directory." FORCE)
+
 	SET (Tracking_SRCS ${Tracking_SRCS}
 		BrachyTracking/vtkBrachyTracker.cxx
 	)
