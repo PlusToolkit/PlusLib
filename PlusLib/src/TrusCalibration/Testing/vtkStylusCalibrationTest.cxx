@@ -1,7 +1,8 @@
 #include "PlusConfigure.h"
-#include "vtkFreehandController.h"
-#include "StylusCalibrationController.h"
-#include "vtkConfigurationTools.h"
+#include "vtkPivotCalibrationAlgo.h"
+#include "vtkDataCollector.h"
+#include "vtkTrackerTool.h"
+#include "vtkPlusConfig.h"
 
 #include "vtkSmartPointer.h"
 #include "vtkXMLDataElement.h"
@@ -53,58 +54,89 @@ int main (int argc, char* argv[])
 	}
 	programPath = vtksys::SystemTools::GetParentDirectory(programPath.c_str()); 
 
-  vtkConfigurationTools::GetInstance()->SetConfigurationFileName(inputConfigFileName.c_str());
-
   LOG_INFO("Initialize"); 
 
-	// Initialize the controllers
-	vtkSmartPointer<vtkFreehandController> controller = vtkFreehandController::GetInstance();
-	controller->TrackingOnlyOn();
+  // Read configuration
+  vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkXMLUtilities::ReadElementFromFile(inputConfigFileName.c_str());
+  if (configRootElement == NULL)
+  {	
+    LOG_ERROR("Unable to read configuration from file " << inputConfigFileName.c_str()); 
+		exit(EXIT_FAILURE);
+  }
 
-	if (controller->Initialize() != PLUS_SUCCESS) {
-		LOG_ERROR("Initialize failed!");
-		return EXIT_FAILURE;
+  // Initialize data collection
+	vtkSmartPointer<vtkDataCollector> dataCollector = vtkSmartPointer<vtkDataCollector>::New(); 
+  if (dataCollector->ReadConfiguration(configRootElement) != PLUS_SUCCESS) {
+    LOG_ERROR("Unable to parse configuration from file " << inputConfigFileName.c_str()); 
+		exit(EXIT_FAILURE);
 	}
-	if (controller->StartDataCollection() != PLUS_SUCCESS) {
-		LOG_ERROR("Initializing acquisition failed!");
-		return EXIT_FAILURE;
+	if (dataCollector->Initialize() != PLUS_SUCCESS) {
+    LOG_ERROR("Unable to initialize data collection!");
+		exit(EXIT_FAILURE);
+	}
+	if (dataCollector->Start() != PLUS_SUCCESS) {
+    LOG_ERROR("Unable to start data collection!");
+		exit(EXIT_FAILURE);
+	}
+	if ((dataCollector->GetTracker() == NULL) || (dataCollector->GetTracker()->GetNumberOfTools() < 1)) {
+    LOG_ERROR("Unable to initialize tracker!");
+		exit(EXIT_FAILURE);
 	}
 
-	StylusCalibrationController* stylusCalibrationController = StylusCalibrationController::GetInstance();
-	stylusCalibrationController->Initialize();
-	stylusCalibrationController->SetNumberOfPoints(numberOfAcquiredPoints);
-	stylusCalibrationController->Start();
+  dataCollector->SetTrackingOnly(true);
+
+  // Initialize stylus calibration
+  vtkSmartPointer<vtkPivotCalibrationAlgo> pivotCalibration = vtkSmartPointer<vtkPivotCalibrationAlgo>::New();
+	if (pivotCalibration == NULL) {
+		LOG_ERROR("Unable to instantiate pivot calibration algorithm class!");
+		exit(EXIT_FAILURE);
+	}
+
+	pivotCalibration->Initialize();
+
+  // Get stylus tool number
+  int stylusNumber = dataCollector->GetTracker()->GetFirstPortNumberByType(TRACKER_TOOL_STYLUS);
+  if (stylusNumber == -1) {
+    LOG_ERROR("Unable to find stylus in tracker!");
+		exit(EXIT_FAILURE);
+  }
 
 	// Acquire positions for pivot calibration
-	do {
+  for (int i=0; i < numberOfAcquiredPoints; ++i) {
 		vtksys::SystemTools::Delay(50);
-		vtkPlusLogger::PrintProgressbar((100.0 * stylusCalibrationController->GetCurrentPointNumber()) / numberOfAcquiredPoints); 
+		vtkPlusLogger::PrintProgressbar((100.0 * i) / numberOfAcquiredPoints); 
 
-		if (stylusCalibrationController->GetCurrentPointNumber() == numberOfAcquiredPoints - 1) {
-			vtkPlusLogger::PrintProgressbar(100.0);
-		}
+    vtkSmartPointer<vtkMatrix4x4> stylusToReferenceMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+	  TrackerStatus status = TR_MISSING;
+	  double timestamp;
 
-		// Acquire point and do registration at last point
-		stylusCalibrationController->DoAcquisition();
-	} while (stylusCalibrationController->GetCurrentPointNumber() < numberOfAcquiredPoints);
+	  if (dataCollector->GetTracker()->GetTool(stylusNumber)->GetEnabled()) {
+		  dataCollector->GetTransformWithTimestamp(stylusToReferenceMatrix, timestamp, status, stylusNumber);
+	  }
+
+    if (status == TR_OK) {
+      pivotCalibration->InsertNextCalibrationPoint(stylusToReferenceMatrix);
+    }
+  }
+
+  if (pivotCalibration->DoTooltipCalibration() != PLUS_SUCCESS) {
+    LOG_ERROR("Calibration error!");
+		exit(EXIT_FAILURE);
+  }
 
 	// Save result
-	stylusCalibrationController->SaveStylusCalibration(controller->GetConfigurationData());
+	pivotCalibration->WriteConfiguration(configRootElement, TRACKER_TOOL_STYLUS);
   vtkstd::string calibrationResultFileName = "StylusCalibrationTest.xml";
 	vtksys::SystemTools::RemoveFile(calibrationResultFileName.c_str());
-  controller->GetConfigurationData()->PrintXML(calibrationResultFileName.c_str());
+  configRootElement->PrintXML(calibrationResultFileName.c_str());
 
+  // Compare to baseline
 	if ( CompareCalibrationResultsWithBaseline( inputBaselineFileName.c_str(), calibrationResultFileName.c_str() ) !=0 )
 	{
 		LOG_ERROR("Comparison of calibration data to baseline failed");
 		std::cout << "Exit failure!!!" << std::endl;
-
-		delete stylusCalibrationController;
-
 		return EXIT_FAILURE;
 	}
-
-	delete stylusCalibrationController;
 
 	std::cout << "Exit success!!!" << std::endl; 
 	return EXIT_SUCCESS; 
@@ -130,7 +162,7 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
 		LOG_ERROR("Unable to read the current configuration file: " << currentResultFileName); 
 		return ++numberOfFailures;
 	}
-	vtkSmartPointer<vtkXMLDataElement> stylusDefinitionCurrent = vtkConfigurationTools::LookupElementWithNameContainingChildWithNameAndAttribute(rootElementCurrent, "Tracker", "Tool", "Type", "Stylus");
+	vtkSmartPointer<vtkXMLDataElement> stylusDefinitionCurrent = vtkPlusConfig::LookupElementWithNameContainingChildWithNameAndAttribute(rootElementCurrent, "Tracker", "Tool", "Type", "Stylus");
 	if (stylusDefinitionCurrent == NULL) {
 		LOG_ERROR("No stylus definition is found in the test result XML tree!");
 		return ++numberOfFailures;
@@ -149,7 +181,7 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
 		LOG_ERROR("Unable to read the baseline configuration file: " << baselineFileName); 
 		return ++numberOfFailures;
 	}
-	vtkSmartPointer<vtkXMLDataElement> stylusDefinitionBaseline = vtkConfigurationTools::LookupElementWithNameContainingChildWithNameAndAttribute(rootElementBaseline, "Tracker", "Tool", "Type", "Stylus");
+	vtkSmartPointer<vtkXMLDataElement> stylusDefinitionBaseline = vtkPlusConfig::LookupElementWithNameContainingChildWithNameAndAttribute(rootElementBaseline, "Tracker", "Tool", "Type", "Stylus");
 	if (stylusDefinitionBaseline == NULL) {
 		LOG_ERROR("No stylus definition is found in the baseline XML tree!");
 		return ++numberOfFailures;

@@ -210,7 +210,7 @@ public:
 
 	// Description:
 	// Get tool port by name 
-	int GetToolPortByName( const char* toolName); 
+	int GetToolPortByName(const char* toolName); 
 
 	// Description:
 	// Get tool ports by type

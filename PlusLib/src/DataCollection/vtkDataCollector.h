@@ -68,13 +68,7 @@ public:
 
   // Description:
   // Read the configuration file in XML format and set up the devices
-  virtual PlusStatus ReadConfigurationFromFile( const char* configFileName); 
-  virtual PlusStatus ReadConfigurationFromFile(); 
   virtual PlusStatus ReadConfiguration( vtkXMLDataElement* aDataCollectionConfig ); 
-
-  // Description:
-  // Save unified configuration to xml file 
-  virtual PlusStatus SaveConfigurationToFile(const char* aFile); 
 
   // Description:
   // Disconnect from devices
@@ -177,11 +171,6 @@ public:
   virtual void SetLocalTimeOffset(double videoOffset, double trackerOffset); 
 
   // Description:
-  // Set/Get the configuration file name
-  vtkSetStringMacro(ConfigFileName); 
-  vtkGetStringMacro(ConfigFileName); 
-
-  // Description:
   // Set/Get the device set name
   vtkSetStringMacro(DeviceSetName); 
   vtkGetStringMacro(DeviceSetName); 
@@ -239,11 +228,6 @@ public:
   vtkSetMacro(StartupDelaySec, double); 
   vtkGetMacro(StartupDelaySec, double);
 
-  // Description:
-  // Get configuration data
-  vtkGetObjectMacro(ConfigurationData, vtkXMLDataElement); 
-  vtkSetObjectMacro(ConfigurationData, vtkXMLDataElement); 
-
   int GetNumberOfTools();
 
   //! Description 
@@ -262,15 +246,15 @@ protected:
 
   // Description:
   // Read image acquisition properties from xml file 
-  virtual PlusStatus ReadImageAcquisitionProperties(); 
+  virtual PlusStatus ReadImageAcquisitionProperties(vtkXMLDataElement* aConfigurationData); 
 
   // Description:
   // Read tracker properties from xml file 
-  virtual PlusStatus ReadTrackerProperties(); 
+  virtual PlusStatus ReadTrackerProperties(vtkXMLDataElement* aConfigurationData); 
 
   // Description:
   // Read synchronization properties from xml file 
-  virtual PlusStatus ReadSynchronizationProperties(); 
+  virtual PlusStatus ReadSynchronizationProperties(vtkXMLDataElement* aConfigurationData); 
 
   // Description: 
   // Compute loop times for saved datasets (time intersection of the two buffers)
@@ -283,7 +267,7 @@ protected:
 protected:
   vtkDataCollectorSynchronizer* Synchronizer; 
 
-  vtkPlusVideoSource*	            VideoSource; 
+  vtkPlusVideoSource*	          VideoSource; 
   vtkTracker*		              	Tracker; 
 
   ACQUISITION_TYPE	            AcquisitionType; 
@@ -293,9 +277,7 @@ protected:
   std::vector<vtkMatrix4x4*>    ToolTransMatrices; 
   std::vector<TrackerStatus>	  ToolStatus; 
 
-  vtkXMLDataElement*        	  ConfigurationData;
-  char*				                  ConfigFileName; 
-  double			              	  ConfigFileVersion; 
+  double			              	  DataCollectionConfigVersion; 
 
   double                        StartupDelaySec; 
 

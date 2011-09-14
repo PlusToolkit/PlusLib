@@ -9,6 +9,7 @@
 #include "vtkMatrix4x4.h"
 #include "vtkSmartPointer.h"
 #include "vtksys/CommandLineArguments.hxx"
+#include "vtkXMLUtilities.h"
 
 #include "vtkDataCollector.h"
 #include "vtkSavedDataTracker.h"
@@ -67,10 +68,16 @@ int main( int argc, char** argv )
   vtkPlusLogger::Instance()->SetDisplayLogLevel( verboseLevel );
   
   
-    // Prepare data collector object.
-  
+  // Prepare data collector object.
+  vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkXMLUtilities::ReadElementFromFile(inputConfigFileName.c_str());
+  if (configRootElement == NULL)
+  {	
+    LOG_ERROR("Unable to read configuration from file " << inputConfigFileName.c_str()); 
+    return BC_EXIT_FAILURE;
+  }
+
   vtkDataCollector* dataCollector = vtkDataCollector::New();
-  dataCollector->ReadConfigurationFromFile( inputConfigFileName.c_str() );
+  dataCollector->ReadConfiguration( configRootElement );
   
   if ( dataCollector->GetAcquisitionType() == SYNCHRO_VIDEO_SAVEDDATASET )
     {

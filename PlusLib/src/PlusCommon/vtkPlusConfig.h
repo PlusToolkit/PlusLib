@@ -1,36 +1,37 @@
-// .NAME vtkConfigurationTools - class for finding files in a directory and its subdirectorys
+// .NAME vtkPlusConfig - class for finding files in a directory and its subdirectorys
 // .SECTION Description
-// This class is used for finding files in a directory and its subdirectorys
+// This class is used for finding files in a directory and its subdirectorys, handling configuration (directory, file name, XML tree)
 
-#ifndef __VTKFILEFINDER_H
-#define __VTKFILEFINDER_H
+#ifndef __vtkPlusConfig_h
+#define __vtkPlusConfig_h
+
+#include "PlusConfigure.h"
 
 #include "vtkObject.h"
-
-class vtkXMLDataElement;
+#include "vtkXMLDataElement.h"
 
 //-----------------------------------------------------------------------------
 
-class VTK_EXPORT vtkConfigurationTools : public vtkObject
+class VTK_EXPORT vtkPlusConfig : public vtkObject
 {
 public:
-	vtkTypeRevisionMacro(vtkConfigurationTools, vtkObject);
+	vtkTypeRevisionMacro(vtkPlusConfig, vtkObject);
 
 	/*!
 	* \brief New
 	*/
-	static vtkConfigurationTools *New();
+	static vtkPlusConfig *New();
 
 	/*!
 	* \brief Instance getter for the singleton class
 	* \return Instance object
 	*/
-	static vtkConfigurationTools* GetInstance();
+	static vtkPlusConfig* GetInstance();
 
 	/*!
 	* \brief Destructor
 	*/
-	virtual	~vtkConfigurationTools();
+	virtual	~vtkPlusConfig();
 
 	/*!
 	* \brief Search recursively for a file in the configuration directory
@@ -72,6 +73,13 @@ public:
 	 */
 	static vtkXMLDataElement* LookupElementWithNameContainingChildWithNameAndAttribute(vtkXMLDataElement* aConfig, const char* aElementName, const char* aChildName, const char* aChildAttributeName, const char* aChildAttributeValue);
 
+	/*!
+	* \brief Saves current configuration data to specified file
+	* \param aFile Name of the file to be saved
+	* \return Success flag
+	*/
+  PlusStatus SaveConfigurationToFile(const char* aFile);
+
 public:
 	//! Get/Set macro for configuration directory
 	vtkGetStringMacro(ConfigurationDirectory);
@@ -80,6 +88,10 @@ public:
 	//! Get/Set macro for configuration file name
 	vtkGetStringMacro(ConfigurationFileName);
 	vtkSetStringMacro(ConfigurationFileName);
+
+	//! Get/Set macro for configuration data
+  vtkGetObjectMacro(ConfigurationData, vtkXMLDataElement); 
+  vtkSetObjectMacro(ConfigurationData, vtkXMLDataElement); 
 
 protected:
 	/*!
@@ -94,18 +106,21 @@ protected:
 	/*!
 	* \brief Constructor
 	*/
-	vtkConfigurationTools();
+	vtkPlusConfig();
 
 protected:
 	//! Configuration directory path
-	char* ConfigurationDirectory;
+	char*               ConfigurationDirectory;
 
   //! Used configuration file name
-	char*	ConfigurationFileName;
+	char*               ConfigurationFileName;
+
+  //! Session configuration data
+  vtkXMLDataElement*  ConfigurationData;
 
 private:
 	//! Instance of the singleton
-	static vtkConfigurationTools*	Instance;
+	static vtkPlusConfig*	Instance;
 }; 
 
 

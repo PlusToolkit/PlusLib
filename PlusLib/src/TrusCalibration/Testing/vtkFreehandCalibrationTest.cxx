@@ -1,9 +1,7 @@
 #include "PlusConfigure.h"
 #include "vtkFreehandCalibrationController.h"
-#include "vtkFreehandController.h"
-#include "StylusCalibrationController.h"
-#include "PhantomRegistrationController.h"
-#include "vtkConfigurationTools.h"
+#include "vtkPhantomRegistrationAlgo.h"
+#include "vtkPlusConfig.h"
 #include "vtkBMPReader.h"
 #include "vtkSmartPointer.h"
 #include "vtkCommand.h"
@@ -72,28 +70,33 @@ int main (int argc, char* argv[])
 	}
 	programPath = vtksys::SystemTools::GetParentDirectory(programPath.c_str()); 
 
-  vtkConfigurationTools::GetInstance()->SetConfigurationFileName(inputConfigFileName.c_str());
+	LOG_INFO("Initialize"); 
 
-  // Initialize related controllers with the input data
-	vtkSmartPointer<vtkFreehandController> controller = vtkFreehandController::GetInstance();
+  // Read configuration
+  vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkXMLUtilities::ReadElementFromFile(inputConfigFileName.c_str());
+  if (configRootElement == NULL)
+  {	
+    LOG_ERROR("Unable to read configuration from file " << inputConfigFileName.c_str()); 
+		exit(EXIT_FAILURE);
+  }
+  vtkPlusConfig::GetInstance()->SetConfigurationData(configRootElement);
 
-	vtkSmartPointer<vtkDataCollector> dataCollector = vtkSmartPointer<vtkDataCollector>::New(); 
-  if (dataCollector->ReadConfigurationFromFile(inputConfigFileName.c_str()) != PLUS_SUCCESS) {
-    LOG_ERROR("Invalid input file '" << inputConfigFileName.c_str() << "'!");
-		return EXIT_FAILURE;
+  // Load phantom definition and registration
+	vtkPhantomRegistrationAlgo* phantomRegistration = vtkPhantomRegistrationAlgo::New();
+	if (phantomRegistration == NULL) {
+		LOG_ERROR("Unable to instantiate phantom registration algorithm class!");
+		exit(EXIT_FAILURE);
 	}
-
-  controller->SetDataCollector(dataCollector);
-  controller->InitializedOn();
+  if (phantomRegistration->ReadConfiguration(configRootElement) != PLUS_SUCCESS) {
+		LOG_ERROR("Unable to read phantom definition!");
+		exit(EXIT_FAILURE);
+	}
 
   vtkSmartPointer<vtkFreehandCalibrationController> freehandCalibration = vtkSmartPointer<vtkFreehandCalibrationController>::New(); 
 	freehandCalibration->SetProgramFolderPath(programPath.c_str());
-	freehandCalibration->ReadConfiguration(inputConfigFileName.c_str()); 
-
-	PhantomRegistrationController* phantomRegistrationController = PhantomRegistrationController::GetInstance();
-	phantomRegistrationController->Initialize();
-  phantomRegistrationController->LoadPhantomDefinition(controller->GetConfigurationData());
-	phantomRegistrationController->LoadPhantomRegistration(controller->GetConfigurationData());
+  freehandCalibration->SetConfigurationFileName(inputConfigFileName.c_str());
+  freehandCalibration->SetConfigurationData(configRootElement);
+	freehandCalibration->ReadConfiguration(configRootElement); 
 
 	// Continue initializing freehand calibration controller
 	vtkCalibrationController::ImageDataInfo freehandMotion1DataInfo = freehandCalibration->GetImageDataInfo(FREEHAND_MOTION_1);
@@ -105,9 +108,7 @@ int main (int argc, char* argv[])
 	freehandCalibration->SetImageDataInfo(FREEHAND_MOTION_2, freehandMotion2DataInfo);
 
   freehandCalibration->SetCalibrationMode(OFFLINE);
-	freehandCalibration->Initialize();
-	freehandCalibration->SetTemporalCalibrationDone(true);
-	freehandCalibration->Start();
+  freehandCalibration->InitializeCalibration(phantomRegistration->GetPhantomToPhantomReferenceTransform());
 
 	// Register phantom geometry before calibration 
 	freehandCalibration->DoOfflineCalibration();  
@@ -119,6 +120,7 @@ int main (int argc, char* argv[])
 	{
 		LOG_ERROR("Comparison of calibration data to baseline failed");
 		std::cout << "Exit failure!!!" << std::endl; 
+
 		return EXIT_FAILURE;
 	}
 

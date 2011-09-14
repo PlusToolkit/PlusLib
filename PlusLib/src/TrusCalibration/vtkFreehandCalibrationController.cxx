@@ -2,31 +2,15 @@
 
 #include "vtkFreehandCalibrationController.h"
 
-#include "vtkFreehandController.h"
-#include "PhantomRegistrationController.h"
-#include "StylusCalibrationController.h"
-
 #include "vtkObjectFactory.h"
-#include "vtkAccurateTimer.h"
-#include "vtkTrackerTool.h"
-#include "vtkConfigurationTools.h"
+#include "vtkPlusConfig.h"
 
 #include "vtkMath.h"
-#include "vtkRenderWindow.h"
-#include "vtkRenderWindowInteractor.h"
-#include "vtkSTLReader.h"
-#include "vtkPolyDataMapper.h"
-#include "vtkGlyph3D.h"
-#include "vtkSphereSource.h"
-#include "vtkProperty.h"
-#include "vtkTransformPolyDataFilter.h"
-#include "vtkInteractorStyleTrackballCamera.h"
 
 //-----------------------------------------------------------------------------
 
 vtkCxxRevisionMacro(vtkFreehandCalibrationController, "$Revision: 1.0 $");
-
-vtkFreehandCalibrationController *vtkFreehandCalibrationController::Instance = NULL;
+vtkStandardNewMacro(vtkFreehandCalibrationController);
 
 //-----------------------------------------------------------------------------
 
@@ -37,51 +21,18 @@ void vtkFreehandCalibrationController::PrintSelf(ostream& os, vtkIndent indent)
 
 //-----------------------------------------------------------------------------
 
-vtkFreehandCalibrationController* vtkFreehandCalibrationController::New()
-{
-	return vtkFreehandCalibrationController::GetInstance();
-}
-
-//-----------------------------------------------------------------------------
-
-vtkFreehandCalibrationController* vtkFreehandCalibrationController::GetInstance() {
-	if(!vtkFreehandCalibrationController::Instance) {
-		// Try the factory first
-		vtkFreehandCalibrationController::Instance = (vtkFreehandCalibrationController*)vtkObjectFactory::CreateInstance("vtkFreehandCalibrationController");    
-
-		if(!vtkFreehandCalibrationController::Instance) {
-			vtkFreehandCalibrationController::Instance = new vtkFreehandCalibrationController();	   
-		}
-	}
-	// return the instance
-	return vtkFreehandCalibrationController::Instance;
-}
-
-//-----------------------------------------------------------------------------
-
 vtkFreehandCalibrationController::vtkFreehandCalibrationController()
-	: AbstractToolboxController()
 {
-	this->TemporalCalibrationDone = false;
-	this->SpatialCalibrationDone = false;
 	this->ProgressPercent = 0;
 	this->CancelRequest = false;
-	this->ShowDevices = false;
+	this->DataCollector = NULL;
 
-	this->USImageFrameOriginXInPixels = 0; 
+  this->USImageFrameOriginXInPixels = 0; 
 	this->USImageFrameOriginYInPixels = 0; 
 
 	// Initializing vtkCalibrationController members
 	this->InitializedOff(); 
 	this->EnableSystemLogOff();
-	this->CanvasImageActor = NULL;
-	this->PhantomBodyActor = NULL;
-	this->ProbeActor = NULL;
-	this->StylusActor = NULL;
-	this->NeedleActor = NULL;
-	this->SegmentedPointsActor = NULL;
-	this->SegmentedPointsPolyData = NULL;
-	this->ImageCamera = NULL;
 	this->CalibrationResultFileNameWithPath = NULL;
 	this->CalibrationResultFileSuffix = NULL;
 
@@ -98,13 +49,6 @@ vtkFreehandCalibrationController::vtkFreehandCalibrationController()
 
 vtkFreehandCalibrationController::~vtkFreehandCalibrationController()
 {
-	this->SetCanvasImageActor(NULL);
-	this->SetPhantomBodyActor(NULL);
-	this->SetProbeActor(NULL);
-	this->SetStylusActor(NULL);
-	this->SetNeedleActor(NULL);
-	this->SetSegmentedPointsActor(NULL);
-	this->SetSegmentedPointsPolyData(NULL);
 	this->SetTransformImageToProbe(NULL);
 
 	if (this->Calibrator != NULL) {
@@ -115,417 +59,9 @@ vtkFreehandCalibrationController::~vtkFreehandCalibrationController()
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkFreehandCalibrationController::Initialize()
-{
-	LOG_TRACE("vtkFreehandCalibrationController::Initialize");
-
-	if (m_Toolbox) {
-		m_Toolbox->Initialize();
-	}
-
-	// Initialize visualization
-	if (! InitializeVisualization()) {
-		LOG_ERROR("Initializing freehand calibration visualization failed!");
-		return PLUS_FAIL;
-	}
-
-	// Set state to idle (initialized)
-	if (m_State == ToolboxState_Uninitialized) {
-		m_State = ToolboxState_Idle;
-
-		this->InitializedOn();
-	}
-
-	return PLUS_SUCCESS;
-}
-
-//-----------------------------------------------------------------------------
-
-PlusStatus vtkFreehandCalibrationController::InitializeVisualization()
-{
-	LOG_TRACE("vtkFreehandCalibrationController::InitializeVisualization");
-
-	vtkFreehandController* controller = vtkFreehandController::GetInstance();
-	if ((controller == NULL) || (controller->GetInitialized() == false)) {
-		LOG_ERROR("vtkFreehandController is not initialized!");
-		return PLUS_FAIL;
-	}
-	vtkDataCollector* dataCollector = controller->GetDataCollector();
-	if (dataCollector == NULL) {
-		LOG_ERROR("Data collector is not initialized!");
-		return PLUS_FAIL;
-	}
-
-	if (m_State == ToolboxState_Uninitialized) {
-		if (controller->GetCanvas() != NULL) {
-			// Initialize canvas image actor
-			if (m_State == ToolboxState_Uninitialized) {
-				vtkSmartPointer<vtkImageActor> canvasImageActor = vtkSmartPointer<vtkImageActor>::New();
-
-				if (dataCollector->GetAcquisitionType() != SYNCHRO_VIDEO_NONE) {
-					canvasImageActor->VisibilityOn();
-					canvasImageActor->SetInput(dataCollector->GetOutput());
-				} else {
-					LOG_WARNING("Data collector has no output port, canvas image actor initalization failed.");
-				}
-
-				this->SetCanvasImageActor(canvasImageActor);
-			}
-
-			// Create segmented points actor
-			vtkSmartPointer<vtkActor> segmentedPointsActor = vtkSmartPointer<vtkActor>::New();
-
-			vtkSmartPointer<vtkPolyData> segmentedPointsPolyData = vtkSmartPointer<vtkPolyData>::New();
-			segmentedPointsPolyData->Initialize();
-			this->SetSegmentedPointsPolyData(segmentedPointsPolyData);
-
-			vtkSmartPointer<vtkPolyDataMapper> segmentedPointMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-			vtkSmartPointer<vtkGlyph3D> segmentedPointGlyph = vtkSmartPointer<vtkGlyph3D>::New();
-			vtkSmartPointer<vtkSphereSource> segmentedPointSphereSource = vtkSmartPointer<vtkSphereSource>::New();
-			segmentedPointSphereSource->SetRadius(4.0);
-
-			segmentedPointGlyph->SetInputConnection(this->SegmentedPointsPolyData->GetProducerPort());
-			segmentedPointGlyph->SetSourceConnection(segmentedPointSphereSource->GetOutputPort());
-			segmentedPointMapper->SetInputConnection(segmentedPointGlyph->GetOutputPort());
-
-			segmentedPointsActor->SetMapper(segmentedPointMapper);
-			segmentedPointsActor->GetProperty()->SetColor(0.0, 0.8, 0.0);
-			segmentedPointsActor->VisibilityOff();
-
-			this->SetSegmentedPointsActor(segmentedPointsActor);
-			
-			// Add actors to the realtime renderer, and add renderer to Canvas
-			// If already initialized (it can occur if tab change - and so clear - happened)
-			controller->GetCanvasRenderer()->AddActor(this->CanvasImageActor);
-			controller->GetCanvasRenderer()->AddActor(this->SegmentedPointsActor);
-      this->EnableCameraMovements(false);
-
-			// Compute image camera parameters and set it to display live image
-			CalculateImageCameraParameters();
-		}
-	} else if (vtkFreehandController::GetInstance()->GetCanvas() != NULL) {  // If already initialized (it can occur if tab change - and so clear - happened)
-		// Add all actors to the renderer again - state must be "Done", because tab cannot be changed if "In progress"
-		vtkRenderer* renderer = vtkFreehandController::GetInstance()->GetCanvasRenderer();
-
-		renderer->AddActor(this->CanvasImageActor);
-		renderer->AddActor(this->SegmentedPointsActor);
-
-		if (this->ShowDevices) {
-			renderer->AddActor(this->PhantomBodyActor);
-			renderer->AddActor(this->ProbeActor);
-			renderer->AddActor(this->StylusActor);
-			renderer->AddActor(this->NeedleActor);
-      renderer->SetGradientBackground(true);
-
-      renderer->ResetCamera();
-
-    } else {
-		  // Compute image camera parameters and set it to display live image
-		  CalculateImageCameraParameters();
-    }
-	}
-
-	return PLUS_SUCCESS;
-}
-
-//-----------------------------------------------------------------------------
-
-PlusStatus vtkFreehandCalibrationController::InitializeDeviceVisualization()
-{
-	LOG_TRACE("vtkFreehandCalibrationController::InitializeDeviceVisualization");
-
-	vtkFreehandController* controller = vtkFreehandController::GetInstance();
-	if (controller == NULL) {
-		LOG_ERROR("vtkFreehandController is invalid");
-		return PLUS_FAIL;
-	}
-	if (controller->GetInitialized() == false) {
-		LOG_ERROR("vtkFreehandController is not initialized!");
-		return PLUS_FAIL;
-	}
-	vtkDataCollector* dataCollector = controller->GetDataCollector();
-	if (dataCollector == NULL) {
-		LOG_ERROR("Data collector is not initialized!");
-		return PLUS_FAIL;
-	}
-	if (dataCollector->GetTracker() == NULL) {
-		LOG_ERROR("Tracker is not initialized!");
-		return PLUS_FAIL;
-	}
-
-	if (vtkFreehandController::GetInstance()->GetCanvas() != NULL) {
-		// Load phantom model and create phantom body actor
-		if ((this->ModelToPhantomTransform != NULL) && (PhantomRegistrationController::GetInstance()->GetPhantomToPhantomReferenceTransform() != NULL)) {
-			// Initialize phantom model visualization
-			if (! vtksys::SystemTools::FileExists(this->PhantomModelFileName)) {
-				LOG_WARNING("Phantom model file is not found in the specified path: " << this->PhantomModelFileName);
-			} else {
-				vtkSmartPointer<vtkSTLReader> stlReader = vtkSmartPointer<vtkSTLReader>::New();
-				stlReader->SetFileName(this->PhantomModelFileName);
-				
-				vtkSmartPointer<vtkTransform> phantomModelToPhantomReferenceTransform = vtkSmartPointer<vtkTransform>::New();
-				phantomModelToPhantomReferenceTransform->Identity();
-				phantomModelToPhantomReferenceTransform->Concatenate(PhantomRegistrationController::GetInstance()->GetPhantomToPhantomReferenceTransform());
-				phantomModelToPhantomReferenceTransform->Concatenate(this->ModelToPhantomTransform);
-				phantomModelToPhantomReferenceTransform->Modified();
-
-				vtkSmartPointer<vtkTransformPolyDataFilter> phantomModelToPhantomReferenceTransformFilter = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
-				phantomModelToPhantomReferenceTransformFilter->AddInputConnection(stlReader->GetOutputPort());
-				phantomModelToPhantomReferenceTransformFilter->SetTransform(phantomModelToPhantomReferenceTransform);
-
-				vtkSmartPointer<vtkPolyDataMapper> phantomMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-				phantomMapper->SetInputConnection(phantomModelToPhantomReferenceTransformFilter->GetOutputPort());
-				vtkSmartPointer<vtkActor> phantomBodyActor = vtkSmartPointer<vtkActor>::New();
-				phantomBodyActor->SetMapper(phantomMapper);
-        phantomBodyActor->GetProperty()->SetOpacity(0.6);
-				this->SetPhantomBodyActor(phantomBodyActor);
-			}
-		} else {
-			LOG_WARNING("Phantom definiton file or its related transforms are not specified, phantom will not be displayed");
-		}
-
-		// Load device models and create actors
-		for (int i=0; i<dataCollector->GetTracker()->GetNumberOfTools(); ++i) {
-			vtkTrackerTool *tool = dataCollector->GetTracker()->GetTool(i);
-			if ((tool == NULL) || (!tool->GetEnabled())) {
-				continue;
-			}
-
-			vtkSmartPointer<vtkActor> deviceActor = vtkSmartPointer<vtkActor>::New();
-
-			// Set proper members
-			if (tool->GetToolType() == TRACKER_TOOL_STYLUS) {
-				StylusCalibrationController::GetInstance()->LoadStylusModel(deviceActor);
-
-				this->SetStylusActor(deviceActor);
-
-			} else {
-				// Load model if file name exists and file can be found
-				if (STRCASECMP(tool->GetTool3DModelFileName(), "") != 0) {
-					std::string searchResult = vtkConfigurationTools::GetFirstFileFoundInConfigurationDirectory(tool->GetTool3DModelFileName());
-
-					if (STRCASECMP("", searchResult.c_str()) == 0) {
-						LOG_WARNING("Tool (" << tool->GetToolName() << ") model file is not found with name: " << tool->GetTool3DModelFileName());
-					} else {
-						vtkSmartPointer<vtkSTLReader> stlReader = vtkSmartPointer<vtkSTLReader>::New();
-						stlReader->SetFileName(searchResult.c_str());
-
-						// TODO Try to use this filter instead of always setting all these transforms on every acquisition
-            /*
-						vtkSmartPointer<vtkTransform> toolModelToToolReferenceTransform = vtkSmartPointer<vtkTransform>::New();
-						toolModelToToolReferenceTransform->Identity();
-						toolModelToToolReferenceTransform->Concatenate(tool->GetToolToToolReferenceTransform());
-						toolModelToToolReferenceTransform->Concatenate(tool->GetModelToToolTransform());
-						toolModelToToolReferenceTransform->Modified();
-
-						vtkSmartPointer<vtkTransformPolyDataFilter> toolModelToToolReferenceTransformFilter = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
-						toolModelToToolReferenceTransformFilter->AddInputConnection(stlReader->GetOutputPort());
-						toolModelToToolReferenceTransformFilter->SetTransform(toolModelToToolReferenceTransform);
-            */
-
-						vtkSmartPointer<vtkPolyDataMapper> toolMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-						//toolMapper->SetInputConnection(toolModelToToolReferenceTransformFilter->GetOutputPort());
-						toolMapper->SetInputConnection(stlReader->GetOutputPort());
-
-						deviceActor->SetMapper(toolMapper);
-
-						if (tool->GetToolType() == TRACKER_TOOL_PROBE) {
-							this->SetProbeActor(deviceActor);
-
-						} else if (tool->GetToolType() == TRACKER_TOOL_NEEDLE) {
-							this->SetNeedleActor(deviceActor);
-						}
-					}
-				}
-			}
-		} // for each tool
-
-		if (this->ProbeActor == NULL) {
-			LOG_ERROR("Initializing probe visualization failed!");
-			return PLUS_FAIL;
-		}
-	}
-
-	return PLUS_SUCCESS;
-}
-
-//-----------------------------------------------------------------------------
-
-void vtkFreehandCalibrationController::EnableCameraMovements(bool aEnabled)
-{
-	LOG_TRACE("vtkFreehandCalibrationController::EnableCameraMovements(" << (aEnabled?"true":"false") << ")");
-
-	vtkFreehandController* controller = vtkFreehandController::GetInstance();
-	if ((controller == NULL) || (controller->GetInitialized() == false)) {
-		LOG_ERROR("vtkFreehandController is not initialized!");
-		return;
-	}
-	vtkRenderer* renderer = controller->GetCanvasRenderer();
-
-  if (aEnabled)
-  {
-    renderer->GetRenderWindow()->GetInteractor()->SetInteractorStyle(vtkInteractorStyleTrackballCamera::New());
-  }
-  else
-  {
-    renderer->GetRenderWindow()->GetInteractor()->RemoveAllObservers();
-  }
-}
-
-//-----------------------------------------------------------------------------
-
-void vtkFreehandCalibrationController::ToggleDeviceVisualization(bool aOn)
-{
-	LOG_TRACE("vtkFreehandCalibrationController::ToggleDeviceVisualization(" << (aOn?"true":"false") << ")");
-
-	vtkFreehandController* controller = vtkFreehandController::GetInstance();
-	if ((controller == NULL) || (controller->GetInitialized() == false)) {
-		LOG_ERROR("vtkFreehandController is not initialized!");
-		return;
-	}
-	vtkRenderer* renderer = controller->GetCanvasRenderer();
-
-	if (aOn == false) {
-		// Reset image canvas position
-		vtkSmartPointer<vtkTransform> identity = vtkSmartPointer<vtkTransform>::New();
-		identity->Identity();
-		this->CanvasImageActor->SetUserTransform(identity);
-
-		// Remove device actors
-		renderer->RemoveActor(this->PhantomBodyActor);
-		renderer->RemoveActor(this->ProbeActor);
-		renderer->RemoveActor(this->StylusActor);
-		renderer->RemoveActor(this->NeedleActor);
-    renderer->SetGradientBackground(false);
-
-		// Calculate camera to show only the image
-		CalculateImageCameraParameters();
-
-	} else if (aOn == true) {
-    // Set initial probe actor opacity
-    this->ProbeActor->GetProperty()->SetOpacity(0.9);
-
-		// Add device actors
-		renderer->AddActor(this->PhantomBodyActor);
-		renderer->AddActor(this->ProbeActor);
-		renderer->AddActor(this->StylusActor);
-		renderer->AddActor(this->NeedleActor);
-    renderer->SetGradientBackground(true);
-
-		// Reset camera to show all devices and the image
-		vtkSmartPointer<vtkCamera> imageCamera = vtkSmartPointer<vtkCamera>::New(); 
-		imageCamera->SetViewUp(0, 1, 0);
-		imageCamera->ParallelProjectionOff();
-		this->SetImageCamera(imageCamera);
-		renderer->SetActiveCamera(this->ImageCamera);
-		renderer->ResetCamera();
-	}
-
-  // Set camera movement possibility
-  this->EnableCameraMovements(aOn);
-
-	this->SetShowDevices(aOn);
-}
-
-//-----------------------------------------------------------------------------
-
-PlusStatus vtkFreehandCalibrationController::CalculateImageCameraParameters()
-{
-	LOG_TRACE("vtkFreehandCalibrationController::CalculateImageCameraParameters");
-
-	vtkFreehandController* controller = vtkFreehandController::GetInstance();
-	if ((controller == NULL) || (controller->GetInitialized() == false)) {
-		LOG_ERROR("vtkFreehandController is not initialized!");
-		return PLUS_FAIL;
-	}
-	vtkDataCollector* dataCollector = controller->GetDataCollector();
-	if (dataCollector == NULL) {
-		LOG_ERROR("Data collector is not initialized!");
-		return PLUS_FAIL;
-	}
-	if (dataCollector->GetVideoSource() == NULL) {
-		LOG_WARNING("Data collector has no video source!");
-		return PLUS_FAIL;
-	}
-
-	// Calculate image center
-	double imageCenterX = 0;
-	double imageCenterY = 0;
-	int dimensions[3];
-	dataCollector->GetVideoSource()->GetFrameSize(dimensions);
-	imageCenterX = dimensions[0] / 2.0;
-	imageCenterY = dimensions[1] / 2.0;
-
-	// Set up camera
-	vtkSmartPointer<vtkCamera> imageCamera = vtkSmartPointer<vtkCamera>::New(); 
-	imageCamera->SetFocalPoint(imageCenterX, imageCenterY, 0);
-	imageCamera->SetViewUp(0, -1, 0);
-	imageCamera->SetClippingRange(0.1, 2000.0);
-	imageCamera->ParallelProjectionOn();
-
-	// Calculate distance of camera from the plane
-  int *size = controller->GetCanvasRenderer()->GetRenderWindow()->GetSize();
-	if ((double)size[0] / (double)size[1] > imageCenterX / imageCenterY) {
-		// If canvas aspect ratio is more elongenated in the X position then compute the distance according to the Y axis
-		imageCamera->SetParallelScale(imageCenterY);
-	} else {
-		imageCamera->SetParallelScale(imageCenterX * (double)size[1] / (double)size[0]);
-	}
-
-  imageCamera->SetPosition(imageCenterX, imageCenterY, -200.0);
-
-	// Set camera
-	this->SetImageCamera(imageCamera);
-
-	controller->GetCanvasRenderer()->SetActiveCamera(this->ImageCamera);
-  controller->GetCanvasRenderer()->SetGradientBackground(false);
-
-	return PLUS_SUCCESS;
-}
-
-//-----------------------------------------------------------------------------
-
-PlusStatus vtkFreehandCalibrationController::Clear()
-{
-	LOG_TRACE("vtkFreehandCalibrationController::Clear");
-
-	vtkRenderer* renderer = vtkFreehandController::GetInstance()->GetCanvasRenderer();
-
-  // Re-enable camera movements
-  this->EnableCameraMovements(true);
-
-  // Remove image actor and reset background color
-	renderer->RemoveActor(this->CanvasImageActor);
-	renderer->RemoveActor(this->SegmentedPointsActor);
-	renderer->InteractiveOn();
-
-	// If device visualization is on, remove those actors too
-	if (this->ShowDevices) {
-		renderer->RemoveActor(this->PhantomBodyActor);
-		renderer->RemoveActor(this->ProbeActor);
-		renderer->RemoveActor(this->StylusActor);
-		renderer->RemoveActor(this->NeedleActor);
-	}
-
-	m_Toolbox->Clear();  
-
-	return PLUS_SUCCESS;
-}
-
-//-----------------------------------------------------------------------------
-
 PlusStatus vtkFreehandCalibrationController::DoSpatialCalibration()
 {
 	LOG_TRACE("vtkFreehandCalibrationController::DoSpatialCalibration");
-
-	vtkFreehandController* controller = vtkFreehandController::GetInstance();
-	if ((controller == NULL) || (controller->GetInitialized() == false)) {
-		LOG_ERROR("vtkFreehandController is not initialized!");
-		return PLUS_FAIL;
-	}
-
-	// Make segmented point actor visible
-	this->SegmentedPointsActor->VisibilityOn();
 
 	const int maxNumberOfValidationImages = this->GetImageDataInfo(FREEHAND_MOTION_2).NumberOfImagesToAcquire; 
 	const int maxNumberOfCalibrationImages = this->GetImageDataInfo(FREEHAND_MOTION_1).NumberOfImagesToAcquire; 
@@ -547,7 +83,7 @@ PlusStatus vtkFreehandCalibrationController::DoSpatialCalibration()
 
 		// Get latest tracked frame from data collector
 		TrackedFrame trackedFrame; 
-		controller->GetDataCollector()->GetTrackedFrame(&trackedFrame); 
+		this->DataCollector->GetTrackedFrame(&trackedFrame); 
 
 		if (trackedFrame.Status & (TR_MISSING | TR_OUT_OF_VIEW)) {
 			LOG_DEBUG("Tracker out of view"); 
@@ -580,274 +116,82 @@ PlusStatus vtkFreehandCalibrationController::DoSpatialCalibration()
 		// Update progress if tracked frame has been successfully added
 		if (segmentationSuccessful) {
 			++numberOfAcquiredImages;
-			this->SetProgressPercent( (int)((numberOfAcquiredImages / (double)(maxNumberOfValidationImages + maxNumberOfCalibrationImages)) * 100.0) );
+
+      int progressPercent = (int)((numberOfAcquiredImages / (double)(maxNumberOfValidationImages + maxNumberOfCalibrationImages)) * 100.0);
+			this->SetProgressPercent( progressPercent );
 		}
 
 		// Display segmented points (or hide them if unsuccessful)
-		DisplaySegmentedPoints(segmentationSuccessful);
-
-		// It makes the GUI update while acquiring the data
-		if (m_Toolbox) {
-			m_Toolbox->RefreshToolboxContent();
-		}
+		//DisplaySegmentedPoints(segmentationSuccessful);
 	}
 
 	LOG_INFO("Segmentation success rate: " << numberOfAcquiredImages << " out of " << numberOfAcquiredImages + numberOfFailedSegmentations << " (" << (int)(((double)numberOfAcquiredImages / (double)(numberOfAcquiredImages + numberOfFailedSegmentations)) * 100.0 + 0.49) << " percent)");
-  
-	// Make the segmented results disappear
-	this->SegmentedPointsActor->VisibilityOff();
 
 	return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkFreehandCalibrationController::DoAcquisition()
+PlusStatus vtkFreehandCalibrationController::InitializeCalibration(vtkTransform* aPhantomToPhantomReferenceTransform)
 {
-	LOG_TRACE("vtkFreehandCalibrationController::DoAcquisition");
+	LOG_TRACE("vtkFreehandCalibrationController::InitializeCalibration");
 
-	// This function can only be called if show devices is on
-	if (! this->ShowDevices) {
-		LOG_WARNING("DoAcquisition function should only be called if show devices is on");
-		return PLUS_FAIL;
+	// Initialize the segmentation component
+  if (this->GetPatternRecognition() == NULL) {
+    this->PatternRecognition.ReadConfiguration(vtkPlusConfig::GetInstance()->GetConfigurationData());
+	}	
+
+	// Initialize the calibration component
+	if (this->Calibrator == NULL) {
+		this->Calibrator = new BrachyTRUSCalibrator( this->GetPatternRecognition(), this->GetEnableSystemLog() );
 	}
 
-	vtkFreehandController* controller = vtkFreehandController::GetInstance();
-	if ((controller == NULL) || (controller->GetInitialized() == false)) {
-		LOG_ERROR("vtkFreehandController is not initialized!");
-		return PLUS_FAIL;
-	}
-	vtkDataCollector* dataCollector = controller->GetDataCollector();
-	if (dataCollector == NULL) {
-		LOG_ERROR("Data collector is not initialized!");
-		return PLUS_FAIL;
-	}
-	if (dataCollector->GetTracker() == NULL) {
-		LOG_ERROR("Tracker is not initialized properly!");
-		return PLUS_FAIL;
-	}
-	int firstActiveToolNumber = -1; 
-	if (dataCollector->GetTracker()->GetFirstActiveTool(firstActiveToolNumber) != PLUS_SUCCESS)
+	// Set the ultrasound image frame in pixels
+	// This defines the US image frame origin in pixels W.R.T. the left-upper corner of the original image, with X pointing to the right (column) and Y pointing down to the bottom (row).
+	this->SetUSImageFrameOriginInPixels( this->GetUSImageFrameOriginXInPixels(), this->GetUSImageFrameOriginYInPixels() ); 
+
+	// Apply the US 3D beamwidth data to calibration if desired (pass the US 3D beamwidth data and their predefined weights to the calibration component)
+	/*
+	if( this->GetUS3DBeamwidthDataReady() )
 	{
-		LOG_ERROR("There are no active tracker tools!"); 
-		return PLUS_FAIL; 
+		this->GetCalibrator()->setUltrasoundBeamwidthAndWeightFactorsTable(
+			this->GetIncorporatingUS3DBeamProfile(),
+			*this->GetInterpUS3DBeamwidthAndWeightFactorsInUSImageFrameTable5xM(),
+			*this->GetSortedUS3DBeamwidthAndWeightFactorsInAscendingAxialDepthInUSImageFrameMatrix5xN(),
+			*this->GetMinElevationBeamwidthAndFocalZoneInUSImageFrame() );
 	}
+	*/
 
-	int referenceToolNumber = dataCollector->GetTracker()->GetReferenceToolNumber();
-	bool resetCameraNeeded = false;
+	// Set identity for image frame shifting transform
+	vtkSmartPointer<vtkMatrix4x4> identity = vtkSmartPointer<vtkMatrix4x4>::New();
+	identity->Identity();
+	vnl_matrix<double> transformOrigImageFrame2TRUSImageFrameMatrix4x4(4,4);
+	ConvertVtkMatrixToVnlMatrix(identity, transformOrigImageFrame2TRUSImageFrameMatrix4x4); 
+	this->GetCalibrator()->setTransformOrigImageToTRUSImageFrame4x4(transformOrigImageFrame2TRUSImageFrameMatrix4x4);
 
-	for (int toolNumber=0; toolNumber<dataCollector->GetTracker()->GetNumberOfTools(); ++toolNumber) {
-		// If reference then no need for setting transform (the phantom is fixed to the reference)
-		if (toolNumber == referenceToolNumber) {
-			continue;
-		}
+	// Register the phantom geometry to the DRB frame in the "Emulator" mode.
+	vnl_matrix<double> transformMatrixPhantom2DRB4x4InEmulatorMode(4,4);
+	this->ConvertVtkMatrixToVnlMatrixInMeter(aPhantomToPhantomReferenceTransform->GetMatrix(), transformMatrixPhantom2DRB4x4InEmulatorMode);
 
-		vtkTrackerTool *tool = dataCollector->GetTracker()->GetTool(toolNumber);
-		if ((tool == NULL) || (!tool->GetEnabled())) {
-			continue;
-		}
-
-		TrackerStatus status = TR_MISSING;
-		double timestamp;
-
-		vtkSmartPointer<vtkMatrix4x4> toolToReferenceTransformMatrix = NULL;
-
-		// Acquire position from tracker
-		toolToReferenceTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
-		dataCollector->GetTransformWithTimestamp(toolToReferenceTransformMatrix, timestamp, status, toolNumber); 
-
-		// Compute and set transforms for actors
-		if (status == TR_OK) {
-			// If other tool, set the transform according to the tool name
-      if ((this->ProbeActor != NULL) && (tool->GetToolType() == TRACKER_TOOL_PROBE)) {
-				if (this->ProbeActor->GetProperty()->GetOpacity() == 0.9) {
-					resetCameraNeeded = true;
-				}
-
-        // Probe transform
-				vtkSmartPointer<vtkTransform> probeModelToPhantomReferenceTransform = vtkSmartPointer<vtkTransform>::New();
-				probeModelToPhantomReferenceTransform->Identity();
-				probeModelToPhantomReferenceTransform->Concatenate(toolToReferenceTransformMatrix);
-        probeModelToPhantomReferenceTransform->Concatenate(tool->GetModelToToolTransform());
-
-        this->ProbeActor->GetProperty()->SetOpacity(1.0);
-				this->ProbeActor->SetUserTransform(probeModelToPhantomReferenceTransform);
-
-				// Image canvas transform
-				vtkSmartPointer<vtkTransform> imageToPhantomReferenceTransform = vtkSmartPointer<vtkTransform>::New();
-				imageToPhantomReferenceTransform->Identity();
-				imageToPhantomReferenceTransform->Concatenate(toolToReferenceTransformMatrix);
-				imageToPhantomReferenceTransform->Concatenate(this->TransformImageToProbe);
-				
-        this->CanvasImageActor->SetOpacity(1.0);
-				this->CanvasImageActor->SetUserTransform(imageToPhantomReferenceTransform);
-
-			} else {
-
-				// Create and apply actor transform
-				vtkSmartPointer<vtkTransform> toolModelToPhantomReferenceTransform = vtkSmartPointer<vtkTransform>::New();
-				toolModelToPhantomReferenceTransform->Identity();
-				toolModelToPhantomReferenceTransform->Concatenate(toolToReferenceTransformMatrix);
-				toolModelToPhantomReferenceTransform->Concatenate(tool->GetCalibrationMatrix());
-				toolModelToPhantomReferenceTransform->Concatenate(tool->GetModelToToolTransform());
-				toolModelToPhantomReferenceTransform->Modified();
-
-				if ((this->StylusActor != NULL) && (tool->GetToolType() == TRACKER_TOOL_STYLUS)) {
-					this->StylusActor->GetProperty()->SetOpacity(1.0);
-					this->StylusActor->SetUserTransform(toolModelToPhantomReferenceTransform);
-
-        } else if ((this->NeedleActor != NULL) && (tool->GetToolType() == TRACKER_TOOL_NEEDLE)) {
-					this->NeedleActor->GetProperty()->SetOpacity(1.0);
-					this->NeedleActor->SetUserTransform(toolModelToPhantomReferenceTransform);
-				}
-			}
-		} else {
-			if ((this->ProbeActor != NULL) && (tool->GetToolType() == TRACKER_TOOL_PROBE)) {
-				this->ProbeActor->GetProperty()->SetOpacity(0.3);
-        this->CanvasImageActor->SetOpacity(0.3);
-
-			} else if ((this->StylusActor != NULL) && (tool->GetToolType() == TRACKER_TOOL_STYLUS)) {
-				this->StylusActor->GetProperty()->SetOpacity(0.3);
-
-			} else if ((this->NeedleActor != NULL) && (tool->GetToolType() == TRACKER_TOOL_NEEDLE)) {
-				this->NeedleActor->GetProperty()->SetOpacity(0.3);
-			}
-		}
-	} // for each tool
-
-	if (resetCameraNeeded) {
-		controller->GetCanvasRenderer()->ResetCamera();
-	}
-
-  return PLUS_SUCCESS;
-}
-
-//-----------------------------------------------------------------------------
-
-PlusStatus vtkFreehandCalibrationController::Start()
-{
-	LOG_TRACE("vtkFreehandCalibrationController::Start");
-
-	if (this->TemporalCalibrationDone) {
-		
-		// Initialize the segmentation component
-    if (this->GetPatternRecognition() == NULL) {
-      this->PatternRecognition.ReadConfiguration(vtkFreehandController::GetInstance()->GetDataCollector()->GetConfigurationData());
-		}	
-
-		// Initialize the calibration component
-		if (this->Calibrator == NULL) {
-			this->Calibrator = new BrachyTRUSCalibrator( this->GetPatternRecognition(), this->GetEnableSystemLog() );
-		}
-
-		// Set the ultrasound image frame in pixels
-		// This defines the US image frame origin in pixels W.R.T. the left-upper corner of the original image, with X pointing to the right (column) and Y pointing down to the bottom (row).
-		this->SetUSImageFrameOriginInPixels( this->GetUSImageFrameOriginXInPixels(), this->GetUSImageFrameOriginYInPixels() ); 
-
-		// Apply the US 3D beamwidth data to calibration if desired (pass the US 3D beamwidth data and their predefined weights to the calibration component)
-		/*
-		if( this->GetUS3DBeamwidthDataReady() )
-		{
-			this->GetCalibrator()->setUltrasoundBeamwidthAndWeightFactorsTable(
-				this->GetIncorporatingUS3DBeamProfile(),
-				*this->GetInterpUS3DBeamwidthAndWeightFactorsInUSImageFrameTable5xM(),
-				*this->GetSortedUS3DBeamwidthAndWeightFactorsInAscendingAxialDepthInUSImageFrameMatrix5xN(),
-				*this->GetMinElevationBeamwidthAndFocalZoneInUSImageFrame() );
-		}
-		*/
-
-		// Set identity for image frame shifting transform
-		vtkSmartPointer<vtkMatrix4x4> identity = vtkSmartPointer<vtkMatrix4x4>::New();
-		identity->Identity();
-		vnl_matrix<double> transformOrigImageFrame2TRUSImageFrameMatrix4x4(4,4);
-		ConvertVtkMatrixToVnlMatrix(identity, transformOrigImageFrame2TRUSImageFrameMatrix4x4); 
-		this->GetCalibrator()->setTransformOrigImageToTRUSImageFrame4x4(transformOrigImageFrame2TRUSImageFrameMatrix4x4);
-
-		// Register the phantom geometry to the DRB frame in the "Emulator" mode.
-		vnl_matrix<double> transformMatrixPhantom2DRB4x4InEmulatorMode(4,4);
-		this->ConvertVtkMatrixToVnlMatrixInMeter(PhantomRegistrationController::GetInstance()->GetPhantomToPhantomReferenceTransform()->GetMatrix(), transformMatrixPhantom2DRB4x4InEmulatorMode);
-
-		this->Calibrator->registerPhantomGeometryInEmulatorMode(transformMatrixPhantom2DRB4x4InEmulatorMode);
-	}
-
-	m_State = ToolboxState_InProgress;
+	this->Calibrator->registerPhantomGeometryInEmulatorMode(transformMatrixPhantom2DRB4x4InEmulatorMode);
 
 	return PLUS_SUCCESS;
 }
 
-//-----------------------------------------------------------------------------
-
-PlusStatus vtkFreehandCalibrationController::Stop()
-{
-	LOG_TRACE("vtkFreehandCalibrationController::Stop");
-
-	// Load models and initialize device actors (entering this function means that the calibration is successful)
-	if (this->SpatialCalibrationDone) {
-		InitializeDeviceVisualization();
-
-		m_State = ToolboxState_Done;
-	} else {
-		m_State = ToolboxState_Idle;
-	}
-
-	return PLUS_SUCCESS;
-}
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkFreehandCalibrationController::Reset()
+PlusStatus vtkFreehandCalibrationController::ResetCalibration()
 {
-	LOG_TRACE("vtkFreehandCalibrationController::Reset");
+	LOG_TRACE("vtkFreehandCalibrationController::ResetCalibration");
 
-	// If spatial calibration is done
-	if (this->SpatialCalibrationDone == true) {
-		this->SpatialCalibrationDoneOff();
+	// Empty tracked frame containers
+	this->TrackedFrameListContainer[FREEHAND_MOTION_1]->Clear();
+	this->TrackedFrameListContainer[FREEHAND_MOTION_2]->Clear();
 
-		// Empty tracked frame containers
-		this->TrackedFrameListContainer[FREEHAND_MOTION_1]->Clear();
-		this->TrackedFrameListContainer[FREEHAND_MOTION_2]->Clear();
-
-    // Reset segmented image counters
-    this->ImageDataInfoContainer[FREEHAND_MOTION_1].NumberOfSegmentedImages = 0;
-    this->ImageDataInfoContainer[FREEHAND_MOTION_2].NumberOfSegmentedImages = 0;
-
-  // If temporal calibration is done but spatial has not been started
-	} else if ((this->TemporalCalibrationDone == true) && (m_State != ToolboxState_InProgress)) {
-    this->TemporalCalibrationDoneOff();
-
-	// If spatial calibration is in progress
-	} else if ((this->TemporalCalibrationDone == true) && (m_State == ToolboxState_InProgress)) {
-		// Turn on cancel flag
-		this->CancelRequestOn();
-
-		if (this->Calibrator != NULL) {
-			delete this->Calibrator;
-			this->Calibrator = NULL;
-		}
-
-		// Empty tracked frame containers
-		this->TrackedFrameListContainer[FREEHAND_MOTION_1]->Clear();
-		this->TrackedFrameListContainer[FREEHAND_MOTION_2]->Clear();
-	}
-
-	// If temporal calibration still in progress
-	else if ((this->TemporalCalibrationDone == false) && (m_State == ToolboxState_InProgress)) {
-		vtkFreehandController* controller = vtkFreehandController::GetInstance();
-		if ((controller == NULL) || (controller->GetInitialized() == false)) {
-			LOG_ERROR("vtkFreehandController is not initialized!");
-			return PLUS_FAIL;
-		}
-		vtkDataCollector* dataCollector = controller->GetDataCollector();
-		if (dataCollector == NULL) {
-			LOG_ERROR("Data collector is not initialized!");
-			return PLUS_FAIL;
-		}
-
-		// Cancel synchronization (temporal calibration) in data collector
-		dataCollector->CancelSyncRequestOn();
-  } else {
-    LOG_ERROR("Reset freehand calibration was called in an unexpected state!");
-  }
+  // Reset segmented image counters
+  this->ImageDataInfoContainer[FREEHAND_MOTION_1].NumberOfSegmentedImages = 0;
+  this->ImageDataInfoContainer[FREEHAND_MOTION_2].NumberOfSegmentedImages = 0;
 
   // If calibrator is present, delete it so that it can be re-initialized when calibration is started again
 	if (this->Calibrator != NULL) {
@@ -855,31 +199,7 @@ PlusStatus vtkFreehandCalibrationController::Reset()
 		this->Calibrator = NULL;
 	}
 
-	// Reset progress
-	this->SetProgressPercent(0);
-
-	// Set state back to idle
-	m_State = ToolboxState_Idle;
-
 	return PLUS_SUCCESS;
-}
-
-//-----------------------------------------------------------------------------
-
-bool vtkFreehandCalibrationController::IsReadyToStartSpatialCalibration()
-{
-	LOG_TRACE("vtkFreehandCalibrationController::IsReadyToStartSpatialCalibration");
-
-	if ((m_State == ToolboxState_Uninitialized)
-		|| (! this->TemporalCalibrationDone)
-		|| (PhantomRegistrationController::GetInstance() == NULL)
-		|| (PhantomRegistrationController::GetInstance()->GetPhantomToPhantomReferenceTransform() == NULL)
-		|| (this->ConfigurationFileName == NULL))
-	{
-		return false;
-	}
-
-	return true;
 }
 
 //-----------------------------------------------------------------------------
@@ -887,37 +207,8 @@ bool vtkFreehandCalibrationController::IsReadyToStartSpatialCalibration()
 void vtkFreehandCalibrationController::UpdateProgress(int aPercent) {
 	LOG_TRACE("vtkFreehandCalibrationController::UpdateProgress(" << aPercent << ")");
 
-	// Calls this way because it is a static function
-	vtkFreehandCalibrationController::GetInstance()->SetProgressPercent(aPercent);
-
-	// It makes the GUI update while data collector is acquiring the data
-	if (vtkFreehandCalibrationController::GetInstance()->GetToolbox()) {
-		vtkFreehandCalibrationController::GetInstance()->GetToolbox()->RefreshToolboxContent();
-	}
-}
-
-//-----------------------------------------------------------------------------
-
-double vtkFreehandCalibrationController::GetVideoTimeOffset()
-{
-	LOG_TRACE("vtkFreehandCalibrationController::GetVideoTimeOffset");
-
-	vtkFreehandController* controller = vtkFreehandController::GetInstance();
-	if ((controller == NULL) || (controller->GetInitialized() == false)) {
-		LOG_ERROR("vtkFreehandController is not initialized!");
-		return PLUS_FAIL;
-	}
-	vtkDataCollector* dataCollector = controller->GetDataCollector();
-	if (dataCollector == NULL) {
-		LOG_ERROR("Data collector is not initialized!");
-		return PLUS_FAIL;
-	}
-
-	if ((dataCollector->GetVideoSource() != NULL) && (dataCollector->GetVideoSource()->GetBuffer() != NULL)) {
-		return dataCollector->GetVideoSource()->GetBuffer()->GetLocalTimeOffset();
-	} else {
-		return 0.0;
-	}
+	// TODO TEMPORARY CODE UNTIL TRACKED FRAME ACQUISITION GOES INTO THE APPLICATIONS
+  LOG_INFO("Calibration progress: " << aPercent << "%");
 }
 
 //-----------------------------------------------------------------------------
@@ -963,21 +254,9 @@ PlusStatus vtkFreehandCalibrationController::DoTemporalCalibration()
 		return PLUS_FAIL; 
 	}
 
-	vtkFreehandController* controller = vtkFreehandController::GetInstance();
-	if ((controller == NULL) || (controller->GetInitialized() == false)) {
-		LOG_ERROR("vtkFreehandController is not initialized!");
-		return PLUS_FAIL;
-	}
-	vtkDataCollector* dataCollector = controller->GetDataCollector();
-	if (dataCollector == NULL) {
-		LOG_ERROR("Data collector is not initialized!");
-		return PLUS_FAIL;
-	}
+	this->DataCollector->SetProgressBarUpdateCallbackFunction(UpdateProgress);
+  this->DataCollector->Synchronize(this->OutputPath, true );
 
-	dataCollector->SetProgressBarUpdateCallbackFunction(UpdateProgress);
-	dataCollector->Synchronize(controller->GetOutputFolder(), true );
-
-	this->TemporalCalibrationDoneOn();
 	this->ProgressPercent = 0;
 
 	return PLUS_SUCCESS;
@@ -1081,10 +360,6 @@ PlusStatus vtkFreehandCalibrationController::DoOfflineCalibration()
 	LOG_TRACE("vtkFreehandCalibrationController::DoOfflineCalibration"); 
 
 	try {
-		if (m_State == ToolboxState_Uninitialized) {
-			Initialize();
-		}
-
 		vtkSmartPointer<vtkTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New();
 		if ( !this->GetImageDataInfo(FREEHAND_MOTION_2).InputSequenceMetaFileName.empty() ) {
 			trackedFrameList->ReadFromSequenceMetafile(this->GetImageDataInfo(FREEHAND_MOTION_2).InputSequenceMetaFileName.c_str()); 
@@ -1149,41 +424,6 @@ PlusStatus vtkFreehandCalibrationController::DoOfflineCalibration()
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkFreehandCalibrationController::DisplaySegmentedPoints(bool aSuccess)
-{
-	LOG_TRACE("vtkFreehandCalibrationController::DisplaySegmentedPoints(" << (aSuccess?"true":"false") << ")");
-
-	if (! aSuccess) {
-		this->SegmentedPointsActor->VisibilityOff();
-		//this->SegmentedPointsActor->GetProperty()->SetColor(0.5, 0.5, 0.5);
-
-		return PLUS_SUCCESS;
-	}
-
-	// Get last results and feed the points into vtkPolyData for displaying
-	SegmentedFrame lastSegmentedFrame = this->SegmentedFrameContainer.at(this->SegmentedFrameContainer.size() - 1);
-	int height = lastSegmentedFrame.TrackedFrameInfo->GetFrameSize()[1];
-
-	vtkSmartPointer<vtkPoints> inputPoints = vtkSmartPointer<vtkPoints>::New();
-  inputPoints->SetNumberOfPoints(this->GetPatternRecognition()->GetFidLabeling()->GetFoundDotsCoordinateValue().size());
-
-	std::vector<std::vector<double>> dots = this->GetPatternRecognition()->GetFidLabeling()->GetFoundDotsCoordinateValue();
-	for (int i=0; i<dots.size(); ++i) {
-		inputPoints->InsertPoint(i, dots[i][0], height - dots[i][1], 0.0);
-	}
-	inputPoints->Modified();
-
-	this->SegmentedPointsPolyData->Initialize();
-	this->SegmentedPointsPolyData->SetPoints(inputPoints);
-
-	this->SegmentedPointsActor->VisibilityOn();
-	//this->SegmentedPointsActor->GetProperty()->SetColor(0.0, 0.8, 0.0);
-
-	return PLUS_SUCCESS;
-}
-
-//-----------------------------------------------------------------------------
-
 void vtkFreehandCalibrationController::SetUSImageFrameOriginInPixels(int* origin) {
 	LOG_TRACE("vtkFreehandCalibrationController::SetUSImageFrameOriginInPixels"); 
 
@@ -1206,23 +446,6 @@ void vtkFreehandCalibrationController::SetUSImageFrameOriginInPixels(int originX
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkFreehandCalibrationController::ReadConfiguration(const char* configFileNameWithPath)
-{
-	LOG_TRACE("vtkProbeCalibrationController::ReadConfiguration - " << configFileNameWithPath);
-
-	this->SetConfigurationFileName(configFileNameWithPath);
-	
-	vtkSmartPointer<vtkXMLDataElement> rootElement = vtkXMLUtilities::ReadElementFromFile(this->GetConfigurationFileName());
-	if (rootElement == NULL) {
-		LOG_ERROR("Failed to read configuration from file: " << this->GetConfigurationFileName());
-		return PLUS_FAIL;
-	}
-
-	return ReadConfiguration(rootElement);
-}
-
-//-----------------------------------------------------------------------------
-
 PlusStatus vtkFreehandCalibrationController::ReadConfiguration(vtkXMLDataElement* aConfig)
 {
 	LOG_TRACE("vtkProbeCalibrationController::ReadConfiguration");
@@ -1234,8 +457,6 @@ PlusStatus vtkFreehandCalibrationController::ReadConfiguration(vtkXMLDataElement
 
   // Have base class read calibration controller configuration
   Superclass::ReadConfiguration(aConfig);
-
-	vtkFreehandController::GetInstance()->SetOutputFolder(this->GetOutputPath());
 
   // Load freehand calibration elements
 	this->ReadFreehandCalibrationConfiguration(aConfig);
@@ -1261,8 +482,6 @@ PlusStatus vtkFreehandCalibrationController::ReadFreehandCalibrationConfiguratio
 		LOG_ERROR("Unable to read configuration");
 		return PLUS_FAIL;
 	}
-
-	vtkFreehandController::GetInstance()->SetOutputFolder(this->GetOutputPath());
 
 	// Probe Calibration specifications
 	vtkSmartPointer<vtkXMLDataElement> probeCalibration = calibrationController->FindNestedElementWithName("ProbeCalibration");
@@ -1439,10 +658,6 @@ PlusStatus vtkFreehandCalibrationController::ComputeCalibrationResults()
 	LOG_TRACE("vtkFreehandCalibrationController::ComputeCalibrationResults"); 
 
 	try {
-		if (m_State == ToolboxState_Uninitialized) {
-			Initialize();
-		}
-
 		// Do final calibration 
 		Calibrate();
 
@@ -1512,12 +727,10 @@ PlusStatus vtkFreehandCalibrationController::ComputeCalibrationResults()
 		}
 		*/
 
-    if (SaveCalibrationResults() != PLUS_SUCCESS) {
+    if (WriteConfiguration(vtkPlusConfig::GetInstance()->GetConfigurationData()) != PLUS_SUCCESS) {
 		  LOG_ERROR("Freehand calibration result could not be saved into session configuration data!");
 		  return PLUS_FAIL;
     }
-
-		this->SpatialCalibrationDoneOn();
 
 	} catch(...) {
 		LOG_ERROR("ComputeCalibrationResults: Failed to compute calibration results!");
@@ -1529,20 +742,25 @@ PlusStatus vtkFreehandCalibrationController::ComputeCalibrationResults()
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkFreehandCalibrationController::SaveCalibrationResults()
+PlusStatus vtkFreehandCalibrationController::WriteConfiguration(vtkXMLDataElement* aConfig)
 {
-	LOG_TRACE("vtkFreehandCalibrationController::SaveCalibrationResults");
+	LOG_TRACE("vtkFreehandCalibrationController::WriteConfiguration");
 
   // Save temporal calibration
-  vtkSmartPointer<vtkXMLDataElement> imageAcquisition = vtkConfigurationTools::LookupElementWithNameContainingChildWithNameAndAttribute(vtkFreehandController::GetInstance()->GetConfigurationData(), "USDataCollection", "ImageAcquisition", NULL, NULL);
-  imageAcquisition->SetDoubleAttribute("LocalTimeOffset", this->GetVideoTimeOffset());
+  double videoTimeOffset = 0.0;
+	if ((this->DataCollector != NULL) && (this->DataCollector->GetVideoSource() != NULL) && (this->DataCollector->GetVideoSource()->GetBuffer() != NULL)) {
+    videoTimeOffset = this->DataCollector->GetVideoSource()->GetBuffer()->GetLocalTimeOffset();
+  }
+
+  vtkSmartPointer<vtkXMLDataElement> imageAcquisition = vtkPlusConfig::LookupElementWithNameContainingChildWithNameAndAttribute(aConfig, "USDataCollection", "ImageAcquisition", NULL, NULL);
+  imageAcquisition->SetDoubleAttribute("LocalTimeOffset", videoTimeOffset);
 
 	// Save spatial calibration result
   std::string toolType;
 	vtkTracker::ConvertToolTypeToString(TRACKER_TOOL_PROBE, toolType);
 
   //Find stylus definition element
-	vtkSmartPointer<vtkXMLDataElement> probeDefinition = vtkConfigurationTools::LookupElementWithNameContainingChildWithNameAndAttribute(vtkFreehandController::GetInstance()->GetConfigurationData(), "Tracker", "Tool", "Type", toolType.c_str());
+	vtkSmartPointer<vtkXMLDataElement> probeDefinition = vtkPlusConfig::LookupElementWithNameContainingChildWithNameAndAttribute(aConfig, "Tracker", "Tool", "Type", toolType.c_str());
 	if (probeDefinition == NULL) {
 		LOG_ERROR("No probe definition is found in the XML tree!");
 		return PLUS_FAIL;
@@ -1614,12 +832,6 @@ PlusStatus vtkFreehandCalibrationController::PrintCalibrationResultsAndErrorRepo
 PlusStatus vtkFreehandCalibrationController::SaveCalibrationResultsAndErrorReportsToXML()
 {
 	LOG_TRACE("vtkFreehandCalibrationController::SaveCalibrationResultsAndErrorReportsToXML"); 
-
-	vtkFreehandController* controller = vtkFreehandController::GetInstance();
-	if ((controller == NULL) || (controller->GetInitialized() == false)) {
-		LOG_ERROR("vtkFreehandController is not initialized!");
-		return PLUS_FAIL;
-	}
 
 	// Construct the calibration result file name with path and timestamp
 	const std::string calibrationResultFileName = this->GetCalibrator()->getCalibrationTimeStampInString() + this->GetCalibrationResultFileSuffix() + ".xml";
@@ -2065,4 +1277,3 @@ vnl_matrix<double> vtkFreehandCalibrationController::GetLineReconstructionErrorM
 
 	return mLREOrigInUSProbeFrameMatrix; 
 }
-
