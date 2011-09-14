@@ -47,7 +47,10 @@ public:
 	void SetDisplayAccordingToState();
 
 protected:
-  //! TODO
+	/*!
+	* \brief Determines if everything is OK to run spatial calibration
+  * \return Ready flag
+	*/
   bool IsReadyToStartSpatialCalibration();
 
 protected slots:
@@ -103,13 +106,14 @@ protected slots:
 	void ShowDevicesToggled(bool aOn);
 
 protected:
-	//! TODO
+	//! Flag indicating temporal calibration is done (needed for properly setting the state of UI elements)
 	bool m_TemporalCalibrationDone;
-	bool m_SpatialCalibrationDone;
+
+	//! Flag indicating spatial calibration is done (needed for properly setting the state of UI elements)
+  bool m_SpatialCalibrationDone;
 
   //! Freehand calibration algorithm
   vtkFreehandCalibrationController* m_FreehandCalibration;
-
 
 protected:
 	Ui::FreehandCalibrationToolbox ui;

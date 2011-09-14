@@ -25,7 +25,7 @@ class vtkSTLReader;
 //-----------------------------------------------------------------------------
 
 /*!
-* \brief Class that encapsulates a tool and its properties and accessory objects needed for visualizing it
+* \brief Class that encapsulates the objects needed for visualizing a tool - the tool object, the actor, a flag indicating whether it is displayable
 */
 class vtkDisplayableTool : public vtkObject
 {
