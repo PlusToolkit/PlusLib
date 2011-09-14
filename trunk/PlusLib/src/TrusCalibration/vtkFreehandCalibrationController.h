@@ -32,16 +32,29 @@ public:
 	*/
 	virtual void PrintSelf(ostream& os, vtkIndent indent); 
 
-  //! TODO
+	/*!
+	* \brief Initialize segmenter and calibrator
+  * \param aPhantomToPhantomReferenceTransform Phantom registration transform
+  * \return Success flag
+	*/
   PlusStatus InitializeCalibration(vtkTransform* aPhantomToPhantomReferenceTransform);
 
-  //! TODO
+	/*!
+	* \brief Reset calibration - clear objects that are used during calibration
+  * \return Success flag
+	*/
   PlusStatus ResetCalibration();
 
-  //! TODO
+	/*!
+	* \brief Execute temporal calibration
+  * \return Success flag
+	*/
 	PlusStatus DoTemporalCalibration();
 
-  //! TODO
+	/*!
+	* \brief Execute spatial calibration
+  * \return Success flag
+	*/
   PlusStatus DoSpatialCalibration();
 
 	/*!
@@ -50,7 +63,10 @@ public:
 	*/
 	std::string GetResultString();
 
-  //! TODO
+	/*!
+	* \brief Callback function for updating progress - called by the temporal calibration process
+  * \param aPercent Progress percent
+	*/
  	static void UpdateProgress(int aPercent);
 
 	virtual void SetUSImageFrameOriginInPixels(int originX, int originY); 

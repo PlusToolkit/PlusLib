@@ -12,6 +12,9 @@
 
 //-----------------------------------------------------------------------------
 
+/*!
+* \brief Singleton class providing tools needed for handling the configuration - finding files, assembling file names, holding and saving the configuration data
+*/
 class VTK_EXPORT vtkPlusConfig : public vtkObject
 {
 public:
@@ -112,7 +115,7 @@ protected:
 	//! Configuration directory path
 	char*               ConfigurationDirectory;
 
-  //! Used configuration file name
+  //! Used configuration file name (for assembling the new file name with the date)
 	char*               ConfigurationFileName;
 
   //! Session configuration data
