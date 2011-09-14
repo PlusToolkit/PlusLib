@@ -21,8 +21,14 @@ SET (BrachyStepper_INCLUDE_DIRS
     ${CIVCO_SEI_INCLUDE_DIR}
     )	
 
-INCLUDE_DIRECTORIES( ${BrachyStepper_INCLUDE_DIRS} )
 SET (Tracking_INCLUDE_DIRS ${Tracking_INCLUDE_DIRS} ${BrachyStepper_INCLUDE_DIRS} CACHE INTERNAL "" )
 ADD_LIBRARY(BrachyStepper STATIC ${BrachyStepper_SRCS} ${BrachyStepper_HDRS} )
+TARGET_LINK_LIBRARIES(BrachyStepper vtkPlusCommon)
 
-SET (PLUSLIB_DEPENDENCIES ${PLUSLIB_DEPENDENCIES} BrachyStepper CACHE INTERNAL "" FORCE	)
+# --------------------------------------------------------------------------
+# Set external MS project 
+SET (PLUSLIB_DEPENDENCIES ${PLUSLIB_DEPENDENCIES} BrachyStepper CACHE INTERNAL "" FORCE)
+LIST(REMOVE_DUPLICATES PLUSLIB_DEPENDENCIES)
+# Add this variable to UsePlusLib.cmake.in INCLUDE_PLUSLIB_MS_PROJECTS macro
+SET(vcProj_BrachyStepper BrachyStepper "${PlusLib_BINARY_DIR}/src/Tracking/BrachyTracking/Utils/BrachyStepper.vcproj" vtkPlusCommon CACHE INTERNAL "" FORCE)
+

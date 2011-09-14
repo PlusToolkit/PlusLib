@@ -109,6 +109,8 @@ IF(NOT PLUSLIB_USE_FILE_INCLUDED)
       INCLUDE_EXTERNAL_MSPROJECT(@vcProj_vtkVolumeReconstruction@)
       INCLUDE_EXTERNAL_MSPROJECT(@vcProj_VibroAudioCard@)
       INCLUDE_EXTERNAL_MSPROJECT(@vcProj_VibroMcdc@)
+      INCLUDE_EXTERNAL_MSPROJECT(@vcProj_BrachyStepper@)
+      INCLUDE_EXTERNAL_MSPROJECT(@vcProj_vtkndicapi@)
     ENDIF ()
   endmacro()
     
