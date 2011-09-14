@@ -19,10 +19,10 @@
 
 
 /**
- * This class provides a network interface for Plus functions
- * as an OpenIGTLink server.
- * After the server is started, it waits for clients sending request messages of type
- * "igtl::StringMessage1", and sends a respond to each request.
+ * This class provides a network interface for Plus functions as an OpenIGTLink server.
+ * After the server is started, it waits for a client sending request messages of type
+ * "igtl::StringMessage1". These strings are translated into Plus Commands, queued and executed
+ * on a first-come-first-serve basis.
  */
 class
 VTK_EXPORT 
@@ -47,6 +47,8 @@ public:
   PlusStatus Stop();
   static void* vtkCommunicationThread( vtkMultiThreader::ThreadInfo* data );
   
+  void ExecuteNextCommand();
+
   
 protected:
   
@@ -59,7 +61,7 @@ private:
   vtkPlusOpenIGTLinkServer( const vtkPlusOpenIGTLinkServer& );
   void operator=( const vtkPlusOpenIGTLinkServer& );
   
-  int WaitForConnection();
+  void WaitForConnection();
   void ReceiveController();
   void React( std::string input );
   
