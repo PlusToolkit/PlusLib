@@ -9,7 +9,7 @@
 #include "vtkXMLUtilities.h"
 #include "vtkDirectory.h"
 #include "vtksys/SystemTools.hxx"
-#include "vtkConfigurationTools.h"
+#include "vtkPlusConfig.h"
 
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"

@@ -1,8 +1,10 @@
 #include "PlusConfigure.h"
-#include "vtkFreehandController.h"
-#include "PhantomRegistrationController.h"
-#include "StylusCalibrationController.h"
-#include "vtkConfigurationTools.h"
+#include "vtkPivotCalibrationAlgo.h"
+#include "vtkPhantomRegistrationAlgo.h"
+#include "vtkDataCollector.h"
+#include "vtkTrackerTool.h"
+#include "vtkFakeTracker.h"
+#include "vtkPlusConfig.h"
 
 #include "vtkSmartPointer.h"
 #include "vtkXMLDataElement.h"
@@ -55,62 +57,127 @@ int main (int argc, char* argv[])
 
 	LOG_INFO("Initialize"); 
 
-  vtkConfigurationTools::GetInstance()->SetConfigurationFileName(inputConfigFileName.c_str());
+  // Read configuration
+  vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkXMLUtilities::ReadElementFromFile(inputConfigFileName.c_str());
+  if (configRootElement == NULL)
+  {	
+    LOG_ERROR("Unable to read configuration from file " << inputConfigFileName.c_str()); 
+		exit(EXIT_FAILURE);
+  }
 
-	// Initialize the controllers
-	vtkSmartPointer<vtkFreehandController> controller = vtkFreehandController::GetInstance();
-	controller->TrackingOnlyOn();
-	if (controller->Initialize() != PLUS_SUCCESS) {
-		LOG_ERROR("Initialize failed!");
-		return EXIT_FAILURE;
+  // Initialize data collection
+	vtkSmartPointer<vtkDataCollector> dataCollector = vtkSmartPointer<vtkDataCollector>::New(); 
+  if (dataCollector->ReadConfiguration(configRootElement) != PLUS_SUCCESS) {
+    LOG_ERROR("Unable to parse configuration from file " << inputConfigFileName.c_str()); 
+		exit(EXIT_FAILURE);
 	}
-	if (controller->StartDataCollection() != PLUS_SUCCESS) {
-		LOG_ERROR("Initializing acquisition failed!");
-		return EXIT_FAILURE;
+	if (dataCollector->Initialize() != PLUS_SUCCESS) {
+    LOG_ERROR("Unable to initialize data collection!");
+		exit(EXIT_FAILURE);
 	}
-
-	StylusCalibrationController* stylusCalibrationController = StylusCalibrationController::GetInstance();
-	stylusCalibrationController->Initialize();
-  stylusCalibrationController->LoadStylusCalibration(controller->GetConfigurationData());
-
-	PhantomRegistrationController* phantomRegistrationController = PhantomRegistrationController::GetInstance();
-	phantomRegistrationController->Initialize();
-	phantomRegistrationController->LoadPhantomDefinition(controller->GetConfigurationData());
-	phantomRegistrationController->Start();
-	
-	// Acquire landmarks
-	int numberOfLandmarks = phantomRegistrationController->GetNumberOfLandmarks();
-	for (int i=0; i<numberOfLandmarks; ++i) {
-		phantomRegistrationController->RequestRecording();
-		phantomRegistrationController->DoAcquisition();
-
-		vtkPlusLogger::PrintProgressbar((100.0 * i) / numberOfLandmarks); 
+	if (dataCollector->Start() != PLUS_SUCCESS) {
+    LOG_ERROR("Unable to start data collection!");
+		exit(EXIT_FAILURE);
+	}
+	if ((dataCollector->GetTracker() == NULL) || (dataCollector->GetTracker()->GetNumberOfTools() < 1)) {
+    LOG_ERROR("Unable to initialize tracker!");
+		exit(EXIT_FAILURE);
 	}
 
-	vtkPlusLogger::PrintProgressbar(100.0);
+  dataCollector->SetTrackingOnly(true);
 
-	// Do landmark registration
-	phantomRegistrationController->Register();
+  // Read stylus calibration
+  vtkSmartPointer<vtkPivotCalibrationAlgo> pivotCalibration = vtkSmartPointer<vtkPivotCalibrationAlgo>::New();
+	if (pivotCalibration == NULL) {
+		LOG_ERROR("Unable to instantiate pivot calibration algorithm class!");
+		exit(EXIT_FAILURE);
+	}
+  if (pivotCalibration->ReadConfiguration(configRootElement, TRACKER_TOOL_STYLUS) != PLUS_SUCCESS) {
+		LOG_ERROR("Unable to read stylus calibration configuration!");
+		exit(EXIT_FAILURE);
+	}
 
-	// Save result
-	phantomRegistrationController->SavePhantomRegistration(controller->GetConfigurationData());
+  // Set stylus calibration to stylus tool
+  int stylusNumber = dataCollector->GetTracker()->GetFirstPortNumberByType(TRACKER_TOOL_STYLUS);
+  vtkTrackerTool* stylus = dataCollector->GetTracker()->GetTool(stylusNumber);
+  if (stylus == NULL) {
+    LOG_ERROR("Unable to get stylus tool!");
+    exit(EXIT_FAILURE);
+  }
+  vtkSmartPointer<vtkMatrix4x4> calibrationMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+  calibrationMatrix->DeepCopy(pivotCalibration->GetTooltipToToolTransform()->GetMatrix());
+  stylus->SetCalibrationMatrix(calibrationMatrix);
+
+  // Initialize phantom registration
+	vtkSmartPointer<vtkPhantomRegistrationAlgo> phantomRegistration = vtkSmartPointer<vtkPhantomRegistrationAlgo>::New();
+	if (phantomRegistration == NULL) {
+		LOG_ERROR("Unable to instantiate phantom registration algorithm class!");
+		exit(EXIT_FAILURE);
+	}
+  if (phantomRegistration->ReadConfiguration(configRootElement) != PLUS_SUCCESS) {
+		LOG_ERROR("Unable to read phantom definition!");
+		exit(EXIT_FAILURE);
+	}
+
+  if (phantomRegistration->GetDefinedLandmarks()->GetNumberOfPoints() != 8) {
+    LOG_ERROR("Number of defined landmarks should be 8 instead of " << phantomRegistration->GetDefinedLandmarks()->GetNumberOfPoints() << "!");
+		exit(EXIT_FAILURE);
+  }
+
+  // Acquire landmarks
+	vtkFakeTracker *fakeTracker = dynamic_cast<vtkFakeTracker*>(dataCollector->GetTracker());
+	if (fakeTracker == NULL) {
+    LOG_ERROR("Invalid tracker object!");
+		exit(EXIT_FAILURE);
+  }
+
+  for (int landmarkCounter=0; landmarkCounter<8; ++landmarkCounter) {
+		fakeTracker->SetCounter(landmarkCounter);
+		vtkAccurateTimer::Delay(1.1 / fakeTracker->GetFrequency());
+
+    vtkSmartPointer<vtkMatrix4x4> stylusTipToReferenceMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+	  TrackerStatus status = TR_MISSING;
+	  double timestamp;
+
+	  if (dataCollector->GetTracker()->GetTool(stylusNumber)->GetEnabled()) {
+		  dataCollector->GetTransformWithTimestamp(stylusTipToReferenceMatrix, timestamp, status, stylusNumber, true);
+	  }
+
+    if (status == TR_OK) {
+      // Compute point position from matrix
+      double elements[16];
+	    double stylusTipPosition[4];
+	    for (int i=0; i<4; ++i) for (int j=0; j<4; ++j) elements[4*j+i] = stylusTipToReferenceMatrix->GetElement(i,j);
+	    double origin[4] = {0.0, 0.0, 0.0, 1.0};
+	    vtkMatrix4x4::PointMultiply(elements, origin, stylusTipPosition);
+
+	    // Add recorded point to algorithm
+      phantomRegistration->GetRecordedLandmarks()->InsertPoint(landmarkCounter, stylusTipPosition[0], stylusTipPosition[1], stylusTipPosition[2]);
+	    phantomRegistration->GetRecordedLandmarks()->Modified();
+
+  		vtkPlusLogger::PrintProgressbar((100.0 * landmarkCounter) / 8); 
+    }
+  }
+
+  if (phantomRegistration->Register() != PLUS_SUCCESS) {
+    LOG_ERROR("Phantom registration failed!");
+		exit(EXIT_FAILURE);
+  }
+
+	vtkPlusLogger::PrintProgressbar(100); 
+
+  // Save result
+  phantomRegistration->WriteConfiguration(configRootElement);
 	vtkstd::string registrationResultFileName = "PhantomRegistrationTest.xml";
 	vtksys::SystemTools::RemoveFile(registrationResultFileName.c_str());
-  controller->GetConfigurationData()->PrintXML(registrationResultFileName.c_str());
+  configRootElement->PrintXML(registrationResultFileName.c_str());
 
 	if ( CompareRegistrationResultsWithBaseline( inputBaselineFileName.c_str(), registrationResultFileName.c_str() ) !=0 )
 	{
 		LOG_ERROR("Comparison of calibration data to baseline failed");
 		std::cout << "Exit failure!!!" << std::endl; 
-
-		delete phantomRegistrationController;
-		delete stylusCalibrationController;
-
 		return EXIT_FAILURE;
 	}
-
-	delete phantomRegistrationController;
-	delete stylusCalibrationController;
 
 	std::cout << "Exit success!!!" << std::endl; 
 	return EXIT_SUCCESS; 

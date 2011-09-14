@@ -6,7 +6,7 @@ SET ( PlusCommon_SRCS
 		vtkPlusLogger.cxx
 		vtkHTMLGenerator.cxx 
 		vtkGnuplotExecuter.cxx
-		vtkConfigurationTools.cxx
+		vtkPlusConfig.cxx
     PlusMath.cxx 
 		)
 
@@ -21,7 +21,7 @@ if (WIN32)
 		vtkGnuplotExecuter.h
     vtkTimestampedCircularBuffer.h 
     vtkTimestampedCircularBuffer.txx
-		vtkConfigurationTools.h
+		vtkPlusConfig.h
     PlusMath.h
 		)
 endif (WIN32)	

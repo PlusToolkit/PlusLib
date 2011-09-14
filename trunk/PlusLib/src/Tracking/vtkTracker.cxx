@@ -180,6 +180,7 @@ vtkTrackerTool *vtkTracker::GetTool(int tool)
   if (tool < 0 || tool > this->NumberOfTools) 
   {
     LOG_ERROR("GetTool(" << tool << "): only " << this->NumberOfTools << " are available");
+    return NULL;
   }
   return this->Tools[tool];
 }

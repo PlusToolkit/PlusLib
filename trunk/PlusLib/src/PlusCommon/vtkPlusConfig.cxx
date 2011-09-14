@@ -1,43 +1,43 @@
-#include "vtkConfigurationTools.h"
+#include "vtkPlusConfig.h"
 
 #include "PlusConfigure.h"
 
 #include "vtksys/SystemTools.hxx" 
 #include "vtkDirectory.h"
 #include "vtkXMLUtilities.h"
-#include "vtkXMLDataElement.h"
 
 //-----------------------------------------------------------------------------
 
-vtkCxxRevisionMacro(vtkConfigurationTools, "$Revision: 1.0 $");
+vtkCxxRevisionMacro(vtkPlusConfig, "$Revision: 1.0 $");
 
-vtkConfigurationTools *vtkConfigurationTools::Instance = NULL;
+vtkPlusConfig *vtkPlusConfig::Instance = NULL;
 
 //-----------------------------------------------------------------------------
 
-vtkConfigurationTools* vtkConfigurationTools::New()
+vtkPlusConfig* vtkPlusConfig::New()
 {
-	return vtkConfigurationTools::GetInstance();
+	return vtkPlusConfig::GetInstance();
 }
 
 //-----------------------------------------------------------------------------
 
-vtkConfigurationTools* vtkConfigurationTools::GetInstance() {
-	if(!vtkConfigurationTools::Instance) {
-		if(!vtkConfigurationTools::Instance) {
-			vtkConfigurationTools::Instance = new vtkConfigurationTools();	   
+vtkPlusConfig* vtkPlusConfig::GetInstance() {
+	if(!vtkPlusConfig::Instance) {
+		if(!vtkPlusConfig::Instance) {
+			vtkPlusConfig::Instance = new vtkPlusConfig();	   
 		}
 	}
 	// return the instance
-	return vtkConfigurationTools::Instance;
+	return vtkPlusConfig::Instance;
 }
 
 //-----------------------------------------------------------------------------
 
-vtkConfigurationTools::vtkConfigurationTools()
+vtkPlusConfig::vtkPlusConfig()
 {
 	this->ConfigurationDirectory = NULL;
 	this->ConfigurationFileName = NULL;
+  this->ConfigurationData = NULL;
 
 	this->SetConfigurationDirectory("");
 	this->SetConfigurationFileName("");
@@ -45,24 +45,27 @@ vtkConfigurationTools::vtkConfigurationTools()
 
 //-----------------------------------------------------------------------------
 
-vtkConfigurationTools::~vtkConfigurationTools()
+vtkPlusConfig::~vtkPlusConfig()
 {
+  this->SetConfigurationDirectory(NULL);
+	this->SetConfigurationFileName(NULL);
+  this->SetConfigurationData(NULL);
 }
 
 //-----------------------------------------------------------------------------
 
-std::string vtkConfigurationTools::GetFirstFileFoundInConfigurationDirectory(const char* aFileName)
+std::string vtkPlusConfig::GetFirstFileFoundInConfigurationDirectory(const char* aFileName)
 {
-	LOG_TRACE("vtkConfigurationTools::GetFirstFileFoundInConfigurationDirectory(" << aFileName << ")"); 
+	LOG_TRACE("vtkPlusConfig::GetFirstFileFoundInConfigurationDirectory(" << aFileName << ")"); 
 
-	return GetFirstFileFoundInParentOfDirectory(aFileName, vtkConfigurationTools::GetInstance()->GetConfigurationDirectory());
+	return GetFirstFileFoundInParentOfDirectory(aFileName, vtkPlusConfig::GetInstance()->GetConfigurationDirectory());
 };
 
 //-----------------------------------------------------------------------------
 
-std::string vtkConfigurationTools::GetFirstFileFoundInParentOfDirectory(const char* aFileName, const char* aDirectory)
+std::string vtkPlusConfig::GetFirstFileFoundInParentOfDirectory(const char* aFileName, const char* aDirectory)
 {
-	LOG_TRACE("vtkConfigurationTools::GetFirstFileFoundInParentOfDirectory(" << aFileName << ", " << aDirectory << ")"); 
+	LOG_TRACE("vtkPlusConfig::GetFirstFileFoundInParentOfDirectory(" << aFileName << ", " << aDirectory << ")"); 
 
 	std::string parentDirectory = vtksys::SystemTools::GetParentDirectory(aDirectory);
 
@@ -71,9 +74,9 @@ std::string vtkConfigurationTools::GetFirstFileFoundInParentOfDirectory(const ch
 
 //-----------------------------------------------------------------------------
 
-std::string vtkConfigurationTools::GetFirstFileFoundInDirectory(const char* aFileName, const char* aDirectory)
+std::string vtkPlusConfig::GetFirstFileFoundInDirectory(const char* aFileName, const char* aDirectory)
 {
-	LOG_TRACE("vtkConfigurationTools::GetFirstFileFoundInDirectory(" << aFileName << ", " << aDirectory << ")"); 
+	LOG_TRACE("vtkPlusConfig::GetFirstFileFoundInDirectory(" << aFileName << ", " << aDirectory << ")"); 
 
 	std::string result = FindFileRecursivelyInDirectory(aFileName, aDirectory);
 	if (STRCASECMP("", result.c_str()) == 0) {
@@ -85,9 +88,9 @@ std::string vtkConfigurationTools::GetFirstFileFoundInDirectory(const char* aFil
 
 //-----------------------------------------------------------------------------
 
-std::string vtkConfigurationTools::FindFileRecursivelyInDirectory(const char* aFileName, const char* aDirectory)
+std::string vtkPlusConfig::FindFileRecursivelyInDirectory(const char* aFileName, const char* aDirectory)
 {
-	LOG_TRACE("vtkConfigurationTools::FindFileRecursivelyInDirectory(" << aFileName << ", " << aDirectory << ")"); 
+	LOG_TRACE("vtkPlusConfig::FindFileRecursivelyInDirectory(" << aFileName << ", " << aDirectory << ")"); 
 
 	std::vector<std::string> directoryList;
 	directoryList.push_back(aDirectory);
@@ -126,9 +129,9 @@ std::string vtkConfigurationTools::FindFileRecursivelyInDirectory(const char* aF
 
 //-----------------------------------------------------------------------------
 
-std::string vtkConfigurationTools::GetNewConfigurationFileName()
+std::string vtkPlusConfig::GetNewConfigurationFileName()
 {
-  LOG_TRACE("vtkConfigurationTools::GetNewConfigurationFileName");
+  LOG_TRACE("vtkPlusConfig::GetNewConfigurationFileName");
 
   std::string resultFileName = "";
   if ((this->ConfigurationFileName == NULL) || (STRCASECMP(this->ConfigurationFileName, "") == 0)) {
@@ -151,9 +154,9 @@ std::string vtkConfigurationTools::GetNewConfigurationFileName()
 
 //-----------------------------------------------------------------------------
 
-vtkXMLDataElement* vtkConfigurationTools::LookupElementWithNameContainingChildWithNameAndAttribute(vtkXMLDataElement* aConfig, const char* aElementName, const char* aChildName, const char* aChildAttributeName, const char* aChildAttributeValue)
+vtkXMLDataElement* vtkPlusConfig::LookupElementWithNameContainingChildWithNameAndAttribute(vtkXMLDataElement* aConfig, const char* aElementName, const char* aChildName, const char* aChildAttributeName, const char* aChildAttributeValue)
 {
-  LOG_TRACE("vtkConfigurationTools::LookupElementWithNameContainingChildWithNameAndAttribute(" << aElementName << ", " << aChildName << ", " << (aChildAttributeName==NULL ? "" : aChildAttributeName) << ", " << (aChildAttributeValue==NULL ? "" : aChildAttributeValue) << ")");
+  LOG_TRACE("vtkPlusConfig::LookupElementWithNameContainingChildWithNameAndAttribute(" << aElementName << ", " << aChildName << ", " << (aChildAttributeName==NULL ? "" : aChildAttributeName) << ", " << (aChildAttributeValue==NULL ? "" : aChildAttributeValue) << ")");
 
   if (aConfig == NULL) {
     LOG_ERROR("No input XML data element is specified!");
@@ -170,4 +173,28 @@ vtkXMLDataElement* vtkConfigurationTools::LookupElementWithNameContainingChildWi
       return firstElement->FindNestedElementWithName(aChildName);
     }
 	}
+}
+
+//------------------------------------------------------------------------------
+
+PlusStatus vtkPlusConfig::SaveConfigurationToFile(const char* aFile)
+{
+  LOG_TRACE("vtkPlusConfig::SaveConfigurationToFile(" << aFile << ")");
+
+  if ( aFile == NULL ) {
+    LOG_ERROR("Failed to save configuration to file - file name is NULL!"); 
+    return PLUS_FAIL; 
+  }
+
+  if ( this->ConfigurationData == NULL )
+  {
+    LOG_ERROR("Failed to save configuration data to file - configuration data is NULL!"); 
+    return PLUS_FAIL; 
+  }
+
+  this->ConfigurationData->PrintXML( aFile );
+
+  LOG_INFO("Configuration file '" << aFile << "' saved");
+
+  return PLUS_SUCCESS;
 }

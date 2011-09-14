@@ -110,20 +110,6 @@ public:
   vtkGetObjectMacro(CalibrationMatrix, vtkMatrix4x4); 
 
   // Description:
-  // Perform a calibration of the position of the tool tip.  To accomplish
-  // this, first call InitializeCalibration(), then repeatedly call
-  // GetTracker()->Update() and InsertNextCalibrationPoint() with the
-  // tracked object in different orientations but with one point on the
-  // object fixed.  This point will become the origin of the tool when
-  // you call CalibrateToolTip().  The value returned by CalibrateToolTip()
-  // is the uncertainty (one standard deviation) in the position of the
-  // origin for any particular measurement.
-  void InitializeToolTipCalibration();
-  PlusStatus InsertNextCalibrationPoint();
-  double DoToolTipCalibration();
-
-
-  // Description:
   // Set the states of the LEDs on the tool.  If the tracking system
   // is not in tracking mode, the state will not be realized until
   // the system enters tracking mode.  The states are 0 (off), 1 (on),
@@ -175,10 +161,11 @@ public:
 
   // Description
   // Set/Get Tool definition data (model to tool transform, tool registration transform, model file path and filename)
-  vtkGetObjectMacro(ModelToToolTransform,vtkTransform);
-  vtkSetObjectMacro(ModelToToolTransform,vtkTransform);
-  //vtkGetObjectMacro(ToolToToolReferenceTransform,vtkTransform);
-  //vtkSetObjectMacro(ToolToToolReferenceTransform,vtkTransform);
+  vtkGetObjectMacro(ModelToToolTransform, vtkTransform);
+  vtkSetObjectMacro(ModelToToolTransform, vtkTransform);
+
+  // Description
+  // Set/Get name of the file containing the 3D model of this tool
   vtkGetStringMacro(Tool3DModelFileName); 
   vtkSetStringMacro(Tool3DModelFileName); 
 
@@ -225,9 +212,6 @@ protected:
 
   vtkMatrix4x4 *CalibrationMatrix;
 
-  vtkAmoebaMinimizer *Minimizer;
-  vtkDoubleArray *CalibrationArray;
-
   unsigned long FrameNumber; 
 
   int LED1;
@@ -248,15 +232,10 @@ protected:
 
   char *Tool3DModelFileName;
   vtkTransform *ModelToToolTransform;
-  //vtkTransform *ToolToToolReferenceTransform;
 
   double CalibrationError; 
 
   vtkTrackerBuffer *Buffer;
-
-//BTX
-  friend void vtkTrackerToolCalibrationFunction(void *userData);
-//ETX
 
 private:
   vtkTrackerTool(const vtkTrackerTool&);

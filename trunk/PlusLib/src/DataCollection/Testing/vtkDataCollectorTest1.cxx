@@ -13,6 +13,7 @@
 #include "vtkSavedDataTracker.h"
 #include "vtkSavedDataVideoSource.h"
 #include "vtkOpenIGTLinkBroadcaster.h"
+#include "vtkXMLUtilities.h"
 
 vtkDataCollector* dataCollector = NULL; 
 vtkImageViewer *viewer = NULL;
@@ -133,8 +134,15 @@ int main(int argc, char **argv)
 
   VTK_LOG_TO_CONSOLE_ON; 
 
+  vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkXMLUtilities::ReadElementFromFile(inputConfigFileName.c_str());
+  if (configRootElement == NULL)
+  {	
+    std::cerr << "Unable to read configuration from file " << inputConfigFileName.c_str() << std::endl;
+    exit( EXIT_FAILURE );
+  }
+
   dataCollector = vtkDataCollector::New(); 
-  dataCollector->ReadConfigurationFromFile(inputConfigFileName.c_str());
+  dataCollector->ReadConfiguration( configRootElement );
 
   if ( ! inputVideoBufferMetafile.empty()
     && dataCollector->GetAcquisitionType() == SYNCHRO_VIDEO_SAVEDDATASET )

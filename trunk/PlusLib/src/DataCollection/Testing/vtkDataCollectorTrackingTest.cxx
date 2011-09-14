@@ -3,6 +3,7 @@
 #include "vtkSmartPointer.h"
 #include "vtkDataCollector.h"
 #include "vtkTrackerBuffer.h"
+#include "vtkXMLUtilities.h"
 
 int main(int argc, char **argv)
 {
@@ -41,8 +42,15 @@ int main(int argc, char **argv)
 
 	VTK_LOG_TO_CONSOLE_ON; 
 
+  vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkXMLUtilities::ReadElementFromFile(inputConfigFileName.c_str());
+  if (configRootElement == NULL)
+  {	
+    std::cerr << "Unable to read configuration from file " << inputConfigFileName.c_str()<< std::endl;
+		exit(EXIT_FAILURE);
+  }
+
 	vtkSmartPointer<vtkDataCollector> dataCollector = vtkSmartPointer<vtkDataCollector>::New(); 
-	dataCollector->ReadConfigurationFromFile(inputConfigFileName.c_str());
+  dataCollector->ReadConfiguration( configRootElement );
 	dataCollector->Initialize(); 
 	dataCollector->Start();
 
