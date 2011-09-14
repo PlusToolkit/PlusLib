@@ -119,6 +119,7 @@ vtkPlusOpenIGTLinkServer
   
   // igtl::Socket::Pointer socket;
   
+  LOG_INFO( "Server thread started" );
   
   while ( self->GetActive() )
     {
@@ -129,6 +130,7 @@ vtkPlusOpenIGTLinkServer
     
     if ( self->ClientSocket.IsNotNull() ) // if client connected
       {
+      LOG_INFO( "Server received client connection." );
       self->ReceiveController();
       }
     }
@@ -242,6 +244,7 @@ vtkPlusOpenIGTLinkServer
       break;
       }
     
+    LOG_INFO( "Server received a package." );
     header->Unpack();  // Deserialize the header
     
     
