@@ -55,3 +55,7 @@ INSTALL(TARGETS VibroAudioCard
     CONFIGURATIONS Release
     COMPONENT RuntimeLibraries)
 
+IF (BUILD_TESTING)
+	SUBDIRS (Testing)
+ENDIF (BUILD_TESTING)
+
