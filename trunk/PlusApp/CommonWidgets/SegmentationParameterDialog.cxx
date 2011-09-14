@@ -4,6 +4,7 @@
 
 #include "vtkDataCollector.h"
 #include "vtkCalibrationController.h"
+#include "vtkPlusConfig.h"
 #include "FidPatternRecognitionCommon.h"
 #include "FidPatternRecognition.h"
 #include "PlusVideoFrame.h"
@@ -944,7 +945,7 @@ SegmentationParameterDialog::SegmentationParameterDialog(QWidget* aParent, vtkDa
 
   // Initialize calibration controller (does the segmentation)
  	m_CalibrationController = vtkCalibrationController::New();
-  m_CalibrationController->ReadConfiguration(aDataCollector->GetConfigurationData());
+  m_CalibrationController->ReadConfiguration(vtkPlusConfig::GetInstance()->GetConfigurationData());
 
   // Fill form with configuration data
   if (ReadConfiguration() != PLUS_SUCCESS) {
@@ -1031,7 +1032,7 @@ PlusStatus SegmentationParameterDialog::InitializeVisualization()
 
 	if (m_DataCollector->GetAcquisitionType() != SYNCHRO_VIDEO_NONE) {
 		m_CanvasImageActor->VisibilityOn();
-		//m_CanvasImageActor->SetInput(m_DataCollector->GetOutput());
+		//m_CanvasImageActor->SetInput(m_DataCollector->GetOutput()); // Commented because instead of the live image, snapshots are displayed with the overlay (segmented points)
 	} else {
 		LOG_WARNING("Data collector has no output port, canvas image actor initalization failed.");
 	}
@@ -1110,7 +1111,7 @@ PlusStatus SegmentationParameterDialog::ReadConfiguration()
   LOG_TRACE("SegmentationParameterDialog::ReadConfiguration");
 
   //Find segmentation parameters element
-  vtkSmartPointer<vtkXMLDataElement> usCalibration = m_DataCollector->GetConfigurationData()->FindNestedElementWithName("USCalibration");
+  vtkSmartPointer<vtkXMLDataElement> usCalibration = vtkPlusConfig::GetInstance()->GetConfigurationData()->FindNestedElementWithName("USCalibration");
 	if (usCalibration == NULL) {
 		LOG_ERROR("No USCalibration element is found in the XML tree!");
 		return PLUS_FAIL;
@@ -1267,7 +1268,7 @@ PlusStatus SegmentationParameterDialog::WriteConfiguration()
   LOG_TRACE("SegmentationParameterDialog::WriteConfiguration");
 
   //Find segmentation parameters element
-  vtkSmartPointer<vtkXMLDataElement> usCalibration = m_DataCollector->GetConfigurationData()->FindNestedElementWithName("USCalibration");
+  vtkSmartPointer<vtkXMLDataElement> usCalibration = vtkPlusConfig::GetInstance()->GetConfigurationData()->FindNestedElementWithName("USCalibration");
 	if (usCalibration == NULL) {
 		LOG_ERROR("No USCalibration element is found in the XML tree!");
 		return PLUS_FAIL;

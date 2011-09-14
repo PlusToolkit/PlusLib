@@ -1,11 +1,14 @@
-#ifndef STYLUSCALIBRATIONTOOLBOX_H
-#define STYLUSCALIBRATIONTOOLBOX_H
+#ifndef __StylusCalibrationToolbox_h
+#define __StylusCalibrationToolbox_h
 
 #include "ui_StylusCalibrationToolbox.h"
 
 #include "AbstractToolbox.h"
+#include "PlusConfigure.h"
 
 #include <QWidget>
+
+class vtkPivotCalibrationAlgo;
 
 //-----------------------------------------------------------------------------
 
@@ -19,58 +22,52 @@ class StylusCalibrationToolbox : public QWidget, public AbstractToolbox
 public:
 	/*!
 	* \brief Constructor
-	* \param aParent parent
-	* \param aFlags widget flag
+  * \param aParentMainWindow Parent main window
+	* \param aFlags Widget flags
 	*/
-	StylusCalibrationToolbox(QWidget* aParent = 0, Qt::WFlags aFlags = 0);
+	StylusCalibrationToolbox(fCalMainWindow* aParentMainWindow, Qt::WFlags aFlags = 0);
 
 	/*!
 	* \brief Destructor
 	*/
 	~StylusCalibrationToolbox();
 
+  /*!
+	* \brief Initialize - implementation of a pure virtual function
+	*/
+	void Initialize();
+
 	/*!
 	* \brief Refresh contents (e.g. GUI elements) of toolbox according to the state in the toolbox controller - implementation of a pure virtual function
 	*/
-	void RefreshToolboxContent();
+	void RefreshContent();
 
 	/*!
-	* \brief Executes operations needed after stopping the process - implementation of a pure virtual function
+	* \brief Sets display mode (visibility of actors) according to the current state - implementation of a pure virtual function
 	*/
-	void Stop();
+	void SetDisplayAccordingToState();
 
 	/*!
-	* \brief Executes operations needed when changing to another toolbox - implementation of a pure virtual function
+	* \brief Return pivot calibration algorithm object
+  * \return Pivot calibration algo
 	*/
-	void Clear();
-
-signals:
-	/*!
-	* \brief Executes operations needed after stopping the process
-	* \param Enable/disable flag
-	*/
-	void SetTabsEnabled(bool);
+  vtkPivotCalibrationAlgo* GetPivotCalibrationAlgo() { return m_PivotCalibration; };
 
 protected slots:
 	/*!
 	* \brief Start calibration
 	*/
-	void StartClicked();
+	void Start();
 
 	/*!
-	* \brief Start calibration
+	* \brief Stop calibration
 	*/
-	void StopClicked();
+	void Stop();
 
 	/*!
 	* \brief Save result to XML file
 	*/
-	void SaveResultClicked();
-
-	/*!
-	* \brief Calls acquire positions function in controller (called by the acquisition timer)
-	*/
-	void RequestDoAcquisition();
+	void Save();
 
 	/*!
 	* \brief Slot handling change of stylus calibration number of points
@@ -78,11 +75,27 @@ protected slots:
 	*/
 	void NumberOfStylusCalibrationPointsChanged(int aNumberOfPoints);
 
+  /*!
+  * \brief Acquire stylus position and add it to the algorithm (called by the acquisition timer in tool visualizer)
+  */
+  void AddStylusPositionToCalibration();
+
+protected:
+  //! Pivot calibration algorithm
+  vtkPivotCalibrationAlgo*  m_PivotCalibration;
+
+	//! Number of points to acquire
+	int									      m_NumberOfPoints;
+
+	//! Number of points acquired so far
+	int									      m_CurrentPointNumber;
+
+	//! Stylus or stylus tip position (depending on the state) as string
+	std::string							  m_StylusPositionString;
+
 protected:
 	Ui::StylusCalibrationToolbox ui;
 
-	//! Timer for acquisition
-	QTimer*	m_AcquisitionTimer;
 };
 
 #endif

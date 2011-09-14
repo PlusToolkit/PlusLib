@@ -1,65 +1,95 @@
 #include "PhantomRegistrationToolbox.h"
 
-#include "PhantomRegistrationController.h"
-#include "vtkFreehandController.h"
-#include "StylusCalibrationController.h"
+#include "fCalMainWindow.h"
+#include "vtkToolVisualizer.h"
+
+#include "StylusCalibrationToolbox.h"
 #include "ConfigFileSaverDialog.h"
 
-#include <QFileDialog>
-#include <QTimer>
+#include "vtkPhantomRegistrationAlgo.h"
+#include "vtkPivotCalibrationAlgo.h"
+#include "vtkFakeTracker.h"
 
+#include <QFileDialog>
+
+#include "vtkXMLUtilities.h"
 #include "vtkRenderWindow.h"
-#include "vtkConfigurationTools.h"
+#include "vtkAccurateTimer.h"
+#include "vtkPolyDataMapper.h"
+#include "vtkGlyph3D.h"
+#include "vtkSphereSource.h"
+#include "vtkProperty.h"
+#include "vtkSTLReader.h"
+
+#include "vtkPlusConfig.h"
 
 //-----------------------------------------------------------------------------
 
-PhantomRegistrationToolbox::PhantomRegistrationToolbox(QWidget* aParent, Qt::WFlags aFlags)
-	: AbstractToolbox()
-	, QWidget(aParent, aFlags)
+PhantomRegistrationToolbox::PhantomRegistrationToolbox(fCalMainWindow* aParentMainWindow, Qt::WFlags aFlags)
+	: AbstractToolbox(aParentMainWindow)
+	, QWidget(aParentMainWindow, aFlags)
+  , m_PhantomActor(NULL)
+  , m_RequestedLandmarkActor(NULL)
+  , m_RequestedLandmarkPolyData(NULL)
+  , m_PhantomRenderer(NULL)
+  , m_CurrentLandmarkIndex(0)
 {
 	ui.setupUi(this);
 
-	// Create timer
-	m_AcquisitionTimer = new QTimer(this);
-
-	// Initialize toolbox controller
-	PhantomRegistrationController* toolboxController = PhantomRegistrationController::GetInstance();
-	if (toolboxController == NULL) {
-		LOG_ERROR("Record phantom points toolbox controller is not initialized!");
+  // Create algorithm class
+	m_PhantomRegistration = vtkPhantomRegistrationAlgo::New();
+	if (m_PhantomRegistration == NULL) {
+		LOG_ERROR("Unable to instantiate phantom registration algorithm class!");
 		return;
 	}
 
-	toolboxController->SetToolbox(this);
+  // Create and add renderer to phantom canvas
+	m_PhantomRenderer = vtkRenderer::New();
+  m_PhantomRenderer->SetBackground(0.1, 0.1, 0.1);
+  m_PhantomRenderer->SetBackground2(0.4, 0.4, 0.4);
+  m_PhantomRenderer->SetGradientBackground(true);
 
-	// Add renderer to phantom canvas
-	ui.canvasPhantom->GetRenderWindow()->AddRenderer(toolboxController->GetPhantomRenderer());
+	ui.canvasPhantom->GetRenderWindow()->AddRenderer(m_PhantomRenderer);
 
-	// Connect events
-	connect( ui.pushButton_OpenPhantomDefinition, SIGNAL( clicked() ), this, SLOT( OpenPhantomDefinitionClicked() ) );
-	connect( ui.pushButton_OpenStylusCalibration, SIGNAL( clicked() ), this, SLOT( OpenStylusCalibrationClicked() ) );
-	connect( ui.pushButton_RecordPoint, SIGNAL( clicked() ), this, SLOT( RecordPointClicked() ) );
-	connect( ui.pushButton_Undo, SIGNAL( clicked() ), this, SLOT( UndoClicked() ) );
-	connect( ui.pushButton_Reset, SIGNAL( clicked() ), this, SLOT( ResetClicked() ) );
-	connect( ui.pushButton_Save, SIGNAL( clicked() ), this, SLOT( SaveClicked() ) );
-
-	connect( m_AcquisitionTimer, SIGNAL( timeout() ), this, SLOT( RequestDoAcquisition() ) );
+  // Connect events
+	connect( ui.pushButton_OpenPhantomDefinition, SIGNAL( clicked() ), this, SLOT( OpenPhantomDefinition() ) );
+	connect( ui.pushButton_OpenStylusCalibration, SIGNAL( clicked() ), this, SLOT( OpenStylusCalibration() ) );
+	connect( ui.pushButton_RecordPoint, SIGNAL( clicked() ), this, SLOT( RecordPoint() ) );
+	connect( ui.pushButton_Undo, SIGNAL( clicked() ), this, SLOT( Undo() ) );
+	connect( ui.pushButton_Reset, SIGNAL( clicked() ), this, SLOT( Reset() ) );
+	connect( ui.pushButton_Save, SIGNAL( clicked() ), this, SLOT( Save() ) );
 }
 
 //-----------------------------------------------------------------------------
 
 PhantomRegistrationToolbox::~PhantomRegistrationToolbox()
 {
-	PhantomRegistrationController* phantomRegistrationController = PhantomRegistrationController::GetInstance();
-	if (phantomRegistrationController != NULL) {
-		ui.canvasPhantom->GetRenderWindow()->RemoveRenderer(PhantomRegistrationController::GetInstance()->GetPhantomRenderer());
+	if (m_PhantomRegistration != NULL) {
+		m_PhantomRegistration->Delete();
+		m_PhantomRegistration = NULL;
+	} 
 
-		delete phantomRegistrationController;
+ 	if (m_PhantomActor != NULL) {
+    m_PhantomRenderer->RemoveActor(m_PhantomActor);
+		m_PhantomActor->Delete();
+		m_PhantomActor = NULL;
 	}
 
-	if (m_AcquisitionTimer != NULL) {
-    m_AcquisitionTimer->stop();
-		delete m_AcquisitionTimer;
-		m_AcquisitionTimer = NULL;
+	if (m_RequestedLandmarkActor != NULL) {
+    m_PhantomRenderer->RemoveActor(m_RequestedLandmarkActor);
+		m_RequestedLandmarkActor->Delete();
+		m_RequestedLandmarkActor = NULL;
+	}
+
+	if (m_RequestedLandmarkPolyData != NULL) {
+		m_RequestedLandmarkPolyData->Delete();
+		m_RequestedLandmarkPolyData = NULL;
+	}
+
+  if (m_PhantomRenderer != NULL) {
+	  ui.canvasPhantom->GetRenderWindow()->RemoveRenderer(m_PhantomRenderer);
+		m_PhantomRenderer->Delete();
+		m_PhantomRenderer = NULL;
 	}
 }
 
@@ -69,58 +99,162 @@ void PhantomRegistrationToolbox::Initialize()
 {
 	LOG_TRACE("PhantomRegistrationToolbox::Initialize"); 
 
-	// If stylus calibration has just been done, then indicate it
-  StylusCalibrationController* stylusCalibrationController = StylusCalibrationController::GetInstance();
-  if (stylusCalibrationController == NULL) {
-    LOG_ERROR("Stylus calibration controller is not initialized!");
-    return;
-  }
-  vtkFreehandController* controller = vtkFreehandController::GetInstance();
-  if (controller == NULL) {
-    LOG_ERROR("Freehand controller is not initialized!");
-    return;
-  }
+  if ((m_ParentMainWindow->GetToolVisualizer()->GetDataCollector() != NULL) && (m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->GetConnected())) {
+    bool readyToStart = true;
 
-  bool readyToStart = true;
+    // Determine if there is already a stylus calibration present (either in the tool if it was just performed or in the configuration data)
+    StylusCalibrationToolbox* stylusCalibrationToolbox = dynamic_cast<StylusCalibrationToolbox*>(m_ParentMainWindow->GetToolbox(ToolboxType_StylusCalibration));
+    if ((stylusCalibrationToolbox != NULL) && (stylusCalibrationToolbox->GetPivotCalibrationAlgo() != NULL)) {
+      vtkPivotCalibrationAlgo* pivotCalibration = stylusCalibrationToolbox->GetPivotCalibrationAlgo();
 
-  // If stylus calibration controller does not have the calibration transform then try to load it from the device set configuration
-  if ((controller->GetConfigurationData())
-    && ((stylusCalibrationController->GetStylustipToStylusTransform() != NULL) || (stylusCalibrationController->LoadStylusCalibration(controller->GetConfigurationData()) == PLUS_SUCCESS))) {
+      if (stylusCalibrationToolbox->GetState() == ToolboxState_Done) {
+  		  ui.lineEdit_StylusCalibration->setText(tr("Using session calibration data"));
 
-		// In case the user changed device set since calibration, set the calibration to the tool
-		stylusCalibrationController->FeedStylusCalibrationMatrixToTool();
+      } else if (pivotCalibration->ReadConfiguration(vtkPlusConfig::GetInstance()->GetConfigurationData(), TRACKER_TOOL_STYLUS) == PLUS_SUCCESS) {
+  		  ui.lineEdit_StylusCalibration->setText(tr("Using session calibration data"));
 
-		ui.lineEdit_StylusCalibration->setText(tr("Using session calibration data"));
+        // Set calibration matrix to stylus tool for later use
+        vtkDisplayableTool* stylusDisplayable = m_ParentMainWindow->GetToolVisualizer()->GetDisplayableTool(TRACKER_TOOL_STYLUS);
+        if (stylusDisplayable == NULL) {
+          LOG_ERROR("Stylus tool not found!");
+          return;
+        }
+
+        vtkSmartPointer<vtkMatrix4x4> calibrationMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+        calibrationMatrix->DeepCopy(pivotCalibration->GetTooltipToToolTransform()->GetMatrix());
+        stylusDisplayable->GetTool()->SetCalibrationMatrix(calibrationMatrix);
+
+      } else {
+        readyToStart = false;
+      }
+    } else {
+      LOG_ERROR("Stylus calibration toolbox not found!");
+      return;
+    }
+
+    // Try to load phantom definition from the device set configuration
+    if (m_PhantomRegistration->ReadConfiguration(vtkPlusConfig::GetInstance()->GetConfigurationData()) == PLUS_SUCCESS) {
+      ui.lineEdit_PhantomDefinition->setText(tr("Using session phantom definition"));
+    } else {
+      readyToStart = false;
+    }
+
+    // Initialize toolbox canvas
+    if (InitializeVisualization() != PLUS_SUCCESS) {
+      LOG_ERROR("Initializing phantom registration visualization failed!");
+      return;
+    }
+
+    // Set state to idle
+	  if (m_State == ToolboxState_Uninitialized) {
+	    SetState(ToolboxState_Idle);
+	  }
+
+    // Set to InProgress if both stylus calibration and phantom definition are available
+    if (readyToStart) {
+      Start();
+    }
+
   } else {
-    readyToStart = false;
-  }
-
-  // Try to load phantom definition from the device set configuration
-  if ((controller->GetConfigurationData()) && (PhantomRegistrationController::GetInstance()->LoadPhantomDefinition(controller->GetConfigurationData()) == PLUS_SUCCESS)) {
-    ui.lineEdit_PhantomDefinition->setText(tr("Using session phantom definition"));
-  } else {
-    readyToStart = false;
-  }
-
-  // Start timer for acquisition
-	m_AcquisitionTimer->start(1000 / vtkFreehandController::GetInstance()->GetRecordingFrameRate());
-
-	// Set to InProgress if both stylus calibration and phantom definition are available
-  if (readyToStart) {
-		PhantomRegistrationController::GetInstance()->Start();
+	  SetState(ToolboxState_Error);
+    LOG_ERROR("Stylus calibration cannot be initialized because data collection is not started!");
   }
 }
 
 //-----------------------------------------------------------------------------
 
-void PhantomRegistrationToolbox::RefreshToolboxContent()
+PlusStatus PhantomRegistrationToolbox::InitializeVisualization()
 {
-	//LOG_TRACE("PhantomRegistrationToolbox: Refresh phantom registration toolbox content"); 
+	LOG_TRACE("PhantomRegistrationToolbox::InitializeVisualization"); 
 
-	PhantomRegistrationController* toolboxController = PhantomRegistrationController::GetInstance();
+  if (m_State == ToolboxState_Uninitialized) {
+    if (m_ParentMainWindow->GetToolVisualizer()->GetDisplayableTool(TRACKER_TOOL_REFERENCE) == NULL) {
+      LOG_ERROR("Invalid reference tool actor! Probable device set is not connected.");
+      return PLUS_FAIL;
+    }
 
-	// If initialization failed
-	if (toolboxController->State() == ToolboxState_Uninitialized) {
+    // Initialize requested landmarks visualization in toolbox canvas
+		m_RequestedLandmarkPolyData = vtkPolyData::New();
+		m_RequestedLandmarkPolyData->Initialize();
+		vtkSmartPointer<vtkPoints> requestedLandmarkPoints = vtkSmartPointer<vtkPoints>::New();
+		m_RequestedLandmarkPolyData->SetPoints(requestedLandmarkPoints);
+
+		m_RequestedLandmarkActor = vtkActor::New();
+		vtkSmartPointer<vtkPolyDataMapper> requestedLandmarksMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+		vtkSmartPointer<vtkGlyph3D> requestedLandmarksGlyph = vtkSmartPointer<vtkGlyph3D>::New();
+		vtkSmartPointer<vtkSphereSource> requestedLandmarksSphereSource = vtkSmartPointer<vtkSphereSource>::New();
+		requestedLandmarksSphereSource->SetRadius(1.5); // mm
+
+		requestedLandmarksGlyph->SetInputConnection(m_RequestedLandmarkPolyData->GetProducerPort());
+		requestedLandmarksGlyph->SetSourceConnection(requestedLandmarksSphereSource->GetOutputPort());
+		requestedLandmarksMapper->SetInputConnection(requestedLandmarksGlyph->GetOutputPort());
+		m_RequestedLandmarkActor->SetMapper(requestedLandmarksMapper);
+		m_RequestedLandmarkActor->GetProperty()->SetColor(1.0, 0.0, 0.0);
+
+    // Initialize phantom visualization in toolbox canvas
+    vtkSmartPointer<vtkSTLReader> stlReader = vtkSmartPointer<vtkSTLReader>::New();
+    if (m_ParentMainWindow->GetToolVisualizer()->LoadPhantomModel(stlReader) == PLUS_SUCCESS) {
+      m_PhantomActor = vtkActor::New();
+		  vtkSmartPointer<vtkPolyDataMapper> stlMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+		  stlMapper->SetInputConnection(stlReader->GetOutputPort());
+		  m_PhantomActor->SetMapper(stlMapper);
+      m_PhantomActor->GetProperty()->SetOpacity(0.6);
+      m_PhantomActor->SetUserTransform(m_ParentMainWindow->GetToolVisualizer()->GetDisplayableTool(TRACKER_TOOL_REFERENCE)->GetTool()->GetModelToToolTransform());
+
+    } else {
+      LOG_ERROR("Phantom cannot be visualized in toolbox canvas because model cannot be loaded!");
+      return PLUS_FAIL;
+    }
+
+		// Add actors
+    m_PhantomRenderer->AddActor(m_PhantomActor);
+		m_PhantomRenderer->AddActor(m_RequestedLandmarkActor);
+  }
+
+  return PLUS_SUCCESS;
+}
+
+//-----------------------------------------------------------------------------
+
+void PhantomRegistrationToolbox::RefreshContent()
+{
+	//LOG_TRACE("PhantomRegistrationToolbox::RefreshContent"); 
+
+	// If in progress
+	if (m_State == ToolboxState_InProgress) {
+		ui.label_StylusPosition->setText(QString::fromStdString(m_ParentMainWindow->GetToolVisualizer()->GetToolPositionString(TRACKER_TOOL_STYLUS, true)));
+    ui.label_Instructions->setText(QString("Touch landmark named %1 and press Record point button").arg(QString::fromStdString(m_PhantomRegistration->GetDefinedLandmarkName(m_CurrentLandmarkIndex))));
+
+		if (m_CurrentLandmarkIndex < 1) {
+			ui.pushButton_Undo->setEnabled(false);
+			ui.pushButton_Reset->setEnabled(false);
+		} else {
+			ui.pushButton_Undo->setEnabled(true);
+			ui.pushButton_Reset->setEnabled(true);
+		}
+
+    m_ParentMainWindow->SetStatusBarProgress((int)(100.0 * (m_CurrentLandmarkIndex / m_PhantomRegistration->GetDefinedLandmarks()->GetNumberOfPoints()) + 0.5));
+
+  } else
+	// If done
+	if (m_State == ToolboxState_Done) {
+    ui.label_StylusPosition->setText(QString::fromStdString(m_ParentMainWindow->GetToolVisualizer()->GetToolPositionString(TRACKER_TOOL_STYLUS, true)));
+  }
+
+	ui.canvasPhantom->update();
+}
+
+//-----------------------------------------------------------------------------
+
+void PhantomRegistrationToolbox::SetDisplayAccordingToState()
+{
+  LOG_TRACE("PhantomRegistrationToolbox::SetDisplayAccordingToState");
+
+  m_ParentMainWindow->GetToolVisualizer()->HideAll();
+  m_ParentMainWindow->GetToolVisualizer()->EnableImageMode(false);
+
+  // If initialization failed
+	if (m_State == ToolboxState_Uninitialized) {
 		ui.label_StylusPosition->setText(tr("N/A"));
 		ui.label_Instructions->setText("");
 
@@ -130,14 +264,18 @@ void PhantomRegistrationToolbox::RefreshToolboxContent()
 		ui.pushButton_Reset->setEnabled(false);
 		ui.pushButton_Save->setEnabled(false);
 		ui.pushButton_Undo->setEnabled(false);
-	} else
+
+		m_ParentMainWindow->SetStatusBarText(QString(""));
+		m_ParentMainWindow->SetStatusBarProgress(-1);
+
+  } else
 	// If initialized
-	if (toolboxController->State() == ToolboxState_Idle) {
+	if (m_State == ToolboxState_Idle) {
 		ui.label_StylusPosition->setText(tr("N/A"));
 		if (ui.lineEdit_StylusCalibration->text().length() == 0) {
-			ui.label_Instructions->setText(tr("Stylus calibration XML has to be loaded"));
+			ui.label_Instructions->setText(tr("Stylus calibration XML needs to be loaded"));
 		} else if (ui.lineEdit_PhantomDefinition->text().length() == 0) {
-			ui.label_Instructions->setText(tr("Phantom definition XML has to be loaded"));
+			ui.label_Instructions->setText(tr("Phantom definition XML needs to be loaded"));
 		}
 		ui.label_Instructions->setFont(QFont("SansSerif", 8, QFont::Bold));
 
@@ -148,15 +286,12 @@ void PhantomRegistrationToolbox::RefreshToolboxContent()
 		ui.pushButton_Save->setEnabled(false);
 		ui.pushButton_Undo->setEnabled(false);
 
-		// If tab changed, then restart timer (clearing stops the timer)
-		if (! m_AcquisitionTimer->isActive()) {
-			m_AcquisitionTimer->start();
-		}
-	} else
+		m_ParentMainWindow->SetStatusBarText(QString(""));
+		m_ParentMainWindow->SetStatusBarProgress(-1);
+
+  } else
 	// If in progress
-	if (toolboxController->State() == ToolboxState_InProgress) {
-		ui.label_StylusPosition->setText(QString::fromStdString(toolboxController->GetPositionString()));
-		ui.label_Instructions->setText(QString("Touch landmark named %1 and press Record point button").arg(QString::fromStdString(toolboxController->GetCurrentLandmarkName())));
+	if (m_State == ToolboxState_InProgress) {
 		ui.label_Instructions->setFont(QFont("SansSerif", 8, QFont::Bold));
 
 		ui.pushButton_OpenPhantomDefinition->setEnabled(true);
@@ -164,7 +299,7 @@ void PhantomRegistrationToolbox::RefreshToolboxContent()
 		ui.pushButton_RecordPoint->setEnabled(true);
 		ui.pushButton_Save->setEnabled(false);
 
-		if (toolboxController->GetCurrentLandmarkIndex() < 1) {
+		if (m_CurrentLandmarkIndex < 1) {
 			ui.pushButton_Undo->setEnabled(false);
 			ui.pushButton_Reset->setEnabled(false);
 		} else {
@@ -172,46 +307,44 @@ void PhantomRegistrationToolbox::RefreshToolboxContent()
 			ui.pushButton_Reset->setEnabled(true);
 		}
 
-		if (!(ui.pushButton_RecordPoint->hasFocus() || vtkFreehandController::GetInstance()->GetCanvas()->hasFocus())) {
-			ui.pushButton_RecordPoint->setFocus();
-		}
-	} else
+    m_ParentMainWindow->SetStatusBarText(QString(" Recording phantom landmarks"));
+		m_ParentMainWindow->SetStatusBarProgress(0);
+
+    m_ParentMainWindow->GetToolVisualizer()->ShowInputPoints(true);
+    m_ParentMainWindow->GetToolVisualizer()->ShowTool(TRACKER_TOOL_STYLUS, true);
+    if (m_CurrentLandmarkIndex >= 3) {
+      m_ParentMainWindow->GetToolVisualizer()->ShowTool(TRACKER_TOOL_REFERENCE, true);
+    }
+
+    ui.pushButton_RecordPoint->setFocus();
+
+  } else
 	// If done
-	if (toolboxController->State() == ToolboxState_Done) {
-		ui.label_StylusPosition->setText(QString::fromStdString(toolboxController->GetPositionString()));
+	if (m_State == ToolboxState_Done) {
+		ui.label_Instructions->setText(tr("Transform is ready to save"));
 
-		if (! toolboxController->GetPhantomToPhantomReferenceTransform()) {
-			ui.label_Instructions->setText(tr("Press Register button to compute the transform"));
-
-			ui.pushButton_OpenPhantomDefinition->setEnabled(true);
-			ui.pushButton_OpenStylusCalibration->setEnabled(true);
-			ui.pushButton_Save->setEnabled(false);
-			ui.pushButton_RecordPoint->setEnabled(false);
-			ui.pushButton_Reset->setEnabled(true);
-			ui.pushButton_Undo->setEnabled(true);
-		} else {
-			ui.label_Instructions->setText(tr("Transform is ready to save"));
-
-			ui.pushButton_OpenPhantomDefinition->setEnabled(true);
-			ui.pushButton_OpenStylusCalibration->setEnabled(true);
-			ui.pushButton_Save->setEnabled(true);
-			ui.pushButton_RecordPoint->setEnabled(false);
-			ui.pushButton_Reset->setEnabled(true);
-			ui.pushButton_Undo->setEnabled(true);
-		}
+		ui.pushButton_OpenPhantomDefinition->setEnabled(true);
+		ui.pushButton_OpenStylusCalibration->setEnabled(true);
+		ui.pushButton_Save->setEnabled(true);
+		ui.pushButton_RecordPoint->setEnabled(false);
+		ui.pushButton_Reset->setEnabled(true);
+		ui.pushButton_Undo->setEnabled(true);
 
 		ui.label_Instructions->setFont(QFont("SansSerif", 8, QFont::Bold));
 
 		ui.pushButton_OpenPhantomDefinition->setEnabled(true);
 		ui.pushButton_OpenStylusCalibration->setEnabled(true);
 
-		// If tab changed, then restart timer (clearing stops the timer)
-		if (! m_AcquisitionTimer->isActive()) {
-			m_AcquisitionTimer->start();
-		}
-	} else
+		m_ParentMainWindow->SetStatusBarText(QString(" Phantom registration done"));
+		m_ParentMainWindow->SetStatusBarProgress(-1);
+
+    m_ParentMainWindow->GetToolVisualizer()->ShowInputPoints(true);
+    m_ParentMainWindow->GetToolVisualizer()->ShowTool(TRACKER_TOOL_REFERENCE, true);
+    m_ParentMainWindow->GetToolVisualizer()->ShowTool(TRACKER_TOOL_STYLUS, true);
+
+  } else
 	// If error occured
-	if (toolboxController->State() == ToolboxState_Error) {
+	if (m_State == ToolboxState_Error) {
 		ui.label_StylusPosition->setText(tr("N/A"));
 		ui.label_Instructions->setText("Error occured!");
 		ui.label_Instructions->setFont(QFont("SansSerif", 8, QFont::Bold));
@@ -222,64 +355,77 @@ void PhantomRegistrationToolbox::RefreshToolboxContent()
 		ui.pushButton_Reset->setEnabled(false);
 		ui.pushButton_Save->setEnabled(false);
 		ui.pushButton_Undo->setEnabled(false);
+
+    m_ParentMainWindow->SetStatusBarText(QString(""));
+		m_ParentMainWindow->SetStatusBarProgress(-1);
 	}
-
-	ui.canvasPhantom->update();
 }
 
 //-----------------------------------------------------------------------------
 
-void PhantomRegistrationToolbox::Stop()
+PlusStatus PhantomRegistrationToolbox::Start()
 {
-	LOG_TRACE("PhantomRegistrationToolbox::Stop"); 
+	LOG_TRACE("PhantomRegistrationToolbox::Start"); 
 
-	PhantomRegistrationController::GetInstance()->Stop();
+  if (m_PhantomRegistration->GetDefinedLandmarks()->GetNumberOfPoints() < 4) {
+    LOG_ERROR("Not enough (" << m_PhantomRegistration->GetDefinedLandmarks()->GetNumberOfPoints() << ") defined landmarks (should be at least 4)!");
+    return PLUS_FAIL;
+  }
 
-  emit SetTabsEnabled(true);
+  StylusCalibrationToolbox* stylusCalibrationToolbox = dynamic_cast<StylusCalibrationToolbox*>(m_ParentMainWindow->GetToolbox(ToolboxType_StylusCalibration));
+  if ((stylusCalibrationToolbox != NULL) && (stylusCalibrationToolbox->GetPivotCalibrationAlgo() != NULL)) {
+
+    vtkPivotCalibrationAlgo* pivotCalibration = stylusCalibrationToolbox->GetPivotCalibrationAlgo();
+    if (pivotCalibration->GetTooltipToToolTransform() != NULL) {
+
+		  m_CurrentLandmarkIndex = 0;
+
+	    // Initialize input points poly data in visualizer
+	    m_ParentMainWindow->GetToolVisualizer()->GetInputPointsPolyData()->GetPoints()->Initialize();
+	    m_ParentMainWindow->GetToolVisualizer()->GetInputPointsPolyData()->Modified();
+
+	    // Highlight first landmark
+      m_RequestedLandmarkPolyData->GetPoints()->InsertPoint(0, m_PhantomRegistration->GetDefinedLandmarks()->GetPoint(0));
+	    m_RequestedLandmarkPolyData->GetPoints()->Modified();
+
+      SetState(ToolboxState_InProgress);
+    }
+  } else {
+    LOG_ERROR("Stylus calibration toolbox not found!");
+    return PLUS_FAIL;
+  }
+
+	return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
 
-void PhantomRegistrationToolbox::Clear()
+void PhantomRegistrationToolbox::OpenPhantomDefinition()
 {
-	LOG_TRACE("PhantomRegistrationToolbox::Clear"); 
-
-	// Stop the acquisition timer
-	m_AcquisitionTimer->stop();
-}
-
-//-----------------------------------------------------------------------------
-
-void PhantomRegistrationToolbox::RequestDoAcquisition()
-{
-	LOG_TRACE("PhantomRegistrationToolbox::RequestDoAcquisition"); 
-
-	PhantomRegistrationController::GetInstance()->DoAcquisition();
-}
-
-//-----------------------------------------------------------------------------
-
-void PhantomRegistrationToolbox::OpenPhantomDefinitionClicked()
-{
-	LOG_TRACE("PhantomRegistrationToolbox: Open phantom definition button clicked"); 
+  LOG_TRACE("PhantomRegistrationToolbox::OpenPhantomDefinition"); 
 
 	// File open dialog for selecting phantom definition xml
 	QString filter = QString( tr( "XML files ( *.xml );;" ) );
-	QString fileName = QFileDialog::getOpenFileName(NULL, QString( tr( "Open phantom descriptor XML" ) ), vtkConfigurationTools::GetInstance()->GetConfigurationDirectory(), filter);
+	QString fileName = QFileDialog::getOpenFileName(NULL, QString( tr( "Open phantom descriptor XML" ) ), vtkPlusConfig::GetInstance()->GetConfigurationDirectory(), filter);
 	if (fileName.isNull()) {
 		return;
 	}
 
-	// Load phantom definition xml
-	if (PhantomRegistrationController::GetInstance()->LoadPhantomDefinitionFromFile(fileName.toStdString()) == PLUS_SUCCESS) {
-		// Refresh phantom canvas
-		ui.canvasPhantom->update();
+  // Parse XML file
+  vtkSmartPointer<vtkXMLDataElement> rootElement = vtkXMLUtilities::ReadElementFromFile(fileName.toStdString().c_str());
+	if (rootElement == NULL) {	
+		LOG_ERROR("Unable to read the configuration file: " << fileName.toStdString()); 
+		return;
+	}
 
+	// Load phantom definition xml
+  if (m_PhantomRegistration->ReadConfiguration(rootElement) == PLUS_SUCCESS) {
 		ui.lineEdit_PhantomDefinition->setText(fileName);
 		ui.lineEdit_PhantomDefinition->setToolTip(fileName);
 
 		// Set to InProgress if both stylus calibration and phantom definition are available
-		PhantomRegistrationController::GetInstance()->Start();
+		Start();
+
 	} else {
 		ui.lineEdit_PhantomDefinition->setText(tr("Invalid file!"));
 		ui.lineEdit_PhantomDefinition->setToolTip("");
@@ -288,78 +434,188 @@ void PhantomRegistrationToolbox::OpenPhantomDefinitionClicked()
 
 //-----------------------------------------------------------------------------
 
-void PhantomRegistrationToolbox::OpenStylusCalibrationClicked()
+void PhantomRegistrationToolbox::OpenStylusCalibration()
 {
-	LOG_TRACE("PhantomRegistrationToolbox: Open stylus calibration XML button clicked");
+  LOG_TRACE("PhantomRegistrationToolbox::OpenStylusCalibration");
 
 	// File open dialog for selecting phantom definition xml
 	QString filter = QString( tr( "XML files ( *.xml );;" ) );
-	QString fileName = QFileDialog::getOpenFileName(NULL, QString( tr( "Open stylus calibration XML" ) ), vtkConfigurationTools::GetInstance()->GetConfigurationDirectory(), filter);
+	QString fileName = QFileDialog::getOpenFileName(NULL, QString( tr( "Open stylus calibration XML" ) ), vtkPlusConfig::GetInstance()->GetConfigurationDirectory(), filter);
 	if (fileName.isNull()) {
 		return;
 	}
 
-	// Load stylus calibration xml
-	if (StylusCalibrationController::GetInstance()->LoadStylusCalibrationFromFile(fileName.toStdString()) == PLUS_SUCCESS) {
-		ui.lineEdit_StylusCalibration->setText(fileName);
-		ui.lineEdit_StylusCalibration->setToolTip(fileName);
+  StylusCalibrationToolbox* stylusCalibrationToolbox = dynamic_cast<StylusCalibrationToolbox*>(m_ParentMainWindow->GetToolbox(ToolboxType_StylusCalibration));
+  if ((stylusCalibrationToolbox != NULL) && (stylusCalibrationToolbox->GetPivotCalibrationAlgo() != NULL)) {
+    vtkPivotCalibrationAlgo* pivotCalibration = stylusCalibrationToolbox->GetPivotCalibrationAlgo();
 
-		// Set to InProgress if both stylus calibration and phantom definition are available
-		PhantomRegistrationController::GetInstance()->Start();
-	} else {
-		ui.lineEdit_StylusCalibration->setText(tr("Invalid file!"));
-		ui.lineEdit_StylusCalibration->setToolTip("");
+    if (pivotCalibration->ReadConfiguration(vtkPlusConfig::GetInstance()->GetConfigurationData(), TRACKER_TOOL_STYLUS) == PLUS_SUCCESS) {
+		  ui.lineEdit_StylusCalibration->setText(fileName);
+		  ui.lineEdit_StylusCalibration->setToolTip(fileName);
+
+ 		  // Set to InProgress if both stylus calibration and phantom definition are available
+      Start();
+
+    } else {
+		  ui.lineEdit_StylusCalibration->setText(tr("Invalid file!"));
+		  ui.lineEdit_StylusCalibration->setToolTip("");
+    }
+
+  } else {
+    LOG_ERROR("Stylus calibration toolbox not found!");
+    return;
+  }
+}
+
+//-----------------------------------------------------------------------------
+
+void PhantomRegistrationToolbox::RecordPoint()
+{
+  LOG_TRACE("PhantomRegistrationToolbox::RecordPoint"); 
+
+	// If tracker is FakeTracker then set counter (trigger position change) and wait for it to apply the new position
+	vtkFakeTracker *fakeTracker = dynamic_cast<vtkFakeTracker*>(m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->GetTracker());
+	if (fakeTracker != NULL) {
+		fakeTracker->SetCounter(m_CurrentLandmarkIndex);
+		vtkAccurateTimer::Delay(1.1 / fakeTracker->GetFrequency());
+	}
+
+  // Acquire point and add to registration algorithm
+  vtkSmartPointer<vtkMatrix4x4> stylusTipToReferenceMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+  if (m_ParentMainWindow->GetToolVisualizer()->AcquireTrackerPositionForToolByType(TRACKER_TOOL_STYLUS, stylusTipToReferenceMatrix, true) == TR_OK) {
+		double elements[16]; //TODO find other way
+		double stylusTipPosition[4];
+		for (int i=0; i<4; ++i) for (int j=0; j<4; ++j) elements[4*j+i] = stylusTipToReferenceMatrix->GetElement(i,j);
+		double origin[4] = {0.0, 0.0, 0.0, 1.0};
+		vtkMatrix4x4::PointMultiply(elements, origin, stylusTipPosition);
+
+		// Add recorded point to algorithm
+    m_PhantomRegistration->GetRecordedLandmarks()->InsertPoint(m_CurrentLandmarkIndex, stylusTipPosition[0], stylusTipPosition[1], stylusTipPosition[2]);
+		m_PhantomRegistration->GetRecordedLandmarks()->Modified();
+
+		// Add recorded point to visualization
+    m_ParentMainWindow->GetToolVisualizer()->GetInputPointsPolyData()->GetPoints()->InsertPoint(m_CurrentLandmarkIndex, stylusTipPosition[0], stylusTipPosition[1], stylusTipPosition[2]);
+    m_ParentMainWindow->GetToolVisualizer()->GetInputPointsPolyData()->Modified();
+
+		// Set new current landmark number and reset request flag
+		++m_CurrentLandmarkIndex;
+
+    // If there are at least 3 acuired points then register
+    if (m_CurrentLandmarkIndex >= 3) {
+      if (m_PhantomRegistration->Register() == PLUS_SUCCESS) {
+        // Set result for visualization
+        m_ParentMainWindow->GetToolVisualizer()->SetPhantomToPhantomReferenceTransform(m_PhantomRegistration->GetPhantomToPhantomReferenceTransform());
+        m_ParentMainWindow->GetToolVisualizer()->ShowTool(TRACKER_TOOL_REFERENCE, true);
+      } else {
+        LOG_ERROR("Phantom registration failed!");
+      }
+    }
+
+		// If it was the last landmark then write configuration, set status to done and reset landmark counter
+    if (m_CurrentLandmarkIndex == m_PhantomRegistration->GetDefinedLandmarks()->GetNumberOfPoints()) {
+
+      if (m_PhantomRegistration->WriteConfiguration(vtkPlusConfig::GetInstance()->GetConfigurationData()) != PLUS_SUCCESS) {
+        LOG_ERROR("Unable to save phantom registration result in configuration XML tree!");
+        SetState(ToolboxState_Error);
+        return;
+      } else {
+        SetState(ToolboxState_Done);
+      }
+
+	    m_RequestedLandmarkPolyData->GetPoints()->GetData()->RemoveTuple(0);
+	    m_RequestedLandmarkPolyData->GetPoints()->Modified();
+
+		} else {
+			// Highlight next landmark
+			m_RequestedLandmarkPolyData->GetPoints()->InsertPoint(0, m_PhantomRegistration->GetDefinedLandmarks()->GetPoint(m_CurrentLandmarkIndex));
+			m_RequestedLandmarkPolyData->GetPoints()->Modified();
+		}
+
+		// Reset camera after each recording
+		m_ParentMainWindow->GetToolVisualizer()->GetCanvasRenderer()->ResetCamera();
+  }
+}
+
+//-----------------------------------------------------------------------------
+
+void PhantomRegistrationToolbox::Undo()
+{
+	LOG_TRACE("PhantomRegistrationToolbox::Undo"); 
+
+	if (m_State == ToolboxState_Done) {
+		SetState(ToolboxState_InProgress);
+	}
+
+	if (m_CurrentLandmarkIndex > 0) {
+		// Decrease current landmark index
+		--m_CurrentLandmarkIndex;
+
+		// Reset result transform (in case Undo was pressed when the registration was ready)
+		m_PhantomRegistration->SetPhantomToPhantomReferenceTransform(NULL);
+
+		// Delete previously acquired landmark
+		m_ParentMainWindow->GetToolVisualizer()->GetInputPointsPolyData()->GetPoints()->GetData()->RemoveTuple(m_CurrentLandmarkIndex);
+		m_ParentMainWindow->GetToolVisualizer()->GetInputPointsPolyData()->Modified();
+
+		// Highlight previous landmark
+		m_RequestedLandmarkPolyData->GetPoints()->InsertPoint(0, m_PhantomRegistration->GetDefinedLandmarks()->GetPoint(m_CurrentLandmarkIndex));
+		m_RequestedLandmarkPolyData->GetPoints()->Modified();
+
+    // Hide phantom from main canvas
+    m_ParentMainWindow->GetToolVisualizer()->ShowTool(TRACKER_TOOL_REFERENCE, false);
+  }
+
+	// If tracker is FakeTracker then set counter
+	vtkFakeTracker *fakeTracker = dynamic_cast<vtkFakeTracker*>(m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->GetTracker());
+	if (fakeTracker != NULL) {
+		fakeTracker->SetCounter(m_CurrentLandmarkIndex);
 	}
 }
 
 //-----------------------------------------------------------------------------
 
-void PhantomRegistrationToolbox::RecordPointClicked()
+void PhantomRegistrationToolbox::Reset()
 {
-	LOG_TRACE("PhantomRegistrationToolbox: Record button clicked"); 
+	LOG_TRACE("PhantomRegistrationToolbox::Reset"); 
 
-	PhantomRegistrationController* toolboxController = PhantomRegistrationController::GetInstance();
-
-	// Disable tabs if this is the first landmark to record
-	if (toolboxController->GetCurrentLandmarkIndex() == 0) {
-		emit SetTabsEnabled(false);
+	if (m_State == ToolboxState_Done) {
+		SetState(ToolboxState_InProgress);
 	}
 
-	toolboxController->RequestRecording();
-}
+	// Delete acquired landmarks
+	vtkSmartPointer<vtkPoints> landmarkPoints = vtkSmartPointer<vtkPoints>::New();
+	m_ParentMainWindow->GetToolVisualizer()->GetInputPointsPolyData()->SetPoints(landmarkPoints);
+	m_ParentMainWindow->GetToolVisualizer()->GetInputPointsPolyData()->Modified();
 
-//-----------------------------------------------------------------------------
+	// Reset current landmark index
+	m_CurrentLandmarkIndex = 0;
 
-void PhantomRegistrationToolbox::UndoClicked()
-{
-	LOG_TRACE("PhantomRegistrationToolbox: Undo button clicked"); 
+	// Reset result transform (if Reset was pressed when the registration was ready we have to make it null)
+	m_PhantomRegistration->SetPhantomToPhantomReferenceTransform(NULL);
 
-	PhantomRegistrationController::GetInstance()->Undo();
-}
+	// Highlight first landmark
+  if (m_PhantomRegistration->GetDefinedLandmarks()->GetNumberOfPoints() > 0) {
+	  m_RequestedLandmarkPolyData->GetPoints()->InsertPoint(0, m_PhantomRegistration->GetDefinedLandmarks()->GetPoint(0));
+	  m_RequestedLandmarkPolyData->GetPoints()->Modified();
+  }
 
-//-----------------------------------------------------------------------------
+  // Hide phantom from main canvas
+  m_ParentMainWindow->GetToolVisualizer()->ShowTool(TRACKER_TOOL_REFERENCE, false);
 
-void PhantomRegistrationToolbox::ResetClicked()
-{
-	LOG_TRACE("PhantomRegistrationToolbox: Reset button clicked"); 
-
-	PhantomRegistrationController::GetInstance()->Reset();
-
-	emit SetTabsEnabled(true);
-}
-
-//-----------------------------------------------------------------------------
-
-void PhantomRegistrationToolbox::SaveClicked()
-{
-	LOG_TRACE("PhantomRegistrationToolbox: Save button clicked"); 
-
-  if (PhantomRegistrationController::GetInstance()->SavePhantomRegistration(vtkFreehandController::GetInstance()->GetConfigurationData()) != PLUS_SUCCESS) {
-		LOG_ERROR("Phantom registration result could not be saved!");
-		return;
+	// If tracker is FakeTracker then reset counter
+	vtkFakeTracker *fakeTracker = dynamic_cast<vtkFakeTracker*>(m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->GetTracker());
+	if (fakeTracker != NULL) {
+		fakeTracker->SetCounter(m_CurrentLandmarkIndex);
 	}
+}
 
-  ConfigFileSaverDialog* configSaverDialog = new ConfigFileSaverDialog(this, vtkFreehandController::GetInstance()->GetConfigurationData());
+//-----------------------------------------------------------------------------
+
+void PhantomRegistrationToolbox::Save()
+{
+  LOG_TRACE("PhantomRegistrationToolbox::Save"); 
+
+  ConfigFileSaverDialog* configSaverDialog = new ConfigFileSaverDialog(this, vtkPlusConfig::GetInstance()->GetConfigurationData());
   configSaverDialog->exec();
 
   delete configSaverDialog;

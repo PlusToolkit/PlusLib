@@ -3,6 +3,7 @@
 
 #include "vtkSmartPointer.h"
 #include "vtksys/CommandLineArguments.hxx"
+#include "vtkXMLUtilities.h"
 
 #include "vtkDataCollector.h"
 #include "vtkSavedDataTracker.h"
@@ -135,7 +136,13 @@ int main( int argc, char *argv[] )
     // Prepare data collector object.
   
   vtkSmartPointer< vtkDataCollector > dataCollector = vtkSmartPointer< vtkDataCollector >::New();
-  dataCollector->ReadConfigurationFromFile( inputConfigFileName.c_str() );
+  vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkXMLUtilities::ReadElementFromFile( inputConfigFileName.c_str() );
+  if ( configRootElement == NULL )
+  {	
+    LOG_ERROR("Unable to read configuration from file " << inputConfigFileName.c_str()); 
+    return 1;
+  }
+  dataCollector->ReadConfiguration( configRootElement );
   
   if ( dataCollector->GetAcquisitionType() == SYNCHRO_VIDEO_SAVEDDATASET )
     {

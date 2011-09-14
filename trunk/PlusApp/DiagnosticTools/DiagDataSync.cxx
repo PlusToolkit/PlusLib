@@ -8,6 +8,7 @@
 #include "vtkHTMLGenerator.h"
 #include "vtkGnuplotExecuter.h"
 #include "vtksys/SystemTools.hxx"
+#include "vtkXMLUtilities.h"
 
 int main(int argc, char **argv)
 {
@@ -76,7 +77,12 @@ int main(int argc, char **argv)
 	//************************************************************************************
 	// Initialize data collector
 	vtkSmartPointer<vtkDataCollector> dataCollector = vtkSmartPointer<vtkDataCollector>::New(); 
-	dataCollector->ReadConfigurationFromFile(inputConfigFileName.c_str());
+  vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkXMLUtilities::ReadElementFromFile(inputConfigFileName.c_str());
+  if (configRootElement == NULL) {	
+    LOG_ERROR("Unable to read configuration from file " << inputConfigFileName); 
+		exit(EXIT_FAILURE);
+  }
+	dataCollector->ReadConfiguration(configRootElement);
 	dataCollector->Initialize(); 
 	dataCollector->Start();
 

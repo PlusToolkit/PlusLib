@@ -7,6 +7,8 @@
 
 #include <QWidget>
 
+class vtkFreehandCalibrationController;
+
 //-----------------------------------------------------------------------------
 
 /*!
@@ -19,10 +21,10 @@ class FreehandCalibrationToolbox : public QWidget, public AbstractToolbox
 public:
 	/*!
 	* \brief Constructor
-	* \param aParent parent
+	* \param aParentMainWindow Parent main window
 	* \param aFlags widget flag
 	*/
-	FreehandCalibrationToolbox(QWidget* aParent = 0, Qt::WFlags aFlags = 0);
+	FreehandCalibrationToolbox(fCalMainWindow* aParentMainWindow, Qt::WFlags aFlags = 0);
 
 	/*!
 	* \brief Destructor
@@ -30,77 +32,69 @@ public:
 	~FreehandCalibrationToolbox();
 
 	/*!
-	* \brief Refresh contents (e.g. GUI elements) of toolbox according to the state in the toolbox controller - implementation of a pure virtual function
-	*/
-	void RefreshToolboxContent();
-
-	/*!
-	* \brief Executes operations needed after stopping the process - implementation of a pure virtual function
-	*/
-	void Stop();
-
-	/*!
-	* \brief Executes operations needed when changing to another toolbox - implementation of a pure virtual function
-	*/
-	void Clear();
-
-	/*!
-	* \brief Initialize toolbox (load session data) - overridden method
+	* \brief Initialize toolbox (load session data) - implementation of a pure virtual function
 	*/
 	void Initialize();
 
-signals:
 	/*!
-	* \brief Executes operations needed after stopping the process
-	* \param Enable/disable flag
+	* \brief Refresh contents (e.g. GUI elements) of toolbox according to the state in the toolbox controller - implementation of a pure virtual function
 	*/
-	void SetTabsEnabled(bool);
+	void RefreshContent();
+
+	/*!
+	* \brief Sets display mode (visibility of actors) according to the current state - implementation of a pure virtual function
+	*/
+	void SetDisplayAccordingToState();
+
+protected:
+  //! TODO
+  bool IsReadyToStartSpatialCalibration();
 
 protected slots:
 	/*!
 	* \brief Slot handling open phantom registration button click
 	*/
-	void OpenPhantomRegistrationClicked();
+	void OpenPhantomRegistration();
 
 	/*!
 	* \brief Slot handling open calibration configuration button click
 	*/
-	void OpenCalibrationConfigurationClicked();
+	void OpenCalibrationConfiguration();
 
 	/*!
 	* \brief Slot handling edit calibration configuration button click
 	*/
-	void EditCalibrationConfigurationClicked();
+	void EditCalibrationConfiguration();
 
 	/*!
 	* \brief Slot handling start temporal calibration button click
 	*/
-	void StartTemporalClicked();
+	void StartTemporal();
 
 	/*!
 	* \brief Slot handling reset temporal calibration button click
 	*/
-	void ResetTemporalClicked();
+	void ResetTemporal();
 
 	/*!
 	* \brief Slot handling skip temporal calibration button click
 	*/
-	void SkipTemporalClicked();
+	void SkipTemporal();
 
 	/*!
 	* \brief Slot handling start spatial calibration button click
 	*/
-	void StartSpatialClicked();
+	void StartSpatial();
 
 	/*!
 	* \brief Slot handling reset spatial calibration button click
 	*/
-	void ResetSpatialClicked();
+	void ResetSpatial();
 
 	/*!
 	* \brief Slot handling save results button click
 	*/
-	void SaveClicked();
+	void Save();
 
 	/*!
 	* \brief Slot handling show devices combobox state change
@@ -108,16 +102,18 @@ protected slots:
 	*/
 	void ShowDevicesToggled(bool aOn);
 
-	/*!
-	* \brief Calls acquire positions function in controller (called by the acquisition timer)
-	*/
-	void RequestDoAcquisition();
+protected:
+	//! TODO
+	bool m_TemporalCalibrationDone;
+	bool m_SpatialCalibrationDone;
+
+  //! Freehand calibration algorithm
+  vtkFreehandCalibrationController* m_FreehandCalibration;
+
 
 protected:
 	Ui::FreehandCalibrationToolbox ui;
 
-	//! Timer for acquisition (in device visualization mode)
-	QTimer*	m_AcquisitionTimer;
 };
 
 #endif

@@ -1,11 +1,12 @@
-#ifndef FREEHANDMAINWINDOW_H
-#define FREEHANDMAINWINDOW_H
+#ifndef __fCalMainWindow_h
+#define __fCalMainWindow_h
 
-#include "ui_FreehandMainWindow.h"
+#include "ui_fCalMainWindow.h"
 
 #include <QtGui/QMainWindow>
 
-class AbstractToolboxController;
+class vtkToolVisualizer;
+class AbstractToolbox;
 class StatusIcon;
 
 class QLabel;
@@ -29,7 +30,7 @@ enum ToolboxType
 /*!
 * \brief Main window of the freehand calibration application
 */
-class FreehandMainWindow : public QMainWindow
+class fCalMainWindow : public QMainWindow
 {
 	Q_OBJECT
 
@@ -39,24 +40,53 @@ public:
 	* \param aParent parent
 	* \param aFlags widget flag
 	*/
-	FreehandMainWindow(QWidget *parent = 0, Qt::WFlags flags = 0);
+	fCalMainWindow(QWidget *parent = 0, Qt::WFlags flags = 0);
 
 	/*!
 	* \brief Destructor
 	*/
-	~FreehandMainWindow();
+	~fCalMainWindow();
 
 	/*!
 	* \brief Initialize controller, toolboxes, canvas and connect to devices
 	*/
 	void Initialize();
 
-public slots:
+	/*!
+	* \brief Get tool visualizer object
+  * \return Tool visualizer
+	*/
+  vtkToolVisualizer* GetToolVisualizer() { return m_ToolVisualizer; };
+
+	/*!
+	* \brief Set status bar text
+  * \param aText Status bar text
+	*/
+  void SetStatusBarText(QString aText);
+
+	/*!
+	* \brief Set status bar progress
+  * \param aPercent Progress percent of the status bar (if -1 then hide progress bar)
+	*/
+  void SetStatusBarProgress(int aPercent);
+
 	/*!
 	* \brief Enable/disable tab changing
 	* \param Enable/Disable flag
 	*/
 	void SetTabsEnabled(bool);
+
+	/*!
+	* \brief Reset all toolboxes and hide all tools (called when disconnected from a device set)
+	*/
+  void ResetAllToolboxes();
+
+	/*!
+	* \brief Return a toolbox
+  * \param aType Toolbox type identifier
+  * \return Toolbox object
+	*/
+  AbstractToolbox* GetToolbox(ToolboxType aType) { return m_ToolboxList[aType]; };
 
 protected:
 	/*!
@@ -68,18 +98,6 @@ protected:
 	* \brief Set up status bar (label and progress)
 	*/
 	void SetupStatusBar();
-
-	/*!
-	* \brief Set up canvas for 3D visualization
-	*/
-	void SetupCanvas();
-
-	/*!
-	* \brief Get toolbox controller pointer by the type identifier
-	* \param aType Toolbox type (ToolboxType enum)
-	* \return Toolbox controller pointer as abstract toolbox controller
-	*/
-	AbstractToolboxController* GetToolboxControllerByType(ToolboxType aType);
 
 	/*!
 	* \brief Locates and sets directory paths to freehand controller
@@ -111,26 +129,32 @@ protected slots:
   virtual void resizeEvent(QResizeEvent* aEvent);
 
 protected:
+  //! Tool visualizer
+  vtkToolVisualizer*  m_ToolVisualizer;
+
 	//! Label on the left of the statusbar
-	QLabel*					m_StatusBarLabel;
+	QLabel*					    m_StatusBarLabel;
 
 	//! Progress bar on the right of the statusbar
-	QProgressBar*		m_StatusBarProgress;
+	QProgressBar*		    m_StatusBarProgress;
 
 	//! Index of locked (current) tab if tabbing is disabled
-	int							m_LockedTabIndex;
+	int							    m_LockedTabIndex;
 
 	//! Active toolbox identifier
-	ToolboxType			m_ActiveToolbox;
+	ToolboxType			    m_ActiveToolbox;
 
   //! Timer that refreshes the UI
-  QTimer*         m_UiRefreshTimer;
+  QTimer*             m_UiRefreshTimer;
 
   //! Status icon instance
-  StatusIcon*     m_StatusIcon;
+  StatusIcon*         m_StatusIcon;
+
+  //! List of toolbox objects (the indices are the type identifiers)
+  std::vector<AbstractToolbox*> m_ToolboxList;
 
 private:
-	Ui::fCalMainWindow			ui;
+	Ui::fCalMainWindow	ui;
 
 };
 

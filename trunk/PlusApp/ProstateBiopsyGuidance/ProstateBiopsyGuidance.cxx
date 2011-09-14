@@ -10,8 +10,6 @@
 #include "vtkImageActor.h"
 #include "vtkTrackedFrameList.h"
 
-
-
 #include <stdlib.h>
 #include <sstream>
 #include <algorithm>
@@ -25,6 +23,7 @@
 #include "vtkTransform.h"
 #include "vtkMatrix4x4.h"
 #include "vtkDirectory.h"
+#include "vtkXMLUtilities.h"
 
 #include "vtkTrackerTool.h"
 
@@ -152,7 +151,12 @@ PlusStatus ProstateBiopsyGuidance::Initialize()
 	vtkSmartPointer<vtkDataCollector> dataCollector = vtkSmartPointer<vtkDataCollector>::New(); 
 	this->SetDataCollector(dataCollector); 
 
-	if ( this->DataCollector->ReadConfigurationFromFile(this->GetInputConfigFileName()) != PLUS_SUCCESS )
+  vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkXMLUtilities::ReadElementFromFile(this->GetInputConfigFileName());
+  if (configRootElement == NULL) {	
+    LOG_ERROR("Unable to read configuration from file " << this->GetInputConfigFileName()); 
+    return PLUS_FAIL;
+  }
+	if ( this->DataCollector->ReadConfiguration(configRootElement) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to read configuration file!"); 
 		return PLUS_FAIL; 
@@ -172,7 +176,7 @@ PlusStatus ProstateBiopsyGuidance::Initialize()
   if ( this->TrackedFrameContainer == NULL )
 	{
 		this->TrackedFrameContainer = vtkTrackedFrameList::New(); 
-    this->TrackedFrameContainer->ReadConfiguration(this->DataCollector->GetConfigurationData());
+    this->TrackedFrameContainer->ReadConfiguration(configRootElement);
 	}
 
 	vtkSmartPointer<vtkImageActor> realtimeImageActor = vtkSmartPointer<vtkImageActor>::New();

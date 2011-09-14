@@ -1,18 +1,19 @@
 #include "VolumeReconstructionToolbox.h"
 
-#include "vtkFreehandController.h"
-#include "VolumeReconstructionController.h"
+#include "fCalMainWindow.h"
+#include "vtkToolVisualizer.h"
+#include "vtkPlusConfig.h"
 
 #include <QFileDialog>
 
-#include "vtkConfigurationTools.h"
 
 //-----------------------------------------------------------------------------
 
-VolumeReconstructionToolbox::VolumeReconstructionToolbox(QWidget* aParent, Qt::WFlags aFlags)
-	: AbstractToolbox()
-	, QWidget(aParent, aFlags)
+VolumeReconstructionToolbox::VolumeReconstructionToolbox(fCalMainWindow* aParentMainWindow, Qt::WFlags aFlags)
+	: AbstractToolbox(aParentMainWindow)
+	, QWidget(aParentMainWindow, aFlags)
 {
+  /*
 	ui.setupUi(this);
 
 	// Initialize toolbox controller
@@ -29,6 +30,7 @@ VolumeReconstructionToolbox::VolumeReconstructionToolbox(QWidget* aParent, Qt::W
 	connect( ui.pushButton_OpenInputImage, SIGNAL( clicked() ), this, SLOT( OpenInputImageClicked() ) );
 	connect( ui.pushButton_Reconstruct, SIGNAL( clicked() ), this, SLOT( ReconstructClicked() ) );
 	connect( ui.pushButton_Save, SIGNAL( clicked() ), this, SLOT( SaveClicked() ) );
+  */
 }
 
 //-----------------------------------------------------------------------------
@@ -42,7 +44,7 @@ VolumeReconstructionToolbox::~VolumeReconstructionToolbox()
 void VolumeReconstructionToolbox::Initialize()
 {
 	LOG_TRACE("VolumeReconstructionToolbox::Initialize"); 
-
+/*
 	vtkFreehandController* controller = vtkFreehandController::GetInstance();
 	if (controller == NULL) {
 		LOG_ERROR("vtkFreehandController is invalid");
@@ -52,14 +54,15 @@ void VolumeReconstructionToolbox::Initialize()
   if ((controller->GetConfigurationData()) && (VolumeReconstructionController::GetInstance()->LoadVolumeReconstructionConfiguration(controller->GetConfigurationData()) == PLUS_SUCCESS)) {
     ui.lineEdit_VolumeReconstructionConfig->setText(tr("Using session configuration"));
   }
+  */
 }
 
 //-----------------------------------------------------------------------------
 
-void VolumeReconstructionToolbox::RefreshToolboxContent()
+void VolumeReconstructionToolbox::RefreshContent()
 {
 	//LOG_TRACE("VolumeReconstructionToolbox::RefreshToolboxContent");
-
+/*
 	VolumeReconstructionController* toolboxController = VolumeReconstructionController::GetInstance();
 
 	// If initialization failed
@@ -112,8 +115,18 @@ void VolumeReconstructionToolbox::RefreshToolboxContent()
 		ui.pushButton_Reconstruct->setEnabled(false);
 		ui.pushButton_Save->setEnabled(false);
 	}
+  */
 }
 
+//-----------------------------------------------------------------------------
+
+void VolumeReconstructionToolbox::SetDisplayAccordingToState()
+{
+  LOG_TRACE("VolumeReconstructionToolbox::SetDisplayAccordingToState");
+
+  // TODO
+}
+/*
 //-----------------------------------------------------------------------------
 
 void VolumeReconstructionToolbox::Stop()
@@ -140,7 +153,7 @@ void VolumeReconstructionToolbox::OpenVolumeReconstructionConfigClicked()
 
 	// File open dialog for selecting phantom definition xml
 	QString filter = QString( tr( "XML files ( *.xml );;" ) );
-	QString fileName = QFileDialog::getOpenFileName(NULL, QString( tr( "Open volume reconstruction configuration XML" ) ), vtkConfigurationTools::GetInstance()->GetConfigurationDirectory(), filter);
+	QString fileName = QFileDialog::getOpenFileName(NULL, QString( tr( "Open volume reconstruction configuration XML" ) ), vtkPlusConfig::GetInstance()->GetConfigurationDirectory(), filter);
 	if (fileName.isNull()) {
 		return;
 	}
@@ -206,3 +219,4 @@ void VolumeReconstructionToolbox::SaveClicked()
 		QApplication::restoreOverrideCursor();
 	}	
 }
+*/

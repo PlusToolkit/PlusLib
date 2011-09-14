@@ -8,8 +8,9 @@ INCLUDE(${QT_USE_FILE})
 # Sources
 
 SET (fCal_SRCS
-	FreehandMain.cxx
-	FreehandMainWindow.cxx
+	fCalMain.cxx
+	fCalMainWindow.cxx
+  vtkToolVisualizer.cxx
 	Toolboxes/ConfigurationToolbox.cxx
 	Toolboxes/ConfigurationController.cxx
 	Toolboxes/FreehandCalibrationToolbox.cxx
@@ -25,7 +26,9 @@ if (WIN32)
 endif (WIN32)	
 
 SET (fCal_UI_HDRS
-		FreehandMainWindow.h
+		fCalMainWindow.h
+    vtkToolVisualizer.h
+    Toolboxes/AbstractToolbox.h
 		Toolboxes/ConfigurationToolbox.h
 		Toolboxes/ConfigurationController.h
 		Toolboxes/FreehandCalibrationToolbox.h
@@ -35,7 +38,7 @@ SET (fCal_UI_HDRS
 	)
 
 SET (fCal_UI_SRCS
-	FreehandMainWindow.ui 
+	fCalMainWindow.ui 
 	Toolboxes/ConfigurationToolbox.ui
 	Toolboxes/FreehandCalibrationToolbox.ui
 	Toolboxes/StylusCalibrationToolbox.ui

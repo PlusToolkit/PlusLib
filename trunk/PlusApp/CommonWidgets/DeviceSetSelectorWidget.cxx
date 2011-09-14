@@ -6,7 +6,7 @@
 #include <QDomDocument>
 #include <QSettings>
 
-#include "vtkConfigurationTools.h"
+#include "vtkPlusConfig.h"
 
 //-----------------------------------------------------------------------------
 
@@ -132,8 +132,8 @@ void DeviceSetSelectorWidget::SetConfigurationDirectory(std::string aDirectory, 
 	LOG_TRACE("DeviceSetSelectorWidget::SetConfigurationDirectory(" << aDirectory << ", " << (aForce?"true":"false") << ")"); 
   
   // Set configuration directory before we parse it 
-  std::string oldDirectory = vtkConfigurationTools::GetInstance()->GetConfigurationDirectory();
-  vtkConfigurationTools::GetInstance()->SetConfigurationDirectory(aDirectory.c_str());
+  std::string oldDirectory = vtkPlusConfig::GetInstance()->GetConfigurationDirectory();
+  vtkPlusConfig::GetInstance()->SetConfigurationDirectory(aDirectory.c_str());
 
 	if (m_ConfigurationDirectory.isEmpty() || aForce) {
 		if (ParseDirectory(QString::fromStdString(aDirectory))) {
@@ -145,7 +145,7 @@ void DeviceSetSelectorWidget::SetConfigurationDirectory(std::string aDirectory, 
 			// Notify the application about the directory change
 			emit ConfigurationDirectoryChanged(m_ConfigurationDirectory.toStdString());
 		} else {
-      vtkConfigurationTools::GetInstance()->SetConfigurationDirectory(oldDirectory.c_str());
+      vtkPlusConfig::GetInstance()->SetConfigurationDirectory(oldDirectory.c_str());
 			ui.lineEdit_ConfigurationDirectory->setText(tr("Invalid configuration directory"));
 			ui.lineEdit_ConfigurationDirectory->setToolTip("No valid configuration files in directory, please select another");
 		}

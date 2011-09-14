@@ -1,13 +1,8 @@
 #include "ConfigurationToolbox.h"
 
-#include "ConfigurationController.h"
-#include "vtkFreehandController.h"
-#include "StylusCalibrationController.h"
-#include "PhantomRegistrationController.h"
-#include "vtkFreehandCalibrationController.h"
-#include "VolumeReconstructionController.h"
-#include "vtkConfigurationTools.h"
-#include "FreehandMainWindow.h"
+#include "vtkPlusConfig.h"
+#include "fCalMainWindow.h"
+#include "vtkToolVisualizer.h"
 
 #include "DeviceSetSelectorWidget.h"
 #include "ToolStateDisplayWidget.h"
@@ -15,28 +10,22 @@
 #include <QDialog>
 #include <QFileDialog>
 
+#include "vtkXMLUtilities.h"
+
 //-----------------------------------------------------------------------------
 
-ConfigurationToolbox::ConfigurationToolbox(QWidget* aParent, Qt::WFlags aFlags)
-	: AbstractToolbox()
+ConfigurationToolbox::ConfigurationToolbox(fCalMainWindow* aParentMainWindow, QWidget* aParent, Qt::WFlags aFlags)
+	: AbstractToolbox(aParentMainWindow)
 	, QWidget(aParent, aFlags)
 	, m_ToolStatePopOutWindow(NULL)
+  , m_IsToolDisplayDetached(false)
 {
 	ui.setupUi(this);
-
-	// Initialize toolbox controller
-	ConfigurationController* toolboxController = ConfigurationController::GetInstance();
-	if (toolboxController == NULL) {
-		LOG_ERROR("Configuration calibration toolbox controller is not initialized!");
-		return;
-	}
-
-	toolboxController->SetToolbox(this);
 
 	// Create and setup device set selector widget
 	m_DeviceSetSelectorWidget = new DeviceSetSelectorWidget(this);
   m_DeviceSetSelectorWidget->SetConfigurationDirectoryFromRegistry(); 
-	m_DeviceSetSelectorWidget->SetConfigurationDirectory(vtkConfigurationTools::GetInstance()->GetConfigurationDirectory());
+	m_DeviceSetSelectorWidget->SetConfigurationDirectory(vtkPlusConfig::GetInstance()->GetConfigurationDirectory());
   m_DeviceSetSelectorWidget->SetComboBoxMinWidth(400); 
 
 	m_ToolStateDisplayWidget = new ToolStateDisplayWidget(this);
@@ -79,16 +68,12 @@ void ConfigurationToolbox::Initialize()
 	LOG_TRACE("ConfigurationToolbox::Initialize"); 
 
   // Install event filters to capture key event for dumping raw buffer data
-	this->installEventFilter(this);
-
-  if ((vtkFreehandController::GetInstance()) && (vtkFreehandController::GetInstance()->GetCanvas())) {
-    vtkFreehandController::GetInstance()->GetCanvas()->installEventFilter(this);
-  }
+	this->installEventFilter(this); //TODO make this a button or something, this is unreliable
 }
 
 //-----------------------------------------------------------------------------
 
-void ConfigurationToolbox::RefreshToolboxContent()
+void ConfigurationToolbox::RefreshContent()
 {
 	//LOG_TRACE("ConfigurationToolbox::RefreshToolboxContent"); 
 
@@ -99,25 +84,23 @@ void ConfigurationToolbox::RefreshToolboxContent()
 
 //-----------------------------------------------------------------------------
 
-void ConfigurationToolbox::Stop()
+void ConfigurationToolbox::RefreshToolDisplayIfDetached()
 {
-	LOG_TRACE("ConfigurationToolbox::Stop"); 
+	//LOG_TRACE("ConfigurationToolbox::RefreshToolDisplayIfDetached"); 
 
-	// No action
+	if (m_IsToolDisplayDetached && m_ToolStateDisplayWidget->IsInitialized()) {
+		m_ToolStateDisplayWidget->Update();
+	}
 }
 
 //-----------------------------------------------------------------------------
 
-void ConfigurationToolbox::Clear()
+void ConfigurationToolbox::SetDisplayAccordingToState()
 {
-	LOG_TRACE("ConfigurationToolbox::Clear"); 
+  LOG_TRACE("ConfigurationToolbox::SetDisplayAccordingToState");
 
-  // Remove event filters
-  this->removeEventFilter(this);
-
-  if ((vtkFreehandController::GetInstance()) && (vtkFreehandController::GetInstance()->GetCanvas())) {
-    vtkFreehandController::GetInstance()->GetCanvas()->removeEventFilter(this);
-  }
+  // No state handling in this toolbox
+  m_ParentMainWindow->GetToolVisualizer()->HideAll();
 }
 
 //-----------------------------------------------------------------------------
@@ -126,7 +109,7 @@ void ConfigurationToolbox::SetConfigurationDirectory(std::string aDirectory)
 {
 	LOG_TRACE("ConfigurationToolbox::SetConfigurationDirectory");
 
-	vtkConfigurationTools::GetInstance()->SetConfigurationDirectory(aDirectory.c_str());
+	vtkPlusConfig::GetInstance()->SetConfigurationDirectory(aDirectory.c_str());
 }
 
 //-----------------------------------------------------------------------------
@@ -135,70 +118,79 @@ void ConfigurationToolbox::ConnectToDevicesByConfigFile(std::string aConfigFile)
 {
 	LOG_TRACE("ConfigurationToolbox::ConnectToDevicesByConfigFile");
 
-	vtkConfigurationTools::GetInstance()->SetConfigurationFileName(aConfigFile.data());
+  QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
 
-	// If connection has been successfully created then this action should disconnect
-	if (! m_DeviceSetSelectorWidget->GetConnectionSuccessful()) {
-		LOG_INFO("Connect to devices"); 
+  // If not empty, then try to connect; empty parameter string means disconnect
+  if (STRCASECMP(aConfigFile.c_str(), "") != 0) {
+	  vtkPlusConfig::GetInstance()->SetConfigurationFileName(aConfigFile.data());
 
-		QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
+    // Read configuration
+    vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkXMLUtilities::ReadElementFromFile(aConfigFile.c_str());
+    if (configRootElement == NULL) {	
+      LOG_ERROR("Unable to read configuration from file " << aConfigFile); 
+      return;
+    }
 
-		// Create dialog
-		QDialog* connectDialog = new QDialog(this, Qt::Dialog);
-		connectDialog->setModal(true);
-		connectDialog->setMinimumSize(QSize(360,80));
-		connectDialog->setCaption(tr("Freehand Ultrasound Calibration"));
-		connectDialog->setBackgroundColor(QColor(224, 224, 224));
+    vtkPlusConfig::GetInstance()->SetConfigurationData(configRootElement); 
 
-		QLabel* connectLabel = new QLabel(QString("Connecting to devices, please wait..."), connectDialog);
-		connectLabel->setFont(QFont("SansSerif", 16));
+	  // If connection has been successfully created then this action should disconnect
+	  if (! m_DeviceSetSelectorWidget->GetConnectionSuccessful()) {
+		  LOG_INFO("Connect to devices"); 
 
-		QHBoxLayout* layout = new QHBoxLayout();
-		layout->addWidget(connectLabel);
+		  // Create dialog
+		  QDialog* connectDialog = new QDialog(this, Qt::Dialog);
+		  connectDialog->setModal(true);
+		  connectDialog->setMinimumSize(QSize(360,80));
+		  connectDialog->setCaption(tr("Freehand Ultrasound Calibration"));
+		  connectDialog->setBackgroundColor(QColor(224, 224, 224));
 
-		connectDialog->setLayout(layout);
-		connectDialog->show();
+		  QLabel* connectLabel = new QLabel(QString("Connecting to devices, please wait..."), connectDialog);
+		  connectLabel->setFont(QFont("SansSerif", 16));
 
-		QApplication::processEvents();
+		  QHBoxLayout* layout = new QHBoxLayout();
+		  layout->addWidget(connectLabel);
 
-		// Connect to devices
-		vtkFreehandController* controller = vtkFreehandController::GetInstance();
-		if ((controller != NULL) && (controller->GetInitialized() == true)) {
-			if (vtkFreehandController::GetInstance()->StartDataCollection() != PLUS_SUCCESS) {
-				LOG_ERROR("Unable to start collecting data!");
-				m_DeviceSetSelectorWidget->SetConnectionSuccessful(false);
-				m_ToolStateDisplayWidget->InitializeTools(NULL, false);
+		  connectDialog->setLayout(layout);
+		  connectDialog->show();
 
-			} else {
-				m_DeviceSetSelectorWidget->SetConnectionSuccessful(true);
-				if (m_ToolStateDisplayWidget->InitializeTools(vtkFreehandController::GetInstance()->GetDataCollector(), true)) {
-					ui.toolStateDisplayWidget->setMinimumHeight(m_ToolStateDisplayWidget->GetDesiredHeight());
-					ui.toolStateDisplayWidget->setMaximumHeight(m_ToolStateDisplayWidget->GetDesiredHeight());
-				}
-			}
-		}
+		  QApplication::processEvents();
 
-		// Close dialog
-		connectDialog->done(0);
+		  // Connect to devices
+		  if (m_ParentMainWindow->GetToolVisualizer()->StartDataCollection() != PLUS_SUCCESS) {
+			  LOG_ERROR("Unable to start collecting data!");
+			  m_DeviceSetSelectorWidget->SetConnectionSuccessful(false);
+			  m_ToolStateDisplayWidget->InitializeTools(NULL, false);
 
-		QApplication::restoreOverrideCursor();
-	} else {
-		vtkFreehandController* controller = vtkFreehandController::GetInstance();
-		if ((controller != NULL) && (controller->GetInitialized() == true)) {
+		  } else {
+			  m_DeviceSetSelectorWidget->SetConnectionSuccessful(true);
+			  if (m_ToolStateDisplayWidget->InitializeTools(m_ParentMainWindow->GetToolVisualizer()->GetDataCollector(), true)) {
+				  ui.toolStateDisplayWidget->setMinimumHeight(m_ToolStateDisplayWidget->GetDesiredHeight());
+				  ui.toolStateDisplayWidget->setMaximumHeight(m_ToolStateDisplayWidget->GetDesiredHeight());
+			  }
+		  }
 
-			vtkDataCollector* dataCollector = controller->GetDataCollector();
-			if ((dataCollector != NULL) && (dataCollector->GetInitialized())) {
+      // Load device models based on the new configuration
+      m_ParentMainWindow->GetToolVisualizer()->InitializeDeviceVisualization();
 
-				dataCollector->Stop();
-				dataCollector->Disconnect();
+		  // Close dialog
+		  connectDialog->done(0);
+    }
 
-				m_DeviceSetSelectorWidget->SetConnectionSuccessful(false);
-				m_ToolStateDisplayWidget->InitializeTools(NULL, false);
+  } else { // Disconnect
+		vtkDataCollector* dataCollector = m_ParentMainWindow->GetToolVisualizer()->GetDataCollector();
+		if ((dataCollector != NULL) && (dataCollector->GetInitialized())) {
 
-        ResetAllToolboxes();
-			}
+			dataCollector->Stop();
+			dataCollector->Disconnect();
+
+			m_DeviceSetSelectorWidget->SetConnectionSuccessful(false);
+			m_ToolStateDisplayWidget->InitializeTools(NULL, false);
+
+      m_ParentMainWindow->ResetAllToolboxes();
 		}
 	}
+
+  QApplication::restoreOverrideCursor();
 }
 
 //-----------------------------------------------------------------------------
@@ -246,8 +238,8 @@ void ConfigurationToolbox::PopOutToggled(bool aOn)
 		m_ToolStatePopOutWindow = NULL;
 	}
 
-	// Set detached flag in controller
-	ConfigurationController::GetInstance()->SetToolDisplayDetached(aOn);
+	// Set detached flag
+	m_IsToolDisplayDetached = aOn;
 }
 
 //-----------------------------------------------------------------------------
@@ -269,8 +261,8 @@ bool ConfigurationToolbox::eventFilter(QObject *obj, QEvent *ev)
       if (keyEvent) {
 	      if ( ( keyEvent->key() == Qt::Key_D ) && ( keyEvent->modifiers() == Qt::ControlModifier ) ) {
 	        // Directory open dialog for selecting directory to save the buffers into 
-          QString dirName = QFileDialog::getExistingDirectory(NULL, QString( tr( "Open output directory for buffer dump files" ) ), vtkFreehandController::GetInstance()->GetOutputFolder());
-	        if ( (dirName.isNull()) || (vtkFreehandController::GetInstance()->DumpBuffersToDirectory(dirName.toStdString().c_str()) != PLUS_SUCCESS) ) {
+          QString dirName = QFileDialog::getExistingDirectory(NULL, QString( tr( "Open output directory for buffer dump files" ) ), m_ParentMainWindow->GetToolVisualizer()->GetOutputFolder());
+	        if ( (dirName.isNull()) || (m_ParentMainWindow->GetToolVisualizer()->DumpBuffersToDirectory(dirName.toStdString().c_str()) != PLUS_SUCCESS) ) {
               LOG_ERROR("Writing raw buffers into files failed (output directory: " << dirName.toStdString() << ")!");
           }
           return true;
@@ -316,47 +308,4 @@ void ConfigurationToolbox::LogLevelChanged(int aLevel)
 	}
 
 	LOG_INFO("Log level changed to: " << ui.comboBox_LogLevel->currentText().ascii() )
-}
-
-//-----------------------------------------------------------------------------
-
-void ConfigurationToolbox::ResetAllToolboxes()
-{
-	LOG_TRACE("ConfigurationToolbox::LogLevelChanged");
-
-  PlusStatus successFlag = PLUS_SUCCESS;
-
-  if (StylusCalibrationController::GetInstance()->State() != ToolboxState_Uninitialized) {
-    // Note: Stylus calibration does not have a reset
-
-    if (StylusCalibrationController::GetInstance()->Clear() != PLUS_SUCCESS) {
-      LOG_ERROR("Stylus calibration clear failed!");
-    }
-  }
-
-  if (PhantomRegistrationController::GetInstance()->State() != ToolboxState_Uninitialized) {
-    if (PhantomRegistrationController::GetInstance()->Reset() != PLUS_SUCCESS) {
-      LOG_ERROR("Phantom registration reset failed!");
-    }
-    if (PhantomRegistrationController::GetInstance()->Clear() != PLUS_SUCCESS) {
-      LOG_ERROR("Phantom registration clear failed!");
-    }
-  }
-
-  if (vtkFreehandCalibrationController::GetInstance()->State() != ToolboxState_Uninitialized) {
-    if (vtkFreehandCalibrationController::GetInstance()->Reset() != PLUS_SUCCESS) {
-      LOG_ERROR("Freehand calibration reset failed!");
-    }
-    if (vtkFreehandCalibrationController::GetInstance()->Clear() != PLUS_SUCCESS) {
-      LOG_ERROR("Freehand calibration clear failed!");
-    }
-  }
-
-  if (VolumeReconstructionController::GetInstance()->State() != ToolboxState_Uninitialized) {
-    // Note: Volume reconstruction does not have a reset
-
-    if (VolumeReconstructionController::GetInstance()->Clear() != PLUS_SUCCESS) {
-      LOG_ERROR("Volume reconstruction clear failed!");
-    }
-  }
 }

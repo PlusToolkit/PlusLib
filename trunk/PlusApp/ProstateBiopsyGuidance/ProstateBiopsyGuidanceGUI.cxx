@@ -20,7 +20,7 @@
 #include <QMessageBox>
 #include <QCloseEvent>
 #include <QDesktopServices>
-#include "vtkConfigurationTools.h"
+#include "vtkPlusConfig.h"
 #include <qlayout.h>
 
 const QString LABEL_RECORDING_FRAME_RATE("Recording Frame Rate:");
@@ -31,6 +31,7 @@ const QString LABEL_SYNC_VIDEO_OFFSET("Video offset:");
 #include "vtkSmartPointer.h"
 #include "vtkDataCollector.h"
 #include "vtkVideoBuffer.h"
+#include "vtkXMLUtilities.h"
 
 
  #include <QtGui>
@@ -60,7 +61,17 @@ void ProstateBiopsyGuidanceGUI::SaveRFData(void)
 	VTK_LOG_TO_CONSOLE_ON; 
 
 	vtkSmartPointer<vtkDataCollector> dataCollector = vtkSmartPointer<vtkDataCollector>::New(); 
-	dataCollector->ReadConfigurationFromFile(inputConfigFileName.c_str());
+  vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkXMLUtilities::ReadElementFromFile(inputConfigFileName.c_str());
+  if (configRootElement == NULL) {	
+    std::cerr << "Unable to read configuration from file " << inputConfigFileName;
+		exit(EXIT_FAILURE);
+  }
+
+  if ( dataCollector->ReadConfiguration(configRootElement) != PLUS_SUCCESS )
+  {
+    std::cerr << "Failed to read configuration!";
+		exit(EXIT_FAILURE);
+  }
 	dataCollector->Initialize();
 
 	while (_getch() != 'a') // wait until a is pressed to start acquisition

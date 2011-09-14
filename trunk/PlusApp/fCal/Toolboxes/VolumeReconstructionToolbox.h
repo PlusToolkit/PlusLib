@@ -19,66 +19,72 @@ class VolumeReconstructionToolbox : public QWidget, public AbstractToolbox
 public:
 	/*!
 	* \brief Constructor
-	* \param aParent parent
+	* \param aParentMainWindow Parent main window
 	* \param aFlags widget flag
 	*/
-	VolumeReconstructionToolbox(QWidget* aParent = 0, Qt::WFlags aFlags = 0);
+	VolumeReconstructionToolbox(fCalMainWindow* aParentMainWindow, Qt::WFlags aFlags = 0);
 
 	/*!
 	* \brief Destructor
 	*/
 	~VolumeReconstructionToolbox();
 
-	/*!
-	* \brief Refresh contents (e.g. GUI elements) of toolbox according to the state in the toolbox controller - implementation of a pure virtual function
-	*/
-	void RefreshToolboxContent();
-
-	/*!
-	* \brief Executes operations needed after stopping the process - implementation of a pure virtual function
-	*/
-	void Stop();
-
-	/*!
-	* \brief Executes operations needed when changing to another toolbox - implementation of a pure virtual function
-	*/
-	void Clear();
+//	/*!
+//	* \brief Executes operations needed after stopping the process - implementation of a pure virtual function
+//	*/
+//	void Stop();
+//
+//	/*!
+//	* \brief Executes operations needed when changing to another toolbox - implementation of a pure virtual function
+//	*/
+//	void Clear();
 
 	/*!
 	* \brief Initialize toolbox (load session data) - overridden method
 	*/
 	void Initialize();
 
-signals:
+public slots:
 	/*!
-	* \brief Executes operations needed after stopping the process
-	* \param Enable/disable flag
+	* \brief Refresh contents (e.g. GUI elements) of toolbox according to the state in the toolbox controller - implementation of a pure virtual function
 	*/
-	void SetTabsEnabled(bool);
-
-protected slots:
-	/*!
-	* \brief Slot handling open volume reconstruction config button click
-	*/
-	void OpenVolumeReconstructionConfigClicked();
+	void RefreshContent();
 
 	/*!
-	* \brief Slot handling open input image button click
+	* \brief Sets display mode (visibility of actors) according to the current state - implementation of a pure virtual function
 	*/
-	void OpenInputImageClicked();
+	void SetDisplayAccordingToState();
 
-	/*!
-	* \brief Slot handling open reconstruct button click
-	*/
-	void ReconstructClicked();
-
-	/*!
-	* \brief Slot handling open save button click
-	*/
-	void SaveClicked();
-
-protected:
-	Ui::VolumeReconstructionToolbox ui;
+//signals:
+//	/*!
+//	* \brief Executes operations needed after stopping the process
+//	* \param Enable/disable flag
+//	*/
+//	void SetTabsEnabled(bool);
+//
+//protected slots:
+//	/*!
+//	* \brief Slot handling open volume reconstruction config button click
+//	*/
+//	void OpenVolumeReconstructionConfigClicked();
+//
+//	/*!
+//	* \brief Slot handling open input image button click
+//	*/
+//	void OpenInputImageClicked();
+//
+//	/*!
+//	* \brief Slot handling open reconstruct button click
+//	*/
+//	void ReconstructClicked();
+//
+//	/*!
+//	* \brief Slot handling open save button click
+//	*/
+//	void SaveClicked();
+//
+//protected:
+//	Ui::VolumeReconstructionToolbox ui;
 };
 
 #endif

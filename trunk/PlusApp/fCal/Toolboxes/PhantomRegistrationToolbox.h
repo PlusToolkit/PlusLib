@@ -4,8 +4,14 @@
 #include "ui_PhantomRegistrationToolbox.h"
 
 #include "AbstractToolbox.h"
+#include "PlusConfigure.h"
 
 #include <QWidget>
+
+class vtkPhantomRegistrationAlgo;
+class vtkActor;
+class vtkPolyData;
+class vtkRenderer;
 
 //-----------------------------------------------------------------------------
 
@@ -19,10 +25,10 @@ class PhantomRegistrationToolbox : public QWidget, public AbstractToolbox
 public:
 	/*!
 	* \brief Constructor
-	* \param aParent parent
+	* \param aParentMainWindow Parent main window
 	* \param aFlags widget flag
 	*/
-	PhantomRegistrationToolbox(QWidget* aParent = 0, Qt::WFlags aFlags = 0);
+	PhantomRegistrationToolbox(fCalMainWindow* aParentMainWindow, Qt::WFlags aFlags = 0);
 
 	/*!
 	* \brief Destructor
@@ -30,73 +36,92 @@ public:
 	~PhantomRegistrationToolbox();
 
 	/*!
-	* \brief Refresh contents (e.g. GUI elements) of toolbox according to the state in the toolbox controller - implementation of a pure virtual function
-	*/
-	void RefreshToolboxContent();
-
-	/*!
-	* \brief Executes operations needed after stopping the process - implementation of a pure virtual function
-	*/
-	void Stop();
-
-	/*!
-	* \brief Executes operations needed when changing to another toolbox - implementation of a pure virtual function
-	*/
-	void Clear();
-
-	/*!
-	* \brief Initialize toolbox (load session data) - overridden method
+	* \brief Initialize toolbox (load session data) - implementation of a pure virtual function
 	*/
 	void Initialize();
 
-signals:
 	/*!
-	* \brief Executes operations needed after stopping the process
-	* \param Enable/disable flag
+	* \brief Refresh contents (e.g. GUI elements) of toolbox according to the state in the toolbox controller - implementation of a pure virtual function
 	*/
-	void SetTabsEnabled(bool);
+	void RefreshContent();
+
+	/*!
+	* \brief Sets display mode (visibility of actors) according to the current state - implementation of a pure virtual function
+	*/
+	void SetDisplayAccordingToState();
+
+	/*!
+	* \brief Return phantom registration algorithm object
+  * \return Phantom registration algo
+	*/
+  vtkPhantomRegistrationAlgo* GetPhantomRegistrationAlgo() { return m_PhantomRegistration; };
+
+protected:
+	/*!
+	* \brief Initialize 3D visualization
+	* \return Success flag
+	*/
+	PlusStatus InitializeVisualization();
+
+	/*!
+	* \brief Put state into in progress if all prerequisites are done
+	* \return Success flag
+	*/
+	PlusStatus Start();
 
 protected slots:
-	/*!
-	* \brief Calls acquire positions function in controller (called by the acquisition timer)
-	*/
-	void RequestDoAcquisition();
-
-	/*!
+  /*!
 	* \brief Slot handling open phantom definition button click
 	*/
-	void OpenPhantomDefinitionClicked();
+	void OpenPhantomDefinition();
 
 	/*!
 	* \brief Slot handling open stylus calibration button click
 	*/
-	void OpenStylusCalibrationClicked();
+	void OpenStylusCalibration();
 
 	/*!
 	* \brief Slot handling record button click
 	*/
-	void RecordPointClicked();
+	void RecordPoint();
 
 	/*!
 	* \brief Slot handling undo button click
 	*/
-	void UndoClicked();
+	void Undo();
 
 	/*!
 	* \brief Slot handling reset button click
 	*/
-	void ResetClicked();
+	void Reset();
 
 	/*!
 	* \brief Slot handling save button click
 	*/
-	void SaveClicked();
+	void Save();
 
 protected:
-	Ui::PhantomRegistrationToolbox ui;
+  //! Phantom registration algorithm
+  vtkPhantomRegistrationAlgo* m_PhantomRegistration;
 
-	//! Timer for acquisition
-	QTimer*	m_AcquisitionTimer;
+	//! Renderer for the canvas
+	vtkRenderer*							  m_PhantomRenderer;
+
+	//! Actor for displaying the phantom geometry in phantom canvas
+	vtkActor*								    m_PhantomActor;
+
+	//! Actor for displaying the defined landmark from the configuration file
+	vtkActor*								    m_RequestedLandmarkActor;
+
+	//! Polydata holding the requested landmark for highlighting in phantom canvas
+	vtkPolyData*							  m_RequestedLandmarkPolyData;
+
+  //! Index of current landmark
+	int										      m_CurrentLandmarkIndex;
+
+protected:
+  Ui::PhantomRegistrationToolbox ui;
+
 };
 
 #endif

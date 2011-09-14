@@ -19,7 +19,7 @@
 #include <QDesktopServices>
 #include "DeviceSetSelectorWidget.h"
 #include "ToolStateDisplayWidget.h"
-#include "vtkConfigurationTools.h"
+#include "vtkPlusConfig.h"
 #include "StatusIcon.h"
 
 const QString LABEL_RECORDING_FRAME_RATE("Recording Frame Rate:");
@@ -857,7 +857,7 @@ void TrackedUltrasoundCapturingGUI::SetConfigurationDirectory(std::string aDirec
 {
   LOG_TRACE("TrackedUltrasoundCapturingGUI::SetConfigurationDirectory");
 
-  vtkConfigurationTools::GetInstance()->SetConfigurationDirectory(aDirectory.c_str());
+  vtkPlusConfig::GetInstance()->SetConfigurationDirectory(aDirectory.c_str());
 }
 
 //-----------------------------------------------------------------------------

@@ -22,10 +22,11 @@ class ConfigurationToolbox : public QWidget, public AbstractToolbox
 public:
 	/*!
 	* \brief Constructor
+  * TODO
 	* \param aParent parent
 	* \param aFlags widget flag
 	*/
-	ConfigurationToolbox(QWidget* aParent = 0, Qt::WFlags aFlags = 0);
+	ConfigurationToolbox(fCalMainWindow* aParentMainWindow, QWidget* aParent = 0, Qt::WFlags aFlags = 0);
 
 	/*!
 	* \brief Destructor
@@ -38,19 +39,25 @@ public:
 	void Initialize();
 
 	/*!
-	* \brief Refresh contents (e.g. GUI elements) of toolbox according to the state in the toolbox controller - implementation of a pure virtual function
-	*/
-	void RefreshToolboxContent();
-
-	/*!
 	* \brief Executes operations needed after stopping the process - implementation of a pure virtual function
 	*/
 	void Stop();
 
+//public slots: TODO
 	/*!
-	* \brief Executes operations needed when changing to another toolbox - implementation of a pure virtual function
+	* \brief Refresh contents (e.g. GUI elements) of toolbox according to the state in the toolbox controller - implementation of a pure virtual function
 	*/
-	void Clear();
+	void RefreshContent();
+
+	/*!
+	* \brief Refresh contents if tool display is detached
+	*/
+  void RefreshToolDisplayIfDetached();
+
+	/*!
+	* \brief Sets display mode (visibility of actors) according to the current state - implementation of a pure virtual function
+	*/
+	void SetDisplayAccordingToState();
 
 signals:
 	/*!
@@ -93,11 +100,6 @@ protected:
 	*/
 	bool eventFilter(QObject *obj, QEvent *ev);
 
-  /*!
-  * \brief Reset all toolboxes
-  */
-  void ResetAllToolboxes();
-
 protected:
 	//! Device set selector widget
 	DeviceSetSelectorWidget*	m_DeviceSetSelectorWidget;
@@ -106,7 +108,10 @@ protected:
 	ToolStateDisplayWidget*		m_ToolStateDisplayWidget;
 
 	//! Window that is created when tool state display widget is popped out
-	QWidget*					m_ToolStatePopOutWindow;
+	QWidget*					        m_ToolStatePopOutWindow;
+
+	//! Flag indicating if tool state display widget is detached
+	bool                      m_IsToolDisplayDetached;
 
 protected:
 	Ui::ConfigurationToolbox	ui;
