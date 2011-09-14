@@ -122,9 +122,15 @@ int main( int argc, char** argv )
   int r = plusClient->ConnectToServer();
   if ( r != 0 )
     {
+    LOG_WARNING( "Client could not connect to the server." );
     return 1;
     }
+  else
+    {
+    LOG_INFO( "Client connection successful." );
+    }
   
+  vtkAccurateTimer::Delay( 3.0 );
   for ( int messageIndex = 0; messageIndex < 4; ++ messageIndex )
     {
     vtkSmartPointer< vtkPlusStartDataCollectionCommand > command =
@@ -138,7 +144,7 @@ int main( int argc, char** argv )
 //LOG_ERROR("Exit the test before it hangs - need to be fixed");
 //return EXIT_FAILURE;
 
-  vtkAccurateTimer::Delay( 1.0 );
+  vtkAccurateTimer::Delay( 5.0 );
   server->Stop();
   vtkAccurateTimer::Delay( 0.2 );
   

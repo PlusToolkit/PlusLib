@@ -30,6 +30,10 @@ vtkPlusOpenIGTLinkClient
     LOG_ERROR( "Cannot connect to the server." );
     return r;
     }
+  else
+    {
+    LOG_INFO( "Client successfully connected to server." );
+    }
   
   return r;
 }
