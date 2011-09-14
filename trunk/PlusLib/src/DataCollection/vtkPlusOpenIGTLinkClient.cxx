@@ -32,7 +32,7 @@ vtkPlusOpenIGTLinkClient
     }
   else
     {
-    LOG_INFO( "Client successfully connected to server." );
+    LOG_TRACE( "Client successfully connected to server." );
     }
   
   return r;
