@@ -22,6 +22,8 @@ SET (BrachyStepper_INCLUDE_DIRS
     )	
 
 SET (Tracking_INCLUDE_DIRS ${Tracking_INCLUDE_DIRS} ${BrachyStepper_INCLUDE_DIRS} CACHE INTERNAL "" )
+
+INCLUDE_DIRECTORIES(${BrachyStepper_INCLUDE_DIRS})
 ADD_LIBRARY(BrachyStepper STATIC ${BrachyStepper_SRCS} ${BrachyStepper_HDRS} )
 TARGET_LINK_LIBRARIES(BrachyStepper vtkPlusCommon)
 
