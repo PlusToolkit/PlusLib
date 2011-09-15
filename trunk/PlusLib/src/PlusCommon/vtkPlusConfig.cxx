@@ -38,9 +38,13 @@ vtkPlusConfig::vtkPlusConfig()
 	this->ConfigurationDirectory = NULL;
 	this->ConfigurationFileName = NULL;
   this->ConfigurationData = NULL;
+  this->ApplicationConfigurationData = NULL;
+  this->ApplicationConfigurationFileName = NULL;
 
 	this->SetConfigurationDirectory("");
 	this->SetConfigurationFileName("");
+
+  this->SetApplicationConfigurationFileName("Config.xml");
 }
 
 //-----------------------------------------------------------------------------
@@ -50,6 +54,8 @@ vtkPlusConfig::~vtkPlusConfig()
   this->SetConfigurationDirectory(NULL);
 	this->SetConfigurationFileName(NULL);
   this->SetConfigurationData(NULL);
+  this->SetApplicationConfigurationData(NULL);
+  this->SetApplicationConfigurationFileName(NULL);
 }
 
 //-----------------------------------------------------------------------------
@@ -195,6 +201,25 @@ PlusStatus vtkPlusConfig::SaveConfigurationToFile(const char* aFile)
   this->ConfigurationData->PrintXML( aFile );
 
   LOG_INFO("Configuration file '" << aFile << "' saved");
+
+  return PLUS_SUCCESS;
+}
+
+//------------------------------------------------------------------------------
+
+PlusStatus vtkPlusConfig::SaveApplicationConfigurationToFile()
+{
+  LOG_TRACE("vtkPlusConfig::SaveApplicationConfigurationToFile");
+
+  if ( this->ApplicationConfigurationData == NULL )
+  {
+    LOG_ERROR("Failed to save application configuration data to file - application configuration data is NULL!"); 
+    return PLUS_FAIL; 
+  }
+
+  this->ApplicationConfigurationData->PrintXML( this->ApplicationConfigurationFileName );
+
+  LOG_INFO("Application configuration file '" << this->ApplicationConfigurationFileName << "' saved");
 
   return PLUS_SUCCESS;
 }

@@ -83,6 +83,12 @@ public:
 	*/
   PlusStatus SaveConfigurationToFile(const char* aFile);
 
+	/*!
+	* \brief Saves application configuration data to file whose name is stored in ApplicationConfigurationFileName
+	* \return Success flag
+	*/
+  PlusStatus SaveApplicationConfigurationToFile();
+
 public:
 	//! Get/Set macro for configuration directory
 	vtkGetStringMacro(ConfigurationDirectory);
@@ -95,6 +101,14 @@ public:
 	//! Get/Set macro for configuration data
   vtkGetObjectMacro(ConfigurationData, vtkXMLDataElement); 
   vtkSetObjectMacro(ConfigurationData, vtkXMLDataElement); 
+
+	//! Get/Set macro for application configuration file name
+	vtkGetStringMacro(ApplicationConfigurationFileName);
+	vtkSetStringMacro(ApplicationConfigurationFileName);
+
+	//! Get/Set macro for application configuration data
+  vtkGetObjectMacro(ApplicationConfigurationData, vtkXMLDataElement); 
+  vtkSetObjectMacro(ApplicationConfigurationData, vtkXMLDataElement); 
 
 protected:
 	/*!
@@ -120,6 +134,12 @@ protected:
 
   //! Session configuration data
   vtkXMLDataElement*  ConfigurationData;
+
+  //! Application configuration file name (./Config.xml by default)
+	char*               ApplicationConfigurationFileName;
+
+  //! Application configuration data
+  vtkXMLDataElement*  ApplicationConfigurationData;
 
 private:
 	//! Instance of the singleton
