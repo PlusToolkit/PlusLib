@@ -31,11 +31,6 @@ public:
 	*/
 	~ConfigFileSaverDialog();
 
-  /*!
-	* \brief Set destination directory to search in from registry value
-	*/
-  void SetDestinationDirectoryFromRegistry(); 
-
 	/*!
 	* \brief Set destination directory for configuration file
 	* \param aDirectory Input configuration directory

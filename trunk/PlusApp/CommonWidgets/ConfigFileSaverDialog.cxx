@@ -19,7 +19,7 @@ ConfigFileSaverDialog::ConfigFileSaverDialog(QWidget* aParent, vtkXMLDataElement
 	connect( ui.pushButton_OpenDestinationDirectory, SIGNAL( clicked() ), this, SLOT( OpenDestinationDirectoryClicked() ) );
 	connect( ui.pushButton_Save, SIGNAL( clicked() ), this, SLOT( SaveClicked() ) );
 
-  SetDestinationDirectoryFromRegistry();
+  SetDestinationDirectory(vtkPlusConfig::GetInstance()->GetConfigurationDirectory());
 
   ReadConfiguration();
 }
@@ -28,20 +28,6 @@ ConfigFileSaverDialog::ConfigFileSaverDialog(QWidget* aParent, vtkXMLDataElement
 
 ConfigFileSaverDialog::~ConfigFileSaverDialog()
 {
-}
-
-//-----------------------------------------------------------------------------
-
-void ConfigFileSaverDialog::SetDestinationDirectoryFromRegistry()
-{
-  LOG_TRACE("ConfigFileSaverDialog::SetDestinationDirectoryFromRegistry");
-
-  // Get configuration directory from registry if possible
-	QSettings settings( QSettings::NativeFormat, QSettings::UserScope, "PerkLab", "Common" );
-	m_DestinationDirectory = settings.value("ConfigurationDirectory", "").toString();
-	if (! m_DestinationDirectory.isEmpty()) {
-		SetDestinationDirectory(m_DestinationDirectory.toStdString());
-	}
 }
 
 //-----------------------------------------------------------------------------

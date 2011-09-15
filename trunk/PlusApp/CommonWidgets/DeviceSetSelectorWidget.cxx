@@ -1,10 +1,8 @@
 #include "DeviceSetSelectorWidget.h"
 
 #include <QFileDialog>
-#include <QString>
 #include <QMessageBox>
 #include <QDomDocument>
-#include <QSettings>
 
 #include "vtkPlusConfig.h"
 
@@ -15,6 +13,8 @@
 DeviceSetSelectorWidget::DeviceSetSelectorWidget(QWidget* aParent)
 	: QWidget(aParent)
 	, m_ConnectionSuccessful(false)
+  , m_EditorApplicationExecutable(QString("notepad.exe"))
+  , m_LastDeviceSetConfigFile(QString(""))
 {
 	ui.setupUi(this);
 
@@ -24,27 +24,17 @@ DeviceSetSelectorWidget::DeviceSetSelectorWidget(QWidget* aParent)
 	connect( ui.pushButton_EditConfiguration, SIGNAL( clicked() ), this, SLOT( EditConfiguration() ) );
 	connect( ui.comboBox_DeviceSet, SIGNAL( currentIndexChanged(int) ), this, SLOT( DeviceSetSelected(int) ) );
 
-  ui.comboBox_DeviceSet->setSizeAdjustPolicy(QComboBox::AdjustToMinimumContentsLengthWithIcon); 
+  ui.comboBox_DeviceSet->setSizeAdjustPolicy(QComboBox::AdjustToMinimumContentsLengthWithIcon);
+
+  if (STRCASECMP(vtkPlusConfig::GetInstance()->GetConfigurationDirectory(), "") != 0) {
+    SetConfigurationDirectory(vtkPlusConfig::GetInstance()->GetConfigurationDirectory());
+  }
 }
 
 //-----------------------------------------------------------------------------
 
 DeviceSetSelectorWidget::~DeviceSetSelectorWidget()
 {
-}
-
-//-----------------------------------------------------------------------------
-
-void DeviceSetSelectorWidget::SetConfigurationDirectoryFromRegistry()
-{
-  LOG_TRACE("DeviceSetSelectorWidget:SetConfigurationDirectoryFromRegistry"); 
-
-  // Get configuration directory from registry if possible
-	QSettings settings( QSettings::NativeFormat, QSettings::UserScope, "PerkLab", "Common" );
-	m_ConfigurationDirectory = settings.value("ConfigurationDirectory", "").toString();
-	if (! m_ConfigurationDirectory.isEmpty()) {
-		SetConfigurationDirectory(m_ConfigurationDirectory.toStdString(), true);
-	}
 }
 
 //-----------------------------------------------------------------------------
@@ -61,10 +51,8 @@ void DeviceSetSelectorWidget::OpenConfigurationDirectory()
 
   this->SetConfigurationDirectory(dirName.toStdString(), true); 
   
-  // Write the selected directory to registry
-  QSettings settings( QSettings::NativeFormat, QSettings::UserScope, "PerkLab", "Common" );
-  settings.setValue("ConfigurationDirectory", dirName);
-  settings.sync();
+  // Save the selected directory to config object
+  vtkPlusConfig::GetInstance()->SetConfigurationDirectory(dirName.toStdString().c_str());
 
   return; 
 }
@@ -121,11 +109,6 @@ void DeviceSetSelectorWidget::DeviceSetSelected(int aIndex)
 
   QString configurationFilePath = ui.comboBox_DeviceSet->itemData(ui.comboBox_DeviceSet->currentIndex()).toStringList().at(0); 
 
-  // Write the selected configuration file path to registry
-  QSettings settings( QSettings::NativeFormat, QSettings::UserScope, "PerkLab", "Common" );
-  settings.setValue("ConfigurationFilePath", configurationFilePath);
-  settings.sync();
-
   emit DeviceSetSelected( configurationFilePath.toStdString() ); 
 }
 
@@ -150,8 +133,12 @@ void DeviceSetSelectorWidget::SetConfigurationDirectory(std::string aDirectory, 
 			emit ConfigurationDirectoryChanged(m_ConfigurationDirectory.toStdString());
 		} else {
       vtkPlusConfig::GetInstance()->SetConfigurationDirectory(oldDirectory.c_str());
+
 			ui.lineEdit_ConfigurationDirectory->setText(tr("Invalid configuration directory"));
 			ui.lineEdit_ConfigurationDirectory->setToolTip("No valid configuration files in directory, please select another");
+
+		  ui.textEdit_Description->setTextColor(QColor(Qt::darkRed));
+		  ui.textEdit_Description->setText("Selected directory does not contain valid device set configuration files!\n\nPlease select another directory");
 		}
 	}
 }
@@ -173,12 +160,16 @@ void DeviceSetSelectorWidget::SetConnectionSuccessful(bool aConnectionSuccessful
       ui.textEdit_Description->setTextColor(QColor(Qt::black));
 	    ui.textEdit_Description->setText("Connection successful!\n\n"
         + ui.comboBox_DeviceSet->itemData(ui.comboBox_DeviceSet->currentIndex()).toStringList().at(1)
-		    + "\n\n(" + ui.comboBox_DeviceSet->itemData(ui.comboBox_DeviceSet->currentIndex()).toStringList().at(0) + ")"
+		    //+ "\n\n(" + ui.comboBox_DeviceSet->itemData(ui.comboBox_DeviceSet->currentIndex()).toStringList().at(0) + ")"
 		    );
 
       // Change the function to be invoked on clicking on the now Disconnect button to InvokeDisconnect
 			disconnect( ui.pushButton_Connect, SIGNAL( clicked() ), this, SLOT( InvokeConnect() ) );
 			connect( ui.pushButton_Connect, SIGNAL( clicked() ), this, SLOT( InvokeDisconnect() ) );
+
+      // Set last used device set config file
+      m_LastDeviceSetConfigFile = ui.comboBox_DeviceSet->itemData(ui.comboBox_DeviceSet->currentIndex()).toStringList().at(0);
+
 		} else {
 			ui.textEdit_Description->setTextColor(QColor(Qt::darkRed));
 			ui.textEdit_Description->setText("Connection failed!\n\nPlease select another device set and try again!");
@@ -191,7 +182,7 @@ void DeviceSetSelectorWidget::SetConnectionSuccessful(bool aConnectionSuccessful
       ui.textEdit_Description->setTextColor(QColor(Qt::black));
 	    ui.textEdit_Description->setText(
 		    ui.comboBox_DeviceSet->itemData(ui.comboBox_DeviceSet->currentIndex()).toStringList().at(1)
-		    + "\n\n(" + ui.comboBox_DeviceSet->itemData(ui.comboBox_DeviceSet->currentIndex()).toStringList().at(0) + ")"
+		    //+ "\n\n(" + ui.comboBox_DeviceSet->itemData(ui.comboBox_DeviceSet->currentIndex()).toStringList().at(0) + ")"
 		    );
 
       // Change the function to be invoked on clicking on the now Connect button to InvokeConnect
@@ -229,9 +220,6 @@ PlusStatus DeviceSetSelectorWidget::ParseDirectory(QString aDirectory)
 		}
 	}
 
-  // Get last selected configuration file from registry if possible
-	QSettings settings( QSettings::NativeFormat, QSettings::UserScope, "PerkLab", "Common" );
-	QString lastSelectedConfigFile = settings.value("ConfigurationFilePath", "").toString();
   int lastSelectedDeviceSetIndex(0); 
   
   // Block signals before we add items
@@ -285,18 +273,25 @@ PlusStatus DeviceSetSelectorWidget::ParseDirectory(QString aDirectory)
 			}
 
 			ui.comboBox_DeviceSet->addItem(name, userData);
-      int currentIndex = ui.comboBox_DeviceSet->findText(name, Qt::MatchExactly); 
+      int currentIndex = ui.comboBox_DeviceSet->findText(name, Qt::MatchExactly);
+
       // Add tooltip
       ui.comboBox_DeviceSet->setItemData(currentIndex, name, Qt::ToolTipRole); 
 
-      // If this item is the same as in the registry, select it by default
-      if ( lastSelectedConfigFile == fileName )
-      {
+      // If this item is the same as in the config file, select it by default
+      if ( m_LastDeviceSetConfigFile == fileName ) {
         lastSelectedDeviceSetIndex = currentIndex; 
       }
 
 		}
 	}
+
+  // If no valid configuration files have been parsed then warn user
+  if (ui.comboBox_DeviceSet->count() < 1) {
+    LOG_ERROR("Selected directory does not contain valid device set configuration files!");
+
+    return PLUS_FAIL;
+  }
 
   ui.comboBox_DeviceSet->setCurrentIndex(-1); 
 
@@ -337,6 +332,12 @@ void DeviceSetSelectorWidget::EditConfiguration()
 
   QString configurationFilePath = ui.comboBox_DeviceSet->itemData(ui.comboBox_DeviceSet->currentIndex()).toStringList().at(0);
 
+  if (m_EditorApplicationExecutable.right(4).compare(QString(".exe")) != 0) {
+    LOG_ERROR("Invalid XML editor application!");
+    return;
+  }
+
+	wchar_t wcharApplication[1024];
 	wchar_t wcharFile[1024];
 
 	QFileInfo fileInfo( QDir::toNativeSeparators( configurationFilePath ) );
@@ -345,5 +346,23 @@ void DeviceSetSelectorWidget::EditConfiguration()
 	int lenFile = file.toWCharArray( wcharFile );
 	wcharFile[lenFile] = '\0';
 
-	ShellExecuteW( 0, L"edit", wcharFile, NULL, NULL, SW_MAXIMIZE );
+	int lenApplication = m_EditorApplicationExecutable.toWCharArray( wcharApplication );
+	wcharApplication[lenApplication] = '\0';
+
+  ShellExecuteW( 0, L"open", wcharApplication, wcharFile, NULL, SW_MAXIMIZE );
+}
+
+//-----------------------------------------------------------------------------
+
+void DeviceSetSelectorWidget::SetEditorApplicationExecutable(QString aExecutable)
+{
+	LOG_TRACE("DeviceSetSelectorWidget::SetEditorApplicationExecutable(" << aExecutable.toStdString().c_str() << ")"); 
+
+  if (aExecutable.right(4).compare(QString(".exe")) != 0) {
+    LOG_ERROR("Cannot set invalid XML editor '" << aExecutable.toStdString() << "'");
+    return;
+  }
+
+  m_EditorApplicationExecutable.clear();
+  m_EditorApplicationExecutable.append(aExecutable);
 }

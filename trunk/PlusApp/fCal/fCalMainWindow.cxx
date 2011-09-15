@@ -298,25 +298,8 @@ void fCalMainWindow::LocateDirectories()
   LOG_TRACE("fCalMainWindow::LocateDirectories");
 
   // Locate program path
-	std::string programPath("./"), errorMsg; 
-	if ( !vtksys::SystemTools::FindProgramPath(qApp->argv()[0], programPath, errorMsg) ) {
-		LOG_ERROR(errorMsg); 
-	}
-	programPath = vtksys::SystemTools::GetParentDirectory(programPath.c_str()); 
-
-	// Locate configuration files directory
-	QDir configDir(QString::fromStdString(programPath));
-	bool success = configDir.cdUp();
-	if (success) {
-		configDir.cd("config");
-	}
-	if (!success) {
-		configDir = QDir::root();
-	} else {
-		configDir.makeAbsolute();
-	}
-
-	vtkPlusConfig::GetInstance()->SetConfigurationDirectory(configDir.path().toStdString().c_str());
+  QFileInfo programPathFileInfo(qApp->argv()[0]); 
+  std::string programPath = programPathFileInfo.absoluteDir().absolutePath().toStdString(); 
 
 	// Make output directory
 	std::string outputPath = vtksys::SystemTools::CollapseFullPath("./Output", programPath.c_str()); 

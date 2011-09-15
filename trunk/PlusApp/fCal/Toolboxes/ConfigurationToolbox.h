@@ -4,6 +4,7 @@
 #include "ui_ConfigurationToolbox.h"
 
 #include "AbstractToolbox.h"
+#include "PlusConfigure.h"
 
 #include <QWidget>
 
@@ -38,12 +39,6 @@ public:
 	*/
 	void Initialize();
 
-	/*!
-	* \brief Executes operations needed after stopping the process - implementation of a pure virtual function
-	*/
-	void Stop();
-
-//public slots: TODO
 	/*!
 	* \brief Refresh contents (e.g. GUI elements) of toolbox according to the state in the toolbox controller - implementation of a pure virtual function
 	*/
@@ -91,8 +86,25 @@ protected slots:
 	*/
 	void LogLevelChanged(int aLevel);
 
+	/*!
+	* \brief Slot handling select editor application executable button click
+	*/
+  void SelectEditorApplicationExecutable();
+
 protected:
 	/*!
+	* \brief Save application configuration file
+  * \return Success flag
+	*/
+  PlusStatus WriteApplicationConfiguration();
+
+	/*!
+	* \brief Read application configuration from file
+  * \return Success flag
+	*/
+  PlusStatus ReadApplicationConfiguration();
+
+  /*!
 	* \brief Filters events if this object has been installed as an event filter for the watched object
 	* \param obj object
 	* \param ev event

@@ -6,6 +6,7 @@
 #include "PlusConfigure.h"
 
 #include <QWidget>
+#include <QString>
 
 //-----------------------------------------------------------------------------
 
@@ -28,11 +29,6 @@ public:
 	* \brief Destructor
 	*/
 	~DeviceSetSelectorWidget();
-
-  /*!
-	* \brief Set configuration directory to search in from registry value
-	*/
-  void SetConfigurationDirectoryFromRegistry(); 
 
 	/*!
 	* \brief Set configuration directory to search in
@@ -59,9 +55,33 @@ public:
   void SetComboBoxMinWidth(int minWidth);
 
   /*!
-	* \brief Returns currently selected device set description 
+	* \brief Return currently selected device set description 
 	*/
-  std::string GetSelectedDeviceSetDescription(); 
+  std::string GetSelectedDeviceSetDescription();
+
+  /*!
+	* \brief Set editor application executable
+  * \param Path and filename of the editor application executable to be used
+	*/
+  void SetEditorApplicationExecutable(QString aExecutable);
+
+  /*!
+	* \brief Get editor application executable
+  * \return Path and filename of the editor application executable to be used
+	*/
+  QString GetEditorApplicationExecutable() { return m_EditorApplicationExecutable; };
+
+  /*!
+	* \brief Set last selected device set config file
+  * \param Path and filename of the device set config file that was used last time
+	*/
+  void SetLastDeviceSetConfigFile(QString aFile) { m_LastDeviceSetConfigFile = aFile; };
+
+  /*!
+	* \brief Get last selected device set config file
+  * \return Path and filename of the device set config file that was used last time
+	*/
+  QString GetLastDeviceSetConfigFile() { return m_LastDeviceSetConfigFile; };
 
 signals:
 	/*!
@@ -81,7 +101,6 @@ signals:
 	* \param Device set configuration file
 	*/
 	void ConnectToDevicesByConfigFileInvoked(std::string);
-
 
 protected:
 	/*!
@@ -126,7 +145,13 @@ protected:
 	QString	m_ConfigurationDirectory;
 
 	//! Flag telling whether connection has been successful
-	bool	m_ConnectionSuccessful;
+	bool	  m_ConnectionSuccessful;
+
+  //! Path and filename of the editor application executable to be used
+  QString m_EditorApplicationExecutable;
+
+  //! Path and filename of the device set config file that was used last time
+  QString m_LastDeviceSetConfigFile;
 
 protected:
 	Ui::DeviceSetSelectorWidget ui;

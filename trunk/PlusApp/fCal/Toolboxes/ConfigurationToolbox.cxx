@@ -11,6 +11,8 @@
 #include <QFileDialog>
 
 #include "vtkXMLUtilities.h"
+#include "vtkXMLDataElement.h"
+#include "vtksys/SystemTools.hxx" 
 
 //-----------------------------------------------------------------------------
 
@@ -24,8 +26,6 @@ ConfigurationToolbox::ConfigurationToolbox(fCalMainWindow* aParentMainWindow, QW
 
 	// Create and setup device set selector widget
 	m_DeviceSetSelectorWidget = new DeviceSetSelectorWidget(this);
-  m_DeviceSetSelectorWidget->SetConfigurationDirectoryFromRegistry(); 
-	m_DeviceSetSelectorWidget->SetConfigurationDirectory(vtkPlusConfig::GetInstance()->GetConfigurationDirectory());
   m_DeviceSetSelectorWidget->SetComboBoxMinWidth(400); 
 
 	m_ToolStateDisplayWidget = new ToolStateDisplayWidget(this);
@@ -36,6 +36,7 @@ ConfigurationToolbox::ConfigurationToolbox(fCalMainWindow* aParentMainWindow, QW
 	connect( m_DeviceSetSelectorWidget, SIGNAL( ConnectToDevicesByConfigFileInvoked(std::string) ), this, SLOT( ConnectToDevicesByConfigFile(std::string) ) );
 	connect( ui.pushButton_PopOut, SIGNAL( toggled(bool) ), this, SLOT( PopOutToggled(bool) ) );
 	connect( ui.comboBox_LogLevel, SIGNAL( currentIndexChanged(int) ), this, SLOT( LogLevelChanged(int) ) );
+	connect( ui.pushButton_SelectEditorApplicationExecutable, SIGNAL( clicked() ), this, SLOT( SelectEditorApplicationExecutable() ) );
 
 	// Insert widgets into placeholders
 	QGridLayout* gridDeviceSetSelection = new QGridLayout(ui.deviceSetSelectionWidget, 1, 1, 0, 4, "");
@@ -49,8 +50,13 @@ ConfigurationToolbox::ConfigurationToolbox(fCalMainWindow* aParentMainWindow, QW
 	ui.toolStateDisplayWidget->setMinimumHeight(m_ToolStateDisplayWidget->GetDesiredHeight());
 	ui.toolStateDisplayWidget->setMaximumHeight(m_ToolStateDisplayWidget->GetDesiredHeight());
 
-	// Change log level to info (program default)
-	ui.comboBox_LogLevel->setCurrentText("Info");
+  // Read application configuration
+  if (ReadApplicationConfiguration() != PLUS_SUCCESS) {
+    LOG_ERROR("Failed to read application configuration file");
+  }
+
+  // Install event filters to capture key event for dumping raw buffer data
+	this->installEventFilter(this); //TODO make this a button or something, this is unreliable
 }
 
 //-----------------------------------------------------------------------------
@@ -65,8 +71,7 @@ void ConfigurationToolbox::Initialize()
 {
 	LOG_TRACE("ConfigurationToolbox::Initialize"); 
 
-  // Install event filters to capture key event for dumping raw buffer data
-	this->installEventFilter(this); //TODO make this a button or something, this is unreliable
+  // No actions needed when tab becomes active
 }
 
 //-----------------------------------------------------------------------------
@@ -108,6 +113,11 @@ void ConfigurationToolbox::SetConfigurationDirectory(std::string aDirectory)
 	LOG_TRACE("ConfigurationToolbox::SetConfigurationDirectory");
 
 	vtkPlusConfig::GetInstance()->SetConfigurationDirectory(aDirectory.c_str());
+
+  // Save application configuration file
+  if (WriteApplicationConfiguration() != PLUS_SUCCESS) {
+    LOG_ERROR("Failed to save application configuration file");
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -160,12 +170,19 @@ void ConfigurationToolbox::ConnectToDevicesByConfigFile(std::string aConfigFile)
 			  m_ToolStateDisplayWidget->InitializeTools(NULL, false);
 
 		  } else {
+        // Successful connection
 			  m_DeviceSetSelectorWidget->SetConnectionSuccessful(true);
+
 			  if (m_ToolStateDisplayWidget->InitializeTools(m_ParentMainWindow->GetToolVisualizer()->GetDataCollector(), true)) {
 				  ui.toolStateDisplayWidget->setMinimumHeight(m_ToolStateDisplayWidget->GetDesiredHeight());
 				  ui.toolStateDisplayWidget->setMaximumHeight(m_ToolStateDisplayWidget->GetDesiredHeight());
 			  }
 		  }
+
+      // Save application configuration file
+      if (WriteApplicationConfiguration() != PLUS_SUCCESS) {
+        LOG_ERROR("Failed to save application configuration file");
+      }
 
       // Load device models based on the new configuration
       m_ParentMainWindow->GetToolVisualizer()->InitializeDeviceVisualization();
@@ -279,31 +296,159 @@ void ConfigurationToolbox::LogLevelChanged(int aLevel)
 {
 	LOG_TRACE("ConfigurationToolbox::LogLevelChanged");
 
-	if ( STRCASECMP(ui.comboBox_LogLevel->currentText().ascii(), "Error") == 0 )
-	{
-		vtkPlusLogger::Instance()->SetLogLevel(vtkPlusLogger::LOG_LEVEL_ERROR); 
-    vtkPlusLogger::Instance()->SetDisplayLogLevel(vtkPlusLogger::LOG_LEVEL_ERROR); 
-	}
-	else if ( STRCASECMP(ui.comboBox_LogLevel->currentText().ascii(), "Warning") == 0 )
-	{
-		vtkPlusLogger::Instance()->SetLogLevel(vtkPlusLogger::LOG_LEVEL_WARNING); 
-    vtkPlusLogger::Instance()->SetDisplayLogLevel(vtkPlusLogger::LOG_LEVEL_WARNING);
-	}
-	else if ( STRCASECMP(ui.comboBox_LogLevel->currentText().ascii(), "Info") == 0 )
-	{
-		vtkPlusLogger::Instance()->SetLogLevel(vtkPlusLogger::LOG_LEVEL_INFO); 
-    vtkPlusLogger::Instance()->SetDisplayLogLevel(vtkPlusLogger::LOG_LEVEL_INFO);
-	}
-	else if ( STRCASECMP(ui.comboBox_LogLevel->currentText().ascii(), "Debug") == 0 )
-	{
-		vtkPlusLogger::Instance()->SetLogLevel(vtkPlusLogger::LOG_LEVEL_DEBUG); 
-    vtkPlusLogger::Instance()->SetDisplayLogLevel(vtkPlusLogger::LOG_LEVEL_DEBUG);
-	}
-	else if ( STRCASECMP(ui.comboBox_LogLevel->currentText().ascii(), "Trace") == 0 )
-	{
-		vtkPlusLogger::Instance()->SetLogLevel(vtkPlusLogger::LOG_LEVEL_TRACE); 
-    vtkPlusLogger::Instance()->SetDisplayLogLevel(vtkPlusLogger::LOG_LEVEL_TRACE);
+  vtkPlusLogger::Instance()->SetLogLevel(aLevel+1);
+  vtkPlusLogger::Instance()->SetDisplayLogLevel(aLevel+1); 
+
+	LOG_INFO("Log level changed to: " << ui.comboBox_LogLevel->currentText().ascii() << " (" << aLevel+1 << ")" );
+
+  // Save application configuration file
+  if (WriteApplicationConfiguration() != PLUS_SUCCESS) {
+    LOG_ERROR("Failed to save application configuration file");
+  }
+}
+
+//-----------------------------------------------------------------------------
+
+PlusStatus ConfigurationToolbox::WriteApplicationConfiguration()
+{
+	LOG_TRACE("ConfigurationToolbox::WriteApplicationConfiguration");
+
+  vtkSmartPointer<vtkXMLDataElement> applicationConfigurationRoot = vtkPlusConfig::GetInstance()->GetApplicationConfigurationData();
+	if (applicationConfigurationRoot == NULL) {
+    applicationConfigurationRoot = vtkSmartPointer<vtkXMLDataElement>::New();
+    applicationConfigurationRoot->SetName("fCalConfiguration");
 	}
 
-	LOG_INFO("Log level changed to: " << ui.comboBox_LogLevel->currentText().ascii() )
+  // Verify root element name
+  if (STRCASECMP(applicationConfigurationRoot->GetName(), "fCalConfiguration") != NULL) {
+    LOG_ERROR("Invalid application configuration file (root XML element of the file '" << vtkPlusConfig::GetInstance()->GetApplicationConfigurationFileName() << "' should be 'fCalConfiguration')");
+    return PLUS_FAIL;
+  }
+
+  // Save date
+	applicationConfigurationRoot->SetAttribute("Date", vtksys::SystemTools::GetCurrentDateTime("%Y.%m.%d %X").c_str());
+
+  // Save log level
+	applicationConfigurationRoot->SetIntAttribute("LogLevel", vtkPlusLogger::Instance()->GetLogLevel());
+
+  // Save device set directory
+  applicationConfigurationRoot->SetAttribute("DeviceSetConfigDirectory", vtkPlusConfig::GetInstance()->GetConfigurationDirectory());
+
+  // Save last device set config file
+  applicationConfigurationRoot->SetAttribute("LastDeviceSetConfigFile", m_DeviceSetSelectorWidget->GetLastDeviceSetConfigFile().toStdString().c_str());
+
+  // Save editor application
+  applicationConfigurationRoot->SetAttribute("EditorApplicationExecutable", m_DeviceSetSelectorWidget->GetEditorApplicationExecutable().toStdString().c_str());
+
+  // Save configuration
+  vtkPlusConfig::GetInstance()->SetApplicationConfigurationData(applicationConfigurationRoot);
+  return vtkPlusConfig::GetInstance()->SaveApplicationConfigurationToFile();
+}
+
+//-----------------------------------------------------------------------------
+
+PlusStatus ConfigurationToolbox::ReadApplicationConfiguration()
+{
+	LOG_TRACE("ConfigurationToolbox::ReadApplicationConfiguration");
+
+  // Read configuration
+  vtkSmartPointer<vtkXMLDataElement> applicationConfigurationRoot = vtkXMLUtilities::ReadElementFromFile(vtkPlusConfig::GetInstance()->GetApplicationConfigurationFileName());
+  if (applicationConfigurationRoot == NULL) {	
+    LOG_WARNING("Unable to read application configuration from file '" << vtkPlusConfig::GetInstance()->GetApplicationConfigurationFileName() << "' - default values will be used and the file created"); 
+
+    // Set defaults
+    m_DeviceSetSelectorWidget->SetConfigurationDirectory(vtkPlusConfig::GetInstance()->GetConfigurationDirectory());
+
+    m_DeviceSetSelectorWidget->SetEditorApplicationExecutable(QString("notepad.exe"));
+    ui.lineEdit_EditorApplicationExecutable->setText(QString("notepad.exe"));
+
+    ui.comboBox_LogLevel->blockSignals(true);
+	  ui.comboBox_LogLevel->setCurrentText("Info");
+    vtkPlusLogger::Instance()->SetLogLevel(vtkPlusLogger::LOG_LEVEL_INFO);
+    vtkPlusLogger::Instance()->SetDisplayLogLevel(vtkPlusLogger::LOG_LEVEL_INFO); 
+    ui.comboBox_LogLevel->blockSignals(false);
+
+    return WriteApplicationConfiguration();
+  }
+
+  vtkPlusConfig::GetInstance()->SetApplicationConfigurationData(applicationConfigurationRoot); 
+
+  // Verify root element name
+  if (STRCASECMP(applicationConfigurationRoot->GetName(), "fCalConfiguration") != NULL) {
+    LOG_ERROR("Invalid application configuration file (root XML element of the file '" << vtkPlusConfig::GetInstance()->GetApplicationConfigurationFileName() << "' should be 'fCalConfiguration')");
+    return PLUS_FAIL;
+  }
+
+  // Load log level
+	int logLevel = 2; 
+	if (applicationConfigurationRoot->GetScalarAttribute("LogLevel", logLevel) ) {
+    ui.comboBox_LogLevel->blockSignals(true);
+    ui.comboBox_LogLevel->setCurrentIndex(logLevel-1);
+    vtkPlusLogger::Instance()->SetLogLevel(logLevel);
+    vtkPlusLogger::Instance()->SetDisplayLogLevel(logLevel); 
+    ui.comboBox_LogLevel->blockSignals(false);
+
+	} else {
+		LOG_WARNING("Cannot find LogLevel attribute - default 'Info' log level will be used");
+
+    ui.comboBox_LogLevel->blockSignals(true);
+	  ui.comboBox_LogLevel->setCurrentText("Info");
+    vtkPlusLogger::Instance()->SetLogLevel(vtkPlusLogger::LOG_LEVEL_INFO);
+    vtkPlusLogger::Instance()->SetDisplayLogLevel(vtkPlusLogger::LOG_LEVEL_INFO); 
+    ui.comboBox_LogLevel->blockSignals(false);
+  }
+
+  // Load last device set config file
+  const char* lastDeviceSetConfigFile = applicationConfigurationRoot->GetAttribute("LastDeviceSetConfigFile");
+  if ((lastDeviceSetConfigFile == NULL) || (STRCASECMP(lastDeviceSetConfigFile, "") == 0)) {
+    LOG_WARNING("Unable to read last used device set config file - you have to connect to one first");
+  } else {
+    m_DeviceSetSelectorWidget->SetLastDeviceSetConfigFile(QString(lastDeviceSetConfigFile));
+  }
+
+  // Load device set directory
+  const char* deviceSetDirectory = applicationConfigurationRoot->GetAttribute("DeviceSetConfigDirectory");
+  if ((deviceSetDirectory == NULL) || (STRCASECMP(deviceSetDirectory, "") == 0)) {
+    LOG_WARNING("Unable to read device set configuration directory - default '..\\config' will be used"); // Already set in fCalMainWindow::LocateDirectories
+  }
+
+	vtkPlusConfig::GetInstance()->SetConfigurationDirectory(deviceSetDirectory);
+  m_DeviceSetSelectorWidget->blockSignals(true);
+  m_DeviceSetSelectorWidget->SetConfigurationDirectory(vtkPlusConfig::GetInstance()->GetConfigurationDirectory());
+  m_DeviceSetSelectorWidget->blockSignals(false);
+
+  // Load editor application
+  const char* editorApplicationExecutable = applicationConfigurationRoot->GetAttribute("EditorApplicationExecutable");
+  if ((editorApplicationExecutable == NULL) || (STRCASECMP(editorApplicationExecutable, "") == 0)) {
+    LOG_WARNING("Unable to read editor application executable - default 'notepad.exe' will be used");
+
+    editorApplicationExecutable = "notepad.exe";
+  }
+
+  m_DeviceSetSelectorWidget->SetEditorApplicationExecutable(QString(editorApplicationExecutable));
+  ui.lineEdit_EditorApplicationExecutable->setText(QString(editorApplicationExecutable));
+
+  return PLUS_SUCCESS;
+}
+
+//-----------------------------------------------------------------------------
+
+void ConfigurationToolbox::SelectEditorApplicationExecutable()
+{
+	LOG_TRACE("ConfigurationToolbox::SelectEditorApplicationExecutable");
+
+	// File open dialog for selecting phantom definition xml
+	QString filter = QString( tr( "Executables ( *.exe );;" ) );
+  QString fileName = QFileDialog::getOpenFileName(NULL, QString( tr( "Select XML editor application" ) ), "C:", filter);
+	if (fileName.isNull()) {
+		return;
+	}
+
+  m_DeviceSetSelectorWidget->SetEditorApplicationExecutable(fileName);
+  ui.lineEdit_EditorApplicationExecutable->setText(fileName);
+
+  // Save application configuration file
+  if (WriteApplicationConfiguration() != PLUS_SUCCESS) {
+    LOG_ERROR("Failed to save application configuration file");
+  }
 }

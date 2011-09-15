@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>258</width>
-    <height>193</height>
+    <height>198</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -23,7 +23,7 @@
    <item row="0" column="0">
     <widget class="QLabel" name="label_ConfigurationDirectory">
      <property name="text">
-      <string>Configuration directory:</string>
+      <string>Device set configuration directory:</string>
      </property>
     </widget>
    </item>
@@ -66,7 +66,7 @@
         </size>
        </property>
        <property name="toolTip">
-        <string>Select other configuration directory</string>
+        <string>Select other device set configuration directory</string>
        </property>
        <property name="text">
         <string/>

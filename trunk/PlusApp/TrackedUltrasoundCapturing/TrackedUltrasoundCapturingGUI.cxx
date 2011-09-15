@@ -17,6 +17,8 @@
 #include <QMessageBox>
 #include <QCloseEvent>
 #include <QDesktopServices>
+#include <QSettings>
+
 #include "DeviceSetSelectorWidget.h"
 #include "ToolStateDisplayWidget.h"
 #include "vtkPlusConfig.h"
@@ -107,10 +109,16 @@ QWizard(parent)
   connect( m_DeviceSetSelectorWidget, SIGNAL( ConnectToDevicesByConfigFileInvoked(std::string) ), this, SLOT( ConnectToDevicesByConfigFile(std::string) ) );
   
   // Setup device set selector widget
-  this->m_DeviceSetSelectorWidget->SetConfigurationDirectoryFromRegistry(); 
   this->m_DeviceSetSelectorWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
   this->m_DeviceSetSelectorWidget->SetComboBoxMinWidth(0); 
   this->m_DeviceSetSelectorWidget->resize(this->width(), this->height()); 
+
+  // Get configuration directory from registry if possible
+	QSettings settings( QSettings::NativeFormat, QSettings::UserScope, "PerkLab", "Common" );
+	QString configurationDirectory = settings.value("ConfigurationDirectory", "").toString();
+	if (! configurationDirectory.isEmpty()) {
+		this->m_DeviceSetSelectorWidget->SetConfigurationDirectory(configurationDirectory.toStdString(), true);
+	} 
 
   // Create and setup tool display widget
   this->m_SyncToolStateDisplayWidget = new ToolStateDisplayWidget(this);
