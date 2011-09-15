@@ -34,6 +34,13 @@ OPTION(BUILD_TESTING
 
 INCLUDE(CTest)
 
+# Setup file for setting custom ctest vars (for ignoring certain warnings, etc.)
+CONFIGURE_FILE(
+  CTestCustom.cmake.in
+  ${CMAKE_CURRENT_BINARY_DIR}/CTestCustom.cmake
+  @ONLY
+  )
+
 # --------------------------------------------------------------------------
 # Find SVN for revision information status and automatic update of the repository
 #
