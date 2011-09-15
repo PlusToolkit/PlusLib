@@ -103,6 +103,9 @@
          <height>23</height>
         </size>
        </property>
+       <property name="toolTip">
+        <string>Pop out (or back) tool state window</string>
+       </property>
        <property name="text">
         <string/>
        </property>
@@ -162,6 +165,9 @@
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
+       </property>
+       <property name="toolTip">
+        <string>Level of log entries that are displayed</string>
        </property>
        <property name="currentIndex">
         <number>1</number>

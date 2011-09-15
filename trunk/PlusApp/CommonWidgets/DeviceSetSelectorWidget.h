@@ -94,7 +94,7 @@ protected slots:
 	/*!
 	* \brief Pops up open directory dialog and saves the selected one into application
 	*/
-	void OpenConfigurationDirectoryClicked();
+	void OpenConfigurationDirectory();
 
 	/*!
 	* \brief Called when device set selection has been changed
@@ -114,7 +114,12 @@ protected slots:
 	/*!
 	* \brief Called when Refresh folder button is clicked - refreshes device set list
 	*/
-  void RefreshFolderClicked();
+  void RefreshFolder();
+
+	/*!
+	* \brief Called when Edit configuration button is clicked - opens currently selected configuration in editor application
+	*/
+  void EditConfiguration();
 
 protected:
 	//! Configuration directory path

@@ -8,6 +8,8 @@
 
 #include "vtkPlusConfig.h"
 
+#include "Shellapi.h"
+
 //-----------------------------------------------------------------------------
 
 DeviceSetSelectorWidget::DeviceSetSelectorWidget(QWidget* aParent)
@@ -16,9 +18,10 @@ DeviceSetSelectorWidget::DeviceSetSelectorWidget(QWidget* aParent)
 {
 	ui.setupUi(this);
 
-	connect( ui.pushButton_OpenConfigurationDirectory, SIGNAL( clicked() ), this, SLOT( OpenConfigurationDirectoryClicked() ) );
+	connect( ui.pushButton_OpenConfigurationDirectory, SIGNAL( clicked() ), this, SLOT( OpenConfigurationDirectory() ) );
 	connect( ui.pushButton_Connect, SIGNAL( clicked() ), this, SLOT( InvokeConnect() ) );
-	connect( ui.pushButton_RefreshFolder, SIGNAL( clicked() ), this, SLOT( RefreshFolderClicked() ) );
+	connect( ui.pushButton_RefreshFolder, SIGNAL( clicked() ), this, SLOT( RefreshFolder() ) );
+	connect( ui.pushButton_EditConfiguration, SIGNAL( clicked() ), this, SLOT( EditConfiguration() ) );
 	connect( ui.comboBox_DeviceSet, SIGNAL( currentIndexChanged(int) ), this, SLOT( DeviceSetSelected(int) ) );
 
   ui.comboBox_DeviceSet->setSizeAdjustPolicy(QComboBox::AdjustToMinimumContentsLengthWithIcon); 
@@ -46,7 +49,7 @@ void DeviceSetSelectorWidget::SetConfigurationDirectoryFromRegistry()
 
 //-----------------------------------------------------------------------------
 
-void DeviceSetSelectorWidget::OpenConfigurationDirectoryClicked()
+void DeviceSetSelectorWidget::OpenConfigurationDirectory()
 {
   LOG_TRACE("DeviceSetSelectorWidget::OpenConfigurationDirectoryClicked"); 
 
@@ -111,12 +114,13 @@ void DeviceSetSelectorWidget::DeviceSetSelected(int aIndex)
 
 	ui.textEdit_Description->setText(
 		ui.comboBox_DeviceSet->itemData(aIndex).toStringList().at(1)
-		+ "\n\n(" + ui.comboBox_DeviceSet->itemData(aIndex).toStringList().at(0) + ")"
+		//+ "\n\n(" + ui.comboBox_DeviceSet->itemData(aIndex).toStringList().at(0) + ")"
 		);
 
 	ui.comboBox_DeviceSet->setToolTip(ui.comboBox_DeviceSet->currentText() + " (" + ui.comboBox_DeviceSet->itemData(aIndex).toStringList().at(0) + ")");
 
   QString configurationFilePath = ui.comboBox_DeviceSet->itemData(ui.comboBox_DeviceSet->currentIndex()).toStringList().at(0); 
+
   // Write the selected configuration file path to registry
   QSettings settings( QSettings::NativeFormat, QSettings::UserScope, "PerkLab", "Common" );
   settings.setValue("ConfigurationFilePath", configurationFilePath);
@@ -316,11 +320,30 @@ void DeviceSetSelectorWidget::SetComboBoxMinWidth(int minWidth)
 
 //-----------------------------------------------------------------------------
 
-void DeviceSetSelectorWidget::RefreshFolderClicked()
+void DeviceSetSelectorWidget::RefreshFolder()
 {
 	LOG_TRACE("DeviceSetSelectorWidget::RefreshFolderClicked"); 
 
   if (ParseDirectory(m_ConfigurationDirectory) != PLUS_SUCCESS) {
     LOG_ERROR("Parsing up configuration files failed in: " << m_ConfigurationDirectory.toStdString().c_str());
   }
+}
+
+//-----------------------------------------------------------------------------
+
+void DeviceSetSelectorWidget::EditConfiguration()
+{
+	LOG_TRACE("DeviceSetSelectorWidget::EditConfiguration"); 
+
+  QString configurationFilePath = ui.comboBox_DeviceSet->itemData(ui.comboBox_DeviceSet->currentIndex()).toStringList().at(0);
+
+	wchar_t wcharFile[1024];
+
+	QFileInfo fileInfo( QDir::toNativeSeparators( configurationFilePath ) );
+
+  QString file = fileInfo.absoluteFilePath();
+	int lenFile = file.toWCharArray( wcharFile );
+	wcharFile[lenFile] = '\0';
+
+	ShellExecuteW( 0, L"edit", wcharFile, NULL, NULL, SW_MAXIMIZE );
 }

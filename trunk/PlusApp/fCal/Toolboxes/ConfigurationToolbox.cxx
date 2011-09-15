@@ -51,8 +51,6 @@ ConfigurationToolbox::ConfigurationToolbox(fCalMainWindow* aParentMainWindow, QW
 
 	// Change log level to info (program default)
 	ui.comboBox_LogLevel->setCurrentText("Info");
-
-	//TODO tooltips
 }
 
 //-----------------------------------------------------------------------------

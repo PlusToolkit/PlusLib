@@ -65,6 +65,9 @@
          <height>23</height>
         </size>
        </property>
+       <property name="toolTip">
+        <string>Select other configuration directory</string>
+       </property>
        <property name="text">
         <string/>
        </property>
@@ -100,6 +103,9 @@
          <height>23</height>
         </size>
        </property>
+       <property name="toolTip">
+        <string>Refresh device set list from currently selected configuration directory</string>
+       </property>
        <property name="text">
         <string/>
        </property>
@@ -118,23 +124,7 @@
      </property>
     </widget>
    </item>
-   <item row="3" column="0">
-    <widget class="QComboBox" name="comboBox_DeviceSet">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="maxVisibleItems">
-      <number>35</number>
-     </property>
-     <property name="sizeAdjustPolicy">
-      <enum>QComboBox::AdjustToContents</enum>
-     </property>
-    </widget>
-   </item>
-   <item row="5" column="0">
+   <item row="6" column="0">
     <spacer name="verticalSpacer_2">
      <property name="orientation">
       <enum>Qt::Vertical</enum>
@@ -150,7 +140,7 @@
      </property>
     </spacer>
    </item>
-   <item row="6" column="0">
+   <item row="7" column="0">
     <layout class="QHBoxLayout" name="horizontalLayout_2">
      <item>
       <widget class="QPushButton" name="pushButton_Connect">
@@ -177,7 +167,7 @@
      </item>
     </layout>
    </item>
-   <item row="4" column="0">
+   <item row="5" column="0">
     <widget class="QTextEdit" name="textEdit_Description">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
@@ -204,6 +194,67 @@
       <bool>true</bool>
      </property>
     </widget>
+   </item>
+   <item row="3" column="0">
+    <layout class="QHBoxLayout" name="horizontalLayout_3">
+     <property name="spacing">
+      <number>1</number>
+     </property>
+     <item>
+      <widget class="QPushButton" name="pushButton_EditConfiguration">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>23</width>
+         <height>23</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>23</width>
+         <height>23</height>
+        </size>
+       </property>
+       <property name="toolTip">
+        <string>Edit configuration file</string>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+       <property name="icon">
+        <iconset resource="CommonWidgets.qrc">
+         <normaloff>:/icons/Resources/icon_Edit.png</normaloff>:/icons/Resources/icon_Edit.png</iconset>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QComboBox" name="comboBox_DeviceSet">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>0</width>
+         <height>21</height>
+        </size>
+       </property>
+       <property name="maxVisibleItems">
+        <number>35</number>
+       </property>
+       <property name="sizeAdjustPolicy">
+        <enum>QComboBox::AdjustToContents</enum>
+       </property>
+      </widget>
+     </item>
+    </layout>
    </item>
   </layout>
  </widget>

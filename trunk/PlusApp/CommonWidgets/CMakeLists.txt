@@ -54,6 +54,9 @@ SOURCE_GROUP("UI Files" FILES ${CommonWidgets_UI_SRCS})
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
+# Treat wchar_t as built-in type - makes shell executes possible
+ADD_DEFINITIONS(/Zc:wchar_t-)
+
 # --------------------------------------------------------------------------
 # Build the library
 

@@ -12,7 +12,6 @@ SET (fCal_SRCS
 	fCalMainWindow.cxx
   vtkToolVisualizer.cxx
 	Toolboxes/ConfigurationToolbox.cxx
-	Toolboxes/ConfigurationController.cxx
 	Toolboxes/FreehandCalibrationToolbox.cxx
 	Toolboxes/StylusCalibrationToolbox.cxx
 	Toolboxes/PhantomRegistrationToolbox.cxx
@@ -30,7 +29,6 @@ SET (fCal_UI_HDRS
     vtkToolVisualizer.h
     Toolboxes/AbstractToolbox.h
 		Toolboxes/ConfigurationToolbox.h
-		Toolboxes/ConfigurationController.h
 		Toolboxes/FreehandCalibrationToolbox.h
 		Toolboxes/StylusCalibrationToolbox.h
 		Toolboxes/PhantomRegistrationToolbox.h
@@ -75,9 +73,9 @@ include_directories(${PlusApp_SOURCE_DIR}/CommonWidgets)
 SET (fCal_LIBS 
     ${fCal_LIBS} 
     ${QT_LIBRARIES} 
-	CommonWidgets
+    CommonWidgets
     vtkImageAcquisition 
-	vtkPlusCommon
+    vtkPlusCommon
     ITKIO
     itkvnl 
     itkvnl_algo 
