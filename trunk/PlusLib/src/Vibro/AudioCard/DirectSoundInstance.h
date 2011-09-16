@@ -13,8 +13,8 @@ namespace VibroLib
 		public:
 			DirectSoundInstance(void);
 			~DirectSoundInstance(void);
-			bool Initialize();
-			HRESULT SetPriority(HWND hWnd, DWORD priority = DSSCL_PRIORITY);
+			PlusStatus Initialize();
+			PlusStatus SetPriority(HWND hWnd, DWORD priority = DSSCL_PRIORITY);
 			LPDIRECTSOUND operator->() {return pDirectSound;}
 
 		private:

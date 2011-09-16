@@ -15,21 +15,21 @@ namespace VibroLib
 		{
 		}
 
-		bool DirectSoundInstance::Initialize()
+		PlusStatus DirectSoundInstance::Initialize()
 		{
 			if (::DirectSoundCreate(NULL, &pDirectSound, NULL) != DS_OK)
-				return false;
-			return true;		
+				return PLUS_FAIL;
+			return PLUS_SUCCESS;		
 		}
 
-		HRESULT DirectSoundInstance::SetPriority(HWND hWnd, DWORD priority)
+		PlusStatus DirectSoundInstance::SetPriority(HWND hWnd, DWORD priority)
 		{
 			HRESULT hr;
 			if (!pDirectSound)
-				return DSERR_UNINITIALIZED;
+				return PLUS_FAIL;
 			if ((hr = pDirectSound->SetCooperativeLevel(hWnd, priority)) != DS_OK)
-				return hr;
-			return DS_OK;
+				return PLUS_FAIL;
+			return PLUS_SUCCESS;
 		}
 	}
 }

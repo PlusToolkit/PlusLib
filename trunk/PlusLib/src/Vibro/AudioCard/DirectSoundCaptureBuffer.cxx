@@ -17,7 +17,7 @@ namespace VibroLib
 		{
 		}
 
-		HRESULT DirectSoundCaptureBuffer::Initialize(DirectSoundCapture* pDSC, size_t SampleFrequency, size_t BufferMaxSamples)
+		PlusStatus DirectSoundCaptureBuffer::Initialize(DirectSoundCapture* pDSC, size_t SampleFrequency, size_t BufferMaxSamples)
 		{
 			HRESULT err = DS_OK;
 			WAVEFORMATEX wvFormat;
@@ -40,32 +40,32 @@ namespace VibroLib
 
 			LPDIRECTSOUNDCAPTUREBUFFER buffTemp = NULL;
 			if ((err = (*pDSC)->CreateCaptureBuffer(&buffFormat, &buffTemp, NULL)) != DS_OK)
-				return err;
+				return PLUS_FAIL;
 
 			pCaptureBuffer = buffTemp;
 			BufferLength = BufferMaxSamples;
 			SamplingFrequency = SampleFrequency;
-			return DS_OK;
+			return PLUS_SUCCESS;
 		}
 
-		HRESULT DirectSoundCaptureBuffer::GetData(vector<signed short>& data)
+		PlusStatus DirectSoundCaptureBuffer::GetData(vector<signed short>& data)
 		{
 			if (pCaptureBuffer == NULL)
-				return DSERR_UNINITIALIZED;
+				return PLUS_FAIL;
 
 
 			DWORD lock_start, lock_stop;
 			HRESULT err;
 
 			if ((err = pCaptureBuffer->GetCurrentPosition(&lock_start, &lock_stop)) != DS_OK)
-				return err;
+				return PLUS_FAIL;
 
 			DWORD lock_length = (DWORD)(lock_stop < lock_start ? ((sizeof(signed short)*BufferLength - lock_start) + lock_stop) : (lock_stop - lock_start));
 
 			DWORD block_one_length, block_two_length;
 			BYTE* block_one, *block_two;
 			if ((err = pCaptureBuffer->Lock(lock_start, lock_length, (LPVOID*)&block_one, &block_one_length, (LPVOID*)&block_two, &block_two_length, 0)) != DS_OK)
-				return err;
+				return PLUS_FAIL;
 
 			data.clear();
 			data.reserve(lock_length / 2);
@@ -76,15 +76,15 @@ namespace VibroLib
 					data.push_back(block_two[n] + 256 * block_two[n + 1]);
 
 			if ((err = pCaptureBuffer->Unlock((LPVOID)block_one, block_one_length, (LPVOID)block_two, block_two_length)) != DS_OK)
-				return err;
+				return PLUS_FAIL;
 
-			return DS_OK;
+			return PLUS_SUCCESS;
 		}
 
-		HRESULT DirectSoundCaptureBuffer::GetEntireBuffer(std::vector<signed short>& data)
+		PlusStatus DirectSoundCaptureBuffer::GetEntireBuffer(std::vector<signed short>& data)
 		{
 			if (pCaptureBuffer == NULL)
-				return DSERR_UNINITIALIZED;
+				return PLUS_FAIL;
 
 			HRESULT err;
 
@@ -92,7 +92,7 @@ namespace VibroLib
 			BYTE* block_one;
 			StopCapture();
 			if ((err = pCaptureBuffer->Lock(0, 0, (LPVOID*)&block_one, &block_one_length, NULL, 0, DSCBLOCK_ENTIREBUFFER)) != DS_OK)
-				return err;
+				return PLUS_FAIL;
 
 			data.clear();
 			data.reserve(block_one_length/2);
@@ -100,24 +100,24 @@ namespace VibroLib
 				data.push_back(block_one[n] + 256 * block_one[n + 1]);
 
 			if ((err = pCaptureBuffer->Unlock((LPVOID)block_one, block_one_length, NULL, 0)) != DS_OK)
-				return err;
+				return PLUS_FAIL;
 
 			StartCapture();
-			return DS_OK;
+			return PLUS_SUCCESS;
 		}
 
-		HRESULT DirectSoundCaptureBuffer::GetData(std::vector<signed short>& data, double duration)
+		PlusStatus DirectSoundCaptureBuffer::GetData(std::vector<signed short>& data, double duration)
 		{
 			if (pCaptureBuffer == NULL)
-				return DSERR_UNINITIALIZED;
+				return PLUS_FAIL;
 			if (duration <= 0)
-				return DSERR_INVALIDPARAM;
+				return PLUS_FAIL;
 
 			DWORD lock_start, lock_stop;
 			HRESULT err;
 
 			if ((err = pCaptureBuffer->GetCurrentPosition(&lock_start, &lock_stop)) != DS_OK)
-				return err;
+				return PLUS_FAIL;
 
 			DWORD lock_length = (DWORD)(lock_stop < lock_start ? ((sizeof(signed short)*BufferLength - lock_start) + lock_stop) : (lock_stop - lock_start));
 
@@ -128,37 +128,37 @@ namespace VibroLib
 
 			std::vector<signed short> temp_data;
 			if ((err = GetData(temp_data)) != DS_OK)
-				return err;
+				return PLUS_FAIL;
 			if (temp_data.empty())
-				return DSERR_UNINITIALIZED;
+				return PLUS_FAIL;
 			data.clear();
 			data.resize((size_t)(duration * SamplingFrequency), 0);
 			std::copy(temp_data.end() - (size_t)(duration * SamplingFrequency), temp_data.end(), data.begin());
-			return DS_OK;
+			return PLUS_SUCCESS;
 		}
 
-		HRESULT DirectSoundCaptureBuffer::StartCapture()
+		PlusStatus DirectSoundCaptureBuffer::StartCapture()
 		{
 			if (pCaptureBuffer != NULL)
 			{
 				HRESULT hr = pCaptureBuffer->Start(DSCBSTART_LOOPING);
 				if (hr == DS_OK)
 					Capturing =	true;	
-				return hr;
+				return PLUS_SUCCESS;
 			}
-			return DSERR_UNINITIALIZED;
+			return PLUS_FAIL;
 		}
 
-		HRESULT DirectSoundCaptureBuffer::StopCapture()
+		PlusStatus DirectSoundCaptureBuffer::StopCapture()
 		{
 			if (pCaptureBuffer != NULL)
 			{
 				HRESULT hr = pCaptureBuffer->Stop();
 				if (hr == DS_OK)
 					Capturing =	false;	
-				return hr;
+				return PLUS_SUCCESS;
 			}
-			return DSERR_UNINITIALIZED;
+			return PLUS_FAIL;
 		}
 	}
 }

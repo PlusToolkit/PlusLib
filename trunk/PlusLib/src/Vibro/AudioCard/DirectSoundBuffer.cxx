@@ -19,15 +19,22 @@ namespace VibroLib
 				pBuffer->Release();
 		}
 
-		HRESULT DirectSoundBuffer::Initialize(DirectSoundInstance* pDSHandle, Wave& signal, DWORD dwFlags, bool primary_buffer)
+		PlusStatus DirectSoundBuffer::Initialize(DirectSoundInstance* pDSHandle, Wave& signal, DWORD dwFlags, bool primary_buffer)
 		{
+			PlusStatus status;
 			if (primary_buffer)
-				return InitializePrimaryBuffer(pDSHandle, signal, dwFlags);
+			{
+				status = InitializePrimaryBuffer(pDSHandle, signal, dwFlags);
+				return status;
+			}
 			else
-				return InitializeSecondaryBuffer(pDSHandle, signal, dwFlags);
+			{
+				status = InitializeSecondaryBuffer(pDSHandle, signal, dwFlags);
+				return status;
+			}
 		}
 
-		HRESULT DirectSoundBuffer::InitializePrimaryBuffer(DirectSoundInstance* pDSHandle, Wave& signal, DWORD dwFlags)
+		PlusStatus DirectSoundBuffer::InitializePrimaryBuffer(DirectSoundInstance* pDSHandle, Wave& signal, DWORD dwFlags)
 		{
 			HRESULT hr;
 			pDSInstance = pDSHandle;
@@ -42,15 +49,15 @@ namespace VibroLib
 			LPDIRECTSOUNDBUFFER lpdsb = NULL;
 			if ((hr=(*pDSInstance)->CreateSoundBuffer(&dsBuffDesc, &lpdsb, NULL)) != DS_OK)
 			{
-				printf("Failed to create primary sound buffer: %d\n", hr);
-				return hr; // Wave format not supported?
+				LOG_ERROR("Failed to create primary sound buffer: " << hr);
+				return PLUS_FAIL; // Wave format not supported?
 			}
 
 
 			pBuffer = lpdsb;
 
 			if ((hr = pBuffer->SetFormat(&signal.DataFormat())) != DS_OK)
-				return hr;
+				return PLUS_FAIL;
 
 			// Check and validate buffer size:
 			DSBCAPS dsbcaps; 
@@ -67,8 +74,8 @@ namespace VibroLib
 
 			if ((hr=pBuffer->Lock(0, 0, (LPVOID*)&pBuffData, &data_length, NULL, 0, DSBLOCK_ENTIREBUFFER )) != DS_OK)
 			{
-				printf("Failed to lock sound buffer: %d\n", hr);
-				return hr;
+				LOG_ERROR("Failed to lock sound buffer: " << hr);
+				return PLUS_FAIL;
 			}
 
 			size_t offset = 0;
@@ -81,16 +88,16 @@ namespace VibroLib
 
 			if ((hr=pBuffer->Unlock(pBuffData, data_length, NULL, 0)) != DS_OK)
 			{
-				printf("Failed to unlock sound buffer: %d\n", hr);
-				return hr;
+				LOG_ERROR("Failed to unlock sound buffer: " << hr);
+				return PLUS_FAIL;
 			}
-			return DS_OK;
+			return PLUS_SUCCESS;
 		}
 
-		HRESULT DirectSoundBuffer::InitializeSecondaryBuffer(DirectSoundInstance* pDSHandle, Wave& signal, DWORD dwFlags)
+		PlusStatus DirectSoundBuffer::InitializeSecondaryBuffer(DirectSoundInstance* pDSHandle, Wave& signal, DWORD dwFlags)
 		{
 			if (dwFlags & DSBCAPS_PRIMARYBUFFER)
-				return DSERR_INVALIDPARAM;
+				return PLUS_FAIL;
 
 			HRESULT hr;
 			pDSInstance = pDSHandle;
@@ -102,13 +109,13 @@ namespace VibroLib
 			dsBuffDesc.dwBufferBytes = signal.DataLength();
 			dsBuffDesc.lpwfxFormat = &signal.DataFormat();
 
-			printf("Wave Size: %d", dsBuffDesc.lpwfxFormat->cbSize);
+			LOG_INFO("Wave Size: " << dsBuffDesc.lpwfxFormat->cbSize);
 			LPDIRECTSOUNDBUFFER lpdsb = NULL;
 			signal.DataFormat().cbSize = 0;
 			if ((hr=(*pDSInstance)->CreateSoundBuffer(&dsBuffDesc, &lpdsb, NULL)) != DS_OK)
 			{
-				printf("Failed to create sound buffer: %d\n", hr);
-				return hr; // Wave format not supported?
+				LOG_ERROR("Failed to create sound buffer: %d\n" << hr);
+				return PLUS_FAIL; // Wave format not supported?
 			}
 			
 			pBuffer = lpdsb;
@@ -118,18 +125,18 @@ namespace VibroLib
 
 			if ((hr=pBuffer->Lock(0, 0, (LPVOID*)&pBuffData, &data_length, NULL, 0, DSBLOCK_ENTIREBUFFER )) != DS_OK)
 			{
-				printf("Failed to lock sound buffer: %d\n", hr);
-				return hr;
+				LOG_ERROR("Failed to lock sound buffer: " << hr);
+				return PLUS_FAIL;
 			}
 
 			memcpy((void*)pBuffData, signal.WaveDataStart(), data_length);
 
 			if ((hr=pBuffer->Unlock(pBuffData, data_length, NULL, 0)) != DS_OK)
 			{
-				printf("Failed to unlock sound buffer: %d\n", hr);
-				return hr;
+				LOG_ERROR("Failed to unlock sound buffer: " << hr);
+				return PLUS_FAIL;
 			}
-			return DS_OK;
+			return PLUS_SUCCESS;
 		}
 	}
 }
