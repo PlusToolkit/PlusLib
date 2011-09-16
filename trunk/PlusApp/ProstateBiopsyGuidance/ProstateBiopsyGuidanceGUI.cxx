@@ -32,11 +32,80 @@ const QString LABEL_SYNC_VIDEO_OFFSET("Video offset:");
 #include "vtkDataCollector.h"
 #include "vtkVideoBuffer.h"
 #include "vtkXMLUtilities.h"
-
-
+/*************************************** vibro test**********************************/
+#include <vector>
+#include <math.h>
+#include "PlusConfigure.h"
+//#include "Wave.h"
+//#include "DirectSoundInstance.h"
+//#include "DirectSoundBuffer.h"
+//#include "DirectSoundCapture.h"
+//#include "DirectSoundCaptureBuffer.h"
+//#include "SignalGenerator.h"
+/*************************************** vibro test**********************************/
  #include <QtGui>
 
  #include "ProstateBiopsyGuidanceGUI.h"
+/*************************************** vibro test**********************************/
+
+/*void ProstateBiopsyGuidanceGUI::startShaker(void)
+{
+
+
+		std::vector<double> frequencies;
+		frequencies.push_back((double)"20");
+		frequencies.push_back((double)"92");
+		frequencies.push_back((double)"110");
+
+		std::vector<double> signal = VibroLib::GenerateMultiFrequency(frequencies, 8192.0, 20000);
+		VibroLib::AudioCard::Wave Wv;
+		//Wv.FromData(sig, signal.size(), bits_per_sample, samples_per_sec);
+		Wv.FromSignal(signal);
+		VibroLib::AudioCard::DirectSoundInstance dsi;
+		dsi.Initialize();
+
+		if ((hr=dsi.SetPriority(GetConsoleWindow(), DSSCL_PRIORITY)) != DS_OK)
+		{
+			printf("Unable to set cooperative level: HRESULT: %d\n", hr);
+			system("PAUSE");
+		}
+
+		VibroLib::AudioCard::DirectSoundBuffer dsb;
+		if ((hr = dsb.Initialize(&dsi, Wv, DSBCAPS_GLOBALFOCUS | DSBCAPS_STICKYFOCUS , false )) != DS_OK)
+		{
+			printf("Unable to initialize buffer... HRESULT: %d\n", hr);
+			system("PAUSE");
+		}
+		
+		if ((hr = dsb->Play(0,0,DSBPLAY_LOOPING)) != DS_OK)
+			std::cout << "Failed to play buffer... HRESULT: " << hr << "\n";
+		else
+		{
+			printf("\nRunning...\n");
+//			system("PAUSE");
+//			ifstream myfile;
+//			myfile.open("duration.txt");
+//			int duration;
+//			myfile >> duration;
+//			myfile.close();
+//			cout<<duration<<endl;
+			Sleep(6000);
+			dsb->Stop();
+		}
+
+
+}*/
+
+
+
+
+
+
+
+
+
+
+
 	double inputAcqTimeLength(3);
 void ProstateBiopsyGuidanceGUI::SaveRFData(void)
 {
@@ -106,6 +175,7 @@ void ProstateBiopsyGuidanceGUI::SaveRFData(void)
 	std::string outputVideoBufferSequenceFileName_V("VideoBufferMetafile_v"); 
 	while (_getch() != 'a') // wait until a is pressed to start acquisition
 	{;}
+//	startShaker();
 	dataCollector->Start();
 
 	const double acqStartTime_V = vtkTimerLog::GetUniversalTime(); 
@@ -134,6 +204,8 @@ void ProstateBiopsyGuidanceGUI::SaveRFData(void)
  {
 
 		ifstream inFile("inputAcqTimeLength.txt");
+		ofstream outFile("SAMAN_TEST.txt");
+		outFile.close();
 		double n;
 		inFile >> n;
 		inputAcqTimeLength = n;
@@ -167,6 +239,7 @@ void ProstateBiopsyGuidanceGUI::SaveRFData(void)
 		setLayout(mainLayout);
 
      setWindowTitle(tr("Save RF Data"));
+
 //     extension->hide();
  }
 

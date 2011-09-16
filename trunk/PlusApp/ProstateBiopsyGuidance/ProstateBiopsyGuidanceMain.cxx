@@ -7,8 +7,12 @@
 #include "ProstateBiopsyGuidance.h"
 
 
+
+
 int main( int argc, char** argv )
 {
+     QApplication app(argc, argv);
+     ProstateBiopsyGuidanceGUI dialog;
+     return dialog.exec();
 
-	return 0;
 }

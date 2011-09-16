@@ -44,6 +44,7 @@ class StatusIcon;
      QWidget *extension;
 public slots:
 		void SaveRFData(void);
+//		void startShaker(void);
 
  };
 
