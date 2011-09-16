@@ -900,7 +900,7 @@ void vtkDataCollector::SetLocalTimeOffset(double videoOffset, double trackerOffs
   if ( this->GetVideoSource() != NULL ) 
   {	
     this->GetVideoSource()->GetBuffer()->SetLocalTimeOffset( videoOffset ); 
-    this->GetVideoSource()->WriteConfiguration( vtkPlusConfig::GetInstance()->GetConfigurationData() ); 
+    this->GetVideoSource()->WriteConfiguration( vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData() ); 
   }
 
   if ( this->GetTracker() != NULL ) 
@@ -909,7 +909,7 @@ void vtkDataCollector::SetLocalTimeOffset(double videoOffset, double trackerOffs
     {
       this->GetTracker()->GetTool(i)->GetBuffer()->SetLocalTimeOffset(trackerOffset); 
     }
-    this->GetTracker()->WriteConfiguration( vtkPlusConfig::GetInstance()->GetConfigurationData() ); 
+    this->GetTracker()->WriteConfiguration( vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData() ); 
   }
 }
 

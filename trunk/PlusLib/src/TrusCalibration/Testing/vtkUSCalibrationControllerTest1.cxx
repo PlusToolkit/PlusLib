@@ -75,7 +75,7 @@ int main (int argc, char* argv[])
 		LOG_ERROR(errorMsg); 
 	}
 	programPath = vtksys::SystemTools::GetParentDirectory(programPath.c_str()); 
-  vtkPlusConfig::GetInstance()->SetConfigurationDirectory(inputConfigFileName.c_str());
+  vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationDirectory(inputConfigFileName.c_str());
 
 	// Initialize the probe calibration controller 
 	vtkSmartPointer<vtkStepperCalibrationController> stepperCal = vtkSmartPointer<vtkStepperCalibrationController>::New(); 
