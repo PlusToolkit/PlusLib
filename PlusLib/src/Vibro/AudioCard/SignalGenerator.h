@@ -1,11 +1,12 @@
 #pragma once
 
 #include <vector>
-#include <math.h>
+#include <math.h>	
+#include <vnl/vnl_math.h>
 
 namespace VibroLib
 {
-	const static double pi = 3.14159265;
+	const static double pi = vnl_math::pi; //3.14159265
 	VTK_EXPORT std::vector<int> GenerateSinusoid(double signal_frequency, double sampling_frequency, int amplitude, int offset, int nsamples);
 	VTK_EXPORT std::vector<double> GenerateSinusoid(double signal_frequency, double sampling_frequency, int nsamples);
 	VTK_EXPORT std::vector<int> GenerateSinusoidRepeatable(double signal_frequency, double sampling_frequency, int amplitude, int offset);

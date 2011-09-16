@@ -6,8 +6,6 @@
 
 #include <vector>
 
-#include "PlusConfigure.h"
-
 namespace VibroLib
 {
 	namespace AudioCard

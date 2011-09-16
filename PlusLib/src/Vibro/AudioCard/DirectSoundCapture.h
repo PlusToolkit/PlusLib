@@ -15,7 +15,7 @@ namespace VibroLib
 		public:
 			DirectSoundCapture(void);
 			~DirectSoundCapture(void);
-			bool Initialize();
+			PlusStatus Initialize();
 			LPDIRECTSOUNDCAPTURE operator->() {return pDirectSoundCapture;}
 		private:
 			LPDIRECTSOUNDCAPTURE pDirectSoundCapture;

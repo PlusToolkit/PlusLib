@@ -15,11 +15,11 @@ namespace VibroLib
 		{
 		}
 
-		bool DirectSoundCapture::Initialize()
+		PlusStatus DirectSoundCapture::Initialize()
 		{
 			if (::DirectSoundCaptureCreate(NULL, &pDirectSoundCapture, NULL) != DS_OK)
-				return false;
-			return true;
+				return PLUS_FAIL;
+			return PLUS_SUCCESS;
 		}
 	}
 }
