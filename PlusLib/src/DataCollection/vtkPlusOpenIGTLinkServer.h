@@ -15,6 +15,7 @@
 #include "igtlServerSocket.h"
 
 #include "vtkDataCollector.h"
+#include "vtkIGTLMessageQueue.h"
 
 
 
@@ -68,7 +69,9 @@ private:
   igtl::ClientSocket::Pointer ClientSocket;
   igtl::ServerSocket::Pointer ServerSocket;
   
-  vtkDataCollector*  DataCollector;
+  vtkDataCollector*    DataCollector;
+  vtkIGTLMessageQueue* MessageQueue;
+  
   vtkMultiThreader*  Threader;
   vtkMutexLock*      Mutex;
   
