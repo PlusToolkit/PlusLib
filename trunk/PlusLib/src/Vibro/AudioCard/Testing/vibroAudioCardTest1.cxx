@@ -25,7 +25,7 @@ PlusStatus RunAudio()
 		
 		HRESULT hr;
 
-		std::vector<double> frequencies;															// Creat a vector for requencies which will be generated
+		std::vector<double> frequencies;															// Creat a vector for frequencies which will be generated
 		
 		for (int n=70 ; n<=100 ; n+=30) frequencies.push_back((double)n);							// put frequency value in frequencies and this can be changed to generate frequency needed
 		
