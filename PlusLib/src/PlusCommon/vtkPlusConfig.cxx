@@ -35,27 +35,261 @@ vtkPlusConfig* vtkPlusConfig::GetInstance() {
 
 vtkPlusConfig::vtkPlusConfig()
 {
-	this->ConfigurationDirectory = NULL;
-	this->ConfigurationFileName = NULL;
-  this->ConfigurationData = NULL;
+	this->DeviceSetConfigurationDirectory = NULL;
+	this->DeviceSetConfigurationFileName = NULL;
+  this->DeviceSetConfigurationData = NULL;
   this->ApplicationConfigurationData = NULL;
   this->ApplicationConfigurationFileName = NULL;
+  this->EditorApplicationExecutable = NULL;
+  this->OutputDirectory = NULL;
+  this->ProgramDirectory = NULL;
 
-	this->SetConfigurationDirectory("");
-	this->SetConfigurationFileName("");
-
-  this->SetApplicationConfigurationFileName("Config.xml");
+	this->SetDeviceSetConfigurationDirectory("");
+	this->SetDeviceSetConfigurationFileName("");
+  this->SetApplicationConfigurationFileName("PlusConfig.xml");
+  this->SetEditorApplicationExecutable("notepad.exe");
+  this->SetOutputDirectory("");
 }
 
 //-----------------------------------------------------------------------------
 
 vtkPlusConfig::~vtkPlusConfig()
 {
-  this->SetConfigurationDirectory(NULL);
-	this->SetConfigurationFileName(NULL);
-  this->SetConfigurationData(NULL);
+  this->SetDeviceSetConfigurationDirectory(NULL);
+	this->SetDeviceSetConfigurationFileName(NULL);
+  this->SetDeviceSetConfigurationData(NULL);
   this->SetApplicationConfigurationData(NULL);
   this->SetApplicationConfigurationFileName(NULL);
+  this->SetEditorApplicationExecutable(NULL);
+}
+
+//-----------------------------------------------------------------------------
+
+PlusStatus vtkPlusConfig::SetProgramPath(const char* aProgramDirectory)
+{
+	LOG_TRACE("vtkPlusConfig::SetProgramPath(" << aProgramDirectory << ")");
+
+  this->SetProgramDirectory(aProgramDirectory);
+
+  return ReadApplicationConfiguration();
+}
+
+//------------------------------------------------------------------------------
+
+PlusStatus vtkPlusConfig::WriteApplicationConfiguration()
+{
+	LOG_TRACE("vtkPlusConfig::WriteApplicationConfiguration");
+
+  vtkSmartPointer<vtkXMLDataElement> applicationConfigurationRoot = this->ApplicationConfigurationData;
+	if (applicationConfigurationRoot == NULL) {
+    applicationConfigurationRoot = vtkSmartPointer<vtkXMLDataElement>::New();
+    applicationConfigurationRoot->SetName("PlusConfig");
+	}
+
+  // Verify root element name
+  if (STRCASECMP(applicationConfigurationRoot->GetName(), "PlusConfig") != NULL) {
+    LOG_ERROR("Invalid application configuration file (root XML element of the file '" << this->ApplicationConfigurationFileName << "' should be 'PlusConfig')");
+    return PLUS_FAIL;
+  }
+
+  // Save date
+	applicationConfigurationRoot->SetAttribute("Date", vtksys::SystemTools::GetCurrentDateTime("%Y.%m.%d %X").c_str());
+
+  // Save log level
+	applicationConfigurationRoot->SetIntAttribute("LogLevel", vtkPlusLogger::Instance()->GetLogLevel());
+
+  // Save device set directory
+  applicationConfigurationRoot->SetAttribute("DeviceSetConfigurationDirectory", this->DeviceSetConfigurationDirectory);
+
+  // Save last device set config file
+  applicationConfigurationRoot->SetAttribute("LastDeviceSetConfigurationFileName", this->DeviceSetConfigurationFileName);
+
+  // Save editor application
+  applicationConfigurationRoot->SetAttribute("EditorApplicationExecutable", this->EditorApplicationExecutable);
+
+  // Save output path
+  applicationConfigurationRoot->SetAttribute("OutputDirectory", this->OutputDirectory);
+
+  // Save configuration
+  this->SetApplicationConfigurationData(applicationConfigurationRoot);
+
+  return PLUS_SUCCESS;
+}
+
+//-----------------------------------------------------------------------------
+
+PlusStatus vtkPlusConfig::ReadApplicationConfiguration()
+{
+	LOG_TRACE("vtkPlusConfig::ReadApplicationConfiguration");
+
+  if (this->ProgramDirectory == NULL) {
+    LOG_ERROR("Unable to read configuration - program directory has to be set first!");
+    return PLUS_FAIL;
+  }
+
+  bool saveNeeded = false;
+
+  // Read configuration
+  vtkSmartPointer<vtkXMLDataElement> applicationConfigurationRoot = NULL;
+  if (vtksys::SystemTools::FileExists(this->ApplicationConfigurationFileName, true)) {
+    applicationConfigurationRoot = vtkXMLUtilities::ReadElementFromFile(this->ApplicationConfigurationFileName);
+  }
+	if (applicationConfigurationRoot == NULL) {
+    LOG_WARNING("Unable to read application configuration from file '" << this->ApplicationConfigurationFileName << "' - default values will be used and the file created"); 
+    applicationConfigurationRoot = vtkSmartPointer<vtkXMLDataElement>::New();
+    applicationConfigurationRoot->SetName("PlusConfig");
+    saveNeeded = true;
+	}
+
+  this->SetApplicationConfigurationData(applicationConfigurationRoot); 
+
+  // Verify root element name
+  if (STRCASECMP(applicationConfigurationRoot->GetName(), "PlusConfig") != NULL) {
+    LOG_ERROR("Invalid application configuration file (root XML element of the file '" << this->ApplicationConfigurationFileName << "' should be 'PlusConfig' instead of '" << applicationConfigurationRoot->GetName() << "')");
+    return PLUS_FAIL;
+  }
+
+  // Read log level
+	int logLevel = 0;
+	if (applicationConfigurationRoot->GetScalarAttribute("LogLevel", logLevel) ) {
+    vtkPlusLogger::Instance()->SetLogLevel(logLevel);
+    vtkPlusLogger::Instance()->SetDisplayLogLevel(logLevel); 
+
+	} else {
+		LOG_WARNING("Cannot find LogLevel attribute - default 'Info' log level will be used");
+    vtkPlusLogger::Instance()->SetLogLevel(vtkPlusLogger::LOG_LEVEL_INFO);
+    vtkPlusLogger::Instance()->SetDisplayLogLevel(vtkPlusLogger::LOG_LEVEL_INFO); 
+    saveNeeded = true;
+  }
+
+  // Read last device set config file
+  const char* lastDeviceSetConfigFile = applicationConfigurationRoot->GetAttribute("LastDeviceSetConfigurationFileName");
+  if ((lastDeviceSetConfigFile != NULL) && (STRCASECMP(lastDeviceSetConfigFile, "") != 0)) {
+    this->SetDeviceSetConfigurationFileName(lastDeviceSetConfigFile);
+
+  } else {
+    LOG_WARNING("Unable to read last used device set config file - you have to connect to one first");
+  }
+
+  // Read device set configuration directory
+  const char* deviceSetDirectory = applicationConfigurationRoot->GetAttribute("DeviceSetConfigurationDirectory");
+  if ((deviceSetDirectory != NULL) && (STRCASECMP(deviceSetDirectory, "") != 0)) {
+	  this->SetDeviceSetConfigurationDirectory(deviceSetDirectory);
+
+  } else {
+    LOG_WARNING("Unable to read device set configuration directory - default '../Config' will be used");
+    std::string parentDirectory = vtksys::SystemTools::GetParentDirectory(this->ProgramDirectory);
+    std::string defaultDeviceSetConfigDirectory = vtksys::SystemTools::CollapseFullPath("./Config", parentDirectory.c_str()); 
+    this->SetDeviceSetConfigurationDirectory(defaultDeviceSetConfigDirectory.c_str());
+    saveNeeded = true;
+  }
+
+	// Make device set configuraiton directory
+  if (! vtksys::SystemTools::MakeDirectory(this->DeviceSetConfigurationDirectory)) {
+    LOG_ERROR("Unable to create device set configuration directory '" << this->DeviceSetConfigurationDirectory << "'");
+    return PLUS_FAIL;
+  }
+
+  // Read editor application
+  const char* editorApplicationExecutable = applicationConfigurationRoot->GetAttribute("EditorApplicationExecutable");
+  if ((editorApplicationExecutable != NULL) && (STRCASECMP(editorApplicationExecutable, "") != 0)) {
+    this->SetEditorApplicationExecutable(editorApplicationExecutable);
+
+  } else {
+    LOG_WARNING("Unable to read editor application executable - default 'notepad.exe' will be used");
+    this->SetEditorApplicationExecutable("notepad.exe");
+    saveNeeded = true;
+  }
+
+  // Read output directory
+  const char* outputDirectory = applicationConfigurationRoot->GetAttribute("OutputDirectory");
+  if ((outputDirectory != NULL) && (STRCASECMP(outputDirectory, "") != 0)) {
+	  this->SetOutputDirectory(outputDirectory);
+
+  } else {
+    LOG_WARNING("Unable to read output directory - default './Output' will be used");
+  	std::string defaultOutputDirectory = vtksys::SystemTools::CollapseFullPath("./Output", this->ProgramDirectory); 
+    this->SetOutputDirectory(defaultOutputDirectory.c_str());
+    saveNeeded = true;
+  }
+
+	// Make output directory
+  if (! vtksys::SystemTools::MakeDirectory(this->OutputDirectory)) {
+    LOG_ERROR("Unable to create output directory '" << this->OutputDirectory << "'");
+    return PLUS_FAIL;
+  }
+
+  if (saveNeeded) {
+    return SaveApplicationConfigurationToFile();
+  }
+
+  return PLUS_SUCCESS;
+}
+
+//-----------------------------------------------------------------------------
+
+std::string vtkPlusConfig::GetNewDeviceSetConfigurationFileName()
+{
+  LOG_TRACE("vtkPlusConfig::GetNewConfigurationFileName");
+
+  std::string resultFileName = "";
+  if ((this->DeviceSetConfigurationFileName == NULL) || (STRCASECMP(this->DeviceSetConfigurationFileName, "") == 0)) {
+    LOG_WARNING("New configuration file name cannot be assembled due to absence of input configuration file name");
+
+    resultFileName = "PlusConfiguration";
+  } else {
+    resultFileName = this->DeviceSetConfigurationFileName;
+    resultFileName = resultFileName.substr(0, resultFileName.find(".xml"));
+    resultFileName = resultFileName.substr(resultFileName.find_last_of("/\\") + 1);
+  }
+
+  // Construct new file name with date and time
+  resultFileName.append("_");
+  resultFileName.append(vtksys::SystemTools::GetCurrentDateTime("%Y%m%d_%H%M%S"));
+  resultFileName.append(".xml");
+
+  return resultFileName;
+}
+
+//------------------------------------------------------------------------------
+
+PlusStatus vtkPlusConfig::SaveApplicationConfigurationToFile()
+{
+  LOG_TRACE("vtkPlusConfig::SaveApplicationConfigurationToFile");
+
+  if (WriteApplicationConfiguration() != PLUS_SUCCESS) {
+    LOG_ERROR("Failed to save application configuration to XML data!"); 
+    return PLUS_FAIL; 
+  }
+
+  this->ApplicationConfigurationData->PrintXML( this->ApplicationConfigurationFileName );
+
+  LOG_INFO("Application configuration file '" << this->ApplicationConfigurationFileName << "' saved");
+
+  return PLUS_SUCCESS;
+}
+
+//-----------------------------------------------------------------------------
+
+vtkXMLDataElement* vtkPlusConfig::LookupElementWithNameContainingChildWithNameAndAttribute(vtkXMLDataElement* aConfig, const char* aElementName, const char* aChildName, const char* aChildAttributeName, const char* aChildAttributeValue)
+{
+  LOG_TRACE("vtkPlusConfig::LookupElementWithNameContainingChildWithNameAndAttribute(" << aElementName << ", " << aChildName << ", " << (aChildAttributeName==NULL ? "" : aChildAttributeName) << ", " << (aChildAttributeValue==NULL ? "" : aChildAttributeValue) << ")");
+
+  if (aConfig == NULL) {
+    LOG_ERROR("No input XML data element is specified!");
+    return NULL;
+  }
+
+	vtkSmartPointer<vtkXMLDataElement> firstElement = aConfig->LookupElementWithName(aElementName);
+	if (firstElement == NULL) {
+		return NULL;
+	} else {
+    if (aChildAttributeName && aChildAttributeValue) {
+		  return firstElement->FindNestedElementWithNameAndAttribute(aChildName, aChildAttributeName, aChildAttributeValue);
+    } else {
+      return firstElement->FindNestedElementWithName(aChildName);
+    }
+	}
 }
 
 //-----------------------------------------------------------------------------
@@ -64,7 +298,7 @@ std::string vtkPlusConfig::GetFirstFileFoundInConfigurationDirectory(const char*
 {
 	LOG_TRACE("vtkPlusConfig::GetFirstFileFoundInConfigurationDirectory(" << aFileName << ")"); 
 
-	return GetFirstFileFoundInParentOfDirectory(aFileName, vtkPlusConfig::GetInstance()->GetConfigurationDirectory());
+	return GetFirstFileFoundInParentOfDirectory(aFileName, vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationDirectory());
 };
 
 //-----------------------------------------------------------------------------
@@ -132,94 +366,3 @@ std::string vtkPlusConfig::FindFileRecursivelyInDirectory(const char* aFileName,
 
 	return "";
 };
-
-//-----------------------------------------------------------------------------
-
-std::string vtkPlusConfig::GetNewConfigurationFileName()
-{
-  LOG_TRACE("vtkPlusConfig::GetNewConfigurationFileName");
-
-  std::string resultFileName = "";
-  if ((this->ConfigurationFileName == NULL) || (STRCASECMP(this->ConfigurationFileName, "") == 0)) {
-    LOG_WARNING("New configuration file name cannot be assembled due to absence of input configuration file name");
-
-    resultFileName = "PlusConfiguration";
-  } else {
-    resultFileName = this->ConfigurationFileName;
-    resultFileName = resultFileName.substr(0, resultFileName.find(".xml"));
-    resultFileName = resultFileName.substr(resultFileName.find_last_of("/\\") + 1);
-  }
-
-  // Construct new file name with date and time
-  resultFileName.append("_");
-  resultFileName.append(vtksys::SystemTools::GetCurrentDateTime("%Y%m%d_%H%M%S"));
-  resultFileName.append(".xml");
-
-  return resultFileName;
-}
-
-//-----------------------------------------------------------------------------
-
-vtkXMLDataElement* vtkPlusConfig::LookupElementWithNameContainingChildWithNameAndAttribute(vtkXMLDataElement* aConfig, const char* aElementName, const char* aChildName, const char* aChildAttributeName, const char* aChildAttributeValue)
-{
-  LOG_TRACE("vtkPlusConfig::LookupElementWithNameContainingChildWithNameAndAttribute(" << aElementName << ", " << aChildName << ", " << (aChildAttributeName==NULL ? "" : aChildAttributeName) << ", " << (aChildAttributeValue==NULL ? "" : aChildAttributeValue) << ")");
-
-  if (aConfig == NULL) {
-    LOG_ERROR("No input XML data element is specified!");
-    return NULL;
-  }
-
-	vtkSmartPointer<vtkXMLDataElement> firstElement = aConfig->LookupElementWithName(aElementName);
-	if (firstElement == NULL) {
-		return NULL;
-	} else {
-    if (aChildAttributeName && aChildAttributeValue) {
-		  return firstElement->FindNestedElementWithNameAndAttribute(aChildName, aChildAttributeName, aChildAttributeValue);
-    } else {
-      return firstElement->FindNestedElementWithName(aChildName);
-    }
-	}
-}
-
-//------------------------------------------------------------------------------
-
-PlusStatus vtkPlusConfig::SaveConfigurationToFile(const char* aFile)
-{
-  LOG_TRACE("vtkPlusConfig::SaveConfigurationToFile(" << aFile << ")");
-
-  if ( aFile == NULL ) {
-    LOG_ERROR("Failed to save configuration to file - file name is NULL!"); 
-    return PLUS_FAIL; 
-  }
-
-  if ( this->ConfigurationData == NULL )
-  {
-    LOG_ERROR("Failed to save configuration data to file - configuration data is NULL!"); 
-    return PLUS_FAIL; 
-  }
-
-  this->ConfigurationData->PrintXML( aFile );
-
-  LOG_INFO("Configuration file '" << aFile << "' saved");
-
-  return PLUS_SUCCESS;
-}
-
-//------------------------------------------------------------------------------
-
-PlusStatus vtkPlusConfig::SaveApplicationConfigurationToFile()
-{
-  LOG_TRACE("vtkPlusConfig::SaveApplicationConfigurationToFile");
-
-  if ( this->ApplicationConfigurationData == NULL )
-  {
-    LOG_ERROR("Failed to save application configuration data to file - application configuration data is NULL!"); 
-    return PLUS_FAIL; 
-  }
-
-  this->ApplicationConfigurationData->PrintXML( this->ApplicationConfigurationFileName );
-
-  LOG_INFO("Application configuration file '" << this->ApplicationConfigurationFileName << "' saved");
-
-  return PLUS_SUCCESS;
-}

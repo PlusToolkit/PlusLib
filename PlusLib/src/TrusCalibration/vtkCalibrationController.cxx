@@ -599,7 +599,7 @@ PlusStatus vtkCalibrationController::ReadPhantomDefinition(vtkXMLDataElement* co
 			if (file) {
 				if ((strstr(file, ".stl") != NULL) || ((strstr(file, ".STL") != NULL))) { // If filename contains ".stl" or ".STL" then it is valid, else we do not search for it (and do not return with warning either, because some time we just do not fill that field because we do not have the file)
 					std::string searchResult;
-					if (STRCASECMP(vtkPlusConfig::GetInstance()->GetConfigurationDirectory(), "") == 0) {
+					if (STRCASECMP(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationDirectory(), "") == 0) {
 						std::string configurationDirectory = vtksys::SystemTools::GetFilenamePath(this->ConfigurationFileName);
 						searchResult = vtkPlusConfig::GetFirstFileFoundInParentOfDirectory(file, configurationDirectory.c_str());
 					} else {

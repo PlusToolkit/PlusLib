@@ -32,11 +32,29 @@ public:
 	static vtkPlusConfig* GetInstance();
 
 	/*!
-	* \brief Destructor
+	* \brief Saves application configuration data to file with the name that is stored in ApplicationConfigurationFileName
+	* \return Success flag
 	*/
-	virtual	~vtkPlusConfig();
+  PlusStatus SaveApplicationConfigurationToFile();
 
 	/*!
+	 * \brief Assembles a filename for the new device set configuration that is the same as the input file name, only with the current date and time in the end (for saving to a new file)
+	 * \return New device set configuration file nname
+	 */
+  std::string GetNewDeviceSetConfigurationFileName();
+
+	/*!
+	 * \brief Searches a data element in an XML tree: the child of aElementName that has the name aChildName and has an attribute aChildAttributeName with the value aChildAttributeValue
+   * \param aConfig Root XML element in that the search is conducted
+   * \param aElementName Name of the parent of the searched element
+   * \param aChildName Name of the searched element
+   * \param aChildAttributeName Name of the attribute based on which we want the element to be found
+   * \param aChildAttributeValue Value of the attribute based on which we want the element to be found
+	 * \return Found XML data element
+	 */
+	static vtkXMLDataElement* LookupElementWithNameContainingChildWithNameAndAttribute(vtkXMLDataElement* aConfig, const char* aElementName, const char* aChildName, const char* aChildAttributeName, const char* aChildAttributeValue);
+
+  /*!
 	* \brief Search recursively for a file in the configuration directory
 	* \param aFileName Name of the file to be searched
 	* \return The first file that is found (with full path)
@@ -60,58 +78,53 @@ public:
 	static std::string GetFirstFileFoundInDirectory(const char* aFileName, const char* aDirectory);
 
 	/*!
-	 * \brief Assembles a filename that is the same as the input file name, only with the current date and time in the end (for saving to a new file)
-	 * \return New configuration file nname
-	 */
-  std::string GetNewConfigurationFileName();
-
-	/*!
-	 * \brief Searches a data element in an XML tree: the child of aElementName that has the name aChildName and has an attribute aChildAttributeName with the value aChildAttributeValue
-   * \param aConfig Root XML element in that the search is conducted
-   * \param aElementName Name of the parent of the searched element
-   * \param aChildName Name of the searched element
-   * \param aChildAttributeName Name of the attribute based on which we want the element to be found
-   * \param aChildAttributeValue Value of the attribute based on which we want the element to be found
-	 * \return Found XML data element
-	 */
-	static vtkXMLDataElement* LookupElementWithNameContainingChildWithNameAndAttribute(vtkXMLDataElement* aConfig, const char* aElementName, const char* aChildName, const char* aChildAttributeName, const char* aChildAttributeValue);
-
-	/*!
-	* \brief Saves current configuration data to specified file
-	* \param aFile Name of the file to be saved
+	* \brief Set program path and read application configuration
 	* \return Success flag
 	*/
-  PlusStatus SaveConfigurationToFile(const char* aFile);
-
-	/*!
-	* \brief Saves application configuration data to file whose name is stored in ApplicationConfigurationFileName
-	* \return Success flag
-	*/
-  PlusStatus SaveApplicationConfigurationToFile();
+  PlusStatus SetProgramPath(const char* aProgramDirectory);
 
 public:
-	//! Get/Set macro for configuration directory
-	vtkGetStringMacro(ConfigurationDirectory);
-	vtkSetStringMacro(ConfigurationDirectory);
+	//! Get/Set macros
+	vtkGetStringMacro(DeviceSetConfigurationDirectory);
+	vtkSetStringMacro(DeviceSetConfigurationDirectory);
 
-	//! Get/Set macro for configuration file name
-	vtkGetStringMacro(ConfigurationFileName);
-	vtkSetStringMacro(ConfigurationFileName);
+	vtkGetStringMacro(DeviceSetConfigurationFileName);
+	vtkSetStringMacro(DeviceSetConfigurationFileName);
 
-	//! Get/Set macro for configuration data
-  vtkGetObjectMacro(ConfigurationData, vtkXMLDataElement); 
-  vtkSetObjectMacro(ConfigurationData, vtkXMLDataElement); 
+  vtkGetObjectMacro(DeviceSetConfigurationData, vtkXMLDataElement); 
+  vtkSetObjectMacro(DeviceSetConfigurationData, vtkXMLDataElement); 
 
-	//! Get/Set macro for application configuration file name
 	vtkGetStringMacro(ApplicationConfigurationFileName);
 	vtkSetStringMacro(ApplicationConfigurationFileName);
 
-	//! Get/Set macro for application configuration data
+	vtkGetStringMacro(EditorApplicationExecutable);
+	vtkSetStringMacro(EditorApplicationExecutable);
+
+	vtkGetStringMacro(OutputDirectory);
+	vtkSetStringMacro(OutputDirectory);
+
+	vtkGetStringMacro(ProgramDirectory);
+
+protected:
+	vtkSetStringMacro(ProgramDirectory);
+
   vtkGetObjectMacro(ApplicationConfigurationData, vtkXMLDataElement); 
   vtkSetObjectMacro(ApplicationConfigurationData, vtkXMLDataElement); 
 
 protected:
+  /*!
+	* \brief Save application configuration file
+  * \return Success flag
+	*/
+  PlusStatus WriteApplicationConfiguration();
+
 	/*!
+	* \brief Read application configuration from file
+  * \return Success flag
+	*/
+  PlusStatus ReadApplicationConfiguration();
+
+  /*!
 	* \brief Search recursively for a file in a specified directory (core, protected function)
 	* \param aFileName Name of the file to be searched
 	* \param aDirectory Directory in which search is performed
@@ -125,21 +138,35 @@ protected:
 	*/
 	vtkPlusConfig();
 
+	/*!
+	* \brief Destructor
+	*/
+	virtual	~vtkPlusConfig();
+
 protected:
-	//! Configuration directory path
-	char*               ConfigurationDirectory;
+	//! Device set configuration directory path
+	char*               DeviceSetConfigurationDirectory;
 
-  //! Used configuration file name (for assembling the new file name with the date)
-	char*               ConfigurationFileName;
+  //! Used device set configuration file name (for assembling the new file name with the date)
+	char*               DeviceSetConfigurationFileName;
 
-  //! Session configuration data
-  vtkXMLDataElement*  ConfigurationData;
+  //! Session device set configuration data
+  vtkXMLDataElement*  DeviceSetConfigurationData;
 
   //! Application configuration file name (./Config.xml by default)
 	char*               ApplicationConfigurationFileName;
 
   //! Application configuration data
   vtkXMLDataElement*  ApplicationConfigurationData;
+
+  //! Path and filename of the editor application executable to be used
+  char*               EditorApplicationExecutable;
+
+  //! Output directory path
+  char*               OutputDirectory;
+
+  //! Program path
+  char*               ProgramDirectory;
 
 private:
 	//! Instance of the singleton

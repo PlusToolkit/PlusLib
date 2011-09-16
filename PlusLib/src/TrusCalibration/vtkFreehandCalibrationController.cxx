@@ -138,7 +138,7 @@ PlusStatus vtkFreehandCalibrationController::InitializeCalibration(vtkTransform*
 
 	// Initialize the segmentation component
   if (this->GetPatternRecognition() == NULL) {
-    this->PatternRecognition.ReadConfiguration(vtkPlusConfig::GetInstance()->GetConfigurationData());
+    this->PatternRecognition.ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData());
 	}	
 
 	// Initialize the calibration component
@@ -727,7 +727,7 @@ PlusStatus vtkFreehandCalibrationController::ComputeCalibrationResults()
 		}
 		*/
 
-    if (WriteConfiguration(vtkPlusConfig::GetInstance()->GetConfigurationData()) != PLUS_SUCCESS) {
+    if (WriteConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS) {
 		  LOG_ERROR("Freehand calibration result could not be saved into session configuration data!");
 		  return PLUS_FAIL;
     }

@@ -79,7 +79,7 @@ int main (int argc, char* argv[])
     LOG_ERROR("Unable to read configuration from file " << inputConfigFileName.c_str()); 
 		exit(EXIT_FAILURE);
   }
-  vtkPlusConfig::GetInstance()->SetConfigurationData(configRootElement);
+  vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationData(configRootElement);
 
   // Load phantom definition and registration
 	vtkPhantomRegistrationAlgo* phantomRegistration = vtkPhantomRegistrationAlgo::New();
