@@ -274,7 +274,7 @@ void StylusCalibrationToolbox::Stop()
 		points->Modified();
 
     // Write result in configuration
-    if (m_PivotCalibration->WriteConfiguration(vtkPlusConfig::GetInstance()->GetConfigurationData(), TRACKER_TOOL_STYLUS) != PLUS_SUCCESS) {
+    if (m_PivotCalibration->WriteConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData(), TRACKER_TOOL_STYLUS) != PLUS_SUCCESS) {
       LOG_ERROR("Unable to save stylus calibration result in configuration XML tree!");
       SetState(ToolboxState_Error);
       return;
@@ -299,7 +299,7 @@ void StylusCalibrationToolbox::Save()
 {
   LOG_TRACE("StylusCalibrationToolbox::Save");
 
-  ConfigFileSaverDialog* configSaverDialog = new ConfigFileSaverDialog(this, vtkPlusConfig::GetInstance()->GetConfigurationData());
+  ConfigFileSaverDialog* configSaverDialog = new ConfigFileSaverDialog(this);
   configSaverDialog->exec();
 
   delete configSaverDialog;

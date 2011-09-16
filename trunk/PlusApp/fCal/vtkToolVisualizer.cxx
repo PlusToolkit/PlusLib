@@ -36,7 +36,6 @@ vtkToolVisualizer::vtkToolVisualizer()
 {
 	this->DataCollector = NULL;
 	this->AcquisitionFrameRate = 20;
-	this->OutputFolder = NULL;
 	this->InitializedOff();
 	this->ImageModeOff();
 
@@ -105,12 +104,6 @@ PlusStatus vtkToolVisualizer::Initialize()
   canvasRenderer->SetBackground2(0.4, 0.4, 0.4);
   canvasRenderer->SetGradientBackground(true);
 	this->SetCanvasRenderer(canvasRenderer);
-
-	// Create directory for the output
-	vtkSmartPointer<vtkDirectory> dir = vtkSmartPointer<vtkDirectory>::New(); 
-	if ((this->OutputFolder != NULL) && (dir->Open(this->OutputFolder) == 0)) {	
-		dir->MakeDirectory(this->OutputFolder);
-	}
 
 	// Initialize visualization
 	if (InitializeVisualization() != PLUS_SUCCESS) {
@@ -673,7 +666,7 @@ PlusStatus vtkToolVisualizer::InitializePhantomVisualization()
   this->DisplayableToolVector[TRACKER_TOOL_REFERENCE] = displayableTool;
 
   // Get phantom definition xml data element
-	vtkSmartPointer<vtkXMLDataElement> phantomDefinition = vtkPlusConfig::GetInstance()->GetConfigurationData()->FindNestedElementWithName("PhantomDefinition");
+	vtkSmartPointer<vtkXMLDataElement> phantomDefinition = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()->FindNestedElementWithName("PhantomDefinition");
 	if (phantomDefinition == NULL) {
 		LOG_WARNING("No phantom definition is found in the XML tree - no phantom will be displayed!");
 		return PLUS_FAIL;
@@ -827,7 +820,7 @@ PlusStatus vtkToolVisualizer::StartDataCollection()
 	vtkSmartPointer<vtkDataCollector> dataCollector = vtkSmartPointer<vtkDataCollector>::New(); 
 	this->SetDataCollector(dataCollector);
 
-  if (this->DataCollector->ReadConfiguration(vtkPlusConfig::GetInstance()->GetConfigurationData()) != PLUS_SUCCESS) {
+  if (this->DataCollector->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS) {
 		return PLUS_FAIL;
 	}
 
@@ -857,7 +850,7 @@ PlusStatus vtkToolVisualizer::LoadPhantomModel(vtkSTLReader* aSTLReader)
 {
 	LOG_TRACE("vtkToolVisualizer::LoadPhantomModel");
 
-	vtkSmartPointer<vtkXMLDataElement> phantomDefinition = vtkPlusConfig::GetInstance()->GetConfigurationData()->FindNestedElementWithName("PhantomDefinition");
+	vtkSmartPointer<vtkXMLDataElement> phantomDefinition = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()->FindNestedElementWithName("PhantomDefinition");
 	if (phantomDefinition == NULL) {
 		LOG_WARNING("No phantom definition is found in the XML tree - no phantom will be displayed!");
 		return PLUS_FAIL;

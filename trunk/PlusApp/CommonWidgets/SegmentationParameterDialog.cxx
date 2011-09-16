@@ -945,7 +945,7 @@ SegmentationParameterDialog::SegmentationParameterDialog(QWidget* aParent, vtkDa
 
   // Initialize calibration controller (does the segmentation)
  	m_CalibrationController = vtkCalibrationController::New();
-  m_CalibrationController->ReadConfiguration(vtkPlusConfig::GetInstance()->GetConfigurationData());
+  m_CalibrationController->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData());
 
   // Fill form with configuration data
   if (ReadConfiguration() != PLUS_SUCCESS) {
@@ -1111,7 +1111,7 @@ PlusStatus SegmentationParameterDialog::ReadConfiguration()
   LOG_TRACE("SegmentationParameterDialog::ReadConfiguration");
 
   //Find segmentation parameters element
-  vtkSmartPointer<vtkXMLDataElement> usCalibration = vtkPlusConfig::GetInstance()->GetConfigurationData()->FindNestedElementWithName("USCalibration");
+  vtkSmartPointer<vtkXMLDataElement> usCalibration = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()->FindNestedElementWithName("USCalibration");
 	if (usCalibration == NULL) {
 		LOG_ERROR("No USCalibration element is found in the XML tree!");
 		return PLUS_FAIL;
@@ -1268,7 +1268,7 @@ PlusStatus SegmentationParameterDialog::WriteConfiguration()
   LOG_TRACE("SegmentationParameterDialog::WriteConfiguration");
 
   //Find segmentation parameters element
-  vtkSmartPointer<vtkXMLDataElement> usCalibration = vtkPlusConfig::GetInstance()->GetConfigurationData()->FindNestedElementWithName("USCalibration");
+  vtkSmartPointer<vtkXMLDataElement> usCalibration = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()->FindNestedElementWithName("USCalibration");
 	if (usCalibration == NULL) {
 		LOG_ERROR("No USCalibration element is found in the XML tree!");
 		return PLUS_FAIL;

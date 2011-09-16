@@ -10,16 +10,15 @@
 
 //-----------------------------------------------------------------------------
 
-ConfigFileSaverDialog::ConfigFileSaverDialog(QWidget* aParent, vtkXMLDataElement* aConfigurationData)
+ConfigFileSaverDialog::ConfigFileSaverDialog(QWidget* aParent)
 	: QDialog(aParent)
-  , m_ConfigurationData(aConfigurationData)
 {
 	ui.setupUi(this);
 
 	connect( ui.pushButton_OpenDestinationDirectory, SIGNAL( clicked() ), this, SLOT( OpenDestinationDirectoryClicked() ) );
 	connect( ui.pushButton_Save, SIGNAL( clicked() ), this, SLOT( SaveClicked() ) );
 
-  SetDestinationDirectory(vtkPlusConfig::GetInstance()->GetConfigurationDirectory());
+  SetDestinationDirectory(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationDirectory());
 
   ReadConfiguration();
 }
@@ -69,7 +68,7 @@ PlusStatus ConfigFileSaverDialog::ReadConfiguration()
   LOG_TRACE("ConfigFileSaverDialog::ReadConfiguration");
 
   //Find Device set element
-	vtkSmartPointer<vtkXMLDataElement> usDataCollection = m_ConfigurationData->FindNestedElementWithName("USDataCollection");
+	vtkSmartPointer<vtkXMLDataElement> usDataCollection = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()->FindNestedElementWithName("USDataCollection");
 	if (usDataCollection == NULL) {
 		LOG_ERROR("No USDataCollection element is found in the XML tree!");
 		return PLUS_FAIL;
@@ -108,7 +107,7 @@ void ConfigFileSaverDialog::SaveClicked()
   LOG_TRACE("ConfigFileSaverDialog::SaveClicked");
 
   // Find Device set element
-	vtkSmartPointer<vtkXMLDataElement> usDataCollection = m_ConfigurationData->FindNestedElementWithName("USDataCollection");
+	vtkSmartPointer<vtkXMLDataElement> usDataCollection = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()->FindNestedElementWithName("USDataCollection");
 	if (usDataCollection == NULL) {
 		LOG_ERROR("No USDataCollection element is found in the XML tree!");
 		return;
@@ -126,11 +125,11 @@ void ConfigFileSaverDialog::SaveClicked()
 
   // Display file save dialog and save XML
 	QString filter = QString( tr( "XML files ( *.xml );;" ) );
-  QString destinationFile = QString("%1/%2").arg(m_DestinationDirectory).arg(QString::fromStdString(vtkPlusConfig::GetInstance()->GetNewConfigurationFileName()));
+  QString destinationFile = QString("%1/%2").arg(m_DestinationDirectory).arg(QString::fromStdString(vtkPlusConfig::GetInstance()->GetNewDeviceSetConfigurationFileName()));
   QString fileName = QFileDialog::getSaveFileName(NULL, tr("Save result configuration XML"), destinationFile, filter);
 
 	if (! fileName.isNull() ) {
-    m_ConfigurationData->PrintXML(fileName.toStdString().c_str());
+    vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()->PrintXML(fileName.toStdString().c_str());
 	}
 
   accept();

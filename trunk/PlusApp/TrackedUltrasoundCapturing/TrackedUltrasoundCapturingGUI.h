@@ -98,8 +98,6 @@ protected slots:
 
 	void SetFrameRate(); 
 
-  void SetConfigurationDirectory(std::string aDirectory); 
-
   void ConnectToDevicesByConfigFile(std::string aConfigFile); 
 
 signals: 

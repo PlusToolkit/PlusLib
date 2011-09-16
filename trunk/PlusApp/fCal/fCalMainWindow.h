@@ -99,11 +99,6 @@ protected:
 	*/
 	void SetupStatusBar();
 
-	/*!
-	* \brief Locates and sets directory paths to freehand controller
-	*/
-	void LocateDirectories();
-
 protected slots:
 	/*!
 	* \brief Handle tab change

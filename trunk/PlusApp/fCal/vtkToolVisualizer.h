@@ -242,9 +242,6 @@ public:
   PlusStatus SetAcquisitionFrameRate(int aFrameRate); 
 	vtkGetMacro(AcquisitionFrameRate, int); 
 
-	vtkSetStringMacro(OutputFolder); 
-	vtkGetStringMacro(OutputFolder); 
-
 	vtkGetObjectMacro(DataCollector, vtkDataCollector); 
 	vtkSetObjectMacro(DataCollector, vtkDataCollector); 
 
@@ -296,9 +293,6 @@ protected:
 
 	//! Desired frame rate of synchronized recording
 	int								                AcquisitionFrameRate;
-
-	//! Output folder
-	char*							                OutputFolder;
 
 	//! Renderer for the canvas
 	vtkRenderer*			                CanvasRenderer; 

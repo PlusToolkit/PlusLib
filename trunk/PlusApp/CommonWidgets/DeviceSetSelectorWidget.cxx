@@ -13,8 +13,6 @@
 DeviceSetSelectorWidget::DeviceSetSelectorWidget(QWidget* aParent)
 	: QWidget(aParent)
 	, m_ConnectionSuccessful(false)
-  , m_EditorApplicationExecutable(QString("notepad.exe"))
-  , m_LastDeviceSetConfigFile(QString(""))
 {
 	ui.setupUi(this);
 
@@ -26,15 +24,37 @@ DeviceSetSelectorWidget::DeviceSetSelectorWidget(QWidget* aParent)
 
   ui.comboBox_DeviceSet->setSizeAdjustPolicy(QComboBox::AdjustToMinimumContentsLengthWithIcon);
 
-  if (STRCASECMP(vtkPlusConfig::GetInstance()->GetConfigurationDirectory(), "") != 0) {
-    SetConfigurationDirectory(vtkPlusConfig::GetInstance()->GetConfigurationDirectory());
-  }
+  SetConfigurationDirectory(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationDirectory());
 }
 
 //-----------------------------------------------------------------------------
 
 DeviceSetSelectorWidget::~DeviceSetSelectorWidget()
 {
+}
+
+//-----------------------------------------------------------------------------
+
+PlusStatus DeviceSetSelectorWidget::SetConfigurationDirectory(QString aDirectory)
+{
+  LOG_TRACE("DeviceSetSelectorWidget::SetConfigurationDirectory(" << aDirectory.toStdString() << ")");
+
+  // Try to parse up directory and set UI according to the result
+	if (ParseDirectory(aDirectory)) {
+		ui.lineEdit_ConfigurationDirectory->setText(aDirectory);
+		ui.lineEdit_ConfigurationDirectory->setToolTip(aDirectory);
+
+    return PLUS_SUCCESS;
+
+	} else {
+		ui.lineEdit_ConfigurationDirectory->setText(tr("Invalid configuration directory"));
+		ui.lineEdit_ConfigurationDirectory->setToolTip("No valid configuration files in directory, please select another");
+
+	  ui.textEdit_Description->setTextColor(QColor(Qt::darkRed));
+	  ui.textEdit_Description->setText("Selected directory does not contain valid device set configuration files!\n\nPlease select another directory");
+
+    return PLUS_FAIL;
+	}
 }
 
 //-----------------------------------------------------------------------------
@@ -49,12 +69,14 @@ void DeviceSetSelectorWidget::OpenConfigurationDirectory()
 		return;
 	}
 
-  this->SetConfigurationDirectory(dirName.toStdString(), true); 
-  
-  // Save the selected directory to config object
-  vtkPlusConfig::GetInstance()->SetConfigurationDirectory(dirName.toStdString().c_str());
+  if (SetConfigurationDirectory(dirName) == PLUS_SUCCESS) {
+    // Save the selected directory to config object
+    vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationDirectory(dirName.toStdString().c_str());
+    vtkPlusConfig::GetInstance()->SaveApplicationConfigurationToFile();
 
-  return; 
+  } else {
+    LOG_ERROR("Unable to open selected directory!");
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -114,37 +136,6 @@ void DeviceSetSelectorWidget::DeviceSetSelected(int aIndex)
 
 //-----------------------------------------------------------------------------
 
-void DeviceSetSelectorWidget::SetConfigurationDirectory(std::string aDirectory, bool aForce)
-{
-	LOG_TRACE("DeviceSetSelectorWidget::SetConfigurationDirectory(" << aDirectory << ", " << (aForce?"true":"false") << ")"); 
-  
-  // Set configuration directory before we parse it 
-  std::string oldDirectory = vtkPlusConfig::GetInstance()->GetConfigurationDirectory();
-  vtkPlusConfig::GetInstance()->SetConfigurationDirectory(aDirectory.c_str());
-
-	if (m_ConfigurationDirectory.isEmpty() || aForce) {
-		if (ParseDirectory(QString::fromStdString(aDirectory))) {
-			m_ConfigurationDirectory = QString::fromStdString(aDirectory);
-
-			ui.lineEdit_ConfigurationDirectory->setText(m_ConfigurationDirectory);
-			ui.lineEdit_ConfigurationDirectory->setToolTip(m_ConfigurationDirectory);
-
-			// Notify the application about the directory change
-			emit ConfigurationDirectoryChanged(m_ConfigurationDirectory.toStdString());
-		} else {
-      vtkPlusConfig::GetInstance()->SetConfigurationDirectory(oldDirectory.c_str());
-
-			ui.lineEdit_ConfigurationDirectory->setText(tr("Invalid configuration directory"));
-			ui.lineEdit_ConfigurationDirectory->setToolTip("No valid configuration files in directory, please select another");
-
-		  ui.textEdit_Description->setTextColor(QColor(Qt::darkRed));
-		  ui.textEdit_Description->setText("Selected directory does not contain valid device set configuration files!\n\nPlease select another directory");
-		}
-	}
-}
-
-//-----------------------------------------------------------------------------
-
 void DeviceSetSelectorWidget::SetConnectionSuccessful(bool aConnectionSuccessful)
 {
 	LOG_TRACE("DeviceSetSelectorWidget::SetConnectionSuccessful(" << (aConnectionSuccessful?"true":"false") << ")"); 
@@ -168,7 +159,7 @@ void DeviceSetSelectorWidget::SetConnectionSuccessful(bool aConnectionSuccessful
 			connect( ui.pushButton_Connect, SIGNAL( clicked() ), this, SLOT( InvokeDisconnect() ) );
 
       // Set last used device set config file
-      m_LastDeviceSetConfigFile = ui.comboBox_DeviceSet->itemData(ui.comboBox_DeviceSet->currentIndex()).toStringList().at(0);
+      vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationFileName(ui.comboBox_DeviceSet->itemData(ui.comboBox_DeviceSet->currentIndex()).toStringList().at(0).toStdString().c_str());
 
 		} else {
 			ui.textEdit_Description->setTextColor(QColor(Qt::darkRed));
@@ -279,7 +270,7 @@ PlusStatus DeviceSetSelectorWidget::ParseDirectory(QString aDirectory)
       ui.comboBox_DeviceSet->setItemData(currentIndex, name, Qt::ToolTipRole); 
 
       // If this item is the same as in the config file, select it by default
-      if ( m_LastDeviceSetConfigFile == fileName ) {
+      if ( STRCASECMP(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName(), fileName.toStdString().c_str()) == 0 ) {
         lastSelectedDeviceSetIndex = currentIndex; 
       }
 
@@ -319,8 +310,8 @@ void DeviceSetSelectorWidget::RefreshFolder()
 {
 	LOG_TRACE("DeviceSetSelectorWidget::RefreshFolderClicked"); 
 
-  if (ParseDirectory(m_ConfigurationDirectory) != PLUS_SUCCESS) {
-    LOG_ERROR("Parsing up configuration files failed in: " << m_ConfigurationDirectory.toStdString().c_str());
+  if (ParseDirectory(QString(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationDirectory())) != PLUS_SUCCESS) {
+    LOG_ERROR("Parsing up configuration files failed in: " << vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationDirectory());
   }
 }
 
@@ -331,8 +322,9 @@ void DeviceSetSelectorWidget::EditConfiguration()
 	LOG_TRACE("DeviceSetSelectorWidget::EditConfiguration"); 
 
   QString configurationFilePath = ui.comboBox_DeviceSet->itemData(ui.comboBox_DeviceSet->currentIndex()).toStringList().at(0);
+  QString editorApplicationExecutable(vtkPlusConfig::GetInstance()->GetEditorApplicationExecutable());
 
-  if (m_EditorApplicationExecutable.right(4).compare(QString(".exe")) != 0) {
+  if (editorApplicationExecutable.right(4).compare(QString(".exe")) != 0) {
     LOG_ERROR("Invalid XML editor application!");
     return;
   }
@@ -346,23 +338,8 @@ void DeviceSetSelectorWidget::EditConfiguration()
 	int lenFile = file.toWCharArray( wcharFile );
 	wcharFile[lenFile] = '\0';
 
-	int lenApplication = m_EditorApplicationExecutable.toWCharArray( wcharApplication );
+	int lenApplication = editorApplicationExecutable.toWCharArray( wcharApplication );
 	wcharApplication[lenApplication] = '\0';
 
   ShellExecuteW( 0, L"open", wcharApplication, wcharFile, NULL, SW_MAXIMIZE );
-}
-
-//-----------------------------------------------------------------------------
-
-void DeviceSetSelectorWidget::SetEditorApplicationExecutable(QString aExecutable)
-{
-	LOG_TRACE("DeviceSetSelectorWidget::SetEditorApplicationExecutable(" << aExecutable.toStdString().c_str() << ")"); 
-
-  if (aExecutable.right(4).compare(QString(".exe")) != 0) {
-    LOG_ERROR("Cannot set invalid XML editor '" << aExecutable.toStdString() << "'");
-    return;
-  }
-
-  m_EditorApplicationExecutable.clear();
-  m_EditorApplicationExecutable.append(aExecutable);
 }

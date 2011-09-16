@@ -22,9 +22,8 @@ public:
 	/*!
 	* \brief Constructor
 	* \param aParent Parent object
-	* \param aConfigurationData Root XML element of the configuration data
 	*/
-	ConfigFileSaverDialog(QWidget* aParent, vtkXMLDataElement* aConfigurationData);
+	ConfigFileSaverDialog(QWidget* aParent);
 
 	/*!
 	* \brief Destructor
@@ -58,9 +57,6 @@ protected slots:
 protected:
 	//! Destination directory path
 	QString             m_DestinationDirectory;
-
-  //! Root XML element of the configuration data
-  vtkXMLDataElement*  m_ConfigurationData;
 
 protected:
 	Ui::ConfigFileSaverDialog ui;

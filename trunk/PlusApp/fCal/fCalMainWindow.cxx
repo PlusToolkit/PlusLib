@@ -27,6 +27,10 @@ fCalMainWindow::fCalMainWindow(QWidget *parent, Qt::WFlags flags)
 	, m_ActiveToolbox(ToolboxType_Undefined)
   , m_ToolVisualizer(NULL)
 {
+  // Set program path to configuration
+  QFileInfo programPathFileInfo(qApp->argv()[0]); 
+  vtkPlusConfig::GetInstance()->SetProgramPath(programPathFileInfo.absoluteDir().absolutePath().toStdString().c_str());
+
 	// Set up UI
 	ui.setupUi(this);
 
@@ -72,9 +76,6 @@ void fCalMainWindow::Initialize()
   m_ToolVisualizer = vtkToolVisualizer::New();
   m_ToolVisualizer->Initialize();
 	ui.canvas->GetRenderWindow()->AddRenderer(m_ToolVisualizer->GetCanvasRenderer());
-
-	// Locate directories and set them to file finder
-	LocateDirectories();
 
 	// Create toolboxes
 	CreateToolboxes();
@@ -289,23 +290,6 @@ void fCalMainWindow::UpdateGUI()
 
 	// Process all events
 	QApplication::processEvents(); //TODO is it needed here?
-}
-
-//-----------------------------------------------------------------------------
-
-void fCalMainWindow::LocateDirectories()
-{
-  LOG_TRACE("fCalMainWindow::LocateDirectories");
-
-  // Locate program path
-  QFileInfo programPathFileInfo(qApp->argv()[0]); 
-  std::string programPath = programPathFileInfo.absoluteDir().absolutePath().toStdString(); 
-
-	// Make output directory
-	std::string outputPath = vtksys::SystemTools::CollapseFullPath("./Output", programPath.c_str()); 
-	if (vtksys::SystemTools::MakeDirectory(outputPath.c_str())) {
-		m_ToolVisualizer->SetOutputFolder(outputPath.c_str());
-	}
 }
 
 //-----------------------------------------------------------------------------

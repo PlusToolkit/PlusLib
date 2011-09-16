@@ -96,6 +96,10 @@ QWizard(parent)
 {
   VTK_LOG_TO_CONSOLE_ON;
 
+  // Set program path to configuration
+  QFileInfo programPathFileInfo(qApp->argv()[0]); 
+  vtkPlusConfig::GetInstance()->SetProgramPath(programPathFileInfo.absoluteDir().absolutePath().toStdString().c_str());
+
   this->Initialized = false; 
 
   // Create the UI widgets 
@@ -105,20 +109,12 @@ QWizard(parent)
   this->m_DeviceSetSelectorWidget = new DeviceSetSelectorWidget(this);
 
   // Make connections
-  connect( m_DeviceSetSelectorWidget, SIGNAL( ConfigurationDirectoryChanged(std::string) ), this, SLOT( SetConfigurationDirectory(std::string) ) );
   connect( m_DeviceSetSelectorWidget, SIGNAL( ConnectToDevicesByConfigFileInvoked(std::string) ), this, SLOT( ConnectToDevicesByConfigFile(std::string) ) );
   
   // Setup device set selector widget
   this->m_DeviceSetSelectorWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
   this->m_DeviceSetSelectorWidget->SetComboBoxMinWidth(0); 
   this->m_DeviceSetSelectorWidget->resize(this->width(), this->height()); 
-
-  // Get configuration directory from registry if possible
-	QSettings settings( QSettings::NativeFormat, QSettings::UserScope, "PerkLab", "Common" );
-	QString configurationDirectory = settings.value("ConfigurationDirectory", "").toString();
-	if (! configurationDirectory.isEmpty()) {
-		this->m_DeviceSetSelectorWidget->SetConfigurationDirectory(configurationDirectory.toStdString(), true);
-	} 
 
   // Create and setup tool display widget
   this->m_SyncToolStateDisplayWidget = new ToolStateDisplayWidget(this);
@@ -858,14 +854,6 @@ void TrackedUltrasoundCapturingGUI::ResetBufferButtonClicked()
   }
 
   this->m_USCapturing->ClearTrackedFrameContainer(); 
-}
-
-//-----------------------------------------------------------------------------
-void TrackedUltrasoundCapturingGUI::SetConfigurationDirectory(std::string aDirectory)
-{
-  LOG_TRACE("TrackedUltrasoundCapturingGUI::SetConfigurationDirectory");
-
-  vtkPlusConfig::GetInstance()->SetConfigurationDirectory(aDirectory.c_str());
 }
 
 //-----------------------------------------------------------------------------

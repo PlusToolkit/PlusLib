@@ -63,12 +63,6 @@ signals:
 
 protected slots:
 	/*!
-	* \brief Slot setting the configuration directory according to device set selector
-	* \param aDirectory Configuration directory path
-	*/
-	void SetConfigurationDirectory(std::string aDirectory);
-	
-	/*!
 	* \brief Connect to devices described in the argument configuration file in response by clicking on the Connect button
 	* \param aConfigFile DeviceSet configuration file path and name
 	*/
@@ -92,18 +86,6 @@ protected slots:
   void SelectEditorApplicationExecutable();
 
 protected:
-	/*!
-	* \brief Save application configuration file
-  * \return Success flag
-	*/
-  PlusStatus WriteApplicationConfiguration();
-
-	/*!
-	* \brief Read application configuration from file
-  * \return Success flag
-	*/
-  PlusStatus ReadApplicationConfiguration();
-
   /*!
 	* \brief Filters events if this object has been installed as an event filter for the watched object
 	* \param obj object

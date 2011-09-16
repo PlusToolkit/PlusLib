@@ -72,7 +72,7 @@ void FreehandCalibrationToolbox::Initialize()
       if (phantomRegistrationToolbox->GetState() == ToolboxState_Done) {
 		    ui.lineEdit_PhantomRegistration->setText(tr("Using session registration data"));
 
-      } else if (phantomRegistrationToolbox->GetPhantomRegistrationAlgo()->ReadConfiguration(vtkPlusConfig::GetInstance()->GetConfigurationData()) == PLUS_SUCCESS) {
+      } else if (phantomRegistrationToolbox->GetPhantomRegistrationAlgo()->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) == PLUS_SUCCESS) {
         m_ParentMainWindow->GetToolVisualizer()->SetPhantomToPhantomReferenceTransform(phantomRegistrationToolbox->GetPhantomRegistrationAlgo()->GetPhantomToPhantomReferenceTransform());
 
 		    ui.lineEdit_PhantomRegistration->setText(tr("Using session registration data"));
@@ -83,7 +83,7 @@ void FreehandCalibrationToolbox::Initialize()
     }
 
     // Try to load calibration configuration from the device set configuration
-    if (m_FreehandCalibration->ReadConfiguration(vtkPlusConfig::GetInstance()->GetConfigurationData()) == PLUS_SUCCESS) {
+    if (m_FreehandCalibration->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) == PLUS_SUCCESS) {
       ui.lineEdit_CalibrationConfiguration->setText(tr("Using session calibration configuration"));
     }
 
@@ -296,7 +296,7 @@ void FreehandCalibrationToolbox::OpenPhantomRegistration()
 
 	// File open dialog for selecting phantom registration xml
 	QString filter = QString( tr( "XML files ( *.xml );;" ) );
-	QString fileName = QFileDialog::getOpenFileName(NULL, QString( tr( "Open phantom registration XML" ) ), vtkPlusConfig::GetInstance()->GetConfigurationDirectory(), filter);
+	QString fileName = QFileDialog::getOpenFileName(NULL, QString( tr( "Open phantom registration XML" ) ), vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationDirectory(), filter);
 	if (fileName.isNull()) {
 		return;
 	}
@@ -330,7 +330,7 @@ void FreehandCalibrationToolbox::OpenCalibrationConfiguration()
 
 	// File open dialog for selecting calibration configuration xml
 	QString filter = QString( tr( "XML files ( *.xml );;" ) );
-	QString fileName = QFileDialog::getOpenFileName(NULL, QString( tr( "Open calibration configuration XML" ) ), vtkPlusConfig::GetInstance()->GetConfigurationDirectory(), filter);
+	QString fileName = QFileDialog::getOpenFileName(NULL, QString( tr( "Open calibration configuration XML" ) ), vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationDirectory(), filter);
 	if (fileName.isNull()) {
 		return;
 	}
@@ -517,7 +517,7 @@ void FreehandCalibrationToolbox::Save()
 {
 	LOG_TRACE("FreehandCalibrationToolbox::Save"); 
 
-  ConfigFileSaverDialog* configSaverDialog = new ConfigFileSaverDialog(this, vtkPlusConfig::GetInstance()->GetConfigurationData());
+  ConfigFileSaverDialog* configSaverDialog = new ConfigFileSaverDialog(this);
   configSaverDialog->exec();
 
   delete configSaverDialog;

@@ -110,7 +110,7 @@ void PhantomRegistrationToolbox::Initialize()
       if (stylusCalibrationToolbox->GetState() == ToolboxState_Done) {
   		  ui.lineEdit_StylusCalibration->setText(tr("Using session calibration data"));
 
-      } else if (pivotCalibration->ReadConfiguration(vtkPlusConfig::GetInstance()->GetConfigurationData(), TRACKER_TOOL_STYLUS) == PLUS_SUCCESS) {
+      } else if (pivotCalibration->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData(), TRACKER_TOOL_STYLUS) == PLUS_SUCCESS) {
   		  ui.lineEdit_StylusCalibration->setText(tr("Using session calibration data"));
 
         // Set calibration matrix to stylus tool for later use
@@ -133,7 +133,7 @@ void PhantomRegistrationToolbox::Initialize()
     }
 
     // Try to load phantom definition from the device set configuration
-    if (m_PhantomRegistration->ReadConfiguration(vtkPlusConfig::GetInstance()->GetConfigurationData()) == PLUS_SUCCESS) {
+    if (m_PhantomRegistration->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) == PLUS_SUCCESS) {
       ui.lineEdit_PhantomDefinition->setText(tr("Using session phantom definition"));
     } else {
       readyToStart = false;
@@ -406,7 +406,7 @@ void PhantomRegistrationToolbox::OpenPhantomDefinition()
 
 	// File open dialog for selecting phantom definition xml
 	QString filter = QString( tr( "XML files ( *.xml );;" ) );
-	QString fileName = QFileDialog::getOpenFileName(NULL, QString( tr( "Open phantom descriptor XML" ) ), vtkPlusConfig::GetInstance()->GetConfigurationDirectory(), filter);
+	QString fileName = QFileDialog::getOpenFileName(NULL, QString( tr( "Open phantom descriptor XML" ) ), vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationDirectory(), filter);
 	if (fileName.isNull()) {
 		return;
 	}
@@ -440,7 +440,7 @@ void PhantomRegistrationToolbox::OpenStylusCalibration()
 
 	// File open dialog for selecting phantom definition xml
 	QString filter = QString( tr( "XML files ( *.xml );;" ) );
-	QString fileName = QFileDialog::getOpenFileName(NULL, QString( tr( "Open stylus calibration XML" ) ), vtkPlusConfig::GetInstance()->GetConfigurationDirectory(), filter);
+	QString fileName = QFileDialog::getOpenFileName(NULL, QString( tr( "Open stylus calibration XML" ) ), vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationDirectory(), filter);
 	if (fileName.isNull()) {
 		return;
 	}
@@ -449,7 +449,7 @@ void PhantomRegistrationToolbox::OpenStylusCalibration()
   if ((stylusCalibrationToolbox != NULL) && (stylusCalibrationToolbox->GetPivotCalibrationAlgo() != NULL)) {
     vtkPivotCalibrationAlgo* pivotCalibration = stylusCalibrationToolbox->GetPivotCalibrationAlgo();
 
-    if (pivotCalibration->ReadConfiguration(vtkPlusConfig::GetInstance()->GetConfigurationData(), TRACKER_TOOL_STYLUS) == PLUS_SUCCESS) {
+    if (pivotCalibration->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData(), TRACKER_TOOL_STYLUS) == PLUS_SUCCESS) {
 		  ui.lineEdit_StylusCalibration->setText(fileName);
 		  ui.lineEdit_StylusCalibration->setToolTip(fileName);
 
@@ -514,7 +514,7 @@ void PhantomRegistrationToolbox::RecordPoint()
 		// If it was the last landmark then write configuration, set status to done and reset landmark counter
     if (m_CurrentLandmarkIndex == m_PhantomRegistration->GetDefinedLandmarks()->GetNumberOfPoints()) {
 
-      if (m_PhantomRegistration->WriteConfiguration(vtkPlusConfig::GetInstance()->GetConfigurationData()) != PLUS_SUCCESS) {
+      if (m_PhantomRegistration->WriteConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS) {
         LOG_ERROR("Unable to save phantom registration result in configuration XML tree!");
         SetState(ToolboxState_Error);
         return;
@@ -615,7 +615,7 @@ void PhantomRegistrationToolbox::Save()
 {
   LOG_TRACE("PhantomRegistrationToolbox::Save"); 
 
-  ConfigFileSaverDialog* configSaverDialog = new ConfigFileSaverDialog(this, vtkPlusConfig::GetInstance()->GetConfigurationData());
+  ConfigFileSaverDialog* configSaverDialog = new ConfigFileSaverDialog(this);
   configSaverDialog->exec();
 
   delete configSaverDialog;
