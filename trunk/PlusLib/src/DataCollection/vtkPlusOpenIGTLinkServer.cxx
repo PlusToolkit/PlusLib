@@ -16,6 +16,15 @@
 
 
 
+#define DELETE_IF_NOT_NULL( Object ) {\
+  if ( Object != NULL ) {\
+    Object->Delete();\
+    Object = NULL;\
+  }\
+}\
+
+
+
 vtkCxxRevisionMacro( vtkPlusOpenIGTLinkServer, "$Revision: 1.0 $" );
 vtkStandardNewMacro( vtkPlusOpenIGTLinkServer ); 
 
@@ -165,11 +174,12 @@ vtkPlusOpenIGTLinkServer
 ::vtkPlusOpenIGTLinkServer()
 {
   this->NetworkPort = -1;
-  this->DataCollector = NULL;
   this->ThreadId = -1;
   
+  this->DataCollector = NULL;
   this->Threader = vtkMultiThreader::New();
-  
+  this->MessageQueue = vtkIGTLMessageQueue::New();
+
   this->Mutex = vtkMutexLock::New();
   
   this->ServerSocket = igtl::ServerSocket::New();
@@ -186,10 +196,9 @@ vtkPlusOpenIGTLinkServer
 {
   this->Stop();
   
-  if ( this->Mutex )
-  {
-    this->Mutex->Delete();
-  }
+  DELETE_IF_NOT_NULL( this->Threader )
+  DELETE_IF_NOT_NULL( this->MessageQueue )
+  DELETE_IF_NOT_NULL( this->Mutex )
 }
 
 
@@ -283,6 +292,7 @@ vtkPlusOpenIGTLinkServer
       // in a thread-safe buffer.
     
     this->React( strMessage->GetString() );
+    // this->MessageQueue->PushMessage( strMessage );
   }
 }
 
