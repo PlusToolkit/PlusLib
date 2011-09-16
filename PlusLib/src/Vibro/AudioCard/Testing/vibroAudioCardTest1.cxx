@@ -1,6 +1,6 @@
 // Basic test to check if the vibroAudioCard class is functioning.
 // A sinusoidal wave is generated and played through the speaker.
-// You should be able to hear a humming sound when it is running.
+// You should be able to hear a humming sound when it is running
 
 #include "PlusConfigure.h"
 
