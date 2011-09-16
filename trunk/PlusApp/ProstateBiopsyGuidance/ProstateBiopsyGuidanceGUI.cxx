@@ -203,6 +203,33 @@ void ProstateBiopsyGuidanceGUI::SaveRFData(void)
      : QDialog(parent)
  {
 
+	// /*
+	//% 2011-9-16, Code by Saman %
+	//We need to read some configuration parameters from XmlConfig file
+	//There should be a node in second layer of Xml file with node name of "ProstateBiopsy".
+	//Parameters are preset there as xml node attributes:
+	//Example:	
+	//	<ProstateBiopsy AcquisitionTime="3" />
+	//*/
+	//#pragma region Reading Config File
+	//std::string inputConfigFileName("C:/Saman/Work/Source/PLUS/PlusApp-bin/bin/Debug/Test_PlusConfiguration_DataCollectionOnly_SonixVideo_FakeTracker.xml");
+	//vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkXMLUtilities::ReadElementFromFile(inputConfigFileName.c_str());
+	//if (configRootElement == NULL) {	
+	//	std::cerr << "Unable to read configuration from file " << inputConfigFileName;
+	//	exit(EXIT_FAILURE);
+	//}
+
+	//vtkSmartPointer<vtkXMLDataElement> prostateBiopsyConfig = configRootElement->FindNestedElementWithName("ProstateBiopsy");
+	//if (prostateBiopsyConfig == NULL)
+	//{
+	//	LOG_ERROR("Cannot find ProstateBiopsy element in XML tree!");
+	//	exit( PLUS_FAIL);
+	//}
+	//#pragma endregion
+
+	//double inputAcqTimeLength =atof(prostateBiopsyConfig->GetAttribute("AcquisitionTime"));
+
+
 		ifstream inFile("inputAcqTimeLength.txt");
 		ofstream outFile("SAMAN_TEST.txt");
 		outFile.close();
