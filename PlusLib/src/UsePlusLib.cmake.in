@@ -96,21 +96,60 @@ IF(NOT PLUSLIB_USE_FILE_INCLUDED)
   SET(PLUS_USE_ICCAPTURING_VIDEO @PLUS_USE_ICCAPTURING_VIDEO@)
   
   SET(PLUSLIB_DEPENDENCIES @PLUSLIB_DEPENDENCIES@ )
+  
   macro(INCLUDE_PLUSLIB_MS_PROJECTS)
     IF ( ${CMAKE_GENERATOR} MATCHES "Visual Studio 9" )
-      INCLUDE_EXTERNAL_MSPROJECT(@vcProj_vtkImageAcquisition@)
-      INCLUDE_EXTERNAL_MSPROJECT(@vcProj_vtkDataCollection@)
-      INCLUDE_EXTERNAL_MSPROJECT(@vcProj_vtkSignaling@)
-      INCLUDE_EXTERNAL_MSPROJECT(@vcProj_vtkPlusCommon@)
-      INCLUDE_EXTERNAL_MSPROJECT(@vcProj_vtkTracking@)
-      INCLUDE_EXTERNAL_MSPROJECT(@vcProj_vtkTrusCalibration@)
-      INCLUDE_EXTERNAL_MSPROJECT(@vcProj_vtkTrusCalibrationCommon@)
-      INCLUDE_EXTERNAL_MSPROJECT(@vcProj_UsFidSegAlgo@)
-      INCLUDE_EXTERNAL_MSPROJECT(@vcProj_vtkVolumeReconstruction@)
-      INCLUDE_EXTERNAL_MSPROJECT(@vcProj_VibroAudioCard@)
-      INCLUDE_EXTERNAL_MSPROJECT(@vcProj_VibroMcdc@)
-      INCLUDE_EXTERNAL_MSPROJECT(@vcProj_BrachyStepper@)
-      INCLUDE_EXTERNAL_MSPROJECT(@vcProj_vtkndicapi@)
+      IF ("@vcProj_vtkImageAcquisition@" STRGREATER "")
+        INCLUDE_EXTERNAL_MSPROJECT(@vcProj_vtkImageAcquisition@)
+      ENDIF()
+      
+      IF ("@vcProj_vtkDataCollection@" STRGREATER "" )
+        INCLUDE_EXTERNAL_MSPROJECT(@vcProj_vtkDataCollection@)
+      ENDIF()
+      
+      IF ("@vcProj_vtkSignaling@" STRGREATER "")
+        INCLUDE_EXTERNAL_MSPROJECT(@vcProj_vtkSignaling@)
+      ENDIF()
+      
+      IF ("@vcProj_vtkPlusCommon@" STRGREATER "")
+        INCLUDE_EXTERNAL_MSPROJECT(@vcProj_vtkPlusCommon@)
+      ENDIF()
+      
+      IF ("@vcProj_vtkTracking@" STRGREATER "")
+        INCLUDE_EXTERNAL_MSPROJECT(@vcProj_vtkTracking@)
+      ENDIF()
+      
+      IF ("@vcProj_vtkTrusCalibration@" STRGREATER "")
+        INCLUDE_EXTERNAL_MSPROJECT(@vcProj_vtkTrusCalibration@)
+      ENDIF()
+      
+      IF ("@vcProj_vtkTrusCalibrationCommon@" STRGREATER "")
+        INCLUDE_EXTERNAL_MSPROJECT(@vcProj_vtkTrusCalibrationCommon@)
+      ENDIF()
+      
+      IF ("@vcProj_UsFidSegAlgo@" STRGREATER "")
+        INCLUDE_EXTERNAL_MSPROJECT(@vcProj_UsFidSegAlgo@)
+      ENDIF()
+      
+      IF ("@vcProj_vtkVolumeReconstruction@" STRGREATER "")
+        INCLUDE_EXTERNAL_MSPROJECT(@vcProj_vtkVolumeReconstruction@)
+      ENDIF()
+      
+      IF ("@vcProj_VibroAudioCard@" STRGREATER "")
+        INCLUDE_EXTERNAL_MSPROJECT(@vcProj_VibroAudioCard@)
+      ENDIF()
+      
+      IF ("@vcProj_VibroMcdc@" STRGREATER "")
+        INCLUDE_EXTERNAL_MSPROJECT(@vcProj_VibroMcdc@)
+      ENDIF()
+      
+      IF ("@vcProj_BrachyStepper@" STRGREATER "")
+        INCLUDE_EXTERNAL_MSPROJECT(@vcProj_BrachyStepper@)
+      ENDIF()
+      
+      IF ("@vcProj_vtkndicapi@" STRGREATER "")
+        INCLUDE_EXTERNAL_MSPROJECT(@vcProj_vtkndicapi@)
+      ENDIF()
     ENDIF ()
   endmacro()
     
