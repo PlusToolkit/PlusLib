@@ -80,7 +80,7 @@ public:
 	//! Description: 
 	// Get stepper encoder values from the tracked frame info
 	// Return true if we found the encoder values, otherwise false
-	virtual PlusStatus GetStepperEncoderValues( TrackedFrame* trackedFrame, double &probePosition, double &probeRotation, double &templatePosition); 
+	static PlusStatus GetStepperEncoderValues( TrackedFrame* trackedFrame, double &probePosition, double &probeRotation, double &templatePosition); 
 
 	//! Description 
 	// Run the probe rotation axis calibration algorithm 
