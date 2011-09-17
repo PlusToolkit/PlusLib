@@ -39,18 +39,24 @@ PlusStatus RunAudio()
 
 		dsi.Initialize();
 
-		if ((status=dsi.SetPriority(GetConsoleWindow(), DSSCL_PRIORITY)) != PLUS_SUCCESS)  // Sets the application to the priority level. Applications with this cooperative level can call the DirectSoundBuffer.setFormat and DirectSound.compact methods (http://timgolden.me.uk/pywin32-docs/directsound_DSSCL_PRIORITY.html).
-
+		// Sets the application to the priority level.
+		// Applications with this cooperative level can call the DirectSoundBuffer.setFormat 
+		// and DirectSound.compact methods (http://timgolden.me.uk/pywin32-docs/directsound_DSSCL_PRIORITY.html).
+		HWND consoleWindow=GetConsoleWindow();
+		if (consoleWindow==NULL)
 		{
-			LOG_ERROR( "Unable to set cooperative level." );
+			LOG_ERROR( "Unable to get console window." );
+			return PLUS_FAIL;
+		}
+		if (dsi.SetPriority(consoleWindow, DSSCL_PRIORITY)!=PLUS_SUCCESS)  
+		{
 			return PLUS_FAIL;
 		}
 
 		VibroLib::AudioCard::DirectSoundBuffer dsb;
 
 		if ((status = dsb.Initialize(&dsi, Wv, DSBCAPS_GLOBALFOCUS | DSBCAPS_STICKYFOCUS , false )) != PLUS_SUCCESS) // initialize the wave with this properties DSBCAPS_GLOBALFOCUS & DSBCAPS_STICKYFOCUS : Continue to play sound in buffer even if the user switch to another application.
-		{
-		
+		{		
 			LOG_ERROR( "Unable to initialize buffer." );
 			return PLUS_FAIL;
 		}
@@ -62,18 +68,18 @@ PlusStatus RunAudio()
 			return PLUS_FAIL;
 		}
 
-		else
-		{
-			LOG_INFO("Vibrating for 6 seconds, you should hear a humming sound.");
-			Sleep(6000);
-			dsb->Stop();
-			return PLUS_SUCCESS;
-		}
+		LOG_INFO("Vibrating for 6 seconds, you should hear a humming sound.");
+		Sleep(6000);
+		dsb->Stop(); 
+		return PLUS_SUCCESS;
 }
 
 int main(int argc, CHAR* argv[])
 {
-	if ( RunAudio()!=PLUS_SUCCESS ) return EXIT_FAILURE;
-	else return EXIT_SUCCESS;
+	if ( RunAudio()!=PLUS_SUCCESS ) 
+	{
+		return EXIT_FAILURE;
+	}
+	return EXIT_SUCCESS;
 }
 
