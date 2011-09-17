@@ -24,11 +24,18 @@ namespace VibroLib
 
 		PlusStatus DirectSoundInstance::SetPriority(HWND hWnd, DWORD priority)
 		{
-			HRESULT hr;
-			if (!pDirectSound)
+			
+			if (pDirectSound==NULL)
+			{
+				LOG_ERROR("DirectSoundInstance::SetPriority failed because pDirectSound is invalid");
 				return PLUS_FAIL;
-			if ((hr = pDirectSound->SetCooperativeLevel(hWnd, priority)) != DS_OK)
+			}
+			HRESULT hr=pDirectSound->SetCooperativeLevel(hWnd, priority);
+			if (hr != DS_OK)
+			{
+				LOG_ERROR( "DirectSoundInstance::SetPriority failed because failed to set cooperative level, error: " << hr);
 				return PLUS_FAIL;
+			}
 			return PLUS_SUCCESS;
 		}
 	}
