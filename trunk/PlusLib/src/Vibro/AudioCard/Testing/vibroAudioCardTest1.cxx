@@ -37,7 +37,10 @@ PlusStatus RunAudio()
 
 		VibroLib::AudioCard::DirectSoundInstance dsi;
 
-		dsi.Initialize();
+		if (dsi.Initialize()!=PLUS_SUCCESS)
+		{
+			return PLUS_FAIL;
+		}
 
 		// Sets the application to the priority level.
 		// Applications with this cooperative level can call the DirectSoundBuffer.setFormat 
