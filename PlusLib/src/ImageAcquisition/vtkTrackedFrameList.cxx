@@ -5,6 +5,7 @@
 #include "vtkObjectFactory.h"
 #include "vtksys/SystemTools.hxx"
 #include "vtkXMLUtilities.h"
+#include "vtkPoints.h"
 
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
@@ -22,11 +23,13 @@ TrackedFrame::TrackedFrame()
   this->Timestamp = 0; 
   this->FrameSize[0] = 0; 
   this->FrameSize[1] = 0; 
+  this->FiducialPointsCoordinatePx = NULL; 
 }
 
 //----------------------------------------------------------------------------
 TrackedFrame::~TrackedFrame()
 {
+  this->SetFiducialPointsCoordinatePx(NULL); 
 }
 
 //----------------------------------------------------------------------------
@@ -36,6 +39,7 @@ TrackedFrame::TrackedFrame(const TrackedFrame& frame)
   this->Timestamp = 0; 
   this->FrameSize[0] = 0; 
   this->FrameSize[1] = 0; 
+  this->FiducialPointsCoordinatePx = NULL; 
 
   *this = frame; 
 }
@@ -75,6 +79,32 @@ int TrackedFrame::GetNumberOfBitsPerPixel()
   int numberOfBitsPerPixel(0); 
   numberOfBitsPerPixel = this->ImageData.GetNumberOfBytesPerPixel()*8;
   return numberOfBitsPerPixel; 
+}
+
+//----------------------------------------------------------------------------
+void TrackedFrame::SetFiducialPointsCoordinatePx(vtkPoints* fiducialPoints)
+{
+  if ( this->FiducialPointsCoordinatePx != fiducialPoints )
+  {
+    vtkPoints* tempFiducialPoints = this->FiducialPointsCoordinatePx; 
+    
+    this->FiducialPointsCoordinatePx = fiducialPoints; 
+    if ( this->FiducialPointsCoordinatePx != NULL ) 
+    {
+      this->FiducialPointsCoordinatePx->Register(NULL); 
+    } 
+
+    if ( tempFiducialPoints != NULL ) 
+    {
+      tempFiducialPoints->UnRegister(NULL); 
+    }
+  }
+}
+
+//----------------------------------------------------------------------------
+vtkPoints* TrackedFrame::GetFiducialPointsCoordinatePx()
+{
+  return this->FiducialPointsCoordinatePx; 
 }
 
 //----------------------------------------------------------------------------

@@ -14,6 +14,8 @@
 #include "vtkXMLDataElement.h"
 #include "PlusVideoFrame.h"
 
+class vtkPoints; 
+
 //----------------------------------------------------------------------------
 // ************************* TrackedFrame ************************************
 //----------------------------------------------------------------------------
@@ -71,6 +73,11 @@ public:
   // Get tracked frame pixel size in bits 
   int GetNumberOfBitsPerPixel(); 
 
+    //! Operation: 
+  // Set/get the threshold of acceptable speed of orientation change in degrees
+  void SetFiducialPointsCoordinatePx(vtkPoints* fiducialPoints); 
+  vtkPoints* GetFiducialPointsCoordinatePx(); 
+
   //! Operation: 
   // Get status of the item (out of view, ...)
   TrackerStatus GetStatus(); 
@@ -99,6 +106,9 @@ public:
   std::vector<CustomFrameFieldPair> CustomFrameFieldList; 
   std::vector<CustomFieldPair> CustomFieldList; 
   int FrameSize[2]; 
+  
+  // Stores segmented fiducial point pixel coordinates 
+  vtkPoints* FiducialPointsCoordinatePx; 
 
 };
 
