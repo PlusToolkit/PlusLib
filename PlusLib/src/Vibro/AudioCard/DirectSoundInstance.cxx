@@ -17,8 +17,17 @@ namespace VibroLib
 
 		PlusStatus DirectSoundInstance::Initialize()
 		{
-			if (::DirectSoundCreate(NULL, &pDirectSound, NULL) != DS_OK)
+			HRESULT hr=::DirectSoundCreate(NULL, &pDirectSound, NULL);
+			if ( hr != DS_OK)
+			{
+				LOG_ERROR("Failed to initialize DirectSound, error: "<<hr);
 				return PLUS_FAIL;
+			}
+			if (pDirectSound==NULL)
+			{
+				LOG_ERROR("Invalid DirectSound pointer");
+				return PLUS_FAIL;
+			}
 			return PLUS_SUCCESS;		
 		}
 
