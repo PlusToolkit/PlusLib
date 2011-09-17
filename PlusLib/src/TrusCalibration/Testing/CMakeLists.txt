@@ -61,15 +61,26 @@ SET_TESTS_PROPERTIES( vtkUSCalibrationControllerTest_FrameGrabber PROPERTIES FAI
 ADD_EXECUTABLE(vtkStepperCalibrationControllerTest vtkStepperCalibrationControllerTest.cxx)
 TARGET_LINK_LIBRARIES(vtkStepperCalibrationControllerTest itkvnl itkvnl_algo vtkCommon vtkTrusCalibration vtkDataCollection vtkImageAcquisition )
 
-# ADD_TEST(vtkStepperCalibrationControllerTest
-		# ${EXECUTABLE_OUTPUT_PATH}/vtkStepperCalibrationControllerTest
-    # --input-calibration-sequence-metafile=${TestDataDir}/UsTemplateCalibrationBaseline.mha
-    # --input-validation-sequence-metafile=${TestDataDir}/UsTemplateCalibrationBaseline.mha
-    # --input-centerofrotation-sequence-metafile=${TestDataDir}/UsTemplateCalibrationRotationBaseline.mha
-		# --input-config-file-name=${ConfigFilesDir}/USCalibrationConfig.xml
-		# --input-baseline-file-name=${TestDataDir}/UsTemplateCalibration.results.xml 
-		# )
-#SET_TESTS_PROPERTIES( vtkStepperCalibrationControllerTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+ADD_TEST(vtkStepperCalibrationControllerTest-Ulterius
+		${EXECUTABLE_OUTPUT_PATH}/vtkStepperCalibrationControllerTest
+        --input-probe-rotation-metafile=${TestDataDir}/USTC_Ulterius_ProbeRotationData.mha 
+		--input-probe-translation-metafile=${TestDataDir}/USTC_Ulterius_ProbeTranslationData.mha 
+		--input-template-translation-metafile=${TestDataDir}/USTC_Ulterius_TemplateTranslationData.mha 
+		--input-config-file-name=${ConfigFilesDir}/Test_PlusConfiguration_CalibrationOnly_iCal.xml
+		--input-baseline-file-name=${TestDataDir}/USTC_Ulterius_StepperCalibrationResultBaseline.xml 
+		)
+SET_TESTS_PROPERTIES( vtkStepperCalibrationControllerTest-Ulterius PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+
+ADD_TEST(vtkStepperCalibrationControllerTest-FrameGrabber
+		${EXECUTABLE_OUTPUT_PATH}/vtkStepperCalibrationControllerTest
+        --input-probe-rotation-metafile=${TestDataDir}/USTC_FrameGrabber_ProbeRotationData.mha 
+		--input-probe-translation-metafile=${TestDataDir}/USTC_FrameGrabber_ProbeTranslationData.mha 
+		--input-template-translation-metafile=${TestDataDir}/USTC_FrameGrabber_TemplateTranslationData.mha 
+		--input-config-file-name=${ConfigFilesDir}/Test_PlusConfiguration_CalibrationOnly_FrameGrabber_iCal.xml
+		--input-baseline-file-name=${TestDataDir}/USTC_FrameGrabber_StepperCalibrationResultBaseline.xml 
+		)
+SET_TESTS_PROPERTIES( vtkStepperCalibrationControllerTest-FrameGrabber PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+
 
 #--------------------------------------------------------------------------------------------
 ADD_EXECUTABLE(vtkStylusCalibrationTest vtkStylusCalibrationTest.cxx)
