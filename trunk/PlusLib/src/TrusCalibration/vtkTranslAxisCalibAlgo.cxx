@@ -111,8 +111,8 @@ PlusStatus vtkTranslAxisCalibAlgo::ConstrLinEqForTransAxisCalib( std::vector<vnl
 
         // We're using 2 out of 3 wires per each N-wire => ( 2 * numberOfNFiduacials )
         // We're using the X and Y coordinates => need to multiply by 2 
-        // we have two unknown variables 
-        // ( 2 * numberOfNFiduacials ) * 2 + 2 = 2 point out 
+        // we have two more unknown variables (tx, ty) the translation axis orientation 
+        // NumberofEquations = ( 2 * numberOfNFiduacials ) * 2 + 2 
         
         vnl_vector<double> a1(10,0); // TODO: it works only with double N phantoms 
         a1.put(0, z);  // raw encoder value in mm
@@ -128,5 +128,7 @@ PlusStatus vtkTranslAxisCalibAlgo::ConstrLinEqForTransAxisCalib( std::vector<vnl
     } // end of fiduacials 
 
   } // end of frames 
+
+  return PLUS_SUCCESS; 
 }
 
