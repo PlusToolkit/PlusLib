@@ -27,7 +27,7 @@ vtkIGTLMessageQueue
 
 void
 vtkIGTLMessageQueue
-::PushMessage( igtl::MessageBase::Pointer message )
+::PushMessage( igtl::MessageBase* message )
 {
   this->Mutex->Lock();
   this->DataBuffer.push_back( message );
@@ -36,13 +36,17 @@ vtkIGTLMessageQueue
 
 
 
-igtl::MessageBase::Pointer
+igtl::MessageBase*
 vtkIGTLMessageQueue
 ::PullMessage()
 {
   this->Mutex->Lock();
-  igtl::MessageBase::Pointer ret = this->DataBuffer.front();
-  this->DataBuffer.pop_front();
+  igtl::MessageBase* ret = NULL;
+  if ( this->DataBuffer.size() > 0 )
+    {
+    this->DataBuffer.front();
+    this->DataBuffer.pop_front();
+    }
   this->Mutex->Unlock();
   
   return ret;

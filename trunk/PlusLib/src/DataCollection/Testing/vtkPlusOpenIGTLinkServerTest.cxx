@@ -115,17 +115,17 @@ int main( int argc, char** argv )
   server->SetDataCollector( dataCollector );
   server->SetNetworkPort( Port );
   server->Start();
-
+  
   vtkAccurateTimer::Delay( 0.1 );
-
-
+  
+  
     // Create a client to connect to the server.
-
+  
   vtkSmartPointer< vtkPlusOpenIGTLinkClient > plusClient =
     vtkSmartPointer< vtkPlusOpenIGTLinkClient >::New();
   plusClient->SetNetworkPort( Port );
   plusClient->SetServerAddress( "localhost" );
-
+  
   int r = plusClient->ConnectToServer();
   if ( r != 0 )
   {
@@ -136,7 +136,7 @@ int main( int argc, char** argv )
   {
     LOG_DEBUG( "Client connection successful." );
   }
-
+  
   vtkAccurateTimer::Delay( 0.1 );
   for ( int messageIndex = 0; messageIndex < 4; ++ messageIndex )
   {
@@ -146,13 +146,21 @@ int main( int argc, char** argv )
     bool success = plusClient->SendCommand( command );
 
     vtkAccurateTimer::Delay( 0.4 );
+    
   }
-
-
+  
+  for ( int i = 0; i < 3; ++ i )
+    {
+    LOG_INFO( "Executing next command in queue." );
+    server->ExecuteNextCommand();
+    }
+  
+  
   vtkAccurateTimer::Delay( 0.1 );
   server->Stop();
+  LOG_INFO( "Server stopped." );
   vtkAccurateTimer::Delay( 0.1 );
-
-
+  
+  
   return EXIT_SUCCESS;
 }

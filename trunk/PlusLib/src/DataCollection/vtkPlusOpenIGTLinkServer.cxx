@@ -99,8 +99,10 @@ vtkPlusOpenIGTLinkServer
   }
   
   this->Active = false;
-  
-  this->Threader->TerminateThread( this->ThreadId );
+  LOG_INFO( "Server::Active set to false." );
+  vtkAccurateTimer::Delay( 0.5 );
+  // this->Threader->TerminateThread( this->ThreadId );
+  LOG_INFO( "Server thread terminated." );
   this->ThreadId = -1;
   
   return PLUS_SUCCESS;
@@ -162,7 +164,13 @@ void
 vtkPlusOpenIGTLinkServer
 ::ExecuteNextCommand()
 {
+  igtl::MessageBase* nextMessage = this->MessageQueue->PullMessage();
+  if ( nextMessage == NULL ) return;
   
+  igtl::StringMessage1* nextStringMessage = (igtl::StringMessage1*)nextMessage;
+  
+  this->React( nextStringMessage->GetString() );
+  // nextCommand
 }
 
 
@@ -291,8 +299,8 @@ vtkPlusOpenIGTLinkServer
       // TODO: Instead of doing this on the thread, message would have to be placed
       // in a thread-safe buffer.
     
-    this->React( strMessage->GetString() );
-    // this->MessageQueue->PushMessage( strMessage );
+    // this->React( strMessage->GetString() );
+    this->MessageQueue->PushMessage( strMessage );
   }
 }
 
@@ -310,6 +318,7 @@ vtkPlusOpenIGTLinkServer
   if ( command != NULL )
   {
     command->SetDataCollector( this->DataCollector );
+    LOG_INFO( "Executing: " << command->GetStringRepresentation() );
     command->Execute();
   }
   else

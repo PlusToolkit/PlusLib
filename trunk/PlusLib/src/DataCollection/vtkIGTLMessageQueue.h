@@ -25,8 +25,8 @@ public:
 
   void PrintSelf(ostream& os, vtkIndent indent);
 
-  void PushMessage( igtl::MessageBase::Pointer message );
-  igtl::MessageBase::Pointer PullMessage();
+  void PushMessage( igtl::MessageBase* message );
+  igtl::MessageBase* PullMessage();
   
   
 protected:
@@ -39,7 +39,7 @@ protected:
 
   vtkMutexLock* Mutex;
   
-  std::deque< igtl::MessageBase::Pointer > DataBuffer;
+  std::deque< igtl::MessageBase* > DataBuffer;
   
 };
 
