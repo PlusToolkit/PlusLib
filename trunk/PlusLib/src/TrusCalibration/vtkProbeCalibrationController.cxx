@@ -1,19 +1,10 @@
 #include "PlusConfigure.h"
+
 #include "vtkProbeCalibrationController.h"
 #include "PlusMath.h"
-#include "BrachyTRUSCalibrator.h"
 
 // VTK includes
 #include "vtkObjectFactory.h"
-#include "vtkImageExport.h"
-#include "vtkImageData.h"
-#include "vtkMatrix4x4.h"
-#include "vtkSmartPointer.h"
-#include "vtkXMLUtilities.h"
-#include "vtkImageAppend.h"
-#include "vtkDataSetWriter.h"
-#include "vtkImageExtractComponents.h"
-#include "vtkDirectory.h"
 #include "vtkTransform.h"
 #include "vtkMath.h"
 #include "vtkPlane.h"
@@ -21,12 +12,6 @@
 #include "vtkGnuplotExecuter.h"
 #include "vtkHTMLGenerator.h"
 #include "vtkStringArray.h"
-
-#include "itkImage.h"
-#include "itkImageFileReader.h"
-#include "itkImageFileWriter.h"
-#include "itkMetaImageSequenceIO.h"
-#include <itkImageDuplicator.h>
 
 vtkCxxRevisionMacro(vtkProbeCalibrationController, "$Revision: 1.0 $");
 vtkStandardNewMacro(vtkProbeCalibrationController); 
