@@ -1,7 +1,6 @@
 #include "vtkDataCollector.h"
 
 #include "PlusConfigure.h"
-#include "vtkPlusConfig.h"
 #include "vtkObjectFactory.h"
 #include "vtkSmartPointer.h"
 #include "vtkXMLUtilities.h"

@@ -3,7 +3,6 @@
 #include "vtkFreehandCalibrationController.h"
 
 #include "vtkObjectFactory.h"
-#include "vtkPlusConfig.h"
 
 #include "vtkMath.h"
 
@@ -255,7 +254,7 @@ PlusStatus vtkFreehandCalibrationController::DoTemporalCalibration()
 	}
 
 	this->DataCollector->SetProgressBarUpdateCallbackFunction(UpdateProgress);
-  this->DataCollector->Synchronize(this->OutputPath, true );
+  this->DataCollector->Synchronize(vtkPlusConfig::GetInstance()->GetOutputDirectory(), true );
 
 	this->ProgressPercent = 0;
 
@@ -835,7 +834,7 @@ PlusStatus vtkFreehandCalibrationController::SaveCalibrationResultsAndErrorRepor
 
 	// Construct the calibration result file name with path and timestamp
 	const std::string calibrationResultFileName = this->GetCalibrator()->getCalibrationTimeStampInString() + this->GetCalibrationResultFileSuffix() + ".xml";
-	const std::string calibrationResultFileNameWithPath = this->GetOutputPath() + std::string("/") + calibrationResultFileName;
+	const std::string calibrationResultFileNameWithPath = vtkPlusConfig::GetInstance()->GetOutputDirectory() + std::string("/") + calibrationResultFileName;
 	this->SetCalibrationResultFileNameWithPath(calibrationResultFileNameWithPath.c_str()); 
 
 	// <USTemplateCalibrationResult>
@@ -1196,7 +1195,7 @@ void vtkFreehandCalibrationController::SaveCalibrationDataToSequenceMetafile()
 	// Save calibration dataset 
 	std::ostringstream calibrationDataFileName; 
 	calibrationDataFileName << this->GetCalibrator()->getCalibrationTimeStampInString() << this->GetImageDataInfo(FREEHAND_MOTION_1).OutputSequenceMetaFileSuffix; 
-	if ( this->SaveTrackedFrameListToMetafile( FREEHAND_MOTION_1, this->GetOutputPath(), calibrationDataFileName.str().c_str(), false ) != PLUS_SUCCESS )
+	if ( this->SaveTrackedFrameListToMetafile( FREEHAND_MOTION_1, vtkPlusConfig::GetInstance()->GetOutputDirectory(), calibrationDataFileName.str().c_str(), false ) != PLUS_SUCCESS )
 	{
 		LOG_ERROR("Failed to save tracked frames to sequence metafile!"); 
 		return;
@@ -1207,7 +1206,7 @@ void vtkFreehandCalibrationController::SaveCalibrationDataToSequenceMetafile()
 	// Save validation dataset
 	std::ostringstream validationDataFileName; 
 	validationDataFileName << this->GetCalibrator()->getCalibrationTimeStampInString() << this->GetImageDataInfo(FREEHAND_MOTION_2).OutputSequenceMetaFileSuffix; 
-	if ( this->SaveTrackedFrameListToMetafile( FREEHAND_MOTION_2, this->GetOutputPath(), validationDataFileName.str().c_str(), false ) != PLUS_SUCCESS )
+	if ( this->SaveTrackedFrameListToMetafile( FREEHAND_MOTION_2, vtkPlusConfig::GetInstance()->GetOutputDirectory(), validationDataFileName.str().c_str(), false ) != PLUS_SUCCESS )
 	{
 		LOG_ERROR("Failed to save tracked frames to sequence metafile!"); 
 		return; 

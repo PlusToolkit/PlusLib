@@ -1,6 +1,7 @@
 #include "PlusConfigure.h"
 #include "PlusMath.h"
 #include "vtkStepperCalibrationController.h"
+
 #include "vtkObjectFactory.h"
 #include "vtkTransform.h"
 #include "vtkMath.h"
@@ -247,7 +248,7 @@ PlusStatus vtkStepperCalibrationController::CalibrateProbeRotationAxis()
     // Save calibration dataset 
     std::ostringstream probeRotationDataFileName; 
     probeRotationDataFileName << this->CalibrationStartTime << this->GetImageDataInfo(PROBE_ROTATION).OutputSequenceMetaFileSuffix; 
-    if ( this->SaveTrackedFrameListToMetafile( PROBE_ROTATION, this->GetOutputPath(), probeRotationDataFileName.str().c_str(), false ) != PLUS_SUCCESS )
+    if ( this->SaveTrackedFrameListToMetafile( PROBE_ROTATION, vtkPlusConfig::GetInstance()->GetOutputDirectory(), probeRotationDataFileName.str().c_str(), false ) != PLUS_SUCCESS )
     {
       LOG_ERROR("Failed to save tracked frames to sequence metafile!"); 
     }
@@ -271,7 +272,7 @@ PlusStatus vtkStepperCalibrationController::CalibrateRotationAxis()
 
   vtkSmartPointer<vtkTable> centerOfRotationCalculationErrorTable = vtkSmartPointer<vtkTable>::New(); 
   std::ostringstream centerOfRotReportFileName; 
-  centerOfRotReportFileName << this->OutputPath << "/" << this->CalibrationStartTime  << ".CenterOfRotationCalculationError.txt"; 
+  centerOfRotReportFileName << vtkPlusConfig::GetInstance()->GetOutputDirectory() << "/" << this->CalibrationStartTime  << ".CenterOfRotationCalculationError.txt"; 
   this->SetCenterOfRotationCalculationErrorReportFilePath(centerOfRotReportFileName.str().c_str()); 
 
   if ( clusteredFrames.size() < this->MinNumberOfRotationClusters)
@@ -580,7 +581,7 @@ void vtkStepperCalibrationController::SaveRotationAxisCalibrationError(
   std::ostringstream path; 
 
   std::ofstream rotationAxisCalibrationError;
-  path << this->OutputPath << "/" << this->CalibrationStartTime  << ".ProbeRotationAxisCalibrationError.txt"; 
+  path << vtkPlusConfig::GetInstance()->GetOutputDirectory() << "/" << this->CalibrationStartTime  << ".ProbeRotationAxisCalibrationError.txt"; 
   this->SetProbeRotationAxisCalibrationErrorReportFilePath(path.str().c_str()); 
   rotationAxisCalibrationError.open (path.str().c_str(), ios::out);
   rotationAxisCalibrationError << "# Probe rotation axis calibration error report" << std::endl; 
@@ -790,7 +791,7 @@ void vtkStepperCalibrationController::SaveRotationEncoderCalibrationError(const 
   LOG_TRACE("vtkStepperCalibrationController::SaveRotationEncoderCalibrationError"); 
   std::ofstream rotationEncoderCalibrationError;
   std::ostringstream filename; 
-  filename << this->OutputPath << "/" << this->CalibrationStartTime  << ".ProbeRotationEncoderCalibrationError.txt"; 
+  filename << vtkPlusConfig::GetInstance()->GetOutputDirectory() << "/" << this->CalibrationStartTime  << ".ProbeRotationEncoderCalibrationError.txt"; 
 
   this->SetProbeRotationEncoderCalibrationErrorReportFilePath(filename.str().c_str()); 
 
@@ -925,7 +926,7 @@ PlusStatus vtkStepperCalibrationController::CalibrateProbeTranslationAxis()
     // Save calibration dataset 
     std::ostringstream probeTranslationDataFileName; 
     probeTranslationDataFileName << this->CalibrationStartTime << this->GetImageDataInfo(PROBE_TRANSLATION).OutputSequenceMetaFileSuffix; 
-    if ( this->SaveTrackedFrameListToMetafile( PROBE_TRANSLATION, this->GetOutputPath(), probeTranslationDataFileName.str().c_str(), false ) != PLUS_SUCCESS )
+    if ( this->SaveTrackedFrameListToMetafile( PROBE_TRANSLATION, vtkPlusConfig::GetInstance()->GetOutputDirectory(), probeTranslationDataFileName.str().c_str(), false ) != PLUS_SUCCESS )
     {
       LOG_ERROR("Failed to save tracked frames to sequence metafile!"); 
     }
@@ -979,7 +980,7 @@ PlusStatus vtkStepperCalibrationController::CalibrateTemplateTranslationAxis()
     // Save calibration dataset 
     std::ostringstream templateTranslationDataFileName; 
     templateTranslationDataFileName << this->CalibrationStartTime << this->GetImageDataInfo(TEMPLATE_TRANSLATION).OutputSequenceMetaFileSuffix; 
-    if ( this->SaveTrackedFrameListToMetafile( TEMPLATE_TRANSLATION, this->GetOutputPath(), templateTranslationDataFileName.str().c_str(), false ) != PLUS_SUCCESS )
+    if ( this->SaveTrackedFrameListToMetafile( TEMPLATE_TRANSLATION, vtkPlusConfig::GetInstance()->GetOutputDirectory(), templateTranslationDataFileName.str().c_str(), false ) != PLUS_SUCCESS )
     {
       LOG_ERROR("Failed to save tracked frames to sequence metafile!");
     }
@@ -1239,7 +1240,7 @@ void vtkStepperCalibrationController::SaveTranslationAxisCalibrationError(const 
   std::ofstream translationAxisCalibrationError;
   if ( dataType == PROBE_TRANSLATION )
   {
-    path << this->OutputPath << "/" << this->CalibrationStartTime  << ".ProbeTranslationAxisCalibrationError.txt"; 
+    path << vtkPlusConfig::GetInstance()->GetOutputDirectory() << "/" << this->CalibrationStartTime  << ".ProbeTranslationAxisCalibrationError.txt"; 
     this->SetProbeTranslationAxisCalibrationErrorReportFilePath(path.str().c_str()); 
 
     translationAxisCalibrationError.open (path.str().c_str(), ios::out);
@@ -1247,7 +1248,7 @@ void vtkStepperCalibrationController::SaveTranslationAxisCalibrationError(const 
   }
   else if ( dataType == TEMPLATE_TRANSLATION )
   {
-    path << this->OutputPath << "/" << this->CalibrationStartTime  << ".TemplateTranslationAxisCalibrationError.txt"; 
+    path << vtkPlusConfig::GetInstance()->GetOutputDirectory() << "/" << this->CalibrationStartTime  << ".TemplateTranslationAxisCalibrationError.txt"; 
     this->SetTemplateTranslationAxisCalibrationErrorReportFilePath(path.str().c_str()); 
     translationAxisCalibrationError.open (path.str().c_str(), ios::out);
     translationAxisCalibrationError << "# Template translation axis calibration error report" << std::endl; 
@@ -1711,7 +1712,7 @@ void vtkStepperCalibrationController::SaveSpacingCalculationError(const std::vec
   LOG_TRACE("vtkStepperCalibrationController::SaveSpacingCalculationError"); 
   std::ofstream spacingCalculationError;
   std::ostringstream filename; 
-  filename << this->OutputPath << "/" << this->CalibrationStartTime  << ".SpacingCalculationError.txt"; 
+  filename << vtkPlusConfig::GetInstance()->GetOutputDirectory() << "/" << this->CalibrationStartTime  << ".SpacingCalculationError.txt"; 
 
   this->SetSpacingCalculationErrorReportFilePath(filename.str().c_str()); 
 

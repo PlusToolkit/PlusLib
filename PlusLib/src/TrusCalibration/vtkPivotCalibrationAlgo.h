@@ -1,6 +1,8 @@
 #ifndef __vtkPivotCalibrationAlgo_h
 #define __vtkPivotCalibrationAlgo_h
 
+#include "PlusConfigure.h"
+
 #include "vtkObject.h"
 #include "vtkAmoebaMinimizer.h"
 #include "vtkDoubleArray.h"

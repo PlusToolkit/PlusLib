@@ -6,7 +6,6 @@
 #include "vtkMatrix4x4.h"
 #include "vtkDirectory.h"
 #include "vtkImageImport.h"
-#include "vtkPlusConfig.h"
 
 #include "itkImage.h"
 #include "itkImageFileReader.h"
@@ -40,8 +39,6 @@ SegmentationProgressCallbackFunction(NULL)
 	this->InitializedOff(); 
   this->CalibrationDoneOff(); 
 
-	this->OutputPath = NULL; 
-	this->ProgramFolderPath = NULL; 
 	this->ConfigurationFileName = NULL;
 	this->ModelToPhantomTransform = NULL;
 	this->PhantomModelFileName = NULL;
@@ -57,9 +54,6 @@ SegmentationProgressCallbackFunction(NULL)
   this->OfflineImageData->AllocateScalars(); 
 	
 	this->SetCalibrationMode(REALTIME); 
-
-	// Set program folder path to current working directory by default
-	this->SetProgramFolderPath(vtksys::SystemTools::GetCurrentWorkingDirectory().c_str()); 
 
 	for ( int i = 0; i < NUMBER_OF_IMAGE_DATA_TYPES; i++ )
 	{
@@ -435,7 +429,7 @@ PlusStatus vtkCalibrationController::ReadConfiguration( vtkXMLDataElement* confi
 	  }
   }
 
-	// Calibration controller specifications
+	// Phantom model specifications
 	//********************************************************************
 	if (this->ReadPhantomModelConfiguration(configData) != PLUS_SUCCESS)
 	{
@@ -481,18 +475,18 @@ PlusStatus vtkCalibrationController::ReadCalibrationControllerConfiguration( vtk
 	const char* outputPath = calibrationController->GetAttribute("OutputPath"); 
 	if ( outputPath != NULL) 
 	{
-		std::string fullOutputPath = vtksys::SystemTools::CollapseFullPath(outputPath, this->ProgramFolderPath); 
+    std::string fullOutputPath = vtksys::SystemTools::CollapseFullPath(outputPath, vtkPlusConfig::GetInstance()->GetProgramDirectory()); 
 		vtkSmartPointer<vtkDirectory> dir = vtkSmartPointer<vtkDirectory>::New(); 
 		if ( dir->Open(fullOutputPath.c_str()) == 0 ) 
 		{	
 			dir->MakeDirectory(fullOutputPath.c_str()); 
 		}
-		this->SetOutputPath(fullOutputPath.c_str()); 
+    vtkPlusConfig::GetInstance()->SetOutputDirectory(fullOutputPath.c_str()); 
 	}
 	else
 	{
 		// Set to the current working directory
-		this->SetOutputPath(vtksys::SystemTools::GetCurrentWorkingDirectory().c_str()); 
+		vtkPlusConfig::GetInstance()->SetOutputDirectory(vtksys::SystemTools::GetCurrentWorkingDirectory().c_str()); 
 	}
 
 	// Enable/disable the tracked sequence data saving to metafile

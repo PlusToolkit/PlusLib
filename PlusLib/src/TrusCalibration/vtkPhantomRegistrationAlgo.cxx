@@ -1,6 +1,5 @@
 #include "vtkPhantomRegistrationAlgo.h"
 
-#include "vtkPlusConfig.h"
 #include "vtkObjectFactory.h"
 #include "vtkXMLUtilities.h"
 #include "vtksys/SystemTools.hxx" 

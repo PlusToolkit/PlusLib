@@ -1,8 +1,5 @@
 #include "vtkPivotCalibrationAlgo.h"
 
-#include "PlusConfigure.h"
-#include "vtkPlusConfig.h"
-
 #include "vtkObjectFactory.h"
 #include "vtkMatrix4x4.h"
 #include "vtkXMLUtilities.h"

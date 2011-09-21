@@ -9,7 +9,6 @@
 #include "vtkXMLUtilities.h"
 #include "vtkDirectory.h"
 #include "vtksys/SystemTools.hxx"
-#include "vtkPlusConfig.h"
 
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
@@ -70,7 +69,7 @@ void vtkProbeCalibrationControllerIO::SaveSegmentationResultToImage( int imgInde
 	imageFlip->Update(); 
 
 	std::ostringstream fileName; 
-	fileName << this->CalibrationController->GetOutputPath() << "/Frame" << std::setfill('0') << std::setw(4) << imgIndex << ".tiff" << std::ends; 
+	fileName << vtkPlusConfig::GetInstance()->GetOutputDirectory() << "/Frame" << std::setfill('0') << std::setw(4) << imgIndex << ".tiff" << std::ends; 
 
 	vtkSmartPointer<vtkTIFFWriter> writer = vtkSmartPointer<vtkTIFFWriter>::New();
 	writer->SetInput( imageFlip->GetOutput() );
@@ -109,7 +108,7 @@ void vtkProbeCalibrationControllerIO::SaveSegmentedWirePositionsToFile()
 	std::ostringstream calibrationSegWirePosFileName; 
 	calibrationSegWirePosFileName << this->CalibrationController->GetCalibrator()->getCalibrationTimeStampInString() << "_CalibrationSegWirePos.txt"; 
 	std::ostringstream calibrationSegWirePosPath; 
-	calibrationSegWirePosPath << this->CalibrationController->GetOutputPath() << "/" << calibrationSegWirePosFileName.str(); 
+	calibrationSegWirePosPath << vtkPlusConfig::GetInstance()->GetOutputDirectory() << "/" << calibrationSegWirePosFileName.str(); 
 	this->CalibrationController->SetCalibrationSegWirePosInfoFileName(calibrationSegWirePosPath.str().c_str()); 
 	calibPosInfo.open (calibrationSegWirePosPath.str().c_str(), ios::out);
 	calibPosInfo << "# Segmented wire positions of the Calibration dataset" << std::endl; 
@@ -119,7 +118,7 @@ void vtkProbeCalibrationControllerIO::SaveSegmentedWirePositionsToFile()
 	std::ostringstream validationSegWirePosFileName; 
 	validationSegWirePosFileName << this->CalibrationController->GetCalibrator()->getCalibrationTimeStampInString() << "_ValidationSegWirePos.txt"; 
 	std::ostringstream validationSegWirePosPath; 
-	validationSegWirePosPath << this->CalibrationController->GetOutputPath() << "/" << validationSegWirePosFileName.str(); 
+	validationSegWirePosPath << vtkPlusConfig::GetInstance()->GetOutputDirectory() << "/" << validationSegWirePosFileName.str(); 
 	this->CalibrationController->SetValidationSegWirePosInfoFileName(validationSegWirePosPath.str().c_str()); 
 	validPosInfo.open (validationSegWirePosPath.str().c_str(), ios::out);
 	validPosInfo << "# Segmented wire positions of the Validation dataset" << std::endl; 
@@ -296,7 +295,7 @@ void vtkProbeCalibrationControllerIO::SaveCalibrationResultsAndErrorReportsToXML
 
 	// Construct the calibration result file name with path and timestamp
 	const std::string calibrationResultFileName = this->CalibrationController->GetCalibrator()->getCalibrationTimeStampInString() + this->CalibrationController->GetCalibrationResultFileSuffix() + ".xml";
-	const std::string calibrationResultFileNameWithPath = this->CalibrationController->GetOutputPath() + std::string("/") + calibrationResultFileName;
+	const std::string calibrationResultFileNameWithPath = vtkPlusConfig::GetInstance()->GetOutputDirectory() + std::string("/") + calibrationResultFileName;
 	this->CalibrationController->SetCalibrationResultFileNameWithPath(calibrationResultFileNameWithPath.c_str()); 
 
 	// <USTemplateCalibrationResult>

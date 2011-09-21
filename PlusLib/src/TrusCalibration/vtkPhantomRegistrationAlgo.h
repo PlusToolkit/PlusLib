@@ -1,8 +1,9 @@
 #ifndef __vtkvtkPhantomRegistrationAlgo_h
 #define __vtkvtkPhantomRegistrationAlgo_h
 
-#include "vtkObject.h"
 #include "PlusConfigure.h"
+
+#include "vtkObject.h"
 #include "vtkTransform.h"
 #include "vtkPoints.h"
 
