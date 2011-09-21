@@ -76,10 +76,10 @@ int main (int argc, char* argv[])
 	}
 	programPath = vtksys::SystemTools::GetParentDirectory(programPath.c_str()); 
   vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationDirectory(inputConfigFileName.c_str());
+  vtkPlusConfig::GetInstance()->SetProgramPath(programPath.c_str());
 
 	// Initialize the probe calibration controller 
 	vtkSmartPointer<vtkStepperCalibrationController> stepperCal = vtkSmartPointer<vtkStepperCalibrationController>::New(); 
-	stepperCal->SetProgramFolderPath(programPath.c_str());
 	stepperCal->ReadConfiguration(inputConfigFileName.c_str()); 
 
   vtkSmartPointer<vtkCalibrationController> calController = vtkSmartPointer<vtkCalibrationController>::New(); 
@@ -122,7 +122,6 @@ int main (int argc, char* argv[])
 
 	// Initialize the stepper calibration controller 
 	vtkSmartPointer<vtkProbeCalibrationController> probeCal = vtkSmartPointer<vtkProbeCalibrationController>::New(); 
-	probeCal->SetProgramFolderPath(programPath.c_str());
 	probeCal->ReadConfiguration(inputConfigFileName.c_str()); 
 
 	vtkCalibrationController::ImageDataInfo randomStepperMotion1DataInfo = probeCal->GetImageDataInfo(RANDOM_STEPPER_MOTION_1); 
