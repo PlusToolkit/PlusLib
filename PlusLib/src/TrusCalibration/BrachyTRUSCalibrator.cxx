@@ -106,7 +106,7 @@ for( int i = 0; i < 5; i++ )
 			mPhantomSpecificReferencePoints[i].set_size(4);
 		}
     
-    mNWires = patternRecognitionObject->GetFidSegmentation()->GetNWires();
+    mNWires = patternRecognitionObject->GetFidLineFinder()->GetNWires();
 
 		// Load the phantom-specfic geometry
 		loadGeometry();

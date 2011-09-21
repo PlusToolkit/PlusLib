@@ -17,7 +17,7 @@ class FidLineFinder
 
     void        Clear();
 
-		PlusStatus	ReadConfiguration( vtkXMLDataElement* segmentationParameters );
+		PlusStatus	ReadConfiguration( vtkXMLDataElement* rootConfigElement );
     void        SetFrameSize( int frameSize[2] );
 
     void 				FindLines3Points();
@@ -42,6 +42,8 @@ class FidLineFinder
     double			GetMaxLineErrorMm() { return m_MaxLineErrorMm; };
 
     void				SetCandidateFidValues(std::vector<Dot> value) { m_CandidateFidValues = value; };
+
+    std::vector<NWire>	GetNWires() { return m_NWires; };
     void				SetNWires(std::vector<NWire> value) { m_NWires = value; };
     
     std::vector<Line>	GetLinesVector() { return m_LinesVector; };

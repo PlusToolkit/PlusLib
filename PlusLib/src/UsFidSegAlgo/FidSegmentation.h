@@ -19,7 +19,7 @@ class FidSegmentation
 		FidSegmentation();
 		virtual ~FidSegmentation();
 
-		PlusStatus				  ReadConfiguration( vtkXMLDataElement* segmentationParameters );
+		PlusStatus				  ReadConfiguration( vtkXMLDataElement* rootConfigElement );
     void                SetFrameSize( int frameSize[2] );
 
 		void					      UpdateParameters();
@@ -65,9 +65,6 @@ class FidSegmentation
 
 		
 		//Accessors and mutators
-    void					    SetNWires(std::vector<NWire> value) { m_NWires = value; };
-    std::vector<NWire>		GetNWires() { return m_NWires; };
-
  		std::vector<Item>	GetMorphologicalCircle() { return m_MorphologicalCircle; };
     void					    SetPossibleFiducialsImageFilename(std::string value) { m_PossibleFiducialsImageFilename = value; };
 
@@ -108,7 +105,6 @@ class FidSegmentation
 		std::string				m_PossibleFiducialsImageFilename;
 		
 		FiducialGeometryType	m_FiducialGeometry;
-		std::vector<NWire>		m_NWires;
 		
 		std::vector<Item>		m_MorphologicalCircle; 
 

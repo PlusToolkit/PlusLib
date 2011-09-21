@@ -437,7 +437,7 @@ PlusStatus vtkCalibrationController::ReadConfiguration( vtkXMLDataElement* confi
 
 	// Calibration controller specifications
 	//********************************************************************
-	if (this->ReadPhantomDefinition(configData) != PLUS_SUCCESS)
+	if (this->ReadPhantomModelConfiguration(configData) != PLUS_SUCCESS)
 	{
     LOG_ERROR("Unable to read phantom definition!");
   	return PLUS_FAIL;
@@ -533,9 +533,9 @@ PlusStatus vtkCalibrationController::ReadCalibrationControllerConfiguration( vtk
 
 //----------------------------------------------------------------------------
 
-PlusStatus vtkCalibrationController::ReadPhantomDefinition(vtkXMLDataElement* config)
+PlusStatus vtkCalibrationController::ReadPhantomModelConfiguration(vtkXMLDataElement* config)
 {
-	LOG_TRACE("vtkCalibrationController::ReadPhantomDefinition");
+	LOG_TRACE("vtkCalibrationController::ReadPhantomModelConfiguration");
 
 	if ( config == NULL )
 	{
@@ -551,8 +551,6 @@ PlusStatus vtkCalibrationController::ReadPhantomDefinition(vtkXMLDataElement* co
 	}
   else
 	{
-		std::vector<NWire> tempNWires;
-
 		// Load model information
 		vtkSmartPointer<vtkXMLDataElement> model = phantomDefinition->FindNestedElementWithName("Model"); 
 		if (model == NULL) {
@@ -589,84 +587,7 @@ PlusStatus vtkCalibrationController::ReadPhantomDefinition(vtkXMLDataElement* co
 			}
 			delete[] modelToPhantomTransformVector;
 		}
-
-		// Load geometry
-		vtkSmartPointer<vtkXMLDataElement> geometry = phantomDefinition->FindNestedElementWithName("Geometry"); 
-		if (geometry == NULL) {
-			LOG_ERROR("Phantom geometry information not found!");
-			return PLUS_FAIL;
-		} else {
-
-			tempNWires.clear();
-
-			// Finding of NWires and extracting the endpoints
-			int numberOfGeometryChildren = geometry->GetNumberOfNestedElements();
-			for (int i=0; i<numberOfGeometryChildren; ++i) {
-				vtkSmartPointer<vtkXMLDataElement> nWireElement = geometry->GetNestedElement(i);
-
-				if ((nWireElement == NULL) || (STRCASECMP("NWire", nWireElement->GetName()))) {
-					continue;
-				}
-
-				NWire nWire;
-
-				int numberOfWires = nWireElement->GetNumberOfNestedElements();
-
-				if (numberOfWires != 3) {
-					LOG_WARNING("NWire contains unexpected number of wires - skipped");
-					continue;
-				}
-
-				for (int j=0; j<numberOfWires; ++j) {
-					vtkSmartPointer<vtkXMLDataElement> wireElement = nWireElement->GetNestedElement(j);
-
-					if (wireElement == NULL) {
-						LOG_WARNING("Invalid Wire description in NWire - skipped");
-						break;
-					}
-
-					Wire wire;
-
-					int wireId = -1;
-					if ( wireElement->GetScalarAttribute("Id", wireId) ) 
-					{
-						wire.id = wireId; 
-					}
-					else
-					{
-						LOG_WARNING("Wire id not found - skipped");
-						continue;
-					}
-
-					const char* wireName =  wireElement->GetAttribute("Name"); 
-					if ( wireName != NULL )
-					{
-						wire.name = wireName;
-					}
-					if (! wireElement->GetVectorAttribute("EndPointFront", 3, wire.endPointFront)) {
-						LOG_WARNING("Wrong wire end point detected - skipped");
-						continue;
-					}
-					if (! wireElement->GetVectorAttribute("EndPointBack", 3, wire.endPointBack)) {
-						LOG_WARNING("Wrong wire end point detected - skipped");
-						continue;
-					}
-
-					nWire.wires[j] = wire;
-				}
-
-				tempNWires.push_back(nWire);
-			}
-		}
-
-    this->PatternRecognition.GetFidSegmentation()->SetNWires(tempNWires);
-    this->PatternRecognition.GetFidLineFinder()->SetNWires(tempNWires);
-    this->PatternRecognition.GetFidLabeling()->SetNWires(tempNWires);
 	}
-
-  this->PatternRecognition.ReadConfiguration(config);
-
-	//TODO Load registration?
 
   return PLUS_SUCCESS;
 }

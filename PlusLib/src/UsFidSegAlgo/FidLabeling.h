@@ -15,7 +15,7 @@ class FidLabeling
 		void					ComputeParameters();
     void          Clear();
 
-		PlusStatus		ReadConfiguration( vtkXMLDataElement* segmentationParameters, double minTheta, double maxTheta, double maxLineErrorMm );
+		PlusStatus		ReadConfiguration( vtkXMLDataElement* rootConfigElement, double minTheta, double maxTheta, double maxLineErrorMm );
 
 		void					FindDoubleNLines();
 		void					FindPairs();
@@ -32,6 +32,8 @@ class FidLabeling
     void				  SetDotsVector(std::vector<Dot> value) { m_DotsVector = value; };
 
     void				  SetLinesVector(std::vector<Line> value) { m_LinesVector = value; };
+
+    std::vector<NWire>	GetNWires() { return m_NWires; };
     void					SetNWires(std::vector<NWire> value) { m_NWires = value; };
 
     float					GetAngleConf() { return m_AngleConf; };
