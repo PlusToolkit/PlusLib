@@ -23,7 +23,7 @@ if (WIN32)
     )
 endif (WIN32)
 
-SET (VibroAudioCard_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR})
+SET (VibroAudioCard_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} CACHE INTERNAL "" FORCE)
 
 # --------------------------------------------------------------------------
 # Build the library
