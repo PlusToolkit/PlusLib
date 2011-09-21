@@ -80,6 +80,7 @@ int main (int argc, char* argv[])
 		exit(EXIT_FAILURE);
   }
   vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationData(configRootElement);
+  vtkPlusConfig::GetInstance()->SetProgramPath(programPath.c_str());
 
   // Load phantom definition and registration
 	vtkPhantomRegistrationAlgo* phantomRegistration = vtkPhantomRegistrationAlgo::New();
@@ -93,7 +94,6 @@ int main (int argc, char* argv[])
 	}
 
   vtkSmartPointer<vtkFreehandCalibrationController> freehandCalibration = vtkSmartPointer<vtkFreehandCalibrationController>::New(); 
-	freehandCalibration->SetProgramFolderPath(programPath.c_str());
   freehandCalibration->SetConfigurationFileName(inputConfigFileName.c_str());
   freehandCalibration->SetConfigurationData(configRootElement);
 	freehandCalibration->ReadConfiguration(configRootElement); 
