@@ -24,7 +24,7 @@ public:
 
   //! Description: 
 	// Remove outliers from Ax = b sparse linear equations after linear least squares method (vnl_lsqr)
-  static PlusStatus RemoveOutliersFromLSRQ(vnl_sparse_matrix<double> &sparseMatrixLeftSide, vnl_vector<double> &vectorRightSide, vnl_vector<double> &resultVector, bool &outlierFound, double thresholdMultiplier/* = 3.0*/ ); 
+  static PlusStatus RemoveOutliersFromLSRQ(vnl_sparse_matrix<double> &sparseMatrixLeftSide, vnl_vector<double> &vectorRightSide, vnl_vector<double> &resultVector, bool &outlierFound, double thresholdMultiplier = 3.0 ); 
 
   //! Description: 
   // Returns the Euclidean distance between two 4x4 homogeneous transformation matrix
