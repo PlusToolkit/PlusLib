@@ -57,7 +57,7 @@ void SegmentImageSequence( vtkTrackedFrameList* trackedFrameList, std::ofstream 
     PlusVideoFrame videoFrame = trackedFrameList->GetTrackedFrame(currentFrameIndex)->ImageData;
     int frameSize[2];
     videoFrame.GetFrameSize(frameSize);
-    calibrationController->GetPatternRecognition()->RecognizePattern(reinterpret_cast<PixelType*>(videoFrame.GetBufferPointer()), frameSize, segResults );
+    calibrationController->GetPatternRecognition()->RecognizePattern(trackedFrameList->GetTrackedFrame(currentFrameIndex), segResults );
 		
 		sumFiducialCandidate += segResults.GetNumDots();
 		int numFid=0;

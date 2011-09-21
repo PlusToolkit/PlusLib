@@ -153,7 +153,7 @@ int main (int argc, char* argv[])
         PlusVideoFrame videoFrame = trackedFrameList->GetTrackedFrame(imgNumber)->ImageData;
         int frameSize[2];
         videoFrame.GetFrameSize(frameSize);
-        patternRecognition.RecognizePattern( reinterpret_cast<PixelType*>(videoFrame.GetBufferPointer()), frameSize, segResults );
+        patternRecognition.RecognizePattern( trackedFrameList->GetTrackedFrame(imgNumber), segResults );
       }
   	}
 		catch(...)
