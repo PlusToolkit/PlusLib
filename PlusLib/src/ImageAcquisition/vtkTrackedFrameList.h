@@ -98,6 +98,7 @@ public:
     return this->Timestamp == data.Timestamp; 
   }
 
+public:
   std::string DefaultFrameTransformName; 
   double Timestamp; 
   TrackerStatus Status; 
@@ -106,7 +107,8 @@ public:
   std::vector<CustomFrameFieldPair> CustomFrameFieldList; 
   std::vector<CustomFieldPair> CustomFieldList; 
   int FrameSize[2]; 
-  
+
+protected:
   // Stores segmented fiducial point pixel coordinates 
   vtkPoints* FiducialPointsCoordinatePx; 
 
