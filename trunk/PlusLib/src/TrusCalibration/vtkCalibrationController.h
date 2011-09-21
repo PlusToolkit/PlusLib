@@ -137,14 +137,6 @@ public:
   void SetCalibrationMode( CalibrationMode mode ) { this->CalibrationMode = mode; }
   CalibrationMode GetCalibrationMode() { return this->CalibrationMode; }
 
-	//! Attribute: Path to output calibration results
-	vtkGetStringMacro(OutputPath);
-	vtkSetStringMacro(OutputPath);
-
-	//! Attribute: Path to program parent folder
-	vtkGetStringMacro(ProgramFolderPath);
-	vtkSetStringMacro(ProgramFolderPath);
-
 	//! Description 
 	// Set/get the configuration file name
 	vtkSetStringMacro(ConfigurationFileName); 
@@ -256,12 +248,6 @@ protected:
 
 	//! Attributes: calibration mode (see CALIBRATION_MODE)
 	CalibrationMode CalibrationMode; 
-
-	//! Attribute: Path to program parent folder
-	char* ProgramFolderPath;
-
-	//! Attribute: Path to output calibration results
-	char* OutputPath;
 
 	//! Attributes: config file name
 	char* ConfigurationFileName;

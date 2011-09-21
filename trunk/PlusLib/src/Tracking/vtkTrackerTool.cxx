@@ -50,7 +50,6 @@ POSSIBILITY OF SUCH DAMAGES.
 #include "vtkTrackerBuffer.h"
 #include "vtkObjectFactory.h"
 #include "vtkXMLUtilities.h"
-#include "vtkPlusConfig.h"
 
 //----------------------------------------------------------------------------
 vtkTrackerTool* vtkTrackerTool::New()
