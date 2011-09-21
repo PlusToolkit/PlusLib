@@ -168,7 +168,7 @@ PlusStatus vtkPlusConfig::ReadApplicationConfiguration()
     this->SetDeviceSetConfigurationFileName(lastDeviceSetConfigFile);
 
   } else {
-    LOG_WARNING("Unable to read last used device set config file - you have to connect to one first");
+    LOG_INFO("Cannot read last used device set config file until you connect to one first");
   }
 
   // Read device set configuration directory
@@ -296,9 +296,15 @@ vtkXMLDataElement* vtkPlusConfig::LookupElementWithNameContainingChildWithNameAn
 
 std::string vtkPlusConfig::GetFirstFileFoundInConfigurationDirectory(const char* aFileName)
 {
-	LOG_TRACE("vtkPlusConfig::GetFirstFileFoundInConfigurationDirectory(" << aFileName << ")"); 
+	LOG_TRACE("vtkPlusConfig::GetFirstFileFoundInConfigurationDirectory(" << aFileName << ")");
 
-	return GetFirstFileFoundInParentOfDirectory(aFileName, vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationDirectory());
+  if ((vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationDirectory() == NULL) || (STRCASECMP(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationDirectory(), "") == 0)) {
+		std::string configurationDirectory = vtksys::SystemTools::GetFilenamePath(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName());
+		return vtkPlusConfig::GetFirstFileFoundInParentOfDirectory(aFileName, configurationDirectory.c_str());
+
+  } else {
+  	return GetFirstFileFoundInParentOfDirectory(aFileName, vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationDirectory());
+  }
 };
 
 //-----------------------------------------------------------------------------

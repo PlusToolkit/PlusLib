@@ -143,16 +143,6 @@ public:
 	vtkGetStringMacro(ConfigurationFileName); 
 
 	//! Description 
-	// Set/get the phantom model file name
-	vtkSetStringMacro(PhantomModelFileName); 
-	vtkGetStringMacro(PhantomModelFileName);
-
-	//! Description 
-	// Set/get the phantom to model transform
-	vtkSetObjectMacro(ModelToPhantomTransform, vtkTransform); 
-	vtkGetObjectMacro(ModelToPhantomTransform, vtkTransform);
-
-	//! Description 
 	// Set/get the phantom to config data
 	vtkSetObjectMacro(ConfigurationData, vtkXMLDataElement); 
 	vtkGetObjectMacro(ConfigurationData, vtkXMLDataElement);
@@ -223,10 +213,6 @@ protected:
 	// Read CalibrationController data element
 	virtual PlusStatus ReadCalibrationControllerConfiguration(vtkXMLDataElement* rootElement); 
 
-	//! Description 
-	// Read Phantom model configuration from XML
-	virtual PlusStatus ReadPhantomModelConfiguration(vtkXMLDataElement* rootElement);
-
 protected:
 	//! Attribute: Flag to enable the tracked sequence data saving to metafile
 	bool EnableTrackedSequenceDataSaving;
@@ -252,14 +238,8 @@ protected:
 	//! Attributes: config file name
 	char* ConfigurationFileName;
 
-	//! Attributes: phantom model file name for visualization
-	char* PhantomModelFileName;
-
   //! Attributes: calibration date in string format 
   char* CalibrationDate; 
-
-	//! Attributes: phantom to model transform
-	vtkTransform* ModelToPhantomTransform;
 
 	//! Pointer to the callback function that is executed each time a segmentation is finished
   SegmentationProgressPtr SegmentationProgressCallbackFunction;
