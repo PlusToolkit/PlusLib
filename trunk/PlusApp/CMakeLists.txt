@@ -75,6 +75,7 @@ OPTION (PLUSAPP_BUILD_DiagnosticTools "Build the DiagnosticTools" ON)
 OPTION (PLUSAPP_BUILD_OpenIGTLinkBroadcaster "Build the OpenIGTLinkBroadcaster application" OFF)
 OPTION (PLUSAPP_BUILD_SequenceMetaFileConverter "Build the SequenceMetaFileConverter application" ON)
 OPTION (PLUSAPP_BUILD_TrackedUltrasoundCapturing "Build the TrackedUltrasoundCapturing application (Qt version)" ON)
+OPTION (PLUSAPP_BUILD_ProstateBiopsyGuidance "Build the TrackedUltrasoundCapturing application (Qt version)" ON)
 OPTION (PLUSAPP_BUILD_fCal "Build the fCal application (Qt)" ON)
 
 # --------------------------------------------------------------------------
@@ -115,7 +116,7 @@ IF (PLUSAPP_BUILD_TrackedUltrasoundCapturing)
     ADD_DEPENDENCIES( TrackedUltrasoundCapturing ${PLUSLIB_DEPENDENCIES} )
 ENDIF (PLUSAPP_BUILD_TrackedUltrasoundCapturing)
 # --------------------------------------------------------------------------
-# Build the TrackedUltrasoundCapturing application (Qt version)
+# Build the ProstateBiopsyGuidance application (Qt version)
 IF (PLUSAPP_BUILD_ProstateBiopsyGuidance)
 	ADD_SUBDIRECTORY(ProstateBiopsyGuidance)
     ADD_DEPENDENCIES( ProstateBiopsyGuidance ${PLUSLIB_DEPENDENCIES} )

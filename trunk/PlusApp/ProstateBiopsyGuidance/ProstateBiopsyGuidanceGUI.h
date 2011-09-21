@@ -43,8 +43,8 @@ class StatusIcon;
      QPushButton *moreButton;
      QWidget *extension;
 public slots:
-		void SaveRFData(void);
-//		void startShaker(void);
+		PlusStatus SaveRFData();
+		PlusStatus startShaker();
 
  };
 

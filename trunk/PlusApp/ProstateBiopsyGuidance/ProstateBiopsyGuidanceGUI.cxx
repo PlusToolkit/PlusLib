@@ -36,26 +36,26 @@ const QString LABEL_SYNC_VIDEO_OFFSET("Video offset:");
 #include <vector>
 #include <math.h>
 #include "PlusConfigure.h"
-//#include "Wave.h"
-//#include "DirectSoundInstance.h"
-//#include "DirectSoundBuffer.h"
-//#include "DirectSoundCapture.h"
-//#include "DirectSoundCaptureBuffer.h"
-//#include "SignalGenerator.h"
+#include "Wave.h"
+#include "DirectSoundInstance.h"
+#include "DirectSoundBuffer.h"
+#include "DirectSoundCapture.h"
+#include "DirectSoundCaptureBuffer.h"
+#include "SignalGenerator.h"
 /*************************************** vibro test**********************************/
  #include <QtGui>
 
  #include "ProstateBiopsyGuidanceGUI.h"
 /*************************************** vibro test**********************************/
 
-/*void ProstateBiopsyGuidanceGUI::startShaker(void)
+PlusStatus ProstateBiopsyGuidanceGUI::startShaker()
 {
-
-
+		HRESULT hr = 0;
+		
 		std::vector<double> frequencies;
-		frequencies.push_back((double)"20");
-		frequencies.push_back((double)"92");
-		frequencies.push_back((double)"110");
+		frequencies.push_back((double)20);
+		frequencies.push_back((double)92);
+		frequencies.push_back((double)110);
 
 		std::vector<double> signal = VibroLib::GenerateMultiFrequency(frequencies, 8192.0, 20000);
 		VibroLib::AudioCard::Wave Wv;
@@ -64,24 +64,28 @@ const QString LABEL_SYNC_VIDEO_OFFSET("Video offset:");
 		VibroLib::AudioCard::DirectSoundInstance dsi;
 		dsi.Initialize();
 
-		if ((hr=dsi.SetPriority(GetConsoleWindow(), DSSCL_PRIORITY)) != DS_OK)
+		if (dsi.SetPriority(GetConsoleWindow(), DSSCL_PRIORITY)!=PLUS_SUCCESS)
 		{
-			printf("Unable to set cooperative level: HRESULT: %d\n", hr);
-			system("PAUSE");
+			LOG_ERROR( "Unable to set cooperative level. HRESULT:" << hr );
+			return PLUS_FAIL;
 		}
 
 		VibroLib::AudioCard::DirectSoundBuffer dsb;
 		if ((hr = dsb.Initialize(&dsi, Wv, DSBCAPS_GLOBALFOCUS | DSBCAPS_STICKYFOCUS , false )) != DS_OK)
 		{
-			printf("Unable to initialize buffer... HRESULT: %d\n", hr);
-			system("PAUSE");
+			LOG_ERROR( "Unable to initialize buffer. HRESULT:" << hr);
+			return PLUS_FAIL;
 		}
 		
 		if ((hr = dsb->Play(0,0,DSBPLAY_LOOPING)) != DS_OK)
-			std::cout << "Failed to play buffer... HRESULT: " << hr << "\n";
+		{
+			LOG_ERROR( "Failed to play buffer. HRESULT: " << hr );
+			return PLUS_FAIL;
+		}
+
 		else
 		{
-			printf("\nRunning...\n");
+			LOG_INFO("\nRunning...\n");
 //			system("PAUSE");
 //			ifstream myfile;
 //			myfile.open("duration.txt");
@@ -91,10 +95,11 @@ const QString LABEL_SYNC_VIDEO_OFFSET("Video offset:");
 //			cout<<duration<<endl;
 			Sleep(6000);
 			dsb->Stop();
+			return PLUS_SUCCESS;
 		}
 
 
-}*/
+}
 
 
 
@@ -107,7 +112,7 @@ const QString LABEL_SYNC_VIDEO_OFFSET("Video offset:");
 
 
 	double inputAcqTimeLength(3);
-void ProstateBiopsyGuidanceGUI::SaveRFData(void)
+PlusStatus ProstateBiopsyGuidanceGUI::SaveRFData()
 {
 
 	std::string inputConfigFileName("Test_PlusConfiguration_DataCollectionOnly_SonixVideo_FakeTracker.xml");//"Test_PlusConfiguration_DataCollectionOnly_SonixVideo_FakeTracker.xml");
@@ -121,7 +126,7 @@ void ProstateBiopsyGuidanceGUI::SaveRFData(void)
 
 	if (inputConfigFileName.empty())
 	{
-		std::cerr << "input-config-file-name is required" << std::endl;
+		LOG_INFO( "input-config-file-name is required" );
 		exit(EXIT_FAILURE);
 	}
 
@@ -151,22 +156,22 @@ void ProstateBiopsyGuidanceGUI::SaveRFData(void)
 
 	while ( acqStartTime + inputAcqTimeLength > vtkTimerLog::GetUniversalTime() )
 	{
-		printf("%f seconds left...\n", acqStartTime + inputAcqTimeLength - vtkTimerLog::GetUniversalTime() );
+		//LOG_INFO("%f seconds left...", acqStartTime + inputAcqTimeLength - vtkTimerLog::GetUniversalTime() );
 		vtksys::SystemTools::Delay(1000); 
 	}
 
 
-	printf("Copy video buffer\n" );
+	LOG_INFO("Copy video buffer" );
 	vtkVideoBuffer *buffer = vtkVideoBuffer::New(); 
 	dataCollector->CopyVideoBuffer(buffer); 
 
-	printf("write video buffer: %s \n",outputVideoBufferSequenceFileName );
+	LOG_INFO("write video buffer: "<< outputVideoBufferSequenceFileName );
 	dataCollector->WriteVideoBufferToMetafile( buffer, outputFolder.c_str(), outputVideoBufferSequenceFileName.c_str(), true); 
 
 	buffer->Delete(); 
 	dataCollector->Stop();
 	VTK_LOG_TO_CONSOLE_OFF; 
-	std::cout << "RF_Data is Saved !\n" << std::endl;
+	LOG_INFO( "RF_Data is Saved !\n" );
 
 /*********************************************************************************/
 	///////////////
@@ -175,27 +180,28 @@ void ProstateBiopsyGuidanceGUI::SaveRFData(void)
 	std::string outputVideoBufferSequenceFileName_V("VideoBufferMetafile_v"); 
 	while (_getch() != 'a') // wait until a is pressed to start acquisition
 	{;}
-//	startShaker();
+	startShaker();
 	dataCollector->Start();
 
 	const double acqStartTime_V = vtkTimerLog::GetUniversalTime(); 
 
 	while ( acqStartTime_V + inputAcqTimeLength > vtkTimerLog::GetUniversalTime() )
 	{
-		printf("%f seconds left...\n", acqStartTime_V + inputAcqTimeLength - vtkTimerLog::GetUniversalTime() );
+		//LOG_INFO("%f seconds left...\n", acqStartTime_V + inputAcqTimeLength - vtkTimerLog::GetUniversalTime() );
 		vtksys::SystemTools::Delay(1000); 
 	}
-	printf("Copy video buffer\n" );
+	LOG_INFO("Copy video buffer" );
 	vtkVideoBuffer *v_buffer = vtkVideoBuffer::New(); 
 	dataCollector->CopyVideoBuffer(v_buffer); 
-	printf("write video buffer: %s \n",outputVideoBufferSequenceFileName_V );
+	LOG_INFO("write video buffer: " << outputVideoBufferSequenceFileName_V );
 	dataCollector->WriteVideoBufferToMetafile( v_buffer, outputFolder.c_str(), outputVideoBufferSequenceFileName_V.c_str(), true); 
 
 	v_buffer->Delete(); 
 	dataCollector->Stop();
-	std::cout << "Vibro_Data is Saved !\n" << std::endl;
+	LOG_INFO( "Vibro_Data is Saved!");
 
-	VTK_LOG_TO_CONSOLE_OFF; 
+	VTK_LOG_TO_CONSOLE_OFF;
+	return PLUS_SUCCESS;
 
 }
 

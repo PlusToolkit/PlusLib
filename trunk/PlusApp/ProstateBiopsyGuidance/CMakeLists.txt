@@ -42,11 +42,11 @@ QT4_ADD_RESOURCES( QT_RCC_Files ${QT_Resources} )
 SOURCE_GROUP("Generated Files" FILES ${QT_MOC_Files} ${QT_UI_Headers} ${QT_MOC_UI_Files} ${QT_RCC_Files})
 SOURCE_GROUP("UI Files" FILES ${ProstateBiopsyGuidance_UI_SRCS})
 
-SET( Temp C:/Users/Admin/devel/PlusExperimental-bin/PlusLib/src/Vibro/AudioCard )
-include_directories(${CMAKE_CURRENT_BINARY_DIR})
-include_directories(${PlusApp_BINARY_DIR}/CommonWidgets)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR})
-include_directories( Temp )
+
+INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR})
+INCLUDE_DIRECTORIES(${PlusApp_BINARY_DIR}/CommonWidgets)
+INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR})
+INCLUDE_DIRECTORIES( ${VibroAudioCard_INCLUDE_DIRS} )
 
 # --------------------------------------------------------------------------
 # Build the library
