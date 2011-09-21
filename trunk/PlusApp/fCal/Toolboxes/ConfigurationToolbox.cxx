@@ -1,6 +1,5 @@
 #include "ConfigurationToolbox.h"
 
-#include "vtkPlusConfig.h"
 #include "fCalMainWindow.h"
 #include "vtkToolVisualizer.h"
 

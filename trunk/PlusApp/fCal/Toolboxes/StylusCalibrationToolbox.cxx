@@ -4,7 +4,6 @@
 #include "vtkToolVisualizer.h"
 
 #include "vtkPivotCalibrationAlgo.h"
-#include "vtkPlusConfig.h"
 #include "ConfigFileSaverDialog.h"
 
 #include <QFileDialog>
@@ -66,9 +65,6 @@ void StylusCalibrationToolbox::Initialize()
       m_ParentMainWindow->GetToolVisualizer()->GetResultPointsPolyData()->GetPoints()->Reset();
     }
 
-  } else {
-	  SetState(ToolboxState_Error);
-    LOG_ERROR("Stylus calibration cannot be initialized because data collection is not started!");
   }
 }
 

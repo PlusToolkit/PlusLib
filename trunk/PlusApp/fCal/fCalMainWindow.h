@@ -3,6 +3,7 @@
 
 #include "ui_fCalMainWindow.h"
 
+#include "PlusConfigure.h"
 #include <QtGui/QMainWindow>
 
 class vtkToolVisualizer;

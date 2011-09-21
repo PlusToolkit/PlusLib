@@ -21,8 +21,6 @@
 #include "vtkProperty.h"
 #include "vtkSTLReader.h"
 
-#include "vtkPlusConfig.h"
-
 //-----------------------------------------------------------------------------
 
 PhantomRegistrationToolbox::PhantomRegistrationToolbox(fCalMainWindow* aParentMainWindow, Qt::WFlags aFlags)
@@ -155,9 +153,6 @@ void PhantomRegistrationToolbox::Initialize()
       Start();
     }
 
-  } else {
-	  SetState(ToolboxState_Error);
-    LOG_ERROR("Stylus calibration cannot be initialized because data collection is not started!");
   }
 }
 

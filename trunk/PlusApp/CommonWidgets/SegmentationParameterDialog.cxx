@@ -3,7 +3,6 @@
 #include <QTimer>
 
 #include "vtkDataCollector.h"
-#include "vtkPlusConfig.h"
 #include "FidPatternRecognitionCommon.h"
 #include "FidPatternRecognition.h"
 #include "PlusVideoFrame.h"
@@ -1439,7 +1438,7 @@ PlusStatus SegmentationParameterDialog::SegmentCurrentImage()
     m_DataCollector->Update();
   }
 
-  // Get and convert currently displayed image
+  // Get and convert currently displayed image // TODO Get TrackedFrame directly from vtkDataCollector
   vtkSmartPointer<vtkImageData> currentImage = vtkSmartPointer<vtkImageData>::New();
   currentImage->DeepCopy(m_DataCollector->GetOutput());
 

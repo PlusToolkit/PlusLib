@@ -1,6 +1,5 @@
 #include "fCalMainWindow.h"
 
-#include "vtkPlusConfig.h"
 #include "vtkToolVisualizer.h"
 #include "ConfigurationToolbox.h"
 #include "StylusCalibrationToolbox.h"

@@ -4,7 +4,6 @@
 
 #include "vtkObjectFactory.h"
 #include "vtkDirectory.h"
-#include "vtkPlusConfig.h"
 #include "vtkXMLUtilities.h"
 
 #include "vtkMath.h"

@@ -21,7 +21,6 @@
 
 #include "DeviceSetSelectorWidget.h"
 #include "ToolStateDisplayWidget.h"
-#include "vtkPlusConfig.h"
 #include "StatusIcon.h"
 
 const QString LABEL_RECORDING_FRAME_RATE("Recording Frame Rate:");

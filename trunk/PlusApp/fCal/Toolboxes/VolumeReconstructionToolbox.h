@@ -4,6 +4,7 @@
 #include "ui_VolumeReconstructionToolbox.h"
 
 #include "AbstractToolbox.h"
+#include "PlusConfigure.h"
 
 #include <QWidget>
 

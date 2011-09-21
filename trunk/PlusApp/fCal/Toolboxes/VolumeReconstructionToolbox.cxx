@@ -2,7 +2,6 @@
 
 #include "fCalMainWindow.h"
 #include "vtkToolVisualizer.h"
-#include "vtkPlusConfig.h"
 
 #include <QFileDialog>
 

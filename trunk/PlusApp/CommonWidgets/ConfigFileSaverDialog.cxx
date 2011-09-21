@@ -5,7 +5,6 @@
 #include <QSettings>
 
 #include "vtkXMLUtilities.h"
-#include "vtkPlusConfig.h"
 #include "vtkXMLDataElement.h"
 
 //-----------------------------------------------------------------------------

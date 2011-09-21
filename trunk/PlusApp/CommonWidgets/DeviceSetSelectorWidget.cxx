@@ -4,8 +4,6 @@
 #include <QMessageBox>
 #include <QDomDocument>
 
-#include "vtkPlusConfig.h"
-
 #include "Shellapi.h"
 
 //-----------------------------------------------------------------------------

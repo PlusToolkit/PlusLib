@@ -20,7 +20,6 @@
 #include <QMessageBox>
 #include <QCloseEvent>
 #include <QDesktopServices>
-#include "vtkPlusConfig.h"
 #include <qlayout.h>
 
 const QString LABEL_RECORDING_FRAME_RATE("Recording Frame Rate:");
