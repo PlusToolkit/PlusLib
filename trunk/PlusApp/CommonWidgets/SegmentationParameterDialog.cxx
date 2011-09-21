@@ -3,7 +3,6 @@
 #include <QTimer>
 
 #include "vtkDataCollector.h"
-#include "vtkCalibrationController.h"
 #include "vtkPlusConfig.h"
 #include "FidPatternRecognitionCommon.h"
 #include "FidPatternRecognition.h"
@@ -944,8 +943,8 @@ SegmentationParameterDialog::SegmentationParameterDialog(QWidget* aParent, vtkDa
 	connect(m_CanvasRefreshTimer, SIGNAL(timeout()), this, SLOT(UpdateCanvas()));
 
   // Initialize calibration controller (does the segmentation)
- 	m_CalibrationController = vtkCalibrationController::New();
-  m_CalibrationController->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData());
+  m_PatternRecognition = new FidPatternRecognition();
+  m_PatternRecognition->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData());
 
   // Fill form with configuration data
   if (ReadConfiguration() != PLUS_SUCCESS) {
@@ -964,9 +963,9 @@ SegmentationParameterDialog::SegmentationParameterDialog(QWidget* aParent, vtkDa
 
 SegmentationParameterDialog::~SegmentationParameterDialog()
 {
-  if (m_CalibrationController != NULL) {
-    m_CalibrationController->Delete(); 
-    m_CalibrationController = NULL; 
+  if (m_PatternRecognition != NULL) {
+    delete m_PatternRecognition; 
+    m_PatternRecognition = NULL; 
   }
 
   if (m_CanvasImageActor != NULL) {
@@ -1450,18 +1449,15 @@ PlusStatus SegmentationParameterDialog::SegmentCurrentImage()
   videoFrame.AllocateFrame(imageSize, itk::ImageIOBase::UCHAR); // TODO Detect DataCollector output type and create this using the proper one
   videoFrame.SetFrame(currentImage);
 
-  unsigned char* buffer = reinterpret_cast<unsigned char*>(videoFrame.GetBufferPointer());
-  if (buffer == NULL) {
-    LOG_ERROR("Image buffer pointer after conversion is NULL!");
-    return PLUS_FAIL;
-  }
+  TrackedFrame* trackedFrame = new TrackedFrame();
+  trackedFrame->ImageData = videoFrame;
 
   // Set image for canvas
   m_CanvasImageActor->SetInput(currentImage);
 
   // Segment image
   PatternRecognitionResult segResults;
-  m_CalibrationController->GetPatternRecognition()->RecognizePattern(buffer, imageSize, segResults);
+  m_PatternRecognition->RecognizePattern(trackedFrame, segResults);
 
   LOG_DEBUG("Candidate count: " << segResults.GetCandidateFidValues().size());
   if (segResults.GetFoundDotsCoordinateValue().size() > 0) {
@@ -1483,7 +1479,7 @@ PlusStatus SegmentationParameterDialog::SegmentCurrentImage()
 	m_CandidatesPolyData->Initialize();
 	m_CandidatesPolyData->SetPoints(candidatePoints);
 
-  // Display segmented points
+  // Display segmented points (result in tracked frame is not usable in themselves because we need to transform the points)
 	vtkSmartPointer<vtkPoints> segmentedPoints = vtkSmartPointer<vtkPoints>::New();
   segmentedPoints->SetNumberOfPoints(segResults.GetFoundDotsCoordinateValue().size());
 
@@ -1495,6 +1491,8 @@ PlusStatus SegmentationParameterDialog::SegmentCurrentImage()
 
 	m_SegmentedPointsPolyData->Initialize();
 	m_SegmentedPointsPolyData->SetPoints(segmentedPoints);
+
+  delete trackedFrame;
 
   return PLUS_SUCCESS;
 }
@@ -1567,9 +1565,9 @@ PlusStatus SegmentationParameterDialog::ComputeSpacingFromMeasuredLengthSum()
   double spacing = (ui.spinBox_ReferenceWidth->text().toDouble() + ui.spinBox_ReferenceHeight->text().toDouble()) / m_SpacingModeHandler->GetLineLengthSumImagePixel();
   ui.label_SpacingResult->setText(QString("%1").arg(spacing));
 
-  m_CalibrationController->GetPatternRecognition()->GetFidSegmentation()->SetApproximateSpacingMmPerPixel(spacing);
-  m_CalibrationController->GetPatternRecognition()->GetFidLineFinder()->SetApproximateSpacingMmPerPixel(spacing);
-  m_CalibrationController->GetPatternRecognition()->GetFidLabeling()->SetApproximateSpacingMmPerPixel(spacing);
+  m_PatternRecognition->GetFidSegmentation()->SetApproximateSpacingMmPerPixel(spacing);
+  m_PatternRecognition->GetFidLineFinder()->SetApproximateSpacingMmPerPixel(spacing);
+  m_PatternRecognition->GetFidLabeling()->SetApproximateSpacingMmPerPixel(spacing);
 
   return PLUS_SUCCESS;
 }
@@ -1703,7 +1701,7 @@ PlusStatus SegmentationParameterDialog::SetROI(int aXMin, int aYMin, int aXMax, 
     ui.spinBox_YMax->setValue(aYMax);
   }
 
-  m_CalibrationController->GetPatternRecognition()->GetFidSegmentation()->SetRegionOfInterest(aXMin, aYMin, aXMax, aYMax);
+  m_PatternRecognition->GetFidSegmentation()->SetRegionOfInterest(aXMin, aYMin, aXMax, aYMax);
 
   ui.spinBox_XMin->blockSignals(false);
 
@@ -1736,7 +1734,7 @@ void SegmentationParameterDialog::ROIXMinChanged(int aValue)
     }
   }
 
-  m_CalibrationController->GetPatternRecognition()->GetFidSegmentation()->SetRegionOfInterest(aValue, -1, -1, -1);
+  m_PatternRecognition->GetFidSegmentation()->SetRegionOfInterest(aValue, -1, -1, -1);
 }
 
 //-----------------------------------------------------------------------------
@@ -1751,7 +1749,7 @@ void SegmentationParameterDialog::ROIYMinChanged(int aValue)
     }
   }
 
-  m_CalibrationController->GetPatternRecognition()->GetFidSegmentation()->SetRegionOfInterest(-1, aValue, -1, -1);
+  m_PatternRecognition->GetFidSegmentation()->SetRegionOfInterest(-1, aValue, -1, -1);
 }
 
 //-----------------------------------------------------------------------------
@@ -1766,7 +1764,7 @@ void SegmentationParameterDialog::ROIXMaxChanged(int aValue)
     }
   }
 
-  m_CalibrationController->GetPatternRecognition()->GetFidSegmentation()->SetRegionOfInterest(-1, -1, aValue, -1);
+  m_PatternRecognition->GetFidSegmentation()->SetRegionOfInterest(-1, -1, aValue, -1);
 }
 
 //-----------------------------------------------------------------------------
@@ -1781,7 +1779,7 @@ void SegmentationParameterDialog::ROIYMaxChanged(int aValue)
     }
   }
 
-  m_CalibrationController->GetPatternRecognition()->GetFidSegmentation()->SetRegionOfInterest(-1, -1, -1, aValue);
+  m_PatternRecognition->GetFidSegmentation()->SetRegionOfInterest(-1, -1, -1, aValue);
 }
 
 //-----------------------------------------------------------------------------
@@ -1808,7 +1806,7 @@ void SegmentationParameterDialog::OpeningCircleRadiusChanged(double aValue)
 {
   LOG_TRACE("SegmentationParameterDialog::OpeningCircleRadiusChanged(" << aValue << ")");
 
-  m_CalibrationController->GetPatternRecognition()->GetFidSegmentation()->SetMorphologicalOpeningCircleRadiusMm(aValue);
+  m_PatternRecognition->GetFidSegmentation()->SetMorphologicalOpeningCircleRadiusMm(aValue);
 }
 
 //-----------------------------------------------------------------------------
@@ -1817,7 +1815,7 @@ void SegmentationParameterDialog::OpeningBarSizeChanged(double aValue)
 {
   LOG_TRACE("SegmentationParameterDialog::OpeningBarSizeChanged(" << aValue << ")");
 
-  m_CalibrationController->GetPatternRecognition()->GetFidSegmentation()->SetMorphologicalOpeningBarSizeMm(aValue);
+  m_PatternRecognition->GetFidSegmentation()->SetMorphologicalOpeningBarSizeMm(aValue);
 }
 
 //-----------------------------------------------------------------------------
@@ -1826,7 +1824,7 @@ void SegmentationParameterDialog::LineLengthErrorChanged(double aValue)
 {
   LOG_TRACE("SegmentationParameterDialog::LineLengthErrorChanged(" << aValue << ")");
 
-  m_CalibrationController->GetPatternRecognition()->GetFidLineFinder()->SetMaxLineLengthErrorPercent(aValue);
+  m_PatternRecognition->GetFidLineFinder()->SetMaxLineLengthErrorPercent(aValue);
 }
 
 //-----------------------------------------------------------------------------
@@ -1835,7 +1833,7 @@ void SegmentationParameterDialog::LinePairDistanceErrorChanged(double aValue)
 {
   LOG_TRACE("SegmentationParameterDialog::LinePairDistanceErrorChanged(" << aValue << ")");
 
-  m_CalibrationController->GetPatternRecognition()->GetFidLabeling()->SetMaxLinePairDistanceErrorPercent(aValue);
+  m_PatternRecognition->GetFidLabeling()->SetMaxLinePairDistanceErrorPercent(aValue);
 }
 
 //-----------------------------------------------------------------------------
@@ -1844,7 +1842,7 @@ void SegmentationParameterDialog::LineErrorChanged(double aValue)
 {
   LOG_TRACE("SegmentationParameterDialog::LineErrorChanged(" << aValue << ")");
 
-  m_CalibrationController->GetPatternRecognition()->GetFidLineFinder()->SetMaxLineErrorMm(aValue);
+  m_PatternRecognition->GetFidLineFinder()->SetMaxLineErrorMm(aValue);
 }
 
 //-----------------------------------------------------------------------------
@@ -1853,7 +1851,7 @@ void SegmentationParameterDialog::AngleDifferenceChanged(double aValue)
 {
   LOG_TRACE("SegmentationParameterDialog::AngleDifferenceChanged(" << aValue << ")");
 
-  m_CalibrationController->GetPatternRecognition()->GetFidLabeling()->SetMaxAngleDifferenceDegrees(aValue);
+  m_PatternRecognition->GetFidLabeling()->SetMaxAngleDifferenceDegrees(aValue);
 }
 
 //-----------------------------------------------------------------------------
@@ -1862,7 +1860,7 @@ void SegmentationParameterDialog::MinThetaChanged(double aValue)
 {
   LOG_TRACE("SegmentationParameterDialog::MinThetaChanged(" << aValue << ")");
 
-  m_CalibrationController->GetPatternRecognition()->GetFidLineFinder()->SetMinThetaDegrees(aValue);
+  m_PatternRecognition->GetFidLineFinder()->SetMinThetaDegrees(aValue);
 }
 
 //-----------------------------------------------------------------------------
@@ -1871,7 +1869,7 @@ void SegmentationParameterDialog::MaxThetaChanged(double aValue)
 {
   LOG_TRACE("SegmentationParameterDialog::MaxThetaChanged(" << aValue << ")");
 
-  m_CalibrationController->GetPatternRecognition()->GetFidLineFinder()->SetMaxThetaDegrees(aValue);
+  m_PatternRecognition->GetFidLineFinder()->SetMaxThetaDegrees(aValue);
 }
 
 //-----------------------------------------------------------------------------
@@ -1880,7 +1878,7 @@ void SegmentationParameterDialog::CollinearPointsMaxDistanceFromLineChanged(doub
 {
   LOG_TRACE("SegmentationParameterDialog::CollinearPointsMaxDistanceFromLineChanged(" << aValue << ")");
 
-  m_CalibrationController->GetPatternRecognition()->GetFidLineFinder()->SetCollinearPointsMaxDistanceFromLineMm(aValue);
+  m_PatternRecognition->GetFidLineFinder()->SetCollinearPointsMaxDistanceFromLineMm(aValue);
 }
 
 //-----------------------------------------------------------------------------
@@ -1889,7 +1887,7 @@ void SegmentationParameterDialog::ImageThresholdChanged(double aValue)
 {
   LOG_TRACE("SegmentationParameterDialog::ImageThresholdChanged(" << aValue << ")");
 
-  m_CalibrationController->GetPatternRecognition()->GetFidSegmentation()->SetThresholdImagePercent(aValue);
+  m_PatternRecognition->GetFidSegmentation()->SetThresholdImagePercent(aValue);
 }
 
 //-----------------------------------------------------------------------------
@@ -1898,5 +1896,5 @@ void SegmentationParameterDialog::OriginalIntensityForDotsToggled(bool aOn)
 {
   LOG_TRACE("SegmentationParameterDialog::OriginalIntensityForDotsToggled(" << (aOn?"true":"false") << ")");
 
-  m_CalibrationController->GetPatternRecognition()->GetFidSegmentation()->SetUseOriginalImageIntensityForDotIntensityScore(aOn);
+  m_PatternRecognition->GetFidSegmentation()->SetUseOriginalImageIntensityForDotIntensityScore(aOn);
 }

@@ -10,7 +10,7 @@
 class QTimer;
 
 class vtkDataCollector;
-class vtkCalibrationController;
+class FidPatternRecognition;
 
 class vtkActor;
 class vtkImageActor;
@@ -32,7 +32,7 @@ public:
 	/*!
 	* \brief Constructor
 	* \param aParent Parent object
-	* \param aDataCollector Data collector (needed for the image output and the configuration data element)
+	* \param aDataCollector Data collector (needed for the image output)
 	*/
 	SegmentationParameterDialog(QWidget* aParent, vtkDataCollector* aDataCollector);
 
@@ -310,8 +310,8 @@ protected:
   //! Original mm per pixel spacing (from input configuration)
   double                    m_ApproximateSpacingMmPerPixel;
 
-  //! Calibration controller for segmenting the images
-  vtkCalibrationController* m_CalibrationController;
+  //! Pattern recognition object for segmenting the images
+  FidPatternRecognition*    m_PatternRecognition;
 
   //! Flag indigating if image is frozen (using Freeze button)
   bool                      m_ImageFrozen;
