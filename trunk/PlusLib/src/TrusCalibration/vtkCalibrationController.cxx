@@ -174,12 +174,19 @@ PlusStatus vtkCalibrationController::AddTrackedFrameData(TrackedFrame* trackedFr
         LOG_ERROR("vtkCalibrationController::AddTrackedFrameData no image data is available"); 
         return PLUS_FAIL; 
     }
-    if ( this->SegmentImage(image) != PLUS_SUCCESS)
-    {
-        LOG_WARNING("Undefined error occured during frame segmentation!"); 
-        return PLUS_FAIL; 
-    }
 
+	  if ( ! this->GetInitialized() )
+	  {
+		  this->Initialize(); 
+	  }
+
+	  // Send the image to the Segmentation component for segmentation
+    if (this->PatternRecognition.RecognizePattern(trackedFrame, this->PatRecognitionResult) != PLUS_SUCCESS)
+    {
+      LOG_ERROR("Segmentation encountered errors!");
+      return PLUS_FAIL;
+    }
+ 
 		// Add frame to the container 
 		int trackedFramePosition(-1); 
 		if ( this->EnableErroneouslySegmentedDataSaving )
@@ -250,50 +257,6 @@ void vtkCalibrationController::ClearSegmentedFrameContainer(IMAGE_DATA_TYPE data
       ++it;
     }
   } 
-}
-
-//----------------------------------------------------------------------------
-PlusStatus vtkCalibrationController::SegmentImage(vtkImageData * imageData )
-{
-	LOG_TRACE("vtkCalibrationController::SegmentImage - vtkImage"); 
-	ImageType::Pointer frame = ImageType::New();
-    if ( UsImageConverterCommon::ConvertVtkImageToItkImage(imageData, frame) != PLUS_SUCCESS )
-    {
-        LOG_ERROR("Failed to convert vtk image to itk image!"); 
-        return PLUS_FAIL; 
-
-    }
-	return this->SegmentImage(frame);
-}
-
-//----------------------------------------------------------------------------
-PlusStatus vtkCalibrationController::SegmentImage(const ImageType::Pointer& imageData)
-{
-	LOG_TRACE("vtkCalibrationController::SegmentImage - itkImage"); 
-	try
-	{
-		if ( ! this->GetInitialized() )
-		{
-			this->Initialize(); 
-		}
-
-		// Check frame size before segmentation 
-		int frameSize[2] = {imageData->GetLargestPossibleRegion().GetSize()[0], imageData->GetLargestPossibleRegion().GetSize()[1]}; 
-
-		// Send the image to the Segmentation component for segmentation
-    if (this->PatternRecognition.RecognizePattern(imageData->GetBufferPointer(), frameSize, this->PatRecognitionResult) != PLUS_SUCCESS)
-    {
-      LOG_ERROR("Segmentation encountered errors!");
-      return PLUS_FAIL;
-    }
-   
-		return PLUS_SUCCESS;
-	}
-	catch(...)
-	{
-		LOG_ERROR("SegmentImage: The segmentation has failed for due to UNKNOWN exception thrown, the image was ignored!!!"); 
-		return PLUS_FAIL; 
-	}
 }
 
 //----------------------------------------------------------------------------

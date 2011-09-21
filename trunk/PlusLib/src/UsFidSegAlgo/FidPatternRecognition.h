@@ -6,6 +6,8 @@
 #include "FidLineFinder.h"
 #include "FidLabeling.h"
 
+#include "vtkTrackedFrameList.h"
+
 #include "vtkXMLDataElement.h"
 
 //-----------------------------------------------------------------------------
@@ -17,7 +19,8 @@ class FidPatternRecognition
 		virtual ~FidPatternRecognition();
 
     PlusStatus        ReadConfiguration(vtkXMLDataElement* segmentationParameters);
-		PlusStatus        RecognizePattern(PixelType* image, int imageSize[2], PatternRecognitionResult &patternRecognitionResult);
+		PlusStatus        RecognizePattern(TrackedFrame* trackedFrame);
+		PlusStatus        RecognizePattern(TrackedFrame* trackedFrame, PatternRecognitionResult &patternRecognitionResult);
 
     void              DrawDots(PixelType* image, std::vector<Dot>::iterator dotsIterator, int ndots);
     void              DrawLines(PixelType* image, std::vector<Line>::iterator linesIterator, int nlines);
@@ -26,7 +29,7 @@ class FidPatternRecognition
 
     FidSegmentation*	GetFidSegmentation() { return	& m_FidSegmentation; };
     FidLineFinder*		GetFidLineFinder() { return & m_FidLineFinder; };
-    FidLabeling* 		GetFidLabeling() { return & m_FidLabeling; };
+    FidLabeling* 		  GetFidLabeling() { return & m_FidLabeling; };
 
 	protected:
     

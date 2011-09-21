@@ -332,7 +332,7 @@ void FidLabeling::FindDoubleNLines()
 
   if ( m_PairsVector.size() < 1 ) 
 	{
-		LOG_DEBUG("Segmentation was NOT successful! (Number of dots found: " << GetFoundDotsCoordinateValue().size() << " Number of possible fiducial points: " << GetNumDots() << ")"); 
+		LOG_DEBUG("Segmentation was NOT successful! (Number of dots found: " << m_FoundDotsCoordinateValue.size() << " Number of possible fiducial points: " << m_NumDots << ")"); 
 		SetDotsFound(false);				
 		return;
 	}

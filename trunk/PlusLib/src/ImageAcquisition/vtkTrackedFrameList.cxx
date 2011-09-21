@@ -61,6 +61,7 @@ TrackedFrame& TrackedFrame::operator=(TrackedFrame const&trackedFrame)
   this->Status = trackedFrame.Status; 
   this->FrameSize[0] = trackedFrame.FrameSize[0]; 
   this->FrameSize[1] = trackedFrame.FrameSize[1]; 
+  this->SetFiducialPointsCoordinatePx(trackedFrame.FiducialPointsCoordinatePx);
 
   return *this;
 }

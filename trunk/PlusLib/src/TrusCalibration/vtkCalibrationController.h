@@ -219,12 +219,6 @@ protected:
 	virtual ~vtkCalibrationController();
 
 	//! Description 
-	// Run the segmentation algorithm on the image and return with the segmentation result 
-	// The class has to be initialized before the segmentation process. 
-	virtual PlusStatus SegmentImage(const ImageType::Pointer& imageData); 
-	virtual PlusStatus SegmentImage(vtkImageData * imageData); 
-
-	//! Description 
 	// Create tracked frame with the inputs specified
 	virtual void CreateTrackedFrame(const ImageType::Pointer& imageData, vtkMatrix4x4* transform, IMAGE_DATA_TYPE dataType, TrackedFrame& trackedFrame ); 
 	virtual void CreateTrackedFrame(const ImageType::Pointer& imageData, const double probePosition, const double probeRotation, const double templatePosition, IMAGE_DATA_TYPE dataType, TrackedFrame& trackedFrame); 
