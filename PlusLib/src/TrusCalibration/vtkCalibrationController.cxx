@@ -40,8 +40,6 @@ SegmentationProgressCallbackFunction(NULL)
   this->CalibrationDoneOff(); 
 
 	this->ConfigurationFileName = NULL;
-	this->ModelToPhantomTransform = NULL;
-	this->PhantomModelFileName = NULL;
   this->OfflineImageData = NULL;
   
   this->ConfigurationData = NULL;
@@ -429,14 +427,6 @@ PlusStatus vtkCalibrationController::ReadConfiguration( vtkXMLDataElement* confi
 	  }
   }
 
-	// Phantom model specifications
-	//********************************************************************
-	if (this->ReadPhantomModelConfiguration(configData) != PLUS_SUCCESS)
-	{
-    LOG_ERROR("Unable to read phantom definition!");
-  	return PLUS_FAIL;
-	}
-
 	// Calibration controller specifications
 	//********************************************************************
 	if (this->ReadCalibrationControllerConfiguration(configData) != PLUS_SUCCESS)
@@ -523,67 +513,6 @@ PlusStatus vtkCalibrationController::ReadCalibrationControllerConfiguration( vtk
 	}
 
 	return PLUS_SUCCESS;
-}
-
-//----------------------------------------------------------------------------
-
-PlusStatus vtkCalibrationController::ReadPhantomModelConfiguration(vtkXMLDataElement* config)
-{
-	LOG_TRACE("vtkCalibrationController::ReadPhantomModelConfiguration");
-
-	if ( config == NULL )
-	{
-		LOG_ERROR("Configuration XML data element is NULL"); 
-		return PLUS_FAIL;
-	}
-
-	vtkSmartPointer<vtkXMLDataElement> phantomDefinition = config->FindNestedElementWithName("PhantomDefinition");
-	if (phantomDefinition == NULL)
-  {
-		LOG_ERROR("No phantom definition is found in the XML tree!");
-		return PLUS_FAIL;
-	}
-  else
-	{
-		// Load model information
-		vtkSmartPointer<vtkXMLDataElement> model = phantomDefinition->FindNestedElementWithName("Model"); 
-		if (model == NULL) {
-			LOG_WARNING("Phantom model information not found - no model displayed");
-		} else {
-			const char* file = model->GetAttribute("File");
-			if (file) {
-				if ((strstr(file, ".stl") != NULL) || ((strstr(file, ".STL") != NULL))) { // If filename contains ".stl" or ".STL" then it is valid, else we do not search for it (and do not return with warning either, because some time we just do not fill that field because we do not have the file)
-					std::string searchResult;
-					if (STRCASECMP(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationDirectory(), "") == 0) {
-						std::string configurationDirectory = vtksys::SystemTools::GetFilenamePath(this->ConfigurationFileName);
-						searchResult = vtkPlusConfig::GetFirstFileFoundInParentOfDirectory(file, configurationDirectory.c_str());
-					} else {
-						searchResult = vtkPlusConfig::GetFirstFileFoundInConfigurationDirectory(file);
-					}
-					if (STRCASECMP("", searchResult.c_str()) != 0) {
-						this->SetPhantomModelFileName(searchResult.c_str());
-					}
-				} else {
-					LOG_INFO("'" << file << "' does not appear to be a valid phantom model file name, so it was not searched for");
-				}
-			}
-
-			// ModelToPhantomTransform - Transforming input model for proper visualization
-			double* modelToPhantomTransformVector = new double[16]; 
-			if (model->GetVectorAttribute("ModelToPhantomTransform", 16, modelToPhantomTransformVector)) {
-				vtkSmartPointer<vtkMatrix4x4> modelToPhantomTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-				modelToPhantomTransformMatrix->Identity();
-				modelToPhantomTransformMatrix->DeepCopy(modelToPhantomTransformVector);
-
-				vtkSmartPointer<vtkTransform> modelToPhantomTransform = vtkSmartPointer<vtkTransform>::New();
-				modelToPhantomTransform->SetMatrix(modelToPhantomTransformMatrix);
-				this->SetModelToPhantomTransform(modelToPhantomTransform);
-			}
-			delete[] modelToPhantomTransformVector;
-		}
-	}
-
-  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
