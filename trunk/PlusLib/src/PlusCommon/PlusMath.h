@@ -15,12 +15,16 @@ class VTK_EXPORT PlusMath
 public:
 
   //! Description: 
-	// Solve Ax = b sparse linear equations with linear least squares method (vnl_lsqr)
+	// Solve Ax = b sparse linear equations with robust linear least squares method (vnl_lsqr + outlier removal)
 	// The coefficient matrix aMatrix should be m-by-n and the column vector bVector must have length m. 
 	// resultVector size need to be fixed by constructor time
   static PlusStatus LSQRMinimize(const std::vector< std::vector<double> > &aMatrix, const std::vector<double> &bVector, vnl_vector<double> &resultVector); 
   static PlusStatus LSQRMinimize(const std::vector<vnl_vector<double>> &aMatrix, const std::vector<double> &bVector, vnl_vector<double> &resultVector); 
   static PlusStatus LSQRMinimize(const vnl_sparse_matrix<double> &sparseMatrixLeftSide, const vnl_vector<double> &vectorRightSide, vnl_vector<double> &resultVector); 
+
+  //! Description: 
+	// Remove outliers from Ax = b sparse linear equations after linear least squares method (vnl_lsqr)
+  static PlusStatus RemoveOutliersFromLSRQ(vnl_sparse_matrix<double> &sparseMatrixLeftSide, vnl_vector<double> &vectorRightSide, vnl_vector<double> &resultVector, bool &outlierFound, double thresholdMultiplier/* = 3.0*/ ); 
 
   //! Description: 
   // Returns the Euclidean distance between two 4x4 homogeneous transformation matrix

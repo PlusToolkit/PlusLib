@@ -357,18 +357,10 @@ PlusStatus vtkStepperCalibrationController::CalibrateRotationAxis()
     return PLUS_FAIL;
   }
 
-  do 
+  if ( PlusMath::LSQRMinimize(aMatrix, bVector, rotationAxisCalibResult) != PLUS_SUCCESS )
   {
-    if ( PlusMath::LSQRMinimize(aMatrix, bVector, rotationAxisCalibResult) == PLUS_SUCCESS )
-    {
-      this->RemoveOutliersFromRotAxisCalibData(aMatrix, bVector, rotationAxisCalibResult); 
-    }
-    else
-    {
-      LOG_WARNING("Failed to run LSQRMinimize!"); 
-    }
-  } 
-  while (numberOfEquations != bVector.size()); 
+    LOG_WARNING("Failed to run LSQRMinimize!"); 
+  }
 
   if ( rotationAxisCalibResult.empty() )
   {
@@ -633,20 +625,10 @@ PlusStatus vtkStepperCalibrationController::CalibrateRotationEncoder()
   }
 
   vnl_vector<double> rotationEncoderCalibrationResult(2,0);
-  int numberOfEquations(0); 
-  do
+  if ( PlusMath::LSQRMinimize(aMatrix, bVector, rotationEncoderCalibrationResult) != PLUS_SUCCESS )
   {
-    numberOfEquations = bVector.size(); 
-    if ( PlusMath::LSQRMinimize(aMatrix, bVector, rotationEncoderCalibrationResult) == PLUS_SUCCESS )
-    {
-      this->RemoveOutliersFromRotEncCalibData(aMatrix, bVector, rotationEncoderCalibrationResult); 
-    }
-    else
-    {
-      LOG_WARNING("Failed to run LSQRMinimize!"); 
-    }
+    LOG_WARNING("Failed to run LSQRMinimize!"); 
   }
-  while ( numberOfEquations != bVector.size() ); 
 
   if ( rotationEncoderCalibrationResult.empty() )
   {
@@ -1019,21 +1001,10 @@ PlusStatus vtkStepperCalibrationController::CalibrateTranslationAxis( IMAGE_DATA
 
   // [tx, ty, w1x0, w1y0, w3x0, w3y0, w4x0, w4y0, w6x0, w6y0 ]
   vnl_vector<double> translationAxisCalibResult(10, 0);
-
-  int numberOfEquations(0);
-  do 
+  if ( PlusMath::LSQRMinimize(aMatrix, bVector, translationAxisCalibResult) != PLUS_SUCCESS)
   {
-    numberOfEquations = bVector.size(); 
-    if ( PlusMath::LSQRMinimize(aMatrix, bVector, translationAxisCalibResult) == PLUS_SUCCESS)
-    {
-      this->RemoveOutliersFromTransAxisCalibData(aMatrix, bVector, translationAxisCalibResult); 
-    }
-    else
-    {
-      LOG_WARNING("Failed to run LSQRMinimize!"); 
-    }
+    LOG_WARNING("Failed to run LSQRMinimize!"); 
   }
-  while ( numberOfEquations != bVector.size() ); 
 
   if ( translationAxisCalibResult.empty() )
   {
@@ -1567,21 +1538,10 @@ PlusStatus vtkStepperCalibrationController::CalculateSpacing()
   // - Sy: axial axis;
   // - Units in mm/pixel.
   vnl_vector<double> TRUSSquaredScaleFactorsInMMperPixel2x1(2,0);
-
-  int numberOfEquations(0); 
-  do 
+  if ( PlusMath::LSQRMinimize(aMatrix, bVector, TRUSSquaredScaleFactorsInMMperPixel2x1) != PLUS_SUCCESS )
   {
-    numberOfEquations = bVector.size(); 
-    if ( PlusMath::LSQRMinimize(aMatrix, bVector, TRUSSquaredScaleFactorsInMMperPixel2x1) == PLUS_SUCCESS )
-    {
-      this->RemoveOutliersFromSpacingCalcData(aMatrix, bVector, TRUSSquaredScaleFactorsInMMperPixel2x1); 
-    }
-    else
-    {
-      LOG_WARNING("Failed to run LSQRMinimize!"); 
-    }
-  } 
-  while (numberOfEquations != bVector.size()); 
+    LOG_WARNING("Failed to run LSQRMinimize!"); 
+  }
 
   if ( TRUSSquaredScaleFactorsInMMperPixel2x1.empty() )
   {
@@ -1892,24 +1852,10 @@ PlusStatus vtkStepperCalibrationController::CalculateCenterOfRotation( Segmented
   // - Positive Y: to the bottom;
   // - Units in pixels.
   vnl_vector<double> TRUSRotationCenterInOriginalImageFrameInMm2x1(2,0);
-  int numberOfEquations(0); 
-  do 
+  if ( PlusMath::LSQRMinimize(aMatrix, bVector, TRUSRotationCenterInOriginalImageFrameInMm2x1) != PLUS_SUCCESS )
   {
-    numberOfEquations = bVector.size();     
-    if ( PlusMath::LSQRMinimize(aMatrix, bVector, TRUSRotationCenterInOriginalImageFrameInMm2x1) == PLUS_SUCCESS )
-    {
-      if ( !TRUSRotationCenterInOriginalImageFrameInMm2x1.empty() )
-      {
-        LOG_DEBUG("Center of rotation in original image frame (outlier removal in progress): " << TRUSRotationCenterInOriginalImageFrameInMm2x1.get(0) <<", "<<TRUSRotationCenterInOriginalImageFrameInMm2x1.get(1)<< " mm");
-      }
-      this->RemoveOutliersFromCenterOfRotCalcData(aMatrix, bVector, TRUSRotationCenterInOriginalImageFrameInMm2x1);       
-    }
-    else
-    {
-      LOG_WARNING("Failed to run LSQRMinimize!"); 
-    }
-  } 
-  while (numberOfEquations != bVector.size()); 
+    LOG_WARNING("Failed to run LSQRMinimize!"); 
+  }
 
   if ( TRUSRotationCenterInOriginalImageFrameInMm2x1.empty() )
   {
