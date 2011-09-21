@@ -209,7 +209,7 @@ PlusStatus DeviceSetSelectorWidget::ParseDirectory(QString aDirectory)
 		}
 	}
 
-  int lastSelectedDeviceSetIndex(0); 
+  int lastSelectedDeviceSetIndex = -1; 
   
   // Block signals before we add items
   ui.comboBox_DeviceSet->blockSignals(true); 
@@ -281,8 +281,6 @@ PlusStatus DeviceSetSelectorWidget::ParseDirectory(QString aDirectory)
 
     return PLUS_FAIL;
   }
-
-  ui.comboBox_DeviceSet->setCurrentIndex(-1); 
 
   // Unblock signals after we add items
   ui.comboBox_DeviceSet->blockSignals(false); 
