@@ -18,8 +18,9 @@ class FidPatternRecognition
     FidPatternRecognition();
 		virtual ~FidPatternRecognition();
 
-    PlusStatus        ReadConfiguration(vtkXMLDataElement* segmentationParameters);
-		PlusStatus        RecognizePattern(TrackedFrame* trackedFrame);
+    PlusStatus        ReadConfiguration(vtkXMLDataElement* rootConfigElement);
+
+    PlusStatus        RecognizePattern(TrackedFrame* trackedFrame);
 		PlusStatus        RecognizePattern(TrackedFrame* trackedFrame, PatternRecognitionResult &patternRecognitionResult);
 
     void              DrawDots(PixelType* image, std::vector<Dot>::iterator dotsIterator, int ndots);
@@ -30,6 +31,10 @@ class FidPatternRecognition
     FidSegmentation*	GetFidSegmentation() { return	& m_FidSegmentation; };
     FidLineFinder*		GetFidLineFinder() { return & m_FidLineFinder; };
     FidLabeling* 		  GetFidLabeling() { return & m_FidLabeling; };
+
+  protected:
+
+	  PlusStatus        ReadPhantomDefinition(vtkXMLDataElement* rootConfigElement);
 
 	protected:
     

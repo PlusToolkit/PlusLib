@@ -213,7 +213,7 @@ void vtkProbeCalibrationController::RegisterPhantomGeometry()
     */
 
   double verticalDistanceTemplateMounterHoleToTRUSRotationCenterInMM = 
-    this->GetPatternRecognition()->GetFidSegmentation()->GetNWires()[1].wires[0].endPointFront[1] // WIRE1 y
+    this->GetPatternRecognition()->GetFidLineFinder()->GetNWires()[1].wires[0].endPointFront[1] // WIRE1 y
             + this->GetPhantomToProbeDistanceInMm()[1]
             - GetTransformTemplateHolderHomeToPhantomHome()->GetPosition()[1]; // :TODO: transform with the whole matrix instead of just using the XY position values
 
@@ -224,7 +224,7 @@ void vtkProbeCalibrationController::RegisterPhantomGeometry()
         + phantomToProbeDistanceInMm[0]
     - this->GetCalibrator()->GetPhantomPoints().TemplateHolderPosition.x; */
     double horizontalDistanceTemplateMounterHoleToTRUSRotationCenterInMM = 
-        this->GetPatternRecognition()->GetFidSegmentation()->GetNWires()[0].wires[2].endPointFront[0] // WIRE3 x
+        this->GetPatternRecognition()->GetFidLineFinder()->GetNWires()[0].wires[2].endPointFront[0] // WIRE3 x
         + this->GetPhantomToProbeDistanceInMm()[0]
     - GetTransformTemplateHolderHomeToPhantomHome()->GetPosition()[0]; // :TODO: transform with the whole matrix instead of just using the XY position values
 
@@ -888,14 +888,6 @@ PlusStatus vtkProbeCalibrationController::ReadConfiguration( vtkXMLDataElement* 
 	if ( this->CalibrationControllerIO->ReadProbeCalibrationConfiguration(configData) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to read probe calibration configuration from file!"); 
-    return PLUS_FAIL; 
-  }
-
-	// Phantom definition
-	//*********************************
-	if ( this->ReadPhantomDefinition(configData) != PLUS_SUCCESS )
-  {
-    LOG_ERROR("Failed to read phantom definition from config file!"); 
     return PLUS_FAIL; 
   }
 

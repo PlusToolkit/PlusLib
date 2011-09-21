@@ -2723,10 +2723,6 @@ PlusStatus vtkStepperCalibrationController::ReadConfiguration( vtkXMLDataElement
     return PLUS_FAIL;
   }
 
-	// Phantom definition
-	//*********************************
-	this->ReadPhantomDefinition(configData);
-
   return PLUS_SUCCESS;
 }
 

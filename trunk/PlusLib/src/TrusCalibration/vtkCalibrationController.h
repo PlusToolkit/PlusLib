@@ -232,8 +232,8 @@ protected:
 	virtual PlusStatus ReadCalibrationControllerConfiguration(vtkXMLDataElement* rootElement); 
 
 	//! Description 
-	// Read Phantom definition from XML
-	virtual PlusStatus ReadPhantomDefinition(vtkXMLDataElement* rootElement);
+	// Read Phantom model configuration from XML
+	virtual PlusStatus ReadPhantomModelConfiguration(vtkXMLDataElement* rootElement);
 
 protected:
 	//! Attribute: Flag to enable the tracked sequence data saving to metafile

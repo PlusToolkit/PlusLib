@@ -5,7 +5,6 @@
 #include "UsFidSegResultFile.h"
 
 #include "FidPatternRecognition.h"
-#include "vtkCalibrationController.h"
 
 #include "vtksys/CommandLineArguments.hxx"
 #include "vtkXMLDataElement.h"
@@ -24,7 +23,7 @@ static const float FIDUCIAL_POSITION_TOLERANCE = 0.1;  // in pixel
 static const double BASELINE_TO_ALGORITHM_TOLERANCE = 5; 
 ///////////////////////////////////////////////////////////////////
 
-void SegmentImageSequence( vtkTrackedFrameList* trackedFrameList, std::ofstream &outFile, const std::string &inputTestcaseName, const std::string &inputImageSequenceFileName, vtkCalibrationController * calibrationController, const char* fidPositionOutputFilename)
+void SegmentImageSequence( vtkTrackedFrameList* trackedFrameList, std::ofstream &outFile, const std::string &inputTestcaseName, const std::string &inputImageSequenceFileName, FidPatternRecognition* patternRecognition, const char* fidPositionOutputFilename)
 {
 	double sumFiducialNum = 0;// divide by framenum
 	double sumFiducialCandidate = 0;// divide by framenum
@@ -57,7 +56,7 @@ void SegmentImageSequence( vtkTrackedFrameList* trackedFrameList, std::ofstream 
     PlusVideoFrame videoFrame = trackedFrameList->GetTrackedFrame(currentFrameIndex)->ImageData;
     int frameSize[2];
     videoFrame.GetFrameSize(frameSize);
-    calibrationController->GetPatternRecognition()->RecognizePattern(trackedFrameList->GetTrackedFrame(currentFrameIndex), segResults );
+    patternRecognition->RecognizePattern(trackedFrameList->GetTrackedFrame(currentFrameIndex), segResults );
 		
 		sumFiducialCandidate += segResults.GetNumDots();
 		int numFid=0;
@@ -108,7 +107,7 @@ void SegmentImageSequence( vtkTrackedFrameList* trackedFrameList, std::ofstream 
 }
 
 // return the number of differences
-int CompareSegmentationResults(const std::string& inputBaselineFileName, const std::string& outputTestResultsFileName, vtkCalibrationController * calibrationController)
+int CompareSegmentationResults(const std::string& inputBaselineFileName, const std::string& outputTestResultsFileName, FidPatternRecognition* patternRecognition)
 {
 	const bool reportWarningsAsFailure=true;
 	int numberOfFailures=0;
@@ -150,7 +149,7 @@ int CompareSegmentationResults(const std::string& inputBaselineFileName, const s
   {
 	  outFileFidFindingResults.open("FiducialsFound.txt");
 	  outFileFidFindingResults<< "Baseline to algorithm Tolerance: "<<BASELINE_TO_ALGORITHM_TOLERANCE<<" pixel(s)" <<std::endl;
-    outFileFidFindingResults<< "Threshold: "<< calibrationController->GetPatternRecognition()->GetFidSegmentation()->GetThresholdImagePercent() <<std::endl; 
+    outFileFidFindingResults<< "Threshold: "<< patternRecognition->GetFidSegmentation()->GetThresholdImagePercent() <<std::endl; 
   }
 	for (int nestedElemInd=0; nestedElemInd<currentRootElem->GetNumberOfNestedElements(); nestedElemInd++)
 	{
@@ -425,8 +424,16 @@ int main(int argc, char **argv)
 		exit(EXIT_FAILURE);
 	}
 
-	vtkSmartPointer<vtkCalibrationController> calibrationController = vtkSmartPointer<vtkCalibrationController>::New();
-	calibrationController->ReadConfiguration(inputConfigFileName.c_str());
+  // Read configuration
+  vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkXMLUtilities::ReadElementFromFile(inputConfigFileName.c_str());
+  if (configRootElement == NULL)
+  {	
+    LOG_ERROR("Unable to read configuration from file " << inputConfigFileName.c_str()); 
+		exit(EXIT_FAILURE);
+  }
+
+	FidPatternRecognition* patternRecognition = new FidPatternRecognition();
+	patternRecognition->ReadConfiguration(configRootElement);
 
   LOG_INFO("Read from metafile");
   std::string inputImageSequencePath=inputTestDataDir+"\\"+inputImageSequenceFileName;
@@ -440,7 +447,7 @@ int main(int argc, char **argv)
 	std::ofstream outFile; 
 	outFile.open(outputTestResultsFileName.c_str());	
 	UsFidSegResultFile::WriteSegmentationResultsHeader(outFile);
-  UsFidSegResultFile::WriteSegmentationResultsParameters(outFile, *(calibrationController->GetPatternRecognition()), "");
+  UsFidSegResultFile::WriteSegmentationResultsParameters(outFile, *(patternRecognition), "");
 
   const char* fidPositionOutputFilename=NULL;
   if (!outputFiducialPositionsFileName.empty())
@@ -449,7 +456,7 @@ int main(int argc, char **argv)
   }
 
   LOG_INFO("Segment image sequence");
-	SegmentImageSequence(trackedFrameList.GetPointer(), outFile, inputTestcaseName, inputImageSequenceFileName, calibrationController, fidPositionOutputFilename); 
+	SegmentImageSequence(trackedFrameList.GetPointer(), outFile, inputTestcaseName, inputImageSequenceFileName, patternRecognition, fidPositionOutputFilename); 
 
 	UsFidSegResultFile::WriteSegmentationResultsFooter(outFile);
 	outFile.close();
@@ -459,12 +466,15 @@ int main(int argc, char **argv)
 	if (!inputBaselineFileName.empty())
 	{		
     LOG_INFO("Compare results");
-		if (CompareSegmentationResults(inputBaselineFileName, outputTestResultsFileName, calibrationController)!=0)
+		if (CompareSegmentationResults(inputBaselineFileName, outputTestResultsFileName, patternRecognition)!=0)
 		{
 			LOG_ERROR("Comparison of segmentation data to baseline failed");
+      delete patternRecognition;
 			return EXIT_FAILURE;
 		}
 	}
+
+  delete patternRecognition;
 	
  	return EXIT_SUCCESS;
 }

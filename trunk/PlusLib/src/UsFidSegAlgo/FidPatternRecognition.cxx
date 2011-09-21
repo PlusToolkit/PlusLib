@@ -19,13 +19,19 @@ FidPatternRecognition::~FidPatternRecognition()
 
 //-----------------------------------------------------------------------------
 
-PlusStatus FidPatternRecognition::ReadConfiguration(vtkXMLDataElement* segmentationParameters)
+PlusStatus FidPatternRecognition::ReadConfiguration(vtkXMLDataElement* rootConfigElement)
 {
 	LOG_TRACE("FidPatternRecognition::ReadConfiguration"); 
 
-	m_FidSegmentation.ReadConfiguration(segmentationParameters);
-	m_FidLineFinder.ReadConfiguration(segmentationParameters);
-  m_FidLabeling.ReadConfiguration(segmentationParameters, m_FidLineFinder.GetMinTheta(), m_FidLineFinder.GetMaxTheta(), m_FidLineFinder.GetMaxLineErrorMm());
+  if (ReadPhantomDefinition(rootConfigElement) != PLUS_SUCCESS)
+  {
+    LOG_ERROR("Reading phantom definition failed!");
+    return PLUS_FAIL;
+  }
+
+	m_FidSegmentation.ReadConfiguration(rootConfigElement);
+	m_FidLineFinder.ReadConfiguration(rootConfigElement);
+  m_FidLabeling.ReadConfiguration(rootConfigElement, m_FidLineFinder.GetMinTheta(), m_FidLineFinder.GetMaxTheta(), m_FidLineFinder.GetMaxLineErrorMm());
 
   return PLUS_SUCCESS;
 }
@@ -88,7 +94,6 @@ PlusStatus FidPatternRecognition::RecognizePattern(TrackedFrame* trackedFrame)
   m_FidLineFinder.SetCandidateFidValues(m_FidSegmentation.GetCandidateFidValues());
   m_FidLineFinder.SetDotsVector(m_FidSegmentation.GetDotsVector());
   m_FidLabeling.SetDotsVector(m_FidSegmentation.GetDotsVector());
-   
 
 	m_FidLineFinder.FindLines();
 
@@ -106,16 +111,19 @@ PlusStatus FidPatternRecognition::RecognizePattern(TrackedFrame* trackedFrame)
 
   // Set results
   std::vector< std::vector<double> > fiducials = m_FidLabeling.GetFoundDotsCoordinateValue();
-  vtkSmartPointer<vtkPoints> fiducialPoints = vtkSmartPointer<vtkPoints>::New();
-  fiducialPoints->SetNumberOfPoints(fiducials.size());
-
-  for (int i = 0; i<fiducials.size(); ++i)
+  if (fiducials.size() > 0)
   {
-    fiducialPoints->InsertPoint(i, fiducials[i][0], fiducials[i][1], 0.0);
-  }
-  fiducialPoints->Modified();
+    vtkSmartPointer<vtkPoints> fiducialPoints = vtkSmartPointer<vtkPoints>::New();
+    fiducialPoints->SetNumberOfPoints(fiducials.size());
 
-  trackedFrame->SetFiducialPointsCoordinatePx(fiducialPoints);
+    for (int i = 0; i<fiducials.size(); ++i)
+    {
+      fiducialPoints->InsertPoint(i, fiducials[i][0], fiducials[i][1], 0.0);
+    }
+    fiducialPoints->Modified();
+
+    trackedFrame->SetFiducialPointsCoordinatePx(fiducialPoints);
+  }
 
   return PLUS_SUCCESS;
 }
@@ -215,4 +223,100 @@ void FidPatternRecognition::DrawPair( PixelType *image, std::vector<LinePair>::i
 	DrawLines( image, m_FidLabeling.GetLinesVector().begin()+pairIterator->GetLine2(), 1 );
 }
 
-//-----------------------------------------------------------------------------
+//----------------------------------------------------------------------------
+
+PlusStatus FidPatternRecognition::ReadPhantomDefinition(vtkXMLDataElement* config)
+{
+	LOG_TRACE("FidPatternRecognition::ReadPhantomDefinition");
+
+	if ( config == NULL )
+	{
+		LOG_ERROR("Configuration XML data element is NULL"); 
+		return PLUS_FAIL;
+	}
+
+	vtkSmartPointer<vtkXMLDataElement> phantomDefinition = config->FindNestedElementWithName("PhantomDefinition");
+	if (phantomDefinition == NULL)
+  {
+		LOG_ERROR("No phantom definition is found in the XML tree!");
+		return PLUS_FAIL;
+	}
+  else
+	{
+		std::vector<NWire> tempNWires;
+
+		// Load geometry
+		vtkSmartPointer<vtkXMLDataElement> geometry = phantomDefinition->FindNestedElementWithName("Geometry"); 
+		if (geometry == NULL) {
+			LOG_ERROR("Phantom geometry information not found!");
+			return PLUS_FAIL;
+		} else {
+
+			tempNWires.clear();
+
+			// Finding of NWires and extracting the endpoints
+			int numberOfGeometryChildren = geometry->GetNumberOfNestedElements();
+			for (int i=0; i<numberOfGeometryChildren; ++i) {
+				vtkSmartPointer<vtkXMLDataElement> nWireElement = geometry->GetNestedElement(i);
+
+				if ((nWireElement == NULL) || (STRCASECMP("NWire", nWireElement->GetName()))) {
+					continue;
+				}
+
+				NWire nWire;
+
+				int numberOfWires = nWireElement->GetNumberOfNestedElements();
+
+				if (numberOfWires != 3) {
+					LOG_WARNING("NWire contains unexpected number of wires - skipped");
+					continue;
+				}
+
+				for (int j=0; j<numberOfWires; ++j) {
+					vtkSmartPointer<vtkXMLDataElement> wireElement = nWireElement->GetNestedElement(j);
+
+					if (wireElement == NULL) {
+						LOG_WARNING("Invalid Wire description in NWire - skipped");
+						break;
+					}
+
+					Wire wire;
+
+					int wireId = -1;
+					if ( wireElement->GetScalarAttribute("Id", wireId) ) 
+					{
+						wire.id = wireId; 
+					}
+					else
+					{
+						LOG_WARNING("Wire id not found - skipped");
+						continue;
+					}
+
+					const char* wireName =  wireElement->GetAttribute("Name"); 
+					if ( wireName != NULL )
+					{
+						wire.name = wireName;
+					}
+					if (! wireElement->GetVectorAttribute("EndPointFront", 3, wire.endPointFront)) {
+						LOG_WARNING("Wrong wire end point detected - skipped");
+						continue;
+					}
+					if (! wireElement->GetVectorAttribute("EndPointBack", 3, wire.endPointBack)) {
+						LOG_WARNING("Wrong wire end point detected - skipped");
+						continue;
+					}
+
+					nWire.wires[j] = wire;
+				}
+
+				tempNWires.push_back(nWire);
+			}
+		}
+
+    m_FidLineFinder.SetNWires(tempNWires);
+    m_FidLabeling.SetNWires(tempNWires);
+	}
+
+  return PLUS_SUCCESS;
+}
