@@ -15,6 +15,15 @@ ADD_TEST(vtkPlusLoggerTest
   )
 
 #--------------------------------------------------------------------------------------------
+ADD_EXECUTABLE(PlusMathTest PlusMathTest.cxx )
+TARGET_LINK_LIBRARIES(PlusMathTest vtkPlusCommon )
+
+ADD_TEST(PlusMathTest 
+  ${EXECUTABLE_OUTPUT_PATH}/PlusMathTest
+  --input-data-file=${TestDataDir}/PlusMathTestData.xml 
+  )
+  
+#--------------------------------------------------------------------------------------------
 ADD_EXECUTABLE(vtkAccurateTimerTest vtkAccurateTimerTest.cxx )
 TARGET_LINK_LIBRARIES(vtkAccurateTimerTest vtkPlusCommon )
 

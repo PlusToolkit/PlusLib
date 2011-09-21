@@ -28,7 +28,7 @@ public:
   virtual void Update();
 
   // Description:
-  // 
+  // Set input TrackedFrameList with segmentation results 
   virtual void SetInput( vtkTrackedFrameList* trackedFrameList ); 
 
   //! Description: 
@@ -47,7 +47,7 @@ protected:
 
   //! Description: 
 	// Construct linear equation for translation axis calibration
-	virtual PlusStatus ConstrLinEqForTransAxisCalib(std::vector<vnl_vector<double>> &aMatrix, std::vector<double> &bVector);
+	virtual PlusStatus ConstrLinEqForTransAxisCalib(std::vector<vnl_vector<double>> &aMatrix, std::vector<double> &bVector, int& numberOfUnknowns);
 
   //! Description: 
 	// Remove outliers from translation axis calibration dataset
