@@ -50,6 +50,7 @@ Version:   $Revision: $
 #include "vtkAccurateTimer.h"
 #include "PlusCommon.h"
 #include "vtkPlusLogger.h"
+#include "vtkPlusConfig.h"
 
 #cmakedefine PLUSLIB_VERSION "${PLUSLIB_VERSION}"
 #cmakedefine PLUSLIB_VERSION_MAJOR ${PLUSLIB_VERSION_MAJOR}
