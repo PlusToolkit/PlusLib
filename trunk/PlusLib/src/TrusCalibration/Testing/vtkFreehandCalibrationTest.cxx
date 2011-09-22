@@ -94,8 +94,6 @@ int main (int argc, char* argv[])
 	}
 
   vtkSmartPointer<vtkFreehandCalibrationController> freehandCalibration = vtkSmartPointer<vtkFreehandCalibrationController>::New(); 
-  freehandCalibration->SetConfigurationFileName(inputConfigFileName.c_str());
-  freehandCalibration->SetConfigurationData(configRootElement);
 	freehandCalibration->ReadConfiguration(configRootElement); 
 
 	// Continue initializing freehand calibration controller

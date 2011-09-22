@@ -78,7 +78,6 @@ public:
 
 	//! Description 
 	// Read XML based configuration of the calibration controller
-	virtual PlusStatus ReadConfiguration( const char* configFileNameWithPath ); 
 	virtual PlusStatus ReadConfiguration( vtkXMLDataElement* configData ); 
 
 	//! Description 
@@ -122,12 +121,12 @@ public:
 	vtkSetMacro(EnableTrackedSequenceDataSaving, bool);
 	vtkBooleanMacro(EnableTrackedSequenceDataSaving, bool);
 
-	//! Attribute: Flag to enable the erroneously segmented data saving to metafile
+	//! Flag to enable the erroneously segmented data saving to metafile
 	vtkGetMacro(EnableErroneouslySegmentedDataSaving, bool);
 	vtkSetMacro(EnableErroneouslySegmentedDataSaving, bool);
 	vtkBooleanMacro(EnableErroneouslySegmentedDataSaving, bool);
 
-	//! Attribute: Flag to enable the visualization component
+	//! Flag to enable the visualization component
 	vtkGetMacro(EnableVisualization, bool);
 	vtkSetMacro(EnableVisualization, bool);
 	vtkBooleanMacro(EnableVisualization, bool);
@@ -136,16 +135,6 @@ public:
 	// Set/get the calibration mode (see CALIBRATION_MODE)
   void SetCalibrationMode( CalibrationMode mode ) { this->CalibrationMode = mode; }
   CalibrationMode GetCalibrationMode() { return this->CalibrationMode; }
-
-	//! Description 
-	// Set/get the configuration file name
-	vtkSetStringMacro(ConfigurationFileName); 
-	vtkGetStringMacro(ConfigurationFileName); 
-
-	//! Description 
-	// Set/get the phantom to config data
-	vtkSetObjectMacro(ConfigurationData, vtkXMLDataElement); 
-	vtkGetObjectMacro(ConfigurationData, vtkXMLDataElement);
 
   //! Description 
 	// Get offline image data
@@ -156,12 +145,12 @@ public:
 	vtkSetStringMacro(CalibrationDate); 
 	vtkGetStringMacro(CalibrationDate);
 
-  //! Attribute: Flag to identify the calibration state 
+  //! Flag to identify the calibration state 
 	vtkGetMacro(CalibrationDone, bool);
 	vtkSetMacro(CalibrationDone, bool);
 	vtkBooleanMacro(CalibrationDone, bool);
   
-	//! Attribute: Flag to enable the Segmentation Analysis
+	//! Flag to enable the Segmentation Analysis
 	vtkGetMacro(EnableSegmentationAnalysis, bool);
 	vtkSetMacro(EnableSegmentationAnalysis, bool);
 	vtkBooleanMacro(EnableSegmentationAnalysis, bool);
@@ -214,31 +203,28 @@ protected:
 	virtual PlusStatus ReadCalibrationControllerConfiguration(vtkXMLDataElement* rootElement); 
 
 protected:
-	//! Attribute: Flag to enable the tracked sequence data saving to metafile
+	//! Flag to enable the tracked sequence data saving to metafile
 	bool EnableTrackedSequenceDataSaving;
 
-	//! Attribute: Flag to enable the erroneously segmented data saving to metafile
+	//! Flag to enable the erroneously segmented data saving to metafile
 	bool EnableErroneouslySegmentedDataSaving; 
 
-	//! Attribute: Flag to enable the visualization component
+	//! Flag to enable the visualization component
 	bool EnableVisualization; 
 
-	//! Attribute: Flag to enable the Segmentation Analysis file
+	//! Flag to enable the Segmentation Analysis file
 	bool EnableSegmentationAnalysis; 
 
-	//! Attribute: Flag to show the initialized state
+	//! Flag to show the initialized state
 	bool Initialized; 
 
-  //! Attribute: Flag to identify the calibration state 
+  //! Flag to identify the calibration state 
 	bool CalibrationDone; 
 
-	//! Attributes: calibration mode (see CALIBRATION_MODE)
+	//! calibration mode (see CALIBRATION_MODE)
 	CalibrationMode CalibrationMode; 
 
-	//! Attributes: config file name
-	char* ConfigurationFileName;
-
-  //! Attributes: calibration date in string format 
+  //! calibration date in string format 
   char* CalibrationDate; 
 
 	//! Pointer to the callback function that is executed each time a segmentation is finished
@@ -256,11 +242,8 @@ protected:
   //! Stores the fiducial pattern recognition master object
   FidPatternRecognition PatternRecognition;
 
-  //!Stores the segmentation results of a single frame
+  //! Stores the segmentation results of a single frame
   PatternRecognitionResult PatRecognitionResult;
-
-  //! Configuration data element - TODO the application should load it!
-  vtkXMLDataElement*  ConfigurationData;
 
   //! Stores the image data in offline mode
   vtkImageData* OfflineImageData; 

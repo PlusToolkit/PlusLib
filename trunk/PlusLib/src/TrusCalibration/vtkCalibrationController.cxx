@@ -39,10 +39,7 @@ SegmentationProgressCallbackFunction(NULL)
 	this->InitializedOff(); 
   this->CalibrationDoneOff(); 
 
-	this->ConfigurationFileName = NULL;
   this->OfflineImageData = NULL;
-  
-  this->ConfigurationData = NULL;
   
   this->CalibrationDate = NULL; 
   
@@ -88,8 +85,6 @@ vtkCalibrationController::~vtkCalibrationController()
     }
   }
 
-  this->SetConfigurationData(NULL);
-
   if ( this->OfflineImageData != NULL )
   {
     this->OfflineImageData->Delete(); 
@@ -101,10 +96,6 @@ vtkCalibrationController::~vtkCalibrationController()
 PlusStatus vtkCalibrationController::Initialize()
 {
 	LOG_TRACE("vtkCalibrationController::Initialize"); 
-
-	// Initialize the segmenation component
-	// ====================================
-  this->PatternRecognition.ReadConfiguration(this->GetConfigurationData());
 
 	return PLUS_SUCCESS;
 }
@@ -390,16 +381,6 @@ void  vtkCalibrationController::CreateTrackedFrame(const ImageType::Pointer& ima
 	trackedFrame.SetCustomFrameField(trackedFrame.DefaultFrameTransformName, strToolToTracker.str()); 
 
 	trackedFrame.ImageData.SetITKImageBase(imageData);
-}
-
-//----------------------------------------------------------------------------
-PlusStatus vtkCalibrationController::ReadConfiguration( const char* configFileNameWithPath )
-{
-	LOG_TRACE("vtkCalibrationController::ReadConfiguration"); 
-	this->SetConfigurationFileName(configFileNameWithPath); 
-
-	this->SetConfigurationData(vtkXMLUtilities::ReadElementFromFile(this->GetConfigurationFileName())); 
-	return this->ReadConfiguration(this->ConfigurationData);  //TODO temporary code
 }
 
 //----------------------------------------------------------------------------

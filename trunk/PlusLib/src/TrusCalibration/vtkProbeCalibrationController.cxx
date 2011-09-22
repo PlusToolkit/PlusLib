@@ -851,23 +851,6 @@ vnl_matrix<double> vtkProbeCalibrationController::GetLineReconstructionErrorMatr
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkProbeCalibrationController::ReadConfiguration( const char* configFileNameWithPath )
-{
-	LOG_TRACE("vtkProbeCalibrationController::ReadConfiguration - " << configFileNameWithPath); 
-	this->SetConfigurationFileName(configFileNameWithPath); 
-	
-	vtkSmartPointer<vtkXMLDataElement> calibrationController = vtkXMLUtilities::ReadElementFromFile(this->GetConfigurationFileName()); 
-  if (calibrationController==NULL)
-  {
-    LOG_ERROR("Failed to read calibration controller configuration from " << this->GetConfigurationFileName());
-    return PLUS_FAIL;
-  }
-
-	PlusStatus status=this->ReadConfiguration(calibrationController); 
-  return status;
-}
-
-//----------------------------------------------------------------------------
 PlusStatus vtkProbeCalibrationController::ReadConfiguration( vtkXMLDataElement* configData )
 {
 	LOG_TRACE("vtkProbeCalibrationController::ReadConfiguration"); 
