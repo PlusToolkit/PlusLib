@@ -62,7 +62,6 @@ int main (int argc, char* argv[])
 		exit(EXIT_FAILURE);
 	}
 
-  
 
 	vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
   vtkPlusLogger::Instance()->SetDisplayLogLevel(verboseLevel); 
@@ -75,15 +74,22 @@ int main (int argc, char* argv[])
 		LOG_ERROR(errorMsg); 
 	}
 	programPath = vtksys::SystemTools::GetParentDirectory(programPath.c_str()); 
-  vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationDirectory(inputConfigFileName.c_str());
+  // Read configuration
+  vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkXMLUtilities::ReadElementFromFile(inputConfigFileName.c_str());
+  if (configRootElement == NULL)
+  {	
+    LOG_ERROR("Unable to read configuration from file " << inputConfigFileName.c_str()); 
+		exit(EXIT_FAILURE);
+  }
+  vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationData(configRootElement);
   vtkPlusConfig::GetInstance()->SetProgramPath(programPath.c_str());
 
 	// Initialize the probe calibration controller 
 	vtkSmartPointer<vtkStepperCalibrationController> stepperCal = vtkSmartPointer<vtkStepperCalibrationController>::New(); 
-	stepperCal->ReadConfiguration(inputConfigFileName.c_str()); 
+	stepperCal->ReadConfiguration(configRootElement); 
 
   vtkSmartPointer<vtkCalibrationController> calController = vtkSmartPointer<vtkCalibrationController>::New(); 
-	calController->ReadConfiguration(inputConfigFileName.c_str()); 
+	calController->ReadConfiguration(configRootElement); 
 
 	vtkCalibrationController::ImageDataInfo probeRotationDataInfo = stepperCal->GetImageDataInfo(PROBE_ROTATION); 
 	probeRotationDataInfo.InputSequenceMetaFileName.assign(inputProbeRotationSeqMetafile.c_str());
@@ -122,7 +128,7 @@ int main (int argc, char* argv[])
 
 	// Initialize the stepper calibration controller 
 	vtkSmartPointer<vtkProbeCalibrationController> probeCal = vtkSmartPointer<vtkProbeCalibrationController>::New(); 
-	probeCal->ReadConfiguration(inputConfigFileName.c_str()); 
+	probeCal->ReadConfiguration(configRootElement); 
 
 	vtkCalibrationController::ImageDataInfo randomStepperMotion1DataInfo = probeCal->GetImageDataInfo(RANDOM_STEPPER_MOTION_1); 
 	randomStepperMotion1DataInfo.InputSequenceMetaFileName.assign(inputRandomStepperMotion1SeqMetafile.c_str());

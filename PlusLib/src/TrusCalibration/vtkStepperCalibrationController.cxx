@@ -2628,21 +2628,6 @@ void vtkStepperCalibrationController::SaveCalibrationStartTime()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkStepperCalibrationController::ReadConfiguration( const char* configFileNameWithPath )
-{
-  LOG_TRACE("vtkStepperCalibrationController::ReadConfiguration - " << configFileNameWithPath); 
-  this->SetConfigurationFileName(configFileNameWithPath); 
-
-  vtkSmartPointer<vtkXMLDataElement> rootElement = vtkXMLUtilities::ReadElementFromFile(this->GetConfigurationFileName()); 
-  if (rootElement==NULL)
-  {
-    LOG_ERROR("Failed to read configuration from " << configFileNameWithPath);
-    return PLUS_FAIL;
-  }
-  return this->ReadConfiguration(rootElement);
-}
-
-//----------------------------------------------------------------------------
 PlusStatus vtkStepperCalibrationController::ReadConfiguration( vtkXMLDataElement* configData )
 {
   LOG_TRACE("vtkStepperCalibrationController::ReadConfiguration"); 

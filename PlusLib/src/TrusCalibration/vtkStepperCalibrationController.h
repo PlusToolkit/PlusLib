@@ -62,7 +62,6 @@ public:
 
 	//! Description 
 	// Read XML based configuration of the calibration controller
-	virtual PlusStatus ReadConfiguration( const char* configFileNameWithPath ); 
 	virtual PlusStatus ReadConfiguration( vtkXMLDataElement* configData ); 
 
   virtual PlusStatus WriteConfiguration( vtkXMLDataElement* configData ); 

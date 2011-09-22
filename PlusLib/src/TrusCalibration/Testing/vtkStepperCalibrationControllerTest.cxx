@@ -43,12 +43,22 @@ int main (int argc, char* argv[])
 
   VTK_LOG_TO_CONSOLE_ON; 
 
+  vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
+  vtkPlusLogger::Instance()->SetDisplayLogLevel(verboseLevel);
+
   vtkSmartPointer<vtkStepperCalibrationController> stepperCalibrator = vtkSmartPointer<vtkStepperCalibrationController>::New();  
 
   LOG_INFO("Read configuration file..."); 
-  stepperCalibrator->ReadConfiguration(inputConfigFileName.c_str()); 
-  vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
-  vtkPlusLogger::Instance()->SetDisplayLogLevel(verboseLevel);
+
+  vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkXMLUtilities::ReadElementFromFile(inputConfigFileName.c_str());
+  if (configRootElement == NULL)
+  {	
+    LOG_ERROR("Unable to read configuration from file " << inputConfigFileName.c_str()); 
+		exit(EXIT_FAILURE);
+  }
+  vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationData(configRootElement);
+
+  stepperCalibrator->ReadConfiguration(configRootElement); 
 
   LOG_INFO("Initialize stepper calibrator..."); 
   stepperCalibrator->Initialize(); 
