@@ -589,7 +589,7 @@ void PhantomRegistrationToolbox::Reset()
 	m_PhantomRegistration->SetPhantomToPhantomReferenceTransform(NULL);
 
 	// Highlight first landmark
-  if (m_PhantomRegistration->GetDefinedLandmarks()->GetNumberOfPoints() > 0) {
+  if ((m_State != ToolboxState_Uninitialized) && (m_PhantomRegistration->GetDefinedLandmarks()->GetNumberOfPoints() > 0)) {
 	  m_RequestedLandmarkPolyData->GetPoints()->InsertPoint(0, m_PhantomRegistration->GetDefinedLandmarks()->GetPoint(0));
 	  m_RequestedLandmarkPolyData->GetPoints()->Modified();
   }
