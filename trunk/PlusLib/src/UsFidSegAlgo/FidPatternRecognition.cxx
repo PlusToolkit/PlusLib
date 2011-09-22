@@ -111,19 +111,17 @@ PlusStatus FidPatternRecognition::RecognizePattern(TrackedFrame* trackedFrame)
 
   // Set results
   std::vector< std::vector<double> > fiducials = m_FidLabeling.GetFoundDotsCoordinateValue();
-  if (fiducials.size() > 0)
+
+  vtkSmartPointer<vtkPoints> fiducialPoints = vtkSmartPointer<vtkPoints>::New();
+  fiducialPoints->SetNumberOfPoints(fiducials.size());
+
+  for (int i = 0; i<fiducials.size(); ++i)
   {
-    vtkSmartPointer<vtkPoints> fiducialPoints = vtkSmartPointer<vtkPoints>::New();
-    fiducialPoints->SetNumberOfPoints(fiducials.size());
-
-    for (int i = 0; i<fiducials.size(); ++i)
-    {
-      fiducialPoints->InsertPoint(i, fiducials[i][0], fiducials[i][1], 0.0);
-    }
-    fiducialPoints->Modified();
-
-    trackedFrame->SetFiducialPointsCoordinatePx(fiducialPoints);
+    fiducialPoints->InsertPoint(i, fiducials[i][0], fiducials[i][1], 0.0);
   }
+  fiducialPoints->Modified();
+
+  trackedFrame->SetFiducialPointsCoordinatePx(fiducialPoints);
 
   return PLUS_SUCCESS;
 }
