@@ -1,11 +1,11 @@
 <StepperCalibrationResults>
-  <RotationAxisCalibrationResult Spacing="0.191494 0.187162" CenterOfRotationInPx="321 22" RotationAxisOrientation="0 0 1" RotationEncoderOffset="0.407713" RotationEncoderScale="0.972526" PhantomToProbeDistanceInMm="19.9092 45.0344">
+  <RotationAxisCalibrationResult Spacing="0.191451 0.186871" CenterOfRotationInPx="321 22" RotationAxisOrientation="0 0 1" RotationEncoderOffset="0.407044" RotationEncoderScale="0.971421" PhantomToProbeDistanceInMm="19.9015 44.9716">
     
   </RotationAxisCalibrationResult>
-  <ProbeTranslationAxisCalibrationResult ProbeTranslationAxisOrientation="-0.0195879 -0.0565323 1">
+  <ProbeTranslationAxisCalibrationResult ProbeTranslationAxisOrientation="-0.0195835 -0.0564445 1">
     
   </ProbeTranslationAxisCalibrationResult>
-  <TemplateTranslationAxisCalibrationResult TemplateTranslationAxisOrientation="-0.0033263 0.035424 1">
+  <TemplateTranslationAxisCalibrationResult TemplateTranslationAxisOrientation="-0.00334447 0.0348421 1">
     
   </TemplateTranslationAxisCalibrationResult>
   
