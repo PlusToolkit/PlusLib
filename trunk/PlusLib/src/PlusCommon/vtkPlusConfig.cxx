@@ -135,7 +135,7 @@ PlusStatus vtkPlusConfig::ReadApplicationConfiguration()
     applicationConfigurationRoot = vtkXMLUtilities::ReadElementFromFile(this->ApplicationConfigurationFileName);
   }
 	if (applicationConfigurationRoot == NULL) {
-    LOG_WARNING("Unable to read application configuration from file '" << this->ApplicationConfigurationFileName << "' - default values will be used and the file created"); 
+    LOG_INFO("Application configuration file is not found'" << this->ApplicationConfigurationFileName << "' - default values will be used and the file created"); 
     applicationConfigurationRoot = vtkSmartPointer<vtkXMLDataElement>::New();
     applicationConfigurationRoot->SetName("PlusConfig");
     saveNeeded = true;
@@ -156,7 +156,7 @@ PlusStatus vtkPlusConfig::ReadApplicationConfiguration()
     vtkPlusLogger::Instance()->SetDisplayLogLevel(logLevel); 
 
 	} else {
-		LOG_WARNING("Cannot find LogLevel attribute - default 'Info' log level will be used");
+		LOG_INFO("LogLevel attribute is not found - default 'Info' log level will be used");
     vtkPlusLogger::Instance()->SetLogLevel(vtkPlusLogger::LOG_LEVEL_INFO);
     vtkPlusLogger::Instance()->SetDisplayLogLevel(vtkPlusLogger::LOG_LEVEL_INFO); 
     saveNeeded = true;
@@ -177,7 +177,7 @@ PlusStatus vtkPlusConfig::ReadApplicationConfiguration()
 	  this->SetDeviceSetConfigurationDirectory(deviceSetDirectory);
 
   } else {
-    LOG_WARNING("Unable to read device set configuration directory - default '../Config' will be used");
+    LOG_INFO("Device set configuration directory is not set - default '../Config' will be used");
     std::string parentDirectory = vtksys::SystemTools::GetParentDirectory(this->ProgramDirectory);
     std::string defaultDeviceSetConfigDirectory = vtksys::SystemTools::CollapseFullPath("./Config", parentDirectory.c_str()); 
     this->SetDeviceSetConfigurationDirectory(defaultDeviceSetConfigDirectory.c_str());
@@ -196,7 +196,7 @@ PlusStatus vtkPlusConfig::ReadApplicationConfiguration()
     this->SetEditorApplicationExecutable(editorApplicationExecutable);
 
   } else {
-    LOG_WARNING("Unable to read editor application executable - default 'notepad.exe' will be used");
+    LOG_INFO("Editor application executable is not set - default 'notepad.exe' will be used");
     this->SetEditorApplicationExecutable("notepad.exe");
     saveNeeded = true;
   }
@@ -207,7 +207,7 @@ PlusStatus vtkPlusConfig::ReadApplicationConfiguration()
 	  this->SetOutputDirectory(outputDirectory);
 
   } else {
-    LOG_WARNING("Unable to read output directory - default './Output' will be used");
+    LOG_INFO("Output directory is not set - default './Output' will be used");
   	std::string defaultOutputDirectory = vtksys::SystemTools::CollapseFullPath("./Output", this->ProgramDirectory); 
     this->SetOutputDirectory(defaultOutputDirectory.c_str());
     saveNeeded = true;
