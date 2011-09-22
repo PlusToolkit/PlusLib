@@ -129,3 +129,26 @@ ADD_TEST(vtkFreehandCalibrationTest
 		--rotation-error-threshold=1.0
 		)
 SET_TESTS_PROPERTIES( vtkFreehandCalibrationTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+
+
+#--------------------------------------------------------------------------------------------
+ADD_EXECUTABLE(vtkTranslAxisCalibAlgoTest vtkTranslAxisCalibAlgoTest.cxx)
+TARGET_LINK_LIBRARIES(vtkTranslAxisCalibAlgoTest vtkPlusCommon vtkTrusCalibration vtkImageAcquisition )
+
+ADD_TEST(ProbeTranslationAxisCalibration-Ulterius
+		${EXECUTABLE_OUTPUT_PATH}/vtkTranslAxisCalibAlgoTest
+		--input-config-file-name=${ConfigFilesDir}/Test_PlusConfiguration_CalibrationOnly_SonixRP_Ulterius_iCal.xml 
+		--input-translation-sequence-metafile=${TestDataDir}/USTC_Ulterius_ProbeTranslationData.mha
+		--input-baseline-file-name=${TestDataDir}/USTC_Ulterius_StepperCalibrationResultBaseline.xml
+        --input-data-type=PROBE_TRANSLATION 
+		)
+SET_TESTS_PROPERTIES( vtkFreehandCalibrationTest-Exact PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+
+ADD_TEST(TemplateTranslationAxisCalibration-Ulterius
+		${EXECUTABLE_OUTPUT_PATH}/vtkTranslAxisCalibAlgoTest
+		--input-config-file-name=${ConfigFilesDir}/Test_PlusConfiguration_CalibrationOnly_SonixRP_Ulterius_iCal.xml 
+		--input-translation-sequence-metafile=${TestDataDir}/USTC_Ulterius_TemplateTranslationData.mha
+		--input-baseline-file-name=${TestDataDir}/USTC_Ulterius_StepperCalibrationResultBaseline.xml
+        --input-data-type=TEMPLATE_TRANSLATION 
+		)
+SET_TESTS_PROPERTIES( vtkFreehandCalibrationTest-Exact PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
