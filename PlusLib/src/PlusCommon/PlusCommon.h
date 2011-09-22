@@ -22,6 +22,19 @@ enum TrackerStatus {
   TR_REQ_TIMEOUT   // Request timeout
 };
 
+enum IMAGE_DATA_TYPE
+{
+	TEMPLATE_TRANSLATION=0,		// Pure template translation dataset
+	PROBE_TRANSLATION,			// Pure translation dataset
+	PROBE_ROTATION,				// Pure rotation dataset in different stepper positions
+	RANDOM_STEPPER_MOTION_1,	// Calibration dataset
+	RANDOM_STEPPER_MOTION_2,	// Validation dataset
+	FREEHAND_MOTION_1,			// Calibration dataset for the freehand probe calibration
+	FREEHAND_MOTION_2,			// Validation dataset for the freehand probe calibration
+  UNKNOWN_DATA,			      // Unknown data 
+	NUMBER_OF_IMAGE_DATA_TYPES
+}; 
+
 /* Define case insensitive string compare for Windows. */
 #if defined( _WIN32 ) && !defined(__CYGWIN__)
 #  if defined(__BORLANDC__)

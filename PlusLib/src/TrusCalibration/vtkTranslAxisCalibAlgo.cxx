@@ -14,6 +14,7 @@ vtkTranslAxisCalibAlgo::vtkTranslAxisCalibAlgo()
   this->TrackedFrameList = NULL; 
   this->SetTranslationAxisOrientation(0,0,1);
   this->SetSpacing(0,0); 
+  this->SetDataType(UNKNOWN_DATA); 
 }
 
 //----------------------------------------------------------------------------
@@ -38,6 +39,7 @@ double * vtkTranslAxisCalibAlgo::GetOutput()
 //----------------------------------------------------------------------------
 void vtkTranslAxisCalibAlgo::Update()
 {
+
    LOG_TRACE("vtkTranslAxisCalibAlgo::Update"); 
 
   // Construct linear equations Ax = b, where A is a matrix with m rows and 
@@ -53,7 +55,7 @@ void vtkTranslAxisCalibAlgo::Update()
     return; 
   }
 
-  if ( aMatrix.size() == 0 || bVector.size() == 0 )
+  if ( aMatrix.size() == 0 || bVector.size() == 0 || numberOfUnknowns == 0)
   {
     LOG_ERROR("Translation axis calibration failed, no data found!"); 
     return; 
@@ -72,6 +74,12 @@ void vtkTranslAxisCalibAlgo::Update()
     return; 
   }
 
+  // Set translation axis orientation 
+  // NOTE: If the probe goes down the wires goes down on the MF oriented image 
+  // => we need to change the sign of the axis to compensate it
+  this->SetTranslationAxisOrientation(-translationAxisCalibResult[0], translationAxisCalibResult[1], 1); 
+
+  return; 
 }
 
 
@@ -99,36 +107,30 @@ PlusStatus vtkTranslAxisCalibAlgo::ConstrLinEqForTransAxisCalib( std::vector<vnl
     }
 
     // Get the encoder value in mm 
+    double probePos(0), probeRot(0), templatePos(0); 
+    if ( !vtkStepperCalibrationController::GetStepperEncoderValues(trackedFrame, probePos, probeRot, templatePos) )
+    {
+      LOG_WARNING("Translation axis calibration: Unable to get stepper encoder values from tracked frame info for frame #" << frame); 
+      continue; 
+    }
+
     double z(0); 
-    LOG_WARNING("Not yet implemented!!!"); 
-    /*switch (dataType)
+    switch ( this->GetDataType() )
     {
     case PROBE_TRANSLATION: 
       {
-        double probePos(0), probeRot(0), templatePos(0); 
-        if ( !vtkStepperCalibrationController::GetStepperEncoderValues(this->SegmentedFrameContainer[frame].TrackedFrameInfo, probePos, probeRot, templatePos) )
-        {
-          LOG_WARNING("Probe translation axis calibration: Unable to get probe position from tracked frame info for frame #" << frame); 
-          continue; 
-        }
-
         z = probePos; 
       }
       break; 
     case TEMPLATE_TRANSLATION: 
       {
-        double probePos(0), probeRot(0), templatePos(0); 
-        if ( !this->GetStepperEncoderValues(this->SegmentedFrameContainer[frame].TrackedFrameInfo, probePos, probeRot, templatePos) )
-        {
-          LOG_WARNING("Template translation axis calibration: Unable to get template position from tracked frame info for frame #" << frame); 
-          continue; 
-        }
-
         z = templatePos; 
       }
-
       break; 
-    }*/
+    default: 
+      LOG_ERROR("Unable to construct linear equations for translation axis calibration - this data type is not supported: " << this->GetDataType()); 
+      return PLUS_FAIL;
+    }
 
     if ( trackedFrame->GetFiducialPointsCoordinatePx() == NULL )
     {
