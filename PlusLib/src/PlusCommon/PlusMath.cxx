@@ -406,3 +406,35 @@ std::string PlusMath::GetTransformParametersString(vtkTransform* transform)
 
   return result.str();
 }
+
+//----------------------------------------------------------------------------
+
+void PlusMath::ConvertVtkMatrixToVnlMatrix(vtkMatrix4x4* inVtkMatrix, vnl_matrix<double>& outVnlMatrix )
+{
+	LOG_TRACE("PlusMath::ConvertVtkMatrixToVnlMatrix"); 
+
+	for (int row = 0; row < 4; row++)
+	{
+		for (int column = 0; column < 4; column++)
+		{
+			outVnlMatrix.put(row,column, inVtkMatrix->GetElement(row,column)); 
+		}
+	}
+}
+
+//----------------------------------------------------------------------------
+
+void PlusMath::ConvertVnlMatrixToVtkMatrix(vnl_matrix<double>& inVnlMatrix, vtkMatrix4x4* outVtkMatrix )
+{
+	LOG_TRACE("PlusMath::ConvertVnlMatrixToVtkMatrix");
+
+	outVtkMatrix->Identity(); 
+
+	for (int row = 0; row < 3; row++)
+	{
+		for (int column = 0; column < 4; column++)
+		{
+			outVtkMatrix->SetElement(row,column, inVnlMatrix.get(row, column) ); 
+		}
+	}
+}
