@@ -31,6 +31,13 @@ public:
   // Set input TrackedFrameList with segmentation results 
   virtual void SetInput( vtkTrackedFrameList* trackedFrameList ); 
 
+
+  // Description:
+  // Set/get image data type used for calibration
+  // Supported data types: TEMPLATE_TRANSLATION, PROBE_TRANSLATION
+  vtkSetMacro(DataType, IMAGE_DATA_TYPE); 
+  vtkGetMacro(DataType, IMAGE_DATA_TYPE); 
+
   //! Description: 
 	// Set/Get the image spacing.
 	// (x: lateral axis, y: axial axis)
@@ -77,6 +84,9 @@ protected:
 	// Set/get translation axis orientation [Tx, Ty, 1]
 	vtkSetVector3Macro(TranslationAxisOrientation, double); 
 	vtkGetVector3Macro(TranslationAxisOrientation, double); 
+
+  // Data type used for calibration (TEMPLATE_TRANSLATION or PROBE_TRANSLATION)
+  IMAGE_DATA_TYPE DataType; 
 
   // Image scaling factors 
 	// (x: lateral axis, y: axial axis)

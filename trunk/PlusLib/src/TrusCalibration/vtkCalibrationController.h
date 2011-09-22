@@ -16,18 +16,6 @@
 #include "FidPatternRecognition.h"
 #include "FidPatternRecognitionCommon.h"
 
-enum IMAGE_DATA_TYPE
-{
-	TEMPLATE_TRANSLATION=0,		// Pure template translation dataset
-	PROBE_TRANSLATION,			// Pure translation dataset
-	PROBE_ROTATION,				// Pure rotation dataset in different stepper positions
-	RANDOM_STEPPER_MOTION_1,	// Calibration dataset
-	RANDOM_STEPPER_MOTION_2,	// Validation dataset
-	FREEHAND_MOTION_1,			// Calibration dataset for the freehand probe calibration
-	FREEHAND_MOTION_2,			// Validation dataset for the freehand probe calibration
-	NUMBER_OF_IMAGE_DATA_TYPES
-}; 
-
 enum CalibrationMode
 {
 	REALTIME, 
