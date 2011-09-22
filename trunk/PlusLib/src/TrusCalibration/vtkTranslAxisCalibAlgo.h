@@ -21,7 +21,7 @@ public:
   // Description:
 	// Add generated html report from the selected data type (probe or template) translation axis calibration to the existing html report
 	// htmlReport and plotter arguments has to be defined by the caller function
-	virtual PlusStatus GenerateReport( vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter, const char* gnuplotScriptsFolder); 
+	//virtual PlusStatus GenerateReport( vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter, const char* gnuplotScriptsFolder); 
 
   // Description:
   // Bring this algorithm's outputs up-to-date.
@@ -56,24 +56,20 @@ protected:
 	// Construct linear equation for translation axis calibration
 	virtual PlusStatus ConstrLinEqForTransAxisCalib(std::vector<vnl_vector<double>> &aMatrix, std::vector<double> &bVector, int& numberOfUnknowns);
 
-  //! Description: 
-	// Remove outliers from translation axis calibration dataset
-	virtual void RemoveOutliersFromTransAxisCalibData(std::vector<vnl_vector<double>> &aMatrix, std::vector<double> &bVector, const vnl_vector<double> &resultVector );
-	
 	//! Description: 
 	// Calculate mean error and stdev of measured and computed wire positions for each wire
-	virtual void GetTranslationAxisCalibrationError(
-		const std::vector<vnl_vector<double>> &aMatrix, 
-		const std::vector<double> &bVector, 
-		const vnl_vector<double> &resultVector, 
-    std::vector<vtkStepperCalibrationController::CalibStatistics> &statistics); 
+	//virtual void GetTranslationAxisCalibrationError(
+	//	const std::vector<vnl_vector<double>> &aMatrix, 
+	//	const std::vector<double> &bVector, 
+	//	const vnl_vector<double> &resultVector, 
+ //   std::vector<vtkStepperCalibrationController::CalibStatistics> &statistics); 
 
 	//! Description: 
 	// Save translation axis calibration error in gnuplot format 
-	virtual void SaveTranslationAxisCalibrationError(
-		const std::vector<vnl_vector<double>> &aMatrix, 
-		const std::vector<double> &bVector, 
-		const vnl_vector<double> &resultVector); 
+	//virtual void SaveTranslationAxisCalibrationError(
+	//	const std::vector<vnl_vector<double>> &aMatrix, 
+	//	const std::vector<double> &bVector, 
+	//	const vnl_vector<double> &resultVector); 
 
   //! Description: 
 	// Set/get tracked frame list

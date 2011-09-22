@@ -106,7 +106,7 @@ PlusStatus PlusMath::LSQRMinimize(const vnl_sparse_matrix<double> &sparseMatrixL
 
   vnl_sparse_matrix<double> aMatrix(sparseMatrixLeftSide); 
   vnl_vector<double> bVector(vectorRightSide); 
-  
+
   bool outlierFound(true); 
 
   while ( outlierFound )
@@ -208,7 +208,7 @@ PlusStatus PlusMath::RemoveOutliersFromLSRQ(vnl_sparse_matrix<double> &sparseMat
     for ( unsigned int i = 0; i < numberOfUnknowns; ++i )
     {
       // difference = A1x = a11*x1 + a12*x2 + ...
-      difference += (matrixRow[i].second * resultVector[i] ); // TODO: or second
+      difference += (matrixRow[i].second * resultVector[i] ); 
     }
     // difference = A1x - b1 = a11*x1 + a12*x2 + ... - b1
     difference -= vectorRightSide[row]; 

@@ -2319,6 +2319,12 @@ void vtkStepperCalibrationController::ClusterSegmentedFrames(IMAGE_DATA_TYPE dat
 //----------------------------------------------------------------------------
 PlusStatus vtkStepperCalibrationController::GetStepperEncoderValues( TrackedFrame* trackedFrame, double &probePosition, double &probeRotation, double &templatePosition)
 {
+  if ( trackedFrame == NULL )
+  {
+    LOG_ERROR("Unable to get stepper encoder values - input tracked frame is NULL!"); 
+    return PLUS_FAIL; 
+  }
+
   // Get the probe position from tracked frame info
   const char* cProbePos = trackedFrame->GetCustomFrameField("ProbePosition"); 
   if ( cProbePos != NULL )
