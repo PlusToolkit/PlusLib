@@ -1,6 +1,8 @@
 #include "PlusConfigure.h"
 #include "vtkCalibrationController.h"
 
+#include "PlusMath.h"
+
 #include "vtkObjectFactory.h"
 #include "vtkImageExport.h"
 #include "vtkMatrix4x4.h"
@@ -120,28 +122,6 @@ PlusStatus vtkCalibrationController::SaveTrackedFrameListToMetafile( IMAGE_DATA_
   this->TrackedFrameListContainer[dataType]->Clear(); 
 
   return PLUS_SUCCESS; 
-}
-
-//----------------------------------------------------------------------------
-PlusStatus vtkCalibrationController::AddVtkImageData(vtkImageData* frame, vtkMatrix4x4* trackingTransform, IMAGE_DATA_TYPE dataType )
-{
-	LOG_TRACE("vtkCalibrationController::AddData - vtkImage"); 
-	ImageType::Pointer exportedFrame = ImageType::New();
-    if ( UsImageConverterCommon::ConvertVtkImageToItkImage(frame, exportedFrame) != PLUS_SUCCESS )
-    {
-        LOG_ERROR("Failed to convert vtk image to itk image!"); 
-        return PLUS_FAIL; 
-    }
-	return this->AddItkImageData(exportedFrame, trackingTransform, dataType); 
-}
-
-//----------------------------------------------------------------------------
-PlusStatus vtkCalibrationController::AddItkImageData(const ImageType::Pointer& frame, vtkMatrix4x4* trackingTransform, IMAGE_DATA_TYPE dataType )
-{
-	LOG_TRACE("vtkCalibrationController::AddData - itkImage"); 
-	TrackedFrame trackedFrame; 
-	this->CreateTrackedFrame(frame, trackingTransform, dataType, trackedFrame); 
-	return this->AddTrackedFrameData(&trackedFrame, dataType); 
 }
 
 //----------------------------------------------------------------------------
@@ -296,38 +276,10 @@ PlusStatus vtkCalibrationController::SetOfflineImageData(vtkImageData* frame)
 }
 
 //----------------------------------------------------------------------------
-void vtkCalibrationController::ConvertVtkMatrixToVnlMatrix(vtkMatrix4x4* inVtkMatrix, vnl_matrix<double>& outVnlMatrix )
-{
-	LOG_TRACE("vtkCalibrationController::ConvertVtkMatrixToVnlMatrix"); 
-	for (int row = 0; row < 4; row++)
-	{
-		for (int column = 0; column < 4; column++)
-		{
-			outVnlMatrix.put(row,column, inVtkMatrix->GetElement(row,column)); 
-		}
-	}
-}
-
-//----------------------------------------------------------------------------
-void vtkCalibrationController::ConvertVnlMatrixToVtkMatrix(vnl_matrix<double>& inVnlMatrix, vtkMatrix4x4* outVtkMatrix )
-{
-	LOG_TRACE("vtkCalibrationController::ConvertVnlMatrixToVtkMatrix"); 
-	outVtkMatrix->Identity(); 
-
-	for (int row = 0; row < 3; row++)
-	{
-		for (int column = 0; column < 4; column++)
-		{
-			outVtkMatrix->SetElement(row,column, inVnlMatrix.get(row, column) ); 
-		}
-	}
-}
-
-//----------------------------------------------------------------------------
 void vtkCalibrationController::ConvertVtkMatrixToVnlMatrixInMeter(vtkMatrix4x4* inVtkMatrix, vnl_matrix<double>& outVnlMatrix )
 {
 	LOG_TRACE("vtkCalibrationController::ConvertVtkMatrixToVnlMatrixInMeter"); 
-	ConvertVtkMatrixToVnlMatrix(inVtkMatrix, outVnlMatrix); 
+  PlusMath::ConvertVtkMatrixToVnlMatrix(inVtkMatrix, outVnlMatrix); 
 
 	// Option: convert the translation to meters
 	const double TxInM = 0.001 * outVnlMatrix.get(0,3);
@@ -339,48 +291,6 @@ void vtkCalibrationController::ConvertVtkMatrixToVnlMatrixInMeter(vtkMatrix4x4* 
 	translationInMetersVector.set( translationInMeters );
 
 	outVnlMatrix.set_column(3, translationInMetersVector);
-}
-
-//----------------------------------------------------------------------------
-void  vtkCalibrationController::CreateTrackedFrame(const ImageType::Pointer& imageData, const double probePosition, const double probeRotation, const double templatePosition, IMAGE_DATA_TYPE dataType, TrackedFrame& trackedFrame)
-{
-	LOG_TRACE("vtkCalibrationController::CreateTrackedFrame - with optical readings"); 
-	trackedFrame.Timestamp = 0; // TODO: current time or 0? 
-	trackedFrame.DefaultFrameTransformName = "None"; 
-
-	std::ostringstream strProbePosition;
-	strProbePosition << probePosition; 
-	trackedFrame.SetCustomFrameField("ProbePosition", strProbePosition.str()); 
-
-	std::ostringstream strProbeRotation;
-	strProbeRotation << probeRotation; 
-	trackedFrame.SetCustomFrameField("ProbeRotation", strProbeRotation.str()); 
-
-	std::ostringstream strTemplatePosition;
-	strTemplatePosition << templatePosition; 
-	trackedFrame.SetCustomFrameField("TemplatePosition", strTemplatePosition.str()); 
-
-	trackedFrame.ImageData.SetITKImageBase(imageData);
-}
-
-//----------------------------------------------------------------------------
-void  vtkCalibrationController::CreateTrackedFrame(const ImageType::Pointer& imageData, vtkMatrix4x4* transform, IMAGE_DATA_TYPE dataType, TrackedFrame& trackedFrame)
-{
-	LOG_TRACE("vtkCalibrationController::CreateTrackedFrame - with transform"); 
-	trackedFrame.Timestamp = 0; // TODO: current time or 0?
-	trackedFrame.DefaultFrameTransformName = "ToolToTrackerTransform"; 
-
-	std::ostringstream strToolToTracker; 
-	double dToolToTracker[ 16 ];
-	vtkMatrix4x4::DeepCopy( dToolToTracker, transform );
-	for ( int i = 0; i < 16; ++ i )
-	{
-		strToolToTracker << dToolToTracker[ i ] << " ";
-	}
-
-	trackedFrame.SetCustomFrameField(trackedFrame.DefaultFrameTransformName, strToolToTracker.str()); 
-
-	trackedFrame.ImageData.SetITKImageBase(imageData);
 }
 
 //----------------------------------------------------------------------------

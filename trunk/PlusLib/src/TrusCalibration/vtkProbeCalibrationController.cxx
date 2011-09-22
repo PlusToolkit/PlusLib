@@ -165,7 +165,7 @@ PlusStatus vtkProbeCalibrationController::Initialize()
 	}
 
 	vnl_matrix<double> transformOrigImageFrame2TRUSImageFrameMatrix4x4(4,4);
-	ConvertVtkMatrixToVnlMatrix(this->GetTransformImageHomeToUserImageHome()->GetMatrix(), transformOrigImageFrame2TRUSImageFrameMatrix4x4); 
+	PlusMath::ConvertVtkMatrixToVnlMatrix(this->GetTransformImageHomeToUserImageHome()->GetMatrix(), transformOrigImageFrame2TRUSImageFrameMatrix4x4); 
 	this->GetCalibrator()->setTransformOrigImageToTRUSImageFrame4x4( transformOrigImageFrame2TRUSImageFrameMatrix4x4 );
 
 	// Set the ultrasound image frame in pixels

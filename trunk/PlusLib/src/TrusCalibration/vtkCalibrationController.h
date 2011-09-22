@@ -83,22 +83,10 @@ public:
 	//! Description 
 	// Add new tracked data for segmentation and save the segmentation result to the SegmentedFrameContainer
 	// The class has to be initialized before the segmentation process. 
-	virtual PlusStatus AddVtkImageData( vtkImageData* frame, vtkMatrix4x4* trackingTransform, IMAGE_DATA_TYPE dataType ); 
-
-	//! Description 
-	// Add new tracked data for segmentation and save the segmentation result to the SegmentedFrameContainer
-	// The class has to be initialized before the segmentation process. 
-	virtual PlusStatus AddItkImageData( const ImageType::Pointer& frame, vtkMatrix4x4* trackingTransform, IMAGE_DATA_TYPE dataType );
-
-	//! Description 
-	// Add new tracked data for segmentation and save the segmentation result to the SegmentedFrameContainer
-	// The class has to be initialized before the segmentation process. 
 	virtual PlusStatus AddTrackedFrameData( TrackedFrame* trackedFrame, IMAGE_DATA_TYPE dataType ); 
 
 	//! Description 
 	// VTK/VNL matrix conversion 
-	static void ConvertVnlMatrixToVtkMatrix(vnl_matrix<double>& inVnlMatrix, vtkMatrix4x4* outVtkMatrix); 
-	static void ConvertVtkMatrixToVnlMatrix(vtkMatrix4x4* inVtkMatrix, vnl_matrix<double>& outVnlMatrix ); 
 	static void ConvertVtkMatrixToVnlMatrixInMeter(vtkMatrix4x4* inVtkMatrix, vnl_matrix<double>& outVnlMatrix ); 
 
 	//! Description 
@@ -188,11 +176,6 @@ protected:
 
 	vtkCalibrationController();
 	virtual ~vtkCalibrationController();
-
-	//! Description 
-	// Create tracked frame with the inputs specified
-	virtual void CreateTrackedFrame(const ImageType::Pointer& imageData, vtkMatrix4x4* transform, IMAGE_DATA_TYPE dataType, TrackedFrame& trackedFrame ); 
-	virtual void CreateTrackedFrame(const ImageType::Pointer& imageData, const double probePosition, const double probeRotation, const double templatePosition, IMAGE_DATA_TYPE dataType, TrackedFrame& trackedFrame); 
 
 	//! Operation: Add frame to renderer in offline mode
 	virtual PlusStatus SetOfflineImageData(vtkImageData* frame); 

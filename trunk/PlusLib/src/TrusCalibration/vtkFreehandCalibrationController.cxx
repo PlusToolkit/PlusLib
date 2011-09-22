@@ -165,7 +165,7 @@ PlusStatus vtkFreehandCalibrationController::InitializeCalibration(vtkTransform*
 	vtkSmartPointer<vtkMatrix4x4> identity = vtkSmartPointer<vtkMatrix4x4>::New();
 	identity->Identity();
 	vnl_matrix<double> transformOrigImageFrame2TRUSImageFrameMatrix4x4(4,4);
-	ConvertVtkMatrixToVnlMatrix(identity, transformOrigImageFrame2TRUSImageFrameMatrix4x4); 
+  PlusMath::ConvertVtkMatrixToVnlMatrix(identity, transformOrigImageFrame2TRUSImageFrameMatrix4x4); 
 	this->GetCalibrator()->setTransformOrigImageToTRUSImageFrame4x4(transformOrigImageFrame2TRUSImageFrameMatrix4x4);
 
 	// Register the phantom geometry to the DRB frame in the "Emulator" mode.
