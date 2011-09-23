@@ -5,6 +5,7 @@
 #include "vtkCallbackCommand.h" 
 #include "vtksys/CommandLineArguments.hxx"  
 #include "vtkTrackedFrameList.h"
+#include "vtkXMLUtilities.h"
 
 const double DOUBLE_DIFF = 0.0001; // in mm, used for comparing double numbers
 

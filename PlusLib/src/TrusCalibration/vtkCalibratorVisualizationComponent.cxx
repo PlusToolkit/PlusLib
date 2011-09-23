@@ -1,7 +1,7 @@
 #include "PlusConfigure.h"
 
 #include "vtkCalibratorVisualizationComponent.h" 
-#include "vtkProbeCalibrationController.h"
+#include "vtkCalibrationController.h"
 #include "vtkImageImport.h"
 
 
@@ -244,9 +244,7 @@ void vtkCalibratorVisualizationComponent::OverlayCenterOfRotation()
 	this->GetCenterOfRotationActor()->SetMapper(polyMapper);
 	this->GetCenterOfRotationActor()->GetProperty()->SetColor(1,0,0);
 
-	int originX = this->GetCalibrationController()->GetUSImageFrameOriginXInPixels(); 
-	int originY = this->GetCalibrationController()->GetPatternRecognition()->GetFidSegmentation()->GetFrameSize()[1] - this->GetCalibrationController()->GetUSImageFrameOriginYInPixels(); 
-	this->GetCenterOfRotationActor()->SetPosition(originX, originY, 0); 
+	this->GetCenterOfRotationActor()->SetPosition(0.0, 0.0, 0.0); 
 	this->GetCenterOfRotationActor()->Modified(); 
 	this->ShowCenterOfRotation(); 
 }

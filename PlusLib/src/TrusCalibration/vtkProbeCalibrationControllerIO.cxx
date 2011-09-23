@@ -1,7 +1,8 @@
 #include "PlusConfigure.h"
-
 #include "vtkProbeCalibrationControllerIO.h" 
-#include "vtkProbeCalibrationController.h"
+#include "vtkCalibrationController.h"
+#include "PlusMath.h"
+
 #include "vtkObjectFactory.h"
 #include "vtkImageImport.h"
 #include "vtkImageFlip.h"
@@ -9,6 +10,9 @@
 #include "vtkXMLUtilities.h"
 #include "vtkDirectory.h"
 #include "vtksys/SystemTools.hxx"
+#include "vtkGnuplotExecuter.h"
+#include "vtkHTMLGenerator.h"
+#include "vtkStringArray.h"
 
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
@@ -87,7 +91,7 @@ void vtkProbeCalibrationControllerIO::PrintSelf(std::ostream &os, vtkIndent inde
 
 
 //----------------------------------------------------------------------------
-void vtkProbeCalibrationControllerIO::Initialize(vtkProbeCalibrationController* calibrationController)
+void vtkProbeCalibrationControllerIO::Initialize(vtkCalibrationController* calibrationController)
 {
 	this->CalibrationController = calibrationController; 
 }
@@ -127,7 +131,7 @@ void vtkProbeCalibrationControllerIO::SaveSegmentedWirePositionsToFile()
 	
 	// Save the current ProbeHomeToProbe transformation 
 	vtkSmartPointer<vtkTransform> currentTransformProbeHomeToProbe = vtkSmartPointer<vtkTransform>::New(); 
-	currentTransformProbeHomeToProbe->DeepCopy(this->CalibrationController->GetTransformProbeHomeToProbe()); 
+	currentTransformProbeHomeToProbe->DeepCopy(this->CalibrationController->GetTransformProbeToReference()); 
 
 	// define the Template to Image transformation 
 	vtkSmartPointer<vtkTransform> tTemplateToImage = vtkSmartPointer<vtkTransform>::New(); 
@@ -137,8 +141,8 @@ void vtkProbeCalibrationControllerIO::SaveSegmentedWirePositionsToFile()
 	// define the Template to Probe transformation 
 	vtkSmartPointer<vtkTransform> tTemplateToProbe = vtkSmartPointer<vtkTransform>::New(); 
 	tTemplateToProbe->PostMultiply(); 
-	tTemplateToProbe->Concatenate(this->CalibrationController->GetTransformProbeHomeToTemplateHolderHome()); 
-	tTemplateToProbe->Concatenate(this->CalibrationController->GetTransformTemplateHolderHomeToTemplateHome());
+	tTemplateToProbe->Concatenate(this->CalibrationController->GetTransformReferenceToTemplateHolderHome()); 
+	tTemplateToProbe->Concatenate(this->CalibrationController->GetTransformTemplateHolderToTemplate());
 	tTemplateToProbe->Concatenate(this->CalibrationController->GetTransformTemplateHomeToTemplate());
 	tTemplateToProbe->Inverse();
 
@@ -152,7 +156,7 @@ void vtkProbeCalibrationControllerIO::SaveSegmentedWirePositionsToFile()
 		tProbeHomeToProbe->SetMatrix(probeHomeToProbe); 
 
 		// Update the transformation to the current image position
-		this->CalibrationController->GetTransformProbeHomeToProbe()->SetMatrix(probeHomeToProbe); 
+		this->CalibrationController->GetTransformProbeToReference()->SetMatrix(probeHomeToProbe); 
 		this->CalibrationController->GetTransformImageToTemplate()->Update(); 
 
 		PatternRecognitionResult segResults = this->CalibrationController->GetSegmentedFrameContainer()[frameNum].SegResults; 
@@ -207,8 +211,8 @@ void vtkProbeCalibrationControllerIO::SaveSegmentedWirePositionsToFile()
 			vtkSmartPointer<vtkTransform> point = vtkSmartPointer<vtkTransform>::New(); 
 			point->PreMultiply();
 			point->Concatenate(tProbeHomeToProbe);
-			point->Concatenate(this->CalibrationController->GetTransformUserImageHomeToProbeHome()); 
-			point->Concatenate(this->CalibrationController->GetTransformImageHomeToUserImageHome()); 
+			point->Concatenate(this->CalibrationController->GetTransformUserImageToProbe()); 
+			point->Concatenate(this->CalibrationController->GetTransformImageToUserImage()); 
 			point->Translate(segResults.GetFoundDotsCoordinateValue()[i][0], segResults.GetFoundDotsCoordinateValue()[i][1], 0); 
 			point->Update(); 
 
@@ -285,8 +289,8 @@ void vtkProbeCalibrationControllerIO::SaveSegmentedWirePositionsToFile()
 	calibPosInfo.close(); 
 	validPosInfo.close(); 
 
-	// set back the current TransformProbeHomeToProbe
-	this->CalibrationController->GetTransformProbeHomeToProbe()->SetMatrix(currentTransformProbeHomeToProbe->GetMatrix()); 
+	// set back the current TransformProbeToReference
+	this->CalibrationController->GetTransformProbeToReference()->SetMatrix(currentTransformProbeHomeToProbe->GetMatrix()); 
 }
 
 //----------------------------------------------------------------------------
@@ -331,49 +335,49 @@ void vtkProbeCalibrationControllerIO::SaveCalibrationResultsAndErrorReportsToXML
 	//***********************************************************************************************
 	// <UltrasoundImageOrigin>
 	// # FORMAT: X to the right; Y to the bottom; w.r.t the left-upper corner in original image.
-	vtkSmartPointer<vtkXMLDataElement> tagUltrasoundImageOrigin = vtkSmartPointer<vtkXMLDataElement>::New(); 
-	tagUltrasoundImageOrigin->SetName("UltrasoundImageOrigin"); 
-	tagUltrasoundImageOrigin->SetIntAttribute("OriginX", this->CalibrationController->GetUSImageFrameOriginXInPixels()); 
-	tagUltrasoundImageOrigin->SetIntAttribute("OriginY", this->CalibrationController->GetUSImageFrameOriginYInPixels()); 
-	vtkstd::string commentUltrasoundImageOrigin("# UltrasoundImageOrigin format: X to the right; Y to the bottom; w.r.t the left-upper corner in original image."); 
-	tagUltrasoundImageOrigin->AddCharacterData(commentUltrasoundImageOrigin.c_str(), commentUltrasoundImageOrigin.size()); 
+	//vtkSmartPointer<vtkXMLDataElement> tagUltrasoundImageOrigin = vtkSmartPointer<vtkXMLDataElement>::New(); 
+	//tagUltrasoundImageOrigin->SetName("UltrasoundImageOrigin"); 
+	//tagUltrasoundImageOrigin->SetIntAttribute("OriginX", this->CalibrationController->GetUSImageFrameOriginXInPixels()); 
+	//tagUltrasoundImageOrigin->SetIntAttribute("OriginY", this->CalibrationController->GetUSImageFrameOriginYInPixels()); 
+	//vtkstd::string commentUltrasoundImageOrigin("# UltrasoundImageOrigin format: X to the right; Y to the bottom; w.r.t the left-upper corner in original image."); 
+	//tagUltrasoundImageOrigin->AddCharacterData(commentUltrasoundImageOrigin.c_str(), commentUltrasoundImageOrigin.size()); 
 	// </UltrasoundImageOrigin>
 
 	//***********************************************************************************************
 
-	double *imageHomeToUserImageHomeMatrix = new double[16]; 
+	double *imageToUserImageMatrix = new double[16]; 
 	for (int i = 0; i < 4; i++)
 	{
 		for (int j = 0; j < 4; j++) 
 		{
-			imageHomeToUserImageHomeMatrix[i*4+j] = this->CalibrationController->GetTransformImageHomeToUserImageHome()->GetMatrix()->GetElement(i,j); 
+			imageToUserImageMatrix[i*4+j] = this->CalibrationController->GetTransformImageToUserImage()->GetMatrix()->GetElement(i,j); 
 		}
 	}
 
-	double *userImageHomeToProbeHomeMatrix = new double[16]; 
+	double *userImageToProbeMatrix = new double[16]; 
 	for (int i = 0; i < 4; i++)
 	{
 		for (int j = 0; j < 4; j++) 
 		{
-			userImageHomeToProbeHomeMatrix[i*4+j] = this->CalibrationController->GetTransformUserImageHomeToProbeHome()->GetMatrix()->GetElement(i,j); 
+			userImageToProbeMatrix[i*4+j] = this->CalibrationController->GetTransformUserImageToProbe()->GetMatrix()->GetElement(i,j); 
 		}
 	}
 
-	double *probeHomeToTemplateHolderHomeMatrix = new double[16]; 
+	double *referenceToTemplateHolderHomeMatrix = new double[16]; 
 	for (int i = 0; i < 4; i++)
 	{
 		for (int j = 0; j < 4; j++) 
 		{
-			probeHomeToTemplateHolderHomeMatrix[i*4+j] = this->CalibrationController->GetTransformProbeHomeToTemplateHolderHome()->GetMatrix()->GetElement(i,j); 
+			referenceToTemplateHolderHomeMatrix[i*4+j] = this->CalibrationController->GetTransformReferenceToTemplateHolderHome()->GetMatrix()->GetElement(i,j); 
 		}
 	}
 
-	double *templateHolderHomeToTemplateHomeMatrix = new double[16]; 
+	double *templateHolderToTemplateMatrix = new double[16]; 
 	for (int i = 0; i < 4; i++)
 	{
 		for (int j = 0; j < 4; j++) 
 		{
-			templateHolderHomeToTemplateHomeMatrix[i*4+j] = this->CalibrationController->GetTransformTemplateHolderHomeToTemplateHome()->GetMatrix()->GetElement(i,j); 
+			templateHolderToTemplateMatrix[i*4+j] = this->CalibrationController->GetTransformTemplateHolderToTemplate()->GetMatrix()->GetElement(i,j); 
 		}
 	}
 
@@ -398,23 +402,23 @@ void vtkProbeCalibrationControllerIO::SaveCalibrationResultsAndErrorReportsToXML
 	// <CalibrationTransform>
 	vtkSmartPointer<vtkXMLDataElement> tagCalibrationTransform = vtkSmartPointer<vtkXMLDataElement>::New(); 
 	tagCalibrationTransform->SetName("CalibrationTransform"); 
-	tagCalibrationTransform->SetVectorAttribute("TransformImageHomeToUserImageHome", 16, imageHomeToUserImageHomeMatrix); 
-	tagCalibrationTransform->SetVectorAttribute("TransformUserImageHomeToProbeHome", 16, userImageHomeToProbeHomeMatrix); 
-	tagCalibrationTransform->SetVectorAttribute("TransformProbeHomeToTemplateHolderHome", 16, probeHomeToTemplateHolderHomeMatrix); 
-	tagCalibrationTransform->SetVectorAttribute("TransformTemplateHolderHomeToTemplateHome", 16, templateHolderHomeToTemplateHomeMatrix); 
+	tagCalibrationTransform->SetVectorAttribute("TransformImageToUserImage", 16, imageToUserImageMatrix); 
+	tagCalibrationTransform->SetVectorAttribute("TransformUserImageToProbe", 16, userImageToProbeMatrix); 
+	tagCalibrationTransform->SetVectorAttribute("TransformReferenceToTemplateHolderHome", 16, referenceToTemplateHolderHomeMatrix); 
+	tagCalibrationTransform->SetVectorAttribute("TransformTemplateHolderToTemplate", 16, templateHolderToTemplateMatrix); 
 	tagCalibrationTransform->SetVectorAttribute("TransformTemplateHomeToTemplate", 16, templateHomeToTemplateMatrix); 
 	tagCalibrationTransform->SetVectorAttribute("TransformImageToTemplate", 16, imageToTemplateMatrix); 
 	// </CalibrationTransform>
 
-	delete[] imageHomeToUserImageHomeMatrix; 
-	delete[] userImageHomeToProbeHomeMatrix; 
-	delete[] probeHomeToTemplateHolderHomeMatrix; 
-	delete[] templateHolderHomeToTemplateHomeMatrix; 
+	delete[] imageToUserImageMatrix; 
+	delete[] userImageToProbeMatrix; 
+	delete[] referenceToTemplateHolderHomeMatrix; 
+	delete[] templateHolderToTemplateMatrix; 
 	delete[] templateHomeToTemplateMatrix; 
 	delete[] imageToTemplateMatrix; 
 
 	tagCalibrationResults->AddNestedElement(tagUltrasoundImageDimensions); 
-	tagCalibrationResults->AddNestedElement(tagUltrasoundImageOrigin); 
+	//tagCalibrationResults->AddNestedElement(tagUltrasoundImageOrigin); 
 	tagCalibrationResults->AddNestedElement(tagCalibrationTransform); 
 	// </CalibrationResults>
 
@@ -837,7 +841,7 @@ void vtkProbeCalibrationControllerIO::ReadUs3DBeamwidthDataFromFile()
 		USBeamProfileFile >> ElevationFocalZoneAtAxialDistance2TheCrystals >> MinElevationBeamwidth;
 
 		vnl_matrix<double> transformOrigImageFrame2TRUSImageFrameMatrix4x4(4,4);
-		this->CalibrationController->ConvertVtkMatrixToVnlMatrixInMeter(this->CalibrationController->GetTransformImageHomeToUserImageHome()->GetMatrix(), transformOrigImageFrame2TRUSImageFrameMatrix4x4); 
+		this->CalibrationController->ConvertVtkMatrixToVnlMatrixInMeter(this->CalibrationController->GetTransformImageToUserImage()->GetMatrix(), transformOrigImageFrame2TRUSImageFrameMatrix4x4); 
 
 		// Convert the crystal surface position to TRUS image frame
 		double axialPositionOfCrystalSurfaceInTRUSImageFrame =
@@ -1126,12 +1130,12 @@ PlusStatus vtkProbeCalibrationControllerIO::ReadProbeCalibrationConfiguration(vt
 	}
 
 	//Transform: from image home position to user defined image home position
-  double imageHomeToUserImageHomeTransform[16] = {0}; 
-	if ( probeCalibration->GetVectorAttribute("ImageHomeToUserImageHomeTransform", 16, imageHomeToUserImageHomeTransform) )
+  double imageToUserImageTransform[16] = {0}; 
+	if ( probeCalibration->GetVectorAttribute("TransformImageToUserImage", 16, imageToUserImageTransform) )
 	{
-		this->CalibrationController->GetTransformImageHomeToUserImageHome()->SetMatrix(imageHomeToUserImageHomeTransform); 
-		this->CalibrationController->GetTransformUserImageToImage()->SetMatrix(imageHomeToUserImageHomeTransform); 
-		this->CalibrationController->GetTransformUserImageToImage()->Inverse(); 
+		this->CalibrationController->GetTransformImageToUserImage()->SetMatrix(imageToUserImageTransform); 
+		//this->CalibrationController->GetTransformUserImageToImage()->SetMatrix(imageHomeToUserImageHomeTransform); 
+		//this->CalibrationController->GetTransformUserImageToImage()->Inverse(); 
 	}
 
   // Sets the suffix of the data files
@@ -1306,31 +1310,31 @@ PlusStatus vtkProbeCalibrationControllerIO::ReadProbeCalibrationConfiguration(vt
     // * TransformProbeHomeToProbe * TransformUserImageHomeToProbeHome * TransformImageHomeToUserImageHome
 
     // TransformUserImageHomeToProbeHome
-    double tUserImageHomeToProbeHome[16] = {0}; 
-    if ( calibrationResult->GetVectorAttribute("TransformUserImageHomeToProbeHome", 16, tUserImageHomeToProbeHome) )
+    double transformUserImageToProbe[16] = {0}; 
+    if ( calibrationResult->GetVectorAttribute("TransformUserImageToProbe", 16, transformUserImageToProbe) )
     {
-      this->CalibrationController->GetTransformUserImageHomeToProbeHome()->SetMatrix(tUserImageHomeToProbeHome); 
+      this->CalibrationController->GetTransformUserImageToProbe()->SetMatrix(transformUserImageToProbe); 
     }
 
     // TransformProbeHomeToTemplateHolderHome
-    double tProbeHomeToTemplateHolderHome[16] = {0}; 
-    if ( calibrationResult->GetVectorAttribute("TransformProbeHomeToTemplateHolderHome", 16, tProbeHomeToTemplateHolderHome) )
+    double tReferenceToTemplateHolderHome[16] = {0}; 
+    if ( calibrationResult->GetVectorAttribute("TransformReferenceToTemplateHolderHome", 16, tReferenceToTemplateHolderHome) )
     {
-      this->CalibrationController->GetTransformProbeHomeToTemplateHolderHome()->SetMatrix(tProbeHomeToTemplateHolderHome); 
+      this->CalibrationController->GetTransformReferenceToTemplateHolderHome()->SetMatrix(tReferenceToTemplateHolderHome); 
     }
 
     // TransformTemplateHolderHomeToTemplateHome
-    double tTemplateHolderHomeToTemplateHome[16] = {0}; 
-    if ( calibrationResult->GetVectorAttribute("TransformTemplateHolderHomeToTemplateHome", 16, tTemplateHolderHomeToTemplateHome) )
+    double transformReferenceToTemplateHolderHome[16] = {0}; 
+    if ( calibrationResult->GetVectorAttribute("TransformReferenceToTemplateHolderHome", 16, transformReferenceToTemplateHolderHome) )
     {
-      this->CalibrationController->GetTransformTemplateHolderHomeToTemplateHome()->SetMatrix(tTemplateHolderHomeToTemplateHome); 
+      this->CalibrationController->GetTransformReferenceToTemplateHolderHome()->SetMatrix(transformReferenceToTemplateHolderHome); 
     }
 
     // TransformImageHomeToUserImageHome
-    double tImageHomeToUserImageHome[16] = {0}; 
-    if ( calibrationResult->GetVectorAttribute("TransformImageHomeToUserImageHome", 16, tImageHomeToUserImageHome) )
+    double transformImageToUserImage[16] = {0}; 
+    if ( calibrationResult->GetVectorAttribute("TransformImageToUserImage", 16, transformImageToUserImage) )
     {
-      this->CalibrationController->GetTransformImageHomeToUserImageHome()->SetMatrix(tImageHomeToUserImageHome); 
+      this->CalibrationController->GetTransformImageToUserImage()->SetMatrix(transformImageToUserImage); 
     }
 
     // Update LRE values
@@ -1393,6 +1397,207 @@ PlusStatus vtkProbeCalibrationControllerIO::ReadProbeCalibrationConfiguration(vt
 
   }
 
+	// Custom transforms
+	//*********************************
+	vtkSmartPointer<vtkXMLDataElement> phantomDefinition = rootElement->FindNestedElementWithName("PhantomDefinition");
+	if (phantomDefinition == NULL)
+  {
+		LOG_ERROR("No phantom definition is found in the XML tree!");
+		return PLUS_FAIL;
+	}
+	vtkSmartPointer<vtkXMLDataElement> customTransforms = phantomDefinition->FindNestedElementWithName("CustomTransforms"); 
+	if (customTransforms == NULL) 
+  {
+		LOG_ERROR("Custom transforms are not found in phantom model");
+    return PLUS_FAIL;
+	}
+  
+  double templateHolderToPhantomTransformVector[16]={0}; 
+  if (customTransforms->GetVectorAttribute("TemplateHolderToPhantomTransform", 16, templateHolderToPhantomTransformVector)) 
+  {
+    vtkSmartPointer<vtkTransform> transformTemplateHolderToPhantom = vtkSmartPointer<vtkTransform>::New(); 
+    transformTemplateHolderToPhantom->SetMatrix(templateHolderToPhantomTransformVector); 
+    this->CalibrationController->SetTransformTemplateHolderToPhantom( transformTemplateHolderToPhantom  ); 
+  }
+  else
+	{
+		LOG_ERROR("Unable to read template origin from template holder from template model file!"); 
+	}
+
   return PLUS_SUCCESS; 
 }
 
+//----------------------------------------------------------------------------
+PlusStatus vtkProbeCalibrationControllerIO::GenerateProbeCalibrationReport( vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter, const char* gnuplotScriptsFolder)
+{
+	LOG_TRACE("vtkProbeCalibrationControllerIO::GenerateProbeCalibrationReport"); 
+	if ( htmlReport == NULL || plotter == NULL )
+	{
+		LOG_ERROR("Caller should define HTML report generator and gnuplot plotter before report generation!"); 
+		return PLUS_FAIL; 
+	}
+
+	std::string plotSegmentedWirePositionsHistogramScript = gnuplotScriptsFolder + std::string("/PlotSegmentedWirePositionsHistogram.gnu"); 
+	if ( !vtksys::SystemTools::FileExists( plotSegmentedWirePositionsHistogramScript.c_str(), true) )
+	{
+		LOG_ERROR("Unable to find gnuplot script at: " << plotSegmentedWirePositionsHistogramScript); 
+		return PLUS_FAIL; 
+	}
+
+	std::string plotSegmentedWirePositionsErrorScript = gnuplotScriptsFolder + std::string("/PlotSegmentedWirePositions.gnu"); 
+	if ( !vtksys::SystemTools::FileExists( plotSegmentedWirePositionsErrorScript.c_str(), true) )
+	{
+		LOG_ERROR("Unable to find gnuplot script at: " << plotSegmentedWirePositionsErrorScript); 
+		return PLUS_FAIL; 
+	}
+
+	if ( this->CalibrationController->GetCalibrationDone() && this->CalibrationController->GetEnableSegmentedWirePositionsSaving() )
+	{
+		const char* reportFile = this->CalibrationController->GetCalibrationSegWirePosInfoFileName();
+    if ( reportFile == NULL )
+    {
+      LOG_ERROR("Failed to generate probe calibration report - report file name is NULL!"); 
+      return PLUS_FAIL; 
+    }
+
+		if ( !vtksys::SystemTools::FileExists( reportFile, true) )
+		{
+			LOG_ERROR("Unable to find segmented wire positions report file at: " << reportFile); 
+			return PLUS_FAIL; 
+		}
+
+		htmlReport->AddText("Final Calibration Results", vtkHTMLGenerator::H1); 
+
+    std::string strUserImageHomeToProbeHome = PlusMath::GetTransformParametersString(this->CalibrationController->GetTransformUserImageToProbe() ); 
+    std::string strProbeHomeToTemplateHolderHome = PlusMath::GetTransformParametersString(this->CalibrationController->GetTransformReferenceToTemplateHolderHome() ); 
+    std::string strTemplateHolderHomeToTemplateHome = PlusMath::GetTransformParametersString(this->CalibrationController->GetTransformTemplateHolderToTemplate() ); 
+
+    htmlReport->AddText("Image to probe transform: ", vtkHTMLGenerator::H4);
+    htmlReport->AddParagraph(strUserImageHomeToProbeHome.c_str()); 
+
+    htmlReport->AddText("Probe to template holder transform: ", vtkHTMLGenerator::H4);
+    htmlReport->AddParagraph(strProbeHomeToTemplateHolderHome.c_str()); 
+
+    htmlReport->AddText("Template holder to template transform: ", vtkHTMLGenerator::H4);
+    htmlReport->AddParagraph(strTemplateHolderHomeToTemplateHome.c_str()); 
+
+    vtkSmartPointer<vtkTable> lreTable = vtkSmartPointer<vtkTable>::New(); 
+    std::vector<double> lreVector; 
+
+    vtkSmartPointer<vtkStringArray> colTitle = vtkSmartPointer<vtkStringArray>::New(); 
+    vtkSmartPointer<vtkStringArray> colLreXMean = vtkSmartPointer<vtkStringArray>::New(); 
+    vtkSmartPointer<vtkStringArray> colLreXStdev = vtkSmartPointer<vtkStringArray>::New(); 
+    vtkSmartPointer<vtkStringArray> colLreYMean = vtkSmartPointer<vtkStringArray>::New();
+    vtkSmartPointer<vtkStringArray> colLreYStdev = vtkSmartPointer<vtkStringArray>::New(); 
+
+     const int wiresLRE[4] = {1, 3, 4, 6};
+     for ( int i = 0; i < 4; ++i )
+     {
+
+       colTitle->SetName("Wire"); 
+       std::ostringstream title; 
+       title << "Wire #" << wiresLRE[i]; 
+       colTitle->InsertNextValue(title.str()); 
+
+       this->CalibrationController->GetLineReconstructionErrorAnalysisVector(wiresLRE[i], lreVector); 
+
+       colLreXMean->SetName("LRE-X Mean (mm)"); 
+       std::ostringstream lreXMean; 
+       lreXMean << lreVector[0]*1000; 
+       colLreXMean->InsertNextValue(lreXMean.str()); 
+
+       colLreXStdev->SetName("LRE-X Stdev (mm)"); 
+       std::ostringstream lreXStdev; 
+       lreXStdev << lreVector[1]*1000; 
+       colLreXStdev->InsertNextValue(lreXStdev.str()); 
+
+       colLreYMean->SetName("LRE-Y Mean (mm)"); 
+       std::ostringstream lreYMean; 
+       lreYMean << lreVector[2]*1000; 
+       colLreYMean->InsertNextValue(lreYMean.str()); 
+
+       colLreYStdev->SetName("LRE-Y Stdev (mm)"); 
+       std::ostringstream lreYStdev; 
+       lreYStdev << lreVector[3]*1000; 
+       colLreYStdev->InsertNextValue(lreYStdev.str()); 
+     }
+
+    lreTable->AddColumn(colTitle); 
+    lreTable->AddColumn(colLreXMean); 
+    lreTable->AddColumn(colLreXStdev); 
+    lreTable->AddColumn(colLreYMean); 
+    lreTable->AddColumn(colLreYStdev); 
+
+    htmlReport->AddText("Line Reconstruction Error Analysis", vtkHTMLGenerator::H2);
+
+    htmlReport->AddTable(lreTable, 1); 
+
+		htmlReport->AddText("Error Histogram", vtkHTMLGenerator::H2); 
+
+		const int wires[6] = {1, 2, 3, 4, 5, 6}; 
+
+		for ( int i = 0; i < 6; i++ )
+		{
+			std::ostringstream wireName; 
+			wireName << "Wire #" << wires[i] << std::ends; 
+			htmlReport->AddText(wireName.str().c_str(), vtkHTMLGenerator::H3); 
+			plotter->ClearArguments(); 
+			plotter->AddArgument("-e");
+			std::ostringstream segWirePosError; 
+			segWirePosError << "f='" << reportFile << "'; o='SegWirePosHistogram'; w=" << wires[i] << std::ends; 
+			plotter->AddArgument(segWirePosError.str().c_str()); 
+			plotter->AddArgument(plotSegmentedWirePositionsHistogramScript.c_str());  
+			if ( plotter->Execute() != PLUS_SUCCESS )
+      {
+        LOG_ERROR("Failed to run gnuplot executer!"); 
+        continue; 
+      }
+			plotter->ClearArguments(); 
+
+			std::ostringstream imageSource;
+			imageSource << "w" << wires[i] << "_SegWirePosHistogram.jpg" << std::ends; 
+			std::ostringstream imageAlt; 
+			imageAlt << "Final calibration error histogram - wire #" << wires[i] << std::ends; 
+
+			htmlReport->AddImage(imageSource.str().c_str(), imageAlt.str().c_str());  
+		}
+
+		/////////////////////////////////////////////////////////////////////////////////////////////
+
+		htmlReport->AddText("Error Plot", vtkHTMLGenerator::H2); 
+
+		for ( int i = 0; i < 6; i++ )
+		{
+			std::ostringstream wireName; 
+			wireName << "Wire #" << wires[i] << std::ends; 
+			htmlReport->AddText(wireName.str().c_str(), vtkHTMLGenerator::H3); 
+			plotter->ClearArguments(); 
+			plotter->AddArgument("-e");
+			std::ostringstream segWirePosError; 
+			segWirePosError << "f='" << reportFile << "'; o='SegWirePos'; w=" << wires[i] << std::ends; 
+			plotter->AddArgument(segWirePosError.str().c_str()); 
+			plotter->AddArgument(plotSegmentedWirePositionsErrorScript.c_str());  
+			if ( plotter->Execute() != PLUS_SUCCESS )
+      {
+        LOG_ERROR("Failed to run gnuplot executer!"); 
+        continue; 
+      }
+
+			plotter->ClearArguments(); 
+
+			std::ostringstream imageSourceX, imageAltX, imageSourceY, imageAltY; 
+
+			imageSourceX << "w" << wires[i] << "x_SegWirePos.jpg" << std::ends; 
+			imageSourceY << "w" << wires[i] << "y_SegWirePos.jpg" << std::ends; 
+			imageAltX << "Final calibration error - wire #" << wires[i] << " X Axis" << std::ends; 
+			imageAltY << "Final calibration error - wire #" << wires[i] << " Y Axis" << std::ends; 
+
+			htmlReport->AddImage(imageSourceX.str().c_str(), imageAltX.str().c_str());  
+			htmlReport->AddImage(imageSourceY.str().c_str(), imageAltY.str().c_str());  
+		}
+
+		htmlReport->AddHorizontalLine(); 
+	}
+
+  return PLUS_SUCCESS;
+}

@@ -2,8 +2,6 @@
 #define __CALIBRATORVISUALIZATIONCOMPONENT_H
 
 #include "PlusConfigure.h"
-//#include "vtkCalibrationController.h"
-//#include "vtkProbeCalibrationController.h"
 #include "vtkObject.h"
 #include "vtkRenderer.h"
 #include "vtkImageData.h"
@@ -24,7 +22,7 @@ class vtkLookupTable;
 class vtkPNGWriter;
 class vtkScalarBarActor;
 class vtkImageViewer;
-class vtkProbeCalibrationController; 
+class vtkCalibrationController; 
 
 //enum US_IMAGING_MODE
 //{
@@ -99,8 +97,8 @@ public:
 	vtkGetObjectMacro(TransformVtkImageToTemplate, vtkTransform);
 	vtkSetObjectMacro(TransformVtkImageToTemplate, vtkTransform);
 			
-	vtkGetObjectMacro(CalibrationController, vtkProbeCalibrationController);
-  //vtkSetObjectMacro(CalibrationController, vtkProbeCalibrationController);
+	vtkGetObjectMacro(CalibrationController, vtkCalibrationController);
+  //vtkSetObjectMacro(CalibrationController, vtkCalibrationController);
 	
 	vtkGetStringMacro(OutputPath); 
 	vtkSetStringMacro(OutputPath); 
@@ -126,7 +124,7 @@ protected:
 	vtkCamera* TemplateCamera; 
 
 	//! Attribute: a reference to the calibration controller
-	vtkProbeCalibrationController* CalibrationController; 
+	vtkCalibrationController* CalibrationController; 
 
 	//! Attribute: Flag to show the initialized state
 	bool Initialized; 
