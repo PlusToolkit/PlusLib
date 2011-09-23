@@ -6,16 +6,14 @@ SET (TrusCalibration_SRCS
 	Phantom.cxx
 	vtkCalibratorVisualizationComponent.cxx 
 	vtkCalibrationController.cxx 
-	vtkProbeCalibrationController.cxx 
 	vtkProbeCalibrationControllerIO.cxx 
 	vtkStepperCalibrationController.cxx 
-    vtkMeanShiftClustering.cxx 
+  vtkMeanShiftClustering.cxx 
 	vtkPivotCalibrationAlgo.cxx
 	vtkPhantomRegistrationAlgo.cxx
-	vtkFreehandCalibrationController.cxx
 	VolumeReconstructionController.cxx
-    vtkRotAxisCalibAlgo.cxx 
-    vtkTranslAxisCalibAlgo.cxx 
+  vtkRotAxisCalibAlgo.cxx 
+  vtkTranslAxisCalibAlgo.cxx 
 	)
 
 SET (TrusCalibration_HDRS)	
@@ -25,16 +23,14 @@ IF (WIN32)
 		Phantom.h 
 		vtkCalibratorVisualizationComponent.h
 		vtkCalibrationController.h
-		vtkProbeCalibrationController.h
 		vtkProbeCalibrationControllerIO.h
 		vtkStepperCalibrationController.h 
-        vtkMeanShiftClustering.h
+    vtkMeanShiftClustering.h
 		vtkPivotCalibrationAlgo.h
 		vtkPhantomRegistrationAlgo.h
-		vtkFreehandCalibrationController.h
 		VolumeReconstructionController.h
-        vtkRotAxisCalibAlgo.h
-        vtkTranslAxisCalibAlgo.h
+    vtkRotAxisCalibAlgo.h
+    vtkTranslAxisCalibAlgo.h
 		)
 ENDIF (WIN32)
 
@@ -53,6 +49,7 @@ SET (TrusCalibration_LIBS
   UsFidSegAlgo 
   vtkTrusCalibrationCommon 
   vtkPlusCommon
+  vtkTracking
   )
 
 INCLUDE_DIRECTORIES( ${TrusCalibration_INCLUDE_DIRS} )

@@ -8,7 +8,9 @@
 
 #include "itkImage.h"
 
-class vtkProbeCalibrationController; 
+class vtkCalibrationController; 
+class vtkHTMLGenerator; 
+class vtkGnuplotExecuter; 
 
 
 class vtkProbeCalibrationControllerIO : public vtkObject
@@ -23,8 +25,8 @@ public:
 	virtual void PrintSelf(ostream& os, vtkIndent indent); 
 	
 	//! Description
-	// Initialize the ProbeCalibrationController with the calibration controller instance
-	virtual void Initialize( vtkProbeCalibrationController* calibrationController ); 
+	// Initialize the CalibrationController with the calibration controller instance
+	virtual void Initialize( vtkCalibrationController* calibrationController ); 
 
 	//! Description
 	// Draw the segmentation result to each individual image and save them into TIFF files
@@ -51,12 +53,17 @@ public:
 	// Load the ultrasound 3D beam profile data
 	virtual void LoadUS3DBeamProfileData();
 
+	// Description:
+	// Add generated html report from final calibration to the existing html report
+	// htmlReport and plotter arguments has to be defined by the caller function
+	virtual PlusStatus GenerateProbeCalibrationReport( vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter, const char* gnuplotScriptsFolder); 
+
 protected:
 	vtkProbeCalibrationControllerIO();
 	virtual ~vtkProbeCalibrationControllerIO();
 
 	//! Attribute: a reference to the calibration controller
-	vtkProbeCalibrationController* CalibrationController; 
+	vtkCalibrationController* CalibrationController; 
 private:
 	vtkProbeCalibrationControllerIO(const vtkProbeCalibrationControllerIO&);
 	void operator=(const vtkProbeCalibrationControllerIO&);

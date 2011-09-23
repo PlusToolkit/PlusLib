@@ -9,7 +9,7 @@
     <UltrasoundImageOrigin OriginX="0" OriginY="0">
       # UltrasoundImageOrigin format: X to the right; Y to the bottom; w.r.t the left-upper corner in original image.
     </UltrasoundImageOrigin>
-    <CalibrationTransform TransformImageToProbe="-0.0106835 -0.0741887 0.00206576 -102.328 0.0772966 -0.00985115 -0.00457025 -42.8054 0.00491564 0.00141751 0.0763552 -95.4845 0 0 0 1">
+    <CalibrationTransform TransformUserImageToProbe="-0.0106835 -0.0741887 0.00206576 -102.328 0.0772966 -0.00985115 -0.00457025 -42.8054 0.00491564 0.00141751 0.0763552 -95.4845 0 0 0 1">
       
     </CalibrationTransform>
     

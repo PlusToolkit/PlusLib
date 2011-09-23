@@ -7,6 +7,12 @@ class vtkHTMLGenerator;
 class vtkGnuplotExecuter; 
 class vtkTable; 
 
+enum CalibrationMode
+{
+	REALTIME, 
+	OFFLINE
+};  
+
 class HomogenousVector4x1
 {
 public: 
@@ -268,7 +274,12 @@ public:
 	vtkSetStringMacro(CenterOfRotationCalculationErrorReportFilePath); 
 	vtkGetStringMacro(CenterOfRotationCalculationErrorReportFilePath); 
 	
-	
+	//! Description: 
+	// Set/get calibration mode
+	vtkSetMacro(CalibrationMode, CalibrationMode); 
+	vtkGetMacro(CalibrationMode, CalibrationMode); 
+
+
 protected:
 	vtkStepperCalibrationController ();
 	virtual ~vtkStepperCalibrationController ();
@@ -554,6 +565,9 @@ protected:
 
 	int MinNumberOfRotationClusters; 
 	int MinNumOfFramesUsedForCenterOfRotCalc; 
+
+	//! calibration mode (see CALIBRATION_MODE)
+	CalibrationMode CalibrationMode;
 
 private:
 	vtkStepperCalibrationController (const vtkStepperCalibrationController &);

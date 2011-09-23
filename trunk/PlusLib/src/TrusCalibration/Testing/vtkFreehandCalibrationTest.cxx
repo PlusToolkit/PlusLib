@@ -1,5 +1,6 @@
 #include "PlusConfigure.h"
-#include "vtkFreehandCalibrationController.h"
+#include "PlusMath.h"
+#include "vtkCalibrationController.h"
 #include "vtkPhantomRegistrationAlgo.h"
 #include "vtkPlusConfig.h"
 #include "vtkBMPReader.h"
@@ -93,8 +94,10 @@ int main (int argc, char* argv[])
 		exit(EXIT_FAILURE);
 	}
 
-  vtkSmartPointer<vtkFreehandCalibrationController> freehandCalibration = vtkSmartPointer<vtkFreehandCalibrationController>::New(); 
-	freehandCalibration->ReadConfiguration(configRootElement); 
+  vtkSmartPointer<vtkCalibrationController> freehandCalibration = vtkSmartPointer<vtkCalibrationController>::New();
+	freehandCalibration->ReadConfiguration(configRootElement);
+  freehandCalibration->ReadFreehandCalibrationConfiguration(configRootElement);
+  freehandCalibration->EnableSegmentationAnalysisOn(); // So that results are drawn (there was a condition for that if the calibration is in OFFLINE mode - now that enum has been removed)
 
 	// Continue initializing freehand calibration controller
 	vtkCalibrationController::ImageDataInfo freehandMotion1DataInfo = freehandCalibration->GetImageDataInfo(FREEHAND_MOTION_1);
@@ -105,8 +108,8 @@ int main (int argc, char* argv[])
 	freehandMotion2DataInfo.InputSequenceMetaFileName.assign(inputFreehandMotion2SeqMetafile.c_str());
 	freehandCalibration->SetImageDataInfo(FREEHAND_MOTION_2, freehandMotion2DataInfo);
 
-  freehandCalibration->SetCalibrationMode(OFFLINE);
-  freehandCalibration->InitializeCalibration(phantomRegistration->GetPhantomToPhantomReferenceTransform());
+  freehandCalibration->Initialize();
+  freehandCalibration->RegisterPhantomGeometry(phantomRegistration->GetPhantomToPhantomReferenceTransform());
 
 	// Register phantom geometry before calibration 
 	freehandCalibration->DoOfflineCalibration();  
@@ -228,67 +231,6 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
 			}
 		}// </UltrasoundImageDimensions>
 
-
-		{	// <UltrasoundImageOrigin>
-			vtkSmartPointer<vtkXMLDataElement> ultrasoundImageOriginBaseline = calibrationResultsBaseline->FindNestedElementWithName("UltrasoundImageOrigin"); 
-			vtkSmartPointer<vtkXMLDataElement> ultrasoundImageOrigin = calibrationResults->FindNestedElementWithName("UltrasoundImageOrigin");
-
-			if ( ultrasoundImageOriginBaseline == NULL) 
-			{
-				LOG_ERROR("Reading baseline UltrasoundImageOrigin tag failed: " << baselineFileName);
-				numberOfFailures++;
-				return numberOfFailures;
-			}
-
-			if ( ultrasoundImageOrigin == NULL) 
-			{
-				LOG_ERROR("Reading current UltrasoundImageOrigin tag failed: " << currentResultFileName);
-				numberOfFailures++;
-				return numberOfFailures;
-			}
-
-			int blUltrasoundImageOriginX, cUltrasoundImageOriginX; 
-			if (!ultrasoundImageOriginBaseline->GetScalarAttribute("OriginX", blUltrasoundImageOriginX))
-			{
-				LOG_ERROR("Baseline UltrasoundImageOrigin X is missing");
-				numberOfFailures++;			
-			}
-			else if (!ultrasoundImageOrigin->GetScalarAttribute("OriginX", cUltrasoundImageOriginX))
-			{
-				LOG_ERROR("Current UltrasoundImageOrigin X is missing");
-				numberOfFailures++;			
-			}
-			else
-			{
-				if (blUltrasoundImageOriginX != cUltrasoundImageOriginX)
-				{
-					LOG_ERROR("UltrasoundImageOrigin X mismatch: current=" << cUltrasoundImageOriginX << ", baseline=" << blUltrasoundImageOriginX);
-					numberOfFailures++;
-				}
-			}
-
-			int blUltrasoundImageOriginY, cUltrasoundImageOriginY; 
-			if (!ultrasoundImageOriginBaseline->GetScalarAttribute("OriginY", blUltrasoundImageOriginY))
-			{
-				LOG_ERROR("Baseline UltrasoundImageOrigin Y is missing");
-				numberOfFailures++;			
-			}
-			else if (!ultrasoundImageOrigin->GetScalarAttribute("OriginY", cUltrasoundImageOriginY))
-			{
-				LOG_ERROR("Current UltrasoundImageOrigin Y is missing");
-				numberOfFailures++;			
-			}
-			else
-			{
-				if (blUltrasoundImageOriginY != cUltrasoundImageOriginY)
-				{
-					LOG_ERROR("UltrasoundImageOrigin Y mismatch: current=" << cUltrasoundImageOriginY << ", baseline=" << blUltrasoundImageOriginY);
-					numberOfFailures++;
-				}
-			}
-			
-		}// </UltrasoundImageOrigin>
-
 		{	// <CalibrationTransform>
 			vtkSmartPointer<vtkXMLDataElement> calibrationTransformBaseline = calibrationResultsBaseline->FindNestedElementWithName("CalibrationTransform"); 
 			vtkSmartPointer<vtkXMLDataElement> calibrationTransform = calibrationResults->FindNestedElementWithName("CalibrationTransform");
@@ -311,14 +253,14 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
 			double *blTransformImageToProbe = new double[16]; 
 			double *cTransformImageToProbe = new double[16]; 
 
-			if (!calibrationTransformBaseline->GetVectorAttribute("TransformImageToProbe", 16, blTransformImageToProbe))
+			if (!calibrationTransformBaseline->GetVectorAttribute("TransformUserImageToProbe", 16, blTransformImageToProbe))
 			{
-				LOG_ERROR("Baseline TransformImageToProbe tag is missing");
+				LOG_ERROR("Baseline TransformUserImageToProbe tag is missing");
 				numberOfFailures++;			
 			}
-			else if (!calibrationTransform->GetVectorAttribute("TransformImageToProbe", 16, cTransformImageToProbe))
+			else if (!calibrationTransform->GetVectorAttribute("TransformUserImageToProbe", 16, cTransformImageToProbe))
 			{
-				LOG_ERROR("Current TransformImageToProbe tag is missing");
+				LOG_ERROR("Current TransformUserImageToProbe tag is missing");
 				numberOfFailures++;			
 			}
 			else
