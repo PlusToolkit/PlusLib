@@ -8,7 +8,7 @@
 
 #include <QWidget>
 
-class vtkFreehandCalibrationController;
+class vtkCalibrationController;
 
 //-----------------------------------------------------------------------------
 
@@ -53,6 +53,12 @@ protected:
   * \return Ready flag
 	*/
   bool IsReadyToStartSpatialCalibration();
+
+	/*!
+	* \brief Execute spatial calibration
+  * \return Success flag
+	*/
+  PlusStatus DoSpatialCalibration();
 
 protected slots:
 	/*!
@@ -113,8 +119,11 @@ protected:
 	//! Flag indicating spatial calibration is done (needed for properly setting the state of UI elements)
   bool m_SpatialCalibrationDone;
 
-  //! Freehand calibration algorithm
-  vtkFreehandCalibrationController* m_FreehandCalibration;
+  //! Calibration algorithm
+  vtkCalibrationController* m_Calibration;
+
+  //! Flag if cancel is requested
+  bool m_CancelRequest;
 
 protected:
 	Ui::FreehandCalibrationToolbox ui;
