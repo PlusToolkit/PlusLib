@@ -53,7 +53,7 @@ vtkPlusCommand
 {
   this->DataCollector = NULL;
   
-  this->StringRepresentation = "";
+  this->StringRepresentation.clear(); 
 }
 
 

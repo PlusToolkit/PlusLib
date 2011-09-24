@@ -12,8 +12,9 @@ vtkStandardNewMacro(vtkHTMLGenerator);
 //----------------------------------------------------------------------------
 vtkHTMLGenerator::vtkHTMLGenerator()
 {
-	this->Title = ""; 
-	this->HtmlBody.str(""); 
+	this->Title = NULL; 
+  this->SetTitle(""); 
+	this->HtmlBody.clear(); 
 }
 
 //----------------------------------------------------------------------------

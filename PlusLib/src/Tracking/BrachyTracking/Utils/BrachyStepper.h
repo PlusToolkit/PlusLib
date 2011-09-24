@@ -68,7 +68,7 @@ public:
   // Get brachy stepper type in string format
   static std::string GetBrachyStepperTypeInString(BRACHY_STEPPER_TYPE stepperType) 
   { 
-    std::string strStepperType = ""; 
+    std::string strStepperType;
 
     switch(stepperType)
     { 
@@ -89,7 +89,7 @@ public:
         break; 
     default: 
       LOG_ERROR("Unable to recognize stepper type: " << stepperType); 
-      strStepperType = ""; 
+      strStepperType.clear(); 
     }
 
     return strStepperType; 

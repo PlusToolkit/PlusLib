@@ -144,7 +144,7 @@ PlusStatus vtkGnuplotExecuter::Execute()
     vtksysProcess_Execute(gp); 
 
     LOG_DEBUG("Wait for exit (Timeout: " << this->GetTimeout() << "s) ..." ); 
-    std::string buffer = "";
+    std::string buffer; 
     double timeout = this->GetTimeout(); 
     char* data = NULL;
     int length;

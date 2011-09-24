@@ -72,11 +72,6 @@ public:
 
   virtual PlusStatus WriteConfiguration( vtkXMLDataElement* configData ); 
 
-	//! Description: 
-	// Get stepper encoder values from the tracked frame info
-	// Return true if we found the encoder values, otherwise false
-	static PlusStatus GetStepperEncoderValues( TrackedFrame* trackedFrame, double &probePosition, double &probeRotation, double &templatePosition); 
-
 	//! Description 
 	// Run the probe rotation axis calibration algorithm 
 	// Returns true on success otherwise false

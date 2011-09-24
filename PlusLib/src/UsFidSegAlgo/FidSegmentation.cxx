@@ -35,7 +35,7 @@ FidSegmentation::FidSegmentation() :
 	m_RegionOfInterest[2] = -1;
 	m_RegionOfInterest[3] = -1;
 
-	m_PossibleFiducialsImageFilename = "";
+	m_PossibleFiducialsImageFilename.clear(); 
 
   for(int i= 0 ; i<4 ; i++)
   {

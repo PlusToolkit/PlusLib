@@ -14,6 +14,7 @@
 #include "vtksys/SystemTools.hxx"
 #include "vtkAccurateTimer.h"
 #include "vtkXMLDataElement.h"
+#include "vtkTrackedFrameList.h"
 
 
 //----------------------------------------------------------------------------
@@ -584,7 +585,7 @@ PlusStatus vtkBrachyTracker::GetTrackerToolBufferStringList(double timestamp,
 	// Get value for PROBE_POSITION, PROBE_ROTATION, TEMPLATE_POSITION tools
 	TrackerStatus encoderStatus = TR_OK; 
 	double probePos(0), probeRot(0), templatePos(0); 
-	if ( this->GetStepperEncoderValues(timestamp, probePos, probeRot, templatePos, encoderStatus) != PLUS_SUCCESS )
+	if ( vtkBrachyTracker::GetStepperEncoderValues(timestamp, probePos, probeRot, templatePos, encoderStatus) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to get stepper encoder values!"); 
     return PLUS_FAIL; 
@@ -625,7 +626,7 @@ PlusStatus vtkBrachyTracker::GetLatestStepperEncoderValues( double &probePositio
   }
   BufferItemUidType latestUid = this->GetTool(RAW_ENCODER_VALUES)->GetBuffer()->GetLatestItemUidInBuffer(); 
 
-  return this->GetStepperEncoderValues(latestUid, probePosition, probeRotation, templatePosition, status);
+  return vtkBrachyTracker::GetStepperEncoderValues(latestUid, probePosition, probeRotation, templatePosition, status);
 }
 
 //----------------------------------------------------------------------------
@@ -663,7 +664,7 @@ PlusStatus vtkBrachyTracker::GetStepperEncoderValues( double timestamp, double &
     return PLUS_FAIL; 
   }
 
-  return this->GetStepperEncoderValues(uid, probePosition, probeRotation, templatePosition, status); 
+  return vtkBrachyTracker::GetStepperEncoderValues(uid, probePosition, probeRotation, templatePosition, status); 
 }
 
 //----------------------------------------------------------------------------
@@ -782,4 +783,79 @@ PlusStatus vtkBrachyTracker::GetRawEncoderValuesTransform( double timestamp, vtk
   }
   
   return this->GetRawEncoderValuesTransform(uid, rawEncoderValuesTransform, status); 
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkBrachyTracker::GetStepperEncoderValues( TrackedFrame* trackedFrame, double &probePosition, double &probeRotation, double &templatePosition)
+{
+  if ( trackedFrame == NULL )
+  {
+    LOG_ERROR("Unable to get stepper encoder values - input tracked frame is NULL!"); 
+    return PLUS_FAIL; 
+  }
+
+  // Get the probe position from tracked frame info
+  const char* cProbePos = trackedFrame->GetCustomFrameField("ProbePosition"); 
+  if ( cProbePos != NULL )
+  {
+    probePosition = atof(cProbePos); 
+  }
+  else
+  {
+    double transform[16]; 
+    if ( trackedFrame->GetDefaultFrameTransform(transform) )
+    {
+      // Get probe position from matrix (0,3) element
+      probePosition = transform[3]; 
+    }
+    else
+    {
+      LOG_ERROR("Unable to get probe position from tracked frame info."); 
+      return PLUS_FAIL; 
+    }
+  }
+
+  // Get the probe rotation from tracked frame info
+  const char* cProbeRot = trackedFrame->GetCustomFrameField("ProbeRotation"); 
+  if ( cProbeRot != NULL )
+  {
+    probeRotation = atof(cProbeRot); 
+  }
+  else
+  {
+    double transform[16]; 
+    if ( trackedFrame->GetDefaultFrameTransform(transform) )
+    {
+      // Get probe rotation from matrix (1,3) element
+      probeRotation = transform[7]; 
+    }
+    else
+    {
+      LOG_ERROR("Unable to get probe rotation from tracked frame info."); 
+      return PLUS_FAIL; 
+    }
+  }
+
+  // Get the template position from tracked frame info
+  const char* cTemplatePos = trackedFrame->GetCustomFrameField("TemplatePosition"); 
+  if ( cTemplatePos != NULL )
+  {
+    templatePosition = atof(cTemplatePos); 
+  }
+  else
+  {
+    double transform[16]; 
+    if ( trackedFrame->GetDefaultFrameTransform(transform) )
+    {
+      // Get template position from matrix (2,3) element
+      templatePosition = transform[11]; 
+    }
+    else
+    {
+      LOG_ERROR("Unable to get template position from tracked frame info."); 
+      return PLUS_FAIL; 
+    }
+  }
+
+  return PLUS_SUCCESS; 
 }
