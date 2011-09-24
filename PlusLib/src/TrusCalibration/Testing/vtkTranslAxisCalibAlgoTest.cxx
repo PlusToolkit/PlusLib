@@ -94,8 +94,8 @@ int main(int argc, char **argv)
 		exit(EXIT_FAILURE);
   }
 
-	FidPatternRecognition* patternRecognition = new FidPatternRecognition();
-	patternRecognition->ReadConfiguration(configRootElement);
+	FidPatternRecognition patternRecognition; 
+	patternRecognition.ReadConfiguration(configRootElement);
 
   LOG_INFO("Read translation data from metafile...");
 
@@ -106,22 +106,20 @@ int main(int argc, char **argv)
       return EXIT_FAILURE;
   }
 
-  LOG_INFO("Test image data segmentation...");
+  LOG_INFO("Testing image data segmentation...");
   for ( int currentFrameIndex = 0; currentFrameIndex < trackedFrameList->GetNumberOfTrackedFrames(); currentFrameIndex++)
   {
-    patternRecognition->RecognizePattern(trackedFrameList->GetTrackedFrame(currentFrameIndex));
+    patternRecognition.RecognizePattern(trackedFrameList->GetTrackedFrame(currentFrameIndex));
   }
 
-  LOG_INFO("Compute spacing...");
+  LOG_INFO("Spacing computation...");
   double spacing[2]={0.191451, 0.186871}; // TODO: remove hard coded spacing info, compute it or read it from baseline 
 
   LOG_INFO("Spacing: " << std::fixed << spacing[0] << "  " << spacing[1] << " mm/px"); 
 
-  LOG_INFO("Test translation axis orientation computation algorithm...");
+  LOG_INFO("Testing translation axis orientation computation algorithm...");
   vtkSmartPointer<vtkTranslAxisCalibAlgo> translAxisCalibAlgo = vtkSmartPointer<vtkTranslAxisCalibAlgo>::New(); 
-  translAxisCalibAlgo->SetDataType(inputDataType); 
-  translAxisCalibAlgo->SetSpacing(spacing); 
-  translAxisCalibAlgo->SetInput(trackedFrameList); 
+  translAxisCalibAlgo->SetInputs(trackedFrameList, spacing, inputDataType); 
   
   // Get translation axis calibration output 
   double translationAxisOrientation[3] = {0}; 
@@ -147,7 +145,7 @@ int main(int argc, char **argv)
     LOG_INFO("Translation axis calibration error - mean: " << std::fixed << errorMean << "  stdev: " << errorStdev); 
   }
   
-  LOG_INFO("Test report table generation and saving into file..."); 
+  LOG_INFO("Testing report table generation and saving into file..."); 
   vtkTable* reportTable = translAxisCalibAlgo->GetReportTable(); 
   if ( reportTable != NULL )
   {
@@ -164,7 +162,7 @@ int main(int argc, char **argv)
 
   if ( !inputGnuplotCommand.empty() && !inputGnuplotScriptsFolder.empty() )
   {
-    LOG_INFO("Test HTML report generation..."); 
+    LOG_INFO("Testing HTML report generation..."); 
     vtkSmartPointer<vtkHTMLGenerator> htmlGenerator = vtkSmartPointer<vtkHTMLGenerator>::New(); 
     htmlGenerator->SetTitle("Translation Axis Calibration Report"); 
     vtkSmartPointer<vtkGnuplotExecuter> gnuplotExecuter = vtkSmartPointer<vtkGnuplotExecuter>::New(); 
@@ -182,7 +180,7 @@ int main(int argc, char **argv)
   //*********************************************************************
   // Compare result to baseline
   
-  LOG_INFO("Compare result to baseline..."); 
+  LOG_INFO("Comparing result with baseline..."); 
 
   vtkSmartPointer<vtkXMLDataElement> xmlBaseline = vtkXMLUtilities::ReadElementFromFile(inputBaselineFileName.c_str()); 
   vtkXMLDataElement* xmlTranslationAxisCalibrationBaseline = NULL; 
