@@ -141,8 +141,9 @@ ADD_TEST(ProbeTranslationAxisCalibration-Ulterius
 		--input-translation-sequence-metafile=${TestDataDir}/USTC_Ulterius_ProbeTranslationData.mha
 		--input-baseline-file-name=${TestDataDir}/USTC_Ulterius_StepperCalibrationResultBaseline.xml
         --input-data-type=PROBE_TRANSLATION 
-        #--input-gnuplot-scripts-folder=${PlusLib_SOURCE_DIR}/src/scripts/gnuplot
-        #--input-gnuplot-command=${GNUPLOT_BIN_DIR}/gnuplot.exe
+        --input-gnuplot-scripts-folder=${PlusLib_SOURCE_DIR}/src/scripts/gnuplot
+        --input-gnuplot-command=${GNUPLOT_BIN_DIR}/gnuplot.exe
+        --verbose=5
 		)
 SET_TESTS_PROPERTIES( vtkFreehandCalibrationTest-Exact PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
@@ -152,7 +153,8 @@ ADD_TEST(TemplateTranslationAxisCalibration-Ulterius
 		--input-translation-sequence-metafile=${TestDataDir}/USTC_Ulterius_TemplateTranslationData.mha
 		--input-baseline-file-name=${TestDataDir}/USTC_Ulterius_StepperCalibrationResultBaseline.xml
         --input-data-type=TEMPLATE_TRANSLATION 
-        #--input-gnuplot-scripts-folder=${PlusLib_SOURCE_DIR}/src/scripts/gnuplot
-        #--input-gnuplot-command=${GNUPLOT_BIN_DIR}/gnuplot.exe
+        --input-gnuplot-scripts-folder=${PlusLib_SOURCE_DIR}/src/scripts/gnuplot
+        --input-gnuplot-command=${GNUPLOT_BIN_DIR}/gnuplot.exe
+        --verbose=5
 		)
 SET_TESTS_PROPERTIES( vtkFreehandCalibrationTest-Exact PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )

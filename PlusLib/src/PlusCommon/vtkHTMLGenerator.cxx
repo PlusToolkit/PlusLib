@@ -33,12 +33,14 @@ void vtkHTMLGenerator::PrintSelf(ostream& os, vtkIndent indent)
 //----------------------------------------------------------------------------
 void vtkHTMLGenerator::AddHorizontalLine()
 {
+  LOG_TRACE("vtkHTMLGenerator::AddHorizontalLine"); 
 	this->HtmlBody << "<hr />" << std::endl; 
 }
 
 //----------------------------------------------------------------------------
 void vtkHTMLGenerator::AddImage(const char* imageSource, const char* alt, const int widthPx/*=0*/, const int heightPx/*=0*/)
 {
+  LOG_TRACE("vtkHTMLGenerator::AddImage"); 
   if ( imageSource == NULL )
   {
     LOG_ERROR("Unable to add imageSource to HTML document - imageSource is NULL!"); 
@@ -64,6 +66,7 @@ void vtkHTMLGenerator::AddImage(const char* imageSource, const char* alt, const 
 //----------------------------------------------------------------------------
 void vtkHTMLGenerator::AddParagraph( const char* paragraph )
 {
+  LOG_TRACE("vtkHTMLGenerator::AddParagraph"); 
   if ( paragraph == NULL )
   {
     LOG_ERROR("Unable to add paragraph to HTML document - paragraph is NULL!"); 
@@ -76,6 +79,7 @@ void vtkHTMLGenerator::AddParagraph( const char* paragraph )
 //----------------------------------------------------------------------------
 void vtkHTMLGenerator::AddLink( const char* linkText, const char* url )
 {
+  LOG_TRACE("vtkHTMLGenerator::AddLink"); 
   if ( linkText == NULL )
   {
     LOG_ERROR("Unable to add link to HTML document - linkText is NULL!"); 
@@ -94,6 +98,7 @@ void vtkHTMLGenerator::AddLink( const char* linkText, const char* url )
 //----------------------------------------------------------------------------
 void vtkHTMLGenerator::AddText( const char* text, HEADINGS h, const char* style/*=NULL*/)
 {
+  LOG_TRACE("vtkHTMLGenerator::AddText"); 
   if ( text == NULL )
   {
     LOG_ERROR("Unable to add text to HTML document - input text is NULL!"); 
@@ -199,7 +204,7 @@ void vtkHTMLGenerator::AddText( const char* text, HEADINGS h, const char* style/
 //----------------------------------------------------------------------------
 void vtkHTMLGenerator::AddTable( vtkTable* inputTable, int borderPx)
 {
-
+  LOG_TRACE("vtkHTMLGenerator::AddTable"); 
   if ( inputTable == NULL )
   {
     LOG_ERROR("Unable to add table to HTML document - table is NULL"); 
@@ -236,13 +241,14 @@ void vtkHTMLGenerator::AddTable( vtkTable* inputTable, int borderPx)
 //----------------------------------------------------------------------------
 std::string vtkHTMLGenerator::GetHtmlBody()
 {
+  LOG_TRACE("vtkHTMLGenerator::GetHtmlBody"); 
 	return this->HtmlBody.str(); 
 }
 
 //----------------------------------------------------------------------------
 std::string vtkHTMLGenerator::GetHtmlPage()
 {
-
+  LOG_TRACE("vtkHTMLGenerator::GetHtmlPage"); 
 	std::ostringstream page; 
 	page << "<!DOCTYPE html PUBLIC '-//W3C//DTD XHTML 1.0 Transitional//EN' 'http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd'>" << std::endl; 
 	page << "<html>" << std::endl; 
@@ -261,6 +267,7 @@ std::string vtkHTMLGenerator::GetHtmlPage()
 //----------------------------------------------------------------------------
 void vtkHTMLGenerator::SaveHtmlPage(const char *fileName)
 {
+  LOG_TRACE("vtkHTMLGenerator::SaveHtmlPage"); 
 	std::ofstream htmlpage;
 	htmlpage.open (fileName, ios::out);
 	htmlpage << this->GetHtmlPage(); 
