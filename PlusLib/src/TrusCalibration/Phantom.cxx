@@ -36,17 +36,16 @@ double Phantom::mOutlierDetectionThreshold = 3.0;
 
 //-----------------------------------------------------------------------------
 
-Phantom::Phantom( const bool IsSystemLogOn )
+Phantom::Phantom()
 {
 	// Initialize flags
 	mHasPhantomBeenRegistered = false;
 	mIsPhantomGeometryLoaded = false;
 	mIsUSBeamwidthAndWeightFactorsTableReady = false;
-	mHasUSImageFrameOriginBeenSet = false;
 	        	
   this->resetDataContainers(); 
 
-  mUSImageFrameOriginInPixels.set_size(4);
+  mTransformOrigImageFrame2TRUSImageFrameMatrix4x4 = NULL;
 	mNamesOfPhantomSpecificReferencePoints.resize(0);
   mMethodToIncorporateBeamWidth = 0;
   mUS3DBeamwidthAndWeightFactorsInUSImageFrameTable5xM.set_size(0,0);
@@ -140,26 +139,11 @@ Phantom::~Phantom()
 
 //-----------------------------------------------------------------------------
 
-void Phantom::setUltrasoundImageFrameOriginInPixels(
-	const double USImageFrameOriginXInPixels,
-	const double USImageFrameOriginYInPixels )
-{
-	double USImageFrameOriginInPixels[] = 
-		{ USImageFrameOriginXInPixels, USImageFrameOriginYInPixels, 0, 1 };
-
-	mUSImageFrameOriginInPixels.set( USImageFrameOriginInPixels );
-	mHasUSImageFrameOriginBeenSet = true;
-}
-
-//-----------------------------------------------------------------------------
-
 void Phantom::setTransformOrigImageToTRUSImageFrame4x4(
 	const vnl_matrix<double> TransformOrigImageFrame2TRUSImageFrameMatrix4x4)
 {
 	mTransformOrigImageFrame2TRUSImageFrameMatrix4x4 = 
 		TransformOrigImageFrame2TRUSImageFrameMatrix4x4;
-
-	mHasUSImageFrameOriginBeenSet = true;
 }
 
 //-----------------------------------------------------------------------------

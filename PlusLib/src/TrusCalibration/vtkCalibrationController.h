@@ -383,11 +383,6 @@ public: // Former ProbeCalibrationController and FreehandCalibraitonController f
   vtkSetVector2Macro(PhantomToProbeDistanceInMm, double); 
 	vtkGetVector2Macro(PhantomToProbeDistanceInMm, double);
 
-  //! Attribute: Flag to enable the calibration log file
-	vtkGetMacro(EnableSystemLog, bool);
-	vtkSetMacro(EnableSystemLog, bool);
-	vtkBooleanMacro(EnableSystemLog, bool);
-
 	//! Attribute: Flag to set if the US 3D beamwidth data is sucessfully loaded
 	vtkGetMacro(US3DBeamwidthDataReady, bool);
 	vtkSetMacro(US3DBeamwidthDataReady, bool);
@@ -597,9 +592,6 @@ protected: // Former ProbeCalibrationController and FreehandCalibraitonControlle
 
 	//! Attributes: a reference to the calibration controller IO
 	vtkProbeCalibrationControllerIO* CalibrationControllerIO; 
-
-	//! Attribute: Flag to enable the calibration log file
-	bool EnableSystemLog;
 
 	//! Attribute: Flag to enable the saving of segmented wire positions to file
 	bool EnableSegmentedWirePositionsSaving; 

@@ -60,36 +60,13 @@ class Phantom
 		//! Constants
 		static const double mPI;
 
-		//! Constructor with flag to turn on the system logging service
-		// 1. A system log file with its name associated with a system 
-		//    timestamp, when turned on, is used to record all the data pipeline 
-		//    processing during the calibration.
-		// 2. The system log should be turned on before any calibration related 
-		//    activities (e.g., add data positions, validating, calibrating, etc.).
-		// [DEFAULT: OFF (FALSE)]
-		Phantom ( const bool IsSystemLogOn = false );
+		//! Constructor
+		Phantom();
 
 		//! Destructor
 		virtual ~Phantom();
 
     virtual void resetDataContainers(); 
-
-		//! Operation: set the ultrasound image frame in pixels.
-		// IMPORTANT:
-		// 1. This operation defines the US image frame origin in pixels W.R.T. 
-		//    the left-upper corner of the original image, with X pointing to 
-		//    the right (column) and Y pointing down to the bottom (row).
-		// 2. It is important to note that here the left-upper corner of an
-		//    image that we used was the standard way to define an image origin,
-		//	  which was different than VTK Image Reader that uses left-lower
-		//    corner (a way to comform to Computer Graphics as VTK is designed
-		//    for visualization in the first place).
-		void setUltrasoundImageFrameOriginInPixels(
-			const double USImageFrameOriginXInPixels,
-			const double USImageFrameOriginYInPixels );
-
-		double getUSImageFrameOriginXInPixels() { return mUSImageFrameOriginInPixels.get(0); }
-		double getUSImageFrameOriginYInPixels() { return mUSImageFrameOriginInPixels.get(1); }
 
 		//! Operation: set the transform matrix from orig image frame to TRUS image frame
 		// IMPORTANT:
@@ -207,17 +184,6 @@ class Phantom
 			std::vector<vnl_vector_double> SegmentedDataPositionListPerImage, 
 			const std::vector<double> TransformUSProbe2Tracker,
 			const std::vector<double> TransformDRB2Tracker ) = 0;
-
-		//! Operation: Delete the data positions that were added in the last image.
-		// This operation is helpful when the latest added input data does not actually
-		// improve the calibration accuracy (i.e., judged by PRE3D).  For example, this 
-		// could happen when the image quality is poor and typically results in an 
-		// inaccurate segmentation, which in turn negatively influnce the final 
-		// calibration outcome.  Using this method, the application can choose to 
-		// eliminate a bad input data (e.g., in an iterative calibration process where
-		// the calibration accuracy is evaluated in real time for each iteration).
-		virtual void deleteLatestAddedDataPositionsPerImage() = 0;
-		virtual void deleteDataPositionsPerImage(int position) = 0; 
 
 		//! Operation: Add positions per image to validate calibration accuracy
 		// This operation performs similarly to the ::addDataPositionsPerImage
@@ -522,11 +488,6 @@ class Phantom
 		// Clear outlier flags 
 		virtual void resetOutlierFlags(); 
 
-		//! Attributes: The US image frame origin in pixels
-		// These are the US image frame origin in pixels W.R.T. the left-upper 
-		// corner of the original image, with X pointing to the right (column)
-		// and Y pointing down to the bottom (row).
-		vnl_vector<double> mUSImageFrameOriginInPixels;
 		// ! Attributes: the 4x4 homogeneous transform matrix from the original image frame to the TRUS image frame.
 		// 1. Note the original image frame conforms to the standard way to define an image
 		//    with the image origin set at the top-left corner, positive X axis to the 
@@ -539,8 +500,6 @@ class Phantom
 		//    conforms to the standard way when TRUS is used during imaging (e.g., in
 		//    brachytherapy prostate cancer treatment).
 		vnl_matrix<double> mTransformOrigImageFrame2TRUSImageFrameMatrix4x4;
-		// Flag to be set when the US image frame origin is set
-		bool mHasUSImageFrameOriginBeenSet;
 
 		//! Attribute: The name list of the phantom-specfic reference points
 		std::vector<std::string> mNamesOfPhantomSpecificReferencePoints;
