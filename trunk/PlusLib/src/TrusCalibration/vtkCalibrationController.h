@@ -117,9 +117,14 @@ public:
 	vtkGetObjectMacro(OfflineImageData, vtkImageData);
   
   //! Description 
-	// Set/get the calibration date in string format
+	// Set/get the calibration date and time in string format
 	vtkSetStringMacro(CalibrationDate); 
 	vtkGetStringMacro(CalibrationDate);
+
+  //! Description 
+	// Set/get the calibration date and time in string format for file names
+	vtkSetStringMacro(CalibrationTimestamp); 
+	vtkGetStringMacro(CalibrationTimestamp);
 
   //! Flag to identify the calibration state 
 	vtkGetMacro(CalibrationDone, bool);
@@ -355,9 +360,6 @@ public: // Former ProbeCalibrationController and FreehandCalibraitonController f
 
   std::map<int, std::vector<double>>* GetLineReconstructionErrors() { return &this->LineReconstructionErrors; };  
 
-
-        // <FREEHAND>
-
 	/*!
 	* \brief Reset calibration - clear objects that are used during calibration
   * \return Success flag
@@ -375,11 +377,6 @@ public: // Former ProbeCalibrationController and FreehandCalibraitonController f
 
 	//! Read and populate US to Template calibration image data in offline mode
 	virtual PlusStatus DoOfflineCalibration();
-
-        // </FREEHAND>
-
-
-
 
   //! Description: 
 	// Set/get phantom to probe distance in mm
@@ -495,16 +492,6 @@ public: // Former ProbeCalibrationController and FreehandCalibraitonController f
 	vtkGetObjectMacro(TransformProbeToReference, vtkTransform);
 	vtkSetObjectMacro(TransformProbeToReference, vtkTransform);
 	
-	//! Attributes: Get/set the transformation between probe and user image position
-	// Invert transform of TransformUserImageHomeToProbeHome
-	//vtkGetObjectMacro(TransformProbeToUserImage, vtkTransform);
-	//vtkSetObjectMacro(TransformProbeToUserImage, vtkTransform);
-	
-	//! Attributes: Get/set the transformation between user image and image position 
-	// Invert transform of TransformImageHomeToUserImageHome
-	//vtkGetObjectMacro(TransformUserImageToImage, vtkTransform);
-	//vtkSetObjectMacro(TransformUserImageToImage, vtkTransform);
-	
 	//! Attributes: Get/set the transformation between probe home and 
 	// template holder home position. 
 	// Result of the Template To Stepper Calibration 
@@ -522,11 +509,6 @@ public: // Former ProbeCalibrationController and FreehandCalibraitonController f
 	// Should be defined in config file
   vtkGetObjectMacro(TransformTemplateHolderToPhantom, vtkTransform);
 	vtkSetObjectMacro(TransformTemplateHolderToPhantom, vtkTransform);
-
-	//! Attributes: Get/set the transformation between the template holder home
-	// and template holder position (e.g read from stepper)
-	//vtkGetObjectMacro(TransformTemplateHolderHomeToTemplateHolder, vtkTransform);
-	//vtkSetObjectMacro(TransformTemplateHolderHomeToTemplateHolder, vtkTransform);
 	
 	//! Attributes: Get/set the transformation between template home and template position
 	// Should be identical to TransformTemplateHolderHomeToTemplateHolder transformation 
@@ -582,10 +564,13 @@ protected:
   //! Flag to identify the calibration state 
 	bool CalibrationDone; 
 
-  //! calibration date in string format 
+  //! Calibration date in string format 
   char* CalibrationDate; 
 
-	//! Pointer to the callback function that is executed each time a segmentation is finished
+  //! Calibration date and time in string format for file names
+  char* CalibrationTimestamp; 
+
+  //! Pointer to the callback function that is executed each time a segmentation is finished
   SegmentationProgressPtr SegmentationProgressCallbackFunction;
 
 	//! Stores the tracked frames for each data type 

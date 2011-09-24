@@ -19,7 +19,6 @@
 #include "itkMetaImageSequenceIO.h"
 #include <itkImageDuplicator.h>
 
-
 //----------------------------------------------------------------------------
 vtkCxxRevisionMacro(vtkProbeCalibrationControllerIO, "$Revision: 1.0 $");
 vtkStandardNewMacro(vtkProbeCalibrationControllerIO); 
@@ -108,9 +107,18 @@ void vtkProbeCalibrationControllerIO::SaveSegmentedWirePositionsToFile()
 		<< "ExpectedWire1xInTemplate\tExpectedWire1yInTemplate\tExpectedWire2xInTemplate\tExpectedWire2yInTemplate\tExpectedWire3xInTemplate\tExpectedWire3yInTemplate\tExpectedWire4xInTemplate\tExpectedWire4yInTemplate\tExpectedWire5xInTemplate\tExpectedWire5yInTemplate\tExpectedWire6xInTemplate\tExpectedWire6yInTemplate\t" 
 		<< std::endl;  
 
+  std::string calibrationTimestamp;
+  if (this->CalibrationController->GetCalibrationTimestamp() == NULL) {
+    LOG_ERROR("Calibration timestamp is not set!");
+    calibrationTimestamp = "";
+  }
+  else
+  {
+    calibrationTimestamp = this->CalibrationController->GetCalibrationTimestamp();
+  }
 	std::ofstream calibPosInfo;
 	std::ostringstream calibrationSegWirePosFileName; 
-	calibrationSegWirePosFileName << this->CalibrationController->GetCalibrator()->getCalibrationTimeStampInString() << "_CalibrationSegWirePos.txt"; 
+	calibrationSegWirePosFileName << calibrationTimestamp << "_CalibrationSegWirePos.txt"; 
 	std::ostringstream calibrationSegWirePosPath; 
 	calibrationSegWirePosPath << vtkPlusConfig::GetInstance()->GetOutputDirectory() << "/" << calibrationSegWirePosFileName.str(); 
 	this->CalibrationController->SetCalibrationSegWirePosInfoFileName(calibrationSegWirePosPath.str().c_str()); 
@@ -120,7 +128,7 @@ void vtkProbeCalibrationControllerIO::SaveSegmentedWirePositionsToFile()
 
 	std::ofstream validPosInfo;
 	std::ostringstream validationSegWirePosFileName; 
-	validationSegWirePosFileName << this->CalibrationController->GetCalibrator()->getCalibrationTimeStampInString() << "_ValidationSegWirePos.txt"; 
+	validationSegWirePosFileName << calibrationTimestamp << "_ValidationSegWirePos.txt"; 
 	std::ostringstream validationSegWirePosPath; 
 	validationSegWirePosPath << vtkPlusConfig::GetInstance()->GetOutputDirectory() << "/" << validationSegWirePosFileName.str(); 
 	this->CalibrationController->SetValidationSegWirePosInfoFileName(validationSegWirePosPath.str().c_str()); 
@@ -296,9 +304,17 @@ void vtkProbeCalibrationControllerIO::SaveSegmentedWirePositionsToFile()
 //----------------------------------------------------------------------------
 void vtkProbeCalibrationControllerIO::SaveCalibrationResultsAndErrorReportsToXML()
 {
-
-	// Construct the calibration result file name with path and timestamp
-	const std::string calibrationResultFileName = this->CalibrationController->GetCalibrator()->getCalibrationTimeStampInString() + this->CalibrationController->GetCalibrationResultFileSuffix() + ".xml";
+  // Construct the calibration result file name with path and timestamp
+  std::string calibrationTimestamp;
+  if (this->CalibrationController->GetCalibrationTimestamp() == NULL) {
+    LOG_ERROR("Calibration timestamp is not set!");
+    calibrationTimestamp = "";
+  }
+  else
+  {
+    calibrationTimestamp = this->CalibrationController->GetCalibrationTimestamp();
+  }
+  const std::string calibrationResultFileName = calibrationTimestamp + this->CalibrationController->GetCalibrationResultFileSuffix() + ".xml";
 	const std::string calibrationResultFileNameWithPath = vtkPlusConfig::GetInstance()->GetOutputDirectory() + std::string("/") + calibrationResultFileName;
 	this->CalibrationController->SetCalibrationResultFileNameWithPath(calibrationResultFileNameWithPath.c_str()); 
 
@@ -311,7 +327,7 @@ void vtkProbeCalibrationControllerIO::SaveCalibrationResultsAndErrorReportsToXML
 	// <CalibrationFile> 
 	vtkSmartPointer<vtkXMLDataElement> tagCalibrationFile = vtkSmartPointer<vtkXMLDataElement>::New(); 
 	tagCalibrationFile->SetName("CalibrationFile"); 
-	tagCalibrationFile->SetAttribute("Timestamp", this->CalibrationController->GetCalibrator()->getCalibrationTimeStampWithFormat().c_str()); 
+	tagCalibrationFile->SetAttribute("Timestamp", calibrationTimestamp.c_str()); 
 	tagCalibrationFile->SetAttribute("FileName", calibrationResultFileName.c_str()); 
 	vtkstd::string commentCalibrationFile("# Timestamp format: MM/DD/YY HH:MM:SS"); 
 	tagCalibrationFile->AddCharacterData(commentCalibrationFile.c_str(), commentCalibrationFile.size()); 
@@ -1193,7 +1209,7 @@ PlusStatus vtkProbeCalibrationControllerIO::ReadProbeCalibrationConfiguration(vt
 		this->CalibrationController->SetTemp2StepCalibAnalysisFileNameSuffix(".Template2StepperCalibration.analysis"); 
 	}
 
-  	// RandomStepperMotionData1 data set specifications
+  // RandomStepperMotionData1 data set specifications
 	//********************************************************************
 	vtkSmartPointer<vtkXMLDataElement> randomStepperMotionData1 = probeCalibration->FindNestedElementWithName("RandomStepperMotionData1"); 
 	if ( randomStepperMotionData1 != NULL) 

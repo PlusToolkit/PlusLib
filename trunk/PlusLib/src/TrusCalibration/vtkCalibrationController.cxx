@@ -46,6 +46,7 @@ vtkCalibrationController::vtkCalibrationController()
   this->OfflineImageData = NULL;
   
   this->CalibrationDate = NULL; 
+  this->CalibrationTimestamp = NULL; 
   
   this->OfflineImageData = vtkImageData::New(); 
   this->OfflineImageData->SetExtent(0,1,0,1,0,0); 
@@ -1151,6 +1152,10 @@ PlusStatus vtkCalibrationController::ComputeCalibrationResults()
 			this->Initialize(); 
 		}
 
+    // Set calibration date
+    this->SetCalibrationDate(vtksys::SystemTools::GetCurrentDateTime("%Y.%m.%d %X").c_str()); 
+    this->SetCalibrationTimestamp(vtksys::SystemTools::GetCurrentDateTime("%Y%m%d_%H%M%S").c_str()); 
+
 		// Do final calibration 
 		this->DoCalibration(); 
 
@@ -1252,9 +1257,6 @@ PlusStatus vtkCalibrationController::ComputeCalibrationResults()
     this->ClearSegmentedFrameContainer(FREEHAND_MOTION_1); 
 		this->ClearSegmentedFrameContainer(FREEHAND_MOTION_2);
 
-    // Set calibration date
-    this->SetCalibrationDate(vtksys::SystemTools::GetCurrentDateTime("%Y.%m.%d %X").c_str()); 
-
     // Save calibration
     if (WriteConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS) {
 		  LOG_ERROR("Freehand calibration result could not be saved into session configuration data!");
@@ -1268,7 +1270,7 @@ PlusStatus vtkCalibrationController::ComputeCalibrationResults()
       // TODO add validation file name to config file
       // Save validation dataset
       std::ostringstream validationDataFileName; 
-      validationDataFileName << this->Calibrator->getCalibrationTimeStampInString() << this->GetImageDataInfo(RANDOM_STEPPER_MOTION_2).OutputSequenceMetaFileSuffix; 
+      validationDataFileName << this->CalibrationDate << this->GetImageDataInfo(RANDOM_STEPPER_MOTION_2).OutputSequenceMetaFileSuffix; 
       if ( this->SaveTrackedFrameListToMetafile( RANDOM_STEPPER_MOTION_2, vtkPlusConfig::GetInstance()->GetOutputDirectory(), validationDataFileName.str().c_str(), false ) != PLUS_SUCCESS )
       {
         LOG_ERROR("Failed to save tracked frames to sequence metafile!"); 
@@ -1277,7 +1279,7 @@ PlusStatus vtkCalibrationController::ComputeCalibrationResults()
       LOG_INFO(">>>>>>>> Save calibration data to sequence metafile..."); 
       // Save calibration dataset 
       std::ostringstream calibrationDataFileName; 
-      calibrationDataFileName << this->Calibrator->getCalibrationTimeStampInString() << this->GetImageDataInfo(RANDOM_STEPPER_MOTION_1).OutputSequenceMetaFileSuffix; 
+      calibrationDataFileName << this->CalibrationDate << this->GetImageDataInfo(RANDOM_STEPPER_MOTION_1).OutputSequenceMetaFileSuffix; 
       if ( this->SaveTrackedFrameListToMetafile( RANDOM_STEPPER_MOTION_1, vtkPlusConfig::GetInstance()->GetOutputDirectory(), calibrationDataFileName.str().c_str(), false ) != PLUS_SUCCESS ) 
       {
         LOG_ERROR("Failed to save tracked frames to sequence metafile!"); 
@@ -1553,3 +1555,24 @@ std::string vtkCalibrationController::GetResultString()
 
 	return resultStringStream.str();
 }
+
+//-----------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//-----------------------------------------------------------------------------
+

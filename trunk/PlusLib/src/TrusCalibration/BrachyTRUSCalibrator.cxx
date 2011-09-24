@@ -1,41 +1,9 @@
-// ===========================================================================
-// Program Modification Record
-// ===========================================================================
-// Component:	Component_AutoTRUSCalibration
-// ===========================================================================
-// Class:		BrachyTRUSCalibrator
-// ===========================================================================
-// File Name:	BrachyTRUSCalibrator.cpp
-// ===========================================================================
-// Author:		Thomas Kuiran Chen <chent@cs.queensu.ca>
-//				School of Computing, Queen's University at Kingston, Canada
-// ===========================================================================
 // Purposes: 
 // 1. This is the class that defines our Brachy-TRUS Calibrator [1,2] for 
 //    transrectal ultrasound (TRUS) probe calibration in brachytherapy.
 // 2. The class is a child class of the parent Phantom class.
 // 3. Uses the open source VXL-VNL (Numerical and Algebra C++ Library)
 // 4. Uses C++ Standard Library and Standard Template Library
-// ===========================================================================
-// References:
-// [1] Chen, T. K., Thurston, A. D., Ellis, R. E. & Abolmaesumi, P. A real-
-//     time freehand ultrasound calibration system with automatic accuracy 
-//     feedback and control. Ultrasound Med Biol, 2009, vol. 35, page 79-93.
-// [2] Chen, T. K., Thurston, A. D., Moghari, M. H., Ellis, R. E. & 
-//     Abolmaesumi, P. Miga, M. I. & Cleary, K. R. (ed.) A real-time 
-//     ultrasound calibration system with automatic accuracy control and 
-//     incorporation of ultrasound section thickness SPIE Medical Imaging 2008: 
-//     Visualization, Image-guided Procedures, and Modeling, 2008,6918,69182A.
-//     Best Student Paper Award - Second Place and Cum Laude Poster Award.
-// ===========================================================================
-// Change History:
-//
-// Author				Time						Release	Changes
-// Thomas Kuiran Chen	Mon Mar 1 08:19 EST 2010	1.0		Creation
-//
-// ===========================================================================
-//					  Copyright @ Thomas Kuiran Chen, 2010
-// ===========================================================================
 
 #include "PlusConfigure.h"
 
@@ -82,56 +50,18 @@ const double BrachyTRUSCalibrator::mNUMOFTIMESOFMINBEAMWIDTH = 2.1;
 BrachyTRUSCalibrator::BrachyTRUSCalibrator( FidPatternRecognition * patternRecognitionObject, const bool IsSystemLogOn )
 	: Phantom( IsSystemLogOn )	// Call the parent's constructor
 {
-	try
-	{
-/*
-for( int i = 0; i < 5; i++ )
-			for( int j = 0; j < 5; j++ )
-		{
-			mPhantomGeometryOnFrontInnerWall[i][j].set_size(4);
-			mPhantomGeometryOnBackInnerWall[i][j].set_size(4);
-		}
-*/
-		// The reference points on BrachyTRUSCalibrator
-		// 1. All positions are all kept w.r.t the phantom frame.
-		// 2. These are fixed physical positions measurable using a Stylus probe.
-		// 3. They are used to register the phantom geomtry from the phantom 
-		//	  frame to the DRB reference frame to be mounted on the calibrator.
-		// 4. There are totally 8 reference points (4 on each plate).  See the marking
-		//    on the physical calibrator surfaces for their IDs. 
-		// 5. All units are in meters.
-		mPhantomSpecificReferencePoints.resize(8);
-		for( int i = 0; i < 8; i++ )
-		{
-			mPhantomSpecificReferencePoints[i].set_size(4);
-		}
-    
-    mNWires = patternRecognitionObject->GetFidLineFinder()->GetNWires();
+  mNWires = patternRecognitionObject->GetFidLineFinder()->GetNWires();
 
-		// Load the phantom-specfic geometry
-		loadGeometry();
-	}
-	catch(...)
-	{
-		std::cerr << "\n\n" << __FILE__ << "," << __LINE__ << "\n"
-			<< ">>>>>>>> In " << mstrScope << "::Construction failed!!!  Throw up ...\n";
-
-		throw;
-	}
+	// Load the phantom-specfic geometry
+  if (loadGeometry() != PLUS_SUCCESS) {
+    LOG_ERROR("Failed to load geometry!");
+  }
 }
 
 //-----------------------------------------------------------------------------
 
 BrachyTRUSCalibrator::~BrachyTRUSCalibrator()
 {
-	try
-	{
-
-	}
-	catch(...)
-	{
-
-	}
 }
 
 //-----------------------------------------------------------------------------
@@ -147,22 +77,8 @@ PlusStatus BrachyTRUSCalibrator::loadGeometry()
 	double alphaBottomLayerFrontWall = -1.0;
 	double alphaBottomLayerBackWall = -1.0;
 
-	if( true == mIsSystemLogOn )
-	{
-		std::ofstream SystemLogFile(
-			mSystemLogFileNameWithTimeStamp.c_str(), std::ios::app);
-		SystemLogFile << " ==========================================================================\n";
-		SystemLogFile << " PHANTOM GEOMETRY >>>>>>>>>>>>>>>>>>>>>\n\n";
-		SystemLogFile.close();
-	}
-
 	// Read input NWires and convert them to vnl vectors to easier processing
-	if (mIsSystemLogOn == true) {
-		std::ofstream SystemLogFile(
-			mSystemLogFileNameWithTimeStamp.c_str(), std::ios::app);
-		SystemLogFile << " -----------------------------------------------------------------------------------\n";
-		SystemLogFile << "\n Endpoints of wires = \n\n";
-	}
+	LOG_DEBUG("Endpoints of wires = ");
 
 	// List endpoints, check wire ids and NWire geometry correctness (wire order and locations) and compute intersections
 	for (std::vector<NWire>::iterator it = mNWires.begin(); it != mNWires.end(); ++it) {
@@ -180,12 +96,8 @@ PlusStatus BrachyTRUSCalibrator::loadGeometry()
 				endPointBack[j] = it->wires[i].endPointBack[j] / 1000.0;
 			}
 
-			if (mIsSystemLogOn == true) {
-				std::ofstream SystemLogFile(
-					mSystemLogFileNameWithTimeStamp.c_str(), std::ios::app);
-				SystemLogFile << "\t Front endpoint of wire " << i << " on layer " << layer << " = " << endPointFront << "\n";
-				SystemLogFile << "\t Back endpoint of wire " << i << " on layer " << layer << " = " << endPointBack << "\n";
-			}
+			LOG_DEBUG("\t Front endpoint of wire " << i << " on layer " << layer << " = " << endPointFront);
+			LOG_DEBUG("\t Back endpoint of wire " << i << " on layer " << layer << " = " << endPointBack);
 		}
 
 		if (sumLayer != layer * 9 + 6) {
@@ -224,18 +136,11 @@ PlusStatus BrachyTRUSCalibrator::loadGeometry()
 	mIsPhantomGeometryLoaded = true;
 
 	// Log the data pipeline if requested.
-	if( true == mIsSystemLogOn )
-	{
-		std::ofstream SystemLogFile(
-			mSystemLogFileNameWithTimeStamp.c_str(), std::ios::app);
-		SystemLogFile << " -----------------------------------------------------------------------------------\n";
-		int layer;
-		std::vector<NWire>::iterator it;
-		for (it = mNWires.begin(), layer = 0; it != mNWires.end(); ++it, ++layer) {
-			SystemLogFile << "\t Intersection of wire 1 and 2 in layer " << layer << " \t= (" << it->intersectPosW12[0] << ", " << it->intersectPosW12[1] << ", " << it->intersectPosW12[2] << ")\n";
-			SystemLogFile << "\t Intersection of wire 3 and 2 in layer " << layer << " \t= (" << it->intersectPosW32[0] << ", " << it->intersectPosW32[1] << ", " << it->intersectPosW32[2] << ")\n";
-		}
-		SystemLogFile.close();
+	int layer;
+	std::vector<NWire>::iterator it;
+	for (it = mNWires.begin(), layer = 0; it != mNWires.end(); ++it, ++layer) {
+		LOG_DEBUG("\t Intersection of wire 1 and 2 in layer " << layer << " \t= (" << it->intersectPosW12[0] << ", " << it->intersectPosW12[1] << ", " << it->intersectPosW12[2] << ")");
+		LOG_DEBUG("\t Intersection of wire 3 and 2 in layer " << layer << " \t= (" << it->intersectPosW32[0] << ", " << it->intersectPosW32[1] << ", " << it->intersectPosW32[2] << ")");
 	}
 
 	return PLUS_SUCCESS;
@@ -251,7 +156,7 @@ void BrachyTRUSCalibrator::addDataPositionsPerImage(
   frameIndex++;
 	if( mHasPhantomBeenRegistered != true )
 	{
-		std::cerr << "\n\n" << __FILE__ << "," << __LINE__ << "\n"
+		std::cerr << __FILE__ << "," << __LINE__
 			<< ">>>>>>>> In " << mstrScope << "::The phantom is not yet registered to the DRB frame!!!  Throw up ...\n";
 
 		throw;
@@ -259,7 +164,7 @@ void BrachyTRUSCalibrator::addDataPositionsPerImage(
 
 	if( mIsPhantomGeometryLoaded != true )
 	{
-		std::cerr << "\n\n" << __FILE__ << "," << __LINE__ << "\n"
+		std::cerr << __FILE__ << "," << __LINE__
 			<< ">>>>>>>> In " << mstrScope << "::The phantom geometry has not been loaded!!!  Throw up ...\n";
 
 		throw;
@@ -267,7 +172,7 @@ void BrachyTRUSCalibrator::addDataPositionsPerImage(
 
 	if( SegmentedDataPositionListPerImage.size() != mNUMREFPOINTSPERIMAGE )
 	{
-		std::cerr << "\n\n" << __FILE__ << "," << __LINE__ << "\n"
+		std::cerr << __FILE__ << "," << __LINE__
 			<< ">>>>>>>> In " << mstrScope << "::The number of N-wires is NOT "
 			<< mNUMREFPOINTSPERIMAGE << " in one US image as required!!!  Throw up ...\n";
 
@@ -276,7 +181,7 @@ void BrachyTRUSCalibrator::addDataPositionsPerImage(
 
 	if( mHasUSImageFrameOriginBeenSet != true )
 	{
-		std::cerr << "\n\n" << __FILE__ << "," << __LINE__ << "\n"
+		std::cerr << __FILE__ << "," << __LINE__
 			<< ">>>>>>>> In " << mstrScope << "::The ultrasound image frame origin "
 			<< "has not been defined yet!!!  Throw up ...\n";
 
@@ -293,7 +198,6 @@ void BrachyTRUSCalibrator::addDataPositionsPerImage(
 		lastRow.put(3, 1);
 		TransformMatrixStepper2USProbe4x4.set_row(3, lastRow);
 
-		// ========================================
 		// Calculate then store the data positions 
 		// ========================================
 		// For BrachyTRUSCalibrator, row/col indices are of no interest
@@ -313,14 +217,11 @@ void BrachyTRUSCalibrator::addDataPositionsPerImage(
 		// [ Array 3-5: Bottom N-wire Layer (Right-Middle-Left)]
 		// Each acquired data position is a 4x1 homogenous vector :
 		// [ X, Y, 0, 1] all units in pixels
-		// ==================================================================
 
 		for( int Layer = 0; Layer < 2; Layer++ )
 		{
-			// ========================================================
 			// The protocol is that the middle point collected in 
 			// the set of three points of the N-wire is the data point.
-			// ========================================================
 			vnl_vector<double> SegmentedPositionInOriginalImageFrame( 
 				SegmentedDataPositionListPerImage.at( Layer*3 + 1 ) );
 			
@@ -331,7 +232,6 @@ void BrachyTRUSCalibrator::addDataPositionsPerImage(
 				SegmentedPositionInOriginalImageFrame;
 			
 			// Add weights to the positions if required
-			// =========================================
 			// 1. 3D beam width samples are measured at various axial depth/distance away 
 			//    from the transducer crystals surface, i.e., the starting position of 
 			//    the sound propagation in an ultrasound image.
@@ -383,7 +283,6 @@ void BrachyTRUSCalibrator::addDataPositionsPerImage(
 				{
 					// #1. This is the ultrasound elevation near field which has the
 					// the best imaging quality (before the elevation focal zone)
-					// -------------------------------------------------------------
 
 					// We will set the beamwidth at the near field to be the same
 					// as that of the elevation focal zone.
@@ -420,7 +319,6 @@ void BrachyTRUSCalibrator::addDataPositionsPerImage(
 				{
 					// #2. Further deep in far field (close to the bottom of the image)
 					// Ultrasound diverses quickly in this region and data quality deteriorates
-					// ------------------------------------------------------------------------
 
 					USBeamWidthEuclideanMagAtThisAxialDepthInMM =
 						mUS3DBeamwidthAtFarestAxialDepth.magnitude();
@@ -455,7 +353,6 @@ void BrachyTRUSCalibrator::addDataPositionsPerImage(
 					// #3. Ultrasound far field 
 					// Here the sound starts to diverse with elevation beamwidth getting
 					// larger and larger.  Data quality starts to deteriorate.
-					// ------------------------------------------------------------------
 
 					// Populate the beamwidth vector (axial, lateral and elevation elements)
 					vnl_vector<double> US3DBeamwidthAtThisAxialDepth(3,0);
@@ -516,7 +413,6 @@ void BrachyTRUSCalibrator::addDataPositionsPerImage(
 				SegmentedDataPositionListPerImage.at( Layer*3 );
 			double alpha = (double)VectorCi2Xi.magnitude()/VectorCi2Cii.magnitude();
             
-			// ==============================================================
 			// Apply alpha to Equation: Xi = Ai + alpha * (Bi - Ai)
 			// where:
 			// - Ai and Bi are the N-wire joints in either front or back walls.
@@ -526,7 +422,6 @@ void BrachyTRUSCalibrator::addDataPositionsPerImage(
 			//   or mistakes.  There is one and only one fixed correspondence between 
 			//   the 6 segmented image positions (N-fiducials) and the wires.
 			// - Closely examine the wiring design and set Ai and Bi accordingly.
-            // ==============================================================
 
 			vnl_vector<double> PositionInTemplateFrame(4);
 			vnl_vector<double> IntersectPosW12(4);
@@ -555,25 +450,17 @@ void BrachyTRUSCalibrator::addDataPositionsPerImage(
 				mTransformMatrixPhantom2DRB4x4 *
 				PositionInTemplateFrame;
 
-			if( true == mIsSystemLogOn )
-			{
-				std::ofstream SystemLogFile(
-					mSystemLogFileNameWithTimeStamp.c_str(), std::ios::app);
-				SystemLogFile << " ==========================================================================\n";
-				SystemLogFile << " ADD DATA FOR CALIBRATION ("<<frameIndex<<") >>>>>>>>>>>>>>>>>>>>>\n\n";
-				SystemLogFile << " SegmentedNFiducial-" << Layer*3 << " = " << SegmentedDataPositionListPerImage.at( Layer*3 ) << "\n"; 
-				SystemLogFile << " SegmentedNFiducial-" << Layer*3+1 << " = " << SegmentedDataPositionListPerImage.at( Layer*3+1 ) << "\n";  
-				SystemLogFile << " SegmentedNFiducial-" << Layer*3+2 << " = " << SegmentedDataPositionListPerImage.at( Layer*3+2 ) << "\n";  
-				SystemLogFile << " ----------------------------------------------------------------\n";
-				SystemLogFile << " SegmentedPositionInOriginalImageFrame = " << SegmentedPositionInOriginalImageFrame << "\n";
-				SystemLogFile << " SegmentedPositionInUSImageFrame = " << SegmentedPositionInUSImageFrame << "\n";
-				SystemLogFile << " alpha = " << alpha << "\n";
-				SystemLogFile << " PositionInTemplateFrame = " << PositionInTemplateFrame << "\n";
-				SystemLogFile << " TransformMatrixStepper2USProbe4x4 = \n" << TransformMatrixStepper2USProbe4x4 << "\n";
-        SystemLogFile << " mTransformMatrixPhantom2DRB4x4 = \n" << mTransformMatrixPhantom2DRB4x4 << "\n";
-        SystemLogFile << " PositionInUSProbeFrame = " << PositionInUSProbeFrame << "\n";
-				SystemLogFile.close();
-			}
+			LOG_DEBUG(" ADD DATA FOR CALIBRATION ("<<frameIndex<<")");
+			LOG_DEBUG(" SegmentedNFiducial-" << Layer*3 << " = " << SegmentedDataPositionListPerImage.at( Layer*3 ));
+			LOG_DEBUG(" SegmentedNFiducial-" << Layer*3+1 << " = " << SegmentedDataPositionListPerImage.at( Layer*3+1 ));
+			LOG_DEBUG(" SegmentedNFiducial-" << Layer*3+2 << " = " << SegmentedDataPositionListPerImage.at( Layer*3+2 ));
+			LOG_DEBUG(" SegmentedPositionInOriginalImageFrame = " << SegmentedPositionInOriginalImageFrame);
+			LOG_DEBUG(" SegmentedPositionInUSImageFrame = " << SegmentedPositionInUSImageFrame);
+			LOG_DEBUG(" alpha = " << alpha);
+			LOG_DEBUG(" PositionInTemplateFrame = " << PositionInTemplateFrame);
+			LOG_DEBUG(" TransformMatrixStepper2USProbe4x4 = \n" << TransformMatrixStepper2USProbe4x4);
+      LOG_DEBUG(" mTransformMatrixPhantom2DRB4x4 = \n" << mTransformMatrixPhantom2DRB4x4);
+      LOG_DEBUG(" PositionInUSProbeFrame = " << PositionInUSProbeFrame);
 
 			// Store into the list of positions in the US image frame
 			mDataPositionsInUSImageFrame.push_back( SegmentedPositionInUSImageFrame );
@@ -596,7 +483,7 @@ void BrachyTRUSCalibrator::addDataPositionsPerImage(
 	}
 	catch(...)
 	{
-		std::cerr << "\n\n" << __FILE__ << "," << __LINE__ << "\n"
+		std::cerr << __FILE__ << "," << __LINE__
 			<< ">>>>>>>> In " << mstrScope << "::Failed to add data positions!!!  Throw up ...\n";
 
 		throw;	
@@ -615,7 +502,7 @@ void BrachyTRUSCalibrator::addDataPositionsPerImage(
 
 	if( mHasPhantomBeenRegistered != true )
 	{
-		std::cerr << "\n\n" << __FILE__ << "," << __LINE__ << "\n"
+		std::cerr << __FILE__ << "," << __LINE__
 			<< ">>>>>>>> In " << mstrScope << "::The phantom is not yet registered to the DRB frame!!!  Throw up ...\n";
 
 		throw;
@@ -623,7 +510,7 @@ void BrachyTRUSCalibrator::addDataPositionsPerImage(
 
 	if( mIsPhantomGeometryLoaded != true )
 	{
-		std::cerr << "\n\n" << __FILE__ << "," << __LINE__ << "\n"
+		std::cerr << __FILE__ << "," << __LINE__
 			<< ">>>>>>>> In " << mstrScope << "::The phantom geometry has not been loaded!!!  Throw up ...\n";
 
 		throw;
@@ -631,7 +518,7 @@ void BrachyTRUSCalibrator::addDataPositionsPerImage(
 
 	if( SegmentedDataPositionListPerImage.size() != mNUMREFPOINTSPERIMAGE )
 	{
-		std::cerr << "\n\n" << __FILE__ << "," << __LINE__ << "\n"
+		std::cerr << __FILE__ << "," << __LINE__
 			<< ">>>>>>>> In " << mstrScope << "::The number of N-wires is NOT "
 			<< mNUMREFPOINTSPERIMAGE << " in one US image as required!!!  Throw up ...\n";
 
@@ -640,7 +527,7 @@ void BrachyTRUSCalibrator::addDataPositionsPerImage(
 
 	if( mHasUSImageFrameOriginBeenSet != true )
 	{
-		std::cerr << "\n\n" << __FILE__ << "," << __LINE__ << "\n"
+		std::cerr << __FILE__ << "," << __LINE__
 			<< ">>>>>>>> In " << mstrScope << "::The ultrasound image frame origin "
 			<< "has not been defined yet!!!  Throw up ...\n";
 
@@ -668,7 +555,6 @@ void BrachyTRUSCalibrator::addDataPositionsPerImage(
 			TransformMatrixTracker2USProbe * 
 			TransformMatrixDRB2Tracker;
 
-		// ========================================
 		// Calculate then store the data positions 
 		// ========================================
 		// For BrachyTRUSCalibrator, row/col indices are of no interest
@@ -688,14 +574,11 @@ void BrachyTRUSCalibrator::addDataPositionsPerImage(
 		// [ Array 3-5: Bottom N-wire Layer (Right-Middle-Left)]
 		// Each acquired data position is a 4x1 homogenous vector :
 		// [ X, Y, 0, 1] all units in pixels
-		// ==================================================================
 
 		for( int Layer = 0; Layer < 2; Layer++ )
 		{
-			// ========================================================
 			// The protocol is that the middle point collected in 
 			// the set of three points of the N-wire is the data point.
-			// ========================================================
 			vnl_vector<double> SegmentedPositionInOriginalImageFrame =
 				SegmentedDataPositionListPerImage.at( Layer*3 + 1 );
 
@@ -706,7 +589,6 @@ void BrachyTRUSCalibrator::addDataPositionsPerImage(
 				SegmentedPositionInOriginalImageFrame;
 
 			// Add weights to the positions if required
-			// =========================================
 			// 1. 3D beam width samples are measured at various axial depth/distance away 
 			//    from the transducer crystals surface, i.e., the starting position of 
 			//    the sound propagation in an ultrasound image.
@@ -758,7 +640,6 @@ void BrachyTRUSCalibrator::addDataPositionsPerImage(
 				{
 					// #1. This is the ultrasound elevation near field which has the
 					// the best imaging quality (before the elevation focal zone)
-					// -------------------------------------------------------------
 
 					// We will set the beamwidth at the near field to be the same
 					// as that of the elevation focal zone.
@@ -795,7 +676,6 @@ void BrachyTRUSCalibrator::addDataPositionsPerImage(
 				{
 					// #2. Further deep in far field (close to the bottom of the image)
 					// Ultrasound diverses quickly in this region and data quality deteriorates
-					// ------------------------------------------------------------------------
 
 					USBeamWidthEuclideanMagAtThisAxialDepthInMM =
 						mUS3DBeamwidthAtFarestAxialDepth.magnitude();
@@ -830,7 +710,6 @@ void BrachyTRUSCalibrator::addDataPositionsPerImage(
 					// #3. Ultrasound far field 
 					// Here the sound starts to diverse with elevation beamwidth getting
 					// larger and larger.  Data quality starts to deteriorate.
-					// ------------------------------------------------------------------
 
 					// Populate the beamwidth vector (axial, lateral and elevation elements)
 					vnl_vector<double> US3DBeamwidthAtThisAxialDepth(3,0);
@@ -891,7 +770,6 @@ void BrachyTRUSCalibrator::addDataPositionsPerImage(
 				SegmentedDataPositionListPerImage.at( Layer*3 );
 			double alpha = (double)VectorCi2Xi.magnitude()/VectorCi2Cii.magnitude();
             
-			// ==============================================================
 			// Apply alpha to Equation: Xi = Ai + alpha * (Bi - Ai)
 			// where:
 			// - Ai and Bi are the N-wire joints in either front or back walls.
@@ -901,7 +779,6 @@ void BrachyTRUSCalibrator::addDataPositionsPerImage(
 			//   or mistakes.  There is one and only one fixed correspondence between 
 			//   the 6 segmented image positions (N-fiducials) and the wires.
 			// - Closely examine the wiring design and set Ai and Bi accordingly.
-            // ==============================================================
 
 			vnl_vector<double> PositionInPhantomFrame(3);
 			vnl_vector<double> IntersectPosW12(3);
@@ -921,25 +798,17 @@ void BrachyTRUSCalibrator::addDataPositionsPerImage(
         mTransformMatrixPhantom2DRB4x4 * 
         PositionInPhantomFrame;
 
-			if( true == mIsSystemLogOn )
-			{
-				std::ofstream SystemLogFile(
-					mSystemLogFileNameWithTimeStamp.c_str(), std::ios::app);
-				SystemLogFile << " ==========================================================================\n";
-				SystemLogFile << " ADD DATA FOR CALIBRATION ("<<frameIndex<<") >>>>>>>>>>>>>>>>>>>>>\n\n";
-				SystemLogFile << " SegmentedNFiducial-" << Layer*3 << " = " << SegmentedDataPositionListPerImage.at( Layer*3 ) << "\n"; 
-				SystemLogFile << " SegmentedNFiducial-" << Layer*3+1 << " = " << SegmentedDataPositionListPerImage.at( Layer*3+1 ) << "\n";  
-				SystemLogFile << " SegmentedNFiducial-" << Layer*3+2 << " = " << SegmentedDataPositionListPerImage.at( Layer*3+2 ) << "\n";  
-				SystemLogFile << " ----------------------------------------------------------------\n";
-				SystemLogFile << " SegmentedPositionInOriginalImageFrame = " << SegmentedPositionInOriginalImageFrame << "\n";
-				SystemLogFile << " SegmentedPositionInUSImageFrame = " << SegmentedPositionInUSImageFrame << "\n";
-				SystemLogFile << " alpha = " << alpha << "\n";
-				SystemLogFile << " PositionInPhantomFrame = " << PositionInPhantomFrame << "\n";
-				SystemLogFile << " TransformMatrixDRB2USProbe4x4 = \n" << TransformMatrixDRB2USProbe4x4 << "\n";
-        SystemLogFile << " mTransformMatrixPhantom2DRB4x4 = \n" << mTransformMatrixPhantom2DRB4x4 << "\n";
-        SystemLogFile << " PositionInUSProbeFrame = " << PositionInUSProbeFrame << "\n";
-				SystemLogFile.close();
-			}
+			LOG_DEBUG(" ADD DATA FOR CALIBRATION ("<<frameIndex<<")");
+			LOG_DEBUG(" SegmentedNFiducial-" << Layer*3 << " = " << SegmentedDataPositionListPerImage.at( Layer*3 ));
+			LOG_DEBUG(" SegmentedNFiducial-" << Layer*3+1 << " = " << SegmentedDataPositionListPerImage.at( Layer*3+1 ));
+			LOG_DEBUG(" SegmentedNFiducial-" << Layer*3+2 << " = " << SegmentedDataPositionListPerImage.at( Layer*3+2 ));
+			LOG_DEBUG(" SegmentedPositionInOriginalImageFrame = " << SegmentedPositionInOriginalImageFrame);
+			LOG_DEBUG(" SegmentedPositionInUSImageFrame = " << SegmentedPositionInUSImageFrame);
+			LOG_DEBUG(" alpha = " << alpha);
+			LOG_DEBUG(" PositionInPhantomFrame = " << PositionInPhantomFrame);
+			LOG_DEBUG(" TransformMatrixDRB2USProbe4x4 = \n" << TransformMatrixDRB2USProbe4x4);
+      LOG_DEBUG(" mTransformMatrixPhantom2DRB4x4 = \n" << mTransformMatrixPhantom2DRB4x4);
+      LOG_DEBUG(" PositionInUSProbeFrame = " << PositionInUSProbeFrame);
 
 			// Store into the list of positions in the US image frame
 			mDataPositionsInUSImageFrame.push_back( SegmentedPositionInUSImageFrame );
@@ -963,7 +832,7 @@ void BrachyTRUSCalibrator::addDataPositionsPerImage(
 	}
 	catch(...)
 	{
-		std::cerr << "\n\n" << __FILE__ << "," << __LINE__ << "\n"
+		std::cerr << __FILE__ << "," << __LINE__
 			<< ">>>>>>>> In " << mstrScope << "::Failed to add data positions!!!  Throw up ...\n";
 
 		throw;	
@@ -1008,7 +877,7 @@ void BrachyTRUSCalibrator::addValidationPositionsPerImage(
 
 	if( mHasPhantomBeenRegistered != true )
 	{
-		std::cerr << "\n\n" << __FILE__ << "," << __LINE__ << "\n"
+		std::cerr << __FILE__ << "," << __LINE__
 			<< ">>>>>>>> In " << mstrScope << "::The phantom is not yet registered to the DRB frame!!!  Throw up ...\n";
 
 		throw;
@@ -1016,7 +885,7 @@ void BrachyTRUSCalibrator::addValidationPositionsPerImage(
 
 	if( mIsPhantomGeometryLoaded != true )
 	{
-		std::cerr << "\n\n" << __FILE__ << "," << __LINE__ << "\n"
+		std::cerr << __FILE__ << "," << __LINE__
 			<< ">>>>>>>> In " << mstrScope << "::The phantom geometry has not been loaded!!!  Throw up ...\n";
 
 		throw;
@@ -1024,7 +893,7 @@ void BrachyTRUSCalibrator::addValidationPositionsPerImage(
 
 	if( SegmentedDataPositionListPerImage.size() != mNUMREFPOINTSPERIMAGE )
 	{
-		std::cerr << "\n\n" << __FILE__ << "," << __LINE__ << "\n"
+		std::cerr << __FILE__ << "," << __LINE__
 			<< ">>>>>>>> In " << mstrScope << "::The number of N-wires is NOT "
 			<< mNUMREFPOINTSPERIMAGE << " in one US image as required!!!  Throw up ...\n";
 
@@ -1033,7 +902,7 @@ void BrachyTRUSCalibrator::addValidationPositionsPerImage(
 
 	if( mHasUSImageFrameOriginBeenSet != true )
 	{
-		std::cerr << "\n\n" << __FILE__ << "," << __LINE__ << "\n"
+		std::cerr << __FILE__ << "," << __LINE__
 			<< ">>>>>>>> In " << mstrScope << "::The ultrasound image frame origin "
 			<< "has not been defined yet!!!  Throw up ...\n";
 
@@ -1050,7 +919,6 @@ void BrachyTRUSCalibrator::addValidationPositionsPerImage(
 		lastRow.put(3, 1);
 		TransformMatrixStepper2USProbe4x4.set_row(3, lastRow);
 
-		// ========================================
 		// Calculate then store the data positions 
 		// ========================================
 		// For BrachyTRUSCalibrator, row/col indices are of no interest
@@ -1070,14 +938,11 @@ void BrachyTRUSCalibrator::addValidationPositionsPerImage(
 		// [ Array 3-5: Bottom N-wire Layer (Right-Middle-Left)]
 		// Each acquired data position is a 4x1 homogenous vector :
 		// [ X, Y, 0, 1] all units in pixels
-		// ==================================================================
 
-		// ========================================================
 		// Collect the wire locations (the two parallel wires of 
 		// each of the N-shape) for independent Line-Reconstruction 
 		// Error (LRE) validation.
 		// Note: N1, N3, N4, and N6 are the parallel wires here.
-		// ========================================================
             
 		vnl_vector<double> N1SegmentedPositionInOriginalImageFrame( 
 			SegmentedDataPositionListPerImage.at(0) );
@@ -1105,10 +970,8 @@ void BrachyTRUSCalibrator::addValidationPositionsPerImage(
 
 		for( int Layer = 0; Layer < 2; Layer++ )
 		{
-			// ========================================================
 			// The protocol is that the middle point collected in 
 			// the set of three points of the N-wire is the data point.
-			// ========================================================
             vnl_vector<double> SegmentedPositionInOriginalImageFrame( 
 				SegmentedDataPositionListPerImage.at( Layer*3 + 1 ) );
 
@@ -1119,7 +982,6 @@ void BrachyTRUSCalibrator::addValidationPositionsPerImage(
 				SegmentedPositionInOriginalImageFrame;
 
 			// OPTION: Apply the ultrasound 3D beamwidth to the validation dataset
-			// ====================================================================
 			// If Option 3 is selected, we will use the ultrasound 3D
 			// beamwidth to filter out the validation data that has larger
 			// beamwidth which are potentially unreliable than those dataset
@@ -1142,7 +1004,6 @@ void BrachyTRUSCalibrator::addValidationPositionsPerImage(
 				{
 					// #1. This is the ultrasound elevation near field which has the
 					// the best imaging quality (before the elevation focal zone)
-					// -------------------------------------------------------------
 
 					// We will set the beamwidth to be the same as the elevation
 					// focal zone.
@@ -1154,7 +1015,6 @@ void BrachyTRUSCalibrator::addValidationPositionsPerImage(
 				{
 					// #2. Further deep in far field (close to the bottom of the image)
 					// Ultrasound diverses quickly in this region and data quality deteriorates
-					// ------------------------------------------------------------------------
 					USBeamWidthEuclideanMagAtThisAxialDepthInMM =
 						mUS3DBeamwidthAtFarestAxialDepth.magnitude();
 				}
@@ -1163,7 +1023,6 @@ void BrachyTRUSCalibrator::addValidationPositionsPerImage(
 					// #3. Ultrasound far field 
 					// Here the sound starts to diverse with elevation beamwidth getting
 					// larger and larger.  Data quality starts to deteriorate.
-					// ------------------------------------------------------------------
 
 					// Populate the beamwidth vector (axial, lateral and elevation elements)
 					vnl_vector<double> US3DBeamwidthAtThisAxialDepth(3,0);
@@ -1204,7 +1063,6 @@ void BrachyTRUSCalibrator::addValidationPositionsPerImage(
 				SegmentedDataPositionListPerImage.at( Layer*3 );
 			double alpha = (double)VectorCi2Xi.magnitude()/VectorCi2Cii.magnitude();
             
-			// ==============================================================
 			// Apply alpha to Equation: Xi = Ai + alpha * (Bi - Ai)
 			// where:
 			// - Ai and Bi are the N-wire joints in either front or back walls.
@@ -1214,7 +1072,6 @@ void BrachyTRUSCalibrator::addValidationPositionsPerImage(
 			//   or mistakes.  There is one and only one fixed correspondence between 
 			//   the 6 segmented image positions (N-fiducials) and the wires.
 			// - Closely examine the wiring design and set Ai and Bi accordingly.
-            // ==============================================================
 
 			vnl_vector<double> PositionInTemplateFrame(4);
 			vnl_vector<double> IntersectPosW12(4);
@@ -1243,25 +1100,17 @@ void BrachyTRUSCalibrator::addValidationPositionsPerImage(
 				mTransformMatrixPhantom2DRB4x4 *
 				PositionInTemplateFrame;
 
-			if( true == mIsSystemLogOn )
-			{
-				std::ofstream SystemLogFile(
-					mSystemLogFileNameWithTimeStamp.c_str(), std::ios::app);
-				SystemLogFile << " ==========================================================================\n";
-        SystemLogFile << " ADD DATA FOR VALIDATION ("<<frameIndex<<") >>>>>>>>>>>>>>>>>>>>>\n\n";
-				SystemLogFile << " SegmentedNFiducial-" << Layer*3 << " = " << SegmentedDataPositionListPerImage.at( Layer*3 ) << "\n"; 
-				SystemLogFile << " SegmentedNFiducial-" << Layer*3+1 << " = " << SegmentedDataPositionListPerImage.at( Layer*3+1 ) << "\n";  
-				SystemLogFile << " SegmentedNFiducial-" << Layer*3+2 << " = " << SegmentedDataPositionListPerImage.at( Layer*3+2 ) << "\n";  
-				SystemLogFile << " ----------------------------------------------------------------\n";
-				SystemLogFile << " SegmentedPositionInOriginalImageFrame = " << SegmentedPositionInOriginalImageFrame << "\n";
-				SystemLogFile << " SegmentedPositionInUSImageFrame = " << SegmentedPositionInUSImageFrame << "\n";
-				SystemLogFile << " alpha = " << alpha << "\n";
-				SystemLogFile << " PositionInTemplateFrame = " << PositionInTemplateFrame << "\n";					
-				SystemLogFile << " TransformMatrixStepper2USProbe4x4 = \n" << TransformMatrixStepper2USProbe4x4 << "\n";
-        SystemLogFile << " mTransformMatrixPhantom2DRB4x4 = \n" << mTransformMatrixPhantom2DRB4x4 << "\n";
-        SystemLogFile << " PositionInUSProbeFrame = " << PositionInUSProbeFrame << "\n";					
-				SystemLogFile.close();
-			}
+      LOG_DEBUG(" ADD DATA FOR VALIDATION ("<<frameIndex<<")");
+			LOG_DEBUG(" SegmentedNFiducial-" << Layer*3 << " = " << SegmentedDataPositionListPerImage.at( Layer*3 )); 
+			LOG_DEBUG(" SegmentedNFiducial-" << Layer*3+1 << " = " << SegmentedDataPositionListPerImage.at( Layer*3+1 ));  
+			LOG_DEBUG(" SegmentedNFiducial-" << Layer*3+2 << " = " << SegmentedDataPositionListPerImage.at( Layer*3+2 ));  
+			LOG_DEBUG(" SegmentedPositionInOriginalImageFrame = " << SegmentedPositionInOriginalImageFrame);
+			LOG_DEBUG(" SegmentedPositionInUSImageFrame = " << SegmentedPositionInUSImageFrame);
+			LOG_DEBUG(" alpha = " << alpha);
+			LOG_DEBUG(" PositionInTemplateFrame = " << PositionInTemplateFrame);
+			LOG_DEBUG(" TransformMatrixStepper2USProbe4x4 = \n" << TransformMatrixStepper2USProbe4x4);
+      LOG_DEBUG(" mTransformMatrixPhantom2DRB4x4 = \n" << mTransformMatrixPhantom2DRB4x4);
+      LOG_DEBUG(" PositionInUSProbeFrame = " << PositionInUSProbeFrame);
 
 			vnl_vector<double> NWireStartinUSProbeFrame =
 				TransformMatrixStepper2USProbe4x4 * 
@@ -1334,7 +1183,7 @@ void BrachyTRUSCalibrator::addValidationPositionsPerImage(
 	}
 	catch(...)
 	{
-		std::cerr << "\n\n" << __FILE__ << "," << __LINE__ << "\n"
+		std::cerr << __FILE__ << "," << __LINE__
 			<< ">>>>>>>> In " << mstrScope << "::Failed to add validation positions!!!  Throw up ...\n";
 
 		throw;	
@@ -1353,7 +1202,7 @@ void BrachyTRUSCalibrator::addValidationPositionsPerImage(
 
 	if( mHasPhantomBeenRegistered != true )
 	{
-		std::cerr << "\n\n" << __FILE__ << "," << __LINE__ << "\n"
+		std::cerr << __FILE__ << "," << __LINE__
 			<< ">>>>>>>> In " << mstrScope << "::The phantom is not yet registered to the DRB frame!!!  Throw up ...\n";
 
 		throw;
@@ -1361,7 +1210,7 @@ void BrachyTRUSCalibrator::addValidationPositionsPerImage(
 
 	if( mIsPhantomGeometryLoaded != true )
 	{
-		std::cerr << "\n\n" << __FILE__ << "," << __LINE__ << "\n"
+		std::cerr << __FILE__ << "," << __LINE__
 			<< ">>>>>>>> In " << mstrScope << "::The phantom geometry has not been loaded!!!  Throw up ...\n";
 
 		throw;
@@ -1369,7 +1218,7 @@ void BrachyTRUSCalibrator::addValidationPositionsPerImage(
 
 	if( SegmentedDataPositionListPerImage.size() != mNUMREFPOINTSPERIMAGE )
 	{
-		std::cerr << "\n\n" << __FILE__ << "," << __LINE__ << "\n"
+		std::cerr << __FILE__ << "," << __LINE__
 			<< ">>>>>>>> In " << mstrScope << "::The number of N-wires is NOT "
 			<< mNUMREFPOINTSPERIMAGE << " in one US image as required!!!  Throw up ...\n";
 
@@ -1378,7 +1227,7 @@ void BrachyTRUSCalibrator::addValidationPositionsPerImage(
 
 	if( mHasUSImageFrameOriginBeenSet != true )
 	{
-		std::cerr << "\n\n" << __FILE__ << "," << __LINE__ << "\n"
+		std::cerr << __FILE__ << "," << __LINE__
 			<< ">>>>>>>> In " << mstrScope << "::The ultrasound image frame origin "
 			<< "has not been defined yet!!!  Throw up ...\n";
 
@@ -1406,7 +1255,6 @@ void BrachyTRUSCalibrator::addValidationPositionsPerImage(
 			TransformMatrixTracker2USProbe * 
 			TransformMatrixDRB2Tracker;
 
-		// ========================================
 		// Calculate then store the data positions 
 		// ========================================
 		// For BrachyTRUSCalibrator, row/col indices are of no interest
@@ -1426,14 +1274,11 @@ void BrachyTRUSCalibrator::addValidationPositionsPerImage(
 		// [ Array 3-5: Bottom N-wire Layer (Right-Middle-Left)]
 		// Each acquired data position is a 4x1 homogenous vector :
 		// [ X, Y, 0, 1] all units in pixels
-		// ==================================================================
 
 		for( int Layer = 0; Layer < 2; Layer++ )
 		{
-			// ========================================================
 			// The protocol is that the middle point collected in 
 			// the set of three points of the N-wire is the data point.
-			// ========================================================
             vnl_vector<double> SegmentedPositionInOriginalImageFrame =
 				SegmentedDataPositionListPerImage.at( Layer*3 + 1 );
 
@@ -1444,7 +1289,6 @@ void BrachyTRUSCalibrator::addValidationPositionsPerImage(
 				SegmentedPositionInOriginalImageFrame;
 
 			// OPTION: Apply the ultrasound 3D beamwidth to the validation dataset
-			// ====================================================================
 			// If Option 3 is selected, we will use the ultrasound 3D
 			// beamwidth to filter out the validation data that has larger
 			// beamwidth which are potentially unreliable than those dataset
@@ -1467,7 +1311,6 @@ void BrachyTRUSCalibrator::addValidationPositionsPerImage(
 				{
 					// #1. This is the ultrasound elevation near field which has the
 					// the best imaging quality (before the elevation focal zone)
-					// -------------------------------------------------------------
 
 					// We will set the beamwidth to be the same as the elevation
 					// focal zone.
@@ -1479,7 +1322,6 @@ void BrachyTRUSCalibrator::addValidationPositionsPerImage(
 				{
 					// #2. Further deep in far field (close to the bottom of the image)
 					// Ultrasound diverses quickly in this region and data quality deteriorates
-					// ------------------------------------------------------------------------
 					USBeamWidthEuclideanMagAtThisAxialDepthInMM =
 						mUS3DBeamwidthAtFarestAxialDepth.magnitude();
 				}
@@ -1488,7 +1330,6 @@ void BrachyTRUSCalibrator::addValidationPositionsPerImage(
 					// #3. Ultrasound far field 
 					// Here the sound starts to diverse with elevation beamwidth getting
 					// larger and larger.  Data quality starts to deteriorate.
-					// ------------------------------------------------------------------
 
 					// Populate the beamwidth vector (axial, lateral and elevation elements)
 					vnl_vector<double> US3DBeamwidthAtThisAxialDepth(3,0);
@@ -1529,7 +1370,6 @@ void BrachyTRUSCalibrator::addValidationPositionsPerImage(
 				SegmentedDataPositionListPerImage.at( Layer*3 );
 			double alpha = (double)VectorCi2Xi.magnitude()/VectorCi2Cii.magnitude();
             
-			// ==============================================================
 			// Apply alpha to Equation: Xi = Ai + alpha * (Bi - Ai)
 			// where:
 			// - Ai and Bi are the N-wire joints in either front or back walls.
@@ -1539,8 +1379,6 @@ void BrachyTRUSCalibrator::addValidationPositionsPerImage(
 			//   or mistakes.  There is one and only one fixed correspondence between 
 			//   the 6 segmented image positions (N-fiducials) and the wires.
 			// - Closely examine the wiring design and set Ai and Bi accordingly.
-            // ==============================================================
-
 
 			vnl_vector<double> PositionInPhantomFrame(4);
 			vnl_vector<double> IntersectPosW12(4);
@@ -1562,25 +1400,17 @@ void BrachyTRUSCalibrator::addValidationPositionsPerImage(
 				mTransformMatrixPhantom2DRB4x4 * 
 				PositionInPhantomFrame;
 
-			if( true == mIsSystemLogOn )
-			{
-				std::ofstream SystemLogFile(
-					mSystemLogFileNameWithTimeStamp.c_str(), std::ios::app);
-				SystemLogFile << " ==========================================================================\n";
-				SystemLogFile << " ADD DATA FOR VALIDATION ("<<frameIndex<<") >>>>>>>>>>>>>>>>>>>>>\n\n";
-				SystemLogFile << " SegmentedNFiducial-" << Layer*3 << " = " << SegmentedDataPositionListPerImage.at( Layer*3 ) << "\n"; 
-				SystemLogFile << " SegmentedNFiducial-" << Layer*3+1 << " = " << SegmentedDataPositionListPerImage.at( Layer*3+1 ) << "\n";  
-				SystemLogFile << " SegmentedNFiducial-" << Layer*3+2 << " = " << SegmentedDataPositionListPerImage.at( Layer*3+2 ) << "\n";  
-				SystemLogFile << " ----------------------------------------------------------------\n";
-				SystemLogFile << " SegmentedPositionInOriginalImageFrame = " << SegmentedPositionInOriginalImageFrame << "\n";
-				SystemLogFile << " SegmentedPositionInUSImageFrame = " << SegmentedPositionInUSImageFrame << "\n";
-				SystemLogFile << " alpha = " << alpha << "\n";
-				SystemLogFile << " PositionInPhantomFrame = " << PositionInPhantomFrame << "\n";
-				SystemLogFile << " TransformMatrixDRB2USProbe4x4 = \n" << TransformMatrixDRB2USProbe4x4 << "\n";
-        SystemLogFile << " mTransformMatrixPhantom2DRB4x4 = \n" << mTransformMatrixPhantom2DRB4x4 << "\n";
-        SystemLogFile << " PositionInUSProbeFrame = " << PositionInUSProbeFrame << "\n";
-				SystemLogFile.close();
-			}
+			LOG_DEBUG(" ADD DATA FOR VALIDATION ("<<frameIndex<<")");
+			LOG_DEBUG(" SegmentedNFiducial-" << Layer*3 << " = " << SegmentedDataPositionListPerImage.at( Layer*3 )); 
+			LOG_DEBUG(" SegmentedNFiducial-" << Layer*3+1 << " = " << SegmentedDataPositionListPerImage.at( Layer*3+1 ));  
+			LOG_DEBUG(" SegmentedNFiducial-" << Layer*3+2 << " = " << SegmentedDataPositionListPerImage.at( Layer*3+2 ));  
+			LOG_DEBUG(" SegmentedPositionInOriginalImageFrame = " << SegmentedPositionInOriginalImageFrame);
+			LOG_DEBUG(" SegmentedPositionInUSImageFrame = " << SegmentedPositionInUSImageFrame);
+			LOG_DEBUG(" alpha = " << alpha);
+			LOG_DEBUG(" PositionInPhantomFrame = " << PositionInPhantomFrame);
+			LOG_DEBUG(" TransformMatrixDRB2USProbe4x4 = \n" << TransformMatrixDRB2USProbe4x4);
+      LOG_DEBUG(" mTransformMatrixPhantom2DRB4x4 = \n" << mTransformMatrixPhantom2DRB4x4);
+      LOG_DEBUG(" PositionInUSProbeFrame = " << PositionInUSProbeFrame);
 
 			vnl_vector<double> NWireStartinUSProbeFrame =
 				TransformMatrixDRB2USProbe4x4 * 
@@ -1613,7 +1443,7 @@ void BrachyTRUSCalibrator::addValidationPositionsPerImage(
 	}
 	catch(...)
 	{
-		std::cerr << "\n\n" << __FILE__ << "," << __LINE__ << "\n"
+		std::cerr << __FILE__ << "," << __LINE__
 			<< ">>>>>>>> In " << mstrScope << "::Failed to add validation positions!!!  Throw up ...\n";
 
 		throw;	
@@ -1628,7 +1458,7 @@ std::vector<double> BrachyTRUSCalibrator::getPRE3DforRealtimeImage(
 {
 	if( mHasPhantomBeenRegistered != true )
 	{
-		std::cerr << "\n\n" << __FILE__ << "," << __LINE__ << "\n"
+		std::cerr << __FILE__ << "," << __LINE__
 		<< ">>>>>>>> In " << mstrScope << "::The phantom is not yet registered to the DRB frame!!!  Throw up ...\n";
 
 		throw;
@@ -1636,7 +1466,7 @@ std::vector<double> BrachyTRUSCalibrator::getPRE3DforRealtimeImage(
 	
 	if( mHasBeenCalibrated != true )
 	{
-		std::cerr << "\n\n" << __FILE__ << "," << __LINE__ << "\n"
+		std::cerr << __FILE__ << "," << __LINE__
 			<< ">>>>>>>> In " << mstrScope << "::This operation is not possible since the calibration is not yet finished!!!  Throw up ...\n";
 
 		throw;
@@ -1644,7 +1474,7 @@ std::vector<double> BrachyTRUSCalibrator::getPRE3DforRealtimeImage(
 	
 	if( mHasUSImageFrameOriginBeenSet != true )
 	{
-		std::cerr << "\n\n" << __FILE__ << "," << __LINE__ << "\n"
+		std::cerr << __FILE__ << "," << __LINE__
 			<< ">>>>>>>> In " << mstrScope << "::The ultrasound image frame origin "
 			<< "has not been defined yet!!!  Throw up ...\n";
 
@@ -1669,7 +1499,6 @@ std::vector<double> BrachyTRUSCalibrator::getPRE3DforRealtimeImage(
 		lastRow.put(3, 1);
 		TransformMatrixDRB2USProbe4x4.set_row(3, lastRow);
 
-		// ========================================
 		// Calculate then store the data positions 
 		// ========================================
 		// For BrachyTRUSCalibrator, row/col indices are of no interest
@@ -1689,14 +1518,11 @@ std::vector<double> BrachyTRUSCalibrator::getPRE3DforRealtimeImage(
 		// [ Array 3-5: Bottom N-wire Layer (Right-Middle-Left)]
 		// Each acquired data position is a 4x1 homogenous vector :
 		// [ X, Y, 0, 1] all units in pixels
-		// ==================================================================
 
 		for( int Layer = 0; Layer < 2; Layer++ )
 		{
-			// ========================================================
 			// The protocol is that the middle point collected in 
 			// the set of three points of the N-wire is the data point.
-			// ========================================================
 			vnl_vector<double> SegmentedPositionInOriginalImageFrame( 
 				SegmentedDataPositionListPerImage.at( Layer*3 + 1 ) );
 
@@ -1718,7 +1544,6 @@ std::vector<double> BrachyTRUSCalibrator::getPRE3DforRealtimeImage(
 				SegmentedDataPositionListPerImage.at( Layer*3 );
 			double alpha = (double)VectorCi2Xi.magnitude()/VectorCi2Cii.magnitude();
             
-			// ==============================================================
 			// Apply alpha to Equation: Xi = Ai + alpha * (Bi - Ai)
 			// where:
 			// - Ai and Bi are the N-wire joints in either front or back walls.
@@ -1728,8 +1553,6 @@ std::vector<double> BrachyTRUSCalibrator::getPRE3DforRealtimeImage(
 			//   or mistakes.  There is one and only one fixed correspondence between 
 			//   the 6 segmented image positions (N-fiducials) and the wires.
 			// - Closely examine the wiring design and set Ai and Bi accordingly.
-            // ==============================================================
-
 
 			vnl_vector<double> PositionInPhantomFrame(4);
 			vnl_vector<double> IntersectPosW12(4);
@@ -1756,25 +1579,17 @@ std::vector<double> BrachyTRUSCalibrator::getPRE3DforRealtimeImage(
 				mTransformMatrixPhantom2DRB4x4 * 
 				PositionInPhantomFrame;
 
-			if( true == mIsSystemLogOn )
-			{
-				std::ofstream SystemLogFile(
-					mSystemLogFileNameWithTimeStamp.c_str(), std::ios::app);
-				SystemLogFile << " ==========================================================================\n";
-				SystemLogFile << " ADD DATA FOR CALIBRATION >>>>>>>>>>>>>>>>>>>>>\n\n";
-				SystemLogFile << " SegmentedNFiducial-" << Layer*3 << " = " << SegmentedDataPositionListPerImage.at( Layer*3 ) << "\n"; 
-				SystemLogFile << " SegmentedNFiducial-" << Layer*3+1 << " = " << SegmentedDataPositionListPerImage.at( Layer*3+1 ) << "\n";  
-				SystemLogFile << " SegmentedNFiducial-" << Layer*3+2 << " = " << SegmentedDataPositionListPerImage.at( Layer*3+2 ) << "\n";  
-				SystemLogFile << " ----------------------------------------------------------------\n";
-				SystemLogFile << " SegmentedPositionInOriginalImageFrame = " << SegmentedPositionInOriginalImageFrame << "\n";
-				SystemLogFile << " SegmentedPositionInUSImageFrame = " << SegmentedPositionInUSImageFrame << "\n";
-				SystemLogFile << " alpha = " << alpha << "\n";
-				SystemLogFile << " PositionInPhantomFrame = " << PositionInPhantomFrame << "\n";
-				SystemLogFile << " TransformMatrixDRB2USProbe4x4 = \n" << TransformMatrixDRB2USProbe4x4 << "\n";
-        SystemLogFile << " mTransformMatrixPhantom2DRB4x4 = \n" << mTransformMatrixPhantom2DRB4x4 << "\n";
-        SystemLogFile << " PositionInUSProbeFrame = " << PositionInUSProbeFrame << "\n";
-				SystemLogFile.close();
-			}
+			LOG_DEBUG(" ADD DATA FOR CALIBRATION");
+			LOG_DEBUG(" SegmentedNFiducial-" << Layer*3 << " = " << SegmentedDataPositionListPerImage.at( Layer*3 )); 
+			LOG_DEBUG(" SegmentedNFiducial-" << Layer*3+1 << " = " << SegmentedDataPositionListPerImage.at( Layer*3+1 ));  
+			LOG_DEBUG(" SegmentedNFiducial-" << Layer*3+2 << " = " << SegmentedDataPositionListPerImage.at( Layer*3+2 ));  
+			LOG_DEBUG(" SegmentedPositionInOriginalImageFrame = " << SegmentedPositionInOriginalImageFrame);
+			LOG_DEBUG(" SegmentedPositionInUSImageFrame = " << SegmentedPositionInUSImageFrame);
+			LOG_DEBUG(" alpha = " << alpha);
+			LOG_DEBUG(" PositionInPhantomFrame = " << PositionInPhantomFrame);
+			LOG_DEBUG(" TransformMatrixDRB2USProbe4x4 = \n" << TransformMatrixDRB2USProbe4x4);
+      LOG_DEBUG(" mTransformMatrixPhantom2DRB4x4 = \n" << mTransformMatrixPhantom2DRB4x4);
+      LOG_DEBUG(" PositionInUSProbeFrame = " << PositionInUSProbeFrame);
 
 			// Store into the list of positions in the Phantom frame
 			DataPositionsInPhantomFrame.push_back( PositionInPhantomFrame );
@@ -1784,7 +1599,6 @@ std::vector<double> BrachyTRUSCalibrator::getPRE3DforRealtimeImage(
 		}
 
 		// STEP-2.  Calculate 3D Point Reconstruction Error (PRE3D)
-		// ========================================================
 
 		std::vector<vnl_vector_double> PRE3DsInUSProbeFrameABS;
 		std::vector<vnl_vector_double> ProjectedPositionsInUSImageFrame;
@@ -1825,7 +1639,6 @@ std::vector<double> BrachyTRUSCalibrator::getPRE3DforRealtimeImage(
 		{
 			// 1. The projected position in the US probe frame
 			//    after applying the calibration matrix
-			// ------------------------------------------------
 			vnl_vector<double> ProjectedPositionInUSProbeFrame = 
 				mTransformUSImageFrame2USProbeFrameMatrix4x4 * 
 				DataPositionsInUSImageFrame.at(Layer);
@@ -1844,7 +1657,6 @@ std::vector<double> BrachyTRUSCalibrator::getPRE3DforRealtimeImage(
 
 			// 2. The projected position in the US image frame
 			//    after applying the calibration matrix
-			// ------------------------------------------------
 			vnl_vector<double> ProjectedPositionInUSImageFrame = 
 				CreatedTransformMatrixUSProbeFame2USImageFrame4x4 * 
 				DataPositionsInUSProbeFrame.at( Layer );
@@ -1852,7 +1664,6 @@ std::vector<double> BrachyTRUSCalibrator::getPRE3DforRealtimeImage(
 		}
 
 		// STEP-3. Generate the returning data container
-		// ==============================================
 		// FORMAT: PRE3Ds are averaged for all the data positions in the image and 
 		// given in the following format:
 		// [vector 0-2: Averaged PRE3D (x, y, z) in the US probe frame in X,Y and Z axis ]
@@ -1878,7 +1689,7 @@ std::vector<double> BrachyTRUSCalibrator::getPRE3DforRealtimeImage(
 	}
 	catch(...)
 	{
-		std::cerr << "\n\n" << __FILE__ << "," << __LINE__ << "\n"
+		std::cerr << __FILE__ << "," << __LINE__
 			<< ">>>>>>>> In " << mstrScope << "::Failed to obtain PRE3Ds!!!  Throw up ...\n";
 
 		throw;	
