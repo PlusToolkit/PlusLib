@@ -131,7 +131,6 @@
 	<USCalibration version="1.0">
 		<CalibrationController LogLevel="INFO" OutputPath="./Output" EnableTrackedSequenceDataSaving="FALSE" EnableErroneouslySegmentedDataSaving="FALSE" EnableSegmentationAnalysis="FALSE" >
 			<ProbeCalibration
-        EnableLogFile="FALSE"  
         EnableSegmentedWirePositionsSaving="FALSE"
         ImageHomeToUserImageHomeTransform=" 1  0  0  0 
                           0  1  0  0 

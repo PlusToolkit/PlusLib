@@ -47,8 +47,8 @@ const double BrachyTRUSCalibrator::mNUMOFTIMESOFMINBEAMWIDTH = 2.1;
 
 //-----------------------------------------------------------------------------
 
-BrachyTRUSCalibrator::BrachyTRUSCalibrator( FidPatternRecognition * patternRecognitionObject, const bool IsSystemLogOn )
-	: Phantom( IsSystemLogOn )	// Call the parent's constructor
+BrachyTRUSCalibrator::BrachyTRUSCalibrator( FidPatternRecognition * patternRecognitionObject)
+	: Phantom()
 {
   mNWires = patternRecognitionObject->GetFidLineFinder()->GetNWires();
 
@@ -175,15 +175,6 @@ void BrachyTRUSCalibrator::addDataPositionsPerImage(
 		std::cerr << __FILE__ << "," << __LINE__
 			<< ">>>>>>>> In " << mstrScope << "::The number of N-wires is NOT "
 			<< mNUMREFPOINTSPERIMAGE << " in one US image as required!!!  Throw up ...\n";
-
-		throw;
-	}
-
-	if( mHasUSImageFrameOriginBeenSet != true )
-	{
-		std::cerr << __FILE__ << "," << __LINE__
-			<< ">>>>>>>> In " << mstrScope << "::The ultrasound image frame origin "
-			<< "has not been defined yet!!!  Throw up ...\n";
 
 		throw;
 	}
@@ -525,15 +516,6 @@ void BrachyTRUSCalibrator::addDataPositionsPerImage(
 		throw;
 	}
 
-	if( mHasUSImageFrameOriginBeenSet != true )
-	{
-		std::cerr << __FILE__ << "," << __LINE__
-			<< ">>>>>>>> In " << mstrScope << "::The ultrasound image frame origin "
-			<< "has not been defined yet!!!  Throw up ...\n";
-
-		throw;
-	}
-
 	try
 	{
 		// Obtain the transform matrix from DRB Frame to Tracker Frame 
@@ -839,32 +821,6 @@ void BrachyTRUSCalibrator::addDataPositionsPerImage(
 	}
 }
 
-//-----------------------------------------------------------------------------
-
-void BrachyTRUSCalibrator::deleteLatestAddedDataPositionsPerImage ()
-{
-	// Delete the latest added data positions per image
-	// NOTE: this operation will delete all the two layers' of N-wires 
-	// data from the last used image from both data positions in the US 
-	// image frame and in the US probe frame.
-	for( int i = 0; i < 2; i++ )
-	{
-		mDataPositionsInUSImageFrame.pop_back();
-		mDataPositionsInUSProbeFrame.pop_back();
-	}
-}
-
-//-----------------------------------------------------------------------------
-
-void BrachyTRUSCalibrator::deleteDataPositionsPerImage(int position)
-{
-	// Delete the specified data positions per image
-	// NOTE: this operation will delete only one layer of N-wires 
-	// data from both data positions in the US image frame, phantom frame and in the US probe frame.
-	mDataPositionsInUSImageFrame.erase( mDataPositionsInUSImageFrame.begin() + position );
-	mDataPositionsInPhantomFrame.erase( mDataPositionsInPhantomFrame.begin() + position );
-	mDataPositionsInUSProbeFrame.erase( mDataPositionsInUSProbeFrame.begin() + position );
-}
 
 //-----------------------------------------------------------------------------
 
@@ -896,15 +852,6 @@ void BrachyTRUSCalibrator::addValidationPositionsPerImage(
 		std::cerr << __FILE__ << "," << __LINE__
 			<< ">>>>>>>> In " << mstrScope << "::The number of N-wires is NOT "
 			<< mNUMREFPOINTSPERIMAGE << " in one US image as required!!!  Throw up ...\n";
-
-		throw;
-	}
-
-	if( mHasUSImageFrameOriginBeenSet != true )
-	{
-		std::cerr << __FILE__ << "," << __LINE__
-			<< ">>>>>>>> In " << mstrScope << "::The ultrasound image frame origin "
-			<< "has not been defined yet!!!  Throw up ...\n";
 
 		throw;
 	}
@@ -1225,15 +1172,6 @@ void BrachyTRUSCalibrator::addValidationPositionsPerImage(
 		throw;
 	}
 
-	if( mHasUSImageFrameOriginBeenSet != true )
-	{
-		std::cerr << __FILE__ << "," << __LINE__
-			<< ">>>>>>>> In " << mstrScope << "::The ultrasound image frame origin "
-			<< "has not been defined yet!!!  Throw up ...\n";
-
-		throw;
-	}
-
 	try
 	{
 		// Obtain the transform matrix from DRB Frame to Tracker Frame 
@@ -1471,20 +1409,10 @@ std::vector<double> BrachyTRUSCalibrator::getPRE3DforRealtimeImage(
 
 		throw;
 	}
-	
-	if( mHasUSImageFrameOriginBeenSet != true )
-	{
-		std::cerr << __FILE__ << "," << __LINE__
-			<< ">>>>>>>> In " << mstrScope << "::The ultrasound image frame origin "
-			<< "has not been defined yet!!!  Throw up ...\n";
-
-		throw;
-	}
 
 	try
 	{
 		// STEP-1. Populate the position data
-		// ===================================
 
 		// Data containers
 		std::vector<vnl_vector_double> DataPositionsInUSImageFrame;
@@ -1695,5 +1623,3 @@ std::vector<double> BrachyTRUSCalibrator::getPRE3DforRealtimeImage(
 		throw;	
 	}
 }
-
-// END OF FILE

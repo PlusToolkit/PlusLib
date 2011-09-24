@@ -1123,17 +1123,6 @@ PlusStatus vtkProbeCalibrationControllerIO::ReadProbeCalibrationConfiguration(vt
     return PLUS_FAIL; 
   }
 
-	// To enable/disable the system logging
-	const char* enableLogFile = probeCalibration->GetAttribute("EnableLogFile"); 
-	if (  enableLogFile != NULL &&  STRCASECMP( "TRUE", enableLogFile ) == 0 ) 
-	{
-		this->CalibrationController->EnableSystemLogOn(); 
-	}
-	else
-	{
-		this->CalibrationController->EnableSystemLogOff(); 
-	}
-
 	// To enable/disable the saving of segmented wire positions to file 
 	const char* enableSegmentedWirePositionsSaving = probeCalibration->GetAttribute("EnableSegmentedWirePositionsSaving"); 
 	if ( enableSegmentedWirePositionsSaving != NULL &&  STRCASECMP( "TRUE", enableSegmentedWirePositionsSaving ) == 0 ) 

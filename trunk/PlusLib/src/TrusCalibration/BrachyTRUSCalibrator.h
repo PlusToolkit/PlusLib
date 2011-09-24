@@ -193,7 +193,7 @@ class BrachyTRUSCalibrator : public Phantom
 		// 2. The system log should be turned on before any calibration related 
 		//    activities (e.g., add data positions, validating, calibrating, etc.).
 		// [DEFAULT: OFF (FALSE)]
-		BrachyTRUSCalibrator ( FidPatternRecognition * patternRecognitionObject, const bool IsSystemLogOn = false );
+		BrachyTRUSCalibrator ( FidPatternRecognition * patternRecognitionObject);
 
 		//! Destructor
 		virtual ~BrachyTRUSCalibrator ();
@@ -225,18 +225,6 @@ class BrachyTRUSCalibrator : public Phantom
 			std::vector<vnl_vector_double> SegmentedDataPositionListPerImage, 
 			const std::vector<double> TransformUSProbe2Tracker,
 			const std::vector<double> TransformDRB2Tracker );
-
-		//! Overridden Operation: Delete the data positions that were added in the last image.
-		// This operation is helpful when the latest added input data does not actually
-		// improve the calibration accuracy (i.e., judged by PRE3D).  For example, this 
-		// could happen when the image quality is poor and typically results in an 
-		// inaccurate segmentation, which in turn negatively influnce the final 
-		// calibration outcome.  Using this method, the application can choose to 
-		// eliminate a bad input data (e.g., in an iterative calibration process where
-		// the calibration accuracy is evaluated in real time for each iteration).
-		virtual void deleteLatestAddedDataPositionsPerImage ();
-
-		virtual void deleteDataPositionsPerImage(int position); 
 
 		//! Overridden Operation: Add positions per image to validate calibration accuracy
 		// This operation performs similarly to the ::addDataPositionsPerImage

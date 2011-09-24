@@ -68,7 +68,6 @@ vtkCalibrationController::vtkCalibrationController()
 
   // Former ProbeCalibrationController and FreehandCalibraitonController members
   this->Calibrator = NULL;
-	this->EnableSystemLogOff();
 	this->EnableSegmentedWirePositionsSavingOff(); 
 
 	this->US3DBeamwidthDataReadyOff(); 
@@ -219,7 +218,7 @@ PlusStatus vtkCalibrationController::Initialize()
 	// Initialize the calibration component
 	if ( this->Calibrator == NULL ) 
 	{
-		this->Calibrator = new BrachyTRUSCalibrator(this->GetPatternRecognition(), this->EnableSystemLog );
+		this->Calibrator = new BrachyTRUSCalibrator(this->GetPatternRecognition());
 	}
 
 	vnl_matrix<double> transformOrigImageFrame2TRUSImageFrameMatrix4x4(4,4);
@@ -601,14 +600,6 @@ PlusStatus vtkCalibrationController::ReadFreehandCalibrationConfiguration(vtkXML
 		LOG_WARNING("Unable to read ProbeCalibration XML data element!"); 
 		return PLUS_FAIL; 
 	} 
-
-	// To enable/disable the system logging
-	const char* enableLogFile = probeCalibration->GetAttribute("EnableLogFile"); 
-	if (enableLogFile != NULL &&  STRCASECMP( "TRUE", enableLogFile ) == 0) {
-		this->EnableSystemLogOn(); 
-	} else {
-		this->EnableSystemLogOff(); 
-	}
 
 	// Sets the suffix of the calibration result file
 	const char* calibrationResultFileSuffix = probeCalibration->GetAttribute("CalibrationResultFileSuffix"); 
