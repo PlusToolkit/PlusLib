@@ -41,7 +41,7 @@ void vtkTranslAxisCalibAlgo::PrintSelf(ostream& os, vtkIndent indent)
   os << indent << "TranslationAxisOrientation: " << this->TranslationAxisOrientation[0] << "  " 
     << this->TranslationAxisOrientation[1] << "  " << this->TranslationAxisOrientation[2] << std::endl;
   os << indent << "Calibration error: mean=" << this->ErrorMean << "  stdev=" << this->ErrorStdev << std::endl;
- 
+
   std::string strDataType("UNKNOWN_DATA"); 
   if ( this->DataType == PROBE_TRANSLATION ) strDataType = "PROBE_TRANSLATION"; 
   if ( this->DataType == TEMPLATE_TRANSLATION ) strDataType = "TEMPLATE_TRANSLATION"; 
@@ -261,85 +261,28 @@ PlusStatus vtkTranslAxisCalibAlgo::UpdateReportTable(const std::vector<vnl_vecto
 {
   LOG_TRACE("vtkTranslAxisCalibAlgo::UpdateReportTable"); 
 
-  const int numOfSegmentedPoints(8); 
-
   if ( this->ReportTable == NULL )
   {
-    vtkSmartPointer<vtkTable> table = vtkSmartPointer<vtkTable>::New(); 
-    this->SetReportTable(table); 
-
-    // Create table columns 
-    vtkSmartPointer<vtkDoubleArray> colProbePosition = vtkSmartPointer<vtkDoubleArray>::New(); 
-    colProbePosition->SetName("ProbePosition"); 
-    this->ReportTable->AddColumn(colProbePosition); 
-
-    // Measured positions 
-    vtkSmartPointer<vtkDoubleArray> colMW1X = vtkSmartPointer<vtkDoubleArray>::New(); 
-    colMW1X->SetName("MeasuredWire1xInImageMm"); 
-    this->ReportTable->AddColumn(colMW1X); 
-
-    vtkSmartPointer<vtkDoubleArray> colMW1Y = vtkSmartPointer<vtkDoubleArray>::New(); 
-    colMW1Y->SetName("MeasuredWire1yInImageMm"); 
-    this->ReportTable->AddColumn(colMW1Y); 
-
-    vtkSmartPointer<vtkDoubleArray> colMW3X = vtkSmartPointer<vtkDoubleArray>::New(); 
-    colMW3X->SetName("MeasuredWire3xInImageMm"); 
-    this->ReportTable->AddColumn(colMW3X); 
-
-    vtkSmartPointer<vtkDoubleArray> colMW3Y = vtkSmartPointer<vtkDoubleArray>::New(); 
-    colMW3Y->SetName("MeasuredWire3yInImageMm"); 
-    this->ReportTable->AddColumn(colMW3Y); 
-
-    vtkSmartPointer<vtkDoubleArray> colMW4X = vtkSmartPointer<vtkDoubleArray>::New(); 
-    colMW4X->SetName("MeasuredWire4xInImageMm"); 
-    this->ReportTable->AddColumn(colMW4X); 
-
-    vtkSmartPointer<vtkDoubleArray> colMW4Y = vtkSmartPointer<vtkDoubleArray>::New(); 
-    colMW4Y->SetName("MeasuredWire4yInImageMm"); 
-    this->ReportTable->AddColumn(colMW4Y); 
-
-    vtkSmartPointer<vtkDoubleArray> colMW6X = vtkSmartPointer<vtkDoubleArray>::New(); 
-    colMW6X->SetName("MeasuredWire6xInImageMm"); 
-    this->ReportTable->AddColumn(colMW6X); 
-
-    vtkSmartPointer<vtkDoubleArray> colMW6Y = vtkSmartPointer<vtkDoubleArray>::New(); 
-    colMW6Y->SetName("MeasuredWire6yInImageMm"); 
-    this->ReportTable->AddColumn(colMW6Y); 
-
-    // Computed position 
-     vtkSmartPointer<vtkDoubleArray> colCW1X = vtkSmartPointer<vtkDoubleArray>::New(); 
-    colCW1X->SetName("ComputedWire1xInImageMm"); 
-    this->ReportTable->AddColumn(colCW1X); 
-
-    vtkSmartPointer<vtkDoubleArray> colCW1Y = vtkSmartPointer<vtkDoubleArray>::New(); 
-    colCW1Y->SetName("ComputedWire1yInImageMm"); 
-    this->ReportTable->AddColumn(colCW1Y); 
-
-    vtkSmartPointer<vtkDoubleArray> colCW3X = vtkSmartPointer<vtkDoubleArray>::New(); 
-    colCW3X->SetName("ComputedWire3xInImageMm"); 
-    this->ReportTable->AddColumn(colCW3X); 
-
-    vtkSmartPointer<vtkDoubleArray> colCW3Y = vtkSmartPointer<vtkDoubleArray>::New(); 
-    colCW3Y->SetName("ComputedWire3yInImageMm"); 
-    this->ReportTable->AddColumn(colCW3Y); 
-
-    vtkSmartPointer<vtkDoubleArray> colCW4X = vtkSmartPointer<vtkDoubleArray>::New(); 
-    colCW4X->SetName("ComputedWire4xInImageMm"); 
-    this->ReportTable->AddColumn(colCW4X); 
-
-    vtkSmartPointer<vtkDoubleArray> colCW4Y = vtkSmartPointer<vtkDoubleArray>::New(); 
-    colCW4Y->SetName("ComputedWire4yInImageMm"); 
-    this->ReportTable->AddColumn(colCW4Y); 
-
-    vtkSmartPointer<vtkDoubleArray> colCW6X = vtkSmartPointer<vtkDoubleArray>::New(); 
-    colCW6X->SetName("ComputedWire6xInImageMm"); 
-    this->ReportTable->AddColumn(colCW6X); 
-
-    vtkSmartPointer<vtkDoubleArray> colCW6Y = vtkSmartPointer<vtkDoubleArray>::New(); 
-    colCW6Y->SetName("ComputedWire6yInImageMm"); 
-    this->ReportTable->AddColumn(colCW6Y); 
-
+    this->AddNewColumnToReportTable("ProbePosition"); 
+    this->AddNewColumnToReportTable("MeasuredWire1xInImageMm"); 
+    this->AddNewColumnToReportTable("MeasuredWire1yInImageMm"); 
+    this->AddNewColumnToReportTable("MeasuredWire3xInImageMm"); 
+    this->AddNewColumnToReportTable("MeasuredWire3yInImageMm"); 
+    this->AddNewColumnToReportTable("MeasuredWire4xInImageMm"); 
+    this->AddNewColumnToReportTable("MeasuredWire4yInImageMm"); 
+    this->AddNewColumnToReportTable("MeasuredWire6xInImageMm"); 
+    this->AddNewColumnToReportTable("MeasuredWire6yInImageMm"); 
+    this->AddNewColumnToReportTable("ComputedWire1xInImageMm"); 
+    this->AddNewColumnToReportTable("ComputedWire1yInImageMm"); 
+    this->AddNewColumnToReportTable("ComputedWire3xInImageMm"); 
+    this->AddNewColumnToReportTable("ComputedWire3yInImageMm"); 
+    this->AddNewColumnToReportTable("ComputedWire4xInImageMm"); 
+    this->AddNewColumnToReportTable("ComputedWire4yInImageMm"); 
+    this->AddNewColumnToReportTable("ComputedWire6xInImageMm"); 
+    this->AddNewColumnToReportTable("ComputedWire6yInImageMm"); 
   }
+
+  const int numOfSegmentedPoints(8); // TODO: it works only with double N phantom 
 
   for( int row = 0; row < bVector.size(); row = row + numOfSegmentedPoints)
   {
@@ -365,7 +308,7 @@ PlusStatus vtkTranslAxisCalibAlgo::UpdateReportTable(const std::vector<vnl_vecto
     tableRow->InsertNextValue(resultVector[8] + aMatrix[row + 6].get(0) * resultVector[0]);   // ComputedWire6xInImageMm
     tableRow->InsertNextValue(resultVector[9] + aMatrix[row + 7].get(1) * resultVector[1]);   // ComputedWire6yInImageMm
 
-     if ( tableRow->GetNumberOfTuples() == this->ReportTable->GetNumberOfColumns() )
+    if ( tableRow->GetNumberOfTuples() == this->ReportTable->GetNumberOfColumns() )
     {
       this->ReportTable->InsertNextRow(tableRow); 
     }
@@ -375,6 +318,35 @@ PlusStatus vtkTranslAxisCalibAlgo::UpdateReportTable(const std::vector<vnl_vecto
         << tableRow->GetNumberOfTuples() << " vs. " << this->ReportTable->GetNumberOfColumns() << ")."); 
     }
   }
+
+  return PLUS_SUCCESS; 
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkTranslAxisCalibAlgo::AddNewColumnToReportTable( const char* columnName )
+{
+  if ( this->ReportTable == NULL )
+  {
+    vtkSmartPointer<vtkTable> table = vtkSmartPointer<vtkTable>::New(); 
+    this->SetReportTable(table); 
+  }
+
+  if ( columnName == NULL )
+  {
+    LOG_ERROR("Failed to add new column to table - column name is NULL!"); 
+    return PLUS_FAIL; 
+  }
+
+  if ( this->ReportTable->GetColumnByName(columnName) != NULL )
+  {
+    LOG_WARNING("Column name " << columnName << " already exist!");  
+    return PLUS_FAIL; 
+  }
+
+  // Create table column 
+  vtkSmartPointer<vtkDoubleArray> col = vtkSmartPointer<vtkDoubleArray>::New(); 
+  col->SetName(columnName); 
+  this->ReportTable->AddColumn(col); 
 
   return PLUS_SUCCESS; 
 }
