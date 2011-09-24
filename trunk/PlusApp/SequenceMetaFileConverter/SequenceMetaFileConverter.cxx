@@ -1118,7 +1118,7 @@ void ReadDRBTransformFile( const std::string TransformFileNameWithPath, TrackedF
 
 
 	// # TRANSFORM: FROM THE DRB REFERENCE FRAME TO THE TRACKER FRAME
-	SectionName= ""; 
+	SectionName.clear(); 
 	ThisConfiguration = "TRANSFORM:";
 	while ( TransformsFile.eof() != true && SectionName != ThisConfiguration )
 	{
