@@ -67,6 +67,9 @@ public:
 	// Read XML based configuration for probe calibration
   virtual PlusStatus ReadProbeCalibrationConfiguration( vtkXMLDataElement* configData );
 
+	// Read freehand calibration configurations (from probe calibration data element of the config file)
+	virtual PlusStatus ReadFreehandCalibrationConfiguration(vtkXMLDataElement* probeCalibration);
+
   // Write configuration
   virtual PlusStatus WriteConfiguration( vtkXMLDataElement* configData );
 
@@ -372,9 +375,6 @@ public: // Former ProbeCalibrationController and FreehandCalibraitonController f
 	*/
 	std::string GetResultString();
 
-	// Read freehand calibration configurations (from probe calibration data element of the config file)
-	virtual PlusStatus ReadFreehandCalibrationConfiguration(vtkXMLDataElement* probeCalibration);
-
 	//! Read and populate US to Template calibration image data in offline mode
 	virtual PlusStatus DoOfflineCalibration();
 
@@ -536,9 +536,6 @@ protected:
 
 	// Call the calibrator class and do the calibration process
 	virtual void DoCalibration(); 
-
-	//! Operation: print the calibration results as well as error reports to the stdout
-	virtual void PrintCalibrationResultsAndErrorReports();
 
 protected:
 	//! Flag to enable the tracked sequence data saving to metafile

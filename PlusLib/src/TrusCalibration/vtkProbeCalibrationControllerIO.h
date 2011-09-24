@@ -24,36 +24,31 @@ public:
 	vtkTypeRevisionMacro(vtkProbeCalibrationControllerIO, vtkObject);
 	virtual void PrintSelf(ostream& os, vtkIndent indent); 
 	
-	//! Description
 	// Initialize the CalibrationController with the calibration controller instance
 	virtual void Initialize( vtkCalibrationController* calibrationController ); 
 
-	//! Description
-	// Draw the segmentation result to each individual image and save them into TIFF files
-	virtual void SaveSegmentationResultToImage( const int imgNumber, const ImageType::Pointer& frame );
-
-	//! Description
-	// Save back projected wire positions to text file in gnuplot format 
-	virtual void SaveSegmentedWirePositionsToFile(); 
-
-	//! Description
 	// Read probe calibration data element 
 	virtual PlusStatus ReadProbeCalibrationConfiguration(vtkXMLDataElement* rootElement); 
 
-	//! Description
+  //! Operation: print the calibration results as well as error reports to the stdout
+	virtual void PrintCalibrationResultsAndErrorReports();
+
+	// Draw the segmentation result to each individual image and save them into TIFF files
+	virtual void SaveSegmentationResultToImage( const int imgNumber, const ImageType::Pointer& frame );
+
+	// Save back projected wire positions to text file in gnuplot format 
+	virtual void SaveSegmentedWirePositionsToFile(); 
+
 	// File the calibration results 
 	// This operation writes the final calibration results to a file.
 	virtual void SaveCalibrationResultsAndErrorReportsToXML(); 
 
-	//! Description
 	// Read in the ultrasound 3D beam profile data from a file
 	virtual void ReadUs3DBeamwidthDataFromFile(); 
 	
-	//! Description
 	// Load the ultrasound 3D beam profile data
 	virtual void LoadUS3DBeamProfileData();
 
-	// Description:
 	// Add generated html report from final calibration to the existing html report
 	// htmlReport and plotter arguments has to be defined by the caller function
 	virtual PlusStatus GenerateProbeCalibrationReport( vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter, const char* gnuplotScriptsFolder); 
@@ -63,7 +58,8 @@ protected:
 	virtual ~vtkProbeCalibrationControllerIO();
 
 	//! Attribute: a reference to the calibration controller
-	vtkCalibrationController* CalibrationController; 
+	vtkCalibrationController* CalibrationController;
+
 private:
 	vtkProbeCalibrationControllerIO(const vtkProbeCalibrationControllerIO&);
 	void operator=(const vtkProbeCalibrationControllerIO&);

@@ -37,13 +37,390 @@ vtkProbeCalibrationControllerIO::~vtkProbeCalibrationControllerIO()
 
 }
 
+//----------------------------------------------------------------------------
+void vtkProbeCalibrationControllerIO::PrintSelf(std::ostream &os, vtkIndent indent)
+{
+	this->Superclass::PrintSelf(os,indent);
+}
+
+
+//----------------------------------------------------------------------------
+void vtkProbeCalibrationControllerIO::Initialize(vtkCalibrationController* calibrationController)
+{
+	this->CalibrationController = calibrationController; 
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkProbeCalibrationControllerIO::ReadProbeCalibrationConfiguration(vtkXMLDataElement* rootElement)
+{
+	if (rootElement == NULL) 
+	{	
+		LOG_WARNING("Unable to read ProbeCalibration XML data element!"); 
+		return PLUS_FAIL; 
+	}
+
+	vtkSmartPointer<vtkXMLDataElement> usCalibration = rootElement->FindNestedElementWithName("USCalibration");
+	if (usCalibration == NULL)
+  {
+    LOG_ERROR("Cannot find USCalibration element in XML tree!");
+    return PLUS_FAIL;
+	}
+
+	vtkSmartPointer<vtkXMLDataElement> calibrationController = usCalibration->FindNestedElementWithName("CalibrationController"); 
+	if (calibrationController == NULL)
+  {
+    LOG_ERROR("Unable to find calibration controller tag in configuration file!"); 
+    return PLUS_FAIL; 
+  }
+
+	vtkSmartPointer<vtkXMLDataElement> probeCalibration = calibrationController->FindNestedElementWithName("ProbeCalibration"); 
+	if (probeCalibration == NULL)
+  {
+    LOG_ERROR("Unable to find probe calibration tag in configuration file!"); 
+    return PLUS_FAIL; 
+  }
+
+	// To enable/disable the saving of segmented wire positions to file 
+	const char* enableSegmentedWirePositionsSaving = probeCalibration->GetAttribute("EnableSegmentedWirePositionsSaving"); 
+	if ( enableSegmentedWirePositionsSaving != NULL &&  STRCASECMP( "TRUE", enableSegmentedWirePositionsSaving ) == 0 ) 
+	{
+		this->CalibrationController->EnableSegmentedWirePositionsSavingOn(); 
+	}
+	else
+	{
+		this->CalibrationController->EnableSegmentedWirePositionsSavingOff(); 
+	}
+
+	//Transform: from image home position to user defined image home position
+  double imageToUserImageTransform[16] = {0}; 
+	if ( probeCalibration->GetVectorAttribute("TransformImageToUserImage", 16, imageToUserImageTransform) )
+	{
+		this->CalibrationController->GetTransformImageToUserImage()->SetMatrix(imageToUserImageTransform); 
+	}
+
+  // Sets the suffix of the data files
+	const char* dataFileSuffix = probeCalibration->GetAttribute("DataFileSuffix"); 
+	if ( dataFileSuffix != NULL) 
+	{
+		this->CalibrationController->SetDataFileSuffix(dataFileSuffix); 
+	}
+	else 
+	{
+		this->CalibrationController->SetDataFileSuffix(".data"); 
+	}
+
+	// Sets the suffix of the calibration result file
+	const char* calibrationResultFileSuffix = probeCalibration->GetAttribute("CalibrationResultFileSuffix"); 
+	if ( calibrationResultFileSuffix != NULL) 
+	{
+		this->CalibrationController->SetCalibrationResultFileSuffix(calibrationResultFileSuffix); 
+	}
+	else 
+	{
+		this->CalibrationController->SetCalibrationResultFileSuffix(".Calibration.results"); 
+	}
+
+	// Sets the suffix of the segmentation error log file
+	const char* segmentationErrorLogFileNameSuffix = probeCalibration->GetAttribute("SegmentationErrorLogFileNameSuffix"); 
+	if ( segmentationErrorLogFileNameSuffix != NULL) 
+	{
+		this->CalibrationController->SetSegmentationErrorLogFileNameSuffix(segmentationErrorLogFileNameSuffix); 
+	}
+	else 
+	{
+		this->CalibrationController->SetSegmentationErrorLogFileNameSuffix(".Segmentation.errors"); 
+	}
+
+	// Sets the suffix of the segmentation analysis file
+	const char* segmentationAnalysisFileNameSuffix = probeCalibration->GetAttribute("SegmentationAnalysisFileNameSuffix"); 
+	if ( segmentationAnalysisFileNameSuffix != NULL) 
+	{
+		this->CalibrationController->SetSegmentationAnalysisFileNameSuffix(segmentationAnalysisFileNameSuffix); 
+	}
+	else 
+	{
+		this->CalibrationController->SetSegmentationAnalysisFileNameSuffix(".Segmentation.analysis"); 
+	}
+
+	// Sets the suffix of the Template2StepperCalibration analysis file
+	const char* temp2StepCalibAnalysisFileNameSuffix = probeCalibration->GetAttribute("Temp2StepCalibAnalysisFileNameSuffix"); 
+	if ( temp2StepCalibAnalysisFileNameSuffix != NULL) 
+	{
+		this->CalibrationController->SetTemp2StepCalibAnalysisFileNameSuffix(temp2StepCalibAnalysisFileNameSuffix); 
+	}
+	else 
+	{
+		this->CalibrationController->SetTemp2StepCalibAnalysisFileNameSuffix(".Template2StepperCalibration.analysis"); 
+	}
+
+  // RandomStepperMotionData1 data set specifications
+	//********************************************************************
+	vtkSmartPointer<vtkXMLDataElement> randomStepperMotionData1 = probeCalibration->FindNestedElementWithName("RandomStepperMotionData1"); 
+	if ( randomStepperMotionData1 != NULL) 
+	{
+		vtkCalibrationController::ImageDataInfo imageDataInfo = this->CalibrationController->GetImageDataInfo(RANDOM_STEPPER_MOTION_1); 
+		int numberOfImagesToUse = -1;
+		if ( randomStepperMotionData1->GetScalarAttribute("NumberOfImagesToAcquire", numberOfImagesToUse) ) 
+		{
+			imageDataInfo.NumberOfImagesToAcquire = numberOfImagesToUse; 
+		}
+
+		const char* sequenceMetaFile = randomStepperMotionData1->GetAttribute("OutputSequenceMetaFileSuffix"); 
+		if ( sequenceMetaFile != NULL) 
+		{
+			imageDataInfo.OutputSequenceMetaFileSuffix.assign(sequenceMetaFile); 
+		}
+
+		this->CalibrationController->SetImageDataInfo(RANDOM_STEPPER_MOTION_1, imageDataInfo); 
+	}
+	else
+	{
+		LOG_DEBUG("Unable to find RandomStepperMotionData1 XML data element, default 200 is used"); 
+		vtkCalibrationController::ImageDataInfo imageDataInfo = this->CalibrationController->GetImageDataInfo(RANDOM_STEPPER_MOTION_1); 
+		imageDataInfo.NumberOfImagesToAcquire = 200;
+    this->CalibrationController->SetImageDataInfo(RANDOM_STEPPER_MOTION_1, imageDataInfo); 
+	}
+
+	// RandomStepperMotionData2 data set specifications
+	//********************************************************************
+	vtkSmartPointer<vtkXMLDataElement> randomStepperMotionData2 = probeCalibration->FindNestedElementWithName("RandomStepperMotionData2"); 
+	if ( randomStepperMotionData2 != NULL) 
+	{
+		vtkCalibrationController::ImageDataInfo imageDataInfo = this->CalibrationController->GetImageDataInfo(RANDOM_STEPPER_MOTION_2); 
+		int numberOfImagesToUse = -1;
+		if ( randomStepperMotionData2->GetScalarAttribute("NumberOfImagesToAcquire", numberOfImagesToUse) ) 
+		{
+			imageDataInfo.NumberOfImagesToAcquire = numberOfImagesToUse; 
+		}
+
+		const char* sequenceMetaFile = randomStepperMotionData2->GetAttribute("OutputSequenceMetaFileSuffix"); 
+		if ( sequenceMetaFile != NULL) 
+		{
+			imageDataInfo.OutputSequenceMetaFileSuffix.assign(sequenceMetaFile); 
+		}
+
+		this->CalibrationController->SetImageDataInfo(RANDOM_STEPPER_MOTION_2, imageDataInfo); 
+	}
+	else
+	{
+		LOG_DEBUG("Unable to find RandomStepperMotionData2 XML data element, default 100 is used"); 
+		vtkCalibrationController::ImageDataInfo imageDataInfo = this->CalibrationController->GetImageDataInfo(RANDOM_STEPPER_MOTION_2); 
+		imageDataInfo.NumberOfImagesToAcquire = 100; 
+    this->CalibrationController->SetImageDataInfo(RANDOM_STEPPER_MOTION_2, imageDataInfo); 
+	}
+
+	// US3DBeamwidth specifications
+	//********************************************************************
+	vtkSmartPointer<vtkXMLDataElement> us3DBeamProfile = probeCalibration->FindNestedElementWithName("US3DBeamProfile"); 
+	if ( us3DBeamProfile != NULL) 
+	{
+		// To incorporate the ultrasound beam profile (3D beam width)
+		int incorporatingUS3DBeamProfile = 0;
+		if ( us3DBeamProfile->GetScalarAttribute("IncorporatingUS3DBeamProfile", incorporatingUS3DBeamProfile) ) 
+		{
+			this->CalibrationController->SetIncorporatingUS3DBeamProfile(incorporatingUS3DBeamProfile); 
+		}
+
+		// The US-3D-beam-profile data file name and path (if choose to incorporate the beam profile)
+		const char* configFile = us3DBeamProfile->GetAttribute("ConfigFile"); 
+		if ( configFile != NULL) 
+		{
+			this->CalibrationController->SetUS3DBeamProfileDataFileNameAndPath(configFile); 
+		}
+
+		if( this->CalibrationController->GetIncorporatingUS3DBeamProfile() > 0 && this->CalibrationController->GetIncorporatingUS3DBeamProfile() < 4 )
+		{
+			this->LoadUS3DBeamProfileData();
+		}
+	}
+	else
+	{
+		LOG_WARNING("Unable to find US3DBeamProfile XML data element"); 
+	}
+
+  // CalibrationResult specifications
+	//********************************************************************
+
+  vtkSmartPointer<vtkXMLDataElement> calibrationResult = probeCalibration->FindNestedElementWithName("CalibrationResult"); 
+
+  if ( calibrationResult != NULL )
+  {
+    // Read calibration date
+    const char* calibrationDate = calibrationResult->GetAttribute("Date"); 
+    if ( calibrationDate != NULL )
+    {
+      this->CalibrationController->SetCalibrationDate(calibrationDate); 
+    }
+
+    //Image center of rotation in pixels
+    int centerOfRotationPx[2] = {0}; 
+    if ( calibrationResult->GetVectorAttribute("CenterOfRotationPx", 2, centerOfRotationPx) )
+    {
+      this->CalibrationController->SetCenterOfRotationPx(centerOfRotationPx); 
+    }
+
+    double phantomToProbeDistanceInMm[2] = {0}; 
+    if ( calibrationResult->GetVectorAttribute("PhantomToProbeDistanceInMm", 2, phantomToProbeDistanceInMm) )
+    {
+      this->CalibrationController->SetPhantomToProbeDistanceInMm(phantomToProbeDistanceInMm); 
+    }
+
+    // TransformUserImageHomeToProbeHome
+    double transformUserImageToProbe[16] = {0}; 
+    if ( calibrationResult->GetVectorAttribute("TransformUserImageToProbe", 16, transformUserImageToProbe) )
+    {
+      this->CalibrationController->GetTransformUserImageToProbe()->SetMatrix(transformUserImageToProbe); 
+    }
+
+    // TransformProbeHomeToTemplateHolderHome
+    double tReferenceToTemplateHolderHome[16] = {0}; 
+    if ( calibrationResult->GetVectorAttribute("TransformReferenceToTemplateHolderHome", 16, tReferenceToTemplateHolderHome) )
+    {
+      this->CalibrationController->GetTransformReferenceToTemplateHolderHome()->SetMatrix(tReferenceToTemplateHolderHome); 
+    }
+
+    // TransformTemplateHolderHomeToTemplateHome
+    double transformReferenceToTemplateHolderHome[16] = {0}; 
+    if ( calibrationResult->GetVectorAttribute("TransformReferenceToTemplateHolderHome", 16, transformReferenceToTemplateHolderHome) )
+    {
+      this->CalibrationController->GetTransformReferenceToTemplateHolderHome()->SetMatrix(transformReferenceToTemplateHolderHome); 
+    }
+
+    // TransformImageHomeToUserImageHome
+    double transformImageToUserImage[16] = {0}; 
+    if ( calibrationResult->GetVectorAttribute("TransformImageToUserImage", 16, transformImageToUserImage) )
+    {
+      this->CalibrationController->GetTransformImageToUserImage()->SetMatrix(transformImageToUserImage); 
+    }
+
+    // Update LRE values
+    this->CalibrationController->GetLineReconstructionErrors()->clear(); 
+    
+    // Add wire #1 LRE to map
+    double LRE_w1[7]={0}; 
+    if ( calibrationResult->GetVectorAttribute("LRE-W1", 7, LRE_w1) )
+    {
+      std::vector<double> vectorLRE_w1;
+      for ( int i = 0; i < 7; ++i )
+      {
+        vectorLRE_w1.push_back(LRE_w1[i]); 
+      }
+
+      (*this->CalibrationController->GetLineReconstructionErrors())[1] = vectorLRE_w1; 
+    }
+
+    
+    // Add wire #3 LRE to map
+    double LRE_w3[7]={0}; 
+    if ( calibrationResult->GetVectorAttribute("LRE-W3", 7, LRE_w3) )
+    {
+      std::vector<double> vectorLRE_w3;
+      for ( int i = 0; i < 7; ++i )
+      {
+        vectorLRE_w3.push_back(LRE_w3[i]); 
+      }
+
+      (*this->CalibrationController->GetLineReconstructionErrors())[3] = vectorLRE_w3; 
+    }
+
+    // Add wire #4 LRE to map
+    double LRE_w4[7]={0}; 
+    if ( calibrationResult->GetVectorAttribute("LRE-W4", 7, LRE_w4) )
+    {
+      std::vector<double> vectorLRE_w4;
+      for ( int i = 0; i < 7; ++i )
+      {
+        vectorLRE_w4.push_back(LRE_w4[i]); 
+      }
+
+      (*this->CalibrationController->GetLineReconstructionErrors())[4] = vectorLRE_w4; 
+    }
+
+    // Add wire #6 LRE to map
+    double LRE_w6[7]={0}; 
+    if ( calibrationResult->GetVectorAttribute("LRE-W6", 7, LRE_w6) )
+    {
+      std::vector<double> vectorLRE_w6;
+      for ( int i = 0; i < 7; ++i )
+      {
+        vectorLRE_w6.push_back(LRE_w6[i]); 
+      }
+
+      (*this->CalibrationController->GetLineReconstructionErrors())[6] = vectorLRE_w6; 
+    }
+
+    this->CalibrationController->CalibrationDoneOn(); 
+
+  }
+
+	// Custom transforms
+	//*********************************
+	vtkSmartPointer<vtkXMLDataElement> phantomDefinition = rootElement->FindNestedElementWithName("PhantomDefinition");
+	if (phantomDefinition == NULL)
+  {
+		LOG_ERROR("No phantom definition is found in the XML tree!");
+		return PLUS_FAIL;
+	}
+	vtkSmartPointer<vtkXMLDataElement> customTransforms = phantomDefinition->FindNestedElementWithName("CustomTransforms"); 
+	if (customTransforms == NULL) 
+  {
+		LOG_ERROR("Custom transforms are not found in phantom model");
+    return PLUS_FAIL;
+	}
+  
+  double templateHolderToPhantomTransformVector[16]={0}; 
+  if (customTransforms->GetVectorAttribute("TemplateHolderToPhantomTransform", 16, templateHolderToPhantomTransformVector)) 
+  {
+    vtkSmartPointer<vtkTransform> transformTemplateHolderToPhantom = vtkSmartPointer<vtkTransform>::New(); 
+    transformTemplateHolderToPhantom->SetMatrix(templateHolderToPhantomTransformVector); 
+    this->CalibrationController->SetTransformTemplateHolderToPhantom( transformTemplateHolderToPhantom  ); 
+  }
+  else
+	{
+		LOG_ERROR("Unable to read template origin from template holder from template model file!"); 
+	}
+
+  return PLUS_SUCCESS; 
+}
+
+//----------------------------------------------------------------------------
+void vtkProbeCalibrationControllerIO::PrintCalibrationResultsAndErrorReports ()
+{
+	LOG_TRACE("vtkProbeCalibrationControllerIO::PrintCalibrationResultsAndErrorReports"); 
+	try
+	{
+		LOG_INFO("---------------------------------------------------------------");
+		LOG_INFO("Calibration result in 4x4 homogeneous transform matrix = ");
+		for ( int i = 0; i < 4; i++ )
+		{
+			std::ostringstream matrixRow; 
+			for ( int j = 0; j < 4; j++ )
+			{
+				matrixRow << this->CalibrationController->GetTransformUserImageToProbe()->GetMatrix()->GetElement(i,j) << "  " ;
+			}
+			LOG_INFO(matrixRow.str()); 
+		}
+
+		// Point-Line Distance Error Analysis for Validation Positions in US probe frame
+		LOG_INFO("---------------------------------------------------------------");
+		LOG_INFO("Point-Line Distance Error (PLDE) Analysis in mm =");
+		LOG_INFO("[ vector 0 - 2:  PLDE_mean, PLDE_rms, PLDE_std ]");
+		LOG_INFO("[ vector 3    :  Validation data confidence level ]");
+		LOG_INFO(this->CalibrationController->GetPointLineDistanceErrorAnalysisVector()[0] * 1000 << ", " << this->CalibrationController->GetPointLineDistanceErrorAnalysisVector()[1] * 1000 << ", " << this->CalibrationController->GetPointLineDistanceErrorAnalysisVector()[2] * 1000); 
+		LOG_INFO(this->CalibrationController->GetPointLineDistanceErrorAnalysisVector()[3]);
+
+	}
+	catch(...)
+	{
+		LOG_ERROR("PrintCalibrationResultsAndErrorReports: Failed to retrieve the calibration results!"); 
+		throw;
+	}
+}
 
 //----------------------------------------------------------------------------
 void vtkProbeCalibrationControllerIO::SaveSegmentationResultToImage( int imgIndex, const ImageType::Pointer& frame )
 {
-	// ==============================================
 	// Output the segmentation results on the images
-	// ==============================================
 
 	typedef itk::ImageDuplicator<ImageType> DuplicatorType; 
 	DuplicatorType::Pointer duplicator = DuplicatorType::New(); 
@@ -81,23 +458,9 @@ void vtkProbeCalibrationControllerIO::SaveSegmentationResultToImage( int imgInde
 	writer->Update();
 }
 
-
-//----------------------------------------------------------------------------
-void vtkProbeCalibrationControllerIO::PrintSelf(std::ostream &os, vtkIndent indent)
-{
-	this->Superclass::PrintSelf(os,indent);
-}
-
-
-//----------------------------------------------------------------------------
-void vtkProbeCalibrationControllerIO::Initialize(vtkCalibrationController* calibrationController)
-{
-	this->CalibrationController = calibrationController; 
-}
-
 //----------------------------------------------------------------------------
 void vtkProbeCalibrationControllerIO::SaveSegmentedWirePositionsToFile()
-{	
+{
 	std::ostringstream posInfoHeader; 
 	posInfoHeader << "DataType\tStepperPosition\tStepperRotation\tWire1xInImage\tWire1yInImage\tWire2xInImage\tWire2yInImage\tWire3xInImage\tWire3yInImage\tWire4xInImage\tWire4yInImage\tWire5xInImage\tWire5yInImage\tWire6xInImage\tWire6yInImage\t" 
 		<< "ExpectedWire1xInImage\tExpectedWire1yInImage\tExpectedWire2xInImage\tExpectedWire2yInImage\tExpectedWire3xInImage\tExpectedWire3yInImage\tExpectedWire4xInImage\tExpectedWire4yInImage\tExpectedWire5xInImage\tExpectedWire5yInImage\tExpectedWire6xInImage\tExpectedWire6yInImage\t" 
@@ -347,17 +710,6 @@ void vtkProbeCalibrationControllerIO::SaveCalibrationResultsAndErrorReportsToXML
 	vtkstd::string commentUltrasoundImageDimensions("# UltrasoundImageDimensions format: image width and height in pixels."); 
 	tagUltrasoundImageDimensions->AddCharacterData(commentUltrasoundImageDimensions.c_str(), commentUltrasoundImageDimensions.size()); 
 	// </UltrasoundImageDimensions>
-
-	//***********************************************************************************************
-	// <UltrasoundImageOrigin>
-	// # FORMAT: X to the right; Y to the bottom; w.r.t the left-upper corner in original image.
-	//vtkSmartPointer<vtkXMLDataElement> tagUltrasoundImageOrigin = vtkSmartPointer<vtkXMLDataElement>::New(); 
-	//tagUltrasoundImageOrigin->SetName("UltrasoundImageOrigin"); 
-	//tagUltrasoundImageOrigin->SetIntAttribute("OriginX", this->CalibrationController->GetUSImageFrameOriginXInPixels()); 
-	//tagUltrasoundImageOrigin->SetIntAttribute("OriginY", this->CalibrationController->GetUSImageFrameOriginYInPixels()); 
-	//vtkstd::string commentUltrasoundImageOrigin("# UltrasoundImageOrigin format: X to the right; Y to the bottom; w.r.t the left-upper corner in original image."); 
-	//tagUltrasoundImageOrigin->AddCharacterData(commentUltrasoundImageOrigin.c_str(), commentUltrasoundImageOrigin.size()); 
-	// </UltrasoundImageOrigin>
 
 	//***********************************************************************************************
 
@@ -777,7 +1129,6 @@ void vtkProbeCalibrationControllerIO::SaveCalibrationResultsAndErrorReportsToXML
 	// </USTemplateCalibrationResult>
 
 	xmlCalibrationResults->PrintXML(this->CalibrationController->GetCalibrationResultFileNameWithPath()); 
-
 }
 
 //----------------------------------------------------------------------------
@@ -935,7 +1286,6 @@ void vtkProbeCalibrationControllerIO::ReadUs3DBeamwidthDataFromFile()
 	}
 }
 
-
 //----------------------------------------------------------------------------
 void vtkProbeCalibrationControllerIO::LoadUS3DBeamProfileData()
 {
@@ -1091,345 +1441,6 @@ void vtkProbeCalibrationControllerIO::LoadUS3DBeamProfileData()
 		LOG_ERROR("Failed to read the US 3D Beam Profile Data from File!"); 
 		throw;
 	}
-}
-
-//----------------------------------------------------------------------------
-PlusStatus vtkProbeCalibrationControllerIO::ReadProbeCalibrationConfiguration(vtkXMLDataElement* rootElement)
-{
-	if (rootElement == NULL) 
-	{	
-		LOG_WARNING("Unable to read ProbeCalibration XML data element!"); 
-		return PLUS_FAIL; 
-	}
-
-	vtkSmartPointer<vtkXMLDataElement> usCalibration = rootElement->FindNestedElementWithName("USCalibration");
-	if (usCalibration == NULL)
-  {
-    LOG_ERROR("Cannot find USCalibration element in XML tree!");
-    return PLUS_FAIL;
-	}
-
-	vtkSmartPointer<vtkXMLDataElement> calibrationController = usCalibration->FindNestedElementWithName("CalibrationController"); 
-	if (calibrationController == NULL)
-  {
-    LOG_ERROR("Unable to find calibration controller tag in configuration file!"); 
-    return PLUS_FAIL; 
-  }
-
-	vtkSmartPointer<vtkXMLDataElement> probeCalibration = calibrationController->FindNestedElementWithName("ProbeCalibration"); 
-	if (probeCalibration == NULL)
-  {
-    LOG_ERROR("Unable to find probe calibration tag in configuration file!"); 
-    return PLUS_FAIL; 
-  }
-
-	// To enable/disable the saving of segmented wire positions to file 
-	const char* enableSegmentedWirePositionsSaving = probeCalibration->GetAttribute("EnableSegmentedWirePositionsSaving"); 
-	if ( enableSegmentedWirePositionsSaving != NULL &&  STRCASECMP( "TRUE", enableSegmentedWirePositionsSaving ) == 0 ) 
-	{
-		this->CalibrationController->EnableSegmentedWirePositionsSavingOn(); 
-	}
-	else
-	{
-		this->CalibrationController->EnableSegmentedWirePositionsSavingOff(); 
-	}
-
-	//Transform: from image home position to user defined image home position
-  double imageToUserImageTransform[16] = {0}; 
-	if ( probeCalibration->GetVectorAttribute("TransformImageToUserImage", 16, imageToUserImageTransform) )
-	{
-		this->CalibrationController->GetTransformImageToUserImage()->SetMatrix(imageToUserImageTransform); 
-		//this->CalibrationController->GetTransformUserImageToImage()->SetMatrix(imageHomeToUserImageHomeTransform); 
-		//this->CalibrationController->GetTransformUserImageToImage()->Inverse(); 
-	}
-
-  // Sets the suffix of the data files
-	const char* dataFileSuffix = probeCalibration->GetAttribute("DataFileSuffix"); 
-	if ( dataFileSuffix != NULL) 
-	{
-		this->CalibrationController->SetDataFileSuffix(dataFileSuffix); 
-	}
-	else 
-	{
-		this->CalibrationController->SetDataFileSuffix(".data"); 
-	}
-
-	// Sets the suffix of the calibration result file
-	const char* calibrationResultFileSuffix = probeCalibration->GetAttribute("CalibrationResultFileSuffix"); 
-	if ( calibrationResultFileSuffix != NULL) 
-	{
-		this->CalibrationController->SetCalibrationResultFileSuffix(calibrationResultFileSuffix); 
-	}
-	else 
-	{
-		this->CalibrationController->SetCalibrationResultFileSuffix(".Calibration.results"); 
-	}
-
-	// Sets the suffix of the segmentation error log file
-	const char* segmentationErrorLogFileNameSuffix = probeCalibration->GetAttribute("SegmentationErrorLogFileNameSuffix"); 
-	if ( segmentationErrorLogFileNameSuffix != NULL) 
-	{
-		this->CalibrationController->SetSegmentationErrorLogFileNameSuffix(segmentationErrorLogFileNameSuffix); 
-	}
-	else 
-	{
-		this->CalibrationController->SetSegmentationErrorLogFileNameSuffix(".Segmentation.errors"); 
-	}
-
-	// Sets the suffix of the segmentation analysis file
-	const char* segmentationAnalysisFileNameSuffix = probeCalibration->GetAttribute("SegmentationAnalysisFileNameSuffix"); 
-	if ( segmentationAnalysisFileNameSuffix != NULL) 
-	{
-		this->CalibrationController->SetSegmentationAnalysisFileNameSuffix(segmentationAnalysisFileNameSuffix); 
-	}
-	else 
-	{
-		this->CalibrationController->SetSegmentationAnalysisFileNameSuffix(".Segmentation.analysis"); 
-	}
-
-	// Sets the suffix of the Template2StepperCalibration analysis file
-	const char* temp2StepCalibAnalysisFileNameSuffix = probeCalibration->GetAttribute("Temp2StepCalibAnalysisFileNameSuffix"); 
-	if ( temp2StepCalibAnalysisFileNameSuffix != NULL) 
-	{
-		this->CalibrationController->SetTemp2StepCalibAnalysisFileNameSuffix(temp2StepCalibAnalysisFileNameSuffix); 
-	}
-	else 
-	{
-		this->CalibrationController->SetTemp2StepCalibAnalysisFileNameSuffix(".Template2StepperCalibration.analysis"); 
-	}
-
-  // RandomStepperMotionData1 data set specifications
-	//********************************************************************
-	vtkSmartPointer<vtkXMLDataElement> randomStepperMotionData1 = probeCalibration->FindNestedElementWithName("RandomStepperMotionData1"); 
-	if ( randomStepperMotionData1 != NULL) 
-	{
-		vtkCalibrationController::ImageDataInfo imageDataInfo = this->CalibrationController->GetImageDataInfo(RANDOM_STEPPER_MOTION_1); 
-		int numberOfImagesToUse = -1;
-		if ( randomStepperMotionData1->GetScalarAttribute("NumberOfImagesToAcquire", numberOfImagesToUse) ) 
-		{
-			imageDataInfo.NumberOfImagesToAcquire = numberOfImagesToUse; 
-		}
-
-		const char* sequenceMetaFile = randomStepperMotionData1->GetAttribute("OutputSequenceMetaFileSuffix"); 
-		if ( sequenceMetaFile != NULL) 
-		{
-			imageDataInfo.OutputSequenceMetaFileSuffix.assign(sequenceMetaFile); 
-		}
-
-		this->CalibrationController->SetImageDataInfo(RANDOM_STEPPER_MOTION_1, imageDataInfo); 
-	}
-	else
-	{
-		LOG_DEBUG("Unable to find RandomStepperMotionData1 XML data element, default 200 is used"); 
-		vtkCalibrationController::ImageDataInfo imageDataInfo = this->CalibrationController->GetImageDataInfo(RANDOM_STEPPER_MOTION_1); 
-		imageDataInfo.NumberOfImagesToAcquire = 200;
-    this->CalibrationController->SetImageDataInfo(RANDOM_STEPPER_MOTION_1, imageDataInfo); 
-	}
-
-	// RandomStepperMotionData2 data set specifications
-	//********************************************************************
-	vtkSmartPointer<vtkXMLDataElement> randomStepperMotionData2 = probeCalibration->FindNestedElementWithName("RandomStepperMotionData2"); 
-	if ( randomStepperMotionData2 != NULL) 
-	{
-		vtkCalibrationController::ImageDataInfo imageDataInfo = this->CalibrationController->GetImageDataInfo(RANDOM_STEPPER_MOTION_2); 
-		int numberOfImagesToUse = -1;
-		if ( randomStepperMotionData2->GetScalarAttribute("NumberOfImagesToAcquire", numberOfImagesToUse) ) 
-		{
-			imageDataInfo.NumberOfImagesToAcquire = numberOfImagesToUse; 
-		}
-
-		const char* sequenceMetaFile = randomStepperMotionData2->GetAttribute("OutputSequenceMetaFileSuffix"); 
-		if ( sequenceMetaFile != NULL) 
-		{
-			imageDataInfo.OutputSequenceMetaFileSuffix.assign(sequenceMetaFile); 
-		}
-
-		this->CalibrationController->SetImageDataInfo(RANDOM_STEPPER_MOTION_2, imageDataInfo); 
-	}
-	else
-	{
-		LOG_DEBUG("Unable to find RandomStepperMotionData2 XML data element, default 100 is used"); 
-		vtkCalibrationController::ImageDataInfo imageDataInfo = this->CalibrationController->GetImageDataInfo(RANDOM_STEPPER_MOTION_2); 
-		imageDataInfo.NumberOfImagesToAcquire = 100; 
-    this->CalibrationController->SetImageDataInfo(RANDOM_STEPPER_MOTION_2, imageDataInfo); 
-	}
-
-	// US3DBeamwidth specifications
-	//********************************************************************
-	vtkSmartPointer<vtkXMLDataElement> us3DBeamProfile = probeCalibration->FindNestedElementWithName("US3DBeamProfile"); 
-	if ( us3DBeamProfile != NULL) 
-	{
-		// To incorporate the ultrasound beam profile (3D beam width)
-		int incorporatingUS3DBeamProfile = 0;
-		if ( us3DBeamProfile->GetScalarAttribute("IncorporatingUS3DBeamProfile", incorporatingUS3DBeamProfile) ) 
-		{
-			this->CalibrationController->SetIncorporatingUS3DBeamProfile(incorporatingUS3DBeamProfile); 
-		}
-
-		// The US-3D-beam-profile data file name and path (if choose to incorporate the beam profile)
-		const char* configFile = us3DBeamProfile->GetAttribute("ConfigFile"); 
-		if ( configFile != NULL) 
-		{
-			this->CalibrationController->SetUS3DBeamProfileDataFileNameAndPath(configFile); 
-		}
-
-		if( this->CalibrationController->GetIncorporatingUS3DBeamProfile() > 0 && this->CalibrationController->GetIncorporatingUS3DBeamProfile() < 4 )
-		{
-			this->LoadUS3DBeamProfileData();
-		}
-	}
-	else
-	{
-		LOG_WARNING("Unable to find US3DBeamProfile XML data element"); 
-	}
-
-  // CalibrationResult specifications
-	//********************************************************************
-
-  vtkSmartPointer<vtkXMLDataElement> calibrationResult = probeCalibration->FindNestedElementWithName("CalibrationResult"); 
-
-  if ( calibrationResult != NULL )
-  {
-    // Read calibration date
-    const char* calibrationDate = calibrationResult->GetAttribute("Date"); 
-    if ( calibrationDate != NULL )
-    {
-      this->CalibrationController->SetCalibrationDate(calibrationDate); 
-    }
-
-    //Image center of rotation in pixels
-    int centerOfRotationPx[2] = {0}; 
-    if ( calibrationResult->GetVectorAttribute("CenterOfRotationPx", 2, centerOfRotationPx) )
-    {
-      this->CalibrationController->SetCenterOfRotationPx(centerOfRotationPx); 
-    }
-
-    double phantomToProbeDistanceInMm[2] = {0}; 
-    if ( calibrationResult->GetVectorAttribute("PhantomToProbeDistanceInMm", 2, phantomToProbeDistanceInMm) )
-    {
-      this->CalibrationController->SetPhantomToProbeDistanceInMm(phantomToProbeDistanceInMm); 
-    }
-
-    // TransformImageToTemplate - we don't want to read it from file, it will be concatenated with the other transforms: 
-    // TransformImageToTemplate = TransformTemplateHolderHomeToTemplateHome * TransformProbeHomeToTemplateHolderHome * 
-    // * TransformProbeHomeToProbe * TransformUserImageHomeToProbeHome * TransformImageHomeToUserImageHome
-
-    // TransformUserImageHomeToProbeHome
-    double transformUserImageToProbe[16] = {0}; 
-    if ( calibrationResult->GetVectorAttribute("TransformUserImageToProbe", 16, transformUserImageToProbe) )
-    {
-      this->CalibrationController->GetTransformUserImageToProbe()->SetMatrix(transformUserImageToProbe); 
-    }
-
-    // TransformProbeHomeToTemplateHolderHome
-    double tReferenceToTemplateHolderHome[16] = {0}; 
-    if ( calibrationResult->GetVectorAttribute("TransformReferenceToTemplateHolderHome", 16, tReferenceToTemplateHolderHome) )
-    {
-      this->CalibrationController->GetTransformReferenceToTemplateHolderHome()->SetMatrix(tReferenceToTemplateHolderHome); 
-    }
-
-    // TransformTemplateHolderHomeToTemplateHome
-    double transformReferenceToTemplateHolderHome[16] = {0}; 
-    if ( calibrationResult->GetVectorAttribute("TransformReferenceToTemplateHolderHome", 16, transformReferenceToTemplateHolderHome) )
-    {
-      this->CalibrationController->GetTransformReferenceToTemplateHolderHome()->SetMatrix(transformReferenceToTemplateHolderHome); 
-    }
-
-    // TransformImageHomeToUserImageHome
-    double transformImageToUserImage[16] = {0}; 
-    if ( calibrationResult->GetVectorAttribute("TransformImageToUserImage", 16, transformImageToUserImage) )
-    {
-      this->CalibrationController->GetTransformImageToUserImage()->SetMatrix(transformImageToUserImage); 
-    }
-
-    // Update LRE values
-    this->CalibrationController->GetLineReconstructionErrors()->clear(); 
-    
-    // Add wire #1 LRE to map
-    double LRE_w1[7]={0}; 
-    if ( calibrationResult->GetVectorAttribute("LRE-W1", 7, LRE_w1) )
-    {
-      std::vector<double> vectorLRE_w1;
-      for ( int i = 0; i < 7; ++i )
-      {
-        vectorLRE_w1.push_back(LRE_w1[i]); 
-      }
-
-      (*this->CalibrationController->GetLineReconstructionErrors())[1] = vectorLRE_w1; 
-    }
-
-    
-    // Add wire #3 LRE to map
-    double LRE_w3[7]={0}; 
-    if ( calibrationResult->GetVectorAttribute("LRE-W3", 7, LRE_w3) )
-    {
-      std::vector<double> vectorLRE_w3;
-      for ( int i = 0; i < 7; ++i )
-      {
-        vectorLRE_w3.push_back(LRE_w3[i]); 
-      }
-
-      (*this->CalibrationController->GetLineReconstructionErrors())[3] = vectorLRE_w3; 
-    }
-
-    // Add wire #4 LRE to map
-    double LRE_w4[7]={0}; 
-    if ( calibrationResult->GetVectorAttribute("LRE-W4", 7, LRE_w4) )
-    {
-      std::vector<double> vectorLRE_w4;
-      for ( int i = 0; i < 7; ++i )
-      {
-        vectorLRE_w4.push_back(LRE_w4[i]); 
-      }
-
-      (*this->CalibrationController->GetLineReconstructionErrors())[4] = vectorLRE_w4; 
-    }
-
-    // Add wire #6 LRE to map
-    double LRE_w6[7]={0}; 
-    if ( calibrationResult->GetVectorAttribute("LRE-W6", 7, LRE_w6) )
-    {
-      std::vector<double> vectorLRE_w6;
-      for ( int i = 0; i < 7; ++i )
-      {
-        vectorLRE_w6.push_back(LRE_w6[i]); 
-      }
-
-      (*this->CalibrationController->GetLineReconstructionErrors())[6] = vectorLRE_w6; 
-    }
-
-    this->CalibrationController->CalibrationDoneOn(); 
-
-  }
-
-	// Custom transforms
-	//*********************************
-	vtkSmartPointer<vtkXMLDataElement> phantomDefinition = rootElement->FindNestedElementWithName("PhantomDefinition");
-	if (phantomDefinition == NULL)
-  {
-		LOG_ERROR("No phantom definition is found in the XML tree!");
-		return PLUS_FAIL;
-	}
-	vtkSmartPointer<vtkXMLDataElement> customTransforms = phantomDefinition->FindNestedElementWithName("CustomTransforms"); 
-	if (customTransforms == NULL) 
-  {
-		LOG_ERROR("Custom transforms are not found in phantom model");
-    return PLUS_FAIL;
-	}
-  
-  double templateHolderToPhantomTransformVector[16]={0}; 
-  if (customTransforms->GetVectorAttribute("TemplateHolderToPhantomTransform", 16, templateHolderToPhantomTransformVector)) 
-  {
-    vtkSmartPointer<vtkTransform> transformTemplateHolderToPhantom = vtkSmartPointer<vtkTransform>::New(); 
-    transformTemplateHolderToPhantom->SetMatrix(templateHolderToPhantomTransformVector); 
-    this->CalibrationController->SetTransformTemplateHolderToPhantom( transformTemplateHolderToPhantom  ); 
-  }
-  else
-	{
-		LOG_ERROR("Unable to read template origin from template holder from template model file!"); 
-	}
-
-  return PLUS_SUCCESS; 
 }
 
 //----------------------------------------------------------------------------

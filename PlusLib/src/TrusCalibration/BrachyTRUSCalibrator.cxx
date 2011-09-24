@@ -162,7 +162,9 @@ void BrachyTRUSCalibrator::addDataPositionsPerImage(
 		throw;
 	}
 
-	if( mIsPhantomGeometryLoaded != true )
+  // TODO check TransformImageToUserImage (named mTransformOrigImageFrame2TRUSImageFrameMatrix4x4 in Phantom)
+
+  if( mIsPhantomGeometryLoaded != true )
 	{
 		std::cerr << __FILE__ << "," << __LINE__
 			<< ">>>>>>>> In " << mstrScope << "::The phantom geometry has not been loaded!!!  Throw up ...\n";
@@ -191,19 +193,6 @@ void BrachyTRUSCalibrator::addDataPositionsPerImage(
 
 		// Calculate then store the data positions 
 		// ========================================
-		// For BrachyTRUSCalibrator, row/col indices are of no interest
-		// to us any more, because we only see two layers of N-wires with one
-		// N-shape on each layer.  Therefore in each image only two phantom 
-		// geometry indices are collected and the program knows their indices
-		// in the pre-generated geometry.  This is a good start for automating 
-		// the process since we are able to calculate alpha on-the-fly now
-		// without requiring to specify the phantom indices one by one.
-		//
-		// IMPORTANT:
-		// Indices defined in the input std::vector array.
-		// This is the order that the segmentation algorithm gives the 
-		// segmented positions in each image
-		//
 		// [ Array 0-2: Top N-wire Layer (Right-Middle-Left)]; 
 		// [ Array 3-5: Bottom N-wire Layer (Right-Middle-Left)]
 		// Each acquired data position is a 4x1 homogenous vector :
@@ -222,41 +211,7 @@ void BrachyTRUSCalibrator::addDataPositionsPerImage(
 				mTransformOrigImageFrame2TRUSImageFrameMatrix4x4 * 
 				SegmentedPositionInOriginalImageFrame;
 			
-			// Add weights to the positions if required
-			// 1. 3D beam width samples are measured at various axial depth/distance away 
-			//    from the transducer crystals surface, i.e., the starting position of 
-			//    the sound propagation in an ultrasound image.
-			// 2. We have three ways to incorporate the US beamidth to the calibration: Use the 
-			//    variance of beamwidth (BWVar) to weight the calibration, use the beamwidth ratio
-			//    (BWRatio) to weight the calibration, or use the beamwidth to threshold the input
-			//    data (BWTHEVar) in order to eliminate potentially unreliable or error-prone data.
-			//    This is determined by the choice of the input flag (Option-1, 2, or 3).
-			//    [1] BWVar: This conforms to the standard way of applying weights to least squares, 
-			//        where the weights should, ideally, be equal to the reciprocal of the variance of 
-			//        the measurement of the data if they are uncorrelated.  Since we know the US beam
-			//        width at a given axial depth, resonably assuming the data acquired by the sound 
-			//        field is normally distributed, the standard deviation (Sigma) of the data can be
-			//        roughly estimated as in the equation: Sigma = USBeamWidth/4 (for 95% of data).
-			//	  [2] BWRatio: The fifth row of the matrix is the overall weight defined at that axial 
-			//        depth. The weight factor was calculated using: CurrentBeamwidth/MinimumBeamwidth.
-			//        The weight is inversely proportional to the weight factor, as obviously, the larger 
-			//        the beamwidth, the less reliable the data is than those with the minimum beamwidth.  
-			//        We found the weight factor to be a good indicator for how reliable the data is, 
-			//        because the larger the beamwidth the larger the uncertainties and errors in data 
-			//        acquired from that US field.  E.g., at the axial depth where the beamwidth is two 
-			//        times that of minimum beamwidth, the uncertainties are doubled than the imaging 
-			//        region that has the minimum beamwidth.
-			//	  [3] BWTHEVar: This utilizes the beamwidth to quality control the input calibration 
-			//        data, by filtering out those that has a larger beamwidth (e.g., larger than twice
-			//        of the minimum beamwidth at the current imaging settings).  According to ultrasound
-			//        physics, data acquired in the sound field that doubles the minimum beamwidth at
-			//        the scanplane or elevation plane focal zone are typically much less reliable than
-			//        those closer to the focal zone.  In addition, the filtered, remainng data would be
-			//        weighted for calibration using their beamwidth (BWVar in [1]).
-			// FORMAT: each column in the matrix has the following rows:
-			// [0]:		Sorted in ascending axial depth in US Image Frame (in pixels);
-			// [1-3]:	Beamwith in axial, lateral and elevational axes respectively (in mm);
-			// [4]:		Weight Factor = CurrentBeamWidth/MininumBeamWidth (>=1).
+			// Add weights to the positions if required (see mUS3DBeamwidthAndWeightFactorsInUSImageFrameTable5xM member description)
 			if( true == mIsUSBeamwidthAndWeightFactorsTableReady )
 			{
 				// Get the axial depth in the US Image Frame for the segmented data point
@@ -283,13 +238,6 @@ void BrachyTRUSCalibrator::addDataPositionsPerImage(
 					if( 1 == mMethodToIncorporateBeamWidth || 3 == mMethodToIncorporateBeamWidth )
 					{	
 						// Filtering is not necessary in the near field
-						//if( 3 == mMethodToIncorporateBeamWidth && 
-						//	USBeamWidthEuclideanMagAtThisAxialDepthInMM >=
-                        //    (mMinimumUSElevationBeamwidthAndFocalZoneInUSImageFrame.get(1)*mNUMOFTIMESOFMINBEAMWIDTH) )
-						//{
-							// Option: BWTHEVar
-						//	continue;  // Ignore this data, jump to the next iteration of for-loop
-						//}
 
 						// Option: BWVar or BWTHEVar
 						// NOTE: The units of the standard deviation of beamwidth
@@ -407,14 +355,7 @@ void BrachyTRUSCalibrator::addDataPositionsPerImage(
 			// Apply alpha to Equation: Xi = Ai + alpha * (Bi - Ai)
 			// where:
 			// - Ai and Bi are the N-wire joints in either front or back walls.
-			//
-			// IMPORTANT:
-			// - This is a very crucial point that would easily cause confusions
-			//   or mistakes.  There is one and only one fixed correspondence between 
-			//   the 6 segmented image positions (N-fiducials) and the wires.
-			// - Closely examine the wiring design and set Ai and Bi accordingly.
-
-			vnl_vector<double> PositionInTemplateFrame(4);
+			vnl_vector<double> PositionInPhantomFrame(4);
 			vnl_vector<double> IntersectPosW12(4);
 			vnl_vector<double> IntersectPosW32(4);
 
@@ -430,8 +371,8 @@ void BrachyTRUSCalibrator::addDataPositionsPerImage(
 			IntersectPosW12[3] = 1.0;
 			IntersectPosW32[3] = 1.0;
 
-			PositionInTemplateFrame = IntersectPosW12 + alpha * ( IntersectPosW32 - IntersectPosW12 );
-      PositionInTemplateFrame[3]=1.0;
+			PositionInPhantomFrame = IntersectPosW12 + alpha * ( IntersectPosW32 - IntersectPosW12 );
+      PositionInPhantomFrame[3]=1.0;
 
 			// Finally, calculate the position in the US probe frame
 			// X_USProbe = T_Stepper->USProbe * T_Template->Stepper * X_Template
@@ -439,7 +380,7 @@ void BrachyTRUSCalibrator::addDataPositionsPerImage(
 			vnl_vector<double> PositionInUSProbeFrame =  
 				TransformMatrixStepper2USProbe4x4 * 
 				mTransformMatrixPhantom2DRB4x4 *
-				PositionInTemplateFrame;
+				PositionInPhantomFrame;
 
 			LOG_DEBUG(" ADD DATA FOR CALIBRATION ("<<frameIndex<<")");
 			LOG_DEBUG(" SegmentedNFiducial-" << Layer*3 << " = " << SegmentedDataPositionListPerImage.at( Layer*3 ));
@@ -448,7 +389,7 @@ void BrachyTRUSCalibrator::addDataPositionsPerImage(
 			LOG_DEBUG(" SegmentedPositionInOriginalImageFrame = " << SegmentedPositionInOriginalImageFrame);
 			LOG_DEBUG(" SegmentedPositionInUSImageFrame = " << SegmentedPositionInUSImageFrame);
 			LOG_DEBUG(" alpha = " << alpha);
-			LOG_DEBUG(" PositionInTemplateFrame = " << PositionInTemplateFrame);
+			LOG_DEBUG(" PositionInPhantomFrame = " << PositionInPhantomFrame);
 			LOG_DEBUG(" TransformMatrixStepper2USProbe4x4 = \n" << TransformMatrixStepper2USProbe4x4);
       LOG_DEBUG(" mTransformMatrixPhantom2DRB4x4 = \n" << mTransformMatrixPhantom2DRB4x4);
       LOG_DEBUG(" PositionInUSProbeFrame = " << PositionInUSProbeFrame);
@@ -457,7 +398,7 @@ void BrachyTRUSCalibrator::addDataPositionsPerImage(
 			mDataPositionsInUSImageFrame.push_back( SegmentedPositionInUSImageFrame );
 
 			// Store into the list of positions in the Phantom frame
-			mDataPositionsInPhantomFrame.push_back( PositionInTemplateFrame );
+			mDataPositionsInPhantomFrame.push_back( PositionInPhantomFrame );
 
 			// Store into the list of positions in the US probe frame
 			mDataPositionsInUSProbeFrame.push_back( PositionInUSProbeFrame );
@@ -498,6 +439,8 @@ void BrachyTRUSCalibrator::addValidationPositionsPerImage(
 		throw;
 	}
 
+  // TODO check TransformImageToUserImage (named mTransformOrigImageFrame2TRUSImageFrameMatrix4x4 in Phantom)
+
 	if( mIsPhantomGeometryLoaded != true )
 	{
 		std::cerr << __FILE__ << "," << __LINE__
@@ -527,19 +470,6 @@ void BrachyTRUSCalibrator::addValidationPositionsPerImage(
 
 		// Calculate then store the data positions 
 		// ========================================
-		// For BrachyTRUSCalibrator, row/col indices are of no interest
-		// to us any more, because we only see two layers of N-wires with one
-		// N-shape on each layer.  Therefore in each image only two phantom 
-		// geometry indices are collected and the program knows their indices
-		// in the pre-generated geometry.  This is a good start for automating 
-		// the process since we are able to calculate alpha on-the-fly now
-		// without requiring to specify the phantom indices one by one.
-		//
-		// IMPORTANT:
-		// Indices defined in the input std::vector array.
-		// This is the order that the segmentation algorithm gives the 
-		// segmented positions in each image
-		//
 		// [ Array 0-2: Top N-wire Layer (Right-Middle-Left)]; 
 		// [ Array 3-5: Bottom N-wire Layer (Right-Middle-Left)]
 		// Each acquired data position is a 4x1 homogenous vector :
@@ -578,7 +508,7 @@ void BrachyTRUSCalibrator::addValidationPositionsPerImage(
 		{
 			// The protocol is that the middle point collected in 
 			// the set of three points of the N-wire is the data point.
-            vnl_vector<double> SegmentedPositionInOriginalImageFrame( 
+      vnl_vector<double> SegmentedPositionInOriginalImageFrame( 
 				SegmentedDataPositionListPerImage.at( Layer*3 + 1 ) );
 
 			// Convert the segmented image positions from the original 
@@ -672,14 +602,7 @@ void BrachyTRUSCalibrator::addValidationPositionsPerImage(
 			// Apply alpha to Equation: Xi = Ai + alpha * (Bi - Ai)
 			// where:
 			// - Ai and Bi are the N-wire joints in either front or back walls.
-			//
-			// IMPORTANT:
-			// - This is a very crucial point that would easily cause confusions
-			//   or mistakes.  There is one and only one fixed correspondence between 
-			//   the 6 segmented image positions (N-fiducials) and the wires.
-			// - Closely examine the wiring design and set Ai and Bi accordingly.
-
-			vnl_vector<double> PositionInTemplateFrame(4);
+			vnl_vector<double> PositionInPhantomFrame(4);
 			vnl_vector<double> IntersectPosW12(4);
 			vnl_vector<double> IntersectPosW32(4);
 
@@ -695,8 +618,8 @@ void BrachyTRUSCalibrator::addValidationPositionsPerImage(
 			IntersectPosW12[3] = 1.0;
 			IntersectPosW32[3] = 1.0;
 
-			PositionInTemplateFrame = IntersectPosW12 + alpha * ( IntersectPosW32 - IntersectPosW12 );
-      PositionInTemplateFrame[3]=1.0;
+			PositionInPhantomFrame = IntersectPosW12 + alpha * ( IntersectPosW32 - IntersectPosW12 );
+      PositionInPhantomFrame[3]=1.0;
 
 			// Finally, calculate the position in the US probe frame
 			// X_USProbe = T_Stepper->USProbe * T_Template->Stepper * X_Template
@@ -704,7 +627,7 @@ void BrachyTRUSCalibrator::addValidationPositionsPerImage(
 			vnl_vector<double> PositionInUSProbeFrame =  
 				TransformMatrixStepper2USProbe4x4 * 
 				mTransformMatrixPhantom2DRB4x4 *
-				PositionInTemplateFrame;
+				PositionInPhantomFrame;
 
       LOG_DEBUG(" ADD DATA FOR VALIDATION ("<<frameIndex<<")");
 			LOG_DEBUG(" SegmentedNFiducial-" << Layer*3 << " = " << SegmentedDataPositionListPerImage.at( Layer*3 )); 
@@ -713,7 +636,7 @@ void BrachyTRUSCalibrator::addValidationPositionsPerImage(
 			LOG_DEBUG(" SegmentedPositionInOriginalImageFrame = " << SegmentedPositionInOriginalImageFrame);
 			LOG_DEBUG(" SegmentedPositionInUSImageFrame = " << SegmentedPositionInUSImageFrame);
 			LOG_DEBUG(" alpha = " << alpha);
-			LOG_DEBUG(" PositionInTemplateFrame = " << PositionInTemplateFrame);
+			LOG_DEBUG(" PositionInPhantomFrame = " << PositionInPhantomFrame);
 			LOG_DEBUG(" TransformMatrixStepper2USProbe4x4 = \n" << TransformMatrixStepper2USProbe4x4);
       LOG_DEBUG(" mTransformMatrixPhantom2DRB4x4 = \n" << mTransformMatrixPhantom2DRB4x4);
       LOG_DEBUG(" PositionInUSProbeFrame = " << PositionInUSProbeFrame);
@@ -775,7 +698,7 @@ void BrachyTRUSCalibrator::addValidationPositionsPerImage(
       }
 
 			// Store into the list of positions in the Phantom frame
-			mValidationPositionsInPhantomFrame.push_back( PositionInTemplateFrame );
+			mValidationPositionsInPhantomFrame.push_back( PositionInPhantomFrame );
 		}
 
 		// The flag will be set when there is at least one set of validation positions

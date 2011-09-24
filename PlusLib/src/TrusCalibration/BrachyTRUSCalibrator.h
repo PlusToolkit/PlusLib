@@ -1,44 +1,12 @@
 #ifndef BRACHYTRUSCALIBRATOR_H
 #define BRACHYTRUSCALIBRATOR_H
-// ===========================================================================
-// Program Modification Record
-// ===========================================================================
-// Component:	Component_AutoTRUSCalibration
-// ===========================================================================
-// Class:		BrachyTRUSCalibrator
-// ===========================================================================
-// File Name:	BrachyTRUSCalibrator.h
-// ===========================================================================
-// Author:		Thomas Kuiran Chen <chent@cs.queensu.ca>
-//				School of Computing, Queen's University at Kingston, Canada
-// ===========================================================================
+
 // Purposes: 
 // 1. This is the class that defines our Brachy-TRUS Calibrator [1,2] for 
 //    transrectal ultrasound (TRUS) probe calibration in brachytherapy.
 // 2. The class is a child class of the parent Phantom class.
 // 3. Uses the open source VXL-VNL (Numerical and Algebra C++ Library)
 // 4. Uses C++ Standard Library and Standard Template Library
-// ===========================================================================
-// References:
-// [1] Chen, T. K., Thurston, A. D., Ellis, R. E. & Abolmaesumi, P. A real-
-//     time freehand ultrasound calibration system with automatic accuracy 
-//     feedback and control. Ultrasound Med Biol, 2009, vol. 35, page 79-93.
-// [2] Chen, T. K., Thurston, A. D., Moghari, M. H., Ellis, R. E. & 
-//     Abolmaesumi, P. Miga, M. I. & Cleary, K. R. (ed.) A real-time 
-//     ultrasound calibration system with automatic accuracy control and 
-//     incorporation of ultrasound section thickness SPIE Medical Imaging 2008: 
-//     Visualization, Image-guided Procedures, and Modeling, 2008,6918,69182A.
-//     Best Student Paper Award - Second Place and Cum Laude Poster Award.
-// ===========================================================================
-// Change History:
-//
-// Author				Time						Release	Changes
-// Thomas Kuiran Chen	Mon Mar 1 08:19 EST 2010	1.0		Creation
-//
-// ===========================================================================
-//					  Copyright @ Thomas Kuiran Chen, 2010
-// ===========================================================================
-
 
 #ifndef PHANTOM_H
 #include "Phantom.h"  // The parent class
@@ -48,118 +16,7 @@
 
 #include <vector>
 
-// Phantom known points in template coordinate system
-/*
-class PhantomPoints
-{
-public: 
-	struct PhantomPointPosition
-	{
-		double x; 
-		double y; 
-		double z; 
-	}; 
-
-	PhantomPoints::PhantomPoints() 
-	{
-		// Template holder position 
-		TemplateHolderPosition.x = 5.0;   TemplateHolderFrameOriginToTemplateFrameOriginInTemplateFrame
-		TemplateHolderPosition.y = 63.5; 
-		TemplateHolderPosition.z = 0; 
-
-		//********** Wire #1 ************
-		PhantomPointPosition wire1front; 
-		wire1front.x = 49.86; 
-		wire1front.y = 34.385; 
-		wire1front.z = 62.05; 
-		WirePositionFrontWall.push_back(wire1front);  
-
-		PhantomPointPosition wire1back; 
-		wire1back.x = 49.86; 
-		wire1back.y = 34.385; 
-		wire1back.z = 142.05; 
-		WirePositionBackWall.push_back(wire1back);  
-
-		//********** Wire #2 ************
-		PhantomPointPosition wire2front; 
-		wire2front.x = 19.86; 
-		wire2front.y = 34.385; 
-		wire2front.z = 62.05; 
-		WirePositionFrontWall.push_back(wire2front);  
-
-		PhantomPointPosition wire2back; 
-		wire2back.x = 39.86; 
-		wire2back.y = 34.385; 
-		wire2back.z = 142.05; 
-		WirePositionBackWall.push_back(wire2back);  
-
-		//********** Wire #3 ************
-		PhantomPointPosition wire3front; 
-		wire3front.x = 9.86; 
-		wire3front.y = 34.385; 
-		wire3front.z = 62.05; 
-		WirePositionFrontWall.push_back(wire3front);  
-
-		PhantomPointPosition wire3back; 
-		wire3back.x = 9.86; 
-		wire3back.y = 34.385; 
-		wire3back.z = 142.05; 
-		WirePositionBackWall.push_back(wire3back);  
-
-		//********** Wire #4 ************
-		PhantomPointPosition wire4front; 
-		wire4front.x = 49.86; 
-		wire4front.y = 54.385; 
-		wire4front.z = 62.05; 
-		WirePositionFrontWall.push_back(wire4front);  
-
-		PhantomPointPosition wire4back; 
-		wire4back.x = 49.86; 
-		wire4back.y = 54.385; 
-		wire4back.z = 142.05; 
-		WirePositionBackWall.push_back(wire4back);  
-
-		//********** Wire #5 ************
-		PhantomPointPosition wire5front; 
-		wire5front.x = 39.86; 
-		wire5front.y = 54.385; 
-		wire5front.z = 62.05; 
-		WirePositionFrontWall.push_back(wire5front);  
-
-		PhantomPointPosition wire5back; 
-		wire5back.x = 19.86; 
-		wire5back.y = 54.385; 
-		wire5back.z = 142.05; 
-		WirePositionBackWall.push_back(wire5back);  
-
-		//********** Wire #6 ************
-		PhantomPointPosition wire6front; 
-		wire6front.x = 9.86; 
-		wire6front.y = 54.385; 
-		wire6front.z = 62.05; 
-		WirePositionFrontWall.push_back(wire6front);  
-
-		PhantomPointPosition wire6back; 
-		wire6back.x = 9.86; 
-		wire6back.y = 54.385; 
-		wire6back.z = 142.05; 
-		WirePositionBackWall.push_back(wire6back);  
-
-	}
-
-	// Wire positions from the phantom origin (A7 point)
-	std::vector<PhantomPointPosition> WirePositionFrontWall; 
-	std::vector<PhantomPointPosition> WirePositionBackWall; 
-	
-	// Center position of the left template holder rod from the phantom origin
-	PhantomPointPosition TemplateHolderPosition; 
-	
-};
-*/
-
-//================================================ 
 // class BrachyTRUSCalibrator
-//================================================ 
 class BrachyTRUSCalibrator : public Phantom
 {
 	public:
@@ -167,7 +24,7 @@ class BrachyTRUSCalibrator : public Phantom
 		//! Strings
 		static const std::string mstrScope;
 
-		//! Contants
+		//! Constants
 		// For BrachyTRUSCalibrator, row/col indices are of no interest
 		// to us any more, because we only see two layers of N-wires with one
 		// N-shape on each layer.  Therefore in each image only two phantom 
@@ -257,25 +114,15 @@ class BrachyTRUSCalibrator : public Phantom
 			std::vector<vnl_vector_double> SegmentedDataPositionListPerImage, 
 			const vnl_matrix<double> TransformMatrixUSProbe2DRB4x4 ) const;
 
-
-//		PhantomPoints GetPhantomPoints() { return this->mPhantomPoints; }; 
+    //! Get ith NWire
     const NWire& GetNWire(int i) { return this->mNWires[i]; }; 
 
 		//! Compute wire intersections from phantom geometry
 		virtual PlusStatus loadGeometry();
 
 	private:
-
-		// N-wire's Start and End Positions in the Front and Back Inner Walls
-		// There are 5x5 matrix of holes on both front and back inner walls
-		// [FORMAT: Front/Back [i][j], i & j are rows/columns of the hole matrix]
-		//vnl_vector<double> mPhantomGeometryOnFrontInnerWall[5][5];
-		//vnl_vector<double> mPhantomGeometryOnBackInnerWall[5][5];
-
-		//PhantomPoints mPhantomPoints;
-
+    //! NWires structure
 		std::vector<NWire> mNWires;
-
 };
 
 
