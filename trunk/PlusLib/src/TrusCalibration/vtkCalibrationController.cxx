@@ -1228,7 +1228,7 @@ PlusStatus vtkCalibrationController::ComputeCalibrationResults()
 		// STEP-4. Print the final calibration results and error reports 
 		// =================================================================
 		LOG_INFO(">>>>>>>> Print calibration results and error reports ..."); ;
-		this->PrintCalibrationResultsAndErrorReports();
+		this->CalibrationControllerIO->PrintCalibrationResultsAndErrorReports();
 
 		// STEP-5. Save the calibration results and error reports into a file 
 		// ===================================================================
@@ -1385,40 +1385,6 @@ PlusStatus vtkCalibrationController::GetWirePosInTemplateCoordinate( int wireNum
 
 	// plane and line are parallel
 	return PLUS_FAIL; 
-}
-
-//----------------------------------------------------------------------------
-void vtkCalibrationController::PrintCalibrationResultsAndErrorReports ()
-{
-	LOG_TRACE("vtkCalibrationController::PrintCalibrationResultsAndErrorReports"); 
-	try
-	{
-		LOG_INFO("---------------------------------------------------------------");
-		LOG_INFO("Calibration result in 4x4 homogeneous transform matrix = ");
-		for ( int i = 0; i < 4; i++ )
-		{
-			std::ostringstream matrixRow; 
-			for ( int j = 0; j < 4; j++ )
-			{
-				matrixRow << this->TransformUserImageToProbe->GetMatrix()->GetElement(i,j) << "  " ;
-			}
-			LOG_INFO(matrixRow.str()); 
-		}
-
-		// Point-Line Distance Error Analysis for Validation Positions in US probe frame
-		LOG_INFO("---------------------------------------------------------------");
-		LOG_INFO("Point-Line Distance Error (PLDE) Analysis in mm =");
-		LOG_INFO("[ vector 0 - 2:  PLDE_mean, PLDE_rms, PLDE_std ]");
-		LOG_INFO("[ vector 3    :  Validation data confidence level ]");
-		LOG_INFO(GetPointLineDistanceErrorAnalysisVector()[0] * 1000 << ", " << GetPointLineDistanceErrorAnalysisVector()[1] * 1000 << ", " << GetPointLineDistanceErrorAnalysisVector()[2] * 1000); 
-		LOG_INFO(GetPointLineDistanceErrorAnalysisVector()[3]);
-
-	}
-	catch(...)
-	{
-		LOG_ERROR("PrintCalibrationResultsAndErrorReports: Failed to retrieve the calibration results!"); 
-		throw;
-	}
 }
 
 //----------------------------------------------------------------------------
