@@ -1292,17 +1292,13 @@ PlusStatus vtkCalibrationController::ComputeCalibrationResults()
 void vtkCalibrationController::PopulateSegmentedFiducialsToDataContainer(vnl_matrix<double> &transformUSProbe2StepperFrameMatrix4x4, IMAGE_DATA_TYPE dataType)
 {
 	LOG_TRACE("vtkCalibrationController::PopulateSegmentedFiducialsToDataContainer"); 
-	// ========================================================================
-	// Populate the segmented N-fiducials to the data container
+
+  // Populate the segmented N-fiducials to the data container
 	// Indices defined in the input std::vector array.
 	// This is the order that the segmentation algorithm gives the 
 	// segmented positions in each image:
-	//
-	// [ Array 0-2: Top N-wire Layer (Right-Middle-Left)]; 
-	// [ Array 3-5: Bottom N-wire Layer (Right-Middle-Left)]
 	// Each acquired data position is a 4x1 homogenous vector :
 	// [ X, Y, 0, 1] all units in pixels
-	// ==================================================================
 
   if ( !this->GetPatternRecognition()->GetFidLabeling()->GetDotsFound() )
 	{

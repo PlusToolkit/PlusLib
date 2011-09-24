@@ -177,13 +177,6 @@ class Phantom
 		virtual void addDataPositionsPerImage( 
 			std::vector<vnl_vector_double> SegmentedDataPositionListPerImage, 
 			const vnl_matrix<double> TransformMatrixUSProbe2DRB4x4 ) = 0;
-		// Interface-2: transformation of the image is given from
-		//              - the US Probe frame to the Tracker frame, and
-		//				- the DRB frame to the Tracker frame.
-		virtual void addDataPositionsPerImage( 
-			std::vector<vnl_vector_double> SegmentedDataPositionListPerImage, 
-			const std::vector<double> TransformUSProbe2Tracker,
-			const std::vector<double> TransformDRB2Tracker ) = 0;
 
 		//! Operation: Add positions per image to validate calibration accuracy
 		// This operation performs similarly to the ::addDataPositionsPerImage
@@ -201,13 +194,6 @@ class Phantom
 		virtual void addValidationPositionsPerImage( 
 			std::vector<vnl_vector_double> SegmentedDataPositionListPerImage, 
 			const vnl_matrix<double> TransformMatrixUSProbe2DRB4x4 ) = 0;
-		// Interface-2: transformation of the image is given from
-		//              - the US Probe frame to the Tracker frame, and
-		//				- the DRB frame to the Tracker frame.
-		virtual	void addValidationPositionsPerImage( 
-			std::vector<vnl_vector_double> SegmentedDataPositionListPerImage, 
-			const std::vector<double> TransformUSProbe2Tracker,
-			const std::vector<double> TransformDRB2Tracker ) = 0;
 
 		//! Operation: get data positions collected as inputs for the US calibration
 		std::vector<vnl_vector_double> getDataPositionsInPhantomFrame() { 

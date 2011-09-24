@@ -218,13 +218,6 @@ class BrachyTRUSCalibrator : public Phantom
 		virtual void addDataPositionsPerImage( 
 			std::vector<vnl_vector_double> SegmentedDataPositionListPerImage, 
 			const vnl_matrix<double> TransformMatrixUSProbe2Stepper4x4 );
-		// Interface-2: transformation of the image is given from
-		//              - the US Probe frame to the Tracker frame, and
-		//				- the DRB frame to the Tracker frame.
-		virtual void addDataPositionsPerImage( 
-			std::vector<vnl_vector_double> SegmentedDataPositionListPerImage, 
-			const std::vector<double> TransformUSProbe2Tracker,
-			const std::vector<double> TransformDRB2Tracker );
 
 		//! Overridden Operation: Add positions per image to validate calibration accuracy
 		// This operation performs similarly to the ::addDataPositionsPerImage
@@ -242,13 +235,6 @@ class BrachyTRUSCalibrator : public Phantom
 		virtual void addValidationPositionsPerImage( 
 			std::vector<vnl_vector_double> SegmentedDataPositionListPerImage, 
 			const vnl_matrix<double> TransformMatrixUSProbe2Stepper4x4 );
-		// Interface-2: transformation of the image is given from
-		//              - the US Probe frame to the Tracker frame, and
-		//				- the DRB frame to the Tracker frame.
-		virtual	void addValidationPositionsPerImage( 
-			std::vector<vnl_vector_double> SegmentedDataPositionListPerImage, 
-			const std::vector<double> TransformUSProbe2Tracker,
-			const std::vector<double> TransformDRB2Tracker );
 
 		//! Overridden Operation: calculate the 3D Point Reconstruction Error (PRE3D) for a given image.
 		// This operation obtain the PRE3D for a given image (captured in real time) using
