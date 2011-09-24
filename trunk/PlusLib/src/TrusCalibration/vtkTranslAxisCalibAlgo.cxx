@@ -8,6 +8,7 @@
 #include "vtkHTMLGenerator.h"
 #include "vtkDoubleArray.h"
 #include "vtkVariantArray.h"
+#include "vtkBrachyTracker.h"
 
 //----------------------------------------------------------------------------
 vtkCxxRevisionMacro(vtkTranslAxisCalibAlgo, "$Revision: 1.0 $");
@@ -177,7 +178,7 @@ PlusStatus vtkTranslAxisCalibAlgo::ConstrLinEqForTransAxisCalib( std::vector<vnl
 
     // Get the encoder value in mm 
     double probePos(0), probeRot(0), templatePos(0); 
-    if ( !vtkStepperCalibrationController::GetStepperEncoderValues(trackedFrame, probePos, probeRot, templatePos) )
+    if ( !vtkBrachyTracker::GetStepperEncoderValues(trackedFrame, probePos, probeRot, templatePos) )
     {
       LOG_WARNING("Translation axis calibration: Unable to get stepper encoder values from tracked frame info for frame #" << frame); 
       continue; 

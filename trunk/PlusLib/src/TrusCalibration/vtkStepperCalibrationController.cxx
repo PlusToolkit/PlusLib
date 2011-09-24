@@ -14,6 +14,7 @@
 #include "vtkTable.h"
 #include "vtkDoubleArray.h"
 #include "vtkVariantArray.h"
+#include "vtkBrachyTracker.h"
 
 #include "vnl/vnl_sparse_matrix.h"   
 #include "vnl/vnl_sparse_matrix_linear_system.h"  
@@ -639,7 +640,7 @@ void vtkStepperCalibrationController::ConstrLinEqForRotEncCalc( std::vector<vnl_
     if ( this->SegmentedFrameContainer[frame].DataType == PROBE_ROTATION )
     {
       double probePos(0), probeRot(0), templatePos(0); 
-      if ( !this->GetStepperEncoderValues(this->SegmentedFrameContainer[frame].TrackedFrameInfo, probePos, probeRot, templatePos) )
+      if ( !vtkBrachyTracker::GetStepperEncoderValues(this->SegmentedFrameContainer[frame].TrackedFrameInfo, probePos, probeRot, templatePos) )
       {
         LOG_WARNING("Probe rotation axis calibration: Unable to get probe rotation from tracked frame info for frame #" << frame); 
         continue; 
@@ -1029,7 +1030,7 @@ void vtkStepperCalibrationController::ConstrLinEqForTransAxisCalib( std::vector<
       case PROBE_TRANSLATION: 
         {
           double probePos(0), probeRot(0), templatePos(0); 
-          if ( !this->GetStepperEncoderValues(this->SegmentedFrameContainer[frame].TrackedFrameInfo, probePos, probeRot, templatePos) )
+          if ( !vtkBrachyTracker::GetStepperEncoderValues(this->SegmentedFrameContainer[frame].TrackedFrameInfo, probePos, probeRot, templatePos) )
           {
             LOG_WARNING("Probe translation axis calibration: Unable to get probe position from tracked frame info for frame #" << frame); 
             continue; 
@@ -1041,7 +1042,7 @@ void vtkStepperCalibrationController::ConstrLinEqForTransAxisCalib( std::vector<
       case TEMPLATE_TRANSLATION: 
         {
           double probePos(0), probeRot(0), templatePos(0); 
-          if ( !this->GetStepperEncoderValues(this->SegmentedFrameContainer[frame].TrackedFrameInfo, probePos, probeRot, templatePos) )
+          if ( !vtkBrachyTracker::GetStepperEncoderValues(this->SegmentedFrameContainer[frame].TrackedFrameInfo, probePos, probeRot, templatePos) )
           {
             LOG_WARNING("Template translation axis calibration: Unable to get template position from tracked frame info for frame #" << frame); 
             continue; 
@@ -1975,7 +1976,7 @@ void vtkStepperCalibrationController::SaveCenterOfRotationCalculationError(Segme
     vtkSmartPointer<vtkVariantArray> tableRow = vtkSmartPointer<vtkVariantArray>::New(); 
 
     double probePos(0), probeRot(0), templatePos(0); 
-    if ( !this->GetStepperEncoderValues(frameListForCenterOfRotation[i].TrackedFrameInfo, probePos, probeRot, templatePos) )
+    if ( !vtkBrachyTracker::GetStepperEncoderValues(frameListForCenterOfRotation[i].TrackedFrameInfo, probePos, probeRot, templatePos) )
     {
       LOG_WARNING("SaveCenterOfRotationCalculationError: Unable to get probe position from tracked frame info for frame #" << i); 
       continue; 
@@ -2245,7 +2246,7 @@ double vtkStepperCalibrationController::GetClusterZPosition(const SegmentedFrame
   for ( int frame = 0; frame < numOfFrames; ++frame )
   {
     double probePos(0), probeRot(0), templatePos(0); 
-    if ( !this->GetStepperEncoderValues(cluster[frame].TrackedFrameInfo, probePos, probeRot, templatePos) )
+    if ( !vtkBrachyTracker::GetStepperEncoderValues(cluster[frame].TrackedFrameInfo, probePos, probeRot, templatePos) )
     {
       LOG_WARNING("GetClusterZPosition: Unable to get probe position from tracked frame info for frame #" << frame); 
       continue; 
@@ -2270,7 +2271,7 @@ void vtkStepperCalibrationController::ClusterSegmentedFrames(IMAGE_DATA_TYPE dat
     if ( this->SegmentedFrameContainer[frame].DataType == dataType )
     {
       double probePos(0), probeRot(0), templatePos(0); 
-      if ( !this->GetStepperEncoderValues(this->SegmentedFrameContainer[frame].TrackedFrameInfo, probePos, probeRot, templatePos) )
+      if ( !vtkBrachyTracker::GetStepperEncoderValues(this->SegmentedFrameContainer[frame].TrackedFrameInfo, probePos, probeRot, templatePos) )
       {
         LOG_WARNING("Clustering: Unable to get probe position from tracked frame info for frame #" << frame); 
         continue; 
@@ -2316,80 +2317,7 @@ void vtkStepperCalibrationController::ClusterSegmentedFrames(IMAGE_DATA_TYPE dat
 
 }
 
-//----------------------------------------------------------------------------
-PlusStatus vtkStepperCalibrationController::GetStepperEncoderValues( TrackedFrame* trackedFrame, double &probePosition, double &probeRotation, double &templatePosition)
-{
-  if ( trackedFrame == NULL )
-  {
-    LOG_ERROR("Unable to get stepper encoder values - input tracked frame is NULL!"); 
-    return PLUS_FAIL; 
-  }
 
-  // Get the probe position from tracked frame info
-  const char* cProbePos = trackedFrame->GetCustomFrameField("ProbePosition"); 
-  if ( cProbePos != NULL )
-  {
-    probePosition = atof(cProbePos); 
-  }
-  else
-  {
-    double transform[16]; 
-    if ( trackedFrame->GetDefaultFrameTransform(transform) )
-    {
-      // Get probe position from matrix (0,3) element
-      probePosition = transform[3]; 
-    }
-    else
-    {
-      LOG_ERROR("Unable to get probe position from tracked frame info."); 
-      return PLUS_FAIL; 
-    }
-  }
-
-  // Get the probe rotation from tracked frame info
-  const char* cProbeRot = trackedFrame->GetCustomFrameField("ProbeRotation"); 
-  if ( cProbeRot != NULL )
-  {
-    probeRotation = atof(cProbeRot); 
-  }
-  else
-  {
-    double transform[16]; 
-    if ( trackedFrame->GetDefaultFrameTransform(transform) )
-    {
-      // Get probe rotation from matrix (1,3) element
-      probeRotation = transform[7]; 
-    }
-    else
-    {
-      LOG_ERROR("Unable to get probe rotation from tracked frame info."); 
-      return PLUS_FAIL; 
-    }
-  }
-
-  // Get the template position from tracked frame info
-  const char* cTemplatePos = trackedFrame->GetCustomFrameField("TemplatePosition"); 
-  if ( cTemplatePos != NULL )
-  {
-    templatePosition = atof(cTemplatePos); 
-  }
-  else
-  {
-    double transform[16]; 
-    if ( trackedFrame->GetDefaultFrameTransform(transform) )
-    {
-      // Get template position from matrix (2,3) element
-      templatePosition = transform[11]; 
-    }
-    else
-    {
-      LOG_ERROR("Unable to get template position from tracked frame info."); 
-      return PLUS_FAIL; 
-    }
-  }
-
-  return PLUS_SUCCESS; 
-}
 
 //----------------------------------------------------------------------------
 PlusStatus vtkStepperCalibrationController::OfflineProbeRotationAxisCalibration()

@@ -256,7 +256,7 @@ namespace itk
 				fieldIterator = this->m_UserFieldMap.find(seqFieldName.str()); 
 				if ( fieldIterator == this->m_UserFieldMap.end() )
 				{
-					this->m_UserFieldMap[seqFieldName.str()] = ""; 
+					this->m_UserFieldMap[seqFieldName.str()].clear(); 
 				}
 			}
 		}
@@ -271,7 +271,7 @@ namespace itk
 			fieldIterator = this->m_UserFieldMap.find(seqFieldName.str()); 
 			if ( fieldIterator == this->m_UserFieldMap.end() )
 			{
-				this->m_UserFieldMap[seqFieldName.str()] = ""; 
+				this->m_UserFieldMap[seqFieldName.str()].clear(); 
 			}
 		}
 

@@ -143,7 +143,6 @@ ADD_TEST(ProbeTranslationAxisCalibration-Ulterius
         --input-data-type=PROBE_TRANSLATION 
         --input-gnuplot-scripts-folder=${PlusLib_SOURCE_DIR}/src/scripts/gnuplot
         --input-gnuplot-command=${GNUPLOT_BIN_DIR}/gnuplot.exe
-        --verbose=5
 		)
 SET_TESTS_PROPERTIES( vtkFreehandCalibrationTest-Exact PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
@@ -155,6 +154,5 @@ ADD_TEST(TemplateTranslationAxisCalibration-Ulterius
         --input-data-type=TEMPLATE_TRANSLATION 
         --input-gnuplot-scripts-folder=${PlusLib_SOURCE_DIR}/src/scripts/gnuplot
         --input-gnuplot-command=${GNUPLOT_BIN_DIR}/gnuplot.exe
-        --verbose=5
 		)
 SET_TESTS_PROPERTIES( vtkFreehandCalibrationTest-Exact PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )

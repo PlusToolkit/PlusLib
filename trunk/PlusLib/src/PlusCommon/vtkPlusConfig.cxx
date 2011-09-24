@@ -232,7 +232,7 @@ std::string vtkPlusConfig::GetNewDeviceSetConfigurationFileName()
 {
   LOG_TRACE("vtkPlusConfig::GetNewConfigurationFileName");
 
-  std::string resultFileName = "";
+  std::string resultFileName; 
   if ((this->DeviceSetConfigurationFileName == NULL) || (STRCASECMP(this->DeviceSetConfigurationFileName, "") == 0)) {
     LOG_WARNING("New configuration file name cannot be assembled due to absence of input configuration file name");
 

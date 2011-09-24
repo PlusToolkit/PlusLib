@@ -7,7 +7,7 @@
 
 class CmsBrachyStepper; 
 class vtkTransform;
-
+class TrackedFrame; 
 
 class VTK_EXPORT vtkBrachyTracker : public vtkTracker
 {
@@ -104,6 +104,10 @@ public:
 	// Get raw encoder values transform in a particular timestamp, where the timestamp is
 	// in system time as returned by vtkAccurateTimer::GetSystemTime().
 	PlusStatus GetRawEncoderValuesTransform( double timestamp, vtkMatrix4x4* rawEncoderValuesTransform, TrackerStatus &status); 
+
+  //! Description: 
+	// Get stepper encoder values from the tracked frame info
+	static PlusStatus GetStepperEncoderValues( TrackedFrame* trackedFrame, double &probePosition, double &probeRotation, double &templatePosition); 
 
 	// Description:
 	// Get the a string (perhaps a long one) describing the type and version
