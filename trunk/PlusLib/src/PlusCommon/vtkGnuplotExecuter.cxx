@@ -66,18 +66,21 @@ PlusStatus vtkGnuplotExecuter::DumpTableToFileInGnuplotFormat( vtkTable* table, 
 //----------------------------------------------------------------------------
 void vtkGnuplotExecuter::AddArgument(const char* argument)
 {
+  LOG_TRACE("vtkGnuplotExecuter::AddArgument"); 
   this->GnuplotArguments.push_back(argument); 
 }
 
 //----------------------------------------------------------------------------
 void vtkGnuplotExecuter::ClearArguments()
 {
+  LOG_TRACE("vtkGnuplotExecuter::ClearArguments"); 
   this->GnuplotArguments.clear(); 
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkGnuplotExecuter::Execute()
 {
+  LOG_TRACE("vtkGnuplotExecuter::Execute"); 
   if ( this->GetGnuplotCommand() == NULL )
   {
     LOG_ERROR("Gnuplot command has to be set before execution!"); 
