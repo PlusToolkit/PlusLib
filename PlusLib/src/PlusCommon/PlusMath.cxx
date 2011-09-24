@@ -21,7 +21,7 @@ PlusMath::~PlusMath()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus PlusMath::LSQRMinimize(const std::vector< std::vector<double> > &aMatrix, const std::vector<double> &bVector, vnl_vector<double> &resultVector)
+PlusStatus PlusMath::LSQRMinimize(const std::vector< std::vector<double> > &aMatrix, const std::vector<double> &bVector, vnl_vector<double> &resultVector, double* mean/*=NULL*/, double* stdev/*=NULL*/)
 {
   LOG_TRACE("PlusMath::LSQRMinimize"); 
 
@@ -53,11 +53,11 @@ PlusStatus PlusMath::LSQRMinimize(const std::vector< std::vector<double> > &aMat
     aMatrixVnl.push_back(row); 
   }
 
-  return PlusMath::LSQRMinimize(aMatrixVnl, bVector, resultVector); 
+  return PlusMath::LSQRMinimize(aMatrixVnl, bVector, resultVector, mean, stdev); 
 }
 
 //----------------------------------------------------------------------------
-PlusStatus PlusMath::LSQRMinimize(const std::vector<vnl_vector<double>> &aMatrix, const std::vector<double> &bVector, vnl_vector<double> &resultVector)
+PlusStatus PlusMath::LSQRMinimize(const std::vector<vnl_vector<double>> &aMatrix, const std::vector<double> &bVector, vnl_vector<double> &resultVector, double* mean/*=NULL*/, double* stdev/*=NULL*/)
 {
   LOG_TRACE("PlusMath::LSQRMinimize"); 
 
@@ -93,12 +93,12 @@ PlusStatus PlusMath::LSQRMinimize(const std::vector<vnl_vector<double>> &aMatrix
     vectorRightSide.put(row, bVector[row]);
   }
 
-  return PlusMath::LSQRMinimize(sparseMatrixLeftSide, vectorRightSide, resultVector); 
+  return PlusMath::LSQRMinimize(sparseMatrixLeftSide, vectorRightSide, resultVector, mean, stdev); 
 }
 
 
 //----------------------------------------------------------------------------
-PlusStatus PlusMath::LSQRMinimize(const vnl_sparse_matrix<double> &sparseMatrixLeftSide, const vnl_vector<double> &vectorRightSide, vnl_vector<double> &resultVector)
+PlusStatus PlusMath::LSQRMinimize(const vnl_sparse_matrix<double> &sparseMatrixLeftSide, const vnl_vector<double> &vectorRightSide, vnl_vector<double> &resultVector, double* mean/*=NULL*/, double* stdev/*=NULL*/)
 {
   LOG_TRACE("PlusMath::LSQRMinimize"); 
 
@@ -166,7 +166,7 @@ PlusStatus PlusMath::LSQRMinimize(const vnl_sparse_matrix<double> &sparseMatrixL
 
     const double thresholdMultiplier = 3.0; 
 
-    if ( PlusMath::RemoveOutliersFromLSRQ(aMatrix, bVector, resultVector, outlierFound, thresholdMultiplier) != PLUS_SUCCESS )
+    if ( PlusMath::RemoveOutliersFromLSRQ(aMatrix, bVector, resultVector, outlierFound, thresholdMultiplier, mean, stdev) != PLUS_SUCCESS )
     {
       LOG_WARNING("Failed to remove outliers from linear equations!"); 
       return PLUS_FAIL; 
@@ -177,7 +177,13 @@ PlusStatus PlusMath::LSQRMinimize(const vnl_sparse_matrix<double> &sparseMatrixL
 }
 
 //----------------------------------------------------------------------------
-PlusStatus PlusMath::RemoveOutliersFromLSRQ(vnl_sparse_matrix<double> &sparseMatrixLeftSide, vnl_vector<double> &vectorRightSide, vnl_vector<double> &resultVector, bool &outlierFound, double thresholdMultiplier/* = 3.0*/ )
+PlusStatus PlusMath::RemoveOutliersFromLSRQ(vnl_sparse_matrix<double> &sparseMatrixLeftSide, 
+                                            vnl_vector<double> &vectorRightSide, 
+                                            vnl_vector<double> &resultVector, 
+                                            bool &outlierFound, 
+                                            double thresholdMultiplier/* = 3.0*/, 
+                                            double* mean/*=NULL*/, 
+                                            double* stdev/*=NULL*/ )
 {
   // Set outlierFound flag to false by default 
   outlierFound = false; 
@@ -225,6 +231,16 @@ PlusStatus PlusMath::RemoveOutliersFromLSRQ(vnl_sparse_matrix<double> &sparseMat
   const double stdevDifference = sqrt( diffFromMean.squared_magnitude() / (1.0 * diffFromMean.size()) ); 
 
   LOG_DEBUG("Mean = " << std::fixed << meanDifference << "   Stdev = " << stdevDifference); 
+
+  if ( mean != NULL )
+  {
+    *mean = meanDifference; 
+  }
+
+  if ( stdev != NULL )
+  {
+    *stdev = stdevDifference; 
+  }
 
   // Temporary containers for input data 
   std::vector<vcl_vector<double>> matrixRowsData; 

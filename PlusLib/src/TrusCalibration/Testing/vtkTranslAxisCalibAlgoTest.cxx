@@ -4,6 +4,8 @@
 #include "vtkXMLUtilities.h"
 #include "FidPatternRecognition.h"
 #include "vtkTranslAxisCalibAlgo.h"
+#include "vtkGnuplotExecuter.h"
+#include "vtkHTMLGenerator.h"
 
 const double DOUBLE_DIFF = 0.0001; // used for comparing double numbers
 
@@ -28,6 +30,8 @@ int main(int argc, char **argv)
   IMAGE_DATA_TYPE inputDataType(UNKNOWN_DATA); 
   std::string baselineXmlAttributeName(""); 
   std::string baselineXmlElementName(""); 
+  std::string inputGnuplotScriptsFolder(""); 
+  std::string inputGnuplotCommand(""); 
 
   args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");	
   args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug)");	
@@ -35,6 +39,8 @@ int main(int argc, char **argv)
   args.AddArgument("--input-baseline-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputBaselineFileName, "Input xml baseline file name with path");	
   args.AddArgument("--input-config-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "Input xml config file name with path");	
   args.AddArgument("--input-data-type", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputStrDataType, "Input data type ( TEMPLATE_TRANSLATION or PROBE_TRANSLATION)");	
+  args.AddArgument("--input-gnuplot-scripts-folder", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputGnuplotScriptsFolder, "Path to gnuplot scripts folder");	
+  args.AddArgument("--input-gnuplot-command", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputGnuplotCommand, "Path to gnuplot command.");	
   
   if ( !args.Parse() )
   {
@@ -100,7 +106,7 @@ int main(int argc, char **argv)
       return EXIT_FAILURE;
   }
 
-  LOG_INFO("Segment image data...");
+  LOG_INFO("Test image data segmentation...");
   for ( int currentFrameIndex = 0; currentFrameIndex < trackedFrameList->GetNumberOfTrackedFrames(); currentFrameIndex++)
   {
     patternRecognition->RecognizePattern(trackedFrameList->GetTrackedFrame(currentFrameIndex));
@@ -111,16 +117,67 @@ int main(int argc, char **argv)
 
   LOG_INFO("Spacing: " << std::fixed << spacing[0] << "  " << spacing[1] << " mm/px"); 
 
-  LOG_INFO("Compute translation axis orientation...");
+  LOG_INFO("Test translation axis orientation computation algorithm...");
   vtkSmartPointer<vtkTranslAxisCalibAlgo> translAxisCalibAlgo = vtkSmartPointer<vtkTranslAxisCalibAlgo>::New(); 
   translAxisCalibAlgo->SetDataType(inputDataType); 
   translAxisCalibAlgo->SetSpacing(spacing); 
   translAxisCalibAlgo->SetInput(trackedFrameList); 
-  translAxisCalibAlgo->Update(); 
-  double* translationAxisOrientation = translAxisCalibAlgo->GetOutput(); 
+  
+  // Get translation axis calibration output 
+  double translationAxisOrientation[3] = {0}; 
+  if ( translAxisCalibAlgo->GetOutput(translationAxisOrientation) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Translation axis calibration failed!"); 
+    numberOfFailures++; 
+  }
+  else
+  {
+    LOG_INFO("Translation axis orientation: " << std::fixed << translationAxisOrientation[0] << "  " << translationAxisOrientation[1] << "  " << translationAxisOrientation[2]); 
+  }
 
-  LOG_INFO("Translation axis orientation: " << std::fixed << translationAxisOrientation[0] << "  " << translationAxisOrientation[1] << "  " << translationAxisOrientation[2]); 
+  // Get calibration error
+  double errorMean(0), errorStdev(0); 
+  if ( translAxisCalibAlgo->GetError(errorMean, errorStdev) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to get translation axis calibration error!"); 
+    numberOfFailures++; 
+  }
+  else
+  {
+    LOG_INFO("Translation axis calibration error - mean: " << std::fixed << errorMean << "  stdev: " << errorStdev); 
+  }
+  
+  LOG_INFO("Test report table generation and saving into file..."); 
+  vtkTable* reportTable = translAxisCalibAlgo->GetReportTable(); 
+  if ( reportTable != NULL )
+  {
+    if ( vtkPlusLogger::Instance()->GetLogLevel() >= vtkPlusLogger::LOG_LEVEL_DEBUG ) 
+      reportTable->Dump(25); 
 
+    vtkGnuplotExecuter::DumpTableToFileInGnuplotFormat(reportTable, "./TranslationAxisCalibrationErrorReport.txt"); 
+  }
+  else
+  {
+    LOG_ERROR("Failed to get report table!"); 
+    numberOfFailures++; 
+  }
+
+  if ( !inputGnuplotCommand.empty() && !inputGnuplotScriptsFolder.empty() )
+  {
+    LOG_INFO("Test HTML report generation..."); 
+    vtkSmartPointer<vtkHTMLGenerator> htmlGenerator = vtkSmartPointer<vtkHTMLGenerator>::New(); 
+    htmlGenerator->SetTitle("Translation Axis Calibration Report"); 
+    vtkSmartPointer<vtkGnuplotExecuter> gnuplotExecuter = vtkSmartPointer<vtkGnuplotExecuter>::New(); 
+    gnuplotExecuter->SetWorkingDirectory("./"); 
+    gnuplotExecuter->SetGnuplotCommand(inputGnuplotCommand.c_str()); 
+    gnuplotExecuter->SetHideWindow(true); 
+    translAxisCalibAlgo->GenerateReport(htmlGenerator, gnuplotExecuter, inputGnuplotScriptsFolder.c_str()); 
+    htmlGenerator->SaveHtmlPage("TranslationAxisCalibrationErrorReport.html"); 
+  }
+
+  std::ostringstream translAxisCalibAlgoStream; 
+  translAxisCalibAlgo->PrintSelf(translAxisCalibAlgoStream, vtkIndent(0)); 
+  LOG_DEBUG("TranslAxisCalibAlgo::PrintSelf: "<< translAxisCalibAlgoStream.str()); 
   
   //*********************************************************************
   // Compare result to baseline

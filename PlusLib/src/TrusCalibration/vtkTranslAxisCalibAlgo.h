@@ -2,35 +2,30 @@
 #define __vtkTranslAxisCalibAlgo_h
 
 #include "PlusConfigure.h"
-#include "vtkAlgorithm.h"
+#include "vtkObject.h"
 #include "vtkStepperCalibrationController.h"
 #include "vtkTrackedFrameList.h"
+#include "vtkTable.h"
 
 class vtkHTMLGenerator; 
 class vtkGnuplotExecuter; 
-class vtkTable; 
 
-class VTK_EXPORT vtkTranslAxisCalibAlgo : public vtkAlgorithm
+class VTK_EXPORT vtkTranslAxisCalibAlgo : public vtkObject
 {
 public:
 
   static vtkTranslAxisCalibAlgo *New();
-	vtkTypeRevisionMacro(vtkTranslAxisCalibAlgo , vtkAlgorithm);
+	vtkTypeRevisionMacro(vtkTranslAxisCalibAlgo , vtkObject);
 	virtual void PrintSelf(ostream& os, vtkIndent indent); 
 
   // Description:
 	// Add generated html report from the selected data type (probe or template) translation axis calibration to the existing html report
 	// htmlReport and plotter arguments has to be defined by the caller function
-	//virtual PlusStatus GenerateReport( vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter, const char* gnuplotScriptsFolder); 
-
-  // Description:
-  // Bring this algorithm's outputs up-to-date.
-  virtual void Update();
+	virtual PlusStatus GenerateReport( vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter, const char* gnuplotScriptsFolder); 
 
   // Description:
   // Set input TrackedFrameList with segmentation results 
   virtual void SetInput( vtkTrackedFrameList* trackedFrameList ); 
-
 
   // Description:
   // Set/get image data type used for calibration
@@ -44,32 +39,36 @@ public:
 	vtkSetVector2Macro(Spacing, double); 
 	vtkGetVector2Macro(Spacing, double); 
 
+  //! Description: 
+	// Report table used for storing algorithm results 
+  vtkGetObjectMacro(ReportTable, vtkTable); 
+
   // Description:
   // Get the translation axis orientation 
-  virtual double * GetOutput(); 
+  virtual PlusStatus GetOutput(double translationAxisOrientation[3] ); 
+
+  // Description:
+  // Get the translation axis calibration error 
+  virtual PlusStatus GetError(double &mean, double &stdev); 
 
 protected:
   vtkTranslAxisCalibAlgo();
-  ~vtkTranslAxisCalibAlgo(); 
+  virtual ~vtkTranslAxisCalibAlgo(); 
+
+  // Description:
+  // Bring this algorithm's outputs up-to-date.
+  virtual PlusStatus Update();
 
   //! Description: 
 	// Construct linear equation for translation axis calibration
 	virtual PlusStatus ConstrLinEqForTransAxisCalib(std::vector<vnl_vector<double>> &aMatrix, std::vector<double> &bVector, int& numberOfUnknowns);
 
 	//! Description: 
-	// Calculate mean error and stdev of measured and computed wire positions for each wire
-	//virtual void GetTranslationAxisCalibrationError(
-	//	const std::vector<vnl_vector<double>> &aMatrix, 
-	//	const std::vector<double> &bVector, 
-	//	const vnl_vector<double> &resultVector, 
- //   std::vector<vtkStepperCalibrationController::CalibStatistics> &statistics); 
-
-	//! Description: 
 	// Save translation axis calibration error in gnuplot format 
-	//virtual void SaveTranslationAxisCalibrationError(
-	//	const std::vector<vnl_vector<double>> &aMatrix, 
-	//	const std::vector<double> &bVector, 
-	//	const vnl_vector<double> &resultVector); 
+	virtual PlusStatus UpdateReportTable(
+		const std::vector<vnl_vector<double>> &aMatrix, 
+		const std::vector<double> &bVector, 
+		const vnl_vector<double> &resultVector); 
 
   //! Description: 
 	// Set/get tracked frame list
@@ -80,6 +79,10 @@ protected:
 	// Set/get translation axis orientation [Tx, Ty, 1]
 	vtkSetVector3Macro(TranslationAxisOrientation, double); 
 	vtkGetVector3Macro(TranslationAxisOrientation, double); 
+
+  //! Description: 
+	// Report table used for storing algorithm results 
+  vtkSetObjectMacro(ReportTable, vtkTable); 
 
   // Data type used for calibration (TEMPLATE_TRANSLATION or PROBE_TRANSLATION)
   IMAGE_DATA_TYPE DataType; 
@@ -92,6 +95,16 @@ protected:
 	double TranslationAxisOrientation[3]; 
 
   vtkTrackedFrameList* TrackedFrameList; 
+
+  // Table used for storing algo results 
+  vtkTable* ReportTable; 
+
+  double ErrorMean; 
+  double ErrorStdev; 
+
+  // When was this data last updated
+  vtkTimeStamp UpdateTime;  
+
 }; 
 
 #endif
