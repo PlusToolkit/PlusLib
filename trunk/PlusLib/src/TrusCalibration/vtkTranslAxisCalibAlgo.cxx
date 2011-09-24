@@ -62,10 +62,12 @@ void vtkTranslAxisCalibAlgo::PrintSelf(ostream& os, vtkIndent indent)
 
 
 //----------------------------------------------------------------------------
-void vtkTranslAxisCalibAlgo::SetInput(vtkTrackedFrameList* trackedFrameList)
+void vtkTranslAxisCalibAlgo::SetInputs(vtkTrackedFrameList* trackedFrameList, double spacing[2], IMAGE_DATA_TYPE dataType)
 {
   LOG_TRACE("vtkTranslAxisCalibAlgo::SetInput"); 
   this->SetTrackedFrameList(trackedFrameList); 
+  this->SetSpacing(spacing);
+  this->SetDataType(dataType); 
 }
 
 

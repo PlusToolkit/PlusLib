@@ -2,6 +2,8 @@
 #include "PlusMath.h"
 #include "vtkStepperCalibrationController.h"
 
+#include "vtkTranslAxisCalibAlgo.h"
+
 #include "vtkObjectFactory.h"
 #include "vtkTransform.h"
 #include "vtkMath.h"
@@ -963,522 +965,69 @@ PlusStatus vtkStepperCalibrationController::CalibrateTemplateTranslationAxis()
 PlusStatus vtkStepperCalibrationController::CalibrateTranslationAxis( IMAGE_DATA_TYPE dataType )
 {
   LOG_TRACE("vtkStepperCalibrationController::CalibrateTranslationAxis"); 
-  // Construct linear equations Ax = b, where A is a matrix with m rows and 
-  // n columns, b is an m-vector. 
-  std::vector<vnl_vector<double>> aMatrix;
-  std::vector<double> bVector; 
 
-  // Construct linear equation for translation axis calibration
-  this->ConstrLinEqForTransAxisCalib(aMatrix, bVector, dataType); 
-
-  if ( aMatrix.size() == 0 || bVector.size() == 0 )
+  vtkSmartPointer<vtkTranslAxisCalibAlgo> translationAxisCalibAlgo = vtkSmartPointer<vtkTranslAxisCalibAlgo>::New(); 
+  translationAxisCalibAlgo->SetInputs(this->TrackedFrameListContainer[dataType], this->GetSpacing(), dataType); 
+  
+  // Get translation axis calibration output 
+  double translationAxisOrientation[3] = {0}; 
+  if ( translationAxisCalibAlgo->GetOutput(translationAxisOrientation) != PLUS_SUCCESS )
   {
-    LOG_WARNING("Translation axis calibration failed, no data found!"); 
+    LOG_ERROR("Translation axis calibration failed!"); 
     return PLUS_FAIL; 
   }
 
-  // [tx, ty, w1x0, w1y0, w3x0, w3y0, w4x0, w4y0, w6x0, w6y0 ]
-  vnl_vector<double> translationAxisCalibResult(10, 0);
-  if ( PlusMath::LSQRMinimize(aMatrix, bVector, translationAxisCalibResult) != PLUS_SUCCESS)
-  {
-    LOG_WARNING("Failed to run LSQRMinimize!"); 
-  }
-
-  if ( translationAxisCalibResult.empty() )
-  {
-    LOG_ERROR("Unable to calibrate translation axis! Minimizer returned empty result."); 
-    return PLUS_FAIL; 
-  }
-
-  // Calculate mean error and stdev of measured and computed wire positions for each wire
-  std::vector<CalibStatistics> statistics; 
-  this->GetTranslationAxisCalibrationError(aMatrix, bVector, translationAxisCalibResult, statistics); 
-
-  this->SaveTranslationAxisCalibrationError(aMatrix, bVector, translationAxisCalibResult, dataType); 
-
-  // Set translation axis orientation 
-  // NOTE: If the probe goes down the wires goes down on the MF oriented image 
-  // => we need to change the sign of the axis to compensate it
-  if ( dataType == PROBE_TRANSLATION )
-  {
-    this->SetProbeTranslationAxisOrientation(-translationAxisCalibResult[0], translationAxisCalibResult[1], 1); 
-    this->ProbeTranslationAxisCalibratedOn(); 
-  }
-  else if ( dataType == TEMPLATE_TRANSLATION )
-  {
-    this->SetTemplateTranslationAxisOrientation(-translationAxisCalibResult[0], translationAxisCalibResult[1], 1); 
-    this->TemplateTranslationAxisCalibratedOn(); 
-  }
-
-  return PLUS_SUCCESS; 
-}
-
-//----------------------------------------------------------------------------
-void vtkStepperCalibrationController::ConstrLinEqForTransAxisCalib( std::vector<vnl_vector<double>> &aMatrix, std::vector<double> &bVector, IMAGE_DATA_TYPE dataType)
-{
-  LOG_TRACE("vtkStepperCalibrationController::ConstrLinEqForTransAxisCalib"); 
-  aMatrix.clear(); 
-  bVector.clear(); 
-
-  for ( int frame = 0; frame < this->SegmentedFrameContainer.size(); frame++ )
-  {
-    if ( this->SegmentedFrameContainer[frame].DataType == dataType )
-    {
-      double z(0); 
-      switch (dataType)
-      {
-      case PROBE_TRANSLATION: 
-        {
-          double probePos(0), probeRot(0), templatePos(0); 
-          if ( !vtkBrachyTracker::GetStepperEncoderValues(this->SegmentedFrameContainer[frame].TrackedFrameInfo, probePos, probeRot, templatePos) )
-          {
-            LOG_WARNING("Probe translation axis calibration: Unable to get probe position from tracked frame info for frame #" << frame); 
-            continue; 
-          }
-
-          z = probePos; 
-        }
-        break; 
-      case TEMPLATE_TRANSLATION: 
-        {
-          double probePos(0), probeRot(0), templatePos(0); 
-          if ( !vtkBrachyTracker::GetStepperEncoderValues(this->SegmentedFrameContainer[frame].TrackedFrameInfo, probePos, probeRot, templatePos) )
-          {
-            LOG_WARNING("Template translation axis calibration: Unable to get template position from tracked frame info for frame #" << frame); 
-            continue; 
-          }
-
-          z = templatePos; 
-        }
-
-        break; 
-      }
-
-      // Wire #1 X coordinate in mm 
-      double b1 = this->SegmentedFrameContainer[frame].SegResults.GetFoundDotsCoordinateValue()[WIRE1][0] * this->GetSpacing()[0]; 
-      vnl_vector<double> a1(10,0); 
-      a1.put(0, z); 
-      a1.put(2, 1); 
-
-      bVector.push_back(b1); 
-      aMatrix.push_back(a1); 
-
-      // Wire #1 Y coordinate in mm 
-      double b2 = this->SegmentedFrameContainer[frame].SegResults.GetFoundDotsCoordinateValue()[WIRE1][1] * this->GetSpacing()[1]; 
-      vnl_vector<double> a2(10,0); 
-      a2.put(1, z); 
-      a2.put(3, 1); 
-
-      bVector.push_back(b2); 
-      aMatrix.push_back(a2); 
-
-      // Wire #3 X coordinate in mm 
-      double b3 = this->SegmentedFrameContainer[frame].SegResults.GetFoundDotsCoordinateValue()[WIRE3][0] * this->GetSpacing()[0]; 
-      vnl_vector<double> a3(10,0); 
-      a3.put(0, z); 
-      a3.put(4, 1); 
-
-      bVector.push_back(b3); 
-      aMatrix.push_back(a3); 
-
-      // Wire #3 Y coordinate in mm 
-      double b4 = this->SegmentedFrameContainer[frame].SegResults.GetFoundDotsCoordinateValue()[WIRE3][1] * this->GetSpacing()[1]; 
-      vnl_vector<double> a4(10,0); 
-      a4.put(1, z); 
-      a4.put(5, 1); 
-
-      bVector.push_back(b4); 
-      aMatrix.push_back(a4); 
-
-      // Wire #4 X coordinate in mm 
-      double b5 = this->SegmentedFrameContainer[frame].SegResults.GetFoundDotsCoordinateValue()[WIRE4][0] * this->GetSpacing()[0]; 
-      vnl_vector<double> a5(10,0); 
-      a5.put(0, z); 
-      a5.put(6, 1); 
-
-      bVector.push_back(b5); 
-      aMatrix.push_back(a5); 
-
-      // Wire #4 Y coordinate in mm 
-      double b6 = this->SegmentedFrameContainer[frame].SegResults.GetFoundDotsCoordinateValue()[WIRE4][1] * this->GetSpacing()[1]; 
-      vnl_vector<double> a6(10,0); 
-      a6.put(1, z); 
-      a6.put(7, 1); 
-
-      bVector.push_back(b6); 
-      aMatrix.push_back(a6); 
-
-      // Wire #6 X coordinate in mm 
-      double b7 = this->SegmentedFrameContainer[frame].SegResults.GetFoundDotsCoordinateValue()[WIRE6][0] * this->GetSpacing()[0]; 
-      vnl_vector<double> a7(10,0); 
-      a7.put(0, z); 
-      a7.put(8, 1); 
-
-      bVector.push_back(b7); 
-      aMatrix.push_back(a7); 
-
-      // Wire #6 Y coordinate in mm 
-      double b8 = this->SegmentedFrameContainer[frame].SegResults.GetFoundDotsCoordinateValue()[WIRE6][1] * this->GetSpacing()[1]; 
-      vnl_vector<double> a8(10,0); 
-      a8.put(1, z); 
-      a8.put(9, 1); 
-
-      bVector.push_back(b8); 
-      aMatrix.push_back(a8); 
-    }
-  }
-
-}
-
-//----------------------------------------------------------------------------
-void vtkStepperCalibrationController::GetTranslationAxisCalibrationError(const std::vector<vnl_vector<double>> &aMatrix, 
-                                                                         const std::vector<double> &bVector, 
-                                                                         const vnl_vector<double> &resultVector, 
-                                                                         std::vector<CalibStatistics> &statistics)
-{
-  LOG_TRACE("vtkStepperCalibrationController::GetTranslationAxisCalibrationError"); 
-  // The coefficient matrix aMatrix should be m-by-n and the column vector bVector must have length m.
-  const int n = aMatrix.begin()->size(); 
-  const int m = bVector.size();
-  const int r = resultVector.size(); 
-
-  const int numOfSegmentedPoints(8); 
-  const double tx = resultVector[0]; 
-  const double ty = resultVector[1]; 
-  const double w1x = resultVector[2]; 
-  const double w1y = resultVector[3]; 
-  const double w3x = resultVector[4]; 
-  const double w3y = resultVector[5]; 
-  const double w4x = resultVector[6]; 
-  const double w4y = resultVector[7]; 
-  const double w6x = resultVector[8]; 
-  const double w6y = resultVector[9]; 
-
-
-  // calculate difference between the computed and measured position for each wire 
-  std::vector< std::vector<double> > diffVector(numOfSegmentedPoints); 
-  for( int row = 0; row < m; row = row + numOfSegmentedPoints)
-  {
-    diffVector[0].push_back( bVector[row    ] - w1x - aMatrix[row    ].get(0) * tx ); 
-    diffVector[1].push_back( bVector[row + 1] - w1y - aMatrix[row + 1].get(1) * ty ); 
-
-    diffVector[2].push_back( bVector[row + 2] - w3x - aMatrix[row + 2].get(0) * tx ); 
-    diffVector[3].push_back( bVector[row + 3] - w3y - aMatrix[row + 3].get(1) * ty ); 
-
-    diffVector[4].push_back( bVector[row + 4] - w4x - aMatrix[row + 4].get(0) * tx ); 
-    diffVector[5].push_back( bVector[row + 5] - w4y - aMatrix[row + 5].get(1) * ty ); 
-
-    diffVector[6].push_back( bVector[row + 6] - w6x - aMatrix[row + 6].get(0) * tx ); 
-    diffVector[7].push_back( bVector[row + 7] - w6y - aMatrix[row + 7].get(1) * ty ); 
-  }
-
-  this->ComputeStatistics(diffVector, statistics); 
-}
-
-//----------------------------------------------------------------------------
-void vtkStepperCalibrationController::SaveTranslationAxisCalibrationError(const std::vector<vnl_vector<double>> &aMatrix, 
-                                                                          const std::vector<double> &bVector, 
-                                                                          const vnl_vector<double> &resultVector, 
-                                                                          IMAGE_DATA_TYPE dataType)
-{
-  LOG_TRACE("vtkStepperCalibrationController::SaveTranslationAxisCalibrationError"); 
-  const int numOfSegmentedPoints(8); 
-  std::ostringstream filename; 
-  std::ostringstream path; 
-
-  std::ofstream translationAxisCalibrationError;
+  // Set error report file path 
+  std::ostringstream path;
   if ( dataType == PROBE_TRANSLATION )
   {
     path << vtkPlusConfig::GetInstance()->GetOutputDirectory() << "/" << this->CalibrationStartTime  << ".ProbeTranslationAxisCalibrationError.txt"; 
     this->SetProbeTranslationAxisCalibrationErrorReportFilePath(path.str().c_str()); 
-
-    translationAxisCalibrationError.open (path.str().c_str(), ios::out);
-    translationAxisCalibrationError << "# Probe translation axis calibration error report" << std::endl; 
   }
   else if ( dataType == TEMPLATE_TRANSLATION )
   {
     path << vtkPlusConfig::GetInstance()->GetOutputDirectory() << "/" << this->CalibrationStartTime  << ".TemplateTranslationAxisCalibrationError.txt"; 
     this->SetTemplateTranslationAxisCalibrationErrorReportFilePath(path.str().c_str()); 
-    translationAxisCalibrationError.open (path.str().c_str(), ios::out);
-    translationAxisCalibrationError << "# Template translation axis calibration error report" << std::endl; 
   }
 
-  translationAxisCalibrationError << "ProbePosition\t"
-    << "MeasuredWire1xInImageMm\tMeasuredWire1yInImageMm\tMeasuredWire3xInImage\tMeasuredWire3yInImageMm\tMeasuredWire4xInImageMm\tMeasuredWire4yInImageMm\tMeasuredWire6xInImageMm\tMeasuredWire6yInImageMm\t" 
-    << "ComputedWire1xInImageMm\tComputedWire1yInImageMm\tComputedWire3xInImage\tComputedWire3yInImageMm\tComputedWire4xInImageMm\tComputedWire4yInImageMm\tComputedWire6xInImageMm\tComputedWire6yInImageMm\t" 
-    << std::endl; 
-
-
-  for( int row = 0; row < bVector.size(); row = row + numOfSegmentedPoints)
+  // Save report table to file 
+  vtkTable* reportTable = translationAxisCalibAlgo->GetReportTable(); 
+  if ( vtkGnuplotExecuter::DumpTableToFileInGnuplotFormat(reportTable, path.str().c_str()) != PLUS_SUCCESS)
   {
-    translationAxisCalibrationError << aMatrix[row    ].get(0) << "\t"
-      << bVector[row] << "\t" << bVector[row+1] << "\t" << bVector[row+2] << "\t" << bVector[row+3] << "\t" 
-      << bVector[row+4] << "\t" << bVector[row+5] << "\t" << bVector[row+6] << "\t" << bVector[row+7] << "\t" 
-      << resultVector[2] + aMatrix[row    ].get(0) * resultVector[0] << "\t" 
-      << resultVector[3] + aMatrix[row + 1].get(1) * resultVector[1] << "\t"
-      << resultVector[4] + aMatrix[row + 2].get(0) * resultVector[0] << "\t"
-      << resultVector[5] + aMatrix[row + 3].get(1) * resultVector[1] << "\t"
-      << resultVector[6] + aMatrix[row + 4].get(0) * resultVector[0] << "\t"
-      << resultVector[7] + aMatrix[row + 5].get(1) * resultVector[1] << "\t"
-      << resultVector[8] + aMatrix[row + 6].get(0) * resultVector[0] << "\t"
-      << resultVector[9] + aMatrix[row + 7].get(1) * resultVector[1] << "\t"
-      << std::endl; 
+    LOG_ERROR("Failed to save report table to file: " << path.str().c_str()); 
+    // no need to return with PLUS_FAIL if just the report generation failed
   }
 
-  translationAxisCalibrationError.close(); 
-}
-
-//----------------------------------------------------------------------------
-void vtkStepperCalibrationController::RemoveOutliersFromTransAxisCalibData(std::vector<vnl_vector<double>> &aMatrix, std::vector<double> &bVector, const vnl_vector<double> &resultVector )
-{
-  LOG_TRACE("vtkStepperCalibrationController::RemoveOutliersFromTransAxisCalibData"); 
-  // Calculate mean error and stdev of measured and computed wire positions for each wire
-  std::vector<CalibStatistics> statistics; 
-  this->GetTranslationAxisCalibrationError(aMatrix, bVector, resultVector, statistics); 
-
-  const int n = aMatrix.begin()->size(); 
-  const int m = bVector.size();
-  const int r = resultVector.size(); 
-
-  const int numOfSegmentedPoints(8); 
-  const double tx = resultVector[0]; 
-  const double ty = resultVector[1]; 
-  const double w1x = resultVector[2]; 
-  const double w1y = resultVector[3]; 
-  const double w3x = resultVector[4]; 
-  const double w3y = resultVector[5]; 
-  const double w4x = resultVector[6]; 
-  const double w4y = resultVector[7]; 
-  const double w6x = resultVector[8]; 
-  const double w6y = resultVector[9]; 
-
-  // remove outliers
-  for( int row = m - numOfSegmentedPoints; row > 0; row = row - numOfSegmentedPoints )
+  // Set translation axis orientation 
+  if ( dataType == PROBE_TRANSLATION )
   {
-    if ( abs ( bVector[row    ] - w1x - aMatrix[row    ].get(0) * tx - statistics[0].Mean ) >  this->OutlierDetectionThreshold * statistics[0].Stdev 
-    ||
-      abs ( bVector[row + 1] - w1y - aMatrix[row + 1].get(1) * ty - statistics[1].Mean ) >  this->OutlierDetectionThreshold * statistics[1].Stdev  
-    ||
-      abs ( bVector[row + 2] - w3x - aMatrix[row + 2].get(0) * tx - statistics[2].Mean ) >  this->OutlierDetectionThreshold * statistics[2].Stdev  
-    ||
-      abs ( bVector[row + 3] - w3y - aMatrix[row + 3].get(1) * ty - statistics[3].Mean ) >  this->OutlierDetectionThreshold * statistics[3].Stdev  
-    ||
-      abs ( bVector[row + 4] - w4x - aMatrix[row + 4].get(0) * tx - statistics[4].Mean ) >  this->OutlierDetectionThreshold * statistics[4].Stdev  
-    ||
-      abs ( bVector[row + 5] - w4y - aMatrix[row + 5].get(1) * ty - statistics[5].Mean ) >  this->OutlierDetectionThreshold * statistics[5].Stdev  
-    ||
-      abs ( bVector[row + 6] - w6x - aMatrix[row + 6].get(0) * tx - statistics[6].Mean ) >  this->OutlierDetectionThreshold * statistics[6].Stdev  
-    ||
-      abs ( bVector[row + 7] - w6y - aMatrix[row + 7].get(1) * ty - statistics[7].Mean ) >  this->OutlierDetectionThreshold * statistics[7].Stdev  
-    )
-    {
-      LOG_DEBUG("Outlier found at row " << row ); 
-      aMatrix.erase(aMatrix.begin() + row, aMatrix.begin() + row + numOfSegmentedPoints); 
-      bVector.erase(bVector.begin() + row, bVector.begin() + row + numOfSegmentedPoints); 
-    }
+    this->SetProbeTranslationAxisOrientation(translationAxisOrientation); 
+    this->ProbeTranslationAxisCalibratedOn(); 
+  }
+  else if ( dataType == TEMPLATE_TRANSLATION )
+  {
+    this->SetTemplateTranslationAxisOrientation(translationAxisOrientation); 
+    this->TemplateTranslationAxisCalibratedOn(); 
   }
 
+  // TODO: Need to generate report
+  //translAxisCalibAlgo->GenerateReport(htmlGenerator, gnuplotExecuter, inputGnuplotScriptsFolder.c_str()); 
+
+  return PLUS_SUCCESS; 
 }
 
 //----------------------------------------------------------------------------
 void vtkStepperCalibrationController::GenerateProbeTranslationAxisCalibrationReport( vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter, const char* gnuplotScriptsFolder)
 {
   LOG_TRACE("vtkStepperCalibrationController::GenerateProbeTranslationAxisCalibrationReport"); 
-  this->GenerateTranslationAxisCalibrationReport(PROBE_TRANSLATION, htmlReport, plotter, gnuplotScriptsFolder); 
+  LOG_ERROR("TODO: call report generation from vtkTranslAxisCalibAlgo!"); 
 }
 
 //----------------------------------------------------------------------------
 void vtkStepperCalibrationController::GenerateTemplateTranslationAxisCalibrationReport( vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter, const char* gnuplotScriptsFolder)
 {
   LOG_TRACE("vtkStepperCalibrationController::GenerateTemplateTranslationAxisCalibrationReport"); 
-  this->GenerateTranslationAxisCalibrationReport(TEMPLATE_TRANSLATION, htmlReport, plotter, gnuplotScriptsFolder); 
-}
-
-//----------------------------------------------------------------------------
-PlusStatus vtkStepperCalibrationController::GenerateTranslationAxisCalibrationReport( IMAGE_DATA_TYPE dataType, vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter, const char* gnuplotScriptsFolder)
-{
-  if ( htmlReport == NULL || plotter == NULL )
-  {
-    LOG_ERROR("Caller should define HTML report generator and gnuplot plotter before report generation!"); 
-    return PLUS_FAIL; 
-  }
-
-  std::string plotStepperCalibrationErrorHistogramScript = gnuplotScriptsFolder + std::string("/PlotStepperCalibrationErrorHistogram.gnu"); 
-  if ( !vtksys::SystemTools::FileExists( plotStepperCalibrationErrorHistogramScript.c_str(), true) )
-  {
-    LOG_ERROR("Unable to find gnuplot script at: " << plotStepperCalibrationErrorHistogramScript); 
-    return PLUS_FAIL; 
-  }
-
-  std::string plotStepperCalibrationErrorScript = gnuplotScriptsFolder + std::string("/PlotStepperCalibrationError.gnu"); 
-  if ( !vtksys::SystemTools::FileExists( plotStepperCalibrationErrorScript.c_str(), true) )
-  {
-    LOG_ERROR("Unable to find gnuplot script at: " << plotStepperCalibrationErrorScript); 
-    return PLUS_FAIL; 
-  }
-
-  bool calibrated(false); 
-  switch ( dataType )
-  {
-  case PROBE_TRANSLATION: 
-    calibrated = this->GetProbeTranslationAxisCalibrated(); 
-    break; 
-  case TEMPLATE_TRANSLATION: 
-    calibrated = this->GetTemplateTranslationAxisCalibrated(); 
-    break; 
-  }
-
-  if ( calibrated )
-  {
-    std::string reportFile("");
-    switch ( dataType )
-    {
-    case PROBE_TRANSLATION: 
-      {
-        const char * report = this->GetProbeTranslationAxisCalibrationErrorReportFilePath(); 
-        if ( report == NULL )
-        {
-          LOG_ERROR("Failed to generate probe translation axis calibration report - report file name is NULL!"); 
-          return PLUS_FAIL; 
-        }
-        reportFile = report; 
-      }
-      break; 
-    case TEMPLATE_TRANSLATION: 
-      {
-        const char * report = this->GetTemplateTranslationAxisCalibrationErrorReportFilePath(); 
-        if ( report == NULL )
-        {
-          LOG_ERROR("Failed to generate template translation axis calibration report - report file name is NULL!"); 
-          return PLUS_FAIL; 
-        }
-        reportFile = report; 
-      }
-      break; 
-    }
-
-    
-
-    if ( !vtksys::SystemTools::FileExists( reportFile.c_str(), true) )
-    {
-      LOG_ERROR("Unable to find translation axis calibration report file at: " << reportFile); 
-      return PLUS_FAIL; 
-    }
-
-    std::ostringstream report; 
-    std::string title; 
-    std::string scriptOutputFilePrefixHistogram, scriptOutputFilePrefix; 
-    switch ( dataType )
-    {
-    case PROBE_TRANSLATION: 
-      title = "Probe Translation Axis Calibration Analysis"; 
-      scriptOutputFilePrefixHistogram = "ProbeTranslationAxisCalibrationErrorHistogram"; 
-      scriptOutputFilePrefix = "ProbeTranslationAxisCalibrationError";
-      report << "Probe translation axis orientation: " << this->GetProbeTranslationAxisOrientation()[0] << "     " 
-        << this->GetProbeTranslationAxisOrientation()[1] << "     " << this->GetProbeTranslationAxisOrientation()[2] << "</br>" ; 
-      break; 
-    case TEMPLATE_TRANSLATION: 
-      title = "Template Translation Axis Calibration Analysis";
-      scriptOutputFilePrefixHistogram = "TemplateTranslationAxisCalibrationErrorHistogram"; 
-      scriptOutputFilePrefix = "TemplateTranslationAxisCalibrationError"; 
-      report << "Probe translation axis orientation: " << this->GetTemplateTranslationAxisOrientation()[0] << "     " 
-        << this->GetTemplateTranslationAxisOrientation()[1] << "     " << this->GetTemplateTranslationAxisOrientation()[2] << "</br>" ; 
-      break; 
-    }
-
-    htmlReport->AddText(title.c_str(), vtkHTMLGenerator::H1); 
-    
-    htmlReport->AddParagraph(report.str().c_str()); 
-
-    htmlReport->AddText("Error Histogram", vtkHTMLGenerator::H2); 
-
-    const int wires[4] = {1, 3, 4, 6}; 
-
-    for ( int i = 0; i < 4; i++ )
-    {
-      std::ostringstream wireName; 
-      wireName << "Wire #" << wires[i] << std::ends; 
-      htmlReport->AddText(wireName.str().c_str(), vtkHTMLGenerator::H3); 
-      plotter->ClearArguments(); 
-      plotter->AddArgument("-e");
-      std::ostringstream transAxisError; 
-      transAxisError << "f='" << reportFile << "'; o='" << scriptOutputFilePrefixHistogram << "'; w=" << wires[i] << std::ends; 
-      plotter->AddArgument(transAxisError.str().c_str()); 
-      plotter->AddArgument(plotStepperCalibrationErrorHistogramScript.c_str());  
-      if ( plotter->Execute() != PLUS_SUCCESS )
-      {
-        LOG_ERROR("Failed to run gnuplot executer!"); 
-        return PLUS_FAIL; 
-      }
-      plotter->ClearArguments(); 
-
-      std::ostringstream imageSource; 
-      std::ostringstream imageAlt; 
-
-      switch ( dataType )
-      {
-      case PROBE_TRANSLATION: 
-        imageSource << "w" << wires[i] << "_ProbeTranslationAxisCalibrationErrorHistogram.jpg" << std::ends; 
-        imageAlt << "Probe translation axis calibration error histogram - wire #" << wires[i] << std::ends; 
-        break; 
-      case TEMPLATE_TRANSLATION: 
-        imageSource << "w" << wires[i] << "_TemplateTranslationAxisCalibrationErrorHistogram.jpg" << std::ends; 
-        imageAlt << "Template translation axis calibration error histogram - wire #" << wires[i] << std::ends; 
-        break; 
-      }
-
-      htmlReport->AddImage(imageSource.str().c_str(), imageAlt.str().c_str()); 
-    }
-
-
-    /////////////////////////////////////////////////////////////////////////////////////////////
-
-    htmlReport->AddText("Error Plot", vtkHTMLGenerator::H2); 
-
-    for ( int i = 0; i < 4; i++ )
-    {
-      std::ostringstream wireName; 
-      wireName << "Wire #" << wires[i] << std::ends; 
-      htmlReport->AddText(wireName.str().c_str(), vtkHTMLGenerator::H3); 
-      plotter->ClearArguments(); 
-      plotter->AddArgument("-e");
-      std::ostringstream transAxisError; 
-      transAxisError << "f='" << reportFile << "'; o='" << scriptOutputFilePrefix << "'; w=" << wires[i] << std::ends; 
-      plotter->AddArgument(transAxisError.str().c_str()); 
-      plotter->AddArgument(plotStepperCalibrationErrorScript.c_str());  
-      if ( plotter->Execute() != PLUS_SUCCESS )
-      {
-        LOG_ERROR("Failed to run gnuplot executer!"); 
-        return PLUS_FAIL; 
-      }
-      plotter->ClearArguments(); 
-
-      std::ostringstream imageSourceX, imageAltX, imageSourceY, imageAltY; 
-
-      switch ( dataType )
-      {
-      case PROBE_TRANSLATION: 
-        imageSourceX << "w" << wires[i] << "x_ProbeTranslationAxisCalibrationError.jpg" << std::ends; 
-        imageAltX << "Probe translation axis calibration error - wire #" << wires[i] << " X Axis" << std::ends; 
-        imageSourceY << "w" << wires[i] << "y_ProbeTranslationAxisCalibrationError.jpg" << std::ends; 
-        imageAltY << "Probe translation axis calibration error - wire #" << wires[i] << " Y Axis" << std::ends; 
-        break; 
-      case TEMPLATE_TRANSLATION: 
-        imageSourceX << "w" << wires[i] << "x_TemplateTranslationAxisCalibrationError.jpg" << std::ends; 
-        imageAltX << "Template translation axis calibration error - wire #" << wires[i] << " X Axis" << std::ends; 
-        imageSourceY << "w" << wires[i] << "y_TemplateTranslationAxisCalibrationError.jpg" << std::ends; 
-        imageAltY << "Template translation axis calibration error - wire #" << wires[i] << " Y Axis" << std::ends; 
-        break; 
-      }
-
-      htmlReport->AddImage(imageSourceX.str().c_str(), imageAltX.str().c_str()); 
-      htmlReport->AddImage(imageSourceY.str().c_str(), imageAltY.str().c_str()); 
-    }
-
-    htmlReport->AddHorizontalLine(); 
-  }
-
-  return PLUS_SUCCESS; 
+  LOG_ERROR("TODO: call report generation from vtkTranslAxisCalibAlgo!"); 
 }
 
 //***************************************************************************

@@ -296,39 +296,6 @@ protected:
 	// Returns true on success otherwise false
 	virtual PlusStatus CalibrateTranslationAxis(IMAGE_DATA_TYPE dataType); 
 
-	//! Description: 
-	// Construct linear equation for translation axis calibration
-	virtual void ConstrLinEqForTransAxisCalib( 
-		std::vector<vnl_vector<double>> &aMatrix, 
-		std::vector<double> &bVector, 
-		IMAGE_DATA_TYPE dataType );
-
-	//! Description: 
-	// Remove outliers from translation axis calibration dataset
-	virtual void RemoveOutliersFromTransAxisCalibData(std::vector<vnl_vector<double>> &aMatrix, std::vector<double> &bVector, const vnl_vector<double> &resultVector );
-	
-	//! Description: 
-	// Calculate mean error and stdev of measured and computed wire positions for each wire
-	virtual void GetTranslationAxisCalibrationError(
-		const std::vector<vnl_vector<double>> &aMatrix, 
-		const std::vector<double> &bVector, 
-		const vnl_vector<double> &resultVector, 
-    std::vector<CalibStatistics> &statistics); 
-
-	//! Description: 
-	// Save translation axis calibration error in gnuplot format 
-	virtual void SaveTranslationAxisCalibrationError(
-		const std::vector<vnl_vector<double>> &aMatrix, 
-		const std::vector<double> &bVector, 
-		const vnl_vector<double> &resultVector, 
-		IMAGE_DATA_TYPE dataType ); 
-
-	// Description:
-	// Add generated html report from the selected data type (probe or template) translation axis calibration to the existing html report
-	// htmlReport and plotter arguments has to be defined by the caller function
-	virtual PlusStatus GenerateTranslationAxisCalibrationReport( IMAGE_DATA_TYPE dataType, vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter, const char* gnuplotScriptsFolder); 
-
-
 	//***************************************************************************
 	//						Rotation axis calibration
 	//***************************************************************************

@@ -59,14 +59,22 @@ public:
   virtual PlusStatus GenerateReport( vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter, const char* gnuplotScriptsFolder); 
 
   // Description:
-  // Set input TrackedFrameList with segmentation results 
-  virtual void SetInput( vtkTrackedFrameList* trackedFrameList ); 
+  // Set inputs: 
+  // - TrackedFrameList with segmentation results 
+  // - Image spacing (mm/px)
+  // - Image data type (TEMPLATE_TRANSLATION, PROBE_TRANSLATION)
+  virtual void SetInputs( vtkTrackedFrameList* trackedFrameList, double spacing[2], IMAGE_DATA_TYPE dataType); 
 
   // Description:
   // Set/get image data type used for calibration
   // Supported data types: TEMPLATE_TRANSLATION, PROBE_TRANSLATION
   vtkSetMacro(DataType, IMAGE_DATA_TYPE); 
   vtkGetMacro(DataType, IMAGE_DATA_TYPE); 
+
+    //! Description: 
+  // Set/get tracked frame list
+  vtkSetObjectMacro(TrackedFrameList, vtkTrackedFrameList); 
+  vtkGetObjectMacro(TrackedFrameList, vtkTrackedFrameList); 
 
   //! Description: 
   // Set/Get the image spacing.
@@ -108,11 +116,6 @@ protected:
     const std::vector<vnl_vector<double>> &aMatrix, 
     const std::vector<double> &bVector, 
     const vnl_vector<double> &resultVector); 
-
-  //! Description: 
-  // Set/get tracked frame list
-  vtkSetObjectMacro(TrackedFrameList, vtkTrackedFrameList); 
-  vtkGetObjectMacro(TrackedFrameList, vtkTrackedFrameList); 
 
   //! Description: 
   // Set/get translation axis orientation [Tx, Ty, 1]
