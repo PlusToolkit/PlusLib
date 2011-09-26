@@ -46,7 +46,6 @@ Phantom::Phantom()
   this->resetDataContainers(); 
 
   mTransformOrigImageFrame2TRUSImageFrameMatrix4x4 = NULL;
-	mNamesOfPhantomSpecificReferencePoints.resize(0);
   mMethodToIncorporateBeamWidth = 0;
   mUS3DBeamwidthAndWeightFactorsInUSImageFrameTable5xM.set_size(0,0);
 	mOrigUS3DBeamwidthAndWeightFactorsInUSImageFrameTable5xN.set_size(0,0);
@@ -219,13 +218,6 @@ void Phantom::setValidationDataConfidenceLevel(
 
 //-----------------------------------------------------------------------------
 
-std::vector<std::string> Phantom::getNamesOfPhantomSpecificReferencePoints()
-{
-	return mNamesOfPhantomSpecificReferencePoints;
-}
-
-//-----------------------------------------------------------------------------
-
 void Phantom::registerPhantomGeometryInEmulatorMode( 
     const vnl_matrix<double> TransformMatrixPhantom2DRB4x4 )
 {
@@ -261,30 +253,9 @@ void Phantom::registerPhantomGeometryInEmulatorMode(
 
 //-----------------------------------------------------------------------------
 
-int Phantom::getNumberOfDataForCalibration()
-{
-	return mDataPositionsInUSImageFrame.size();
-}
-
-//-----------------------------------------------------------------------------
-
-int Phantom::getNumberOfDataForValidation()
-{
-	return mValidationPositionsInUSImageFrame.size();
-}
-
-//-----------------------------------------------------------------------------
-
-bool Phantom::areDataPositionsReadyForCalibration()
-{
-	return mAreDataPositionsReady;
-}
-
-//-----------------------------------------------------------------------------
-
 void Phantom::setOutlierFlags()
 {
-	const double numOfElements = this->getNumberOfDataForCalibration(); 
+	const double numOfElements = this->mDataPositionsInUSImageFrame.size(); 
 	vnl_vector<double> LREx(numOfElements); 
 	vnl_vector<double> LREy(numOfElements); 
 
@@ -515,18 +486,6 @@ vnl_matrix <double> Phantom::getPRE3DsRAWMatrixforValidationDataSet4xN() const
 
 //-----------------------------------------------------------------------------
 
-vnl_matrix <double> Phantom::getSortedPRE3DsRAWMatrixforValidationDataSet4xN() const
-{
-	if( mArePRE3DsForValidationPositionsReady != true )
-	{
-		LOG_ERROR("This operation is not possible since the PRE3Ds' matrix is not ready!");
-	}
-
-	return mSortedRawPRE3DsInAscendingOrderInUSProbeFrameMatrix4xN;
-}
-
-//-----------------------------------------------------------------------------
-
 vnl_vector<double> Phantom::getOrigPLDEsforValidationDataSet() const
 {
 	if( mAreIndependentPointLineReconErrorsReady != true )
@@ -547,18 +506,6 @@ vnl_vector<double> Phantom::getSortedPLDEsforValidationDataSet() const
 	}
 
 	return mSortedPLDEsAscendingforValidationInUSProbeFrame;
-}
-
-//-----------------------------------------------------------------------------
-
-std::vector<Phantom::vnl_vector_double> Phantom::getValidationDataSetInUSImageFrame() const
-{
-	if ( mAreValidationPositionsReady != true )
-	{
-		LOG_ERROR("This operation is not possible since the validation data set is not ready!");
-	}
-
-	return mValidationPositionsInUSImageFrame;
 }
 
 //-----------------------------------------------------------------------------
@@ -607,54 +554,6 @@ vnl_matrix <double> Phantom::getLREOrigMatrix4xNForNWire6() const
 	}
 
 	return mNWire6LREOrigInUSProbeFrameMatrix4xN;
-}
-
-//-----------------------------------------------------------------------------
-
-vnl_matrix <double> Phantom::getLRESortedAscendingMatrix4xNForNWire1() const
-{
-	if( mAreIndependentPointLineReconErrorsReady != true )
-	{
-		LOG_ERROR("This operation is not possible since the data matrix is not ready!");
-	}
-
-	return mNWire1LRESortedAscendingInUSProbeFrameMatrix4xN;
-}
-
-//-----------------------------------------------------------------------------
-
-vnl_matrix <double> Phantom::getLRESortedAscendingMatrix4xNForNWire3() const
-{
-	if( mAreIndependentPointLineReconErrorsReady != true )
-	{
-		LOG_ERROR("This operation is not possible since the data matrix is not ready!");
-	}
-
-	return mNWire3LRESortedAscendingInUSProbeFrameMatrix4xN;
-}
-
-//-----------------------------------------------------------------------------
-
-vnl_matrix <double> Phantom::getLRESortedAscendingMatrix4xNForNWire4() const
-{
-	if( mAreIndependentPointLineReconErrorsReady != true )
-	{
-		LOG_ERROR("This operation is not possible since the data matrix is not ready!");
-	}
-
-	return mNWire4LRESortedAscendingInUSProbeFrameMatrix4xN;
-}
-
-//-----------------------------------------------------------------------------
-
-vnl_matrix <double> Phantom::getLRESortedAscendingMatrix4xNForNWire6() const
-{
-	if( mAreIndependentPointLineReconErrorsReady != true )
-	{
-		LOG_ERROR("This operation is not possible since the data matrix is not ready!");
-	}
-
-	return mNWire6LRESortedAscendingInUSProbeFrameMatrix4xN;
 }
 
 //-----------------------------------------------------------------------------

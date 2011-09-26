@@ -195,22 +195,6 @@ class Phantom
 		// would be accepted as the valid PRE3D values.
 		void setValidationDataConfidenceLevel( const double ValidationDataConfidenceLevel );
 
-		//! Operation: return the number of data used for calibration
-		int getNumberOfDataForCalibration();
-
-		//! Operation: return the number of data used for validation
-		int getNumberOfDataForValidation();
-
-		//! Operation: check to see if the data is ready for calibration
-		// IMPORTANT:
-		// - The calibration phantom requires at least a certain amount of data populated
-		//   in order to perform a successful calibration.
-		//	 For example, for our freehand DoubleN (Kingston) phantom, at least four sets 
-		//   of reference positions must be successfully populated before calibration 
-		//   process could proceed.
-		// - Use this interface to check if the data positions are ready for calibration.
-		bool areDataPositionsReadyForCalibration();
-
 		//! Operation: perform the final calibration task and output the results.
 		// Given the input data (the data positions in both the US image frame and the US
 		// probe frame, a least-squares based algorithm is employ to find the optimal
@@ -287,19 +271,6 @@ class Phantom
 		// NOTE: the operation is useful to obtain all PRE3Ds for statistical analysis if desired.
 		vnl_matrix <double> getPRE3DsRAWMatrixforValidationDataSet4xN() const;
 
-		//! Operation: Obtain the sorted 3D point reconstruction error (PRE3D) matrix using the validation data set
-		// This will return the sorted PRE3D matrix using validation dataset with 
-		// signs in the US probe frame in a ascending order with respect the 
-		// absolute PRE3D root-squared value (length of the PRE3D vector or the 
-		// euclidean distance between the true positions and the project positions).
-		// FORMAT: matrix 4xN (with N being the total number of validation positions)
-		// [ Row-0: PRE3Ds in x-axis from projected to true positions ]
-		// [ Row-1: PRE3Ds in y-axis from projected to true positions ]
-		// [ Row-2: PRE3Ds in z-axis from projected to true positions ]
-		// [ Row-3: Euclidean PRE3D distance sorted in ascending order]
-		// NOTE: the operation is useful to obtain all PRE3Ds for statistical analysis if desired.
-		vnl_matrix <double> getSortedPRE3DsRAWMatrixforValidationDataSet4xN() const;
-
 		//! Operations: Obtain the original and sorted Point-Line Distance Error for the validation dataset
 		// This returns the Point-Line Distance Error (PLDE) for the validation dataset. 
 		// The PLDE was defined as the absolute point-line distance from the projected
@@ -344,22 +315,6 @@ class Phantom
 		vnl_matrix <double> getLREOrigMatrix4xNForNWire4() const;
 		vnl_matrix <double> getLREOrigMatrix4xNForNWire6() const;
 
-		//! Operation: Obtain Sorted Line reconstruction error (LRE) matrix for validation positions in US probe frame
-		// This matrix sorts all the original LREs for the validation dataset with 
-		// signs in the US probe frame in a ascending order with respect to the 
-		// absolute LRE root-squared value (length of the LRE vector or the 
-		// euclidean distance between the true positions and the project positions).
-		// FORMAT: matrix 4xN (with N being the total number of validation positions)
-		// [ Row-0: LREs in x-axis from projected to true positions ]
-		// [ Row-1: LREs in y-axis from projected to true positions ]
-		// [ Row-2: should be all zeros ]
-		// [ Row-3: Euclidean LRE distance sorted in ascending order]
-		// NOTE: this matrix can be obtained for statistical analysis if desired.
-		vnl_matrix <double> getLRESortedAscendingMatrix4xNForNWire1() const;
-		vnl_matrix <double> getLRESortedAscendingMatrix4xNForNWire3() const;
-		vnl_matrix <double> getLRESortedAscendingMatrix4xNForNWire4() const;
-		vnl_matrix <double> getLRESortedAscendingMatrix4xNForNWire6() const;
-
 		//! Operation: Obtain Line Reconstruction Error Analysis for the validation positions in the US probe frame
 		// FORMAT: (all positions are in the US probe frame)
 		// For parallel NWires N1, N3, N4, N6:
@@ -382,17 +337,6 @@ class Phantom
 		std::vector<double> getLREAbsAnalysisForNWire3() const;
 		std::vector<double> getLREAbsAnalysisForNWire4() const;
 		std::vector<double> getLREAbsAnalysisForNWire6() const;
-
-		//! Operation: Obtain the validation data set in the US image frame
-		// This will return the original validation data positions in the US image frame 
-		// that is used from the independent validation task.
-		// FORMAT: for each of the N vectors (with N being the total number of validation positions)
-		// [ Element-0: x-coordinates in the US image frame of the validation data set ]
-		// [ Element-1: y-coordinates in the US image frame of the validation data set ]
-		// [ Element-2: should be all zeros since there is no z-elements for US image  ]
-		// [ Element-3: should be all ones ]
-		// NOTE: the operation is useful to observe the PRE3D distribution on US image if desired.
-		std::vector<vnl_vector_double> getValidationDataSetInUSImageFrame() const;
 
 		//! Operation: get the final calibration transform in 4x4 homogeneous matrix format
 		vnl_matrix<double> getCalibrationResultsInMatrix() const;
@@ -430,9 +374,6 @@ class Phantom
 		//    conforms to the standard way when TRUS is used during imaging (e.g., in
 		//    brachytherapy prostate cancer treatment).
 		vnl_matrix<double> mTransformOrigImageFrame2TRUSImageFrameMatrix4x4;
-
-		//! Attribute: The name list of the phantom-specfic reference points
-		std::vector<std::string> mNamesOfPhantomSpecificReferencePoints;
 
 		//! Attributes: flags that control the registration between phantom and DRB
 		// The flag to be set when the phantom is registered to the DRB frame
