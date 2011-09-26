@@ -214,66 +214,12 @@ PlusStatus vtkSavedDataVideoSource::InternalConnect()
     this->LocalVideoBuffer->DeepCopy( this->Buffer );
   }
 
-  this->LocalVideoBuffer->SetFrameSize( savedDataBuffer->GetFrameSize() ); 
-  this->LocalVideoBuffer->SetPixelType( savedDataBuffer->GetPixelType() ); 
+  // Fill local video buffer
+  this->LocalVideoBuffer->CopyImagesFromTrackedFrameList(savedDataBuffer); 
+  savedDataBuffer->Clear(); 
 
   this->Buffer->SetFrameSize( this->LocalVideoBuffer->GetFrameSize() ); 
   this->Buffer->SetPixelType( this->LocalVideoBuffer->GetPixelType() ); 
-
-  if ( this->LocalVideoBuffer->SetBufferSize(savedDataBuffer->GetNumberOfTrackedFrames()) != PLUS_SUCCESS )
-  {
-    LOG_ERROR("Failed to set video buffer size!"); 
-    return PLUS_FAIL;
-  }
-
-  // Fill local video buffers 
-  for ( unsigned int frame = 0; frame < savedDataBuffer->GetNumberOfTrackedFrames(); ++frame)
-  {
-    TrackedFrame* trackedFrame = savedDataBuffer->GetTrackedFrame(frame); 
-
-    // Get frame number
-    const char* strFrameNumber = trackedFrame->GetCustomFrameField("FrameNumber"); 
-    long frameNumber = -1;
-    if ( strFrameNumber == NULL ) 
-    {
-      frameNumber = frame;
-    }
-    else
-    {
-      frameNumber = atol(strFrameNumber); 
-    }
-
-    // Get Timestamp
-    const char* strTimestamp = trackedFrame->GetCustomFrameField("Timestamp"); 
-    double timestamp = -1;
-    if ( strTimestamp == NULL ) 
-    {
-      timestamp = frame / 10.0;  // Just to make sure its increasing. This is not a normal case.
-    }
-    else
-    {
-      timestamp = atof(strTimestamp); 
-    }
-
-    // Get UnfilteredTimestamp
-    const char* strUnfilteredTimestamp = trackedFrame->GetCustomFrameField("UnfilteredTimestamp"); 
-    double unfilteredTimestamp = -1;
-    if ( strUnfilteredTimestamp == NULL ) 
-    {
-      unfilteredTimestamp = timestamp;
-    }
-    else
-    {
-      unfilteredTimestamp = atof(strUnfilteredTimestamp); 
-    }
-
-    if ( this->LocalVideoBuffer->AddItem(trackedFrame->ImageData, this->GetUsImageOrientation(), frameNumber, unfilteredTimestamp) != PLUS_SUCCESS )
-    {
-      LOG_WARNING("vtkSavedDataVideoSource: Failed to add video frame to buffer from sequence metafile with frame #" << frame ); 
-    }
-  }
-
-  savedDataBuffer->Clear(); 
 
   return PLUS_SUCCESS; 
 }

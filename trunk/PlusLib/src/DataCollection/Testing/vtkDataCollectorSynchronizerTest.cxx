@@ -64,7 +64,6 @@ int main(int argc, char **argv)
     exit(EXIT_FAILURE);
   }
 
-
   if (inputVideoBufferSequenceFileName.empty() || inputTrackerBufferSequenceFileName.empty() )
   {
     std::cerr << "input-video-buffer-seq-file-name and input-tracker-buffer-seq-file-name arguments are required!" << std::endl;
@@ -77,174 +76,30 @@ int main(int argc, char **argv)
   vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
   vtkPlusLogger::Instance()->SetDisplayLogLevel(verboseLevel);
 
-  std::string programPath("./"), errorMsg; 
-  if ( !vtksys::SystemTools::FindProgramPath(argv[0], programPath, errorMsg) )
-  {
-    LOG_ERROR(errorMsg); 
-  }
-  programPath = vtksys::SystemTools::GetParentDirectory(programPath.c_str()); 
-
-
   // Read tracker buffer 
   LOG_INFO("Reading tracker buffer meta file..."); 
   vtkSmartPointer<vtkTrackedFrameList> trackerFrameList = vtkSmartPointer<vtkTrackedFrameList>::New(); 
   trackerFrameList->ReadFromSequenceMetafile(inputTrackerBufferSequenceFileName.c_str()); 
 
   LOG_INFO("Copy buffer to tracker buffer..."); 
-  int numberOfFrames = trackerFrameList->GetNumberOfTrackedFrames();
   vtkSmartPointer<vtkTrackerBuffer> trackerBuffer = vtkSmartPointer<vtkTrackerBuffer>::New(); 
-  trackerBuffer->SetBufferSize(numberOfFrames + 1); 
-
-  for ( int frameNumber = 0; frameNumber < numberOfFrames; frameNumber++ )
+  if (trackerBuffer->CopyDefaultTransformFromTrackedFrameList(trackerFrameList)!=PLUS_SUCCESS)
   {
-    vtkPlusLogger::PrintProgressbar( (100.0 * frameNumber) / numberOfFrames ); 
-    const char* strTimestamp = trackerFrameList->GetTrackedFrame(frameNumber)->GetCustomFrameField("Timestamp"); 
-    double timestamp(0); 
-    if ( strTimestamp != NULL )
-    {
-      timestamp = atof(strTimestamp); 
-    }
-    else
-    {
-      LOG_WARNING("Unable to read Timestamp field of frame #" << frameNumber); 
-      numberOfErrors++; 
-      continue; 
-    }
-
-    const char* strUnfilteredTimestamp = trackerFrameList->GetTrackedFrame(frameNumber)->GetCustomFrameField("UnfilteredTimestamp"); 
-    double unfilteredtimestamp(0); 
-    if ( strUnfilteredTimestamp != NULL )
-    {
-      unfilteredtimestamp = atof(strUnfilteredTimestamp); 
-    }
-    else
-    {
-      LOG_WARNING("Unable to read UnfilteredTimestamp field of frame #" << frameNumber); 
-      numberOfErrors++; 
-      continue; 
-    }
-
-    const char* cFlag = trackerFrameList->GetTrackedFrame(frameNumber)->GetCustomFrameField("Status"); 
-    TrackerStatus status = TR_OK;
-    if ( cFlag != NULL )
-    {
-      status=TrackedFrame::GetStatusFromString(cFlag);      
-    }
-    else
-    {
-      LOG_WARNING("Unable to read Status field of frame #" << frameNumber); 
-      numberOfErrors++; 
-      continue; 
-    }
-
-    const char* strFrameNumber = trackerFrameList->GetTrackedFrame(frameNumber)->GetCustomFrameField("FrameNumber"); 
-    unsigned long frmnum(0); 
-    if ( strFrameNumber != NULL )
-    {
-      frmnum = atol(strFrameNumber);
-    }
-    else
-    {
-      LOG_WARNING("Unable to read FrameNumber field of frame #" << frameNumber); 
-      numberOfErrors++; 
-      continue; 
-    }
-
-
-    double defaultTransform[16]; 
-    if ( !trackerFrameList->GetTrackedFrame(frameNumber)->GetDefaultFrameTransform(defaultTransform) )
-    {
-      LOG_ERROR("Unable to get default frame transform for frame #" << frameNumber); 
-      numberOfErrors++; 
-      continue; 
-    }
-
-    vtkSmartPointer<vtkMatrix4x4> defaultTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
-    defaultTransformMatrix->DeepCopy(defaultTransform); 
-
-    trackerBuffer->AddTimeStampedItem(defaultTransformMatrix, status, frmnum, unfilteredtimestamp, timestamp); 
+    LOG_ERROR("CopyDefaultTrackerDataToBuffer failed");
+    return EXIT_FAILURE;
   }
-
-  vtkPlusLogger::PrintProgressbar( 100 ); 
-  std::cout << std::endl; 
 
   // Read video buffer 
   LOG_INFO("Reading video buffer meta file..."); 
   vtkSmartPointer<vtkTrackedFrameList> videoFrameList = vtkSmartPointer<vtkTrackedFrameList>::New(); 
   videoFrameList->ReadFromSequenceMetafile(inputVideoBufferSequenceFileName.c_str()); 
 
-  const int numberOfVideoFrames = videoFrameList->GetNumberOfTrackedFrames(); 
-
-  if ( numberOfVideoFrames == 0 )
-  {
-    LOG_ERROR("There are no video frames in the buffer!"); 
-    return EXIT_FAILURE; 
-  }
-
   vtkSmartPointer<vtkVideoBuffer> videoBuffer = vtkSmartPointer<vtkVideoBuffer>::New(); 
-  int frameSize[2]={0,0};
-  videoFrameList->GetTrackedFrame(0)->ImageData.GetFrameSize(frameSize);
-  videoBuffer->SetFrameSize(frameSize); 
-  videoBuffer->SetPixelType(videoFrameList->GetTrackedFrame(0)->ImageData.GetITKScalarPixelType());
-
-  if ( videoBuffer->SetBufferSize(numberOfVideoFrames) != PLUS_SUCCESS )
+  if (videoBuffer->CopyImagesFromTrackedFrameList(videoFrameList)!=PLUS_SUCCESS)
   {
-    LOG_ERROR("Failed to set video buffer size!"); 
-    numberOfErrors++; 
+    LOG_ERROR("CopyImagesFromTrackedFrameList failed");
+    return EXIT_FAILURE;
   }
-
-  LOG_INFO("Copy buffer to video buffer..."); 
-  for ( int frameNumber = 0; frameNumber < numberOfVideoFrames; frameNumber++ )
-  {
-    vtkPlusLogger::PrintProgressbar( (100.0 * frameNumber) / numberOfVideoFrames ); 
-    const char* strTimestamp = videoFrameList->GetTrackedFrame(frameNumber)->GetCustomFrameField("Timestamp"); 
-    double timestamp(0); 
-    if ( strTimestamp != NULL )
-    {
-      timestamp = atof(strTimestamp); 
-    }
-    else
-    {
-      LOG_WARNING("Unable to read Timestamp field of frame #" << frameNumber); 
-      numberOfErrors++; 
-      continue; 
-    }
-
-    const char* strUnfilteredTimestamp = videoFrameList->GetTrackedFrame(frameNumber)->GetCustomFrameField("UnfilteredTimestamp"); 
-    double unfilteredtimestamp(0); 
-    if ( strUnfilteredTimestamp != NULL )
-    {
-      unfilteredtimestamp = atof(strUnfilteredTimestamp); 
-    }
-    else
-    {
-      LOG_WARNING("Unable to read UnfilteredTimestamp field of frame #" << frameNumber); 
-      numberOfErrors++; 
-      continue; 
-    }
-
-    const char* strFrameNumber = videoFrameList->GetTrackedFrame(frameNumber)->GetCustomFrameField("FrameNumber"); 
-    unsigned long frmnum(0); 
-    if ( strFrameNumber != NULL )
-    {
-      frmnum = atol(strFrameNumber);
-    }
-    else
-    {
-      LOG_WARNING("Unable to read FrameNumber field of frame #" << frameNumber ); 
-      numberOfErrors++; 
-      continue; 
-    }
-    
-    // Images in the tracked frame list always stored in MF orientation 
-    if ( videoBuffer->AddItem(videoFrameList->GetTrackedFrame(frameNumber)->ImageData, US_IMG_ORIENT_MF, frmnum, unfilteredtimestamp, timestamp) != PLUS_SUCCESS )
-    {
-      LOG_WARNING("Failed to add video frame to buffer from sequence metafile with frame #" << frameNumber ); 
-    }
-  }
-
-  vtkPlusLogger::PrintProgressbar( 100 ); 
-  std::cout << std::endl; 
 
   LOG_INFO("Initialize synchronizer..."); 
   vtkSmartPointer<vtkDataCollectorSynchronizer> synchronizer = vtkSmartPointer<vtkDataCollectorSynchronizer>::New(); 
@@ -315,6 +170,14 @@ int main(int argc, char **argv)
   // Generate html report
   if ( generateReport )
   {
+    std::string programPath("./");
+    std::string errorMsg; 
+    if ( !vtksys::SystemTools::FindProgramPath(argv[0], programPath, errorMsg) )
+    {
+      LOG_ERROR(errorMsg); 
+    }
+    programPath = vtksys::SystemTools::GetParentDirectory(programPath.c_str()); 
+
     const std::string gnuplotPath = vtksys::SystemTools::CollapseFullPath("../gnuplot/gnuplot.exe", programPath.c_str()); 
     const std::string gnuplotScriptsFolder = vtksys::SystemTools::CollapseFullPath("../scripts/"  , programPath.c_str()); 
 

@@ -64,49 +64,12 @@ int main(int argc, char **argv)
   }
 
   LOG_INFO("Copy buffer to tracker buffer..."); 
-  int numberOfFrames = trackerFrameList->GetNumberOfTrackedFrames();
   vtkSmartPointer<vtkTrackerBuffer> trackerBuffer = vtkSmartPointer<vtkTrackerBuffer>::New(); 
-  trackerBuffer->SetBufferSize(numberOfFrames); 
-  trackerBuffer->SetAveragedItemsForFiltering(inputAveragedItemsForFiltering); 
-
-  for ( int frameNumber = 0; frameNumber < numberOfFrames; frameNumber++ )
+  if (trackerBuffer->CopyDefaultTransformFromTrackedFrameList(trackerFrameList, false /* false means "compute filtered timestamps now" */ )!=PLUS_SUCCESS)
   {
-    vtkPlusLogger::PrintProgressbar( (100.0 * frameNumber) / numberOfFrames ); 
-
-    const char* strUnfilteredTimestamp = trackerFrameList->GetTrackedFrame(frameNumber)->GetCustomFrameField("UnfilteredTimestamp"); 
-    double unfilteredtimestamp(0); 
-    if ( strUnfilteredTimestamp != NULL )
-    {
-      unfilteredtimestamp = atof(strUnfilteredTimestamp); 
-    }
-    else
-    {
-      LOG_WARNING("Unable to read UnfilteredTimestamp field of frame #" << frameNumber); 
-      numberOfErrors++; 
-      continue; 
-    }
-
-    const char* strFrameNumber = trackerFrameList->GetTrackedFrame(frameNumber)->GetCustomFrameField("FrameNumber"); 
-    unsigned long frmnum(0); 
-    if ( strFrameNumber != NULL )
-    {
-      frmnum = atol(strFrameNumber);
-    }
-    else
-    {
-      LOG_WARNING("Unable to read FrameNumber field of frame #" << frameNumber); 
-      numberOfErrors++; 
-      continue; 
-    }
-
-    vtkSmartPointer<vtkMatrix4x4> identityMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
-
-    trackerBuffer->AddTimeStampedItem(identityMatrix, TR_OK, frmnum, unfilteredtimestamp); 
+    LOG_ERROR("CopyDefaultTrackerDataToBuffer failed");
+    numberOfErrors++;
   }
-
-  vtkPlusLogger::PrintProgressbar( 100 ); 
-  std::cout << std::endl; 
-
 
   // Check filtering results 
   //************************
@@ -130,7 +93,10 @@ int main(int argc, char **argv)
     }
     if (  timestampDifference > inputMaxTimestampDifference )
     {
-      LOG_ERROR("Difference between the filtered and nonfiltered timestamps are higher than the threshold (UID: " << item << ", timestamp diference: " << timestampDifference << ", threshold: " << inputMaxTimestampDifference << ")"); 
+      LOG_ERROR("Difference between the filtered and nonfiltered timestamps are higher than the threshold (UID: " << item 
+        << ", unfilteredTimestamp: " << std::fixed << bufferItem.GetUnfilteredTimestamp(0)
+        << ", filteredTimestamp: " << std::fixed << bufferItem.GetFilteredTimestamp(0) 
+        << ", timestamp diference: " << timestampDifference << ", threshold: " << inputMaxTimestampDifference << ")"); 
       numberOfErrors++; 
     }
   }

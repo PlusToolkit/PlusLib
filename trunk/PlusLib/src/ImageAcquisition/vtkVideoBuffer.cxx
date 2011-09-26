@@ -5,6 +5,7 @@
 #include "vtkUnsignedLongLongArray.h"
 #include "vtkCriticalSection.h"
 #include "vtkImageData.h"
+#include "vtkTrackedFrameList.h"
 
 vtkCxxRevisionMacro(vtkVideoBuffer, "$Revision: 1.0 $");
 vtkStandardNewMacro(vtkVideoBuffer);
@@ -491,4 +492,75 @@ PlusStatus vtkVideoBuffer::SetPixelType(PlusCommon::ITKScalarPixelType pixelType
 int vtkVideoBuffer::GetNumberOfBytesPerPixel()
 {
   return UsImageConverterCommon::GetNumberOfBytesPerPixel(GetPixelType());
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkVideoBuffer::CopyImagesFromTrackedFrameList(vtkTrackedFrameList *sourceTrackedFrameList)
+{
+  int numberOfErrors=0;
+
+  const int numberOfVideoFrames = sourceTrackedFrameList->GetNumberOfTrackedFrames(); 
+  LOG_DEBUG("CopyImagesFromTrackedFrameList will copy "<< numberOfVideoFrames<< " frames"); 
+
+  int frameSize[2]={0,0};
+  sourceTrackedFrameList->GetTrackedFrame(0)->ImageData.GetFrameSize(frameSize);
+  this->SetFrameSize(frameSize); 
+  this->SetPixelType(sourceTrackedFrameList->GetTrackedFrame(0)->ImageData.GetITKScalarPixelType());
+
+  if ( this->SetBufferSize(numberOfVideoFrames) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to set video buffer size!"); 
+    return PLUS_FAIL;
+  }
+
+  LOG_INFO("Copy buffer to video buffer..."); 
+  for ( int frameNumber = 0; frameNumber < numberOfVideoFrames; frameNumber++ )
+  {
+    const char* strTimestamp = sourceTrackedFrameList->GetTrackedFrame(frameNumber)->GetCustomFrameField("Timestamp"); 
+    double timestamp(0); 
+    if ( strTimestamp != NULL )
+    {
+      timestamp = atof(strTimestamp); 
+    }
+    else
+    {
+      LOG_WARNING("Unable to read Timestamp field of frame #" << frameNumber); 
+      numberOfErrors++; 
+      continue; 
+    }
+
+    const char* strUnfilteredTimestamp = sourceTrackedFrameList->GetTrackedFrame(frameNumber)->GetCustomFrameField("UnfilteredTimestamp"); 
+    double unfilteredtimestamp(0); 
+    if ( strUnfilteredTimestamp != NULL )
+    {
+      unfilteredtimestamp = atof(strUnfilteredTimestamp); 
+    }
+    else
+    {
+      LOG_WARNING("Unable to read UnfilteredTimestamp field of frame #" << frameNumber); 
+      numberOfErrors++; 
+      continue; 
+    }
+
+    const char* strFrameNumber = sourceTrackedFrameList->GetTrackedFrame(frameNumber)->GetCustomFrameField("FrameNumber"); 
+    unsigned long frmnum(0); 
+    if ( strFrameNumber != NULL )
+    {
+      frmnum = atol(strFrameNumber);
+    }
+    else
+    {
+      LOG_WARNING("Unable to read FrameNumber field of frame #" << frameNumber ); 
+      numberOfErrors++; 
+      continue; 
+    }
+    
+    // Images in the tracked frame list always stored in MF orientation 
+    if ( this->AddItem(sourceTrackedFrameList->GetTrackedFrame(frameNumber)->ImageData, US_IMG_ORIENT_MF, frmnum, unfilteredtimestamp, timestamp) != PLUS_SUCCESS )
+    {
+      LOG_WARNING("Failed to add video frame to buffer from sequence metafile with frame #" << frameNumber ); 
+    }
+  }
+
+  return (numberOfErrors>0 ? PLUS_FAIL:PLUS_SUCCESS );
 }
