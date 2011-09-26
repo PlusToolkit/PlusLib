@@ -122,6 +122,7 @@ int main( int argc, char *argv[] )
   if ( inputConfigFileName.empty() )
   {
     std::cerr << "input-config-file is required" << std::endl;
+    std::cout << "Help: " << args.GetHelp() << std::endl;
     return 1;
   }
   
@@ -140,29 +141,41 @@ int main( int argc, char *argv[] )
   if ( configRootElement == NULL )
   {	
     LOG_ERROR("Unable to read configuration from file " << inputConfigFileName.c_str()); 
+    std::cout << "Help: " << args.GetHelp() << std::endl;
     return 1;
   }
   dataCollector->ReadConfiguration( configRootElement );
   
+    
   if ( dataCollector->GetAcquisitionType() == SYNCHRO_VIDEO_SAVEDDATASET )
-    {
+  {
     vtkSavedDataVideoSource* videoSource = static_cast< vtkSavedDataVideoSource* >( dataCollector->GetVideoSource() );
     
     if ( ! inputVideoBufferMetafile.empty() )
-      {
+    {
       videoSource->SetSequenceMetafile( inputVideoBufferMetafile.c_str() );
-      }
     }
+	else
+    {
+      std::cout << "Help: " << args.GetHelp() << std::endl;
+      return 1;
+    }
+  }
   
   if ( dataCollector->GetTrackerType() == TRACKER_SAVEDDATASET )
-    {
+  {
     vtkSavedDataTracker* tracker = static_cast< vtkSavedDataTracker* >( dataCollector->GetTracker() );
       
     if ( ! inputTrackerBufferMetafile.empty() )
-      {
+    {
       tracker->SetSequenceMetafile( inputTrackerBufferMetafile.c_str() );
-      }
     }
+    else
+    {
+      std::cout << "Help: " << args.GetHelp() << std::endl;
+      return 1;
+    }
+  }
   
   
   LOG_INFO( "Initializing data collector." );
