@@ -1,18 +1,6 @@
 #ifndef PHANTOM_H
 #define PHANTOM_H
-// ===========================================================================
-// Program Modification Record
-// ===========================================================================
-// Component:	Component_AutoTRUSCalibration
-// ===========================================================================
-// Class:		Phantom
-// ===========================================================================
-// File Name:	Phantom.h
-// ===========================================================================
-// Author:		Thomas Kuiran Chen <chent@cs.queensu.ca>
-//				School of Computing, Queen's University at Kingston, Canada
-// ===========================================================================
-// Purposes: 
+
 // 1. This the parent class of all current or future calibration phantoms.
 // 2. This class defines some generic features and behaviors that one would
 //    typically expect from an ultrasound probe calibration phantom.  By 
@@ -21,15 +9,6 @@
 //    geometries that differ from phantom to phantom).
 // 3. Uses the open source VXL-VNL (Numerical and Algebra C++ Library)
 // 4. Uses C++ Standard Library and Standard Template Library
-// ===========================================================================
-// Change History:
-//
-// Author				Time						Release	Changes
-// Thomas Kuiran Chen	Mon Mar 1 08:19 EST 2010	1.0		Creation
-//
-// ===========================================================================
-//					  Copyright @ Thomas Kuiran Chen, 2010
-// ===========================================================================
 
 
 // C++ Standard Includes
@@ -453,17 +432,6 @@ class Phantom
 		//       the flag set to true.  This would save the system runtime
 		//       during the iterative calibration/validation process.
 		PlusStatus constructValidationDataMatrices();
-
-		//! Operation
-		// This operation will convert the transform data to 4x4 homogeneous matrix.
-		// IMPORTANT: Please follow the interface closely.
-		// 1. The input transform is in a vector array format:
-		//		- [0]     = Q0			(in degrees - the rotation angle)
-		//		- [1 - 3] = Qx, Qy, Qz	(the unit rotation axis)
-		//		- [4 - 6] = Tx, Ty, Tz	(translation); 
-		// 2. The output is a 4x4 homogeneous transform matrix.
-		vnl_matrix<double> convertTransform2HomoMatrix(
-			const std::vector<double> &TransformInVectorArray);
 
 		//! Operation
 		// Frames where the LRE is larger than LRE stdev * OutlierDetectionThreshold 

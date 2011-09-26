@@ -253,25 +253,11 @@ void Phantom::registerPhantomGeometryInEmulatorMode(
     // Set the calibration flag to true
 	mHasPhantomBeenRegistered = true;
 
-	// Log the data pipeline if requested.
-	std::vector<double> TransformPhantom2DRBFrameInParameters = 
-		convertHomogeneousMatrixToParameters( mTransformMatrixPhantom2DRB4x4 );
-
 	LOG_DEBUG(" Setting Phantom to Reference matrix");
 	LOG_DEBUG(" mTransformMatrixPhantom2DRB4x4 = " 
 		<< mTransformMatrixPhantom2DRB4x4);				
 	LOG_DEBUG(" mTransformMatrixDRB2Phantom4x4 = " 
 		<< mTransformMatrixDRB2Phantom4x4);				
-	LOG_DEBUG("Convert to 8-parameter transform (from Phantom to DRB frame) = ");
-	LOG_DEBUG("FORMAT: [Alpha, Beta, Gamma (in radians); Sx, Sy; Tx, Ty, Tz]");
-	LOG_DEBUG(TransformPhantom2DRBFrameInParameters[0] << ", "
-		<< TransformPhantom2DRBFrameInParameters[1] << ", "
-		<< TransformPhantom2DRBFrameInParameters[2] << ";  "
-		<< TransformPhantom2DRBFrameInParameters[3] << ", "
-		<< TransformPhantom2DRBFrameInParameters[4] << ";  "
-		<< TransformPhantom2DRBFrameInParameters[5] << ", "
-		<< TransformPhantom2DRBFrameInParameters[6] << ", "
-		<< TransformPhantom2DRBFrameInParameters[7] << ".");
 }
 
 //-----------------------------------------------------------------------------
@@ -539,7 +525,6 @@ std::vector<double> Phantom::convertHomogeneousMatrixToParameters(
 	// Calculate the Rotation-Translation-Scaling (8 parameters)
 	
 	// 1. EulerZYX Angles (all angles are in radians)
-	// ==============================================
 	// Alpha, Beta, Gamma: Rotation in EulerZYX angles are performed in
 	// the following order w.r.t. the current frame (frmae 0-1-2):
 	// - 1st, rotation about current Z0 axis of angle Alpha;
@@ -592,18 +577,15 @@ std::vector<double> Phantom::convertHomogeneousMatrixToParameters(
 		TransformMatrixRotationNormalized.get(2,2) );
 
 	// 2. Scaling Factors (in meters/pixel)
-	// ====================================
 	double Sx = HomogeneousTransformMatrix4x4.get(2,0)/( -sin( Beta ) );
 	double Sy = HomogeneousTransformMatrix4x4.get(2,1)/( cos( Beta )*sin( Gamma ) );
 
 	// 3. Translation of Origin (in meters)
-	// ====================================
 	double Tx = HomogeneousTransformMatrix4x4.get(0,3);
 	double Ty = HomogeneousTransformMatrix4x4.get(1,3);
 	double Tz = HomogeneousTransformMatrix4x4.get(2,3);
 
 	// Finalizing
-	// ==========
 	// 0-Alpha, 1-Beta, 2-Gamma, 3-Sx, 4-Sy, 5-Tx, 6-Ty, 7-Tz 
 	std::vector<double> HomogeneousTransformInParameters;
 
@@ -1773,72 +1755,4 @@ PlusStatus Phantom::constructValidationDataMatrices()
 	}
 
   return PLUS_SUCCESS;
-}
-
-//-----------------------------------------------------------------------------
-
-vnl_matrix<double> Phantom::convertTransform2HomoMatrix(
-	const std::vector<double> &TransformInVectorArray)
-{
-	// IMPORTANT: Please follow the interface closely.
-	// 1. The input transform is in a vector array format:
-	//		- [0]     = Q0			(in degrees - the rotation angle)
-	//		- [1 - 3] = Qx, Qy, Qz	(the unit rotation axis)
-	//		- [4 - 6] = Tx, Ty, Tz	(translation); 
-	// 2. The output is a 4x4 homogeneous transform matrix.
-
-	// Extract elements from the Transform vector array
-
-	// Angle of rotation in degrees (Q0)
-	double RotationAngleInDegrees = TransformInVectorArray.at(0);	
-	double RotationAngleInRadians = RotationAngleInDegrees * ( mPI/180 );
-	// Unit rotation axis (Qx, Qy, Qz)
-	double Qx = TransformInVectorArray.at(1);			
-	double Qy = TransformInVectorArray.at(2);			
-      double Qz = TransformInVectorArray.at(3);			
-
-	// Translations (Tx, Ty, Tz)
-	double Tx = TransformInVectorArray.at(4);			
-	double Ty = TransformInVectorArray.at(5);			
-	double Tz = TransformInVectorArray.at(6);			
-
-	// Construct the Unit Quaterions [Qa Qb Qc Qd]'
-      // NOTE: Qa*Qa + Qb*Qb + Qc*Qc + Qd*Qd = 1, or Unit Quaterion
-	double Qa = cos( RotationAngleInRadians * 0.5 );
-	double Qb = Qx * sin( RotationAngleInRadians * 0.5 );
-	double Qc = Qy * sin( RotationAngleInRadians * 0.5 );
-	double Qd = Qz * sin( RotationAngleInRadians * 0.5 );
-	
-	// Finally we compose the 4x4 homogeneous transform matrix 
-	// using the information collected
-	vnl_matrix<double> HomoTransformMatrix(4,4);
-	vnl_vector<double> Row( 4, 0 );
-
-	// 1st row
-	Row.put( 0, pow(Qa, 2) + pow(Qb, 2) - pow(Qc, 2) - pow(Qd, 2) );
-	Row.put( 1, 2 * ( Qb * Qc - Qa * Qd) );
-	Row.put( 2, 2 * ( Qb * Qd + Qa * Qc) );
-	Row.put( 3, Tx );
-	HomoTransformMatrix.set_row(0, Row);
-
-	// 2nd row
-	Row.put( 0, 2 * ( Qb * Qc + Qa * Qd ) );
-	Row.put( 1, pow(Qa, 2) + pow(Qc, 2) - pow(Qb, 2) - pow(Qd, 2) );
-	Row.put( 2, 2 * ( Qc * Qd - Qa * Qb ) );
-	Row.put( 3, Ty );
-	HomoTransformMatrix.set_row(1, Row);
-
-	// 3rd row
-	Row.put( 0, 2 * ( Qb * Qd - Qa * Qc ) );
-	Row.put( 1, 2 * ( Qc * Qd + Qa * Qb ) );
-	Row.put( 2, pow(Qa, 2) + pow(Qd, 2) - pow(Qb, 2) - pow(Qc, 2) );
-	Row.put( 3, Tz );
-	HomoTransformMatrix.set_row(2, Row);
-
-	// 4th row as standard (0,0,0,1)
-	Row.fill(0);
-	Row.put(3, 1);
-	HomoTransformMatrix.set_row(3, Row);
-
-	return HomoTransformMatrix;
 }
