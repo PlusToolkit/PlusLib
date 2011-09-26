@@ -22,6 +22,8 @@
 #include "vtkPlane.h"
 #include "vtksys/SystemTools.hxx"
 
+#include "LinearLeastSquares.h" //TODO use PlusMath instead
+
 vtkCxxRevisionMacro(vtkCalibrationController, "$Revision: 1.0 $");
 vtkStandardNewMacro(vtkCalibrationController);
 

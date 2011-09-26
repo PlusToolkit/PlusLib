@@ -21,9 +21,6 @@ class BrachyTRUSCalibrator : public Phantom
 {
 	public:
 		
-		//! Strings
-		static const std::string mstrScope;
-
 		//! Constants
 		// For BrachyTRUSCalibrator, row/col indices are of no interest
 		// to us any more, because we only see two layers of N-wires with one
@@ -72,7 +69,7 @@ class BrachyTRUSCalibrator : public Phantom
 		// 
 		// Interface-1: transformation of the image is given from
 		//              the US Probe frame to the DRB frame.
-		virtual void addDataPositionsPerImage( 
+		virtual PlusStatus addDataPositionsPerImage( 
 			std::vector<vnl_vector_double> SegmentedDataPositionListPerImage, 
 			const vnl_matrix<double> TransformMatrixUSProbe2Stepper4x4 );
 
@@ -89,7 +86,7 @@ class BrachyTRUSCalibrator : public Phantom
 		//
 		// Interface-1: transformation of the image is given from
 		//              the US Probe frame to the DRB frame.
-		virtual void addValidationPositionsPerImage( 
+		virtual PlusStatus addValidationPositionsPerImage( 
 			std::vector<vnl_vector_double> SegmentedDataPositionListPerImage, 
 			const vnl_matrix<double> TransformMatrixUSProbe2Stepper4x4 );
 

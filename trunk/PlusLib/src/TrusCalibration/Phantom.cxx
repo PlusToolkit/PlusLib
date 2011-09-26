@@ -15,22 +15,7 @@
 #include <iostream>
 #include <fstream>	// for file I/O process
 
-// CommonFramework includes
-// Least-Squares class include
-#ifndef LINEARLEASTSQUARES_H
 #include "LinearLeastSquares.h"
-#endif
-
-// VNL Includes
-#include "vnl/algo/vnl_matrix_inverse.h"
-#include "vcl_istream.h"
-
-// Strings
-const std::string Phantom::mstrScope = "Phantom";
-const std::string Phantom::mstrCalibrationLogFileNameSuffix = ".Calibration.log";
-
-// Constants
-const double Phantom::mPI = 3.141592653589;
 
 double Phantom::mOutlierDetectionThreshold = 3.0; 
 
@@ -72,7 +57,6 @@ void Phantom::resetDataContainers()
 	// Initialize data containers
 	mTransformOrigImageFrame2TRUSImageFrameMatrix4x4.set_size(4,4);
 	mTransformMatrixPhantom2DRB4x4.set_size(4,4);
-	mTransformMatrixDRB2Phantom4x4.set_size(4,4);
 
   mDataPositionsInPhantomFrame.resize(0);
 	mDataPositionsInUSProbeFrame.resize(0);
@@ -231,24 +215,12 @@ void Phantom::registerPhantomGeometryInEmulatorMode(
 	// bring the N-fiducials from phantom frame to DRB frame.
 	mTransformMatrixPhantom2DRB4x4 = TransformMatrixPhantom2DRB4x4;
 
-	// Obtain the inverse to of the transform from DRB to Phantom frame
-	// This matrix is not required for calibration, but it could be
-	// userful for debugging or other validation analysis.
-	vnl_matrix_inverse<double> inverseMatrix( mTransformMatrixPhantom2DRB4x4 );
-	mTransformMatrixDRB2Phantom4x4 = inverseMatrix.inverse();
-	// Make sure the last row in homogeneous transform is [0 0 0 1]
-	vnl_vector<double> lastRow(4,0);
-	lastRow.put(3, 1);
-	mTransformMatrixDRB2Phantom4x4.set_row(3, lastRow);
-
     // Set the calibration flag to true
 	mHasPhantomBeenRegistered = true;
 
 	LOG_DEBUG(" Setting Phantom to Reference matrix");
 	LOG_DEBUG(" mTransformMatrixPhantom2DRB4x4 = " 
 		<< mTransformMatrixPhantom2DRB4x4);				
-	LOG_DEBUG(" mTransformMatrixDRB2Phantom4x4 = " 
-		<< mTransformMatrixDRB2Phantom4x4);				
 }
 
 //-----------------------------------------------------------------------------
