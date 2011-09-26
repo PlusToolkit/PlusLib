@@ -32,13 +32,6 @@ class Phantom
 		//! VNL vector in double format
 		typedef vnl_vector<double> vnl_vector_double;		
 
-		//! Strings
-		static const std::string mstrScope;
-		static const std::string mstrCalibrationLogFileNameSuffix;
-
-		//! Constants
-		static const double mPI;
-
 		//! Constructor
 		Phantom();
 
@@ -126,53 +119,6 @@ class Phantom
 		//   transform are all ready, no hardware tracking is required.
 		void registerPhantomGeometryInEmulatorMode( 
 			const vnl_matrix<double> TransformMatrixPhantom2DRB4x4 );
-
-		//! Operations: Calculate and add positions in Phantom frame
-		// This operation will use the segmented N-fiducials in each US image to 
-		// calculate the position in Phantom frame base on the existing phantom 
-		// geometry data.  The result would be added contineously into a private 
-		// class data storage container.  Note: this operation is performed on 
-		// one individual US image captured on Phantom, so natually, it can be 
-		// called repeatedly to add in reference positions in multiple images 
-		// in order to enhance the calibration accuracy.
-		// IMPORTANT:
-		// This is a very critical point that would easily cause confusions
-		// or mistakes.  There is one and only one fixed correspondence between 
-		// the 6 segmented image positions (N-fiducials) and the N-wires (look
-		// at 3D view of the N-wire phantom (/phantom/3DViewOfPhantomGeometry.png)
-		// for a visual understanding).
-		// NOTE: N-fiducials are those positions where the US image plane 
-		// intersects the N-wires therefore appear to be a bright spot (fiducial) 
-		// in the US images.
-		// - Segmented N-fiducial-0 is on N-wire 1;
-		// - Segmented N-fiducial-1 is on N-wire 2;
-		// - Segmented N-fiducial-2 is on N-wire 3;
-		// - Segmented N-fiducial-3 is on N-wire 4;
-		// - Segmented N-fiducial-4 is on N-wire 5;
-		// - Segmented N-fiducial-5 is on N-wire 6;
-		//
-		// Interface-1: transformation of the image is given from
-		//              the US Probe frame to the DRB frame.
-		virtual void addDataPositionsPerImage( 
-			std::vector<vnl_vector_double> SegmentedDataPositionListPerImage, 
-			const vnl_matrix<double> TransformMatrixUSProbe2DRB4x4 ) = 0;
-
-		//! Operation: Add positions per image to validate calibration accuracy
-		// This operation performs similarly to the ::addDataPositionsPerImage
-		// method, except that these added positions are stored to validate the 
-		// overall calibration accuracy.  These data positions are kept 
-		// separately from those that are used for the calibration so as not to 
-		// be biased toward the calibration results in the validation process.
-		// Note: like ::addDataPositionsPerImage, this operation is performed 
-		// on individual US images acquired from the phantom, so natually, it 
-		// can be called repeatedly to add in as many data necessary to enhance 
-		// the calibration accuracy.
-		//
-		// Interface-1: transformation of the image is given from
-		//              the US Probe frame to the DRB frame
-		virtual void addValidationPositionsPerImage( 
-			std::vector<vnl_vector_double> SegmentedDataPositionListPerImage, 
-			const vnl_matrix<double> TransformMatrixUSProbe2DRB4x4 ) = 0;
 
 		//! Operation: get data positions collected as inputs for the US calibration
 		std::vector<vnl_vector_double> getDataPositionsInPhantomFrame() { 
@@ -470,7 +416,6 @@ class Phantom
 
 		//! Attributes: the 4x4 homogeneous transform matrices after registration of phantom geometry
 		vnl_matrix<double> mTransformMatrixPhantom2DRB4x4;
-		vnl_matrix<double> mTransformMatrixDRB2Phantom4x4;
 
 		//! Attributes: data positions collected as inputs for the US calibration
 		std::vector<vnl_vector_double> mDataPositionsInPhantomFrame;
