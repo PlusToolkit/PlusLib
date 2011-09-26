@@ -397,31 +397,7 @@ class Phantom
 		//! Operation: get the final calibration transform in 4x4 homogeneous matrix format
 		vnl_matrix<double> getCalibrationResultsInMatrix() const;
 
-		//! Operation: Get the calibration transform in parameters
-		// The parameters are stored in the following format:
-		// - EulerZYX Angles (in radians):		0-Alpha,  1-Beta,  2-Gamma 
-		// - Scaling Factors (in meters/pixel):	3-Sx,	  4-Sy
-		// - Translation of Origin (in meters):	5-Tx,	  6-Ty,	   7-Tz
-		std::vector<double> getCalibrationResultsInParameters();
-
 	protected:
-
-		//! Operation: Convert the calibration transform to parameters
-		// The parameters are stored in the following format:
-		// - EulerZYX Angles (in radians):			0-Alpha,  1-Beta,  2-Gamma 
-		// - Scaling Factors (in milimeters/pixel):	3-Sx,	  4-Sy
-		// - Translation of Origin (in milimeters):	5-Tx,	  6-Ty,	   7-Tz
-		void convertCalibrationResultsToParameters();
-
-		//! Operation: Convert a homogeneous 4x4 matrix to parameters
-		// IMPORTANT: Please follow the interface closely.
-		// 1. The input is a homogeneous 4x4 matrix;
-		// 2. The parameters are returned in the following format:
-		// - EulerZYX Angles (in radians):			0-Alpha,  1-Beta,  2-Gamma 
-		// - Scaling Factors (in milimeters/pixel):	3-Sx,	  4-Sy
-		// - Translation of Origin (in milimeters):	5-Tx,	  6-Ty,	   7-Tz
-		std::vector<double> convertHomogeneousMatrixToParameters(
-			const vnl_matrix<double> HomogeneousTransformMatrix4x4 );
 
 		//! Operation
 		// This will construct the validation data matrices
@@ -610,13 +586,6 @@ class Phantom
 		//! Attribute: Final calibration transform in vnl_matrix format
 		// The homogeneous transform matrix from the US image frame to the US probe frame
 		vnl_matrix<double> mTransformUSImageFrame2USProbeFrameMatrix4x4;
-
-		//! Attribute: Final calibration transform in 8 parameters
-		// The parameters are in the following format
-		// - EulerZYX Angles (in radians):		0-Alpha,  1-Beta,  2-Gamma 
-		// - Scaling Factors (in meters/pixel):	3-Sx,	  4-Sy
-		// - Translation of Origin (in meters):	5-Tx,	  6-Ty,	   7-Tz
-		std::vector<double> mTransformUSImageFrame2USProbeFrameParameters;
 
 		//! Attribute: Validation data confidence level
 		// This sets the confidence level (trusted zone) as a percentage

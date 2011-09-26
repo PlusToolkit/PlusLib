@@ -229,13 +229,6 @@ public: // Former ProbeCalibrationController and FreehandCalibraitonController f
 	// Transform: from the US image frame to the US probe frame.
 	virtual vnl_matrix<double> GetCalibrationMatrix() { return this->Calibrator->getCalibrationResultsInMatrix(); }
 
-	// The calibration transform in 8 parameters calculated from the original transformation matrix.
-	//	The parameters are in the following format:
-	// - EulerZYX Angles (in radians):		0-Alpha,  1-Beta,  2-Gamma 
-	// - Scaling Factors (in mm/pixel):		3-Sx,	  4-Sy
-	// - Translation of Origin (in mm):		5-Tx,	  6-Ty,	   7-Tz
-	virtual vtkstd::vector<double> GetCalibrationParameters() { return this->Calibrator->getCalibrationResultsInParameters(); }
-
 	//! Attribute: Point-Line Distance Error for validation positions in US probe frame
 	// This contains the Point-Line Distance Error (PLDE) for the validation dataset. 
 	// The PLDE was defined as the absolute point-line distance from the projected

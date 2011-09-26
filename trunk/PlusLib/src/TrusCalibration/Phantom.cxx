@@ -122,7 +122,6 @@ void Phantom::resetDataContainers()
 	mNWire4LRESortedAscendingInUSProbeFrameMatrix4xN.set_size(0,0);
 	mNWire6LRESortedAscendingInUSProbeFrameMatrix4xN.set_size(0,0);
 
-	mTransformUSImageFrame2USProbeFrameParameters.resize(0);
 	mAbsPRE3DAnalysis4ValidationPositionsInUSProbeFrame.resize(0);
 	mPLDEAnalysis4ValidationPositionsInUSProbeFrame.resize(0);
 	mRawPRE3DsforValidationPositionsInUSProbeFrameMatrix4xN.set_size(0,0);
@@ -451,9 +450,6 @@ PlusStatus Phantom::calibrate()
 	// Reset the calibration flag
 	mHasBeenCalibrated = true;
 
-	// Convert the calibration matrix to parameters
-	convertCalibrationResultsToParameters();
-
 	// Log the data pipeline if requested.
 	LOG_DEBUG(" PERFORM CALIBRATION");
 	LOG_DEBUG(" mTransformOrigImageFrame2TRUSImageFrameMatrix4x4 = \n" << mTransformOrigImageFrame2TRUSImageFrameMatrix4x4);
@@ -465,16 +461,6 @@ PlusStatus Phantom::calibrate()
 		LOG_DEBUG(" WeightsForDataPositionsInVNLvectors = \n" << WeightsForDataPositionsInVNLvectors);
 	}
 	LOG_DEBUG(" mTransformUSImageFrame2USProbeFrameMatrix4x4 = \n" << mTransformUSImageFrame2USProbeFrameMatrix4x4);
-	LOG_DEBUG("Convert to mTransformUSImageFrame2USProbeFrameParameters = ");
-	LOG_DEBUG("FORMAT: [Alpha, Beta, Gamma (in radians); Sx, Sy; Tx, Ty, Tz]");
-	LOG_DEBUG(mTransformUSImageFrame2USProbeFrameParameters[0] << ", "
-		<< mTransformUSImageFrame2USProbeFrameParameters[1] << ", "
-		<< mTransformUSImageFrame2USProbeFrameParameters[2] << ";  "
-		<< mTransformUSImageFrame2USProbeFrameParameters[3] << ", "
-		<< mTransformUSImageFrame2USProbeFrameParameters[4] << ";  "
-		<< mTransformUSImageFrame2USProbeFrameParameters[5] << ", "
-		<< mTransformUSImageFrame2USProbeFrameParameters[6] << ", "
-		<< mTransformUSImageFrame2USProbeFrameParameters[7] << ".");
 
   return PLUS_SUCCESS;
 }
@@ -489,116 +475,6 @@ vnl_matrix<double> Phantom::getCalibrationResultsInMatrix() const
 	}
 
 	return mTransformUSImageFrame2USProbeFrameMatrix4x4;
-}
-
-//-----------------------------------------------------------------------------
-
-std::vector<double> Phantom::getCalibrationResultsInParameters()
-{
-	if( mHasBeenCalibrated != true )
-	{
-		LOG_ERROR("This operation is not possible since the calibration is not yet finished!");
-	}
-
-	return mTransformUSImageFrame2USProbeFrameParameters;
-}
-
-//-----------------------------------------------------------------------------
-
-void Phantom::convertCalibrationResultsToParameters()
-{
-	if( mHasBeenCalibrated != true )
-	{
-		LOG_ERROR("This operation is not possible since the calibration is not yet finished!");
-    return;
-	}
-
-	mTransformUSImageFrame2USProbeFrameParameters = 
-		convertHomogeneousMatrixToParameters( mTransformUSImageFrame2USProbeFrameMatrix4x4 );
-}
-
-//-----------------------------------------------------------------------------
-
-std::vector<double> Phantom::convertHomogeneousMatrixToParameters(
-	const vnl_matrix<double> HomogeneousTransformMatrix4x4 )
-{
-	// Calculate the Rotation-Translation-Scaling (8 parameters)
-	
-	// 1. EulerZYX Angles (all angles are in radians)
-	// Alpha, Beta, Gamma: Rotation in EulerZYX angles are performed in
-	// the following order w.r.t. the current frame (frmae 0-1-2):
-	// - 1st, rotation about current Z0 axis of angle Alpha;
-	// - 2nd, rotation about current Y1 axis of angle Beta;
-	// - 3rd, rotation about current X2 axis of angle Gamma;
-	// - These are equvalent to rotate about the original fixed frame, 
-	//   X0-Y0-Z0, but in a reversed order, by Gamma-Beta-Alpha.
-
-	// First, we will normalize the column vectors in the rotation part (3x3)
-	// of the input matrix to elimate the influnce from the scaling factor. 
-	// NOTE: 
-	// - The translation part (the 4th column) remains untouched.
-	// - Because 3rd column of the calibration matrix is all zero, we will
-	//   generate a 3rd vector from cross-product of the 1st and 2nd column.
-	vnl_vector<double> Column1st(3,0);
-	vnl_vector<double> Column2nd(3,0);
-	Column1st.put(0, HomogeneousTransformMatrix4x4.get_column(0).get(0));
-	Column1st.put(1, HomogeneousTransformMatrix4x4.get_column(0).get(1));
-	Column1st.put(2, HomogeneousTransformMatrix4x4.get_column(0).get(2));
-	Column2nd.put(0, HomogeneousTransformMatrix4x4.get_column(1).get(0));
-	Column2nd.put(1, HomogeneousTransformMatrix4x4.get_column(1).get(1));
-	Column2nd.put(2, HomogeneousTransformMatrix4x4.get_column(1).get(2));
-	vnl_vector<double> Column3rdNormalized(4,0);
-	Column3rdNormalized.put(0, vnl_cross_3d(Column1st, Column2nd).normalize().get(0));
-	Column3rdNormalized.put(1, vnl_cross_3d(Column1st, Column2nd).normalize().get(1));
-	Column3rdNormalized.put(2, vnl_cross_3d(Column1st, Column2nd).normalize().get(2));
-	Column3rdNormalized.put(3, 0);
-
-	vnl_matrix <double> TransformMatrixRotationNormalized(4,4);
-	TransformMatrixRotationNormalized.set_column(0, HomogeneousTransformMatrix4x4.get_column(0).normalize());
-	TransformMatrixRotationNormalized.set_column(1, HomogeneousTransformMatrix4x4.get_column(1).normalize());
-	TransformMatrixRotationNormalized.set_column(2, Column3rdNormalized);
-	TransformMatrixRotationNormalized.set_column(3, HomogeneousTransformMatrix4x4.get_column(3));
-
-	// Alpha: cos(Beta) > 0
-	double Alpha = atan2( 
-		TransformMatrixRotationNormalized.get(1,0), 
-		TransformMatrixRotationNormalized.get(0,0) );
-	// Beta: in the region of (-pi/2, pi/2) or cos(Beta) > 0
-	double Beta = atan2( 
-		-TransformMatrixRotationNormalized.get(2,0), 
-		sqrt( pow(TransformMatrixRotationNormalized.get(0,0),2) + 
-		pow(TransformMatrixRotationNormalized.get(1,0),2) ) );
-	// Gamma: 
-	// We found using the 2nd column alone to solve Gamma is not reliable
-	// and inconsistant in results.  Therefore as in most literature
-	// documented, we use r21 and r22 to solve Gamma. 
-	double Gamma = atan2( 
-		TransformMatrixRotationNormalized.get(2,1), 
-		TransformMatrixRotationNormalized.get(2,2) );
-
-	// 2. Scaling Factors (in meters/pixel)
-	double Sx = HomogeneousTransformMatrix4x4.get(2,0)/( -sin( Beta ) );
-	double Sy = HomogeneousTransformMatrix4x4.get(2,1)/( cos( Beta )*sin( Gamma ) );
-
-	// 3. Translation of Origin (in meters)
-	double Tx = HomogeneousTransformMatrix4x4.get(0,3);
-	double Ty = HomogeneousTransformMatrix4x4.get(1,3);
-	double Tz = HomogeneousTransformMatrix4x4.get(2,3);
-
-	// Finalizing
-	// 0-Alpha, 1-Beta, 2-Gamma, 3-Sx, 4-Sy, 5-Tx, 6-Ty, 7-Tz 
-	std::vector<double> HomogeneousTransformInParameters;
-
-	HomogeneousTransformInParameters.push_back(Alpha);
-	HomogeneousTransformInParameters.push_back(Beta);
-	HomogeneousTransformInParameters.push_back(Gamma);
-	HomogeneousTransformInParameters.push_back(Sx);
-	HomogeneousTransformInParameters.push_back(Sy);
-	HomogeneousTransformInParameters.push_back(Tx);
-	HomogeneousTransformInParameters.push_back(Ty);
-	HomogeneousTransformInParameters.push_back(Tz);
-
-	return HomogeneousTransformInParameters;
 }
 
 //-----------------------------------------------------------------------------
