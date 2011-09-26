@@ -63,9 +63,6 @@ int main (int argc, char* argv[])
 	}
 
 
-	vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
-  vtkPlusLogger::Instance()->SetDisplayLogLevel(verboseLevel); 
-
 	VTK_LOG_TO_CONSOLE_ON; 
 
 	std::string programPath("./"), errorMsg; 
@@ -83,6 +80,9 @@ int main (int argc, char* argv[])
   }
   vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationData(configRootElement);
   vtkPlusConfig::GetInstance()->SetProgramPath(programPath.c_str());
+
+	vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
+  vtkPlusLogger::Instance()->SetDisplayLogLevel(verboseLevel); 
 
 	// Initialize the probe calibration controller 
 	vtkSmartPointer<vtkStepperCalibrationController> stepperCal = vtkSmartPointer<vtkStepperCalibrationController>::New(); 

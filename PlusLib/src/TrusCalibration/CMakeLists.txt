@@ -2,8 +2,6 @@
 # Sources
 
 SET (TrusCalibration_SRCS
-	BrachyTRUSCalibrator.cxx
-	Phantom.cxx
 	vtkCalibratorVisualizationComponent.cxx 
 	vtkCalibrationController.cxx 
 	vtkProbeCalibrationControllerIO.cxx 
@@ -19,8 +17,6 @@ SET (TrusCalibration_SRCS
 SET (TrusCalibration_HDRS)	
 IF (WIN32)	
 	SET (TrusCalibration_HDRS
-		BrachyTRUSCalibrator.h 
-		Phantom.h 
 		vtkCalibratorVisualizationComponent.h
 		vtkCalibrationController.h
 		vtkProbeCalibrationControllerIO.h
