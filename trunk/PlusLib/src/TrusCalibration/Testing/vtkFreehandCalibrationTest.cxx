@@ -59,9 +59,6 @@ int main (int argc, char* argv[])
 		exit(EXIT_FAILURE);
 	}
 
-	vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
-  vtkPlusLogger::Instance()->SetDisplayLogLevel(verboseLevel);
-
 	VTK_LOG_TO_CONSOLE_ON; 
 
 	std::string programPath("./"), errorMsg; 
@@ -82,6 +79,9 @@ int main (int argc, char* argv[])
   }
   vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationData(configRootElement);
   vtkPlusConfig::GetInstance()->SetProgramPath(programPath.c_str());
+
+	vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
+  vtkPlusLogger::Instance()->SetDisplayLogLevel(verboseLevel);
 
   // Load phantom definition and registration
 	vtkPhantomRegistrationAlgo* phantomRegistration = vtkPhantomRegistrationAlgo::New();
