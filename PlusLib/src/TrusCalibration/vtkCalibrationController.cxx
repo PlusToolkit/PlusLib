@@ -124,18 +124,6 @@ vtkCalibrationController::vtkCalibrationController()
 	this->TransformImageToUserImage = NULL;
 	this->SetTransformImageToUserImage(transformImageToUserImage); 
 
-	//vtkSmartPointer<vtkTransform> transformProbeToUserImage = vtkSmartPointer<vtkTransform>::New(); 
-	//this->TransformProbeToUserImage = NULL;
-	//this->SetTransformProbeToUserImage(transformProbeToUserImage); 
-
-	//vtkSmartPointer<vtkTransform> transformUserImageToImage = vtkSmartPointer<vtkTransform>::New(); 
-	//this->TransformUserImageToImage = NULL;
-	//this->SetTransformUserImageToImage(transformUserImageToImage); 
-
-	//vtkSmartPointer<vtkTransform> transformTemplateHolderHomeToTemplateHolder = vtkSmartPointer<vtkTransform>::New(); 
-	//this->TransformTemplateHolderHomeToTemplateHolder = NULL;
-	//this->SetTransformTemplateHolderHomeToTemplateHolder(transformTemplateHolderHomeToTemplateHolder); 
-
 	vtkSmartPointer<vtkTransform> transformTemplateHomeToTemplate = vtkSmartPointer<vtkTransform>::New(); 
 	this->TransformTemplateHomeToTemplate = NULL;
 	this->SetTransformTemplateHomeToTemplate(transformTemplateHomeToTemplate); 
@@ -147,7 +135,6 @@ vtkCalibrationController::vtkCalibrationController()
   this->TransformImageToTemplate->Concatenate(this->TransformProbeToReference); 
   this->TransformImageToTemplate->Concatenate(this->TransformReferenceToTemplateHolderHome); 
   this->TransformImageToTemplate->Concatenate(this->TransformTemplateHolderToTemplate);
-  //this->TransformImageToTemplate->Concatenate(this->TransformTemplateHomeToTemplate);
   this->TransformImageToTemplate->Update(); 
 
 	// Initialize calibration controller IO
@@ -193,12 +180,9 @@ vtkCalibrationController::~vtkCalibrationController()
 	this->SetTransformImageToUserImage(NULL);
 	this->SetTransformUserImageToProbe(NULL);
 	this->SetTransformProbeToReference(NULL);
-	//this->SetTransformProbeToUserImage(NULL);
-	//this->SetTransformUserImageToImage(NULL);
 	this->SetTransformReferenceToTemplateHolderHome(NULL);
 	this->SetTransformTemplateHolderToTemplate(NULL);
   this->SetTransformTemplateHolderToPhantom(NULL); 
-	//this->SetTransformTemplateHolderHomeToTemplateHolder(NULL);
 	this->SetTransformTemplateHomeToTemplate(NULL);
 	this->SetCalibrationControllerIO(NULL); 
 
