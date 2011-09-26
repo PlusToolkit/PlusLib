@@ -8,6 +8,7 @@
 #include "vtkUnsignedLongLongArray.h"
 #include "vtkCriticalSection.h"
 #include "vtkObjectFactory.h"
+#include "vtkTrackedFrameList.h"
 
 static const double NEGLIGIBLE_TIME_DIFFERENCE=0.00001; // in seconds, used for comparing between exact timestamps
 
@@ -665,3 +666,94 @@ double vtkTrackerBuffer::GetLocalTimeOffset()
   return this->TrackerBuffer->GetLocalTimeOffset(); 
 }
 
+//-----------------------------------------------------------------------------
+PlusStatus vtkTrackerBuffer::CopyDefaultTransformFromTrackedFrameList(vtkTrackedFrameList *sourceTrackedFrameList, bool useFilteredTimestamps/*=true*/)
+{
+  int numberOfErrors=0;
+
+  int numberOfFrames = sourceTrackedFrameList->GetNumberOfTrackedFrames();
+  this->SetBufferSize(numberOfFrames + 1); 
+
+  for ( int frameNumber = 0; frameNumber < numberOfFrames; frameNumber++ )
+  {
+
+    double timestamp(0); 
+    if (useFilteredTimestamps)
+    {
+      const char* strTimestamp = sourceTrackedFrameList->GetTrackedFrame(frameNumber)->GetCustomFrameField("Timestamp"); 
+      if ( strTimestamp != NULL )
+      {
+        timestamp = atof(strTimestamp); 
+      }
+      else
+      {
+        LOG_WARNING("Unable to read Timestamp field of frame #" << frameNumber); 
+        numberOfErrors++; 
+        continue; 
+      }
+    }
+
+    const char* strUnfilteredTimestamp = sourceTrackedFrameList->GetTrackedFrame(frameNumber)->GetCustomFrameField("UnfilteredTimestamp"); 
+    double unfilteredtimestamp(0); 
+    if ( strUnfilteredTimestamp != NULL )
+    {
+      unfilteredtimestamp = atof(strUnfilteredTimestamp); 
+    }
+    else
+    {
+      LOG_WARNING("Unable to read UnfilteredTimestamp field of frame #" << frameNumber); 
+      numberOfErrors++; 
+      continue; 
+    }
+
+    const char* cFlag = sourceTrackedFrameList->GetTrackedFrame(frameNumber)->GetCustomFrameField("Status"); 
+    TrackerStatus status = TR_OK;
+    if ( cFlag != NULL )
+    {
+      status=TrackedFrame::GetStatusFromString(cFlag);      
+    }
+    else
+    {
+      LOG_WARNING("Unable to read Status field of frame #" << frameNumber); 
+      numberOfErrors++; 
+      continue; 
+    }
+
+    const char* strFrameNumber = sourceTrackedFrameList->GetTrackedFrame(frameNumber)->GetCustomFrameField("FrameNumber"); 
+    unsigned long frmnum(0); 
+    if ( strFrameNumber != NULL )
+    {
+      frmnum = atol(strFrameNumber);
+    }
+    else
+    {
+      LOG_WARNING("Unable to read FrameNumber field of frame #" << frameNumber); 
+      numberOfErrors++; 
+      continue; 
+    }
+
+
+    double defaultTransform[16]; 
+    if ( !sourceTrackedFrameList->GetTrackedFrame(frameNumber)->GetDefaultFrameTransform(defaultTransform) )
+    {
+      LOG_ERROR("Unable to get default frame transform for frame #" << frameNumber); 
+      numberOfErrors++; 
+      continue; 
+    }
+
+    vtkSmartPointer<vtkMatrix4x4> defaultTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
+    defaultTransformMatrix->DeepCopy(defaultTransform); 
+
+    if (useFilteredTimestamps)
+    {
+      this->AddTimeStampedItem(defaultTransformMatrix, status, frmnum, unfilteredtimestamp, timestamp); 
+    }
+    else
+    {
+      this->AddTimeStampedItem(defaultTransformMatrix, status, frmnum, unfilteredtimestamp); 
+    }
+
+  }
+
+  return (numberOfErrors>0 ? PLUS_FAIL:PLUS_SUCCESS );
+}

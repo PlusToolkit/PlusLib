@@ -114,79 +114,13 @@ PlusStatus vtkSavedDataTracker::Connect()
     this->LocalTrackerBuffer->DeepCopy( this->GetTool(0)->GetBuffer() ); 
 	}
 
-	this->LocalTrackerBuffer->SetBufferSize(savedDataBuffer->GetNumberOfTrackedFrames()); 
+  if (this->LocalTrackerBuffer->CopyDefaultTransformFromTrackedFrameList(savedDataBuffer)!=PLUS_SUCCESS)
+  {
+    LOG_ERROR("Failed to retrieve tracking data from tracked frame list");
+    return PLUS_FAIL;
+  }
 
-	// Fill local buffers 
-	for ( unsigned int frame = 0; frame < savedDataBuffer->GetNumberOfTrackedFrames(); ++frame)
-	{
-		TrackedFrame* trackedFrame = savedDataBuffer->GetTrackedFrame(frame); 
-
-		// Get default transform 
-		double defaultTransform[16]; 
-		if ( !trackedFrame->GetDefaultFrameTransform(defaultTransform) )
-		{
-			LOG_WARNING("Unable to get default frame transform for frame #" << frame ); 
-			continue; 
-		}
-		vtkSmartPointer<vtkMatrix4x4> defaultTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
-		defaultTransformMatrix->DeepCopy(defaultTransform); 
-		
-		// Get frame number
-		const char* strFrameNumber = trackedFrame->GetCustomFrameField("FrameNumber"); 
-		long frameNumber = -1;
-		if ( strFrameNumber == NULL ) 
-		{
-			frameNumber = frame;
-		}
-		else
-		{
-		  frameNumber = atol(strFrameNumber); 
-		}
-
-		// Get Timestamp
-		const char* strTimestamp = trackedFrame->GetCustomFrameField("Timestamp"); 
-		double timestamp = -1;
-		if ( strTimestamp == NULL ) 
-		{
-			LOG_WARNING("Timestamp is missing, simulate a timestamp value with 10fps frame rate");
-			timestamp = frameNumber / 10.0;  // This is not a normal behaviour.
-		}
-		else
-		{
-		  timestamp = atof(strTimestamp); 
-		}
-
-		// Get UnfilteredTimestamp
-		const char* strUnfilteredTimestamp = trackedFrame->GetCustomFrameField("UnfilteredTimestamp"); 
-		double unfilteredTimestamp = -1;
-		if ( strUnfilteredTimestamp == NULL ) 
-		{
-			unfilteredTimestamp = timestamp;
-		}
-		else
-		{
-		  unfilteredTimestamp = atof(strUnfilteredTimestamp); 
-		}
-
-		// Get Status
-		const char* strStatus = trackedFrame->GetCustomFrameField("Status"); 
-		TrackerStatus status = TR_OK; 
-		if ( strStatus == NULL ) 
-		{
-			LOG_DEBUG("Unable to get Status for frame #" << frame ); 
-		}
-		else
-		{
-		  if ( STRCASECMP(strStatus, "OK") != 0 )
-		  {
-			  status = TR_MISSING; 
-		  }
-		}
-		
-		LocalTrackerBuffer->AddTimeStampedItem(defaultTransformMatrix, status, frameNumber, unfilteredTimestamp); 
-	}
-
-    savedDataBuffer->Clear(); 
+  savedDataBuffer->Clear(); 
   
 	this->Initialized = true;
 	return PLUS_SUCCESS; 

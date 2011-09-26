@@ -63,59 +63,16 @@ int main(int argc, char **argv)
   }
 
   LOG_INFO("Copy buffer to tracker buffer..."); 
-  int numberOfFrames = trackerFrameList->GetNumberOfTrackedFrames();
   vtkSmartPointer<vtkTrackerBuffer> trackerBuffer = vtkSmartPointer<vtkTrackerBuffer>::New(); 
-  trackerBuffer->SetBufferSize(numberOfFrames); 
-
-  for ( int frameNumber = 0; frameNumber < numberOfFrames; frameNumber++ )
+  // useFilteredTimestamps is false to force recomputation of the filtered timestamps
+  if (trackerBuffer->CopyDefaultTransformFromTrackedFrameList(trackerFrameList, false)!=PLUS_SUCCESS)
   {
-    vtkPlusLogger::PrintProgressbar( (100.0 * frameNumber) / numberOfFrames ); 
-
-    TrackedFrame* frameItem=trackerFrameList->GetTrackedFrame(frameNumber);
-
-    const char* strUnfilteredTimestamp = frameItem->GetCustomFrameField("UnfilteredTimestamp"); 
-    double unfilteredtimestamp(0); 
-    if ( strUnfilteredTimestamp != NULL )
-    {
-      unfilteredtimestamp = atof(strUnfilteredTimestamp); 
-    }
-    else
-    {
-      LOG_WARNING("Unable to read UnfilteredTimestamp field of frame #" << frameNumber); 
-      numberOfErrors++; 
-      continue; 
-    }
-
-    const char* strFrameNumber = frameItem->GetCustomFrameField("FrameNumber"); 
-    unsigned long frmnum(0); 
-    if ( strFrameNumber != NULL )
-    {
-      frmnum = atol(strFrameNumber);
-    }
-    else
-    {
-      LOG_WARNING("Unable to read FrameNumber field of frame #" << frameNumber); 
-      numberOfErrors++; 
-      continue; 
-    }
-
-    double defaultTransform[16]={0}; 
-    if ( !frameItem->GetDefaultFrameTransform(defaultTransform) )
-    {
-      LOG_ERROR("Unable to get default frame transform for frame #" << frameNumber); 
-      numberOfErrors++; 
-      continue; 
-    }
-
-    vtkSmartPointer<vtkMatrix4x4> defaultTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
-    defaultTransformMatrix->DeepCopy(defaultTransform); 
-
-    trackerBuffer->AddTimeStampedItem(defaultTransformMatrix, frameItem->GetStatus(), frmnum, unfilteredtimestamp); 
+    LOG_ERROR("CopyDefaultTrackerDataToBuffer failed");
+    numberOfErrors++;
   }
 
   vtkPlusLogger::PrintProgressbar( 100 ); 
   std::cout << std::endl; 
-
 
   // Check interpolation results 
   //****************************

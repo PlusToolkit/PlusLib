@@ -41,6 +41,7 @@ PURPOSE.  See the above copyright notice for more information.
 #include "vtkTimestampedCircularBuffer.h"
 
 class vtkImageData; 
+class vtkTrackedFrameList;
 
 class VTK_EXPORT VideoBufferItem : public TimestampedBufferItem
 {
@@ -160,6 +161,11 @@ public:
   vtkGetMacro(PixelType, PlusCommon::ITKScalarPixelType); 
 
   int GetNumberOfBytesPerPixel();
+
+  //! Operation:
+  // Copy images from a tracked frame buffer. It is useful when data is stored in a
+  // metafile and the data is needed as a vtkVideoBuffer.
+  PlusStatus CopyImagesFromTrackedFrameList(vtkTrackedFrameList *sourceTrackedFrameList);
 
 protected:
   vtkVideoBuffer();
