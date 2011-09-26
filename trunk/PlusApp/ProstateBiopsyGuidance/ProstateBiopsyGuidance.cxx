@@ -458,12 +458,12 @@ bool ProstateBiopsyGuidance::ProstateBiopsyGuidanceCallback(void * data, int typ
     if(data==NULL || sz==0)
     {
         LOG_DEBUG("Error: no actual frame data received"); 
-        return false;
+        return PLUS_FAIL;
     }
 
  //   vtkSonixVideoSource::GetInstance()->AddFrameToBuffer(data, type, sz, cine, frmnum);    
 
-    return true;;
+    return true;
 }
 /*int main(int argc, char* argv[])
 	args.AddArgument("--tool-number", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputToolNumber, "Set main tool port number from strober - starting from 0 (Default: 0)" );

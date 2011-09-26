@@ -43,8 +43,19 @@ class StatusIcon;
      QPushButton *moreButton;
      QWidget *extension;
 public slots:
-		PlusStatus SaveRFData();
-		PlusStatus startShaker();
+
+		PlusStatus  SaveRFData(int RF_Step);
+		PlusStatus  AcquireRFData(int RF_Step);
+		PlusStatus  startShaker();
+		PlusStatus	Initialize();
+		PlusStatus	AcquireBModeData();
+		PlusStatus	SaveBModeData();
+//		PlusStatus  StopDataAquisition();
+		PlusStatus  StartBiopsyprocess();
+		PlusStatus	StopBModeDataAquisition();
+		PlusStatus	StopRFModeDataAquisition();
+		PlusStatus	StopShaker();
+		PlusStatus	DeletBuffer(int RF_Step);
 
  };
 
