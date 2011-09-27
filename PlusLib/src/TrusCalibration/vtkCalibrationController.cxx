@@ -334,7 +334,7 @@ PlusStatus vtkCalibrationController::AddTrackedFrameData(TrackedFrame* trackedFr
 			tProbeToReferenceMatrix->DeepCopy(tProbeToReference); 
 			vnl_matrix<double> transformProbeToReferenceMatrix4x4(4,4);
 
-			ConvertVtkMatrixToVnlMatrixInMeter(tProbeToReferenceMatrix, transformProbeToReferenceMatrix4x4); 
+      PlusMath::ConvertVtkMatrixToVnlMatrix(tProbeToReferenceMatrix, transformProbeToReferenceMatrix4x4); 
 
 			this->TransformProbeToReference->SetMatrix(tProbeToReferenceMatrix); 
 
@@ -422,24 +422,6 @@ PlusStatus vtkCalibrationController::SetOfflineImageData(vtkImageData* frame)
   this->OfflineImageData->DeepCopy(frame); 
 
   return PLUS_SUCCESS; 
-}
-
-//----------------------------------------------------------------------------
-void vtkCalibrationController::ConvertVtkMatrixToVnlMatrixInMeter(vtkMatrix4x4* inVtkMatrix, vnl_matrix<double>& outVnlMatrix )
-{
-	LOG_TRACE("vtkCalibrationController::ConvertVtkMatrixToVnlMatrixInMeter"); 
-  PlusMath::ConvertVtkMatrixToVnlMatrix(inVtkMatrix, outVnlMatrix); 
-
-	// Option: convert the translation to meters
-	const double TxInM = 0.001 * outVnlMatrix.get(0,3);
-	const double TyInM = 0.001 * outVnlMatrix.get(1,3);
-	const double TzInM = 0.001 * outVnlMatrix.get(2,3);
-
-	const double translationInMeters[] = {TxInM, TyInM, TzInM, 1};
-	vnl_vector<double> translationInMetersVector(4);
-	translationInMetersVector.set( translationInMeters );
-
-	outVnlMatrix.set_column(3, translationInMetersVector);
 }
 
 //----------------------------------------------------------------------------
@@ -705,7 +687,7 @@ PlusStatus vtkCalibrationController::WriteConfiguration(vtkXMLDataElement* aConf
 	// Save matrix name, date and error
 	calibration->SetAttribute("MatrixName", "ImageToProbe");
 	calibration->SetAttribute("Date", vtksys::SystemTools::GetCurrentDateTime("%Y.%m.%d %X").c_str());
-	calibration->SetDoubleAttribute("Error", GetPointLineDistanceErrorAnalysisVector()[0] * 1000.0); // TODO find the best error number
+	calibration->SetDoubleAttribute("Error", GetPointLineDistanceErrorAnalysisVector()[0]); // TODO find the best error number
 
   // TRUS results
 	vtkSmartPointer<vtkXMLDataElement> usCalibration = aConfig->FindNestedElementWithName("USCalibration");
@@ -805,7 +787,7 @@ void vtkCalibrationController::RegisterPhantomGeometry( vtkTransform* aPhantomTo
 
   // Register the phantom geometry to the DRB frame in the "Emulator" mode.
 	vnl_matrix<double> transformMatrixPhantom2DRB4x4InEmulatorMode(4,4);
-	this->ConvertVtkMatrixToVnlMatrixInMeter(aPhantomToPhantomReferenceTransform->GetMatrix(), transformMatrixPhantom2DRB4x4InEmulatorMode);
+  PlusMath::ConvertVtkMatrixToVnlMatrix(aPhantomToPhantomReferenceTransform->GetMatrix(), transformMatrixPhantom2DRB4x4InEmulatorMode);
 
 	mTransformMatrixPhantom2DRB4x4 = transformMatrixPhantom2DRB4x4InEmulatorMode;
 	mHasPhantomBeenRegistered = true;
@@ -852,7 +834,7 @@ void vtkCalibrationController::RegisterPhantomGeometry( double phantomToProbeDis
 
   // Register the phantom geometry to the DRB frame in the "Emulator" mode.
   vnl_matrix<double> transformMatrixPhantom2DRB4x4InEmulatorMode(4,4);
-  ConvertVtkMatrixToVnlMatrixInMeter( tTemplateHomeToReference->GetMatrix(), transformMatrixPhantom2DRB4x4InEmulatorMode ); 
+  PlusMath::ConvertVtkMatrixToVnlMatrix( tTemplateHomeToReference->GetMatrix(), transformMatrixPhantom2DRB4x4InEmulatorMode );
 	mTransformMatrixPhantom2DRB4x4 = transformMatrixPhantom2DRB4x4InEmulatorMode;
 	mHasPhantomBeenRegistered = true;
 }
@@ -1150,7 +1132,7 @@ PlusStatus vtkCalibrationController::ComputeCalibrationResults()
 		{
 			for ( int j = 0; j < 4; j++ )
 			{
-				userImageToProbeMatrix->SetElement(i, j, mTransformUSImageFrame2USProbeFrameMatrix4x4.get(i, j) * 1000 ); 
+				userImageToProbeMatrix->SetElement(i, j, mTransformUSImageFrame2USProbeFrameMatrix4x4.get(i, j) ); 
 			}
 		}
 		
@@ -1483,7 +1465,7 @@ std::string vtkCalibrationController::GetResultString()
 	std::ostringstream errorsStringStream;
 
 	errorsStringStream << "Point-line distance errors" << std::endl << "(mean, rms, std):" << std::endl;
-	errorsStringStream << std::fixed << std::setprecision(3) << "  " << GetPointLineDistanceErrorAnalysisVector()[0] * 1000.0 << ", " << GetPointLineDistanceErrorAnalysisVector()[1] * 1000.0 << ", " << GetPointLineDistanceErrorAnalysisVector()[2] * 1000.0 << std::endl;
+	errorsStringStream << std::fixed << std::setprecision(3) << "  " << GetPointLineDistanceErrorAnalysisVector()[0] << ", " << GetPointLineDistanceErrorAnalysisVector()[1] << ", " << GetPointLineDistanceErrorAnalysisVector()[2] << std::endl;
 
 	std::ostringstream resultStringStream;
 	resultStringStream << matrixStringStream.str() << errorsStringStream.str() << std::endl;
@@ -1539,8 +1521,8 @@ PlusStatus vtkCalibrationController::ComputeNWireInstersections()
 			sumLayer += it->wires[i].id;
 		
 			for (int j=0; j<3; ++j) {
-				endPointFront[j] = it->wires[i].endPointFront[j] / 1000.0; //TODO this is meter
-				endPointBack[j] = it->wires[i].endPointBack[j] / 1000.0;
+				endPointFront[j] = it->wires[i].endPointFront[j];
+				endPointBack[j] = it->wires[i].endPointBack[j];
 			}
 
 			LOG_DEBUG("\t Front endpoint of wire " << i << " on layer " << layer << " = " << endPointFront);
@@ -1814,8 +1796,8 @@ PlusStatus vtkCalibrationController::addDataPositionsPerImage(
 		vnl_vector<double> NWireEndinPhantomFrame;
 
 		for (int i=0; i<3; ++i) {
-      IntersectPosW12[i] = nWires[Layer].intersectPosW12[i] / 1000.0;
-			IntersectPosW32[i] = nWires[Layer].intersectPosW32[i] / 1000.0;
+      IntersectPosW12[i] = nWires[Layer].intersectPosW12[i];
+			IntersectPosW32[i] = nWires[Layer].intersectPosW32[i];
 		}
 		IntersectPosW12[3] = 1.0;
 		IntersectPosW32[3] = 1.0;
@@ -2048,8 +2030,8 @@ PlusStatus vtkCalibrationController::addValidationPositionsPerImage(
 		vnl_vector<double> NWireEndinPhantomFrame;
 
 		for (int i=0; i<3; ++i) {
-			IntersectPosW12[i] = nWires[Layer].intersectPosW12[i] / 1000.0;
-			IntersectPosW32[i] = nWires[Layer].intersectPosW32[i] / 1000.0;
+			IntersectPosW12[i] = nWires[Layer].intersectPosW12[i];
+			IntersectPosW32[i] = nWires[Layer].intersectPosW32[i];
 		}
 		IntersectPosW12[3] = 1.0;
 		IntersectPosW32[3] = 1.0;
@@ -2247,8 +2229,8 @@ std::vector<double> vtkCalibrationController::getPRE3DforRealtimeImage(
 		vnl_vector<double> NWireEndinPhantomFrame;
 
 		for (int i=0; i<3; ++i) {
-			IntersectPosW12[i] = nWires[Layer].intersectPosW12[i] / 1000.0;
-			IntersectPosW32[i] = nWires[Layer].intersectPosW32[i] / 1000.0;
+			IntersectPosW12[i] = nWires[Layer].intersectPosW12[i];
+			IntersectPosW32[i] = nWires[Layer].intersectPosW32[i];
 		}
 		IntersectPosW12[3] = 1.0;
 		IntersectPosW32[3] = 1.0;

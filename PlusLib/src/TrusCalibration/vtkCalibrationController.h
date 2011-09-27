@@ -81,10 +81,6 @@ public:
 	virtual PlusStatus AddTrackedFrameData( TrackedFrame* trackedFrame, IMAGE_DATA_TYPE dataType ); 
 
 	//! Description 
-	// VTK/VNL matrix conversion 
-	static void ConvertVtkMatrixToVnlMatrixInMeter(vtkMatrix4x4* inVtkMatrix, vnl_matrix<double>& outVnlMatrix ); 
-
-	//! Description 
 	// Returns the list of tracked frames of the selected data type
 	virtual vtkTrackedFrameList* GetTrackedFrameList( IMAGE_DATA_TYPE dataType ); 
 	
@@ -223,10 +219,6 @@ public: // Former ProbeCalibrationController and FreehandCalibraitonController f
 	// [ Row-2: PRE3Ds in z-axis from projected to true positions ]
 	// [ Row-3: should be all zeros ]
 	virtual vnl_matrix<double> GetPRE3DMatrix() { return mRawPRE3DsforValidationPositionsInUSProbeFrameMatrix4xN; } 
-
-	// The calibration transform in 4x4 homogeneous matrix.
-	// Transform: from the US image frame to the US probe frame.
-	virtual vnl_matrix<double> GetCalibrationMatrix() { return mTransformUSImageFrame2USProbeFrameMatrix4x4; }
 
 	//! Attribute: Point-Line Distance Error for validation positions in US probe frame
 	// This contains the Point-Line Distance Error (PLDE) for the validation dataset. 
