@@ -168,7 +168,7 @@ PlusStatus vtkPlusConfig::ReadApplicationConfiguration()
     this->SetDeviceSetConfigurationFileName(lastDeviceSetConfigFile);
 
   } else {
-    LOG_INFO("Cannot read last used device set config file until you connect to one first");
+    LOG_DEBUG("Cannot read last used device set config file until you connect to one first");
   }
 
   // Read device set configuration directory

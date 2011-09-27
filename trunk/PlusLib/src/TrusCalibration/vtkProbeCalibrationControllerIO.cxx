@@ -406,7 +406,7 @@ void vtkProbeCalibrationControllerIO::PrintCalibrationResultsAndErrorReports ()
 		LOG_INFO("Point-Line Distance Error (PLDE) Analysis in mm =");
 		LOG_INFO("[ vector 0 - 2:  PLDE_mean, PLDE_rms, PLDE_std ]");
 		LOG_INFO("[ vector 3    :  Validation data confidence level ]");
-		LOG_INFO(this->CalibrationController->GetPointLineDistanceErrorAnalysisVector()[0] * 1000 << ", " << this->CalibrationController->GetPointLineDistanceErrorAnalysisVector()[1] * 1000 << ", " << this->CalibrationController->GetPointLineDistanceErrorAnalysisVector()[2] * 1000); 
+		LOG_INFO(this->CalibrationController->GetPointLineDistanceErrorAnalysisVector()[0] << ", " << this->CalibrationController->GetPointLineDistanceErrorAnalysisVector()[1] << ", " << this->CalibrationController->GetPointLineDistanceErrorAnalysisVector()[2]); 
 		LOG_INFO(this->CalibrationController->GetPointLineDistanceErrorAnalysisVector()[3]);
 
 	}
@@ -1208,7 +1208,7 @@ void vtkProbeCalibrationControllerIO::ReadUs3DBeamwidthDataFromFile()
 		USBeamProfileFile >> ElevationFocalZoneAtAxialDistance2TheCrystals >> MinElevationBeamwidth;
 
 		vnl_matrix<double> transformOrigImageFrame2TRUSImageFrameMatrix4x4(4,4);
-		this->CalibrationController->ConvertVtkMatrixToVnlMatrixInMeter(this->CalibrationController->GetTransformImageToUserImage()->GetMatrix(), transformOrigImageFrame2TRUSImageFrameMatrix4x4); 
+    PlusMath::ConvertVtkMatrixToVnlMatrix(this->CalibrationController->GetTransformImageToUserImage()->GetMatrix(), transformOrigImageFrame2TRUSImageFrameMatrix4x4);
 
 		// Convert the crystal surface position to TRUS image frame
 		double axialPositionOfCrystalSurfaceInTRUSImageFrame =
@@ -1519,22 +1519,22 @@ PlusStatus vtkProbeCalibrationControllerIO::GenerateProbeCalibrationReport( vtkH
 
        colLreXMean->SetName("LRE-X Mean (mm)"); 
        std::ostringstream lreXMean; 
-       lreXMean << lreVector[0]*1000; 
+       lreXMean << lreVector[0]; 
        colLreXMean->InsertNextValue(lreXMean.str()); 
 
        colLreXStdev->SetName("LRE-X Stdev (mm)"); 
        std::ostringstream lreXStdev; 
-       lreXStdev << lreVector[1]*1000; 
+       lreXStdev << lreVector[1]; 
        colLreXStdev->InsertNextValue(lreXStdev.str()); 
 
        colLreYMean->SetName("LRE-Y Mean (mm)"); 
        std::ostringstream lreYMean; 
-       lreYMean << lreVector[2]*1000; 
+       lreYMean << lreVector[2]; 
        colLreYMean->InsertNextValue(lreYMean.str()); 
 
        colLreYStdev->SetName("LRE-Y Stdev (mm)"); 
        std::ostringstream lreYStdev; 
-       lreYStdev << lreVector[3]*1000; 
+       lreYStdev << lreVector[3]; 
        colLreYStdev->InsertNextValue(lreYStdev.str()); 
      }
 
