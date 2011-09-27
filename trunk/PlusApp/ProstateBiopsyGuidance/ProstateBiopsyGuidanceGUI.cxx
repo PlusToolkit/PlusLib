@@ -158,10 +158,19 @@ PlusStatus ProstateBiopsyGuidanceGUI::AcquireRFData(int RF_Step)
 	LOG_INFO("Copy RF Data to Buffer\n" );													// Copy Data From Video Buffer
 	printf("Copy RF Data to Buffer \n");
 	if(RF_Step==1)
-	{dataCollector->CopyVideoBuffer(buffer_RF);}
+	{
+		dataCollector->CopyVideoBuffer(buffer_RF);
+		return PLUS_SUCCESS;
+	}
 	else if(RF_Step==2)
-	{dataCollector->CopyVideoBuffer(buffer_RF2);}
-	return PLUS_SUCCESS;
+	{
+		dataCollector->CopyVideoBuffer(buffer_RF2);
+		return PLUS_SUCCESS;
+	}
+	else
+	{
+		return PLUS_FAIL;
+	}
 }
 PlusStatus ProstateBiopsyGuidanceGUI::StopBModeDataAquisition()
 {
@@ -191,11 +200,11 @@ PlusStatus ProstateBiopsyGuidanceGUI::SaveRFData(int RF_Step)
 	printf("write RF Data to file \n");
 	if(RF_Step==1)
 	{	outputVideoBufferSequenceFileName="RF_Data1"; // change not prof.
-		dataCollector->WriteVideoBufferToMetafile( buffer_RF, outputFolder.c_str(), outputVideoBufferSequenceFileName.c_str(), true);
+		dataCollector->WriteVideoBufferToMetafile( buffer_RF, outputFolder.c_str(), outputVideoBufferSequenceFileName.c_str(), false);
 	}
 	else if(RF_Step==2)
 	{	outputVideoBufferSequenceFileName="RF_Data2";   // change not prof.
-		dataCollector->WriteVideoBufferToMetafile( buffer_RF, outputFolder.c_str(), outputVideoBufferSequenceFileName.c_str(), true);
+		dataCollector->WriteVideoBufferToMetafile( buffer_RF2, outputFolder.c_str(), outputVideoBufferSequenceFileName.c_str(), false);
 	}
 
 	return PLUS_SUCCESS;
@@ -249,11 +258,11 @@ PlusStatus ProstateBiopsyGuidanceGUI::StartBiopsyprocess()
 	AcquireRFData(RF_Buffer1);
 	StopShaker();
 	SaveRFData(RF_Buffer1);
-//	DeletBuffer(RF_Buffer1);
-
-	AcquireRFData(RF_Buffer1);
-	SaveRFData(RF_Buffer2);
 	DeletBuffer(RF_Buffer1);
+
+	AcquireRFData(RF_Buffer2);
+	SaveRFData(RF_Buffer2);
+	DeletBuffer(RF_Buffer2);
 
 	StopRFModeDataAquisition();
 	return PLUS_SUCCESS;
