@@ -54,22 +54,17 @@ vtkVideoBuffer *buffer_BMode = vtkVideoBuffer::New();
 vtkVideoBuffer *buffer_RF = vtkVideoBuffer::New();
 vtkVideoBuffer *buffer_RF2 = vtkVideoBuffer::New();
 VibroLib::AudioCard::DirectSoundBuffer dsb;
-#define RF_Buffer1 1
-#define RF_Buffer2 2
-#define BMode_Buffer 3
 /*****************************************************************************************/
 PlusStatus ProstateBiopsyGuidanceGUI::startShaker()
 {
 		HRESULT hr = 0;
-		
 		std::vector<double> frequencies;															// define Shaker Frequencies.
 		frequencies.push_back((double)20);
 		frequencies.push_back((double)92);
 		frequencies.push_back((double)110);
 
-		std::vector<double> signal = VibroLib::GenerateMultiFrequency(frequencies, 8192.0, 20000);	// Generate 
+		std::vector<double> signal = VibroLib::GenerateMultiFrequency(frequencies, 8192.0, 20000);
 		VibroLib::AudioCard::Wave Wv;
-		//Wv.FromData(sig, signal.size(), bits_per_sample, samples_per_sec);
 		Wv.FromSignal(signal);
 		VibroLib::AudioCard::DirectSoundInstance dsi;
 		dsi.Initialize();
@@ -77,7 +72,7 @@ PlusStatus ProstateBiopsyGuidanceGUI::startShaker()
 		if (dsi.SetPriority(GetConsoleWindow(), DSSCL_PRIORITY)!=PLUS_SUCCESS)
 		{
 			LOG_ERROR( "Unable to set cooperative level. HRESULT:" << hr );
-//			return PLUS_FAIL;
+			return PLUS_FAIL;
 		}
 
 		
@@ -90,7 +85,7 @@ PlusStatus ProstateBiopsyGuidanceGUI::startShaker()
 		if ((hr = dsb->Play(0,0,DSBPLAY_LOOPING)) != DS_OK)
 		{
 			LOG_ERROR( "Failed to play buffer. HRESULT: " << hr );
-//			return PLUS_FAIL;
+			return PLUS_FAIL;
 		}
 
 		else
@@ -101,12 +96,12 @@ PlusStatus ProstateBiopsyGuidanceGUI::startShaker()
 
 return PLUS_SUCCESS;
 }
-PlusStatus ProstateBiopsyGuidanceGUI::StopShaker()
+PlusStatus ProstateBiopsyGuidanceGUI::stopShaker()
 {	
 	dsb->Stop();
 	return PLUS_SUCCESS;
 }
-PlusStatus ProstateBiopsyGuidanceGUI::SaveBModeData()
+/*PlusStatus ProstateBiopsyGuidanceGUI::SaveBModeData()
 {
 
 	LOG_INFO("write Bmode Data to file");												// Save Data To File specified
@@ -115,9 +110,9 @@ PlusStatus ProstateBiopsyGuidanceGUI::SaveBModeData()
 	dataCollector->WriteVideoBufferToMetafile( buffer_BMode, outputFolder.c_str(), outputVideoBufferSequenceFileName.c_str(), true); 
 
 	return PLUS_SUCCESS;
-}
+}*/
 
-PlusStatus ProstateBiopsyGuidanceGUI::AcquireBModeData()
+/*PlusStatus ProstateBiopsyGuidanceGUI::AcquireBModeData()
 {
 	LOG_INFO("press a to start" );
 	printf("press a to start\n");
@@ -136,16 +131,15 @@ PlusStatus ProstateBiopsyGuidanceGUI::AcquireBModeData()
 	printf("Copy RF Data to Buffer \n");								
 
 	return PLUS_SUCCESS;
-}
+}*/
 
 
-PlusStatus ProstateBiopsyGuidanceGUI::AcquireRFData(int RF_Step)
+PlusStatus ProstateBiopsyGuidanceGUI::acquireData(vtkVideoBuffer *Data,int type) // when we figure out how to save Bmode data we will use the type, I put it as int we can change that
 {
 	LOG_INFO("press a to start\n" );
 	printf("press a to start\n");
 	while (_getch() != 'a')															// wait until a is pressed to start acquisition
 	{;}
-
 	dataCollector->Start();
 
 	const double acqStartTime = vtkTimerLog::GetUniversalTime();					// Get PC Time 
@@ -157,24 +151,12 @@ PlusStatus ProstateBiopsyGuidanceGUI::AcquireRFData(int RF_Step)
 	}
 	LOG_INFO("Copy RF Data to Buffer\n" );													// Copy Data From Video Buffer
 	printf("Copy RF Data to Buffer \n");
-	if(RF_Step==1)
-	{
-		dataCollector->CopyVideoBuffer(buffer_RF);
-		return PLUS_SUCCESS;
-	}
-	else if(RF_Step==2)
-	{
-		dataCollector->CopyVideoBuffer(buffer_RF2);
-		return PLUS_SUCCESS;
-	}
-	else
-	{
-		return PLUS_FAIL;
-	}
+
+	dataCollector->CopyVideoBuffer(Data);
+	return PLUS_SUCCESS;
 }
-PlusStatus ProstateBiopsyGuidanceGUI::StopBModeDataAquisition()
+PlusStatus ProstateBiopsyGuidanceGUI::stopBModeDataAquisition() // an extra function in case we need. It will be deleted if we don't need it and change the name of StopRFModeDataAquisition 
 {
-//	buffer_BMode->Delete();
 	dataCollector->Stop();
 	VTK_LOG_TO_CONSOLE_OFF; 
 	LOG_INFO( "Exit !\n" );
@@ -182,35 +164,23 @@ PlusStatus ProstateBiopsyGuidanceGUI::StopBModeDataAquisition()
 
 	return PLUS_SUCCESS;
 }
-PlusStatus ProstateBiopsyGuidanceGUI::StopRFModeDataAquisition()
+PlusStatus ProstateBiopsyGuidanceGUI::stopRfModeDataAquisition()
 {
-
-
 	dataCollector->Stop();
-	VTK_LOG_TO_CONSOLE_OFF; 
+	VTK_LOG_TO_CONSOLE_OFF; // we have to know what is this 
 	LOG_INFO( "Exit !\n" );
 	printf("Exit !\n");
 	return PLUS_SUCCESS;
 }
-PlusStatus ProstateBiopsyGuidanceGUI::SaveRFData(int RF_Step)
+PlusStatus ProstateBiopsyGuidanceGUI::saveData(vtkVideoBuffer *Data,std::string outputVideoBufferSequenceFileName)
 {
-
-
 	LOG_INFO("write RF Data to file \n");												// Save Data To File specified
 	printf("write RF Data to file \n");
-	if(RF_Step==1)
-	{	outputVideoBufferSequenceFileName="RF_Data1"; // change not prof.
-		dataCollector->WriteVideoBufferToMetafile( buffer_RF, outputFolder.c_str(), outputVideoBufferSequenceFileName.c_str(), false);
-	}
-	else if(RF_Step==2)
-	{	outputVideoBufferSequenceFileName="RF_Data2";   // change not prof.
-		dataCollector->WriteVideoBufferToMetafile( buffer_RF2, outputFolder.c_str(), outputVideoBufferSequenceFileName.c_str(), false);
-	}
-
+	dataCollector->WriteVideoBufferToMetafile( Data, outputFolder.c_str(), outputVideoBufferSequenceFileName.c_str(), false);
 	return PLUS_SUCCESS;
 
 }
-PlusStatus ProstateBiopsyGuidanceGUI::Initialize()
+PlusStatus ProstateBiopsyGuidanceGUI::initialize()
 {
 	vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkXMLUtilities::ReadElementFromFile(inputConfigFileName.c_str());
 	int verboseLevel=vtkPlusLogger::LOG_LEVEL_INFO;
@@ -235,36 +205,32 @@ PlusStatus ProstateBiopsyGuidanceGUI::Initialize()
 }
 
 
-PlusStatus ProstateBiopsyGuidanceGUI::DeletBuffer(int RF_Step)
+PlusStatus ProstateBiopsyGuidanceGUI::deletBuffer(vtkVideoBuffer *Data)
 {
-	if(RF_Step == RF_Buffer1)
-	{	buffer_RF->Delete();}
-	else if (RF_Step == RF_Buffer2)
-	{	buffer_RF2->Delete();}
-	else if (RF_Step == BMode_Buffer)
-	{	buffer_BMode->Delete();}
+
+		Data->Delete();
 		return PLUS_SUCCESS;
 }
 
-PlusStatus ProstateBiopsyGuidanceGUI::StartBiopsyprocess()
+PlusStatus ProstateBiopsyGuidanceGUI::startBiopsyProcess()
 {
-	Initialize();
+	initialize();
 //	AcquireBModeData();
 //	SaveBModeData();
 //	DeletBuffer(BMode_Buffer);
 //	StopBModeDataAquisition();
 //	buffer_BMode->Delete();
 	startShaker();
-	AcquireRFData(RF_Buffer1);
-	StopShaker();
-	SaveRFData(RF_Buffer1);
-	DeletBuffer(RF_Buffer1);
+	acquireData(buffer_RF,1);
+	stopShaker();
+	saveData(buffer_RF,"RF_Data1");
+	deletBuffer(buffer_RF);
 
-	AcquireRFData(RF_Buffer2);
-	SaveRFData(RF_Buffer2);
-	DeletBuffer(RF_Buffer2);
+	acquireData(buffer_RF2,1);
+	saveData(buffer_RF2,"RF_Data2");
+	deletBuffer(buffer_RF2);
 
-	StopRFModeDataAquisition();
+	stopRfModeDataAquisition();
 	return PLUS_SUCCESS;
 
 }
@@ -311,7 +277,7 @@ PlusStatus ProstateBiopsyGuidanceGUI::StartBiopsyprocess()
 		findButton->setDefault(true);								
 		buttonBox = new QDialogButtonBox(Qt::Vertical);				// The QDialogButtonBox class is a widget that presents buttons in a layout that is appropriate to the current widget style.(http://doc.qt.nokia.com/stable/qdialogbuttonbox.html#details)
 	    buttonBox->addButton(findButton, QDialogButtonBox::ActionRole); // Adds the specified button
-		connect ( findButton, SIGNAL( clicked() ), this, SLOT( StartBiopsyprocess() ) );	// Connect SaveRFData to button to run when clicked
+		connect ( findButton, SIGNAL( clicked() ), this, SLOT( startBiopsyProcess() ) );	// Connect SaveRFData to button to run when clicked
 		QHBoxLayout *topLeftLayout = new QHBoxLayout;				// class lines up widgets horizontally (http://doc.qt.nokia.com/4.7/qhboxlayout.html#details).
 		topLeftLayout->addWidget(label);							// Adds widget to the end of this box layout, with a stretch factor of stretch and alignment alignment.(http://doc.qt.nokia.com/latest/qboxlayout.html#addWidget)
 		topLeftLayout->addWidget(lineEdit);							

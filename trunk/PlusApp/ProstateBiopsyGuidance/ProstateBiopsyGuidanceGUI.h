@@ -2,6 +2,7 @@
 #define ProstateBiopsyGuidanceGUI_H
 
 #include "PlusConfigure.h"
+#include "vtkVideoBuffer.h"
 // QT parental class includes
 #include "ui_ProstateBiopsyGuidance.h"
 #include <QWidget>
@@ -44,18 +45,18 @@ class StatusIcon;
      QWidget *extension;
 public slots:
 
-		PlusStatus  SaveRFData(int RF_Step);
-		PlusStatus  AcquireRFData(int RF_Step);
+		PlusStatus  saveData(vtkVideoBuffer *buffer_RF,std::string outputVideoBufferSequenceFileName);
+		PlusStatus  acquireData(vtkVideoBuffer *buffer_RF, int type);
 		PlusStatus  startShaker();
-		PlusStatus	Initialize();
-		PlusStatus	AcquireBModeData();
-		PlusStatus	SaveBModeData();
+		PlusStatus	initialize();
+//		PlusStatus	AcquireBModeData();
+//		PlusStatus	SaveBModeData();
 //		PlusStatus  StopDataAquisition();
-		PlusStatus  StartBiopsyprocess();
-		PlusStatus	StopBModeDataAquisition();
-		PlusStatus	StopRFModeDataAquisition();
-		PlusStatus	StopShaker();
-		PlusStatus	DeletBuffer(int RF_Step);
+		PlusStatus  startBiopsyProcess();
+		PlusStatus	stopBModeDataAquisition();
+		PlusStatus	stopRfModeDataAquisition();
+		PlusStatus	stopShaker();
+		PlusStatus	deletBuffer(vtkVideoBuffer *buffer_RF);
 
  };
 
