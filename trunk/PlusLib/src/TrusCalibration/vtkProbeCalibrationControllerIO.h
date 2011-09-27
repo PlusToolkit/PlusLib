@@ -30,9 +30,6 @@ public:
 	// Read probe calibration data element 
 	virtual PlusStatus ReadProbeCalibrationConfiguration(vtkXMLDataElement* rootElement); 
 
-  //! Operation: print the calibration results as well as error reports to the stdout
-	virtual void PrintCalibrationResultsAndErrorReports();
-
 	// Draw the segmentation result to each individual image and save them into TIFF files
 	virtual void SaveSegmentationResultToImage( const int imgNumber, const ImageType::Pointer& frame );
 
