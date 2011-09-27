@@ -1,0 +1,77 @@
+<PlusConfiguration version="1.2">
+
+	<!-- DATA COLLECTION -->
+	<USDataCollection version="2.0" StartupDelaySec="1.0">
+		<DeviceSet 
+				Name="TEST SonixTouch with Fake tracker" 
+				Description="Test mode for vtkDataCollectorTest with SonixTouch and Fake tracker. The SonixTouch US device should be in research mode." 
+				/>
+
+				<Tracker
+				Type="Ascension3DG"
+				BufferSize="500"
+				Frequency="20"
+				LocalTimeOffset="0.0"
+				AveragedItemsForFiltering="20"
+				>
+						<Tool
+		  Name="Probe"
+      Type="Probe"
+		  PortNumber="0"
+		  SendTo="localhost:18944">
+			<Model
+				File="L14-5_38_ProbeModel.stl"
+				ModelToToolTransform="
+					0.107721 0.979858 0.168146 -115.733132
+					-0.993248 0.113395 -0.024487 13.708913
+					-0.043061 -0.164373 0.985458 -107.578262
+					0 0 0 1"
+			/>
+			<Calibration
+				MatrixName="ImageToProbe" 
+				MatrixValue="
+					1 0 0 0
+					0 1 0 0
+					0 0 1 0
+					0 0 0 1"
+				Date=""
+				Error="0.0" />		  
+		</Tool>
+		</Tracker>
+
+		<ImageAcquisition Type="SonixVideo" 
+				BufferSize="400" 
+				FrameSize="640 480" 
+				UsImageOrientation="MF"
+				AveragedItemsForFiltering="20" 
+				IP="137.82.56.185" 
+				ImagingMode="BMode"
+                AcquisitionDataType="BPost" 
+				Depth="-1" 
+				Sector="-1" 
+				Gain="-1" 
+				DynRange="-1" 
+				Zoom="-1" 
+				Frequency="-1" 
+				FrameRate="-1" 
+				Timeout="-1" 
+				CompressionStatus="0" 
+				/>
+
+		<Synchronization Type="ChangeDetection" 
+				SynchronizationTimeLength="30" 
+				MinNumOfSyncSteps="5" 
+				ThresholdMultiplier="5"
+
+				NumberOfAveragedTransforms="20" 
+				MinTransformThreshold="2.0" 
+				MaxTransformDifference="2.0" 
+
+				NumberOfAveragedFrames="6" 
+				MinFrameThreshold="200.0" 
+				MaxFrameDifference="10.0" 
+				/>
+
+	</USDataCollection>
+
+</PlusConfiguration>

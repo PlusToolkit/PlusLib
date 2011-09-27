@@ -1,0 +1,60 @@
+<PlusConfiguration version="1.2">
+
+	<!-- DATA COLLECTION -->
+	<USDataCollection version="2.0" StartupDelaySec="1.0">
+		<DeviceSet 
+				Name="TEST SonixTouch with Fake tracker" 
+				Description="Test mode for vtkDataCollectorTest with SonixTouch and Fake tracker. The SonixTouch US device should be in research mode." 
+				/>
+
+		<Tracker Type="FakeTracker" BufferSize="200" Frequency="30" LocalTimeOffset="0.0" DefaultToolName="Stylus" Mode="PivotCalibration" ReferenceToolName="Reference" AveragedItemsForFiltering="20" >
+			<Tool Type="Reference" Name="Reference" PortNumber="0"></Tool> 
+			<Tool Type="Stylus" Name="Stylus" PortNumber="1" SendTo="localhost:18944">
+				<Calibration 
+					MatrixName="StylusTipToStylus" 
+					MatrixValue="1 0 0 0 
+								 0 1 0 0 
+								 0 0 1 0
+								 0 0 0 1" 
+					Date=""
+					Error="0.0"
+					/> 
+			</Tool>
+		</Tracker>
+
+		<ImageAcquisition Type="SonixVideo" 
+				BufferSize="400" 
+				FrameSize="640 480" 
+				UsImageOrientation="MF"
+				AveragedItemsForFiltering="20" 
+				IP="137.82.56.185" 
+				ImagingMode="BMode"
+                AcquisitionDataType="BPost" 
+				Depth="-1" 
+				Sector="-1" 
+				Gain="-1" 
+				DynRange="-1" 
+				Zoom="-1" 
+				Frequency="-1" 
+				FrameRate="-1" 
+				Timeout="-1" 
+				CompressionStatus="0" 
+				/>
+
+		<Synchronization Type="ChangeDetection" 
+				SynchronizationTimeLength="30" 
+				MinNumOfSyncSteps="5" 
+				ThresholdMultiplier="5"
+
+				NumberOfAveragedTransforms="20" 
+				MinTransformThreshold="2.0" 
+				MaxTransformDifference="2.0" 
+
+				NumberOfAveragedFrames="6" 
+				MinFrameThreshold="200.0" 
+				MaxFrameDifference="10.0" 
+				/>
+
+	</USDataCollection>
+
+</PlusConfiguration>
