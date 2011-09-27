@@ -26,7 +26,6 @@ const QString LABEL_RECORDING_FRAME_RATE("Recording Frame Rate:");
 const QString LABEL_SYNC_VIDEO_OFFSET("Video offset:");
 
 #include "PlusConfigure.h"
-#include "PlusCommon.h"
 #include "vtksys/CommandLineArguments.hxx"
 #include "vtkSmartPointer.h"
 #include "vtkDataCollector.h"
@@ -43,27 +42,97 @@ const QString LABEL_SYNC_VIDEO_OFFSET("Video offset:");
 #include "DirectSoundCaptureBuffer.h"
 #include "SignalGenerator.h"
 /*************************************** vibro test****************************************/
- #include <QtGui>
- #include "ProstateBiopsyGuidanceGUI.h"
+#include <QtGui>
+#include "ProstateBiopsyGuidanceGUI.h"
+
+
+
+#include "ProstateBiopsyGuidanceGUI.h"
+#include "ui_ProstateBiopsyGuidance.h"
+#include "DeviceSetSelectorWidget.h"
+#include <QFileDialog>
+#include <iostream>
+#include <fstream>
+
+
 /*************************************** Define variables**********************************/
 vtkSmartPointer<vtkDataCollector> dataCollector = vtkSmartPointer<vtkDataCollector>::New();					
-// configuration file name
-std::string inputConfigFileName("Test_PlusConfiguration_DataCollectionOnly_SonixVideo_FakeTracker.xml");	
-// output folder name
-std::string outputFolder("./RFDATA");																		
-// output file name
-std::string outputVideoBufferSequenceFileName("VideoBufferMetafile");										
-// Saving data time
-double inputAcqTimeLength(3);																				
-// pointer to BMode Buffer
+std::string inputConfigFileName("Test_PlusConfiguration_DataCollectionOnly_SonixVideo_FakeTracker.xml");	// configuration file name
+std::string outputFolder("./RFDATA");																		// output folder name
+std::string outputVideoBufferSequenceFileName("VideoBufferMetafile");										// output file name
+double inputAcqTimeLength(3);																				// Saving data time
 vtkVideoBuffer *buffer_BMode = vtkVideoBuffer::New();	
-// pointer to RF1 Buffer
 vtkVideoBuffer *buffer_RF = vtkVideoBuffer::New();
-// pointer to RF2 Buffer
 vtkVideoBuffer *buffer_RF2 = vtkVideoBuffer::New();
 VibroLib::AudioCard::DirectSoundBuffer dsb;
 /*****************************************************************************************/
-// This function will start the shaker connected to sound card
+
+// Main constuctor (is needed to be the first method within this file (according to UI object)
+ProstateBiopsyGuidanceGUI::ProstateBiopsyGuidanceGUI(QWidget *parent)
+:  QMainWindow(parent),    ui(new Ui::ProstateBiopsyGuidance)
+{
+	ui->setupUi(this);
+
+	// Create device set selector widget
+	this->m_DeviceSetSelectorWidget = new DeviceSetSelectorWidget(this);
+
+	// Make connections
+	connect( m_DeviceSetSelectorWidget, SIGNAL( ConnectToDevicesByConfigFileInvoked(std::string) ), this, SLOT( ConnectToDevicesByConfigFile(std::string) ) );
+	connect(ui->butStop,SIGNAL(clicked()),this,SLOT(butStop_Click()));
+
+	// Setup device set selector widget
+	this->m_DeviceSetSelectorWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+	this->m_DeviceSetSelectorWidget->SetComboBoxMinWidth(0); 
+	this->m_DeviceSetSelectorWidget->resize(this->width(), this->height()); 
+	this->m_DeviceSetSelectorWidget->setGeometry(QRect(15, 30, 790, 200));
+	// m_DeviceSetSelectorWidget->ui.pushButton_Connect->setText("Load");
+	this->ui->butStop->setEnabled(false);
+	this->ui->butInitialize->setVisible(false);
+
+	// Set Log Level
+	vtkPlusLogger::Instance()->SetLogLevel(vtkPlusLogger::LOG_LEVEL_INFO); 
+	vtkPlusLogger::Instance()->SetDisplayLogLevel(vtkPlusLogger::LOG_LEVEL_INFO);
+
+
+	////double inputAcqTimeLength =atof(prostateBiopsyConfig->GetAttribute("AcquisitionTime"));
+	//ifstream inFile("inputAcqTimeLength.txt");					// Read the acquistion time from text file.
+	//double n;													
+	//inFile >> n;
+	//inputAcqTimeLength = n;
+	//inFile.close();
+	//label = new QLabel(tr("Acquisition Time: "));				// Add label to the text editor
+	//lineEdit = new QLineEdit;									
+	//label->setBuddy(lineEdit);									// When the user presses the shortcut key indicated by this label, the keyboard focus is transferred to the label's buddy widget. (http://www.greyc.ensicaen.fr/ensicaen/Docs/Qt4/qlabel.html#setBuddy)						
+	//QString valueAsString = QString::number(inputAcqTimeLength);// Change the Acquistion time read to String
+	//lineEdit->setText(valueAsString);							// Set the text in the edit box to the value required
+	//findButton = new QPushButton(tr("Start"));				// Provide Push Button
+	//findButton->setDefault(true);								
+	//buttonBox = new QDialogButtonBox(Qt::Vertical);				// The QDialogButtonBox class is a widget that presents buttons in a layout that is appropriate to the current widget style.(http://doc.qt.nokia.com/stable/qdialogbuttonbox.html#details)
+	//buttonBox->addButton(findButton, QDialogButtonBox::ActionRole); // Adds the specified button
+	//connect ( findButton, SIGNAL( clicked() ), this, SLOT( startBiopsyProcess() ) );	// Connect SaveRFData to button to run when clicked
+	//QHBoxLayout *topLeftLayout = new QHBoxLayout;				// class lines up widgets horizontally (http://doc.qt.nokia.com/4.7/qhboxlayout.html#details).
+	//topLeftLayout->addWidget(label);							// Adds widget to the end of this box layout, with a stretch factor of stretch and alignment alignment.(http://doc.qt.nokia.com/latest/qboxlayout.html#addWidget)
+	//topLeftLayout->addWidget(lineEdit);							
+	//QVBoxLayout *leftLayout = new QVBoxLayout;
+	//leftLayout->addLayout(topLeftLayout);
+	//leftLayout->addStretch(1);
+	//QGridLayout *mainLayout = new QGridLayout;
+	//mainLayout->setSizeConstraint(QLayout::SetFixedSize);       //This property holds the resize mode of the layout.(http://doc.qt.nokia.com/latest/qlayout.html#sizeConstraint-prop)
+	//mainLayout->addLayout(leftLayout, 0, 0);
+	//mainLayout->addWidget(buttonBox, 0, 1);
+	//setLayout(mainLayout);
+	//setWindowTitle(tr("Save RF Data"));							// Set teh Title to Save RF Data
+}
+
+// Deconstructor to release memory:
+ProstateBiopsyGuidanceGUI::~ProstateBiopsyGuidanceGUI()
+{
+	delete ui;
+}
+
+
+
+//Slots implemention
 PlusStatus ProstateBiopsyGuidanceGUI::startShaker()
 {
 		HRESULT hr = 0;
@@ -254,73 +323,42 @@ PlusStatus ProstateBiopsyGuidanceGUI::startBiopsyProcess()
 	return PLUS_SUCCESS;
 
 }
- ProstateBiopsyGuidanceGUI::ProstateBiopsyGuidanceGUI(QWidget *parent)
-     : QDialog(parent)
- {
+void ProstateBiopsyGuidanceGUI::ConnectToDevicesByConfigFile(std::string aConfigFile)
+{
+	LOG_INFO("Loading config file ...");
+	m_DeviceSetSelectorWidget->SetConnectionSuccessful(true);
+	this->ui->butStop->setEnabled(true);
 
-	// /*
-	//% 2011-9-16, Code by Saman %
-	//We need to read some configuration parameters from XmlConfig file
-	//There should be a node in second layer of Xml file with node name of "ProstateBiopsy".
-	//Parameters are preset there as xml node attributes:
-	//Example:	
-	//	<ProstateBiopsy AcquisitionTime="3" />
-	//*/
-	//#pragma region Reading Config File
-	//std::string inputConfigFileName("C:/Saman/Work/Source/PLUS/PlusApp-bin/bin/Debug/Test_PlusConfiguration_DataCollectionOnly_SonixVideo_FakeTracker.xml");
-	//vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkXMLUtilities::ReadElementFromFile(inputConfigFileName.c_str());
-	//if (configRootElement == NULL) {	
-	//	std::cerr << "Unable to read configuration from file " << inputConfigFileName;
-	//	exit(EXIT_FAILURE);
-	//}
+#pragma region Reading Config File Specific data to PBG
+	/*
+	% 2011-9-16, Code by Saman %
+	We need to read some configuration parameters from XmlConfig file
+	There should be a node in second layer of Xml file with node name of "ProstateBiopsy".
+	Parameters are preset there as xml node attributes:
+	Example:	
+	<ProstateBiopsy AcquisitionTime="3" />
+	*/
 
-	//vtkSmartPointer<vtkXMLDataElement> prostateBiopsyConfig = configRootElement->FindNestedElementWithName("ProstateBiopsy");
-	//if (prostateBiopsyConfig == NULL)
-	//{
-	//	LOG_ERROR("Cannot find ProstateBiopsy element in XML tree!");
-	//	exit( PLUS_FAIL);
-	//}
-	//#pragma endregion
+	/*std::string inputConfigFileName("C:/Saman/Work/Source/PLUS/PlusApp-bin/bin/Debug/Test_PlusConfiguration_DataCollectionOnly_SonixVideo_FakeTracker.xml");
+	vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkXMLUtilities::ReadElementFromFile(inputConfigFileName.c_str());
+	if (configRootElement == NULL) {	
+	std::cerr << "Unable to read configuration from file " << inputConfigFileName;
+	exit(EXIT_FAILURE);
+	}
 
-	//double inputAcqTimeLength =atof(prostateBiopsyConfig->GetAttribute("AcquisitionTime"));
-		// Read the acquistion time from text file.
-		ifstream inFile("inputAcqTimeLength.txt");					
-		double n;													
-		inFile >> n;
-		inputAcqTimeLength = n;
-		inFile.close();
-		// Add label to the text editor
-		label = new QLabel(tr("Acquisition Time: "));				
-		lineEdit = new QLineEdit;									
-		// When the user presses the shortcut key indicated by this label, the keyboard focus is transferred to the label's buddy widget. (http://www.greyc.ensicaen.fr/ensicaen/Docs/Qt4/qlabel.html#setBuddy)
-		label->setBuddy(lineEdit);															
-		// Change the Acquistion time read to String
-		QString valueAsString = QString::number(inputAcqTimeLength);
-		// Set the text in the edit box to the value required
-		lineEdit->setText(valueAsString);						
-		// Provide Push Button
-		findButton = new QPushButton(tr("Start"));				
-		findButton->setDefault(true);								
-		// The QDialogButtonBox class is a widget that presents buttons in a layout that is appropriate to the current widget style.(http://doc.qt.nokia.com/stable/qdialogbuttonbox.html#details)
-		buttonBox = new QDialogButtonBox(Qt::Vertical);				
-		// Adds the specified button
-	    buttonBox->addButton(findButton, QDialogButtonBox::ActionRole); 
-		// Connect SaveRFData to button to run when clicked
-		connect ( findButton, SIGNAL( clicked() ), this, SLOT( startBiopsyProcess() ) );	
-		// class lines up widgets horizontally (http://doc.qt.nokia.com/4.7/qhboxlayout.html#details).
-		QHBoxLayout *topLeftLayout = new QHBoxLayout;				
-		// Adds widget to the end of this box layout, with a stretch factor of stretch and alignment alignment.(http://doc.qt.nokia.com/latest/qboxlayout.html#addWidget)
-		topLeftLayout->addWidget(label);							
-		topLeftLayout->addWidget(lineEdit);							
-		QVBoxLayout *leftLayout = new QVBoxLayout;
-		leftLayout->addLayout(topLeftLayout);
-		leftLayout->addStretch(1);
-		QGridLayout *mainLayout = new QGridLayout;
-		//This property holds the resize mode of the layout.(http://doc.qt.nokia.com/latest/qlayout.html#sizeConstraint-prop)
-		mainLayout->setSizeConstraint(QLayout::SetFixedSize);       
-		mainLayout->addLayout(leftLayout, 0, 0);
-		mainLayout->addWidget(buttonBox, 0, 1);
-		setLayout(mainLayout);
-		// Set teh Title to Save RF Data
-		setWindowTitle(tr("Save RF Data"));							
- }
+	vtkSmartPointer<vtkXMLDataElement> prostateBiopsyConfig = configRootElement->FindNestedElementWithName("ProstateBiopsy");
+	if (prostateBiopsyConfig == NULL)
+	{
+	LOG_ERROR("Cannot find ProstateBiopsy element in XML tree!");
+	exit( PLUS_FAIL);
+	}*/
+#pragma endregion
+
+}
+
+void ProstateBiopsyGuidanceGUI::butStop_Click(){
+	LOG_INFO("Stop Clicked");
+	this->ui->butStop->setEnabled(false);
+
+}
+
