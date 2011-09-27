@@ -1,91 +1,115 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>Dialog</class>
- <widget class="QDialog" name="Dialog">
-  <property name="geometry">
-   <rect>
-    <x>0</x>
-    <y>0</y>
-    <width>400</width>
-    <height>300</height>
-   </rect>
-  </property>
-  <property name="windowTitle">
-   <string>Dialog</string>
-  </property>
-  <widget class="QDialogButtonBox" name="buttonBox">
-   <property name="geometry">
-    <rect>
-     <x>290</x>
-     <y>20</y>
-     <width>81</width>
-     <height>51</height>
-    </rect>
-   </property>
-   <property name="orientation">
-    <enum>Qt::Vertical</enum>
-   </property>
-   <property name="standardButtons">
-    <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
-   </property>
+  <class>ProstateBiopsyGuidance</class>
+  <widget class="QMainWindow" name="ProstateBiopsyGuidance">
+    <property name="geometry">
+      <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>824</width>
+        <height>289</height>
+      </rect>
+    </property>
+    <property name="windowTitle">
+      <string>Prostate Biopsy Guidance</string>
+    </property>
+    <property name="statusTip">
+      <string/>
+    </property>
+    <widget class="QWidget" name="centralWidget">
+      <widget class="QPushButton" name="butStop">
+        <property name="geometry">
+          <rect>
+            <x>740</x>
+            <y>240</y>
+            <width>75</width>
+            <height>23</height>
+          </rect>
+        </property>
+        <property name="text">
+          <string>Stop</string>
+        </property>
+      </widget>
+      <widget class="QGroupBox" name="groupBox">
+        <property name="geometry">
+          <rect>
+            <x>10</x>
+            <y>10</y>
+            <width>801</width>
+            <height>221</height>
+          </rect>
+        </property>
+        <property name="title">
+          <string>Configuration File:</string>
+        </property>
+      </widget>
+      <widget class="QPushButton" name="butInitialize">
+        <property name="geometry">
+          <rect>
+            <x>660</x>
+            <y>240</y>
+            <width>75</width>
+            <height>23</height>
+          </rect>
+        </property>
+        <property name="text">
+          <string>Initialize</string>
+        </property>
+      </widget>
+      <widget class="QLabel" name="label">
+        <property name="geometry">
+          <rect>
+            <x>10</x>
+            <y>240</y>
+            <width>71</width>
+            <height>16</height>
+          </rect>
+        </property>
+        <property name="text">
+          <string>Biopsy Read:</string>
+        </property>
+      </widget>
+      <widget class="QLabel" name="label_2">
+        <property name="geometry">
+          <rect>
+            <x>90</x>
+            <y>240</y>
+            <width>31</width>
+            <height>16</height>
+          </rect>
+        </property>
+        <property name="font">
+          <font>
+            <weight>75</weight>
+            <bold>true</bold>
+            <underline>true</underline>
+          </font>
+        </property>
+        <property name="text">
+          <string>0</string>
+        </property>
+      </widget>
+    </widget>
+    <widget class="QStatusBar" name="statusBar"/>
   </widget>
-  <widget class="QPushButton" name="SaveButton">
-   <property name="geometry">
-    <rect>
-     <x>30</x>
-     <y>270</y>
-     <width>75</width>
-     <height>23</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Save</string>
-   </property>
-  </widget>
-  <widget class="QTextEdit" name="textEdit">
-   <property name="geometry">
-    <rect>
-     <x>50</x>
-     <y>230</y>
-     <width>41</width>
-     <height>31</height>
-    </rect>
-   </property>
-  </widget>
- </widget>
- <resources/>
- <connections>
-  <connection>
-   <sender>buttonBox</sender>
-   <signal>accepted()</signal>
-   <receiver>Dialog</receiver>
-   <slot>accept()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>248</x>
-     <y>254</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>157</x>
-     <y>274</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>buttonBox</sender>
-   <signal>rejected()</signal>
-   <receiver>Dialog</receiver>
-   <slot>reject()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>316</x>
-     <y>260</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>286</x>
-     <y>274</y>
-    </hint>
-   </hints>
-  </connection>
- </connections>
+  <layoutdefault spacing="6" margin="11"/>
+  <resources/>
+  <connections>
+    <connection>
+      <sender>groupBox</sender>
+      <signal>clicked()</signal>
+      <receiver>butStop</receiver>
+      <slot>click()</slot>
+      <hints>
+        <hint type="sourcelabel">
+          <x>370</x>
+          <y>161</y>
+        </hint>
+        <hint type="destinationlabel">
+          <x>784</x>
+          <y>261</y>
+        </hint>
+      </hints>
+    </connection>
+  </connections>
 </ui>
