@@ -60,6 +60,13 @@ protected:
 	*/
   PlusStatus DoSpatialCalibration();
 
+	/*!
+	* \brief Prepares and shows the currently segmented points (or hide if unsuccessful)
+  * \param aSuccess True if segmentation was successful
+  * \return Success flag
+	*/
+  PlusStatus DisplaySegmentedPoints(bool aSuccess);
+
 protected slots:
 	/*!
 	* \brief Slot handling open phantom registration button click

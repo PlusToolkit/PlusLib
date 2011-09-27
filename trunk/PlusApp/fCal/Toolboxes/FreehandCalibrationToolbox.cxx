@@ -100,7 +100,7 @@ void FreehandCalibrationToolbox::Initialize()
     }
 
   } else {
-	  SetState(ToolboxState_Error);
+	  SetState(ToolboxState_Uninitialized);
     LOG_ERROR("Frehand calibration cannot be initialized because data collection is not started!");
   }
 }
@@ -110,14 +110,6 @@ void FreehandCalibrationToolbox::Initialize()
 void FreehandCalibrationToolbox::RefreshContent()
 {
 	//LOG_TRACE("StylusCalibrationToolbox::RefreshToolboxContent"); 
-
-	// If in progress
-	if (m_State == ToolboxState_InProgress) {
-    //m_ParentMainWindow->SetStatusBarProgress(m_Calibration->GetProgressPercent());
-
-		// Needed for forced refreshing the UI (without this, no progress is shown)
-		//QApplication::processEvents();
-  }
 }
 
 //-----------------------------------------------------------------------------
@@ -234,7 +226,6 @@ void FreehandCalibrationToolbox::SetDisplayAccordingToState()
 		}
 
 		m_ParentMainWindow->SetStatusBarText(QString(" Acquiring and adding images to calibrator"));
-    //m_ParentMainWindow->SetStatusBarProgress(m_Calibration->GetProgressPercent());
 
   } else
 	// If done
@@ -531,11 +522,13 @@ PlusStatus FreehandCalibrationToolbox::DoSpatialCalibration()
 			++numberOfAcquiredImages;
 
       int progressPercent = (int)((numberOfAcquiredImages / (double)(maxNumberOfValidationImages + maxNumberOfCalibrationImages)) * 100.0);
-			//this->SetProgressPercent( progressPercent );
+			m_ParentMainWindow->SetStatusBarProgress(progressPercent);
 		}
 
 		// Display segmented points (or hide them if unsuccessful)
-		//DisplaySegmentedPoints(segmentationSuccessful);
+		DisplaySegmentedPoints(segmentationSuccessful);
+
+    QApplication::processEvents();
 	}
 
 	LOG_INFO("Segmentation success rate: " << numberOfAcquiredImages << " out of " << numberOfAcquiredImages + numberOfFailedSegmentations << " (" << (int)(((double)numberOfAcquiredImages / (double)(numberOfAcquiredImages + numberOfFailedSegmentations)) * 100.0 + 0.49) << " percent)");
@@ -608,37 +601,35 @@ void FreehandCalibrationToolbox::ShowDevicesToggled(bool aOn)
 }
 
 //-----------------------------------------------------------------------------
-/*
-PlusStatus vtkFreehandCalibrationController::DisplaySegmentedPoints(bool aSuccess)
+
+PlusStatus FreehandCalibrationToolbox::DisplaySegmentedPoints(bool aSuccess)
 {
 	LOG_TRACE("vtkFreehandCalibrationController::DisplaySegmentedPoints(" << (aSuccess?"true":"false") << ")");
 
-	if (! aSuccess) {
-		this->SegmentedPointsActor->VisibilityOff();
-		//this->SegmentedPointsActor->GetProperty()->SetColor(0.5, 0.5, 0.5);
+  if (! aSuccess) {
+    m_ParentMainWindow->GetToolVisualizer()->ShowResultPoints(false);
+    return PLUS_SUCCESS;
+  }
 
-		return PLUS_SUCCESS;
-	}
+  vtkPoints* points = m_ParentMainWindow->GetToolVisualizer()->GetResultPointsPolyData()->GetPoints();
+  points->Reset();
 
 	// Get last results and feed the points into vtkPolyData for displaying
-	SegmentedFrame lastSegmentedFrame = this->SegmentedFrameContainer.at(this->SegmentedFrameContainer.size() - 1);
+  SegmentedFrame lastSegmentedFrame = this->m_Calibration->GetSegmentedFrameContainer().at(this->m_Calibration->GetSegmentedFrameContainer().size() - 1);
 	int height = lastSegmentedFrame.TrackedFrameInfo->GetFrameSize()[1];
 
-	vtkSmartPointer<vtkPoints> inputPoints = vtkSmartPointer<vtkPoints>::New();
-  inputPoints->SetNumberOfPoints(this->GetPatternRecognition()->GetFidLabeling()->GetFoundDotsCoordinateValue().size());
+	vtkSmartPointer<vtkPoints> segmentedPoints = vtkSmartPointer<vtkPoints>::New();
+  segmentedPoints->SetNumberOfPoints(this->m_Calibration->GetPatternRecognition()->GetFidLabeling()->GetFoundDotsCoordinateValue().size());
 
-	std::vector<std::vector<double>> dots = this->GetPatternRecognition()->GetFidLabeling()->GetFoundDotsCoordinateValue();
+	std::vector<std::vector<double>> dots = this->m_Calibration->GetPatternRecognition()->GetFidLabeling()->GetFoundDotsCoordinateValue();
 	for (int i=0; i<dots.size(); ++i) {
-		inputPoints->InsertPoint(i, dots[i][0], height - dots[i][1], 0.0);
+		segmentedPoints->InsertPoint(i, dots[i][0], height - dots[i][1], 0.0);
 	}
-	inputPoints->Modified();
+	segmentedPoints->Modified();
 
-	this->SegmentedPointsPolyData->Initialize();
-	this->SegmentedPointsPolyData->SetPoints(inputPoints);
+  m_ParentMainWindow->GetToolVisualizer()->GetResultPointsPolyData()->SetPoints(segmentedPoints);
 
-	this->SegmentedPointsActor->VisibilityOn();
-	//this->SegmentedPointsActor->GetProperty()->SetColor(0.0, 0.8, 0.0);
+  m_ParentMainWindow->GetToolVisualizer()->ShowResultPoints(true);
 
 	return PLUS_SUCCESS;
 }
-*/
