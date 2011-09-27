@@ -8,6 +8,13 @@
 
 class vtkTrackedFrameList;
 
+enum TIMESTAMP_FILTERING_OPTION
+{
+  READ_FILTERED_AND_UNFILTERED = 0,
+  READ_UNFILTERED_COMPUTE_FILTERED,
+  READ_FILTERED_IGNORE_UNFILTERED
+};
+
 class VTK_EXPORT TrackerBufferItem : public TimestampedBufferItem
 {
 public:
@@ -147,7 +154,7 @@ public:
   // If useFilteredTimestamps is true, then the filtered timestamps that are stored in the buffer
   // will be copied to the tracker buffer. If useFilteredTimestamps is false, then only unfiltered timestamps
   // will be copied to the tracker buffer and the tracker buffer will compute the filtered timestamps.
-  PlusStatus CopyDefaultTransformFromTrackedFrameList(vtkTrackedFrameList *sourceTrackedFrameList, bool useFilteredTimestamps=true);
+  PlusStatus CopyDefaultTransformFromTrackedFrameList(vtkTrackedFrameList *sourceTrackedFrameList, TIMESTAMP_FILTERING_OPTION timestampFiltering=READ_FILTERED_AND_UNFILTERED);
 
 protected:
   vtkTrackerBuffer();

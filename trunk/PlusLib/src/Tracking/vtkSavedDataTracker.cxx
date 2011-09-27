@@ -114,7 +114,7 @@ PlusStatus vtkSavedDataTracker::Connect()
     this->LocalTrackerBuffer->DeepCopy( this->GetTool(0)->GetBuffer() ); 
 	}
 
-  if (this->LocalTrackerBuffer->CopyDefaultTransformFromTrackedFrameList(savedDataBuffer)!=PLUS_SUCCESS)
+  if (this->LocalTrackerBuffer->CopyDefaultTransformFromTrackedFrameList(savedDataBuffer, READ_FILTERED_IGNORE_UNFILTERED)!=PLUS_SUCCESS)
   {
     LOG_ERROR("Failed to retrieve tracking data from tracked frame list");
     return PLUS_FAIL;

@@ -667,7 +667,7 @@ double vtkTrackerBuffer::GetLocalTimeOffset()
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkTrackerBuffer::CopyDefaultTransformFromTrackedFrameList(vtkTrackedFrameList *sourceTrackedFrameList, bool useFilteredTimestamps/*=true*/)
+PlusStatus vtkTrackerBuffer::CopyDefaultTransformFromTrackedFrameList(vtkTrackedFrameList *sourceTrackedFrameList, TIMESTAMP_FILTERING_OPTION timestampFiltering/*=READ_FILTERED_AND_UNFILTERED*/)
 {
   int numberOfErrors=0;
 
@@ -678,7 +678,7 @@ PlusStatus vtkTrackerBuffer::CopyDefaultTransformFromTrackedFrameList(vtkTracked
   {
 
     double timestamp(0); 
-    if (useFilteredTimestamps)
+    if (timestampFiltering != READ_UNFILTERED_COMPUTE_FILTERED)
     {
       const char* strTimestamp = sourceTrackedFrameList->GetTrackedFrame(frameNumber)->GetCustomFrameField("Timestamp"); 
       if ( strTimestamp != NULL )
@@ -744,13 +744,19 @@ PlusStatus vtkTrackerBuffer::CopyDefaultTransformFromTrackedFrameList(vtkTracked
     vtkSmartPointer<vtkMatrix4x4> defaultTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
     defaultTransformMatrix->DeepCopy(defaultTransform); 
 
-    if (useFilteredTimestamps)
+    switch (timestampFiltering)
     {
+    case READ_FILTERED_AND_UNFILTERED:
       this->AddTimeStampedItem(defaultTransformMatrix, status, frmnum, unfilteredtimestamp, timestamp); 
-    }
-    else
-    {
+      break;
+    case READ_UNFILTERED_COMPUTE_FILTERED:
       this->AddTimeStampedItem(defaultTransformMatrix, status, frmnum, unfilteredtimestamp); 
+      break;
+    case READ_FILTERED_IGNORE_UNFILTERED:
+      this->AddTimeStampedItem(defaultTransformMatrix, status, frmnum, timestamp, timestamp); 
+      break;
+    default:
+      break;
     }
 
   }
