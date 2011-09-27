@@ -3,48 +3,34 @@
 
 #include "PlusConfigure.h"
 #include "vtkVideoBuffer.h"
-// QT parental class includes
-#include "ui_ProstateBiopsyGuidance.h"
+#include <QMainWindow>
 #include <QWidget>
 
-class ProstateBiopsyGuidance; 
-class QProgressDialog; 
-class QCloseEvent;
-class QTimer;
+
+namespace Ui {
+	class ProstateBiopsyGuidance;
+}
+
 class DeviceSetSelectorWidget;
-class ToolStateDisplayWidget; 
-class StatusIcon; 
 
- #include <QDialog>
+class ProstateBiopsyGuidanceGUI : public QMainWindow
+{
+	Q_OBJECT
 
- class QCheckBox;
- class QDialogButtonBox;
- class QGroupBox;
- class QLabel;
- class QLineEdit;
- class QPushButton;
+protected:
+	// Device Set (Configuration Set) widget object:
+	DeviceSetSelectorWidget*	m_DeviceSetSelectorWidget;
 
- class ProstateBiopsyGuidanceGUI : public QDialog
- {
-     Q_OBJECT
+public:
+	explicit ProstateBiopsyGuidanceGUI(QWidget *parent = 0);
+	~ProstateBiopsyGuidanceGUI();
 
- public:
-     ProstateBiopsyGuidanceGUI(QWidget *parent = 0);
-	 	 
- private:
-     QLabel *label;
-     QLineEdit *lineEdit;
-     QCheckBox *caseCheckBox;
-     QCheckBox *fromStartCheckBox;
-     QCheckBox *wholeWordsCheckBox;
-     QCheckBox *searchSelectionCheckBox;
-     QCheckBox *backwardCheckBox;
-     QDialogButtonBox *buttonBox;
-     QPushButton *findButton;
-     QPushButton *moreButton;
-     QWidget *extension;
-public slots:
+private:
+	Ui::ProstateBiopsyGuidance *ui;
 
+protected slots:
+		void ConnectToDevicesByConfigFile(std::string aConfigFile);
+		void butStop_Click();
 		PlusStatus  saveData(vtkVideoBuffer *buffer_RF,std::string outputVideoBufferSequenceFileName);
 		PlusStatus  acquireData(vtkVideoBuffer *buffer_RF, int type,std::string savedBufferName);
 		PlusStatus  startShaker();
