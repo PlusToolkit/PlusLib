@@ -188,7 +188,7 @@ PlusStatus ProstateBiopsyGuidanceGUI::saveData(vtkVideoBuffer *Data,std::string 
 	// Save Data To File specified
 	LOG_INFO("write Data to file \n");												
 	printf("write Data to file: %s \n",BufferFileName.c_str());
-	dataCollector->WriteVideoBufferToMetafile( Data, outputFolder.c_str(), outputVideoBufferSequenceFileName.c_str(), false);
+	dataCollector->WriteVideoBufferToMetafile( Data, outputFolder.c_str(), BufferFileName.c_str(), false);
 	return PLUS_SUCCESS;
 
 }
