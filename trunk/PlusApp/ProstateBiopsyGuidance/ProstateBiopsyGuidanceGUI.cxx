@@ -220,7 +220,7 @@ PlusStatus ProstateBiopsyGuidanceGUI::stopShaker()
 PlusStatus ProstateBiopsyGuidanceGUI::acquireData(vtkVideoBuffer *Data,int type,std::string savedBufferName ) 
 {
 	LOG_INFO("press a to start\n" );
-	printf("press a to start\n");
+	//printf("press a to start\n");
 	// wait until a is pressed to start acquisition
 	while (_getch() != 'a')															
 	{;}
@@ -230,14 +230,14 @@ PlusStatus ProstateBiopsyGuidanceGUI::acquireData(vtkVideoBuffer *Data,int type,
 	// Save Time for the period specified in inputAcqTimeLength
 	while ( acqStartTime + inputAcqTimeLength > vtkTimerLog::GetUniversalTime() )	
 	{
-		//LOG_INFO("%f seconds left...", acqStartTime + inputAcqTimeLength - vtkTimerLog::GetUniversalTime() );
+		LOG_INFO("seconds left..." << acqStartTime + inputAcqTimeLength - vtkTimerLog::GetUniversalTime() );
 		// Delay for one second
-		printf("%f seconds left... \n",acqStartTime + inputAcqTimeLength - vtkTimerLog::GetUniversalTime());
+		//printf("%f seconds left... \n",acqStartTime + inputAcqTimeLength - vtkTimerLog::GetUniversalTime());
 		vtksys::SystemTools::Delay(1000);											
 	}
 	// Copy Data From Video Buffer
-	LOG_INFO("Copy Data to Buffer\n" );													
-	printf("Copy Data to Buffer: %s \n",savedBufferName.c_str());
+	LOG_INFO("Copy Data to Buffer\n"  << savedBufferName.c_str());													
+	//printf("Copy Data to Buffer: %s \n",savedBufferName.c_str());
 
 	dataCollector->CopyVideoBuffer(Data);
 	return PLUS_SUCCESS;
@@ -249,14 +249,14 @@ PlusStatus ProstateBiopsyGuidanceGUI::stopDataAquisition()
 	// we have to know what is this
 	VTK_LOG_TO_CONSOLE_OFF;  
 	LOG_INFO( "Exit !\n" );
-	printf("Exit !\n");
+	//printf("Exit !\n");
 	return PLUS_SUCCESS;
 }
 PlusStatus ProstateBiopsyGuidanceGUI::saveData(vtkVideoBuffer *Data,std::string BufferFileName)
 {
 	// Save Data To File specified
-	LOG_INFO("write Data to file \n");												
-	printf("write Data to file: %s \n",BufferFileName.c_str());
+	LOG_INFO("write Data to file \n"<<BufferFileName.c_str());												
+	//printf("write Data to file: %s \n",BufferFileName.c_str());
 	dataCollector->WriteVideoBufferToMetafile( Data, outputFolder.c_str(), BufferFileName.c_str(), false);
 	return PLUS_SUCCESS;
 
@@ -328,7 +328,7 @@ void ProstateBiopsyGuidanceGUI::ConnectToDevicesByConfigFile(std::string aConfig
 	LOG_INFO("Loading config file ...");
 	m_DeviceSetSelectorWidget->SetConnectionSuccessful(true);
 	this->ui->butStop->setEnabled(true);
-
+	startBiopsyProcess();
 #pragma region Reading Config File Specific data to PBG
 	/*
 	% 2011-9-16, Code by Saman %
