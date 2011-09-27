@@ -26,6 +26,7 @@ const QString LABEL_RECORDING_FRAME_RATE("Recording Frame Rate:");
 const QString LABEL_SYNC_VIDEO_OFFSET("Video offset:");
 
 #include "PlusConfigure.h"
+#include "PlusCommon.h"
 #include "vtksys/CommandLineArguments.hxx"
 #include "vtkSmartPointer.h"
 #include "vtkDataCollector.h"
@@ -46,42 +47,55 @@ const QString LABEL_SYNC_VIDEO_OFFSET("Video offset:");
  #include "ProstateBiopsyGuidanceGUI.h"
 /*************************************** Define variables**********************************/
 vtkSmartPointer<vtkDataCollector> dataCollector = vtkSmartPointer<vtkDataCollector>::New();					
-std::string inputConfigFileName("Test_PlusConfiguration_DataCollectionOnly_SonixVideo_FakeTracker.xml");	// configuration file name
-std::string outputFolder("./RFDATA");																		// output folder name
-std::string outputVideoBufferSequenceFileName("VideoBufferMetafile");										// output file name
-double inputAcqTimeLength(3);																				// Saving data time
+// configuration file name
+std::string inputConfigFileName("Test_PlusConfiguration_DataCollectionOnly_SonixVideo_FakeTracker.xml");	
+// output folder name
+std::string outputFolder("./RFDATA");																		
+// output file name
+std::string outputVideoBufferSequenceFileName("VideoBufferMetafile");										
+// Saving data time
+double inputAcqTimeLength(3);																				
+// pointer to BMode Buffer
 vtkVideoBuffer *buffer_BMode = vtkVideoBuffer::New();	
+// pointer to RF1 Buffer
 vtkVideoBuffer *buffer_RF = vtkVideoBuffer::New();
+// pointer to RF2 Buffer
 vtkVideoBuffer *buffer_RF2 = vtkVideoBuffer::New();
 VibroLib::AudioCard::DirectSoundBuffer dsb;
 /*****************************************************************************************/
+// This function will start the shaker connected to sound card
 PlusStatus ProstateBiopsyGuidanceGUI::startShaker()
 {
 		HRESULT hr = 0;
-		std::vector<double> frequencies;															// define Shaker Frequencies.
+		// define Shaker Frequencies.
+		std::vector<double> frequencies;															
 		frequencies.push_back((double)20);
 		frequencies.push_back((double)92);
 		frequencies.push_back((double)110);
-
+		// Generate multiple frequencies: frequencies: Input frequency you defined, double sampling_frequency, int nsamples.
 		std::vector<double> signal = VibroLib::GenerateMultiFrequency(frequencies, 8192.0, 20000);
 		VibroLib::AudioCard::Wave Wv;
 		Wv.FromSignal(signal);
 		VibroLib::AudioCard::DirectSoundInstance dsi;
 		dsi.Initialize();
 
+		// Sets the application to the priority level.
+		// Applications with this cooperative level can call the DirectSoundBuffer.setFormat 
+		// and DirectSound.compact methods (http://timgolden.me.uk/pywin32-docs/directsound_DSSCL_PRIORITY.html).
 		if (dsi.SetPriority(GetConsoleWindow(), DSSCL_PRIORITY)!=PLUS_SUCCESS)
 		{
 			LOG_ERROR( "Unable to set cooperative level. HRESULT:" << hr );
 			return PLUS_FAIL;
 		}
 
-		
+		// initialize the wave with this properties DSBCAPS_GLOBALFOCUS & DSBCAPS_STICKYFOCUS : Continue to play sound in buffer even if the user switch to another application.
 		if ((hr = dsb.Initialize(&dsi, Wv, DSBCAPS_GLOBALFOCUS | DSBCAPS_STICKYFOCUS , false )) != DS_OK)
 		{
 //			LOG_ERROR( "Unable to initialize buffer. HRESULT:" << hr);
 //			return PLUS_FAIL;
 		}
-		
+		// Play the wave previously initialized and return error if could not
+		// DSBPLAY_LOOPING: Will restart playing once the Audio buffer reachs end. Until stopped		
 		if ((hr = dsb->Play(0,0,DSBPLAY_LOOPING)) != DS_OK)
 		{
 			LOG_ERROR( "Failed to play buffer. HRESULT: " << hr );
@@ -133,49 +147,47 @@ PlusStatus ProstateBiopsyGuidanceGUI::stopShaker()
 	return PLUS_SUCCESS;
 }*/
 
-
-PlusStatus ProstateBiopsyGuidanceGUI::acquireData(vtkVideoBuffer *Data,int type) // when we figure out how to save Bmode data we will use the type, I put it as int we can change that
+// when we figure out how to save Bmode data we will use the type, I put it as int we can change that
+PlusStatus ProstateBiopsyGuidanceGUI::acquireData(vtkVideoBuffer *Data,int type,std::string savedBufferName ) 
 {
 	LOG_INFO("press a to start\n" );
 	printf("press a to start\n");
-	while (_getch() != 'a')															// wait until a is pressed to start acquisition
+	// wait until a is pressed to start acquisition
+	while (_getch() != 'a')															
 	{;}
 	dataCollector->Start();
-
-	const double acqStartTime = vtkTimerLog::GetUniversalTime();					// Get PC Time 
-
-	while ( acqStartTime + inputAcqTimeLength > vtkTimerLog::GetUniversalTime() )	// Save Time for the period specified in inputAcqTimeLength
+	// Get PC Time 
+	const double acqStartTime = vtkTimerLog::GetUniversalTime();					
+	// Save Time for the period specified in inputAcqTimeLength
+	while ( acqStartTime + inputAcqTimeLength > vtkTimerLog::GetUniversalTime() )	
 	{
 		//LOG_INFO("%f seconds left...", acqStartTime + inputAcqTimeLength - vtkTimerLog::GetUniversalTime() );
-		vtksys::SystemTools::Delay(1000);											// Delay for one second
+		// Delay for one second
+		printf("%f seconds left... \n",acqStartTime + inputAcqTimeLength - vtkTimerLog::GetUniversalTime());
+		vtksys::SystemTools::Delay(1000);											
 	}
-	LOG_INFO("Copy RF Data to Buffer\n" );													// Copy Data From Video Buffer
-	printf("Copy RF Data to Buffer \n");
+	// Copy Data From Video Buffer
+	LOG_INFO("Copy Data to Buffer\n" );													
+	printf("Copy Data to Buffer: %s \n",savedBufferName.c_str());
 
 	dataCollector->CopyVideoBuffer(Data);
 	return PLUS_SUCCESS;
 }
-PlusStatus ProstateBiopsyGuidanceGUI::stopBModeDataAquisition() // an extra function in case we need. It will be deleted if we don't need it and change the name of StopRFModeDataAquisition 
-{
-	dataCollector->Stop();
-	VTK_LOG_TO_CONSOLE_OFF; 
-	LOG_INFO( "Exit !\n" );
-	printf("Exit !\n");
 
-	return PLUS_SUCCESS;
-}
-PlusStatus ProstateBiopsyGuidanceGUI::stopRfModeDataAquisition()
+PlusStatus ProstateBiopsyGuidanceGUI::stopDataAquisition()
 {
 	dataCollector->Stop();
-	VTK_LOG_TO_CONSOLE_OFF; // we have to know what is this 
+	// we have to know what is this
+	VTK_LOG_TO_CONSOLE_OFF;  
 	LOG_INFO( "Exit !\n" );
 	printf("Exit !\n");
 	return PLUS_SUCCESS;
 }
-PlusStatus ProstateBiopsyGuidanceGUI::saveData(vtkVideoBuffer *Data,std::string outputVideoBufferSequenceFileName)
+PlusStatus ProstateBiopsyGuidanceGUI::saveData(vtkVideoBuffer *Data,std::string BufferFileName)
 {
-	LOG_INFO("write RF Data to file \n");												// Save Data To File specified
-	printf("write RF Data to file \n");
+	// Save Data To File specified
+	LOG_INFO("write Data to file \n");												
+	printf("write Data to file: %s \n",BufferFileName.c_str());
 	dataCollector->WriteVideoBufferToMetafile( Data, outputFolder.c_str(), outputVideoBufferSequenceFileName.c_str(), false);
 	return PLUS_SUCCESS;
 
@@ -185,27 +197,31 @@ PlusStatus ProstateBiopsyGuidanceGUI::initialize()
 	vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkXMLUtilities::ReadElementFromFile(inputConfigFileName.c_str());
 	int verboseLevel=vtkPlusLogger::LOG_LEVEL_INFO;
 	vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
-	if (inputConfigFileName.empty())											// Check if configuration file is required.
+	// Check if configuration file is required.
+	if (inputConfigFileName.empty())											
 	{
 		LOG_INFO( "input-config-file-name is required" );
 		exit(EXIT_FAILURE);
 	}
 	VTK_LOG_TO_CONSOLE_ON; 
-  if (configRootElement == NULL) {												// Check if configuration can be read.
+  // Check if configuration can be read.
+  if (configRootElement == NULL) {												
     std::cerr << "Unable to read configuration from file " << inputConfigFileName;
 		exit(EXIT_FAILURE);
   }
-  if ( dataCollector->ReadConfiguration(configRootElement) != PLUS_SUCCESS )	// Check if configuration file can be read
+  // Check if configuration file can be read
+  if ( dataCollector->ReadConfiguration(configRootElement) != PLUS_SUCCESS )	
   {
     std::cerr << "Failed to read configuration!";
 	exit(EXIT_FAILURE);
   }
-	dataCollector->Initialize();												// Initialize Prostate Biopsy Guidance for Data Collection as defined in configuration File.
+	// Initialize Prostate Biopsy Guidance for Data Collection as defined in configuration File.
+	dataCollector->Initialize();												
 	return PLUS_SUCCESS;
 }
 
 
-PlusStatus ProstateBiopsyGuidanceGUI::deletBuffer(vtkVideoBuffer *Data)
+PlusStatus ProstateBiopsyGuidanceGUI::deleteBuffer(vtkVideoBuffer *Data)
 {
 
 		Data->Delete();
@@ -214,23 +230,27 @@ PlusStatus ProstateBiopsyGuidanceGUI::deletBuffer(vtkVideoBuffer *Data)
 
 PlusStatus ProstateBiopsyGuidanceGUI::startBiopsyProcess()
 {
-	initialize();
-//	AcquireBModeData();
-//	SaveBModeData();
-//	DeletBuffer(BMode_Buffer);
-//	StopBModeDataAquisition();
-//	buffer_BMode->Delete();
-	startShaker();
-	acquireData(buffer_RF,1);
-	stopShaker();
+	initialize();				
+/****************************************************************/
+	acquireData(buffer_BMode,1,"BMode");
+/****************************************************************/
+	startShaker();				
+	acquireData(buffer_RF,1,"RF1");	
+	stopShaker();				
+/****************************************************************/
+	acquireData(buffer_RF2,1,"RF2");
+/****************************************************************/
 	saveData(buffer_RF,"RF_Data1");
-	deletBuffer(buffer_RF);
-
-	acquireData(buffer_RF2,1);
+	deleteBuffer(buffer_RF);
+/****************************************************************/
 	saveData(buffer_RF2,"RF_Data2");
-	deletBuffer(buffer_RF2);
-
-	stopRfModeDataAquisition();
+	deleteBuffer(buffer_RF2);
+/****************************************************************/
+	saveData(buffer_BMode,"BMode_Data");
+	deleteBuffer(buffer_BMode);
+/****************************************************************/
+	stopDataAquisition();
+/****************************************************************/
 	return PLUS_SUCCESS;
 
 }
@@ -263,31 +283,44 @@ PlusStatus ProstateBiopsyGuidanceGUI::startBiopsyProcess()
 	//#pragma endregion
 
 	//double inputAcqTimeLength =atof(prostateBiopsyConfig->GetAttribute("AcquisitionTime"));
-		ifstream inFile("inputAcqTimeLength.txt");					// Read the acquistion time from text file.
+		// Read the acquistion time from text file.
+		ifstream inFile("inputAcqTimeLength.txt");					
 		double n;													
 		inFile >> n;
 		inputAcqTimeLength = n;
 		inFile.close();
-		label = new QLabel(tr("Acquisition Time: "));				// Add label to the text editor
+		// Add label to the text editor
+		label = new QLabel(tr("Acquisition Time: "));				
 		lineEdit = new QLineEdit;									
-		label->setBuddy(lineEdit);									// When the user presses the shortcut key indicated by this label, the keyboard focus is transferred to the label's buddy widget. (http://www.greyc.ensicaen.fr/ensicaen/Docs/Qt4/qlabel.html#setBuddy)						
-		QString valueAsString = QString::number(inputAcqTimeLength);// Change the Acquistion time read to String
-		lineEdit->setText(valueAsString);							// Set the text in the edit box to the value required
-		findButton = new QPushButton(tr("Start"));				// Provide Push Button
+		// When the user presses the shortcut key indicated by this label, the keyboard focus is transferred to the label's buddy widget. (http://www.greyc.ensicaen.fr/ensicaen/Docs/Qt4/qlabel.html#setBuddy)
+		label->setBuddy(lineEdit);															
+		// Change the Acquistion time read to String
+		QString valueAsString = QString::number(inputAcqTimeLength);
+		// Set the text in the edit box to the value required
+		lineEdit->setText(valueAsString);						
+		// Provide Push Button
+		findButton = new QPushButton(tr("Start"));				
 		findButton->setDefault(true);								
-		buttonBox = new QDialogButtonBox(Qt::Vertical);				// The QDialogButtonBox class is a widget that presents buttons in a layout that is appropriate to the current widget style.(http://doc.qt.nokia.com/stable/qdialogbuttonbox.html#details)
-	    buttonBox->addButton(findButton, QDialogButtonBox::ActionRole); // Adds the specified button
-		connect ( findButton, SIGNAL( clicked() ), this, SLOT( startBiopsyProcess() ) );	// Connect SaveRFData to button to run when clicked
-		QHBoxLayout *topLeftLayout = new QHBoxLayout;				// class lines up widgets horizontally (http://doc.qt.nokia.com/4.7/qhboxlayout.html#details).
-		topLeftLayout->addWidget(label);							// Adds widget to the end of this box layout, with a stretch factor of stretch and alignment alignment.(http://doc.qt.nokia.com/latest/qboxlayout.html#addWidget)
+		// The QDialogButtonBox class is a widget that presents buttons in a layout that is appropriate to the current widget style.(http://doc.qt.nokia.com/stable/qdialogbuttonbox.html#details)
+		buttonBox = new QDialogButtonBox(Qt::Vertical);				
+		// Adds the specified button
+	    buttonBox->addButton(findButton, QDialogButtonBox::ActionRole); 
+		// Connect SaveRFData to button to run when clicked
+		connect ( findButton, SIGNAL( clicked() ), this, SLOT( startBiopsyProcess() ) );	
+		// class lines up widgets horizontally (http://doc.qt.nokia.com/4.7/qhboxlayout.html#details).
+		QHBoxLayout *topLeftLayout = new QHBoxLayout;				
+		// Adds widget to the end of this box layout, with a stretch factor of stretch and alignment alignment.(http://doc.qt.nokia.com/latest/qboxlayout.html#addWidget)
+		topLeftLayout->addWidget(label);							
 		topLeftLayout->addWidget(lineEdit);							
 		QVBoxLayout *leftLayout = new QVBoxLayout;
 		leftLayout->addLayout(topLeftLayout);
 		leftLayout->addStretch(1);
 		QGridLayout *mainLayout = new QGridLayout;
-		mainLayout->setSizeConstraint(QLayout::SetFixedSize);       //This property holds the resize mode of the layout.(http://doc.qt.nokia.com/latest/qlayout.html#sizeConstraint-prop)
+		//This property holds the resize mode of the layout.(http://doc.qt.nokia.com/latest/qlayout.html#sizeConstraint-prop)
+		mainLayout->setSizeConstraint(QLayout::SetFixedSize);       
 		mainLayout->addLayout(leftLayout, 0, 0);
 		mainLayout->addWidget(buttonBox, 0, 1);
 		setLayout(mainLayout);
-		setWindowTitle(tr("Save RF Data"));							// Set teh Title to Save RF Data
+		// Set teh Title to Save RF Data
+		setWindowTitle(tr("Save RF Data"));							
  }

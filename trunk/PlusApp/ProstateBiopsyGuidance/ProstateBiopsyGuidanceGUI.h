@@ -46,17 +46,16 @@ class StatusIcon;
 public slots:
 
 		PlusStatus  saveData(vtkVideoBuffer *buffer_RF,std::string outputVideoBufferSequenceFileName);
-		PlusStatus  acquireData(vtkVideoBuffer *buffer_RF, int type);
+		PlusStatus  acquireData(vtkVideoBuffer *buffer_RF, int type,std::string savedBufferName);
 		PlusStatus  startShaker();
 		PlusStatus	initialize();
 //		PlusStatus	AcquireBModeData();
 //		PlusStatus	SaveBModeData();
 //		PlusStatus  StopDataAquisition();
 		PlusStatus  startBiopsyProcess();
-		PlusStatus	stopBModeDataAquisition();
-		PlusStatus	stopRfModeDataAquisition();
+		PlusStatus	stopDataAquisition();
 		PlusStatus	stopShaker();
-		PlusStatus	deletBuffer(vtkVideoBuffer *buffer_RF);
+		PlusStatus	deleteBuffer(vtkVideoBuffer *buffer_RF);
 
  };
 
