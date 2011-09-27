@@ -9,6 +9,7 @@ SET (ProstateBiopsyGuidance_SRCS
 	ProstateBiopsyGuidance.cxx
 	ProstateBiopsyGuidanceMain.cxx 
 	ProstateBiopsyGuidanceGUI.cxx
+	
 	)
 
 if (WIN32)	
@@ -45,8 +46,10 @@ SOURCE_GROUP("UI Files" FILES ${ProstateBiopsyGuidance_UI_SRCS})
 
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR})
 INCLUDE_DIRECTORIES(${PlusApp_BINARY_DIR}/CommonWidgets)
+INCLUDE_DIRECTORIES(${PlusApp_SOURCE_DIR}/CommonWidgets)
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR})
 INCLUDE_DIRECTORIES( ${VibroAudioCard_INCLUDE_DIRS} )
+
 
 # --------------------------------------------------------------------------
 # Build the library
