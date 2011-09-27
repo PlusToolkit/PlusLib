@@ -277,20 +277,20 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
 					}
 
 				}
-					double translationError = PlusMath::GetPositionDifference(baseTransMatrix, currentTransMatrix); 
-					if ( translationError > translationErrorThreshold )
-					{
-						LOG_ERROR("TransformImageToProbe translation error is higher than expected: " << translationError << " mm (threshold: " << translationErrorThreshold << " mm). " );
-						numberOfFailures++;
-					}
 
-					double rotationError = PlusMath::GetOrientationDifference(baseTransMatrix, currentTransMatrix); 
-					if ( rotationError > rotationErrorThreshold )
-					{
-						LOG_ERROR("TransformImageToProbe rotation error is higher than expected: " << rotationError << " degree (threshold: " << rotationErrorThreshold << " degree). " );
-						numberOfFailures++;
-					}
-				
+				double translationError = PlusMath::GetPositionDifference(baseTransMatrix, currentTransMatrix); 
+				if ( translationError > translationErrorThreshold )
+				{
+					LOG_ERROR("TransformImageToProbe translation error is higher than expected: " << translationError << " mm (threshold: " << translationErrorThreshold << " mm). " );
+					numberOfFailures++;
+				}
+
+				double rotationError = PlusMath::GetOrientationDifference(baseTransMatrix, currentTransMatrix); 
+				if ( rotationError > rotationErrorThreshold )
+				{
+					LOG_ERROR("TransformImageToProbe rotation error is higher than expected: " << rotationError << " degree (threshold: " << rotationErrorThreshold << " degree). " );
+					numberOfFailures++;
+				}
 			}
 			delete[] blTransformImageToProbe; 
 			delete[] cTransformImageToProbe; 

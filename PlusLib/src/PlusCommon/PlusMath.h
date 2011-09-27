@@ -46,6 +46,9 @@ public:
 	static void ConvertVnlMatrixToVtkMatrix(vnl_matrix<double>& inVnlMatrix, vtkMatrix4x4* outVtkMatrix); 
 	static void ConvertVtkMatrixToVnlMatrix(vtkMatrix4x4* inVtkMatrix, vnl_matrix<double>& outVnlMatrix ); 
 
+  // Print VTK matrix into STL stream
+  static void PrintVtkMatrix(vtkMatrix4x4* matrix, std::ostringstream &stream);
+
 protected:
   PlusMath(); 
   ~PlusMath();

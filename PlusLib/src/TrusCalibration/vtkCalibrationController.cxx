@@ -1127,7 +1127,7 @@ PlusStatus vtkCalibrationController::ComputeCalibrationResults()
 
 		vtkSmartPointer<vtkMatrix4x4> userImageToProbeMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
 
-		// convert transform from meter to mm
+		// convert transform to vtk
 		for ( int i = 0; i < 3; i++ )
 		{
 			for ( int j = 0; j < 4; j++ )
@@ -1136,18 +1136,15 @@ PlusStatus vtkCalibrationController::ComputeCalibrationResults()
 			}
 		}
 		
+    // Check orthogonality
+    IsUserImageToProbeTransformOrthogonal();
+
 		// Complete the transformation matrix from a projection matrix to a 3D-3D transformation matrix (so that it can be inverted or can be used to transform 3D widgets to the image plane)
 		double xVector[3] = {userImageToProbeMatrix->GetElement(0,0),userImageToProbeMatrix->GetElement(1,0),userImageToProbeMatrix->GetElement(2,0)}; 
 		double yVector[3] = {userImageToProbeMatrix->GetElement(0,1),userImageToProbeMatrix->GetElement(1,1),userImageToProbeMatrix->GetElement(2,1)};  
 		double zVector[3] = {0,0,0}; 
 
-    double dotProduct = vtkMath::Dot(xVector, yVector);
-    if (dotProduct > 0.001) 
-    {
-      LOG_WARNING("Calibration result axes are not orthogonal (dot product of X and Y axes is " << dotProduct << ")");
-    }
-		
-		vtkMath::Cross(xVector, yVector, zVector); 
+    vtkMath::Cross(xVector, yVector, zVector); 
 						
 		// make the z vector have about the same length as x an y,
 		// so that when a 3D widget is transformed using this transform, the aspect ratio is maintained
@@ -1159,60 +1156,27 @@ PlusStatus vtkCalibrationController::ComputeCalibrationResults()
 		userImageToProbeMatrix->SetElement(1, 2, zVector[1]);
 		userImageToProbeMatrix->SetElement(2, 2, zVector[2]);
 
-		// Write transformations to log and output
-		std::ostringstream osTransformImageToUserImage; 
-		this->TransformImageToUserImage->Print(osTransformImageToUserImage);   
-		LOG_DEBUG("TransformImageToUserImage:\n" << osTransformImageToUserImage.str().c_str() );
+    // Set result matrix
+    this->TransformUserImageToProbe->SetMatrix( userImageToProbeMatrix );
 
-		this->TransformUserImageToProbe->SetMatrix( userImageToProbeMatrix ); 
-		std::ostringstream osTransformUserImageToProbe; 
-		this->TransformUserImageToProbe->Print(osTransformUserImageToProbe);   
-		LOG_DEBUG("TransformUserImageToProbe:\n" << osTransformUserImageToProbe.str().c_str() );
-
-		std::ostringstream osTransformProbeToReference; 
-		this->TransformProbeToReference->Print(osTransformProbeToReference);   
-		LOG_DEBUG("TransformProbeToReference:\n" << osTransformProbeToReference.str().c_str() );
-
-		//this->GetTransformProbeToUserImage()->SetMatrix( userImageToProbeMatrix ); 
-		//this->GetTransformProbeToUserImage()->Inverse(); 
-
-		std::ostringstream osTransformReferenceToTemplateHolderHome; 
-		this->TransformReferenceToTemplateHolderHome->Print(osTransformReferenceToTemplateHolderHome);  
-		LOG_DEBUG("TransformReferenceToTemplateHolderHome:\n" << osTransformReferenceToTemplateHolderHome.str().c_str() );
-
-		std::ostringstream osTransformTemplateHolderToTemplate; 
-		this->TransformTemplateHolderToTemplate->Print(osTransformTemplateHolderToTemplate);  
-		LOG_DEBUG("TransformTemplateHolderToTemplate:\n" << osTransformTemplateHolderToTemplate.str().c_str() );
-
-		std::ostringstream osTransformTemplateHomeToTemplate; 
-		this->TransformTemplateHomeToTemplate->Print(osTransformTemplateHomeToTemplate);  
-		LOG_DEBUG("TransformTemplateHomeToTemplate:\n" << osTransformTemplateHomeToTemplate.str().c_str() );
-
-		std::ostringstream osTransformImageToTemplate; 
-		this->TransformImageToTemplate->Print(osTransformImageToTemplate);  
-		LOG_DEBUG("TransformImageToTemplate:\n" << osTransformImageToTemplate.str().c_str() );
-
-
-		// Compute the independent point and line reconstruction errors
-		// ============================================================
-		LOG_INFO(">>>>>>>> Compute the independent point and line reconstruction errors ...") ;
+    // Compute the independent point and line reconstruction errors
 		this->computeIndependentPointLineReconstructionError();
 
 		// STEP-4. Print the final calibration results and error reports 
-		// =================================================================
-		LOG_INFO(">>>>>>>> Print calibration results and error reports ..."); ;
-		this->CalibrationControllerIO->PrintCalibrationResultsAndErrorReports();
+    std::ostringstream matrixStream; 
+    PlusMath::PrintVtkMatrix(this->TransformUserImageToProbe->GetMatrix(), matrixStream);
+    LOG_INFO("Calibration result transform matrix = \n" << matrixStream.str());
+
+	  // Point-Line Distance Error Analysis for Validation Positions in US probe frame
+    LOG_INFO("Point-Line Distance Error - mean: " << mPLDEAnalysis4ValidationPositionsInUSProbeFrame[0] << ", rms: " << mPLDEAnalysis4ValidationPositionsInUSProbeFrame[1] << ", std: " << mPLDEAnalysis4ValidationPositionsInUSProbeFrame[2]);
+    LOG_INFO("  Validation data confidence level: " << mPLDEAnalysis4ValidationPositionsInUSProbeFrame[3]);
 
 		// STEP-5. Save the calibration results and error reports into a file 
-		// ===================================================================
-		LOG_INFO(">>>>>>>> Save the calibration results and error reports to file...");
 		this->CalibrationControllerIO->SaveCalibrationResultsAndErrorReportsToXML();
 
 		// STEP-6. Save the segmented wire positions into a file 
-		// ===================================================================
 		if ( this->EnableSegmentedWirePositionsSaving )
 		{
-			LOG_INFO(">>>>>>>> Save the segmented wire positions to file..."); 
 			this->CalibrationControllerIO->SaveSegmentedWirePositionsToFile(); 
 		}
 
@@ -1230,7 +1194,6 @@ PlusStatus vtkCalibrationController::ComputeCalibrationResults()
     // save the input images to meta image
     if ( this->EnableTrackedSequenceDataSaving )
     {
-      LOG_INFO(">>>>>>>> Save validation data to sequence metafile..."); 
       // TODO add validation file name to config file
       // Save validation dataset
       std::ostringstream validationDataFileName; 
@@ -1240,7 +1203,6 @@ PlusStatus vtkCalibrationController::ComputeCalibrationResults()
         LOG_ERROR("Failed to save tracked frames to sequence metafile!"); 
       }
 
-      LOG_INFO(">>>>>>>> Save calibration data to sequence metafile..."); 
       // Save calibration dataset 
       std::ostringstream calibrationDataFileName; 
       calibrationDataFileName << this->CalibrationDate << this->GetImageDataInfo(RANDOM_STEPPER_MOTION_1).OutputSequenceMetaFileSuffix; 
@@ -2636,17 +2598,6 @@ PlusStatus vtkCalibrationController::calibrate()
 	// Reset the calibration flag
 	mHasBeenCalibrated = true;
 
-	// Log the data pipeline if requested.
-	LOG_DEBUG(" PERFORM CALIBRATION");
-	LOG_DEBUG(" DataPositionsInUSImageFrameMatrix4xN = \n" << DataPositionsInUSImageFrameMatrix4xN);
-	LOG_DEBUG(" DataPositionsInUSProbeFrameMatrix4xN = \n" << DataPositionsInUSProbeFrameMatrix4xN);
-	if( true == mIsUSBeamwidthAndWeightFactorsTableReady )
-	{
-		LOG_DEBUG(" USBeamWidthEuclideanMagAtDataPositionsInVNLvectors = \n" << USBeamWidthEuclideanMagAtDataPositionsInVNLvectors);
-		LOG_DEBUG(" WeightsForDataPositionsInVNLvectors = \n" << WeightsForDataPositionsInVNLvectors);
-	}
-	LOG_DEBUG(" mTransformUSImageFrame2USProbeFrameMatrix4x4 = \n" << mTransformUSImageFrame2USProbeFrameMatrix4x4);
-
   return PLUS_SUCCESS;
 }
 
@@ -2815,25 +2766,11 @@ PlusStatus vtkCalibrationController::compute3DPointReconstructionError()
 	mArePRE3DsForValidationPositionsReady = true;
 
 	// Log the data pipeline if requested.
-	LOG_DEBUG(" COMPUTE 3D Point Reconstruction Error (PRE3D)");
-	LOG_DEBUG("mAbsPRE3DAnalysis4ValidationPositionsInUSProbeFrame = ");
-	LOG_DEBUG("[ vector 0 - 2:  PRE3D_X_mean, PRE3D_X_rms, PRE3D_X_std ]");
-	LOG_DEBUG("[ vector 3 - 5:  PRE3D_Y_mean, PRE3D_Y_rms, PRE3D_Y_std ]");
-	LOG_DEBUG("[ vector 6 - 8:  PRE3D_Z_mean, PRE3D_Z_rms, PRE3D_Z_std ]");
-	LOG_DEBUG("[ vector 9    :  Validation data confidence level ]");
-	LOG_DEBUG(mAbsPRE3DAnalysis4ValidationPositionsInUSProbeFrame[0] << ", " 
-		<< mAbsPRE3DAnalysis4ValidationPositionsInUSProbeFrame[1] << ", "
-		<< mAbsPRE3DAnalysis4ValidationPositionsInUSProbeFrame[2] << "\n"
-		<< mAbsPRE3DAnalysis4ValidationPositionsInUSProbeFrame[3] << ", " 
-		<< mAbsPRE3DAnalysis4ValidationPositionsInUSProbeFrame[4] << ", "
-		<< mAbsPRE3DAnalysis4ValidationPositionsInUSProbeFrame[5] << "\n"
-		<< mAbsPRE3DAnalysis4ValidationPositionsInUSProbeFrame[6] << ", " 
-		<< mAbsPRE3DAnalysis4ValidationPositionsInUSProbeFrame[7] << ", "
-		<< mAbsPRE3DAnalysis4ValidationPositionsInUSProbeFrame[8]);
-	LOG_DEBUG("Validation Data Confidence Level = " << 
-		mAbsPRE3DAnalysis4ValidationPositionsInUSProbeFrame[9] << ", or in other words");
-	LOG_DEBUG(NumberOfTopRankedCalibrationData << " top-ranked validation data were used out of the total" 
-		<< NumberOfValidationPositions << " validation data set for the above statistical analysis.");
+	LOG_DEBUG("3D Point Reconstruction Error (PRE3D)");
+  LOG_DEBUG("PRE3D mean: (" << mAbsPRE3DAnalysis4ValidationPositionsInUSProbeFrame[0] << ", " << mAbsPRE3DAnalysis4ValidationPositionsInUSProbeFrame[3] << ", " << mAbsPRE3DAnalysis4ValidationPositionsInUSProbeFrame[6] << ")");
+  LOG_DEBUG("PRE3D rms: (" << mAbsPRE3DAnalysis4ValidationPositionsInUSProbeFrame[1] << ", " << mAbsPRE3DAnalysis4ValidationPositionsInUSProbeFrame[4] << ", " << mAbsPRE3DAnalysis4ValidationPositionsInUSProbeFrame[7] << ")");
+  LOG_DEBUG("PRE3D std: (" << mAbsPRE3DAnalysis4ValidationPositionsInUSProbeFrame[2] << ", " << mAbsPRE3DAnalysis4ValidationPositionsInUSProbeFrame[5] << ", " << mAbsPRE3DAnalysis4ValidationPositionsInUSProbeFrame[8] << ")");
+	LOG_DEBUG("Validation Data Confidence Level = " << mAbsPRE3DAnalysis4ValidationPositionsInUSProbeFrame[9] << " ( " << NumberOfTopRankedCalibrationData << " top-ranked validation data were used out of the total " << NumberOfValidationPositions << " validation data set for the above statistical analysis)");
 
   return PLUS_SUCCESS;
 }
@@ -3354,92 +3291,36 @@ PlusStatus vtkCalibrationController::computeIndependentPointLineReconstructionEr
 	// Reset the flag
 	mAreIndependentPointLineReconErrorsReady = true;
 
-	// Log the data pipeline if requested.
-	LOG_DEBUG(" COMPUTE FINAL 3D Point Reconstruction Error (PRE3D)");
-	LOG_DEBUG(" mRawPRE3DsforValidationPositionsInUSProbeFrameMatrix4xN = \n" << mRawPRE3DsforValidationPositionsInUSProbeFrameMatrix4xN);
-	LOG_DEBUG(" mSortedRawPRE3DsInAscendingOrderInUSProbeFrameMatrix4xN = \n" << mSortedRawPRE3DsInAscendingOrderInUSProbeFrameMatrix4xN);
-	LOG_DEBUG("mAbsPRE3DAnalysis4ValidationPositionsInUSProbeFrame = ");
-	LOG_DEBUG("[ vector 0 - 2:  PRE3D_X_mean, PRE3D_X_rms, PRE3D_X_std ]");
-	LOG_DEBUG("[ vector 3 - 5:  PRE3D_Y_mean, PRE3D_Y_rms, PRE3D_Y_std ]");
-	LOG_DEBUG("[ vector 6 - 8:  PRE3D_Z_mean, PRE3D_Z_rms, PRE3D_Z_std ]");
-	LOG_DEBUG("[ vector 9    :  Validation data confidence level ]");
-	LOG_DEBUG(mAbsPRE3DAnalysis4ValidationPositionsInUSProbeFrame[0] << ", " 
-		<< mAbsPRE3DAnalysis4ValidationPositionsInUSProbeFrame[1] << ", "
-		<< mAbsPRE3DAnalysis4ValidationPositionsInUSProbeFrame[2] << "\n"
-		<< mAbsPRE3DAnalysis4ValidationPositionsInUSProbeFrame[3] << ", " 
-		<< mAbsPRE3DAnalysis4ValidationPositionsInUSProbeFrame[4] << ", "
-		<< mAbsPRE3DAnalysis4ValidationPositionsInUSProbeFrame[5] << "\n"
-		<< mAbsPRE3DAnalysis4ValidationPositionsInUSProbeFrame[6] << ", " 
-		<< mAbsPRE3DAnalysis4ValidationPositionsInUSProbeFrame[7] << ", "
-		<< mAbsPRE3DAnalysis4ValidationPositionsInUSProbeFrame[8]);
-	LOG_DEBUG("Validation Data Confidence Level = " << 
-		mAbsPRE3DAnalysis4ValidationPositionsInUSProbeFrame[9] << ".");
+	// Log the data pipeline if requested
+  LOG_DEBUG("Wire #1");
+  LOG_DEBUG("  LRE mean: (" << mNWire1AbsLREAnalysisInUSProbeFrame[0] << ", " << mNWire1AbsLREAnalysisInUSProbeFrame[1] << ")");
+  LOG_DEBUG("  LRE std: (" << mNWire1AbsLREAnalysisInUSProbeFrame[2] << ", " << mNWire1AbsLREAnalysisInUSProbeFrame[3] << ")");
+  LOG_DEBUG("  LRE EUC - mean: " << mNWire1AbsLREAnalysisInUSProbeFrame[4] << ", std: " << mNWire1AbsLREAnalysisInUSProbeFrame[5]);
+  LOG_DEBUG("  Validation data confidence level: " << mNWire1AbsLREAnalysisInUSProbeFrame[6]);
 
-	LOG_DEBUG(" COMPUTE Independent NWire Line Reconstruction Error (LRE)");
-	LOG_DEBUG(" NWire1ProjectedPositionsInUSProbeFrameMatrix4xN = \n" << NWire1ProjectedPositionsInUSProbeFrameMatrix4xN);
-	LOG_DEBUG(" NWire3ProjectedPositionsInUSProbeFrameMatrix4xN = \n" << NWire3ProjectedPositionsInUSProbeFrameMatrix4xN);
-	LOG_DEBUG(" NWire4ProjectedPositionsInUSProbeFrameMatrix4xN = \n" << NWire4ProjectedPositionsInUSProbeFrameMatrix4xN);
-	LOG_DEBUG(" NWire6ProjectedPositionsInUSProbeFrameMatrix4xN = \n" << NWire6ProjectedPositionsInUSProbeFrameMatrix4xN);
-	LOG_DEBUG(" mNWire1LREOrigInUSProbeFrameMatrix4xN = \n" << mNWire1LREOrigInUSProbeFrameMatrix4xN);
-	LOG_DEBUG(" mNWire3LREOrigInUSProbeFrameMatrix4xN = \n" << mNWire3LREOrigInUSProbeFrameMatrix4xN);
-	LOG_DEBUG(" mNWire4LREOrigInUSProbeFrameMatrix4xN = \n" << mNWire4LREOrigInUSProbeFrameMatrix4xN);
-	LOG_DEBUG(" mNWire6LREOrigInUSProbeFrameMatrix4xN = \n" << mNWire6LREOrigInUSProbeFrameMatrix4xN);
-	LOG_DEBUG(" mNWire1LRESortedAscendingInUSProbeFrameMatrix4xN = \n" << mNWire1LRESortedAscendingInUSProbeFrameMatrix4xN);
-	LOG_DEBUG(" mNWire3LRESortedAscendingInUSProbeFrameMatrix4xN = \n" << mNWire3LRESortedAscendingInUSProbeFrameMatrix4xN);
-	LOG_DEBUG(" mNWire4LRESortedAscendingInUSProbeFrameMatrix4xN = \n" << mNWire4LRESortedAscendingInUSProbeFrameMatrix4xN);
-	LOG_DEBUG(" mNWire6LRESortedAscendingInUSProbeFrameMatrix4xN = \n" << mNWire6LRESortedAscendingInUSProbeFrameMatrix4xN);
-	LOG_DEBUG(" NWire1AbsLRETopRankedInUSProbeFrameMatrix4xN = \n" << NWire1AbsLRETopRankedInUSProbeFrameMatrix4xN);
-	LOG_DEBUG(" NWire3AbsLRETopRankedInUSProbeFrameMatrix4xN = \n" << NWire3AbsLRETopRankedInUSProbeFrameMatrix4xN);
-	LOG_DEBUG(" NWire4AbsLRETopRankedInUSProbeFrameMatrix4xN = \n" << NWire4AbsLRETopRankedInUSProbeFrameMatrix4xN);
-	LOG_DEBUG(" NWire6AbsLRETopRankedInUSProbeFrameMatrix4xN = \n" << NWire6AbsLRETopRankedInUSProbeFrameMatrix4xN);
-	LOG_DEBUG("[ vector 0 - 1:  LRE_X_mean,   LRE_X_std   ]");
-	LOG_DEBUG("[ vector 2 - 3:  LRE_Y_mean,   LRE_Y_std   ]");
-	LOG_DEBUG("[ vector 4 - 5:  LRE_EUC_mean, LRE_EUC_std ]");
-	LOG_DEBUG("[ vector 6    :  Validation data confidence level ]");
-	LOG_DEBUG("mNWire1AbsLREAnalysisInUSProbeFrame = ");
-	LOG_DEBUG(mNWire1AbsLREAnalysisInUSProbeFrame[0] << ", " 
-		<< mNWire1AbsLREAnalysisInUSProbeFrame[1] << "\n"
-		<< mNWire1AbsLREAnalysisInUSProbeFrame[2] << ", " 
-		<< mNWire1AbsLREAnalysisInUSProbeFrame[3] << "\n"
-		<< mNWire1AbsLREAnalysisInUSProbeFrame[4] << ", "
-		<< mNWire1AbsLREAnalysisInUSProbeFrame[5] << "\n" 
-		<< mNWire1AbsLREAnalysisInUSProbeFrame[6]);
-	LOG_DEBUG("mNWire3AbsLREAnalysisInUSProbeFrame = ");
-	LOG_DEBUG(mNWire3AbsLREAnalysisInUSProbeFrame[0] << ", " 
-		<< mNWire3AbsLREAnalysisInUSProbeFrame[1] << "\n"
-		<< mNWire3AbsLREAnalysisInUSProbeFrame[2] << ", " 
-		<< mNWire3AbsLREAnalysisInUSProbeFrame[3] << "\n"
-		<< mNWire3AbsLREAnalysisInUSProbeFrame[4] << ", "
-		<< mNWire3AbsLREAnalysisInUSProbeFrame[5] << "\n" 
-		<< mNWire3AbsLREAnalysisInUSProbeFrame[6]);
-	LOG_DEBUG("mNWire4AbsLREAnalysisInUSProbeFrame = ");
-	LOG_DEBUG(mNWire4AbsLREAnalysisInUSProbeFrame[0] << ", " 
-		<< mNWire4AbsLREAnalysisInUSProbeFrame[1] << "\n"
-		<< mNWire4AbsLREAnalysisInUSProbeFrame[2] << ", " 
-		<< mNWire4AbsLREAnalysisInUSProbeFrame[3] << "\n"
-		<< mNWire4AbsLREAnalysisInUSProbeFrame[4] << ", "
-		<< mNWire4AbsLREAnalysisInUSProbeFrame[5] << "\n" 
-		<< mNWire4AbsLREAnalysisInUSProbeFrame[6]);
-	LOG_DEBUG("mNWire6AbsLREAnalysisInUSProbeFrame = ");
-	LOG_DEBUG(mNWire6AbsLREAnalysisInUSProbeFrame[0] << ", " 
-		<< mNWire6AbsLREAnalysisInUSProbeFrame[1] << "\n"
-		<< mNWire6AbsLREAnalysisInUSProbeFrame[2] << ", " 
-		<< mNWire6AbsLREAnalysisInUSProbeFrame[3] << "\n"
-		<< mNWire6AbsLREAnalysisInUSProbeFrame[4] << ", "
-		<< mNWire6AbsLREAnalysisInUSProbeFrame[5] << "\n" 
-		<< mNWire6AbsLREAnalysisInUSProbeFrame[6]);		
+  LOG_DEBUG("Wire #3");
+  LOG_DEBUG("  LRE mean: (" << mNWire3AbsLREAnalysisInUSProbeFrame[0] << ", " << mNWire3AbsLREAnalysisInUSProbeFrame[1] << ")");
+  LOG_DEBUG("  LRE std: (" << mNWire3AbsLREAnalysisInUSProbeFrame[2] << ", " << mNWire3AbsLREAnalysisInUSProbeFrame[3] << ")");
+  LOG_DEBUG("  LRE EUC - mean: " << mNWire3AbsLREAnalysisInUSProbeFrame[4] << ", std: " << mNWire3AbsLREAnalysisInUSProbeFrame[5]);
+  LOG_DEBUG("  Validation data confidence level: " << mNWire3AbsLREAnalysisInUSProbeFrame[6]);
 
-	LOG_DEBUG(" COMPUTE Point-Line Distance Error");
-	LOG_DEBUG(" mPLDEsforValidationPositionsInUSProbeFrame = \n" << mPLDEsforValidationPositionsInUSProbeFrame);
-	LOG_DEBUG(" mSortedPLDEsAscendingforValidationInUSProbeFrame = \n" << mSortedPLDEsAscendingforValidationInUSProbeFrame);
-	LOG_DEBUG("mPLDEAnalysis4ValidationPositionsInUSProbeFrame = ");
-	LOG_DEBUG("[ vector 0 - 2:  PLDE_mean, PLDE_rms, PLDE_std ]");
-	LOG_DEBUG("[ vector 3    :  Validation data confidence level ]");
-	LOG_DEBUG(mPLDEAnalysis4ValidationPositionsInUSProbeFrame[0] << ", " 
-		<< mPLDEAnalysis4ValidationPositionsInUSProbeFrame[1] << ", "
-		<< mPLDEAnalysis4ValidationPositionsInUSProbeFrame[2]);
-	LOG_DEBUG("Validation Data Confidence Level = " << 
-		mPLDEAnalysis4ValidationPositionsInUSProbeFrame[3] << ".");
+  LOG_DEBUG("Wire #4");
+  LOG_DEBUG("  LRE mean: (" << mNWire4AbsLREAnalysisInUSProbeFrame[0] << ", " << mNWire4AbsLREAnalysisInUSProbeFrame[1] << ")");
+  LOG_DEBUG("  LRE std: (" << mNWire4AbsLREAnalysisInUSProbeFrame[2] << ", " << mNWire4AbsLREAnalysisInUSProbeFrame[3] << ")");
+  LOG_DEBUG("  LRE EUC - mean: " << mNWire4AbsLREAnalysisInUSProbeFrame[4] << ", std: " << mNWire4AbsLREAnalysisInUSProbeFrame[5]);
+  LOG_DEBUG("  Validation data confidence level: " << mNWire4AbsLREAnalysisInUSProbeFrame[6]);
+
+  LOG_DEBUG("Wire #6");
+  LOG_DEBUG("  LRE mean: (" << mNWire6AbsLREAnalysisInUSProbeFrame[0] << ", " << mNWire6AbsLREAnalysisInUSProbeFrame[1] << ")");
+  LOG_DEBUG("  LRE std: (" << mNWire6AbsLREAnalysisInUSProbeFrame[2] << ", " << mNWire6AbsLREAnalysisInUSProbeFrame[3] << ")");
+  LOG_DEBUG("  LRE EUC - mean: " << mNWire6AbsLREAnalysisInUSProbeFrame[4] << ", std: " << mNWire6AbsLREAnalysisInUSProbeFrame[5]);
+  LOG_DEBUG("  Validation data confidence level: " << mNWire6AbsLREAnalysisInUSProbeFrame[6]);
+
+	LOG_DEBUG("Point-Line Distance Error");
+  LOG_DEBUG("  PLDE mean: " << mPLDEAnalysis4ValidationPositionsInUSProbeFrame[0]);
+  LOG_DEBUG("  PLDE rms: " << mPLDEAnalysis4ValidationPositionsInUSProbeFrame[1]);
+  LOG_DEBUG("  PLDE std: " << mPLDEAnalysis4ValidationPositionsInUSProbeFrame[2]);
+  LOG_DEBUG("  Validation data confidence level: " << mNWire6AbsLREAnalysisInUSProbeFrame[3]);
 
   return PLUS_SUCCESS;
 }
@@ -3542,28 +3423,7 @@ PlusStatus vtkCalibrationController::constructValidationDataMatrices()
 		}
 	}
 
-	mAreValidationDataMatricesConstructed = true;
-
-	// Log the data pipeline if requested.
-	LOG_DEBUG(" CONSTRUCT THE VALIDATION DATASET");
-	LOG_DEBUG(" mValidationPositionsInUSImageFrameMatrix4xN = \n" << mValidationPositionsInUSImageFrameMatrix4xN);
-	LOG_DEBUG(" mValidationPositionsInUSProbeFrameMatrix4xN = \n" << mValidationPositionsInUSProbeFrameMatrix4xN);
-	LOG_DEBUG(" mValidationPositionsNWireStartInUSProbeFrame3xN = \n" << mValidationPositionsNWireStartInUSProbeFrame3xN);
-	LOG_DEBUG(" mValidationPositionsNWireEndInUSProbeFrame3xN = \n" << mValidationPositionsNWireEndInUSProbeFrame3xN);
-	LOG_DEBUG(" mValidationPositionsNWire1InUSImageFrame4xN = \n" << mValidationPositionsNWire1InUSImageFrame4xN);
-	LOG_DEBUG(" mValidationPositionsNWire3InUSImageFrame4xN = \n" << mValidationPositionsNWire3InUSImageFrame4xN);
-	LOG_DEBUG(" mValidationPositionsNWire4InUSImageFrame4xN = \n" << mValidationPositionsNWire4InUSImageFrame4xN);
-	LOG_DEBUG(" mValidationPositionsNWire6InUSImageFrame4xN = \n" << mValidationPositionsNWire6InUSImageFrame4xN);		
-	LOG_DEBUG(" mValidationPositionsNWire1InUSProbeFrame4xN = \n" << mValidationPositionsNWire1InUSProbeFrame4xN);
-	LOG_DEBUG(" mValidationPositionsNWire3InUSProbeFrame4xN = \n" << mValidationPositionsNWire3InUSProbeFrame4xN);
-	LOG_DEBUG(" mValidationPositionsNWire4InUSProbeFrame4xN = \n" << mValidationPositionsNWire4InUSProbeFrame4xN);
-	LOG_DEBUG(" mValidationPositionsNWire6InUSProbeFrame4xN = \n" << mValidationPositionsNWire6InUSProbeFrame4xN);			
-
-	if( true == mIsUSBeamwidthAndWeightFactorsTableReady )
-	{
-		LOG_DEBUG(" USBeamWidthEuclideanMagAtValidationPositionsInVNLvectors = \n" 
-			<< USBeamWidthEuclideanMagAtValidationPositionsInVNLvectors);
-	}
+	mAreValidationDataMatricesConstructed = true;  //check the return value instead
 
   return PLUS_SUCCESS;
 }

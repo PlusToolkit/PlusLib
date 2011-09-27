@@ -454,3 +454,19 @@ void PlusMath::ConvertVnlMatrixToVtkMatrix(vnl_matrix<double>& inVnlMatrix, vtkM
 		}
 	}
 }
+
+//----------------------------------------------------------------------------
+
+void PlusMath::PrintVtkMatrix(vtkMatrix4x4* matrix, std::ostringstream &stream)
+{
+	LOG_TRACE("PlusMath::PrintVtkMatrix");
+
+  for ( int i = 0; i < 4; i++ )
+	{
+		for ( int j = 0; j < 4; j++ )
+		{
+			stream << matrix->GetElement(i,j) << "  ";
+		}
+		stream << "\n";
+	}
+}

@@ -53,6 +53,8 @@ void vtkProbeCalibrationControllerIO::Initialize(vtkCalibrationController* calib
 //----------------------------------------------------------------------------
 PlusStatus vtkProbeCalibrationControllerIO::ReadProbeCalibrationConfiguration(vtkXMLDataElement* rootElement)
 {
+	LOG_TRACE("vtkProbeCalibrationControllerIO::ReadProbeCalibrationConfiguration");
+
 	if (rootElement == NULL) 
 	{	
 		LOG_WARNING("Unable to read ProbeCalibration XML data element!"); 
@@ -381,40 +383,6 @@ PlusStatus vtkProbeCalibrationControllerIO::ReadProbeCalibrationConfiguration(vt
 	}
 
   return PLUS_SUCCESS; 
-}
-
-//----------------------------------------------------------------------------
-void vtkProbeCalibrationControllerIO::PrintCalibrationResultsAndErrorReports ()
-{
-	LOG_TRACE("vtkProbeCalibrationControllerIO::PrintCalibrationResultsAndErrorReports"); 
-	try
-	{
-		LOG_INFO("---------------------------------------------------------------");
-		LOG_INFO("Calibration result in 4x4 homogeneous transform matrix = ");
-		for ( int i = 0; i < 4; i++ )
-		{
-			std::ostringstream matrixRow; 
-			for ( int j = 0; j < 4; j++ )
-			{
-				matrixRow << this->CalibrationController->GetTransformUserImageToProbe()->GetMatrix()->GetElement(i,j) << "  " ;
-			}
-			LOG_INFO(matrixRow.str()); 
-		}
-
-		// Point-Line Distance Error Analysis for Validation Positions in US probe frame
-		LOG_INFO("---------------------------------------------------------------");
-		LOG_INFO("Point-Line Distance Error (PLDE) Analysis in mm =");
-		LOG_INFO("[ vector 0 - 2:  PLDE_mean, PLDE_rms, PLDE_std ]");
-		LOG_INFO("[ vector 3    :  Validation data confidence level ]");
-		LOG_INFO(this->CalibrationController->GetPointLineDistanceErrorAnalysisVector()[0] << ", " << this->CalibrationController->GetPointLineDistanceErrorAnalysisVector()[1] << ", " << this->CalibrationController->GetPointLineDistanceErrorAnalysisVector()[2]); 
-		LOG_INFO(this->CalibrationController->GetPointLineDistanceErrorAnalysisVector()[3]);
-
-	}
-	catch(...)
-	{
-		LOG_ERROR("PrintCalibrationResultsAndErrorReports: Failed to retrieve the calibration results!"); 
-		throw;
-	}
 }
 
 //----------------------------------------------------------------------------
