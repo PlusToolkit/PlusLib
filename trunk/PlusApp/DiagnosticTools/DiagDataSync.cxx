@@ -63,8 +63,6 @@ int main(int argc, char **argv)
 
 	///////////////
 
-	VTK_LOG_TO_CONSOLE_ON; 
-
 	//************************************************************************************
 	// Find program path 
 	std::string programPath("./"), errorMsg; 
@@ -187,9 +185,7 @@ int main(int argc, char **argv)
 	{
 		LOG_INFO("Write tracker buffer to " << outputTrackerBufferSequenceFileName);
 		dataCollector->WriteTrackerToMetafile( tracker, outputFolder.c_str(), outputTrackerBufferSequenceFileName.c_str(), false); 
-	}
-
-	VTK_LOG_TO_CONSOLE_OFF; 
+	}	
 
 	return EXIT_SUCCESS; 
 }

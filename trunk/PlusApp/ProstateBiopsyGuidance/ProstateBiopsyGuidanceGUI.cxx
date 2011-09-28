@@ -247,7 +247,6 @@ PlusStatus ProstateBiopsyGuidanceGUI::stopDataAquisition()
 {
 	dataCollector->Stop();
 	// we have to know what is this
-	VTK_LOG_TO_CONSOLE_OFF;  
 	LOG_INFO( "Exit !\n" );
 	//printf("Exit !\n");
 	return PLUS_SUCCESS;
@@ -272,7 +271,6 @@ PlusStatus ProstateBiopsyGuidanceGUI::initialize()
 		LOG_INFO( "input-config-file-name is required" );
 		exit(EXIT_FAILURE);
 	}
-	VTK_LOG_TO_CONSOLE_ON; 
   // Check if configuration can be read.
   if (configRootElement == NULL) {												
     std::cerr << "Unable to read configuration from file " << inputConfigFileName;
@@ -361,4 +359,3 @@ void ProstateBiopsyGuidanceGUI::butStop_Click(){
 	this->ui->butStop->setEnabled(false);
 
 }
-

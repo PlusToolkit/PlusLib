@@ -11,8 +11,6 @@
 
 int main (int argc, char* argv[])
 { 
-	VTK_LOG_TO_CONSOLE_ON;  
-
 	bool printHelp(false); 
 	std::string inputImgSeqFileName;
 	std::string inputConfigFileName;
@@ -95,6 +93,5 @@ int main (int argc, char* argv[])
   writer3D->SetFileName(outputVolumeFileName.c_str());
   writer3D->Update();
 
-  VTK_LOG_TO_CONSOLE_OFF; 
   return EXIT_SUCCESS; 
 }

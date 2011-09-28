@@ -57,8 +57,6 @@ int main(int argc, char **argv)
   vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
   vtkPlusLogger::Instance()->SetDisplayLogLevel(verboseLevel); 
 
-	VTK_LOG_TO_CONSOLE_ON; 
-
 	//************************************************************************************
 	// Find program path 
 	std::string programPath("./"), errorMsg; 
@@ -209,7 +207,6 @@ int main(int argc, char **argv)
 	}
 
 	dataCollector->Disconnect(); 
-	VTK_LOG_TO_CONSOLE_OFF; 
 
 	return EXIT_SUCCESS; 
 }

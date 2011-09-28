@@ -53,7 +53,6 @@ vtkToolVisualizer::vtkToolVisualizer()
 	// Create timer
   this->AcquisitionTimer = NULL;
 
-	VTK_LOG_TO_CONSOLE_ON
 }
 
 //-----------------------------------------------------------------------------

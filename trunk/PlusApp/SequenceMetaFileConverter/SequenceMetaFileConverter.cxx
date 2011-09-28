@@ -174,8 +174,6 @@ int main (int argc, char* argv[])
 
 	////////////////////////////////////////////////////
 
-	VTK_LOG_TO_CONSOLE_ON; 
-
     if ( STRCASECMP("ERROR", verboseLevel.c_str())==0 )
 	{
 		vtkPlusLogger::Instance()->SetLogLevel(vtkPlusLogger::LOG_LEVEL_ERROR);
@@ -320,8 +318,6 @@ int main (int argc, char* argv[])
 		}
 		break; 
 	}
-
-	VTK_LOG_TO_CONSOLE_OFF; 
 
 	return EXIT_SUCCESS; 
 }

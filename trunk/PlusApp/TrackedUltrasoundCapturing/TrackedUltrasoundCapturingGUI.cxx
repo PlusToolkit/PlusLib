@@ -93,8 +93,6 @@ TrackedUltrasoundCapturingGUI::TrackedUltrasoundCapturingGUI( QWidget* parent )
 : 
 QWizard(parent)
 {
-  VTK_LOG_TO_CONSOLE_ON;
-
   // Set program path to configuration
   QFileInfo programPathFileInfo(qApp->argv()[0]); 
   vtkPlusConfig::GetInstance()->SetProgramPath(programPathFileInfo.absoluteDir().absolutePath().toStdString().c_str());
