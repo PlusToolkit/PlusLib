@@ -3,15 +3,103 @@
 #endif
 
 #include "PlusConfigure.h"
-
 #include "vtkPlusLogger.h"
+
 #include <string>
 #include <sstream>
 
 #include "vtkCriticalSection.h"
 #include "vtkCommand.h"
+#include "vtkObjectFactory.h"
 
 vtkPlusLogger* vtkPlusLogger::m_pInstance = NULL;
+
+vtkStandardNewMacro(vtkPlusLoggerOutputWindow);
+
+void vtkPlusLoggerOutputWindow::ReplaceNewlineBySeparator(std::string &str)
+{
+  std::replace( str.begin(), str.end(), '\r', '|' );
+  std::replace( str.begin(), str.end(), '\n', '|' );
+}
+
+//-------------------------------------------------------
+vtkPlusLoggerOutputWindow::vtkPlusLoggerOutputWindow()
+{
+}
+
+//-------------------------------------------------------
+vtkPlusLoggerOutputWindow::~vtkPlusLoggerOutputWindow()
+{
+}
+
+//-------------------------------------------------------
+void vtkPlusLoggerOutputWindow::DisplayText(const char* text)
+{
+  if(text==NULL)
+  {
+    return;
+  }
+  std::string textStr=text;
+  ReplaceNewlineBySeparator(textStr);
+  LOG_INFO("VTK log: " << text);
+}
+
+//-------------------------------------------------------
+void vtkPlusLoggerOutputWindow::DisplayErrorText(const char* text)
+{
+  if(text==NULL)
+  {
+    return;
+  }
+  std::string textStr=text;
+  ReplaceNewlineBySeparator(textStr);
+  LOG_ERROR("VTK log: " << textStr);
+  this->InvokeEvent(vtkCommand::ErrorEvent, (void*)text);
+}
+
+//-------------------------------------------------------
+void vtkPlusLoggerOutputWindow::DisplayWarningText(const char* text)
+{
+  if(text==NULL)
+  {
+    return;
+  }
+  std::string textStr=text;
+  ReplaceNewlineBySeparator(textStr);
+  LOG_WARNING("VTK log: " << textStr);
+  this->InvokeEvent(vtkCommand::WarningEvent,(void*) text);
+}
+
+//-------------------------------------------------------
+void vtkPlusLoggerOutputWindow::DisplayGenericWarningText(const char* text)
+{
+  if(text==NULL)
+  {
+    return;
+  }
+  std::string textStr=text;
+  ReplaceNewlineBySeparator(textStr);
+  LOG_WARNING("VTK log: " << textStr);
+}
+
+//-------------------------------------------------------
+void vtkPlusLoggerOutputWindow::DisplayDebugText(const char* text)
+{
+  if(text==NULL)
+  {
+    return;
+  }
+  std::string textStr=text;
+  ReplaceNewlineBySeparator(textStr);
+  LOG_DEBUG("VTK log: " << textStr);
+} 
+
+//-------------------------------------------------------
+void vtkPlusLoggerOutputWindow::PrintSelf(ostream& os, vtkIndent indent)
+{
+  this->Superclass::PrintSelf(os, indent);
+  os << indent << "VTK logs are redirected to Plus logger" << endl;
+} 
 
 //-------------------------------------------------------
 vtkPlusLogger::vtkPlusLogger()
@@ -22,11 +110,18 @@ vtkPlusLogger::vtkPlusLogger()
 	std::ostringstream logfilename;
 	logfilename << vtkAccurateTimer::GetInstance()->GetDateAndTimeString() << "_PlusLog.txt";
 	this->m_LogStream.open (logfilename.str().c_str(), ios::out);
+
+  // redirect VTK error logs to the Plus logger
+	vtkSmartPointer<vtkPlusLoggerOutputWindow> vtkLogger = vtkSmartPointer<vtkPlusLoggerOutputWindow>::New();
+	vtkOutputWindow::SetInstance(vtkLogger);
 }
 
 //-------------------------------------------------------
 vtkPlusLogger::~vtkPlusLogger()
 {
+  // Disconnect VTK error logging from the Plus logger (restore default VTK logging)
+  vtkOutputWindow::SetInstance(NULL);
+
 	if ( this->m_CriticalSection != NULL ) 
 	{
 		this->m_CriticalSection->Delete(); 

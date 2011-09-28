@@ -94,9 +94,8 @@ PlusStatus vtkTimestampedCircularBuffer<BufferItemType>::PrepareForNewItem(const
 {
 	if ( timestamp <= this->CurrentTimeStamp )
 	{
-		LOG_DEBUG("Need to skip newly added frame - new timestamp ("<< std::fixed << timestamp << ") is older than the last one (" << this->CurrentTimeStamp << ")!"); 
+		LOG_DEBUG("Need to skip newly added frame - new timestamp ("<< std::fixed << timestamp << ") is not newer than the last one (" << this->CurrentTimeStamp << ")!"); 
 		return PLUS_FAIL; 
-
 	}
 
 	// Increase frame unique ID

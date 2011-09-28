@@ -40,8 +40,6 @@ int main(int argc, char **argv)
 
 	///////////////
 
-	VTK_LOG_TO_CONSOLE_ON; 
-
   vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkXMLUtilities::ReadElementFromFile(inputConfigFileName.c_str());
   if (configRootElement == NULL)
   {	
@@ -71,8 +69,6 @@ int main(int argc, char **argv)
 	dataCollector->WriteTrackerToMetafile( tracker, outputFolder.c_str(), outputTrackerBufferSequenceFileName.c_str(), true); 
 
 	tracker->Delete(); 
-
-	VTK_LOG_TO_CONSOLE_OFF; 
 
 	std::cout << "Test completed successfully!" << std::endl;
 	return EXIT_SUCCESS; 

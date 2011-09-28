@@ -26,7 +26,6 @@
 
 int main( int argc, char** argv )
 {
-  VTK_LOG_TO_CONSOLE_ON; 
 
   bool printHelp(false);
   std::string inputMetaFilename;

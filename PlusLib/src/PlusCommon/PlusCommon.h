@@ -91,24 +91,6 @@ enum IMAGE_DATA_TYPE
 	msgStream.rdbuf()->freeze(0); \
 	}	
 	
-class vtkConsoleOutputWindow : public vtkOutputWindow 
-{ 
-public: 
-	static vtkConsoleOutputWindow* New() 
-	{ return new vtkConsoleOutputWindow; } 
-};
-
-#define VTK_LOG_TO_CONSOLE_ON \
-	{  \
-	vtkSmartPointer<vtkConsoleOutputWindow> console = vtkSmartPointer<vtkConsoleOutputWindow>::New();  \
-	vtkOutputWindow::SetInstance(console); \
-	}
-
-#define VTK_LOG_TO_CONSOLE_OFF \
-	{  \
-	vtkOutputWindow::SetInstance(NULL); \
-	}	
-
 /////////////////////////////////////////////////////////////////// 
 
 // This class is used for locking a objects (buffers, mutexes, etc.)

@@ -132,8 +132,6 @@ int main(int argc, char **argv)
 
   ///////////////
 
-  VTK_LOG_TO_CONSOLE_ON; 
-
   vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkXMLUtilities::ReadElementFromFile(inputConfigFileName.c_str());
   if (configRootElement == NULL)
   {	
@@ -253,8 +251,6 @@ int main(int argc, char **argv)
   iren->Delete();
   stepperTextActor->Delete(); 
   realtimeImage->Delete(); 
-
-  VTK_LOG_TO_CONSOLE_OFF; 
 
   std::cout << "vtkDataCollectorTest1 completed successfully!" << std::endl;
   return EXIT_SUCCESS; 

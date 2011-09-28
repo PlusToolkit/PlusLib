@@ -1,10 +1,29 @@
 #include "PlusConfigure.h"
+
 #include "vtksys/CommandLineArguments.hxx"
+#include "vtkSmartPointer.h"
+
+class vtkLogTestObject : public vtkObject
+{
+public:
+  static vtkLogTestObject *New()
+  {
+    return new vtkLogTestObject;
+  }
+  void LogMessages()
+  {
+    vtkErrorMacro("This is a VTK error message");
+    vtkWarningMacro("This is a VTK warning message");
+    vtkGenericWarningMacro("This is a VTK generic warning message");
+    vtkDebugMacro("This is a VTK debug message");
+  }
+protected:
+  vtkLogTestObject() {};
+  virtual ~vtkLogTestObject() {}; 
+};
 
 int main(int argc, char **argv)
 {
-  VTK_LOG_TO_CONSOLE_ON; 
-
 	bool printHelp(false);
 
 	int verboseLevel = vtkPlusLogger::LOG_LEVEL_INFO;
@@ -39,6 +58,10 @@ int main(int argc, char **argv)
   LOG_INFO("This is a test info message");
   LOG_DEBUG("This is a test debug message");
   LOG_TRACE("This is a test trace message");
+
+  vtkSmartPointer<vtkLogTestObject> logTester=vtkSmartPointer<vtkLogTestObject>::New();
+  logTester->DebugOn();
+  logTester->LogMessages();
 
 	return EXIT_SUCCESS; 
  }

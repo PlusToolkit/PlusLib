@@ -66,8 +66,6 @@ int main (int argc, char* argv[])
 
 	vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
 
-	VTK_LOG_TO_CONSOLE_ON; 
-
 	int SearchRegionXMin(0), SearchRegionXSize(0), SearchRegionYMin(0), SearchRegionYSize(0); 
 
 	switch ( inputImageType )

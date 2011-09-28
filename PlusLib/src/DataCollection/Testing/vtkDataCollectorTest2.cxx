@@ -50,8 +50,6 @@ int main(int argc, char **argv)
 
   ///////////////
 
-  VTK_LOG_TO_CONSOLE_ON; 
-
   vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkXMLUtilities::ReadElementFromFile(inputConfigFileName.c_str());
   if (configRootElement == NULL)
   {	
@@ -162,8 +160,6 @@ int main(int argc, char **argv)
     LOG_ERROR("Failed to stop data collection!"); 
     numberOfFailures++; 
   }
-
-  VTK_LOG_TO_CONSOLE_OFF; 
 
   if ( numberOfFailures > 0 ) 
   {

@@ -10,7 +10,6 @@
 int main(int argc, char **argv)
 {
   int numberOfErrors(0); 
-  VTK_LOG_TO_CONSOLE_ON; 
 
 	bool printHelp(false);
   std::string inputMetafile;
@@ -65,7 +64,8 @@ int main(int argc, char **argv)
 
   LOG_INFO("Copy buffer to tracker buffer..."); 
   vtkSmartPointer<vtkTrackerBuffer> trackerBuffer = vtkSmartPointer<vtkTrackerBuffer>::New(); 
-  if (trackerBuffer->CopyDefaultTransformFromTrackedFrameList(trackerFrameList, READ_UNFILTERED_COMPUTE_FILTERED)!=PLUS_SUCCESS)
+  // compute filtered timestamps now to test the filtering
+  if (trackerBuffer->CopyDefaultTransformFromTrackedFrameList(trackerFrameList, vtkTrackerBuffer::READ_UNFILTERED_COMPUTE_FILTERED_TIMESTAMPS)!=PLUS_SUCCESS)
   {
     LOG_ERROR("CopyDefaultTrackerDataToBuffer failed");
     numberOfErrors++;

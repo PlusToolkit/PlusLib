@@ -13,7 +13,6 @@ const double DOUBLE_DIFF = 0.0001; // used for comparing double numbers
 //----------------------------------------------------------------------------
 int main(int argc, char **argv)
 {
-  VTK_LOG_TO_CONSOLE_ON; 
 
   int numberOfFailures(0); 
 

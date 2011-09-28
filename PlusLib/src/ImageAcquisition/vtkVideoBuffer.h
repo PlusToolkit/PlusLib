@@ -68,6 +68,13 @@ class VTK_EXPORT vtkVideoBuffer : public vtkObject
 {
 public:	
 
+  enum TIMESTAMP_FILTERING_OPTION
+  {
+    READ_FILTERED_AND_UNFILTERED_TIMESTAMPS = 0,
+    READ_UNFILTERED_COMPUTE_FILTERED_TIMESTAMPS,
+    READ_FILTERED_IGNORE_UNFILTERED_TIMESTAMPS
+  };
+
   static vtkVideoBuffer *New();
   vtkTypeRevisionMacro(vtkVideoBuffer,vtkObject);
   void PrintSelf(ostream& os, vtkIndent indent);
@@ -165,7 +172,7 @@ public:
   //! Operation:
   // Copy images from a tracked frame buffer. It is useful when data is stored in a
   // metafile and the data is needed as a vtkVideoBuffer.
-  PlusStatus CopyImagesFromTrackedFrameList(vtkTrackedFrameList *sourceTrackedFrameList);
+  PlusStatus CopyImagesFromTrackedFrameList(vtkTrackedFrameList *sourceTrackedFrameList, TIMESTAMP_FILTERING_OPTION timestampFiltering);
 
 protected:
   vtkVideoBuffer();

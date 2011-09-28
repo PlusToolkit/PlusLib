@@ -70,8 +70,6 @@ int main(int argc, char **argv)
 
 	vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
 
-	VTK_LOG_TO_CONSOLE_ON; 
-
 	vtkICCapturingSource* frameGrabber = vtkICCapturingSource::New();
 
 	frameGrabber->SetLicenceKey(licenseKey.c_str()); 
@@ -117,7 +115,6 @@ int main(int argc, char **argv)
 			callbackCommand->Delete(); 
 		}
 
-		VTK_LOG_TO_CONSOLE_OFF;
 		LOG_ERROR( "Unable to connect to IC capture device: " << deviceName ); 
 		exit(EXIT_FAILURE); 
 	}
@@ -149,7 +146,6 @@ int main(int argc, char **argv)
 			callbackCommand->Delete(); 
 		}
 
-		VTK_LOG_TO_CONSOLE_OFF;
 		LOG_INFO("Exit successfully"); 
 		exit(EXIT_SUCCESS); 
 	}
@@ -182,8 +178,6 @@ int main(int argc, char **argv)
 	viewer->Delete();
 	iren->Delete();
 	callbackCommand->Delete(); 
-
-	VTK_LOG_TO_CONSOLE_OFF;
 
 	LOG_INFO("Exit successfully"); 
 	return EXIT_SUCCESS; 
