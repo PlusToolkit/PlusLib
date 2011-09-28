@@ -248,6 +248,31 @@ IF( PLUS_USE_Ascension3DG )
         
 ENDIF( PLUS_USE_Ascension3DG )
 
+
+
+#--------------------------------------------------------------------------
+# OpenIGTLink tracker
+IF( PLUS_USE_OpenIGTLink )
+  
+  SET (Tracking_SRCS ${Tracking_SRCS}
+    OpenIGTLinkTracking/vtkOpenIGTLinkTracker.cxx 
+    )
+  
+  if (WIN32)
+    SET (Tracking_HDRS ${Tracking_HDRS} 
+      OpenIGTLinkTracking/vtkOpenIGTLinkTracker.h 
+      )
+  endif (WIN32)
+
+  SET (Tracking_INCLUDE_DIRS ${Tracking_INCLUDE_DIRS}
+    ${CMAKE_CURRENT_SOURCE_DIR}/OpenIGTLinkTracking
+    CACHE INTERNAL "" FORCE
+    )
+
+ENDIF( PLUS_USE_OpenIGTLink )
+
+
+
 #--------------------------------------------------------------------------
 # Ascension 3DGm support (MedSafe!!!)
 IF( PLUS_USE_Ascension3DGm )
