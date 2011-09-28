@@ -57,7 +57,7 @@ const QString LABEL_SYNC_VIDEO_OFFSET("Video offset:");
 
 /*************************************** Define variables**********************************/
 vtkSmartPointer<vtkDataCollector> dataCollector = vtkSmartPointer<vtkDataCollector>::New();					
-std::string inputConfigFileName("Test_PlusConfiguration_DataCollectionOnly_SonixVideo_FakeTracker.xml");	// configuration file name
+std::string inputConfigFileName("");	// configuration file name
 std::string outputFolder("./RFDATA");																		// output folder name
 std::string outputVideoBufferSequenceFileName("VideoBufferMetafile");										// output file name
 double inputAcqTimeLength(3);																				// Saving data time
@@ -323,6 +323,7 @@ PlusStatus ProstateBiopsyGuidanceGUI::startBiopsyProcess()
 }
 void ProstateBiopsyGuidanceGUI::ConnectToDevicesByConfigFile(std::string aConfigFile)
 {
+	inputConfigFileName = aConfigFile;
 	LOG_INFO("Loading config file ...");
 	m_DeviceSetSelectorWidget->SetConnectionSuccessful(true);
 	this->ui->butStop->setEnabled(true);
