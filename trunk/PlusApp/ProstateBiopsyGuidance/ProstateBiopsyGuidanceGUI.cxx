@@ -323,12 +323,19 @@ PlusStatus ProstateBiopsyGuidanceGUI::startBiopsyProcess()
 }
 void ProstateBiopsyGuidanceGUI::ConnectToDevicesByConfigFile(std::string aConfigFile)
 {
-	inputConfigFileName = aConfigFile;
 	LOG_INFO("Loading config file ...");
+
+	ReadPBGConfigData(aConfigFile);
 	m_DeviceSetSelectorWidget->SetConnectionSuccessful(true);
 	this->ui->butStop->setEnabled(true);
+
 	startBiopsyProcess();
-#pragma region Reading Config File Specific data to PBG
+}
+
+void ProstateBiopsyGuidanceGUI::ReadPBGConfigData(std::string aConfigFile){
+	
+	inputConfigFileName = aConfigFile;
+
 	/*
 	% 2011-9-16, Code by Saman %
 	We need to read some configuration parameters from XmlConfig file
@@ -338,21 +345,21 @@ void ProstateBiopsyGuidanceGUI::ConnectToDevicesByConfigFile(std::string aConfig
 	<ProstateBiopsy AcquisitionTime="3" />
 	*/
 
-	/*std::string inputConfigFileName("C:/Saman/Work/Source/PLUS/PlusApp-bin/bin/Debug/Test_PlusConfiguration_DataCollectionOnly_SonixVideo_FakeTracker.xml");
+	std::string inputConfigFileName(aConfigFile);
 	vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkXMLUtilities::ReadElementFromFile(inputConfigFileName.c_str());
 	if (configRootElement == NULL) {	
-	std::cerr << "Unable to read configuration from file " << inputConfigFileName;
-	exit(EXIT_FAILURE);
+		std::cerr << "Unable to read configuration from file " << inputConfigFileName;
+		exit(EXIT_FAILURE);
 	}
 
 	vtkSmartPointer<vtkXMLDataElement> prostateBiopsyConfig = configRootElement->FindNestedElementWithName("ProstateBiopsy");
 	if (prostateBiopsyConfig == NULL)
 	{
-	LOG_ERROR("Cannot find ProstateBiopsy element in XML tree!");
-	exit( PLUS_FAIL);
-	}*/
-#pragma endregion
+		LOG_ERROR("Cannot find ProstateBiopsy element in XML tree!");
+		exit( PLUS_FAIL);
+	}
 
+	inputAcqTimeLength=atof(prostateBiopsyConfig->GetAttribute("AcquisitionTime"));
 }
 
 void ProstateBiopsyGuidanceGUI::butStop_Click(){

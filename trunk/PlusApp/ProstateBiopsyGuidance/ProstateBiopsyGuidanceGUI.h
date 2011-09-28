@@ -30,6 +30,7 @@ private:
 
 protected slots:
 		void ConnectToDevicesByConfigFile(std::string aConfigFile);
+		void ReadPBGConfigData(std::string aConfigFile);
 		void butStop_Click();
 		PlusStatus  saveData(vtkVideoBuffer *buffer_RF,std::string outputVideoBufferSequenceFileName);
 		PlusStatus  acquireData(vtkVideoBuffer *buffer_RF, int type,std::string savedBufferName);
