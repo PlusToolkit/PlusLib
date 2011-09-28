@@ -918,7 +918,7 @@ SegmentationParameterDialog::SegmentationParameterDialog(QWidget* aParent, vtkDa
   connect( ui.groupBox_ROI, SIGNAL( toggled(bool) ), this, SLOT( GroupBoxROIToggled(bool) ) );
   connect( ui.groupBox_Spacing, SIGNAL( toggled(bool) ), this, SLOT( GroupBoxSpacingToggled(bool) ) );
 	connect( ui.pushButton_FreezeImage, SIGNAL( toggled(bool) ), this, SLOT( FreezeImage(bool) ) );
-	connect( ui.pushButton_SaveAndExit, SIGNAL( clicked() ), this, SLOT( SaveAndExitClicked() ) );
+	connect( ui.pushButton_ApplyAndClose, SIGNAL( clicked() ), this, SLOT( ApplyAndCloseClicked() ) );
   connect( ui.spinBox_XMin, SIGNAL( valueChanged(int) ), this, SLOT( ROIXMinChanged(int) ) );
 	connect( ui.spinBox_YMin, SIGNAL( valueChanged(int) ), this, SLOT( ROIYMinChanged(int) ) );
 	connect( ui.spinBox_XMax, SIGNAL( valueChanged(int) ), this, SLOT( ROIXMaxChanged(int) ) );
@@ -1247,9 +1247,9 @@ PlusStatus SegmentationParameterDialog::ReadConfiguration()
 
 //-----------------------------------------------------------------------------
 
-void SegmentationParameterDialog::SaveAndExitClicked()
+void SegmentationParameterDialog::ApplyAndCloseClicked()
 {
-  LOG_TRACE("SegmentationParameterDialog::SaveAndExitClicked");
+  LOG_TRACE("SegmentationParameterDialog::ApplyAndCloseClicked");
 
   if (WriteConfiguration() != PLUS_SUCCESS) {
     LOG_ERROR("Write configuration failed!");

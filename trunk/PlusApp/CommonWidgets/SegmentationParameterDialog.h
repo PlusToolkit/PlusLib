@@ -141,9 +141,9 @@ protected:
 
 protected slots:
 	/*!
-	* \brief Saves the configuration into the data element and closes window
+	* \brief Applies the configuration to the data element and closes window
 	*/
-	void SaveAndExitClicked();
+	void ApplyAndCloseClicked();
 
 	/*!
 	* \brief Slot handling ROI groupbox toggle
