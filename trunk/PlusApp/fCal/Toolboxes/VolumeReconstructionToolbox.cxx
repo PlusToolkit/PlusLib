@@ -43,6 +43,11 @@ VolumeReconstructionToolbox::~VolumeReconstructionToolbox()
 void VolumeReconstructionToolbox::Initialize()
 {
 	LOG_TRACE("VolumeReconstructionToolbox::Initialize"); 
+
+  if ((m_ParentMainWindow->GetToolVisualizer()->GetDataCollector() != NULL) && (m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->GetConnected())) {
+
+    m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->SetTrackingOnly(false);
+  }
 /*
 	vtkFreehandController* controller = vtkFreehandController::GetInstance();
 	if (controller == NULL) {

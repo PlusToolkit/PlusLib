@@ -71,6 +71,8 @@ void fCalMainWindow::Initialize()
 {
   LOG_TRACE("fCalMainWindow::Initialize");
 
+	m_StatusIcon = new StatusIcon(this);
+
   // Create visualizer
   m_ToolVisualizer = vtkToolVisualizer::New();
   m_ToolVisualizer->Initialize();
@@ -168,7 +170,6 @@ void fCalMainWindow::SetupStatusBar()
 	ui.statusBar->addWidget(m_StatusBarLabel, 1);
 	ui.statusBar->addPermanentWidget(m_StatusBarProgress, 3);
 	
-	m_StatusIcon = new StatusIcon(this);
 	ui.statusBar->addPermanentWidget(m_StatusIcon);
 }
 
@@ -180,29 +181,15 @@ void fCalMainWindow::CurrentTabChanged(int aTabIndex)
 
 	// Initialize new tab
 	if (ui.tabWidgetToolbox->tabText(aTabIndex) == "Configuration") {
-
 		m_ActiveToolbox = ToolboxType_Configuration;
-
 	} else if (ui.tabWidgetToolbox->tabText(aTabIndex) == "Stylus Calibration") {
-
 		m_ActiveToolbox = ToolboxType_StylusCalibration;
-		m_ToolVisualizer->GetDataCollector()->SetTrackingOnly(true);
-
 	} else if (ui.tabWidgetToolbox->tabText(aTabIndex) == "Phantom Registration") {
-
 		m_ActiveToolbox = ToolboxType_PhantomRegistration;
-		m_ToolVisualizer->GetDataCollector()->SetTrackingOnly(true);
-
 	} else if (ui.tabWidgetToolbox->tabText(aTabIndex) == "Freehand Calibration") {
-
 		m_ActiveToolbox = ToolboxType_FreehandCalibration;
-		m_ToolVisualizer->GetDataCollector()->SetTrackingOnly(false);
-
 	} else if (ui.tabWidgetToolbox->tabText(aTabIndex) == "Volume Reconstruction") {
-
 		m_ActiveToolbox = ToolboxType_VolumeReconstruction;
-		m_ToolVisualizer->GetDataCollector()->SetTrackingOnly(false);
-
 	} else {
 		LOG_ERROR("No tab with this title found!");
     return;

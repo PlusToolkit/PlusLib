@@ -493,6 +493,10 @@ PlusStatus vtkToolVisualizer::EnableImageMode(bool aOn)
 {
 	LOG_TRACE("vtkToolVisualizer::EnableImageMode(" << (aOn?"true":"false") << ")");
 
+  if (this->DataCollector == NULL) {
+    return PLUS_SUCCESS;
+  }
+
   if (aOn) {
     this->ImageActor->VisibilityOn();
     this->ImageActor->SetOpacity(1.0);

@@ -57,11 +57,14 @@ void StylusCalibrationToolbox::Initialize()
   LOG_TRACE("StylusCalibrationToolbox::Initialize");
 
   if ((m_ParentMainWindow->GetToolVisualizer()->GetDataCollector() != NULL) && (m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->GetConnected())) {
-	  if (m_State == ToolboxState_Uninitialized) {
-		  SetState(ToolboxState_Idle);
-	  }
 
-	  if (m_State != ToolboxState_Done) {
+    m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->SetTrackingOnly(true);
+
+    if (m_State == ToolboxState_Uninitialized) {
+	    SetState(ToolboxState_Idle);
+    }
+
+    if (m_State != ToolboxState_Done) {
       m_ParentMainWindow->GetToolVisualizer()->GetResultPointsPolyData()->GetPoints()->Reset();
     }
 

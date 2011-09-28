@@ -98,6 +98,9 @@ void PhantomRegistrationToolbox::Initialize()
 	LOG_TRACE("PhantomRegistrationToolbox::Initialize"); 
 
   if ((m_ParentMainWindow->GetToolVisualizer()->GetDataCollector() != NULL) && (m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->GetConnected())) {
+
+    m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->SetTrackingOnly(true);
+
     bool readyToStart = true;
 
     // Determine if there is already a stylus calibration present (either in the tool if it was just performed or in the configuration data)

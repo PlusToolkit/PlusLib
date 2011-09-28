@@ -67,6 +67,8 @@ void FreehandCalibrationToolbox::Initialize()
 
   if ((m_ParentMainWindow->GetToolVisualizer()->GetDataCollector() != NULL) && (m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->GetConnected())) {
 
+		m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->SetTrackingOnly(false);
+
     // Determine if there is already a phantom registration present
     PhantomRegistrationToolbox* phantomRegistrationToolbox = dynamic_cast<PhantomRegistrationToolbox*>(m_ParentMainWindow->GetToolbox(ToolboxType_PhantomRegistration));
     if ((phantomRegistrationToolbox != NULL) && (phantomRegistrationToolbox->GetPhantomRegistrationAlgo() != NULL)) {
@@ -98,10 +100,6 @@ void FreehandCalibrationToolbox::Initialize()
 	  if (m_State != ToolboxState_Done) {
       m_ParentMainWindow->GetToolVisualizer()->GetResultPointsPolyData()->GetPoints()->Reset();
     }
-
-  } else {
-	  SetState(ToolboxState_Uninitialized);
-    LOG_ERROR("Frehand calibration cannot be initialized because data collection is not started!");
   }
 }
 
@@ -122,7 +120,10 @@ void FreehandCalibrationToolbox::SetDisplayAccordingToState()
   m_ParentMainWindow->GetToolVisualizer()->EnableImageMode(! ui.checkBox_ShowDevices->isChecked());
 
   double videoTimeOffset = 0.0;
-	if ((m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->GetVideoSource() != NULL) && (m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->GetVideoSource()->GetBuffer() != NULL)) {
+	if ((m_ParentMainWindow->GetToolVisualizer()->GetDataCollector() != NULL)
+      && (m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->GetVideoSource() != NULL)
+      && (m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->GetVideoSource()->GetBuffer() != NULL))
+  {
     videoTimeOffset = m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->GetVideoSource()->GetBuffer()->GetLocalTimeOffset();
   }
 
