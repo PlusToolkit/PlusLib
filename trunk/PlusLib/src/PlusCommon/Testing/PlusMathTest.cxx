@@ -15,8 +15,6 @@ PlusStatus GenerateLSQRData(vtkXMLDataElement* xmlLSQRMinimize, int numberOfData
 //----------------------------------------------------------------------------
 int main(int argc, char **argv)
 {
-  VTK_LOG_TO_CONSOLE_ON; 
-
   int numberOfErrors(0); 
 
   bool printHelp(false);

@@ -215,7 +215,7 @@ PlusStatus vtkSavedDataVideoSource::InternalConnect()
   }
 
   // Fill local video buffer
-  this->LocalVideoBuffer->CopyImagesFromTrackedFrameList(savedDataBuffer); 
+  this->LocalVideoBuffer->CopyImagesFromTrackedFrameList(savedDataBuffer, vtkVideoBuffer::READ_FILTERED_IGNORE_UNFILTERED_TIMESTAMPS); 
   savedDataBuffer->Clear(); 
 
   this->Buffer->SetFrameSize( this->LocalVideoBuffer->GetFrameSize() ); 

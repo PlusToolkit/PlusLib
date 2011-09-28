@@ -7,6 +7,44 @@
 
 class vtkSimpleCriticalSection; 
 
+// This is a special output class for VTK logs that enforces VTK to
+// log to the console instead of displaying them in a pop-up window.
+class vtkConsoleOutputWindow : public vtkOutputWindow 
+{ 
+public: 
+	static vtkConsoleOutputWindow* New() 
+	{ return new vtkConsoleOutputWindow; } 
+};
+
+// This is a special output class for VTK logs that logs
+// VTK error with the PlusLogger instead of displaying them in a pop-up window.
+class vtkPlusLoggerOutputWindow : public vtkOutputWindow
+{
+public:
+  vtkTypeMacro(vtkPlusLoggerOutputWindow, vtkOutputWindow);
+
+  static vtkPlusLoggerOutputWindow* New();
+
+  virtual void PrintSelf(ostream& os, vtkIndent indent);
+
+  virtual void DisplayText(const char* text);
+  virtual void DisplayErrorText(const char* text);
+  virtual void DisplayWarningText(const char* text);
+  virtual void DisplayGenericWarningText(const char* text); 
+  virtual void DisplayDebugText(const char* text);
+
+protected:
+  vtkPlusLoggerOutputWindow(); 
+  virtual ~vtkPlusLoggerOutputWindow(); 
+
+  // VTK error messages contain multiple lines. This method replaces newline characters by another separator character
+  void ReplaceNewlineBySeparator(std::string &str);
+
+private:
+  vtkPlusLoggerOutputWindow(const vtkPlusLoggerOutputWindow&);  // Not implemented.
+  void operator=(const vtkPlusLoggerOutputWindow&);  // Not implemented.
+};
+
 class VTK_EXPORT vtkPlusLogger : public vtkObject
 {
 

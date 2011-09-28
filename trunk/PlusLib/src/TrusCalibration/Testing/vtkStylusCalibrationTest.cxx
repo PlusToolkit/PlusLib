@@ -45,8 +45,6 @@ int main (int argc, char* argv[])
 
 	vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
 
-	VTK_LOG_TO_CONSOLE_ON; 
-
 	std::string programPath("./"), errorMsg; 
 	if ( !vtksys::SystemTools::FindProgramPath(argv[0], programPath, errorMsg) )
 	{

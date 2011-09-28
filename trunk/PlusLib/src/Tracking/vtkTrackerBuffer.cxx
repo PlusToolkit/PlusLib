@@ -667,7 +667,7 @@ double vtkTrackerBuffer::GetLocalTimeOffset()
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkTrackerBuffer::CopyDefaultTransformFromTrackedFrameList(vtkTrackedFrameList *sourceTrackedFrameList, TIMESTAMP_FILTERING_OPTION timestampFiltering/*=READ_FILTERED_AND_UNFILTERED*/)
+PlusStatus vtkTrackerBuffer::CopyDefaultTransformFromTrackedFrameList(vtkTrackedFrameList *sourceTrackedFrameList, TIMESTAMP_FILTERING_OPTION timestampFiltering)
 {
   int numberOfErrors=0;
 
@@ -678,8 +678,9 @@ PlusStatus vtkTrackerBuffer::CopyDefaultTransformFromTrackedFrameList(vtkTracked
   {
 
     double timestamp(0); 
-    if (timestampFiltering != READ_UNFILTERED_COMPUTE_FILTERED)
+    if (timestampFiltering == READ_FILTERED_AND_UNFILTERED_TIMESTAMPS || timestampFiltering == READ_FILTERED_IGNORE_UNFILTERED_TIMESTAMPS)
     {
+      // read filtered
       const char* strTimestamp = sourceTrackedFrameList->GetTrackedFrame(frameNumber)->GetCustomFrameField("Timestamp"); 
       if ( strTimestamp != NULL )
       {
@@ -687,23 +688,27 @@ PlusStatus vtkTrackerBuffer::CopyDefaultTransformFromTrackedFrameList(vtkTracked
       }
       else
       {
-        LOG_WARNING("Unable to read Timestamp field of frame #" << frameNumber); 
+        LOG_ERROR("Unable to read Timestamp field of frame #" << frameNumber); 
         numberOfErrors++; 
         continue; 
       }
     }
 
-    const char* strUnfilteredTimestamp = sourceTrackedFrameList->GetTrackedFrame(frameNumber)->GetCustomFrameField("UnfilteredTimestamp"); 
     double unfilteredtimestamp(0); 
-    if ( strUnfilteredTimestamp != NULL )
+    if (timestampFiltering == READ_FILTERED_AND_UNFILTERED_TIMESTAMPS || timestampFiltering == READ_UNFILTERED_COMPUTE_FILTERED_TIMESTAMPS)
     {
-      unfilteredtimestamp = atof(strUnfilteredTimestamp); 
-    }
-    else
-    {
-      LOG_WARNING("Unable to read UnfilteredTimestamp field of frame #" << frameNumber); 
-      numberOfErrors++; 
-      continue; 
+      // read unfiltered
+      const char* strUnfilteredTimestamp = sourceTrackedFrameList->GetTrackedFrame(frameNumber)->GetCustomFrameField("UnfilteredTimestamp"); 
+      if ( strUnfilteredTimestamp != NULL )
+      {
+        unfilteredtimestamp = atof(strUnfilteredTimestamp); 
+      }
+      else
+      {
+        LOG_ERROR("Unable to read UnfilteredTimestamp field of frame #" << frameNumber); 
+        numberOfErrors++; 
+        continue; 
+      }
     }
 
     const char* cFlag = sourceTrackedFrameList->GetTrackedFrame(frameNumber)->GetCustomFrameField("Status"); 
@@ -714,7 +719,7 @@ PlusStatus vtkTrackerBuffer::CopyDefaultTransformFromTrackedFrameList(vtkTracked
     }
     else
     {
-      LOG_WARNING("Unable to read Status field of frame #" << frameNumber); 
+      LOG_ERROR("Unable to read Status field of frame #" << frameNumber); 
       numberOfErrors++; 
       continue; 
     }
@@ -727,7 +732,7 @@ PlusStatus vtkTrackerBuffer::CopyDefaultTransformFromTrackedFrameList(vtkTracked
     }
     else
     {
-      LOG_WARNING("Unable to read FrameNumber field of frame #" << frameNumber); 
+      LOG_ERROR("Unable to read FrameNumber field of frame #" << frameNumber); 
       numberOfErrors++; 
       continue; 
     }
@@ -746,13 +751,13 @@ PlusStatus vtkTrackerBuffer::CopyDefaultTransformFromTrackedFrameList(vtkTracked
 
     switch (timestampFiltering)
     {
-    case READ_FILTERED_AND_UNFILTERED:
+    case READ_FILTERED_AND_UNFILTERED_TIMESTAMPS:
       this->AddTimeStampedItem(defaultTransformMatrix, status, frmnum, unfilteredtimestamp, timestamp); 
       break;
-    case READ_UNFILTERED_COMPUTE_FILTERED:
+    case READ_UNFILTERED_COMPUTE_FILTERED_TIMESTAMPS:
       this->AddTimeStampedItem(defaultTransformMatrix, status, frmnum, unfilteredtimestamp); 
       break;
-    case READ_FILTERED_IGNORE_UNFILTERED:
+    case READ_FILTERED_IGNORE_UNFILTERED_TIMESTAMPS:
       this->AddTimeStampedItem(defaultTransformMatrix, status, frmnum, timestamp, timestamp); 
       break;
     default:

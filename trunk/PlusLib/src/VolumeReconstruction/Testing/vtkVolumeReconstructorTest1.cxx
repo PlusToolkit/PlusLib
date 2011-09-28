@@ -11,7 +11,6 @@
 
 int main (int argc, char* argv[])
 { 
-  VTK_LOG_TO_CONSOLE_ON; 
 
   // Parse command line arguments.
 
@@ -135,6 +134,5 @@ int main (int argc, char* argv[])
     writer3D->Update();
   }
 
-  VTK_LOG_TO_CONSOLE_OFF; 
   return EXIT_SUCCESS; 
 }

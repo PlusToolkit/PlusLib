@@ -36,8 +36,6 @@ int main(int argc, char **argv)
   double thresholdMultiplier(5); 
   bool generateReport(false); 
 
-  VTK_LOG_TO_CONSOLE_ON; 
-
   int verboseLevel=vtkPlusLogger::LOG_LEVEL_INFO;
 
   vtksys::CommandLineArguments args;
@@ -83,7 +81,7 @@ int main(int argc, char **argv)
 
   LOG_INFO("Copy buffer to tracker buffer..."); 
   vtkSmartPointer<vtkTrackerBuffer> trackerBuffer = vtkSmartPointer<vtkTrackerBuffer>::New(); 
-  if (trackerBuffer->CopyDefaultTransformFromTrackedFrameList(trackerFrameList)!=PLUS_SUCCESS)
+  if (trackerBuffer->CopyDefaultTransformFromTrackedFrameList(trackerFrameList, vtkTrackerBuffer::READ_FILTERED_AND_UNFILTERED_TIMESTAMPS)!=PLUS_SUCCESS)
   {
     LOG_ERROR("CopyDefaultTrackerDataToBuffer failed");
     return EXIT_FAILURE;
@@ -95,7 +93,7 @@ int main(int argc, char **argv)
   videoFrameList->ReadFromSequenceMetafile(inputVideoBufferSequenceFileName.c_str()); 
 
   vtkSmartPointer<vtkVideoBuffer> videoBuffer = vtkSmartPointer<vtkVideoBuffer>::New(); 
-  if (videoBuffer->CopyImagesFromTrackedFrameList(videoFrameList)!=PLUS_SUCCESS)
+  if (videoBuffer->CopyImagesFromTrackedFrameList(videoFrameList, vtkVideoBuffer::READ_FILTERED_AND_UNFILTERED_TIMESTAMPS)!=PLUS_SUCCESS)
   {
     LOG_ERROR("CopyImagesFromTrackedFrameList failed");
     return EXIT_FAILURE;

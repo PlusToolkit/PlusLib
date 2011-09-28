@@ -86,8 +86,6 @@ void* timerTestThread( vtkMultiThreader::ThreadInfo *data )
 
 int main(int argc, char **argv)
 {
-  VTK_LOG_TO_CONSOLE_ON; 
-
 	bool printHelp(false);
 
   int verboseLevel = vtkPlusLogger::LOG_LEVEL_INFO;

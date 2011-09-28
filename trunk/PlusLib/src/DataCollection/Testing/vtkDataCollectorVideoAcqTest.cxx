@@ -40,8 +40,6 @@ int main(int argc, char **argv)
 
 	///////////////
 
-	VTK_LOG_TO_CONSOLE_ON; 
-
   vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkXMLUtilities::ReadElementFromFile(inputConfigFileName.c_str());
   if (configRootElement == NULL)
   {	
@@ -71,8 +69,6 @@ int main(int argc, char **argv)
 	dataCollector->WriteVideoBufferToMetafile( buffer, outputFolder.c_str(), outputVideoBufferSequenceFileName.c_str(), true); 
 
 	buffer->Delete(); 
-
-	VTK_LOG_TO_CONSOLE_OFF; 
 
 	std::cout << "Test completed successfully!" << std::endl;
 	return EXIT_SUCCESS; 

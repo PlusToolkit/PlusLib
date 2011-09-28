@@ -42,8 +42,6 @@ int main (int argc, char* argv[])
     exit(EXIT_FAILURE);
   }
 
-  VTK_LOG_TO_CONSOLE_ON; 
-
   vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
   vtkPlusLogger::Instance()->SetDisplayLogLevel(verboseLevel);
 
