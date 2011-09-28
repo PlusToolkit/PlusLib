@@ -65,7 +65,7 @@ int main(int argc, char **argv)
   LOG_INFO("Copy buffer to tracker buffer..."); 
   vtkSmartPointer<vtkTrackerBuffer> trackerBuffer = vtkSmartPointer<vtkTrackerBuffer>::New(); 
   // useFilteredTimestamps is false to force recomputation of the filtered timestamps
-  if (trackerBuffer->CopyDefaultTransformFromTrackedFrameList(trackerFrameList, false)!=PLUS_SUCCESS)
+  if (trackerBuffer->CopyDefaultTransformFromTrackedFrameList(trackerFrameList, READ_UNFILTERED_COMPUTE_FILTERED)!=PLUS_SUCCESS)
   {
     LOG_ERROR("CopyDefaultTrackerDataToBuffer failed");
     numberOfErrors++;
