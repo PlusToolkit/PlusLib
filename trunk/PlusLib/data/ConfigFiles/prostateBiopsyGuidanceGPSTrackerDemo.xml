@@ -3,8 +3,8 @@
 	<!-- DATA COLLECTION -->
 	<USDataCollection version="2.0" StartupDelaySec="1.0">
 		<DeviceSet 
-				Name="TEST SonixTouch with Fake tracker" 
-				Description="Test mode for vtkDataCollectorTest with SonixTouch and Fake tracker. The SonixTouch US device should be in research mode." 
+				Name="TEST SonixTouch with GPS tracker" 
+				Description="Test mode for vtkDataCollectorTest with SonixTouch and GPStracker. The SonixTouch US device should be in research mode." 
 				/>
 
 				<Tracker
@@ -73,5 +73,5 @@
 				/>
 
 	</USDataCollection>
-
+	<ProstateBiopsy AcquisitionTime="3" />
 </PlusConfiguration>

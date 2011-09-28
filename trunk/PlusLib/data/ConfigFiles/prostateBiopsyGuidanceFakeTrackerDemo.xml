@@ -56,5 +56,5 @@
 				/>
 
 	</USDataCollection>
-
+	<ProstateBiopsy AcquisitionTime="3" />
 </PlusConfiguration>
