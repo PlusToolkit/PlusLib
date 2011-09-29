@@ -28,6 +28,7 @@ public:
   void PushMessage( igtl::MessageBase* message );
   igtl::MessageBase* PullMessage();
   
+  int GetSize();
   
 protected:
   

@@ -54,6 +54,15 @@ vtkIGTLMessageQueue
 
 
 
+int
+vtkIGTLMessageQueue
+::GetSize()
+{
+  return this->DataBuffer.size();
+}
+
+
+
 vtkIGTLMessageQueue
 ::vtkIGTLMessageQueue()
 {
