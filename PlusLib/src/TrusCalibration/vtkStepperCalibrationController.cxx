@@ -971,7 +971,7 @@ PlusStatus vtkStepperCalibrationController::CalibrateTranslationAxis( IMAGE_DATA
   
   // Get translation axis calibration output 
   double translationAxisOrientation[3] = {0}; 
-  if ( translationAxisCalibAlgo->GetOutput(translationAxisOrientation) != PLUS_SUCCESS )
+  if ( translationAxisCalibAlgo->GetTranslationAxisOrientation(translationAxisOrientation) != PLUS_SUCCESS )
   {
     LOG_ERROR("Translation axis calibration failed!"); 
     return PLUS_FAIL; 
