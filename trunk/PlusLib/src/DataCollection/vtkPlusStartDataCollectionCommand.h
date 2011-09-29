@@ -30,8 +30,6 @@ public:
   virtual bool CanExecute( std::string str );
   virtual bool Execute();
   virtual std::string GetStringRepresentation();
-  virtual void ProcessResponse( igtl::MessageBase::Pointer header,
-                                igtl::ClientSocket::Pointer clientSocket );
   
 protected:
   

@@ -9,6 +9,7 @@
 #include "vtkPlusCommand.h"
 #include "vtkPlusCommandCollection.h"
 #include "vtkPlusStartDataCollectionCommand.h"
+#include "vtkPlusStopDataCollectionCommand.h"
 
 
 
@@ -126,26 +127,22 @@ vtkPlusCommandFactory
     }
   collection->Delete();
   
+  
+    // Check all available commands.
+  
   vtkSmartPointer< vtkPlusStartDataCollectionCommand > plusStartDataCollectionCommand
     = vtkSmartPointer< vtkPlusStartDataCollectionCommand >::New();
   if ( plusStartDataCollectionCommand->CanExecute( str ) )
-    {
+  {
     return vtkPlusStartDataCollectionCommand::New();
-    }
+  }
   
-  /*
-  vtkCollectionSimpleIterator sit;
-  for( vtkPlusCommandFactory::AvailableCommands->InitTraversal( sit );
-      ( ret = vtkPlusCommandFactory::AvailableCommands->GetNextPlusCommand( sit ) ); )
-    {
-    if( ret->CanExecute( str ) )
-      {
-      vtkPlusCommand* command = ret->NewInstance();  // like a new call
-      return command;
-      }
-    }
-  */
-  
+  vtkSmartPointer< vtkPlusStopDataCollectionCommand > plusStopDataCollectionCommand
+    = vtkSmartPointer< vtkPlusStopDataCollectionCommand >::New();
+  if ( plusStopDataCollectionCommand->CanExecute( str ) )
+  {
+    return vtkPlusStopDataCollectionCommand::New();
+  }
   
   
   return 0;

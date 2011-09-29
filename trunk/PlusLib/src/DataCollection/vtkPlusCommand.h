@@ -35,8 +35,6 @@ public:
   virtual bool CanExecute( std::string str ) = 0;
   virtual bool Execute() = 0;
   virtual std::string GetStringRepresentation() = 0;
-  virtual void ProcessResponse( igtl::MessageBase::Pointer header,
-                                igtl::ClientSocket::Pointer clientSocket ) = 0;
   
   typedef std::vector< std::string > CommandStringsType;
   const CommandStringsType GetSupportedCommandStrings() const;
