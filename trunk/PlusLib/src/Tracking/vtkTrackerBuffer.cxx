@@ -674,69 +674,85 @@ PlusStatus vtkTrackerBuffer::CopyDefaultTransformFromTrackedFrameList(vtkTracked
   int numberOfFrames = sourceTrackedFrameList->GetNumberOfTrackedFrames();
   this->SetBufferSize(numberOfFrames + 1); 
 
+  bool requireTimestamp=false;  
+  if (timestampFiltering == READ_FILTERED_AND_UNFILTERED_TIMESTAMPS || timestampFiltering == READ_FILTERED_IGNORE_UNFILTERED_TIMESTAMPS)
+  {
+    requireTimestamp=true;
+  }
+
+  bool requireUnfilteredTimestamp=false;
+  if (timestampFiltering == READ_FILTERED_AND_UNFILTERED_TIMESTAMPS || timestampFiltering == READ_UNFILTERED_COMPUTE_FILTERED_TIMESTAMPS)
+  {
+    requireUnfilteredTimestamp=true;
+  }
+
+  bool requireFrameStatus=false;
+  bool requireFrameNumber=false;
+  if (timestampFiltering==READ_UNFILTERED_COMPUTE_FILTERED_TIMESTAMPS)
+  {
+    // frame status and number is required for the filtered timestamp computation
+    requireFrameStatus=true;
+    requireFrameNumber=true;
+  }
+
   for ( int frameNumber = 0; frameNumber < numberOfFrames; frameNumber++ )
   {
 
+    // read filtered timestamp
     double timestamp(0); 
-    if (timestampFiltering == READ_FILTERED_AND_UNFILTERED_TIMESTAMPS || timestampFiltering == READ_FILTERED_IGNORE_UNFILTERED_TIMESTAMPS)
+    const char* strTimestamp = sourceTrackedFrameList->GetTrackedFrame(frameNumber)->GetCustomFrameField("Timestamp");
+    if ( strTimestamp != NULL )
     {
-      // read filtered
-      const char* strTimestamp = sourceTrackedFrameList->GetTrackedFrame(frameNumber)->GetCustomFrameField("Timestamp"); 
-      if ( strTimestamp != NULL )
-      {
-        timestamp = atof(strTimestamp); 
-      }
-      else
-      {
-        LOG_ERROR("Unable to read Timestamp field of frame #" << frameNumber); 
-        numberOfErrors++; 
-        continue; 
-      }
+      timestamp = atof(strTimestamp); 
+    }
+    else if (requireTimestamp)
+    {
+      LOG_ERROR("Unable to read Timestamp field of frame #" << frameNumber); 
+      numberOfErrors++; 
+      continue; 
     }
 
-    double unfilteredtimestamp(0); 
-    if (timestampFiltering == READ_FILTERED_AND_UNFILTERED_TIMESTAMPS || timestampFiltering == READ_UNFILTERED_COMPUTE_FILTERED_TIMESTAMPS)
+    // read unfiltered timestamp
+    double unfilteredtimestamp(0);  
+    const char* strUnfilteredTimestamp = sourceTrackedFrameList->GetTrackedFrame(frameNumber)->GetCustomFrameField("UnfilteredTimestamp"); 
+    if ( strUnfilteredTimestamp != NULL )
     {
-      // read unfiltered
-      const char* strUnfilteredTimestamp = sourceTrackedFrameList->GetTrackedFrame(frameNumber)->GetCustomFrameField("UnfilteredTimestamp"); 
-      if ( strUnfilteredTimestamp != NULL )
-      {
-        unfilteredtimestamp = atof(strUnfilteredTimestamp); 
-      }
-      else
-      {
-        LOG_ERROR("Unable to read UnfilteredTimestamp field of frame #" << frameNumber); 
-        numberOfErrors++; 
-        continue; 
-      }
+      unfilteredtimestamp = atof(strUnfilteredTimestamp); 
+    }
+    else if (requireUnfilteredTimestamp)
+    {
+      LOG_ERROR("Unable to read UnfilteredTimestamp field of frame #" << frameNumber); 
+      numberOfErrors++; 
+      continue; 
     }
 
+    // read status
     const char* cFlag = sourceTrackedFrameList->GetTrackedFrame(frameNumber)->GetCustomFrameField("Status"); 
     TrackerStatus status = TR_OK;
     if ( cFlag != NULL )
     {
       status=TrackedFrame::GetStatusFromString(cFlag);      
     }
-    else
+    else if (requireFrameStatus)
     {
       LOG_ERROR("Unable to read Status field of frame #" << frameNumber); 
       numberOfErrors++; 
       continue; 
     }
 
+    // read frame number
     const char* strFrameNumber = sourceTrackedFrameList->GetTrackedFrame(frameNumber)->GetCustomFrameField("FrameNumber"); 
     unsigned long frmnum(0); 
     if ( strFrameNumber != NULL )
     {
       frmnum = atol(strFrameNumber);
     }
-    else
+    else if (requireFrameNumber)
     {
       LOG_ERROR("Unable to read FrameNumber field of frame #" << frameNumber); 
       numberOfErrors++; 
       continue; 
     }
-
 
     double defaultTransform[16]; 
     if ( !sourceTrackedFrameList->GetTrackedFrame(frameNumber)->GetDefaultFrameTransform(defaultTransform) )
