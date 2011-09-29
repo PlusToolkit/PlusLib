@@ -227,6 +227,7 @@ vtkPlusOpenIGTLinkServer
       }    
       
       this->ClientSocket = newClientSocket;  // new connection is accepted
+      this->ClientSocket->SetTimeout( 300 );
       LOG_DEBUG( "Server received new client connection." );
       return;
     }  
@@ -256,10 +257,13 @@ vtkPlusOpenIGTLinkServer
     
     header->InitPack();
     
+    LOG_INFO( "Socket receiving..." );
     int rs = this->ClientSocket->Receive( header->GetPackPointer(), header->GetPackSize() );
+    LOG_INFO( "Socket receiving stopped." );
+
     if ( rs == 0 )
     {
-      LOG_WARNING( "Server could not receive package." );
+      LOG_INFO( "Server could not receive package before timeout." );
       this->ClientSocket->CloseSocket();
       break;
     }
