@@ -50,7 +50,7 @@ int main( int argc, char** argv )
                     &inputReplay, "Replay tracked frames after reached the latest one." );
   args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, 
                       &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug 5=trace)");  
-
+  
   if ( ! args.Parse() )
   {
     std::cerr << "Problem parsing arguments" << std::endl;
@@ -80,35 +80,35 @@ int main( int argc, char** argv )
   dataCollector->ReadConfiguration( configRootElement );
   
   if ( dataCollector->GetAcquisitionType() == SYNCHRO_VIDEO_SAVEDDATASET )
-    {
+  {
     if ( inputVideoBufferMetafile.empty() )
-      {
+    {
       LOG_ERROR("Video source metafile missing.");
       return BC_EXIT_FAILURE;
-      }
+    }
 
     vtkSavedDataVideoSource* videoSource = dynamic_cast< vtkSavedDataVideoSource* >( dataCollector->GetVideoSource() );
     if ( videoSource == NULL )
-      {
+    {
       LOG_ERROR("Invalid saved data video source.");
       exit( BC_EXIT_FAILURE );
-      }
+    }
     videoSource->SetSequenceMetafile( inputVideoBufferMetafile.c_str() );
     videoSource->SetReplayEnabled( inputReplay ); 
-    }
+  }
 
   if ( dataCollector->GetTrackerType() == TRACKER_SAVEDDATASET )
-    {
+  {
     if ( inputTrackerBufferMetafile.empty() )
-      {
+    {
       LOG_ERROR("Tracker source metafile missing.");
       return BC_EXIT_FAILURE;
-      }
+    }
     vtkSavedDataTracker* tracker = static_cast< vtkSavedDataTracker* >( dataCollector->GetTracker() );
     tracker->SetSequenceMetafile( inputTrackerBufferMetafile.c_str() );
     tracker->SetReplayEnabled( inputReplay ); 
     tracker->Connect();
-    }
+  }
   
   LOG_INFO("Initializing data collector... ");
   dataCollector->Initialize();
@@ -131,7 +131,7 @@ int main( int argc, char** argv )
   std::string errorMessage;
   broadcasterStatus = broadcaster->Initialize( errorMessage );
   switch ( broadcasterStatus )
-    {
+  {
     case vtkOpenIGTLinkBroadcaster::STATUS_OK:
       // no error, continue
       break;
@@ -147,7 +147,7 @@ int main( int argc, char** argv )
     default:
       LOG_ERROR( "Unknown error while trying to intialize the broadcaster. " );
       exit( BC_EXIT_FAILURE );
-    }
+  }
 
   LOG_INFO("Start data collector... ");
   dataCollector->Start();
@@ -156,20 +156,20 @@ int main( int argc, char** argv )
   unsigned int NUMBER_OF_BROADCASTED_MESSAGES = UINT_MAX;
   
   if ( dataCollector->GetAcquisitionType() == SYNCHRO_VIDEO_SAVEDDATASET )
-    {
+  {
     NUMBER_OF_BROADCASTED_MESSAGES = dataCollector->GetVideoSource()->GetBuffer()->GetBufferSize();
     if ( inputReplay )
-      {
+    {
       NUMBER_OF_BROADCASTED_MESSAGES = UINT_MAX; 
-      }
     }
+  }
   
   
   
     // Send messages.
   
   for ( int i = 0; i < NUMBER_OF_BROADCASTED_MESSAGES; ++ i )
-    {
+  {
     vtkAccurateTimer::Delay( DELAY_BETWEEN_MESSAGES_SEC );
     
 
@@ -180,7 +180,7 @@ int main( int argc, char** argv )
 
     vtkSmartPointer< vtkMatrix4x4 > tFrame2Tracker = vtkSmartPointer< vtkMatrix4x4 >::New(); 
     if ( dataCollector->GetTracker()->IsTracking() )
-      {
+    {
       double timestamp( 0 ); 
       TrackerStatus status = TR_OK; 
       dataCollector->GetTransformWithTimestamp( tFrame2Tracker, timestamp, status, dataCollector->GetTracker()->GetFirstPortNumberByType(TRACKER_TOOL_PROBE) ); 
@@ -188,15 +188,15 @@ int main( int argc, char** argv )
       ss << "Timestamp: " << timestamp << std::endl;
       
       if ( status == TR_MISSING || status == TR_OUT_OF_VIEW ) 
-        {
+      {
         ss  << "Tracker out of view..." << std::endl; 
-        }
+      }
       else if ( status == TR_REQ_TIMEOUT ) 
-        {
+      {
         ss  << "Tracker request timeout..." << std::endl; 
-        }
+      }
       else
-        {
+      {
         ss  << std::fixed 
           << tFrame2Tracker->GetElement(0,0) << "   " << tFrame2Tracker->GetElement(0,1) << "   "
             << tFrame2Tracker->GetElement(0,2) << "   " << tFrame2Tracker->GetElement(0,3) << "\n"
@@ -206,13 +206,13 @@ int main( int argc, char** argv )
             << tFrame2Tracker->GetElement(2,2) << "   " << tFrame2Tracker->GetElement(2,3) << "\n"
           << tFrame2Tracker->GetElement(3,0) << "   " << tFrame2Tracker->GetElement(3,1) << "   "
             << tFrame2Tracker->GetElement(3,2) << "   " << tFrame2Tracker->GetElement(3,3) << "\n"; 
-        }
+      }
       
-      }
+    }
     else
-      {
+    {
       ss << "Unable to connect to tracker...";    
-      }
+    }
     
     LOG_INFO( ss.str() );
     
@@ -223,29 +223,29 @@ int main( int argc, char** argv )
     
     
       // Display messages depending on the status of broadcaster.
-    
+
     switch (broadcasterStatus)
-      {
-      case vtkOpenIGTLinkBroadcaster::STATUS_OK:
-        // no error, no message
-        break;
-      case vtkOpenIGTLinkBroadcaster::STATUS_HOST_NOT_FOUND:
-        LOG_WARNING("Host not found: " << errorMessage);
-        break;
-      case vtkOpenIGTLinkBroadcaster::STATUS_NOT_INITIALIZED:
-        LOG_WARNING("OpenIGTLink broadcaster not initialized.");
-        break;
-      case vtkOpenIGTLinkBroadcaster::STATUS_NOT_TRACKING:
-        LOG_WARNING("Tracking error detected.");
-        break;
-      case vtkOpenIGTLinkBroadcaster::STATUS_SEND_ERROR:
-        LOG_WARNING("Could not send OpenIGTLink message.");
-        break;
-      default:
-        LOG_WARNING("Unknown status while trying to send OpenIGTLink message.");
-      }
+    {
+    case vtkOpenIGTLinkBroadcaster::STATUS_OK:
+      // no error, no message
+      break;
+    case vtkOpenIGTLinkBroadcaster::STATUS_HOST_NOT_FOUND:
+      LOG_WARNING("Host not found: " << errorMessage);
+      break;
+    case vtkOpenIGTLinkBroadcaster::STATUS_NOT_INITIALIZED:
+      LOG_WARNING("OpenIGTLink broadcaster not initialized.");
+      break;
+    case vtkOpenIGTLinkBroadcaster::STATUS_NOT_TRACKING:
+      LOG_WARNING("Tracking error detected.");
+      break;
+    case vtkOpenIGTLinkBroadcaster::STATUS_SEND_ERROR:
+      LOG_WARNING("Could not send OpenIGTLink message.");
+      break;
+    default:
+      LOG_WARNING("Unknown status while trying to send OpenIGTLink message.");
     }
-  
+  }
+
   
   receiveServer.Stop();
   int numReceivedMessages = receiveServer.GetNumberOfReceivedMessages();

@@ -2,6 +2,9 @@
 #include "vtkOpenIGTLinkBroadcaster.h"
 
 
+#include <sstream>
+#include <string>
+
 #include "PlusConfigure.h"
 
 #include "vtkBMPWriter.h" // debug
@@ -314,10 +317,26 @@ vtkOpenIGTLinkBroadcaster
     }
   
   
+  igtl::TimeStamp::Pointer igtlFrameTime = igtl::TimeStamp::New();
+  igtlFrameTime->SetTime( timestamp );
+  
+  /*
+  //debug
+  //imageMessage->Get
+  std::stringstream ss;
+  ss << "_vtk_" << igtlFrameTime->GetSecond() << "-" << igtlFrameTime->GetNanosecond() << ".bmp";
+  vtkSmartPointer< vtkBMPWriter > dw = vtkSmartPointer< vtkBMPWriter >::New();
+  dw->SetFileName( ss.str().c_str() );
+  dw->SetInput( frameImage );
+  dw->Update();
+  */
+
+  
     // Convert matrix and time formats.
   
   igtl::Matrix4x4 igtlMatrix;
   
+  /*
   for ( int row = 0; row < 4; ++ row )
     {
     for ( int col = 0; col < 4; ++ col )
@@ -325,7 +344,7 @@ vtkOpenIGTLinkBroadcaster
       igtlMatrix[ row ][ col ] = mProbeToReference->GetElement( row, col );
       }
     }
-  
+  */
   
   /*
   //debug
@@ -341,9 +360,6 @@ vtkOpenIGTLinkBroadcaster
   std::cerr << std::endl;
   */
   
-  
-  igtl::TimeStamp::Pointer igtlFrameTime = igtl::TimeStamp::New();
-  igtlFrameTime->SetTime( timestamp );
   
   
     // Create and send the image message.
@@ -376,6 +392,8 @@ vtkOpenIGTLinkBroadcaster
   
   imageMessage->SetMatrix( igtlMatrix );
   imageMessage->SetTimeStamp( igtlFrameTime );
+  
+
   imageMessage->Pack();
   
   int success = defaultSocket->Send( imageMessage->GetPackPointer(), imageMessage->GetPackSize() );
