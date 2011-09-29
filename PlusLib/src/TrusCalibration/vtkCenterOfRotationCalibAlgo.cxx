@@ -164,7 +164,7 @@ PlusStatus vtkCenterOfRotationCalibAlgo::ConstructLinearEquationForCalibration( 
   aMatrix.clear(); 
   bVector.clear(); 
 
-  if ( this->GetTrackedFrameList() == NULL )
+  if ( this->TrackedFrameList == NULL )
   {
     LOG_ERROR("Failed to construct linear equation for center of rotation calibration - tracked frame list is NULL!"); 
     return PLUS_FAIL; 
@@ -350,12 +350,12 @@ PlusStatus vtkCenterOfRotationCalibAlgo::AddNewColumnToReportTable( const char* 
 //----------------------------------------------------------------------------
 PlusStatus vtkCenterOfRotationCalibAlgo::GenerateReport( vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter, const char* gnuplotScriptsFolder)
 {
- /* LOG_TRACE("vtkCenterOfRotationCalibAlgo::GenerateReport"); 
+  LOG_TRACE("vtkCenterOfRotationCalibAlgo::GenerateReport"); 
 
   // Update result before report generation 
   if ( this->Update() != PLUS_SUCCESS )
   {
-    LOG_ERROR("Unable to generate report - translation axix calibration failed!"); 
+    LOG_ERROR("Unable to generate report - center of rotation axis calibration failed!"); 
     return PLUS_FAIL;
   }
 
@@ -366,22 +366,15 @@ PlusStatus vtkCenterOfRotationCalibAlgo::GenerateReport( vtkHTMLGenerator* htmlR
   }
 
   // Check gnuplot scripts 
-  std::string plotStepperCalibrationErrorHistogramScript = gnuplotScriptsFolder + std::string("/PlotStepperCalibrationErrorHistogram.gnu"); 
-  if ( !vtksys::SystemTools::FileExists( plotStepperCalibrationErrorHistogramScript.c_str(), true) )
+  std::string plotCenterOfRotCalcErrorScript = gnuplotScriptsFolder + std::string("/PlotCenterOfRotationCalculationError.gnu"); 
+  if ( !vtksys::SystemTools::FileExists( plotCenterOfRotCalcErrorScript.c_str(), true) )
   {
-    LOG_ERROR("Unable to find gnuplot script at: " << plotStepperCalibrationErrorHistogramScript); 
-    return PLUS_FAIL; 
-  }
-
-  std::string plotStepperCalibrationErrorScript = gnuplotScriptsFolder + std::string("/PlotStepperCalibrationError.gnu"); 
-  if ( !vtksys::SystemTools::FileExists( plotStepperCalibrationErrorScript.c_str(), true) )
-  {
-    LOG_ERROR("Unable to find gnuplot script at: " << plotStepperCalibrationErrorScript); 
+    LOG_ERROR("Unable to find gnuplot script at: " << plotCenterOfRotCalcErrorScript); 
     return PLUS_FAIL; 
   }
 
   // Generate report files from table 
-  std::string reportFile = std::string(vtkPlusConfig::GetInstance()->GetOutputDirectory()) + std::string("/TranslationAxisCalibrationReport.txt");
+  std::string reportFile = std::string(vtkPlusConfig::GetInstance()->GetOutputDirectory()) + std::string("/CenterOfRotationCalculationError.txt");
   if ( vtkGnuplotExecuter::DumpTableToFileInGnuplotFormat( this->ReportTable, reportFile.c_str()) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to dump translation axis calibration report table to " << reportFile );
@@ -391,43 +384,20 @@ PlusStatus vtkCenterOfRotationCalibAlgo::GenerateReport( vtkHTMLGenerator* htmlR
   // Make sure the report file is there
   if ( !vtksys::SystemTools::FileExists( reportFile.c_str(), true) )
   {
-    LOG_ERROR("Unable to find translation axis calibration report file at: " << reportFile); 
+    LOG_ERROR("Unable to find center of rotation calibration report file at: " << reportFile); 
     return PLUS_FAIL; 
   }
 
-  std::ostringstream report; 
-  std::string title; 
-  std::string scriptOutputFilePrefixHistogram, scriptOutputFilePrefix; 
-  switch ( this->DataType )
-  {
-  case PROBE_TRANSLATION: 
-    title = "Probe Translation Axis Calibration Analysis"; 
-    scriptOutputFilePrefixHistogram = "ProbeTranslationAxisCalibrationErrorHistogram"; 
-    scriptOutputFilePrefix = "ProbeTranslationAxisCalibrationError";
-    report << "Probe translation axis orientation: " << this->RotationAxisOrientation[0] << "     " 
-      << this->RotationAxisOrientation[1] << "     " << this->RotationAxisOrientation[2] << "</br>" ; 
-    break; 
-  case TEMPLATE_TRANSLATION: 
-    title = "Template Translation Axis Calibration Analysis";
-    scriptOutputFilePrefixHistogram = "TemplateTranslationAxisCalibrationErrorHistogram"; 
-    scriptOutputFilePrefix = "TemplateTranslationAxisCalibrationError"; 
-    report << "Probe translation axis orientation: " << this->RotationAxisOrientation[0] << "     " 
-      << this->RotationAxisOrientation[1] << "     " << this->RotationAxisOrientation[2] << "</br>" ; 
-    break; 
-  default:
-    LOG_ERROR("Unable to generate translation axis calibration report - current data type is not supported: " << this->DataType); 
-    return PLUS_FAIL; 
-  }
+  std::string title = "Center of Rotation Calculation Analysis"; 
+  std::string scriptOutputFilePrefix = "CenterOfRotationCalculationError"; 
 
   htmlReport->AddText(title.c_str(), vtkHTMLGenerator::H1); 
 
+  std::ostringstream report; 
+  report << "Center of rotation (px): " << this->CenterOfRotationPx[0] << "     " << this->CenterOfRotationPx[1] << "</br>" ; 
   htmlReport->AddParagraph(report.str().c_str()); 
 
-  htmlReport->AddText("Error Histogram", vtkHTMLGenerator::H2); 
-
-  const int wires[4] = {1, 3, 4, 6}; // TODO: it just handle 2 N-wires
-
-  //**************************** Error histogram ****************************
+  const int wires[4] = {1, 3, 4, 6}; 
 
   for ( int i = 0; i < 4; i++ )
   {
@@ -436,10 +406,10 @@ PlusStatus vtkCenterOfRotationCalibAlgo::GenerateReport( vtkHTMLGenerator* htmlR
     htmlReport->AddText(wireName.str().c_str(), vtkHTMLGenerator::H3); 
     plotter->ClearArguments(); 
     plotter->AddArgument("-e");
-    std::ostringstream transAxisError; 
-    transAxisError << "f='" << reportFile << "'; o='" << scriptOutputFilePrefixHistogram << "'; w=" << wires[i] << std::ends; 
-    plotter->AddArgument(transAxisError.str().c_str()); 
-    plotter->AddArgument(plotStepperCalibrationErrorHistogramScript.c_str());  
+    std::ostringstream centerOfRotCalcError; 
+    centerOfRotCalcError << "f='" << reportFile << "'; o='" << scriptOutputFilePrefix << "'; w=" << wires[i] << std::ends; 
+    plotter->AddArgument(centerOfRotCalcError.str().c_str()); 
+    plotter->AddArgument(plotCenterOfRotCalcErrorScript.c_str());  
     if ( plotter->Execute() != PLUS_SUCCESS )
     {
       LOG_ERROR("Failed to run gnuplot executer!"); 
@@ -449,67 +419,13 @@ PlusStatus vtkCenterOfRotationCalibAlgo::GenerateReport( vtkHTMLGenerator* htmlR
 
     std::ostringstream imageSource; 
     std::ostringstream imageAlt; 
-
-    switch ( this->DataType )
-    {
-    case PROBE_TRANSLATION: 
-      imageSource << "w" << wires[i] << "_ProbeTranslationAxisCalibrationErrorHistogram.jpg" << std::ends; 
-      imageAlt << "Probe translation axis calibration error histogram - wire #" << wires[i] << std::ends; 
-      break; 
-    case TEMPLATE_TRANSLATION: 
-      imageSource << "w" << wires[i] << "_TemplateTranslationAxisCalibrationErrorHistogram.jpg" << std::ends; 
-      imageAlt << "Template translation axis calibration error histogram - wire #" << wires[i] << std::ends; 
-      break; 
-    }
+    imageSource << "w" << wires[i] << "_CenterOfRotationCalculationError.jpg" << std::ends; 
+    imageAlt << "Center of rotation calculation error - wire #" << wires[i] << std::ends; 
 
     htmlReport->AddImage(imageSource.str().c_str(), imageAlt.str().c_str()); 
   }
 
-  //**************************** Error plot ****************************
-
-  htmlReport->AddText("Error Plot", vtkHTMLGenerator::H2); 
-
-  for ( int i = 0; i < 4; i++ )
-  {
-    std::ostringstream wireName; 
-    wireName << "Wire #" << wires[i] << std::ends; 
-    htmlReport->AddText(wireName.str().c_str(), vtkHTMLGenerator::H3); 
-    plotter->ClearArguments(); 
-    plotter->AddArgument("-e");
-    std::ostringstream transAxisError; 
-    transAxisError << "f='" << reportFile << "'; o='" << scriptOutputFilePrefix << "'; w=" << wires[i] << std::ends; 
-    plotter->AddArgument(transAxisError.str().c_str()); 
-    plotter->AddArgument(plotStepperCalibrationErrorScript.c_str());  
-    if ( plotter->Execute() != PLUS_SUCCESS )
-    {
-      LOG_ERROR("Failed to run gnuplot executer!"); 
-      return PLUS_FAIL; 
-    }
-    plotter->ClearArguments(); 
-
-    std::ostringstream imageSourceX, imageAltX, imageSourceY, imageAltY; 
-
-    switch ( this->DataType )
-    {
-    case PROBE_TRANSLATION: 
-      imageSourceX << "w" << wires[i] << "x_ProbeTranslationAxisCalibrationError.jpg" << std::ends; 
-      imageAltX << "Probe translation axis calibration error - wire #" << wires[i] << " X Axis" << std::ends; 
-      imageSourceY << "w" << wires[i] << "y_ProbeTranslationAxisCalibrationError.jpg" << std::ends; 
-      imageAltY << "Probe translation axis calibration error - wire #" << wires[i] << " Y Axis" << std::ends; 
-      break; 
-    case TEMPLATE_TRANSLATION: 
-      imageSourceX << "w" << wires[i] << "x_TemplateTranslationAxisCalibrationError.jpg" << std::ends; 
-      imageAltX << "Template translation axis calibration error - wire #" << wires[i] << " X Axis" << std::ends; 
-      imageSourceY << "w" << wires[i] << "y_TemplateTranslationAxisCalibrationError.jpg" << std::ends; 
-      imageAltY << "Template translation axis calibration error - wire #" << wires[i] << " Y Axis" << std::ends; 
-      break; 
-    }
-
-    htmlReport->AddImage(imageSourceX.str().c_str(), imageAltX.str().c_str()); 
-    htmlReport->AddImage(imageSourceY.str().c_str(), imageAltY.str().c_str()); 
-  }
-
   htmlReport->AddHorizontalLine(); 
-*/
+
   return PLUS_SUCCESS; 
 }

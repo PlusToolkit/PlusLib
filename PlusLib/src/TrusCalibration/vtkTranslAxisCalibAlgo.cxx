@@ -369,7 +369,7 @@ PlusStatus vtkTranslAxisCalibAlgo::GenerateReport( vtkHTMLGenerator* htmlReport,
   // Update result before report generation 
   if ( this->Update() != PLUS_SUCCESS )
   {
-    LOG_ERROR("Unable to generate report - translation axix calibration failed!"); 
+    LOG_ERROR("Unable to generate report - translation axis calibration failed!"); 
     return PLUS_FAIL;
   }
 

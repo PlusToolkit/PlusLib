@@ -1,3 +1,18 @@
+// Center of rotation calibration 
+// Asumptions
+//    Distance between a non-moving wire position (denoted as S) and the rotation center 
+//    of the optical encoder (denoted as O) remains constant during rotation:
+//        || Si - O || = || Sj - O ||
+// Model:
+//        pow(Sxi - Ox, 2) + pow(Syi - Oy, 2) = pow(Sxj - Ox, 2) + pow(Syj - Oy, 2) where i != j
+// Unknowns:
+//    Ox, Oy = center of rotation in pixel 
+// Linear system:
+//    Ax = B
+//
+// [ (Sxi - Sxj) (Syi - Syj) ] * [ Ox ] = [ (0.5*( Sxi*Sxi + Syi*Syi - Sxj*Sxj - Syj*Syj )) ]
+//                               [ Oy ]
+
 #ifndef __vtkCenterOfRotationCalibAlgo_h
 #define __vtkCenterOfRotationCalibAlgo_h
 
@@ -18,13 +33,14 @@ public:
   virtual void PrintSelf(ostream& os, vtkIndent indent); 
 
   // Description:
-  // Add generated html report from the selected data type (probe or template) translation axis calibration to the existing html report
+  // Add generated html report from center of rotation calibration to the existing html report
   // htmlReport and plotter arguments has to be defined by the caller function
   virtual PlusStatus GenerateReport( vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter, const char* gnuplotScriptsFolder); 
 
   // Description:
   // Set inputs: 
   // - TrackedFrameList with segmentation results 
+  // - Frame indices that the algoritm should use during calibration
   // - Image spacing (mm/px)
   virtual void SetInputs( vtkTrackedFrameList* trackedFrameList, std::vector<int> &indices, double spacing[2]); 
 
@@ -38,8 +54,7 @@ public:
   vtkGetObjectMacro(TrackedFrameList, vtkTrackedFrameList); 
 
   //! Description: 
-  // Set/Get the image spacing.
-  // (x: lateral axis, y: axial axis)
+  // Set/Get the image spacing (mm/px)
   vtkSetVector2Macro(Spacing, double); 
   vtkGetVector2Macro(Spacing, double); 
 
@@ -48,11 +63,11 @@ public:
   vtkGetObjectMacro(ReportTable, vtkTable); 
 
   // Description:
-  // Get the rotation axis orientation 
-  virtual PlusStatus GetCenterOfRotationPx(double centerOfRotationPx[2] ); 
+  // Get the center of rotation in px 
+  virtual PlusStatus GetCenterOfRotationPx( double centerOfRotationPx[2] ); 
 
   // Description:
-  // Get the rotation axis calibration error 
+  // Get the center of rotation calibration error 
   virtual PlusStatus GetError(double &mean, double &stdev); 
 
 protected:
@@ -72,7 +87,7 @@ protected:
   PlusStatus AddNewColumnToReportTable( const char* columnName ); 
 
   //! Description: 
-  // Update rotation axis calibration error report table
+  // Update center of rotation calibration error report table
   virtual PlusStatus UpdateReportTable(); 
 
   //! Description: 
@@ -84,13 +99,15 @@ protected:
 	vtkSetVector2Macro(CenterOfRotationPx, int); 
 
   // Stores the center of rotation in px space
-	int CenterOfRotationPx[2]; 
+	double CenterOfRotationPx[2]; 
 
   // Image scaling factors 
-  // (x: lateral axis, y: axial axis)
   double Spacing[2];
 
+  // Tracked frames used for calibration 
   vtkTrackedFrameList* TrackedFrameList; 
+
+  // Tracked frame indices used for calibration 
   std::vector<int> TrackedFrameListIndices; 
 
   // Table used for storing algo results 

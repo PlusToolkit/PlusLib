@@ -3,7 +3,7 @@
 #include "vtkXMLDataElement.h"
 #include "vtkXMLUtilities.h"
 #include "FidPatternRecognition.h"
-#include "vtkTranslAxisCalibAlgo.h"
+#include "vtkcenterOfRotationCalibAlgo.h"
 #include "vtkGnuplotExecuter.h"
 #include "vtkHTMLGenerator.h"
 
@@ -21,22 +21,17 @@ int main(int argc, char **argv)
 
   vtksys::CommandLineArguments args;
   args.Initialize(argc, argv);
-  std::string inputTranslationSequenceMetafile(""); 
+  std::string inputSequenceMetafile(""); 
   std::string inputBaselineFileName(""); 
   std::string inputConfigFileName(""); 
-  std::string inputStrDataType(""); 
-  IMAGE_DATA_TYPE inputDataType(UNKNOWN_DATA); 
-  std::string baselineXmlAttributeName(""); 
-  std::string baselineXmlElementName(""); 
   std::string inputGnuplotScriptsFolder(""); 
   std::string inputGnuplotCommand(""); 
 
   args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");	
   args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug)");	
-  args.AddArgument("--input-translation-sequence-metafile", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputTranslationSequenceMetafile, "Input sequence metafile name with path");	
+  args.AddArgument("--input-sequence-metafile", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputSequenceMetafile, "Input sequence metafile name with path");	
   args.AddArgument("--input-baseline-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputBaselineFileName, "Input xml baseline file name with path");	
   args.AddArgument("--input-config-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "Input xml config file name with path");	
-  args.AddArgument("--input-data-type", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputStrDataType, "Input data type ( TEMPLATE_TRANSLATION or PROBE_TRANSLATION)");	
   args.AddArgument("--input-gnuplot-scripts-folder", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputGnuplotScriptsFolder, "Path to gnuplot scripts folder");	
   args.AddArgument("--input-gnuplot-command", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputGnuplotCommand, "Path to gnuplot command.");	
   
@@ -53,36 +48,15 @@ int main(int argc, char **argv)
     exit(EXIT_SUCCESS); 
   }
 
-  if ( inputTranslationSequenceMetafile.empty() || inputConfigFileName.empty() || inputBaselineFileName.empty() || inputStrDataType.empty() )
+  if ( inputSequenceMetafile.empty() || inputConfigFileName.empty() || inputBaselineFileName.empty() )
   {
-    std::cerr << "input-translation-sequence-metafile, input-baseline-file-name, input-data-type and input-config-file-name are required arguments!" << std::endl;
+    std::cerr << "input-translation-sequence-metafile, input-baseline-file-name and input-config-file-name are required arguments!" << std::endl;
     std::cout << "Help: " << args.GetHelp() << std::endl;
     exit(EXIT_FAILURE);
   }
 
   vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
   vtkPlusLogger::Instance()->SetDisplayLogLevel(verboseLevel);
-
-
-  if ( STRCASECMP(inputStrDataType.c_str(), "TEMPLATE_TRANSLATION") == 0 )
-  {
-    LOG_INFO("Selected data type: TEMPLATE_TRANSLATION"); 
-    inputDataType = TEMPLATE_TRANSLATION; 
-    baselineXmlAttributeName = "TemplateTranslationAxisOrientation"; 
-    baselineXmlElementName = "TemplateTranslationAxisCalibrationResult"; 
-  }
-  else if ( STRCASECMP(inputStrDataType.c_str(), "PROBE_TRANSLATION") == 0 )
-  {
-    LOG_INFO("Selected data type: PROBE_TRANSLATION"); 
-    inputDataType = PROBE_TRANSLATION; 
-    baselineXmlAttributeName = "ProbeTranslationAxisOrientation"; 
-    baselineXmlElementName = "ProbeTranslationAxisCalibrationResult"; 
-  }
-  else
-  {
-    LOG_ERROR("This data type is not supported: " << inputStrDataType); 
-    exit(EXIT_FAILURE);
-  }
 
   // Read configuration
   vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkXMLUtilities::ReadElementFromFile(inputConfigFileName.c_str());
@@ -95,13 +69,20 @@ int main(int argc, char **argv)
 	FidPatternRecognition patternRecognition; 
 	patternRecognition.ReadConfiguration(configRootElement);
 
-  LOG_INFO("Read translation data from metafile...");
+  LOG_INFO("Read center of rotation data from metafile...");
 
   vtkSmartPointer<vtkTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New(); 
-  if ( trackedFrameList->ReadFromSequenceMetafile(inputTranslationSequenceMetafile.c_str()) != PLUS_SUCCESS )
+  if ( trackedFrameList->ReadFromSequenceMetafile(inputSequenceMetafile.c_str()) != PLUS_SUCCESS )
   {
-      LOG_ERROR("Failed to read sequence metafile: " << inputTranslationSequenceMetafile); 
+      LOG_ERROR("Failed to read sequence metafile: " << inputSequenceMetafile); 
       return EXIT_FAILURE;
+  }
+
+  LOG_INFO("Create tracked frame indices vector..."); 
+  std::vector<int> trackedFrameIndices(trackedFrameList->GetNumberOfTrackedFrames(), 0); 
+  for ( unsigned int i = 0; i < trackedFrameList->GetNumberOfTrackedFrames(); ++i )
+  {
+    trackedFrameIndices[i]=i; 
   }
 
   LOG_INFO("Testing image data segmentation...");
@@ -115,42 +96,42 @@ int main(int argc, char **argv)
 
   LOG_INFO("Spacing: " << std::fixed << spacing[0] << "  " << spacing[1] << " mm/px"); 
 
-  LOG_INFO("Testing translation axis orientation computation algorithm...");
-  vtkSmartPointer<vtkTranslAxisCalibAlgo> translAxisCalibAlgo = vtkSmartPointer<vtkTranslAxisCalibAlgo>::New(); 
-  translAxisCalibAlgo->SetInputs(trackedFrameList, spacing, inputDataType); 
+  LOG_INFO("Testing center of rotation computation algorithm...");
+  vtkSmartPointer<vtkCenterOfRotationCalibAlgo> centerOfRotationCalibAlgo = vtkSmartPointer<vtkCenterOfRotationCalibAlgo>::New(); 
+  centerOfRotationCalibAlgo->SetInputs(trackedFrameList, trackedFrameIndices, spacing); 
   
-  // Get translation axis calibration output 
-  double translationAxisOrientation[3] = {0}; 
-  if ( translAxisCalibAlgo->GetTranslationAxisOrientation(translationAxisOrientation) != PLUS_SUCCESS )
+  // Get center of rotation calibration output 
+  double centerOfRotationPx[2] = {0}; 
+  if ( centerOfRotationCalibAlgo->GetCenterOfRotationPx(centerOfRotationPx) != PLUS_SUCCESS )
   {
-    LOG_ERROR("Translation axis calibration failed!"); 
+    LOG_ERROR("Center of rotation calibration failed!"); 
     numberOfFailures++; 
   }
   else
   {
-    LOG_INFO("Translation axis orientation: " << std::fixed << translationAxisOrientation[0] << "  " << translationAxisOrientation[1] << "  " << translationAxisOrientation[2]); 
+    LOG_INFO("Center of rotation (px): " << std::fixed << centerOfRotationPx[0] << "  " << centerOfRotationPx[1]); 
   }
 
   // Get calibration error
   double errorMean(0), errorStdev(0); 
-  if ( translAxisCalibAlgo->GetError(errorMean, errorStdev) != PLUS_SUCCESS )
+  if ( centerOfRotationCalibAlgo->GetError(errorMean, errorStdev) != PLUS_SUCCESS )
   {
-    LOG_ERROR("Failed to get translation axis calibration error!"); 
+    LOG_ERROR("Failed to get center of rotation calibration error!"); 
     numberOfFailures++; 
   }
   else
   {
-    LOG_INFO("Translation axis calibration error - mean: " << std::fixed << errorMean << "  stdev: " << errorStdev); 
+    LOG_INFO("Center of rotation calibration error - mean: " << std::fixed << errorMean << "  stdev: " << errorStdev); 
   }
   
   LOG_INFO("Testing report table generation and saving into file..."); 
-  vtkTable* reportTable = translAxisCalibAlgo->GetReportTable(); 
+  vtkTable* reportTable = centerOfRotationCalibAlgo->GetReportTable(); 
   if ( reportTable != NULL )
   {
     if ( vtkPlusLogger::Instance()->GetLogLevel() >= vtkPlusLogger::LOG_LEVEL_DEBUG ) 
       reportTable->Dump(25); 
 
-    vtkGnuplotExecuter::DumpTableToFileInGnuplotFormat(reportTable, "./TranslationAxisCalibrationErrorReport.txt"); 
+    vtkGnuplotExecuter::DumpTableToFileInGnuplotFormat(reportTable, "./CenterOfRotationCalibrationErrorReport.txt"); 
   }
   else
   {
@@ -162,18 +143,18 @@ int main(int argc, char **argv)
   {
     LOG_INFO("Testing HTML report generation..."); 
     vtkSmartPointer<vtkHTMLGenerator> htmlGenerator = vtkSmartPointer<vtkHTMLGenerator>::New(); 
-    htmlGenerator->SetTitle("Translation Axis Calibration Report"); 
+    htmlGenerator->SetTitle("Center of Rotation Calibration Report"); 
     vtkSmartPointer<vtkGnuplotExecuter> gnuplotExecuter = vtkSmartPointer<vtkGnuplotExecuter>::New(); 
     gnuplotExecuter->SetWorkingDirectory("./"); 
     gnuplotExecuter->SetGnuplotCommand(inputGnuplotCommand.c_str()); 
     gnuplotExecuter->SetHideWindow(true); 
-    translAxisCalibAlgo->GenerateReport(htmlGenerator, gnuplotExecuter, inputGnuplotScriptsFolder.c_str()); 
-    htmlGenerator->SaveHtmlPage("TranslationAxisCalibrationErrorReport.html"); 
+    centerOfRotationCalibAlgo->GenerateReport(htmlGenerator, gnuplotExecuter, inputGnuplotScriptsFolder.c_str()); 
+    htmlGenerator->SaveHtmlPage("CenterOfRotationCalibrationErrorReport.html"); 
   }
 
-  std::ostringstream translAxisCalibAlgoStream; 
-  translAxisCalibAlgo->PrintSelf(translAxisCalibAlgoStream, vtkIndent(0)); 
-  LOG_DEBUG("TranslAxisCalibAlgo::PrintSelf: "<< translAxisCalibAlgoStream.str()); 
+  std::ostringstream centerOfRotationCalibAlgoStream; 
+  centerOfRotationCalibAlgo->PrintSelf(centerOfRotationCalibAlgoStream, vtkIndent(0)); 
+  LOG_DEBUG("CenterOfRotationCalibAlgo::PrintSelf: "<< centerOfRotationCalibAlgoStream.str()); 
   
   //*********************************************************************
   // Compare result to baseline
@@ -181,10 +162,10 @@ int main(int argc, char **argv)
   LOG_INFO("Comparing result with baseline..."); 
 
   vtkSmartPointer<vtkXMLDataElement> xmlBaseline = vtkXMLUtilities::ReadElementFromFile(inputBaselineFileName.c_str()); 
-  vtkXMLDataElement* xmlTranslationAxisCalibrationBaseline = NULL; 
+  vtkXMLDataElement* xmlCenterOfRotationCalibrationBaseline = NULL; 
   if ( xmlBaseline != NULL )
   {
-    xmlTranslationAxisCalibrationBaseline = xmlBaseline->FindNestedElementWithName(baselineXmlElementName.c_str()); 
+    xmlCenterOfRotationCalibrationBaseline = xmlBaseline->FindNestedElementWithName("CenterOfRotationCalibrationResult"); 
   }
   else
   {
@@ -192,28 +173,59 @@ int main(int argc, char **argv)
     numberOfFailures++;
   }
 
-  if ( xmlTranslationAxisCalibrationBaseline == NULL )
+  if ( xmlCenterOfRotationCalibrationBaseline == NULL )
   {
-    LOG_ERROR("Unable to find " << baselineXmlElementName.c_str() << " XML data element in baseline: " << inputBaselineFileName); 
+    LOG_ERROR("Unable to find CenterOfRotationCalibrationResult XML data element in baseline: " << inputBaselineFileName); 
     numberOfFailures++; 
   }
   else
   {
-    // Compare TranslationAxisOrientation to baseline 
-    double baseTranslationAxisOrientation[3]={0}; 
-    if ( !xmlTranslationAxisCalibrationBaseline->GetVectorAttribute( baselineXmlAttributeName.c_str(), 3, baseTranslationAxisOrientation) )
+    // Compare CenterOfRotationPx to baseline 
+    double baseCenterOfRotationPx[2]={0}; 
+    if ( !xmlCenterOfRotationCalibrationBaseline->GetVectorAttribute( "CenterOfRotationPx", 2, baseCenterOfRotationPx) )
     {
-      LOG_ERROR("Unable to find " << baselineXmlAttributeName.c_str() << " XML data element in baseline."); 
+      LOG_ERROR("Unable to find CenterOfRotationPx XML data element in baseline."); 
       numberOfFailures++; 
     }
     else
     {
-      if ( fabs(baseTranslationAxisOrientation[0] - translationAxisOrientation[0]) > DOUBLE_DIFF 
-        || fabs(baseTranslationAxisOrientation[1] - translationAxisOrientation[1]) > DOUBLE_DIFF 
-        || fabs(baseTranslationAxisOrientation[2] - translationAxisOrientation[2]) > DOUBLE_DIFF )
+      if ( fabs(baseCenterOfRotationPx[0] - centerOfRotationPx[0]) > DOUBLE_DIFF 
+        || fabs(baseCenterOfRotationPx[1] - centerOfRotationPx[1]) > DOUBLE_DIFF )
       {
-        LOG_ERROR("Translation axis orientation differ from baseline: current(" << translationAxisOrientation[0] << ", " << translationAxisOrientation[1] << ", " << translationAxisOrientation[2] 
-        << ") base (" << baseTranslationAxisOrientation[0] << ", " << baseTranslationAxisOrientation[1] << ", " << baseTranslationAxisOrientation[2] <<  ")."); 
+        LOG_ERROR("Center of rotation result in pixel differ from baseline: current(" << centerOfRotationPx[0] << ", " << centerOfRotationPx[1] 
+        << ") base (" << baseCenterOfRotationPx[0] << ", " << baseCenterOfRotationPx[1] << ")."); 
+        numberOfFailures++;
+      }
+    }
+
+    // Compare errorMean 
+    double baseErrorMean=0; 
+    if ( !xmlCenterOfRotationCalibrationBaseline->GetScalarAttribute("ErrorMean", baseErrorMean) )
+    {
+      LOG_ERROR("Unable to find ErrorMean XML data element in baseline."); 
+      numberOfFailures++; 
+    }
+    else
+    {
+      if ( fabs(baseErrorMean - errorMean) > DOUBLE_DIFF )
+      {
+        LOG_ERROR("Center of rotation mean error differ from baseline: current(" << errorMean << ") base (" << baseErrorMean << ")."); 
+        numberOfFailures++;
+      }
+    }
+
+    // Compare errorStdev
+    double baseErrorStdev=0; 
+    if ( !xmlCenterOfRotationCalibrationBaseline->GetScalarAttribute("ErrorStdev", baseErrorStdev) )
+    {
+      LOG_ERROR("Unable to find ErrorStdev XML data element in baseline."); 
+      numberOfFailures++; 
+    }
+    else
+    {
+      if ( fabs(baseErrorStdev - errorStdev) > DOUBLE_DIFF )
+      {
+        LOG_ERROR("Center of rotation stdev of error differ from baseline: current(" << errorStdev << ") base (" << baseErrorStdev << ")."); 
         numberOfFailures++;
       }
     }
