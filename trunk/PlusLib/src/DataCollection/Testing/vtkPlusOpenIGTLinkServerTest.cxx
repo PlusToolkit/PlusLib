@@ -149,11 +149,13 @@ int main( int argc, char** argv )
     
   }
   
-  for ( int i = 0; i < 3; ++ i )
-    {
+  
+
+  while ( server->GetBufferedMessageCount() > 0 )
+  {
     LOG_INFO( "Executing next command in queue." );
     server->ExecuteNextCommand();
-    }
+  }
   
   
   vtkAccurateTimer::Delay( 0.1 );

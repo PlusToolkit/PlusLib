@@ -40,8 +40,10 @@ public:
   
   vtkGetMacro( Active, bool );
   
-  
   void SetDataCollector( vtkDataCollector* dataCollector );
+  
+  int GetBufferedMessageCount();
+
   int Initialize( std::string &strError );
   
   PlusStatus Start();

@@ -51,6 +51,15 @@ vtkPlusOpenIGTLinkServer
 
 int
 vtkPlusOpenIGTLinkServer
+::GetBufferedMessageCount()
+{
+  return this->MessageQueue->GetSize();
+}
+
+
+
+int
+vtkPlusOpenIGTLinkServer
 ::Initialize( std::string &strError )
 {
   if (    this->DataCollector == NULL
@@ -100,9 +109,7 @@ vtkPlusOpenIGTLinkServer
   
   this->Active = false;
   LOG_INFO( "Server::Active set to false." );
-  vtkAccurateTimer::Delay( 0.5 );
-  // this->Threader->TerminateThread( this->ThreadId );
-  LOG_INFO( "Server thread terminated." );
+  vtkAccurateTimer::Delay( 0.5 );  // TODO: Use waitable object to wait for thread to stop.
   this->ThreadId = -1;
   
   return PLUS_SUCCESS;
@@ -227,7 +234,7 @@ vtkPlusOpenIGTLinkServer
       }    
       
       this->ClientSocket = newClientSocket;  // new connection is accepted
-      this->ClientSocket->SetTimeout( 300 );
+      this->ClientSocket->SetTimeout( 300 ); // Needs OpenIGTLink revision 7701 (trunk) or later.
       LOG_DEBUG( "Server received new client connection." );
       return;
     }  
@@ -299,12 +306,7 @@ vtkPlusOpenIGTLinkServer
     
     LOG_INFO( "Server received string: " << strMessage->GetString() );
     
-
-      // TODO: Instead of doing this on the thread, message would have to be placed
-      // in a thread-safe buffer.
-    
-    // this->React( strMessage->GetString() );
-    this->MessageQueue->PushMessage( strMessage );
+    this->MessageQueue->PushMessage( strMessage );  // Messages can be executed later from the queue.
   }
 }
 
