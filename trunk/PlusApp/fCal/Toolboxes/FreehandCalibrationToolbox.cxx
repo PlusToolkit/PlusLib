@@ -490,9 +490,9 @@ PlusStatus FreehandCalibrationToolbox::DoSpatialCalibration()
 		TrackedFrame trackedFrame; 
 		m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->GetTrackedFrame(&trackedFrame); 
 
-		if (trackedFrame.Status & (TR_MISSING | TR_OUT_OF_VIEW)) {
+		if (trackedFrame.GetStatus() & (TR_MISSING | TR_OUT_OF_VIEW)) {
 			LOG_DEBUG("Tracker out of view"); 
-		} else if (trackedFrame.Status & (TR_REQ_TIMEOUT)) {
+		} else if (trackedFrame.GetStatus() & (TR_REQ_TIMEOUT)) {
 			LOG_DEBUG("Tracker request timeout"); 
 		} else { // TR_OK
 			if (numberOfAcquiredImages < maxNumberOfValidationImages) {

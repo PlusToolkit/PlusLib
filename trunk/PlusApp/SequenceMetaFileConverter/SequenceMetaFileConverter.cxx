@@ -439,7 +439,7 @@ void ConvertFromOldSequenceMetafile(std::vector<std::string> inputImageSequenceF
 			TrackedFrame trackedFrame;
       trackedFrame.ImageData.SetITKImageBase(mfOrientedImage);
 			trackedFrame.SetCustomFrameTransform(defaultFrameTransformName, defaultTransformMatrix); 
-			trackedFrame.DefaultFrameTransformName = defaultFrameTransformName; 
+			trackedFrame.SetDefaultFrameTransformName(defaultFrameTransformName);
 
 			trackedFrameContainer->AddTrackedFrame(&trackedFrame);
 		}
@@ -1000,7 +1000,7 @@ void ConvertFromMetafile(SAVING_METHOD savingMethod)
     }
 
     trackedFrame.SetCustomFrameTransform("ToolToReferenceTransform", tToolToReference ); 
-  	trackedFrame.DefaultFrameTransformName = "ToolToReferenceTransform"; 
+  	trackedFrame.SetDefaultFrameTransformName("ToolToReferenceTransform"); 
 
     trackedFrameContainer->AddTrackedFrame(&trackedFrame);
 	}
@@ -1201,8 +1201,7 @@ void ReadDRBTransformFile( const std::string TransformFileNameWithPath, TrackedF
 	tToolToReference->Update();
 
 	trackedFrame->SetCustomFrameTransform("ToolToReferenceTransform", tToolToReference->GetMatrix() ); 
-
-	trackedFrame->DefaultFrameTransformName = "ToolToReferenceTransform"; 
+	trackedFrame->SetDefaultFrameTransformName("ToolToReferenceTransform"); 
 }
 
 

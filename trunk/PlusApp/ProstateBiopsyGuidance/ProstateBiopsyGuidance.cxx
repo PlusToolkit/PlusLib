@@ -229,7 +229,7 @@ double ProstateBiopsyGuidance::GetLastRecordedFrameTimestamp()
 	double timestamp(0); 
 	if ( this->TrackedFrameContainer->GetNumberOfTrackedFrames() > 0 )
 	{
-		timestamp = this->TrackedFrameContainer->GetTrackedFrameList().back()->Timestamp; 
+		timestamp = this->TrackedFrameContainer->GetTrackedFrameList().back()->GetTimestamp(); 
 	}
 
 	return timestamp; 
@@ -364,7 +364,7 @@ PlusStatus ProstateBiopsyGuidance::RecordTrackedFrame( const double time /*=0*/)
     return PLUS_FAIL; 
   }
 
-	if ( trackedFrame.Status != TR_OK )
+	if ( trackedFrame.GetStatus() != TR_OK )
 	{
 		LOG_WARNING("Unable to record tracked frame: Tracker out of view!"); 
 	}
