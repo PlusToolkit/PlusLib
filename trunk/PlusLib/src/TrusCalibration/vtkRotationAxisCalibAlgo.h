@@ -33,8 +33,8 @@
 //                           [w6y0]
 //
 
-#ifndef __vtkTranslAxisCalibAlgo_h
-#define __vtkTranslAxisCalibAlgo_h
+#ifndef __vtkRotationAxisCalibAlgo_h
+#define __vtkRotationAxisCalibAlgo_h
 
 #include "PlusConfigure.h"
 #include "vtkObject.h"
@@ -44,12 +44,12 @@
 class vtkHTMLGenerator; 
 class vtkGnuplotExecuter; 
 
-class VTK_EXPORT vtkTranslAxisCalibAlgo : public vtkObject
+class VTK_EXPORT vtkRotationAxisCalibAlgo : public vtkObject
 {
 public:
 
-  static vtkTranslAxisCalibAlgo *New();
-  vtkTypeRevisionMacro(vtkTranslAxisCalibAlgo , vtkObject);
+  static vtkRotationAxisCalibAlgo *New();
+  vtkTypeRevisionMacro(vtkRotationAxisCalibAlgo , vtkObject);
   virtual void PrintSelf(ostream& os, vtkIndent indent); 
 
   // Description:
@@ -61,19 +61,17 @@ public:
   // Set inputs: 
   // - TrackedFrameList with segmentation results 
   // - Image spacing (mm/px)
-  // - Image data type (TEMPLATE_TRANSLATION, PROBE_TRANSLATION)
-  virtual void SetInputs( vtkTrackedFrameList* trackedFrameList, double spacing[2], IMAGE_DATA_TYPE dataType); 
-
-  // Description:
-  // Set/get image data type used for calibration
-  // Supported data types: TEMPLATE_TRANSLATION, PROBE_TRANSLATION
-  vtkSetMacro(DataType, IMAGE_DATA_TYPE); 
-  vtkGetMacro(DataType, IMAGE_DATA_TYPE); 
+  virtual void SetInputs( vtkTrackedFrameList* trackedFrameList, double spacing[2]); 
 
     //! Description: 
   // Set/get tracked frame list
   vtkSetObjectMacro(TrackedFrameList, vtkTrackedFrameList); 
   vtkGetObjectMacro(TrackedFrameList, vtkTrackedFrameList); 
+
+  //! Description: 
+	// Set/Get the minimum number of clusters for rotation axis calibration
+	vtkSetMacro(MinNumberOfRotationClusters, int); 
+	vtkGetMacro(MinNumberOfRotationClusters, int);
 
   //! Description: 
   // Set/Get the image spacing.
@@ -82,57 +80,78 @@ public:
   vtkGetVector2Macro(Spacing, double); 
 
   //! Description: 
+	// Set/Get the rotation center in pixels.
+	// Origin: Left-upper corner (the original image frame)
+	// Positive X: to the right;
+	// Positive Y: to the bottom;
+	vtkSetVector2Macro(CenterOfRotationPx, int); 
+	vtkGetVector2Macro(CenterOfRotationPx, int);
+
+  //! Description: 
   // Report table used for storing algorithm results 
   vtkGetObjectMacro(ReportTable, vtkTable); 
 
   // Description:
-  // Get the translation axis orientation 
-  virtual PlusStatus GetTranslationAxisOrientation(double translationAxisOrientation[3] ); 
+  // Get the rotation axis orientation 
+  virtual PlusStatus GetRotationAxisOrientation(double rotationAxisOrientation[3] ); 
 
   // Description:
-  // Get the translation axis calibration error 
+  // Get the rotation axis calibration error 
   virtual PlusStatus GetError(double &mean, double &stdev); 
 
 protected:
-  vtkTranslAxisCalibAlgo();
-  virtual ~vtkTranslAxisCalibAlgo(); 
+  vtkRotationAxisCalibAlgo();
+  virtual ~vtkRotationAxisCalibAlgo(); 
 
   // Description:
   // Bring this algorithm's outputs up-to-date.
   virtual PlusStatus Update();
 
   //! Description: 
-  // Construct linear equation for translation axis calibration
-  virtual PlusStatus ConstructLinearEquationForCalibration(std::vector<vnl_vector<double>> &aMatrix, std::vector<double> &bVector, int& numberOfUnknowns);
+  // Construct linear equation for rotation axis calibration
+  virtual PlusStatus ConstructLinearEquationForCalibration( 
+    const std::vector< std::pair<double, double> > &listOfCenterOfRotations, 
+    const std::vector< double > &listOfClusterPositions, 
+    std::vector<vnl_vector<double>> &aMatrix, 
+    std::vector<double> &bVector);
 
   //! Description: 
   // Add new column to the report table 
   PlusStatus AddNewColumnToReportTable( const char* columnName ); 
 
   //! Description: 
-  // Update translation axis calibration error report table 
+  // Update rotation axis calibration error report table
   virtual PlusStatus UpdateReportTable(
     const std::vector<vnl_vector<double>> &aMatrix, 
     const std::vector<double> &bVector, 
     const vnl_vector<double> &resultVector); 
 
+	//! Description:
+	// Clustering tracked frames by Z position 
+  virtual PlusStatus ClusterTrackedFrames(std::vector< std::vector<int> > &clusterOfIndecies); 
+
+	//! Description:
+	// Get Z position of the cluster (aka. the z position of the point cloud)
+	virtual PlusStatus GetClusterZPosition(std::vector<int> &cluster, double &clusterPosition ); 
+
   //! Description: 
-  // Set/get translation axis orientation [Tx, Ty, 1]
-  vtkSetVector3Macro(TranslationAxisOrientation, double); 
+  // Set rotation axis orientation [Rx, Ry, 1]
+  vtkSetVector3Macro(RotationAxisOrientation, double); 
 
   //! Description: 
   // Report table used for storing algorithm results 
   vtkSetObjectMacro(ReportTable, vtkTable); 
 
-  // Data type used for calibration (TEMPLATE_TRANSLATION or PROBE_TRANSLATION)
-  IMAGE_DATA_TYPE DataType; 
+  int MinNumberOfRotationClusters; 
 
-  // Image scaling factors 
-  // (x: lateral axis, y: axial axis)
+  // Stores the center of rotation in px space
+	int CenterOfRotationPx[2]; 
+
+  // Image scaling factors (x: lateral axis, y: axial axis)
   double Spacing[2];
 
-  // Translation axis orientation [Tx, Ty, 1]
-  double TranslationAxisOrientation[3]; 
+  // Rotation axis orientation [Rx, Ry, 1]
+  double RotationAxisOrientation[3]; 
 
   vtkTrackedFrameList* TrackedFrameList; 
 

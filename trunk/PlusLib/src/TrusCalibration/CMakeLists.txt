@@ -6,12 +6,13 @@ SET (TrusCalibration_SRCS
 	vtkCalibrationController.cxx 
 	vtkProbeCalibrationControllerIO.cxx 
 	vtkStepperCalibrationController.cxx 
-  vtkMeanShiftClustering.cxx 
+    vtkMeanShiftClustering.cxx 
 	vtkPivotCalibrationAlgo.cxx
 	vtkPhantomRegistrationAlgo.cxx
 	VolumeReconstructionController.cxx
-  vtkRotAxisCalibAlgo.cxx 
-  vtkTranslAxisCalibAlgo.cxx 
+    vtkRotationAxisCalibAlgo.cxx 
+    vtkTranslAxisCalibAlgo.cxx 
+    vtkCenterOfRotationCalibAlgo.cxx
 	)
 
 SET (TrusCalibration_HDRS)	
@@ -21,12 +22,13 @@ IF (WIN32)
 		vtkCalibrationController.h
 		vtkProbeCalibrationControllerIO.h
 		vtkStepperCalibrationController.h 
-    vtkMeanShiftClustering.h
+        vtkMeanShiftClustering.h
 		vtkPivotCalibrationAlgo.h
 		vtkPhantomRegistrationAlgo.h
 		VolumeReconstructionController.h
-    vtkRotAxisCalibAlgo.h
-    vtkTranslAxisCalibAlgo.h
+        vtkRotationAxisCalibAlgo.h
+        vtkTranslAxisCalibAlgo.h
+        vtkCenterOfRotationCalibAlgo.h
 		)
 ENDIF (WIN32)
 

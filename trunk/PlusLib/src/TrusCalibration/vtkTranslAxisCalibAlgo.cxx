@@ -22,6 +22,8 @@ vtkTranslAxisCalibAlgo::vtkTranslAxisCalibAlgo()
   this->SetSpacing(0,0); 
   this->SetDataType(UNKNOWN_DATA); 
   this->ReportTable = NULL; 
+  this->ErrorMean = 0.0; 
+  this->ErrorStdev = 0.0; 
 }
 
 //----------------------------------------------------------------------------
@@ -72,9 +74,9 @@ void vtkTranslAxisCalibAlgo::SetInputs(vtkTrackedFrameList* trackedFrameList, do
 
 
 //----------------------------------------------------------------------------
-PlusStatus vtkTranslAxisCalibAlgo::GetOutput(double translationAxisOrientation[3])
+PlusStatus vtkTranslAxisCalibAlgo::GetTranslationAxisOrientation(double translationAxisOrientation[3])
 {
-  LOG_TRACE("vtkTranslAxisCalibAlgo::GetOutput"); 
+  LOG_TRACE("vtkTranslAxisCalibAlgo::GetTranslationAxisOrientation"); 
   // Update calibration result 
   PlusStatus status = this->Update(); 
 
@@ -116,7 +118,7 @@ PlusStatus vtkTranslAxisCalibAlgo::Update()
   int numberOfUnknowns = 0; 
 
   // Construct linear equation for translation axis calibration
-  if ( this->ConstrLinEqForTransAxisCalib(aMatrix, bVector, numberOfUnknowns) != PLUS_SUCCESS )
+  if ( this->ConstructLinearEquationForCalibration(aMatrix, bVector, numberOfUnknowns) != PLUS_SUCCESS )
   {
     LOG_ERROR("Unable to contruct linear equations for translation axis calibration!"); 
     return PLUS_FAIL; 
@@ -145,7 +147,10 @@ PlusStatus vtkTranslAxisCalibAlgo::Update()
   // Set translation axis orientation 
   // NOTE: If the probe goes down the wires goes down on the MF oriented image 
   // => we need to change the sign of the axis to compensate it
-  this->SetTranslationAxisOrientation(-translationAxisCalibResult[0], translationAxisCalibResult[1], 1); 
+  // don't use set macro, it changes the modification time of the algorithm 
+  this->TranslationAxisOrientation[0] = -translationAxisCalibResult[0]; 
+  this->TranslationAxisOrientation[0] = translationAxisCalibResult[1]; 
+  this->TranslationAxisOrientation[0] = 1; 
 
   this->UpdateReportTable(aMatrix, bVector, translationAxisCalibResult); 
 
@@ -156,9 +161,9 @@ PlusStatus vtkTranslAxisCalibAlgo::Update()
 
 
 //----------------------------------------------------------------------------
-PlusStatus vtkTranslAxisCalibAlgo::ConstrLinEqForTransAxisCalib( std::vector<vnl_vector<double>> &aMatrix, std::vector<double> &bVector, int& numberOfUnknowns)
+PlusStatus vtkTranslAxisCalibAlgo::ConstructLinearEquationForCalibration( std::vector<vnl_vector<double>> &aMatrix, std::vector<double> &bVector, int& numberOfUnknowns)
 {
-  LOG_TRACE("vtkTranslAxisCalibAlgo::ConstrLinEqForTransAxisCalib"); 
+  LOG_TRACE("vtkTranslAxisCalibAlgo::ConstructLinearEquationForCalibration"); 
   aMatrix.clear(); 
   bVector.clear(); 
   numberOfUnknowns = 0; 
@@ -262,6 +267,9 @@ PlusStatus vtkTranslAxisCalibAlgo::UpdateReportTable(const std::vector<vnl_vecto
                                                      const vnl_vector<double> &resultVector)
 {
   LOG_TRACE("vtkTranslAxisCalibAlgo::UpdateReportTable"); 
+
+  // Clear table before update
+  this->SetReportTable(NULL); 
 
   if ( this->ReportTable == NULL )
   {
