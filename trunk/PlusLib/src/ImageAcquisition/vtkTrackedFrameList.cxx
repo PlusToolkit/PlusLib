@@ -5,7 +5,6 @@
 #include "vtkObjectFactory.h"
 #include "vtksys/SystemTools.hxx"
 #include "vtkXMLUtilities.h"
-#include "vtkPoints.h"
 
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
@@ -83,32 +82,6 @@ int TrackedFrame::GetNumberOfBitsPerPixel()
 }
 
 //----------------------------------------------------------------------------
-void TrackedFrame::SetFiducialPointsCoordinatePx(vtkPoints* fiducialPoints)
-{
-  if ( this->FiducialPointsCoordinatePx != fiducialPoints )
-  {
-    vtkPoints* tempFiducialPoints = this->FiducialPointsCoordinatePx; 
-    
-    this->FiducialPointsCoordinatePx = fiducialPoints; 
-    if ( this->FiducialPointsCoordinatePx != NULL ) 
-    {
-      this->FiducialPointsCoordinatePx->Register(NULL); 
-    } 
-
-    if ( tempFiducialPoints != NULL ) 
-    {
-      tempFiducialPoints->UnRegister(NULL); 
-    }
-  }
-}
-
-//----------------------------------------------------------------------------
-vtkPoints* TrackedFrame::GetFiducialPointsCoordinatePx()
-{
-  return this->FiducialPointsCoordinatePx; 
-}
-
-//----------------------------------------------------------------------------
 void TrackedFrame::SetCustomFrameField( std::string name, std::string value )
 {
   CustomFrameFieldPair pair(name, value); 
@@ -152,9 +125,8 @@ const char* TrackedFrame::GetCustomField( std::string name )
   return NULL; 
 }
 
-
-
-/**
+//----------------------------------------------------------------------------
+/*!
  * @param transform 16 elements of the transform matrix.
  */
 bool TrackedFrame::GetDefaultFrameTransform(double transform[16]) 
@@ -232,19 +204,6 @@ void TrackedFrame::SetCustomFrameTransform(std::string frameTransformName, vtkMa
   double dTransform[ 16 ];
   vtkMatrix4x4::DeepCopy( dTransform, transform );
   this->SetCustomFrameTransform(frameTransformName, dTransform); 
-}
-
-//----------------------------------------------------------------------------
-TrackerStatus TrackedFrame::GetStatus() 
-{
-  return this->Status;
-}
-
-
-//----------------------------------------------------------------------------
-void TrackedFrame::SetStatus(TrackerStatus status)
-{
-  this->Status=status;
 }
 
 //----------------------------------------------------------------------------
@@ -476,7 +435,7 @@ bool vtkTrackedFrameList::ValidatePosition(TrackedFrame* trackedFrame, const cha
 //----------------------------------------------------------------------------
 bool vtkTrackedFrameList::ValidateStatus(TrackedFrame* trackedFrame)
 {
-  const bool isStatusValid = (trackedFrame->Status == 0); 
+  const bool isStatusValid = (trackedFrame->GetStatus() == 0); 
   if ( !isStatusValid )
   {
     LOG_DEBUG("Tracked frame status validation result: tracked frame status invalid!"); 
@@ -495,7 +454,7 @@ bool vtkTrackedFrameList::ValidateSpeed(TrackedFrame* trackedFrame)
   TrackedFrameListType::iterator latestFrameInList = this->TrackedFrameList.end() - 1;
 
   // Compute difference between the last two timestamps
-  double diffTimeSec = fabs( trackedFrame->Timestamp - (*latestFrameInList)->Timestamp );
+  double diffTimeSec = fabs( trackedFrame->GetTimestamp() - (*latestFrameInList)->GetTimestamp() );
   if (diffTimeSec < 0.0001) 
   { 
     // the frames are almost acquired at the same time, cannot compute speed reliably
@@ -592,7 +551,7 @@ std::string vtkTrackedFrameList::GetDefaultFrameTransformName()
   std::string defaultFrameTransformName; 
   if ( !TrackedFrameList.empty() )
   {
-    defaultFrameTransformName = this->GetTrackedFrame(0)->DefaultFrameTransformName; 
+    defaultFrameTransformName = this->GetTrackedFrame(0)->GetDefaultFrameTransformName();
   }
 
   return defaultFrameTransformName; 
@@ -661,26 +620,20 @@ PlusStatus vtkTrackedFrameList::ReadFromSequenceMetafileGeneric(const char* trac
 
     // Get Default transform name 
     std::string defaultFrameTransformName = readerMetaImageSequenceIO->GetDefaultFrameTransformName(); 
-    trackedFrame.DefaultFrameTransformName = defaultFrameTransformName; 
+    trackedFrame.SetDefaultFrameTransformName(defaultFrameTransformName); 
 
     // Get custom fields 
     std::vector<std::string> customFieldNames = readerMetaImageSequenceIO->GetCustomFieldNames(); 
     for ( int i = 0; i < customFieldNames.size(); i++ )
     {
-      TrackedFrame::CustomFieldPair field; 
-      field.first = customFieldNames[i]; 
-      field.second = readerMetaImageSequenceIO->GetCustomString(customFieldNames[i].c_str()); 
-      trackedFrame.CustomFieldList.push_back(field); 
+      trackedFrame.SetCustomField(customFieldNames[i], readerMetaImageSequenceIO->GetCustomString(customFieldNames[i].c_str()));
     }
 
     // Get custom frame fields 
     std::vector<std::string> customFrameFieldNames = readerMetaImageSequenceIO->GetCustomFrameFieldNames(); 
     for ( int i = 0; i < customFrameFieldNames.size(); i++ )
     {
-      TrackedFrame::CustomFrameFieldPair field; 
-      field.first = customFrameFieldNames[i]; 
-      field.second = readerMetaImageSequenceIO->GetCustomFrameString(imgNumber,customFrameFieldNames[i].c_str()); 
-      trackedFrame.CustomFrameFieldList.push_back(field); 
+      trackedFrame.SetCustomFrameField(customFrameFieldNames[i], readerMetaImageSequenceIO->GetCustomFrameString(imgNumber,customFrameFieldNames[i].c_str()));
     }
 
     itk::Image<OutputPixelType, 2>::Pointer itkImage = itk::Image<OutputPixelType, 2>::New(); 
@@ -689,6 +642,7 @@ PlusStatus vtkTrackedFrameList::ReadFromSequenceMetafileGeneric(const char* trac
       LOG_ERROR("Failed to get MF oriented image from sequence metafile (frame number: " << imgNumber << ")!"); 
       continue; 
     }
+    PlusVideoFrame frame = trackedFrame.ImageData;
     trackedFrame.ImageData.SetITKImageBase(itkImage);
 
     const char* cFlag = trackedFrame.GetCustomFrameField("Status"); 
@@ -820,20 +774,20 @@ PlusStatus vtkTrackedFrameList::SaveToSequenceMetafileGeneric(const char* output
       if ( i == 0 )
       {
         // Set default frame transform name
-        writerMetaImageSequenceIO->SetDefaultFrameTransformName( TrackedFrameList[trackedFrameListItem]->DefaultFrameTransformName ); 
+        writerMetaImageSequenceIO->SetDefaultFrameTransformName( TrackedFrameList[trackedFrameListItem]->GetDefaultFrameTransformName() ); 
 
         // Set ultrasound image orientation to the internal MF orientation 
         writerMetaImageSequenceIO->SetUltrasoundImageOrientation( "MF" ); 
 
-        for( int field = 0; field < TrackedFrameList[trackedFrameListItem]->CustomFieldList.size(); field++ )
+        for( int field = 0; field < TrackedFrameList[trackedFrameListItem]->GetCustomFrameFieldList().size(); field++ )
         {
-          writerMetaImageSequenceIO->SetCustomString(TrackedFrameList[trackedFrameListItem]->CustomFieldList[field].first.c_str(), TrackedFrameList[trackedFrameListItem]->CustomFieldList[field].second.c_str() ); 
+          writerMetaImageSequenceIO->SetCustomString(TrackedFrameList[trackedFrameListItem]->GetCustomFrameFieldList()[field].first.c_str(), TrackedFrameList[trackedFrameListItem]->GetCustomFrameFieldList()[field].second.c_str() ); 
         }
       }
 
-      for( int field = 0; field < TrackedFrameList[trackedFrameListItem]->CustomFrameFieldList.size(); field++ )
+      for( int field = 0; field < TrackedFrameList[trackedFrameListItem]->GetCustomFrameFieldList().size(); field++ )
       {
-        writerMetaImageSequenceIO->SetCustomFrameString(i, TrackedFrameList[trackedFrameListItem]->CustomFrameFieldList[field].first.c_str(), TrackedFrameList[trackedFrameListItem]->CustomFrameFieldList[field].second.c_str() ); 
+        writerMetaImageSequenceIO->SetCustomFrameString(i, TrackedFrameList[trackedFrameListItem]->GetCustomFrameFieldList()[field].first.c_str(), TrackedFrameList[trackedFrameListItem]->GetCustomFrameFieldList()[field].second.c_str() ); 
       }
     }
 

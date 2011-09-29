@@ -11,6 +11,7 @@
 #include "vtkMatrix4x4.h"
 #include "vtkTransform.h"
 #include "UsImageConverterCommon.h"
+#include "vtkPoints.h"
 #include "vtkXMLDataElement.h"
 #include "PlusVideoFrame.h"
 
@@ -22,96 +23,120 @@ class vtkPoints;
 class VTK_EXPORT TrackedFrame
 {
 public:
-
   // <CustomFrameFieldName, CustomFrameFieldValue>
   typedef std::pair<std::string, std::string> CustomFrameFieldPair; 
   // <CustomFieldName, CustomFieldValue>
   typedef std::pair<std::string, std::string> CustomFieldPair; 
 
+public:
   TrackedFrame();
   ~TrackedFrame(); 
   TrackedFrame(const TrackedFrame& frame); 
   TrackedFrame& TrackedFrame::operator=(TrackedFrame const&trackedFrame); 
 
-  //! Operation: 
-  // Set custom frame field
+public:
+  // Set Status of the item (out of view, ...)
+  void SetStatus(TrackerStatus value) { this->Status = value; }; 
+
+  // Get Status of the item (out of view, ...)
+  TrackerStatus GetStatus() { return this->Status; };
+
+  // Set timestamp
+  void SetTimestamp(double value) { this->Timestamp = value; }; 
+
+  // Get timestamp
+  double GetTimestamp() { return this->Timestamp; }; 
+
+  //! Set custom frame field
   void SetCustomFrameField( std::string name, std::string value ); 
 
-  //! Operation: 
-  // Get custom frame field value
+  //! Get custom frame field value
   const char* GetCustomFrameField( std::string name ); 
 
-  //! Operation: 
-  // Set custom field 
+  //! Get custom frame field list
+  std::vector<CustomFrameFieldPair> GetCustomFrameFieldList() { return this->CustomFrameFieldList; };
+
+  //! Set custom field 
   void SetCustomField( std::string name, std::string value ); 
 
-  //! Operation: 
-  // Get custom field value
+  //! Get custom field value
   const char* GetCustomField( std::string name ); 
 
-  //! Operation: 
-  // Get default frame transform
+  //! Get default frame transform value
+  const char* GetDefaultFrameTransformName() { return this->DefaultFrameTransformName.c_str(); };
+
+  //! Set default frame transform value
+  void SetDefaultFrameTransformName(std::string value) { this->DefaultFrameTransformName = value; };
+
+  //! Get default frame transform
   bool GetDefaultFrameTransform(double transform[16]); 
 
-  //! Operation: 
-  // Get custom frame transform
+  //! Get custom frame transform
   bool GetCustomFrameTransform(const char* frameTransformName, double transform[16]); 
 
-  //! Operation: 
-  // Set custom frame transform
+  //! Set custom frame transform
   void SetCustomFrameTransform(std::string frameTransformName, double transform[16]); 
 
-  //! Operation: 
-  // Set custom frame transform
+  //! Set custom frame transform
   void SetCustomFrameTransform(std::string frameTransformName, vtkMatrix4x4* transform); 
 
   //! Operation: 
   // Returns: int[2]. Get tracked frame size in pixel
   int* GetFrameSize(); 
 
-  //! Operation: 
-  // Get tracked frame pixel size in bits 
-  int GetNumberOfBitsPerPixel(); 
+  //! Get tracked frame pixel size in bits 
+  int GetNumberOfBitsPerPixel();
 
-    //! Operation: 
-  // Set/get the threshold of acceptable speed of orientation change in degrees
-  void SetFiducialPointsCoordinatePx(vtkPoints* fiducialPoints); 
-  vtkPoints* GetFiducialPointsCoordinatePx(); 
+  // Set Segmented fiducial point pixel coordinates
+  void SetFiducialPointsCoordinatePx(vtkPoints* fiducialPoints)
+  {
+    if ( this->FiducialPointsCoordinatePx != fiducialPoints )
+    {
+      vtkPoints* tempFiducialPoints = this->FiducialPointsCoordinatePx; 
+      
+      this->FiducialPointsCoordinatePx = fiducialPoints; 
+      if ( this->FiducialPointsCoordinatePx != NULL ) 
+      {
+        this->FiducialPointsCoordinatePx->Register(NULL); 
+      } 
 
-  //! Operation: 
-  // Get status of the item (out of view, ...)
-  TrackerStatus GetStatus(); 
+      if ( tempFiducialPoints != NULL ) 
+      {
+        tempFiducialPoints->UnRegister(NULL); 
+      }
+    }
+  };
 
-  //! Operation: 
-  // Set status of the item (out of view, ...)
-  void SetStatus(TrackerStatus status); 
+  // Get Segmented fiducial point pixel coordinates
+  vtkPoints* GetFiducialPointsCoordinatePx() { return this->FiducialPointsCoordinatePx; };
 
+  //! 
   PlusStatus WriteToFile(std::string &filename, vtkMatrix4x4* mImageToTracker);
 
-  //! Operation: 
-  // Convert from status string to status enum
+  //! Convert from status string to status enum
   static TrackerStatus GetStatusFromString(const char* statusStr);
 
+public:
   bool operator< (TrackedFrame data) { return Timestamp < data.Timestamp; }
   bool operator== (const TrackedFrame& data) const 
   {
-    return this->Timestamp == data.Timestamp; 
+    return (Timestamp == data.Timestamp);
   }
 
 public:
+  PlusVideoFrame ImageData;
+
+protected:
+  TrackerStatus Status; 
   std::string DefaultFrameTransformName; 
   double Timestamp; 
-  TrackerStatus Status; 
-  PlusVideoFrame ImageData;
 
   std::vector<CustomFrameFieldPair> CustomFrameFieldList; 
   std::vector<CustomFieldPair> CustomFieldList; 
   int FrameSize[2]; 
 
-protected:
   // Stores segmented fiducial point pixel coordinates 
   vtkPoints* FiducialPointsCoordinatePx; 
-
 };
 
 
@@ -127,7 +152,7 @@ public:
   TrackedFrameTimestampFinder(TrackedFrame* frame): mTrackedFrame(frame){}; 	
   bool operator()( TrackedFrame *newFrame )	
   {		
-    return newFrame->Timestamp == mTrackedFrame->Timestamp;	
+    return newFrame->GetTimestamp() == mTrackedFrame->GetTimestamp();	
   }	
   TrackedFrame* mTrackedFrame;
 };
@@ -142,7 +167,7 @@ public:
   {
     if ( frameTransformName == NULL ) 
     {
-      mFrameTransformName = frame->DefaultFrameTransformName; 
+      mFrameTransformName = frame->GetDefaultFrameTransformName(); 
     }
     else
     {

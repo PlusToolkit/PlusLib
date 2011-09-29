@@ -545,7 +545,7 @@ PlusStatus vtkDataCollector::WriteTrackerToMetafile( vtkTracker* tracker, const 
     trackedFrame.SetCustomFrameField("Status", vtkTracker::ConvertTrackerStatusToString(bufferItem.GetStatus()) ); 
 
     // Set default transform name
-    trackedFrame.DefaultFrameTransformName = tracker->GetTool(firstActiveToolNumber)->GetToolName(); 
+    trackedFrame.SetDefaultFrameTransformName(tracker->GetTool(firstActiveToolNumber)->GetToolName());
 
     // Add transforms
     for ( int tool = 0; tool < tracker->GetNumberOfTools(); tool++ )
@@ -648,15 +648,15 @@ PlusStatus vtkDataCollector::WriteVideoBufferToMetafile( vtkVideoBuffer* videoBu
     }
 
     TrackedFrame trackedFrame;
-    trackedFrame.ImageData=videoItem.GetFrame();
+    trackedFrame.ImageData = videoItem.GetFrame();
 
     // Set default transform name
-    trackedFrame.DefaultFrameTransformName = "IdentityTransform"; 
+    trackedFrame.SetDefaultFrameTransformName("IdentityTransform"); 
 
     // Add transform 
     vtkSmartPointer<vtkMatrix4x4> matrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
     matrix->Identity(); 
-    trackedFrame.SetCustomFrameTransform(trackedFrame.DefaultFrameTransformName, matrix); 
+    trackedFrame.SetCustomFrameTransform(trackedFrame.GetDefaultFrameTransformName(), matrix); 
 
     // Add filtered timestamp
     double filteredTimestamp = videoItem.GetFilteredTimestamp( videoBuffer->GetLocalTimeOffset() ); 
@@ -1298,28 +1298,30 @@ PlusStatus vtkDataCollector::GetTrackedFrameByTime(double time, TrackedFrame* tr
     }
 
     if ( this->GetTracker()->GetTrackerToolBufferStringList(synchronizedTime, toolsBufferMatrices, toolsCalibrationMatrices, toolsStatuses, calibratedTransform) != PLUS_SUCCESS )
-	{
-	  LOG_ERROR("Failed to get tracker tool buffer stringlist: " << std::fixed << synchronizedTime ); 
+	  {
+	    LOG_ERROR("Failed to get tracker tool buffer stringlist: " << std::fixed << synchronizedTime ); 
       return PLUS_FAIL; 
-	}
+	  }
 
-	int toolNumber = this->GetTracker()->GetFirstPortNumberByType(TRACKER_TOOL_PROBE);
-	if (toolNumber < 0)
-	{
-		if (this->GetTracker()->GetFirstActiveTool(toolNumber) != PLUS_SUCCESS)
-		{
-			LOG_ERROR("There are no active tools!"); 
-			return PLUS_FAIL; 
-		}
-	}
+	  int toolNumber = this->GetTracker()->GetFirstPortNumberByType(TRACKER_TOOL_PROBE);
+	  if (toolNumber < 0)
+	  {
+		  if (this->GetTracker()->GetFirstActiveTool(toolNumber) != PLUS_SUCCESS)
+		  {
+			  LOG_ERROR("There are no active tools!"); 
+			  return PLUS_FAIL; 
+		  }
+	  }
 
-	if ( this->GetToolStatus(synchronizedTime, toolNumber, trackedFrame->Status ) != PLUS_SUCCESS )
+    TrackerStatus status;
+	  if ( this->GetToolStatus(synchronizedTime, toolNumber, status ) != PLUS_SUCCESS )
     {
       LOG_ERROR("Failed to get tool status by time: " << std::fixed << synchronizedTime ); 
       return PLUS_FAIL; 
     }
+    trackedFrame->SetStatus(status);
 
-	trackedFrame->DefaultFrameTransformName = this->GetTracker()->GetTool(toolNumber)->GetToolName(); 
+	  trackedFrame->SetDefaultFrameTransformName(this->GetTracker()->GetTool(toolNumber)->GetToolName());
 
     for ( std::map<std::string, std::string>::iterator it = toolsBufferMatrices.begin(); it != toolsBufferMatrices.end(); it++ )
     {
@@ -1343,11 +1345,11 @@ PlusStatus vtkDataCollector::GetTrackedFrameByTime(double time, TrackedFrame* tr
   }
 
   // Save tracked frame timestamp 
-  trackedFrame->Timestamp = synchronizedTime; 
+  trackedFrame->SetTimestamp(synchronizedTime); 
 
   // Save frame timestamp
   std::ostringstream strTimestamp; 
-  strTimestamp << std::fixed << trackedFrame->Timestamp; 
+  strTimestamp << std::fixed << trackedFrame->GetTimestamp(); 
   trackedFrame->SetCustomFrameField("Timestamp", strTimestamp.str()); 
 
   return PLUS_SUCCESS; 
