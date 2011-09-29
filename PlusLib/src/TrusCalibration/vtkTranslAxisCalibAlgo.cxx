@@ -149,8 +149,8 @@ PlusStatus vtkTranslAxisCalibAlgo::Update()
   // => we need to change the sign of the axis to compensate it
   // don't use set macro, it changes the modification time of the algorithm 
   this->TranslationAxisOrientation[0] = -translationAxisCalibResult[0]; 
-  this->TranslationAxisOrientation[0] = translationAxisCalibResult[1]; 
-  this->TranslationAxisOrientation[0] = 1; 
+  this->TranslationAxisOrientation[1] = translationAxisCalibResult[1]; 
+  this->TranslationAxisOrientation[2] = 1; 
 
   this->UpdateReportTable(aMatrix, bVector, translationAxisCalibResult); 
 
