@@ -108,9 +108,10 @@ vtkPlusOpenIGTLinkServer
   }
   
   this->Active = false;
-  LOG_INFO( "Server::Active set to false." );
-  vtkAccurateTimer::Delay( 0.5 );  // TODO: Use waitable object to wait for thread to stop.
+  LOG_TRACE( "Server::Active set to false." );
+  vtkAccurateTimer::Delay( 1.0 );  // TODO: Use waitable object to wait for thread to stop.
   this->ThreadId = -1;
+  LOG_TRACE( "Server::Stop() returning." );
   
   return PLUS_SUCCESS;
 }
@@ -127,12 +128,10 @@ vtkPlusOpenIGTLinkServer
   
   if ( r < 0 )
   {
-    std::cerr << "Cannot create a server socket." << std::endl;
+    LOG_ERROR( "Cannot create a server socket." );
     return NULL;
   }
   
-  
-  LOG_INFO( "Server thread started" );
   
   while ( self->GetActive() )
   {
@@ -177,7 +176,6 @@ vtkPlusOpenIGTLinkServer
   igtl::StringMessage1* nextStringMessage = (igtl::StringMessage1*)nextMessage;
   
   this->React( nextStringMessage->GetString() );
-  // nextCommand
 }
 
 
@@ -264,13 +262,11 @@ vtkPlusOpenIGTLinkServer
     
     header->InitPack();
     
-    LOG_INFO( "Socket receiving..." );
     int rs = this->ClientSocket->Receive( header->GetPackPointer(), header->GetPackSize() );
-    LOG_INFO( "Socket receiving stopped." );
-
+    
     if ( rs == 0 )
     {
-      LOG_INFO( "Server could not receive package before timeout." );
+      LOG_TRACE( "Server could not receive package before timeout." );
       this->ClientSocket->CloseSocket();
       break;
     }

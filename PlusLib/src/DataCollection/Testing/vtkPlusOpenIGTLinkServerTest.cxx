@@ -18,9 +18,14 @@
 #include "vtkPlusOpenIGTLinkClient.h"
 #include "vtkPlusOpenIGTLinkServer.h"
 #include "vtkPlusStartDataCollectionCommand.h"
+#include "vtkPlusStopDataCollectionCommand.h"
 
 
 
+/**
+ * This program tests Plus server and Plus client. The communication in this test
+ * happens between two threads. In real life, it happens between two programs.
+ */
 int main( int argc, char** argv )
 {
   vtkObjectFactory::RegisterFactory( vtkSmartPointer< vtkPlusCommandFactory >::New() );
@@ -58,19 +63,20 @@ int main( int argc, char** argv )
 
   vtkPlusLogger::Instance()->SetLogLevel( VerboseLevel );
   vtkPlusLogger::Instance()->SetDisplayLogLevel( VerboseLevel );
-
-
-  // Prepare data collector object.
+  
+  
+    // Prepare data collector object.
+  
   vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkXMLUtilities::ReadElementFromFile(InputConfigFileName.c_str());
   if (configRootElement == NULL)
   {	
     LOG_ERROR("Unable to read configuration from file " << InputConfigFileName.c_str()); 
     return 1;
   }
-
+  
   vtkDataCollector* dataCollector = vtkDataCollector::New();
   dataCollector->ReadConfiguration( configRootElement );
-
+  
   if ( dataCollector->GetAcquisitionType() == SYNCHRO_VIDEO_SAVEDDATASET )
   {
     if ( InputVideoBufferMetafile.empty() )
@@ -78,7 +84,7 @@ int main( int argc, char** argv )
       LOG_ERROR( "Video source metafile missing." );
       return 1;
     }
-
+    
     vtkSavedDataVideoSource* videoSource =
       dynamic_cast< vtkSavedDataVideoSource* >( dataCollector->GetVideoSource() );
     if ( videoSource == NULL )
@@ -89,7 +95,7 @@ int main( int argc, char** argv )
     videoSource->SetSequenceMetafile( InputVideoBufferMetafile.c_str() );
     videoSource->SetReplayEnabled( true ); 
   }
-
+  
   if ( dataCollector->GetTrackerType() == TRACKER_SAVEDDATASET )
   {
     if ( InputTrackerBufferMetafile.empty() )
@@ -102,11 +108,11 @@ int main( int argc, char** argv )
     tracker->SetReplayEnabled( true ); 
     tracker->Connect();
   }
-
+  
   LOG_DEBUG( "Initializing data collector... " );
   dataCollector->Initialize();
-
-
+  
+  
     // Create a server.
   
   LOG_DEBUG( "Initializing server... " );
@@ -137,20 +143,32 @@ int main( int argc, char** argv )
     LOG_DEBUG( "Client connection successful." );
   }
   
+  
+    // Prepare commands to be sent.
+  
+  vtkSmartPointer< vtkPlusStartDataCollectionCommand > startCommand =
+    vtkSmartPointer< vtkPlusStartDataCollectionCommand >::New();
+  vtkSmartPointer< vtkPlusStopDataCollectionCommand > stopCommand =
+    vtkSmartPointer< vtkPlusStopDataCollectionCommand >::New();
+  
+  
+    // Start data collector.
+  
+  bool success = plusClient->SendCommand( startCommand );
   vtkAccurateTimer::Delay( 0.1 );
-  for ( int messageIndex = 0; messageIndex < 4; ++ messageIndex )
+  while ( server->GetBufferedMessageCount() > 0 )
   {
-    vtkSmartPointer< vtkPlusStartDataCollectionCommand > command =
-      vtkSmartPointer< vtkPlusStartDataCollectionCommand >::New();
-
-    bool success = plusClient->SendCommand( command );
-
-    vtkAccurateTimer::Delay( 0.4 );
-    
+    LOG_INFO( "Executing next command in queue." );
+    server->ExecuteNextCommand();
   }
   
+  vtkAccurateTimer::Delay( 0.5 );
   
-
+  
+    // Stop data collector.
+  
+  success = plusClient->SendCommand( stopCommand );
+  vtkAccurateTimer::Delay( 0.1 );
   while ( server->GetBufferedMessageCount() > 0 )
   {
     LOG_INFO( "Executing next command in queue." );

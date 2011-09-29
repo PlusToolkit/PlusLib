@@ -56,33 +56,6 @@ vtkPlusStartDataCollectionCommand
 
 
 
-void
-vtkPlusStartDataCollectionCommand
-::ProcessResponse( igtl::MessageBase::Pointer header, igtl::ClientSocket::Pointer clientSocket )
-{
-  
-    // Check if response is the expected type.
-  
-  if ( strcmp( header->GetDeviceType(), "STRING1" ) != 0 )
-    {
-    LOG_WARNING( "Response from server is not STRING1" );
-    clientSocket->Skip( header->GetBodySizeToRead() );
-    return;
-    }
-  
-  igtl::StringMessage1::Pointer strResponse = igtl::StringMessage1::New();
-  strResponse->SetMessageHeader( header );
-  strResponse->AllocatePack();
-  clientSocket->Receive( strResponse->GetPackBodyPointer(), strResponse->GetPackBodySize() );
-  strResponse->Unpack();
-  
-  std::cout << "Message: " << strResponse->GetString() << std::endl;
-  
-  //TODO: Not finished.
-}
-
-
-
 /**
  * Constructor.
  */

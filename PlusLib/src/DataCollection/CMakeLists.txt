@@ -9,6 +9,7 @@ SET (DataCollection_SRCS
   vtkPlusOpenIGTLinkClient.cxx
   vtkPlusCommand.cxx
   vtkPlusStartDataCollectionCommand.cxx
+  vtkPlusStopDataCollectionCommand.cxx
   vtkPlusCommandCollection.cxx
   vtkPlusCommandFactory.cxx
   vtkIGTLMessageQueue.cxx
@@ -25,6 +26,7 @@ if (WIN32)
     vtkPlusOpenIGTLinkClient.h
     vtkPlusCommand.h
     vtkPlusStartDataCollectionCommand.h
+	vtkPlusStopDataCollectionCommand.h
     vtkPlusCommandCollection.h
     vtkPlusCommandFactory.h
     vtkIGTLMessageQueue.h
