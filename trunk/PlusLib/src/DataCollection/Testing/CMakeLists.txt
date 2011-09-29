@@ -121,3 +121,16 @@ IF (PLUS_USE_OpenIGTLink )
     )
   SET_TESTS_PROPERTIES( vtkPlusOpenIGTLinkServerTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR" )
 ENDIF (PLUS_USE_OpenIGTLink )
+
+
+ADD_EXECUTABLE( ReplayRecordedDataTest
+  ReplayRecordedDataTest.cxx
+  )
+TARGET_LINK_LIBRARIES( ReplayRecordedDataTest vtkDataCollection vtkCommon )
+ADD_TEST( ReplayRecordedDataTest
+  ${EXECUTABLE_OUTPUT_PATH}/vtkPlusOpenIGTLinkServerTest
+  --config-file=${ConfigFilesDir}/Test_PlusConfiguration_OpenIGTLinkTest.xml
+  --input-video-buffer-metafile=${TestDataDir}/ShortTrackedUltrasoundCapture.mha 
+  --input-tracker-buffer-metafile=${TestDataDir}/ShortTrackedUltrasoundCapture.mha
+  )
+SET_TESTS_PROPERTIES( ReplayRecordedDataTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR" )
