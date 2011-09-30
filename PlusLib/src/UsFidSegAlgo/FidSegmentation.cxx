@@ -318,22 +318,22 @@ void FidSegmentation::SetFrameSize(int frameSize[2])
   {
 	  // Check the search region in case it was set to too big (with the additional bar size it would go out of image)
 	  int barSize = GetMorphologicalOpeningBarSizePx();
-	  if(m_RegionOfInterest[0] - barSize < 0)
+	  if(m_RegionOfInterest[0] - barSize <= 0)
 	  {
 		  m_RegionOfInterest[0] = barSize+1;
 		  LOG_WARNING("The region of interest is too big, bar size is " << barSize);
 	  }
-	  if(m_RegionOfInterest[1] - barSize < 0)
+	  if(m_RegionOfInterest[1] - barSize <= 0)
 	  {
 		  m_RegionOfInterest[1] = barSize+1;
 		  LOG_WARNING("The region of interest is too big, bar size is " << barSize);
 	  }
-	  if(m_RegionOfInterest[2] + barSize > GetFrameSize()[0])
+	  if(m_RegionOfInterest[2] + barSize >= m_FrameSize[0])
 	  {
 		  m_RegionOfInterest[2] = m_FrameSize[0]-barSize-1;
 		  LOG_WARNING("The region of interest is too big, bar size is " << barSize);
 	  }
-	  if(m_RegionOfInterest[3] + barSize > GetFrameSize()[1])
+	  if(m_RegionOfInterest[3] + barSize >= m_FrameSize[1])
 	  {
 		  m_RegionOfInterest[3] = m_FrameSize[1]-barSize-1;
 		  LOG_WARNING("The region of interest is too big, bar size is " << barSize);
@@ -1559,16 +1559,38 @@ void FidSegmentation::SetRegionOfInterest(int xMin, int yMin, int xMax, int yMax
 {
 	LOG_TRACE("FidSegmentation::SetRegionOfInterest(" << xMin << ", " << yMin << ", " << xMax << ", " << yMax << ")");
 
+  int barSize = GetMorphologicalOpeningBarSizePx();
+
   if (xMin > 0) {
     m_RegionOfInterest[0] = xMin;
+
+ 	  if(m_RegionOfInterest[0] - barSize <= 0)
+	  {
+		  m_RegionOfInterest[0] = barSize+1;
+    }
   }
   if (yMin > 0) {
     m_RegionOfInterest[1] = yMin;
+
+	  if(m_RegionOfInterest[1] - barSize <= 0)
+	  {
+		  m_RegionOfInterest[1] = barSize+1;
+    }
   }
   if (xMax > 0) {
     m_RegionOfInterest[2] = xMax;
+
+	  if(m_RegionOfInterest[2] + barSize >= m_FrameSize[0])
+	  {
+		  m_RegionOfInterest[2] = m_FrameSize[0]-barSize-1;
+    }
   }
   if (yMax > 0) {
     m_RegionOfInterest[3] = yMax;
+
+	  if(m_RegionOfInterest[3] + barSize >= m_FrameSize[1])
+	  {
+		  m_RegionOfInterest[3] = m_FrameSize[1]-barSize-1;
+    }
   }
 }
