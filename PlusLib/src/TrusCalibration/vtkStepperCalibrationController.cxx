@@ -1919,7 +1919,7 @@ PlusStatus vtkStepperCalibrationController::OfflineProbeRotationAxisCalibration(
       (*SegmentationProgressCallbackFunction)(percent); 
     }
 
-    this->SetOfflineImageData(trackedFrameList->GetTrackedFrame(imgNumber)->ImageData.GetDisplayableImage()); 
+    this->SetOfflineImageData(trackedFrameList->GetTrackedFrame(imgNumber)->GetImageData()->GetDisplayableImage()); 
   }
 
   LOG_INFO ( "A total of " << frameCounter << " images (" << 100*frameCounter/imgNumber << "%) have been successfully added for probe rotation axis calibration.");
@@ -1985,7 +1985,7 @@ PlusStatus vtkStepperCalibrationController::OfflineProbeTranslationAxisCalibrati
       (*SegmentationProgressCallbackFunction)(percent); 
     }
 
-    this->SetOfflineImageData(trackedFrameList->GetTrackedFrame(imgNumber)->ImageData.GetDisplayableImage());
+    this->SetOfflineImageData(trackedFrameList->GetTrackedFrame(imgNumber)->GetImageData()->GetDisplayableImage());
   }
 
   LOG_INFO ( "A total of " << frameCounter << " images (" << 100*frameCounter/imgNumber << "%) have been successfully added for probe translation axis calibration.");
@@ -2051,7 +2051,7 @@ PlusStatus vtkStepperCalibrationController::OfflineTemplateTranslationAxisCalibr
       (*SegmentationProgressCallbackFunction)(percent); 
     }
 
-    this->SetOfflineImageData(trackedFrameList->GetTrackedFrame(imgNumber)->ImageData.GetDisplayableImage()); 
+    this->SetOfflineImageData(trackedFrameList->GetTrackedFrame(imgNumber)->GetImageData()->GetDisplayableImage()); 
   }
 
   LOG_INFO ( "A total of " << frameCounter << " images (" << 100*frameCounter/imgNumber << "%) have been successfully added for template translation axis calibration.");

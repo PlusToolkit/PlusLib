@@ -573,7 +573,7 @@ PlusStatus vtkTrackedFrameList::ReadFromSequenceMetafile(const char* trackedSequ
   else if (ReadFromSequenceMetafileGeneric<double>(trackedSequenceDataFileName)==PLUS_SUCCESS) {}
   else
   {
-    LOG_ERROR("Unsupported pixel type: " << TrackedFrameList[0]->ImageData.GetITKScalarPixelType());
+    LOG_ERROR("Unsupported pixel type: " << TrackedFrameList[0]->GetImageData()->GetITKScalarPixelType());
     return PLUS_FAIL;
   }
   
@@ -642,8 +642,8 @@ PlusStatus vtkTrackedFrameList::ReadFromSequenceMetafileGeneric(const char* trac
       LOG_ERROR("Failed to get MF oriented image from sequence metafile (frame number: " << imgNumber << ")!"); 
       continue; 
     }
-    PlusVideoFrame frame = trackedFrame.ImageData;
-    trackedFrame.ImageData.SetITKImageBase(itkImage);
+
+    trackedFrame.GetImageData()->SetITKImageBase(itkImage);
 
     const char* cFlag = trackedFrame.GetCustomFrameField("Status"); 
     TrackerStatus status = TR_OK;
@@ -667,7 +667,7 @@ PlusStatus vtkTrackedFrameList::ReadFromSequenceMetafileGeneric(const char* trac
 //----------------------------------------------------------------------------
 PlusStatus vtkTrackedFrameList::SaveToSequenceMetafile(const char* outputFolder, const char* sequenceDataFileName, SEQ_METAFILE_EXTENSION extension /*=SEQ_METAFILE_MHA*/ , bool useCompression /*=true*/)
 {
-  switch (TrackedFrameList[0]->ImageData.GetITKScalarPixelType())
+  switch (TrackedFrameList[0]->GetImageData()->GetITKScalarPixelType())
   {
   case itk::ImageIOBase::UCHAR: return SaveToSequenceMetafileGeneric<unsigned char>(outputFolder, sequenceDataFileName, extension , useCompression);
   case itk::ImageIOBase::CHAR: return SaveToSequenceMetafileGeneric<char>(outputFolder, sequenceDataFileName, extension , useCompression);
@@ -680,7 +680,7 @@ PlusStatus vtkTrackedFrameList::SaveToSequenceMetafile(const char* outputFolder,
   case itk::ImageIOBase::FLOAT: return SaveToSequenceMetafileGeneric<float>(outputFolder, sequenceDataFileName, extension , useCompression);
   case itk::ImageIOBase::DOUBLE: return SaveToSequenceMetafileGeneric<double>(outputFolder, sequenceDataFileName, extension , useCompression);
   default:
-    LOG_ERROR("Unsupported pixel type: " << TrackedFrameList[0]->ImageData.GetITKScalarPixelType());
+    LOG_ERROR("Unsupported pixel type: " << TrackedFrameList[0]->GetImageData()->GetITKScalarPixelType());
     return PLUS_FAIL;
   }
 }
@@ -724,7 +724,7 @@ PlusStatus vtkTrackedFrameList::SaveToSequenceMetafileGeneric(const char* output
     }
 
     int frameSize[2];
-    TrackedFrameList[0]->ImageData.GetFrameSize(frameSize);
+    TrackedFrameList[0]->GetImageData()->GetFrameSize(frameSize);
 
     ImageSequenceType::SizeType size = {frameSize[0], frameSize[1], numberOfFrames };
     ImageSequenceType::IndexType start = {0,0,0};
@@ -747,20 +747,20 @@ PlusStatus vtkTrackedFrameList::SaveToSequenceMetafileGeneric(const char* output
 
     unsigned char* imageData = reinterpret_cast<unsigned char*>(imageDataSequence->GetBufferPointer()); // pointer to the image pixel buffer
 
-    unsigned int pixelSizeInBytes=TrackedFrameList[0]->ImageData.GetNumberOfBytesPerPixel();
+    unsigned int pixelSizeInBytes=TrackedFrameList[0]->GetImageData()->GetNumberOfBytesPerPixel();
     if (pixelSizeInBytes!=sizeof(OutputPixelType))
     {
       LOG_ERROR("Output pixel size ("<<sizeof(OutputPixelType)<<" does not match the actual pixel size ("<<pixelSizeInBytes<<")");
       return PLUS_FAIL;
     }
-    unsigned int frameSizeInBytes=TrackedFrameList[0]->ImageData.GetFrameSizeInBytes();
+    unsigned int frameSizeInBytes=TrackedFrameList[0]->GetImageData()->GetFrameSizeInBytes();
 
     for ( int i = 0 ; i < numberOfFrames; i++ ) 
     {
       int trackedFrameListItem = (fileNumber - 1) * this->MaxNumOfFramesToWrite + i; 
       unsigned char *currentFrameImageData = imageData + i * frameSizeInBytes;
 
-      void* mfOrientedImageBufferPtr = TrackedFrameList[trackedFrameListItem]->ImageData.GetBufferPointer(); 
+      void* mfOrientedImageBufferPtr = TrackedFrameList[trackedFrameListItem]->GetImageData()->GetBufferPointer(); 
       if ( mfOrientedImageBufferPtr!=NULL )
       {
         memcpy(currentFrameImageData, mfOrientedImageBufferPtr, frameSizeInBytes); 
@@ -893,5 +893,5 @@ PlusCommon::ITKScalarPixelType vtkTrackedFrameList::GetPixelType()
     return itk::ImageIOBase::UNKNOWNCOMPONENTTYPE;
   }
 
-  return this->GetTrackedFrame(0)->ImageData.GetITKScalarPixelType();
+  return this->GetTrackedFrame(0)->GetImageData()->GetITKScalarPixelType();
 }

@@ -266,7 +266,7 @@ PlusStatus vtkCalibrationController::AddTrackedFrameData(TrackedFrame* trackedFr
 	try
 	{
 		// Check to see if the segmentation has returned the targets
-	  itk::Image<unsigned char, 2>::Pointer image=trackedFrame->ImageData.GetImage<unsigned char>();
+	  itk::Image<unsigned char, 2>::Pointer image=trackedFrame->GetImageData()->GetImage<unsigned char>();
     if ( image.IsNull())
     {
         LOG_ERROR("vtkCalibrationController::AddTrackedFrameData no image data is available"); 
@@ -302,9 +302,9 @@ PlusStatus vtkCalibrationController::AddTrackedFrameData(TrackedFrame* trackedFr
     if ( this->GetPatRecognitionResult()->GetDotsFound() && this->EnableSegmentationAnalysis )
 		{
 			// Draw segmentation result to image
-      if (trackedFrame->ImageData.GetITKScalarPixelType()==itk::ImageIOBase::UCHAR)
+      if (trackedFrame->GetImageData()->GetITKScalarPixelType()==itk::ImageIOBase::UCHAR)
       {
-        this->PatternRecognition.DrawResults( static_cast<PixelType*>(trackedFrame->ImageData.GetBufferPointer()) ); // :TODO: DrawResults should use an ITK image as input
+        this->PatternRecognition.DrawResults( static_cast<PixelType*>(trackedFrame->GetImageData()->GetBufferPointer()) ); // :TODO: DrawResults should use an ITK image as input
       }
       else
       {
@@ -947,7 +947,7 @@ PlusStatus vtkCalibrationController::OfflineUSToTemplateCalibration()
         (*SegmentationProgressCallbackFunction)(percent); 
       }
 
-      this->SetOfflineImageData(validationData->GetTrackedFrame(vImgNumber)->ImageData.GetDisplayableImage()); 
+      this->SetOfflineImageData(validationData->GetTrackedFrame(vImgNumber)->GetImageData()->GetDisplayableImage()); 
   }
 
   int validSegmentationSuccessRate = 100*this->GetImageDataInfo(RANDOM_STEPPER_MOTION_2).NumberOfSegmentedImages / vImgNumber; 
@@ -978,7 +978,7 @@ PlusStatus vtkCalibrationController::OfflineUSToTemplateCalibration()
         (*SegmentationProgressCallbackFunction)(percent); 
       }
 
-      this->SetOfflineImageData(calibrationData->GetTrackedFrame(cImgNumber)->ImageData.GetDisplayableImage()); 
+      this->SetOfflineImageData(calibrationData->GetTrackedFrame(cImgNumber)->GetImageData()->GetDisplayableImage()); 
   }
 
   int calibSegmentationSuccessRate = 100*this->GetImageDataInfo(RANDOM_STEPPER_MOTION_1).NumberOfSegmentedImages / cImgNumber; 
@@ -1019,7 +1019,7 @@ PlusStatus vtkCalibrationController::DoOfflineCalibration()
 				LOG_DEBUG("Adding tracked frame " << imgNumber << " (for validation) failed!");
 			}
 
-			this->SetOfflineImageData(trackedFrameList->GetTrackedFrame(imgNumber)->ImageData.GetDisplayableImage());
+			this->SetOfflineImageData(trackedFrameList->GetTrackedFrame(imgNumber)->GetImageData()->GetDisplayableImage());
 		}
 
 		LOG_INFO( "A total of " << this->GetImageDataInfo(FREEHAND_MOTION_2).NumberOfSegmentedImages << " images have been successfully added for validation.");
@@ -1047,7 +1047,7 @@ PlusStatus vtkCalibrationController::DoOfflineCalibration()
 				LOG_DEBUG("Adding tracked frame " << imgNumber << " (for calibration) failed!");
 			}
 
-			this->SetOfflineImageData(calibrationData->GetTrackedFrame(imgNumber)->ImageData.GetDisplayableImage()); 
+			this->SetOfflineImageData(calibrationData->GetTrackedFrame(imgNumber)->GetImageData()->GetDisplayableImage()); 
 		}
 
 		LOG_INFO ("A total of " << this->GetImageDataInfo(FREEHAND_MOTION_1).NumberOfSegmentedImages << " images have been successfully added for calibration.");

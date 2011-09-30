@@ -513,7 +513,7 @@ PlusStatus vtkDataCollector::WriteTrackerToMetafile( vtkTracker* tracker, const 
     }	
 
     TrackedFrame trackedFrame; 
-    trackedFrame.ImageData.SetITKImageBase(frame);
+    trackedFrame.GetImageData()->SetITKImageBase(frame);
 
     TrackerBufferItem bufferItem; 
     BufferItemUidType uid = tracker->GetTool(firstActiveToolNumber)->GetBuffer()->GetOldestItemUidInBuffer() + i; 
@@ -648,7 +648,7 @@ PlusStatus vtkDataCollector::WriteVideoBufferToMetafile( vtkVideoBuffer* videoBu
     }
 
     TrackedFrame trackedFrame;
-    trackedFrame.ImageData = videoItem.GetFrame();
+    trackedFrame.SetImageData(videoItem.GetFrame());
 
     // Set default transform name
     trackedFrame.SetDefaultFrameTransformName("IdentityTransform"); 
@@ -1282,7 +1282,7 @@ PlusStatus vtkDataCollector::GetTrackedFrameByTime(double time, TrackedFrame* tr
     }
 
     //Add all information to the tracked frame
-    trackedFrame->ImageData = frame; 
+    trackedFrame->SetImageData(frame);
   }
 
   if ( this->GetTrackingEnabled() && this->GetTracker() != NULL )

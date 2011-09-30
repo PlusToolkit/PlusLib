@@ -371,7 +371,7 @@ PlusStatus vtkVolumeReconstructor::SetOutputExtentFromFrameList(vtkTrackedFrameL
     // Get image (only the frame extents will be used)
     // Image is requested by ImageData.GetVtkImageNonFlipped(), because the reconstructor uses stores the image data in VTK format
     // but the origin of the image follows the ITK convention (it is the first pixel in memory).
-    vtkImageData* frameImage=trackedFrameList->GetTrackedFrame(frameIndex)->ImageData.GetVtkImageNonFlipped();
+    vtkImageData* frameImage=trackedFrameList->GetTrackedFrame(frameIndex)->GetImageData()->GetVtkImageNonFlipped();
 
     // Expand the extent_Ref to include this frame
     AddImageToExtent(frameImage, imageToReferenceTransformMatrix, extent_Ref);
@@ -417,7 +417,7 @@ PlusStatus vtkVolumeReconstructor::AddTrackedFrame(TrackedFrame* frame)
 
   // Image is requested by ImageData.GetVtkImageNonFlipped(), because the reconstructor uses stores the image data in VTK format
   // but the origin of the image follows the ITK convention (it is the first pixel in memory).
-  vtkImageData* frameImage=frame->ImageData.GetVtkImageNonFlipped();
+  vtkImageData* frameImage=frame->GetImageData()->GetVtkImageNonFlipped();
 
   return this->Reconstructor->InsertSlice(frameImage, imageToReferenceTransformMatrix);
 }
