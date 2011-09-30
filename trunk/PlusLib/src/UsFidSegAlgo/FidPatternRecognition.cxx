@@ -72,7 +72,7 @@ PlusStatus FidPatternRecognition::RecognizePattern(TrackedFrame* trackedFrame)
   m_FidLineFinder.SetFrameSize(trackedFrame->GetFrameSize());
 
   int bytes = trackedFrame->GetFrameSize()[0] * trackedFrame->GetFrameSize()[1] * sizeof(PixelType);
-  PixelType* image = reinterpret_cast<PixelType*>(trackedFrame->ImageData.GetBufferPointer());
+  PixelType* image = reinterpret_cast<PixelType*>(trackedFrame->GetImageData()->GetBufferPointer());
 
   memcpy( m_FidSegmentation.GetWorking(), image, bytes );
 	memcpy( m_FidSegmentation.GetUnalteredImage(), image, bytes);

@@ -165,7 +165,7 @@ PlusStatus vtkSavedDataVideoSource::InternalGrab()
   // For simplicity, we increase it always by 1.
   this->FrameNumber++;
 
-  PlusStatus status = this->Buffer->AddItem(nextVideoBufferItem.GetFrame(), this->GetUsImageOrientation(), this->FrameNumber); 
+  PlusStatus status = this->Buffer->AddItem(&(nextVideoBufferItem.GetFrame()), this->GetUsImageOrientation(), this->FrameNumber); 
   this->Modified();
   return status;
 }

@@ -35,6 +35,12 @@ public:
   TrackedFrame& TrackedFrame::operator=(TrackedFrame const&trackedFrame); 
 
 public:
+  // Set image data
+  void SetImageData(PlusVideoFrame value) { this->ImageData = value; }; 
+
+  // Get image data
+  PlusVideoFrame* GetImageData() { return &(this->ImageData); };
+
   // Set Status of the item (out of view, ...)
   void SetStatus(TrackerStatus value) { this->Status = value; }; 
 
@@ -123,10 +129,8 @@ public:
     return (Timestamp == data.Timestamp);
   }
 
-public:
-  PlusVideoFrame ImageData;
-
 protected:
+  PlusVideoFrame ImageData;
   TrackerStatus Status; 
   std::string DefaultFrameTransformName; 
   double Timestamp; 

@@ -119,14 +119,14 @@ int main (int argc, char* argv[])
         continue; 
     }
 
-    if (trackedFrameList->GetTrackedFrame(imgNumber)->ImageData.GetITKScalarPixelType()!=itk::ImageIOBase::UCHAR)
+    if (trackedFrameList->GetTrackedFrame(imgNumber)->GetImageData()->GetITKScalarPixelType()!=itk::ImageIOBase::UCHAR)
     {
       LOG_ERROR("vtkSegmentedWiresPositions test only works on unsigned char images");
       continue;
     }
     else
     {
-      memcpy(frame->GetBufferPointer() , trackedFrameList->GetTrackedFrame(imgNumber)->ImageData.GetBufferPointer(), trackedFrameList->GetFrameSize()[0]*trackedFrameList->GetFrameSize()[1]*sizeof(PixelType));
+      memcpy(frame->GetBufferPointer() , trackedFrameList->GetTrackedFrame(imgNumber)->GetImageData()->GetBufferPointer(), trackedFrameList->GetFrameSize()[0]*trackedFrameList->GetFrameSize()[1]*sizeof(PixelType));
     }
 
 		vtkSmartPointer<vtkMatrix4x4> transformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
@@ -142,15 +142,12 @@ int main (int argc, char* argv[])
 		try
 		{
 			// Send the image to the Segmentation component to segment
-      if (trackedFrameList->GetTrackedFrame(imgNumber)->ImageData.GetITKScalarPixelType()!=itk::ImageIOBase::UCHAR)
+      if (trackedFrameList->GetTrackedFrame(imgNumber)->GetImageData()->GetITKScalarPixelType()!=itk::ImageIOBase::UCHAR)
       {
         LOG_ERROR("patternRecognition.RecognizePattern only works on unsigned char images");
       }
       else
       {
-        PlusVideoFrame videoFrame = trackedFrameList->GetTrackedFrame(imgNumber)->ImageData;
-        int frameSize[2];
-        videoFrame.GetFrameSize(frameSize);
         patternRecognition.RecognizePattern( trackedFrameList->GetTrackedFrame(imgNumber), segResults );
       }
   	}

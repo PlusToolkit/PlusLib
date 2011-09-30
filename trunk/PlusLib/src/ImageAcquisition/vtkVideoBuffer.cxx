@@ -266,6 +266,12 @@ PlusStatus vtkVideoBuffer::AddItem(void* imageDataPtr,
 //----------------------------------------------------------------------------
 PlusStatus vtkVideoBuffer::AddItem(vtkImageData* frame, US_IMAGE_ORIENTATION usImageOrientation, long frameNumber, double unfilteredTimestamp/*=UNDEFINED_TIMESTAMP*/, double filteredTimestamp/*=UNDEFINED_TIMESTAMP*/)
 {
+  if ( frame == NULL )
+  {
+    LOG_ERROR( "vtkVideoBuffer: Unable to add NULL frame to video buffer!"); 
+    return PLUS_FAIL; 
+  }
+
   if (unfilteredTimestamp==UNDEFINED_TIMESTAMP)
   {
     unfilteredTimestamp = vtkAccurateTimer::GetSystemTime();
@@ -300,8 +306,14 @@ PlusStatus vtkVideoBuffer::AddItem(vtkImageData* frame, US_IMAGE_ORIENTATION usI
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkVideoBuffer::AddItem(const PlusVideoFrame& frame, US_IMAGE_ORIENTATION usImageOrientation, long frameNumber, double unfilteredTimestamp/*=UNDEFINED_TIMESTAMP*/, double filteredTimestamp/*=UNDEFINED_TIMESTAMP*/)
+PlusStatus vtkVideoBuffer::AddItem(const PlusVideoFrame* frame, US_IMAGE_ORIENTATION usImageOrientation, long frameNumber, double unfilteredTimestamp/*=UNDEFINED_TIMESTAMP*/, double filteredTimestamp/*=UNDEFINED_TIMESTAMP*/)
 {
+  if ( frame == NULL )
+  {
+    LOG_ERROR( "vtkVideoBuffer: Unable to add NULL frame to video buffer!"); 
+    return PLUS_FAIL; 
+  }
+
   if (unfilteredTimestamp==UNDEFINED_TIMESTAMP)
   {
     unfilteredTimestamp = vtkAccurateTimer::GetSystemTime();
@@ -322,12 +334,12 @@ PlusStatus vtkVideoBuffer::AddItem(const PlusVideoFrame& frame, US_IMAGE_ORIENTA
     }
   }
 
-  unsigned char* pixelBufferPointer = static_cast<unsigned char*>(frame.GetBufferPointer()); 
+  unsigned char* pixelBufferPointer = static_cast<unsigned char*>(frame->GetBufferPointer()); 
   int frameSize[2]={0,0};
-  frame.GetFrameSize(frameSize);    
+  frame->GetFrameSize(frameSize);    
 
   // Images in the tracked frame list always stored in MF orientation 
-  return this->AddItem(pixelBufferPointer, US_IMG_ORIENT_MF, frameSize, frame.GetITKScalarPixelType(), 0 /* no skip*/, frameNumber, unfilteredTimestamp, filteredTimestamp);  
+  return this->AddItem(pixelBufferPointer, US_IMG_ORIENT_MF, frameSize, frame->GetITKScalarPixelType(), 0 /* no skip*/, frameNumber, unfilteredTimestamp, filteredTimestamp);  
 }
 
 //----------------------------------------------------------------------------
@@ -503,9 +515,9 @@ PlusStatus vtkVideoBuffer::CopyImagesFromTrackedFrameList(vtkTrackedFrameList *s
   LOG_DEBUG("CopyImagesFromTrackedFrameList will copy "<< numberOfVideoFrames<< " frames"); 
 
   int frameSize[2]={0,0};
-  sourceTrackedFrameList->GetTrackedFrame(0)->ImageData.GetFrameSize(frameSize);
+  sourceTrackedFrameList->GetTrackedFrame(0)->GetImageData()->GetFrameSize(frameSize);
   this->SetFrameSize(frameSize); 
-  this->SetPixelType(sourceTrackedFrameList->GetTrackedFrame(0)->ImageData.GetITKScalarPixelType());
+  this->SetPixelType(sourceTrackedFrameList->GetTrackedFrame(0)->GetImageData()->GetITKScalarPixelType());
 
   if ( this->SetBufferSize(numberOfVideoFrames) != PLUS_SUCCESS )
   {
@@ -585,19 +597,19 @@ PlusStatus vtkVideoBuffer::CopyImagesFromTrackedFrameList(vtkTrackedFrameList *s
     switch (timestampFiltering)
     {
     case READ_FILTERED_AND_UNFILTERED_TIMESTAMPS:
-      if ( this->AddItem(sourceTrackedFrameList->GetTrackedFrame(frameNumber)->ImageData, US_IMG_ORIENT_MF, frmnum, unfilteredtimestamp, timestamp) != PLUS_SUCCESS )
+      if ( this->AddItem(sourceTrackedFrameList->GetTrackedFrame(frameNumber)->GetImageData(), US_IMG_ORIENT_MF, frmnum, unfilteredtimestamp, timestamp) != PLUS_SUCCESS )
       {
         LOG_WARNING("Failed to add video frame to buffer from sequence metafile with frame #" << frameNumber ); 
       }
       break;
     case READ_UNFILTERED_COMPUTE_FILTERED_TIMESTAMPS:
-      if ( this->AddItem(sourceTrackedFrameList->GetTrackedFrame(frameNumber)->ImageData, US_IMG_ORIENT_MF, frmnum, unfilteredtimestamp) != PLUS_SUCCESS )
+      if ( this->AddItem(sourceTrackedFrameList->GetTrackedFrame(frameNumber)->GetImageData(), US_IMG_ORIENT_MF, frmnum, unfilteredtimestamp) != PLUS_SUCCESS )
       {
         LOG_WARNING("Failed to add video frame to buffer from sequence metafile with frame #" << frameNumber ); 
       }
       break;
     case READ_FILTERED_IGNORE_UNFILTERED_TIMESTAMPS:
-      if ( this->AddItem(sourceTrackedFrameList->GetTrackedFrame(frameNumber)->ImageData, US_IMG_ORIENT_MF, frmnum, timestamp, timestamp) != PLUS_SUCCESS )
+      if ( this->AddItem(sourceTrackedFrameList->GetTrackedFrame(frameNumber)->GetImageData(), US_IMG_ORIENT_MF, frmnum, timestamp, timestamp) != PLUS_SUCCESS )
       {
         LOG_WARNING("Failed to add video frame to buffer from sequence metafile with frame #" << frameNumber ); 
       }
