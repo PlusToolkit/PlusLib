@@ -106,7 +106,7 @@ int main(int argc, char **argv)
   }
 
   // Get center of rotation 
-  int *centerofRotationInPx = rotAxisCalibAlgo->GetCenterOfRotationPx(); 
+  double *centerofRotationInPx = rotAxisCalibAlgo->GetCenterOfRotationPx(); 
   LOG_INFO("Center of rotation (px): " << centerofRotationInPx[0] << "  " << centerofRotationInPx[1]); 
 
   // Get calibration error
@@ -133,6 +133,20 @@ int main(int argc, char **argv)
   else
   {
     LOG_ERROR("Failed to get report table!"); 
+    numberOfFailures++; 
+  }
+
+  vtkTable* centerOfRotationReportTable = rotAxisCalibAlgo->GetCenterOfRotationReportTable(); 
+  if ( centerOfRotationReportTable != NULL )
+  {
+    if ( vtkPlusLogger::Instance()->GetLogLevel() >= vtkPlusLogger::LOG_LEVEL_DEBUG ) 
+      centerOfRotationReportTable->Dump(25); 
+
+    vtkGnuplotExecuter::DumpTableToFileInGnuplotFormat(centerOfRotationReportTable, "./CenterOfRotationCalibrationErrorReport.txt"); 
+  }
+  else
+  {
+    LOG_ERROR("Failed to get center of rotation report table!"); 
     numberOfFailures++; 
   }
 

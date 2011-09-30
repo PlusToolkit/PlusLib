@@ -33,11 +33,6 @@ public:
   virtual void PrintSelf(ostream& os, vtkIndent indent); 
 
   // Description:
-  // Add generated html report from center of rotation calibration to the existing html report
-  // htmlReport and plotter arguments has to be defined by the caller function
-  virtual PlusStatus GenerateReport( vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter, const char* gnuplotScriptsFolder); 
-
-  // Description:
   // Set inputs: 
   // - TrackedFrameList with segmentation results 
   // - Frame indices that the algoritm should use during calibration
@@ -69,6 +64,16 @@ public:
   // Description:
   // Get the center of rotation calibration error 
   virtual PlusStatus GetError(double &mean, double &stdev); 
+
+  // Description:
+  // Add generated html report from center of rotation calibration to the existing html report
+  // htmlReport and plotter arguments has to be defined by the caller function
+  virtual PlusStatus GenerateReport( vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter, const char* gnuplotScriptsFolder); 
+  static PlusStatus GenerateCenterOfRotationReport( vtkHTMLGenerator* htmlReport, 
+    vtkGnuplotExecuter* plotter, 
+    const char* gnuplotScriptsFolder, 
+    vtkTable* reportTable,
+    double centerOfRotationPx[2]); 
 
 protected:
   vtkCenterOfRotationCalibAlgo();
