@@ -58,29 +58,30 @@ ADD_TEST(vtkUSCalibrationControllerTest_FrameGrabber
 SET_TESTS_PROPERTIES( vtkUSCalibrationControllerTest_FrameGrabber PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 		
 #--------------------------------------------------------------------------------------------
-ADD_EXECUTABLE(vtkStepperCalibrationControllerTest vtkStepperCalibrationControllerTest.cxx)
-TARGET_LINK_LIBRARIES(vtkStepperCalibrationControllerTest itkvnl itkvnl_algo vtkCommon vtkTrusCalibration vtkDataCollection vtkImageAcquisition )
+IF (PLUS_USE_BRACHY_TRACKER)
+    ADD_EXECUTABLE(vtkStepperCalibrationControllerTest vtkStepperCalibrationControllerTest.cxx)
+    TARGET_LINK_LIBRARIES(vtkStepperCalibrationControllerTest itkvnl itkvnl_algo vtkCommon vtkTrusCalibration vtkDataCollection vtkImageAcquisition )
 
-ADD_TEST(vtkStepperCalibrationControllerTest-Ulterius
-		${EXECUTABLE_OUTPUT_PATH}/vtkStepperCalibrationControllerTest
-        --input-probe-rotation-metafile=${TestDataDir}/USTC_Ulterius_ProbeRotationData.mha 
-		--input-probe-translation-metafile=${TestDataDir}/USTC_Ulterius_ProbeTranslationData.mha 
-		--input-template-translation-metafile=${TestDataDir}/USTC_Ulterius_TemplateTranslationData.mha 
-		--input-config-file-name=${ConfigFilesDir}/Test_PlusConfiguration_CalibrationOnly_iCal.xml
-		--input-baseline-file-name=${TestDataDir}/USTC_Ulterius_StepperCalibrationResultBaseline.xml 
-		)
-SET_TESTS_PROPERTIES( vtkStepperCalibrationControllerTest-Ulterius PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+    ADD_TEST(vtkStepperCalibrationControllerTest-Ulterius
+            ${EXECUTABLE_OUTPUT_PATH}/vtkStepperCalibrationControllerTest
+            --input-probe-rotation-metafile=${TestDataDir}/USTC_Ulterius_ProbeRotationData.mha 
+            --input-probe-translation-metafile=${TestDataDir}/USTC_Ulterius_ProbeTranslationData.mha 
+            --input-template-translation-metafile=${TestDataDir}/USTC_Ulterius_TemplateTranslationData.mha 
+            --input-config-file-name=${ConfigFilesDir}/Test_PlusConfiguration_CalibrationOnly_iCal.xml
+            --input-baseline-file-name=${TestDataDir}/USTC_Ulterius_StepperCalibrationResultBaseline.xml 
+            )
+    SET_TESTS_PROPERTIES( vtkStepperCalibrationControllerTest-Ulterius PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
-ADD_TEST(vtkStepperCalibrationControllerTest-FrameGrabber
-		${EXECUTABLE_OUTPUT_PATH}/vtkStepperCalibrationControllerTest
-        --input-probe-rotation-metafile=${TestDataDir}/USTC_FrameGrabber_ProbeRotationData.mha 
-		--input-probe-translation-metafile=${TestDataDir}/USTC_FrameGrabber_ProbeTranslationData.mha 
-		--input-template-translation-metafile=${TestDataDir}/USTC_FrameGrabber_TemplateTranslationData.mha 
-		--input-config-file-name=${ConfigFilesDir}/Test_PlusConfiguration_CalibrationOnly_FrameGrabber_iCal.xml
-		--input-baseline-file-name=${TestDataDir}/USTC_FrameGrabber_StepperCalibrationResultBaseline.xml 
-		)
-SET_TESTS_PROPERTIES( vtkStepperCalibrationControllerTest-FrameGrabber PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
-
+    ADD_TEST(vtkStepperCalibrationControllerTest-FrameGrabber
+            ${EXECUTABLE_OUTPUT_PATH}/vtkStepperCalibrationControllerTest
+            --input-probe-rotation-metafile=${TestDataDir}/USTC_FrameGrabber_ProbeRotationData.mha 
+            --input-probe-translation-metafile=${TestDataDir}/USTC_FrameGrabber_ProbeTranslationData.mha 
+            --input-template-translation-metafile=${TestDataDir}/USTC_FrameGrabber_TemplateTranslationData.mha 
+            --input-config-file-name=${ConfigFilesDir}/Test_PlusConfiguration_CalibrationOnly_FrameGrabber_iCal.xml
+            --input-baseline-file-name=${TestDataDir}/USTC_FrameGrabber_StepperCalibrationResultBaseline.xml 
+            )
+    SET_TESTS_PROPERTIES( vtkStepperCalibrationControllerTest-FrameGrabber PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+ENDIF ()
 
 #--------------------------------------------------------------------------------------------
 ADD_EXECUTABLE(vtkStylusCalibrationTest vtkStylusCalibrationTest.cxx)
@@ -130,60 +131,63 @@ ADD_TEST(vtkFreehandCalibrationTest
 		)
 SET_TESTS_PROPERTIES( vtkFreehandCalibrationTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
+#--------------------------------------------------------------------------------------------
+IF (PLUS_USE_BRACHY_TRACKER)
+    ADD_EXECUTABLE(vtkTranslAxisCalibAlgoTest vtkTranslAxisCalibAlgoTest.cxx)
+    TARGET_LINK_LIBRARIES(vtkTranslAxisCalibAlgoTest vtkPlusCommon vtkTrusCalibration vtkImageAcquisition )
+
+    ADD_TEST(ProbeTranslationAxisCalibration-Ulterius
+            ${EXECUTABLE_OUTPUT_PATH}/vtkTranslAxisCalibAlgoTest
+            --input-config-file-name=${ConfigFilesDir}/Test_PlusConfiguration_CalibrationOnly_SonixRP_Ulterius_iCal.xml 
+            --input-translation-sequence-metafile=${TestDataDir}/USTC_Ulterius_ProbeTranslationData.mha
+            --input-baseline-file-name=${TestDataDir}/USTC_Ulterius_StepperCalibrationResultBaseline.xml
+            --input-data-type=PROBE_TRANSLATION 
+            --input-gnuplot-scripts-folder=${PlusLib_SOURCE_DIR}/src/scripts/gnuplot
+            --input-gnuplot-command=${GNUPLOT_BIN_DIR}/gnuplot.exe
+            )
+    SET_TESTS_PROPERTIES( vtkFreehandCalibrationTest-Exact PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+
+    ADD_TEST(TemplateTranslationAxisCalibration-Ulterius
+            ${EXECUTABLE_OUTPUT_PATH}/vtkTranslAxisCalibAlgoTest
+            --input-config-file-name=${ConfigFilesDir}/Test_PlusConfiguration_CalibrationOnly_SonixRP_Ulterius_iCal.xml 
+            --input-translation-sequence-metafile=${TestDataDir}/USTC_Ulterius_TemplateTranslationData.mha
+            --input-baseline-file-name=${TestDataDir}/USTC_Ulterius_StepperCalibrationResultBaseline.xml
+            --input-data-type=TEMPLATE_TRANSLATION 
+            --input-gnuplot-scripts-folder=${PlusLib_SOURCE_DIR}/src/scripts/gnuplot
+            --input-gnuplot-command=${GNUPLOT_BIN_DIR}/gnuplot.exe
+            )
+    SET_TESTS_PROPERTIES( vtkFreehandCalibrationTest-Exact PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+ENDIF ()
 
 #--------------------------------------------------------------------------------------------
-ADD_EXECUTABLE(vtkTranslAxisCalibAlgoTest vtkTranslAxisCalibAlgoTest.cxx)
-TARGET_LINK_LIBRARIES(vtkTranslAxisCalibAlgoTest vtkPlusCommon vtkTrusCalibration vtkImageAcquisition )
+IF (PLUS_USE_BRACHY_TRACKER)
+    ADD_EXECUTABLE(vtkRotationAxisCalibAlgoTest vtkRotationAxisCalibAlgoTest.cxx)
+    TARGET_LINK_LIBRARIES(vtkRotationAxisCalibAlgoTest vtkPlusCommon vtkTrusCalibration vtkImageAcquisition )
 
-ADD_TEST(ProbeTranslationAxisCalibration-Ulterius
-		${EXECUTABLE_OUTPUT_PATH}/vtkTranslAxisCalibAlgoTest
-		--input-config-file-name=${ConfigFilesDir}/Test_PlusConfiguration_CalibrationOnly_SonixRP_Ulterius_iCal.xml 
-		--input-translation-sequence-metafile=${TestDataDir}/USTC_Ulterius_ProbeTranslationData.mha
-		--input-baseline-file-name=${TestDataDir}/USTC_Ulterius_StepperCalibrationResultBaseline.xml
-        --input-data-type=PROBE_TRANSLATION 
-        --input-gnuplot-scripts-folder=${PlusLib_SOURCE_DIR}/src/scripts/gnuplot
-        --input-gnuplot-command=${GNUPLOT_BIN_DIR}/gnuplot.exe
-		)
-SET_TESTS_PROPERTIES( vtkFreehandCalibrationTest-Exact PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
-
-ADD_TEST(TemplateTranslationAxisCalibration-Ulterius
-		${EXECUTABLE_OUTPUT_PATH}/vtkTranslAxisCalibAlgoTest
-		--input-config-file-name=${ConfigFilesDir}/Test_PlusConfiguration_CalibrationOnly_SonixRP_Ulterius_iCal.xml 
-		--input-translation-sequence-metafile=${TestDataDir}/USTC_Ulterius_TemplateTranslationData.mha
-		--input-baseline-file-name=${TestDataDir}/USTC_Ulterius_StepperCalibrationResultBaseline.xml
-        --input-data-type=TEMPLATE_TRANSLATION 
-        --input-gnuplot-scripts-folder=${PlusLib_SOURCE_DIR}/src/scripts/gnuplot
-        --input-gnuplot-command=${GNUPLOT_BIN_DIR}/gnuplot.exe
-		)
-SET_TESTS_PROPERTIES( vtkFreehandCalibrationTest-Exact PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
-
+    # ADD_TEST(ProbeRotationAxisCalibration-Ulterius
+            # ${EXECUTABLE_OUTPUT_PATH}/vtkRotationAxisCalibAlgoTest
+            # --input-config-file-name=${ConfigFilesDir}/Test_PlusConfiguration_CalibrationOnly_SonixRP_Ulterius_iCal.xml 
+            # --input-rotation-sequence-metafile=${TestDataDir}/USTC_Ulterius_ProbeRotationData.mha
+            # --input-baseline-file-name=${TestDataDir}/USTC_Ulterius_StepperCalibrationResultBaseline.xml
+            # --input-gnuplot-scripts-folder=${PlusLib_SOURCE_DIR}/src/scripts/gnuplot
+            # --input-gnuplot-command=${GNUPLOT_BIN_DIR}/gnuplot.exe
+            # )
+    # SET_TESTS_PROPERTIES( vtkFreehandCalibrationTest-Exact PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+ENDIF () 
 
 #--------------------------------------------------------------------------------------------
-ADD_EXECUTABLE(vtkRotationAxisCalibAlgoTest vtkRotationAxisCalibAlgoTest.cxx)
-TARGET_LINK_LIBRARIES(vtkRotationAxisCalibAlgoTest vtkPlusCommon vtkTrusCalibration vtkImageAcquisition )
+IF (PLUS_USE_BRACHY_TRACKER)
+    ADD_EXECUTABLE(vtkCenterOfRotationCalibAlgoTest vtkCenterOfRotationCalibAlgoTest.cxx)
+    TARGET_LINK_LIBRARIES(vtkCenterOfRotationCalibAlgoTest vtkPlusCommon vtkTrusCalibration vtkImageAcquisition )
 
-# ADD_TEST(ProbeRotationAxisCalibration-Ulterius
-		# ${EXECUTABLE_OUTPUT_PATH}/vtkRotationAxisCalibAlgoTest
-		# --input-config-file-name=${ConfigFilesDir}/Test_PlusConfiguration_CalibrationOnly_SonixRP_Ulterius_iCal.xml 
-		# --input-rotation-sequence-metafile=${TestDataDir}/USTC_Ulterius_ProbeRotationData.mha
-		# --input-baseline-file-name=${TestDataDir}/USTC_Ulterius_StepperCalibrationResultBaseline.xml
-        # --input-gnuplot-scripts-folder=${PlusLib_SOURCE_DIR}/src/scripts/gnuplot
-        # --input-gnuplot-command=${GNUPLOT_BIN_DIR}/gnuplot.exe
-		# )
-# SET_TESTS_PROPERTIES( vtkFreehandCalibrationTest-Exact PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
-
-#--------------------------------------------------------------------------------------------
-ADD_EXECUTABLE(vtkCenterOfRotationCalibAlgoTest vtkCenterOfRotationCalibAlgoTest.cxx)
-TARGET_LINK_LIBRARIES(vtkCenterOfRotationCalibAlgoTest vtkPlusCommon vtkTrusCalibration vtkImageAcquisition )
-
-ADD_TEST(CenterOfRotationCalibration-Ulterius
-		${EXECUTABLE_OUTPUT_PATH}/vtkCenterOfRotationCalibAlgoTest
-		--input-config-file-name=${ConfigFilesDir}/Test_PlusConfiguration_CalibrationOnly_SonixRP_Ulterius_iCal.xml 
-		--input-sequence-metafile=${TestDataDir}/USTC_Ulterius_ProbeRotationData.mha
-		--input-baseline-file-name=${TestDataDir}/USTC_Ulterius_StepperCalibrationResultBaseline.xml
-        --input-gnuplot-scripts-folder=${PlusLib_SOURCE_DIR}/src/scripts/gnuplot
-        --input-gnuplot-command=${GNUPLOT_BIN_DIR}/gnuplot.exe
-		)
-SET_TESTS_PROPERTIES( vtkFreehandCalibrationTest-Exact PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
-
+    ADD_TEST(CenterOfRotationCalibration-Ulterius
+            ${EXECUTABLE_OUTPUT_PATH}/vtkCenterOfRotationCalibAlgoTest
+            --input-config-file-name=${ConfigFilesDir}/Test_PlusConfiguration_CalibrationOnly_SonixRP_Ulterius_iCal.xml 
+            --input-sequence-metafile=${TestDataDir}/USTC_Ulterius_ProbeRotationData.mha
+            --input-baseline-file-name=${TestDataDir}/USTC_Ulterius_StepperCalibrationResultBaseline.xml
+            --input-gnuplot-scripts-folder=${PlusLib_SOURCE_DIR}/src/scripts/gnuplot
+            --input-gnuplot-command=${GNUPLOT_BIN_DIR}/gnuplot.exe
+            )
+    SET_TESTS_PROPERTIES( vtkFreehandCalibrationTest-Exact PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+ENDIF ()
 

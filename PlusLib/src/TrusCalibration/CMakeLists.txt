@@ -2,35 +2,44 @@
 # Sources
 
 SET (TrusCalibration_SRCS
-	vtkCalibratorVisualizationComponent.cxx 
 	vtkCalibrationController.cxx 
 	vtkProbeCalibrationControllerIO.cxx 
-	vtkStepperCalibrationController.cxx 
     vtkMeanShiftClustering.cxx 
 	vtkPivotCalibrationAlgo.cxx
 	vtkPhantomRegistrationAlgo.cxx
 	VolumeReconstructionController.cxx
-    vtkRotationAxisCalibAlgo.cxx 
-    vtkTranslAxisCalibAlgo.cxx 
-    vtkCenterOfRotationCalibAlgo.cxx
 	)
 
 SET (TrusCalibration_HDRS)	
 IF (WIN32)	
 	SET (TrusCalibration_HDRS
-		vtkCalibratorVisualizationComponent.h
 		vtkCalibrationController.h
 		vtkProbeCalibrationControllerIO.h
-		vtkStepperCalibrationController.h 
         vtkMeanShiftClustering.h
 		vtkPivotCalibrationAlgo.h
 		vtkPhantomRegistrationAlgo.h
 		VolumeReconstructionController.h
-        vtkRotationAxisCalibAlgo.h
-        vtkTranslAxisCalibAlgo.h
-        vtkCenterOfRotationCalibAlgo.h
 		)
 ENDIF (WIN32)
+
+IF (PLUS_USE_BRACHY_TRACKER)
+    SET (TrusCalibration_SRCS
+        ${TrusCalibration_SRCS}
+        vtkStepperCalibrationController.cxx
+        vtkRotationAxisCalibAlgo.cxx 
+        vtkTranslAxisCalibAlgo.cxx 
+        vtkCenterOfRotationCalibAlgo.cxx
+        )
+    IF (WIN32)	
+        SET (TrusCalibration_HDRS
+            ${TrusCalibration_HDRS}
+            vtkStepperCalibrationController.h 
+            vtkRotationAxisCalibAlgo.h
+            vtkTranslAxisCalibAlgo.h
+            vtkCenterOfRotationCalibAlgo.h
+            )
+     ENDIF (WIN32)
+ENDIF ()
 
 SET (TrusCalibration_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} CACHE INTERNAL "" FORCE)
 
