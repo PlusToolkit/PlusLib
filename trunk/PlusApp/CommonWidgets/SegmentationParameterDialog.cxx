@@ -199,20 +199,12 @@ public:
           double bottomRightPosition[3];
           m_BottomRightHandleCubeSource->GetCenter(bottomRightPosition);
 
-          if ((xWorld < bottomRightPosition[0] - 10.0) && (yWorld < bottomRightPosition[1] - 10.0)) {
-            m_TopLeftHandleCubeSource->SetCenter(xWorld, yWorld, -0.5);
-          }
-
           newXMin = (int)(xWorld + 0.5);
           newYMin = (int)(yWorld + 0.5);
 
         } else if (m_BottomRightHandlePicked) {
           double topLeftPosition[3];
           m_TopLeftHandleCubeSource->GetCenter(topLeftPosition);
-
-          if ((xWorld < topLeftPosition[0] - 10.0) && (yWorld < topLeftPosition[1] - 10.0)) {
-            m_BottomRightHandleCubeSource->SetCenter(xWorld, yWorld, -0.5);
-          }
 
           newXMax = (int)(xWorld + 0.5);
           newYMax = (int)(yWorld + 0.5);
@@ -1685,8 +1677,6 @@ PlusStatus SegmentationParameterDialog::SetROI(int aXMin, int aYMin, int aXMax, 
 {
   LOG_TRACE("SegmentationParameterDialog::SetROI(" << aXMin << ", " << aYMin << ", " << aXMax << ", " << aYMax << ")");
 
-  ui.spinBox_XMin->blockSignals(true);
-
   if (aXMin > 0) {
     ui.spinBox_XMin->setValue(aXMin);
   }
@@ -1701,8 +1691,6 @@ PlusStatus SegmentationParameterDialog::SetROI(int aXMin, int aYMin, int aXMax, 
   }
 
   m_PatternRecognition->GetFidSegmentation()->SetRegionOfInterest(aXMin, aYMin, aXMax, aYMax);
-
-  ui.spinBox_XMin->blockSignals(false);
 
   return PLUS_SUCCESS;
 }
@@ -1727,13 +1715,21 @@ void SegmentationParameterDialog::ROIXMinChanged(int aValue)
 {
   LOG_TRACE("SegmentationParameterDialog::ROIXMinChanged(" << aValue << ")");
 
-  if (m_ROIModeHandler != NULL) {
-    if (m_ROIModeHandler->DrawROI() != PLUS_SUCCESS) {
-      LOG_ERROR("Draw ROI failed!");
+  if (aValue > m_PatternRecognition->GetFidSegmentation()->GetMorphologicalOpeningBarSizePx()) {
+    if (m_ROIModeHandler != NULL) {
+      if (m_ROIModeHandler->DrawROI() != PLUS_SUCCESS) {
+        LOG_ERROR("Draw ROI failed!");
+      }
     }
-  }
 
-  m_PatternRecognition->GetFidSegmentation()->SetRegionOfInterest(aValue, -1, -1, -1);
+    if (m_PatternRecognition->GetFidSegmentation()->GetFrameSize()[0] > 0) {
+      m_PatternRecognition->GetFidSegmentation()->SetRegionOfInterest(aValue, -1, -1, -1);
+    }
+  } else {
+    ui.spinBox_XMin->blockSignals(true);
+    ui.spinBox_XMin->setValue(m_PatternRecognition->GetFidSegmentation()->GetMorphologicalOpeningBarSizePx());
+    ui.spinBox_XMin->blockSignals(false);
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -1742,13 +1738,21 @@ void SegmentationParameterDialog::ROIYMinChanged(int aValue)
 {
   LOG_TRACE("SegmentationParameterDialog::ROIYMinChanged(" << aValue << ")");
 
-  if (m_ROIModeHandler != NULL) {
-    if (m_ROIModeHandler->DrawROI() != PLUS_SUCCESS) {
-      LOG_ERROR("Draw ROI failed!");
+  if (aValue > m_PatternRecognition->GetFidSegmentation()->GetMorphologicalOpeningBarSizePx()) {
+    if (m_ROIModeHandler != NULL) {
+      if (m_ROIModeHandler->DrawROI() != PLUS_SUCCESS) {
+        LOG_ERROR("Draw ROI failed!");
+      }
     }
-  }
 
-  m_PatternRecognition->GetFidSegmentation()->SetRegionOfInterest(-1, aValue, -1, -1);
+    if (m_PatternRecognition->GetFidSegmentation()->GetFrameSize()[1] > 0) {
+      m_PatternRecognition->GetFidSegmentation()->SetRegionOfInterest(-1, aValue, -1, -1);
+    }
+  } else {
+    ui.spinBox_YMin->blockSignals(true);
+    ui.spinBox_YMin->setValue(m_PatternRecognition->GetFidSegmentation()->GetMorphologicalOpeningBarSizePx());
+    ui.spinBox_YMin->blockSignals(false);
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -1757,13 +1761,23 @@ void SegmentationParameterDialog::ROIXMaxChanged(int aValue)
 {
   LOG_TRACE("SegmentationParameterDialog::ROIXMaxChanged(" << aValue << ")");
 
-  if (m_ROIModeHandler != NULL) {
-    if (m_ROIModeHandler->DrawROI() != PLUS_SUCCESS) {
-      LOG_ERROR("Draw ROI failed!");
-    }
+  if (m_PatternRecognition->GetFidSegmentation()->GetFrameSize()[0] <= 0) {
+    return;
   }
 
-  m_PatternRecognition->GetFidSegmentation()->SetRegionOfInterest(-1, -1, aValue, -1);
+  if (aValue < m_PatternRecognition->GetFidSegmentation()->GetFrameSize()[0] - m_PatternRecognition->GetFidSegmentation()->GetMorphologicalOpeningBarSizePx()) {
+    if (m_ROIModeHandler != NULL) {
+      if (m_ROIModeHandler->DrawROI() != PLUS_SUCCESS) {
+        LOG_ERROR("Draw ROI failed!");
+      }
+    }
+
+    m_PatternRecognition->GetFidSegmentation()->SetRegionOfInterest(-1, -1, aValue, -1);
+  } else {
+    ui.spinBox_XMax->blockSignals(true);
+    ui.spinBox_XMax->setValue(m_PatternRecognition->GetFidSegmentation()->GetFrameSize()[0] - m_PatternRecognition->GetFidSegmentation()->GetMorphologicalOpeningBarSizePx() - 1);
+    ui.spinBox_XMax->blockSignals(false);
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -1772,13 +1786,23 @@ void SegmentationParameterDialog::ROIYMaxChanged(int aValue)
 {
   LOG_TRACE("SegmentationParameterDialog::ROIYMaxChanged(" << aValue << ")");
 
-  if (m_ROIModeHandler != NULL) {
-    if (m_ROIModeHandler->DrawROI() != PLUS_SUCCESS) {
-      LOG_ERROR("Draw ROI failed!");
-    }
+  if (m_PatternRecognition->GetFidSegmentation()->GetFrameSize()[1] <= 0) {
+    return;
   }
 
-  m_PatternRecognition->GetFidSegmentation()->SetRegionOfInterest(-1, -1, -1, aValue);
+  if (aValue < m_PatternRecognition->GetFidSegmentation()->GetFrameSize()[1] - m_PatternRecognition->GetFidSegmentation()->GetMorphologicalOpeningBarSizePx()) {
+    if (m_ROIModeHandler != NULL) {
+      if (m_ROIModeHandler->DrawROI() != PLUS_SUCCESS) {
+        LOG_ERROR("Draw ROI failed!");
+      }
+    }
+
+    m_PatternRecognition->GetFidSegmentation()->SetRegionOfInterest(-1, -1, -1, aValue);
+  } else {
+    ui.spinBox_YMax->blockSignals(true);
+    ui.spinBox_YMax->setValue(m_PatternRecognition->GetFidSegmentation()->GetFrameSize()[1] - m_PatternRecognition->GetFidSegmentation()->GetMorphologicalOpeningBarSizePx() - 1);
+    ui.spinBox_YMax->blockSignals(false);
+  }
 }
 
 //-----------------------------------------------------------------------------
