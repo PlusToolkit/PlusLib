@@ -230,7 +230,7 @@ PlusStatus vtkPlusConfig::ReadApplicationConfiguration()
 
 std::string vtkPlusConfig::GetNewDeviceSetConfigurationFileName()
 {
-  LOG_TRACE("vtkPlusConfig::GetNewConfigurationFileName");
+  LOG_TRACE("vtkPlusConfig::GetNewDeviceSetConfigurationFileName");
 
   std::string resultFileName; 
   if ((this->DeviceSetConfigurationFileName == NULL) || (STRCASECMP(this->DeviceSetConfigurationFileName, "") == 0)) {
@@ -241,6 +241,14 @@ std::string vtkPlusConfig::GetNewDeviceSetConfigurationFileName()
     resultFileName = this->DeviceSetConfigurationFileName;
     resultFileName = resultFileName.substr(0, resultFileName.find(".xml"));
     resultFileName = resultFileName.substr(resultFileName.find_last_of("/\\") + 1);
+  }
+
+  // Detect if date is already in the filename and remove it if it is there
+  std::string possibleDate = resultFileName.substr(resultFileName.length() - 15, 15);
+  std::string possibleDay = possibleDate.substr(0, 8);
+  std::string possibleTime = possibleDate.substr(9, 6);
+  if (atoi(possibleDay.c_str()) && atoi(possibleTime.c_str())) {
+    resultFileName = resultFileName.substr(0, resultFileName.length() - 16);
   }
 
   // Construct new file name with date and time
