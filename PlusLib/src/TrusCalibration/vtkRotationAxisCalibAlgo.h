@@ -81,15 +81,16 @@ public:
 
   //! Description: 
 	// Set/Get the rotation center in pixels.
-	// Origin: Left-upper corner (the original image frame)
-	// Positive X: to the right;
-	// Positive Y: to the bottom;
-	vtkSetVector2Macro(CenterOfRotationPx, int); 
-	vtkGetVector2Macro(CenterOfRotationPx, int);
+	vtkSetVector2Macro(CenterOfRotationPx, double); 
+	vtkGetVector2Macro(CenterOfRotationPx, double);
 
   //! Description: 
-  // Report table used for storing algorithm results 
+  // Get report table used for storing algorithm results 
   vtkGetObjectMacro(ReportTable, vtkTable); 
+
+  //! Description: 
+  // Get report table used for center of rotation algo results for each cluster 
+  vtkGetObjectMacro(CenterOfRotationReportTable, vtkTable); 
 
   // Description:
   // Get the rotation axis orientation 
@@ -126,6 +127,10 @@ protected:
     const std::vector<double> &bVector, 
     const vnl_vector<double> &resultVector); 
 
+  // Description: 
+  // Add center of rotation report to the current table (used with different clusters)
+  virtual PlusStatus UpdateCenterOfRotationReportTable( vtkTable* reportTable ); 
+
 	//! Description:
 	// Clustering tracked frames by Z position 
   virtual PlusStatus ClusterTrackedFrames(std::vector< std::vector<int> > &clusterOfIndecies); 
@@ -142,10 +147,14 @@ protected:
   // Report table used for storing algorithm results 
   vtkSetObjectMacro(ReportTable, vtkTable); 
 
+  //! Description: 
+  // Report table used for center of rotation algo results for each cluster 
+  vtkSetObjectMacro(CenterOfRotationReportTable, vtkTable); 
+
   int MinNumberOfRotationClusters; 
 
   // Stores the center of rotation in px space
-	int CenterOfRotationPx[2]; 
+	double CenterOfRotationPx[2]; 
 
   // Image scaling factors (x: lateral axis, y: axial axis)
   double Spacing[2];
@@ -157,6 +166,9 @@ protected:
 
   // Table used for storing algo results 
   vtkTable* ReportTable; 
+
+  // Table used for storing center of rotation algo results for each cluster 
+  vtkTable* CenterOfRotationReportTable; 
 
   double ErrorMean; 
   double ErrorStdev; 

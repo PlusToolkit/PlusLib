@@ -219,6 +219,11 @@ PlusStatus vtkCenterOfRotationCalibAlgo::ConstructLinearEquationForCalibration( 
   {
     for( unsigned int j = i + 1; j <= vectorOfWirePoints.size() - 1; j++ )
     {
+      if ( vectorOfWirePoints[i]->GetNumberOfPoints() != vectorOfWirePoints[j]->GetNumberOfPoints() )
+      {
+        continue; 
+      }
+
       for ( int point = 0; point < vectorOfWirePoints[i]->GetNumberOfPoints(); point++ )
       {
         // coordiates of the i-th element
@@ -270,6 +275,14 @@ PlusStatus vtkCenterOfRotationCalibAlgo::UpdateReportTable()
   {
     const int frameNumber = this->TrackedFrameListIndices[i]; 
     TrackedFrame* frame = this->TrackedFrameList->GetTrackedFrame(frameNumber); 
+
+    if ( frame->GetFiducialPointsCoordinatePx() == NULL
+      || frame->GetFiducialPointsCoordinatePx()->GetNumberOfPoints() == 0 )
+    {
+      // This frame was not segmented
+      continue; 
+    }
+
     double probePos(0), probeRot(0), templatePos(0); 
     if ( !vtkBrachyTracker::GetStepperEncoderValues(frame, probePos, probeRot, templatePos) )
     {
@@ -281,7 +294,7 @@ PlusStatus vtkCenterOfRotationCalibAlgo::UpdateReportTable()
     tableRow->InsertNextValue(probePos); 
     tableRow->InsertNextValue(probeRot); 
     tableRow->InsertNextValue(templatePos); 
-
+    
     // TODO: it works only with double N phantom 
     // Compute radius from Wire #1, #3, #4, #6
     double w1x = frame->GetFiducialPointsCoordinatePx()->GetPoint(0)[0]; 
@@ -359,9 +372,33 @@ PlusStatus vtkCenterOfRotationCalibAlgo::GenerateReport( vtkHTMLGenerator* htmlR
     return PLUS_FAIL;
   }
 
+  return vtkCenterOfRotationCalibAlgo::GenerateCenterOfRotationReport(htmlReport, plotter, gnuplotScriptsFolder, this->ReportTable, this->CenterOfRotationPx); 
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkCenterOfRotationCalibAlgo::GenerateCenterOfRotationReport( vtkHTMLGenerator* htmlReport, 
+                                                                        vtkGnuplotExecuter* plotter, 
+                                                                        const char* gnuplotScriptsFolder, 
+                                                                        vtkTable* reportTable,
+                                                                        double centerOfRotationPx[2])
+{
+  LOG_TRACE("vtkCenterOfRotationCalibAlgo::GenerateCenterOfRotationReport"); 
+
   if ( htmlReport == NULL || plotter == NULL )
   {
     LOG_ERROR("Caller should define HTML report generator and gnuplot plotter before report generation!"); 
+    return PLUS_FAIL; 
+  }
+
+  if ( reportTable == NULL )
+  {
+    LOG_ERROR("Unable to generate report - input report table is NULL!"); 
+    return PLUS_FAIL; 
+  }
+
+  if ( gnuplotScriptsFolder == NULL )
+  {
+    LOG_ERROR("Unable to generate report - gnuplot scripts folder is NULL!"); 
     return PLUS_FAIL; 
   }
 
@@ -375,7 +412,7 @@ PlusStatus vtkCenterOfRotationCalibAlgo::GenerateReport( vtkHTMLGenerator* htmlR
 
   // Generate report files from table 
   std::string reportFile = std::string(vtkPlusConfig::GetInstance()->GetOutputDirectory()) + std::string("/CenterOfRotationCalculationError.txt");
-  if ( vtkGnuplotExecuter::DumpTableToFileInGnuplotFormat( this->ReportTable, reportFile.c_str()) != PLUS_SUCCESS )
+  if ( vtkGnuplotExecuter::DumpTableToFileInGnuplotFormat( reportTable, reportFile.c_str()) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to dump translation axis calibration report table to " << reportFile );
     return PLUS_FAIL; 
@@ -394,7 +431,7 @@ PlusStatus vtkCenterOfRotationCalibAlgo::GenerateReport( vtkHTMLGenerator* htmlR
   htmlReport->AddText(title.c_str(), vtkHTMLGenerator::H1); 
 
   std::ostringstream report; 
-  report << "Center of rotation (px): " << this->CenterOfRotationPx[0] << "     " << this->CenterOfRotationPx[1] << "</br>" ; 
+  report << "Center of rotation (px): " << centerOfRotationPx[0] << "     " << centerOfRotationPx[1] << "</br>" ; 
   htmlReport->AddParagraph(report.str().c_str()); 
 
   const int wires[4] = {1, 3, 4, 6}; 
