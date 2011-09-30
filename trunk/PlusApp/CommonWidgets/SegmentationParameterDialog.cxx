@@ -1441,7 +1441,7 @@ PlusStatus SegmentationParameterDialog::SegmentCurrentImage()
   videoFrame.SetFrame(currentImage);
 
   TrackedFrame* trackedFrame = new TrackedFrame();
-  trackedFrame->ImageData = videoFrame;
+  trackedFrame->SetImageData(videoFrame);
 
   // Set image for canvas
   m_CanvasImageActor->SetInput(currentImage);
