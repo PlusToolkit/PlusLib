@@ -89,14 +89,9 @@ protected slots:
 	void StartTemporal();
 
 	/*!
-	* \brief Slot handling reset temporal calibration button click
+	* \brief Slot handling cancel temporal calibration button click
 	*/
-	void ResetTemporal();
-
-	/*!
-	* \brief Slot handling skip temporal calibration button click
-	*/
-	void SkipTemporal();
+	void CancelTemporal();
 
 	/*!
 	* \brief Slot handling start spatial calibration button click
@@ -104,9 +99,9 @@ protected slots:
 	void StartSpatial();
 
 	/*!
-	* \brief Slot handling reset spatial calibration button click
+	* \brief Slot handling cancel spatial calibration button click
 	*/
-	void ResetSpatial();
+	void CancelSpatial();
 
 	/*!
 	* \brief Slot handling save results button click
@@ -120,12 +115,6 @@ protected slots:
 	void ShowDevicesToggled(bool aOn);
 
 protected:
-	//! Flag indicating temporal calibration is done (needed for properly setting the state of UI elements)
-	bool m_TemporalCalibrationDone;
-
-	//! Flag indicating spatial calibration is done (needed for properly setting the state of UI elements)
-  bool m_SpatialCalibrationDone;
-
   //! Calibration algorithm
   vtkCalibrationController* m_Calibration;
 

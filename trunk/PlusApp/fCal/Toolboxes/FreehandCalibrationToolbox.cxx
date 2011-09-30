@@ -24,8 +24,6 @@ FreehandCalibrationToolbox::FreehandCalibrationToolbox(fCalMainWindow* aParentMa
 
 	//TODO tooltips
 
-	m_TemporalCalibrationDone = false;
-	m_SpatialCalibrationDone = false;
   m_CancelRequest = false;
 
 	// Create algorithm
@@ -41,10 +39,9 @@ FreehandCalibrationToolbox::FreehandCalibrationToolbox(fCalMainWindow* aParentMa
 	connect( ui.pushButton_OpenCalibrationConfiguration, SIGNAL( clicked() ), this, SLOT( OpenCalibrationConfiguration() ) );
 	connect( ui.pushButton_EditCalibrationConfiguration, SIGNAL( clicked() ), this, SLOT( EditCalibrationConfiguration() ) );
 	connect( ui.pushButton_StartTemporal, SIGNAL( clicked() ), this, SLOT( StartTemporal() ) );
-	connect( ui.pushButton_ResetTemporal, SIGNAL( clicked() ), this, SLOT( ResetTemporal() ) );
-	connect( ui.pushButton_SkipTemporal, SIGNAL( clicked() ), this, SLOT( SkipTemporal() ) );
+	connect( ui.pushButton_CancelTemporal, SIGNAL( clicked() ), this, SLOT( CancelTemporal() ) );
 	connect( ui.pushButton_StartSpatial, SIGNAL( clicked() ), this, SLOT( StartSpatial() ) );
-	connect( ui.pushButton_ResetSpatial, SIGNAL( clicked() ), this, SLOT( ResetSpatial() ) );
+	connect( ui.pushButton_CancelSpatial, SIGNAL( clicked() ), this, SLOT( CancelSpatial() ) );
 	connect( ui.pushButton_Save, SIGNAL( clicked() ), this, SLOT( Save() ) );
 	connect( ui.checkBox_ShowDevices, SIGNAL( toggled(bool) ), this, SLOT( ShowDevicesToggled(bool) ) );
 }
@@ -131,8 +128,7 @@ void FreehandCalibrationToolbox::SetDisplayAccordingToState()
 	if (m_State == ToolboxState_Uninitialized) {
 		ui.label_InstructionsTemporal->setText(tr(""));
 		ui.pushButton_StartTemporal->setEnabled(false);
-		ui.pushButton_ResetTemporal->setEnabled(false);
-		ui.pushButton_SkipTemporal->setEnabled(false);
+    ui.pushButton_CancelTemporal->setEnabled(false);
 
 		ui.label_InstructionsSpatial->setText(tr(""));
 		ui.frame_SpatialCalibration->setEnabled(false);
@@ -146,42 +142,23 @@ void FreehandCalibrationToolbox::SetDisplayAccordingToState()
 	} else
 	// If initialized
 	if (m_State == ToolboxState_Idle) {
-		if (m_TemporalCalibrationDone == false) { // If temporal calibration has not been done yet
-			ui.label_InstructionsTemporal->setText(tr("Press Start and to perform temporal calibration or Skip\n\nCurrent video time offset: %1 ms").arg(videoTimeOffset));
+		ui.label_InstructionsTemporal->setText(tr("Current video time offset: %1 ms").arg(videoTimeOffset));
+    ui.pushButton_StartTemporal->setEnabled(false); ui.pushButton_StartTemporal->setToolTip(tr("Temporal calibration is disabled until fixing the algorithm, sorry!")); //TODO this is temporarily disabled
+    ui.pushButton_CancelTemporal->setEnabled(false);
 
-			ui.pushButton_StartTemporal->setEnabled(true);
-			ui.pushButton_ResetTemporal->setEnabled(false);
-			ui.pushButton_SkipTemporal->setEnabled(true);
+    if (IsReadyToStartSpatialCalibration()) {
+		  ui.label_InstructionsSpatial->setText(tr("Press Start and start scanning the phantom"));
+    } else {
+		  ui.label_InstructionsSpatial->setText(tr("Configuration files need to be loaded"));
+    }
+		ui.frame_SpatialCalibration->setEnabled(true);
+		ui.pushButton_CancelSpatial->setEnabled(false);
 
-			ui.label_InstructionsSpatial->setText(tr(""));
-			ui.frame_SpatialCalibration->setEnabled(false);
+		ui.checkBox_ShowDevices->setEnabled(false);
+		ui.pushButton_Save->setEnabled(false);
+		ui.label_Results->setText(tr(""));
 
-			ui.checkBox_ShowDevices->setEnabled(false);
-			ui.pushButton_Save->setEnabled(false);
-			ui.label_Results->setText(tr(""));
-
-			ui.pushButton_StartTemporal->setFocus();
-
-    } else { // If temporal calibration is finished
-			ui.label_InstructionsTemporal->setText(tr("Current video time offset: %1 ms").arg(videoTimeOffset));
-			ui.pushButton_StartTemporal->setEnabled(false);
-			ui.pushButton_ResetTemporal->setEnabled(true);
-			ui.pushButton_SkipTemporal->setEnabled(false);
-
-      if (IsReadyToStartSpatialCalibration()) {
-			  ui.label_InstructionsSpatial->setText(tr("Press Start and start scanning the phantom"));
-      } else {
-			  ui.label_InstructionsSpatial->setText(tr("Configuration files need to be loaded"));
-      }
-			ui.frame_SpatialCalibration->setEnabled(true);
-			ui.pushButton_ResetSpatial->setEnabled(false);
-
-			ui.checkBox_ShowDevices->setEnabled(false);
-			ui.pushButton_Save->setEnabled(false);
-			ui.label_Results->setText(tr(""));
-
-			ui.pushButton_StartSpatial->setFocus();
-		}
+		ui.pushButton_StartSpatial->setFocus();
 
 		ui.pushButton_StartSpatial->setEnabled(IsReadyToStartSpatialCalibration());
 
@@ -193,38 +170,16 @@ void FreehandCalibrationToolbox::SetDisplayAccordingToState()
 	} else
 	// If in progress
 	if (m_State == ToolboxState_InProgress) {
-		if (m_TemporalCalibrationDone == false) { // If temporal calibration has not been done yet
-			ui.label_InstructionsTemporal->setText(tr("Make abrupt movements with the probe every 2 seconds"));
-			ui.pushButton_StartTemporal->setEnabled(false);
-			ui.pushButton_ResetTemporal->setEnabled(true);
-		  ui.pushButton_SkipTemporal->setEnabled(false);
+		ui.label_InstructionsTemporal->setText(tr("Current video time offset: %1 ms").arg(videoTimeOffset));
+		ui.pushButton_StartTemporal->setEnabled(false);
 
-			ui.label_InstructionsSpatial->setText(tr(""));
-			ui.frame_SpatialCalibration->setEnabled(false);
+		ui.label_InstructionsSpatial->setText(tr("Scan the phantom in the most degrees of freedom possible"));
+		ui.frame_SpatialCalibration->setEnabled(true);
+		ui.pushButton_StartSpatial->setEnabled(false);
 
-			ui.checkBox_ShowDevices->setEnabled(false);
-			ui.pushButton_Save->setEnabled(false);
-			ui.label_Results->setText(tr(""));
-
-			ui.pushButton_ResetTemporal->setFocus();
-
-		} else { // If temporal calibration is finished
-			ui.label_InstructionsTemporal->setText(tr("Temporal calibration is ready to save\n(video time offset: %1 ms)").arg(videoTimeOffset));
-			ui.pushButton_StartTemporal->setEnabled(false);
-			ui.pushButton_ResetTemporal->setEnabled(false);
-		  ui.pushButton_SkipTemporal->setEnabled(false);
-
-			ui.label_InstructionsSpatial->setText(tr("Scan the phantom in the most degrees of freedom possible"));
-			ui.frame_SpatialCalibration->setEnabled(true);
-			ui.pushButton_StartSpatial->setEnabled(false);
-			ui.pushButton_ResetSpatial->setEnabled(true);
-
-			ui.checkBox_ShowDevices->setEnabled(false);
-			ui.pushButton_Save->setEnabled(false);
-			ui.label_Results->setText(tr(""));
-
-			ui.pushButton_ResetSpatial->setFocus();
-		}
+		ui.checkBox_ShowDevices->setEnabled(false);
+		ui.pushButton_Save->setEnabled(false);
+		ui.label_Results->setText(tr(""));
 
 		m_ParentMainWindow->SetStatusBarText(QString(" Acquiring and adding images to calibrator"));
 
@@ -233,13 +188,12 @@ void FreehandCalibrationToolbox::SetDisplayAccordingToState()
 	if (m_State == ToolboxState_Done) {
 		ui.label_InstructionsTemporal->setText(tr("Temporal calibration is ready to save\n(video time offset: %1 ms)").arg(videoTimeOffset));
 		ui.pushButton_StartTemporal->setEnabled(false);
-		ui.pushButton_ResetTemporal->setEnabled(false);
-		ui.pushButton_SkipTemporal->setEnabled(false);
+		ui.pushButton_CancelSpatial->setEnabled(false);
 
 		ui.label_InstructionsSpatial->setText(tr("Spatial calibration is ready to save"));
 		ui.frame_SpatialCalibration->setEnabled(true);
 		ui.pushButton_StartSpatial->setEnabled(false);
-		ui.pushButton_ResetSpatial->setEnabled(true);
+		ui.pushButton_CancelSpatial->setEnabled(false);
 
 		ui.checkBox_ShowDevices->setEnabled(true);
 		ui.pushButton_Save->setEnabled(true);
@@ -263,13 +217,12 @@ void FreehandCalibrationToolbox::SetDisplayAccordingToState()
 		ui.label_InstructionsTemporal->setText(tr("Error occured!"));
 		ui.label_InstructionsTemporal->setFont(QFont("SansSerif", 8, QFont::Bold));
 		ui.pushButton_StartTemporal->setEnabled(false);
-		ui.pushButton_ResetTemporal->setEnabled(false);
-		ui.pushButton_SkipTemporal->setEnabled(false);
+		ui.pushButton_CancelSpatial->setEnabled(false);
 
 		ui.label_InstructionsSpatial->setText(tr(""));
 		ui.frame_SpatialCalibration->setEnabled(false);
 		ui.pushButton_StartSpatial->setEnabled(false);
-		ui.pushButton_ResetSpatial->setEnabled(false);
+		ui.pushButton_CancelSpatial->setEnabled(false);
 
 		ui.checkBox_ShowDevices->setEnabled(false);
 		ui.pushButton_Save->setEnabled(false);
@@ -380,26 +333,27 @@ void FreehandCalibrationToolbox::StartTemporal()
 
   SetState(ToolboxState_InProgress);
 
+  ui.pushButton_CancelTemporal->setEnabled(true);
+	ui.pushButton_CancelTemporal->setFocus();
+
+  QApplication::processEvents();
+
   // Do the calibration
   //m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->SetProgressBarUpdateCallbackFunction(UpdateProgress);
   m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->Synchronize(vtkPlusConfig::GetInstance()->GetOutputDirectory(), true );
 
 	//this->ProgressPercent = 0;
 
-  m_TemporalCalibrationDone = true;
-
 	m_ParentMainWindow->SetTabsEnabled(true);
 
   SetState(ToolboxState_Idle);
-
-  SetDisplayAccordingToState();
 }
 
 //-----------------------------------------------------------------------------
 
-void FreehandCalibrationToolbox::ResetTemporal()
+void FreehandCalibrationToolbox::CancelTemporal()
 {
-	LOG_TRACE("FreehandCalibrationToolbox::ResetTemporalClicked"); 
+	LOG_TRACE("FreehandCalibrationToolbox::CancelTemporal"); 
 
 	// Cancel synchronization (temporal calibration) in data collector
   m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->CancelSyncRequestOn();
@@ -407,21 +361,6 @@ void FreehandCalibrationToolbox::ResetTemporal()
 	m_ParentMainWindow->SetTabsEnabled(true);
 
   SetState(ToolboxState_Idle);
-
-	m_TemporalCalibrationDone = false;
-
-  SetDisplayAccordingToState();
-}
-
-//-----------------------------------------------------------------------------
-
-void FreehandCalibrationToolbox::SkipTemporal()
-{
-	LOG_TRACE("FreehandCalibrationToolbox::SkipTemporalClicked"); 
-
-	m_TemporalCalibrationDone = true;
-
-  SetDisplayAccordingToState();
 }
 
 //-----------------------------------------------------------------------------
@@ -446,20 +385,19 @@ void FreehandCalibrationToolbox::StartSpatial()
 
   SetState(ToolboxState_InProgress);
 
+  ui.pushButton_CancelSpatial->setEnabled(true);
+	ui.pushButton_CancelSpatial->setFocus();
+
   // Start calibration and compute results on success
 	if ((DoSpatialCalibration() == PLUS_SUCCESS) && (m_Calibration->ComputeCalibrationResults() == PLUS_SUCCESS)) {
 
     // Set result for visualization
     m_ParentMainWindow->GetToolVisualizer()->SetImageToProbeTransform(m_Calibration->GetTransformUserImageToProbe());
 
-    m_SpatialCalibrationDone = true;
-
     SetState(ToolboxState_Done);
 	}
 
 	m_ParentMainWindow->SetTabsEnabled(true);
-
-  SetDisplayAccordingToState();
 }
 
 //-----------------------------------------------------------------------------
@@ -539,14 +477,16 @@ PlusStatus FreehandCalibrationToolbox::DoSpatialCalibration()
 
 //-----------------------------------------------------------------------------
 
-void FreehandCalibrationToolbox::ResetSpatial()
+void FreehandCalibrationToolbox::CancelSpatial()
 {
-	LOG_TRACE("FreehandCalibrationToolbox::ResetSpatialClicked"); 
+	LOG_TRACE("FreehandCalibrationToolbox::CancelSpatial"); 
 
   // Turn off device visualization if it was on
   if (ui.checkBox_ShowDevices->isChecked() == true) {
     ui.checkBox_ShowDevices->setChecked(false);
   }
+
+  m_CancelRequest = true;
 
   // Reset calibration
   m_Calibration->ResetFreehandCalibration();
@@ -554,10 +494,6 @@ void FreehandCalibrationToolbox::ResetSpatial()
 	m_ParentMainWindow->SetTabsEnabled(true);
 
   SetState(ToolboxState_Idle);
-
-  m_SpatialCalibrationDone = false;
-
-  SetDisplayAccordingToState();
 }
 
 //-----------------------------------------------------------------------------
@@ -569,7 +505,6 @@ bool FreehandCalibrationToolbox::IsReadyToStartSpatialCalibration()
   PhantomRegistrationToolbox* phantomRegistrationToolbox = dynamic_cast<PhantomRegistrationToolbox*>(m_ParentMainWindow->GetToolbox(ToolboxType_PhantomRegistration));
 
   if ((m_State == ToolboxState_Uninitialized)
-		|| (! m_TemporalCalibrationDone)
 		|| (phantomRegistrationToolbox == NULL)
     || (phantomRegistrationToolbox->GetPhantomRegistrationAlgo() == NULL)
 		|| (phantomRegistrationToolbox->GetPhantomRegistrationAlgo()->GetPhantomToPhantomReferenceTransform() == NULL))
