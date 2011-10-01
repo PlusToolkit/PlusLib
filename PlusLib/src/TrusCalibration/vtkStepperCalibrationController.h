@@ -238,21 +238,6 @@ public:
 	// Set/get calibration start time in string 
 	vtkSetStringMacro(CalibrationStartTime); 
 	vtkGetStringMacro(CalibrationStartTime); 
-
-	//! Description: 
-	// Set/get probe rotation axis calibration error report file path
-	vtkSetStringMacro(ProbeRotationAxisCalibrationErrorReportFilePath); 
-	vtkGetStringMacro(ProbeRotationAxisCalibrationErrorReportFilePath); 
-
-	//! Description: 
-	// Set/get probe translation axis calibration error report file path
-	vtkSetStringMacro(ProbeTranslationAxisCalibrationErrorReportFilePath); 
-	vtkGetStringMacro(ProbeTranslationAxisCalibrationErrorReportFilePath); 
-
-	//! Description: 
-	// Set/get template translation axis calibration error report file name
-	vtkSetStringMacro(TemplateTranslationAxisCalibrationErrorReportFilePath); 
-	vtkGetStringMacro(TemplateTranslationAxisCalibrationErrorReportFilePath); 
 	
 	//! Description: 
 	// Set/get probe rotation encoder calibration error report file path
@@ -263,11 +248,6 @@ public:
 	// Set/get spacing calculation error report file path
 	vtkSetStringMacro(SpacingCalculationErrorReportFilePath); 
 	vtkGetStringMacro(SpacingCalculationErrorReportFilePath); 
-
-	//! Description: 
-	// Set/get center of rotation calculation error report file path
-	vtkSetStringMacro(CenterOfRotationCalculationErrorReportFilePath); 
-	vtkGetStringMacro(CenterOfRotationCalculationErrorReportFilePath); 
 	
 	//! Description: 
 	// Set/get calibration mode
@@ -305,37 +285,6 @@ protected:
 	// Returns true on success otherwise false
 	virtual PlusStatus CalibrateRotationAxis(); 
 
-	//! Description: 
-	// Construct linear equation for rotation axis calibration
-	virtual void ConstrLinEqForRotationAxisCalib( 
-		const std::vector< std::pair<double, double> > &listOfCenterOfRotations, 
-		const std::vector< double > &listOfClusterPositions, 
-		std::vector<vnl_vector<double>> &aMatrix, 
-		std::vector<double> &bVector); 
-
-
-	//! Description: 
-	// Calculate mean error and stdev of measured and computed rotation angles
-	virtual void GetRotationAxisCalibrationError(
-		const std::vector<vnl_vector<double>> &aMatrix, 
-		const std::vector<double> &bVector, \
-		const vnl_vector<double> &resultVector,
-    std::vector<CalibStatistics> &statistics); 
-
-	//! Description: 
-	// Remove outliers from rotation axis calibration dataset
-	virtual void RemoveOutliersFromRotAxisCalibData(
-		std::vector<vnl_vector<double>> &aMatrix, 
-		std::vector<double> &bVector, 
-		vnl_vector<double> resultVector );
-
-	//! Description: 
-	// Save rotation axis calibration error in gnuplot format 
-	virtual void SaveRotationAxisCalibrationError(
-		const std::vector<vnl_vector<double>> &aMatrix, 
-		const std::vector<double> &bVector, 
-		const vnl_vector<double> &resultVector); 
-
 	//***************************************************************************
 	//						Rotation encoder calibration
 	//***************************************************************************
@@ -372,38 +321,6 @@ protected:
 		const std::vector<vnl_vector<double>> &aMatrix, 
 		const std::vector<double> &bVector, 
 		const vnl_vector<double> &resultVector ); 
-
-	//***************************************************************************
-	//						Center of rotation calculation
-	//***************************************************************************
-
-	//! Description: 
-	// Compute rotation center using linear least squares
-	// Returns true on success otherwise false
-	virtual PlusStatus CalculateCenterOfRotation( SegmentedFrameList &frameListForCenterOfRotation, double centerOfRotationPx[2], vtkTable* centerOfRotationCalculationErrorTable );
-
-	//! Description: 
-	// Calculate mean error and stdev of measured and computed distances between rotation center and segmented wires
-	virtual void GetCenterOfRotationCalculationError(
-		const std::vector<vnl_vector<double>> &aMatrix, 
-		const std::vector<double> &bVector, 
-		const vnl_vector<double> &resultVector, 
-		CalibStatistics &statistics); 
-
-	//! Description: 
-	// Remove outliers from center of rotation calculation dataset
-	virtual void RemoveOutliersFromCenterOfRotCalcData(
-		std::vector<vnl_vector<double>> &aMatrix, 
-		std::vector<double> &bVector, 
-		const vnl_vector<double> &resultVector ); 
-
-	//! Description: 
-	// Save center of rotation calibration error in gnuplot format 
-	virtual void SaveCenterOfRotationCalculationError(
-		SegmentedFrameList &frameListForCenterOfRotation, 
-		const double centerOfRotationPx[2], 
-		vtkTable* centerOfRotationCalculationErrorTable = NULL); 
-
 
 	//***************************************************************************
 	//							Spacing calculation
@@ -516,12 +433,8 @@ protected:
 
 	std::vector< std::vector<HomogenousVector4x1> > PointSetForPhantomToProbeDistanceCalculation;
 
-	char* ProbeRotationAxisCalibrationErrorReportFilePath; 
-	char* ProbeTranslationAxisCalibrationErrorReportFilePath; 
-	char* TemplateTranslationAxisCalibrationErrorReportFilePath; 
 	char* ProbeRotationEncoderCalibrationErrorReportFilePath; 
 	char* SpacingCalculationErrorReportFilePath; 
-	char* CenterOfRotationCalculationErrorReportFilePath; 
 
   char* AlgorithmVersion; 
 
