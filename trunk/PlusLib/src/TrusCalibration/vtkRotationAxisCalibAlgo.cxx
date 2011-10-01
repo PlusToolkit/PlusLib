@@ -121,11 +121,6 @@ PlusStatus vtkRotationAxisCalibAlgo::Update()
   std::vector< std::vector<int> > clusterOfIndices; 
   this->ClusterTrackedFrames(clusterOfIndices); 
 
-  if ( clusterOfIndices.size() < this->MinNumberOfRotationClusters)
-  {
-    LOG_WARNING("Unable to calibrate rotation axis reliably: Number of rotation clusters are less than the minimum requirements (" << clusterOfIndices.size() << " of " << this->MinNumberOfRotationClusters << ")." ); 
-  }
-
   if ( clusterOfIndices.size()==0 )
   {
     LOG_ERROR("Failed to calibrate rotation axis: Unable to find any rotation clusters!" ); 
@@ -155,6 +150,11 @@ PlusStatus vtkRotationAxisCalibAlgo::Update()
     this->UpdateTime.Modified(); 
 
     return PLUS_SUCCESS; 
+  }
+
+  if ( clusterOfIndices.size() < this->MinNumberOfRotationClusters)
+  {
+    LOG_WARNING("Unable to calibrate rotation axis reliably: Number of rotation clusters are less than the minimum requirements (" << clusterOfIndices.size() << " of " << this->MinNumberOfRotationClusters << ")." ); 
   }
 
   std::vector< std::pair<double, double> > listOfCenterOfRotations; 

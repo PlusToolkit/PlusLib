@@ -3,6 +3,7 @@
 #include "vtkStepperCalibrationController.h"
 
 #include "vtkTranslAxisCalibAlgo.h"
+#include "vtkRotationAxisCalibAlgo.h"
 
 #include "vtkObjectFactory.h"
 #include "vtkTransform.h"
@@ -50,12 +51,8 @@ vtkStepperCalibrationController::vtkStepperCalibrationController()
 
   this->AlgorithmVersion = NULL; 
   this->CalibrationStartTime = NULL; 
-  this->ProbeRotationAxisCalibrationErrorReportFilePath = NULL; 
-  this->ProbeTranslationAxisCalibrationErrorReportFilePath = NULL; 
-  this->TemplateTranslationAxisCalibrationErrorReportFilePath = NULL; 
   this->ProbeRotationEncoderCalibrationErrorReportFilePath = NULL; 
   this->SpacingCalculationErrorReportFilePath = NULL; 
-  this->CenterOfRotationCalculationErrorReportFilePath = NULL; 
 
   this->SaveCalibrationStartTime(); 
 
@@ -66,12 +63,8 @@ vtkStepperCalibrationController::vtkStepperCalibrationController()
 vtkStepperCalibrationController::~vtkStepperCalibrationController()
 {
   this->SetCalibrationStartTime(NULL); 
-  this->SetProbeRotationAxisCalibrationErrorReportFilePath(NULL); 
-  this->SetProbeTranslationAxisCalibrationErrorReportFilePath(NULL); 
-  this->SetTemplateTranslationAxisCalibrationErrorReportFilePath(NULL); 
   this->SetProbeRotationEncoderCalibrationErrorReportFilePath(NULL); 
   this->SetSpacingCalculationErrorReportFilePath(NULL); 
-  this->SetCenterOfRotationCalculationErrorReportFilePath(NULL); 
 }
 
 //----------------------------------------------------------------------------
@@ -247,332 +240,38 @@ PlusStatus vtkStepperCalibrationController::CalibrateRotationAxis()
 {
   LOG_TRACE("vtkStepperCalibrationController::CalibrateRotationAxis"); 
 
-  std::vector<SegmentedFrameList> clusteredFrames; 
-  this->ClusterSegmentedFrames(PROBE_ROTATION, clusteredFrames); 
+  vtkSmartPointer<vtkRotationAxisCalibAlgo> rotationAxisCalibAlgo = vtkSmartPointer<vtkRotationAxisCalibAlgo>::New(); 
+  rotationAxisCalibAlgo->SetInputs(this->TrackedFrameListContainer[PROBE_ROTATION], this->GetSpacing()); 
 
-  vtkSmartPointer<vtkTable> centerOfRotationCalculationErrorTable = vtkSmartPointer<vtkTable>::New(); 
-  std::ostringstream centerOfRotReportFileName; 
-  centerOfRotReportFileName << vtkPlusConfig::GetInstance()->GetOutputDirectory() << "/" << this->CalibrationStartTime  << ".CenterOfRotationCalculationError.txt"; 
-  this->SetCenterOfRotationCalculationErrorReportFilePath(centerOfRotReportFileName.str().c_str()); 
-
-  if ( clusteredFrames.size() < this->MinNumberOfRotationClusters)
+  // Get rotation axis calibration output 
+  double rotationAxisOrientation[3] = {0}; 
+  if ( rotationAxisCalibAlgo->GetRotationAxisOrientation(rotationAxisOrientation) != PLUS_SUCCESS )
   {
-    LOG_WARNING("Unable to calibrate rotation axis reliably: Number of rotation clusters are less than the minimum requirements (" << clusteredFrames.size() << " of " << this->MinNumberOfRotationClusters << ")." ); 
-  }
-
-  if ( clusteredFrames.size()==0 )
-  {
-      LOG_ERROR("Failed to calibrate rotation axis: Unable to find any rotation clusters!" ); 
-      return PLUS_FAIL; 
-  }
-
-  if ( clusteredFrames.size()==1 )
-  {
-    // Not enough clusters to use LSQR fitting, so just use the one single cluster result
-    double centerOfRotationPx[2] = {0, 0}; 
-    this->CalculateCenterOfRotation(clusteredFrames[0], centerOfRotationPx, centerOfRotationCalculationErrorTable); 
-    if ( centerOfRotationCalculationErrorTable )
-    {
-      vtkGnuplotExecuter::DumpTableToFileInGnuplotFormat(centerOfRotationCalculationErrorTable, this->GetCenterOfRotationCalculationErrorReportFilePath()); 
-    }
-    this->SetCenterOfRotationPx( centerOfRotationPx[0], centerOfRotationPx[1]); 
-    this->CenterOfRotationCalculatedOn(); 
-
-    if ( centerOfRotationCalculationErrorTable )
-    {
-      vtkGnuplotExecuter::DumpTableToFileInGnuplotFormat(centerOfRotationCalculationErrorTable, this->GetCenterOfRotationCalculationErrorReportFilePath()); 
-    }
-
-    return PLUS_SUCCESS; 
-  }
-
-  std::vector< std::pair<double, double> > listOfCenterOfRotations; 
-  std::vector< double > listOfClusterPositions; 
-
-  for ( unsigned int cluster = 0; cluster < clusteredFrames.size(); ++cluster )
-  {
-    if ( clusteredFrames[cluster].size() > this->MinNumOfFramesUsedForCenterOfRotCalc )
-    {
-      double clusterPosition = this->GetClusterZPosition(clusteredFrames[cluster]); 
-      double centerOfRotationPx[2] = {0, 0}; 
-      if ( this->CalculateCenterOfRotation(clusteredFrames[cluster], centerOfRotationPx, centerOfRotationCalculationErrorTable) )
-      {
-        LOG_INFO("Center of rotation in pixels for cluster #" << cluster << " at " << std::fixed << clusterPosition << " mm: " << centerOfRotationPx[0] << "   " << centerOfRotationPx[1]); 
-        std::pair<double, double> cor (centerOfRotationPx[0], centerOfRotationPx[1]); 
-        listOfCenterOfRotations.push_back( cor ); 
-        listOfClusterPositions.push_back(clusterPosition); 
-      }
-      else
-      {
-        LOG_WARNING("Failed to compute center of rotation for cluster #" << cluster << " at " << std::fixed << clusterPosition << " mm"); 
-      }
-    }
-  }
-
-  if ( centerOfRotationCalculationErrorTable )
-  {
-    vtkGnuplotExecuter::DumpTableToFileInGnuplotFormat(centerOfRotationCalculationErrorTable, this->GetCenterOfRotationCalculationErrorReportFilePath()); 
-  }
-
-  // Construct linear equations Ax = b, where A is a matrix with m rows and 
-  // n columns, b is an m-vector. 
-  std::vector<vnl_vector<double>> aMatrix;
-  std::vector<double> bVector; 
-
-  // Construct linear equation for rotation axis calibration
-  this->ConstrLinEqForRotationAxisCalib(listOfCenterOfRotations, listOfClusterPositions, aMatrix, bVector); 
-
-  // [rx, ry, rx0, ry0 ]
-  vnl_vector<double> rotationAxisCalibResult(4, 0);
-
-  int numberOfEquations = bVector.size(); 
-  int numberOfVariables = 0;
-  if (aMatrix.size() > 0) {
-    numberOfVariables = aMatrix[0].size();
-  }
-
-  if ((numberOfVariables == 0) || (numberOfEquations < numberOfVariables))
-  {
-    LOG_ERROR("There are more variables (" << numberOfVariables << ") than equations (" << numberOfEquations << "), least squares cannot be started!");
-    return PLUS_FAIL;
-  }
-
-  if ( PlusMath::LSQRMinimize(aMatrix, bVector, rotationAxisCalibResult) != PLUS_SUCCESS )
-  {
-    LOG_WARNING("Failed to run LSQRMinimize!"); 
-  }
-
-  if ( rotationAxisCalibResult.empty() )
-  {
-    LOG_ERROR("Unable to calibrate rotation axis! Minimizer returned empty result."); 
+    LOG_ERROR("Rotation axis calibration failed!"); 
     return PLUS_FAIL; 
   }
-
-  // Calculate mean error and stdev of measured and computed wire positions for each wire
-  std::vector<CalibStatistics> statistics;
-  this->GetRotationAxisCalibrationError(aMatrix, bVector, rotationAxisCalibResult, statistics); 
-  this->SaveRotationAxisCalibrationError(aMatrix, bVector, rotationAxisCalibResult); 
-
-  LOG_INFO("RotationAxisCalibResult: " << std::fixed << rotationAxisCalibResult[0] << "  " << rotationAxisCalibResult[1] << "  " << rotationAxisCalibResult[2] << "  " << rotationAxisCalibResult[3] ); 
-
-  this->SetCenterOfRotationPx( rotationAxisCalibResult[2] / this->GetSpacing()[0], rotationAxisCalibResult[3] / this->GetSpacing()[1]); 
-  this->CenterOfRotationCalculatedOn(); 
-  
+ 
   // Set rotation axis orientation 
-  // NOTE: If the probe goes down the wires goes down on the MF oriented image 
-  // => we need to change the sign of the axis to compensate it
-  this->SetProbeRotationAxisOrientation(-rotationAxisCalibResult[0], rotationAxisCalibResult[1], 1); 
-
+  this->SetProbeRotationAxisOrientation(rotationAxisOrientation[0], rotationAxisOrientation[1], rotationAxisOrientation[2]); 
   this->ProbeRotationAxisCalibratedOn(); 
+
+  // Get center of rotation 
+  double *centerOfRotationPx = rotationAxisCalibAlgo->GetCenterOfRotationPx(); 
+  this->SetCenterOfRotationPx( centerOfRotationPx[0], centerOfRotationPx[1]); 
+  this->CenterOfRotationCalculatedOn(); 
+
+  // TODO: Need to generate report
+  //rotAxisCalibAlgo->GenerateReport(htmlGenerator, gnuplotExecuter, inputGnuplotScriptsFolder.c_str()); 
 
   return PLUS_SUCCESS; 
 }
 
-//----------------------------------------------------------------------------
-void vtkStepperCalibrationController::ConstrLinEqForRotationAxisCalib( const std::vector< std::pair<double, double> > &listOfCenterOfRotations, 
-                                                                      const std::vector< double > &listOfClusterPositions, 
-                                                                      std::vector<vnl_vector<double>> &aMatrix, 
-                                                                      std::vector<double> &bVector)
-{
-  LOG_TRACE("vtkStepperCalibrationController::ConstrLinEqForRotationAxisCalib"); 
-  aMatrix.clear(); 
-  bVector.clear(); 
-
-  for ( unsigned int i = 0; i < listOfCenterOfRotations.size(); ++i )
-  {
-    double z = listOfClusterPositions[i]; 
-
-    // Rotation x coordinate
-    double b1 = listOfCenterOfRotations[i].first * this->GetSpacing()[0]; 
-    vnl_vector<double> a1(4,0); 
-    a1.put(0, z); 
-    a1.put(2, 1); 
-
-    bVector.push_back(b1); 
-    aMatrix.push_back(a1); 
-
-    // Rotation y coordinate
-    double b2 = listOfCenterOfRotations[i].second * this->GetSpacing()[1]; 
-    vnl_vector<double> a2(4,0); 
-    a2.put(1, z); 
-    a2.put(3, 1); 
-
-    bVector.push_back(b2); 
-    aMatrix.push_back(a2); 
-
-    LOG_DEBUG("ConstrLinEqForRotationAxisCalib (rotX, rotY, probeZ): " << b1 << "  " << b2 << "  " << z ); 
-  }
-}
-
-//----------------------------------------------------------------------------
-void vtkStepperCalibrationController::GetRotationAxisCalibrationError(const std::vector<vnl_vector<double>> &aMatrix, 
-                                                                      const std::vector<double> &bVector, 
-                                                                      const vnl_vector<double> &resultVector, 
-                                                                      std::vector<CalibStatistics> &statistics )
-{
-  LOG_TRACE("vtkStepperCalibrationController::GetRotationAxisCalibrationError"); 
-  // The coefficient matrix aMatrix should be m-by-n and the column vector bVector must have length m.
-  const int n = aMatrix.begin()->size(); 
-  const int m = bVector.size();
-  const int r = resultVector.size(); 
-
-  const int numberOfAxes(2); 
-  const double rx = resultVector[0]; 
-  const double ry = resultVector[1]; 
-  const double rx0 = resultVector[2]; 
-  const double ry0 = resultVector[3]; 
-
-
-  // calculate difference between the computed and measured position for each wire 
-  std::vector< std::vector<double> > diffVector(numberOfAxes); 
-  for( int row = 0; row < m; row = row + numberOfAxes)
-  {
-    diffVector[0].push_back( bVector[row    ] - rx0 - aMatrix[row    ].get(0) * rx ); 
-    diffVector[1].push_back( bVector[row + 1] - ry0 - aMatrix[row + 1].get(1) * ry ); 
-  }
-
-  this->ComputeStatistics(diffVector, statistics);
-}
-
-//----------------------------------------------------------------------------
-void vtkStepperCalibrationController::RemoveOutliersFromRotAxisCalibData(std::vector<vnl_vector<double>> &aMatrix, std::vector<double> &bVector, vnl_vector<double> resultVector )
-{
-  LOG_TRACE("vtkStepperCalibrationController::RemoveOutliersFromRotAxisCalibData"); 
-  // Calculate mean error and stdev of measured and computed rotation angles
-  std::vector<CalibStatistics> statistics;
-  this->GetRotationAxisCalibrationError(aMatrix, bVector, resultVector, statistics); 
-
-  const int n = aMatrix.begin()->size(); 
-  const int m = bVector.size();
-  const int r = resultVector.size(); 
-
-  const int numberOfAxes(2); 
-  const double rx = resultVector[0]; 
-  const double ry = resultVector[1]; 
-  const double rx0 = resultVector[2]; 
-  const double ry0 = resultVector[3]; 
-
-  // remove outliers
-  for( int row = m - numberOfAxes; row >= 0; row = row - numberOfAxes)
-  {
-    if (abs ( bVector[row     ] - rx0 - aMatrix[row    ].get(0) * rx - statistics[0].Mean ) >  this->OutlierDetectionThreshold * statistics[0].Stdev 
-    ||
-      abs ( bVector[row + 1] - ry0 - aMatrix[row + 1].get(1) * ry - statistics[1].Mean ) >  this->OutlierDetectionThreshold * statistics[1].Stdev 
-    )
-
-    {
-      LOG_DEBUG("Outlier found at row " << row ); 
-      aMatrix.erase(aMatrix.begin() + row, aMatrix.begin() + row + numberOfAxes); 
-      bVector.erase(bVector.begin() + row, bVector.begin() + row + numberOfAxes); 
-    }
-  }
-
-}
 
 //----------------------------------------------------------------------------
 PlusStatus vtkStepperCalibrationController::GenerateProbeRotationAxisCalibrationReport( vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter, const char* gnuplotScriptsFolder)
 {
-  if ( htmlReport == NULL || plotter == NULL )
-  {
-    LOG_ERROR("Caller should define HTML report generator and gnuplot plotter before report generation!"); 
-    return PLUS_FAIL; 
-  }
-
-  std::string plotProbeRotationAxisCalibrationErrorScript = gnuplotScriptsFolder + std::string("/PlotProbeRotationAxisCalibrationError.gnu"); 
-  if ( !vtksys::SystemTools::FileExists( plotProbeRotationAxisCalibrationErrorScript.c_str(), true) )
-  {
-    LOG_ERROR("Unable to find gnuplot script at: " << plotProbeRotationAxisCalibrationErrorScript); 
-    return PLUS_FAIL; 
-  }
-
-  if ( this->GetProbeRotationAxisCalibrated() )
-  {
-    const char* reportFile = this->GetProbeRotationAxisCalibrationErrorReportFilePath(); 
-    if ( reportFile == NULL )
-    {
-      LOG_ERROR("Failed to generate probe rotation axis calibration report - report file name is NULL!"); 
-      return PLUS_FAIL; 
-    }
-
-    if ( !vtksys::SystemTools::FileExists( reportFile, true) )
-    {
-      LOG_ERROR("Unable to find rotation axis calibration report file at: " << reportFile); 
-      return PLUS_FAIL; 
-    }
-
-    std::string title; 
-    std::string scriptOutputFilePrefixHistogram, scriptOutputFilePrefix; 
-    title = "Probe Rotation Axis Calibration Analysis"; 
-    scriptOutputFilePrefix = "PlotProbeRotationAxisCalibrationError"; 
-
-    htmlReport->AddText(title.c_str(), vtkHTMLGenerator::H1); 
-
-    std::ostringstream report; 
-    report << "Probe rotation axis orientation: " << this->GetProbeRotationAxisOrientation()[0] << "     " << this->GetProbeRotationAxisOrientation()[1] << "     " << this->GetProbeRotationAxisOrientation()[2] << "</br>" ; 
-    htmlReport->AddParagraph(report.str().c_str()); 
-
-    htmlReport->AddText("Error Plot", vtkHTMLGenerator::H2); 
-    plotter->ClearArguments(); 
-    plotter->AddArgument("-e");
-    std::ostringstream rotAxisError; 
-    rotAxisError << "f='" << reportFile << "'; o='" << scriptOutputFilePrefix << "';" << std::ends; 
-    plotter->AddArgument(rotAxisError.str().c_str()); 
-    plotter->AddArgument(plotProbeRotationAxisCalibrationErrorScript.c_str());  
-    if ( plotter->Execute() != PLUS_SUCCESS )
-    {
-      LOG_ERROR("Failed to run gnuplot executer!"); 
-      return PLUS_FAIL; 
-    }
-    plotter->ClearArguments(); 
-
-    std::ostringstream imageSourceX, imageAltX, imageSourceY, imageAltY; 
-    imageSourceX << "x_" << scriptOutputFilePrefix << ".jpg" << std::ends; 
-    imageAltX << "Probe rotation axis calibration error - X axis" << std::ends; 
-    imageSourceY << "y_" << scriptOutputFilePrefix << ".jpg" << std::ends; 
-    imageAltY << "Probe rotation axis calibration error - Y axis" << std::ends; 
-
-    htmlReport->AddImage(imageSourceX.str().c_str(), imageAltX.str().c_str()); 
-    htmlReport->AddImage(imageSourceY.str().c_str(), imageAltY.str().c_str()); 
-
-    htmlReport->AddHorizontalLine(); 
-  }
-
-  return PLUS_SUCCESS; 
-}
-
-//----------------------------------------------------------------------------
-void vtkStepperCalibrationController::SaveRotationAxisCalibrationError(
-  const std::vector<vnl_vector<double>> &aMatrix, 
-  const std::vector<double> &bVector, 
-  const vnl_vector<double> &resultVector)
-{
-
-  LOG_TRACE("vtkStepperCalibrationController::SaveRotationAxisCalibrationError"); 
-  const int numberOfAxes(2); 
-  std::ostringstream filename; 
-  std::ostringstream path; 
-
-  std::ofstream rotationAxisCalibrationError;
-  path << vtkPlusConfig::GetInstance()->GetOutputDirectory() << "/" << this->CalibrationStartTime  << ".ProbeRotationAxisCalibrationError.txt"; 
-  this->SetProbeRotationAxisCalibrationErrorReportFilePath(path.str().c_str()); 
-  rotationAxisCalibrationError.open (path.str().c_str(), ios::out);
-  rotationAxisCalibrationError << "# Probe rotation axis calibration error report" << std::endl; 
-
-  rotationAxisCalibrationError << "ProbePosition\t"
-    << "MeasuredCenterOfRotationXInImageMm\tMeasuredCenterOfRotationYInImageMm\t" 
-    << "ComputedCenterOfRotationXInImageMm\tComputedCenterOfRotationYInImageMm\t" 
-    << std::endl; 
-
-  for( int row = 0; row < bVector.size(); row = row + numberOfAxes)
-  {
-    rotationAxisCalibrationError << aMatrix[row    ].get(0) << "\t"
-      << bVector[row] << "\t" << bVector[row+1] << "\t" 
-      << resultVector[2] + aMatrix[row    ].get(0) * resultVector[0] << "\t" 
-      << resultVector[3] + aMatrix[row + 1].get(1) * resultVector[1] << "\t"
-      << std::endl; 
-  }
-
-  rotationAxisCalibrationError.close(); 
+  LOG_ERROR("TODO: call report generation from vtkRotationAxisCalibAlgo!"); 
+  return PLUS_FAIL; 
 }
 
 //***************************************************************************
@@ -977,27 +676,6 @@ PlusStatus vtkStepperCalibrationController::CalibrateTranslationAxis( IMAGE_DATA
     return PLUS_FAIL; 
   }
 
-  // Set error report file path 
-  std::ostringstream path;
-  if ( dataType == PROBE_TRANSLATION )
-  {
-    path << vtkPlusConfig::GetInstance()->GetOutputDirectory() << "/" << this->CalibrationStartTime  << ".ProbeTranslationAxisCalibrationError.txt"; 
-    this->SetProbeTranslationAxisCalibrationErrorReportFilePath(path.str().c_str()); 
-  }
-  else if ( dataType == TEMPLATE_TRANSLATION )
-  {
-    path << vtkPlusConfig::GetInstance()->GetOutputDirectory() << "/" << this->CalibrationStartTime  << ".TemplateTranslationAxisCalibrationError.txt"; 
-    this->SetTemplateTranslationAxisCalibrationErrorReportFilePath(path.str().c_str()); 
-  }
-
-  // Save report table to file 
-  vtkTable* reportTable = translationAxisCalibAlgo->GetReportTable(); 
-  if ( vtkGnuplotExecuter::DumpTableToFileInGnuplotFormat(reportTable, path.str().c_str()) != PLUS_SUCCESS)
-  {
-    LOG_ERROR("Failed to save report table to file: " << path.str().c_str()); 
-    // no need to return with PLUS_FAIL if just the report generation failed
-  }
-
   // Set translation axis orientation 
   if ( dataType == PROBE_TRANSLATION )
   {
@@ -1291,361 +969,12 @@ PlusStatus vtkStepperCalibrationController::GenerateSpacingCalculationReport( vt
   return PLUS_SUCCESS; 
 }
 
-//***************************************************************************
-//						Center of rotation calculation
-//***************************************************************************
-
-//----------------------------------------------------------------------------
-PlusStatus vtkStepperCalibrationController::CalculateCenterOfRotation( SegmentedFrameList &frameListForCenterOfRotation, double centerOfRotationPx[2], vtkTable* centerOfRotationCalculationErrorTable )
-{
-  LOG_TRACE("vtkStepperCalibrationController::CalculateCenterOfRotation"); 
-  // ====================================================================
-  // Compute the TRUS rotation center using linear least squares
-  // ====================================================================
-  // Note: the number of the distant pairs is a combination (C2)
-  // of the number of the segmented N-Fiducial_1 positions in TRUS.
-  // N in LaTeX = {NumDataPoints}^C_{2}
-  // E.g.: for 200 positions as used for thresholding here, N = 19,900.
-  // ====================================================================
-
-  std::vector< std::vector<HomogenousVector4x1> > pointSetForCenterOfRotationCalculation;
-
-  for ( int frame = 0; frame < frameListForCenterOfRotation.size(); frame++ )
-  {
-    std::vector<HomogenousVector4x1> vectorOfWirePoints; 
-
-    // Add Line #1 pixel coordinates to center of rotation point set 
-    vectorOfWirePoints.push_back( HomogenousVector4x1( frameListForCenterOfRotation[frame].SegResults.GetFoundDotsCoordinateValue()[WIRE1][0], frameListForCenterOfRotation[frame].SegResults.GetFoundDotsCoordinateValue()[WIRE1][1], 0 ) ); 
-
-    // Add Line #3 pixel coordinates to center of rotation point set 
-    vectorOfWirePoints.push_back( HomogenousVector4x1( frameListForCenterOfRotation[frame].SegResults.GetFoundDotsCoordinateValue()[WIRE3][0], frameListForCenterOfRotation[frame].SegResults.GetFoundDotsCoordinateValue()[WIRE3][1], 0 ) ); 
-
-    // Add Line #4 pixel coordinates to center of rotation point set 
-    vectorOfWirePoints.push_back( HomogenousVector4x1( frameListForCenterOfRotation[frame].SegResults.GetFoundDotsCoordinateValue()[WIRE4][0], frameListForCenterOfRotation[frame].SegResults.GetFoundDotsCoordinateValue()[WIRE4][1], 0 ) ); 
-
-    // Add Line #6 pixel coordinates to center of rotation point set 
-    vectorOfWirePoints.push_back( HomogenousVector4x1( frameListForCenterOfRotation[frame].SegResults.GetFoundDotsCoordinateValue()[WIRE6][0], frameListForCenterOfRotation[frame].SegResults.GetFoundDotsCoordinateValue()[WIRE6][1], 0 ) ); 
-
-    pointSetForCenterOfRotationCalculation.push_back(vectorOfWirePoints); 
-  }
-
-  if ( pointSetForCenterOfRotationCalculation.size() < 30 )
-  {
-    LOG_WARNING("Center of rotation calculation failed - there is not enough data (" << pointSetForCenterOfRotationCalculation.size() << " out of at least 30)!"); 
-    return PLUS_FAIL; 
-  }
-
-  // Data containers
-  std::vector<vnl_vector<double>> aMatrix;
-  std::vector<double> bVector;
-
-  for( unsigned int i = 0; i <= pointSetForCenterOfRotationCalculation.size() - 2; i++ )
-  {
-    for( unsigned int j = i + 1; j <= pointSetForCenterOfRotationCalculation.size() - 1; j++ )
-    {
-      for ( int point = 0; point < pointSetForCenterOfRotationCalculation[i].size(); point++ )
-      {
-        // coordiates of the i-th element
-        double Xi = pointSetForCenterOfRotationCalculation[i][point].GetX() * this->GetSpacing()[0]; 
-        double Yi = pointSetForCenterOfRotationCalculation[i][point].GetY() * this->GetSpacing()[1]; 
-
-        // coordiates of the j-th element
-        double Xj = pointSetForCenterOfRotationCalculation[j][point].GetX() * this->GetSpacing()[0]; 
-        double Yj = pointSetForCenterOfRotationCalculation[j][point].GetY() * this->GetSpacing()[1]; 
-
-        // Populate the list of distance
-        vnl_vector<double> rowOfDistance(2,0);
-        rowOfDistance.put(0, Xi - Xj);
-        rowOfDistance.put(1, Yi - Yj);
-        aMatrix.push_back( rowOfDistance );
-
-        // Populate the squared distance vector
-        bVector.push_back( 0.5*( Xi*Xi + Yi*Yi - Xj*Xj - Yj*Yj ));
-      }
-    }
-  }
-
-  if ( aMatrix.size() == 0 || bVector.size() == 0 )
-  {
-    LOG_WARNING("Center of rotation calculation failed, no data found!"); 
-    return PLUS_FAIL; 
-  }
-
-
-  // The TRUS rotation center in original image frame
-  // The same as the segmentation coordinating system
-  // - Origin: Left-upper corner;
-  // - Positive X: to the right;
-  // - Positive Y: to the bottom;
-  // - Units in pixels.
-  vnl_vector<double> TRUSRotationCenterInOriginalImageFrameInMm2x1(2,0);
-  if ( PlusMath::LSQRMinimize(aMatrix, bVector, TRUSRotationCenterInOriginalImageFrameInMm2x1) != PLUS_SUCCESS )
-  {
-    LOG_WARNING("Failed to run LSQRMinimize!"); 
-  }
-
-  if ( TRUSRotationCenterInOriginalImageFrameInMm2x1.empty() )
-  {
-    LOG_ERROR("Unable to calculate center of rotation! Minimizer returned empty result."); 
-    return PLUS_FAIL; 
-  }
-
-  // Calculate mean error and stdev of measured and computed distances
-  CalibStatistics statistics; 
-  this->GetCenterOfRotationCalculationError(aMatrix, bVector, TRUSRotationCenterInOriginalImageFrameInMm2x1, statistics); 
-
-  centerOfRotationPx[0] = TRUSRotationCenterInOriginalImageFrameInMm2x1.get(0) / this->GetSpacing()[0]; 
-  centerOfRotationPx[1] = TRUSRotationCenterInOriginalImageFrameInMm2x1.get(1) / this->GetSpacing()[1]; 
-
-  this->SaveCenterOfRotationCalculationError(frameListForCenterOfRotation, centerOfRotationPx, centerOfRotationCalculationErrorTable); 
-
-  return PLUS_SUCCESS; 
-}
-
-//----------------------------------------------------------------------------
-void vtkStepperCalibrationController::GetCenterOfRotationCalculationError(const std::vector<vnl_vector<double>> &aMatrix, 
-                                                                          const std::vector<double> &bVector, 
-                                                                          const vnl_vector<double> &resultVector, 
-                                                                          CalibStatistics &statistics ) 
-{
-  LOG_TRACE("vtkStepperCalibrationController::GetCenterOfRotationCalculationError"); 
-  // The coefficient matrix aMatrix should be m-by-n and the column vector bVector must have length m.
-  const int n = aMatrix.begin()->size(); 
-  const int m = bVector.size();
-  const int r = resultVector.size(); 
-
-  const double centerOfRotationX = resultVector[0]; 
-  const double centerOfRotationY = resultVector[1]; 
-
-  // calculate difference between the computed and measured angles
-  std::vector< std::vector<double> > diffVector;
-  std::vector<double> diff; 
-  for( int row = 0; row < m; row++ )
-  {
-    diff.push_back( bVector[row] - aMatrix[row].get(0) * centerOfRotationX - aMatrix[row].get(1) * centerOfRotationY ); 
-  }
-  diffVector.push_back(diff); 
-
-  std::vector<CalibStatistics> stat; 
-  this->ComputeStatistics(diffVector, stat); 
-
-  // calculate mean of difference 
-  if ( !stat.empty() )
-  {
-    statistics = stat[0]; 
-  }
-}
-
-//----------------------------------------------------------------------------
-void vtkStepperCalibrationController::RemoveOutliersFromCenterOfRotCalcData(std::vector<vnl_vector<double>> &aMatrix, 
-                                                                            std::vector<double> &bVector, 
-                                                                            const vnl_vector<double> &resultVector )
-{
-  LOG_TRACE("vtkStepperCalibrationController::RemoveOutliersFromCenterOfRotCalcData"); 
-  // Calculate mean error and stdev of measured and computed rotation angles
-  CalibStatistics statistics; 
-  this->GetCenterOfRotationCalculationError(aMatrix, bVector, resultVector, statistics); 
-
-  const int n = aMatrix.begin()->size(); 
-  const int m = bVector.size();
-  const int r = resultVector.size(); 
-
-  const double centerOfRotationX = resultVector[0]; 
-  const double centerOfRotationY = resultVector[1];  
-
-  // remove outliers
-  for( int row = m - 1; row >= 0; row--)
-  {
-    if ( abs (bVector[row] - aMatrix[row].get(0) * centerOfRotationX - aMatrix[row].get(1) * centerOfRotationY - statistics.Mean ) >  this->OutlierDetectionThreshold * statistics.Stdev ) 
-    {
-      LOG_TRACE("Outlier found at row " << row ); 
-      aMatrix.erase(aMatrix.begin() + row); 
-      bVector.erase(bVector.begin() + row); 
-    }
-  }
-}
-
-//----------------------------------------------------------------------------
-void vtkStepperCalibrationController::SaveCenterOfRotationCalculationError(SegmentedFrameList &frameListForCenterOfRotation, 
-                                                                           const double centerOfRotationPx[2], 
-                                                                           vtkTable* centerOfRotationCalculationErrorTable /*=NULL*/ )
-{
-  LOG_TRACE("vtkStepperCalibrationController::SaveCenterOfRotationCalculationError"); 
-
-  if ( centerOfRotationCalculationErrorTable == NULL ) 
-  {
-    LOG_DEBUG("No need to generate center of rotation calculation error table!"); 
-    return; 
-  }
-
-  if ( centerOfRotationCalculationErrorTable->GetNumberOfColumns() == 0 )
-  {
-    const char* colProbePositionName = "ProbePosition"; 
-    vtkSmartPointer<vtkDoubleArray> colProbePosition = vtkSmartPointer<vtkDoubleArray>::New(); 
-    colProbePosition->SetName(colProbePositionName); 
-    centerOfRotationCalculationErrorTable->AddColumn(colProbePosition); 
-
-    const char* colProbeRotationName = "ProbeRotation"; 
-    vtkSmartPointer<vtkDoubleArray> colProbeRotation = vtkSmartPointer<vtkDoubleArray>::New();
-    colProbeRotation->SetName(colProbeRotationName); 
-    centerOfRotationCalculationErrorTable->AddColumn(colProbeRotation); 
-
-    const char* colTemplatePositionName = "TemplatePosition"; 
-    vtkSmartPointer<vtkDoubleArray> colTemplatePosition = vtkSmartPointer<vtkDoubleArray>::New(); 
-    colTemplatePosition->SetName(colTemplatePositionName); 
-    centerOfRotationCalculationErrorTable->AddColumn(colTemplatePosition); 
-
-    const char* colW1RadiusName = "Wire#1Radius"; 
-    vtkSmartPointer<vtkDoubleArray> colW1Radius = vtkSmartPointer<vtkDoubleArray>::New(); 
-    colW1Radius->SetName(colW1RadiusName); 
-    centerOfRotationCalculationErrorTable->AddColumn(colW1Radius); 
-
-    const char* colW3RadiusName = "Wire#3Radius"; 
-    vtkSmartPointer<vtkDoubleArray> colW3Radius = vtkSmartPointer<vtkDoubleArray>::New(); 
-    colW3Radius->SetName(colW3RadiusName); 
-    centerOfRotationCalculationErrorTable->AddColumn(colW3Radius); 
-
-    const char* colW4RadiusName = "Wire#4Radius"; 
-    vtkSmartPointer<vtkDoubleArray> colW4Radius = vtkSmartPointer<vtkDoubleArray>::New(); 
-    colW4Radius->SetName(colW4RadiusName); 
-    centerOfRotationCalculationErrorTable->AddColumn(colW4Radius); 
-
-    const char* colW6RadiusName = "Wire#6Radius"; 
-    vtkSmartPointer<vtkDoubleArray> colW6Radius = vtkSmartPointer<vtkDoubleArray>::New(); 
-    colW6Radius->SetName(colW6RadiusName); 
-    centerOfRotationCalculationErrorTable->AddColumn(colW6Radius); 
-
-  }
-
-  const double sX = this->GetSpacing()[0]; 
-  const double sY = this->GetSpacing()[1]; 
-
-  for ( unsigned int i = 0; i < frameListForCenterOfRotation.size(); i++ )
-  {
-    vtkSmartPointer<vtkVariantArray> tableRow = vtkSmartPointer<vtkVariantArray>::New(); 
-
-    double probePos(0), probeRot(0), templatePos(0); 
-    if ( !vtkBrachyTracker::GetStepperEncoderValues(frameListForCenterOfRotation[i].TrackedFrameInfo, probePos, probeRot, templatePos) )
-    {
-      LOG_WARNING("SaveCenterOfRotationCalculationError: Unable to get probe position from tracked frame info for frame #" << i); 
-      continue; 
-    }
-
-    tableRow->InsertNextValue(probePos); 
-    tableRow->InsertNextValue(probeRot); 
-    tableRow->InsertNextValue(templatePos); 
-
-    // Compute radius from Wire #1, #3, #4, #6
-    double w1x = frameListForCenterOfRotation[i].SegResults.GetFoundDotsCoordinateValue()[WIRE1][0]; 
-    double w1y = frameListForCenterOfRotation[i].SegResults.GetFoundDotsCoordinateValue()[WIRE1][1]; 
-
-    double w3x = frameListForCenterOfRotation[i].SegResults.GetFoundDotsCoordinateValue()[WIRE3][0]; 
-    double w3y = frameListForCenterOfRotation[i].SegResults.GetFoundDotsCoordinateValue()[WIRE3][1]; 
-
-    double w4x = frameListForCenterOfRotation[i].SegResults.GetFoundDotsCoordinateValue()[WIRE4][0]; 
-    double w4y = frameListForCenterOfRotation[i].SegResults.GetFoundDotsCoordinateValue()[WIRE4][1]; 
-
-    double w6x = frameListForCenterOfRotation[i].SegResults.GetFoundDotsCoordinateValue()[WIRE6][0]; 
-    double w6y = frameListForCenterOfRotation[i].SegResults.GetFoundDotsCoordinateValue()[WIRE6][1]; 
-
-    tableRow->InsertNextValue( sqrt( pow( (w1x - centerOfRotationPx[0])*sX, 2) + pow((w1y - centerOfRotationPx[1])*sY, 2) ) ); 
-    tableRow->InsertNextValue( sqrt( pow( (w3x - centerOfRotationPx[0])*sX, 2) + pow((w3y - centerOfRotationPx[1])*sY, 2) ) ); 
-    tableRow->InsertNextValue( sqrt( pow( (w4x - centerOfRotationPx[0])*sX, 2) + pow((w4y - centerOfRotationPx[1])*sY, 2) ) ); 
-    tableRow->InsertNextValue( sqrt( pow( (w6x - centerOfRotationPx[0])*sX, 2) + pow((w6y - centerOfRotationPx[1])*sY, 2) ) ); 
-
-    if ( tableRow->GetNumberOfTuples() == centerOfRotationCalculationErrorTable->GetNumberOfColumns() )
-    {
-      centerOfRotationCalculationErrorTable->InsertNextRow(tableRow); 
-    }
-    else
-    {
-      LOG_WARNING("Unable to insert new row to center of rotation error table, number of columns are different (" << tableRow->GetNumberOfTuples() << " vs. " << centerOfRotationCalculationErrorTable->GetNumberOfColumns() << ")."); 
-    }
-
-  }
-}
-
 
 //----------------------------------------------------------------------------
 PlusStatus vtkStepperCalibrationController::GenerateCenterOfRotationReport( vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter, const char* gnuplotScriptsFolder)
 {
-  if ( htmlReport == NULL || plotter == NULL )
-  {
-    LOG_ERROR("Caller should define HTML report generator and gnuplot plotter before report generation!"); 
-    return PLUS_FAIL; 
-  }
-
-  std::string plotCenterOfRotCalcErrorScript = gnuplotScriptsFolder + std::string("/PlotCenterOfRotationCalculationError.gnu"); 
-  if ( !vtksys::SystemTools::FileExists( plotCenterOfRotCalcErrorScript.c_str(), true) )
-  {
-    LOG_ERROR("Unable to find gnuplot script at: " << plotCenterOfRotCalcErrorScript); 
-    return PLUS_FAIL;  
-  }
-
-  if ( this->GetCenterOfRotationCalculated() )
-  {
-    const char * reportFile = this->GetCenterOfRotationCalculationErrorReportFilePath();
-
-    if ( reportFile == NULL )
-    {
-      LOG_ERROR("Failed to generate center of rotation report - report file name is NULL!"); 
-      return PLUS_FAIL; 
-    }
-
-    if ( !vtksys::SystemTools::FileExists( reportFile, true) )
-    {
-      LOG_ERROR("Unable to find center of rotation calculation report file at: " << reportFile); 
-      return PLUS_FAIL; 
-    }
-
-    std::string title; 
-    std::string scriptOutputFilePrefixHistogram, scriptOutputFilePrefix; 
-    title = "Center of Rotation Calculation Analysis"; 
-    scriptOutputFilePrefix = "CenterOfRotationCalculationError"; 
-
-    htmlReport->AddText(title.c_str(), vtkHTMLGenerator::H1); 
-
-    std::ostringstream report; 
-    report << "Center of rotation (px): " << this->GetCenterOfRotationPx()[0] << "     " << this->GetCenterOfRotationPx()[1] << "</br>" ; 
-    report << "Phantom to probe distance (mm): " << this->GetPhantomToProbeDistanceInMm()[0] << "     " << this->GetPhantomToProbeDistanceInMm()[1] << "</br>"; 
-    //report << "Mean: " << this->CenterOfRotationCalculationStat.Mean << "     Stdev: " << this->CenterOfRotationCalculationStat.Stdev 
-    //  << "     Min: " << this->CenterOfRotationCalculationStat.Min << "     Max: " << this->CenterOfRotationCalculationStat.Max;  
-    htmlReport->AddParagraph(report.str().c_str()); 
-
-    const int wires[4] = {1, 3, 4, 6}; 
-
-    for ( int i = 0; i < 4; i++ )
-    {
-      std::ostringstream wireName; 
-      wireName << "Wire #" << wires[i] << std::ends; 
-      htmlReport->AddText(wireName.str().c_str(), vtkHTMLGenerator::H3); 
-      plotter->ClearArguments(); 
-      plotter->AddArgument("-e");
-      std::ostringstream centerOfRotCalcError; 
-      centerOfRotCalcError << "f='" << reportFile << "'; o='" << scriptOutputFilePrefix << "'; w=" << wires[i] << std::ends; 
-      plotter->AddArgument(centerOfRotCalcError.str().c_str()); 
-      plotter->AddArgument(plotCenterOfRotCalcErrorScript.c_str());  
-      if ( plotter->Execute() != PLUS_SUCCESS )
-      {
-        LOG_ERROR("Failed to run gnuplot executer!"); 
-        return PLUS_FAIL; 
-      }
-      plotter->ClearArguments(); 
-
-      std::ostringstream imageSource; 
-      std::ostringstream imageAlt; 
-      imageSource << "w" << wires[i] << "_CenterOfRotationCalculationError.jpg" << std::ends; 
-      imageAlt << "Center of rotation calculation error - wire #" << wires[i] << std::ends; 
-
-      htmlReport->AddImage(imageSource.str().c_str(), imageAlt.str().c_str()); 
-    }
-  }
-  else
-  {
-    LOG_WARNING("Generate center of rotation report failed - center of rotation not yet calulated!"); 
-  }
-  
-  return PLUS_SUCCESS;
+  LOG_ERROR("TODO: call report generation from vtkRotationAxisCalibAlgo!"); 
+  return PLUS_FAIL;
 }
 
 
