@@ -174,9 +174,11 @@ int main(int argc, char **argv)
 
   vtkSmartPointer<vtkXMLDataElement> xmlBaseline = vtkXMLUtilities::ReadElementFromFile(inputBaselineFileName.c_str()); 
   vtkXMLDataElement* xmlRotationAxisCalibrationBaseline = NULL; 
+  vtkXMLDataElement* xmlCenterOfRotationCalibrationBaseline = NULL; 
   if ( xmlBaseline != NULL )
   {
     xmlRotationAxisCalibrationBaseline = xmlBaseline->FindNestedElementWithName("RotationAxisCalibrationResult"); 
+    xmlCenterOfRotationCalibrationBaseline = xmlBaseline->FindNestedElementWithName("CenterOfRotationCalibrationResult"); 
   }
   else
   {
@@ -206,6 +208,64 @@ int main(int argc, char **argv)
       {
         LOG_ERROR("Rotation axis orientation differ from baseline: current(" << rotationAxisOrientation[0] << ", " << rotationAxisOrientation[1] << ", " << rotationAxisOrientation[2] 
         << ") base (" << baseRotationAxisOrientation[0] << ", " << baseRotationAxisOrientation[1] << ", " << baseRotationAxisOrientation[2] <<  ")."); 
+        numberOfFailures++;
+      }
+    }
+
+    // Compare errorMean 
+    double baseErrorMean=0; 
+    if ( !xmlRotationAxisCalibrationBaseline->GetScalarAttribute("ErrorMean", baseErrorMean) )
+    {
+      LOG_ERROR("Unable to find ErrorMean XML data element in baseline."); 
+      numberOfFailures++; 
+    }
+    else
+    {
+      if ( fabs(baseErrorMean - errorMean) > DOUBLE_DIFF )
+      {
+        LOG_ERROR("Rotation axis calibration mean error differ from baseline: current(" << errorMean << ") base (" << baseErrorMean << ")."); 
+        numberOfFailures++;
+      }
+    }
+
+    // Compare errorStdev
+    double baseErrorStdev=0; 
+    if ( !xmlRotationAxisCalibrationBaseline->GetScalarAttribute("ErrorStdev", baseErrorStdev) )
+    {
+      LOG_ERROR("Unable to find ErrorStdev XML data element in baseline."); 
+      numberOfFailures++; 
+    }
+    else
+    {
+      if ( fabs(baseErrorStdev - errorStdev) > DOUBLE_DIFF )
+      {
+        LOG_ERROR("Rotation axis calibration stdev of error differ from baseline: current(" << errorStdev << ") base (" << baseErrorStdev << ")."); 
+        numberOfFailures++;
+      }
+    }
+  }
+
+  if ( xmlCenterOfRotationCalibrationBaseline == NULL )
+  {
+    LOG_ERROR("Unable to find CenterOfRotationCalibrationResult XML data element in baseline: " << inputBaselineFileName); 
+    numberOfFailures++; 
+  }
+  else
+  {
+    // Compare CenterOfRotationPx to baseline 
+    double baseCenterOfRotationPx[2]={0}; 
+    if ( !xmlCenterOfRotationCalibrationBaseline->GetVectorAttribute( "CenterOfRotationPx", 2, baseCenterOfRotationPx) )
+    {
+      LOG_ERROR("Unable to find CenterOfRotationPx XML data element in baseline."); 
+      numberOfFailures++; 
+    }
+    else
+    {
+      if ( fabs(baseCenterOfRotationPx[0] - centerofRotationInPx[0]) > DOUBLE_DIFF 
+        || fabs(baseCenterOfRotationPx[1] - centerofRotationInPx[1]) > DOUBLE_DIFF )
+      {
+        LOG_ERROR("Center of rotation result in pixel differ from baseline: current(" << centerofRotationInPx[0] << ", " << centerofRotationInPx[1] 
+        << ") base (" << baseCenterOfRotationPx[0] << ", " << baseCenterOfRotationPx[1] << ")."); 
         numberOfFailures++;
       }
     }
