@@ -147,7 +147,7 @@ IF (PLUS_USE_BRACHY_TRACKER)
             --input-gnuplot-scripts-folder=${PlusLib_SOURCE_DIR}/src/scripts/gnuplot
             --input-gnuplot-command=${GNUPLOT_BIN_DIR}/gnuplot.exe
             )
-    SET_TESTS_PROPERTIES( vtkFreehandCalibrationTest-Exact PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+    SET_TESTS_PROPERTIES( ProbeTranslationAxisCalibration-Ulterius PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
     ADD_TEST(TemplateTranslationAxisCalibration-Ulterius
             ${EXECUTABLE_OUTPUT_PATH}/vtkTranslAxisCalibAlgoTest
@@ -158,7 +158,7 @@ IF (PLUS_USE_BRACHY_TRACKER)
             --input-gnuplot-scripts-folder=${PlusLib_SOURCE_DIR}/src/scripts/gnuplot
             --input-gnuplot-command=${GNUPLOT_BIN_DIR}/gnuplot.exe
             )
-    SET_TESTS_PROPERTIES( vtkFreehandCalibrationTest-Exact PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+    SET_TESTS_PROPERTIES( TemplateTranslationAxisCalibration-Ulterius PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 ENDIF ()
 
 #--------------------------------------------------------------------------------------------
@@ -166,15 +166,15 @@ IF (PLUS_USE_BRACHY_TRACKER)
     ADD_EXECUTABLE(vtkRotationAxisCalibAlgoTest vtkRotationAxisCalibAlgoTest.cxx)
     TARGET_LINK_LIBRARIES(vtkRotationAxisCalibAlgoTest vtkPlusCommon vtkTrusCalibration vtkImageAcquisition )
 
-    # ADD_TEST(ProbeRotationAxisCalibration-Ulterius
-            # ${EXECUTABLE_OUTPUT_PATH}/vtkRotationAxisCalibAlgoTest
-            # --input-config-file-name=${ConfigFilesDir}/Test_PlusConfiguration_CalibrationOnly_SonixRP_Ulterius_iCal.xml 
-            # --input-rotation-sequence-metafile=${TestDataDir}/USTC_Ulterius_ProbeRotationData.mha
-            # --input-baseline-file-name=${TestDataDir}/USTC_Ulterius_StepperCalibrationResultBaseline.xml
-            # --input-gnuplot-scripts-folder=${PlusLib_SOURCE_DIR}/src/scripts/gnuplot
-            # --input-gnuplot-command=${GNUPLOT_BIN_DIR}/gnuplot.exe
-            # )
-    # SET_TESTS_PROPERTIES( vtkFreehandCalibrationTest-Exact PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+    ADD_TEST(ProbeRotationAxisCalibration-Ulterius
+            ${EXECUTABLE_OUTPUT_PATH}/vtkRotationAxisCalibAlgoTest
+            --input-config-file-name=${ConfigFilesDir}/Test_PlusConfiguration_CalibrationOnly_SonixRP_Ulterius_iCal.xml 
+            --input-rotation-sequence-metafile=${TestDataDir}/RotationAxisCalibrationData-Ulterius.mha 
+            --input-baseline-file-name=${TestDataDir}/RotationAxisCalibrationData-Ulterius_Baseline.xml 
+            --input-gnuplot-scripts-folder=${PlusLib_SOURCE_DIR}/src/scripts/gnuplot
+            --input-gnuplot-command=${GNUPLOT_BIN_DIR}/gnuplot.exe
+            )
+    SET_TESTS_PROPERTIES( ProbeRotationAxisCalibration-Ulterius PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 ENDIF () 
 
 #--------------------------------------------------------------------------------------------
@@ -190,6 +190,6 @@ IF (PLUS_USE_BRACHY_TRACKER)
             --input-gnuplot-scripts-folder=${PlusLib_SOURCE_DIR}/src/scripts/gnuplot
             --input-gnuplot-command=${GNUPLOT_BIN_DIR}/gnuplot.exe
             )
-    SET_TESTS_PROPERTIES( vtkFreehandCalibrationTest-Exact PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+    SET_TESTS_PROPERTIES( CenterOfRotationCalibration-Ulterius PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 ENDIF ()
 

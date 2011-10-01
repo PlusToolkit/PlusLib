@@ -265,11 +265,29 @@ PlusStatus vtkCenterOfRotationCalibAlgo::UpdateReportTable()
     this->AddNewColumnToReportTable("Wire#1Radius"); 
     this->AddNewColumnToReportTable("Wire#3Radius"); 
     this->AddNewColumnToReportTable("Wire#4Radius"); 
-    this->AddNewColumnToReportTable("Wire#6Radius"); 
+    this->AddNewColumnToReportTable("Wire#6Radius");
+    this->AddNewColumnToReportTable("Wire#1RadiusDistanceFromMean"); 
+    this->AddNewColumnToReportTable("Wire#3RadiusDistanceFromMean"); 
+    this->AddNewColumnToReportTable("Wire#4RadiusDistanceFromMean"); 
+    this->AddNewColumnToReportTable("Wire#6RadiusDistanceFromMean");
+    this->AddNewColumnToReportTable("w1xPx"); 
+    this->AddNewColumnToReportTable("w1yPx"); 
+    this->AddNewColumnToReportTable("w3xPx"); 
+    this->AddNewColumnToReportTable("w3yPx"); 
+    this->AddNewColumnToReportTable("w4xPx"); 
+    this->AddNewColumnToReportTable("w4yPx");
+    this->AddNewColumnToReportTable("w6xPx"); 
+    this->AddNewColumnToReportTable("w6yPx"); 
   }
 
   const double sX = this->Spacing[0]; 
   const double sY = this->Spacing[1]; 
+
+  std::vector<double> probePosVector; 
+  std::vector<double> probeRotVector; 
+  std::vector<double> templatePosVector; 
+  std::vector<std::vector<double>> wireRadiusVector(4); 
+  std::vector<std::vector<double>> wirePositions(8); 
 
   for ( unsigned int i = 0; i < this->TrackedFrameListIndices.size(); i++ )
   {
@@ -289,12 +307,11 @@ PlusStatus vtkCenterOfRotationCalibAlgo::UpdateReportTable()
       LOG_WARNING("Unable to get probe position from tracked frame info for frame #" << frameNumber); 
       continue; 
     }
+    probePosVector.push_back(probePos); 
+    probeRotVector.push_back(probeRot); 
+    templatePosVector.push_back(templatePos); 
 
-    vtkSmartPointer<vtkVariantArray> tableRow = vtkSmartPointer<vtkVariantArray>::New(); 
-    tableRow->InsertNextValue(probePos); 
-    tableRow->InsertNextValue(probeRot); 
-    tableRow->InsertNextValue(templatePos); 
-    
+  
     // TODO: it works only with double N phantom 
     // Compute radius from Wire #1, #3, #4, #6
     double w1x = frame->GetFiducialPointsCoordinatePx()->GetPoint(0)[0]; 
@@ -309,10 +326,71 @@ PlusStatus vtkCenterOfRotationCalibAlgo::UpdateReportTable()
     double w6x = frame->GetFiducialPointsCoordinatePx()->GetPoint(5)[0]; 
     double w6y = frame->GetFiducialPointsCoordinatePx()->GetPoint(5)[1]; 
 
-    tableRow->InsertNextValue( sqrt( pow( (w1x - this->CenterOfRotationPx[0])*sX, 2) + pow((w1y - this->CenterOfRotationPx[1])*sY, 2) ) ); 
-    tableRow->InsertNextValue( sqrt( pow( (w3x - this->CenterOfRotationPx[0])*sX, 2) + pow((w3y - this->CenterOfRotationPx[1])*sY, 2) ) ); 
-    tableRow->InsertNextValue( sqrt( pow( (w4x - this->CenterOfRotationPx[0])*sX, 2) + pow((w4y - this->CenterOfRotationPx[1])*sY, 2) ) ); 
-    tableRow->InsertNextValue( sqrt( pow( (w6x - this->CenterOfRotationPx[0])*sX, 2) + pow((w6y - this->CenterOfRotationPx[1])*sY, 2) ) ); 
+    wirePositions[0].push_back(w1x); 
+    wirePositions[1].push_back(w1y); 
+    wirePositions[2].push_back(w3x); 
+    wirePositions[3].push_back(w3y); 
+    wirePositions[4].push_back(w4x); 
+    wirePositions[5].push_back(w4y); 
+    wirePositions[6].push_back(w6x); 
+    wirePositions[7].push_back(w6y); 
+
+    double w1Radius = sqrt( pow( (w1x - this->CenterOfRotationPx[0])*sX, 2) + pow((w1y - this->CenterOfRotationPx[1])*sY, 2) ); 
+    double w3Radius = sqrt( pow( (w3x - this->CenterOfRotationPx[0])*sX, 2) + pow((w3y - this->CenterOfRotationPx[1])*sY, 2) ); 
+    double w4Radius = sqrt( pow( (w4x - this->CenterOfRotationPx[0])*sX, 2) + pow((w4y - this->CenterOfRotationPx[1])*sY, 2) ); 
+    double w6Radius = sqrt( pow( (w6x - this->CenterOfRotationPx[0])*sX, 2) + pow((w6y - this->CenterOfRotationPx[1])*sY, 2) ); 
+
+    wireRadiusVector[0].push_back(w1Radius); 
+    wireRadiusVector[1].push_back(w3Radius); 
+    wireRadiusVector[2].push_back(w4Radius); 
+    wireRadiusVector[3].push_back(w6Radius); 
+  }
+
+  const int numberOfElements = wireRadiusVector[0].size(); 
+  std::vector<double> wireRadiusMean(4, 0);
+  
+  for ( int i = 0; i < numberOfElements; ++i )
+  {
+    wireRadiusMean[0] += wireRadiusVector[0][i] / (1.0 * numberOfElements); 
+    wireRadiusMean[1] += wireRadiusVector[1][i] / (1.0 * numberOfElements); 
+    wireRadiusMean[2] += wireRadiusVector[2][i] / (1.0 * numberOfElements); 
+    wireRadiusMean[3] += wireRadiusVector[3][i] / (1.0 * numberOfElements); 
+  }
+
+  std::vector<std::vector<double>> wireDistancesFromMeanRadius(4);
+  for ( int i = 0; i < numberOfElements; ++i ) 
+  {
+    wireDistancesFromMeanRadius[0].push_back( wireRadiusMean[0] - wireRadiusVector[0][i] ); 
+    wireDistancesFromMeanRadius[1].push_back( wireRadiusMean[1] - wireRadiusVector[1][i] ); 
+    wireDistancesFromMeanRadius[2].push_back( wireRadiusMean[2] - wireRadiusVector[2][i] ); 
+    wireDistancesFromMeanRadius[3].push_back( wireRadiusMean[3] - wireRadiusVector[3][i] ); 
+  }
+
+  for ( int row = 0; row < numberOfElements; ++row )
+  {
+    vtkSmartPointer<vtkVariantArray> tableRow = vtkSmartPointer<vtkVariantArray>::New(); 
+    tableRow->InsertNextValue(probePosVector[row]); //ProbePosition
+    tableRow->InsertNextValue(probeRotVector[row]); //ProbeRotation
+    tableRow->InsertNextValue(templatePosVector[row]); //TemplatePosition
+
+    tableRow->InsertNextValue( wireRadiusVector[0][row] ); //Wire#1Radius
+    tableRow->InsertNextValue( wireRadiusVector[1][row] ); //Wire#3Radius
+    tableRow->InsertNextValue( wireRadiusVector[2][row] ); //Wire#4Radius
+    tableRow->InsertNextValue( wireRadiusVector[3][row] ); //Wire#6Radius
+
+    tableRow->InsertNextValue( wireDistancesFromMeanRadius[0][row] ); //Wire#1RadiusDistanceFromMean
+    tableRow->InsertNextValue( wireDistancesFromMeanRadius[1][row] ); //Wire#3RadiusDistanceFromMean
+    tableRow->InsertNextValue( wireDistancesFromMeanRadius[2][row] ); //Wire#4RadiusDistanceFromMean
+    tableRow->InsertNextValue( wireDistancesFromMeanRadius[3][row] ); //Wire#6RadiusDistanceFromMean
+
+    tableRow->InsertNextValue(wirePositions[0][row]); //w1xPx
+    tableRow->InsertNextValue(wirePositions[1][row]); //w1yPx
+    tableRow->InsertNextValue(wirePositions[2][row]); //w3xPx
+    tableRow->InsertNextValue(wirePositions[3][row]); //w3yPx
+    tableRow->InsertNextValue(wirePositions[4][row]); //w4xPx
+    tableRow->InsertNextValue(wirePositions[5][row]); //w4yPx
+    tableRow->InsertNextValue(wirePositions[6][row]); //w6xPx
+    tableRow->InsertNextValue(wirePositions[7][row]); //w6yPx
 
     if ( tableRow->GetNumberOfTuples() == this->ReportTable->GetNumberOfColumns() )
     {
@@ -410,6 +488,13 @@ PlusStatus vtkCenterOfRotationCalibAlgo::GenerateCenterOfRotationReport( vtkHTML
     return PLUS_FAIL; 
   }
 
+  std::string plotCenterOfRotCalcErrorHistogramScript = gnuplotScriptsFolder + std::string("/PlotCenterOfRotationCalculationErrorHistogram.gnu"); 
+  if ( !vtksys::SystemTools::FileExists( plotCenterOfRotCalcErrorHistogramScript.c_str(), true) )
+  {
+    LOG_ERROR("Unable to find gnuplot script at: " << plotCenterOfRotCalcErrorHistogramScript); 
+    return PLUS_FAIL; 
+  }
+
   // Generate report files from table 
   std::string reportFile = std::string(vtkPlusConfig::GetInstance()->GetOutputDirectory()) + std::string("/CenterOfRotationCalculationError.txt");
   if ( vtkGnuplotExecuter::DumpTableToFileInGnuplotFormat( reportTable, reportFile.c_str()) != PLUS_SUCCESS )
@@ -427,6 +512,7 @@ PlusStatus vtkCenterOfRotationCalibAlgo::GenerateCenterOfRotationReport( vtkHTML
 
   std::string title = "Center of Rotation Calculation Analysis"; 
   std::string scriptOutputFilePrefix = "CenterOfRotationCalculationError"; 
+  std::string scriptOutputFilePrefixHistogram = "CenterOfRotationCalculationErrorHistogram"; 
 
   htmlReport->AddText(title.c_str(), vtkHTMLGenerator::H1); 
 
@@ -454,12 +540,32 @@ PlusStatus vtkCenterOfRotationCalibAlgo::GenerateCenterOfRotationReport( vtkHTML
     }
     plotter->ClearArguments(); 
 
+    // Generate histogram 
+    plotter->ClearArguments(); 
+    plotter->AddArgument("-e");
+    std::ostringstream centerOfRotCalcErrorHistogram; 
+    centerOfRotCalcErrorHistogram << "f='" << reportFile << "'; o='" << scriptOutputFilePrefixHistogram << "'; w=" << wires[i] << std::ends; 
+    plotter->AddArgument(centerOfRotCalcErrorHistogram.str().c_str()); 
+    plotter->AddArgument(plotCenterOfRotCalcErrorHistogramScript.c_str());  
+    if ( plotter->Execute() != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Failed to run gnuplot executer!"); 
+      return PLUS_FAIL; 
+    }
+    plotter->ClearArguments(); 
+
     std::ostringstream imageSource; 
     std::ostringstream imageAlt; 
     imageSource << "w" << wires[i] << "_CenterOfRotationCalculationError.jpg" << std::ends; 
     imageAlt << "Center of rotation calculation error - wire #" << wires[i] << std::ends; 
 
     htmlReport->AddImage(imageSource.str().c_str(), imageAlt.str().c_str()); 
+
+    std::ostringstream imageSourceHistogram; 
+    std::ostringstream imageAltHistogram; 
+    imageSourceHistogram << "w" << wires[i] << "_CenterOfRotationCalculationErrorHistogram.jpg" << std::ends; 
+    imageAltHistogram << "Center of rotation calculation error histogram - wire #" << wires[i] << std::ends; 
+    htmlReport->AddImage(imageSourceHistogram.str().c_str(), imageAltHistogram.str().c_str()); 
   }
 
   htmlReport->AddHorizontalLine(); 

@@ -169,6 +169,13 @@ PlusStatus vtkRotationAxisCalibAlgo::Update()
       continue; 
     }
 
+    // Skip cluster if there is not enough data 
+    if ( clusterOfIndices[cluster].size() < 30 )
+    {
+      LOG_DEBUG("Number of frames in the cluster is less than 30 for cluster #" << cluster << " at " << std::fixed << clusterPosition << " mm."); 
+      continue; 
+    }
+
     double centerOfRotationPx[2] = {0, 0}; 
     vtkSmartPointer<vtkCenterOfRotationCalibAlgo> centerOfRotationCalibAlgo = vtkSmartPointer<vtkCenterOfRotationCalibAlgo>::New(); 
     centerOfRotationCalibAlgo->SetInputs(this->TrackedFrameList, clusterOfIndices[cluster], this->Spacing ); 
