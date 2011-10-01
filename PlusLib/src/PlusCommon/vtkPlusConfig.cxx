@@ -48,7 +48,9 @@ vtkPlusConfig::vtkPlusConfig()
 	this->SetDeviceSetConfigurationFileName("");
   this->SetApplicationConfigurationFileName("PlusConfig.xml");
   this->SetEditorApplicationExecutable("notepad.exe");
-  this->SetOutputDirectory("");
+
+  // Set output directory to the cwd/Output folder by default 
+  this->SetOutputDirectory(vtksys::SystemTools::CollapseFullPath("./Output").c_str());
 }
 
 //-----------------------------------------------------------------------------

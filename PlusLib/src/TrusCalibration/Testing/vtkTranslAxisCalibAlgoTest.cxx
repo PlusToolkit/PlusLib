@@ -1,5 +1,6 @@
 #include "PlusConfigure.h"
 #include "vtksys/CommandLineArguments.hxx"
+#include "vtksys/SystemTools.hxx"
 #include "vtkXMLDataElement.h"
 #include "vtkXMLUtilities.h"
 #include "FidPatternRecognition.h"
@@ -64,6 +65,13 @@ int main(int argc, char **argv)
   vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
   vtkPlusLogger::Instance()->SetDisplayLogLevel(verboseLevel);
 
+  std::string programPath("./"), errorMsg; 
+	if ( !vtksys::SystemTools::FindProgramPath(argv[0], programPath, errorMsg) )
+	{
+		LOG_ERROR(errorMsg); 
+	}
+	programPath = vtksys::SystemTools::GetParentDirectory(programPath.c_str()); 
+
 
   if ( STRCASECMP(inputStrDataType.c_str(), "TEMPLATE_TRANSLATION") == 0 )
   {
@@ -92,6 +100,9 @@ int main(int argc, char **argv)
     LOG_ERROR("Unable to read configuration from file " << inputConfigFileName.c_str()); 
 		exit(EXIT_FAILURE);
   }
+
+  vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationData(configRootElement);
+  vtkPlusConfig::GetInstance()->SetProgramPath(programPath.c_str());
 
 	FidPatternRecognition patternRecognition; 
 	patternRecognition.ReadConfiguration(configRootElement);
