@@ -404,7 +404,7 @@ vtkDisplayableTool* vtkToolVisualizer::GetDisplayableTool(TRACKER_TOOL_TYPE aTyp
 
 //-----------------------------------------------------------------------------
 
-TrackerStatus vtkToolVisualizer::AcquireTrackerPositionForToolByType(TRACKER_TOOL_TYPE aType, vtkSmartPointer<vtkMatrix4x4> aOutputMatrix, bool aCalibrated)
+TrackerStatus vtkToolVisualizer::AcquireTrackerPositionForToolByType(TRACKER_TOOL_TYPE aType, vtkSmartPointer<vtkMatrix4x4> aOutputMatrix, bool aCalibrated/* = false*/)
 {
 	//LOG_TRACE("vtkToolVisualizer::AcquireTrackerPositionForToolByType");
 

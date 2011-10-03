@@ -108,10 +108,9 @@ void PhantomRegistrationToolbox::Initialize()
     if ((stylusCalibrationToolbox != NULL) && (stylusCalibrationToolbox->GetPivotCalibrationAlgo() != NULL)) {
       vtkPivotCalibrationAlgo* pivotCalibration = stylusCalibrationToolbox->GetPivotCalibrationAlgo();
 
-      if (stylusCalibrationToolbox->GetState() == ToolboxState_Done) {
-  		  ui.lineEdit_StylusCalibration->setText(tr("Using session calibration data"));
-
-      } else if (pivotCalibration->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData(), TRACKER_TOOL_STYLUS) == PLUS_SUCCESS) {
+      if ( (stylusCalibrationToolbox->GetState() == ToolboxState_Done)
+        || (pivotCalibration->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData(), TRACKER_TOOL_STYLUS) == PLUS_SUCCESS) )
+      {
   		  ui.lineEdit_StylusCalibration->setText(tr("Using session calibration data"));
 
         // Set calibration matrix to stylus tool for later use
@@ -124,6 +123,7 @@ void PhantomRegistrationToolbox::Initialize()
         vtkSmartPointer<vtkMatrix4x4> calibrationMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
         calibrationMatrix->DeepCopy(pivotCalibration->GetTooltipToToolTransform()->GetMatrix());
         stylusDisplayable->GetTool()->SetCalibrationMatrix(calibrationMatrix);
+        stylusDisplayable->GetTool()->GetBuffer()->SetToolCalibrationMatrix(calibrationMatrix); // TODO This is not good that we have to set a matrix to two classes. It should be stored in one member variable only
 
       } else {
         readyToStart = false;

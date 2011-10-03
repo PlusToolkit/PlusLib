@@ -1839,6 +1839,8 @@ void SegmentationParameterDialog::OpeningBarSizeChanged(double aValue)
   LOG_TRACE("SegmentationParameterDialog::OpeningBarSizeChanged(" << aValue << ")");
 
   m_PatternRecognition->GetFidSegmentation()->SetMorphologicalOpeningBarSizeMm(aValue);
+
+  m_PatternRecognition->GetFidSegmentation()->ValidateRegionOfInterest();
 }
 
 //-----------------------------------------------------------------------------
