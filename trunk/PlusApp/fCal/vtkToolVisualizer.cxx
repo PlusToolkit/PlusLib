@@ -593,7 +593,9 @@ PlusStatus vtkToolVisualizer::DisplayDevices()
 		  vtkSmartPointer<vtkTransform> toolModelToPhantomReferenceTransform = vtkSmartPointer<vtkTransform>::New();
 		  toolModelToPhantomReferenceTransform->Identity();
 		  toolModelToPhantomReferenceTransform->Concatenate(toolToReferenceTransformMatrix);
-      toolModelToPhantomReferenceTransform->Concatenate(tool->GetTool()->GetCalibrationMatrix());
+      if (tool->GetTool()->GetToolType() != TRACKER_TOOL_PROBE) {
+        toolModelToPhantomReferenceTransform->Concatenate(tool->GetTool()->GetCalibrationMatrix());
+      }
       toolModelToPhantomReferenceTransform->Concatenate(tool->GetTool()->GetModelToToolTransform());
 		  toolModelToPhantomReferenceTransform->Modified();
 

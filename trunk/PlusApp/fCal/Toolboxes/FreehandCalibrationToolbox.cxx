@@ -90,6 +90,12 @@ void FreehandCalibrationToolbox::Initialize()
       ui.lineEdit_CalibrationConfiguration->setText(tr("Using session calibration configuration"));
     }
 
+    // Load calibration matrix into tool visualizer if it exists
+    if ((IsReadyToStartSpatialCalibration()) && (m_Calibration->GetCalibrationDate() != NULL)) {
+      m_ParentMainWindow->GetToolVisualizer()->SetImageToProbeTransform(m_Calibration->GetTransformUserImageToProbe());
+    }
+
+    // Set initialized if it was uninitialized
 	  if (m_State == ToolboxState_Uninitialized) {
 		  SetState(ToolboxState_Idle);
 	  }
@@ -114,7 +120,8 @@ void FreehandCalibrationToolbox::SetDisplayAccordingToState()
   LOG_TRACE("FreehandCalibrationToolbox::SetDisplayAccordingToState");
 
   m_ParentMainWindow->GetToolVisualizer()->HideAll();
-  m_ParentMainWindow->GetToolVisualizer()->EnableImageMode(! ui.checkBox_ShowDevices->isChecked());
+
+  ShowDevicesToggled(ui.checkBox_ShowDevices->isChecked());
 
   double videoTimeOffset = 0.0;
 	if ((m_ParentMainWindow->GetToolVisualizer()->GetDataCollector() != NULL)
@@ -154,7 +161,11 @@ void FreehandCalibrationToolbox::SetDisplayAccordingToState()
 		ui.frame_SpatialCalibration->setEnabled(true);
 		ui.pushButton_CancelSpatial->setEnabled(false);
 
-		ui.checkBox_ShowDevices->setEnabled(false);
+    if ((IsReadyToStartSpatialCalibration()) && (m_Calibration->GetCalibrationDate() != NULL)) {
+		  ui.checkBox_ShowDevices->setEnabled(true);
+    } else {
+		  ui.checkBox_ShowDevices->setEnabled(false);
+    }
 		ui.pushButton_Save->setEnabled(false);
 		ui.label_Results->setText(tr(""));
 
@@ -200,11 +211,6 @@ void FreehandCalibrationToolbox::SetDisplayAccordingToState()
 		ui.label_Results->setText(QString::fromStdString(m_Calibration->GetResultString()));
 
 		ui.pushButton_Save->setFocus();
-
-    m_ParentMainWindow->GetToolVisualizer()->ShowTool(TRACKER_TOOL_PROBE, true);
-    m_ParentMainWindow->GetToolVisualizer()->ShowTool(TRACKER_TOOL_REFERENCE, true);
-    m_ParentMainWindow->GetToolVisualizer()->ShowTool(TRACKER_TOOL_STYLUS, true);
-    m_ParentMainWindow->GetToolVisualizer()->ShowTool(TRACKER_TOOL_NEEDLE, true);
 
 		m_ParentMainWindow->SetStatusBarText(QString(" Calibration done"));
 		m_ParentMainWindow->SetStatusBarProgress(-1);
@@ -406,7 +412,10 @@ PlusStatus FreehandCalibrationToolbox::DoSpatialCalibration()
 {
 	LOG_TRACE("FreehandCalibrationToolbox::DoSpatialCalibration");
 
-	const int maxNumberOfValidationImages = m_Calibration->GetImageDataInfo(FREEHAND_MOTION_2).NumberOfImagesToAcquire; 
+  // Reset calibration
+  m_Calibration->ResetFreehandCalibration();
+
+  const int maxNumberOfValidationImages = m_Calibration->GetImageDataInfo(FREEHAND_MOTION_2).NumberOfImagesToAcquire; 
 	const int maxNumberOfCalibrationImages = m_Calibration->GetImageDataInfo(FREEHAND_MOTION_1).NumberOfImagesToAcquire; 
 	int numberOfAcquiredImages = 0;
 	int numberOfFailedSegmentations = 0;
@@ -488,9 +497,6 @@ void FreehandCalibrationToolbox::CancelSpatial()
 
   m_CancelRequest = true;
 
-  // Reset calibration
-  m_Calibration->ResetFreehandCalibration();
-
 	m_ParentMainWindow->SetTabsEnabled(true);
 
   SetState(ToolboxState_Idle);
@@ -504,8 +510,7 @@ bool FreehandCalibrationToolbox::IsReadyToStartSpatialCalibration()
 
   PhantomRegistrationToolbox* phantomRegistrationToolbox = dynamic_cast<PhantomRegistrationToolbox*>(m_ParentMainWindow->GetToolbox(ToolboxType_PhantomRegistration));
 
-  if ((m_State == ToolboxState_Uninitialized)
-		|| (phantomRegistrationToolbox == NULL)
+  if ( (phantomRegistrationToolbox == NULL)
     || (phantomRegistrationToolbox->GetPhantomRegistrationAlgo() == NULL)
 		|| (phantomRegistrationToolbox->GetPhantomRegistrationAlgo()->GetPhantomToPhantomReferenceTransform() == NULL))
 	{
@@ -532,6 +537,11 @@ void FreehandCalibrationToolbox::Save()
 void FreehandCalibrationToolbox::ShowDevicesToggled(bool aOn)
 {
 	LOG_TRACE("FreehandCalibrationToolbox::ShowDevicesToggled(" << (aOn?"true":"false") << ")"); 
+
+  m_ParentMainWindow->GetToolVisualizer()->ShowTool(TRACKER_TOOL_PROBE, aOn);
+  m_ParentMainWindow->GetToolVisualizer()->ShowTool(TRACKER_TOOL_REFERENCE, aOn);
+  m_ParentMainWindow->GetToolVisualizer()->ShowTool(TRACKER_TOOL_STYLUS, aOn);
+  m_ParentMainWindow->GetToolVisualizer()->ShowTool(TRACKER_TOOL_NEEDLE, aOn);
 
   m_ParentMainWindow->GetToolVisualizer()->EnableImageMode(!aOn);
 }
