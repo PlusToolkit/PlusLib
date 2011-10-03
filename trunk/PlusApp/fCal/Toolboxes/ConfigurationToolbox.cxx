@@ -129,11 +129,13 @@ void ConfigurationToolbox::ConnectToDevicesByConfigFile(std::string aConfigFile)
 	  if (! m_DeviceSetSelectorWidget->GetConnectionSuccessful()) {
 		  LOG_INFO("Connect to devices"); 
 
+      // Disable main window
+     	m_ParentMainWindow->setEnabled(false);
+
 		  // Create dialog
 		  QDialog* connectDialog = new QDialog(this, Qt::Dialog);
-		  connectDialog->setModal(true);
 		  connectDialog->setMinimumSize(QSize(360,80));
-		  connectDialog->setCaption(tr("Freehand Ultrasound Calibration"));
+		  connectDialog->setCaption(tr("fCal"));
 		  connectDialog->setBackgroundColor(QColor(224, 224, 224));
 
 		  QLabel* connectLabel = new QLabel(QString("Connecting to devices, please wait..."), connectDialog);
@@ -170,6 +172,11 @@ void ConfigurationToolbox::ConnectToDevicesByConfigFile(std::string aConfigFile)
 
 		  // Close dialog
 		  connectDialog->done(0);
+      connectDialog->hide();
+      delete connectDialog;
+
+      // Re-enable main window
+     	m_ParentMainWindow->setEnabled(true);
     }
 
   } else { // Disconnect
