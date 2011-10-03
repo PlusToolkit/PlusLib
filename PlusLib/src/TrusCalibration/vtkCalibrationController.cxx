@@ -434,7 +434,7 @@ PlusStatus vtkCalibrationController::ReadConfiguration( vtkXMLDataElement* confi
 		return PLUS_FAIL; 
 	}
 
-  //Setting the fiducial pattern recognition
+  // Setting the fiducial pattern recognition
   this->PatternRecognition.ReadConfiguration(configData);
 
 	// Tracked frame specifications
@@ -534,6 +534,38 @@ PlusStatus vtkCalibrationController::ReadCalibrationControllerConfiguration( vtk
 	{
 		this->EnableSegmentationAnalysisOff(); 
 	}
+
+  // Read probe calibration
+  std::string toolType;
+	vtkTracker::ConvertToolTypeToString(TRACKER_TOOL_PROBE, toolType);
+
+  vtkSmartPointer<vtkXMLDataElement> probeDefinition = vtkPlusConfig::LookupElementWithNameContainingChildWithNameAndAttribute(rootElement, "Tracker", "Tool", "Type", toolType.c_str());
+	if (probeDefinition == NULL) {
+		LOG_ERROR("No probe definition is found in the XML tree!");
+		return PLUS_FAIL;
+	}
+
+	vtkSmartPointer<vtkXMLDataElement> calibration = probeDefinition->FindNestedElementWithName("Calibration");
+	if (calibration == NULL) {
+		LOG_ERROR("No calibration section is found in probe definition!");
+		return PLUS_FAIL;
+	}
+
+  // Read calibration matrix
+	double* userImageToProbeTransformVector = new double[16]; 
+	if (calibration->GetVectorAttribute("MatrixValue", 16, userImageToProbeTransformVector)) {
+    vtkSmartPointer<vtkTransform> userImageToProbeTransform = vtkSmartPointer<vtkTransform>::New();
+    userImageToProbeTransform->Identity();
+    userImageToProbeTransform->SetMatrix(userImageToProbeTransformVector);
+    this->SetTransformUserImageToProbe(userImageToProbeTransform);
+	}
+	delete[] userImageToProbeTransformVector;
+
+  // Read calibration date
+  const char* date = calibration->GetAttribute("Date");
+  if ((date != NULL) && (STRCASECMP(date, "") != 0)) {
+    this->SetCalibrationDate(date);
+  }
 
 	return PLUS_SUCCESS;
 }
@@ -2318,6 +2350,10 @@ void vtkCalibrationController::resetDataContainers()
 {
 	LOG_TRACE("vtkCalibrationController::resetDataContainers");
 
+  // Initialize flags
+  this->CalibrationDoneOff();
+  this->SetCalibrationDate(NULL);
+  
   // Initialize flags
 	mArePRE3DsForValidationPositionsReady = false;
 	mAreIndependentPointLineReconErrorsReady = false;
