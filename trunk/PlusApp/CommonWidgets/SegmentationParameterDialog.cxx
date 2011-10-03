@@ -1378,6 +1378,10 @@ PlusStatus SegmentationParameterDialog::CalculateImageCameraParameters()
 {
 	LOG_TRACE("SegmentationParameterDialog::CalculateImageCameraParameters");
 
+  if (m_CanvasRenderer == NULL) {
+    return PLUS_FAIL;
+  }
+
 	// Calculate image center
 	double imageCenterX = 0;
 	double imageCenterY = 0;

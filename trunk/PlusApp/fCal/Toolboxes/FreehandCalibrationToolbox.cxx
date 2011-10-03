@@ -193,6 +193,7 @@ void FreehandCalibrationToolbox::SetDisplayAccordingToState()
 		ui.label_Results->setText(tr(""));
 
 		m_ParentMainWindow->SetStatusBarText(QString(" Acquiring and adding images to calibrator"));
+    m_ParentMainWindow->SetStatusBarProgress(0);
 
   } else
 	// If done
@@ -262,16 +263,24 @@ void FreehandCalibrationToolbox::OpenPhantomRegistration()
 
 	// Load phantom registration
   PhantomRegistrationToolbox* phantomRegistrationToolbox = dynamic_cast<PhantomRegistrationToolbox*>(m_ParentMainWindow->GetToolbox(ToolboxType_PhantomRegistration));
-  if ((phantomRegistrationToolbox != NULL) && (phantomRegistrationToolbox->GetPhantomRegistrationAlgo() != NULL)) {
-
-    if (phantomRegistrationToolbox->GetPhantomRegistrationAlgo()->ReadConfiguration(rootElement) == PLUS_SUCCESS) {
-		  ui.lineEdit_PhantomRegistration->setText(fileName);
-		  ui.lineEdit_PhantomRegistration->setToolTip(fileName);
-	  } else {
-		  ui.lineEdit_PhantomRegistration->setText(tr("Invalid file!"));
-		  ui.lineEdit_PhantomRegistration->setToolTip("");
-	  }
+  if ((phantomRegistrationToolbox == NULL) || (phantomRegistrationToolbox->GetPhantomRegistrationAlgo() == NULL)) {
+    LOG_ERROR("Phantom registration toolbox not found!");
+    return;
   }
+
+  if (phantomRegistrationToolbox->GetPhantomRegistrationAlgo()->ReadConfiguration(rootElement) != PLUS_SUCCESS) {
+	  ui.lineEdit_PhantomRegistration->setText(tr("Invalid file!"));
+	  ui.lineEdit_PhantomRegistration->setToolTip("");
+  }
+
+  // Replace PhantomDefinition element with the one in the just read file
+  vtkPlusConfig::ReplaceElementInDeviceSetConfiguration("PhantomDefinition", rootElement);
+
+  // Set file name in text field
+  ui.lineEdit_PhantomRegistration->setText(fileName);
+  ui.lineEdit_PhantomRegistration->setToolTip(fileName);
+
+  SetDisplayAccordingToState();
 }
 
 //-----------------------------------------------------------------------------
@@ -295,7 +304,9 @@ void FreehandCalibrationToolbox::OpenCalibrationConfiguration()
 	}
 
 	// Load calibration configuration xml
-	if (m_Calibration->ReadConfiguration(rootElement) != PLUS_SUCCESS) {
+	if ( (m_Calibration->ReadConfiguration(rootElement) != PLUS_SUCCESS)
+    || (m_Calibration->ReadFreehandCalibrationConfiguration(rootElement) != PLUS_SUCCESS) )
+  {
 		ui.lineEdit_CalibrationConfiguration->setText(tr("Invalid file!"));
 		ui.lineEdit_CalibrationConfiguration->setToolTip("");
 
@@ -303,11 +314,16 @@ void FreehandCalibrationToolbox::OpenCalibrationConfiguration()
 		return;
 	}
 
+  // Replace USCalibration element with the one in the just read file
+  vtkPlusConfig::ReplaceElementInDeviceSetConfiguration("USCalibration", rootElement);
+
 	// Re-calculate camera parameters
   m_ParentMainWindow->GetToolVisualizer()->CalculateImageCameraParameters();
 
 	ui.lineEdit_CalibrationConfiguration->setText(fileName);
 	ui.lineEdit_CalibrationConfiguration->setToolTip(fileName);
+
+  SetDisplayAccordingToState();
 }
 
 //-----------------------------------------------------------------------------

@@ -421,6 +421,9 @@ void PhantomRegistrationToolbox::OpenPhantomDefinition()
 		ui.lineEdit_PhantomDefinition->setText(fileName);
 		ui.lineEdit_PhantomDefinition->setToolTip(fileName);
 
+    // Replace PhantomDefinition element with the one in the just read file
+    vtkPlusConfig::ReplaceElementInDeviceSetConfiguration("PhantomDefinition", rootElement);
+
 		// Set to InProgress if both stylus calibration and phantom definition are available
 		Start();
 
