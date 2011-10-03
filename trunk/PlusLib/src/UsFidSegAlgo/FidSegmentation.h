@@ -67,7 +67,6 @@ class FidSegmentation
 
 		
 		//Accessors and mutators
- 		std::vector<Item>	GetMorphologicalCircle() { return m_MorphologicalCircle; };
     void					    SetPossibleFiducialsImageFilename(std::string value) { m_PossibleFiducialsImageFilename = value; };
 
     double				    GetThresholdImagePercent() { return m_ThresholdImagePercent; };

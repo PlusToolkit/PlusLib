@@ -39,11 +39,19 @@ public:
 
 	/*!
 	 * \brief Assembles a filename for the new device set configuration that is the same as the input file name, only with the current date and time in the end (for saving to a new file)
-	 * \return New device set configuration file nname
+	 * \return New device set configuration file name
 	 */
   std::string GetNewDeviceSetConfigurationFileName();
 
 	/*!
+	 * \brief Replaces an element with a name on the level under the top level in device set configuration with the element in the parameter root XML data element
+   * \param Element name to replace
+   * \param Root element containing the element to replace with
+	 * \return Success flag
+	 */
+  static PlusStatus ReplaceElementInDeviceSetConfiguration(const char* aElementName, vtkXMLDataElement* aNewRootElement);
+
+  /*!
 	 * \brief Searches a data element in an XML tree: the child of aElementName that has the name aChildName and has an attribute aChildAttributeName with the value aChildAttributeValue
    * \param aConfig Root XML element in that the search is conducted
    * \param aElementName Name of the parent of the searched element

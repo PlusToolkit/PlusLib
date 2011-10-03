@@ -281,6 +281,34 @@ PlusStatus vtkPlusConfig::SaveApplicationConfigurationToFile()
 
 //-----------------------------------------------------------------------------
 
+PlusStatus vtkPlusConfig::ReplaceElementInDeviceSetConfiguration(const char* aElementName, vtkXMLDataElement* aNewRootElement)
+{
+  LOG_TRACE("vtkPlusConfig::ReplaceElementInDeviceSetConfiguration(" << aElementName << ")");
+
+  vtkXMLDataElement* deviceSetConfigRootElement = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData();
+  vtkSmartPointer<vtkXMLDataElement> orginalElement = deviceSetConfigRootElement->FindNestedElementWithName(aElementName);
+  if (orginalElement != NULL) {
+    deviceSetConfigRootElement->RemoveNestedElement(orginalElement);
+  }
+
+  vtkSmartPointer<vtkXMLDataElement> newElement = aNewRootElement->FindNestedElementWithName(aElementName);
+  if (newElement != NULL) {
+    deviceSetConfigRootElement->AddNestedElement(newElement);
+
+  } else {
+    // Re-add deleted element if there was one
+    if (orginalElement != NULL) {
+      deviceSetConfigRootElement->AddNestedElement(orginalElement);
+    }
+    LOG_ERROR("No element with the name '" << aElementName << "' can be found in the given XML data element!");
+    return PLUS_FAIL;
+  }
+
+  return PLUS_SUCCESS;
+}
+
+//-----------------------------------------------------------------------------
+
 vtkXMLDataElement* vtkPlusConfig::LookupElementWithNameContainingChildWithNameAndAttribute(vtkXMLDataElement* aConfig, const char* aElementName, const char* aChildName, const char* aChildAttributeName, const char* aChildAttributeValue)
 {
   LOG_TRACE("vtkPlusConfig::LookupElementWithNameContainingChildWithNameAndAttribute(" << aElementName << ", " << aChildName << ", " << (aChildAttributeName==NULL ? "" : aChildAttributeName) << ", " << (aChildAttributeValue==NULL ? "" : aChildAttributeValue) << ")");

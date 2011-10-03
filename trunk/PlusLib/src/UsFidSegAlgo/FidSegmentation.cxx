@@ -616,8 +616,7 @@ void FidSegmentation::ErodeCircle( PixelType *dest, PixelType *image )
 {
 	//LOG_TRACE("FidSegmentation::ErodeCircle");
 
-	std::vector<Item> morphologicalCircle = GetMorphologicalCircle();
-	unsigned int slen = morphologicalCircle.size();
+	unsigned int slen = m_MorphologicalCircle.size();
 
 	memset( dest, 0, m_FrameSize[1]*m_FrameSize[0]*sizeof(PixelType) );
 
@@ -625,8 +624,8 @@ void FidSegmentation::ErodeCircle( PixelType *dest, PixelType *image )
 		for ( unsigned int ic = m_RegionOfInterest[0]; ic < m_RegionOfInterest[2]; ic++ ) {
 			PixelType dval = UCHAR_MAX;
 			for ( unsigned int sp = 0; sp < slen; sp++ ) {
-				unsigned int sr = ir + morphologicalCircle[sp].roff;
-				unsigned int sc = ic + morphologicalCircle[sp].coff;
+				unsigned int sr = ir + m_MorphologicalCircle[sp].roff;
+				unsigned int sc = ic + m_MorphologicalCircle[sp].coff;
         PixelType pixSrc=image[sr*m_FrameSize[0]+sc];
 				if ( pixSrc < dval )
 					dval = pixSrc;
@@ -878,14 +877,13 @@ void FidSegmentation::DilateCircle( PixelType *dest, PixelType *image )
 {
 	//LOG_TRACE("FidSegmentation::DilateCircle");
 
-	std::vector<Item> morphologicalCircle = GetMorphologicalCircle();
-	unsigned int slen = morphologicalCircle.size();
+  unsigned int slen = m_MorphologicalCircle.size();
 
 	Item *shape = new Item[slen]; 
 
 	for ( unsigned int i = 0; i < slen; i++ )
 	{
-		shape[i] = morphologicalCircle[i]; 
+		shape[i] = m_MorphologicalCircle[i]; 
 	}
 
 	/* Which elements stick around when you shift right? */
@@ -896,7 +894,7 @@ void FidSegmentation::DilateCircle( PixelType *dest, PixelType *image )
 	memset( sr_exist, 0, slen*sizeof(bool) );
 	for ( int si = 0; si < slen; si++ ) 
 	{
-		if ( ShapeContains( morphologicalCircle, Item(morphologicalCircle[si].roff, morphologicalCircle[si].coff+1) ) )
+		if ( ShapeContains( m_MorphologicalCircle, Item(m_MorphologicalCircle[si].roff, m_MorphologicalCircle[si].coff+1) ) )
 			sr_exist[si] = true, n++;
 	}
 	//cout << "shift_exist: " << n << endl;
