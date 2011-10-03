@@ -20,6 +20,7 @@ class ProstateBiopsyGuidanceGUI : public QMainWindow
 protected:
 	// Device Set (Configuration Set) widget object:
 	DeviceSetSelectorWidget*	m_DeviceSetSelectorWidget;
+	vtkTrackedFrameList* TrackedFrameContainer;
 
 public:
 	explicit ProstateBiopsyGuidanceGUI(QWidget *parent = 0);
@@ -30,7 +31,7 @@ private:
 
 protected slots:
 		void ConnectToDevicesByConfigFile(std::string aConfigFile);
-		void ReadPBGConfigData(std::string aConfigFile);
+		vtkSmartPointer<vtkXMLDataElement>  ReadPBGConfigData(std::string aConfigFile);
 		void butStop_Click();
 		PlusStatus  saveData(vtkVideoBuffer *buffer_RF,std::string outputVideoBufferSequenceFileName);
 		PlusStatus  acquireData(vtkVideoBuffer *buffer_RF, int type,std::string savedBufferName);
@@ -43,7 +44,7 @@ protected slots:
 		PlusStatus	stopDataAquisition();
 		PlusStatus	stopShaker();
 		PlusStatus	deleteBuffer(vtkVideoBuffer *buffer_RF);
-
+		//virtual VTK_THREAD_RETURN_TYPE *saveDataAsync( void* arg );
  };
 
  #endif

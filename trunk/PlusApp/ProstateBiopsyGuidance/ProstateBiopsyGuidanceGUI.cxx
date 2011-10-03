@@ -53,7 +53,9 @@ const QString LABEL_SYNC_VIDEO_OFFSET("Video offset:");
 #include <QFileDialog>
 #include <iostream>
 #include <fstream>
-
+#include "vtkConditionVariable.h"
+#include "vtkMultiThreader.h"
+#include <stdlib.h>
 
 /*************************************** Define variables**********************************/
 vtkSmartPointer<vtkDataCollector> dataCollector = vtkSmartPointer<vtkDataCollector>::New();					
@@ -65,13 +67,19 @@ vtkVideoBuffer *buffer_BMode = vtkVideoBuffer::New();
 vtkVideoBuffer *buffer_RF = vtkVideoBuffer::New();
 vtkVideoBuffer *buffer_RF2 = vtkVideoBuffer::New();
 VibroLib::AudioCard::DirectSoundBuffer dsb;
+vtkMultiThreader* threadPool = vtkMultiThreader::New();
 /*****************************************************************************************/
 
+//----------------------------------------------------------------------------
 // Main constuctor (is needed to be the first method within this file (according to UI object)
 ProstateBiopsyGuidanceGUI::ProstateBiopsyGuidanceGUI(QWidget *parent)
 :  QMainWindow(parent),    ui(new Ui::ProstateBiopsyGuidance)
 {
 	ui->setupUi(this);
+
+	// Set program path to configuration
+	QFileInfo programPathFileInfo(qApp->argv()[0]); 
+	vtkPlusConfig::GetInstance()->SetProgramPath(programPathFileInfo.absoluteDir().absolutePath().toStdString().c_str());
 
 	// Create device set selector widget
 	this->m_DeviceSetSelectorWidget = new DeviceSetSelectorWidget(this);
@@ -124,15 +132,97 @@ ProstateBiopsyGuidanceGUI::ProstateBiopsyGuidanceGUI(QWidget *parent)
 	//setWindowTitle(tr("Save RF Data"));							// Set teh Title to Save RF Data
 }
 
+//----------------------------------------------------------------------------
 // Deconstructor to release memory:
 ProstateBiopsyGuidanceGUI::~ProstateBiopsyGuidanceGUI()
 {
 	delete ui;
+
+	if ( this->TrackedFrameContainer != NULL )
+	{
+		this->TrackedFrameContainer->Clear(); 
+		this->TrackedFrameContainer->Delete(); 
+		this->TrackedFrameContainer = NULL; 
+	}
+}
+//----------------------------------------------------------------------------
+typedef struct {
+	vtkMutexLock* Lock;
+	vtkVideoBuffer *Buffers[2];
+	int BufferInUseIndex;
+	bool FirstBufferFull;
+	bool Done;
+	vtkDataCollector* DataCollectorInstance;
+} vtkThreadUserData;
+//----------------------------------------------------------------------------
+VTK_THREAD_RETURN_TYPE getDataAsync( void* arg )
+{
+	LOG_INFO("DATA-GET Thread: Started");
+	
+	//Preparing data:
+	vtkThreadUserData* threadData = static_cast<vtkThreadUserData*>(static_cast<vtkMultiThreader::ThreadInfo*>(arg)->UserData );
+
+	int _cntr=0;
+	while ( !threadData->Done && _cntr<20 )	
+	{
+		_cntr++;
+		
+		// Delay for one second
+		vtksys::SystemTools::Delay(1000);		
+		LOG_INFO("reading second: "<<_cntr);
+
+		if(_cntr%3==0)
+		{
+			dataCollector->CopyVideoBuffer(threadData->Buffers[threadData->BufferInUseIndex]);
+			threadData->FirstBufferFull=true;
+
+			//Switch the index of in-use buffer:
+			threadData->BufferInUseIndex=(threadData->BufferInUseIndex+1)%2;
+		}
+	}
+
+
+	threadData->Done=true;
+	LOG_INFO("DATA-GET Thread: Finished");
+	return VTK_THREAD_RETURN_VALUE;
+}
+
+
+//----------------------------------------------------------------------------
+VTK_THREAD_RETURN_TYPE saveDataAsync( void* arg )
+{
+	LOG_INFO("DATA-SAVE Thread: Started");
+	
+	//Preparing data:
+	vtkThreadUserData* threadData = static_cast<vtkThreadUserData*>(static_cast<vtkMultiThreader::ThreadInfo*>(arg)->UserData );
+
+	// Just wait for the first buffer to fill:
+	while( !threadData->Done && !threadData->FirstBufferFull){};
+
+	int _bufferInUseIndex=0;
+
+	while( !threadData->Done){
+		if(threadData->BufferInUseIndex!=_bufferInUseIndex){
+			LOG_INFO("DATA-SAVE Thread: save attempt");
+			// Save Data to Dist:
+		
+
+			// Switch index to wait for next buffer to get full:
+			_bufferInUseIndex=(_bufferInUseIndex+1)%2;
+		}
+	}
+
+	LOG_INFO("DATA-SAVE Thread: Finished");
+	return VTK_THREAD_RETURN_VALUE;
 }
 
 
 
+
+
+
 //Slots implemention
+//----------------------------------------------------------------------------
 PlusStatus ProstateBiopsyGuidanceGUI::startShaker()
 {
 		HRESULT hr = 0;
@@ -179,11 +269,13 @@ PlusStatus ProstateBiopsyGuidanceGUI::startShaker()
 
 return PLUS_SUCCESS;
 }
+//----------------------------------------------------------------------------
 PlusStatus ProstateBiopsyGuidanceGUI::stopShaker()
 {	
 	dsb->Stop();
 	return PLUS_SUCCESS;
 }
+//----------------------------------------------------------------------------
 /*PlusStatus ProstateBiopsyGuidanceGUI::SaveBModeData()
 {
 
@@ -217,6 +309,7 @@ PlusStatus ProstateBiopsyGuidanceGUI::stopShaker()
 }*/
 
 // when we figure out how to save Bmode data we will use the type, I put it as int we can change that
+//----------------------------------------------------------------------------
 PlusStatus ProstateBiopsyGuidanceGUI::acquireData(vtkVideoBuffer *Data,int type,std::string savedBufferName ) 
 {
 	LOG_INFO("press a to start\n" );
@@ -225,24 +318,29 @@ PlusStatus ProstateBiopsyGuidanceGUI::acquireData(vtkVideoBuffer *Data,int type,
 	while (_getch() != 'a')															
 	{;}
 	dataCollector->Start();
-	// Get PC Time 
-	const double acqStartTime = vtkTimerLog::GetUniversalTime();					
-	// Save Time for the period specified in inputAcqTimeLength
-	while ( acqStartTime + inputAcqTimeLength > vtkTimerLog::GetUniversalTime() )	
-	{
-		LOG_INFO("seconds left..." << acqStartTime + inputAcqTimeLength - vtkTimerLog::GetUniversalTime() );
-		// Delay for one second
-		//printf("%f seconds left... \n",acqStartTime + inputAcqTimeLength - vtkTimerLog::GetUniversalTime());
-		vtksys::SystemTools::Delay(1000);											
-	}
-	// Copy Data From Video Buffer
-	LOG_INFO("Copy Data to Buffer\n"  << savedBufferName.c_str());													
-	//printf("Copy Data to Buffer: %s \n",savedBufferName.c_str());
 
-	dataCollector->CopyVideoBuffer(Data);
+#pragma region Start Save Thread
+	vtkThreadUserData data;
+	data.Lock = vtkMutexLock::New();
+	data.Lock->Unlock();
+	data.FirstBufferFull=false;
+	data.Done = false;
+	for(int k=0;k<2;k++)
+		data.Buffers[k]=vtkVideoBuffer::New();
+	data.BufferInUseIndex=0;
+	data.DataCollectorInstance=dataCollector;
+
+	threadPool->SetNumberOfThreads( 2 );
+	threadPool->SetMultipleMethod(0, getDataAsync , &data);
+	threadPool->SetMultipleMethod(1, saveDataAsync , &data);
+
+	threadPool->MultipleMethodExecute();
+#pragma endregion
+
+	
 	return PLUS_SUCCESS;
 }
-
+//----------------------------------------------------------------------------
 PlusStatus ProstateBiopsyGuidanceGUI::stopDataAquisition()
 {
 	dataCollector->Stop();
@@ -251,6 +349,7 @@ PlusStatus ProstateBiopsyGuidanceGUI::stopDataAquisition()
 	//printf("Exit !\n");
 	return PLUS_SUCCESS;
 }
+//----------------------------------------------------------------------------
 PlusStatus ProstateBiopsyGuidanceGUI::saveData(vtkVideoBuffer *Data,std::string BufferFileName)
 {
 	// Save Data To File specified
@@ -260,6 +359,7 @@ PlusStatus ProstateBiopsyGuidanceGUI::saveData(vtkVideoBuffer *Data,std::string 
 	return PLUS_SUCCESS;
 
 }
+//----------------------------------------------------------------------------
 PlusStatus ProstateBiopsyGuidanceGUI::initialize()
 {
 	vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkXMLUtilities::ReadElementFromFile(inputConfigFileName.c_str());
@@ -287,7 +387,7 @@ PlusStatus ProstateBiopsyGuidanceGUI::initialize()
 	return PLUS_SUCCESS;
 }
 
-
+//----------------------------------------------------------------------------
 PlusStatus ProstateBiopsyGuidanceGUI::deleteBuffer(vtkVideoBuffer *Data)
 {
 
@@ -295,6 +395,7 @@ PlusStatus ProstateBiopsyGuidanceGUI::deleteBuffer(vtkVideoBuffer *Data)
 		return PLUS_SUCCESS;
 }
 
+//----------------------------------------------------------------------------
 PlusStatus ProstateBiopsyGuidanceGUI::startBiopsyProcess()
 {
 	initialize();				
@@ -321,18 +422,26 @@ PlusStatus ProstateBiopsyGuidanceGUI::startBiopsyProcess()
 	return PLUS_SUCCESS;
 
 }
+//----------------------------------------------------------------------------
 void ProstateBiopsyGuidanceGUI::ConnectToDevicesByConfigFile(std::string aConfigFile)
 {
 	LOG_INFO("Loading config file ...");
 
-	ReadPBGConfigData(aConfigFile);
+	vtkSmartPointer<vtkXMLDataElement> configXmlRoot=ReadPBGConfigData(aConfigFile);
 	m_DeviceSetSelectorWidget->SetConnectionSuccessful(true);
-	this->ui->butStop->setEnabled(true);
 
+	if ( this->TrackedFrameContainer == NULL )
+	{
+		this->TrackedFrameContainer = vtkTrackedFrameList::New(); 
+		this->TrackedFrameContainer->ReadConfiguration(configXmlRoot);
+	}
+
+	this->ui->butStop->setEnabled(true);
 	startBiopsyProcess();
 }
 
-void ProstateBiopsyGuidanceGUI::ReadPBGConfigData(std::string aConfigFile){
+//----------------------------------------------------------------------------
+vtkSmartPointer<vtkXMLDataElement>  ProstateBiopsyGuidanceGUI::ReadPBGConfigData(std::string aConfigFile){
 	
 	inputConfigFileName = aConfigFile;
 
@@ -362,8 +471,25 @@ void ProstateBiopsyGuidanceGUI::ReadPBGConfigData(std::string aConfigFile){
 	inputAcqTimeLength=atof(prostateBiopsyConfig->GetAttribute("AcquisitionTime"));
 }
 
+//----------------------------------------------------------------------------
 void ProstateBiopsyGuidanceGUI::butStop_Click(){
 	LOG_INFO("Stop Clicked");
 	this->ui->butStop->setEnabled(false);
 
 }
+
+
+
+//----------------------------------------------------------------------------
+
+int ProstateBiopsyGuidanceGUI::GetNumberOfRecordedFrames()
+{ 
+	int numOfFrames(0); 
+	if ( this->TrackedFrameContainer )
+	{
+		numOfFrames = this->TrackedFrameContainer->GetNumberOfTrackedFrames(); 
+	}
+
+	return numOfFrames; 
+}
+//----------------------------------------------------------------------------
