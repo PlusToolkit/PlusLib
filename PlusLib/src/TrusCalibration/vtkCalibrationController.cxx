@@ -535,11 +535,35 @@ PlusStatus vtkCalibrationController::ReadCalibrationControllerConfiguration( vtk
 		this->EnableSegmentationAnalysisOff(); 
 	}
 
+	return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+
+PlusStatus vtkCalibrationController::ReadProbeCalibrationConfiguration( vtkXMLDataElement* configData )
+{
+	LOG_TRACE("vtkCalibrationController::ReadProbeCalibrationConfiguration"); 
+
+  if ( this->CalibrationControllerIO->ReadProbeCalibrationConfiguration(configData) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to read probe calibration configuration from file!"); 
+    return PLUS_FAIL; 
+  }
+
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+
+PlusStatus vtkCalibrationController::ReadFreehandCalibrationConfiguration(vtkXMLDataElement* aConfig)
+{
+	LOG_TRACE("vtkCalibrationController::ReadFreehandCalibrationConfiguration"); 
+
   // Read probe calibration
   std::string toolType;
 	vtkTracker::ConvertToolTypeToString(TRACKER_TOOL_PROBE, toolType);
 
-  vtkSmartPointer<vtkXMLDataElement> probeDefinition = vtkPlusConfig::LookupElementWithNameContainingChildWithNameAndAttribute(rootElement, "Tracker", "Tool", "Type", toolType.c_str());
+  vtkSmartPointer<vtkXMLDataElement> probeDefinition = vtkPlusConfig::LookupElementWithNameContainingChildWithNameAndAttribute(aConfig, "Tracker", "Tool", "Type", toolType.c_str());
 	if (probeDefinition == NULL) {
 		LOG_ERROR("No probe definition is found in the XML tree!");
 		return PLUS_FAIL;
@@ -566,30 +590,6 @@ PlusStatus vtkCalibrationController::ReadCalibrationControllerConfiguration( vtk
   if ((date != NULL) && (STRCASECMP(date, "") != 0)) {
     this->SetCalibrationDate(date);
   }
-
-	return PLUS_SUCCESS;
-}
-
-//----------------------------------------------------------------------------
-
-PlusStatus vtkCalibrationController::ReadProbeCalibrationConfiguration( vtkXMLDataElement* configData )
-{
-	LOG_TRACE("vtkCalibrationController::ReadProbeCalibrationConfiguration"); 
-
-  if ( this->CalibrationControllerIO->ReadProbeCalibrationConfiguration(configData) != PLUS_SUCCESS )
-  {
-    LOG_ERROR("Failed to read probe calibration configuration from file!"); 
-    return PLUS_FAIL; 
-  }
-
-  return PLUS_SUCCESS;
-}
-
-//----------------------------------------------------------------------------
-
-PlusStatus vtkCalibrationController::ReadFreehandCalibrationConfiguration(vtkXMLDataElement* aConfig)
-{
-	LOG_TRACE("vtkCalibrationController::ReadFreehandCalibrationConfiguration"); 
 
   // Find and load calibration configuration
 	vtkSmartPointer<vtkXMLDataElement> usCalibration = aConfig->FindNestedElementWithName("USCalibration");
