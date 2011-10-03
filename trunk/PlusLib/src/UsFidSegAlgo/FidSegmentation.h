@@ -26,6 +26,8 @@ class FidSegmentation
 		void				    	  ComputeParameters();
     void                Clear();
 
+    void                ValidateRegionOfInterest();
+
     inline PixelType		ErodePoint0( PixelType *image, unsigned int ir, unsigned int ic );
 		void					      Erode0( PixelType *dest, PixelType *image );
 		inline PixelType		ErodePoint45( PixelType *image, unsigned int ir, unsigned int ic );
