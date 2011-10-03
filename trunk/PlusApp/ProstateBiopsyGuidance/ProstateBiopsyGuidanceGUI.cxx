@@ -482,14 +482,14 @@ void ProstateBiopsyGuidanceGUI::butStop_Click(){
 
 //----------------------------------------------------------------------------
 
-int ProstateBiopsyGuidanceGUI::GetNumberOfRecordedFrames()
-{ 
-	int numOfFrames(0); 
-	if ( this->TrackedFrameContainer )
-	{
-		numOfFrames = this->TrackedFrameContainer->GetNumberOfTrackedFrames(); 
-	}
-
-	return numOfFrames; 
-}
+//int ProstateBiopsyGuidanceGUI::GetNumberOfRecordedFrames()
+//{ 
+//	int numOfFrames(0); 
+//	if ( this->TrackedFrameContainer )
+//	{
+//		numOfFrames = this->TrackedFrameContainer->GetNumberOfTrackedFrames(); 
+//	}
+//
+//	return numOfFrames; 
+//}
 //----------------------------------------------------------------------------
