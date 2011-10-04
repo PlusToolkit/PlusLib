@@ -18,7 +18,7 @@ vtkGnuplotExecuter::vtkGnuplotExecuter()
   this->GnuplotCommand = NULL; 
 
   this->HideWindowOff(); 
-  this->SetTimeout(5); 
+  this->SetTimeout(10.0);  // seconds
   this->SetWorkingDirectory(vtksys::SystemTools::GetCurrentWorkingDirectory().c_str() ); 
 
 }
@@ -149,15 +149,29 @@ PlusStatus vtkGnuplotExecuter::Execute()
     char* data = NULL;
     int length=0;
 
-    while(vtksysProcess_WaitForData(gp,&data,&length,&timeout)) // wait for 1s
+    int waitStatus=vtksysProcess_Pipe_None;
+    do
     {
+      waitStatus=vtksysProcess_WaitForData(gp,&data,&length,&timeout);
+      if (waitStatus==vtksysProcess_Pipe_Timeout)
+      {
+        LOG_ERROR("Timeout (execution time>"<<GetTimeout()<<"sec) while trying to execute the process. Kill the process.");
+        vtksysProcess_Kill(gp);
+      }
+      LOG_DEBUG("Timeout remaining: "<<timeout<<"    length="<<length);
       for(int i=0;i<length;i++)
       {
         buffer += data[i];
       }
+      length=0;
     }
+    while (waitStatus!=vtksysProcess_Pipe_None);         
 
-    vtksysProcess_WaitForExit(gp, 0); 
+    if (vtksysProcess_WaitForExit(gp, 0)==0)
+    {
+      // 0 = Child did not terminate 
+      LOG_ERROR("Process did not terminate within the specified timeout");
+    }
     LOG_DEBUG("Execution time was: " << this->GetTimeout() - timeout << "s ..." ); 
 
     PlusStatus status = PLUS_SUCCESS; 
@@ -167,6 +181,8 @@ PlusStatus vtkGnuplotExecuter::Execute()
     case vtksysProcess_State_Exited: 
       {
         result = vtksysProcess_GetExitValue(gp); 
+        LOG_DEBUG("Process exited: "<<result);
+        LOG_DEBUG("Program output: " << buffer); 
       }
       break; 
     case vtksysProcess_State_Error: 
@@ -186,9 +202,15 @@ PlusStatus vtkGnuplotExecuter::Execute()
     case vtksysProcess_State_Starting: 
     case vtksysProcess_State_Executing:
     case vtksysProcess_State_Expired: 
-    case vtksysProcess_State_Killed: 
       {
         LOG_ERROR("Unexpected ending state after running " << this->GetGnuplotCommand() ); 
+        LOG_ERROR("Program output: " << buffer); 
+        status = PLUS_FAIL; 
+      }
+      break;
+    case vtksysProcess_State_Killed: 
+      {
+        LOG_ERROR("Program killed " << this->GetGnuplotCommand() ); 
         LOG_ERROR("Program output: " << buffer); 
         status = PLUS_FAIL; 
       }
