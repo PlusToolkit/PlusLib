@@ -73,6 +73,7 @@ int main (int argc, char* argv[])
   LOG_INFO("Reconstruct volume...");
   reconstructor->SetOutputExtentFromFrameList(trackedFrameList);
   const int numberOfFrames = trackedFrameList->GetNumberOfTrackedFrames(); 
+  std::string toolToReferenceTransformName=trackedFrameList->GetDefaultFrameTransformName();
   for ( int frameIndex = 0; frameIndex < numberOfFrames; ++frameIndex )
   {
     LOG_DEBUG("Frame: "<<frameIndex);
@@ -81,13 +82,13 @@ int main (int argc, char* argv[])
     TrackedFrame* frame = trackedFrameList->GetTrackedFrame( frameIndex );
 
     // Insert slice for reconstruction
-    reconstructor->AddTrackedFrame(frame);
+    reconstructor->AddTrackedFrame(frame, toolToReferenceTransformName.c_str());
 
     // Write an ITK image with the image pose in the reference coordinate system
     if (!outputFrameFileName.empty())
     {       
       vtkSmartPointer<vtkMatrix4x4> imageToReferenceTransformMatrix=vtkSmartPointer<vtkMatrix4x4>::New();
-      if ( reconstructor->GetImageToReferenceTransformMatrix(frame, imageToReferenceTransformMatrix)!=PLUS_SUCCESS )		
+      if ( reconstructor->GetImageToReferenceTransformMatrix(frame, toolToReferenceTransformName.c_str(), imageToReferenceTransformMatrix)!=PLUS_SUCCESS )		
       {
         LOG_ERROR("Unable to get image to reference transform for frame #" << frameIndex); 
         continue; 

@@ -71,11 +71,12 @@ int main (int argc, char* argv[])
   LOG_INFO("Add frames for probe rotation axis calibration..."); 
   const int numberOfProbeRotationAxisFrames = probeRotationAxisTrackedFrameList->GetNumberOfTrackedFrames(); 
   int segmentedProbeRotFrameCounter(0); 
+  std::string defaultFrameTransformName=probeRotationAxisTrackedFrameList->GetDefaultFrameTransformName();
   for ( int i = 0; i < numberOfProbeRotationAxisFrames; i++ )
   {
     vtkPlusLogger::PrintProgressbar((100.0 * i) / numberOfProbeRotationAxisFrames); 
 
-    if ( stepperCalibrator->AddTrackedFrameData(probeRotationAxisTrackedFrameList->GetTrackedFrame(i), PROBE_ROTATION) )
+    if ( stepperCalibrator->AddTrackedFrameData(probeRotationAxisTrackedFrameList->GetTrackedFrame(i), PROBE_ROTATION, defaultFrameTransformName.c_str()) )
     {
       // The segmentation was successful 
       segmentedProbeRotFrameCounter++; 
@@ -101,11 +102,12 @@ int main (int argc, char* argv[])
   LOG_INFO("Add frames for probe translation axis calibration..."); 
   const int numberOfProbeTranslationAxisFrames = probeTranslationAxisTrackedFrameList->GetNumberOfTrackedFrames(); 
   int segmentedProbeTransFrameCounter(0); 
+  std::string defaultFrameTransformNameProbeTrans=probeTranslationAxisTrackedFrameList->GetDefaultFrameTransformName();
   for ( int i = 0; i < numberOfProbeTranslationAxisFrames; i++ )
   {
     vtkPlusLogger::PrintProgressbar((100.0 * i) / numberOfProbeTranslationAxisFrames); 
 
-    if ( stepperCalibrator->AddTrackedFrameData(probeTranslationAxisTrackedFrameList->GetTrackedFrame(i), PROBE_TRANSLATION) )
+    if ( stepperCalibrator->AddTrackedFrameData(probeTranslationAxisTrackedFrameList->GetTrackedFrame(i), PROBE_TRANSLATION, defaultFrameTransformNameProbeTrans.c_str()) )
     {
       // The segmentation was successful 
       segmentedProbeTransFrameCounter++; 
@@ -131,11 +133,12 @@ int main (int argc, char* argv[])
   LOG_INFO("Add frames for template translation axis calibration..."); 
   const int numberOfTemplateTranslationAxisFrames = templateTranslationAxisTrackedFrameList->GetNumberOfTrackedFrames(); 
   int segmentedTemplTransFrameCounter(0); 
+  std::string defaultFrameTransformNameTemplTrans=templateTranslationAxisTrackedFrameList->GetDefaultFrameTransformName();
   for ( int i = 0; i < numberOfTemplateTranslationAxisFrames; i++ )
   {
     vtkPlusLogger::PrintProgressbar((100.0 * i) / numberOfTemplateTranslationAxisFrames); 
 
-    if ( stepperCalibrator->AddTrackedFrameData(templateTranslationAxisTrackedFrameList->GetTrackedFrame(i), TEMPLATE_TRANSLATION) )
+    if ( stepperCalibrator->AddTrackedFrameData(templateTranslationAxisTrackedFrameList->GetTrackedFrame(i), TEMPLATE_TRANSLATION, defaultFrameTransformNameTemplTrans.c_str()) )
     {
       // The segmentation was successful 
       segmentedTemplTransFrameCounter++; 

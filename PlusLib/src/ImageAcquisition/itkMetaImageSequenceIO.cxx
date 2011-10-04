@@ -1,541 +1,1004 @@
-#ifdef _MSC_VER
-#pragma warning ( disable : 4786 )
-#endif 
+#include "PlusConfigure.h"
 
-#include "itkMetaImageSequenceIO.h"
 #include <iomanip>
 #include <iostream>
+//#include <errno.h>
+
+#include "itkMetaImageSequenceIO.h"
+#include "itkMetaImageIO.h" // needed only temporarily, until becoming completely indpependent from metaimageio
+
+#include "vtksys/SystemTools.hxx"  
+#include "vtkObjectFactory.h"
+#include "vtkTrackedFrameList.h"
+
+static const int MAX_LINE_LENGTH=1000;
+
+static const char* SEQMETA_FIELD_US_IMG_ORIENT = "UltrasoundImageOrientation"; 
+static const char* SEQMETA_FIELD_DEFAULT_FRAME_TRANSFORM = "DefaultFrameTransformName"; 
+static const char* SEQMETA_FIELD_ELEMENT_DATA_FILE = "ElementDataFile"; 
+static const char* SEQMETA_FIELD_VALUE_ELEMENT_DATA_FILE_LOCAL = "LOCAL"; 
+
+static std::string SEQMETA_FIELD_FRAME_FIELD_PREFIX = "Seq_Frame"; 
+
+// Quick and robust string to int conversion
+PlusStatus stringToInt(const std::string& str, int &result)
+{
+  const char * c_str = str.c_str();
+  char * pEnd=NULL;
+  result = strtol(c_str, &pEnd, 10);
+  if (pEnd != c_str+str.length()) 
+  {
+    return PLUS_FAIL;
+  }
+  return PLUS_SUCCESS;
+}
+
+// Quick and robust string to int conversion
+PlusStatus stringToInt(const char* strPtr, int &result)
+{
+  if (strPtr==NULL)
+  {
+    return PLUS_FAIL;
+  }
+  std::string str=strPtr;
+  return stringToInt(str, result);
+}
+
+// Trim whitespace characters from the left and right
+void trim(std::string &str)
+{
+  str.erase(str.find_last_not_of(" \t\r\n")+1);
+  str.erase(0,str.find_first_not_of(" \t\r\n"));
+}
+
+vtkCxxRevisionMacro(vtkMetaImageSequenceIO, "$Revision: 1.0 $");
+vtkStandardNewMacro(vtkMetaImageSequenceIO); 
+vtkCxxSetObjectMacro(vtkMetaImageSequenceIO, TrackedFrameList, vtkTrackedFrameList);
+
+//----------------------------------------------------------------------------
+vtkMetaImageSequenceIO::vtkMetaImageSequenceIO()
+{ 
+  this->FileName=NULL;
+  this->PixelDataFileName=NULL;
+  this->PixelDataFileOffset=0;
+  this->TrackedFrameList=vtkTrackedFrameList::New();
+  this->UseCompression=false;
+  this->FileType=itk::ImageIOBase::Binary;
+  this->PixelType=itk::ImageIOBase::UNKNOWNCOMPONENTTYPE;
+  this->NumberOfComponents=1;
+  this->NumberOfDimensions=3;
+  this->Dimensions[0]=
+    this->Dimensions[1]=
+    this->Dimensions[2]=0;
+
+  this->ImageOrientationInFile=US_IMG_ORIENT_MF; 
+} 
+
+//----------------------------------------------------------------------------
+vtkMetaImageSequenceIO::~vtkMetaImageSequenceIO()
+{
+  SetTrackedFrameList(NULL);
+  SetFileName(NULL);
+  SetPixelDataFileName(NULL);
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkMetaImageSequenceIO::SetCustomFrameString(int frameNumber, const char* fieldName,  const char* fieldValue)
+{
+  if (fieldName==NULL || fieldValue==NULL)
+  {
+    LOG_ERROR("Invalid field name or value");
+    return PLUS_FAIL;
+  }
+  CreateTrackedFrameIfNonExisting(frameNumber);
+  TrackedFrame* trackedFrame=this->TrackedFrameList->GetTrackedFrame(frameNumber);
+  if (trackedFrame==NULL)
+  {
+    LOG_ERROR("Cannot access frame "<<frameNumber);
+    return PLUS_FAIL;
+  }
+  trackedFrame->SetCustomFrameField( fieldName, fieldValue );     
+  return PLUS_SUCCESS; 
+}
+
+//----------------------------------------------------------------------------
+bool vtkMetaImageSequenceIO::SetCustomString(const char* fieldName, const char* fieldValue)
+{
+  if (fieldName==NULL)
+  {
+    LOG_ERROR("Invalid field name");
+    return PLUS_FAIL;
+  }
+  this->TrackedFrameList->SetCustomString(fieldName, fieldValue); 
+  return PLUS_SUCCESS; 
+}
+
+//----------------------------------------------------------------------------
+const char* vtkMetaImageSequenceIO::GetCustomString(const char* fieldName)
+{
+  if (fieldName==NULL)
+  {
+    LOG_ERROR("Invalid field name or value");
+    return NULL;
+  }
+  return this->TrackedFrameList->GetCustomString(fieldName); 
+}
+
+//----------------------------------------------------------------------------
+void vtkMetaImageSequenceIO::PrintSelf(ostream& os, vtkIndent indent)
+{
+  os << indent << "Metadata User Fields:" << std::endl;
+  this->TrackedFrameList->PrintSelf(os, indent);
+}
+
+PlusStatus vtkMetaImageSequenceIO::ReadImageHeader()
+{
+  FILE *stream=NULL;
+  // open in binary mode because we determine the start of the image buffer also during this read
+  if ( fopen_s( &stream, this->FileName, "rb" ) != 0 )
+  {
+    LOG_ERROR("The file "<<this->FileName<<" could not be opened for reading");
+    return PLUS_FAIL;
+  }
+
+  char line[MAX_LINE_LENGTH+1]={0};
+  char *fgetsResult=(char*)1;
+  while (fgets( line, MAX_LINE_LENGTH, stream ))
+  {
+
+    std::string lineStr=line;
+
+    // Split line into name and value
+    size_t equalSignFound;
+    equalSignFound=lineStr.find_first_of("=");
+    if (equalSignFound==std::string::npos)
+    {
+      LOG_WARNING("Parsing line failed, equal sign is missing ("<<lineStr<<")");
+      continue;
+    }
+    std::string name=lineStr.substr(0,equalSignFound);
+    std::string value=lineStr.substr(equalSignFound+1);
+
+    // trim spaces from the left and right
+    trim(name);
+    trim(value);
+
+    if (name.compare(0,SEQMETA_FIELD_FRAME_FIELD_PREFIX.size(),SEQMETA_FIELD_FRAME_FIELD_PREFIX)!=0)
+    {
+      // field
+      SetCustomString(name.c_str(), value.c_str());
+
+      // Arrived to ElementDataFile, this is the last element
+      if (name.compare(SEQMETA_FIELD_ELEMENT_DATA_FILE)==0)
+      {
+        SetPixelDataFileName(value.c_str());
+        if (value.compare(SEQMETA_FIELD_VALUE_ELEMENT_DATA_FILE_LOCAL)==0)
+        {
+          // pixel data stored locally
+          this->PixelDataFileOffset=_ftelli64(stream);
+        }
+        else
+        {
+          // pixel data stored in separate file
+          this->PixelDataFileOffset=0;
+        }
+        // this is the last element of the header
+        break;
+      }
+    }
+    else
+    {
+      // frame field
+      // name: Seq_Frame0000_CustomTransform
+      name.erase(0,SEQMETA_FIELD_FRAME_FIELD_PREFIX.size()); // 0000_CustomTransform
+
+      // Split line into name and value
+      size_t underscoreFound;
+      underscoreFound=name.find_first_of("_");
+      if (underscoreFound==std::string::npos)
+      {
+        LOG_WARNING("Parsing line failed, underscore is missing from frame field name ("<<lineStr<<")");
+        continue;
+      }
+      std::string frameNumberStr=name.substr(0,underscoreFound); // 0000
+      std::string frameFieldName=name.substr(underscoreFound+1); // CustomTransform
+
+      int frameNumber=0;
+      if (stringToInt(frameNumberStr,frameNumber)!=PLUS_SUCCESS)
+      {
+        LOG_WARNING("Parsing line failed, cannot get file number from frame field ("<<lineStr<<")");
+        continue;
+      }
+      SetCustomFrameString(frameNumber, frameFieldName.c_str(), value.c_str());
+
+      if (ferror(stream))
+      {
+        LOG_ERROR("Error reading the file "<<this->FileName);
+        break;
+      }
+      if (feof(stream))
+      {
+        break;
+      }
+    }
+  } 
+
+  fclose( stream );
+
+  if(STRCASECMP(this->TrackedFrameList->GetCustomString("BinaryData"),"true")==0)
+  {
+    this->FileType=itk::ImageIOBase::Binary;
+  }
+  else
+  {
+    this->FileType=itk::ImageIOBase::ASCII;
+  }
+
+  if(STRCASECMP(this->TrackedFrameList->GetCustomString("CompressedData"),"true")==0)
+  {
+    SetUseCompression(true);
+  }
+  else
+  {
+    SetUseCompression(false);
+  }
+
+  int numberOfComponents=1;  
+  if (this->TrackedFrameList->GetCustomString("ElementNumberOfChannels")!=NULL)
+  {
+    // this field is optional
+    stringToInt(this->TrackedFrameList->GetCustomString("ElementNumberOfChannels"), numberOfComponents);
+    if (numberOfComponents!=1)
+    {
+      LOG_ERROR("Images images with ElementNumberOfChannels=1 are supported. This image has "<<numberOfComponents<<" channels.");
+      return PLUS_FAIL;
+    }
+  }
+
+  std::string elementTypeStr=this->TrackedFrameList->GetCustomString("ElementType");
+  if (ConvertMetaElementTypeToItkPixelType(elementTypeStr.c_str(), this->PixelType)!=PLUS_SUCCESS)
+  {
+    LOG_ERROR("Unknown component type: "<<elementTypeStr);
+    return PLUS_FAIL;
+  }
+
+  int nDims=3;
+  if (stringToInt(this->TrackedFrameList->GetCustomString("NDims"), nDims)==PLUS_SUCCESS)
+  {
+    if (nDims!=2 && nDims!=3)
+    {
+      LOG_ERROR("Invalid dimension (shall be 2 or 3): "<<nDims);
+      return PLUS_FAIL;
+    }
+  }
+  this->NumberOfDimensions=nDims;  
+
+  this->ImageOrientationInFile = UsImageConverterCommon::GetUsImageOrientationFromString(GetCustomString(SEQMETA_FIELD_US_IMG_ORIENT)); 
+
+  std::istringstream issDimSize(this->TrackedFrameList->GetCustomString("DimSize")); // DimSize = 640 480 567
+  for(int i=0; i<3; i++)
+  {
+    int dimSize=0;
+    if (i<this->NumberOfDimensions)
+    {
+      issDimSize >> dimSize;    
+    }
+    this->Dimensions[i]=dimSize;
+  } 
+
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+// Read the spacing and dimentions of the image.
+PlusStatus vtkMetaImageSequenceIO::ReadImagePixels()
+{ 
+  int numberOfErrors=0;
+
+  FILE *stream=NULL;
+
+  if ( fopen_s( &stream, GetPixelDataFilePath().c_str(), "rb" ) != 0 )
+  {
+    LOG_ERROR("The file "<<GetPixelDataFilePath()<<" could not be opened for reading");
+    return PLUS_FAIL;
+  }
+
+  int frameCount=this->Dimensions[2];
+  int frameSizeInBytes=this->Dimensions[0]*this->Dimensions[1]*UsImageConverterCommon::GetNumberOfBytesPerPixel(this->PixelType);
+  
+  std::vector<unsigned char> allFramesPixelBuffer;
+  if (this->UseCompression)
+  {    
+    int allFramesPixelBufferSize=frameCount*frameSizeInBytes;
+    allFramesPixelBuffer.resize(allFramesPixelBufferSize);
+
+    int allFramesCompressedPixelBufferSize=0;
+    stringToInt(this->TrackedFrameList->GetCustomString("CompressedDataSize"), allFramesCompressedPixelBufferSize);
+    std::vector<unsigned char> allFramesCompressedPixelBuffer;
+    allFramesCompressedPixelBuffer.resize(allFramesCompressedPixelBufferSize);
+
+    _fseeki64(stream, this->PixelDataFileOffset, SEEK_SET);    
+    if (fread(&(allFramesCompressedPixelBuffer[0]), 1, allFramesCompressedPixelBufferSize, stream)!=allFramesCompressedPixelBufferSize)
+    {
+      LOG_ERROR("Could not read "<<allFramesCompressedPixelBufferSize<<" bytes from "<<GetPixelDataFilePath());
+      fclose( stream );
+      return PLUS_FAIL;
+    }
+
+    uLongf unCompSize = allFramesPixelBufferSize;
+    if (uncompress((Bytef*)&(allFramesPixelBuffer[0]), &unCompSize, (const Bytef*)&(allFramesCompressedPixelBuffer[0]), allFramesCompressedPixelBufferSize)!=Z_OK)
+    {
+      LOG_ERROR("Cannot uncompress the pixel data");
+      fclose( stream );
+      return PLUS_FAIL;
+    }
+    if (unCompSize!=allFramesPixelBufferSize)
+    {
+      LOG_ERROR("Cannot uncompress the pixel data: uncompressed data is less than expected");
+      fclose( stream );
+      return PLUS_FAIL;
+    }
+ 
+  }
+
+  std::vector<unsigned char> pixelBuffer;
+  pixelBuffer.resize(frameSizeInBytes);
+  for (int frameNumber=0; frameNumber<frameCount; frameNumber++)
+  {
+    CreateTrackedFrameIfNonExisting(frameNumber);
+    TrackedFrame* trackedFrame=this->TrackedFrameList->GetTrackedFrame(frameNumber);
+    if (trackedFrame->GetImageData()->AllocateFrame(this->Dimensions, this->PixelType)!=PLUS_SUCCESS)
+    {
+      LOG_ERROR("Cannot allocate memory for frame "<<frameNumber);
+      numberOfErrors++;
+      continue;
+    }    
+    if (!this->UseCompression)
+    {
+      FilePositionOffsetType offset=PixelDataFileOffset+frameNumber*frameSizeInBytes;
+      _fseeki64(stream, offset, SEEK_SET);
+      if (fread(&(pixelBuffer[0]), 1, frameSizeInBytes, stream)!=frameSizeInBytes)
+      {
+        LOG_ERROR("Could not read "<<frameSizeInBytes<<" bytes from "<<GetPixelDataFilePath());
+        numberOfErrors++;
+      }
+      if ( UsImageConverterCommon::GetMFOrientedImage(&(pixelBuffer[0]), this->ImageOrientationInFile, this->Dimensions, this->PixelType, *trackedFrame->GetImageData()) != PLUS_SUCCESS )
+      {
+        LOG_ERROR("Failed to get MF oriented image from sequence metafile (frame number: " << frameNumber << ")!"); 
+        numberOfErrors++;
+        continue; 
+      }
+    }
+    else
+    {
+      if ( UsImageConverterCommon::GetMFOrientedImage(&(allFramesPixelBuffer[0])+frameNumber*frameSizeInBytes, this->ImageOrientationInFile, this->Dimensions, this->PixelType, *trackedFrame->GetImageData()) != PLUS_SUCCESS )
+      {
+        LOG_ERROR("Failed to get MF oriented image from sequence metafile (frame number: " << frameNumber << ")!"); 
+        numberOfErrors++;
+        continue; 
+      }
+    }
+  }
+
+  fclose( stream );
+
+  if (numberOfErrors>0)
+  {
+    return PLUS_FAIL;
+  }
+
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkMetaImageSequenceIO::Write() 
+{
+  if (WriteImageHeader()!=PLUS_SUCCESS)
+  {
+    return PLUS_FAIL;
+  }
+  if (WriteImagePixels()!=PLUS_SUCCESS)
+  {
+    return PLUS_FAIL;
+  }
+
+  // Update fields that are known only at the end of the processing
+  if (GetUseCompression())
+  {
+    if (UpdateFieldInImageHeader("CompressedDataSize")!=PLUS_SUCCESS)
+    {
+      return PLUS_FAIL;
+    }
+  }
+
+  return PLUS_SUCCESS;
+}
 
 
+void vtkMetaImageSequenceIO::CreateTrackedFrameIfNonExisting(int frameNumber)
+{
+  if (frameNumber<this->TrackedFrameList->GetNumberOfTrackedFrames())
+  {
+    // frame is already created
+    return;
+  }
+  TrackedFrame emptyFrame;
+  for (int i=this->TrackedFrameList->GetNumberOfTrackedFrames(); i<frameNumber+1; i++)
+  {
+    this->TrackedFrameList->AddTrackedFrame(&emptyFrame);
+  }
+}
 
-namespace itk
+bool vtkMetaImageSequenceIO::CanReadFile(const char*)
+{
+  FILE *stream=NULL;
+  // open in binary mode because we determine the start of the image buffer also during this read
+  if ( fopen_s( &stream, this->FileName, "rb" ) != 0 )
+  {
+    LOG_DEBUG("The file "<<this->FileName<<" could not be opened for reading");
+    return false;
+  }
+  char line[MAX_LINE_LENGTH+1]={0};
+  fgets( line, MAX_LINE_LENGTH, stream );
+  fclose( stream );
+
+  // the first line in the file should be:
+  // ObjectType = Image
+
+  std::string lineStr=line;
+
+  // Split line into name and value
+  size_t equalSignFound;
+  equalSignFound=lineStr.find_first_of("=");
+  if (equalSignFound==std::string::npos)
+  {
+    LOG_DEBUG("Parsing line failed, equal sign is missing ("<<lineStr<<")");
+    return false;
+  }
+  std::string name=lineStr.substr(0,equalSignFound);
+  std::string value=lineStr.substr(equalSignFound);
+
+  // trim spaces from the left and right
+  trim(name);
+  trim(value);
+
+  if (name.compare("ObjectType")!=0)
+  {
+    LOG_DEBUG("Expect ObjectType field name in the first field");
+    return false;
+  }
+  if (value.compare("Image")!=0)
+  {
+    LOG_DEBUG("Expect Image value name in the first field");
+    return false;
+  }
+
+  return true;
+}
+
+PlusStatus vtkMetaImageSequenceIO::Read()
+{
+  this->TrackedFrameList->Clear();
+
+  if (ReadImageHeader()!=PLUS_SUCCESS)
+  {
+    LOG_ERROR("Could not load header from file: " << this->FileName);
+    return PLUS_FAIL;
+  }
+
+  if (ReadImagePixels()!=PLUS_SUCCESS)
+  {
+    return PLUS_FAIL;
+  }
+  return PLUS_SUCCESS;
+}
+
+/** Writes the spacing and dimentions of the image.
+* Assumes SetFileName has been called with a valid file name. */
+PlusStatus vtkMetaImageSequenceIO::WriteImageHeader()
+{
+  // Override fields
+  SetCustomString("NDims", "3");
+  SetCustomString("BinaryData", "True");
+  SetCustomString("BinaryDataByteOrderMSB", "False");
+
+  // CompressedData
+  if (GetUseCompression())
+  {
+    SetCustomString("CompressedData", "True");
+    SetCustomString("CompressedDataSize", "0                "); // add spaces so that later the field can be updated with larger values
+  }
+  else
+  {
+    SetCustomString("CompressedData", "False");
+    SetCustomString("CompressedDataSize", NULL);
+  }
+  
+  // DimSize
+  std::ostringstream dimSizeStr; 
+  this->Dimensions[0]=this->TrackedFrameList->GetFrameSize()[0];
+  this->Dimensions[1]=this->TrackedFrameList->GetFrameSize()[1];
+  this->Dimensions[2]=this->TrackedFrameList->GetNumberOfTrackedFrames();
+  dimSizeStr << this->Dimensions[0] << " " << this->Dimensions[1] << " " << this->Dimensions[2];
+  dimSizeStr << "                              ";  // add spaces so that later the field can be updated with larger values
+  SetCustomString("DimSize", dimSizeStr.str().c_str());  
+
+  // PixelType
+  this->PixelType=this->TrackedFrameList->GetPixelType();
+  std::string pixelTypeStr;
+  vtkMetaImageSequenceIO::ConvertItkPixelTypeToMetaElementType(this->PixelType, pixelTypeStr);
+  SetCustomString("ElementType", pixelTypeStr.c_str());  // pixel type (a.k.a component type) is stored in the ElementType element
+
+  // Orientation
+  std::string orientationStr=UsImageConverterCommon::GetStringFromUsImageOrientation(this->ImageOrientationInFile);
+  SetCustomString("UltrasoundImageOrientation", orientationStr.c_str());
+
+  // Add fields with default values if they are not present already
+  if (GetCustomString("TransformMatrix")==NULL) { SetCustomString("TransformMatrix", "1 0 0 0 1 0 0 0 1"); }
+  if (GetCustomString("Offset")==NULL) { SetCustomString("Offset", "0 0 0"); }
+  if (GetCustomString("CenterOfRotation")==NULL) { SetCustomString("CenterOfRotation", "0 0 0"); }
+  if (GetCustomString("ElementSpacing")==NULL) { SetCustomString("ElementSpacing", "1 1 1"); }
+  if (GetCustomString("DefaultFrameTransformName")==NULL) { SetCustomString("DefaultFrameTransformName", "Unknown"); }
+  if (GetCustomString("AnatomicalOrientation")==NULL) { SetCustomString("AnatomicalOrientation", "RAI"); }
+
+  std::string fileExt=vtksys::SystemTools::GetFilenameExtension(this->FileName);
+  if (STRCASECMP(fileExt.c_str(),".mha")==0)
+  {
+    SetPixelDataFileName("LOCAL");
+  }
+  else if (STRCASECMP(fileExt.c_str(),".mhd")==0)
+  {
+    std::string pixFileName=vtksys::SystemTools::GetFilenameWithoutExtension(this->FileName);
+    if (this->UseCompression)
+    {
+      pixFileName+=".zraw";
+    }
+    else
+    {
+      pixFileName+=".raw";
+    }
+
+    SetPixelDataFileName(pixFileName.c_str());
+  }
+  else
+  {
+    LOG_ERROR("Writing sequence metafile with "<<fileExt<<" extension is not supported");
+    return PLUS_FAIL;
+  }
+
+  FILE *stream=NULL;
+  // open in binary mode because we determine the start of the image buffer also during this read
+  if ( fopen_s( &stream, this->FileName, "wb" ) != 0 )
+  {
+    LOG_ERROR("The file "<<this->FileName<<" could not be opened for writing");
+    return PLUS_FAIL;
+  }
+
+  // The header shall start with these two fields
+  fputs("ObjectType = Image\n", stream);
+  fputs("NDims = 3\n", stream);
+
+  std::vector<std::string> fieldNames;
+  this->TrackedFrameList->GetCustomFieldNameList(fieldNames);
+  for (std::vector<std::string>::iterator it=fieldNames.begin(); it != fieldNames.end(); it++) 
+  {
+    if (it->compare("ObjectType")==0) continue; // this must be the first element
+    if (it->compare("NDims")==0) continue; // this must be the second element
+    if (it->compare("ElementDataFile")==0) continue; // this must be the last element
+    std::string field=(*it)+" = "+GetCustomString(it->c_str())+"\n";
+    fputs(field.c_str(), stream);
+  }
+
+  // Write frame fields (Seq_Frame0000_... = ...)
+  for (int frameNumber=0; frameNumber<this->TrackedFrameList->GetNumberOfTrackedFrames(); frameNumber++)
+  {
+    TrackedFrame* trackedFrame=this->TrackedFrameList->GetTrackedFrame(frameNumber);
+
+    std::vector<std::string> fieldNames;
+    trackedFrame->GetCustomFrameFieldNameList(fieldNames);
+    for (std::vector<std::string>::iterator it=fieldNames.begin(); it != fieldNames.end(); it++) 
+    {
+      std::ostringstream frameIndexStr; 
+      frameIndexStr << std::setfill('0') << std::setw(4) << frameNumber; 
+      std::string field="Seq_Frame" + frameIndexStr.str() + "_" + (*it) + " = " + trackedFrame->GetCustomFrameField(it->c_str()) + "\n";
+      fputs(field.c_str(), stream);
+    }
+  }
+ 
+  fputs("ElementDataFile = ", stream);
+  fputs(this->PixelDataFileName, stream);
+  fputs("\n", stream);
+
+  fclose(stream);
+
+  return PLUS_SUCCESS;
+}
+
+PlusStatus vtkMetaImageSequenceIO::WriteImagePixels()
 {
 
-	static const char* SEQMETA_FIELD_US_IMG_ORIENT = "UltrasoundImageOrientation"; 
-	static const char* SEQMETA_FIELD_DEF_FRAME_TRANS = "DefaultFrameTransformName"; 
-	static const char* SEQMETA_FIELD_CUSTOM_FIELD_NAMES = "CustomFieldNames"; 
-	static const char* SEQMETA_FIELD_CUSTOM_FRAME_FIELD_NAMES = "CustomFrameFieldNames"; 
-
-	//----------------------------------------------------------------------------
-	MetaImageSequenceIO::MetaImageSequenceIO()
-	{ 
-		this->m_MetaImage = Superclass::GetMetaImagePointer(); 
-		this->m_DefaultFrameTransformName = "ToolToTrackerTransform"; 
-		this->m_UltrasoundImageOrientation = "XX"; 
-	} 
-
-	//----------------------------------------------------------------------------
-	MetaImageSequenceIO::~MetaImageSequenceIO()
-	{
-		this->m_UserFieldMap.clear(); 
-		this->m_CustomFrameFieldNamesForReading.clear(); 
-		this->m_CustomFieldNamesForReading.clear(); 
-
-		this->m_MetaImage->ClearFields();
-		this->m_MetaImage->ClearUserFields(); 
-	}
-
-	//----------------------------------------------------------------------------
-	void MetaImageSequenceIO::AddCustomFrameFieldNameForReading(const char* fieldName) 
-	{ 
-		// check whether we already added to the list or not
-		if ( std::find(m_CustomFrameFieldNamesForReading.begin(), m_CustomFrameFieldNamesForReading.end(), fieldName) 
-			== m_CustomFrameFieldNamesForReading.end() )
-		{
-				m_CustomFrameFieldNamesForReading.push_back(fieldName); 
-		}
-	} 
-
-	//----------------------------------------------------------------------------
-	void MetaImageSequenceIO::AddCustomFieldNameForReading(const char* fieldName) 
-	{ 
-		// check whether we already added to the list or not
-		if ( std::find(m_CustomFieldNamesForReading.begin(), m_CustomFieldNamesForReading.end(), fieldName) 
-			== m_CustomFieldNamesForReading.end() )
-		{
-				m_CustomFieldNamesForReading.push_back(fieldName); 
-		}
-	}
-
-	//----------------------------------------------------------------------------
-	bool MetaImageSequenceIO::SetUltrasoundImageOrientation( const char* strOrientation)
-	{
-		LOG_TRACE("MetaImageSequenceIO::SetUltrasoundImageOrientation"); 
-		bool retValue(false); 
-
-		if ( strOrientation == NULL || STRCASECMP(strOrientation, "XX") == 0 )
-		{
-      LOG_WARNING("Ultrasound image orientation is not defined in " << this->GetFileName()); 
-			this->m_UltrasoundImageOrientation = "XX"; 
-			retValue = true; 
-		}
-		else if ( STRCASECMP(strOrientation, "UF") == 0 )
-		{
-			this->m_UltrasoundImageOrientation = "UF"; 
-			retValue = true; 
-		}
-		else if ( STRCASECMP(strOrientation, "UN") == 0 )
-		{
-			this->m_UltrasoundImageOrientation = "UN"; 
-			retValue = true; 
-		}
-		else if ( STRCASECMP(strOrientation, "MF") == 0 )
-		{
-			this->m_UltrasoundImageOrientation = "MF"; 
-			retValue = true; 
-		}
-		else if ( STRCASECMP(strOrientation, "MN") == 0 )
-		{
-			this->m_UltrasoundImageOrientation = "MN"; 
-			retValue = true; 
-		}
-		else
-		{
-			LOG_ERROR("Unable to recognize ultrasound image orientation: " << strOrientation);
-			this->m_UltrasoundImageOrientation = "XX"; 
-			retValue = false; 
-		}
-
-		return retValue; 
-	}
-	
-	//----------------------------------------------------------------------------
-	bool MetaImageSequenceIO::SetCustomFrameString(int frameNumber, const char* fieldName,  const char* fieldValue)
-	{
-		std::ostringstream seqFieldName; 
-		seqFieldName << "Seq_Frame" << std::setfill('0') << std::setw(4) << frameNumber << "_" << fieldName << std::ends; 
-			
-		// check whether we already added to the list or not
-		UserFieldMap::iterator fieldIterator = this->m_UserFieldMap.find(seqFieldName.str()); 
-		if ( fieldIterator == this->m_UserFieldMap.end() )
-		{
-			this->m_UserFieldMap[seqFieldName.str()] = fieldValue; 
-			this->AddCustomFrameFieldNameForReading(fieldName); 
-
-			return true; 
-		}
-
-		return false; 
-	}
-
-	//----------------------------------------------------------------------------
-	bool MetaImageSequenceIO::SetCustomString(const char* fieldName, const char* fieldValue)
-	{
-		// check whether we already added to the list or not
-		UserFieldMap::iterator fieldIterator = this->m_UserFieldMap.find(fieldName); 
-		if ( fieldIterator == this->m_UserFieldMap.end() )
-		{
-			this->m_UserFieldMap[fieldName] = fieldValue; 
-			this->AddCustomFieldNameForReading(fieldName); 
-
-			return true; 
-		}
-
-		return false; 
-	}
-
-	//----------------------------------------------------------------------------
-	void MetaImageSequenceIO::PrintSelf(std::ostream& os, Indent indent) const
-	{
-		Superclass::PrintSelf(os, indent);
-		
-		os << indent << "Metadata User Fields:" << std::endl;
-		for ( UserFieldMap::const_iterator it = this->m_UserFieldMap.begin(); it != this->m_UserFieldMap.end(); it++) 
-		{
-			os << indent << it->first << " = " << it->second << std::endl; 
-		}
-	}
-
-	//----------------------------------------------------------------------------
-	int MetaImageSequenceIO::ReadNumberOfFramesFromMetaData(const char *_fileName)
-	{
-		int dimSize[3] = {-1,-1,-1}; 
-
-		MetaObject metaObj(3); 
-
-		METAIO_STREAM::ifstream * tmpReadStream = new METAIO_STREAM::ifstream;
-		tmpReadStream->open(_fileName, METAIO_STREAM::ios::binary | 
-			METAIO_STREAM::ios::in);
-		
-		if(!tmpReadStream->rdbuf()->is_open())
-		{
-			delete tmpReadStream;
-			return -1;
-		}
-
-		fflush(NULL);
-
-		FieldsContainerType fields; 
-
-		MET_FieldRecordType * mF;
-
-		mF = new MET_FieldRecordType;
-		MET_InitReadField(mF, "DimSize", MET_INT_ARRAY, true, -1, 3);
-		mF->required = true;
-		fields.push_back(mF);
-
-		// TODO: after removing deprecated functions change it back to required true!
-		mF = new MET_FieldRecordType;
-		MET_InitReadField(mF, SEQMETA_FIELD_CUSTOM_FIELD_NAMES, MET_STRING, false);
-		mF->required = false;
-		fields.push_back(mF);
-
-		// TODO: after removing deprecated functions change it back to required true!
-		mF = new MET_FieldRecordType;
-		MET_InitReadField(mF, SEQMETA_FIELD_CUSTOM_FRAME_FIELD_NAMES, MET_STRING, false);
-		mF->required = false;
-		fields.push_back(mF);
-
-		if(!MET_Read(*tmpReadStream, & fields, '=', false, false) ) 
-		{
-			METAIO_STREAM::cerr << "MetaObject: Read: MET_Read Failed" 
-				<< METAIO_STREAM::endl;
-			return false;
-		}
-
-		mF = MET_GetFieldRecord("DimSize", &fields);
-		if(mF && mF->defined)
-		{
-			int i;
-			for(i=0; i<3; i++)
-			{
-				dimSize[i] = (int)mF->value[i];
-			}
-		}
-
-		mF = MET_GetFieldRecord(SEQMETA_FIELD_CUSTOM_FIELD_NAMES, &fields);
-		if(mF && mF->defined)
-		{
-			std::istringstream customFieldNames((char *)mF->value); 
-			std::string item; 
-			int i = 0; 
-			while ( customFieldNames >> item )
-			{
-				this->AddCustomFieldNameForReading(item.c_str()); 
-			}
-		}
-
-		mF = MET_GetFieldRecord(SEQMETA_FIELD_CUSTOM_FRAME_FIELD_NAMES, &fields);
-		if(mF && mF->defined)
-		{
-			std::istringstream customFrameFieldNames((char *)mF->value); 
-			std::string item; 
-			int i = 0; 
-			while ( customFrameFieldNames >> item )
-			{
-				this->AddCustomFrameFieldNameForReading(item.c_str()); 
-			}
-		}
-
-
-		tmpReadStream->close();
-		delete tmpReadStream;
-
-		metaObj.Clear();
-		metaObj.ClearUserFields();
-
-		return dimSize[2]; 
-	}
-
-	//----------------------------------------------------------------------------
-	void MetaImageSequenceIO::ReadImageInformation()
-	{ 
-		// First we need to read the number of frames 
-		int numOfFrames = this->ReadNumberOfFramesFromMetaData(this->GetFileName()); 
-
-		// Add the necessary custom frame fields that we should read
-		UserFieldMap::iterator fieldIterator; 
-		for ( int i = 0; i < numOfFrames; i++ ) 
-		{
-			for ( int fields = 0 ; fields < m_CustomFrameFieldNamesForReading.size(); fields++)
-			{
-				std::ostringstream seqFieldName; 
-				seqFieldName << "Seq_Frame" << std::setfill('0') << std::setw(4) << i << "_" << m_CustomFrameFieldNamesForReading[fields] << std::ends; 
-				
-				// Avoid duplicate entries
-				fieldIterator = this->m_UserFieldMap.find(seqFieldName.str()); 
-				if ( fieldIterator == this->m_UserFieldMap.end() )
-				{
-					this->m_UserFieldMap[seqFieldName.str()].clear(); 
-				}
-			}
-		}
-
-		// Add the necessary custom fields that we should read
-		for ( int fields = 0 ; fields < m_CustomFieldNamesForReading.size(); fields++)
-		{
-			std::ostringstream seqFieldName; 
-			seqFieldName << m_CustomFieldNamesForReading[fields] << std::ends; 
-
-			// Avoid duplicate entries
-			fieldIterator = this->m_UserFieldMap.find(seqFieldName.str()); 
-			if ( fieldIterator == this->m_UserFieldMap.end() )
-			{
-				this->m_UserFieldMap[seqFieldName.str()].clear(); 
-			}
-		}
-
-		// Add UserFields to MetaObject
-		this->SetupUserFields(IO_READ);
-
-		// Read the informations now with UserFields from metadata
-		Superclass::ReadImageInformation(); 
-
-		// Add read userfields to map
-		for ( UserFieldMap::const_iterator it = this->m_UserFieldMap.begin(); it != this->m_UserFieldMap.end(); it++) 
-		{
-			char* value = static_cast<char*>( m_MetaImage->GetUserField(it->first.c_str() ) ); 
-			this->m_UserFieldMap[it->first] = value; 
-			delete[] value; 
-		}
-		
-		// Set the default frame transform name from metafile
-		this->SetDefaultFrameTransformName( this->GetCustomString(SEQMETA_FIELD_DEF_FRAME_TRANS) ); 
-
-		// Set the ultrasound image orientation from metafile
-		this->SetUltrasoundImageOrientation( this->GetCustomString(SEQMETA_FIELD_US_IMG_ORIENT) ); 
-		
-		// Clear and add again the userfields for ImageData reading
-		this->SetupUserFields(IO_READ);
-	}
-
-	//----------------------------------------------------------------------------
-	void MetaImageSequenceIO::SetupUserFields(SEQUENCE_IO_TYPE ioType)
-	{
-		// Clear and add userfields to list
-		this->m_MetaImage->Clear();
-		this->m_MetaImage->ClearUserFields(); 
-
-		if ( ioType == IO_READ )
-		{
-			// TODO: after removing deprecated functions change it back to required true!
-			this->m_MetaImage->AddUserField(SEQMETA_FIELD_CUSTOM_FIELD_NAMES , MET_STRING , 0, false); 
-			this->m_MetaImage->AddUserField(SEQMETA_FIELD_CUSTOM_FRAME_FIELD_NAMES , MET_STRING , 0, false); 
-		}
-
-		for ( UserFieldMap::const_iterator it = this->m_UserFieldMap.begin(); it != this->m_UserFieldMap.end(); it++) 
-		{
-			switch (ioType)
-			{
-			case IO_READ:
-				this->m_MetaImage->AddUserField(it->first.c_str(), MET_STRING , 0, false); 
-				break;
-			case IO_WRITE: 
-				this->m_MetaImage->AddUserField(it->first.c_str(), MET_STRING, strlen(it->second.c_str()), it->second.c_str(), false); 
-				break;
-			}
-		}
-	}
-	
-	//----------------------------------------------------------------------------
-	void MetaImageSequenceIO::Write( const void* buffer) 
-	{
-		this->SetCustomString(SEQMETA_FIELD_DEF_FRAME_TRANS, this->GetDefaultFrameTransformName()); 
-		this->SetCustomString(SEQMETA_FIELD_US_IMG_ORIENT, this->GetUltrasoundImageOrientation()); 
-
-		// Save custom field names to header
-		std::ostringstream customFieldNames; 
-		for ( int fields = 0 ; fields < m_CustomFieldNamesForReading.size(); fields++)
-		{
-			customFieldNames << m_CustomFieldNamesForReading[fields] << " "; 
-		}
-		customFieldNames << std::ends; 
-		this->SetCustomString(SEQMETA_FIELD_CUSTOM_FIELD_NAMES, customFieldNames.str().c_str()); 
-		
-		// Save custom frame field names to header
-		std::ostringstream customFrameFieldNames; 
-		for ( int fields = 0 ; fields < m_CustomFrameFieldNamesForReading.size(); fields++)
-		{
-			customFrameFieldNames << m_CustomFrameFieldNamesForReading[fields] << " "; 
-		}
-		customFrameFieldNames << std::ends; 
-		this->SetCustomString(SEQMETA_FIELD_CUSTOM_FRAME_FIELD_NAMES, customFrameFieldNames.str().c_str()); 
-
-		// Add UserFields to MetaObject
-		this->SetupUserFields(IO_WRITE);
-
-		// write fields to metadata
-		Superclass::Write(buffer); 
-	}
-
-	//----------------------------------------------------------------------------
-	const char* MetaImageSequenceIO::GetCustomFrameString( int frameNumber, const char* fieldName)
-	{
-		UserFieldMap::iterator fieldIterator; 
-
-		std::ostringstream userField; 
-		userField << "Seq_Frame" << std::setfill('0') << std::setw(4) << frameNumber << "_" << fieldName << std::ends;
-
-		fieldIterator = this->m_UserFieldMap.find(userField.str()); 
-
-		if ( fieldIterator != this->m_UserFieldMap.end() )
-		{
-			return fieldIterator->second.c_str();	
-		}
-
-		return NULL; 
-	}
-
-	//----------------------------------------------------------------------------
-	const char* MetaImageSequenceIO::GetCustomString( const char* fieldName )
-	{
-		UserFieldMap::iterator fieldIterator; 
-		std::ostringstream userField;
-		userField << fieldName << std::ends; 
-		
-		fieldIterator = this->m_UserFieldMap.find(userField.str()); 
-
-		if ( fieldIterator != this->m_UserFieldMap.end() )
-		{
-			return fieldIterator->second.c_str(); 
-		}
-
-		return NULL; 
-	}
-
-	//----------------------------------------------------------------------------
-	bool MetaImageSequenceIO::GetCustomFrameTransform( const int frameNumber, const char* frameTransformName, double* transformMatrix )
-	{
-		const char* customFrameString = this->GetCustomFrameString(frameNumber, frameTransformName); 
-
-		if ( customFrameString == NULL )
-		{
-			return false; 
-		}
-
-		std::istringstream transformFieldValue(customFrameString); 
-
-		double item; 
-		int i = 0; 
-		while ( transformFieldValue >> item )
-		{
-			transformMatrix[i++] = item; 
-		}
-
-		return true; 
-	}
-
-	//----------------------------------------------------------------------------
-	bool MetaImageSequenceIO::GetCustomFrameTransform( const int frameNumber, const char* frameTransformName, vtkMatrix4x4* transformMatrix )
-	{
-		double transform[16] = { 1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1 }; 
-		const bool retValue = this->GetCustomFrameTransform(frameNumber, frameTransformName, transform);
-		transformMatrix->DeepCopy(transform);
-
-		return retValue; 
-	}
-
-	//----------------------------------------------------------------------------
-	bool MetaImageSequenceIO::GetFrameTransform( const int frameNumber, double* transformMatrix )
-	{
-		return this->GetCustomFrameTransform(frameNumber, this->GetDefaultFrameTransformName(), transformMatrix); 
-	}
-
-	//----------------------------------------------------------------------------
-	bool MetaImageSequenceIO::GetFrameTransform( const int frameNumber, vtkMatrix4x4* transformMatrix )
-	{
-		 return this->GetCustomFrameTransform(frameNumber, this->GetDefaultFrameTransformName(), transformMatrix ); 
-	}
-
-	//----------------------------------------------------------------------------
-	void MetaImageSequenceIO::SetCustomFrameTransform( const int frameNumber, const char* frameTransformName, double* transformMatrix )
-	{
-		std::ostringstream transform; 
-
-		transform	<< transformMatrix[0]  << " " << transformMatrix[1]  << " " << transformMatrix[2]  << " " << transformMatrix[3]  << " " 
-					<< transformMatrix[4]  << " " << transformMatrix[5]  << " " << transformMatrix[6]  << " " << transformMatrix[7]  << " " 
-					<< transformMatrix[8]  << " " << transformMatrix[9]  << " " << transformMatrix[10] << " " << transformMatrix[11] << " " 
-					<< transformMatrix[12] << " " << transformMatrix[13] << " " << transformMatrix[14] << " " << transformMatrix[15] << " "; 
-
-		this->SetCustomFrameString(frameNumber, frameTransformName, transform.str().c_str()); 
-
-	}
-
-	//----------------------------------------------------------------------------
-	void MetaImageSequenceIO::SetCustomFrameTransform( const int frameNumber, const char* frameTransformName, vtkMatrix4x4* transformMatrix )
-	{
-		double transform[16]; 
-		for ( int i = 0; i < 4; i++ ) 
-		{
-			for ( int j = 0; j < 4; j++ ) 
-			{
-				transform[i*4+j] = transformMatrix->GetElement(i, j); 
-			}
-		}
-
-		this->SetCustomFrameTransform(frameNumber, frameTransformName, transform); 
-	}
-
-	//----------------------------------------------------------------------------
-	void MetaImageSequenceIO::SetFrameTransform( const int frameNumber, double* transformMatrix )
-	{
-		this->SetCustomFrameTransform(frameNumber, this->GetDefaultFrameTransformName(), transformMatrix); 
-	}
-
-	//----------------------------------------------------------------------------
-	void MetaImageSequenceIO::SetFrameTransform( const int frameNumber, vtkMatrix4x4* transformMatrix )
-	{
-		this->SetCustomFrameTransform(frameNumber, this->GetDefaultFrameTransformName(), transformMatrix); 
-	}
-
-	//----------------------------------------------------------------------------
-	bool MetaImageSequenceIO::GetCustomTransform( const char* frameTransformName, vtkMatrix4x4* transformMatrix )
-	{
-		double transform[16] = { 1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1 };
-		const bool retValue = this->GetCustomTransform(frameTransformName, transform); 
-		transformMatrix->DeepCopy(transform); 
-
-		return retValue; 
-	}
-
-	//----------------------------------------------------------------------------
-	bool MetaImageSequenceIO::GetCustomTransform( const char* frameTransformName, double* transformMatrix )
-	{
-		const char* customString = this->GetCustomString(frameTransformName); 
-		
-		if ( customString == NULL )
-		{
-			return false; 
-		}
-
-		std::istringstream transformFieldValue(customString); 
-
-		double item; 
-		int i = 0; 
-		while ( transformFieldValue >> item )
-		{
-			transformMatrix[i++] = item; 
-		}
-
-		return true; 
-	}
-
-	//----------------------------------------------------------------------------
-	void MetaImageSequenceIO::SetCustomTransform( const char* frameTransformName, vtkMatrix4x4* transformMatrix )
-	{
-		double transform[16]; 
-		for ( int i = 0; i < 4; i++ ) 
-		{
-			for ( int j = 0; j < 4; j++ ) 
-			{
-				transform[i*4+j] = transformMatrix->GetElement(i, j); 
-			}
-		}
-
-		this->SetCustomTransform(frameTransformName, transform); 
-	}
-
-	//----------------------------------------------------------------------------
-	void MetaImageSequenceIO::SetCustomTransform( const char* frameTransformName, double* transformMatrix )
-	{
-		std::ostringstream transform; 
-
-		transform	<< transformMatrix[0]  << " " << transformMatrix[1]  << " " << transformMatrix[2]  << " " << transformMatrix[3]  << " " 
-					<< transformMatrix[4]  << " " << transformMatrix[5]  << " " << transformMatrix[6]  << " " << transformMatrix[7]  << " " 
-					<< transformMatrix[8]  << " " << transformMatrix[9]  << " " << transformMatrix[10] << " " << transformMatrix[11] << " " 
-					<< transformMatrix[12] << " " << transformMatrix[13] << " " << transformMatrix[14] << " " << transformMatrix[15] << " "; 
-
-		this->SetCustomString(frameTransformName, transform.str().c_str()); 
-	}
-
-} // end namespace itk
+  if (this->ImageOrientationInFile!=US_IMG_ORIENT_MF)
+  {
+    LOG_ERROR("Saving of images is supported only in the MF orientation");
+    return PLUS_FAIL;
+  }
+
+  FILE *stream=NULL;
+  
+  // Append image data
+  if ( fopen_s( &stream, GetPixelDataFilePath().c_str(), "ab+" ) != 0 )
+  {
+    LOG_ERROR("The file "<<this->FileName<<" could not be opened for writing");
+    return PLUS_FAIL;
+  }
+
+  PlusStatus result=PLUS_SUCCESS;
+  if (!GetUseCompression())
+  {
+    // not compressed
+    for (int frameNumber=0; frameNumber<this->TrackedFrameList->GetNumberOfTrackedFrames(); frameNumber++)
+    {
+      TrackedFrame* trackedFrame=this->TrackedFrameList->GetTrackedFrame(frameNumber);
+      fwrite(trackedFrame->GetImageData()->GetBufferPointer(), 1, trackedFrame->GetImageData()->GetFrameSizeInBytes(), stream);
+    }
+  }
+  else
+  {
+    // compressed
+    int compressedDataSize=0;
+    result=WriteCompressedImagePixelsToFile(stream, compressedDataSize);
+    std::ostringstream compressedDataSizeStr; 
+    compressedDataSizeStr << compressedDataSize; 
+    SetCustomString("CompressedDataSize", compressedDataSizeStr.str().c_str());
+  }
+
+  fclose(stream);
+
+  return result;
+}
+
+PlusStatus vtkMetaImageSequenceIO::WriteCompressedImagePixelsToFile(FILE *outputFileStream, int &compressedDataSize)
+{
+  LOG_DEBUG("Writing compressed pixel data into file started");
+
+  compressedDataSize=0;
+
+  const int outputBufferSize=16384; // can be any number, just picked a value from a zlib example
+  unsigned char outputBuffer[outputBufferSize];
+  
+  z_stream strm; // stream describing the compression state
+
+  // use the default memory allocation routines
+  strm.zalloc = Z_NULL;
+  strm.zfree = Z_NULL;
+  strm.opaque = Z_NULL;
+  int ret=deflateInit(&strm, Z_DEFAULT_COMPRESSION);
+  if (ret!=Z_OK)
+  {
+    LOG_ERROR("Image compression initialization failed (errorCode="<<ret<<")");
+    return PLUS_FAIL;
+  }
+
+  for (int frameNumber=0; frameNumber<this->TrackedFrameList->GetNumberOfTrackedFrames(); frameNumber++)
+  {
+    TrackedFrame* trackedFrame=this->TrackedFrameList->GetTrackedFrame(frameNumber);
+    if (trackedFrame==NULL)
+    {
+      LOG_ERROR("Cannot access frame "<<frameNumber<<" while trying to writing compress data into file");
+      deflateEnd(&strm);
+      return PLUS_FAIL;
+    }
+    strm.next_in=(Bytef*)trackedFrame->GetImageData()->GetBufferPointer();
+    strm.avail_in=trackedFrame->GetImageData()->GetFrameSizeInBytes();
+
+    // Note: it's possible to request to consume all inputs and delete all history after each frame writing to allow random access
+    int flush = (frameNumber<this->TrackedFrameList->GetNumberOfTrackedFrames()-1) ? Z_NO_FLUSH : Z_FINISH;
+
+    // run deflate() on input until output buffer not full, finish
+    // compression if all of source has been read in
+    do 
+    {
+      strm.avail_out = outputBufferSize;
+      strm.next_out = outputBuffer;
+
+      ret = deflate(&strm, flush);    /* no bad return value */
+      if (ret == Z_STREAM_ERROR)
+      {
+        // state clobbered
+        LOG_ERROR("Zlib state became invalid during the compression process (errorCode="<<ret<<")");
+        deflateEnd(&strm); // clean up
+        return PLUS_FAIL;
+      }
+
+      int numberOfBytesReadyForWriting = outputBufferSize - strm.avail_out;
+      if (fwrite(outputBuffer, 1, numberOfBytesReadyForWriting, outputFileStream) != numberOfBytesReadyForWriting || ferror(outputFileStream))
+      {        
+        LOG_ERROR("Error writing compressed data into file");
+        deflateEnd(&strm); // clean up
+        return PLUS_FAIL;
+      }
+      compressedDataSize+=numberOfBytesReadyForWriting;
+
+    } while (strm.avail_out == 0);
+
+    if (strm.avail_in != 0)
+    {
+      // state clobbered (by now all input should have been consumed)
+      LOG_ERROR("Zlib state became invalid during the compression process");
+      deflateEnd(&strm); // clean up
+      return PLUS_FAIL;
+    }
+  }
+  
+  deflateEnd(&strm); // clean up
+
+  LOG_DEBUG("Writing compressed pixel data into file completed");
+
+  if (ret != Z_STREAM_END)
+  {
+    LOG_ERROR("Error occurred during compressing image data into file");
+    return PLUS_FAIL;
+  }
+  return PLUS_SUCCESS;
+}
+
+
+const char* vtkMetaImageSequenceIO::GetDefaultFrameTransformName()
+{
+  return this->TrackedFrameList->GetCustomString(SEQMETA_FIELD_DEFAULT_FRAME_TRANSFORM);
+}
+
+void vtkMetaImageSequenceIO::SetDefaultFrameTransformName(const std::string& strTransform)
+{
+  SetCustomString(SEQMETA_FIELD_DEFAULT_FRAME_TRANSFORM, strTransform.c_str());  
+}
+
+TrackedFrame* vtkMetaImageSequenceIO::GetTrackedFrame(int frameNumber)
+{
+  TrackedFrame* trackedFrame=this->TrackedFrameList->GetTrackedFrame(frameNumber);
+  return trackedFrame;
+}
+
+PlusStatus vtkMetaImageSequenceIO::ConvertMetaElementTypeToItkPixelType(const std::string &elementTypeStr, PlusCommon::ITKScalarPixelType &itkPixelType)
+{
+  if (elementTypeStr.compare("MET_OTHER")==0
+    || elementTypeStr.compare("MET_NONE")==0
+    || elementTypeStr.empty())
+  {
+    itkPixelType=itk::ImageIOBase::UNKNOWNCOMPONENTTYPE;
+  }
+  else if (elementTypeStr.compare("MET_CHAR")==0) { itkPixelType=itk::ImageIOBase::CHAR; }
+  else if (elementTypeStr.compare("MET_ASCII_CHAR")==0) { itkPixelType=itk::ImageIOBase::CHAR; }
+  else if (elementTypeStr.compare("MET_UCHAR")==0) { itkPixelType=itk::ImageIOBase::UCHAR; }
+  else if (elementTypeStr.compare("MET_SHORT")==0) { itkPixelType=itk::ImageIOBase::SHORT; }
+  else if (elementTypeStr.compare("MET_USHORT")==0) { itkPixelType=itk::ImageIOBase::USHORT; }
+  else if (elementTypeStr.compare("MET_INT")==0) { itkPixelType=itk::ImageIOBase::INT; }
+  else if (elementTypeStr.compare("MET_UINT")==0)
+  {
+    if(sizeof(unsigned int) == MET_ValueTypeSize[MET_UINT])
+    {
+      itkPixelType=itk::ImageIOBase::UINT;
+    }
+    else if(sizeof(unsigned long) == MET_ValueTypeSize[MET_UINT])
+    {
+      itkPixelType=itk::ImageIOBase::ULONG;
+    }
+  }
+  else if (elementTypeStr.compare("MET_LONG")==0)
+  {
+    if(sizeof(unsigned int) == MET_ValueTypeSize[MET_LONG])
+    {
+      itkPixelType=itk::ImageIOBase::LONG;
+    }
+    else if(sizeof(unsigned long) == MET_ValueTypeSize[MET_UINT])
+    {
+      itkPixelType=itk::ImageIOBase::INT;
+    }
+  }
+  else if (elementTypeStr.compare("MET_ULONG")==0)
+  {
+    if(sizeof(unsigned long) == MET_ValueTypeSize[MET_ULONG])
+    {
+      itkPixelType=itk::ImageIOBase::ULONG;
+    }
+    else if(sizeof(unsigned int) == MET_ValueTypeSize[MET_ULONG])
+    {
+      itkPixelType=itk::ImageIOBase::UINT;
+    }
+  }
+  else if (elementTypeStr.compare("MET_LONG_LONG")==0)
+  {
+    if(sizeof(long) == MET_ValueTypeSize[MET_LONG_LONG])
+    {
+      itkPixelType=itk::ImageIOBase::LONG;
+    }
+    else if(sizeof(int) == MET_ValueTypeSize[MET_LONG_LONG])
+    {
+      itkPixelType=itk::ImageIOBase::INT;
+    }
+    else 
+    {
+      itkPixelType=itk::ImageIOBase::UNKNOWNCOMPONENTTYPE;
+    }
+  }
+  else if (elementTypeStr.compare("MET_ULONG_LONG")==0)
+  {
+    if(sizeof(unsigned long) == MET_ValueTypeSize[MET_ULONG_LONG])
+    {
+      itkPixelType=itk::ImageIOBase::ULONG;
+    }
+    else if(sizeof(unsigned int) == MET_ValueTypeSize[MET_ULONG_LONG])
+    {
+      itkPixelType=itk::ImageIOBase::UINT;
+    }
+    else 
+    {
+      itkPixelType=itk::ImageIOBase::UNKNOWNCOMPONENTTYPE;
+    }
+  }   
+  else if (elementTypeStr.compare("MET_FLOAT")==0)
+  {
+    if(sizeof(float) == MET_ValueTypeSize[MET_FLOAT])
+    {
+      itkPixelType=itk::ImageIOBase::FLOAT;
+    }
+    else if(sizeof(double) == MET_ValueTypeSize[MET_FLOAT])
+    {
+      itkPixelType=itk::ImageIOBase::DOUBLE;
+    }
+  }  
+  else if (elementTypeStr.compare("MET_DOUBLE")==0)
+  {
+    itkPixelType=itk::ImageIOBase::DOUBLE;
+    if(sizeof(double) == MET_ValueTypeSize[MET_DOUBLE])
+    {
+      itkPixelType=itk::ImageIOBase::DOUBLE;
+    }
+    else if(sizeof(float) == MET_ValueTypeSize[MET_DOUBLE])
+    {
+      itkPixelType=itk::ImageIOBase::FLOAT;
+    }
+  }
+  else
+  {
+    LOG_ERROR("Unknown component type: "<<elementTypeStr);
+    itkPixelType=itk::ImageIOBase::UNKNOWNCOMPONENTTYPE;
+    return PLUS_FAIL;
+  }
+
+  return PLUS_SUCCESS;
+}
+
+PlusStatus vtkMetaImageSequenceIO::ConvertItkPixelTypeToMetaElementType(PlusCommon::ITKScalarPixelType itkPixelType, std::string &elementTypeStr)
+{
+  if (itkPixelType==itk::ImageIOBase::UNKNOWNCOMPONENTTYPE)
+  {
+    elementTypeStr="MET_OTHER";
+    return PLUS_SUCCESS;
+  }
+  const char* metaElementTypes[]={
+    "MET_CHAR",
+    "MET_UCHAR",
+    "MET_SHORT",
+    "MET_USHORT",
+    "MET_INT",
+    "MET_UINT",
+    "MET_LONG",
+    "MET_ULONG",
+    "MET_LONG_LONG",
+    "MET_ULONG_LONG",
+    "MET_FLOAT",
+    "MET_DOUBLE",
+  };
+  
+  PlusCommon::ITKScalarPixelType testedPixelType=itk::ImageIOBase::UNKNOWNCOMPONENTTYPE;
+  for (int i=0; i<sizeof(metaElementTypes); i++)
+  {    
+    if (ConvertMetaElementTypeToItkPixelType(metaElementTypes[i], testedPixelType)!=PLUS_SUCCESS)
+    {
+      continue;
+    }
+    if (testedPixelType==itkPixelType)
+    {
+      elementTypeStr=metaElementTypes[i];
+      return PLUS_SUCCESS;
+    }
+  }
+  elementTypeStr="MET_OTHER";
+  return PLUS_FAIL;
+}
+
+std::string vtkMetaImageSequenceIO::GetPixelDataFilePath()
+{
+  if (STRCASECMP(SEQMETA_FIELD_VALUE_ELEMENT_DATA_FILE_LOCAL, this->PixelDataFileName)==0)
+  {
+    // LOCAL => data is stored in one file
+    return this->FileName;
+  }
+  
+  std::string dir=vtksys::SystemTools::GetFilenamePath(this->FileName);
+  if (!dir.empty())
+  {
+    dir+="/";
+  }
+  std::string path=dir+this->PixelDataFileName;
+  return path;
+}
+
+PlusStatus vtkMetaImageSequenceIO::UpdateFieldInImageHeader(const char* fieldName)
+{
+  FILE *stream=NULL;
+  // open in read+write binary mode
+  if ( fopen_s( &stream, this->FileName, "r+b" ) != 0 )
+  {
+    LOG_ERROR("The file "<<this->FileName<<" could not be opened for reading and writing");
+    return PLUS_FAIL;
+  }
+
+  fseek(stream, 0, SEEK_SET);
+
+  char line[MAX_LINE_LENGTH+1]={0};
+  char *fgetsResult=(char*)1;
+  while (fgets( line, MAX_LINE_LENGTH, stream ))
+  {
+    std::string lineStr=line;
+
+    // Split line into name and value
+    size_t equalSignFound;
+    equalSignFound=lineStr.find_first_of("=");
+    if (equalSignFound==std::string::npos)
+    {
+      LOG_WARNING("Parsing line failed, equal sign is missing ("<<lineStr<<")");
+      continue;
+    }
+    std::string name=lineStr.substr(0,equalSignFound);
+    trim(name);
+
+    if (name.compare(fieldName)==0)
+    {
+      // found the field that has to be updated
+
+      // construct a new line with the updated value
+      std::ostringstream newLineStr; 
+      newLineStr << name << " = " << GetCustomString(name.c_str());
+      int paddingCharactersNeeded=lineStr.size()-newLineStr.str().size(); // need to add padding whitespace characters to fully replace the old line 
+      if (paddingCharactersNeeded<0)
+      {
+        LOG_ERROR("Cannot update line in image header (the new string '"<<newLineStr<<"' is longer than the current string '"<<lineStr<<"')");
+        fclose( stream );
+        return PLUS_FAIL;
+      }
+      for (int i=0; i<paddingCharactersNeeded; i++);
+      {        
+        newLineStr << " ";
+      }      
+      // rewind to file pointer the first character of the line
+      fseek(stream, -lineStr.size(), SEEK_CUR);
+
+      // overwrite the old line
+      if (fwrite(newLineStr.str().c_str(), 1, newLineStr.str().size(), stream)!=newLineStr.str().size())
+      {
+        LOG_ERROR("Cannot update line in image header (writing the updated line into the file failed)");
+        fclose( stream );
+        return PLUS_FAIL;
+      }
+
+      fclose( stream );
+      return PLUS_SUCCESS;
+    }
+
+    if (ferror(stream))
+    {
+      LOG_ERROR("Error reading the file "<<this->FileName);
+      break;
+    }
+    if (feof(stream))
+    {
+      break;
+    }
+  }
+
+  fclose( stream );
+  LOG_ERROR("Field "<<fieldName<<" is not found in the header file, update with new value is failed:"); 
+  return PLUS_FAIL;
+}

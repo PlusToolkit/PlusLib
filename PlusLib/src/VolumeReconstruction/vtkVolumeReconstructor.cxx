@@ -292,17 +292,14 @@ PlusStatus vtkVolumeReconstructor::GetImageToReferenceTransformMatrix(vtkMatrix4
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkVolumeReconstructor::GetImageToReferenceTransformMatrix(TrackedFrame* frame, vtkMatrix4x4* imageToReferenceTransformMatrix)
+PlusStatus vtkVolumeReconstructor::GetImageToReferenceTransformMatrix(TrackedFrame* frame, const char* toolToReferenceTransformName, vtkMatrix4x4* imageToReferenceTransformMatrix)
 {
-  double defaultTransform[16]; 
-  if ( !frame->GetDefaultFrameTransform(defaultTransform) )		
+  vtkSmartPointer<vtkMatrix4x4> toolToReferenceTransformMatrix=vtkSmartPointer<vtkMatrix4x4>::New();
+  if ( frame->GetCustomFrameTransform(toolToReferenceTransformName, toolToReferenceTransformMatrix)!= PLUS_SUCCESS )		
   {
     LOG_ERROR("Unable to get default frame transform"); 
     return PLUS_FAIL; 
   }
-  vtkSmartPointer<vtkMatrix4x4> toolToReferenceTransformMatrix=vtkSmartPointer<vtkMatrix4x4>::New();
-  toolToReferenceTransformMatrix->DeepCopy(defaultTransform);
-
   return GetImageToReferenceTransformMatrix(toolToReferenceTransformMatrix, imageToReferenceTransformMatrix);
 }
 
@@ -355,6 +352,7 @@ PlusStatus vtkVolumeReconstructor::SetOutputExtentFromFrameList(vtkTrackedFrameL
     VTK_DOUBLE_MAX, VTK_DOUBLE_MIN
   };
 
+  std::string toolToReferenceTransformName=trackedFrameList->GetDefaultFrameTransformName();
   const int numberOfFrames = trackedFrameList->GetNumberOfTrackedFrames(); 
   for (int frameIndex = 0; frameIndex < numberOfFrames; ++frameIndex )
   {
@@ -362,7 +360,7 @@ PlusStatus vtkVolumeReconstructor::SetOutputExtentFromFrameList(vtkTrackedFrameL
 
     // Get transform
     vtkSmartPointer<vtkMatrix4x4> imageToReferenceTransformMatrix=vtkSmartPointer<vtkMatrix4x4>::New();
-    if ( GetImageToReferenceTransformMatrix(frame, imageToReferenceTransformMatrix)!=PLUS_SUCCESS )		
+    if ( GetImageToReferenceTransformMatrix(frame, toolToReferenceTransformName.c_str(), imageToReferenceTransformMatrix)!=PLUS_SUCCESS )		
     {
       LOG_ERROR("Unable to get image to reference transform for frame #" << frameIndex); 
       continue; 
@@ -406,10 +404,10 @@ PlusStatus vtkVolumeReconstructor::SetOutputExtentFromFrameList(vtkTrackedFrameL
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkVolumeReconstructor::AddTrackedFrame(TrackedFrame* frame)
+PlusStatus vtkVolumeReconstructor::AddTrackedFrame(TrackedFrame* frame, const char* toolToReferenceTransformName)
 {
   vtkSmartPointer<vtkMatrix4x4> imageToReferenceTransformMatrix=vtkSmartPointer<vtkMatrix4x4>::New();
-  if ( GetImageToReferenceTransformMatrix(frame, imageToReferenceTransformMatrix)!=PLUS_SUCCESS )		
+  if ( GetImageToReferenceTransformMatrix(frame, toolToReferenceTransformName, imageToReferenceTransformMatrix)!=PLUS_SUCCESS )		
   {
     LOG_ERROR("Unable to get image to reference transform for frame"); 
     return PLUS_FAIL; 

@@ -174,6 +174,7 @@ PlusStatus vtkTranslAxisCalibAlgo::ConstructLinearEquationForCalibration( std::v
     return PLUS_FAIL; 
   }
 
+  std::string defaultFrameTransformName=this->TrackedFrameList->GetDefaultFrameTransformName();
   for ( int frame = 0; frame < this->GetTrackedFrameList()->GetNumberOfTrackedFrames(); ++frame )
   {
     TrackedFrame* trackedFrame = this->GetTrackedFrameList()->GetTrackedFrame(frame); 
@@ -185,7 +186,7 @@ PlusStatus vtkTranslAxisCalibAlgo::ConstructLinearEquationForCalibration( std::v
 
     // Get the encoder value in mm 
     double probePos(0), probeRot(0), templatePos(0); 
-    if ( !vtkBrachyTracker::GetStepperEncoderValues(trackedFrame, probePos, probeRot, templatePos) )
+    if ( !vtkBrachyTracker::GetStepperEncoderValues(trackedFrame, probePos, probeRot, templatePos, defaultFrameTransformName.c_str()) )
     {
       LOG_WARNING("Translation axis calibration: Unable to get stepper encoder values from tracked frame info for frame #" << frame); 
       continue; 

@@ -23,10 +23,7 @@ class vtkPoints;
 class VTK_EXPORT TrackedFrame
 {
 public:
-  // <CustomFrameFieldName, CustomFrameFieldValue>
-  typedef std::pair<std::string, std::string> CustomFrameFieldPair; 
-  // <CustomFieldName, CustomFieldValue>
-  typedef std::pair<std::string, std::string> CustomFieldPair; 
+  typedef std::map<std::string,std::string> FieldMapType; 
 
 public:
   TrackedFrame();
@@ -57,34 +54,21 @@ public:
   void SetCustomFrameField( std::string name, std::string value ); 
 
   //! Get custom frame field value
-  const char* GetCustomFrameField( std::string name ); 
+  const char* GetCustomFrameField(const char* fieldName); 
 
-  //! Get custom frame field list
-  std::vector<CustomFrameFieldPair> GetCustomFrameFieldList() { return this->CustomFrameFieldList; };
-
-  //! Set custom field 
-  void SetCustomField( std::string name, std::string value ); 
-
-  //! Get custom field value
-  const char* GetCustomField( std::string name ); 
-
-  //! Get default frame transform value
-  const char* GetDefaultFrameTransformName() { return this->DefaultFrameTransformName.c_str(); };
-
-  //! Set default frame transform value
-  void SetDefaultFrameTransformName(std::string value) { this->DefaultFrameTransformName = value; };
-
-  //! Get default frame transform
-  bool GetDefaultFrameTransform(double transform[16]); 
-
-  //! Get custom frame transform
-  bool GetCustomFrameTransform(const char* frameTransformName, double transform[16]); 
+  //! Operation: 
+  // Get custom frame transform
+  PlusStatus GetCustomFrameTransform(const char* frameTransformName, double transform[16]); 
+  PlusStatus GetCustomFrameTransform(const char* frameTransformName, vtkMatrix4x4* transformMatrix); 
 
   //! Set custom frame transform
   void SetCustomFrameTransform(std::string frameTransformName, double transform[16]); 
 
   //! Set custom frame transform
   void SetCustomFrameTransform(std::string frameTransformName, vtkMatrix4x4* transform); 
+
+  //! Get the list of the name of all custom frame fields
+  void GetCustomFrameFieldNameList(std::vector<std::string> &fieldNames);
 
   //! Operation: 
   // Returns: int[2]. Get tracked frame size in pixel
@@ -132,11 +116,10 @@ public:
 protected:
   PlusVideoFrame ImageData;
   TrackerStatus Status; 
-  std::string DefaultFrameTransformName; 
   double Timestamp; 
 
-  std::vector<CustomFrameFieldPair> CustomFrameFieldList; 
-  std::vector<CustomFieldPair> CustomFieldList; 
+  FieldMapType CustomFrameFields;
+
   int FrameSize[2]; 
 
   // Stores segmented fiducial point pixel coordinates 
@@ -167,16 +150,9 @@ public:
   TrackedFramePositionFinder(TrackedFrame* frame, const char* frameTransformName, double minRequiredTranslationDifferenceMm /*= 0.5*/, double minRequiredAngleDifferenceDeg /*= 0.2*/)
     : mTrackedFrame(frame), 
     mMinRequiredTranslationDifferenceMm(minRequiredTranslationDifferenceMm),
-    mMinRequiredAngleDifferenceDeg(minRequiredAngleDifferenceDeg)
+    mMinRequiredAngleDifferenceDeg(minRequiredAngleDifferenceDeg),
+    mFrameTransformName(frameTransformName) 
   {
-    if ( frameTransformName == NULL ) 
-    {
-      mFrameTransformName = frame->GetDefaultFrameTransformName(); 
-    }
-    else
-    {
-      mFrameTransformName = frameTransformName; 
-    }
   }
 
   //! TODO Description
@@ -274,6 +250,7 @@ class VTK_EXPORT vtkTrackedFrameList : public vtkObject
 
 public:
   typedef std::deque<TrackedFrame*> TrackedFrameListType; 
+  typedef std::map<std::string,std::string> FieldMapType; 
   enum SEQ_METAFILE_EXTENSION
   {
     SEQ_METAFILE_MHA, 
@@ -311,9 +288,6 @@ public:
   // Read the tracked data from sequence metafile 
   virtual PlusStatus ReadFromSequenceMetafile(const char* trackedSequenceDataFileName); 
 
-  template <class OutputPixelType>
-  PlusStatus ReadFromSequenceMetafileGeneric(const char* trackedSequenceDataFileName);
-
   //! Operation: 
   // Get the tracked frame list 
   TrackedFrameListType GetTrackedFrameList() { return this->TrackedFrameList; }
@@ -332,6 +306,7 @@ public:
   virtual void Clear(); 
 
   virtual std::string GetDefaultFrameTransformName(); 
+  virtual void SetDefaultFrameTransformName(const char* name); 
 
   //! Operation: 
   // Set/get the maximum number of frames to write into a single metafile. 
@@ -365,6 +340,30 @@ public:
   // Get tracked frame pixel type 
   PlusCommon::ITKScalarPixelType GetPixelType(); 
 
+  // Get the value of the custom field
+  // If we couldn't find it, return NULL
+  virtual const char* GetCustomString( const char* fieldName ); 
+
+  // Set custom string value to <fieldValue>. If <fieldValue> is NULL then the field is deleted.
+  virtual PlusStatus SetCustomString(const char* fieldName, const char* fieldValue); 
+
+  // Get the custom transformation matrix from metafile by custom frame transform name
+  // It will search for a field like: Seq_Frame<frameNumber>_<frameTransformName>
+  // Return false if the the field is missing 
+  virtual PlusStatus GetCustomTransform( const char* frameTransformName, vtkMatrix4x4* transformMatrix ); 
+  virtual PlusStatus GetCustomTransform( const char* frameTransformName, double* transformMatrix ); 
+
+  // Set the custom transformation matrix from metafile by custom frame transform name
+  // It will search for a field like: Seq_Frame<frameNumber>_<frameTransformName>
+  virtual void SetCustomTransform( const char* frameTransformName, vtkMatrix4x4* transformMatrix ); 
+  virtual void SetCustomTransform( const char* frameTransformName, double* transformMatrix ); 
+
+  void GetCustomFieldNameList(std::vector<std::string> &fieldNames);
+
+  //! Get/Set global transform (stored in the Offset and TransformMatrix fields)
+  PlusStatus GetGlobalTransform(vtkMatrix4x4* globalTransform);
+  PlusStatus SetGlobalTransform(vtkMatrix4x4* globalTransform);
+
 protected:
   vtkTrackedFrameList();
   virtual ~vtkTrackedFrameList();
@@ -379,6 +378,7 @@ protected:
   bool ValidateSpeed(TrackedFrame* trackedFrame);
 
   TrackedFrameListType TrackedFrameList; 
+  FieldMapType CustomFields;
 
   int MaxNumOfFramesToWrite;
   int NumberOfUniqueFrames;

@@ -5,8 +5,7 @@ ADD_EXECUTABLE(itkMetaImageSequenceIOTest1 itkMetaImageSequenceIOTest1.cxx )
 TARGET_LINK_LIBRARIES(itkMetaImageSequenceIOTest1 vtkImageAcquisition )
 ADD_TEST(itkMetaImageSequenceIOTest1 
   ${EXECUTABLE_OUTPUT_PATH}/itkMetaImageSequenceIOTest1
-  --input-test-data-dir=${TestDataDir}
-  --input-img-seq-file-name=MetaImageSequenceIOTest1.mhd
+  --input-img-seq-file-name=${TestDataDir}/MetaImageSequenceIOTest1.mhd
   --output-img-seq-file-name=_MetaImageSequenceIOTest1.mhd
   )
 SET_TESTS_PROPERTIES( itkMetaImageSequenceIOTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )

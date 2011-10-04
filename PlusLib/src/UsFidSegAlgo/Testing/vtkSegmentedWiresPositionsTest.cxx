@@ -13,7 +13,6 @@
 #include "itkImage.h"
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
-#include "itkMetaImageSequenceIO.h"
 
 #include <stdlib.h>
 #include <iostream>
@@ -130,7 +129,7 @@ int main (int argc, char* argv[])
     }
 
 		vtkSmartPointer<vtkMatrix4x4> transformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-		/*if ( !readerMetaImageSequenceIO->GetFrameTransform(imgNumber, transformMatrix) )
+		/*if ( trackedFrameList->GetTrackedFrame(imgNumber)->GetDefaultFrameTransform(imgNumber, transformMatrix) )
 		{
 			LOG_ERROR("Unable to get default frame transform for frame #" << imgNumber); 
 			continue; 

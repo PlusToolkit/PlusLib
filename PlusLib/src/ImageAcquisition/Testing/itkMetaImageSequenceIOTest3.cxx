@@ -25,98 +25,107 @@
 #include "vtkImageFlip.h"
 #include "vtkProp.h"
 
-
-
-
 #include "itkMetaImageSequenceIO.h"
-#include "itkImage.h"
-#include "itkImageFileReader.h"
-#include "itkImageFileWriter.h"
+#include "vtkTrackedFrameList.h"
 
 ///////////////////////////////////////////////////////////////////
-// Image type definition
-
-typedef unsigned char          PixelType; // define type for pixel representation
-const unsigned int             imageDimension = 2; 
-const unsigned int             imageSequenceDimension = 3; 
-
-typedef itk::Image< PixelType, imageDimension > ImageType;
-typedef itk::Image< PixelType, 3 > ImageType3D;
-typedef itk::Image< PixelType, imageSequenceDimension > ImageSequenceType;
-
-typedef itk::ImageFileReader< ImageSequenceType > ImageSequenceReaderType;
-typedef itk::ImageFileWriter< ImageType3D > ImageWriterType;
-
-///////////////////////////////////////////////////////////////////
-
-vtkRenderWindow *renWin = NULL; 
-vtkRenderWindowInteractor *iren = NULL;
-vtkRenderer* renderer = NULL; 
-vtkTextActor *textActor = NULL; 
-vtkCollection *imageActors = NULL; 
-std::vector<vtkTransform*> imageTransforms; 
-vtkImageActor* currentActor = NULL; 
-int frameNum = 0; 
 
 class vtkMyCallback : public vtkCommand
 {
 public:
-	static vtkMyCallback *New()
-	{return new vtkMyCallback;}
+	static vtkMyCallback *New()	{return new vtkMyCallback;}
+
+  void Initialize(vtkRenderWindow *renWin, vtkRenderWindowInteractor *iren, 
+    vtkTextActor *textActor, vtkCollection *imageActors, 
+    std::vector<vtkTransform*> *imageTransforms)
+  {
+    this->RenWin=renWin;
+    this->Iren=iren; 
+    this->TextActor=textActor;
+    this->ImageActors=imageActors;
+    this->ImageTransforms=imageTransforms;
+  }
+
 	virtual void Execute(vtkObject *caller, unsigned long callerevent, void*)
 	{
 		if (callerevent == vtkCommand::CharEvent)
 		{
-			char keycode=iren->GetKeyCode();
+			char keycode=this->Iren->GetKeyCode();
 			switch (keycode)
 			{ 
 			case '+':
 				{
-					if ( ++frameNum >= imageActors->GetNumberOfItems() )
+					if ( ++this->FrameNum >= this->ImageActors->GetNumberOfItems() )
 					{
-						frameNum = 0; 
+						this->FrameNum = 0; 
 					}
 
-					if  ( currentActor != NULL ) 
+					if  ( this->CurrentActor != NULL ) 
 					{
-						currentActor->VisibilityOff(); 
-						static_cast<vtkImageActor*>(imageActors->GetItemAsObject(0))->VisibilityOn(); 
+						this->CurrentActor->VisibilityOff(); 
+						static_cast<vtkImageActor*>(this->ImageActors->GetItemAsObject(0))->VisibilityOn(); 
 					}
 
-					currentActor = static_cast<vtkImageActor*>(imageActors->GetItemAsObject(frameNum)); 
-					currentActor->VisibilityOn(); 
+					this->CurrentActor = static_cast<vtkImageActor*>(this->ImageActors->GetItemAsObject(this->FrameNum)); 
+					this->CurrentActor->VisibilityOn(); 
 				}
 				break;
 			case '-':
 				{
-					if ( --frameNum < 0 )
+					if ( --this->FrameNum < 0 )
 					{
-						frameNum = imageActors->GetNumberOfItems() - 1; 
+						this->FrameNum = this->ImageActors->GetNumberOfItems() - 1; 
 					}
 
-					if  ( currentActor != NULL ) 
+					if  ( this->CurrentActor != NULL ) 
 					{
-						currentActor->VisibilityOff(); 
-						static_cast<vtkImageActor*>(imageActors->GetItemAsObject(0))->VisibilityOn(); 
+						this->CurrentActor->VisibilityOff(); 
+						static_cast<vtkImageActor*>(this->ImageActors->GetItemAsObject(0))->VisibilityOn(); 
 					}
 
-					currentActor = static_cast<vtkImageActor*>(imageActors->GetItemAsObject(frameNum)); 
-					currentActor->VisibilityOn(); 
+					this->CurrentActor = static_cast<vtkImageActor*>(this->ImageActors->GetItemAsObject(this->FrameNum)); 
+					this->CurrentActor->VisibilityOn(); 
 				}
 				break;
 			}
 		}
 
-		double * pos = imageTransforms[frameNum]->GetPosition(); 
+		double * pos = (*this->ImageTransforms)[this->FrameNum]->GetPosition(); 
 		std::ostringstream ss;
 		ss.precision( 2 ); 
-		ss << "Frame " << frameNum << "\nImage position: " << std::fixed << pos[0] << "  " << pos[1] << "  " << pos[2] << std::ends;
-		textActor->SetInput(ss.str().c_str());
+		ss << "Frame " << this->FrameNum << "\nImage position: " << std::fixed << pos[0] << "  " << pos[1] << "  " << pos[2] << std::ends;
+		this->TextActor->SetInput(ss.str().c_str());
 
-		renWin->Render(); 
+		this->RenWin->Render(); 
 		//update the timer so it will trigger again
-		iren->CreateTimer(VTKI_TIMER_UPDATE);
+		this->Iren->CreateTimer(VTKI_TIMER_UPDATE);
 	}
+
+protected:
+
+  vtkMyCallback::vtkMyCallback()
+  {
+    this->FrameNum = 0; 
+    this->CurrentActor = NULL; 
+    this->RenWin = NULL; 
+    this->Iren = NULL;
+    this->TextActor = NULL; 
+    this->ImageActors = NULL; 
+    this->ImageTransforms=NULL; 
+  }
+
+  virtual vtkMyCallback::~vtkMyCallback()
+  {
+  }
+
+  int FrameNum; 
+  vtkImageActor* CurrentActor; 
+  vtkRenderWindow *RenWin; 
+  vtkRenderWindowInteractor *Iren;
+  vtkTextActor *TextActor; 
+  vtkCollection *ImageActors; 
+  std::vector<vtkTransform*> *ImageTransforms; 
+
 };
 
 int main(int argc, char **argv)
@@ -155,85 +164,61 @@ int main(int argc, char **argv)
 
 	///////////////
 
-	renWin = vtkRenderWindow::New(); 
-	renderer = vtkRenderer::New(); 
+  vtkSmartPointer<vtkRenderWindow> renWin = vtkSmartPointer<vtkRenderWindow>::New(); 
+
+  vtkSmartPointer<vtkRenderer> renderer = vtkSmartPointer<vtkRenderer>::New(); 
 	renWin->AddRenderer(renderer); 
 
 	// Create imageactor collection
-	imageActors = vtkCollection::New(); 
+  vtkSmartPointer<vtkCollection> imageActors = vtkSmartPointer<vtkCollection>::New(); 	
 
 	//Create the interactor that handles the event loop
-	iren = vtkRenderWindowInteractor::New();
+  vtkSmartPointer<vtkRenderWindowInteractor> iren = vtkSmartPointer<vtkRenderWindowInteractor>::New(); 
 	iren->SetRenderWindow(renWin);
 
 	LOG_INFO("Reading image sequence...");
-	itk::MetaImageSequenceIO::Pointer readerMetaImageSequenceIO = itk::MetaImageSequenceIO::New(); 
-	ImageSequenceReaderType::Pointer reader = ImageSequenceReaderType::New(); 
-
-	// Set the image IO 
-	reader->SetImageIO(readerMetaImageSequenceIO); 
+  vtkSmartPointer<vtkMetaImageSequenceIO> reader=vtkSmartPointer<vtkMetaImageSequenceIO>::New();
 	reader->SetFileName(inputImageSequenceFileName.c_str());
 
-	try
-	{
-		reader->Update(); 
-	}
-	catch (itk::ExceptionObject & err) 
-	{		
-		LOG_ERROR( "Sequence image reader couldn't update: " <<  err); 
-		exit(EXIT_FAILURE);
+	if (reader->Read()!=PLUS_SUCCESS)
+  {		
+    LOG_ERROR("Couldn't read sequence metafile: " <<  reader->GetFileName() ); 
+  	return EXIT_FAILURE;
 	}	
 
-	ImageSequenceType::Pointer imageSeq = reader->GetOutput();
+  vtkTrackedFrameList* trackedFrameList=reader->GetTrackedFrameList();
+  if (trackedFrameList==NULL)
+	{
+		LOG_ERROR("Unable to get trackedFrameList!"); 
+		return EXIT_FAILURE;
+	}
 
-	const unsigned long imageWidthInPixels = imageSeq->GetLargestPossibleRegion().GetSize()[0]; 
-	const unsigned long imageHeightInPixels = imageSeq->GetLargestPossibleRegion().GetSize()[1]; 
-	unsigned long numberOfFrames = imageSeq->GetLargestPossibleRegion().GetSize()[2];	
-	//numberOfFrames = 100; 
-	unsigned int frameSizeInBytes = imageWidthInPixels * imageHeightInPixels * sizeof(PixelType);
+  const unsigned long imageWidthInPixels = trackedFrameList->GetFrameSize()[0]; 
+	const unsigned long imageHeightInPixels = trackedFrameList->GetFrameSize()[1]; 
+  unsigned long numberOfFrames = trackedFrameList->GetNumberOfTrackedFrames();
+
+  unsigned int frameSizeInBytes = imageWidthInPixels * imageHeightInPixels * trackedFrameList->GetNumberOfBitsPerPixel()/8;
 
 	LOG_INFO("Adding frames to actors...");
 
-	PixelType* imageSeqData = imageSeq->GetBufferPointer(); 
+  std::vector<vtkTransform*> imageTransforms; 
+  std::string defaultFrameTransformName=trackedFrameList->GetDefaultFrameTransformName();
 	for ( int imgNumber = 0; imgNumber < numberOfFrames; imgNumber++ )
 	{
 		vtkPlusLogger::PrintProgressbar( (100.0 * imgNumber) / numberOfFrames ); 
-		unsigned char* currentFrameImageData = imageSeqData + imgNumber * frameSizeInBytes;
+    TrackedFrame* trackedFrame=trackedFrameList->GetTrackedFrame(imgNumber);
 
 		vtkSmartPointer<vtkMatrix4x4> imageTransMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
-		readerMetaImageSequenceIO->GetFrameTransform(imgNumber, imageTransMatrix);
+    reader->GetTrackedFrame(imgNumber)->GetCustomFrameTransform(defaultFrameTransformName.c_str(), imageTransMatrix);
 		vtkSmartPointer<vtkTransform> imageTransform = vtkSmartPointer<vtkTransform>::New(); 
 		imageTransform->SetMatrix(imageTransMatrix); 
 		imageTransform->Update(); 
 
-		// create an importer to read the data back in
-		vtkImageImport* importer = vtkImageImport::New();
-		importer->SetWholeExtent(0,imageWidthInPixels - 1,0,imageHeightInPixels - 1,0,0);
-		importer->SetDataExtentToWholeExtent();
-		importer->SetDataScalarTypeToUnsignedChar();
-		importer->SetImportVoidPointer(currentFrameImageData);
-		importer->SetNumberOfScalarComponents(1); 
-		importer->Update();
-
-		vtkImageFlip* imageFlipX = vtkImageFlip::New(); 
-		imageFlipX->SetInput( importer->GetOutput() ); 
-		imageFlipX->SetFilteredAxis(0); 
-		imageFlipX->Update();
-
-		vtkImageFlip* imageFlip = vtkImageFlip::New(); 
-		imageFlip->SetInput( imageFlipX->GetOutput() ); 
-		imageFlip->SetFilteredAxis(1); 
-		imageFlip->Update(); 
-
-		vtkImageData* frame = vtkImageData::New(); 
-		frame->DeepCopy(imageFlip->GetOutput()); 
-
-		imageFlip->Delete(); 
-		imageFlipX->Delete(); 
-		importer->Delete(); 
+		vtkSmartPointer<vtkImageData> frame = vtkSmartPointer<vtkImageData>::New(); 
+    trackedFrame->GetImageData()->CopyToVtkImage(frame);
 
 		frame->SetOrigin(-inputOriginX, -inputOriginY, 0); 
-		vtkImageActor* imageActor = vtkImageActor::New();
+    vtkSmartPointer<vtkImageActor> imageActor = vtkSmartPointer<vtkImageActor>::New();
 		imageActor->SetInput(frame); 
 		imageActor->SetUserTransform(imageTransform); 
 		imageActor->VisibilityOff(); 
@@ -247,51 +232,19 @@ int main(int argc, char **argv)
 	for (int i = 0; i < imageActors->GetNumberOfItems(); i++) 
 	{
 		vtkImageActor* imgActor = static_cast<vtkImageActor*>(imageActors->GetItemAsObject(i)); 
-		(i == 0 ? imgActor->VisibilityOn() : imgActor->VisibilityOff() ); 
+		imgActor->SetVisibility(i==0); // hide all frames but the first one
 		renderer->AddActor(imgActor);
 	}
 
 	if (renderingOff)
 	{
 		LOG_INFO("No need for rendering..."); 
-
-		if ( renWin != NULL ) 
-		{
-			renWin->Delete();
-		}
-
-		if ( renderer != NULL ) 
-		{
-			renderer->Delete();
-		}
-
-		if ( iren != NULL ) 
-		{
-			iren->Delete();
-		}
-
-		if ( imageActors != NULL ) 
-		{
-			for ( int i = 0; i < imageActors->GetNumberOfItems(); i++)
-			{
-				static_cast<vtkImageActor*>(imageActors->GetItemAsObject(i))->GetInput()->Delete();  
-				static_cast<vtkImageActor*>(imageActors->GetItemAsObject(i))->Delete(); 
-			}
-			imageActors->Delete(); 
-		}
-
-		if ( textActor != NULL ) 
-		{
-			textActor->Delete(); 
-		}
-
 		LOG_INFO("Exit successfully"); 
 		exit(EXIT_SUCCESS); 
 	}
 
-
 	// Create a text actor for image position information
-	textActor=vtkTextActor::New();
+  vtkSmartPointer<vtkTextActor> textActor = vtkSmartPointer<vtkTextActor>::New();
 	vtkSmartPointer<vtkTextProperty> textprop = textActor->GetTextProperty();
 	textprop->SetColor(1,0,0);
 	textprop->SetFontFamilyToArial();
@@ -309,7 +262,8 @@ int main(int argc, char **argv)
 	renWin->Render();
 
 	//establish timer event and create timer
-	vtkMyCallback* call = vtkMyCallback::New();
+	vtkSmartPointer<vtkMyCallback> call = vtkSmartPointer<vtkMyCallback>::New();
+  call->Initialize(renWin, iren, textActor, imageActors, &imageTransforms);
 	iren->AddObserver(vtkCommand::TimerEvent, call);
 	iren->AddObserver(vtkCommand::CharEvent, call);
 	iren->CreateTimer(VTKI_TIMER_FIRST);		//VTKI_TIMER_FIRST = 0
@@ -317,42 +271,6 @@ int main(int argc, char **argv)
 	//iren must be initialized so that it can handle events
 	iren->Initialize();
 	iren->Start();
-
-	if ( renWin != NULL ) 
-	{
-		renWin->Delete();
-	}
-
-	if ( renderer != NULL ) 
-	{
-		renderer->Delete();
-	}
-
-	if ( iren != NULL ) 
-	{
-		iren->Delete();
-	}
-
-	if ( call != NULL )
-	{
-		call->Delete(); 
-	}
-
-	if ( imageActors != NULL ) 
-	{
-		for ( int i = 0; i < imageActors->GetNumberOfItems(); i++)
-		{
-			static_cast<vtkImageActor*>(imageActors->GetItemAsObject(i))->GetInput()->Delete();  
-			static_cast<vtkImageActor*>(imageActors->GetItemAsObject(i))->Delete(); 
-		}
-		imageActors->Delete(); 
-	}
-
-	if ( textActor != NULL ) 
-	{
-		textActor->Delete(); 
-	}
-
 
 	std::cout << "itkMetaImageSequenceIOTest2 completed successfully!" << std::endl;
 	return EXIT_SUCCESS; 

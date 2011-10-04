@@ -14,7 +14,6 @@
 #include "itkImage.h"
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
-#include "itkMetaImageSequenceIO.h"
 
 
 //----------------------------------------------------------------------------
@@ -489,6 +488,21 @@ PlusStatus vtkDataCollector::WriteTrackerToMetafile( vtkTracker* tracker, const 
 	  return PLUS_FAIL; 
   }
 
+  // Write calibration matrices into the trackedframelist
+  std::map<std::string, std::string> toolsCalibrationMatrices; 
+  if ( tracker->GetTrackerToolCalibrationMatrixStringList(toolsCalibrationMatrices) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to get tracker tool calibration matrix stringlist"); 
+    return PLUS_FAIL; 
+  }
+  for ( std::map<std::string, std::string>::iterator it = toolsCalibrationMatrices.begin(); it != toolsCalibrationMatrices.end(); it++ )
+  {
+    // Set tool calibration values 
+    trackedFrameList->SetCustomString(it->first.c_str(), it->second.c_str()); 
+  }
+
+  // Set default transform name
+  trackedFrameList->SetDefaultFrameTransformName(tracker->GetTool(firstActiveToolNumber)->GetToolName()); 
   for ( int i = 0 ; i < numberOfItems; i++ ) 
   {
     //Create fake image 
@@ -544,9 +558,6 @@ PlusStatus vtkDataCollector::WriteTrackerToMetafile( vtkTracker* tracker, const 
     // Add main tool status
     trackedFrame.SetCustomFrameField("Status", vtkTracker::ConvertTrackerStatusToString(bufferItem.GetStatus()) ); 
 
-    // Set default transform name
-    trackedFrame.SetDefaultFrameTransformName(tracker->GetTool(firstActiveToolNumber)->GetToolName());
-
     // Add transforms
     for ( int tool = 0; tool < tracker->GetNumberOfTools(); tool++ )
     {
@@ -567,23 +578,6 @@ PlusStatus vtkDataCollector::WriteTrackerToMetafile( vtkTracker* tracker, const 
         }
 
         trackedFrame.SetCustomFrameTransform(tracker->GetTool(tool)->GetToolName(), toolMatrix ); 
-
-        const char* calibMatrixName = tracker->GetTool(tool)->GetCalibrationMatrixName(); 
-        vtkMatrix4x4* calibmatrix = tracker->GetTool(tool)->GetCalibrationMatrix(); 
-
-        if ( calibMatrixName != NULL && calibmatrix != NULL )
-        {
-          std::ostringstream strcalibmatrix; 
-          for ( int r = 0; r < 4; r++ )
-          {
-            for ( int c = 0; c < 4; c++ )
-            {
-              strcalibmatrix << std::fixed << calibmatrix->GetElement(r,c) << " "; 
-            }
-          }
-
-          trackedFrame.SetCustomField(calibMatrixName, strcalibmatrix.str()); 
-        }
 
       }
     }
@@ -636,6 +630,9 @@ PlusStatus vtkDataCollector::WriteVideoBufferToMetafile( vtkVideoBuffer* videoBu
 
   PlusStatus status=PLUS_SUCCESS;
 
+  // Set default transform name
+  std::string defaulTransformName="IdentityTransform";
+  trackedFrameList->SetDefaultFrameTransformName(defaulTransformName.c_str()); 
   for ( BufferItemUidType frameUid = videoBuffer->GetOldestItemUidInBuffer(); frameUid <= videoBuffer->GetLatestItemUidInBuffer(); ++frameUid ) 
   {
 
@@ -650,13 +647,10 @@ PlusStatus vtkDataCollector::WriteVideoBufferToMetafile( vtkVideoBuffer* videoBu
     TrackedFrame trackedFrame;
     trackedFrame.SetImageData(videoItem.GetFrame());
 
-    // Set default transform name
-    trackedFrame.SetDefaultFrameTransformName("IdentityTransform"); 
-
     // Add transform 
     vtkSmartPointer<vtkMatrix4x4> matrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
     matrix->Identity(); 
-    trackedFrame.SetCustomFrameTransform(trackedFrame.GetDefaultFrameTransformName(), matrix); 
+    trackedFrame.SetCustomFrameTransform(defaulTransformName, matrix); 
 
     // Add filtered timestamp
     double filteredTimestamp = videoItem.GetFilteredTimestamp( videoBuffer->GetLocalTimeOffset() ); 
@@ -1289,7 +1283,6 @@ PlusStatus vtkDataCollector::GetTrackedFrameByTime(double time, TrackedFrame* tr
   {
     // Get tracker buffer values 
     std::map<std::string, std::string> toolsBufferMatrices; 
-    std::map<std::string, std::string> toolsCalibrationMatrices; 
     std::map<std::string, std::string> toolsStatuses; 
 
     if ( !this->GetVideoEnabled() )
@@ -1297,7 +1290,7 @@ PlusStatus vtkDataCollector::GetTrackedFrameByTime(double time, TrackedFrame* tr
       synchronizedTime = time;  
     }
 
-    if ( this->GetTracker()->GetTrackerToolBufferStringList(synchronizedTime, toolsBufferMatrices, toolsCalibrationMatrices, toolsStatuses, calibratedTransform) != PLUS_SUCCESS )
+    if ( this->GetTracker()->GetTrackerToolBufferStringList(synchronizedTime, toolsBufferMatrices, toolsStatuses, calibratedTransform) != PLUS_SUCCESS )
 	  {
 	    LOG_ERROR("Failed to get tracker tool buffer stringlist: " << std::fixed << synchronizedTime ); 
       return PLUS_FAIL; 
@@ -1321,18 +1314,10 @@ PlusStatus vtkDataCollector::GetTrackedFrameByTime(double time, TrackedFrame* tr
     }
     trackedFrame->SetStatus(status);
 
-	  trackedFrame->SetDefaultFrameTransformName(this->GetTracker()->GetTool(toolNumber)->GetToolName());
-
     for ( std::map<std::string, std::string>::iterator it = toolsBufferMatrices.begin(); it != toolsBufferMatrices.end(); it++ )
     {
       // Set tool buffer values 
       trackedFrame->SetCustomFrameField(it->first, it->second); 
-    }
-
-    for ( std::map<std::string, std::string>::iterator it = toolsCalibrationMatrices.begin(); it != toolsCalibrationMatrices.end(); it++ )
-    {
-      // Set tool calibration values 
-      trackedFrame->SetCustomField(it->first, it->second); 
     }
 
     for ( std::map<std::string, std::string>::iterator it = toolsStatuses.begin(); it != toolsStatuses.end(); it++ )
@@ -1353,6 +1338,12 @@ PlusStatus vtkDataCollector::GetTrackedFrameByTime(double time, TrackedFrame* tr
   trackedFrame->SetCustomFrameField("Timestamp", strTimestamp.str()); 
 
   return PLUS_SUCCESS; 
+}
+
+//----------------------------------------------------------------------------
+const char* vtkDataCollector::GetDefaultFrameTransformName(int toolNumber)
+{
+	return this->GetTracker()->GetTool(toolNumber)->GetToolName(); 
 }
 
 //----------------------------------------------------------------------------
