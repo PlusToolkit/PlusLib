@@ -62,9 +62,6 @@ int main(int argc, char **argv)
     exit(EXIT_FAILURE);
   }
 
-  vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
-  vtkPlusLogger::Instance()->SetDisplayLogLevel(verboseLevel);
-
   std::string programPath("./"), errorMsg; 
 	if ( !vtksys::SystemTools::FindProgramPath(argv[0], programPath, errorMsg) )
 	{
@@ -103,6 +100,9 @@ int main(int argc, char **argv)
 
   vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationData(configRootElement);
   vtkPlusConfig::GetInstance()->SetProgramPath(programPath.c_str());
+
+  vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
+  vtkPlusLogger::Instance()->SetDisplayLogLevel(verboseLevel);
 
 	FidPatternRecognition patternRecognition; 
 	patternRecognition.ReadConfiguration(configRootElement);
