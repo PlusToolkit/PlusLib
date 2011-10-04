@@ -5,7 +5,7 @@
 #include "vtkSmartPointer.h"
 #include "vtkMatrix4x4.h"
 
-#include "itkMetaImageSequenceIO.h"
+#include "vtkMetaImageSequenceIO.h"
 #include "itkImage.h"
 
 #include "vtkTrackedFrameList.h"
@@ -169,10 +169,10 @@ int main(int argc, char **argv)
 	if ( numberOfFailures > 0 )
 	{
 		LOG_ERROR("Total number of failures: " << numberOfFailures ); 
-		LOG_ERROR("itkMetaImageSequenceIOTest1 failed!"); 
+		LOG_ERROR("vtkMetaImageSequenceIOTest1 failed!"); 
 		return EXIT_FAILURE;
 	}
 
-	LOG_INFO("itkMetaImageSequenceIOTest1 completed successfully!"); 
+	LOG_INFO("vtkMetaImageSequenceIOTest1 completed successfully!"); 
 	return EXIT_SUCCESS; 
  }

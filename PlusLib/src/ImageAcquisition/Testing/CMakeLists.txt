@@ -1,42 +1,24 @@
 SET( TestDataDir ${PLUSLIB_DATA_DIR}/TestImages )
 
-#***************************  itkMetaImageSequenceIOTest1  ***************************
-ADD_EXECUTABLE(itkMetaImageSequenceIOTest1 itkMetaImageSequenceIOTest1.cxx )
-TARGET_LINK_LIBRARIES(itkMetaImageSequenceIOTest1 vtkImageAcquisition )
-ADD_TEST(itkMetaImageSequenceIOTest1 
-  ${EXECUTABLE_OUTPUT_PATH}/itkMetaImageSequenceIOTest1
+#***************************  vtkMetaImageSequenceIOTest  ***************************
+ADD_EXECUTABLE(vtkMetaImageSequenceIOTest vtkMetaImageSequenceIOTest.cxx )
+TARGET_LINK_LIBRARIES(vtkMetaImageSequenceIOTest vtkImageAcquisition )
+ADD_TEST(vtkMetaImageSequenceIOTest 
+  ${EXECUTABLE_OUTPUT_PATH}/vtkMetaImageSequenceIOTest
   --input-img-seq-file-name=${TestDataDir}/MetaImageSequenceIOTest1.mhd
   --output-img-seq-file-name=_MetaImageSequenceIOTest1.mhd
   )
-SET_TESTS_PROPERTIES( itkMetaImageSequenceIOTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
-
-#***************************  itkMetaImageSequenceIOTest2  ***************************
-ADD_EXECUTABLE(itkMetaImageSequenceIOTest2 itkMetaImageSequenceIOTest2.cxx )
-TARGET_LINK_LIBRARIES(itkMetaImageSequenceIOTest2 vtkImageAcquisition )
-ADD_TEST(itkMetaImageSequenceIOTest2 
-  ${EXECUTABLE_OUTPUT_PATH}/itkMetaImageSequenceIOTest2
-  --input-img-seq-file-names ${TestDataDir}/USTC_FrameGrabber_TemplateTranslationData.mha 
-  )
-SET_TESTS_PROPERTIES( itkMetaImageSequenceIOTest2 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
-  
-#***************************  itkMetaImageSequenceIOTest3  ***************************
-ADD_EXECUTABLE(itkMetaImageSequenceIOTest3 itkMetaImageSequenceIOTest3.cxx )
-TARGET_LINK_LIBRARIES(itkMetaImageSequenceIOTest3 vtkImageAcquisition )
-ADD_TEST(itkMetaImageSequenceIOTest3
-  ${EXECUTABLE_OUTPUT_PATH}/itkMetaImageSequenceIOTest3
+SET_TESTS_PROPERTIES( vtkMetaImageSequenceIOTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+ 
+#***************************  MetaImageSequenceViewer  ***************************
+ADD_EXECUTABLE(MetaImageSequenceViewer MetaImageSequenceViewer.cxx )
+TARGET_LINK_LIBRARIES(MetaImageSequenceViewer vtkImageAcquisition )
+ADD_TEST(MetaImageSequenceViewerTest
+  ${EXECUTABLE_OUTPUT_PATH}/MetaImageSequenceViewer
   --input-img-seq-file-name=${TestDataDir}/USTC_FrameGrabber_TemplateTranslationData.mha 
   --rendering-off
   )
-SET_TESTS_PROPERTIES( itkMetaImageSequenceIOTest3 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
-
-#***************************  itkMetaImageSequenceIOTest4  ***************************
-ADD_EXECUTABLE(itkMetaImageSequenceIOTest4 itkMetaImageSequenceIOTest4.cxx )
-TARGET_LINK_LIBRARIES(itkMetaImageSequenceIOTest4 vtkImageAcquisition )
-ADD_TEST(itkMetaImageSequenceIOTest4
-  ${EXECUTABLE_OUTPUT_PATH}/itkMetaImageSequenceIOTest4
-  --output-img-seq-file-name=GeneratedUsSeqMetafile.mhd
-  )
-SET_TESTS_PROPERTIES( itkMetaImageSequenceIOTest4 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+SET_TESTS_PROPERTIES( MetaImageSequenceViewerTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
 #***************************  itkFcsvReaderTest1.cxx ***************************
 ADD_EXECUTABLE(itkFcsvReaderTest1 itkFcsvReaderTest1.cxx )
