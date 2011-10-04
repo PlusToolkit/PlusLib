@@ -463,10 +463,21 @@ void PlusMath::PrintVtkMatrix(vtkMatrix4x4* matrix, std::ostringstream &stream)
 
   for ( int i = 0; i < 4; i++ )
 	{
+		stream << std::endl;
 		for ( int j = 0; j < 4; j++ )
 		{
-			stream << matrix->GetElement(i,j) << "  ";
+			stream << std::fixed << std::setprecision(3) << std::setw(6) << std::right << matrix->GetElement(i,j) << " ";
 		}
-		stream << "\n";
 	}
+}
+
+//----------------------------------------------------------------------------
+
+void PlusMath::LogVtkMatrix(vtkMatrix4x4* matrix)
+{
+	LOG_TRACE("PlusMath::LogVtkMatrix");
+
+  std::ostringstream matrixStream; 
+  PlusMath::PrintVtkMatrix(matrix, matrixStream);
+  LOG_INFO(matrixStream.str());
 }
