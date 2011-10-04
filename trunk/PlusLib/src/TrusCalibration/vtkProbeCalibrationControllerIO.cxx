@@ -16,7 +16,6 @@
 
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
-#include "itkMetaImageSequenceIO.h"
 #include <itkImageDuplicator.h>
 
 //----------------------------------------------------------------------------
@@ -490,7 +489,7 @@ void vtkProbeCalibrationControllerIO::SaveSegmentedWirePositionsToFile()
 	for( int frameNum = 0; frameNum < this->CalibrationController->GetSegmentedFrameContainer().size(); frameNum++ )
 	{
 		double probeHomeToProbe[16]; 
-		this->CalibrationController->GetSegmentedFrameContainer()[frameNum].TrackedFrameInfo->GetDefaultFrameTransform(probeHomeToProbe); 
+		this->CalibrationController->GetSegmentedFrameContainer()[frameNum].TrackedFrameInfo->GetCustomFrameTransform(this->CalibrationController->GetSegmentedFrameDefaultTransformName(), probeHomeToProbe); 
 		vtkSmartPointer<vtkTransform> tProbeHomeToProbe = vtkSmartPointer<vtkTransform>::New(); 
 		tProbeHomeToProbe->SetMatrix(probeHomeToProbe); 
 

@@ -13,7 +13,6 @@
 #include "vtkTrackedFrameList.h"
 
 
-#include "itkMetaImageSequenceIO.h"
 #include "itkImage.h"
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"

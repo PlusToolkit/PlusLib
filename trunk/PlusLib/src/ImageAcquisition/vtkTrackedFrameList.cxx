@@ -52,9 +52,7 @@ TrackedFrame& TrackedFrame::operator=(TrackedFrame const&trackedFrame)
     return *this;
   }
 
-  this->DefaultFrameTransformName = trackedFrame.DefaultFrameTransformName; 
-  this->CustomFrameFieldList = trackedFrame.CustomFrameFieldList; 
-  this->CustomFieldList = trackedFrame.CustomFieldList; 
+  this->CustomFrameFields = trackedFrame.CustomFrameFields; 
   this->ImageData = trackedFrame.ImageData; 
   this->Timestamp = trackedFrame.Timestamp;
   this->Status = trackedFrame.Status; 
@@ -84,106 +82,57 @@ int TrackedFrame::GetNumberOfBitsPerPixel()
 //----------------------------------------------------------------------------
 void TrackedFrame::SetCustomFrameField( std::string name, std::string value )
 {
-  CustomFrameFieldPair pair(name, value); 
-  this->CustomFrameFieldList.push_back(pair); 
+  this->CustomFrameFields[name]=value;
 }
 
 //----------------------------------------------------------------------------
-const char* TrackedFrame::GetCustomFrameField( std::string name )
+const char* TrackedFrame::GetCustomFrameField(const char* fieldName)
 {
-  std::vector<CustomFrameFieldPair>::iterator customFrameValue; 
-  for ( customFrameValue = this->CustomFrameFieldList.begin(); customFrameValue != this->CustomFrameFieldList.end(); customFrameValue++ )
+  if (fieldName == NULL )
   {
-    if ( STRCASECMP(customFrameValue->first.c_str(), name.c_str()) == 0 ) 
-    { 
-      return customFrameValue->second.c_str(); 
-    }
+    LOG_ERROR("Unable to get custom frame field: field name is NULL!"); 
+    return NULL; 
   }
 
+  FieldMapType::iterator fieldIterator; 
+  fieldIterator = this->CustomFrameFields.find(fieldName); 
+  if ( fieldIterator != this->CustomFrameFields.end() )
+  {
+    return fieldIterator->second.c_str(); 
+  }
   return NULL; 
 }
 
 //----------------------------------------------------------------------------
-void TrackedFrame::SetCustomField( std::string name, std::string value )
+PlusStatus TrackedFrame::GetCustomFrameTransform(const char* frameTransformName, double transform[16]) 
 {
-  CustomFieldPair pair(name, value); 
-  this->CustomFieldList.push_back(pair); 
-}
-
-//----------------------------------------------------------------------------
-const char* TrackedFrame::GetCustomField( std::string name )
-{
-  std::vector<CustomFieldPair>::iterator customValue; 
-  for ( customValue = this->CustomFieldList.begin(); customValue != this->CustomFieldList.end(); customValue++ )
+  const char *frameTransformStr=GetCustomFrameField(frameTransformName);
+  if (frameTransformStr == NULL )
   {
-    if ( STRCASECMP(customValue->first.c_str(), name.c_str()) == 0 )
-    { 
-      return customValue->second.c_str(); 
-    }
-  }
-
-  return NULL; 
-}
-
-//----------------------------------------------------------------------------
-/*!
- * @param transform 16 elements of the transform matrix.
- */
-bool TrackedFrame::GetDefaultFrameTransform(double transform[16]) 
-{
-  // Find default frame transform 
-  std::vector<CustomFrameFieldPair>::iterator defaultFrameTransform; 
-  for ( defaultFrameTransform = this->CustomFrameFieldList.begin(); defaultFrameTransform != this->CustomFrameFieldList.end(); defaultFrameTransform++ )
-  {
-    if ( STRCASECMP(defaultFrameTransform->first.c_str(), this->DefaultFrameTransformName.c_str()) == 0) 
-    {
-      std::istringstream transformFieldValue(defaultFrameTransform->second); 
-      double item; 
-      int i = 0; 
-      while ( transformFieldValue >> item )
-      {
-        if ( i < 16 )
-          transform[i++] = item; 
-      }
-      return true;
-    }
-  }
-
-  LOG_ERROR("Unable to find default transform in tracked frame!"); 
-  return false; 
-}
-
-//----------------------------------------------------------------------------
-bool TrackedFrame::GetCustomFrameTransform(const char* frameTransformName, double transform[16]) 
-{
-  if (frameTransformName == NULL )
-  {
-    LOG_ERROR("Unable to get custom frame transform: frame transform name is NULL!"); 
-    return false; 
+    LOG_ERROR("Unable to get custom transform"); 
+    return PLUS_FAIL; 
   }
 
   // Find default frame transform 
-  std::vector<CustomFrameFieldPair>::iterator customFrameTransform; 
-  for ( customFrameTransform = this->CustomFrameFieldList.begin(); customFrameTransform != this->CustomFrameFieldList.end(); customFrameTransform++ )
+  std::istringstream transformFieldValue(frameTransformStr); 
+  double item; 
+  int i = 0; 
+  while ( transformFieldValue>>item && i<16)
   {
-    if ( STRCASECMP(customFrameTransform->first.c_str(), frameTransformName) == 0)
-    {
-      std::istringstream transformFieldValue(customFrameTransform->second); 
-      double item; 
-      int i = 0; 
-      while ( transformFieldValue >> item )
-      {
-        if ( i < 16 )
-          transform[i++] = item; 
-      }
-      return true;
-    }
+    transform[i++] = item; 
   }
-
-  LOG_ERROR("Unable to find custom transform (" << frameTransformName << ") custom frame field list!"); 
-  return false; 
+  return PLUS_SUCCESS;
 }
 
+//----------------------------------------------------------------------------
+PlusStatus TrackedFrame::GetCustomFrameTransform( const char* frameTransformName, vtkMatrix4x4* transformMatrix )
+{
+  double transform[16] = { 1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1 };
+  const PlusStatus retValue = this->GetCustomFrameTransform(frameTransformName, transform); 
+  transformMatrix->DeepCopy(transform); 
+
+  return retValue; 
+}
 
 //----------------------------------------------------------------------------
 void TrackedFrame::SetCustomFrameTransform(std::string frameTransformName, double transform[16]) 
@@ -193,9 +142,7 @@ void TrackedFrame::SetCustomFrameTransform(std::string frameTransformName, doubl
   {
     strTransform << transform[ i ] << " ";
   }
-
-  CustomFrameFieldPair pair(frameTransformName, strTransform.str()); 
-  this->CustomFrameFieldList.push_back(pair); 
+  SetCustomFrameField(frameTransformName, strTransform.str());
 }
 
 //----------------------------------------------------------------------------
@@ -203,7 +150,7 @@ void TrackedFrame::SetCustomFrameTransform(std::string frameTransformName, vtkMa
 {
   double dTransform[ 16 ];
   vtkMatrix4x4::DeepCopy( dTransform, transform );
-  this->SetCustomFrameTransform(frameTransformName, dTransform); 
+  SetCustomFrameTransform(frameTransformName, dTransform); 
 }
 
 //----------------------------------------------------------------------------
@@ -282,6 +229,15 @@ PlusStatus TrackedFrame::WriteToFile(std::string &filename, vtkMatrix4x4* mImage
   return PLUS_SUCCESS;
 }
 
+//----------------------------------------------------------------------------
+void TrackedFrame::GetCustomFrameFieldNameList(std::vector<std::string> &fieldNames)
+{
+  fieldNames.clear();
+  for ( FieldMapType::const_iterator it = this->CustomFrameFields.begin(); it != this->CustomFrameFields.end(); it++) 
+  {
+    fieldNames.push_back(it->first); 
+  }  
+}
 
 
 //----------------------------------------------------------------------------
@@ -293,6 +249,9 @@ vtkStandardNewMacro(vtkTrackedFrameList);
 //----------------------------------------------------------------------------
 vtkTrackedFrameList::vtkTrackedFrameList()
 {
+  this->CustomFields["DefaultFrameTransformName"] = "ToolToTrackerTransform"; 
+  this->CustomFields["UltrasoundImageOrientation"] = "MF"; 
+
   this->SetMaxNumOfFramesToWrite(500); 
   this->SetNumberOfUniqueFrames(5); 
   this->SetFrameSize(0,0); 
@@ -328,6 +287,12 @@ void vtkTrackedFrameList::Clear()
 void vtkTrackedFrameList::PrintSelf(std::ostream &os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os,indent);
+
+  os << indent << "Number of frames = " << GetNumberOfTrackedFrames();
+  for ( FieldMapType::const_iterator it = this->CustomFields.begin(); it != this->CustomFields.end(); it++) 
+  {
+    os << indent << it->first << " = " << it->second << std::endl; 
+  }  
 }
 
 //----------------------------------------------------------------------------
@@ -465,7 +430,7 @@ bool vtkTrackedFrameList::ValidateSpeed(TrackedFrame* trackedFrame)
   // Get default frame transform of the input frame and the latest frame in the list
   vtkSmartPointer<vtkTransform> inputTransform = vtkSmartPointer<vtkTransform>::New(); 
   double inputTransformVector[16]={0}; 
-  if ( trackedFrame->GetDefaultFrameTransform(inputTransformVector) )
+  if ( trackedFrame->GetCustomFrameTransform(this->GetDefaultFrameTransformName().c_str(), inputTransformVector) )
   {
     inputTransform->SetMatrix(inputTransformVector); 
   }
@@ -477,7 +442,7 @@ bool vtkTrackedFrameList::ValidateSpeed(TrackedFrame* trackedFrame)
 
   vtkSmartPointer<vtkTransform> latestTransform = vtkSmartPointer<vtkTransform>::New(); 
   double latestTransformVector[16]={0}; 
-  if ( (*latestFrameInList)->GetDefaultFrameTransform(latestTransformVector) )
+  if ( (*latestFrameInList)->GetCustomFrameTransform(this->GetDefaultFrameTransformName().c_str(), latestTransformVector) )
   {
     latestTransform->SetMatrix(latestTransformVector); 
   }
@@ -548,295 +513,53 @@ int vtkTrackedFrameList::GetNumberOfBitsPerPixel()
 //----------------------------------------------------------------------------
 std::string vtkTrackedFrameList::GetDefaultFrameTransformName()
 {
-  std::string defaultFrameTransformName; 
-  if ( !TrackedFrameList.empty() )
-  {
-    defaultFrameTransformName = this->GetTrackedFrame(0)->GetDefaultFrameTransformName();
-  }
-
-  return defaultFrameTransformName; 
+  return this->CustomFields["DefaultFrameTransformName"];
 }
+
+//----------------------------------------------------------------------------
+void vtkTrackedFrameList::SetDefaultFrameTransformName(const char* name)
+{
+  this->CustomFields["DefaultFrameTransformName"]=name;
+} 
 
 //----------------------------------------------------------------------------
 PlusStatus vtkTrackedFrameList::ReadFromSequenceMetafile(const char* trackedSequenceDataFileName)
 {
-  itk::MetaImageSequenceIO::Pointer readerMetaImageSequenceIO = itk::MetaImageSequenceIO::New();
-  if (ReadFromSequenceMetafileGeneric<unsigned char>(trackedSequenceDataFileName)==PLUS_SUCCESS) {}
-  else if (ReadFromSequenceMetafileGeneric<char>(trackedSequenceDataFileName)==PLUS_SUCCESS) {}
-  else if (ReadFromSequenceMetafileGeneric<unsigned short>(trackedSequenceDataFileName)==PLUS_SUCCESS) {}
-  else if (ReadFromSequenceMetafileGeneric<short>(trackedSequenceDataFileName)==PLUS_SUCCESS) {}
-  else if (ReadFromSequenceMetafileGeneric<unsigned int>(trackedSequenceDataFileName)==PLUS_SUCCESS) {}
-  else if (ReadFromSequenceMetafileGeneric<int>(trackedSequenceDataFileName)==PLUS_SUCCESS) {}
-  else if (ReadFromSequenceMetafileGeneric<unsigned long>(trackedSequenceDataFileName)==PLUS_SUCCESS) {}
-  else if (ReadFromSequenceMetafileGeneric<long>(trackedSequenceDataFileName)==PLUS_SUCCESS) {}
-  else if (ReadFromSequenceMetafileGeneric<float>(trackedSequenceDataFileName)==PLUS_SUCCESS) {}
-  else if (ReadFromSequenceMetafileGeneric<double>(trackedSequenceDataFileName)==PLUS_SUCCESS) {}
-  else
-  {
-    LOG_ERROR("Unsupported pixel type: " << TrackedFrameList[0]->GetImageData()->GetITKScalarPixelType());
-    return PLUS_FAIL;
-  }
-  
-  return PLUS_SUCCESS;
-}
-
-//----------------------------------------------------------------------------
-template <class OutputPixelType>
-PlusStatus vtkTrackedFrameList::ReadFromSequenceMetafileGeneric(const char* trackedSequenceDataFileName)
-{
-  typedef itk::Image< OutputPixelType, 3 > ImageSequenceType;
-  typedef itk::ImageFileReader< ImageSequenceType > ImageSequenceReaderType;
-  itk::MetaImageSequenceIO::Pointer readerMetaImageSequenceIO = itk::MetaImageSequenceIO::New(); 
-  ImageSequenceReaderType::Pointer reader = ImageSequenceReaderType::New(); 
-
-  // Set the image IO 
-  reader->SetImageIO(readerMetaImageSequenceIO); 
+  vtkSmartPointer<vtkMetaImageSequenceIO> reader=vtkSmartPointer<vtkMetaImageSequenceIO>::New();
   reader->SetFileName(trackedSequenceDataFileName);
-
-  try
-  {
-    reader->Update(); 
-  }
-  catch (itk::ExceptionObject & err) 
+  reader->SetTrackedFrameList(this);
+  if (reader->Read()!=PLUS_SUCCESS)
   {		
-    LOG_ERROR(" Sequence image reader couldn't update: " <<  err.GetDescription() ); 
+    LOG_ERROR("Couldn't read sequence metafile: " <<  trackedSequenceDataFileName ); 
     return PLUS_FAIL;
   }	
-
-  ImageSequenceType::Pointer imageSeq = reader->GetOutput();
-
-  US_IMAGE_ORIENTATION usImageOrientation = UsImageConverterCommon::GetUsImageOrientationFromString(readerMetaImageSequenceIO->GetUltrasoundImageOrientation()); 
-
-  const int frameSizeInPx[2] = {imageSeq->GetLargestPossibleRegion().GetSize()[0], imageSeq->GetLargestPossibleRegion().GetSize()[1]};  
-  const unsigned long numberOfFrames = imageSeq->GetLargestPossibleRegion().GetSize()[2];	  
-  const int pixelSizeInBytes = sizeof(ImageSequenceType::PixelType); 
-  unsigned int frameSizeInBytes=frameSizeInPx[0]*frameSizeInPx[1]*pixelSizeInBytes;
-  unsigned char* imageSeqData = reinterpret_cast<unsigned char*>(imageSeq->GetBufferPointer()); // pointer to the image pixel buffer
-
-  for ( int imgNumber = 0; imgNumber < numberOfFrames; imgNumber++ )
-  {
-    TrackedFrame trackedFrame; 
-    unsigned char* currentFrameImageData = imageSeqData + imgNumber * frameSizeInBytes;
-
-    // Get Default transform name 
-    std::string defaultFrameTransformName = readerMetaImageSequenceIO->GetDefaultFrameTransformName(); 
-    trackedFrame.SetDefaultFrameTransformName(defaultFrameTransformName); 
-
-    // Get custom fields 
-    std::vector<std::string> customFieldNames = readerMetaImageSequenceIO->GetCustomFieldNames(); 
-    for ( int i = 0; i < customFieldNames.size(); i++ )
-    {
-      trackedFrame.SetCustomField(customFieldNames[i], readerMetaImageSequenceIO->GetCustomString(customFieldNames[i].c_str()));
-    }
-
-    // Get custom frame fields 
-    std::vector<std::string> customFrameFieldNames = readerMetaImageSequenceIO->GetCustomFrameFieldNames(); 
-    for ( int i = 0; i < customFrameFieldNames.size(); i++ )
-    {
-      trackedFrame.SetCustomFrameField(customFrameFieldNames[i], readerMetaImageSequenceIO->GetCustomFrameString(imgNumber,customFrameFieldNames[i].c_str()));
-    }
-
-    itk::Image<OutputPixelType, 2>::Pointer itkImage = itk::Image<OutputPixelType, 2>::New(); 
-    if ( UsImageConverterCommon::GetMFOrientedImage(currentFrameImageData, usImageOrientation, frameSizeInPx, pixelSizeInBytes*8, itkImage) != PLUS_SUCCESS )
-    {
-      LOG_ERROR("Failed to get MF oriented image from sequence metafile (frame number: " << imgNumber << ")!"); 
-      continue; 
-    }
-
-    trackedFrame.GetImageData()->SetITKImageBase(itkImage);
-
-    const char* cFlag = trackedFrame.GetCustomFrameField("Status"); 
-    TrackerStatus status = TR_OK;
-    if ( cFlag != NULL )
-    {
-      status=TrackedFrame::GetStatusFromString(cFlag);
-    }
-    else
-    {
-      LOG_TRACE("Unable to read Status field of image #" << imgNumber); 
-    }
-    trackedFrame.SetStatus(status);
-
-
-    this->AddTrackedFrame(&trackedFrame); 
-  }
-
+  
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkTrackedFrameList::SaveToSequenceMetafile(const char* outputFolder, const char* sequenceDataFileName, SEQ_METAFILE_EXTENSION extension /*=SEQ_METAFILE_MHA*/ , bool useCompression /*=true*/)
 {
-  switch (TrackedFrameList[0]->GetImageData()->GetITKScalarPixelType())
+  vtkSmartPointer<vtkMetaImageSequenceIO> writer=vtkSmartPointer<vtkMetaImageSequenceIO>::New();
+  std::string trackedSequenceDataFileName=std::string(outputFolder)+std::string("\\")+std::string(sequenceDataFileName);
+  if (extension==SEQ_METAFILE_MHA)
   {
-  case itk::ImageIOBase::UCHAR: return SaveToSequenceMetafileGeneric<unsigned char>(outputFolder, sequenceDataFileName, extension , useCompression);
-  case itk::ImageIOBase::CHAR: return SaveToSequenceMetafileGeneric<char>(outputFolder, sequenceDataFileName, extension , useCompression);
-  case itk::ImageIOBase::USHORT: return SaveToSequenceMetafileGeneric<unsigned short>(outputFolder, sequenceDataFileName, extension , useCompression);
-  case itk::ImageIOBase::SHORT: return SaveToSequenceMetafileGeneric<short>(outputFolder, sequenceDataFileName, extension , useCompression);
-  case itk::ImageIOBase::UINT: return SaveToSequenceMetafileGeneric<unsigned int>(outputFolder, sequenceDataFileName, extension , useCompression);
-  case itk::ImageIOBase::INT: return SaveToSequenceMetafileGeneric<int>(outputFolder, sequenceDataFileName, extension , useCompression);
-  case itk::ImageIOBase::ULONG: return SaveToSequenceMetafileGeneric<unsigned long>(outputFolder, sequenceDataFileName, extension , useCompression);
-  case itk::ImageIOBase::LONG: return SaveToSequenceMetafileGeneric<long>(outputFolder, sequenceDataFileName, extension , useCompression);
-  case itk::ImageIOBase::FLOAT: return SaveToSequenceMetafileGeneric<float>(outputFolder, sequenceDataFileName, extension , useCompression);
-  case itk::ImageIOBase::DOUBLE: return SaveToSequenceMetafileGeneric<double>(outputFolder, sequenceDataFileName, extension , useCompression);
-  default:
-    LOG_ERROR("Unsupported pixel type: " << TrackedFrameList[0]->GetImageData()->GetITKScalarPixelType());
+    trackedSequenceDataFileName+=".mha";
+  }
+  else
+  {
+    trackedSequenceDataFileName+=".mhd";
+  }
+  writer->SetFileName(trackedSequenceDataFileName.c_str());
+  writer->SetTrackedFrameList(this);
+  writer->SetUseCompression(useCompression);
+  if (writer->Write()!=PLUS_SUCCESS)
+  {		
+    LOG_ERROR("Couldn't write sequence metafile: " <<  trackedSequenceDataFileName ); 
     return PLUS_FAIL;
   }
-}
 
-//----------------------------------------------------------------------------
-template <class OutputPixelType>
-PlusStatus vtkTrackedFrameList::SaveToSequenceMetafileGeneric(const char* outputFolder, const char* sequenceDataFileName, SEQ_METAFILE_EXTENSION extension /*=SEQ_METAFILE_MHA*/ , bool useCompression /*=true*/)
-{
-  LOG_TRACE("vtkTrackedFrameList::SaveToSequenceMetafile - outputFolder: " << outputFolder << "  sequenceDataFileName: " << sequenceDataFileName); 
-
-  if ( TrackedFrameList.empty() )
-  {
-    LOG_ERROR("Unable to save tracked frame list to sequence metafile - tracked frame list empty!"); 
-    return PLUS_FAIL; 
-  }
-
-  if ( !vtksys::SystemTools::FileExists(outputFolder, false) )
-  {
-    vtksys::SystemTools::MakeDirectory(outputFolder); 
-    LOG_DEBUG("Created new folder: " << outputFolder ); 
-  }
-
-  const int numberOfFilesToWrite = ceil( (1.0 * TrackedFrameList.size()) / (1.0 * this->MaxNumOfFramesToWrite) ); 
-
-  typedef itk::Image< OutputPixelType, 3 > ImageSequenceType;
-  typedef itk::ImageFileWriter< ImageSequenceType > ImageSequenceWriterType;
-
-  for ( int fileNumber = 1; fileNumber <= numberOfFilesToWrite; fileNumber++ )
-  {
-
-    ImageSequenceType::Pointer imageDataSequence = ImageSequenceType::New();
-
-    int numberOfFrames(0); 
-    if ( TrackedFrameList.size() - (fileNumber - 1) * this->MaxNumOfFramesToWrite > this->MaxNumOfFramesToWrite )
-    {
-      numberOfFrames = this->MaxNumOfFramesToWrite; 
-    }
-    else
-    {
-      numberOfFrames = TrackedFrameList.size() - (fileNumber - 1) * this->MaxNumOfFramesToWrite; 
-    }
-
-    int frameSize[2];
-    TrackedFrameList[0]->GetImageData()->GetFrameSize(frameSize);
-
-    ImageSequenceType::SizeType size = {frameSize[0], frameSize[1], numberOfFrames };
-    ImageSequenceType::IndexType start = {0,0,0};
-    ImageSequenceType::RegionType region;
-    region.SetSize(size);
-    region.SetIndex(start);
-    imageDataSequence->SetRegions(region);
-
-    try
-    {
-      imageDataSequence->Allocate();
-    }
-    catch (itk::ExceptionObject & err) 
-    {		
-      LOG_ERROR("Unable to allocate memory for image sequence : " << err.GetDescription() );
-      return PLUS_FAIL; 
-    }	
-
-    itk::MetaImageSequenceIO::Pointer writerMetaImageSequenceIO = itk::MetaImageSequenceIO::New();
-
-    unsigned char* imageData = reinterpret_cast<unsigned char*>(imageDataSequence->GetBufferPointer()); // pointer to the image pixel buffer
-
-    unsigned int pixelSizeInBytes=TrackedFrameList[0]->GetImageData()->GetNumberOfBytesPerPixel();
-    if (pixelSizeInBytes!=sizeof(OutputPixelType))
-    {
-      LOG_ERROR("Output pixel size ("<<sizeof(OutputPixelType)<<" does not match the actual pixel size ("<<pixelSizeInBytes<<")");
-      return PLUS_FAIL;
-    }
-    unsigned int frameSizeInBytes=TrackedFrameList[0]->GetImageData()->GetFrameSizeInBytes();
-
-    for ( int i = 0 ; i < numberOfFrames; i++ ) 
-    {
-      int trackedFrameListItem = (fileNumber - 1) * this->MaxNumOfFramesToWrite + i; 
-      unsigned char *currentFrameImageData = imageData + i * frameSizeInBytes;
-
-      void* mfOrientedImageBufferPtr = TrackedFrameList[trackedFrameListItem]->GetImageData()->GetBufferPointer(); 
-      if ( mfOrientedImageBufferPtr!=NULL )
-      {
-        memcpy(currentFrameImageData, mfOrientedImageBufferPtr, frameSizeInBytes); 
-      }
-      else
-      {
-        memset(currentFrameImageData, NULL, frameSizeInBytes); 
-      }
-
-      // Write custom fields only once 
-      if ( i == 0 )
-      {
-        // Set default frame transform name
-        writerMetaImageSequenceIO->SetDefaultFrameTransformName( TrackedFrameList[trackedFrameListItem]->GetDefaultFrameTransformName() ); 
-
-        // Set ultrasound image orientation to the internal MF orientation 
-        writerMetaImageSequenceIO->SetUltrasoundImageOrientation( "MF" ); 
-
-        for( int field = 0; field < TrackedFrameList[trackedFrameListItem]->GetCustomFrameFieldList().size(); field++ )
-        {
-          writerMetaImageSequenceIO->SetCustomString(TrackedFrameList[trackedFrameListItem]->GetCustomFrameFieldList()[field].first.c_str(), TrackedFrameList[trackedFrameListItem]->GetCustomFrameFieldList()[field].second.c_str() ); 
-        }
-      }
-
-      for( int field = 0; field < TrackedFrameList[trackedFrameListItem]->GetCustomFrameFieldList().size(); field++ )
-      {
-        writerMetaImageSequenceIO->SetCustomFrameString(i, TrackedFrameList[trackedFrameListItem]->GetCustomFrameFieldList()[field].first.c_str(), TrackedFrameList[trackedFrameListItem]->GetCustomFrameFieldList()[field].second.c_str() ); 
-      }
-    }
-
-
-    ImageSequenceWriterType::Pointer writer = ImageSequenceWriterType::New(); 
-
-    std::ostringstream sequenceDataFilePath; 
-
-    switch (extension)
-    {
-    case SEQ_METAFILE_MHA:
-      if ( numberOfFilesToWrite == 1 )
-      {
-        sequenceDataFilePath << outputFolder << "/" << sequenceDataFileName << ".mha"; 
-      }
-      else
-      {
-        sequenceDataFilePath << outputFolder << "/" << sequenceDataFileName << "_" << std::setfill('0') << std::setw(2) << fileNumber << ".mha"; 
-      }
-      break; 
-    case SEQ_METAFILE_MHD:
-      if ( numberOfFilesToWrite == 1 )
-      {
-        sequenceDataFilePath << outputFolder << "/" << sequenceDataFileName << ".mhd"; 
-      }
-      else
-      {
-        sequenceDataFilePath << outputFolder << "/" << sequenceDataFileName << "_" << std::setfill('0') << std::setw(2) << fileNumber << ".mhd"; 
-      }
-      break; 
-    }
-
-    writer->SetFileName(sequenceDataFilePath.str().c_str());
-    writer->SetInput(imageDataSequence); 
-    writer->SetImageIO(writerMetaImageSequenceIO); 
-    writer->SetUseCompression(useCompression); 
-
-    try
-    {
-      writer->Update(); 
-    }
-    catch (itk::ExceptionObject & err) 
-    {		
-      LOG_ERROR(" Unable to update sequence writer: " << err.GetDescription() );
-      return PLUS_FAIL; 
-    }	
-  }
-
-  return PLUS_SUCCESS; 
+  return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
@@ -894,4 +617,189 @@ PlusCommon::ITKScalarPixelType vtkTrackedFrameList::GetPixelType()
   }
 
   return this->GetTrackedFrame(0)->GetImageData()->GetITKScalarPixelType();
+}
+
+//----------------------------------------------------------------------------
+const char* vtkTrackedFrameList::GetCustomString( const char* fieldName )
+{
+  FieldMapType::iterator fieldIterator; 
+  fieldIterator = this->CustomFields.find(fieldName); 
+  if ( fieldIterator != this->CustomFields.end() )
+  {
+    return fieldIterator->second.c_str(); 
+  }
+  return NULL; 
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkTrackedFrameList::GetCustomTransform( const char* frameTransformName, vtkMatrix4x4* transformMatrix )
+{
+  double transform[16] = { 1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1 };
+  const PlusStatus retValue = this->GetCustomTransform(frameTransformName, transform); 
+  transformMatrix->DeepCopy(transform); 
+
+  return retValue; 
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkTrackedFrameList::GetCustomTransform( const char* frameTransformName, double* transformMatrix )
+{
+  if (frameTransformName==NULL)
+  {
+    LOG_ERROR("Invalid frame transform name");
+    return PLUS_FAIL; 
+  }
+  const char* customString = this->GetCustomString(frameTransformName); 
+  if ( customString == NULL )
+  {
+    LOG_ERROR("Cannot find frame transform "<<frameTransformName);
+    return PLUS_FAIL; 
+  }
+
+  std::istringstream transformFieldValue(customString); 
+  double item; 
+  int i = 0; 
+  while ( transformFieldValue >> item )
+  {
+    transformMatrix[i++] = item; 
+  }
+
+  return PLUS_SUCCESS; 
+}
+
+//----------------------------------------------------------------------------
+void vtkTrackedFrameList::SetCustomTransform( const char* frameTransformName, vtkMatrix4x4* transformMatrix )
+{
+  double transform[16]; 
+  for ( int i = 0; i < 4; i++ ) 
+  {
+    for ( int j = 0; j < 4; j++ ) 
+    {
+      transform[i*4+j] = transformMatrix->GetElement(i, j); 
+    }
+  }
+
+  this->SetCustomTransform(frameTransformName, transform); 
+}
+
+//----------------------------------------------------------------------------
+void vtkTrackedFrameList::SetCustomTransform( const char* frameTransformName, double* transformMatrix )
+{
+  std::ostringstream transform; 
+
+  transform	<< transformMatrix[0]  << " " << transformMatrix[1]  << " " << transformMatrix[2]  << " " << transformMatrix[3]  << " " 
+    << transformMatrix[4]  << " " << transformMatrix[5]  << " " << transformMatrix[6]  << " " << transformMatrix[7]  << " " 
+    << transformMatrix[8]  << " " << transformMatrix[9]  << " " << transformMatrix[10] << " " << transformMatrix[11] << " " 
+    << transformMatrix[12] << " " << transformMatrix[13] << " " << transformMatrix[14] << " " << transformMatrix[15] << " "; 
+
+  this->SetCustomString(frameTransformName, transform.str().c_str()); 
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkTrackedFrameList::SetCustomString(const char* fieldName, const char* fieldValue)
+{
+  if (fieldName==NULL)
+  {
+    LOG_ERROR("Field name is invalid");
+    return PLUS_FAIL;
+  }
+  if (fieldValue==NULL)
+  {
+    this->CustomFields.erase(fieldName);
+    return PLUS_SUCCESS;
+  }
+  this->CustomFields[fieldName]=fieldValue;
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+void vtkTrackedFrameList::GetCustomFieldNameList(std::vector<std::string> &fieldNames)
+{
+  fieldNames.clear();
+  for ( FieldMapType::const_iterator it = this->CustomFields.begin(); it != this->CustomFields.end(); it++) 
+  {
+    fieldNames.push_back(it->first); 
+  }  
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkTrackedFrameList::GetGlobalTransform(vtkMatrix4x4* globalTransform)
+{
+  const char* offsetStr=GetCustomString("Offset");
+  if (offsetStr==NULL)
+  {
+    LOG_ERROR("Cannot determine global transform, Offset is undefined");
+    return PLUS_FAIL;
+  }
+  const char* transformStr=GetCustomString("TransformMatrix");
+  if (transformStr==NULL)
+  {
+    LOG_ERROR("Cannot determine global transform, TransformMatrix is undefined");
+    return PLUS_FAIL;
+  }
+
+  double item;
+  int i=0;
+
+  const int offsetLen=3;
+  double offset[offsetLen];
+  std::istringstream offsetFieldValue(offsetStr); 
+  for (i = 0; offsetFieldValue>>item && i<offsetLen; i++)
+  {
+    offset[i] = item; 
+  }
+  if (i<offsetLen)
+  {
+    LOG_ERROR("Not enough elements in the Offset field (expected "<<offsetLen<<", found "<<i<<")");
+    return PLUS_FAIL;
+  }
+
+  const int transformLen=9;
+  double transform[transformLen];
+  std::istringstream transformFieldValue(transformStr); 
+  for (i = 0; transformFieldValue>>item && i<transformLen; i++)
+  {
+    transform[i] = item; 
+  }
+  if (i<transformLen)
+  {
+    LOG_ERROR("Not enough elements in the TransformMatrix field (expected "<<transformLen<<", found "<<i<<")");
+    return PLUS_FAIL;
+  }
+
+  globalTransform->Identity();
+
+  globalTransform->SetElement(0, 3, offset[0]);
+  globalTransform->SetElement(1, 3, offset[1]);
+  globalTransform->SetElement(2, 3, offset[2]);
+
+  globalTransform->SetElement(0, 0, transform[0]);
+  globalTransform->SetElement(0, 1, transform[1]);
+  globalTransform->SetElement(0, 2, transform[2]);
+  globalTransform->SetElement(1, 0, transform[3]);
+  globalTransform->SetElement(1, 1, transform[4]);
+  globalTransform->SetElement(1, 2, transform[5]);
+  globalTransform->SetElement(2, 0, transform[6]);
+  globalTransform->SetElement(2, 1, transform[7]);
+  globalTransform->SetElement(2, 2, transform[8]);
+  
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkTrackedFrameList::SetGlobalTransform(vtkMatrix4x4* globalTransform)
+{
+  std::ostringstream strOffset;
+  strOffset << globalTransform->GetElement(0,3)
+    << " " << globalTransform->GetElement(1,3)
+    << " " << globalTransform->GetElement(2,3);  
+  SetCustomString("Offset", strOffset.str().c_str());
+
+  std::ostringstream strTransform;
+  strTransform << globalTransform->GetElement(0,0) << " " << globalTransform->GetElement(0,1) << " " << globalTransform->GetElement(0,2) << " ";  
+  strTransform << globalTransform->GetElement(1,0) << " " << globalTransform->GetElement(1,1) << " " << globalTransform->GetElement(1,2) << " ";  
+  strTransform << globalTransform->GetElement(2,0) << " " << globalTransform->GetElement(2,1) << " " << globalTransform->GetElement(2,2);  
+  SetCustomString("TransformMatrix", strTransform.str().c_str());
+
+  return PLUS_SUCCESS;
 }

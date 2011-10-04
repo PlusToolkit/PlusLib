@@ -7,21 +7,8 @@
 
 #include "itkMetaImageSequenceIO.h"
 #include "itkImage.h"
-#include "itkImageFileReader.h"
-#include "itkImageFileWriter.h"
 
-///////////////////////////////////////////////////////////////////
-// Image type definition
-
-typedef unsigned char          PixelType; // define type for pixel representation
-const unsigned int             imageDimension = 2; 
-const unsigned int             imageSequenceDimension = 3; 
-
-typedef itk::Image< PixelType, imageDimension > ImageType;
-typedef itk::Image< PixelType, imageSequenceDimension > ImageSequenceType;
-
-typedef itk::ImageFileReader< ImageSequenceType > ImageSequenceReaderType;
-typedef itk::ImageFileWriter< ImageSequenceType > ImageSequenceWriterType;
+#include "vtkTrackedFrameList.h"
 
 ///////////////////////////////////////////////////////////////////
 
@@ -30,7 +17,6 @@ int main(int argc, char **argv)
 
 	std::string inputImageSequenceFileName;
 	std::string outputImageSequenceFileName;
-	std::string inputTestDataDir;
 
 	int verboseLevel=vtkPlusLogger::LOG_LEVEL_INFO;
 
@@ -39,7 +25,6 @@ int main(int argc, char **argv)
 	vtksys::CommandLineArguments args;
 	args.Initialize(argc, argv);
 
-	args.AddArgument("--input-test-data-dir", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputTestDataDir, "Test data directory");
 	args.AddArgument("--input-img-seq-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputImageSequenceFileName, "Filename of the input image sequence.");
 	args.AddArgument("--output-img-seq-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputImageSequenceFileName, "Filename of the output image sequence.");
 	args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug)");	
@@ -67,30 +52,22 @@ int main(int argc, char **argv)
 
 	///////////////
 
-	
-	itk::MetaImageSequenceIO::Pointer readerMetaImageSequenceIO = itk::MetaImageSequenceIO::New(); 
-	ImageSequenceReaderType::Pointer reader = ImageSequenceReaderType::New(); // reader object, pointed to by smart pointer
-
-	// Set the image IO 
-	reader->SetImageIO(readerMetaImageSequenceIO); 
-				
-	std::string inputImageSequencePath=inputTestDataDir+"\\"+inputImageSequenceFileName;
-	reader->SetFileName(inputImageSequencePath);   // set input file name, can also use variables commented out
-
-	try
+  vtkSmartPointer<vtkMetaImageSequenceIO> reader=vtkSmartPointer<vtkMetaImageSequenceIO>::New();				
+	reader->SetFileName(inputImageSequenceFileName.c_str());
+	if (reader->Read()!=PLUS_SUCCESS)
+  {		
+    LOG_ERROR("Couldn't read sequence metafile: " <<  inputImageSequenceFileName ); 
+  	return EXIT_FAILURE;
+	}		
+  vtkTrackedFrameList* trackedFrameList=reader->GetTrackedFrameList();
+  if (trackedFrameList==NULL)
 	{
-		reader->Update(); 
-	}
-	catch (itk::ExceptionObject & err) 
-	{		
-		LOG_ERROR(" Exception! reader did not update: " <<  err); 
+		LOG_ERROR("Unable to get trackedFrameList!"); 
 		return EXIT_FAILURE;
-	}	
-	
-	int numberOfFrames = readerMetaImageSequenceIO->GetDimensions(2);
+	}
 
 	LOG_INFO("Test GetCustomString method ..."); 
-	const char* defaultTransformName = readerMetaImageSequenceIO->GetCustomString("DefaultFrameTransformName"); 
+	const char* defaultTransformName = trackedFrameList->GetCustomString("DefaultFrameTransformName"); 
 	if ( defaultTransformName == NULL )
 	{
 		LOG_ERROR("Unable to get custom string!"); 
@@ -98,7 +75,7 @@ int main(int argc, char **argv)
 	}
 
 	LOG_INFO("Test GetDefaultFrameTransformName method ..."); 
-	if ( strcmp(readerMetaImageSequenceIO->GetDefaultFrameTransformName(), defaultTransformName) > 0 )
+  if ( strcmp(trackedFrameList->GetDefaultFrameTransformName().c_str(), defaultTransformName) > 0 )
 	{
 		LOG_ERROR("Unable to get default frame transform name!"); 
 		numberOfFailures++; 
@@ -106,39 +83,33 @@ int main(int argc, char **argv)
 
 	LOG_INFO("Test GetCustomTransform method ..."); 
 	double tImageToTool[16]; 
-	if ( !readerMetaImageSequenceIO->GetCustomTransform("ImageToToolTransform", tImageToTool) )
+  if ( !trackedFrameList->GetCustomTransform("ImageToToolTransform", tImageToTool) )
 	{
 		LOG_ERROR("Unable to get custom transform!"); 
 		numberOfFailures++; 	
 	}
-
 	
 	// ****************************************************************************** 
+  // Test writing
 
-	itk::MetaImageSequenceIO::Pointer writerMetaImageSequenceIO = itk::MetaImageSequenceIO::New();
-	ImageSequenceWriterType::Pointer writer = ImageSequenceWriterType::New(); // writer object, pointed to by smart pointer
-	
-	ImageSequenceType::Pointer image = reader->GetOutput(); 
-	typedef itk::MetaDataDictionary DictionaryType; 
-	DictionaryType &dictionary = image->GetMetaDataDictionary(); 
-
-	writer->SetFileName(outputImageSequenceFileName);
-	writer->SetInput(image); 
-	writer->SetMetaDataDictionary(dictionary); 
-	writer->UpdateOutputInformation(); 
-	writer->SetImageIO(writerMetaImageSequenceIO); 
+  vtkSmartPointer<vtkMetaImageSequenceIO> writer=vtkSmartPointer<vtkMetaImageSequenceIO>::New();			
+	writer->SetFileName(outputImageSequenceFileName.c_str());
+	writer->SetTrackedFrameList(trackedFrameList); 
 	writer->UseCompressionOn();
 
 	LOG_INFO("Test SetDefaultFrameTransform method ..."); 
-	writerMetaImageSequenceIO->SetDefaultFrameTransformName("DefaultTransform"); 
+	writer->SetDefaultFrameTransformName("DefaultTransform"); 
 
 	LOG_INFO("Test SetFrameTransform method ..."); 
 	// Add the transformation matrix to metafile
+  int numberOfFrames = trackedFrameList->GetNumberOfTrackedFrames();
 	for ( int i = 0 ; i < numberOfFrames; i++ ) 
 	{
 		vtkSmartPointer<vtkMatrix4x4> transMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
 		transMatrix->SetElement(0,0,i); 
-		writerMetaImageSequenceIO->SetFrameTransform(i, transMatrix); 
+    writer->GetTrackedFrame(i)->SetCustomFrameTransform(
+      writer->GetTrackedFrameList()->GetDefaultFrameTransformName(),
+      transMatrix); 
 	}
 
 	LOG_INFO("Test SetCustomFrameTransform method ..."); 
@@ -146,33 +117,20 @@ int main(int argc, char **argv)
 	{
 		vtkSmartPointer<vtkMatrix4x4> transMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
 		transMatrix->SetElement(0,0,i); 
-		writerMetaImageSequenceIO->SetCustomFrameTransform(i, "CustomTransform", transMatrix); 
+    writer->GetTrackedFrame(i)->SetCustomFrameTransform(
+      "CustomTransform",
+      transMatrix); 
 	}
 		
 	LOG_INFO("Test SetCustomTransform method ..."); 
 	vtkSmartPointer<vtkMatrix4x4> calibMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
 	calibMatrix->Identity(); 
-	writerMetaImageSequenceIO->SetCustomTransform("ImageToToolTransform", calibMatrix); 
+  writer->GetTrackedFrameList()->SetCustomTransform("ImageToToolTransform", calibMatrix); 
 
-	LOG_INFO("Test SetCustomFrameString method ..."); 
-	if ( !writerMetaImageSequenceIO->SetCustomFrameString(5, writerMetaImageSequenceIO->GetDefaultFrameTransformName(), "DuplicateMatrix" ) ) 
-	{
-		LOG_DEBUG("Succesfuly avoid to duplicate a userfield in the writer's metadata!"); 
-	}
-	else
-	{
-		LOG_ERROR("Couldn't avoid to duplicate a userfield in the writer's metadata!"); 
-		return EXIT_FAILURE; 
-	}
-
-	try
-	{
-		writer->Update(); 
-	}
-	catch (itk::ExceptionObject & err) 
-	{		
-		LOG_ERROR(" Exception! writer did not update: " <<  err); 
-		return EXIT_FAILURE;
+  if (writer->Write()!=PLUS_SUCCESS)
+  {		
+    LOG_ERROR("Couldn't write sequence metafile: " <<  writer->GetFileName() ); 
+  	return EXIT_FAILURE;
 	}	
 
 	LOG_INFO("Test GetFrameTransform method ..."); 
@@ -181,13 +139,14 @@ int main(int argc, char **argv)
 		vtkSmartPointer<vtkMatrix4x4> writerMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
 		vtkSmartPointer<vtkMatrix4x4> readerMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
 		
-		if ( !readerMetaImageSequenceIO->GetFrameTransform(i, readerMatrix) )
+    if ( !reader->GetTrackedFrameList()->GetTrackedFrame(i)->GetCustomFrameTransform(
+      reader->GetTrackedFrameList()->GetDefaultFrameTransformName().c_str(), readerMatrix) )
 		{
 			LOG_ERROR("Unable to get default frame transform to frame #" << i); 
 			numberOfFailures++; 
 		}
 
-		if ( !writerMetaImageSequenceIO->GetFrameTransform(i, writerMatrix) )
+    if ( !writer->GetTrackedFrame(i)->GetCustomFrameTransform(defaultTransformName, writerMatrix) )
 		{
 			LOG_ERROR("Unable to get default frame transform to frame #" << i); 
 			numberOfFailures++; 

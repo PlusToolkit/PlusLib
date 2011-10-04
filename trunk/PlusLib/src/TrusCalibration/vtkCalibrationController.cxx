@@ -14,7 +14,6 @@
 #include "itkImage.h"
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
-#include "itkMetaImageSequenceIO.h"
 #include <itkImageDuplicator.h>
 #include "vtkTransform.h"
 #include "vtkMath.h"
@@ -260,7 +259,7 @@ PlusStatus vtkCalibrationController::SaveTrackedFrameListToMetafile( IMAGE_DATA_
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkCalibrationController::AddTrackedFrameData(TrackedFrame* trackedFrame, IMAGE_DATA_TYPE dataType )
+PlusStatus vtkCalibrationController::AddTrackedFrameData(TrackedFrame* trackedFrame, IMAGE_DATA_TYPE dataType, const char* defaultTransformName )
 {
 	LOG_TRACE("vtkCalibrationController::AddData - TrackedFrame"); 
 	try
@@ -318,6 +317,8 @@ PlusStatus vtkCalibrationController::AddTrackedFrameData(TrackedFrame* trackedFr
 			return PLUS_FAIL; 
 		}
 
+    this->SegmentedFrameDefaultTransformName=defaultTransformName;
+
 		// Add the segmentation result to the SegmentedFrameContainer
 		SegmentedFrame segmentedFrame; 
 		segmentedFrame.SegResults = this->PatRecognitionResult; 
@@ -328,7 +329,7 @@ PlusStatus vtkCalibrationController::AddTrackedFrameData(TrackedFrame* trackedFr
 		this->ImageDataInfoContainer[dataType].NumberOfSegmentedImages++; 
 
 		double tProbeToReference[16]; 
-		if ( trackedFrame->GetDefaultFrameTransform(tProbeToReference) )
+    if ( trackedFrame->GetCustomFrameTransform(defaultTransformName, tProbeToReference) )
 		{
 			vtkSmartPointer<vtkMatrix4x4> tProbeToReferenceMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
 			tProbeToReferenceMatrix->DeepCopy(tProbeToReference); 
@@ -959,6 +960,8 @@ PlusStatus vtkCalibrationController::OfflineUSToTemplateCalibration()
 
   int validationCounter(0); 
   int vImgNumber(0);
+  
+  std::string defaultFrameTransformNameValidation=validationData->GetDefaultFrameTransformName();
   for( vImgNumber = 0; validationCounter < this->GetImageDataInfo(RANDOM_STEPPER_MOTION_2).NumberOfImagesToAcquire; vImgNumber++ )
   {
       if ( vImgNumber >= validationData->GetNumberOfTrackedFrames() )
@@ -966,7 +969,7 @@ PlusStatus vtkCalibrationController::OfflineUSToTemplateCalibration()
           break; 
       }
 
-      if ( this->AddTrackedFrameData(validationData->GetTrackedFrame(vImgNumber), RANDOM_STEPPER_MOTION_2) == PLUS_SUCCESS )
+      if ( this->AddTrackedFrameData(validationData->GetTrackedFrame(vImgNumber), RANDOM_STEPPER_MOTION_2, defaultFrameTransformNameValidation.c_str()) == PLUS_SUCCESS )
       {
           // The segmentation was successful 
           validationCounter++; 
@@ -990,6 +993,7 @@ PlusStatus vtkCalibrationController::OfflineUSToTemplateCalibration()
   
   int calibrationCounter(0);
   int cImgNumber(0); 
+  std::string defaultFrameTransformNameCalibration=calibrationData->GetDefaultFrameTransformName();
   for( cImgNumber = 0; calibrationCounter < this->GetImageDataInfo(RANDOM_STEPPER_MOTION_1).NumberOfImagesToAcquire; cImgNumber++ )
   {
       if ( cImgNumber >= calibrationData->GetNumberOfTrackedFrames() )
@@ -997,7 +1001,7 @@ PlusStatus vtkCalibrationController::OfflineUSToTemplateCalibration()
           break; 
       }
 
-      if ( this->AddTrackedFrameData(calibrationData->GetTrackedFrame(cImgNumber), RANDOM_STEPPER_MOTION_1) == PLUS_SUCCESS)
+      if ( this->AddTrackedFrameData(calibrationData->GetTrackedFrame(cImgNumber), RANDOM_STEPPER_MOTION_1, defaultFrameTransformNameCalibration.c_str()) == PLUS_SUCCESS)
       {
           // The segmentation was successful
           calibrationCounter++; 
@@ -1039,12 +1043,13 @@ PlusStatus vtkCalibrationController::DoOfflineCalibration()
 
 		// Validation data
 		int validationCounter = 0;
+    std::string defaultFrameTransformName=trackedFrameList->GetDefaultFrameTransformName();
 		for (int imgNumber = 0; validationCounter < this->GetImageDataInfo(FREEHAND_MOTION_2).NumberOfImagesToAcquire; imgNumber++) {
 			if ( imgNumber >= trackedFrameList->GetNumberOfTrackedFrames() ) {
 				break; 
 			}
 
-			if ( this->AddTrackedFrameData(trackedFrameList->GetTrackedFrame(imgNumber), FREEHAND_MOTION_2) ) {
+			if ( this->AddTrackedFrameData(trackedFrameList->GetTrackedFrame(imgNumber), FREEHAND_MOTION_2, defaultFrameTransformName.c_str()) ) {
 				// The segmentation was successful
 				validationCounter++;
 			} else {
@@ -1067,12 +1072,13 @@ PlusStatus vtkCalibrationController::DoOfflineCalibration()
 		}
 
 		int calibrationCounter = 0;
+    std::string defaultFrameTransformNamCalibration=calibrationData->GetDefaultFrameTransformName();
 		for (int imgNumber = 0; calibrationCounter < this->GetImageDataInfo(FREEHAND_MOTION_1).NumberOfImagesToAcquire; imgNumber++) {
 			if ( imgNumber >= calibrationData->GetNumberOfTrackedFrames() ) {
 				break; 
 			}
 
-			if ( this->AddTrackedFrameData(calibrationData->GetTrackedFrame(imgNumber), FREEHAND_MOTION_1) ) {
+			if ( this->AddTrackedFrameData(calibrationData->GetTrackedFrame(imgNumber), FREEHAND_MOTION_1, defaultFrameTransformNamCalibration.c_str()) ) {
 				// The segmentation was successful
 				calibrationCounter++; 
 			} else {

@@ -31,6 +31,10 @@ public:
   static US_IMAGE_ORIENTATION GetUsImageOrientationFromString( const char* usImgOrientation ); 
 
   //! Operation: 
+  // Get US_IMAGE_ORIENTATION enum value from string 
+  static const char* GetStringFromUsImageOrientation(US_IMAGE_ORIENTATION orientation);
+
+  //! Operation: 
   // Save image to file
   static PlusStatus SaveImageToFile(const itk::Image< unsigned char, 2 >::Pointer image, const char* fileName); 
   static PlusStatus SaveImageToFile(unsigned char* imageDataPtr, const int frameSizeInPx[2], int numberOfBitsPerPixel, const char* fileName); 

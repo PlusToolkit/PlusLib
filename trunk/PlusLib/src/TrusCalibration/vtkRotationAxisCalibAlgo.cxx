@@ -287,10 +287,11 @@ PlusStatus vtkRotationAxisCalibAlgo::GetClusterZPosition(std::vector<int> &clust
   double meanZPosition(0); 
 
   const unsigned int numOfFrames = cluster.size(); 
+  std::string defaultFrameTransformName=this->TrackedFrameList->GetDefaultFrameTransformName();
   for ( unsigned int index = 0; index < numOfFrames; ++index )
   {
     double probePos(0), probeRot(0), templatePos(0); 
-    if ( !vtkBrachyTracker::GetStepperEncoderValues(this->TrackedFrameList->GetTrackedFrame( cluster[index] ), probePos, probeRot, templatePos) )
+    if ( !vtkBrachyTracker::GetStepperEncoderValues(this->TrackedFrameList->GetTrackedFrame( cluster[index] ), probePos, probeRot, templatePos, defaultFrameTransformName.c_str()) )
     {
       LOG_WARNING("GetClusterZPosition: Unable to get probe position from tracked frame info for frame #" << cluster[index]); 
       continue; 
@@ -308,12 +309,13 @@ PlusStatus vtkRotationAxisCalibAlgo::ClusterTrackedFrames(std::vector< std::vect
 {
   LOG_TRACE("vtkRotationAxisCalibAlgo::ClusterSegmentedFrames"); 
 
+  std::string defaultFrameTransformName=this->TrackedFrameList->GetDefaultFrameTransformName();
   vtkSmartPointer<vtkPoints> clusterPoints = vtkSmartPointer<vtkPoints>::New(); 
   for ( int frame = 0; frame < this->TrackedFrameList->GetNumberOfTrackedFrames(); ++frame )
   {
     TrackedFrame* trackedFrame = this->GetTrackedFrameList()->GetTrackedFrame(frame); 
     double probePos(0), probeRot(0), templatePos(0); 
-    if ( !vtkBrachyTracker::GetStepperEncoderValues(trackedFrame, probePos, probeRot, templatePos) )
+    if ( !vtkBrachyTracker::GetStepperEncoderValues(trackedFrame, probePos, probeRot, templatePos, defaultFrameTransformName.c_str()) )
     {
       LOG_WARNING("Clustering: Unable to get probe position from tracked frame info for frame #" << frame); 
       continue; 

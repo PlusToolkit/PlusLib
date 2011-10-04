@@ -78,7 +78,7 @@ public:
 	//! Description 
 	// Add new tracked data for segmentation and save the segmentation result to the SegmentedFrameContainer
 	// The class has to be initialized before the segmentation process. 
-	virtual PlusStatus AddTrackedFrameData( TrackedFrame* trackedFrame, IMAGE_DATA_TYPE dataType ); 
+	virtual PlusStatus AddTrackedFrameData( TrackedFrame* trackedFrame, IMAGE_DATA_TYPE dataType, const char* defaultTransformName ); 
 
 	//! Description 
 	// Returns the list of tracked frames of the selected data type
@@ -138,6 +138,8 @@ public:
 	// Get the segmentation result container 
 	// Stores the segmentation results with transformation for each frame
 	SegmentedFrameList GetSegmentedFrameContainer() { return this->SegmentedFrameContainer; };
+
+  const char* GetSegmentedFrameDefaultTransformName() { return this->SegmentedFrameDefaultTransformName.c_str();};
 
   //! Description
   //Get the fiducial pattern recognition master object
@@ -607,7 +609,11 @@ protected:
 	std::vector<ImageDataInfo> ImageDataInfoContainer; 
 	
 	//! Stores the segmentation results with transformation for each frame
-	SegmentedFrameList SegmentedFrameContainer; 
+	SegmentedFrameList SegmentedFrameContainer;
+
+  //! Default transform name for the frames stored in the SegmentedFrameContainer
+  std::string SegmentedFrameDefaultTransformName;
+
 
   //! Stores the fiducial pattern recognition master object
   FidPatternRecognition PatternRecognition;

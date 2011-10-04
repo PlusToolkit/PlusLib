@@ -695,6 +695,7 @@ PlusStatus vtkTrackerBuffer::CopyDefaultTransformFromTrackedFrameList(vtkTracked
     requireFrameNumber=true;
   }
 
+  std::string defaultTransformName=sourceTrackedFrameList->GetDefaultFrameTransformName();
   for ( int frameNumber = 0; frameNumber < numberOfFrames; frameNumber++ )
   {
 
@@ -755,7 +756,7 @@ PlusStatus vtkTrackerBuffer::CopyDefaultTransformFromTrackedFrameList(vtkTracked
     }
 
     double defaultTransform[16]; 
-    if ( !sourceTrackedFrameList->GetTrackedFrame(frameNumber)->GetDefaultFrameTransform(defaultTransform) )
+    if ( !sourceTrackedFrameList->GetTrackedFrame(frameNumber)->GetCustomFrameTransform(defaultTransformName.c_str(), defaultTransform) )
     {
       LOG_ERROR("Unable to get default frame transform for frame #" << frameNumber); 
       numberOfErrors++; 

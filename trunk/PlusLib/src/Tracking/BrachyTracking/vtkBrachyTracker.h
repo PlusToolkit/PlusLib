@@ -32,12 +32,10 @@ public:
 	vtkTypeMacro(vtkBrachyTracker,vtkTracker);
 	void PrintSelf(ostream& os, vtkIndent indent);
 
-	// Description:
-	// Connect to device
+  //! Connect to device
 	PlusStatus Connect();
 
-	// Description:
-	// Disconnect from device 
+  //! Disconnect from device 
 	virtual PlusStatus Disconnect();
 
   // Description:
@@ -46,89 +44,76 @@ public:
 	// then all serial ports will be checked.
 	PlusStatus Probe();
 
-	// Description:
-	// Reset the stepper
+  //! Reset the stepper
 	// After this call, you should call InitializeStepper() 
 	PlusStatus ResetStepper(); 
 
-	// Description:
-	// Initialize the stepper with the factory specified init process. 
+  //! Initialize the stepper with the factory specified init process. 
 	PlusStatus InitializeStepper( std::string &calibMsg );
 
-	// Description:
-	// Get the buffer element values of each tool in a string list by timestamp. 
-	PlusStatus GetTrackerToolBufferStringList(double timestamp, 
+  //! Get the buffer element values of each tool in a string list by timestamp. 
+	virtual PlusStatus GetTrackerToolBufferStringList(double timestamp, 
 		std::map<std::string, std::string> &toolsBufferMatrices, 
-		std::map<std::string, std::string> &toolsCalibrationMatrices, 
 		std::map<std::string, std::string> &toolsStatuses,
 		bool calibratedTransform = false); 
 
-	// Description:
-	// Get stepper encoder values from the buffer by UID
+	//! Get the calibration matrices for all tools in a string
+	virtual PlusStatus GetTrackerToolCalibrationMatrixStringList(std::map<std::string, std::string> &toolsCalibrationMatrices); 
+
+
+  //! Get stepper encoder values from the buffer by UID
 	PlusStatus GetStepperEncoderValues( BufferItemUidType uid, double &probePosition, double &probeRotation, double &templatePosition, TrackerStatus &status ); 
   
   // Description:
 	// Get latest stepper encoder values from the buffer
   PlusStatus GetLatestStepperEncoderValues( double &probePosition, double &probeRotation, double &templatePosition, TrackerStatus &status ); 
 
-	// Description:
-	// Get stepper encoder values in a particular timestamp, where the timestamp is
+  //! Get stepper encoder values in a particular timestamp, where the timestamp is
 	// in system time as returned by vtkAccurateTimer::GetSystemTime().
 	PlusStatus GetStepperEncoderValues(double timestamp, double &probePosition, double &probeRotation, double &templatePosition, TrackerStatus &status ); 
 	
-	// Description:
-	// Get probe home to probe transform from the buffer, where '0' is the most recent and
+  //! Get probe home to probe transform from the buffer, where '0' is the most recent and
 	// (NumberOfItems-1) is the oldest.
 	PlusStatus GetProbeHomeToProbeTransform( BufferItemUidType uid, vtkMatrix4x4* probeHomeToProbeMatrix, TrackerStatus &status, bool calibratedTransform = false ); 
 
-	// Description:
-	// Get probe home to probe transform in a particular timestamp, where the timestamp is
+  //! Get probe home to probe transform in a particular timestamp, where the timestamp is
 	// in system time as returned by vtkAccurateTimer::GetSystemTime().
 	PlusStatus GetProbeHomeToProbeTransform( double timestamp, vtkMatrix4x4* probeHomeToProbeMatrix, TrackerStatus &status, bool calibratedTransform = false ); 
 
-	// Description:
-	// Get template home to template transform from the buffer, where '0' is the most recent and
+  //! Get template home to template transform from the buffer, where '0' is the most recent and
 	// (NumberOfItems-1) is the oldest.
 	PlusStatus GetTemplateHomeToTemplateTransform( BufferItemUidType uid, vtkMatrix4x4* templateHomeToTemplateMatrix, TrackerStatus &status, bool calibratedTransform = false ); 
 
-	// Description:
-	// Get template home to template transform in a particular timestamp, where the timestamp is
+  //! Get template home to template transform in a particular timestamp, where the timestamp is
 	// in system time as returned by vtkAccurateTimer::GetSystemTime().
 	PlusStatus GetTemplateHomeToTemplateTransform( double timestamp, vtkMatrix4x4* templateHomeToTemplateMatrix, TrackerStatus &status, bool calibratedTransform = false );
 
-	// Description:
-	// Get raw encoder values transform from the buffer
+  //! Get raw encoder values transform from the buffer
 	PlusStatus GetRawEncoderValuesTransform( BufferItemUidType uid, vtkMatrix4x4* rawEncoderValuesTransform, TrackerStatus &status ); 
 
-	// Description:
-	// Get raw encoder values transform in a particular timestamp, where the timestamp is
+  //! Get raw encoder values transform in a particular timestamp, where the timestamp is
 	// in system time as returned by vtkAccurateTimer::GetSystemTime().
 	PlusStatus GetRawEncoderValuesTransform( double timestamp, vtkMatrix4x4* rawEncoderValuesTransform, TrackerStatus &status); 
 
   //! Description: 
 	// Get stepper encoder values from the tracked frame info
-	static PlusStatus GetStepperEncoderValues( TrackedFrame* trackedFrame, double &probePosition, double &probeRotation, double &templatePosition); 
+	static PlusStatus GetStepperEncoderValues( TrackedFrame* trackedFrame, double &probePosition, double &probeRotation, double &templatePosition, const char* defaultTransformName); 
 
-	// Description:
-	// Get the a string (perhaps a long one) describing the type and version
+  //! Get the a string (perhaps a long one) describing the type and version
 	// of the device.
 	vtkGetStringMacro(ModelVersion);
 
- 	// Description:
-	// Get stepper model number
+   //! Get stepper model number
 	vtkGetStringMacro(ModelNumber);
 
-	// Description:
-	// Get stepper serial number 
+  //! Get stepper serial number 
 	vtkGetStringMacro(ModelSerialNumber);
 
-	// Description:
-	// Set which serial port to use, COM1 through COM4.
+  //! Set which serial port to use, COM1 through COM4.
 	vtkSetMacro(SerialPort, unsigned long);
 	vtkGetMacro(SerialPort, unsigned long);
 
-	// Description:
-	// Set the desired baud rate.  Default: 9600.  
+  //! Set the desired baud rate.  Default: 9600.  
 	vtkSetMacro(BaudRate, unsigned long);
 	vtkGetMacro(BaudRate, unsigned long);
 
@@ -142,23 +127,19 @@ public:
 	vtkGetStringMacro(CalibrationDate);
 	vtkSetStringMacro(CalibrationDate);
   
-	// Description:
-	// Set/get probe translation axis orientation vector[Tx, Ty, 1]
+  //! Set/get probe translation axis orientation vector[Tx, Ty, 1]
 	vtkSetVector3Macro(ProbeTranslationAxisOrientation, double); 
 	vtkGetVector3Macro(ProbeTranslationAxisOrientation, double); 
 
-	// Description:
-	// Set/get probe rotation axis orientation vector[Trx, Try, 1]
+  //! Set/get probe rotation axis orientation vector[Trx, Try, 1]
 	vtkSetVector3Macro(ProbeRotationAxisOrientation, double); 
 	vtkGetVector3Macro(ProbeRotationAxisOrientation, double); 
 
-	// Description:
-	// Set/get template translation axis orientation vector[Tx, Ty, 1]
+  //! Set/get template translation axis orientation vector[Tx, Ty, 1]
 	vtkSetVector3Macro(TemplateTranslationAxisOrientation, double); 
 	vtkGetVector3Macro(TemplateTranslationAxisOrientation, double); 
 
-	// Description:
-	// Set/get probe rotation encoder scale
+  //! Set/get probe rotation encoder scale
 	vtkSetMacro(ProbeRotationEncoderScale, double); 
 	vtkGetMacro(ProbeRotationEncoderScale, double); 
 
@@ -166,13 +147,11 @@ public:
 	// Get brachy stepper type (see BrachyStepper::BRACHY_STEPPER_TYPE)
   BrachyStepper::BRACHY_STEPPER_TYPE GetBrachyStepperType() { return this->BrachyStepperType; }
 
-	// Description:
-	// Get an update from the tracking system and push the new transforms
+  //! Get an update from the tracking system and push the new transforms
 	// to the tools.  This should only be used within vtkTracker.cxx.
 	PlusStatus InternalUpdate();
 
-	// Description:
-	// Read/write BrachyStepper configuration to xml data
+  //! Read/write BrachyStepper configuration to xml data
 	PlusStatus ReadConfiguration(vtkXMLDataElement* config); 
 	PlusStatus WriteConfiguration(vtkXMLDataElement* config); 
 
@@ -180,8 +159,7 @@ protected:
 	vtkBrachyTracker();
 	~vtkBrachyTracker();
 
-	// Description:
-	// Set the stepper model version information.
+  //! Set the stepper model version information.
 	vtkSetStringMacro(ModelVersion);
 
   // Description:
@@ -192,20 +170,17 @@ protected:
 	// Set the stepper serial number
 	vtkSetStringMacro(ModelSerialNumber);
   
-	// Description:
-	// Start the tracking system.  The tracking system is brought from
+  //! Start the tracking system.  The tracking system is brought from
 	// its ground state into full tracking mode.  The device will
 	// only be reset if communication cannot be established without
 	// a reset.
 	PlusStatus InternalStartTracking();
 
-	// Description:
-	// Stop the tracking system and bring it back to its ground state:
+  //! Stop the tracking system and bring it back to its ground state:
 	// Initialized, not tracking, at 9600 Baud.
 	PlusStatus InternalStopTracking();
 
-	// Description:
-	// Initialize the tracking device
+  //! Initialize the tracking device
 	PlusStatus InitBrachyTracker();
 
 	BrachyStepper *Device;

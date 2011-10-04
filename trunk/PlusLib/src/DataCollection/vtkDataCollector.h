@@ -126,6 +126,8 @@ public:
   // Get the most recent tracked frame from devices with each tool transforms
   virtual PlusStatus GetTrackedFrame(TrackedFrame* trackedFrame, bool calibratedTransform = false); 
 
+  const char* vtkDataCollector::GetDefaultFrameTransformName(int toolNumber);
+
   // Description:
   // Get the tracked frame from devices by time with each tool transforms
   virtual PlusStatus GetTrackedFrameByTime(double time, TrackedFrame* trackedFrame, bool calibratedTransform = false); 

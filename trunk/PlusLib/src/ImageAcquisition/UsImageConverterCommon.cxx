@@ -53,6 +53,19 @@ US_IMAGE_ORIENTATION UsImageConverterCommon::GetUsImageOrientationFromString( co
   return imageorientation; 
 }
 
+const char* UsImageConverterCommon::GetStringFromUsImageOrientation(US_IMAGE_ORIENTATION orientation)
+{
+  switch (orientation)
+  {
+  case US_IMG_ORIENT_MF: return "MF";
+  case US_IMG_ORIENT_MN: return "MN";
+  case US_IMG_ORIENT_UF: return "UF";
+  case US_IMG_ORIENT_UN: return "UN";
+  default:
+    return "XX";
+  }
+}
+
 //----------------------------------------------------------------------------
 PlusStatus UsImageConverterCommon::GetMFOrientedImage( vtkImageData* inUsImage, US_IMAGE_ORIENTATION inUsImageOrientation, vtkImageData* outUsOrintedImage )
 {

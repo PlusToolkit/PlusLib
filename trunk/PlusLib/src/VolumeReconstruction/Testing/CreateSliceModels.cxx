@@ -118,13 +118,14 @@ int main( int argc, char** argv )
   appender->SetInput( outputPolyData );
 
   // Loop over each tracked image slice.
+  std::string defaultFrameTransformName=trackedFrameList->GetDefaultFrameTransformName();
   int* frameSize = trackedFrameList->GetFrameSize();
   for ( int frameIndex = 0; frameIndex < trackedFrameList->GetNumberOfTrackedFrames(); ++ frameIndex )
   {
     TrackedFrame* frame = trackedFrameList->GetTrackedFrame( frameIndex );
 
     double defaultTransform[ 16 ];
-    frame->GetDefaultFrameTransform( defaultTransform);
+    frame->GetCustomFrameTransform(defaultFrameTransformName.c_str(), defaultTransform);
     vtkSmartPointer< vtkTransform > tToolToTracker = vtkSmartPointer< vtkTransform >::New();
     tToolToTracker->SetMatrix( defaultTransform );    
 

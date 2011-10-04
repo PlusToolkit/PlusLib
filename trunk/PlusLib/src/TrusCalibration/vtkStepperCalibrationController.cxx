@@ -341,7 +341,7 @@ void vtkStepperCalibrationController::ConstrLinEqForRotEncCalc( std::vector<vnl_
     if ( this->SegmentedFrameContainer[frame].DataType == PROBE_ROTATION )
     {
       double probePos(0), probeRot(0), templatePos(0); 
-      if ( !vtkBrachyTracker::GetStepperEncoderValues(this->SegmentedFrameContainer[frame].TrackedFrameInfo, probePos, probeRot, templatePos) )
+      if ( !vtkBrachyTracker::GetStepperEncoderValues(this->SegmentedFrameContainer[frame].TrackedFrameInfo, probePos, probeRot, templatePos, this->SegmentedFrameDefaultTransformName.c_str()) )
       {
         LOG_WARNING("Probe rotation axis calibration: Unable to get probe rotation from tracked frame info for frame #" << frame); 
         continue; 
@@ -1124,7 +1124,7 @@ double vtkStepperCalibrationController::GetClusterZPosition(const SegmentedFrame
   for ( int frame = 0; frame < numOfFrames; ++frame )
   {
     double probePos(0), probeRot(0), templatePos(0); 
-    if ( !vtkBrachyTracker::GetStepperEncoderValues(cluster[frame].TrackedFrameInfo, probePos, probeRot, templatePos) )
+    if ( !vtkBrachyTracker::GetStepperEncoderValues(cluster[frame].TrackedFrameInfo, probePos, probeRot, templatePos, this->SegmentedFrameDefaultTransformName.c_str()) )
     {
       LOG_WARNING("GetClusterZPosition: Unable to get probe position from tracked frame info for frame #" << frame); 
       continue; 
@@ -1149,7 +1149,7 @@ void vtkStepperCalibrationController::ClusterSegmentedFrames(IMAGE_DATA_TYPE dat
     if ( this->SegmentedFrameContainer[frame].DataType == dataType )
     {
       double probePos(0), probeRot(0), templatePos(0); 
-      if ( !vtkBrachyTracker::GetStepperEncoderValues(this->SegmentedFrameContainer[frame].TrackedFrameInfo, probePos, probeRot, templatePos) )
+      if ( !vtkBrachyTracker::GetStepperEncoderValues(this->SegmentedFrameContainer[frame].TrackedFrameInfo, probePos, probeRot, templatePos, this->SegmentedFrameDefaultTransformName.c_str()) )
       {
         LOG_WARNING("Clustering: Unable to get probe position from tracked frame info for frame #" << frame); 
         continue; 
@@ -1228,6 +1228,7 @@ PlusStatus vtkStepperCalibrationController::OfflineProbeRotationAxisCalibration(
 
   int frameCounter(0); 
   int imgNumber(0); 
+  std::string defaultFrameTransformName=trackedFrameList->GetDefaultFrameTransformName();
   for( imgNumber = 0; frameCounter < this->GetImageDataInfo(PROBE_ROTATION).NumberOfImagesToAcquire; imgNumber++ )
   {
     if ( imgNumber >= trackedFrameList->GetNumberOfTrackedFrames() )
@@ -1235,7 +1236,7 @@ PlusStatus vtkStepperCalibrationController::OfflineProbeRotationAxisCalibration(
       break; 
     }
 
-    if ( this->AddTrackedFrameData(trackedFrameList->GetTrackedFrame(imgNumber), PROBE_ROTATION) )
+    if ( this->AddTrackedFrameData(trackedFrameList->GetTrackedFrame(imgNumber), PROBE_ROTATION, defaultFrameTransformName.c_str()) )
     {
       // The segmentation was successful 
       frameCounter++; 
@@ -1294,6 +1295,7 @@ PlusStatus vtkStepperCalibrationController::OfflineProbeTranslationAxisCalibrati
 
   int frameCounter(0); 
   int imgNumber(0); 
+  std::string defaultFrameTransformName=trackedFrameList->GetDefaultFrameTransformName();
   for( imgNumber = 0; frameCounter < this->GetImageDataInfo(PROBE_TRANSLATION).NumberOfImagesToAcquire; imgNumber++ )
   {
     if ( imgNumber >= trackedFrameList->GetNumberOfTrackedFrames() )
@@ -1301,7 +1303,7 @@ PlusStatus vtkStepperCalibrationController::OfflineProbeTranslationAxisCalibrati
       break; 
     }
 
-    if ( this->AddTrackedFrameData(trackedFrameList->GetTrackedFrame(imgNumber), PROBE_TRANSLATION) )
+    if ( this->AddTrackedFrameData(trackedFrameList->GetTrackedFrame(imgNumber), PROBE_TRANSLATION, defaultFrameTransformName.c_str()) )
     {
       // The segmentation was successful 
       frameCounter++; 
@@ -1360,6 +1362,7 @@ PlusStatus vtkStepperCalibrationController::OfflineTemplateTranslationAxisCalibr
 
   int frameCounter(0); 
   int imgNumber(0); 
+  std::string defaultFrameTransformName=trackedFrameList->GetDefaultFrameTransformName();
   for( imgNumber = 0; frameCounter < this->GetImageDataInfo(TEMPLATE_TRANSLATION).NumberOfImagesToAcquire; imgNumber++ )
   {
     if ( imgNumber >= trackedFrameList->GetNumberOfTrackedFrames() )
@@ -1367,7 +1370,7 @@ PlusStatus vtkStepperCalibrationController::OfflineTemplateTranslationAxisCalibr
       break; 
     }
 
-    if ( this->AddTrackedFrameData(trackedFrameList->GetTrackedFrame(imgNumber), TEMPLATE_TRANSLATION) )
+    if ( this->AddTrackedFrameData(trackedFrameList->GetTrackedFrame(imgNumber), TEMPLATE_TRANSLATION, defaultFrameTransformName.c_str()) )
     {
       // The segmentation was successful 
       frameCounter++; 
