@@ -637,12 +637,10 @@ std::string vtkTracker::ConvertTrackerStatusToString(TrackerStatus status)
 //----------------------------------------------------------------------------
 PlusStatus vtkTracker::GetTrackerToolBufferStringList(double timestamp,
                                                       std::map<std::string, std::string> &toolsBufferMatrices, 
-                                                      std::map<std::string, std::string> &toolsCalibrationMatrices, 
                                                       std::map<std::string, std::string> &toolsStatuses,
                                                       bool calibratedTransform /*= false*/)
 {
   toolsBufferMatrices.clear();  
-  toolsCalibrationMatrices.clear();  
   toolsStatuses.clear(); 
 
   for ( int tool = 0; tool < this->GetNumberOfTools(); tool++ )
@@ -687,7 +685,23 @@ PlusStatus vtkTracker::GetTrackerToolBufferStringList(double timestamp,
         }
       }
 
+      toolsBufferMatrices[ this->GetTool(tool)->GetToolName() ] = strToolTransform.str(); 
+      toolsStatuses[ this->GetTool(tool)->GetToolName() ] = vtkTracker::ConvertTrackerStatusToString( bufferItem.GetStatus() ); 
+    }
+  }
 
+  return PLUS_SUCCESS; 
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkTracker::GetTrackerToolCalibrationMatrixStringList(std::map<std::string, std::string> &toolsCalibrationMatrices)
+{
+  toolsCalibrationMatrices.clear();  
+
+  for ( int tool = 0; tool < this->GetNumberOfTools(); tool++ )
+  {
+    if ( this->GetTool(tool)->GetEnabled() )
+    {
       vtkMatrix4x4* toolCalibrationMatrix = this->GetTool(tool)->GetCalibrationMatrix(); 
       std::ostringstream strToolCalibMatrix; 
       for ( int r = 0; r < 4; ++r )
@@ -697,15 +711,13 @@ PlusStatus vtkTracker::GetTrackerToolBufferStringList(double timestamp,
           strToolCalibMatrix << toolCalibrationMatrix->GetElement(r,c)  << " ";
         }
       }
-
-      toolsBufferMatrices[ this->GetTool(tool)->GetToolName() ] = strToolTransform.str(); 
       toolsCalibrationMatrices[ this->GetTool(tool)->GetCalibrationMatrixName() ] = strToolCalibMatrix.str(); 
-      toolsStatuses[ this->GetTool(tool)->GetToolName() ] = vtkTracker::ConvertTrackerStatusToString( bufferItem.GetStatus() ); 
     }
   }
 
   return PLUS_SUCCESS; 
 }
+
 
 //-----------------------------------------------------------------------------
 PlusStatus vtkTracker::GetFirstActiveTool(int &tool)
