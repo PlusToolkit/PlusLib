@@ -13,6 +13,7 @@
 #include "igtlClientSocket.h"
 
 #include "vtkDataCollector.h"
+#include "vtkTrackedFrameList.h"
 
 
 
@@ -86,7 +87,7 @@ private:
   vtkOpenIGTLinkBroadcaster( const vtkOpenIGTLinkBroadcaster& );
 	void operator=( const vtkOpenIGTLinkBroadcaster& );
   
-  void SendImageMessage( std::string strError );
+  void SendImageMessage( TrackedFrame* trackedFrame, std::string strError );
   
   
   Status             InternalStatus;

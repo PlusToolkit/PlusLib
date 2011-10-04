@@ -210,13 +210,11 @@ vtkOpenIGTLinkBroadcaster
     }
   
   
-    // If we should broadcast the image slice too, set up the image container.
+  TrackedFrame trackedFrame;
+  this->DataCollector->GetTrackedFrame( &trackedFrame, false );
   
-  if (    this->DataCollector->GetVideoSource() != NULL
-       && this->DataCollector->GetAcquisitionType() != SYNCHRO_VIDEO_NONE )
-    {
-    this->SendImageMessage( strError );
-    }
+  
+  double timestamp = trackedFrame.GetTimestamp();
   
   
     // Read the non-reference transforms to be broadcasted
@@ -224,20 +222,26 @@ vtkOpenIGTLinkBroadcaster
   
   for ( int igtIndex = 0; igtIndex < this->NonReferenceToolInfos.size(); ++ igtIndex )
     {
-    double                          timestamp       = 0.0;
-    TrackerStatus                   status          = TR_OK;
+    
+    // TrackerStatus                   status          = TR_OK;
     vtkSmartPointer< vtkMatrix4x4 > mToolToTracker  = vtkSmartPointer< vtkMatrix4x4 >::New();
     
     int toolNumber = this->NonReferenceToolInfos[ igtIndex ].TrackerPortNumber;
     const char* toolName = this->NonReferenceToolInfos[ igtIndex ].ToolName.c_str();
     igtl::ClientSocket::Pointer toolSocket = this->NonReferenceToolInfos[ igtIndex ].Socket;
     
+    /*
     PlusStatus pStatus = this->DataCollector->GetTransformWithTimestamp( mToolToTracker, timestamp, status,
                                                                          toolNumber, true );
+    */
     
-    if ( pStatus != PLUS_SUCCESS )
+    double transform[ 16 ] = { 0 };
+    trackedFrame.GetCustomFrameTransform( toolName, transform );
+    TrackerStatus status = trackedFrame.GetStatus();
+    
+    if ( status != TR_OK )
       {
-      LOG_INFO( "No tracking data for tool: " << toolNumber );
+      LOG_INFO( "Tracking data invalid for tool: " << toolNumber );
       continue;
       }
     
@@ -246,11 +250,13 @@ vtkOpenIGTLinkBroadcaster
     
     igtl::Matrix4x4 igtlMatrix;
     
+    
     for ( int row = 0; row < 4; ++ row )
       {
       for ( int col = 0; col < 4; ++ col )
         {
-        igtlMatrix[ row ][ col ] = mToolToTracker->GetElement( row, col );
+        // igtlMatrix[ row ][ col ] = mToolToTracker->GetElement( row, col );
+        igtlMatrix[ row ][ col ] = transform[ row * 4 + col ];
         }
       }
     
@@ -274,6 +280,16 @@ vtkOpenIGTLinkBroadcaster
       }
     }
   
+  
+    // If we should broadcast the image slice too, set up the image container.
+  
+  if (    this->DataCollector->GetVideoSource() != NULL
+       && this->DataCollector->GetAcquisitionType() != SYNCHRO_VIDEO_NONE )
+    {
+    this->SendImageMessage( &trackedFrame, strError );
+    }
+  
+  
   this->InternalStatus = STATUS_OK;
   return this->InternalStatus;
 }
@@ -281,7 +297,7 @@ vtkOpenIGTLinkBroadcaster
 
 void
 vtkOpenIGTLinkBroadcaster
-::SendImageMessage( std::string strError )
+::SendImageMessage( TrackedFrame* trackedFrame, std::string strError )
 {
     // Get the socket information for the default tool;
   
@@ -303,15 +319,19 @@ vtkOpenIGTLinkBroadcaster
     }
   
   // Read the actual image data with transform.
-  vtkSmartPointer< vtkImageData > frameImage = vtkSmartPointer< vtkImageData >::New();
-  double timestamp = 0.0;
-  TrackerStatus status = TR_OK;
+  // vtkSmartPointer< vtkImageData > frameImage = vtkSmartPointer< vtkImageData >::New();
+  // double timestamp = 0.0;
+  double timestamp = trackedFrame->GetTimestamp();
+  // TrackerStatus status = TR_OK;
   vtkSmartPointer< vtkMatrix4x4 > mProbeToReference = vtkSmartPointer< vtkMatrix4x4 >::New();
-  PlusStatus pStatus = this->DataCollector->GetTrackedFrame( frameImage, mProbeToReference, status, timestamp, defaultTool, true );
+  // PlusStatus pStatus = this->DataCollector->GetTrackedFrame( frameImage, mProbeToReference, status, timestamp, defaultTool, true );
   
-  if ( pStatus != PLUS_SUCCESS )
+  vtkImageData* frameImage = trackedFrame->GetImageData()->GetVtkImageNonFlipped();
+  TrackerStatus status = trackedFrame->GetStatus();
+  
+  if ( status != TR_OK )
     {
-    LOG_INFO( "Failed to get tracked image frame" );
+    LOG_INFO( "Tracked frame status not OK." );
     this->InternalStatus = STATUS_MISSING_TRACKED_FRAME;
     return;
     }
