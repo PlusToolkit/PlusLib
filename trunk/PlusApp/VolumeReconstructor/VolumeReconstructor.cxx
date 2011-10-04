@@ -72,12 +72,13 @@ int main (int argc, char* argv[])
   LOG_INFO("Reconstruct volume...");
   reconstructor->SetOutputExtentFromFrameList(trackedFrameList);
   const int numberOfFrames = trackedFrameList->GetNumberOfTrackedFrames(); 
+  std::string defaultFrameTransformName=trackedFrameList->GetDefaultFrameTransformName();
   for ( int frameIndex = 0; frameIndex < numberOfFrames; ++frameIndex )
   {
     LOG_DEBUG("Frame: "<<frameIndex);
     vtkPlusLogger::PrintProgressbar( (100.0 * frameIndex) / numberOfFrames ); 
     TrackedFrame* frame = trackedFrameList->GetTrackedFrame( frameIndex );
-    reconstructor->AddTrackedFrame(frame);
+    reconstructor->AddTrackedFrame(frame, defaultFrameTransformName.c_str());
   }
   vtkPlusLogger::PrintProgressbar( 100 ); 
 

@@ -451,7 +451,7 @@ PlusStatus FreehandCalibrationToolbox::DoSpatialCalibration()
 
 		// Get latest tracked frame from data collector
 		TrackedFrame trackedFrame; 
-		m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->GetTrackedFrame(&trackedFrame); 
+		m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->GetTrackedFrame(&trackedFrame);     
 
 		if (trackedFrame.GetStatus() & (TR_MISSING | TR_OUT_OF_VIEW)) {
 			LOG_DEBUG("Tracker out of view"); 
@@ -460,8 +460,9 @@ PlusStatus FreehandCalibrationToolbox::DoSpatialCalibration()
 		} else { // TR_OK
 			if (numberOfAcquiredImages < maxNumberOfValidationImages) {
 				// Validation data
-				if ( m_Calibration->GetTrackedFrameList(FREEHAND_MOTION_2)->ValidateData(&trackedFrame) ) {
-					if (m_Calibration->AddTrackedFrameData(&trackedFrame, FREEHAND_MOTION_2)) {
+				if ( m_Calibration->GetTrackedFrameList(FREEHAND_MOTION_2)->ValidateData(&trackedFrame) ) {          
+					if (m_Calibration->AddTrackedFrameData(&trackedFrame, FREEHAND_MOTION_2,
+            m_Calibration->GetTrackedFrameList(FREEHAND_MOTION_2)->GetDefaultFrameTransformName().c_str())) {
 						segmentationSuccessful = true;
 					} else {
 						++numberOfFailedSegmentations;
@@ -471,7 +472,8 @@ PlusStatus FreehandCalibrationToolbox::DoSpatialCalibration()
 			} else {
 				// Calibration data
 				if ( m_Calibration->GetTrackedFrameList(FREEHAND_MOTION_1)->ValidateData(&trackedFrame) ) {
-					if (m_Calibration->AddTrackedFrameData(&trackedFrame, FREEHAND_MOTION_1)) {
+					if (m_Calibration->AddTrackedFrameData(&trackedFrame, FREEHAND_MOTION_1,
+            m_Calibration->GetTrackedFrameList(FREEHAND_MOTION_1)->GetDefaultFrameTransformName().c_str() )) {
 						segmentationSuccessful = true;
 					} else {
 						++numberOfFailedSegmentations;

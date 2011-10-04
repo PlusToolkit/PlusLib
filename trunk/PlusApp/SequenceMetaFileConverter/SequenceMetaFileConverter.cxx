@@ -72,18 +72,16 @@ enum CONVERT_METHOD
 {
 	FROM_SEQUENCE_METAFILE=1, 
 	FROM_METAFILE=2,
-	FROM_BMP24=3, 
-	FROM_OLD_SEQUENCE_METAFILE=4
+	FROM_BMP24=3
 }; 
 
 
 void ConvertFromMetafile(SAVING_METHOD savingMethod); 
 void ConvertFromBitmap(SAVING_METHOD savingMethod); 
 void ConvertFromSequenceMetafile(std::vector<std::string> inputImageSequenceFileNames, SAVING_METHOD savingMethod ); 
-void ConvertFromOldSequenceMetafile(std::vector<std::string> inputImageSequenceFileNames, SAVING_METHOD savingMethod); 
 
 void SaveImages( vtkTrackedFrameList* trackedFrameList, SAVING_METHOD savingMethod, int numberOfImagesWritten ); 
-void SaveImageToMetaFile( TrackedFrame* trackedFrame, std::string metaFileName, bool useCompression ); 
+void SaveImageToMetaFile( TrackedFrame* trackedFrame, const std::string &defaultFrameTransformName, const std::string &metaFileName, bool useCompression);
 void SaveImageToBitmap( const ImageType::Pointer& image, std::string bitmapFileName, int savingMethod ); 
 
 void SaveTransformToFile(TrackedFrame* trackedFrame, std::string imageFileName, std::string toolToReferenceTransformName, std::string referenceToTrackerTransformName); 
@@ -129,9 +127,9 @@ int main (int argc, char* argv[])
 
 	cmdargs.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");	
 	
-	cmdargs.AddArgument("--saving-method", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputSavingMethod, "Saving method ( Default: SEQUENCE_METAFILE; METAFILE, SEQUENCE_METAFILE, BMP24, BMP8, PNG, JPG)" );
-	cmdargs.AddArgument("--convert-method", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConvertMethod, "Convert method ( Default: FROM_BMP24; FROM_BMP24, FROM_METAFILE, FROM_OLD_SEQUENCE_METAFILE, FROM_SEQUENCE_METAFILE)" );
-	cmdargs.AddArgument("--output-us-img-orientation", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputUsImageOrientation, "Output ultrasound image orientation ( Default: XX; UF, UN, MF, MN, XX)" );
+	cmdargs.AddArgument("--saving-method", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputSavingMethod, "Saving method (METAFILE, SEQUENCE_METAFILE, BMP24, BMP8, PNG, JPG; Default: SEQUENCE_METAFILE)" );
+	cmdargs.AddArgument("--convert-method", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConvertMethod, "Convert method (FROM_BMP24, FROM_METAFILE, FROM_SEQUENCE_METAFILE; Default: FROM_BMP24)" );
+	cmdargs.AddArgument("--output-us-img-orientation", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputUsImageOrientation, "Output ultrasound image orientation (UF, UN, MF, MN, XX; Default: XX)" );
 
 	// convert from BMP24 arguments
 	cmdargs.AddArgument("--input-data-dir", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputDataDir, "Input data directory for image files with transforms (default: ./)");
@@ -233,10 +231,6 @@ int main (int argc, char* argv[])
 	{
 		convertMethod = FROM_METAFILE; 
 	}
-	else if ( STRCASECMP("FROM_OLD_SEQUENCE_METAFILE", inputConvertMethod.c_str())==0 )
-	{
-		convertMethod = FROM_OLD_SEQUENCE_METAFILE; 
-	}
 	else if ( STRCASECMP("FROM_SEQUENCE_METAFILE", inputConvertMethod.c_str())==0 )
 	{
 		convertMethod = FROM_SEQUENCE_METAFILE; 
@@ -312,11 +306,6 @@ int main (int argc, char* argv[])
 			ConvertFromBitmap(savingMethod); 
 		}
 		break; 
-	case FROM_OLD_SEQUENCE_METAFILE: 
-		{
-			ConvertFromOldSequenceMetafile(inputImageSequenceFileNames, savingMethod); 
-		}
-		break; 
 	}
 
 	return EXIT_SUCCESS; 
@@ -338,123 +327,12 @@ void ConvertFromSequenceMetafile(std::vector<std::string> inputImageSequenceFile
 }
 
 //-------------------------------------------------------------------------------
-void ConvertFromOldSequenceMetafile(std::vector<std::string> inputImageSequenceFileNames, SAVING_METHOD savingMethod)
-{
-	LOG_INFO("Converting old sequence metafile images..."); 
-	vtkSmartPointer<vtkTrackedFrameList> trackedFrameContainer = vtkSmartPointer<vtkTrackedFrameList>::New(); 
-	int numberOfImagesWritten(0); 
-
-	for ( int i = 0; i < inputImageSequenceFileNames.size(); i++) 
-	{
-		itk::MetaImageSequenceIO::Pointer readerMetaImageSequenceIO = itk::MetaImageSequenceIO::New(); 
-		ImageSequenceReaderType::Pointer reader = ImageSequenceReaderType::New();
-
-		readerMetaImageSequenceIO->AddCustomFrameFieldNameForReading("TransformMatrix"); 
-		readerMetaImageSequenceIO->AddCustomFrameFieldNameForReading("Offset"); 
-
-		// Set the image IO 
-		reader->SetImageIO(readerMetaImageSequenceIO); 
-		reader->SetFileName(inputImageSequenceFileNames[i].c_str());
-
-		try
-		{
-			reader->Update(); 
-		}
-		catch (itk::ExceptionObject & err) 
-		{		
-			LOG_ERROR( "Sequence image reader couldn't update: " <<  err); 
-			exit(EXIT_FAILURE);
-		}	
-
-		ImageSequenceType::Pointer imageSeq = reader->GetOutput();
-
-		const unsigned long imageWidthInPixels = imageSeq->GetLargestPossibleRegion().GetSize()[0]; 
-		const unsigned long imageHeightInPixels = imageSeq->GetLargestPossibleRegion().GetSize()[1]; 
-		const unsigned long numberOfFrames = imageSeq->GetLargestPossibleRegion().GetSize()[2];	
-		unsigned int frameSizeInBytes = imageWidthInPixels * imageHeightInPixels * sizeof(PixelType);
-
-		PixelType* imageSeqData = imageSeq->GetBufferPointer(); 
-		for ( int imgNumber = 0; imgNumber < numberOfFrames; imgNumber++ )
-		{
-            if ( inputUsImageOrientation == "XX" )
-            {
-                LOG_ERROR("Failed to convert frame from old sequence metafile without proper image orientation! Please set the --input-us-img-orientation partameter!"); 
-                exit(EXIT_FAILURE);
-            }
-
-			vtkPlusLogger::PrintProgressbar( (100.0 * imgNumber) / numberOfFrames ); 
-
-      
-      UcharImageType::Pointer frame = UcharImageType::New(); 
-			UcharImageType::SizeType size = {imageWidthInPixels, imageHeightInPixels};
-			UcharImageType::IndexType start = {0,0};
-			UcharImageType::RegionType region;
-			region.SetSize(size);
-			region.SetIndex(start);
-			frame->SetRegions(region);
-			frame->Allocate();
-
-			PixelType* currentFrameImageData = imageSeqData + imgNumber * frameSizeInBytes;
-
-			memcpy(frame->GetBufferPointer() , currentFrameImageData , frameSizeInBytes);
-
-			// Get offset value 
-			double offset[3] = {0,0,0}; 
-			std::istringstream offsetFieldValue(readerMetaImageSequenceIO->GetCustomFrameString(imgNumber, "Offset")); 
-			double offsetItem(0); 
-			int offsetElement(0); 
-			while ( offsetFieldValue >> offsetItem )
-			{
-				offset[offsetElement++] = offsetItem; 
-			}
-
-			// Get transform value
-			double transform[9] = {0,0,0,0,0,0,0,0,0}; 
-			std::istringstream transformFieldValue(readerMetaImageSequenceIO->GetCustomFrameString(imgNumber, "TransformMatrix")); 
-			double transformItem(0); 
-			int transformElement(0); 
-			while ( transformFieldValue >> transformItem )
-			{
-				transform[transformElement++] = transformItem; 
-			}
-
-			// Copy offset and transform value to the default transform matrix
-			std::string defaultFrameTransformName = "ToolToTrackerTransform"; 
-			double defaultTransformMatrix[16] = {
-				transform[0], transform[1], transform[2], offset[0], 
-				transform[3], transform[4], transform[5], offset[1], 
-				transform[6], transform[7], transform[8], offset[2], 
-				0, 0, 0, 1
-			}; 
-
-            ImageType::Pointer mfOrientedImage = ImageType::New(); 
-            US_IMAGE_ORIENTATION imgOrientation = UsImageConverterCommon::GetUsImageOrientationFromString(inputUsImageOrientation.c_str()); 
-            if ( UsImageConverterCommon::GetMFOrientedImage(frame, imgOrientation, mfOrientedImage) != PLUS_SUCCESS )
-            {
-                LOG_ERROR("Failed to get MF oriented image from " << inputUsImageOrientation << " orientation!"); 
-                exit(EXIT_FAILURE);
-            }
-
-			// Create tracked frame struct
-			TrackedFrame trackedFrame;
-      trackedFrame.GetImageData()->SetITKImageBase(mfOrientedImage);
-			trackedFrame.SetCustomFrameTransform(defaultFrameTransformName, defaultTransformMatrix); 
-			trackedFrame.SetDefaultFrameTransformName(defaultFrameTransformName);
-
-			trackedFrameContainer->AddTrackedFrame(&trackedFrame);
-		}
-
-		vtkPlusLogger::PrintProgressbar(100); 
-
-		SaveImages(trackedFrameContainer, savingMethod, ++numberOfImagesWritten); 
-	}
-}
-
-//-------------------------------------------------------------------------------
 void ConvertFromBitmap(SAVING_METHOD savingMethod)
 {
 	LOG_INFO("Converting bitmap images..."); 
 	vtkSmartPointer<vtkTrackedFrameList> trackedFrameContainer = vtkSmartPointer<vtkTrackedFrameList>::New(); 
+  trackedFrameContainer->SetDefaultFrameTransformName("ToolToReferenceTransform"); 
+
 	int numberOfImagesWritten(0); 
 	int frameNumber(0); 
   
@@ -625,6 +503,7 @@ void SaveImages( vtkTrackedFrameList* trackedFrameList, SAVING_METHOD savingMeth
 				LOG_INFO("Saving metafiles..."); 
 			}
 
+      std::string defaultFrameTransformName=trackedFrameList->GetDefaultFrameTransformName();
 			for ( int imgNumber = 0; imgNumber < numberOfFrames; imgNumber++ )
 			{
 				if ( numberOfFrames > 1 )
@@ -635,7 +514,7 @@ void SaveImages( vtkTrackedFrameList* trackedFrameList, SAVING_METHOD savingMeth
 				std::ostringstream fileName; 
 				fileName << outputFolder << "/Frame" << std::setfill('0') << std::setw(4) << numberOfImagesWritten + imgNumber << ".mha" << std::ends;
         
-				SaveImageToMetaFile(trackedFrameList->GetTrackedFrame(imgNumber), fileName.str(), inputUseCompression ); 
+				SaveImageToMetaFile(trackedFrameList->GetTrackedFrame(imgNumber), defaultFrameTransformName, fileName.str(), inputUseCompression ); 
 			}
 
 			if ( numberOfFrames > 1 )
@@ -830,89 +709,24 @@ void SaveTransformToFile(TrackedFrame* trackedFrame, std::string imageFileName, 
 
 
 //-------------------------------------------------------------------------------
-void SaveImageToMetaFile( TrackedFrame* trackedFrame, std::string metaFileName, bool useCompression)
+void SaveImageToMetaFile( TrackedFrame* trackedFrame, const std::string &defaultFrameTransformName, const std::string &metaFileName, bool useCompression)
 {
-  UcharImageType::Pointer mfOrientedImage = trackedFrame->GetImageData()->GetImage<unsigned char>(); 
+  vtkSmartPointer<vtkMetaImageSequenceIO> writer=vtkSmartPointer<vtkMetaImageSequenceIO>::New();
+  writer->SetFileName(metaFileName.c_str());
+  writer->SetUseCompression(useCompression);
+  writer->SetImageOrientationInFile( UsImageConverterCommon::GetUsImageOrientationFromString( outputUsImageOrientation.c_str()) );
 
-    US_IMAGE_ORIENTATION desiredOrientation = UsImageConverterCommon::GetUsImageOrientationFromString( outputUsImageOrientation.c_str() ); 
-    UcharImageType::Pointer orientedImage = UcharImageType::New(); 
-    if ( GetOrientedImage(mfOrientedImage, desiredOrientation, orientedImage) != PLUS_SUCCESS )
-    {
-        LOG_ERROR("Failed to save oriented image to metafile (" << metaFileName << ")!"); 
-        return; 
-    }
+  writer->GetTrackedFrameList()->AddTrackedFrame(trackedFrame);
 
-	const unsigned long imageWidthInPixels = orientedImage->GetLargestPossibleRegion().GetSize()[0]; 
-	const unsigned long imageHeightInPixels = orientedImage->GetLargestPossibleRegion().GetSize()[1]; 
-	unsigned int frameSizeInBytes = imageWidthInPixels * imageHeightInPixels * sizeof(PixelType);
+  vtkSmartPointer<vtkMatrix4x4> transformMatrix=vtkSmartPointer<vtkMatrix4x4>::New(); 
+	trackedFrame->GetCustomFrameTransform(defaultFrameTransformName.c_str(), transformMatrix); 
+  writer->GetTrackedFrameList()->SetGlobalTransform(transformMatrix);
 
-	ImageType3D::Pointer frame = ImageType3D::New(); 
-	ImageType3D::SizeType size = {imageWidthInPixels, imageHeightInPixels, 1 };
-	ImageType3D::IndexType start = {0,0,0};
-	ImageType3D::RegionType region;
-	region.SetSize(size);
-	region.SetIndex(start);
-	frame->SetRegions(region);
-	frame->Allocate();
-
-	memcpy(frame->GetBufferPointer() , orientedImage->GetBufferPointer() , frameSizeInBytes);
-
-	double transformMatrix[16]; 
-	trackedFrame->GetDefaultFrameTransform(transformMatrix); 
-
-
-	double *offset = new double[3]; 
-	double *transform = new double[9]; 
-
-	transform[0] = transformMatrix[0]; 
-	transform[1] = transformMatrix[1];
-	transform[2] = transformMatrix[2];
-	offset[0] = transformMatrix[3];
-
-	transform[3] = transformMatrix[4]; 
-	transform[4] = transformMatrix[5];
-	transform[5] = transformMatrix[6];
-	offset[1] = transformMatrix[7];
-
-	transform[6] = transformMatrix[8]; 
-	transform[7] = transformMatrix[9];
-	transform[8] = transformMatrix[10];
-	offset[2] = transformMatrix[11];
-
-	itk::MetaImageIO::Pointer writerMetaImageIO = itk::MetaImageIO::New(); 
-	ImageWriterType3D::Pointer writer = ImageWriterType3D::New(); 
-
-	writer->SetFileName(metaFileName.c_str());
-	writer->SetImageIO(writerMetaImageIO); 
-
-	writerMetaImageIO->SetNumberOfDimensions(3); 
-	writerMetaImageIO->SetDimensions(0, imageWidthInPixels); 
-	writerMetaImageIO->SetDimensions(1, imageHeightInPixels); 
-	writerMetaImageIO->SetDimensions(2, 0);
-	writerMetaImageIO->GetMetaImagePointer()->AnatomicalOrientation("RAI"); 
-
-	ImageType3D::PointType origin; 
-	origin.Get_vnl_vector().copy_in(offset); 
-	frame->SetOrigin(origin); 
-	delete[] offset; 
-
-	ImageType3D::DirectionType direction; 
-	direction.GetVnlMatrix().copy_in(transform); 
-	frame->SetDirection(direction); 
-	delete[] transform; 
-
-	writer->SetInput(frame); 
-	writer->SetUseCompression(useCompression); 
-
-	try
-	{
-		writer->Update(); 
-	}
-	catch (itk::ExceptionObject & err) 
-	{		
-		LOG_ERROR( "Image writer couldn't update: " <<  err); 
-		exit(EXIT_FAILURE);
-	}
+  if (writer->Write()!=PLUS_SUCCESS)
+  {		
+    LOG_ERROR("Couldn't write sequence metafile: " <<  metaFileName ); 
+    exit(EXIT_FAILURE);
+  }
 }
 
 //-------------------------------------------------------------------------------
@@ -920,6 +734,8 @@ void ConvertFromMetafile(SAVING_METHOD savingMethod)
 {
   LOG_INFO("Converting metafile images..."); 
 	vtkSmartPointer<vtkTrackedFrameList> trackedFrameContainer = vtkSmartPointer<vtkTrackedFrameList>::New(); 
+  trackedFrameContainer->SetDefaultFrameTransformName("ToolToReferenceTransform"); 
+
 	int numberOfImagesWritten(0); 
 	int frameNumber(0); 
 
@@ -953,58 +769,30 @@ void ConvertFromMetafile(SAVING_METHOD savingMethod)
       exit(EXIT_FAILURE);
     }
 
-    itk::MetaImageIO::Pointer readerMetaImageIO = itk::MetaImageIO::New(); 
-	  ImageReaderType3D::Pointer reader = ImageReaderType3D::New(); 
-    reader->SetImageIO(readerMetaImageIO); 
+    vtkSmartPointer<vtkMetaImageSequenceIO> reader = vtkSmartPointer<vtkMetaImageSequenceIO>::New(); 
 		reader->SetFileName(metafileNameWithPath.str().c_str());
 
-		try
-		{
-			reader->Update(); 
-		}
-		catch (itk::ExceptionObject & err) 
-		{		
-			LOG_ERROR( "Meta image reader couldn't update: " <<  err); 
+    if (reader->Read()!=PLUS_SUCCESS)
+    {
+			LOG_ERROR( "Meta image read failed"); 
 			exit(EXIT_FAILURE);
 		}	
 
-    ImageType3D::Pointer imageData = reader->GetOutput(); 
-
-    const int frameSizeInPx[2] = {imageData->GetLargestPossibleRegion().GetSize()[0], imageData->GetLargestPossibleRegion().GetSize()[1]};  
-    const int pixelSizeInBits = sizeof(PixelType)*8; 
-
     vtkSmartPointer<vtkMatrix4x4> tToolToReference = vtkSmartPointer<vtkMatrix4x4>::New(); 
-    tToolToReference->SetElement(0,0, readerMetaImageIO->GetMetaImagePointer()->Orientation()[0]); 
-    tToolToReference->SetElement(0,1, readerMetaImageIO->GetMetaImagePointer()->Orientation()[1]); 
-    tToolToReference->SetElement(0,2, readerMetaImageIO->GetMetaImagePointer()->Orientation()[2]); 
-
-    tToolToReference->SetElement(1,0, readerMetaImageIO->GetMetaImagePointer()->Orientation()[3]); 
-    tToolToReference->SetElement(1,1, readerMetaImageIO->GetMetaImagePointer()->Orientation()[4]); 
-    tToolToReference->SetElement(1,2, readerMetaImageIO->GetMetaImagePointer()->Orientation()[5]); 
-
-    tToolToReference->SetElement(2,0, readerMetaImageIO->GetMetaImagePointer()->Orientation()[6]); 
-    tToolToReference->SetElement(2,1, readerMetaImageIO->GetMetaImagePointer()->Orientation()[7]); 
-    tToolToReference->SetElement(2,2, readerMetaImageIO->GetMetaImagePointer()->Orientation()[8]); 
-
-    tToolToReference->SetElement(0,3, readerMetaImageIO->GetMetaImagePointer()->Offset()[0]); 
-    tToolToReference->SetElement(1,3, readerMetaImageIO->GetMetaImagePointer()->Offset()[1]); 
-    tToolToReference->SetElement(2,3, readerMetaImageIO->GetMetaImagePointer()->Offset()[2]); 
-
-    TrackedFrame trackedFrame;
-    UcharImageType::Pointer newImage=UcharImageType::New(); 
-    trackedFrame.GetImageData()->SetITKImageBase(newImage);
-    if ( UsImageConverterCommon::GetMFOrientedImage(imageData->GetBufferPointer(), imgOrientation, frameSizeInPx, itk::ImageIOBase::UCHAR, trackedFrame.GetImageData()->GetImage<unsigned char>()) != PLUS_SUCCESS )
+    if (reader->GetTrackedFrameList()->GetGlobalTransform(tToolToReference)!=PLUS_SUCCESS)
     {
-      LOG_ERROR("Failed to get MF oriented image!"); 
-      continue; 
+      LOG_WARNING("Failed to read ToolToReferenceTransform from Offset and TransformMatrix fields");
     }
 
-    trackedFrame.SetCustomFrameTransform("ToolToReferenceTransform", tToolToReference ); 
-  	trackedFrame.SetDefaultFrameTransformName("ToolToReferenceTransform"); 
+    int numberOfFrames=reader->GetTrackedFrameList()->GetNumberOfTrackedFrames();
+    for ( int frameIndex = 0; frameIndex < numberOfFrames; ++frameIndex )
+    {
+      TrackedFrame* frame = reader->GetTrackedFrameList()->GetTrackedFrame( frameIndex );           
+      frame->SetCustomFrameTransform("ToolToReferenceTransform", tToolToReference ); 
+      trackedFrameContainer->AddTrackedFrame(frame);
+    }
 
-    trackedFrameContainer->AddTrackedFrame(&trackedFrame);
 	}
-
 
   vtkPlusLogger::PrintProgressbar(100); 
 
@@ -1201,7 +989,6 @@ void ReadDRBTransformFile( const std::string TransformFileNameWithPath, TrackedF
 	tToolToReference->Update();
 
 	trackedFrame->SetCustomFrameTransform("ToolToReferenceTransform", tToolToReference->GetMatrix() ); 
-	trackedFrame->SetDefaultFrameTransformName("ToolToReferenceTransform"); 
 }
 
 
