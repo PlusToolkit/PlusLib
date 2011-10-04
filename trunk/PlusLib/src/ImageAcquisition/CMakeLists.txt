@@ -11,7 +11,7 @@ SET (PLUS_ULTERIUS_MINOR_VERSION 6 CACHE STRING "Set Ultrasonix Ulterius SDK min
 # Sources
 
 SET (ImageAcquisition_SRCS
-  itkMetaImageSequenceIO.cxx 
+  vtkMetaImageSequenceIO.cxx 
   itkFcsvReader.cxx
   itkFcsvWriter.cxx
   vtkVideoBuffer.cxx 
@@ -25,7 +25,7 @@ SET (ImageAcquisition_SRCS
 SET (ImageAcquisition_HDRS)
 if (WIN32)	
 	SET (ImageAcquisition_HDRS
-    itkMetaImageSequenceIO.h
+    vtkMetaImageSequenceIO.h
     itkFcsvReader.h
     itkFcsvWriter.h
     vtkVideoBuffer.h 
