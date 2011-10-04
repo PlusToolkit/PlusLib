@@ -1201,9 +1201,8 @@ PlusStatus vtkCalibrationController::ComputeCalibrationResults()
 		this->computeIndependentPointLineReconstructionError();
 
 		// STEP-4. Print the final calibration results and error reports 
-    std::ostringstream matrixStream; 
-    PlusMath::PrintVtkMatrix(this->TransformUserImageToProbe->GetMatrix(), matrixStream);
-    LOG_INFO("Calibration result transform matrix = \n" << matrixStream.str());
+    LOG_INFO("Calibration result transform matrix = ");
+    PlusMath::LogVtkMatrix(this->TransformUserImageToProbe->GetMatrix());
 
 	  // Point-Line Distance Error Analysis for Validation Positions in US probe frame
     LOG_INFO("Point-Line Distance Error - mean: " << mPLDEAnalysis4ValidationPositionsInUSProbeFrame[0] << ", rms: " << mPLDEAnalysis4ValidationPositionsInUSProbeFrame[1] << ", std: " << mPLDEAnalysis4ValidationPositionsInUSProbeFrame[2]);
