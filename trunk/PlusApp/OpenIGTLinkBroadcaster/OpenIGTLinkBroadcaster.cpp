@@ -77,8 +77,6 @@ ProcessTrackerStatus( TrackerStatus status )
 
 
 
-
-
 /**
  * This program implements broadcasting image and tracking data collected by
  * vtkDataCollector to OpenIGTLink servers. This is an OpenIGTLink client.
@@ -133,7 +131,17 @@ int main( int argc, char *argv[] )
   vtkPlusLogger::Instance()->SetDisplayLogLevel( verboseLevel );
   
   
-  
+  /*
+  //debug
+  unsigned char* imageDataPtr = NULL;
+  US_IMAGE_ORIENTATION  inUsImageOrientation;
+  const int frameSizeInPx[2];
+  int numberOfBitsPerPixel;
+  itk::Image<unsigned char, 2>::Pointer& outUsOrintedImage;
+  UsImageConverterCommon::GetMFOrientedImageGeneric< itk::Image< unsigned char, 2 > >(
+    imageDataPtr, inUsImageOrientation, frameSizeInPx, numberOfBitsPerPixel, outUsOrintedImage );
+  */
+
     // Prepare data collector object.
   
   vtkSmartPointer< vtkDataCollector > dataCollector = vtkSmartPointer< vtkDataCollector >::New();
@@ -208,14 +216,14 @@ int main( int argc, char *argv[] )
   LOG_INFO( "Start data collector..." );
   dataCollector->Start();
   
-  int defaultTool = dataCollector->GetTracker()->GetFirstPortNumberByType(TRACKER_TOOL_PROBE);
+  int defaultTool = dataCollector->GetTracker()->GetFirstPortNumberByType( TRACKER_TOOL_PROBE );
 
   unsigned int numBroadcastedMessages = UINT_MAX;
   
   if (    dataCollector->GetTrackerType() == TRACKER_SAVEDDATASET
        && dataCollector->GetTrackerType() == SYNCHRO_VIDEO_SAVEDDATASET )
     {
-      numBroadcastedMessages = dataCollector->GetTracker()->GetTool( defaultTool )->GetBuffer()->GetBufferSize();
+      // numBroadcastedMessages = dataCollector->GetTracker()->GetTool( defaultTool )->GetBuffer()->GetBufferSize();
     }
   
   
@@ -231,8 +239,7 @@ int main( int argc, char *argv[] )
       {
       double timeTracker = 0.0;
       TrackerStatus status = TR_OK;
-      dataCollector->GetTransformWithTimestamp(
-        mToolToReference, timeTracker, status, defaultTool );
+      dataCollector->GetTransformWithTimestamp( mToolToReference, timeTracker, status, defaultTool );
       int error = ProcessTrackerStatus( status );
       if ( error == 0 )
         {
