@@ -207,17 +207,20 @@ PlusStatus vtkSavedDataVideoSource::InternalConnect()
   }
 
   // Set local buffer 
-  if ( this->LocalVideoBuffer == NULL )
+  if ( this->LocalVideoBuffer != NULL )
   {
-    this->LocalVideoBuffer = vtkVideoBuffer::New(); 
-    // Copy all the settings from the video buffer 
-    this->LocalVideoBuffer->DeepCopy( this->Buffer );
+    this->LocalVideoBuffer->Delete();
   }
+
+  this->LocalVideoBuffer = vtkVideoBuffer::New(); 
+  // Copy all the settings from the video buffer 
+  this->LocalVideoBuffer->DeepCopy( this->Buffer );
 
   // Fill local video buffer
   this->LocalVideoBuffer->CopyImagesFromTrackedFrameList(savedDataBuffer, vtkVideoBuffer::READ_FILTERED_IGNORE_UNFILTERED_TIMESTAMPS); 
   savedDataBuffer->Clear(); 
 
+  this->Buffer->Clear();
   this->Buffer->SetFrameSize( this->LocalVideoBuffer->GetFrameSize() ); 
   this->Buffer->SetPixelType( this->LocalVideoBuffer->GetPixelType() ); 
 

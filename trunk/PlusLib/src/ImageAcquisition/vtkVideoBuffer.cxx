@@ -549,7 +549,6 @@ PlusStatus vtkVideoBuffer::CopyImagesFromTrackedFrameList(vtkTrackedFrameList *s
   LOG_INFO("Copy buffer to video buffer..."); 
   for ( int frameNumber = 0; frameNumber < numberOfVideoFrames; frameNumber++ )
   {
-
     // read filtered timestamp
     double timestamp(0); 
     const char* strTimestamp = sourceTrackedFrameList->GetTrackedFrame(frameNumber)->GetCustomFrameField("Timestamp");

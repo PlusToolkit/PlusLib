@@ -292,7 +292,13 @@ BufferItemType* vtkTimestampedCircularBuffer<BufferItemType>::GetBufferItemFromB
 //----------------------------------------------------------------------------
 template<class BufferItemType>
 ItemStatus vtkTimestampedCircularBuffer<BufferItemType>::GetFilteredTimeStamp(const BufferItemUidType uid, double &filteredTimestamp)
-{ 
+{
+  if (this->NumberOfItems == 0)
+  {
+    filteredTimestamp = 0.0; 
+		return ITEM_NOT_AVAILABLE_YET;
+  }
+
 	ItemStatus status = this->GetFrameStatus( uid ); 
 	if ( status != ITEM_OK )
 	{
@@ -494,6 +500,7 @@ void vtkTimestampedCircularBuffer<BufferItemType>::Clear()
 	this->WritePointer = 0; 
 	this->NumberOfItems = 0; 
 	this->CurrentTimeStamp = 0; 
+  this->LatestItemUid = 0;
 	this->Unlock();
 }
 

@@ -874,14 +874,14 @@ PlusStatus vtkTracker::GetToolPortNumbersByType(TRACKER_TOOL_TYPE type, std::vec
 
 	toolNumbersVector.clear();
 
-    for ( int tool = 0; tool < this->GetNumberOfTools(); tool++ )
+  for ( int tool = 0; tool < this->GetNumberOfTools(); tool++ )
+  {
+    if ( this->GetTool(tool)->GetToolType() == type )
     {
-      if ( this->GetTool(tool)->GetToolType() == type )
-      {
-        toolNumbersVector.push_back(tool);
-		success = PLUS_SUCCESS;
-      }
+      toolNumbersVector.push_back(tool);
+	    success = PLUS_SUCCESS;
     }
+  }
 
 	return success;
 }
@@ -889,13 +889,13 @@ PlusStatus vtkTracker::GetToolPortNumbersByType(TRACKER_TOOL_TYPE type, std::vec
 //-----------------------------------------------------------------------------
 int vtkTracker::GetFirstPortNumberByType(TRACKER_TOOL_TYPE type)
 {
-    for ( int tool = 0; tool < this->GetNumberOfTools(); tool++ )
+  for ( int tool = 0; tool < this->GetNumberOfTools(); tool++ )
+  {
+    if ( this->GetTool(tool)->GetToolType() == type )
     {
-      if ( this->GetTool(tool)->GetToolType() == type )
-      {
-        return tool;
-      }
+      return tool;
     }
+  }
 
 	return -1;
 }
@@ -904,4 +904,13 @@ int vtkTracker::GetFirstPortNumberByType(TRACKER_TOOL_TYPE type)
 int vtkTracker::GetReferenceToolNumber()
 {
 	return this->GetFirstPortNumberByType(TRACKER_TOOL_REFERENCE);
+}
+
+//-----------------------------------------------------------------------------
+void vtkTracker::ClearAllBuffers()
+{
+  for ( int i = 0; i < this->NumberOfTools; i++ )
+  {
+    this->GetTool(i)->GetBuffer()->Clear(); 
+  }
 }

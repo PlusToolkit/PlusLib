@@ -167,7 +167,9 @@ PlusStatus vtkDataCollector::Connect()
     // Devices already connected
     return PLUS_SUCCESS; 
   }
-  
+
+  PlusStatus status = PLUS_SUCCESS;
+
   // VideoSource can be null if the ACQUISITION_TYPE == SYNCHRO_VIDEO_NONE 
   if ( this->GetVideoSource() != NULL ) 
   {
@@ -176,10 +178,12 @@ PlusStatus vtkDataCollector::Connect()
     if (!this->GetVideoSource()->GetConnected())
     {
       LOG_ERROR("Unable to connect to video source!"); 
-      return PLUS_FAIL;  
+      status = PLUS_FAIL;
     }
-
-    this->SetInputConnection(this->GetVideoSource()->GetOutputPort());
+    else
+    {
+      this->SetInputConnection(this->GetVideoSource()->GetOutputPort());
+    }
   }
 
   // Tracker can be null if the TRACKER_TYPE == TRACKER_NONE 
@@ -188,7 +192,7 @@ PlusStatus vtkDataCollector::Connect()
     if ( !this->GetTracker()->Connect() )
     {
       LOG_ERROR("Unable to initialize tracker!"); 
-      return PLUS_FAIL;
+      status = PLUS_FAIL;
     }
   }
 
@@ -196,12 +200,19 @@ PlusStatus vtkDataCollector::Connect()
   if ( this->SetLoopTimes() != PLUS_SUCCESS )
   {
     LOG_WARNING("Failed to set loop times!"); 
-    return PLUS_FAIL;
+    status = PLUS_FAIL;
   }
 
-  this->ConnectedOn(); 
+  if (status == PLUS_SUCCESS)
+  {
+    this->ConnectedOn(); 
+  }
+  else
+  {
+    this->Disconnect();
+  }
 
-  return PLUS_SUCCESS;
+  return status;
 }
 
 //----------------------------------------------------------------------------
@@ -292,7 +303,7 @@ PlusStatus vtkDataCollector::SetLoopTimes()
 
   if ( loopTime < 0 )
   {
-    LOG_ERROR("The two saved dataset doesn't intersect each other!"); 
+    LOG_ERROR("The two saved datasets don't intersect each other!"); 
     return PLUS_FAIL; 
   }
 
@@ -766,10 +777,7 @@ PlusStatus vtkDataCollector::Synchronize( const char* bufferOutputFolder /*= NUL
   }
   else
   {
-    for ( int i = 0; i < this->GetTracker()->GetNumberOfTools(); i++ )
-    {
-      this->GetTracker()->GetTool(i)->GetBuffer()->Clear(); 
-    }
+    this->GetTracker()->ClearAllBuffers();
   }
 
   //************************************************************************************
