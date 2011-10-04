@@ -6,6 +6,8 @@ OPTION (PLUS_USE_ICCAPTURING_VIDEO "Provide support for the IC framegrabber devi
 OPTION (PLUS_USE_VFW_VIDEO "Provide support for the Video-for-Windows video digitizer" OFF)
 SET (PLUS_ULTERIUS_MAJOR_VERSION 5 CACHE STRING "Set Ultrasonix Ulterius SDK major version")
 SET (PLUS_ULTERIUS_MINOR_VERSION 6 CACHE STRING "Set Ultrasonix Ulterius SDK minor version")
+SET (PLUS_PORTA_MAJOR_VERSION 5 CACHE STRING "Set Ultrasonix Porta SDK major version")
+SET (PLUS_PORTA_MINOR_VERSION 6 CACHE STRING "Set Ultrasonix Porta SDK minor version")
 
 # --------------------------------------------------------------------------
 # Sources
@@ -48,6 +50,7 @@ IF (PLUS_USE_SONIX_VIDEO)
 	SET (ImageAcquisition_SRCS
     ${ImageAcquisition_SRCS}
     SonixVideo/vtkSonixVideoSource.cxx
+	SonixVideo/vtkSonixPortaVideoSource.cxx 
     SonixVideo/vtkSonixVolumeReader.cxx
     SonixVideo/itkUlteriusImageIO.cxx
     SonixVideo/itkUlteriusImageIOFactory.cxx  
@@ -57,6 +60,7 @@ IF (PLUS_USE_SONIX_VIDEO)
 		SET (ImageAcquisition_HDRS
       ${ImageAcquisition_HDRS}
       SonixVideo/vtkSonixVideoSource.h
+	  SonixVideo/vtkSonixPortaVideoSource.h
       SonixVideo/vtkSonixVolumeReader.h
       SonixVideo/itkUlteriusImageIO.h
       SonixVideo/itkUlteriusImageIOFactory.h       
@@ -135,9 +139,31 @@ IF (PLUS_USE_SONIX_VIDEO)
 	ELSE (PLUS_ULTERIUS_MAJOR_VERSION EQUAL 1)
 		MESSAGE( FATAL_ERROR "The chosen PLUS_ULTERIUS_MAJOR_VERSION value is not supported.")
 	ENDIF (PLUS_ULTERIUS_MAJOR_VERSION EQUAL 1)
+
+	IF(PLUS_PORTA_MAJOR_VERSION EQUAL 5)
+		IF(PLUS_PORTA_MINOR_VERSION EQUAL 6)
+			# Look for SonixRP Porta SDK 5.6.6
+			SET(PORTA_INCLUDE_DIR ${PLTOOLS_DIR}/Ultrasonix/porta-5.6.6/inc CACHE PATH "Path to the Porta SDK include directory." FORCE)
+			SET(PORTA_BINARY_DIR ${PLTOOLS_DIR}/Ultrasonix/porta-5.6.6/bin CACHE PATH "Path to the Porta SDK binary directory." FORCE)
+			SET(PORTA_LIB_DIR ${PLTOOLS_DIR}/Ultrasonix/porta-5.6.6/lib CACHE PATH "Path to the Porta SDK library directory." FORCE)
+			SET (ImageAcquisition_LIBS ${ImageAcquisition_LIBS} 
+				${PORTA_LIB_DIR}/porta.lib
+				)			
+			SET ( External_Libraries_Install ${External_Libraries_Install}
+				${PORTA_BINARY_DIR}/porta${CMAKE_SHARED_LIBRARY_SUFFIX}
+				${PORTA_BINARY_DIR}/ftd2xx${CMAKE_SHARED_LIBRARY_SUFFIX}
+				${PORTA_BINARY_DIR}/umc_utils${CMAKE_SHARED_LIBRARY_SUFFIX}
+				${PORTA_BINARY_DIR}/umc_xml${CMAKE_SHARED_LIBRARY_SUFFIX}
+				${PORTA_BINARY_DIR}/umc_string_convert${CMAKE_SHARED_LIBRARY_SUFFIX}
+				${PORTA_BINARY_DIR}/umc_unit_convert${CMAKE_SHARED_LIBRARY_SUFFIX}
+				${PORTA_BINARY_DIR}/xerces-c_2_7_u_vc6${CMAKE_SHARED_LIBRARY_SUFFIX}
+				)
+		ENDIF(PLUS_PORTA_MAJOR_VERSION EQUAL 6)
+	ENDIF (PORTA_MAJOR_VERSION EQUAL 5)
     
   SET (ImageAcquisition_INCLUDE_DIRS ${ImageAcquisition_INCLUDE_DIRS}
     ${ULTERIUS_INCLUDE_DIR}
+	${PORTA_INCLUDE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/SonixVideo 
     CACHE INTERNAL "" FORCE
     )
