@@ -138,7 +138,6 @@ void FreehandCalibrationToolbox::SetDisplayAccordingToState()
     ui.pushButton_CancelTemporal->setEnabled(false);
 
 		ui.label_InstructionsSpatial->setText(tr(""));
-		ui.frame_SpatialCalibration->setEnabled(false);
 
 		ui.checkBox_ShowDevices->setEnabled(false);
 		ui.pushButton_Save->setEnabled(false);
@@ -158,7 +157,6 @@ void FreehandCalibrationToolbox::SetDisplayAccordingToState()
     } else {
 		  ui.label_InstructionsSpatial->setText(tr("Configuration files need to be loaded"));
     }
-		ui.frame_SpatialCalibration->setEnabled(true);
 		ui.pushButton_CancelSpatial->setEnabled(false);
 
     if ((IsReadyToStartSpatialCalibration()) && (m_Calibration->GetCalibrationDate() != NULL)) {
@@ -199,12 +197,11 @@ void FreehandCalibrationToolbox::SetDisplayAccordingToState()
 	// If done
 	if (m_State == ToolboxState_Done) {
 		ui.label_InstructionsTemporal->setText(tr("Temporal calibration is ready to save\n(video time offset: %1 ms)").arg(videoTimeOffset));
-		ui.pushButton_StartTemporal->setEnabled(false);
+		ui.pushButton_StartTemporal->setEnabled(true);
 		ui.pushButton_CancelSpatial->setEnabled(false);
 
 		ui.label_InstructionsSpatial->setText(tr("Spatial calibration is ready to save"));
-		ui.frame_SpatialCalibration->setEnabled(true);
-		ui.pushButton_StartSpatial->setEnabled(false);
+		ui.pushButton_StartSpatial->setEnabled(true);
 		ui.pushButton_CancelSpatial->setEnabled(false);
 
 		ui.checkBox_ShowDevices->setEnabled(true);
@@ -227,7 +224,6 @@ void FreehandCalibrationToolbox::SetDisplayAccordingToState()
 		ui.pushButton_CancelSpatial->setEnabled(false);
 
 		ui.label_InstructionsSpatial->setText(tr(""));
-		ui.frame_SpatialCalibration->setEnabled(false);
 		ui.pushButton_StartSpatial->setEnabled(false);
 		ui.pushButton_CancelSpatial->setEnabled(false);
 
@@ -330,7 +326,7 @@ void FreehandCalibrationToolbox::OpenCalibrationConfiguration()
 
 void FreehandCalibrationToolbox::EditCalibrationConfiguration()
 {
-  LOG_TRACE("FreehandCalibrationToolbox::EditCalibrationConfigurationClicked");
+  LOG_TRACE("FreehandCalibrationToolbox::EditCalibrationConfiguration");
 
   // Disconnect realtime image from main canvas
   m_ParentMainWindow->GetToolVisualizer()->GetImageActor()->SetInput(NULL);
@@ -349,7 +345,7 @@ void FreehandCalibrationToolbox::EditCalibrationConfiguration()
 
 void FreehandCalibrationToolbox::StartTemporal()
 {
-	LOG_TRACE("FreehandCalibrationToolbox::StartTemporalClicked"); 
+	LOG_TRACE("FreehandCalibrationToolbox::StartTemporal"); 
 
   m_ParentMainWindow->SetTabsEnabled(false);
 
@@ -389,7 +385,7 @@ void FreehandCalibrationToolbox::CancelTemporal()
 
 void FreehandCalibrationToolbox::StartSpatial()
 {
-	LOG_TRACE("FreehandCalibrationToolbox::StartSpatialClicked"); 
+	LOG_TRACE("FreehandCalibrationToolbox::StartSpatial"); 
 
 	m_ParentMainWindow->SetTabsEnabled(false);
 
