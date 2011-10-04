@@ -147,7 +147,7 @@ PlusStatus vtkGnuplotExecuter::Execute()
     std::string buffer; 
     double timeout = this->GetTimeout(); 
     char* data = NULL;
-    int length;
+    int length=0;
 
     while(vtksysProcess_WaitForData(gp,&data,&length,&timeout)) // wait for 1s
     {
