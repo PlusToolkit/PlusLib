@@ -26,10 +26,7 @@
 #include "vtkXMLUtilities.h"
 
 #include "vtkTrackerTool.h"
-
-#include "itkImageFileReader.h"
-#include "itkImageFileWriter.h"
-#include "itkMetaImageSequenceIO.h"
+#include "vtkMetaImageSequenceIO.h"
 
 
 /*

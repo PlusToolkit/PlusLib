@@ -9,8 +9,8 @@
 #include "vtkSmartPointer.h"
 #include "vtkMath.h"
 #include "vtkTrackedFrameList.h"
+#include "vtkMetaImageSequenceIO.h"
 
-#include "itkMetaImageSequenceIO.h"
 #include "itkImage.h"
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"

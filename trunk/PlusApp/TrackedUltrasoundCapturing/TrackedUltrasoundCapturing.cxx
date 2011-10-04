@@ -29,7 +29,7 @@
 
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
-#include "itkMetaImageSequenceIO.h"
+#include "vtkMetaImageSequenceIO.h"
 
 
 /*
