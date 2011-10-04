@@ -1458,6 +1458,9 @@ void FidSegmentation::MorphologicalOperations()
 {
 	LOG_TRACE("FidSegmentation::MorphologicalOperations");
 
+  // Constraint ROI according to the morphological bar size
+  ValidateRegionOfInterest();
+
   // Morphological operations with a stick-like structuring element
 	if(m_DebugOutput) 
 	{
@@ -1569,8 +1572,6 @@ void FidSegmentation::SetRegionOfInterest(int xMin, int yMin, int xMax, int yMax
   if (yMax > 0) {
     m_RegionOfInterest[3] = yMax;
   }
-
-  ValidateRegionOfInterest();
 }
 
 //-----------------------------------------------------------------------------

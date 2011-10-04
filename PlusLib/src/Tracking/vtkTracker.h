@@ -150,7 +150,7 @@ public:
 	virtual PlusStatus WriteConfiguration(vtkXMLDataElement* config); 
 
 	//! Convert tracker status to string 
-	// TODO the retudn valus should be PLusStatus and the result should be got using parameter by reference
+	// TODO the return value should be PLusStatus and the result should be got using parameter by reference
 	static std::string ConvertTrackerStatusToString(TrackerStatus status); 
 
 	//! Get tool type enum from string and vice versa
@@ -208,24 +208,6 @@ public:
   //! Get port number of the first active tool tool
 	PlusStatus GetFirstActiveTool(int &tool);
 
-  //! Set/get the acquisition frequency
-	vtkSetMacro(Frequency, double);
-	vtkGetMacro(Frequency, double);
-
-  //! Set/get the acquisition frequency
-	vtkSetMacro(TrackerCalibrated, bool);
-	vtkGetMacro(TrackerCalibrated, bool);
-	vtkBooleanMacro(TrackerCalibrated, bool); 
-
-  //! Set the transformation matrix between tracking-system coordinates
-	// and the desired world coordinate system.  You can use 
-	// vtkLandmarkTransform to create this matrix from a set of 
-	// registration points.  Warning: the matrix is copied,
-	// not referenced.
-  vtkSetObjectMacro(WorldCalibrationMatrix, vtkMatrix4x4); 
-  vtkGetObjectMacro(WorldCalibrationMatrix, vtkMatrix4x4); 
-
-  // Description:
 	// Make the unit emit a string of audible beeps.  This is
 	// supported by the POLARIS.
 	void Beep(int n);
@@ -264,6 +246,27 @@ public:
   //! Make this tracker into a copy of another tracker.
 	void DeepCopy(vtkTracker *tracker);
 
+  //! Clear all tool buffers
+  void ClearAllBuffers();
+
+public:
+	//! Set/get the acquisition frequency
+	vtkSetMacro(Frequency, double);
+	vtkGetMacro(Frequency, double);
+
+	//! Set/get the acquisition frequency
+	vtkSetMacro(TrackerCalibrated, bool);
+	vtkGetMacro(TrackerCalibrated, bool);
+	vtkBooleanMacro(TrackerCalibrated, bool); 
+
+	//! Set the transformation matrix between tracking-system coordinates
+	// and the desired world coordinate system.  You can use 
+	// vtkLandmarkTransform to create this matrix from a set of 
+	// registration points.  Warning: the matrix is copied,
+	// not referenced.
+  vtkSetObjectMacro(WorldCalibrationMatrix, vtkMatrix4x4); 
+  vtkGetObjectMacro(WorldCalibrationMatrix, vtkMatrix4x4); 
+
 protected:
 	vtkTracker();
 	~vtkTracker();
@@ -271,8 +274,7 @@ protected:
   //! This function is called by InternalUpdate() so that the subclasses
 	// can communicate information back to the vtkTracker base class, which
 	// will in turn relay the information to the appropriate vtkTrackerTool.
-	PlusStatus ToolTimeStampedUpdate(int tool, vtkMatrix4x4 *matrix, TrackerStatus status, unsigned long frameNumber, 
-		double unfilteredtimestamp);
+	PlusStatus ToolTimeStampedUpdate(int tool, vtkMatrix4x4 *matrix, TrackerStatus status, unsigned long frameNumber, double unfilteredtimestamp);
 
   //! Set the number of tools for the tracker -- this method is
 	// only called once within the constructor for derived classes.
@@ -303,6 +305,7 @@ protected:
 	// occurred while the request was being processed.
 	virtual PlusStatus InternalSetToolLED(int tool, int led, int state) { return PLUS_SUCCESS; };
 
+protected:
 	vtkMatrix4x4 *WorldCalibrationMatrix;
 	int NumberOfTools;
 	vtkTrackerTool **Tools;
