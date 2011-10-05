@@ -1290,11 +1290,11 @@ void vtkCalibrationController::PopulateSegmentedFiducialsToDataContainer(vnl_mat
 	if (dataType == RANDOM_STEPPER_MOTION_1 || dataType == FREEHAND_MOTION_1)
 	{
 		// Finally, add the data for calibration
-		this->addDataPositionsPerImage( SegmentedNFiducialsInFixedCorrespondence, transformUSProbe2StepperFrameMatrix4x4 );
+		this->AddPositionsPerImage( SegmentedNFiducialsInFixedCorrespondence, transformUSProbe2StepperFrameMatrix4x4, false );
 	}
 	else if (dataType == RANDOM_STEPPER_MOTION_2 || dataType == FREEHAND_MOTION_2)
 	{
-		this->addValidationPositionsPerImage( SegmentedNFiducialsInFixedCorrespondence, transformUSProbe2StepperFrameMatrix4x4 );
+		this->AddPositionsPerImage( SegmentedNFiducialsInFixedCorrespondence, transformUSProbe2StepperFrameMatrix4x4, true );
 	}
 }
 
@@ -1570,11 +1570,9 @@ PlusStatus vtkCalibrationController::ComputeNWireInstersections()
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkCalibrationController::addDataPositionsPerImage( 
-	std::vector< vnl_vector<double> > SegmentedDataPositionListPerImage, 
-	const vnl_matrix<double> TransformProbe2Reference )
+PlusStatus vtkCalibrationController::AddPositionsPerImage( std::vector< vnl_vector<double> > aSegmentedDataPositionListPerImage, const vnl_matrix<double> aTransformProbe2Reference, bool aValidation)
 {
-  LOG_TRACE("vtkCalibrationController::addDataPositionsPerImage");
+  LOG_TRACE("vtkCalibrationController::AddPositionsPerImage(" << (aValidation?"validation":"calibration") << ")");
 
   static int frameIndex=-1;
   frameIndex++;
@@ -1586,7 +1584,7 @@ PlusStatus vtkCalibrationController::addDataPositionsPerImage(
 
   if( mHasPhantomBeenRegistered != true )
   {
-    LOG_ERROR("The phantom is not yet registered to the DRB frame!");
+    LOG_ERROR("The phantom is not yet registered to the reference frame!");
     return PLUS_FAIL;
   }
 
@@ -1596,9 +1594,9 @@ PlusStatus vtkCalibrationController::addDataPositionsPerImage(
     return PLUS_FAIL;
   }
 
-  if( SegmentedDataPositionListPerImage.size() != this->PatternRecognition.GetFidLineFinder()->GetNWires().size() * 3 )
+  if( aSegmentedDataPositionListPerImage.size() != this->PatternRecognition.GetFidLineFinder()->GetNWires().size() * 3 )
   {
-    LOG_ERROR("The number of N-wires is NOT "	<< this->PatternRecognition.GetFidLineFinder()->GetNWires().size() * 3 << " in one US image as required!");
+    LOG_ERROR("The number of N-wires is "	<< aSegmentedDataPositionListPerImage.size() << " instead of " << this->PatternRecognition.GetFidLineFinder()->GetNWires().size() * 3);
     return PLUS_FAIL;
   }
 
@@ -1607,12 +1605,12 @@ PlusStatus vtkCalibrationController::addDataPositionsPerImage(
   PlusMath::ConvertVtkMatrixToVnlMatrix(this->TransformImageToUserImage->GetMatrix(), transformImage2UserImage); 
 
   // Obtain the transform matrix from reference Frame to the US probe Frame 
-  vnl_matrix_inverse<double> inverseMatrix( TransformProbe2Reference );
-  vnl_matrix<double> TransformReference2Probe = inverseMatrix.inverse();
+  vnl_matrix_inverse<double> inverseMatrix( aTransformProbe2Reference );
+  vnl_matrix<double> transformReference2Probe = inverseMatrix.inverse();
   // Make sure the last row in homogeneous transform is [0 0 0 1]
   vnl_vector<double> lastRow(4,0);
   lastRow.put(3, 1);
-  TransformReference2Probe.set_row(3, lastRow);
+  transformReference2Probe.set_row(3, lastRow);
 
   // Calculate then store the data positions 
   // ========================================
@@ -1621,7 +1619,6 @@ PlusStatus vtkCalibrationController::addDataPositionsPerImage(
   // Each acquired data position is a 4x1 homogenous vector :
   // [ X, Y, 0, 1] all units in pixels
 
-
   std::vector<NWire> nWires = this->PatternRecognition.GetFidLineFinder()->GetNWires();
 
   for( int Layer = 0; Layer < 2; Layer++ )
@@ -1629,7 +1626,7 @@ PlusStatus vtkCalibrationController::addDataPositionsPerImage(
     // The protocol is that the middle point collected in 
     // the set of three points of the N-wire is the data point.
     vnl_vector<double> SegmentedPositionInOriginalImageFrame( 
-      SegmentedDataPositionListPerImage.at( Layer*3 + 1 ) );
+      aSegmentedDataPositionListPerImage.at( Layer*3 + 1 ) );
 
     // Convert the segmented image positions from the original 
     // image to the predefined ultrasound image frame.
@@ -1643,23 +1640,12 @@ PlusStatus vtkCalibrationController::addDataPositionsPerImage(
       const int ThisAxialDepthInUSImageFrameRounded = floor( SegmentedPositionInUserImageFrame.get(1) + 0.5 );
 
       // Set the weight according to the selected method of incorporation
-      double Weight4ThisAxialDepth(-1);
       double USBeamWidthEuclideanMagAtThisAxialDepthInMM(-1);
       if( ThisAxialDepthInUSImageFrameRounded <= mMinimumUSElevationBeamwidthAndFocalZoneInUSImageFrame.get(0) )
       {
         // #1. This is the ultrasound elevation near field which has the the best imaging quality (before the elevation focal zone)
         // We will set the beamwidth at the near field to be the same as that of the elevation focal zone.
         USBeamWidthEuclideanMagAtThisAxialDepthInMM =  mMinimumUSElevationBeamwidthAndFocalZoneInUSImageFrame.get(1);
-
-        if( 1 == this->IncorporatingUS3DBeamProfile || 3 == this->IncorporatingUS3DBeamProfile )
-        { // Option: BWVar or BWTHEVar
-          // Filtering is not necessary in the near field
-          Weight4ThisAxialDepth = 1/( USBeamWidthEuclideanMagAtThisAxialDepthInMM/4);
-        }
-        else 
-        { // Option = BWRatio
-          Weight4ThisAxialDepth = sqrt( 1/mUS3DBeamwidthAndWeightFactorsInUSImageFrameTable5xM.get(4,0) );
-        }
       }
       else if( ThisAxialDepthInUSImageFrameRounded >= mTheFarestAxialDepthInUSBeamwidthAndWeightTable )
       {
@@ -1667,22 +1653,6 @@ PlusStatus vtkCalibrationController::addDataPositionsPerImage(
         // Ultrasound diverses quickly in this region and data quality deteriorates
 
         USBeamWidthEuclideanMagAtThisAxialDepthInMM = mUS3DBeamwidthAtFarestAxialDepth.magnitude();
-
-        if( 1 == this->IncorporatingUS3DBeamProfile || 3 == this->IncorporatingUS3DBeamProfile )
-        { // Option: BWVar or BWTHEVar
-          if( 3 == this->IncorporatingUS3DBeamProfile
-            && USBeamWidthEuclideanMagAtThisAxialDepthInMM >= mMinimumUSElevationBeamwidthAndFocalZoneInUSImageFrame.get(1) * mNumOfTimesOfMinBeamWidth )
-          { // Option: BWTHEVar
-            continue;  // Ignore this data, jump to the next iteration of for-loop
-          }
-
-          Weight4ThisAxialDepth = 1/( USBeamWidthEuclideanMagAtThisAxialDepthInMM/4);
-        }
-        else
-        { // Option = BWRatio
-          Weight4ThisAxialDepth = sqrt( 1/mUS3DBeamwidthAndWeightFactorsInUSImageFrameTable5xM.get(4,
-            this->InterpUS3DBeamwidthAndWeightFactorsInUSImageFrameTable5xM.columns() - 1) );
-        }
       }
       else 
       {
@@ -1700,37 +1670,27 @@ PlusStatus vtkCalibrationController::addDataPositionsPerImage(
           ThisAxialDepthInUSImageFrameRounded - mTheNearestAxialDepthInUSBeamwidthAndWeightTable));
 
         USBeamWidthEuclideanMagAtThisAxialDepthInMM = US3DBeamwidthAtThisAxialDepth.magnitude();
-
-        if( 1 == this->IncorporatingUS3DBeamProfile || 3 == this->IncorporatingUS3DBeamProfile )
-        { // Option: BWVar or BWTHEVar
-          if( 3 == this->IncorporatingUS3DBeamProfile && 
-            USBeamWidthEuclideanMagAtThisAxialDepthInMM >=
-            (mMinimumUSElevationBeamwidthAndFocalZoneInUSImageFrame.get(1) * mNumOfTimesOfMinBeamWidth) )
-          { // Option: BWTHEVar
-            continue;  // Ignore this data, jump to the next iteration of for-loop
-          }
-
-          Weight4ThisAxialDepth = 1/( USBeamWidthEuclideanMagAtThisAxialDepthInMM/4);
-        }
-        else
-        { // Option = BWRatio
-          Weight4ThisAxialDepth = sqrt( 1/mUS3DBeamwidthAndWeightFactorsInUSImageFrameTable5xM.get(4,
-            ThisAxialDepthInUSImageFrameRounded - mTheNearestAxialDepthInUSBeamwidthAndWeightTable) );
-        }
       }
 
-      mWeightsForDataPositions.push_back( Weight4ThisAxialDepth );
-      mUSBeamWidthEuclideanMagAtDataPositions.push_back( USBeamWidthEuclideanMagAtThisAxialDepthInMM );
+      if (!aValidation)
+      {
+        mWeightsForDataPositions.push_back( GetBeamwidthWeightForBeamwidthMagnitude(USBeamWidthEuclideanMagAtThisAxialDepthInMM, ThisAxialDepthInUSImageFrameRounded) );
+        mUSBeamWidthEuclideanMagAtDataPositions.push_back( USBeamWidthEuclideanMagAtThisAxialDepthInMM );
+      }
+      else
+      {
+        mUSBeamWidthEuclideanMagAtValidationPositions.push_back( USBeamWidthEuclideanMagAtThisAxialDepthInMM );
+      }
     }
 
     // Calcuate the alpha value
     // alpha = |CiXi|/|CiCi+1|
     vnl_vector<double> VectorCi2Xi = 
-      SegmentedDataPositionListPerImage.at( Layer*3 + 1 ) -  
-      SegmentedDataPositionListPerImage.at( Layer*3 );
+      aSegmentedDataPositionListPerImage.at( Layer*3 + 1 ) -  
+      aSegmentedDataPositionListPerImage.at( Layer*3 );
     vnl_vector<double> VectorCi2Cii = 
-      SegmentedDataPositionListPerImage.at( Layer*3 + 2 ) -  
-      SegmentedDataPositionListPerImage.at( Layer*3 );
+      aSegmentedDataPositionListPerImage.at( Layer*3 + 2 ) -  
+      aSegmentedDataPositionListPerImage.at( Layer*3 );
     double alpha = (double)VectorCi2Xi.magnitude()/VectorCi2Cii.magnitude();
 
     // Apply alpha to Equation: Xi = Ai + alpha * (Bi - Ai)
@@ -1759,27 +1719,109 @@ PlusStatus vtkCalibrationController::addDataPositionsPerImage(
     // X_USProbe = T_Stepper->USProbe * T_Template->Stepper * X_Template
     // NOTE: T_Template->Stepper = mTransformMatrixPhantom2DRB4x4 
     vnl_vector<double> PositionInUSProbeFrame =  
-      TransformReference2Probe * 
+      transformReference2Probe * 
       mTransformMatrixPhantom2DRB4x4 *
       PositionInPhantomFrame;
 
-    LOG_DEBUG(" ADD DATA FOR CALIBRATION ("<<frameIndex<<")");
-    LOG_DEBUG(" SegmentedNFiducial-" << Layer*3 << " = " << SegmentedDataPositionListPerImage.at( Layer*3 ));
-    LOG_DEBUG(" SegmentedNFiducial-" << Layer*3+1 << " = " << SegmentedDataPositionListPerImage.at( Layer*3+1 ));
-    LOG_DEBUG(" SegmentedNFiducial-" << Layer*3+2 << " = " << SegmentedDataPositionListPerImage.at( Layer*3+2 ));
+    LOG_DEBUG(" ADD DATA FOR " << (aValidation?"VALIDATION":"CALIBRATION") << " ("<<frameIndex<<")");
+    LOG_DEBUG(" SegmentedNFiducial-" << Layer*3 << " = " << aSegmentedDataPositionListPerImage.at( Layer*3 ));
+    LOG_DEBUG(" SegmentedNFiducial-" << Layer*3+1 << " = " << aSegmentedDataPositionListPerImage.at( Layer*3+1 ));
+    LOG_DEBUG(" SegmentedNFiducial-" << Layer*3+2 << " = " << aSegmentedDataPositionListPerImage.at( Layer*3+2 ));
     LOG_DEBUG(" SegmentedPositionInOriginalImageFrame = " << SegmentedPositionInOriginalImageFrame);
     LOG_DEBUG(" SegmentedPositionInUserImageFrame = " << SegmentedPositionInUserImageFrame);
     LOG_DEBUG(" alpha = " << alpha);
     LOG_DEBUG(" PositionInPhantomFrame = " << PositionInPhantomFrame);
-    LOG_DEBUG(" TransformReference2Probe = \n" << TransformReference2Probe);
+    LOG_DEBUG(" TransformReference2Probe = \n" << transformReference2Probe);
     LOG_DEBUG(" mTransformMatrixPhantom2DRB4x4 = \n" << mTransformMatrixPhantom2DRB4x4);
     LOG_DEBUG(" PositionInUSProbeFrame = " << PositionInUSProbeFrame);
 
-    // Store into the list of positions in the US image frame
-    mDataPositionsInUSImageFrame.push_back( SegmentedPositionInUserImageFrame );
+    if (!aValidation)
+    {
+      // Store into the list of positions in the US image frame
+      mDataPositionsInUSImageFrame.push_back( SegmentedPositionInUserImageFrame );
 
-    // Store into the list of positions in the US probe frame
-    mDataPositionsInUSProbeFrame.push_back( PositionInUSProbeFrame );
+      // Store into the list of positions in the US probe frame
+      mDataPositionsInUSProbeFrame.push_back( PositionInUSProbeFrame );
+    }
+    else
+    {
+      vnl_vector<double> NWireStartinUSProbeFrame =
+        transformReference2Probe * 
+        mTransformMatrixPhantom2DRB4x4 *
+        IntersectPosW12;
+
+      vnl_vector<double> NWireEndinUSProbeFrame =
+        transformReference2Probe * 
+        mTransformMatrixPhantom2DRB4x4 *
+        IntersectPosW32;
+
+      // The parallel wires position in US Probe frame 
+      // Note: 
+      // 1. Parallel wires share the same X, Y coordinates as the N-wire joints
+      //    in the phantom (template) frame.
+      // 2. The Z-axis of the N-wire joints is not used in the computing.
+
+      // Wire N1 corresponds to mNWireJointTopLayerBackWall 
+      vnl_vector<double> NWireJointForN1InUSProbeFrame =
+        transformReference2Probe * 
+        mTransformMatrixPhantom2DRB4x4 *
+        IntersectPosW12; //any point of wire 1 of this layer
+
+      // Wire N3 corresponds to mNWireJointTopLayerFrontWall
+      vnl_vector<double> NWireJointForN3InUSProbeFrame =
+        transformReference2Probe * 
+        mTransformMatrixPhantom2DRB4x4 *
+        IntersectPosW32; //any point of wire 3 of this layer
+
+      // Store into the list of positions in the US image frame
+      mValidationPositionsInUSImageFrame.push_back( SegmentedPositionInUserImageFrame );
+
+      // Store into the list of positions in the US probe frame
+      mValidationPositionsInUSProbeFrame.push_back( PositionInUSProbeFrame );
+      mValidationPositionsNWireStartInUSProbeFrame.push_back( NWireStartinUSProbeFrame );
+      mValidationPositionsNWireEndInUSProbeFrame.push_back( NWireEndinUSProbeFrame );
+
+      for (int i=0; i<2; i++)
+      {
+        // all the matrices are expected to have the same length, so we need to add each value 
+        // as many times as many layer we have - this really have to be cleaned up
+        if (Layer==0)
+        {
+          // Collect the wire locations (the two parallel wires of 
+          // each of the N-shape) for independent Line-Reconstruction 
+          // Error (LRE) validation.
+          // Note: N1, N3, N4, and N6 are the parallel wires here.
+          vnl_vector<double> N1SegmentedPositionInOriginalImageFrame( aSegmentedDataPositionListPerImage.at(0) );
+          vnl_vector<double> N3SegmentedPositionInOriginalImageFrame( aSegmentedDataPositionListPerImage.at(2) );
+
+          // Convert the segmented image positions from the original image to the predefined ultrasound image frame.
+          vnl_vector<double> N1SegmentedPositionInUserImageFrame =  
+            transformImage2UserImage * N1SegmentedPositionInOriginalImageFrame;
+          vnl_vector<double> N3SegmentedPositionInUserImageFrame =  
+            transformImage2UserImage * N3SegmentedPositionInOriginalImageFrame;
+
+          mValidationPositionsNWire1InUSImageFrame.push_back( N1SegmentedPositionInUserImageFrame );
+          mValidationPositionsNWire3InUSImageFrame.push_back( N3SegmentedPositionInUserImageFrame );
+          mValidationPositionsNWire1InUSProbeFrame.push_back( NWireJointForN1InUSProbeFrame );
+          mValidationPositionsNWire3InUSProbeFrame.push_back( NWireJointForN3InUSProbeFrame );
+        }
+        else
+        {
+          vnl_vector<double> N4SegmentedPositionInOriginalImageFrame( aSegmentedDataPositionListPerImage.at(3) );
+          vnl_vector<double> N6SegmentedPositionInOriginalImageFrame( aSegmentedDataPositionListPerImage.at(5) );
+
+          vnl_vector<double> N4SegmentedPositionInUserImageFrame =  
+            transformImage2UserImage * N4SegmentedPositionInOriginalImageFrame;
+          vnl_vector<double> N6SegmentedPositionInUserImageFrame =  
+            transformImage2UserImage * N6SegmentedPositionInOriginalImageFrame;
+
+          mValidationPositionsNWire4InUSImageFrame.push_back( N4SegmentedPositionInUserImageFrame );
+          mValidationPositionsNWire6InUSImageFrame.push_back( N6SegmentedPositionInUserImageFrame );
+          mValidationPositionsNWire4InUSProbeFrame.push_back( NWireJointForN1InUSProbeFrame );
+          mValidationPositionsNWire6InUSProbeFrame.push_back( NWireJointForN3InUSProbeFrame );
+        }
+      }
+    }
   }
 
   return PLUS_SUCCESS;
@@ -1787,250 +1829,65 @@ PlusStatus vtkCalibrationController::addDataPositionsPerImage(
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkCalibrationController::addValidationPositionsPerImage( 
-	std::vector< vnl_vector<double> > SegmentedDataPositionListPerImage, 
-	const vnl_matrix<double> TransformProbe2Reference )
+double vtkCalibrationController::GetBeamwidthWeightForBeamwidthMagnitude(double aBeamwidthMagnitudeMm, int aActualAxialDepth)
 {
-  LOG_TRACE("vtkCalibrationController::addValidationPositionsPerImage");
+  LOG_TRACE("vtkCalibrationController::GetBeamwidthWeight");
 
-  static int frameIndex=-1;
-  frameIndex++;
+  // Compute the weight according to the selected method of incorporation
+  double beamwidthWeightForActualAxialDepth = -1;
 
-  if ( ! this->Initialized )
+  if( aActualAxialDepth <= mMinimumUSElevationBeamwidthAndFocalZoneInUSImageFrame.get(0) )
   {
-    this->Initialize(); 
-  }
-
-  if( mHasPhantomBeenRegistered != true )
-  {
-    LOG_ERROR("The phantom is not yet registered to the DRB frame!");
-    return PLUS_FAIL;
-  }
-
-  if (this->TransformImageToUserImage == NULL)
-  {
-    LOG_ERROR("Invalid Image to User image transform!");
-    return PLUS_FAIL;
-  }
-
-  if( SegmentedDataPositionListPerImage.size() != this->PatternRecognition.GetFidLineFinder()->GetNWires().size() * 3 )
-  {
-    LOG_ERROR("The number of N-wires is NOT "	<< this->PatternRecognition.GetFidLineFinder()->GetNWires().size() * 3 << " in one US image as required!");
-    return PLUS_FAIL;
-  }
-
-  // Convert Image to User image transform to VNL
-  vnl_matrix<double> transformImage2UserImage(4,4);
-  PlusMath::ConvertVtkMatrixToVnlMatrix(this->TransformImageToUserImage->GetMatrix(), transformImage2UserImage); 
-
-  // Obtain the transform matrix from reference Frame to the US probe Frame 
-  vnl_matrix_inverse<double> inverseMatrix( TransformProbe2Reference );
-  vnl_matrix<double> TransformReference2Probe = inverseMatrix.inverse();
-  // Make sure the last row in homogeneous transform is [0 0 0 1]
-  vnl_vector<double> lastRow(4,0);
-  lastRow.put(3, 1);
-  TransformReference2Probe.set_row(3, lastRow);
-
-  // Calculate then store the data positions 
-  // ========================================
-  // [ Array 0-2: Top N-wire Layer (Right-Middle-Left)]; 
-  // [ Array 3-5: Bottom N-wire Layer (Right-Middle-Left)]
-  // Each acquired data position is a 4x1 homogenous vector :
-  // [ X, Y, 0, 1] all units in pixels
-
-  // Collect the wire locations (the two parallel wires of 
-  // each of the N-shape) for independent Line-Reconstruction 
-  // Error (LRE) validation.
-  // Note: N1, N3, N4, and N6 are the parallel wires here.
-
-  vnl_vector<double> N1SegmentedPositionInOriginalImageFrame( SegmentedDataPositionListPerImage.at(0) );
-  vnl_vector<double> N3SegmentedPositionInOriginalImageFrame( SegmentedDataPositionListPerImage.at(2) );
-  vnl_vector<double> N4SegmentedPositionInOriginalImageFrame( SegmentedDataPositionListPerImage.at(3) );
-  vnl_vector<double> N6SegmentedPositionInOriginalImageFrame( SegmentedDataPositionListPerImage.at(5) );
-
-  // Convert the segmented image positions from the original image to the predefined ultrasound image frame.
-  vnl_vector<double> N1SegmentedPositionInUserImageFrame =  
-    transformImage2UserImage * N1SegmentedPositionInOriginalImageFrame;
-  vnl_vector<double> N3SegmentedPositionInUserImageFrame =  
-    transformImage2UserImage * N3SegmentedPositionInOriginalImageFrame;
-  vnl_vector<double> N4SegmentedPositionInUserImageFrame =  
-    transformImage2UserImage * N4SegmentedPositionInOriginalImageFrame;
-  vnl_vector<double> N6SegmentedPositionInUserImageFrame =  
-    transformImage2UserImage * N6SegmentedPositionInOriginalImageFrame;
-
-  std::vector<NWire> nWires = this->PatternRecognition.GetFidLineFinder()->GetNWires();
-
-  for( int Layer = 0; Layer < 2; Layer++ )
-  {
-    // The protocol is that the middle point collected in 
-    // the set of three points of the N-wire is the data point.
-    vnl_vector<double> SegmentedPositionInOriginalImageFrame( 
-      SegmentedDataPositionListPerImage.at( Layer*3 + 1 ) );
-
-    // Convert the segmented image positions from the original 
-    // image to the predefined ultrasound image frame.
-    vnl_vector<double> SegmentedPositionInUserImageFrame =  
-      transformImage2UserImage * SegmentedPositionInOriginalImageFrame;
-
-    // Add weights to the positions if required (see mUS3DBeamwidthAndWeightFactorsInUSImageFrameTable5xM member description)
-    if( true == mIsUSBeamwidthAndWeightFactorsTableReady )
-    {
-      // Get and round the axial depth in the US Image Frame for the segmented data point (in pixels and along the Y-axis)
-      const int ThisAxialDepthInUSImageFrameRounded = floor( SegmentedPositionInUserImageFrame.get(1) + 0.5 );
-
-      double USBeamWidthEuclideanMagAtThisAxialDepthInMM(-1);
-      if( ThisAxialDepthInUSImageFrameRounded <= mMinimumUSElevationBeamwidthAndFocalZoneInUSImageFrame.get(0) )
-      {
-        // #1. This is the ultrasound elevation near field which has the the best imaging quality (before the elevation focal zone)
-        // We will set the beamwidth at the near field to be the same as that of the elevation focal zone.
-        USBeamWidthEuclideanMagAtThisAxialDepthInMM = mMinimumUSElevationBeamwidthAndFocalZoneInUSImageFrame.get(1);
-      }
-      else if( ThisAxialDepthInUSImageFrameRounded >= mTheFarestAxialDepthInUSBeamwidthAndWeightTable )
-      {
-        // #2. Further deep in far field (close to the bottom of the image)
-        // Ultrasound diverses quickly in this region and data quality deteriorates
-        USBeamWidthEuclideanMagAtThisAxialDepthInMM = mUS3DBeamwidthAtFarestAxialDepth.magnitude();
-      }
-      else 
-      {
-        // #3. Ultrasound far field 
-        // Here the sound starts to diverse with elevation beamwidth getting
-        // larger and larger.  Data quality starts to deteriorate.
-
-        // Populate the beamwidth vector (axial, lateral and elevation elements)
-        vnl_vector<double> US3DBeamwidthAtThisAxialDepth(3,0);
-        US3DBeamwidthAtThisAxialDepth.put(0, mUS3DBeamwidthAndWeightFactorsInUSImageFrameTable5xM.get(1,
-          ThisAxialDepthInUSImageFrameRounded - mTheNearestAxialDepthInUSBeamwidthAndWeightTable));
-        US3DBeamwidthAtThisAxialDepth.put(1, mUS3DBeamwidthAndWeightFactorsInUSImageFrameTable5xM.get(2,
-          ThisAxialDepthInUSImageFrameRounded - mTheNearestAxialDepthInUSBeamwidthAndWeightTable));
-        US3DBeamwidthAtThisAxialDepth.put(2, mUS3DBeamwidthAndWeightFactorsInUSImageFrameTable5xM.get(3,
-          ThisAxialDepthInUSImageFrameRounded - mTheNearestAxialDepthInUSBeamwidthAndWeightTable));
-
-        USBeamWidthEuclideanMagAtThisAxialDepthInMM = US3DBeamwidthAtThisAxialDepth.magnitude();
-      }
-
-      if( 3 == this->IncorporatingUS3DBeamProfile && USBeamWidthEuclideanMagAtThisAxialDepthInMM >= 
-        (mMinimumUSElevationBeamwidthAndFocalZoneInUSImageFrame.get(1) * mNumOfTimesOfMinBeamWidth) )
-      {
-        continue;  // Ignore this data, jump to the next iteration of the for-loop
-      }
-
-      mUSBeamWidthEuclideanMagAtValidationPositions.push_back( USBeamWidthEuclideanMagAtThisAxialDepthInMM );
+    // #1. This is the ultrasound elevation near field which has the the best imaging quality (before the elevation focal zone)
+    // We will set the beamwidth at the near field to be the same as that of the elevation focal zone.
+    if( 1 == this->IncorporatingUS3DBeamProfile || 3 == this->IncorporatingUS3DBeamProfile )
+    { // Option: BWVar or BWTHEVar
+      // Filtering is not necessary in the near field
+      beamwidthWeightForActualAxialDepth = 1/( aBeamwidthMagnitudeMm/4);
     }
-
-    // Calcuate the alpha value
-    // alpha = |CiXi|/|CiCi+1|
-    vnl_vector<double> VectorCi2Xi = 
-      SegmentedDataPositionListPerImage.at( Layer*3 + 1 ) -  
-      SegmentedDataPositionListPerImage.at( Layer*3 );
-    vnl_vector<double> VectorCi2Cii = 
-      SegmentedDataPositionListPerImage.at( Layer*3 + 2 ) -  
-      SegmentedDataPositionListPerImage.at( Layer*3 );
-    double alpha = (double)VectorCi2Xi.magnitude()/VectorCi2Cii.magnitude();
-
-    // Apply alpha to Equation: Xi = Ai + alpha * (Bi - Ai)
-    // where:
-    // - Ai and Bi are the N-wire joints in either front or back walls.
-    vnl_vector<double> PositionInPhantomFrame(4);
-    vnl_vector<double> IntersectPosW12(4);
-    vnl_vector<double> IntersectPosW32(4);
-
-    // NWire joints that need to be saved to compute the PLDE (Point-Line Distance Error) 
-    // in addition to the real-time PRE3D.
-    vnl_vector<double> NWireStartinPhantomFrame;
-    vnl_vector<double> NWireEndinPhantomFrame;
-
-    for (int i=0; i<3; ++i) {
-      IntersectPosW12[i] = nWires[Layer].intersectPosW12[i];
-      IntersectPosW32[i] = nWires[Layer].intersectPosW32[i];
+    else 
+    { // Option = BWRatio
+      beamwidthWeightForActualAxialDepth = sqrt( 1/mUS3DBeamwidthAndWeightFactorsInUSImageFrameTable5xM.get(4,0) );
     }
-    IntersectPosW12[3] = 1.0;
-    IntersectPosW32[3] = 1.0;
-
-    PositionInPhantomFrame = IntersectPosW12 + alpha * ( IntersectPosW32 - IntersectPosW12 );
-    PositionInPhantomFrame[3]=1.0;
-
-    // Finally, calculate the position in the US probe frame
-    // X_USProbe = T_Stepper->USProbe * T_Template->Stepper * X_Template
-    // NOTE: T_Template->Stepper = mTransformMatrixPhantom2DRB4x4 
-    vnl_vector<double> PositionInUSProbeFrame =  
-      TransformReference2Probe * 
-      mTransformMatrixPhantom2DRB4x4 *
-      PositionInPhantomFrame;
-
-    LOG_DEBUG(" ADD DATA FOR VALIDATION ("<<frameIndex<<")");
-    LOG_DEBUG(" SegmentedNFiducial-" << Layer*3 << " = " << SegmentedDataPositionListPerImage.at( Layer*3 )); 
-    LOG_DEBUG(" SegmentedNFiducial-" << Layer*3+1 << " = " << SegmentedDataPositionListPerImage.at( Layer*3+1 ));  
-    LOG_DEBUG(" SegmentedNFiducial-" << Layer*3+2 << " = " << SegmentedDataPositionListPerImage.at( Layer*3+2 ));  
-    LOG_DEBUG(" SegmentedPositionInOriginalImageFrame = " << SegmentedPositionInOriginalImageFrame);
-    LOG_DEBUG(" SegmentedPositionInUserImageFrame = " << SegmentedPositionInUserImageFrame);
-    LOG_DEBUG(" alpha = " << alpha);
-    LOG_DEBUG(" PositionInPhantomFrame = " << PositionInPhantomFrame);
-    LOG_DEBUG(" TransformReference2Probe = \n" << TransformReference2Probe);
-    LOG_DEBUG(" mTransformMatrixPhantom2DRB4x4 = \n" << mTransformMatrixPhantom2DRB4x4);
-    LOG_DEBUG(" PositionInUSProbeFrame = " << PositionInUSProbeFrame);
-
-    vnl_vector<double> NWireStartinUSProbeFrame =
-      TransformReference2Probe * 
-      mTransformMatrixPhantom2DRB4x4 *
-      IntersectPosW12;
-
-    vnl_vector<double> NWireEndinUSProbeFrame =
-      TransformReference2Probe * 
-      mTransformMatrixPhantom2DRB4x4 *
-      IntersectPosW32;
-
-    // The parallel wires position in US Probe frame 
-    // Note: 
-    // 1. Parallel wires share the same X, Y coordinates as the N-wire joints
-    //    in the phantom (template) frame.
-    // 2. The Z-axis of the N-wire joints is not used in the computing.
-
-    // Wire N1 corresponds to mNWireJointTopLayerBackWall 
-    vnl_vector<double> NWireJointForN1InUSProbeFrame =
-      TransformReference2Probe * 
-      mTransformMatrixPhantom2DRB4x4 *
-      IntersectPosW12; //any point of wire 1 of this layer
-
-    // Wire N3 corresponds to mNWireJointTopLayerFrontWall
-    vnl_vector<double> NWireJointForN3InUSProbeFrame =
-      TransformReference2Probe * 
-      mTransformMatrixPhantom2DRB4x4 *
-      IntersectPosW32; //any point of wire 3 of this layer
-
-    // Store into the list of positions in the US image frame
-    mValidationPositionsInUSImageFrame.push_back( SegmentedPositionInUserImageFrame );
-
-    // Store into the list of positions in the US probe frame
-    mValidationPositionsInUSProbeFrame.push_back( PositionInUSProbeFrame );
-    mValidationPositionsNWireStartInUSProbeFrame.push_back( NWireStartinUSProbeFrame );
-    mValidationPositionsNWireEndInUSProbeFrame.push_back( NWireEndinUSProbeFrame );
-
-    for (int i=0; i<2; i++)
-    {
-      // all the matrices are expected to have the same length, so we need to add each value 
-      // as many times as many layer we have - this really have to be cleaned up
-      if (Layer==0)
-      {
-        mValidationPositionsNWire1InUSImageFrame.push_back( N1SegmentedPositionInUserImageFrame );
-        mValidationPositionsNWire3InUSImageFrame.push_back( N3SegmentedPositionInUserImageFrame );
-        mValidationPositionsNWire1InUSProbeFrame.push_back( NWireJointForN1InUSProbeFrame );
-        mValidationPositionsNWire3InUSProbeFrame.push_back( NWireJointForN3InUSProbeFrame );
-      }
-      else
-      {
-        mValidationPositionsNWire4InUSImageFrame.push_back( N4SegmentedPositionInUserImageFrame );
-        mValidationPositionsNWire6InUSImageFrame.push_back( N6SegmentedPositionInUserImageFrame );
-        mValidationPositionsNWire4InUSProbeFrame.push_back( NWireJointForN1InUSProbeFrame );
-        mValidationPositionsNWire6InUSProbeFrame.push_back( NWireJointForN3InUSProbeFrame );
+  }
+  else if( aActualAxialDepth >= mTheFarestAxialDepthInUSBeamwidthAndWeightTable )
+  {
+    // #2. Further deep in far field (close to the bottom of the image)
+    // Ultrasound diverses quickly in this region and data quality deteriorates
+    if( 1 == this->IncorporatingUS3DBeamProfile || 3 == this->IncorporatingUS3DBeamProfile )
+    { // Option: BWVar or BWTHEVar
+      if( 3 != this->IncorporatingUS3DBeamProfile
+        || aBeamwidthMagnitudeMm < mMinimumUSElevationBeamwidthAndFocalZoneInUSImageFrame.get(1) * mNumOfTimesOfMinBeamWidth )
+      { // Option: NOT BWTHEVar
+        beamwidthWeightForActualAxialDepth = 1/( aBeamwidthMagnitudeMm/4);
       }
     }
-
-    // Store into the list of positions in the Phantom frame
-    mValidationPositionsInPhantomFrame.push_back( PositionInPhantomFrame );
+    else
+    { // Option = BWRatio
+      beamwidthWeightForActualAxialDepth = sqrt( 1/mUS3DBeamwidthAndWeightFactorsInUSImageFrameTable5xM.get(4,
+        this->InterpUS3DBeamwidthAndWeightFactorsInUSImageFrameTable5xM.columns() - 1) );
+    }
+  }
+  else 
+  {
+    // #3. Ultrasound far field 
+    // Here the sound starts to diverse with elevation beamwidth getting
+    // larger and larger.  Data quality starts to deteriorate.
+    if( 1 == this->IncorporatingUS3DBeamProfile || 3 == this->IncorporatingUS3DBeamProfile )
+    { // Option: BWVar or BWTHEVar
+      if( 3 != this->IncorporatingUS3DBeamProfile
+        || aBeamwidthMagnitudeMm < mMinimumUSElevationBeamwidthAndFocalZoneInUSImageFrame.get(1) * mNumOfTimesOfMinBeamWidth )
+      { // Option: NOT BWTHEVar
+        beamwidthWeightForActualAxialDepth = 1/( aBeamwidthMagnitudeMm/4);
+      }
+    }
+    else
+    { // Option = BWRatio
+      beamwidthWeightForActualAxialDepth = sqrt( 1/mUS3DBeamwidthAndWeightFactorsInUSImageFrameTable5xM.get(4, aActualAxialDepth - mTheNearestAxialDepthInUSBeamwidthAndWeightTable) );
+    }
   }
 
-  return PLUS_SUCCESS;
+  return beamwidthWeightForActualAxialDepth;
 }
 
 //-----------------------------------------------------------------------------
@@ -2060,7 +1917,6 @@ void vtkCalibrationController::resetDataContainers()
 	mWeightsForDataPositions.resize(0);
 	mUSBeamWidthEuclideanMagAtDataPositions.resize(0);
 	mUSBeamWidthEuclideanMagAtValidationPositions.resize(0);
-	mValidationPositionsInPhantomFrame.resize(0);
 	mValidationPositionsInUSProbeFrame.resize(0);
 	mValidationPositionsNWireStartInUSProbeFrame.resize(0);
 	mValidationPositionsNWireEndInUSProbeFrame.resize(0);
