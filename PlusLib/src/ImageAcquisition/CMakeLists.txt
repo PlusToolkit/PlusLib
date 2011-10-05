@@ -1,7 +1,7 @@
 # --------------------------------------------------------------------------
 # Options
 
-OPTION (PLUS_USE_SONIX_VIDEO "Provide support for the SonixRP video source" OFF)
+OPTION (PLUS_USE_ULTRASONIX_VIDEO "Provide support for the SonixRP video source" OFF)
 OPTION (PLUS_USE_ICCAPTURING_VIDEO "Provide support for the IC framegrabber device" OFF)
 OPTION (PLUS_USE_VFW_VIDEO "Provide support for the Video-for-Windows video digitizer" OFF)
 SET (PLUS_ULTRASONIX_SDK_MAJOR_VERSION 5 CACHE STRING "Set Ultrasonix ULTRASONIX_SDK SDK major version")
@@ -68,7 +68,7 @@ macro(UltrasonixSdk SDK_MAJOR SDK_MINOR SDK_PATCH)
 		)    
 endmacro(UltrasonixSdk) 
 
-IF (PLUS_USE_SONIX_VIDEO)
+IF (PLUS_USE_ULTRASONIX_VIDEO)
 
 	SET (ImageAcquisition_SRCS
     ${ImageAcquisition_SRCS}
@@ -136,12 +136,12 @@ IF (PLUS_USE_SONIX_VIDEO)
     
   SET (ImageAcquisition_INCLUDE_DIRS ${ImageAcquisition_INCLUDE_DIRS}
     ${ULTERIUS_INCLUDE_DIR}
-	  ${PORTA_INCLUDE_DIR}
+	${PORTA_INCLUDE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/SonixVideo 
     CACHE INTERNAL "" FORCE
     )
     
-ENDIF (PLUS_USE_SONIX_VIDEO)
+ENDIF (PLUS_USE_ULTRASONIX_VIDEO)
 
 # --------------------------------------------------------------------------
 # ICCapturing support

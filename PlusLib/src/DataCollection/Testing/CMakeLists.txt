@@ -26,14 +26,14 @@ ADD_TEST(vtkDataCollectorTest1
   )
 SET_TESTS_PROPERTIES( vtkDataCollectorTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
-IF (PLUS_USE_SONIX_VIDEO)
+IF (PLUS_USE_ULTRASONIX_VIDEO)
 	ADD_TEST(vtkDataCollectorTest1_SonixVideo
 	  ${EXECUTABLE_OUTPUT_PATH}/vtkDataCollectorTest1
 	  --input-config-file-name=${ConfigFilesDir}/Test_PlusConfiguration_DataCollectionOnly_SonixVideo_FakeTracker.xml 
 	  --rendering-off
 	  )
 	SET_TESTS_PROPERTIES( vtkDataCollectorTest1_SonixVideo PROPERTIES FAIL_REGULAR_EXPRESSION "\\[ERROR\\];\\[WARNING\\]" )
-ENDIF (PLUS_USE_SONIX_VIDEO)
+ENDIF (PLUS_USE_ULTRASONIX_VIDEO)
 
 
 #***************************  vtkDataCollectorSynchronizerTest ***************************
@@ -81,14 +81,14 @@ TARGET_LINK_LIBRARIES(vtkDataCollectorTrackingTest vtkDataCollection )
 #***************************  vtkDataCollectorVideoAcqTest ***************************
 ADD_EXECUTABLE(vtkDataCollectorVideoAcqTest vtkDataCollectorVideoAcqTest.cxx)
 TARGET_LINK_LIBRARIES(vtkDataCollectorVideoAcqTest vtkDataCollection )
-# IF (PLUS_USE_SONIX_VIDEO)
+# IF (PLUS_USE_ULTRASONIX_VIDEO)
 	# ADD_TEST(vtkDataCollectorVideoAcqTest 
 	  # ${EXECUTABLE_OUTPUT_PATH}/vtkDataCollectorVideoAcqTest
 	  # --input-config-file-name=${ConfigFilesDir}/USDataCollectionConfig_TrackerNone.xml 
 	  # --verbose=2
 	  # )
 	  # SET_TESTS_PROPERTIES( vtkDataCollectorVideoAcqTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
-# ENDIF (PLUS_USE_SONIX_VIDEO)
+# ENDIF (PLUS_USE_ULTRASONIX_VIDEO)
 
 #***************************  vtkOpenIGTLinkBroadcasterTest1 ***************************
 ADD_EXECUTABLE( vtkOpenIGTLinkBroadcasterTest1
