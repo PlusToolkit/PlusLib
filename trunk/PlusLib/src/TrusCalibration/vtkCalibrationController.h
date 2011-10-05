@@ -514,27 +514,6 @@ protected: // from former Phantom class
 		std::vector< vnl_vector<double> > SegmentedDataPositionListPerImage, 
 		const vnl_matrix<double> TransformMatrixUSProbe2Stepper4x4 );
 
-	//! Calculate the 3D Point Reconstruction Error (PRE3D) for a given image.
-	// This operation obtain the PRE3D for a given image (captured in real time) using
-	// the latest updated calibration result.
-	//
-	// NOTE: The purpose of this method is to enable a real-time recursive calibration
-	// control process to iteratively examine the current calibration accuracy using
-	// a fresh real-time image data before the image could be further used for 
-	// the calibration.  So the real-time image data would be used for validation 
-	// while still remains independant to the calibration process (since the 
-	// validation takes place before the data is used).
-	//
-	// FORMAT: PRE3Ds are averaged for all the data positions in the image and given
-	// in the following format:
-	// [vector 0 - 2   : Averaged absolute PRE3D in the US probe frame in X,Y and Z axis ]
-	// [vector 3,4,... : Back-projected positions in the US image frame in (Xi, Yi) ...]
-	// NOTE: For BrachyTRUSCalibrator, there are only two data positions per image:
-	//       Hence, [vector 3-6: X1, Y1, X2, Y2]
-	virtual std::vector<double> getPRE3DforRealtimeImage(			
-		std::vector< vnl_vector<double> > SegmentedDataPositionListPerImage, 
-		const vnl_matrix<double> TransformMatrixUSProbe2DRB4x4 );
-
 	//! Get Line reconstruction error (LRE) vector for validation positions in US probe frame
 	// FORMAT:
 	// [ 0: PRE3Ds in x-axis from projected to true positions ]
@@ -844,7 +823,6 @@ protected: // From former Phantom class
 	vnl_matrix<double> mTransformMatrixPhantom2DRB4x4;
 
 	//! Data positions collected as inputs for the US calibration
-	std::vector< vnl_vector<double> > mDataPositionsInPhantomFrame;
 	std::vector< vnl_vector<double> > mDataPositionsInUSProbeFrame;
 	std::vector< vnl_vector<double> > mDataPositionsInUSImageFrame;
 	std::vector<int> mOutlierDataPositions; 
