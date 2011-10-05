@@ -488,31 +488,11 @@ protected: // from former Phantom class
 	// location that has been precisly measured on the phantom geometry.
 	PlusStatus computeIndependentPointLineReconstructionError();
 
-	//! Calculate and add positions in Phantom frame
-	// This operation will use the segmented N-fiducials in each US image to 
-	// calculate the position in Phantom frame base on the existing phantom 
-	// geometry data.  The result would be added contineously into a private 
-	// class data storage container.  Note: this operation is performed on 
-	// one individual US image captured on Phantom, so natually, it can be 
-	// called repeatedly to add in reference positions in multiple images 
-	// in order to enhance the calibration accuracy.
-	virtual PlusStatus addDataPositionsPerImage( 
-		std::vector< vnl_vector<double> > SegmentedDataPositionListPerImage, 
-		const vnl_matrix<double> TransformMatrixUSProbe2Stepper4x4 );
+	//! Calculate and add positions of an individual image for calibration or validation
+	PlusStatus AddPositionsPerImage( std::vector< vnl_vector<double> > SegmentedDataPositionListPerImage, const vnl_matrix<double> TransformMatrixUSProbe2Stepper4x4, bool isValidation );
 
-	//! Add positions per image to validate calibration accuracy
-	// This operation performs similarly to the ::addDataPositionsPerImage
-	// method, except that these added positions are stored to validate the 
-	// overall calibration accuracy.  These data positions are kept 
-	// separately from those that are used for the calibration so as not to 
-	// be biased toward the calibration results in the validation process.
-	// Note: like ::addDataPositionsPerImage, this operation is performed 
-	// on individual US images acquired from the phantom, so natually, it 
-	// can be called repeatedly to add in as many data necessary to enhance 
-	// the calibration accuracy.
-	virtual PlusStatus addValidationPositionsPerImage( 
-		std::vector< vnl_vector<double> > SegmentedDataPositionListPerImage, 
-		const vnl_matrix<double> TransformMatrixUSProbe2Stepper4x4 );
+  //! Compute beamwidth weight for a beamwidth magnitude at the given axial depth
+  double GetBeamwidthWeightForBeamwidthMagnitude(double aBeamwidthMagnitudeMm, int aActualAxialDepth);
 
 	//! Get Line reconstruction error (LRE) vector for validation positions in US probe frame
 	// FORMAT:
@@ -828,7 +808,6 @@ protected: // From former Phantom class
 	std::vector<int> mOutlierDataPositions; 
 
 	//! Validation positions collected to validate the calibration accuracy
-	std::vector< vnl_vector<double> > mValidationPositionsInPhantomFrame;
 	std::vector< vnl_vector<double> > mValidationPositionsInUSProbeFrame;
 	std::vector< vnl_vector<double> > mValidationPositionsInUSImageFrame;
 
