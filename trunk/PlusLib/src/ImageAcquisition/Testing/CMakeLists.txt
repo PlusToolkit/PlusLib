@@ -37,7 +37,7 @@ ADD_TEST(itkFcsvWriterTest1 ${EXECUTABLE_OUTPUT_PATH}/itkFcsvWriterTest1
 SET_TESTS_PROPERTIES( itkFcsvWriterTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
 #***************************  vtkSonixVideoSourceTest1.cxx ***************************
-IF (PLUS_USE_SONIX_VIDEO)
+IF (PLUS_USE_ULTRASONIX_VIDEO)
 	ADD_EXECUTABLE(vtkSonixVideoSourceTest1 vtkSonixVideoSourceTest1.cxx )
 	TARGET_LINK_LIBRARIES(vtkSonixVideoSourceTest1 vtkImageAcquisition vtkCharts)
 	ADD_TEST(vtkSonixVideoSourceTest1 
@@ -46,7 +46,7 @@ IF (PLUS_USE_SONIX_VIDEO)
      --sonix-ip=130.15.7.20
 	)
 	SET_TESTS_PROPERTIES( vtkSonixVideoSourceTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "\\[ERROR\\];\\[WARNING\\]" )
-ENDIF (PLUS_USE_SONIX_VIDEO)
+ENDIF (PLUS_USE_ULTRASONIX_VIDEO)
 
 #***************************  vtkICCapturingSourceTest1.cxx ***************************
 IF (PLUS_USE_ICCAPTURING_VIDEO)
@@ -60,7 +60,7 @@ ADD_EXECUTABLE(vtkICCapturingSourceTest1 vtkICCapturingSourceTest1.cxx )
 ENDIF (PLUS_USE_ICCAPTURING_VIDEO)
 
 #***************************  vtkSonixVolumeReaderTest1.cxx ***************************
-IF (PLUS_USE_SONIX_VIDEO)
+IF (PLUS_USE_ULTRASONIX_VIDEO)
 	ADD_EXECUTABLE(vtkSonixVolumeReaderTest1 vtkSonixVolumeReaderTest1.cxx )
 	TARGET_LINK_LIBRARIES(vtkSonixVolumeReaderTest1 vtkImageAcquisition )
 	ADD_TEST(vtkSonixVolumeReaderTest1 
@@ -70,11 +70,11 @@ IF (PLUS_USE_SONIX_VIDEO)
 	--input-frame-number=5 
 	)
 	SET_TESTS_PROPERTIES( vtkSonixVolumeReaderTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
-ENDIF (PLUS_USE_SONIX_VIDEO)
+ENDIF (PLUS_USE_ULTRASONIX_VIDEO)
 
 #***************************  vtkURFSavedVideoSourceTest1.cxx ***************************
-IF (PLUS_USE_SONIX_VIDEO)
+IF (PLUS_USE_ULTRASONIX_VIDEO)
 	ADD_EXECUTABLE(vtkURFSavedVideoSourceTest1 vtkURFSavedVideoSourceTest1.cxx )
 	TARGET_LINK_LIBRARIES(vtkURFSavedVideoSourceTest1 vtkImageAcquisition )
-ENDIF (PLUS_USE_SONIX_VIDEO)
+ENDIF (PLUS_USE_ULTRASONIX_VIDEO)
 #Test is to be added.

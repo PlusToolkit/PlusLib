@@ -58,7 +58,7 @@
 #include "vtkV4L2VideoSource2.h"
 #endif*/
 #endif
-#ifdef PLUS_USE_SONIX_VIDEO
+#ifdef PLUS_USE_ULTRASONIX_VIDEO
 #include "vtkSonixVideoSource.h"
 #endif
 #ifdef PLUS_USE_ICCAPTURING_VIDEO
@@ -1713,12 +1713,14 @@ PlusStatus vtkDataCollector::ReadImageAcquisitionProperties(vtkXMLDataElement* a
   //******************* Sonix Video ***************************
   else if ( STRCASECMP("SonixVideo", type)==0) 
   {
-#ifdef PLUS_USE_SONIX_VIDEO
+#ifdef PLUS_USE_ULTRASONIX_VIDEO
     LOG_DEBUG("Image acquisition type: Sonix Video"); 
     this->SetAcquisitionType(SYNCHRO_VIDEO_SONIX); 
     vtkSmartPointer<vtkSonixVideoSource> videoSource = vtkSmartPointer<vtkSonixVideoSource>::New();
     this->SetVideoSource(videoSource); 
-    videoSource->ReadConfiguration(aConfigurationData); 
+    videoSource->ReadConfiguration(aConfigurationData);
+#else
+    LOG_ERROR("Ultrasonix support was disabled when this Plus library was built");     
 #endif
   }
   //******************* Matrox Imaging ***************************

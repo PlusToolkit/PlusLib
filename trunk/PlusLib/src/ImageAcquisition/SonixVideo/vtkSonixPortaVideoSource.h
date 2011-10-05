@@ -51,8 +51,6 @@
 #include <ImagingModes.h>
 #include <porta.h>
 
-
-
 class VTK_EXPORT vtkSonixPortaVideoSource;
 
 class VTK_EXPORT vtkSonixPortaVideoSourceCleanup 
