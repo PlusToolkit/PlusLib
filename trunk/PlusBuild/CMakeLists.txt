@@ -56,7 +56,7 @@ OPTION(PLUSBUILD_USE_OpenIGTLink "Use OpenIGTLink" ON)
 OPTION(PLUSBUILD_BUILD_SHARED_LIBS "Build shared libs" ON)
 OPTION(PLUSBUILD_BUILD_PLUSAPP "Build PlusApp applications" ON)
 
-OPTION(PLUS_USE_SONIX_VIDEO "Provide support for the Sonix video source with the Ulterius SDK" ON)
+OPTION(PLUS_USE_SONIX_VIDEO "Provide support for the Ultrasonix ultrasound systems" ON)
 OPTION(PLUS_USE_ICCAPTURING_VIDEO "Provide support for the IC framegrabber device" ON)
 OPTION(PLUS_USE_VFW_VIDEO "Provide support for the Video-for-Windows video digitizer" OFF)
 
@@ -69,8 +69,8 @@ OPTION(PLUS_USE_Ascension3DG "Provide support for the Ascension 3DG Tracker" ON)
 
 OPTION(PLUS_USE_HEARTSIGNALBOX "Enable Heart Signal Box" OFF)
 OPTION(PLUS_USE_USBECGBOX "Enable USB ECG Signal Box" OFF)
-SET (PLUS_ULTERIUS_MAJOR_VERSION 5 CACHE STRING "Set Ultrasonix Ulterius SDK major version")
-SET (PLUS_ULTERIUS_MINOR_VERSION 6 CACHE STRING "Set Ultrasonix Ulterius SDK minor version")
+SET (PLUS_ULTRASONIX_SDK_MAJOR_VERSION 5 CACHE STRING "Set Ultrasonix SDK major version")
+SET (PLUS_ULTRASONIX_SDK_MINOR_VERSION 6 CACHE STRING "Set Ultrasonix SDK minor version")
 
 #-----------------------------------------------------------------------------
 # Plus revision - Set Plus stable relase revision (0 means latest)
