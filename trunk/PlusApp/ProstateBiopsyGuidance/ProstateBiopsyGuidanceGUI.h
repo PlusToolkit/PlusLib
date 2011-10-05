@@ -31,7 +31,7 @@ private:
 
 protected slots:
 		void ConnectToDevicesByConfigFile(std::string aConfigFile);
-		vtkSmartPointer<vtkXMLDataElement>  ReadPBGConfigData(std::string aConfigFile);
+		PlusStatus ReadPBGConfigData(std::string aConfigFile, vtkXMLDataElement **configRootElement);
 		void butStop_Click();
 		PlusStatus  saveData(vtkVideoBuffer *buffer_RF,std::string outputVideoBufferSequenceFileName);
 		PlusStatus  acquireData(vtkVideoBuffer *buffer_RF, int type,std::string savedBufferName);

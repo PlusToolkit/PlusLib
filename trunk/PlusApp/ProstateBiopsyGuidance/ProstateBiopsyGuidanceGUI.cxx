@@ -170,6 +170,10 @@ PlusStatus WriteVideoBufferToMetafile( vtkVideoBuffer* videoBuffer, const char* 
   const int numberOfFrames = videoBuffer->GetNumberOfItems(); 
   vtkSmartPointer<vtkTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New(); 
 
+  // Set default transform name
+  const char* defaultFrameTransformName="IdentityTransform";
+  trackedFrameList->SetDefaultFrameTransformName(defaultFrameTransformName); 
+
   PlusStatus status=PLUS_SUCCESS;
 
   for ( BufferItemUidType frameUid = videoBuffer->GetOldestItemUidInBuffer(); frameUid <= videoBuffer->GetLatestItemUidInBuffer(); ++frameUid ) 
@@ -186,13 +190,10 @@ PlusStatus WriteVideoBufferToMetafile( vtkVideoBuffer* videoBuffer, const char* 
     TrackedFrame trackedFrame;
     trackedFrame.SetImageData(videoItem.GetFrame());
 
-    // Set default transform name
-    trackedFrame.SetDefaultFrameTransformName("IdentityTransform"); 
-
     // Add transform 
     vtkSmartPointer<vtkMatrix4x4> matrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
     matrix->Identity(); 
-    trackedFrame.SetCustomFrameTransform(trackedFrame.GetDefaultFrameTransformName(), matrix); 
+    trackedFrame.SetCustomFrameTransform(defaultFrameTransformName, matrix); 
 
     // Add filtered timestamp
     double filteredTimestamp = videoItem.GetFilteredTimestamp( videoBuffer->GetLocalTimeOffset() ); 
@@ -496,7 +497,13 @@ void ProstateBiopsyGuidanceGUI::ConnectToDevicesByConfigFile(std::string aConfig
 {
 	LOG_INFO("Loading config file ...");
 
-	vtkSmartPointer<vtkXMLDataElement> configXmlRoot=ReadPBGConfigData(aConfigFile);
+	vtkXMLDataElement* configXmlRoot=NULL;
+
+  if (ReadPBGConfigData(aConfigFile, &configXmlRoot)!=PLUS_SUCCESS)
+  {
+    LOG_ERROR("Failed to read config file "<<aConfigFile.c_str());
+    return;
+  }
 	m_DeviceSetSelectorWidget->SetConnectionSuccessful(true);
 
 	if ( this->TrackedFrameContainer == NULL )
@@ -505,12 +512,15 @@ void ProstateBiopsyGuidanceGUI::ConnectToDevicesByConfigFile(std::string aConfig
 		this->TrackedFrameContainer->ReadConfiguration(configXmlRoot);
 	}
 
+  configXmlRoot->Delete();
+
 	this->ui->butStop->setEnabled(true);
 	startBiopsyProcess();
 }
 
 //----------------------------------------------------------------------------
-vtkSmartPointer<vtkXMLDataElement>  ProstateBiopsyGuidanceGUI::ReadPBGConfigData(std::string aConfigFile){
+PlusStatus ProstateBiopsyGuidanceGUI::ReadPBGConfigData(std::string aConfigFile, vtkXMLDataElement **configRootElement)
+{
 	
 	inputConfigFileName = aConfigFile;
 
@@ -524,20 +534,21 @@ vtkSmartPointer<vtkXMLDataElement>  ProstateBiopsyGuidanceGUI::ReadPBGConfigData
 	*/
 
 	std::string inputConfigFileName(aConfigFile);
-	vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkXMLUtilities::ReadElementFromFile(inputConfigFileName.c_str());
+	(*configRootElement) = vtkXMLUtilities::ReadElementFromFile(inputConfigFileName.c_str());
 	if (configRootElement == NULL) {	
-		std::cerr << "Unable to read configuration from file " << inputConfigFileName;
-		exit(EXIT_FAILURE);
+		LOG_ERROR("Unable to read configuration from file " << inputConfigFileName);
+		return PLUS_FAIL;
 	}
 
-	vtkSmartPointer<vtkXMLDataElement> prostateBiopsyConfig = configRootElement->FindNestedElementWithName("ProstateBiopsy");
+	vtkXMLDataElement* prostateBiopsyConfig = (*configRootElement)->FindNestedElementWithName("ProstateBiopsy");
 	if (prostateBiopsyConfig == NULL)
 	{
 		LOG_ERROR("Cannot find ProstateBiopsy element in XML tree!");
-		exit( PLUS_FAIL);
+		return PLUS_FAIL;
 	}
 
 	inputAcqTimeLength=atof(prostateBiopsyConfig->GetAttribute("AcquisitionTime"));
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------

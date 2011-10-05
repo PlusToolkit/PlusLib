@@ -9,7 +9,6 @@
 #include "vtkMultiThreader.h"
 #include "vtkCriticalSection.h"
 #include "itkImage.h"
-#include "vtkSonixVideoSource.h"
 class vtkTrackedFrameList; 
 
 
