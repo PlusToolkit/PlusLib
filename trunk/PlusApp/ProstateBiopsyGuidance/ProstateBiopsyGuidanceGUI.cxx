@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <conio.h>
 #include <time.h>
+#include <sstream>
 
 // QT includes
 #include <qapplication.h>
@@ -60,7 +61,7 @@ const QString LABEL_SYNC_VIDEO_OFFSET("Video offset:");
 /*************************************** Define variables**********************************/
 vtkSmartPointer<vtkDataCollector> dataCollector = vtkSmartPointer<vtkDataCollector>::New();					
 std::string inputConfigFileName("");	// configuration file name
-std::string outputFolder("./RFDATA");																		// output folder name
+std::string outputFolder("/RFDATA");																		// output folder name
 std::string outputVideoBufferSequenceFileName("VideoBufferMetafile");										// output file name
 double inputAcqTimeLength(3);																				// Saving data time
 vtkVideoBuffer *buffer_BMode = vtkVideoBuffer::New();	
@@ -80,6 +81,8 @@ ProstateBiopsyGuidanceGUI::ProstateBiopsyGuidanceGUI(QWidget *parent)
 	// Set program path to configuration
 	QFileInfo programPathFileInfo(qApp->argv()[0]); 
 	vtkPlusConfig::GetInstance()->SetProgramPath(programPathFileInfo.absoluteDir().absolutePath().toStdString().c_str());
+	outputFolder=programPathFileInfo.absoluteDir().absolutePath().toStdString().c_str()+outputFolder;
+
 
 	// Create device set selector widget
 	this->m_DeviceSetSelectorWidget = new DeviceSetSelectorWidget(this);
@@ -151,9 +154,109 @@ typedef struct {
 	vtkVideoBuffer *Buffers[2];
 	int BufferInUseIndex;
 	bool FirstBufferFull;
+	bool SavingFinished;
 	bool Done;
 	vtkDataCollector* DataCollectorInstance;
 } vtkThreadUserData;
+//----------------------------------------------------------------------------
+PlusStatus WriteVideoBufferToMetafile( vtkVideoBuffer* videoBuffer, const char* outputFolder, const char* metaFileName, bool useCompression /*=false*/ )
+{
+  if ( videoBuffer == NULL )
+  {
+    LOG_ERROR("Unable to dump video buffer if it's NULL!"); 
+    return PLUS_FAIL; 
+  }
+
+  const int numberOfFrames = videoBuffer->GetNumberOfItems(); 
+  vtkSmartPointer<vtkTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New(); 
+
+  PlusStatus status=PLUS_SUCCESS;
+
+  for ( BufferItemUidType frameUid = videoBuffer->GetOldestItemUidInBuffer(); frameUid <= videoBuffer->GetLatestItemUidInBuffer(); ++frameUid ) 
+  {
+
+    VideoBufferItem videoItem; 
+    if ( videoBuffer->GetVideoBufferItem(frameUid, &videoItem) != ITEM_OK )
+    {
+      LOG_ERROR("Unable to get frame from buffer with UID: " << frameUid); 
+      status=PLUS_FAIL;
+      continue; 
+    }
+
+    TrackedFrame trackedFrame;
+    trackedFrame.SetImageData(videoItem.GetFrame());
+
+    // Set default transform name
+    trackedFrame.SetDefaultFrameTransformName("IdentityTransform"); 
+
+    // Add transform 
+    vtkSmartPointer<vtkMatrix4x4> matrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
+    matrix->Identity(); 
+    trackedFrame.SetCustomFrameTransform(trackedFrame.GetDefaultFrameTransformName(), matrix); 
+
+    // Add filtered timestamp
+    double filteredTimestamp = videoItem.GetFilteredTimestamp( videoBuffer->GetLocalTimeOffset() ); 
+    std::ostringstream timestampFieldValue; 
+    timestampFieldValue << std::fixed << filteredTimestamp; 
+    trackedFrame.SetCustomFrameField("Timestamp", timestampFieldValue.str()); 
+
+    // Add unfiltered timestamp
+    double unfilteredTimestamp = videoItem.GetUnfilteredTimestamp( videoBuffer->GetLocalTimeOffset() ); 
+    std::ostringstream unfilteredtimestampFieldValue; 
+    unfilteredtimestampFieldValue << std::fixed << unfilteredTimestamp; 
+    trackedFrame.SetCustomFrameField("UnfilteredTimestamp", unfilteredtimestampFieldValue.str()); 
+
+    // Add frame number
+    unsigned long frameNumber = videoItem.GetIndex();  
+    std::ostringstream frameNumberFieldValue; 
+    frameNumberFieldValue << std::fixed << frameNumber; 
+    trackedFrame.SetCustomFrameField("FrameNumber", frameNumberFieldValue.str()); 
+
+    // Add tracked frame to the list
+    trackedFrameList->AddTrackedFrame(&trackedFrame); 
+  }
+
+  // Save tracked frames to metafile
+  if ( trackedFrameList->SaveToSequenceMetafile(outputFolder, metaFileName, vtkTrackedFrameList::SEQ_METAFILE_MHA, useCompression) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to save tracked frames to sequence metafile!"); 
+    return PLUS_FAIL;
+  }
+
+  return status;
+}
+//----------------------------------------------------------------------------
+VTK_THREAD_RETURN_TYPE saveDataAsync( void* arg )
+{
+	if ( !vtksys::SystemTools::FileExists(outputFolder.c_str(), false) )
+		vtksys::SystemTools::MakeDirectory(outputFolder.c_str()); 
+
+	//Preparing data:
+	vtkThreadUserData* threadData = static_cast<vtkThreadUserData*>(static_cast<vtkMultiThreader::ThreadInfo*>(arg)->UserData );
+
+	// Just wait for the first buffer to fill:
+	while( !threadData->Done && !threadData->FirstBufferFull){};
+
+	int _bufferReadyToWriteIndex=0;
+
+	while( !threadData->Done){
+		if(!threadData->SavingFinished)//threadData->BufferInUseIndex!=_bufferInUseIndex)
+		{
+			LOG_INFO("DATA-SAVE Thread: save attempt at frame #"<<threadData->DataCollectorInstance->GetVideoSource()->GetFrameNumber() <<" on buffer index #" <<_bufferReadyToWriteIndex  );
+			// Save Data to Disk:
+			_bufferReadyToWriteIndex=(threadData->BufferInUseIndex+1)%2;
+			vtkVideoBuffer* buff= threadData->Buffers[_bufferReadyToWriteIndex];
+			std::stringstream _fileName;
+			_fileName << "RF_BLOCK_"<<threadData->DataCollectorInstance->GetVideoSource()->GetFrameNumber();
+			WriteVideoBufferToMetafile(buff, outputFolder.c_str(),_fileName.str().c_str(), false);
+			threadData->Buffers[_bufferReadyToWriteIndex]->Clear();
+			threadData->SavingFinished=true;
+		}
+	}
+
+	LOG_INFO("DATA-SAVE Thread: Finished");
+	return VTK_THREAD_RETURN_VALUE;
+}
 //----------------------------------------------------------------------------
 VTK_THREAD_RETURN_TYPE getDataAsync( void* arg )
 {
@@ -162,22 +265,20 @@ VTK_THREAD_RETURN_TYPE getDataAsync( void* arg )
 	//Preparing data:
 	vtkThreadUserData* threadData = static_cast<vtkThreadUserData*>(static_cast<vtkMultiThreader::ThreadInfo*>(arg)->UserData );
 
-	int _cntr=0;
-	while ( !threadData->Done && _cntr<20 )	
+	bool _readyToSave(false);
+	while ( !threadData->Done )	
 	{
-		_cntr++;
-		
-		// Delay for one second
-		vtksys::SystemTools::Delay(1000);		
-		LOG_INFO("reading second: "<<_cntr);
-
-		if(_cntr%3==0)
+		_readyToSave=_readyToSave || threadData->DataCollectorInstance->GetVideoSource()->GetFrameNumber()%45==0;
+		if(_readyToSave && threadData->SavingFinished)
 		{
-			dataCollector->CopyVideoBuffer(threadData->Buffers[threadData->BufferInUseIndex]);
+			threadData->DataCollectorInstance->CopyVideoBuffer(threadData->Buffers[threadData->BufferInUseIndex]);
+			threadData->DataCollectorInstance->GetVideoSource()->GetBuffer()->Clear();
 			threadData->FirstBufferFull=true;
-
+			
 			//Switch the index of in-use buffer:
 			threadData->BufferInUseIndex=(threadData->BufferInUseIndex+1)%2;
+			threadData->SavingFinished=false;
+			_readyToSave=false;
 		}
 	}
 
@@ -186,38 +287,6 @@ VTK_THREAD_RETURN_TYPE getDataAsync( void* arg )
 	LOG_INFO("DATA-GET Thread: Finished");
 	return VTK_THREAD_RETURN_VALUE;
 }
-
-
-//----------------------------------------------------------------------------
-VTK_THREAD_RETURN_TYPE saveDataAsync( void* arg )
-{
-	LOG_INFO("DATA-SAVE Thread: Started");
-	
-	//Preparing data:
-	vtkThreadUserData* threadData = static_cast<vtkThreadUserData*>(static_cast<vtkMultiThreader::ThreadInfo*>(arg)->UserData );
-
-	// Just wait for the first buffer to fill:
-	while( !threadData->Done && !threadData->FirstBufferFull){};
-
-	int _bufferInUseIndex=0;
-
-	while( !threadData->Done){
-		if(threadData->BufferInUseIndex!=_bufferInUseIndex){
-			LOG_INFO("DATA-SAVE Thread: save attempt");
-			// Save Data to Dist:
-		
-
-			// Switch index to wait for next buffer to get full:
-			_bufferInUseIndex=(_bufferInUseIndex+1)%2;
-		}
-	}
-
-	LOG_INFO("DATA-SAVE Thread: Finished");
-	return VTK_THREAD_RETURN_VALUE;
-}
-
-
-
 
 
 
@@ -325,6 +394,7 @@ PlusStatus ProstateBiopsyGuidanceGUI::acquireData(vtkVideoBuffer *Data,int type,
 	data.Lock->Unlock();
 	data.FirstBufferFull=false;
 	data.Done = false;
+	data.SavingFinished=true;
 	for(int k=0;k<2;k++)
 		data.Buffers[k]=vtkVideoBuffer::New();
 	data.BufferInUseIndex=0;
@@ -333,7 +403,6 @@ PlusStatus ProstateBiopsyGuidanceGUI::acquireData(vtkVideoBuffer *Data,int type,
 	threadPool->SetNumberOfThreads( 2 );
 	threadPool->SetMultipleMethod(0, getDataAsync , &data);
 	threadPool->SetMultipleMethod(1, saveDataAsync , &data);
-
 	threadPool->MultipleMethodExecute();
 #pragma endregion
 
@@ -480,16 +549,4 @@ void ProstateBiopsyGuidanceGUI::butStop_Click(){
 
 
 
-//----------------------------------------------------------------------------
-
-//int ProstateBiopsyGuidanceGUI::GetNumberOfRecordedFrames()
-//{ 
-//	int numOfFrames(0); 
-//	if ( this->TrackedFrameContainer )
-//	{
-//		numOfFrames = this->TrackedFrameContainer->GetNumberOfTrackedFrames(); 
-//	}
-//
-//	return numOfFrames; 
-//}
 //----------------------------------------------------------------------------

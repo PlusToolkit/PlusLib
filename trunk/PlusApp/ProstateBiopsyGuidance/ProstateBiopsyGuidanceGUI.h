@@ -44,6 +44,7 @@ protected slots:
 		PlusStatus	stopDataAquisition();
 		PlusStatus	stopShaker();
 		PlusStatus	deleteBuffer(vtkVideoBuffer *buffer_RF);
+		
 		//virtual VTK_THREAD_RETURN_TYPE *saveDataAsync( void* arg );
  };
 
