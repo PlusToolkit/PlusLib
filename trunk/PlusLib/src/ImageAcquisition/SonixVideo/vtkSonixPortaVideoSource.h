@@ -47,6 +47,8 @@
 
 // porta includes
 #include <porta_std_includes.h>
+#include <porta_params_def.h>
+#include <ImagingModes.h>
 #include <porta.h>
 
 

@@ -70,9 +70,6 @@ enum {udtBPost};
 
 //BTX
 
-//class uDataDesc;
-//class ulterius;
-
 class VTK_ULTRASOUND_EXPORT vtkV4L2VideoSource;
 
 //class VTK_EXPORT vtkV4L2VideoSource : public vtkVideoSource
