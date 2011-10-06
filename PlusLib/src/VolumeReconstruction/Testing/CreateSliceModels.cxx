@@ -119,7 +119,6 @@ int main( int argc, char** argv )
 
   // Loop over each tracked image slice.
   std::string defaultFrameTransformName=trackedFrameList->GetDefaultFrameTransformName();
-  int* frameSize = trackedFrameList->GetFrameSize();
   for ( int frameIndex = 0; frameIndex < trackedFrameList->GetNumberOfTrackedFrames(); ++ frameIndex )
   {
     TrackedFrame* frame = trackedFrameList->GetTrackedFrame( frameIndex );
@@ -128,6 +127,8 @@ int main( int argc, char** argv )
     frame->GetCustomFrameTransform(defaultFrameTransformName.c_str(), defaultTransform);
     vtkSmartPointer< vtkTransform > tToolToTracker = vtkSmartPointer< vtkTransform >::New();
     tToolToTracker->SetMatrix( defaultTransform );    
+
+    int* frameSize = frame->GetFrameSize();
 
     vtkSmartPointer< vtkTransform > tCubeToImage = vtkSmartPointer< vtkTransform >::New();
     tCubeToImage->Scale( frameSize[ 0 ], frameSize[ 1 ], 1 );

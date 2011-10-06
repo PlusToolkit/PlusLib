@@ -4,6 +4,7 @@
 
 #include "vtkTranslAxisCalibAlgo.h"
 #include "vtkRotationAxisCalibAlgo.h"
+#include "vtkSpacingCalibAlgo.h"
 
 #include "vtkObjectFactory.h"
 #include "vtkTransform.h"
@@ -52,7 +53,6 @@ vtkStepperCalibrationController::vtkStepperCalibrationController()
   this->AlgorithmVersion = NULL; 
   this->CalibrationStartTime = NULL; 
   this->ProbeRotationEncoderCalibrationErrorReportFilePath = NULL; 
-  this->SpacingCalculationErrorReportFilePath = NULL; 
 
   this->SaveCalibrationStartTime(); 
 
@@ -64,7 +64,6 @@ vtkStepperCalibrationController::~vtkStepperCalibrationController()
 {
   this->SetCalibrationStartTime(NULL); 
   this->SetProbeRotationEncoderCalibrationErrorReportFilePath(NULL); 
-  this->SetSpacingCalculationErrorReportFilePath(NULL); 
 }
 
 //----------------------------------------------------------------------------
@@ -166,8 +165,8 @@ PlusStatus vtkStepperCalibrationController::CalibrateProbeRotationAxis()
   {
     if ( this->GetCenterOfRotationCalculated() )
     {
-      LOG_INFO("CenterOfRotation (px): " << this->GetCenterOfRotationPx()[0] << "  " << this->GetCenterOfRotationPx()[1]); 
-      LOG_INFO("CenterOfRotation (mm): " << this->GetCenterOfRotationPx()[0]*this->GetSpacing()[0] << "  " << this->GetCenterOfRotationPx()[1]*this->GetSpacing()[1]); 
+      LOG_INFO("CenterOfRotation (px): " << this->CenterOfRotationPx[0] << "  " << this->CenterOfRotationPx[1]); 
+      LOG_INFO("CenterOfRotation (mm): " << this->CenterOfRotationPx[0]*this->Spacing[0] << "  " << this->CenterOfRotationPx[1]*this->Spacing[1]); 
     }
     if ( this->GetProbeRotationAxisCalibrated() )
     {
@@ -724,249 +723,38 @@ PlusStatus vtkStepperCalibrationController::CalculateSpacing()
 
   LOG_INFO( ">>>>>>>>>>>> Image spacing calculation ..."); 
 
-  // Construct linear equations Ax = b, where A is a matrix with m rows and 
-  // n columns, b is an m-vector. 
-  std::vector<vnl_vector<double>> aMatrix;
-  std::vector<double> bVector;
+  vtkSmartPointer<vtkTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New(); 
+  trackedFrameList->AddTrackedFrameList( this->TrackedFrameListContainer[PROBE_ROTATION] ); 
+  trackedFrameList->AddTrackedFrameList( this->TrackedFrameListContainer[PROBE_TRANSLATION] ); 
+  trackedFrameList->AddTrackedFrameList( this->TrackedFrameListContainer[TEMPLATE_TRANSLATION] ); 
 
-  // Construct linear equation for spacing calculation
-  this->ConstrLinEqForSpacingCalc(aMatrix, bVector); 
-
-  if ( aMatrix.size() == 0 || bVector.size() == 0 )
+  vtkSmartPointer<vtkSpacingCalibAlgo> spacingCalibAlgo = vtkSmartPointer<vtkSpacingCalibAlgo>::New(); 
+  spacingCalibAlgo->SetInputs(trackedFrameList, this->PatternRecognition.GetFidLabeling()->GetNWires()); 
+  
+  double spacing[2]={0};
+  if ( spacingCalibAlgo->GetSpacing(spacing) != PLUS_SUCCESS )
   {
-    LOG_WARNING("Spacing calculation failed, no data found!"); 
-    return PLUS_FAIL; 
+    LOG_ERROR("Spacing calibration failed!"); 
+    return PLUS_FAIL;  
   }
-
-  // The TRUS Scale factors
-  // - Sx: lateral axis;
-  // - Sy: axial axis;
-  // - Units in mm/pixel.
-  vnl_vector<double> TRUSSquaredScaleFactorsInMMperPixel2x1(2,0);
-  if ( PlusMath::LSQRMinimize(aMatrix, bVector, TRUSSquaredScaleFactorsInMMperPixel2x1) != PLUS_SUCCESS )
-  {
-    LOG_WARNING("Failed to run LSQRMinimize!"); 
-  }
-
-  if ( TRUSSquaredScaleFactorsInMMperPixel2x1.empty() )
-  {
-    LOG_ERROR("Unable to calculate spacing! Minimizer returned empty result."); 
-    return PLUS_FAIL; 
-  }
-
-  this->SaveSpacingCalculationError(aMatrix, bVector, TRUSSquaredScaleFactorsInMMperPixel2x1); 
-  this->SetSpacing( sqrt(TRUSSquaredScaleFactorsInMMperPixel2x1.get(0)), sqrt(TRUSSquaredScaleFactorsInMMperPixel2x1.get(1)) );
+ 
+  this->SetSpacing( spacing[0], spacing[1]);
 
   this->SpacingCalculatedOn(); 
 
-  LOG_INFO("Spacing: " << this->GetSpacing()[0] << "  " << this->GetSpacing()[1]); 
+  LOG_INFO("Spacing: " << this->Spacing[0] << "  " << this->Spacing[1]); 
+
+  // TODO: Need to generate report
+  //spacingCalibAlgo->GenerateReport(htmlGenerator, gnuplotExecuter, inputGnuplotScriptsFolder.c_str()); 
 
   return PLUS_SUCCESS; 
 }
-
-
-//----------------------------------------------------------------------------
-void vtkStepperCalibrationController::ConstrLinEqForSpacingCalc( std::vector<vnl_vector<double>> &aMatrix, std::vector<double> &bVector)
-{
-  LOG_TRACE("vtkStepperCalibrationController::ConstrLinEqForSpacingCalc"); 
-  aMatrix.clear(); 
-  bVector.clear(); 
-
-  for ( int frame = 0; frame < this->SegmentedFrameContainer.size(); frame++ )
-  {
-    // Compute distance between line #1 and #3 for scaling computation 
-    // Constant Distance Measurements from iCAL phantom design in mm
-    const double distanceN1ToN3inMm(40); // TODO: read it from pahantom design
-    double xDistanceN1ToN3Px = this->SegmentedFrameContainer[frame].SegResults.GetFoundDotsCoordinateValue()[WIRE1][0] - this->SegmentedFrameContainer[frame].SegResults.GetFoundDotsCoordinateValue()[WIRE3][0]; 
-    double yDistanceN1ToN3Px = this->SegmentedFrameContainer[frame].SegResults.GetFoundDotsCoordinateValue()[WIRE1][1] - this->SegmentedFrameContainer[frame].SegResults.GetFoundDotsCoordinateValue()[WIRE3][1]; 
-
-    // Populate the sparse matrix with squared distances in pixel 
-    vnl_vector<double> scaleFactorN1ToN3(2,0); 
-    scaleFactorN1ToN3.put(0, pow(xDistanceN1ToN3Px, 2));
-    scaleFactorN1ToN3.put(1, pow(yDistanceN1ToN3Px, 2));
-    aMatrix.push_back(scaleFactorN1ToN3); 
-
-    // Populate the vector with squared distances in mm 
-    bVector.push_back(pow(distanceN1ToN3inMm, 2));
-
-    // Compute distance between line #3 and #6 for scaling computation 
-    // Constant Distance Measurements from iCAL phantom design in mm
-    const double distanceN3ToN6inMm(20); // TODO: read it from pahantom design
-    double xDistanceN3ToN6Px = this->SegmentedFrameContainer[frame].SegResults.GetFoundDotsCoordinateValue()[WIRE3][0] - this->SegmentedFrameContainer[frame].SegResults.GetFoundDotsCoordinateValue()[WIRE6][0]; 
-    double yDistanceN3ToN6Px = this->SegmentedFrameContainer[frame].SegResults.GetFoundDotsCoordinateValue()[WIRE3][1] - this->SegmentedFrameContainer[frame].SegResults.GetFoundDotsCoordinateValue()[WIRE6][1]; 
-
-    // Populate the sparse matrix with squared distances in pixel 
-    vnl_vector<double> scaleFactorN3ToN6(2,0); 
-    scaleFactorN3ToN6.put(0, pow(xDistanceN3ToN6Px, 2));
-    scaleFactorN3ToN6.put(1, pow(yDistanceN3ToN6Px, 2));
-    aMatrix.push_back(scaleFactorN3ToN6); 
-
-    // Populate the vector with squared distances in mm 
-    bVector.push_back(pow(distanceN3ToN6inMm, 2));
-  }
-}
-
-//----------------------------------------------------------------------------
-void vtkStepperCalibrationController::GetSpacingCalculationError(
-  const std::vector<vnl_vector<double>> &aMatrix, 
-  const std::vector<double> &bVector, 
-  const vnl_vector<double> &resultVector, 
-  std::vector<CalibStatistics> &statistics)
-{
-
-  LOG_TRACE("vtkStepperCalibrationController::GetRotationAxisCalibrationError"); 
-  // The coefficient matrix aMatrix should be m-by-n and the column vector bVector must have length m.
-  const int n = aMatrix.begin()->size(); 
-  const int m = bVector.size();
-  const int r = resultVector.size(); 
-
-  const int numberOfAxes(2); 
-  const double sX = resultVector[0]; 
-  const double sY = resultVector[1]; 
-
-  // calculate difference between the computed and measured position for each pair
-  std::vector< std::vector<double> > diffVector(numberOfAxes); 
-  for( int row = 0; row < m; row = row + numberOfAxes)
-  {
-    diffVector[0].push_back( bVector[row    ] - aMatrix[row    ].get(0) * sX ); 
-    diffVector[1].push_back( bVector[row + 1] - aMatrix[row + 1].get(1) * sY ); 
-  }
-
-  this->ComputeStatistics(diffVector, statistics); 
-}
-
-//----------------------------------------------------------------------------
-void vtkStepperCalibrationController::RemoveOutliersFromSpacingCalcData(
-  std::vector<vnl_vector<double>> &aMatrix, 
-  std::vector<double> &bVector, 
-  vnl_vector<double> resultVector )
-{
-
-  LOG_TRACE("vtkStepperCalibrationController::RemoveOutliersFromSpacingCalcData"); 
-  // Calculate mean error and stdev of measured and computed wire distances
-  std::vector<CalibStatistics> statistics; 
-  this->GetSpacingCalculationError(aMatrix, bVector, resultVector, statistics); 
-
-  const int n = aMatrix.begin()->size(); 
-  const int m = bVector.size();
-  const int r = resultVector.size(); 
-
-  const int numberOfAxes(2); 
-  const double sX = resultVector[0]; 
-  const double sY = resultVector[1]; 
-
-  // remove outliers
-  for( int row = m - numberOfAxes; row >= 0; row = row - numberOfAxes)
-  {
-    if (abs ( bVector[row    ] - aMatrix[row    ].get(0) * sX - statistics[0].Mean ) >  this->OutlierDetectionThreshold * statistics[0].Stdev 
-    ||
-      abs ( bVector[row + 1] - aMatrix[row + 1].get(1) * sY - statistics[1].Mean ) >  this->OutlierDetectionThreshold * statistics[1].Stdev )
-    {
-      LOG_DEBUG("Outlier found at row " << row ); 
-      aMatrix.erase(aMatrix.begin() + row, aMatrix.begin() + row + numberOfAxes); 
-      bVector.erase(bVector.begin() + row, bVector.begin() + row + numberOfAxes); 
-    }
-  }
-}
-
-//----------------------------------------------------------------------------
-void vtkStepperCalibrationController::SaveSpacingCalculationError(const std::vector<vnl_vector<double>> &aMatrix, 
-                                                                  const std::vector<double> &bVector, 
-                                                                  const vnl_vector<double> &resultVector)
-{
-  LOG_TRACE("vtkStepperCalibrationController::SaveSpacingCalculationError"); 
-  std::ofstream spacingCalculationError;
-  std::ostringstream filename; 
-  filename << vtkPlusConfig::GetInstance()->GetOutputDirectory() << "/" << this->CalibrationStartTime  << ".SpacingCalculationError.txt"; 
-
-  this->SetSpacingCalculationErrorReportFilePath(filename.str().c_str()); 
-
-  spacingCalculationError.open (filename.str().c_str() , ios::out);
-  spacingCalculationError << "# Spacing calculation error report" << std::endl; 
-
-  spacingCalculationError << "Computed Distance - X (mm)\t" << "Measured Distance - X (mm)\t" << "Computed Distance - Y (mm)\t" << "Measured Distance - Y (mm)\t" << std::endl; 
-
-  const int numberOfAxes(2); 
-  const int m = bVector.size();
-  const double sX = resultVector[0]; 
-  const double sY = resultVector[1]; 
-
-  for( int row = 0; row < m; row = row + numberOfAxes)
-  {
-    spacingCalculationError << sqrt( aMatrix[row].get(0) * sX + aMatrix[row].get(1) * sY ) << "\t" << sqrt(bVector[row])  << "\t" 
-      << sqrt( aMatrix[row + 1].get(0) * sX + aMatrix[row + 1].get(1) * sY  )<< "\t" << sqrt(bVector[row + 1])  << "\t" << "\t" << std::endl; 
-  }
-
-  spacingCalculationError.close(); 
-
-}
-
 
 //----------------------------------------------------------------------------
 PlusStatus vtkStepperCalibrationController::GenerateSpacingCalculationReport( vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter, const char* gnuplotScriptsFolder)
 {
-  if ( htmlReport == NULL || plotter == NULL )
-  {
-    LOG_ERROR("Caller should define HTML report generator and gnuplot plotter before report generation!"); 
-    return PLUS_FAIL; 
-  }
-
-  std::string plotSpacingCalculationErrorScript = gnuplotScriptsFolder + std::string("/PlotSpacingCalculationErrorHistogram.gnu"); 
-  if ( !vtksys::SystemTools::FileExists( plotSpacingCalculationErrorScript.c_str(), true) )
-  {
-    LOG_ERROR("Unable to find gnuplot script at: " << plotSpacingCalculationErrorScript); 
-    return PLUS_FAIL; 
-  }
-
-  if ( this->GetSpacingCalculated() )
-  {
-    const char * reportFile = this->GetSpacingCalculationErrorReportFilePath(); 
-    if ( reportFile == NULL )
-    {
-      LOG_ERROR("Failed to generate spacing calculation report - report file name is NULL!"); 
-      return PLUS_FAIL; 
-    }
-
-    if ( !vtksys::SystemTools::FileExists( reportFile, true) )
-    {
-      LOG_ERROR("Unable to find spacing calculation report file at: " << reportFile); 
-      return PLUS_FAIL; 
-    }
-
-    std::string title; 
-    std::string scriptOutputFilePrefixHistogram, scriptOutputFilePrefix; 
-    title = "Spacing Calculation Analysis"; 
-    scriptOutputFilePrefix = "PlotSpacingCalculationErrorHistogram"; 
-
-    htmlReport->AddText(title.c_str(), vtkHTMLGenerator::H1); 
-
-    std::ostringstream report; 
-    report << "Image spacing (mm/px): " << this->GetSpacing()[0] << "     " << this->GetSpacing()[1] << "</br>" ; 
-    htmlReport->AddParagraph(report.str().c_str()); 
-
-    plotter->ClearArguments(); 
-    plotter->AddArgument("-e");
-    std::ostringstream spacingCalculationError; 
-    spacingCalculationError << "f='" << reportFile << "'; o='" << scriptOutputFilePrefix << "';" << std::ends; 
-    plotter->AddArgument(spacingCalculationError.str().c_str()); 
-    plotter->AddArgument(plotSpacingCalculationErrorScript.c_str());  
-    if ( plotter->Execute() != PLUS_SUCCESS )
-    {
-      LOG_ERROR("Failed to run gnuplot executer!"); 
-      return PLUS_FAIL; 
-    }
-    plotter->ClearArguments(); 
-
-    std::ostringstream imageSource, imageAlt; 
-    imageSource << scriptOutputFilePrefix << ".jpg" << std::ends; 
-    imageAlt << "Spacing calculation error histogram" << std::ends; 
-
-    htmlReport->AddImage(imageSource.str().c_str(), imageAlt.str().c_str()); 
-
-    htmlReport->AddHorizontalLine(); 
-  }
-
-  return PLUS_SUCCESS; 
+  LOG_ERROR("TODO: call report generation from vtkSpacingCalibAlgo!"); 
+  return PLUS_FAIL; 
 }
 
 
@@ -1109,93 +897,6 @@ PlusStatus vtkStepperCalibrationController::CalculatePhantomToProbeDistance()
 
   return PLUS_SUCCESS; 
 }
-
-
-//***************************************************************************
-//								Clustering
-//***************************************************************************
-
-
-//----------------------------------------------------------------------------
-double vtkStepperCalibrationController::GetClusterZPosition(const SegmentedFrameList &cluster)
-{
-  double meanZPosition(0); 
-  const int numOfFrames = cluster.size(); 
-  for ( int frame = 0; frame < numOfFrames; ++frame )
-  {
-    double probePos(0), probeRot(0), templatePos(0); 
-    if ( !vtkBrachyTracker::GetStepperEncoderValues(cluster[frame].TrackedFrameInfo, probePos, probeRot, templatePos, this->SegmentedFrameDefaultTransformName.c_str()) )
-    {
-      LOG_WARNING("GetClusterZPosition: Unable to get probe position from tracked frame info for frame #" << frame); 
-      continue; 
-    }
-    meanZPosition += probePos / (1.0*numOfFrames); 
-  }
-
-  return meanZPosition; 
-}
-
-//----------------------------------------------------------------------------
-void vtkStepperCalibrationController::ClusterSegmentedFrames(IMAGE_DATA_TYPE dataType,  std::vector<SegmentedFrameList> &clusterList)
-{
-  LOG_TRACE("vtkStepperCalibrationController::ClusterSegmentedFrames"); 
-
-  SegmentedFrameList clusterData; 
-
-  vtkSmartPointer<vtkPoints> clusterPoints = vtkSmartPointer<vtkPoints>::New(); 
-  for ( int frame = 0; frame < this->SegmentedFrameContainer.size(); frame++ )
-  {
-
-    if ( this->SegmentedFrameContainer[frame].DataType == dataType )
-    {
-      double probePos(0), probeRot(0), templatePos(0); 
-      if ( !vtkBrachyTracker::GetStepperEncoderValues(this->SegmentedFrameContainer[frame].TrackedFrameInfo, probePos, probeRot, templatePos, this->SegmentedFrameDefaultTransformName.c_str()) )
-      {
-        LOG_WARNING("Clustering: Unable to get probe position from tracked frame info for frame #" << frame); 
-        continue; 
-      }
-
-      LOG_DEBUG("Insert point to cluster list at probe position: " << probePos); 
-      clusterData.push_back(this->SegmentedFrameContainer[frame]); 
-      clusterPoints->InsertNextPoint(probePos, 0, 0); 
-    }
-  }
-
-  vtkSmartPointer<vtkPolyData> data = vtkSmartPointer<vtkPolyData>::New();
-  data->SetPoints(clusterPoints); 
-
-  vtkSmartPointer<vtkMeanShiftClustering> meanShiftFilter = vtkSmartPointer<vtkMeanShiftClustering>::New();
-  meanShiftFilter->SetInputConnection(data->GetProducerPort());
-  meanShiftFilter->SetWindowRadius(5.0); //radius should be bigger than expected clusters
-  meanShiftFilter->SetGaussianVariance(1.0);
-  meanShiftFilter->Update();
-
-
-  for(unsigned int r = 0; r < clusterData.size(); r++)
-  {
-    int clusterID = meanShiftFilter->GetPointAssociations(r); 
-    if ( clusterID >= 0 )
-    {
-      while ( clusterList.size() < clusterID + 1 )
-      {
-        LOG_DEBUG("Create new segmented frame cluster for clusterID: " << clusterID); 
-        SegmentedFrameList newCluster; 
-        clusterList.push_back(newCluster); 
-      }
-
-      clusterList[clusterID].push_back(clusterData[r]); 
-    }
-  }
-
-  LOG_DEBUG("Number of clusters: " << clusterList.size()); 
-  for ( unsigned int i = 0; i < clusterList.size(); ++i)
-  {
-    LOG_DEBUG("Number of elements in cluster #" << i << ": " << clusterList[i].size()); 
-  }
-
-}
-
-
 
 //----------------------------------------------------------------------------
 PlusStatus vtkStepperCalibrationController::OfflineProbeRotationAxisCalibration()
@@ -1589,7 +1290,7 @@ PlusStatus vtkStepperCalibrationController::ReadStepperCalibrationConfiguration(
       this->SetAlgorithmVersion(algorithmVersion); 
     }
 
-    int centerOfRotationPx[2]={0}; 
+    double centerOfRotationPx[2]={0}; 
     if ( calibrationResult->GetVectorAttribute("CenterOfRotationPx", 2, centerOfRotationPx ) )
     {
       this->SetCenterOfRotationPx(centerOfRotationPx); 

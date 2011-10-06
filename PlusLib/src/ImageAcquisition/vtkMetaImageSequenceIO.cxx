@@ -513,11 +513,32 @@ PlusStatus vtkMetaImageSequenceIO::WriteImageHeader()
     SetCustomString("CompressedData", "False");
     SetCustomString("CompressedDataSize", NULL);
   }
-  
+
+  int frameSize[2]={0};
+  if (this->TrackedFrameList->GetNumberOfTrackedFrames()>0)
+  {
+    // Check frame sizes 
+    int* firstFrameSize = this->TrackedFrameList->GetTrackedFrame(0)->GetFrameSize(); 
+    for (int frameNumber=1; frameNumber<this->TrackedFrameList->GetNumberOfTrackedFrames(); frameNumber++)
+    {
+      int * currFrameSize = this->TrackedFrameList->GetTrackedFrame(frameNumber)->GetFrameSize(); 
+      if ( firstFrameSize[0] != currFrameSize[0] 
+      || firstFrameSize[1] != currFrameSize[1] )
+      {
+        LOG_ERROR("Frame size mismatch: expected size (" << firstFrameSize[0] << "x" << firstFrameSize[1] 
+        << ") differ from actual size (" << currFrameSize[0] << "x" << currFrameSize[1] << ") for frame #" << frameNumber); 
+        return PLUS_FAIL; 
+      }
+      
+    }
+    frameSize[0]=firstFrameSize[0]; 
+    frameSize[1]=firstFrameSize[1]; 
+  }
+
   // DimSize
   std::ostringstream dimSizeStr; 
-  this->Dimensions[0]=this->TrackedFrameList->GetFrameSize()[0];
-  this->Dimensions[1]=this->TrackedFrameList->GetFrameSize()[1];
+  this->Dimensions[0]=frameSize[0];
+  this->Dimensions[1]=frameSize[1];
   this->Dimensions[2]=this->TrackedFrameList->GetNumberOfTrackedFrames();
   dimSizeStr << this->Dimensions[0] << " " << this->Dimensions[1] << " " << this->Dimensions[2];
   dimSizeStr << "                              ";  // add spaces so that later the field can be updated with larger values

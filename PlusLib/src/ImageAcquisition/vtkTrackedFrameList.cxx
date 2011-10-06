@@ -254,7 +254,6 @@ vtkTrackedFrameList::vtkTrackedFrameList()
 
   this->SetMaxNumOfFramesToWrite(500); 
   this->SetNumberOfUniqueFrames(5); 
-  this->SetFrameSize(0,0); 
 
   this->MinRequiredTranslationDifferenceMm=0.0;
   this->MinRequiredAngleDifferenceDeg=0.0;
@@ -307,11 +306,28 @@ TrackedFrame* vtkTrackedFrameList::GetTrackedFrame(int frameNumber)
 }
 
 //----------------------------------------------------------------------------
-int vtkTrackedFrameList::AddTrackedFrame(TrackedFrame *trackedFrame)
+PlusStatus vtkTrackedFrameList::AddTrackedFrameList(vtkTrackedFrameList* inTrackedFrameList)
+{
+  PlusStatus status = PLUS_SUCCESS; 
+  for ( int i = 0; i < inTrackedFrameList->GetNumberOfTrackedFrames(); ++i )
+  {
+    if ( this->AddTrackedFrame( inTrackedFrameList->GetTrackedFrame(i) ) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Failed to add tracked frame to the list!"); 
+      status = PLUS_FAIL; 
+      continue; 
+    }
+  }
+
+  return status; 
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkTrackedFrameList::AddTrackedFrame(TrackedFrame *trackedFrame)
 {
   TrackedFrame* pTrackedFrame = new TrackedFrame(*trackedFrame); 
   this->TrackedFrameList.push_back(pTrackedFrame); 
-  return (this->TrackedFrameList.size() - 1); 
+  return PLUS_SUCCESS; 
 }
 
 //----------------------------------------------------------------------------
@@ -477,21 +493,6 @@ bool vtkTrackedFrameList::ValidateSpeed(TrackedFrame* trackedFrame)
   }
 
   return true; 
-}
-
-//----------------------------------------------------------------------------
-int* vtkTrackedFrameList::GetFrameSize()
-{
-  if ( this->GetNumberOfTrackedFrames() > 0 )
-  {
-    this->SetFrameSize(this->GetTrackedFrame(0)->GetFrameSize()); 
-  }
-  else
-  {
-    LOG_WARNING("Unable to get frame size: there is no frame in the tracked frame list!"); 
-  }
-
-  return this->FrameSize; 
 }
 
 //----------------------------------------------------------------------------

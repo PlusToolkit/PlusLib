@@ -88,10 +88,7 @@ int main (int argc, char* argv[])
 
   probeRotationAxisTrackedFrameList->Clear(); 
 
-  if ( !stepperCalibrator->CalibrateProbeRotationAxis() )
-  {
-    numberOfFailures++; 
-  }
+  
 
   //************************************************************************************
 
@@ -119,11 +116,6 @@ int main (int argc, char* argv[])
 
   probeTranslationAxisTrackedFrameList->Clear(); 
 
-  if ( !stepperCalibrator->CalibrateProbeTranslationAxis() )
-  {
-    numberOfFailures++; 
-  }
-
   //************************************************************************************
 
   LOG_INFO("Read frames from metafile for template translation axis calibration..."); 
@@ -150,13 +142,25 @@ int main (int argc, char* argv[])
 
   templateTranslationAxisTrackedFrameList->Clear(); 
 
-  if ( !stepperCalibrator->CalibrateTemplateTranslationAxis() )
+  //************************************************************************************
+
+  LOG_INFO("Testing probe rotation axis calibration..."); 
+  if ( !stepperCalibrator->CalibrateProbeRotationAxis() )
   {
     numberOfFailures++; 
   }
 
-  //************************************************************************************
+  LOG_INFO("Testing probe translation axis calibration..."); 
+  if ( !stepperCalibrator->CalibrateProbeTranslationAxis() )
+  {
+    numberOfFailures++; 
+  }
 
+  LOG_INFO("Testing template translation axis calibration..."); 
+  if ( !stepperCalibrator->CalibrateTemplateTranslationAxis() )
+  {
+    numberOfFailures++; 
+  }
 
   if ( inputSaveResultToXml )
   {
@@ -173,7 +177,7 @@ int main (int argc, char* argv[])
     rotationAxisCalibrationResults->SetVectorAttribute("Spacing", 2, spacing); 
 
     // Center of rotation result 
-    int * centerOfRotationInPixel = stepperCalibrator->GetCenterOfRotationPx(); 
+    double * centerOfRotationInPixel = stepperCalibrator->GetCenterOfRotationPx(); 
     rotationAxisCalibrationResults->SetVectorAttribute("CenterOfRotationInPx", 2, centerOfRotationInPixel); 
 
     // Rotation axis calibration result
@@ -220,6 +224,47 @@ int main (int argc, char* argv[])
   //*********************************************************************
   // Compare results to baseline 
   vtkSmartPointer<vtkXMLDataElement> stepperCalibrationResultsBaseline = vtkXMLUtilities::ReadElementFromFile(inputBaselineFileName.c_str()); 
+
+  // Spacing calibration result
+  vtkXMLDataElement* spacingCalibrationBaseline = NULL; 
+  if ( stepperCalibrationResultsBaseline != NULL )
+  {
+    spacingCalibrationBaseline = stepperCalibrationResultsBaseline->FindNestedElementWithName("SpacingCalibrationResult"); 
+  }
+  else
+  {
+    LOG_ERROR("Failed to read baseline file!");
+    numberOfFailures++;
+  }
+
+  if ( spacingCalibrationBaseline == NULL )
+  {
+    LOG_ERROR("Unable to find SpacingCalibrationResult XML data element in baseline: " << inputBaselineFileName); 
+    numberOfFailures++; 
+  }
+  else
+  {
+    // Compare spacing to baseline 
+    double *spacing = stepperCalibrator->GetSpacing(); 
+    double baseSpacing[2]={0}; 
+    if ( !spacingCalibrationBaseline->GetVectorAttribute("Spacing", 2, baseSpacing) )
+    {
+      LOG_ERROR("Unable to find Spacing XML data element in baseline."); 
+      numberOfFailures++; 
+    }
+    else
+    {
+      if ( fabs(baseSpacing[0] - spacing[0]) > DOUBLE_DIFF 
+        || fabs(baseSpacing[1] - spacing[1]) > DOUBLE_DIFF )
+      {
+        LOG_ERROR("Spacing differ from baseline: current(" << spacing[0] << ", " << spacing[1] 
+        << ") base (" << baseSpacing[0] << ", " << baseSpacing[1] << ")."); 
+        numberOfFailures++;
+      }
+    }
+  }
+
+  // Rotation axis calibration result
   vtkXMLDataElement* rotationAxisCalibrationBaseline = NULL; 
   if ( stepperCalibrationResultsBaseline != NULL )
   {
@@ -238,44 +283,6 @@ int main (int argc, char* argv[])
   }
   else
   {
-    // Compare spacing to baseline 
-    double *spacing = stepperCalibrator->GetSpacing(); 
-    double baseSpacing[2]={0}; 
-    if ( !rotationAxisCalibrationBaseline->GetVectorAttribute("Spacing", 2, baseSpacing) )
-    {
-      LOG_ERROR("Unable to find Spacing XML data element in baseline."); 
-      numberOfFailures++; 
-    }
-    else
-    {
-      if ( fabs(baseSpacing[0] - spacing[0]) > DOUBLE_DIFF 
-        || fabs(baseSpacing[1] - spacing[1]) > DOUBLE_DIFF )
-      {
-        LOG_ERROR("Spacing differ from baseline: current(" << spacing[0] << ", " << spacing[1] 
-        << ") base (" << baseSpacing[0] << ", " << baseSpacing[1] << ")."); 
-        numberOfFailures++;
-      }
-    }
-
-    // Compare CenterOfRotationInPx to baseline 
-    int *centerOfRotationInPx = stepperCalibrator->GetCenterOfRotationPx(); 
-    int baseCenterOfRotationInPx[2]={0}; 
-    if ( !rotationAxisCalibrationBaseline->GetVectorAttribute("CenterOfRotationInPx", 2, baseCenterOfRotationInPx) )
-    {
-      LOG_ERROR("Unable to find CenterOfRotationInPx XML data element in baseline."); 
-      numberOfFailures++; 
-    }
-    else
-    {
-      if ( baseCenterOfRotationInPx[0] != centerOfRotationInPx[0] 
-      || baseCenterOfRotationInPx[1] != centerOfRotationInPx[1] )
-      {
-        LOG_ERROR("Center of rotation differ from baseline: current(" << centerOfRotationInPx[0] << ", " << centerOfRotationInPx[1] 
-        << ") base (" << baseCenterOfRotationInPx[0] << ", " << baseCenterOfRotationInPx[1] << ")."); 
-        numberOfFailures++;
-      }
-    }
-
     // Compare RotationAxisOrientation to baseline 
     double *rotationAxisOrientation = stepperCalibrator->GetProbeRotationAxisOrientation(); 
     double baseRotationAxisOrientation[3]={0}; 
@@ -296,39 +303,7 @@ int main (int argc, char* argv[])
       }
     }
 
-    // Compare RotationEncoderOffset to baseline 
-    double rotationEncoderOffset = stepperCalibrator->GetProbeRotationEncoderOffset(); 
-    double baseRotationEncoderOffset=0; 
-    if ( !rotationAxisCalibrationBaseline->GetScalarAttribute("RotationEncoderOffset", baseRotationEncoderOffset) )
-    {
-      LOG_ERROR("Unable to find RotationEncoderOffset XML data element in baseline."); 
-      numberOfFailures++; 
-    }
-    else
-    {
-      if ( fabs( baseRotationEncoderOffset - rotationEncoderOffset ) > DOUBLE_DIFF )
-      {
-        LOG_ERROR("Probe rotation encoder offset differ from baseline: current(" << rotationEncoderOffset << ") base (" << baseRotationEncoderOffset <<  ")."); 
-        numberOfFailures++;
-      }
-    }
-
-    // Compare RotationEncoderScale to baseline 
-    double rotationEncoderScale = stepperCalibrator->GetProbeRotationEncoderScale(); 
-    double baseRotationEncoderScale=0; 
-    if ( !rotationAxisCalibrationBaseline->GetScalarAttribute("RotationEncoderScale", baseRotationEncoderScale) )
-    {
-      LOG_ERROR("Unable to find RotationEncoderScale XML data element in baseline."); 
-      numberOfFailures++; 
-    }
-    else
-    {
-      if ( fabs( baseRotationEncoderScale - rotationEncoderScale) > DOUBLE_DIFF )
-      {
-        LOG_ERROR("Probe rotation encoder scale differ from baseline: current(" << rotationEncoderScale << ") base (" << baseRotationEncoderScale <<  ")."); 
-        numberOfFailures++;
-      }
-    }
+    
 
     // Compare PhantomToProbeDistanceInMm to baseline 
     double *phantomToProbeDistanceInMm = stepperCalibrator->GetPhantomToProbeDistanceInMm(); 
@@ -350,6 +325,103 @@ int main (int argc, char* argv[])
     }
   }
 
+  // Rotation encoder calibration result
+  vtkXMLDataElement* rotationEncoderCalibrationBaseline = NULL; 
+  if ( stepperCalibrationResultsBaseline != NULL )
+  {
+    rotationEncoderCalibrationBaseline = stepperCalibrationResultsBaseline->FindNestedElementWithName("RotationEncoderCalibrationResult"); 
+  }
+  else
+  {
+    LOG_ERROR("Failed to read baseline file!");
+    numberOfFailures++;
+  }
+
+  if ( rotationEncoderCalibrationBaseline == NULL )
+  {
+    LOG_ERROR("Unable to find RotationEncoderCalibrationResult XML data element in baseline: " << inputBaselineFileName); 
+    numberOfFailures++; 
+  }
+  else
+  {
+    // Compare RotationEncoderOffset to baseline 
+    double rotationEncoderOffset = stepperCalibrator->GetProbeRotationEncoderOffset(); 
+    double baseRotationEncoderOffset=0; 
+    if ( !rotationEncoderCalibrationBaseline->GetScalarAttribute("RotationEncoderOffset", baseRotationEncoderOffset) )
+    {
+      LOG_ERROR("Unable to find RotationEncoderOffset XML data element in baseline."); 
+      numberOfFailures++; 
+    }
+    else
+    {
+      if ( fabs( baseRotationEncoderOffset - rotationEncoderOffset ) > DOUBLE_DIFF )
+      {
+        LOG_ERROR("Probe rotation encoder offset differ from baseline: current(" << rotationEncoderOffset << ") base (" << baseRotationEncoderOffset <<  ")."); 
+        numberOfFailures++;
+      }
+    }
+
+    // Compare RotationEncoderScale to baseline 
+    double rotationEncoderScale = stepperCalibrator->GetProbeRotationEncoderScale(); 
+    double baseRotationEncoderScale=0; 
+    if ( !rotationEncoderCalibrationBaseline->GetScalarAttribute("RotationEncoderScale", baseRotationEncoderScale) )
+    {
+      LOG_ERROR("Unable to find RotationEncoderScale XML data element in baseline."); 
+      numberOfFailures++; 
+    }
+    else
+    {
+      if ( fabs( baseRotationEncoderScale - rotationEncoderScale) > DOUBLE_DIFF )
+      {
+        LOG_ERROR("Probe rotation encoder scale differ from baseline: current(" << rotationEncoderScale << ") base (" << baseRotationEncoderScale <<  ")."); 
+        numberOfFailures++;
+      }
+    }
+  }
+
+  // Center of rotation calibration result
+  vtkXMLDataElement* centerOfRotationCalibrationBaseline = NULL; 
+  if ( stepperCalibrationResultsBaseline != NULL )
+  {
+    centerOfRotationCalibrationBaseline = stepperCalibrationResultsBaseline->FindNestedElementWithName("CenterOfRotationCalibrationResult"); 
+  }
+  else
+  {
+    LOG_ERROR("Failed to read baseline file!");
+    numberOfFailures++;
+  }
+
+  //TODO: compare center of rotation result to baseline
+  /*
+  if ( centerOfRotationCalibrationBaseline == NULL )
+  {
+    LOG_ERROR("Unable to find CenterOfRotationCalibrationResult XML data element in baseline: " << inputBaselineFileName); 
+    numberOfFailures++; 
+  }
+  else
+  {
+    // Compare CenterOfRotationInPx to baseline 
+    double *centerOfRotationInPx = stepperCalibrator->GetCenterOfRotationPx(); 
+    double baseCenterOfRotationInPx[2]={0}; 
+    if ( !centerOfRotationCalibrationBaseline->GetVectorAttribute("CenterOfRotationPx", 2, baseCenterOfRotationInPx) )
+    {
+      LOG_ERROR("Unable to find CenterOfRotationPx XML data element in baseline."); 
+      numberOfFailures++; 
+    }
+    else
+    {
+      if ( baseCenterOfRotationInPx[0] != centerOfRotationInPx[0] 
+      || baseCenterOfRotationInPx[1] != centerOfRotationInPx[1] )
+      {
+        LOG_ERROR("Center of rotation differ from baseline: current(" << centerOfRotationInPx[0] << ", " << centerOfRotationInPx[1] 
+        << ") base (" << baseCenterOfRotationInPx[0] << ", " << baseCenterOfRotationInPx[1] << ")."); 
+        numberOfFailures++;
+      }
+    }
+  }
+  */
+
+  // Probe translation axis calibration result
   vtkXMLDataElement* probeTranslationAxisCalibrationBaseline = NULL; 
   if ( stepperCalibrationResultsBaseline != NULL )
   {
@@ -389,6 +461,7 @@ int main (int argc, char* argv[])
     }
   }
 
+  // Template translation axis calibration result
   vtkXMLDataElement* templateTranslationAxisCalibrationBaseline = NULL; 
   if ( stepperCalibrationResultsBaseline != NULL )
   {

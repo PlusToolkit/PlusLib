@@ -5,6 +5,7 @@
 #include "vtkXMLUtilities.h"
 #include "FidPatternRecognition.h"
 #include "vtkTranslAxisCalibAlgo.h"
+#include "vtkSpacingCalibAlgo.h"
 #include "vtkGnuplotExecuter.h"
 #include "vtkHTMLGenerator.h"
 
@@ -122,10 +123,32 @@ int main(int argc, char **argv)
     patternRecognition.RecognizePattern(trackedFrameList->GetTrackedFrame(currentFrameIndex));
   }
 
-  LOG_INFO("Spacing computation...");
-  double spacing[2]={0.191451, 0.186871}; // TODO: remove hard coded spacing info, compute it or read it from baseline 
+ LOG_INFO("Testing spacing computation...");
+  vtkSmartPointer<vtkSpacingCalibAlgo> spacingCalibAlgo = vtkSmartPointer<vtkSpacingCalibAlgo>::New(); 
+  spacingCalibAlgo->SetInputs(trackedFrameList, patternRecognition.GetFidLabeling()->GetNWires()); 
 
-  LOG_INFO("Spacing: " << std::fixed << spacing[0] << "  " << spacing[1] << " mm/px"); 
+  double spacing[2]={0}; 
+  if ( spacingCalibAlgo->GetSpacing(spacing) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Spacing calibration failed!"); 
+    numberOfFailures++; 
+  }
+  else
+  {
+    LOG_INFO("Spacing: " << std::fixed << spacing[0] << "  " << spacing[1] << " mm/px"); 
+  }
+
+  // Get calibration error
+  double spacingErrorMean(0), spacingErrorStdev(0); 
+  if ( spacingCalibAlgo->GetError(spacingErrorMean, spacingErrorStdev) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to get spacing calibration error!"); 
+    numberOfFailures++; 
+  }
+  else
+  {
+    LOG_INFO("Spacing calibration error - mean: " << std::fixed << spacingErrorMean << "  stdev: " << spacingErrorStdev); 
+  }
 
   LOG_INFO("Testing translation axis orientation computation algorithm...");
   vtkSmartPointer<vtkTranslAxisCalibAlgo> translAxisCalibAlgo = vtkSmartPointer<vtkTranslAxisCalibAlgo>::New(); 
@@ -179,6 +202,7 @@ int main(int argc, char **argv)
     gnuplotExecuter->SetWorkingDirectory("./"); 
     gnuplotExecuter->SetGnuplotCommand(inputGnuplotCommand.c_str()); 
     gnuplotExecuter->SetHideWindow(true); 
+    spacingCalibAlgo->GenerateReport(htmlGenerator, gnuplotExecuter, inputGnuplotScriptsFolder.c_str()); 
     translAxisCalibAlgo->GenerateReport(htmlGenerator, gnuplotExecuter, inputGnuplotScriptsFolder.c_str()); 
     htmlGenerator->SaveHtmlPage("TranslationAxisCalibrationErrorReport.html"); 
   }
@@ -229,6 +253,39 @@ int main(int argc, char **argv)
         numberOfFailures++;
       }
     }
+
+    // Compare errorMean 
+    double baseErrorMean=0; 
+    if ( !xmlTranslationAxisCalibrationBaseline->GetScalarAttribute("ErrorMean", baseErrorMean) )
+    {
+      LOG_ERROR("Unable to find ErrorMean XML data element in baseline."); 
+      numberOfFailures++; 
+    }
+    else
+    {
+      if ( fabs(baseErrorMean - errorMean) > DOUBLE_DIFF )
+      {
+        LOG_ERROR("Translation axis calibration mean error differ from baseline: current(" << errorMean << ") base (" << baseErrorMean << ")."); 
+        numberOfFailures++;
+      }
+    }
+
+    // Compare errorStdev
+    double baseErrorStdev=0; 
+    if ( !xmlTranslationAxisCalibrationBaseline->GetScalarAttribute("ErrorStdev", baseErrorStdev) )
+    {
+      LOG_ERROR("Unable to find ErrorStdev XML data element in baseline."); 
+      numberOfFailures++; 
+    }
+    else
+    {
+      if ( fabs(baseErrorStdev - errorStdev) > DOUBLE_DIFF )
+      {
+        LOG_ERROR("Translation axis calibration stdev of error differ from baseline: current(" << errorStdev << ") base (" << baseErrorStdev << ")."); 
+        numberOfFailures++;
+      }
+    }
+
   }
 
 

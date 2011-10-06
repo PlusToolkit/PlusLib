@@ -193,13 +193,9 @@ int main(int argc, char **argv)
 		return EXIT_FAILURE;
 	}
 
-  const unsigned long imageWidthInPixels = trackedFrameList->GetFrameSize()[0]; 
-	const unsigned long imageHeightInPixels = trackedFrameList->GetFrameSize()[1]; 
   unsigned long numberOfFrames = trackedFrameList->GetNumberOfTrackedFrames();
 
-  unsigned int frameSizeInBytes = imageWidthInPixels * imageHeightInPixels * trackedFrameList->GetNumberOfBitsPerPixel()/8;
-
-	LOG_INFO("Adding frames to actors...");
+  LOG_INFO("Adding frames to actors...");
 
   std::vector<vtkTransform*> imageTransforms; 
   std::string defaultFrameTransformName=trackedFrameList->GetDefaultFrameTransformName();
@@ -207,6 +203,7 @@ int main(int argc, char **argv)
 	{
 		vtkPlusLogger::PrintProgressbar( (100.0 * imgNumber) / numberOfFrames ); 
     TrackedFrame* trackedFrame=trackedFrameList->GetTrackedFrame(imgNumber);
+
 
 		vtkSmartPointer<vtkMatrix4x4> imageTransMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
     reader->GetTrackedFrame(imgNumber)->GetCustomFrameTransform(defaultFrameTransformName.c_str(), imageTransMatrix);

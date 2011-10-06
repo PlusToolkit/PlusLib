@@ -163,8 +163,8 @@ public:
 	// Origin: Left-upper corner (the original image frame)
 	// Positive X: to the right;
 	// Positive Y: to the bottom;
-	vtkSetVector2Macro(CenterOfRotationPx, int); 
-	vtkGetVector2Macro(CenterOfRotationPx, int);
+	vtkSetVector2Macro(CenterOfRotationPx, double); 
+	vtkGetVector2Macro(CenterOfRotationPx, double);
 
 	//! Description: 
 	// Set/Get the minimum number of clusters for rotation axis calibration
@@ -244,11 +244,6 @@ public:
 	vtkSetStringMacro(ProbeRotationEncoderCalibrationErrorReportFilePath); 
 	vtkGetStringMacro(ProbeRotationEncoderCalibrationErrorReportFilePath); 
 
-	//! Description: 
-	// Set/get spacing calculation error report file path
-	vtkSetStringMacro(SpacingCalculationErrorReportFilePath); 
-	vtkGetStringMacro(SpacingCalculationErrorReportFilePath); 
-	
 	//! Description: 
 	// Set/get calibration mode
 	vtkSetMacro(CalibrationMode, CalibrationMode); 
@@ -333,31 +328,6 @@ protected:
 	// Returns true on success otherwise false
 	virtual PlusStatus CalculateSpacing(); 
 
-	//! Description: 
-	// Remove outliers from spacing calculation dataset
-	virtual void RemoveOutliersFromSpacingCalcData(
-		std::vector<vnl_vector<double>> &aMatrix, 
-		std::vector<double> &bVector, 
-		vnl_vector<double> resultVector );
-
-	//! Description: 
-	// Calculate mean error and stdev of measured and computed spacing factors
-	virtual void GetSpacingCalculationError(
-		const std::vector<vnl_vector<double>> &aMatrix, 
-		const std::vector<double> &bVector, 
-		const vnl_vector<double> &resultVector, 
-    std::vector<CalibStatistics> &statistics); 
-
-	//! Description: 
-	// Save spacing calculation error to file in gnuplot format 
-	virtual void SaveSpacingCalculationError(const std::vector<vnl_vector<double>> &aMatrix, 
-		const std::vector<double> &bVector, 
-		const vnl_vector<double> &resultVector); 
-
-	//! Description: 
-	// Construct linear equation for spacing calculation
-	virtual void ConstrLinEqForSpacingCalc( std::vector<vnl_vector<double>> &aMatrix, std::vector<double> &bVector); 
-	
 	//***************************************************************************
 	//					Phantom to probe distance calculation
 	//***************************************************************************
@@ -377,19 +347,6 @@ protected:
 	// Returns true on success otherwise false
 	virtual PlusStatus CalculatePhantomToProbeDistance(); 
 
-	
-	//***************************************************************************
-	//								Clustering
-	//***************************************************************************
-
-	//! Description:
-	// Clustering segmented frames by Z position 
-	virtual void ClusterSegmentedFrames(IMAGE_DATA_TYPE dataType,  std::vector<SegmentedFrameList> &clusterList); 
-
-	//! Description:
-	// Get Z position of the cluster (aka. the z position of the point cloud)
-	virtual double GetClusterZPosition(const SegmentedFrameList &cluster); 
-
 protected:
 
 	bool SpacingCalculated; 
@@ -404,7 +361,7 @@ protected:
 	// Origin: Left-upper corner (the original image frame)
 	// Positive X: to the right;
 	// Positive Y: to the bottom;
-	int CenterOfRotationPx[2]; 
+	double CenterOfRotationPx[2]; 
 
 	// Image scaling factors 
 	// (x: lateral axis, y: axial axis)
@@ -434,7 +391,6 @@ protected:
 	std::vector< std::vector<HomogenousVector4x1> > PointSetForPhantomToProbeDistanceCalculation;
 
 	char* ProbeRotationEncoderCalibrationErrorReportFilePath; 
-	char* SpacingCalculationErrorReportFilePath; 
 
   char* AlgorithmVersion; 
 
