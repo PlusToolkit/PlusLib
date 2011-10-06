@@ -24,8 +24,6 @@
 
 #include "vnl/vnl_cross.h"
 
-#include "LinearLeastSquares.h" //TODO use PlusMath instead
-
 vtkCxxRevisionMacro(vtkCalibrationController, "$Revision: 1.0 $");
 vtkStandardNewMacro(vtkCalibrationController);
 
@@ -1096,14 +1094,63 @@ PlusStatus vtkCalibrationController::DoOfflineCalibration()
 }
 
 //----------------------------------------------------------------------------
-void vtkCalibrationController::DoCalibration() //TODO replace its calls with its content
+PlusStatus vtkCalibrationController::DoCalibration()
 {
 	LOG_TRACE("vtkCalibrationController::DoCalibration"); 
-	// Instruct the calibrator to perform the calibration task
-	this->calibrate();
 
-	// Instruct the calibrator to validate the calibration accuracy
+	mHasBeenCalibrated = false;
+
+  // Apply beamwidth weights (TODO do this when adding the position)
+	if (mIsUSBeamwidthAndWeightFactorsTableReady == true)
+	{
+		if ( mWeightsForDataPositions.size() != mDataPositionsInUSImageFrame.size() )
+		{
+			LOG_ERROR("The number of weights and beamwidth data does not match the number of data for calibration!");
+			return PLUS_FAIL;
+		}
+
+    for (int i=0; i < mWeightsForDataPositions.size(); ++i)
+    {
+      mDataPositionsInUSImageFrame[i] *= mWeightsForDataPositions[i]; // It can happen that it is done multiple times - see TODO few lines above
+      mDataPositionsInUSProbeFrame[i] *= mWeightsForDataPositions[i];
+    }
+  }
+
+  // Do calibration for all dimensions and assemble output matrix
+  const int m = mDataPositionsInUSImageFrame.size();
+  const int n = mDataPositionsInUSImageFrame.begin()->size();
+
+  mTransformUSImageFrame2USProbeFrameMatrix4x4.set_size(n, n);
+  mTransformUSImageFrame2USProbeFrameMatrix4x4.fill(0);
+
+  for (int row = 0; row < n; ++row)
+  {
+    std::vector<double> probePositionRowVector(m,0);
+    for (int i=0; i < m; ++i)
+    {
+      probePositionRowVector[i] = mDataPositionsInUSProbeFrame[i][row];
+    }
+
+    vnl_vector<double> resultVector(n,0);
+    if ( PlusMath::LSQRMinimize(mDataPositionsInUSImageFrame, probePositionRowVector, resultVector) != PLUS_SUCCESS )
+    {
+      LOG_WARNING("Failed to run LSQRMinimize!"); 
+    }
+
+    mTransformUSImageFrame2USProbeFrameMatrix4x4.set_row(row, resultVector);
+  }
+
+	// Make sure the last row in homogeneous transform is [0 0 0 1]
+	vnl_vector<double> lastRow(4,0);
+	lastRow.put(3, 1);
+	mTransformUSImageFrame2USProbeFrameMatrix4x4.set_row(3, lastRow);
+
+	mHasBeenCalibrated = true;
+
+	// Validate the calibration accuracy
 	this->compute3DPointReconstructionError();
+
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
@@ -1719,13 +1766,8 @@ PlusStatus vtkCalibrationController::AddPositionsPerImage( std::vector< vnl_vect
     PositionInPhantomFrame = IntersectPosW12 + alpha * ( IntersectPosW32 - IntersectPosW12 );
     PositionInPhantomFrame[3]=1.0;
 
-    // Finally, calculate the position in the US probe frame
-    // X_USProbe = T_Stepper->USProbe * T_Template->Stepper * X_Template
-    // NOTE: T_Template->Stepper = mTransformMatrixPhantom2DRB4x4 
-    vnl_vector<double> PositionInUSProbeFrame =  
-      transformReference2Probe * 
-      mTransformMatrixPhantom2DRB4x4 *
-      PositionInPhantomFrame;
+    // Finally, calculate the position in the probe frame
+    vnl_vector<double> PositionInUSProbeFrame = transformReference2Probe * mTransformMatrixPhantom2DRB4x4 * PositionInPhantomFrame;
 
     LOG_DEBUG(" ADD DATA FOR " << (aValidation?"VALIDATION":"CALIBRATION") << " ("<<frameIndex<<")");
     LOG_DEBUG(" SegmentedNFiducial-" << Layer*3 << " = " << aSegmentedDataPositionListPerImage.at( Layer*3 ));
@@ -1749,15 +1791,8 @@ PlusStatus vtkCalibrationController::AddPositionsPerImage( std::vector< vnl_vect
     }
     else
     {
-      vnl_vector<double> NWireStartinUSProbeFrame =
-        transformReference2Probe * 
-        mTransformMatrixPhantom2DRB4x4 *
-        IntersectPosW12;
-
-      vnl_vector<double> NWireEndinUSProbeFrame =
-        transformReference2Probe * 
-        mTransformMatrixPhantom2DRB4x4 *
-        IntersectPosW32;
+      vnl_vector<double> NWireStartinUSProbeFrame = transformReference2Probe * mTransformMatrixPhantom2DRB4x4 * IntersectPosW12;
+      vnl_vector<double> NWireEndinUSProbeFrame = transformReference2Probe * mTransformMatrixPhantom2DRB4x4 * IntersectPosW32;
 
       // The parallel wires position in US Probe frame 
       // Note: 
@@ -1766,16 +1801,10 @@ PlusStatus vtkCalibrationController::AddPositionsPerImage( std::vector< vnl_vect
       // 2. The Z-axis of the N-wire joints is not used in the computing.
 
       // Wire N1 corresponds to mNWireJointTopLayerBackWall 
-      vnl_vector<double> NWireJointForN1InUSProbeFrame =
-        transformReference2Probe * 
-        mTransformMatrixPhantom2DRB4x4 *
-        IntersectPosW12; //any point of wire 1 of this layer
+      vnl_vector<double> NWireJointForN1InUSProbeFrame = transformReference2Probe * mTransformMatrixPhantom2DRB4x4 * IntersectPosW12; //any point of wire 1 of this layer
 
       // Wire N3 corresponds to mNWireJointTopLayerFrontWall
-      vnl_vector<double> NWireJointForN3InUSProbeFrame =
-        transformReference2Probe * 
-        mTransformMatrixPhantom2DRB4x4 *
-        IntersectPosW32; //any point of wire 3 of this layer
+      vnl_vector<double> NWireJointForN3InUSProbeFrame = transformReference2Probe * mTransformMatrixPhantom2DRB4x4 * IntersectPosW32; //any point of wire 3 of this layer
 
       // Store into the list of positions in the US image frame
       mValidationPositionsInUSImageFrame.push_back( SegmentedPositionInUserImageFrame );
@@ -1799,10 +1828,8 @@ PlusStatus vtkCalibrationController::AddPositionsPerImage( std::vector< vnl_vect
           vnl_vector<double> N3SegmentedPositionInOriginalImageFrame( aSegmentedDataPositionListPerImage.at(2) );
 
           // Convert the segmented image positions from the original image to the predefined ultrasound image frame.
-          vnl_vector<double> N1SegmentedPositionInUserImageFrame =  
-            transformImage2UserImage * N1SegmentedPositionInOriginalImageFrame;
-          vnl_vector<double> N3SegmentedPositionInUserImageFrame =  
-            transformImage2UserImage * N3SegmentedPositionInOriginalImageFrame;
+          vnl_vector<double> N1SegmentedPositionInUserImageFrame = transformImage2UserImage * N1SegmentedPositionInOriginalImageFrame;
+          vnl_vector<double> N3SegmentedPositionInUserImageFrame = transformImage2UserImage * N3SegmentedPositionInOriginalImageFrame;
 
           mValidationPositionsNWire1InUSImageFrame.push_back( N1SegmentedPositionInUserImageFrame );
           mValidationPositionsNWire3InUSImageFrame.push_back( N3SegmentedPositionInUserImageFrame );
@@ -1814,10 +1841,8 @@ PlusStatus vtkCalibrationController::AddPositionsPerImage( std::vector< vnl_vect
           vnl_vector<double> N4SegmentedPositionInOriginalImageFrame( aSegmentedDataPositionListPerImage.at(3) );
           vnl_vector<double> N6SegmentedPositionInOriginalImageFrame( aSegmentedDataPositionListPerImage.at(5) );
 
-          vnl_vector<double> N4SegmentedPositionInUserImageFrame =  
-            transformImage2UserImage * N4SegmentedPositionInOriginalImageFrame;
-          vnl_vector<double> N6SegmentedPositionInUserImageFrame =  
-            transformImage2UserImage * N6SegmentedPositionInOriginalImageFrame;
+          vnl_vector<double> N4SegmentedPositionInUserImageFrame = transformImage2UserImage * N4SegmentedPositionInOriginalImageFrame;
+          vnl_vector<double> N6SegmentedPositionInUserImageFrame = transformImage2UserImage * N6SegmentedPositionInOriginalImageFrame;
 
           mValidationPositionsNWire4InUSImageFrame.push_back( N4SegmentedPositionInUserImageFrame );
           mValidationPositionsNWire6InUSImageFrame.push_back( N6SegmentedPositionInUserImageFrame );
@@ -2014,175 +2039,6 @@ void vtkCalibrationController::FillUltrasoundBeamwidthAndWeightFactorsTable()
 		<< mTheNearestAxialDepthInUSBeamwidthAndWeightTable);				
 	LOG_DEBUG(" mTheFarestAxialDepthInUSBeamwidthAndWeightTable = " 
 		<< mTheFarestAxialDepthInUSBeamwidthAndWeightTable);
-}
-
-//-----------------------------------------------------------------------------
-
-void vtkCalibrationController::setOutlierFlags()
-{
-	LOG_TRACE("vtkCalibrationController::setOutlierFlags");
-
-	const double numOfElements = this->mDataPositionsInUSImageFrame.size(); 
-	vnl_vector<double> LREx(numOfElements); 
-	vnl_vector<double> LREy(numOfElements); 
-
-	// Get LRE for each calibration data 
-	for ( int i = 0; i < numOfElements; i++ )
-	{
-		vnl_vector<double> LRExy = this->getPointLineReconstructionError(
-			this->mDataPositionsInUSImageFrame[i], 
-			this->mDataPositionsInUSProbeFrame[i] ); 
-
-		LREx.put(i, LRExy.get(0)); 
-		LREy.put(i, LRExy.get(1)); 
-	}
-
-	// Compute LRE mean
-	double LRExMean = LREx.mean(); 
-	double LREyMean = LREy.mean(); 
-
-	// Compute LRE std
-	vnl_vector<double> diffFromMeanX = LREx - LRExMean; 
-	double LRExStd = sqrt(	diffFromMeanX.squared_magnitude() / numOfElements );
-
-	vnl_vector<double> diffFromMeanY = LREy - LREyMean; 
-	double LREyStd = sqrt(	diffFromMeanY.squared_magnitude() / numOfElements );
-
-	// find outliers
-	for ( int i = 0; i < numOfElements; i++ )
-	{
-		if ( abs(LREx.get(i) - LRExMean) > mOutlierDetectionThreshold * LRExStd 
-			|| 
-			abs(LREy.get(i) - LREyMean) > mOutlierDetectionThreshold * LREyStd )
-		{
-			// Add position to the outlier list
-			this->mOutlierDataPositions.push_back(i); 
-		}
-	}
-
-	this->mAreOutliersRemoved = true;
-}
-
-//-----------------------------------------------------------------------------
-
-void vtkCalibrationController::resetOutlierFlags()
-{
-	LOG_TRACE("vtkCalibrationController::resetOutlierFlags");
-
-	this->mOutlierDataPositions.clear(); 
-
-	this->mAreOutliersRemoved = false; 
-}
-
-//-----------------------------------------------------------------------------
-
-PlusStatus vtkCalibrationController::calibrate()
-{
-	LOG_TRACE("vtkCalibrationController::calibrate");
-
-	if( true == mHasBeenCalibrated )
-	{
-		mHasBeenCalibrated = false;
-	}
-
-	// STEP-0 Copy original data positions and remove outliers 
-	for ( std::vector<int>::reverse_iterator rit = mOutlierDataPositions.rbegin();  rit != mOutlierDataPositions.rend(); ++rit )
-	{
-		mDataPositionsInUSImageFrame.erase( mDataPositionsInUSImageFrame.begin() + *rit );
-		mDataPositionsInUSProbeFrame.erase( mDataPositionsInUSProbeFrame.begin() + *rit );
-	}
-
-	// STEP-1. Populate the data positions into matrices
-	const int TotalNumberOfDataPositionsForCalibration( mDataPositionsInUSImageFrame.size() );
-	vnl_matrix<double> DataPositionsInUSImageFrameMatrix4xN(4, TotalNumberOfDataPositionsForCalibration );
-	vnl_matrix<double> DataPositionsInUSProbeFrameMatrix4xN(4, TotalNumberOfDataPositionsForCalibration );
-
-	for( int i = 0; i < TotalNumberOfDataPositionsForCalibration; i++ )
-	{
-		// Populate the data positions in the US image frame
-		DataPositionsInUSImageFrameMatrix4xN.set_column( i, mDataPositionsInUSImageFrame.at(i) );
-		
-		// Populate the data positions in the US probe frame
-		DataPositionsInUSProbeFrameMatrix4xN.set_column( i, mDataPositionsInUSProbeFrame.at(i) );
-	}
-
-	// STEP-2. Call the LeastSquare Interface from CommonFramework Component
-	// T_USImage2Probe * XinUSImageFrame = XinProbeFrame -> solve T
-	// NOTE: The transform obtained is carrying the scaling information
-	// for the ultrasound image already.
-
-	LinearLeastSquares LeastSquares(
-		DataPositionsInUSImageFrameMatrix4xN,		// dataObserver1
-		DataPositionsInUSProbeFrameMatrix4xN);		// dataobserver2
-
-	// If the weights for the data positions are available, apply the weights to the optimization
-	vnl_vector<double> WeightsForDataPositionsInVNLvectors(0);
-	vnl_vector<double> USBeamWidthEuclideanMagAtDataPositionsInVNLvectors(0);
-	if( true == mIsUSBeamwidthAndWeightFactorsTableReady )
-	{
-		// Copy original data and remove outliers 
-		std::vector<double> weightsForDataPositions = mWeightsForDataPositions; 
-		std::vector<double> usBeamWidthEuclideanMagAtDataPositions = mUSBeamWidthEuclideanMagAtDataPositions;
-
-		for ( std::vector<int>::reverse_iterator rit = mOutlierDataPositions.rbegin();  rit != mOutlierDataPositions.rend(); ++rit )
-		{
-			weightsForDataPositions.erase( weightsForDataPositions.begin() + *rit );
-			usBeamWidthEuclideanMagAtDataPositions.erase( usBeamWidthEuclideanMagAtDataPositions.begin() + *rit );
-		}
-
-		if( weightsForDataPositions.size() != TotalNumberOfDataPositionsForCalibration ||
-			usBeamWidthEuclideanMagAtDataPositions.size() != TotalNumberOfDataPositionsForCalibration )
-		{
-			LOG_ERROR("The number of weights and beamwidth data does NOT match the number of data for calibration!");
-			return PLUS_FAIL;
-		}
-
-		// Populate the weights to vnl_vector format
-		WeightsForDataPositionsInVNLvectors.set_size( TotalNumberOfDataPositionsForCalibration );
-		USBeamWidthEuclideanMagAtDataPositionsInVNLvectors.set_size( TotalNumberOfDataPositionsForCalibration );
-		for( int i = 0; i < TotalNumberOfDataPositionsForCalibration; i++ )
-		{
-			WeightsForDataPositionsInVNLvectors.put(i, weightsForDataPositions.at(i));
-			USBeamWidthEuclideanMagAtDataPositionsInVNLvectors.put(i, 
-				usBeamWidthEuclideanMagAtDataPositions.at(i));
-		}
-
-		LeastSquares.setDataWeights( WeightsForDataPositionsInVNLvectors );
-	}
-
-  try {
-	  LeastSquares.doOptimization();
-  } catch (...) {
-    LOG_ERROR("Optimiaztion failed!");
-    return PLUS_FAIL;
-  }
-
-	// Output to the resulting matrix
-	mTransformUSImageFrame2USProbeFrameMatrix4x4 = LeastSquares.getTransform();
-
-	if ( mAreOutliersRemoved == true )
-	{
-    return PLUS_SUCCESS; 
-	}
-
-	// eliminate outliers from calibration 
-	this->setOutlierFlags(); 
-
-	// do a re-calibration without outliers
-	this->calibrate(); 
-
-	// reset the outlier flags 
-	this->resetOutlierFlags(); 
-
-	// Make sure the last row in homogeneous transform is [0 0 0 1]
-	vnl_vector<double> lastRow(4,0);
-	lastRow.put(3, 1);
-	mTransformUSImageFrame2USProbeFrameMatrix4x4.set_row(3, lastRow);
-
-	// Reset the calibration flag
-	mHasBeenCalibrated = true;
-
-  return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------

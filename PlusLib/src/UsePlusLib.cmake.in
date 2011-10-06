@@ -122,11 +122,7 @@ IF(NOT PLUSLIB_USE_FILE_INCLUDED)
       IF ("@vcProj_vtkTrusCalibration@" STRGREATER "")
         INCLUDE_EXTERNAL_MSPROJECT(@vcProj_vtkTrusCalibration@)
       ENDIF()
-      
-      IF ("@vcProj_vtkTrusCalibrationCommon@" STRGREATER "")
-        INCLUDE_EXTERNAL_MSPROJECT(@vcProj_vtkTrusCalibrationCommon@)
-      ENDIF()
-      
+
       IF ("@vcProj_UsFidSegAlgo@" STRGREATER "")
         INCLUDE_EXTERNAL_MSPROJECT(@vcProj_UsFidSegAlgo@)
       ENDIF()

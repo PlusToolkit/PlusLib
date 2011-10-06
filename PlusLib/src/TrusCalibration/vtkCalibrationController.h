@@ -443,8 +443,8 @@ protected:
 	//! Populate the segmented N-fiducials to the data container
 	virtual void PopulateSegmentedFiducialsToDataContainer(vnl_matrix<double> &transformUSProbe2StepperFrameMatrix4x4, IMAGE_DATA_TYPE dataType); 
 
-	//! Call the calibrator class and do the calibration process
-	virtual void DoCalibration(); 
+	//! Feed and tun the LSQR minimizer with the acquired and computed positions and conputes reconstruction errors
+	PlusStatus DoCalibration(); 
 
 protected: // from former Phantom class
 	// This will construct the validation data matrices
@@ -456,12 +456,6 @@ protected: // from former Phantom class
 	//       during the iterative calibration/validation process.
 	PlusStatus constructValidationDataMatrices();
 
-	//! Frames where the LRE is larger than LRE stdev * OutlierDetectionThreshold will be considered as outliers (calibration DataPositions)
-	virtual void setOutlierFlags(); 
-
-	//! Clear outlier flags 
-	virtual void resetOutlierFlags();
-
   //! Reset data containers
   void resetDataContainers();
 
@@ -470,12 +464,6 @@ protected: // from former Phantom class
 
   //! Compute intersections of wires in the loaded NWires structure
   PlusStatus ComputeNWireInstersections();
-
-	//! Perform the final calibration task and output the results.
-	// Given the input data (the data positions in both the US image frame and the US
-	// probe frame, a least-squares based algorithm is employ to find the optimal
-	// homogeneous transformation matrix from the US image frame to the US probe frame.
-	PlusStatus calibrate();
 
 	//! It calculates the 3D point reconstruction error (PRE3D) from
 	// the validation data sets if they are imported and ready.
