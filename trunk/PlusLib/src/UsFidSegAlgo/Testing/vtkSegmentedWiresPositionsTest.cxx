@@ -101,40 +101,6 @@ int main (int argc, char* argv[])
 	{
 		vtkPlusLogger::PrintProgressbar( (100.0 * imgNumber) / trackedFrameList->GetNumberOfTrackedFrames() ); 
 
-		ImageType::Pointer frame = ImageType::New();
-		ImageType::SizeType size = {trackedFrameList->GetFrameSize()[0], trackedFrameList->GetFrameSize()[1] };
-		ImageType::IndexType start = {0,0};
-		ImageType::RegionType region;
-		region.SetSize(size);
-		region.SetIndex(start);
-		frame->SetRegions(region);
-    try 
-    {
-        frame->Allocate();
-    }
-    catch (itk::ExceptionObject & err)
-    {
-        LOG_ERROR("Failed to allocate memory: " << err ); 
-        continue; 
-    }
-
-    if (trackedFrameList->GetTrackedFrame(imgNumber)->GetImageData()->GetITKScalarPixelType()!=itk::ImageIOBase::UCHAR)
-    {
-      LOG_ERROR("vtkSegmentedWiresPositions test only works on unsigned char images");
-      continue;
-    }
-    else
-    {
-      memcpy(frame->GetBufferPointer() , trackedFrameList->GetTrackedFrame(imgNumber)->GetImageData()->GetBufferPointer(), trackedFrameList->GetFrameSize()[0]*trackedFrameList->GetFrameSize()[1]*sizeof(PixelType));
-    }
-
-		vtkSmartPointer<vtkMatrix4x4> transformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-		/*if ( trackedFrameList->GetTrackedFrame(imgNumber)->GetDefaultFrameTransform(imgNumber, transformMatrix) )
-		{
-			LOG_ERROR("Unable to get default frame transform for frame #" << imgNumber); 
-			continue; 
-		}
-    */
     FidPatternRecognition patternRecognition;
     PatternRecognitionResult segResults;
 
@@ -156,10 +122,20 @@ int main (int argc, char* argv[])
 			continue; 
 		}
 
+    std::string defaultTransformName = trackedFrameList->GetDefaultFrameTransformName(); 
+
+
     if ( segResults.GetDotsFound() )
 		{
-			vtkSmartPointer<vtkTransform> frameTransform = vtkSmartPointer<vtkTransform>::New(); 
-			frameTransform->SetMatrix(transformMatrix); 
+      double defaultTransform[16]={0}; 
+      if ( trackedFrameList->GetTrackedFrame(imgNumber)->GetCustomFrameTransform(defaultTransformName.c_str(), defaultTransform) != PLUS_SUCCESS )
+      {
+        LOG_ERROR("Failed to get default frame transform (" << defaultTransformName << ") from tracked frame #" << imgNumber); 
+        continue; 
+      }
+
+      vtkSmartPointer<vtkTransform> frameTransform = vtkSmartPointer<vtkTransform>::New(); 
+      frameTransform->SetMatrix(defaultTransform); 
 
 			double posZ = frameTransform->GetPosition()[2]; 
 			double rotZ = frameTransform->GetOrientation()[2]; 

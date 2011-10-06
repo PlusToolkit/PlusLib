@@ -8,6 +8,7 @@ SET (TrusCalibration_SRCS
 	vtkPivotCalibrationAlgo.cxx
 	vtkPhantomRegistrationAlgo.cxx
 	VolumeReconstructionController.cxx
+    vtkSpacingCalibAlgo.cxx 
 	)
 
 SET (TrusCalibration_HDRS)	
@@ -19,6 +20,7 @@ IF (WIN32)
 		vtkPivotCalibrationAlgo.h
 		vtkPhantomRegistrationAlgo.h
 		VolumeReconstructionController.h
+        vtkSpacingCalibAlgo.h 
 		)
 ENDIF (WIN32)
 

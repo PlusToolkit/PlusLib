@@ -4,7 +4,6 @@
 #include "vtkXMLDataElement.h"
 #include "vtkXMLUtilities.h"
 #include "FidPatternRecognition.h"
-#include "vtkCenterOfRotationCalibAlgo.h"
 #include "vtkSpacingCalibAlgo.h"
 #include "vtkGnuplotExecuter.h"
 #include "vtkHTMLGenerator.h"
@@ -23,7 +22,7 @@ int main(int argc, char **argv)
 
   vtksys::CommandLineArguments args;
   args.Initialize(argc, argv);
-  std::string inputSequenceMetafile(""); 
+  std::vector<std::string> inputSequenceMetafiles; 
   std::string inputBaselineFileName(""); 
   std::string inputConfigFileName(""); 
   std::string inputGnuplotScriptsFolder(""); 
@@ -31,7 +30,7 @@ int main(int argc, char **argv)
 
   args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");	
   args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug)");	
-  args.AddArgument("--input-sequence-metafile", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputSequenceMetafile, "Input sequence metafile name with path");	
+  args.AddArgument("--input-sequence-metafiles", vtksys::CommandLineArguments::MULTI_ARGUMENT, &inputSequenceMetafiles, "Input sequence metafile name with path");	
   args.AddArgument("--input-baseline-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputBaselineFileName, "Input xml baseline file name with path");	
   args.AddArgument("--input-config-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "Input xml config file name with path");	
   args.AddArgument("--input-gnuplot-scripts-folder", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputGnuplotScriptsFolder, "Path to gnuplot scripts folder");	
@@ -50,7 +49,7 @@ int main(int argc, char **argv)
     exit(EXIT_SUCCESS); 
   }
 
-  if ( inputSequenceMetafile.empty() || inputConfigFileName.empty() || inputBaselineFileName.empty() )
+  if ( inputSequenceMetafiles.empty() || inputConfigFileName.empty() || inputBaselineFileName.empty() )
   {
     std::cerr << "input-translation-sequence-metafile, input-baseline-file-name and input-config-file-name are required arguments!" << std::endl;
     std::cout << "Help: " << args.GetHelp() << std::endl;
@@ -81,20 +80,24 @@ int main(int argc, char **argv)
 	FidPatternRecognition patternRecognition; 
 	patternRecognition.ReadConfiguration(configRootElement);
 
-  LOG_INFO("Read center of rotation data from metafile...");
+  LOG_INFO("Reading metafiles:");
 
   vtkSmartPointer<vtkTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New(); 
-  if ( trackedFrameList->ReadFromSequenceMetafile(inputSequenceMetafile.c_str()) != PLUS_SUCCESS )
+  for ( int i = 0; i < inputSequenceMetafiles.size(); ++i )
   {
-      LOG_ERROR("Failed to read sequence metafile: " << inputSequenceMetafile); 
+    LOG_INFO("Reading " << inputSequenceMetafiles[i] << " ..."); 
+    vtkSmartPointer<vtkTrackedFrameList> tfList = vtkSmartPointer<vtkTrackedFrameList>::New(); 
+    if ( tfList->ReadFromSequenceMetafile(inputSequenceMetafiles[i].c_str()) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Failed to read sequence metafile: " << inputSequenceMetafiles[i]); 
       return EXIT_FAILURE;
-  }
+    }
 
-  LOG_INFO("Create tracked frame indices vector..."); 
-  std::vector<int> trackedFrameIndices(trackedFrameList->GetNumberOfTrackedFrames(), 0); 
-  for ( unsigned int i = 0; i < trackedFrameList->GetNumberOfTrackedFrames(); ++i )
-  {
-    trackedFrameIndices[i]=i; 
+    if ( trackedFrameList->AddTrackedFrameList(tfList) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Failed to add tracked frame list to container!"); 
+      return EXIT_FAILURE; 
+    }
   }
 
   LOG_INFO("Testing image data segmentation...");
@@ -107,7 +110,7 @@ int main(int argc, char **argv)
   vtkSmartPointer<vtkSpacingCalibAlgo> spacingCalibAlgo = vtkSmartPointer<vtkSpacingCalibAlgo>::New(); 
   spacingCalibAlgo->SetInputs(trackedFrameList, patternRecognition.GetFidLabeling()->GetNWires()); 
 
-  double spacing[2]={0}; 
+  double spacing[2]={0};
   if ( spacingCalibAlgo->GetSpacing(spacing) != PLUS_SUCCESS )
   {
     LOG_ERROR("Spacing calibration failed!"); 
@@ -119,53 +122,25 @@ int main(int argc, char **argv)
   }
 
   // Get calibration error
-  double spacingErrorMean(0), spacingErrorStdev(0); 
-  if ( spacingCalibAlgo->GetError(spacingErrorMean, spacingErrorStdev) != PLUS_SUCCESS )
+  double errorMean(0), errorStdev(0); 
+  if ( spacingCalibAlgo->GetError(errorMean, errorStdev) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to get spacing calibration error!"); 
     numberOfFailures++; 
   }
   else
   {
-    LOG_INFO("Spacing calibration error - mean: " << std::fixed << spacingErrorMean << "  stdev: " << spacingErrorStdev); 
-  }
-
-  LOG_INFO("Testing center of rotation computation algorithm...");
-  vtkSmartPointer<vtkCenterOfRotationCalibAlgo> centerOfRotationCalibAlgo = vtkSmartPointer<vtkCenterOfRotationCalibAlgo>::New(); 
-  centerOfRotationCalibAlgo->SetInputs(trackedFrameList, trackedFrameIndices, spacing); 
-  
-  // Get center of rotation calibration output 
-  double centerOfRotationPx[2] = {0}; 
-  if ( centerOfRotationCalibAlgo->GetCenterOfRotationPx(centerOfRotationPx) != PLUS_SUCCESS )
-  {
-    LOG_ERROR("Center of rotation calibration failed!"); 
-    numberOfFailures++; 
-  }
-  else
-  {
-    LOG_INFO("Center of rotation (px): " << std::fixed << centerOfRotationPx[0] << "  " << centerOfRotationPx[1]); 
-  }
-
-  // Get calibration error
-  double errorMean(0), errorStdev(0); 
-  if ( centerOfRotationCalibAlgo->GetError(errorMean, errorStdev) != PLUS_SUCCESS )
-  {
-    LOG_ERROR("Failed to get center of rotation calibration error!"); 
-    numberOfFailures++; 
-  }
-  else
-  {
-    LOG_INFO("Center of rotation calibration error - mean: " << std::fixed << errorMean << "  stdev: " << errorStdev); 
+    LOG_INFO("Spacing calibration error - mean: " << std::fixed << errorMean << "  stdev: " << errorStdev); 
   }
   
   LOG_INFO("Testing report table generation and saving into file..."); 
-  vtkTable* reportTable = centerOfRotationCalibAlgo->GetReportTable(); 
+  vtkTable* reportTable = spacingCalibAlgo->GetReportTable(); 
   if ( reportTable != NULL )
   {
     if ( vtkPlusLogger::Instance()->GetLogLevel() >= vtkPlusLogger::LOG_LEVEL_DEBUG ) 
       reportTable->Dump(25); 
 
-    vtkGnuplotExecuter::DumpTableToFileInGnuplotFormat(reportTable, "./CenterOfRotationCalibrationErrorReport.txt"); 
+    vtkGnuplotExecuter::DumpTableToFileInGnuplotFormat(reportTable, "./SpacingCalibrationErrorReport.txt"); 
   }
   else
   {
@@ -177,19 +152,18 @@ int main(int argc, char **argv)
   {
     LOG_INFO("Testing HTML report generation..."); 
     vtkSmartPointer<vtkHTMLGenerator> htmlGenerator = vtkSmartPointer<vtkHTMLGenerator>::New(); 
-    htmlGenerator->SetTitle("Center of Rotation Calibration Report"); 
+    htmlGenerator->SetTitle("Spacing Calibration Test Report"); 
     vtkSmartPointer<vtkGnuplotExecuter> gnuplotExecuter = vtkSmartPointer<vtkGnuplotExecuter>::New(); 
     gnuplotExecuter->SetWorkingDirectory("./"); 
     gnuplotExecuter->SetGnuplotCommand(inputGnuplotCommand.c_str()); 
     gnuplotExecuter->SetHideWindow(true); 
     spacingCalibAlgo->GenerateReport(htmlGenerator, gnuplotExecuter, inputGnuplotScriptsFolder.c_str()); 
-    centerOfRotationCalibAlgo->GenerateReport(htmlGenerator, gnuplotExecuter, inputGnuplotScriptsFolder.c_str()); 
-    htmlGenerator->SaveHtmlPage("CenterOfRotationCalibrationErrorReport.html"); 
+    htmlGenerator->SaveHtmlPage("SpacingCalibrationErrorReport.html"); 
   }
 
-  std::ostringstream centerOfRotationCalibAlgoStream; 
-  centerOfRotationCalibAlgo->PrintSelf(centerOfRotationCalibAlgoStream, vtkIndent(0)); 
-  LOG_DEBUG("CenterOfRotationCalibAlgo::PrintSelf: "<< centerOfRotationCalibAlgoStream.str()); 
+  std::ostringstream spacingCalibAlgoStream; 
+  spacingCalibAlgo->PrintSelf(spacingCalibAlgoStream, vtkIndent(0)); 
+  LOG_DEBUG("SpacingCalibAlgo::PrintSelf: "<< spacingCalibAlgoStream.str()); 
   
   //*********************************************************************
   // Compare result to baseline
@@ -197,10 +171,10 @@ int main(int argc, char **argv)
   LOG_INFO("Comparing result with baseline..."); 
 
   vtkSmartPointer<vtkXMLDataElement> xmlBaseline = vtkXMLUtilities::ReadElementFromFile(inputBaselineFileName.c_str()); 
-  vtkXMLDataElement* xmlCenterOfRotationCalibrationBaseline = NULL; 
+  vtkXMLDataElement* xmlSpacingCalibrationBaseline = NULL; 
   if ( xmlBaseline != NULL )
   {
-    xmlCenterOfRotationCalibrationBaseline = xmlBaseline->FindNestedElementWithName("CenterOfRotationCalibrationResult"); 
+    xmlSpacingCalibrationBaseline = xmlBaseline->FindNestedElementWithName("SpacingCalibrationResult"); 
   }
   else
   {
@@ -208,34 +182,34 @@ int main(int argc, char **argv)
     numberOfFailures++;
   }
 
-  if ( xmlCenterOfRotationCalibrationBaseline == NULL )
+  if ( xmlSpacingCalibrationBaseline == NULL )
   {
-    LOG_ERROR("Unable to find CenterOfRotationCalibrationResult XML data element in baseline: " << inputBaselineFileName); 
+    LOG_ERROR("Unable to find SpacingCalibrationResult XML data element in baseline: " << inputBaselineFileName); 
     numberOfFailures++; 
   }
   else
   {
-    // Compare CenterOfRotationPx to baseline 
-    double baseCenterOfRotationPx[2]={0}; 
-    if ( !xmlCenterOfRotationCalibrationBaseline->GetVectorAttribute( "CenterOfRotationPx", 2, baseCenterOfRotationPx) )
+    // Compare Spacing to baseline 
+    double baseSpacing[2]={0}; 
+    if ( !xmlSpacingCalibrationBaseline->GetVectorAttribute( "Spacing", 2, baseSpacing) )
     {
-      LOG_ERROR("Unable to find CenterOfRotationPx XML data element in baseline."); 
+      LOG_ERROR("Unable to find Spacing XML data element in baseline."); 
       numberOfFailures++; 
     }
     else
     {
-      if ( fabs(baseCenterOfRotationPx[0] - centerOfRotationPx[0]) > DOUBLE_DIFF 
-        || fabs(baseCenterOfRotationPx[1] - centerOfRotationPx[1]) > DOUBLE_DIFF )
+      if ( fabs(baseSpacing[0] - spacing[0]) > DOUBLE_DIFF 
+        || fabs(baseSpacing[1] - spacing[1]) > DOUBLE_DIFF )
       {
-        LOG_ERROR("Center of rotation result in pixel differ from baseline: current(" << centerOfRotationPx[0] << ", " << centerOfRotationPx[1] 
-        << ") base (" << baseCenterOfRotationPx[0] << ", " << baseCenterOfRotationPx[1] << ")."); 
+        LOG_ERROR("Spacing result in pixel differ from baseline: current(" << spacing[0] << ", " << spacing[1] 
+        << ") base (" << baseSpacing[0] << ", " << baseSpacing[1] << ")."); 
         numberOfFailures++;
       }
     }
 
     // Compare errorMean 
     double baseErrorMean=0; 
-    if ( !xmlCenterOfRotationCalibrationBaseline->GetScalarAttribute("ErrorMean", baseErrorMean) )
+    if ( !xmlSpacingCalibrationBaseline->GetScalarAttribute("ErrorMean", baseErrorMean) )
     {
       LOG_ERROR("Unable to find ErrorMean XML data element in baseline."); 
       numberOfFailures++; 
@@ -244,14 +218,14 @@ int main(int argc, char **argv)
     {
       if ( fabs(baseErrorMean - errorMean) > DOUBLE_DIFF )
       {
-        LOG_ERROR("Center of rotation mean error differ from baseline: current(" << errorMean << ") base (" << baseErrorMean << ")."); 
+        LOG_ERROR("Spacing mean error differ from baseline: current(" << errorMean << ") base (" << baseErrorMean << ")."); 
         numberOfFailures++;
       }
     }
 
     // Compare errorStdev
     double baseErrorStdev=0; 
-    if ( !xmlCenterOfRotationCalibrationBaseline->GetScalarAttribute("ErrorStdev", baseErrorStdev) )
+    if ( !xmlSpacingCalibrationBaseline->GetScalarAttribute("ErrorStdev", baseErrorStdev) )
     {
       LOG_ERROR("Unable to find ErrorStdev XML data element in baseline."); 
       numberOfFailures++; 
@@ -260,7 +234,7 @@ int main(int argc, char **argv)
     {
       if ( fabs(baseErrorStdev - errorStdev) > DOUBLE_DIFF )
       {
-        LOG_ERROR("Center of rotation stdev of error differ from baseline: current(" << errorStdev << ") base (" << baseErrorStdev << ")."); 
+        LOG_ERROR("Spacing stdev of error differ from baseline: current(" << errorStdev << ") base (" << baseErrorStdev << ")."); 
         numberOfFailures++;
       }
     }
@@ -275,4 +249,4 @@ int main(int argc, char **argv)
 
   LOG_INFO("Test finished successfully!"); 
   return EXIT_SUCCESS; 
-}
+} 

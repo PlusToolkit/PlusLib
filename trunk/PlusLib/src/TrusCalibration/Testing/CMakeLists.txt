@@ -1,10 +1,10 @@
+SET( TestDataDir ${PLUSLIB_DATA_DIR}/TestImages )
+SET( ConfigFilesDir ${PLUSLIB_DATA_DIR}/ConfigFiles )
+
 #--------------------------------------------------------------------------------------------
 IF (PLUS_USE_BRACHY_TRACKER)
     ADD_EXECUTABLE(vtkUSCalibrationControllerTest1 vtkUSCalibrationControllerTest1.cxx)
     TARGET_LINK_LIBRARIES(vtkUSCalibrationControllerTest1 itkvnl itkvnl_algo vtkCommon vtkRendering vtkHybrid vtkTrusCalibration vtkDataCollection )
-
-    SET( TestDataDir ${PLUSLIB_DATA_DIR}/TestImages )
-    SET( ConfigFilesDir ${PLUSLIB_DATA_DIR}/ConfigFiles )
 
     ADD_TEST(vtkUSCalibrationControllerTest-Exact
             ${EXECUTABLE_OUTPUT_PATH}/vtkUSCalibrationControllerTest1
@@ -69,7 +69,7 @@ IF (PLUS_USE_BRACHY_TRACKER)
             --input-probe-rotation-metafile=${TestDataDir}/USTC_Ulterius_ProbeRotationData.mha 
             --input-probe-translation-metafile=${TestDataDir}/USTC_Ulterius_ProbeTranslationData.mha 
             --input-template-translation-metafile=${TestDataDir}/USTC_Ulterius_TemplateTranslationData.mha 
-            --input-config-file-name=${ConfigFilesDir}/Test_PlusConfiguration_CalibrationOnly_iCal.xml
+            --input-config-file-name=${ConfigFilesDir}/Test_PlusConfiguration_CalibrationOnly_SonixRP_Ulterius_iCal.xml 
             --input-baseline-file-name=${TestDataDir}/USTC_Ulterius_StepperCalibrationResultBaseline.xml 
             )
     SET_TESTS_PROPERTIES( vtkStepperCalibrationControllerTest-Ulterius PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
@@ -159,6 +159,28 @@ IF (PLUS_USE_BRACHY_TRACKER)
             --input-gnuplot-command=${GNUPLOT_BIN_DIR}/gnuplot.exe
             )
     SET_TESTS_PROPERTIES( TemplateTranslationAxisCalibration-Ulterius PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+    
+    ADD_TEST(ProbeTranslationAxisCalibration-FrameGrabber
+            ${EXECUTABLE_OUTPUT_PATH}/vtkTranslAxisCalibAlgoTest
+            --input-config-file-name=${ConfigFilesDir}/Test_PlusConfiguration_CalibrationOnly_FrameGrabber_iCal.xml 
+            --input-translation-sequence-metafile=${TestDataDir}/USTC_FrameGrabber_ProbeTranslationData.mha
+            --input-baseline-file-name=${TestDataDir}/USTC_FrameGrabber_StepperCalibrationResultBaseline.xml
+            --input-data-type=PROBE_TRANSLATION 
+            --input-gnuplot-scripts-folder=${PlusLib_SOURCE_DIR}/src/scripts/gnuplot
+            --input-gnuplot-command=${GNUPLOT_BIN_DIR}/gnuplot.exe
+            )
+    SET_TESTS_PROPERTIES( ProbeTranslationAxisCalibration-FrameGrabber PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+
+    ADD_TEST(TemplateTranslationAxisCalibration-FrameGrabber
+            ${EXECUTABLE_OUTPUT_PATH}/vtkTranslAxisCalibAlgoTest
+            --input-config-file-name=${ConfigFilesDir}/Test_PlusConfiguration_CalibrationOnly_FrameGrabber_iCal.xml 
+            --input-translation-sequence-metafile=${TestDataDir}/USTC_FrameGrabber_TemplateTranslationData.mha
+            --input-baseline-file-name=${TestDataDir}/USTC_FrameGrabber_StepperCalibrationResultBaseline.xml
+            --input-data-type=TEMPLATE_TRANSLATION 
+            --input-gnuplot-scripts-folder=${PlusLib_SOURCE_DIR}/src/scripts/gnuplot
+            --input-gnuplot-command=${GNUPLOT_BIN_DIR}/gnuplot.exe
+            )
+    SET_TESTS_PROPERTIES( TemplateTranslationAxisCalibration-FrameGrabber PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 ENDIF ()
 
 #--------------------------------------------------------------------------------------------
@@ -175,21 +197,64 @@ IF (PLUS_USE_BRACHY_TRACKER)
             --input-gnuplot-command=${GNUPLOT_BIN_DIR}/gnuplot.exe
             )
     SET_TESTS_PROPERTIES( ProbeRotationAxisCalibration-Ulterius PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+    
+     # ADD_TEST(ProbeRotationAxisCalibration-FrameGrabber
+            # ${EXECUTABLE_OUTPUT_PATH}/vtkRotationAxisCalibAlgoTest
+            # --input-config-file-name=${ConfigFilesDir}/Test_PlusConfiguration_CalibrationOnly_FrameGrabber_iCal.xml 
+            # --input-rotation-sequence-metafile=${TestDataDir}/RotationAxisCalibrationData-FrameGrabber.mha 
+            # --input-baseline-file-name=${TestDataDir}/RotationAxisCalibrationData-FrameGrabber_Baseline.xml 
+            # --input-gnuplot-scripts-folder=${PlusLib_SOURCE_DIR}/src/scripts/gnuplot
+            # --input-gnuplot-command=${GNUPLOT_BIN_DIR}/gnuplot.exe
+            # )
+    # SET_TESTS_PROPERTIES( ProbeRotationAxisCalibration-FrameGrabber PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+    
 ENDIF () 
 
 #--------------------------------------------------------------------------------------------
-IF (PLUS_USE_BRACHY_TRACKER)
-    ADD_EXECUTABLE(vtkCenterOfRotationCalibAlgoTest vtkCenterOfRotationCalibAlgoTest.cxx)
-    TARGET_LINK_LIBRARIES(vtkCenterOfRotationCalibAlgoTest vtkPlusCommon vtkTrusCalibration vtkImageAcquisition )
+ADD_EXECUTABLE(vtkCenterOfRotationCalibAlgoTest vtkCenterOfRotationCalibAlgoTest.cxx)
+TARGET_LINK_LIBRARIES(vtkCenterOfRotationCalibAlgoTest vtkPlusCommon vtkTrusCalibration vtkImageAcquisition )
 
-    ADD_TEST(CenterOfRotationCalibration-Ulterius
-            ${EXECUTABLE_OUTPUT_PATH}/vtkCenterOfRotationCalibAlgoTest
+ADD_TEST(CenterOfRotationCalibration-Ulterius
+        ${EXECUTABLE_OUTPUT_PATH}/vtkCenterOfRotationCalibAlgoTest
+        --input-config-file-name=${ConfigFilesDir}/Test_PlusConfiguration_CalibrationOnly_SonixRP_Ulterius_iCal.xml 
+        --input-sequence-metafile=${TestDataDir}/USTC_Ulterius_ProbeRotationData.mha
+        --input-baseline-file-name=${TestDataDir}/USTC_Ulterius_StepperCalibrationResultBaseline.xml
+        --input-gnuplot-scripts-folder=${PlusLib_SOURCE_DIR}/src/scripts/gnuplot
+        --input-gnuplot-command=${GNUPLOT_BIN_DIR}/gnuplot.exe
+        )
+SET_TESTS_PROPERTIES( CenterOfRotationCalibration-Ulterius PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+
+ADD_TEST(CenterOfRotationCalibration-FrameGrabber
+        ${EXECUTABLE_OUTPUT_PATH}/vtkCenterOfRotationCalibAlgoTest
+        --input-config-file-name=${ConfigFilesDir}/Test_PlusConfiguration_CalibrationOnly_FrameGrabber_iCal.xml 
+        --input-sequence-metafile=${TestDataDir}/USTC_FrameGrabber_ProbeRotationData.mha
+        --input-baseline-file-name=${TestDataDir}/USTC_FrameGrabber_StepperCalibrationResultBaseline.xml
+        --input-gnuplot-scripts-folder=${PlusLib_SOURCE_DIR}/src/scripts/gnuplot
+        --input-gnuplot-command=${GNUPLOT_BIN_DIR}/gnuplot.exe
+        )
+SET_TESTS_PROPERTIES( CenterOfRotationCalibration-FrameGrabber PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+
+#--------------------------------------------------------------------------------------------
+ADD_EXECUTABLE(vtkSpacingCalibAlgoTest vtkSpacingCalibAlgoTest.cxx)
+TARGET_LINK_LIBRARIES(vtkSpacingCalibAlgoTest vtkPlusCommon vtkTrusCalibration vtkImageAcquisition )
+
+ADD_TEST(SpacingCalibAlgoTest-Ulterius
+            ${EXECUTABLE_OUTPUT_PATH}/vtkSpacingCalibAlgoTest
             --input-config-file-name=${ConfigFilesDir}/Test_PlusConfiguration_CalibrationOnly_SonixRP_Ulterius_iCal.xml 
-            --input-sequence-metafile=${TestDataDir}/USTC_Ulterius_ProbeRotationData.mha
+            --input-sequence-metafiles ${TestDataDir}/USTC_Ulterius_ProbeRotationData.mha ${TestDataDir}/USTC_Ulterius_ProbeTranslationData.mha ${TestDataDir}/USTC_Ulterius_TemplateTranslationData.mha
             --input-baseline-file-name=${TestDataDir}/USTC_Ulterius_StepperCalibrationResultBaseline.xml
             --input-gnuplot-scripts-folder=${PlusLib_SOURCE_DIR}/src/scripts/gnuplot
             --input-gnuplot-command=${GNUPLOT_BIN_DIR}/gnuplot.exe
             )
-    SET_TESTS_PROPERTIES( CenterOfRotationCalibration-Ulterius PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
-ENDIF ()
+SET_TESTS_PROPERTIES( SpacingCalibAlgoTest-Ulterius PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+
+ADD_TEST(SpacingCalibAlgoTest-FrameGrabber
+            ${EXECUTABLE_OUTPUT_PATH}/vtkSpacingCalibAlgoTest
+            --input-config-file-name=${ConfigFilesDir}/Test_PlusConfiguration_CalibrationOnly_FrameGrabber_iCal.xml 
+            --input-sequence-metafiles ${TestDataDir}/USTC_FrameGrabber_ProbeRotationData.mha ${TestDataDir}/USTC_FrameGrabber_ProbeTranslationData.mha ${TestDataDir}/USTC_FrameGrabber_TemplateTranslationData.mha
+            --input-baseline-file-name=${TestDataDir}/USTC_FrameGrabber_StepperCalibrationResultBaseline.xml
+            --input-gnuplot-scripts-folder=${PlusLib_SOURCE_DIR}/src/scripts/gnuplot
+            --input-gnuplot-command=${GNUPLOT_BIN_DIR}/gnuplot.exe
+            )
+SET_TESTS_PROPERTIES( SpacingCalibAlgoTest-FrameGrabber PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 

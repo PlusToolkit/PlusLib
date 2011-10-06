@@ -262,8 +262,11 @@ public:
   virtual void PrintSelf(ostream& os, vtkIndent indent); 
 
   //! Operation: 
-  // Add tracked frame to container and returns with the position in the vector
-  virtual int AddTrackedFrame(TrackedFrame *trackedFrame); 
+  // Add tracked frame to container
+  virtual PlusStatus AddTrackedFrame(TrackedFrame *trackedFrame); 
+
+  //! Add all frames from a tracked frame list to the container 
+  virtual PlusStatus AddTrackedFrameList(vtkTrackedFrameList* inTrackedFrameList); 
 
   //! Operation: 
   // Get tracked frame from container
@@ -329,10 +332,6 @@ public:
   vtkGetMacro(MinRequiredAngleDifferenceDeg, double); 
 
   //! Operation: 
-  // Get tracked frame size in pixel
-  virtual int* GetFrameSize(); 
-
-  //! Operation: 
   // Get tracked frame pixel size in bits 
   virtual int GetNumberOfBitsPerPixel(); 
 
@@ -368,10 +367,6 @@ protected:
   vtkTrackedFrameList();
   virtual ~vtkTrackedFrameList();
 
-  //! Operation: 
-  // Set tracked frame size in pixel
-  vtkSetVector2Macro(FrameSize, int); 
-
   bool ValidateTimestamp(TrackedFrame* trackedFrame); 
   bool ValidateStatus(TrackedFrame* trackedFrame); 
   bool ValidatePosition(TrackedFrame* trackedFrame, const char* frameTransformName); 
@@ -382,7 +377,6 @@ protected:
 
   int MaxNumOfFramesToWrite;
   int NumberOfUniqueFrames;
-  int FrameSize[2];
 
   // If the threshold==0 it means that no checking is needed (the frame is always accepted).
   // If the threshold>0 then the frame is considered valid only if the position/angle difference compared to all previously acquired frames is larger than

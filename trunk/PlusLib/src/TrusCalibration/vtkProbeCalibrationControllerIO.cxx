@@ -254,7 +254,7 @@ PlusStatus vtkProbeCalibrationControllerIO::ReadProbeCalibrationConfiguration(vt
     }
 
     //Image center of rotation in pixels
-    int centerOfRotationPx[2] = {0}; 
+    double centerOfRotationPx[2] = {0}; 
     if ( calibrationResult->GetVectorAttribute("CenterOfRotationPx", 2, centerOfRotationPx) )
     {
       this->CalibrationController->SetCenterOfRotationPx(centerOfRotationPx); 

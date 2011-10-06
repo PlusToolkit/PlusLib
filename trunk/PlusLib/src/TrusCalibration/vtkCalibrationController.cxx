@@ -288,7 +288,11 @@ PlusStatus vtkCalibrationController::AddTrackedFrameData(TrackedFrame* trackedFr
 		int trackedFramePosition(-1); 
 		if ( (this->GetPatRecognitionResult()->GetDotsFound()) || (this->EnableErroneouslySegmentedDataSaving) )
 		{
-			trackedFramePosition = this->TrackedFrameListContainer[dataType]->AddTrackedFrame(trackedFrame); 
+			if ( this->TrackedFrameListContainer[dataType]->AddTrackedFrame(trackedFrame) != PLUS_SUCCESS )
+      {
+        LOG_ERROR("Unable to add tracked frame to tracked frmae list!"); 
+        return PLUS_FAIL; 
+      }
 		}
 
 		// Draw segmentation results to frame if needed
@@ -316,7 +320,7 @@ PlusStatus vtkCalibrationController::AddTrackedFrameData(TrackedFrame* trackedFr
 		// Add the segmentation result to the SegmentedFrameContainer
 		SegmentedFrame segmentedFrame; 
 		segmentedFrame.SegResults = this->PatRecognitionResult; 
-		segmentedFrame.TrackedFrameInfo = new TrackedFrame(*this->TrackedFrameListContainer[dataType]->GetTrackedFrame(trackedFramePosition)); 
+		segmentedFrame.TrackedFrameInfo = new TrackedFrame(*trackedFrame); 
 		segmentedFrame.DataType = dataType; 
 		this->SegmentedFrameContainer.push_back(segmentedFrame); 
 

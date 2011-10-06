@@ -425,8 +425,8 @@ public: // Former ProbeCalibrationController and FreehandCalibraitonController f
 	// Origin: Left-upper corner (the original image frame)
 	// Positive X: to the right;
 	// Positive Y: to the bottom;
-	vtkSetVector2Macro(CenterOfRotationPx, int); 
-	vtkGetVector2Macro(CenterOfRotationPx, int);
+	vtkSetVector2Macro(CenterOfRotationPx, double); 
+	vtkGetVector2Macro(CenterOfRotationPx, double);
 		
 protected:
 	vtkCalibrationController();
@@ -585,7 +585,7 @@ protected: // Former ProbeCalibrationController and FreehandCalibrationControlle
 	int CurrentPRE3DdistributionID;
 
   //! Center of rotation position in pixels
-  int CenterOfRotationPx[2]; 
+  double CenterOfRotationPx[2];
 
 	//! calibration config file name
 	char* CalibrationConfigFileNameWithPath;

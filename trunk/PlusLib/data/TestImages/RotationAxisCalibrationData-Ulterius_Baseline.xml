@@ -1,7 +1,5 @@
 <StepperCalibrationResults>
-  <SapcingCalibrationResult Spacing="0.191451 0.186871" />
-  <RotationAxisCalibrationResult  RotationAxisOrientation="0.00641153 -0.016515 1" ErrorMean="0.000000" ErrorStdev="0.235785"/>
-  <CenterOfRotationCalibrationResult CenterOfRotationPx="318.574 19.9577"/>
-  <ProbeTranslationAxisCalibrationResult ProbeTranslationAxisOrientation="-0.0195835 -0.0564445 1"/>
-  <TemplateTranslationAxisCalibrationResult TemplateTranslationAxisOrientation="-0.00334447 0.0348421 1"/>
+  <SapcingCalibrationResult Spacing="0.202485 0.190130" />
+  <RotationAxisCalibrationResult  RotationAxisOrientation="0.00579635 -0.0199026 1" ErrorMean="0.000000" ErrorStdev="0.277723"/>
+  <CenterOfRotationCalibrationResult CenterOfRotationPx="318.71079 5.72105"/>
 </StepperCalibrationResults>
