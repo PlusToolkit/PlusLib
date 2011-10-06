@@ -45,8 +45,6 @@ ENDIF ()
 
 SET (TrusCalibration_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} CACHE INTERNAL "" FORCE)
 
-ADD_SUBDIRECTORY (TrusCalibrationCommon)
-				
 # --------------------------------------------------------------------------
 # Build the library
 
@@ -56,7 +54,6 @@ SET (TrusCalibration_LIBS
   itkvnl 
   itkvnl_algo 
   UsFidSegAlgo 
-  vtkTrusCalibrationCommon 
   vtkPlusCommon
   vtkTracking
   )
