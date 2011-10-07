@@ -57,7 +57,8 @@ vtkCalibrationController::vtkCalibrationController()
 
 	for ( int i = 0; i < NUMBER_OF_IMAGE_DATA_TYPES; i++ )
 	{
-		vtkTrackedFrameList *trackedFrameList = vtkTrackedFrameList::New(); 
+		vtkTrackedFrameList *trackedFrameList = vtkTrackedFrameList::New();
+    trackedFrameList->SetDefaultFrameTransformName("Probe"); // TODO change this when plus#310 and plus#311 are done (it will come from the config file)
 		this->TrackedFrameListContainer.push_back(trackedFrameList); 
 
 		ImageDataInfo imageDataInfo; 
