@@ -150,9 +150,16 @@ public:
   TrackedFramePositionFinder(TrackedFrame* frame, const char* frameTransformName, double minRequiredTranslationDifferenceMm /*= 0.5*/, double minRequiredAngleDifferenceDeg /*= 0.2*/)
     : mTrackedFrame(frame), 
     mMinRequiredTranslationDifferenceMm(minRequiredTranslationDifferenceMm),
-    mMinRequiredAngleDifferenceDeg(minRequiredAngleDifferenceDeg),
-    mFrameTransformName(frameTransformName) 
+    mMinRequiredAngleDifferenceDeg(minRequiredAngleDifferenceDeg)
   {
+    if (frameTransformName)
+    {
+      mFrameTransformName = frameTransformName;
+    }
+    else
+    {
+      mFrameTransformName.empty();
+    }
   }
 
   //! TODO Description
