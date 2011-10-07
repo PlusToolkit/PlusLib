@@ -480,7 +480,7 @@ protected: // from former Phantom class
 	PlusStatus AddPositionsPerImage( std::vector< vnl_vector<double> > SegmentedDataPositionListPerImage, const vnl_matrix<double> TransformMatrixUSProbe2Stepper4x4, bool isValidation );
 
   //! Compute beamwidth weight for a beamwidth magnitude at the given axial depth
-  double GetBeamwidthWeightForBeamwidthMagnitude(double aBeamwidthMagnitudeMm, int aActualAxialDepth);
+  double GetBeamwidthWeightForBeamwidthMagnitude(int aActualAxialDepth);
 
 	//! Get Line reconstruction error (LRE) vector for validation positions in US probe frame
 	// FORMAT:
@@ -777,12 +777,6 @@ protected: // From former Phantom class
 	//! Weights for the data positions defined by prior knowledge of the imaging condition
 	// E.g.: the ultrasound 3D beamwidth in axial, lateral and elevational axes
 	std::vector<double> mWeightsForDataPositions;
-
-	//! This will keep a track of the US 3D beamwidth (euclidean magnitude) at each data position
-	std::vector<double> mUSBeamWidthEuclideanMagAtDataPositions;
-
-	//! This will keep a track of the US 3D beamwidth (euclidean magnitude) at each validation position
-	std::vector<double> mUSBeamWidthEuclideanMagAtValidationPositions;
 
 	//! The flag to set when the ultrasound probe has been calibrated
 	bool mHasBeenCalibrated;
