@@ -155,7 +155,6 @@ PlusStatus vtkProbeCalibrationControllerIO::ReadProbeCalibrationConfiguration(vt
 	}
 
   // RandomStepperMotionData1 data set specifications
-	//********************************************************************
 	vtkSmartPointer<vtkXMLDataElement> randomStepperMotionData1 = probeCalibration->FindNestedElementWithName("RandomStepperMotionData1"); 
 	if ( randomStepperMotionData1 != NULL) 
 	{
@@ -183,7 +182,6 @@ PlusStatus vtkProbeCalibrationControllerIO::ReadProbeCalibrationConfiguration(vt
 	}
 
 	// RandomStepperMotionData2 data set specifications
-	//********************************************************************
 	vtkSmartPointer<vtkXMLDataElement> randomStepperMotionData2 = probeCalibration->FindNestedElementWithName("RandomStepperMotionData2"); 
 	if ( randomStepperMotionData2 != NULL) 
 	{
@@ -211,7 +209,6 @@ PlusStatus vtkProbeCalibrationControllerIO::ReadProbeCalibrationConfiguration(vt
 	}
 
 	// US3DBeamwidth specifications
-	//********************************************************************
 	vtkSmartPointer<vtkXMLDataElement> us3DBeamProfile = probeCalibration->FindNestedElementWithName("US3DBeamProfile"); 
 	if ( us3DBeamProfile != NULL) 
 	{
@@ -240,8 +237,6 @@ PlusStatus vtkProbeCalibrationControllerIO::ReadProbeCalibrationConfiguration(vt
 	}
 
   // CalibrationResult specifications
-	//********************************************************************
-
   vtkSmartPointer<vtkXMLDataElement> calibrationResult = probeCalibration->FindNestedElementWithName("CalibrationResult"); 
 
   if ( calibrationResult != NULL )
@@ -310,7 +305,6 @@ PlusStatus vtkProbeCalibrationControllerIO::ReadProbeCalibrationConfiguration(vt
       (*this->CalibrationController->GetLineReconstructionErrors())[1] = vectorLRE_w1; 
     }
 
-    
     // Add wire #3 LRE to map
     double LRE_w3[7]={0}; 
     if ( calibrationResult->GetVectorAttribute("LRE-W3", 7, LRE_w3) )
@@ -355,7 +349,6 @@ PlusStatus vtkProbeCalibrationControllerIO::ReadProbeCalibrationConfiguration(vt
   }
 
 	// Custom transforms
-	//*********************************
 	vtkSmartPointer<vtkXMLDataElement> phantomDefinition = rootElement->FindNestedElementWithName("PhantomDefinition");
 	if (phantomDefinition == NULL)
   {
@@ -382,47 +375,6 @@ PlusStatus vtkProbeCalibrationControllerIO::ReadProbeCalibrationConfiguration(vt
 	}
 
   return PLUS_SUCCESS; 
-}
-
-//----------------------------------------------------------------------------
-void vtkProbeCalibrationControllerIO::SaveSegmentationResultToImage( int imgIndex, const ImageType::Pointer& frame )
-{
-	// Output the segmentation results on the images
-
-	typedef itk::ImageDuplicator<ImageType> DuplicatorType; 
-	DuplicatorType::Pointer duplicator = DuplicatorType::New(); 
-	duplicator->SetInputImage(frame); 
-	duplicator->Update(); 
-
-	ImageType::Pointer resultImage = duplicator->GetOutput();
-
-	// These will modify the image buffer (only in the memory)
-	// to update the segmenation outcomes (dots, lines, and pairs).
-	//segmenter->printResults();
-  this->CalibrationController->GetPatternRecognition()->DrawResults( resultImage->GetBufferPointer() );
-
-	// create an importer to read the data back in VTK image pipeline
-	vtkSmartPointer<vtkImageImport> importer = vtkSmartPointer<vtkImageImport>::New();
-  importer->SetWholeExtent(0,this->CalibrationController->GetPatternRecognition()->GetFidSegmentation()->GetFrameSize()[0] - 1,0,this->CalibrationController->GetPatternRecognition()->GetFidSegmentation()->GetFrameSize()[1] - 1,0,0);
-	importer->SetDataExtentToWholeExtent();
-	importer->SetDataScalarTypeToUnsignedChar();
-	importer->SetImportVoidPointer(duplicator->GetOutput()->GetBufferPointer() );
-	importer->SetNumberOfScalarComponents(1); 
-	importer->Update(); 
-
-	vtkSmartPointer<vtkImageFlip> imageFlip = vtkSmartPointer<vtkImageFlip>::New(); 
-	imageFlip->SetInput( importer->GetOutput() ); 
-	imageFlip->SetFilteredAxis(1); 
-	imageFlip->Update(); 
-
-	std::ostringstream fileName; 
-	fileName << vtkPlusConfig::GetInstance()->GetOutputDirectory() << "/Frame" << std::setfill('0') << std::setw(4) << imgIndex << ".tiff" << std::ends; 
-
-	vtkSmartPointer<vtkTIFFWriter> writer = vtkSmartPointer<vtkTIFFWriter>::New();
-	writer->SetInput( imageFlip->GetOutput() );
-	writer->SetFileDimensionality(2);
-	writer->SetFileName( fileName.str().c_str() );
-	writer->Update();
 }
 
 //----------------------------------------------------------------------------
@@ -466,7 +418,6 @@ void vtkProbeCalibrationControllerIO::SaveSegmentedWirePositionsToFile()
 	validPosInfo << "# Segmented wire positions of the Validation dataset" << std::endl; 
 	validPosInfo << posInfoHeader.str();
 
-	
 	// Save the current ProbeHomeToProbe transformation 
 	vtkSmartPointer<vtkTransform> currentTransformProbeHomeToProbe = vtkSmartPointer<vtkTransform>::New(); 
 	currentTransformProbeHomeToProbe->DeepCopy(this->CalibrationController->GetTransformProbeToReference()); 
@@ -483,7 +434,6 @@ void vtkProbeCalibrationControllerIO::SaveSegmentedWirePositionsToFile()
 	tTemplateToProbe->Concatenate(this->CalibrationController->GetTransformTemplateHolderToTemplate());
 	tTemplateToProbe->Concatenate(this->CalibrationController->GetTransformTemplateHomeToTemplate());
 	tTemplateToProbe->Inverse();
-
 
 	// Save segmented wire positions
 	for( int frameNum = 0; frameNum < this->CalibrationController->GetSegmentedFrameContainer().size(); frameNum++ )
@@ -608,7 +558,6 @@ void vtkProbeCalibrationControllerIO::SaveSegmentedWirePositionsToFile()
 
 		os << std::endl; 
 
-
 		switch( this->CalibrationController->GetSegmentedFrameContainer()[frameNum].DataType )
 		{
 		case(RANDOM_STEPPER_MOTION_1):
@@ -653,7 +602,6 @@ void vtkProbeCalibrationControllerIO::SaveCalibrationResultsAndErrorReportsToXML
 	xmlCalibrationResults->SetName("USTemplateCalibrationResult"); 
 	xmlCalibrationResults->SetAttribute("version", "1.0"); 
 
-	//***********************************************************************************************
 	// <CalibrationFile> 
 	vtkSmartPointer<vtkXMLDataElement> tagCalibrationFile = vtkSmartPointer<vtkXMLDataElement>::New(); 
 	tagCalibrationFile->SetName("CalibrationFile"); 
@@ -661,14 +609,11 @@ void vtkProbeCalibrationControllerIO::SaveCalibrationResultsAndErrorReportsToXML
 	tagCalibrationFile->SetAttribute("FileName", calibrationResultFileName.c_str()); 
 	vtkstd::string commentCalibrationFile("# Timestamp format: MM/DD/YY HH:MM:SS"); 
 	tagCalibrationFile->AddCharacterData(commentCalibrationFile.c_str(), commentCalibrationFile.size()); 
-	// </CalibrationFile> 
 
-	//***********************************************************************************************
-	// <CalibrationResults>
+  // <CalibrationResults>
 	vtkSmartPointer<vtkXMLDataElement> tagCalibrationResults = vtkSmartPointer<vtkXMLDataElement>::New(); 
 	tagCalibrationResults->SetName("CalibrationResults"); 
 
-	//***********************************************************************************************
 	// <UltrasoundImageDimensions>
 	vtkSmartPointer<vtkXMLDataElement> tagUltrasoundImageDimensions = vtkSmartPointer<vtkXMLDataElement>::New(); 
 	tagUltrasoundImageDimensions->SetName("UltrasoundImageDimensions"); 
@@ -676,9 +621,6 @@ void vtkProbeCalibrationControllerIO::SaveCalibrationResultsAndErrorReportsToXML
 	tagUltrasoundImageDimensions->SetIntAttribute("Height",this->CalibrationController->GetPatternRecognition()->GetFidSegmentation()->GetFrameSize()[1]); 
 	vtkstd::string commentUltrasoundImageDimensions("# UltrasoundImageDimensions format: image width and height in pixels."); 
 	tagUltrasoundImageDimensions->AddCharacterData(commentUltrasoundImageDimensions.c_str(), commentUltrasoundImageDimensions.size()); 
-	// </UltrasoundImageDimensions>
-
-	//***********************************************************************************************
 
 	double *imageToUserImageMatrix = new double[16]; 
 	for (int i = 0; i < 4; i++)
@@ -743,7 +685,6 @@ void vtkProbeCalibrationControllerIO::SaveCalibrationResultsAndErrorReportsToXML
 	tagCalibrationTransform->SetVectorAttribute("TransformTemplateHolderToTemplate", 16, templateHolderToTemplateMatrix); 
 	tagCalibrationTransform->SetVectorAttribute("TransformTemplateHomeToTemplate", 16, templateHomeToTemplateMatrix); 
 	tagCalibrationTransform->SetVectorAttribute("TransformImageToTemplate", 16, imageToTemplateMatrix); 
-	// </CalibrationTransform>
 
 	delete[] imageToUserImageMatrix; 
 	delete[] userImageToProbeMatrix; 
@@ -753,16 +694,12 @@ void vtkProbeCalibrationControllerIO::SaveCalibrationResultsAndErrorReportsToXML
 	delete[] imageToTemplateMatrix; 
 
 	tagCalibrationResults->AddNestedElement(tagUltrasoundImageDimensions); 
-	//tagCalibrationResults->AddNestedElement(tagUltrasoundImageOrigin); 
 	tagCalibrationResults->AddNestedElement(tagCalibrationTransform); 
-	// </CalibrationResults>
 
-	//***********************************************************************************************
 	// <ErrorReports>
 	vtkSmartPointer<vtkXMLDataElement> tagErrorReports = vtkSmartPointer<vtkXMLDataElement>::New(); 
 	tagErrorReports->SetName("ErrorReports"); 
 
-	//***********************************************************************************************
 	double *preAnalysis = new double[9]; 
 	for (int i = 0; i < 9; i++)
 	{
@@ -777,10 +714,9 @@ void vtkProbeCalibrationControllerIO::SaveCalibrationResultsAndErrorReportsToXML
 	tagPointReconstructionErrorAnalysis->SetDoubleAttribute("ValidationDataConfidenceLevel", this->CalibrationController->GetPRE3DVector()[9]);  
 	vtkstd::string commentPointReconstructionErrorAnalysis("# PRE format: PRE3D_X_mean, PRE3D_X_rms, PRE3D_X_std PRE3D_Y_mean, PRE3D_Y_rms, PRE3D_Y_std PRE3D_Z_mean, PRE3D_Z_rms, PRE3D_Z_std"); 
 	tagPointReconstructionErrorAnalysis->AddCharacterData(commentPointReconstructionErrorAnalysis.c_str(), commentPointReconstructionErrorAnalysis.size()); 
-	// </PointReconstructionErrorAnalysis>
-	delete[] preAnalysis; 
 
-	//***********************************************************************************************
+  delete[] preAnalysis; 
+
 	double *rawPointReconstructionErrors = new double[this->CalibrationController->GetPRE3DMatrix().size()]; 
 	for ( int row = 0; row < this->CalibrationController->GetPRE3DMatrix().rows(); row++)
 	{
@@ -798,11 +734,10 @@ void vtkProbeCalibrationControllerIO::SaveCalibrationResultsAndErrorReportsToXML
 	commentPointReconstructionErrors << "# PointReconstructionErrors format: 4xN matrix, N = "; 
 	commentPointReconstructionErrors << this->CalibrationController->GetPRE3DMatrix().columns(); 
 	commentPointReconstructionErrors << ": the number of validation points"; 
-	tagPointReconstructionErrors->AddCharacterData(commentPointReconstructionErrors.str().c_str(), commentPointReconstructionErrors.str().size()); 
-	// </PointReconstructionErrors>
+	tagPointReconstructionErrors->AddCharacterData(commentPointReconstructionErrors.str().c_str(), commentPointReconstructionErrors.str().size());
+
 	delete[] rawPointReconstructionErrors; 
 
-	//***********************************************************************************************
 	double *pldeAnalysis = new double[3]; 
 	for (int i = 0; i < 3; i++)
 	{
@@ -820,7 +755,6 @@ void vtkProbeCalibrationControllerIO::SaveCalibrationResultsAndErrorReportsToXML
 	// </PointLineDistanceErrorAnalysis>
 	delete[] pldeAnalysis; 
 
-	//***********************************************************************************************
 	double *rawPointLineDistanceErrors = new double[this->CalibrationController->GetPointLineDistanceErrorVector().size()]; 
 	for (int i = 0; i < this->CalibrationController->GetPointLineDistanceErrorVector().size(); i++)
 	{
@@ -837,17 +771,15 @@ void vtkProbeCalibrationControllerIO::SaveCalibrationResultsAndErrorReportsToXML
 	vtkSmartPointer<vtkXMLDataElement> tagPointLineDistanceErrors = vtkSmartPointer<vtkXMLDataElement>::New(); 
 	tagPointLineDistanceErrors->SetName("PointLineDistanceErrors"); 
 	tagPointLineDistanceErrors->SetVectorAttribute("Raw", this->CalibrationController->GetPointLineDistanceErrorVector().size(), rawPointLineDistanceErrors); 
-	//tagPointLineDistanceErrors->SetVectorAttribute("Sorted", this->CalibrationController->GetPointLineDistanceErrorSortedVector().size(), sortedPointLineDistanceErrors); 
 	vtkstd::ostringstream commentPointLineDistanceErrors; 
 	commentPointLineDistanceErrors << "# PointLineDistanceErrors format: 1xN vector, N = "; 
 	commentPointLineDistanceErrors << this->CalibrationController->GetPointLineDistanceErrorVector().size(); 
 	commentPointLineDistanceErrors << ": the number of validation points"; 
 	tagPointLineDistanceErrors->AddCharacterData(commentPointLineDistanceErrors.str().c_str(), commentPointLineDistanceErrors.str().size()); 
-	// </PointLineDistanceErrors>
-	delete[] rawPointLineDistanceErrors; 
+
+  delete[] rawPointLineDistanceErrors; 
 	delete[] sortedPointLineDistanceErrors; 
 
-	//***********************************************************************************************
   std::vector<double> w1LREVector; 
   if ( this->CalibrationController->GetLineReconstructionErrorAnalysisVector(1, w1LREVector) != PLUS_SUCCESS )
   {
@@ -869,13 +801,11 @@ void vtkProbeCalibrationControllerIO::SaveCalibrationResultsAndErrorReportsToXML
     tagWire1LineReconstructionErrorAnalysis->SetDoubleAttribute("ValidationDataConfidenceLevel", w1LREVector[6]);  
     vtkstd::string commentWire1LineReconstructionErrorAnalysis("# LRE format: LRE_X_mean, LRE_X_std, LRE_Y_mean, LRE_Y_std, LRE_EUC_mean, LRE_EUC_std"); 
     tagWire1LineReconstructionErrorAnalysis->AddCharacterData(commentWire1LineReconstructionErrorAnalysis.c_str(), commentWire1LineReconstructionErrorAnalysis.size()); 
-    // </LineReconstructionErrorAnalysis>
     delete[] w1LREAnalysis; 
 
     tagErrorReports->AddNestedElement(tagWire1LineReconstructionErrorAnalysis);
   }
 
-	//***********************************************************************************************
 	const int w1NumOfRows = this->CalibrationController->GetLineReconstructionErrorMatrix(1).rows(); 
 	const int w1NumOfCols = this->CalibrationController->GetLineReconstructionErrorMatrix(1).cols(); 
 	double *w1rawXLineReconstructionErrors = new double[w1NumOfCols]; 
@@ -901,12 +831,10 @@ void vtkProbeCalibrationControllerIO::SaveCalibrationResultsAndErrorReportsToXML
 	commentW1LineReconstructionErrors << w1NumOfCols; 
 	commentW1LineReconstructionErrors << ": the number of validation points"; 
 	tagW1LineReconstructionErrors->AddCharacterData(commentW1LineReconstructionErrors.str().c_str(), commentW1LineReconstructionErrors.str().size()); 
-	// </Wire1LineReconstructionErrors>
-	delete[] w1rawXLineReconstructionErrors; 
+
+  delete[] w1rawXLineReconstructionErrors; 
 	delete[] w1rawYLineReconstructionErrors; 
 	delete[] w1rawEUCLineReconstructionErrors;
-
-	//***********************************************************************************************
 	
   std::vector<double> w3LREVector; 
   if ( this->CalibrationController->GetLineReconstructionErrorAnalysisVector(3, w3LREVector) != PLUS_SUCCESS )
@@ -928,13 +856,12 @@ void vtkProbeCalibrationControllerIO::SaveCalibrationResultsAndErrorReportsToXML
     tagWire3LineReconstructionErrorAnalysis->SetDoubleAttribute("ValidationDataConfidenceLevel", w3LREVector[6]);  
     vtkstd::string commentWire3LineReconstructionErrorAnalysis("# LRE format: LRE_X_mean, LRE_X_std, LRE_Y_mean, LRE_Y_std, LRE_EUC_mean, LRE_EUC_std"); 
     tagWire3LineReconstructionErrorAnalysis->AddCharacterData(commentWire3LineReconstructionErrorAnalysis.c_str(), commentWire3LineReconstructionErrorAnalysis.size()); 
-    // </LineReconstructionErrorAnalysis>
+
     delete[] w3LREAnalysis;
 
     tagErrorReports->AddNestedElement(tagWire3LineReconstructionErrorAnalysis);
   }
 
-	//***********************************************************************************************
 	const int w3NumOfRows = this->CalibrationController->GetLineReconstructionErrorMatrix(3).rows(); 
 	const int w3NumOfCols = this->CalibrationController->GetLineReconstructionErrorMatrix(3).cols(); 
 	double *w3rawXLineReconstructionErrors = new double[w3NumOfCols]; 
@@ -959,12 +886,11 @@ void vtkProbeCalibrationControllerIO::SaveCalibrationResultsAndErrorReportsToXML
 	commentW3LineReconstructionErrors << w3NumOfCols; 
 	commentW3LineReconstructionErrors << ": the number of validation points"; 
 	tagW3LineReconstructionErrors->AddCharacterData(commentW3LineReconstructionErrors.str().c_str(), commentW3LineReconstructionErrors.str().size()); 
-	// </Wire3LineReconstructionErrors>
-	delete[] w3rawXLineReconstructionErrors; 
+
+  delete[] w3rawXLineReconstructionErrors; 
 	delete[] w3rawYLineReconstructionErrors; 
 	delete[] w3rawEUCLineReconstructionErrors;
 
-	//***********************************************************************************************
   std::vector<double> w4LREVector; 
   if ( this->CalibrationController->GetLineReconstructionErrorAnalysisVector(4, w4LREVector) != PLUS_SUCCESS )
   {
@@ -986,13 +912,12 @@ void vtkProbeCalibrationControllerIO::SaveCalibrationResultsAndErrorReportsToXML
     tagWire4LineReconstructionErrorAnalysis->SetDoubleAttribute("ValidationDataConfidenceLevel", w4LREVector[6]);  
     vtkstd::string commentWire4LineReconstructionErrorAnalysis("# LRE format: LRE_X_mean, LRE_X_std, LRE_Y_mean, LRE_Y_std, LRE_EUC_mean, LRE_EUC_std"); 
     tagWire4LineReconstructionErrorAnalysis->AddCharacterData(commentWire4LineReconstructionErrorAnalysis.c_str(), commentWire4LineReconstructionErrorAnalysis.size()); 
-    // </LineReconstructionErrorAnalysis>
+
     delete[] w4LREAnalysis;
 
     tagErrorReports->AddNestedElement(tagWire4LineReconstructionErrorAnalysis);
   }
 
-	//***********************************************************************************************
 	const int w4NumOfRows = this->CalibrationController->GetLineReconstructionErrorMatrix(4).rows(); 
 	const int w4NumOfCols = this->CalibrationController->GetLineReconstructionErrorMatrix(4).cols(); 
 	double *w4rawXLineReconstructionErrors = new double[w4NumOfCols]; 
@@ -1017,12 +942,11 @@ void vtkProbeCalibrationControllerIO::SaveCalibrationResultsAndErrorReportsToXML
 	commentW4LineReconstructionErrors << w4NumOfCols; 
 	commentW4LineReconstructionErrors << ": the number of validation points"; 
 	tagW4LineReconstructionErrors->AddCharacterData(commentW4LineReconstructionErrors.str().c_str(), commentW4LineReconstructionErrors.str().size()); 
-	// </Wire4LineReconstructionErrors>
-	delete[] w4rawXLineReconstructionErrors; 
+
+  delete[] w4rawXLineReconstructionErrors; 
 	delete[] w4rawYLineReconstructionErrors; 
 	delete[] w4rawEUCLineReconstructionErrors;
 
-  //***********************************************************************************************
   std::vector<double> w6LREVector; 
   if ( this->CalibrationController->GetLineReconstructionErrorAnalysisVector(6, w6LREVector) != PLUS_SUCCESS )
   {
@@ -1044,13 +968,12 @@ void vtkProbeCalibrationControllerIO::SaveCalibrationResultsAndErrorReportsToXML
     tagWire6LineReconstructionErrorAnalysis->SetDoubleAttribute("ValidationDataConfidenceLevel", w6LREVector[6]);  
     vtkstd::string commentWire6LineReconstructionErrorAnalysis("# LRE format: LRE_X_mean, LRE_X_std, LRE_Y_mean, LRE_Y_std, LRE_EUC_mean, LRE_EUC_std"); 
     tagWire6LineReconstructionErrorAnalysis->AddCharacterData(commentWire6LineReconstructionErrorAnalysis.c_str(), commentWire6LineReconstructionErrorAnalysis.size()); 
-    // </LineReconstructionErrorAnalysis>
+
     delete[] w6LREAnalysis;
   
     tagErrorReports->AddNestedElement(tagWire6LineReconstructionErrorAnalysis);
   }
 
-	//***********************************************************************************************
 	const int w6NumOfRows = this->CalibrationController->GetLineReconstructionErrorMatrix(6).rows(); 
 	const int w6NumOfCols = this->CalibrationController->GetLineReconstructionErrorMatrix(6).cols(); 
 	double *w6rawXLineReconstructionErrors = new double[w6NumOfCols]; 
@@ -1075,8 +998,8 @@ void vtkProbeCalibrationControllerIO::SaveCalibrationResultsAndErrorReportsToXML
 	commentW6LineReconstructionErrors << w6NumOfCols; 
 	commentW6LineReconstructionErrors << ": the number of validation points"; 
 	tagW6LineReconstructionErrors->AddCharacterData(commentW6LineReconstructionErrors.str().c_str(), commentW6LineReconstructionErrors.str().size()); 
-	// </Wire6LineReconstructionErrors>
-	delete[] w6rawXLineReconstructionErrors; 
+
+  delete[] w6rawXLineReconstructionErrors; 
 	delete[] w6rawYLineReconstructionErrors;  
 	delete[] w6rawEUCLineReconstructionErrors;
 
@@ -1093,321 +1016,272 @@ void vtkProbeCalibrationControllerIO::SaveCalibrationResultsAndErrorReportsToXML
 	xmlCalibrationResults->AddNestedElement(tagCalibrationFile); 
 	xmlCalibrationResults->AddNestedElement(tagCalibrationResults); 
 	xmlCalibrationResults->AddNestedElement(tagErrorReports); 
-	// </USTemplateCalibrationResult>
 
 	xmlCalibrationResults->PrintXML(this->CalibrationController->GetCalibrationResultFileNameWithPath()); 
 }
 
 //----------------------------------------------------------------------------
 // TODO: Read it from XML
-void vtkProbeCalibrationControllerIO::ReadUs3DBeamwidthDataFromFile()
+PlusStatus vtkProbeCalibrationControllerIO::ReadUs3DBeamwidthDataFromFile()
 {
-	try
+	// #1. Read the US 3D Beamwidth Data from a pre-populated file
+	std::ifstream USBeamProfileFile( this->CalibrationController->GetUS3DBeamProfileDataFileNameAndPath(), std::ios::in );
+	if( !USBeamProfileFile.is_open() )
 	{
-		// #1. Read the US 3D Beamwidth Data from a pre-populated file
-		// ============================================================
-
-		std::ifstream USBeamProfileFile( this->CalibrationController->GetUS3DBeamProfileDataFileNameAndPath(), std::ios::in );
-		if( !USBeamProfileFile.is_open() )
-		{
-			vtkErrorMacro("ReadUs3DBeamwidthDataFromFile: Failed to open the US 3D beam profile data file: " << this->CalibrationController->GetUS3DBeamProfileDataFileNameAndPath() << "!"); 
-			throw;
-		}
-
-		std::string SectionName("");
-		std::string ThisConfiguration("");
-
-		// Start from the beginning of the file
-		USBeamProfileFile.seekg( 0, ios::beg );
-
-		// Axial Position of the Transducer's Crystal in Original Image Frame
-		// -------------------------------------------------------------------
-		ThisConfiguration = "AXIAL_POSITION_OF_TRANSDUCER_CRYSTAL_SURFACE_IN_PIXELS]";
-		while ( USBeamProfileFile.eof() != true && SectionName != ThisConfiguration )
-		{
-			USBeamProfileFile.ignore(1024, '[');
-			USBeamProfileFile >> SectionName;
-		}
-		if(  SectionName != ThisConfiguration )
-		{	// If the designated configuration is not found, throw up error
-			std::cerr << "\n\n" << __FILE__ << "," << __LINE__ << "\n"
-				<< "::CANNOT find the config section named: [" << ThisConfiguration 
-				<< " in the configuration file!!!  Throw up ...\n";
-			USBeamProfileFile.close();
-			throw;
-		}
-		USBeamProfileFile.ignore(1024, '#');
-		USBeamProfileFile.ignore(1024, '#');
-		USBeamProfileFile.ignore(1024, '#');
-		USBeamProfileFile.ignore(1024, '#');
-		USBeamProfileFile.ignore(1024, '\n');
-		int axialPositionOfCrystalSurfaceInOrigImageFrame(-1); 
-		USBeamProfileFile >> axialPositionOfCrystalSurfaceInOrigImageFrame;
-
-		// Minimum US Elevation Beamwidth and its Focal Zone in US Image Frame
-		// --------------------------------------------------------------------
-		ThisConfiguration = "MINIMUM_ELEVATION_BEAMWIDTH_AND_FOCAL_ZONE]";
-		while ( USBeamProfileFile.eof() != true && SectionName != ThisConfiguration )
-		{
-			USBeamProfileFile.ignore(1024, '[');
-			USBeamProfileFile >> SectionName;
-		}
-		if(  SectionName != ThisConfiguration )
-		{	// If the designated configuration is not found, throw up error
-			std::cerr << "\n\n" << __FILE__ << "," << __LINE__ << "\n"
-				<< "::CANNOT find the config section named: [" << ThisConfiguration 
-				<< " in the configuration file!!!  Throw up ...\n";
-			USBeamProfileFile.close();
-			throw;
-		}
-		USBeamProfileFile.ignore(1024, '#');
-		USBeamProfileFile.ignore(1024, '#');
-		USBeamProfileFile.ignore(1024, '#');
-		USBeamProfileFile.ignore(1024, '#');
-		USBeamProfileFile.ignore(1024, '#');
-		USBeamProfileFile.ignore(1024, '#');
-		USBeamProfileFile.ignore(1024, '#');
-		USBeamProfileFile.ignore(1024, '\n');
-		//USBeamProfileFile >> this->CalibrationController->GetMinElevationBeamwidthAndFocalZoneInUSImageFrame();
-
-		double ElevationFocalZoneAtAxialDistance2TheCrystals(-1);
-		double MinElevationBeamwidth(-1);
-		USBeamProfileFile >> ElevationFocalZoneAtAxialDistance2TheCrystals >> MinElevationBeamwidth;
-
-		vnl_matrix<double> transformOrigImageFrame2TRUSImageFrameMatrix4x4(4,4);
-    PlusMath::ConvertVtkMatrixToVnlMatrix(this->CalibrationController->GetTransformImageToUserImage()->GetMatrix(), transformOrigImageFrame2TRUSImageFrameMatrix4x4);
-
-		// Convert the crystal surface position to TRUS image frame
-		double axialPositionOfCrystalSurfaceInTRUSImageFrame =
-			transformOrigImageFrame2TRUSImageFrameMatrix4x4.get(1,1) *
-			axialPositionOfCrystalSurfaceInOrigImageFrame +
-			transformOrigImageFrame2TRUSImageFrameMatrix4x4.get(1,3);
-
-		this->CalibrationController->SetAxialPositionOfCrystalSurfaceInTRUSImageFrame(axialPositionOfCrystalSurfaceInTRUSImageFrame);
-
-		// Then convert the axial distance of the focal-zone into the TRUS Image Frame
-		const double ElevationFocalZoneInUSImageFrame = 
-			axialPositionOfCrystalSurfaceInTRUSImageFrame +
-			ElevationFocalZoneAtAxialDistance2TheCrystals;
-
-		this->CalibrationController->GetMinElevationBeamwidthAndFocalZoneInUSImageFrame()->put(0, 
-			ElevationFocalZoneInUSImageFrame );
-		this->CalibrationController->GetMinElevationBeamwidthAndFocalZoneInUSImageFrame()->put(1,
-			MinElevationBeamwidth );
-
-		// US 3D Beamwidth Profile Data
-		// -----------------------------
-		ThisConfiguration = "US_3D_BEAM_PROFILE]";
-		while ( USBeamProfileFile.eof() != true && SectionName != ThisConfiguration )
-		{
-			USBeamProfileFile.ignore(1024, '[');
-			USBeamProfileFile >> SectionName;
-		}
-		if(  SectionName != ThisConfiguration )
-		{	// If the designated configuration is not found, throw up error
-			std::cerr << "\n\n" << __FILE__ << "," << __LINE__ << "\n"
-				<< "::CANNOT find the config section named: [" << ThisConfiguration 
-				<< " in the configuration file!!!  Throw up ...\n";
-			USBeamProfileFile.close();
-			throw;
-		}
-		USBeamProfileFile.ignore(1024, '#');
-		USBeamProfileFile.ignore(1024, '#');
-		USBeamProfileFile.ignore(1024, '#');
-		USBeamProfileFile.ignore(1024, '#');
-		USBeamProfileFile.ignore(1024, '\n');
-		int numUS3DBeamwidthProfileData; 
-		USBeamProfileFile >> numUS3DBeamwidthProfileData;
-
-		this->CalibrationController->SetNumUS3DBeamwidthProfileData(numUS3DBeamwidthProfileData); 
-
-		if(  this->CalibrationController->GetNumUS3DBeamwidthProfileData() <= 0 )
-		{	// If the number of data is invalid, throw up error
-			vtkErrorMacro("ReadUs3DBeamwidthDataFromFile: The number of US 3D beamwidth profile data is invalid!!!  Please double check the data file!"); 
-			throw;
-		}		
-		USBeamProfileFile.ignore(1024, '#');
-		USBeamProfileFile.ignore(1024, '\n');
-
-		// NOTE: here the profile read from file is unsorted (for ascending axial depth),
-		//       but we will do the sorting in the next step.
-
-		const int numOfUS3DBeamwidthProfileData = this->CalibrationController->GetNumUS3DBeamwidthProfileData(); 
-		vnl_matrix<double> SortedUS3DBeamwidthInAscendingAxialDepth2CrystalsMatrixNx4(numOfUS3DBeamwidthProfileData, 4);
-		USBeamProfileFile >> SortedUS3DBeamwidthInAscendingAxialDepth2CrystalsMatrixNx4;
-
-		// Close the file for reading
-		USBeamProfileFile.close();
-
-		this->CalibrationController->GetSortedUS3DBeamwidthInAscendingAxialDepth2CrystalsMatrixNx4()->set_size(numOfUS3DBeamwidthProfileData, 4); 
-		for ( int r = 0; r < numOfUS3DBeamwidthProfileData; r++)
-		{
-			this->CalibrationController->GetSortedUS3DBeamwidthInAscendingAxialDepth2CrystalsMatrixNx4()->set_row(r,SortedUS3DBeamwidthInAscendingAxialDepth2CrystalsMatrixNx4.get_row(r)); 
-		}
-		
+		LOG_ERROR("ReadUs3DBeamwidthDataFromFile: Failed to open the US 3D beam profile data file: " << this->CalibrationController->GetUS3DBeamProfileDataFileNameAndPath()); 
+		return PLUS_FAIL;
 	}
-	catch(...)
+
+	std::string SectionName("");
+	std::string ThisConfiguration("");
+
+	// Start from the beginning of the file
+	USBeamProfileFile.seekg( 0, ios::beg );
+
+	// Axial Position of the Transducer's Crystal in Original Image Frame
+	ThisConfiguration = "AXIAL_POSITION_OF_TRANSDUCER_CRYSTAL_SURFACE_IN_PIXELS]";
+	while ( USBeamProfileFile.eof() != true && SectionName != ThisConfiguration )
 	{
-		vtkErrorMacro("ReadUs3DBeamwidthDataFromFile: Failed to read the US 3D Beam Profile Data from File!"); 
+		USBeamProfileFile.ignore(1024, '[');
+		USBeamProfileFile >> SectionName;
+	}
+
+	if(  SectionName != ThisConfiguration )
+	{	// If the designated configuration is not found, throw up error
+		std::cerr << "\n\n" << __FILE__ << "," << __LINE__ << "\n"
+			<< "::CANNOT find the config section named: [" << ThisConfiguration 
+			<< " in the configuration file!!!  Throw up ...\n";
+		USBeamProfileFile.close();
 		throw;
 	}
+	USBeamProfileFile.ignore(1024, '#');
+	USBeamProfileFile.ignore(1024, '#');
+	USBeamProfileFile.ignore(1024, '#');
+	USBeamProfileFile.ignore(1024, '#');
+	USBeamProfileFile.ignore(1024, '\n');
+	int axialPositionOfCrystalSurfaceInOrigImageFrame(-1); 
+	USBeamProfileFile >> axialPositionOfCrystalSurfaceInOrigImageFrame;
+
+	// Minimum US Elevation Beamwidth and its Focal Zone in US Image Frame
+	ThisConfiguration = "MINIMUM_ELEVATION_BEAMWIDTH_AND_FOCAL_ZONE]";
+	while ( USBeamProfileFile.eof() != true && SectionName != ThisConfiguration )
+	{
+		USBeamProfileFile.ignore(1024, '[');
+		USBeamProfileFile >> SectionName;
+	}
+
+	if(  SectionName != ThisConfiguration )
+	{	// If the designated configuration is not found, throw up error
+		std::cerr << "\n\n" << __FILE__ << "," << __LINE__ << "\n"
+			<< "::CANNOT find the config section named: [" << ThisConfiguration 
+			<< " in the configuration file!!!  Throw up ...\n";
+		USBeamProfileFile.close();
+		throw;
+	}
+
+	USBeamProfileFile.ignore(1024, '#');
+	USBeamProfileFile.ignore(1024, '#');
+	USBeamProfileFile.ignore(1024, '#');
+	USBeamProfileFile.ignore(1024, '#');
+	USBeamProfileFile.ignore(1024, '#');
+	USBeamProfileFile.ignore(1024, '#');
+	USBeamProfileFile.ignore(1024, '#');
+	USBeamProfileFile.ignore(1024, '\n');
+
+	double ElevationFocalZoneAtAxialDistance2TheCrystals(-1);
+	double MinElevationBeamwidth(-1);
+	USBeamProfileFile >> ElevationFocalZoneAtAxialDistance2TheCrystals >> MinElevationBeamwidth;
+
+	vnl_matrix<double> transformOrigImageFrame2TRUSImageFrameMatrix4x4(4,4);
+  PlusMath::ConvertVtkMatrixToVnlMatrix(this->CalibrationController->GetTransformImageToUserImage()->GetMatrix(), transformOrigImageFrame2TRUSImageFrameMatrix4x4);
+
+	// Convert the crystal surface position to TRUS image frame
+	double axialPositionOfCrystalSurfaceInTRUSImageFrame =
+		transformOrigImageFrame2TRUSImageFrameMatrix4x4.get(1,1) *
+		axialPositionOfCrystalSurfaceInOrigImageFrame +
+		transformOrigImageFrame2TRUSImageFrameMatrix4x4.get(1,3);
+
+	this->CalibrationController->SetAxialPositionOfCrystalSurfaceInTRUSImageFrame(axialPositionOfCrystalSurfaceInTRUSImageFrame);
+
+	// Then convert the axial distance of the focal-zone into the TRUS Image Frame
+	const double ElevationFocalZoneInUSImageFrame = 
+		axialPositionOfCrystalSurfaceInTRUSImageFrame +
+		ElevationFocalZoneAtAxialDistance2TheCrystals;
+
+	this->CalibrationController->GetMinElevationBeamwidthAndFocalZoneInUSImageFrame()->put(0, 
+		ElevationFocalZoneInUSImageFrame );
+	this->CalibrationController->GetMinElevationBeamwidthAndFocalZoneInUSImageFrame()->put(1,
+		MinElevationBeamwidth );
+
+	// US 3D Beamwidth Profile Data
+	ThisConfiguration = "US_3D_BEAM_PROFILE]";
+	while ( USBeamProfileFile.eof() != true && SectionName != ThisConfiguration )
+	{
+		USBeamProfileFile.ignore(1024, '[');
+		USBeamProfileFile >> SectionName;
+	}
+
+	if(  SectionName != ThisConfiguration )
+	{	// If the designated configuration is not found, throw up error
+		std::cerr << "\n\n" << __FILE__ << "," << __LINE__ << "\n"
+			<< "::CANNOT find the config section named: [" << ThisConfiguration 
+			<< " in the configuration file!!!  Throw up ...\n";
+		USBeamProfileFile.close();
+		throw;
+	}
+
+	USBeamProfileFile.ignore(1024, '#');
+	USBeamProfileFile.ignore(1024, '#');
+	USBeamProfileFile.ignore(1024, '#');
+	USBeamProfileFile.ignore(1024, '#');
+	USBeamProfileFile.ignore(1024, '\n');
+
+	int numUS3DBeamwidthProfileData; 
+	USBeamProfileFile >> numUS3DBeamwidthProfileData;
+
+	this->CalibrationController->SetNumUS3DBeamwidthProfileData(numUS3DBeamwidthProfileData); 
+
+	if(  this->CalibrationController->GetNumUS3DBeamwidthProfileData() <= 0 )
+	{	// If the number of data is invalid, throw up error
+		vtkErrorMacro("ReadUs3DBeamwidthDataFromFile: The number of US 3D beamwidth profile data is invalid!!!  Please double check the data file!"); 
+		throw;
+	}
+	USBeamProfileFile.ignore(1024, '#');
+	USBeamProfileFile.ignore(1024, '\n');
+
+	// Here the profile read from file is unsorted (for ascending axial depth), but we will do the sorting in the next step.
+	const int numOfUS3DBeamwidthProfileData = this->CalibrationController->GetNumUS3DBeamwidthProfileData(); 
+	vnl_matrix<double> SortedUS3DBeamwidthInAscendingAxialDepth2CrystalsMatrixNx4(numOfUS3DBeamwidthProfileData, 4);
+	USBeamProfileFile >> SortedUS3DBeamwidthInAscendingAxialDepth2CrystalsMatrixNx4;
+
+	// Close the file for reading
+	USBeamProfileFile.close();
+
+	this->CalibrationController->GetSortedUS3DBeamwidthInAscendingAxialDepth2CrystalsMatrixNx4()->set_size(numOfUS3DBeamwidthProfileData, 4); 
+	for ( int r = 0; r < numOfUS3DBeamwidthProfileData; r++)
+	{
+		this->CalibrationController->GetSortedUS3DBeamwidthInAscendingAxialDepth2CrystalsMatrixNx4()->set_row(r,SortedUS3DBeamwidthInAscendingAxialDepth2CrystalsMatrixNx4.get_row(r)); 
+	}
+
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-void vtkProbeCalibrationControllerIO::LoadUS3DBeamProfileData()
+PlusStatus vtkProbeCalibrationControllerIO::LoadUS3DBeamProfileData()
 {
 	this->CalibrationController->SetUS3DBeamwidthDataReady(false); 
 
-	try
+	// #1. Read the US 3D Beamwidth Data from a pre-populated file
+  if (ReadUs3DBeamwidthDataFromFile() != PLUS_SUCCESS)
+  {
+    LOG_ERROR("Reading beamwidth data from file failed!");
+    return PLUS_FAIL;
+  }
+
+	// #2. Sort the beamwidth in an ascending order with respect to the axial depth
+	// Sorting the beamwidth profile w.r.t the axial distance to the transducer
+	// Sorting algorithm employed: Insertion Sort
+	for( int i = 0; i < this->CalibrationController->GetNumUS3DBeamwidthProfileData(); i++ )
+  {
+		for( int j = i; j > 0 && 
+			this->CalibrationController->GetSortedUS3DBeamwidthInAscendingAxialDepth2CrystalsMatrixNx4()->get(j-1, 0) > 
+			this->CalibrationController->GetSortedUS3DBeamwidthInAscendingAxialDepth2CrystalsMatrixNx4()->get(j, 0); j-- )
+		{
+			// Swap the positions of j-th and j-1-th elements
+			const vnl_vector<double> SwapVector = 
+				this->CalibrationController->GetSortedUS3DBeamwidthInAscendingAxialDepth2CrystalsMatrixNx4()->get_row(j-1);
+
+			this->CalibrationController->GetSortedUS3DBeamwidthInAscendingAxialDepth2CrystalsMatrixNx4()->set_row( j-1, 
+				this->CalibrationController->GetSortedUS3DBeamwidthInAscendingAxialDepth2CrystalsMatrixNx4()->get_row(j) );
+
+			this->CalibrationController->GetSortedUS3DBeamwidthInAscendingAxialDepth2CrystalsMatrixNx4()->set_row( j, 
+				SwapVector ); 
+		}
+  }
+
+	// #3. US 3D beamwidth profile data in ascending axial depth with weight factors
+  // For further details see SortedUS3DBeamwidthAndWeightFactorsInAscendingAxialDepthInUSImageFrameMatrix5xN member variable declaration
+	this->CalibrationController->GetSortedUS3DBeamwidthAndWeightFactorsInAscendingAxialDepthInUSImageFrameMatrix5xN()->set_size(5, this->CalibrationController->GetNumUS3DBeamwidthProfileData());
+
+	// Convert the depth of the beamwidth data into the TRUS Image Frame
+	const vnl_vector<double> YPositionsOfUSBeamwidthInTRUSImageFramePixels = 
+		this->CalibrationController->GetSortedUS3DBeamwidthInAscendingAxialDepth2CrystalsMatrixNx4()->get_column(0) + 
+		this->CalibrationController->GetAxialPositionOfCrystalSurfaceInTRUSImageFrame();
+
+	// Reset the axial-depth position and populate the remaining unchanged data
+	this->CalibrationController->GetSortedUS3DBeamwidthAndWeightFactorsInAscendingAxialDepthInUSImageFrameMatrix5xN()->set_row(0, 
+		YPositionsOfUSBeamwidthInTRUSImageFramePixels );
+	this->CalibrationController->GetSortedUS3DBeamwidthAndWeightFactorsInAscendingAxialDepthInUSImageFrameMatrix5xN()->set_row(1, 
+		this->CalibrationController->GetSortedUS3DBeamwidthInAscendingAxialDepth2CrystalsMatrixNx4()->get_column(1));
+	this->CalibrationController->GetSortedUS3DBeamwidthAndWeightFactorsInAscendingAxialDepthInUSImageFrameMatrix5xN()->set_row(2, 
+		this->CalibrationController->GetSortedUS3DBeamwidthInAscendingAxialDepth2CrystalsMatrixNx4()->get_column(2));
+	this->CalibrationController->GetSortedUS3DBeamwidthAndWeightFactorsInAscendingAxialDepthInUSImageFrameMatrix5xN()->set_row(3, 
+		this->CalibrationController->GetSortedUS3DBeamwidthInAscendingAxialDepth2CrystalsMatrixNx4()->get_column(3));
+
+	// Calculate the weight factor using: CurrentBeamwidth/MinimumBeamwidth
+	// NOTE: For the moment, we are only using the elevation beamwidth (the 4th column) 
+	// which has the largest beamwidth among axial, lateral and elevational axes and 
+	// plays an dominant role in the error distributions.  However, if axial and lateral
+	// beamwidth can also be added into the calculation if they are available.
+	this->CalibrationController->GetSortedUS3DBeamwidthAndWeightFactorsInAscendingAxialDepthInUSImageFrameMatrix5xN()->set_row(4,
+		this->CalibrationController->GetSortedUS3DBeamwidthInAscendingAxialDepth2CrystalsMatrixNx4()->get_column(3)/
+		this->CalibrationController->GetMinElevationBeamwidthAndFocalZoneInUSImageFrame()->get(1) );
+
+	// #4. Interpolate the beamwidth profile at non-sampled axial depth
+
+	// Initialize the Interpolated Beamwidth list to zero first
+	std::vector<vnl_vector<double>> InterpUS3DBeamwidthAndWeightFactorsList;
+	InterpUS3DBeamwidthAndWeightFactorsList.resize(0);
+
+	for( int i = 0; i < this->CalibrationController->GetNumUS3DBeamwidthProfileData() - 1; i++ )
 	{
-		// #1. Read the US 3D Beamwidth Data from a pre-populated file
-		// ============================================================
-		this->ReadUs3DBeamwidthDataFromFile(); 
+		// Obtain the starting and ending sampled beamwidth data for interpolation
+		const vnl_vector<double> StartBeamWidthDataVector = 
+			this->CalibrationController->GetSortedUS3DBeamwidthAndWeightFactorsInAscendingAxialDepthInUSImageFrameMatrix5xN()->get_column(i);
+		const vnl_vector<double> EndBeamWidthDataVector = 
+			this->CalibrationController->GetSortedUS3DBeamwidthAndWeightFactorsInAscendingAxialDepthInUSImageFrameMatrix5xN()->get_column(i+1);
 
-		// #2. Sort the beamwidth in an ascending order with respect to the axial depth
-		// =============================================================================
+		// Obtain the starting and ending axial depth in US Image Frame
+		const int StartDepthInUSImageFrame = StartBeamWidthDataVector.get(0);
+		const int EndDepthInUSImageFrame = EndBeamWidthDataVector.get(0);
 
-		// Sorting the beamwidth profile w.r.t the axial distance to the transducer
-		// Sorting algorithm employed: Insertion Sort
-		for( int i = 0; i < this->CalibrationController->GetNumUS3DBeamwidthProfileData(); i++ )
-			for( int j = i; j > 0 && 
-				this->CalibrationController->GetSortedUS3DBeamwidthInAscendingAxialDepth2CrystalsMatrixNx4()->get(j-1, 0) > 
-				this->CalibrationController->GetSortedUS3DBeamwidthInAscendingAxialDepth2CrystalsMatrixNx4()->get(j, 0); j-- )
-			{
-				// Swap the positions of j-th and j-1-th elements
-				const vnl_vector<double> SwapVector = 
-					this->CalibrationController->GetSortedUS3DBeamwidthInAscendingAxialDepth2CrystalsMatrixNx4()->get_row(j-1);
+		// Start the interpolation of the beamwidth data
+		for( int j = StartDepthInUSImageFrame; j < EndDepthInUSImageFrame; j++ )
+		{
+			// Perform the linear interpolation
+			vnl_vector<double> InterpolatedBeamwidthDataVector = 
+				(EndBeamWidthDataVector - StartBeamWidthDataVector)*
+				(double(j - StartDepthInUSImageFrame)/double(EndDepthInUSImageFrame - StartDepthInUSImageFrame))
+				+ StartBeamWidthDataVector;
 
-				this->CalibrationController->GetSortedUS3DBeamwidthInAscendingAxialDepth2CrystalsMatrixNx4()->set_row( j-1, 
-					this->CalibrationController->GetSortedUS3DBeamwidthInAscendingAxialDepth2CrystalsMatrixNx4()->get_row(j) );
+			// Set the axial depth correctly
+			InterpolatedBeamwidthDataVector.put(0, j);
 
-				this->CalibrationController->GetSortedUS3DBeamwidthInAscendingAxialDepth2CrystalsMatrixNx4()->set_row( j, 
-					SwapVector ); 
-			}
+			// Populate the interpolation list
+			InterpUS3DBeamwidthAndWeightFactorsList.push_back( InterpolatedBeamwidthDataVector );
+		}
 
-			// #3. US 3D beamwidth profile data in ascending axial depth with weight factors
-			// =============================================================================
-			// 1. 3D beam width samples are measured at various axial depth/distance away 
-			//    from the transducer crystals surface, i.e., the starting position of 
-			//    the sound propagation in an ultrasound image.
-			// 2. We have three ways to incorporate the US beamidth to the calibration: Use the 
-			//    variance of beamwidth (BWVar) to weight the calibration, use the beamwidth ratio
-			//    (BWRatio) to weight the calibration, or use the beamwidth to threshold the input
-			//    data (BWTHEVar) in order to eliminate potentially unreliable or error-prone data.
-			//    This is determined by the choice of the input flag (Option-1, 2, or 3).
-			//    [1] BWVar: This conforms to the standard way of applying weights to least squares, 
-			//        where the weights should, ideally, be equal to the reciprocal of the variance of 
-			//        the measurement of the data if they are uncorrelated.  Since we know the US beam
-			//        width at a given axial depth, resonably assuming the data acquired by the sound 
-			//        field is normally distributed, the standard deviation (Sigma) of the data can be
-			//        roughly estimated as in the equation: Sigma = USBeamWidth/4 (for 95% of data).
-			//	  [2] BWRatio: The fifth row of the matrix is the overall weight defined at that axial 
-			//        depth. The weight factor was calculated using: CurrentBeamwidth/MinimumBeamwidth.
-			//        The weight is inversely proportional to the weight factor, as obviously, the larger 
-			//        the beamwidth, the less reliable the data is than those with the minimum beamwidth.  
-			//        We found the weight factor to be a good indicator for how reliable the data is, 
-			//        because the larger the beamwidth the larger the uncertainties and errors in data 
-			//        acquired from that US field.  E.g., at the axial depth where the beamwidth is two 
-			//        times that of minimum beamwidth, the uncertainties are doubled than the imaging 
-			//        region that has the minimum beamwidth.
-			//	  [3] BWTHEVar: This utilizes the beamwidth to quality control the input calibration 
-			//        data, by filtering out those that has a larger beamwidth (e.g., larger than twice
-			//        of the minimum beamwidth at the current imaging settings).  According to ultrasound
-			//        physics, data acquired in the sound field that doubles the minimum beamwidth at
-			//        the scanplane or elevation plane focal zone are typically much less reliable than
-			//        those closer to the focal zone.  In addition, the filtered, remainng data would be
-			//        weighted for calibration using their beamwidth (BWVar in [1]).
-			// FORMAT: each column in the matrices has the following rows:
-			// [0]:		Sorted in ascending axial depth in US Image Frame (in pixels);
-			// [1-3]:	Beamwith in axial, lateral and elevational axes respectively (in mm);
-			// [4]:		Weight Factor = CurrentBeamWidth/MininumBeamWidth (>=1).
-			this->CalibrationController->GetSortedUS3DBeamwidthAndWeightFactorsInAscendingAxialDepthInUSImageFrameMatrix5xN()->set_size(5, this->CalibrationController->GetNumUS3DBeamwidthProfileData());
-
-			// Convert the depth of the beamwidth data into the TRUS Image Frame
-			const vnl_vector<double> YPositionsOfUSBeamwidthInTRUSImageFramePixels = 
-				this->CalibrationController->GetSortedUS3DBeamwidthInAscendingAxialDepth2CrystalsMatrixNx4()->get_column(0) + 
-				this->CalibrationController->GetAxialPositionOfCrystalSurfaceInTRUSImageFrame();
-
-			// Reset the axial-depth position and populate the remaining unchanged data
-			this->CalibrationController->GetSortedUS3DBeamwidthAndWeightFactorsInAscendingAxialDepthInUSImageFrameMatrix5xN()->set_row(0, 
-				YPositionsOfUSBeamwidthInTRUSImageFramePixels );
-			this->CalibrationController->GetSortedUS3DBeamwidthAndWeightFactorsInAscendingAxialDepthInUSImageFrameMatrix5xN()->set_row(1, 
-				this->CalibrationController->GetSortedUS3DBeamwidthInAscendingAxialDepth2CrystalsMatrixNx4()->get_column(1));
-			this->CalibrationController->GetSortedUS3DBeamwidthAndWeightFactorsInAscendingAxialDepthInUSImageFrameMatrix5xN()->set_row(2, 
-				this->CalibrationController->GetSortedUS3DBeamwidthInAscendingAxialDepth2CrystalsMatrixNx4()->get_column(2));
-			this->CalibrationController->GetSortedUS3DBeamwidthAndWeightFactorsInAscendingAxialDepthInUSImageFrameMatrix5xN()->set_row(3, 
-				this->CalibrationController->GetSortedUS3DBeamwidthInAscendingAxialDepth2CrystalsMatrixNx4()->get_column(3));
-
-			// Calculate the weight factor using: CurrentBeamwidth/MinimumBeamwidth
-			// NOTE: For the moment, we are only using the elevation beamwidth (the 4th column) 
-			// which has the largest beamwidth among axial, lateral and elevational axes and 
-			// plays an dominant role in the error distributions.  However, if axial and lateral
-			// beamwidth can also be added into the calculation if they are available.
-			this->CalibrationController->GetSortedUS3DBeamwidthAndWeightFactorsInAscendingAxialDepthInUSImageFrameMatrix5xN()->set_row(4,
-				this->CalibrationController->GetSortedUS3DBeamwidthInAscendingAxialDepth2CrystalsMatrixNx4()->get_column(3)/
-				this->CalibrationController->GetMinElevationBeamwidthAndFocalZoneInUSImageFrame()->get(1) );
-
-			// #4. Interpolate the beamwidth profile at non-sampled axial depth
-			// =================================================================
-
-			// Initialize the Interpolated Beamwidth list to zero first
-			std::vector<vnl_vector<double>> InterpUS3DBeamwidthAndWeightFactorsList;
-			InterpUS3DBeamwidthAndWeightFactorsList.resize(0);
-
-			for( int i = 0; i < this->CalibrationController->GetNumUS3DBeamwidthProfileData() - 1; i++ )
-			{
-				// Obtain the starting and ending sampled beamwidth data for interpolation
-				const vnl_vector<double> StartBeamWidthDataVector = 
-					this->CalibrationController->GetSortedUS3DBeamwidthAndWeightFactorsInAscendingAxialDepthInUSImageFrameMatrix5xN()->get_column(i);
-				const vnl_vector<double> EndBeamWidthDataVector = 
-					this->CalibrationController->GetSortedUS3DBeamwidthAndWeightFactorsInAscendingAxialDepthInUSImageFrameMatrix5xN()->get_column(i+1);
-
-				// Obtain the starting and ending axial depth in US Image Frame
-				const int StartDepthInUSImageFrame = StartBeamWidthDataVector.get(0);
-				const int EndDepthInUSImageFrame = EndBeamWidthDataVector.get(0);
-
-				// Start the interpolation of the beamwidth data
-				for( int j = StartDepthInUSImageFrame; j < EndDepthInUSImageFrame; j++ )
-				{
-					// Perform the linear interpolation
-					vnl_vector<double> InterpolatedBeamwidthDataVector = 
-						(EndBeamWidthDataVector - StartBeamWidthDataVector)*
-						(double(j - StartDepthInUSImageFrame)/double(EndDepthInUSImageFrame - StartDepthInUSImageFrame))
-						+ StartBeamWidthDataVector;
-
-					// Set the axial depth correctly
-					InterpolatedBeamwidthDataVector.put(0, j);
-
-					// Populate the interpolation list
-					InterpUS3DBeamwidthAndWeightFactorsList.push_back( InterpolatedBeamwidthDataVector );
-				}
-
-				if( this->CalibrationController->GetNumUS3DBeamwidthProfileData() - 2 == i )
-				{
-					// Add in the last data in the list (which was not accounted for in the process)
-					InterpUS3DBeamwidthAndWeightFactorsList.push_back( EndBeamWidthDataVector );
-				}
-			}
-
-			// Populate the data to matrix container
-			const int TotalNumOfInterpolatedUSBeamwidthData( InterpUS3DBeamwidthAndWeightFactorsList.size() );
-			this->CalibrationController->GetInterpUS3DBeamwidthAndWeightFactorsInUSImageFrameTable5xM()->set_size(5, 
-				TotalNumOfInterpolatedUSBeamwidthData);
-			for( int i = 0; i < TotalNumOfInterpolatedUSBeamwidthData; i++ )
-			{
-				this->CalibrationController->GetInterpUS3DBeamwidthAndWeightFactorsInUSImageFrameTable5xM()->set_column( i,
-					InterpUS3DBeamwidthAndWeightFactorsList.at(i) );
-			}
-
-			// Set the flag to signal the data is now ready
-			this->CalibrationController->SetUS3DBeamwidthDataReady(true); 
-
+		if( this->CalibrationController->GetNumUS3DBeamwidthProfileData() - 2 == i )
+		{
+			// Add in the last data in the list (which was not accounted for in the process)
+			InterpUS3DBeamwidthAndWeightFactorsList.push_back( EndBeamWidthDataVector );
+		}
 	}
-	catch(...)
+
+	// Populate the data to matrix container
+	const int TotalNumOfInterpolatedUSBeamwidthData( InterpUS3DBeamwidthAndWeightFactorsList.size() );
+	this->CalibrationController->GetInterpUS3DBeamwidthAndWeightFactorsInUSImageFrameTable5xM()->set_size(5, 
+		TotalNumOfInterpolatedUSBeamwidthData);
+	for( int i = 0; i < TotalNumOfInterpolatedUSBeamwidthData; i++ )
 	{
-		LOG_ERROR("Failed to read the US 3D Beam Profile Data from File!"); 
-		throw;
+		this->CalibrationController->GetInterpUS3DBeamwidthAndWeightFactorsInUSImageFrameTable5xM()->set_column( i,
+			InterpUS3DBeamwidthAndWeightFactorsList.at(i) );
 	}
+
+	// Set the flag to signal the data is now ready
+	this->CalibrationController->SetUS3DBeamwidthDataReady(true); 
+
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
@@ -1473,10 +1347,9 @@ PlusStatus vtkProbeCalibrationControllerIO::GenerateProbeCalibrationReport( vtkH
     vtkSmartPointer<vtkStringArray> colLreYMean = vtkSmartPointer<vtkStringArray>::New();
     vtkSmartPointer<vtkStringArray> colLreYStdev = vtkSmartPointer<vtkStringArray>::New(); 
 
-     const int wiresLRE[4] = {1, 3, 4, 6};
-     for ( int i = 0; i < 4; ++i )
-     {
-
+    const int wiresLRE[4] = {1, 3, 4, 6};
+    for ( int i = 0; i < 4; ++i )
+    {
        colTitle->SetName("Wire"); 
        std::ostringstream title; 
        title << "Wire #" << wiresLRE[i]; 
@@ -1503,7 +1376,7 @@ PlusStatus vtkProbeCalibrationControllerIO::GenerateProbeCalibrationReport( vtkH
        std::ostringstream lreYStdev; 
        lreYStdev << lreVector[3]; 
        colLreYStdev->InsertNextValue(lreYStdev.str()); 
-     }
+    }
 
     lreTable->AddColumn(colTitle); 
     lreTable->AddColumn(colLreXMean); 
@@ -1544,8 +1417,6 @@ PlusStatus vtkProbeCalibrationControllerIO::GenerateProbeCalibrationReport( vtkH
 
 			htmlReport->AddImage(imageSource.str().c_str(), imageAlt.str().c_str());  
 		}
-
-		/////////////////////////////////////////////////////////////////////////////////////////////
 
 		htmlReport->AddText("Error Plot", vtkHTMLGenerator::H2); 
 
