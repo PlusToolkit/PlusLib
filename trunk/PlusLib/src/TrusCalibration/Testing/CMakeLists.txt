@@ -258,3 +258,28 @@ ADD_TEST(SpacingCalibAlgoTest-FrameGrabber
             )
 SET_TESTS_PROPERTIES( SpacingCalibAlgoTest-FrameGrabber PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
+#--------------------------------------------------------------------------------------------
+IF (PLUS_USE_BRACHY_TRACKER)
+    ADD_EXECUTABLE(vtkRotationEncoderCalibAlgoTest vtkRotationEncoderCalibAlgoTest.cxx)
+    TARGET_LINK_LIBRARIES(vtkRotationEncoderCalibAlgoTest vtkPlusCommon vtkTrusCalibration vtkImageAcquisition )
+
+    ADD_TEST(RotationEncoderCalibration-Ulterius
+            ${EXECUTABLE_OUTPUT_PATH}/vtkRotationEncoderCalibAlgoTest
+            --input-config-file-name=${ConfigFilesDir}/Test_PlusConfiguration_CalibrationOnly_SonixRP_Ulterius_iCal.xml 
+            --input-sequence-metafile=${TestDataDir}/USTC_Ulterius_ProbeRotationData.mha
+            --input-baseline-file-name=${TestDataDir}/USTC_Ulterius_StepperCalibrationResultBaseline.xml
+            --input-gnuplot-scripts-folder=${PlusLib_SOURCE_DIR}/src/scripts/gnuplot
+            --input-gnuplot-command=${GNUPLOT_BIN_DIR}/gnuplot.exe
+            )
+    SET_TESTS_PROPERTIES( RotationEncoderCalibration-Ulterius PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+
+    ADD_TEST(RotationEncoderCalibration-FrameGrabber
+            ${EXECUTABLE_OUTPUT_PATH}/vtkRotationEncoderCalibAlgoTest
+            --input-config-file-name=${ConfigFilesDir}/Test_PlusConfiguration_CalibrationOnly_FrameGrabber_iCal.xml 
+            --input-sequence-metafile=${TestDataDir}/USTC_FrameGrabber_ProbeRotationData.mha
+            --input-baseline-file-name=${TestDataDir}/USTC_FrameGrabber_StepperCalibrationResultBaseline.xml
+            --input-gnuplot-scripts-folder=${PlusLib_SOURCE_DIR}/src/scripts/gnuplot
+            --input-gnuplot-command=${GNUPLOT_BIN_DIR}/gnuplot.exe
+            )
+    SET_TESTS_PROPERTIES( RotationEncoderCalibration-FrameGrabber PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+ENDIF()

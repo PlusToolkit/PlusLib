@@ -60,7 +60,6 @@ public:
 	//! Get the calibration matrices for all tools in a string
 	virtual PlusStatus GetTrackerToolCalibrationMatrixStringList(std::map<std::string, std::string> &toolsCalibrationMatrices); 
 
-
   //! Get stepper encoder values from the buffer by UID
 	PlusStatus GetStepperEncoderValues( BufferItemUidType uid, double &probePosition, double &probeRotation, double &templatePosition, TrackerStatus &status ); 
   

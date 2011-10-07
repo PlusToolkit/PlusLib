@@ -13,50 +13,9 @@ enum CalibrationMode
 	OFFLINE
 };  
 
-class HomogenousVector4x1
-{
-public: 
-	HomogenousVector4x1() { Vector[0] = Vector[1] = Vector[2] = 0; Vector[3] = 1; }; 
-	HomogenousVector4x1( double x, double y, double z) 
-	{ 
-		Vector[0] = x; 
-		Vector[1] = y;
-		Vector[2] = z;
-		Vector[3] = 1;
-	
-	}; 
-	virtual double GetX() { return Vector[0]; }; 
-	virtual double GetY() { return Vector[1]; }; 
-	virtual double GetZ() { return Vector[2]; }; 
-
-	virtual void SetX( double x ) { Vector[0] = x; }; 
-	virtual void SetY( double y ) { Vector[1] = y; }; 
-	virtual void SetZ( double z ) { Vector[2] = z; }; 
-
-	virtual double* GetVector() { return Vector; }; 
-	virtual void GetVector( double* outVector ) 
-	{ 
-		outVector[0] = Vector[0]; 
-		outVector[1] = Vector[1]; 
-		outVector[2] = Vector[2]; 
-		outVector[3] = Vector[3]; 
-	}; 
-
-protected: 
-	double Vector[4]; 
-}; 
-
 class vtkStepperCalibrationController : public vtkCalibrationController
 {
 public:
-
-  struct CalibStatistics
-  {
-    double Mean; 
-    double Stdev; 
-    double Min; 
-    double Max; 
-  }; 
 
 	static vtkStepperCalibrationController *New();
 	vtkTypeRevisionMacro(vtkStepperCalibrationController , vtkCalibrationController);
@@ -131,11 +90,6 @@ public:
 	// Add generated html report from center of rotation calculation to the existing html report
 	// htmlReport and plotter arguments has to be defined by the caller function
 	virtual PlusStatus GenerateCenterOfRotationReport( vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter, const char* gnuplotScriptsFolder); 
-
-	// Description:
-	// Set/get outlier detection threshold
-	vtkSetMacro(OutlierDetectionThreshold, double); 
-	vtkGetMacro(OutlierDetectionThreshold, double); 
 
 	//! Description: 
 	// Set/Get the image spacing.
@@ -224,12 +178,6 @@ public:
 	vtkBooleanMacro(CenterOfRotationCalculated, bool); 
 
   //! Description: 
-	// Set/get phantom to probe distance calculated finished flag
-	vtkSetMacro(PhantomToProbeDistanceCalculated, bool); 
-	vtkGetMacro(PhantomToProbeDistanceCalculated, bool); 
-	vtkBooleanMacro(PhantomToProbeDistanceCalculated, bool); 
-
-  //! Description: 
 	// Set/get algorithm version in string 
 	vtkSetStringMacro(AlgorithmVersion); 
 	vtkGetStringMacro(AlgorithmVersion); 
@@ -239,11 +187,6 @@ public:
 	vtkSetStringMacro(CalibrationStartTime); 
 	vtkGetStringMacro(CalibrationStartTime); 
 	
-	//! Description: 
-	// Set/get probe rotation encoder calibration error report file path
-	vtkSetStringMacro(ProbeRotationEncoderCalibrationErrorReportFilePath); 
-	vtkGetStringMacro(ProbeRotationEncoderCalibrationErrorReportFilePath); 
-
 	//! Description: 
 	// Set/get calibration mode
 	vtkSetMacro(CalibrationMode, CalibrationMode); 
@@ -257,10 +200,6 @@ protected:
 	//! Description: 
 	// Set the calibration start time
 	virtual void SaveCalibrationStartTime(); 
-
-	// Description:
-	// Compute mean and stddev from dataset
-	virtual PlusStatus ComputeStatistics(const std::vector< std::vector<double> > &diffVector, std::vector<CalibStatistics> &statistics); 
 
 	//***************************************************************************
 	//					Translation axis calibration
@@ -289,34 +228,6 @@ protected:
 	// Returns true on success otherwise false
 	virtual PlusStatus CalibrateRotationEncoder(); 
 
-	//! Description: 
-	// Construct linear equation for rotation encoder calibration
-	virtual void ConstrLinEqForRotEncCalc( 
-		std::vector<vnl_vector<double>> &aMatrix, 
-		std::vector<double> &bVector); 
-	
-	//! Description: 
-	// Remove outliers from rotation encoder calibration dataset
-	virtual void RemoveOutliersFromRotEncCalibData(
-		std::vector<vnl_vector<double>> &aMatrix, 
-		std::vector<double> &bVector, 
-		vnl_vector<double> resultVector );
-
-	//! Description: 
-	// Calculate mean error and stdev of measured and computed rotation angles
-	virtual void GetRotationEncoderCalibrationError(
-		const std::vector<vnl_vector<double>> &aMatrix, 
-		const std::vector<double> &bVector, 
-		const vnl_vector<double> &resultVector, 
-    CalibStatistics &statistics); 
-
-	//! Description: 
-	// Save rotation encoder calibration error in gnuplot format 
-	virtual void SaveRotationEncoderCalibrationError(
-		const std::vector<vnl_vector<double>> &aMatrix, 
-		const std::vector<double> &bVector, 
-		const vnl_vector<double> &resultVector ); 
-
 	//***************************************************************************
 	//							Spacing calculation
 	//***************************************************************************
@@ -328,30 +239,10 @@ protected:
 	// Returns true on success otherwise false
 	virtual PlusStatus CalculateSpacing(); 
 
-	//***************************************************************************
-	//					Phantom to probe distance calculation
-	//***************************************************************************
-	
-	//! Description: 
-	// Add points to the point set for calculating the distance between the 
-	// phantom and TRUS probe
-	// Add Line #1 (point A) Line #3 (point B) and Line #6 (point C) pixel coordinates
-	virtual void AddPointsForPhantomToProbeDistanceCalculation(HomogenousVector4x1 pointA, HomogenousVector4x1 pointB, HomogenousVector4x1 pointC); 
-	virtual void AddPointsForPhantomToProbeDistanceCalculation(
-		double xPointA, double yPointA, double zPointA, 
-		double xPointB, double yPointB, double zPointB, 
-		double xPointC, double yPointC, double zPointC );
-
-	//! Description:
-	// Calculate the distance between the probe and phantom 
-	// Returns true on success otherwise false
-	virtual PlusStatus CalculatePhantomToProbeDistance(); 
-
 protected:
 
 	bool SpacingCalculated; 
 	bool CenterOfRotationCalculated; 
-  bool PhantomToProbeDistanceCalculated; 
 	bool ProbeRotationAxisCalibrated; 
 	bool ProbeTranslationAxisCalibrated; 
 	bool TemplateTranslationAxisCalibrated; 
@@ -376,26 +267,15 @@ protected:
 	// Probe rotation axis orientation [Rx, Ry, 1]
 	double ProbeRotationAxisOrientation[3]; 
 
-	// Horizontal [0] and vertical [1] distance between the phantom (a line defined by two points) 
-	// and probe in mm 
-	double PhantomToProbeDistanceInMm[2]; 
-
 	double ProbeRotationEncoderOffset; 
 	double ProbeRotationEncoderScale; 
-
-	double OutlierDetectionThreshold; 
 
 	// Stores the calibration start time in string format
 	char* CalibrationStartTime; 
 
-	std::vector< std::vector<HomogenousVector4x1> > PointSetForPhantomToProbeDistanceCalculation;
-
-	char* ProbeRotationEncoderCalibrationErrorReportFilePath; 
-
   char* AlgorithmVersion; 
 
 	int MinNumberOfRotationClusters; 
-	int MinNumOfFramesUsedForCenterOfRotCalc; 
 
 	//! calibration mode (see CALIBRATION_MODE)
 	CalibrationMode CalibrationMode;

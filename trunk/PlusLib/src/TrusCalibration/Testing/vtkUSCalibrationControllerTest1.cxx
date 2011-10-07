@@ -2,6 +2,8 @@
 #include "PlusMath.h"
 #include "vtkCalibrationController.h"
 #include "vtkStepperCalibrationController.h"
+#include "vtkBrachyStepperPhantomRegistrationAlgo.h"
+
 #include "vtkBMPReader.h"
 #include "vtkSmartPointer.h"
 #include "vtkCommand.h"
@@ -37,7 +39,7 @@ int main (int argc, char* argv[])
 	double inputTranslationErrorThreshold(0); 
 	double inputRotationErrorThreshold(0); 
 
-	int verboseLevel=vtkPlusLogger::LOG_LEVEL_WARNING;
+	int verboseLevel=vtkPlusLogger::LOG_LEVEL_INFO;
 
 	vtksys::CommandLineArguments cmdargs;
 	cmdargs.Initialize(argc, argv);
@@ -120,6 +122,24 @@ int main (int argc, char* argv[])
         LOG_ERROR("OfflineTemplateTranslationAxisCalibration failed!"); 
     }
 
+
+
+  FidPatternRecognition patternRecognition; 
+	patternRecognition.ReadConfiguration(configRootElement);
+
+  vtkSmartPointer<vtkTrackedFrameList> probeRotationTrackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New(); 
+  if ( probeRotationTrackedFrameList->ReadFromSequenceMetafile(inputProbeRotationSeqMetafile.c_str()) != PLUS_SUCCESS )
+  {
+      LOG_ERROR("Failed to read probe rotation data from sequence metafile: " << inputProbeRotationSeqMetafile); 
+      return EXIT_FAILURE;
+  }
+
+  LOG_INFO("Testing image data segmentation...");
+  for ( int currentFrameIndex = 0; currentFrameIndex < probeRotationTrackedFrameList->GetNumberOfTrackedFrames(); currentFrameIndex++)
+  {
+    patternRecognition.RecognizePattern(probeRotationTrackedFrameList->GetTrackedFrame(currentFrameIndex));
+  }
+
 	// Initialize the stepper calibration controller 
 	vtkSmartPointer<vtkCalibrationController> probeCal = vtkSmartPointer<vtkCalibrationController>::New(); 
 	probeCal->ReadConfiguration(configRootElement); 
@@ -137,8 +157,29 @@ int main (int argc, char* argv[])
   probeCal->EnableVisualizationOff(); 
 	probeCal->Initialize(); 
 
+  double* centerOfRotationPx = stepperCal->GetCenterOfRotationPx(); 
+  double* spacing = stepperCal->GetSpacing(); 
+  vtkTransform* tTemplateHolderToPhantom = probeCal->GetTransformTemplateHolderToPhantom(); 
+
+  vtkSmartPointer<vtkBrachyStepperPhantomRegistrationAlgo> phantomRegistrationAlgo = vtkSmartPointer<vtkBrachyStepperPhantomRegistrationAlgo>::New(); 
+  phantomRegistrationAlgo->SetInputs(probeRotationTrackedFrameList, spacing, centerOfRotationPx, patternRecognition.GetFidLabeling()->GetNWires()); 
+  phantomRegistrationAlgo->SetTransformTemplateHolderToPhantom( tTemplateHolderToPhantom ); 
+
+  vtkSmartPointer<vtkTransform> tPhantomToReference = vtkSmartPointer<vtkTransform>::New(); 
+  if ( phantomRegistrationAlgo->GetPhantomToReferenceTransform( tPhantomToReference ) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to register phantom frame to reference frame!"); 
+    return EXIT_FAILURE; 
+  }
+
 	// Register phantom geometry before calibration 
-	probeCal->RegisterPhantomGeometry( stepperCal->GetPhantomToProbeDistanceInMm() ); 
+	probeCal->RegisterPhantomGeometry( tPhantomToReference ); 
+  
+  // TODO: remove it!
+  probeCal->GetTransformTemplateHolderToTemplate()->SetMatrix(probeCal->GetTransformTemplateHolderToPhantom()->GetMatrix() ); 
+  probeCal->GetTransformReferenceToTemplateHolderHome()->SetMatrix( phantomRegistrationAlgo->GetTransformReferenceToTemplateHolder()->GetMatrix() ); 
+
+
 	if ( probeCal->OfflineUSToTemplateCalibration() == PLUS_SUCCESS )
     {
 	    probeCal->ComputeCalibrationResults(); 

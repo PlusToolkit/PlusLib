@@ -148,7 +148,6 @@ public:
 
 public: // Former ProbeCalibrationController and FreehandCalibraitonController functions
 	//! Register phantom geometry for calibrator 
-	virtual void RegisterPhantomGeometry( double phantomToProbeDistanceInMm[2] );
   virtual void RegisterPhantomGeometry( vtkTransform* aPhantomToPhantomReferenceTransform ); 
 
 	//! Computes the calibration results: 
