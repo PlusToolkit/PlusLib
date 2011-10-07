@@ -17,10 +17,11 @@
 
 #include "FidPatternRecognition.h"
 #include "FidPatternRecognitionCommon.h"
-#include "vtkProbeCalibrationControllerIO.h"
 
-//! Description 
-// Helper class for storing segmentation results with transformation
+class vtkHTMLGenerator; 
+class vtkGnuplotExecuter; 
+
+//! Helper class for storing segmentation results with transformation
 class SegmentedFrame
 {
 public: 
@@ -36,6 +37,7 @@ public:
 };
 
 
+//! Probe calibration algorithm class
 class vtkCalibrationController : public vtkObject
 {
 public:
@@ -164,92 +166,26 @@ public: // Former ProbeCalibrationController and FreehandCalibraitonController f
 	//! Read and populate US to Template calibration image data in offline mode
 	virtual PlusStatus OfflineUSToTemplateCalibration();  
 		
-	//! get the wire position of the the US frame and phantom intersection in template coordinate system
+	//! Get the wire position of the the US frame and phantom intersection in template coordinate system
 	virtual PlusStatus GetWirePosInTemplateCoordinate( int wireNum, double* wirePosInTemplate ); 
 
-	// The 3D Point Reconstruction Error (PRE3D) analysis for the 
-	// validation positions in the US probe frame.
-	// FORMAT: (all positions are in the US probe frame)
-	// [ vector 0 - 2:  PRE3D_X_mean, PRE3D_X_rms, PRE3D_X_std ]
-	// [ vector 3 - 5:  PRE3D_Y_mean, PRE3D_Y_rms, PRE3D_Y_std ]
-	// [ vector 6 - 8:  PRE3D_Z_mean, PRE3D_Z_rms, PRE3D_Z_std ]
-	// [ vector 9	 :	Validation data confidence level ]
-	// where: 
-	// - mean: linearly averaged;
-	// - rms : root mean square;
-	// - std : standard deviation.
-	// - validation data confidence level: this is a percentage of 
-	//   the independent validation data used to produce the final
-	//   validation results.  It serves as an effective way to get 
-	//   rid of corrupted data (or outliers) in the validation 
-	//   dataset.  Default value: 0.95 (or 95%), meaning the top 
-	//   ranked 95% of the ascendingly-ordered PRE3D values from the 
-	//   validation data would be accepted as the valid PRE3D values.
+	//! Get the 3D Point Reconstruction Error (PRE3D) analysis. For details see member variable definition
 	virtual vtkstd::vector<double> GetPRE3DVector() { return mAbsPRE3DAnalysis4ValidationPositionsInUSProbeFrame; } 
 
-	// The raw 3D Point Reconstruction Error (PRE3D) matrix from the 
-	// validation data set.  This will return the original PRE3Ds 
-	// matrix for the validation dataset with signs in the US 
-	// probe frame (from the Projected positions to the true 
-	// positions).  
-	// NOTE: It may be useful for the user to obtain all PRE3Ds for 
-	//       further statistical analysis if desired.
-	// FORMAT: matrix 4xN (N: the total number of validation points)
-	// [ Row-0: PRE3Ds in x-axis from projected to true positions ]
-	// [ Row-1: PRE3Ds in y-axis from projected to true positions ]
-	// [ Row-2: PRE3Ds in z-axis from projected to true positions ]
-	// [ Row-3: should be all zeros ]
+	// Get the raw 3D Point Reconstruction Error (PRE3D) matrix. For details see member variable definiton
 	virtual vnl_matrix<double> GetPRE3DMatrix() { return mRawPRE3DsforValidationPositionsInUSProbeFrameMatrix4xN; } 
 
-	//! Point-Line Distance Error for validation positions in US probe frame
-	// This contains the Point-Line Distance Error (PLDE) for the validation dataset. 
-	// The PLDE was defined as the absolute point-line distance from the projected
-	// positions to the N-Wire (the ground truth), both in the US probe frame.  
-	// If there was no error, the PLDE would be zero and the projected postions
-	// would reside right on the N-Wire.  The physical position of the N-Wire
-	// was measured based on the phantom geometry and converted into the US
-	// US probe frame by the optical tracking device affixed on the phantom.
-	// NOTE: this data may be used for statistical analysis if desired.
-	// FORMAT: vector 1xN (with N being the total number of validation positions)
+	//! Get Point-Line Distance Error for validation positions in US probe frame. For details see member variable definition
 	vnl_vector<double> GetPointLineDistanceErrorVector() { return mPLDEsforValidationPositionsInUSProbeFrame; }
 	vnl_vector<double> GetPointLineDistanceErrorSortedVector() { return mSortedPLDEsAscendingforValidationInUSProbeFrame; }
 
-	//! Point-Line Distance Error Analysis for Validation Positions in US probe frame
-	// FORMAT: (all positions are in the US probe frame)
-	// [ vector 0 - 2:  PLDE_mean, PLDE_rms, PLDE_std ]
-	// [ vector 3	 :	Validation data confidence level ]
-	// where: 
-	// - mean: linearly averaged;
-	// - rms : root mean square;
-	// - std : standard deviation.
-	// - validation data confidence level: this is a percentage of 
-	//   the independent validation data used to produce the final
-	//   validation results.  It serves as an effective way to get 
-	//   rid of corrupted data (or outliers) in the validation 
-	//   dataset.  Default value: 0.95 (or 95%), meaning the top 
-	//   ranked 95% of the ascendingly-ordered results from the 
-	//   validation data would be accepted as the valid error values.
+	//! Get Point-Line Distance Error Analysis for Validation Positions in probe frame. For details see member variable definition
 	std::vector<double> GetPointLineDistanceErrorAnalysisVector() { return mPLDEAnalysis4ValidationPositionsInUSProbeFrame; } 
 
-	//! Line Reconstruction Error Analysis for the validation positions in the US probe frame
-	// FORMAT: (all positions are in the US probe frame)
-	// For parallel NWires N1, N3, N4, N6:
-	// [ vector 0 - 1:  LRE_X_mean,   LRE_X_std   ]
-	// [ vector 2 - 3:  LRE_Y_mean,   LRE_Y_std   ]
-	// [ vector 4 - 5:  LRE_EUC_mean, LRE_EUC_std ]
-	// [ vector 6	 :	Validation data confidence level ]
-	// where: 
-	// - mean: linearly averaged;
-	// - std : standard deviation;
-	// - EUC: Euclidean (norm) measurement.
-	// - validation data confidence level: this is a percentage of 
-	//   the independent validation data used to produce the final
-	//   validation results.  It serves as an effective way to get 
-	//   rid of corrupted data (or outliers) in the validation 
-	//   dataset.  Default value: 0.95 (or 95%), meaning the top 
-	//   ranked 95% of the ascendingly-ordered results from the 
-	//   validation data would be accepted as the valid error values.
+	//! Update Line Reconstruction Error Analysis for the validation positions in the US probe frame. For details see member variable definitions
   PlusStatus UpdateLineReconstructionErrorAnalysisVectors();  
+
+  //! Get Line Reconstruction Error Analysis for the validation positions in the US probe frame. For details see member variable definitions
 	PlusStatus GetLineReconstructionErrorAnalysisVector(int wireNumber, std::vector<double> &LRE);  
 
 	//! Line reconstruction error (LRE) matrix for validation positions in US probe frame
@@ -269,15 +205,13 @@ public: // Former ProbeCalibrationController and FreehandCalibraitonController f
 	//! Get US 3D beamwidth profile data in US Image Frame with weights factors along axial depth (see SortedUS3DBeamwidthAndWeightFactorsInAscendingAxialDepthInUSImageFrameMatrix5xN member)
 	vnl_matrix<double> *GetSortedUS3DBeamwidthAndWeightFactorsInAscendingAxialDepthInUSImageFrameMatrix5xN() { return &this->SortedUS3DBeamwidthAndWeightFactorsInAscendingAxialDepthInUSImageFrameMatrix5xN; }
 
+  //! TODO
   vnl_matrix<double>* GetSortedUS3DBeamwidthInAscendingAxialDepth2CrystalsMatrixNx4() { return &this->SortedUS3DBeamwidthInAscendingAxialDepth2CrystalsMatrixNx4; }
 
-	// Get Interpolated US 3D beamwidth profile and weight calulated based on it (see InterpUS3DBeamwidthAndWeightFactorsInUSImageFrameTable5xM member)
+	//!! Get Interpolated US 3D beamwidth profile and weight calulated based on it (see InterpUS3DBeamwidthAndWeightFactorsInUSImageFrameTable5xM member)
 	vnl_matrix<double> *GetInterpUS3DBeamwidthAndWeightFactorsInUSImageFrameTable5xM() { return &this->InterpUS3DBeamwidthAndWeightFactorsInUSImageFrameTable5xM; }
 
-  //! Set/get the calibration controller IO
-	vtkSetObjectMacro(CalibrationControllerIO, vtkProbeCalibrationControllerIO); 
-	vtkGetObjectMacro(CalibrationControllerIO, vtkProbeCalibrationControllerIO); 
-
+  //! TODO
   std::map<int, std::vector<double>>* GetLineReconstructionErrors() { return &this->LineReconstructionErrors; };  
 
 	/*!
@@ -293,7 +227,11 @@ public: // Former ProbeCalibrationController and FreehandCalibraitonController f
 	std::string GetResultString();
 
 	//! Read and populate US to Template calibration image data in offline mode
-	virtual PlusStatus DoOfflineCalibration();
+	PlusStatus DoOfflineCalibration();
+
+	//! Add generated html report from final calibration to the existing html report
+	// htmlReport and plotter arguments has to be defined by the caller function
+  PlusStatus GenerateProbeCalibrationReport( vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter, const char* gnuplotScriptsFolder);
 
   //! Set/get phantom to probe distance in mm
   vtkSetVector2Macro(PhantomToProbeDistanceInMm, double); 
@@ -446,13 +384,9 @@ protected:
 	PlusStatus DoCalibration(); 
 
 protected: // from former Phantom class
-	// This will construct the validation data matrices
-	// NOTE: since the validation data set is separated from the calibration 
-	//       data and acquired before the calibration, the construction of
-	//       the validation data matrices needs to be done once and only 
-	//       once (e.g., before the 1st validation task is performed) with
-	//       the flag set to true.  This would save the system runtime
-	//       during the iterative calibration/validation process.
+	//! This will construct the validation data matrices. Since the validation data set is separated from the calibration data and acquired before the calibration, the construction of
+	// the validation data matrices needs to be done once and only once (e.g., before the 1st validation task is performed) with the flag set to true.  This would save the system runtime
+	// during the iterative calibration/validation process
 	PlusStatus constructValidationDataMatrices();
 
   //! Reset data containers
@@ -485,8 +419,20 @@ protected: // from former Phantom class
 	// FORMAT:
 	// [ 0: PRE3Ds in x-axis from projected to true positions ]
 	// [ 1: PRE3Ds in y-axis from projected to true positions ]
-	vnl_vector<double> getPointLineReconstructionError(vnl_vector<double> NWirePositionInUSImageFrame, 
-		vnl_vector<double> NWirePositionInUSProbeFrame);  
+	vnl_vector<double> getPointLineReconstructionError(vnl_vector<double> NWirePositionInUSImageFrame, vnl_vector<double> NWirePositionInUSProbeFrame);  
+
+protected: // from former vtkProbeCalibrationControllerIO class
+	//! Save back projected wire positions to text file in gnuplot format 
+	virtual void SaveSegmentedWirePositionsToFile(); 
+
+	//! This operation writes the final calibration results to a file.
+	virtual void SaveCalibrationResultsAndErrorReportsToXML(); 
+
+	//! Read in the ultrasound 3D beam profile data from a file
+	virtual PlusStatus ReadUs3DBeamwidthDataFromFile(); 
+	
+	//! Load the ultrasound 3D beam profile data
+	virtual PlusStatus LoadUS3DBeamProfileData();
 
 protected:
 	//! Flag to enable the tracked sequence data saving to metafile
@@ -539,9 +485,6 @@ protected:
   vtkImageData* OfflineImageData; 
 
 protected: // Former ProbeCalibrationController and FreehandCalibrationController members
-	//! a reference to the calibration controller IO
-	vtkProbeCalibrationControllerIO* CalibrationControllerIO; 
-
 	//! Flag to enable the saving of segmented wire positions to file
 	bool EnableSegmentedWirePositionsSaving; 
 
@@ -859,7 +802,6 @@ protected: // From former Phantom class
 	// [ vector 3 - 5:  PRE3D_Y_mean, PRE3D_Y_rms, PRE3D_Y_std ]
 	// [ vector 6 - 8:  PRE3D_Z_mean, PRE3D_Z_rms, PRE3D_Z_std ]
 	// [ vector 9	 :	Validation data confidence level ]
-	// 
 	// where: 
 	// - mean: linearly averaged;
 	// - rms : root mean square;
