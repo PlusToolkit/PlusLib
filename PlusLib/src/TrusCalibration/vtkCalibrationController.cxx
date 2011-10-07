@@ -1686,53 +1686,12 @@ PlusStatus vtkCalibrationController::AddPositionsPerImage( std::vector< vnl_vect
       transformImage2UserImage * SegmentedPositionInOriginalImageFrame;
 
     // Add weights to the positions if required (see mUS3DBeamwidthAndWeightFactorsInUSImageFrameTable5xM member description)
-    if( true == mIsUSBeamwidthAndWeightFactorsTableReady )
+    if( true == mIsUSBeamwidthAndWeightFactorsTableReady && !aValidation )
     {
       // Get and round the axial depth in the US Image Frame for the segmented data point (in pixels and along the Y-axis)
-      const int ThisAxialDepthInUSImageFrameRounded = floor( SegmentedPositionInUserImageFrame.get(1) + 0.5 );
+      const int axialDepthInActualImageFrameRounded = floor( SegmentedPositionInUserImageFrame.get(1) + 0.5 );
 
-      // Set the weight according to the selected method of incorporation
-      double USBeamWidthEuclideanMagAtThisAxialDepthInMM(-1);
-      if( ThisAxialDepthInUSImageFrameRounded <= mMinimumUSElevationBeamwidthAndFocalZoneInUSImageFrame.get(0) )
-      {
-        // #1. This is the ultrasound elevation near field which has the the best imaging quality (before the elevation focal zone)
-        // We will set the beamwidth at the near field to be the same as that of the elevation focal zone.
-        USBeamWidthEuclideanMagAtThisAxialDepthInMM =  mMinimumUSElevationBeamwidthAndFocalZoneInUSImageFrame.get(1);
-      }
-      else if( ThisAxialDepthInUSImageFrameRounded >= mTheFarestAxialDepthInUSBeamwidthAndWeightTable )
-      {
-        // #2. Further deep in far field (close to the bottom of the image)
-        // Ultrasound diverses quickly in this region and data quality deteriorates
-
-        USBeamWidthEuclideanMagAtThisAxialDepthInMM = mUS3DBeamwidthAtFarestAxialDepth.magnitude();
-      }
-      else 
-      {
-        // #3. Ultrasound far field 
-        // Here the sound starts to diverse with elevation beamwidth getting
-        // larger and larger.  Data quality starts to deteriorate.
-
-        // Populate the beamwidth vector (axial, lateral and elevation elements)
-        vnl_vector<double> US3DBeamwidthAtThisAxialDepth(3,0);
-        US3DBeamwidthAtThisAxialDepth.put(0, mUS3DBeamwidthAndWeightFactorsInUSImageFrameTable5xM.get(1,
-          ThisAxialDepthInUSImageFrameRounded - mTheNearestAxialDepthInUSBeamwidthAndWeightTable));
-        US3DBeamwidthAtThisAxialDepth.put(1, mUS3DBeamwidthAndWeightFactorsInUSImageFrameTable5xM.get(2,
-          ThisAxialDepthInUSImageFrameRounded - mTheNearestAxialDepthInUSBeamwidthAndWeightTable));
-        US3DBeamwidthAtThisAxialDepth.put(2, mUS3DBeamwidthAndWeightFactorsInUSImageFrameTable5xM.get(3,
-          ThisAxialDepthInUSImageFrameRounded - mTheNearestAxialDepthInUSBeamwidthAndWeightTable));
-
-        USBeamWidthEuclideanMagAtThisAxialDepthInMM = US3DBeamwidthAtThisAxialDepth.magnitude();
-      }
-
-      if (!aValidation)
-      {
-        mWeightsForDataPositions.push_back( GetBeamwidthWeightForBeamwidthMagnitude(USBeamWidthEuclideanMagAtThisAxialDepthInMM, ThisAxialDepthInUSImageFrameRounded) );
-        mUSBeamWidthEuclideanMagAtDataPositions.push_back( USBeamWidthEuclideanMagAtThisAxialDepthInMM );
-      }
-      else
-      {
-        mUSBeamWidthEuclideanMagAtValidationPositions.push_back( USBeamWidthEuclideanMagAtThisAxialDepthInMM );
-      }
+      mWeightsForDataPositions.push_back( GetBeamwidthWeightForBeamwidthMagnitude(axialDepthInActualImageFrameRounded) );
     }
 
     // Calcuate the alpha value
@@ -1859,7 +1818,7 @@ PlusStatus vtkCalibrationController::AddPositionsPerImage( std::vector< vnl_vect
 
 //-----------------------------------------------------------------------------
 
-double vtkCalibrationController::GetBeamwidthWeightForBeamwidthMagnitude(double aBeamwidthMagnitudeMm, int aActualAxialDepth)
+double vtkCalibrationController::GetBeamwidthWeightForBeamwidthMagnitude(int aActualAxialDepth)
 {
   LOG_TRACE("vtkCalibrationController::GetBeamwidthWeight");
 
@@ -1873,23 +1832,26 @@ double vtkCalibrationController::GetBeamwidthWeightForBeamwidthMagnitude(double 
     if( 1 == this->IncorporatingUS3DBeamProfile || 3 == this->IncorporatingUS3DBeamProfile )
     { // Option: BWVar or BWTHEVar
       // Filtering is not necessary in the near field
-      beamwidthWeightForActualAxialDepth = 1/( aBeamwidthMagnitudeMm/4);
+      beamwidthWeightForActualAxialDepth = 1 / ( mMinimumUSElevationBeamwidthAndFocalZoneInUSImageFrame.get(1) / 4);
     }
     else 
     { // Option = BWRatio
-      beamwidthWeightForActualAxialDepth = sqrt( 1/mUS3DBeamwidthAndWeightFactorsInUSImageFrameTable5xM.get(4,0) );
+      beamwidthWeightForActualAxialDepth = sqrt( 1 / mUS3DBeamwidthAndWeightFactorsInUSImageFrameTable5xM.get(4,0) );
     }
   }
   else if( aActualAxialDepth >= mTheFarestAxialDepthInUSBeamwidthAndWeightTable )
   {
     // #2. Further deep in far field (close to the bottom of the image)
     // Ultrasound diverses quickly in this region and data quality deteriorates
+
+    double beamwidthMagnitudeMm = mUS3DBeamwidthAtFarestAxialDepth.magnitude();
+
     if( 1 == this->IncorporatingUS3DBeamProfile || 3 == this->IncorporatingUS3DBeamProfile )
     { // Option: BWVar or BWTHEVar
       if( 3 != this->IncorporatingUS3DBeamProfile
-        || aBeamwidthMagnitudeMm < mMinimumUSElevationBeamwidthAndFocalZoneInUSImageFrame.get(1) * mNumOfTimesOfMinBeamWidth )
+        || beamwidthMagnitudeMm < mMinimumUSElevationBeamwidthAndFocalZoneInUSImageFrame.get(1) * mNumOfTimesOfMinBeamWidth )
       { // Option: NOT BWTHEVar
-        beamwidthWeightForActualAxialDepth = 1/( aBeamwidthMagnitudeMm/4);
+        beamwidthWeightForActualAxialDepth = 1 / (beamwidthMagnitudeMm / 4);
       }
     }
     else
@@ -1903,17 +1865,28 @@ double vtkCalibrationController::GetBeamwidthWeightForBeamwidthMagnitude(double 
     // #3. Ultrasound far field 
     // Here the sound starts to diverse with elevation beamwidth getting
     // larger and larger.  Data quality starts to deteriorate.
+
+    vnl_vector<double> US3DBeamwidthAtThisAxialDepth(3,0);
+    US3DBeamwidthAtThisAxialDepth.put(0, mUS3DBeamwidthAndWeightFactorsInUSImageFrameTable5xM.get(1,
+      aActualAxialDepth - mTheNearestAxialDepthInUSBeamwidthAndWeightTable));
+    US3DBeamwidthAtThisAxialDepth.put(1, mUS3DBeamwidthAndWeightFactorsInUSImageFrameTable5xM.get(2,
+      aActualAxialDepth - mTheNearestAxialDepthInUSBeamwidthAndWeightTable));
+    US3DBeamwidthAtThisAxialDepth.put(2, mUS3DBeamwidthAndWeightFactorsInUSImageFrameTable5xM.get(3,
+      aActualAxialDepth - mTheNearestAxialDepthInUSBeamwidthAndWeightTable));
+
+    double beamwidthMagnitudeMm = US3DBeamwidthAtThisAxialDepth.magnitude();
+
     if( 1 == this->IncorporatingUS3DBeamProfile || 3 == this->IncorporatingUS3DBeamProfile )
     { // Option: BWVar or BWTHEVar
       if( 3 != this->IncorporatingUS3DBeamProfile
-        || aBeamwidthMagnitudeMm < mMinimumUSElevationBeamwidthAndFocalZoneInUSImageFrame.get(1) * mNumOfTimesOfMinBeamWidth )
+        || beamwidthMagnitudeMm < mMinimumUSElevationBeamwidthAndFocalZoneInUSImageFrame.get(1) * mNumOfTimesOfMinBeamWidth )
       { // Option: NOT BWTHEVar
-        beamwidthWeightForActualAxialDepth = 1/( aBeamwidthMagnitudeMm/4);
+        beamwidthWeightForActualAxialDepth = 1 / (beamwidthMagnitudeMm/4);
       }
     }
     else
     { // Option = BWRatio
-      beamwidthWeightForActualAxialDepth = sqrt( 1/mUS3DBeamwidthAndWeightFactorsInUSImageFrameTable5xM.get(4, aActualAxialDepth - mTheNearestAxialDepthInUSBeamwidthAndWeightTable) );
+      beamwidthWeightForActualAxialDepth = sqrt( 1 / mUS3DBeamwidthAndWeightFactorsInUSImageFrameTable5xM.get(4, aActualAxialDepth - mTheNearestAxialDepthInUSBeamwidthAndWeightTable) );
     }
   }
 
@@ -1945,8 +1918,6 @@ void vtkCalibrationController::resetDataContainers()
 	mOutlierDataPositions.resize(0); 
 	
 	mWeightsForDataPositions.resize(0);
-	mUSBeamWidthEuclideanMagAtDataPositions.resize(0);
-	mUSBeamWidthEuclideanMagAtValidationPositions.resize(0);
 	mValidationPositionsInUSProbeFrame.resize(0);
 	mValidationPositionsNWireStartInUSProbeFrame.resize(0);
 	mValidationPositionsNWireEndInUSProbeFrame.resize(0);
@@ -2844,25 +2815,6 @@ PlusStatus vtkCalibrationController::constructValidationDataMatrices()
 		ValidationPositionsNWireStartInUSProbeFrame4xN.get_n_rows(0, 3);
 	mValidationPositionsNWireEndInUSProbeFrame3xN =
 		ValidationPositionsNWireEndInUSProbeFrame4xN.get_n_rows(0, 3);
-
-	// OPTION: populate the beamwidth data if selected (Option-1,2 or 3)
-	vnl_vector<double> USBeamWidthEuclideanMagAtValidationPositionsInVNLvectors(0);
-	if( true == mIsUSBeamwidthAndWeightFactorsTableReady )
-	{
-		if( mUSBeamWidthEuclideanMagAtValidationPositions.size() != NumberOfValidationPositions )
-		{
-			LOG_ERROR("The number of beamwidth data does NOT match the number of data for validation!");
-      return PLUS_FAIL;
-		}		
-		
-		// Populate the data to vnl_vector format
-		USBeamWidthEuclideanMagAtValidationPositionsInVNLvectors.set_size( NumberOfValidationPositions );
-		for( int i = 0; i < NumberOfValidationPositions; i++ )
-		{
-			USBeamWidthEuclideanMagAtValidationPositionsInVNLvectors.put(i, 
-				mUSBeamWidthEuclideanMagAtValidationPositions.at(i));
-		}
-	}
 
 	mAreValidationDataMatricesConstructed = true;  //check the return value instead
 
