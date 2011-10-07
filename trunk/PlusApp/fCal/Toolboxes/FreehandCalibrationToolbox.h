@@ -47,6 +47,11 @@ public:
 	*/
 	void SetDisplayAccordingToState();
 
+	/*!
+	* \brief Overridden method of AbstractToolbox which is called when disconnecting from the device set
+	*/
+	void Reset();
+
 protected:
 	/*!
 	* \brief Determines if everything is OK to run spatial calibration

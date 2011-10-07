@@ -91,7 +91,7 @@ protected slots:
 	void Undo();
 
 	/*!
-	* \brief Slot handling reset button click
+	* \brief Slot handling reset button click (and also is an overridden method of AbstractToolbox which is called when disconnecting from the device set)
 	*/
 	void Reset();
 

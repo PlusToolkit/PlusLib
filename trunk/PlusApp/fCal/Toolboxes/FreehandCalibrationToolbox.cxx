@@ -92,6 +92,7 @@ void FreehandCalibrationToolbox::Initialize()
 
     // Load calibration matrix into tool visualizer if it exists
     if ((IsReadyToStartSpatialCalibration()) && (m_Calibration->GetCalibrationDate() != NULL)) {
+      m_ParentMainWindow->GetToolVisualizer()->GetDisplayableTool(TRACKER_TOOL_PROBE)->DisplayableOn();
       m_ParentMainWindow->GetToolVisualizer()->SetImageToProbeTransform(m_Calibration->GetTransformUserImageToProbe());
     }
 
@@ -104,6 +105,20 @@ void FreehandCalibrationToolbox::Initialize()
       m_ParentMainWindow->GetToolVisualizer()->GetResultPointsPolyData()->GetPoints()->Reset();
     }
   }
+}
+
+//-----------------------------------------------------------------------------
+
+void FreehandCalibrationToolbox::Reset()
+{
+	LOG_TRACE("FreehandCalibrationToolbox::Reset"); 
+
+  // Turn off show devices (this function is called when disconnecting, there is no valid result anymore to show)
+  ui.checkBox_ShowDevices->setChecked(false);
+
+  m_ParentMainWindow->GetToolVisualizer()->GetDisplayableTool(TRACKER_TOOL_PROBE)->DisplayableOff();
+
+  SetState(ToolboxState_Idle);
 }
 
 //-----------------------------------------------------------------------------
@@ -410,6 +425,7 @@ void FreehandCalibrationToolbox::StartSpatial()
 	if ((DoSpatialCalibration() == PLUS_SUCCESS) && (m_Calibration->ComputeCalibrationResults() == PLUS_SUCCESS)) {
 
     // Set result for visualization
+    m_ParentMainWindow->GetToolVisualizer()->GetDisplayableTool(TRACKER_TOOL_PROBE)->DisplayableOn();
     m_ParentMainWindow->GetToolVisualizer()->SetImageToProbeTransform(m_Calibration->GetTransformUserImageToProbe());
 
     SetState(ToolboxState_Done);
