@@ -18,7 +18,7 @@ vtkGnuplotExecuter::vtkGnuplotExecuter()
   this->GnuplotCommand = NULL; 
 
   this->HideWindowOff(); 
-  this->SetTimeout(10.0);  // seconds
+  this->SetTimeout(15.0);  // seconds
   this->SetWorkingDirectory(vtksys::SystemTools::GetCurrentWorkingDirectory().c_str() ); 
 
 }
