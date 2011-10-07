@@ -5,6 +5,7 @@
 #include "vtkTranslAxisCalibAlgo.h"
 #include "vtkRotationAxisCalibAlgo.h"
 #include "vtkSpacingCalibAlgo.h"
+#include "vtkRotationEncoderCalibAlgo.h"
 
 #include "vtkObjectFactory.h"
 #include "vtkTransform.h"
@@ -14,7 +15,6 @@
 #include "vtksys/SystemTools.hxx"
 #include "vtkGnuplotExecuter.h"
 #include "vtkHTMLGenerator.h"
-#include "vtkMeanShiftClustering.h"
 #include "vtkTable.h"
 #include "vtkDoubleArray.h"
 #include "vtkVariantArray.h"
@@ -42,17 +42,13 @@ vtkStepperCalibrationController::vtkStepperCalibrationController()
   this->SetMinNumberOfRotationClusters(4); 
   this->SpacingCalculatedOff(); 
   this->CenterOfRotationCalculatedOff(); 
-  this->PhantomToProbeDistanceCalculatedOff(); 
   this->ProbeRotationAxisCalibratedOff(); 
   this->ProbeTranslationAxisCalibratedOff(); 
   this->ProbeRotationEncoderCalibratedOff(); 
   this->TemplateTranslationAxisCalibratedOff(); 
-  this->SetOutlierDetectionThreshold(3.0); 
-  this->MinNumOfFramesUsedForCenterOfRotCalc = 25; 
 
   this->AlgorithmVersion = NULL; 
   this->CalibrationStartTime = NULL; 
-  this->ProbeRotationEncoderCalibrationErrorReportFilePath = NULL; 
 
   this->SaveCalibrationStartTime(); 
 
@@ -63,7 +59,6 @@ vtkStepperCalibrationController::vtkStepperCalibrationController()
 vtkStepperCalibrationController::~vtkStepperCalibrationController()
 {
   this->SetCalibrationStartTime(NULL); 
-  this->SetProbeRotationEncoderCalibrationErrorReportFilePath(NULL); 
 }
 
 //----------------------------------------------------------------------------
@@ -79,62 +74,6 @@ PlusStatus vtkStepperCalibrationController::Initialize()
   LOG_TRACE("vtkStepperCalibrationController::Initialize"); 
 
   this->InitializedOn(); 
-
-  return PLUS_SUCCESS;
-}
-
-//----------------------------------------------------------------------------
-PlusStatus vtkStepperCalibrationController::ComputeStatistics(const std::vector< std::vector<double> > &diffVector, std::vector<CalibStatistics> &statistics)
-{
-  // copy differences to vnl_vectors 
-  double min(0), max(0);
-  statistics.clear();
-  std::vector< vnl_vector<double> > posDifferences; 
-  for ( unsigned int i = 0; i < diffVector.size(); ++i )
-  {
-    CalibStatistics stat;
-    vnl_vector<double> diff(diffVector[i].size()); 
-    for ( unsigned int j = 0; j < diffVector[i].size(); ++j )
-    {
-      diff[j] = diffVector[i][j]; 
-      if ( min > diff[j] )
-      {
-        min = diff[j]; 
-      }
-
-      if ( max < diff[j] ) 
-      {
-        max = diff[j]; 
-      }
-    }
-    stat.Max = max; 
-    stat.Min = min; 
-    statistics.push_back(stat); 
-    posDifferences.push_back(diff); 
-  }
-
-  // calculate mean of difference between the computed and measured position for each wire 
-  std::vector< vnl_vector<double> > diffFromMean; 
-  for ( unsigned int i = 0; i < posDifferences.size(); i++ )
-  {
-    const double meanValue = posDifferences[i].mean(); 
-    statistics[i].Mean = meanValue; 
-    vnl_vector<double> diff = posDifferences[i] - meanValue; 
-    diffFromMean.push_back(diff); 
-  }
-
-  // calculate standard deviation for each axis 
-  for (unsigned int i = 0; i < diffFromMean.size(); i++ )
-  {
-    const double std = sqrt( diffFromMean[i].squared_magnitude() / (1.0 * diffFromMean[i].size()) ); 
-    statistics[i].Stdev = std; 
-  }
-
-  // print results
-  for ( unsigned int i = 0; i < statistics.size(); i++ )
-  {
-    LOG_DEBUG("Mean=" << std::fixed << statistics[i].Mean << " Std=" << statistics[i].Stdev); 
-  }
 
   return PLUS_SUCCESS;
 }
@@ -197,21 +136,6 @@ PlusStatus vtkStepperCalibrationController::CalibrateProbeRotationAxis()
     return PLUS_FAIL; 
   }
 
-  LOG_INFO( "----------------------------------------------------"); 
-  LOG_INFO( ">>>>>>>>>>>> Phantom to probe distance calculation ..."); 
-  this->PhantomToProbeDistanceCalculatedOff(); 
-  if ( this->CalculatePhantomToProbeDistance() )
-  {
-    if ( this->GetPhantomToProbeDistanceCalculated() )
-    {
-      LOG_INFO("Phantom to probe distance: " << this->GetPhantomToProbeDistanceInMm()[0] << "  " << this->GetPhantomToProbeDistanceInMm()[1]); 
-    }
-  }
-  else
-  {
-    LOG_ERROR("Failed to calculate phantom to probe distance!"); 
-  }
-
   // save the input images to meta image
   if ( this->GetEnableTrackedSequenceDataSaving() )
   {
@@ -240,7 +164,8 @@ PlusStatus vtkStepperCalibrationController::CalibrateRotationAxis()
   LOG_TRACE("vtkStepperCalibrationController::CalibrateRotationAxis"); 
 
   vtkSmartPointer<vtkRotationAxisCalibAlgo> rotationAxisCalibAlgo = vtkSmartPointer<vtkRotationAxisCalibAlgo>::New(); 
-  rotationAxisCalibAlgo->SetInputs(this->TrackedFrameListContainer[PROBE_ROTATION], this->GetSpacing()); 
+  rotationAxisCalibAlgo->SetInputs(this->TrackedFrameListContainer[PROBE_ROTATION], this->Spacing); 
+  rotationAxisCalibAlgo->SetMinNumberOfRotationClusters(this->MinNumberOfRotationClusters); 
 
   // Get rotation axis calibration output 
   double rotationAxisOrientation[3] = {0}; 
@@ -287,258 +212,35 @@ PlusStatus vtkStepperCalibrationController::CalibrateRotationEncoder()
     LOG_ERROR("Unable to calibrate rotation encoder without spacing information!"); 
     return PLUS_FAIL; 
   }
+  
+  vtkSmartPointer<vtkRotationEncoderCalibAlgo> rotationEncoderCalibAlgo = vtkSmartPointer<vtkRotationEncoderCalibAlgo>::New(); 
+  rotationEncoderCalibAlgo->SetInputs(this->TrackedFrameListContainer[PROBE_ROTATION], this->Spacing); 
 
-  // Construct linear equations Ax = b, where A is a matrix with m rows and 
-  // n columns, b is an m-vector. 
-  std::vector<vnl_vector<double>> aMatrix;
-  std::vector<double> bVector;
-
-  // Construct linear equation for rotation encoder calibration
-  this->ConstrLinEqForRotEncCalc(aMatrix, bVector); 
-
-  if ( aMatrix.size() == 0 || bVector.size() == 0 )
+  if ( rotationEncoderCalibAlgo->GetRotationEncoderOffset(this->ProbeRotationEncoderOffset) != PLUS_SUCCESS ) 
   {
-    LOG_WARNING("Rotation encoder calibration failed, no data found!"); 
+    LOG_ERROR("Rotation encoder calibration failed!"); 
     return PLUS_FAIL; 
   }
 
-  vnl_vector<double> rotationEncoderCalibrationResult(2,0);
-  if ( PlusMath::LSQRMinimize(aMatrix, bVector, rotationEncoderCalibrationResult) != PLUS_SUCCESS )
+  if ( rotationEncoderCalibAlgo->GetRotationEncoderScale(this->ProbeRotationEncoderScale) != PLUS_SUCCESS ) 
   {
-    LOG_WARNING("Failed to run LSQRMinimize!"); 
-  }
-
-  if ( rotationEncoderCalibrationResult.empty() )
-  {
-    LOG_ERROR("Unable to calibrate rotation encoder! Minimizer returned empty result."); 
+    LOG_ERROR("Rotation encoder calibration failed!"); 
     return PLUS_FAIL; 
   }
-
-  // Calculate mean error and stdev of measured and computed wire positions for each wire
-  CalibStatistics statistics; 
-  this->GetRotationEncoderCalibrationError(aMatrix, bVector, rotationEncoderCalibrationResult, statistics); 
-  this->SaveRotationEncoderCalibrationError(aMatrix, bVector, rotationEncoderCalibrationResult); 
-
-  // TODO: remove sign from scale  => we need to revise the equation instead 
-  this->SetProbeRotationEncoderScale(-rotationEncoderCalibrationResult.get(0)); 
-  this->SetProbeRotationEncoderOffset(rotationEncoderCalibrationResult.get(1)); 
 
   this->ProbeRotationEncoderCalibratedOn(); 
 
+  // TODO: Need to generate report
+  //rotationEncoderCalibAlgo->GenerateReport(htmlGenerator, gnuplotExecuter, inputGnuplotScriptsFolder.c_str()); 
+
   return PLUS_SUCCESS; 
 }
-
-//----------------------------------------------------------------------------
-void vtkStepperCalibrationController::ConstrLinEqForRotEncCalc( std::vector<vnl_vector<double>> &aMatrix, std::vector<double> &bVector)
-{
-  LOG_TRACE("vtkStepperCalibrationController::ConstrLinEqForRotEncCalc"); 
-  aMatrix.clear(); 
-  bVector.clear(); 
-
-  for ( int frame = 0; frame < this->SegmentedFrameContainer.size(); frame++ )
-  {
-    if ( this->SegmentedFrameContainer[frame].DataType == PROBE_ROTATION )
-    {
-      double probePos(0), probeRot(0), templatePos(0); 
-      if ( !vtkBrachyTracker::GetStepperEncoderValues(this->SegmentedFrameContainer[frame].TrackedFrameInfo, probePos, probeRot, templatePos, this->SegmentedFrameDefaultTransformName.c_str()) )
-      {
-        LOG_WARNING("Probe rotation axis calibration: Unable to get probe rotation from tracked frame info for frame #" << frame); 
-        continue; 
-      }
-
-      // Wire #1 coordinate in mm 
-      double w1xmm = this->SegmentedFrameContainer[frame].SegResults.GetFoundDotsCoordinateValue()[WIRE1][0] * this->GetSpacing()[0]; 
-      double w1ymm = this->SegmentedFrameContainer[frame].SegResults.GetFoundDotsCoordinateValue()[WIRE1][1] * this->GetSpacing()[1]; 
-
-      // Wire #3 coordinate in mm 
-      double w3xmm = this->SegmentedFrameContainer[frame].SegResults.GetFoundDotsCoordinateValue()[WIRE3][0] * this->GetSpacing()[0]; 
-      double w3ymm = this->SegmentedFrameContainer[frame].SegResults.GetFoundDotsCoordinateValue()[WIRE3][1] * this->GetSpacing()[1]; 
-
-      // Wire #4 coordinate in mm 
-      double w4xmm = this->SegmentedFrameContainer[frame].SegResults.GetFoundDotsCoordinateValue()[WIRE4][0] * this->GetSpacing()[0]; 
-      double w4ymm = this->SegmentedFrameContainer[frame].SegResults.GetFoundDotsCoordinateValue()[WIRE4][1] * this->GetSpacing()[1]; 
-
-      // Wire #6 coordinate in mm 
-      double w6xmm = this->SegmentedFrameContainer[frame].SegResults.GetFoundDotsCoordinateValue()[WIRE6][0] * this->GetSpacing()[0]; 
-      double w6ymm = this->SegmentedFrameContainer[frame].SegResults.GetFoundDotsCoordinateValue()[WIRE6][1] * this->GetSpacing()[1]; 
-
-      double b1 = vtkMath::DegreesFromRadians(atan2( (w3ymm - w1ymm), (w1xmm - w3xmm) )); 
-      bVector.push_back(b1); 
-
-      double b2 = vtkMath::DegreesFromRadians(atan2( (w6ymm - w4ymm), (w4xmm - w6xmm) )); 
-      bVector.push_back(b2); 
-
-      vnl_vector<double> a1(2,1);
-      a1.put(0,probeRot); 
-      aMatrix.push_back(a1); 
-
-      vnl_vector<double> a2(2,1);
-      a2.put(0,probeRot); 
-      aMatrix.push_back(a2); 
-
-    }
-  }
-
-}
-
-//----------------------------------------------------------------------------
-void vtkStepperCalibrationController::GetRotationEncoderCalibrationError(const std::vector<vnl_vector<double>> &aMatrix, 
-                                                                         const std::vector<double> &bVector, 
-                                                                         const vnl_vector<double> &resultVector, 
-                                                                         CalibStatistics &statistics ) 
-{
-  LOG_TRACE("vtkStepperCalibrationController::GetRotationEncoderCalibrationError"); 
-  // The coefficient matrix aMatrix should be m-by-n and the column vector bVector must have length m.
-  const int n = aMatrix.begin()->size(); 
-  const int m = bVector.size();
-  const int r = resultVector.size(); 
-
-  const double scale = resultVector[0]; 
-  const double offset = resultVector[1]; 
-
-  // calculate difference between the computed and measured angles
-  std::vector< std::vector<double> > diffVector;
-  std::vector<double> diff; 
-  for( int row = 0; row < m; row++ )
-  {
-    diff.push_back( bVector[row] - offset - aMatrix[row].get(0) * scale ); 
-  }
-  diffVector.push_back(diff); 
-
-  std::vector<CalibStatistics> stat; 
-  this->ComputeStatistics(diffVector, stat); 
-
-  // calculate mean of difference 
-  if ( !stat.empty() )
-  {
-    statistics = stat[0]; 
-  }
-}
-
-//----------------------------------------------------------------------------
-void vtkStepperCalibrationController::RemoveOutliersFromRotEncCalibData(std::vector<vnl_vector<double>> &aMatrix, std::vector<double> &bVector, vnl_vector<double> resultVector )
-{
-  LOG_TRACE("vtkStepperCalibrationController::RemoveOutliersFromRotEncCalibData"); 
-  // Calculate mean error and stdev of measured and computed rotation angles
-  CalibStatistics statistics; 
-  this->GetRotationEncoderCalibrationError(aMatrix, bVector, resultVector, statistics); 
-
-  const int n = aMatrix.begin()->size(); 
-  const int m = bVector.size();
-  const int r = resultVector.size(); 
-
-  const double scale = resultVector[0]; 
-  const double offset = resultVector[1]; 
-
-  // remove outliers
-  for( int row = m - 1; row >= 0; row--)
-  {
-    if ( abs ( bVector[row] - offset - aMatrix[row].get(0) * scale - statistics.Mean ) >  this->OutlierDetectionThreshold * statistics.Stdev) 
-    {
-      LOG_DEBUG("Outlier found at row " << row ); 
-      aMatrix.erase(aMatrix.begin() + row); 
-      bVector.erase(bVector.begin() + row); 
-    }
-  }
-
-}
-
-//----------------------------------------------------------------------------
-void vtkStepperCalibrationController::SaveRotationEncoderCalibrationError(const std::vector<vnl_vector<double>> &aMatrix, 
-                                                                          const std::vector<double> &bVector, 
-                                                                          const vnl_vector<double> &resultVector)
-{
-  LOG_TRACE("vtkStepperCalibrationController::SaveRotationEncoderCalibrationError"); 
-  std::ofstream rotationEncoderCalibrationError;
-  std::ostringstream filename; 
-  filename << vtkPlusConfig::GetInstance()->GetOutputDirectory() << "/" << this->CalibrationStartTime  << ".ProbeRotationEncoderCalibrationError.txt"; 
-
-  this->SetProbeRotationEncoderCalibrationErrorReportFilePath(filename.str().c_str()); 
-
-  rotationEncoderCalibrationError.open (filename.str().c_str() , ios::out);
-  rotationEncoderCalibrationError << "# Probe rotation encoder calibration error report" << std::endl; 
-
-  rotationEncoderCalibrationError << "ProbeRotationAngle\t" << "ComputedAngle\t" << "CompensatedAngle\t" << std::endl; 
-
-  const double scale = resultVector[0]; 
-  const double offset = resultVector[1]; 
-
-  for( int row = 0; row < bVector.size(); row ++)
-  {
-    rotationEncoderCalibrationError << aMatrix[row].get(0) << "\t" << bVector[row]  << "\t" << offset + aMatrix[row].get(0) * scale << "\t" << std::endl; 
-  }
-
-  rotationEncoderCalibrationError.close(); 
-
-}
-
 
 //----------------------------------------------------------------------------
 PlusStatus vtkStepperCalibrationController::GenerateProbeRotationEncoderCalibrationReport( vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter, const char* gnuplotScriptsFolder)
 {
-  if ( htmlReport == NULL || plotter == NULL )
-  {
-    LOG_ERROR("Caller should define HTML report generator and gnuplot plotter before report generation!"); 
-    return PLUS_FAIL; 
-  }
-
-  std::string plotProbeRotationEncoderCalibrationErrorScript = gnuplotScriptsFolder + std::string("/PlotProbeRotationEncoderCalibrationError.gnu"); 
-  if ( !vtksys::SystemTools::FileExists( plotProbeRotationEncoderCalibrationErrorScript.c_str(), true) )
-  {
-    LOG_ERROR("Unable to find gnuplot script at: " << plotProbeRotationEncoderCalibrationErrorScript); 
-    return PLUS_FAIL; 
-  }
-
-  if ( this->GetProbeRotationEncoderCalibrated() )
-  {
-    const char * reportFile = this->GetProbeRotationEncoderCalibrationErrorReportFilePath(); 
-    if ( reportFile == NULL )
-    {
-      LOG_ERROR("Failed to generate probe rotation encoder calibration report - report file name is NULL!"); 
-      return PLUS_FAIL; 
-    }
-
-    if ( !vtksys::SystemTools::FileExists( reportFile, true) )
-    {
-      LOG_ERROR("Unable to find rotation encoder calibration report file at: " << reportFile); 
-      return PLUS_FAIL; 
-    }
-
-    std::string title; 
-    std::string scriptOutputFilePrefixHistogram, scriptOutputFilePrefix; 
-    title = "Probe Rotation Encoder Calibration Analysis"; 
-    scriptOutputFilePrefix = "PlotProbeRotationEncoderCalibrationError"; 
-
-    htmlReport->AddText(title.c_str(), vtkHTMLGenerator::H1); 
-
-    std::ostringstream report; 
-    report << "Probe rotation encoder scale: " << this->GetProbeRotationEncoderScale() << "</br>" ; 
-    report << "Probe rotation encoder offset: " << this->GetProbeRotationEncoderOffset() << "</br>" ; 
-    htmlReport->AddParagraph(report.str().c_str()); 
-
-    plotter->ClearArguments(); 
-    plotter->AddArgument("-e");
-    std::ostringstream rotEncoderError; 
-    rotEncoderError << "f='" << reportFile << "'; o='" << scriptOutputFilePrefix << "';" << std::ends; 
-    plotter->AddArgument(rotEncoderError.str().c_str()); 
-    plotter->AddArgument(plotProbeRotationEncoderCalibrationErrorScript.c_str());  
-    if ( plotter->Execute() != PLUS_SUCCESS )
-    {
-      LOG_ERROR("Failed to run gnuplot executer!"); 
-      return PLUS_FAIL; 
-    } 
-    plotter->ClearArguments(); 
-
-    std::ostringstream imageSource, imageAlt; 
-    imageSource << scriptOutputFilePrefix << ".jpg" << std::ends; 
-    imageAlt << "Probe rotation encoder calibration error" << std::ends; 
-
-    htmlReport->AddImage(imageSource.str().c_str(), imageAlt.str().c_str()); 
-
-    htmlReport->AddHorizontalLine(); 
-  }
-
-  return PLUS_SUCCESS; 
+  LOG_ERROR("TODO: call report generation from vtkRotationEncoderCalibAlgo!"); 
+  return PLUS_FAIL; 
 }
 
 
@@ -765,138 +467,6 @@ PlusStatus vtkStepperCalibrationController::GenerateCenterOfRotationReport( vtkH
   return PLUS_FAIL;
 }
 
-
-//***************************************************************************
-//					Phantom to probe distance calculation
-//***************************************************************************
-
-
-//----------------------------------------------------------------------------
-void vtkStepperCalibrationController::AddPointsForPhantomToProbeDistanceCalculation(HomogenousVector4x1 pointA, HomogenousVector4x1 pointB, HomogenousVector4x1 pointC)
-{
-  LOG_TRACE("vtkStepperCalibrationController::AddPointsForPhantomToProbeDistanceCalculation - HomogenousVector4x1"); 
-  std::vector<HomogenousVector4x1> vectorOfPointCoordinates; 
-  vectorOfPointCoordinates.push_back(pointA); 
-  vectorOfPointCoordinates.push_back(pointB); 
-  vectorOfPointCoordinates.push_back(pointC); 
-  this->PointSetForPhantomToProbeDistanceCalculation.push_back(vectorOfPointCoordinates); 
-}
-
-//----------------------------------------------------------------------------
-void vtkStepperCalibrationController::AddPointsForPhantomToProbeDistanceCalculation(double xPointA, double yPointA, double zPointA, 
-                                                                                    double xPointB, double yPointB, double zPointB, 
-                                                                                    double xPointC, double yPointC, double zPointC)
-{
-  LOG_TRACE("vtkStepperCalibrationController::AddPointsForPhantomToProbeDistanceCalculation"); 
-  this->AddPointsForPhantomToProbeDistanceCalculation( 
-    HomogenousVector4x1(xPointA, yPointA, zPointA), 
-    HomogenousVector4x1(xPointB, yPointB, zPointB), 
-    HomogenousVector4x1(xPointC, yPointC, zPointC) 
-    ); 
-}
-
-//----------------------------------------------------------------------------
-PlusStatus vtkStepperCalibrationController::CalculatePhantomToProbeDistance()
-{
-  LOG_TRACE("vtkStepperCalibrationController::CalculatePhantomToProbeDistance"); 
-  // ==================================================================================
-  // Compute the distance from the probe to phantom 
-  // ==================================================================================
-  // 1. This point-to-line distance holds the key to relate the position of the TRUS 
-  //    rotation center to the precisely designed iCAL phantom geometry in Solid Edge CAD.
-  // 2. Here we employ a straight-forward method based on vector theory as one of the 
-  //    simplest and most efficient way to compute a point-line distance.
-  //    FORMULA: D_O2AB = norm( cross(OA,OB) ) / norm(A-B)
-  // ==================================================================================
-
-  if ( !this->GetSpacingCalculated() )
-  {
-    LOG_WARNING("Unable to calculate phantom to probe distance without spacing calculated!"); 
-    return PLUS_FAIL; 
-  }
-
-  // Clear container before we start
-  this->PointSetForPhantomToProbeDistanceCalculation.clear(); 
-
-  for ( int frame = 0; frame < this->SegmentedFrameContainer.size(); frame++ )
-  {
-    if ( this->SegmentedFrameContainer[frame].DataType == PROBE_ROTATION )
-    {
-
-      // Add Line #1 (point A) Line #3 (point B) and Line #6 (point C) pixel coordinates to phantom to probe distance point set 
-      this->AddPointsForPhantomToProbeDistanceCalculation(
-        this->SegmentedFrameContainer[frame].SegResults.GetFoundDotsCoordinateValue()[WIRE1][0], this->SegmentedFrameContainer[frame].SegResults.GetFoundDotsCoordinateValue()[WIRE1][1], 0, 
-        this->SegmentedFrameContainer[frame].SegResults.GetFoundDotsCoordinateValue()[WIRE3][0], this->SegmentedFrameContainer[frame].SegResults.GetFoundDotsCoordinateValue()[WIRE3][1], 0, 
-        this->SegmentedFrameContainer[frame].SegResults.GetFoundDotsCoordinateValue()[WIRE6][0], this->SegmentedFrameContainer[frame].SegResults.GetFoundDotsCoordinateValue()[WIRE6][1], 0 
-        ); 
-
-    }
-  }
-
-  vnl_vector<double> rotationCenter3x1InMm(3,0);
-  rotationCenter3x1InMm.put(0, this->GetCenterOfRotationPx()[0] * this->GetSpacing()[0]); 
-  rotationCenter3x1InMm.put(1, this->GetCenterOfRotationPx()[1] * this->GetSpacing()[1]);
-  rotationCenter3x1InMm.put(2, 0);
-
-  // Total number images used for this computation
-  const int totalNumberOfImages2ComputePtLnDist = this->PointSetForPhantomToProbeDistanceCalculation.size();
-
-  if ( totalNumberOfImages2ComputePtLnDist == 0 )
-  {
-    LOG_ERROR("Failed to calculate phantom to probe distance. Probe distance calculation data is empty!"); 
-    return PLUS_FAIL; 
-  }
-
-  // This will keep a trace on all the calculated distance
-  vnl_vector<double> listOfPhantomToProbeVerticalDistanceInMm(totalNumberOfImages2ComputePtLnDist, 0 );
-  vnl_vector<double> listOfPhantomToProbeHorizontalDistanceInMm(totalNumberOfImages2ComputePtLnDist, 0 );
-
-  for (int i = 0; i < totalNumberOfImages2ComputePtLnDist; i++)
-  {
-    // Extract point A
-    vnl_vector<double> pointAInMm(3,0);
-    pointAInMm.put( 0, this->PointSetForPhantomToProbeDistanceCalculation[i][0].GetX() * this->GetSpacing()[0] );
-    pointAInMm.put( 1, this->PointSetForPhantomToProbeDistanceCalculation[i][0].GetY() * this->GetSpacing()[1] );
-    pointAInMm.put( 2, 0 ); 
-
-    // Extract point B
-    vnl_vector<double> pointBInMm(3,0);
-    pointBInMm.put( 0, this->PointSetForPhantomToProbeDistanceCalculation[i][1].GetX() * this->GetSpacing()[0] );
-    pointBInMm.put( 1, this->PointSetForPhantomToProbeDistanceCalculation[i][1].GetY() * this->GetSpacing()[1] );
-    pointBInMm.put( 2, 0 ); 
-
-    // Extract point C
-    vnl_vector<double> pointCInMm(3,0);
-    pointCInMm.put( 0, this->PointSetForPhantomToProbeDistanceCalculation[i][2].GetX() * this->GetSpacing()[0] );
-    pointCInMm.put( 1, this->PointSetForPhantomToProbeDistanceCalculation[i][2].GetY() * this->GetSpacing()[1] );
-    pointCInMm.put( 2, 0 ); 
-
-    // Construct vectors among rotation center, point A, and point B.
-    const vnl_vector<double> vectorRotationCenterToPointAInMm = pointAInMm - rotationCenter3x1InMm;
-    const vnl_vector<double> vectorRotationCenterToPointBInMm = pointBInMm - rotationCenter3x1InMm;
-    const vnl_vector<double> vectorRotationCenterToPointCInMm = pointCInMm - rotationCenter3x1InMm;
-    const vnl_vector<double> vectorPointAToPointBInMm = pointBInMm - pointAInMm;
-    const vnl_vector<double> vectorPointBToPointCInMm = pointCInMm - pointBInMm;
-
-    // Compute the point-line distance from probe to the line passing through A and B points, based on the
-    // standard vector theory. FORMULA: D_O2AB = norm( cross(OA,OB) ) / norm(A-B)
-    const double thisPhantomToProbeVerticalDistanceInMm = vnl_cross_3d( vectorRotationCenterToPointAInMm, vectorRotationCenterToPointBInMm ).magnitude() / vectorPointAToPointBInMm.magnitude();
-
-    // Compute the point-line distance from probe to the line passing through B and C points, based on the
-    // standard vector theory. FORMULA: D_O2AB = norm( cross(OA,OB) ) / norm(A-B)
-    const double thisPhantomToProbeHorizontalDistanceInMm = vnl_cross_3d( vectorRotationCenterToPointBInMm, vectorRotationCenterToPointCInMm ).magnitude() / vectorPointBToPointCInMm.magnitude();
-
-    // Populate the data container
-    listOfPhantomToProbeVerticalDistanceInMm.put(i, thisPhantomToProbeVerticalDistanceInMm );
-    listOfPhantomToProbeHorizontalDistanceInMm.put(i, thisPhantomToProbeHorizontalDistanceInMm );
-  }
-
-  this->SetPhantomToProbeDistanceInMm( listOfPhantomToProbeHorizontalDistanceInMm.mean(), listOfPhantomToProbeVerticalDistanceInMm.mean() ); 
-
-  this->PhantomToProbeDistanceCalculatedOn(); 
-
-  return PLUS_SUCCESS; 
-}
 
 //----------------------------------------------------------------------------
 PlusStatus vtkStepperCalibrationController::OfflineProbeRotationAxisCalibration()
@@ -1304,13 +874,6 @@ PlusStatus vtkStepperCalibrationController::ReadStepperCalibrationConfiguration(
       this->SpacingCalculatedOn(); 
     }
 
-    double phantomToProbeDistanceInMm[2]={0}; 
-    if ( calibrationResult->GetVectorAttribute("PhantomToProbeDistanceInMm", 2, phantomToProbeDistanceInMm) )
-    {
-      this->SetPhantomToProbeDistanceInMm(phantomToProbeDistanceInMm); 
-      this->PhantomToProbeDistanceCalculatedOn(); 
-    }
-  
     double probeTranslationAxisOrientation[3]={0}; 
     if ( calibrationResult->GetVectorAttribute("ProbeTranslationAxisOrientation", 3, probeTranslationAxisOrientation) )
     {
@@ -1403,11 +966,6 @@ PlusStatus vtkStepperCalibrationController::WriteConfiguration( vtkXMLDataElemen
     calibrationResult->SetVectorAttribute("Spacing", 2, this->GetSpacing()); 
   }
 
-  if ( this->GetPhantomToProbeDistanceCalculated() )
-  {
-    calibrationResult->SetVectorAttribute("PhantomToProbeDistanceInMm", 2, this->GetPhantomToProbeDistanceInMm()); 
-  }
-  
   if ( this->GetProbeTranslationAxisCalibrated() )
   {
     calibrationResult->SetVectorAttribute("ProbeTranslationAxisOrientation", 3, this->GetProbeTranslationAxisOrientation()); 

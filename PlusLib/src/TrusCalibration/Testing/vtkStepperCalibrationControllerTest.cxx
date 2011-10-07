@@ -191,10 +191,6 @@ int main (int argc, char* argv[])
     double rotationEncoderScale = stepperCalibrator->GetProbeRotationEncoderScale(); 
     rotationAxisCalibrationResults->SetDoubleAttribute("RotationEncoderScale", rotationEncoderScale); 
 
-    // Phantom to probe calibration result 
-    double * phantomToProbeDistanceInMm = stepperCalibrator->GetPhantomToProbeDistanceInMm(); 
-    rotationAxisCalibrationResults->SetVectorAttribute("PhantomToProbeDistanceInMm", 2, phantomToProbeDistanceInMm); 
-
     stepperCalibrationResults->AddNestedElement(rotationAxisCalibrationResults); 
 
     // ************* Save probe translation axis calibration results to xml file ****************
@@ -302,27 +298,6 @@ int main (int argc, char* argv[])
         numberOfFailures++;
       }
     }
-
-    
-
-    // Compare PhantomToProbeDistanceInMm to baseline 
-    double *phantomToProbeDistanceInMm = stepperCalibrator->GetPhantomToProbeDistanceInMm(); 
-    double basePhantomToProbeDistanceInMm[2]={0}; 
-    if ( !rotationAxisCalibrationBaseline->GetVectorAttribute("PhantomToProbeDistanceInMm", 2, basePhantomToProbeDistanceInMm) )
-    {
-      LOG_ERROR("Unable to find PhantomToProbeDistanceInMm XML data element in baseline."); 
-      numberOfFailures++; 
-    }
-    else
-    {
-      if ( fabs(basePhantomToProbeDistanceInMm[0] - phantomToProbeDistanceInMm[0]) > DOUBLE_DIFF 
-        || fabs(basePhantomToProbeDistanceInMm[1] - phantomToProbeDistanceInMm[1]) > DOUBLE_DIFF )
-      {
-        LOG_ERROR("Phantom to probe distance differ from baseline: current(" << phantomToProbeDistanceInMm[0] << ", " << phantomToProbeDistanceInMm[1] 
-        << ") base (" << basePhantomToProbeDistanceInMm[0] << ", " << basePhantomToProbeDistanceInMm[1] << ")."); 
-        numberOfFailures++;
-      }
-    }
   }
 
   // Rotation encoder calibration result
@@ -337,6 +312,8 @@ int main (int argc, char* argv[])
     numberOfFailures++;
   }
 
+  //TODO: compare center of rotation result to baseline
+  /*
   if ( rotationEncoderCalibrationBaseline == NULL )
   {
     LOG_ERROR("Unable to find RotationEncoderCalibrationResult XML data element in baseline: " << inputBaselineFileName); 
@@ -378,6 +355,7 @@ int main (int argc, char* argv[])
       }
     }
   }
+  */
 
   // Center of rotation calibration result
   vtkXMLDataElement* centerOfRotationCalibrationBaseline = NULL; 

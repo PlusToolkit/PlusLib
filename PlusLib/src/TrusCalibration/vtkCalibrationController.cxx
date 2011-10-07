@@ -823,52 +823,6 @@ void vtkCalibrationController::RegisterPhantomGeometry( vtkTransform* aPhantomTo
 	mHasPhantomBeenRegistered = true;
 }
 
-//----------------------------------------------------------------------------
-void vtkCalibrationController::RegisterPhantomGeometry( double phantomToProbeDistanceInMm[2] )
-{
-	LOG_TRACE("vtkCalibrationController::RegisterPhantomGeometry: " << phantomToProbeDistanceInMm[0] << "  " << phantomToProbeDistanceInMm[1]); 
-
-  // Vertical distance from the template mounter hole center to the TRUS Rotation Center
-  double verticalDistanceTemplateMounterHoleToTRUSRotationCenterInMM = 
-    this->PatternRecognition.GetFidLineFinder()->GetNWires()[1].wires[0].endPointFront[1] // WIRE1 y
-        + phantomToProbeDistanceInMm[1]
-        - this->TransformTemplateHolderToPhantom->GetPosition()[1]; // :TODO: transform with the whole matrix instead of just using the XY position values
-
-  // Horizontal distance from the template mounter hole center to the TRUS Rotation Center
-  double horizontalDistanceTemplateMounterHoleToTRUSRotationCenterInMM = 
-      this->PatternRecognition.GetFidLineFinder()->GetNWires()[0].wires[2].endPointFront[0] // WIRE3 x
-      + phantomToProbeDistanceInMm[0]
-      - this->TransformTemplateHolderToPhantom->GetPosition()[0]; // :TODO: transform with the whole matrix instead of just using the XY position values
-
-  double templateHolderPositionX = this->TransformTemplateHolderToPhantom->GetPosition()[0];
-  double templateHolderPositionY = this->TransformTemplateHolderToPhantom->GetPosition()[1];
-  double templateHolderPositionZ = this->TransformTemplateHolderToPhantom->GetPosition()[2];
-
-  vtkSmartPointer<vtkTransform> tTemplateHolderToTemplate = vtkSmartPointer<vtkTransform>::New();
-  tTemplateHolderToTemplate->Translate( templateHolderPositionX, templateHolderPositionY, templateHolderPositionZ);
-  this->TransformTemplateHolderToTemplate->SetMatrix( tTemplateHolderToTemplate->GetMatrix() ); 
-
-  vtkSmartPointer<vtkTransform> tReferenceToTemplateHolderHome = vtkSmartPointer<vtkTransform>::New();
-  tReferenceToTemplateHolderHome->Translate( horizontalDistanceTemplateMounterHoleToTRUSRotationCenterInMM, verticalDistanceTemplateMounterHoleToTRUSRotationCenterInMM, 0);
-  this->TransformReferenceToTemplateHolderHome->SetMatrix( tReferenceToTemplateHolderHome->GetMatrix() ); 
-
-  vtkSmartPointer<vtkTransform> tTemplateHomeToReference = vtkSmartPointer<vtkTransform>::New();
-  tTemplateHomeToReference->PostMultiply(); 
-  tTemplateHomeToReference->Concatenate( this->TransformReferenceToTemplateHolderHome ); 
-  tTemplateHomeToReference->Concatenate( this->TransformTemplateHolderToTemplate ); 
-  tTemplateHomeToReference->Inverse(); 
-
-  std::ostringstream osTemplateHomeToReference; 
-  tTemplateHomeToReference->GetMatrix()->Print(osTemplateHomeToReference);   
-  LOG_DEBUG("TemplateHomeToProbeHome:\n" << osTemplateHomeToReference.str().c_str() );
-
-  // Register the phantom geometry to the DRB frame in the "Emulator" mode.
-  vnl_matrix<double> transformMatrixPhantom2DRB4x4InEmulatorMode(4,4);
-  PlusMath::ConvertVtkMatrixToVnlMatrix( tTemplateHomeToReference->GetMatrix(), transformMatrixPhantom2DRB4x4InEmulatorMode );
-	mTransformMatrixPhantom2DRB4x4 = transformMatrixPhantom2DRB4x4InEmulatorMode;
-	mHasPhantomBeenRegistered = true;
-}
-
 //-----------------------------------------------------------------------------
 
 PlusStatus vtkCalibrationController::ResetFreehandCalibration()

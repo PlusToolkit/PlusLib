@@ -9,6 +9,8 @@ SET (TrusCalibration_SRCS
 	vtkPhantomRegistrationAlgo.cxx
 	VolumeReconstructionController.cxx
     vtkSpacingCalibAlgo.cxx 
+    vtkCenterOfRotationCalibAlgo.cxx
+    vtkBrachyStepperPhantomRegistrationAlgo.cxx
 	)
 
 SET (TrusCalibration_HDRS)	
@@ -21,6 +23,8 @@ IF (WIN32)
 		vtkPhantomRegistrationAlgo.h
 		VolumeReconstructionController.h
         vtkSpacingCalibAlgo.h 
+        vtkCenterOfRotationCalibAlgo.h
+        vtkBrachyStepperPhantomRegistrationAlgo.h
 		)
 ENDIF (WIN32)
 
@@ -30,7 +34,7 @@ IF (PLUS_USE_BRACHY_TRACKER)
         vtkStepperCalibrationController.cxx
         vtkRotationAxisCalibAlgo.cxx 
         vtkTranslAxisCalibAlgo.cxx 
-        vtkCenterOfRotationCalibAlgo.cxx
+        vtkRotationEncoderCalibAlgo.cxx
         )
     IF (WIN32)	
         SET (TrusCalibration_HDRS
@@ -38,7 +42,7 @@ IF (PLUS_USE_BRACHY_TRACKER)
             vtkStepperCalibrationController.h 
             vtkRotationAxisCalibAlgo.h
             vtkTranslAxisCalibAlgo.h
-            vtkCenterOfRotationCalibAlgo.h
+            vtkRotationEncoderCalibAlgo.h
             )
      ENDIF (WIN32)
 ENDIF ()
