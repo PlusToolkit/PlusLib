@@ -30,9 +30,6 @@ public:
 	// Read probe calibration data element 
 	virtual PlusStatus ReadProbeCalibrationConfiguration(vtkXMLDataElement* rootElement); 
 
-	// Draw the segmentation result to each individual image and save them into TIFF files
-	virtual void SaveSegmentationResultToImage( const int imgNumber, const ImageType::Pointer& frame );
-
 	// Save back projected wire positions to text file in gnuplot format 
 	virtual void SaveSegmentedWirePositionsToFile(); 
 
@@ -41,10 +38,10 @@ public:
 	virtual void SaveCalibrationResultsAndErrorReportsToXML(); 
 
 	// Read in the ultrasound 3D beam profile data from a file
-	virtual void ReadUs3DBeamwidthDataFromFile(); 
+	virtual PlusStatus ReadUs3DBeamwidthDataFromFile(); 
 	
 	// Load the ultrasound 3D beam profile data
-	virtual void LoadUS3DBeamProfileData();
+	virtual PlusStatus LoadUS3DBeamProfileData();
 
 	// Add generated html report from final calibration to the existing html report
 	// htmlReport and plotter arguments has to be defined by the caller function
