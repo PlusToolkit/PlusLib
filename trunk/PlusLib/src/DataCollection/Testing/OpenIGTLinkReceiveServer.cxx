@@ -27,13 +27,13 @@ vtkReceiverThread( vtkMultiThreader::ThreadInfo *data )
     // Loop until receiver stopped.
   
   while ( true )
-    {
+  {
     if ( self->GetActive() == false ) return NULL;
     
     socket = self->GetServerSocket()->WaitForConnection( 400 );
     
     if ( socket.IsNotNull() ) // if client connected
-      {
+    {
       
         // Create a message buffer to receive header
       
@@ -41,20 +41,20 @@ vtkReceiverThread( vtkMultiThreader::ThreadInfo *data )
       headerMsg = igtl::MessageHeader::New();
 
       for (int i = 0; i < 100; i ++)
-        {
+      {
         headerMsg->InitPack();
 
           // Receive generic header from the socket
         
         int r = socket->Receive( headerMsg->GetPackPointer(), headerMsg->GetPackSize() );
         if ( r == 0 )
-          {
+        {
           socket->CloseSocket();
-          }
+        }
         if ( r != headerMsg->GetPackSize() )
-          {
+        {
           continue;
-          }
+        }
 
           // Deserialize the header
         
@@ -63,24 +63,24 @@ vtkReceiverThread( vtkMultiThreader::ThreadInfo *data )
         
         // Check data type and receive data body
         if (strcmp(headerMsg->GetDeviceType(), "TRANSFORM") == 0)
-          {
+        {
           self->ReceiveTransform( socket, headerMsg );
-          }
+        }
         else if (strcmp(headerMsg->GetDeviceType(), "IMAGE") == 0)
-          {
+        {
           self->ReceiveImage( socket, headerMsg );
-          }
+        }
         else
-          {
-          std::cerr << "Receiving : " << headerMsg->GetDeviceType() << std::endl;
+        {
+          std::cerr << "Receiving unknown type: " << headerMsg->GetDeviceType() << std::endl;
           socket->Skip( headerMsg->GetBodySizeToRead(), 0 );
-          }
+        }
         
         
         self->NumberOfReceivedMessages ++;
-        }
       }
     }
+  }
 }
 
 
@@ -98,10 +98,10 @@ OpenIGTLinkReceiveServer
   int r = this->ServerSocket->CreateServer( port );
 
   if ( r < 0 )
-    {
+  {
     LOG_ERROR( "Could not create OpenIGTLink server" );
     return;
-    }
+  }
 }
 
 
@@ -179,6 +179,8 @@ int
 OpenIGTLinkReceiveServer
 ::ReceiveTransform( igtl::Socket * socket, igtl::MessageHeader * header )
 {
+  std::cerr << std::endl << "Receiving TRANSFORM data type." << std::endl;
+  
   
     // Create a message buffer to receive transform data
   
@@ -187,26 +189,27 @@ OpenIGTLinkReceiveServer
   transMsg->SetMessageHeader(header);
   transMsg->AllocatePack();
   
+  
     // Receive transform data from the socket
   
-  socket->Receive(transMsg->GetPackBodyPointer(), transMsg->GetPackBodySize());
+  socket->Receive( transMsg->GetPackBodyPointer(), transMsg->GetPackBodySize() );
+  
   
     // Deserialize the transform data
     // If you want to skip CRC check, call Unpack() without argument.
   
   int c = transMsg->Unpack( 1 );
   
-  if (c & igtl::MessageHeader::UNPACK_BODY) // if CRC check is OK
-    {
+  if ( c & igtl::MessageHeader::UNPACK_BODY ) // if CRC check is OK
+  {
     // Retrive the transform data
     igtl::Matrix4x4 matrix;
     transMsg->GetMatrix(matrix);
     igtl::PrintMatrix(matrix);
     return 1;
-    }
+  }
 
   return 0;
-
 }
 
 
@@ -215,23 +218,28 @@ int
 OpenIGTLinkReceiveServer
 ::ReceiveImage( igtl::Socket * socket, igtl::MessageHeader * header )
 {
-  std::cerr << "Receiving IMAGE data type." << std::endl;
-
-  // Create a message buffer to receive transform data
+  std::cerr << std::endl << "Receiving IMAGE data type." << std::endl;
+  
+  
+    // Create a message buffer to receive transform data
+  
   igtl::ImageMessage::Pointer imgMsg;
   imgMsg = igtl::ImageMessage::New();
   imgMsg->SetMessageHeader(header);
   imgMsg->AllocatePack();
   
-  // Receive transform data from the socket
+  
+    // Receive transform data from the socket
+  
   socket->Receive(imgMsg->GetPackBodyPointer(), imgMsg->GetPackBodySize());
   
-  // Deserialize the transform data
-  // If you want to skip CRC check, call Unpack() without argument.
+    // Deserialize the transform data
+    // If you want to skip CRC check, call Unpack() without argument.
+  
   int c = imgMsg->Unpack(1);
   
   if (c & igtl::MessageHeader::UNPACK_BODY) // if CRC check is OK
-    {
+  {
     // Retrive the image data
     int   size[3];          // image dimension
     float spacing[3];       // spacing (mm/pixel)
@@ -255,7 +263,7 @@ OpenIGTLinkReceiveServer
     std::cerr << "Sub-Volume offset     : ("
               << svoffset[0] << ", " << svoffset[1] << ", " << svoffset[2] << ")" << std::endl;
     return 1;
-    }
+  }
 
   return 0;
 

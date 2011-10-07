@@ -223,7 +223,7 @@ vtkOpenIGTLinkBroadcaster
   for ( int igtIndex = 0; igtIndex < this->NonReferenceToolInfos.size(); ++ igtIndex )
     {
     
-    // TrackerStatus                   status          = TR_OK;
+    // TrackerStatus status = TR_OK;
     vtkSmartPointer< vtkMatrix4x4 > mToolToTracker  = vtkSmartPointer< vtkMatrix4x4 >::New();
     
     int toolNumber = this->NonReferenceToolInfos[ igtIndex ].TrackerPortNumber;
