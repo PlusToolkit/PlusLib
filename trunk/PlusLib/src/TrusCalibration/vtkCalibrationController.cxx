@@ -1354,6 +1354,12 @@ PlusStatus vtkCalibrationController::DoCalibration()
 
 	mHasBeenCalibrated = false;
 
+  if ( mDataPositionsInUSImageFrame.empty() )
+  {
+    LOG_ERROR("Unable to perform calibration - calibration data is empty!"); 
+    return PLUS_FAIL; 
+  }
+
   // Apply beamwidth weights (TODO do this when adding the position)
 	if (mIsUSBeamwidthAndWeightFactorsTableReady == true)
 	{

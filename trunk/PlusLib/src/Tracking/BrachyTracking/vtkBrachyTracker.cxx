@@ -55,6 +55,7 @@ vtkBrachyTracker::vtkBrachyTracker()
   this->BrachyStepperType = BrachyStepper::BURDETTE_MEDICAL_SYSTEMS_DIGITAL_STEPPER; 
 
   // Stepper calibration parameters
+  this->CompensationEnabledOn(); 
 	this->SetProbeTranslationAxisOrientation(0,0,1); 
 	this->SetTemplateTranslationAxisOrientation(0,0,1); 
 	this->SetProbeRotationAxisOrientation(0,0,1); 
@@ -182,6 +183,18 @@ PlusStatus vtkBrachyTracker::InternalUpdate()
 	probePosition->SetElement(ROW_TEMPLATE_POSITION, 3, dTemplatePosition); 
 	// send the transformation matrix and status to the tool
 	this->ToolTimeStampedUpdate(RAW_ENCODER_VALUES, probePosition, status, frameNum, unfilteredTimestamp);   
+
+  if ( !this->CompensationEnabled )
+  {
+    vtkSmartPointer<vtkTransform> tTemplateHomeToTemplate = vtkSmartPointer<vtkTransform>::New();
+    tTemplateHomeToTemplate->Translate(0,0,dTemplatePosition); 
+    this->ToolTimeStampedUpdate(TEMPLATEHOME_TO_TEMPLATE_TRANSFORM, tTemplateHomeToTemplate->GetMatrix(), status, frameNum, unfilteredTimestamp); 
+    vtkSmartPointer<vtkTransform> tProbeHomeToProbe = vtkSmartPointer<vtkTransform>::New();
+    tProbeHomeToProbe->Translate(0,0,dProbePosition);
+    tProbeHomeToProbe->RotateZ(dProbeRotation);
+    this->ToolTimeStampedUpdate(PROBEHOME_TO_PROBE_TRANSFORM, tProbeHomeToProbe->GetMatrix(), status, frameNum, unfilteredTimestamp);   
+    return PLUS_SUCCESS;
+  }
 
 	// Save template home to template transform
 	vtkSmartPointer<vtkTransform> tTemplateHomeToTemplate = vtkSmartPointer<vtkTransform>::New(); 

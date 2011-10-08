@@ -142,6 +142,11 @@ public:
 	vtkSetMacro(ProbeRotationEncoderScale, double); 
 	vtkGetMacro(ProbeRotationEncoderScale, double); 
 
+  //! Enable/disable stepper calibration compensation 
+	vtkSetMacro(CompensationEnabled, bool); 
+	vtkGetMacro(CompensationEnabled, bool);
+  vtkBooleanMacro(CompensationEnabled, bool); 
+  
   // Description:
 	// Get brachy stepper type (see BrachyStepper::BRACHY_STEPPER_TYPE)
   BrachyStepper::BRACHY_STEPPER_TYPE GetBrachyStepperType() { return this->BrachyStepperType; }
@@ -194,6 +199,8 @@ protected:
 	unsigned long BaudRate;
 
   //========== Stepper calibration ==================
+
+  bool CompensationEnabled; 
   
   // Stepper calibration algorithm version 
   char* CalibrationAlgorithmVersion; 
