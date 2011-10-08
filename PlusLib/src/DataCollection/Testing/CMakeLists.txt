@@ -134,3 +134,8 @@ ADD_TEST( ReplayRecordedDataTest
   --input-tracker-buffer-metafile=${TestDataDir}/ShortTrackedUltrasoundCapture.mha
   )
 SET_TESTS_PROPERTIES( ReplayRecordedDataTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR" )
+
+
+#***************************  LineDetectionTest ***************************
+ADD_EXECUTABLE( LineDetectionTest LineDetectionTest.cxx )
+TARGET_LINK_LIBRARIES( LineDetectionTest vtkPlusCommon vtkDataCollection vtkCommon vtkImageAcquisition)
