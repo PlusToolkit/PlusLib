@@ -8,9 +8,13 @@
 #include "vtkHTMLGenerator.h"
 #include "vtkDoubleArray.h"
 #include "vtkVariantArray.h"
-#include "vtkBrachyTracker.h"
-
 #include "vtkMeanShiftClustering.h"
+
+#ifdef PLUS_USE_BRACHY_TRACKER
+  #include "vtkBrachyTracker.h"
+#endif 
+
+
 
 
 
@@ -259,9 +263,11 @@ PlusStatus vtkCenterOfRotationCalibAlgo::UpdateReportTable()
 
   if ( this->ReportTable == NULL )
   {
+#ifdef PLUS_USE_BRACHY_TRACKER
     this->AddNewColumnToReportTable("ProbePosition"); 
     this->AddNewColumnToReportTable("ProbeRotation"); 
     this->AddNewColumnToReportTable("TemplatePosition"); 
+#endif
     this->AddNewColumnToReportTable("Wire#1Radius"); 
     this->AddNewColumnToReportTable("Wire#3Radius"); 
     this->AddNewColumnToReportTable("Wire#4Radius"); 
@@ -283,11 +289,15 @@ PlusStatus vtkCenterOfRotationCalibAlgo::UpdateReportTable()
   const double sX = this->Spacing[0]; 
   const double sY = this->Spacing[1]; 
   std::string defaultFrameTransformName=this->TrackedFrameList->GetDefaultFrameTransformName();
+  std::vector<std::vector<double>> wireRadiusVector(4); 
+  std::vector<std::vector<double>> wirePositions(8); 
+
+#ifdef PLUS_USE_BRACHY_TRACKER
   std::vector<double> probePosVector; 
   std::vector<double> probeRotVector; 
   std::vector<double> templatePosVector; 
-  std::vector<std::vector<double>> wireRadiusVector(4); 
-  std::vector<std::vector<double>> wirePositions(8); 
+#endif
+
 
   for ( unsigned int i = 0; i < this->TrackedFrameListIndices.size(); i++ )
   {
@@ -300,7 +310,7 @@ PlusStatus vtkCenterOfRotationCalibAlgo::UpdateReportTable()
       // This frame was not segmented
       continue; 
     }
-
+#ifdef PLUS_USE_BRACHY_TRACKER
     double probePos(0), probeRot(0), templatePos(0); 
     if ( !vtkBrachyTracker::GetStepperEncoderValues(frame, probePos, probeRot, templatePos, defaultFrameTransformName.c_str()) )
     {
@@ -310,7 +320,7 @@ PlusStatus vtkCenterOfRotationCalibAlgo::UpdateReportTable()
     probePosVector.push_back(probePos); 
     probeRotVector.push_back(probeRot); 
     templatePosVector.push_back(templatePos); 
-
+#endif
   
     // TODO: it works only with double N phantom 
     // Compute radius from Wire #1, #3, #4, #6
@@ -369,9 +379,12 @@ PlusStatus vtkCenterOfRotationCalibAlgo::UpdateReportTable()
   for ( int row = 0; row < numberOfElements; ++row )
   {
     vtkSmartPointer<vtkVariantArray> tableRow = vtkSmartPointer<vtkVariantArray>::New(); 
+
+#ifdef PLUS_USE_BRACHY_TRACKER
     tableRow->InsertNextValue(probePosVector[row]); //ProbePosition
     tableRow->InsertNextValue(probeRotVector[row]); //ProbeRotation
     tableRow->InsertNextValue(templatePosVector[row]); //TemplatePosition
+#endif
 
     tableRow->InsertNextValue( wireRadiusVector[0][row] ); //Wire#1Radius
     tableRow->InsertNextValue( wireRadiusVector[1][row] ); //Wire#3Radius
@@ -462,6 +475,10 @@ PlusStatus vtkCenterOfRotationCalibAlgo::GenerateCenterOfRotationReport( vtkHTML
 {
   LOG_TRACE("vtkCenterOfRotationCalibAlgo::GenerateCenterOfRotationReport"); 
 
+#ifndef PLUS_USE_BRACHY_TRACKER
+  LOG_INFO("Unable to generate center of rotation report without PLUS_USE_BRACHY_TRACKER enabled!"); 
+#endif
+
   if ( htmlReport == NULL || plotter == NULL )
   {
     LOG_ERROR("Caller should define HTML report generator and gnuplot plotter before report generation!"); 
@@ -520,6 +537,8 @@ PlusStatus vtkCenterOfRotationCalibAlgo::GenerateCenterOfRotationReport( vtkHTML
   report << "Center of rotation (px): " << centerOfRotationPx[0] << "     " << centerOfRotationPx[1] << "</br>" ; 
   htmlReport->AddParagraph(report.str().c_str()); 
 
+#ifdef PLUS_USE_BRACHY_TRACKER
+
   const int wires[4] = {1, 3, 4, 6}; 
 
   for ( int i = 0; i < 4; i++ )
@@ -567,6 +586,8 @@ PlusStatus vtkCenterOfRotationCalibAlgo::GenerateCenterOfRotationReport( vtkHTML
     imageAltHistogram << "Center of rotation calculation error histogram - wire #" << wires[i] << std::ends; 
     htmlReport->AddImage(imageSourceHistogram.str().c_str(), imageAltHistogram.str().c_str()); 
   }
+
+#endif
 
   htmlReport->AddHorizontalLine(); 
 
