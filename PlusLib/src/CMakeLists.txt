@@ -1,4 +1,5 @@
 
+
 # --------------------------------------------------------------------------
 # Try to find VTK and include its settings (otherwise complain)
 # 
@@ -163,3 +164,16 @@ configure_file(PlusLibConfigVersion.cmake.in
 configure_file(
 	${CMAKE_CURRENT_SOURCE_DIR}/UsePlusLib.cmake.in 
 	${CMAKE_CURRENT_BINARY_DIR}/UsePlusLib.cmake @ONLY)	
+
+#-----------------------------------------------------------------------------
+# Documentation
+#
+option(DOCUMENTATION_TARGET_IN_ALL "Include the custom target for building documentation in 'all'" OFF)
+mark_as_advanced(DOCUMENTATION_TARGET_IN_ALL)
+
+# Attempt to discover Doxygen so that DOXYGEN_EXECUTABLE is set to an appropriate default value
+SET (DOXYGEN_EXECUTABLE ${PLTOOLS_DIR}/Doxygen/doxygen-1.7.5.1/doxygen.exe CACHE PATH "Doxygen executable" FORCE)
+SET (DOXYGEN_DOT_EXECUTABLE ${PLTOOLS_DIR}/Doxygen/doxygen-1.7.5.1/Graphviz-2.28/bin/dot.exe CACHE PATH "Doxygen dot executable" FORCE)
+find_package(Doxygen QUIET)
+
+add_subdirectory(Doxygen)
