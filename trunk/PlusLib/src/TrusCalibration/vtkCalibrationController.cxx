@@ -1225,14 +1225,14 @@ PlusStatus vtkCalibrationController::OfflineUSToTemplateCalibration()
           validationCounter++; 
       }
 
+      this->SetOfflineImageData(validationData->GetTrackedFrame(vImgNumber)->GetImageData()->GetDisplayableImage()); 
+
       if ( this->SegmentationProgressCallbackFunction != NULL )
       {
         int numberOfSegmentedImages = this->GetImageDataInfo(RANDOM_STEPPER_MOTION_2).NumberOfSegmentedImages + this->GetImageDataInfo(RANDOM_STEPPER_MOTION_1).NumberOfSegmentedImages; 
         int percent = 100* numberOfSegmentedImages / (this->GetImageDataInfo(RANDOM_STEPPER_MOTION_2).NumberOfImagesToAcquire + this->GetImageDataInfo(RANDOM_STEPPER_MOTION_1).NumberOfImagesToAcquire); 
         (*SegmentationProgressCallbackFunction)(percent); 
       }
-
-      this->SetOfflineImageData(validationData->GetTrackedFrame(vImgNumber)->GetImageData()->GetDisplayableImage()); 
   }
 
   int validSegmentationSuccessRate = 100*this->GetImageDataInfo(RANDOM_STEPPER_MOTION_2).NumberOfSegmentedImages / vImgNumber; 
@@ -1257,14 +1257,14 @@ PlusStatus vtkCalibrationController::OfflineUSToTemplateCalibration()
           calibrationCounter++; 
       }
 
+      this->SetOfflineImageData(calibrationData->GetTrackedFrame(cImgNumber)->GetImageData()->GetDisplayableImage()); 
+
       if ( this->SegmentationProgressCallbackFunction != NULL )
       {
         int numberOfSegmentedImages = this->GetImageDataInfo(RANDOM_STEPPER_MOTION_2).NumberOfSegmentedImages + this->GetImageDataInfo(RANDOM_STEPPER_MOTION_1).NumberOfSegmentedImages; 
         int percent = 100* numberOfSegmentedImages / (this->GetImageDataInfo(RANDOM_STEPPER_MOTION_2).NumberOfImagesToAcquire + this->GetImageDataInfo(RANDOM_STEPPER_MOTION_1).NumberOfImagesToAcquire); 
         (*SegmentationProgressCallbackFunction)(percent); 
       }
-
-      this->SetOfflineImageData(calibrationData->GetTrackedFrame(cImgNumber)->GetImageData()->GetDisplayableImage()); 
   }
 
   int calibSegmentationSuccessRate = 100*this->GetImageDataInfo(RANDOM_STEPPER_MOTION_1).NumberOfSegmentedImages / cImgNumber; 
