@@ -513,14 +513,14 @@ PlusStatus vtkStepperCalibrationController::OfflineProbeRotationAxisCalibration(
       frameCounter++; 
     }
 
+    this->SetOfflineImageData(trackedFrameList->GetTrackedFrame(imgNumber)->GetImageData()->GetDisplayableImage());
+
     if ( this->SegmentationProgressCallbackFunction != NULL )
     {
       int numberOfSegmentedImages = this->GetImageDataInfo(PROBE_ROTATION).NumberOfSegmentedImages; 
       int percent = 100* numberOfSegmentedImages / this->GetImageDataInfo(PROBE_ROTATION).NumberOfImagesToAcquire; 
       (*SegmentationProgressCallbackFunction)(percent); 
     }
-
-    this->SetOfflineImageData(trackedFrameList->GetTrackedFrame(imgNumber)->GetImageData()->GetDisplayableImage()); 
   }
 
   LOG_INFO ( "A total of " << frameCounter << " images (" << 100*frameCounter/imgNumber << "%) have been successfully added for probe rotation axis calibration.");
@@ -580,14 +580,14 @@ PlusStatus vtkStepperCalibrationController::OfflineProbeTranslationAxisCalibrati
       frameCounter++; 
     }
 
+    this->SetOfflineImageData(trackedFrameList->GetTrackedFrame(imgNumber)->GetImageData()->GetDisplayableImage());
+
     if ( this->SegmentationProgressCallbackFunction != NULL )
     {
       int numberOfSegmentedImages = this->GetImageDataInfo(PROBE_TRANSLATION).NumberOfSegmentedImages; 
       int percent = 100* numberOfSegmentedImages / this->GetImageDataInfo(PROBE_TRANSLATION).NumberOfImagesToAcquire; 
       (*SegmentationProgressCallbackFunction)(percent); 
     }
-
-    this->SetOfflineImageData(trackedFrameList->GetTrackedFrame(imgNumber)->GetImageData()->GetDisplayableImage());
   }
 
   LOG_INFO ( "A total of " << frameCounter << " images (" << 100*frameCounter/imgNumber << "%) have been successfully added for probe translation axis calibration.");
@@ -647,14 +647,14 @@ PlusStatus vtkStepperCalibrationController::OfflineTemplateTranslationAxisCalibr
       frameCounter++; 
     }
 
+    this->SetOfflineImageData(trackedFrameList->GetTrackedFrame(imgNumber)->GetImageData()->GetDisplayableImage()); 
+
     if ( this->SegmentationProgressCallbackFunction != NULL )
     {
       int numberOfSegmentedImages = this->GetImageDataInfo(TEMPLATE_TRANSLATION).NumberOfSegmentedImages; 
       int percent = 100* numberOfSegmentedImages / this->GetImageDataInfo(TEMPLATE_TRANSLATION).NumberOfImagesToAcquire; 
       (*SegmentationProgressCallbackFunction)(percent); 
     }
-
-    this->SetOfflineImageData(trackedFrameList->GetTrackedFrame(imgNumber)->GetImageData()->GetDisplayableImage()); 
   }
 
   LOG_INFO ( "A total of " << frameCounter << " images (" << 100*frameCounter/imgNumber << "%) have been successfully added for template translation axis calibration.");

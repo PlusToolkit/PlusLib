@@ -43,10 +43,10 @@ vtkBrachyTracker::vtkBrachyTracker()
 	this->SetSerialPort(1);
 	this->BaudRate = 19200;
 	this->SetNumberOfTools(NUMBER_OF_BRACHY_TOOLS); 
-	this->SetToolName(PROBEHOME_TO_PROBE_TRANSFORM, "ProbeHomeToProbeUncalibrated"); 
+	this->SetToolName(PROBEHOME_TO_PROBE_TRANSFORM, "Probe"); 
   this->SetToolEnabled(PROBEHOME_TO_PROBE_TRANSFORM, true); 
   this->GetTool(PROBEHOME_TO_PROBE_TRANSFORM)->SetToolType(TRACKER_TOOL_PROBE); 
-	this->SetToolName(TEMPLATEHOME_TO_TEMPLATE_TRANSFORM, "TemplateHomeToTemplateUncalibrated"); 
+	this->SetToolName(TEMPLATEHOME_TO_TEMPLATE_TRANSFORM, "Template"); 
   this->SetToolEnabled(TEMPLATEHOME_TO_TEMPLATE_TRANSFORM, true); 
   this->GetTool(TEMPLATEHOME_TO_TEMPLATE_TRANSFORM)->SetToolType(TRACKER_TOOL_GENERAL); 
 	this->SetToolName(RAW_ENCODER_VALUES, "StepperEncoderValues"); 
@@ -258,8 +258,8 @@ PlusStatus vtkBrachyTracker::InitBrachyTracker()
 
 	if ( this->TrackerCalibrated )
 	{
-		this->SetToolName(PROBEHOME_TO_PROBE_TRANSFORM, "ProbeHomeToProbe"); 
-		this->SetToolName(TEMPLATEHOME_TO_TEMPLATE_TRANSFORM, "TemplateHomeToTemplate"); 
+		this->SetToolName(PROBEHOME_TO_PROBE_TRANSFORM, "Probe"); 
+		this->SetToolName(TEMPLATEHOME_TO_TEMPLATE_TRANSFORM, "Template"); 
 	}
 
 	return PLUS_SUCCESS; 
