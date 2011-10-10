@@ -1,0 +1,16 @@
+/**
+
+\mainpage
+
+\section intro_sec Introduction
+
+See the <a href="https://www.assembla.com/spaces/plus/wiki">Plus Wiki</a> for more information.
+
+\defgroup PlusLibDataCollection DataCollection
+
+\defgroup PlusLibImageAcquisition ImageAcquisition
+
+\defgroup PlusLibPlusCommon PlusCommon
+
+
+*/
