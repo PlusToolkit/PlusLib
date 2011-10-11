@@ -1,3 +1,8 @@
+/*=Plus=header=begin======================================================
+  Program: Plus
+  Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+  See License.txt for details.
+=========================================================Plus=header=end*/ 
 
 #ifndef __vtkPlusCommandCollection_h
 #define __vtkPlusCommandCollection_h
@@ -6,8 +11,13 @@
 
 class vtkPlusCommand;
 
-
-
+/** \class vtkPlusCommandCollection 
+ *
+ * \brief Thread-safe container that stores multiple PlusCommand objects.
+ * 
+ * \ingroup PlusLibDataCollection
+ *
+ */
 class
 VTK_EXPORT
 vtkPlusCommandCollection
@@ -21,13 +31,11 @@ public:
   void AddItem( vtkPlusCommand* );
 
   vtkPlusCommand* GetNextItem();
-  
-  //BTX
-  // Description: 
-  // Reentrant safe way to get an object in a collection. Just pass the
-  // same cookie back and forth. 
+   
+  /** Reentrant safe way to get an object in a collection. Just pass the
+   * same cookie back and forth.
+   */    
   vtkPlusCommand* GetNextPlusCommand( vtkCollectionSimpleIterator &cookie );
-  //ETX
 
 protected:
   vtkPlusCommandCollection() {};
@@ -35,7 +43,7 @@ protected:
   
 
 private:
-    // hide the standard AddItem from the user and the compiler.
+  /** hide the standard AddItem from the user and the compiler. */
   void AddItem( vtkObject* o ) { this->vtkCollection::AddItem( o ); };
 
 private:

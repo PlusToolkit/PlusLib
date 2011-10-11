@@ -1,3 +1,8 @@
+/*=Plus=header=begin======================================================
+  Program: Plus
+  Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+  See License.txt for details.
+=========================================================Plus=header=end*/ 
 
 #ifndef __VTKPLUSOPENIGTLINKSERVER_H
 #define __VTKPLUSOPENIGTLINKSERVER_H
@@ -17,13 +22,16 @@
 #include "vtkDataCollector.h"
 #include "vtkIGTLMessageQueue.h"
 
-
-
-/**
- * This class provides a network interface for Plus functions as an OpenIGTLink server.
+/** \class vtkPlusOpenIGTLinkServer 
+ *
+ * \brief This class provides a network interface for Plus functions as an OpenIGTLink server.
+ * 
  * After the server is started, it waits for a client sending request messages of type
  * "igtl::StringMessage1". These strings are translated into Plus Commands, queued and executed
- * on a first-come-first-serve basis.
+ * on a first-come-first-serve basis.  
+ *
+ * \ingroup PlusLibDataCollection
+ *
  */
 class
 VTK_EXPORT 

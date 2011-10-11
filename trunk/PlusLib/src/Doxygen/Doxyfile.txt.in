@@ -31,11 +31,11 @@ PROJECT_NAME           = @PROJECT_NAME@
 # This could be handy for archiving the generated documentation or
 # if some version control system is used.
 
-PROJECT_NUMBER         = @Plus_VERSION@
+PROJECT_NUMBER         = @PLUSLIB_VERSION@
 
 # Using the PROJECT_BRIEF tag one can provide an optional one line description for a project that appears at the top of each page and should give viewer a quick idea about the purpose of the project. Keep the description short.
 
-PROJECT_BRIEF          = "<a href=\"https://www.assembla.com/spaces/plus/wiki/\">Plus</a> is a source software package for prostate motion analysis and compensation"
+PROJECT_BRIEF          = "Software library for tracked ultrasound image acquisition, calibration, and processing."
 
 # With the PROJECT_LOGO tag one can specify an logo or icon that is
 # included in the documentation. The maximum height of the logo should not
@@ -680,18 +680,15 @@ RECURSIVE              = YES
 # excluded from the INPUT source files. This way you can easily exclude a
 # subdirectory from a directory tree whose root is specified with the INPUT tag.
 
+# Mainly third-party libraries are excluded because they are already documented
+# elsewhere.
+
 EXCLUDE                = "@PlusLib_BINARY_DIR@" \
-                         "@PlusLib_SOURCE_DIR@/Attic" \
-                         "@PlusLib_SOURCE_DIR@/Base/GUI" \
-                         "@PlusLib_SOURCE_DIR@/CMake" \
-                         "@PlusLib_SOURCE_DIR@/Extensions" \
-                         "@PlusLib_SOURCE_DIR@/Modules" \
-                         "@PlusLib_SOURCE_DIR@/QTModules/ModuleTemplate" \
-                         "@PlusLib_SOURCE_DIR@/Resources" \
-                         "@PlusLib_SOURCE_DIR@/SuperBuild" \
-                         "@PlusLib_SOURCE_DIR@/Utilities/Callgrind" \
-                         "@PlusLib_SOURCE_DIR@/Utilities/Launcher" \
-                         "@PlusLib_SOURCE_DIR@/Utilities/Package"
+                         "@PlusLib_SOURCE_DIR@/src/Tracking/ndicapi" \
+                         "@PlusLib_SOURCE_DIR@/src/Tracking/FlockTracking/Utils" \ 
+                         "@PlusLib_SOURCE_DIR@/src/Tracking/MicronTracking/Utils" \ 
+                         "@PlusLib_SOURCE_DIR@/src/Vibro/AudioCard/dsound.h" \
+                         "@PlusLib_SOURCE_DIR@/src/scripts"
 
 # The EXCLUDE_SYMLINKS tag can be used select whether or not files or
 # directories that are symbolic links (a Unix file system feature) are excluded
