@@ -2,9 +2,7 @@
 #include "PlusMath.h"
 #include "vtkTrackedFrameList.h"
 #include "vtkSpacingCalibAlgo.h"
-#include "vtkRotationEncoderCalibAlgo.h"
-#include "vtkRotationAxisCalibAlgo.h"
-#include "vtkTranslAxisCalibAlgo.h"
+#include "vtkCenterOfRotationCalibAlgo.h"
 #include "vtkBrachyStepperPhantomRegistrationAlgo.h"
 #include "vtkCalibrationController.h"
 
@@ -29,8 +27,6 @@ int main (int argc, char* argv[])
 	std::string inputRandomStepperMotion1SeqMetafile;
 	std::string inputRandomStepperMotion2SeqMetafile;
 	std::string inputProbeRotationSeqMetafile;
-	std::string inputProbeTranslationSeqMetafile; 
-	std::string inputTemplateTranslationSeqMetafile; 
 
 	std::string inputConfigFileName;
 	std::string inputBaselineFileName;
@@ -45,8 +41,6 @@ int main (int argc, char* argv[])
 	cmdargs.AddArgument("--input-random-stepper-motion-1-sequence-metafile", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputRandomStepperMotion1SeqMetafile, "Sequence metafile name of saved random stepper motion 1 dataset.");
 	cmdargs.AddArgument("--input-random-stepper-motion-2-sequence-metafile", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputRandomStepperMotion2SeqMetafile, "Sequence metafile name of saved random stepper motion 2 dataset.");
 	cmdargs.AddArgument("--input-probe-rotation-sequence-metafile", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputProbeRotationSeqMetafile, "Sequence metafile name of saved probe rotation dataset.");
-	cmdargs.AddArgument("--input-probe-translation-sequence-metafile", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputProbeTranslationSeqMetafile, "Sequence metafile name of saved probe translation dataset.");
-	cmdargs.AddArgument("--input-template-translation-sequence-metafile", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputTemplateTranslationSeqMetafile, "Sequence metafile name of saved template translation dataset.");
 	
 	cmdargs.AddArgument("--input-config-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "Configuration file name");
 	
@@ -98,34 +92,6 @@ int main (int argc, char* argv[])
     patternRecognition.RecognizePattern(probeRotationTrackedFrameList->GetTrackedFrame(currentFrameIndex));
   }
 
-  LOG_INFO("Reading probe translation data from sequence metafile..."); 
-  vtkSmartPointer<vtkTrackedFrameList> probeTranslationTrackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New(); 
-  if ( probeTranslationTrackedFrameList->ReadFromSequenceMetafile(inputProbeTranslationSeqMetafile.c_str()) != PLUS_SUCCESS )
-  {
-    LOG_ERROR("Failed to read sequence metafile: " << inputProbeTranslationSeqMetafile); 
-    return EXIT_FAILURE;
-  }
-
-  LOG_INFO("Segmenting probe translation data...");
-  for ( int currentFrameIndex = 0; currentFrameIndex < probeTranslationTrackedFrameList->GetNumberOfTrackedFrames(); currentFrameIndex++)
-  {
-    patternRecognition.RecognizePattern(probeTranslationTrackedFrameList->GetTrackedFrame(currentFrameIndex));
-  }
-
-  LOG_INFO("Reading template translation data from sequence metafile..."); 
-  vtkSmartPointer<vtkTrackedFrameList> templateTranslationTrackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New(); 
-  if ( templateTranslationTrackedFrameList->ReadFromSequenceMetafile(inputTemplateTranslationSeqMetafile.c_str()) != PLUS_SUCCESS )
-  {
-    LOG_ERROR("Failed to read sequence metafile: " << inputTemplateTranslationSeqMetafile); 
-    return EXIT_FAILURE;
-  }
-
-  LOG_INFO("Segmenting template translation data...");
-  for ( int currentFrameIndex = 0; currentFrameIndex < templateTranslationTrackedFrameList->GetNumberOfTrackedFrames(); currentFrameIndex++)
-  {
-    patternRecognition.RecognizePattern(templateTranslationTrackedFrameList->GetTrackedFrame(currentFrameIndex));
-  }
-
   LOG_INFO("Starting spacing calibration...");
   vtkSmartPointer<vtkSpacingCalibAlgo> spacingCalibAlgo = vtkSmartPointer<vtkSpacingCalibAlgo>::New(); 
   spacingCalibAlgo->SetInputs(probeRotationTrackedFrameList, patternRecognition.GetFidLabeling()->GetNWires()); 
@@ -141,83 +107,27 @@ int main (int argc, char* argv[])
     LOG_INFO("Spacing: " << std::fixed << spacing[0] << "  " << spacing[1] << " mm/px"); 
   }
 
-  LOG_INFO("Starting rotation encoder calibration...");
-  vtkSmartPointer<vtkRotationEncoderCalibAlgo> rotationEncoderCalibAlgo = vtkSmartPointer<vtkRotationEncoderCalibAlgo>::New(); 
-  rotationEncoderCalibAlgo->SetInputs(probeRotationTrackedFrameList, spacing); 
+  LOG_INFO("Create rotation data indices vector..."); 
+  std::vector<int> trackedFrameIndices(probeRotationTrackedFrameList->GetNumberOfTrackedFrames(), 0); 
+  for ( unsigned int i = 0; i < probeRotationTrackedFrameList->GetNumberOfTrackedFrames(); ++i )
+  {
+    trackedFrameIndices[i]=i; 
+  }
+
+  LOG_INFO("Starting center of rotation calibration...");
+  vtkSmartPointer<vtkCenterOfRotationCalibAlgo> centerOfRotationCalibAlgo = vtkSmartPointer<vtkCenterOfRotationCalibAlgo>::New(); 
+  centerOfRotationCalibAlgo->SetInputs(probeRotationTrackedFrameList, trackedFrameIndices, spacing); 
   
-  // Get rotation encoder calibration output 
-  double rotationEncoderScale(0); 
-  if ( rotationEncoderCalibAlgo->GetRotationEncoderScale(rotationEncoderScale) != PLUS_SUCCESS )
+  // Get center of rotation calibration output 
+  double centerOfRotationPx[2] = {0}; 
+  if ( centerOfRotationCalibAlgo->GetCenterOfRotationPx(centerOfRotationPx) != PLUS_SUCCESS )
   {
-    LOG_ERROR("Rotation encoder calibration failed!"); 
+    LOG_ERROR("Center of rotation calibration failed!"); 
     numberOfFailures++; 
   }
   else
   {
-    LOG_INFO("Rotation encoder scale: " << std::fixed << rotationEncoderScale); 
-  }
-
-  double rotationEncoderOffset(0); 
-  if ( rotationEncoderCalibAlgo->GetRotationEncoderOffset(rotationEncoderOffset) != PLUS_SUCCESS )
-  {
-    LOG_ERROR("Rotation encoder calibration failed!"); 
-    numberOfFailures++; 
-  }
-  else
-  {
-    LOG_INFO("Rotation encoder offset: " << std::fixed << rotationEncoderOffset); 
-  }
-
-  LOG_INFO("Starting rotation axis orientation calibration...");
-  vtkSmartPointer<vtkRotationAxisCalibAlgo> rotAxisCalibAlgo = vtkSmartPointer<vtkRotationAxisCalibAlgo>::New(); 
-  rotAxisCalibAlgo->SetInputs(probeRotationTrackedFrameList, spacing); 
-  
-  // Get rotation axis calibration output 
-  double rotationAxisOrientation[3] = {0}; 
-  if ( rotAxisCalibAlgo->GetRotationAxisOrientation(rotationAxisOrientation) != PLUS_SUCCESS )
-  {
-    LOG_ERROR("Rotation axis calibration failed!"); 
-    numberOfFailures++; 
-  }
-  else
-  {
-    LOG_INFO("Rotation axis orientation: " << std::fixed << rotationAxisOrientation[0] << "  " << rotationAxisOrientation[1] << "  " << rotationAxisOrientation[2]); 
-  }
-
-  // Get center of rotation 
-  double *centerofRotationPx = rotAxisCalibAlgo->GetCenterOfRotationPx(); 
-  LOG_INFO("Center of rotation (px): " << centerofRotationPx[0] << "  " << centerofRotationPx[1]); 
-
-  LOG_INFO("Starting probe translation axis orientation calibration...");
-  vtkSmartPointer<vtkTranslAxisCalibAlgo> probeTranslAxisCalibAlgo = vtkSmartPointer<vtkTranslAxisCalibAlgo>::New(); 
-  probeTranslAxisCalibAlgo->SetInputs(probeTranslationTrackedFrameList, spacing, PROBE_TRANSLATION); 
-  
-  // Get translation axis calibration output 
-  double probeTranslationAxisOrientation[3] = {0}; 
-  if ( probeTranslAxisCalibAlgo->GetTranslationAxisOrientation(probeTranslationAxisOrientation) != PLUS_SUCCESS )
-  {
-    LOG_ERROR("Translation axis calibration failed!"); 
-    numberOfFailures++; 
-  }
-  else
-  {
-    LOG_INFO("Probe translation axis orientation: " << std::fixed << probeTranslationAxisOrientation[0] << "  " << probeTranslationAxisOrientation[1] << "  " << probeTranslationAxisOrientation[2]); 
-  }
-
-  LOG_INFO("Starting template translation axis orientation calibration...");
-  vtkSmartPointer<vtkTranslAxisCalibAlgo> templateTranslAxisCalibAlgo = vtkSmartPointer<vtkTranslAxisCalibAlgo>::New(); 
-  templateTranslAxisCalibAlgo->SetInputs(templateTranslationTrackedFrameList, spacing, TEMPLATE_TRANSLATION); 
-  
-  // Get translation axis calibration output 
-  double templateTranslationAxisOrientation[3] = {0}; 
-  if ( templateTranslAxisCalibAlgo->GetTranslationAxisOrientation(templateTranslationAxisOrientation) != PLUS_SUCCESS )
-  {
-    LOG_ERROR("Template translation axis calibration failed!"); 
-    numberOfFailures++; 
-  }
-  else
-  {
-    LOG_INFO("Translation axis orientation: " << std::fixed << templateTranslationAxisOrientation[0] << "  " << templateTranslationAxisOrientation[1] << "  " << templateTranslationAxisOrientation[2]); 
+    LOG_INFO("Center of rotation (px): " << std::fixed << centerOfRotationPx[0] << "  " << centerOfRotationPx[1]); 
   }
 
 	// Initialize the probe calibration controller 
@@ -240,7 +150,7 @@ int main (int argc, char* argv[])
   vtkTransform* tTemplateHolderToPhantom = probeCal->GetTransformTemplateHolderToPhantom(); 
 
   vtkSmartPointer<vtkBrachyStepperPhantomRegistrationAlgo> phantomRegistrationAlgo = vtkSmartPointer<vtkBrachyStepperPhantomRegistrationAlgo>::New(); 
-  phantomRegistrationAlgo->SetInputs(probeRotationTrackedFrameList, spacing, centerofRotationPx, patternRecognition.GetFidLabeling()->GetNWires()); 
+  phantomRegistrationAlgo->SetInputs(probeRotationTrackedFrameList, spacing, centerOfRotationPx, patternRecognition.GetFidLabeling()->GetNWires()); 
   phantomRegistrationAlgo->SetTransformTemplateHolderToPhantom( tTemplateHolderToPhantom ); 
 
   vtkSmartPointer<vtkTransform> tPhantomToReference = vtkSmartPointer<vtkTransform>::New(); 
