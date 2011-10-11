@@ -11,6 +11,7 @@
 #include "vtkCriticalSection.h"
 #include "vtkCommand.h"
 #include "vtkObjectFactory.h"
+#include "vtksys/SystemTools.hxx" 
 
 vtkPlusLogger* vtkPlusLogger::m_pInstance = NULL;
 
@@ -105,15 +106,20 @@ void vtkPlusLoggerOutputWindow::PrintSelf(ostream& os, vtkIndent indent)
 vtkPlusLogger::vtkPlusLogger()
 {
 	m_CriticalSection = vtkSimpleCriticalSection::New();
-	m_LogLevel = LOG_LEVEL_WARNING;
-	m_DisplayLogLevel = LOG_LEVEL_WARNING;
+	m_LogLevel = LOG_LEVEL_INFO;
+	m_DisplayLogLevel = LOG_LEVEL_INFO;
 	std::ostringstream logfilename;
-	logfilename << vtkAccurateTimer::GetInstance()->GetDateAndTimeString() << "_PlusLog.txt";
+  logfilename << vtkPlusConfig::GetInstance()->GetOutputDirectory() << "/" << vtkAccurateTimer::GetInstance()->GetDateAndTimeString() << "_PlusLog.txt";
+  vtksys::SystemTools::MakeDirectory(vtkPlusConfig::GetInstance()->GetOutputDirectory()); 
+
 	this->m_LogStream.open (logfilename.str().c_str(), ios::out);
 
   // redirect VTK error logs to the Plus logger
 	vtkSmartPointer<vtkPlusLoggerOutputWindow> vtkLogger = vtkSmartPointer<vtkPlusLoggerOutputWindow>::New();
 	vtkOutputWindow::SetInstance(vtkLogger);
+
+  std::string strPlusLibVersion = std::string(" PlusLib version: ") + std::string(PLUSLIB_VERSION); 
+  this->LogMessage(LOG_LEVEL_INFO, strPlusLibVersion.c_str(), "vtkPlusLogger", 122); 
 }
 
 //-------------------------------------------------------
