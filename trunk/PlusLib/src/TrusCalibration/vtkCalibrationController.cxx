@@ -1,3 +1,9 @@
+/*=Plus=header=begin======================================================
+  Program: Plus
+  Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+  See License.txt for details.
+=========================================================Plus=header=end*/ 
+
 #include "PlusConfigure.h"
 #include "vtkCalibrationController.h"
 
@@ -75,29 +81,23 @@ vtkCalibrationController::vtkCalibrationController()
   // Former ProbeCalibrationController and FreehandCalibraitonController members
 	this->EnableSegmentedWirePositionsSavingOff(); 
 
-	this->US3DBeamwidthDataReadyOff(); 
+	this->US3DBeamwidthDataReadyOff();
+  this->NumUS3DBeamwidthProfileData = -1;
 
   this->SetCenterOfRotationPx(0,0);
 
 	this->SetCurrentPRE3DdistributionID(0); 
 
-	this->SetNumUS3DBeamwidthProfileData(-1);
 	this->SetIncorporatingUS3DBeamProfile(0);
 
 	this->SetAxialPositionOfCrystalSurfaceInTRUSImageFrame(-1);
 
 	this->CalibrationConfigFileNameWithPath = NULL; 
-	this->CalibrationResultFileNameWithPath = NULL;
 	this->US3DBeamProfileDataFileNameAndPath = NULL; 
 	this->SegmentationAnalysisFileNameWithTimeStamp = NULL; 
 	this->SegmentationErrorLogFileNameWithTimeStamp = NULL;
-	this->DataFileSuffix = NULL;
 	this->CalibrationResultFileSuffix = NULL;
-	this->SegmentationErrorLogFileNameSuffix = NULL;
-	this->SegmentationAnalysisFileNameSuffix = NULL;
-	this->Temp2StepCalibAnalysisFileNameSuffix = NULL; 
 	this->CalibrationSegWirePosInfoFileName = NULL; 
-	this->ValidationSegWirePosInfoFileName = NULL; 
 
 	vtkSmartPointer<vtkTransform> transformProbeToReference = vtkSmartPointer<vtkTransform>::New(); 
 	this->TransformProbeToReference = NULL;
@@ -582,17 +582,6 @@ PlusStatus vtkCalibrationController::ReadProbeCalibrationConfiguration( vtkXMLDa
 		this->TransformImageToUserImage->SetMatrix(imageToUserImageTransform); 
 	}
 
-  // Sets the suffix of the data files
-	const char* dataFileSuffix = probeCalibration->GetAttribute("DataFileSuffix"); 
-	if ( dataFileSuffix != NULL) 
-	{
-		this->SetDataFileSuffix(dataFileSuffix); 
-	}
-	else 
-	{
-		this->SetDataFileSuffix(".data"); 
-	}
-
 	// Sets the suffix of the calibration result file
 	const char* calibrationResultFileSuffix = probeCalibration->GetAttribute("CalibrationResultFileSuffix"); 
 	if ( calibrationResultFileSuffix != NULL) 
@@ -602,39 +591,6 @@ PlusStatus vtkCalibrationController::ReadProbeCalibrationConfiguration( vtkXMLDa
 	else 
 	{
 		this->SetCalibrationResultFileSuffix(".Calibration.results"); 
-	}
-
-	// Sets the suffix of the segmentation error log file
-	const char* segmentationErrorLogFileNameSuffix = probeCalibration->GetAttribute("SegmentationErrorLogFileNameSuffix"); 
-	if ( segmentationErrorLogFileNameSuffix != NULL) 
-	{
-		this->SetSegmentationErrorLogFileNameSuffix(segmentationErrorLogFileNameSuffix); 
-	}
-	else 
-	{
-		this->SetSegmentationErrorLogFileNameSuffix(".Segmentation.errors"); 
-	}
-
-	// Sets the suffix of the segmentation analysis file
-	const char* segmentationAnalysisFileNameSuffix = probeCalibration->GetAttribute("SegmentationAnalysisFileNameSuffix"); 
-	if ( segmentationAnalysisFileNameSuffix != NULL) 
-	{
-		this->SetSegmentationAnalysisFileNameSuffix(segmentationAnalysisFileNameSuffix); 
-	}
-	else 
-	{
-		this->SetSegmentationAnalysisFileNameSuffix(".Segmentation.analysis"); 
-	}
-
-	// Sets the suffix of the Template2StepperCalibration analysis file
-	const char* temp2StepCalibAnalysisFileNameSuffix = probeCalibration->GetAttribute("Temp2StepCalibAnalysisFileNameSuffix"); 
-	if ( temp2StepCalibAnalysisFileNameSuffix != NULL) 
-	{
-		this->SetTemp2StepCalibAnalysisFileNameSuffix(temp2StepCalibAnalysisFileNameSuffix); 
-	}
-	else 
-	{
-		this->SetTemp2StepCalibAnalysisFileNameSuffix(".Template2StepperCalibration.analysis"); 
 	}
 
   // RandomStepperMotionData1 data set specifications
@@ -1016,7 +972,7 @@ PlusStatus vtkCalibrationController::WriteConfiguration(vtkXMLDataElement* aConf
 	// Save matrix name, date and error
 	calibration->SetAttribute("MatrixName", "ImageToProbe");
 	calibration->SetAttribute("Date", vtksys::SystemTools::GetCurrentDateTime("%Y.%m.%d %X").c_str());
-	calibration->SetDoubleAttribute("Error", GetPointLineDistanceErrorAnalysisVector()[0]); // TODO find the best error number
+	calibration->SetDoubleAttribute("Error", this->PointLineDistanceErrorAnalysisVector[0]); // TODO find the best error number
 
   // TRUS results
 	vtkSmartPointer<vtkXMLDataElement> usCalibration = aConfig->FindNestedElementWithName("USCalibration");
@@ -1148,7 +1104,7 @@ PlusStatus vtkCalibrationController::OfflineUSToTemplateCalibration()
   LOG_TRACE("vtkCalibrationController::OfflineUSToTemplateCalibration"); 
   if ( ! this->Initialized ) 
   {
-      this->Initialize(); 
+    this->Initialize(); 
   }
 
   // Reset calibrator data containers 
@@ -1159,17 +1115,17 @@ PlusStatus vtkCalibrationController::OfflineUSToTemplateCalibration()
   const std::string validationDataFileName = this->GetImageDataInfo(RANDOM_STEPPER_MOTION_2).InputSequenceMetaFileName; 
   if ( !validationDataFileName.empty() )
   {
-      LOG_TRACE("Read tracked frames from sequence metafile: " << validationDataFileName ); 
-      if ( validationData->ReadFromSequenceMetafile(validationDataFileName.c_str()) != PLUS_SUCCESS )
-      {
-          LOG_ERROR("Failed to read tracked frames from sequence metafile from: " << validationDataFileName ); 
-          return PLUS_FAIL; 
-      }
+    LOG_TRACE("Read tracked frames from sequence metafile: " << validationDataFileName ); 
+    if ( validationData->ReadFromSequenceMetafile(validationDataFileName.c_str()) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Failed to read tracked frames from sequence metafile from: " << validationDataFileName ); 
+      return PLUS_FAIL; 
+    }
   }
   else
   {
-      LOG_ERROR("Unable to start OfflineUSToTemplateCalibration with validation data: SequenceMetaFileName is empty!"); 
-      return PLUS_FAIL; 
+    LOG_ERROR("Unable to start OfflineUSToTemplateCalibration with validation data: SequenceMetaFileName is empty!"); 
+    return PLUS_FAIL; 
   }
 
   // Reset the counter before we start
@@ -1186,17 +1142,17 @@ PlusStatus vtkCalibrationController::OfflineUSToTemplateCalibration()
   const std::string calibrationDataFileName = this->GetImageDataInfo(RANDOM_STEPPER_MOTION_1).InputSequenceMetaFileName; 
   if ( !calibrationDataFileName.empty() )
   {
-      LOG_TRACE("Read tracked frames from sequence metafile: " << validationDataFileName ); 
-      if ( calibrationData->ReadFromSequenceMetafile(calibrationDataFileName.c_str()) != PLUS_SUCCESS )
-      {
-          LOG_ERROR("Failed to read tracked frames from sequence metafile from: " << calibrationDataFileName ); 
-          return PLUS_FAIL; 
-      }
+    LOG_TRACE("Read tracked frames from sequence metafile: " << validationDataFileName ); 
+    if ( calibrationData->ReadFromSequenceMetafile(calibrationDataFileName.c_str()) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Failed to read tracked frames from sequence metafile from: " << calibrationDataFileName ); 
+      return PLUS_FAIL; 
+    }
   }
   else
   {
-      LOG_ERROR("Unable to start OfflineUSToTemplateCalibration with calibration data: SequenceMetaFileName is empty!"); 
-      return PLUS_FAIL; 
+    LOG_ERROR("Unable to start OfflineUSToTemplateCalibration with calibration data: SequenceMetaFileName is empty!"); 
+    return PLUS_FAIL; 
   }
 
   ImageDataInfo calibrationDataInfo = this->GetImageDataInfo(RANDOM_STEPPER_MOTION_1); 
@@ -1214,25 +1170,25 @@ PlusStatus vtkCalibrationController::OfflineUSToTemplateCalibration()
   std::string defaultFrameTransformNameValidation=validationData->GetDefaultFrameTransformName();
   for( vImgNumber = 0; validationCounter < this->GetImageDataInfo(RANDOM_STEPPER_MOTION_2).NumberOfImagesToAcquire; vImgNumber++ )
   {
-      if ( vImgNumber >= validationData->GetNumberOfTrackedFrames() )
-      {
-          break; 
-      }
+    if ( vImgNumber >= validationData->GetNumberOfTrackedFrames() )
+    {
+        break; 
+    }
 
-      if ( this->AddTrackedFrameData(validationData->GetTrackedFrame(vImgNumber), RANDOM_STEPPER_MOTION_2, defaultFrameTransformNameValidation.c_str()) == PLUS_SUCCESS )
-      {
-          // The segmentation was successful 
-          validationCounter++; 
-      }
+    if ( this->AddTrackedFrameData(validationData->GetTrackedFrame(vImgNumber), RANDOM_STEPPER_MOTION_2, defaultFrameTransformNameValidation.c_str()) == PLUS_SUCCESS )
+    {
+        // The segmentation was successful 
+        validationCounter++; 
+    }
 
-      this->SetOfflineImageData(validationData->GetTrackedFrame(vImgNumber)->GetImageData()->GetDisplayableImage()); 
+    this->SetOfflineImageData(validationData->GetTrackedFrame(vImgNumber)->GetImageData()->GetDisplayableImage()); 
 
-      if ( this->SegmentationProgressCallbackFunction != NULL )
-      {
-        int numberOfSegmentedImages = this->GetImageDataInfo(RANDOM_STEPPER_MOTION_2).NumberOfSegmentedImages + this->GetImageDataInfo(RANDOM_STEPPER_MOTION_1).NumberOfSegmentedImages; 
-        int percent = 100* numberOfSegmentedImages / (this->GetImageDataInfo(RANDOM_STEPPER_MOTION_2).NumberOfImagesToAcquire + this->GetImageDataInfo(RANDOM_STEPPER_MOTION_1).NumberOfImagesToAcquire); 
-        (*SegmentationProgressCallbackFunction)(percent); 
-      }
+    if ( this->SegmentationProgressCallbackFunction != NULL )
+    {
+      int numberOfSegmentedImages = this->GetImageDataInfo(RANDOM_STEPPER_MOTION_2).NumberOfSegmentedImages + this->GetImageDataInfo(RANDOM_STEPPER_MOTION_1).NumberOfSegmentedImages; 
+      int percent = 100* numberOfSegmentedImages / (this->GetImageDataInfo(RANDOM_STEPPER_MOTION_2).NumberOfImagesToAcquire + this->GetImageDataInfo(RANDOM_STEPPER_MOTION_1).NumberOfImagesToAcquire); 
+      (*SegmentationProgressCallbackFunction)(percent); 
+    }
   }
 
   int validSegmentationSuccessRate = 100*this->GetImageDataInfo(RANDOM_STEPPER_MOTION_2).NumberOfSegmentedImages / vImgNumber; 
@@ -1240,31 +1196,30 @@ PlusStatus vtkCalibrationController::OfflineUSToTemplateCalibration()
 
   validationData->Clear(); 
 
-  
   int calibrationCounter(0);
   int cImgNumber(0); 
   std::string defaultFrameTransformNameCalibration=calibrationData->GetDefaultFrameTransformName();
   for( cImgNumber = 0; calibrationCounter < this->GetImageDataInfo(RANDOM_STEPPER_MOTION_1).NumberOfImagesToAcquire; cImgNumber++ )
   {
-      if ( cImgNumber >= calibrationData->GetNumberOfTrackedFrames() )
-      {
-          break; 
-      }
+    if ( cImgNumber >= calibrationData->GetNumberOfTrackedFrames() )
+    {
+        break; 
+    }
 
-      if ( this->AddTrackedFrameData(calibrationData->GetTrackedFrame(cImgNumber), RANDOM_STEPPER_MOTION_1, defaultFrameTransformNameCalibration.c_str()) == PLUS_SUCCESS)
-      {
-          // The segmentation was successful
-          calibrationCounter++; 
-      }
+    if ( this->AddTrackedFrameData(calibrationData->GetTrackedFrame(cImgNumber), RANDOM_STEPPER_MOTION_1, defaultFrameTransformNameCalibration.c_str()) == PLUS_SUCCESS)
+    {
+        // The segmentation was successful
+        calibrationCounter++; 
+    }
 
-      this->SetOfflineImageData(calibrationData->GetTrackedFrame(cImgNumber)->GetImageData()->GetDisplayableImage()); 
+    this->SetOfflineImageData(calibrationData->GetTrackedFrame(cImgNumber)->GetImageData()->GetDisplayableImage()); 
 
-      if ( this->SegmentationProgressCallbackFunction != NULL )
-      {
-        int numberOfSegmentedImages = this->GetImageDataInfo(RANDOM_STEPPER_MOTION_2).NumberOfSegmentedImages + this->GetImageDataInfo(RANDOM_STEPPER_MOTION_1).NumberOfSegmentedImages; 
-        int percent = 100* numberOfSegmentedImages / (this->GetImageDataInfo(RANDOM_STEPPER_MOTION_2).NumberOfImagesToAcquire + this->GetImageDataInfo(RANDOM_STEPPER_MOTION_1).NumberOfImagesToAcquire); 
-        (*SegmentationProgressCallbackFunction)(percent); 
-      }
+    if ( this->SegmentationProgressCallbackFunction != NULL )
+    {
+      int numberOfSegmentedImages = this->GetImageDataInfo(RANDOM_STEPPER_MOTION_2).NumberOfSegmentedImages + this->GetImageDataInfo(RANDOM_STEPPER_MOTION_1).NumberOfSegmentedImages; 
+      int percent = 100* numberOfSegmentedImages / (this->GetImageDataInfo(RANDOM_STEPPER_MOTION_2).NumberOfImagesToAcquire + this->GetImageDataInfo(RANDOM_STEPPER_MOTION_1).NumberOfImagesToAcquire); 
+      (*SegmentationProgressCallbackFunction)(percent); 
+    }
   }
 
   int calibSegmentationSuccessRate = 100*this->GetImageDataInfo(RANDOM_STEPPER_MOTION_1).NumberOfSegmentedImages / cImgNumber; 
@@ -1510,8 +1465,8 @@ PlusStatus vtkCalibrationController::ComputeCalibrationResults()
     PlusMath::LogVtkMatrix(this->TransformUserImageToProbe->GetMatrix());
 
 	  // Point-Line Distance Error Analysis for Validation Positions in US probe frame
-    LOG_INFO("Point-Line Distance Error - mean: " << mPLDEAnalysis4ValidationPositionsInUSProbeFrame[0] << ", rms: " << mPLDEAnalysis4ValidationPositionsInUSProbeFrame[1] << ", std: " << mPLDEAnalysis4ValidationPositionsInUSProbeFrame[2]);
-    LOG_INFO("  Validation data confidence level: " << mPLDEAnalysis4ValidationPositionsInUSProbeFrame[3]);
+    LOG_INFO("Point-Line Distance Error - mean: " << this->PointLineDistanceErrorAnalysisVector[0] << ", rms: " << this->PointLineDistanceErrorAnalysisVector[1] << ", std: " << this->PointLineDistanceErrorAnalysisVector[2]);
+    LOG_INFO("  Validation data confidence level: " << this->PointLineDistanceErrorAnalysisVector[3]);
 
 		// STEP-5. Save the calibration results and error reports into a file 
 		SaveCalibrationResultsAndErrorReportsToXML();
@@ -1769,34 +1724,16 @@ std::string vtkCalibrationController::GetResultString()
 	std::ostringstream errorsStringStream;
 
 	errorsStringStream << "Point-line distance errors" << std::endl << "(mean, rms, std):" << std::endl;
-	errorsStringStream << std::fixed << std::setprecision(3) << "  " << GetPointLineDistanceErrorAnalysisVector()[0] << ", " << GetPointLineDistanceErrorAnalysisVector()[1] << ", " << GetPointLineDistanceErrorAnalysisVector()[2] << std::endl;
+	errorsStringStream << std::fixed << std::setprecision(3) << "  " << this->PointLineDistanceErrorAnalysisVector[0] << ", " << this->PointLineDistanceErrorAnalysisVector[1] << ", " << this->PointLineDistanceErrorAnalysisVector[2] << std::endl;
 
 	std::ostringstream resultStringStream;
 	resultStringStream << matrixStringStream.str() << errorsStringStream.str() << std::endl;
 
 	resultStringStream << "Validation data confidence:" << std::endl;
-	resultStringStream << "  " << GetPointLineDistanceErrorAnalysisVector()[3];
+	resultStringStream << "  " << this->PointLineDistanceErrorAnalysisVector[3];
 
 	return resultStringStream.str();
 }
-
-//-----------------------------------------------------------------------------
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 //-----------------------------------------------------------------------------
 
@@ -1936,31 +1873,24 @@ PlusStatus vtkCalibrationController::AddPositionsPerImage( std::vector< vnl_vect
   {
     // The protocol is that the middle point collected in 
     // the set of three points of the N-wire is the data point.
-    vnl_vector<double> SegmentedPositionInOriginalImageFrame( 
-      aSegmentedDataPositionListPerImage.at( Layer*3 + 1 ) );
+    vnl_vector<double> SegmentedPositionInOriginalImageFrame( aSegmentedDataPositionListPerImage.at( Layer*3 + 1 ) );
 
     // Convert the segmented image positions from the original 
     // image to the predefined ultrasound image frame.
-    vnl_vector<double> SegmentedPositionInUserImageFrame =  
-      transformImage2UserImage * SegmentedPositionInOriginalImageFrame;
+    vnl_vector<double> SegmentedPositionInUserImageFrame = transformImage2UserImage * SegmentedPositionInOriginalImageFrame;
 
     // Add weights to the positions if required (see mUS3DBeamwidthAndWeightFactorsInUSImageFrameTable5xM member description)
     if( true == mIsUSBeamwidthAndWeightFactorsTableReady && !aValidation )
     {
       // Get and round the axial depth in the US Image Frame for the segmented data point (in pixels and along the Y-axis)
       const int axialDepthInActualImageFrameRounded = floor( SegmentedPositionInUserImageFrame.get(1) + 0.5 );
-
       mWeightsForDataPositions.push_back( GetBeamwidthWeightForBeamwidthMagnitude(axialDepthInActualImageFrameRounded) );
     }
 
     // Calcuate the alpha value
     // alpha = |CiXi|/|CiCi+1|
-    vnl_vector<double> VectorCi2Xi = 
-      aSegmentedDataPositionListPerImage.at( Layer*3 + 1 ) -  
-      aSegmentedDataPositionListPerImage.at( Layer*3 );
-    vnl_vector<double> VectorCi2Cii = 
-      aSegmentedDataPositionListPerImage.at( Layer*3 + 2 ) -  
-      aSegmentedDataPositionListPerImage.at( Layer*3 );
+    vnl_vector<double> VectorCi2Xi = aSegmentedDataPositionListPerImage.at( Layer*3 + 1 ) - aSegmentedDataPositionListPerImage.at( Layer*3 );
+    vnl_vector<double> VectorCi2Cii = aSegmentedDataPositionListPerImage.at( Layer*3 + 2 ) - aSegmentedDataPositionListPerImage.at( Layer*3 );
     double alpha = (double)VectorCi2Xi.magnitude()/VectorCi2Cii.magnitude();
 
     // Apply alpha to Equation: Xi = Ai + alpha * (Bi - Ai)
@@ -1975,15 +1905,17 @@ PlusStatus vtkCalibrationController::AddPositionsPerImage( std::vector< vnl_vect
     vnl_vector<double> NWireStartinPhantomFrame;
     vnl_vector<double> NWireEndinPhantomFrame;
 
-    for (int i=0; i<3; ++i) {
+    for (int i=0; i<3; ++i)
+    {
       IntersectPosW12[i] = nWires[Layer].intersectPosW12[i];
       IntersectPosW32[i] = nWires[Layer].intersectPosW32[i];
     }
+
     IntersectPosW12[3] = 1.0;
     IntersectPosW32[3] = 1.0;
 
     PositionInPhantomFrame = IntersectPosW12 + alpha * ( IntersectPosW32 - IntersectPosW12 );
-    PositionInPhantomFrame[3]=1.0;
+    PositionInPhantomFrame[3] = 1.0;
 
     // Finally, calculate the position in the probe frame
     vnl_vector<double> PositionInUSProbeFrame = transformReference2Probe * mTransformMatrixPhantom2DRB4x4 * PositionInPhantomFrame;
@@ -2124,14 +2056,10 @@ double vtkCalibrationController::GetBeamwidthWeightForBeamwidthMagnitude(int aAc
     // #3. Ultrasound far field 
     // Here the sound starts to diverse with elevation beamwidth getting
     // larger and larger.  Data quality starts to deteriorate.
-
     vnl_vector<double> US3DBeamwidthAtThisAxialDepth(3,0);
-    US3DBeamwidthAtThisAxialDepth.put(0, mUS3DBeamwidthAndWeightFactorsInUSImageFrameTable5xM.get(1,
-      aActualAxialDepth - mTheNearestAxialDepthInUSBeamwidthAndWeightTable));
-    US3DBeamwidthAtThisAxialDepth.put(1, mUS3DBeamwidthAndWeightFactorsInUSImageFrameTable5xM.get(2,
-      aActualAxialDepth - mTheNearestAxialDepthInUSBeamwidthAndWeightTable));
-    US3DBeamwidthAtThisAxialDepth.put(2, mUS3DBeamwidthAndWeightFactorsInUSImageFrameTable5xM.get(3,
-      aActualAxialDepth - mTheNearestAxialDepthInUSBeamwidthAndWeightTable));
+    US3DBeamwidthAtThisAxialDepth.put(0, mUS3DBeamwidthAndWeightFactorsInUSImageFrameTable5xM.get(1, aActualAxialDepth - mTheNearestAxialDepthInUSBeamwidthAndWeightTable));
+    US3DBeamwidthAtThisAxialDepth.put(1, mUS3DBeamwidthAndWeightFactorsInUSImageFrameTable5xM.get(2, aActualAxialDepth - mTheNearestAxialDepthInUSBeamwidthAndWeightTable));
+    US3DBeamwidthAtThisAxialDepth.put(2, mUS3DBeamwidthAndWeightFactorsInUSImageFrameTable5xM.get(3, aActualAxialDepth - mTheNearestAxialDepthInUSBeamwidthAndWeightTable));
 
     double beamwidthMagnitudeMm = US3DBeamwidthAtThisAxialDepth.magnitude();
 
@@ -2215,12 +2143,12 @@ void vtkCalibrationController::resetDataContainers()
 	mNWire4LRESortedAscendingInUSProbeFrameMatrix4xN.set_size(0,0);
 	mNWire6LRESortedAscendingInUSProbeFrameMatrix4xN.set_size(0,0);
 
-	mAbsPRE3DAnalysis4ValidationPositionsInUSProbeFrame.resize(0);
-	mPLDEAnalysis4ValidationPositionsInUSProbeFrame.resize(0);
-	mRawPRE3DsforValidationPositionsInUSProbeFrameMatrix4xN.set_size(0,0);
+	this->PointReconstructionErrorAnalysisVector.resize(0);
+	this->PointLineDistanceErrorAnalysisVector.resize(0);
+	this->PointReconstructionErrorMatrix.set_size(0,0);
 	mSortedRawPRE3DsInAscendingOrderInUSProbeFrameMatrix4xN.set_size(0,0);
-	mPLDEsforValidationPositionsInUSProbeFrame.set_size(0);
-	mSortedPLDEsAscendingforValidationInUSProbeFrame.set_size(0);
+	this->PointLineDistanceErrorVector.set_size(0);
+	this->PointLineDistanceErrorSortedVector.set_size(0);
 }
 
 //-----------------------------------------------------------------------------
@@ -2233,43 +2161,28 @@ void vtkCalibrationController::FillUltrasoundBeamwidthAndWeightFactorsTable()
 	int numOfTotalBeamWidthData = this->InterpUS3DBeamwidthAndWeightFactorsInUSImageFrameTable5xM.columns();
 
 	// Fetch the data at the nearest and farest axial depth for fast access 
-	mTheNearestAxialDepthInUSBeamwidthAndWeightTable = 
-		ROUND(InterpUS3DBeamwidthAndWeightFactorsInUSImageFrameTable5xM.get(0,0));
-	mTheFarestAxialDepthInUSBeamwidthAndWeightTable = 
-		ROUND(InterpUS3DBeamwidthAndWeightFactorsInUSImageFrameTable5xM.get(0, numOfTotalBeamWidthData-1));
+	mTheNearestAxialDepthInUSBeamwidthAndWeightTable = ROUND(InterpUS3DBeamwidthAndWeightFactorsInUSImageFrameTable5xM.get(0,0));
+	mTheFarestAxialDepthInUSBeamwidthAndWeightTable = ROUND(InterpUS3DBeamwidthAndWeightFactorsInUSImageFrameTable5xM.get(0, numOfTotalBeamWidthData-1));
 
 	// Populate the 3D beamwidth elements at the nearest and farest axial depth
-	mUS3DBeamwidthAtNearestAxialDepth.put(0,
-		InterpUS3DBeamwidthAndWeightFactorsInUSImageFrameTable5xM.get(1,0));
-	mUS3DBeamwidthAtNearestAxialDepth.put(1,
-		InterpUS3DBeamwidthAndWeightFactorsInUSImageFrameTable5xM.get(2,0));
-	mUS3DBeamwidthAtNearestAxialDepth.put(2,
-		InterpUS3DBeamwidthAndWeightFactorsInUSImageFrameTable5xM.get(3,0));
+	mUS3DBeamwidthAtNearestAxialDepth.put(0, InterpUS3DBeamwidthAndWeightFactorsInUSImageFrameTable5xM.get(1,0));
+	mUS3DBeamwidthAtNearestAxialDepth.put(1, InterpUS3DBeamwidthAndWeightFactorsInUSImageFrameTable5xM.get(2,0));
+	mUS3DBeamwidthAtNearestAxialDepth.put(2, InterpUS3DBeamwidthAndWeightFactorsInUSImageFrameTable5xM.get(3,0));
 
-	mUS3DBeamwidthAtFarestAxialDepth.put(0,
-		InterpUS3DBeamwidthAndWeightFactorsInUSImageFrameTable5xM.get(1,numOfTotalBeamWidthData-1));
-	mUS3DBeamwidthAtFarestAxialDepth.put(1,
-		InterpUS3DBeamwidthAndWeightFactorsInUSImageFrameTable5xM.get(2,numOfTotalBeamWidthData-1));
-	mUS3DBeamwidthAtFarestAxialDepth.put(2,
-		InterpUS3DBeamwidthAndWeightFactorsInUSImageFrameTable5xM.get(3,numOfTotalBeamWidthData-1));
+	mUS3DBeamwidthAtFarestAxialDepth.put(0, InterpUS3DBeamwidthAndWeightFactorsInUSImageFrameTable5xM.get(1,numOfTotalBeamWidthData-1));
+	mUS3DBeamwidthAtFarestAxialDepth.put(1, InterpUS3DBeamwidthAndWeightFactorsInUSImageFrameTable5xM.get(2,numOfTotalBeamWidthData-1));
+	mUS3DBeamwidthAtFarestAxialDepth.put(2, InterpUS3DBeamwidthAndWeightFactorsInUSImageFrameTable5xM.get(3,numOfTotalBeamWidthData-1));
 
 	mIsUSBeamwidthAndWeightFactorsTableReady = true;
 
 	// Log the data pipeline if requested.
-	LOG_DEBUG(" IncorporatingUS3DBeamProfile = " << this->IncorporatingUS3DBeamProfile 
-		<< " (1 - BeamwidthVariance | 2 - BeamwidthRatio | 3 - BeamwidthVarianceAndThresholding)");
-	LOG_DEBUG(" numOfTotalBeamWidthData = " 
-		<< numOfTotalBeamWidthData);
-	LOG_DEBUG(" MinElevationBeamwidthAndFocalZoneInUSImageFrame [Focal Zone (US Image Frame), Elevation Beamwidth] = " 
-		<< this->MinElevationBeamwidthAndFocalZoneInUSImageFrame);
-	LOG_DEBUG(" SortedUS3DBeamwidthAndWeightFactorsInAscendingAxialDepthInUSImageFrameMatrix5xN = " 
-		<< this->SortedUS3DBeamwidthAndWeightFactorsInAscendingAxialDepthInUSImageFrameMatrix5xN);
-	LOG_DEBUG(" InterpUS3DBeamwidthAndWeightFactorsInUSImageFrameTable5xM (interpolated) = " 
-		<< this->InterpUS3DBeamwidthAndWeightFactorsInUSImageFrameTable5xM);
-	LOG_DEBUG(" mTheNearestAxialDepthInUSBeamwidthAndWeightTable = " 
-		<< mTheNearestAxialDepthInUSBeamwidthAndWeightTable);				
-	LOG_DEBUG(" mTheFarestAxialDepthInUSBeamwidthAndWeightTable = " 
-		<< mTheFarestAxialDepthInUSBeamwidthAndWeightTable);
+	LOG_DEBUG(" IncorporatingUS3DBeamProfile = " << this->IncorporatingUS3DBeamProfile << " (1 - BeamwidthVariance | 2 - BeamwidthRatio | 3 - BeamwidthVarianceAndThresholding)");
+	LOG_DEBUG(" numOfTotalBeamWidthData = " << numOfTotalBeamWidthData);
+	LOG_DEBUG(" MinElevationBeamwidthAndFocalZoneInUSImageFrame [Focal Zone (US Image Frame), Elevation Beamwidth] = " << this->MinElevationBeamwidthAndFocalZoneInUSImageFrame);
+	LOG_DEBUG(" SortedUS3DBeamwidthAndWeightFactorsInAscendingAxialDepthInUSImageFrameMatrix5xN = " << this->SortedUS3DBeamwidthAndWeightFactorsInAscendingAxialDepthInUSImageFrameMatrix5xN);
+	LOG_DEBUG(" InterpUS3DBeamwidthAndWeightFactorsInUSImageFrameTable5xM (interpolated) = " << this->InterpUS3DBeamwidthAndWeightFactorsInUSImageFrameTable5xM);
+	LOG_DEBUG(" mTheNearestAxialDepthInUSBeamwidthAndWeightTable = " << mTheNearestAxialDepthInUSBeamwidthAndWeightTable);				
+	LOG_DEBUG(" mTheFarestAxialDepthInUSBeamwidthAndWeightTable = " << mTheFarestAxialDepthInUSBeamwidthAndWeightTable);
 }
 
 //-----------------------------------------------------------------------------
@@ -2309,75 +2222,57 @@ PlusStatus vtkCalibrationController::compute3DPointReconstructionError()
 	// Using the calibration matrix, we can obtain the projected positions
 	// in the US probe frame after applying the calibration matrix to
 	// the validation positions in the US image frame.
-	vnl_matrix<double> ProjectedPositionsInUSProbeFrameMatrix4xN =
-		mTransformUSImageFrame2USProbeFrameMatrix4x4 * 
-		mValidationPositionsInUSImageFrameMatrix4xN;
+	vnl_matrix<double> ProjectedPositionsInUSProbeFrameMatrix4xN = mTransformUSImageFrame2USProbeFrameMatrix4x4 * mValidationPositionsInUSImageFrameMatrix4xN;
 
 	// Obtain the PRE3D matrix:
 	// PRE3D_matrix = ( Projected - True ) positions in US probe frame
-	mRawPRE3DsforValidationPositionsInUSProbeFrameMatrix4xN = 
-		ProjectedPositionsInUSProbeFrameMatrix4xN - 
-		mValidationPositionsInUSProbeFrameMatrix4xN;
+	this->PointReconstructionErrorMatrix = ProjectedPositionsInUSProbeFrameMatrix4xN - mValidationPositionsInUSProbeFrameMatrix4xN;
 
 	// Make sure the last row (4th) in the PRE3D matrix is all zeros
 	const vnl_vector<double> AllZerosVector( NumberOfValidationPositions, 0 );
-	mRawPRE3DsforValidationPositionsInUSProbeFrameMatrix4xN.set_row(3, AllZerosVector);
+	this->PointReconstructionErrorMatrix.set_row(3, AllZerosVector);
 
 	// Sort the PRE3D in an ascending order with respect to the euclidean PRE3D distance
 	// =============================================================================
 
-	mSortedRawPRE3DsInAscendingOrderInUSProbeFrameMatrix4xN =
-		mRawPRE3DsforValidationPositionsInUSProbeFrameMatrix4xN;
+	mSortedRawPRE3DsInAscendingOrderInUSProbeFrameMatrix4xN = this->PointReconstructionErrorMatrix;
 
 	// First calculate the euclidean PRE3D distance from PRE3D
 	// vector and store them in the fourth row of the matrix.
 	for( int i = 0; i < NumberOfValidationPositions; i++ )
 	{
-		mSortedRawPRE3DsInAscendingOrderInUSProbeFrameMatrix4xN.put(
-			3, i, 
-			mRawPRE3DsforValidationPositionsInUSProbeFrameMatrix4xN.get_column(i).magnitude() );
+		mSortedRawPRE3DsInAscendingOrderInUSProbeFrameMatrix4xN.put( 3, i, this->PointReconstructionErrorMatrix.get_column(i).magnitude() );
 	}
 
 	// Populate the last row of the raw PRE3D matrix with the euclidean distance as well.
-	mRawPRE3DsforValidationPositionsInUSProbeFrameMatrix4xN.set_row( 3, 
-		mSortedRawPRE3DsInAscendingOrderInUSProbeFrameMatrix4xN.get_row(3) );
+	this->PointReconstructionErrorMatrix.set_row( 3, mSortedRawPRE3DsInAscendingOrderInUSProbeFrameMatrix4xN.get_row(3) );
 
 	// Sorting the PRE3D matrix w.r.t the  euclidean PRE3D distance (the 4th row)
 	// Sorting algorithm employed: Insertion Sort
 	for( int i = 0; i < NumberOfValidationPositions; i++ )
-		for( int j = i; j > 0 && 
-			mSortedRawPRE3DsInAscendingOrderInUSProbeFrameMatrix4xN.get(3, j-1) > 
-			mSortedRawPRE3DsInAscendingOrderInUSProbeFrameMatrix4xN.get(3, j); j-- )
+  {
+		for( int j = i; j > 0 && mSortedRawPRE3DsInAscendingOrderInUSProbeFrameMatrix4xN.get(3, j-1) > mSortedRawPRE3DsInAscendingOrderInUSProbeFrameMatrix4xN.get(3, j); j-- )
 		{
 			// Swap the positions of j-th and j-1-th elements
-			const vnl_vector<double> SwapPRE3DColumnVector = 
-				mSortedRawPRE3DsInAscendingOrderInUSProbeFrameMatrix4xN.get_column(j-1);
+			const vnl_vector<double> SwapPRE3DColumnVector = mSortedRawPRE3DsInAscendingOrderInUSProbeFrameMatrix4xN.get_column(j-1);
 			
-			mSortedRawPRE3DsInAscendingOrderInUSProbeFrameMatrix4xN.set_column( j-1, 
-				mSortedRawPRE3DsInAscendingOrderInUSProbeFrameMatrix4xN.get_column(j) );
-
-			mSortedRawPRE3DsInAscendingOrderInUSProbeFrameMatrix4xN.set_column( j, 
-				SwapPRE3DColumnVector ); 
+			mSortedRawPRE3DsInAscendingOrderInUSProbeFrameMatrix4xN.set_column( j-1, mSortedRawPRE3DsInAscendingOrderInUSProbeFrameMatrix4xN.get_column(j) );
+			mSortedRawPRE3DsInAscendingOrderInUSProbeFrameMatrix4xN.set_column( j, SwapPRE3DColumnVector ); 
 		}
+  }
 
 	// We are only interested at the top-ranked ascending PRE3D values
 	// presented in the sorted validation result matrix.
 	// Default percentage: 95%
-	const int NumberOfTopRankedCalibrationData = 
-		ROUND( (double)NumberOfValidationPositions * mValidationDataConfidenceLevel );
+	const int NumberOfTopRankedCalibrationData = ROUND( (double)NumberOfValidationPositions * mValidationDataConfidenceLevel );
 
 	// We only need absolute values of PRE3D to average
-	vnl_matrix<double> AbsoluteTopRankedPRE3DInUSProbeFrameMatrix4xN = 
-		mSortedRawPRE3DsInAscendingOrderInUSProbeFrameMatrix4xN.get_n_columns( 
-		0, NumberOfTopRankedCalibrationData ).apply( fabs );
+	vnl_matrix<double> AbsoluteTopRankedPRE3DInUSProbeFrameMatrix4xN = mSortedRawPRE3DsInAscendingOrderInUSProbeFrameMatrix4xN.get_n_columns( 0, NumberOfTopRankedCalibrationData ).apply( fabs );
 
 	// Obtain PRE3Ds in X-, Y-, and Z-axis
-	vnl_vector<double> AbsPRE3DsinX =  
-		AbsoluteTopRankedPRE3DInUSProbeFrameMatrix4xN.get_row( 0 );
-	vnl_vector<double> AbsPRE3DsinY =  
-		AbsoluteTopRankedPRE3DInUSProbeFrameMatrix4xN.get_row( 1 );
-	vnl_vector<double> AbsPRE3DsinZ =  
-		AbsoluteTopRankedPRE3DInUSProbeFrameMatrix4xN.get_row( 2 );
+	vnl_vector<double> AbsPRE3DsinX = AbsoluteTopRankedPRE3DInUSProbeFrameMatrix4xN.get_row( 0 );
+	vnl_vector<double> AbsPRE3DsinY = AbsoluteTopRankedPRE3DInUSProbeFrameMatrix4xN.get_row( 1 );
+	vnl_vector<double> AbsPRE3DsinZ = AbsoluteTopRankedPRE3DInUSProbeFrameMatrix4xN.get_row( 2 );
 
 	// Perform statistical analysis
 	// =============================
@@ -2385,63 +2280,43 @@ PlusStatus vtkCalibrationController::compute3DPointReconstructionError()
 	// X-axis PRE3D statistics
 	double PRE3D_X_mean = AbsPRE3DsinX.mean();
 	double PRE3D_X_rms = AbsPRE3DsinX.rms();
-	double PRE3D_X_std = sqrt( 
-		1/(double)( NumberOfTopRankedCalibrationData - 1 ) *	
-		( AbsPRE3DsinX.squared_magnitude() - NumberOfTopRankedCalibrationData*pow(PRE3D_X_mean,2) )
-		);
+	double PRE3D_X_std = sqrt( 1 / (double)( NumberOfTopRankedCalibrationData - 1 ) * ( AbsPRE3DsinX.squared_magnitude() - NumberOfTopRankedCalibrationData*pow(PRE3D_X_mean,2) ) );
 
 	// Y-axis PRE3D statistics
 	double PRE3D_Y_mean = AbsPRE3DsinY.mean();
 	double PRE3D_Y_rms = AbsPRE3DsinY.rms();
-	double PRE3D_Y_std = sqrt( 
-		1/(double)( NumberOfTopRankedCalibrationData - 1 ) *	
-		( AbsPRE3DsinY.squared_magnitude() - NumberOfTopRankedCalibrationData*pow(PRE3D_Y_mean,2) )
-		);
+	double PRE3D_Y_std = sqrt( 1 / (double)( NumberOfTopRankedCalibrationData - 1 ) * ( AbsPRE3DsinY.squared_magnitude() - NumberOfTopRankedCalibrationData*pow(PRE3D_Y_mean,2) ) );
 
 	// Z-axis PRE3D statistics
 	double PRE3D_Z_mean = AbsPRE3DsinZ.mean();
 	double PRE3D_Z_rms = AbsPRE3DsinZ.rms();
-	double PRE3D_Z_std = sqrt( 
-		1/(double)( NumberOfTopRankedCalibrationData - 1 ) *	
-		( AbsPRE3DsinZ.squared_magnitude() - NumberOfTopRankedCalibrationData*pow(PRE3D_Z_mean,2) )
-		);
+	double PRE3D_Z_std = sqrt( 1 / (double)( NumberOfTopRankedCalibrationData - 1 ) * ( AbsPRE3DsinZ.squared_magnitude() - NumberOfTopRankedCalibrationData*pow(PRE3D_Z_mean,2) ) );
 	
-	// Consolidate the returning data container
-	// =========================================
+	// Consolidate the returning data container (for details see member variable description)
+	this->PointReconstructionErrorAnalysisVector.resize(0);
+	this->PointReconstructionErrorAnalysisVector.push_back( PRE3D_X_mean );
+	this->PointReconstructionErrorAnalysisVector.push_back( PRE3D_X_rms );
+	this->PointReconstructionErrorAnalysisVector.push_back( PRE3D_X_std );
 
-	// FORMAT: (all positions are in the US probe frame)
-	// [ vector 0 - 2:  PRE3D_X_mean, PRE3D_X_rms, PRE3D_X_std ]
-	// [ vector 3 - 5:  PRE3D_Y_mean, PRE3D_Y_rms, PRE3D_Y_std ]
-	// [ vector 6 - 8:  PRE3D_Z_mean, PRE3D_Z_rms, PRE3D_Z_std ]
-	// [ vector 9	 :	Validation data confidence level ]
-	// where: 
-	// - mean: linearly averaged;
-	// - rms : root mean square;
-	// - std : standard deviation.
-	mAbsPRE3DAnalysis4ValidationPositionsInUSProbeFrame.resize(0);
-	mAbsPRE3DAnalysis4ValidationPositionsInUSProbeFrame.push_back( PRE3D_X_mean );
-	mAbsPRE3DAnalysis4ValidationPositionsInUSProbeFrame.push_back( PRE3D_X_rms );
-	mAbsPRE3DAnalysis4ValidationPositionsInUSProbeFrame.push_back( PRE3D_X_std );
+	this->PointReconstructionErrorAnalysisVector.push_back( PRE3D_Y_mean );
+	this->PointReconstructionErrorAnalysisVector.push_back( PRE3D_Y_rms );
+	this->PointReconstructionErrorAnalysisVector.push_back( PRE3D_Y_std );
 
-	mAbsPRE3DAnalysis4ValidationPositionsInUSProbeFrame.push_back( PRE3D_Y_mean );
-	mAbsPRE3DAnalysis4ValidationPositionsInUSProbeFrame.push_back( PRE3D_Y_rms );
-	mAbsPRE3DAnalysis4ValidationPositionsInUSProbeFrame.push_back( PRE3D_Y_std );
+	this->PointReconstructionErrorAnalysisVector.push_back( PRE3D_Z_mean );
+	this->PointReconstructionErrorAnalysisVector.push_back( PRE3D_Z_rms );
+	this->PointReconstructionErrorAnalysisVector.push_back( PRE3D_Z_std );
 
-	mAbsPRE3DAnalysis4ValidationPositionsInUSProbeFrame.push_back( PRE3D_Z_mean );
-	mAbsPRE3DAnalysis4ValidationPositionsInUSProbeFrame.push_back( PRE3D_Z_rms );
-	mAbsPRE3DAnalysis4ValidationPositionsInUSProbeFrame.push_back( PRE3D_Z_std );
-
-	mAbsPRE3DAnalysis4ValidationPositionsInUSProbeFrame.push_back( mValidationDataConfidenceLevel );
+	this->PointReconstructionErrorAnalysisVector.push_back( mValidationDataConfidenceLevel );
 
 	// Reset the flag
 	mArePRE3DsForValidationPositionsReady = true;
 
 	// Log the data pipeline if requested.
 	LOG_DEBUG("3D Point Reconstruction Error (PRE3D)");
-  LOG_DEBUG("PRE3D mean: (" << mAbsPRE3DAnalysis4ValidationPositionsInUSProbeFrame[0] << ", " << mAbsPRE3DAnalysis4ValidationPositionsInUSProbeFrame[3] << ", " << mAbsPRE3DAnalysis4ValidationPositionsInUSProbeFrame[6] << ")");
-  LOG_DEBUG("PRE3D rms: (" << mAbsPRE3DAnalysis4ValidationPositionsInUSProbeFrame[1] << ", " << mAbsPRE3DAnalysis4ValidationPositionsInUSProbeFrame[4] << ", " << mAbsPRE3DAnalysis4ValidationPositionsInUSProbeFrame[7] << ")");
-  LOG_DEBUG("PRE3D std: (" << mAbsPRE3DAnalysis4ValidationPositionsInUSProbeFrame[2] << ", " << mAbsPRE3DAnalysis4ValidationPositionsInUSProbeFrame[5] << ", " << mAbsPRE3DAnalysis4ValidationPositionsInUSProbeFrame[8] << ")");
-	LOG_DEBUG("Validation Data Confidence Level = " << mAbsPRE3DAnalysis4ValidationPositionsInUSProbeFrame[9] << " ( " << NumberOfTopRankedCalibrationData << " top-ranked validation data were used out of the total " << NumberOfValidationPositions << " validation data set for the above statistical analysis)");
+  LOG_DEBUG("PRE3D mean: (" << this->PointReconstructionErrorAnalysisVector[0] << ", " << this->PointReconstructionErrorAnalysisVector[3] << ", " << this->PointReconstructionErrorAnalysisVector[6] << ")");
+  LOG_DEBUG("PRE3D rms: (" << this->PointReconstructionErrorAnalysisVector[1] << ", " << this->PointReconstructionErrorAnalysisVector[4] << ", " << this->PointReconstructionErrorAnalysisVector[7] << ")");
+  LOG_DEBUG("PRE3D std: (" << this->PointReconstructionErrorAnalysisVector[2] << ", " << this->PointReconstructionErrorAnalysisVector[5] << ", " << this->PointReconstructionErrorAnalysisVector[8] << ")");
+	LOG_DEBUG("Validation Data Confidence Level = " << this->PointReconstructionErrorAnalysisVector[9] << " ( " << NumberOfTopRankedCalibrationData << " top-ranked validation data were used out of the total " << NumberOfValidationPositions << " validation data set for the above statistical analysis)");
 
   return PLUS_SUCCESS;
 }
@@ -2453,11 +2328,8 @@ vnl_vector<double> vtkCalibrationController::getPointLineReconstructionError(vnl
 {
 	LOG_TRACE("vtkCalibrationController::getPointLineReconstructionError");
 
-	vnl_vector<double> NWireProjectedPositionsInUSProbeFrame =
-			mTransformUSImageFrame2USProbeFrameMatrix4x4 * NWirePositionInUSImageFrame;
-
-	vnl_vector<double> NWireLREOrigInUSProbeFrame = 
-			NWirePositionInUSProbeFrame - NWireProjectedPositionsInUSProbeFrame;
+	vnl_vector<double> NWireProjectedPositionsInUSProbeFrame = mTransformUSImageFrame2USProbeFrameMatrix4x4 * NWirePositionInUSImageFrame;
+	vnl_vector<double> NWireLREOrigInUSProbeFrame = NWirePositionInUSProbeFrame - NWireProjectedPositionsInUSProbeFrame;
 
 	NWireLREOrigInUSProbeFrame[3] = 1; 
 
@@ -2500,31 +2372,22 @@ PlusStatus vtkCalibrationController::computeIndependentPointLineReconstructionEr
 	// 1. The parallel lines in use are: Wire N1, N3, N4, and N6;
 	// 2. Only X and Y reconstruction errors are computed, since we do not have
 	//    ground-truth information along the Z-axis when imaging a line object.
-	// ============================================================================
 
 	// Using the calibration matrix, we can obtain the projected positions
 	// in the US probe frame after applying the calibration matrix to
 	// the validation positions in the US image frame.
 	
 	// NWire-1 (note only x, y coordinates are of interests to us)
-	const vnl_matrix<double> NWire1ProjectedPositionsInUSProbeFrameMatrix4xN =
-		mTransformUSImageFrame2USProbeFrameMatrix4x4 * 
-		mValidationPositionsNWire1InUSImageFrame4xN;
+	const vnl_matrix<double> NWire1ProjectedPositionsInUSProbeFrameMatrix4xN = mTransformUSImageFrame2USProbeFrameMatrix4x4 * mValidationPositionsNWire1InUSImageFrame4xN;
 
 	// NWire-3 (note only x, y coordinates are of interests to us)
-	const vnl_matrix<double> NWire3ProjectedPositionsInUSProbeFrameMatrix4xN =
-		mTransformUSImageFrame2USProbeFrameMatrix4x4 * 
-		mValidationPositionsNWire3InUSImageFrame4xN;
+	const vnl_matrix<double> NWire3ProjectedPositionsInUSProbeFrameMatrix4xN = mTransformUSImageFrame2USProbeFrameMatrix4x4 * mValidationPositionsNWire3InUSImageFrame4xN;
 
 	// NWire-4 (note only x, y coordinates are of interests to us)
-	const vnl_matrix<double> NWire4ProjectedPositionsInUSProbeFrameMatrix4xN =
-		mTransformUSImageFrame2USProbeFrameMatrix4x4 * 
-		mValidationPositionsNWire4InUSImageFrame4xN;
+	const vnl_matrix<double> NWire4ProjectedPositionsInUSProbeFrameMatrix4xN = mTransformUSImageFrame2USProbeFrameMatrix4x4 * mValidationPositionsNWire4InUSImageFrame4xN;
 
 	// NWire-6 (note only x, y coordinates are of interests to us)
-	const vnl_matrix<double> NWire6ProjectedPositionsInUSProbeFrameMatrix4xN =
-		mTransformUSImageFrame2USProbeFrameMatrix4x4 * 
-		mValidationPositionsNWire6InUSImageFrame4xN;
+	const vnl_matrix<double> NWire6ProjectedPositionsInUSProbeFrameMatrix4xN = mTransformUSImageFrame2USProbeFrameMatrix4x4 * mValidationPositionsNWire6InUSImageFrame4xN;
 
 	// Now we calculate the independent line reconstrution errors (in X and Y axes)
 	// for NWires N1, N3, N4, N6.
@@ -2532,129 +2395,89 @@ PlusStatus vtkCalibrationController::computeIndependentPointLineReconstructionEr
 	const vnl_vector<double> AllZerosVector( NumberOfValidationPositions, 0 );
 
 	// NWire-1 LREs
-	mNWire1LREOrigInUSProbeFrameMatrix4xN = 
-		mValidationPositionsNWire1InUSProbeFrame4xN - 
-		NWire1ProjectedPositionsInUSProbeFrameMatrix4xN;
+	mNWire1LREOrigInUSProbeFrameMatrix4xN = mValidationPositionsNWire1InUSProbeFrame4xN - NWire1ProjectedPositionsInUSProbeFrameMatrix4xN;
 	mNWire1LREOrigInUSProbeFrameMatrix4xN.set_row(2, AllZerosVector);
 
 	// NWire-3 LREs
-	mNWire3LREOrigInUSProbeFrameMatrix4xN = 
-		mValidationPositionsNWire3InUSProbeFrame4xN - 
-		NWire3ProjectedPositionsInUSProbeFrameMatrix4xN;
+	mNWire3LREOrigInUSProbeFrameMatrix4xN = mValidationPositionsNWire3InUSProbeFrame4xN - NWire3ProjectedPositionsInUSProbeFrameMatrix4xN;
 	mNWire3LREOrigInUSProbeFrameMatrix4xN.set_row(2, AllZerosVector);
 	
 	// NWire-4 LREs
-	mNWire4LREOrigInUSProbeFrameMatrix4xN = 
-		mValidationPositionsNWire4InUSProbeFrame4xN - 
-		NWire4ProjectedPositionsInUSProbeFrameMatrix4xN;
+	mNWire4LREOrigInUSProbeFrameMatrix4xN = mValidationPositionsNWire4InUSProbeFrame4xN - NWire4ProjectedPositionsInUSProbeFrameMatrix4xN;
 	mNWire4LREOrigInUSProbeFrameMatrix4xN.set_row(2, AllZerosVector);
 
 	// NWire-6 LREs
-	mNWire6LREOrigInUSProbeFrameMatrix4xN = 
-		mValidationPositionsNWire6InUSProbeFrame4xN - 
-		NWire6ProjectedPositionsInUSProbeFrameMatrix4xN;
+	mNWire6LREOrigInUSProbeFrameMatrix4xN = mValidationPositionsNWire6InUSProbeFrame4xN - NWire6ProjectedPositionsInUSProbeFrameMatrix4xN;
 	mNWire6LREOrigInUSProbeFrameMatrix4xN.set_row(2, AllZerosVector);
 
 	// Now we calculate the euclidean LRE distance from LRE
 	// vector and store them in the fourth row of the matrix.
 	for( int i = 0; i < NumberOfValidationPositions; i++ )
 	{
-		mNWire1LREOrigInUSProbeFrameMatrix4xN.put(
-			3, i, 
-			mNWire1LREOrigInUSProbeFrameMatrix4xN.get_column(i).magnitude() );
-
-		mNWire3LREOrigInUSProbeFrameMatrix4xN.put(
-			3, i, 
-			mNWire3LREOrigInUSProbeFrameMatrix4xN.get_column(i).magnitude() );
-
-		mNWire4LREOrigInUSProbeFrameMatrix4xN.put(
-			3, i, 
-			mNWire4LREOrigInUSProbeFrameMatrix4xN.get_column(i).magnitude() );
-
-		mNWire6LREOrigInUSProbeFrameMatrix4xN.put(
-			3, i, 
-			mNWire6LREOrigInUSProbeFrameMatrix4xN.get_column(i).magnitude() );
+		mNWire1LREOrigInUSProbeFrameMatrix4xN.put( 3, i, mNWire1LREOrigInUSProbeFrameMatrix4xN.get_column(i).magnitude() );
+		mNWire3LREOrigInUSProbeFrameMatrix4xN.put( 3, i, mNWire3LREOrigInUSProbeFrameMatrix4xN.get_column(i).magnitude() );
+		mNWire4LREOrigInUSProbeFrameMatrix4xN.put( 3, i, mNWire4LREOrigInUSProbeFrameMatrix4xN.get_column(i).magnitude() );
+		mNWire6LREOrigInUSProbeFrameMatrix4xN.put( 3, i, mNWire6LREOrigInUSProbeFrameMatrix4xN.get_column(i).magnitude() );
 	}
 
 	// Sorting the LRE matrice w.r.t the  euclidean distance (the 4th row)
 	// Sorting algorithm employed: Insertion Sort
-
-	mNWire1LRESortedAscendingInUSProbeFrameMatrix4xN = 
-		mNWire1LREOrigInUSProbeFrameMatrix4xN;
-	mNWire3LRESortedAscendingInUSProbeFrameMatrix4xN = 
-		mNWire3LREOrigInUSProbeFrameMatrix4xN;
-	mNWire4LRESortedAscendingInUSProbeFrameMatrix4xN = 
-		mNWire4LREOrigInUSProbeFrameMatrix4xN;
-	mNWire6LRESortedAscendingInUSProbeFrameMatrix4xN = 
-		mNWire6LREOrigInUSProbeFrameMatrix4xN;
+	mNWire1LRESortedAscendingInUSProbeFrameMatrix4xN = mNWire1LREOrigInUSProbeFrameMatrix4xN;
+	mNWire3LRESortedAscendingInUSProbeFrameMatrix4xN = mNWire3LREOrigInUSProbeFrameMatrix4xN;
+	mNWire4LRESortedAscendingInUSProbeFrameMatrix4xN = mNWire4LREOrigInUSProbeFrameMatrix4xN;
+	mNWire6LRESortedAscendingInUSProbeFrameMatrix4xN = mNWire6LREOrigInUSProbeFrameMatrix4xN;
 
 	// NWire-1
 	for( int i = 0; i < NumberOfValidationPositions; i++ )
-		for( int j = i; j > 0 && 
-			mNWire1LRESortedAscendingInUSProbeFrameMatrix4xN.get(3, j-1) > 
-			mNWire1LRESortedAscendingInUSProbeFrameMatrix4xN.get(3, j); j-- )
+  {
+		for( int j = i; j > 0 && mNWire1LRESortedAscendingInUSProbeFrameMatrix4xN.get(3, j-1) > mNWire1LRESortedAscendingInUSProbeFrameMatrix4xN.get(3, j); j-- )
 		{
 			// Swap the positions of j-th and j-1-th elements
-			const vnl_vector<double> Swap3DColumnVector = 
-				mNWire1LRESortedAscendingInUSProbeFrameMatrix4xN.get_column(j-1);
+			const vnl_vector<double> Swap3DColumnVector = mNWire1LRESortedAscendingInUSProbeFrameMatrix4xN.get_column(j-1);
 			
-			mNWire1LRESortedAscendingInUSProbeFrameMatrix4xN.set_column( j-1, 
-				mNWire1LRESortedAscendingInUSProbeFrameMatrix4xN.get_column(j) );
-
-			mNWire1LRESortedAscendingInUSProbeFrameMatrix4xN.set_column( j, 
-				Swap3DColumnVector ); 
+			mNWire1LRESortedAscendingInUSProbeFrameMatrix4xN.set_column( j-1, mNWire1LRESortedAscendingInUSProbeFrameMatrix4xN.get_column(j) );
+			mNWire1LRESortedAscendingInUSProbeFrameMatrix4xN.set_column( j, Swap3DColumnVector ); 
 		}
+  }
 		
 	// NWire-3
 	for( int i = 0; i < NumberOfValidationPositions; i++ )
-		for( int j = i; j > 0 && 
-			mNWire3LRESortedAscendingInUSProbeFrameMatrix4xN.get(3, j-1) > 
-			mNWire3LRESortedAscendingInUSProbeFrameMatrix4xN.get(3, j); j-- )
+  {
+		for( int j = i; j > 0 && mNWire3LRESortedAscendingInUSProbeFrameMatrix4xN.get(3, j-1) > mNWire3LRESortedAscendingInUSProbeFrameMatrix4xN.get(3, j); j-- )
 		{
 			// Swap the positions of j-th and j-1-th elements
-			const vnl_vector<double> Swap3DColumnVector = 
-				mNWire3LRESortedAscendingInUSProbeFrameMatrix4xN.get_column(j-1);
+			const vnl_vector<double> Swap3DColumnVector = mNWire3LRESortedAscendingInUSProbeFrameMatrix4xN.get_column(j-1);
 			
-			mNWire3LRESortedAscendingInUSProbeFrameMatrix4xN.set_column( j-1, 
-				mNWire3LRESortedAscendingInUSProbeFrameMatrix4xN.get_column(j) );
-
-			mNWire3LRESortedAscendingInUSProbeFrameMatrix4xN.set_column( j, 
-				Swap3DColumnVector ); 
+			mNWire3LRESortedAscendingInUSProbeFrameMatrix4xN.set_column( j-1, mNWire3LRESortedAscendingInUSProbeFrameMatrix4xN.get_column(j) );
+			mNWire3LRESortedAscendingInUSProbeFrameMatrix4xN.set_column( j, Swap3DColumnVector ); 
 		}
+  }
 
 	// NWire-4
 	for( int i = 0; i < NumberOfValidationPositions; i++ )
-		for( int j = i; j > 0 && 
-			mNWire4LRESortedAscendingInUSProbeFrameMatrix4xN.get(3, j-1) > 
-			mNWire4LRESortedAscendingInUSProbeFrameMatrix4xN.get(3, j); j-- )
+  {
+		for( int j = i; j > 0 && mNWire4LRESortedAscendingInUSProbeFrameMatrix4xN.get(3, j-1) > mNWire4LRESortedAscendingInUSProbeFrameMatrix4xN.get(3, j); j-- )
 		{
 			// Swap the positions of j-th and j-1-th elements
-			const vnl_vector<double> Swap3DColumnVector = 
-				mNWire4LRESortedAscendingInUSProbeFrameMatrix4xN.get_column(j-1);
+			const vnl_vector<double> Swap3DColumnVector = mNWire4LRESortedAscendingInUSProbeFrameMatrix4xN.get_column(j-1);
 			
-			mNWire4LRESortedAscendingInUSProbeFrameMatrix4xN.set_column( j-1, 
-				mNWire4LRESortedAscendingInUSProbeFrameMatrix4xN.get_column(j) );
-
-			mNWire4LRESortedAscendingInUSProbeFrameMatrix4xN.set_column( j, 
-				Swap3DColumnVector ); 
+			mNWire4LRESortedAscendingInUSProbeFrameMatrix4xN.set_column( j-1, mNWire4LRESortedAscendingInUSProbeFrameMatrix4xN.get_column(j) );
+			mNWire4LRESortedAscendingInUSProbeFrameMatrix4xN.set_column( j, Swap3DColumnVector ); 
 		}
+  }
 
 	// NWire-6
 	for( int i = 0; i < NumberOfValidationPositions; i++ )
-		for( int j = i; j > 0 && 
-			mNWire6LRESortedAscendingInUSProbeFrameMatrix4xN.get(3, j-1) > 
-			mNWire6LRESortedAscendingInUSProbeFrameMatrix4xN.get(3, j); j-- )
+  {
+		for( int j = i; j > 0 && mNWire6LRESortedAscendingInUSProbeFrameMatrix4xN.get(3, j-1) > mNWire6LRESortedAscendingInUSProbeFrameMatrix4xN.get(3, j); j-- )
 		{
 			// Swap the positions of j-th and j-1-th elements
-			const vnl_vector<double> Swap3DColumnVector = 
-				mNWire6LRESortedAscendingInUSProbeFrameMatrix4xN.get_column(j-1);
+			const vnl_vector<double> Swap3DColumnVector = mNWire6LRESortedAscendingInUSProbeFrameMatrix4xN.get_column(j-1);
 			
-			mNWire6LRESortedAscendingInUSProbeFrameMatrix4xN.set_column( j-1, 
-				mNWire6LRESortedAscendingInUSProbeFrameMatrix4xN.get_column(j) );
-
-			mNWire6LRESortedAscendingInUSProbeFrameMatrix4xN.set_column( j, 
-				Swap3DColumnVector ); 
+			mNWire6LRESortedAscendingInUSProbeFrameMatrix4xN.set_column( j-1, mNWire6LRESortedAscendingInUSProbeFrameMatrix4xN.get_column(j) );
+			mNWire6LRESortedAscendingInUSProbeFrameMatrix4xN.set_column( j, Swap3DColumnVector ); 
 		}			
+  }
 
 	// NOTES: 
 	// 1. We are only interested in the absolute value of the errors.
@@ -2664,144 +2487,76 @@ PlusStatus vtkCalibrationController::computeIndependentPointLineReconstructionEr
 	//    segmentation results in the validation data).
 	// Default percentage: 95%
 
-	const int NumberOfTopRankedData = 
-		floor( (double)NumberOfValidationPositions * mValidationDataConfidenceLevel + 0.5 );
+	const int NumberOfTopRankedData = floor( (double)NumberOfValidationPositions * mValidationDataConfidenceLevel + 0.5 );
 
-	const vnl_matrix<double> NWire1AbsLRETopRankedInUSProbeFrameMatrix4xN = 
-		mNWire1LRESortedAscendingInUSProbeFrameMatrix4xN.get_n_columns( 
-		0, NumberOfTopRankedData ).apply( fabs );
-	const vnl_matrix<double> NWire3AbsLRETopRankedInUSProbeFrameMatrix4xN = 
-		mNWire3LRESortedAscendingInUSProbeFrameMatrix4xN.get_n_columns( 
-		0, NumberOfTopRankedData ).apply( fabs );
-	const vnl_matrix<double> NWire4AbsLRETopRankedInUSProbeFrameMatrix4xN = 
-		mNWire4LRESortedAscendingInUSProbeFrameMatrix4xN.get_n_columns( 
-		0, NumberOfTopRankedData ).apply( fabs );
-	const vnl_matrix<double> NWire6AbsLRETopRankedInUSProbeFrameMatrix4xN = 
-		mNWire6LRESortedAscendingInUSProbeFrameMatrix4xN.get_n_columns( 
-		0, NumberOfTopRankedData ).apply( fabs );
+	const vnl_matrix<double> NWire1AbsLRETopRankedInUSProbeFrameMatrix4xN = mNWire1LRESortedAscendingInUSProbeFrameMatrix4xN.get_n_columns( 0, NumberOfTopRankedData ).apply( fabs );
+	const vnl_matrix<double> NWire3AbsLRETopRankedInUSProbeFrameMatrix4xN = mNWire3LRESortedAscendingInUSProbeFrameMatrix4xN.get_n_columns( 0, NumberOfTopRankedData ).apply( fabs );
+	const vnl_matrix<double> NWire4AbsLRETopRankedInUSProbeFrameMatrix4xN = mNWire4LRESortedAscendingInUSProbeFrameMatrix4xN.get_n_columns( 0, NumberOfTopRankedData ).apply( fabs );
+	const vnl_matrix<double> NWire6AbsLRETopRankedInUSProbeFrameMatrix4xN = mNWire6LRESortedAscendingInUSProbeFrameMatrix4xN.get_n_columns( 0, NumberOfTopRankedData ).apply( fabs );
 
 	// Perform statistical analysis
 
 	// NWire-1: LRE in X, Y and Euclidean (norm)
 	// =========================================
-	const vnl_vector<double> NWire1AbsLREDistributionInX = 
-		NWire1AbsLRETopRankedInUSProbeFrameMatrix4xN.get_row( 0 );
-	const vnl_vector<double> NWire1AbsLREDistributionInY = 
-		NWire1AbsLRETopRankedInUSProbeFrameMatrix4xN.get_row( 1 );
-	const vnl_vector<double> NWire1AbsLREDistributionInEUC = 
-		NWire1AbsLRETopRankedInUSProbeFrameMatrix4xN.get_row( 3 );
+	const vnl_vector<double> NWire1AbsLREDistributionInX = NWire1AbsLRETopRankedInUSProbeFrameMatrix4xN.get_row( 0 );
+	const vnl_vector<double> NWire1AbsLREDistributionInY = NWire1AbsLRETopRankedInUSProbeFrameMatrix4xN.get_row( 1 );
+	const vnl_vector<double> NWire1AbsLREDistributionInEUC = NWire1AbsLRETopRankedInUSProbeFrameMatrix4xN.get_row( 3 );
 
 	const double NWire1LRE_X_mean = NWire1AbsLREDistributionInX.mean();
-	const double NWire1LRE_X_std = sqrt( 
-		1/(double)( NumberOfTopRankedData - 1 ) *	
-		( NWire1AbsLREDistributionInX.squared_magnitude() - 
-		NumberOfTopRankedData*pow( NWire1LRE_X_mean,2 )) );
+	const double NWire1LRE_X_std = sqrt( 1/(double)( NumberOfTopRankedData - 1 ) *	( NWire1AbsLREDistributionInX.squared_magnitude() - NumberOfTopRankedData*pow( NWire1LRE_X_mean,2 )) );
 
 	const double NWire1LRE_Y_mean = NWire1AbsLREDistributionInY.mean();
-	const double NWire1LRE_Y_std = sqrt( 
-		1/(double)( NumberOfTopRankedData - 1 ) *	
-		( NWire1AbsLREDistributionInY.squared_magnitude() - 
-		NumberOfTopRankedData*pow( NWire1LRE_Y_mean,2 )) );
+	const double NWire1LRE_Y_std = sqrt( 1 / (double)( NumberOfTopRankedData - 1 ) *	( NWire1AbsLREDistributionInY.squared_magnitude() - NumberOfTopRankedData*pow( NWire1LRE_Y_mean,2 )) );
 
 	const double NWire1LRE_EUC_mean = NWire1AbsLREDistributionInEUC.mean();
-	const double NWire1LRE_EUC_std = sqrt( 
-		1/(double)( NumberOfTopRankedData - 1 ) *	
-		( NWire1AbsLREDistributionInEUC.squared_magnitude() - 
-		NumberOfTopRankedData*pow( NWire1LRE_EUC_mean,2 )) );
+	const double NWire1LRE_EUC_std = sqrt( 1 / (double)( NumberOfTopRankedData - 1 ) * ( NWire1AbsLREDistributionInEUC.squared_magnitude() - NumberOfTopRankedData*pow( NWire1LRE_EUC_mean,2 )) );
 
 	// NWire-3: LRE in X, Y and Euclidean (norm)
 	// =========================================
-	const vnl_vector<double> NWire3AbsLREDistributionInX = 
-		NWire3AbsLRETopRankedInUSProbeFrameMatrix4xN.get_row( 0 );
-	const vnl_vector<double> NWire3AbsLREDistributionInY = 
-		NWire3AbsLRETopRankedInUSProbeFrameMatrix4xN.get_row( 1 );
-	const vnl_vector<double> NWire3AbsLREDistributionInEUC = 
-		NWire3AbsLRETopRankedInUSProbeFrameMatrix4xN.get_row( 3 );
+	const vnl_vector<double> NWire3AbsLREDistributionInX = NWire3AbsLRETopRankedInUSProbeFrameMatrix4xN.get_row( 0 );
+	const vnl_vector<double> NWire3AbsLREDistributionInY = NWire3AbsLRETopRankedInUSProbeFrameMatrix4xN.get_row( 1 );
+	const vnl_vector<double> NWire3AbsLREDistributionInEUC = NWire3AbsLRETopRankedInUSProbeFrameMatrix4xN.get_row( 3 );
 
 	const double NWire3LRE_X_mean = NWire3AbsLREDistributionInX.mean();
-	const double NWire3LRE_X_std = sqrt( 
-		1/(double)( NumberOfTopRankedData - 1 ) *	
-		( NWire3AbsLREDistributionInX.squared_magnitude() - 
-		NumberOfTopRankedData*pow( NWire3LRE_X_mean,2 )) );
+	const double NWire3LRE_X_std = sqrt( 1 / (double)( NumberOfTopRankedData - 1 ) * ( NWire3AbsLREDistributionInX.squared_magnitude() - NumberOfTopRankedData*pow( NWire3LRE_X_mean,2 )) );
 
 	const double NWire3LRE_Y_mean = NWire3AbsLREDistributionInY.mean();
-	const double NWire3LRE_Y_std = sqrt( 
-		1/(double)( NumberOfTopRankedData - 1 ) *	
-		( NWire3AbsLREDistributionInY.squared_magnitude() - 
-		NumberOfTopRankedData*pow( NWire3LRE_Y_mean,2 )) );
+	const double NWire3LRE_Y_std = sqrt( 1 / (double)( NumberOfTopRankedData - 1 ) * ( NWire3AbsLREDistributionInY.squared_magnitude() - NumberOfTopRankedData*pow( NWire3LRE_Y_mean,2 )) );
 
 	const double NWire3LRE_EUC_mean = NWire3AbsLREDistributionInEUC.mean();
-	const double NWire3LRE_EUC_std = sqrt( 
-		1/(double)( NumberOfTopRankedData - 1 ) *	
-		( NWire3AbsLREDistributionInEUC.squared_magnitude() - 
-		NumberOfTopRankedData*pow( NWire3LRE_EUC_mean,2 )) );						
+	const double NWire3LRE_EUC_std = sqrt( 1 / (double)( NumberOfTopRankedData - 1 ) * ( NWire3AbsLREDistributionInEUC.squared_magnitude() - NumberOfTopRankedData*pow( NWire3LRE_EUC_mean,2 )) );						
 		
 	// NWire-4: LRE in X, Y and Euclidean (norm)
 	// =========================================
-	const vnl_vector<double> NWire4AbsLREDistributionInX = 
-		NWire4AbsLRETopRankedInUSProbeFrameMatrix4xN.get_row( 0 );
-	const vnl_vector<double> NWire4AbsLREDistributionInY = 
-		NWire4AbsLRETopRankedInUSProbeFrameMatrix4xN.get_row( 1 );
-	const vnl_vector<double> NWire4AbsLREDistributionInEUC = 
-		NWire4AbsLRETopRankedInUSProbeFrameMatrix4xN.get_row( 3 );
+	const vnl_vector<double> NWire4AbsLREDistributionInX = NWire4AbsLRETopRankedInUSProbeFrameMatrix4xN.get_row( 0 );
+	const vnl_vector<double> NWire4AbsLREDistributionInY = NWire4AbsLRETopRankedInUSProbeFrameMatrix4xN.get_row( 1 );
+	const vnl_vector<double> NWire4AbsLREDistributionInEUC = NWire4AbsLRETopRankedInUSProbeFrameMatrix4xN.get_row( 3 );
 
 	const double NWire4LRE_X_mean = NWire4AbsLREDistributionInX.mean();
-	const double NWire4LRE_X_std = sqrt( 
-		1/(double)( NumberOfTopRankedData - 1 ) *	
-		( NWire4AbsLREDistributionInX.squared_magnitude() - 
-		NumberOfTopRankedData*pow( NWire4LRE_X_mean,2 )) );
+	const double NWire4LRE_X_std = sqrt( 1 / (double)( NumberOfTopRankedData - 1 ) * ( NWire4AbsLREDistributionInX.squared_magnitude() - NumberOfTopRankedData*pow( NWire4LRE_X_mean,2 )) );
 
 	const double NWire4LRE_Y_mean = NWire4AbsLREDistributionInY.mean();
-	const double NWire4LRE_Y_std = sqrt( 
-		1/(double)( NumberOfTopRankedData - 1 ) *	
-		( NWire4AbsLREDistributionInY.squared_magnitude() - 
-		NumberOfTopRankedData*pow( NWire4LRE_Y_mean,2 )) );
+	const double NWire4LRE_Y_std = sqrt( 1 / (double)( NumberOfTopRankedData - 1 ) * ( NWire4AbsLREDistributionInY.squared_magnitude() - NumberOfTopRankedData*pow( NWire4LRE_Y_mean,2 )) );
 
 	const double NWire4LRE_EUC_mean = NWire4AbsLREDistributionInEUC.mean();
-	const double NWire4LRE_EUC_std = sqrt( 
-		1/(double)( NumberOfTopRankedData - 1 ) *	
-		( NWire4AbsLREDistributionInEUC.squared_magnitude() - 
-		NumberOfTopRankedData*pow( NWire4LRE_EUC_mean,2 )) );						
+	const double NWire4LRE_EUC_std = sqrt( 1 / (double)( NumberOfTopRankedData - 1 ) * ( NWire4AbsLREDistributionInEUC.squared_magnitude() - NumberOfTopRankedData*pow( NWire4LRE_EUC_mean,2 )) );						
 
 	// NWire-6: LRE in X, Y and Euclidean (norm)
 	// =========================================
-	const vnl_vector<double> NWire6AbsLREDistributionInX = 
-		NWire6AbsLRETopRankedInUSProbeFrameMatrix4xN.get_row( 0 );
-	const vnl_vector<double> NWire6AbsLREDistributionInY = 
-		NWire6AbsLRETopRankedInUSProbeFrameMatrix4xN.get_row( 1 );
-	const vnl_vector<double> NWire6AbsLREDistributionInEUC = 
-		NWire6AbsLRETopRankedInUSProbeFrameMatrix4xN.get_row( 3 );
+	const vnl_vector<double> NWire6AbsLREDistributionInX = NWire6AbsLRETopRankedInUSProbeFrameMatrix4xN.get_row( 0 );
+	const vnl_vector<double> NWire6AbsLREDistributionInY = NWire6AbsLRETopRankedInUSProbeFrameMatrix4xN.get_row( 1 );
+	const vnl_vector<double> NWire6AbsLREDistributionInEUC = NWire6AbsLRETopRankedInUSProbeFrameMatrix4xN.get_row( 3 );
 
 	const double NWire6LRE_X_mean = NWire6AbsLREDistributionInX.mean();
-	const double NWire6LRE_X_std = sqrt( 
-		1/(double)( NumberOfTopRankedData - 1 ) *	
-		( NWire6AbsLREDistributionInX.squared_magnitude() - 
-		NumberOfTopRankedData*pow( NWire6LRE_X_mean,2 )) );
+	const double NWire6LRE_X_std = sqrt( 1 / (double)( NumberOfTopRankedData - 1 ) * ( NWire6AbsLREDistributionInX.squared_magnitude() - NumberOfTopRankedData*pow( NWire6LRE_X_mean,2 )) );
 
 	const double NWire6LRE_Y_mean = NWire6AbsLREDistributionInY.mean();
-	const double NWire6LRE_Y_std = sqrt( 
-		1/(double)( NumberOfTopRankedData - 1 ) *	
-		( NWire6AbsLREDistributionInY.squared_magnitude() - 
-		NumberOfTopRankedData*pow( NWire6LRE_Y_mean,2 )) );
+	const double NWire6LRE_Y_std = sqrt( 1 / (double)( NumberOfTopRankedData - 1 ) * ( NWire6AbsLREDistributionInY.squared_magnitude() - NumberOfTopRankedData*pow( NWire6LRE_Y_mean,2 )) );
 
 	const double NWire6LRE_EUC_mean = NWire6AbsLREDistributionInEUC.mean();
-	const double NWire6LRE_EUC_std = sqrt( 
-		1/(double)( NumberOfTopRankedData - 1 ) *	
-		( NWire6AbsLREDistributionInEUC.squared_magnitude() - 
-		NumberOfTopRankedData*pow( NWire6LRE_EUC_mean,2 )) );									
+	const double NWire6LRE_EUC_std = sqrt( 1 / (double)( NumberOfTopRankedData - 1 ) * ( NWire6AbsLREDistributionInEUC.squared_magnitude() - NumberOfTopRankedData*pow( NWire6LRE_EUC_mean,2 )) );									
 
-	// Consolidate the returning data containers
-	// FORMAT: (all positions are in the US probe frame)
-	// For NWire N1, N3, N4, N6:
-	// [ vector 0 - 1:  LRE_X_mean,   LRE_X_std   ]
-	// [ vector 2 - 3:  LRE_Y_mean,   LRE_Y_std   ]
-	// [ vector 4 - 5:  LRE_EUC_mean, LRE_EUC_std ]
-	// [ vector 6	 :	Validation data confidence level ]
-	// where: 
-	// - mean: linearly averaged;
-	// - std : standard deviation;
-	// - EUC: Euclidean (norm) measurement.
-
+	// Consolidate the returning data containers (for details see member variable description)
 	// NWire-1 LRE Analysis
 	mNWire1AbsLREAnalysisInUSProbeFrame.resize(0);
 	mNWire1AbsLREAnalysisInUSProbeFrame.push_back( NWire1LRE_X_mean );
@@ -2848,12 +2603,9 @@ PlusStatus vtkCalibrationController::computeIndependentPointLineReconstructionEr
 	// Using the calibration matrix, we can obtain the projected positions
 	// in the US probe frame after applying the calibration matrix to
 	// the validation positions in the US image frame.
-	const vnl_matrix<double> ProjectedPositionsInUSProbeFrameMatrix4xN =
-		mTransformUSImageFrame2USProbeFrameMatrix4x4 * 
-		mValidationPositionsInUSImageFrameMatrix4xN;
+	const vnl_matrix<double> ProjectedPositionsInUSProbeFrameMatrix4xN = mTransformUSImageFrame2USProbeFrameMatrix4x4 * mValidationPositionsInUSImageFrameMatrix4xN;
 	// We need the 3D coordinates (the first 3 elements) for cross product
-	const vnl_matrix<double> ProjectedPositionsInUSProbeFrameMatrix3xN =
-		ProjectedPositionsInUSProbeFrameMatrix4xN.get_n_rows(0,3);
+	const vnl_matrix<double> ProjectedPositionsInUSProbeFrameMatrix3xN = ProjectedPositionsInUSProbeFrameMatrix4xN.get_n_rows(0,3);
 
 	// Now we calculate the Point-Line Distance Error (PLDE).  		
 	// The PLDE was defined as the absolute point-line distance from the projected
@@ -2864,7 +2616,7 @@ PlusStatus vtkCalibrationController::computeIndependentPointLineReconstructionEr
 	// US probe frame by the optical tracking device affixed on the phantom.
 	// NOTE: this data may be used for statistical analysis if desired.
 	// FORMAT: vector 1xN (with N being the total number of validation positions)
-	mPLDEsforValidationPositionsInUSProbeFrame.set_size( NumberOfValidationPositions );
+	this->PointLineDistanceErrorVector.set_size( NumberOfValidationPositions );
 
 	for( int i = 0; i < NumberOfValidationPositions; i++ )
 	{
@@ -2887,77 +2639,46 @@ PlusStatus vtkCalibrationController::computeIndependentPointLineReconstructionEr
 		//		|NWireVector3D x ProjectedPosition2NWireStartVector3D|
 		// D =	------------------------------------------------------
 		//							|NWireVector3D|
-		// 
-		const double ProjectedPosition2NWireDistance = 
-			vnl_cross_3d(NWireVector3D,ProjectedPosition2NWireStartVector3D).magnitude()/
-			NWireVector3D.magnitude();
+		const double ProjectedPosition2NWireDistance = vnl_cross_3d(NWireVector3D,ProjectedPosition2NWireStartVector3D).magnitude() /	NWireVector3D.magnitude();
 
-		mPLDEsforValidationPositionsInUSProbeFrame.put(i,
-			ProjectedPosition2NWireDistance );
-
+		this->PointLineDistanceErrorVector.put(i, ProjectedPosition2NWireDistance );
 	}
 
 	// Sort the PLDE in an ascending order
 
-	mSortedPLDEsAscendingforValidationInUSProbeFrame = 
-		mPLDEsforValidationPositionsInUSProbeFrame;
+	this->PointLineDistanceErrorSortedVector = this->PointLineDistanceErrorVector;
 
 	// Sorting algorithm employed: Insertion Sort
 	for( int i = 0; i < NumberOfValidationPositions; i++ )
-		for( int j = i; j > 0 && 
-			mSortedPLDEsAscendingforValidationInUSProbeFrame.get(j-1) > 
-			mSortedPLDEsAscendingforValidationInUSProbeFrame.get(j); j-- )
+  {
+		for( int j = i; j > 0 && this->PointLineDistanceErrorSortedVector.get(j-1) > this->PointLineDistanceErrorSortedVector.get(j); j-- )
 		{
 			// Swap the positions of j-th and j-1-th elements
-			const double SwapPLDEValue = 
-				mSortedPLDEsAscendingforValidationInUSProbeFrame.get(j-1);
+			const double SwapPLDEValue = this->PointLineDistanceErrorSortedVector.get(j-1);
 			
-			mSortedPLDEsAscendingforValidationInUSProbeFrame.put( j-1, 
-				mSortedPLDEsAscendingforValidationInUSProbeFrame.get(j) );
+			this->PointLineDistanceErrorSortedVector.put( j-1, this->PointLineDistanceErrorSortedVector.get(j) );
 
-			mSortedPLDEsAscendingforValidationInUSProbeFrame.put( j, 
-				SwapPLDEValue ); 
-
+			this->PointLineDistanceErrorSortedVector.put( j, SwapPLDEValue ); 
 		}
+  }
 
 	// We are only interested at the top-ranked ascending PLDE values
 	// presented in the sorted PLDE result vector.
 	// Default percentage: 95%
-	const int NumberOfTopRankedCalibrationData = 
-		ROUND( (double)NumberOfValidationPositions * mValidationDataConfidenceLevel );
-	const vnl_vector<double> AscendingTopRankingPLDEsinUSProbeFrame = 
-		mSortedPLDEsAscendingforValidationInUSProbeFrame.extract(
-			NumberOfTopRankedCalibrationData );
+	const int NumberOfTopRankedCalibrationData = ROUND( (double)NumberOfValidationPositions * mValidationDataConfidenceLevel );
+	const vnl_vector<double> AscendingTopRankingPLDEsinUSProbeFrame = this->PointLineDistanceErrorSortedVector.extract( NumberOfTopRankedCalibrationData );
 
 	// Perform statistical analysis
 	const double PLDE_mean = AscendingTopRankingPLDEsinUSProbeFrame.mean();
 	const double PLDE_rms = AscendingTopRankingPLDEsinUSProbeFrame.rms();
-	const double PLDE_std = sqrt( 
-		1/(double)( NumberOfTopRankedCalibrationData - 1 ) *	
-		( AscendingTopRankingPLDEsinUSProbeFrame.squared_magnitude() - 
-		NumberOfTopRankedCalibrationData*pow(PLDE_mean,2) ) );
+	const double PLDE_std = sqrt( 1 / (double)( NumberOfTopRankedCalibrationData - 1 ) * ( AscendingTopRankingPLDEsinUSProbeFrame.squared_magnitude() - NumberOfTopRankedCalibrationData*pow(PLDE_mean,2) ) );
 
-	// Consolidate the returning data container
-
-	// FORMAT: (all positions are in the US probe frame)
-	// [ vector 0 - 2:  PLDE_mean, PLDE_rms, PLDE_std ]
-	// [ vector 3	 :	Validation data confidence level ]
-	// where: 
-	// - mean: linearly averaged;
-	// - rms : root mean square;
-	// - std : standard deviation.
-	// - validation data confidence level: this is a percentage of 
-	//   the independent validation data used to produce the final
-	//   validation results.  It serves as an effective way to get 
-	//   rid of corrupted data (or outliers) in the validation 
-	//   dataset.  Default value: 0.95 (or 95%), meaning the top 
-	//   ranked 95% of the ascendingly-ordered results from the 
-	//   validation data would be accepted as the valid error values.
-	mPLDEAnalysis4ValidationPositionsInUSProbeFrame.resize(0);
-	mPLDEAnalysis4ValidationPositionsInUSProbeFrame.push_back( PLDE_mean );
-	mPLDEAnalysis4ValidationPositionsInUSProbeFrame.push_back( PLDE_rms );
-	mPLDEAnalysis4ValidationPositionsInUSProbeFrame.push_back( PLDE_std );
-	mPLDEAnalysis4ValidationPositionsInUSProbeFrame.push_back( mValidationDataConfidenceLevel );
+	// Consolidate the returning data container (for details see member variable description)
+	this->PointLineDistanceErrorAnalysisVector.resize(0);
+	this->PointLineDistanceErrorAnalysisVector.push_back( PLDE_mean );
+	this->PointLineDistanceErrorAnalysisVector.push_back( PLDE_rms );
+	this->PointLineDistanceErrorAnalysisVector.push_back( PLDE_std );
+	this->PointLineDistanceErrorAnalysisVector.push_back( mValidationDataConfidenceLevel );
 
 	// Reset the flag
 	mAreIndependentPointLineReconErrorsReady = true;
@@ -2988,9 +2709,9 @@ PlusStatus vtkCalibrationController::computeIndependentPointLineReconstructionEr
   LOG_DEBUG("  Validation data confidence level: " << mNWire6AbsLREAnalysisInUSProbeFrame[6]);
 
 	LOG_DEBUG("Point-Line Distance Error");
-  LOG_DEBUG("  PLDE mean: " << mPLDEAnalysis4ValidationPositionsInUSProbeFrame[0]);
-  LOG_DEBUG("  PLDE rms: " << mPLDEAnalysis4ValidationPositionsInUSProbeFrame[1]);
-  LOG_DEBUG("  PLDE std: " << mPLDEAnalysis4ValidationPositionsInUSProbeFrame[2]);
+  LOG_DEBUG("  PLDE mean: " << this->PointLineDistanceErrorAnalysisVector[0]);
+  LOG_DEBUG("  PLDE rms: " << this->PointLineDistanceErrorAnalysisVector[1]);
+  LOG_DEBUG("  PLDE std: " << this->PointLineDistanceErrorAnalysisVector[2]);
   LOG_DEBUG("  Validation data confidence level: " << mNWire6AbsLREAnalysisInUSProbeFrame[3]);
 
   return PLUS_SUCCESS;
@@ -3027,53 +2748,39 @@ PlusStatus vtkCalibrationController::constructValidationDataMatrices()
 	for( int i = 0; i < NumberOfValidationPositions; i++ )
 	{
 		// Validation positions in the US image frame
-		mValidationPositionsInUSImageFrameMatrix4xN.set_column(
-			i, mValidationPositionsInUSImageFrame.at(i) );
+		mValidationPositionsInUSImageFrameMatrix4xN.set_column( i, mValidationPositionsInUSImageFrame.at(i) );
 
 		// Validation positions in the US probe frame
-		mValidationPositionsInUSProbeFrameMatrix4xN.set_column(
-			i, mValidationPositionsInUSProbeFrame.at(i) );
+		mValidationPositionsInUSProbeFrameMatrix4xN.set_column( i, mValidationPositionsInUSProbeFrame.at(i) );
 
 		// Validation points' NWire Start/End positions in US probe frame
-		ValidationPositionsNWireStartInUSProbeFrame4xN.set_column(
-			i, mValidationPositionsNWireStartInUSProbeFrame.at(i) );
-		ValidationPositionsNWireEndInUSProbeFrame4xN.set_column(
-			i, mValidationPositionsNWireEndInUSProbeFrame.at(i) );
+		ValidationPositionsNWireStartInUSProbeFrame4xN.set_column( i, mValidationPositionsNWireStartInUSProbeFrame.at(i) );
+		ValidationPositionsNWireEndInUSProbeFrame4xN.set_column( i, mValidationPositionsNWireEndInUSProbeFrame.at(i) );
 
 		// Validation positions of the parallel wires in the US image frame
 		// Wire N1
-		mValidationPositionsNWire1InUSImageFrame4xN.set_column(
-			i, mValidationPositionsNWire1InUSImageFrame.at(i) );
+		mValidationPositionsNWire1InUSImageFrame4xN.set_column( i, mValidationPositionsNWire1InUSImageFrame.at(i) );
 		// Wire N3
-		mValidationPositionsNWire3InUSImageFrame4xN.set_column(
-			i, mValidationPositionsNWire3InUSImageFrame.at(i) );
+		mValidationPositionsNWire3InUSImageFrame4xN.set_column( i, mValidationPositionsNWire3InUSImageFrame.at(i) );
 		// Wire N4
-		mValidationPositionsNWire4InUSImageFrame4xN.set_column(
-			i, mValidationPositionsNWire4InUSImageFrame.at(i) );
+		mValidationPositionsNWire4InUSImageFrame4xN.set_column( i, mValidationPositionsNWire4InUSImageFrame.at(i) );
 		// Wire N6
-		mValidationPositionsNWire6InUSImageFrame4xN.set_column(
-			i, mValidationPositionsNWire6InUSImageFrame.at(i) );
+		mValidationPositionsNWire6InUSImageFrame4xN.set_column( i, mValidationPositionsNWire6InUSImageFrame.at(i) );
 
 		// Validation positions of the parallel wires in the US probe frame
 		// Wire N1
-		mValidationPositionsNWire1InUSProbeFrame4xN.set_column(
-			i, mValidationPositionsNWire1InUSProbeFrame.at(i) );
+		mValidationPositionsNWire1InUSProbeFrame4xN.set_column( i, mValidationPositionsNWire1InUSProbeFrame.at(i) );
 		// Wire N3
-		mValidationPositionsNWire3InUSProbeFrame4xN.set_column(
-			i, mValidationPositionsNWire3InUSProbeFrame.at(i) );
+		mValidationPositionsNWire3InUSProbeFrame4xN.set_column( i, mValidationPositionsNWire3InUSProbeFrame.at(i) );
 		// Wire N4
-		mValidationPositionsNWire4InUSProbeFrame4xN.set_column(
-			i, mValidationPositionsNWire4InUSProbeFrame.at(i) );
+		mValidationPositionsNWire4InUSProbeFrame4xN.set_column( i, mValidationPositionsNWire4InUSProbeFrame.at(i) );
 		// Wire N6
-		mValidationPositionsNWire6InUSProbeFrame4xN.set_column(
-			i, mValidationPositionsNWire6InUSProbeFrame.at(i) );
+		mValidationPositionsNWire6InUSProbeFrame4xN.set_column( i, mValidationPositionsNWire6InUSProbeFrame.at(i) );
 	}
 	
 	// For PLDE calcuation, we need the first 3 elements for cross products.
-	mValidationPositionsNWireStartInUSProbeFrame3xN =
-		ValidationPositionsNWireStartInUSProbeFrame4xN.get_n_rows(0, 3);
-	mValidationPositionsNWireEndInUSProbeFrame3xN =
-		ValidationPositionsNWireEndInUSProbeFrame4xN.get_n_rows(0, 3);
+	mValidationPositionsNWireStartInUSProbeFrame3xN = ValidationPositionsNWireStartInUSProbeFrame4xN.get_n_rows(0, 3);
+	mValidationPositionsNWireEndInUSProbeFrame3xN = ValidationPositionsNWireEndInUSProbeFrame4xN.get_n_rows(0, 3);
 
 	mAreValidationDataMatricesConstructed = true;  //check the return value instead
 
@@ -3116,7 +2823,6 @@ void vtkCalibrationController::SaveSegmentedWirePositionsToFile()
 	validationSegWirePosFileName << calibrationTimestamp << "_ValidationSegWirePos.txt"; 
 	std::ostringstream validationSegWirePosPath; 
 	validationSegWirePosPath << vtkPlusConfig::GetInstance()->GetOutputDirectory() << "/" << validationSegWirePosFileName.str(); 
-	this->SetValidationSegWirePosInfoFileName(validationSegWirePosPath.str().c_str()); 
 	validPosInfo.open (validationSegWirePosPath.str().c_str(), ios::out);
 	validPosInfo << "# Segmented wire positions of the Validation dataset" << std::endl; 
 	validPosInfo << posInfoHeader.str();
@@ -3291,7 +2997,6 @@ void vtkCalibrationController::SaveCalibrationResultsAndErrorReportsToXML()
   }
   const std::string calibrationResultFileName = calibrationTimestamp + this->CalibrationResultFileSuffix + ".xml";
 	const std::string calibrationResultFileNameWithPath = vtkPlusConfig::GetInstance()->GetOutputDirectory() + std::string("/") + calibrationResultFileName;
-	this->SetCalibrationResultFileNameWithPath(calibrationResultFileNameWithPath.c_str()); 
 
 	// <USTemplateCalibrationResult>
 	vtkSmartPointer<vtkXMLDataElement> xmlCalibrationResults = vtkSmartPointer<vtkXMLDataElement>::New(); 
@@ -3399,7 +3104,7 @@ void vtkCalibrationController::SaveCalibrationResultsAndErrorReportsToXML()
 	double *preAnalysis = new double[9]; 
 	for (int i = 0; i < 9; i++)
 	{
-		preAnalysis[i] = mAbsPRE3DAnalysis4ValidationPositionsInUSProbeFrame[i]; 
+		preAnalysis[i] = this->PointReconstructionErrorAnalysisVector[i]; 
 	}
 
 	// <PointReconstructionErrorAnalysis>
@@ -3407,28 +3112,28 @@ void vtkCalibrationController::SaveCalibrationResultsAndErrorReportsToXML()
 	tagPointReconstructionErrorAnalysis->SetName("PointReconstructionErrorAnalysis"); 
 	tagPointReconstructionErrorAnalysis->SetVectorAttribute("PRE", 9, preAnalysis);  
 	// # The percentage of top-ranked validation data used for evaluation
-	tagPointReconstructionErrorAnalysis->SetDoubleAttribute("ValidationDataConfidenceLevel", mAbsPRE3DAnalysis4ValidationPositionsInUSProbeFrame[9]);  
+	tagPointReconstructionErrorAnalysis->SetDoubleAttribute("ValidationDataConfidenceLevel", this->PointReconstructionErrorAnalysisVector[9]);  
 	vtkstd::string commentPointReconstructionErrorAnalysis("# PRE format: PRE3D_X_mean, PRE3D_X_rms, PRE3D_X_std PRE3D_Y_mean, PRE3D_Y_rms, PRE3D_Y_std PRE3D_Z_mean, PRE3D_Z_rms, PRE3D_Z_std"); 
 	tagPointReconstructionErrorAnalysis->AddCharacterData(commentPointReconstructionErrorAnalysis.c_str(), commentPointReconstructionErrorAnalysis.size()); 
 
   delete[] preAnalysis; 
 
-	double *rawPointReconstructionErrors = new double[mRawPRE3DsforValidationPositionsInUSProbeFrameMatrix4xN.size()]; 
-	for ( int row = 0; row < mRawPRE3DsforValidationPositionsInUSProbeFrameMatrix4xN.rows(); row++)
+	double *rawPointReconstructionErrors = new double[this->PointReconstructionErrorMatrix.size()]; 
+	for ( int row = 0; row < this->PointReconstructionErrorMatrix.rows(); row++)
 	{
-		for (int column = 0; column < mRawPRE3DsforValidationPositionsInUSProbeFrameMatrix4xN.cols(); column++)
+		for (int column = 0; column < this->PointReconstructionErrorMatrix.cols(); column++)
 		{
-			rawPointReconstructionErrors[row * mRawPRE3DsforValidationPositionsInUSProbeFrameMatrix4xN.cols() + column ] = mRawPRE3DsforValidationPositionsInUSProbeFrameMatrix4xN.get(row, column); 
+			rawPointReconstructionErrors[row * this->PointReconstructionErrorMatrix.cols() + column ] = this->PointReconstructionErrorMatrix.get(row, column); 
 		}
 	}
 
 	// <PointReconstructionErrors>
 	vtkSmartPointer<vtkXMLDataElement> tagPointReconstructionErrors = vtkSmartPointer<vtkXMLDataElement>::New(); 
 	tagPointReconstructionErrors->SetName("PointReconstructionErrors"); 
-	tagPointReconstructionErrors->SetVectorAttribute("Raw", mRawPRE3DsforValidationPositionsInUSProbeFrameMatrix4xN.size(), rawPointReconstructionErrors); 
+	tagPointReconstructionErrors->SetVectorAttribute("Raw", this->PointReconstructionErrorMatrix.size(), rawPointReconstructionErrors); 
 	vtkstd::ostringstream commentPointReconstructionErrors; 
 	commentPointReconstructionErrors << "# PointReconstructionErrors format: 4xN matrix, N = "; 
-	commentPointReconstructionErrors << mRawPRE3DsforValidationPositionsInUSProbeFrameMatrix4xN.columns(); 
+	commentPointReconstructionErrors << this->PointReconstructionErrorMatrix.columns(); 
 	commentPointReconstructionErrors << ": the number of validation points"; 
 	tagPointReconstructionErrors->AddCharacterData(commentPointReconstructionErrors.str().c_str(), commentPointReconstructionErrors.str().size());
 
@@ -3437,7 +3142,7 @@ void vtkCalibrationController::SaveCalibrationResultsAndErrorReportsToXML()
 	double *pldeAnalysis = new double[3]; 
 	for (int i = 0; i < 3; i++)
 	{
-		pldeAnalysis[i] = mPLDEAnalysis4ValidationPositionsInUSProbeFrame[i]; 
+		pldeAnalysis[i] = this->PointLineDistanceErrorAnalysisVector[i]; 
 	}
 
 	// <PointLineDistanceErrorAnalysis>
@@ -3445,31 +3150,31 @@ void vtkCalibrationController::SaveCalibrationResultsAndErrorReportsToXML()
 	tagPointLineDistanceErrorAnalysis->SetName("PointLineDistanceErrorAnalysis"); 
 	tagPointLineDistanceErrorAnalysis->SetVectorAttribute("PLDE", 3, pldeAnalysis);  
 	// # The percentage of top-ranked validation data used for evaluation
-	tagPointLineDistanceErrorAnalysis->SetDoubleAttribute("ValidationDataConfidenceLevel", mPLDEAnalysis4ValidationPositionsInUSProbeFrame[3]);  
+	tagPointLineDistanceErrorAnalysis->SetDoubleAttribute("ValidationDataConfidenceLevel", this->PointLineDistanceErrorAnalysisVector[3]);  
 	vtkstd::string commentPointLineDistanceErrorAnalysis("# PLDE format: PLDE_mean, PLDE_rms, PLDE_std"); 
 	tagPointLineDistanceErrorAnalysis->AddCharacterData(commentPointLineDistanceErrorAnalysis.c_str(), commentPointLineDistanceErrorAnalysis.size()); 
 
   delete[] pldeAnalysis; 
 
-	double *rawPointLineDistanceErrors = new double[mPLDEsforValidationPositionsInUSProbeFrame.size()]; 
-	for (int i = 0; i < mPLDEsforValidationPositionsInUSProbeFrame.size(); i++)
+	double *rawPointLineDistanceErrors = new double[this->PointLineDistanceErrorVector.size()]; 
+	for (int i = 0; i < this->PointLineDistanceErrorVector.size(); i++)
 	{
-		rawPointLineDistanceErrors[i] = mPLDEsforValidationPositionsInUSProbeFrame.get(i); 
+		rawPointLineDistanceErrors[i] = this->PointLineDistanceErrorVector.get(i); 
 	}
 
-	double *sortedPointLineDistanceErrors = new double[mPLDEsforValidationPositionsInUSProbeFrame.size()]; 
-	for (int i = 0; i < mPLDEsforValidationPositionsInUSProbeFrame.size(); i++)
+	double *sortedPointLineDistanceErrors = new double[this->PointLineDistanceErrorVector.size()]; 
+	for (int i = 0; i < this->PointLineDistanceErrorVector.size(); i++)
 	{
-		sortedPointLineDistanceErrors[i] = mPLDEsforValidationPositionsInUSProbeFrame.get(i); 
+		sortedPointLineDistanceErrors[i] = this->PointLineDistanceErrorVector.get(i); 
 	}
 
 	// <PointLineDistanceErrors>
 	vtkSmartPointer<vtkXMLDataElement> tagPointLineDistanceErrors = vtkSmartPointer<vtkXMLDataElement>::New(); 
 	tagPointLineDistanceErrors->SetName("PointLineDistanceErrors"); 
-	tagPointLineDistanceErrors->SetVectorAttribute("Raw", mPLDEsforValidationPositionsInUSProbeFrame.size(), rawPointLineDistanceErrors); 
+	tagPointLineDistanceErrors->SetVectorAttribute("Raw", this->PointLineDistanceErrorVector.size(), rawPointLineDistanceErrors); 
 	vtkstd::ostringstream commentPointLineDistanceErrors; 
 	commentPointLineDistanceErrors << "# PointLineDistanceErrors format: 1xN vector, N = "; 
-	commentPointLineDistanceErrors << mPLDEsforValidationPositionsInUSProbeFrame.size(); 
+	commentPointLineDistanceErrors << this->PointLineDistanceErrorVector.size(); 
 	commentPointLineDistanceErrors << ": the number of validation points"; 
 	tagPointLineDistanceErrors->AddCharacterData(commentPointLineDistanceErrors.str().c_str(), commentPointLineDistanceErrors.str().size()); 
 
@@ -3712,7 +3417,7 @@ void vtkCalibrationController::SaveCalibrationResultsAndErrorReportsToXML()
 	xmlCalibrationResults->AddNestedElement(tagCalibrationResults); 
 	xmlCalibrationResults->AddNestedElement(tagErrorReports); 
 
-	xmlCalibrationResults->PrintXML(this->CalibrationResultFileNameWithPath); 
+  xmlCalibrationResults->PrintXML(calibrationResultFileNameWithPath.c_str()); 
 }
 
 //----------------------------------------------------------------------------
@@ -3723,7 +3428,7 @@ PlusStatus vtkCalibrationController::ReadUs3DBeamwidthDataFromFile()
 	std::ifstream USBeamProfileFile( this->US3DBeamProfileDataFileNameAndPath, std::ios::in );
 	if( !USBeamProfileFile.is_open() )
 	{
-		LOG_ERROR("ReadUs3DBeamwidthDataFromFile: Failed to open the US 3D beam profile data file: " << this->US3DBeamProfileDataFileNameAndPath); 
+		LOG_ERROR("Failed to open the US 3D beam profile data file: " << this->US3DBeamProfileDataFileNameAndPath); 
 		return PLUS_FAIL;
 	}
 
@@ -3742,13 +3447,12 @@ PlusStatus vtkCalibrationController::ReadUs3DBeamwidthDataFromFile()
 	}
 
 	if(  SectionName != ThisConfiguration )
-	{	// If the designated configuration is not found, throw up error
-		std::cerr << "\n\n" << __FILE__ << "," << __LINE__ << "\n"
-			<< "::CANNOT find the config section named: [" << ThisConfiguration 
-			<< " in the configuration file!!!  Throw up ...\n";
+	{	// If the designated configuration is not found, return with error
+		LOG_ERROR("Cannot find the config section named: [" << ThisConfiguration << " in the configuration file!");
 		USBeamProfileFile.close();
-		throw;
+    return PLUS_FAIL;
 	}
+
 	USBeamProfileFile.ignore(1024, '#');
 	USBeamProfileFile.ignore(1024, '#');
 	USBeamProfileFile.ignore(1024, '#');
@@ -3766,12 +3470,10 @@ PlusStatus vtkCalibrationController::ReadUs3DBeamwidthDataFromFile()
 	}
 
 	if(  SectionName != ThisConfiguration )
-	{	// If the designated configuration is not found, throw up error
-		std::cerr << "\n\n" << __FILE__ << "," << __LINE__ << "\n"
-			<< "::CANNOT find the config section named: [" << ThisConfiguration 
-			<< " in the configuration file!!!  Throw up ...\n";
+	{	// If the designated configuration is not found, return with error
+		LOG_ERROR("Cannot find the config section named: [" << ThisConfiguration << " in the configuration file!");
 		USBeamProfileFile.close();
-		throw;
+    return PLUS_FAIL;
 	}
 
 	USBeamProfileFile.ignore(1024, '#');
@@ -3791,9 +3493,7 @@ PlusStatus vtkCalibrationController::ReadUs3DBeamwidthDataFromFile()
   PlusMath::ConvertVtkMatrixToVnlMatrix(this->TransformImageToUserImage->GetMatrix(), transformOrigImageFrame2TRUSImageFrameMatrix4x4);
 
 	// Convert the crystal surface position to TRUS image frame
-	double axialPositionOfCrystalSurfaceInTRUSImageFrame =
-		transformOrigImageFrame2TRUSImageFrameMatrix4x4.get(1,1) * axialPositionOfCrystalSurfaceInOrigImageFrame +
-		transformOrigImageFrame2TRUSImageFrameMatrix4x4.get(1,3);
+	double axialPositionOfCrystalSurfaceInTRUSImageFrame = transformOrigImageFrame2TRUSImageFrameMatrix4x4.get(1,1) * axialPositionOfCrystalSurfaceInOrigImageFrame + transformOrigImageFrame2TRUSImageFrameMatrix4x4.get(1,3);
 
 	this->SetAxialPositionOfCrystalSurfaceInTRUSImageFrame(axialPositionOfCrystalSurfaceInTRUSImageFrame);
 
@@ -3812,12 +3512,10 @@ PlusStatus vtkCalibrationController::ReadUs3DBeamwidthDataFromFile()
 	}
 
 	if(  SectionName != ThisConfiguration )
-	{	// If the designated configuration is not found, throw up error
-		std::cerr << "\n\n" << __FILE__ << "," << __LINE__ << "\n"
-			<< "::CANNOT find the config section named: [" << ThisConfiguration 
-			<< " in the configuration file!!!  Throw up ...\n";
+	{	// If the designated configuration is not found, return with error
+		LOG_ERROR("Cannot find the config section named: [" << ThisConfiguration << " in the configuration file!");
 		USBeamProfileFile.close();
-		throw;
+    return PLUS_FAIL;
 	}
 
 	USBeamProfileFile.ignore(1024, '#');
@@ -3828,27 +3526,25 @@ PlusStatus vtkCalibrationController::ReadUs3DBeamwidthDataFromFile()
 
 	int numUS3DBeamwidthProfileData; 
 	USBeamProfileFile >> numUS3DBeamwidthProfileData;
-
-	this->SetNumUS3DBeamwidthProfileData(numUS3DBeamwidthProfileData); 
+  this->NumUS3DBeamwidthProfileData = numUS3DBeamwidthProfileData;
 
 	if( this->NumUS3DBeamwidthProfileData <= 0 )
-	{	// If the number of data is invalid, throw up error
-		vtkErrorMacro("ReadUs3DBeamwidthDataFromFile: The number of US 3D beamwidth profile data is invalid!!!  Please double check the data file!"); 
-		throw;
+	{	// If the number of data is invalid, return with error
+		LOG_ERROR("The number of US 3D beamwidth profile data is invalid! Please double check the data file!");
+    return PLUS_FAIL;
 	}
 	USBeamProfileFile.ignore(1024, '#');
 	USBeamProfileFile.ignore(1024, '\n');
 
 	// Here the profile read from file is unsorted (for ascending axial depth), but we will do the sorting in the next step.
-	const int numOfUS3DBeamwidthProfileData = this->NumUS3DBeamwidthProfileData; 
-	vnl_matrix<double> SortedUS3DBeamwidthInAscendingAxialDepth2CrystalsMatrixNx4(numOfUS3DBeamwidthProfileData, 4);
+	vnl_matrix<double> SortedUS3DBeamwidthInAscendingAxialDepth2CrystalsMatrixNx4(this->NumUS3DBeamwidthProfileData, 4);
 	USBeamProfileFile >> SortedUS3DBeamwidthInAscendingAxialDepth2CrystalsMatrixNx4;
 
 	// Close the file for reading
 	USBeamProfileFile.close();
 
-	this->SortedUS3DBeamwidthInAscendingAxialDepth2CrystalsMatrixNx4.set_size(numOfUS3DBeamwidthProfileData, 4); 
-	for ( int r = 0; r < numOfUS3DBeamwidthProfileData; r++)
+	this->SortedUS3DBeamwidthInAscendingAxialDepth2CrystalsMatrixNx4.set_size(this->NumUS3DBeamwidthProfileData, 4); 
+	for ( int r = 0; r < this->NumUS3DBeamwidthProfileData; r++)
 	{
 		this->SortedUS3DBeamwidthInAscendingAxialDepth2CrystalsMatrixNx4.set_row(r,SortedUS3DBeamwidthInAscendingAxialDepth2CrystalsMatrixNx4.get_row(r)); 
 	}
@@ -3873,16 +3569,12 @@ PlusStatus vtkCalibrationController::LoadUS3DBeamProfileData()
 	// Sorting algorithm employed: Insertion Sort
 	for( int i = 0; i < this->NumUS3DBeamwidthProfileData; i++ )
   {
-		for( int j = i; j > 0 && 
-			this->SortedUS3DBeamwidthInAscendingAxialDepth2CrystalsMatrixNx4.get(j-1, 0) > 
-			this->SortedUS3DBeamwidthInAscendingAxialDepth2CrystalsMatrixNx4.get(j, 0); j-- )
+		for( int j = i; j > 0 && this->SortedUS3DBeamwidthInAscendingAxialDepth2CrystalsMatrixNx4.get(j-1, 0) > this->SortedUS3DBeamwidthInAscendingAxialDepth2CrystalsMatrixNx4.get(j, 0); j-- )
 		{
 			// Swap the positions of j-th and j-1-th elements
 			const vnl_vector<double> SwapVector = this->SortedUS3DBeamwidthInAscendingAxialDepth2CrystalsMatrixNx4.get_row(j-1);
 
-			this->SortedUS3DBeamwidthInAscendingAxialDepth2CrystalsMatrixNx4.set_row( j-1, 
-				this->SortedUS3DBeamwidthInAscendingAxialDepth2CrystalsMatrixNx4.get_row(j) );
-
+			this->SortedUS3DBeamwidthInAscendingAxialDepth2CrystalsMatrixNx4.set_row( j-1, this->SortedUS3DBeamwidthInAscendingAxialDepth2CrystalsMatrixNx4.get_row(j) );
 			this->SortedUS3DBeamwidthInAscendingAxialDepth2CrystalsMatrixNx4.set_row( j, SwapVector ); 
 		}
   }
@@ -3892,28 +3584,20 @@ PlusStatus vtkCalibrationController::LoadUS3DBeamProfileData()
 	this->SortedUS3DBeamwidthAndWeightFactorsInAscendingAxialDepthInUSImageFrameMatrix5xN.set_size(5, this->NumUS3DBeamwidthProfileData);
 
 	// Convert the depth of the beamwidth data into the TRUS Image Frame
-	const vnl_vector<double> YPositionsOfUSBeamwidthInTRUSImageFramePixels = 
-		this->SortedUS3DBeamwidthInAscendingAxialDepth2CrystalsMatrixNx4.get_column(0) + 
-		this->AxialPositionOfCrystalSurfaceInTRUSImageFrame;
+	const vnl_vector<double> YPositionsOfUSBeamwidthInTRUSImageFramePixels = this->SortedUS3DBeamwidthInAscendingAxialDepth2CrystalsMatrixNx4.get_column(0) + this->AxialPositionOfCrystalSurfaceInTRUSImageFrame;
 
 	// Reset the axial-depth position and populate the remaining unchanged data
-	this->SortedUS3DBeamwidthAndWeightFactorsInAscendingAxialDepthInUSImageFrameMatrix5xN.set_row(0, 
-		YPositionsOfUSBeamwidthInTRUSImageFramePixels );
-	this->SortedUS3DBeamwidthAndWeightFactorsInAscendingAxialDepthInUSImageFrameMatrix5xN.set_row(1, 
-		this->SortedUS3DBeamwidthInAscendingAxialDepth2CrystalsMatrixNx4.get_column(1));
-	this->SortedUS3DBeamwidthAndWeightFactorsInAscendingAxialDepthInUSImageFrameMatrix5xN.set_row(2, 
-		this->SortedUS3DBeamwidthInAscendingAxialDepth2CrystalsMatrixNx4.get_column(2));
-	this->SortedUS3DBeamwidthAndWeightFactorsInAscendingAxialDepthInUSImageFrameMatrix5xN.set_row(3, 
-		this->SortedUS3DBeamwidthInAscendingAxialDepth2CrystalsMatrixNx4.get_column(3));
+	this->SortedUS3DBeamwidthAndWeightFactorsInAscendingAxialDepthInUSImageFrameMatrix5xN.set_row(0, YPositionsOfUSBeamwidthInTRUSImageFramePixels );
+	this->SortedUS3DBeamwidthAndWeightFactorsInAscendingAxialDepthInUSImageFrameMatrix5xN.set_row(1, this->SortedUS3DBeamwidthInAscendingAxialDepth2CrystalsMatrixNx4.get_column(1));
+	this->SortedUS3DBeamwidthAndWeightFactorsInAscendingAxialDepthInUSImageFrameMatrix5xN.set_row(2, this->SortedUS3DBeamwidthInAscendingAxialDepth2CrystalsMatrixNx4.get_column(2));
+	this->SortedUS3DBeamwidthAndWeightFactorsInAscendingAxialDepthInUSImageFrameMatrix5xN.set_row(3, this->SortedUS3DBeamwidthInAscendingAxialDepth2CrystalsMatrixNx4.get_column(3));
 
 	// Calculate the weight factor using: CurrentBeamwidth/MinimumBeamwidth
 	// NOTE: For the moment, we are only using the elevation beamwidth (the 4th column) 
 	// which has the largest beamwidth among axial, lateral and elevational axes and 
 	// plays an dominant role in the error distributions.  However, if axial and lateral
 	// beamwidth can also be added into the calculation if they are available.
-	this->SortedUS3DBeamwidthAndWeightFactorsInAscendingAxialDepthInUSImageFrameMatrix5xN.set_row(4,
-		this->SortedUS3DBeamwidthInAscendingAxialDepth2CrystalsMatrixNx4.get_column(3)/
-		this->MinElevationBeamwidthAndFocalZoneInUSImageFrame.get(1) );
+	this->SortedUS3DBeamwidthAndWeightFactorsInAscendingAxialDepthInUSImageFrameMatrix5xN.set_row(4, this->SortedUS3DBeamwidthInAscendingAxialDepth2CrystalsMatrixNx4.get_column(3) / this->MinElevationBeamwidthAndFocalZoneInUSImageFrame.get(1) );
 
 	// #4. Interpolate the beamwidth profile at non-sampled axial depth
 
@@ -3924,10 +3608,8 @@ PlusStatus vtkCalibrationController::LoadUS3DBeamProfileData()
 	for( int i = 0; i < this->NumUS3DBeamwidthProfileData - 1; i++ )
 	{
 		// Obtain the starting and ending sampled beamwidth data for interpolation
-		const vnl_vector<double> StartBeamWidthDataVector = 
-			this->SortedUS3DBeamwidthAndWeightFactorsInAscendingAxialDepthInUSImageFrameMatrix5xN.get_column(i);
-		const vnl_vector<double> EndBeamWidthDataVector = 
-			this->SortedUS3DBeamwidthAndWeightFactorsInAscendingAxialDepthInUSImageFrameMatrix5xN.get_column(i+1);
+		const vnl_vector<double> StartBeamWidthDataVector = this->SortedUS3DBeamwidthAndWeightFactorsInAscendingAxialDepthInUSImageFrameMatrix5xN.get_column(i);
+		const vnl_vector<double> EndBeamWidthDataVector = this->SortedUS3DBeamwidthAndWeightFactorsInAscendingAxialDepthInUSImageFrameMatrix5xN.get_column(i+1);
 
 		// Obtain the starting and ending axial depth in US Image Frame
 		const int StartDepthInUSImageFrame = StartBeamWidthDataVector.get(0);
@@ -3937,10 +3619,8 @@ PlusStatus vtkCalibrationController::LoadUS3DBeamProfileData()
 		for( int j = StartDepthInUSImageFrame; j < EndDepthInUSImageFrame; j++ )
 		{
 			// Perform the linear interpolation
-			vnl_vector<double> InterpolatedBeamwidthDataVector = 
-				(EndBeamWidthDataVector - StartBeamWidthDataVector)*
-				(double(j - StartDepthInUSImageFrame)/double(EndDepthInUSImageFrame - StartDepthInUSImageFrame))
-				+ StartBeamWidthDataVector;
+			vnl_vector<double> InterpolatedBeamwidthDataVector = (EndBeamWidthDataVector - StartBeamWidthDataVector) *
+        (double(j - StartDepthInUSImageFrame) / double(EndDepthInUSImageFrame - StartDepthInUSImageFrame)) + StartBeamWidthDataVector;
 
 			// Set the axial depth correctly
 			InterpolatedBeamwidthDataVector.put(0, j);

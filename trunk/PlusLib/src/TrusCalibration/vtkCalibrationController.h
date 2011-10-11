@@ -1,3 +1,9 @@
+/*=Plus=header=begin======================================================
+  Program: Plus
+  Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+  See License.txt for details.
+=========================================================Plus=header=end*/ 
+
 #ifndef __VTKCALIBRATIONCONTROLLER_H
 #define __VTKCALIBRATIONCONTROLLER_H
 
@@ -21,7 +27,13 @@
 class vtkHTMLGenerator; 
 class vtkGnuplotExecuter; 
 
-//! Helper class for storing segmentation results with transformation
+/** \class SegmentedFrame 
+ *
+ * \brief Helper class for storing segmentation results with transformation
+ *
+ * \ingroup PlusLibCalibrationAlgorithm
+ *
+ */
 class SegmentedFrame
 {
 public: 
@@ -37,7 +49,13 @@ public:
 };
 
 
-//! Probe calibration algorithm class
+/** \class vtkCalibrationController 
+ *
+ * \brief Probe calibration algorithm class
+ *
+ * \ingroup PlusLibCalibrationAlgorithm
+ *
+ */
 class vtkCalibrationController : public vtkObject
 {
 public:
@@ -127,8 +145,6 @@ public:
 	//! Get the segmentation result container (stores the segmentation results with transformation for each frame)
 	SegmentedFrameList GetSegmentedFrameContainer() { return this->SegmentedFrameContainer; };
 
-  const char* GetSegmentedFrameDefaultTransformName() { return this->SegmentedFrameDefaultTransformName.c_str();};
-
   //! Get the fiducial pattern recognition master object
   FidPatternRecognition * GetPatternRecognition() { return & this->PatternRecognition; };
   void SetPatternRecognition( FidPatternRecognition value) { PatternRecognition = value; };
@@ -169,19 +185,6 @@ public: // Former ProbeCalibrationController and FreehandCalibraitonController f
 	//! Get the wire position of the the US frame and phantom intersection in template coordinate system
 	virtual PlusStatus GetWirePosInTemplateCoordinate( int wireNum, double* wirePosInTemplate ); 
 
-	//! Get the 3D Point Reconstruction Error (PRE3D) analysis. For details see member variable definition
-	virtual vtkstd::vector<double> GetPRE3DVector() { return mAbsPRE3DAnalysis4ValidationPositionsInUSProbeFrame; } 
-
-	// Get the raw 3D Point Reconstruction Error (PRE3D) matrix. For details see member variable definiton
-	virtual vnl_matrix<double> GetPRE3DMatrix() { return mRawPRE3DsforValidationPositionsInUSProbeFrameMatrix4xN; } 
-
-	//! Get Point-Line Distance Error for validation positions in US probe frame. For details see member variable definition
-	vnl_vector<double> GetPointLineDistanceErrorVector() { return mPLDEsforValidationPositionsInUSProbeFrame; }
-	vnl_vector<double> GetPointLineDistanceErrorSortedVector() { return mSortedPLDEsAscendingforValidationInUSProbeFrame; }
-
-	//! Get Point-Line Distance Error Analysis for Validation Positions in probe frame. For details see member variable definition
-	std::vector<double> GetPointLineDistanceErrorAnalysisVector() { return mPLDEAnalysis4ValidationPositionsInUSProbeFrame; } 
-
 	//! Update Line Reconstruction Error Analysis for the validation positions in the US probe frame. For details see member variable definitions
   PlusStatus UpdateLineReconstructionErrorAnalysisVectors();  
 
@@ -198,21 +201,6 @@ public: // Former ProbeCalibrationController and FreehandCalibraitonController f
 	// [ Row-3: Euclidean LRE distance ]
 	// NOTE: this matrix can be obtained for statistical analysis if desired.
 	vnl_matrix<double> GetLineReconstructionErrorMatrix(int wireNumber);
-
-	//! Get Minimum US elevation beamwidth and the focal zone in US Image Frame (see MinElevationBeamwidthAndFocalZoneInUSImageFrame member)
-	vnl_vector<double> *GetMinElevationBeamwidthAndFocalZoneInUSImageFrame() { return &this->MinElevationBeamwidthAndFocalZoneInUSImageFrame; } // TODO this and the similar get functions become unnecessary once vtkProbeCalibrationControllerIO is consolidated
-
-	//! Get US 3D beamwidth profile data in US Image Frame with weights factors along axial depth (see SortedUS3DBeamwidthAndWeightFactorsInAscendingAxialDepthInUSImageFrameMatrix5xN member)
-	vnl_matrix<double> *GetSortedUS3DBeamwidthAndWeightFactorsInAscendingAxialDepthInUSImageFrameMatrix5xN() { return &this->SortedUS3DBeamwidthAndWeightFactorsInAscendingAxialDepthInUSImageFrameMatrix5xN; }
-
-  //! TODO
-  vnl_matrix<double>* GetSortedUS3DBeamwidthInAscendingAxialDepth2CrystalsMatrixNx4() { return &this->SortedUS3DBeamwidthInAscendingAxialDepth2CrystalsMatrixNx4; }
-
-	//!! Get Interpolated US 3D beamwidth profile and weight calulated based on it (see InterpUS3DBeamwidthAndWeightFactorsInUSImageFrameTable5xM member)
-	vnl_matrix<double> *GetInterpUS3DBeamwidthAndWeightFactorsInUSImageFrameTable5xM() { return &this->InterpUS3DBeamwidthAndWeightFactorsInUSImageFrameTable5xM; }
-
-  //! TODO
-  std::map<int, std::vector<double>>* GetLineReconstructionErrors() { return &this->LineReconstructionErrors; };  
 
 	/*!
 	* \brief Reset calibration - clear objects that are used during calibration
@@ -265,10 +253,6 @@ public: // Former ProbeCalibrationController and FreehandCalibraitonController f
 	vtkGetMacro(AxialPositionOfCrystalSurfaceInTRUSImageFrame, double);
 	vtkSetMacro(AxialPositionOfCrystalSurfaceInTRUSImageFrame, double);
 
-	//! Number of the US 3D beamwidth profile data (this is the total number of US 3D-beam-width data (samples) collected)
-	vtkGetMacro(NumUS3DBeamwidthProfileData, int);
-	vtkSetMacro(NumUS3DBeamwidthProfileData, int);
-
 	//! Track the current position ID of the output in PRE3D distribution data
 	vtkGetMacro(CurrentPRE3DdistributionID, int);
 	vtkSetMacro(CurrentPRE3DdistributionID, int);
@@ -276,10 +260,6 @@ public: // Former ProbeCalibrationController and FreehandCalibraitonController f
 	//! Calibration config file name
 	vtkGetStringMacro(CalibrationConfigFileNameWithPath);
 	vtkSetStringMacro(CalibrationConfigFileNameWithPath);
-
-	//! Calibration result file name
-	vtkGetStringMacro(CalibrationResultFileNameWithPath);
-	vtkSetStringMacro(CalibrationResultFileNameWithPath);
 
 	//! Segmentation error log file name with timestamp
 	vtkGetStringMacro(SegmentationErrorLogFileNameWithTimeStamp);
@@ -293,33 +273,13 @@ public: // Former ProbeCalibrationController and FreehandCalibraitonController f
 	vtkGetStringMacro(US3DBeamProfileDataFileNameAndPath); 
 	vtkSetStringMacro(US3DBeamProfileDataFileNameAndPath); 
 
-	//! Suffix of the data files
-	vtkGetStringMacro(DataFileSuffix);
-	vtkSetStringMacro(DataFileSuffix);
-
 	//! Segmented wire positions of calibration dataset
 	vtkGetStringMacro(CalibrationSegWirePosInfoFileName);
 	vtkSetStringMacro(CalibrationSegWirePosInfoFileName);
 
-	//! Segmented wire positions of validation dataset
-	vtkGetStringMacro(ValidationSegWirePosInfoFileName);
-	vtkSetStringMacro(ValidationSegWirePosInfoFileName);
-	
 	//! Suffix of the calibration result file
 	vtkGetStringMacro(CalibrationResultFileSuffix);
 	vtkSetStringMacro(CalibrationResultFileSuffix);
-	
-	//! Suffix of the segmentation error log file 
-	vtkGetStringMacro(SegmentationErrorLogFileNameSuffix);
-	vtkSetStringMacro(SegmentationErrorLogFileNameSuffix);
-	
-	//! Suffix of the segmentation analysis file
-	vtkGetStringMacro(SegmentationAnalysisFileNameSuffix);
-	vtkSetStringMacro(SegmentationAnalysisFileNameSuffix);
-
-	//! Suffix of the template to stepper calibration analysis file
-	vtkGetStringMacro(Temp2StepCalibAnalysisFileNameSuffix);
-	vtkSetStringMacro(Temp2StepCalibAnalysisFileNameSuffix);
 
 	//! Get/set final calibration transform 
 	vtkGetObjectMacro(TransformImageToTemplate, vtkTransform);
@@ -474,7 +434,6 @@ protected:
   //! Default transform name for the frames stored in the SegmentedFrameContainer
   std::string SegmentedFrameDefaultTransformName;
 
-
   //! Stores the fiducial pattern recognition master object
   FidPatternRecognition PatternRecognition;
 
@@ -520,9 +479,6 @@ protected: // Former ProbeCalibrationController and FreehandCalibrationControlle
 	//! calibration config file name
 	char* CalibrationConfigFileNameWithPath;
 
-	//! calibration result file name
-	char* CalibrationResultFileNameWithPath; 
-
 	//! Segmentation error log file name with timestamp
 	char* SegmentationErrorLogFileNameWithTimeStamp;
 
@@ -531,27 +487,12 @@ protected: // Former ProbeCalibrationController and FreehandCalibrationControlle
 
 	//! US 3D beam profile name and path
 	char* US3DBeamProfileDataFileNameAndPath;
-
-	//! Suffix of the data files 
-	char* DataFileSuffix; 
 	
 	//! Suffix of the calibration result file
 	char* CalibrationResultFileSuffix; 
-	
-	//! Suffix of the segmentation error log file 
-	char* SegmentationErrorLogFileNameSuffix; 
-	
-	//! Suffix of the segmentation analysis file
-	char* SegmentationAnalysisFileNameSuffix; 
-
-	//! Suffix of template to stepper calibration analysis file
-	char* Temp2StepCalibAnalysisFileNameSuffix; 
-
+		
 	//! Segmented wire positions of calibration dataset
 	char* CalibrationSegWirePosInfoFileName; 
-
-	//! Segmented wire positions of validation dataset
-	char* ValidationSegWirePosInfoFileName; 
 	
 	//! Minimum US elevation beamwidth and the focal zone in US Image Frame
 	// 1. For a typical 1-D linear-array transducer, the ultrasound beam can only be 
@@ -813,7 +754,7 @@ protected: // From former Phantom class
 	//   dataset.  Default value: 0.95 (or 95%), meaning the top 
 	//   ranked 95% of the ascendingly-ordered results from the 
 	//   validation data would be accepted as the valid error values.
-	std::vector<double> mAbsPRE3DAnalysis4ValidationPositionsInUSProbeFrame;
+	std::vector<double> PointReconstructionErrorAnalysisVector;
 
 	//! 3D point reconstruction error (PRE3D) matrix for validation positions in US probe frame
 	// This keeps all the original PRE3Ds for the validation dataset with signs in
@@ -824,7 +765,7 @@ protected: // From former Phantom class
 	// [ Row-2: PRE3Ds in z-axis from projected to true positions ]
 	// [ Row-3: should be all zeros ]
 	// NOTE: this matrix can be obtained for statistical analysis if desired.
-	vnl_matrix<double> mRawPRE3DsforValidationPositionsInUSProbeFrameMatrix4xN;
+	vnl_matrix<double> PointReconstructionErrorMatrix;
 
 	//! Sorted 3D point reconstruction error (PRE3D) matrix for validation positions in US probe frame
 	// This matrix sorts all the original PRE3Ds for the validation dataset with 
@@ -849,8 +790,8 @@ protected: // From former Phantom class
 	// US probe frame by the optical tracking device affixed on the phantom.
 	// NOTE: this data may be used for statistical analysis if desired.
 	// FORMAT: vector 1xN (with N being the total number of validation positions)
-	vnl_vector<double> mPLDEsforValidationPositionsInUSProbeFrame;
-	vnl_vector<double> mSortedPLDEsAscendingforValidationInUSProbeFrame;
+	vnl_vector<double> PointLineDistanceErrorVector;
+	vnl_vector<double> PointLineDistanceErrorSortedVector;
 
 	//! Point-Line Distance Error Analysis for Validation Positions in US probe frame
 	// FORMAT: (all positions are in the US probe frame)
@@ -867,7 +808,7 @@ protected: // From former Phantom class
 	//   dataset.  Default value: 0.95 (or 95%), meaning the top 
 	//   ranked 95% of the ascendingly-ordered results from the 
 	//   validation data would be accepted as the valid error values.
-	std::vector<double> mPLDEAnalysis4ValidationPositionsInUSProbeFrame;
+	std::vector<double> PointLineDistanceErrorAnalysisVector;
 
 	//! Line reconstruction error (LRE) matrix for validation positions in US probe frame
 	// This keeps all the original PRE3Ds for the validation dataset with signs in
