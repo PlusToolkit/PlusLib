@@ -1,3 +1,9 @@
+/*=Plus=header=begin======================================================
+  Program: Plus
+  Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+  See License.txt for details.
+=========================================================Plus=header=end*/ 
+
 #include "PlusConfigure.h"
 #include "vtkMeanShiftClustering.h"
 
@@ -272,7 +278,7 @@ void vtkMeanShiftClustering::DisplayPointAssociations(ostream &os)
 	os << "Point cluster membership: " << std::endl;
 	for(unsigned int i = 0; i < this->ClusterId.size(); i++)
 	{
-		std::cout << "Point " << i << " belongs to cluster " << this->GetPointAssociations(i) << std::endl;
+		os << "Point " << i << " belongs to cluster " << this->GetPointAssociations(i) << std::endl;
 	}
 }
 
