@@ -11,22 +11,11 @@
 
 #include <vector>
 #include <fstream>
-/*
-#include "itkMetaSceneConverter.h"  // needed???? .... convert Meta to Spatial
-#include "itkGroupSpatialObject.h"  // needed????
-#include "itkSceneSpatialObject.h"  // needed????
-*/
 #include "itkProcessObject.h"
-//#include "itkSpatialObject.h"
-//#include "itkMetaEvent.h"
-//#include <itkDefaultStaticMeshTraits.h>
-//#include "itkSpatialObjectReader.h"
 
-//#include "itkLandmarkSpatialObject.h"
 #include "itkFcsvReader.h"
 
-#include "itkImageIOBase.h" /// needed??
-// LightProcessObject
+#include "itkImageIOBase.h"
 
 namespace itk
 {
