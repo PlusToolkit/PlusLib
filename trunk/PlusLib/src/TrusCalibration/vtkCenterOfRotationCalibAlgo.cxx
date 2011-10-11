@@ -1,3 +1,9 @@
+/*=Plus=header=begin======================================================
+  Program: Plus
+  Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+  See License.txt for details.
+=========================================================Plus=header=end*/ 
+
 #include "PlusMath.h"
 #include "vtkCenterOfRotationCalibAlgo.h"
 #include "vtkObjectFactory.h"
@@ -13,10 +19,6 @@
 #ifdef PLUS_USE_BRACHY_TRACKER
   #include "vtkBrachyTracker.h"
 #endif 
-
-
-
-
 
 //----------------------------------------------------------------------------
 vtkCxxRevisionMacro(vtkCenterOfRotationCalibAlgo, "$Revision: 1.0 $");
