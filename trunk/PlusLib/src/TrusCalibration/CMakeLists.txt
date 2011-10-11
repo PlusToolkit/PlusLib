@@ -3,11 +3,11 @@
 
 SET (TrusCalibration_SRCS
 	vtkCalibrationController.cxx 
-  vtkMeanShiftClustering.cxx 
+    vtkMeanShiftClustering.cxx 
 	vtkPivotCalibrationAlgo.cxx
 	vtkPhantomRegistrationAlgo.cxx
 	VolumeReconstructionController.cxx
-  vtkSpacingCalibAlgo.cxx 
+    vtkSpacingCalibAlgo.cxx 
     vtkCenterOfRotationCalibAlgo.cxx
     vtkBrachyStepperPhantomRegistrationAlgo.cxx
 	)
@@ -16,34 +16,15 @@ SET (TrusCalibration_HDRS)
 IF (WIN32)	
 	SET (TrusCalibration_HDRS
 		vtkCalibrationController.h
-    vtkMeanShiftClustering.h
+        vtkMeanShiftClustering.h
 		vtkPivotCalibrationAlgo.h
 		vtkPhantomRegistrationAlgo.h
 		VolumeReconstructionController.h
-    vtkSpacingCalibAlgo.h 
+        vtkSpacingCalibAlgo.h 
         vtkCenterOfRotationCalibAlgo.h
         vtkBrachyStepperPhantomRegistrationAlgo.h
 		)
 ENDIF (WIN32)
-
-IF (PLUS_USE_BRACHY_TRACKER)
-    SET (TrusCalibration_SRCS
-        ${TrusCalibration_SRCS}
-        vtkStepperCalibrationController.cxx
-        vtkRotationAxisCalibAlgo.cxx 
-        vtkTranslAxisCalibAlgo.cxx 
-        vtkRotationEncoderCalibAlgo.cxx
-        )
-    IF (WIN32)	
-        SET (TrusCalibration_HDRS
-            ${TrusCalibration_HDRS}
-            vtkStepperCalibrationController.h 
-            vtkRotationAxisCalibAlgo.h
-            vtkTranslAxisCalibAlgo.h
-            vtkRotationEncoderCalibAlgo.h
-            )
-     ENDIF (WIN32)
-ENDIF ()
 
 SET (TrusCalibration_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} CACHE INTERNAL "" FORCE)
 
