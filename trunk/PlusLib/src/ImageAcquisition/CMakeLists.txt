@@ -45,7 +45,7 @@ SET (External_Libraries_Install "")
 
 # Macro for setting up Ultrasonix SDK (major version 5 or later)
 # Ulterius and Porta libraries are supported.
-macro(UltrasonixSdk SDK_MAJOR SDK_MINOR SDK_PATCH)
+MACRO(UltrasonixSdk SDK_MAJOR SDK_MINOR SDK_PATCH)
 	SET(ULTRASONIX_SDK_DIR ${PLTOOLS_DIR}/Ultrasonix/sdk-${SDK_MAJOR}.${SDK_MINOR}.${SDK_PATCH} CACHE PATH "Path to the Ultrasonix SDK directory." FORCE) 			
 	SET(ULTRASONIX_SDK_BINARY_DIR ${ULTRASONIX_SDK_DIR}/bin CACHE PATH "Path to the Ultrasonix SDK binary directory." FORCE)
 	SET(ULTERIUS_INCLUDE_DIR ${ULTRASONIX_SDK_DIR}/ulterius/inc CACHE PATH "Path to the Ultrasonix SDK Ulterius include directory." FORCE)
@@ -56,17 +56,11 @@ macro(UltrasonixSdk SDK_MAJOR SDK_MINOR SDK_PATCH)
 		${ULTERIUS_LIB_DIR}/ulterius.lib
 		${PORTA_LIB_DIR}/porta.lib
 		)
+    FILE(GLOB ULTRASONIX_SDK_SHARED_LIBRARIES "${ULTRASONIX_SDK_BINARY_DIR}/[^.]*${CMAKE_SHARED_LIBRARY_SUFFIX}") 
 	SET ( External_Libraries_Install ${External_Libraries_Install}
-	  ${ULTRASONIX_SDK_BINARY_DIR}/ulterius${CMAKE_SHARED_LIBRARY_SUFFIX}
-		${ULTRASONIX_SDK_BINARY_DIR}/porta${CMAKE_SHARED_LIBRARY_SUFFIX}
-		${ULTRASONIX_SDK_BINARY_DIR}/ftd2xx${CMAKE_SHARED_LIBRARY_SUFFIX}
-		${ULTRASONIX_SDK_BINARY_DIR}/umc_utils${CMAKE_SHARED_LIBRARY_SUFFIX}
-		${ULTRASONIX_SDK_BINARY_DIR}/umc_xml${CMAKE_SHARED_LIBRARY_SUFFIX}
-		${ULTRASONIX_SDK_BINARY_DIR}/umc_string_convert${CMAKE_SHARED_LIBRARY_SUFFIX}
-		${ULTRASONIX_SDK_BINARY_DIR}/umc_unit_convert${CMAKE_SHARED_LIBRARY_SUFFIX}
-		${ULTRASONIX_SDK_BINARY_DIR}/xerces-c_2_7_u_vc6${CMAKE_SHARED_LIBRARY_SUFFIX}
-		)    
-endmacro(UltrasonixSdk) 
+        ${ULTRASONIX_SDK_SHARED_LIBRARIES}
+        )
+ENDMACRO(UltrasonixSdk) 
 
 IF (PLUS_USE_ULTRASONIX_VIDEO)
 
