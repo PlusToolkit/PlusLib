@@ -92,7 +92,8 @@ vtkCalibrationController::vtkCalibrationController()
 
 	this->SetAxialPositionOfCrystalSurfaceInTRUSImageFrame(-1);
 
-	this->CalibrationConfigFileNameWithPath = NULL; 
+	this->CalibrationConfigFileNameWithPath = NULL;
+  this->CalibrationResultFileNameWithPath = NULL;
 	this->US3DBeamProfileDataFileNameAndPath = NULL; 
 	this->SegmentationAnalysisFileNameWithTimeStamp = NULL; 
 	this->SegmentationErrorLogFileNameWithTimeStamp = NULL;
@@ -1228,78 +1229,6 @@ PlusStatus vtkCalibrationController::OfflineUSToTemplateCalibration()
   calibrationData->Clear(); 
 
   return PLUS_SUCCESS; 
-}
-
-//-----------------------------------------------------------------------------
-
-PlusStatus vtkCalibrationController::DoOfflineCalibration()
-{
-//TODO it is for Freehand!!!
-	LOG_TRACE("vtkCalibrationController::DoOfflineCalibration"); 
-
-	try {
-		vtkSmartPointer<vtkTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New();
-		if ( !this->GetImageDataInfo(FREEHAND_MOTION_2).InputSequenceMetaFileName.empty() ) {
-			trackedFrameList->ReadFromSequenceMetafile(this->GetImageDataInfo(FREEHAND_MOTION_2).InputSequenceMetaFileName.c_str()); 
-		} else {
-			LOG_ERROR("Unable to start OfflineCalibration with validation data: SequenceMetaFileName is empty!"); 
-			return PLUS_FAIL; 
-		}
-
-		// Validation data
-		int validationCounter = 0;
-    std::string defaultFrameTransformName=trackedFrameList->GetDefaultFrameTransformName();
-		for (int imgNumber = 0; validationCounter < this->GetImageDataInfo(FREEHAND_MOTION_2).NumberOfImagesToAcquire; imgNumber++) {
-			if ( imgNumber >= trackedFrameList->GetNumberOfTrackedFrames() ) {
-				break; 
-			}
-
-			if ( this->AddTrackedFrameData(trackedFrameList->GetTrackedFrame(imgNumber), FREEHAND_MOTION_2, defaultFrameTransformName.c_str()) ) {
-				// The segmentation was successful
-				validationCounter++;
-			} else {
-				LOG_DEBUG("Adding tracked frame " << imgNumber << " (for validation) failed!");
-			}
-
-			this->SetOfflineImageData(trackedFrameList->GetTrackedFrame(imgNumber)->GetImageData()->GetDisplayableImage());
-		}
-
-		LOG_INFO( "A total of " << this->GetImageDataInfo(FREEHAND_MOTION_2).NumberOfSegmentedImages << " images have been successfully added for validation.");
-
-
-		// Calibration data
-		vtkSmartPointer<vtkTrackedFrameList> calibrationData = vtkSmartPointer<vtkTrackedFrameList>::New();
-		if ( !this->GetImageDataInfo(FREEHAND_MOTION_1).InputSequenceMetaFileName.empty() ) {
-			calibrationData->ReadFromSequenceMetafile(this->GetImageDataInfo(FREEHAND_MOTION_1).InputSequenceMetaFileName.c_str()); 
-		} else {
-			LOG_ERROR("Unable to start OfflineCalibration with calibration data: SequenceMetaFileName is empty!"); 
-			return PLUS_FAIL; 
-		}
-
-		int calibrationCounter = 0;
-    std::string defaultFrameTransformNamCalibration=calibrationData->GetDefaultFrameTransformName();
-		for (int imgNumber = 0; calibrationCounter < this->GetImageDataInfo(FREEHAND_MOTION_1).NumberOfImagesToAcquire; imgNumber++) {
-			if ( imgNumber >= calibrationData->GetNumberOfTrackedFrames() ) {
-				break; 
-			}
-
-			if ( this->AddTrackedFrameData(calibrationData->GetTrackedFrame(imgNumber), FREEHAND_MOTION_1, defaultFrameTransformNamCalibration.c_str()) ) {
-				// The segmentation was successful
-				calibrationCounter++; 
-			} else {
-				LOG_DEBUG("Adding tracked frame " << imgNumber << " (for calibration) failed!");
-			}
-
-			this->SetOfflineImageData(calibrationData->GetTrackedFrame(imgNumber)->GetImageData()->GetDisplayableImage()); 
-		}
-
-		LOG_INFO ("A total of " << this->GetImageDataInfo(FREEHAND_MOTION_1).NumberOfSegmentedImages << " images have been successfully added for calibration.");
-	} catch(...) {
-		LOG_ERROR("AddAllSavedData: Failed to add saved data!");  
-		return PLUS_FAIL;
-	}
-
-	return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
@@ -2997,6 +2926,7 @@ void vtkCalibrationController::SaveCalibrationResultsAndErrorReportsToXML()
   }
   const std::string calibrationResultFileName = calibrationTimestamp + this->CalibrationResultFileSuffix + ".xml";
 	const std::string calibrationResultFileNameWithPath = vtkPlusConfig::GetInstance()->GetOutputDirectory() + std::string("/") + calibrationResultFileName;
+  this->SetCalibrationResultFileNameWithPath(calibrationResultFileNameWithPath.c_str());
 
 	// <USTemplateCalibrationResult>
 	vtkSmartPointer<vtkXMLDataElement> xmlCalibrationResults = vtkSmartPointer<vtkXMLDataElement>::New(); 

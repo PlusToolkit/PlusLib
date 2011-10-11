@@ -24,6 +24,7 @@ const double ERROR_THRESHOLD = 0.05; // error threshold is 5%
 int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const char* currentResultFileName, int translationErrorThreshold, int rotationErrorThreshold); 
 void PrintLogsCallback(vtkObject* obj, unsigned long eid, void* clientdata, void* calldata); 
 double GetCalibrationError(vtkMatrix4x4* baseTransMatrix, vtkMatrix4x4* currentTransMatrix); 
+PlusStatus DoOfflineCalibration(vtkCalibrationController* calibrator);
 
 int main (int argc, char* argv[])
 {
@@ -110,8 +111,15 @@ int main (int argc, char* argv[])
   freehandCalibration->RegisterPhantomGeometry(phantomRegistration->GetPhantomToPhantomReferenceTransform());
 
 	// Register phantom geometry before calibration 
-	freehandCalibration->DoOfflineCalibration();  
-	freehandCalibration->ComputeCalibrationResults(); 
+	if ( DoOfflineCalibration(freehandCalibration) == PLUS_SUCCESS )
+  {
+  	freehandCalibration->ComputeCalibrationResults(); 
+  }
+  else
+  {
+    LOG_ERROR("Offline calibration failed!");
+    return EXIT_FAILURE;
+  }
 
 	vtkstd::string currentConfigFileName = freehandCalibration->GetCalibrationResultFileNameWithPath(); 
 
@@ -125,6 +133,72 @@ int main (int argc, char* argv[])
 
 	std::cout << "Exit success!!!" << std::endl; 
 	return EXIT_SUCCESS;
+}
+
+//-----------------------------------------------------------------------------
+
+PlusStatus DoOfflineCalibration( vtkCalibrationController* calibrator )
+{
+	LOG_TRACE("DoOfflineCalibration"); 
+
+	vtkSmartPointer<vtkTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New();
+	if ( !calibrator->GetImageDataInfo(FREEHAND_MOTION_2).InputSequenceMetaFileName.empty() ) {
+		trackedFrameList->ReadFromSequenceMetafile(calibrator->GetImageDataInfo(FREEHAND_MOTION_2).InputSequenceMetaFileName.c_str()); 
+	} else {
+		LOG_ERROR("Unable to start OfflineCalibration with validation data: SequenceMetaFileName is empty!"); 
+		return PLUS_FAIL; 
+	}
+
+	// Validation data
+	int validationCounter = 0;
+  std::string defaultFrameTransformName=trackedFrameList->GetDefaultFrameTransformName();
+	for (int imgNumber = 0; validationCounter < calibrator->GetImageDataInfo(FREEHAND_MOTION_2).NumberOfImagesToAcquire; imgNumber++) {
+		if ( imgNumber >= trackedFrameList->GetNumberOfTrackedFrames() ) {
+			break; 
+		}
+
+		if ( calibrator->AddTrackedFrameData(trackedFrameList->GetTrackedFrame(imgNumber), FREEHAND_MOTION_2, defaultFrameTransformName.c_str()) ) {
+			// The segmentation was successful
+			validationCounter++;
+		} else {
+			LOG_DEBUG("Adding tracked frame " << imgNumber << " (for validation) failed!");
+		}
+
+		calibrator->SetOfflineImageData(trackedFrameList->GetTrackedFrame(imgNumber)->GetImageData()->GetDisplayableImage());
+	}
+
+	LOG_INFO( "A total of " << calibrator->GetImageDataInfo(FREEHAND_MOTION_2).NumberOfSegmentedImages << " images have been successfully added for validation.");
+
+
+	// Calibration data
+	vtkSmartPointer<vtkTrackedFrameList> calibrationData = vtkSmartPointer<vtkTrackedFrameList>::New();
+	if ( !calibrator->GetImageDataInfo(FREEHAND_MOTION_1).InputSequenceMetaFileName.empty() ) {
+		calibrationData->ReadFromSequenceMetafile(calibrator->GetImageDataInfo(FREEHAND_MOTION_1).InputSequenceMetaFileName.c_str()); 
+	} else {
+		LOG_ERROR("Unable to start OfflineCalibration with calibration data: SequenceMetaFileName is empty!"); 
+		return PLUS_FAIL; 
+	}
+
+	int calibrationCounter = 0;
+  std::string defaultFrameTransformNamCalibration=calibrationData->GetDefaultFrameTransformName();
+	for (int imgNumber = 0; calibrationCounter < calibrator->GetImageDataInfo(FREEHAND_MOTION_1).NumberOfImagesToAcquire; imgNumber++) {
+		if ( imgNumber >= calibrationData->GetNumberOfTrackedFrames() ) {
+			break; 
+		}
+
+		if ( calibrator->AddTrackedFrameData(calibrationData->GetTrackedFrame(imgNumber), FREEHAND_MOTION_1, defaultFrameTransformNamCalibration.c_str()) ) {
+			// The segmentation was successful
+			calibrationCounter++; 
+		} else {
+			LOG_DEBUG("Adding tracked frame " << imgNumber << " (for calibration) failed!");
+		}
+
+		calibrator->SetOfflineImageData(calibrationData->GetTrackedFrame(imgNumber)->GetImageData()->GetDisplayableImage()); 
+	}
+
+	LOG_INFO ("A total of " << calibrator->GetImageDataInfo(FREEHAND_MOTION_1).NumberOfSegmentedImages << " images have been successfully added for calibration.");
+
+	return PLUS_SUCCESS;
 }
 
 //-------------------------------------------------------------------------------------------------

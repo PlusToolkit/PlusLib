@@ -164,6 +164,10 @@ public:
 	typedef void (*SegmentationProgressPtr)(int percent);
   void SetSegmentationProgressCallbackFunction(SegmentationProgressPtr cb) { SegmentationProgressCallbackFunction = cb; } 
 
+	//! Add frame to renderer in offline mode
+	virtual PlusStatus SetOfflineImageData(vtkImageData* frame); 
+	virtual PlusStatus SetOfflineImageData(const ImageType::Pointer& frame); 
+
 public: // Former ProbeCalibrationController and FreehandCalibraitonController functions
 	//! Register phantom geometry for calibrator 
   virtual void RegisterPhantomGeometry( vtkTransform* aPhantomToPhantomReferenceTransform ); 
@@ -214,9 +218,6 @@ public: // Former ProbeCalibrationController and FreehandCalibraitonController f
 	*/
 	std::string GetResultString();
 
-	//! Read and populate US to Template calibration image data in offline mode
-	PlusStatus DoOfflineCalibration();
-
 	//! Add generated html report from final calibration to the existing html report
 	// htmlReport and plotter arguments has to be defined by the caller function
   PlusStatus GenerateProbeCalibrationReport( vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter, const char* gnuplotScriptsFolder);
@@ -260,6 +261,10 @@ public: // Former ProbeCalibrationController and FreehandCalibraitonController f
 	//! Calibration config file name
 	vtkGetStringMacro(CalibrationConfigFileNameWithPath);
 	vtkSetStringMacro(CalibrationConfigFileNameWithPath);
+
+	//! Calibration result file name
+	vtkGetStringMacro(CalibrationResultFileNameWithPath);
+	vtkSetStringMacro(CalibrationResultFileNameWithPath);
 
 	//! Segmentation error log file name with timestamp
 	vtkGetStringMacro(SegmentationErrorLogFileNameWithTimeStamp);
@@ -330,10 +335,6 @@ protected:
 	virtual ~vtkCalibrationController();
 
 protected:
-	//! Add frame to renderer in offline mode
-	virtual PlusStatus SetOfflineImageData(vtkImageData* frame); 
-	virtual PlusStatus SetOfflineImageData(const ImageType::Pointer& frame); 
-
 	//! Read CalibrationController data element
 	virtual PlusStatus ReadCalibrationControllerConfiguration(vtkXMLDataElement* rootElement); 
 
@@ -478,6 +479,9 @@ protected: // Former ProbeCalibrationController and FreehandCalibrationControlle
 
 	//! calibration config file name
 	char* CalibrationConfigFileNameWithPath;
+
+	//! calibration result file name
+	char* CalibrationResultFileNameWithPath; 
 
 	//! Segmentation error log file name with timestamp
 	char* SegmentationErrorLogFileNameWithTimeStamp;
