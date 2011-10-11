@@ -4,13 +4,18 @@
 
 \section intro_sec Introduction
 
+Plus (Public software Library for UltraSound) is an open-source software package for tracked ultrasound image acquisition, calibration, and processing. PlusLib contains the basic framework and algorithm classes.
+
 See the <a href="https://www.assembla.com/spaces/plus/wiki">Plus Wiki</a> for more information.
 
 \defgroup PlusLibDataCollection DataCollection
-
 \defgroup PlusLibImageAcquisition ImageAcquisition
-
 \defgroup PlusLibPlusCommon PlusCommon
-
+\defgroup PlusLibSignaling Signaling
+\defgroup PlusLibTracking Tracking
+\defgroup PlusLibTrusCalibration TrusCalibration
+\defgroup PlusLibUsFidSegAlgo UsFidSegAlgo
+\defgroup PlusLibVibro Vibro
+\defgroup PlusLibVolumeReconstruction VolumeReconstruction 
 
 */

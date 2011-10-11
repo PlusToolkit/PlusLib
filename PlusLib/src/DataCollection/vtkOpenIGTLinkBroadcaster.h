@@ -1,3 +1,8 @@
+/*=Plus=header=begin======================================================
+  Program: Plus
+  Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+  See License.txt for details.
+=========================================================Plus=header=end*/ 
 
 #ifndef OPENIGTLINKBROADCASTER_H
 #define OPENIGTLINKBROADCASTER_H
@@ -16,9 +21,13 @@
 #include "vtkTrackedFrameList.h"
 
 
-
-/**
- * Stores information necessary for broadcasting non reference tools.
+/** \class IgtToolInfo 
+ *
+ * \brief Stores information necessary for broadcasting non reference tools.
+ *
+ *    
+ * \ingroup PlusLibDataCollection
+ *
  */
 struct IgtToolInfo
 {
@@ -28,9 +37,15 @@ struct IgtToolInfo
 };
 
 
-/**
+/** \class SocketInfo 
+ *
+ * \brief Stores information about a socket connection.
+ *
  * Sockets have to be stored separately. Exactly one socket has to be created
- * for a host:port combination. Even if more tools are broadcasted to this address.
+ * for a host:port combination. Even if more tools are broadcasted to this address. 
+ *    
+ * \ingroup PlusLibDataCollection
+ *
  */
 struct SocketInfo
 {
@@ -40,12 +55,16 @@ struct SocketInfo
 };
 
 
-
-/**
- * Broadcasts tracking data and ultrasound images through OpenIGTLink network protocol.
+/** \class vtkOpenIGTLinkBroadcaster 
+ *
+ * \brief Broadcasts tracking data and ultrasound images through OpenIGTLink network protocol.
+ *
  * Input is read from the configuration xml file for DataCollector.
  * To broadcast a tracker tool, specify a SendTo attribute in the tool tag.
  * E.g. <Tool Name="Probe" PortNumber="0" SendTo="localhost:18944"></Tool>
+ *    
+ * \ingroup PlusLibDataCollection
+ *
  */
 class
 VTK_EXPORT 

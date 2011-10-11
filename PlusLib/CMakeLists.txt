@@ -65,3 +65,7 @@ configure_file(
 	${CMAKE_CURRENT_SOURCE_DIR}/DevEnv_RelWithDebInfo.bat.in 
 	${CMAKE_CURRENT_BINARY_DIR}/DevEnv_RelWithDebInfo.bat
 	)
+configure_file(
+	${CMAKE_CURRENT_SOURCE_DIR}/CreateDoc.bat.in 
+	${CMAKE_CURRENT_BINARY_DIR}/CreateDoc.bat
+	)

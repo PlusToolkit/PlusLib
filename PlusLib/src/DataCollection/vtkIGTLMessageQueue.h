@@ -1,3 +1,8 @@
+/*=Plus=header=begin======================================================
+  Program: Plus
+  Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+  See License.txt for details.
+=========================================================Plus=header=end*/ 
 
 #ifndef __vtkIGTLMessageQueue_h
 #define __vtkIGTLMessageQueue_h
@@ -12,7 +17,13 @@
 
 class vtkMutexLock;
 
-
+/** \class vtkIGTLMessageQueue 
+ *
+ * \brief Message queue to store OpenIGTLink messages.
+ *    
+ * \ingroup PlusLibDataCollection
+ *
+ */
 class
 VTK_EXPORT 
 vtkIGTLMessageQueue

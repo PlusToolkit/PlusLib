@@ -1,3 +1,8 @@
+/*=Plus=header=begin======================================================
+  Program: Plus
+  Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+  See License.txt for details.
+=========================================================Plus=header=end*/ 
 
 #ifndef __VTKPLUSOPENIGTLINKCLIENT_H
 #define __VTKPLUSOPENIGTLINKCLIENT_H
@@ -17,12 +22,15 @@
 
 class vtkMutexLock;
 
-
-
-/**
- * This class provides a network interface to access Plus functions
+/** \class vtkPlusOpenIGTLinkClient 
+ *
+ * \brief This class provides a network interface to access Plus functions
  * as an OpenIGTLink client.
- * It connects to a Plus server, sends requests and receives responses.
+ * 
+ * It connects to a Plus server, sends requests and receives responses.  
+ *
+ * \ingroup PlusLibDataCollection
+ *
  */
 class
 VTK_EXPORT 

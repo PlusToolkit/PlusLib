@@ -1,0 +1,8 @@
+@ECHO off 
+ECHO Build PlusLib documentation...
+
+"${CMAKE_MAKE_PROGRAM}" PlusLib.sln /build Release /project doc 
+
+ECHO Documentation available at: ${CMAKE_CURRENT_BINARY_DIR}/Doxygen/html/index.html
+
+timeout /t 5 

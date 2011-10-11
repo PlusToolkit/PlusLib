@@ -1,3 +1,8 @@
+/*=Plus=header=begin======================================================
+  Program: Plus
+  Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+  See License.txt for details.
+=========================================================Plus=header=end*/ 
 
 #ifndef __vtkPlusCommandFactory_h
 #define __vtkPlusCommandFactory_h
@@ -12,6 +17,13 @@ class vtkPlusCommand;
 class vtkPlusCommandCollection;
 class vtkPlusCommandCleanup;
 
+/** \class vtkPlusCommandFactory 
+ *
+ * \brief Creates a PlusCommand from a string.
+ * 
+ * \ingroup PlusLibDataCollection
+ *
+ */
 class
 VTK_EXPORT
 vtkPlusCommandFactory : public vtkObjectFactory

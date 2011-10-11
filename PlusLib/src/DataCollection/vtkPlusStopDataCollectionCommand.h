@@ -1,3 +1,8 @@
+/*=Plus=header=begin======================================================
+  Program: Plus
+  Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+  See License.txt for details.
+=========================================================Plus=header=end*/ 
 
 #ifndef __vtkPlusStopDataCollectionCommand_h
 #define __vtkPlusStopDataCollectionCommand_h
@@ -11,11 +16,13 @@
 #include "vtkDataCollector.h"
 #include "vtkPlusCommand.h"
 
-
-
-/**
- * This command stops the vtkDataCollector on the server side.
- */
+/** \class vtkPlusStopDataCollectionCommand 
+ *
+ *  \brief This command stops the vtkDataCollector on the server side. 
+ *
+ *  \ingroup PlusLibDataCollection
+ *
+ */ 
 class
 VTK_EXPORT 
 vtkPlusStopDataCollectionCommand

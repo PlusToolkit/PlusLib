@@ -1,3 +1,8 @@
+/*=Plus=header=begin======================================================
+  Program: Plus
+  Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+  See License.txt for details.
+=========================================================Plus=header=end*/ 
 
 #ifndef __igtlStringMessage1_h
 #define __igtlStringMessage1_h
@@ -13,10 +18,13 @@
 namespace igtl
 {
 
-
-/**
- * This class enables string messages in programs that still use
- * OpenIGTLink protocol 1.
+/** \class StringMessage1 
+ *
+ * \brief This class enables string messages in programs that still use
+ * OpenIGTLink protocol 1. 
+ *    
+ * \ingroup PlusLibDataCollection
+ *
  */
 class IGTLCommon_EXPORT StringMessage1: public MessageBase
 {
