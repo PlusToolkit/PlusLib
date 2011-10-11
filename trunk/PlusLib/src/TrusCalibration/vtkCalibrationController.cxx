@@ -1108,6 +1108,9 @@ PlusStatus vtkCalibrationController::OfflineUSToTemplateCalibration()
     this->Initialize(); 
   }
 
+  // Draw segmentation results to image 
+  this->EnableSegmentationAnalysisOn(); 
+
   // Reset calibrator data containers 
   this->resetDataContainers(); 
 
