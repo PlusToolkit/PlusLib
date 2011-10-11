@@ -13,6 +13,8 @@ if "%1" == "-C" goto continuous
 if "%1" == "-I" goto individual
 
 :experimental
+"${CMAKE_MAKE_PROGRAM}" PlusApp.sln /build Release /project ALL_BUILD
+IF ERRORLEVEL 1  GOTO BUILDFAILED
 "${CMAKE_CTEST_COMMAND}" -D Experimental
 goto END
 
@@ -36,6 +38,9 @@ goto END
 "${CMAKE_CTEST_COMMAND}" -R "%2" -V
 goto END
 
+:BUILDFAILED
+ECHO ERROR: Build failed...
+GOTO END 
 
 :END
 SET PATH=%ORIGPATH%
