@@ -3,26 +3,24 @@
 
 SET (TrusCalibration_SRCS
 	vtkCalibrationController.cxx 
-    vtkMeanShiftClustering.cxx 
+  vtkMeanShiftClustering.cxx 
 	vtkPivotCalibrationAlgo.cxx
 	vtkPhantomRegistrationAlgo.cxx
-	VolumeReconstructionController.cxx
-    vtkSpacingCalibAlgo.cxx 
-    vtkCenterOfRotationCalibAlgo.cxx
-    vtkBrachyStepperPhantomRegistrationAlgo.cxx
+  vtkSpacingCalibAlgo.cxx 
+  vtkCenterOfRotationCalibAlgo.cxx
+  vtkBrachyStepperPhantomRegistrationAlgo.cxx
 	)
 
 SET (TrusCalibration_HDRS)	
 IF (WIN32)	
 	SET (TrusCalibration_HDRS
 		vtkCalibrationController.h
-        vtkMeanShiftClustering.h
+    vtkMeanShiftClustering.h
 		vtkPivotCalibrationAlgo.h
 		vtkPhantomRegistrationAlgo.h
-		VolumeReconstructionController.h
-        vtkSpacingCalibAlgo.h 
-        vtkCenterOfRotationCalibAlgo.h
-        vtkBrachyStepperPhantomRegistrationAlgo.h
+    vtkSpacingCalibAlgo.h 
+    vtkCenterOfRotationCalibAlgo.h
+    vtkBrachyStepperPhantomRegistrationAlgo.h
 		)
 ENDIF (WIN32)
 
