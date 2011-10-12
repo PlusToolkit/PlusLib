@@ -308,7 +308,7 @@ void PhantomRegistrationToolbox::SetDisplayAccordingToState()
     m_ParentMainWindow->SetStatusBarText(QString(" Recording phantom landmarks"));
 		m_ParentMainWindow->SetStatusBarProgress(0);
 
-    m_ParentMainWindow->GetToolVisualizer()->ShowInputPoints(true);
+    m_ParentMainWindow->GetToolVisualizer()->ShowInput(true);
     m_ParentMainWindow->GetToolVisualizer()->ShowTool(TRACKER_TOOL_STYLUS, true);
     if (m_CurrentLandmarkIndex >= 3) {
       m_ParentMainWindow->GetToolVisualizer()->ShowTool(TRACKER_TOOL_REFERENCE, true);
@@ -336,7 +336,7 @@ void PhantomRegistrationToolbox::SetDisplayAccordingToState()
 		m_ParentMainWindow->SetStatusBarText(QString(" Phantom registration done"));
 		m_ParentMainWindow->SetStatusBarProgress(-1);
 
-    m_ParentMainWindow->GetToolVisualizer()->ShowInputPoints(true);
+    m_ParentMainWindow->GetToolVisualizer()->ShowInput(true);
     m_ParentMainWindow->GetToolVisualizer()->ShowTool(TRACKER_TOOL_REFERENCE, true);
     m_ParentMainWindow->GetToolVisualizer()->ShowTool(TRACKER_TOOL_STYLUS, true);
 
@@ -379,8 +379,8 @@ PlusStatus PhantomRegistrationToolbox::Start()
 		  m_CurrentLandmarkIndex = 0;
 
 	    // Initialize input points poly data in visualizer
-	    m_ParentMainWindow->GetToolVisualizer()->GetInputPointsPolyData()->GetPoints()->Initialize();
-	    m_ParentMainWindow->GetToolVisualizer()->GetInputPointsPolyData()->Modified();
+	    m_ParentMainWindow->GetToolVisualizer()->GetInputPolyData()->GetPoints()->Initialize();
+	    m_ParentMainWindow->GetToolVisualizer()->GetInputPolyData()->Modified();
 
 	    // Highlight first landmark
       m_RequestedLandmarkPolyData->GetPoints()->InsertPoint(0, m_PhantomRegistration->GetDefinedLandmarks()->GetPoint(0));
@@ -495,8 +495,8 @@ void PhantomRegistrationToolbox::RecordPoint()
 		m_PhantomRegistration->GetRecordedLandmarks()->Modified();
 
 		// Add recorded point to visualization
-    m_ParentMainWindow->GetToolVisualizer()->GetInputPointsPolyData()->GetPoints()->InsertPoint(m_CurrentLandmarkIndex, stylusTipPosition[0], stylusTipPosition[1], stylusTipPosition[2]);
-    m_ParentMainWindow->GetToolVisualizer()->GetInputPointsPolyData()->Modified();
+    m_ParentMainWindow->GetToolVisualizer()->GetInputPolyData()->GetPoints()->InsertPoint(m_CurrentLandmarkIndex, stylusTipPosition[0], stylusTipPosition[1], stylusTipPosition[2]);
+    m_ParentMainWindow->GetToolVisualizer()->GetInputPolyData()->Modified();
 
 		// Set new current landmark number and reset request flag
 		++m_CurrentLandmarkIndex;
@@ -555,8 +555,8 @@ void PhantomRegistrationToolbox::Undo()
 		m_PhantomRegistration->SetPhantomToPhantomReferenceTransform(NULL);
 
 		// Delete previously acquired landmark
-		m_ParentMainWindow->GetToolVisualizer()->GetInputPointsPolyData()->GetPoints()->GetData()->RemoveTuple(m_CurrentLandmarkIndex);
-		m_ParentMainWindow->GetToolVisualizer()->GetInputPointsPolyData()->Modified();
+		m_ParentMainWindow->GetToolVisualizer()->GetInputPolyData()->GetPoints()->GetData()->RemoveTuple(m_CurrentLandmarkIndex);
+		m_ParentMainWindow->GetToolVisualizer()->GetInputPolyData()->Modified();
 
 		// Highlight previous landmark
 		m_RequestedLandmarkPolyData->GetPoints()->InsertPoint(0, m_PhantomRegistration->GetDefinedLandmarks()->GetPoint(m_CurrentLandmarkIndex));
@@ -585,8 +585,8 @@ void PhantomRegistrationToolbox::Reset()
 
 	// Delete acquired landmarks
 	vtkSmartPointer<vtkPoints> landmarkPoints = vtkSmartPointer<vtkPoints>::New();
-	m_ParentMainWindow->GetToolVisualizer()->GetInputPointsPolyData()->SetPoints(landmarkPoints);
-	m_ParentMainWindow->GetToolVisualizer()->GetInputPointsPolyData()->Modified();
+	m_ParentMainWindow->GetToolVisualizer()->GetInputPolyData()->SetPoints(landmarkPoints);
+	m_ParentMainWindow->GetToolVisualizer()->GetInputPolyData()->Modified();
 
 	// Reset current landmark index
 	m_CurrentLandmarkIndex = 0;

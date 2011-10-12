@@ -22,8 +22,6 @@ FreehandCalibrationToolbox::FreehandCalibrationToolbox(fCalMainWindow* aParentMa
 {
 	ui.setupUi(this);
 
-	//TODO tooltips
-
   m_CancelRequest = false;
 
 	// Create algorithm
@@ -102,7 +100,7 @@ void FreehandCalibrationToolbox::Initialize()
 	  }
 
 	  if (m_State != ToolboxState_Done) {
-      m_ParentMainWindow->GetToolVisualizer()->GetResultPointsPolyData()->GetPoints()->Reset();
+      m_ParentMainWindow->GetToolVisualizer()->GetResultPolyData()->Initialize();
     }
   }
 }
@@ -116,7 +114,10 @@ void FreehandCalibrationToolbox::Reset()
   // Turn off show devices (this function is called when disconnecting, there is no valid result anymore to show)
   ui.checkBox_ShowDevices->setChecked(false);
 
-  m_ParentMainWindow->GetToolVisualizer()->GetDisplayableTool(TRACKER_TOOL_PROBE)->DisplayableOff();
+  if (m_ParentMainWindow->GetToolVisualizer()->GetDisplayableTool(TRACKER_TOOL_PROBE) != NULL)
+  {
+    m_ParentMainWindow->GetToolVisualizer()->GetDisplayableTool(TRACKER_TOOL_PROBE)->DisplayableOff();
+  }
 
   SetState(ToolboxState_Idle);
 }
@@ -583,12 +584,9 @@ PlusStatus FreehandCalibrationToolbox::DisplaySegmentedPoints(bool aSuccess)
 	LOG_TRACE("vtkFreehandCalibrationController::DisplaySegmentedPoints(" << (aSuccess?"true":"false") << ")");
 
   if (! aSuccess) {
-    m_ParentMainWindow->GetToolVisualizer()->ShowResultPoints(false);
+    m_ParentMainWindow->GetToolVisualizer()->ShowResult(false);
     return PLUS_SUCCESS;
   }
-
-  vtkPoints* points = m_ParentMainWindow->GetToolVisualizer()->GetResultPointsPolyData()->GetPoints();
-  points->Reset();
 
 	// Get last results and feed the points into vtkPolyData for displaying
   SegmentedFrame lastSegmentedFrame = this->m_Calibration->GetSegmentedFrameContainer().at(this->m_Calibration->GetSegmentedFrameContainer().size() - 1);
@@ -603,9 +601,9 @@ PlusStatus FreehandCalibrationToolbox::DisplaySegmentedPoints(bool aSuccess)
 	}
 	segmentedPoints->Modified();
 
-  m_ParentMainWindow->GetToolVisualizer()->GetResultPointsPolyData()->SetPoints(segmentedPoints);
+  m_ParentMainWindow->GetToolVisualizer()->GetResultPolyData()->SetPoints(segmentedPoints);
 
-  m_ParentMainWindow->GetToolVisualizer()->ShowResultPoints(true);
+  m_ParentMainWindow->GetToolVisualizer()->ShowResult(true);
 
 	return PLUS_SUCCESS;
 }

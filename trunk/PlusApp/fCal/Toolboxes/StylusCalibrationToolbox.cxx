@@ -65,7 +65,7 @@ void StylusCalibrationToolbox::Initialize()
     }
 
     if (m_State != ToolboxState_Done) {
-      m_ParentMainWindow->GetToolVisualizer()->GetResultPointsPolyData()->GetPoints()->Reset();
+      m_ParentMainWindow->GetToolVisualizer()->GetResultPolyData()->Initialize();
     }
 
   }
@@ -154,7 +154,7 @@ void StylusCalibrationToolbox::SetDisplayAccordingToState()
 		m_ParentMainWindow->SetStatusBarText(QString(" Recording stylus positions"));
 		m_ParentMainWindow->SetStatusBarProgress(0);
 
-    m_ParentMainWindow->GetToolVisualizer()->ShowInputPoints(true);
+    m_ParentMainWindow->GetToolVisualizer()->ShowInput(true);
 
 		ui.pushButton_Stop->setFocus();
 
@@ -175,9 +175,9 @@ void StylusCalibrationToolbox::SetDisplayAccordingToState()
 		m_ParentMainWindow->SetStatusBarText(QString(" Stylus calibration done"));
 		m_ParentMainWindow->SetStatusBarProgress(-1);
 
-    m_ParentMainWindow->GetToolVisualizer()->ShowInputPoints(true);
+    m_ParentMainWindow->GetToolVisualizer()->ShowInput(true);
     m_ParentMainWindow->GetToolVisualizer()->ShowTool(TRACKER_TOOL_STYLUS, true);
-    m_ParentMainWindow->GetToolVisualizer()->ShowResultPoints(true);
+    m_ParentMainWindow->GetToolVisualizer()->ShowResult(true);
 
 		QApplication::restoreOverrideCursor();
 
@@ -214,10 +214,11 @@ void StylusCalibrationToolbox::Start()
 	m_CurrentPointNumber = 0;
 
   // Clear input points and result point
-	vtkPoints* inputPoints = m_ParentMainWindow->GetToolVisualizer()->GetInputPointsPolyData()->GetPoints();
-  inputPoints->Reset();
-	vtkPoints* resultPoints = m_ParentMainWindow->GetToolVisualizer()->GetResultPointsPolyData()->GetPoints();
-  resultPoints->Reset();
+	vtkSmartPointer<vtkPoints> inputPoints = vtkSmartPointer<vtkPoints>::New();
+	m_ParentMainWindow->GetToolVisualizer()->GetInputPolyData()->SetPoints(inputPoints);
+
+  vtkSmartPointer<vtkPoints> resultPointsPoint = vtkSmartPointer<vtkPoints>::New();
+	m_ParentMainWindow->GetToolVisualizer()->GetResultPolyData()->SetPoints(resultPointsPoint);
 
   // Initialize calibration
 	m_PivotCalibration->Initialize();
@@ -268,7 +269,7 @@ void StylusCalibrationToolbox::Stop()
     // Set result point
     double stylustipPosition[3];
     m_PivotCalibration->GetTooltipPosition(stylustipPosition);
-		vtkPoints* points = m_ParentMainWindow->GetToolVisualizer()->GetResultPointsPolyData()->GetPoints();
+		vtkPoints* points = m_ParentMainWindow->GetToolVisualizer()->GetResultPolyData()->GetPoints();
 		points->InsertPoint(0, stylustipPosition[0], stylustipPosition[1], stylustipPosition[2]);
 		points->Modified();
 
@@ -341,7 +342,7 @@ void StylusCalibrationToolbox::AddStylusPositionToCalibration()
 		m_StylusPositionString = std::string(stylusPositionChars);
 
     // Add point to the input if fulfills the criteria
-		vtkPoints* points = m_ParentMainWindow->GetToolVisualizer()->GetInputPointsPolyData()->GetPoints();
+		vtkPoints* points = m_ParentMainWindow->GetToolVisualizer()->GetInputPolyData()->GetPoints();
 
 		double distance_lowThreshold_mm = 3.0; // TODO: review these thresholds with the guys
 		double distance_highThreshold_mm = 1000.0;

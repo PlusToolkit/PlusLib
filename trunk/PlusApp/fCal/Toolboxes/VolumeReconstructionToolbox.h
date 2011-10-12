@@ -8,6 +8,9 @@
 
 #include <QWidget>
 
+class vtkVolumeReconstructor;
+class vtkImageData;
+
 //-----------------------------------------------------------------------------
 
 /*!
@@ -30,22 +33,11 @@ public:
 	*/
 	~VolumeReconstructionToolbox();
 
-//	/*!
-//	* \brief Executes operations needed after stopping the process - implementation of a pure virtual function
-//	*/
-//	void Stop();
-//
-//	/*!
-//	* \brief Executes operations needed when changing to another toolbox - implementation of a pure virtual function
-//	*/
-//	void Clear();
-
 	/*!
 	* \brief Initialize toolbox (load session data) - overridden method
 	*/
 	void Initialize();
 
-public slots:
 	/*!
 	* \brief Refresh contents (e.g. GUI elements) of toolbox according to the state in the toolbox controller - implementation of a pure virtual function
 	*/
@@ -56,36 +48,62 @@ public slots:
 	*/
 	void SetDisplayAccordingToState();
 
-//signals:
-//	/*!
-//	* \brief Executes operations needed after stopping the process
-//	* \param Enable/disable flag
-//	*/
-//	void SetTabsEnabled(bool);
-//
-//protected slots:
-//	/*!
-//	* \brief Slot handling open volume reconstruction config button click
-//	*/
-//	void OpenVolumeReconstructionConfigClicked();
-//
-//	/*!
-//	* \brief Slot handling open input image button click
-//	*/
-//	void OpenInputImageClicked();
-//
-//	/*!
-//	* \brief Slot handling open reconstruct button click
-//	*/
-//	void ReconstructClicked();
-//
-//	/*!
-//	* \brief Slot handling open save button click
-//	*/
-//	void SaveClicked();
-//
-//protected:
-//	Ui::VolumeReconstructionToolbox ui;
+protected:
+	/*!
+	* \brief Reconstructs volume from input file
+	* \param aInputImage Input sequence metafile image
+	* \return Success flag
+	*/
+	PlusStatus ReconstructVolumeFromInputImage(std::string aInputImage);
+
+	/*!
+	* \brief Saves volume to file
+	* \param aOutput Output file
+	* \return Success flag
+	*/
+	PlusStatus SaveVolumeToFile(std::string aOutput);
+
+	/*!
+	* \brief Display reconstructed volume in canvas
+	*/
+	void DisplayReconstructedVolume();
+
+protected slots:
+	/*!
+	* \brief Slot handling open volume reconstruction config button click
+	*/
+	void OpenVolumeReconstructionConfig();
+
+	/*!
+	* \brief Slot handling open input image button click
+	*/
+	void OpenInputImage();
+
+	/*!
+	* \brief Slot handling open reconstruct button click
+	*/
+	void Reconstruct();
+
+	/*!
+	* \brief Slot handling open save button click
+	*/
+	void Save();
+
+protected:
+	//! Volume reconstructor instance
+	vtkVolumeReconstructor*	m_VolumeReconstructor;
+
+	//! Reconstructed volume
+	vtkImageData*			      m_ReconstructedVolume;
+
+	//! Flag indicating whether a volume reconstruction config file has been loaded successfully
+	bool					          m_VolumeReconstructionConfigFileLoaded;
+
+  //! Contouring threshold
+	double					        m_ContouringThreshold;
+
+protected:
+	Ui::VolumeReconstructionToolbox ui;
 };
 
 #endif

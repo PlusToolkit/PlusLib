@@ -39,10 +39,10 @@ vtkToolVisualizer::vtkToolVisualizer()
 	this->ImageModeOff();
 
 	this->CanvasRenderer = NULL;
-	this->InputPointsPolyData = NULL;
-	this->InputPointsActor = NULL;
-	this->ResultPointsPolyData = NULL;
-	this->ResultPointsActor = NULL;
+	this->InputPolyData = NULL;
+	this->InputActor = NULL;
+	this->ResultPolyData = NULL;
+	this->ResultActor = NULL;
   this->ImageActor = NULL;
 	this->ImageCamera = NULL;
 
@@ -131,7 +131,7 @@ PlusStatus vtkToolVisualizer::InitializeVisualization()
 	inputPointsPolyData->Initialize();
 	vtkSmartPointer<vtkPoints> inputPoints = vtkSmartPointer<vtkPoints>::New();
 	inputPointsPolyData->SetPoints(inputPoints);
-	this->SetInputPointsPolyData(inputPointsPolyData);
+	this->SetInputPolyData(inputPointsPolyData);
 
 	// Input points actor
   vtkSmartPointer<vtkActor> inputPointsActor = vtkSmartPointer<vtkActor>::New();
@@ -140,12 +140,12 @@ PlusStatus vtkToolVisualizer::InitializeVisualization()
 	vtkSmartPointer<vtkSphereSource> inputPointsSphereSource = vtkSmartPointer<vtkSphereSource>::New();
 	inputPointsSphereSource->SetRadius(1.5); // mm
 
-	inputPointsGlyph->SetInputConnection(this->InputPointsPolyData->GetProducerPort());
+	inputPointsGlyph->SetInputConnection(this->InputPolyData->GetProducerPort());
 	inputPointsGlyph->SetSourceConnection(inputPointsSphereSource->GetOutputPort());
 	inputPointsMapper->SetInputConnection(inputPointsGlyph->GetOutputPort());
 	inputPointsActor->SetMapper(inputPointsMapper);
 	inputPointsActor->GetProperty()->SetColor(0.0, 0.7, 1.0);
-	this->SetInputPointsActor(inputPointsActor);
+	this->SetInputActor(inputPointsActor);
 
 
 	// Result points poly data
@@ -155,7 +155,7 @@ PlusStatus vtkToolVisualizer::InitializeVisualization()
 	vtkSmartPointer<vtkPoints> resultPointsPoint = vtkSmartPointer<vtkPoints>::New();
 	//resultPointsPoint->SetNumberOfPoints(1); // Makes the input actor disappear!
 	resultPointsPolyData->SetPoints(resultPointsPoint);
-	this->SetResultPointsPolyData(resultPointsPolyData);
+	this->SetResultPolyData(resultPointsPolyData);
 
 	// Result points actor
   vtkSmartPointer<vtkActor> resultPointsActor = vtkSmartPointer<vtkActor>::New();
@@ -164,12 +164,12 @@ PlusStatus vtkToolVisualizer::InitializeVisualization()
 	vtkSmartPointer<vtkSphereSource> resultPointsSphereSource = vtkSmartPointer<vtkSphereSource>::New();
 	resultPointsSphereSource->SetRadius(3.0); // mm
 
-	resultPointsGlyph->SetInputConnection(this->ResultPointsPolyData->GetProducerPort());
+	resultPointsGlyph->SetInputConnection(this->ResultPolyData->GetProducerPort());
 	resultPointsGlyph->SetSourceConnection(resultPointsSphereSource->GetOutputPort());
 	resultPointsMapper->SetInputConnection(resultPointsGlyph->GetOutputPort());
 	resultPointsActor->SetMapper(resultPointsMapper);
 	resultPointsActor->GetProperty()->SetColor(0.0, 0.8, 0.0);
-	this->SetResultPointsActor(resultPointsActor);
+	this->SetResultActor(resultPointsActor);
 
   // Create image actor
   vtkSmartPointer<vtkImageActor> imageActor = vtkSmartPointer<vtkImageActor>::New();
@@ -191,8 +191,8 @@ PlusStatus vtkToolVisualizer::InitializeVisualization()
 	//this->CanvasRenderer->AddActor(axesActor);
 
   // Add non-tool actors to the renderer
-	this->CanvasRenderer->AddActor(this->InputPointsActor);
-	this->CanvasRenderer->AddActor(this->ResultPointsActor);
+	this->CanvasRenderer->AddActor(this->InputActor);
+	this->CanvasRenderer->AddActor(this->ResultActor);
 	this->CanvasRenderer->AddActor(this->ImageActor);
 
   // Hide all actors
@@ -318,8 +318,8 @@ PlusStatus vtkToolVisualizer::HideAll()
 	LOG_TRACE("vtkToolVisualizer::HideAll");
 
 	// Hide all actors from the renderer
-	this->InputPointsActor->VisibilityOff();
-	this->ResultPointsActor->VisibilityOff();
+	this->InputActor->VisibilityOff();
+	this->ResultActor->VisibilityOff();
   this->ImageActor->VisibilityOff();
 
   for (std::vector<vtkDisplayableTool*>::iterator it = this->DisplayableToolVector.begin(); it != this->DisplayableToolVector.end(); ++it) {
@@ -350,11 +350,11 @@ PlusStatus vtkToolVisualizer::ShowTool(TRACKER_TOOL_TYPE aType, bool aOn)
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkToolVisualizer::ShowInputPoints(bool aOn)
+PlusStatus vtkToolVisualizer::ShowInput(bool aOn)
 {
-	LOG_TRACE("vtkToolVisualizer::ShowInputPoints(" << (aOn?"true":"false") << ")");
+	LOG_TRACE("vtkToolVisualizer::ShowInput(" << (aOn?"true":"false") << ")");
 
-  this->InputPointsActor->SetVisibility(aOn);
+  this->InputActor->SetVisibility(aOn);
 	this->CanvasRenderer->Modified();
 
 	return PLUS_SUCCESS;
@@ -362,11 +362,11 @@ PlusStatus vtkToolVisualizer::ShowInputPoints(bool aOn)
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkToolVisualizer::ShowResultPoints(bool aOn)
+PlusStatus vtkToolVisualizer::ShowResult(bool aOn)
 {
-	LOG_TRACE("vtkToolVisualizer::ShowResultPoints(" << (aOn?"true":"false") << ")");
+	LOG_TRACE("vtkToolVisualizer::ShowResult(" << (aOn?"true":"false") << ")");
 
-  this->ResultPointsActor->SetVisibility(aOn);
+  this->ResultActor->SetVisibility(aOn);
 	this->CanvasRenderer->Modified();
 
 	return PLUS_SUCCESS;

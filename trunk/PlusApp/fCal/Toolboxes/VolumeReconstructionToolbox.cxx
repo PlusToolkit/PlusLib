@@ -5,37 +5,48 @@
 
 #include <QFileDialog>
 
+#include "vtkVolumeReconstructor.h"
+#include "vtkImageExtractComponents.h"
+#include "vtkDataSetWriter.h"
+#include "vtkMarchingContourFilter.h"
+#include "vtkProperty.h"
+#include "vtkXMLUtilities.h"
 
 //-----------------------------------------------------------------------------
 
 VolumeReconstructionToolbox::VolumeReconstructionToolbox(fCalMainWindow* aParentMainWindow, Qt::WFlags aFlags)
 	: AbstractToolbox(aParentMainWindow)
 	, QWidget(aParentMainWindow, aFlags)
+	, m_VolumeReconstructor(NULL)
+	, m_ReconstructedVolume(NULL)
+	, m_VolumeReconstructionConfigFileLoaded(false)
+	, m_ContouringThreshold(64.0)
 {
-  /*
 	ui.setupUi(this);
 
-	// Initialize toolbox controller
-	VolumeReconstructionController* toolboxController = VolumeReconstructionController::GetInstance();
-	if (toolboxController == NULL) {
-		LOG_ERROR("Volume reconstruction toolbox controller is not initialized!");
-		return;
-	}
+  m_VolumeReconstructor = vtkVolumeReconstructor::New();
+  m_ReconstructedVolume = vtkImageData::New();
 
-	toolboxController->SetToolbox(this);
-
-	// Connect events
-	connect( ui.pushButton_OpenVolumeReconstructionConfig, SIGNAL( clicked() ), this, SLOT( OpenVolumeReconstructionConfigClicked() ) );
-	connect( ui.pushButton_OpenInputImage, SIGNAL( clicked() ), this, SLOT( OpenInputImageClicked() ) );
-	connect( ui.pushButton_Reconstruct, SIGNAL( clicked() ), this, SLOT( ReconstructClicked() ) );
-	connect( ui.pushButton_Save, SIGNAL( clicked() ), this, SLOT( SaveClicked() ) );
-  */
+  // Connect events
+	connect( ui.pushButton_OpenVolumeReconstructionConfig, SIGNAL( clicked() ), this, SLOT( OpenVolumeReconstructionConfig() ) );
+	connect( ui.pushButton_OpenInputImage, SIGNAL( clicked() ), this, SLOT( OpenInputImage() ) );
+	connect( ui.pushButton_Reconstruct, SIGNAL( clicked() ), this, SLOT( Reconstruct() ) );
+	connect( ui.pushButton_Save, SIGNAL( clicked() ), this, SLOT( Save() ) );
 }
 
 //-----------------------------------------------------------------------------
 
 VolumeReconstructionToolbox::~VolumeReconstructionToolbox()
 {
+	if (m_VolumeReconstructor != NULL) {
+		m_VolumeReconstructor->Delete();
+		m_VolumeReconstructor = NULL;
+	}
+
+  if (m_ReconstructedVolume != NULL) {
+		m_ReconstructedVolume->Delete();
+		m_ReconstructedVolume = NULL;
+	}
 }
 
 //-----------------------------------------------------------------------------
@@ -44,42 +55,61 @@ void VolumeReconstructionToolbox::Initialize()
 {
 	LOG_TRACE("VolumeReconstructionToolbox::Initialize"); 
 
-  if ((m_ParentMainWindow->GetToolVisualizer()->GetDataCollector() != NULL) && (m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->GetConnected())) {
-
+  if ((m_ParentMainWindow->GetToolVisualizer()->GetDataCollector() != NULL) && (m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->GetConnected()))
+  {
     m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->SetTrackingOnly(false);
   }
-/*
-	vtkFreehandController* controller = vtkFreehandController::GetInstance();
-	if (controller == NULL) {
-		LOG_ERROR("vtkFreehandController is invalid");
-	}
 
   // Try to load volume reconstruction configuration from the device set configuration
-  if ((controller->GetConfigurationData()) && (VolumeReconstructionController::GetInstance()->LoadVolumeReconstructionConfiguration(controller->GetConfigurationData()) == PLUS_SUCCESS)) {
+  if ( (vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData() != NULL)
+    && (m_VolumeReconstructor->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) == PLUS_SUCCESS))
+  {
+    m_VolumeReconstructionConfigFileLoaded = true;
     ui.lineEdit_VolumeReconstructionConfig->setText(tr("Using session configuration"));
   }
-  */
+
+  // Set initialized if it was uninitialized
+  if (m_State == ToolboxState_Uninitialized) {
+	  SetState(ToolboxState_Idle);
+  }
+
+  if (m_State != ToolboxState_Done) {
+    m_ParentMainWindow->GetToolVisualizer()->GetResultPolyData()->Initialize();
+  }
 }
 
 //-----------------------------------------------------------------------------
 
 void VolumeReconstructionToolbox::RefreshContent()
 {
-	//LOG_TRACE("VolumeReconstructionToolbox::RefreshToolboxContent");
-/*
-	VolumeReconstructionController* toolboxController = VolumeReconstructionController::GetInstance();
+	//LOG_TRACE("VolumeReconstructionToolbox::RefreshContent");
+
+	// If in progress
+	if (m_State == ToolboxState_InProgress) {
+		// Needed for forced refreshing the UI (without this, no progress is shown)
+		QApplication::processEvents();
+	}
+}
+
+//-----------------------------------------------------------------------------
+
+void VolumeReconstructionToolbox::SetDisplayAccordingToState()
+{
+  LOG_TRACE("VolumeReconstructionToolbox::SetDisplayAccordingToState");
 
 	// If initialization failed
-	if (toolboxController->State() == ToolboxState_Uninitialized) {
+	if (m_State == ToolboxState_Uninitialized) {
 		ui.label_Instructions->setText("N/A");
 
 		ui.pushButton_Reconstruct->setEnabled(false);
 		ui.pushButton_Save->setEnabled(false);
+
 	} else
 	// If initialized
-	if (toolboxController->State() == ToolboxState_Idle) {
+	if (m_State == ToolboxState_Idle) {
 		ui.label_Instructions->setText(tr("N/A"));
-		if (! toolboxController->GetVolumeReconstructionConfigFileLoaded()) {
+
+		if (! m_VolumeReconstructionConfigFileLoaded) {
 			ui.label_Instructions->setText(tr("Volume reconstruction config XML has to be loaded"));
 			ui.pushButton_Reconstruct->setEnabled(false);
 			ui.pushButton_Save->setEnabled(false);
@@ -94,92 +124,77 @@ void VolumeReconstructionToolbox::RefreshContent()
 		}
 
 		ui.label_Instructions->setFont(QFont("SansSerif", 8, QFont::Bold));
+
 	} else
 	// If in progress
-	if (toolboxController->State() == ToolboxState_InProgress) {
+	if (m_State == ToolboxState_InProgress) {
 		ui.label_Instructions->setText("");
 
 		ui.pushButton_Reconstruct->setEnabled(false);
 		ui.pushButton_Save->setEnabled(false);
 
-		// Needed for forced refreshing the UI (without this, no progress is shown)
-		QApplication::processEvents();
 	} else
 	// If done
-	if (toolboxController->State() == ToolboxState_Done) {
+	if (m_State == ToolboxState_Done) {
 		ui.label_Instructions->setText("Reconstructed volume saved successfully");
 
 		ui.pushButton_Reconstruct->setEnabled(false);
 		ui.pushButton_Save->setEnabled(true);
+
 	} else
 	// If error occured
-	if (toolboxController->State() == ToolboxState_Error) {
+	if (m_State == ToolboxState_Error) {
 		ui.label_Instructions->setText("Error occured!");
 
 		ui.pushButton_Reconstruct->setEnabled(false);
 		ui.pushButton_Save->setEnabled(false);
 	}
-  */
 }
 
 //-----------------------------------------------------------------------------
 
-void VolumeReconstructionToolbox::SetDisplayAccordingToState()
+void VolumeReconstructionToolbox::OpenVolumeReconstructionConfig()
 {
-  LOG_TRACE("VolumeReconstructionToolbox::SetDisplayAccordingToState");
-
-  // TODO
-}
-/*
-//-----------------------------------------------------------------------------
-
-void VolumeReconstructionToolbox::Stop()
-{
-	LOG_TRACE("VolumeReconstructionToolbox::Stop");
-
-	// No action
-}
-
-//-----------------------------------------------------------------------------
-
-void VolumeReconstructionToolbox::Clear()
-{
-	LOG_TRACE("VolumeReconstructionToolbox::Clear");
-
-	// No action
-}
-
-//-----------------------------------------------------------------------------
-
-void VolumeReconstructionToolbox::OpenVolumeReconstructionConfigClicked()
-{
-	LOG_TRACE("VolumeReconstructionToolbox::OpenVolumeReconstructionConfigClicked"); 
+	LOG_TRACE("VolumeReconstructionToolbox::OpenVolumeReconstructionConfig"); 
 
 	// File open dialog for selecting phantom definition xml
 	QString filter = QString( tr( "XML files ( *.xml );;" ) );
-	QString fileName = QFileDialog::getOpenFileName(NULL, QString( tr( "Open volume reconstruction configuration XML" ) ), vtkPlusConfig::GetInstance()->GetConfigurationDirectory(), filter);
+  QString fileName = QFileDialog::getOpenFileName(NULL, QString( tr( "Open volume reconstruction configuration XML" ) ), vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationDirectory(), filter);
 	if (fileName.isNull()) {
 		return;
 	}
 
+  // Parse XML file
+	vtkSmartPointer<vtkXMLDataElement> rootElement = vtkXMLUtilities::ReadElementFromFile(fileName.toStdString().c_str());
+	if (rootElement == NULL) {	
+		LOG_ERROR("Unable to read the configuration file: " << fileName.toStdString()); 
+		return;
+	}
+
 	// Load volume reconstruction configuration xml
-	if (VolumeReconstructionController::GetInstance()->LoadVolumeReconstructionConfigurationFromFile(fileName.toStdString()) != PLUS_SUCCESS) {
-		ui.lineEdit_VolumeReconstructionConfig->setText(tr("Invalid file!"));
+  if (m_VolumeReconstructor->ReadConfiguration(rootElement) != PLUS_SUCCESS)
+  {
+    m_VolumeReconstructionConfigFileLoaded = false;
+
+    ui.lineEdit_VolumeReconstructionConfig->setText(tr("Invalid file!"));
 		ui.lineEdit_VolumeReconstructionConfig->setToolTip("");
 
 		LOG_ERROR("Failed to open volume reconstruction file: " << fileName.toStdString());
 		return;
 	}
 
+  m_VolumeReconstructionConfigFileLoaded = true;
 	ui.lineEdit_VolumeReconstructionConfig->setText(fileName);
 	ui.lineEdit_VolumeReconstructionConfig->setToolTip(fileName);
+
+  SetDisplayAccordingToState();
 }
 
 //-----------------------------------------------------------------------------
 
-void VolumeReconstructionToolbox::OpenInputImageClicked()
+void VolumeReconstructionToolbox::OpenInputImage()
 {
-	LOG_TRACE("VolumeReconstructionToolbox::OpenInputImageClicked"); 
+	LOG_TRACE("VolumeReconstructionToolbox::OpenInputImage"); 
 
 	// File open dialog for selecting phantom definition xml
 	QString filter = QString( tr( "MHA files ( *.mha );;" ) );
@@ -191,26 +206,31 @@ void VolumeReconstructionToolbox::OpenInputImageClicked()
 
 	ui.lineEdit_InputImage->setText(fileName);
 	ui.lineEdit_InputImage->setToolTip(fileName);
+
+  SetDisplayAccordingToState();
 }
 
 //-----------------------------------------------------------------------------
 
-void VolumeReconstructionToolbox::ReconstructClicked()
+void VolumeReconstructionToolbox::Reconstruct()
 {
-	LOG_TRACE("VolumeReconstructionToolbox::ReconstructClicked"); 
+	LOG_TRACE("VolumeReconstructionToolbox::Reconstruct"); 
 
 	QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
 
-	VolumeReconstructionController::GetInstance()->ReconstructVolumeFromInputImage(ui.lineEdit_InputImage->text().toStdString());
+	if (ReconstructVolumeFromInputImage(ui.lineEdit_InputImage->text().toStdString()) != PLUS_SUCCESS)
+  {
+    LOG_ERROR("Unable to reconstruct volume!");
+  }
 
 	QApplication::restoreOverrideCursor();
 }
 
 //-----------------------------------------------------------------------------
 
-void VolumeReconstructionToolbox::SaveClicked()
+void VolumeReconstructionToolbox::Save()
 {
-	LOG_TRACE("VolumeReconstructionToolbox::ReconstructClicked"); 
+	LOG_TRACE("VolumeReconstructionToolbox::Reconstruct"); 
 
 	QString filter = QString( tr( "VTK files ( *.vtk );;" ) );
 	QString fileName = QFileDialog::getSaveFileName(NULL, tr("Save reconstructed volume"), "", filter);
@@ -218,9 +238,101 @@ void VolumeReconstructionToolbox::SaveClicked()
 	if (! fileName.isNull() ) {
 		QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
 
-		VolumeReconstructionController::GetInstance()->SaveVolumeToFile(fileName.toStdString());
+		if (SaveVolumeToFile(fileName.toStdString()) != PLUS_SUCCESS)
+    {
+      LOG_ERROR("Unable to save volume to file!");
+    }
 
 		QApplication::restoreOverrideCursor();
 	}	
 }
-*/
+
+//-----------------------------------------------------------------------------
+
+PlusStatus VolumeReconstructionToolbox::ReconstructVolumeFromInputImage(std::string aInputImage)
+{
+	LOG_TRACE("VolumeReconstructionToolbox::ReconstructVolumeFromInputImage(" << aInputImage << ")");
+
+	SetState(ToolboxState_InProgress);
+
+	// Read image
+	m_ParentMainWindow->SetStatusBarText(QString(" Reading image sequence ..."));
+	m_ParentMainWindow->SetStatusBarProgress(0);
+	RefreshContent();
+
+  vtkSmartPointer<vtkTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New(); 
+	trackedFrameList->ReadFromSequenceMetafile(aInputImage.c_str()); 
+	
+	m_ParentMainWindow->SetStatusBarText(QString(" Reconstructing volume ..."));
+	m_ParentMainWindow->SetStatusBarProgress(0);
+	RefreshContent();
+
+	const int numberOfFrames = trackedFrameList->GetNumberOfTrackedFrames(); 
+	for ( int imgNumber = 0; imgNumber < numberOfFrames; ++imgNumber ) 
+  {
+		// Set progress
+    m_ParentMainWindow->SetStatusBarProgress((int)((100.0 * imgNumber) / numberOfFrames + 0.49));
+    RefreshContent();
+
+		// Add this tracked frame to the reconstructor
+    m_VolumeReconstructor->AddTrackedFrame(trackedFrameList->GetTrackedFrame(imgNumber), trackedFrameList->GetDefaultFrameTransformName().c_str());
+	}
+	
+	m_ParentMainWindow->SetStatusBarProgress(0);
+	RefreshContent();
+
+	trackedFrameList->Clear(); 
+  	
+	m_ParentMainWindow->SetStatusBarProgress(0);
+	m_ParentMainWindow->SetStatusBarText(QString(" Filling holes in output volume..."));
+	RefreshContent();
+
+  m_VolumeReconstructor->GetReconstructedVolume(m_ReconstructedVolume);
+
+	// Display result
+	DisplayReconstructedVolume();
+
+	m_ParentMainWindow->SetStatusBarProgress(100);
+
+	RefreshContent();
+
+	SetState(ToolboxState_Done);
+
+	return PLUS_SUCCESS;
+}
+
+//-----------------------------------------------------------------------------
+
+void VolumeReconstructionToolbox::DisplayReconstructedVolume()
+{
+	LOG_TRACE("VolumeReconstructionToolbox::DisplayReconstructedVolume"); 
+
+	m_ParentMainWindow->SetStatusBarText(QString(" Generating contour for displaying..."));
+	RefreshContent();
+
+	vtkSmartPointer<vtkMarchingContourFilter> contourFilter = vtkSmartPointer<vtkMarchingContourFilter>::New();
+	contourFilter->SetInput(m_ReconstructedVolume);
+	contourFilter->SetValue(0, m_ContouringThreshold);
+
+  m_ParentMainWindow->GetToolVisualizer()->GetResultPolyData()->DeepCopy(contourFilter->GetOutput());
+
+	m_ParentMainWindow->GetToolVisualizer()->GetCanvasRenderer()->ResetCamera();
+
+	m_ParentMainWindow->SetStatusBarProgress(-1);
+}
+
+//-----------------------------------------------------------------------------
+
+PlusStatus VolumeReconstructionToolbox::SaveVolumeToFile(std::string aOutput)
+{
+	LOG_TRACE("VolumeReconstructionToolbox::SaveVolumeToFile(" << aOutput << ")"); 
+
+	// Write out to file
+	vtkSmartPointer<vtkDataSetWriter> writer = vtkSmartPointer<vtkDataSetWriter>::New();
+	writer->SetFileTypeToBinary();
+	writer->SetInput(m_ReconstructedVolume);
+	writer->SetFileName(aOutput.c_str());
+	writer->Update();
+
+	return PLUS_SUCCESS;
+}

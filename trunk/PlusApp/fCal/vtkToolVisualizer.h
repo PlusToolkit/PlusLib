@@ -153,14 +153,14 @@ public:
    * \param aOn Show if true, else hide
 	 * \return Success flag
 	 */
-  PlusStatus ShowInputPoints(bool aOn);
+  PlusStatus ShowInput(bool aOn);
 
 	/*!
 	 * \brief Show or hide result points
    * \param aOn Show if true, else hide
 	 * \return Success flag
 	 */
-  PlusStatus ShowResultPoints(bool aOn);
+  PlusStatus ShowResult(bool aOn);
 
 	/*!
 	 * \brief Enable/disable image mode
@@ -248,17 +248,17 @@ public:
 	vtkGetObjectMacro(CanvasRenderer, vtkRenderer);
 	vtkSetObjectMacro(CanvasRenderer, vtkRenderer);
 
-	vtkGetObjectMacro(InputPointsPolyData, vtkPolyData);
-	vtkGetObjectMacro(ResultPointsPolyData, vtkPolyData);
+	vtkGetObjectMacro(InputPolyData, vtkPolyData);
+	vtkGetObjectMacro(ResultPolyData, vtkPolyData);
 
 	vtkSetObjectMacro(ImageToProbeTransform, vtkTransform);
 
 protected:
 	vtkSetObjectMacro(ImageActor, vtkImageActor);
-	vtkSetObjectMacro(InputPointsActor, vtkActor);
-	vtkSetObjectMacro(InputPointsPolyData, vtkPolyData);
-	vtkSetObjectMacro(ResultPointsActor, vtkActor);
-	vtkSetObjectMacro(ResultPointsPolyData, vtkPolyData);
+	vtkSetObjectMacro(InputActor, vtkActor);
+	vtkSetObjectMacro(InputPolyData, vtkPolyData);
+	vtkSetObjectMacro(ResultActor, vtkActor);
+	vtkSetObjectMacro(ResultPolyData, vtkPolyData);
 	vtkSetObjectMacro(ImageCamera, vtkCamera);
 
 	vtkSetMacro(ImageMode, bool); 
@@ -301,16 +301,16 @@ protected:
   vtkImageActor*                    ImageActor;
 
 	//! Polydata holding the input points
-	vtkPolyData*			                InputPointsPolyData;
+	vtkPolyData*			                InputPolyData;
 
 	//! Actor for displaying the input points in 3D
-	vtkActor*					                InputPointsActor;
+	vtkActor*					                InputActor;
 
 	//! Polydata holding the result points (eg. stylus tip, segmented points)
-	vtkPolyData*			                ResultPointsPolyData;
+	vtkPolyData*			                ResultPolyData;
 
 	//! Actor for displaying the result points (eg. stylus tip, segmented points)
-	vtkActor*					                ResultPointsActor;
+	vtkActor*					                ResultActor;
 
 	//! Camera of the scene
 	vtkCamera*		                    ImageCamera;
