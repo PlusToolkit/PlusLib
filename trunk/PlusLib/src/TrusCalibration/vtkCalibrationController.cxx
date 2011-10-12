@@ -223,7 +223,7 @@ PlusStatus vtkCalibrationController::Initialize()
 	// weights to the calibration component.
 	if( this->US3DBeamwidthDataReady )
 	{
-		this->FillUltrasoundBeamwidthAndWeightFactorsTable(); //TODO error handling
+		this->FillUltrasoundBeamwidthAndWeightFactorsTable();
 	}
 
 	this->InitializedOn(); 
@@ -257,91 +257,88 @@ PlusStatus vtkCalibrationController::SaveTrackedFrameListToMetafile( IMAGE_DATA_
 PlusStatus vtkCalibrationController::AddTrackedFrameData(TrackedFrame* trackedFrame, IMAGE_DATA_TYPE dataType, const char* defaultTransformName )
 {
 	LOG_TRACE("vtkCalibrationController::AddData - TrackedFrame"); 
-	try
-	{
-		// Check to see if the segmentation has returned the targets
-	  itk::Image<unsigned char, 2>::Pointer image=trackedFrame->GetImageData()->GetImage<unsigned char>();
-    if ( image.IsNull())
-    {
-        LOG_ERROR("vtkCalibrationController::AddTrackedFrameData no image data is available"); 
-        return PLUS_FAIL; 
-    }
 
-	  if ( ! this->Initialized )
-	  {
-		  this->Initialize(); 
-	  }
+  // Check to see if the segmentation has returned the targets
+  itk::Image<unsigned char, 2>::Pointer image=trackedFrame->GetImageData()->GetImage<unsigned char>();
+  if ( image.IsNull())
+  {
+    LOG_ERROR("vtkCalibrationController::AddTrackedFrameData no image data is available"); 
+    return PLUS_FAIL; 
+  }
 
-	  // Send the image to the Segmentation component for segmentation
-    if (this->PatternRecognition.RecognizePattern(trackedFrame, this->PatRecognitionResult) != PLUS_SUCCESS)
+  if ( ! this->Initialized )
+  {
+	  if ( Initialize() != PLUS_SUCCESS )
     {
-      LOG_ERROR("Segmentation encountered errors!");
+      LOG_ERROR("Initialization failed!");
       return PLUS_FAIL;
     }
- 
-		// Add frame to the container if segmentation was successful or save the erroneously segmented frames too
-		int trackedFramePosition(-1); 
-		if ( (this->GetPatRecognitionResult()->GetDotsFound()) || (this->EnableErroneouslySegmentedDataSaving) )
-		{
-			if ( this->TrackedFrameListContainer[dataType]->AddTrackedFrame(trackedFrame) != PLUS_SUCCESS )
-      {
-        LOG_ERROR("Unable to add tracked frame to tracked frmae list!"); 
-        return PLUS_FAIL; 
-      }
-		}
+  }
 
-		// Draw segmentation results to frame if needed
-    if ( this->GetPatRecognitionResult()->GetDotsFound() && this->EnableSegmentationAnalysis )
-		{
-			// Draw segmentation result to image
-      if (trackedFrame->GetImageData()->GetITKScalarPixelType()==itk::ImageIOBase::UCHAR)
-      {
-        this->PatternRecognition.DrawResults( static_cast<PixelType*>(trackedFrame->GetImageData()->GetBufferPointer()) ); // :TODO: DrawResults should use an ITK image as input
-      }
-      else
-      {
-        LOG_ERROR("Draw results works only on UCHAR images");
-      }
-		} 
+  // Send the image to the Segmentation component for segmentation
+  if ( this->PatternRecognition.RecognizePattern(trackedFrame, this->PatRecognitionResult) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Segmentation encountered errors!");
+    return PLUS_FAIL;
+  }
 
-		if( !this->PatRecognitionResult.GetDotsFound() )
-		{
-			LOG_DEBUG("The segmentation cannot locate any meaningful targets, the image was ignored!"); 
-			return PLUS_FAIL; 
-		}
-
-    this->SegmentedFrameDefaultTransformName=defaultTransformName;
-
-		// Add the segmentation result to the SegmentedFrameContainer
-		SegmentedFrame segmentedFrame; 
-		segmentedFrame.SegResults = this->PatRecognitionResult; 
-		segmentedFrame.TrackedFrameInfo = new TrackedFrame(*trackedFrame); 
-		segmentedFrame.DataType = dataType; 
-		this->SegmentedFrameContainer.push_back(segmentedFrame); 
-
-		this->ImageDataInfoContainer[dataType].NumberOfSegmentedImages++; 
-
-		double tProbeToReference[16]; 
-    if ( trackedFrame->GetCustomFrameTransform(defaultTransformName, tProbeToReference) )
-		{
-			vtkSmartPointer<vtkMatrix4x4> tProbeToReferenceMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
-			tProbeToReferenceMatrix->DeepCopy(tProbeToReference); 
-			vnl_matrix<double> transformProbeToReferenceMatrix4x4(4,4);
-
-      PlusMath::ConvertVtkMatrixToVnlMatrix(tProbeToReferenceMatrix, transformProbeToReferenceMatrix4x4); 
-
-			this->TransformProbeToReference->SetMatrix(tProbeToReferenceMatrix); 
-
-			this->PopulateSegmentedFiducialsToDataContainer(transformProbeToReferenceMatrix4x4, dataType); 
-		}
-
-		return PLUS_SUCCESS; 
-	}
-	catch(...)
+	// Add frame to the container if segmentation was successful or save the erroneously segmented frames too
+	int trackedFramePosition(-1); 
+	if ( (this->GetPatRecognitionResult()->GetDotsFound()) || (this->EnableErroneouslySegmentedDataSaving) )
 	{
-		LOG_ERROR("AddData: Failed to add tracked data!");  
-		return PLUS_FAIL;
+		if ( this->TrackedFrameListContainer[dataType]->AddTrackedFrame(trackedFrame) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Unable to add tracked frame to tracked frmae list!"); 
+      return PLUS_FAIL; 
+    }
 	}
+
+	// Draw segmentation results to frame if needed
+  if ( this->GetPatRecognitionResult()->GetDotsFound() && this->EnableSegmentationAnalysis )
+	{
+		// Draw segmentation result to image
+    if (trackedFrame->GetImageData()->GetITKScalarPixelType()==itk::ImageIOBase::UCHAR)
+    {
+      this->PatternRecognition.DrawResults( static_cast<PixelType*>(trackedFrame->GetImageData()->GetBufferPointer()) ); // :TODO: DrawResults should use an ITK image as input
+    }
+    else
+    {
+      LOG_ERROR("Draw results works only on UCHAR images");
+    }
+	} 
+
+	if( !this->PatRecognitionResult.GetDotsFound() )
+	{
+		LOG_DEBUG("The segmentation cannot locate any meaningful targets, the image was ignored!"); 
+		return PLUS_FAIL; 
+	}
+
+  this->SegmentedFrameDefaultTransformName = defaultTransformName;
+
+	// Add the segmentation result to the SegmentedFrameContainer
+	SegmentedFrame segmentedFrame; 
+	segmentedFrame.SegResults = this->PatRecognitionResult; 
+	segmentedFrame.TrackedFrameInfo = new TrackedFrame(*trackedFrame); 
+	segmentedFrame.DataType = dataType; 
+	this->SegmentedFrameContainer.push_back(segmentedFrame); 
+
+	this->ImageDataInfoContainer[dataType].NumberOfSegmentedImages++; 
+
+	double tProbeToReference[16]; 
+  if ( trackedFrame->GetCustomFrameTransform(defaultTransformName, tProbeToReference) )
+	{
+		vtkSmartPointer<vtkMatrix4x4> tProbeToReferenceMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
+		tProbeToReferenceMatrix->DeepCopy(tProbeToReference); 
+		vnl_matrix<double> transformProbeToReferenceMatrix4x4(4,4);
+
+    PlusMath::ConvertVtkMatrixToVnlMatrix(tProbeToReferenceMatrix, transformProbeToReferenceMatrix4x4); 
+
+		this->TransformProbeToReference->SetMatrix(tProbeToReferenceMatrix); 
+
+		this->PopulateSegmentedFiducialsToDataContainer(transformProbeToReferenceMatrix4x4, dataType); 
+	}
+
+	return PLUS_SUCCESS; 
 }
 
 //----------------------------------------------------------------------------
@@ -1341,113 +1338,118 @@ bool vtkCalibrationController::IsUserImageToProbeTransformOrthogonal()
 PlusStatus vtkCalibrationController::ComputeCalibrationResults()
 {
 	LOG_TRACE("vtkCalibrationController::ComputeCalibrationResults"); 
-	try
+
+  if ( ! this->Initialized ) 
 	{
-		if ( ! this->Initialized ) 
+		this->Initialize(); 
+	}
+
+  // Set calibration date
+  this->SetCalibrationDate(vtksys::SystemTools::GetCurrentDateTime("%Y.%m.%d %X").c_str()); 
+  this->SetCalibrationTimestamp(vtksys::SystemTools::GetCurrentDateTime("%Y%m%d_%H%M%S").c_str()); 
+
+	// Do final calibration 
+	if ( DoCalibration() != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Calibration failed!");
+    return PLUS_FAIL;
+  }
+
+	vtkSmartPointer<vtkMatrix4x4> userImageToProbeMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
+
+	// convert transform to vtk
+	for ( int i = 0; i < 3; i++ )
+	{
+		for ( int j = 0; j < 4; j++ )
 		{
-			this->Initialize(); 
+			userImageToProbeMatrix->SetElement(i, j, mTransformUSImageFrame2USProbeFrameMatrix4x4.get(i, j) ); 
 		}
+	}
+	
+  // Check orthogonality
+  if ( ! IsUserImageToProbeTransformOrthogonal() )
+  {
+    LOG_WARNING("User image to probe transform matrix orthogonality test failed! The result is probably not satisfactory");
+  }
 
-    // Set calibration date
-    this->SetCalibrationDate(vtksys::SystemTools::GetCurrentDateTime("%Y.%m.%d %X").c_str()); 
-    this->SetCalibrationTimestamp(vtksys::SystemTools::GetCurrentDateTime("%Y%m%d_%H%M%S").c_str()); 
+	// Complete the transformation matrix from a projection matrix to a 3D-3D transformation matrix (so that it can be inverted or can be used to transform 3D widgets to the image plane)
+	double xVector[3] = {userImageToProbeMatrix->GetElement(0,0),userImageToProbeMatrix->GetElement(1,0),userImageToProbeMatrix->GetElement(2,0)}; 
+	double yVector[3] = {userImageToProbeMatrix->GetElement(0,1),userImageToProbeMatrix->GetElement(1,1),userImageToProbeMatrix->GetElement(2,1)};  
+	double zVector[3] = {0,0,0}; 
 
-		// Do final calibration 
-		this->DoCalibration(); 
+  vtkMath::Cross(xVector, yVector, zVector); 
+					
+	// make the z vector have about the same length as x an y,
+	// so that when a 3D widget is transformed using this transform, the aspect ratio is maintained
+	vtkMath::Normalize(zVector);
+	double normZ = (vtkMath::Norm(xVector)+vtkMath::Norm(yVector))/2;  
+	vtkMath::MultiplyScalar(zVector, normZ);
+	
+	userImageToProbeMatrix->SetElement(0, 2, zVector[0]);
+	userImageToProbeMatrix->SetElement(1, 2, zVector[1]);
+	userImageToProbeMatrix->SetElement(2, 2, zVector[2]);
 
-		vtkSmartPointer<vtkMatrix4x4> userImageToProbeMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
+  // Set result matrix
+  this->TransformUserImageToProbe->SetMatrix( userImageToProbeMatrix );
 
-		// convert transform to vtk
-		for ( int i = 0; i < 3; i++ )
-		{
-			for ( int j = 0; j < 4; j++ )
-			{
-				userImageToProbeMatrix->SetElement(i, j, mTransformUSImageFrame2USProbeFrameMatrix4x4.get(i, j) ); 
-			}
-		}
-		
-    // Check orthogonality
-    IsUserImageToProbeTransformOrthogonal();
+  // Compute the independent point and line reconstruction errors
+	if ( this->computeIndependentPointLineReconstructionError() != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Computing PREs failed!");
+    return PLUS_FAIL;
+  }
 
-		// Complete the transformation matrix from a projection matrix to a 3D-3D transformation matrix (so that it can be inverted or can be used to transform 3D widgets to the image plane)
-		double xVector[3] = {userImageToProbeMatrix->GetElement(0,0),userImageToProbeMatrix->GetElement(1,0),userImageToProbeMatrix->GetElement(2,0)}; 
-		double yVector[3] = {userImageToProbeMatrix->GetElement(0,1),userImageToProbeMatrix->GetElement(1,1),userImageToProbeMatrix->GetElement(2,1)};  
-		double zVector[3] = {0,0,0}; 
+	// STEP-4. Print the final calibration results and error reports 
+  LOG_INFO("Calibration result transform matrix = ");
+  PlusMath::LogVtkMatrix(this->TransformUserImageToProbe->GetMatrix());
 
-    vtkMath::Cross(xVector, yVector, zVector); 
-						
-		// make the z vector have about the same length as x an y,
-		// so that when a 3D widget is transformed using this transform, the aspect ratio is maintained
-		vtkMath::Normalize(zVector);
-		double normZ = (vtkMath::Norm(xVector)+vtkMath::Norm(yVector))/2;  
-		vtkMath::MultiplyScalar(zVector, normZ);
-		
-		userImageToProbeMatrix->SetElement(0, 2, zVector[0]);
-		userImageToProbeMatrix->SetElement(1, 2, zVector[1]);
-		userImageToProbeMatrix->SetElement(2, 2, zVector[2]);
+  // Point-Line Distance Error Analysis for Validation Positions in US probe frame
+  LOG_INFO("Point-Line Distance Error - mean: " << this->PointLineDistanceErrorAnalysisVector[0] << ", rms: " << this->PointLineDistanceErrorAnalysisVector[1] << ", std: " << this->PointLineDistanceErrorAnalysisVector[2]);
+  LOG_INFO("  Validation data confidence level: " << this->PointLineDistanceErrorAnalysisVector[3]);
 
-    // Set result matrix
-    this->TransformUserImageToProbe->SetMatrix( userImageToProbeMatrix );
+	// STEP-5. Save the calibration results and error reports into a file 
+	SaveCalibrationResultsAndErrorReportsToXML();
 
-    // Compute the independent point and line reconstruction errors
-		this->computeIndependentPointLineReconstructionError();
+	// STEP-6. Save the segmented wire positions into a file 
+	if ( this->EnableSegmentedWirePositionsSaving )
+	{
+		SaveSegmentedWirePositionsToFile(); 
+	}
 
-		// STEP-4. Print the final calibration results and error reports 
-    LOG_INFO("Calibration result transform matrix = ");
-    PlusMath::LogVtkMatrix(this->TransformUserImageToProbe->GetMatrix());
+  this->ClearSegmentedFrameContainer(RANDOM_STEPPER_MOTION_1); 
+	this->ClearSegmentedFrameContainer(RANDOM_STEPPER_MOTION_2);
+  this->ClearSegmentedFrameContainer(FREEHAND_MOTION_1); 
+	this->ClearSegmentedFrameContainer(FREEHAND_MOTION_2);
 
-	  // Point-Line Distance Error Analysis for Validation Positions in US probe frame
-    LOG_INFO("Point-Line Distance Error - mean: " << this->PointLineDistanceErrorAnalysisVector[0] << ", rms: " << this->PointLineDistanceErrorAnalysisVector[1] << ", std: " << this->PointLineDistanceErrorAnalysisVector[2]);
-    LOG_INFO("  Validation data confidence level: " << this->PointLineDistanceErrorAnalysisVector[3]);
+  // Save calibration
+  if ( WriteConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS )
+  {
+	  LOG_ERROR("Freehand calibration result could not be saved into session configuration data!");
+	  return PLUS_FAIL;
+  }
 
-		// STEP-5. Save the calibration results and error reports into a file 
-		SaveCalibrationResultsAndErrorReportsToXML();
-
-		// STEP-6. Save the segmented wire positions into a file 
-		if ( this->EnableSegmentedWirePositionsSaving )
-		{
-			SaveSegmentedWirePositionsToFile(); 
-		}
-
-    this->ClearSegmentedFrameContainer(RANDOM_STEPPER_MOTION_1); 
-		this->ClearSegmentedFrameContainer(RANDOM_STEPPER_MOTION_2);
-    this->ClearSegmentedFrameContainer(FREEHAND_MOTION_1); 
-		this->ClearSegmentedFrameContainer(FREEHAND_MOTION_2);
-
-    // Save calibration
-    if (WriteConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS) {
-		  LOG_ERROR("Freehand calibration result could not be saved into session configuration data!");
-		  return PLUS_FAIL;
+  // save the input images to meta image
+  if ( this->EnableTrackedSequenceDataSaving )
+  {
+    // TODO add validation file name to config file
+    // Save validation dataset
+    std::ostringstream validationDataFileName; 
+    validationDataFileName << this->CalibrationDate << this->GetImageDataInfo(RANDOM_STEPPER_MOTION_2).OutputSequenceMetaFileSuffix; 
+    if ( this->SaveTrackedFrameListToMetafile( RANDOM_STEPPER_MOTION_2, vtkPlusConfig::GetInstance()->GetOutputDirectory(), validationDataFileName.str().c_str(), false ) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Failed to save tracked frames to sequence metafile!"); 
     }
 
-    // save the input images to meta image
-    if ( this->EnableTrackedSequenceDataSaving )
+    // Save calibration dataset 
+    std::ostringstream calibrationDataFileName; 
+    calibrationDataFileName << this->CalibrationDate << this->GetImageDataInfo(RANDOM_STEPPER_MOTION_1).OutputSequenceMetaFileSuffix; 
+    if ( this->SaveTrackedFrameListToMetafile( RANDOM_STEPPER_MOTION_1, vtkPlusConfig::GetInstance()->GetOutputDirectory(), calibrationDataFileName.str().c_str(), false ) != PLUS_SUCCESS ) 
     {
-      // TODO add validation file name to config file
-      // Save validation dataset
-      std::ostringstream validationDataFileName; 
-      validationDataFileName << this->CalibrationDate << this->GetImageDataInfo(RANDOM_STEPPER_MOTION_2).OutputSequenceMetaFileSuffix; 
-      if ( this->SaveTrackedFrameListToMetafile( RANDOM_STEPPER_MOTION_2, vtkPlusConfig::GetInstance()->GetOutputDirectory(), validationDataFileName.str().c_str(), false ) != PLUS_SUCCESS )
-      {
-        LOG_ERROR("Failed to save tracked frames to sequence metafile!"); 
-      }
-
-      // Save calibration dataset 
-      std::ostringstream calibrationDataFileName; 
-      calibrationDataFileName << this->CalibrationDate << this->GetImageDataInfo(RANDOM_STEPPER_MOTION_1).OutputSequenceMetaFileSuffix; 
-      if ( this->SaveTrackedFrameListToMetafile( RANDOM_STEPPER_MOTION_1, vtkPlusConfig::GetInstance()->GetOutputDirectory(), calibrationDataFileName.str().c_str(), false ) != PLUS_SUCCESS ) 
-      {
-        LOG_ERROR("Failed to save tracked frames to sequence metafile!"); 
-      }
-		}
-		this->CalibrationDoneOn(); 
-
+      LOG_ERROR("Failed to save tracked frames to sequence metafile!"); 
+    }
 	}
-	catch(...)
-	{
-		LOG_ERROR("ComputeCalibrationResults: Failed to compute calibration results!"); 
-		return PLUS_FAIL; 
-	}
+
+	this->CalibrationDoneOn(); 
 
   return PLUS_SUCCESS; 
 }
@@ -2087,7 +2089,7 @@ void vtkCalibrationController::resetDataContainers()
 
 void vtkCalibrationController::FillUltrasoundBeamwidthAndWeightFactorsTable()
 {
-	LOG_TRACE("vtkCalibrationController::setUltrasoundBeamwidthAndWeightFactorsTable");
+	LOG_TRACE("vtkCalibrationController::FillUltrasoundBeamwidthAndWeightFactorsTable");
 
 	// Populate the beam-width data accordingly
 	int numOfTotalBeamWidthData = this->InterpUS3DBeamwidthAndWeightFactorsInUSImageFrameTable5xM.columns();
@@ -2528,7 +2530,6 @@ PlusStatus vtkCalibrationController::computeIndependentPointLineReconstructionEr
 	mNWire6AbsLREAnalysisInUSProbeFrame.push_back( NWire6LRE_EUC_mean );
 	mNWire6AbsLREAnalysisInUSProbeFrame.push_back( NWire6LRE_EUC_std );
 	mNWire6AbsLREAnalysisInUSProbeFrame.push_back( mValidationDataConfidenceLevel );		
-
 
 	// STEP-2. Calculate Point-Line Distance Error (PLDE) in the US Probe Frame
 
