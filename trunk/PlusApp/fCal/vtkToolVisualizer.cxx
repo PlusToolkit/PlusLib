@@ -45,6 +45,7 @@ vtkToolVisualizer::vtkToolVisualizer()
 	this->ResultActor = NULL;
   this->ImageActor = NULL;
 	this->ImageCamera = NULL;
+	this->VolumeActor = NULL;
 
   this->DisplayableToolVector.resize(TRACKER_TOOL_GENERAL + 1, NULL);
 
@@ -70,6 +71,12 @@ vtkToolVisualizer::~vtkToolVisualizer()
 		this->DataCollector->Stop();
 	}
 	this->SetDataCollector(NULL);
+
+	this->SetInputActor(NULL);
+	this->SetInputPolyData(NULL);
+	this->SetResultActor(NULL);
+	this->SetResultPolyData(NULL);
+	this->SetVolumeActor(NULL);
 
 	this->SetCanvasRenderer(NULL);
 	this->SetImageActor(NULL);
@@ -127,49 +134,53 @@ PlusStatus vtkToolVisualizer::InitializeVisualization()
 	LOG_TRACE("vtkToolVisualizer::InitializeVisualization");
 
 	// Input points poly data
-  vtkSmartPointer<vtkPolyData> inputPointsPolyData = vtkSmartPointer<vtkPolyData>::New();
-	inputPointsPolyData->Initialize();
-	vtkSmartPointer<vtkPoints> inputPoints = vtkSmartPointer<vtkPoints>::New();
-	inputPointsPolyData->SetPoints(inputPoints);
-	this->SetInputPolyData(inputPointsPolyData);
+  vtkSmartPointer<vtkPolyData> inputPolyData = vtkSmartPointer<vtkPolyData>::New();
+	inputPolyData->Initialize();
+	vtkSmartPointer<vtkPoints> input = vtkSmartPointer<vtkPoints>::New();
+	inputPolyData->SetPoints(input);
+	this->SetInputPolyData(inputPolyData);
 
 	// Input points actor
-  vtkSmartPointer<vtkActor> inputPointsActor = vtkSmartPointer<vtkActor>::New();
-	vtkSmartPointer<vtkPolyDataMapper> inputPointsMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-	vtkSmartPointer<vtkGlyph3D> inputPointsGlyph = vtkSmartPointer<vtkGlyph3D>::New();
-	vtkSmartPointer<vtkSphereSource> inputPointsSphereSource = vtkSmartPointer<vtkSphereSource>::New();
-	inputPointsSphereSource->SetRadius(1.5); // mm
+  vtkSmartPointer<vtkActor> inputActor = vtkSmartPointer<vtkActor>::New();
+	vtkSmartPointer<vtkPolyDataMapper> inputMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+	vtkSmartPointer<vtkGlyph3D> inputGlyph = vtkSmartPointer<vtkGlyph3D>::New();
+	vtkSmartPointer<vtkSphereSource> inputSphereSource = vtkSmartPointer<vtkSphereSource>::New();
+	inputSphereSource->SetRadius(1.5); // mm
 
-	inputPointsGlyph->SetInputConnection(this->InputPolyData->GetProducerPort());
-	inputPointsGlyph->SetSourceConnection(inputPointsSphereSource->GetOutputPort());
-	inputPointsMapper->SetInputConnection(inputPointsGlyph->GetOutputPort());
-	inputPointsActor->SetMapper(inputPointsMapper);
-	inputPointsActor->GetProperty()->SetColor(0.0, 0.7, 1.0);
-	this->SetInputActor(inputPointsActor);
+	inputGlyph->SetInputConnection(this->InputPolyData->GetProducerPort());
+	inputGlyph->SetSourceConnection(inputSphereSource->GetOutputPort());
+	inputMapper->SetInputConnection(inputGlyph->GetOutputPort());
+	inputActor->SetMapper(inputMapper);
+	inputActor->GetProperty()->SetColor(0.0, 0.7, 1.0);
+	this->SetInputActor(inputActor);
 
 
 	// Result points poly data
-  vtkSmartPointer<vtkPolyData> resultPointsPolyData = vtkSmartPointer<vtkPolyData>::New();
-	resultPointsPolyData = vtkPolyData::New();
-	resultPointsPolyData->Initialize();
-	vtkSmartPointer<vtkPoints> resultPointsPoint = vtkSmartPointer<vtkPoints>::New();
-	//resultPointsPoint->SetNumberOfPoints(1); // Makes the input actor disappear!
-	resultPointsPolyData->SetPoints(resultPointsPoint);
-	this->SetResultPolyData(resultPointsPolyData);
+  vtkSmartPointer<vtkPolyData> resultPolyData = vtkSmartPointer<vtkPolyData>::New();
+	resultPolyData = vtkPolyData::New();
+	resultPolyData->Initialize();
+	vtkSmartPointer<vtkPoints> resultPoint = vtkSmartPointer<vtkPoints>::New();
+	//resultPoint->SetNumberOfPoints(1); // Makes the input actor disappear!
+	resultPolyData->SetPoints(resultPoint);
+	this->SetResultPolyData(resultPolyData);
 
 	// Result points actor
-  vtkSmartPointer<vtkActor> resultPointsActor = vtkSmartPointer<vtkActor>::New();
-	vtkSmartPointer<vtkPolyDataMapper> resultPointsMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-	vtkSmartPointer<vtkGlyph3D> resultPointsGlyph = vtkSmartPointer<vtkGlyph3D>::New();
-	vtkSmartPointer<vtkSphereSource> resultPointsSphereSource = vtkSmartPointer<vtkSphereSource>::New();
-	resultPointsSphereSource->SetRadius(3.0); // mm
+  vtkSmartPointer<vtkActor> resultActor = vtkSmartPointer<vtkActor>::New();
+	vtkSmartPointer<vtkPolyDataMapper> resultMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+	vtkSmartPointer<vtkGlyph3D> resultGlyph = vtkSmartPointer<vtkGlyph3D>::New();
+	vtkSmartPointer<vtkSphereSource> resultSphereSource = vtkSmartPointer<vtkSphereSource>::New();
+	resultSphereSource->SetRadius(3.0); // mm
 
-	resultPointsGlyph->SetInputConnection(this->ResultPolyData->GetProducerPort());
-	resultPointsGlyph->SetSourceConnection(resultPointsSphereSource->GetOutputPort());
-	resultPointsMapper->SetInputConnection(resultPointsGlyph->GetOutputPort());
-	resultPointsActor->SetMapper(resultPointsMapper);
-	resultPointsActor->GetProperty()->SetColor(0.0, 0.8, 0.0);
-	this->SetResultActor(resultPointsActor);
+	resultGlyph->SetInputConnection(this->ResultPolyData->GetProducerPort());
+	resultGlyph->SetSourceConnection(resultSphereSource->GetOutputPort());
+	resultMapper->SetInputConnection(resultGlyph->GetOutputPort());
+	resultActor->SetMapper(resultMapper);
+	resultActor->GetProperty()->SetColor(0.0, 0.8, 0.0);
+	this->SetResultActor(resultActor);
+
+	// Volume actor
+  vtkSmartPointer<vtkActor> volumeActor = vtkSmartPointer<vtkActor>::New();
+	this->SetVolumeActor(volumeActor);
 
   // Create image actor
   vtkSmartPointer<vtkImageActor> imageActor = vtkSmartPointer<vtkImageActor>::New();
@@ -193,6 +204,7 @@ PlusStatus vtkToolVisualizer::InitializeVisualization()
   // Add non-tool actors to the renderer
 	this->CanvasRenderer->AddActor(this->InputActor);
 	this->CanvasRenderer->AddActor(this->ResultActor);
+	this->CanvasRenderer->AddActor(this->VolumeActor);
 	this->CanvasRenderer->AddActor(this->ImageActor);
 
   // Hide all actors
@@ -320,6 +332,7 @@ PlusStatus vtkToolVisualizer::HideAll()
 	// Hide all actors from the renderer
 	this->InputActor->VisibilityOff();
 	this->ResultActor->VisibilityOff();
+	this->VolumeActor->VisibilityOff();
   this->ImageActor->VisibilityOff();
 
   for (std::vector<vtkDisplayableTool*>::iterator it = this->DisplayableToolVector.begin(); it != this->DisplayableToolVector.end(); ++it) {
@@ -905,15 +918,15 @@ PlusStatus vtkToolVisualizer::SetDefaultStylusModel(vtkActor* aActor)
 	stylusSmallCylinderSource->SetRadius(1.5); // mm
 	stylusSmallCylinderSource->SetHeight(80.0); // mm
 	stylusSmallCylinderSource->SetCenter(0.0, 50.0, 0.0);
-	vtkSmartPointer<vtkConeSource> resultPointsConeSource = vtkSmartPointer<vtkConeSource>::New();
-	resultPointsConeSource->SetRadius(1.5); // mm
-	resultPointsConeSource->SetHeight(10.0); //mm
+	vtkSmartPointer<vtkConeSource> resultConeSource = vtkSmartPointer<vtkConeSource>::New();
+	resultConeSource->SetRadius(1.5); // mm
+	resultConeSource->SetHeight(10.0); //mm
 	vtkSmartPointer<vtkTransform> coneTransform = vtkSmartPointer<vtkTransform>::New();
 	coneTransform->Identity();
 	coneTransform->RotateZ(-90.0);
 	coneTransform->Translate(-5.0, 0.0, 0.0);
 	vtkSmartPointer<vtkTransformPolyDataFilter> coneTransformFilter = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
-	coneTransformFilter->AddInputConnection(resultPointsConeSource->GetOutputPort());
+	coneTransformFilter->AddInputConnection(resultConeSource->GetOutputPort());
 	coneTransformFilter->SetTransform(coneTransform);
 
 	vtkSmartPointer<vtkAppendPolyData> appendFilter = vtkSmartPointer<vtkAppendPolyData>::New();

@@ -10,6 +10,7 @@
 #include "vtkDataSetWriter.h"
 #include "vtkMarchingContourFilter.h"
 #include "vtkProperty.h"
+#include "vtkPolyDataMapper.h"
 #include "vtkXMLUtilities.h"
 
 //-----------------------------------------------------------------------------
@@ -85,7 +86,8 @@ void VolumeReconstructionToolbox::RefreshContent()
 	//LOG_TRACE("VolumeReconstructionToolbox::RefreshContent");
 
 	// If in progress
-	if (m_State == ToolboxState_InProgress) {
+	if (m_State == ToolboxState_InProgress)
+  {
 		// Needed for forced refreshing the UI (without this, no progress is shown)
 		QApplication::processEvents();
 	}
@@ -96,6 +98,8 @@ void VolumeReconstructionToolbox::RefreshContent()
 void VolumeReconstructionToolbox::SetDisplayAccordingToState()
 {
   LOG_TRACE("VolumeReconstructionToolbox::SetDisplayAccordingToState");
+
+  m_ParentMainWindow->GetToolVisualizer()->HideAll();
 
 	// If initialization failed
 	if (m_State == ToolboxState_Uninitialized) {
@@ -140,6 +144,13 @@ void VolumeReconstructionToolbox::SetDisplayAccordingToState()
 
 		ui.pushButton_Reconstruct->setEnabled(false);
 		ui.pushButton_Save->setEnabled(true);
+
+		m_ParentMainWindow->SetStatusBarText(QString(" Reconstruction done"));
+		m_ParentMainWindow->SetStatusBarProgress(-1);
+
+    m_ParentMainWindow->GetToolVisualizer()->GetVolumeActor()->VisibilityOn();
+	  m_ParentMainWindow->GetToolVisualizer()->GetCanvasRenderer()->Modified();
+	  m_ParentMainWindow->GetToolVisualizer()->GetCanvasRenderer()->ResetCamera();
 
 	} else
 	// If error occured
@@ -187,7 +198,7 @@ void VolumeReconstructionToolbox::OpenVolumeReconstructionConfig()
 	ui.lineEdit_VolumeReconstructionConfig->setText(fileName);
 	ui.lineEdit_VolumeReconstructionConfig->setToolTip(fileName);
 
-  SetDisplayAccordingToState();
+	SetState(ToolboxState_Idle);
 }
 
 //-----------------------------------------------------------------------------
@@ -207,7 +218,7 @@ void VolumeReconstructionToolbox::OpenInputImage()
 	ui.lineEdit_InputImage->setText(fileName);
 	ui.lineEdit_InputImage->setToolTip(fileName);
 
-  SetDisplayAccordingToState();
+	SetState(ToolboxState_Idle);
 }
 
 //-----------------------------------------------------------------------------
@@ -261,13 +272,19 @@ PlusStatus VolumeReconstructionToolbox::ReconstructVolumeFromInputImage(std::str
 	RefreshContent();
 
   vtkSmartPointer<vtkTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New(); 
-	trackedFrameList->ReadFromSequenceMetafile(aInputImage.c_str()); 
+  if (trackedFrameList->ReadFromSequenceMetafile(aInputImage.c_str()) != PLUS_SUCCESS) {
+    LOG_ERROR("Unable to load input image file!");
+    return PLUS_FAIL;
+  }
 	
 	m_ParentMainWindow->SetStatusBarText(QString(" Reconstructing volume ..."));
 	m_ParentMainWindow->SetStatusBarProgress(0);
 	RefreshContent();
 
+  m_VolumeReconstructor->SetOutputExtentFromFrameList(trackedFrameList);
+
 	const int numberOfFrames = trackedFrameList->GetNumberOfTrackedFrames(); 
+  std::string defaultFrameTransformName=trackedFrameList->GetDefaultFrameTransformName();
 	for ( int imgNumber = 0; imgNumber < numberOfFrames; ++imgNumber ) 
   {
 		// Set progress
@@ -275,7 +292,7 @@ PlusStatus VolumeReconstructionToolbox::ReconstructVolumeFromInputImage(std::str
     RefreshContent();
 
 		// Add this tracked frame to the reconstructor
-    m_VolumeReconstructor->AddTrackedFrame(trackedFrameList->GetTrackedFrame(imgNumber), trackedFrameList->GetDefaultFrameTransformName().c_str());
+    m_VolumeReconstructor->AddTrackedFrame(trackedFrameList->GetTrackedFrame(imgNumber), defaultFrameTransformName.c_str());
 	}
 	
 	m_ParentMainWindow->SetStatusBarProgress(0);
@@ -293,8 +310,6 @@ PlusStatus VolumeReconstructionToolbox::ReconstructVolumeFromInputImage(std::str
 	DisplayReconstructedVolume();
 
 	m_ParentMainWindow->SetStatusBarProgress(100);
-
-	RefreshContent();
 
 	SetState(ToolboxState_Done);
 
@@ -314,11 +329,11 @@ void VolumeReconstructionToolbox::DisplayReconstructedVolume()
 	contourFilter->SetInput(m_ReconstructedVolume);
 	contourFilter->SetValue(0, m_ContouringThreshold);
 
-  m_ParentMainWindow->GetToolVisualizer()->GetResultPolyData()->DeepCopy(contourFilter->GetOutput());
+	vtkSmartPointer<vtkPolyDataMapper> contourMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+	contourMapper->SetInputConnection(contourFilter->GetOutputPort());
 
-	m_ParentMainWindow->GetToolVisualizer()->GetCanvasRenderer()->ResetCamera();
-
-	m_ParentMainWindow->SetStatusBarProgress(-1);
+  m_ParentMainWindow->GetToolVisualizer()->GetVolumeActor()->SetMapper(contourMapper);
+	m_ParentMainWindow->GetToolVisualizer()->GetVolumeActor()->GetProperty()->SetColor(0.0, 0.0, 1.0);
 }
 
 //-----------------------------------------------------------------------------

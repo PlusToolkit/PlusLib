@@ -251,7 +251,9 @@ public:
 	vtkGetObjectMacro(InputPolyData, vtkPolyData);
 	vtkGetObjectMacro(ResultPolyData, vtkPolyData);
 
-	vtkSetObjectMacro(ImageToProbeTransform, vtkTransform);
+	vtkGetObjectMacro(VolumeActor, vtkActor);
+
+  vtkSetObjectMacro(ImageToProbeTransform, vtkTransform);
 
 protected:
 	vtkSetObjectMacro(ImageActor, vtkImageActor);
@@ -259,6 +261,7 @@ protected:
 	vtkSetObjectMacro(InputPolyData, vtkPolyData);
 	vtkSetObjectMacro(ResultActor, vtkActor);
 	vtkSetObjectMacro(ResultPolyData, vtkPolyData);
+	vtkSetObjectMacro(VolumeActor, vtkActor);
 	vtkSetObjectMacro(ImageCamera, vtkCamera);
 
 	vtkSetMacro(ImageMode, bool); 
@@ -312,7 +315,10 @@ protected:
 	//! Actor for displaying the result points (eg. stylus tip, segmented points)
 	vtkActor*					                ResultActor;
 
-	//! Camera of the scene
+	//! Actor for displaying a volume
+	vtkActor*					                VolumeActor;
+
+  //! Camera of the scene
 	vtkCamera*		                    ImageCamera;
 
   //! Image to probe transform (probe calibration result)
