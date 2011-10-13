@@ -16,6 +16,8 @@
 #include "fCalMainWindow.h"
 #include "vtkToolVisualizer.h"
 
+#include "FidPatternRecognition.h"
+
 #include "vtkXMLUtilities.h"
 
 #include <QFileDialog>
@@ -414,11 +416,13 @@ void FreehandCalibrationToolbox::StartSpatial()
 	QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
 
   PhantomRegistrationToolbox* phantomRegistrationToolbox = dynamic_cast<PhantomRegistrationToolbox*>(m_ParentMainWindow->GetToolbox(ToolboxType_PhantomRegistration));
-  if ((phantomRegistrationToolbox != NULL) && (phantomRegistrationToolbox->GetPhantomRegistrationAlgo() != NULL)) {
+  if ((phantomRegistrationToolbox != NULL) && (phantomRegistrationToolbox->GetPhantomRegistrationAlgo() != NULL))
+  {
     m_Calibration->Initialize();
-    m_Calibration->RegisterPhantomGeometry(phantomRegistrationToolbox->GetPhantomRegistrationAlgo()->GetPhantomToPhantomReferenceTransform());
-
-  } else {
+    m_Calibration->SetPhantomToReferenceTransform(phantomRegistrationToolbox->GetPhantomRegistrationAlgo()->GetPhantomToPhantomReferenceTransform());
+  }
+  else
+  {
     LOG_ERROR("Phantom registration toolbox or algorithm is not initialized!");
     return;
   }
@@ -429,8 +433,8 @@ void FreehandCalibrationToolbox::StartSpatial()
 	ui.pushButton_CancelSpatial->setFocus();
 
   // Start calibration and compute results on success
-	if ((DoSpatialCalibration() == PLUS_SUCCESS) && (m_Calibration->ComputeCalibrationResults() == PLUS_SUCCESS)) {
-
+	if (DoSpatialCalibration() == PLUS_SUCCESS)
+  {
     // Set result for visualization
     m_ParentMainWindow->GetToolVisualizer()->GetDisplayableTool(TRACKER_TOOL_PROBE)->DisplayableOn();
     m_ParentMainWindow->GetToolVisualizer()->SetImageToProbeTransform(m_Calibration->GetTransformUserImageToProbe());
@@ -450,21 +454,31 @@ PlusStatus FreehandCalibrationToolbox::DoSpatialCalibration()
   // Reset calibration
   m_Calibration->ResetFreehandCalibration();
 
-  const int maxNumberOfValidationImages = m_Calibration->GetImageDataInfo(FREEHAND_MOTION_2).NumberOfImagesToAcquire; 
+  // Create tracked frame lists
+	vtkTrackedFrameList* validationTrackedFrameList = vtkTrackedFrameList::New();
+  validationTrackedFrameList->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData());
+
+	vtkTrackedFrameList* calibrationTrackedFrameList = vtkTrackedFrameList::New();
+  calibrationTrackedFrameList->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData());
+
+  const int maxNumberOfValidationImages = m_Calibration->GetImageDataInfo(FREEHAND_MOTION_2).NumberOfImagesToAcquire; //TODO change these when image data info variables are deleted
 	const int maxNumberOfCalibrationImages = m_Calibration->GetImageDataInfo(FREEHAND_MOTION_1).NumberOfImagesToAcquire; 
-	int numberOfAcquiredImages = 0;
+	int numberOfSegmentedImages = 0;
 	int numberOfFailedSegmentations = 0;
 
+  // Create segmenter
+  FidPatternRecognition* patternRecognition = new FidPatternRecognition();
+	patternRecognition->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData());
+
+  // Reset cancel request flag
 	m_CancelRequest = false;
 
 	// Acquire and add validation and calibration data
-	while ((m_Calibration->GetImageDataInfo(FREEHAND_MOTION_2).NumberOfSegmentedImages < maxNumberOfValidationImages)
-		|| (m_Calibration->GetImageDataInfo(FREEHAND_MOTION_1).NumberOfSegmentedImages < maxNumberOfCalibrationImages)) {
-
-		bool segmentationSuccessful = false;
-
+	while (numberOfSegmentedImages < maxNumberOfValidationImages + maxNumberOfCalibrationImages)
+  {
 		if (m_CancelRequest) {
 			// Cancel the job
+      delete patternRecognition;
 			return PLUS_FAIL;
 		}
 
@@ -472,51 +486,64 @@ PlusStatus FreehandCalibrationToolbox::DoSpatialCalibration()
 		TrackedFrame trackedFrame; 
 		m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->GetTrackedFrame(&trackedFrame);     
 
-		if (trackedFrame.GetStatus() & (TR_MISSING | TR_OUT_OF_VIEW)) {
+		if (trackedFrame.GetStatus() & (TR_MISSING | TR_OUT_OF_VIEW))
+    {
 			LOG_DEBUG("Tracker out of view"); 
-		} else if (trackedFrame.GetStatus() & (TR_REQ_TIMEOUT)) {
+      m_ParentMainWindow->GetToolVisualizer()->ShowResult(false);
+		}
+    else if (trackedFrame.GetStatus() & (TR_REQ_TIMEOUT))
+    {
 			LOG_DEBUG("Tracker request timeout"); 
-		} else { // TR_OK
-			if (numberOfAcquiredImages < maxNumberOfValidationImages) {
-				// Validation data
-				if ( m_Calibration->GetTrackedFrameList(FREEHAND_MOTION_2)->ValidateData(&trackedFrame) ) {          
-					if (m_Calibration->AddTrackedFrameData(&trackedFrame, FREEHAND_MOTION_2,
-            m_Calibration->GetTrackedFrameList(FREEHAND_MOTION_2)->GetDefaultFrameTransformName().c_str())) {
-						segmentationSuccessful = true;
-					} else {
-						++numberOfFailedSegmentations;
-						LOG_DEBUG("Adding tracked frame " << m_Calibration->GetImageDataInfo(FREEHAND_MOTION_2).NumberOfSegmentedImages << " (for validation) failed!");
-					}
-				}
-			} else {
-				// Calibration data
-				if ( m_Calibration->GetTrackedFrameList(FREEHAND_MOTION_1)->ValidateData(&trackedFrame) ) {
-					if (m_Calibration->AddTrackedFrameData(&trackedFrame, FREEHAND_MOTION_1,
-            m_Calibration->GetTrackedFrameList(FREEHAND_MOTION_1)->GetDefaultFrameTransformName().c_str() )) {
-						segmentationSuccessful = true;
-					} else {
-						++numberOfFailedSegmentations;
-						LOG_DEBUG("Adding tracked frame " << m_Calibration->GetImageDataInfo(FREEHAND_MOTION_1).NumberOfSegmentedImages << " (for calibration) failed!");
-					}
-				}
+      m_ParentMainWindow->GetToolVisualizer()->ShowResult(false);
+		}
+    else // TR_OK
+    {
+      // Segment image
+      PatternRecognitionResult segmentationResults;
+      if (patternRecognition->RecognizePattern(&trackedFrame, segmentationResults) != PLUS_SUCCESS)
+      {
+        LOG_ERROR("Segmentation encountered errors!");
+        delete patternRecognition;
+        return PLUS_FAIL;
+      }
+
+   		// Update progress if tracked frame has been successfully added
+      int progressPercent = (int)((numberOfSegmentedImages / (double)(maxNumberOfValidationImages + maxNumberOfCalibrationImages)) * 100.0);
+	    m_ParentMainWindow->SetStatusBarProgress(progressPercent);
+
+  		// Display segmented points (or hide them if unsuccessful)
+      DisplaySegmentedPoints(&segmentationResults, trackedFrame.GetFrameSize()[1]);
+
+      // Check if segmentation was unsuccessful
+      if (trackedFrame.GetFiducialPointsCoordinatePx() == NULL || trackedFrame.GetFiducialPointsCoordinatePx()->GetNumberOfPoints() == 0)
+      {
+        ++numberOfFailedSegmentations;
+        QApplication::processEvents();
+        continue;
+      }
+
+      // Add tracked frame to the proper list
+			if (numberOfSegmentedImages < maxNumberOfValidationImages)
+      { // Validation data
+        validationTrackedFrameList->AddTrackedFrame(&trackedFrame);
 			}
+      else
+      { // Calibration data
+        calibrationTrackedFrameList->AddTrackedFrame(&trackedFrame);
+			}
+
+		  ++numberOfSegmentedImages;
 		}
-
-		// Update progress if tracked frame has been successfully added
-		if (segmentationSuccessful) {
-			++numberOfAcquiredImages;
-
-      int progressPercent = (int)((numberOfAcquiredImages / (double)(maxNumberOfValidationImages + maxNumberOfCalibrationImages)) * 100.0);
-			m_ParentMainWindow->SetStatusBarProgress(progressPercent);
-		}
-
-		// Display segmented points (or hide them if unsuccessful)
-		DisplaySegmentedPoints(segmentationSuccessful);
 
     QApplication::processEvents();
 	}
 
-	LOG_INFO("Segmentation success rate: " << numberOfAcquiredImages << " out of " << numberOfAcquiredImages + numberOfFailedSegmentations << " (" << (int)(((double)numberOfAcquiredImages / (double)(numberOfAcquiredImages + numberOfFailedSegmentations)) * 100.0 + 0.49) << " percent)");
+	LOG_INFO("Segmentation success rate: " << numberOfSegmentedImages << " out of " << numberOfSegmentedImages + numberOfFailedSegmentations << " (" << (int)(((double)numberOfSegmentedImages / (double)(numberOfSegmentedImages + numberOfFailedSegmentations)) * 100.0 + 0.49) << " percent)");
+
+  delete patternRecognition;
+
+  m_Calibration->Calibrate( validationTrackedFrameList, calibrationTrackedFrameList,
+                            m_Calibration->GetTrackedFrameList(FREEHAND_MOTION_1)->GetDefaultFrameTransformName().c_str() );  //TODO change these when image data info variables are deleted
 
 	return PLUS_SUCCESS;
 }
@@ -585,25 +612,22 @@ void FreehandCalibrationToolbox::ShowDevicesToggled(bool aOn)
 
 //-----------------------------------------------------------------------------
 
-PlusStatus FreehandCalibrationToolbox::DisplaySegmentedPoints(bool aSuccess)
+PlusStatus FreehandCalibrationToolbox::DisplaySegmentedPoints(PatternRecognitionResult* aSegmentationResult, int aImageHeight)
 {
-	LOG_TRACE("vtkFreehandCalibrationController::DisplaySegmentedPoints(" << (aSuccess?"true":"false") << ")");
+	LOG_TRACE("vtkFreehandCalibrationController::DisplaySegmentedPoints");
 
-  if (! aSuccess) {
+  if (aSegmentationResult->GetDotsFound() == false) {
     m_ParentMainWindow->GetToolVisualizer()->ShowResult(false);
     return PLUS_SUCCESS;
   }
 
 	// Get last results and feed the points into vtkPolyData for displaying
-  SegmentedFrame lastSegmentedFrame = this->m_Calibration->GetSegmentedFrameContainer().at(this->m_Calibration->GetSegmentedFrameContainer().size() - 1);
-	int height = lastSegmentedFrame.TrackedFrameInfo->GetFrameSize()[1];
-
 	vtkSmartPointer<vtkPoints> segmentedPoints = vtkSmartPointer<vtkPoints>::New();
-  segmentedPoints->SetNumberOfPoints(this->m_Calibration->GetPatternRecognition()->GetFidLabeling()->GetFoundDotsCoordinateValue().size());
+  segmentedPoints->SetNumberOfPoints(aSegmentationResult->GetFoundDotsCoordinateValue().size());
 
-	std::vector<std::vector<double>> dots = this->m_Calibration->GetPatternRecognition()->GetFidLabeling()->GetFoundDotsCoordinateValue();
+	std::vector<std::vector<double>> dots = aSegmentationResult->GetFoundDotsCoordinateValue();
 	for (int i=0; i<dots.size(); ++i) {
-		segmentedPoints->InsertPoint(i, dots[i][0], height - dots[i][1], 0.0);
+		segmentedPoints->InsertPoint(i, dots[i][0], aImageHeight - dots[i][1], 0.0);
 	}
 	segmentedPoints->Modified();
 

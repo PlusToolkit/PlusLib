@@ -12,6 +12,8 @@
 #include "AbstractToolbox.h"
 #include "PlusConfigure.h"
 
+#include "FidPatternRecognitionCommon.h"
+
 #include <QWidget>
 
 class vtkCalibrationController;
@@ -77,10 +79,11 @@ protected:
 
 	/*!
 	* \brief Prepares and shows the currently segmented points (or hide if unsuccessful)
-  * \param aSuccess True if segmentation was successful
+  * \param aSegmentationResult Segmentation result structure holding the possible segmented points and the candidates
+  * \param aImageHeight Height of the image; needed because the segmentation result coordinates are flipped along the Y axis
   * \return Success flag
 	*/
-  PlusStatus DisplaySegmentedPoints(bool aSuccess);
+  PlusStatus DisplaySegmentedPoints(PatternRecognitionResult* aSegmentationResult, int aImageHeight);
 
 protected slots:
 	/*!
