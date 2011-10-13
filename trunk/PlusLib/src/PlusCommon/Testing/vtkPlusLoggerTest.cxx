@@ -51,11 +51,20 @@ int main(int argc, char **argv)
 	vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
   vtkPlusLogger::Instance()->SetDisplayLogLevel(verboseLevel);
 
+  // Change output dir to test log saving to different folder
+  std::ostringstream outputDir; 
+  outputDir << vtkPlusConfig::GetInstance()->GetProgramDirectory() << "/OutputTest"; 
+  vtkPlusConfig::GetInstance()->SetOutputDirectory( outputDir.str().c_str() ); 
+
   std::cout << "Verbose level: " << verboseLevel << std::endl;
 
   LOG_ERROR("This is a test error message");
   LOG_WARNING("This is a test warning message");
   LOG_INFO("This is a test info message");
+  
+  // Call set output dir with the same dir 
+  vtkPlusConfig::GetInstance()->SetOutputDirectory( outputDir.str().c_str() ); 
+  
   LOG_DEBUG("This is a test debug message");
   LOG_TRACE("This is a test trace message");
 

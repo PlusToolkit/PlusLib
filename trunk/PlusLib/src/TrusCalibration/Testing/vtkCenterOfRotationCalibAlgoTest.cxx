@@ -60,13 +60,6 @@ int main(int argc, char **argv)
   vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
   vtkPlusLogger::Instance()->SetDisplayLogLevel(verboseLevel);
 
-  std::string programPath("./"), errorMsg; 
-	if ( !vtksys::SystemTools::FindProgramPath(argv[0], programPath, errorMsg) )
-	{
-		LOG_ERROR(errorMsg); 
-	}
-	programPath = vtksys::SystemTools::GetParentDirectory(programPath.c_str()); 
-
   // Read configuration
   vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkXMLUtilities::ReadElementFromFile(inputConfigFileName.c_str());
   if (configRootElement == NULL)
@@ -76,7 +69,6 @@ int main(int argc, char **argv)
   }
 
   vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationData(configRootElement);
-  vtkPlusConfig::GetInstance()->SetProgramPath(programPath.c_str());
 
 	FidPatternRecognition patternRecognition; 
 	patternRecognition.ReadConfiguration(configRootElement);

@@ -108,18 +108,13 @@ vtkPlusLogger::vtkPlusLogger()
 	m_CriticalSection = vtkSimpleCriticalSection::New();
 	m_LogLevel = LOG_LEVEL_INFO;
 	m_DisplayLogLevel = LOG_LEVEL_INFO;
-	std::ostringstream logfilename;
-  logfilename << vtkPlusConfig::GetInstance()->GetOutputDirectory() << "/" << vtkAccurateTimer::GetInstance()->GetDateAndTimeString() << "_PlusLog.txt";
-  vtksys::SystemTools::MakeDirectory(vtkPlusConfig::GetInstance()->GetOutputDirectory()); 
-
-	this->m_LogStream.open (logfilename.str().c_str(), ios::out);
 
   // redirect VTK error logs to the Plus logger
 	vtkSmartPointer<vtkPlusLoggerOutputWindow> vtkLogger = vtkSmartPointer<vtkPlusLoggerOutputWindow>::New();
 	vtkOutputWindow::SetInstance(vtkLogger);
 
   std::string strPlusLibVersion = std::string(" PlusLib version: ") + std::string(PLUSLIB_VERSION); 
-  this->LogMessage(LOG_LEVEL_INFO, strPlusLibVersion.c_str(), "vtkPlusLogger", 122); 
+  this->LogMessage(LOG_LEVEL_INFO, strPlusLibVersion.c_str(), "vtkPlusLogger", 121); 
 }
 
 //-------------------------------------------------------
@@ -134,7 +129,10 @@ vtkPlusLogger::~vtkPlusLogger()
 		this->m_CriticalSection = NULL; 
 	} 
 
-	this->m_LogStream.close(); 
+  if ( this->m_FileStream.is_open() )
+  {
+    this->m_FileStream.close(); 
+  }
 }
 
 //-------------------------------------------------------
@@ -173,6 +171,34 @@ void vtkPlusLogger::SetDisplayLogLevel(int logLevel)
 	m_CriticalSection->Lock(); 
 	m_DisplayLogLevel=logLevel; 
 	m_CriticalSection->Unlock(); 
+}
+
+//-------------------------------------------------------
+void vtkPlusLogger::SetLogFileName(const char* logfilename) 
+{ 
+	m_CriticalSection->Lock(); 
+  if ( this->m_FileStream.is_open() )
+  {
+    this->m_FileStream.close(); 
+  }
+
+  if ( logfilename )
+  {
+    // set file name and open the file for writting
+    m_LogFileName=logfilename; 
+    this->m_FileStream.open( m_LogFileName.c_str(), ios::out ); 
+  }
+  else
+  {
+    m_LogFileName.clear(); 
+  }
+	m_CriticalSection->Unlock(); 
+}
+
+//-------------------------------------------------------
+std::string vtkPlusLogger::GetLogFileName() 
+{
+  return this->m_LogFileName; 
 }
 
 //-------------------------------------------------------
@@ -281,12 +307,25 @@ void vtkPlusLogger::LogMessage(LogLevelType level, const char *msg, const char* 
 	if (m_LogLevel>=level)
 	{
     this->m_LogStream << std::setw(17) << std::left << timestamp << " " << log.str() << std::endl; 
-		this->m_LogStream.flush(); 
 	}
 
-	m_CriticalSection->Unlock(); 
+  this->Flush(); 
+
+  m_CriticalSection->Unlock(); 
 }
 
+//-------------------------------------------------------
+void vtkPlusLogger::Flush()
+{
+  m_CriticalSection->Lock(); 
+  if ( this->m_FileStream.is_open() )
+  {
+    this->m_FileStream << this->m_LogStream.str(); 
+    this->m_FileStream.flush(); 
+    this->m_LogStream.str(""); 
+  }
+  m_CriticalSection->Unlock(); 
+}
 
 //-------------------------------------------------------
 void vtkPlusLogger::PrintProgressbar( int percent )

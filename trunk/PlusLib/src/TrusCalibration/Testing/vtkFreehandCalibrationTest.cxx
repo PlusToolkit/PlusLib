@@ -60,13 +60,6 @@ int main (int argc, char* argv[])
 		exit(EXIT_FAILURE);
 	}
 
-	std::string programPath("./"), errorMsg; 
-	if ( !vtksys::SystemTools::FindProgramPath(argv[0], programPath, errorMsg) )
-	{
-		LOG_ERROR(errorMsg); 
-	}
-	programPath = vtksys::SystemTools::GetParentDirectory(programPath.c_str()); 
-
 	LOG_INFO("Initialize"); 
 
   // Read configuration
@@ -77,7 +70,6 @@ int main (int argc, char* argv[])
 		exit(EXIT_FAILURE);
   }
   vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationData(configRootElement);
-  vtkPlusConfig::GetInstance()->SetProgramPath(programPath.c_str());
 
 	vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
   vtkPlusLogger::Instance()->SetDisplayLogLevel(verboseLevel);

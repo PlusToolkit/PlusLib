@@ -91,6 +91,11 @@ public:
 	*/
   PlusStatus SetProgramPath(const char* aProgramDirectory);
 
+  /*!
+	* \brief Set output directory and change vtkPlusLog file name
+	*/
+  void SetOutputDirectory(const char* outputDir);
+
 public:
 	//! Get/Set macros
 	vtkGetStringMacro(DeviceSetConfigurationDirectory);
@@ -109,8 +114,7 @@ public:
 	vtkSetStringMacro(EditorApplicationExecutable);
 
 	vtkGetStringMacro(OutputDirectory);
-	vtkSetStringMacro(OutputDirectory);
-
+	
 	vtkGetStringMacro(ProgramDirectory);
 
 protected:
