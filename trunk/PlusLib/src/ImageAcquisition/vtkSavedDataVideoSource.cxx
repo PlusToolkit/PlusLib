@@ -175,9 +175,14 @@ PlusStatus vtkSavedDataVideoSource::InternalConnect()
 {
   LOG_TRACE("vtkSavedDataVideoSource::InternalConnect"); 
 
+  if (this->GetSequenceMetafile()==NULL)
+  {
+    LOG_ERROR("Unable to connect to saved data video source: Unable to read sequence metafile. No filename is specified."); 
+    return PLUS_FAIL; 
+  }
   if ( !vtksys::SystemTools::FileExists(this->GetSequenceMetafile(), true) )
   {
-    LOG_ERROR("Unable to connect to saved data video source: Unable to read sequence metafile!"); 
+    LOG_ERROR("Unable to connect to saved data video source: Unable to read sequence metafile: "<<this->GetSequenceMetafile()); 
     return PLUS_FAIL; 
   }
 
