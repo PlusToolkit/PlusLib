@@ -4,6 +4,7 @@
 #include "vtkObject.h"
 
 #include <fstream>
+#include <sstream>
 
 class vtkSimpleCriticalSection; 
 
@@ -71,11 +72,16 @@ public:
 
 	static void PrintProgressbar( int percent ); 
 
+  void SetLogFileName( const char* logfilename);
+  std::string GetLogFileName(); 
+
 protected:
 	vtkPlusLogger(); 
 	~vtkPlusLogger();
 
 	void WriteToFile(const char *msg); 
+
+  void Flush(); 
 
 private: 
 	vtkPlusLogger(vtkPlusLogger const&);
@@ -84,7 +90,9 @@ private:
 	static vtkPlusLogger* m_pInstance;
 	int m_LogLevel;
 	int m_DisplayLogLevel;
-	std::ofstream m_LogStream;
+  std::ostringstream m_LogStream;
+  std::ofstream m_FileStream; 
+  std::string m_LogFileName; 
 
 	vtkSimpleCriticalSection* m_CriticalSection; 
 };

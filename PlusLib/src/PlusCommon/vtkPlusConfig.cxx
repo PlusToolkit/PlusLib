@@ -6,11 +6,12 @@
 #include "vtkDirectory.h"
 #include "vtkXMLUtilities.h"
 
+
 //-----------------------------------------------------------------------------
 
 vtkCxxRevisionMacro(vtkPlusConfig, "$Revision: 1.0 $");
 
-vtkPlusConfig *vtkPlusConfig::Instance = NULL;
+vtkPlusConfig *vtkPlusConfig::Instance = new vtkPlusConfig();
 
 //-----------------------------------------------------------------------------
 
@@ -24,7 +25,7 @@ vtkPlusConfig* vtkPlusConfig::New()
 vtkPlusConfig* vtkPlusConfig::GetInstance() {
 	if(!vtkPlusConfig::Instance) {
 		if(!vtkPlusConfig::Instance) {
-			vtkPlusConfig::Instance = new vtkPlusConfig();	   
+			vtkPlusConfig::Instance = new vtkPlusConfig();	 
 		}
 	}
 	// return the instance
@@ -46,11 +47,18 @@ vtkPlusConfig::vtkPlusConfig()
 
 	this->SetDeviceSetConfigurationDirectory("");
 	this->SetDeviceSetConfigurationFileName("");
+  this->SetOutputDirectory("./");
   this->SetApplicationConfigurationFileName("PlusConfig.xml");
   this->SetEditorApplicationExecutable("notepad.exe");
 
-  // Set output directory to the cwd/Output folder by default 
-  this->SetOutputDirectory(vtksys::SystemTools::CollapseFullPath("./Output").c_str());
+#ifdef WIN32
+  char cProgramPath[2048]={'\0'};
+  GetModuleFileName ( NULL, cProgramPath, 2048 ); 
+  this->SetProgramPath(vtksys::SystemTools::GetProgramPath(cProgramPath).c_str()); 
+#else
+  this->SetProgramPath(vtksys::SystemTools::CollapseFullPath("./").c_str()); 
+#endif
+
 }
 
 //-----------------------------------------------------------------------------
@@ -213,12 +221,6 @@ PlusStatus vtkPlusConfig::ReadApplicationConfiguration()
   	std::string defaultOutputDirectory = vtksys::SystemTools::CollapseFullPath("./Output", this->ProgramDirectory); 
     this->SetOutputDirectory(defaultOutputDirectory.c_str());
     saveNeeded = true;
-  }
-
-	// Make output directory
-  if (! vtksys::SystemTools::MakeDirectory(this->OutputDirectory)) {
-    LOG_ERROR("Unable to create output directory '" << this->OutputDirectory << "'");
-    return PLUS_FAIL;
   }
 
   if (saveNeeded) {
@@ -410,3 +412,42 @@ std::string vtkPlusConfig::FindFileRecursivelyInDirectory(const char* aFileName,
 
 	return "";
 };
+
+//-----------------------------------------------------------------------------
+
+void vtkPlusConfig::SetOutputDirectory(const char* outputDir)
+{
+  if (outputDir == NULL && this->OutputDirectory) { 
+    return;
+  }
+  if ( this->OutputDirectory && outputDir && (!strcmp(this->OutputDirectory,outputDir))) { 
+    return;
+  }
+
+  if (this->OutputDirectory) { 
+    delete [] this->OutputDirectory; 
+    this->OutputDirectory = NULL; 
+  } 
+
+  if ( outputDir ) {
+    size_t n = strlen(outputDir) + 1;
+    char *cp1 =  new char[n];
+    const char *cp2 = (outputDir);
+    this->OutputDirectory = cp1;
+    do { *cp1++ = *cp2++; } while ( --n ); 
+
+    // Make output directory
+    if (! vtksys::SystemTools::MakeDirectory(this->OutputDirectory)) {
+      LOG_ERROR("Unable to create output directory '" << this->OutputDirectory << "'");
+      return;
+    }
+
+    // Set log file name and path to the output directory 
+    std::ostringstream logfilename;
+    logfilename << this->OutputDirectory << "/" << vtkAccurateTimer::GetInstance()->GetDateAndTimeString() << "_PlusLog.txt";
+    vtkPlusLogger::Instance()->SetLogFileName(logfilename.str().c_str()); 
+  } 
+
+  this->Modified(); 
+
+}
