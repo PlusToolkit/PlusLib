@@ -235,7 +235,7 @@ PlusStatus vtkPlusVideoSource::Connect()
 
   if (this->InternalConnect()!=PLUS_SUCCESS)
   {
-    LOG_ERROR("Cannot connect to video soruce, ConnectInternal failed");
+    LOG_ERROR("Cannot connect to video source, ConnectInternal failed");
     return PLUS_FAIL;
   }
 

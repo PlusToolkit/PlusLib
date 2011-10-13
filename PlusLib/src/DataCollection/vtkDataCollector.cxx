@@ -253,6 +253,12 @@ PlusStatus vtkDataCollector::SetLoopTimes()
     return PLUS_FAIL; 
   }
 
+  if ( savedDataVideoSource->GetLocalVideoBuffer()==NULL) 
+  {
+    LOG_ERROR("Failed to get local video buffer!"); 
+    return PLUS_FAIL;
+  }
+
   double oldestVideoTimeStamp(0); 
   if ( savedDataVideoSource->GetLocalVideoBuffer()->GetOldestTimeStamp(oldestVideoTimeStamp) !=  ITEM_OK ) 
   {
