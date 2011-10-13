@@ -317,7 +317,17 @@ void DeviceSetSelectorWidget::EditConfiguration()
 {
 	LOG_TRACE("DeviceSetSelectorWidget::EditConfiguration"); 
 
-  QString configurationFilePath = ui.comboBox_DeviceSet->itemData(ui.comboBox_DeviceSet->currentIndex()).toStringList().at(0);
+  QString configurationFilePath;
+  int deviceSetIndex=ui.comboBox_DeviceSet->currentIndex();
+  if (deviceSetIndex>=0)
+  {
+    ui.comboBox_DeviceSet->itemData(deviceSetIndex).toStringList().at(0);
+  }
+  else
+  {
+    LOG_ERROR("Cannot edit configuration file. No configuration is selected."); 
+    return;
+  }
   QString editorApplicationExecutable(vtkPlusConfig::GetInstance()->GetEditorApplicationExecutable());
 
   if (editorApplicationExecutable.right(4).compare(QString(".exe")) != 0) {

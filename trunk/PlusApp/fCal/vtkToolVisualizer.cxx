@@ -250,6 +250,12 @@ PlusStatus vtkToolVisualizer::InitializeDeviceVisualization()
     LOG_WARNING("Initializing phantom visualization failed!");
   }
 
+  if (this->DataCollector->GetTracker()==NULL)
+  {
+    LOG_ERROR("No tracker is available");
+    return PLUS_FAIL;
+  }
+
 	// Load tool models
 	for (int i=0; i < this->DataCollector->GetTracker()->GetNumberOfTools(); ++i) {
 		vtkTrackerTool *tool = this->DataCollector->GetTracker()->GetTool(i);
@@ -673,7 +679,11 @@ PlusStatus vtkToolVisualizer::DisplayDevices()
 PlusStatus vtkToolVisualizer::InitializePhantomVisualization()
 {
 	LOG_TRACE("vtkToolVisualizer::InitializePhantomVisualization");
-
+  if (this->DataCollector->GetTracker()==NULL)
+  {
+    LOG_ERROR("No tracker is available");
+    return PLUS_FAIL;
+  }
   vtkSmartPointer<vtkTrackerTool> referenceTool = this->DataCollector->GetTracker()->GetTool(this->DataCollector->GetTracker()->GetReferenceToolNumber());
   if (referenceTool == NULL) {
     LOG_WARNING("No reference tool is present in the tracker - one is created for visualization");
