@@ -100,7 +100,7 @@ int main (int argc, char* argv[])
 	freehandCalibration->SetImageDataInfo(FREEHAND_MOTION_2, freehandMotion2DataInfo);
 
   freehandCalibration->Initialize();
-  freehandCalibration->RegisterPhantomGeometry(phantomRegistration->GetPhantomToPhantomReferenceTransform());
+  freehandCalibration->SetPhantomToReferenceTransform(phantomRegistration->GetPhantomToPhantomReferenceTransform());
 
 	// Register phantom geometry before calibration 
 	if ( DoOfflineCalibration(freehandCalibration) == PLUS_SUCCESS )

@@ -154,7 +154,7 @@ int main (int argc, char* argv[])
   }
 
 	// Register phantom geometry before calibration 
-	probeCal->RegisterPhantomGeometry( tPhantomToReference ); 
+	probeCal->SetPhantomToReferenceTransform( tPhantomToReference ); 
   
   // TODO: remove it!
   probeCal->GetTransformTemplateHolderToTemplate()->SetMatrix(probeCal->GetTransformTemplateHolderToPhantom()->GetMatrix() ); 
@@ -162,28 +162,28 @@ int main (int argc, char* argv[])
 
 
 	if ( probeCal->OfflineUSToTemplateCalibration() == PLUS_SUCCESS )
-    {
-	    probeCal->ComputeCalibrationResults(); 
-    }
-    else
-    {
-        numberOfFailures++; 
-        LOG_ERROR("OfflineUSToTemplateCalibration failed!"); 
-    }
+  {
+    probeCal->ComputeCalibrationResults(); 
+  }
+  else
+  {
+    numberOfFailures++; 
+    LOG_ERROR("OfflineUSToTemplateCalibration failed!"); 
+  }
 
 	vtkstd::string currentConfigFileName = probeCal->GetCalibrationResultFileNameWithPath(); 
 
 	if ( CompareCalibrationResultsWithBaseline( inputBaselineFileName.c_str(), currentConfigFileName.c_str(), inputTranslationErrorThreshold, inputRotationErrorThreshold ) !=0 )
 	{
-        numberOfFailures++; 
+    numberOfFailures++; 
 		LOG_ERROR("Comparison of calibration data to baseline failed");
 	}
 
-    if ( numberOfFailures > 0 )
-    {
-        std::cout << "Test exited with failures!!!" << std::endl; 
-		return EXIT_FAILURE;
-    }
+  if ( numberOfFailures > 0 )
+  {
+      std::cout << "Test exited with failures!!!" << std::endl; 
+	return EXIT_FAILURE;
+  }
 
 	std::cout << "Exit success!!!" << std::endl; 
 	return EXIT_SUCCESS; 

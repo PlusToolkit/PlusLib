@@ -9,6 +9,7 @@
 
 #include "vtkObject.h"
 #include "vtkTrackedFrameList.h"
+#include "vtkTransform.h"
 #include "vtkMatrix4x4.h"
 #include "vtkImageData.h"
 #include "vtkXMLDataElement.h"
@@ -91,6 +92,18 @@ public:
   //! Write configuration
   virtual PlusStatus WriteConfiguration( vtkXMLDataElement* configData );
 
+  /*!
+	* \brief Run calibration algorithm on the two input frame lists
+	* \param validationTrackedFrameList TrackedFrameList with segmentation results for the validation
+	* \param calibrationTrackedFrameList TrackedFrameList with segmentation results for the calibration
+  * \param defaultTransformName Name of the default transform (which will be used for the calibration)
+	*/
+  virtual PlusStatus Calibrate( vtkTrackedFrameList* validationTrackedFrameList, vtkTrackedFrameList* calibrationTrackedFrameList, const char* defaultTransformName ); 
+
+	//! Calculate and add positions of an individual image for calibration or validation
+	virtual PlusStatus AddPositionsPerImage( TrackedFrame* trackedFrame, bool isValidation );
+
+
 	//! Add new tracked data for segmentation and save the segmentation result to the SegmentedFrameContainer
 	// The class has to be initialized before the segmentation process. 
 	virtual PlusStatus AddTrackedFrameData( TrackedFrame* trackedFrame, IMAGE_DATA_TYPE dataType, const char* defaultTransformName ); 
@@ -100,6 +113,9 @@ public:
 	
 	//! Save the selected data type to sequence metafile 
 	virtual PlusStatus SaveTrackedFrameListToMetafile( IMAGE_DATA_TYPE dataType, const char* outputFolder, const char* sequenceMetafileName, bool useCompression = false ); 
+
+	vtkGetObjectMacro(PhantomToReferenceTransform, vtkTransform);
+	vtkSetObjectMacro(PhantomToReferenceTransform, vtkTransform);
 
 	//! Flag to show the initialized state
 	vtkGetMacro(Initialized, bool);
@@ -169,9 +185,6 @@ public:
 	virtual PlusStatus SetOfflineImageData(const ImageType::Pointer& frame); 
 
 public: // Former ProbeCalibrationController and FreehandCalibraitonController functions
-	//! Register phantom geometry for calibrator 
-  virtual void RegisterPhantomGeometry( vtkTransform* aPhantomToPhantomReferenceTransform ); 
-
 	//! Computes the calibration results: 
 	// - Compute the overall Point-Line Distance Error (PLDE)
 	// - Print the final calibration results and error reports 
@@ -587,11 +600,6 @@ protected: // Former ProbeCalibrationController and FreehandCalibrationControlle
   std::map<int, std::vector<double> > LineReconstructionErrors; 
 
 protected: // From former Phantom class
-	//! Flags that control the registration between phantom and DRB
-	// The flag to be set when the phantom is registered to the DRB frame
-	// on-the-fly (before the calibration procedure starts)
-	bool mHasPhantomBeenRegistered;
-
 	//! The flag to be set when the data positions in US probe frame is ready
 	bool mAreOutliersRemoved;
 
@@ -667,9 +675,6 @@ protected: // From former Phantom class
 
 	//! The flag to set when the ultrasound probe has been calibrated
 	bool mHasBeenCalibrated;
-
-	//! The 4x4 homogeneous transform matrices after registration of phantom geometry
-	vnl_matrix<double> mTransformMatrixPhantom2DRB4x4;
 
 	//! Data positions collected as inputs for the US calibration
 	std::vector< vnl_vector<double> > mDataPositionsInUSProbeFrame;
@@ -872,6 +877,10 @@ protected: // From former Phantom class
 
 	//! This is the threshold to filter out input data acquired at large beamwidth
 	double mNumOfTimesOfMinBeamWidth;
+
+
+  //! Phantom registration transform
+  vtkTransform* PhantomToReferenceTransform;
 
 private:
 	vtkCalibrationController(const vtkCalibrationController&);

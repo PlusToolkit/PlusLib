@@ -97,11 +97,6 @@ PlusStatus vtkVolumeReconstructor::ReadConfiguration(vtkXMLDataElement* config)
   {
     this->Reconstructor->SetClipRectangleSize(clipRectangleSize);
   }
-  else
-  {
-    LOG_ERROR("ClipRectangleSize parameter is not found!");
-    return PLUS_FAIL;
-  }
 
   // fan parameters
   double fanAngles[2]={0,0};
