@@ -70,6 +70,11 @@ PlusStatus vtkVolumeReconstructor::ReadConfiguration(vtkXMLDataElement* config)
   {
     this->Reconstructor->SetOutputSpacing(outputSpacing);
   }
+  else
+  {
+    LOG_ERROR("OutputSpacing parameter is not found!");
+    return PLUS_FAIL;
+  }
   double outputOrigin[3]={0,0,0};
   if (reconConfig->GetVectorAttribute("OutputOrigin", 3, outputOrigin))
   {
@@ -91,6 +96,11 @@ PlusStatus vtkVolumeReconstructor::ReadConfiguration(vtkXMLDataElement* config)
   if (reconConfig->GetVectorAttribute("ClipRectangleSize", 2, clipRectangleSize))
   {
     this->Reconstructor->SetClipRectangleSize(clipRectangleSize);
+  }
+  else
+  {
+    LOG_ERROR("ClipRectangleSize parameter is not found!");
+    return PLUS_FAIL;
   }
 
   // fan parameters
