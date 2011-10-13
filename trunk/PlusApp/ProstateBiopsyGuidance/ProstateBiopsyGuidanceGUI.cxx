@@ -78,11 +78,8 @@ ProstateBiopsyGuidanceGUI::ProstateBiopsyGuidanceGUI(QWidget *parent)
 {
 	ui->setupUi(this);
 
-	// Set program path to configuration
-	QFileInfo programPathFileInfo(qApp->argv()[0]); 
-	vtkPlusConfig::GetInstance()->SetProgramPath(programPathFileInfo.absoluteDir().absolutePath().toStdString().c_str());
-	outputFolder=programPathFileInfo.absoluteDir().absolutePath().toStdString().c_str()+outputFolder;
-
+  outputFolder=std::string(vtkPlusConfig::GetInstance()->GetProgramDirectory())+outputFolder;
+  vtkPlusConfig::GetInstance()->SetOutputDirectory(outputFolder.c_str()); 
 
 	// Create device set selector widget
 	this->m_DeviceSetSelectorWidget = new DeviceSetSelectorWidget(this);

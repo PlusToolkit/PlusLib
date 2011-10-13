@@ -32,10 +32,6 @@ fCalMainWindow::fCalMainWindow(QWidget *parent, Qt::WFlags flags)
 	, m_ActiveToolbox(ToolboxType_Undefined)
   , m_ToolVisualizer(NULL)
 {
-  // Set program path to configuration
-  QFileInfo programPathFileInfo(qApp->argv()[0]); 
-  vtkPlusConfig::GetInstance()->SetProgramPath(programPathFileInfo.absoluteDir().absolutePath().toStdString().c_str());
-
 	// Set up UI
 	ui.setupUi(this);
 
