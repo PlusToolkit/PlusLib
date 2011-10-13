@@ -1,7 +1,11 @@
+/*=Plus=header=begin======================================================
+  Program: Plus
+  Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+  See License.txt for details.
+=========================================================Plus=header=end*/ 
+
 #ifndef __vtkToolVisualizer_h
 #define __vtkToolVisualizer_h
-
-#include "AbstractToolbox.h"
 
 #include "vtkTracker.h"
 #include "vtkTrackerTool.h"
@@ -24,9 +28,13 @@ class vtkSTLReader;
 
 //-----------------------------------------------------------------------------
 
-/*!
-* \brief Class that encapsulates the objects needed for visualizing a tool - the tool object, the actor, a flag indicating whether it is displayable
-*/
+/*! \class vtkDisplayableTool 
+ *
+ * \brief Class that encapsulates the objects needed for visualizing a tool - the tool object, the actor, a flag indicating whether it is displayable
+ *
+ * \ingroup PlusAppFCal
+ *
+ */
 class vtkDisplayableTool : public vtkObject
 {
 public:

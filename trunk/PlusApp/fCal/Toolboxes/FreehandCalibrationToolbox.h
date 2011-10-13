@@ -1,3 +1,9 @@
+/*=Plus=header=begin======================================================
+  Program: Plus
+  Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+  See License.txt for details.
+=========================================================Plus=header=end*/ 
+
 #ifndef FREEHANDCALIBRATIONTOOLBOX_H
 #define FREEHANDCALIBRATIONTOOLBOX_H
 
@@ -12,9 +18,13 @@ class vtkCalibrationController;
 
 //-----------------------------------------------------------------------------
 
-/*!
-* \brief Freehand calibration toolbox view class
-*/
+/*! \class FreehandCalibrationToolbox 
+ *
+ * \brief Freehand calibration toolbox class
+ *
+ * \ingroup PlusAppFCal
+ *
+ */
 class FreehandCalibrationToolbox : public QWidget, public AbstractToolbox
 {
 	Q_OBJECT

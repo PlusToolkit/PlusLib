@@ -1,3 +1,9 @@
+/*=Plus=header=begin======================================================
+  Program: Plus
+  Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+  See License.txt for details.
+=========================================================Plus=header=end*/ 
+
 #ifndef RECORDPHANTOMPOINTSTOOLBOX_H
 #define RECORDPHANTOMPOINTSTOOLBOX_H
 
@@ -15,9 +21,13 @@ class vtkRenderer;
 
 //-----------------------------------------------------------------------------
 
-/*!
-* \brief Phantom registration toolbox view class
-*/
+/*! \class PhantomRegistrationToolbox 
+ *
+ * \brief Phantom registration toolbox class
+ *
+ * \ingroup PlusAppFCal
+ *
+ */
 class PhantomRegistrationToolbox : public QWidget, public AbstractToolbox
 {
 	Q_OBJECT

@@ -1,3 +1,9 @@
+/*=Plus=header=begin======================================================
+  Program: Plus
+  Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+  See License.txt for details.
+=========================================================Plus=header=end*/ 
+
 #ifndef __AbstractToolbox_h
 #define __AbstractToolbox_h
 
@@ -16,9 +22,13 @@ enum ToolboxState
 
 //-----------------------------------------------------------------------------
 
-/*!
-* \brief  This class is the super class of all the toolboxes for standard handling
-*/
+/*! \class AbstractToolbox 
+ *
+ * \brief This class is the super class of all the toolboxes for standard handling
+ *
+ * \ingroup PlusAppFCal
+ *
+ */
 class AbstractToolbox
 {
 public:

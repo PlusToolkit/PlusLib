@@ -1,3 +1,9 @@
+/*=Plus=header=begin======================================================
+  Program: Plus
+  Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+  See License.txt for details.
+=========================================================Plus=header=end*/ 
+
 #ifndef __fCalMainWindow_h
 #define __fCalMainWindow_h
 
@@ -28,9 +34,13 @@ enum ToolboxType
 
 //-----------------------------------------------------------------------------
 
-/*!
-* \brief Main window of the freehand calibration application
-*/
+/*! \class fCalMainWindow 
+ *
+ * \brief Main window of the fCal application
+ *
+ * \ingroup PlusAppFCal
+ *
+ */
 class fCalMainWindow : public QMainWindow
 {
 	Q_OBJECT

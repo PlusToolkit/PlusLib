@@ -1,3 +1,9 @@
+/*=Plus=header=begin======================================================
+  Program: Plus
+  Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+  See License.txt for details.
+=========================================================Plus=header=end*/ 
+
 #ifndef VOLUMERECONSTRUCTIONTOOLBOX_H
 #define VOLUMERECONSTRUCTIONTOOLBOX_H
 
@@ -13,9 +19,13 @@ class vtkImageData;
 
 //-----------------------------------------------------------------------------
 
-/*!
-* \brief Volume reconstruction toolbox view class
-*/
+/*! \class VolumeReconstructionToolbox 
+ *
+ * \brief Volume reconstruction toolbox view class
+ *
+ * \ingroup PlusAppFCal
+ *
+ */
 class VolumeReconstructionToolbox : public QWidget, public AbstractToolbox
 {
 	Q_OBJECT

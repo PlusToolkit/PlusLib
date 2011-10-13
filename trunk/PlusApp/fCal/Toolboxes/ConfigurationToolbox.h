@@ -1,3 +1,9 @@
+/*=Plus=header=begin======================================================
+  Program: Plus
+  Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+  See License.txt for details.
+=========================================================Plus=header=end*/ 
+
 #ifndef CONFIGURATIONTOOLBOX_H
 #define CONFIGURATIONTOOLBOX_H
 
@@ -13,9 +19,13 @@ class ToolStateDisplayWidget;
 
 //-----------------------------------------------------------------------------
 
-/*!
-* \brief Volume reconstruction toolbox view class
-*/
+/*! \class ConfigurationToolbox 
+ *
+ * \brief Configuration toolbox that handles device sets and common preferences of fCal
+ *
+ * \ingroup PlusAppFCal
+ *
+ */
 class ConfigurationToolbox : public QWidget, public AbstractToolbox
 {
 	Q_OBJECT

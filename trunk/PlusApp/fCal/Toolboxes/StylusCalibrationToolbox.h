@@ -1,3 +1,9 @@
+/*=Plus=header=begin======================================================
+  Program: Plus
+  Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+  See License.txt for details.
+=========================================================Plus=header=end*/ 
+
 #ifndef __StylusCalibrationToolbox_h
 #define __StylusCalibrationToolbox_h
 
@@ -12,9 +18,13 @@ class vtkPivotCalibrationAlgo;
 
 //-----------------------------------------------------------------------------
 
-/*!
-* \brief Stylus calibration toolbox view class
-*/
+/*! \class StylusCalibrationToolbox 
+ *
+ * \brief Stylus calibration toolbox view class
+ *
+ * \ingroup PlusAppFCal
+ *
+ */
 class StylusCalibrationToolbox : public QWidget, public AbstractToolbox
 {
 	Q_OBJECT
