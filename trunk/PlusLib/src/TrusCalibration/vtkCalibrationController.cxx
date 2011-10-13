@@ -147,7 +147,6 @@ vtkCalibrationController::vtkCalibrationController()
 	this->InterpUS3DBeamwidthAndWeightFactorsInUSImageFrameTable5xM.set_size(0,0);
 
   // Former Phantom class
-	mHasPhantomBeenRegistered = false;
 	mIsUSBeamwidthAndWeightFactorsTableReady = false;
 
   mUS3DBeamwidthAndWeightFactorsInUSImageFrameTable5xM.set_size(0,0);
@@ -166,6 +165,9 @@ vtkCalibrationController::vtkCalibrationController()
 	//    above the twice of the minimum beamwidth may serve a good cutoff
 	//    point to quality control the imaging data for a reliable calibration.
   mNumOfTimesOfMinBeamWidth = 2.1;
+
+
+  this->PhantomToReferenceTransform = NULL;
 }
 
 //----------------------------------------------------------------------------
@@ -204,6 +206,12 @@ vtkCalibrationController::~vtkCalibrationController()
 	this->SetTransformTemplateHolderToTemplate(NULL);
   this->SetTransformTemplateHolderToPhantom(NULL); 
 	this->SetTransformTemplateHomeToTemplate(NULL);
+
+  if ( this->PhantomToReferenceTransform != NULL )
+  {
+    this->PhantomToReferenceTransform->Delete(); 
+    this->PhantomToReferenceTransform = NULL; 
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -229,6 +237,252 @@ PlusStatus vtkCalibrationController::Initialize()
 	this->InitializedOn(); 
 
 	return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+
+PlusStatus vtkCalibrationController::Calibrate( vtkTrackedFrameList* validationTrackedFrameList, vtkTrackedFrameList* calibrationTrackedFrameList, const char* defaultTransformName )
+{
+	LOG_TRACE("vtkCalibrationController::Calibrate"); 
+
+  if ( ! this->Initialized )
+  {
+	  if ( Initialize() != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Initialization failed!");
+      return PLUS_FAIL;
+    }
+  }
+
+  this->SegmentedFrameDefaultTransformName = defaultTransformName;
+
+	int numberOfValidationFrames = validationTrackedFrameList->GetNumberOfTrackedFrames(); 
+	for (int frameNumber = 0; frameNumber < numberOfValidationFrames; ++frameNumber)
+  {
+    LOG_DEBUG(" Add frame #" << frameNumber << " for validation data");
+    if ( AddPositionsPerImage(validationTrackedFrameList->GetTrackedFrame(frameNumber), true) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Add validation position failed on frame #" << frameNumber);
+      continue;
+    }
+  }		
+
+	int numberOfCalibrationFrames = calibrationTrackedFrameList->GetNumberOfTrackedFrames(); 
+	for (int frameNumber = 0; frameNumber < numberOfCalibrationFrames; ++frameNumber)
+  {
+    LOG_DEBUG(" Add frame #" << frameNumber << " for calibration data");
+    if ( AddPositionsPerImage(calibrationTrackedFrameList->GetTrackedFrame(frameNumber), false) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Add calibration position failed on frame #" << frameNumber);
+      continue;
+    }
+  }
+
+  // Compute calibration results
+  ComputeCalibrationResults();
+
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+
+PlusStatus vtkCalibrationController::AddPositionsPerImage( TrackedFrame* trackedFrame, bool isValidation )
+{
+  LOG_TRACE("vtkCalibrationController::AddPositionsPerImage(" << (isValidation?"validation":"calibration") << ")");
+
+  if (this->TransformImageToUserImage == NULL)
+  {
+    LOG_ERROR("Invalid Image to User image transform!");
+    return PLUS_FAIL;
+  }
+
+  // Get segmentation points and check its validity
+  vtkPoints* segmentedPointsVtk = trackedFrame->GetFiducialPointsCoordinatePx();
+
+  if (segmentedPointsVtk == NULL)
+  {
+    LOG_WARNING("Segmentation has not been run on frame!");
+    return PLUS_FAIL;
+  }
+
+  if (segmentedPointsVtk->GetNumberOfPoints() % 3 != 0)
+  {
+    LOG_ERROR("Frame does not contain N-Wires only!");
+    return PLUS_FAIL;
+  }
+
+  if (segmentedPointsVtk->GetNumberOfPoints() == 0)
+  {
+    LOG_DEBUG("Segmentation failed on frame, so it will be ignored");
+    return PLUS_SUCCESS;
+  }
+
+  // Assemble matrices and add them to the calibration input
+  double probeToReferenceTransformVector[16]; 
+  if ( trackedFrame->GetCustomFrameTransform(this->SegmentedFrameDefaultTransformName.c_str(), probeToReferenceTransformVector) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Cannot get frame transform '" << this->SegmentedFrameDefaultTransformName << "' from tracked frame!");
+    return PLUS_FAIL;
+  }
+
+  // Convert segmented points to vnl
+	std::vector<vnl_vector<double>> segmentedPoints;
+  for (int i=0; i<segmentedPointsVtk->GetNumberOfPoints(); i++)
+	{
+		vnl_vector<double> vnlPoint(4,0);
+    double point[3];
+    segmentedPointsVtk->GetPoint(i, point);
+		vnlPoint[0] = point[0];
+		vnlPoint[1] = point[1];
+		vnlPoint[2] = 0.0;
+		vnlPoint[3] = 1.0;
+		segmentedPoints.push_back(vnlPoint);
+	}
+
+  // Convert Image to User image transform to vnl
+  vnl_matrix<double> imageToUserImageTransformMatrix(4,4);
+  PlusMath::ConvertVtkMatrixToVnlMatrix(this->TransformImageToUserImage->GetMatrix(), imageToUserImageTransformMatrix); 
+
+  // Convert phantom registration matrix to vnl
+	vnl_matrix<double> phantomToReferenceTransformMatrix(4,4);
+  PlusMath::ConvertVtkMatrixToVnlMatrix(this->PhantomToReferenceTransform->GetMatrix(), phantomToReferenceTransformMatrix);
+
+  // Get reference to probe transform
+  vtkSmartPointer<vtkMatrix4x4> probeToReferenceVtkTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
+  probeToReferenceVtkTransformMatrix->DeepCopy(probeToReferenceTransformVector); 
+  vnl_matrix<double> probeToReferenceTransformMatrix(4,4);
+
+  PlusMath::ConvertVtkMatrixToVnlMatrix(probeToReferenceVtkTransformMatrix, probeToReferenceTransformMatrix); 
+
+  vnl_matrix_inverse<double> inverseMatrix(probeToReferenceTransformMatrix);
+  vnl_matrix<double> referenceToProbeTransformMatrix = inverseMatrix.inverse();
+
+  // Make sure the last row in homogeneous transform is [0 0 0 1]
+  vnl_vector<double> lastRow(4,0);
+  lastRow.put(3, 1);
+  referenceToProbeTransformMatrix.set_row(3, lastRow);
+
+
+  // Calculate wire position in probe coordinate system using the segmentation result and the phantom geometry
+  std::vector<NWire> nWires = this->PatternRecognition.GetFidLineFinder()->GetNWires();
+
+  for (int n = 0; n < segmentedPoints.size() / 3; ++n)
+  {
+    // Convert the segmented position of the middle wire from the original image to the predefined ultrasound image frame
+    vnl_vector<double> middleWirePositionInUserImageFrame = imageToUserImageTransformMatrix * segmentedPoints[n*3 + 1];
+
+    // Add weights to the positions if required (see mUS3DBeamwidthAndWeightFactorsInUSImageFrameTable5xM member description)
+    if ( true == mIsUSBeamwidthAndWeightFactorsTableReady && !isValidation )
+    {
+      // Get and round the axial depth in the US Image Frame for the segmented data point (in pixels and along the Y-axis)
+      const int axialDepthInActualImageFrameRounded = floor( middleWirePositionInUserImageFrame.get(1) + 0.5 );
+      mWeightsForDataPositions.push_back( GetBeamwidthWeightForBeamwidthMagnitude(axialDepthInActualImageFrameRounded) );
+    }
+
+    // Calcuate the alpha value
+    vnl_vector<double> vectorCi2Xi = segmentedPoints[n*3 + 1] - segmentedPoints[n*3];
+    vnl_vector<double> vectorCi2Cii = segmentedPoints[n*3 + 2] - segmentedPoints[n*3];
+    double alpha = (double)vectorCi2Xi.magnitude() / vectorCi2Cii.magnitude();
+
+    // Compute middle point position in phantom frame using alpha and the imaginary intersection points
+    vnl_vector<double> positionInPhantomFrame(4);
+    vnl_vector<double> intersectPosW12(4);
+    vnl_vector<double> intersectPosW32(4);
+
+    for (int i=0; i<3; ++i)
+    {
+      intersectPosW12[i] = nWires[n].intersectPosW12[i];
+      intersectPosW32[i] = nWires[n].intersectPosW32[i];
+    }
+
+    intersectPosW12[3] = 1.0;
+    intersectPosW32[3] = 1.0;
+
+    positionInPhantomFrame = intersectPosW12 + alpha * ( intersectPosW32 - intersectPosW12 );
+    positionInPhantomFrame[3] = 1.0;
+
+    // Compute middle point position in probe frame
+    vnl_vector<double> positionInProbeFrame = referenceToProbeTransformMatrix * phantomToReferenceTransformMatrix * positionInPhantomFrame;
+
+    LOG_DEBUG("Segmented point #" << n*3 << " = " << segmentedPoints[n*3]);
+    LOG_DEBUG("Segmented point #" << n*3+1 << " = " << segmentedPoints[n*3+1]);
+    LOG_DEBUG("Segmented point #" << n*3+2 << " = " << segmentedPoints[n*3+2]);
+    LOG_DEBUG("Middle wire position in user image frame = " << middleWirePositionInUserImageFrame);
+    LOG_DEBUG("Alpha = " << alpha);
+    LOG_DEBUG("Middle wire position in phantom frame = " << positionInPhantomFrame);
+    LOG_DEBUG("Reference to probe transform = \n" << referenceToProbeTransformMatrix);
+    LOG_DEBUG("Middle wire position in probe frame = " << positionInProbeFrame);
+
+    if (!isValidation)
+    {
+      // Store into the list of positions in the image frame and the probe frame
+      mDataPositionsInUSImageFrame.push_back( middleWirePositionInUserImageFrame );
+      mDataPositionsInUSProbeFrame.push_back( positionInProbeFrame );
+    }
+    else
+    { //TODO clean up
+      vnl_vector<double> NWireStartinUSProbeFrame = referenceToProbeTransformMatrix * phantomToReferenceTransformMatrix * intersectPosW12;
+      vnl_vector<double> NWireEndinUSProbeFrame = referenceToProbeTransformMatrix * phantomToReferenceTransformMatrix * intersectPosW32;
+
+      // The parallel wires position in US Probe frame 
+      // 1. Parallel wires share the same X, Y coordinates as the N-wire joints
+      //    in the phantom (template) frame.
+      // 2. The Z-axis of the N-wire joints is not used in the computing.
+
+      // Wire N1 corresponds to mNWireJointTopLayerBackWall 
+      vnl_vector<double> NWireJointForN1InUSProbeFrame = referenceToProbeTransformMatrix * phantomToReferenceTransformMatrix * intersectPosW12; //any point of wire 1 of this layer
+
+      // Wire N3 corresponds to mNWireJointTopLayerFrontWall
+      vnl_vector<double> NWireJointForN3InUSProbeFrame = referenceToProbeTransformMatrix * phantomToReferenceTransformMatrix * intersectPosW32; //any point of wire 3 of this layer
+
+      // Store into the list of positions in the US image frame
+      mValidationPositionsInUSImageFrame.push_back( middleWirePositionInUserImageFrame );
+
+      // Store into the list of positions in the US probe frame
+      mValidationPositionsInUSProbeFrame.push_back( positionInProbeFrame );
+      mValidationPositionsNWireStartInUSProbeFrame.push_back( NWireStartinUSProbeFrame );
+      mValidationPositionsNWireEndInUSProbeFrame.push_back( NWireEndinUSProbeFrame );
+
+      for (int i=0; i<2; i++)
+      {
+        // all the matrices are expected to have the same length, so we need to add each value 
+        // as many times as many layer we have - this really have to be cleaned up
+        if (n==0)
+        {
+          // Collect the wire locations (the two parallel wires of 
+          // each of the N-shape) for independent Line-Reconstruction 
+          // Error (LRE) validation.
+          // Note: N1, N3, N4, and N6 are the parallel wires here.
+          vnl_vector<double> N1SegmentedPositionInOriginalImageFrame( segmentedPoints[0] );
+          vnl_vector<double> N3SegmentedPositionInOriginalImageFrame( segmentedPoints[2] );
+
+          // Convert the segmented image positions from the original image to the predefined ultrasound image frame.
+          vnl_vector<double> N1SegmentedPositionInUserImageFrame = imageToUserImageTransformMatrix * N1SegmentedPositionInOriginalImageFrame;
+          vnl_vector<double> N3SegmentedPositionInUserImageFrame = imageToUserImageTransformMatrix * N3SegmentedPositionInOriginalImageFrame;
+
+          mValidationPositionsNWire1InUSImageFrame.push_back( N1SegmentedPositionInUserImageFrame );
+          mValidationPositionsNWire3InUSImageFrame.push_back( N3SegmentedPositionInUserImageFrame );
+          mValidationPositionsNWire1InUSProbeFrame.push_back( NWireJointForN1InUSProbeFrame );
+          mValidationPositionsNWire3InUSProbeFrame.push_back( NWireJointForN3InUSProbeFrame );
+        }
+        else
+        {
+          vnl_vector<double> N4SegmentedPositionInOriginalImageFrame( segmentedPoints[3] );
+          vnl_vector<double> N6SegmentedPositionInOriginalImageFrame( segmentedPoints[5] );
+
+          vnl_vector<double> N4SegmentedPositionInUserImageFrame = imageToUserImageTransformMatrix * N4SegmentedPositionInOriginalImageFrame;
+          vnl_vector<double> N6SegmentedPositionInUserImageFrame = imageToUserImageTransformMatrix * N6SegmentedPositionInOriginalImageFrame;
+
+          mValidationPositionsNWire4InUSImageFrame.push_back( N4SegmentedPositionInUserImageFrame );
+          mValidationPositionsNWire6InUSImageFrame.push_back( N6SegmentedPositionInUserImageFrame );
+          mValidationPositionsNWire4InUSProbeFrame.push_back( NWireJointForN1InUSProbeFrame );
+          mValidationPositionsNWire6InUSProbeFrame.push_back( NWireJointForN3InUSProbeFrame );
+        }
+      }
+    }
+  }
+
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
@@ -1063,19 +1317,6 @@ PlusStatus vtkCalibrationController::WriteConfiguration(vtkXMLDataElement* aConf
 	return PLUS_SUCCESS;
 }
 
-//----------------------------------------------------------------------------
-void vtkCalibrationController::RegisterPhantomGeometry( vtkTransform* aPhantomToPhantomReferenceTransform )
-{
-	LOG_TRACE("vtkCalibrationController::RegisterPhantomGeometry"); 
-
-  // Register the phantom geometry to the DRB frame in the "Emulator" mode.
-	vnl_matrix<double> transformMatrixPhantom2DRB4x4InEmulatorMode(4,4);
-  PlusMath::ConvertVtkMatrixToVnlMatrix(aPhantomToPhantomReferenceTransform->GetMatrix(), transformMatrixPhantom2DRB4x4InEmulatorMode);
-
-	mTransformMatrixPhantom2DRB4x4 = transformMatrixPhantom2DRB4x4InEmulatorMode;
-	mHasPhantomBeenRegistered = true;
-}
-
 //-----------------------------------------------------------------------------
 
 PlusStatus vtkCalibrationController::ResetFreehandCalibration()
@@ -1764,9 +2005,9 @@ PlusStatus vtkCalibrationController::AddPositionsPerImage( std::vector< vnl_vect
     this->Initialize(); 
   }
 
-  if( mHasPhantomBeenRegistered != true )
+  if( this->PhantomToReferenceTransform == NULL )
   {
-    LOG_ERROR("The phantom is not yet registered to the reference frame!");
+    LOG_ERROR("Phantom registration transform is not set!");
     return PLUS_FAIL;
   }
 
@@ -1782,9 +2023,16 @@ PlusStatus vtkCalibrationController::AddPositionsPerImage( std::vector< vnl_vect
     return PLUS_FAIL;
   }
 
+  // Convert phantom registration matrix to vnl
+	vnl_matrix<double> phantomToReferenceTransformMatrix(4,4);
+  PlusMath::ConvertVtkMatrixToVnlMatrix(this->PhantomToReferenceTransform->GetMatrix(), phantomToReferenceTransformMatrix);
+
   // Convert Image to User image transform to VNL
   vnl_matrix<double> transformImage2UserImage(4,4);
   PlusMath::ConvertVtkMatrixToVnlMatrix(this->TransformImageToUserImage->GetMatrix(), transformImage2UserImage); 
+
+	vnl_matrix<double> transformPhantomToReference(4,4);
+  PlusMath::ConvertVtkMatrixToVnlMatrix(this->PhantomToReferenceTransform->GetMatrix(), transformPhantomToReference);
 
   // Obtain the transform matrix from reference Frame to the US probe Frame 
   vnl_matrix_inverse<double> inverseMatrix( aTransformProbe2Reference );
@@ -1834,11 +2082,6 @@ PlusStatus vtkCalibrationController::AddPositionsPerImage( std::vector< vnl_vect
     vnl_vector<double> IntersectPosW12(4);
     vnl_vector<double> IntersectPosW32(4);
 
-    // NWire joints that need to be saved to compute the PLDE (Point-Line Distance Error) 
-    // in addition to the real-time PRE3D.
-    vnl_vector<double> NWireStartinPhantomFrame;
-    vnl_vector<double> NWireEndinPhantomFrame;
-
     for (int i=0; i<3; ++i)
     {
       IntersectPosW12[i] = nWires[Layer].intersectPosW12[i];
@@ -1852,7 +2095,7 @@ PlusStatus vtkCalibrationController::AddPositionsPerImage( std::vector< vnl_vect
     PositionInPhantomFrame[3] = 1.0;
 
     // Finally, calculate the position in the probe frame
-    vnl_vector<double> PositionInUSProbeFrame = transformReference2Probe * mTransformMatrixPhantom2DRB4x4 * PositionInPhantomFrame;
+    vnl_vector<double> PositionInUSProbeFrame = transformReference2Probe * phantomToReferenceTransformMatrix * PositionInPhantomFrame;
 
     LOG_DEBUG(" ADD DATA FOR " << (aValidation?"VALIDATION":"CALIBRATION") << " ("<<frameIndex<<")");
     LOG_DEBUG(" SegmentedNFiducial-" << Layer*3 << " = " << aSegmentedDataPositionListPerImage.at( Layer*3 ));
@@ -1863,7 +2106,7 @@ PlusStatus vtkCalibrationController::AddPositionsPerImage( std::vector< vnl_vect
     LOG_DEBUG(" alpha = " << alpha);
     LOG_DEBUG(" PositionInPhantomFrame = " << PositionInPhantomFrame);
     LOG_DEBUG(" TransformReference2Probe = \n" << transformReference2Probe);
-    LOG_DEBUG(" mTransformMatrixPhantom2DRB4x4 = \n" << mTransformMatrixPhantom2DRB4x4);
+    LOG_DEBUG(" TransformPhantomToReference = \n" << transformPhantomToReference);
     LOG_DEBUG(" PositionInUSProbeFrame = " << PositionInUSProbeFrame);
 
     if (!aValidation)
@@ -1876,8 +2119,8 @@ PlusStatus vtkCalibrationController::AddPositionsPerImage( std::vector< vnl_vect
     }
     else
     {
-      vnl_vector<double> NWireStartinUSProbeFrame = transformReference2Probe * mTransformMatrixPhantom2DRB4x4 * IntersectPosW12;
-      vnl_vector<double> NWireEndinUSProbeFrame = transformReference2Probe * mTransformMatrixPhantom2DRB4x4 * IntersectPosW32;
+      vnl_vector<double> NWireStartinUSProbeFrame = transformReference2Probe * transformPhantomToReference * IntersectPosW12;
+      vnl_vector<double> NWireEndinUSProbeFrame = transformReference2Probe * transformPhantomToReference * IntersectPosW32;
 
       // The parallel wires position in US Probe frame 
       // Note: 
@@ -1886,10 +2129,10 @@ PlusStatus vtkCalibrationController::AddPositionsPerImage( std::vector< vnl_vect
       // 2. The Z-axis of the N-wire joints is not used in the computing.
 
       // Wire N1 corresponds to mNWireJointTopLayerBackWall 
-      vnl_vector<double> NWireJointForN1InUSProbeFrame = transformReference2Probe * mTransformMatrixPhantom2DRB4x4 * IntersectPosW12; //any point of wire 1 of this layer
+      vnl_vector<double> NWireJointForN1InUSProbeFrame = transformReference2Probe * phantomToReferenceTransformMatrix * IntersectPosW12; //any point of wire 1 of this layer
 
       // Wire N3 corresponds to mNWireJointTopLayerFrontWall
-      vnl_vector<double> NWireJointForN3InUSProbeFrame = transformReference2Probe * mTransformMatrixPhantom2DRB4x4 * IntersectPosW32; //any point of wire 3 of this layer
+      vnl_vector<double> NWireJointForN3InUSProbeFrame = transformReference2Probe * phantomToReferenceTransformMatrix * IntersectPosW32; //any point of wire 3 of this layer
 
       // Store into the list of positions in the US image frame
       mValidationPositionsInUSImageFrame.push_back( SegmentedPositionInUserImageFrame );
@@ -2032,8 +2275,6 @@ void vtkCalibrationController::resetDataContainers()
 	mAreOutliersRemoved = false; 
 
 	// Initialize data containers
-	mTransformMatrixPhantom2DRB4x4.set_size(4,4);
-
 	mDataPositionsInUSProbeFrame.resize(0);
 	mDataPositionsInUSImageFrame.resize(0);
 	mOutlierDataPositions.resize(0); 
