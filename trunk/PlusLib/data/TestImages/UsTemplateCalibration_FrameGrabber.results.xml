@@ -1,12 +1,9 @@
 <USTemplateCalibrationResult version="1.0">
-  <CalibrationFile Timestamp="20111006_181745" FileName="20111006_181745.Calibration.results.xml">
+  <CalibrationFile Timestamp="20111014_174934" FileName="20111014_174934.Calibration.results.xml">
     # Timestamp format: MM/DD/YY HH:MM:SS
   </CalibrationFile>
   <CalibrationResults>
-    <UltrasoundImageDimensions Width="640" Height="480">
-      # UltrasoundImageDimensions format: image width and height in pixels.
-    </UltrasoundImageDimensions>
-    <CalibrationTransform TransformImageToUserImage="1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1" TransformUserImageToProbe="0.264939 -0.0091724 -0.0273503 -74.6477 -0.00434363 -0.26019 0.0048852 22.132 -0.0277452 -0.00389494 -0.261933 162.88 0 0 0 1" TransformReferenceToTemplateHolderHome="1 0 0 24.7098 0 1 0 15.3918 0 0 1 0 0 0 0 1" TransformTemplateHolderToTemplate="1 0 0 5 0 1 0 63.5 0 0 1 0 0 0 0 1" TransformTemplateHomeToTemplate="1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1" TransformImageToTemplate="0.264939 -0.0091724 -0.0273503 -44.0664 -0.00434363 -0.26019 0.0048852 103.367 -0.0277452 -0.00389494 -0.261933 121.558 0 0 0 1">
+    <CalibrationTransform TransformImageToUserImage="1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1" TransformUserImageToProbe="0.264939 -0.0091724 -0.0273503 -74.6477 -0.00434363 -0.26019 0.0048852 22.132 -0.0277452 -0.00389494 -0.261933 162.88 0 0 0 1" TransformReferenceToTemplateHolderHome="1 0 0 24.7098 0 1 0 15.3918 0 0 1 0 0 0 0 1" TransformTemplateHolderToTemplate="1 0 0 5 0 1 0 63.5 0 0 1 0 0 0 0 1" TransformTemplateHomeToTemplate="1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1" TransformImageToTemplate="0.264939 -0.0091724 -0.0273503 -44.9379 -0.00434363 -0.26019 0.0048852 101.024 -0.0277452 -0.00389494 -0.261933 162.88 0 0 0 1">
       
     </CalibrationTransform>
     
