@@ -19,7 +19,7 @@
 #include "vtkDataCollector.h"
 #include "vtkPlusCommand.h"
 
-
+class vtkMultiThreader; 
 class vtkMutexLock;
 
 /** \class vtkPlusOpenIGTLinkClient 
@@ -44,7 +44,7 @@ public:
   virtual void PrintSelf( ostream& os, vtkIndent indent );
   
   vtkSetMacro( NetworkPort, int );
-  vtkSetMacro( ServerAddress, std::string );
+  vtkSetStringMacro( ServerAddress );
   
   vtkSetObjectMacro( ActiveCommand, vtkPlusCommand );
   
@@ -76,7 +76,7 @@ private:
   vtkMutexLock*               SocketMutex;
   
   int         NetworkPort;
-  std::string ServerAddress;
+  char*       ServerAddress;
   int         ThreadId;
   bool        CommandInProgress;
   

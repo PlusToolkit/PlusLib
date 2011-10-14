@@ -4,6 +4,8 @@
 #include "vtkDataCollector.h"
 #include "vtkVideoBuffer.h"
 #include "vtkXMLUtilities.h"
+#include "vtkTimerLog.h"
+#include "vtksys/SystemTools.hxx"
 
 int main(int argc, char **argv)
 {

@@ -14,6 +14,7 @@
 #include "vtkSavedDataVideoSource.h"
 #include "vtkOpenIGTLinkBroadcaster.h"
 #include "vtkXMLUtilities.h"
+#include "vtkImageData.h" 
 
 vtkDataCollector* dataCollector = NULL; 
 vtkImageViewer *viewer = NULL;

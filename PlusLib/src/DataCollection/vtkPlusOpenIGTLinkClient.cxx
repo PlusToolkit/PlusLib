@@ -28,7 +28,7 @@ int
 vtkPlusOpenIGTLinkClient
 ::ConnectToServer()
 {
-  int r = this->ClientSocket->ConnectToServer( this->ServerAddress.c_str(), this->NetworkPort );
+  int r = this->ClientSocket->ConnectToServer( this->ServerAddress, this->NetworkPort );
   
   if ( r != 0 )
     {
@@ -133,6 +133,7 @@ vtkPlusOpenIGTLinkClient
   this->ThreadId = -1;
   this->CommandInProgress = false;
   this->ActiveCommand = NULL;
+  this->ServerAddress = NULL; 
   
   this->Threader = vtkMultiThreader::New();
   this->Mutex = vtkMutexLock::New();

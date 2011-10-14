@@ -18,6 +18,7 @@
 #include "vtkOpenIGTLinkBroadcaster.h"
 
 #include "OpenIGTLinkReceiveServer.h"
+#include "vtkVideoBuffer.h"
 
 
 

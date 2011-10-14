@@ -27,6 +27,7 @@
 #include "vtkPlane.h"
 #include "vtkLine.h"
 #include "vtksys/SystemTools.hxx"
+#include "UsImageConverterCommon.h"
 
 #include "vtkGnuplotExecuter.h"
 #include "vtkHTMLGenerator.h"

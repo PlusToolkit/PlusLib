@@ -8,19 +8,19 @@
 #define __vtkDataCollector_h
 
 #include "PlusConfigure.h"
-#include "vtkMultiThreader.h"
 #include "vtkImageAlgorithm.h" 
-#include "vtkXMLDataElement.h"
-#include "vtkImageData.h"
-#include "vtkTimerLog.h"
-#include "vtksys/SystemTools.hxx"
 
-#include "vtkVideoBuffer.h"
-#include "vtkTracker.h"
-#include "vtkTrackerBuffer.h"
-#include "vtkTrackedFrameList.h"
-#include "vtkDataCollectorSynchronizer.h"
-#include "vtkPlusVideoSource.h"
+class vtkXMLDataElement; 
+class vtkImageData; 
+class vtkVideoBuffer; 
+class vtkTrackerBuffer; 
+class vtkTrackedFrameList; 
+class TrackedFrame; 
+class vtkDataCollectorSynchronizer; 
+class vtkTracker; 
+class vtkMatrix4x4; 
+class vtkPlusVideoSource; 
+class PlusVideoFrame; 
 
 /** Acquisition types */ 
 enum ACQUISITION_TYPE 
@@ -123,6 +123,9 @@ public:
   /** Get the most recent tracked frame from devices with each tool transforms */
   virtual PlusStatus GetTrackedFrame(TrackedFrame* trackedFrame, bool calibratedTransform = false); 
 
+  /** Get the tracked frame list from devices since time specified */
+  virtual PlusStatus GetTrackedFrameList(double time, vtkTrackedFrameList* trackedFrameList); 
+
   const char* vtkDataCollector::GetDefaultFrameTransformName(int toolNumber);
 
   /** Get the tracked frame from devices by time with each tool transforms */
@@ -168,15 +171,15 @@ public:
   vtkGetStringMacro(DeviceSetDescription); 
 
   /** Set/Get the video source of ultrasound */
-  vtkSetObjectMacro(VideoSource,vtkPlusVideoSource);
+  virtual void SetVideoSource(vtkPlusVideoSource* videoSource); 
   vtkGetObjectMacro(VideoSource,vtkPlusVideoSource);
 
   /** Set/Get the video source of ultrasound */
-  vtkSetObjectMacro(Synchronizer,vtkDataCollectorSynchronizer);
+  virtual void SetSynchronizer(vtkDataCollectorSynchronizer* synchronizer);
   vtkGetObjectMacro(Synchronizer,vtkDataCollectorSynchronizer);
 
   /** Set/Get the tracker  */
-  vtkSetObjectMacro(Tracker,vtkTracker);
+  virtual void SetTracker(vtkTracker* tracker); 
   vtkGetObjectMacro(Tracker,vtkTracker);
 
   /** Set/get the Initialized flag  */
