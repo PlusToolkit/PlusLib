@@ -544,8 +544,12 @@ PlusStatus FreehandCalibrationToolbox::DoSpatialCalibration()
 
   delete patternRecognition;
 
-  m_Calibration->Calibrate( validationTrackedFrameList, calibrationTrackedFrameList,
-                            m_Calibration->GetTrackedFrameList(FREEHAND_MOTION_1)->GetDefaultFrameTransformName().c_str() );  //TODO change these when image data info variables are deleted
+  if (m_Calibration->Calibrate( validationTrackedFrameList, calibrationTrackedFrameList,
+                                m_Calibration->GetTrackedFrameList(FREEHAND_MOTION_1)->GetDefaultFrameTransformName().c_str() ) != PLUS_SUCCESS)  //TODO change these when image data info variables are deleted
+  {
+    LOG_ERROR("Calibration failed!");
+    return PLUS_FAIL;
+  }
 
 	return PLUS_SUCCESS;
 }
