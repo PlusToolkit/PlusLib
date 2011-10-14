@@ -1,3 +1,9 @@
+/*=Plus=header=begin======================================================
+  Program: Plus
+  Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+  See License.txt for details.
+=========================================================Plus=header=end*/ 
+
 #include "PlusConfigure.h"
 #include "vtksys/CommandLineArguments.hxx"
 #include "vtksys/SystemTools.hxx"
@@ -90,10 +96,7 @@ int main(int argc, char **argv)
   }
 
   LOG_INFO("Testing image data segmentation...");
-  for ( int currentFrameIndex = 0; currentFrameIndex < trackedFrameList->GetNumberOfTrackedFrames(); currentFrameIndex++)
-  {
-    patternRecognition.RecognizePattern(trackedFrameList->GetTrackedFrame(currentFrameIndex));
-  }
+  patternRecognition.RecognizePattern(trackedFrameList);
 
   LOG_INFO("Testing spacing computation...");
   vtkSmartPointer<vtkSpacingCalibAlgo> spacingCalibAlgo = vtkSmartPointer<vtkSpacingCalibAlgo>::New(); 

@@ -1,8 +1,16 @@
+/*=Plus=header=begin======================================================
+  Program: Plus
+  Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+  See License.txt for details.
+=========================================================Plus=header=end*/ 
+
 #include "PlusConfigure.h"
+#include "vtkPlusConfig.h"
 #include "PlusMath.h"
 #include "vtkCalibrationController.h"
 #include "vtkPhantomRegistrationAlgo.h"
-#include "vtkPlusConfig.h"
+#include "FidPatternRecognition.h"
+
 #include "vtkBMPReader.h"
 #include "vtkSmartPointer.h"
 #include "vtkCommand.h"
@@ -24,7 +32,6 @@ const double ERROR_THRESHOLD = 0.05; // error threshold is 5%
 int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const char* currentResultFileName, int translationErrorThreshold, int rotationErrorThreshold); 
 void PrintLogsCallback(vtkObject* obj, unsigned long eid, void* clientdata, void* calldata); 
 double GetCalibrationError(vtkMatrix4x4* baseTransMatrix, vtkMatrix4x4* currentTransMatrix); 
-PlusStatus DoOfflineCalibration(vtkCalibrationController* calibrator);
 
 int main (int argc, char* argv[])
 {
@@ -90,31 +97,50 @@ int main (int argc, char* argv[])
   freehandCalibration->ReadFreehandCalibrationConfiguration(configRootElement);
   freehandCalibration->EnableSegmentationAnalysisOn(); // So that results are drawn (there was a condition for that if the calibration is in OFFLINE mode - now that enum has been removed)
 
-	// Continue initializing freehand calibration controller
-	vtkCalibrationController::ImageDataInfo freehandMotion1DataInfo = freehandCalibration->GetImageDataInfo(FREEHAND_MOTION_1);
-	freehandMotion1DataInfo.InputSequenceMetaFileName.assign(inputFreehandMotion1SeqMetafile.c_str());
-	freehandCalibration->SetImageDataInfo(FREEHAND_MOTION_1, freehandMotion1DataInfo);
-
-	vtkCalibrationController::ImageDataInfo freehandMotion2DataInfo = freehandCalibration->GetImageDataInfo(FREEHAND_MOTION_2);
-	freehandMotion2DataInfo.InputSequenceMetaFileName.assign(inputFreehandMotion2SeqMetafile.c_str());
-	freehandCalibration->SetImageDataInfo(FREEHAND_MOTION_2, freehandMotion2DataInfo);
-
   freehandCalibration->Initialize();
   freehandCalibration->SetPhantomToReferenceTransform(phantomRegistration->GetPhantomToPhantomReferenceTransform());
 
-	// Register phantom geometry before calibration 
-	if ( DoOfflineCalibration(freehandCalibration) == PLUS_SUCCESS )
+  FidPatternRecognition patternRecognition;
+	patternRecognition.ReadConfiguration(configRootElement);
+
+  // Load and segment calibration image
+	vtkSmartPointer<vtkTrackedFrameList> calibrationTrackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New();
+  if (calibrationTrackedFrameList->ReadFromSequenceMetafile(inputFreehandMotion1SeqMetafile.c_str()) != PLUS_SUCCESS)
   {
-  	freehandCalibration->ComputeCalibrationResults(); 
-  }
-  else
+		LOG_ERROR("Reading calibration images from '" << inputFreehandMotion1SeqMetafile << "' failed!"); 
+		return EXIT_FAILURE;
+	}
+
+  if (patternRecognition.RecognizePattern(calibrationTrackedFrameList) != PLUS_SUCCESS)
   {
-    LOG_ERROR("Offline calibration failed!");
-    return EXIT_FAILURE;
+		LOG_ERROR("Error occured during segmentation of calibration images!"); 
+		return EXIT_FAILURE;
   }
 
+  // Load and segment validation image
+	vtkSmartPointer<vtkTrackedFrameList> validationTrackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New();
+  if (validationTrackedFrameList->ReadFromSequenceMetafile(inputFreehandMotion2SeqMetafile.c_str()) != PLUS_SUCCESS)
+  {
+		LOG_ERROR("Reading validation images from '" << inputFreehandMotion2SeqMetafile << "' failed!"); 
+		return EXIT_FAILURE;
+	}
+
+  if (patternRecognition.RecognizePattern(validationTrackedFrameList) != PLUS_SUCCESS)
+  {
+		LOG_ERROR("Error occured during segmentation of validation images!"); 
+		return EXIT_FAILURE;
+  }
+
+  // Calibrate
+  if (freehandCalibration->Calibrate( validationTrackedFrameList, calibrationTrackedFrameList,
+                                      freehandCalibration->GetTrackedFrameList(FREEHAND_MOTION_1)->GetDefaultFrameTransformName().c_str() ) != PLUS_SUCCESS)  //TODO change these when image data info variables are deleted
+  {
+    LOG_ERROR("Calibration failed!");
+		return EXIT_FAILURE;
+  }
+
+  // Compare results
 	vtkstd::string currentConfigFileName = freehandCalibration->GetCalibrationResultFileNameWithPath(); 
-
 	if ( CompareCalibrationResultsWithBaseline( inputBaselineFileName.c_str(), currentConfigFileName.c_str(), inputTranslationErrorThreshold, inputRotationErrorThreshold ) !=0 )
 	{
 		LOG_ERROR("Comparison of calibration data to baseline failed");
@@ -125,72 +151,6 @@ int main (int argc, char* argv[])
 
 	std::cout << "Exit success!!!" << std::endl; 
 	return EXIT_SUCCESS;
-}
-
-//-----------------------------------------------------------------------------
-
-PlusStatus DoOfflineCalibration( vtkCalibrationController* calibrator )
-{
-	LOG_TRACE("DoOfflineCalibration"); 
-
-	vtkSmartPointer<vtkTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New();
-	if ( !calibrator->GetImageDataInfo(FREEHAND_MOTION_2).InputSequenceMetaFileName.empty() ) {
-		trackedFrameList->ReadFromSequenceMetafile(calibrator->GetImageDataInfo(FREEHAND_MOTION_2).InputSequenceMetaFileName.c_str()); 
-	} else {
-		LOG_ERROR("Unable to start OfflineCalibration with validation data: SequenceMetaFileName is empty!"); 
-		return PLUS_FAIL; 
-	}
-
-	// Validation data
-	int validationCounter = 0;
-  std::string defaultFrameTransformName=trackedFrameList->GetDefaultFrameTransformName();
-	for (int imgNumber = 0; validationCounter < calibrator->GetImageDataInfo(FREEHAND_MOTION_2).NumberOfImagesToAcquire; imgNumber++) {
-		if ( imgNumber >= trackedFrameList->GetNumberOfTrackedFrames() ) {
-			break; 
-		}
-
-		if ( calibrator->AddTrackedFrameData(trackedFrameList->GetTrackedFrame(imgNumber), FREEHAND_MOTION_2, defaultFrameTransformName.c_str()) ) {
-			// The segmentation was successful
-			validationCounter++;
-		} else {
-			LOG_DEBUG("Adding tracked frame " << imgNumber << " (for validation) failed!");
-		}
-
-		calibrator->SetOfflineImageData(trackedFrameList->GetTrackedFrame(imgNumber)->GetImageData()->GetDisplayableImage());
-	}
-
-	LOG_INFO( "A total of " << calibrator->GetImageDataInfo(FREEHAND_MOTION_2).NumberOfSegmentedImages << " images have been successfully added for validation.");
-
-
-	// Calibration data
-	vtkSmartPointer<vtkTrackedFrameList> calibrationData = vtkSmartPointer<vtkTrackedFrameList>::New();
-	if ( !calibrator->GetImageDataInfo(FREEHAND_MOTION_1).InputSequenceMetaFileName.empty() ) {
-		calibrationData->ReadFromSequenceMetafile(calibrator->GetImageDataInfo(FREEHAND_MOTION_1).InputSequenceMetaFileName.c_str()); 
-	} else {
-		LOG_ERROR("Unable to start OfflineCalibration with calibration data: SequenceMetaFileName is empty!"); 
-		return PLUS_FAIL; 
-	}
-
-	int calibrationCounter = 0;
-  std::string defaultFrameTransformNamCalibration=calibrationData->GetDefaultFrameTransformName();
-	for (int imgNumber = 0; calibrationCounter < calibrator->GetImageDataInfo(FREEHAND_MOTION_1).NumberOfImagesToAcquire; imgNumber++) {
-		if ( imgNumber >= calibrationData->GetNumberOfTrackedFrames() ) {
-			break; 
-		}
-
-		if ( calibrator->AddTrackedFrameData(calibrationData->GetTrackedFrame(imgNumber), FREEHAND_MOTION_1, defaultFrameTransformNamCalibration.c_str()) ) {
-			// The segmentation was successful
-			calibrationCounter++; 
-		} else {
-			LOG_DEBUG("Adding tracked frame " << imgNumber << " (for calibration) failed!");
-		}
-
-		calibrator->SetOfflineImageData(calibrationData->GetTrackedFrame(imgNumber)->GetImageData()->GetDisplayableImage()); 
-	}
-
-	LOG_INFO ("A total of " << calibrator->GetImageDataInfo(FREEHAND_MOTION_1).NumberOfSegmentedImages << " images have been successfully added for calibration.");
-
-	return PLUS_SUCCESS;
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -233,67 +193,6 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
 			numberOfFailures++;
 			return numberOfFailures;
 		}
-
-
-		{	// <UltrasoundImageDimensions>
-
-			vtkSmartPointer<vtkXMLDataElement> ultrasoundImageDimensionsBaseline = calibrationResultsBaseline->FindNestedElementWithName("UltrasoundImageDimensions"); 
-			vtkSmartPointer<vtkXMLDataElement> ultrasoundImageDimensions = calibrationResults->FindNestedElementWithName("UltrasoundImageDimensions");
-
-			if ( ultrasoundImageDimensionsBaseline == NULL) 
-			{
-				LOG_ERROR("Reading baseline UltrasoundImageDimensions tag failed: " << baselineFileName);
-				numberOfFailures++;
-				return numberOfFailures;
-			}
-
-			if ( ultrasoundImageDimensions == NULL) 
-			{
-				LOG_ERROR("Reading current UltrasoundImageDimensions tag failed: " << currentResultFileName);
-				numberOfFailures++;
-				return numberOfFailures;
-			}
-
-			int blImageDimensionWidth, cImageDimensionWidth; 
-			if (!ultrasoundImageDimensionsBaseline->GetScalarAttribute("Width", blImageDimensionWidth))
-			{
-				LOG_ERROR("Baseline UltrasoundImageDimensions width is missing");
-				numberOfFailures++;			
-			}
-			else if (!ultrasoundImageDimensions->GetScalarAttribute("Width", cImageDimensionWidth))
-			{
-				LOG_ERROR("Current UltrasoundImageDimensions width is missing");
-				numberOfFailures++;			
-			}
-			else
-			{
-				if (blImageDimensionWidth != cImageDimensionWidth)
-				{
-					LOG_ERROR("UltrasoundImageDimensions width mismatch: current=" << cImageDimensionWidth << ", baseline=" << blImageDimensionWidth);
-					numberOfFailures++;
-				}
-			}
-
-			int blImageDimensionHeight, cImageDimensionHeight; 
-			if (!ultrasoundImageDimensionsBaseline->GetScalarAttribute("Height", blImageDimensionHeight))
-			{
-				LOG_ERROR("Baseline UltrasoundImageDimensions height is missing");
-				numberOfFailures++;			
-			}
-			else if (!ultrasoundImageDimensions->GetScalarAttribute("Height", cImageDimensionHeight))
-			{
-				LOG_ERROR("Current UltrasoundImageDimensions height is missing");
-				numberOfFailures++;			
-			}
-			else
-			{
-				if (blImageDimensionHeight != cImageDimensionHeight)
-				{
-					LOG_ERROR("UltrasoundImageDimensions height mismatch: current=" << cImageDimensionHeight << ", baseline=" << blImageDimensionHeight);
-					numberOfFailures++;
-				}
-			}
-		}// </UltrasoundImageDimensions>
 
 		{	// <CalibrationTransform>
 			vtkSmartPointer<vtkXMLDataElement> calibrationTransformBaseline = calibrationResultsBaseline->FindNestedElementWithName("CalibrationTransform"); 
