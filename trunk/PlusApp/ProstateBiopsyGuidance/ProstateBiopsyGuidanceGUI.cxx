@@ -5,6 +5,8 @@
 #include "vtkTrackerTool.h"
 #include "vtkCommand.h"
 #include "vtkRenderWindow.h"
+#include "vtkPlusVideoSource.h"
+#include "vtkTrackedFrameList.h"
 #include <string>
 #include <stdio.h>
 #include <conio.h>

@@ -9,6 +9,8 @@
 #include "vtkGnuplotExecuter.h"
 #include "vtksys/SystemTools.hxx"
 #include "vtkXMLUtilities.h"
+#include "vtkTimerLog.h"
+#include "vtkPlusVideoSource.h"
 
 int main(int argc, char **argv)
 {

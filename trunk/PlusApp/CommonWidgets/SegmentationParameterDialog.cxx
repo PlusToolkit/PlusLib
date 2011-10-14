@@ -28,6 +28,8 @@
 #include "vtkConeSource.h"
 #include "vtkTextActor3D.h"
 #include "vtkTextProperty.h"
+#include "vtkImageData.h" 
+#include "vtkPlusVideoSource.h"
 
 //----------------------------------------------------------------------
 //! Base class for the segmentation parameter dialog mode handlers

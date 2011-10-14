@@ -18,6 +18,8 @@
 #include "vtkProperty.h"
 #include "vtkPolyDataMapper.h"
 #include "vtkXMLUtilities.h"
+#include "vtkTrackedFrameList.h"
+#include "vtkImageData.h"
 
 //-----------------------------------------------------------------------------
 

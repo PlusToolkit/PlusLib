@@ -3,6 +3,7 @@
 #include "vtksys/SystemTools.hxx"
 #include "TrackedUltrasoundCapturing.h"
 #include "vtkDataCollectorSynchronizer.h"
+#include "vtkPlusVideoSource.h"
 
 #include "vtkObjectFactory.h"
 #include "vtkOutputWindow.h"
@@ -249,13 +250,12 @@ void TrackedUltrasoundCapturing::AddTrackedFrame( TrackedFrame* trackedFrame )
 	bool isDataUnique(false); 
 	if ( this->GetDataCollector()->GetTracker() != NULL )
 	{
-    // TODO Validate data does not determine uniqueness anymore, it validates speed too - in case it changes anything here...
-		isDataUnique = this->TrackedFrameContainer->ValidateData(trackedFrame); 
+		isDataUnique = this->TrackedFrameContainer->ValidateData(trackedFrame, REQUIRE_UNIQUE_TIMESTAMP | REQUIRE_TRACKING_OK | REQUIRE_SPEED_BELOW_THRESHOLD); 
 	}
 	else
 	{
 		// If we don't have tracking device, we don't need to validate status and position
-		isDataUnique = this->TrackedFrameContainer->ValidateData(trackedFrame, true, false, false); 
+    isDataUnique = this->TrackedFrameContainer->ValidateData(trackedFrame, REQUIRE_UNIQUE_TIMESTAMP | REQUIRE_SPEED_BELOW_THRESHOLD); 
 	}
 
 	if ( !isDataUnique )

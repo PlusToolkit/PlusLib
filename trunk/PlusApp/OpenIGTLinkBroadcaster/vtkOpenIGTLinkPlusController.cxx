@@ -1,6 +1,6 @@
 
 #include "vtkOpenIGTLinkPlusController.h"
-
+#include "vtkObjectFactory.h"
 
 
 vtkCxxRevisionMacro( vtkOpenIGTLinkPlusController, "$Revision: 1.0 $" );

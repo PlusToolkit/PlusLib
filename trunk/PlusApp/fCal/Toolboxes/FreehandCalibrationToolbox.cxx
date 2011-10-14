@@ -8,6 +8,8 @@
 
 #include "vtkCalibrationController.h"
 #include "vtkPhantomRegistrationAlgo.h"
+#include "vtkPlusVideoSource.h"
+#include "vtkVideoBuffer.h"
 
 #include "PhantomRegistrationToolbox.h"
 #include "ConfigFileSaverDialog.h"

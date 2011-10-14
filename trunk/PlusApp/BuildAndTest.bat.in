@@ -15,7 +15,7 @@ if "%1" == "-I" goto individual
 :experimental
 "${CMAKE_MAKE_PROGRAM}" PlusApp.sln /build Release /project ALL_BUILD
 IF ERRORLEVEL 1  GOTO BUILDFAILED
-"${CMAKE_CTEST_COMMAND}" -D Experimental
+"${CMAKE_CTEST_COMMAND}" -D Experimental --output-on-failure
 goto END
 
 :nightly

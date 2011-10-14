@@ -24,6 +24,8 @@
 #include "vtkSTLReader.h"
 #include "vtkAxesActor.h"
 #include "vtkRenderWindow.h"
+#include "vtkPlusVideoSource.h"
+#include "vtksys/SystemTools.hxx"
 
 #include "vtkRenderWindowInteractor.h"
 #include "vtkInteractorStyleTrackballCamera.h"
