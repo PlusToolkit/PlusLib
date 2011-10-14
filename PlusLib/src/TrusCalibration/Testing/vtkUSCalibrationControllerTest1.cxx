@@ -1,3 +1,9 @@
+/*=Plus=header=begin======================================================
+  Program: Plus
+  Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+  See License.txt for details.
+=========================================================Plus=header=end*/ 
+
 #include "PlusConfigure.h"
 #include "PlusMath.h"
 #include "vtkTrackedFrameList.h"
@@ -227,67 +233,6 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
 			numberOfFailures++;
 			return numberOfFailures;
 		}
-
-
-		{	// <UltrasoundImageDimensions>
-
-			vtkSmartPointer<vtkXMLDataElement> ultrasoundImageDimensionsBaseline = calibrationResultsBaseline->FindNestedElementWithName("UltrasoundImageDimensions"); 
-			vtkSmartPointer<vtkXMLDataElement> ultrasoundImageDimensions = calibrationResults->FindNestedElementWithName("UltrasoundImageDimensions");
-
-			if ( ultrasoundImageDimensionsBaseline == NULL) 
-			{
-				LOG_ERROR("Reading baseline UltrasoundImageDimensions tag failed: " << baselineFileName);
-				numberOfFailures++;
-				return numberOfFailures;
-			}
-
-			if ( ultrasoundImageDimensions == NULL) 
-			{
-				LOG_ERROR("Reading current UltrasoundImageDimensions tag failed: " << currentResultFileName);
-				numberOfFailures++;
-				return numberOfFailures;
-			}
-
-			int blImageDimensionWidth, cImageDimensionWidth; 
-			if (!ultrasoundImageDimensionsBaseline->GetScalarAttribute("Width", blImageDimensionWidth))
-			{
-				LOG_ERROR("Baseline UltrasoundImageDimensions width is missing");
-				numberOfFailures++;			
-			}
-			else if (!ultrasoundImageDimensions->GetScalarAttribute("Width", cImageDimensionWidth))
-			{
-				LOG_ERROR("Current UltrasoundImageDimensions width is missing");
-				numberOfFailures++;			
-			}
-			else
-			{
-				if (blImageDimensionWidth != cImageDimensionWidth)
-				{
-					LOG_ERROR("UltrasoundImageDimensions width mismatch: current=" << cImageDimensionWidth << ", baseline=" << blImageDimensionWidth);
-					numberOfFailures++;
-				}
-			}
-
-			int blImageDimensionHeight, cImageDimensionHeight; 
-			if (!ultrasoundImageDimensionsBaseline->GetScalarAttribute("Height", blImageDimensionHeight))
-			{
-				LOG_ERROR("Baseline UltrasoundImageDimensions height is missing");
-				numberOfFailures++;			
-			}
-			else if (!ultrasoundImageDimensions->GetScalarAttribute("Height", cImageDimensionHeight))
-			{
-				LOG_ERROR("Current UltrasoundImageDimensions height is missing");
-				numberOfFailures++;			
-			}
-			else
-			{
-				if (blImageDimensionHeight != cImageDimensionHeight)
-				{
-					LOG_ERROR("UltrasoundImageDimensions height mismatch: current=" << cImageDimensionHeight << ", baseline=" << blImageDimensionHeight);
-					numberOfFailures++;
-				}
-			}
-		}// </UltrasoundImageDimensions>
 
 		{	// <CalibrationTransform>
 			vtkSmartPointer<vtkXMLDataElement> calibrationTransformBaseline = calibrationResultsBaseline->FindNestedElementWithName("CalibrationTransform"); 

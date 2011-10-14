@@ -128,6 +128,26 @@ PlusStatus FidPatternRecognition::RecognizePattern(TrackedFrame* trackedFrame)
 
 //-----------------------------------------------------------------------------
 
+PlusStatus FidPatternRecognition::RecognizePattern(vtkTrackedFrameList* trackedFrameList)
+{
+	LOG_TRACE("FidPatternRecognition::DrawResults"); 
+
+  PlusStatus status = PLUS_SUCCESS;
+
+  for ( int currentFrameIndex = 0; currentFrameIndex < trackedFrameList->GetNumberOfTrackedFrames(); currentFrameIndex++)
+  {
+    if (RecognizePattern(trackedFrameList->GetTrackedFrame(currentFrameIndex)) != PLUS_SUCCESS)
+    {
+      LOG_ERROR("Recognizing pattern failed on frame " << currentFrameIndex);
+      status = PLUS_FAIL;
+    }
+  }
+
+  return status;
+}
+
+//-----------------------------------------------------------------------------
+
 void FidPatternRecognition::DrawResults( PixelType *image )
 {
 	LOG_TRACE("FidPatternRecognition::DrawResults"); 

@@ -3191,14 +3191,6 @@ void vtkCalibrationController::SaveCalibrationResultsAndErrorReportsToXML()
 	vtkSmartPointer<vtkXMLDataElement> tagCalibrationResults = vtkSmartPointer<vtkXMLDataElement>::New(); 
 	tagCalibrationResults->SetName("CalibrationResults"); 
 
-	// <UltrasoundImageDimensions>
-	vtkSmartPointer<vtkXMLDataElement> tagUltrasoundImageDimensions = vtkSmartPointer<vtkXMLDataElement>::New(); 
-	tagUltrasoundImageDimensions->SetName("UltrasoundImageDimensions"); 
-  tagUltrasoundImageDimensions->SetIntAttribute("Width", this->PatternRecognition.GetFidSegmentation()->GetFrameSize()[0]); 
-	tagUltrasoundImageDimensions->SetIntAttribute("Height",this->PatternRecognition.GetFidSegmentation()->GetFrameSize()[1]); 
-	vtkstd::string commentUltrasoundImageDimensions("# UltrasoundImageDimensions format: image width and height in pixels."); 
-	tagUltrasoundImageDimensions->AddCharacterData(commentUltrasoundImageDimensions.c_str(), commentUltrasoundImageDimensions.size()); 
-
 	double *imageToUserImageMatrix = new double[16]; 
 	for (int i = 0; i < 4; i++)
 	{
@@ -3270,7 +3262,6 @@ void vtkCalibrationController::SaveCalibrationResultsAndErrorReportsToXML()
 	delete[] templateHomeToTemplateMatrix; 
 	delete[] imageToTemplateMatrix; 
 
-	tagCalibrationResults->AddNestedElement(tagUltrasoundImageDimensions); 
 	tagCalibrationResults->AddNestedElement(tagCalibrationTransform); 
 
 	// <ErrorReports>
