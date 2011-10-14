@@ -1,4 +1,8 @@
-// Store a list of tracked frames (image + pose information)
+/*=Plus=header=begin======================================================
+  Program: Plus
+  Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+  See License.txt for details.
+=========================================================Plus=header=end*/ 
 
 #ifndef __VTKTRACKEDFRAMELIST_H
 #define __VTKTRACKEDFRAMELIST_H
@@ -7,19 +11,20 @@
 #include "vtkObject.h"
 #include <deque>
 
-#include "itkImage.h"
 #include "vtkMatrix4x4.h"
 #include "vtkTransform.h"
-#include "UsImageConverterCommon.h"
 #include "vtkPoints.h"
-#include "vtkXMLDataElement.h"
 #include "PlusVideoFrame.h"
 
-class vtkPoints; 
+class vtkXMLDataElement; 
 
-//----------------------------------------------------------------------------
-// ************************* TrackedFrame ************************************
-//----------------------------------------------------------------------------
+/** \class TrackedFrame 
+ *
+ *  \brief Stores tracked frame (image + pose information)
+ *
+ *  \ingroup PlusLibImageAcquisition
+ *
+ */ 
 class VTK_EXPORT TrackedFrame
 {
 public:
@@ -32,52 +37,50 @@ public:
   TrackedFrame& TrackedFrame::operator=(TrackedFrame const&trackedFrame); 
 
 public:
-  // Set image data
+  /*! Set image data */
   void SetImageData(PlusVideoFrame value) { this->ImageData = value; }; 
 
-  // Get image data
+  /*! Get image data */
   PlusVideoFrame* GetImageData() { return &(this->ImageData); };
 
-  // Set Status of the item (out of view, ...)
+  /*! Set Status of the item (out of view, ...) */
   void SetStatus(TrackerStatus value) { this->Status = value; }; 
 
-  // Get Status of the item (out of view, ...)
+  /*! Get Status of the item (out of view, ...) */
   TrackerStatus GetStatus() { return this->Status; };
 
-  // Set timestamp
+  /*! Set timestamp */
   void SetTimestamp(double value) { this->Timestamp = value; }; 
 
-  // Get timestamp
+  /*! Get timestamp */
   double GetTimestamp() { return this->Timestamp; }; 
 
-  //! Set custom frame field
+  /*! Set custom frame field */
   void SetCustomFrameField( std::string name, std::string value ); 
 
-  //! Get custom frame field value
+  /*! Get custom frame field value */
   const char* GetCustomFrameField(const char* fieldName); 
 
-  //! Operation: 
-  // Get custom frame transform
+  /*! Get custom frame transform */
   PlusStatus GetCustomFrameTransform(const char* frameTransformName, double transform[16]); 
   PlusStatus GetCustomFrameTransform(const char* frameTransformName, vtkMatrix4x4* transformMatrix); 
 
-  //! Set custom frame transform
+  /*! Set custom frame transform */
   void SetCustomFrameTransform(std::string frameTransformName, double transform[16]); 
 
-  //! Set custom frame transform
+  /*! Set custom frame transform */
   void SetCustomFrameTransform(std::string frameTransformName, vtkMatrix4x4* transform); 
 
-  //! Get the list of the name of all custom frame fields
+  /*! Get the list of the name of all custom frame fields */
   void GetCustomFrameFieldNameList(std::vector<std::string> &fieldNames);
 
-  //! Operation: 
-  // Returns: int[2]. Get tracked frame size in pixel
+  /*! Get tracked frame size in pixel. Returns: int[2].  */
   int* GetFrameSize(); 
 
-  //! Get tracked frame pixel size in bits 
+  /*! Get tracked frame pixel size in bits */
   int GetNumberOfBitsPerPixel();
 
-  // Set Segmented fiducial point pixel coordinates
+  /*! Set Segmented fiducial point pixel coordinates */
   void SetFiducialPointsCoordinatePx(vtkPoints* fiducialPoints)
   {
     if ( this->FiducialPointsCoordinatePx != fiducialPoints )
@@ -97,13 +100,13 @@ public:
     }
   };
 
-  // Get Segmented fiducial point pixel coordinates
+  /*! Get Segmented fiducial point pixel coordinates */
   vtkPoints* GetFiducialPointsCoordinatePx() { return this->FiducialPointsCoordinatePx; };
 
-  //! 
+  /*! Write image with image to tracker transform to file */ 
   PlusStatus WriteToFile(std::string &filename, vtkMatrix4x4* mImageToTracker);
 
-  //! Convert from status string to status enum
+  /*! Convert from status string to status enum */
   static TrackerStatus GetStatusFromString(const char* statusStr);
 
 public:
@@ -122,17 +125,31 @@ protected:
 
   int FrameSize[2]; 
 
-  // Stores segmented fiducial point pixel coordinates 
+  /*! Stores segmented fiducial point pixel coordinates */
   vtkPoints* FiducialPointsCoordinatePx; 
 };
 
+/*! 
+ *  \enum Tracked frame validation requirements 
+ *
+ *  \brief If any of the requested requirement is not fulfilled then the validation fails. 
+ *  \ingroup PlusLibImageAcquisition
+ */
+enum TrackedFrameValidationRequirements
+{
+  REQUIRE_UNIQUE_TIMESTAMP = 0x0001, /*!< the timestamp shall be unique */  
+  REQUIRE_TRACKING_OK = 0x0002, /*!<  the tracking flags shall be valid (TR_OK) */  
+  REQUIRE_CHANGED_POSITION = 0x0004, /*!<  the frame position shall be different from the previous ones  */  
+  REQUIRE_SPEED_BELOW_THRESHOLD = 0x0008, /*!<  the frame acquisition speed shall be less than a threshold */  
+}; 
 
-
-//----------------------------------------------------------------------------
-// ************************* vtkTrackedFrameList *****************************
-//----------------------------------------------------------------------------
-
-
+/** \class TrackedFrameTimestampFinder 
+ *
+ *  \brief Helper class used for validating timestamps in a tracked frame list
+ *
+ *  \ingroup PlusLibImageAcquisition
+ *
+ */ 
 class TrackedFrameTimestampFinder
 {	
 public:
@@ -144,6 +161,14 @@ public:
   TrackedFrame* mTrackedFrame;
 };
 
+
+/** \class TrackedFramePositionFinder 
+ *
+ *  \brief Helper class used for validating frame position in a tracked frame list
+ *
+ *  \ingroup PlusLibImageAcquisition
+ *
+ */ 
 class TrackedFramePositionFinder
 {	
 public:
@@ -252,6 +277,13 @@ public:
 
 };
 
+/** \class vtkTrackedFrameList 
+ *
+ *  \brief Stores a list of tracked frames (image + pose information)
+ *
+ *  \ingroup PlusLibImageAcquisition
+ *
+ */
 class VTK_EXPORT vtkTrackedFrameList : public vtkObject
 {
 
@@ -268,105 +300,91 @@ public:
   vtkTypeRevisionMacro(vtkTrackedFrameList, vtkObject);
   virtual void PrintSelf(ostream& os, vtkIndent indent); 
 
-  //! Operation: 
-  // Add tracked frame to container
+  /*! Add tracked frame to container */
   virtual PlusStatus AddTrackedFrame(TrackedFrame *trackedFrame); 
 
-  //! Add all frames from a tracked frame list to the container 
+  /*! Add all frames from a tracked frame list to the container */
   virtual PlusStatus AddTrackedFrameList(vtkTrackedFrameList* inTrackedFrameList); 
 
-  //! Operation: 
-  // Get tracked frame from container
+  /*! Get tracked frame from container */
   virtual TrackedFrame* GetTrackedFrame(int frameNumber); 
 
-  //! Operation: 
-  // Get number of tracked frames
+  /*! Get number of tracked frames */
   virtual unsigned int GetNumberOfTrackedFrames() { return this->TrackedFrameList.size(); } 
 
-  // Description:
-  // Read configuration from xml data
+  /*! Read configuration from xml data */
   virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config); 
 
-  //! Operation: 
-  // Save the tracked data to sequence metafile 
+  /*! Save the tracked data to sequence metafile */
   PlusStatus SaveToSequenceMetafile(const char* outputFolder, const char* sequenceDataFileName, SEQ_METAFILE_EXTENSION extension = SEQ_METAFILE_MHA, bool useCompression = true);
   
   template <class OutputPixelType>
   PlusStatus SaveToSequenceMetafileGeneric(const char* outputFolder, const char* sequenceDataFileName, SEQ_METAFILE_EXTENSION extension = SEQ_METAFILE_MHA, bool useCompression = true);
 
-  //! Operation: 
-  // Read the tracked data from sequence metafile 
+  /*! Read the tracked data from sequence metafile */
   virtual PlusStatus ReadFromSequenceMetafile(const char* trackedSequenceDataFileName); 
 
-  //! Operation: 
-  // Get the tracked frame list 
+  /*! Get the tracked frame list */
   TrackedFrameListType GetTrackedFrameList() { return this->TrackedFrameList; }
 
-  //! Operation: 
-  // Validate tracked frame before adding to the list.
-  // Control arguments: 
-  // validateTimestamp: the timestamp should be unique 
-  // validateStatus: the tracking flags should be valid (TR_OK)
-  // validatePosition: the frame position should be different from the previous ones 
-  // validateSpeed: the frame acquisition speed should be less than a threshold
-  virtual bool ValidateData(TrackedFrame* trackedFrame, bool validateTimestamp = true, bool validateStatus = true, bool validatePosition = true, const char* frameTransformName = NULL, bool validateSpeed = true); 
+  /*! Perform validation on a tracked frame before adding to the list. If any of the requested requirement is not fulfilled then the validation fails
+   \param trackedFrame Input tracked frame 
+   \param validationRequirements Data validation regurirements (like: REQUIRE_UNIQUE_TIMESTAMP | REQUIRE_TRACKING_OK )
+   \param frameTransformNameforPositionValidation Frame transform name used for position validation
+   \sa TrackedFrameValidationRequirements 
+  */
+  virtual bool ValidateData(TrackedFrame* trackedFrame, long validationRequirements, const char* frameTransformNameforPositionValidation = NULL ); 
 
-  //! Operation: 
-  // Clear tracked frame list and free memory
+  /*! Clear tracked frame list and free memory */
   virtual void Clear(); 
 
+  /*! Set/getdefault frame transform name */
   virtual std::string GetDefaultFrameTransformName(); 
   virtual void SetDefaultFrameTransformName(const char* name); 
 
-  //! Operation: 
-  // Set/get the maximum number of frames to write into a single metafile. 
+  /*! Set/get the maximum number of frames to write into a single metafile. */
   vtkSetMacro(MaxNumOfFramesToWrite, int); 
   vtkGetMacro(MaxNumOfFramesToWrite, int); 
 
-  //! Operation: 
-  // Set/get the number of following unique frames needed in the tracked frame list
+  /*! Set/get the number of following unique frames needed in the tracked frame list */
   vtkSetMacro(NumberOfUniqueFrames, int); 
   vtkGetMacro(NumberOfUniqueFrames, int); 
 
-  //! Operation: 
-  // Set/get the threshold of acceptable speed of position change
+  /*! Set/get the threshold of acceptable speed of position change */
   vtkSetMacro(MinRequiredTranslationDifferenceMm, double); 
   vtkGetMacro(MinRequiredTranslationDifferenceMm, double); 
 
-  //! Operation: 
-  // Set/get the threshold of acceptable speed of orientation change in degrees
+  /*! Set/get the threshold of acceptable speed of orientation change in degrees */
   vtkSetMacro(MinRequiredAngleDifferenceDeg, double); 
   vtkGetMacro(MinRequiredAngleDifferenceDeg, double); 
 
-  //! Operation: 
-  // Get tracked frame pixel size in bits 
+  /*! Get tracked frame pixel size in bits */
   virtual int GetNumberOfBitsPerPixel(); 
 
-  //! Operation: 
-  // Get tracked frame pixel type 
+  /*! Get tracked frame pixel type */
   PlusCommon::ITKScalarPixelType GetPixelType(); 
 
-  // Get the value of the custom field
-  // If we couldn't find it, return NULL
+  /*! Get the value of the custom field. If we couldn't find it, return NULL */
   virtual const char* GetCustomString( const char* fieldName ); 
 
-  // Set custom string value to <fieldValue>. If <fieldValue> is NULL then the field is deleted.
+  /*! Set custom string value to <fieldValue>. If <fieldValue> is NULL then the field is deleted. */
   virtual PlusStatus SetCustomString(const char* fieldName, const char* fieldValue); 
 
-  // Get the custom transformation matrix from metafile by custom frame transform name
-  // It will search for a field like: Seq_Frame<frameNumber>_<frameTransformName>
-  // Return false if the the field is missing 
+  /*! Get the custom transformation matrix from metafile by custom frame transform name
+  * It will search for a field like: Seq_Frame<frameNumber>_<frameTransformName>
+  * Return false if the the field is missing */
   virtual PlusStatus GetCustomTransform( const char* frameTransformName, vtkMatrix4x4* transformMatrix ); 
   virtual PlusStatus GetCustomTransform( const char* frameTransformName, double* transformMatrix ); 
 
-  // Set the custom transformation matrix from metafile by custom frame transform name
-  // It will search for a field like: Seq_Frame<frameNumber>_<frameTransformName>
+  /*! Set the custom transformation matrix from metafile by custom frame transform name
+  * It will search for a field like: Seq_Frame<frameNumber>_<frameTransformName> */
   virtual void SetCustomTransform( const char* frameTransformName, vtkMatrix4x4* transformMatrix ); 
   virtual void SetCustomTransform( const char* frameTransformName, double* transformMatrix ); 
 
+  /*! Get custom field name list */
   void GetCustomFieldNameList(std::vector<std::string> &fieldNames);
 
-  //! Get/Set global transform (stored in the Offset and TransformMatrix fields)
+  /*! Get/Set global transform (stored in the Offset and TransformMatrix fields) */
   PlusStatus GetGlobalTransform(vtkMatrix4x4* globalTransform);
   PlusStatus SetGlobalTransform(vtkMatrix4x4* globalTransform);
 
@@ -385,9 +403,9 @@ protected:
   int MaxNumOfFramesToWrite;
   int NumberOfUniqueFrames;
 
-  // If the threshold==0 it means that no checking is needed (the frame is always accepted).
-  // If the threshold>0 then the frame is considered valid only if the position/angle difference compared to all previously acquired frames is larger than
-  // the position/angle minimum value and the translation/rotation speed is lower than the maximum allowed translation/rotation.
+  /*! If the threshold==0 it means that no checking is needed (the frame is always accepted). \n
+  * If the threshold>0 then the frame is considered valid only if the position/angle difference compared to all previously acquired frames is larger than 
+  * the position/angle minimum value and the translation/rotation speed is lower than the maximum allowed translation/rotation. */
   double MinRequiredTranslationDifferenceMm;
   double MinRequiredAngleDifferenceDeg;
   double MaxAllowedTranslationSpeedMmPerSec;

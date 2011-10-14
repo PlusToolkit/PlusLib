@@ -8,19 +8,22 @@
 
 #include "PlusConfigure.h"
 #include "vtkObjectFactory.h"
-#include "vtkSmartPointer.h"
 #include "vtkXMLUtilities.h"
-#include "vtkBMPWriter.h"
-
 #include "vtkTrackerTool.h"
 #include "vtkInformationVector.h"
 #include "vtkInformation.h"
-#include "vtkPointData.h"
+#include "vtkXMLDataElement.h"
+#include "vtkImageData.h"
+#include "vtkVideoBuffer.h"
+#include "vtkTrackerBuffer.h"
+#include "vtkTrackedFrameList.h"
+#include "vtkDataCollectorSynchronizer.h"
+#include "vtkTracker.h"
+#include "vtkPlusVideoSource.h"
 
 #include "itkImage.h"
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
-
 
 //----------------------------------------------------------------------------
 // Tracker devices
@@ -87,6 +90,10 @@ static void *vtkFrameUpdaterThread(vtkMultiThreader::ThreadInfo *data);
 
 vtkCxxRevisionMacro(vtkDataCollector, "$Revision: 1.0 $");
 vtkStandardNewMacro(vtkDataCollector);
+
+vtkCxxSetObjectMacro(vtkDataCollector, Synchronizer, vtkDataCollectorSynchronizer);
+vtkCxxSetObjectMacro(vtkDataCollector, Tracker, vtkTracker);
+vtkCxxSetObjectMacro(vtkDataCollector, VideoSource, vtkPlusVideoSource);
 
 //----------------------------------------------------------------------------
 vtkDataCollector::vtkDataCollector()
@@ -1262,6 +1269,74 @@ PlusStatus vtkDataCollector::GetTrackedFrame(vtkImageData* frame, vtkMatrix4x4* 
   }
 
   return PLUS_SUCCESS; 
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkDataCollector::GetTrackedFrameList(double time, vtkTrackedFrameList* trackedFrameList)
+{
+  if ( trackedFrameList == NULL )
+  {
+    LOG_ERROR("Unable to get tracked frame list - output tracked frmae list is NULL!"); 
+    return PLUS_FAIL; 
+  }
+
+  PlusStatus status = PLUS_SUCCESS; 
+  double frameTimestamp(0); 
+  if ( this->VideoSource->GetBuffer()->GetOldestTimeStamp(frameTimestamp) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to get oldest timestamp from buffer!"); 
+    return PLUS_FAIL; 
+  }
+  
+  if ( time > frameTimestamp )
+  {
+    frameTimestamp = time; 
+  }
+
+  double mostRecentTimestamp(0); 
+  if ( this->GetMostRecentTimestamp(mostRecentTimestamp) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Unable to get most recent timestamp!"); 
+    return PLUS_FAIL; 
+  }
+
+  BufferItemUidType videoUid(0); 
+  if ( this->VideoSource->GetBuffer()->GetItemUidFromTime(frameTimestamp, videoUid) != ITEM_OK )
+  {
+    LOG_ERROR("Failed to get video buffer item UID from time: " << std::fixed << frameTimestamp ); 
+    return PLUS_FAIL; 
+  }
+
+  do 
+  {
+    // Get tracked frame from buffer
+    TrackedFrame trackedFrame; 
+    if ( this->GetTrackedFrameByTime(frameTimestamp, &trackedFrame) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Unable to get tracked frame by time: " << std::fixed << frameTimestamp ); 
+      status = PLUS_FAIL; 
+    }
+    else 
+    {
+      // Add tracked frame to the list 
+      if ( trackedFrameList->ValidateData(&trackedFrame, REQUIRE_UNIQUE_TIMESTAMP | REQUIRE_TRACKING_OK )
+        && trackedFrameList->AddTrackedFrame(&trackedFrame) != PLUS_SUCCESS )
+      {
+        LOG_ERROR("Unable to add tracked frame to the list!" ); 
+        status = PLUS_FAIL; 
+      }
+
+      // Get the timestamp of the next item in the buffer
+      if ( this->VideoSource->GetBuffer()->GetTimeStamp(++videoUid, frameTimestamp) != PLUS_SUCCESS )
+      {
+          LOG_ERROR("Unable to get timestamp from video buffer by UID: " << videoUid); 
+          status = PLUS_FAIL; 
+      }
+    }
+
+  } while(status == PLUS_SUCCESS && frameTimestamp <= mostRecentTimestamp); 
+
+  return status; 
 }
 
 //----------------------------------------------------------------------------

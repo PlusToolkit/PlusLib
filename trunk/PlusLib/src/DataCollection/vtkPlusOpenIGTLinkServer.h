@@ -11,6 +11,7 @@
 #include <string>
 #include <vector>
 
+#include "vtkMultiThreader.h"
 #include "vtkMutexLock.h"
 #include "vtkObject.h"
 
@@ -21,6 +22,7 @@
 
 #include "vtkDataCollector.h"
 #include "vtkIGTLMessageQueue.h"
+
 
 /** \class vtkPlusOpenIGTLinkServer 
  *

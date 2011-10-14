@@ -331,10 +331,9 @@ PlusStatus vtkTrackedFrameList::AddTrackedFrame(TrackedFrame *trackedFrame)
 }
 
 //----------------------------------------------------------------------------
-bool vtkTrackedFrameList::ValidateData(TrackedFrame* trackedFrame, bool validateTimestamp/*=true*/, bool validateStatus/*=true*/, 
-                                       bool validatePosition/*=true*/, const char* frameTransformName /*= NULL*/, bool validateSpeed/*=true*/)
+bool vtkTrackedFrameList::ValidateData(TrackedFrame* trackedFrame, long validationRequirements, const char* frameTransformNameforPositionValidation /*=NULL*/ )
 {
-  if ( validateTimestamp )
+  if ( validationRequirements & REQUIRE_UNIQUE_TIMESTAMP )
   {
     if (! this->ValidateTimestamp(trackedFrame))
     {
@@ -342,7 +341,7 @@ bool vtkTrackedFrameList::ValidateData(TrackedFrame* trackedFrame, bool validate
     }
   }
 
-  if ( validateStatus )
+  if ( validationRequirements & REQUIRE_TRACKING_OK )
   {
     if (! this->ValidateStatus(trackedFrame))
     {
@@ -350,15 +349,15 @@ bool vtkTrackedFrameList::ValidateData(TrackedFrame* trackedFrame, bool validate
     }
   }
 
-  if ( validatePosition )
+  if ( validationRequirements & REQUIRE_CHANGED_POSITION )
   {
-    if (! this->ValidatePosition(trackedFrame, frameTransformName))
+    if (! this->ValidatePosition(trackedFrame, frameTransformNameforPositionValidation))
     {
       return false;
     }
   }
 
-  if ( validateSpeed )
+  if ( validationRequirements & REQUIRE_SPEED_BELOW_THRESHOLD )
   {
     if (! this->ValidateSpeed(trackedFrame))
     {
