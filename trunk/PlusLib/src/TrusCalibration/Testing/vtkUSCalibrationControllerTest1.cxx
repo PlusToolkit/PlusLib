@@ -167,7 +167,7 @@ int main (int argc, char* argv[])
   if ( validationTrackedFrameList->ReadFromSequenceMetafile(inputRandomStepperMotion2SeqMetafile.c_str()) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to read tracked frames from sequence metafile from: " << inputRandomStepperMotion2SeqMetafile ); 
-    return PLUS_FAIL; 
+    return EXIT_FAILURE; 
   }
 
   if (patternRecognition.RecognizePattern(validationTrackedFrameList) != PLUS_SUCCESS)
@@ -181,7 +181,7 @@ int main (int argc, char* argv[])
   if ( calibrationTrackedFrameList->ReadFromSequenceMetafile(inputRandomStepperMotion1SeqMetafile.c_str()) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to read tracked frames from sequence metafile from: " << inputRandomStepperMotion1SeqMetafile ); 
-    return PLUS_FAIL; 
+    return EXIT_FAILURE; 
   }
 
   if (patternRecognition.RecognizePattern(calibrationTrackedFrameList) != PLUS_SUCCESS)
