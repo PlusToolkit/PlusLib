@@ -86,9 +86,10 @@ int main (int argc, char* argv[])
   }
 
   LOG_INFO("Segmenting probe rotation data...");
-  for ( int currentFrameIndex = 0; currentFrameIndex < probeRotationTrackedFrameList->GetNumberOfTrackedFrames(); currentFrameIndex++)
+  if (patternRecognition.RecognizePattern(probeRotationTrackedFrameList) != PLUS_SUCCESS)
   {
-    patternRecognition.RecognizePattern(probeRotationTrackedFrameList->GetTrackedFrame(currentFrameIndex));
+		LOG_ERROR("Error occured during segmentation of calibration images!"); 
+		return EXIT_FAILURE;
   }
 
   LOG_INFO("Starting spacing calibration...");
@@ -135,14 +136,6 @@ int main (int argc, char* argv[])
   probeCal->ReadProbeCalibrationConfiguration(configRootElement);
   probeCal->EnableSegmentationAnalysisOn(); // So that results are drawn (there was a condition for that if the calibration is in OFFLINE mode - now that enum has been removed)
 
-	vtkCalibrationController::ImageDataInfo randomStepperMotion1DataInfo = probeCal->GetImageDataInfo(RANDOM_STEPPER_MOTION_1); 
-	randomStepperMotion1DataInfo.InputSequenceMetaFileName.assign(inputRandomStepperMotion1SeqMetafile.c_str());
-	probeCal->SetImageDataInfo(RANDOM_STEPPER_MOTION_1, randomStepperMotion1DataInfo); 
-
-	vtkCalibrationController::ImageDataInfo randomStepperMotion2DataInfo = probeCal->GetImageDataInfo(RANDOM_STEPPER_MOTION_2); 
-	randomStepperMotion2DataInfo.InputSequenceMetaFileName.assign(inputRandomStepperMotion2SeqMetafile.c_str());
-	probeCal->SetImageDataInfo(RANDOM_STEPPER_MOTION_2, randomStepperMotion2DataInfo); 
-
   probeCal->EnableVisualizationOff(); 
 	probeCal->Initialize(); 
 
@@ -162,23 +155,50 @@ int main (int argc, char* argv[])
 	// Register phantom geometry before calibration 
 	probeCal->SetPhantomToReferenceTransform( tPhantomToReference ); 
   
-  // TODO: remove it!
+  // TODO: remove these transforms from vtkCalibrationController
   probeCal->GetTransformTemplateHolderToTemplate()->SetMatrix(probeCal->GetTransformTemplateHolderToPhantom()->GetMatrix() ); 
   probeCal->GetTransformReferenceToTemplateHolderHome()->SetMatrix( phantomRegistrationAlgo->GetTransformReferenceToTemplateHolder()->GetMatrix() ); 
 
+  // Draw segmentation results to image 
+  probeCal->EnableSegmentationAnalysisOn(); 
 
-	if ( probeCal->OfflineUSToTemplateCalibration() == PLUS_SUCCESS )
+  // Load and segment validation tracked frame list
+  vtkSmartPointer<vtkTrackedFrameList> validationTrackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New();
+  if ( validationTrackedFrameList->ReadFromSequenceMetafile(inputRandomStepperMotion2SeqMetafile.c_str()) != PLUS_SUCCESS )
   {
-    probeCal->ComputeCalibrationResults(); 
-  }
-  else
-  {
-    numberOfFailures++; 
-    LOG_ERROR("OfflineUSToTemplateCalibration failed!"); 
+    LOG_ERROR("Failed to read tracked frames from sequence metafile from: " << inputRandomStepperMotion2SeqMetafile ); 
+    return PLUS_FAIL; 
   }
 
+  if (patternRecognition.RecognizePattern(validationTrackedFrameList) != PLUS_SUCCESS)
+  {
+		LOG_ERROR("Error occured during segmentation of validation images!"); 
+		return EXIT_FAILURE;
+  }
+
+  // Load and segment calibration tracked frame list
+  vtkSmartPointer<vtkTrackedFrameList> calibrationTrackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New();
+  if ( calibrationTrackedFrameList->ReadFromSequenceMetafile(inputRandomStepperMotion1SeqMetafile.c_str()) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to read tracked frames from sequence metafile from: " << inputRandomStepperMotion1SeqMetafile ); 
+    return PLUS_FAIL; 
+  }
+
+  if (patternRecognition.RecognizePattern(calibrationTrackedFrameList) != PLUS_SUCCESS)
+  {
+		LOG_ERROR("Error occured during segmentation of calibration images!"); 
+		return EXIT_FAILURE;
+  }
+
+  // Calibrate
+  if (probeCal->Calibrate( validationTrackedFrameList, calibrationTrackedFrameList, "Probe") != PLUS_SUCCESS)
+  {
+    LOG_ERROR("Calibration failed!");
+		return EXIT_FAILURE;
+  }
+
+  // Compare results
 	vtkstd::string currentConfigFileName = probeCal->GetCalibrationResultFileNameWithPath(); 
-
 	if ( CompareCalibrationResultsWithBaseline( inputBaselineFileName.c_str(), currentConfigFileName.c_str(), inputTranslationErrorThreshold, inputRotationErrorThreshold ) !=0 )
 	{
     numberOfFailures++; 
@@ -187,8 +207,8 @@ int main (int argc, char* argv[])
 
   if ( numberOfFailures > 0 )
   {
-      std::cout << "Test exited with failures!!!" << std::endl; 
-	return EXIT_FAILURE;
+    std::cout << "Test exited with failures!!!" << std::endl; 
+	  return EXIT_FAILURE;
   }
 
 	std::cout << "Exit success!!!" << std::endl; 

@@ -132,8 +132,7 @@ int main (int argc, char* argv[])
   }
 
   // Calibrate
-  if (freehandCalibration->Calibrate( validationTrackedFrameList, calibrationTrackedFrameList,
-                                      freehandCalibration->GetTrackedFrameList(FREEHAND_MOTION_1)->GetDefaultFrameTransformName().c_str() ) != PLUS_SUCCESS)  //TODO change these when image data info variables are deleted
+  if (freehandCalibration->Calibrate( validationTrackedFrameList, calibrationTrackedFrameList, "Probe") != PLUS_SUCCESS)
   {
     LOG_ERROR("Calibration failed!");
 		return EXIT_FAILURE;

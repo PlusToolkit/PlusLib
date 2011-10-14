@@ -255,7 +255,7 @@ PlusStatus vtkCalibrationController::Calibrate( vtkTrackedFrameList* validationT
     }
   }
 
-  this->SegmentedFrameDefaultTransformName = defaultTransformName;
+  this->SegmentedFrameDefaultTransformName = defaultTransformName; // TODO take care of this once the class is cleared up
 
 	int numberOfValidationFrames = validationTrackedFrameList->GetNumberOfTrackedFrames(); 
 	for (int frameNumber = 0; frameNumber < numberOfValidationFrames; ++frameNumber)
@@ -280,7 +280,11 @@ PlusStatus vtkCalibrationController::Calibrate( vtkTrackedFrameList* validationT
   }
 
   // Compute calibration results
-  ComputeCalibrationResults();
+  if (ComputeCalibrationResults() != PLUS_SUCCESS)
+  {
+    LOG_ERROR("Computing calibration results failed!");
+    return PLUS_FAIL;
+  }
 
   return PLUS_SUCCESS;
 }
@@ -1335,142 +1339,6 @@ PlusStatus vtkCalibrationController::ResetFreehandCalibration()
   this->resetDataContainers(); 
 
 	return PLUS_SUCCESS;
-}
-
-//----------------------------------------------------------------------------
-PlusStatus vtkCalibrationController::OfflineUSToTemplateCalibration()
-{
-// TODO it is for TRUS!!!
-  LOG_TRACE("vtkCalibrationController::OfflineUSToTemplateCalibration"); 
-  if ( ! this->Initialized ) 
-  {
-    this->Initialize(); 
-  }
-
-  // Draw segmentation results to image 
-  this->EnableSegmentationAnalysisOn(); 
-
-  // Reset calibrator data containers 
-  this->resetDataContainers(); 
-
-  // ****************************  Validation data ***********************
-  vtkSmartPointer<vtkTrackedFrameList> validationData = vtkSmartPointer<vtkTrackedFrameList>::New();
-  const std::string validationDataFileName = this->GetImageDataInfo(RANDOM_STEPPER_MOTION_2).InputSequenceMetaFileName; 
-  if ( !validationDataFileName.empty() )
-  {
-    LOG_TRACE("Read tracked frames from sequence metafile: " << validationDataFileName ); 
-    if ( validationData->ReadFromSequenceMetafile(validationDataFileName.c_str()) != PLUS_SUCCESS )
-    {
-      LOG_ERROR("Failed to read tracked frames from sequence metafile from: " << validationDataFileName ); 
-      return PLUS_FAIL; 
-    }
-  }
-  else
-  {
-    LOG_ERROR("Unable to start OfflineUSToTemplateCalibration with validation data: SequenceMetaFileName is empty!"); 
-    return PLUS_FAIL; 
-  }
-
-  // Reset the counter before we start
-  ImageDataInfo validationDataInfo = this->GetImageDataInfo(RANDOM_STEPPER_MOTION_2); 
-  validationDataInfo.NumberOfSegmentedImages = 0; 
-  if ( validationDataInfo.NumberOfImagesToAcquire > validationData->GetNumberOfTrackedFrames() )
-  {
-    validationDataInfo.NumberOfImagesToAcquire = validationData->GetNumberOfTrackedFrames(); 
-  }
-  this->SetImageDataInfo(RANDOM_STEPPER_MOTION_2, validationDataInfo); 
-
-  // ****************************  Calibration data ***********************
-  vtkSmartPointer<vtkTrackedFrameList> calibrationData = vtkSmartPointer<vtkTrackedFrameList>::New();
-  const std::string calibrationDataFileName = this->GetImageDataInfo(RANDOM_STEPPER_MOTION_1).InputSequenceMetaFileName; 
-  if ( !calibrationDataFileName.empty() )
-  {
-    LOG_TRACE("Read tracked frames from sequence metafile: " << validationDataFileName ); 
-    if ( calibrationData->ReadFromSequenceMetafile(calibrationDataFileName.c_str()) != PLUS_SUCCESS )
-    {
-      LOG_ERROR("Failed to read tracked frames from sequence metafile from: " << calibrationDataFileName ); 
-      return PLUS_FAIL; 
-    }
-  }
-  else
-  {
-    LOG_ERROR("Unable to start OfflineUSToTemplateCalibration with calibration data: SequenceMetaFileName is empty!"); 
-    return PLUS_FAIL; 
-  }
-
-  ImageDataInfo calibrationDataInfo = this->GetImageDataInfo(RANDOM_STEPPER_MOTION_1); 
-  calibrationDataInfo.NumberOfSegmentedImages = 0; 
-  if ( calibrationDataInfo.NumberOfImagesToAcquire > calibrationData->GetNumberOfTrackedFrames() )
-  {
-    calibrationDataInfo.NumberOfImagesToAcquire = calibrationData->GetNumberOfTrackedFrames(); 
-  }
-  this->SetImageDataInfo(RANDOM_STEPPER_MOTION_1, calibrationDataInfo); 
-
-
-  int validationCounter(0); 
-  int vImgNumber(0);
-  
-  std::string defaultFrameTransformNameValidation=validationData->GetDefaultFrameTransformName();
-  for( vImgNumber = 0; validationCounter < this->GetImageDataInfo(RANDOM_STEPPER_MOTION_2).NumberOfImagesToAcquire; vImgNumber++ )
-  {
-    if ( vImgNumber >= validationData->GetNumberOfTrackedFrames() )
-    {
-        break; 
-    }
-
-    if ( this->AddTrackedFrameData(validationData->GetTrackedFrame(vImgNumber), RANDOM_STEPPER_MOTION_2, defaultFrameTransformNameValidation.c_str()) == PLUS_SUCCESS )
-    {
-        // The segmentation was successful 
-        validationCounter++; 
-    }
-
-    this->SetOfflineImageData(validationData->GetTrackedFrame(vImgNumber)->GetImageData()->GetDisplayableImage()); 
-
-    if ( this->SegmentationProgressCallbackFunction != NULL )
-    {
-      int numberOfSegmentedImages = this->GetImageDataInfo(RANDOM_STEPPER_MOTION_2).NumberOfSegmentedImages + this->GetImageDataInfo(RANDOM_STEPPER_MOTION_1).NumberOfSegmentedImages; 
-      int percent = 100* numberOfSegmentedImages / (this->GetImageDataInfo(RANDOM_STEPPER_MOTION_2).NumberOfImagesToAcquire + this->GetImageDataInfo(RANDOM_STEPPER_MOTION_1).NumberOfImagesToAcquire); 
-      (*SegmentationProgressCallbackFunction)(percent); 
-    }
-  }
-
-  int validSegmentationSuccessRate = 100*this->GetImageDataInfo(RANDOM_STEPPER_MOTION_2).NumberOfSegmentedImages / vImgNumber; 
-  LOG_INFO ( "A total of " << this->GetImageDataInfo(RANDOM_STEPPER_MOTION_2).NumberOfSegmentedImages << " images (" << validSegmentationSuccessRate << "%) have been successfully added for validation.");
-
-  validationData->Clear(); 
-
-  int calibrationCounter(0);
-  int cImgNumber(0); 
-  std::string defaultFrameTransformNameCalibration=calibrationData->GetDefaultFrameTransformName();
-  for( cImgNumber = 0; calibrationCounter < this->GetImageDataInfo(RANDOM_STEPPER_MOTION_1).NumberOfImagesToAcquire; cImgNumber++ )
-  {
-    if ( cImgNumber >= calibrationData->GetNumberOfTrackedFrames() )
-    {
-        break; 
-    }
-
-    if ( this->AddTrackedFrameData(calibrationData->GetTrackedFrame(cImgNumber), RANDOM_STEPPER_MOTION_1, defaultFrameTransformNameCalibration.c_str()) == PLUS_SUCCESS)
-    {
-        // The segmentation was successful
-        calibrationCounter++; 
-    }
-
-    this->SetOfflineImageData(calibrationData->GetTrackedFrame(cImgNumber)->GetImageData()->GetDisplayableImage()); 
-
-    if ( this->SegmentationProgressCallbackFunction != NULL )
-    {
-      int numberOfSegmentedImages = this->GetImageDataInfo(RANDOM_STEPPER_MOTION_2).NumberOfSegmentedImages + this->GetImageDataInfo(RANDOM_STEPPER_MOTION_1).NumberOfSegmentedImages; 
-      int percent = 100* numberOfSegmentedImages / (this->GetImageDataInfo(RANDOM_STEPPER_MOTION_2).NumberOfImagesToAcquire + this->GetImageDataInfo(RANDOM_STEPPER_MOTION_1).NumberOfImagesToAcquire); 
-      (*SegmentationProgressCallbackFunction)(percent); 
-    }
-  }
-
-  int calibSegmentationSuccessRate = 100*this->GetImageDataInfo(RANDOM_STEPPER_MOTION_1).NumberOfSegmentedImages / cImgNumber; 
-  LOG_INFO ("A total of " << this->GetImageDataInfo(RANDOM_STEPPER_MOTION_1).NumberOfSegmentedImages << " images (" << calibSegmentationSuccessRate << "%) have been successfully added for calibration.");
-
-  calibrationData->Clear(); 
-
-  return PLUS_SUCCESS; 
 }
 
 //----------------------------------------------------------------------------

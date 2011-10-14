@@ -195,9 +195,6 @@ public: // Former ProbeCalibrationController and FreehandCalibraitonController f
 
   //! Check user image home to probe home transform orthogonality 
   virtual bool IsUserImageToProbeTransformOrthogonal(); 
-
-	//! Read and populate US to Template calibration image data in offline mode
-	virtual PlusStatus OfflineUSToTemplateCalibration();  
 		
 	//! Get the wire position of the the US frame and phantom intersection in template coordinate system
 	virtual PlusStatus GetWirePosInTemplateCoordinate( int wireNum, double* wirePosInTemplate ); 
