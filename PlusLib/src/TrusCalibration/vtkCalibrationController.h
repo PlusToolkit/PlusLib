@@ -184,6 +184,9 @@ public:
 	virtual PlusStatus SetOfflineImageData(vtkImageData* frame); 
 	virtual PlusStatus SetOfflineImageData(const ImageType::Pointer& frame); 
 
+  //! Reset data containers
+  void resetDataContainers();
+
 public: // Former ProbeCalibrationController and FreehandCalibraitonController functions
 	//! Computes the calibration results: 
 	// - Compute the overall Point-Line Distance Error (PLDE)
@@ -359,9 +362,6 @@ protected: // from former Phantom class
 	// the validation data matrices needs to be done once and only once (e.g., before the 1st validation task is performed) with the flag set to true.  This would save the system runtime
 	// during the iterative calibration/validation process
 	PlusStatus constructValidationDataMatrices();
-
-  //! Reset data containers
-  void resetDataContainers();
 
 	//! Fill the ultrasound beamwidth profile and weight factors (see mUS3DBeamwidthAndWeightFactorsInUSImageFrameTable5xM member)
   void FillUltrasoundBeamwidthAndWeightFactorsTable();
