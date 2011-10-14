@@ -66,6 +66,9 @@ SET(CTEST_CUSTOM_WARNING_EXCEPTION
 
   # Suppress warning caused when QT 'foreach' loops are combined
   ".*warning: declaration of '_container_' shadows a previous local"
+
+  # Suppress warning caused by the moc compiler
+  ".*warning : No relevant classes found. No output generated."
   
   # PythonQt suppressions
   "PythonQt.*src.*PythonQt.*(cpp|h)"
