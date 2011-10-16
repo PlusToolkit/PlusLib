@@ -124,7 +124,7 @@ public:
   virtual PlusStatus GetTrackedFrame(TrackedFrame* trackedFrame, bool calibratedTransform = false); 
 
   /** Get the tracked frame list from devices since time specified */
-  virtual PlusStatus GetTrackedFrameList(double time, vtkTrackedFrameList* trackedFrameList); 
+  virtual PlusStatus GetTrackedFrameList(double& frameTimestamp, vtkTrackedFrameList* trackedFrameList, long validationRequirements, const char* frameTransformNameForPositionValidation = NULL ); 
 
   const char* vtkDataCollector::GetDefaultFrameTransformName(int toolNumber);
 

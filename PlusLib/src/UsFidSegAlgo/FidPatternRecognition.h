@@ -20,7 +20,7 @@ class FidPatternRecognition
 
     PlusStatus        ReadConfiguration(vtkXMLDataElement* rootConfigElement);
 
-    PlusStatus        RecognizePattern(vtkTrackedFrameList* trackedFrameList);
+    PlusStatus        RecognizePattern(vtkTrackedFrameList* trackedFrameList, int* numberOfSuccessfullySegmentedImages = NULL);
     PlusStatus        RecognizePattern(TrackedFrame* trackedFrame);
 		PlusStatus        RecognizePattern(TrackedFrame* trackedFrame, PatternRecognitionResult &patternRecognitionResult);
 

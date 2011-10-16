@@ -128,18 +128,35 @@ PlusStatus FidPatternRecognition::RecognizePattern(TrackedFrame* trackedFrame)
 
 //-----------------------------------------------------------------------------
 
-PlusStatus FidPatternRecognition::RecognizePattern(vtkTrackedFrameList* trackedFrameList)
+PlusStatus FidPatternRecognition::RecognizePattern(vtkTrackedFrameList* trackedFrameList, int* numberOfSuccessfullySegmentedImages/*=NULL*/)
 {
 	LOG_TRACE("FidPatternRecognition::DrawResults"); 
 
   PlusStatus status = PLUS_SUCCESS;
+  if ( numberOfSuccessfullySegmentedImages )
+  {
+    *numberOfSuccessfullySegmentedImages = 0; 
+  }
 
   for ( int currentFrameIndex = 0; currentFrameIndex < trackedFrameList->GetNumberOfTrackedFrames(); currentFrameIndex++)
   {
-    if (RecognizePattern(trackedFrameList->GetTrackedFrame(currentFrameIndex)) != PLUS_SUCCESS)
+    TrackedFrame * trackedFrame = trackedFrameList->GetTrackedFrame(currentFrameIndex); 
+
+    if ( trackedFrame->GetFiducialPointsCoordinatePx() == NULL // segment only non segmented frames
+      && RecognizePattern(trackedFrame) != PLUS_SUCCESS)
     {
       LOG_ERROR("Recognizing pattern failed on frame " << currentFrameIndex);
       status = PLUS_FAIL;
+    }
+
+    if ( numberOfSuccessfullySegmentedImages )
+    {
+      // compute the number of successfully segmented images 
+      if ( trackedFrame->GetFiducialPointsCoordinatePx()
+        && trackedFrame->GetFiducialPointsCoordinatePx()->GetNumberOfPoints() > 0 )
+      {
+        *numberOfSuccessfullySegmentedImages = *numberOfSuccessfullySegmentedImages + 1;     
+      }
     }
   }
 

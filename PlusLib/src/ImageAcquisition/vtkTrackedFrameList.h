@@ -10,6 +10,7 @@
 #include "PlusConfigure.h"
 #include "vtkObject.h"
 #include <deque>
+#include "PlusMath.h"
 
 #include "vtkMatrix4x4.h"
 #include "vtkTransform.h"
@@ -139,8 +140,9 @@ enum TrackedFrameValidationRequirements
 {
   REQUIRE_UNIQUE_TIMESTAMP = 0x0001, /*!< the timestamp shall be unique */  
   REQUIRE_TRACKING_OK = 0x0002, /*!<  the tracking flags shall be valid (TR_OK) */  
-  REQUIRE_CHANGED_POSITION = 0x0004, /*!<  the frame position shall be different from the previous ones  */  
+  REQUIRE_CHANGED_ENCODER_POSITION = 0x0004, /*!<  the stepper encoder position shall be different from the previous ones  */  
   REQUIRE_SPEED_BELOW_THRESHOLD = 0x0008, /*!<  the frame acquisition speed shall be less than a threshold */  
+  REQUIRE_CHANGED_TRANSFORM = 0x0016, /*!<  the transform defined by name shall be different from the previous ones  */  
 }; 
 
 /** \class TrackedFrameTimestampFinder 
@@ -162,17 +164,119 @@ public:
 };
 
 
-/** \class TrackedFramePositionFinder 
+/** \class TrackedFrameEncoderPositionFinder 
+*
+*  \brief Helper class used for validating encoder position in a tracked frame list
+*
+*  \ingroup PlusLibImageAcquisition
+*
+*/ 
+class TrackedFrameEncoderPositionFinder
+{	
+public:
+  TrackedFrameEncoderPositionFinder(TrackedFrame* frame, double minRequiredTranslationDifferenceMm, double minRequiredAngleDifferenceDeg)
+    : mTrackedFrame(frame), 
+    mMinRequiredTranslationDifferenceMm(minRequiredTranslationDifferenceMm),
+    mMinRequiredAngleDifferenceDeg(minRequiredAngleDifferenceDeg)
+  {
+  }
+
+  // TODO: use BrachyTracker::GetStepperEncoderValues if the design allows 
+  PlusStatus GetStepperEncoderValues( TrackedFrame* trackedFrame, double &probePosition, double &probeRotation, double &templatePosition )
+  {
+    // Get the probe position from tracked frame info
+    const char* cProbePos = trackedFrame->GetCustomFrameField("ProbePosition"); 
+    if ( cProbePos != NULL )
+    {
+      probePosition = atof(cProbePos); 
+    }
+    else
+    {
+      LOG_ERROR("Unable to find frame field: ProbePosition"); 
+      return PLUS_FAIL;
+    }
+
+    // Get the probe rotation from tracked frame info
+    const char* cProbeRot = trackedFrame->GetCustomFrameField("ProbeRotation"); 
+    if ( cProbeRot != NULL )
+    {
+      probeRotation = atof(cProbeRot); 
+    }
+    else
+    {
+      LOG_ERROR("Unable to find frame field: ProbeRotation"); 
+      return PLUS_FAIL;
+    }
+
+    // Get the template position from tracked frame info
+    const char* cTemplatePos = trackedFrame->GetCustomFrameField("TemplatePosition"); 
+    if ( cTemplatePos != NULL )
+    {
+      templatePosition = atof(cTemplatePos); 
+    }
+    else
+    {
+      LOG_ERROR("Unable to find frame field: TemplatePosition"); 
+      return PLUS_FAIL;
+    }
+
+    return PLUS_SUCCESS; 
+  }
+
+  /*! Predicate unary function for std::find_if to validate encoder position 
+  @return Returning true if the encoder position difference is less than required 
+  */
+  bool operator()( TrackedFrame *newFrame )	
+  {
+    if (mMinRequiredTranslationDifferenceMm<=0 || mMinRequiredAngleDifferenceDeg<=0)
+    {
+      // threshold is zero, so the frames are different for sure
+      return false;
+    }
+
+    double baseProbePos(0), baseProbeRot(0), baseTemplatePos(0); 
+    
+
+    if ( GetStepperEncoderValues(mTrackedFrame, baseProbePos, baseProbeRot, baseTemplatePos ) != PLUS_SUCCESS ) 
+    {
+      LOG_WARNING("Unable to get raw encoder values from tracked frame!" ); 
+      return false; 
+    }
+
+    double newProbePos(0), newProbeRot(0), newTemplatePos(0); 
+    if ( GetStepperEncoderValues(newFrame, newProbePos, newProbeRot, newTemplatePos ) != PLUS_SUCCESS ) 
+    {
+      LOG_WARNING("Unable to get raw encoder values from tracked frame!" ); 
+      return false; 
+    }
+
+    double positionDifference = fabs(baseProbePos - newProbePos) + fabs(baseTemplatePos - newTemplatePos); 
+    double rotationDifference = fabs(baseProbeRot - newProbeRot); 
+
+    if ( positionDifference < this->mMinRequiredTranslationDifferenceMm && rotationDifference < this->mMinRequiredAngleDifferenceDeg )
+    {
+      // same as the reference frame
+      return true; 
+    }
+    return false; 
+  }	
+
+  TrackedFrame* mTrackedFrame;
+  double mMinRequiredTranslationDifferenceMm;
+  double mMinRequiredAngleDifferenceDeg;
+};
+
+/** \class TrackedFrameTransformFinder 
  *
- *  \brief Helper class used for validating frame position in a tracked frame list
+ *  \brief Helper class used for validating frame transform in a tracked frame list
  *
  *  \ingroup PlusLibImageAcquisition
  *
  */ 
-class TrackedFramePositionFinder
+class TrackedFrameTransformFinder
 {	
 public:
-  TrackedFramePositionFinder(TrackedFrame* frame, const char* frameTransformName, double minRequiredTranslationDifferenceMm /*= 0.5*/, double minRequiredAngleDifferenceDeg /*= 0.2*/)
+  TrackedFrameTransformFinder(TrackedFrame* frame, const char* frameTransformName, double minRequiredTranslationDifferenceMm /*= 0.5*/, double minRequiredAngleDifferenceDeg /*= 0.2*/)
     : mTrackedFrame(frame), 
     mMinRequiredTranslationDifferenceMm(minRequiredTranslationDifferenceMm),
     mMinRequiredAngleDifferenceDeg(minRequiredAngleDifferenceDeg)
@@ -187,7 +291,9 @@ public:
     }
   }
 
-  //! TODO Description
+  /*! Predicate unary function for std::find_if to validate transform 
+      @return Returning true if the transform difference is less than required 
+  */
   bool operator()( TrackedFrame *newFrame )	
   {
     if (mMinRequiredTranslationDifferenceMm<=0 || mMinRequiredAngleDifferenceDeg<=0)
@@ -220,48 +326,10 @@ public:
       return false; 
     }
 
-    double bx(0), by(0), bz(0), cx(0), cy(0), cz(0); 
-    if ( STRCASECMP(mFrameTransformName.c_str(), "StepperEncoderValues") == 0 )
-    {
-      // Probe positions are stored in matrix element (0,3)
-      // Template positions are stored in matrix element (2,3)
-      // Image position = probe position + grid position 
-      bz = baseTransform->GetMatrix()->GetElement(0,3) + baseTransform->GetMatrix()->GetElement(2,3); 
-      cz = newTransform->GetMatrix()->GetElement(0,3) + newTransform->GetMatrix()->GetElement(2,3);
-    }
-    else
-    {
-      bx = baseTransform->GetPosition()[0]; 
-      by = baseTransform->GetPosition()[1]; 
-      bz = baseTransform->GetPosition()[2]; 
-      cx = newTransform->GetPosition()[0]; 
-      cy = newTransform->GetPosition()[1]; 
-      cz = newTransform->GetPosition()[2]; 
-    }
+    double positionDifference = PlusMath::GetPositionDifference( baseTransform->GetMatrix(), newTransform->GetMatrix()); 
+    double angleDifference = PlusMath::GetOrientationDifference(baseTransform->GetMatrix(), newTransform->GetMatrix()); 
 
-    // Euclidean distance
-    double distance = sqrt( pow(bx-cx,2) + pow(by-cy,2) + pow(bz-cz,2) ); 
-
-    vtkSmartPointer<vtkMatrix4x4> diffTransMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
-    vtkSmartPointer<vtkMatrix4x4> invNewTransMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
-    vtkMatrix4x4::Invert(newTransform->GetMatrix(), invNewTransMatrix);  
-
-    vtkMatrix4x4::Multiply4x4(baseTransform->GetMatrix(), invNewTransMatrix, diffTransMatrix); 
-    vtkSmartPointer<vtkTransform> diffTransform = vtkSmartPointer<vtkTransform>::New(); 
-    diffTransform->SetMatrix(diffTransMatrix); 
-
-    double angleDifference(0); 
-    if ( STRCASECMP(mFrameTransformName.c_str(), "StepperEncoderValues") == 0 )
-    {
-      // Rotation angles are stored in matrix element (1,3)
-      angleDifference = baseTransform->GetMatrix()->GetElement(1,3) - newTransform->GetMatrix()->GetElement(1,3); 
-    }
-    else
-    {
-      angleDifference = diffTransform->GetOrientationWXYZ()[0]; 
-    }
-
-    if ( distance < this->mMinRequiredTranslationDifferenceMm && abs(angleDifference) < this->mMinRequiredAngleDifferenceDeg )
+    if ( abs(positionDifference) < this->mMinRequiredTranslationDifferenceMm && abs(angleDifference) < this->mMinRequiredAngleDifferenceDeg )
     {
       // same as the reference frame
       return true; 
@@ -333,7 +401,7 @@ public:
    \param frameTransformNameforPositionValidation Frame transform name used for position validation
    \sa TrackedFrameValidationRequirements 
   */
-  virtual bool ValidateData(TrackedFrame* trackedFrame, long validationRequirements, const char* frameTransformNameforPositionValidation = NULL ); 
+  virtual bool ValidateData(TrackedFrame* trackedFrame, long validationRequirements, const char* frameTransformNameForValidation = NULL ); 
 
   /*! Clear tracked frame list and free memory */
   virtual void Clear(); 
@@ -394,7 +462,8 @@ protected:
 
   bool ValidateTimestamp(TrackedFrame* trackedFrame); 
   bool ValidateStatus(TrackedFrame* trackedFrame); 
-  bool ValidatePosition(TrackedFrame* trackedFrame, const char* frameTransformName); 
+  bool ValidateTransform(TrackedFrame* trackedFrame, const char* frameTransformNameForValidation); 
+  bool ValidateEncoderPosition(TrackedFrame* trackedFrame);
   bool ValidateSpeed(TrackedFrame* trackedFrame);
 
   TrackedFrameListType TrackedFrameList; 

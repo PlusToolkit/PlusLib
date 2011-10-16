@@ -337,7 +337,7 @@ PlusStatus vtkTrackedFrameList::AddTrackedFrame(TrackedFrame *trackedFrame)
 }
 
 //----------------------------------------------------------------------------
-bool vtkTrackedFrameList::ValidateData(TrackedFrame* trackedFrame, long validationRequirements, const char* frameTransformNameforPositionValidation /*=NULL*/ )
+bool vtkTrackedFrameList::ValidateData(TrackedFrame* trackedFrame, long validationRequirements, const char* frameTransformNameForValidation /*=NULL*/ )
 {
   if ( validationRequirements & REQUIRE_UNIQUE_TIMESTAMP )
   {
@@ -355,13 +355,22 @@ bool vtkTrackedFrameList::ValidateData(TrackedFrame* trackedFrame, long validati
     }
   }
 
-  if ( validationRequirements & REQUIRE_CHANGED_POSITION )
+  if ( validationRequirements & REQUIRE_CHANGED_TRANSFORM )
   {
-    if (! this->ValidatePosition(trackedFrame, frameTransformNameforPositionValidation))
+    if (! this->ValidateTransform(trackedFrame, frameTransformNameForValidation))
     {
       return false;
     }
   }
+
+  if ( validationRequirements & REQUIRE_CHANGED_ENCODER_POSITION )
+  {
+    if (! this->ValidateEncoderPosition(trackedFrame))
+    {
+      return false;
+    }
+  }
+
 
   if ( validationRequirements & REQUIRE_SPEED_BELOW_THRESHOLD )
   {
@@ -394,7 +403,7 @@ bool vtkTrackedFrameList::ValidateTimestamp(TrackedFrame* trackedFrame)
 }
 
 //----------------------------------------------------------------------------
-bool vtkTrackedFrameList::ValidatePosition(TrackedFrame* trackedFrame, const char* frameTransformName)
+bool vtkTrackedFrameList::ValidateEncoderPosition( TrackedFrame* trackedFrame )
 {
   TrackedFrameListType::iterator searchIndex; 
   const int containerSize = this->TrackedFrameList.size(); 
@@ -407,11 +416,35 @@ bool vtkTrackedFrameList::ValidatePosition(TrackedFrame* trackedFrame, const cha
     searchIndex =this->TrackedFrameList.end() - this->NumberOfUniqueFrames; 
   }
 
-  if (std::find_if(searchIndex, this->TrackedFrameList.end(), TrackedFramePositionFinder(trackedFrame, frameTransformName,
+  if (std::find_if(searchIndex, this->TrackedFrameList.end(), TrackedFrameEncoderPositionFinder(trackedFrame, 
     this->MinRequiredTranslationDifferenceMm, this->MinRequiredAngleDifferenceDeg) ) != this->TrackedFrameList.end() )
   {
     // We've already inserted this frame 
-    LOG_DEBUG("Tracked frame position validation result: we've already inserted this frame to container!"); 
+    LOG_DEBUG("Tracked frame encoder position validation result: we've already inserted this frame to container!"); 
+    return false; 
+  }
+  return true; 	
+}
+
+//----------------------------------------------------------------------------
+bool vtkTrackedFrameList::ValidateTransform(TrackedFrame* trackedFrame, const char* frameTransformNameForValidation)
+{
+  TrackedFrameListType::iterator searchIndex; 
+  const int containerSize = this->TrackedFrameList.size(); 
+  if (containerSize < this->NumberOfUniqueFrames )
+  {
+    searchIndex = this->TrackedFrameList.begin(); 
+  }
+  else
+  {
+    searchIndex =this->TrackedFrameList.end() - this->NumberOfUniqueFrames; 
+  }
+
+  if (std::find_if(searchIndex, this->TrackedFrameList.end(), TrackedFrameTransformFinder(trackedFrame, frameTransformNameForValidation,
+    this->MinRequiredTranslationDifferenceMm, this->MinRequiredAngleDifferenceDeg) ) != this->TrackedFrameList.end() )
+  {
+    // We've already inserted this frame 
+    LOG_DEBUG("Tracked frame transform validation result: we've already inserted this frame to container!"); 
     return false; 
   }
 
