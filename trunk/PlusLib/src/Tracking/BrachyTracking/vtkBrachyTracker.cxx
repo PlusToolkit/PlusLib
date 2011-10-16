@@ -824,7 +824,7 @@ PlusStatus vtkBrachyTracker::GetStepperEncoderValues( TrackedFrame* trackedFrame
     if ( trackedFrame->GetCustomFrameTransform(defaultTransformName, transform) )
     {
       // Get probe position from matrix (0,3) element
-      probePosition = transform[3]; 
+      probePosition = transform[ 4 * ROW_PROBE_POSITION + 3]; 
     }
     else
     {
@@ -845,7 +845,7 @@ PlusStatus vtkBrachyTracker::GetStepperEncoderValues( TrackedFrame* trackedFrame
     if ( trackedFrame->GetCustomFrameTransform(defaultTransformName, transform) )      
     {
       // Get probe rotation from matrix (1,3) element
-      probeRotation = transform[7]; 
+      probeRotation = transform[ 4 * ROW_PROBE_ROTATION + 3]; 
     }
     else
     {
@@ -866,7 +866,7 @@ PlusStatus vtkBrachyTracker::GetStepperEncoderValues( TrackedFrame* trackedFrame
     if ( trackedFrame->GetCustomFrameTransform(defaultTransformName, transform) )
     {
       // Get template position from matrix (2,3) element
-      templatePosition = transform[11]; 
+      templatePosition = transform[ 4 * ROW_TEMPLATE_POSITION + 3]; 
     }
     else
     {

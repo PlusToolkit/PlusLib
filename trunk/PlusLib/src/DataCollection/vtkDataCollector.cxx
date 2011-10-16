@@ -1272,7 +1272,9 @@ PlusStatus vtkDataCollector::GetTrackedFrame(vtkImageData* frame, vtkMatrix4x4* 
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkDataCollector::GetTrackedFrameList(double time, vtkTrackedFrameList* trackedFrameList)
+PlusStatus vtkDataCollector::GetTrackedFrameList(double& frameTimestamp, vtkTrackedFrameList* trackedFrameList, 
+                                                 long validationRequirements, 
+                                                 const char* frameTransformNameForPositionValidation/*=NULL*/ )
 {
   if ( trackedFrameList == NULL )
   {
@@ -1281,16 +1283,11 @@ PlusStatus vtkDataCollector::GetTrackedFrameList(double time, vtkTrackedFrameLis
   }
 
   PlusStatus status = PLUS_SUCCESS; 
-  double frameTimestamp(0); 
-  if ( this->VideoSource->GetBuffer()->GetOldestTimeStamp(frameTimestamp) != PLUS_SUCCESS )
+  double oldestTimestamp(0); 
+  if ( this->VideoSource->GetBuffer()->GetOldestTimeStamp(oldestTimestamp) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to get oldest timestamp from buffer!"); 
     return PLUS_FAIL; 
-  }
-  
-  if ( time > frameTimestamp )
-  {
-    frameTimestamp = time; 
   }
 
   double mostRecentTimestamp(0); 
@@ -1300,6 +1297,17 @@ PlusStatus vtkDataCollector::GetTrackedFrameList(double time, vtkTrackedFrameLis
     return PLUS_FAIL; 
   }
 
+  // Check input frameTimestamp to be in a valid range 
+  if ( frameTimestamp < 0.0001 || frameTimestamp > mostRecentTimestamp )
+  {
+    frameTimestamp = mostRecentTimestamp; 
+  }
+  else if ( frameTimestamp > frameTimestamp )
+  {
+    frameTimestamp = oldestTimestamp; 
+  }
+
+  
   BufferItemUidType videoUid(0); 
   if ( this->VideoSource->GetBuffer()->GetItemUidFromTime(frameTimestamp, videoUid) != ITEM_OK )
   {
@@ -1319,7 +1327,7 @@ PlusStatus vtkDataCollector::GetTrackedFrameList(double time, vtkTrackedFrameLis
     else 
     {
       // Add tracked frame to the list 
-      if ( trackedFrameList->ValidateData(&trackedFrame, REQUIRE_UNIQUE_TIMESTAMP | REQUIRE_TRACKING_OK )
+      if ( trackedFrameList->ValidateData(&trackedFrame, validationRequirements, frameTransformNameForPositionValidation )
         && trackedFrameList->AddTrackedFrame(&trackedFrame) != PLUS_SUCCESS )
       {
         LOG_ERROR("Unable to add tracked frame to the list!" ); 

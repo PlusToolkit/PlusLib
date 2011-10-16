@@ -96,7 +96,9 @@ int main(int argc, char **argv)
   }
 
   LOG_INFO("Testing image data segmentation...");
-  patternRecognition.RecognizePattern(trackedFrameList);
+  int numberOfSuccessfullySegmentedImages = 0; 
+  patternRecognition.RecognizePattern(trackedFrameList, &numberOfSuccessfullySegmentedImages);
+  LOG_INFO("Segmentation success rate: " << (100.0 * numberOfSuccessfullySegmentedImages ) / trackedFrameList->GetNumberOfTrackedFrames() << "%"); 
 
   LOG_INFO("Testing spacing computation...");
   vtkSmartPointer<vtkSpacingCalibAlgo> spacingCalibAlgo = vtkSmartPointer<vtkSpacingCalibAlgo>::New(); 
