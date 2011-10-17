@@ -1836,6 +1836,7 @@ void SegmentationParameterDialog::OpeningCircleRadiusChanged(double aValue)
   LOG_TRACE("SegmentationParameterDialog::OpeningCircleRadiusChanged(" << aValue << ")");
 
   m_PatternRecognition->GetFidSegmentation()->SetMorphologicalOpeningCircleRadiusMm(aValue);
+  m_PatternRecognition->GetFidSegmentation()->UpdateParameters();
 }
 
 //-----------------------------------------------------------------------------
