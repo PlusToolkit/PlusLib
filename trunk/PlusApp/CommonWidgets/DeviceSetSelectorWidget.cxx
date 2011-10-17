@@ -321,7 +321,7 @@ void DeviceSetSelectorWidget::EditConfiguration()
   int deviceSetIndex=ui.comboBox_DeviceSet->currentIndex();
   if (deviceSetIndex>=0)
   {
-    ui.comboBox_DeviceSet->itemData(deviceSetIndex).toStringList().at(0);
+    configurationFilePath=ui.comboBox_DeviceSet->itemData(deviceSetIndex).toStringList().at(0);
   }
   else
   {
