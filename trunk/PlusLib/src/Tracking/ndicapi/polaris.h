@@ -52,6 +52,8 @@ POSSIBILITY OF SUCH DAMAGES.
 #define POLARIS_MAJOR_VERSION 3
 #define POLARIS_MINOR_VERSION 2
 
+#include "PlusConfigure.h"
+
 #include "ndicapi.h"
 
 #ifdef __cplusplus
@@ -540,13 +542,15 @@ static void plSetErrorCallback(polaris *pol,
 static int plPVWRFromFile(polaris *pol, int port, char *filename) {
   unsigned char buffer[1024];
   char hexdata[128];
-  FILE *file;
+  FILE *file=NULL;
   int addr;
 
-  file = fopen(filename,"rb");
-  if (file == NULL) {
-    return -1;
-  }
+	errno_t err = fopen_s (&file,filename, "rb");	
+	if( err != 0)
+	{
+		LOG_ERROR("Error opening file: " << filename << " Error No.: " << err); 
+		return -1;
+	} 
 
   memset(buffer, 0, 1024);      /* clear buffer to zero */
   fread(buffer, 1, 1024, file); /* read at most 1k from file */

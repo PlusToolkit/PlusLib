@@ -294,7 +294,7 @@ protected:
 	// or 0 if they are not.
 	virtual PlusStatus InternalStartTracking() { return PLUS_SUCCESS; };
 	virtual PlusStatus InternalStopTracking() { return PLUS_SUCCESS; };
-	virtual void InternalInterpretCommand( char * c) { };
+	virtual PlusStatus InternalInterpretCommand( char * c) { LOG_ERROR("InternalInterpretCommand is not implemented for this class"); return PLUS_FAIL; };
   //! This method should be overridden in derived classes that can make
 	// an audible beep.  The return value should be zero if an error
 	// occurred while the request was being processed.
