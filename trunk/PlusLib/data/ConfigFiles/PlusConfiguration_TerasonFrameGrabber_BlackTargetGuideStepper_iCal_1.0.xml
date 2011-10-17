@@ -3,7 +3,8 @@
     <USDataCollection version="2.0" StartupDelaySec="1.0">
       <DeviceSet 
         Name="Terason through FrameGrabber TRUS probe + Burdette Medical Systems Digital Stepper (01-50-149) + 70mm depth" 
-        Description="Configuration file for Terason through FrameGrabber TRUS + Burdette Medical Systems Digital Stepper + iCal 1.0 + 70mm depth" 
+        Description="Configuration file for Terason through FrameGrabber TRUS + Burdette Medical Systems Digital Stepper + iCal 1.0 + 70mm depth
+Connect the framegrabber via USB and plug in the stepper through Serial2USB converter cable into USB slot. Look for the Serial port number in the control panel"         
         />
 
       <Tracker Type="BrachyTracker" BufferSize="300" Frequency="20" AveragedItemsForFiltering="20" LocalTimeOffset="0.0" SerialPort="3" BaudRate="19200" BrachyStepperType="Burdette Medical Systems Digital Stepper" ModelNumber="4012A18-a" ModelVersion="" ModelSerialNumber="01-50-149"
