@@ -1,3 +1,9 @@
+/*=Plus=header=begin======================================================
+  Program: Plus
+  Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+  See License.txt for details.
+=========================================================Plus=header=end*/ 
+
 #ifndef CONFIGFILESAVERDIALOG_H
 #define CONFIGFILESAVERDIALOG_H
 
@@ -11,9 +17,13 @@ class vtkXMLDataElement;
 
 //-----------------------------------------------------------------------------
 
-/*!
-* \brief Configuration file saver dialog class
-*/
+/*! \class ConfigFileSaverDialog 
+ *
+ * \brief Configuration file saver dialog class
+ *
+ * \ingroup PlusAppCommonWidgets
+ *
+ */
 class ConfigFileSaverDialog : public QDialog
 {
 	Q_OBJECT

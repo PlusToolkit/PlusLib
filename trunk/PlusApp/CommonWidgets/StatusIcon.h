@@ -1,3 +1,9 @@
+/*=Plus=header=begin======================================================
+  Program: Plus
+  Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+  See License.txt for details.
+=========================================================Plus=header=end*/ 
+
 #ifndef STATUSICON_H
 #define STATUSICON_H
 
@@ -12,9 +18,13 @@
 
 //-----------------------------------------------------------------------------
 
-/*!
-* \brief Callback command class that catches the log message event and adds it to the text field of the status icon
-*/
+/*! \class vtkDisplayMessageCallback 
+ *
+ * \brief Callback command class that catches the log message event and adds it to the text field of the status icon
+ *
+ * \ingroup PlusAppCommonWidgets
+ *
+ */
 class vtkDisplayMessageCallback : public QObject, public vtkCallbackCommand
 {
   Q_OBJECT
@@ -45,9 +55,13 @@ signals:
  
 //-----------------------------------------------------------------------------
 
-/*!
-* \brief Widget that shows the current status of the application and displays all log messages occurred
-*/
+/*! \class StatusIcon 
+ *
+ * \brief Widget that shows the current status of the application and displays all log messages occurred
+ *
+ * \ingroup PlusAppCommonWidgets
+ *
+ */
 class StatusIcon : public QWidget
 {
   Q_OBJECT

@@ -1,3 +1,9 @@
+/*=Plus=header=begin======================================================
+  Program: Plus
+  Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+  See License.txt for details.
+=========================================================Plus=header=end*/ 
+
 #ifndef DEVICESETSELECTORWIDGET_H
 #define DEVICESETSELECTORWIDGET_H
 
@@ -10,9 +16,13 @@
 
 //-----------------------------------------------------------------------------
 
-/*!
-* \brief Data selector widget class
-*/
+/*! \class DeviceSetSelectorWidget 
+ *
+ * \brief Data selector widget class
+ *
+ * \ingroup PlusAppCommonWidgets
+ *
+ */
 class DeviceSetSelectorWidget : public QWidget
 {
 	Q_OBJECT

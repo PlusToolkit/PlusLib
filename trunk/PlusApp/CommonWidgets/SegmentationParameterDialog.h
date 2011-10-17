@@ -1,3 +1,9 @@
+/*=Plus=header=begin======================================================
+  Program: Plus
+  Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+  See License.txt for details.
+=========================================================Plus=header=end*/ 
+
 #ifndef SEGMENTATIONPARAMETERDIALOG_H
 #define SEGMENTATIONPARAMETERDIALOG_H
 
@@ -21,9 +27,13 @@ class vtkSpacingModeHandler;
 
 //-----------------------------------------------------------------------------
 
-/*!
-* \brief Segmentation parameter setting dialog class
-*/
+/*! \class SegmentationParameterDialog 
+ *
+ * \brief Segmentation parameter setting dialog class
+ *
+ * \ingroup PlusAppCommonWidgets
+ *
+ */
 class SegmentationParameterDialog : public QDialog
 {
 	Q_OBJECT

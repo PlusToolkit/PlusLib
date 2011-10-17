@@ -32,7 +32,14 @@
 #include "vtkPlusVideoSource.h"
 
 //----------------------------------------------------------------------
-//! Base class for the segmentation parameter dialog mode handlers
+
+/*! \class vtkSegmentationParameterDialogModeHandlerBase 
+ *
+ * \brief Base class for the segmentation parameter dialog mode handlers
+ *
+ * \ingroup PlusAppCommonWidgets
+ *
+ */
 class vtkSegmentationParameterDialogModeHandlerBase : public vtkCallbackCommand
 {
 public:
@@ -118,7 +125,14 @@ protected:
 };
 
 //----------------------------------------------------------------------
-//! Class handling the events of the ROI mode in segmentation parameters dialog
+
+/*! \class vtkROIModeHandler 
+ *
+ * \brief Class handling the events of the ROI mode in segmentation parameters dialog
+ *
+ * \ingroup PlusAppCommonWidgets
+ *
+ */
 class vtkROIModeHandler : public vtkSegmentationParameterDialogModeHandlerBase
 {
 public:
@@ -454,7 +468,14 @@ private:
 };
 
 //----------------------------------------------------------------------
-//! Class handling the events of the spacing mode in segmentation parameters dialog
+
+/*! \class vtkSpacingModeHandler 
+ *
+ * \brief Class handling the events of the spacing mode in segmentation parameters dialog
+ *
+ * \ingroup PlusAppCommonWidgets
+ *
+ */
 class vtkSpacingModeHandler : public vtkSegmentationParameterDialogModeHandlerBase
 {
 public:

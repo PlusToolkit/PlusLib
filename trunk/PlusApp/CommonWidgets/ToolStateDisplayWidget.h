@@ -1,3 +1,9 @@
+/*=Plus=header=begin======================================================
+  Program: Plus
+  Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+  See License.txt for details.
+=========================================================Plus=header=end*/ 
+
 #ifndef TOOLSTATEDISPLAYWIDGET_H
 #define TOOLSTATEDISPLAYWIDGET_H
 
@@ -11,9 +17,13 @@ class vtkDataCollector;
 
 //-----------------------------------------------------------------------------
 
-/*!
-* \brief Widget that shows state of all tools available to the tracker
-*/
+/*! \class ToolStateDisplayWidget 
+ *
+ * \brief Widget that shows state of all tools available to the tracker
+ *
+ * \ingroup PlusAppCommonWidgets
+ *
+ */
 class ToolStateDisplayWidget : public QWidget
 {
 	Q_OBJECT
