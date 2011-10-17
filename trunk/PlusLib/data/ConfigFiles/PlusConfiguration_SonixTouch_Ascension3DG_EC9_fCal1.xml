@@ -4,8 +4,8 @@
 	<USDataCollection version="2.0" StartupDelaySec="1.0">
 	  
 	  <DeviceSet 
-		Name="SonixTouch with GPS extension" 
-		Description="Ultrasound probe is tracked by the GPS extension against a reference sensor." 
+		Name="SonixTouch Ascension3DG(GPS) EC9 +Reference +Stylus" 
+		Description="Ascension3DG sensors should be plugged in to the Ascension3DG DriveBay mounted on SonixTouch in the following order from to leftmost slot (Transducer 1) to the right: 1 Probe, 2 Reference, 3 Stylus." 
 		/>
 
 	  <Tracker
@@ -115,6 +115,7 @@
 		<CalibrationController LogLevel="INFO" OutputPath="./Output" EnableTrackedSequenceDataSaving="FALSE" EnableErroneouslySegmentedDataSaving="FALSE" EnableSegmentationAnalysis="FALSE" >
 			
 			<ProbeCalibration
+        EnableLogFile="FALSE"  
         EnableSegmentedWirePositionsSaving="FALSE"
         ImageHomeToUserImageHomeTransform=" 1  0  0  0 
                           0  1  0  0 
@@ -161,7 +162,7 @@
             
 			<SegmentationParameters
 					ApproximateSpacingMmPerPixel="0.078"
-					MorphologicalOpeningCircleRadiusMm="0.47"
+					MorphologicalOpeningCircleRadiusMm="0.3"
 					MorphologicalOpeningBarSizeMm="1.0"
 
 					RegionOfInterest="27 27 793 589"
