@@ -53,6 +53,8 @@
 };
 */
 
+std::string TrackedUltrasoundCapturing::DefaultFrameTransformName = "Probe";
+
 //----------------------------------------------------------------------------
 vtkCxxRevisionMacro(TrackedUltrasoundCapturing, "$Revision: 1.0 $");
 TrackedUltrasoundCapturing* TrackedUltrasoundCapturing::Instance = 0;
@@ -179,6 +181,7 @@ PlusStatus TrackedUltrasoundCapturing::Initialize()
 	{
 		this->TrackedFrameContainer = vtkTrackedFrameList::New(); 
     this->TrackedFrameContainer->ReadConfiguration(configRootElement);
+    this->TrackedFrameContainer->SetDefaultFrameTransformName(DefaultFrameTransformName.c_str());
 	}
 
 	vtkSmartPointer<vtkImageActor> realtimeImageActor = vtkSmartPointer<vtkImageActor>::New();
@@ -250,12 +253,12 @@ void TrackedUltrasoundCapturing::AddTrackedFrame( TrackedFrame* trackedFrame )
 	bool isDataUnique(false); 
 	if ( this->GetDataCollector()->GetTracker() != NULL )
 	{
-		isDataUnique = this->TrackedFrameContainer->ValidateData(trackedFrame, REQUIRE_UNIQUE_TIMESTAMP | REQUIRE_TRACKING_OK | REQUIRE_SPEED_BELOW_THRESHOLD); 
+		isDataUnique = this->TrackedFrameContainer->ValidateData(trackedFrame, REQUIRE_UNIQUE_TIMESTAMP | REQUIRE_TRACKING_OK | REQUIRE_SPEED_BELOW_THRESHOLD, DefaultFrameTransformName.c_str()); 
 	}
 	else
 	{
 		// If we don't have tracking device, we don't need to validate status and position
-    isDataUnique = this->TrackedFrameContainer->ValidateData(trackedFrame, REQUIRE_UNIQUE_TIMESTAMP | REQUIRE_SPEED_BELOW_THRESHOLD); 
+    isDataUnique = this->TrackedFrameContainer->ValidateData(trackedFrame, REQUIRE_UNIQUE_TIMESTAMP | REQUIRE_SPEED_BELOW_THRESHOLD, DefaultFrameTransformName.c_str()); 
 	}
 
 	if ( !isDataUnique )
