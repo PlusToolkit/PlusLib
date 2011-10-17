@@ -75,7 +75,7 @@ public:
   // Probe to see if the tracking system is present on the
   // specified serial port.  If the SerialPort is set to -1,
   // then all serial ports will be checked.
-  int Probe();
+  PlusStatus Probe();
 
   // Description:
   // Send a command to the POLARIS in the format INIT: or VER:0 (the
@@ -110,13 +110,13 @@ public:
   // Description:
   // Enable a passive tool by uploading a virtual SROM for that
   // tool, where 'tool' is a number between 0 and 5.
-  void LoadVirtualSROM(int tool, const char *filename);
-  void ClearVirtualSROM(int tool);
+  PlusStatus LoadVirtualSROM(int tool, const char *filename);
+  PlusStatus ClearVirtualSROM(int tool);
 
   // Description:
   // Get an update from the tracking system and push the new transforms
   // to the tools.  This should only be used within vtkTracker.cxx.
-  void InternalUpdate();
+  PlusStatus InternalUpdate();
 
 protected:
   vtkPOLARISTracker();
@@ -131,40 +131,41 @@ protected:
   // its ground state into full tracking mode.  The POLARIS will
   // only be reset if communication cannot be established without
   // a reset.
-  int InternalStartTracking();
+  PlusStatus InternalStartTracking();
 
   // Description:
   // Stop the tracking system and bring it back to its ground state:
   // Initialized, not tracking, at 9600 Baud.
-  int InternalStopTracking();
+  PlusStatus InternalStopTracking();
 
   // Description:
   // Cause the POLARIS to beep the specified number of times.
-  int InternalBeep(int n);
+  PlusStatus InternalBeep(int n);
 
   // Description:
   // Set the specified tool LED to the specified state.
-  int InternalSetToolLED(int tool, int led, int state);
+  PlusStatus InternalSetToolLED(int tool, int led, int state);
 
   // Description:
   // This is a low-level method for loading a virtual SROM.
   // You must halt the tracking thread and take the POLARIS
   // out of tracking mode before you use it.
-  void InternalLoadVirtualSROM(int tool, const unsigned char data[1024]);
-  void InternalClearVirtualSROM(int tool);
+  PlusStatus InternalLoadVirtualSROM(int tool, const unsigned char data[1024]);
+  PlusStatus InternalClearVirtualSROM(int tool);
 
   // Description:
   // Methods for detecting which ports have tools in them, and
   // auto-enabling those tools.
-  void EnableToolPorts();
-  void DisableToolPorts();
+  PlusStatus EnableToolPorts();
+  PlusStatus DisableToolPorts();
 
-  // Description:
-  // Class for updating the virtual clock that accurately times the
-  // arrival of each transform, more accurately than is possible with
-  // the system clock alone because the virtual clock averages out the
-  // jitter.
-  vtkFrameToTimeConverter *Timer;
+  /** Requested frequency of position updates in Hz (1/sec) */
+  double UpdateNominalFrequency;
+
+  /** Index of the last frame number. This is used for providing a frame number when the tracker doesn't return any transform */
+  double LastFrameNumber;
+
+  int ReferenceTool;
 
   polaris *Polaris;
   char *Version;
