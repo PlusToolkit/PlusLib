@@ -47,7 +47,6 @@ vtkPlusConfig::vtkPlusConfig()
 
 	this->SetDeviceSetConfigurationDirectory("");
 	this->SetDeviceSetConfigurationFileName("");
-  this->SetOutputDirectory("./");
   this->SetApplicationConfigurationFileName("PlusConfig.xml");
   this->SetEditorApplicationExecutable("notepad.exe");
 
