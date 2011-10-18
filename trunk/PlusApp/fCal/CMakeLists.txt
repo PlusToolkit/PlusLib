@@ -44,7 +44,7 @@ SET (fCal_UI_SRCS
 	Toolboxes/VolumeReconstructionToolbox.ui
 	)
 
-SET (QT_Resources
+SET (fCal_QT_Resources
 	fCal.qrc
 	${PlusApp_SOURCE_DIR}/CommonWidgets/CommonWidgets.qrc
 	)
@@ -53,12 +53,12 @@ SET (QT_Resources
 # --------------------------------------------------------------------------
 # Qt specific commands
 
-QT4_WRAP_CPP( QT_MOC_Files ${fCal_UI_HDRS} )			  
-QT4_WRAP_UI( QT_UI_Headers ${fCal_UI_SRCS} )
-QT4_WRAP_CPP( QT_MOC_UI_Files ${QT_UI_Headers} )
-QT4_ADD_RESOURCES( QT_RCC_Files ${QT_Resources} )
+QT4_WRAP_CPP( fCal_QT_MOC_Files ${fCal_UI_HDRS} )			  
+QT4_WRAP_UI( fCal_QT_UI_Headers ${fCal_UI_SRCS} )
+QT4_WRAP_CPP( fCal_QT_MOC_UI_Files ${fCal_QT_UI_Headers} )
+QT4_ADD_RESOURCES( fCal_QT_RCC_Files ${fCal_QT_Resources} )
 
-SOURCE_GROUP("Generated Files" FILES ${QT_MOC_Files} ${QT_UI_Headers} ${QT_MOC_UI_Files} ${QT_RCC_Files})
+SOURCE_GROUP("Generated Files" FILES ${fCal_QT_MOC_Files} ${fCal_QT_UI_Headers} ${fCal_QT_MOC_UI_Files} ${fCal_QT_RCC_Files})
 SOURCE_GROUP("UI Files" FILES ${fCal_UI_SRCS})
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
@@ -92,7 +92,7 @@ IF (PLUS_USE_OpenIGTLink)
     SET (fCal_LIBS ${fCal_LIBS} OpenIGTLink)
 ENDIF(PLUS_USE_OpenIGTLink)
 
-ADD_EXECUTABLE( fCal MACOSX_BUNDLE ${fCal_SRCS} ${fCal_UI_HDRS} ${QT_UI_Sources} ${QT_UI_Headers} ${QT_MOC_Files} ${QT_MOC_UI_Files} ${QT_RCC_Files})
+ADD_EXECUTABLE( fCal MACOSX_BUNDLE ${fCal_SRCS} ${fCal_UI_HDRS} ${fCal_QT_UI_Headers} ${fCal_QT_UI_Headers} ${fCal_QT_MOC_Files} ${fCal_QT_MOC_UI_Files} ${fCal_QT_RCC_Files})
 
 TARGET_LINK_LIBRARIES( fCal QVTK ${fCal_LIBS} )
 

@@ -68,4 +68,12 @@ SET (CommonWidgets_LIBS
     )
 
 ADD_LIBRARY(CommonWidgets STATIC ${CommonWidgets_SRCS} ${CommonWidgets_UI_HDRS} ${QT_UI_Sources} ${QT_UI_Headers} ${QT_MOC_Files} ${QT_MOC_UI_Files} ${QT_RCC_Files})
-TARGET_LINK_LIBRARIES(CommonWidgets ${CommonWidgets_LIBS})
+TARGET_LINK_LIBRARIES(CommonWidgets QVTK ${CommonWidgets_LIBS})
+
+# --------------------------------------------------------------------------
+# Testing
+#
+
+IF (BUILD_TESTING)
+	ADD_SUBDIRECTORY (Testing)
+ENDIF (BUILD_TESTING)

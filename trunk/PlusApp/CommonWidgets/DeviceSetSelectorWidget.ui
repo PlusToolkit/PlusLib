@@ -170,7 +170,7 @@
    <item row="5" column="0">
     <widget class="QTextEdit" name="textEdit_Description">
      <property name="sizePolicy">
-      <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+      <sizepolicy hsizetype="Expanding" vsizetype="MinimumExpanding">
        <horstretch>0</horstretch>
        <verstretch>0</verstretch>
       </sizepolicy>
@@ -184,7 +184,7 @@
      <property name="maximumSize">
       <size>
        <width>16777215</width>
-       <height>96</height>
+       <height>16777215</height>
       </size>
      </property>
      <property name="frameShadow">
