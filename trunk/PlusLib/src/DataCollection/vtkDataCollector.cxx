@@ -232,73 +232,87 @@ PlusStatus vtkDataCollector::Connect()
 //----------------------------------------------------------------------------
 PlusStatus vtkDataCollector::SetLoopTimes()
 {
-  if ( this->GetTrackerType() != TRACKER_SAVEDDATASET )
+  LOG_TRACE("vtkDataCollector::SetLoopTimes"); 
+
+  if ( (this->GetTrackerType() != TRACKER_SAVEDDATASET) && (this->GetAcquisitionType() != SYNCHRO_VIDEO_SAVEDDATASET) )
   {
-    // No need to compute loop time 
-    return PLUS_SUCCESS; 
+    // No need to compute loop time
+    return PLUS_SUCCESS;
   }
 
-  if( this->GetAcquisitionType() != SYNCHRO_VIDEO_SAVEDDATASET )
+  vtkSavedDataTracker* savedDataTracker = NULL;
+  vtkSavedDataVideoSource* savedDataVideoSource = NULL;
+
+  double oldestTrackerTimeStamp(0);
+  double latestTrackerTimeStamp(0);
+  double oldestVideoTimeStamp(0);
+  double latestVideoTimeStamp(0);
+
+  if ( this->GetTrackerType() == TRACKER_SAVEDDATASET )
   {
-    // No need to compute loop time 
-    return PLUS_SUCCESS; 
+    savedDataTracker = dynamic_cast<vtkSavedDataTracker*>(this->GetTracker()); 
+
+    if ( savedDataTracker == NULL )
+    {
+      LOG_ERROR("Failed to dynamic cast saved data tracker!"); 
+      return PLUS_FAIL; 
+    }
+
+    if ( savedDataTracker->GetLocalTrackerBuffer() == NULL ) 
+    {
+      LOG_ERROR("Failed to get local tracker buffer!"); 
+      return PLUS_FAIL;
+    }
+
+    if ( savedDataTracker->GetLocalTrackerBuffer()->GetOldestTimeStamp(oldestTrackerTimeStamp) !=  ITEM_OK ) 
+    {
+      LOG_WARNING("Failed to get oldest timestamp from local tracker buffer!"); 
+      return PLUS_FAIL;
+    }
+
+    if ( savedDataTracker->GetLocalTrackerBuffer()->GetLatestTimeStamp(latestTrackerTimeStamp) !=  ITEM_OK ) 
+    {
+      LOG_WARNING("Failed to get latest timestamp from local tracker buffer!"); 
+      return PLUS_FAIL;
+    }
+
   }
 
-  vtkSavedDataVideoSource* savedDataVideoSource = dynamic_cast<vtkSavedDataVideoSource*>(this->GetVideoSource()); 
-
-  if ( savedDataVideoSource == NULL )
+  if( this->GetAcquisitionType() == SYNCHRO_VIDEO_SAVEDDATASET )
   {
-    LOG_ERROR("Failed to dynamic cast saved data video source!"); 
-    return PLUS_FAIL; 
-  }
+    savedDataVideoSource = dynamic_cast<vtkSavedDataVideoSource*>(this->GetVideoSource()); 
 
-  vtkSavedDataTracker* savedDataTracker = dynamic_cast<vtkSavedDataTracker*>(this->GetTracker()); 
+    if ( savedDataVideoSource == NULL )
+    {
+      LOG_ERROR("Failed to dynamic cast saved data video source!"); 
+      return PLUS_FAIL; 
+    }
 
-  if ( savedDataTracker == NULL )
-  {
-    LOG_ERROR("Failed to dynamic cast saved data tracker!"); 
-    return PLUS_FAIL; 
-  }
+    if ( savedDataVideoSource->GetLocalVideoBuffer() == NULL ) 
+    {
+      LOG_ERROR("Failed to get local video buffer!"); 
+      return PLUS_FAIL;
+    }
 
-  if ( savedDataVideoSource->GetLocalVideoBuffer()==NULL) 
-  {
-    LOG_ERROR("Failed to get local video buffer!"); 
-    return PLUS_FAIL;
-  }
+    if ( savedDataVideoSource->GetLocalVideoBuffer()->GetOldestTimeStamp(oldestVideoTimeStamp) !=  ITEM_OK ) 
+    {
+      LOG_WARNING("Failed to get oldest timestamp from local video buffer!"); 
+      return PLUS_FAIL;
+    }
 
-  double oldestVideoTimeStamp(0); 
-  if ( savedDataVideoSource->GetLocalVideoBuffer()->GetOldestTimeStamp(oldestVideoTimeStamp) !=  ITEM_OK ) 
-  {
-    LOG_WARNING("Failed to get oldest timestamp from local video buffer!"); 
-    return PLUS_FAIL;
-  }
+    if ( savedDataVideoSource->GetLocalVideoBuffer()->GetLatestTimeStamp(latestVideoTimeStamp) !=  ITEM_OK ) 
+    {
+      LOG_WARNING("Failed to get latest timestamp from local video buffer!"); 
+      return PLUS_FAIL;
+    }
 
-  double latestVideoTimeStamp(0); 
-  if ( savedDataVideoSource->GetLocalVideoBuffer()->GetLatestTimeStamp(latestVideoTimeStamp) !=  ITEM_OK ) 
-  {
-    LOG_WARNING("Failed to get latest timestamp from local video buffer!"); 
-    return PLUS_FAIL;
-  }
-
-  double oldestTrackerTimeStamp(0); 
-  if ( savedDataTracker->GetLocalTrackerBuffer()->GetOldestTimeStamp(oldestTrackerTimeStamp) !=  ITEM_OK ) 
-  {
-    LOG_WARNING("Failed to get oldest timestamp from local tracker buffer!"); 
-    return PLUS_FAIL;
-  }
-
-  double latestTrackerTimeStamp(0); 
-  if ( savedDataTracker->GetLocalTrackerBuffer()->GetLatestTimeStamp(latestTrackerTimeStamp) !=  ITEM_OK ) 
-  {
-    LOG_WARNING("Failed to get latest timestamp from local tracker buffer!"); 
-    return PLUS_FAIL;
   }
 
   // Item timestamps should computed in the following way for saved datasets (time intersection of the two buffers)
   // itemTimestamp = loopStartTime + (actualTimestamp - startTimestamp) % loopTime 
 
   // Compute the loop start time 
-  double loopStartTime(0); 
+  double loopStartTime(0);
   if ( oldestVideoTimeStamp > oldestTrackerTimeStamp )
   {
     loopStartTime = oldestVideoTimeStamp; 
@@ -307,14 +321,20 @@ PlusStatus vtkDataCollector::SetLoopTimes()
   {
     loopStartTime = oldestTrackerTimeStamp; 
   }
-  savedDataTracker->SetLoopStartTime( loopStartTime ); 
-  savedDataVideoSource->SetLoopStartTime( loopStartTime );
 
   // Compute the loop time 
   double loopTime(0); 
-  if ( latestVideoTimeStamp > latestTrackerTimeStamp )
+  if ( savedDataVideoSource == NULL )
   {
-   loopTime = latestTrackerTimeStamp - loopStartTime; 
+    loopTime = latestTrackerTimeStamp - loopStartTime;
+  }
+  else if ( savedDataTracker == NULL )
+  {
+    loopTime = latestVideoTimeStamp - loopStartTime; 
+  }
+  else if ( latestVideoTimeStamp > latestTrackerTimeStamp )
+  {
+    loopTime = latestTrackerTimeStamp - loopStartTime; 
   }
   else
   {
@@ -327,8 +347,16 @@ PlusStatus vtkDataCollector::SetLoopTimes()
     return PLUS_FAIL; 
   }
 
-  savedDataVideoSource->SetLoopTime( loopTime ); 
-  savedDataTracker->SetLoopTime( loopTime ); 
+  if ( savedDataVideoSource != NULL )
+  {
+    savedDataVideoSource->SetLoopStartTime( loopStartTime );
+    savedDataVideoSource->SetLoopTime( loopTime );
+  }
+  if ( savedDataTracker != NULL )
+  {
+    savedDataTracker->SetLoopStartTime( loopStartTime ); 
+    savedDataTracker->SetLoopTime( loopTime );
+  }
 
   return PLUS_SUCCESS; 
 }
