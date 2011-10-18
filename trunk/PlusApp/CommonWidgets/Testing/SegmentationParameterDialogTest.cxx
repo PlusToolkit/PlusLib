@@ -100,12 +100,15 @@ void SegmentationParameterDialogTest::ConnectToDevicesByConfigFile(std::string a
 	    if (this->StartDataCollection() != PLUS_SUCCESS) {
 		    LOG_ERROR("Unable to start collecting data!");
 		    m_DeviceSetSelectorWidget->SetConnectionSuccessful(false);
+        m_SaveButton->setEnabled(false);
 
 	    } else {
         // Successful connection
 		    m_DeviceSetSelectorWidget->SetConnectionSuccessful(true);
 
         vtkPlusConfig::GetInstance()->SaveApplicationConfigurationToFile();
+
+        QApplication::restoreOverrideCursor();
 
         // Show segmentation parameter dialog
         SegmentationParameterDialog* segmentationParamDialog = new SegmentationParameterDialog(this, m_DataCollector);
