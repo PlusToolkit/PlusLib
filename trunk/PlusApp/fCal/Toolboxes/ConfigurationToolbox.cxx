@@ -41,6 +41,7 @@ ConfigurationToolbox::ConfigurationToolbox(fCalMainWindow* aParentMainWindow, QW
 	connect( ui.pushButton_PopOut, SIGNAL( toggled(bool) ), this, SLOT( PopOutToggled(bool) ) );
 	connect( ui.comboBox_LogLevel, SIGNAL( currentIndexChanged(int) ), this, SLOT( LogLevelChanged(int) ) );
 	connect( ui.pushButton_SelectEditorApplicationExecutable, SIGNAL( clicked() ), this, SLOT( SelectEditorApplicationExecutable() ) );
+	connect( ui.pushButton_SelectImageDirectory, SIGNAL( clicked() ), this, SLOT( SelectImageDirectory() ) );
 
 	// Insert widgets into placeholders
 	QGridLayout* gridDeviceSetSelection = new QGridLayout(ui.deviceSetSelectionWidget, 1, 1, 0, 4, "");
@@ -59,7 +60,8 @@ ConfigurationToolbox::ConfigurationToolbox(fCalMainWindow* aParentMainWindow, QW
   ui.comboBox_LogLevel->setCurrentIndex(vtkPlusLogger::Instance()->GetLogLevel() - 1);
   ui.comboBox_LogLevel->blockSignals(false);
 
-  ui.lineEdit_EditorApplicationExecutable->setText(QString(vtkPlusConfig::GetInstance()->GetEditorApplicationExecutable()));
+  ui.lineEdit_EditorApplicationExecutable->setText( QDir::toNativeSeparators(QString(vtkPlusConfig::GetInstance()->GetEditorApplicationExecutable())) );
+  ui.lineEdit_ImageDirectory->setText( QDir::toNativeSeparators(QString(vtkPlusConfig::GetInstance()->GetImageDirectory())) );
 
   // Install event filters to capture key event for dumping raw buffer data
 	this->installEventFilter(this); //TODO make this a button or something, this is unreliable
@@ -315,4 +317,23 @@ void ConfigurationToolbox::SelectEditorApplicationExecutable()
   vtkPlusConfig::GetInstance()->SaveApplicationConfigurationToFile();
 
   ui.lineEdit_EditorApplicationExecutable->setText(fileName);
+}
+
+//-----------------------------------------------------------------------------
+
+void ConfigurationToolbox::SelectImageDirectory()
+{
+  LOG_TRACE("ConfigurationToolbox::SelectImageDirectory"); 
+
+	// Directory open dialog for selecting configuration directory 
+  QString dirName = QFileDialog::getExistingDirectory(NULL, QString( tr( "Select image directory" ) ), QString(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationDirectory()));
+	if (dirName.isNull()) {
+		return;
+	}
+
+  // Save the selected directory to config object
+  vtkPlusConfig::GetInstance()->SetImageDirectory(dirName.toStdString().c_str());
+  vtkPlusConfig::GetInstance()->SaveApplicationConfigurationToFile();
+
+  ui.lineEdit_ImageDirectory->setText(dirName);
 }

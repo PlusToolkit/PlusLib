@@ -95,6 +95,11 @@ protected slots:
 	*/
   void SelectEditorApplicationExecutable();
 
+	/*!
+	* \brief Pops up open directory dialog and saves the selected one as image directory. It is the directory that contains the usually used input images (to act as home for relative paths in device set configuration files)
+	*/
+	void SelectImageDirectory();
+
 protected:
   /*!
 	* \brief Filters events if this object has been installed as an event filter for the watched object

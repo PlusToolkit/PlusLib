@@ -46,6 +46,12 @@
        <height>48</height>
       </size>
      </property>
+     <property name="maximumSize">
+      <size>
+       <width>16777215</width>
+       <height>208</height>
+      </size>
+     </property>
     </widget>
    </item>
    <item>
@@ -212,6 +218,16 @@
     </layout>
    </item>
    <item>
+    <widget class="QLabel" name="label_EditorApplicationExecutable">
+     <property name="toolTip">
+      <string>Path of the editor application executable that is used to open configuration files</string>
+     </property>
+     <property name="text">
+      <string>Editor application:</string>
+     </property>
+    </widget>
+   </item>
+   <item>
     <layout class="QHBoxLayout" name="horizontalLayout_3">
      <property name="spacing">
       <number>0</number>
@@ -224,6 +240,9 @@
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
+       <property name="toolTip">
+        <string>Path of the editor application executable that is used to open configuration files</string>
+       </property>
        <property name="readOnly">
         <bool>true</bool>
        </property>
@@ -231,6 +250,77 @@
      </item>
      <item>
       <widget class="QPushButton" name="pushButton_SelectEditorApplicationExecutable">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>23</width>
+         <height>23</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>23</width>
+         <height>23</height>
+        </size>
+       </property>
+       <property name="toolTip">
+        <string>Select other device set configuration directory</string>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+       <property name="icon">
+        <iconset resource="../../CommonWidgets/CommonWidgets.qrc">
+         <normaloff>:/icons/Resources/icon_OpenFile.png</normaloff>:/icons/Resources/icon_OpenFile.png</iconset>
+       </property>
+       <property name="iconSize">
+        <size>
+         <width>16</width>
+         <height>16</height>
+        </size>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <widget class="QLabel" name="label_ImageDirectory">
+     <property name="toolTip">
+      <string>Directory that contains the usually used input images (to act as home for relative paths in device set configuration files)</string>
+     </property>
+     <property name="text">
+      <string>Image directory:</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_4">
+     <property name="spacing">
+      <number>0</number>
+     </property>
+     <item>
+      <widget class="QLineEdit" name="lineEdit_ImageDirectory">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="toolTip">
+        <string>Directory that contains the usually used input images (to act as home for relative paths in device set configuration files)</string>
+       </property>
+       <property name="readOnly">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="pushButton_SelectImageDirectory">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
          <horstretch>0</horstretch>
