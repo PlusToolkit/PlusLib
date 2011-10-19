@@ -3,6 +3,6 @@
   <RotationEncoderCalibrationResult RotationEncoderOffset="0.403258" RotationEncoderScale="0.965150" ErrorMean="0" ErrorStdev="2.036860" />
   <RotationAxisCalibrationResult RotationAxisOrientation="0 0 1" ErrorMean="0.0" ErrorStdev="0.0" PhantomToProbeDistanceInMm="19.9489 45.0847"/>
   <CenterOfRotationCalibrationResult CenterOfRotationPx="321.155612 19.755441" ErrorMean="0.651611" ErrorStdev="16.047709"/>
-  <ProbeTranslationAxisCalibrationResult ProbeTranslationAxisOrientation="-0.0197001 -0.0563533 1" ErrorMean="0" ErrorStdev="0.247798"/>
-  <TemplateTranslationAxisCalibrationResult TemplateTranslationAxisOrientation="-0.00334944 0.0347127 1" ErrorMean="0" ErrorStdev="0.0477445"/>
+  <ProbeTranslationAxisCalibrationResult ProbeTranslationAxisOrientation="-0.0197001 -0.0563533 1" ErrorMean="0" ErrorStdev="0.248966"/>
+  <TemplateTranslationAxisCalibrationResult TemplateTranslationAxisOrientation="-0.00334944 0.0347127 1" ErrorMean="0" ErrorStdev="0.0478788"/>
 </StepperCalibrationResults>
