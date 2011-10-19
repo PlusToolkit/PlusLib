@@ -5,7 +5,7 @@ SET ( PLUSLIB_CONFIG_FILES
     ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusConfiguration_SavedDataset_fCal_1.0.xml
     ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusConfiguration_SonixRP_L14-5_NDICertus_fCal_1.0.xml
     ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusConfiguration_SonixTouch_L14-5_NDICertus_fCal_1.0.xml
-    ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusConfiguration_SonixTouch_L14-5_SonixGPS_fCal_1.0.xml
+    ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusConfiguration_SonixTouch_Ascension3DG_L14_fCal1.xml
     ${PLUSLIB_DATA_DIR}/CADModels/EndocavityProbe/EC9-5_10_Assembly.stl
     ${PLUSLIB_DATA_DIR}/CADModels/fCalPhantom/FCal_1.0.stl
     ${PLUSLIB_DATA_DIR}/CADModels/fCalPhantom/FCal_1.1.stl
