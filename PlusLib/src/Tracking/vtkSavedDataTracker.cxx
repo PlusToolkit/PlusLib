@@ -287,7 +287,7 @@ PlusStatus vtkSavedDataTracker::ReadConfiguration(vtkXMLDataElement* config)
   const char* sequenceMetafile = trackerConfig->GetAttribute("SequenceMetafile"); 
   if ( sequenceMetafile != NULL ) 
   {
-    this->SetSequenceMetafile(sequenceMetafile);
+    this->SetSequenceMetafile(vtkPlusConfig::GetAbsoluteImagePath(sequenceMetafile).c_str());
   }
 
   const char* replayEnabled = trackerConfig->GetAttribute("ReplayEnabled"); 

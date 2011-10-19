@@ -96,6 +96,13 @@ public:
 	*/
   void SetOutputDirectory(const char* outputDir);
 
+	/*!
+	* \brief Get absolute image path from input image path
+	* \param aImagePath Image path read from configuration file
+	* \return Absolute image path
+	*/
+  static std::string GetAbsoluteImagePath(const char* aImagePath);
+
 public:
 	//! Get/Set macros
 	vtkGetStringMacro(DeviceSetConfigurationDirectory);
@@ -116,6 +123,9 @@ public:
 	vtkGetStringMacro(OutputDirectory);
 	
 	vtkGetStringMacro(ProgramDirectory);
+
+	vtkGetStringMacro(ImageDirectory);
+	vtkSetStringMacro(ImageDirectory);
 
 protected:
 	vtkSetStringMacro(ProgramDirectory);
@@ -179,6 +189,9 @@ protected:
 
   //! Program path
   char*               ProgramDirectory;
+
+  //! Image directory path. It is used as home directory for images when the image path for a saved dataset is not an absolute path
+  char*               ImageDirectory;
 
 private:
 	//! Instance of the singleton

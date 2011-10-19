@@ -267,7 +267,7 @@ PlusStatus vtkSavedDataVideoSource::ReadConfiguration(vtkXMLDataElement* config)
   const char* sequenceMetafile = imageAcquisitionConfig->GetAttribute("SequenceMetafile"); 
   if ( sequenceMetafile != NULL ) 
   {
-    this->SetSequenceMetafile(sequenceMetafile);
+    this->SetSequenceMetafile(vtkPlusConfig::GetAbsoluteImagePath(sequenceMetafile).c_str());
   }
 
   const char* replayEnabled = imageAcquisitionConfig->GetAttribute("ReplayEnabled"); 
