@@ -103,11 +103,6 @@ public:
 	//! Calculate and add positions of an individual image for calibration or validation
 	virtual PlusStatus AddPositionsPerImage( TrackedFrame* trackedFrame, bool isValidation );
 
-
-	//! Add new tracked data for segmentation and save the segmentation result to the SegmentedFrameContainer
-	// The class has to be initialized before the segmentation process. 
-	virtual PlusStatus AddTrackedFrameData( TrackedFrame* trackedFrame, IMAGE_DATA_TYPE dataType, const char* defaultTransformName ); 
-
 	//! Returns the list of tracked frames of the selected data type
 	virtual vtkTrackedFrameList* GetTrackedFrameList( IMAGE_DATA_TYPE dataType ); 
 	
@@ -137,9 +132,6 @@ public:
 	vtkSetMacro(EnableVisualization, bool);
 	vtkBooleanMacro(EnableVisualization, bool);
 
-  //! Get offline image data
-	vtkGetObjectMacro(OfflineImageData, vtkImageData);
-  
   //! Set/get the calibration date and time in string format
 	vtkSetStringMacro(CalibrationDate); 
 	vtkGetStringMacro(CalibrationDate);
@@ -179,10 +171,6 @@ public:
 	//! Callback function that is executed each time a segmentation is finished
 	typedef void (*SegmentationProgressPtr)(int percent);
   void SetSegmentationProgressCallbackFunction(SegmentationProgressPtr cb) { SegmentationProgressCallbackFunction = cb; } 
-
-	//! Add frame to renderer in offline mode
-	virtual PlusStatus SetOfflineImageData(vtkImageData* frame); 
-	virtual PlusStatus SetOfflineImageData(const ImageType::Pointer& frame); 
 
   //! Reset data containers
   void resetDataContainers();
@@ -351,9 +339,6 @@ protected:
 	//! Read CalibrationController data element
 	virtual PlusStatus ReadCalibrationControllerConfiguration(vtkXMLDataElement* rootElement); 
 
-	//! Populate the segmented N-fiducials to the data container
-	virtual void PopulateSegmentedFiducialsToDataContainer(vnl_matrix<double> &transformUSProbe2StepperFrameMatrix4x4, IMAGE_DATA_TYPE dataType); 
-
 	//! Feed and tun the LSQR minimizer with the acquired and computed positions and conputes reconstruction errors
 	PlusStatus DoCalibration(); 
 
@@ -450,9 +435,6 @@ protected:
 
   //! Stores the segmentation results of a single frame
   PatternRecognitionResult PatRecognitionResult;
-
-  //! Stores the image data in offline mode
-  vtkImageData* OfflineImageData; 
 
 protected: // Former ProbeCalibrationController and FreehandCalibrationController members
 	//! Flag to enable the saving of segmented wire positions to file

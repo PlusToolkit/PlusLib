@@ -55,16 +55,9 @@ vtkCalibrationController::vtkCalibrationController()
 	this->InitializedOff(); 
   this->CalibrationDoneOff(); 
 
-  this->OfflineImageData = NULL;
-  
   this->CalibrationDate = NULL; 
   this->CalibrationTimestamp = NULL; 
   
-  this->OfflineImageData = vtkImageData::New(); 
-  this->OfflineImageData->SetExtent(0,1,0,1,0,0); 
-  this->OfflineImageData->SetScalarTypeToUnsignedChar(); 
-  this->OfflineImageData->AllocateScalars(); 
-
 	for ( int i = 0; i < NUMBER_OF_IMAGE_DATA_TYPES; i++ )
 	{
 		vtkTrackedFrameList *trackedFrameList = vtkTrackedFrameList::New();
@@ -190,12 +183,6 @@ vtkCalibrationController::~vtkCalibrationController()
       delete this->SegmentedFrameContainer[i].TrackedFrameInfo; 
       this->SegmentedFrameContainer[i].TrackedFrameInfo = NULL; 
     }
-  }
-
-  if ( this->OfflineImageData != NULL )
-  {
-    this->OfflineImageData->Delete(); 
-    this->OfflineImageData = NULL; 
   }
 
   // Former ProbeCalibrationController and FreehandCalibraitonController members
@@ -513,94 +500,6 @@ PlusStatus vtkCalibrationController::SaveTrackedFrameListToMetafile( IMAGE_DATA_
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkCalibrationController::AddTrackedFrameData(TrackedFrame* trackedFrame, IMAGE_DATA_TYPE dataType, const char* defaultTransformName )
-{
-	LOG_TRACE("vtkCalibrationController::AddData - TrackedFrame"); 
-
-  // Check to see if the segmentation has returned the targets
-  itk::Image<unsigned char, 2>::Pointer image=trackedFrame->GetImageData()->GetImage<unsigned char>();
-  if ( image.IsNull())
-  {
-    LOG_ERROR("vtkCalibrationController::AddTrackedFrameData no image data is available"); 
-    return PLUS_FAIL; 
-  }
-
-  if ( ! this->Initialized )
-  {
-	  if ( Initialize() != PLUS_SUCCESS )
-    {
-      LOG_ERROR("Initialization failed!");
-      return PLUS_FAIL;
-    }
-  }
-
-  // Send the image to the Segmentation component for segmentation
-  if ( this->PatternRecognition.RecognizePattern(trackedFrame, this->PatRecognitionResult) != PLUS_SUCCESS )
-  {
-    LOG_ERROR("Segmentation encountered errors!");
-    return PLUS_FAIL;
-  }
-
-	// Add frame to the container if segmentation was successful or save the erroneously segmented frames too
-	int trackedFramePosition(-1); 
-	if ( (this->GetPatRecognitionResult()->GetDotsFound()) || (this->EnableErroneouslySegmentedDataSaving) )
-	{
-		if ( this->TrackedFrameListContainer[dataType]->AddTrackedFrame(trackedFrame) != PLUS_SUCCESS )
-    {
-      LOG_ERROR("Unable to add tracked frame to tracked frmae list!"); 
-      return PLUS_FAIL; 
-    }
-	}
-
-	// Draw segmentation results to frame if needed
-  if ( this->GetPatRecognitionResult()->GetDotsFound() && this->EnableSegmentationAnalysis )
-	{
-		// Draw segmentation result to image
-    if (trackedFrame->GetImageData()->GetITKScalarPixelType()==itk::ImageIOBase::UCHAR)
-    {
-      this->PatternRecognition.DrawResults( static_cast<PixelType*>(trackedFrame->GetImageData()->GetBufferPointer()) ); // :TODO: DrawResults should use an ITK image as input
-    }
-    else
-    {
-      LOG_ERROR("Draw results works only on UCHAR images");
-    }
-	} 
-
-	if( !this->PatRecognitionResult.GetDotsFound() )
-	{
-		LOG_DEBUG("The segmentation cannot locate any meaningful targets, the image was ignored!"); 
-		return PLUS_FAIL; 
-	}
-
-  this->SegmentedFrameDefaultTransformName = defaultTransformName;
-
-	// Add the segmentation result to the SegmentedFrameContainer
-	SegmentedFrame segmentedFrame; 
-	segmentedFrame.SegResults = this->PatRecognitionResult; 
-	segmentedFrame.TrackedFrameInfo = new TrackedFrame(*trackedFrame); 
-	segmentedFrame.DataType = dataType; 
-	this->SegmentedFrameContainer.push_back(segmentedFrame); 
-
-	this->ImageDataInfoContainer[dataType].NumberOfSegmentedImages++; 
-
-	double tProbeToReference[16]; 
-  if ( trackedFrame->GetCustomFrameTransform(defaultTransformName, tProbeToReference) )
-	{
-		vtkSmartPointer<vtkMatrix4x4> tProbeToReferenceMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
-		tProbeToReferenceMatrix->DeepCopy(tProbeToReference); 
-		vnl_matrix<double> transformProbeToReferenceMatrix4x4(4,4);
-
-    PlusMath::ConvertVtkMatrixToVnlMatrix(tProbeToReferenceMatrix, transformProbeToReferenceMatrix4x4); 
-
-		this->TransformProbeToReference->SetMatrix(tProbeToReferenceMatrix); 
-
-		this->PopulateSegmentedFiducialsToDataContainer(transformProbeToReferenceMatrix4x4, dataType); 
-	}
-
-	return PLUS_SUCCESS; 
-}
-
-//----------------------------------------------------------------------------
 void vtkCalibrationController::ClearSegmentedFrameContainer(IMAGE_DATA_TYPE dataType)
 {
   for ( SegmentedFrameList::iterator it = this->SegmentedFrameContainer.begin(); it != this->SegmentedFrameContainer.end(); )
@@ -619,59 +518,6 @@ void vtkCalibrationController::ClearSegmentedFrameContainer(IMAGE_DATA_TYPE data
       ++it;
     }
   } 
-}
-
-//----------------------------------------------------------------------------
-PlusStatus vtkCalibrationController::SetOfflineImageData(const ImageType::Pointer& frame)
-{
-	LOG_TRACE("vtkCalibrationController::AddFrameToRenderer"); 
-	if ( ! this->EnableVisualization ) 
-	{
-		// We don't want to render anything
-		return PLUS_SUCCESS; 
-	}
-
-  if ( frame.IsNull() )
-  {
-    LOG_ERROR("Failed to add frame to the renderer - frame is NULL!"); 
-    return PLUS_FAIL; 
-  }
-
-  if ( this->OfflineImageData == NULL )
-  {
-    this->OfflineImageData = vtkImageData::New(); 
-  }
-
-  if ( UsImageConverterCommon::ConvertItkImageToVtkImage(frame, this->OfflineImageData) != PLUS_SUCCESS )
-  {
-    LOG_ERROR("Failed to convert itk image to vtk image!"); 
-    return PLUS_FAIL;
-  }
-
-  this->OfflineImageData->Modified();
-
-  return PLUS_SUCCESS; 
-}
-
-
-//----------------------------------------------------------------------------
-PlusStatus vtkCalibrationController::SetOfflineImageData(vtkImageData* frame)
-{
-	LOG_TRACE("vtkCalibrationController::AddFrameToRenderer"); 
-	if ( ! this->EnableVisualization ) 
-	{
-		// We don't want to render anything
-		return PLUS_SUCCESS; 
-	}
-
-  if ( this->OfflineImageData == NULL )
-  {
-    this->OfflineImageData = vtkImageData::New(); 
-  }
-
-  this->OfflineImageData->DeepCopy(frame); 
-
-  return PLUS_SUCCESS; 
 }
 
 //----------------------------------------------------------------------------
@@ -1562,50 +1408,6 @@ PlusStatus vtkCalibrationController::ComputeCalibrationResults()
 	this->CalibrationDoneOn(); 
 
   return PLUS_SUCCESS; 
-}
-
-//----------------------------------------------------------------------------
-void vtkCalibrationController::PopulateSegmentedFiducialsToDataContainer(vnl_matrix<double> &transformUSProbe2StepperFrameMatrix4x4, IMAGE_DATA_TYPE dataType)
-{
-	LOG_TRACE("vtkCalibrationController::PopulateSegmentedFiducialsToDataContainer"); 
-
-  // Populate the segmented N-fiducials to the data container
-	// Indices defined in the input std::vector array.
-	// This is the order that the segmentation algorithm gives the 
-	// segmented positions in each image:
-	// Each acquired data position is a 4x1 homogenous vector :
-	// [ X, Y, 0, 1] all units in pixels
-
-  if ( !this->GetPatternRecognition()->GetFidLabeling()->GetDotsFound() )
-	{
-		LOG_DEBUG("Segmentation failed! Unable to populate segmentation result!"); 
-		return; 
-	}
-
-	// Top layer (close to probe): 3, 2, 1
-	// Bottom Layer (far from probe): 6, 5, 4
-	std::vector<vnl_vector<double>> SegmentedNFiducialsInFixedCorrespondence;
-	SegmentedNFiducialsInFixedCorrespondence.resize(0);
-
-  for (int i=0; i<this->GetPatRecognitionResult()->GetFoundDotsCoordinateValue().size(); i++)
-	{
-		vnl_vector<double> NFiducial(4,0);
-		NFiducial[0]=this->GetPatRecognitionResult()->GetFoundDotsCoordinateValue()[i][0];
-		NFiducial[1]=this->GetPatRecognitionResult()->GetFoundDotsCoordinateValue()[i][1];
-		NFiducial[2]=0;
-		NFiducial[3]=1;
-		SegmentedNFiducialsInFixedCorrespondence.push_back(NFiducial);
-	}
-
-	if (dataType == RANDOM_STEPPER_MOTION_1 || dataType == FREEHAND_MOTION_1)
-	{
-		// Finally, add the data for calibration
-		this->AddPositionsPerImage( SegmentedNFiducialsInFixedCorrespondence, transformUSProbe2StepperFrameMatrix4x4, false );
-	}
-	else if (dataType == RANDOM_STEPPER_MOTION_2 || dataType == FREEHAND_MOTION_2)
-	{
-		this->AddPositionsPerImage( SegmentedNFiducialsInFixedCorrespondence, transformUSProbe2StepperFrameMatrix4x4, true );
-	}
 }
 
 //----------------------------------------------------------------------------

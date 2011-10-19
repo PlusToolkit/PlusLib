@@ -130,7 +130,7 @@ TARGET_LINK_LIBRARIES(vtkSpacingCalibAlgoTest vtkPlusCommon vtkTrusCalibration v
 ADD_TEST(SpacingCalibAlgoTest-Ulterius
             ${EXECUTABLE_OUTPUT_PATH}/vtkSpacingCalibAlgoTest
             --input-config-file-name=${ConfigFilesDir}/Test_PlusConfiguration_CalibrationOnly_SonixRP_Ulterius_iCal.xml 
-            --input-sequence-metafiles ${TestDataDir}/USTC_Ulterius_ProbeRotationData.mha ${TestDataDir}/USTC_Ulterius_ProbeTranslationData.mha ${TestDataDir}/USTC_Ulterius_TemplateTranslationData.mha
+            --input-sequence-metafiles ${TestDataDir}/USTC_Ulterius_ProbeRotationData.mha 
             --input-baseline-file-name=${TestDataDir}/USTC_Ulterius_StepperCalibrationResultBaseline.xml
             --input-gnuplot-scripts-folder=${PlusLib_SOURCE_DIR}/src/scripts/gnuplot
             --input-gnuplot-command=${GNUPLOT_BIN_DIR}/gnuplot.exe
@@ -140,7 +140,7 @@ SET_TESTS_PROPERTIES( SpacingCalibAlgoTest-Ulterius PROPERTIES FAIL_REGULAR_EXPR
 ADD_TEST(SpacingCalibAlgoTest-FrameGrabber
             ${EXECUTABLE_OUTPUT_PATH}/vtkSpacingCalibAlgoTest
             --input-config-file-name=${ConfigFilesDir}/Test_PlusConfiguration_CalibrationOnly_FrameGrabber_iCal.xml 
-            --input-sequence-metafiles ${TestDataDir}/USTC_FrameGrabber_ProbeRotationData.mha ${TestDataDir}/USTC_FrameGrabber_ProbeTranslationData.mha ${TestDataDir}/USTC_FrameGrabber_TemplateTranslationData.mha
+            --input-sequence-metafiles ${TestDataDir}/USTC_FrameGrabber_ProbeRotationData.mha 
             --input-baseline-file-name=${TestDataDir}/USTC_FrameGrabber_StepperCalibrationResultBaseline.xml
             --input-gnuplot-scripts-folder=${PlusLib_SOURCE_DIR}/src/scripts/gnuplot
             --input-gnuplot-command=${GNUPLOT_BIN_DIR}/gnuplot.exe
