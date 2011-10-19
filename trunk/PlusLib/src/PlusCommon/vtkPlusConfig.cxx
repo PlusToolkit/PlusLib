@@ -44,6 +44,7 @@ vtkPlusConfig::vtkPlusConfig()
   this->EditorApplicationExecutable = NULL;
   this->OutputDirectory = NULL;
   this->ProgramDirectory = NULL;
+  this->ImageDirectory = NULL;
 
 	this->SetDeviceSetConfigurationDirectory("");
 	this->SetDeviceSetConfigurationFileName("");
@@ -118,6 +119,9 @@ PlusStatus vtkPlusConfig::WriteApplicationConfiguration()
 
   // Save output path
   applicationConfigurationRoot->SetAttribute("OutputDirectory", this->OutputDirectory);
+
+  // Save output path
+  applicationConfigurationRoot->SetAttribute("ImageDirectory", this->ImageDirectory);
 
   // Save configuration
   this->SetApplicationConfigurationData(applicationConfigurationRoot);
@@ -219,6 +223,18 @@ PlusStatus vtkPlusConfig::ReadApplicationConfiguration()
     LOG_INFO("Output directory is not set - default './Output' will be used");
   	std::string defaultOutputDirectory = vtksys::SystemTools::CollapseFullPath("./Output", this->ProgramDirectory); 
     this->SetOutputDirectory(defaultOutputDirectory.c_str());
+    saveNeeded = true;
+  }
+
+  // Read image directory
+  const char* imageDirectory = applicationConfigurationRoot->GetAttribute("ImageDirectory");
+  if ((imageDirectory != NULL) && (STRCASECMP(imageDirectory, "") != 0)) {
+	  this->SetImageDirectory(imageDirectory);
+
+  } else {
+    LOG_INFO("Image directory is not set - default './' will be used");
+  	std::string defaultImageDirectory = vtksys::SystemTools::CollapseFullPath("./", this->ProgramDirectory); 
+    this->SetImageDirectory(defaultImageDirectory.c_str());
     saveNeeded = true;
   }
 
@@ -416,6 +432,8 @@ std::string vtkPlusConfig::FindFileRecursivelyInDirectory(const char* aFileName,
 
 void vtkPlusConfig::SetOutputDirectory(const char* outputDir)
 {
+	LOG_TRACE("vtkPlusConfig::SetOutputDirectory(" << outputDir << ")"); 
+
   if (outputDir == NULL && this->OutputDirectory) { 
     return;
   }
@@ -449,4 +467,13 @@ void vtkPlusConfig::SetOutputDirectory(const char* outputDir)
 
   this->Modified(); 
 
+}
+
+//-----------------------------------------------------------------------------
+
+std::string vtkPlusConfig::GetAbsoluteImagePath(const char* aImagePath)
+{
+	LOG_TRACE("vtkPlusConfig::GetAbsoluteImagePath(" << aImagePath << ")");
+
+  return vtksys::SystemTools::CollapseFullPath(aImagePath, vtkPlusConfig::GetInstance()->GetImageDirectory());
 }
