@@ -365,9 +365,6 @@ protected: // from former Phantom class
 	// location that has been precisly measured on the phantom geometry.
 	PlusStatus computeIndependentPointLineReconstructionError();
 
-	//! Calculate and add positions of an individual image for calibration or validation
-	PlusStatus AddPositionsPerImage( std::vector< vnl_vector<double> > SegmentedDataPositionListPerImage, const vnl_matrix<double> TransformMatrixUSProbe2Stepper4x4, bool isValidation );
-
   //! Compute beamwidth weight for a beamwidth magnitude at the given axial depth
   double GetBeamwidthWeightForBeamwidthMagnitude(int aActualAxialDepth);
 
