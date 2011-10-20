@@ -19,6 +19,9 @@ IF(NOT PLUSLIB_USE_FILE_INCLUDED)
   ## Set gnuplot binary dir path 
   SET(GNUPLOT_BIN_DIR "@GNUPLOT_BIN_DIR@" )
   
+  ## Set Sikuli binary dir path 
+  SET(SIKULI_BIN_DIR "@SIKULI_BIN_DIR@" )
+
   ## Find ITK 
   FIND_PACKAGE(ITK PATHS @ITK_DIR@ NO_DEFAULT_PATH)
   IF (ITK_FOUND)

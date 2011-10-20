@@ -54,6 +54,11 @@ MARK_AS_ADVANCED(LIBRARY_OUTPUT_PATH EXECUTABLE_OUTPUT_PATH INCLUDES_OUTPUT_PATH
 SET(GNUPLOT_BIN_DIR ${PLTOOLS_DIR}/Gnuplot/binary/ CACHE PATH "Path to the Gnuplot binary directory." FORCE)
 
 # --------------------------------------------------------------------------
+# Sikuli binary directory path.
+# 
+SET(SIKULI_BIN_DIR ${PLTOOLS_DIR}/Sikuli/ CACHE PATH "Path to the Sikuli binary directory." FORCE)
+
+# --------------------------------------------------------------------------
 # The project library directories.
 SET(PLUSLIB_LIBRARY_DIRS ${LIBRARY_OUTPUT_PATH} CACHE INTERNAL "Path to the Plus library directory" FORCE)
 
