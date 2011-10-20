@@ -274,7 +274,7 @@ PlusStatus DeviceSetSelectorWidget::ParseDirectory(QString aDirectory)
       ui.comboBox_DeviceSet->setItemData(currentIndex, name, Qt::ToolTipRole); 
 
       // If this item is the same as in the config file, select it by default
-      if ( STRCASECMP(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName(), fileName.toStdString().c_str()) == 0 ) {
+      if ( QDir::toNativeSeparators(QString(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName())) == QDir::toNativeSeparators(fileName) ) {
         lastSelectedDeviceSetIndex = currentIndex; 
       }
 
