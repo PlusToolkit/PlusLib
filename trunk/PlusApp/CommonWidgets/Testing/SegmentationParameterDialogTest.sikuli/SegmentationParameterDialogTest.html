@@ -1,0 +1,123 @@
+
+<html>
+   <head>
+      <style type="text/css">
+         .sikuli-code {
+            font-size: 20px;
+            font-family: "Osaka-mono", Monospace;
+            line-height: 1.5em;
+            display:table-cell;
+            white-space: pre-wrap;       /* css-3 */
+            white-space: -moz-pre-wrap !important;  /* Mozilla, since 1999 */
+            white-space: -pre-wrap;      /* Opera 4-6 */
+            white-space: -o-pre-wrap;    /* Opera 7 */
+            word-wrap: break-word;       /* Internet Explorer 5.5+ */
+            width: 99%;   /* remove horizontal scroll-bar when viewing in IE7 */
+         }
+         .sikuli-code img {
+            vertical-align: middle;
+            margin: 2px;
+            border: 1px solid #ccc;
+            padding: 2px;
+            -moz-border-radius: 5px;
+            -webkit-border-radius: 5px;
+            -moz-box-shadow: 1px 1px 1px gray;
+            -webkit-box-shadow: 1px 1px 2px gray;
+         }
+         .kw {
+            color: blue;
+         }
+         .skw {
+            color: rgb(63, 127, 127);
+         }
+
+         .str {
+            color: rgb(128, 0, 0);
+         }
+
+         .dig {
+            color: rgb(128, 64, 0);
+         }
+
+         .cmt {
+            color: rgb(200, 0, 200);
+         }
+
+         h2 {
+            display: inline;
+            font-weight: normal;
+         }  
+         
+         .info {
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+            margin-bottom: 20px;
+            display: none;
+         }
+
+         a {
+            color: #9D2900;
+         }
+
+         body {
+            font-family: "Trebuchet MS", Arial, Sans-Serif;
+         }
+
+      </style>
+   </head>
+<body>
+<div class="info">
+<h2>SegmentationParameterDialogTest.sikuli\SegmentationParameterDialogTest.sikuli</h2> <a href="SegmentationParameterDialogTest.sikuli\SegmentationParameterDialogTest.zip">(Download this script)</a>
+</div>
+<pre class="sikuli-code">
+<span class="kw">import</span> sys
+
+<span class="kw">if</span> len(sys.argv) &gt; <span class="dig">1</span>:
+  exe = sys.argv[<span class="dig">1</span>]
+
+  <span class="cmt"># Concatenate the command line arguments to the executable name
+</span>  <span class="kw">for</span> argnum <span class="kw">in</span> range(<span class="dig">2</span>,len(sys.argv)):
+    <span class="kw">if</span> argnum == <span class="dig">2</span>:
+      exe = exe + <span class="str">' '</span> + sys.argv[argnum]
+    <span class="kw">else</span>:
+      exe = exe + <span class="str">' "'</span> + sys.argv[argnum] + <span class="str">'"'</span>
+<span class="kw">else</span>:
+  <span class="cmt"># Temporary setting of the executable (for trying in Sikuli IDE)
+</span>  plusDir = <span class="str">"D:/devel/Plus-bin_Assembla"</span>
+  exe = <span class="str">'"'</span> + plusDir + <span class="str">'/PlusApp-bin/DevEnv_Release.bat" "--launch" "'</span> + plusDir + <span class="str">'/PlusApp-bin/bin/Release/SegmentationParameterDialogTest" "--device-set-configuration-directory-path='</span> + plusDir + <span class="str">'/PlusLib/data/ConfigFiles" "--input-config-file-name='</span> + plusDir + <span class="str">'/PlusLib/data/ConfigFiles/Test_PlusConfiguration_SegmentationParameterDialog_SavedDataset_fCal_1.0_VideoOnly.xml" "--image-directory-path='</span> + plusDir + <span class="str">'/PlusLib/data/TestImages"'</span>
+
+appTitle = <span class="str">"SegmentationParameterDialogTest"</span>
+
+testApp = App.open(exe)
+<span class="skw">wait</span>(<span class="dig">2</span>) <span class="cmt"># Wait for the application to initialize (else the next wait check does not not run properly)</span>
+
+<span class="kw">try</span>:
+  <span class="skw">wait</span>(<img src="1318969886531.png" />)
+<span class="kw">except</span> FindFailed:
+  <span class="kw">print</span> <span class="str">"[ERROR] Application did not start!"</span>
+  closeApp(appTitle)
+  exit
+
+<span class="cmt"># Connect to the device set (it is already selected because of the command line arguments)
+</span><span class="skw">click</span>(<img src="1318969886531.png" />)
+
+<span class="kw">try</span>:
+  <span class="skw">wait</span>(<img src="APPlYdCk7se.png" />, <span class="dig">10</span>)
+<span class="kw">except</span> FindFailed:
+  <span class="kw">print</span> <span class="str">"[ERROR] Connection failed!"</span>
+  closeApp(appTitle)
+  exit
+
+<span class="kw">try</span>:
+  <span class="skw">wait</span>(<img src="1319144734747.png" />, <span class="dig">20</span>)
+<span class="kw">except</span> FindFailed:
+  <span class="kw">print</span> <span class="str">"[ERROR] Cannot segment!"</span>
+  closeApp(appTitle)
+  exit
+
+<span class="skw">click</span>(<img src="APPlYdCk7se.png" />)
+
+closeApp(appTitle) <span class="cmt"># close the window - stop the process</span>
+</pre>
+</body>
+</html>
