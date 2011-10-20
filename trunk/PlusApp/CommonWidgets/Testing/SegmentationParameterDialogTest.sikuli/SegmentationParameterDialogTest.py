@@ -17,10 +17,10 @@ else:
 appTitle = "SegmentationParameterDialogTest"
 
 testApp = App.open(exe)
-wait(2) # Wait for the application to initialize (else the next wait check does not not run properly)
+wait(5) # Wait for the application to initialize (else the next wait check does not not run properly)
 
 try:
-  wait("1318969886531.png")
+  wait("1318969886531.png", 60)
 except FindFailed:
   print "[ERROR] Application did not start!"
   closeApp(appTitle)
