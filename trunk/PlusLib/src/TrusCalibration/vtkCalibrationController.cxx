@@ -231,7 +231,16 @@ PlusStatus vtkCalibrationController::Initialize()
 
 PlusStatus vtkCalibrationController::Calibrate( vtkTrackedFrameList* validationTrackedFrameList, vtkTrackedFrameList* calibrationTrackedFrameList, const char* defaultTransformName )
 {
-	LOG_TRACE("vtkCalibrationController::Calibrate"); 
+	LOG_TRACE("vtkCalibrationController::Calibrate");
+
+  return Calibrate(validationTrackedFrameList, -1, -1, calibrationTrackedFrameList, -1, -1, defaultTransformName);
+}
+
+//----------------------------------------------------------------------------
+
+PlusStatus vtkCalibrationController::Calibrate( vtkTrackedFrameList* validationTrackedFrameList, int validationStartFrame, int validationEndFrame, vtkTrackedFrameList* calibrationTrackedFrameList, int calibrationStartFrame, int calibrationEndFrame, const char* defaultTransformName )
+{
+  LOG_TRACE("vtkCalibrationController::Calibrate(validation: " << validationStartFrame << "-" << validationEndFrame << ", calibration: " << calibrationStartFrame << "-" << calibrationEndFrame << ")"); 
 
   if ( ! this->Initialized )
   {
@@ -244,8 +253,31 @@ PlusStatus vtkCalibrationController::Calibrate( vtkTrackedFrameList* validationT
 
   this->SegmentedFrameDefaultTransformName = defaultTransformName; // TODO take care of this once the class is cleared up
 
+  // Set range boundaries
+  if (validationStartFrame < 0)
+  {
+    validationStartFrame = 0;
+  }
+
 	int numberOfValidationFrames = validationTrackedFrameList->GetNumberOfTrackedFrames(); 
-	for (int frameNumber = 0; frameNumber < numberOfValidationFrames; ++frameNumber)
+  if (validationEndFrame < 0 || validationEndFrame >= numberOfValidationFrames)
+  {
+    validationEndFrame = numberOfValidationFrames;
+  }
+
+  if (calibrationStartFrame < 0)
+  {
+    calibrationStartFrame = 0;
+  }
+
+	int numberOfCalibrationFrames = calibrationTrackedFrameList->GetNumberOfTrackedFrames(); 
+  if (calibrationEndFrame < 0 || calibrationEndFrame >= numberOfCalibrationFrames)
+  {
+    calibrationEndFrame = numberOfCalibrationFrames;
+  }
+
+  // Add tracked frames for calibration and validation
+	for (int frameNumber = validationStartFrame; frameNumber < validationEndFrame; ++frameNumber)
   {
     LOG_DEBUG(" Add frame #" << frameNumber << " for validation data");
     if ( AddPositionsPerImage(validationTrackedFrameList->GetTrackedFrame(frameNumber), true) != PLUS_SUCCESS )
@@ -255,8 +287,7 @@ PlusStatus vtkCalibrationController::Calibrate( vtkTrackedFrameList* validationT
     }
   }		
 
-	int numberOfCalibrationFrames = calibrationTrackedFrameList->GetNumberOfTrackedFrames(); 
-	for (int frameNumber = 0; frameNumber < numberOfCalibrationFrames; ++frameNumber)
+	for (int frameNumber = calibrationStartFrame; frameNumber < calibrationEndFrame; ++frameNumber)
   {
     LOG_DEBUG(" Add frame #" << frameNumber << " for calibration data");
     if ( AddPositionsPerImage(calibrationTrackedFrameList->GetTrackedFrame(frameNumber), false) != PLUS_SUCCESS )

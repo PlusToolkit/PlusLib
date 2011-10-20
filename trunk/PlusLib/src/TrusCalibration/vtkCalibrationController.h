@@ -93,14 +93,26 @@ public:
   virtual PlusStatus WriteConfiguration( vtkXMLDataElement* configData );
 
   /*!
-	* \brief Run calibration algorithm on the two input frame lists
+	* \brief Run calibration algorithm on the two input frame lists. It uses only a certain range of the input sequences (so it is possible to use the same sequence but different sections of it).
+	* \param validationTrackedFrameList TrackedFrameList with segmentation results for the validation
+  * \param validationStartFrame First frame that is used from the validation tracked frame list for the validation (in case of -1 it starts with the first)
+  * \param validationEndFrame Last frame that is used from the validation tracked frame list for the validation (in case of -1 it starts with the last)
+	* \param calibrationTrackedFrameList TrackedFrameList with segmentation results for the calibration
+  * \param calibrationStartFrame First frame that is used from the calibration tracked frame list for the calibration (in case of -1 it starts with the first)
+  * \param calibrationEndFrame Last frame that is used from the calibration tracked frame list for the calibration (in case of -1 it starts with the last)
+  * \param defaultTransformName Name of the default transform (which will be used for the calibration)
+	*/
+  virtual PlusStatus Calibrate( vtkTrackedFrameList* validationTrackedFrameList, int validationStartFrame, int validationEndFrame, vtkTrackedFrameList* calibrationTrackedFrameList, int calibrationStartFrame, int calibrationEndFrame, const char* defaultTransformName ); 
+
+  /*!
+	* \brief Run calibration algorithm on the two input frame lists (uses every frame in the two sequences)
 	* \param validationTrackedFrameList TrackedFrameList with segmentation results for the validation
 	* \param calibrationTrackedFrameList TrackedFrameList with segmentation results for the calibration
   * \param defaultTransformName Name of the default transform (which will be used for the calibration)
 	*/
   virtual PlusStatus Calibrate( vtkTrackedFrameList* validationTrackedFrameList, vtkTrackedFrameList* calibrationTrackedFrameList, const char* defaultTransformName ); 
 
-	//! Calculate and add positions of an individual image for calibration or validation
+  //! Calculate and add positions of an individual image for calibration or validation
 	virtual PlusStatus AddPositionsPerImage( TrackedFrame* trackedFrame, bool isValidation );
 
 	//! Returns the list of tracked frames of the selected data type
