@@ -1,5 +1,14 @@
 import sys
 
+# Define function that is run when error occurs
+def captureScreenAndExit():
+  message = "The screen capture of the application in time of the error was saved to: "
+  message += capture(SCREEN)
+  print message
+  closeApp(appTitle)
+  exit
+  
+
 if len(sys.argv) > 1:
   exe = sys.argv[1]
   
@@ -18,31 +27,34 @@ appTitle = "SegmentationParameterDialogTest"
 
 testApp = App.open(exe)
 wait(5) # Wait for the application to initialize (else the next wait check does not not run properly)
-
+    
 try:
-  wait("1318969886531.png", 60)
+  connectButton = wait("ConnectButton.png", 60)
 except FindFailed:
   print "[ERROR] Application did not start!"
-  closeApp(appTitle)
-  exit
+  captureScreenAndExit()
 
 # Connect to the device set (it is already selected because of the command line arguments)
-click("1318969886531.png")
+click(connectButton)
 
 try:
-  wait("APPlYdCk7se.png", 10)
+  freezeButton = wait("FreezeButton.png", 10)
 except FindFailed:
   print "[ERROR] Connection failed!"
-  closeApp(appTitle)
-  exit
+  captureScreenAndExit()
+
+# Get the region of the segmentation parameter dialog window
+applicationTopLeft = freezeButton.getTopLeft()
+applicationTopLeft = applicationTopLeft.left(70).above(35)
+windowRegion = Region(applicationTopLeft.x, applicationTopLeft.y, 1000, 600)
+capture(windowRegion)
+
+windowRegion.click(freezeButton)
 
 try:
-  wait("1319144734747.png", 20)
+  windowRegion.wait("GreenDot.png", 20)
 except FindFailed:
   print "[ERROR] Cannot segment!"
-  closeApp(appTitle)
-  exit
-
-click("APPlYdCk7se.png")
+  captureScreenAndExit()
 
 closeApp(appTitle) # close the window - stop the process
