@@ -589,17 +589,58 @@ PlusStatus vtkSonixPortaVideoSource::ReadConfiguration(vtkXMLDataElement* config
   }
   
   int framePerVolume = 0; 
-  if ( imageAcquisitionConfig->GetScalarAttribute("Frame per volume", framePerVolume)) 
+  if ( imageAcquisitionConfig->GetScalarAttribute("FramePerVolume", framePerVolume)) 
   {
       this->SetFramePerVolume(framePerVolume); 
   }  
 
   int stepPerFrame = 0; 
-  if ( imageAcquisitionConfig->GetScalarAttribute("Step per frame", stepPerFrame)) 
+  if ( imageAcquisitionConfig->GetScalarAttribute("StepPerFrame", stepPerFrame)) 
   {
       this->SetStepPerFrame(stepPerFrame); 
   }  
+
+  const char* LUTPath = imageAcquisitionConfig->GetAttribute("PortaLUTPath"); 
+  if ( LUTPath != NULL) 
+  {
+      this->SetPortaLUTPath(LUTPath); 
+  }
+  else
+  {
+	  LOG_ERROR("Porta LUT path is not defined: "<<LUTPath);
+  }
+
+  const char* SettingPath = imageAcquisitionConfig->GetAttribute("PortaSettingPath"); 
+  if ( SettingPath != NULL) 
+  {
+      this->SetPortaSettingPath(SettingPath); 
+  }
+  else
+  {
+	  LOG_ERROR("Porta Setting path is not defined: "<<SettingPath);
+  }
+
+  const char* LicensePath = imageAcquisitionConfig->GetAttribute("PortaLicensePath"); 
+  if ( LicensePath != NULL) 
+  {
+      this->SetPortaSettingPath(LicensePath); 
+  }
+  else
+  {
+	  LOG_ERROR("Porta License path is not defined: "<<LicensePath);
+  }
   
+  const char* FirmwarePath = imageAcquisitionConfig->GetAttribute("PortaFirmwarePath"); 
+  if ( FirmwarePath != NULL) 
+  {
+      this->SetPortaSettingPath(FirmwarePath); 
+  }
+  else
+  {
+	  LOG_ERROR("Porta Firmware path is not defined: "<<FirmwarePath);
+  }
+
+  LOG_DEBUG("Porta read the XML configuration");
   return PLUS_SUCCESS;
 }
 
