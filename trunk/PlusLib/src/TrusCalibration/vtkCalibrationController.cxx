@@ -251,6 +251,8 @@ PlusStatus vtkCalibrationController::Calibrate( vtkTrackedFrameList* validationT
     }
   }
 
+  this->resetDataContainers(); 
+
   this->SegmentedFrameDefaultTransformName = defaultTransformName; // TODO take care of this once the class is cleared up
 
   // Set range boundaries
