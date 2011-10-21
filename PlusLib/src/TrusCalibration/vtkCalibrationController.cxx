@@ -1215,8 +1215,6 @@ PlusStatus vtkCalibrationController::ResetFreehandCalibration()
   this->ImageDataInfoContainer[FREEHAND_MOTION_1].NumberOfSegmentedImages = 0;
   this->ImageDataInfoContainer[FREEHAND_MOTION_2].NumberOfSegmentedImages = 0;
 
-  this->resetDataContainers(); 
-
 	return PLUS_SUCCESS;
 }
 
