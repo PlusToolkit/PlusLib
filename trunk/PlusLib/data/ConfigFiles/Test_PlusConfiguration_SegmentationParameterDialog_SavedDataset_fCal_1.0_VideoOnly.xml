@@ -15,7 +15,7 @@
 				FrameRate="10" 
 				AveragedItemsForFiltering="20" 
 				LocalTimeOffset="0.12" 
-				SequenceMetafile="fCal_Test_Validation.mha"
+				SequenceMetafile="AllSegmentablefCal.mha"
 				UsImageOrientation="MF"
 				ReplayEnabled="TRUE"
         SpeedThresholdPositionMm="10.0"
