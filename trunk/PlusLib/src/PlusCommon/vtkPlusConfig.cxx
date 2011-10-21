@@ -81,6 +81,16 @@ PlusStatus vtkPlusConfig::SetProgramPath(const char* aProgramDirectory)
 
   this->SetProgramDirectory(aProgramDirectory);
 
+  // Change application configuration file to be in the program path
+  std::string newApplicationConfigFileName = aProgramDirectory;
+  if (! (newApplicationConfigFileName.at(newApplicationConfigFileName.size() - 1) == '/' || newApplicationConfigFileName.at(newApplicationConfigFileName.size() - 1) == '\\') )
+  {
+    newApplicationConfigFileName.append("/");
+  }
+  newApplicationConfigFileName.append(this->ApplicationConfigurationFileName);
+  this->SetApplicationConfigurationFileName(newApplicationConfigFileName.c_str());
+
+  // Read application configuration from its new location
   return ReadApplicationConfiguration();
 }
 
