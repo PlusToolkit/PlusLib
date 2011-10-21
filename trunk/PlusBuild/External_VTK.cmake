@@ -28,9 +28,8 @@ ExternalProject_Add( vtk
             SOURCE_DIR "${PLUS_VTK_DIR}" 
             BINARY_DIR "vtk-bin"
             #--Download step--------------
-            #URL http://www.vtk.org/files/release/5.6/vtk-5.6.1.tar.gz
             GIT_REPOSITORY "${GIT_PROTOCOL}://vtk.org/VTK.git"
-            GIT_TAG "v5.6.1"
+            GIT_TAG "v5.8.0"
             #--Configure step-------------
             CMAKE_ARGS 
                 -DBUILD_SHARED_LIBS:BOOL=${PLUSBUILD_BUILD_SHARED_LIBS} 
