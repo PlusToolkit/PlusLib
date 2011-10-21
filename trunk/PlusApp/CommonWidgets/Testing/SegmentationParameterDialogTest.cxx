@@ -13,6 +13,7 @@
 #include "DeviceSetSelectorWidget.h"
 #include "SegmentationParameterDialog.h"
 #include "ConfigFileSaverDialog.h"
+#include "StatusIcon.h"
 
 //-----------------------------------------------------------------------------
 
@@ -30,6 +31,9 @@ SegmentationParameterDialogTest::SegmentationParameterDialogTest(QWidget *parent
   m_DeviceSetSelectorWidget->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
 	connect( m_DeviceSetSelectorWidget, SIGNAL( ConnectToDevicesByConfigFileInvoked(std::string) ), this, SLOT( ConnectToDevicesByConfigFile(std::string) ) );
 
+  // Create status icon
+  StatusIcon* statusIcon = new StatusIcon(this);
+
   // Create save configuration button
   m_SaveButton = new QPushButton(tr("Save configuration..."), this);
   m_SaveButton->setMinimumWidth(120);
@@ -37,9 +41,11 @@ SegmentationParameterDialogTest::SegmentationParameterDialogTest(QWidget *parent
 	connect( m_SaveButton, SIGNAL( clicked() ), this, SLOT( SaveConfigurationClicked() ) );
 
   // Insert widgets into placeholders
-  QGridLayout* mainGrid = new QGridLayout(this, 2, 1, 4, 4, "");
-  mainGrid->addWidget(m_DeviceSetSelectorWidget, 0, 0, Qt::AlignHCenter);
-  mainGrid->addWidget(m_SaveButton, 1, 0, Qt::AlignHCenter);
+  QGridLayout* mainGrid = new QGridLayout(this, 2, 2, 4, 4, "");
+  mainGrid->setColumnMinimumWidth(0, 296);
+  mainGrid->addWidget(m_DeviceSetSelectorWidget, 0, 0, 1, 2, Qt::AlignHCenter);
+  mainGrid->addWidget(m_SaveButton, 1, 0, Qt::AlignRight);
+  mainGrid->addWidget(statusIcon, 1, 1, Qt::AlignRight);
   this->setLayout(mainGrid);
 }
 
