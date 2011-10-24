@@ -30,7 +30,7 @@ def captureScreenAndExit():
   message += capture(SCREEN)
   print message
   closeApp(appTitle)
-  exit
+  sys.exit(1)
   
 #------------------------------------------------------------------------------
 # Main program

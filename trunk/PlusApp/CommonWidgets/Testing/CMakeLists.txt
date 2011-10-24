@@ -84,3 +84,19 @@ ADD_TEST(DeviceSetSelectorWidgetTest
         --image-directory-path=${TestDataDir}
 		)
 SET_TESTS_PROPERTIES( DeviceSetSelectorWidgetTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+
+#--------------------------------------------------------------------------------------------
+
+ADD_TEST(StatusIconTest
+    ${SIKULI_BIN_DIR}/Sikuli-IDE.exe
+    -stderr
+    -run ${PlusApp_SOURCE_DIR}/CommonWidgets/Testing/StatusIconTest.sikuli
+    --args
+      ${PlusApp_BINARY_DIR}/DevEnv_Release.bat
+      --launch
+        ${TEST_EXECUTABLE_OUTPUT_PATH}/SegmentationParameterDialogTest
+        --device-set-configuration-directory-path=${ConfigFilesDir}
+        --input-config-file-name=${ConfigFilesDir}/PlusConfiguration_SonixTouch_Ascension3DG_EC9_fCal1.xml
+        --image-directory-path=${TestDataDir}
+		)
+SET_TESTS_PROPERTIES( StatusIconTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )

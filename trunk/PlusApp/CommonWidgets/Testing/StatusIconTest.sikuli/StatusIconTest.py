@@ -18,7 +18,7 @@ def getCommandFromArguments(plusDir=''):
     if plusDir == '':
       exe = ''
 
-    exe = '"' + plusDir + '/PlusApp-bin/DevEnv_Release.bat" "--launch" "' + plusDir + '/PlusApp-bin/bin/Release/SegmentationParameterDialogTest" "--device-set-configuration-directory-path=' + plusDir + '/PlusLib/data/ConfigFiles" "--image-directory-path=' + plusDir + '/PlusLib/data/TestImages"'
+    exe = '"' + plusDir + '/PlusApp-bin/DevEnv_Release.bat" "--launch" "' + plusDir + '/PlusApp-bin/bin/Release/SegmentationParameterDialogTest" "--device-set-configuration-directory-path=' + plusDir + '/PlusLib/data/ConfigFiles" "--input-config-file-name=' + plusDir + '/PlusLib/data/ConfigFiles/PlusConfiguration_SonixTouch_Ascension3DG_EC9_fCal1.xml" "--image-directory-path=' + plusDir + '/PlusLib/data/TestImages"'
   
   return exe
 
@@ -52,49 +52,54 @@ except FindFailed:
 applicationTopLeft = connectButton.getTopLeft()
 applicationTopLeft = applicationTopLeft.left(205).above(295)
 windowRegion = Region(applicationTopLeft.x, applicationTopLeft.y, 495, 355)
-comboBoxRegion = Region(applicationTopLeft.x, applicationTopLeft.y, 495, 600)
-
-# Select a configuration that cannot connect
+messageBoxRegion = Region(applicationTopLeft.x - 15, applicationTopLeft.y - 195, 510, 550)
+        
+# Look for green status icon
 try:
-  comboBoxDropDown = windowRegion.find("DropDownArrow.png")
+  windowRegion.find("GreenStatusIcon.png")
 except FindFailed:
-  print "[ERROR] Cannot find device set combobox!"
+  print "[ERROR] Cannot find green StatusIcon!"
   captureScreenAndExit()
 
-click(comboBoxDropDown)
-
-try:
-  sonixTouchWithAscensionItem = comboBoxRegion.find("DeviceSetItemToFail.png")
-except FindFailed:
-  print "[ERROR] Cannot find SonixTouch Ascension3DG item!"
-  captureScreenAndExit()
-
-click(sonixTouchWithAscensionItem)
+# Connect to the device set that will fail
 click(connectButton)
+wait(2)
 
-# Verify failed connection
 try:
-  windowRegion.wait("Connection failed", 10)
+  windowRegion.wait("ConnectButton.png", 10)
 except FindFailed:
-  print "[ERROR] Cannot find connection failed warning text!"
+  print "[ERROR] Connection did not fail!"
   captureScreenAndExit()
 
-# Connect to device set that is supposed to work
-click(comboBoxDropDown)
-
+# Verify changed Status icon
 try:
-  segmentationParameterDialogTestItem = comboBoxRegion.find("DeviceSetItemToConnect.png")
+  statusIcon = windowRegion.find("RedStatusIcon.png")
 except FindFailed:
-  print "[ERROR] Cannot find SegmentationParameterDialogTest item!"
+  print "[ERROR] Cannot find red StatusIcon!"
   captureScreenAndExit()
 
-click(segmentationParameterDialogTestItem)
-click(connectButton)
+# Bring up messagebox and verify error message
+click(statusIcon)
 
 try:
-  freezeButton = wait("FreezeButton.png", 10)
+  messageBoxRegion.wait("ErrorText.png", 10)
 except FindFailed:
-  print "[ERROR] Connection failed!"
+  print "[ERROR] Cannot find error message in status message box!"
+  captureScreenAndExit()
+
+# Click status icon again and verify that it disappeared and it changed back to green
+click(statusIcon)
+
+try:
+  windowRegion.wait("ConnectButton.png", 10)
+except FindFailed:
+  print "[ERROR] Message box did not disappear!"
+  captureScreenAndExit()
+
+try:
+  windowRegion.find("GreenStatusIcon.png")
+except FindFailed:
+  print "[ERROR] Cannot find green StatusIcon!"
   captureScreenAndExit()
 
 closeApp(appTitle) # close the window - stop the process
