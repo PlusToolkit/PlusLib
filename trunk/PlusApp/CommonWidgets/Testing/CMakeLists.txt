@@ -38,6 +38,24 @@ ADD_EXECUTABLE(
   
 TARGET_LINK_LIBRARIES(SegmentationParameterDialogTest ${SegmentationParameterDialogTest_LIBS})
 
+# --------------------------------------------------------------------------
+# Install
+#
+IF(PLUSAPP_INSTALL_BIN_DIR)
+# show up in the Start Menu in Windows
+if( WIN32 AND NOT UNIX )
+    SET(CPACK_PACKAGE_EXECUTABLES "SegmentationParameterDialogTest" "SegmentationParameterDialogTest")
+endif()
+
+INSTALL(TARGETS SegmentationParameterDialogTest 
+  DESTINATION ${PLUSAPP_INSTALL_BIN_DIR}
+  COMPONENT RuntimeLibraries
+  )
+  
+ENDIF(PLUSAPP_INSTALL_BIN_DIR)
+
+#--------------------------------------------------------------------------------------------
+
 ADD_TEST(SegmentationParameterDialogTest
     ${SIKULI_BIN_DIR}/Sikuli-IDE.exe
     -stderr
@@ -51,3 +69,18 @@ ADD_TEST(SegmentationParameterDialogTest
         --image-directory-path=${TestDataDir}
 		)
 SET_TESTS_PROPERTIES( SegmentationParameterDialogTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+
+#--------------------------------------------------------------------------------------------
+
+ADD_TEST(DeviceSetSelectorWidgetTest
+    ${SIKULI_BIN_DIR}/Sikuli-IDE.exe
+    -stderr
+    -run ${PlusApp_SOURCE_DIR}/CommonWidgets/Testing/DeviceSetSelectorWidgetTest.sikuli
+    --args
+      ${PlusApp_BINARY_DIR}/DevEnv_Release.bat
+      --launch
+        ${TEST_EXECUTABLE_OUTPUT_PATH}/SegmentationParameterDialogTest
+        --device-set-configuration-directory-path=${ConfigFilesDir}
+        --image-directory-path=${TestDataDir}
+		)
+SET_TESTS_PROPERTIES( DeviceSetSelectorWidgetTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )

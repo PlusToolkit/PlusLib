@@ -111,9 +111,3 @@ INSTALL(TARGETS fCal
   )
   
 ENDIF(PLUSAPP_INSTALL_BIN_DIR)
-
- 
-
-  
-	 
-	 

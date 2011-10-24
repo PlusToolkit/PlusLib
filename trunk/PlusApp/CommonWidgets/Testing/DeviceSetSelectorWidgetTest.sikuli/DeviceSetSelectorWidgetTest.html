@@ -1,0 +1,175 @@
+
+<html>
+   <head>
+      <style type="text/css">
+         .sikuli-code {
+            font-size: 20px;
+            font-family: "Osaka-mono", Monospace;
+            line-height: 1.5em;
+            display:table-cell;
+            white-space: pre-wrap;       /* css-3 */
+            white-space: -moz-pre-wrap !important;  /* Mozilla, since 1999 */
+            white-space: -pre-wrap;      /* Opera 4-6 */
+            white-space: -o-pre-wrap;    /* Opera 7 */
+            word-wrap: break-word;       /* Internet Explorer 5.5+ */
+            width: 99%;   /* remove horizontal scroll-bar when viewing in IE7 */
+         }
+         .sikuli-code img {
+            vertical-align: middle;
+            margin: 2px;
+            border: 1px solid #ccc;
+            padding: 2px;
+            -moz-border-radius: 5px;
+            -webkit-border-radius: 5px;
+            -moz-box-shadow: 1px 1px 1px gray;
+            -webkit-box-shadow: 1px 1px 2px gray;
+         }
+         .kw {
+            color: blue;
+         }
+         .skw {
+            color: rgb(63, 127, 127);
+         }
+
+         .str {
+            color: rgb(128, 0, 0);
+         }
+
+         .dig {
+            color: rgb(128, 64, 0);
+         }
+
+         .cmt {
+            color: rgb(200, 0, 200);
+         }
+
+         h2 {
+            display: inline;
+            font-weight: normal;
+         }  
+         
+         .info {
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+            margin-bottom: 20px;
+            display: none;
+         }
+
+         a {
+            color: #9D2900;
+         }
+
+         body {
+            font-family: "Trebuchet MS", Arial, Sans-Serif;
+         }
+
+      </style>
+   </head>
+<body>
+<div class="info">
+<h2>DeviceSetSelectorWidgetTest.sikuli\DeviceSetSelectorWidgetTest.sikuli</h2> <a href="DeviceSetSelectorWidgetTest.sikuli\DeviceSetSelectorWidgetTest.zip">(Download this script)</a>
+</div>
+<pre class="sikuli-code">
+<span class="kw">import</span> sys
+
+<span class="cmt">#------------------------------------------------------------------------------
+</span>
+<span class="cmt"># Assembles the application executable command properly according to the script's arguments
+</span><span class="kw">def</span> getCommandFromArguments(plusDir=<span class="str">''</span>):
+  <span class="kw">if</span> len(sys.argv) &gt; <span class="dig">1</span>:
+    exe = sys.argv[<span class="dig">1</span>]
+
+    <span class="cmt"># Concatenate the command line arguments to the executable name
+</span>    <span class="kw">for</span> argnum <span class="kw">in</span> range(<span class="dig">2</span>,len(sys.argv)):
+      <span class="kw">if</span> argnum == <span class="dig">2</span>:
+        exe = exe + <span class="str">' '</span> + sys.argv[argnum]
+      <span class="kw">else</span>:
+        exe = exe + <span class="str">' "'</span> + sys.argv[argnum] + <span class="str">'"'</span>
+  <span class="kw">else</span>:
+    <span class="cmt"># Temporary setting of the executable (for trying in Sikuli IDE)
+</span>    <span class="kw">if</span> plusDir == <span class="str">''</span>:
+      exe = <span class="str">''</span>
+
+    exe = <span class="str">'"'</span> + plusDir + <span class="str">'/PlusApp-bin/DevEnv_Release.bat" "--launch" "'</span> + plusDir + <span class="str">'/PlusApp-bin/bin/Release/SegmentationParameterDialogTest" "--device-set-configuration-directory-path='</span> + plusDir + <span class="str">'/PlusLib/data/ConfigFiles" "--image-directory-path='</span> + plusDir + <span class="str">'/PlusLib/data/TestImages"'</span>
+
+  <span class="kw">return</span> exe
+
+<span class="cmt">#------------------------------------------------------------------------------
+</span>
+<span class="cmt"># Define function that is run when error occurs
+</span><span class="kw">def</span> captureScreenAndExit():
+  message = <span class="str">"The screen capture of the application in time of the error was saved to: "</span>
+  message += <span class="skw">capture</span>(SCREEN)
+  <span class="kw">print</span> message
+  closeApp(appTitle)
+  exit
+
+<span class="cmt">#------------------------------------------------------------------------------
+</span><span class="cmt"># Main program
+</span>
+exe = getCommandFromArguments(<span class="str">"D:/devel/Plus-build-bin"</span>)
+
+appTitle = <span class="str">"SegmentationParameterDialogTest"</span>
+
+testApp = App.open(exe)
+<span class="skw">wait</span>(<span class="dig">10</span>) <span class="cmt"># Wait for the application to initialize (else the next wait check does not not run properly)</span>
+
+<span class="kw">try</span>:
+  connectButton = <span class="skw">wait</span>(<img src="ConnectButton.png" />, <span class="dig">60</span>)
+<span class="kw">except</span> FindFailed:
+  <span class="kw">print</span> <span class="str">"[ERROR] Application did not start!"</span>
+  captureScreenAndExit()
+
+<span class="cmt"># Get the region of the segmentation parameter dialog window
+</span>applicationTopLeft = connectButton.getTopLeft()
+applicationTopLeft = applicationTopLeft.left(<span class="dig">205</span>).above(<span class="dig">295</span>)
+windowRegion = Region(applicationTopLeft.x, applicationTopLeft.y, <span class="dig">495</span>, <span class="dig">355</span>)
+comboBoxRegion = Region(applicationTopLeft.x, applicationTopLeft.y, <span class="dig">495</span>, <span class="dig">600</span>)
+
+<span class="cmt"># Select a configuration that cannot connect
+</span><span class="kw">try</span>:
+  comboBoxDropDown = windowRegion.<span class="skw">find</span>(<img src="DropDownArrow.png" />)
+<span class="kw">except</span> FindFailed:
+  <span class="kw">print</span> <span class="str">"[ERROR] Cannot find device set combobox!"</span>
+  captureScreenAndExit()
+
+<span class="skw">click</span>(comboBoxDropDown)
+
+<span class="kw">try</span>:
+  sonixTouchWithAscensionItem = comboBoxRegion.<span class="skw">find</span>(<img src="DeviceSetItemToFail.png" />)
+<span class="kw">except</span> FindFailed:
+  <span class="kw">print</span> <span class="str">"[ERROR] Cannot find SonixTouch Ascension3DG item!"</span>
+  captureScreenAndExit()
+
+<span class="skw">click</span>(sonixTouchWithAscensionItem)
+<span class="skw">click</span>(connectButton)
+
+<span class="cmt"># Verify failed connection
+</span><span class="kw">try</span>:
+  windowRegion.<span class="skw">wait</span>(<span class="str">"Connection failed"</span>, <span class="dig">10</span>)
+<span class="kw">except</span> FindFailed:
+  <span class="kw">print</span> <span class="str">"[ERROR] Cannot find connection failed warning text!"</span>
+  captureScreenAndExit()
+
+<span class="cmt"># Connect to device set that is supposed to work
+</span><span class="skw">click</span>(comboBoxDropDown)
+
+<span class="kw">try</span>:
+  segmentationParameterDialogTestItem = comboBoxRegion.<span class="skw">find</span>(<img src="DeviceSetItemToConnect.png" />)
+<span class="kw">except</span> FindFailed:
+  <span class="kw">print</span> <span class="str">"[ERROR] Cannot find SegmentationParameterDialogTest item!"</span>
+  captureScreenAndExit()
+
+<span class="skw">click</span>(segmentationParameterDialogTestItem)
+<span class="skw">click</span>(connectButton)
+
+<span class="kw">try</span>:
+  freezeButton = <span class="skw">wait</span>(<img src="FreezeButton.png" />, <span class="dig">10</span>)
+<span class="kw">except</span> FindFailed:
+  <span class="kw">print</span> <span class="str">"[ERROR] Connection failed!"</span>
+  captureScreenAndExit()
+
+closeApp(appTitle) <span class="cmt"># close the window - stop the process</span>
+</pre>
+</body>
+</html>
