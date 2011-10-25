@@ -61,7 +61,7 @@ int main(int argc, char **argv)
 
 	vtkSmartPointer<vtkDataCollector> dataCollector = vtkSmartPointer<vtkDataCollector>::New(); 
   dataCollector->ReadConfiguration( configRootElement );
-	dataCollector->Initialize(); 
+	dataCollector->Connect(); 
 	dataCollector->Start();
 
 	const double acqStartTime = vtkTimerLog::GetUniversalTime(); 

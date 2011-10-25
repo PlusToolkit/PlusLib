@@ -59,7 +59,10 @@ enum SYNC_TYPE
 
 /*!
   \class vtkDataCollector 
-  \brief Collects tracked ultrasound data (images synchronized with tracking information) 
+  \brief Collects tracked ultrasound data (images synchronized with tracking information)
+
+  This class collects ultrasound images synchronized with pose tracking information.
+
   \ingroup PlusLibDataCollection
 */ 
 class VTK_EXPORT vtkDataCollector: public vtkImageAlgorithm
@@ -69,9 +72,6 @@ public:
   static vtkDataCollector *New();
   vtkTypeRevisionMacro(vtkDataCollector,vtkImageAlgorithm);
   virtual void PrintSelf(ostream& os, vtkIndent indent);
-
-  /*! Initialize the data collector and connect to devices */ 
-  virtual PlusStatus Initialize(); 
 
   /*! Read the configuration file in XML format and set up the devices */
   virtual PlusStatus ReadConfiguration( vtkXMLDataElement* aDataCollectionConfig ); 
@@ -188,9 +188,6 @@ public:
   virtual void SetTracker(vtkTracker* tracker); 
   /*! Get the tracker  */
   vtkGetObjectMacro(Tracker,vtkTracker);
-
-  /*! Get the Initialized flag  */
-  vtkGetMacro(Initialized,bool);
   
   /*! Get the Connected flag  */
   vtkGetMacro(Connected,bool);
@@ -225,11 +222,6 @@ protected:
   vtkDataCollector();
   virtual ~vtkDataCollector();
 
-  /*! Set the Initialized flag  */
-  vtkSetMacro(Initialized,bool);
-  /*! Set the Initialized flag  */
-  vtkBooleanMacro(Initialized, bool); 
-
   /*! Set the Connected flag  */
   vtkSetMacro(Connected,bool);  
   /*! Set the Connected flag  */
@@ -257,31 +249,47 @@ protected:
   ProgressBarUpdatePtr ProgressBarUpdateCallbackFunction; 
 
 protected:
+
+  /*! Synchronizer used for temporal calibration */
   vtkDataCollectorSynchronizer* Synchronizer; 
 
+  /*! Ultrasound image data source */
   vtkPlusVideoSource*	          VideoSource; 
+  /*! Tracking data source */
   vtkTracker*		              	Tracker; 
 
+  /*! Image acquisition device type */
   ACQUISITION_TYPE	            AcquisitionType; 
+  /*! Tracking data acquisition device type */
   TRACKER_TYPE		              TrackerType; 
+  /*! Synchronization algorithm type */
   SYNC_TYPE			                SyncType; 
 
+  /*! Latest tracking data (transformation matrices) */
   std::vector<vtkMatrix4x4*>    ToolTransMatrices; 
+  /*! Latest tracking data (tool status information) */
   std::vector<TrackerStatus>	  ToolStatus; 
 
+  /*! Version of the configuration description XML data element */
   double			              	  DataCollectionConfigVersion; 
 
+  /*! The timestamp filtering methods require some time to initialize. Synchronization will ignore data that are acquired during startup delay. */
   double                        StartupDelaySec; 
 
-  bool                          Initialized; 
+  /*! Successfully connected to devices */
   bool                          Connected; 
 
+  /*! Collecting tracking data is enabled */
   bool                          TrackingEnabled;
+  /*! Collecting image data is enabled */
   bool                          VideoEnabled;
 
+  /*! The user requested the canceling of a synchronization procedure */
   bool                          CancelSyncRequest; 
 
+  /*! Name of the current device set */
   char*                         DeviceSetName; 
+  /*! Description of the current device set */
   char*                         DeviceSetDescription; 
 
 private:

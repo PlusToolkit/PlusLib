@@ -87,7 +87,7 @@ int main(int argc, char **argv)
     tracker->SetSequenceMetafile(inputTrackerBufferMetafile.c_str()); 
   }
 
-  dataCollector->Initialize(); 
+  dataCollector->Connect(); 
   dataCollector->Start();
 
   const double acqStartTime = vtkTimerLog::GetUniversalTime(); 

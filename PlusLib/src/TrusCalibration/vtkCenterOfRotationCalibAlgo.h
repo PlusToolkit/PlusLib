@@ -75,19 +75,6 @@ public:
   /*! Add generated html report from center of rotation calibration to the existing html report */
   virtual PlusStatus GenerateReport( vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter, const char* gnuplotScriptsFolder); 
 
-protected:
-  vtkCenterOfRotationCalibAlgo();
-  virtual ~vtkCenterOfRotationCalibAlgo(); 
-
-  /*! Set tracked frame indices used for calibration */
-  virtual void SetTrackedFrameListIndices( std::vector<int> &indices ); 
-
-  /*! Set the input tracked frame list */
-  vtkSetObjectMacro(TrackedFrameList, vtkTrackedFrameList); 
-
-  /*! Set the input image spacing (mm/pixel) */
-  vtkSetVector2Macro(Spacing, double); 
-
   /*!
     Add generated html report from center of rotation calibration to the existing html report
     \param htmlReport Has to be defined by the caller function
@@ -101,6 +88,19 @@ protected:
     const char* gnuplotScriptsFolder, 
     vtkTable* reportTable,
     double centerOfRotationPx[2]); 
+
+protected:
+  vtkCenterOfRotationCalibAlgo();
+  virtual ~vtkCenterOfRotationCalibAlgo(); 
+
+  /*! Set tracked frame indices used for calibration */
+  virtual void SetTrackedFrameListIndices( std::vector<int> &indices ); 
+
+  /*! Set the input tracked frame list */
+  vtkSetObjectMacro(TrackedFrameList, vtkTrackedFrameList); 
+
+  /*! Set the input image spacing (mm/pixel) */
+  vtkSetVector2Macro(Spacing, double); 
 
   /*! Bring this algorithm's outputs up-to-date. */
   virtual PlusStatus Update();

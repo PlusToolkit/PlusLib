@@ -99,7 +99,7 @@ int main( int argc, char** argv )
   }
 
   LOG_DEBUG( "Initializing data collector... " );
-  dataCollector->Initialize();
+  dataCollector->Connect();
 
 
   // TODO: Check if the read transforms are really the same as in the ones recorded in the data file.
