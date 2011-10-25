@@ -4,8 +4,8 @@
   See License.txt for details.
 =========================================================Plus=header=end*/ 
 
-#ifndef __fCalMainWindow_h
-#define __fCalMainWindow_h
+#ifndef __SegmentationParameterDialogTest_h
+#define __SegmentationParameterDialogTest_h
 
 #include "PlusConfigure.h"
 
@@ -71,4 +71,4 @@ protected:
 
 };
 
-#endif // __fCalMainWindow_h
+#endif // __SegmentationParameterDialogTest_h

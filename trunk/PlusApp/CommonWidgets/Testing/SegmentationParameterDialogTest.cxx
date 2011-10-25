@@ -83,7 +83,7 @@ void SegmentationParameterDialogTest::ConnectToDevicesByConfigFile(std::string a
 	    LOG_INFO("Connect to devices"); 
 
       // Disable main window
-   	  this->setVisible(false);
+   	  this->setEnabled(false);
 
 	    // Create dialog
 	    QDialog* connectDialog = new QDialog(this, Qt::Dialog);
@@ -122,6 +122,12 @@ void SegmentationParameterDialogTest::ConnectToDevicesByConfigFile(std::string a
 
         delete segmentationParamDialog;
 
+        // Disconnect after closing the segmentation parameter dialog (else the user would have to disconnect manually anyway)
+		    m_DataCollector->Stop();
+		    m_DataCollector->Disconnect();
+
+		    m_DeviceSetSelectorWidget->SetConnectionSuccessful(false);
+
         m_SaveButton->setEnabled(true);
 	    }
 
@@ -131,17 +137,8 @@ void SegmentationParameterDialogTest::ConnectToDevicesByConfigFile(std::string a
       delete connectDialog;
 
       // Re-enable main window
-   	  this->setVisible(true);
+   	  this->setEnabled(true);
     }
-
-  } else { // Disconnect
-	  if ((m_DataCollector != NULL) && (m_DataCollector->GetInitialized())) {
-
-		  m_DataCollector->Stop();
-		  m_DataCollector->Disconnect();
-
-		  m_DeviceSetSelectorWidget->SetConnectionSuccessful(false);
-	  }
   }
 
   QApplication::restoreOverrideCursor();
