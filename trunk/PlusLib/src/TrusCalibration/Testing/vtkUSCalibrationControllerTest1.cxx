@@ -136,7 +136,6 @@ int main (int argc, char* argv[])
   probeCal->ReadProbeCalibrationConfiguration(configRootElement);
   probeCal->EnableSegmentationAnalysisOn(); // So that results are drawn (there was a condition for that if the calibration is in OFFLINE mode - now that enum has been removed)
 
-  probeCal->EnableVisualizationOff(); 
 	probeCal->Initialize(); 
 
   vtkTransform* tTemplateHolderToPhantom = probeCal->GetTransformTemplateHolderToPhantom(); 

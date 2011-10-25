@@ -59,7 +59,7 @@
 	<!-- CALIBRATION -->
 	<USCalibration version="1.0">
 		<!-- CalibrationMode: OFFLINE or REALTIME -->
-		<CalibrationController LogLevel="INFO" OutputPath="./Output" EnableTrackedSequenceDataSaving="FALSE" EnableErroneouslySegmentedDataSaving="FALSE" EnableSegmentationAnalysis="FALSE" >
+		<CalibrationController LogLevel="INFO" OutputPath="./Output"    >
 			<ProbeCalibration
 					
 					ImageHomeToUserImageHomeTransform=" 1  0  0  0 

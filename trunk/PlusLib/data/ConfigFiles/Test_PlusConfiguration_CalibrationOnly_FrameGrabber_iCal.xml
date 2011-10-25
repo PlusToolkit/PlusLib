@@ -28,7 +28,7 @@
 	</USDataCollection>
 
 	<USCalibration version="1.0">
-		<CalibrationController LogLevel="INFO" OutputPath="./Output" EnableTrackedSequenceDataSaving="FALSE" EnableErroneouslySegmentedDataSaving="FALSE" EnableSegmentationAnalysis="FALSE" >
+		<CalibrationController LogLevel="INFO" OutputPath="./Output"    >
 			<StepperCalibration MinNumberOfRotationClusters="1" >
 				<!-- TemplateTranslationData: These are the data files used to calculate the template translation axis  -->
 				<TemplateTranslationData 
