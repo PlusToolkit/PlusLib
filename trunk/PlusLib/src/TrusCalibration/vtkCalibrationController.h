@@ -199,9 +199,6 @@ public: // Former ProbeCalibrationController and FreehandCalibraitonController f
   //! Check user image home to probe home transform orthogonality 
   virtual bool IsUserImageToProbeTransformOrthogonal(); 
 		
-	//! Get the wire position of the the US frame and phantom intersection in template coordinate system
-	virtual PlusStatus GetWirePosInTemplateCoordinate( int wireNum, double* wirePosInTemplate ); 
-
 	//! Update Line Reconstruction Error Analysis for the validation positions in the US probe frame. For details see member variable definitions
   PlusStatus UpdateLineReconstructionErrorAnalysisVectors();  
 
@@ -231,10 +228,6 @@ public: // Former ProbeCalibrationController and FreehandCalibraitonController f
 	*/
 	std::string GetResultString();
 
-	//! Add generated html report from final calibration to the existing html report
-	// htmlReport and plotter arguments has to be defined by the caller function
-  PlusStatus GenerateProbeCalibrationReport( vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter, const char* gnuplotScriptsFolder);
-
   //! Set/get phantom to probe distance in mm
   vtkSetVector2Macro(PhantomToProbeDistanceInMm, double); 
 	vtkGetVector2Macro(PhantomToProbeDistanceInMm, double);
@@ -243,11 +236,6 @@ public: // Former ProbeCalibrationController and FreehandCalibraitonController f
 	vtkGetMacro(US3DBeamwidthDataReady, bool);
 	vtkSetMacro(US3DBeamwidthDataReady, bool);
 	vtkBooleanMacro(US3DBeamwidthDataReady, bool);
-
-	//! Flag to enable the saving of segmented wire positions to file
-	vtkGetMacro(EnableSegmentedWirePositionsSaving, bool);
-	vtkSetMacro(EnableSegmentedWirePositionsSaving, bool);
-	vtkBooleanMacro(EnableSegmentedWirePositionsSaving, bool);
 
 	//! Flags to incorporate the ultrasound 3D beam profile (beam width)
 	// The flag is set when the 3D US beam width data is to be incorporated into
@@ -290,10 +278,6 @@ public: // Former ProbeCalibrationController and FreehandCalibraitonController f
 	//! US 3D beam profile name and path
 	vtkGetStringMacro(US3DBeamProfileDataFileNameAndPath); 
 	vtkSetStringMacro(US3DBeamProfileDataFileNameAndPath); 
-
-	//! Segmented wire positions of calibration dataset
-	vtkGetStringMacro(CalibrationSegWirePosInfoFileName);
-	vtkSetStringMacro(CalibrationSegWirePosInfoFileName);
 
 	//! Suffix of the calibration result file
 	vtkGetStringMacro(CalibrationResultFileSuffix);
@@ -387,9 +371,7 @@ protected: // from former Phantom class
 	vnl_vector<double> getPointLineReconstructionError(vnl_vector<double> NWirePositionInUSImageFrame, vnl_vector<double> NWirePositionInUSProbeFrame);  
 
 protected: // from former vtkProbeCalibrationControllerIO class
-	//! Save back projected wire positions to text file in gnuplot format 
-	virtual void SaveSegmentedWirePositionsToFile(); 
-
+	
 	//! This operation writes the final calibration results to a file.
 	virtual void SaveCalibrationResultsAndErrorReportsToXML(); 
 
@@ -446,8 +428,6 @@ protected:
   PatternRecognitionResult PatRecognitionResult;
 
 protected: // Former ProbeCalibrationController and FreehandCalibrationController members
-	//! Flag to enable the saving of segmented wire positions to file
-	bool EnableSegmentedWirePositionsSaving; 
 
 	// Flag to set if the US 3D beamwidth data is sucessfully loaded
 	bool US3DBeamwidthDataReady;
@@ -495,10 +475,7 @@ protected: // Former ProbeCalibrationController and FreehandCalibrationControlle
 	
 	//! Suffix of the calibration result file
 	char* CalibrationResultFileSuffix; 
-		
-	//! Segmented wire positions of calibration dataset
-	char* CalibrationSegWirePosInfoFileName; 
-	
+			
 	//! Minimum US elevation beamwidth and the focal zone in US Image Frame
 	// 1. For a typical 1-D linear-array transducer, the ultrasound beam can only be 
 	//    focused mechanically in the elevation (out-of-plane) axis by placing an 

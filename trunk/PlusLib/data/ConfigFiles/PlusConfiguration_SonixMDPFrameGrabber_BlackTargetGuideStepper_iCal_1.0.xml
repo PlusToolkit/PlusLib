@@ -57,6 +57,13 @@ Connect the framegrabber via USB and plug in the stepper through Serial2USB conv
       />
 	</USDataCollection>
   
+    <iCal version="1.0" NumberOfImagesForValidation="50"    >
+     <CalibrationData Type="CALIB_TEMPLATE_TRANSLATION" NumberOfImagesToAcquire="50" FrameTransformNameForValidation="" />
+     <CalibrationData Type="CALIB_PROBE_TRANSLATION" NumberOfImagesToAcquire="50" FrameTransformNameForValidation="" />
+     <CalibrationData Type="CALIB_PROBE_ROTATION" NumberOfImagesToAcquire="100" FrameTransformNameForValidation="" />
+     <CalibrationData Type="CALIB_RANDOM_STEPPER_MOTION" NumberOfImagesToAcquire="150" FrameTransformNameForValidation="" />
+    </iCal>
+    
 	<USCalibration version="1.0">
 		<CalibrationController LogLevel="INFO" OutputPath="./Output" EnableTrackedSequenceDataSaving="FALSE" EnableErroneouslySegmentedDataSaving="FALSE" EnableSegmentationAnalysis="FALSE">
       <StepperCalibration MinNumberOfRotationClusters="1" >
@@ -78,7 +85,7 @@ Connect the framegrabber via USB and plug in the stepper through Serial2USB conv
 			</StepperCalibration>	
 			
 			<ProbeCalibration
-					EnableSegmentedWirePositionsSaving="TRUE"
+					
 					ImageHomeToUserImageHomeTransform=" 1  0  0  0 
 														0  1  0  0 
 														0  0  1  0 

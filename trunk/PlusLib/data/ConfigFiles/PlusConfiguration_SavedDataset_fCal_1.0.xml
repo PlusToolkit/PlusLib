@@ -101,7 +101,7 @@ The desired file name with path needs to be added to this XML file as values Seq
 	<USCalibration version="1.0">
 		<CalibrationController LogLevel="INFO" OutputPath="./Output" EnableTrackedSequenceDataSaving="FALSE" EnableErroneouslySegmentedDataSaving="FALSE" EnableSegmentationAnalysis="FALSE" >
 			<ProbeCalibration
-					EnableSegmentedWirePositionsSaving="FALSE"
+					
 					ImageHomeToUserImageHomeTransform=" 1  0  0  0 
 														0  1  0  0 
 														0  0  1  0 

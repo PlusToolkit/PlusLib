@@ -72,9 +72,6 @@ vtkCalibrationController::vtkCalibrationController()
 		ImageDataInfoContainer.push_back(imageDataInfo); 
 	}
 
-  // Former ProbeCalibrationController and FreehandCalibraitonController members
-	this->EnableSegmentedWirePositionsSavingOff(); 
-
 	this->US3DBeamwidthDataReadyOff();
   this->NumUS3DBeamwidthProfileData = -1;
 
@@ -92,8 +89,7 @@ vtkCalibrationController::vtkCalibrationController()
 	this->SegmentationAnalysisFileNameWithTimeStamp = NULL; 
 	this->SegmentationErrorLogFileNameWithTimeStamp = NULL;
 	this->CalibrationResultFileSuffix = NULL;
-	this->CalibrationSegWirePosInfoFileName = NULL; 
-
+	
 	vtkSmartPointer<vtkTransform> transformProbeToReference = vtkSmartPointer<vtkTransform>::New(); 
 	this->TransformProbeToReference = NULL;
 	this->SetTransformProbeToReference(transformProbeToReference); 
@@ -699,17 +695,6 @@ PlusStatus vtkCalibrationController::ReadProbeCalibrationConfiguration( vtkXMLDa
     LOG_ERROR("Unable to find probe calibration tag in configuration file!"); 
     return PLUS_FAIL; 
   }
-
-	// To enable/disable the saving of segmented wire positions to file 
-	const char* enableSegmentedWirePositionsSaving = probeCalibration->GetAttribute("EnableSegmentedWirePositionsSaving"); 
-	if ( enableSegmentedWirePositionsSaving != NULL &&  STRCASECMP( "TRUE", enableSegmentedWirePositionsSaving ) == 0 ) 
-	{
-		this->EnableSegmentedWirePositionsSavingOn(); 
-	}
-	else
-	{
-		this->EnableSegmentedWirePositionsSavingOff(); 
-	}
 
 	//Transform: from image home position to user defined image home position
   double imageToUserImageTransform[16] = {0}; 
@@ -1397,12 +1382,6 @@ PlusStatus vtkCalibrationController::ComputeCalibrationResults()
 	// STEP-5. Save the calibration results and error reports into a file 
 	SaveCalibrationResultsAndErrorReportsToXML();
 
-	// STEP-6. Save the segmented wire positions into a file 
-	if ( this->EnableSegmentedWirePositionsSaving )
-	{
-		SaveSegmentedWirePositionsToFile(); 
-	}
-
   this->ClearSegmentedFrameContainer(RANDOM_STEPPER_MOTION_1); 
 	this->ClearSegmentedFrameContainer(RANDOM_STEPPER_MOTION_2);
   this->ClearSegmentedFrameContainer(FREEHAND_MOTION_1); 
@@ -1439,61 +1418,6 @@ PlusStatus vtkCalibrationController::ComputeCalibrationResults()
 	this->CalibrationDoneOn(); 
 
   return PLUS_SUCCESS; 
-}
-
-//----------------------------------------------------------------------------
-PlusStatus vtkCalibrationController::GetWirePosInTemplateCoordinate( int wireNum, double* wirePosInTemplate )
-{
-	LOG_TRACE("vtkCalibrationController::GetWirePosInTemplateCoordinate (wire #" << wireNum << ")"); 
-
-  // wireNum is 1-based (values are between 1..6)
-  int nwireIndex=(wireNum-1)/3;
-  int wireIndex=(wireNum-1)%3;
-
-	// Wire position on the front wall in template coordinate system
-  double p1[3] = {
-    this->PatternRecognition.GetFidLineFinder()->GetNWires()[nwireIndex].wires[wireIndex].endPointFront[0],
-    this->PatternRecognition.GetFidLineFinder()->GetNWires()[nwireIndex].wires[wireIndex].endPointFront[1],
-    this->PatternRecognition.GetFidLineFinder()->GetNWires()[nwireIndex].wires[wireIndex].endPointFront[2]
-  }; 
-
-	// Wire position on the back wall in template coordinate system
-  double p2[3] = {
-    this->PatternRecognition.GetFidLineFinder()->GetNWires()[nwireIndex].wires[wireIndex].endPointBack[0],
-    this->PatternRecognition.GetFidLineFinder()->GetNWires()[nwireIndex].wires[wireIndex].endPointBack[1],
-    this->PatternRecognition.GetFidLineFinder()->GetNWires()[nwireIndex].wires[wireIndex].endPointBack[2]
-  }; 
-
-	vtkSmartPointer<vtkTransform> tTemplateToTemplateHome = vtkSmartPointer<vtkTransform>::New();
-	tTemplateToTemplateHome->Concatenate(this->TransformTemplateHomeToTemplate); 
-	tTemplateToTemplateHome->Inverse(); 
-
-	vtkSmartPointer<vtkTransform> tImageToTemplate = vtkSmartPointer<vtkTransform>::New(); 
-	tImageToTemplate->PostMultiply(); 
-	tImageToTemplate->Concatenate(this->TransformImageToTemplate); 
-	tImageToTemplate->Concatenate(tTemplateToTemplateHome); 
-
-	// Normal vector
-	double n[3] = { 
-		tImageToTemplate->GetMatrix()->GetElement(0,2), 
-		tImageToTemplate->GetMatrix()->GetElement(1,2), 
-		tImageToTemplate->GetMatrix()->GetElement(2,2)
-	}; 
-
-	// Origin of the plane
-	double p0[3] = {0, 0, 0}; 
-	tImageToTemplate->GetPosition(p0); 
-
-	// parametric coordinate along the line
-	double t(0); 
-
-	if ( vtkPlane::IntersectWithLine(p1, p2, n, p0, t, wirePosInTemplate ) )
-	{
-		return PLUS_SUCCESS; 
-	}
-
-	// plane and line are parallel
-	return PLUS_FAIL; 
 }
 
 //----------------------------------------------------------------------------
@@ -2471,201 +2395,6 @@ PlusStatus vtkCalibrationController::constructValidationDataMatrices()
 }
 
 //----------------------------------------------------------------------------
-void vtkCalibrationController::SaveSegmentedWirePositionsToFile()
-{
-	std::ostringstream posInfoHeader; 
-	posInfoHeader << "DataType\tStepperPosition\tStepperRotation\tWire1xInImage\tWire1yInImage\tWire2xInImage\tWire2yInImage\tWire3xInImage\tWire3yInImage\tWire4xInImage\tWire4yInImage\tWire5xInImage\tWire5yInImage\tWire6xInImage\tWire6yInImage\t" 
-		<< "ExpectedWire1xInImage\tExpectedWire1yInImage\tExpectedWire2xInImage\tExpectedWire2yInImage\tExpectedWire3xInImage\tExpectedWire3yInImage\tExpectedWire4xInImage\tExpectedWire4yInImage\tExpectedWire5xInImage\tExpectedWire5yInImage\tExpectedWire6xInImage\tExpectedWire6yInImage\t" 
-		<< "Wire1xInProbe\tWire1yInProbe\tWire2xInProbe\tWire2yInProbe\tWire3xInProbe\tWire3yInProbe\tWire4xInProbe\tWire4yInProbe\tWire5xInProbe\tWire5yInProbe\tWire6xInProbe\tWire6yInProbe\t"  
-		<< "ExpectedWire1xInProbe\tExpectedWire1yInProbe\tExpectedWire2xInProbe\tExpectedWire2yInProbe\tExpectedWire3xInProbe\tExpectedWire3yInProbe\tExpectedWire4xInProbe\tExpectedWire4yInProbe\tExpectedWire5xInProbe\tExpectedWire5yInProbe\tExpectedWire6xInProbe\tExpectedWire6yInProbe\t"  
-		<< "Wire1xInTemplate\tWire1yInTemplate\tWire2xInTemplate\tWire2yInTemplate\tWire3xInTemplate\tWire3yInTemplate\tWire4xInTemplate\tWire4yInTemplate\tWire5xInTemplate\tWire5yInTemplate\tWire6xInTemplate\tWire6yInTemplate\t" 
-		<< "ExpectedWire1xInTemplate\tExpectedWire1yInTemplate\tExpectedWire2xInTemplate\tExpectedWire2yInTemplate\tExpectedWire3xInTemplate\tExpectedWire3yInTemplate\tExpectedWire4xInTemplate\tExpectedWire4yInTemplate\tExpectedWire5xInTemplate\tExpectedWire5yInTemplate\tExpectedWire6xInTemplate\tExpectedWire6yInTemplate\t" 
-		<< std::endl;  
-
-  std::string calibrationTimestamp;
-  if (this->CalibrationTimestamp == NULL) {
-    LOG_ERROR("Calibration timestamp is not set!");
-    calibrationTimestamp = "";
-  }
-  else
-  {
-    calibrationTimestamp = this->CalibrationTimestamp;
-  }
-	std::ofstream calibPosInfo;
-	std::ostringstream calibrationSegWirePosFileName; 
-	calibrationSegWirePosFileName << calibrationTimestamp << "_CalibrationSegWirePos.txt"; 
-	std::ostringstream calibrationSegWirePosPath; 
-	calibrationSegWirePosPath << vtkPlusConfig::GetInstance()->GetOutputDirectory() << "/" << calibrationSegWirePosFileName.str(); 
-	this->SetCalibrationSegWirePosInfoFileName(calibrationSegWirePosPath.str().c_str()); 
-	calibPosInfo.open (calibrationSegWirePosPath.str().c_str(), ios::out);
-	calibPosInfo << "# Segmented wire positions of the Calibration dataset" << std::endl; 
-	calibPosInfo << posInfoHeader.str(); 
-
-	std::ofstream validPosInfo;
-	std::ostringstream validationSegWirePosFileName; 
-	validationSegWirePosFileName << calibrationTimestamp << "_ValidationSegWirePos.txt"; 
-	std::ostringstream validationSegWirePosPath; 
-	validationSegWirePosPath << vtkPlusConfig::GetInstance()->GetOutputDirectory() << "/" << validationSegWirePosFileName.str(); 
-	validPosInfo.open (validationSegWirePosPath.str().c_str(), ios::out);
-	validPosInfo << "# Segmented wire positions of the Validation dataset" << std::endl; 
-	validPosInfo << posInfoHeader.str();
-
-	// define the Template to Image transformation 
-	vtkSmartPointer<vtkTransform> tTemplateToImage = vtkSmartPointer<vtkTransform>::New(); 
-	tTemplateToImage->Concatenate(this->TransformImageToTemplate); 
-	tTemplateToImage->Inverse();
-
-	// define the Template to Probe transformation 
-	vtkSmartPointer<vtkTransform> tTemplateToProbe = vtkSmartPointer<vtkTransform>::New(); 
-	tTemplateToProbe->PostMultiply(); 
-	tTemplateToProbe->Concatenate(this->TransformReferenceToTemplateHolderHome); 
-	tTemplateToProbe->Concatenate(this->TransformTemplateHolderToTemplate);
-	tTemplateToProbe->Concatenate(this->TransformTemplateHomeToTemplate);
-	tTemplateToProbe->Inverse();
-
-	// Save segmented wire positions
-	for( int frameNum = 0; frameNum < this->SegmentedFrameContainer.size(); frameNum++ )
-	{
-		double probeHomeToProbe[16]; 
-		this->SegmentedFrameContainer[frameNum].TrackedFrameInfo->GetCustomFrameTransform(this->SegmentedFrameDefaultTransformName.c_str(), probeHomeToProbe); 
-		vtkSmartPointer<vtkTransform> tProbeHomeToProbe = vtkSmartPointer<vtkTransform>::New(); 
-		tProbeHomeToProbe->SetMatrix(probeHomeToProbe); 
-
-		// Update the transformation to the current image position
-		this->TransformProbeToReference->SetMatrix(probeHomeToProbe); 
-		this->TransformImageToTemplate->Update(); 
-
-		PatternRecognitionResult segResults = this->SegmentedFrameContainer[frameNum].SegResults; 
-
-		std::string dataType; 
-		switch(this->SegmentedFrameContainer[frameNum].DataType)
-		{	
-		case(RANDOM_STEPPER_MOTION_1): 
-			dataType = "Calibration"; 
-			break; 
-		case(RANDOM_STEPPER_MOTION_2): 
-			dataType = "Validation"; 
-			break; 
-		}
-
-		double posZ = tProbeHomeToProbe->GetPosition()[2]; 
-		double rotZ = tProbeHomeToProbe->GetOrientation()[2]; 
-
-		std::ostringstream os; 
-		os << dataType << "\t" << posZ << "\t" << rotZ << "\t"; 
-
-		//************************* Image frame *****************************
-		for (int i=0; i<segResults.GetFoundDotsCoordinateValue().size(); i++)
-		{
-			os << segResults.GetFoundDotsCoordinateValue()[i][0] << "\t" << segResults.GetFoundDotsCoordinateValue()[i][1] << "\t"; 
-		}
-
-		// Save ground truth wire positions 
-		for ( int wireNum = 1; wireNum < 7; wireNum++ )
-		{
-			double wireposontemplate[3] = {0,0,0}; 
-			if ( ! this->GetWirePosInTemplateCoordinate(wireNum, wireposontemplate) )
-			{
-				// plane and line are parallel
-				os << "NaN\tNaN\t"; 
-				continue; 
-			}
-
-			vtkSmartPointer<vtkTransform> point = vtkSmartPointer<vtkTransform>::New(); 
-			point->PreMultiply();
-			point->Concatenate(tTemplateToImage); 
-			point->Translate(wireposontemplate[0], wireposontemplate[1], wireposontemplate[2]); 
-			point->Update(); 
-
-			double* wireposonimage = point->GetPosition();
-			os << wireposonimage[0] << "\t" << wireposonimage[1] << "\t";
-		}
-
-		//************************* Probe frame *****************************
-		for (int i=0; i<segResults.GetFoundDotsCoordinateValue().size(); i++)
-		{
-			vtkSmartPointer<vtkTransform> point = vtkSmartPointer<vtkTransform>::New(); 
-			point->PreMultiply();
-			point->Concatenate(tProbeHomeToProbe);
-			point->Concatenate(this->TransformUserImageToProbe); 
-			point->Concatenate(this->TransformImageToUserImage); 
-			point->Translate(segResults.GetFoundDotsCoordinateValue()[i][0], segResults.GetFoundDotsCoordinateValue()[i][1], 0); 
-			point->Update(); 
-
-			double* wireposInProbeHome = point->GetPosition();
-			os << wireposInProbeHome[0] << "\t" << wireposInProbeHome[1] << "\t"; 
-		}
-
-		// Save ground truth wire positions 
-		for ( int wireNum = 1; wireNum < 7; wireNum++ )
-		{
-			double wireposontemplate[3] = {0,0,0}; 
-			if ( ! this->GetWirePosInTemplateCoordinate(wireNum, wireposontemplate) )
-			{
-				// plane and line are parallel
-				os << "NaN\tNaN\t";
-				continue; 
-			}
-
-			vtkSmartPointer<vtkTransform> point = vtkSmartPointer<vtkTransform>::New(); 
-			point->PreMultiply();
-			point->Concatenate(tTemplateToProbe); 
-			point->Translate(wireposontemplate[0], wireposontemplate[1], wireposontemplate[2]); 
-			point->Update(); 
-
-			double* wireposonprobe = point->GetPosition();
-			os << wireposonprobe[0] << "\t" << wireposonprobe[1] << "\t";
-		}
-
-		//************************* Template frame *****************************
-		for (int i=0; i<segResults.GetFoundDotsCoordinateValue().size(); i++)
-		{
-			vtkSmartPointer<vtkTransform> point = vtkSmartPointer<vtkTransform>::New(); 
-			point->PostMultiply();
-			point->Translate(segResults.GetFoundDotsCoordinateValue()[i][0], segResults.GetFoundDotsCoordinateValue()[i][1], 0); 
-			point->Concatenate(this->TransformImageToTemplate); 
-			point->Update(); 
-
-			double* wireposInTemplateHome = point->GetPosition();
-			os << wireposInTemplateHome[0] << "\t" << wireposInTemplateHome[1] << "\t"; 
-		}
-
-		// Save ground truth wire positions 
-		for ( int wireNum = 1; wireNum < 7; wireNum++ )
-		{
-			double wireposontemplate[3] = {0,0,0}; 
-			if ( ! this->GetWirePosInTemplateCoordinate(wireNum, wireposontemplate) )
-			{
-				// plane and line are parallel
-				os << "NaN\tNaN\t";
-				continue; 
-			}
-
-			os << wireposontemplate[0] << "\t" << wireposontemplate[1] << "\t";
-		}
-
-		os << std::endl; 
-
-		switch( this->SegmentedFrameContainer[frameNum].DataType )
-		{
-		case(RANDOM_STEPPER_MOTION_1):
-			{
-				calibPosInfo << os.str(); 
-			}
-			break; 
-		case(RANDOM_STEPPER_MOTION_2):
-			{
-				validPosInfo << os.str(); 
-			}
-			break; 
-		}
-	}
-
-	calibPosInfo.close(); 
-	validPosInfo.close(); 
-}
-
-//----------------------------------------------------------------------------
 void vtkCalibrationController::SaveCalibrationResultsAndErrorReportsToXML()
 {
   // Construct the calibration result file name with path and timestamp
@@ -3322,177 +3051,6 @@ PlusStatus vtkCalibrationController::LoadUS3DBeamProfileData()
 
 	// Set the flag to signal the data is now ready
 	this->SetUS3DBeamwidthDataReady(true); 
-
-  return PLUS_SUCCESS;
-}
-
-//----------------------------------------------------------------------------
-PlusStatus vtkCalibrationController::GenerateProbeCalibrationReport( vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter, const char* gnuplotScriptsFolder)
-{
-	LOG_TRACE("vtkCalibrationController::GenerateProbeCalibrationReport"); 
-	if ( htmlReport == NULL || plotter == NULL )
-	{
-		LOG_ERROR("Caller should define HTML report generator and gnuplot plotter before report generation!"); 
-		return PLUS_FAIL; 
-	}
-
-	std::string plotSegmentedWirePositionsHistogramScript = gnuplotScriptsFolder + std::string("/PlotSegmentedWirePositionsHistogram.gnu"); 
-	if ( !vtksys::SystemTools::FileExists( plotSegmentedWirePositionsHistogramScript.c_str(), true) )
-	{
-		LOG_ERROR("Unable to find gnuplot script at: " << plotSegmentedWirePositionsHistogramScript); 
-		return PLUS_FAIL; 
-	}
-
-	std::string plotSegmentedWirePositionsErrorScript = gnuplotScriptsFolder + std::string("/PlotSegmentedWirePositions.gnu"); 
-	if ( !vtksys::SystemTools::FileExists( plotSegmentedWirePositionsErrorScript.c_str(), true) )
-	{
-		LOG_ERROR("Unable to find gnuplot script at: " << plotSegmentedWirePositionsErrorScript); 
-		return PLUS_FAIL; 
-	}
-
-	if ( this->CalibrationDone && this->EnableSegmentedWirePositionsSaving )
-	{
-    if ( this->CalibrationSegWirePosInfoFileName == NULL )
-    {
-      LOG_ERROR("Failed to generate probe calibration report - report file name is NULL!"); 
-      return PLUS_FAIL; 
-    }
-
-		if ( !vtksys::SystemTools::FileExists( this->CalibrationSegWirePosInfoFileName, true) )
-		{
-			LOG_ERROR("Unable to find segmented wire positions report file at: " << this->CalibrationSegWirePosInfoFileName); 
-			return PLUS_FAIL; 
-		}
-
-		htmlReport->AddText("Final Calibration Results", vtkHTMLGenerator::H1); 
-
-    std::string strUserImageHomeToProbeHome = PlusMath::GetTransformParametersString(this->TransformUserImageToProbe ); 
-    std::string strProbeHomeToTemplateHolderHome = PlusMath::GetTransformParametersString(this->TransformReferenceToTemplateHolderHome ); 
-    std::string strTemplateHolderHomeToTemplateHome = PlusMath::GetTransformParametersString(this->TransformTemplateHolderToTemplate ); 
-
-    htmlReport->AddText("Image to probe transform: ", vtkHTMLGenerator::H4);
-    htmlReport->AddParagraph(strUserImageHomeToProbeHome.c_str()); 
-
-    htmlReport->AddText("Probe to template holder transform: ", vtkHTMLGenerator::H4);
-    htmlReport->AddParagraph(strProbeHomeToTemplateHolderHome.c_str()); 
-
-    htmlReport->AddText("Template holder to template transform: ", vtkHTMLGenerator::H4);
-    htmlReport->AddParagraph(strTemplateHolderHomeToTemplateHome.c_str()); 
-
-    vtkSmartPointer<vtkTable> lreTable = vtkSmartPointer<vtkTable>::New(); 
-    std::vector<double> lreVector; 
-
-    vtkSmartPointer<vtkStringArray> colTitle = vtkSmartPointer<vtkStringArray>::New(); 
-    vtkSmartPointer<vtkStringArray> colLreXMean = vtkSmartPointer<vtkStringArray>::New(); 
-    vtkSmartPointer<vtkStringArray> colLreXStdev = vtkSmartPointer<vtkStringArray>::New(); 
-    vtkSmartPointer<vtkStringArray> colLreYMean = vtkSmartPointer<vtkStringArray>::New();
-    vtkSmartPointer<vtkStringArray> colLreYStdev = vtkSmartPointer<vtkStringArray>::New(); 
-
-    const int wiresLRE[4] = {1, 3, 4, 6};
-    for ( int i = 0; i < 4; ++i )
-    {
-       colTitle->SetName("Wire"); 
-       std::ostringstream title; 
-       title << "Wire #" << wiresLRE[i]; 
-       colTitle->InsertNextValue(title.str()); 
-
-       this->GetLineReconstructionErrorAnalysisVector(wiresLRE[i], lreVector); 
-
-       colLreXMean->SetName("LRE-X Mean (mm)"); 
-       std::ostringstream lreXMean; 
-       lreXMean << lreVector[0]; 
-       colLreXMean->InsertNextValue(lreXMean.str()); 
-
-       colLreXStdev->SetName("LRE-X Stdev (mm)"); 
-       std::ostringstream lreXStdev; 
-       lreXStdev << lreVector[1]; 
-       colLreXStdev->InsertNextValue(lreXStdev.str()); 
-
-       colLreYMean->SetName("LRE-Y Mean (mm)"); 
-       std::ostringstream lreYMean; 
-       lreYMean << lreVector[2]; 
-       colLreYMean->InsertNextValue(lreYMean.str()); 
-
-       colLreYStdev->SetName("LRE-Y Stdev (mm)"); 
-       std::ostringstream lreYStdev; 
-       lreYStdev << lreVector[3]; 
-       colLreYStdev->InsertNextValue(lreYStdev.str()); 
-    }
-
-    lreTable->AddColumn(colTitle); 
-    lreTable->AddColumn(colLreXMean); 
-    lreTable->AddColumn(colLreXStdev); 
-    lreTable->AddColumn(colLreYMean); 
-    lreTable->AddColumn(colLreYStdev); 
-
-    htmlReport->AddText("Line Reconstruction Error Analysis", vtkHTMLGenerator::H2);
-
-    htmlReport->AddTable(lreTable, 1); 
-
-		htmlReport->AddText("Error Histogram", vtkHTMLGenerator::H2); 
-
-		const int wires[6] = {1, 2, 3, 4, 5, 6}; 
-
-		for ( int i = 0; i < 6; i++ )
-		{
-			std::ostringstream wireName; 
-			wireName << "Wire #" << wires[i] << std::ends; 
-			htmlReport->AddText(wireName.str().c_str(), vtkHTMLGenerator::H3); 
-			plotter->ClearArguments(); 
-			plotter->AddArgument("-e");
-			std::ostringstream segWirePosError; 
-			segWirePosError << "f='" << this->CalibrationSegWirePosInfoFileName << "'; o='SegWirePosHistogram'; w=" << wires[i] << std::ends; 
-			plotter->AddArgument(segWirePosError.str().c_str()); 
-			plotter->AddArgument(plotSegmentedWirePositionsHistogramScript.c_str());  
-			if ( plotter->Execute() != PLUS_SUCCESS )
-      {
-        LOG_ERROR("Failed to run gnuplot executer!"); 
-        continue; 
-      }
-			plotter->ClearArguments(); 
-
-			std::ostringstream imageSource;
-			imageSource << "w" << wires[i] << "_SegWirePosHistogram.jpg" << std::ends; 
-			std::ostringstream imageAlt; 
-			imageAlt << "Final calibration error histogram - wire #" << wires[i] << std::ends; 
-
-			htmlReport->AddImage(imageSource.str().c_str(), imageAlt.str().c_str());  
-		}
-
-		htmlReport->AddText("Error Plot", vtkHTMLGenerator::H2); 
-
-		for ( int i = 0; i < 6; i++ )
-		{
-			std::ostringstream wireName; 
-			wireName << "Wire #" << wires[i] << std::ends; 
-			htmlReport->AddText(wireName.str().c_str(), vtkHTMLGenerator::H3); 
-			plotter->ClearArguments(); 
-			plotter->AddArgument("-e");
-			std::ostringstream segWirePosError; 
-			segWirePosError << "f='" << this->CalibrationSegWirePosInfoFileName << "'; o='SegWirePos'; w=" << wires[i] << std::ends; 
-			plotter->AddArgument(segWirePosError.str().c_str()); 
-			plotter->AddArgument(plotSegmentedWirePositionsErrorScript.c_str());  
-			if ( plotter->Execute() != PLUS_SUCCESS )
-      {
-        LOG_ERROR("Failed to run gnuplot executer!"); 
-        continue; 
-      }
-
-			plotter->ClearArguments(); 
-
-			std::ostringstream imageSourceX, imageAltX, imageSourceY, imageAltY; 
-
-			imageSourceX << "w" << wires[i] << "x_SegWirePos.jpg" << std::ends; 
-			imageSourceY << "w" << wires[i] << "y_SegWirePos.jpg" << std::ends; 
-			imageAltX << "Final calibration error - wire #" << wires[i] << " X Axis" << std::ends; 
-			imageAltY << "Final calibration error - wire #" << wires[i] << " Y Axis" << std::ends; 
-
-			htmlReport->AddImage(imageSourceX.str().c_str(), imageAltX.str().c_str());  
-			htmlReport->AddImage(imageSourceY.str().c_str(), imageAltY.str().c_str());  
-		}
-
-		htmlReport->AddHorizontalLine(); 
-	}
 
   return PLUS_SUCCESS;
 }

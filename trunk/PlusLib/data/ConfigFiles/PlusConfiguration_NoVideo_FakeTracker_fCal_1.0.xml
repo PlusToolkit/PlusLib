@@ -61,7 +61,7 @@
 		<!-- CalibrationMode: OFFLINE or REALTIME -->
 		<CalibrationController LogLevel="INFO" OutputPath="./Output" EnableTrackedSequenceDataSaving="FALSE" EnableErroneouslySegmentedDataSaving="FALSE" EnableSegmentationAnalysis="FALSE" >
 			<ProbeCalibration
-					EnableSegmentedWirePositionsSaving="FALSE"
+					
 					ImageHomeToUserImageHomeTransform=" 1  0  0  0 
 														0  1  0  0 
 														0  0  1  0 

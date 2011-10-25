@@ -125,7 +125,7 @@ The desired file name with path needs to be added to this XML file as values Seq
 			</StepperCalibration>	
 			
 			<ProbeCalibration
-					EnableSegmentedWirePositionsSaving="FALSE"
+					
 					ImageHomeToUserImageHomeTransform=" 1  0  0  0 
 														0  1  0  0 
 														0  0  1  0 
