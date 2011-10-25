@@ -72,7 +72,7 @@ PlusStatus ConfigFileSaverDialog::ReadConfiguration()
 {
   LOG_TRACE("ConfigFileSaverDialog::ReadConfiguration");
 
-  //Find Device set element
+  // Find Device set element
 	vtkSmartPointer<vtkXMLDataElement> usDataCollection = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()->FindNestedElementWithName("USDataCollection");
 	if (usDataCollection == NULL) {
 		LOG_ERROR("No USDataCollection element is found in the XML tree!");

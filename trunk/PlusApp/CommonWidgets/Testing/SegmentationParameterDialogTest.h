@@ -35,7 +35,6 @@ public:
 	*/
 	SegmentationParameterDialogTest(QWidget *parent = 0, Qt::WFlags flags = 0);
 
-  //-----------------------------------------------------------------------------
 	/*!
 	* \brief Destructor
 	*/

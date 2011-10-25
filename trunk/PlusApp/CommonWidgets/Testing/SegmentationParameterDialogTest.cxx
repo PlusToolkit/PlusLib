@@ -174,7 +174,7 @@ PlusStatus SegmentationParameterDialogTest::StartDataCollection()
   }
 
   if ((m_DataCollector->GetTracker() == NULL) || (m_DataCollector->GetTracker()->GetNumberOfTools() < 1)) {
-	  LOG_WARNING("Unable to initialize Tracker!"); 
+	  LOG_INFO("Tracker is not initialized"); 
   }
 
   if (! m_DataCollector->GetInitialized()) {

@@ -41,6 +41,7 @@ appTitle = "SegmentationParameterDialogTest"
 
 testApp = App.open(exe)
 wait(10) # Wait for the application to initialize (else the next wait check does not not run properly)
+App.focus(appTitle)
 
 try:
   connectButton = wait("ConnectButton.png", 60)
