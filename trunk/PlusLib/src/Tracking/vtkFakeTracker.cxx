@@ -136,6 +136,19 @@ void vtkFakeTracker::SetMode(FakeTrackerMode mode)
     this->Counter = -1;
 
     break;
+  case (FakeTrackerMode_ToolState):
+    this->SetNumberOfTools(1);
+
+    this->Tools[0]->SetToolType(TRACKER_TOOL_PROBE);
+    this->Tools[0]->SetToolRevision("1.3");
+    this->Tools[0]->SetToolManufacturer("ACME Inc.");
+    this->Tools[0]->SetToolPartNumber("Stationary");
+    this->Tools[0]->SetToolSerialNumber("A11111");
+    this->Tools[0]->SetToolName("Test");
+
+    this->Counter = 0;
+
+    break;
   default:
     break;
   }
@@ -339,7 +352,6 @@ PlusStatus vtkFakeTracker::InternalUpdate()
 
   case (FakeTrackerMode_RecordPhantomLandmarks): // Touches some positions with 1 sec difference
     {
-      // Set flags - one in every 50 request, the tracker provides 'out of view' flag
       TrackerStatus trackerStatus = TR_OK;
       const double unfilteredTimestamp = vtkAccurateTimer::GetSystemTime();
 
@@ -350,7 +362,7 @@ PlusStatus vtkFakeTracker::InternalUpdate()
       phantomReferenceToTrackerTransform->Translate(300, 400, 700);
       phantomReferenceToTrackerTransform->RotateZ(90);
 
-      this->ToolTimeStampedUpdate(0, phantomReferenceToTrackerTransform->GetMatrix(), trackerStatus, this->Frame, unfilteredTimestamp);   
+      this->ToolTimeStampedUpdate(0, phantomReferenceToTrackerTransform->GetMatrix(), trackerStatus, this->Frame, unfilteredTimestamp);
 
       // touch landmark points
       vtkSmartPointer<vtkTransform> phantomToLandmarkTransform = vtkSmartPointer<vtkTransform>::New();
@@ -413,6 +425,35 @@ PlusStatus vtkFakeTracker::InternalUpdate()
       this->ToolTimeStampedUpdate(1, phantomReferenceToLandmarkTransform->GetMatrix(), trackerStatus, this->Frame, unfilteredTimestamp);   
     }
     break;
+
+  case (FakeTrackerMode_ToolState): // Changes the state of the tool from time to time
+    {
+      // Set flags
+      TrackerStatus trackerStatus = TR_OK;
+
+      const int state = (this->Counter / 100) % 3;
+      switch (state)
+      {
+      case 1:
+        trackerStatus = TR_OUT_OF_VIEW;
+        break;
+      case 2:
+        trackerStatus = TR_MISSING;
+        break;
+      default:
+        break;
+      }
+      const double unfilteredTimestamp = vtkAccurateTimer::GetSystemTime();
+
+      // create stationary position for phantom reference (tool 0)
+      vtkSmartPointer<vtkTransform> identityTransform = vtkSmartPointer<vtkTransform>::New();
+      identityTransform->Identity();
+
+      this->ToolTimeStampedUpdate(0, identityTransform->GetMatrix(), trackerStatus, this->Frame, unfilteredTimestamp);
+
+      this->Counter++;
+    }
+    break;
   default:
     break;
   }
@@ -458,6 +499,8 @@ PlusStatus vtkFakeTracker::ReadConfiguration(vtkXMLDataElement* config)
         this->SetMode(FakeTrackerMode_PivotCalibration); 
       } else if (STRCASECMP(mode, "RecordPhantomLandmarks") == 0) {
         this->SetMode(FakeTrackerMode_RecordPhantomLandmarks); 
+      } else if (STRCASECMP(mode, "ToolState") == 0) {
+        this->SetMode(FakeTrackerMode_ToolState); 
       } else {
         this->SetMode(FakeTrackerMode_Undefined);
       }

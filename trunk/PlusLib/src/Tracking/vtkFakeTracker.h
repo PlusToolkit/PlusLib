@@ -25,7 +25,8 @@ enum FakeTrackerMode
 	FakeTrackerMode_Default,
   FakeTrackerMode_SmoothMove,
 	FakeTrackerMode_PivotCalibration,
-	FakeTrackerMode_RecordPhantomLandmarks
+	FakeTrackerMode_RecordPhantomLandmarks,
+	FakeTrackerMode_ToolState
 };
 
 class vtkTransform;
