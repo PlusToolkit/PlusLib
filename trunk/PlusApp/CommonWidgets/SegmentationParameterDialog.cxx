@@ -1,3 +1,9 @@
+/*=Plus=header=begin======================================================
+  Program: Plus
+  Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+  See License.txt for details.
+=========================================================Plus=header=end*/
+
 #include "SegmentationParameterDialog.h"
 
 #include <QTimer>
@@ -1035,7 +1041,7 @@ PlusStatus SegmentationParameterDialog::InitializeVisualization()
 {
   LOG_TRACE("SegmentationParameterDialog::InitializeVisualization");
 
-  if (m_DataCollector == NULL || m_DataCollector->GetInitialized() == false) {
+  if (m_DataCollector == NULL || m_DataCollector->GetConnected() == false) {
     LOG_ERROR("Data collector is not initialized!");
     return PLUS_FAIL;
   }

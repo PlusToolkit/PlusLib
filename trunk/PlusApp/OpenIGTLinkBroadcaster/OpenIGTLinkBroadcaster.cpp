@@ -187,7 +187,7 @@ int main( int argc, char *argv[] )
   
   
   LOG_INFO( "Initializing data collector." );
-  dataCollector->Initialize();
+  dataCollector->Connect();
   
   
     // Prepare the OpenIGTLink broadcaster.

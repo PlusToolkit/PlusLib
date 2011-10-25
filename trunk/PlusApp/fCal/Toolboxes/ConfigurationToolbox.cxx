@@ -189,7 +189,7 @@ void ConfigurationToolbox::ConnectToDevicesByConfigFile(std::string aConfigFile)
 
   } else { // Disconnect
 		vtkDataCollector* dataCollector = m_ParentMainWindow->GetToolVisualizer()->GetDataCollector();
-		if ((dataCollector != NULL) && (dataCollector->GetInitialized())) {
+		if ((dataCollector != NULL) && (dataCollector->GetConnected())) {
 
 			dataCollector->Stop();
 			dataCollector->Disconnect();

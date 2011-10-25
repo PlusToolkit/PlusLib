@@ -1,3 +1,9 @@
+/*=Plus=header=begin======================================================
+  Program: Plus
+  Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+  See License.txt for details.
+=========================================================Plus=header=end*/
+
 #include "PlusConfigure.h"
 #include "vtksys/CommandLineArguments.hxx"
 #include "vtkDataCollector.h"
@@ -78,7 +84,7 @@ int main(int argc, char **argv)
     exit(EXIT_FAILURE); 
   }
 	dataCollector->ReadConfiguration(configRootElement);
-	if ( dataCollector->Initialize() != PLUS_SUCCESS )
+	if ( dataCollector->Connect() != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to initialize data collector!"); 
     exit(EXIT_FAILURE); 

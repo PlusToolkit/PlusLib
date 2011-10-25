@@ -1,3 +1,9 @@
+/*=Plus=header=begin======================================================
+  Program: Plus
+  Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+  See License.txt for details.
+=========================================================Plus=header=end*/
+
 #include "PlusConfigure.h"
 #include "vtksys/CommandLineArguments.hxx"
 #include "vtksys/SystemTools.hxx"
@@ -165,13 +171,13 @@ PlusStatus TrackedUltrasoundCapturing::Initialize()
     LOG_ERROR("Failed to read configuration!"); 
 		return PLUS_FAIL; 
   }
-	if ( this->DataCollector->Initialize() != PLUS_SUCCESS )
+	if ( this->DataCollector->Connect() != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to initialize DataCollector!"); 
 		return PLUS_FAIL; 
   }
 
-	if ( !this->DataCollector->GetInitialized() )
+	if ( !this->DataCollector->GetConnected() )
 	{
 		LOG_ERROR("Unable to initialize DataCollector!"); 
 		return PLUS_FAIL; 

@@ -1,3 +1,9 @@
+/*=Plus=header=begin======================================================
+  Program: Plus
+  Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+  See License.txt for details.
+=========================================================Plus=header=end*/
+
 #include "PlusConfigure.h"
 #include "vtksys/CommandLineArguments.hxx"
 #include "vtkDataCollector.h"
@@ -83,7 +89,7 @@ int main(int argc, char **argv)
 		exit(EXIT_FAILURE);
   }
 	dataCollector->ReadConfiguration(configRootElement);
-	dataCollector->Initialize(); 
+	dataCollector->Connect(); 
 	dataCollector->Start();
 
 	const int mainToolNumber = dataCollector->GetTracker()->GetFirstPortNumberByType(TRACKER_TOOL_PROBE);

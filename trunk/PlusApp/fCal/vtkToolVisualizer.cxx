@@ -859,7 +859,7 @@ PlusStatus vtkToolVisualizer::StartDataCollection()
 		return PLUS_FAIL;
 	}
 
-	if (this->DataCollector->Initialize() != PLUS_SUCCESS) {
+	if (this->DataCollector->Connect() != PLUS_SUCCESS) {
 		return PLUS_FAIL;
 	}
 
@@ -871,7 +871,7 @@ PlusStatus vtkToolVisualizer::StartDataCollection()
 		LOG_WARNING("Unable to initialize Tracker!"); 
 	}
 
-	if (! this->DataCollector->GetInitialized()) {
+	if (! this->DataCollector->GetConnected()) {
 		LOG_ERROR("Unable to initialize DataCollector!"); 
 		return PLUS_FAIL;
 	}
@@ -972,7 +972,7 @@ PlusStatus vtkToolVisualizer::DumpBuffersToDirectory(const char* aDirectory)
 {
   LOG_TRACE("vtkToolVisualizer::DumpBuffersToDirectory(" << aDirectory << ")");
 
-  if ((this->DataCollector == NULL) || (! this->DataCollector->GetInitialized())) {
+  if ((this->DataCollector == NULL) || (! this->DataCollector->GetConnected())) {
 		LOG_ERROR("Data collector is not initialized!");
 		return PLUS_FAIL;
 	}
