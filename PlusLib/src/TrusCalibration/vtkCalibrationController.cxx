@@ -48,11 +48,8 @@ vtkCalibrationController::vtkCalibrationController()
   : SegmentationProgressCallbackFunction(NULL)
   , MinElevationBeamwidthAndFocalZoneInUSImageFrame(2,0)
 {
-	this->EnableTrackedSequenceDataSavingOff();
-	this->EnableErroneouslySegmentedDataSavingOff(); 
-	this->EnableSegmentationAnalysisOff();
-  this->EnableVisualizationOn(); 
-	this->InitializedOff(); 
+  this->EnableSegmentationAnalysisOff();
+  this->InitializedOff(); 
   this->CalibrationDoneOff(); 
 
   this->CalibrationDate = NULL; 
@@ -514,21 +511,6 @@ vtkTrackedFrameList* vtkCalibrationController::GetTrackedFrameList( IMAGE_DATA_T
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkCalibrationController::SaveTrackedFrameListToMetafile( IMAGE_DATA_TYPE dataType, const char* outputFolder, const char* sequenceMetafileName, bool useCompression /*= false*/ )
-{
-  LOG_TRACE("vtkCalibrationController::SaveTrackedFrameListToMetafile"); 
-  if ( this->TrackedFrameListContainer[dataType]->SaveToSequenceMetafile(outputFolder, sequenceMetafileName, vtkTrackedFrameList::SEQ_METAFILE_MHA, useCompression) != PLUS_SUCCESS )
-  {
-    LOG_ERROR("Failed to save tracked frames to sequence metafile!"); 
-    return PLUS_FAIL;
-  }
-
-  this->TrackedFrameListContainer[dataType]->Clear(); 
-
-  return PLUS_SUCCESS; 
-}
-
-//----------------------------------------------------------------------------
 void vtkCalibrationController::ClearSegmentedFrameContainer(IMAGE_DATA_TYPE dataType)
 {
   for ( SegmentedFrameList::iterator it = this->SegmentedFrameContainer.begin(); it != this->SegmentedFrameContainer.end(); )
@@ -626,40 +608,6 @@ PlusStatus vtkCalibrationController::ReadCalibrationControllerConfiguration( vtk
 		// Set to the current working directory
 		vtkPlusConfig::GetInstance()->SetOutputDirectory(vtksys::SystemTools::GetCurrentWorkingDirectory().c_str()); 
 	}
-
-	// Enable/disable the tracked sequence data saving to metafile
-	const char* enableTrackedSequenceDataSaving = calibrationController->GetAttribute("EnableTrackedSequenceDataSaving"); 
-	if ( enableTrackedSequenceDataSaving != NULL &&  STRCASECMP( "TRUE", enableTrackedSequenceDataSaving ) == 0) 
-	{
-		this->EnableTrackedSequenceDataSavingOn(); 
-	}
-	else /* FALSE */
-	{
-		this->EnableTrackedSequenceDataSavingOff(); 
-	}
-
-	// Enable/disable the the erroneously segmented data saving to metafile
-	const char* enableErroneouslySegmentedDataSaving = calibrationController->GetAttribute("EnableErroneouslySegmentedDataSaving"); 
-	if ( enableErroneouslySegmentedDataSaving != NULL &&  STRCASECMP( "TRUE", enableErroneouslySegmentedDataSaving ) == 0) 
-	{
-		this->EnableErroneouslySegmentedDataSavingOn(); 
-	}
-	else /* FALSE */
-	{
-		this->EnableErroneouslySegmentedDataSavingOff(); 
-	}
-
-	// To enable/disable the segmentation analysis
-	const char* enableSegmentationAnalysis = calibrationController->GetAttribute("EnableSegmentationAnalysis"); 
-	if ( enableSegmentationAnalysis != NULL &&  STRCASECMP( "TRUE", enableSegmentationAnalysis ) == 0 ) 
-	{
-		this->EnableSegmentationAnalysisOn(); 
-	}
-	else
-	{
-		this->EnableSegmentationAnalysisOff(); 
-	}
-
 	return PLUS_SUCCESS;
 }
 
@@ -1393,27 +1341,6 @@ PlusStatus vtkCalibrationController::ComputeCalibrationResults()
 	  LOG_ERROR("Freehand calibration result could not be saved into session configuration data!");
 	  return PLUS_FAIL;
   }
-
-  // save the input images to meta image
-  if ( this->EnableTrackedSequenceDataSaving )
-  {
-    // TODO add validation file name to config file
-    // Save validation dataset
-    std::ostringstream validationDataFileName; 
-    validationDataFileName << this->CalibrationDate << this->GetImageDataInfo(RANDOM_STEPPER_MOTION_2).OutputSequenceMetaFileSuffix; 
-    if ( this->SaveTrackedFrameListToMetafile( RANDOM_STEPPER_MOTION_2, vtkPlusConfig::GetInstance()->GetOutputDirectory(), validationDataFileName.str().c_str(), false ) != PLUS_SUCCESS )
-    {
-      LOG_ERROR("Failed to save tracked frames to sequence metafile!"); 
-    }
-
-    // Save calibration dataset 
-    std::ostringstream calibrationDataFileName; 
-    calibrationDataFileName << this->CalibrationDate << this->GetImageDataInfo(RANDOM_STEPPER_MOTION_1).OutputSequenceMetaFileSuffix; 
-    if ( this->SaveTrackedFrameListToMetafile( RANDOM_STEPPER_MOTION_1, vtkPlusConfig::GetInstance()->GetOutputDirectory(), calibrationDataFileName.str().c_str(), false ) != PLUS_SUCCESS ) 
-    {
-      LOG_ERROR("Failed to save tracked frames to sequence metafile!"); 
-    }
-	}
 
 	this->CalibrationDoneOn(); 
 

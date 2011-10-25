@@ -118,9 +118,6 @@ public:
 	//! Returns the list of tracked frames of the selected data type
 	virtual vtkTrackedFrameList* GetTrackedFrameList( IMAGE_DATA_TYPE dataType ); 
 	
-	//! Save the selected data type to sequence metafile 
-	virtual PlusStatus SaveTrackedFrameListToMetafile( IMAGE_DATA_TYPE dataType, const char* outputFolder, const char* sequenceMetafileName, bool useCompression = false ); 
-
 	vtkGetObjectMacro(PhantomToReferenceTransform, vtkTransform);
 	vtkSetObjectMacro(PhantomToReferenceTransform, vtkTransform);
 
@@ -128,21 +125,6 @@ public:
 	vtkGetMacro(Initialized, bool);
 	vtkSetMacro(Initialized, bool);
 	vtkBooleanMacro(Initialized, bool);
-
-	//! Flag to enable the tracked sequence data saving to metafile
-	vtkGetMacro(EnableTrackedSequenceDataSaving, bool);
-	vtkSetMacro(EnableTrackedSequenceDataSaving, bool);
-	vtkBooleanMacro(EnableTrackedSequenceDataSaving, bool);
-
-	//! Flag to enable the erroneously segmented data saving to metafile
-	vtkGetMacro(EnableErroneouslySegmentedDataSaving, bool);
-	vtkSetMacro(EnableErroneouslySegmentedDataSaving, bool);
-	vtkBooleanMacro(EnableErroneouslySegmentedDataSaving, bool);
-
-	//! Flag to enable the visualization component
-	vtkGetMacro(EnableVisualization, bool);
-	vtkSetMacro(EnableVisualization, bool);
-	vtkBooleanMacro(EnableVisualization, bool);
 
   //! Set/get the calibration date and time in string format
 	vtkSetStringMacro(CalibrationDate); 
@@ -382,15 +364,6 @@ protected: // from former vtkProbeCalibrationControllerIO class
 	virtual PlusStatus LoadUS3DBeamProfileData();
 
 protected:
-	//! Flag to enable the tracked sequence data saving to metafile
-	bool EnableTrackedSequenceDataSaving;
-
-	//! Flag to enable the erroneously segmented data saving to metafile
-	bool EnableErroneouslySegmentedDataSaving; 
-
-	//! Flag to enable the visualization component
-	bool EnableVisualization; 
-
 	//! Flag to enable the Segmentation Analysis file
 	bool EnableSegmentationAnalysis; 
 
