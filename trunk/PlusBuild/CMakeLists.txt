@@ -65,7 +65,6 @@ OPTION(PLUS_USE_VFW_VIDEO "Provide support for the Video-for-Windows video digit
 
 OPTION(PLUS_USE_POLARIS "Provide support for the NDI POLARIS and AURORA" OFF)
 OPTION(PLUS_USE_CERTUS "Provide support for the NDI Certus" ON)
-OPTION(PLUS_USE_FLOCK "Provide support for the Ascension Flock of Birds" OFF)
 OPTION(PLUS_USE_MICRONTRACKER "Provide support for the Claron MicronTracker" OFF)
 OPTION(PLUS_USE_BRACHY_TRACKER "Provide support for the Brachy Steppers" ON)
 OPTION(PLUS_USE_Ascension3DG "Provide support for the Ascension 3DG Tracker" ON)
