@@ -18,7 +18,7 @@ def getCommandFromArguments(plusDir=''):
     if plusDir == '':
       exe = ''
 
-    exe = '"' + plusDir + '/PlusApp-bin/DevEnv_Release.bat" "--launch" "' + plusDir + '/PlusApp-bin/bin/Release/SegmentationParameterDialogTest" "--device-set-configuration-directory-path=' + plusDir + '/PlusLib/data/ConfigFiles" "--image-directory-path=' + plusDir + '/PlusLib/data/TestImages"'
+    exe = '"' + plusDir + '/PlusApp-bin/DevEnv_Release.bat" "--launch" "' + plusDir + '/PlusApp-bin/bin/Release/ToolStateDisplayWidgetTest" "--device-set-configuration-directory-path=' + plusDir + '/PlusLib/data/ConfigFiles" "--input-config-file-name=' + plusDir + '/PlusLib/data/ConfigFiles/Test_PlusConfiguration_VideoNone_FakeTracker_ToolState.xml"'
   
   return exe
 
@@ -42,7 +42,7 @@ def captureScreenAndExit():
 
 exe = getCommandFromArguments("D:/devel/Plus-build-bin")
 
-appTitle = "SegmentationParameterDialogTest"
+appTitle = "ToolStateDisplayWidgetTest"
 
 testApp = App.open(exe)
 wait(10) # Wait for the application to initialize (else the next wait check does not not run properly)
@@ -56,51 +56,31 @@ except FindFailed:
 
 # Get the region of the segmentation parameter dialog window
 applicationTopLeft = connectButton.getTopLeft()
-applicationTopLeft = applicationTopLeft.left(205).above(295)
-windowRegion = Region(applicationTopLeft.x, applicationTopLeft.y, 495, 355)
-comboBoxRegion = Region(applicationTopLeft.x, applicationTopLeft.y, 495, 600)
+applicationTopLeft = applicationTopLeft.left(205).above(190)
+windowRegion = Region(applicationTopLeft.x, applicationTopLeft.y, 495, 293)
 
-# Select a configuration that cannot connect
-try:
-  comboBoxDropDown = windowRegion.find("DropDownArrow.png")
-except FindFailed:
-  print "[ERROR] Cannot find device set combobox!"
-  captureScreenAndExit()
-
-click(comboBoxDropDown)
-
-try:
-  sonixTouchWithAscensionItem = comboBoxRegion.find("DeviceSetItemToFail.png")
-except FindFailed:
-  print "[ERROR] Cannot find SonixTouch Ascension3DG item!"
-  captureScreenAndExit()
-
-click(sonixTouchWithAscensionItem)
+# Connect to the device set (it is already selected because of the command line arguments)
 click(connectButton)
 
-# Verify failed connection
+# Wait for the status to be OK
 try:
-  windowRegion.wait("ConnectionFailedText.png", 10)
+  windowRegion.wait("OKLabel.png", 60)
 except FindFailed:
-  print "[ERROR] Cannot find connection failed error text!"
+  print "[ERROR] Unable to find OK status!"
   captureScreenAndExit()
 
-# Connect to device set that is supposed to work
-click(comboBoxDropDown)
-
+# Wait for the status to be Out of view
 try:
-  segmentationParameterDialogTestItem = comboBoxRegion.find("DeviceSetItemToConnect.png")
+  windowRegion.wait("OutOfViewLabel.png", 60)
 except FindFailed:
-  print "[ERROR] Cannot find SegmentationParameterDialogTest item!"
+  print "[ERROR] Unable to find Out of view status!"
   captureScreenAndExit()
 
-click(segmentationParameterDialogTestItem)
-click(connectButton)
-
+# Wait for the status to be Missing
 try:
-  freezeButton = wait("FreezeButton.png", 10)
+  windowRegion.wait("MissingLabel.png", 60)
 except FindFailed:
-  print "[ERROR] Connection failed!"
+  print "[ERROR] Unable to find Missing status!"
   captureScreenAndExit()
 
 closeApp(appTitle) # close the window - stop the process

@@ -6,7 +6,7 @@ SET( TestDataDir ${PLUSLIB_DATA_DIR}/TestImages )
 SET( ConfigFilesDir ${PLUSLIB_DATA_DIR}/ConfigFiles )
 
 # --------------------------------------------------------------------------
-# Qt specific commands
+# SegmentationParameterDialogTest
 
 QT4_WRAP_CPP( SegmentationParameterDialogTest_QT_MOC_Files SegmentationParameterDialogTest.h )			  
 QT4_ADD_RESOURCES( SegmentationParameterDialogTest_QT_RCC_Files ${PlusApp_SOURCE_DIR}/CommonWidgets/CommonWidgets.qrc )
@@ -54,21 +54,37 @@ INSTALL(TARGETS SegmentationParameterDialogTest
   
 ENDIF(PLUSAPP_INSTALL_BIN_DIR)
 
-#--------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------
+# ToolStateDisplayWidgetTest
 
-ADD_TEST(SegmentationParameterDialogTest
-    ${SIKULI_BIN_DIR}/Sikuli-IDE.exe
-    -stderr
-    -run ${PlusApp_SOURCE_DIR}/CommonWidgets/Testing/SegmentationParameterDialogTest.sikuli
-    --args
-      ${PlusApp_BINARY_DIR}/DevEnv_Release.bat
-      --launch
-        ${TEST_EXECUTABLE_OUTPUT_PATH}/SegmentationParameterDialogTest
-        --device-set-configuration-directory-path=${ConfigFilesDir}
-        --input-config-file-name=${ConfigFilesDir}/Test_PlusConfiguration_SegmentationParameterDialog_SavedDataset_fCal_1.0_VideoOnly.xml
-        --image-directory-path=${TestDataDir}
-		)
-SET_TESTS_PROPERTIES( SegmentationParameterDialogTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+QT4_WRAP_CPP( ToolStateDisplayWidgetTest_QT_MOC_Files ToolStateDisplayWidgetTest.h )			  
+QT4_ADD_RESOURCES( ToolStateDisplayWidgetTest_QT_RCC_Files ${PlusApp_SOURCE_DIR}/CommonWidgets/CommonWidgets.qrc )
+
+SOURCE_GROUP("Generated Files" FILES ${ToolStateDisplayWidgetTest_QT_MOC_Files} ${ToolStateDisplayWidgetTest_QT_RCC_Files})
+
+include_directories(${PlusApp_BINARY_DIR}/CommonWidgets)
+include_directories(${PlusApp_SOURCE_DIR}/CommonWidgets)
+
+#--------------------------------------------------------------------------------------------
+  
+SET (ToolStateDisplayWidgetTest_LIBS 
+    ${ToolStateDisplayWidgetTest_LIBS} 
+    ${QT_LIBRARIES}
+    CommonWidgets
+    vtkPlusCommon
+    vtkDataCollection
+  )
+  
+ADD_EXECUTABLE(
+  ToolStateDisplayWidgetTest
+  ToolStateDisplayWidgetTestMain.cxx
+  ToolStateDisplayWidgetTest.cxx
+  ToolStateDisplayWidgetTest.h
+  ${ToolStateDisplayWidgetTest_QT_MOC_Files}
+  ${ToolStateDisplayWidgetTest_QT_RCC_Files}
+  )
+  
+TARGET_LINK_LIBRARIES(ToolStateDisplayWidgetTest ${ToolStateDisplayWidgetTest_LIBS})
 
 #--------------------------------------------------------------------------------------------
 
@@ -103,6 +119,22 @@ SET_TESTS_PROPERTIES( StatusIconTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;W
 
 #--------------------------------------------------------------------------------------------
 
+ADD_TEST(SegmentationParameterDialogTest
+    ${SIKULI_BIN_DIR}/Sikuli-IDE.exe
+    -stderr
+    -run ${PlusApp_SOURCE_DIR}/CommonWidgets/Testing/SegmentationParameterDialogTest.sikuli
+    --args
+      ${PlusApp_BINARY_DIR}/DevEnv_Release.bat
+      --launch
+        ${TEST_EXECUTABLE_OUTPUT_PATH}/SegmentationParameterDialogTest
+        --device-set-configuration-directory-path=${ConfigFilesDir}
+        --input-config-file-name=${ConfigFilesDir}/Test_PlusConfiguration_SegmentationParameterDialog_SavedDataset_fCal_1.0_VideoOnly.xml
+        --image-directory-path=${TestDataDir}
+		)
+SET_TESTS_PROPERTIES( SegmentationParameterDialogTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+
+#--------------------------------------------------------------------------------------------
+
 ADD_TEST(ConfigFileSaverDialogTest
     ${SIKULI_BIN_DIR}/Sikuli-IDE.exe
     -stderr
@@ -117,3 +149,18 @@ ADD_TEST(ConfigFileSaverDialogTest
         --verify-saved-configuration-file
 		)
 SET_TESTS_PROPERTIES( ConfigFileSaverDialogTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+
+#--------------------------------------------------------------------------------------------
+
+ADD_TEST(ToolStateDisplayWidgetTest
+    ${SIKULI_BIN_DIR}/Sikuli-IDE.exe
+    -stderr
+    -run ${PlusApp_SOURCE_DIR}/CommonWidgets/Testing/ToolStateDisplayWidgetTest.sikuli
+    --args
+      ${PlusApp_BINARY_DIR}/DevEnv_Release.bat
+      --launch
+        ${TEST_EXECUTABLE_OUTPUT_PATH}/ToolStateDisplayWidgetTest
+        --device-set-configuration-directory-path=${ConfigFilesDir}
+        --input-config-file-name=${ConfigFilesDir}/Test_PlusConfiguration_VideoNone_FakeTracker_ToolState.xml
+		)
+SET_TESTS_PROPERTIES( ToolStateDisplayWidgetTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
