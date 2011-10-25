@@ -24,11 +24,16 @@ def getCommandFromArguments(plusDir=''):
 
 #------------------------------------------------------------------------------
 
+from os import getenv
+from shutil import copyfile
+from datetime import datetime
+
 # Define function that is run when error occurs
 def captureScreenAndExit():
-  message = "The screen capture of the application in time of the error was saved to: "
-  message += capture(SCREEN)
-  print message
+  capturedFileName = capture(SCREEN)
+  newFileName = getenv('APPDATA') + '/' + appTitle + datetime.now().strftime("_%Y%m%d_%H%M%S") + '.png'
+  copyfile(capturedFileName, newFileName)
+  print "The screen capture of the application in time of the error was saved to: " + newFileName
   closeApp(appTitle)
   sys.exit(1)
   
