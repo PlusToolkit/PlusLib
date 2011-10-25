@@ -78,7 +78,7 @@ int main (int argc, char* argv[])
     LOG_ERROR("Unable to parse configuration from file " << inputConfigFileName.c_str()); 
 		exit(EXIT_FAILURE);
 	}
-	if (dataCollector->Initialize() != PLUS_SUCCESS) {
+	if (dataCollector->Connect() != PLUS_SUCCESS) {
     LOG_ERROR("Unable to initialize data collection!");
 		exit(EXIT_FAILURE);
 	}

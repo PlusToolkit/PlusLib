@@ -179,7 +179,7 @@ int main(int argc, char **argv)
     tracker->SetReplayEnabled(inputReplay); 
   }
 
-  dataCollector->Initialize(); 
+  dataCollector->Connect(); 
 
   if ( inputEnableBroadcasting && InitBroadcater() != PLUS_SUCCESS )
   {

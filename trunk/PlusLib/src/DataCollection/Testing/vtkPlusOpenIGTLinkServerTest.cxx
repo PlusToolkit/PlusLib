@@ -115,7 +115,7 @@ int main( int argc, char** argv )
   }
   
   LOG_DEBUG( "Initializing data collector... " );
-  dataCollector->Initialize();
+  dataCollector->Connect();
   
   
     // Create a server.

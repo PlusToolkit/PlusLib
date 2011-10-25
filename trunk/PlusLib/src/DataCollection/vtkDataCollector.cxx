@@ -114,7 +114,6 @@ vtkDataCollector::vtkDataCollector()
   this->ToolTransMatrices.reserve(0); 
   this->ToolStatus.reserve(0); 
 
-  this->InitializedOff(); 
   this->ConnectedOff(); 
   this->TrackingEnabled = true;
   this->VideoEnabled = true;
@@ -154,22 +153,6 @@ void vtkDataCollector::PrintSelf(ostream& os, vtkIndent indent)
     os << indent << "Video source: " << std::endl; 
     this->GetVideoSource()->PrintSelf(os, indent); 
   }
-}
-
-//----------------------------------------------------------------------------
-PlusStatus vtkDataCollector::Initialize()
-{
-  LOG_TRACE("vtkDataCollector::Initialize"); 
-  this->InitializedOff(); 
-
-  // Connect to devices
-  if (this->Connect()!=PLUS_SUCCESS)
-  {
-    return PLUS_FAIL;
-  }
-
-  this->InitializedOn(); 
-  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
@@ -1993,7 +1976,7 @@ void vtkDataCollector::SetTrackingOnly(bool trackingOnly)
     this->VideoEnabled = true;
   }
 
-  if ( this->GetInitialized() && this->GetVideoSource() != NULL )
+  if ( this->GetConnected() && this->GetVideoSource() != NULL )
   {
     if ( this->VideoEnabled )
     {
@@ -2019,7 +2002,7 @@ void vtkDataCollector::SetVideoOnly(bool videoOnly)
     this->TrackingEnabled = true;
   }
 
-  if ( this->GetInitialized() && this->GetTracker() != NULL )
+  if ( this->GetConnected() && this->GetTracker() != NULL )
   {
     if ( this->TrackingEnabled )
     {
