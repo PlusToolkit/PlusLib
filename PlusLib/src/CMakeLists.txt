@@ -51,12 +51,12 @@ MARK_AS_ADVANCED(LIBRARY_OUTPUT_PATH EXECUTABLE_OUTPUT_PATH INCLUDES_OUTPUT_PATH
 # --------------------------------------------------------------------------
 # gnuplot binary directory path.
 # 
-SET(GNUPLOT_BIN_DIR ${PLTOOLS_DIR}/Gnuplot/binary/ CACHE PATH "Path to the Gnuplot binary directory." FORCE)
+SET(GNUPLOT_BIN_DIR ${PLUSLIB_TOOLS_DIR}/Gnuplot/binary/ CACHE PATH "Path to the Gnuplot binary directory." FORCE)
 
 # --------------------------------------------------------------------------
 # Sikuli binary directory path.
 # 
-SET(SIKULI_BIN_DIR ${PLTOOLS_DIR}/Sikuli/ CACHE PATH "Path to the Sikuli binary directory." FORCE)
+SET(SIKULI_BIN_DIR ${PLUSLIB_TOOLS_DIR}/Sikuli/ CACHE PATH "Path to the Sikuli binary directory." FORCE)
 
 # --------------------------------------------------------------------------
 # The project library directories.
@@ -177,8 +177,8 @@ option(DOCUMENTATION_TARGET_IN_ALL "Include the custom target for building docum
 mark_as_advanced(DOCUMENTATION_TARGET_IN_ALL)
 
 # Attempt to discover Doxygen so that DOXYGEN_EXECUTABLE is set to an appropriate default value
-SET (DOXYGEN_EXECUTABLE ${PLTOOLS_DIR}/Doxygen/doxygen-1.7.5.1/doxygen.exe CACHE PATH "Doxygen executable" FORCE)
-SET (DOXYGEN_DOT_EXECUTABLE ${PLTOOLS_DIR}/Doxygen/doxygen-1.7.5.1/Graphviz-2.28/bin/dot.exe CACHE PATH "Doxygen dot executable" FORCE)
+SET (DOXYGEN_EXECUTABLE ${PLUSLIB_TOOLS_DIR}/Doxygen/doxygen-1.7.5.1/doxygen.exe CACHE PATH "Doxygen executable" FORCE)
+SET (DOXYGEN_DOT_EXECUTABLE ${PLUSLIB_TOOLS_DIR}/Doxygen/doxygen-1.7.5.1/Graphviz-2.28/bin/dot.exe CACHE PATH "Doxygen dot executable" FORCE)
 find_package(Doxygen QUIET)
 
 add_subdirectory(Doxygen)

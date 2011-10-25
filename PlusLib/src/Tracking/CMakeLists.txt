@@ -178,9 +178,11 @@ ENDIF (PLUS_USE_MICRONTRACKER)
 # BrachyTracker support
 IF (PLUS_USE_BRACHY_TRACKER)
 
-  SET(CIVCO_SEI_INCLUDE_DIR ${PLTOOLS_DIR}/CIVCO/SEI/inc CACHE PATH "Path to the CIVCO SEI include directory." FORCE)
-  SET(CIVCO_SEI_BINARY_DIR ${PLTOOLS_DIR}/CIVCO/SEI/bin CACHE PATH "Path to the CIVCO SEI binary directory." FORCE)
-  SET(CIVCO_SEI_LIB_DIR ${PLTOOLS_DIR}/CIVCO/SEI/lib CACHE PATH "Path to the CIVCO SEI library directory." FORCE)
+  SET(USDIGITAL_SEI_BASE_DIR ${PLUSLIB_TOOLS_DIR}/UsDigital/SEI_5.22)
+
+  SET(USDIGITAL_SEI_INCLUDE_DIR ${USDIGITAL_SEI_BASE_DIR}/inc CACHE PATH "Path to the US Digital SEI include directory (needed for the CIVCO stepper)." FORCE)
+  SET(USDIGITAL_SEI_BINARY_DIR ${USDIGITAL_SEI_BASE_DIR}/bin CACHE PATH "Path to the US Digital SEI binary directory (needed for the CIVCO stepper)." FORCE)
+  SET(USDIGITAL_SEI_LIB_DIR ${USDIGITAL_SEI_BASE_DIR}/lib CACHE PATH "Path to the US Digital SEI library directory (needed for the CIVCO stepper)." FORCE)
 
 	SET (Tracking_SRCS ${Tracking_SRCS}
 		BrachyTracking/vtkBrachyTracker.cxx
@@ -200,13 +202,13 @@ IF (PLUS_USE_BRACHY_TRACKER)
     )		
   
   SET (Tracking_LIBS ${Tracking_LIBS}
-    ${CIVCO_SEI_LIB_DIR}/SEIDrv32${CMAKE_STATIC_LIBRARY_SUFFIX}
+    ${USDIGITAL_SEI_LIB_DIR}/SEIDrv32${CMAKE_STATIC_LIBRARY_SUFFIX}
     BrachyStepper
     )
 
   SET ( External_Libraries_Install ${External_Libraries_Install}
-    ${CIVCO_SEI_BINARY_DIR}/SEIDrv32${CMAKE_SHARED_LIBRARY_SUFFIX}
-    ${CIVCO_SEI_BINARY_DIR}/SEISrv32.exe
+    ${USDIGITAL_SEI_BINARY_DIR}/SEIDrv32${CMAKE_SHARED_LIBRARY_SUFFIX}
+    ${USDIGITAL_SEI_BINARY_DIR}/SEISrv32.exe
     )
 
   ADD_SUBDIRECTORY(BrachyTracking/Utils)
@@ -214,13 +216,14 @@ IF (PLUS_USE_BRACHY_TRACKER)
 ENDIF (PLUS_USE_BRACHY_TRACKER)
 
 #--------------------------------------------------------------------------
-# Ascension 3DG support
+# Ascension 3DG support (trakSTAR)
 IF( PLUS_USE_Ascension3DG )
 
-  # Use non MedSafe version
-  SET( ATC_INCLUDE_DIRECTORY ${PLTOOLS_DIR}/Ascension/Ascension3DG/inc CACHE PATH "Directory where the ATC3DG.h file is located" FORCE )
-  SET( ATC_LIBRARY_DIRECTORY ${PLTOOLS_DIR}/Ascension/Ascension3DG/lib CACHE PATH "Path to the Ascension 3D Guidance library folder" FORCE )
-  SET( ATC_BINARY_DIRECTORY ${PLTOOLS_DIR}/Ascension/Ascension3DG/bin CACHE PATH "Path to the Ascension 3D Guidance dll folder" FORCE )
+  SET( ATC_TRAKSTAR_BASE_DIR ${PLUSLIB_TOOLS_DIR}/Ascension/trakSTAR_940038_RevD)
+
+  SET( ATC_TRAKSTAR_INCLUDE_DIR ${ATC_TRAKSTAR_BASE_DIR}/inc CACHE PATH "Path to the Ascension trakSTAR 3D Guidance library folder (where the ATC3DG.h file is located)" FORCE )
+  SET( ATC_TRAKSTAR_LIB_DIR ${ATC_TRAKSTAR_BASE_DIR}/lib CACHE PATH "Path to the Ascension trakSTAR 3D Guidance library folder" FORCE )
+  SET( ATC_TRAKSTAR_BINARY_DIR ${ATC_TRAKSTAR_BASE_DIR}/bin CACHE PATH "Path to the Ascension trakSTAR 3D Guidance dll folder" FORCE ) 
     
   SET (Tracking_SRCS ${Tracking_SRCS}
     Ascension3DGTracking/vtkAscension3DGTracker.cxx 
@@ -233,22 +236,52 @@ IF( PLUS_USE_Ascension3DG )
   endif (WIN32)
 
   SET (Tracking_INCLUDE_DIRS ${Tracking_INCLUDE_DIRS} 
-    ${ATC_INCLUDE_DIRECTORY}
+    ${ATC_TRAKSTAR_INCLUDE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/Ascension3DGTracking
     CACHE INTERNAL "" FORCE
     )
 
   SET (Tracking_LIBS ${Tracking_LIBS}
-    ${ATC_LIBRARY_DIRECTORY}/ATC3DG${CMAKE_STATIC_LIBRARY_SUFFIX}
+    ${ATC_TRAKSTAR_LIB_DIR}/ATC3DG${CMAKE_STATIC_LIBRARY_SUFFIX}
     )
   
   SET ( External_Libraries_Install ${External_Libraries_Install}
-    ${ATC_BINARY_DIRECTORY}/ATC3DG${CMAKE_SHARED_LIBRARY_SUFFIX} 
+    ${ATC_TRAKSTAR_BINARY_DIR}/ATC3DG${CMAKE_SHARED_LIBRARY_SUFFIX} 
     )
         
 ENDIF( PLUS_USE_Ascension3DG )
 
+#--------------------------------------------------------------------------
+# Ascension 3DGm support (medSAFE)
+IF( PLUS_USE_Ascension3DGm )
+  
+  SET(ATC_MEDSAFE_BASE_DIR ${PLUSLIB_TOOLS_DIR}/Ascension/medSAFE_940033_Rev_F)
 
+  SET( ATC_MEDSAFE_INCLUDE_DIR ${ATC_MEDSAFE_BASE_DIR}/inc CACHE PATH "Path to the Ascension medSAFE 3D Guidance library folder (where the ATC3DGm.h file is located)" FORCE )
+  SET( ATC_MEDSAFE_LIB_DIR ${ATC_MEDSAFE_BASE_DIR}/lib CACHE PATH "Path to the Ascension medSAFE 3D Guidance library folder" FORCE )
+  SET( ATC_MEDSAFE_BINARY_DIR ${ATC_MEDSAFE_BASE_DIR}/bin CACHE PATH "Path to the Ascension medSAFE 3D Guidance dll folder" FORCE ) 
+
+      
+  SET (Tracking_SRCS ${Tracking_SRCS} Ascension3DGTracking/vtkAscension3DGTracker.cxx )
+	if (WIN32)	
+		SET (Tracking_HDRS ${Tracking_HDRS} Ascension3DGTracking/vtkAscension3DGTracker.h )
+	endif (WIN32)
+	
+  SET (Tracking_INCLUDE_DIRS ${Tracking_INCLUDE_DIRS} 
+    ${ATC_MEDSAFE_INCLUDE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/Ascension3DGTracking
+    CACHE INTERNAL "" FORCE
+    )
+
+  SET (Tracking_LIBS ${Tracking_LIBS}
+    ${ATC_MEDSAFE_LIB_DIR}/ATC3DGm${CMAKE_STATIC_LIBRARY_SUFFIX}
+    )
+  
+  SET ( External_Libraries_Install ${External_Libraries_Install}
+    ${ATC_MEDSAFE_BINARY_DIR}/ATC3DGm${CMAKE_SHARED_LIBRARY_SUFFIX} 
+    )
+        
+ENDIF( PLUS_USE_Ascension3DGm )
 
 #--------------------------------------------------------------------------
 # OpenIGTLink tracker
@@ -270,37 +303,6 @@ IF( PLUS_USE_OpenIGTLink )
     )
 
 ENDIF( PLUS_USE_OpenIGTLink )
-
-
-
-#--------------------------------------------------------------------------
-# Ascension 3DGm support (MedSafe!!!)
-IF( PLUS_USE_Ascension3DGm )
-  
-  # MedSafe version
-  SET(ATCM_INCLUDE_DIRECTORY ${PLTOOLS_DIR}/Ascension/Ascension3DGm/inc CACHE PATH "Directory where the ATC3DGm.h file is located" FORCE)
-  SET(ATCM_LIBRARY_DIRECTORY ${PLTOOLS_DIR}/Ascension/Ascension3DGm/lib CACHE PATH "Path to the Ascension 3D Guidance medSAFE library folder" FORCE)
-      
-  SET (Tracking_SRCS ${Tracking_SRCS} Ascension3DGTracking/vtkAscension3DGTracker.cxx )
-	if (WIN32)	
-		SET (Tracking_HDRS ${Tracking_HDRS} Ascension3DGTracking/vtkAscension3DGTracker.h )
-	endif (WIN32)
-	
-  SET (Tracking_INCLUDE_DIRS ${Tracking_INCLUDE_DIRS} 
-    ${ATCM_INCLUDE_DIRECTORY}
-    ${CMAKE_CURRENT_SOURCE_DIR}/Ascension3DGTracking
-    CACHE INTERNAL "" FORCE
-    )
-
-  SET (Tracking_LIBS ${Tracking_LIBS}
-    ${ATC_LIBRARY_DIRECTORY}/ATC3DGm${CMAKE_STATIC_LIBRARY_SUFFIX}
-    )
-  
-  SET ( External_Libraries_Install ${External_Libraries_Install}
-    ${ATCM_LIBRARY_DIRECTORY}/ATC3DGm${CMAKE_SHARED_LIBRARY_SUFFIX} 
-    )
-        
-ENDIF( PLUS_USE_Ascension3DGm )
 
 # --------------------------------------------------------------------------
 # Build the library
