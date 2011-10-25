@@ -4,6 +4,10 @@
   See License.txt for details.
 =========================================================Plus=header=end*/ 
 
+/*!
+  \file This test computes center of rotation on a recorded data set and compares the results to a baseline
+*/ 
+
 #include "PlusConfigure.h"
 #include "vtksys/CommandLineArguments.hxx"
 #include "vtksys/SystemTools.hxx"

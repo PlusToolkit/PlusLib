@@ -11,13 +11,11 @@
 
 class vtkPlusCommand;
 
-/** \class vtkPlusCommandCollection 
- *
- * \brief Thread-safe container that stores multiple PlusCommand objects.
- * 
- * \ingroup PlusLibDataCollection
- *
- */
+/*!
+  \class vtkPlusCommandCollection 
+  \brief Thread-safe container that stores multiple PlusCommand objects.
+  \ingroup PlusLibDataCollection
+*/
 class
 VTK_EXPORT
 vtkPlusCommandCollection
@@ -32,9 +30,10 @@ public:
 
   vtkPlusCommand* GetNextItem();
    
-  /** Reentrant safe way to get an object in a collection. Just pass the
-   * same cookie back and forth.
-   */    
+  /*!
+    Reentrant safe way to get an object in a collection. Just pass the
+    same cookie back and forth.
+  */    
   vtkPlusCommand* GetNextPlusCommand( vtkCollectionSimpleIterator &cookie );
 
 protected:
@@ -43,7 +42,7 @@ protected:
   
 
 private:
-  /** hide the standard AddItem from the user and the compiler. */
+  /*! hide the standard AddItem from the user and the compiler. */
   void AddItem( vtkObject* o ) { this->vtkCollection::AddItem( o ); };
 
 private:

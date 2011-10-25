@@ -1,3 +1,9 @@
+/*=Plus=header=begin======================================================
+  Program: Plus
+  Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+  See License.txt for details.
+=========================================================Plus=header=end*/
+
 #ifndef __PlusCommon_h
 #define __PlusCommon_h
 
@@ -114,6 +120,17 @@ private:
 
   T* m_LockableObject;
 };
+
+/*! 
+  \def DELETE_IF_NOT_NULL(Object)
+  \brief A macro to safely delete a VTK object (usable if the VTK object pointer is already NULL).
+*/
+#define DELETE_IF_NOT_NULL( Object ) {\
+  if ( Object != NULL ) {\
+    Object->Delete();\
+    Object = NULL;\
+  }\
+}
 
 namespace PlusCommon
 {

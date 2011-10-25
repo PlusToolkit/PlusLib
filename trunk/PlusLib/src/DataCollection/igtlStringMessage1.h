@@ -18,14 +18,11 @@
 namespace igtl
 {
 
-/** \class StringMessage1 
- *
- * \brief This class enables string messages in programs that still use
- * OpenIGTLink protocol 1. 
- *    
- * \ingroup PlusLibDataCollection
- *
- */
+/*! 
+  \class StringMessage1 
+  \brief This class enables string messages in programs that still use OpenIGTLink protocol 1. 
+  \ingroup PlusLibDataCollection
+*/
 class IGTLCommon_EXPORT StringMessage1: public MessageBase
 {
 public:

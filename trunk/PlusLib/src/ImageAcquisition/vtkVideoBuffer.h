@@ -1,30 +1,17 @@
+/*=Plus=header=begin======================================================
+  Program: Plus
+  Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+  See License.txt for details.
+=========================================================Plus=header=end*/
+
 /*=========================================================================
-
-Program:   Visualization Toolkit
-Module:    $RCSfile: vtkVideoBuffer.h,v $
-
+The following copyright notice is applicable to parts of this file:
 Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen
 All rights reserved.
 See Copyright.txt or http://www.kitware.com/Copyright.htm for details.
-
-Author: Danielle Pace
-Robarts Research Institute and The University of Western Ontario
-
-This software is distributed WITHOUT ANY WARRANTY; without even
-the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
-PURPOSE.  See the above copyright notice for more information. 
-
-=========================================================================*/
-// .NAME vtkVideoBuffer - Store a collection of video frames
-// .SECTION Description
-// vtkVideoBuffer is a structure for holding video frames that are
-// captured either from a vtkRenderWindow or from some other video
-// source.  The buffer can be locked, to allow some video frames to
-// be written to while other frames are being read from.  Hopefully
-// an additional class will be written that will take a vtkVideoBuffer
-// and compress it into a movie file.
-// .SECTION See Also
-// vtkPlusVideoSource vtkWin32VideoSource2 vtkMILVideoSource2
+Authors include: Danielle Pace
+(Robarts Research Institute and The University of Western Ontario)
+=========================================================================*/ 
 
 #ifndef __vtkVideoBuffer_h
 #define __vtkVideoBuffer_h
@@ -43,6 +30,11 @@ PURPOSE.  See the above copyright notice for more information.
 class vtkImageData; 
 class vtkTrackedFrameList;
 
+/*!
+  \class VideoBufferItem 
+  \brief Stores a single video frame
+  \ingroup PlusLibImageAcquisition
+*/
 class VTK_EXPORT VideoBufferItem : public TimestampedBufferItem
 {
 public:
@@ -53,7 +45,7 @@ public:
   VideoBufferItem(const VideoBufferItem& videoBufferItem); 
   VideoBufferItem& operator=(VideoBufferItem const&videoItem); 
 
-  // Copy video buffer item 
+  /*! Copy video buffer item */
   PlusStatus DeepCopy(VideoBufferItem* videoBufferItem); 
   
   PlusVideoFrame& GetFrame() { return this->Frame; };
@@ -64,6 +56,17 @@ private:
 
 #define UNDEFINED_TIMESTAMP DBL_MAX
 
+/*!
+  \class vtkVideoBuffer 
+  \brief Store a collection of video frames
+
+  vtkVideoBuffer is a structure for storing the last N number of
+  timestamped video frames that are captured using a video source.
+
+  \sa vtkPlusVideoSource vtkWin32VideoSource2 vtkMILVideoSource2
+
+  \ingroup PlusLibImageAcquisition
+*/
 class VTK_EXPORT vtkVideoBuffer : public vtkObject
 {
 public:	
@@ -79,119 +82,129 @@ public:
   vtkTypeRevisionMacro(vtkVideoBuffer,vtkObject);
   void PrintSelf(ostream& os, vtkIndent indent);
 
-  // Description:
-  // Set/Get the size of the buffer, i.e. the maximum number of
-  // video frames that it will hold.  The default is 30.
+  /*!
+    Set the size of the buffer, i.e. the maximum number of
+    video frames that it will hold.  The default is 30.
+  */
   virtual PlusStatus SetBufferSize(int n);
+  /*! Get the size of the buffer */
   virtual int GetBufferSize(); 
 
-  // Description:
-  // Add a frame plus a timestamp to the buffer with frame index.  If the timestamp is
-  // less than or equal to the previous timestamp, or if the frame's format
-  // doesn't match the buffer's frame format, then nothing will be done.
+  /*!
+    Add a frame plus a timestamp to the buffer with frame index.
+    If the timestamp is  less than or equal to the previous timestamp,
+    or if the frame's format doesn't match the buffer's frame format,
+    then the frame is not added to the buffer.
+  */
   virtual PlusStatus AddItem(vtkImageData* frame, US_IMAGE_ORIENTATION usImageOrientation, long frameNumber, double unfilteredTimestamp=UNDEFINED_TIMESTAMP, double filteredTimestamp=UNDEFINED_TIMESTAMP); 
+  /*!
+    Add a frame plus a timestamp to the buffer with frame index.
+    If the timestamp is  less than or equal to the previous timestamp,
+    or if the frame's format doesn't match the buffer's frame format,
+    then the frame is not added to the buffer.
+  */
   virtual PlusStatus AddItem(const PlusVideoFrame* frame, US_IMAGE_ORIENTATION usImageOrientation, long frameNumber, double unfilteredTimestamp=UNDEFINED_TIMESTAMP, double filteredTimestamp=UNDEFINED_TIMESTAMP); 
+  /*!
+    Add a frame plus a timestamp to the buffer with frame index.
+    If the timestamp is  less than or equal to the previous timestamp,
+    or if the frame's format doesn't match the buffer's frame format,
+    then the frame is not added to the buffer.
+  */
   virtual PlusStatus AddItem(void* imageDataPtr, US_IMAGE_ORIENTATION  usImageOrientation, const int frameSizeInPx[2], PlusCommon::ITKScalarPixelType pixelType, int	numberOfBytesToSkip, long   frameNumber, double unfilteredTimestamp=UNDEFINED_TIMESTAMP, double filteredTimestamp=UNDEFINED_TIMESTAMP); 
 
-  // Description:
-  // Get tracker item from buffer 
+  /*! Get a frame with the specified frame uid from the buffer */
   virtual ItemStatus GetVideoBufferItem(BufferItemUidType uid, VideoBufferItem* bufferItem);
+  /*! Get the most recent frame from the buffer */
   virtual ItemStatus GetLatestVideoBufferItem(VideoBufferItem* bufferItem) { return this->GetVideoBufferItem( this->GetLatestItemUidInBuffer(), bufferItem); }; 
+  /*! Get the oldest frame from buffer */
   virtual ItemStatus GetOldestVideoBufferItem(VideoBufferItem* bufferItem) { return this->GetVideoBufferItem( this->GetOldestItemUidInBuffer(), bufferItem); }; 
+  /*! Get a frame that was acquired at the specified time from buffer */
   virtual ItemStatus GetVideoBufferItemFromTime( double time, VideoBufferItem* bufferItem); 
 
-  // Description:
-  // Get latest timestamp in the buffer 
+  /*! Get latest timestamp in the buffer */
   virtual ItemStatus GetLatestTimeStamp( double& latestTimestamp );  
 
-  // Description:
-  // Get oldest timestamp in the buffer 
+  /*! Get oldest timestamp in the buffer */
   virtual ItemStatus GetOldestTimeStamp( double& oldestTimestamp );  
 
-  // Description:
-  // Get video buffer item timestamp 
+  /*! Get video buffer item timestamp */
   virtual ItemStatus GetTimeStamp( BufferItemUidType uid, double& timestamp); 
 
-  // Description:
-  // Get buffer item unique ID 
+  /*! Get buffer item unique ID */
   virtual BufferItemUidType GetOldestItemUidInBuffer() { return this->VideoBuffer->GetOldestItemUidInBuffer(); }
   virtual BufferItemUidType GetLatestItemUidInBuffer() { return this->VideoBuffer->GetLatestItemUidInBuffer(); }
   virtual ItemStatus GetItemUidFromTime(double time, BufferItemUidType& uid) { return this->VideoBuffer->GetItemUidFromTime(time, uid); }
 
-  // Description:	
-  // Get/Set the local time offset (global = local + offset)
+  /*! Get/Set the local time offset (global = local + offset) */
   virtual void SetLocalTimeOffset(double offset);
   virtual double GetLocalTimeOffset();
 
-  // Description:
-  // Get the number of items in the buffer
+  /*! Get the number of items in the buffer */
   virtual int GetNumberOfItems() { return this->VideoBuffer->GetNumberOfItems(); }
 
-  // Description:
-  // Get the frame rate from the buffer based on the number of frames in the buffer
-  // and the elapsed time.
-  // Ideal frame rate shows the mean of the frame periods in the buffer based on the frame 
-  // number difference (aka the device frame rate)
+  /*!
+    Get the frame rate from the buffer based on the number of frames in the buffer and the elapsed time.
+    Ideal frame rate shows the mean of the frame periods in the buffer based on the frame 
+    number difference (aka the device frame rate)
+  */
   virtual double GetFrameRate( bool ideal = false) { return this->VideoBuffer->GetFrameRate(ideal); }
 
-  // Description:
-  // Make this buffer into a copy of another buffer.  You should
-  // Lock both of the buffers before doing this.
+  /*! Make this buffer into a copy of another buffer.  You should Lock both of the buffers before doing this. */
   virtual void DeepCopy(vtkVideoBuffer* buffer); 
 
-  // Description:
-  // Clear buffer (set the buffer pointer to the first element)
+  /*! Clear buffer (set the buffer pointer to the first element) */
   virtual void Clear(); 
 
-  // Description:
-  // Set/Get number of items used for timestamp filtering (with LSQR mimimizer)
+  /*! Set number of items used for timestamp filtering (with LSQR mimimizer) */
   virtual void SetAveragedItemsForFiltering(int averagedItemsForFiltering); 
 
-  // Description:
-  // Set/get recording start time
+  /*! Set recording start time */
   virtual void SetStartTime( double startTime ); 
+  /*! Get recording start time */
   virtual double GetStartTime(); 
 
-  // Description: 
-  // Get the table report of the timestamped buffer 
+  /*! Get the table report of the timestamped buffer  */
   virtual PlusStatus GetTimeStampReportTable(vtkTable* timeStampReportTable); 
 
-  // Description:
-  // Set/get frame size in pixel 
+  /*! Set the frame size in pixel  */
   PlusStatus SetFrameSize(int x, int y); 
+  /*! Set the frame size in pixel  */
   PlusStatus SetFrameSize(int frameSize[2]); 
+  /*! Get the frame size in pixel  */
   vtkGetVector2Macro(FrameSize, int); 
 
-  // Description:
-  // Set/get pixel size in bits 
+  /*! Set the pixel type */
   PlusStatus SetPixelType(PlusCommon::ITKScalarPixelType pixelType); 
+  /*! Get the pixel type */
   vtkGetMacro(PixelType, PlusCommon::ITKScalarPixelType); 
 
+  /*! Get the number of bytes per pixel */
   int GetNumberOfBytesPerPixel();
 
-  //! Operation:
-  // Copy images from a tracked frame buffer. It is useful when data is stored in a
-  // metafile and the data is needed as a vtkVideoBuffer.
+  /*! Copy images from a tracked frame buffer. It is useful when data is stored in a metafile and the data is needed as a vtkVideoBuffer. */
   PlusStatus CopyImagesFromTrackedFrameList(vtkTrackedFrameList *sourceTrackedFrameList, TIMESTAMP_FILTERING_OPTION timestampFiltering);
 
 protected:
   vtkVideoBuffer();
   ~vtkVideoBuffer();
 
-  // Description:
-  // Update video buffer by setting the frame format for each frame 
+  /*! Update video buffer by setting the frame format for each frame  */
   virtual PlusStatus AllocateMemoryForFrames(); 
 
-
-  // Description:
-  // Compares frame format with new frame imaging parameters
-  // Returns true if it matches, otherwise false
+  /*! 
+    Compares frame format with new frame imaging parameters.
+    \return true if current buffer frame format matches the method arguments, otherwise false
+  */
   virtual bool CheckFrameFormat( const int frameSizeInPx[2], PlusCommon::ITKScalarPixelType pixelType ); 
 
+  /*! Image frame size in pixel */
   int FrameSize[2]; 
+  
+  /*! Image pixel type */
   PlusCommon::ITKScalarPixelType PixelType; 
 
   typedef vtkTimestampedCircularBuffer<VideoBufferItem> VideoBufferType;
+  /*! Timestamped circular buffer that stores the last N frames */
   VideoBufferType* VideoBuffer; 
 
 private:

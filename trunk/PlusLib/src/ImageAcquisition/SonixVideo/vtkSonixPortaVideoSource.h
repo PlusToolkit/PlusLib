@@ -1,18 +1,17 @@
+/*=Plus=header=begin======================================================
+  Program: Plus
+  Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+  See License.txt for details.
+=========================================================Plus=header=end*/
+
 /*=========================================================================
+The following copyright notice is applicable to parts of this file:
+Copyright (c) Elvis Chen, 2008
+All rights reserved.
+See Copyright.txt or http://www.kitware.com/Copyright.htm for details.
+Authors include: Elvis Chen (Queen's University)
+=========================================================================*/  
 
-  Program:   Visualization Toolkit
-  Module:    $RCSfile: vtkSonixPortaVideoSource.h,v $
-
-  Copyright (c) Elvis Chen, Queen's University,
-                chene@cs.queensu.ca
-                Sept 2008.
-  All rights reserved.
-
-     This software is distributed WITHOUT ANY WARRANTY; without even
-     the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
-     PURPOSE.  See the above copyright notice for more information.
-
-=========================================================================*/
 // .NAME vtkSonixPortaVideoSource - video input interface for SonixRP
 // .SECTION Description
 // vtkSonixPortaVideoSource is a subclass of vtkVideoSource that

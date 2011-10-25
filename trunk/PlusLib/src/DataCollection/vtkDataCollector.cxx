@@ -4,6 +4,8 @@
   See License.txt for details.
 =========================================================Plus=header=end*/ 
 
+#include "PlusConfigure.h"
+
 #include "vtkDataCollector.h"
 
 #include "PlusConfigure.h"
@@ -118,7 +120,6 @@ vtkDataCollector::vtkDataCollector()
   this->VideoEnabled = true;
   this->CancelSyncRequestOff(); 
 }
-
 
 //----------------------------------------------------------------------------
 vtkDataCollector::~vtkDataCollector()

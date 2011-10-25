@@ -1,3 +1,14 @@
+/*=Plus=header=begin======================================================
+Program: Plus
+Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+See License.txt for details.
+=========================================================Plus=header=end*/ 
+
+/*!
+  \file This program tests the line detection algorithm that is used for temporal calibration
+  (synchronization between the tracking and image data).
+*/ 
+
 #include "PlusConfigure.h"
 #include "vtksys/CommandLineArguments.hxx"
 #include "vtkTrackedFrameList.h"

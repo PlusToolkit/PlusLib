@@ -4,6 +4,10 @@
   See License.txt for details.
 =========================================================Plus=header=end*/ 
 
+/*!
+  \file This test computes the image spacing on a recorded data set and compares the results to a baseline
+*/ 
+
 #include "PlusConfigure.h"
 #include "vtksys/CommandLineArguments.hxx"
 #include "vtksys/SystemTools.hxx"
@@ -57,7 +61,7 @@ int main(int argc, char **argv)
 
   if ( inputSequenceMetafiles.empty() || inputConfigFileName.empty() || inputBaselineFileName.empty() )
   {
-    std::cerr << "input-translation-sequence-metafile, input-baseline-file-name and input-config-file-name are required arguments!" << std::endl;
+    std::cerr << "input-sequence-metafiles, input-baseline-file-name and input-config-file-name are required arguments!" << std::endl;
     std::cout << "Help: " << args.GetHelp() << std::endl;
     exit(EXIT_FAILURE);
   }

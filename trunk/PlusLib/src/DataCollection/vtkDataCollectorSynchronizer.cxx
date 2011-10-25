@@ -5,6 +5,7 @@
 =========================================================Plus=header=end*/ 
 
 #include "PlusConfigure.h"
+
 #include "PlusMath.h"
 #include "vtkDataCollectorSynchronizer.h"
 #include "vtkObjectFactory.h"

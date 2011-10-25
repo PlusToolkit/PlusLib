@@ -4,6 +4,7 @@
   See License.txt for details.
 =========================================================Plus=header=end*/ 
 
+#include "PlusConfigure.h"
 #include "vtkPlusOpenIGTLinkServer.h"
 
 #include "vtkMultiThreader.h"
@@ -19,53 +20,29 @@
 #include "vtkPlusCommand.h"
 #include "vtkPlusCommandFactory.h"
 
-
-
-#define DELETE_IF_NOT_NULL( Object ) {\
-  if ( Object != NULL ) {\
-    Object->Delete();\
-    Object = NULL;\
-  }\
-}\
-
-
-
 vtkCxxRevisionMacro( vtkPlusOpenIGTLinkServer, "$Revision: 1.0 $" );
 vtkStandardNewMacro( vtkPlusOpenIGTLinkServer ); 
 
-
-
-
-void
-vtkPlusOpenIGTLinkServer
-::PrintSelf( ostream& os, vtkIndent indent )
+//----------------------------------------------------------------------------
+void vtkPlusOpenIGTLinkServer::PrintSelf( ostream& os, vtkIndent indent )
 {
 	this->Superclass::PrintSelf( os, indent );
 }
 
-
-
-void
-vtkPlusOpenIGTLinkServer
-::SetDataCollector( vtkDataCollector* dataCollector )
+//----------------------------------------------------------------------------
+void vtkPlusOpenIGTLinkServer::SetDataCollector( vtkDataCollector* dataCollector )
 {
   this->DataCollector = dataCollector;
 }
 
-
-
-int
-vtkPlusOpenIGTLinkServer
-::GetBufferedMessageCount()
+//----------------------------------------------------------------------------
+int vtkPlusOpenIGTLinkServer::GetBufferedMessageCount()
 {
   return this->MessageQueue->GetSize();
 }
 
-
-
-int
-vtkPlusOpenIGTLinkServer
-::Initialize( std::string &strError )
+//----------------------------------------------------------------------------
+int vtkPlusOpenIGTLinkServer::Initialize( std::string &strError )
 {
   if (    this->DataCollector == NULL
        || this->DataCollector->GetTracker() == NULL )
@@ -77,11 +54,8 @@ vtkPlusOpenIGTLinkServer
   return 0;
 }
 
-
-
-PlusStatus
-vtkPlusOpenIGTLinkServer
-::Start()
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusOpenIGTLinkServer::Start()
 {
   if ( this->DataCollector == NULL )
   {
@@ -101,11 +75,8 @@ vtkPlusOpenIGTLinkServer
   return PLUS_SUCCESS;
 }
 
-
-
-PlusStatus
-vtkPlusOpenIGTLinkServer
-::Stop()
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusOpenIGTLinkServer::Stop()
 {
   if ( this->ThreadId < 0 )
   {
@@ -121,11 +92,8 @@ vtkPlusOpenIGTLinkServer
   return PLUS_SUCCESS;
 }
 
-
-
-void*
-vtkPlusOpenIGTLinkServer
-::vtkCommunicationThread( vtkMultiThreader::ThreadInfo* data )
+//----------------------------------------------------------------------------
+void* vtkPlusOpenIGTLinkServer::vtkCommunicationThread( vtkMultiThreader::ThreadInfo* data )
 {
   vtkPlusOpenIGTLinkServer* self = (vtkPlusOpenIGTLinkServer*)( data->UserData );
   
@@ -165,15 +133,12 @@ vtkPlusOpenIGTLinkServer
   return NULL;
 }
 
-
-
-/**
- * Execute the next command in the command buffer, which is filled by the 
- * communication thread.
- */
-void
-vtkPlusOpenIGTLinkServer
-::ExecuteNextCommand()
+//----------------------------------------------------------------------------
+/*!
+  Execute the next command in the command buffer, which is filled by the 
+  communication thread.
+*/
+void vtkPlusOpenIGTLinkServer ::ExecuteNextCommand()
 {
   igtl::MessageBase* nextMessage = this->MessageQueue->PullMessage();
   if ( nextMessage == NULL ) return;
@@ -183,13 +148,9 @@ vtkPlusOpenIGTLinkServer
   this->React( nextStringMessage->GetString() );
 }
 
-
-
-/**
- * Protected constructor.
- */
-vtkPlusOpenIGTLinkServer
-::vtkPlusOpenIGTLinkServer()
+//----------------------------------------------------------------------------
+/*! Protected constructor. */
+vtkPlusOpenIGTLinkServer ::vtkPlusOpenIGTLinkServer()
 {
   this->NetworkPort = -1;
   this->ThreadId = -1;
@@ -204,13 +165,8 @@ vtkPlusOpenIGTLinkServer
   this->ClientSocket = NULL;
 }
 
-
-
-/**
- * Destructor.
- */
-vtkPlusOpenIGTLinkServer
-::~vtkPlusOpenIGTLinkServer()
+//----------------------------------------------------------------------------
+vtkPlusOpenIGTLinkServer::~vtkPlusOpenIGTLinkServer()
 {
   this->Stop();
   
@@ -219,11 +175,8 @@ vtkPlusOpenIGTLinkServer
   DELETE_IF_NOT_NULL( this->Mutex )
 }
 
-
-
-void
-vtkPlusOpenIGTLinkServer
-::WaitForConnection()
+//----------------------------------------------------------------------------
+void vtkPlusOpenIGTLinkServer::WaitForConnection()
 {
   while ( this->GetActive() )
   {
@@ -244,11 +197,8 @@ vtkPlusOpenIGTLinkServer
   }
 }
 
-
-
-void
-vtkPlusOpenIGTLinkServer
-::ReceiveController()
+//----------------------------------------------------------------------------
+void vtkPlusOpenIGTLinkServer::ReceiveController()
 {
   igtl::MessageHeader::Pointer header = igtl::MessageHeader::New();
   
@@ -311,11 +261,8 @@ vtkPlusOpenIGTLinkServer
   }
 }
 
-
-
-void
-vtkPlusOpenIGTLinkServer
-::React( std::string input )
+//----------------------------------------------------------------------------
+void vtkPlusOpenIGTLinkServer::React( std::string input )
 {
   vtkSmartPointer< vtkPlusCommandFactory > commandFactory =
       vtkSmartPointer< vtkPlusCommandFactory >::New();
@@ -335,4 +282,3 @@ vtkPlusOpenIGTLinkServer
     
   command->Delete();
 }
-

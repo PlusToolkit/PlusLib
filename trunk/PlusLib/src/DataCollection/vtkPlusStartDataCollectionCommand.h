@@ -16,13 +16,11 @@
 #include "vtkDataCollector.h"
 #include "vtkPlusCommand.h"
 
-/** \class vtkPlusStartDataCollectionCommand 
- *
- *  \brief This command starts the vtkDataCollector on the server side. 
- *
- *  \ingroup PlusLibDataCollection
- *
- */
+/*!
+  \class vtkPlusStartDataCollectionCommand 
+  \brief This command starts the vtkDataCollector on the server side. 
+  \ingroup PlusLibDataCollection
+*/
 class
 VTK_EXPORT 
 vtkPlusStartDataCollectionCommand

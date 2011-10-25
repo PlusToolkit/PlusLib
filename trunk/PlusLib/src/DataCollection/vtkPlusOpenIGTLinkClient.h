@@ -7,7 +7,6 @@
 #ifndef __VTKPLUSOPENIGTLINKCLIENT_H
 #define __VTKPLUSOPENIGTLINKCLIENT_H
 
-
 #include <string>
 #include <vector>
 
@@ -22,16 +21,14 @@
 class vtkMultiThreader; 
 class vtkMutexLock;
 
-/** \class vtkPlusOpenIGTLinkClient 
- *
- * \brief This class provides a network interface to access Plus functions
- * as an OpenIGTLink client.
- * 
- * It connects to a Plus server, sends requests and receives responses.  
- *
- * \ingroup PlusLibDataCollection
- *
- */
+/*!
+  \class vtkPlusOpenIGTLinkClient 
+  \brief This class provides a network interface to access Plus functions as an OpenIGTLink client.
+
+  It connects to a Plus server, sends requests and receives responses.  
+  
+  \ingroup PlusLibDataCollection
+*/
 class
 VTK_EXPORT 
 vtkPlusOpenIGTLinkClient

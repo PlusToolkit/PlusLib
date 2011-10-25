@@ -1,3 +1,9 @@
+/*=Plus=header=begin======================================================
+  Program: Plus
+  Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+  See License.txt for details.
+=========================================================Plus=header=end*/
+
 // .NAME vtkVolumeReconstructor - reconstructs a volume from tracked frames
 // .SECTION Description
 // This is a convenience class for inserting tracked frames into a volume

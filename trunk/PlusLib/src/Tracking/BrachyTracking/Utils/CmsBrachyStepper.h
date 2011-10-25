@@ -1,3 +1,9 @@
+/*=Plus=header=begin======================================================
+  Program: Plus
+  Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+  See License.txt for details.
+=========================================================Plus=header=end*/
+
 #ifndef _CMSBRACHYSTEPPER_H_
 #define _CMSBRACHYSTEPPER_H_
 /**************************************************************

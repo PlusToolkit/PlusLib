@@ -1,3 +1,13 @@
+/*=Plus=header=begin======================================================
+Program: Plus
+Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+See License.txt for details.
+=========================================================Plus=header=end*/ 
+
+/*!
+  \file This program acquires tracked ultrasound data. It can displays the result in real-time in a 3D viewer and also broadcasts it through OpenIGTLink.
+*/ 
+
 #include "PlusConfigure.h"
 #include "vtksys/CommandLineArguments.hxx"
 #include "vtkSmartPointer.h"

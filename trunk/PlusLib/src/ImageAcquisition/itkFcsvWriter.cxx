@@ -1,4 +1,8 @@
-//The following include to make Visual Studio 6 happy
+/*=Plus=header=begin======================================================
+  Program: Plus
+  Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+  See License.txt for details.
+=========================================================Plus=header=end*/
 
 #include <stdio.h>
 #include <string>

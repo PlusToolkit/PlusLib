@@ -1,3 +1,13 @@
+/*=Plus=header=begin======================================================
+Program: Plus
+Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+See License.txt for details.
+=========================================================Plus=header=end*/ 
+
+/*!
+  \file This program tests Plus server and Plus client. The communication in this test
+  happens between two threads. In real life, it happens between two programs.
+*/ 
 
 #include <iostream>
 #include <string>
@@ -21,11 +31,6 @@
 #include "vtkPlusStopDataCollectionCommand.h"
 
 
-
-/**
- * This program tests Plus server and Plus client. The communication in this test
- * happens between two threads. In real life, it happens between two programs.
- */
 int main( int argc, char** argv )
 {
   vtkObjectFactory::RegisterFactory( vtkSmartPointer< vtkPlusCommandFactory >::New() );

@@ -1,8 +1,12 @@
-/* ============================================================================
+/*=Plus=header=begin======================================================
+  Program: Plus
+  Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+  See License.txt for details.
+=========================================================Plus=header=end*/
 
-File: vtkFakeTracker.cxx
-Author: Kyle Charbonneau <kcharbon@imaging.robarts.ca>
-Language: C++
+/* ============================================================================
+Authors include: Kyle Charbonneau <kcharbon@imaging.robarts.ca>
+
 Description: 
 This class represents a fake tracking system with tools that have
 predetermined behaviour. This allows someonew who doesn't have access to

@@ -4,29 +4,22 @@
   See License.txt for details.
 =========================================================Plus=header=end*/ 
 
-#include "vtkPlusStopDataCollectionCommand.h"
+#include "PlusConfigure.h"
 
+#include "vtkPlusStopDataCollectionCommand.h"
 #include "igtlStringMessage1.h"
 
-
-
 vtkCxxRevisionMacro( vtkPlusStopDataCollectionCommand, "$Revision: 1.0 $" );
-
 vtkStandardNewMacro( vtkPlusStopDataCollectionCommand ); 
 
-
-
-void
-vtkPlusStopDataCollectionCommand
-::PrintSelf( ostream& os, vtkIndent indent )
+//----------------------------------------------------------------------------
+void vtkPlusStopDataCollectionCommand::PrintSelf( ostream& os, vtkIndent indent )
 {
 	this->Superclass::PrintSelf( os, indent );
 }
 
-
-bool
-vtkPlusStopDataCollectionCommand
-::CanExecute( std::string str )
+//----------------------------------------------------------------------------
+bool vtkPlusStopDataCollectionCommand::CanExecute( std::string str )
 {
   if ( str.compare( this->StringRepresentation ) == 0 )
     {
@@ -35,11 +28,8 @@ vtkPlusStopDataCollectionCommand
   return false;
 }
 
-  
-
-bool
-vtkPlusStopDataCollectionCommand
-::Execute()
+//----------------------------------------------------------------------------
+bool vtkPlusStopDataCollectionCommand::Execute()
 {
   PlusStatus status = this->DataCollector->Stop();
   if ( status == PLUS_FAIL )
@@ -50,35 +40,20 @@ vtkPlusStopDataCollectionCommand
   return true;
 }
 
-
-
-std::string
-vtkPlusStopDataCollectionCommand
-::GetStringRepresentation()
+//----------------------------------------------------------------------------
+std::string vtkPlusStopDataCollectionCommand::GetStringRepresentation()
 {
   return this->StringRepresentation;
 }
 
-
-
-/**
- * Constructor.
- */
-vtkPlusStopDataCollectionCommand
-::vtkPlusStopDataCollectionCommand()
+//----------------------------------------------------------------------------
+vtkPlusStopDataCollectionCommand::vtkPlusStopDataCollectionCommand()
 {
   this->StringRepresentation = "StopDataCollection";
   this->AddSupportedCommandString( this->StringRepresentation );
 }
 
-
-
-/**
- * Destructor.
- */
-vtkPlusStopDataCollectionCommand
-::~vtkPlusStopDataCollectionCommand()
+//----------------------------------------------------------------------------
+vtkPlusStopDataCollectionCommand::~vtkPlusStopDataCollectionCommand()
 {
-  
 }
-

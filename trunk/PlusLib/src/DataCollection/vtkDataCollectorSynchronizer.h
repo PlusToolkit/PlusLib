@@ -19,14 +19,11 @@
 class vtkHTMLGenerator; 
 class vtkGnuplotExecuter; 
 
-/** \class vtkDataCollectorSynchronizer 
- *
- * \brief Determines the time lag difference between tracker and
- * image source. 
- *    
- * \ingroup PlusLibDataCollection
- *
- */
+/*!
+  \class vtkDataCollectorSynchronizer 
+  \brief Determines the time lag difference between tracker and image source. 
+  \ingroup PlusLibDataCollection
+*/
 class VTK_EXPORT vtkDataCollectorSynchronizer : public vtkObject
 {
 public:
@@ -35,98 +32,102 @@ public:
 	vtkTypeRevisionMacro(vtkDataCollectorSynchronizer, vtkObject);
 	virtual void PrintSelf(ostream& os, vtkIndent indent);
 
-	/** Read/write main configuration from/to xml data */
+	/*! Read/write main configuration from/to xml data */
 	virtual PlusStatus ReadConfiguration(vtkXMLDataElement* rootElement); 
 
-	/** Start the synchronization */ 
+	/*! Start the synchronization */ 
 	virtual PlusStatus Synchronize(); 
 
-	/** Compute video offset mean, stdev, min, max after synchronization  */
+	/*! Compute video offset mean, stdev, min, max after synchronization  */
 	virtual void GetOffsetStatistics(double &meanVideoOffset, double &stdevVideoOffset, double &minVideoOffset, double &maxVideoOffset); 
 
-	/** Add generated html report from synchronization to the existing html report
-	 * htmlReport and plotter arguments has to be defined by the caller function */
+	/*!
+    Add generated html report from synchronization to the existing html report
+    htmlReport and plotter arguments has to be defined by the caller function
+  */
 	virtual PlusStatus GenerateSynchronizationReport( vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter, const char* gnuplotScriptsFolder); 
 	
-	/** Set/get video buffer  */
+	/*! Set/get video buffer  */
 	vtkSetObjectMacro(VideoBuffer, vtkVideoBuffer); 
 	vtkGetObjectMacro(VideoBuffer, vtkVideoBuffer); 
 
-	/** Set/get tracker buffer  */
+	/*! Set/get tracker buffer  */
 	vtkSetObjectMacro(TrackerBuffer, vtkTrackerBuffer); 
 	vtkGetObjectMacro(TrackerBuffer, vtkTrackerBuffer); 
 
-	/** Set/get base frame to compare  */
+	/*! Set/get base frame to compare  */
 	vtkSetObjectMacro(BaseFrame, vtkImageData); 
 	vtkGetObjectMacro(BaseFrame, vtkImageData); 
 
-	/** Set/get video offset  */
+	/*! Set/get video offset  */
 	vtkSetMacro(VideoOffset, double); 
 	vtkGetMacro(VideoOffset, double); 
 	
-	/** Set/get tracker offset */
+	/*! Set/get tracker offset */
 	vtkSetMacro(TrackerOffset, double);		
 	vtkGetMacro(TrackerOffset, double); 
 	
-	/** Set/get synchronization start time  */
+	/*! Set/get synchronization start time  */
 	vtkSetMacro(SyncStartTime, double); 
 	vtkGetMacro(SyncStartTime, double); 
 
-	/** Set/get the minimum number of synchronization movement
-	 * needs to perform to get reliable result  
-	 */
+	/*!
+    Set/get the minimum number of synchronization movement
+	  needs to perform to get reliable result  
+	*/
 	vtkSetMacro(MinNumOfSyncSteps, int); 
 	vtkGetMacro(MinNumOfSyncSteps, int); 
 
-	/** Set/get syncronization finished flag  */
+	/*! Set/get syncronization finished flag  */
 	vtkSetMacro(Synchronized, bool); 
 	vtkGetMacro(Synchronized, bool);
 	vtkBooleanMacro(Synchronized, bool); 
 	
-	/** Set/get the threshold multiplier value
-	 *  threshold =  ThresholdMultiplier * deviation  
-	 */
+	/*!
+    Set/get the threshold multiplier value
+	  threshold =  ThresholdMultiplier * deviation  
+	*/
 	vtkSetMacro(ThresholdMultiplier, int); 
 	vtkGetMacro(ThresholdMultiplier, int); 
 
-	/** Set/get the number of averaged frames needed to compute the frame threshold */
+	/*! Set/get the number of averaged frames needed to compute the frame threshold */
 	vtkSetMacro(NumberOfAveragedFrames, int); 
 	vtkGetMacro(NumberOfAveragedFrames, int);
 	
-	/** Set/get the number of averaged transforms needed to compute the transform threshold */
+	/*! Set/get the number of averaged transforms needed to compute the transform threshold */
 	vtkSetMacro(NumberOfAveragedTransforms, int); 
 	vtkGetMacro(NumberOfAveragedTransforms, int);
 
-	/** Set/get the minimum frame threshold */
+	/*! Set/get the minimum frame threshold */
 	vtkSetMacro(MinFrameThreshold, double); 
 	vtkGetMacro(MinFrameThreshold, double);
 
-	/** Set/get the maximum frame difference for still frame finding */
+	/*! Set/get the maximum frame difference for still frame finding */
 	vtkSetMacro(MaxFrameDifference, double); 
 	vtkGetMacro(MaxFrameDifference, double);
 		
-	/** Set/get the minimum transform threshold  */
+	/*! Set/get the minimum transform threshold  */
 	vtkSetMacro(MinTransformThreshold, double); 
 	vtkGetMacro(MinTransformThreshold, double);
 	
-	/** Set/get the maximum transform difference for still position finding */
+	/*! Set/get the maximum transform difference for still position finding */
 	vtkSetMacro(MaxTransformDifference, double); 
 	vtkGetMacro(MaxTransformDifference, double);
 	
-	/** Get/Set the Synchronization Time Length in seconds */
+	/*! Get/Set the Synchronization Time Length in seconds */
 	vtkSetMacro(SynchronizationTimeLength, double); 
 	vtkGetMacro(SynchronizationTimeLength, double);
 
-	/** Set/get startup delay in sec to give some time to the buffers for proper initialization before sync  */
+	/*! Set/get startup delay in sec to give some time to the buffers for proper initialization before sync  */
 	vtkSetMacro(StartupDelaySec, double); 
 	vtkGetMacro(StartupDelaySec, double);
 
-  /** Get the table report of the timestamped buffer  */
+  /*! Get the table report of the timestamped buffer  */
   PlusStatus GetSyncReportTable(vtkTable* syncReportTable); 
 
-	/** Callback function for progress bar refreshing */
 	typedef void (*ProgressBarUpdatePtr)(int percent);
-    void SetProgressBarUpdateCallbackFunction(ProgressBarUpdatePtr cb) { ProgressBarUpdateCallbackFunction = cb; } 
+  /*! Callback function for progress bar refreshing */
+  void SetProgressBarUpdateCallbackFunction(ProgressBarUpdatePtr cb) { ProgressBarUpdateCallbackFunction = cb; } 
 	
 protected:
 
@@ -143,10 +144,10 @@ protected:
 	vtkDataCollectorSynchronizer();
 	virtual ~vtkDataCollectorSynchronizer();
 
-  /** Start tracker motion detection  */
+  /*! Start tracker motion detection  */
   virtual PlusStatus DetectTrackerMotions(std::vector<double> &movedTransformTimestamps); 
 
-  /** Start video motion detection  */
+  /*! Start video motion detection  */
   virtual PlusStatus DetectVideoMotions(const std::vector<double> &movedTransformTimestamps); 
 
 	virtual PlusStatus ComputeFrameThreshold( BufferItemUidType& bufferIndex ); 
@@ -207,7 +208,7 @@ protected:
 	
   vtkTable* SyncReportTable; 
 
-	/** Pointer to the progress bar update callback function  */
+	/*! Pointer to the progress bar update callback function  */
 	ProgressBarUpdatePtr ProgressBarUpdateCallbackFunction; 
 
 private:

@@ -4,6 +4,10 @@
   See License.txt for details.
 =========================================================Plus=header=end*/ 
 
+/*!
+  \file This test runs a TRUS probe calibration on a recorded data set and compares the results to a baseline
+*/ 
+
 #include "PlusConfigure.h"
 #include "PlusMath.h"
 #include "vtkTrackedFrameList.h"
