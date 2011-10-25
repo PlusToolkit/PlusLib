@@ -154,12 +154,14 @@ IF (PLUS_USE_ICCAPTURING_VIDEO)
 	endif (WIN32)	
 	# Look for ICCapturing libraries
 
-  SET(ICCAPTURING_INCLUDE_DIR ${PLTOOLS_DIR}/ImagingControl/ImagingControl-3.1/include CACHE PATH "Path to the ImagingControl frame grabber include directory." FORCE)
+  SET(ICCAPTURING_BASE_DIR ${PLUSLIB_TOOLS_DIR}/ImagingControl/ImagingControl-3.1)
+
+  SET(ICCAPTURING_INCLUDE_DIR ${ICCAPTURING_BASE_DIR}/include CACHE PATH "Path to the ImagingControl frame grabber include directory." FORCE)
   IF ( WIN32 )
-    SET(ICCAPTURING_BIN_DIR ${PLTOOLS_DIR}/ImagingControl/ImagingControl-3.1/win32 CACHE PATH "Path to the ImagingControl frame grabber binary directory." FORCE)
+    SET(ICCAPTURING_BIN_DIR ${ICCAPTURING_BASE_DIR}/win32 CACHE PATH "Path to the ImagingControl frame grabber binary directory." FORCE)
   ENDIF ( WIN32 )
   IF ( CMAKE_HOST_WIN32 AND CMAKE_CL_64 )
-    SET(ICCAPTURING_BIN_DIR ${PLTOOLS_DIR}/ImagingControl/ImagingControl-3.1/x64 CACHE PATH "Path to the ImagingControl frame grabber binary directory." FORCE)
+    SET(ICCAPTURING_BIN_DIR ${ICCAPTURING_BASE_DIR}/x64 CACHE PATH "Path to the ImagingControl frame grabber binary directory." FORCE)
   ENDIF ( CMAKE_HOST_WIN32 AND CMAKE_CL_64 )
     
   SET (ImageAcquisition_INCLUDE_DIRS ${ImageAcquisition_INCLUDE_DIRS} 

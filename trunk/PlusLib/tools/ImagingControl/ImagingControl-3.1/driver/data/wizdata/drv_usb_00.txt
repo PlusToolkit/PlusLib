@@ -1,0 +1,3 @@
+# This contains the definitions of the hardware ids of the usb devices
+
+USB\VID_199E&PID_8001=DFG/USB2-lt

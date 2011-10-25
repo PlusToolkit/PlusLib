@@ -26,6 +26,7 @@ OPTION(BUILD_TESTING
 #
 
 SET (PLUSLIB_DATA_DIR ${CMAKE_CURRENT_SOURCE_DIR}/data)
+SET (PLUSLIB_TOOLS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/tools)
 # Need subversion for the automatic update of the repository
 find_package(Subversion)
 IF(Subversion_FOUND)
