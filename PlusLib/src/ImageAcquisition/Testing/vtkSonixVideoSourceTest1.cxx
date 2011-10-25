@@ -1,3 +1,9 @@
+/*=Plus=header=begin======================================================
+  Program: Plus
+  Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+  See License.txt for details.
+=========================================================Plus=header=end*/
+
 // Test basic connection to the Ultrasonix image acquisition
 // If the --rendering-off switch is defined then the connection is established, images are 
 // transferred for a few seconds, then the connection is closed (useful for automatic testing).

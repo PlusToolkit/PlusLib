@@ -1,3 +1,9 @@
+/*=Plus=header=begin======================================================
+  Program: Plus
+  Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+  See License.txt for details.
+=========================================================Plus=header=end*/
+
 // Simple implementation for an accurate wait
 // From http://www.codeguru.com/Cpp/W-P/system/timers/comments.php/c5759/?thread=63096
 

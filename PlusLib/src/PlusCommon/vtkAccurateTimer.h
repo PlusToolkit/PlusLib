@@ -1,3 +1,9 @@
+/*=Plus=header=begin======================================================
+  Program: Plus
+  Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+  See License.txt for details.
+=========================================================Plus=header=end*/
+
 // .NAME vtkAccurateTimer - class for accurate time measurement
 // .SECTION Description
 // This class is used for accuretly measuring elapsed time 

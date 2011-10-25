@@ -1,20 +1,18 @@
+/*=Plus=header=begin======================================================
+  Program: Plus
+  Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+  See License.txt for details.
+=========================================================Plus=header=end*/
+
 /*=========================================================================
-
-Program:   Visualization Toolkit
-Module:    $RCSfile: vtkPlusVideoSource.h,v $
-
+The following copyright notice is applicable to parts of this file:
 Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen
 All rights reserved.
 See Copyright.txt or http://www.kitware.com/Copyright.htm for details.
+Authors include: Danielle Pace
+(Robarts Research Institute and The University of Western Ontario)
+=========================================================================*/ 
 
-Author: Danielle Pace
-Robarts Research Institute and The University of Western Ontario
-
-This software is distributed WITHOUT ANY WARRANTY; without even
-the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
-PURPOSE.  See the above copyright notice for more information. 
-
-=========================================================================*/
 // .NAME vtkPlusVideoSource - Superclass of video input devices for VTK
 // .SECTION Description
 // vtkPlusVideoSource is a superclass for video input interfaces for VTK.

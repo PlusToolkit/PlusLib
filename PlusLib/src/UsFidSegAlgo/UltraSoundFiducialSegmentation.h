@@ -1,3 +1,9 @@
+/*=Plus=header=begin======================================================
+  Program: Plus
+  Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+  See License.txt for details.
+=========================================================Plus=header=end*/
+
 #ifndef _ULTRASOUND_FIDUCIAL_SEGMENTATION_H
 #define _ULTRASOUND_FIDUCIAL_SEGMENTATION_H
 

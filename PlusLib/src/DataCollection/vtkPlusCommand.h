@@ -19,17 +19,15 @@
 
 #include "vtkDataCollector.h"
 
-/** \class vtkPlusCommandCollection 
- *
- * \brief This is an abstract superclass for commands in the OpenIGTLink
- * network interface for Plus.
- *
- * A Pluggable Factory pattern is used to allow different kinds of
- * commands to be registered without having to modify the code in this class.
- *    
- * \ingroup PlusLibDataCollection
- *
- */
+/*!
+  \class vtkPlusCommandCollection 
+  \brief This is an abstract superclass for commands in the OpenIGTLink network interface for Plus.
+
+  A Pluggable Factory pattern is used to allow different kinds of
+  commands to be registered without having to modify the code in this class.
+
+  \ingroup PlusLibDataCollection
+*/
 class
 VTK_EXPORT 
 vtkPlusCommand

@@ -1,14 +1,11 @@
+/*=Plus=header=begin======================================================
+  Program: Plus
+  Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+  See License.txt for details.
+=========================================================Plus=header=end*/
+
 /*=========================================================================
-
-Program:   AtamaiTracking for VTK
-Module:    $RCSfile: vtkPOLARISTracker.cxx,v $
-Creator:   David Gobbi <dgobbi@atamai.com>
-Language:  C++
-Author:    $Author: dgobbi $
-Date:      $Date: 2005/11/22 19:14:36 $
-Version:   $Revision: 1.6 $
-
-==========================================================================
+The following copyright notice is applicable to parts of this file:
 
 Copyright (c) 2000-2005 Atamai, Inc.
 

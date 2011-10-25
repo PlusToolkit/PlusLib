@@ -1,8 +1,12 @@
-
-#include "OpenIGTLinkReceiveServer.h"
-
+/*=Plus=header=begin======================================================
+Program: Plus
+Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+See License.txt for details.
+=========================================================Plus=header=end*/ 
 
 #include "PlusConfigure.h"
+
+#include "OpenIGTLinkReceiveServer.h"
 
 #include "vtkMultiThreader.h"
 
@@ -11,32 +15,28 @@
 #include "igtlImageMessage.h"
 
 
-
-/**
- * This function runs on a separate thread to collect OpenIGTLink messages.
- */
-static
-void*
-vtkReceiverThread( vtkMultiThreader::ThreadInfo *data )
+//----------------------------------------------------------------------------
+/*! This function runs on a separate thread to collect OpenIGTLink messages. */
+static void* vtkReceiverThread( vtkMultiThreader::ThreadInfo *data )
 {
   OpenIGTLinkReceiveServer* self = (OpenIGTLinkReceiveServer*)( data->UserData );
-  
+
   igtl::Socket::Pointer socket;
-  
-  
-    // Loop until receiver stopped.
-  
+
+
+  // Loop until receiver stopped.
+
   while ( true )
   {
     if ( self->GetActive() == false ) return NULL;
-    
+
     socket = self->GetServerSocket()->WaitForConnection( 400 );
-    
+
     if ( socket.IsNotNull() ) // if client connected
     {
-      
-        // Create a message buffer to receive header
-      
+
+      // Create a message buffer to receive header
+
       igtl::MessageHeader::Pointer headerMsg;
       headerMsg = igtl::MessageHeader::New();
 
@@ -44,8 +44,8 @@ vtkReceiverThread( vtkMultiThreader::ThreadInfo *data )
       {
         headerMsg->InitPack();
 
-          // Receive generic header from the socket
-        
+        // Receive generic header from the socket
+
         int r = socket->Receive( headerMsg->GetPackPointer(), headerMsg->GetPackSize() );
         if ( r == 0 )
         {
@@ -56,11 +56,11 @@ vtkReceiverThread( vtkMultiThreader::ThreadInfo *data )
           continue;
         }
 
-          // Deserialize the header
-        
+        // Deserialize the header
+
         headerMsg->Unpack();
-        
-        
+
+
         // Check data type and receive data body
         if (strcmp(headerMsg->GetDeviceType(), "TRANSFORM") == 0)
         {
@@ -75,25 +75,23 @@ vtkReceiverThread( vtkMultiThreader::ThreadInfo *data )
           std::cerr << "Receiving unknown type: " << headerMsg->GetDeviceType() << std::endl;
           socket->Skip( headerMsg->GetBodySizeToRead(), 0 );
         }
-        
-        
+
+
         self->NumberOfReceivedMessages ++;
       }
     }
   }
 }
 
-
-
-OpenIGTLinkReceiveServer
-::OpenIGTLinkReceiveServer( int port )
+//----------------------------------------------------------------------------
+OpenIGTLinkReceiveServer::OpenIGTLinkReceiveServer( int port )
 {
   this->IsActive = false;
   this->ThreadId = -1;
   this->NumberOfReceivedMessages = 0;
-  
+
   this->Threader = vtkMultiThreader::New();
-  
+
   this->ServerSocket = igtl::ServerSocket::New();
   int r = this->ServerSocket->CreateServer( port );
 
@@ -104,102 +102,81 @@ OpenIGTLinkReceiveServer
   }
 }
 
-
-
-OpenIGTLinkReceiveServer
-::~OpenIGTLinkReceiveServer()
+//----------------------------------------------------------------------------
+OpenIGTLinkReceiveServer::~OpenIGTLinkReceiveServer()
 {
   this->Stop();
-  
+
   this->Threader->Delete();
 }
 
-
-
-PlusStatus
-OpenIGTLinkReceiveServer
-::Start()
+//----------------------------------------------------------------------------
+PlusStatus OpenIGTLinkReceiveServer::Start()
 {
   if ( this->IsActive ) return PLUS_FAIL;
-  
+
   this->IsActive = true;
   this->ThreadId = this->Threader->SpawnThread( (vtkThreadFunctionType)&vtkReceiverThread, this );
-  
+
   return PLUS_SUCCESS;
 }
 
-
-
-PlusStatus
-OpenIGTLinkReceiveServer
-::Stop()
+//----------------------------------------------------------------------------
+PlusStatus OpenIGTLinkReceiveServer::Stop()
 {
   if ( ! this->IsActive ) return PLUS_SUCCESS;
-  
+
   this->ThreadId = -1;
   this->IsActive = false;
 
-    // Let's give a chance to the thread to stop before we kill the tracker connection.
-  
+  // Let's give a chance to the thread to stop before we kill the tracker connection.
+
   vtkAccurateTimer::Delay( 0.5 );
 
   return PLUS_SUCCESS;
 }
 
-
-
-bool
-OpenIGTLinkReceiveServer
-::GetActive()
+//----------------------------------------------------------------------------
+bool OpenIGTLinkReceiveServer::GetActive()
 {
   return this->IsActive;
 }
 
-
-
-int
-OpenIGTLinkReceiveServer
-::GetNumberOfReceivedMessages()
+//----------------------------------------------------------------------------
+int OpenIGTLinkReceiveServer::GetNumberOfReceivedMessages()
 {
   return this->NumberOfReceivedMessages;
 }
 
-
-
-igtl::ServerSocket::Pointer
-OpenIGTLinkReceiveServer
-::GetServerSocket()
+//----------------------------------------------------------------------------
+igtl::ServerSocket::Pointer OpenIGTLinkReceiveServer::GetServerSocket()
 {
   return this->ServerSocket;
 }
 
-
-
-int
-OpenIGTLinkReceiveServer
-::ReceiveTransform( igtl::Socket * socket, igtl::MessageHeader * header )
+//----------------------------------------------------------------------------
+int OpenIGTLinkReceiveServer::ReceiveTransform( igtl::Socket * socket, igtl::MessageHeader * header )
 {
   std::cerr << std::endl << "Receiving TRANSFORM data type." << std::endl;
-  
-  
-    // Create a message buffer to receive transform data
-  
+
+  // Create a message buffer to receive transform data
+
   igtl::TransformMessage::Pointer transMsg;
   transMsg = igtl::TransformMessage::New();
   transMsg->SetMessageHeader(header);
   transMsg->AllocatePack();
-  
-  
-    // Receive transform data from the socket
-  
+
+
+  // Receive transform data from the socket
+
   socket->Receive( transMsg->GetPackBodyPointer(), transMsg->GetPackBodySize() );
-  
-  
-    // Deserialize the transform data
-    // If you want to skip CRC check, call Unpack() without argument.
-  
+
+
+  // Deserialize the transform data
+  // If you want to skip CRC check, call Unpack() without argument.
+
   int c = transMsg->Unpack( 1 );
-  
+
   if ( c & igtl::MessageHeader::UNPACK_BODY ) // if CRC check is OK
   {
     // Retrive the transform data
@@ -212,32 +189,28 @@ OpenIGTLinkReceiveServer
   return 0;
 }
 
-
-
-int
-OpenIGTLinkReceiveServer
-::ReceiveImage( igtl::Socket * socket, igtl::MessageHeader * header )
+//----------------------------------------------------------------------------
+int OpenIGTLinkReceiveServer::ReceiveImage( igtl::Socket * socket, igtl::MessageHeader * header )
 {
   std::cerr << std::endl << "Receiving IMAGE data type." << std::endl;
-  
-  
-    // Create a message buffer to receive transform data
-  
+
+  // Create a message buffer to receive transform data
+
   igtl::ImageMessage::Pointer imgMsg;
   imgMsg = igtl::ImageMessage::New();
   imgMsg->SetMessageHeader(header);
   imgMsg->AllocatePack();
-  
-  
-    // Receive transform data from the socket
-  
+
+
+  // Receive transform data from the socket
+
   socket->Receive(imgMsg->GetPackBodyPointer(), imgMsg->GetPackBodySize());
-  
-    // Deserialize the transform data
-    // If you want to skip CRC check, call Unpack() without argument.
-  
+
+  // Deserialize the transform data
+  // If you want to skip CRC check, call Unpack() without argument.
+
   int c = imgMsg->Unpack(1);
-  
+
   if (c & igtl::MessageHeader::UNPACK_BODY) // if CRC check is OK
   {
     // Retrive the image data
@@ -255,13 +228,13 @@ OpenIGTLinkReceiveServer
     std::cerr << "Device Name           : " << imgMsg->GetDeviceName() << std::endl;
     std::cerr << "Scalar Type           : " << scalarType << std::endl;
     std::cerr << "Dimensions            : ("
-              << size[0] << ", " << size[1] << ", " << size[2] << ")" << std::endl;
+      << size[0] << ", " << size[1] << ", " << size[2] << ")" << std::endl;
     std::cerr << "Spacing               : ("
-              << spacing[0] << ", " << spacing[1] << ", " << spacing[2] << ")" << std::endl;
+      << spacing[0] << ", " << spacing[1] << ", " << spacing[2] << ")" << std::endl;
     std::cerr << "Sub-Volume dimensions : ("
-              << svsize[0] << ", " << svsize[1] << ", " << svsize[2] << ")" << std::endl;
+      << svsize[0] << ", " << svsize[1] << ", " << svsize[2] << ")" << std::endl;
     std::cerr << "Sub-Volume offset     : ("
-              << svoffset[0] << ", " << svoffset[1] << ", " << svoffset[2] << ")" << std::endl;
+      << svoffset[0] << ", " << svoffset[1] << ", " << svoffset[2] << ")" << std::endl;
     return 1;
   }
 

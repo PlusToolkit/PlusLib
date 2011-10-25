@@ -1,3 +1,13 @@
+/*=Plus=header=begin======================================================
+Program: Plus
+Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+See License.txt for details.
+=========================================================Plus=header=end*/ 
+
+/*!
+  \file This a test program acquires both video and tracking data and writes them into separate metafiles
+*/ 
+
 #include "PlusConfigure.h"
 #include "vtksys/CommandLineArguments.hxx"
 #include "vtkSmartPointer.h"

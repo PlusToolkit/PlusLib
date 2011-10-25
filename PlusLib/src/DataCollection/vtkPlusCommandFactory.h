@@ -12,18 +12,15 @@
 #include "vtkObject.h"
 #include "vtkObjectFactory.h"
 
-
 class vtkPlusCommand;
 class vtkPlusCommandCollection;
 class vtkPlusCommandCleanup;
 
-/** \class vtkPlusCommandFactory 
- *
- * \brief Creates a PlusCommand from a string.
- * 
- * \ingroup PlusLibDataCollection
- *
- */
+/*!
+  \class vtkPlusCommandFactory 
+  \brief Creates a PlusCommand from a string.
+  \ingroup PlusLibDataCollection
+*/
 class
 VTK_EXPORT
 vtkPlusCommandFactory : public vtkObjectFactory

@@ -1,3 +1,12 @@
+/*=Plus=header=begin======================================================
+Program: Plus
+Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+See License.txt for details.
+=========================================================Plus=header=end*/ 
+
+/*!
+\file This program tests if a recorded tracked ultrasound buffer can be read.
+*/ 
 
 #include "vtkSmartPointer.h"
 #include "vtksys/CommandLineArguments.hxx"
@@ -9,13 +18,10 @@
 #include "vtkSavedDataVideoSource.h"
 
 
-/**
- * This program tests if a recorded tracked ultrasound buffer can be read.
- */
 int main( int argc, char** argv )
 {
-  
-    // Check command line arguments.
+
+  // Check command line arguments.
 
   std::string  InputConfigFileName;
   std::string  InputVideoBufferMetafile;
@@ -46,20 +52,20 @@ int main( int argc, char** argv )
 
   vtkPlusLogger::Instance()->SetLogLevel( VerboseLevel );
   vtkPlusLogger::Instance()->SetDisplayLogLevel( VerboseLevel );
-  
-  
-    // Prepare data collector object.
-  
+
+
+  // Prepare data collector object.
+
   vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkXMLUtilities::ReadElementFromFile(InputConfigFileName.c_str());
   if (configRootElement == NULL)
   {	
     LOG_ERROR("Unable to read configuration from file " << InputConfigFileName.c_str()); 
     return 1;
   }
-  
+
   vtkDataCollector* dataCollector = vtkDataCollector::New();
   dataCollector->ReadConfiguration( configRootElement );
-  
+
   if ( dataCollector->GetAcquisitionType() == SYNCHRO_VIDEO_SAVEDDATASET )
   {
     if ( InputVideoBufferMetafile.empty() )
@@ -67,7 +73,7 @@ int main( int argc, char** argv )
       LOG_ERROR( "Video source metafile missing." );
       return 1;
     }
-    
+
     vtkSavedDataVideoSource* videoSource =
       dynamic_cast< vtkSavedDataVideoSource* >( dataCollector->GetVideoSource() );
     if ( videoSource == NULL )
@@ -78,7 +84,7 @@ int main( int argc, char** argv )
     videoSource->SetSequenceMetafile( InputVideoBufferMetafile.c_str() );
     videoSource->SetReplayEnabled( true ); 
   }
-  
+
   if ( dataCollector->GetTrackerType() == TRACKER_SAVEDDATASET )
   {
     if ( InputTrackerBufferMetafile.empty() )
@@ -91,13 +97,13 @@ int main( int argc, char** argv )
     tracker->SetReplayEnabled( true ); 
     tracker->Connect();
   }
-  
+
   LOG_DEBUG( "Initializing data collector... " );
   dataCollector->Initialize();
-  
-  
+
+
   // TODO: Check if the read transforms are really the same as in the ones recorded in the data file.
-  
-  
+
+
   return 0;
 }

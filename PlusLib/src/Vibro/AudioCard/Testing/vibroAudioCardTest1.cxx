@@ -1,3 +1,9 @@
+/*=Plus=header=begin======================================================
+  Program: Plus
+  Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+  See License.txt for details.
+=========================================================Plus=header=end*/
+
 // Basic test to check if the vibroAudioCard class is functioning.
 // A sinusoidal wave is generated and played through the speaker.
 // You should be able to hear a humming sound when it is running

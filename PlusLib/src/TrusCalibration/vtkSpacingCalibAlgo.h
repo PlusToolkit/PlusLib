@@ -16,13 +16,11 @@
 class vtkHTMLGenerator; 
 class vtkGnuplotExecuter; 
 
-/*! \class vtkSpacingCalibAlgo 
- *
- *  \brief Calculates ultrasound image spacing from phantom definition file 
- *
- *  \ingroup PlusLibCalibrationAlgorithm
- *
- */ 
+/*!
+  \class vtkSpacingCalibAlgo 
+  \brief Calculates ultrasound image spacing from phantom definition file 
+  \ingroup PlusLibCalibrationAlgorithm
+*/ 
 class VTK_EXPORT vtkSpacingCalibAlgo : public vtkObject
 {
 public:
@@ -31,11 +29,14 @@ public:
   vtkTypeRevisionMacro(vtkSpacingCalibAlgo , vtkObject);
   virtual void PrintSelf(ostream& os, vtkIndent indent); 
 
-  /*! Add generated html report from spacing calibration to the existing html report
-  * htmlReport and plotter arguments has to be defined by the caller function */
+  /*!
+    Add generated html report from spacing calibration to the existing html report
+    htmlReport and plotter arguments has to be defined by the caller function 
+  */
   virtual PlusStatus GenerateReport( vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter, const char* gnuplotScriptsFolder); 
 
-  /*! Set inputs: 
+  /*!
+    Set inputs: 
     \param trackedFrameList tracked frames with segmentation results 
     \param nWires phantom definition structure 
     \sa NWire(), vtkTrackedFrameList()
@@ -45,7 +46,7 @@ public:
   /*! Report table used for storing algorithm results */
   vtkGetObjectMacro(ReportTable, vtkTable); 
 
-  /*! Get the image spacing (x: lateral axis, y: axial axis) */
+  /*! Get the image spacing (mm/pixel; spacing[0]: lateral axis, spacing[1]: axial axis) */
   virtual PlusStatus GetSpacing( double spacing[2] ); 
 
   /*! Get the spacing calibration error */
@@ -70,17 +71,18 @@ protected:
     const std::vector<double> &bVector, 
     const vnl_vector<double> &resultVector); 
 
-  /*! Set/get tracked frame list */
+  /*! Set tracked frame list */
   vtkSetObjectMacro(TrackedFrameList, vtkTrackedFrameList); 
+  /*! Get tracked frame list */
   vtkGetObjectMacro(TrackedFrameList, vtkTrackedFrameList); 
 
   /*! Report table used for storing algorithm results */
   vtkSetObjectMacro(ReportTable, vtkTable); 
 
-  /*! Set spacing */
+  /*! Set image spacing (mm/pixel)*/
   vtkSetVector2Macro(Spacing, double); 
 
-  /*! Image scaling factors (x: lateral axis, y: axial axis) */
+  /*! Image image spacing (mm/pixel; spacing[0]: lateral axis, spacing[1]: axial axis) */
   double Spacing[2];
 
   /*! Tracked frame list with segmentation results */
@@ -98,7 +100,7 @@ protected:
   /*! Calibration error standard deviation */
   double ErrorStdev; 
 
-  /*! When was this data last updated */
+  /*! When the results were computed. The result is recomputed only if the inputs changed more recently than UpdateTime. */
   vtkTimeStamp UpdateTime;  
 
 }; 

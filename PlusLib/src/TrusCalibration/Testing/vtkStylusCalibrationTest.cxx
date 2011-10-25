@@ -1,3 +1,13 @@
+/*=Plus=header=begin======================================================
+  Program: Plus
+  Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+  See License.txt for details.
+=========================================================Plus=header=end*/ 
+
+/*!
+  \file This test runs a stylus calibration on a recorded data set and compares the results to a baseline
+*/ 
+
 #include "PlusConfigure.h"
 #include "vtkPivotCalibrationAlgo.h"
 #include "vtkDataCollector.h"

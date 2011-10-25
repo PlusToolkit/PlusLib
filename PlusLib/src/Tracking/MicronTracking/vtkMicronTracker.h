@@ -1,14 +1,11 @@
+/*=Plus=header=begin======================================================
+  Program: Plus
+  Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+  See License.txt for details.
+=========================================================Plus=header=end*/
+
 /*=========================================================================
-
-  Program:   AtamaiTracking for VTK
-  Module:    $RCSfile: vtkMicronTracker.h,v $
-  Creator:   David Gobbi <dgobbi@atamai.com>
-  Language:  C++
-  Author:    $Author: pdas $
-  Date:      $Date: 2006/12/13 19:44:20 $
-  Version:   $Revision: 1.2 $
-
-==========================================================================
+The following copyright notice is applicable to parts of this file:
 
 Copyright (c) 2000-2005 Atamai, Inc.
 
@@ -41,6 +38,8 @@ THE USE OR INABILITY TO USE THE SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGES.
 
 =========================================================================*/
+
+
 // .NAME vtkPOLARISTracker - VTK interface for Northern Digital's POLARIS
 // .SECTION Description
 // The vtkPOLARISTracker class provides an  interface to the POLARIS

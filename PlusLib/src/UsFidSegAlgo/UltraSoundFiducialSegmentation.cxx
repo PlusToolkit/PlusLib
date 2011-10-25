@@ -1,3 +1,9 @@
+/*=Plus=header=begin======================================================
+  Program: Plus
+  Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+  See License.txt for details.
+=========================================================Plus=header=end*/
+
 #include "UltraSoundFiducialSegmentation.h"
 #include "vnl/vnl_vector.h"
 #include "vnl/vnl_matrix.h"

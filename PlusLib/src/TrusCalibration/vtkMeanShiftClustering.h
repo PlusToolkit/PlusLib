@@ -13,12 +13,10 @@ See License.txt for details.
 
 #include <vector>
 
-/*! \class vtkMeanShiftClustering 
-*
-*  \brief Cluster points using the mean shift method
-*
-*  \ingroup PlusLibCalibrationAlgorithm
-*
+/*!
+  \class vtkMeanShiftClustering 
+  \brief Cluster points using the mean shift method
+  \ingroup PlusLibCalibrationAlgorithm
 */ 
 class vtkMeanShiftClustering : public vtkPolyDataAlgorithm
 {
@@ -33,22 +31,23 @@ public:
   /*! Get point association (cluster number) from point index */
   int GetPointAssociations(unsigned int pointIndex); 
 
-  /*! Set/get window radius */
+  /*! Set window radius */
   vtkSetMacro(WindowRadius, double);
+  /*! Get window radius */
   vtkGetMacro(WindowRadius, double);
 
-  /*! Set/get Gaussian variance */
+  /*! Set Gaussian variance */
   vtkSetMacro(GaussianVariance, double);
+  /*! Get Gaussian variance */
   vtkGetMacro(GaussianVariance, double);
 
   /*! Kernel types */
   enum KernelEnum {UNIFORM, GAUSSIAN};
 
   /*! Set kernel type to Gaussian */
-  void SetKernelToGaussian(){this->Kernel = GAUSSIAN;}
-  
+  void SetKernelToGaussian() {this->Kernel = GAUSSIAN;} 
   /*! Set kernel type to Uniform */
-  void SetKernelToUniform(){this->Kernel = UNIFORM;}
+  void SetKernelToUniform() {this->Kernel = UNIFORM;}
 
 protected:
   vtkMeanShiftClustering();
@@ -62,7 +61,8 @@ protected:
   void AssignBtoA(double* a, double* b);
 
 private:
-  std::vector<int> ClusterId; //which cluster each point is associated with
+  /*! which cluster each point is associated with */
+  std::vector<int> ClusterId; 
   std::vector<vtkVector3d> ClusterCenters;
 
   double WindowRadius;

@@ -1,4 +1,11 @@
+/*=Plus=header=begin======================================================
+  Program: Plus
+  Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+  See License.txt for details.
+=========================================================Plus=header=end*/
+
 /*=========================================================================
+The following copyright notice is applicable to parts of this file:
 
 Copyright (c) 2000-2007 Atamai, Inc.
 Copyright (c) 2008-2009 Danielle Pace
@@ -32,6 +39,7 @@ THE USE OR INABILITY TO USE THE SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGES.
 
 =========================================================================*/
+
 // .NAME vtkPasteSliceIntoVolumeHelperUnoptimized - Unoptimized helper functions for pasting slice into volume
 // .SECTION Description
 // Contains unoptimized interpolation and slice insertion functions for vtkPasteSliceIntoVolume

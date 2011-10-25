@@ -1,13 +1,11 @@
+/*=Plus=header=begin======================================================
+  Program: Plus
+  Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+  See License.txt for details.
+=========================================================Plus=header=end*/
+
 /*=========================================================================
-
-  Program:   Visualization Toolkit
-  Module:    $RCSfile: fixed.h,v $
-  Language:  C++
-  Date:      $Date: 2009/04/18 20:37:39 $
-  Version:   $Revision: 1.1 $
-  Thanks:    Thanks to David G. Gobbi who wrote this file.
-
-==========================================================================
+The following copyright notice is applicable to parts of this file:
 
 Copyright (c) 2000-2007 Atamai, Inc.
 

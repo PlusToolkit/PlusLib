@@ -1,3 +1,9 @@
+/*=Plus=header=begin======================================================
+  Program: Plus
+  Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+  See License.txt for details.
+=========================================================Plus=header=end*/
+
 // .NAME vtkGnuplotExecuter - class for gnuplot execution 
 // .SECTION Description
 // This class is used for generating plots with gnuplot 

@@ -1,3 +1,9 @@
+/*=Plus=header=begin======================================================
+  Program: Plus
+  Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+  See License.txt for details.
+=========================================================Plus=header=end*/
+
 #ifndef _BRACHYSTEPPER_H_
 #define _BRACHYSTEPPER_H_
 #include "PlusConfigure.h"

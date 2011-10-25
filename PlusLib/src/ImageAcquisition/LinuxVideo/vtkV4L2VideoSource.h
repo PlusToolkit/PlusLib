@@ -1,22 +1,16 @@
+/*=Plus=header=begin======================================================
+  Program: Plus
+  Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+  See License.txt for details.
+=========================================================Plus=header=end*/
+
 /*=========================================================================
-
-  Program:   Visualization Toolkit
-  Module:    $RCSfile: vtkV4L2VideoSource.cxx,v $
-
-  Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen
-  All rights reserved.
-  See Copyright.txt or http://www.kitware.com/Copyright.htm for details.
-  
-  Author:  Jan Gumprecht, Harvard Medical School
-  Copyright (c) 2008, Brigham and Women's Hospital, Boston, MA
-  All rights reserved.
-
-  This software is distributed WITHOUT ANY WARRANTY; without even
-  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
-  PURPOSE.  See the above copyright notice for more information.
-
-=========================================================================*/
-
+The following copyright notice is applicable to parts of this file:
+Copyright (c) 2008, Brigham and Women's Hospital, Boston, MA
+All rights reserved.
+See Copyright.txt or http://www.kitware.com/Copyright.htm for details.
+Authors include: Jan Gumprecht (Harvard Medical School)
+=========================================================================*/  
   
 //New-Start
 // .NAME vtkV4L2VideoSource - Superclass of video input devices for VTK

@@ -1,3 +1,9 @@
+/*=Plus=header=begin======================================================
+  Program: Plus
+  Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+  See License.txt for details.
+=========================================================Plus=header=end*/
+
 // .NAME vtkPlusConfig - class for finding files in a directory and its subdirectorys
 // .SECTION Description
 // This class is used for finding files in a directory and its subdirectorys, handling configuration (directory, file name, XML tree)

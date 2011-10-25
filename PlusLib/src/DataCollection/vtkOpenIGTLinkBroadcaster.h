@@ -7,7 +7,6 @@
 #ifndef OPENIGTLINKBROADCASTER_H
 #define OPENIGTLINKBROADCASTER_H
 
-
 #include <string>
 #include <vector>
 
@@ -21,14 +20,11 @@
 #include "vtkTrackedFrameList.h"
 
 
-/** \class IgtToolInfo 
- *
- * \brief Stores information necessary for broadcasting non reference tools.
- *
- *    
- * \ingroup PlusLibDataCollection
- *
- */
+/*!
+  \class IgtToolInfo 
+  \brief Stores information necessary for broadcasting non reference tools.
+  \ingroup PlusLibDataCollection
+*/
 struct IgtToolInfo
 {
   std::string                  ToolName;
@@ -37,16 +33,15 @@ struct IgtToolInfo
 };
 
 
-/** \class SocketInfo 
- *
- * \brief Stores information about a socket connection.
- *
- * Sockets have to be stored separately. Exactly one socket has to be created
- * for a host:port combination. Even if more tools are broadcasted to this address. 
- *    
- * \ingroup PlusLibDataCollection
- *
- */
+/*!
+  \class SocketInfo 
+  \brief Stores information about a socket connection.
+  
+  Sockets have to be stored separately. Exactly one socket has to be created
+  for a host:port combination. Even if more tools are broadcasted to this address. 
+
+  \ingroup PlusLibDataCollection 
+*/
 struct SocketInfo
 {
   std::string                 Host;
@@ -55,17 +50,16 @@ struct SocketInfo
 };
 
 
-/** \class vtkOpenIGTLinkBroadcaster 
- *
- * \brief Broadcasts tracking data and ultrasound images through OpenIGTLink network protocol.
- *
- * Input is read from the configuration xml file for DataCollector.
- * To broadcast a tracker tool, specify a SendTo attribute in the tool tag.
- * E.g. <Tool Name="Probe" PortNumber="0" SendTo="localhost:18944"></Tool>
- *    
- * \ingroup PlusLibDataCollection
- *
- */
+/*!
+  \class vtkOpenIGTLinkBroadcaster 
+  \brief Broadcasts tracking data and ultrasound images through OpenIGTLink network protocol.
+
+  Input is read from the configuration xml file for DataCollector.
+  To broadcast a tracker tool, specify a SendTo attribute in the tool tag.
+  E.g. <Tool Name="Probe" PortNumber="0" SendTo="localhost:18944"></Tool>
+
+  \ingroup PlusLibDataCollection
+*/
 class
 VTK_EXPORT 
 vtkOpenIGTLinkBroadcaster
@@ -91,6 +85,9 @@ public:
   Status SetDataCollector( vtkDataCollector* dataCollector );
   Status Initialize( std::string &strError );
   
+  /*!
+    \return Internal status. If it is HOST_NOT_FOUND, strError will be filled with the host:port address not found.
+  */
   Status SendMessages( std::string strError );
   Status SendMessages();
   
@@ -112,9 +109,10 @@ private:
   Status             InternalStatus;
   vtkDataCollector*  DataCollector;
   
-  
-  std::vector< IgtToolInfo > NonReferenceToolInfos;  // List of tools.
-  std::vector< SocketInfo >  SocketInfos;            // List of sockets.
+  /*! List of tools */
+  std::vector< IgtToolInfo > NonReferenceToolInfos; 
+  /*! List of sockets */
+  std::vector< SocketInfo >  SocketInfos;            
   
 };
 

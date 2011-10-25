@@ -1,3 +1,9 @@
+/*=Plus=header=begin======================================================
+  Program: Plus
+  Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+  See License.txt for details.
+=========================================================Plus=header=end*/
+
 // .NAME vtkHTMLGenerator - class for generating basic html tags
 // .SECTION Description
 // This class is used for generating basic html tags 

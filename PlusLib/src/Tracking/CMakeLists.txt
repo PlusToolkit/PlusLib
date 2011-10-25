@@ -2,7 +2,6 @@
 # Options
 OPTION (PLUS_USE_POLARIS "Provide support for the NDI POLARIS and AURORA" OFF)
 OPTION (PLUS_USE_CERTUS "Provide support for the NDI Certus" OFF)
-OPTION (PLUS_USE_FLOCK "Provide support for the Ascension Flock of Birds" OFF)
 OPTION (PLUS_USE_MICRONTRACKER "Provide support for the Claron MicronTracker" OFF)
 OPTION (PLUS_USE_BRACHY_TRACKER "Provide support for the brachy stepper tracking device" ON)
 OPTION (PLUS_USE_Ascension3DG "Provide support for the Ascension 3DG Tracker" OFF)
@@ -110,37 +109,6 @@ IF (PLUS_USE_POLARIS)
     CACHE INTERNAL "" FORCE)
 					  	
 ENDIF (PLUS_USE_POLARIS)
-
-#--------------------------------------------------------------------------
-# FLOCK support
-IF (PLUS_USE_FLOCK)
-
-  SET (Tracking_SRCS ${Tracking_SRCS}
-    FlockTracking/vtkFlockTracker.cxx
-    )
-	
-  if (WIN32)	
-    SET (Tracking_HDRS ${Tracking_HDRS}
-      FlockTracking/vtkFlockTracker.h
-      )
-  endif (WIN32)
-		
-  SET (Tracking_INCLUDE_DIRS ${Tracking_INCLUDE_DIRS} 
-    ${CMAKE_CURRENT_SOURCE_DIR}/FlockTracking
-    ${CMAKE_CURRENT_SOURCE_DIR}/FlockTracking/Utils
-    CACHE INTERNAL "" FORCE
-    )
-					  
-	SET (Tracking_LIBS ${Tracking_LIBS} 
-		vtkflock
-		)
-	
-	ADD_SUBDIRECTORY(FlockTracking/Utils)
-	
-	SET (PLUSLIB_DEPENDENCIES ${PLUSLIB_DEPENDENCIES} vtkflock CACHE INTERNAL "" FORCE	)
-	
-ENDIF (PLUS_USE_FLOCK)
-
 
 #--------------------------------------------------------------------------
 # MICRONTRACKER support

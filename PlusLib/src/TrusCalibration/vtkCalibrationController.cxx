@@ -200,7 +200,7 @@ PlusStatus vtkCalibrationController::Initialize()
 {
 	LOG_TRACE("vtkCalibrationController::Initialize"); 
 
-  this->resetDataContainers(); 
+  this->ResetDataContainers(); 
 
   // Initialize the calibration component
   if (ComputeNWireInstersections() != PLUS_SUCCESS) {
@@ -244,7 +244,7 @@ PlusStatus vtkCalibrationController::Calibrate( vtkTrackedFrameList* validationT
     }
   }
 
-  this->resetDataContainers(); 
+  this->ResetDataContainers(); 
 
   this->SegmentedFrameDefaultTransformName = defaultTransformName; // TODO take care of this once the class is cleared up
 
@@ -1619,9 +1619,9 @@ double vtkCalibrationController::GetBeamwidthWeightForBeamwidthMagnitude(int aAc
 
 //-----------------------------------------------------------------------------
 
-void vtkCalibrationController::resetDataContainers()
+void vtkCalibrationController::ResetDataContainers()
 {
-	LOG_TRACE("vtkCalibrationController::resetDataContainers");
+	LOG_TRACE("vtkCalibrationController::ResetDataContainers");
 
   // Initialize flags
   this->CalibrationDoneOff();

@@ -16,17 +16,12 @@
 #include "vtkDataCollector.h"
 #include "vtkPlusCommand.h"
 
-/** \class vtkPlusStopDataCollectionCommand 
- *
- *  \brief This command stops the vtkDataCollector on the server side. 
- *
- *  \ingroup PlusLibDataCollection
- *
+/*!
+  \class vtkPlusStopDataCollectionCommand 
+  \brief This command stops the vtkDataCollector on the server side. 
+  \ingroup PlusLibDataCollection
  */ 
-class
-VTK_EXPORT 
-vtkPlusStopDataCollectionCommand
-: public vtkPlusCommand
+class VTK_EXPORT vtkPlusStopDataCollectionCommand : public vtkPlusCommand
 {
 public:
   

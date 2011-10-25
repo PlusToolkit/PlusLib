@@ -24,17 +24,16 @@
 #include "vtkIGTLMessageQueue.h"
 
 
-/** \class vtkPlusOpenIGTLinkServer 
- *
- * \brief This class provides a network interface for Plus functions as an OpenIGTLink server.
- * 
- * After the server is started, it waits for a client sending request messages of type
- * "igtl::StringMessage1". These strings are translated into Plus Commands, queued and executed
- * on a first-come-first-serve basis.  
- *
- * \ingroup PlusLibDataCollection
- *
- */
+/*!
+  \class vtkPlusOpenIGTLinkServer 
+  \brief This class provides a network interface for Plus functions as an OpenIGTLink server.
+
+  After the server is started, it waits for a client sending request messages of type
+  "igtl::StringMessage1". These strings are translated into Plus Commands, queued and executed
+  on a first-come-first-serve basis.  
+
+  \ingroup PlusLibDataCollection
+*/
 class
 VTK_EXPORT 
 vtkPlusOpenIGTLinkServer
