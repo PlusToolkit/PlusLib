@@ -176,6 +176,18 @@ configure_file(
     @ONLY
 	)
 #-----------------------------------------------------------------------------
+# Generate default application configuration files in the executable directories (Release and Debug too)
+# 
+configure_file(
+	${CMAKE_CURRENT_SOURCE_DIR}/PlusConfig.xml.in
+	${TEST_EXECUTABLE_OUTPUT_PATH}/PlusConfig.xml
+	)	
+configure_file(
+	${CMAKE_CURRENT_SOURCE_DIR}/PlusConfig.xml.in
+	${CMAKE_CURRENT_BINARY_DIR}/bin/Debug/PlusConfig.xml
+	)
+
+#-----------------------------------------------------------------------------
 # Generate convenience files for automatic build, test, and packaging
 # 
 configure_file(

@@ -1,0 +1,6 @@
+<PlusConfig
+  LogLevel="3"
+  DeviceSetConfigurationDirectory="${PLUSLIB_DATA_DIR}/ConfigFiles"
+  ImageDirectory="${PLUSLIB_DATA_DIR}/TestImages"
+  >
+</PlusConfig>
