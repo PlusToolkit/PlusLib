@@ -1514,7 +1514,7 @@ PlusStatus vtkCalibrationController::ComputeNWireInstersections()
 		vtkMath::Subtract(it->GetWireById(1)->endPointFront, it->GetWireById(1)->endPointBack, wire1);
 		vtkMath::Subtract(it->GetWireById(3)->endPointFront, it->GetWireById(3)->endPointBack, wire3);
 		vtkMath::Cross(wire1, wire3, cross);
-		if (vtkMath::Norm(cross) != 0) {
+		if (vtkMath::Norm(cross) > 0.001) {
 			LOG_ERROR("The first and third wire of layer " << layer << " are not parallel!");
 			return PLUS_FAIL;
 		}
