@@ -19,7 +19,7 @@ def getCommandFromArguments(plusDir=''):
       exe = ''
 
     exe = '"' + plusDir + '/PlusApp-bin/DevEnv_Release.bat" "--launch" "' + plusDir + '/PlusApp-bin/bin/Release/SegmentationParameterDialogTest" "--device-set-configuration-directory-path=' + plusDir + '/PlusLib/data/ConfigFiles" "--image-directory-path=' + plusDir + '/PlusLib/data/TestImages"'
-  
+
   return exe
 
 #------------------------------------------------------------------------------
