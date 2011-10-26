@@ -19,7 +19,6 @@ SET (ImageAcquisition_SRCS
   vtkTrackedFrameList.cxx 
   vtkSavedDataVideoSource.cxx
   PlusVideoFrame.cxx
-  UsImageConverterCommon.cxx
   )
 	
 SET (ImageAcquisition_HDRS)
@@ -33,7 +32,6 @@ if (WIN32)
     vtkTrackedFrameList.h
     vtkSavedDataVideoSource.h 
     PlusVideoFrame.h
-    UsImageConverterCommon.h
     )
 endif (WIN32)	
 

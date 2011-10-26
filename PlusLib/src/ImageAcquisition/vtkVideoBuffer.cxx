@@ -255,7 +255,7 @@ PlusStatus vtkVideoBuffer::AddItem(void* imageDataPtr,
   unsigned char* byteImageDataPtr=reinterpret_cast<unsigned char*>(imageDataPtr);
   byteImageDataPtr += numberOfBytesToSkip; 
 
-  if (UsImageConverterCommon::GetMFOrientedImage(byteImageDataPtr, usImageOrientation, frameSizeInPx, pixelType, newObjectInBuffer->GetFrame())!=PLUS_SUCCESS)
+  if (PlusVideoFrame::GetMFOrientedImage(byteImageDataPtr, usImageOrientation, frameSizeInPx, pixelType, newObjectInBuffer->GetFrame())!=PLUS_SUCCESS)
   {
     LOG_ERROR("Failed to convert input US image to MF orientation!"); 
     return PLUS_FAIL; 
@@ -299,7 +299,7 @@ PlusStatus vtkVideoBuffer::AddItem(vtkImageData* frame, US_IMAGE_ORIENTATION usI
   }
 
   vtkSmartPointer<vtkImageData> mfOrientedImage = vtkSmartPointer<vtkImageData>::New(); 
-  if ( UsImageConverterCommon::GetMFOrientedImage(frame, usImageOrientation, mfOrientedImage) != PLUS_SUCCESS )
+  if ( PlusVideoFrame::GetMFOrientedImage(frame, usImageOrientation, mfOrientedImage) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to add video item to buffer: couldn't get MF oriented frame!"); 
     return PLUS_FAIL; 
@@ -307,7 +307,7 @@ PlusStatus vtkVideoBuffer::AddItem(vtkImageData* frame, US_IMAGE_ORIENTATION usI
 
   const int* frameExtent = mfOrientedImage->GetExtent(); 
   const int frameSize[2] = {(frameExtent[1] - frameExtent[0] + 1), (frameExtent[3] - frameExtent[2] + 1)}; 
-  PlusCommon::ITKScalarPixelType pixelType=UsImageConverterCommon::GetITKScalarPixelType(frame->GetScalarType());
+  PlusCommon::ITKScalarPixelType pixelType=PlusVideoFrame::GetITKScalarPixelType(frame->GetScalarType());
   return this->AddItem( reinterpret_cast<unsigned char*>(mfOrientedImage->GetScalarPointer()), US_IMG_ORIENT_MF , frameSize, pixelType, 0, frameNumber, unfilteredTimestamp, filteredTimestamp); 
 }
 
@@ -509,7 +509,7 @@ PlusStatus vtkVideoBuffer::SetPixelType(PlusCommon::ITKScalarPixelType pixelType
 //----------------------------------------------------------------------------
 int vtkVideoBuffer::GetNumberOfBytesPerPixel()
 {
-  return UsImageConverterCommon::GetNumberOfBytesPerPixel(GetPixelType());
+  return PlusVideoFrame::GetNumberOfBytesPerPixel(GetPixelType());
 }
 
 //----------------------------------------------------------------------------

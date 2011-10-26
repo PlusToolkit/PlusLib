@@ -23,12 +23,10 @@
 #include "vtkTransform.h"
 #include "vtkImageData.h"
 #include "vtkRenderWindow.h"
-#include "vtkImageFlip.h"
 #include "vtkActorCollection.h"
 #include "vtkCollectionIterator.h"
 #include "vtkImageActor.h"
 #include "vtkImageImport.h"
-#include "vtkImageFlip.h"
 #include "vtkProp.h"
 
 #include "vtkMetaImageSequenceIO.h"
@@ -218,7 +216,7 @@ int main(int argc, char **argv)
 		imageTransform->Update(); 
 
 		vtkSmartPointer<vtkImageData> frame = vtkSmartPointer<vtkImageData>::New(); 
-    trackedFrame->GetImageData()->CopyToVtkImage(frame);
+    frame->DeepCopy(trackedFrame->GetImageData()->GetVtkImage()); 
 
 		frame->SetOrigin(-inputOriginX, -inputOriginY, 0); 
     vtkSmartPointer<vtkImageActor> imageActor = vtkSmartPointer<vtkImageActor>::New();

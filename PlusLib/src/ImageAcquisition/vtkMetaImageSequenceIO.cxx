@@ -279,7 +279,7 @@ PlusStatus vtkMetaImageSequenceIO::ReadImageHeader()
   }
   this->NumberOfDimensions=nDims;  
 
-  this->ImageOrientationInFile = UsImageConverterCommon::GetUsImageOrientationFromString(GetCustomString(SEQMETA_FIELD_US_IMG_ORIENT)); 
+  this->ImageOrientationInFile = PlusVideoFrame::GetUsImageOrientationFromString(GetCustomString(SEQMETA_FIELD_US_IMG_ORIENT)); 
 
   std::istringstream issDimSize(this->TrackedFrameList->GetCustomString("DimSize")); // DimSize = 640 480 567
   for(int i=0; i<3; i++)
@@ -310,7 +310,7 @@ PlusStatus vtkMetaImageSequenceIO::ReadImagePixels()
   }
 
   int frameCount=this->Dimensions[2];
-  int frameSizeInBytes=this->Dimensions[0]*this->Dimensions[1]*UsImageConverterCommon::GetNumberOfBytesPerPixel(this->PixelType);
+  int frameSizeInBytes=this->Dimensions[0]*this->Dimensions[1]*PlusVideoFrame::GetNumberOfBytesPerPixel(this->PixelType);
   
   std::vector<unsigned char> allFramesPixelBuffer;
   if (this->UseCompression)
@@ -368,7 +368,7 @@ PlusStatus vtkMetaImageSequenceIO::ReadImagePixels()
         LOG_ERROR("Could not read "<<frameSizeInBytes<<" bytes from "<<GetPixelDataFilePath());
         numberOfErrors++;
       }
-      if ( UsImageConverterCommon::GetMFOrientedImage(&(pixelBuffer[0]), this->ImageOrientationInFile, this->Dimensions, this->PixelType, *trackedFrame->GetImageData()) != PLUS_SUCCESS )
+      if ( PlusVideoFrame::GetMFOrientedImage(&(pixelBuffer[0]), this->ImageOrientationInFile, this->Dimensions, this->PixelType, *trackedFrame->GetImageData()) != PLUS_SUCCESS )
       {
         LOG_ERROR("Failed to get MF oriented image from sequence metafile (frame number: " << frameNumber << ")!"); 
         numberOfErrors++;
@@ -377,7 +377,7 @@ PlusStatus vtkMetaImageSequenceIO::ReadImagePixels()
     }
     else
     {
-      if ( UsImageConverterCommon::GetMFOrientedImage(&(allFramesPixelBuffer[0])+frameNumber*frameSizeInBytes, this->ImageOrientationInFile, this->Dimensions, this->PixelType, *trackedFrame->GetImageData()) != PLUS_SUCCESS )
+      if ( PlusVideoFrame::GetMFOrientedImage(&(allFramesPixelBuffer[0])+frameNumber*frameSizeInBytes, this->ImageOrientationInFile, this->Dimensions, this->PixelType, *trackedFrame->GetImageData()) != PLUS_SUCCESS )
       {
         LOG_ERROR("Failed to get MF oriented image from sequence metafile (frame number: " << frameNumber << ")!"); 
         numberOfErrors++;
@@ -557,7 +557,7 @@ PlusStatus vtkMetaImageSequenceIO::WriteImageHeader()
   SetCustomString("ElementType", pixelTypeStr.c_str());  // pixel type (a.k.a component type) is stored in the ElementType element
 
   // Orientation
-  std::string orientationStr=UsImageConverterCommon::GetStringFromUsImageOrientation(this->ImageOrientationInFile);
+  std::string orientationStr=PlusVideoFrame::GetStringFromUsImageOrientation(this->ImageOrientationInFile);
   SetCustomString("UltrasoundImageOrientation", orientationStr.c_str());
 
   // Add fields with default values if they are not present already

@@ -9,12 +9,11 @@
 #include "vtkSonixVolumeReader.h"
 #include "vtkImageDifference.h"
 #include "vtkSmartPointer.h"
-#include "vtkTIFFReader.h"
+#include "vtkImageExtractComponents.h"
+#include "PlusVideoFrame.h"
 #include "vtkImageData.h"
 #include <stdlib.h>
 #include <iostream>
-
-#include "vtkTIFFWriter.h"
 
 int main (int argc, char* argv[])
 { 
@@ -69,49 +68,30 @@ int main (int argc, char* argv[])
 
 	vtkSmartPointer<vtkImageDifference> imgDiff = vtkSmartPointer<vtkImageDifference>::New(); 
 	
-	vtkSmartPointer<vtkTIFFReader> tiffReader = vtkSmartPointer<vtkTIFFReader>::New(); 
-	tiffReader->SetFileName(inputBaselineName.c_str()); 
-	tiffReader->Update(); 
+  PlusVideoFrame baselineVideoFrame; 
+  if ( PlusVideoFrame::ReadImageFromFile(baselineVideoFrame, inputBaselineName.c_str()) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to read baseline image from file: " << inputBaselineName ); 
+    return EXIT_FAILURE; 
+  }
 
-	vtkSmartPointer<vtkImageData> baselineRGB = vtkSmartPointer<vtkImageData>::New(); 
-	baselineRGB->CopyStructure(tiffReader->GetOutput()); 
-	baselineRGB->SetNumberOfScalarComponents(3); 
-	baselineRGB->SetScalarTypeToUnsignedChar(); 
-	baselineRGB->Update(); 
 
-	
-	for ( int y = 0; y <= tiffReader->GetOutput()->GetExtent()[3]; y++)
-	{
-		for ( int x = 0; x <= tiffReader->GetOutput()->GetExtent()[1]; x++)
-		{
-			unsigned char* p24bit = static_cast<unsigned char*> ( baselineRGB->GetScalarPointer(x,y,0) ); 
-			unsigned char* p8bit = static_cast<unsigned char*> ( tiffReader->GetOutput()->GetScalarPointer(x,y,0) );
-			for ( int components = 0; components < baselineRGB->GetNumberOfScalarComponents(); components++)
-			{
-				*p24bit++ = *p8bit; 
-			}
-		}
-	}
+  vtkSmartPointer<vtkImageExtractComponents> imageExtractorBase =  vtkSmartPointer<vtkImageExtractComponents>::New(); 
+  imageExtractorBase->SetInput(baselineVideoFrame.GetVtkImage()); 
+  imageExtractorBase->SetComponents(0,0,0); // we are using only the 0th component
+  imageExtractorBase->Update(); 
 
+  vtkSmartPointer<vtkImageData> baselineRGB = vtkSmartPointer<vtkImageData>::New(); 
+  baselineRGB->DeepCopy(imageExtractorBase->GetOutput()); 
+  baselineRGB->Update();
+
+  vtkSmartPointer<vtkImageExtractComponents> imageExtractorInput =  vtkSmartPointer<vtkImageExtractComponents>::New(); 
+  imageExtractorInput->SetInput(imageDataVector->at(inputFrameNumber)); 
+  imageExtractorInput->SetComponents(0,0,0); // we are using only the 0th component
+  imageExtractorInput->Update(); 
 	vtkSmartPointer<vtkImageData> frameRGB = vtkSmartPointer<vtkImageData>::New(); 
-	frameRGB->CopyStructure(imageDataVector->at(inputFrameNumber)); 
-	frameRGB->SetNumberOfScalarComponents(3); 
-	frameRGB->SetScalarTypeToUnsignedChar(); 
-	frameRGB->Update(); 
-
-	for ( int y = 0; y <= imageDataVector->at(inputFrameNumber)->GetExtent()[3]; y++)
-	{
-		for ( int x = 0; x <= imageDataVector->at(inputFrameNumber)->GetExtent()[1]; x++)
-		{
-			unsigned char* p24bit = static_cast<unsigned char*> ( frameRGB->GetScalarPointer(x,y,0) ); 
-			unsigned char* p8bit = static_cast<unsigned char*> ( imageDataVector->at(inputFrameNumber)->GetScalarPointer(x,y,0) );
-			for ( int components = 0; components < frameRGB->GetNumberOfScalarComponents(); components++)
-			{
-				*p24bit++ = *p8bit; 
-			}
-		}
-	}
-
+  frameRGB->DeepCopy(imageExtractorInput->GetOutput()); 
+  frameRGB->Update(); 
 
 	imgDiff->SetImage( baselineRGB ); 
 	imgDiff->SetInput( frameRGB ); 

@@ -22,7 +22,6 @@ Authors include: Danielle Pace
 #include "vtkObjectFactory.h"
 #include "itkImage.h"
 
-#include "UsImageConverterCommon.h"
 #include "PlusVideoFrame.h"
 
 #include "vtkTimestampedCircularBuffer.h"

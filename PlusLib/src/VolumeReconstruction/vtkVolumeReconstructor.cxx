@@ -8,7 +8,6 @@
 
 #include <limits>
 
-#include "vtkBMPWriter.h"
 #include "vtkImageImport.h" 
 #include "vtkImageData.h" 
 #include "vtkImageViewer.h"
@@ -378,9 +377,7 @@ PlusStatus vtkVolumeReconstructor::SetOutputExtentFromFrameList(vtkTrackedFrameL
     }
 
     // Get image (only the frame extents will be used)
-    // Image is requested by ImageData.GetVtkImageNonFlipped(), because the reconstructor uses stores the image data in VTK format
-    // but the origin of the image follows the ITK convention (it is the first pixel in memory).
-    vtkImageData* frameImage=trackedFrameList->GetTrackedFrame(frameIndex)->GetImageData()->GetVtkImageNonFlipped();
+    vtkImageData* frameImage=trackedFrameList->GetTrackedFrame(frameIndex)->GetImageData()->GetVtkImage();
 
     // Expand the extent_Ref to include this frame
     AddImageToExtent(frameImage, imageToReferenceTransformMatrix, extent_Ref);
@@ -424,9 +421,7 @@ PlusStatus vtkVolumeReconstructor::AddTrackedFrame(TrackedFrame* frame, const ch
     return PLUS_FAIL; 
   }
 
-  // Image is requested by ImageData.GetVtkImageNonFlipped(), because the reconstructor uses stores the image data in VTK format
-  // but the origin of the image follows the ITK convention (it is the first pixel in memory).
-  vtkImageData* frameImage=frame->GetImageData()->GetVtkImageNonFlipped();
+  vtkImageData* frameImage=frame->GetImageData()->GetVtkImage();
 
   return this->Reconstructor->InsertSlice(frameImage, imageToReferenceTransformMatrix);
 }
