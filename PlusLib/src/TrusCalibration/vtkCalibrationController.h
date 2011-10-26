@@ -108,8 +108,13 @@ public:
 	*/
   virtual PlusStatus Calibrate( vtkTrackedFrameList* validationTrackedFrameList, vtkTrackedFrameList* calibrationTrackedFrameList, const char* defaultTransformName ); 
 
-  /*! Calculate and add positions of an individual image for calibration or validation */
-	virtual PlusStatus AddPositionsPerImage( TrackedFrame* trackedFrame, bool isValidation );
+  /*!
+    Calculate and add positions of an individual image for calibration or validation
+    \param trackedFrame The actual tracked frame (already segmented) to add for calibration or validation
+    \param defaultTransformName Transform name to be used to get the tracked position
+    \param isValidation Flag whether the added data is for calibration or validation
+  */
+	virtual PlusStatus AddPositionsPerImage( TrackedFrame* trackedFrame, const char* defaultTransformName, bool isValidation );
 
 	/*! Returns the list of tracked frames of the selected data type */
 	virtual vtkTrackedFrameList* GetTrackedFrameList( IMAGE_DATA_TYPE dataType ); 
@@ -144,9 +149,6 @@ public:
   /*! Flag to enable the Segmentation Analysis */
 	vtkBooleanMacro(EnableSegmentationAnalysis, bool);
 
-	/*! Get the segmentation result container (stores the segmentation results with transformation for each frame) */
-	SegmentedFrameList GetSegmentedFrameContainer() { return this->SegmentedFrameContainer; };
-
   /*! Get the fiducial pattern recognition master object */
   FidPatternRecognition * GetPatternRecognition() { return & this->PatternRecognition; };
   /*! Get the fiducial pattern recognition master object */
@@ -156,9 +158,6 @@ public:
   PatternRecognitionResult * GetPatRecognitionResult() { return & this->PatRecognitionResult; };
   /*! Get the fiducial pattern recognition master object */
   void SetPatRecognitionResult( PatternRecognitionResult value) { PatRecognitionResult = value; };
-
-  /*! Clear all datatype segmented frames from container */
-  void ClearSegmentedFrameContainer(IMAGE_DATA_TYPE dataType); 
 
 	/*! Get the saved image data info */
 	ImageDataInfo GetImageDataInfo( IMAGE_DATA_TYPE dataType ) { return this->ImageDataInfoContainer[dataType]; }
@@ -428,12 +427,6 @@ protected:
 
 	/*! Stores dataset information */
 	std::vector<ImageDataInfo> ImageDataInfoContainer; 
-	
-	/*! Stores the segmentation results with transformation for each frame */
-	SegmentedFrameList SegmentedFrameContainer;
-
-  /*! Default transform name for the frames stored in the SegmentedFrameContainer */
-  std::string SegmentedFrameDefaultTransformName;
 
   /*! Stores the fiducial pattern recognition master object */
   FidPatternRecognition PatternRecognition;
@@ -595,9 +588,6 @@ protected: // Former ProbeCalibrationController and FreehandCalibrationControlle
   std::map<int, std::vector<double> > LineReconstructionErrors; 
 
 protected: // From former Phantom class
-
-	/*! The flag to be set when the data positions in US probe frame is ready */
-	bool mAreOutliersRemoved;
 
 	/*! The flag to be set when the PRE3Ds for validation positions are ready */
 	bool mArePRE3DsForValidationPositionsReady;

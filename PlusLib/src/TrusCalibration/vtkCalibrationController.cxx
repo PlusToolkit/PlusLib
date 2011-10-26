@@ -169,15 +169,6 @@ vtkCalibrationController::~vtkCalibrationController()
 		}
 	}
 
-  for ( int i = 0; i < this->SegmentedFrameContainer.size(); i++ )
-  {
-    if ( this->SegmentedFrameContainer[i].TrackedFrameInfo != NULL )
-    {
-      delete this->SegmentedFrameContainer[i].TrackedFrameInfo; 
-      this->SegmentedFrameContainer[i].TrackedFrameInfo = NULL; 
-    }
-  }
-
   // Former ProbeCalibrationController and FreehandCalibraitonController members
 	this->SetTransformImageToTemplate(NULL);
 	this->SetTransformImageToUserImage(NULL);
@@ -246,8 +237,6 @@ PlusStatus vtkCalibrationController::Calibrate( vtkTrackedFrameList* validationT
 
   this->ResetDataContainers(); 
 
-  this->SegmentedFrameDefaultTransformName = defaultTransformName; // TODO take care of this once the class is cleared up
-
   // Set range boundaries
   if (validationStartFrame < 0)
   {
@@ -275,7 +264,7 @@ PlusStatus vtkCalibrationController::Calibrate( vtkTrackedFrameList* validationT
 	for (int frameNumber = validationStartFrame; frameNumber < validationEndFrame; ++frameNumber)
   {
     LOG_DEBUG(" Add frame #" << frameNumber << " for validation data");
-    if ( AddPositionsPerImage(validationTrackedFrameList->GetTrackedFrame(frameNumber), true) != PLUS_SUCCESS )
+    if ( AddPositionsPerImage(validationTrackedFrameList->GetTrackedFrame(frameNumber), defaultTransformName, true) != PLUS_SUCCESS )
     {
       LOG_ERROR("Add validation position failed on frame #" << frameNumber);
       continue;
@@ -285,7 +274,7 @@ PlusStatus vtkCalibrationController::Calibrate( vtkTrackedFrameList* validationT
 	for (int frameNumber = calibrationStartFrame; frameNumber < calibrationEndFrame; ++frameNumber)
   {
     LOG_DEBUG(" Add frame #" << frameNumber << " for calibration data");
-    if ( AddPositionsPerImage(calibrationTrackedFrameList->GetTrackedFrame(frameNumber), false) != PLUS_SUCCESS )
+    if ( AddPositionsPerImage(calibrationTrackedFrameList->GetTrackedFrame(frameNumber), defaultTransformName, false) != PLUS_SUCCESS )
     {
       LOG_ERROR("Add calibration position failed on frame #" << frameNumber);
       continue;
@@ -304,7 +293,7 @@ PlusStatus vtkCalibrationController::Calibrate( vtkTrackedFrameList* validationT
 
 //----------------------------------------------------------------------------
 
-PlusStatus vtkCalibrationController::AddPositionsPerImage( TrackedFrame* trackedFrame, bool isValidation )
+PlusStatus vtkCalibrationController::AddPositionsPerImage( TrackedFrame* trackedFrame, const char* defaultTransformName, bool isValidation )
 {
   LOG_TRACE("vtkCalibrationController::AddPositionsPerImage(" << (isValidation?"validation":"calibration") << ")");
 
@@ -337,9 +326,9 @@ PlusStatus vtkCalibrationController::AddPositionsPerImage( TrackedFrame* tracked
 
   // Assemble matrices and add them to the calibration input
   double probeToReferenceTransformVector[16]; 
-  if ( trackedFrame->GetCustomFrameTransform(this->SegmentedFrameDefaultTransformName.c_str(), probeToReferenceTransformVector) != PLUS_SUCCESS )
+  if ( trackedFrame->GetCustomFrameTransform(defaultTransformName, probeToReferenceTransformVector) != PLUS_SUCCESS )
   {
-    LOG_ERROR("Cannot get frame transform '" << this->SegmentedFrameDefaultTransformName << "' from tracked frame!");
+    LOG_ERROR("Cannot get frame transform '" << defaultTransformName << "' from tracked frame!");
     return PLUS_FAIL;
   }
 
@@ -508,27 +497,6 @@ vtkTrackedFrameList* vtkCalibrationController::GetTrackedFrameList( IMAGE_DATA_T
 {
 	LOG_TRACE("vtkCalibrationController::GetTrackedFrameList"); 
 	return this->TrackedFrameListContainer[dataType]; 
-}
-
-//----------------------------------------------------------------------------
-void vtkCalibrationController::ClearSegmentedFrameContainer(IMAGE_DATA_TYPE dataType)
-{
-  for ( SegmentedFrameList::iterator it = this->SegmentedFrameContainer.begin(); it != this->SegmentedFrameContainer.end(); )
-  {
-    if ( it->DataType == dataType )
-    {
-      if ( it->TrackedFrameInfo != NULL )
-      {
-        delete it->TrackedFrameInfo; 
-        it->TrackedFrameInfo = NULL; 
-      }
-      it = this->SegmentedFrameContainer.erase(it); 
-    }
-    else
-    {
-      ++it;
-    }
-  } 
 }
 
 //----------------------------------------------------------------------------
@@ -1330,11 +1298,6 @@ PlusStatus vtkCalibrationController::ComputeCalibrationResults()
 	// STEP-5. Save the calibration results and error reports into a file 
 	SaveCalibrationResultsAndErrorReportsToXML();
 
-  this->ClearSegmentedFrameContainer(RANDOM_STEPPER_MOTION_1); 
-	this->ClearSegmentedFrameContainer(RANDOM_STEPPER_MOTION_2);
-  this->ClearSegmentedFrameContainer(FREEHAND_MOTION_1); 
-	this->ClearSegmentedFrameContainer(FREEHAND_MOTION_2);
-
   // Save calibration
   if ( WriteConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS )
   {
@@ -1632,7 +1595,6 @@ void vtkCalibrationController::ResetDataContainers()
 	mAreIndependentPointLineReconErrorsReady = false;
   mHasBeenCalibrated = false;
   mAreValidationDataMatricesConstructed = false;
-	mAreOutliersRemoved = false; 
 
 	// Initialize data containers
 	mDataPositionsInUSProbeFrame.resize(0);
@@ -2334,7 +2296,7 @@ void vtkCalibrationController::SaveCalibrationResultsAndErrorReportsToXML()
   {
     calibrationTimestamp = this->CalibrationTimestamp;
   }
-  const std::string calibrationResultFileName = calibrationTimestamp + this->CalibrationResultFileSuffix + ".xml";
+  const std::string calibrationResultFileName = calibrationTimestamp + ".Calibration.results.xml";
 	const std::string calibrationResultFileNameWithPath = vtkPlusConfig::GetInstance()->GetOutputDirectory() + std::string("/") + calibrationResultFileName;
   this->SetCalibrationResultFileNameWithPath(calibrationResultFileNameWithPath.c_str());
 
