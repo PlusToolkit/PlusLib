@@ -78,6 +78,11 @@ OPTION(PLUS_USE_USBECGBOX "Enable USB ECG Signal Box" OFF)
 SET (PLUS_SVN_REVISION 0 CACHE STRING "Set Plus desired SVN revision number (0 means latest)")
 
 #-----------------------------------------------------------------------------
+# Plus executable output path 
+#-----------------------------------------------------------------------------
+SET (PLUS_EXECUTABLE_OUTPUT_PATH "${CMAKE_BINARY_DIR}/bin")
+
+#-----------------------------------------------------------------------------
 # Qt - Let's check if a valid version of Qt is available
 #-----------------------------------------------------------------------------
 IF(PLUSBUILD_BUILD_PLUSAPP) 
@@ -156,6 +161,7 @@ IF ( PLUSBUILD_USE_3DSlicer )
         IF(PLUSBUILD_USE_OpenIGTLink)
             FIND_PACKAGE(OpenIGTLink REQUIRED PATHS "${Slicer_BINARY_DIR}/../OpenIGTLink-build" NO_DEFAULT_PATH )
         ENDIF(PLUSBUILD_USE_OpenIGTLink)
+        
     ENDIF( Slicer_FOUND )
     
     ## Try to find Slicer3
@@ -177,6 +183,32 @@ IF ( PLUSBUILD_USE_3DSlicer )
         ENDIF (NOT VTK_USE_QT)
     ENDIF(PLUSBUILD_BUILD_PLUSAPP)    
     
+    # Copy libraries to PLUS_EXECUTABLE_OUTPUT_PATH
+    IF ( ${CMAKE_GENERATOR} MATCHES "Visual Studio" )
+        FILE(COPY 
+            ${VTK_LIBRARY_DIRS}/Release/
+            ${ITK_LIBRARY_DIRS}/Release/
+            ${OpenIGTLink_LIBRARY_DIRS}/Release/
+            DESTINATION ${PLUS_EXECUTABLE_OUTPUT_PATH}/Release
+            FILES_MATCHING REGEX .*${CMAKE_SHARED_LIBRARY_SUFFIX}
+            )
+        FILE(COPY 
+            ${VTK_LIBRARY_DIRS}/Debug/
+            ${ITK_LIBRARY_DIRS}/Debug/
+            ${OpenIGTLink_LIBRARY_DIRS}/Debug/
+            DESTINATION ${PLUS_EXECUTABLE_OUTPUT_PATH}/Debug
+            FILES_MATCHING REGEX .*${CMAKE_SHARED_LIBRARY_SUFFIX}
+            )    
+    ELSE()
+        FILE(COPY 
+            ${VTK_LIBRARY_DIRS}/
+            ${ITK_LIBRARY_DIRS}/
+            ${OpenIGTLink_LIBRARY_DIRS}/
+            DESTINATION ${PLUS_EXECUTABLE_OUTPUT_PATH}
+            FILES_MATCHING REGEX .*${CMAKE_SHARED_LIBRARY_SUFFIX}
+            )
+    ENDIF()
+
 ELSE ( PLUSBUILD_USE_3DSlicer )
     INCLUDE(External_VTK.cmake)
     INCLUDE(External_ITK.cmake)
@@ -192,3 +224,5 @@ INCLUDE(External_PlusLib.cmake)
 IF(PLUSBUILD_BUILD_PLUSAPP) 
     INCLUDE(External_PlusApp.cmake)
 ENDIF(PLUSBUILD_BUILD_PLUSAPP)    
+
+

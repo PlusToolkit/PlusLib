@@ -32,6 +32,7 @@ ExternalProject_Add( vtk
             GIT_TAG "v5.8.0"
             #--Configure step-------------
             CMAKE_ARGS 
+                -DLIBRARY_OUTPUT_PATH:STRING=${PLUS_EXECUTABLE_OUTPUT_PATH}
                 -DBUILD_SHARED_LIBS:BOOL=${PLUSBUILD_BUILD_SHARED_LIBS} 
                 -DBUILD_TESTING:BOOL=OFF 
                 -DVTK_USE_PARALLEL:BOOL=ON

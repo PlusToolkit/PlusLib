@@ -9,6 +9,7 @@ ExternalProject_Add( OpenIGTLink
             SVN_REPOSITORY http://svn.na-mic.org/NAMICSandBox/trunk/OpenIGTLink/
             #--Configure step-------------
             CMAKE_ARGS 
+                -DLIBRARY_OUTPUT_PATH:STRING=${PLUS_EXECUTABLE_OUTPUT_PATH}
                 -DBUILD_SHARED_LIBS:BOOL=${PLUSBUILD_BUILD_SHARED_LIBS}
                 -DBUILD_TESTING:BOOL=OFF 
                 -DBUILD_EXAMPLES:BOOL=OFF

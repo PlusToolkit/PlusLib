@@ -18,6 +18,7 @@ ExternalProject_Add(PlusApp
             ${PLUSBUILD_SVN_REVISION_ARGS}
             #--Configure step-------------
             CMAKE_ARGS 
+                -DPLUS_EXECUTABLE_OUTPUT_PATH:STRING=${PLUS_EXECUTABLE_OUTPUT_PATH}
                 -DPLUSLIB_DIR:PATH=${PLUSLIB_DIR}
                 -DSubversion_SVN_EXECUTABLE:FILEPATH=${Subversion_SVN_EXECUTABLE}
                 -DPLUSAPP_BUILD_VolumeReconstructor:BOOL=ON
@@ -35,3 +36,21 @@ ExternalProject_Add(PlusApp
             DEPENDS ${PlusApp_DEPENDENCIES}
             )
 SET(PLUSAPP_DIR ${CMAKE_BINARY_DIR}/PlusApp-bin CACHE PATH "The directory containing PlusApp binaries" FORCE)                
+
+# --------------------------------------------------------------------------
+# Copy Qt binaries to PLUS_EXECUTABLE_OUTPUT_PATH
+IF ( ${CMAKE_GENERATOR} MATCHES "Visual Studio" )
+    FILE(COPY "${QT_BINARY_DIR}/"
+        DESTINATION ${PLUS_EXECUTABLE_OUTPUT_PATH}/Release
+        FILES_MATCHING REGEX .*[^d]4${CMAKE_SHARED_LIBRARY_SUFFIX}
+        )
+    FILE(COPY "${QT_BINARY_DIR}/"
+        DESTINATION ${PLUS_EXECUTABLE_OUTPUT_PATH}/Debug
+        FILES_MATCHING REGEX .*d4${CMAKE_SHARED_LIBRARY_SUFFIX}
+        )    
+ELSE()
+    FILE(COPY "${QT_BINARY_DIR}/"
+        DESTINATION ${PLUS_EXECUTABLE_OUTPUT_PATH}
+        FILES_MATCHING REGEX .*${CMAKE_SHARED_LIBRARY_SUFFIX}
+        )        
+ENDIF()
