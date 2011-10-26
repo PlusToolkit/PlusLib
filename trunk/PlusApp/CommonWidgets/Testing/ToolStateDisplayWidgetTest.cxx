@@ -141,7 +141,7 @@ void ToolStateDisplayWidgetTest::ConnectToDevicesByConfigFile(std::string aConfi
     }
 
   } else { // Disconnect
-	  if ((m_DataCollector != NULL) && (m_DataCollector->GetInitialized())) {
+	  if ((m_DataCollector != NULL) && (m_DataCollector->GetConnected())) {
 
 		  m_DataCollector->Stop();
 		  m_DataCollector->Disconnect();
@@ -172,7 +172,7 @@ PlusStatus ToolStateDisplayWidgetTest::StartDataCollection()
 	  return PLUS_FAIL;
   }
 
-  if (m_DataCollector->Initialize() != PLUS_SUCCESS) {
+  if (m_DataCollector->Connect() != PLUS_SUCCESS) {
 	  return PLUS_FAIL;
   }
 
@@ -184,7 +184,7 @@ PlusStatus ToolStateDisplayWidgetTest::StartDataCollection()
 	  LOG_INFO("Tracker is not initialized"); 
   }
 
-  if (! m_DataCollector->GetInitialized()) {
+  if (! m_DataCollector->GetConnected()) {
 	  LOG_ERROR("Unable to initialize DataCollector!"); 
 	  return PLUS_FAIL;
   }
