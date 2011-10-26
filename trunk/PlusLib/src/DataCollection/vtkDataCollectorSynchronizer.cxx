@@ -13,7 +13,6 @@
 #include "vtkImageExtractComponents.h"
 #include "vtkSmartPointer.h"
 #include "vtkImageImport.h"
-#include "vtkBMPWriter.h"
 #include "vtkImageResample.h"
 #include "vtksys/SystemTools.hxx"
 #include "vtkGnuplotExecuter.h"
@@ -315,12 +314,7 @@ PlusStatus vtkDataCollectorSynchronizer::DetectVideoMotions(const std::vector<do
     if ( videoBufferIndex < this->VideoBuffer->GetLatestItemUidInBuffer() ) 
     {
       // Set the baseframe of the image compare 
-      vtkSmartPointer<vtkImageData> baseframe = vtkSmartPointer<vtkImageData>::New(); 
-      if ( videoItem.GetFrame().CopyToVtkImage(baseframe) != PLUS_SUCCESS )
-      {
-        LOG_WARNING("vtkDataCollectorSynchronizer: Unable to copy image from video buffer!"); 
-        continue; 
-      }
+      vtkImageData* baseframe = videoItem.GetFrame().GetVtkImage(); 
 
       if ( baseframe == NULL )
       {
@@ -773,20 +767,7 @@ void vtkDataCollectorSynchronizer::FindStillFrame( BufferItemUidType& baseIndex,
         continue; 
       }
 
-      vtkImageData* baseframe = vtkImageData::New(); 
-      if ( videoItem.GetFrame().CopyToVtkImage(baseframe) != PLUS_SUCCESS )
-      {
-        LOG_WARNING("vtkDataCollectorSynchronizer: Unable to copy video frame!"); 
-        if ( baseframe != NULL )
-        {
-          baseframe->Delete(); 
-          baseframe = NULL; 
-        }
-        baseIndex = baseIndex + 1; 
-        currentIndex = baseIndex + this->GetNumberOfAveragedFrames(); 
-        this->SetBaseFrame(NULL); 
-        continue; 
-      }
+      vtkImageData* baseframe = videoItem.GetFrame().GetVtkImage(); 
 
       if ( baseframe == NULL )
       {
@@ -799,7 +780,6 @@ void vtkDataCollectorSynchronizer::FindStillFrame( BufferItemUidType& baseIndex,
 
       vtkSmartPointer<vtkImageData> baseframeRGB = vtkSmartPointer<vtkImageData>::New(); 
       this->ConvertFrameToRGB(baseframe, baseframeRGB, 0.5); 
-      baseframe->Delete(); 
       this->SetBaseFrame( baseframeRGB ); 
     }
 
@@ -813,20 +793,7 @@ void vtkDataCollectorSynchronizer::FindStillFrame( BufferItemUidType& baseIndex,
       continue; 
     }
 
-    vtkImageData* frame = vtkImageData::New(); 
-    if ( videoItem.GetFrame().CopyToVtkImage(frame) != PLUS_SUCCESS )
-    {
-      LOG_WARNING("vtkDataCollectorSynchronizer: Unable to copy video frame!"); 
-      if ( frame != NULL )
-      {
-        frame->Delete(); 
-        frame = NULL; 
-      }
-      baseIndex = baseIndex + 1; 
-      currentIndex = baseIndex + this->GetNumberOfAveragedFrames(); 
-      this->SetBaseFrame(NULL); 
-      continue; 
-    }
+    vtkImageData* frame = videoItem.GetFrame().GetVtkImage(); 
 
     if ( frame == NULL )
     {
@@ -844,7 +811,6 @@ void vtkDataCollectorSynchronizer::FindStillFrame( BufferItemUidType& baseIndex,
     // Compute frame differences
     double frameDifference = this->GetFrameDifference(frameRGB); 
     frameRGB->Delete(); 
-    frame->Delete(); 
 
     //LOG_TRACE("FindStillFrame - baseIndex: " << std::fixed << baseIndex << "(timestamp: " << this->GetVideoBuffer()->GetTimeStamp(baseIndex) << ")  currentIndex: " << currentIndex << "   frameDifference: " << frameDifference); 
     if ( frameDifference < this->MaxFrameDifference )
@@ -903,13 +869,7 @@ PlusStatus vtkDataCollectorSynchronizer::FindFrameTimestamp( BufferItemUidType& 
 
     unsigned long frameNumber = videoItem.GetIndex(); 
 
-    vtkSmartPointer<vtkImageData> frame = vtkSmartPointer<vtkImageData>::New(); 
-    if ( videoItem.GetFrame().CopyToVtkImage(frame) != PLUS_SUCCESS )
-    {
-      LOG_WARNING("vtkDataCollectorSynchronizer: Unable to get frame from video buffer!"); 
-      bufferIndex++; 
-      continue; 
-    }
+    vtkImageData* frame = videoItem.GetFrame().GetVtkImage(); 
 
     if ( frame == NULL )
     {
@@ -988,13 +948,7 @@ PlusStatus vtkDataCollectorSynchronizer::ComputeFrameThreshold( BufferItemUidTyp
 
     double frameTimestamp = videoItem.GetTimestamp(localTimeOffset); 
 
-    vtkSmartPointer<vtkImageData> frame = vtkSmartPointer<vtkImageData>::New(); 
-    if ( videoItem.GetFrame().CopyToVtkImage(frame) != PLUS_SUCCESS )
-    {
-      LOG_WARNING("vtkDataCollectorSynchronizer: Failed to copy frame from video buffer!"); 
-      continue; 
-    }
-
+    vtkImageData* frame = videoItem.GetFrame().GetVtkImage(); 
     if ( frame == NULL )
     {
       LOG_WARNING("vtkDataCollectorSynchronizer: Unable to resize actual frame for frame threshold computation if it's NULL - continue with next frame."); 
@@ -1132,17 +1086,6 @@ double vtkDataCollectorSynchronizer::GetFrameDifference(vtkImageData* frame)
 
   LOG_TRACE("FrameDifference: " << imgDiff->GetThresholdedError()); 
   return imgDiff->GetThresholdedError(); 
-}
-
-
-//----------------------------------------------------------------------------
-void vtkDataCollectorSynchronizer::SaveFrameToFile(vtkImageData* frame, char* fileName)
-{
-  LOG_TRACE("vtkDataCollectorSynchronizer::SaveFrameToFile: " << fileName ); 
-  vtkSmartPointer<vtkBMPWriter> writer = vtkSmartPointer<vtkBMPWriter>::New(); 
-  writer->SetFileName(fileName); 
-  writer->SetInput(frame); 
-  writer->Update(); 
 }
 
 //----------------------------------------------------------------------------

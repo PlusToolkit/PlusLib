@@ -11,11 +11,11 @@ See License.txt for details.
 #include <sstream>
 #include <string>
 
-#include "vtkBMPWriter.h" // debug
 #include "vtkImageData.h"
 #include "vtkMatrix4x4.h"
 #include "vtkObjectFactory.h"
 #include "vtkSmartPointer.h"
+#include "PlusVideoFrame.h"
 
 #include "vtkTrackerTool.h"
 
@@ -299,7 +299,7 @@ void vtkOpenIGTLinkBroadcaster::SendImageMessage( TrackedFrame* trackedFrame, st
   vtkSmartPointer< vtkMatrix4x4 > mProbeToReference = vtkSmartPointer< vtkMatrix4x4 >::New();
   // PlusStatus pStatus = this->DataCollector->GetTrackedFrame( frameImage, mProbeToReference, status, timestamp, defaultTool, true );
 
-  vtkImageData* frameImage = trackedFrame->GetImageData()->GetVtkImageNonFlipped();
+  vtkImageData* frameImage = trackedFrame->GetImageData()->GetVtkImage();
   TrackerStatus status = trackedFrame->GetStatus();
 
   if ( status != TR_OK )
@@ -318,10 +318,7 @@ void vtkOpenIGTLinkBroadcaster::SendImageMessage( TrackedFrame* trackedFrame, st
   //imageMessage->Get
   std::stringstream ss;
   ss << "_vtk_" << igtlFrameTime->GetSecond() << "-" << igtlFrameTime->GetNanosecond() << ".bmp";
-  vtkSmartPointer< vtkBMPWriter > dw = vtkSmartPointer< vtkBMPWriter >::New();
-  dw->SetFileName( ss.str().c_str() );
-  dw->SetInput( frameImage );
-  dw->Update();
+  PlusVideoFrame::SaveImageToFile(frameImage, ss.str().c_str()); 
   */
 
 

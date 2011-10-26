@@ -62,7 +62,6 @@ POSSIBILITY OF SUCH DAMAGES.
 #include <iomanip>
 
 #include "vtkUnsignedCharArray.h"
-#include "vtkJPEGWriter.h"
 #include "vtkImageFlip.h"
 
 #include "vtkMath.h"

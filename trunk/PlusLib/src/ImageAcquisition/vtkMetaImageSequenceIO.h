@@ -14,7 +14,7 @@
 #define PLUS_EXPORTS
 
 #include "vtkPlusWin32Header.h"
-#include "UsImageConverterCommon.h"
+#include "PlusVideoFrame.h"
 
 #include "itkImageIOBase.h"
 #include "vtkMatrix4x4.h"

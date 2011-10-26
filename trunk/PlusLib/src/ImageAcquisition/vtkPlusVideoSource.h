@@ -33,7 +33,6 @@ Authors include: Danielle Pace
 #include "vtkImageAlgorithm.h"
 #include "vtkXMLDataElement.h"
 #include "vtkMultiThreader.h"
-#include "UsImageConverterCommon.h"
 #include "PlusVideoFrame.h"
 
 class vtkTimerLog;
@@ -41,8 +40,6 @@ class vtkCriticalSection;
 class vtkMultiThreader;
 class vtkScalarsToColors;
 class vtkVideoBuffer;
-class vtkImageWriter;
-class vtkImageReader2;
 class vtkHTMLGenerator; 
 class vtkGnuplotExecuter; 
 class VideoBufferItem;

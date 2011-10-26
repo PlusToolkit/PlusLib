@@ -1072,7 +1072,17 @@ PlusStatus vtkDataCollector::GetFrameByTime(double time, vtkImageData* vtkFrame,
     LOG_ERROR("Failed to get frame by time: " << std::fixed << time ); 
     return PLUS_FAIL; 
   }
-  return frame.CopyToVtkImage(vtkFrame);
+
+  vtkImageData* imgData = frame.GetVtkImage(); 
+  if ( imgData == NULL )
+  {
+    LOG_ERROR("Failed to get vtk image from PlusVideoFrame!"); 
+    return PLUS_FAIL; 
+  }
+
+  vtkFrame->DeepCopy(imgData); 
+
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
@@ -1530,7 +1540,7 @@ int vtkDataCollector::RequestData( vtkInformation* vtkNotUsed( request ), vtkInf
     return 1; 
   }
 
-  currentVideoBufferItem.GetFrame().CopyToVtkImage(outData);
+  outData->DeepCopy(currentVideoBufferItem.GetFrame().GetVtkImage());
 
   const double globalTime = currentVideoBufferItem.GetTimestamp( this->GetVideoSource()->GetBuffer()->GetLocalTimeOffset() ); 
 

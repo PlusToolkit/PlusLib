@@ -44,6 +44,7 @@ POSSIBILITY OF SUCH DAMAGES.
 #include <iostream>
 
 #include "vtkImageData.h"
+#include "PlusVideoFrame.h"
 
 //----------------------------------------------------------------------------
 vtkMicronTracker* vtkMicronTracker::New()
@@ -511,17 +512,12 @@ vtkImageImport* vtkMicronTracker::GetRightImage()
 //----------------------------------------------------------------------------
 void vtkMicronTracker::GetSnapShot(char* testNum, char* identifier)
 {
-  //imageWriter = vtkJPEGWriter()
   this->UpdateLeftRightImage();
-  vtkJPEGWriter* imageWriter = vtkJPEGWriter::New();
-  vtkImageFlip* flip = vtkImageFlip::New();
-  flip->SetFilteredAxes(1);
-  
+ 
   //static leftSnapShotCounter = 0;
   //static rightSnapShotCounter = 0;
   
   // For left image
-  flip->SetInput(this->GetLeftImage()->GetOutput());
   string fileName = MT->mtGetCurrDir();
 #if (WIN32)
   fileName += "\\SnapShots\\";
@@ -532,13 +528,10 @@ void vtkMicronTracker::GetSnapShot(char* testNum, char* identifier)
   fileName += "_LeftSnapShot_";
   fileName += identifier;
   fileName += ".JPEG";
-  
-  imageWriter->SetFilePattern(fileName.c_str());
-  imageWriter->SetInput(flip->GetOutput());
-  imageWriter->Write();
+
+  PlusVideoFrame::SaveImageToFile(this->GetLeftImage()->GetOutput(), fileName.c_str()); 
   
   // For right image
-  flip->SetInput(this->GetRightImage()->GetOutput());
   fileName = MT->mtGetCurrDir();
 #if (WIN32)
   fileName += "\\SnapShots\\";
@@ -550,12 +543,7 @@ void vtkMicronTracker::GetSnapShot(char* testNum, char* identifier)
   fileName += identifier;
   fileName += ".JPEG"; 
   
-  imageWriter->SetFilePattern(fileName.c_str());
-  imageWriter->SetInput(flip->GetOutput());
-  imageWriter->Write();
-  
-  imageWriter->Delete();
-  flip->Delete();
+  PlusVideoFrame::SaveImageToFile(this->GetRightImage()->GetOutput(), fileName.c_str()); 
 }
 
 //----------------------------------------------------------------------------

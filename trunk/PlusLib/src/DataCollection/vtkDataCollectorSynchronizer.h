@@ -166,8 +166,6 @@ protected:
 	virtual double GetImageAcquisitionFrameRate(double& mean, double& deviation); 
 	virtual double GetPositionAcquisitionFrameRate(double& mean, double& deviation); 
 
-	virtual void SaveFrameToFile(vtkImageData* frame, char* fileName); 
-
   virtual void InitSyncReportTable(); 
 
 	vtkImageData* BaseFrame; 

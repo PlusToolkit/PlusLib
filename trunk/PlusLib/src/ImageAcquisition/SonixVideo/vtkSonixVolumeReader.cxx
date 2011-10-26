@@ -7,9 +7,8 @@
 #include "vtkSonixVolumeReader.h"
 #include "vtkObjectFactory.h"
 #include "vtkSmartPointer.h"
-#include "vtkImageFlip.h"
 #include "vtkImageData.h"
-#include "vtkTIFFWriter.h"
+#include "PlusVideoFrame.h"
 
 
 #include <iostream>
@@ -177,14 +176,8 @@ int vtkSonixVolumeReader::ReadVolume()
 		}
 
 		imageData->UpdateData(); 
-		
-		// Add the vtkImageData to ImageDataVector
-		vtkSmartPointer<vtkImageFlip> imageFlip = vtkSmartPointer<vtkImageFlip>::New();
-		imageFlip->SetInput(imageData);
-		imageFlip->SetFilteredAxes(1);
-		imageFlip->Update();
-		imageFlip->GetOutput()->Register(NULL);
-		this->ImageDataVector.push_back(imageFlip->GetOutput()); 
+    imageData->Register(NULL); 
+		this->ImageDataVector.push_back(imageData); 
 	}
 
 	fclose(fp);
@@ -209,51 +202,53 @@ vtkstd::vector<vtkImageData *>* vtkSonixVolumeReader::GetAllFrames()
 
 
 //----------------------------------------------------------------------------
-void vtkSonixVolumeReader::WriteFrameAsTIFF(int imageNumber, const char* filePrefix, const char* directory /* = "./" */)
+PlusStatus vtkSonixVolumeReader::WriteFrameAsTIFF(int imageNumber, const char* filePrefix, const char* directory /* = "./" */)
 {
+  vtkstd::ostringstream os ; 
+  os << directory <<filePrefix; 
 
-			vtkSmartPointer<vtkTIFFWriter> w = vtkSmartPointer<vtkTIFFWriter>::New();
-			w->SetCompressionToNoCompression(); 
-			w->SetInput(this->ImageDataVector[imageNumber]); 
-			vtkstd::ostringstream os ; 
-			os << directory <<filePrefix; 
-			
-			if (imageNumber < 10 ) 
-			{
-				os << "000" << imageNumber; 
-			}
-			else if (imageNumber < 100 ) 
-			{
-				os << "00" << imageNumber; 
-			}
-			else if (imageNumber < 1000 ) 
-			{
-				os << "0" << imageNumber; 
-			}
-			else 
-			{
-				os << imageNumber; 
-			}
+  if (imageNumber < 10 ) 
+  {
+    os << "000" << imageNumber; 
+  }
+  else if (imageNumber < 100 ) 
+  {
+    os << "00" << imageNumber; 
+  }
+  else if (imageNumber < 1000 ) 
+  {
+    os << "0" << imageNumber; 
+  }
+  else 
+  {
+    os << imageNumber; 
+  }
 
-			os << ".tiff"; 
-			w->SetFileName(os.str().c_str()); 
-			w->Update(); 
+  os << ".tiff"; 
 
+  return PlusVideoFrame::SaveImageToFile(this->ImageDataVector[imageNumber], os.str().c_str()); 
 }
 
 //----------------------------------------------------------------------------
-void vtkSonixVolumeReader::WriteAllFramesAsTIFF(const char* filePrefix, const char* directory /* = "./" */)
+PlusStatus vtkSonixVolumeReader::WriteAllFramesAsTIFF(const char* filePrefix, const char* directory /* = "./" */)
 {
 	if (this->ImageDataVector.empty())
 	{
-		LOG_WARNING("Warning: There are no images to save as TIFF"); 
-		return; 
+		LOG_DEBUG("Warning: There are no images to save as TIFF"); 
+		return PLUS_SUCCESS; 
 	}
 
 	const int vectorSize = this->ImageDataVector.size(); 
 
+  PlusStatus status = PLUS_SUCCESS; 
 	for (int imgnum = 0 ; imgnum < vectorSize; imgnum++) 
 	{
-		WriteFrameAsTIFF( imgnum, filePrefix, directory); 
+		if ( WriteFrameAsTIFF( imgnum, filePrefix, directory) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Failed to write frame #" << imgnum << " to tiff!"); 
+      status = PLUS_FAIL; 
+    }
 	}
+
+  return status; 
 }	

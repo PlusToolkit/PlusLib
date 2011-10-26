@@ -20,18 +20,8 @@
 #include "vtkUnsignedCharArray.h"
 #include "vtkWindows.h"
 #include "vtkDoubleArray.h"
-#include "vtkBMPWriter.h"
-#include "vtkJPEGWriter.h"
 #include "vtkMetaImageWriter.h"
-#include "vtkPNGWriter.h"
-#include "vtkPNMWriter.h"
-#include "vtkTIFFWriter.h"
-#include "vtkBMPReader.h"
-#include "vtkJPEGReader.h"
 #include "vtkMetaImageReader.h"
-#include "vtkPNGReader.h"
-#include "vtkPNMReader.h"
-#include "vtkTIFFReader.h"
 #include "vtkImageData.h"
 #include "vtksys/SystemTools.hxx"
 #include "vtkGnuplotExecuter.h"
@@ -442,7 +432,7 @@ int vtkPlusVideoSource::RequestInformation(vtkInformation * vtkNotUsed(request),
 	outInfo->Set(vtkDataObject::ORIGIN(),origin,3);
 
 	// set default data type - unsigned char and number of components 1 
-  vtkDataObject::SetPointDataActiveScalarInfo(outInfo, UsImageConverterCommon::GetVTKScalarPixelType(this->Buffer->GetPixelType()), 1);
+  vtkDataObject::SetPointDataActiveScalarInfo(outInfo, PlusVideoFrame::GetVTKScalarPixelType(this->Buffer->GetPixelType()), 1);
 
 	return 1;
 }
@@ -598,7 +588,7 @@ PlusStatus vtkPlusVideoSource::ReadConfiguration(vtkXMLDataElement* config)
   if ( usImageOrientation != NULL )
   {
       LOG_INFO("Selected US image orientation: " << usImageOrientation ); 
-      this->SetUsImageOrientation( UsImageConverterCommon::GetUsImageOrientationFromString(usImageOrientation) ); 
+      this->SetUsImageOrientation( PlusVideoFrame::GetUsImageOrientationFromString(usImageOrientation) ); 
       if ( this->GetUsImageOrientation() == US_IMG_ORIENT_XX )
       {
           LOG_ERROR("Ultrasound image orientation is undefined - please set a proper image orientation!"); 

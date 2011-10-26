@@ -68,8 +68,8 @@ public:
 
 	// Description:
 	// Save frame as TIFF
-	virtual void WriteFrameAsTIFF(int imageNumber, const char* filePrefix, const char* directory = "./"); 
-	virtual void WriteAllFramesAsTIFF(const char* filePrefix, const char* directory = "./"); 
+	virtual PlusStatus WriteFrameAsTIFF(int imageNumber, const char* filePrefix, const char* directory = "./"); 
+	virtual PlusStatus WriteAllFramesAsTIFF(const char* filePrefix, const char* directory = "./"); 
 
 
 protected:

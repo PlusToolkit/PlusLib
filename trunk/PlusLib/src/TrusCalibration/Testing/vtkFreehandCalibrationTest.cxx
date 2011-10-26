@@ -15,7 +15,6 @@
 #include "vtkPhantomRegistrationAlgo.h"
 #include "FidPatternRecognition.h"
 
-#include "vtkBMPReader.h"
 #include "vtkSmartPointer.h"
 #include "vtkCommand.h"
 #include "vtkCallbackCommand.h"
