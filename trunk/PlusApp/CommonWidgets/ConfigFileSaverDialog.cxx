@@ -46,7 +46,7 @@ void ConfigFileSaverDialog::OpenDestinationDirectoryClicked()
 		return;
 	}
 
-  this->SetDestinationDirectory(dirName.toStdString()); 
+  this->SetDestinationDirectory(dirName.toAscii().data()); 
 
 	m_DestinationDirectory = dirName;
 
@@ -60,7 +60,7 @@ void ConfigFileSaverDialog::SetDestinationDirectory(std::string aDirectory)
 {
 	LOG_TRACE("ConfigFileSaverDialog::SetDestinationDirectory(" << aDirectory << ")"); 
 
-	m_DestinationDirectory = QString::fromStdString(aDirectory);
+	m_DestinationDirectory = aDirectory.c_str();
 
 	ui.lineEdit_DestinationDirectory->setText(m_DestinationDirectory);
 	ui.lineEdit_DestinationDirectory->setToolTip(m_DestinationDirectory);
@@ -130,11 +130,11 @@ void ConfigFileSaverDialog::SaveClicked()
 
   // Display file save dialog and save XML
 	QString filter = QString( tr( "XML files ( *.xml );;" ) );
-  QString destinationFile = QString("%1/%2").arg(m_DestinationDirectory).arg(QString::fromStdString(vtkPlusConfig::GetInstance()->GetNewDeviceSetConfigurationFileName()));
+  QString destinationFile = QString("%1/%2").arg(m_DestinationDirectory).arg(vtkPlusConfig::GetInstance()->GetNewDeviceSetConfigurationFileName().c_str());
   QString fileName = QFileDialog::getSaveFileName(NULL, tr("Save result configuration XML"), destinationFile, filter);
 
 	if (! fileName.isNull() ) {
-    vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()->PrintXML(fileName.toStdString().c_str());
+    vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()->PrintXML(fileName.toAscii().data());
 	}
 
   accept();

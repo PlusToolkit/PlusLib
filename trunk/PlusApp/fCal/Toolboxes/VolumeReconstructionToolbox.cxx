@@ -184,9 +184,9 @@ void VolumeReconstructionToolbox::OpenVolumeReconstructionConfig()
 	}
 
   // Parse XML file
-	vtkSmartPointer<vtkXMLDataElement> rootElement = vtkXMLUtilities::ReadElementFromFile(fileName.toStdString().c_str());
+	vtkSmartPointer<vtkXMLDataElement> rootElement = vtkXMLUtilities::ReadElementFromFile(fileName.toAscii().data());
 	if (rootElement == NULL) {	
-		LOG_ERROR("Unable to read the configuration file: " << fileName.toStdString()); 
+		LOG_ERROR("Unable to read the configuration file: " << fileName.toAscii().data()); 
 		return;
 	}
 
@@ -198,7 +198,7 @@ void VolumeReconstructionToolbox::OpenVolumeReconstructionConfig()
     ui.lineEdit_VolumeReconstructionConfig->setText(tr("Invalid file!"));
 		ui.lineEdit_VolumeReconstructionConfig->setToolTip("");
 
-		LOG_ERROR("Failed to open volume reconstruction file: " << fileName.toStdString());
+		LOG_ERROR("Failed to open volume reconstruction file: " << fileName.toAscii().data());
 		return;
 	}
 
@@ -237,7 +237,7 @@ void VolumeReconstructionToolbox::Reconstruct()
 
 	QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
 
-	if (ReconstructVolumeFromInputImage(ui.lineEdit_InputImage->text().toStdString()) != PLUS_SUCCESS)
+	if (ReconstructVolumeFromInputImage(ui.lineEdit_InputImage->text().toAscii().data()) != PLUS_SUCCESS)
   {
     LOG_ERROR("Unable to reconstruct volume!");
   }
@@ -257,7 +257,7 @@ void VolumeReconstructionToolbox::Save()
 	if (! fileName.isNull() ) {
 		QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
 
-		if (SaveVolumeToFile(fileName.toStdString()) != PLUS_SUCCESS)
+		if (SaveVolumeToFile(fileName.toAscii().data()) != PLUS_SUCCESS)
     {
       LOG_ERROR("Unable to save volume to file!");
     }

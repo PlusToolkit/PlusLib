@@ -41,7 +41,7 @@ DeviceSetSelectorWidget::~DeviceSetSelectorWidget()
 
 PlusStatus DeviceSetSelectorWidget::SetConfigurationDirectory(QString aDirectory)
 {
-  LOG_TRACE("DeviceSetSelectorWidget::SetConfigurationDirectory(" << aDirectory.toStdString() << ")");
+  LOG_TRACE("DeviceSetSelectorWidget::SetConfigurationDirectory(" << aDirectory.toAscii().data() << ")");
 
   // Try to parse up directory and set UI according to the result
 	if (ParseDirectory(aDirectory)) {
@@ -75,7 +75,7 @@ void DeviceSetSelectorWidget::OpenConfigurationDirectory()
 
   if (SetConfigurationDirectory(dirName) == PLUS_SUCCESS) {
     // Save the selected directory to config object
-    vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationDirectory(dirName.toStdString().c_str());
+    vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationDirectory(dirName.toAscii().data());
     vtkPlusConfig::GetInstance()->SaveApplicationConfigurationToFile();
 
   } else {
@@ -91,7 +91,7 @@ void DeviceSetSelectorWidget::InvokeConnect()
 
   ui.pushButton_Connect->setEnabled(false);
 
-	emit ConnectToDevicesByConfigFileInvoked(ui.comboBox_DeviceSet->itemData(ui.comboBox_DeviceSet->currentIndex()).toStringList().at(0).toStdString());
+	emit ConnectToDevicesByConfigFileInvoked(ui.comboBox_DeviceSet->itemData(ui.comboBox_DeviceSet->currentIndex()).toStringList().at(0).toAscii().data());
 }
 
 //-----------------------------------------------------------------------------
@@ -100,7 +100,7 @@ std::string DeviceSetSelectorWidget::GetSelectedDeviceSetDescription()
 {
 	LOG_TRACE("DeviceSetSelectorWidget::GetSelectedDeviceSetDescription"); 
 
-  return ui.comboBox_DeviceSet->itemData(ui.comboBox_DeviceSet->currentIndex()).toStringList().at(1).toStdString(); 
+  return ui.comboBox_DeviceSet->itemData(ui.comboBox_DeviceSet->currentIndex()).toStringList().at(1).toAscii().data(); 
 }
 
 //-----------------------------------------------------------------------------
@@ -135,7 +135,7 @@ void DeviceSetSelectorWidget::DeviceSetSelected(int aIndex)
 
   QString configurationFilePath = ui.comboBox_DeviceSet->itemData(ui.comboBox_DeviceSet->currentIndex()).toStringList().at(0); 
 
-  emit DeviceSetSelected( configurationFilePath.toStdString() ); 
+  emit DeviceSetSelected( configurationFilePath.toAscii().data() ); 
 }
 
 //-----------------------------------------------------------------------------
@@ -163,7 +163,7 @@ void DeviceSetSelectorWidget::SetConnectionSuccessful(bool aConnectionSuccessful
 			connect( ui.pushButton_Connect, SIGNAL( clicked() ), this, SLOT( InvokeDisconnect() ) );
 
       // Set last used device set config file
-      vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationFileName(ui.comboBox_DeviceSet->itemData(ui.comboBox_DeviceSet->currentIndex()).toStringList().at(0).toStdString().c_str());
+      vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationFileName(ui.comboBox_DeviceSet->itemData(ui.comboBox_DeviceSet->currentIndex()).toStringList().at(0).toAscii().data());
 
 		} else {
 			ui.textEdit_Description->setTextColor(QColor(Qt::darkRed));
@@ -204,7 +204,7 @@ bool DeviceSetSelectorWidget::GetConnectionSuccessful()
 
 PlusStatus DeviceSetSelectorWidget::ParseDirectory(QString aDirectory)
 {
-	LOG_TRACE("DeviceSetSelectorWidget::ParseDirectory(" << aDirectory.toStdString() << ")"); 
+	LOG_TRACE("DeviceSetSelectorWidget::ParseDirectory(" << aDirectory.toAscii().data() << ")"); 
 
 	QDir configDir(aDirectory);
 	QStringList fileList(configDir.entryList());

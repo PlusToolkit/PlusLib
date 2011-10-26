@@ -86,19 +86,19 @@ void StylusCalibrationToolbox::RefreshContent()
 	// If initialized
 	if (m_State == ToolboxState_Idle) {
 		ui.label_NumberOfPoints->setText(QString("%1 / %2").arg(0).arg(m_NumberOfPoints));
-		ui.label_CurrentPosition->setText(QString::fromStdString(m_StylusPositionString));
+    ui.label_CurrentPosition->setText(m_StylusPositionString.c_str());
 
 	} else
 	// If in progress
 	if (m_State == ToolboxState_InProgress) {
 		ui.label_NumberOfPoints->setText(QString("%1 / %2").arg(m_CurrentPointNumber).arg(m_NumberOfPoints));
-		ui.label_CurrentPosition->setText(QString::fromStdString(m_StylusPositionString));
+		ui.label_CurrentPosition->setText(m_StylusPositionString.c_str());
 		m_ParentMainWindow->SetStatusBarProgress((int)(100.0 * (m_CurrentPointNumber / (double)m_NumberOfPoints) + 0.5));
 
 	} else
 	// If done
 	if (m_State == ToolboxState_Done) {
-		ui.label_CurrentPosition->setText(QString::fromStdString(m_ParentMainWindow->GetToolVisualizer()->GetToolPositionString(TRACKER_TOOL_STYLUS, true)));
+    ui.label_CurrentPosition->setText(m_ParentMainWindow->GetToolVisualizer()->GetToolPositionString(TRACKER_TOOL_STYLUS, true).c_str());
 	}
 }
 
@@ -148,7 +148,7 @@ void StylusCalibrationToolbox::SetDisplayAccordingToState()
 	if (m_State == ToolboxState_InProgress) {
 		ui.label_NumberOfPoints->setText(QString("%1 / %2").arg(m_CurrentPointNumber).arg(m_NumberOfPoints));
 		ui.label_CalibrationError->setText(tr("N/A"));
-		ui.label_CurrentPosition->setText(QString::fromStdString(m_StylusPositionString));
+		ui.label_CurrentPosition->setText(m_StylusPositionString.c_str());
 		ui.label_StylusTipTransform->setText(tr("N/A"));
 		ui.label_Instructions->setText(tr("Move around stylus with its tip fixed until the required amount of points are aquired"));
 		ui.label_Instructions->setFont(QFont("SansSerif", 8, QFont::Bold));
@@ -175,8 +175,8 @@ void StylusCalibrationToolbox::SetDisplayAccordingToState()
 
 		ui.label_NumberOfPoints->setText(QString("%1 / %2").arg(m_CurrentPointNumber).arg(m_NumberOfPoints));
 		ui.label_CalibrationError->setText(QString("%1 mm").arg(m_PivotCalibration->GetCalibrationError(), 2));
-		ui.label_CurrentPosition->setText(QString::fromStdString(m_StylusPositionString));
-		ui.label_StylusTipTransform->setText(QString::fromStdString(m_PivotCalibration->GetTooltipToToolTranslationString()));
+		ui.label_CurrentPosition->setText(m_StylusPositionString.c_str());
+		ui.label_StylusTipTransform->setText(m_PivotCalibration->GetTooltipToToolTranslationString().c_str());
 
 		m_ParentMainWindow->SetStatusBarText(QString(" Stylus calibration done"));
 		m_ParentMainWindow->SetStatusBarProgress(-1);

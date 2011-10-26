@@ -232,7 +232,7 @@ void FreehandCalibrationToolbox::SetDisplayAccordingToState()
 
 		ui.checkBox_ShowDevices->setEnabled(true);
 		ui.pushButton_Save->setEnabled(true);
-		ui.label_Results->setText(QString::fromStdString(m_Calibration->GetResultString()));
+		ui.label_Results->setText(m_Calibration->GetResultString().c_str());
 
 		ui.pushButton_Save->setFocus();
 
@@ -277,9 +277,9 @@ void FreehandCalibrationToolbox::OpenPhantomRegistration()
 	}
 
   // Parse XML file
-  vtkSmartPointer<vtkXMLDataElement> rootElement = vtkXMLUtilities::ReadElementFromFile(fileName.toStdString().c_str());
+  vtkSmartPointer<vtkXMLDataElement> rootElement = vtkXMLUtilities::ReadElementFromFile(fileName.toAscii().data());
 	if (rootElement == NULL) {	
-		LOG_ERROR("Unable to read the configuration file: " << fileName.toStdString()); 
+		LOG_ERROR("Unable to read the configuration file: " << fileName.toAscii().data()); 
 		return;
 	}
 
@@ -319,9 +319,9 @@ void FreehandCalibrationToolbox::OpenCalibrationConfiguration()
 	}
 
   // Parse XML file
-  vtkSmartPointer<vtkXMLDataElement> rootElement = vtkXMLUtilities::ReadElementFromFile(fileName.toStdString().c_str());
+  vtkSmartPointer<vtkXMLDataElement> rootElement = vtkXMLUtilities::ReadElementFromFile(fileName.toAscii().data());
 	if (rootElement == NULL) {	
-		LOG_ERROR("Unable to read the configuration file: " << fileName.toStdString()); 
+		LOG_ERROR("Unable to read the configuration file: " << fileName.toAscii().data()); 
 		return;
 	}
 
@@ -332,7 +332,7 @@ void FreehandCalibrationToolbox::OpenCalibrationConfiguration()
 		ui.lineEdit_CalibrationConfiguration->setText(tr("Invalid file!"));
 		ui.lineEdit_CalibrationConfiguration->setToolTip("");
 
-		LOG_ERROR("Calibration configuration file " << fileName.toStdString().c_str() << " cannot be loaded!");
+		LOG_ERROR("Calibration configuration file " << fileName.toAscii().data() << " cannot be loaded!");
 		return;
 	}
 

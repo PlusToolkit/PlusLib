@@ -60,7 +60,7 @@ int main(int argc, char *argv[])
   {
     std::string resultConfigFileName = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationDirectory();
     resultConfigFileName.append("/TEST_ConfigFileSaverDialogTest_Result.xml");
-    QFile::remove(QString::fromStdString(resultConfigFileName));
+    QFile::remove(resultConfigFileName.c_str());
   }
 
   // Start the application

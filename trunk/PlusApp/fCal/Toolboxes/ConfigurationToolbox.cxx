@@ -273,8 +273,8 @@ bool ConfigurationToolbox::eventFilter(QObject *obj, QEvent *ev)
 	      if ( ( keyEvent->key() == Qt::Key_D ) && ( keyEvent->modifiers() == Qt::ControlModifier ) ) {
 	        // Directory open dialog for selecting directory to save the buffers into 
           QString dirName = QFileDialog::getExistingDirectory(NULL, QString( tr( "Open output directory for buffer dump files" ) ), vtkPlusConfig::GetInstance()->GetOutputDirectory());
-	        if ( (dirName.isNull()) || (m_ParentMainWindow->GetToolVisualizer()->DumpBuffersToDirectory(dirName.toStdString().c_str()) != PLUS_SUCCESS) ) {
-              LOG_ERROR("Writing raw buffers into files failed (output directory: " << dirName.toStdString() << ")!");
+	        if ( (dirName.isNull()) || (m_ParentMainWindow->GetToolVisualizer()->DumpBuffersToDirectory(dirName.toAscii().data()) != PLUS_SUCCESS) ) {
+              LOG_ERROR("Writing raw buffers into files failed (output directory: " << dirName.toAscii().data() << ")!");
           }
           return true;
         }
@@ -313,7 +313,7 @@ void ConfigurationToolbox::SelectEditorApplicationExecutable()
 		return;
 	}
 
-  vtkPlusConfig::GetInstance()->SetEditorApplicationExecutable(fileName.toStdString().c_str());
+  vtkPlusConfig::GetInstance()->SetEditorApplicationExecutable(fileName.toAscii().data());
   vtkPlusConfig::GetInstance()->SaveApplicationConfigurationToFile();
 
   ui.lineEdit_EditorApplicationExecutable->setText(fileName);
@@ -332,7 +332,7 @@ void ConfigurationToolbox::SelectImageDirectory()
 	}
 
   // Save the selected directory to config object
-  vtkPlusConfig::GetInstance()->SetImageDirectory(dirName.toStdString().c_str());
+  vtkPlusConfig::GetInstance()->SetImageDirectory(dirName.toAscii().data());
   vtkPlusConfig::GetInstance()->SaveApplicationConfigurationToFile();
 
   ui.lineEdit_ImageDirectory->setText(dirName);

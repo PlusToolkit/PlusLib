@@ -226,8 +226,8 @@ void PhantomRegistrationToolbox::RefreshContent()
 
 	// If in progress
 	if (m_State == ToolboxState_InProgress) {
-		ui.label_StylusPosition->setText(QString::fromStdString(m_ParentMainWindow->GetToolVisualizer()->GetToolPositionString(TRACKER_TOOL_STYLUS, true)));
-    ui.label_Instructions->setText(QString("Touch landmark named %1 and press Record point button").arg(QString::fromStdString(m_PhantomRegistration->GetDefinedLandmarkName(m_CurrentLandmarkIndex))));
+		ui.label_StylusPosition->setText(m_ParentMainWindow->GetToolVisualizer()->GetToolPositionString(TRACKER_TOOL_STYLUS, true).c_str());
+    ui.label_Instructions->setText(QString("Touch landmark named %1 and press Record point button").arg(m_PhantomRegistration->GetDefinedLandmarkName(m_CurrentLandmarkIndex).c_str()));
 
 		if (m_CurrentLandmarkIndex < 1) {
 			ui.pushButton_Undo->setEnabled(false);
@@ -242,7 +242,7 @@ void PhantomRegistrationToolbox::RefreshContent()
   } else
 	// If done
 	if (m_State == ToolboxState_Done) {
-    ui.label_StylusPosition->setText(QString::fromStdString(m_ParentMainWindow->GetToolVisualizer()->GetToolPositionString(TRACKER_TOOL_STYLUS, true)));
+    ui.label_StylusPosition->setText(m_ParentMainWindow->GetToolVisualizer()->GetToolPositionString(TRACKER_TOOL_STYLUS, true).c_str());
   }
 
 	ui.canvasPhantom->update();
@@ -416,9 +416,9 @@ void PhantomRegistrationToolbox::OpenPhantomDefinition()
 	}
 
   // Parse XML file
-  vtkSmartPointer<vtkXMLDataElement> rootElement = vtkXMLUtilities::ReadElementFromFile(fileName.toStdString().c_str());
+  vtkSmartPointer<vtkXMLDataElement> rootElement = vtkXMLUtilities::ReadElementFromFile(fileName.toAscii().data());
 	if (rootElement == NULL) {	
-		LOG_ERROR("Unable to read the configuration file: " << fileName.toStdString()); 
+		LOG_ERROR("Unable to read the configuration file: " << fileName.toAscii().data()); 
 		return;
 	}
 
