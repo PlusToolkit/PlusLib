@@ -121,10 +121,6 @@ QWizard(parent)
   this->m_RecordingToolStateDisplayWidget = new ToolStateDisplayWidget(this);
   this->m_RecordingToolStateDisplayWidget->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
 
-
-  
-  
-
   // Insert widgets into placeholders
   this->GridDeviceSetSelection->addWidget(m_DeviceSetSelectorWidget);
   this->RecordingGridToolStateDisplay->addWidget(m_RecordingToolStateDisplayWidget); 
@@ -430,7 +426,7 @@ void TrackedUltrasoundCapturingGUI::UpdateWidgets()
       this->SyncTrackerMatrix->show(); 
       this->CapturingTrackerMatrix->show(); 
 
-      const int defaultToolNumber = tracker->GetFirstPortNumberByType(TRACKER_TOOL_REFERENCE);
+      const int defaultToolNumber = tracker->GetFirstPortNumberByType(TRACKER_TOOL_PROBE);
       if (tracker->GetTool( defaultToolNumber )==NULL)
       {
         LOG_WARNING("Cannot get tracker tool (number="<<defaultToolNumber<<")");        

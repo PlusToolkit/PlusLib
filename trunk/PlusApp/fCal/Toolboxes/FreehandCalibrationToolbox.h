@@ -80,10 +80,9 @@ protected:
 	/*!
 	* \brief Prepares and shows the currently segmented points (or hide if unsuccessful)
   * \param aSegmentationResult Segmentation result structure holding the possible segmented points and the candidates
-  * \param aImageHeight Height of the image; needed because the segmentation result coordinates are flipped along the Y axis
   * \return Success flag
 	*/
-  PlusStatus DisplaySegmentedPoints(PatternRecognitionResult* aSegmentationResult, int aImageHeight);
+  PlusStatus DisplaySegmentedPoints(PatternRecognitionResult* aSegmentationResult);
 
 protected slots:
 	/*!

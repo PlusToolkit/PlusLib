@@ -1470,8 +1470,7 @@ PlusStatus SegmentationParameterDialog::SegmentCurrentImage()
   PlusVideoFrame videoFrame;
   int imageSize[2];
   m_DataCollector->GetVideoSource()->GetFrameSize(imageSize[0], imageSize[1]);
-  videoFrame.AllocateFrame(imageSize, itk::ImageIOBase::UCHAR); // TODO Detect DataCollector output type and create this using the proper one
-  videoFrame.SetFrame(currentImage);
+  videoFrame.DeepCopyFrom(currentImage);
 
   TrackedFrame* trackedFrame = new TrackedFrame();
   trackedFrame->SetImageData(videoFrame);
@@ -1496,7 +1495,7 @@ PlusStatus SegmentationParameterDialog::SegmentCurrentImage()
 
   std::vector<Dot> candidateDots = segResults.GetCandidateFidValues();
 	for (int i=0; i<candidateDots.size(); ++i) {
-    candidatePoints->InsertPoint(i, candidateDots[i].GetX(), imageSize[1] - candidateDots[i].GetY(), -0.3);
+    candidatePoints->InsertPoint(i, candidateDots[i].GetX(), candidateDots[i].GetY(), -0.3);
 	}
   candidatePoints->Modified();
 
@@ -1509,7 +1508,7 @@ PlusStatus SegmentationParameterDialog::SegmentCurrentImage()
 
 	std::vector<std::vector<double>> segmentedDots = segResults.GetFoundDotsCoordinateValue();
 	for (int i=0; i<segmentedDots.size(); ++i) {
-		segmentedPoints->InsertPoint(i, segmentedDots[i][0], imageSize[1] - segmentedDots[i][1], -0.3);
+		segmentedPoints->InsertPoint(i, segmentedDots[i][0], segmentedDots[i][1], -0.3);
 	}
 	segmentedPoints->Modified();
 

@@ -514,7 +514,7 @@ PlusStatus FreehandCalibrationToolbox::DoSpatialCalibration()
 	    m_ParentMainWindow->SetStatusBarProgress(progressPercent);
 
   		// Display segmented points (or hide them if unsuccessful)
-      DisplaySegmentedPoints(&segmentationResults, trackedFrame.GetFrameSize()[1]);
+      DisplaySegmentedPoints(&segmentationResults);
 
       // Check if segmentation was unsuccessful
       if (trackedFrame.GetFiducialPointsCoordinatePx() == NULL || trackedFrame.GetFiducialPointsCoordinatePx()->GetNumberOfPoints() == 0)
@@ -618,7 +618,7 @@ void FreehandCalibrationToolbox::ShowDevicesToggled(bool aOn)
 
 //-----------------------------------------------------------------------------
 
-PlusStatus FreehandCalibrationToolbox::DisplaySegmentedPoints(PatternRecognitionResult* aSegmentationResult, int aImageHeight)
+PlusStatus FreehandCalibrationToolbox::DisplaySegmentedPoints(PatternRecognitionResult* aSegmentationResult)
 {
 	LOG_TRACE("vtkFreehandCalibrationController::DisplaySegmentedPoints");
 
@@ -633,7 +633,7 @@ PlusStatus FreehandCalibrationToolbox::DisplaySegmentedPoints(PatternRecognition
 
 	std::vector<std::vector<double>> dots = aSegmentationResult->GetFoundDotsCoordinateValue();
 	for (int i=0; i<dots.size(); ++i) {
-		segmentedPoints->InsertPoint(i, dots[i][0], aImageHeight - dots[i][1], 0.0);
+		segmentedPoints->InsertPoint(i, dots[i][0], dots[i][1], 0.0);
 	}
 	segmentedPoints->Modified();
 
