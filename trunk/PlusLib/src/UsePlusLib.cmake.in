@@ -13,7 +13,10 @@ IF(NOT PLUSLIB_USE_FILE_INCLUDED)
   ## Set Plus source dir path 
   SET(PLUSLIB_SOURCE_DIR "@PlusLib_SOURCE_DIR@" )
   
-  ## Set Plus binary dir path 
+  ## Set Plus executable output path 
+  SET(PLUS_EXECUTABLE_OUTPUT_PATH "@PLUS_EXECUTABLE_OUTPUT_PATH@" )
+    
+  ## Set Plus scripts folder path 
   SET(PLUSLIB_SCRIPTS_DIR "@PlusLib_SOURCE_DIR@/src/scripts" )
   
   ## Set gnuplot binary dir path 
@@ -30,7 +33,7 @@ IF(NOT PLUSLIB_USE_FILE_INCLUDED)
     MESSAGE(FATAL_ERROR "Please set ITK.")
   ENDIF (ITK_FOUND)
 
-    ## Find VTK 
+  ## Find VTK 
   FIND_PACKAGE(VTK PATHS @VTK_DIR@ NO_DEFAULT_PATH)
   IF (VTK_FOUND)
     INCLUDE(@VTK_USE_FILE@)

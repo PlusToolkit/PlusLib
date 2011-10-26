@@ -43,10 +43,16 @@ OPTION(BUILD_SHARED_LIBS "Build with shared libraries." ${VTK_BUILD_SHARED_LIBS}
 # --------------------------------------------------------------------------
 # Configure output paths for libraries and executables.
 # 
-SET(LIBRARY_OUTPUT_PATH  ${CMAKE_BINARY_DIR}/bin CACHE PATH "Single output directory for building all libraries." FORCE)
-SET(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin CACHE PATH "Single output directory for building all executables." FORCE)
-SET(INCLUDES_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin CACHE PATH "Single output directory for all include files" FORCE)
+SET(LIBRARY_OUTPUT_PATH  ${PLUS_EXECUTABLE_OUTPUT_PATH} CACHE PATH "Single output directory for building all libraries." FORCE)
+SET(EXECUTABLE_OUTPUT_PATH ${PLUS_EXECUTABLE_OUTPUT_PATH} CACHE PATH "Single output directory for building all executables." FORCE)
+SET(INCLUDES_OUTPUT_PATH ${PLUS_EXECUTABLE_OUTPUT_PATH} CACHE PATH "Single output directory for all include files" FORCE)
 MARK_AS_ADVANCED(LIBRARY_OUTPUT_PATH EXECUTABLE_OUTPUT_PATH INCLUDES_OUTPUT_PATH)
+
+IF (WIN32)
+  SET(TEST_EXECUTABLE_OUTPUT_PATH "${PLUS_EXECUTABLE_OUTPUT_PATH}/Release")
+ELSE()
+  SET(TEST_EXECUTABLE_OUTPUT_PATH "${PLUS_EXECUTABLE_OUTPUT_PATH}")
+ENDIF()
 
 # --------------------------------------------------------------------------
 # gnuplot binary directory path.
