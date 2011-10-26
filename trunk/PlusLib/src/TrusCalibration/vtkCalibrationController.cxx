@@ -429,7 +429,7 @@ PlusStatus vtkCalibrationController::AddPositionsPerImage( TrackedFrame* tracked
     LOG_DEBUG("Alpha = " << alpha);
     LOG_DEBUG("Middle wire position in phantom frame = " << positionInPhantomFrame);
     LOG_DEBUG("Reference to probe transform = \n" << referenceToProbeTransformMatrix);
-    LOG_DEBUG("Middle wire position in probe frame = " << positionInProbeFrame);
+    LOG_DEBUG("Middle wire position in probe frame = " << positionInProbeFrame << "\n\n");
 
     if (!isValidation)
     {

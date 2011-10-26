@@ -9,7 +9,7 @@ The desired file name with path needs to be added to this XML file as values Seq
 			/>
 
 		<Tracker Type="SavedDataset" BufferSize="2500" Frequency="10" AveragedItemsForFiltering="20" LocalTimeOffset="0.0"
-		SequenceMetafile=""
+		SequenceMetafile="fCal_Test_Calibration.mha"
 		ReplayEnabled="TRUE"
 		>
 
@@ -77,7 +77,7 @@ The desired file name with path needs to be added to this XML file as values Seq
 				FrameRate="10" 
 				AveragedItemsForFiltering="20" 
 				LocalTimeOffset="0.0" 
-				SequenceMetafile=""
+				SequenceMetafile="fCal_Test_Calibration.mha"
 				UsImageOrientation="MF"
 				ReplayEnabled="TRUE"
 				/>
@@ -219,11 +219,11 @@ The desired file name with path needs to be added to this XML file as values Seq
 			<Registration
 				MatrixName="PhantomToPhantomReference" 
 				MatrixValue="
-					1 0 0 0
-					0 1 0 0
-					0 0 1 0
-					0 0 0 1" 
-				Date=""
+          0.9968 0.0075 -0.0795 -35.6089
+          0.0794 0.0055 0.9968 -124.9852
+          0.0079 -1.0000 0.0049 -16.7
+          0 0 0 1"        
+				Date="2011.07.29 17:22:12"
 				Error="0.0" />
 		</Geometry>
 	</PhantomDefinition>
