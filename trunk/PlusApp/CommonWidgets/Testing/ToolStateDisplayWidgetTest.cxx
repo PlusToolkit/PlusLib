@@ -22,13 +22,13 @@ ToolStateDisplayWidgetTest::ToolStateDisplayWidgetTest(QWidget *parent, Qt::WFla
   , m_DeviceSetSelectorWidget(NULL)
   , m_DataCollector(NULL)
 {
-  this->setMinimumSize(480, 240);
-  this->setMaximumSize(480, 240);
+  this->setMinimumSize(480, 300);
+  this->setMaximumSize(480, 300);
 
   // Create device set selector widget
 	m_DeviceSetSelectorWidget = new DeviceSetSelectorWidget(this);
   m_DeviceSetSelectorWidget->setMinimumWidth(472);
-  m_DeviceSetSelectorWidget->setMaximumHeight(180);
+  m_DeviceSetSelectorWidget->setMaximumHeight(220);
   m_DeviceSetSelectorWidget->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
 	connect( m_DeviceSetSelectorWidget, SIGNAL( ConnectToDevicesByConfigFileInvoked(std::string) ), this, SLOT( ConnectToDevicesByConfigFile(std::string) ) );
 

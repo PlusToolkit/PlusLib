@@ -56,8 +56,8 @@ except FindFailed:
 
 # Get the region of the segmentation parameter dialog window
 applicationTopLeft = connectButton.getTopLeft()
-applicationTopLeft = applicationTopLeft.left(205).above(190)
-windowRegion = Region(applicationTopLeft.x, applicationTopLeft.y, 495, 293)
+applicationTopLeft = applicationTopLeft.left(215).above(230)
+windowRegion = Region(applicationTopLeft.x, applicationTopLeft.y, 495, 340)
 
 # Connect to the device set (it is already selected because of the command line arguments)
 click(connectButton)
