@@ -60,7 +60,6 @@ Version:   $Revision: $
 #cmakedefine PLUS_USE_FAKE_TRACKER
 #cmakedefine PLUS_USE_POLARIS
 #cmakedefine PLUS_USE_CERTUS	
-#cmakedefine PLUS_USE_FLOCK
 #cmakedefine PLUS_USE_MICRONTRACKER
 #cmakedefine PLUS_USE_BRACHY_TRACKER
 #cmakedefine PLUS_USE_Ascension3DG

@@ -39,9 +39,6 @@
 #ifdef PLUS_USE_CERTUS
 #include "vtkNDICertusTracker.h"
 #endif
-#ifdef PLUS_USE_FLOCK
-#include "vtkFlockTracker.h"
-#endif
 #ifdef PLUS_USE_MICRONTRACKER
 #include "vtkMicronTracker.h"
 #endif
@@ -1734,17 +1731,6 @@ PlusStatus vtkDataCollector::ReadTrackerProperties(vtkXMLDataElement* aConfigura
     LOG_DEBUG("Tracker type: Aurora tracker"); 
     this->SetTrackerType(TRACKER_AURORA); 
     vtkSmartPointer<vtkNDITracker> tracker = vtkSmartPointer<vtkNDITracker>::New();
-    this->SetTracker(tracker); 
-    tracker->ReadConfiguration(aConfigurationData); 
-#endif
-  }
-  //******************* Flock Tracker ***************************
-  else if ( STRCASECMP("FlockTracker", type)==0) 
-  {
-#ifdef PLUS_USE_FLOCK
-    LOG_DEBUG("Tracker type: Flock tracker"); 
-    this->SetTrackerType(TRACKER_FLOCK); 
-    vtkSmartPointer<vtkFlockTracker> tracker = vtkSmartPointer<vtkFlockTracker>::New();
     this->SetTracker(tracker); 
     tracker->ReadConfiguration(aConfigurationData); 
 #endif
