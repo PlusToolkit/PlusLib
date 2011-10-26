@@ -96,11 +96,16 @@
 
 <span class="cmt">#------------------------------------------------------------------------------
 </span>
+<span class="kw">from</span> os <span class="kw">import</span> getenv
+<span class="kw">from</span> shutil <span class="kw">import</span> copyfile
+<span class="kw">from</span> datetime <span class="kw">import</span> datetime
+
 <span class="cmt"># Define function that is run when error occurs
 </span><span class="kw">def</span> captureScreenAndExit():
-  message = <span class="str">"The screen capture of the application in time of the error was saved to: "</span>
-  message += <span class="skw">capture</span>(SCREEN)
-  <span class="kw">print</span> message
+  capturedFileName = <span class="skw">capture</span>(SCREEN)
+  newFileName = getenv(<span class="str">'APPDATA'</span>) + <span class="str">'/'</span> + appTitle + datetime.now().strftime(<span class="str">"_%Y%m%d_%H%M%S"</span>) + <span class="str">'.png'</span>
+  copyfile(capturedFileName, newFileName)
+  <span class="kw">print</span> <span class="str">"The screen capture of the application in time of the error was saved to: "</span> + newFileName
   closeApp(appTitle)
   sys.exit(<span class="dig">1</span>)
 
@@ -188,10 +193,20 @@ messageBoxRegion = Region(applicationTopLeft.x - <span class="dig">15</span>, ap
 <span class="skw">type</span>(Key.ENTER)
 
 <span class="cmt"># Check if errors occurred
-</span>windowRegion.<span class="skw">click</span>(<img src="GreenStatusIcon.png" />) <span class="cmt"># Checking the red icon was not enough, because it found it even if it was green</span>
-<span class="skw">wait</span>(<span class="dig">2</span>)
-<span class="kw">if</span> messageBoxRegion.exists(<img src="ErrorText.png" />, <span class="dig">5</span>):
-  <span class="kw">print</span> <span class="str">"[ERROR] Saved config file does not contain the expected values or other error occurred!"</span>
+</span><span class="kw">import</span> java.awt.Robot <span class="kw">as</span> JRobot
+colorPickerRobot = JRobot()
+
+<span class="kw">try</span>:
+  statusIcon = windowRegion.<span class="skw">find</span>(<img src="GreenStatusIcon.png" />)
+<span class="kw">except</span> FindFailed:
+  <span class="kw">print</span> <span class="str">"[ERROR] Cannot find green StatusIcon!"</span>
+  captureScreenAndExit()
+
+statusIconCenter = statusIcon.getCenter()
+color = colorPickerRobot.getPixelColor(statusIconCenter.x, statusIconCenter.y)
+
+<span class="kw">if</span> color.getGreen() &lt; color.getRed() <span class="kw">or</span> color.getGreen() &lt; color.getBlue():
+  <span class="kw">print</span> <span class="str">"[ERROR] StatusIcon is not green ("</span>, color, <span class="str">")"</span>
   captureScreenAndExit()
 
 closeApp(appTitle) <span class="cmt"># close the window - stop the process</span>

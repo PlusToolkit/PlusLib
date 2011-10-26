@@ -48,6 +48,9 @@ testApp = App.open(exe)
 wait(10) # Wait for the application to initialize (else the next wait check does not not run properly)
 App.focus(appTitle)
 
+import java.awt.Robot as JRobot
+colorPickerRobot = JRobot()
+
 try:
   connectButton = wait("ConnectButton.png", 60)
 except FindFailed:
@@ -62,9 +65,16 @@ messageBoxRegion = Region(applicationTopLeft.x - 15, applicationTopLeft.y - 195,
 
 # Look for green status icon
 try:
-  windowRegion.find("GreenStatusIcon.png")
+  statusIcon = windowRegion.find("GreenStatusIcon.png")
 except FindFailed:
   print "[ERROR] Cannot find green StatusIcon!"
+  captureScreenAndExit()
+
+statusIconCenter = statusIcon.getCenter()
+color = colorPickerRobot.getPixelColor(statusIconCenter.x, statusIconCenter.y)
+
+if color.getGreen() < color.getRed() or color.getGreen() < color.getBlue():
+  print "[ERROR] StatusIcon is not green (", color, ")"
   captureScreenAndExit()
 
 # Connect to the device set that will fail
@@ -77,11 +87,19 @@ except FindFailed:
   print "[ERROR] Connection did not fail!"
   captureScreenAndExit()
 
+wait(5)
+
 # Verify changed Status icon
 try:
   statusIcon = windowRegion.find("RedStatusIcon.png")
 except FindFailed:
   print "[ERROR] Cannot find red StatusIcon!"
+  captureScreenAndExit()
+
+color = colorPickerRobot.getPixelColor(statusIconCenter.x, statusIconCenter.y)
+
+if color.getRed() < color.getGreen() or color.getRed() < color.getBlue():
+  print "[ERROR] StatusIcon is not red (", color, ")"
   captureScreenAndExit()
 
 # Bring up messagebox and verify error message
@@ -106,6 +124,12 @@ try:
   windowRegion.find("GreenStatusIcon.png")
 except FindFailed:
   print "[ERROR] Cannot find green StatusIcon!"
+  captureScreenAndExit()
+
+color = colorPickerRobot.getPixelColor(statusIconCenter.x, statusIconCenter.y)
+
+if color.getGreen() < color.getRed() or color.getGreen() < color.getBlue():
+  print "[ERROR] StatusIcon is not green (", color, ")"
   captureScreenAndExit()
 
 closeApp(appTitle) # close the window - stop the process

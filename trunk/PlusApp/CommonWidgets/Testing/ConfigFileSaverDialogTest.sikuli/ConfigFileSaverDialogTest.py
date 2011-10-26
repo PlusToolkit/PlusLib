@@ -121,10 +121,20 @@ type("TEST_ConfigFileSaverDialogTest_Result")
 type(Key.ENTER)
 
 # Check if errors occurred
-windowRegion.click("GreenStatusIcon.png") # Checking the red icon was not enough, because it found it even if it was green
-wait(2)
-if messageBoxRegion.exists("ErrorText.png", 5):
-  print "[ERROR] Saved config file does not contain the expected values or other error occurred!"
+import java.awt.Robot as JRobot
+colorPickerRobot = JRobot()
+
+try:
+  statusIcon = windowRegion.find("GreenStatusIcon.png")
+except FindFailed:
+  print "[ERROR] Cannot find green StatusIcon!"
+  captureScreenAndExit()
+
+statusIconCenter = statusIcon.getCenter()
+color = colorPickerRobot.getPixelColor(statusIconCenter.x, statusIconCenter.y)
+
+if color.getGreen() < color.getRed() or color.getGreen() < color.getBlue():
+  print "[ERROR] StatusIcon is not green (", color, ")"
   captureScreenAndExit()
   
 closeApp(appTitle) # close the window - stop the process
