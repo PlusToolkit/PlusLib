@@ -128,8 +128,10 @@ Connect the framegrabber via USB and plug in the stepper through Serial2USB conv
 					MaxLineErrorMm="2.0"
 
 					MaxAngleDifferenceDegrees="11"
-					MinThetaDegrees="20"
-					MaxThetaDegrees="160"
+					MinThetaDegrees="-70"
+					MaxThetaDegrees="70"
+					
+					AngleToleranceDegrees="10"
 					
 					ThresholdImagePercent="10.0"
 
@@ -163,16 +165,16 @@ Connect the framegrabber via USB and plug in the stepper through Serial2USB conv
 		<Geometry>
 			<!-- N wire definitions -->
 			<!-- Phantom origin is the inner end of the hole that is on the side of the templete holder, on the side of the triangle shaped hole on the inner part, and closest to the probe -->
-			<NWire>
-				<Wire Id="1" Name="wire4" EndPointFront="49.86 54.385 62.05" EndPointBack="49.86 54.385 142.05" />
-				<Wire Id="2" Name="wire5" EndPointFront="39.86 54.385 62.05" EndPointBack="19.86 54.385 142.05" />
-				<Wire Id="3" Name="wire6" EndPointFront="9.86 54.385 62.05" EndPointBack="9.86 54.385 142.05" />
-			</NWire>
-			<NWire>
-				<Wire Id="4" Name="wire1" EndPointFront="49.86 34.385 62.05" EndPointBack="49.86 34.385 142.05" />
-				<Wire Id="5" Name="wire2" EndPointFront="19.86 34.385 62.05" EndPointBack="39.86 34.385 142.05" />
-				<Wire Id="6" Name="wire3" EndPointFront="9.86 34.385 62.05" EndPointBack="9.86 34.385 142.05" />
-			</NWire>
+			<Pattern Type="NWire" Name="top">
+				<Wire Name="wire4" EndPointFront="49.86 54.385 62.05" EndPointBack="49.86 54.385 142.05" />
+				<Wire Name="wire5" EndPointFront="39.86 54.385 62.05" EndPointBack="19.86 54.385 142.05" />
+				<Wire Name="wire6" EndPointFront="9.86 54.385 62.05" EndPointBack="9.86 54.385 142.05" />
+			</Pattern>
+			<Pattern Type="NWire" Name="bottom">
+				<Wire Name="wire1" EndPointFront="49.86 34.385 62.05" EndPointBack="49.86 34.385 142.05" />
+				<Wire Name="wire2" EndPointFront="19.86 34.385 62.05" EndPointBack="39.86 34.385 142.05" />
+				<Wire Name="wire3" EndPointFront="9.86 34.385 62.05" EndPointBack="9.86 34.385 142.05" />
+			</Pattern>
 
 			<!-- Landmark list for registration -->
 			<Landmarks>
