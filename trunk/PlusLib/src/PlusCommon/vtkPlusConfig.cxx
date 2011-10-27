@@ -486,5 +486,8 @@ std::string vtkPlusConfig::GetAbsoluteImagePath(const char* aImagePath)
 {
 	LOG_TRACE("vtkPlusConfig::GetAbsoluteImagePath(" << aImagePath << ")");
 
-  return vtksys::SystemTools::CollapseFullPath(aImagePath, vtkPlusConfig::GetInstance()->GetImageDirectory());
+  // Make sure the imag epath is absolute
+  std::string absoluteImageDirectoryPath = vtksys::SystemTools::CollapseFullPath(vtkPlusConfig::GetInstance()->GetImageDirectory());
+
+  return vtksys::SystemTools::CollapseFullPath(aImagePath, absoluteImageDirectoryPath.c_str());
 }
