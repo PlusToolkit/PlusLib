@@ -620,13 +620,14 @@ PlusStatus FreehandCalibrationToolbox::DoSpatialCalibration()
 
   LOG_INFO("Segmentation success rate: " << numberOfSegmentedImages << " out of " << numberOfSegmentedImages + numberOfFailedSegmentations << " (" << (int)(((double)numberOfSegmentedImages / (double)(numberOfSegmentedImages + numberOfFailedSegmentations)) * 100.0 + 0.49) << " percent)");
 
-  delete patternRecognition;
-
-  if (m_Calibration->Calibrate( validationTrackedFrameList, calibrationTrackedFrameList, "Probe" ) != PLUS_SUCCESS)
+  if (m_Calibration->Calibrate( validationTrackedFrameList, calibrationTrackedFrameList, "Probe", patternRecognition->GetFidLineFinder()->GetNWires() ) != PLUS_SUCCESS)
   {
     LOG_ERROR("Calibration failed!");
+    delete patternRecognition;
     return PLUS_FAIL;
   }
+
+  delete patternRecognition;
 
   return PLUS_SUCCESS;
 }
