@@ -26,16 +26,19 @@ class FidLineFinder
 		PlusStatus	ReadConfiguration( vtkXMLDataElement* rootConfigElement );
     void        SetFrameSize( int frameSize[2] );
 
-    void 				FindLines3Points();
+    void 				FindLinesNPoints();
 		void 				FindLines2Points();
 
 		float				SegmentLength( Dot *d1, Dot *d2 );
-		float				LineLength( Line &line, std::vector<Dot> dots );
+		float				LineLength( Line &line );
+    float       ComputeDistancePointLine(Dot dot, Line line);
 
-		void 				ComputeLine( Line &line, std::vector<Dot> dots );
+
+		void 				ComputeLine( Line &line );
 		float				ComputeSlope( Dot *dot1, Dot *dot2 );
 
 		bool				AcceptLine( Line &line );  
+    bool        AcceptAngle(float angle);
 
 		void				FindLines();
 
@@ -49,12 +52,14 @@ class FidLineFinder
 
     void				SetCandidateFidValues(std::vector<Dot> value) { m_CandidateFidValues = value; };
 
-    std::vector<NWire>	GetNWires() { return m_NWires; };
-    void				SetNWires(std::vector<NWire> value) { m_NWires = value; };
+    std::vector<Pattern*>     GetPatterns() { return m_Patterns; };
+    void        SetPatterns( std::vector<Pattern*> value ) { m_Patterns = value; };
     
-    std::vector<Line>	GetLinesVector() { return m_LinesVector; };
+    std::vector<std::vector<Line> >	GetLinesVector() { return m_LinesVector; };
 
     void				SetDotsVector(std::vector<Dot> value) { m_DotsVector = value; };
+
+    std::vector<NWire> GetNWires();
 
     double *		GetImageNormalVectorInPhantomFrameMaximumRotationAngleDeg() { return m_ImageNormalVectorInPhantomFrameMaximumRotationAngleDeg; };
     double *		GetImageToPhantomTransform() { return m_ImageToPhantomTransform; };
@@ -76,7 +81,7 @@ class FidLineFinder
 		double 			m_MaxLineLengthErrorPercent;
 		double 			m_MaxLinePairDistanceErrorPercent;
 
-		// min and max length of 3pt line (mm) - computed from input error percent and NWire definitions
+		// min and max length of line (mm) - computed from input error percent and NWire definitions
 		double 			m_MinLineLenMm;
 		double 			m_MaxLineLenMm;
 		double 			m_MaxLineErrorMm;
@@ -94,10 +99,9 @@ class FidLineFinder
 		std::vector<Dot>	m_CandidateFidValues; // pointer to the fiducial candidates coordinates
 
 		std::vector<Dot>	m_DotsVector;
-
-		std::vector<Line>	m_LinesVector;
-		std::vector<Line>	m_TwoPointsLinesVector;
-		std::vector<NWire>	m_NWires;
+		std::vector<std::vector<Line> >	m_LinesVector;
+    
+    std::vector<Pattern*> m_Patterns;
 };
 
 #endif // _FIDUCIAL_LINE_FINDER_H

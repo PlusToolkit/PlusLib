@@ -25,12 +25,12 @@ class FidSegmentation
 		FidSegmentation();
 		virtual ~FidSegmentation();
 
-		PlusStatus				  ReadConfiguration( vtkXMLDataElement* rootConfigElement );
-    void                SetFrameSize( int frameSize[2] );
+		PlusStatus				ReadConfiguration( vtkXMLDataElement* rootConfigElement );
+    void              SetFrameSize( int frameSize[2] );
 
-		void					      UpdateParameters();
-		void				    	  ComputeParameters();
-    void                Clear();
+		void					    UpdateParameters();
+		void				    	ComputeParameters();
+    void              Clear();
 
     void                ValidateRegionOfInterest();
 
@@ -55,13 +55,15 @@ class FidSegmentation
 		void 					      DilateCircle( PixelType *dest, PixelType *image );
 		void 					      Subtract( PixelType *image, PixelType *vals );
     		
-		void					      WritePossibleFiducialOverlayImage(std::vector<Dot> fiducials, PixelType *unalteredImage); 
+		void					    WritePossibleFiducialOverlayImage(std::vector<std::vector<double> > fiducials, PixelType *unalteredImage, int frameIndex); 
+    void              WritePossibleFiducialOverlayImage(std::vector<Dot> fiducials, PixelType *unalteredImage, int frameIndex);
 
-		void 					      MorphologicalOperations();	
-		void					      Suppress( PixelType *image, float percent_thresh ); 
 
-		inline bool				  AcceptDot( Dot &dot );
-		void					      Cluster();
+		void 					    MorphologicalOperations();	
+		void					    Suppress( PixelType *image, float percent_thresh ); 
+
+		inline bool				AcceptDot( Dot &dot );
+		void					    Cluster();
 
     static void				WritePng(PixelType *modifiedImage, std::string outImageName, int cols, int rows); // addition to write out intermediate files
 
@@ -69,15 +71,13 @@ class FidSegmentation
 
 		inline void				ClusteringAddNeighbors(PixelType *image, int r, int c, std::vector<Position> &m_Test, std::vector<Position> &m_Set, std::vector<PixelType>&m_Vals);
 		
-		static std::vector<std::vector<double> > SortInAscendingOrder(std::vector<std::vector<double> > fiducials); 
-
-		
 		//Accessors and mutators
     void					    SetPossibleFiducialsImageFilename(std::string value) { m_PossibleFiducialsImageFilename = value; };
 
     double				    GetThresholdImagePercent() { return m_ThresholdImagePercent; };
 
     bool					    GetDebugOutput() { return m_DebugOutput; };
+    void					    SetDebugOutput(bool value) { m_DebugOutput = value; };
 
     int						    GetMorphologicalOpeningBarSizePx(); 
 
@@ -125,7 +125,6 @@ class FidSegmentation
 		bool					    m_DotsFound;
 
 		/* X and Y values of found dots. */
-		//vector<vector<double>> m_FoundDotsCoordinateValue;
 		std::vector< std::vector<double> >	m_FoundDotsCoordinateValue; 
 
 		double					  m_NumDots; // number of possibel fiducial points

@@ -143,6 +143,7 @@ int main (int argc, char* argv[])
 
   // Compare results
 	vtkstd::string currentConfigFileName = freehandCalibration->GetCalibrationResultFileNameWithPath(); 
+  LOG_INFO(currentConfigFileName); 
 	if ( CompareCalibrationResultsWithBaseline( inputBaselineFileName.c_str(), currentConfigFileName.c_str(), inputTranslationErrorThreshold, inputRotationErrorThreshold ) !=0 )
 	{
 		LOG_ERROR("Comparison of calibration data to baseline failed");

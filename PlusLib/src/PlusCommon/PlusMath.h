@@ -33,7 +33,12 @@ public:
   //! Returns the orientation difference in degrees between two 4x4 homogeneous transformation matrix
   static double GetOrientationDifference(vtkMatrix4x4* aMatrix, vtkMatrix4x4* bMatrix); 
 
-  //! Spherical linear interpolation between two rotation quaternions.
+  //! Description:
+  // Returns the distance between a line, defined by two point (x and y) and a point (z)
+  static double PlusMath::ComputeDistanceLinePoint(const double x[3], const double y[3], const double z[3]);
+
+  //! Description:
+  // Spherical linear interpolation between two rotation quaternions.
   // t is a value between 0 and 1 that interpolates between from and to (t=0 means the results is the same as "from").
   // Precondition: no aliasing problems to worry about ("result" can be "from" or "to" param).
   // Parameters: adjustSign - If true, then slerp will operate by adjusting the sign of the slerp to take shortest path

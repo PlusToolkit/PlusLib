@@ -39,6 +39,7 @@ class Dot
 	protected:
 		float	m_X;
 		float	m_Y;
+    //float m_Position[4];
 		float	m_DotIntensity;
 };
 
@@ -65,30 +66,38 @@ class Position
 class Line
 {
 	public:
-		static bool lessThan( Line &line1, Line &line2 );//compare the intensity of 2 lines
-		static bool compareLines( const Line &line1, const Line &line2 );//compare two lines
-		
-		void				SetLinePoint(int aIndex, int aValue) { m_LinePoints[aIndex] = aValue; };
-		std::vector<int>*	GetLinePoints() { return &m_LinePoints; };
-		int					GetLinePoint(int aIndex) const{ return m_LinePoints[aIndex]; };
-		void				SetLineSlope(float value) { m_LineSlope = value; };
-		float				GetLineSlope() { return m_LineSlope; };
-		void				SetLinePosition(float value) { m_LinePosition = value; };
-		float				GetLinePosition() { return m_LinePosition; };
-		void				SetLineIntensity(float value) { m_LineIntensity = value; };
-		float				GetLineIntensity() { return m_LineIntensity; };
-		void				SetLineError(float value) { m_LineError = value; };
-		float				GetLineError() { return m_LineError; };
-		void				SetLineLength(float value) { m_LineLength = value; };
-		float				GetLineLength() { return m_LineLength; };
+		static bool  lessThan( Line &line1, Line &line2 );//compare the intensity of 2 lines
+		static bool  compareLines( Line line1, Line line2 );//compare two lines
+    static float ComputeAngle(Line &line1);
+    static float ComputeHalfSpaceAngle(Line &line);
 
+    void				SetPoint(int aIndex, int aValue) { m_Points[aIndex] = aValue; };
+    int					GetPoint(int aIndex) const{ return m_Points[aIndex]; };
+    std::vector<int>*	GetPoints() { return &m_Points; };
+		void				SetIntensity(float value) { m_Intensity = value; };
+		float				GetIntensity() { return m_Intensity; };
+		void				SetError(float value) { m_Error = value; };
+		float				GetError() { return m_Error; };
+		void				SetLength(float value) { m_Length = value; };
+		float				GetLength() { return m_Length; };
+    void				SetDirectionVector(int aIndex, float aValue) { m_DirectionVector[aIndex] = aValue; };
+    float				GetDirectionVector(int aIndex) const{ return m_DirectionVector[aIndex]; };
+    void        SetOrigin(int value) { m_Origin = value; };
+    int         GetOrigin() { return m_Origin; };
+    void        SetEndPoint(int value) { m_EndPoint = value; };
+    int         GetEndPoint() { return m_EndPoint; };
+    
+    
 	protected:
-		std::vector<int>	m_LinePoints; // indices of points that make up the line
-		float				m_LineSlope; // slope of the line
-		float				m_LinePosition; // position of the line (distance of the line from the origin)
-		float				m_LineIntensity;
-		float				m_LineError;
-		float				m_LineLength;
+		std::vector<int>	m_Points; // indices of points that make up the line
+		float				m_Intensity;
+		float				m_Error;
+		float				m_Length;
+    float       m_DirectionVector[2];
+    int         m_Origin;//index of the line origin
+    int         m_EndPoint;//Index of the endpoint of the line
+    
+
 };
 
 //-----------------------------------------------------------------------------
@@ -145,7 +154,6 @@ class SortedAngle
 
 struct Wire
 {
-	int id;
   std::string name;
 	double endPointFront[3];
 	double endPointBack[3];
@@ -153,19 +161,54 @@ struct Wire
 
 //-----------------------------------------------------------------------------
 
-class NWire
+class Pattern
+{
+  public:
+    unsigned short    id;
+    std::vector<Wire> wires;
+    std::vector<float> distanceToOriginMm;//These distances are in mm.
+    std::vector<float> distanceToOriginToleranceMm;//These tolerances are in mm.
+
+    //unused iterator to iterate only through one type of Patterns.
+/*
+    template<class T> class iterator
+    {
+      public:
+        iterator(std::vector<Pattern>* ptr) : m_Pointer(ptr) {}
+        iterator operator++() 
+        {
+          do
+          {
+            T* t = dynamic_cast<T*>(m_Pointer);
+            if(t)//belongs to the type T
+            {
+              iterator i = *this;
+              m_Pointer++;
+              return i;
+            }
+            m_Pointer++;
+          }while(m_Pointer != NULL);
+          return *this;
+        }
+      protected:
+        std::vector<Pattern> * m_Pointer;
+    };
+*/
+};
+
+//-----------------------------------------------------------------------------
+
+class NWire : public Pattern
 {
 public:
-	Wire wires[3];
-	double intersectPosW12[3]; // Use wire.id mod 3 if not first layer
-	double intersectPosW32[3];
+	double  intersectPosW12[3]; // Use wire.id mod 3 if not first layer
+	double  intersectPosW32[3];
+};
 
-	Wire *GetWireById(int aId) {
-		if ((wires[0].id % 3) == (aId % 3)) { return &wires[0]; }
-		else if ((wires[1].id % 3) == (aId % 3)) { return &wires[1]; }
-		else if ((wires[2].id % 3) == (aId % 3)) { return &wires[2]; }
-		else { return NULL; }
-	};
+//-----------------------------------------------------------------------------
+
+class CoplanarParallelWires : public Pattern
+{
 };
 
 //-----------------------------------------------------------------------------
@@ -183,27 +226,27 @@ class PatternRecognitionResult
 		PatternRecognitionResult();
 		virtual ~PatternRecognitionResult();
 
-		void								Clear();
+		void							Clear();
 
-		void								SetDotsFound(bool value) { m_DotsFound = value; };
-		bool								GetDotsFound() { return m_DotsFound; };
+		void							SetDotsFound(bool value) { m_DotsFound = value; };
+		bool							GetDotsFound() { return m_DotsFound; };
 
-		void								SetFoundDotsCoordinateValue(std::vector< std::vector<double> > value) { m_FoundDotsCoordinateValue = value; };
+		void							SetFoundDotsCoordinateValue(std::vector< std::vector<double> > value) { m_FoundDotsCoordinateValue = value; };
 		std::vector< std::vector<double> >	GetFoundDotsCoordinateValue() { return m_FoundDotsCoordinateValue; };
 
-		void								SetAngles(float value) { m_Angles = value; };
-		float								GetAngles() { return m_Angles; };
+		void							SetAngles(float value) { m_Angles = value; };
+		float							GetAngles() { return m_Angles; };
 
-		void								SetIntensity(float value) { m_Intensity = value; };
-		float								GetIntensity() { return m_Intensity; };
-		void								SetNumDots(double value) { m_NumDots = value; };
-		double								GetNumDots() { return m_NumDots; };
-		void								SetCandidateFidValues(std::vector<Dot> value) { m_CandidateFidValues = value; };
-		std::vector<Dot>					GetCandidateFidValues() { return m_CandidateFidValues; };
+		void							SetIntensity(float value) { m_Intensity = value; };
+		float							GetIntensity() { return m_Intensity; };
+		void						  SetNumDots(double value) { m_NumDots = value; };
+		double						GetNumDots() { return m_NumDots; };
+		void							SetCandidateFidValues(std::vector<Dot> value) { m_CandidateFidValues = value; };
+		std::vector<Dot>	GetCandidateFidValues() { return m_CandidateFidValues; };
 
 	protected:
 		/* True if the dots are found, false otherwise. */
-		bool								m_DotsFound;
+		bool							m_DotsFound;
 
 		/* X and Y values of found dots. */
 		//vector<vector<double>> m_FoundDotsCoordinateValue;
@@ -211,15 +254,15 @@ class PatternRecognitionResult
 		/* The degree to which the lines are parallel and the dots linear.  On the
 		 * range 0-1, with 0 being a very good angles score and 1 being the
 		 * threshold of acceptability. */
-		float								m_Angles;
+		float							m_Angles;
 
 		/* The combined intensity of the six dots. This is the sum of the pixel
 		 * values after the morphological operations, with the pixel values on the
 		 * range 0-1.  A good intensity score is over 100. A bad one (but still
 		 * valid) is below 25. */
-		float								m_Intensity;
-		double								m_NumDots; // number of possibel fiducial points
-		std::vector<Dot>					m_CandidateFidValues; // pointer to the fiducial candidates coordinates
+		float							m_Intensity;
+		double						m_NumDots; // number of possibel fiducial points
+		std::vector<Dot>	m_CandidateFidValues; // pointer to the fiducial candidates coordinates
 };
 
 //-----------------------------------------------------------------------------

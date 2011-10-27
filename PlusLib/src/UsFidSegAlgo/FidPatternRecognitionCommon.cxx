@@ -5,6 +5,7 @@
 =========================================================Plus=header=end*/
 
 #include "FidPatternRecognitionCommon.h"
+#include "vtkMath.h"
 
 //-----------------------------------------------------------------------------
 
@@ -17,6 +18,42 @@ PatternRecognitionResult::PatternRecognitionResult()
 }
 
 //-----------------------------------------------------------------------------
+
+float Line::ComputeAngle(Line &line)
+{
+  float x = line.GetDirectionVector(0);
+  float y = line.GetDirectionVector(1);
+
+  //float angle = acos((-y)/( sqrt(x*x+y*y)));
+ 
+  float angle = atan2(y,x);
+
+  /*if(angle > vtkMath::Pi()/2)
+    angle -= vtkMath::Pi();
+  else if(angle < -vtkMath::Pi()/2)
+    angle += vtkMath::Pi();*/
+
+  return angle;
+}
+
+//-----------------------------------------------------------------------------
+
+float Line::ComputeHalfSpaceAngle(Line &line)
+{
+  float x = line.GetDirectionVector(0);
+  float y = line.GetDirectionVector(1);
+
+  //float angle = acos((-y)/( sqrt(x*x+y*y)));
+ 
+  float angle = atan2(y,x);
+
+  if(angle > vtkMath::Pi()/2)
+    angle -= vtkMath::Pi();
+  else if(angle < -vtkMath::Pi()/2)
+    angle += vtkMath::Pi();
+
+  return angle;
+}
 
 bool Dot::lessThan( Dot &dot1, Dot &dot2 )
 {
@@ -45,20 +82,20 @@ bool LinePair::lessThan( LinePair &pair1, LinePair &pair2 )
 bool Line::lessThan( Line &line1, Line &line2 )
 {
 	/* Use > to get descending. */
-	return line1.GetLineIntensity() > line2.GetLineIntensity();
+	return line1.GetIntensity() > line2.GetIntensity();
 }
 
 //-----------------------------------------------------------------------------
 
-bool Line::compareLines(const Line &line1, const Line &line2 )
+bool Line::compareLines(Line line1, Line line2 )
 {
-	for (int i=0; i<3; i++)
+  for (unsigned int i=0; i<line1.GetPoints()->size(); i++)
 	{
-		if ( line1.GetLinePoint(i) < line2.GetLinePoint(i) )
+		if ( line1.GetPoint(i) < line2.GetPoint(i) )
 		{
 			return true;
 		}
-		else if ( line1.GetLinePoint(i) > line2.GetLinePoint(i) )
+		else if ( line1.GetPoint(i) > line2.GetPoint(i) )
 		{
 			return false;
 		}

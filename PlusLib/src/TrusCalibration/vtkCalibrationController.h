@@ -305,9 +305,6 @@ protected: // from former Phantom class
 	/*! Fill the ultrasound beamwidth profile and weight factors (see mUS3DBeamwidthAndWeightFactorsInUSImageFrameTable5xM member) */
   void FillUltrasoundBeamwidthAndWeightFactorsTable();
 
-  /*! Compute intersections of wires in the loaded NWires structure */
-  PlusStatus ComputeNWireInstersections();
-
 	/*! It calculates the 3D point reconstruction error (PRE3D) from the validation data sets if they are imported and ready. */
 	virtual PlusStatus compute3DPointReconstructionError();
 

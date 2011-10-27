@@ -487,3 +487,35 @@ void PlusMath::LogVtkMatrix(vtkMatrix4x4* matrix)
   PlusMath::PrintVtkMatrix(matrix, matrixStream);
   LOG_INFO(matrixStream.str());
 }
+
+//----------------------------------------------------------------------------
+
+// Description
+// Calculate distance between a line (defined by two points) and a point
+double PlusMath::ComputeDistanceLinePoint( const double x[3], // linepoint 1
+                                           const double y[3], // linepoint 2
+                                           const double z[3] // target point
+                                           )
+{
+  double u[3];
+  double v[3];
+  double w[3];
+
+  u[0] = y[0] - x[0];
+  u[1] = y[1] - x[1];
+  u[2] = y[2] - x[2];
+
+  vtkMath::Normalize(u);
+
+  v[0] = z[0] - x[0];
+  v[1] = z[1] - x[1];
+  v[2] = z[2] - x[2];
+
+  double dot = vtkMath::Dot(u,v);
+
+  w[0] = v[0] - dot*u[0];
+  w[1] = v[1] - dot*u[1];
+  w[2] = v[2] - dot*u[2];
+
+  return sqrt(vtkMath::Dot(w,w));
+}
