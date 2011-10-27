@@ -2,7 +2,7 @@
 # Sources
 
 SET (TrusCalibration_SRCS
-	vtkCalibrationController.cxx 
+	vtkProbeCalibrationAlgo.cxx 
   vtkMeanShiftClustering.cxx 
 	vtkPivotCalibrationAlgo.cxx
 	vtkPhantomRegistrationAlgo.cxx
@@ -14,7 +14,7 @@ SET (TrusCalibration_SRCS
 SET (TrusCalibration_HDRS)	
 IF (WIN32)	
 	SET (TrusCalibration_HDRS
-		vtkCalibrationController.h
+		vtkProbeCalibrationAlgo.h
     vtkMeanShiftClustering.h
 		vtkPivotCalibrationAlgo.h
 		vtkPhantomRegistrationAlgo.h

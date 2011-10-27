@@ -4,8 +4,8 @@
   See License.txt for details.
 =========================================================Plus=header=end*/ 
 
-#ifndef __VTKCALIBRATIONCONTROLLER_H
-#define __VTKCALIBRATIONCONTROLLER_H
+#ifndef __vtkProbeCalibrationAlgo_h
+#define __vtkProbeCalibrationAlgo_h
 
 #include "vtkObject.h"
 #include "vtkTrackedFrameList.h"
@@ -27,18 +27,18 @@ class vtkGnuplotExecuter;
 class NWire;
 
 /*!
-  \class vtkCalibrationController 
+  \class vtkProbeCalibrationAlgo 
   \brief Probe calibration algorithm class
   \ingroup PlusLibCalibrationAlgorithm
 */
-class vtkCalibrationController : public vtkObject
+class vtkProbeCalibrationAlgo : public vtkObject
 {
 public:
 	typedef unsigned char PixelType;
 	typedef itk::Image< PixelType, 2 > ImageType;
 
-	static vtkCalibrationController *New();
-	vtkTypeRevisionMacro(vtkCalibrationController, vtkObject);
+	static vtkProbeCalibrationAlgo *New();
+	vtkTypeRevisionMacro(vtkProbeCalibrationAlgo, vtkObject);
 	virtual void PrintSelf(ostream& os, vtkIndent indent); 
 
 	/*! Initialize the calibration controller interface */
@@ -275,8 +275,8 @@ public: // Former ProbeCalibrationController and FreehandCalibraitonController f
 	vtkGetVector2Macro(CenterOfRotationPx, double);
 		
 protected:
-	vtkCalibrationController();
-	virtual ~vtkCalibrationController();
+	vtkProbeCalibrationAlgo();
+	virtual ~vtkProbeCalibrationAlgo();
 
 protected:
 	/*! Feed and tun the LSQR minimizer with the acquired and computed positions and conputes reconstruction errors */
@@ -839,8 +839,8 @@ protected: // From former Phantom class
   vtkTransform* PhantomToReferenceTransform;
 
 private:
-	vtkCalibrationController(const vtkCalibrationController&);
-	void operator=(const vtkCalibrationController&);
+	vtkProbeCalibrationAlgo(const vtkProbeCalibrationAlgo&);
+	void operator=(const vtkProbeCalibrationAlgo&);
 };
 
-#endif //  __VTKCALIBRATIONCONTROLLER_H
+#endif //  __vtkProbeCalibrationAlgo_h
