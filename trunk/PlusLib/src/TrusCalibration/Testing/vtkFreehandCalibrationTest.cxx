@@ -134,7 +134,7 @@ int main (int argc, char* argv[])
   }
 
   // Calibrate
-  if (freehandCalibration->Calibrate( validationTrackedFrameList, calibrationTrackedFrameList, "Probe") != PLUS_SUCCESS)
+  if (freehandCalibration->Calibrate( validationTrackedFrameList, calibrationTrackedFrameList, "Probe", patternRecognition.GetFidLineFinder()->GetNWires()) != PLUS_SUCCESS)
   {
     LOG_ERROR("Calibration failed!");
     return EXIT_FAILURE;

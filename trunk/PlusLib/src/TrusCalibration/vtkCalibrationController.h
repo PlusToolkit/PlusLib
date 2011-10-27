@@ -22,11 +22,9 @@
 #include <vector>
 #include <deque>
 
-#include "FidPatternRecognition.h"
-#include "FidPatternRecognitionCommon.h"
-
 class vtkHTMLGenerator; 
-class vtkGnuplotExecuter; 
+class vtkGnuplotExecuter;
+class NWire;
 
 /*!
   \class vtkCalibrationController 
@@ -64,24 +62,27 @@ public:
     \param calibrationStartFrame First frame that is used from the calibration tracked frame list for the calibration (in case of -1 it starts with the first)
     \param calibrationEndFrame Last frame that is used from the calibration tracked frame list for the calibration (in case of -1 it starts with the last)
     \param defaultTransformName Name of the default transform (which will be used for the calibration)
+    \param nWires NWire structure that contains the computed imaginary intersections. It used to determine the computed position
 	*/
-  virtual PlusStatus Calibrate( vtkTrackedFrameList* validationTrackedFrameList, int validationStartFrame, int validationEndFrame, vtkTrackedFrameList* calibrationTrackedFrameList, int calibrationStartFrame, int calibrationEndFrame, const char* defaultTransformName ); 
+  virtual PlusStatus Calibrate( vtkTrackedFrameList* validationTrackedFrameList, int validationStartFrame, int validationEndFrame, vtkTrackedFrameList* calibrationTrackedFrameList, int calibrationStartFrame, int calibrationEndFrame, const char* defaultTransformName, std::vector<NWire> &nWires ); 
 
   /*!
     Run calibration algorithm on the two input frame lists (uses every frame in the two sequences)
 	  \param validationTrackedFrameList TrackedFrameList with segmentation results for the validation
 	  \param calibrationTrackedFrameList TrackedFrameList with segmentation results for the calibration
     \param defaultTransformName Name of the default transform (which will be used for the calibration)
+    \param nWires NWire structure that contains the computed imaginary intersections. It used to determine the computed position
 	*/
-  virtual PlusStatus Calibrate( vtkTrackedFrameList* validationTrackedFrameList, vtkTrackedFrameList* calibrationTrackedFrameList, const char* defaultTransformName ); 
+  virtual PlusStatus Calibrate( vtkTrackedFrameList* validationTrackedFrameList, vtkTrackedFrameList* calibrationTrackedFrameList, const char* defaultTransformName, std::vector<NWire> &nWires ); 
 
   /*!
     Calculate and add positions of an individual image for calibration or validation
     \param trackedFrame The actual tracked frame (already segmented) to add for calibration or validation
     \param defaultTransformName Transform name to be used to get the tracked position
+    \param nWires NWire structure that contains the computed imaginary intersections. It used to determine the computed position
     \param isValidation Flag whether the added data is for calibration or validation
   */
-	virtual PlusStatus AddPositionsPerImage( TrackedFrame* trackedFrame, const char* defaultTransformName, bool isValidation );
+	virtual PlusStatus AddPositionsPerImage( TrackedFrame* trackedFrame, const char* defaultTransformName, std::vector<NWire> &nWires, bool isValidation );
 	
 	vtkGetObjectMacro(PhantomToReferenceTransform, vtkTransform);
 	vtkSetObjectMacro(PhantomToReferenceTransform, vtkTransform);
@@ -112,11 +113,6 @@ public:
 	vtkSetMacro(EnableSegmentationAnalysis, bool);
   /*! Flag to enable the Segmentation Analysis */
 	vtkBooleanMacro(EnableSegmentationAnalysis, bool);
-
-  /*! Get the fiducial pattern recognition master object */
-  FidPatternRecognition * GetPatternRecognition() { return & this->PatternRecognition; };
-  /*! Get the fiducial pattern recognition master object */
-  void SetPatternRecognition( FidPatternRecognition value) { PatternRecognition = value; };
 
   /*! Reset data containers */
   void ResetDataContainers();
@@ -351,9 +347,6 @@ protected:
 
   /*! Calibration date and time in string format for file names */
   char* CalibrationTimestamp; 
-
-  /*! Stores the fiducial pattern recognition master object */
-  FidPatternRecognition PatternRecognition;
 
 protected: // Former ProbeCalibrationController and FreehandCalibrationController members
 
