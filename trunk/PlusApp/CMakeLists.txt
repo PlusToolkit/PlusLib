@@ -7,7 +7,12 @@ ENDIF(COMMAND CMAKE_POLICY)
 
 # ------------------------------------------------------------------------
 # Find Plus use file
-FIND_PACKAGE (PlusLib)
+IF ( NOT PLUSLIB_DIR )
+    FIND_PACKAGE (PlusLib)
+ELSE ()
+    FIND_PACKAGE (PlusLib REQUIRED PATHS "${PLUSLIB_DIR}/src" NO_DEFAULT_PATH)
+ENDIF() 
+
 IF ( PlusLib_FOUND)
 	INCLUDE( ${PlusLib_USE_FILE} )
 ELSE( PlusLib_FOUND )
