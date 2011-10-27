@@ -52,9 +52,6 @@ public:
 	/*! Read XML based configuration for probe calibration */
   virtual PlusStatus ReadProbeCalibrationConfiguration( vtkXMLDataElement* configData );
 
-	/*! Read freehand calibration configurations (from probe calibration data element of the config file) */
-	virtual PlusStatus ReadFreehandCalibrationConfiguration(vtkXMLDataElement* probeCalibration);
-
   /*! Write configuration */
   virtual PlusStatus WriteConfiguration( vtkXMLDataElement* configData );
 
