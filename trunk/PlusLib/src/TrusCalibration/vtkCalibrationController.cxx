@@ -686,47 +686,6 @@ PlusStatus vtkCalibrationController::ReadProbeCalibrationConfiguration( vtkXMLDa
   return PLUS_SUCCESS; 
 }
 
-//----------------------------------------------------------------------------
-
-PlusStatus vtkCalibrationController::ReadFreehandCalibrationConfiguration(vtkXMLDataElement* aConfig)
-{
-	LOG_TRACE("vtkCalibrationController::ReadFreehandCalibrationConfiguration"); 
-
-  // Read probe calibration
-  std::string toolType;
-	vtkTracker::ConvertToolTypeToString(TRACKER_TOOL_PROBE, toolType);
-
-  vtkSmartPointer<vtkXMLDataElement> probeDefinition = vtkPlusConfig::LookupElementWithNameContainingChildWithNameAndAttribute(aConfig, "Tracker", "Tool", "Type", toolType.c_str());
-	if (probeDefinition == NULL) {
-		LOG_ERROR("No probe definition is found in the XML tree!");
-		return PLUS_FAIL;
-	}
-
-	vtkSmartPointer<vtkXMLDataElement> calibration = probeDefinition->FindNestedElementWithName("Calibration");
-	if (calibration == NULL) {
-		LOG_ERROR("No calibration section is found in probe definition!");
-		return PLUS_FAIL;
-	}
-
-  // Read calibration matrix
-	double* userImageToProbeTransformVector = new double[16]; 
-	if (calibration->GetVectorAttribute("MatrixValue", 16, userImageToProbeTransformVector)) {
-    vtkSmartPointer<vtkTransform> userImageToProbeTransform = vtkSmartPointer<vtkTransform>::New();
-    userImageToProbeTransform->Identity();
-    userImageToProbeTransform->SetMatrix(userImageToProbeTransformVector);
-    this->SetTransformUserImageToProbe(userImageToProbeTransform);
-	}
-	delete[] userImageToProbeTransformVector;
-
-  // Read calibration date
-  const char* date = calibration->GetAttribute("Date");
-  if ((date != NULL) && (STRCASECMP(date, "") != 0)) {
-    this->SetCalibrationDate(date);
-  }
-
-	return PLUS_SUCCESS;
-}
-
 //-----------------------------------------------------------------------------
 
 PlusStatus vtkCalibrationController::WriteConfiguration(vtkXMLDataElement* aConfig)
