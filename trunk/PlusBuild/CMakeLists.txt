@@ -8,6 +8,11 @@ IF(COMMAND cmake_policy)
     cmake_policy(SET CMP0003 NEW)
 ENDIF(COMMAND cmake_policy)
 
+SET(CMAKE_MODULE_PATH
+    ${CMAKE_CURRENT_SOURCE_DIR}/Modules
+    ${CMAKE_MODULE_PATH}
+    )
+
 #-----------------------------------------------------------------------------
 # SVN - Let's check if a valid version of SVN is available
 #-----------------------------------------------------------------------------
@@ -219,6 +224,14 @@ ELSE ( PLUSBUILD_USE_3DSlicer )
 ENDIF ( PLUSBUILD_USE_3DSlicer )
 
 INCLUDE(External_PLTools.cmake)
+
+IF ( PLUS_USE_CERTUS )
+    FIND_PACKAGE (NDIOAPI)
+    IF ( NOT NDIOAPI_FOUND)
+        MESSAGE( FATAL_ERROR "This project requires NDI Oapi for CERTUS tracking. One of these components is missing. Please verify configuration or turn off PLUS_USE_CERTUS.")
+    ENDIF()
+ENDIF() 
+
 INCLUDE(External_PlusLib.cmake)
 
 IF(PLUSBUILD_BUILD_PLUSAPP) 

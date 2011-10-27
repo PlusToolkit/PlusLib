@@ -25,6 +25,14 @@ IF ( NOT PLUS_SVN_REVISION STREQUAL "0" )
         )
 ENDIF() 
 
+SET(PLUSBUILD_NDIOAPI_ARGS)
+IF (PLUS_USE_CERTUS)
+    SET(PLUSBUILD_NDIOAPI_ARGS 
+        -DNDIOAPI_LIBRARY:PATH=${NDIOAPI_LIBRARY}
+        -DNDIOAPI_BINARY_DIR:PATH=${NDIOAPI_BINARY_DIR}
+        -DNDIOAPI_INCLUDE_DIR:PATH=${NDIOAPI_INCLUDE_DIR}
+        )
+ENDIF()    
 # --------------------------------------------------------------------------
 # PlusLib
 SET (PLUS_PLUSLIB_DIR ${CMAKE_BINARY_DIR}/PlusLib CACHE INTERNAL "Path to store PlusLib contents.")
@@ -43,6 +51,7 @@ ExternalProject_Add(PlusLib
                 -DSubversion_SVN_EXECUTABLE:FILEPATH=${Subversion_SVN_EXECUTABLE}
                 ${PLUSBUILD_OpenIGTLink_ARGS}
                 ${PLUSBUILD_Slicer_ARGS}
+                ${PLUSBUILD_NDIOAPI_ARGS}
                 -DPLUS_EXECUTABLE_OUTPUT_PATH:STRING=${PLUS_EXECUTABLE_OUTPUT_PATH}
                 -DPLTOOLS_DIR:PATH=${PLTOOLS_DIR}
                 -DPLUS_USE_ULTRASONIX_VIDEO:BOOL=${PLUS_USE_ULTRASONIX_VIDEO}
