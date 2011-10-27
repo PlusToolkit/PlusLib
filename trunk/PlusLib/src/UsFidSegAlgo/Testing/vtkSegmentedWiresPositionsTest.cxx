@@ -12,7 +12,7 @@
 #include "vtkMatrix4x4.h"
 #include "vtkTransform.h"
 #include "vtkMath.h"
-#include "vtkCalibrationController.h"
+#include "vtkProbeCalibrationAlgo.h"
 
 #include "FidPatternRecognition.h"
 

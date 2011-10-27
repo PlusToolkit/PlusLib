@@ -5,7 +5,7 @@
 =========================================================Plus=header=end*/ 
 
 #include "PlusConfigure.h"
-#include "vtkCalibrationController.h"
+#include "vtkProbeCalibrationAlgo.h"
 
 #include "PlusMath.h"
 #include "vtkTracker.h"
@@ -35,17 +35,17 @@
 
 #include "vnl/vnl_cross.h"
 
-vtkCxxRevisionMacro(vtkCalibrationController, "$Revision: 1.0 $");
-vtkStandardNewMacro(vtkCalibrationController);
+vtkCxxRevisionMacro(vtkProbeCalibrationAlgo, "$Revision: 1.0 $");
+vtkStandardNewMacro(vtkProbeCalibrationAlgo);
 
 //----------------------------------------------------------------------------
-void vtkCalibrationController::PrintSelf(ostream& os, vtkIndent indent)
+void vtkProbeCalibrationAlgo::PrintSelf(ostream& os, vtkIndent indent)
 {
 	this->Superclass::PrintSelf(os,indent);
 } 
 
 //----------------------------------------------------------------------------
-vtkCalibrationController::vtkCalibrationController() 
+vtkProbeCalibrationAlgo::vtkProbeCalibrationAlgo() 
   : MinElevationBeamwidthAndFocalZoneInUSImageFrame(2,0)
 {
   this->EnableSegmentationAnalysisOff();
@@ -143,7 +143,7 @@ vtkCalibrationController::vtkCalibrationController()
 }
 
 //----------------------------------------------------------------------------
-vtkCalibrationController::~vtkCalibrationController() 
+vtkProbeCalibrationAlgo::~vtkProbeCalibrationAlgo() 
 {
   // Former ProbeCalibrationController and FreehandCalibraitonController members
 	this->SetTransformImageToTemplate(NULL);
@@ -163,9 +163,9 @@ vtkCalibrationController::~vtkCalibrationController()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkCalibrationController::Initialize()
+PlusStatus vtkProbeCalibrationAlgo::Initialize()
 {
-	LOG_TRACE("vtkCalibrationController::Initialize"); 
+	LOG_TRACE("vtkProbeCalibrationAlgo::Initialize"); 
 
   this->ResetDataContainers(); 
 
@@ -183,18 +183,18 @@ PlusStatus vtkCalibrationController::Initialize()
 
 //----------------------------------------------------------------------------
 
-PlusStatus vtkCalibrationController::Calibrate( vtkTrackedFrameList* validationTrackedFrameList, vtkTrackedFrameList* calibrationTrackedFrameList, const char* defaultTransformName, std::vector<NWire> &nWires )
+PlusStatus vtkProbeCalibrationAlgo::Calibrate( vtkTrackedFrameList* validationTrackedFrameList, vtkTrackedFrameList* calibrationTrackedFrameList, const char* defaultTransformName, std::vector<NWire> &nWires )
 {
-	LOG_TRACE("vtkCalibrationController::Calibrate");
+	LOG_TRACE("vtkProbeCalibrationAlgo::Calibrate");
 
   return Calibrate(validationTrackedFrameList, -1, -1, calibrationTrackedFrameList, -1, -1, defaultTransformName, nWires);
 }
 
 //----------------------------------------------------------------------------
 
-PlusStatus vtkCalibrationController::Calibrate( vtkTrackedFrameList* validationTrackedFrameList, int validationStartFrame, int validationEndFrame, vtkTrackedFrameList* calibrationTrackedFrameList, int calibrationStartFrame, int calibrationEndFrame, const char* defaultTransformName, std::vector<NWire> &nWires )
+PlusStatus vtkProbeCalibrationAlgo::Calibrate( vtkTrackedFrameList* validationTrackedFrameList, int validationStartFrame, int validationEndFrame, vtkTrackedFrameList* calibrationTrackedFrameList, int calibrationStartFrame, int calibrationEndFrame, const char* defaultTransformName, std::vector<NWire> &nWires )
 {
-  LOG_TRACE("vtkCalibrationController::Calibrate(validation: " << validationStartFrame << "-" << validationEndFrame << ", calibration: " << calibrationStartFrame << "-" << calibrationEndFrame << ")"); 
+  LOG_TRACE("vtkProbeCalibrationAlgo::Calibrate(validation: " << validationStartFrame << "-" << validationEndFrame << ", calibration: " << calibrationStartFrame << "-" << calibrationEndFrame << ")"); 
 
   if ( ! this->Initialized )
   {
@@ -263,9 +263,9 @@ PlusStatus vtkCalibrationController::Calibrate( vtkTrackedFrameList* validationT
 
 //----------------------------------------------------------------------------
 
-PlusStatus vtkCalibrationController::AddPositionsPerImage( TrackedFrame* trackedFrame, const char* defaultTransformName, std::vector<NWire> &nWires, bool isValidation )
+PlusStatus vtkProbeCalibrationAlgo::AddPositionsPerImage( TrackedFrame* trackedFrame, const char* defaultTransformName, std::vector<NWire> &nWires, bool isValidation )
 {
-  LOG_TRACE("vtkCalibrationController::AddPositionsPerImage(" << (isValidation?"validation":"calibration") << ")");
+  LOG_TRACE("vtkProbeCalibrationAlgo::AddPositionsPerImage(" << (isValidation?"validation":"calibration") << ")");
 
   if (this->TransformImageToUserImage == NULL)
   {
@@ -461,9 +461,9 @@ PlusStatus vtkCalibrationController::AddPositionsPerImage( TrackedFrame* tracked
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkCalibrationController::ReadConfiguration( vtkXMLDataElement* configData )
+PlusStatus vtkProbeCalibrationAlgo::ReadConfiguration( vtkXMLDataElement* configData )
 {
-	LOG_TRACE("vtkCalibrationController::ReadConfiguration"); 
+	LOG_TRACE("vtkProbeCalibrationAlgo::ReadConfiguration"); 
 	if ( configData == NULL )
 	{
 		LOG_ERROR("Unable to read configuration"); 
@@ -477,9 +477,9 @@ PlusStatus vtkCalibrationController::ReadConfiguration( vtkXMLDataElement* confi
 
 //----------------------------------------------------------------------------
 
-PlusStatus vtkCalibrationController::ReadProbeCalibrationConfiguration( vtkXMLDataElement* rootElement )
+PlusStatus vtkProbeCalibrationAlgo::ReadProbeCalibrationConfiguration( vtkXMLDataElement* rootElement )
 {
-	LOG_TRACE("vtkCalibrationController::ReadProbeCalibrationConfiguration");
+	LOG_TRACE("vtkProbeCalibrationAlgo::ReadProbeCalibrationConfiguration");
 
 	if (rootElement == NULL) 
 	{	
@@ -686,9 +686,9 @@ PlusStatus vtkCalibrationController::ReadProbeCalibrationConfiguration( vtkXMLDa
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkCalibrationController::WriteConfiguration(vtkXMLDataElement* aConfig)
+PlusStatus vtkProbeCalibrationAlgo::WriteConfiguration(vtkXMLDataElement* aConfig)
 {
-	LOG_TRACE("vtkCalibrationController::WriteConfiguration");
+	LOG_TRACE("vtkProbeCalibrationAlgo::WriteConfiguration");
 
   // Save temporal calibration !!!TODO!!! we should have a separate algorithm class for this with its own read/write configuration functions
   // double videoTimeOffset = 0.0;
@@ -819,9 +819,9 @@ PlusStatus vtkCalibrationController::WriteConfiguration(vtkXMLDataElement* aConf
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkCalibrationController::DoCalibration()
+PlusStatus vtkProbeCalibrationAlgo::DoCalibration()
 {
-	LOG_TRACE("vtkCalibrationController::DoCalibration"); 
+	LOG_TRACE("vtkProbeCalibrationAlgo::DoCalibration"); 
 
 	mHasBeenCalibrated = false;
 
@@ -885,9 +885,9 @@ PlusStatus vtkCalibrationController::DoCalibration()
 }
 
 //----------------------------------------------------------------------------
-bool vtkCalibrationController::IsUserImageToProbeTransformOrthogonal()
+bool vtkProbeCalibrationAlgo::IsUserImageToProbeTransformOrthogonal()
 {
-	LOG_TRACE("vtkCalibrationController::IsUserImageToProbeTransformOrthogonal");
+	LOG_TRACE("vtkProbeCalibrationAlgo::IsUserImageToProbeTransformOrthogonal");
 
   vtkMatrix4x4* userImageToProbeMatrix = this->TransformUserImageToProbe->GetMatrix(); 
 
@@ -922,9 +922,9 @@ bool vtkCalibrationController::IsUserImageToProbeTransformOrthogonal()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkCalibrationController::ComputeCalibrationResults()
+PlusStatus vtkProbeCalibrationAlgo::ComputeCalibrationResults()
 {
-	LOG_TRACE("vtkCalibrationController::ComputeCalibrationResults"); 
+	LOG_TRACE("vtkProbeCalibrationAlgo::ComputeCalibrationResults"); 
 
   if ( ! this->Initialized ) 
 	{
@@ -1010,9 +1010,9 @@ PlusStatus vtkCalibrationController::ComputeCalibrationResults()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkCalibrationController::UpdateLineReconstructionErrorAnalysisVectors()
+PlusStatus vtkProbeCalibrationAlgo::UpdateLineReconstructionErrorAnalysisVectors()
 {
-  LOG_TRACE("vtkCalibrationController::UpdateLineReconstructionErrorAnalysisVectors"); 
+  LOG_TRACE("vtkProbeCalibrationAlgo::UpdateLineReconstructionErrorAnalysisVectors"); 
 
   this->LineReconstructionErrors.clear(); 
 
@@ -1032,9 +1032,9 @@ PlusStatus vtkCalibrationController::UpdateLineReconstructionErrorAnalysisVector
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkCalibrationController::GetLineReconstructionErrorAnalysisVector(int wireNumber, std::vector<double> &LRE)
+PlusStatus vtkProbeCalibrationAlgo::GetLineReconstructionErrorAnalysisVector(int wireNumber, std::vector<double> &LRE)
 {
-	LOG_TRACE("vtkCalibrationController::GetLineReconstructionErrorAnalysisVector (wire #" << wireNumber << ")"); 
+	LOG_TRACE("vtkProbeCalibrationAlgo::GetLineReconstructionErrorAnalysisVector (wire #" << wireNumber << ")"); 
 
   if ( this->LineReconstructionErrors.size() == 0 )
   {
@@ -1060,9 +1060,9 @@ PlusStatus vtkCalibrationController::GetLineReconstructionErrorAnalysisVector(in
 }
 
 //----------------------------------------------------------------------------
-vnl_matrix<double> vtkCalibrationController::GetLineReconstructionErrorMatrix(int wireNumber)
+vnl_matrix<double> vtkProbeCalibrationAlgo::GetLineReconstructionErrorMatrix(int wireNumber)
 {
-	//LOG_TRACE("vtkCalibrationController::GetLineReconstructionErrorMatrix (wire #" << wireNumber << ")"); 
+	//LOG_TRACE("vtkProbeCalibrationAlgo::GetLineReconstructionErrorMatrix (wire #" << wireNumber << ")"); 
 	vnl_matrix<double> mLREOrigInUSProbeFrameMatrix; 
 	switch(wireNumber)
 	{
@@ -1095,9 +1095,9 @@ vnl_matrix<double> vtkCalibrationController::GetLineReconstructionErrorMatrix(in
 
 //-----------------------------------------------------------------------------
 
-std::string vtkCalibrationController::GetResultString()
+std::string vtkProbeCalibrationAlgo::GetResultString()
 {
-	LOG_TRACE("vtkCalibrationController::GetResultString");
+	LOG_TRACE("vtkProbeCalibrationAlgo::GetResultString");
 
 	std::ostringstream matrixStringStream;
 	matrixStringStream << "Image to probe transform:" << std::endl;
@@ -1127,9 +1127,9 @@ std::string vtkCalibrationController::GetResultString()
 
 //-----------------------------------------------------------------------------
 
-double vtkCalibrationController::GetBeamwidthWeightForBeamwidthMagnitude(int aActualAxialDepth)
+double vtkProbeCalibrationAlgo::GetBeamwidthWeightForBeamwidthMagnitude(int aActualAxialDepth)
 {
-  LOG_TRACE("vtkCalibrationController::GetBeamwidthWeight");
+  LOG_TRACE("vtkProbeCalibrationAlgo::GetBeamwidthWeight");
 
   // Compute the weight according to the selected method of incorporation
   double beamwidthWeightForActualAxialDepth = -1;
@@ -1200,9 +1200,9 @@ double vtkCalibrationController::GetBeamwidthWeightForBeamwidthMagnitude(int aAc
 
 //-----------------------------------------------------------------------------
 
-void vtkCalibrationController::ResetDataContainers()
+void vtkProbeCalibrationAlgo::ResetDataContainers()
 {
-	LOG_TRACE("vtkCalibrationController::ResetDataContainers");
+	LOG_TRACE("vtkProbeCalibrationAlgo::ResetDataContainers");
 
   // Initialize flags
   this->CalibrationDoneOff();
@@ -1268,9 +1268,9 @@ void vtkCalibrationController::ResetDataContainers()
 
 //-----------------------------------------------------------------------------
 
-void vtkCalibrationController::FillUltrasoundBeamwidthAndWeightFactorsTable()
+void vtkProbeCalibrationAlgo::FillUltrasoundBeamwidthAndWeightFactorsTable()
 {
-	LOG_TRACE("vtkCalibrationController::FillUltrasoundBeamwidthAndWeightFactorsTable");
+	LOG_TRACE("vtkProbeCalibrationAlgo::FillUltrasoundBeamwidthAndWeightFactorsTable");
 
 	// Populate the beam-width data accordingly
 	int numOfTotalBeamWidthData = this->InterpUS3DBeamwidthAndWeightFactorsInUSImageFrameTable5xM.columns();
@@ -1302,9 +1302,9 @@ void vtkCalibrationController::FillUltrasoundBeamwidthAndWeightFactorsTable()
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkCalibrationController::compute3DPointReconstructionError()
+PlusStatus vtkProbeCalibrationAlgo::compute3DPointReconstructionError()
 {
-	LOG_TRACE("vtkCalibrationController::compute3DPointReconstructionError");
+	LOG_TRACE("vtkProbeCalibrationAlgo::compute3DPointReconstructionError");
 
 	// Reset the flag
 	if( true == mArePRE3DsForValidationPositionsReady )
@@ -1438,10 +1438,10 @@ PlusStatus vtkCalibrationController::compute3DPointReconstructionError()
 
 //-----------------------------------------------------------------------------
 
-vnl_vector<double> vtkCalibrationController::getPointLineReconstructionError(vnl_vector<double> NWirePositionInUSImageFrame, 
+vnl_vector<double> vtkProbeCalibrationAlgo::getPointLineReconstructionError(vnl_vector<double> NWirePositionInUSImageFrame, 
 			vnl_vector<double> NWirePositionInUSProbeFrame)
 {
-	LOG_TRACE("vtkCalibrationController::getPointLineReconstructionError");
+	LOG_TRACE("vtkProbeCalibrationAlgo::getPointLineReconstructionError");
 
 	vnl_vector<double> NWireProjectedPositionsInUSProbeFrame = mTransformUSImageFrame2USProbeFrameMatrix4x4 * NWirePositionInUSImageFrame;
 	vnl_vector<double> NWireLREOrigInUSProbeFrame = NWirePositionInUSProbeFrame - NWireProjectedPositionsInUSProbeFrame;
@@ -1453,9 +1453,9 @@ vnl_vector<double> vtkCalibrationController::getPointLineReconstructionError(vnl
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkCalibrationController::computeIndependentPointLineReconstructionError()
+PlusStatus vtkProbeCalibrationAlgo::computeIndependentPointLineReconstructionError()
 {
-	LOG_TRACE("vtkCalibrationController::computeIndependentPointLineReconstructionError");
+	LOG_TRACE("vtkProbeCalibrationAlgo::computeIndependentPointLineReconstructionError");
 
 	// Reset the flag
 	if( true == mAreIndependentPointLineReconErrorsReady )
@@ -1833,9 +1833,9 @@ PlusStatus vtkCalibrationController::computeIndependentPointLineReconstructionEr
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkCalibrationController::constructValidationDataMatrices()
+PlusStatus vtkProbeCalibrationAlgo::constructValidationDataMatrices()
 {
-	LOG_TRACE("vtkCalibrationController::constructValidationDataMatrices");
+	LOG_TRACE("vtkProbeCalibrationAlgo::constructValidationDataMatrices");
 
 	// The total number of the validation data set.
 	const int NumberOfValidationPositions( mValidationPositionsInUSImageFrame.size() );
@@ -1902,7 +1902,7 @@ PlusStatus vtkCalibrationController::constructValidationDataMatrices()
 }
 
 //----------------------------------------------------------------------------
-void vtkCalibrationController::SaveCalibrationResultsAndErrorReportsToXML()
+void vtkProbeCalibrationAlgo::SaveCalibrationResultsAndErrorReportsToXML()
 {
   // Construct the calibration result file name with path and timestamp
   std::string calibrationTimestamp;
@@ -2333,7 +2333,7 @@ void vtkCalibrationController::SaveCalibrationResultsAndErrorReportsToXML()
 
 //----------------------------------------------------------------------------
 // TODO: Read it from XML
-PlusStatus vtkCalibrationController::ReadUs3DBeamwidthDataFromFile()
+PlusStatus vtkProbeCalibrationAlgo::ReadUs3DBeamwidthDataFromFile()
 {
 	// #1. Read the US 3D Beamwidth Data from a pre-populated file
 	std::ifstream USBeamProfileFile( this->US3DBeamProfileDataFileNameAndPath, std::ios::in );
@@ -2464,7 +2464,7 @@ PlusStatus vtkCalibrationController::ReadUs3DBeamwidthDataFromFile()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkCalibrationController::LoadUS3DBeamProfileData()
+PlusStatus vtkProbeCalibrationAlgo::LoadUS3DBeamProfileData()
 {
 	this->SetUS3DBeamwidthDataReady(false); 
 

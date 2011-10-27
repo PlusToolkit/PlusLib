@@ -14,7 +14,7 @@
 #include "vtkSpacingCalibAlgo.h"
 #include "vtkCenterOfRotationCalibAlgo.h"
 #include "vtkBrachyStepperPhantomRegistrationAlgo.h"
-#include "vtkCalibrationController.h"
+#include "vtkProbeCalibrationAlgo.h"
 #include "FidPatternRecognition.h"
 
 #include "vtkXMLDataElement.h"
@@ -135,7 +135,7 @@ int main (int argc, char* argv[])
   }
 
 	// Initialize the probe calibration controller 
-	vtkSmartPointer<vtkCalibrationController> probeCal = vtkSmartPointer<vtkCalibrationController>::New(); 
+	vtkSmartPointer<vtkProbeCalibrationAlgo> probeCal = vtkSmartPointer<vtkProbeCalibrationAlgo>::New(); 
 	probeCal->ReadConfiguration(configRootElement); 
   probeCal->ReadProbeCalibrationConfiguration(configRootElement);
   probeCal->EnableSegmentationAnalysisOn(); // So that results are drawn (there was a condition for that if the calibration is in OFFLINE mode - now that enum has been removed)
@@ -158,7 +158,7 @@ int main (int argc, char* argv[])
 	// Register phantom geometry before calibration 
 	probeCal->SetPhantomToReferenceTransform( tPhantomToReference ); 
   
-  // TODO: remove these transforms from vtkCalibrationController
+  // TODO: remove these transforms from vtkProbeCalibrationAlgo
   probeCal->GetTransformTemplateHolderToTemplate()->SetMatrix(probeCal->GetTransformTemplateHolderToPhantom()->GetMatrix() ); 
   probeCal->GetTransformReferenceToTemplateHolderHome()->SetMatrix( phantomRegistrationAlgo->GetTransformReferenceToTemplateHolder()->GetMatrix() ); 
 

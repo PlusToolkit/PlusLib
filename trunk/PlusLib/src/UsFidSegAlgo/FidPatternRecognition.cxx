@@ -273,7 +273,7 @@ void FidPatternRecognition::DrawPair( PixelType *image, std::vector<LinePair>::i
 
 PlusStatus FidPatternRecognition::ComputeNWireIntersections()
 {
-	LOG_TRACE("vtkCalibrationController::ComputeNWireInstersections");
+	LOG_TRACE("FidPatternRecognition::ComputeNWireInstersections");
 
 	
 

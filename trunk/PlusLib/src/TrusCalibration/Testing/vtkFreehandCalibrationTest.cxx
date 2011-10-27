@@ -11,7 +11,7 @@ See License.txt for details.
 #include "PlusConfigure.h"
 #include "vtkPlusConfig.h"
 #include "PlusMath.h"
-#include "vtkCalibrationController.h"
+#include "vtkProbeCalibrationAlgo.h"
 #include "vtkPhantomRegistrationAlgo.h"
 #include "FidPatternRecognition.h"
 
@@ -95,7 +95,7 @@ int main (int argc, char* argv[])
     exit(EXIT_FAILURE);
   }
 
-  vtkSmartPointer<vtkCalibrationController> freehandCalibration = vtkSmartPointer<vtkCalibrationController>::New();
+  vtkSmartPointer<vtkProbeCalibrationAlgo> freehandCalibration = vtkSmartPointer<vtkProbeCalibrationAlgo>::New();
   freehandCalibration->ReadConfiguration(configRootElement);
   freehandCalibration->EnableSegmentationAnalysisOn(); // So that results are drawn (there was a condition for that if the calibration is in OFFLINE mode - now that enum has been removed)
 
