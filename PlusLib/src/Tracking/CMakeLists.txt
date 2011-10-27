@@ -54,38 +54,28 @@ ENDIF (PLUS_USE_CERTUS OR PLUS_USE_POLARIS)
 # NDI Certus support
 
 IF (PLUS_USE_CERTUS)
-
-  SET(NDIOAPI_INCLUDE_DIR ${PLTOOLS_DIR}/NDI/Certus/NDIoapi-3.0.0.66/include CACHE PATH "Path to the NDI oapi SDK include directory." FORCE)
-  SET(NDIOAPI_BINARY_DIR ${PLTOOLS_DIR}/NDI/Certus/NDIoapi-3.0.0.66/bin CACHE PATH "Path to the NDI oapi SDK binary directory." FORCE)
-
-  SET (Tracking_SRCS ${Tracking_SRCS}
+    SET (Tracking_SRCS ${Tracking_SRCS} 
     NDICertusTracking/vtkNDICertusTracker.cxx
     )
-    
-  SET (Tracking_INCLUDE_DIRS ${Tracking_INCLUDE_DIRS} 
-    ${NDIOAPI_INCLUDE_DIR}
-    CACHE INTERNAL "" FORCE
-    )
+        
+    SET (Tracking_INCLUDE_DIRS ${Tracking_INCLUDE_DIRS} ${NDIOAPI_INCLUDE_DIR} CACHE INTERNAL "" FORCE )
 	
-	if (WIN32)	
+    IF (WIN32)	
 		SET (Tracking_HDRS ${Tracking_HDRS}
 			NDICertusTracking/vtkNDICertusTracker.h
 			)
-	endif (WIN32)
+	ENDIF (WIN32)
 	  
-  SET (Tracking_INCLUDE_DIRS ${Tracking_INCLUDE_DIRS}
-    ${CMAKE_CURRENT_SOURCE_DIR}/NDICertusTracking 
-    CACHE INTERNAL "" FORCE
+    SET (Tracking_INCLUDE_DIRS ${Tracking_INCLUDE_DIRS}
+        ${CMAKE_CURRENT_SOURCE_DIR}/NDICertusTracking 
+        CACHE INTERNAL "" FORCE
     )
-  	  	  
-	SET (Tracking_LIBS ${Tracking_LIBS} 
-		${NDIOAPI_BINARY_DIR}/oapi${CMAKE_STATIC_LIBRARY_SUFFIX}
-		)
-	
-	SET ( External_Libraries_Install ${External_Libraries_Install}
-		${NDIOAPI_BINARY_DIR}/oapi${CMAKE_SHARED_LIBRARY_SUFFIX}
-		)
-
+            
+    SET (Tracking_LIBS ${Tracking_LIBS} ${NDIOAPI_LIBRARY} )
+    
+    SET ( External_Libraries_Install ${External_Libraries_Install}
+        ${NDIOAPI_BINARY_DIR}/oapi${CMAKE_SHARED_LIBRARY_SUFFIX}
+        )
 ENDIF (PLUS_USE_CERTUS)
 
 #--------------------------------------------------------------------------
@@ -299,16 +289,13 @@ SET(vcProj_vtkTracking vtkTracking "${PlusLib_BINARY_DIR}/src/Tracking/vtkTracki
 IF ( ${CMAKE_GENERATOR} MATCHES "Visual Studio" )
     FILE(COPY ${External_Libraries_Install}
         DESTINATION ${PLUS_EXECUTABLE_OUTPUT_PATH}/Release
-        FILES_MATCHING REGEX .*${CMAKE_SHARED_LIBRARY_SUFFIX}
         )
     FILE(COPY ${External_Libraries_Install}
         DESTINATION ${PLUS_EXECUTABLE_OUTPUT_PATH}/Debug
-        FILES_MATCHING REGEX .*${CMAKE_SHARED_LIBRARY_SUFFIX}
         )                
 ELSE()
-    FILE(COPY "${QT_BINARY_DIR}/"
+    FILE(COPY ${External_Libraries_Install}
         DESTINATION ${PLUS_EXECUTABLE_OUTPUT_PATH}
-        FILES_MATCHING REGEX .*${CMAKE_SHARED_LIBRARY_SUFFIX}
         )        
 ENDIF()
 
