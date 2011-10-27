@@ -15,6 +15,7 @@
 #include "vtkCenterOfRotationCalibAlgo.h"
 #include "vtkBrachyStepperPhantomRegistrationAlgo.h"
 #include "vtkCalibrationController.h"
+#include "FidPatternRecognition.h"
 
 #include "vtkXMLDataElement.h"
 #include "vtkXMLUtilities.h"
@@ -24,7 +25,6 @@
 #include "vtkTransform.h"
 #include "vtkMath.h"
 #include "vtkPlusConfig.h"
-
 
 ///////////////////////////////////////////////////////////////////
 const double ERROR_THRESHOLD = 0.05; // error threshold is 5% 
@@ -194,7 +194,7 @@ int main (int argc, char* argv[])
   }
 
   // Calibrate
-  if (probeCal->Calibrate( validationTrackedFrameList, calibrationTrackedFrameList, "Probe") != PLUS_SUCCESS)
+  if (probeCal->Calibrate( validationTrackedFrameList, calibrationTrackedFrameList, "Probe", patternRecognition.GetFidLineFinder()->GetNWires()) != PLUS_SUCCESS)
   {
     LOG_ERROR("Calibration failed!");
 		return EXIT_FAILURE;

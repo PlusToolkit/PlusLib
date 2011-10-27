@@ -28,6 +28,7 @@
 #include "vtkLine.h"
 #include "vtksys/SystemTools.hxx"
 #include "PlusVideoFrame.h"
+#include "FidPatternRecognitionCommon.h"
 
 #include "vtkGnuplotExecuter.h"
 #include "vtkHTMLGenerator.h"
@@ -182,16 +183,16 @@ PlusStatus vtkCalibrationController::Initialize()
 
 //----------------------------------------------------------------------------
 
-PlusStatus vtkCalibrationController::Calibrate( vtkTrackedFrameList* validationTrackedFrameList, vtkTrackedFrameList* calibrationTrackedFrameList, const char* defaultTransformName )
+PlusStatus vtkCalibrationController::Calibrate( vtkTrackedFrameList* validationTrackedFrameList, vtkTrackedFrameList* calibrationTrackedFrameList, const char* defaultTransformName, std::vector<NWire> &nWires )
 {
 	LOG_TRACE("vtkCalibrationController::Calibrate");
 
-  return Calibrate(validationTrackedFrameList, -1, -1, calibrationTrackedFrameList, -1, -1, defaultTransformName);
+  return Calibrate(validationTrackedFrameList, -1, -1, calibrationTrackedFrameList, -1, -1, defaultTransformName, nWires);
 }
 
 //----------------------------------------------------------------------------
 
-PlusStatus vtkCalibrationController::Calibrate( vtkTrackedFrameList* validationTrackedFrameList, int validationStartFrame, int validationEndFrame, vtkTrackedFrameList* calibrationTrackedFrameList, int calibrationStartFrame, int calibrationEndFrame, const char* defaultTransformName )
+PlusStatus vtkCalibrationController::Calibrate( vtkTrackedFrameList* validationTrackedFrameList, int validationStartFrame, int validationEndFrame, vtkTrackedFrameList* calibrationTrackedFrameList, int calibrationStartFrame, int calibrationEndFrame, const char* defaultTransformName, std::vector<NWire> &nWires )
 {
   LOG_TRACE("vtkCalibrationController::Calibrate(validation: " << validationStartFrame << "-" << validationEndFrame << ", calibration: " << calibrationStartFrame << "-" << calibrationEndFrame << ")"); 
 
@@ -233,7 +234,7 @@ PlusStatus vtkCalibrationController::Calibrate( vtkTrackedFrameList* validationT
 	for (int frameNumber = validationStartFrame; frameNumber < validationEndFrame; ++frameNumber)
   {
     LOG_DEBUG(" Add frame #" << frameNumber << " for validation data");
-    if ( AddPositionsPerImage(validationTrackedFrameList->GetTrackedFrame(frameNumber), defaultTransformName, true) != PLUS_SUCCESS )
+    if ( AddPositionsPerImage(validationTrackedFrameList->GetTrackedFrame(frameNumber), defaultTransformName, nWires, true) != PLUS_SUCCESS )
     {
       LOG_ERROR("Add validation position failed on frame #" << frameNumber);
       continue;
@@ -243,7 +244,7 @@ PlusStatus vtkCalibrationController::Calibrate( vtkTrackedFrameList* validationT
 	for (int frameNumber = calibrationStartFrame; frameNumber < calibrationEndFrame; ++frameNumber)
   {
     LOG_DEBUG(" Add frame #" << frameNumber << " for calibration data");
-    if ( AddPositionsPerImage(calibrationTrackedFrameList->GetTrackedFrame(frameNumber), defaultTransformName, false) != PLUS_SUCCESS )
+    if ( AddPositionsPerImage(calibrationTrackedFrameList->GetTrackedFrame(frameNumber), defaultTransformName, nWires, false) != PLUS_SUCCESS )
     {
       LOG_ERROR("Add calibration position failed on frame #" << frameNumber);
       continue;
@@ -262,7 +263,7 @@ PlusStatus vtkCalibrationController::Calibrate( vtkTrackedFrameList* validationT
 
 //----------------------------------------------------------------------------
 
-PlusStatus vtkCalibrationController::AddPositionsPerImage( TrackedFrame* trackedFrame, const char* defaultTransformName, bool isValidation )
+PlusStatus vtkCalibrationController::AddPositionsPerImage( TrackedFrame* trackedFrame, const char* defaultTransformName, std::vector<NWire> &nWires, bool isValidation )
 {
   LOG_TRACE("vtkCalibrationController::AddPositionsPerImage(" << (isValidation?"validation":"calibration") << ")");
 
@@ -340,8 +341,6 @@ PlusStatus vtkCalibrationController::AddPositionsPerImage( TrackedFrame* tracked
 
 
   // Calculate wire position in probe coordinate system using the segmentation result and the phantom geometry
-  std::vector<NWire> nWires = this->PatternRecognition.GetFidLineFinder()->GetNWires();
-
   for (int n = 0; n < segmentedPoints.size() / 3; ++n)
   {
     // Convert the segmented position of the middle wire from the original image to the predefined ultrasound image frame
@@ -471,8 +470,7 @@ PlusStatus vtkCalibrationController::ReadConfiguration( vtkXMLDataElement* confi
 		return PLUS_FAIL; 
 	}
 
-  // Setting the fiducial pattern recognition
-  this->PatternRecognition.ReadConfiguration(configData);
+  // TODO it does nothing. Do we need it? (will it do anything later?)
 
   return PLUS_SUCCESS;
 }
