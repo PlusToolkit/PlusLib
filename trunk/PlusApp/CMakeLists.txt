@@ -179,8 +179,11 @@ configure_file(
     @ONLY
 	)
 #-----------------------------------------------------------------------------
-# Generate default application configuration files in the executable directories (Release and Debug too)
+# Generate default application configuration files in the non-installed executable directories (Release and Debug too)
 # 
+SET( PLUSCONFIG_DEVICESET_CONFIG_DIR ${PLUSLIB_DATA_DIR}/ConfigFiles )
+SET( PLUSCONFIG_IMAGE_DIR ${PLUSLIB_DATA_DIR}/TestImages )
+
 configure_file(
 	${CMAKE_CURRENT_SOURCE_DIR}/PlusConfig.xml.in
 	${TEST_EXECUTABLE_OUTPUT_PATH}/PlusConfig.xml
@@ -189,6 +192,17 @@ configure_file(
 	${CMAKE_CURRENT_SOURCE_DIR}/PlusConfig.xml.in
 	${CMAKE_CURRENT_BINARY_DIR}/bin/Debug/PlusConfig.xml
 	)
+
+#-----------------------------------------------------------------------------
+# Generate default application configuration file for the install
+# 
+SET( PLUSCONFIG_DEVICESET_CONFIG_DIR "../config" )
+SET( PLUSCONFIG_IMAGE_DIR "../data" )
+
+configure_file(
+	${CMAKE_CURRENT_SOURCE_DIR}/PlusConfig.xml.in
+	${CMAKE_CURRENT_BINARY_DIR}/PlusConfig.xml
+	)	
 
 #-----------------------------------------------------------------------------
 # Generate convenience files for automatic build, test, and packaging
