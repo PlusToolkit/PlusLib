@@ -1,7 +1,7 @@
 /*=Plus=header=begin======================================================
-  Program: Plus
-  Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
-  See License.txt for details.
+Program: Plus
+Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+See License.txt for details.
 =========================================================Plus=header=end*/ 
 
 #ifndef __StylusCalibrationToolbox_h
@@ -19,92 +19,95 @@ class vtkPivotCalibrationAlgo;
 //-----------------------------------------------------------------------------
 
 /*! \class StylusCalibrationToolbox 
- *
- * \brief Stylus calibration toolbox view class
- *
- * \ingroup PlusAppFCal
- *
- */
+* \brief Stylus calibration toolbox view class
+* \ingroup PlusAppFCal
+*/
 class StylusCalibrationToolbox : public QWidget, public AbstractToolbox
 {
-	Q_OBJECT
+  Q_OBJECT
 
 public:
-	/*!
-	* \brief Constructor
+  /*!
+  * Constructor
   * \param aParentMainWindow Parent main window
-	* \param aFlags Widget flags
-	*/
-	StylusCalibrationToolbox(fCalMainWindow* aParentMainWindow, Qt::WFlags aFlags = 0);
-
-	/*!
-	* \brief Destructor
-	*/
-	~StylusCalibrationToolbox();
+  * \param aFlags Widget flags
+  */
+  StylusCalibrationToolbox(fCalMainWindow* aParentMainWindow, Qt::WFlags aFlags = 0);
 
   /*!
-	* \brief Initialize - implementation of a pure virtual function
-	*/
-	void Initialize();
+  * Destructor
+  */
+  ~StylusCalibrationToolbox();
 
-	/*!
-	* \brief Refresh contents (e.g. GUI elements) of toolbox according to the state in the toolbox controller - implementation of a pure virtual function
-	*/
-	void RefreshContent();
+  /*!
+  * Initialize - implementation of a pure virtual function
+  */
+  void Initialize();
 
-	/*!
-	* \brief Sets display mode (visibility of actors) according to the current state - implementation of a pure virtual function
-	*/
-	void SetDisplayAccordingToState();
+  /*!
+  * Read stylus calibration configuration for fCal
+  * \param aConfig Root element of the input device set configuration XML data
+  */
+  PlusStatus ReadConfiguration(vtkXMLDataElement* aConfig);
 
-	/*!
-	* \brief Return pivot calibration algorithm object
+  /*!
+  * Refresh contents (e.g. GUI elements) of toolbox according to the state in the toolbox controller - implementation of a pure virtual function
+  */
+  void RefreshContent();
+
+  /*!
+  * Sets display mode (visibility of actors) according to the current state - implementation of a pure virtual function
+  */
+  void SetDisplayAccordingToState();
+
+  /*!
+  * Return pivot calibration algorithm object
   * \return Pivot calibration algo
-	*/
+  */
   vtkPivotCalibrationAlgo* GetPivotCalibrationAlgo() { return m_PivotCalibration; };
 
 protected slots:
-	/*!
-	* \brief Start calibration
-	*/
-	void Start();
-
-	/*!
-	* \brief Stop calibration
-	*/
-	void Stop();
-
-	/*!
-	* \brief Save result to XML file
-	*/
-	void Save();
-
-	/*!
-	* \brief Slot handling change of stylus calibration number of points
-	* \param aLevel New number of points
-	*/
-	void NumberOfStylusCalibrationPointsChanged(int aNumberOfPoints);
+  /*!
+  * Start calibration
+  */
+  void Start();
 
   /*!
-  * \brief Acquire stylus position and add it to the algorithm (called by the acquisition timer in tool visualizer)
+  * Stop calibration
+  */
+  void Stop();
+
+  /*!
+  * Save result to XML file
+  */
+  void Save();
+
+  /*!
+  * Slot handling change of stylus calibration number of points
+  * \param aLevel New number of points
+  */
+  void NumberOfStylusCalibrationPointsChanged(int aNumberOfPoints);
+
+  /*!
+  * Acquire stylus position and add it to the algorithm (called by the acquisition timer in tool visualizer)
   */
   void AddStylusPositionToCalibration();
 
 protected:
-  //! Pivot calibration algorithm
+  /*! Pivot calibration algorithm */
   vtkPivotCalibrationAlgo*  m_PivotCalibration;
 
-	//! Number of points to acquire
-	int									      m_NumberOfPoints;
+  /*! Number of points to acquire */
+  int									      m_NumberOfPoints;
 
-	//! Number of points acquired so far
-	int									      m_CurrentPointNumber;
+  /*! Number of points acquired so far */
+  int									      m_CurrentPointNumber;
 
-	//! Stylus or stylus tip position (depending on the state) as string
-	std::string							  m_StylusPositionString;
+  /*! Stylus or stylus tip position (depending on the state) as string */
+  std::string							  m_StylusPositionString;
 
 protected:
-	Ui::StylusCalibrationToolbox ui;
+  Ui::StylusCalibrationToolbox ui;
 
 };
 

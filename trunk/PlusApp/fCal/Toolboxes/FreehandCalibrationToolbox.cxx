@@ -1,7 +1,7 @@
 /*=Plus=header=begin======================================================
-  Program: Plus
-  Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
-  See License.txt for details.
+Program: Plus
+Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+See License.txt for details.
 =========================================================Plus=header=end*/ 
 
 #include "FreehandCalibrationToolbox.h"
@@ -27,64 +27,67 @@
 //-----------------------------------------------------------------------------
 
 FreehandCalibrationToolbox::FreehandCalibrationToolbox(fCalMainWindow* aParentMainWindow, Qt::WFlags aFlags)
-	: AbstractToolbox(aParentMainWindow)
-	, QWidget(aParentMainWindow, aFlags)
+: AbstractToolbox(aParentMainWindow)
+, QWidget(aParentMainWindow, aFlags)
+, m_CancelRequest(false)
+, m_NumberOfCalibrationImagesToAcquire(200)
+, m_NumberOfValidationImagesToAcquire(100)
 {
-	ui.setupUi(this);
+  ui.setupUi(this);
 
-  m_CancelRequest = false;
-
-	// Create algorithm
+  // Create algorithm
   m_Calibration = vtkCalibrationController::New();
 
-	ui.label_SpatialCalibration->setFont(QFont("SansSerif", 9, QFont::Bold));
-	ui.label_TemporalCalibration->setFont(QFont("SansSerif", 9, QFont::Bold));
+  ui.label_SpatialCalibration->setFont(QFont("SansSerif", 9, QFont::Bold));
+  ui.label_TemporalCalibration->setFont(QFont("SansSerif", 9, QFont::Bold));
 
-	//ui.label_Results->setFont(QFont("Courier", 7));
+  //ui.label_Results->setFont(QFont("Courier", 7));
 
-	// Connect events
-	connect( ui.pushButton_OpenPhantomRegistration, SIGNAL( clicked() ), this, SLOT( OpenPhantomRegistration() ) );
-	connect( ui.pushButton_OpenCalibrationConfiguration, SIGNAL( clicked() ), this, SLOT( OpenCalibrationConfiguration() ) );
-	connect( ui.pushButton_EditCalibrationConfiguration, SIGNAL( clicked() ), this, SLOT( EditCalibrationConfiguration() ) );
-	connect( ui.pushButton_StartTemporal, SIGNAL( clicked() ), this, SLOT( StartTemporal() ) );
-	connect( ui.pushButton_CancelTemporal, SIGNAL( clicked() ), this, SLOT( CancelTemporal() ) );
-	connect( ui.pushButton_StartSpatial, SIGNAL( clicked() ), this, SLOT( StartSpatial() ) );
-	connect( ui.pushButton_CancelSpatial, SIGNAL( clicked() ), this, SLOT( CancelSpatial() ) );
-	connect( ui.pushButton_Save, SIGNAL( clicked() ), this, SLOT( Save() ) );
-	connect( ui.checkBox_ShowDevices, SIGNAL( toggled(bool) ), this, SLOT( ShowDevicesToggled(bool) ) );
+  // Connect events
+  connect( ui.pushButton_OpenPhantomRegistration, SIGNAL( clicked() ), this, SLOT( OpenPhantomRegistration() ) );
+  connect( ui.pushButton_OpenCalibrationConfiguration, SIGNAL( clicked() ), this, SLOT( OpenCalibrationConfiguration() ) );
+  connect( ui.pushButton_EditCalibrationConfiguration, SIGNAL( clicked() ), this, SLOT( EditCalibrationConfiguration() ) );
+  connect( ui.pushButton_StartTemporal, SIGNAL( clicked() ), this, SLOT( StartTemporal() ) );
+  connect( ui.pushButton_CancelTemporal, SIGNAL( clicked() ), this, SLOT( CancelTemporal() ) );
+  connect( ui.pushButton_StartSpatial, SIGNAL( clicked() ), this, SLOT( StartSpatial() ) );
+  connect( ui.pushButton_CancelSpatial, SIGNAL( clicked() ), this, SLOT( CancelSpatial() ) );
+  connect( ui.pushButton_Save, SIGNAL( clicked() ), this, SLOT( Save() ) );
+  connect( ui.checkBox_ShowDevices, SIGNAL( toggled(bool) ), this, SLOT( ShowDevicesToggled(bool) ) );
 }
 
 //-----------------------------------------------------------------------------
 
 FreehandCalibrationToolbox::~FreehandCalibrationToolbox()
 {
-	if (m_Calibration != NULL) {
-		m_Calibration->Delete();
-		m_Calibration = NULL;
-	} 
+  if (m_Calibration != NULL) {
+    m_Calibration->Delete();
+    m_Calibration = NULL;
+  } 
 }
 
 //-----------------------------------------------------------------------------
 
 void FreehandCalibrationToolbox::Initialize()
 {
-	LOG_TRACE("FreehandCalibrationToolbox::Initialize"); 
+  LOG_TRACE("FreehandCalibrationToolbox::Initialize"); 
 
-  if ((m_ParentMainWindow->GetToolVisualizer()->GetDataCollector() != NULL) && (m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->GetConnected())) {
-
-		m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->SetTrackingOnly(false);
+  if ((m_ParentMainWindow->GetToolVisualizer()->GetDataCollector() != NULL) && (m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->GetConnected()))
+  {
+    m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->SetTrackingOnly(false);
 
     // Determine if there is already a phantom registration present
     PhantomRegistrationToolbox* phantomRegistrationToolbox = dynamic_cast<PhantomRegistrationToolbox*>(m_ParentMainWindow->GetToolbox(ToolboxType_PhantomRegistration));
     if ((phantomRegistrationToolbox != NULL) && (phantomRegistrationToolbox->GetPhantomRegistrationAlgo() != NULL)) {
 
-      if (phantomRegistrationToolbox->GetState() == ToolboxState_Done) {
-		    ui.lineEdit_PhantomRegistration->setText(tr("Using session registration data"));
-
-      } else if (phantomRegistrationToolbox->GetPhantomRegistrationAlgo()->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) == PLUS_SUCCESS) {
+      if (phantomRegistrationToolbox->GetState() == ToolboxState_Done)
+      {
+        ui.lineEdit_PhantomRegistration->setText(tr("Using session registration data"));
+      }
+      else if (phantomRegistrationToolbox->GetPhantomRegistrationAlgo()->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) == PLUS_SUCCESS)
+      {
         m_ParentMainWindow->GetToolVisualizer()->SetPhantomToPhantomReferenceTransform(phantomRegistrationToolbox->GetPhantomRegistrationAlgo()->GetPhantomToPhantomReferenceTransform());
 
-		    ui.lineEdit_PhantomRegistration->setText(tr("Using session registration data"));
+        ui.lineEdit_PhantomRegistration->setText(tr("Using session registration data"));
       }
     } else {
       LOG_ERROR("Phantom registration toolbox not found!");
@@ -93,23 +96,31 @@ void FreehandCalibrationToolbox::Initialize()
 
     // Try to load calibration configuration from the device set configuration
     if ( (m_Calibration->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) == PLUS_SUCCESS)
-       && (m_Calibration->ReadFreehandCalibrationConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) == PLUS_SUCCESS) )
+      && (m_Calibration->ReadFreehandCalibrationConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) == PLUS_SUCCESS) )
     {
       ui.lineEdit_CalibrationConfiguration->setText(tr("Using session calibration configuration"));
     }
 
     // Load calibration matrix into tool visualizer if it exists
-    if ((IsReadyToStartSpatialCalibration()) && (m_Calibration->GetCalibrationDate() != NULL)) {
+    if ((IsReadyToStartSpatialCalibration()) && (m_Calibration->GetCalibrationDate() != NULL))
+    {
       m_ParentMainWindow->GetToolVisualizer()->GetDisplayableTool(TRACKER_TOOL_PROBE)->DisplayableOn();
       m_ParentMainWindow->GetToolVisualizer()->SetImageToProbeTransform(m_Calibration->GetTransformUserImageToProbe());
     }
 
     // Set initialized if it was uninitialized
-	  if (m_State == ToolboxState_Uninitialized) {
-		  SetState(ToolboxState_Idle);
-	  }
+    if (m_State == ToolboxState_Uninitialized)
+    {
+      if (ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS)
+      {
+        LOG_ERROR("Reading stylus calibration configuraiton failed!");
+        return;
+      }
 
-	  if (m_State != ToolboxState_Done) {
+      SetState(ToolboxState_Idle);
+    }
+
+    if (m_State != ToolboxState_Done) {
       m_ParentMainWindow->GetToolVisualizer()->GetResultPolyData()->Initialize();
     }
   }
@@ -117,9 +128,44 @@ void FreehandCalibrationToolbox::Initialize()
 
 //-----------------------------------------------------------------------------
 
+PlusStatus FreehandCalibrationToolbox::ReadConfiguration(vtkXMLDataElement* aConfig)
+{
+  LOG_TRACE("FreehandCalibrationToolbox::ReadConfiguration");
+
+  if (aConfig == NULL)
+  {
+    LOG_ERROR("Unable to read configuration"); 
+    return PLUS_FAIL; 
+  }
+
+  vtkXMLDataElement* fCalElement = aConfig->FindNestedElementWithName("fCal"); 
+
+  if (fCalElement == NULL)
+  {
+    LOG_ERROR("Unable to find fCal element in XML tree!"); 
+    return PLUS_FAIL;     
+  }
+
+  int numberOfCalibrationImagesToAcquire = 0; 
+  if ( fCalElement->GetScalarAttribute("NumberOfCalibrationImagesToAcquire", numberOfCalibrationImagesToAcquire ) )
+  {
+    m_NumberOfCalibrationImagesToAcquire = numberOfCalibrationImagesToAcquire;
+  }
+
+  int numberOfValidationImagesToAcquire = 0; 
+  if ( fCalElement->GetScalarAttribute("NumberOfValidationImagesToAcquire", numberOfValidationImagesToAcquire ) )
+  {
+    m_NumberOfValidationImagesToAcquire = numberOfValidationImagesToAcquire;
+  }
+
+  return PLUS_SUCCESS;
+}
+
+//-----------------------------------------------------------------------------
+
 void FreehandCalibrationToolbox::Reset()
 {
-	LOG_TRACE("FreehandCalibrationToolbox::Reset"); 
+  LOG_TRACE("FreehandCalibrationToolbox::Reset"); 
 
   // Turn off show devices (this function is called when disconnecting, there is no valid result anymore to show)
   ui.checkBox_ShowDevices->setChecked(false);
@@ -136,7 +182,7 @@ void FreehandCalibrationToolbox::Reset()
 
 void FreehandCalibrationToolbox::RefreshContent()
 {
-	//LOG_TRACE("StylusCalibrationToolbox::RefreshToolboxContent"); 
+  //LOG_TRACE("StylusCalibrationToolbox::RefreshToolboxContent"); 
 }
 
 //-----------------------------------------------------------------------------
@@ -150,117 +196,117 @@ void FreehandCalibrationToolbox::SetDisplayAccordingToState()
   ShowDevicesToggled(ui.checkBox_ShowDevices->isChecked());
 
   double videoTimeOffset = 0.0;
-	if ((m_ParentMainWindow->GetToolVisualizer()->GetDataCollector() != NULL)
-      && (m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->GetVideoSource() != NULL)
-      && (m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->GetVideoSource()->GetBuffer() != NULL))
+  if ((m_ParentMainWindow->GetToolVisualizer()->GetDataCollector() != NULL)
+    && (m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->GetVideoSource() != NULL)
+    && (m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->GetVideoSource()->GetBuffer() != NULL))
   {
     videoTimeOffset = m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->GetVideoSource()->GetBuffer()->GetLocalTimeOffset();
   }
 
-	// If initialization failed
-	if (m_State == ToolboxState_Uninitialized) {
-		ui.label_InstructionsTemporal->setText(tr(""));
-		ui.pushButton_StartTemporal->setEnabled(false);
+  // If initialization failed
+  if (m_State == ToolboxState_Uninitialized) {
+    ui.label_InstructionsTemporal->setText(tr(""));
+    ui.pushButton_StartTemporal->setEnabled(false);
     ui.pushButton_CancelTemporal->setEnabled(false);
 
-		ui.label_InstructionsSpatial->setText(tr(""));
+    ui.label_InstructionsSpatial->setText(tr(""));
 
-		ui.checkBox_ShowDevices->setEnabled(false);
-		ui.pushButton_Save->setEnabled(false);
+    ui.checkBox_ShowDevices->setEnabled(false);
+    ui.pushButton_Save->setEnabled(false);
 
-		m_ParentMainWindow->SetStatusBarText(QString(""));
-		m_ParentMainWindow->SetStatusBarProgress(-1);
-
-	} else
-	// If initialized
-	if (m_State == ToolboxState_Idle) {
-		ui.label_InstructionsTemporal->setText(tr("Current video time offset: %1 ms").arg(videoTimeOffset));
-    ui.pushButton_StartTemporal->setEnabled(false); ui.pushButton_StartTemporal->setToolTip(tr("Temporal calibration is disabled until fixing the algorithm, sorry!")); //TODO this is temporarily disabled
-    ui.pushButton_CancelTemporal->setEnabled(false);
-
-    if (IsReadyToStartSpatialCalibration()) {
-		  ui.label_InstructionsSpatial->setText(tr("Press Start and start scanning the phantom"));
-    } else {
-		  ui.label_InstructionsSpatial->setText(tr("Configuration files need to be loaded"));
-    }
-		ui.pushButton_CancelSpatial->setEnabled(false);
-
-    if ((IsReadyToStartSpatialCalibration()) && (m_Calibration->GetCalibrationDate() != NULL)) {
-		  ui.checkBox_ShowDevices->setEnabled(true);
-    } else {
-		  ui.checkBox_ShowDevices->setEnabled(false);
-    }
-		ui.pushButton_Save->setEnabled(false);
-		ui.label_Results->setText(tr(""));
-
-		ui.pushButton_StartSpatial->setFocus();
-
-		ui.pushButton_StartSpatial->setEnabled(IsReadyToStartSpatialCalibration());
-
-		m_ParentMainWindow->SetStatusBarText(QString(""));
-		m_ParentMainWindow->SetStatusBarProgress(-1);
-
-    QApplication::restoreOverrideCursor();
-
-	} else
-	// If in progress
-	if (m_State == ToolboxState_InProgress) {
-		ui.label_InstructionsTemporal->setText(tr("Current video time offset: %1 ms").arg(videoTimeOffset));
-		ui.pushButton_StartTemporal->setEnabled(false);
-
-		ui.label_InstructionsSpatial->setText(tr("Scan the phantom in the most degrees of freedom possible"));
-		ui.frame_SpatialCalibration->setEnabled(true);
-		ui.pushButton_StartSpatial->setEnabled(false);
-
-		ui.checkBox_ShowDevices->setEnabled(false);
-		ui.pushButton_Save->setEnabled(false);
-		ui.label_Results->setText(tr(""));
-
-		m_ParentMainWindow->SetStatusBarText(QString(" Acquiring and adding images to calibrator"));
-    m_ParentMainWindow->SetStatusBarProgress(0);
+    m_ParentMainWindow->SetStatusBarText(QString(""));
+    m_ParentMainWindow->SetStatusBarProgress(-1);
 
   } else
-	// If done
-	if (m_State == ToolboxState_Done) {
-		ui.label_InstructionsTemporal->setText(tr("Temporal calibration is ready to save\n(video time offset: %1 ms)").arg(videoTimeOffset));
-		ui.pushButton_StartTemporal->setEnabled(true);
-		ui.pushButton_CancelSpatial->setEnabled(false);
+    // If initialized
+    if (m_State == ToolboxState_Idle) {
+      ui.label_InstructionsTemporal->setText(tr("Current video time offset: %1 ms").arg(videoTimeOffset));
+      ui.pushButton_StartTemporal->setEnabled(false); ui.pushButton_StartTemporal->setToolTip(tr("Temporal calibration is disabled until fixing the algorithm, sorry!")); //TODO this is temporarily disabled
+      ui.pushButton_CancelTemporal->setEnabled(false);
 
-		ui.label_InstructionsSpatial->setText(tr("Spatial calibration is ready to save"));
-		ui.pushButton_StartSpatial->setEnabled(true);
-		ui.pushButton_CancelSpatial->setEnabled(false);
+      if (IsReadyToStartSpatialCalibration()) {
+        ui.label_InstructionsSpatial->setText(tr("Press Start and start scanning the phantom"));
+      } else {
+        ui.label_InstructionsSpatial->setText(tr("Configuration files need to be loaded"));
+      }
+      ui.pushButton_CancelSpatial->setEnabled(false);
 
-		ui.checkBox_ShowDevices->setEnabled(true);
-		ui.pushButton_Save->setEnabled(true);
-		ui.label_Results->setText(m_Calibration->GetResultString().c_str());
+      if ((IsReadyToStartSpatialCalibration()) && (m_Calibration->GetCalibrationDate() != NULL)) {
+        ui.checkBox_ShowDevices->setEnabled(true);
+      } else {
+        ui.checkBox_ShowDevices->setEnabled(false);
+      }
+      ui.pushButton_Save->setEnabled(false);
+      ui.label_Results->setText(tr(""));
 
-		ui.pushButton_Save->setFocus();
+      ui.pushButton_StartSpatial->setFocus();
 
-		m_ParentMainWindow->SetStatusBarText(QString(" Calibration done"));
-		m_ParentMainWindow->SetStatusBarProgress(-1);
+      ui.pushButton_StartSpatial->setEnabled(IsReadyToStartSpatialCalibration());
 
-    QApplication::restoreOverrideCursor();
+      m_ParentMainWindow->SetStatusBarText(QString(""));
+      m_ParentMainWindow->SetStatusBarProgress(-1);
 
-	} else
-	// If error occured
-	if (m_State == ToolboxState_Error) {
-		ui.label_InstructionsTemporal->setText(tr("Error occured!"));
-		ui.label_InstructionsTemporal->setFont(QFont("SansSerif", 8, QFont::Bold));
-		ui.pushButton_StartTemporal->setEnabled(false);
-		ui.pushButton_CancelSpatial->setEnabled(false);
+      QApplication::restoreOverrideCursor();
 
-		ui.label_InstructionsSpatial->setText(tr(""));
-		ui.pushButton_StartSpatial->setEnabled(false);
-		ui.pushButton_CancelSpatial->setEnabled(false);
+    } else
+      // If in progress
+      if (m_State == ToolboxState_InProgress) {
+        ui.label_InstructionsTemporal->setText(tr("Current video time offset: %1 ms").arg(videoTimeOffset));
+        ui.pushButton_StartTemporal->setEnabled(false);
 
-		ui.checkBox_ShowDevices->setEnabled(false);
-		ui.pushButton_Save->setEnabled(false);
+        ui.label_InstructionsSpatial->setText(tr("Scan the phantom in the most degrees of freedom possible"));
+        ui.frame_SpatialCalibration->setEnabled(true);
+        ui.pushButton_StartSpatial->setEnabled(false);
 
-		m_ParentMainWindow->SetStatusBarText(QString(""));
-		m_ParentMainWindow->SetStatusBarProgress(-1);
+        ui.checkBox_ShowDevices->setEnabled(false);
+        ui.pushButton_Save->setEnabled(false);
+        ui.label_Results->setText(tr(""));
 
-    QApplication::restoreOverrideCursor();
-	}
+        m_ParentMainWindow->SetStatusBarText(QString(" Acquiring and adding images to calibrator"));
+        m_ParentMainWindow->SetStatusBarProgress(0);
+
+      } else
+        // If done
+        if (m_State == ToolboxState_Done) {
+          ui.label_InstructionsTemporal->setText(tr("Temporal calibration is ready to save\n(video time offset: %1 ms)").arg(videoTimeOffset));
+          ui.pushButton_StartTemporal->setEnabled(true);
+          ui.pushButton_CancelSpatial->setEnabled(false);
+
+          ui.label_InstructionsSpatial->setText(tr("Spatial calibration is ready to save"));
+          ui.pushButton_StartSpatial->setEnabled(true);
+          ui.pushButton_CancelSpatial->setEnabled(false);
+
+          ui.checkBox_ShowDevices->setEnabled(true);
+          ui.pushButton_Save->setEnabled(true);
+          ui.label_Results->setText(m_Calibration->GetResultString().c_str());
+
+          ui.pushButton_Save->setFocus();
+
+          m_ParentMainWindow->SetStatusBarText(QString(" Calibration done"));
+          m_ParentMainWindow->SetStatusBarProgress(-1);
+
+          QApplication::restoreOverrideCursor();
+
+        } else
+          // If error occured
+          if (m_State == ToolboxState_Error) {
+            ui.label_InstructionsTemporal->setText(tr("Error occured!"));
+            ui.label_InstructionsTemporal->setFont(QFont("SansSerif", 8, QFont::Bold));
+            ui.pushButton_StartTemporal->setEnabled(false);
+            ui.pushButton_CancelSpatial->setEnabled(false);
+
+            ui.label_InstructionsSpatial->setText(tr(""));
+            ui.pushButton_StartSpatial->setEnabled(false);
+            ui.pushButton_CancelSpatial->setEnabled(false);
+
+            ui.checkBox_ShowDevices->setEnabled(false);
+            ui.pushButton_Save->setEnabled(false);
+
+            m_ParentMainWindow->SetStatusBarText(QString(""));
+            m_ParentMainWindow->SetStatusBarProgress(-1);
+
+            QApplication::restoreOverrideCursor();
+          }
 }
 
 //-----------------------------------------------------------------------------
@@ -269,21 +315,21 @@ void FreehandCalibrationToolbox::OpenPhantomRegistration()
 {
   LOG_TRACE("FreehandCalibrationToolbox::OpenPhantomRegistrationClicked"); 
 
-	// File open dialog for selecting phantom registration xml
-	QString filter = QString( tr( "XML files ( *.xml );;" ) );
-	QString fileName = QFileDialog::getOpenFileName(NULL, QString( tr( "Open phantom registration XML" ) ), vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationDirectory(), filter);
-	if (fileName.isNull()) {
-		return;
-	}
+  // File open dialog for selecting phantom registration xml
+  QString filter = QString( tr( "XML files ( *.xml );;" ) );
+  QString fileName = QFileDialog::getOpenFileName(NULL, QString( tr( "Open phantom registration XML" ) ), vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationDirectory(), filter);
+  if (fileName.isNull()) {
+    return;
+  }
 
   // Parse XML file
   vtkSmartPointer<vtkXMLDataElement> rootElement = vtkXMLUtilities::ReadElementFromFile(fileName.toAscii().data());
-	if (rootElement == NULL) {	
-		LOG_ERROR("Unable to read the configuration file: " << fileName.toAscii().data()); 
-		return;
-	}
+  if (rootElement == NULL) {	
+    LOG_ERROR("Unable to read the configuration file: " << fileName.toAscii().data()); 
+    return;
+  }
 
-	// Load phantom registration
+  // Load phantom registration
   PhantomRegistrationToolbox* phantomRegistrationToolbox = dynamic_cast<PhantomRegistrationToolbox*>(m_ParentMainWindow->GetToolbox(ToolboxType_PhantomRegistration));
   if ((phantomRegistrationToolbox == NULL) || (phantomRegistrationToolbox->GetPhantomRegistrationAlgo() == NULL)) {
     LOG_ERROR("Phantom registration toolbox not found!");
@@ -291,8 +337,8 @@ void FreehandCalibrationToolbox::OpenPhantomRegistration()
   }
 
   if (phantomRegistrationToolbox->GetPhantomRegistrationAlgo()->ReadConfiguration(rootElement) != PLUS_SUCCESS) {
-	  ui.lineEdit_PhantomRegistration->setText(tr("Invalid file!"));
-	  ui.lineEdit_PhantomRegistration->setToolTip("");
+    ui.lineEdit_PhantomRegistration->setText(tr("Invalid file!"));
+    ui.lineEdit_PhantomRegistration->setToolTip("");
   }
 
   // Replace PhantomDefinition element with the one in the just read file
@@ -311,39 +357,39 @@ void FreehandCalibrationToolbox::OpenCalibrationConfiguration()
 {
   LOG_TRACE("FreehandCalibrationToolbox::OpenCalibrationConfigurationClicked"); 
 
-	// File open dialog for selecting calibration configuration xml
-	QString filter = QString( tr( "XML files ( *.xml );;" ) );
-	QString fileName = QFileDialog::getOpenFileName(NULL, QString( tr( "Open calibration configuration XML" ) ), vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationDirectory(), filter);
-	if (fileName.isNull()) {
-		return;
-	}
+  // File open dialog for selecting calibration configuration xml
+  QString filter = QString( tr( "XML files ( *.xml );;" ) );
+  QString fileName = QFileDialog::getOpenFileName(NULL, QString( tr( "Open calibration configuration XML" ) ), vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationDirectory(), filter);
+  if (fileName.isNull()) {
+    return;
+  }
 
   // Parse XML file
   vtkSmartPointer<vtkXMLDataElement> rootElement = vtkXMLUtilities::ReadElementFromFile(fileName.toAscii().data());
-	if (rootElement == NULL) {	
-		LOG_ERROR("Unable to read the configuration file: " << fileName.toAscii().data()); 
-		return;
-	}
+  if (rootElement == NULL) {	
+    LOG_ERROR("Unable to read the configuration file: " << fileName.toAscii().data()); 
+    return;
+  }
 
-	// Load calibration configuration xml
-	if ( (m_Calibration->ReadConfiguration(rootElement) != PLUS_SUCCESS)
+  // Load calibration configuration xml
+  if ( (m_Calibration->ReadConfiguration(rootElement) != PLUS_SUCCESS)
     || (m_Calibration->ReadFreehandCalibrationConfiguration(rootElement) != PLUS_SUCCESS) )
   {
-		ui.lineEdit_CalibrationConfiguration->setText(tr("Invalid file!"));
-		ui.lineEdit_CalibrationConfiguration->setToolTip("");
+    ui.lineEdit_CalibrationConfiguration->setText(tr("Invalid file!"));
+    ui.lineEdit_CalibrationConfiguration->setToolTip("");
 
-		LOG_ERROR("Calibration configuration file " << fileName.toAscii().data() << " cannot be loaded!");
-		return;
-	}
+    LOG_ERROR("Calibration configuration file " << fileName.toAscii().data() << " cannot be loaded!");
+    return;
+  }
 
   // Replace USCalibration element with the one in the just read file
   vtkPlusConfig::ReplaceElementInDeviceSetConfiguration("USCalibration", rootElement);
 
-	// Re-calculate camera parameters
+  // Re-calculate camera parameters
   m_ParentMainWindow->GetToolVisualizer()->CalculateImageCameraParameters();
 
-	ui.lineEdit_CalibrationConfiguration->setText(fileName);
-	ui.lineEdit_CalibrationConfiguration->setToolTip(fileName);
+  ui.lineEdit_CalibrationConfiguration->setText(fileName);
+  ui.lineEdit_CalibrationConfiguration->setToolTip(fileName);
 
   SetDisplayAccordingToState();
 }
@@ -371,14 +417,14 @@ void FreehandCalibrationToolbox::EditCalibrationConfiguration()
 
 void FreehandCalibrationToolbox::StartTemporal()
 {
-	LOG_TRACE("FreehandCalibrationToolbox::StartTemporal"); 
+  LOG_TRACE("FreehandCalibrationToolbox::StartTemporal"); 
 
   m_ParentMainWindow->SetTabsEnabled(false);
 
   SetState(ToolboxState_InProgress);
 
   ui.pushButton_CancelTemporal->setEnabled(true);
-	ui.pushButton_CancelTemporal->setFocus();
+  ui.pushButton_CancelTemporal->setFocus();
 
   QApplication::processEvents();
 
@@ -386,9 +432,9 @@ void FreehandCalibrationToolbox::StartTemporal()
   //m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->SetProgressBarUpdateCallbackFunction(UpdateProgress);
   m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->Synchronize(vtkPlusConfig::GetInstance()->GetOutputDirectory(), true );
 
-	//this->ProgressPercent = 0;
+  //this->ProgressPercent = 0;
 
-	m_ParentMainWindow->SetTabsEnabled(true);
+  m_ParentMainWindow->SetTabsEnabled(true);
 
   SetState(ToolboxState_Idle);
 }
@@ -397,12 +443,12 @@ void FreehandCalibrationToolbox::StartTemporal()
 
 void FreehandCalibrationToolbox::CancelTemporal()
 {
-	LOG_TRACE("FreehandCalibrationToolbox::CancelTemporal"); 
+  LOG_TRACE("FreehandCalibrationToolbox::CancelTemporal"); 
 
-	// Cancel synchronization (temporal calibration) in data collector
+  // Cancel synchronization (temporal calibration) in data collector
   m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->CancelSyncRequestOn();
 
-	m_ParentMainWindow->SetTabsEnabled(true);
+  m_ParentMainWindow->SetTabsEnabled(true);
 
   SetState(ToolboxState_Idle);
 }
@@ -411,11 +457,11 @@ void FreehandCalibrationToolbox::CancelTemporal()
 
 void FreehandCalibrationToolbox::StartSpatial()
 {
-	LOG_TRACE("FreehandCalibrationToolbox::StartSpatial"); 
+  LOG_TRACE("FreehandCalibrationToolbox::StartSpatial"); 
 
-	m_ParentMainWindow->SetTabsEnabled(false);
+  m_ParentMainWindow->SetTabsEnabled(false);
 
-	QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
+  QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
 
   PhantomRegistrationToolbox* phantomRegistrationToolbox = dynamic_cast<PhantomRegistrationToolbox*>(m_ParentMainWindow->GetToolbox(ToolboxType_PhantomRegistration));
   if ((phantomRegistrationToolbox != NULL) && (phantomRegistrationToolbox->GetPhantomRegistrationAlgo() != NULL))
@@ -432,72 +478,67 @@ void FreehandCalibrationToolbox::StartSpatial()
   SetState(ToolboxState_InProgress);
 
   ui.pushButton_CancelSpatial->setEnabled(true);
-	ui.pushButton_CancelSpatial->setFocus();
+  ui.pushButton_CancelSpatial->setFocus();
 
   // Start calibration and compute results on success
-	if (DoSpatialCalibration() == PLUS_SUCCESS)
+  if (DoSpatialCalibration() == PLUS_SUCCESS)
   {
     // Set result for visualization
     m_ParentMainWindow->GetToolVisualizer()->GetDisplayableTool(TRACKER_TOOL_PROBE)->DisplayableOn();
     m_ParentMainWindow->GetToolVisualizer()->SetImageToProbeTransform(m_Calibration->GetTransformUserImageToProbe());
 
     SetState(ToolboxState_Done);
-	}
+  }
 
-	m_ParentMainWindow->SetTabsEnabled(true);
+  m_ParentMainWindow->SetTabsEnabled(true);
 }
 
 //-----------------------------------------------------------------------------
 
 PlusStatus FreehandCalibrationToolbox::DoSpatialCalibration()
 {
-	LOG_TRACE("FreehandCalibrationToolbox::DoSpatialCalibration");
-
-  // Reset calibration
-  m_Calibration->ResetFreehandCalibration();
+  LOG_TRACE("FreehandCalibrationToolbox::DoSpatialCalibration");
 
   // Create tracked frame lists
-	vtkTrackedFrameList* validationTrackedFrameList = vtkTrackedFrameList::New();
+  vtkTrackedFrameList* validationTrackedFrameList = vtkTrackedFrameList::New();
   validationTrackedFrameList->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData());
 
-	vtkTrackedFrameList* calibrationTrackedFrameList = vtkTrackedFrameList::New();
+  vtkTrackedFrameList* calibrationTrackedFrameList = vtkTrackedFrameList::New();
   calibrationTrackedFrameList->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData());
 
-  const int maxNumberOfValidationImages = m_Calibration->GetImageDataInfo(FREEHAND_MOTION_2).NumberOfImagesToAcquire; //TODO change these when image data info variables are deleted
-	const int maxNumberOfCalibrationImages = m_Calibration->GetImageDataInfo(FREEHAND_MOTION_1).NumberOfImagesToAcquire; 
-	int numberOfSegmentedImages = 0;
-	int numberOfFailedSegmentations = 0;
+  int numberOfSegmentedImages = 0;
+  int numberOfFailedSegmentations = 0;
 
   // Create segmenter
   FidPatternRecognition* patternRecognition = new FidPatternRecognition();
-	patternRecognition->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData());
+  patternRecognition->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData());
 
   // Reset cancel request flag
-	m_CancelRequest = false;
+  m_CancelRequest = false;
 
-	// Acquire and add validation and calibration data
-	while (numberOfSegmentedImages < maxNumberOfValidationImages + maxNumberOfCalibrationImages)
+  // Acquire and add validation and calibration data
+  while (numberOfSegmentedImages < m_NumberOfValidationImagesToAcquire + m_NumberOfCalibrationImagesToAcquire)
   {
-		if (m_CancelRequest) {
-			// Cancel the job
+    if (m_CancelRequest) {
+      // Cancel the job
       delete patternRecognition;
-			return PLUS_FAIL;
-		}
+      return PLUS_FAIL;
+    }
 
-		// Get latest tracked frame from data collector
-		TrackedFrame trackedFrame; 
-		m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->GetTrackedFrame(&trackedFrame);     
+    // Get latest tracked frame from data collector
+    TrackedFrame trackedFrame; 
+    m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->GetTrackedFrame(&trackedFrame);     
 
-		if (trackedFrame.GetStatus() & (TR_MISSING | TR_OUT_OF_VIEW))
+    if (trackedFrame.GetStatus() & (TR_MISSING | TR_OUT_OF_VIEW))
     {
-			LOG_DEBUG("Tracker out of view"); 
+      LOG_DEBUG("Tracker out of view"); 
       m_ParentMainWindow->GetToolVisualizer()->ShowResult(false);
-		}
+    }
     else if (trackedFrame.GetStatus() & (TR_REQ_TIMEOUT))
     {
-			LOG_DEBUG("Tracker request timeout"); 
+      LOG_DEBUG("Tracker request timeout"); 
       m_ParentMainWindow->GetToolVisualizer()->ShowResult(false);
-		}
+    }
     else // TR_OK
     {
       // Segment image
@@ -509,11 +550,11 @@ PlusStatus FreehandCalibrationToolbox::DoSpatialCalibration()
         return PLUS_FAIL;
       }
 
-   		// Update progress if tracked frame has been successfully added
-      int progressPercent = (int)((numberOfSegmentedImages / (double)(maxNumberOfValidationImages + maxNumberOfCalibrationImages)) * 100.0);
-	    m_ParentMainWindow->SetStatusBarProgress(progressPercent);
+      // Update progress if tracked frame has been successfully added
+      int progressPercent = (int)((numberOfSegmentedImages / (double)(m_NumberOfValidationImagesToAcquire + m_NumberOfCalibrationImagesToAcquire)) * 100.0);
+      m_ParentMainWindow->SetStatusBarProgress(progressPercent);
 
-  		// Display segmented points (or hide them if unsuccessful)
+      // Display segmented points (or hide them if unsuccessful)
       DisplaySegmentedPoints(&segmentationResults);
 
       // Check if segmentation was unsuccessful
@@ -525,40 +566,39 @@ PlusStatus FreehandCalibrationToolbox::DoSpatialCalibration()
       }
 
       // Add tracked frame to the proper list
-			if (numberOfSegmentedImages < maxNumberOfValidationImages)
+      if (numberOfSegmentedImages < m_NumberOfValidationImagesToAcquire)
       { // Validation data
         validationTrackedFrameList->AddTrackedFrame(&trackedFrame);
-			}
+      }
       else
       { // Calibration data
         calibrationTrackedFrameList->AddTrackedFrame(&trackedFrame);
-			}
+      }
 
-		  ++numberOfSegmentedImages;
-		}
+      ++numberOfSegmentedImages;
+    }
 
     QApplication::processEvents();
-	}
+  }
 
-	LOG_INFO("Segmentation success rate: " << numberOfSegmentedImages << " out of " << numberOfSegmentedImages + numberOfFailedSegmentations << " (" << (int)(((double)numberOfSegmentedImages / (double)(numberOfSegmentedImages + numberOfFailedSegmentations)) * 100.0 + 0.49) << " percent)");
+  LOG_INFO("Segmentation success rate: " << numberOfSegmentedImages << " out of " << numberOfSegmentedImages + numberOfFailedSegmentations << " (" << (int)(((double)numberOfSegmentedImages / (double)(numberOfSegmentedImages + numberOfFailedSegmentations)) * 100.0 + 0.49) << " percent)");
 
   delete patternRecognition;
 
-  if (m_Calibration->Calibrate( validationTrackedFrameList, calibrationTrackedFrameList,
-                                m_Calibration->GetTrackedFrameList(FREEHAND_MOTION_1)->GetDefaultFrameTransformName().c_str() ) != PLUS_SUCCESS)  //TODO change these when image data info variables are deleted
+  if (m_Calibration->Calibrate( validationTrackedFrameList, calibrationTrackedFrameList, "Probe" ) != PLUS_SUCCESS)
   {
     LOG_ERROR("Calibration failed!");
     return PLUS_FAIL;
   }
 
-	return PLUS_SUCCESS;
+  return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
 
 void FreehandCalibrationToolbox::CancelSpatial()
 {
-	LOG_TRACE("FreehandCalibrationToolbox::CancelSpatial"); 
+  LOG_TRACE("FreehandCalibrationToolbox::CancelSpatial"); 
 
   // Turn off device visualization if it was on
   if (ui.checkBox_ShowDevices->isChecked() == true) {
@@ -567,7 +607,7 @@ void FreehandCalibrationToolbox::CancelSpatial()
 
   m_CancelRequest = true;
 
-	m_ParentMainWindow->SetTabsEnabled(true);
+  m_ParentMainWindow->SetTabsEnabled(true);
 
   SetState(ToolboxState_Idle);
 }
@@ -576,25 +616,25 @@ void FreehandCalibrationToolbox::CancelSpatial()
 
 bool FreehandCalibrationToolbox::IsReadyToStartSpatialCalibration()
 {
-	LOG_TRACE("FreehandCalibrationToolbox::IsReadyToStartSpatialCalibration");
+  LOG_TRACE("FreehandCalibrationToolbox::IsReadyToStartSpatialCalibration");
 
   PhantomRegistrationToolbox* phantomRegistrationToolbox = dynamic_cast<PhantomRegistrationToolbox*>(m_ParentMainWindow->GetToolbox(ToolboxType_PhantomRegistration));
 
   if ( (phantomRegistrationToolbox == NULL)
     || (phantomRegistrationToolbox->GetPhantomRegistrationAlgo() == NULL)
-		|| (phantomRegistrationToolbox->GetPhantomRegistrationAlgo()->GetPhantomToPhantomReferenceTransform() == NULL))
-	{
-		return false;
-	}
+    || (phantomRegistrationToolbox->GetPhantomRegistrationAlgo()->GetPhantomToPhantomReferenceTransform() == NULL))
+  {
+    return false;
+  }
 
-	return true;
+  return true;
 }
 
 //-----------------------------------------------------------------------------
 
 void FreehandCalibrationToolbox::Save()
 {
-	LOG_TRACE("FreehandCalibrationToolbox::Save"); 
+  LOG_TRACE("FreehandCalibrationToolbox::Save"); 
 
   ConfigFileSaverDialog* configSaverDialog = new ConfigFileSaverDialog(this);
   configSaverDialog->exec();
@@ -606,7 +646,7 @@ void FreehandCalibrationToolbox::Save()
 
 void FreehandCalibrationToolbox::ShowDevicesToggled(bool aOn)
 {
-	LOG_TRACE("FreehandCalibrationToolbox::ShowDevicesToggled(" << (aOn?"true":"false") << ")"); 
+  LOG_TRACE("FreehandCalibrationToolbox::ShowDevicesToggled(" << (aOn?"true":"false") << ")"); 
 
   m_ParentMainWindow->GetToolVisualizer()->ShowTool(TRACKER_TOOL_PROBE, aOn);
   m_ParentMainWindow->GetToolVisualizer()->ShowTool(TRACKER_TOOL_REFERENCE, aOn);
@@ -620,26 +660,26 @@ void FreehandCalibrationToolbox::ShowDevicesToggled(bool aOn)
 
 PlusStatus FreehandCalibrationToolbox::DisplaySegmentedPoints(PatternRecognitionResult* aSegmentationResult)
 {
-	LOG_TRACE("vtkFreehandCalibrationController::DisplaySegmentedPoints");
+  LOG_TRACE("vtkFreehandCalibrationController::DisplaySegmentedPoints");
 
   if (aSegmentationResult->GetDotsFound() == false) {
     m_ParentMainWindow->GetToolVisualizer()->ShowResult(false);
     return PLUS_SUCCESS;
   }
 
-	// Get last results and feed the points into vtkPolyData for displaying
-	vtkSmartPointer<vtkPoints> segmentedPoints = vtkSmartPointer<vtkPoints>::New();
+  // Get last results and feed the points into vtkPolyData for displaying
+  vtkSmartPointer<vtkPoints> segmentedPoints = vtkSmartPointer<vtkPoints>::New();
   segmentedPoints->SetNumberOfPoints(aSegmentationResult->GetFoundDotsCoordinateValue().size());
 
-	std::vector<std::vector<double>> dots = aSegmentationResult->GetFoundDotsCoordinateValue();
-	for (int i=0; i<dots.size(); ++i) {
-		segmentedPoints->InsertPoint(i, dots[i][0], dots[i][1], 0.0);
-	}
-	segmentedPoints->Modified();
+  std::vector<std::vector<double>> dots = aSegmentationResult->GetFoundDotsCoordinateValue();
+  for (int i=0; i<dots.size(); ++i) {
+    segmentedPoints->InsertPoint(i, dots[i][0], dots[i][1], 0.0);
+  }
+  segmentedPoints->Modified();
 
   m_ParentMainWindow->GetToolVisualizer()->GetResultPolyData()->SetPoints(segmentedPoints);
 
   m_ParentMainWindow->GetToolVisualizer()->ShowResult(true);
 
-	return PLUS_SUCCESS;
+  return PLUS_SUCCESS;
 }
