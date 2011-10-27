@@ -94,14 +94,14 @@ protected slots:
   void OpenPhantomRegistration();
 
   /*!
-  * Slot handling open calibration configuration button click
+  * Open XML file containing segmentation parameters and read the contents
   */
-  void OpenCalibrationConfiguration();
+  void OpenSegmentationParameters();
 
   /*!
-  * Slot handling edit calibration configuration button click
+  * Edit segmentation parameters
   */
-  void EditCalibrationConfiguration();
+  void EditSegmentationParameters();
 
   /*!
   * Slot handling start temporal calibration button click

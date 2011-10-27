@@ -45,8 +45,8 @@ FreehandCalibrationToolbox::FreehandCalibrationToolbox(fCalMainWindow* aParentMa
 
   // Connect events
   connect( ui.pushButton_OpenPhantomRegistration, SIGNAL( clicked() ), this, SLOT( OpenPhantomRegistration() ) );
-  connect( ui.pushButton_OpenCalibrationConfiguration, SIGNAL( clicked() ), this, SLOT( OpenCalibrationConfiguration() ) );
-  connect( ui.pushButton_EditCalibrationConfiguration, SIGNAL( clicked() ), this, SLOT( EditCalibrationConfiguration() ) );
+  connect( ui.pushButton_OpenSegmentationParameters, SIGNAL( clicked() ), this, SLOT( OpenSegmentationParameters() ) );
+  connect( ui.pushButton_EditSegmentationParameters, SIGNAL( clicked() ), this, SLOT( EditSegmentationParameters() ) );
   connect( ui.pushButton_StartTemporal, SIGNAL( clicked() ), this, SLOT( StartTemporal() ) );
   connect( ui.pushButton_CancelTemporal, SIGNAL( clicked() ), this, SLOT( CancelTemporal() ) );
   connect( ui.pushButton_StartSpatial, SIGNAL( clicked() ), this, SLOT( StartSpatial() ) );
@@ -95,11 +95,12 @@ void FreehandCalibrationToolbox::Initialize()
     }
 
     // Try to load calibration configuration from the device set configuration
-    if ( (m_Calibration->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) == PLUS_SUCCESS)
-      && (m_Calibration->ReadFreehandCalibrationConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) == PLUS_SUCCESS) )
+    FidPatternRecognition* patternRecognition = new FidPatternRecognition();
+    if (patternRecognition->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) == PLUS_SUCCESS)
     {
-      ui.lineEdit_CalibrationConfiguration->setText(tr("Using session calibration configuration"));
+      ui.lineEdit_SegmentationParameters->setText(tr("Using session segmentation parameters"));
     }
+    delete patternRecognition;
 
     // Load calibration matrix into tool visualizer if it exists
     if ((IsReadyToStartSpatialCalibration()) && (m_Calibration->GetCalibrationDate() != NULL))
@@ -146,6 +147,7 @@ PlusStatus FreehandCalibrationToolbox::ReadConfiguration(vtkXMLDataElement* aCon
     return PLUS_FAIL;     
   }
 
+  // Read number of needed images
   int numberOfCalibrationImagesToAcquire = 0; 
   if ( fCalElement->GetScalarAttribute("NumberOfCalibrationImagesToAcquire", numberOfCalibrationImagesToAcquire ) )
   {
@@ -156,6 +158,38 @@ PlusStatus FreehandCalibrationToolbox::ReadConfiguration(vtkXMLDataElement* aCon
   if ( fCalElement->GetScalarAttribute("NumberOfValidationImagesToAcquire", numberOfValidationImagesToAcquire ) )
   {
     m_NumberOfValidationImagesToAcquire = numberOfValidationImagesToAcquire;
+  }
+
+  // Read probe calibration
+  std::string toolType;
+	vtkTracker::ConvertToolTypeToString(TRACKER_TOOL_PROBE, toolType);
+
+  vtkSmartPointer<vtkXMLDataElement> probeDefinition = vtkPlusConfig::LookupElementWithNameContainingChildWithNameAndAttribute(aConfig, "Tracker", "Tool", "Type", toolType.c_str());
+	if (probeDefinition == NULL) {
+		LOG_ERROR("No probe definition is found in the XML tree!");
+		return PLUS_FAIL;
+	}
+
+	vtkSmartPointer<vtkXMLDataElement> calibration = probeDefinition->FindNestedElementWithName("Calibration");
+	if (calibration == NULL) {
+		LOG_ERROR("No calibration section is found in probe definition!");
+		return PLUS_FAIL;
+	}
+
+  // Read calibration matrix
+	double* userImageToProbeTransformVector = new double[16]; 
+	if (calibration->GetVectorAttribute("MatrixValue", 16, userImageToProbeTransformVector)) {
+    vtkSmartPointer<vtkTransform> userImageToProbeTransform = vtkSmartPointer<vtkTransform>::New();
+    userImageToProbeTransform->Identity();
+    userImageToProbeTransform->SetMatrix(userImageToProbeTransformVector);
+    m_Calibration->SetTransformUserImageToProbe(userImageToProbeTransform);
+	}
+	delete[] userImageToProbeTransformVector;
+
+  // Read calibration date
+  const char* date = calibration->GetAttribute("Date");
+  if ((date != NULL) && (STRCASECMP(date, "") != 0)) {
+    m_Calibration->SetCalibrationDate(date);
   }
 
   return PLUS_SUCCESS;
@@ -353,34 +387,37 @@ void FreehandCalibrationToolbox::OpenPhantomRegistration()
 
 //-----------------------------------------------------------------------------
 
-void FreehandCalibrationToolbox::OpenCalibrationConfiguration()
+void FreehandCalibrationToolbox::OpenSegmentationParameters()
 {
-  LOG_TRACE("FreehandCalibrationToolbox::OpenCalibrationConfigurationClicked"); 
+  LOG_TRACE("FreehandCalibrationToolbox::OpenSegmentationParameters"); 
 
   // File open dialog for selecting calibration configuration xml
   QString filter = QString( tr( "XML files ( *.xml );;" ) );
   QString fileName = QFileDialog::getOpenFileName(NULL, QString( tr( "Open calibration configuration XML" ) ), vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationDirectory(), filter);
-  if (fileName.isNull()) {
+  if (fileName.isNull())
+  {
     return;
   }
 
   // Parse XML file
   vtkSmartPointer<vtkXMLDataElement> rootElement = vtkXMLUtilities::ReadElementFromFile(fileName.toAscii().data());
-  if (rootElement == NULL) {	
+  if (rootElement == NULL)
+  {
     LOG_ERROR("Unable to read the configuration file: " << fileName.toAscii().data()); 
     return;
   }
 
   // Load calibration configuration xml
-  if ( (m_Calibration->ReadConfiguration(rootElement) != PLUS_SUCCESS)
-    || (m_Calibration->ReadFreehandCalibrationConfiguration(rootElement) != PLUS_SUCCESS) )
+  FidPatternRecognition* patternRecognition = new FidPatternRecognition();
+  if (patternRecognition->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS)
   {
-    ui.lineEdit_CalibrationConfiguration->setText(tr("Invalid file!"));
-    ui.lineEdit_CalibrationConfiguration->setToolTip("");
+    ui.lineEdit_SegmentationParameters->setText(tr("Invalid file!"));
+    ui.lineEdit_SegmentationParameters->setToolTip("");
 
-    LOG_ERROR("Calibration configuration file " << fileName.toAscii().data() << " cannot be loaded!");
+    LOG_ERROR("Configuration file " << fileName.toAscii().data() << " cannot be loaded!");
     return;
   }
+  delete patternRecognition;
 
   // Replace USCalibration element with the one in the just read file
   vtkPlusConfig::ReplaceElementInDeviceSetConfiguration("USCalibration", rootElement);
@@ -388,17 +425,17 @@ void FreehandCalibrationToolbox::OpenCalibrationConfiguration()
   // Re-calculate camera parameters
   m_ParentMainWindow->GetToolVisualizer()->CalculateImageCameraParameters();
 
-  ui.lineEdit_CalibrationConfiguration->setText(fileName);
-  ui.lineEdit_CalibrationConfiguration->setToolTip(fileName);
+  ui.lineEdit_SegmentationParameters->setText(fileName);
+  ui.lineEdit_SegmentationParameters->setToolTip(fileName);
 
   SetDisplayAccordingToState();
 }
 
 //-----------------------------------------------------------------------------
 
-void FreehandCalibrationToolbox::EditCalibrationConfiguration()
+void FreehandCalibrationToolbox::EditSegmentationParameters()
 {
-  LOG_TRACE("FreehandCalibrationToolbox::EditCalibrationConfiguration");
+  LOG_TRACE("FreehandCalibrationToolbox::EditSegmentationParameters");
 
   // Disconnect realtime image from main canvas
   m_ParentMainWindow->GetToolVisualizer()->GetImageActor()->SetInput(NULL);
@@ -662,7 +699,8 @@ PlusStatus FreehandCalibrationToolbox::DisplaySegmentedPoints(PatternRecognition
 {
   LOG_TRACE("vtkFreehandCalibrationController::DisplaySegmentedPoints");
 
-  if (aSegmentationResult->GetDotsFound() == false) {
+  if (aSegmentationResult->GetDotsFound() == false)
+  {
     m_ParentMainWindow->GetToolVisualizer()->ShowResult(false);
     return PLUS_SUCCESS;
   }
@@ -672,7 +710,8 @@ PlusStatus FreehandCalibrationToolbox::DisplaySegmentedPoints(PatternRecognition
   segmentedPoints->SetNumberOfPoints(aSegmentationResult->GetFoundDotsCoordinateValue().size());
 
   std::vector<std::vector<double>> dots = aSegmentationResult->GetFoundDotsCoordinateValue();
-  for (int i=0; i<dots.size(); ++i) {
+  for (int i=0; i<dots.size(); ++i)
+  {
     segmentedPoints->InsertPoint(i, dots[i][0], dots[i][1], 0.0);
   }
   segmentedPoints->Modified();
