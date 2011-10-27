@@ -16,7 +16,7 @@ See License.txt for details.
 
 #include <QWidget>
 
-class vtkCalibrationController;
+class vtkProbeCalibrationAlgo;
 
 //-----------------------------------------------------------------------------
 
@@ -136,7 +136,7 @@ protected slots:
 
 protected:
   /*! Calibration algorithm */
-  vtkCalibrationController* m_Calibration;
+  vtkProbeCalibrationAlgo* m_Calibration;
 
   /*! Flag if cancel is requested */
   bool m_CancelRequest;

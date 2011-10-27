@@ -6,7 +6,7 @@ See License.txt for details.
 
 #include "FreehandCalibrationToolbox.h"
 
-#include "vtkCalibrationController.h"
+#include "vtkProbeCalibrationAlgo.h"
 #include "vtkPhantomRegistrationAlgo.h"
 #include "vtkPlusVideoSource.h"
 #include "vtkVideoBuffer.h"
@@ -36,7 +36,7 @@ FreehandCalibrationToolbox::FreehandCalibrationToolbox(fCalMainWindow* aParentMa
   ui.setupUi(this);
 
   // Create algorithm
-  m_Calibration = vtkCalibrationController::New();
+  m_Calibration = vtkProbeCalibrationAlgo::New();
 
   ui.label_SpatialCalibration->setFont(QFont("SansSerif", 9, QFont::Bold));
   ui.label_TemporalCalibration->setFont(QFont("SansSerif", 9, QFont::Bold));
