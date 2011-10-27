@@ -37,6 +37,7 @@ ExternalProject_Add( vtk
                 -DBUILD_TESTING:BOOL=OFF 
                 -DVTK_USE_PARALLEL:BOOL=ON
                 -DBUILD_EXAMPLES:BOOL=OFF
+                -DVTK_USE_QTCHARTS:BOOL=ON
                 ${VTK_QT_ARGS}
                 -DCMAKE_CXX_FLAGS:STRING=${ep_common_cxx_flags}
                 -DCMAKE_C_FLAGS:STRING=${ep_common_c_flags}
