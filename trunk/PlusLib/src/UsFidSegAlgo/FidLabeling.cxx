@@ -9,6 +9,8 @@
 #include <algorithm>
 #include <float.h>
 
+#include "PlusMath.h"
+
 #include "vtkTriangle.h"
 #include "vtkPlane.h"
 
@@ -36,7 +38,6 @@ FidLabeling::FidLabeling()
 
 FidLabeling::~FidLabeling()
 {
-
 }
 
 //-----------------------------------------------------------------------------
@@ -45,17 +46,26 @@ void FidLabeling::UpdateParameters()
 {
 	LOG_TRACE("FidLabeling::UpdateParameters");
 
-	std::vector<NWire> nWires = m_NWires;
-
 	// Distance between lines (= distance between planes of the N-wires)
 	double maxNPlaneDistance = -1.0;
 	double minNPlaneDistance = FLT_MAX;
-	int numOfNWires = nWires.size();
+	int numOfNWires = m_Patterns.size();
 	double epsilon = 0.001;
+  std::vector<NWire> nWires;
+
+  for( int i=0 ; i< m_Patterns.size() ; i++)
+  {
+    NWire* nWire = static_cast<NWire*>(m_Patterns.at(i));
+    if(nWire)//if it is a NWire*
+    {
+      nWires.push_back(*nWire);
+    }
+  }
 
 	// Compute normal of each NWire and evaluate the other wire endpoints if they are on the computed plane
 	std::vector<vtkSmartPointer<vtkPlane>> planes;
-	for (int i=0; i<numOfNWires; ++i) {
+	for (int i=0; i<numOfNWires; ++i) 
+  {
 		double normal[3];
 		vtkTriangle::ComputeNormal(nWires.at(i).wires[0].endPointFront, nWires.at(i).wires[0].endPointBack, nWires.at(i).wires[2].endPointFront, normal);
 
@@ -74,14 +84,18 @@ void FidLabeling::UpdateParameters()
 	}
 
 	// Compute distances between each NWire pairs and determine the smallest and the largest distance
-	for (int i=numOfNWires-1; i>0; --i) {
-		for (int j=i-1; j>=0; --j) {
+	for (int i=numOfNWires-1; i>0; --i) 
+  {
+		for (int j=i-1; j>=0; --j) 
+    {
 			double distance = planes.at(i)->DistanceToPlane(planes.at(j)->GetOrigin());
 
-			if (maxNPlaneDistance < distance) {
+			if (maxNPlaneDistance < distance) 
+      {
 				maxNPlaneDistance = distance;
 			}
-			if (minNPlaneDistance > distance) {
+			if (minNPlaneDistance > distance) 
+      {
 				minNPlaneDistance = distance;
 			}
 		}
@@ -163,6 +177,26 @@ PlusStatus FidLabeling::ReadConfiguration( vtkXMLDataElement* configData, double
     LOG_WARNING("Could not read maxAngleDifferenceDegrees from configuration file.");
   }
 
+  double angleToleranceDegrees(0.0); 
+	if ( segmentationParameters->GetScalarAttribute("AngleToleranceDegrees", angleToleranceDegrees) )
+	{
+    m_AngleTolerance = angleToleranceDegrees * vtkMath::Pi() / 180.0; 
+	}
+  else
+  {
+    LOG_WARNING("Could not read AngleToleranceDegrees from configuration file.");
+  }
+
+  double inclinedLineAngleDegrees(0.0); 
+	if ( segmentationParameters->GetScalarAttribute("InclinedLineAngleDegrees", inclinedLineAngleDegrees) )
+	{
+    m_InclinedLineAngle = inclinedLineAngleDegrees * vtkMath::Pi() / 180.0; 
+	}
+  else
+  {
+    LOG_DEBUG("Could not read InclinedLineAngleDegrees from configuration file.");
+  }
+
   UpdateParameters();
 
 	m_MinTheta = minTheta;
@@ -177,155 +211,107 @@ PlusStatus FidLabeling::ReadConfiguration( vtkXMLDataElement* configData, double
 void FidLabeling::Clear()
 {
 	//LOG_TRACE("FidLabeling::Clear");
-
   m_DotsVector.clear();
   m_LinesVector.clear();
   m_PairsVector.clear();
   m_FoundDotsCoordinateValue.clear();
+  m_Results.clear();
+
+  std::vector<Line> emptyLine;
+  m_LinesVector.push_back(emptyLine);//initializing the 0 vector of lines (unused)
+  m_LinesVector.push_back(emptyLine);//initializing the 1 vector of lines (unused)
 }
 
 //-----------------------------------------------------------------------------
 
-std::vector<std::vector<double>> FidLabeling::SortInAscendingOrder(std::vector<std::vector<double>> fiducials) 
+void FidLabeling::SetFrameSize(int frameSize[2])
+{
+	LOG_TRACE("FidLineFinder::SetFrameSize(" << frameSize[0] << ", " << frameSize[1] << ")");
+
+  if ((m_FrameSize[0] == frameSize[0]) && (m_FrameSize[1] == frameSize[1]))
+  {
+    return;
+  }
+
+  m_FrameSize[0] = frameSize[0];
+  m_FrameSize[1] = frameSize[1];
+
+  if (m_FrameSize[0] < 0 || m_FrameSize[1] < 0)
+  {
+    LOG_ERROR("Dimensions of the frame size are not positive!");
+    return;
+  }
+}
+
+//-----------------------------------------------------------------------------
+
+bool FidLabeling::SortCompare(std::vector<double> temporaryLine1, std::vector<double> temporaryLine2)
+{
+  return temporaryLine1[1] < temporaryLine2[1];
+}
+
+//-----------------------------------------------------------------------------
+
+Line FidLabeling::SortPointsByDistanceFromOrigin(Line fiducials) 
 {
 	//LOG_TRACE("FidLabeling::SortInAscendingOrder");
 
-	std::vector<std::vector<double>> sortedFiducials; 
+  std::vector<std::vector<double>> temporaryLine;
+  Dot origin = m_DotsVector[fiducials.GetOrigin()];
 
-	if( fiducials[0][0] < fiducials[1][0] )
-	{
-		if( fiducials[2][0] > fiducials[1][0] )
-		{
-			// pattern: X1 < X2 < X3
-			std::vector<double> N1 = fiducials[0];
-			std::vector<double> N2 = fiducials[1];
-			std::vector<double> N3 = fiducials[2];
-			sortedFiducials.push_back( N3 );
-			sortedFiducials.push_back( N2 );
-			sortedFiducials.push_back( N1 );
-		}
-		else if ( fiducials[2][0] < fiducials[1][0] )
-		{
-			// pattern: X3 < X1 < X2
-			std::vector<double> N1 =  fiducials[2];
-			std::vector<double> N2 =  fiducials[0];
-			std::vector<double> N3 =  fiducials[1];
-			sortedFiducials.push_back( N3 );
-			sortedFiducials.push_back( N2 );
-			sortedFiducials.push_back( N1 );
-		}
-		else
-		{
-			// pattern: X1 < X3 < X2
-			std::vector<double> N1 =  fiducials[0];
-			std::vector<double> N2 =  fiducials[2];
-			std::vector<double> N3 =  fiducials[1];
-			sortedFiducials.push_back( N3 );
-			sortedFiducials.push_back( N2 );
-			sortedFiducials.push_back( N1 );
-		}
-	}
-	else	// X1 >= X2
-	{
-		if( fiducials[2][0] < fiducials[1][0] )
-		{
-			// pattern: X3 < X2 < X1
-			std::vector<double> N1 =  fiducials[2];
-			std::vector<double> N2 =  fiducials[1];
-			std::vector<double> N3 =  fiducials[0];
-			sortedFiducials.push_back( N3 );
-			sortedFiducials.push_back( N2 );
-			sortedFiducials.push_back( N1 );
-		}
-		else if ( fiducials[2][0] > fiducials[0][0] )
-		{
-			// pattern: X2 < X1 < X3
-			std::vector<double> N1 =  fiducials[1];
-			std::vector<double> N2 =  fiducials[0];
-			std::vector<double> N3 =  fiducials[2];
-			sortedFiducials.push_back( N3 );
-			sortedFiducials.push_back( N2 );
-			sortedFiducials.push_back( N1 );
-		}
-		else
-		{
-			// pattern: X2 < X3 < X1
-			std::vector<double> N1 =  fiducials[1];
-			std::vector<double> N2 =  fiducials[2];
-			std::vector<double> N3 =  fiducials[0];
-			sortedFiducials.push_back( N3 );
-			sortedFiducials.push_back( N2 );
-			sortedFiducials.push_back( N1 );
-		}	
-	}
+  for(int i=0 ; i<fiducials.GetPoints()->size() ; i++)
+  {
+    std::vector<double> temp;
+    Dot point = m_DotsVector[fiducials.GetPoint(i)];
+    temp.push_back(fiducials.GetPoint(i));
+    temp.push_back(sqrt((origin.GetX()-point.GetX())*(origin.GetX()-point.GetX()) + (origin.GetY()-point.GetY())*(origin.GetY()-point.GetY())));
+    temporaryLine.push_back(temp);
+  }
 
-	if( fiducials[3][0] < fiducials[4][0] )
-	{
-		if( fiducials[5][0] > fiducials[4][0] )
-		{
-			// pattern: X1 < X2 < X3
-			std::vector<double> N1 =  fiducials[3];
-			std::vector<double> N2 =  fiducials[4];
-			std::vector<double> N3 =  fiducials[5];
-			sortedFiducials.push_back( N3 );
-			sortedFiducials.push_back( N2 );
-			sortedFiducials.push_back( N1 );
-		}
-		else if ( fiducials[5][0] < fiducials[4][0] )
-		{
-			// pattern: X3 < X1 < X2
-			std::vector<double> N1 =  fiducials[5];
-			std::vector<double> N2 =  fiducials[3];
-			std::vector<double> N3 =  fiducials[4];
-			sortedFiducials.push_back( N3 );
-			sortedFiducials.push_back( N2 );
-			sortedFiducials.push_back( N1 );
-		}
+  std::sort(temporaryLine.begin(),temporaryLine.end(), FidLabeling::SortCompare); 
+
+  Line resultLine = fiducials;
+
+  for(int i=0 ; i<fiducials.GetPoints()->size() ; i++)
+  {
+    resultLine.SetPoint(i,temporaryLine[i][0]);
+  }
+
+  return resultLine;
+}
+
+//-----------------------------------------------------------------------------
+
+float FidLabeling::ComputeSlope( Line &line )
+{
+	//LOG_TRACE("FidLineFinder::ComputeSlope");
+  Dot dot1 = m_DotsVector[line.GetOrigin()];
+  Dot dot2 = m_DotsVector[line.GetEndPoint()];
+
+  float x1 = dot1.GetX();
+	float y1 = dot1.GetY();
+
+	float x2 = dot2.GetX();
+	float y2 = dot2.GetY();
+
+	float y = (y2 - y1);
+	float x = (x2 - x1);
+
+	// :TODO: check if it can be simplified by using atan2 instead of atan+fabsf
+
+	float t;
+	if ( fabsf(x) > fabsf(y) )
+		t = vtkMath::Pi()/2 + atan( y / x );
+	else 
+  {
+		float tanTheta = x / y;
+		if ( tanTheta > 0 )
+			t = vtkMath::Pi() - atan( tanTheta );
 		else
-		{
-			// pattern: X1 < X3 < X2
-			std::vector<double> N1 =  fiducials[3];
-			std::vector<double> N2 =  fiducials[5];
-			std::vector<double> N3 =  fiducials[4];
-			sortedFiducials.push_back( N3 );
-			sortedFiducials.push_back( N2 );
-			sortedFiducials.push_back( N1 );
-		}
+			t = -atan( tanTheta );
 	}
-	else	// X1 >= X2
-	{
-		if( fiducials[5][0] < fiducials[4][0] )
-		{
-			// pattern: X3 < X2 < X1
-			std::vector<double> N1 =  fiducials[5];
-			std::vector<double> N2 =  fiducials[4];
-			std::vector<double> N3 =  fiducials[3];
-			sortedFiducials.push_back( N3 );
-			sortedFiducials.push_back( N2 );
-			sortedFiducials.push_back( N1 );
-		}
-		else if ( fiducials[5][0] > fiducials[3][0] )
-		{
-			// pattern: X2 < X1 < X3
-			std::vector<double> N1 =  fiducials[4];
-			std::vector<double> N2 =  fiducials[3];
-			std::vector<double> N3 =  fiducials[5];
-			sortedFiducials.push_back( N3 );
-			sortedFiducials.push_back( N2 );
-			sortedFiducials.push_back( N1 );
-		}
-		else
-		{
-			// pattern: X2 < X3 < X1
-			std::vector<double> N1 =  fiducials[4];
-			std::vector<double> N2 =  fiducials[5];
-			std::vector<double> N3 =  fiducials[3];
-			sortedFiducials.push_back( N3 );
-			sortedFiducials.push_back( N2 );
-			sortedFiducials.push_back( N1 );
-		}
-	}
-	return sortedFiducials;
+	assert( t >= 0 && t <= vtkMath::Pi() );
+	return t;
 }
 
 //-----------------------------------------------------------------------------
@@ -333,8 +319,9 @@ std::vector<std::vector<double>> FidLabeling::SortInAscendingOrder(std::vector<s
 void FidLabeling::FindDoubleNLines()
 {	
 	LOG_TRACE("FidLabeling::FindDoubleNLines");
+  std::vector<Line> maxPointsLines = m_LinesVector[m_LinesVector.size()-1];
 
-	FindPairs();
+	FindPattern();
 
   if ( m_PairsVector.size() < 1 ) 
 	{
@@ -348,8 +335,8 @@ void FidLabeling::FindDoubleNLines()
   LinePair *  pair = &m_PairsVector[0];
   SortTopToBottom( pair );
 
-  Line *line1 = &m_LinesVector[pair->GetLine1()];
-  Line *line2 = &m_LinesVector[pair->GetLine2()];
+  Line *line1 = &maxPointsLines[pair->GetLine1()];
+  Line *line2 = &maxPointsLines[pair->GetLine2()];
 
   SortRightToLeft( line1 );
   SortRightToLeft( line2 );
@@ -358,21 +345,21 @@ void FidLabeling::FindDoubleNLines()
 	std::vector< std::vector<double> > foundDotsCoordinateValues = m_FoundDotsCoordinateValue;
 	for (int i=0; i<3; i++)
 	{
-		dotCoords.push_back(m_DotsVector[line1->GetLinePoint(i)].GetX());
-		dotCoords.push_back(m_DotsVector[line1->GetLinePoint(i)].GetY());
+		dotCoords.push_back(m_DotsVector[line1->GetPoint(i)].GetX());
+		dotCoords.push_back(m_DotsVector[line1->GetPoint(i)].GetY());
 		foundDotsCoordinateValues.push_back(dotCoords);
 		dotCoords.clear();
 	}
 	for (int i=0; i<3; i++)
 	{
-		dotCoords.push_back(m_DotsVector[line2->GetLinePoint(i)].GetX());
-		dotCoords.push_back(m_DotsVector[line2->GetLinePoint(i)].GetY());
+		dotCoords.push_back(m_DotsVector[line2->GetPoint(i)].GetX());
+		dotCoords.push_back(m_DotsVector[line2->GetPoint(i)].GetY());
 		foundDotsCoordinateValues.push_back(dotCoords);
 		dotCoords.clear();
 	}
 	m_FoundDotsCoordinateValue = foundDotsCoordinateValues;
-	std::vector<std::vector<double>> sortedFiducials = SortInAscendingOrder(m_FoundDotsCoordinateValue); 
-	m_FoundDotsCoordinateValue = sortedFiducials; 					
+	//std::vector<std::vector<double>> sortedFiducials = SortInAscendingOrder(m_FoundDotsCoordinateValue); 
+	//m_FoundDotsCoordinateValue = sortedFiducials; 					
 
 	m_AngleConf = pair->GetAngleConf();
 	m_LinePairIntensity = pair->GetLinePairIntensity();
@@ -381,67 +368,374 @@ void FidLabeling::FindDoubleNLines()
 
 //-----------------------------------------------------------------------------
 
-void FidLabeling::FindPairs()
+float FidLabeling::ComputeDistancePointLine(Dot dot, Line line)
+{     
+  double x[3], y[3], z[3];
+
+  x[0] = m_DotsVector[line.GetOrigin()].GetX();
+  x[1] = m_DotsVector[line.GetOrigin()].GetY();
+  x[2] = 0;
+
+  y[0] = m_DotsVector[line.GetEndPoint()].GetX();
+  y[1] = m_DotsVector[line.GetEndPoint()].GetY();
+  y[2] = 0;
+
+  z[0] = dot.GetX();
+  z[1] = dot.GetY();
+  z[2] = 0;
+
+  return PlusMath::ComputeDistanceLinePoint( x, y, z);
+}
+
+//-----------------------------------------------------------------------------
+
+float FidLabeling::ComputeShift(Line line1, Line line2)
 {
-	//LOG_TRACE("FidLabeling::FindPairs");
+  double midLine1[2]=
+  {
+    (m_DotsVector[line1.GetOrigin()].GetX()+m_DotsVector[line1.GetEndPoint()].GetX())/2,
+    (m_DotsVector[line1.GetOrigin()].GetY()+m_DotsVector[line1.GetEndPoint()].GetY())/2
+  };
+  double midLine2[2]=
+  {
+    (m_DotsVector[line2.GetOrigin()].GetX()+m_DotsVector[line2.GetEndPoint()].GetX())/2,
+    (m_DotsVector[line2.GetOrigin()].GetY()+m_DotsVector[line2.GetEndPoint()].GetY())/2
+  };
+  double midLine1_to_midLine2[3]=
+  {
+    midLine2[0]-midLine1[0],
+    midLine2[1]-midLine1[1],
+    0
+  };
 
-	//These are for extra checks not needed in case of parallel lines as they are already checked when accepting the line
-	double maxTheta = m_MaxTheta;
-	double minTheta = m_MinTheta;
+  double line1vector[3]=
+  {
+    m_DotsVector[line1.GetEndPoint()].GetX()-m_DotsVector[line1.GetOrigin()].GetX(),
+    m_DotsVector[line1.GetEndPoint()].GetY()-m_DotsVector[line1.GetOrigin()].GetY(),
+    0
+  };
+  vtkMath::Normalize(line1vector);
 
-	int maxLinePairDistPx = floor(m_MaxLinePairDistMm / m_ApproximateSpacingMmPerPixel + 0.5 );
-	int minLinePairDistPx = floor(m_MinLinePairDistMm / m_ApproximateSpacingMmPerPixel + 0.5 );
-	double maxLineErrorPx = m_MaxLineErrorMm / m_ApproximateSpacingMmPerPixel;
+  double midLine1_to_midLine2_projectionToLine1_length = vtkMath::Dot(line1vector,midLine1_to_midLine2);
 
-	Line currentLine1, currentLine2;
+  return midLine1_to_midLine2_projectionToLine1_length;
+}
 
-	for ( unsigned int l1 = 0; l1 < m_LinesVector.size(); l1++ ) 
-	{
-		currentLine1 = m_LinesVector[l1];
-		for ( unsigned int l2 = l1+1; l2 < m_LinesVector.size(); l2++ ) 
-		{
-			currentLine2 = m_LinesVector[l2];
-			float t1 = currentLine1.GetLineSlope();
-			float p1 = currentLine1.GetLinePosition();
+//-----------------------------------------------------------------------------
 
-			float t2 = currentLine2.GetLineSlope();
-			float p2 = currentLine2.GetLinePosition();
+void FidLabeling::UpdateNWiresResults(Line resultLine1, Line resultLine2)//result line 1 is the top line in the image
+{
+  float intensity = 0;
+  std::vector<double> dotCoords;
+  std::vector< std::vector<double> > foundDotsCoordinateValues = m_FoundDotsCoordinateValue;
 
-			float angle_diff = fabsf( t2 - t1 );
-			float line_error = currentLine1.GetLineError() + currentLine2.GetLineError();
+  SortRightToLeft(&resultLine1);
+  SortRightToLeft(&resultLine2);
 
-			bool test1 = angle_diff < m_MaxAngleDiff;
-			bool test2 = line_error < maxLineErrorPx;
-			bool test3 = minTheta <= t1 && t1 <= maxTheta;
-			bool test4 = minTheta <= t2 && t2 <= maxTheta;		
-			bool test5 = fabsf( p2 - p1 ) < maxLinePairDistPx;// (old value was hardcoded as 65)
-			bool test6 = fabsf( p2 - p1 ) > minLinePairDistPx;// (old value was hardcoded as 25)
+  for(int i=0 ; i<resultLine1.GetPoints()->size() ; i++)
+  {
+    LabelingResults result;
+    result.x = m_DotsVector[resultLine1.GetPoint(i)].GetX();
+    dotCoords.push_back(result.x);
+    result.y = m_DotsVector[resultLine1.GetPoint(i)].GetY();
+    dotCoords.push_back(result.y);
+    result.patternId = 0;
+    result.wireId = i;
+    m_Results.push_back(result);
+    foundDotsCoordinateValues.push_back(dotCoords);
+    dotCoords.clear();
+  }
+  intensity += resultLine1.GetIntensity();
 
-			if ( test1 && test2 && /*test3 && test4 &&*/ test5 && test6 ) 
-			{
-				line_error = line_error / maxLineErrorPx;
-				float angle_conf = angle_diff / ( 1 - line_error );
+  for(int i=0 ; i<resultLine2.GetPoints()->size() ; i++)
+  {
+    LabelingResults result;
+    result.x = m_DotsVector[resultLine2.GetPoint(i)].GetX();
+    dotCoords.push_back(result.x);
+    result.y = m_DotsVector[resultLine2.GetPoint(i)].GetY();
+    dotCoords.push_back(result.y);
+    result.patternId = 1;
+    result.wireId = i;
+    m_Results.push_back(result);
+    foundDotsCoordinateValues.push_back(dotCoords);
+    dotCoords.clear();
+  }
+  intensity += resultLine2.GetIntensity();
 
-				if ( angle_conf < m_MaxAngleDiff ) 
-				{
-					float intensity = currentLine1.GetLineIntensity() + currentLine2.GetLineIntensity();
-					LinePair linePair;
-					linePair.SetLine1(l1);
-					linePair.SetLine2(l2);
-					linePair.SetLinePairIntensity(intensity);
-					linePair.SetLinePairError(line_error);
-					linePair.SetAngleDifference(angle_diff / m_MaxAngleDiff);
-					linePair.SetAngleConf(angle_conf / m_MaxAngleDiff);
+  m_FoundDotsCoordinateValue = foundDotsCoordinateValues;
+  m_LinePairIntensity = intensity;
+  m_DotsFound = true;
+  m_NumDots = m_DotsVector.size(); 
+}
 
-					m_PairsVector.push_back(linePair);
-				}
-			}
-		}
-	}
+//-----------------------------------------------------------------------------
 
-	/* Rank the pairs by intensity. */
-	//UltraSoundFiducialSegmentationTools::sort<LinePair, LinePair>( pairs, pairs.size() );
-	std::sort (m_PairsVector.begin(), m_PairsVector.end(), LinePair::lessThan);
+void FidLabeling::UpdateCirsResults(Line resultLine1, Line resultLine2, Line resultLine3)
+{
+  float intensity = 0;
+  std::vector<double> dotCoords;
+  std::vector< std::vector<double> > foundDotsCoordinateValues = m_FoundDotsCoordinateValue;
+
+  /*SortRightToLeft(&resultLine1);
+  SortRightToLeft(&resultLine2);
+  SortRightToLeft(&resultLine3);*/
+
+  for(int i=0 ; i<resultLine1.GetPoints()->size() ; i++)
+  {
+    LabelingResults result;
+    result.x = m_DotsVector[resultLine1.GetPoint(i)].GetX();
+    dotCoords.push_back(result.x);
+    result.y = m_DotsVector[resultLine1.GetPoint(i)].GetY();
+    dotCoords.push_back(result.y);
+    result.patternId = 0;
+    result.wireId = i;
+    m_Results.push_back(result);
+    foundDotsCoordinateValues.push_back(dotCoords);
+    dotCoords.clear();
+  }
+  intensity += resultLine1.GetIntensity();
+
+  for(int i=0 ; i<resultLine2.GetPoints()->size() ; i++)
+  {
+    LabelingResults result;
+    result.x = m_DotsVector[resultLine2.GetPoint(i)].GetX();//line 2 is the diagonal one
+    dotCoords.push_back(result.x);
+    result.y = m_DotsVector[resultLine2.GetPoint(i)].GetY();
+    dotCoords.push_back(result.y);
+    result.patternId = 1;
+    result.wireId = i;
+    m_Results.push_back(result);
+    foundDotsCoordinateValues.push_back(dotCoords);
+    dotCoords.clear();
+  }
+  intensity += resultLine2.GetIntensity();
+
+  for(int i=0 ; i<resultLine3.GetPoints()->size() ; i++)
+  {
+    LabelingResults result;
+    result.x = m_DotsVector[resultLine3.GetPoint(i)].GetX();
+    dotCoords.push_back(result.x);
+    result.y = m_DotsVector[resultLine3.GetPoint(i)].GetY();
+    dotCoords.push_back(result.y);
+    result.patternId = 2;
+    result.wireId = i;
+    m_Results.push_back(result);
+    foundDotsCoordinateValues.push_back(dotCoords);
+    dotCoords.clear();
+  }
+  intensity += resultLine3.GetIntensity();
+
+  m_FoundDotsCoordinateValue = foundDotsCoordinateValues;
+  m_LinePairIntensity = intensity;
+  m_DotsFound = true;
+  m_NumDots = m_DotsVector.size(); 
+}
+
+//-----------------------------------------------------------------------------
+
+void FidLabeling::FindPattern()
+{
+	//LOG_TRACE("FidLabeling::FindPattern");
+  
+  std::vector<Line> maxPointsLines = m_LinesVector[m_LinesVector.size()-1];
+  int numberOfLines = m_Patterns.size();
+  int numberOfCandidateLines = maxPointsLines.size();
+  std::vector<int> lineIndices(numberOfLines);
+  std::vector<LabelingResults> results;
+  bool foundPattern;
+
+  m_DotsFound = false;
+
+  for(int i=0 ; i<lineIndices.size() ; i++)
+  {
+    lineIndices[i] = lineIndices.size()-1-i;
+  }
+  lineIndices[0]--;
+
+  do
+  {
+    for (int i=0; i<numberOfLines; i++)
+    {
+      lineIndices[i]++;
+      if (lineIndices[i]<numberOfCandidateLines-i)
+      {
+        break;//valid permutation
+      }
+      if(i+1<numberOfLines)
+      {
+        if(lineIndices[i+1]<numberOfCandidateLines-i-1)
+        {
+          lineIndices[i]=lineIndices[i+1]+2;
+        }
+        else if(i+2<numberOfLines)
+        {
+          lineIndices[i]=lineIndices[i+2]+3;
+        }
+        else
+        {
+          return;
+        }
+      }
+      else//no permutation was valid
+      {
+        return;
+      }
+    }
+
+    /*for(int i=0 ; i<lineIndices.size(); i++)
+    {
+      std::cout<<lineIndices[i]<<" "<<std::flush;
+    }
+    std::cout<<std::endl;*/
+    // we have a new permutation in lineIndices
+    std::vector<int> testFlags(numberOfLines*(numberOfLines-1)/2,-1);
+    int counter = 0;
+
+    for( int i=0 ; i<numberOfLines-1 ; i++)
+    {
+      Line currentLine1 = maxPointsLines[lineIndices[i]];
+      float angle1 = Line::ComputeHalfSpaceAngle(currentLine1);
+      for( int j=i+1 ; j<numberOfLines ; j++)// ?
+      {
+        Line currentLine2 = maxPointsLines[lineIndices[j]];
+        float angle2 = Line::ComputeHalfSpaceAngle(currentLine2);
+        float angleDifference = fabsf( angle2 - angle1 );
+        float distance = -1;
+        float shift = -1;
+        int commonPointIndex = -1;
+        
+        if(angleDifference < m_AngleTolerance)//The angle between 2 lines is close to 0
+        {
+          distance = ComputeDistancePointLine(m_DotsVector[currentLine1.GetOrigin()], currentLine2);
+          shift = ComputeShift(currentLine1,currentLine2);
+        }
+        else if(numberOfLines != 2)
+        {
+          //find the common point between the two lines, we assume so far that the common point is an endpoint (CIRS phantom case)
+          //TODO: make it more general
+          if((currentLine1.GetOrigin() == currentLine2.GetOrigin()) || (currentLine1.GetOrigin() == currentLine2.GetEndPoint()))
+          {
+            commonPointIndex = currentLine1.GetOrigin();
+            shift = 0;
+          }
+          else if((currentLine1.GetEndPoint() == currentLine2.GetOrigin()) || (currentLine1.GetEndPoint() == currentLine2.GetEndPoint()))
+          {
+            commonPointIndex = currentLine1.GetEndPoint();
+            shift = 0;
+          }
+        }
+
+        //Compare the results to the config file
+        //Here we will check the parameters between all possible pairs as so far there will be only 2 or 3 lines per pattern
+        //TODO: make it smarter to lower the number of checks if there are a higher number of lines
+        bool distanceTest = false;
+        bool commonPointTest = false;
+        bool shiftTest = false;
+        if(distance != -1)
+        {
+          commonPointTest = true;
+          int maxLinePairDistPx = floor(m_MaxLinePairDistMm / m_ApproximateSpacingMmPerPixel + 0.5 );
+	        int minLinePairDistPx = floor(m_MinLinePairDistMm / m_ApproximateSpacingMmPerPixel + 0.5 );
+
+          if((distance < maxLinePairDistPx) && (distance > minLinePairDistPx))
+          {
+            distanceTest = true;
+          }
+        }
+        else
+        {
+          distanceTest = true;
+          //if there is a common point, we check that the angle difference is correct (45 degres in CIRS phantom)
+          if((commonPointIndex != -1) && (angleDifference > m_InclinedLineAngle-m_AngleTolerance) && (angleDifference < m_InclinedLineAngle+m_AngleTolerance))
+          {
+            commonPointTest = true;
+          }
+          
+        }
+        if(shift != -1 && fabs(shift) < 35)
+        {
+          shiftTest=true;
+        }
+        //if the conditions are verified
+        if(distanceTest && commonPointTest && shiftTest)
+        {
+          testFlags[counter] = 1;
+        }
+        counter++;
+      }
+    }
+    foundPattern = true;
+    for(int i=0 ; i<testFlags.size() ; i++)
+    {
+      if(testFlags[i] != 1)
+      {
+        foundPattern = false;
+      }
+    }
+  }while ((lineIndices[numberOfLines-1]!=numberOfCandidateLines-numberOfLines+2) && (foundPattern==false)); ///
+
+  if(foundPattern)//We have the right permutation of lines in lineIndices
+  {
+    //Update the results, this part is not generic but depends on the Pattern we are looking for
+    if(numberOfLines == 2)//2 Nwires
+    {
+      Line resultLine1 = maxPointsLines[lineIndices[0]];
+      Line resultLine2 = maxPointsLines[lineIndices[1]];
+      if(m_DotsVector[resultLine1.GetOrigin()].GetY() < m_DotsVector[resultLine2.GetOrigin()].GetY())//Line1 is the top one in the image
+      {
+        UpdateNWiresResults(resultLine1, resultLine2);
+      }
+      else
+      {
+        UpdateNWiresResults(resultLine2, resultLine1);
+      }
+    }
+    else if(numberOfLines == 3)//CIRS phantom
+    {
+      Line resultLine1 = maxPointsLines[lineIndices[0]];
+      Line resultLine2 = maxPointsLines[lineIndices[1]];
+      Line resultLine3 = maxPointsLines[lineIndices[2]];
+
+      bool test1 = (resultLine1.GetOrigin() == resultLine2.GetOrigin()) || (resultLine1.GetOrigin() == resultLine2.GetEndPoint());
+      bool test2 = (resultLine1.GetEndPoint() == resultLine2.GetOrigin()) || (resultLine1.GetEndPoint() == resultLine2.GetEndPoint());
+      bool test3 = (resultLine1.GetOrigin() == resultLine3.GetOrigin()) || (resultLine1.GetOrigin() == resultLine3.GetEndPoint());
+      bool test4 = (resultLine1.GetEndPoint() == resultLine3.GetOrigin()) || (resultLine1.GetEndPoint() == resultLine3.GetEndPoint());
+
+      if(!test1 && !test2)//if line 1 and 2 have no point in common
+      {
+        if(m_DotsVector[resultLine1.GetOrigin()].GetX() > m_DotsVector[resultLine2.GetOrigin()].GetX())//Line 1 is on the left on the image
+        {
+          UpdateCirsResults(resultLine1, resultLine3, resultLine2);
+        }
+        else
+        {
+          UpdateCirsResults(resultLine2, resultLine3, resultLine1);
+        }
+      }
+      else if(!test1 && !test3)//if line 1 and 3 have no point in common
+      {
+        if(m_DotsVector[resultLine1.GetOrigin()].GetX() > m_DotsVector[resultLine3.GetOrigin()].GetX())//Line 1 is on the left on the image
+        {
+          UpdateCirsResults(resultLine1, resultLine2, resultLine3);
+        }
+        else
+        {
+          UpdateCirsResults(resultLine3, resultLine2, resultLine1);
+        }
+      }
+      else//if line 2 and 3 have no point in common
+      {
+        if(m_DotsVector[resultLine2.GetOrigin()].GetX() > m_DotsVector[resultLine3.GetOrigin()].GetX())//Line 2 is on the left on the image
+        {
+          UpdateCirsResults(resultLine2, resultLine1, resultLine3);
+        }
+        else
+        {
+          UpdateCirsResults(resultLine3, resultLine1, resultLine2);
+        }
+      }
+    }   
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -450,12 +744,13 @@ void FidLabeling::SortTopToBottom( LinePair *pair )
 {
 	//LOG_TRACE("FidLabeling::SortTopToBottom");
 
-	/* check if we need to swap the pairs. */
-	if ( m_LinesVector[pair->GetLine1()].GetLinePosition() < m_LinesVector[pair->GetLine2()].GetLinePosition() ) {
+	/* check if we need to swap the pairs.
+	if ( m_LinesVector[pair->GetLine1()].GetLinePosition() < m_LinesVector[pair->GetLine2()].GetLinePosition() ) 
+  {
 		int swp_tmp = pair->GetLine1();
 		pair->SetLine1(pair->GetLine2());
 		pair->SetLine2(swp_tmp);
-	}
+	} */
 }
 
 //-----------------------------------------------------------------------------
@@ -466,19 +761,19 @@ void FidLabeling::SortRightToLeft( Line *line )
 
 	/* Since we prohibit stepp lines (see MAX_T and MIN_T) we can use the x
 	 * values to sort the points. */
-	std::vector<std::vector<Dot>::iterator> pointsIterator(3);//TODO Make it general
+	std::vector<std::vector<Dot>::iterator> pointsIterator(line->GetPoints()->size());
 
-	for (int i=0; i<3; i++)
+  for (int i=0; i<line->GetPoints()->size() ; i++)
 	{
-		pointsIterator[i] = m_DotsVector.begin() + line->GetLinePoint(i);
+		pointsIterator[i] = m_DotsVector.begin() + line->GetPoint(i);
 	}
 	//UltraSoundFiducialSegmentationTools::sort<std::vector<Dot>::iterator, Position>( pointsIterator, line->GetLinePoints()->size() );
-	std::sort (pointsIterator.begin(), pointsIterator.end(), Position::lessThan);
+	std::sort(pointsIterator.begin(), pointsIterator.end(), Position::lessThan);
 	//std::sort(points.begin(),points.end(), Position::lessThan);
 
-	for (int i=0; i<3; i++)
+	for (int i=0; i<line->GetPoints()->size(); i++)
 	{
-		line->SetLinePoint(i,pointsIterator[i] - m_DotsVector.begin());
+		line->SetPoint(i,pointsIterator[i] - m_DotsVector.begin());
 	}
 }
 

@@ -7,6 +7,7 @@
 #include "FidPatternRecognition.h"
 #include "vtkMath.h"
 #include "vtkPoints.h"
+#include "vtkLine.h"
 
 static const float DOT_STEPS  = 4.0;
 static const float DOT_RADIUS = 6.0;
@@ -15,6 +16,7 @@ static const float DOT_RADIUS = 6.0;
 
 FidPatternRecognition::FidPatternRecognition()
 {
+  m_CurrentFrame = 0;
 }
 
 //-----------------------------------------------------------------------------
@@ -73,9 +75,12 @@ PlusStatus FidPatternRecognition::RecognizePattern(TrackedFrame* trackedFrame)
   m_FidSegmentation.Clear();
   m_FidLineFinder.Clear();
   m_FidLabeling.Clear();
+  
+  m_CurrentFrame++;
 
   m_FidSegmentation.SetFrameSize(trackedFrame->GetFrameSize());
   m_FidLineFinder.SetFrameSize(trackedFrame->GetFrameSize());
+  m_FidLabeling.SetFrameSize(trackedFrame->GetFrameSize());
 
   int bytes = trackedFrame->GetFrameSize()[0] * trackedFrame->GetFrameSize()[1] * sizeof(PixelType);
   PixelType* image = reinterpret_cast<PixelType*>(trackedFrame->GetImageData()->GetBufferPointer());
@@ -90,12 +95,8 @@ PlusStatus FidPatternRecognition::RecognizePattern(TrackedFrame* trackedFrame)
   m_FidSegmentation.Cluster();
 
   m_FidLabeling.SetNumDots(m_FidSegmentation.GetDotsVector().size()); 
-	m_FidSegmentation.SetCandidateFidValues(m_FidSegmentation.GetDotsVector());	  
-	 
-	if(m_FidSegmentation.GetDebugOutput()) 
-	{
-		m_FidSegmentation.WritePossibleFiducialOverlayImage(m_FidSegmentation.GetCandidateFidValues(), m_FidSegmentation.GetUnalteredImage()); 
-	}
+	m_FidSegmentation.SetCandidateFidValues(m_FidSegmentation.GetDotsVector());	 
+  //m_FidSegmentation.SetDebugOutput(true);//for testing purpose only
 
   m_FidLineFinder.SetCandidateFidValues(m_FidSegmentation.GetCandidateFidValues());
   m_FidLineFinder.SetDotsVector(m_FidSegmentation.GetDotsVector());
@@ -103,16 +104,17 @@ PlusStatus FidPatternRecognition::RecognizePattern(TrackedFrame* trackedFrame)
 
 	m_FidLineFinder.FindLines();
 
-  m_FidLabeling.SetLinesVector(m_FidLineFinder.GetLinesVector());
+  if(m_FidLineFinder.GetLinesVector().size() > 3)
+  {
+    m_FidLabeling.SetLinesVector(m_FidLineFinder.GetLinesVector());
 
-	switch (m_FidSegmentation.GetFiducialGeometry())
+    m_FidLabeling.FindPattern();
+  }
+
+  if(m_FidSegmentation.GetDebugOutput()) 
 	{
-	case FidSegmentation::CALIBRATION_PHANTOM_6_POINT:
-		m_FidLabeling.FindDoubleNLines();
-		break;
-	default:
-		LOG_ERROR("Segmentation error: invalid phantom geometry identifier!"); 
-		break;
+		m_FidSegmentation.WritePossibleFiducialOverlayImage(m_FidLabeling.GetFoundDotsCoordinateValue(), m_FidSegmentation.GetUnalteredImage(), m_CurrentFrame); 
+    //m_FidSegmentation.WritePossibleFiducialOverlayImage(m_FidSegmentation.GetCandidateFidValues(), m_FidSegmentation.GetUnalteredImage(), m_CurrentFrame); 
 	}
 
   // Set results
@@ -181,8 +183,9 @@ void FidPatternRecognition::DrawResults( PixelType *image )
   }
 	else
 	{
+    std::vector<Line> maxPointsLines = m_FidLabeling.GetLinesVector()[m_FidLabeling.GetLinesVector().size()-1];
 		cout << "ERROR: could not find the pair of the wires!  See other drawing outputs for more information!" << endl;
-		DrawLines( image, m_FidLabeling.GetLinesVector().begin(), m_FidLabeling.GetLinesVector().size() );
+		DrawLines( image, maxPointsLines.begin(), maxPointsLines.size() );
 		DrawDots( image, m_FidLabeling.GetDotsVector().begin(), m_FidLabeling.GetDotsVector().size() );
 	}
 
@@ -220,12 +223,12 @@ void FidPatternRecognition::DrawLines( PixelType *image, std::vector<Line>::iter
 
 	for ( int l = 0; l < nlines; l++ )
 	{
-		float theta = linesIterator[l].GetLineSlope();
-		float p = linesIterator[l].GetLinePosition();
+    float theta = Line::ComputeAngle(linesIterator[l]);
+		float p = 0;//linesIterator[l].GetPosition(); TODO: draw lines in another manner
 
 		for (int i=0; i<3; i++)
 		{
-			DrawDots( image, m_FidLabeling.GetDotsVector().begin()+linesIterator[l].GetLinePoint(i), 1 );//watch out, check for iterators problems if errors
+			DrawDots( image, m_FidLabeling.GetDotsVector().begin()+linesIterator[l].GetPoint(i), 1 );//watch out, check for iterators problems if errors
 		}		
 
 		if ( theta < vtkMath::Pi()/4 || theta > 3*vtkMath::Pi()/4 ) {
@@ -259,9 +262,22 @@ void FidPatternRecognition::DrawPair( PixelType *image, std::vector<LinePair>::i
 {
 	LOG_TRACE("FidPatternRecognition::DrawPair"); 
 
+  std::vector<Line> maxPointsLines = m_FidLabeling.GetLinesVector()[m_FidLabeling.GetLinesVector().size()-1];
+
 	/* Drawing on the original. */
-	DrawLines( image, m_FidLabeling.GetLinesVector().begin()+pairIterator->GetLine1(), 1 );
-	DrawLines( image, m_FidLabeling.GetLinesVector().begin()+pairIterator->GetLine2(), 1 );
+	DrawLines( image, maxPointsLines.begin()+pairIterator->GetLine1(), 1 );
+	DrawLines( image,maxPointsLines.begin()+pairIterator->GetLine2(), 1 );
+}
+
+//-----------------------------------------------------------------------------
+
+PlusStatus FidPatternRecognition::ComputeNWireIntersections()
+{
+	LOG_TRACE("vtkCalibrationController::ComputeNWireInstersections");
+
+	
+
+	return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
@@ -276,6 +292,8 @@ PlusStatus FidPatternRecognition::ReadPhantomDefinition(vtkXMLDataElement* confi
 		return PLUS_FAIL;
 	}
 
+  bool nwireFlag = false;
+
 	vtkSmartPointer<vtkXMLDataElement> phantomDefinition = config->FindNestedElementWithName("PhantomDefinition");
 	if (phantomDefinition == NULL)
   {
@@ -284,79 +302,204 @@ PlusStatus FidPatternRecognition::ReadPhantomDefinition(vtkXMLDataElement* confi
 	}
   else
 	{
-		std::vector<NWire> tempNWires;
+    std::vector<Pattern*> tempPatterns;
 
 		// Load geometry
 		vtkSmartPointer<vtkXMLDataElement> geometry = phantomDefinition->FindNestedElementWithName("Geometry"); 
-		if (geometry == NULL) {
+		if (geometry == NULL) 
+    {
 			LOG_ERROR("Phantom geometry information not found!");
 			return PLUS_FAIL;
-		} else {
-
-			tempNWires.clear();
-
-			// Finding of NWires and extracting the endpoints
+		} 
+    else 
+    {
+			// Finding of Patterns and extracting the endpoints
 			int numberOfGeometryChildren = geometry->GetNumberOfNestedElements();
-			for (int i=0; i<numberOfGeometryChildren; ++i) {
-				vtkSmartPointer<vtkXMLDataElement> nWireElement = geometry->GetNestedElement(i);
+			for (int i=0; i<numberOfGeometryChildren; ++i) 
+      {
+				vtkSmartPointer<vtkXMLDataElement> patternElement = geometry->GetNestedElement(i);
 
-				if ((nWireElement == NULL) || (STRCASECMP("NWire", nWireElement->GetName()))) {
+				if ((patternElement == NULL) || (STRCASECMP("Pattern", patternElement->GetName()))) 
+        {
 					continue;
 				}
 
-				NWire nWire;
+			  NWire * nWire = new NWire;
+        CoplanarParallelWires * coplanarParallelWires = new CoplanarParallelWires;
 
-				int numberOfWires = nWireElement->GetNumberOfNestedElements();
+			  int numberOfWires = patternElement->GetNumberOfNestedElements();
 
-				if (numberOfWires != 3) {
-					LOG_WARNING("NWire contains unexpected number of wires - skipped");
-					continue;
-				}
+			  if ((numberOfWires != 3) && !(STRCASECMP("NWire", patternElement->GetAttribute("Type")))) 
+        {
+				  LOG_WARNING("NWire contains unexpected number of wires - skipped");
+				  continue;
+			  }
 
-				for (int j=0; j<numberOfWires; ++j) {
-					vtkSmartPointer<vtkXMLDataElement> wireElement = nWireElement->GetNestedElement(j);
+			  for (int j=0; j<numberOfWires; ++j) 
+        {
+				  vtkSmartPointer<vtkXMLDataElement> wireElement = patternElement->GetNestedElement(j);
 
-					if (wireElement == NULL) {
-						LOG_WARNING("Invalid Wire description in NWire - skipped");
-						break;
-					}
+				  if (wireElement == NULL) 
+          {
+					  LOG_WARNING("Invalid Wire description in Pattern - skipped");
+					  break;
+				  }
 
-					Wire wire;
+				  Wire wire;
 
-					int wireId = -1;
-					if ( wireElement->GetScalarAttribute("Id", wireId) ) 
-					{
-						wire.id = wireId; 
-					}
-					else
-					{
-						LOG_WARNING("Wire id not found - skipped");
-						continue;
-					}
+				  const char* wireName =  wireElement->GetAttribute("Name"); 
+				  if ( wireName != NULL )
+				  {
+					  wire.name = wireName;
+				  }
+				  if (! wireElement->GetVectorAttribute("EndPointFront", 3, wire.endPointFront)) 
+          {
+					  LOG_WARNING("Wrong wire end point detected - skipped");
+					  continue;
+				  }
+				  if (! wireElement->GetVectorAttribute("EndPointBack", 3, wire.endPointBack)) 
+          {
+					  LOG_WARNING("Wrong wire end point detected - skipped");
+					  continue;
+				  }
+          
+          if(STRCASECMP("CoplanarParallelWires", patternElement->GetAttribute("Type")) == 0)
+          {
+            coplanarParallelWires->wires.push_back(wire);
+          }
+          else if(STRCASECMP("NWire", patternElement->GetAttribute("Type")) == 0)
+          {
+            nWire->wires.push_back(wire);
+          }
+			  }
 
-					const char* wireName =  wireElement->GetAttribute("Name"); 
-					if ( wireName != NULL )
-					{
-						wire.name = wireName;
-					}
-					if (! wireElement->GetVectorAttribute("EndPointFront", 3, wire.endPointFront)) {
-						LOG_WARNING("Wrong wire end point detected - skipped");
-						continue;
-					}
-					if (! wireElement->GetVectorAttribute("EndPointBack", 3, wire.endPointBack)) {
-						LOG_WARNING("Wrong wire end point detected - skipped");
-						continue;
-					}
+        if(STRCASECMP("CoplanarParallelWires", patternElement->GetAttribute("Type")) == 0)
+        {
+          tempPatterns.push_back(coplanarParallelWires);
 
-					nWire.wires[j] = wire;
-				}
+          if(i == 1)
+          {
+            tempPatterns[i]->distanceToOriginMm.push_back(0);
+            tempPatterns[i]->distanceToOriginToleranceMm.push_back(0);
+            tempPatterns[i]->distanceToOriginMm.push_back(10*std::sqrt(2.0));
+            tempPatterns[i]->distanceToOriginToleranceMm.push_back(2);
+            tempPatterns[i]->distanceToOriginMm.push_back(20*std::sqrt(2.0));
+            tempPatterns[i]->distanceToOriginToleranceMm.push_back(2);
+            tempPatterns[i]->distanceToOriginMm.push_back(30*std::sqrt(2.0));
+            tempPatterns[i]->distanceToOriginToleranceMm.push_back(2);
+            tempPatterns[i]->distanceToOriginMm.push_back(40*std::sqrt(2.0));
+            tempPatterns[i]->distanceToOriginToleranceMm.push_back(2);
+          }
+          else
+          {
+            tempPatterns[i]->distanceToOriginMm.push_back(0);
+            tempPatterns[i]->distanceToOriginToleranceMm.push_back(0);
+            tempPatterns[i]->distanceToOriginMm.push_back(10);
+            tempPatterns[i]->distanceToOriginToleranceMm.push_back(2);
+            tempPatterns[i]->distanceToOriginMm.push_back(20);
+            tempPatterns[i]->distanceToOriginToleranceMm.push_back(2);
+            tempPatterns[i]->distanceToOriginMm.push_back(30);
+            tempPatterns[i]->distanceToOriginToleranceMm.push_back(2);
+            tempPatterns[i]->distanceToOriginMm.push_back(40);
+            tempPatterns[i]->distanceToOriginToleranceMm.push_back(2);
+          }
+        }
+        else if(STRCASECMP("NWire", patternElement->GetAttribute("Type")) == 0)
+        {
+          tempPatterns.push_back(nWire);
 
-				tempNWires.push_back(nWire);
-			}
+          tempPatterns[i]->distanceToOriginMm.push_back(0);
+          tempPatterns[i]->distanceToOriginToleranceMm.push_back(0);
+          double midMean[2] = {(tempPatterns[i]->wires[1].endPointBack[0]+tempPatterns[i]->wires[1].endPointFront[0])/2,(tempPatterns[i]->wires[1].endPointBack[1]+tempPatterns[i]->wires[1].endPointFront[1])/2};
+          double distMidToOrigin = sqrt((tempPatterns[i]->wires[0].endPointBack[0]-midMean[0])*(tempPatterns[i]->wires[0].endPointBack[0]-midMean[0])+(tempPatterns[i]->wires[0].endPointBack[1]-midMean[1])*(tempPatterns[i]->wires[0].endPointBack[1]-midMean[1]));
+          tempPatterns[i]->distanceToOriginMm.push_back(distMidToOrigin);
+          tempPatterns[i]->distanceToOriginToleranceMm.push_back(15);
+          double distEndToOrigin = sqrt((tempPatterns[i]->wires[0].endPointBack[0]-tempPatterns[i]->wires[2].endPointBack[0])*(tempPatterns[i]->wires[0].endPointBack[0]-tempPatterns[i]->wires[2].endPointBack[0])+(tempPatterns[i]->wires[0].endPointBack[1]-tempPatterns[i]->wires[2].endPointBack[1])*(tempPatterns[i]->wires[0].endPointBack[1]-tempPatterns[i]->wires[2].endPointBack[1]));
+          tempPatterns[i]->distanceToOriginMm.push_back(distEndToOrigin);
+          tempPatterns[i]->distanceToOriginToleranceMm.push_back(4);
+
+          nwireFlag = true;
+        }
+		  }
 		}
 
-    m_FidLineFinder.SetNWires(tempNWires);
-    m_FidLabeling.SetNWires(tempNWires);
+    if(nwireFlag)
+    {
+      double alphaTopLayerFrontWall = -1.0;
+	    double alphaTopLayerBackWall = -1.0;
+	    double alphaBottomLayerFrontWall = -1.0;
+	    double alphaBottomLayerBackWall = -1.0;
+
+	    // Read input NWires and convert them to vnl vectors to easier processing
+	    LOG_DEBUG("Endpoints of wires = ");
+
+	    // List endpoints, check wire ids and NWire geometry correctness (wire order and locations) and compute intersections
+	    for (int k=0 ; k<tempPatterns.size() ; ++k) 
+      {
+		    int layer = k;
+
+		    for (int i=0; i<3; ++i) 
+        {
+			    vnl_vector<double> endPointFront(3);
+			    vnl_vector<double> endPointBack(3);
+    		
+			    for (int j=0; j<3; ++j) 
+          {
+				    endPointFront[j] = tempPatterns[k]->wires[i].endPointFront[j];
+				    endPointBack[j] = tempPatterns[k]->wires[i].endPointBack[j];
+			    }
+
+			    LOG_DEBUG("\t Front endpoint of wire " << i << " on layer " << layer << " = " << endPointFront);
+			    LOG_DEBUG("\t Back endpoint of wire " << i << " on layer " << layer << " = " << endPointBack);
+		    }
+
+		    /*if (sumLayer != layer * 9 + 6) 
+        {
+			    LOG_ERROR("Invalid NWire IDs (" << tempPatterns[k]->wires[0].id << ", " << tempPatterns[k]->wires[1].id << ", " << tempPatterns[k]->wires[2].id << ")!");
+			    return PLUS_FAIL;
+		    }*/
+
+		    // Check if the middle wire is the diagonal (the other two are parallel to each other and the first and the second, and the second and the third intersect)
+		    double wire1[3];
+		    double wire3[3];
+		    double cross[3];
+
+        vtkMath::Subtract(tempPatterns[k]->wires[0].endPointFront, tempPatterns[k]->wires[0].endPointBack, wire1);
+		    vtkMath::Subtract(tempPatterns[k]->wires[2].endPointFront, tempPatterns[k]->wires[2].endPointBack, wire3);
+		    vtkMath::Cross(wire1, wire3, cross);
+		    if (vtkMath::Norm(cross) > 0.001) 
+        {
+			    LOG_ERROR("The first and third wire of layer " << layer << " are not parallel!");
+			    return PLUS_FAIL;
+		    }
+		    double closestTemp[3];
+		    double parametricCoord1, parametricCoord2;
+
+        NWire * tempNWire = (NWire*)(tempPatterns[k]);
+
+		    if (vtkLine::DistanceBetweenLines(tempNWire->wires[0].endPointFront, tempNWire->wires[0].endPointBack, tempNWire->wires[1].endPointFront, tempNWire->wires[1].endPointBack, tempNWire->intersectPosW12, closestTemp, parametricCoord1, parametricCoord2) > 0.000001) 
+        {
+			    LOG_ERROR("The first and second wire of layer " << layer << " do not intersect each other!");
+			    return PLUS_FAIL;
+		    }
+		    if (vtkLine::DistanceBetweenLines(tempNWire->wires[2].endPointFront, tempNWire->wires[2].endPointBack, tempNWire->wires[1].endPointFront, tempNWire->wires[1].endPointBack, tempNWire->intersectPosW32, closestTemp, parametricCoord1, parametricCoord2) > 0.000001) 
+        {
+			    LOG_ERROR("The second and third wire of layer " << layer << " do not intersect each other!");
+			    return PLUS_FAIL;
+		    }
+	    }
+
+	    /*// Log the data pipeline if requested.
+	    int layer;
+	    for (int i=0, layer = 0; i<tempPatterns.size(); ++i, ++layer) 
+      {
+		    LOG_DEBUG("\t Intersection of wire 1 and 2 in layer " << layer << " \t= (" << it->intersectPosW12[0] << ", " << it->intersectPosW12[1] << ", " << it->intersectPosW12[2] << ")");
+		    LOG_DEBUG("\t Intersection of wire 3 and 2 in layer " << layer << " \t= (" << it->intersectPosW32[0] << ", " << it->intersectPosW32[1] << ", " << it->intersectPosW32[2] << ")");
+	    }*/
+    }
+
+    m_FidLineFinder.SetPatterns(tempPatterns);
+    m_FidLabeling.SetPatterns(tempPatterns);
 	}
 
   return PLUS_SUCCESS;

@@ -59,15 +59,17 @@
 					MorphologicalOpeningCircleRadiusMm="0.55"
 					MorphologicalOpeningBarSizeMm="2.0"
 
-					RegionOfInterest="50 140 600 440"
+					RegionOfInterest="50 100 500 440"
 
 					MaxLineLengthErrorPercent="5.0"
 					MaxLinePairDistanceErrorPercent="10.0"
 					MaxLineErrorMm="2.0"
 
 					MaxAngleDifferenceDegrees="11"
-					MinThetaDegrees="20"
-					MaxThetaDegrees="160"
+					MinThetaDegrees="-70"
+					MaxThetaDegrees="70"
+					
+					AngleToleranceDegrees="5"
 					
 					ThresholdImagePercent="10.0"
 
@@ -75,7 +77,7 @@
 
 					UseOriginalImageIntensityForDotIntensityScore="0"
 
-					>
+				>
 			</SegmentationParameters>
 		</CalibrationController>
 	</USCalibration>
@@ -102,16 +104,16 @@
 		<Geometry>
 			<!-- N wire definitions -->
 			<!-- Phantom origin is the inner end of the hole that is on the side of the templete holder, on the side of the triangle shaped hole on the inner part, and closest to the probe -->
-			<NWire>
-				<Wire Id="1" Name="wire4" EndPointFront="49.86 54.385 62.05" EndPointBack="49.86 54.385 142.05" />
-				<Wire Id="2" Name="wire5" EndPointFront="39.86 54.385 62.05" EndPointBack="19.86 54.385 142.05" />
-				<Wire Id="3" Name="wire6" EndPointFront="9.86 54.385 62.05" EndPointBack="9.86 54.385 142.05" />
-			</NWire>
-			<NWire>
-				<Wire Id="4" Name="wire1" EndPointFront="49.86 34.385 62.05" EndPointBack="49.86 34.385 142.05" />
-				<Wire Id="5" Name="wire2" EndPointFront="19.86 34.385 62.05" EndPointBack="39.86 34.385 142.05" />
-				<Wire Id="6" Name="wire3" EndPointFront="9.86 34.385 62.05" EndPointBack="9.86 34.385 142.05" />
-			</NWire>
+			<Pattern Type="NWire" Id="0">
+				<Wire Id="0" Name="wire4" EndPointFront="49.86 54.385 62.05" EndPointBack="49.86 54.385 142.05" />
+				<Wire Id="1" Name="wire5" EndPointFront="39.86 54.385 62.05" EndPointBack="19.86 54.385 142.05" />
+				<Wire Id="2" Name="wire6" EndPointFront="9.86 54.385 62.05" EndPointBack="9.86 54.385 142.05" />
+			</Pattern>
+			<Pattern Type="NWire" Id="1">
+				<Wire Id="0" Name="wire1" EndPointFront="49.86 34.385 62.05" EndPointBack="49.86 34.385 142.05" />
+				<Wire Id="1" Name="wire2" EndPointFront="19.86 34.385 62.05" EndPointBack="39.86 34.385 142.05" />
+				<Wire Id="2" Name="wire3" EndPointFront="9.86 34.385 62.05" EndPointBack="9.86 34.385 142.05" />
+			</Pattern>
 
 			<!-- Landmark list for registration -->
 			<Landmarks>

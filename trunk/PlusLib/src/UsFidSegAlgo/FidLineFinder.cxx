@@ -10,9 +10,13 @@
 #include <algorithm>
 #include <float.h>
 
+#include "PlusMath.h"
+
 #include "vnl/vnl_vector.h"
 #include "vnl/vnl_matrix.h"
 #include "vnl/vnl_cross.h"
+#include "vnl/algo/vnl_qr.h"
+#include "vnl/algo/vnl_svd.h"
 
 static const float DOT_STEPS  = 4.0;
 static const float DOT_RADIUS = 6.0;
@@ -67,9 +71,19 @@ void FidLineFinder::UpdateParameters()
 	// Line length of an N-wire: the maximum distance between its wires' front endpoints
 	double maxLineLengthSquared = -1.0;
 	double minLineLengthSquared = FLT_MAX;
-	std::vector<NWire> nWires = m_NWires;
+	std::vector<NWire> nWires;
 
-	for (std::vector<NWire>::iterator it = nWires.begin(); it != nWires.end(); ++it) {
+  for( int i=0 ; i< m_Patterns.size() ; i++)
+  {
+    NWire* nWire = static_cast<NWire*>(m_Patterns.at(i));
+    if(nWire)//if it is a NWire*
+    {
+      nWires.push_back(*nWire);
+    }
+  }
+
+	for (std::vector<NWire>::iterator it = nWires.begin(); it != nWires.end(); ++it) 
+  {
 		Wire wire0 = it->wires[0];
 		Wire wire1 = it->wires[1];
 		Wire wire2 = it->wires[2];
@@ -79,10 +93,12 @@ void FidLineFinder::UpdateParameters()
 		double distance12Squared = vtkMath::Distance2BetweenPoints(wire1.endPointFront, wire2.endPointFront);
 		double lineLengthSquared = std::max( std::max(distance01Squared, distance02Squared), distance12Squared );
 
-		if (maxLineLengthSquared < lineLengthSquared) {
+		if(maxLineLengthSquared < lineLengthSquared) 
+    {
 			maxLineLengthSquared = lineLengthSquared;
 		}
-		if (minLineLengthSquared > lineLengthSquared) {
+		if(minLineLengthSquared > lineLengthSquared) 
+    {
 			minLineLengthSquared = lineLengthSquared;
 		}
 	}
@@ -103,6 +119,17 @@ void FidLineFinder::ComputeParameters()
 
 	double maxAngleX = std::max(fabs(m_ImageNormalVectorInPhantomFrameMaximumRotationAngleDeg[0]),m_ImageNormalVectorInPhantomFrameMaximumRotationAngleDeg[1]);//the maximum of the rotation around the X axis
 	m_MaxLinePairDistanceErrorPercent = 1/cos(maxAngleX) - 1;*/
+
+  std::vector<NWire> nWires;
+
+  for( int i=0 ; i< m_Patterns.size() ; i++)
+  {
+    if(typeid(m_Patterns.at(i)) == typeid(NWire))//if it is a NWire
+    {
+      NWire* tempNWire = (NWire*)(&(m_Patterns.at(i)));
+      nWires.push_back(*tempNWire);
+    }
+  }
 
 	std::vector<double> thetaX, thetaY, thetaZ;
 	thetaX.push_back(GetImageNormalVectorInPhantomFrameMaximumRotationAngleDeg()[0]);
@@ -129,9 +156,9 @@ void FidLineFinder::ComputeParameters()
 
 	for( int i = 0; i<3 ;i++)
 	{
-		pointA.put(i,m_NWires[0].wires[0].endPointFront[i]);
-		pointB.put(i,m_NWires[0].wires[0].endPointBack[i]);
-		pointC.put(i,m_NWires[0].wires[1].endPointFront[i]);
+		pointA.put(i,nWires[0].wires[0].endPointFront[i]);
+		pointB.put(i,nWires[0].wires[0].endPointBack[i]);
+		pointC.put(i,nWires[0].wires[1].endPointFront[i]);
 	}
 
 	vnl_vector<double> AB(3);
@@ -340,7 +367,7 @@ PlusStatus FidLineFinder::ReadConfiguration( vtkXMLDataElement* configData )
 		double minThetaDegrees(0.0); 
 		if ( segmentationParameters->GetScalarAttribute("MinThetaDegrees", minThetaDegrees) )
 		{
-			m_MinTheta = minThetaDegrees * vtkMath::Pi() / 180.0; 
+			m_MinTheta = minThetaDegrees * vtkMath::Pi() / 180.0;
 		}
     else
     {
@@ -385,6 +412,24 @@ PlusStatus FidLineFinder::ReadConfiguration( vtkXMLDataElement* configData )
 
 //-----------------------------------------------------------------------------
 
+std::vector<NWire> FidLineFinder::GetNWires()
+{
+  std::vector<NWire> nWires;
+
+  for( int i=0 ; i< m_Patterns.size() ; i++)
+  {
+    NWire * tempNWire = (NWire*)((m_Patterns.at(i)));
+    if(tempNWire)
+    {
+      nWires.push_back(*tempNWire);
+    }
+  }
+
+  return nWires;
+}
+
+//-----------------------------------------------------------------------------
+
 void FidLineFinder::SetFrameSize(int frameSize[2])
 {
 	LOG_TRACE("FidLineFinder::SetFrameSize(" << frameSize[0] << ", " << frameSize[1] << ")");
@@ -410,85 +455,108 @@ float FidLineFinder::ComputeSlope( Dot *dot1, Dot *dot2 )
 {
 	//LOG_TRACE("FidLineFinder::ComputeSlope");
 
-  float x1 = dot1->GetX() - 1;
-	float y1 = m_FrameSize[1] - dot1->GetY();
+  float x1 = dot1->GetX();
+	float y1 = dot1->GetY();
 
-	float x2 = dot2->GetX() - 1;
-	float y2 = m_FrameSize[1] - dot2->GetY();
+	float x2 = dot2->GetX();
+	float y2 = dot2->GetY();
 
 	float y = (y2 - y1);
 	float x = (x2 - x1);
 
-	// :TODO: check if it can be simplified by using atan2 instead of atan+fabsf
+	float angle = atan2(y,x);
 
-	float t;
-	if ( fabsf(x) > fabsf(y) )
-		t = vtkMath::Pi()/2 + atan( y / x );
-	else {
-		float tanTheta = x / y;
-		if ( tanTheta > 0 )
-			t = vtkMath::Pi() - atan( tanTheta );
-		else
-			t = -atan( tanTheta );
-	}
-	assert( t >= 0 && t <= vtkMath::Pi() );
-	return t;
+	return angle;
 }
 
 //-----------------------------------------------------------------------------
 
-void FidLineFinder::ComputeLine( Line &line, std::vector<Dot> dots )
+void FidLineFinder::ComputeLine( Line &line )
 {
 	//LOG_TRACE("FidLineFinder::ComputeLine");
 
-	int ptnum[3];
-	for (int i=0; i<3; i++)
+  std::vector<int> pointNum;
+  float lineIntensity = 0;
+
+  for (int i=0; i<line.GetPoints()->size(); i++)
 	{
-		ptnum[i] = line.GetLinePoint(i);
+    pointNum.push_back(line.GetPoint(i));
+    lineIntensity += m_DotsVector[pointNum[i]].GetDotIntensity();
 	}
 
-	float t[3];
-	t[0] = ComputeSlope( &dots[ptnum[0]], &dots[ptnum[1]] );
-	t[1] = ComputeSlope( &dots[ptnum[0]], &dots[ptnum[2]] );
-	t[2] = ComputeSlope( &dots[ptnum[1]], &dots[ptnum[2]] );
+  //Computing the line origin
+  float currentDistance, minDistance = 0;
+  int originIndex = line.GetOrigin();
+  for(int i=0; i<line.GetPoints()->size(); i++)
+  {
+    if(line.GetPoint(i) != line.GetOrigin())
+    {
+      currentDistance = (m_DotsVector[line.GetPoint(i)].GetX()-m_DotsVector[line.GetOrigin()].GetX())+(m_DotsVector[line.GetPoint(i)].GetY()-m_DotsVector[line.GetOrigin()].GetY());
+      if(currentDistance < minDistance)
+      {
+        minDistance = currentDistance;
+        originIndex = line.GetPoint(i);
+      }
+    }
+  }
+  line.SetOrigin(originIndex);
 
-	while ( t[1] - t[0] > vtkMath::Pi()/2 )
-		t[1] -= vtkMath::Pi();
-	while ( t[0] - t[1] > vtkMath::Pi()/2 )
-		t[1] += vtkMath::Pi();
+  line.SetIntensity(lineIntensity);
+	line.SetLength(LineLength( line ));
 
-	while ( t[2] - t[0] > vtkMath::Pi()/2 )
-		t[2] -= vtkMath::Pi();
-	while ( t[0] - t[2] > vtkMath::Pi()/2 )
-		t[2] += vtkMath::Pi();
-		
-	float tMean = ( t[0] + t[1] + t[2] ) / 3;
+  if(line.GetPoints()->size() > 2)
+  {
+    //computing the line equation c + n1*x + n2*y = 0
+    std::vector<float> x;
+    std::vector<float> y;
 
-	while ( tMean >= vtkMath::Pi() )
-		tMean = tMean - vtkMath::Pi();
-	while ( t < 0 )
-		tMean = tMean + vtkMath::Pi();
-	
-	line.SetLineSlope(tMean);
-	line.SetLinePosition(0);
+    float n1, n2, c;
+    
+    vnl_matrix<double> A(line.GetPoints()->size(),3,1);
+  	
+	  for (int i=0; i<line.GetPoints()->size(); i++)
+	  {
+		  x.push_back(m_DotsVector[pointNum[i]].GetX());
+      y.push_back(m_DotsVector[pointNum[i]].GetY());
+      A.put(i,1,x[i]);
+      A.put(i,2,y[i]);
+	  }
 
-	float x[3];
-	float y[3];
-	float p[3];
-	
-	for (int i=0; i<3; i++)
-	{
-		x[i] = dots[ptnum[i]].GetX()  - 1;
-		y[i] = m_FrameSize[1] - dots[ptnum[i]].GetY();
-		p[i] = x[i] * cos(tMean) + y[i] * sin(tMean);
-	}
+    vnl_qr<double> QR(A);
+    vnl_matrix<double> Q = QR.Q();
+    vnl_matrix<double> R = QR.R();
 
-	float pMean = (p[0] + p[1] + p[2]) / 3;
-	line.SetLinePosition(pMean);
-	line.SetLineIntensity(dots[ptnum[0]].GetDotIntensity() + dots[ptnum[1]].GetDotIntensity() + 
-			dots[ptnum[2]].GetDotIntensity());
-	line.SetLineError(fabsf(p[0]-pMean) + fabsf(p[1]-pMean) + fabsf(p[2]-pMean));
-	line.SetLineLength(LineLength( line, dots ));
+    vnl_matrix<double> B(2,2,0);
+    B.put(0,0,R(1,1));
+    B.put(0,1,R(1,2));
+    B.put(1,1,R(2,2));
+
+    vnl_svd<double> SVD(B);
+    vnl_matrix<double> V = SVD.V();
+
+    n1 = V(0,1);
+    n2 = V(1,1);
+    c = -(n1*R(0,1)+n2*R(0,2))/R(0,0);
+
+    if(-n2 < 0 && n1 < 0)
+    {
+      line.SetDirectionVector(0,n2);//the vector (n1,n2) is orthogonal to the line, therefore (-n2,n1) is a direction vector
+      line.SetDirectionVector(1,-n1);
+    }
+    else
+    {
+      line.SetDirectionVector(0,-n2);//the vector (n1,n2) is orthogonal to the line, therefore (-n2,n1) is a direction vector
+      line.SetDirectionVector(1,n1);
+    }
+  }
+  else
+  {
+    float xdif = m_DotsVector[line.GetEndPoint()].GetX()-m_DotsVector[line.GetOrigin()].GetX();
+    float ydif = m_DotsVector[line.GetEndPoint()].GetY()-m_DotsVector[line.GetOrigin()].GetY();
+
+    line.SetDirectionVector(0, xdif);
+    line.SetDirectionVector(1, ydif);
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -504,17 +572,48 @@ float FidLineFinder::SegmentLength( Dot *d1, Dot *d2 )
 
 //-----------------------------------------------------------------------------
 
-float FidLineFinder::LineLength( Line &line, std::vector<Dot> dots )
+float FidLineFinder::LineLength( Line &line )
 {
 	//LOG_TRACE("FidLineFinder::LineLength");
+  float maxLength = -1;
+  float currentLength = -1;
+  int endPointIndex;
+  for( int i = 0; i<line.GetPoints()->size() ; i++)
+  {
+    if(line.GetOrigin() != line.GetPoint(i))
+    {
+      currentLength = SegmentLength( &m_DotsVector[line.GetOrigin()], &m_DotsVector[line.GetPoint(i)] );
+    }
+    if( currentLength > maxLength )
+    {
+      maxLength = currentLength;
+      endPointIndex = line.GetPoint(i);
+    }
+  }
+  line.SetEndPoint(endPointIndex);
 
-	float l1 = SegmentLength( &dots[line.GetLinePoint(0)], &dots[line.GetLinePoint(1)] );
-	float l2 = SegmentLength( &dots[line.GetLinePoint(0)], &dots[line.GetLinePoint(2)] );
-	float l3 = SegmentLength( &dots[line.GetLinePoint(1)], &dots[line.GetLinePoint(2)] );
+	return maxLength;
+}
 
-	if ( l2 > l1 )
-		l1 = l2;
-	return l3 > l1 ? l3 : l1;
+//-----------------------------------------------------------------------------
+
+float FidLineFinder::ComputeDistancePointLine(Dot dot, Line line)
+{     
+  double x[3], y[3], z[3];
+
+  x[0] = m_DotsVector[line.GetOrigin()].GetX();
+  x[1] = m_DotsVector[line.GetOrigin()].GetY();
+  x[2] = 0;
+
+  y[0] = m_DotsVector[line.GetEndPoint()].GetX();
+  y[1] = m_DotsVector[line.GetEndPoint()].GetY();
+  y[2] = 0;
+
+  z[0] = dot.GetX();
+  z[1] = dot.GetY();
+  z[2] = 0;
+
+  return PlusMath::ComputeDistanceLinePoint( x, y, z);
 }
 
 //-----------------------------------------------------------------------------
@@ -523,100 +622,150 @@ void FidLineFinder::FindLines2Points()
 {
 	LOG_TRACE("FidLineFinder::FindLines2Points");
 
-	for ( int b1 = 0; b1 < m_DotsVector.size(); b1++ ) {
-		float x1 = m_DotsVector[b1].GetX() - 1;
-		float y1 = m_FrameSize[1] - m_DotsVector[b1].GetY();
+  std::vector<Line> twoPointsLinesVector;
 
-		for ( int b2 = b1+1; b2 < m_DotsVector.size(); b2++ ) {
-			Line twoPointsLine;
-			twoPointsLine.GetLinePoints()->resize(2);
-			//lines2pt[nlines2pt].GetLinePoints()->resize(2);//TODO: make it more general
-			float x2 = m_DotsVector[b2].GetX() - 1;
-			float y2 = m_FrameSize[1] - m_DotsVector[b2].GetY();
+  for( int i=0 ; i<m_Patterns.size() ; i++)
+  {
+    int lineLenPx = floor(m_Patterns[i]->distanceToOriginMm[m_Patterns[i]->wires.size()-1] / m_ApproximateSpacingMmPerPixel + 0.5 );
 
-			float t = ComputeSlope( &m_DotsVector[b1], &m_DotsVector[b2] ); // get degree of slope (0 deg = parallel to -y axis)
+	  for ( int b1 = 0; b1 < m_DotsVector.size()-1; b1++ ) 
+    {
+		  for ( int b2 = b1+1; b2 < m_DotsVector.size(); b2++ ) 
+      {
+        float length = SegmentLength(&m_DotsVector[b1],&m_DotsVector[b2]);
+        bool acceptLength = fabs(length-lineLenPx) < floor(m_Patterns[i]->distanceToOriginToleranceMm[m_Patterns[i]->wires.size()-1] / m_ApproximateSpacingMmPerPixel + 0.5 );
+        
+        if(acceptLength)//to only add valid two point lines
+        {
+          float angle = ComputeSlope(&m_DotsVector[b1], &m_DotsVector[b2]);
+          bool acceptAngle = AcceptAngle(angle);
 
-			float p1 = x1 * cos(t) + y1 * sin(t);
-			float p2 = x2 * cos(t) + y2 * sin(t);
-			float p = (p1 + p2) / 2;
+          if(acceptAngle)
+          {
+			      Line twoPointsLine;
+			      twoPointsLine.GetPoints()->resize(2);
+            twoPointsLine.SetPoint(0, b1);
+			      twoPointsLine.SetPoint(1, b2);
 
-			twoPointsLine.SetLineSlope(t); 
-			twoPointsLine.SetLinePosition(p);
-			twoPointsLine.SetLinePoint(0, b1);
-			twoPointsLine.SetLinePoint(1, b2);
-			m_TwoPointsLinesVector.push_back(twoPointsLine);
-		}
-	}
+            bool duplicate = std::binary_search(twoPointsLinesVector.begin(), twoPointsLinesVector.end(),twoPointsLine, Line::compareLines);
+
+            if(!duplicate)
+            {
+              int origin = b1;
+              twoPointsLine.SetOrigin(origin);
+              ComputeLine(twoPointsLine);
+              
+			        twoPointsLinesVector.push_back(twoPointsLine);
+              std::sort(twoPointsLinesVector.begin(), twoPointsLinesVector.end(), Line::compareLines);
+            }
+          }
+        }
+		  }
+	  }
+  }
+  std::sort(twoPointsLinesVector.begin(), twoPointsLinesVector.end(), Line::lessThan);
+
+  m_LinesVector.push_back(twoPointsLinesVector);
 }
 
 //-----------------------------------------------------------------------------
 
-void FidLineFinder::FindLines3Points( )
+void FidLineFinder::FindLinesNPoints()
 {
 	/* For each point, loop over each 2-point line and try to make a 3-point
 	 * line. For the third point use the theta of the line and compute a value
 	 * for p. Accept the line if the compute p is within some small distance
 	 * of the 2-point line. */
 
-	LOG_TRACE("FidLineFinder::FindLines3Points");
+  LOG_TRACE("FidLineFinder::FindLines3Points");
+  
+  float dist = m_CollinearPointsMaxDistanceFromLineMm / m_ApproximateSpacingMmPerPixel;
+  int maxNumberOfPointsPerLine = -1;
+  
+  for( int i=0 ; i<m_Patterns.size() ; i++ )
+  {
+    if(int(m_Patterns[i]->wires.size()) > maxNumberOfPointsPerLine)
+    {
+      maxNumberOfPointsPerLine = m_Patterns[i]->wires.size();
+    }
+  }
 
-	int points[3];
-	Line currentTwoPointsLine;
-	float dist = m_CollinearPointsMaxDistanceFromLineMm / m_ApproximateSpacingMmPerPixel;
-	for ( int b3 = 0; b3 < m_DotsVector.size(); b3++ ) 
-	{
-		float x3 = m_DotsVector[b3].GetX() - 1;
-		float y3 = m_FrameSize[1] - m_DotsVector[b3].GetY();
+  for( int i=0 ; i<m_Patterns.size() ; i++)
+  {
+    for( int linesVectorIndex = 3 ; linesVectorIndex <= maxNumberOfPointsPerLine ; linesVectorIndex++ )
+    {  
+      for ( int l = 0; l < m_LinesVector[linesVectorIndex-1].size(); l++ ) 
+	    {
+        Line currentShorterPointsLine;
+		    currentShorterPointsLine = m_LinesVector[linesVectorIndex-1][l];
 
-		for ( int l = 0; l < m_TwoPointsLinesVector.size(); l++ ) 
-		{
-			currentTwoPointsLine = m_TwoPointsLinesVector[l];
-			float t = currentTwoPointsLine.GetLineSlope();
-			float p = currentTwoPointsLine.GetLinePosition();
-			int b1 = currentTwoPointsLine.GetLinePoint(0);
-			int b2 = currentTwoPointsLine.GetLinePoint(1);
+        for ( int b3 = 0; b3 < m_DotsVector.size(); b3++ ) 
+        {
+          std::vector<int> candidatesIndex;
+          bool checkDuplicateFlag = false;//assume there is no duplicate
+  			  
+          for( int previousPoints=0 ; previousPoints < currentShorterPointsLine.GetPoints()->size() ; previousPoints++ )
+          {
+            candidatesIndex.push_back(currentShorterPointsLine.GetPoint(previousPoints));
+            if(candidatesIndex[previousPoints] == b3)
+            {
+               checkDuplicateFlag = true;//the point we want to add is already a point of the line
+            }
+          }
 
-			if ( b3 != b1 && b3 != b2 ) 
-			{
-				float pb3 = x3 * cos(t) + y3 * sin(t);
-				if ( fabsf( p - pb3 ) <= dist ) {
-					//lines[nlines].SetLineSlope(0);
-					//lines[nlines].SetLinePosition(0);
-					Line line;
-					line.GetLinePoints()->resize(3);//TODO: make the resize more general
+          if(checkDuplicateFlag)
+            continue;
 
-					/* To find unique lines, each line must have a uniqe
-					 * configuration of three points. */
-					points[0] = b1;
-					points[1] = b2;
-					points[2] = b3;
-					std::sort(points,points+3);//WATCH OUT THE SORT FUNCTION HAS BEEN CHANGED TO THE STD ONE !
+          candidatesIndex.push_back(b3);                 
+          float pointToLineDistance = ComputeDistancePointLine(m_DotsVector[b3], currentShorterPointsLine);
 
-					for (int i=0; i<3; i++)
-					{
-						line.SetLinePoint(i,points[i]);
-					}					
+		      if ( pointToLineDistance <= dist ) 
+          {
+			      Line line;
 
-					if ( ! std::binary_search(m_LinesVector.begin(), m_LinesVector.end(),line, Line::compareLines) ) 
-					{
-						ComputeLine( line, m_DotsVector );
-						if ( AcceptLine( line ) ) 
-						{
-							//line.SetLineSlope(0);
-							//line.SetLinePosition(0);
-							m_LinesVector.push_back(line);
-							//UltraSoundFiducialSegmentationTools::sort<Line, Line>( lines, lines.size() );
-							// sort the lines so that lines that are already in the list can be quickly found by a binary search
-							std::sort (m_LinesVector.begin(), m_LinesVector.end(), Line::compareLines);
-							//UltraSoundFiducialSegmentationTools::BinarySearchInsert<Line, Line>( line, lines, nlines );
-						}
-					}
-				}
-			}
-		}
+			      // To find unique lines, each line must have a unique configuration of points.
+            std::sort(candidatesIndex.begin(),candidatesIndex.end());
+
+            for (int f=0; f<candidatesIndex.size(); f++)
+			      {
+              line.GetPoints()->push_back(candidatesIndex[f]);
+			      }			
+            line.SetOrigin(currentShorterPointsLine.GetOrigin());
+
+            
+            float length = SegmentLength(&m_DotsVector[currentShorterPointsLine.GetOrigin()],&m_DotsVector[b3]); 
+
+            int lineLenPx = floor(m_Patterns[i]->distanceToOriginMm[linesVectorIndex-2] / m_ApproximateSpacingMmPerPixel + 0.5 );
+            bool acceptLength = fabs(length-lineLenPx) < floor(m_Patterns[i]->distanceToOriginToleranceMm[linesVectorIndex-2] / m_ApproximateSpacingMmPerPixel + 0.5 );
+
+            if(!acceptLength)
+              continue;
+            
+            if(m_LinesVector.size() <= linesVectorIndex)
+            { 
+              std::vector<Line> emptyLine;
+              m_LinesVector.push_back(emptyLine);
+            }
+
+			      if(!std::binary_search(m_LinesVector[linesVectorIndex].begin(), m_LinesVector[linesVectorIndex].end(),line, Line::compareLines)) 
+			      {
+				      ComputeLine(line);
+				      if(AcceptLine(line))
+				      {
+					      m_LinesVector[linesVectorIndex].push_back(line);
+					      // sort the lines so that lines that are already in the list can be quickly found by a binary search
+					      std::sort (m_LinesVector[linesVectorIndex].begin(), m_LinesVector[linesVectorIndex].end(), Line::compareLines);
+				      }
+			      }
+		      }
+        }
+      }
+    }
 	}
-	
-  //std::sort (lines.begin(), lines.end(), Line::lessThan);
+  if(m_LinesVector[m_LinesVector.size()-1].empty())
+  {
+    m_LinesVector.pop_back();
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -627,8 +776,11 @@ void FidLineFinder::Clear()
 
   m_DotsVector.clear();
   m_LinesVector.clear();
-	m_TwoPointsLinesVector.clear();
   m_CandidateFidValues.clear();
+
+  std::vector<Line> emptyLine;
+  m_LinesVector.push_back(emptyLine);//initializing the 0 vector of lines (unused)
+  m_LinesVector.push_back(emptyLine);//initializing the 1 vector of lines (unused)
 }
 
 //-----------------------------------------------------------------------------
@@ -643,7 +795,7 @@ void FidLineFinder::SortRightToLeft( Line *line )
 
 	for (int i=0; i<3; i++)
 	{
-		pointsIterator[i] = m_DotsVector.begin() + line->GetLinePoint(i);
+		pointsIterator[i] = m_DotsVector.begin() + line->GetPoint(i);
 	}
 	//UltraSoundFiducialSegmentationTools::sort<std::vector<Dot>::iterator, Position>( pointsIterator, line->GetLinePoints()->size() );
 	std::sort (pointsIterator.begin(), pointsIterator.end(), Position::lessThan);
@@ -651,8 +803,42 @@ void FidLineFinder::SortRightToLeft( Line *line )
 
 	for (int i=0; i<3; i++)
 	{
-		line->SetLinePoint(i,pointsIterator[i] - m_DotsVector.begin());
+		line->SetPoint(i,pointsIterator[i] - m_DotsVector.begin());
 	}
+}
+
+//-----------------------------------------------------------------------------
+
+bool FidLineFinder::AcceptAngle( float angle )
+{
+  //LOG_TRACE("FidLineFinder::AcceptLine");
+  
+  if(angle > m_MinTheta && angle < m_MaxTheta)
+  {
+    return true;
+  }
+  if(m_MaxTheta < vtkMath::Pi()/2 && m_MinTheta > -vtkMath::Pi()/2)
+  {
+    if(angle < m_MaxTheta-vtkMath::Pi() || angle > m_MinTheta+vtkMath::Pi())
+    {
+      return true;
+    }
+  }
+  else if(m_MaxTheta > vtkMath::Pi()/2)
+  {
+    if(angle < m_MaxTheta-vtkMath::Pi() && angle > m_MinTheta-vtkMath::Pi())
+    {
+      return true;
+    }
+  }
+  else if(m_MinTheta < -vtkMath::Pi()/2)
+  {
+    if(angle < m_MaxTheta+vtkMath::Pi() && angle > m_MinTheta+vtkMath::Pi())
+    {
+      return true;
+    }
+  }
+  return false;
 }
 
 //-----------------------------------------------------------------------------
@@ -661,13 +847,12 @@ bool FidLineFinder::AcceptLine( Line &line )
 {
 	//LOG_TRACE("FidLineFinder::AcceptLine");
 
-	int maxLineLenPx = floor(m_MaxLineLenMm / m_ApproximateSpacingMmPerPixel + 0.5 );
-	int minLineLenPx = floor(m_MinLineLenMm / m_ApproximateSpacingMmPerPixel + 0.5 );
-	double maxLineErrorPx = m_MaxLineErrorMm / m_ApproximateSpacingMmPerPixel;
+	//int maxLineLenPx = floor(m_MaxLineLenMm / m_ApproximateSpacingMmPerPixel + 0.5 );
+	//int minLineLenPx = floor(m_MinLineLenMm / m_ApproximateSpacingMmPerPixel + 0.5 );
+  float angle = Line::ComputeAngle(line);
+  bool acceptAngle = AcceptAngle(angle);
 
-	if ( line.GetLineLength() <= maxLineLenPx && line.GetLineLength() >= minLineLenPx &&
-			line.GetLineError() <= maxLineErrorPx && 
-			line.GetLineSlope() >= m_MinTheta && line.GetLineSlope() <= m_MaxTheta )
+	if ( acceptAngle )
 		return true;
 	return false;
 }
@@ -682,11 +867,10 @@ void FidLineFinder::FindLines( )
 	FindLines2Points();
 
 	// Make 2-point lines and dots into 3-point lines.
-	FindLines3Points();
+	FindLinesNPoints();
 
 	// Sort by intensity.
-	//UltraSoundFiducialSegmentationTools::sort<Line, Line>( lines, lines.size() );
-	std::sort (m_LinesVector.begin(), m_LinesVector.end(), Line::lessThan);
+  std::sort (m_LinesVector[m_LinesVector.size()-1].begin(), m_LinesVector[m_LinesVector.size()-1].end(), Line::lessThan);
 }
 
 //-----------------------------------------------------------------------------

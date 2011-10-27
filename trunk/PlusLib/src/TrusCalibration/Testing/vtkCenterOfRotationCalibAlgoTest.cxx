@@ -106,7 +106,7 @@ int main(int argc, char **argv)
 
   LOG_INFO("Testing spacing computation...");
   vtkSmartPointer<vtkSpacingCalibAlgo> spacingCalibAlgo = vtkSmartPointer<vtkSpacingCalibAlgo>::New(); 
-  spacingCalibAlgo->SetInputs(trackedFrameList, patternRecognition.GetFidLabeling()->GetNWires()); 
+  spacingCalibAlgo->SetInputs(trackedFrameList, patternRecognition.GetFidLineFinder()->GetNWires()); 
 
   double spacing[2]={0}; 
   if ( spacingCalibAlgo->GetSpacing(spacing) != PLUS_SUCCESS )

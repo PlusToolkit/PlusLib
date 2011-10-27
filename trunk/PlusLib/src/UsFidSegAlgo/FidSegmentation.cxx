@@ -1028,7 +1028,7 @@ void FidSegmentation::WritePng(PixelType *modifiedImage, std::string outImageNam
 
 //-----------------------------------------------------------------------------
 
-void FidSegmentation::WritePossibleFiducialOverlayImage(std::vector<Dot> fiducials, PixelType *unalteredImage)
+void FidSegmentation::WritePossibleFiducialOverlayImage(std::vector<Dot> fiducials, PixelType *unalteredImage, int frameIndex)
 {
 	//LOG_TRACE("FidSegmentation::WritePossibleFiducialOverlayImage");
 
@@ -1071,7 +1071,7 @@ void FidSegmentation::WritePossibleFiducialOverlayImage(std::vector<Dot> fiducia
 	}
 
 	// Set pixelValue to red (it will be used to mark the centroid of the clusters)
-	for(int numDots=0; numDots<m_DotsVector.size(); numDots++)
+	for(int numDots=0; numDots<fiducials.size(); numDots++)
 	{
 		const int markerPosCount=5;
 		const int markerPos[markerPosCount][2]={{0,0}, {+1,0}, {-1,0}, {0,+1}, {0,-1}};
@@ -1090,15 +1090,105 @@ void FidSegmentation::WritePossibleFiducialOverlayImage(std::vector<Dot> fiducia
 			pixelValue[2] = 0;
 			possibleFiducials->SetPixel(pixelLocation,pixelValue); 
 		}
-	}
-	/*std::ostrstream possibleFiducialsImageFilename; 
-	possibleFiducialsImageFilename << "possibleFiducials" << std::setw(3) << std::setfill('0') << currentFrameIndex << ".bmp" << std::ends; 
-	
-	const char *test=possibleFiducialsImageFilename.str();
-	*/ 
+	} 
+	std::ostrstream possibleFiducialsImageFilename; 
+	possibleFiducialsImageFilename << "possibleFiducials" << std::setw(3) << std::setfill('0') << frameIndex << ".bmp" << std::ends; 
 
-  std::string possibleFiducialsImageFilename = std::string("possibleFiducials") + std::string(".bmp"); 
-  SetPossibleFiducialsImageFilename(possibleFiducialsImageFilename); 
+	//const char *test=possibleFiducialsImageFilename.str();
+
+  //std::string possibleFiducialsImageFilename = std::string("possibleFiducials")+ std::string(frameIndex) + std::string(".bmp"); 
+  SetPossibleFiducialsImageFilename(possibleFiducialsImageFilename.str()); 
+
+	typedef itk::ImageFileWriter< ImageType > WriterType; 
+	WriterType::Pointer writeImage = WriterType::New();  
+	writeImage->SetFileName(m_PossibleFiducialsImageFilename);  
+	// possibleFiducialsImageFilename.rdbuf()->freeze();
+
+	writeImage->SetInput( possibleFiducials );  
+		try
+	{
+		writeImage->Update(); 
+	}
+	catch (itk::ExceptionObject & err) 
+	{		
+		std::cerr << " Exception! writer did not update" << std::endl; 
+		std::cerr << err << std ::endl; 
+		//return EXIT_GENERIC_FAILURE;
+	}
+}
+
+//-----------------------------------------------------------------------------
+
+void FidSegmentation::WritePossibleFiducialOverlayImage(std::vector<std::vector<double> > fiducials, PixelType *unalteredImage, int frameIndex)
+{
+	//LOG_TRACE("FidSegmentation::WritePossibleFiducialOverlayImage");
+
+	typedef itk::RGBPixel< unsigned char >    PixelType;
+	typedef itk::Image< PixelType, 2 >   ImageType;
+
+	ImageType::Pointer possibleFiducials = ImageType::New(); 
+	
+	ImageType::SizeType size;
+	size[0] = m_FrameSize[0];
+	size[1] = m_FrameSize[1]; 
+
+	ImageType::IndexType start; 
+	start[0] = 0; 
+	start[1] = 0; 
+
+	ImageType::RegionType wholeImage; 
+	wholeImage.SetSize(size);
+	wholeImage.SetIndex(start); 
+
+	possibleFiducials->SetRegions(wholeImage); 
+	possibleFiducials->Allocate(); 
+
+	ImageType::IndexType pixelLocation={0,0};
+
+	ImageType::PixelType pixelValue; 
+
+	// copy pixel by pixel (we need to do gray->RGB conversion and only a ROI is updated)
+	for ( unsigned int r = m_RegionOfInterest[1]; r < m_RegionOfInterest[3]; r++ ) 
+	{
+		for ( unsigned int c = m_RegionOfInterest[0]; c < m_RegionOfInterest[2]; c++ ) 
+		{
+			pixelValue[0] = 0; //unalteredImage[r*cols+c];
+			pixelValue[1] = unalteredImage[r*m_FrameSize[0]+c];
+			pixelValue[2] = unalteredImage[r*m_FrameSize[0]+c];
+			pixelLocation[0]= c;
+			pixelLocation[1]= r; 
+			possibleFiducials->SetPixel(pixelLocation,pixelValue);
+		}
+	}
+
+	// Set pixelValue to red (it will be used to mark the centroid of the clusters)
+	for(int numDots=0; numDots<fiducials.size(); numDots++)
+	{
+		const int markerPosCount=5;
+		const int markerPos[markerPosCount][2]={{0,0}, {+1,0}, {-1,0}, {0,+1}, {0,-1}};
+
+		for (int i=0; i<markerPosCount; i++)
+		{
+			pixelLocation[0]= fiducials[numDots][0]+markerPos[i][0];
+			pixelLocation[1]= fiducials[numDots][1]+markerPos[i][1]; 
+      int clusterMarkerIntensity=255;
+			if (clusterMarkerIntensity>255)
+			{
+				clusterMarkerIntensity=255;
+			}
+			pixelValue[0] = clusterMarkerIntensity;
+			pixelValue[1] = 0;
+			pixelValue[2] = 0;
+			possibleFiducials->SetPixel(pixelLocation,pixelValue); 
+		}
+	} 
+	std::ostrstream possibleFiducialsImageFilename; 
+	possibleFiducialsImageFilename << "possibleFiducials" << std::setw(3) << std::setfill('0') << frameIndex << ".bmp" << std::ends; 
+
+	//const char *test=possibleFiducialsImageFilename.str();
+
+  //std::string possibleFiducialsImageFilename = std::string("possibleFiducials")+ std::string(frameIndex) + std::string(".bmp"); 
+  SetPossibleFiducialsImageFilename(possibleFiducialsImageFilename.str()); 
 
 	typedef itk::ImageFileWriter< ImageType > WriterType; 
 	WriterType::Pointer writeImage = WriterType::New();  
@@ -1159,9 +1249,7 @@ void FidSegmentation::Suppress( PixelType *image, float percent_thresh )
     pix++;
 	}
 
-	// Thomas Kuiran Chen
-	// NOTE: round/roundf are not ANSI C++ math functions. 
-	//       We use floor to calculate the round value here.
+	//We use floor to calculate the round value here.
 	
 	PixelType thresh = min+(PixelType)floor( (float)(max-min) * percent_thresh + 0.5 );
 
@@ -1256,7 +1344,8 @@ void FidSegmentation::Cluster()
 
 				m_Working[r*m_FrameSize[0]+c] = 0;
 
-        while ( testPosition.size() > 0 ) {
+        while ( testPosition.size() > 0 ) 
+        {
           Position pos=testPosition.back();
           testPosition.pop_back();
 
@@ -1273,7 +1362,8 @@ void FidSegmentation::Cluster()
 				}
 
 				float dest_r = 0, dest_c = 0, total = 0;
-        for ( int p = 0; p < setPosition.size(); p++ ) {
+        for ( int p = 0; p < setPosition.size(); p++ ) 
+        {
 					float amount = (float)valuesOfPosition[p] / (float)UCHAR_MAX;
 					dest_r += setPosition[p].GetY() * amount;
 					dest_c += setPosition[p].GetX() * amount;
@@ -1284,14 +1374,15 @@ void FidSegmentation::Cluster()
 				dot.SetX(dest_c / total);
 				dot.SetDotIntensity(total);
 
-				if ( AcceptDot( dot ) )
+				if ( AcceptDot(dot) )
 				{
 					if (m_UseOriginalImageIntensityForDotIntensityScore)
 					{
 						// Take into account intensities that are close to the dot center
 						const double dotRadius2=3.0*3.0;
 						float dest_r = 0, dest_c = 0, total = 0;
-						for ( int p = 0; p < setPosition.size(); p++ ) {
+						for ( int p = 0; p < setPosition.size(); p++ ) 
+            {
 							if ( (setPosition[p].GetY()-dot.GetY())*(setPosition[p].GetY()-dot.GetY())+(setPosition[p].GetX()-dot.GetX())*(setPosition[p].GetX()-dot.GetX())<=dotRadius2)
 							{
 								//float amount = (float)vals[p] / (float)UCHAR_MAX;
@@ -1310,152 +1401,7 @@ void FidSegmentation::Cluster()
 		}
 	}
 
-	//UltraSoundFidSegmentationTools::sort<Dot, Dot>( dots, dots.size() );
-	std::sort (m_DotsVector.begin(), m_DotsVector.end(), Dot::lessThan);
-}
-
-//-----------------------------------------------------------------------------
-
-std::vector<std::vector<double>> FidSegmentation::SortInAscendingOrder(std::vector<std::vector<double>> fiducials) 
-{
-	//LOG_TRACE("FidSegmentation::SortInAscendingOrder");
-
-	std::vector<std::vector<double>> sortedFiducials; 
-
-	if( fiducials[0][0] < fiducials[1][0] )
-	{
-		if( fiducials[2][0] > fiducials[1][0] )
-		{
-			// pattern: X1 < X2 < X3
-			std::vector<double> N1 = fiducials[0];
-			std::vector<double> N2 = fiducials[1];
-			std::vector<double> N3 = fiducials[2];
-			sortedFiducials.push_back( N3 );
-			sortedFiducials.push_back( N2 );
-			sortedFiducials.push_back( N1 );
-		}
-		else if ( fiducials[2][0] < fiducials[1][0] )
-		{
-			// pattern: X3 < X1 < X2
-			std::vector<double> N1 =  fiducials[2];
-			std::vector<double> N2 =  fiducials[0];
-			std::vector<double> N3 =  fiducials[1];
-			sortedFiducials.push_back( N3 );
-			sortedFiducials.push_back( N2 );
-			sortedFiducials.push_back( N1 );
-		}
-		else
-		{
-			// pattern: X1 < X3 < X2
-			std::vector<double> N1 =  fiducials[0];
-			std::vector<double> N2 =  fiducials[2];
-			std::vector<double> N3 =  fiducials[1];
-			sortedFiducials.push_back( N3 );
-			sortedFiducials.push_back( N2 );
-			sortedFiducials.push_back( N1 );
-		}
-	}
-	else	// X1 >= X2
-	{
-		if( fiducials[2][0] < fiducials[1][0] )
-		{
-			// pattern: X3 < X2 < X1
-			std::vector<double> N1 =  fiducials[2];
-			std::vector<double> N2 =  fiducials[1];
-			std::vector<double> N3 =  fiducials[0];
-			sortedFiducials.push_back( N3 );
-			sortedFiducials.push_back( N2 );
-			sortedFiducials.push_back( N1 );
-		}
-		else if ( fiducials[2][0] > fiducials[0][0] )
-		{
-			// pattern: X2 < X1 < X3
-			std::vector<double> N1 =  fiducials[1];
-			std::vector<double> N2 =  fiducials[0];
-			std::vector<double> N3 =  fiducials[2];
-			sortedFiducials.push_back( N3 );
-			sortedFiducials.push_back( N2 );
-			sortedFiducials.push_back( N1 );
-		}
-		else
-		{
-			// pattern: X2 < X3 < X1
-			std::vector<double> N1 =  fiducials[1];
-			std::vector<double> N2 =  fiducials[2];
-			std::vector<double> N3 =  fiducials[0];
-			sortedFiducials.push_back( N3 );
-			sortedFiducials.push_back( N2 );
-			sortedFiducials.push_back( N1 );
-		}	
-	}
-
-	if( fiducials[3][0] < fiducials[4][0] )
-	{
-		if( fiducials[5][0] > fiducials[4][0] )
-		{
-			// pattern: X1 < X2 < X3
-			std::vector<double> N1 =  fiducials[3];
-			std::vector<double> N2 =  fiducials[4];
-			std::vector<double> N3 =  fiducials[5];
-			sortedFiducials.push_back( N3 );
-			sortedFiducials.push_back( N2 );
-			sortedFiducials.push_back( N1 );
-		}
-		else if ( fiducials[5][0] < fiducials[4][0] )
-		{
-			// pattern: X3 < X1 < X2
-			std::vector<double> N1 =  fiducials[5];
-			std::vector<double> N2 =  fiducials[3];
-			std::vector<double> N3 =  fiducials[4];
-			sortedFiducials.push_back( N3 );
-			sortedFiducials.push_back( N2 );
-			sortedFiducials.push_back( N1 );
-		}
-		else
-		{
-			// pattern: X1 < X3 < X2
-			std::vector<double> N1 =  fiducials[3];
-			std::vector<double> N2 =  fiducials[5];
-			std::vector<double> N3 =  fiducials[4];
-			sortedFiducials.push_back( N3 );
-			sortedFiducials.push_back( N2 );
-			sortedFiducials.push_back( N1 );
-		}
-	}
-	else	// X1 >= X2
-	{
-		if( fiducials[5][0] < fiducials[4][0] )
-		{
-			// pattern: X3 < X2 < X1
-			std::vector<double> N1 =  fiducials[5];
-			std::vector<double> N2 =  fiducials[4];
-			std::vector<double> N3 =  fiducials[3];
-			sortedFiducials.push_back( N3 );
-			sortedFiducials.push_back( N2 );
-			sortedFiducials.push_back( N1 );
-		}
-		else if ( fiducials[5][0] > fiducials[3][0] )
-		{
-			// pattern: X2 < X1 < X3
-			std::vector<double> N1 =  fiducials[4];
-			std::vector<double> N2 =  fiducials[3];
-			std::vector<double> N3 =  fiducials[5];
-			sortedFiducials.push_back( N3 );
-			sortedFiducials.push_back( N2 );
-			sortedFiducials.push_back( N1 );
-		}
-		else
-		{
-			// pattern: X2 < X3 < X1
-			std::vector<double> N1 =  fiducials[4];
-			std::vector<double> N2 =  fiducials[5];
-			std::vector<double> N3 =  fiducials[3];
-			sortedFiducials.push_back( N3 );
-			sortedFiducials.push_back( N2 );
-			sortedFiducials.push_back( N1 );
-		}
-	}
-	return sortedFiducials;
+	std::sort(m_DotsVector.begin(), m_DotsVector.end(), Dot::lessThan);
 }
 
 //-----------------------------------------------------------------------------

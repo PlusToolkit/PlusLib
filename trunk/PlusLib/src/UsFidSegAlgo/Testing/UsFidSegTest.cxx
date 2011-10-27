@@ -209,12 +209,12 @@ int CompareSegmentationResults(const std::string& inputBaselineFileName, const s
 		int currentSegmentationSuccess=0;
 		if (!outputElementBaseline->GetScalarAttribute("SegmentationSuccess", baselineSegmentationSuccess))
 		{
-			LOG_ERROR("newly generated segmentation angle is missing");
+			LOG_ERROR("baseline segmentation success is missing");
 			numberOfFailures++;			
 		}
 		if (!outputElementCurrent->GetScalarAttribute("SegmentationSuccess", currentSegmentationSuccess))
 		{
-			LOG_ERROR("newly generated segmentation angle is missing");
+			LOG_ERROR("current segmentation success is missing");
 			numberOfFailures++;			
 		}
 		
@@ -271,27 +271,6 @@ int CompareSegmentationResults(const std::string& inputBaselineFileName, const s
 		{
 			// the current segmentation was not successful, so we cannot do any more comparison
 			continue;
-		}
-
-		double baselineAngle = 0; 
-		double testingElementAngle=0;
-		if(!outputElementBaseline->GetScalarAttribute("SegmentationQualityInAngleScore", baselineAngle))
-		{
-			LOG_ERROR("Cannot access baseline angle");
-			numberOfFailures++;
-		}
-		else if (!outputElementCurrent->GetScalarAttribute("SegmentationQualityInAngleScore", testingElementAngle))
-		{
-			LOG_ERROR("newly generated segmentation angle is missing");
-			numberOfFailures++;			
-		}
-		else
-		{
-			if(fabs(baselineAngle-testingElementAngle)>FIDUCIAL_POSITION_TOLERANCE)
-			{
-				LOG_ERROR("Angle mismatch: current="<<testingElementAngle<<", baseline="<<baselineAngle); 
-				numberOfFailures++;
-			}
 		}
 
 		double baselineIntensity = 0;
@@ -360,6 +339,7 @@ int CompareSegmentationResults(const std::string& inputBaselineFileName, const s
 
 		else
 		{
+      //LOG_ERROR("Coordinate mismatch on frame: "<<nestedElemInd);
 			for(int traverseFiducials=0; traverseFiducials<fidCount; ++traverseFiducials)
 			{
 				if(fabs(fiducialPositions[traverseFiducials]-baselineFiducialPoints[traverseFiducials])>FIDUCIAL_POSITION_TOLERANCE)
@@ -371,6 +351,8 @@ int CompareSegmentationResults(const std::string& inputBaselineFileName, const s
 		}		
 	
 	}
+
+  std::cout<<numberOfFailures<<std::endl;
 
 	baselineRootElem->Delete();
 	currentRootElem->Delete();
@@ -448,7 +430,14 @@ int main(int argc, char **argv)
   }
 
 	std::ofstream outFile; 
-	outFile.open(outputTestResultsFileName.c_str());	
+  outFile.open(outputTestResultsFileName.c_str(), ios::trunc);	
+
+  if ( ! outFile.is_open() )
+  {
+    LOG_ERROR("Failed to open file: " << outputTestResultsFileName ); 
+    return EXIT_FAILURE; 
+  }
+
 	UsFidSegResultFile::WriteSegmentationResultsHeader(outFile);
   UsFidSegResultFile::WriteSegmentationResultsParameters(outFile, *(patternRecognition), "");
 

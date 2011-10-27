@@ -35,6 +35,8 @@ class FidPatternRecognition
     void              DrawPair(PixelType* image, std::vector<LinePair>::iterator pairIterator);
     void              DrawResults(PixelType* image);
 
+    PlusStatus        ComputeNWireIntersections();
+
     FidSegmentation*	GetFidSegmentation() { return	& m_FidSegmentation; };
     FidLineFinder*		GetFidLineFinder() { return & m_FidLineFinder; };
     FidLabeling* 		  GetFidLabeling() { return & m_FidLabeling; };
@@ -48,6 +50,8 @@ class FidPatternRecognition
 		FidSegmentation		m_FidSegmentation;
 		FidLineFinder			m_FidLineFinder;
 		FidLabeling 			m_FidLabeling;
+
+    int               m_CurrentFrame;
 
 };
 

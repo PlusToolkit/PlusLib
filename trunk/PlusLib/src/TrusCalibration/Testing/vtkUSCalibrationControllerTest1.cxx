@@ -98,7 +98,7 @@ int main (int argc, char* argv[])
 
   LOG_INFO("Starting spacing calibration...");
   vtkSmartPointer<vtkSpacingCalibAlgo> spacingCalibAlgo = vtkSmartPointer<vtkSpacingCalibAlgo>::New(); 
-  spacingCalibAlgo->SetInputs(probeRotationTrackedFrameList, patternRecognition.GetFidLabeling()->GetNWires()); 
+  spacingCalibAlgo->SetInputs(probeRotationTrackedFrameList, patternRecognition.GetFidLineFinder()->GetNWires()); 
 
   double spacing[2]={0};
   if ( spacingCalibAlgo->GetSpacing(spacing) != PLUS_SUCCESS )
@@ -145,7 +145,7 @@ int main (int argc, char* argv[])
   vtkTransform* tTemplateHolderToPhantom = probeCal->GetTransformTemplateHolderToPhantom(); 
 
   vtkSmartPointer<vtkBrachyStepperPhantomRegistrationAlgo> phantomRegistrationAlgo = vtkSmartPointer<vtkBrachyStepperPhantomRegistrationAlgo>::New(); 
-  phantomRegistrationAlgo->SetInputs(probeRotationTrackedFrameList, spacing, centerOfRotationPx, patternRecognition.GetFidLabeling()->GetNWires()); 
+  phantomRegistrationAlgo->SetInputs(probeRotationTrackedFrameList, spacing, centerOfRotationPx, patternRecognition.GetFidLineFinder()->GetNWires()); 
   phantomRegistrationAlgo->SetTransformTemplateHolderToPhantom( tTemplateHolderToPhantom ); 
 
   vtkSmartPointer<vtkTransform> tPhantomToReference = vtkSmartPointer<vtkTransform>::New(); 

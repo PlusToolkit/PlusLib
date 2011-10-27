@@ -168,12 +168,6 @@ PlusStatus vtkCalibrationController::Initialize()
 
   this->ResetDataContainers(); 
 
-  // Initialize the calibration component
-  if (ComputeNWireInstersections() != PLUS_SUCCESS) {
-    LOG_ERROR("Computing intersections of NWire wires failed!");
-    return PLUS_FAIL;
-  }
-
 	// This will pass the US 3D beamwidth data and their predefined
 	// weights to the calibration component.
 	if( this->US3DBeamwidthDataReady )
@@ -1172,87 +1166,6 @@ std::string vtkCalibrationController::GetResultString()
 	resultStringStream << "  " << this->PointLineDistanceErrorAnalysisVector[3];
 
 	return resultStringStream.str();
-}
-
-//-----------------------------------------------------------------------------
-
-PlusStatus vtkCalibrationController::ComputeNWireInstersections()
-{
-	LOG_TRACE("vtkCalibrationController::ComputeNWireInstersections");
-
-	double alphaTopLayerFrontWall = -1.0;
-	double alphaTopLayerBackWall = -1.0;
-	double alphaBottomLayerFrontWall = -1.0;
-	double alphaBottomLayerBackWall = -1.0;
-
-	// Read input NWires and convert them to vnl vectors to easier processing
-	LOG_DEBUG("Endpoints of wires = ");
-
-  std::vector<NWire> nWires = this->PatternRecognition.GetFidLineFinder()->GetNWires();
-	// List endpoints, check wire ids and NWire geometry correctness (wire order and locations) and compute intersections
-	for (std::vector<NWire>::iterator it = nWires.begin(); it != nWires.end(); ++it) {
-		int layer = it->wires[0].id / 3;
-		int sumLayer = 0;
-
-		for (int i=0; i<3; ++i) {
-			vnl_vector<double> endPointFront(3);
-			vnl_vector<double> endPointBack(3);
-
-			sumLayer += it->wires[i].id;
-		
-			for (int j=0; j<3; ++j) {
-				endPointFront[j] = it->wires[i].endPointFront[j];
-				endPointBack[j] = it->wires[i].endPointBack[j];
-			}
-
-			LOG_DEBUG("\t Front endpoint of wire " << i << " on layer " << layer << " = " << endPointFront);
-			LOG_DEBUG("\t Back endpoint of wire " << i << " on layer " << layer << " = " << endPointBack);
-		}
-
-		if (sumLayer != layer * 9 + 6) {
-			LOG_ERROR("Invalid NWire IDs (" << it->wires[0].id << ", " << it->wires[1].id << ", " << it->wires[2].id << ")!");
-			return PLUS_FAIL;
-		}
-
-		// Check if the middle wire is the diagonal (the other two are parallel to each other and the first and the second, and the second and the third intersect)
-		double wire1[3];
-		double wire3[3];
-		double cross[3];
-		if ((it->GetWireById(1) == NULL) || (it->GetWireById(3) == NULL)) {
-			LOG_ERROR("No first or third wire found!");
-			return PLUS_FAIL;
-		}
-		vtkMath::Subtract(it->GetWireById(1)->endPointFront, it->GetWireById(1)->endPointBack, wire1);
-		vtkMath::Subtract(it->GetWireById(3)->endPointFront, it->GetWireById(3)->endPointBack, wire3);
-		vtkMath::Cross(wire1, wire3, cross);
-		if (vtkMath::Norm(cross) > 0.001) {
-			LOG_ERROR("The first and third wire of layer " << layer << " are not parallel!");
-			return PLUS_FAIL;
-		}
-		double closestTemp[3];
-		double parametricCoord1, parametricCoord2;
-		if (vtkLine::DistanceBetweenLines(it->wires[0].endPointFront, it->wires[0].endPointBack, it->wires[1].endPointFront, it->wires[1].endPointBack, it->intersectPosW12, closestTemp, parametricCoord1, parametricCoord2) > 0.000001) {
-			LOG_ERROR("The first and second wire of layer " << layer << " do not intersect each other!");
-			return PLUS_FAIL;
-		}
-		if (vtkLine::DistanceBetweenLines(it->wires[2].endPointFront, it->wires[2].endPointBack, it->wires[1].endPointFront, it->wires[1].endPointBack, it->intersectPosW32, closestTemp, parametricCoord1, parametricCoord2) > 0.000001) {
-			LOG_ERROR("The second and third wire of layer " << layer << " do not intersect each other!");
-			return PLUS_FAIL;
-		}
-	}
-
-	// Log the data pipeline if requested.
-	int layer;
-	std::vector<NWire>::iterator it;
-	for (it = nWires.begin(), layer = 0; it != nWires.end(); ++it, ++layer) {
-		LOG_DEBUG("\t Intersection of wire 1 and 2 in layer " << layer << " \t= (" << it->intersectPosW12[0] << ", " << it->intersectPosW12[1] << ", " << it->intersectPosW12[2] << ")");
-		LOG_DEBUG("\t Intersection of wire 3 and 2 in layer " << layer << " \t= (" << it->intersectPosW32[0] << ", " << it->intersectPosW32[1] << ", " << it->intersectPosW32[2] << ")");
-	}
-
-  this->PatternRecognition.GetFidLineFinder()->SetNWires(nWires);
-  this->PatternRecognition.GetFidLabeling()->SetNWires(nWires); // TODO there should be only one NWires in the memory
-
-	return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
