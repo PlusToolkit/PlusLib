@@ -29,26 +29,6 @@ class vtkHTMLGenerator;
 class vtkGnuplotExecuter; 
 
 /*!
-  \class SegmentedFrame 
-  \brief Helper class for storing segmentation results with transformation  
-  \ingroup PlusLibCalibrationAlgorithm
-*/
-class SegmentedFrame
-{
-public: 
-	SegmentedFrame()
-	{
-		this->TrackedFrameInfo = NULL; 
-		DataType = TEMPLATE_TRANSLATION;
-	}
-
-	TrackedFrame* TrackedFrameInfo; 
-	PatternRecognitionResult SegResults;
-	IMAGE_DATA_TYPE DataType; 
-};
-
-
-/*!
   \class vtkCalibrationController 
   \brief Probe calibration algorithm class
   \ingroup PlusLibCalibrationAlgorithm
@@ -58,16 +38,6 @@ class vtkCalibrationController : public vtkObject
 public:
 	typedef unsigned char PixelType;
 	typedef itk::Image< PixelType, 2 > ImageType;
-	typedef std::deque<SegmentedFrame> SegmentedFrameList;
-
-	/*! Helper structure for storing image dataset info */
-	struct ImageDataInfo
-	{
-		std::string OutputSequenceMetaFileSuffix;
-    std::string InputSequenceMetaFileName;
-		int NumberOfImagesToAcquire; 
-		int NumberOfSegmentedImages; 
-	};
 
 	static vtkCalibrationController *New();
 	vtkTypeRevisionMacro(vtkCalibrationController, vtkObject);
@@ -115,9 +85,6 @@ public:
     \param isValidation Flag whether the added data is for calibration or validation
   */
 	virtual PlusStatus AddPositionsPerImage( TrackedFrame* trackedFrame, const char* defaultTransformName, bool isValidation );
-
-	/*! Returns the list of tracked frames of the selected data type */
-	virtual vtkTrackedFrameList* GetTrackedFrameList( IMAGE_DATA_TYPE dataType ); 
 	
 	vtkGetObjectMacro(PhantomToReferenceTransform, vtkTransform);
 	vtkSetObjectMacro(PhantomToReferenceTransform, vtkTransform);
@@ -153,20 +120,6 @@ public:
   FidPatternRecognition * GetPatternRecognition() { return & this->PatternRecognition; };
   /*! Get the fiducial pattern recognition master object */
   void SetPatternRecognition( FidPatternRecognition value) { PatternRecognition = value; };
-
-  /*! Get the fiducial pattern recognition master object */
-  PatternRecognitionResult * GetPatRecognitionResult() { return & this->PatRecognitionResult; };
-  /*! Get the fiducial pattern recognition master object */
-  void SetPatRecognitionResult( PatternRecognitionResult value) { PatRecognitionResult = value; };
-
-	/*! Get the saved image data info */
-	ImageDataInfo GetImageDataInfo( IMAGE_DATA_TYPE dataType ) { return this->ImageDataInfoContainer[dataType]; }
-  /*! Set the saved image data info */
-	virtual void SetImageDataInfo( IMAGE_DATA_TYPE dataType, ImageDataInfo imageDataInfo ) { this->ImageDataInfoContainer[dataType] = imageDataInfo; }
-	
-	/*! Callback function that is executed each time a segmentation is finished */
-	typedef void (*SegmentationProgressPtr)(int percent);
-  void SetSegmentationProgressCallbackFunction(SegmentationProgressPtr cb) { SegmentationProgressCallbackFunction = cb; } 
 
   /*! Reset data containers */
   void ResetDataContainers();
@@ -204,12 +157,6 @@ public: // Former ProbeCalibrationController and FreehandCalibraitonController f
 	  NOTE: this matrix can be obtained for statistical analysis if desired. 
   */
 	vnl_matrix<double> GetLineReconstructionErrorMatrix(int wireNumber);
-
-	/*!
-	  Reset calibration - clear objects that are used during calibration
-    \return Success flag
-	*/
-  PlusStatus ResetFreehandCalibration();
 
   /*!
 	  Assembles the result string to display
@@ -284,11 +231,6 @@ public: // Former ProbeCalibrationController and FreehandCalibraitonController f
   /*! US 3D beam profile name and path */
 	vtkSetStringMacro(US3DBeamProfileDataFileNameAndPath); 
 
-	/*! Suffix of the calibration result file */
-	vtkGetStringMacro(CalibrationResultFileSuffix);
-  /*! Suffix of the calibration result file */
-	vtkSetStringMacro(CalibrationResultFileSuffix);
-
 	/*! Get/set final calibration transform */
 	vtkGetObjectMacro(TransformImageToTemplate, vtkTransform);
   /*! Get/set final calibration transform */
@@ -344,9 +286,6 @@ protected:
 	virtual ~vtkCalibrationController();
 
 protected:
-	/*! Read CalibrationController data element */
-	virtual PlusStatus ReadCalibrationControllerConfiguration(vtkXMLDataElement* rootElement); 
-
 	/*! Feed and tun the LSQR minimizer with the acquired and computed positions and conputes reconstruction errors */
 	PlusStatus DoCalibration(); 
 
@@ -419,20 +358,8 @@ protected:
   /*! Calibration date and time in string format for file names */
   char* CalibrationTimestamp; 
 
-  /*! Pointer to the callback function that is executed each time a segmentation is finished */
-  SegmentationProgressPtr SegmentationProgressCallbackFunction;
-
-	/*! Stores the tracked frames for each data type */
-	std::vector<vtkTrackedFrameList*> TrackedFrameListContainer;
-
-	/*! Stores dataset information */
-	std::vector<ImageDataInfo> ImageDataInfoContainer; 
-
   /*! Stores the fiducial pattern recognition master object */
   FidPatternRecognition PatternRecognition;
-
-  /*! Stores the segmentation results of a single frame */
-  PatternRecognitionResult PatRecognitionResult;
 
 protected: // Former ProbeCalibrationController and FreehandCalibrationController members
 
@@ -482,10 +409,7 @@ protected: // Former ProbeCalibrationController and FreehandCalibrationControlle
 
 	/*! US 3D beam profile name and path */
 	char* US3DBeamProfileDataFileNameAndPath;
-	
-	/*! Suffix of the calibration result file */
-	char* CalibrationResultFileSuffix; 
-			
+				
 	/*!
     Minimum US elevation beamwidth and the focal zone in US Image Frame
 	   1. For a typical 1-D linear-array transducer, the ultrasound beam can only be 

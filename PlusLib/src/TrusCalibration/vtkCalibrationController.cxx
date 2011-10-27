@@ -45,8 +45,7 @@ void vtkCalibrationController::PrintSelf(ostream& os, vtkIndent indent)
 
 //----------------------------------------------------------------------------
 vtkCalibrationController::vtkCalibrationController() 
-  : SegmentationProgressCallbackFunction(NULL)
-  , MinElevationBeamwidthAndFocalZoneInUSImageFrame(2,0)
+  : MinElevationBeamwidthAndFocalZoneInUSImageFrame(2,0)
 {
   this->EnableSegmentationAnalysisOff();
   this->InitializedOff(); 
@@ -54,20 +53,6 @@ vtkCalibrationController::vtkCalibrationController()
 
   this->CalibrationDate = NULL; 
   this->CalibrationTimestamp = NULL; 
-  
-	for ( int i = 0; i < NUMBER_OF_IMAGE_DATA_TYPES; i++ )
-	{
-		vtkTrackedFrameList *trackedFrameList = vtkTrackedFrameList::New();
-    trackedFrameList->SetDefaultFrameTransformName("Probe"); // TODO change this when plus#310 and plus#311 are done (it will come from the config file)
-		this->TrackedFrameListContainer.push_back(trackedFrameList); 
-
-		ImageDataInfo imageDataInfo; 
-		imageDataInfo.NumberOfImagesToAcquire = 0; 
-		imageDataInfo.NumberOfSegmentedImages = 0; 
-		imageDataInfo.OutputSequenceMetaFileSuffix.clear(); 
-    imageDataInfo.InputSequenceMetaFileName.clear(); 
-		ImageDataInfoContainer.push_back(imageDataInfo); 
-	}
 
 	this->US3DBeamwidthDataReadyOff();
   this->NumUS3DBeamwidthProfileData = -1;
@@ -85,7 +70,6 @@ vtkCalibrationController::vtkCalibrationController()
 	this->US3DBeamProfileDataFileNameAndPath = NULL; 
 	this->SegmentationAnalysisFileNameWithTimeStamp = NULL; 
 	this->SegmentationErrorLogFileNameWithTimeStamp = NULL;
-	this->CalibrationResultFileSuffix = NULL;
 	
 	vtkSmartPointer<vtkTransform> transformProbeToReference = vtkSmartPointer<vtkTransform>::New(); 
 	this->TransformProbeToReference = NULL;
@@ -160,15 +144,6 @@ vtkCalibrationController::vtkCalibrationController()
 //----------------------------------------------------------------------------
 vtkCalibrationController::~vtkCalibrationController() 
 {
-	for ( int i = 0; i < NUMBER_OF_IMAGE_DATA_TYPES; i++ )
-	{
-		if ( this->TrackedFrameListContainer[i] != NULL )
-		{
-			this->TrackedFrameListContainer[i]->Delete();  
-			this->TrackedFrameListContainer[i] = NULL; 
-		}
-	}
-
   // Former ProbeCalibrationController and FreehandCalibraitonController members
 	this->SetTransformImageToTemplate(NULL);
 	this->SetTransformImageToUserImage(NULL);
@@ -493,13 +468,6 @@ PlusStatus vtkCalibrationController::AddPositionsPerImage( TrackedFrame* tracked
 }
 
 //----------------------------------------------------------------------------
-vtkTrackedFrameList* vtkCalibrationController::GetTrackedFrameList( IMAGE_DATA_TYPE dataType )
-{
-	LOG_TRACE("vtkCalibrationController::GetTrackedFrameList"); 
-	return this->TrackedFrameListContainer[dataType]; 
-}
-
-//----------------------------------------------------------------------------
 PlusStatus vtkCalibrationController::ReadConfiguration( vtkXMLDataElement* configData )
 {
 	LOG_TRACE("vtkCalibrationController::ReadConfiguration"); 
@@ -512,71 +480,7 @@ PlusStatus vtkCalibrationController::ReadConfiguration( vtkXMLDataElement* confi
   // Setting the fiducial pattern recognition
   this->PatternRecognition.ReadConfiguration(configData);
 
-	// Tracked frame specifications
-	//********************************************************************
-  std::vector<vtkTrackedFrameList*>::iterator it;
-  for (it = this->TrackedFrameListContainer.begin(); it != this->TrackedFrameListContainer.end(); ++it)
-  {
-	  if ((*it)->ReadConfiguration(configData) != PLUS_SUCCESS)
-	  {
-      LOG_ERROR("TrackedFrameList configuration cannot be read!");
-	    return PLUS_FAIL;
-	  }
-  }
-
-	// Calibration controller specifications
-	//********************************************************************
-	if (this->ReadCalibrationControllerConfiguration(configData) != PLUS_SUCCESS)
-  {
-    return PLUS_FAIL;
-  }
-
   return PLUS_SUCCESS;
-}
-
-//----------------------------------------------------------------------------
-PlusStatus vtkCalibrationController::ReadCalibrationControllerConfiguration( vtkXMLDataElement* rootElement )
-{
-	LOG_TRACE("vtkCalibrationController::ReadCalibrationControllerConfiguration"); 
-
-  if ( rootElement == NULL) 
-	{
-		LOG_WARNING("Invalid root XML configuration data element!"); 
-		return PLUS_FAIL; 
-	}
-
-	vtkSmartPointer<vtkXMLDataElement> usCalibration = rootElement->FindNestedElementWithName("USCalibration");
-	if (usCalibration == NULL)
-  {
-    LOG_ERROR("Cannot find USCalibration element in XML tree!");
-    return PLUS_FAIL;
-	}
-
-  vtkSmartPointer<vtkXMLDataElement> calibrationController = usCalibration->FindNestedElementWithName("CalibrationController"); 
-	if (calibrationController == NULL)
-  {
-    LOG_ERROR("Cannot find CalibrationController element in XML tree!");
-    return PLUS_FAIL;
-  }
-
-	// Path to output calibration results
-	const char* outputPath = calibrationController->GetAttribute("OutputPath"); 
-	if ( outputPath != NULL) 
-	{
-    std::string fullOutputPath = vtksys::SystemTools::CollapseFullPath(outputPath, vtkPlusConfig::GetInstance()->GetProgramDirectory()); 
-		vtkSmartPointer<vtkDirectory> dir = vtkSmartPointer<vtkDirectory>::New(); 
-		if ( dir->Open(fullOutputPath.c_str()) == 0 ) 
-		{	
-			dir->MakeDirectory(fullOutputPath.c_str()); 
-		}
-    vtkPlusConfig::GetInstance()->SetOutputDirectory(fullOutputPath.c_str()); 
-	}
-	else
-	{
-		// Set to the current working directory
-		vtkPlusConfig::GetInstance()->SetOutputDirectory(vtksys::SystemTools::GetCurrentWorkingDirectory().c_str()); 
-	}
-	return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
@@ -617,61 +521,6 @@ PlusStatus vtkCalibrationController::ReadProbeCalibrationConfiguration( vtkXMLDa
 	if ( probeCalibration->GetVectorAttribute("TransformImageToUserImage", 16, imageToUserImageTransform) )
 	{
 		this->TransformImageToUserImage->SetMatrix(imageToUserImageTransform); 
-	}
-
-	// Sets the suffix of the calibration result file
-	const char* calibrationResultFileSuffix = probeCalibration->GetAttribute("CalibrationResultFileSuffix"); 
-	if ( calibrationResultFileSuffix != NULL) 
-	{
-		this->SetCalibrationResultFileSuffix(calibrationResultFileSuffix); 
-	}
-	else 
-	{
-		this->SetCalibrationResultFileSuffix(".Calibration.results"); 
-	}
-
-  // RandomStepperMotionData1 data set specifications
-	vtkSmartPointer<vtkXMLDataElement> randomStepperMotionData1 = probeCalibration->FindNestedElementWithName("RandomStepperMotionData1"); 
-	if ( randomStepperMotionData1 != NULL) 
-	{
-		int numberOfImagesToUse = -1;
-		if ( randomStepperMotionData1->GetScalarAttribute("NumberOfImagesToAcquire", numberOfImagesToUse) ) 
-		{
-			this->ImageDataInfoContainer[RANDOM_STEPPER_MOTION_1].NumberOfImagesToAcquire = numberOfImagesToUse; 
-		}
-
-		const char* sequenceMetaFile = randomStepperMotionData1->GetAttribute("OutputSequenceMetaFileSuffix"); 
-		if ( sequenceMetaFile != NULL) 
-		{
-			this->ImageDataInfoContainer[RANDOM_STEPPER_MOTION_1].OutputSequenceMetaFileSuffix.assign(sequenceMetaFile); 
-		}
-	}
-	else
-	{
-		LOG_DEBUG("Unable to find RandomStepperMotionData1 XML data element, default 200 is used"); 
-		this->ImageDataInfoContainer[RANDOM_STEPPER_MOTION_1].NumberOfImagesToAcquire = 200;
-	}
-
-	// RandomStepperMotionData2 data set specifications
-	vtkSmartPointer<vtkXMLDataElement> randomStepperMotionData2 = probeCalibration->FindNestedElementWithName("RandomStepperMotionData2"); 
-	if ( randomStepperMotionData2 != NULL) 
-	{
-		int numberOfImagesToUse = -1;
-		if ( randomStepperMotionData2->GetScalarAttribute("NumberOfImagesToAcquire", numberOfImagesToUse) ) 
-		{
-			this->ImageDataInfoContainer[RANDOM_STEPPER_MOTION_2].NumberOfImagesToAcquire = numberOfImagesToUse; 
-		}
-
-		const char* sequenceMetaFile = randomStepperMotionData2->GetAttribute("OutputSequenceMetaFileSuffix"); 
-		if ( sequenceMetaFile != NULL) 
-		{
-			this->ImageDataInfoContainer[RANDOM_STEPPER_MOTION_2].OutputSequenceMetaFileSuffix.assign(sequenceMetaFile); 
-		}
-	}
-	else
-	{
-		LOG_DEBUG("Unable to find RandomStepperMotionData2 XML data element, default 100 is used"); 
-		this->ImageDataInfoContainer[RANDOM_STEPPER_MOTION_2].NumberOfImagesToAcquire = 100; 
 	}
 
 	// US3DBeamwidth specifications
@@ -881,91 +730,6 @@ PlusStatus vtkCalibrationController::ReadFreehandCalibrationConfiguration(vtkXML
     this->SetCalibrationDate(date);
   }
 
-  // Find and load calibration configuration
-	vtkSmartPointer<vtkXMLDataElement> usCalibration = aConfig->FindNestedElementWithName("USCalibration");
-	if (usCalibration == NULL) {
-		LOG_ERROR("No calibration configuration is found in the XML tree!");
-		return PLUS_FAIL;
-	}
-
-	vtkSmartPointer<vtkXMLDataElement> calibrationController = usCalibration->FindNestedElementWithName("CalibrationController"); 
-	if (calibrationController == NULL) {
-		LOG_ERROR("Unable to read configuration");
-		return PLUS_FAIL;
-	}
-
-	// Probe Calibration specifications
-	vtkSmartPointer<vtkXMLDataElement> probeCalibration = calibrationController->FindNestedElementWithName("ProbeCalibration");
-	if (probeCalibration == NULL) {	
-		LOG_WARNING("Unable to read ProbeCalibration XML data element!"); 
-		return PLUS_FAIL; 
-	} 
-
-	// Sets the suffix of the calibration result file
-	const char* calibrationResultFileSuffix = probeCalibration->GetAttribute("CalibrationResultFileSuffix"); 
-	if ( calibrationResultFileSuffix != NULL) {
-		this->SetCalibrationResultFileSuffix(calibrationResultFileSuffix); 
-	} else {
-		this->SetCalibrationResultFileSuffix(".Calibration.results"); 
-	}
-  
-  // Freehand Calibration specifications
-	vtkSmartPointer<vtkXMLDataElement> freehandCalibration = calibrationController->FindNestedElementWithName("FreehandCalibration");
-	if (freehandCalibration == NULL) {	
-		LOG_WARNING("Unable to read FreehandCalibration XML data element!"); 
-		return PLUS_FAIL; 
-	} 
-
-	// FreehandMotionData2 data set specifications
-	vtkSmartPointer<vtkXMLDataElement> freehandMotionData_2 = freehandCalibration->FindNestedElementWithName("FreehandMotionData2"); 
-	if (freehandMotionData_2 != NULL) {
-		ImageDataInfo imageDataInfo = this->GetImageDataInfo(FREEHAND_MOTION_2);
-		int numberOfImagesToUse = -1;
-		if (freehandMotionData_2->GetScalarAttribute("NumberOfImagesToAcquire", numberOfImagesToUse)) {
-			imageDataInfo.NumberOfImagesToAcquire = numberOfImagesToUse;
-    }
-
-    if (imageDataInfo.NumberOfImagesToAcquire == 0) {
-      LOG_ERROR("Unable to read NumberOfImagesToAcquire XML data element (or zero)");
-      return PLUS_FAIL;
-    }
-
-    const char* sequenceMetaFile = freehandMotionData_2->GetAttribute("OutputSequenceMetaFileSuffix"); 
-    if ( sequenceMetaFile != NULL) 
-    {
-      imageDataInfo.OutputSequenceMetaFileSuffix.assign(sequenceMetaFile); 
-    }
-
-		this->SetImageDataInfo(FREEHAND_MOTION_2, imageDataInfo); 
-	} else {
-		LOG_WARNING("Unable to find RandomStepperMotionData2 XML data element"); 
-	}
-
-	// FreehandMotionData1 data set specifications
-	vtkSmartPointer<vtkXMLDataElement> freehandMotionData_1 = freehandCalibration->FindNestedElementWithName("FreehandMotionData1"); 
-	if (freehandMotionData_1 != NULL) {
-		ImageDataInfo imageDataInfo = this->GetImageDataInfo(FREEHAND_MOTION_1);
-		int numberOfImagesToUse = -1;
-		if (freehandMotionData_1->GetScalarAttribute("NumberOfImagesToAcquire", numberOfImagesToUse)) {
-			imageDataInfo.NumberOfImagesToAcquire = numberOfImagesToUse; 
-		}
-
-    if (imageDataInfo.NumberOfImagesToAcquire == 0) {
-      LOG_ERROR("Unable to read NumberOfImagesToAcquire XML data element (or zero)");
-      return PLUS_FAIL;
-    }
-
-    const char* sequenceMetaFile = freehandMotionData_1->GetAttribute("OutputSequenceMetaFileSuffix"); 
-    if ( sequenceMetaFile != NULL) 
-    {
-      imageDataInfo.OutputSequenceMetaFileSuffix.assign(sequenceMetaFile); 
-    }
-
-		this->SetImageDataInfo(FREEHAND_MOTION_1, imageDataInfo); 
-	} else {
-		LOG_WARNING("Unable to find RandomStepperMotionData1 XML data element"); 
-	}
-
 	return PLUS_SUCCESS;
 }
 
@@ -1104,22 +868,6 @@ PlusStatus vtkCalibrationController::WriteConfiguration(vtkXMLDataElement* aConf
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkCalibrationController::ResetFreehandCalibration()
-{
-	LOG_TRACE("vtkCalibrationController::ResetFreehandCalibration");
-
-	// Empty tracked frame containers
-	this->TrackedFrameListContainer[FREEHAND_MOTION_1]->Clear();
-	this->TrackedFrameListContainer[FREEHAND_MOTION_2]->Clear();
-
-  // Reset segmented image counters
-  this->ImageDataInfoContainer[FREEHAND_MOTION_1].NumberOfSegmentedImages = 0;
-  this->ImageDataInfoContainer[FREEHAND_MOTION_2].NumberOfSegmentedImages = 0;
-
-	return PLUS_SUCCESS;
-}
-
-//----------------------------------------------------------------------------
 PlusStatus vtkCalibrationController::DoCalibration()
 {
 	LOG_TRACE("vtkCalibrationController::DoCalibration"); 
