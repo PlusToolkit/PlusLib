@@ -1,4 +1,4 @@
-<PhantomDefinition version="1.0">
+<PhantomDefinition version="1.1">
 	<!-- Supported types are: Double-N, U-Shaped-N -->
 	<Description
 		Name="ThomasFreehand"
@@ -19,16 +19,16 @@
 
 	<Geometry>
 		<!-- N wire definitions -->
-		<NWire>
-			<Wire Id="1" Name="#1" EndPointFront="-15.0 -20.0 -90.0" EndPointBack="-15.0 20.0 -90.0" />
-			<Wire Id="2" Name="#2" EndPointFront="0.0 -20.0 -90.0" EndPointBack="-10.0 20.0 -90.0" />
-			<Wire Id="3" Name="#3" EndPointFront="5.0 -20.0 -90.0" EndPointBack="5.0 20.0 -90.0" />
-		</NWire>
-		<NWire>
-			<Wire Id="4" Name="#4" EndPointFront="-5.0 -20.0 -95.0" EndPointBack="-5.0 20.0 -95.0" />
-			<Wire Id="5" Name="#5" EndPointFront="10.0 -20.0 -95.0" EndPointBack="0 20.0 -95.0" />
-			<Wire Id="6" Name="#6" EndPointFront="15.0 -20.0 -95.0" EndPointBack="15.0 20.0 -95.0" />
-		</NWire>
+		<Pattern Type="NWire">
+			<Wire Name="#1" EndPointFront="-15.0 -20.0 -90.0" EndPointBack="-15.0 20.0 -90.0" />
+			<Wire Name="#2" EndPointFront="0.0 -20.0 -90.0" EndPointBack="-10.0 20.0 -90.0" />
+			<Wire Name="#3" EndPointFront="5.0 -20.0 -90.0" EndPointBack="5.0 20.0 -90.0" />
+		</Pattern>
+		<Pattern Type="NWire">
+			<Wire Name="#4" EndPointFront="-5.0 -20.0 -95.0" EndPointBack="-5.0 20.0 -95.0" />
+			<Wire Name="#5" EndPointFront="10.0 -20.0 -95.0" EndPointBack="0 20.0 -95.0" />
+			<Wire Name="#6" EndPointFront="15.0 -20.0 -95.0" EndPointBack="15.0 20.0 -95.0" />
+		</Pattern>
 
 		<!-- Landmark list for registration -->
 		<Landmarks>

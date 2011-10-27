@@ -1,4 +1,4 @@
-<PlusConfiguration version="1.2">
+<PlusConfiguration version="1.3">
 
 	<!-- DATA COLLECTION -->
 	<USDataCollection version="2.0" StartupDelaySec="1.0">
@@ -98,105 +98,10 @@ The desired file name with path needs to be added to this XML file as values Seq
 	</USDataCollection>
 
 	<!-- CALIBRATION -->
-	<USCalibration version="1.0">
-		<!-- CalibrationMode: OFFLINE or REALTIME -->
-		<CalibrationController LogLevel="INFO" OutputPath="./Output"    CalibrationMode="REALTIME" EnableVisualization="FALSE">
-			<StepperCalibration MinNumberOfRotationClusters="4" >
-				<!-- TemplateTranslationData: These are the data files used to calculate the template translation axis  -->
-				<TemplateTranslationData 
-						NumberOfImagesToUse="100" 
-						StartingIndex="0" 
-						SequenceMetaFile="\\image\shared_data\images\TRUSCalibration\2011-02-09_iCALDemo_TestData\TemplateTranslationData.mha"
-						/>
-
-				<!-- ProbeTranslationData: These are the data files used to calculate the stepper translation axis  -->
-				<ProbeTranslationData 
-						NumberOfImagesToUse="200" 
-						StartingIndex="0" 
-						SequenceMetaFile="\\image\shared_data\images\TRUSCalibration\2011-02-09_iCALDemo_TestData\ProbeTranslationData.mha"
-						/>
-				
-				 <!-- ProbeRotationData: These are the data files used to calculate the frame center of rotation  -->
-				<ProbeRotationData 
-						NumberOfImagesToUse="500" 
-						StartingIndex="0" 
-						SequenceMetaFile="\\image\shared_data\images\TRUSCalibration\2011-02-09_iCALDemo_TestData\ProbeRotationData.mha"
-						/>
-			</StepperCalibration>	
+	<USCalibration>
+		<CalibrationController>
+			<ProbeCalibration />
 			
-			<ProbeCalibration
-					
-					ImageHomeToUserImageHomeTransform=" 1  0  0  0 
-														0  1  0  0 
-														0  0  1  0 
-														0  0  0  1"
-					DataFileSuffix=".data"
-					CalibrationResultFileSuffix=".Calibration.results"
-					SegmentationErrorLogFileNameSuffix=".Segmentation.errors"
-					SegmentationAnalysisFileNameSuffix = ".Segmentation.analysis"
-					Temp2StepCalibAnalysisFileNameSuffix = ".Template2StepperCalibration.analysis"
-					>
-				
-				 <!-- RandomStepperMotionData1: These are the data files used for calibration. -->
-				<RandomStepperMotionData1
-						NumberOfImagesToUse="300" 
-						StartingIndex="0" 
-						SequenceMetaFile="\\image\shared_data\images\TRUSCalibration\2011-02-09_iCALDemo_TestData\RandomStepperMotionData1.mha"
-						/>
-
-				<!-- RandomStepperMotionData2: These are the data files used to validate the calibration accuracy.  -->
-				<RandomStepperMotionData2
-						NumberOfImagesToUse="200" 
-						StartingIndex="0" 
-						SequenceMetaFile="\\image\shared_data\images\TRUSCalibration\2011-02-09_iCALDemo_TestData\RandomStepperMotionData2.mha"
-						/>
-
-				<TemplateModel ConfigFile="../config/TemplateModel.xml" >
-				</TemplateModel>
-
-				<!-- IncorporatingUS3DBeamProfile: 0 - NO | 1 - BeamwidthVariance | 2 - BeamwidthRatio | 3 - BeamwidthVarianceAndThresholding -->
-				<!-- ConfigFile: The name and the relative or absolute path of the US beam profile file -->
-				<US3DBeamProfile IncorporatingUS3DBeamProfile="0" ConfigFile="./Component_US3DBeamProfile.config" />
-			</ProbeCalibration>
-			
-			<RealtimeCalibration>
-				<!-- TemplateTranslationData: These are the data files used to calculate the template translation axis  -->
-				<TemplateTranslationData 
-						NumberOfImagesToAcquire="100" 
-						OutputSequenceMetaFileSuffix=".TemplateTranslationData"
-						/>
-				<!-- ProbeTranslationData: These are the data files used to calculate the stepper translation axis  -->
-				<ProbeTranslationData 
-						NumberOfImagesToAcquire="200" 
-						OutputSequenceMetaFileSuffix=".ProbeTranslationData"
-						/>
-				 <!-- ProbeRotationData: These are the data files used to calculate the frame center of rotation  -->
-				<ProbeRotationData 
-						NumberOfImagesToAcquire="500" 
-						OutputSequenceMetaFileSuffix=".ProbeRotationData"
-						/>
-				 <!-- RandomStepperMotionData1: These are the data files used for calibration. -->
-				<RandomStepperMotionData1
-						NumberOfImagesToAcquire="200" 
-						OutputSequenceMetaFileSuffix=".RandomStepperMotionData1"
-						/>
-				<!-- RandomStepperMotionData2: These are the data files used to validate the calibration accuracy.  -->
-				<RandomStepperMotionData2
-						NumberOfImagesToAcquire="100" 
-						OutputSequenceMetaFileSuffix=".RandomStepperMotionData2"
-						/>
-				<!-- FreehandMotionData1: These are the data files used for calibration. -->
-				<FreehandMotionData1
-						NumberOfImagesToAcquire="200" 
-						OutputSequenceMetaFileSuffix=".FreehandMotionData1"
-						/>
-				<!-- FreehandMotionData2: These are the data files used to validate the calibration accuracy.  -->
-				<FreehandMotionData2
-						NumberOfImagesToAcquire="100" 
-						OutputSequenceMetaFileSuffix=".FreehandMotionData2"
-						/>
-			</RealtimeCalibration>
-
 			<SegmentationParameters
 					ApproximateSpacingMmPerPixel="0.078"
 					MorphologicalOpeningCircleRadiusMm="0.47"
@@ -209,9 +114,11 @@ The desired file name with path needs to be added to this XML file as values Seq
 					MaxLineErrorMm="2.0"
 
 					MaxAngleDifferenceDegrees="11"
-					MinThetaDegrees="20"
-					MaxThetaDegrees="160"
+					MinThetaDegrees="-70"
+					MaxThetaDegrees="70"
 					
+          AngleToleranceDegrees="10"
+
 					ThresholdImagePercent="10.0"
 
 					CollinearPointsMaxDistanceFromLineMm="0.41"
@@ -223,7 +130,7 @@ The desired file name with path needs to be added to this XML file as values Seq
 	</USCalibration>
 	
 	<!-- PHANTOM -->
-	<PhantomDefinition version="1.0">
+	<PhantomDefinition version="1.1">
 		<!-- Supported types are: Double-N, U-Shaped-N -->
 		<Description
 			Name="fCAL"
@@ -244,16 +151,16 @@ The desired file name with path needs to be added to this XML file as values Seq
 
 		<Geometry>
 			<!-- N wire definitions -->
-			<NWire>
-				<Wire Id="1" Name="E3_e3" EndPointFront="20.0 0.0 5.0" EndPointBack="20.0 40.0 5.0" />
-				<Wire Id="2" Name="F3_j3" EndPointFront="25.0 0.0 5.0" EndPointBack="45.0 40.0 5.0" />
-				<Wire Id="3" Name="K3_k3" EndPointFront="50.0 0.0 5.0" EndPointBack="50.0 40.0 5.0" />
-			</NWire>
-			<NWire>
-				<Wire Id="4" Name="E4_e4" EndPointFront="20.0 0.0 0.0" EndPointBack="20.0 40.0 0.0" />
-				<Wire Id="5" Name="J4_f4" EndPointFront="45.0 0.0 0.0" EndPointBack="25.0 40.0 0.0" />
-				<Wire Id="6" Name="K4_k4" EndPointFront="50.0 0.0 0.0" EndPointBack="50.0 40.0 0.0" />
-			</NWire>
+			<Pattern Type="NWire">
+				<Wire Name="1:E3_e3" EndPointFront="20.0 0.0 5.0" EndPointBack="20.0 40.0 5.0" />
+				<Wire Name="2:F3_j3" EndPointFront="25.0 0.0 5.0" EndPointBack="45.0 40.0 5.0" />
+				<Wire Name="3:K3_k3" EndPointFront="50.0 0.0 5.0" EndPointBack="50.0 40.0 5.0" />
+			</Pattern>
+			<Pattern Type="NWire">
+				<Wire Name="4:E4_e4" EndPointFront="20.0 0.0 0.0" EndPointBack="20.0 40.0 0.0" />
+				<Wire Name="5:J4_f4" EndPointFront="45.0 0.0 0.0" EndPointBack="25.0 40.0 0.0" />
+				<Wire Name="6:K4_k4" EndPointFront="50.0 0.0 0.0" EndPointBack="50.0 40.0 0.0" />
+			</Pattern>
 
 			<!-- Landmark list for registration -->
 			<Landmarks>
