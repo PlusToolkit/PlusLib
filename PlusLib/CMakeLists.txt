@@ -53,19 +53,6 @@ configure_file(
 	${CMAKE_CURRENT_SOURCE_DIR}/BuildAndTest.bat.in 
 	${CMAKE_CURRENT_BINARY_DIR}/BuildAndTest.bat
 	)
-
-configure_file(
-	${CMAKE_CURRENT_SOURCE_DIR}/DevEnv_Debug.bat.in 
-	${CMAKE_CURRENT_BINARY_DIR}/DevEnv_Debug.bat
-	)
-configure_file(
-	${CMAKE_CURRENT_SOURCE_DIR}/DevEnv_Release.bat.in 
-	${CMAKE_CURRENT_BINARY_DIR}/DevEnv_Release.bat
-	)
-configure_file(
-	${CMAKE_CURRENT_SOURCE_DIR}/DevEnv_RelWithDebInfo.bat.in 
-	${CMAKE_CURRENT_BINARY_DIR}/DevEnv_RelWithDebInfo.bat
-	)
 configure_file(
 	${CMAKE_CURRENT_SOURCE_DIR}/CreateDoc.bat.in 
 	${CMAKE_CURRENT_BINARY_DIR}/CreateDoc.bat
