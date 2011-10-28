@@ -4,7 +4,7 @@
 		<DeviceSet 
 			Name="SonixTouch TRUS + CIVCO Stepper + iCAL 1.0 + 70mm depth" 
 			Description="Configuration file for SonixTouch TRUS + CIVCO + iCal 1.0 + 70mm depth
-[CivcoDescription] The computer needs to be on the same local network as SonixTOUCH." 
+      Plug in the US Digital ED2 digital display through Serial2USB converter cable into USB slot. Look for the Serial port number in the control panel (0 will search for the device). The computer needs to be on the same local network as SonixTOUCH." 
 			/>
 
         <Tracker Type="BrachyTracker" BufferSize="1000" Frequency="20" AveragedItemsForFiltering="20" LocalTimeOffset="0.0" SerialPort="0" BaudRate="19200" BrachyStepperType="CIVCO" ModelNumber="4012A18-a" ModelVersion="" ModelSerialNumber="01-50-149"
