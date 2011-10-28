@@ -1,0 +1,59 @@
+	<PhantomDefinition version="1.1">
+		<!-- Supported types are: Double-N, U-Shaped-N -->
+		<Description
+			Name="CIRS Model 045"
+			Type="QA"
+			Version="1.0"
+			Institution="CIRS"
+		/>
+		
+		<!-- ModelToPhantomTransform - transforming model into phantom coordinate system for proper visualization -->
+		<Model
+      File=""
+      ModelToPhantomTransform="
+        1 0 0 0.0
+        0 1 0 0.0
+        0 0 1 0.0
+        0 0 0 1"
+		/>
+
+		<Geometry>
+			<!-- Pattern definitions -->
+			<Pattern Type="CoplanarParallelWires" Id="0">
+				<Wire Id="0" Name="F1" EndPointFront="60.65 38.0 3.0" EndPointBack="60.65 38.0 103.0" />
+				<Wire Id="1" Name="F2" EndPointFront="60.65 48.0 3.0" EndPointBack="60.65 48.0 103.0" />
+				<Wire Id="2" Name="F3" EndPointFront="60.65 58.0 3.0" EndPointBack="60.65 58.0 103.0" />
+				<Wire Id="3" Name="F4" EndPointFront="60.65 68.0 3.0" EndPointBack="60.65 68.0 103.0" />
+				<Wire Id="4" Name="F5" EndPointFront="60.65 78.0 3.0" EndPointBack="60.65 78.0 103.0" />
+			</Pattern>
+			<Pattern Type="CoplanarParallelWires" Id="1">
+				<Wire Id="0" Name="F5" EndPointFront="60.65 78.0 3.0" EndPointBack="60.65 78.0 103.0" />
+				<Wire Id="1" Name="E4" EndPointFront="70.65 68.0 3.0" EndPointBack="70.65 68.0 103.0" />
+				<Wire Id="2" Name="D3" EndPointFront="80.65 58.0 3.0" EndPointBack="80.65 58.0 103.0" />
+				<Wire Id="3" Name="C2" EndPointFront="90.65 48.0 3.0" EndPointBack="90.65 48.0 103.0" />
+				<Wire Id="4" Name="B1" EndPointFront="100.65 38.0 3.0" EndPointBack="100.65 38.0 103.0" />
+			</Pattern>
+			<Pattern Type="CoplanarParallelWires" Id="2">
+				<Wire Id="0" Name="B1" EndPointFront="100.65 38.0 3.0" EndPointBack="100.65 38.0 103.0" />
+				<Wire Id="1" Name="B2" EndPointFront="100.65 48.0 3.0" EndPointBack="100.65 48.0 103.0" />
+				<Wire Id="2" Name="B3" EndPointFront="100.65 58.0 3.0" EndPointBack="100.65 58.0 103.0" />
+				<Wire Id="3" Name="B4" EndPointFront="100.65 68.0 3.0" EndPointBack="100.65 68.0 103.0" />
+				<Wire Id="4" Name="B5" EndPointFront="100.65 78.0 3.0" EndPointBack="100.65 78.0 103.0" />
+			</Pattern>
+
+			<!-- Landmark list for registration -->
+			<Landmarks>
+				<Landmark Name="?" Position="0.0 0.0 0.0" />
+			</Landmarks>
+			
+			<Registration
+				MatrixName="PhantomToPhantomReference" 
+				MatrixValue="
+					1 0 0 0
+					0 1 0 0
+					0 0 1 0
+					0 0 0 1" 
+				Date=""
+				Error="0.0" />
+		</Geometry>
+	</PhantomDefinition>

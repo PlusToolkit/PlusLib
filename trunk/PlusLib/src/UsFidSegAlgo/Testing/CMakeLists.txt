@@ -144,7 +144,7 @@ ADD_TEST(UsFidSegTest_CIRS_PHANTOM_13_POINT_TranslationData1
 	--input-testcase-name=CIRS_TranslationData1
 	--input-baseline-file=${TestDataDir}/CIRS_Phantom_TranslationData1_Baseline.xml
 	--output-result-file=testcomparisons.xml
-	--input-config-file-name=${ConfigFilesDir}/PlusConfiguration_CIRS_Phantom.xml
+	--input-config-file-name=${ConfigFilesDir}/Test_PlusConfiguration_CalibrationOnly_SonixTouch_Ulterius_CIRS_Phantom.xml
 	)
 SET_TESTS_PROPERTIES( UsFidSegTest_CIRS_PHANTOM_13_POINT_TranslationData1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
