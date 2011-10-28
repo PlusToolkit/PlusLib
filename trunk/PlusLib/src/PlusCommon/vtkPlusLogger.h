@@ -62,7 +62,8 @@ public:
 		LOG_LEVEL_WARNING=2,
 		LOG_LEVEL_INFO=3,
 		LOG_LEVEL_DEBUG=4,
-		LOG_LEVEL_TRACE=5
+		LOG_LEVEL_TRACE=5,
+    LOG_LEVEL_DEFAULT = LOG_LEVEL_INFO
 	};
 
 	static vtkPlusLogger* Instance(); 
@@ -71,10 +72,6 @@ public:
 	
 	int GetLogLevel();	
 	void SetLogLevel(int logLevel);
-
-	int GetDisplayLogLevel();
-	
-	void SetDisplayLogLevel(int logLevel);
 
 	static void PrintProgressbar( int percent ); 
 
@@ -95,7 +92,6 @@ private:
 	
 	static vtkPlusLogger* m_pInstance;
 	int m_LogLevel;
-	int m_DisplayLogLevel;
   std::ostringstream m_LogStream;
   std::ofstream m_FileStream; 
   std::string m_LogFileName; 

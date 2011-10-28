@@ -24,7 +24,7 @@ int main(int argc, char **argv)
   double inputMaxTranslationDifference(0.5); 
   double inputMaxRotationDifference(1.0); 
 
-	int verboseLevel = vtkPlusLogger::LOG_LEVEL_INFO;
+	int verboseLevel = vtkPlusLogger::LOG_LEVEL_DEFAULT;
 
 	vtksys::CommandLineArguments args;
 	args.Initialize(argc, argv);
@@ -33,7 +33,7 @@ int main(int argc, char **argv)
   args.AddArgument("--input-metafile", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputMetafile, "Input sequence metafile.");
   args.AddArgument("--input-max-rotation-difference", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputMaxRotationDifference, "Maximum rotation difference in degrees (Default: 1 deg).");
   args.AddArgument("--input-max-translation-difference", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputMaxTranslationDifference, "Maximum translation difference (Default: 0.5 mm).");
-	args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug)");	
+	args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");	
 	
 	if ( !args.Parse() )
 	{
@@ -57,7 +57,6 @@ int main(int argc, char **argv)
   }
 
 	vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
-  vtkPlusLogger::Instance()->SetDisplayLogLevel(verboseLevel);
 
   // Read buffer 
   LOG_INFO("Reading tracker meta file..."); 

@@ -25,15 +25,15 @@ int main(int argc, char **argv)
 
   bool printHelp(false);
 
-  int verboseLevel = vtkPlusLogger::LOG_LEVEL_INFO;
+  int verboseLevel = vtkPlusLogger::LOG_LEVEL_DEFAULT;
 
   vtksys::CommandLineArguments args;
   args.Initialize(argc, argv);
   std::string inputDataFileName(""); 
 
   args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");	
-  args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug)");	
   args.AddArgument("--input-data-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputDataFileName, "Input XML data file name");	
+	args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");	
 
   if ( !args.Parse() )
   {
@@ -56,7 +56,6 @@ int main(int argc, char **argv)
   }
 
   vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
-  vtkPlusLogger::Instance()->SetDisplayLogLevel(verboseLevel);
 
   vtkSmartPointer<vtkXMLDataElement> xmlPlusMathTest = vtkXMLUtilities::ReadElementFromFile(inputDataFileName.c_str()); 
 

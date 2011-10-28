@@ -28,7 +28,7 @@ int main(int argc, char **argv)
 
   bool printHelp(false);
 
-  int verboseLevel = vtkPlusLogger::LOG_LEVEL_INFO;
+  int verboseLevel = vtkPlusLogger::LOG_LEVEL_DEFAULT;
   std::string inputSequenceMetafile; 
 
 
@@ -36,8 +36,8 @@ int main(int argc, char **argv)
   args.Initialize(argc, argv);
 
   args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");	
-  args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug)");	
   args.AddArgument("--input-sequence-metafile", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputSequenceMetafile, "Input sequence metafile name with path");	
+	args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");	
 
   if ( !args.Parse() )
   {
@@ -60,7 +60,6 @@ int main(int argc, char **argv)
   }
 
   vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
-  vtkPlusLogger::Instance()->SetDisplayLogLevel(verboseLevel);
 
   vtkSmartPointer<vtkTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New(); 
   if ( trackedFrameList->ReadFromSequenceMetafile(inputSequenceMetafile.c_str()) != PLUS_SUCCESS )

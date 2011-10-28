@@ -112,7 +112,7 @@ int main(int argc, char **argv)
   bool inputReplay(false); 
   bool inputEnableBroadcasting(false); 
 
-  int verboseLevel=vtkPlusLogger::LOG_LEVEL_INFO;
+  int verboseLevel=vtkPlusLogger::LOG_LEVEL_DEFAULT;
 
   vtksys::CommandLineArguments args;
   args.Initialize(argc, argv);
@@ -121,9 +121,9 @@ int main(int argc, char **argv)
   args.AddArgument("--input-video-buffer-metafile", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputVideoBufferMetafile, "Video buffer sequence metafile.");
   args.AddArgument("--input-tracker-buffer-metafile", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputTrackerBufferMetafile, "Tracker buffer sequence metafile.");
   args.AddArgument("--rendering-off", vtksys::CommandLineArguments::NO_ARGUMENT, &renderingOff, "Run test without rendering.");	
-  args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug)");	
-  args.AddArgument( "--replay", vtksys::CommandLineArguments::NO_ARGUMENT, &inputReplay, "Replay tracked frames after reached the latest one." );
-  args.AddArgument( "--enable-broadcasting", vtksys::CommandLineArguments::NO_ARGUMENT, &inputEnableBroadcasting, "Enable OpenIGTLink broadcasting." );
+  args.AddArgument("--replay", vtksys::CommandLineArguments::NO_ARGUMENT, &inputReplay, "Replay tracked frames after reached the latest one." );
+  args.AddArgument("--enable-broadcasting", vtksys::CommandLineArguments::NO_ARGUMENT, &inputEnableBroadcasting, "Enable OpenIGTLink broadcasting." );
+	args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");	
 
   if ( !args.Parse() )
   {
@@ -139,7 +139,6 @@ int main(int argc, char **argv)
   }
 
   vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
-  vtkPlusLogger::Instance()->SetDisplayLogLevel(verboseLevel);
 
   ///////////////
 

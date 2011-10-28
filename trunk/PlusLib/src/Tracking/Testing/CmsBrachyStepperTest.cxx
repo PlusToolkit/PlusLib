@@ -20,7 +20,7 @@ int main (int argc, char* argv[])
 	int inputNumberOfTrials(20); 
 	int samplingTimeMs(50);
 
-	int verboseLevel=vtkPlusLogger::LOG_LEVEL_INFO;
+	int verboseLevel = vtkPlusLogger::LOG_LEVEL_DEFAULT;
 
 	vtksys::CommandLineArguments args;
 	args.Initialize(argc, argv);
@@ -30,8 +30,8 @@ int main (int argc, char* argv[])
 	args.AddArgument("--com-port", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputComPort, "Com port number (Default: 2)." );
 	args.AddArgument("--number-of-trials", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputNumberOfTrials, "Number of trials (Default: 20)." );
 	args.AddArgument("--sampling-time", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &samplingTimeMs, "Sampling time in milliseconds (Default: 20)." );
-	args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (Default: 3; 1=error only, 2=warning, 3=info, 4=debug.)");	
 	args.AddArgument("--brachy-stepper-type", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &stepperType, "Set brachy stepper type (Default: Burdette Medical Systems Digital Stepper; Burdette Medical Systems Digital Stepper, Burdette Medical Systems Digital Motorized Stepper, CMS Accuseed DS300.)");	
+	args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");	
 
 	if ( !args.Parse() )
 	{
@@ -48,8 +48,6 @@ int main (int argc, char* argv[])
 	}
 
 	vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
-  vtkPlusLogger::Instance()->SetDisplayLogLevel(verboseLevel);
-
 
 	for ( int reconnect = 0; reconnect < 5; reconnect++ )
 	{

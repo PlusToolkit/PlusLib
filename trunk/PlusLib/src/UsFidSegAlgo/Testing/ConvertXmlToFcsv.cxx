@@ -25,14 +25,14 @@ int main(int argc, char **argv)
 	std::string inputXmlFileName;
 	std::string outputFcsvFileName;
 
-	int verboseLevel=vtkPlusLogger::LOG_LEVEL_WARNING;
+	int verboseLevel=vtkPlusLogger::LOG_LEVEL_DEFAULT;
 
 	vtksys::CommandLineArguments args;
 	args.Initialize(argc, argv);
 
 	args.AddArgument("--input", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputXmlFileName, "Input XML file name");
 	args.AddArgument("--output", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputFcsvFileName, "Output FCSV file name");
-	args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug)");		
+	args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");	
 	
 	if ( !args.Parse() )
 	{

@@ -130,7 +130,7 @@ int main(int argc, char **argv)
 	std::string inputTestcaseName;
 	std::string outputXmlFileName;
 
-	int verboseLevel=vtkPlusLogger::LOG_LEVEL_WARNING;
+  int verboseLevel=vtkPlusLogger::LOG_LEVEL_DEFAULT;
 
 	vtksys::CommandLineArguments args;
 	args.Initialize(argc, argv);
@@ -140,7 +140,7 @@ int main(int argc, char **argv)
 	args.AddArgument("--input-img-seq-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputImageSequenceFileName, "Filename of the input image sequence. Segmentation will be performed for all frames of the sequence.");
 	args.AddArgument("--input-testcase-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputTestcaseName, "Name of the test case that will be printed to the output");		
 	args.AddArgument("--output-xml-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputXmlFileName, "Name of file storing results of a new segmentation (fiducial coordinates, intensity, angle)");
-	args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug)");		
+	args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");	
 	
 	if ( !args.Parse() )
 	{
@@ -149,9 +149,7 @@ int main(int argc, char **argv)
 		exit(EXIT_FAILURE);
 	}
 
-	vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
-	
-	
+	vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);	
 
 	if (inputImageSequenceFileName.empty() || inputFcsvFileName.empty() || inputTestcaseName.empty() || outputXmlFileName.empty())
 	{

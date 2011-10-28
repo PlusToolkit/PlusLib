@@ -38,14 +38,14 @@ int main (int argc, char* argv[])
 	std::string inputConfigFileName;
 	std::string inputBaselineFileName;
 
-	int verboseLevel=vtkPlusLogger::LOG_LEVEL_INFO;
+	int verboseLevel=vtkPlusLogger::LOG_LEVEL_DEFAULT;
 
 	vtksys::CommandLineArguments cmdargs;
 	cmdargs.Initialize(argc, argv);
 
 	cmdargs.AddArgument("--input-config-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "Configuration file name");
 	cmdargs.AddArgument("--input-baseline-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputBaselineFileName, "Name of file storing baseline calibration results");
-	cmdargs.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug)");	
+	cmdargs.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");	
 
 	if ( !cmdargs.Parse() )
 	{

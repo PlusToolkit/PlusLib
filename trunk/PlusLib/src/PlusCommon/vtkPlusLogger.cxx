@@ -113,7 +113,6 @@ vtkPlusLogger::vtkPlusLogger()
 {
 	m_CriticalSection = vtkSimpleCriticalSection::New();
 	m_LogLevel = LOG_LEVEL_INFO;
-	m_DisplayLogLevel = LOG_LEVEL_INFO;
 
   // redirect VTK error logs to the Plus logger
 	vtkSmartPointer<vtkPlusLoggerOutputWindow> vtkLogger = vtkSmartPointer<vtkPlusLoggerOutputWindow>::New();
@@ -160,23 +159,9 @@ int vtkPlusLogger::GetLogLevel()
 //-------------------------------------------------------
 void vtkPlusLogger::SetLogLevel(int logLevel) 
 { 
-	m_CriticalSection->Lock(); 
-	m_LogLevel=logLevel; 
-	m_CriticalSection->Unlock(); 
-}
-
-//-------------------------------------------------------
-int vtkPlusLogger::GetDisplayLogLevel() 
-{ 
-	return m_DisplayLogLevel; 
-}
-
-//-------------------------------------------------------
-void vtkPlusLogger::SetDisplayLogLevel(int logLevel) 
-{ 
-	m_CriticalSection->Lock(); 
-	m_DisplayLogLevel=logLevel; 
-	m_CriticalSection->Unlock(); 
+	m_CriticalSection->Lock();
+  m_LogLevel=logLevel;
+	m_CriticalSection->Unlock();
 }
 
 //-------------------------------------------------------
@@ -210,7 +195,7 @@ std::string vtkPlusLogger::GetLogFileName()
 //-------------------------------------------------------
 void vtkPlusLogger::LogMessage(LogLevelType level, const char *msg, const char* fileName, int lineNumber)
 {
-	if (m_LogLevel<level && m_DisplayLogLevel<level)
+	if (m_LogLevel < level)
 	{
 		// no need to log
 		return;
@@ -253,7 +238,7 @@ void vtkPlusLogger::LogMessage(LogLevelType level, const char *msg, const char* 
 
   m_CriticalSection->Lock(); 
 
-	if (m_DisplayLogLevel>=level)
+	if (m_LogLevel >= level)
 	{ 
 
 #ifdef _WIN32
@@ -308,10 +293,8 @@ void vtkPlusLogger::LogMessage(LogLevelType level, const char *msg, const char* 
 
       InvokeEvent(vtkCommand::UserEvent, (void*)(callDataStream.str().c_str()));
     }
-	}
 
-	if (m_LogLevel>=level)
-	{
+    // Add to log stream (file)
     this->m_LogStream << std::setw(17) << std::left << timestamp << " " << log.str() << std::endl; 
 	}
 

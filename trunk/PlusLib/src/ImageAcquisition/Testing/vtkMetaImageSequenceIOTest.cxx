@@ -24,7 +24,7 @@ int main(int argc, char **argv)
 	std::string inputImageSequenceFileName;
 	std::string outputImageSequenceFileName;
 
-	int verboseLevel=vtkPlusLogger::LOG_LEVEL_INFO;
+	int verboseLevel=vtkPlusLogger::LOG_LEVEL_DEFAULT;
 
 	int numberOfFailures(0); 
 	
@@ -33,7 +33,7 @@ int main(int argc, char **argv)
 
 	args.AddArgument("--input-img-seq-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputImageSequenceFileName, "Filename of the input image sequence.");
 	args.AddArgument("--output-img-seq-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputImageSequenceFileName, "Filename of the output image sequence.");
-	args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug)");	
+	args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");	
 	
 	if ( !args.Parse() )
 	{

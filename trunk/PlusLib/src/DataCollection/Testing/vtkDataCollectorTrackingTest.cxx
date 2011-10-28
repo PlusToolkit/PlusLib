@@ -25,7 +25,7 @@ int main(int argc, char **argv)
 	std::string outputTrackerBufferSequenceFileName("TrackerBufferMetafile"); 
 	std::string outputFolder("./");
 
-	int verboseLevel=vtkPlusLogger::LOG_LEVEL_INFO;
+	int verboseLevel=vtkPlusLogger::LOG_LEVEL_DEFAULT;
 
 	vtksys::CommandLineArguments args;
 	args.Initialize(argc, argv);
@@ -34,7 +34,7 @@ int main(int argc, char **argv)
 	args.AddArgument("--input-acq-time-length", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputAcqTimeLength, "Length of acquisition time in seconds (Default: 60s)");	
 	args.AddArgument("--output-tracker-buffer-seq-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputTrackerBufferSequenceFileName, "Filename of the output tracker bufffer sequence metafile (Default: TrackerBufferMetafile)");
 	args.AddArgument("--output-folder", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputFolder, "Output folder (Default: ./)");
-	args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug)");	
+	args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");	
 
 	vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
 

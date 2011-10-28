@@ -49,7 +49,7 @@ int main(int argc, char **argv)
 	vtksys::CommandLineArguments args;
 	args.Initialize(argc, argv);
 
-	int verboseLevel = vtkPlusLogger::LOG_LEVEL_ERROR;
+	int verboseLevel = vtkPlusLogger::LOG_LEVEL_DEFAULT;
 
 	args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");	
 	args.AddArgument("--rendering-off", vtksys::CommandLineArguments::NO_ARGUMENT, &renderingOff, "Run test without rendering.");	
@@ -58,7 +58,7 @@ int main(int argc, char **argv)
 	args.AddArgument("--video-norm", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &videoNorm, "IC Capturing device video norm (Default: NTSC_M)." );
 	args.AddArgument("--video-format", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &videoFormat, "IC Capturing device video format (Default: Y800 (640x480))." );
 	args.AddArgument("--input-channel", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputChannel, "IC Capturing device input channel (Default: 01 Video: SVideo)." );
-	args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (Default: 1; 1=error only, 2=warning, 3=info, 4=debug)");	
+	args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");	
 
 	if ( !args.Parse() )
 	{

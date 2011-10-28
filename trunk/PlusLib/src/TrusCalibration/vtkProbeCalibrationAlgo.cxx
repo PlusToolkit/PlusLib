@@ -540,7 +540,7 @@ PlusStatus vtkProbeCalibrationAlgo::ReadProbeCalibrationConfiguration( vtkXMLDat
 	}
 	else
 	{
-		LOG_WARNING("Unable to find US3DBeamProfile XML data element"); 
+		LOG_DEBUG("Unable to find US3DBeamProfile XML data element"); 
 	}
 
   // CalibrationResult specifications

@@ -177,12 +177,10 @@ PlusStatus vtkPlusConfig::ReadApplicationConfiguration()
 	int logLevel = 0;
 	if (applicationConfigurationRoot->GetScalarAttribute("LogLevel", logLevel) ) {
     vtkPlusLogger::Instance()->SetLogLevel(logLevel);
-    vtkPlusLogger::Instance()->SetDisplayLogLevel(logLevel); 
 
 	} else {
 		LOG_INFO("LogLevel attribute is not found - default 'Info' log level will be used");
     vtkPlusLogger::Instance()->SetLogLevel(vtkPlusLogger::LOG_LEVEL_INFO);
-    vtkPlusLogger::Instance()->SetDisplayLogLevel(vtkPlusLogger::LOG_LEVEL_INFO); 
     saveNeeded = true;
   }
 
