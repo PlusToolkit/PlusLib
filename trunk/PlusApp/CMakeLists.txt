@@ -181,17 +181,28 @@ configure_file(
 #-----------------------------------------------------------------------------
 # Generate default application configuration files in the non-installed executable directories (Release and Debug too)
 # 
-SET( PLUSCONFIG_DEVICESET_CONFIG_DIR ${PLUSLIB_DATA_DIR}/ConfigFiles )
-SET( PLUSCONFIG_IMAGE_DIR ${PLUSLIB_DATA_DIR}/TestImages )
-
-configure_file(
-	${CMAKE_CURRENT_SOURCE_DIR}/PlusConfig.xml.in
-	${TEST_EXECUTABLE_OUTPUT_PATH}/PlusConfig.xml
-	)	
-configure_file(
-	${CMAKE_CURRENT_SOURCE_DIR}/PlusConfig.xml.in
-	${CMAKE_CURRENT_BINARY_DIR}/bin/Debug/PlusConfig.xml
-	)
+ IF ( ${CMAKE_GENERATOR} MATCHES "Visual Studio" )
+    IF ( NOT EXISTS "${PLUS_EXECUTABLE_OUTPUT_PATH}/Release/PlusConfig.xml" )
+        configure_file(
+            ${CMAKE_CURRENT_SOURCE_DIR}/PlusConfig.xml.in
+            ${PLUS_EXECUTABLE_OUTPUT_PATH}/Release/PlusConfig.xml
+            )	
+    ENDIF()
+    
+    IF ( NOT EXISTS "${PLUS_EXECUTABLE_OUTPUT_PATH}/Debug/PlusConfig.xml" )
+        configure_file(
+            ${CMAKE_CURRENT_SOURCE_DIR}/PlusConfig.xml.in
+            ${PLUS_EXECUTABLE_OUTPUT_PATH}/Debug/PlusConfig.xml
+            )
+    ENDIF()
+ELSE()
+     IF ( NOT EXISTS "${PLUS_EXECUTABLE_OUTPUT_PATH}/PlusConfig.xml" )
+        configure_file(
+            ${CMAKE_CURRENT_SOURCE_DIR}/PlusConfig.xml.in
+            ${PLUS_EXECUTABLE_OUTPUT_PATH}/PlusConfig.xml
+            )
+    ENDIF()
+ENDIF()
 
 #-----------------------------------------------------------------------------
 # Generate default application configuration file for the install
