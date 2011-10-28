@@ -148,7 +148,8 @@ void StylusCalibrationToolbox::SetDisplayAccordingToState()
   m_ParentMainWindow->GetToolVisualizer()->HideAll();
   m_ParentMainWindow->GetToolVisualizer()->EnableImageMode(false);
 
-  if (m_State == ToolboxState_Uninitialized) {
+  if (m_State == ToolboxState_Uninitialized)
+  {
     ui.label_NumberOfPoints->setText(QString("%1 / %2").arg(0).arg(m_NumberOfPoints));
     ui.label_CalibrationError->setText(tr("N/A"));
     ui.label_CurrentPosition->setText(tr("N/A"));
@@ -161,88 +162,84 @@ void StylusCalibrationToolbox::SetDisplayAccordingToState()
 
     m_ParentMainWindow->SetStatusBarText(QString(""));
     m_ParentMainWindow->SetStatusBarProgress(-1);
+  }
+  else if (m_State == ToolboxState_Idle)
+  {
+    ui.label_CalibrationError->setText(tr("N/A"));
+    ui.label_CurrentPosition->setText(tr("N/A"));
+    ui.label_StylusTipTransform->setText(tr("N/A"));
+    ui.label_Instructions->setText(tr("Put stylus so that its tip is in steady position, and press Start"));
+    ui.label_Instructions->setFont(QFont("SansSerif", 8, QFont::Bold));
 
-  } else
-    // If initialized
-    if (m_State == ToolboxState_Idle) {
-      ui.label_CalibrationError->setText(tr("N/A"));
-      ui.label_CurrentPosition->setText(tr("N/A"));
-      ui.label_StylusTipTransform->setText(tr("N/A"));
-      ui.label_Instructions->setText(tr("Put stylus so that its tip is in steady position, and press Start"));
-      ui.label_Instructions->setFont(QFont("SansSerif", 8, QFont::Bold));
+    ui.pushButton_Start->setEnabled(true);
+    ui.pushButton_Stop->setEnabled(false);
+    ui.pushButton_Save->setEnabled(false);
 
-      ui.pushButton_Start->setEnabled(true);
-      ui.pushButton_Stop->setEnabled(false);
-      ui.pushButton_Save->setEnabled(false);
+    ui.pushButton_Start->setFocus();
 
-      ui.pushButton_Start->setFocus();
+    m_ParentMainWindow->SetStatusBarText(QString(""));
+    m_ParentMainWindow->SetStatusBarProgress(-1);
+  }
+  else if (m_State == ToolboxState_InProgress)
+  {
+    ui.label_NumberOfPoints->setText(QString("%1 / %2").arg(m_CurrentPointNumber).arg(m_NumberOfPoints));
+    ui.label_CalibrationError->setText(tr("N/A"));
+    ui.label_CurrentPosition->setText(m_StylusPositionString.c_str());
+    ui.label_StylusTipTransform->setText(tr("N/A"));
+    ui.label_Instructions->setText(tr("Move around stylus with its tip fixed until the required amount of points are aquired"));
+    ui.label_Instructions->setFont(QFont("SansSerif", 8, QFont::Bold));
 
-      m_ParentMainWindow->SetStatusBarText(QString(""));
-      m_ParentMainWindow->SetStatusBarProgress(-1);
+    ui.pushButton_Start->setEnabled(false);
+    ui.pushButton_Stop->setEnabled(true);
+    ui.pushButton_Save->setEnabled(false);
 
-    } else
-      // If in progress
-      if (m_State == ToolboxState_InProgress) {
-        ui.label_NumberOfPoints->setText(QString("%1 / %2").arg(m_CurrentPointNumber).arg(m_NumberOfPoints));
-        ui.label_CalibrationError->setText(tr("N/A"));
-        ui.label_CurrentPosition->setText(m_StylusPositionString.c_str());
-        ui.label_StylusTipTransform->setText(tr("N/A"));
-        ui.label_Instructions->setText(tr("Move around stylus with its tip fixed until the required amount of points are aquired"));
-        ui.label_Instructions->setFont(QFont("SansSerif", 8, QFont::Bold));
+    m_ParentMainWindow->SetStatusBarText(QString(" Recording stylus positions"));
+    m_ParentMainWindow->SetStatusBarProgress(0);
 
-        ui.pushButton_Start->setEnabled(false);
-        ui.pushButton_Stop->setEnabled(true);
-        ui.pushButton_Save->setEnabled(false);
+    m_ParentMainWindow->GetToolVisualizer()->ShowInput(true);
 
-        m_ParentMainWindow->SetStatusBarText(QString(" Recording stylus positions"));
-        m_ParentMainWindow->SetStatusBarProgress(0);
+    ui.pushButton_Stop->setFocus();
+  }
+  else if (m_State == ToolboxState_Done)
+  {
+    ui.pushButton_Start->setEnabled(true);
+    ui.pushButton_Stop->setEnabled(false);
+    ui.pushButton_Save->setEnabled(true);
+    ui.label_Instructions->setText(tr("Calibration transform is ready to save"));
+    ui.label_Instructions->setFont(QFont("SansSerif", 8, QFont::Bold));
 
-        m_ParentMainWindow->GetToolVisualizer()->ShowInput(true);
+    ui.label_NumberOfPoints->setText(QString("%1 / %2").arg(m_CurrentPointNumber).arg(m_NumberOfPoints));
+    ui.label_CalibrationError->setText(QString("%1 mm").arg(m_PivotCalibration->GetCalibrationError(), 2));
+    ui.label_CurrentPosition->setText(m_StylusPositionString.c_str());
+    ui.label_StylusTipTransform->setText(m_PivotCalibration->GetTooltipToToolTranslationString().c_str());
 
-        ui.pushButton_Stop->setFocus();
+    m_ParentMainWindow->SetStatusBarText(QString(" Stylus calibration done"));
+    m_ParentMainWindow->SetStatusBarProgress(-1);
 
-      } else
-        // If done
-        if (m_State == ToolboxState_Done) {
-          ui.pushButton_Start->setEnabled(true);
-          ui.pushButton_Stop->setEnabled(false);
-          ui.pushButton_Save->setEnabled(true);
-          ui.label_Instructions->setText(tr("Calibration transform is ready to save"));
-          ui.label_Instructions->setFont(QFont("SansSerif", 8, QFont::Bold));
+    m_ParentMainWindow->GetToolVisualizer()->ShowInput(true);
+    m_ParentMainWindow->GetToolVisualizer()->ShowTool(TRACKER_TOOL_STYLUS, true);
+    m_ParentMainWindow->GetToolVisualizer()->ShowResult(true);
 
-          ui.label_NumberOfPoints->setText(QString("%1 / %2").arg(m_CurrentPointNumber).arg(m_NumberOfPoints));
-          ui.label_CalibrationError->setText(QString("%1 mm").arg(m_PivotCalibration->GetCalibrationError(), 2));
-          ui.label_CurrentPosition->setText(m_StylusPositionString.c_str());
-          ui.label_StylusTipTransform->setText(m_PivotCalibration->GetTooltipToToolTranslationString().c_str());
+    QApplication::restoreOverrideCursor();
+  }
+  else if (m_State == ToolboxState_Error)
+  {
+    ui.pushButton_Start->setEnabled(true);
+    ui.pushButton_Stop->setEnabled(false);
+    ui.pushButton_Save->setEnabled(false);
+    ui.label_Instructions->setText(tr(""));
+    ui.label_Instructions->setFont(QFont("SansSerif", 8, QFont::Bold));
 
-          m_ParentMainWindow->SetStatusBarText(QString(" Stylus calibration done"));
-          m_ParentMainWindow->SetStatusBarProgress(-1);
+    ui.label_NumberOfPoints->setText(tr("N/A"));
+    ui.label_CalibrationError->setText(tr("N/A"));
+    ui.label_CurrentPosition->setText(tr("N/A"));
+    ui.label_StylusTipTransform->setText(tr("N/A"));
 
-          m_ParentMainWindow->GetToolVisualizer()->ShowInput(true);
-          m_ParentMainWindow->GetToolVisualizer()->ShowTool(TRACKER_TOOL_STYLUS, true);
-          m_ParentMainWindow->GetToolVisualizer()->ShowResult(true);
+    m_ParentMainWindow->SetStatusBarText(QString(""));
+    m_ParentMainWindow->SetStatusBarProgress(-1);
 
-          QApplication::restoreOverrideCursor();
-
-        } else
-          // If error occured
-          if (m_State == ToolboxState_Error) {
-            ui.pushButton_Start->setEnabled(true);
-            ui.pushButton_Stop->setEnabled(false);
-            ui.pushButton_Save->setEnabled(false);
-            ui.label_Instructions->setText(tr(""));
-            ui.label_Instructions->setFont(QFont("SansSerif", 8, QFont::Bold));
-
-            ui.label_NumberOfPoints->setText(tr("N/A"));
-            ui.label_CalibrationError->setText(tr("N/A"));
-            ui.label_CurrentPosition->setText(tr("N/A"));
-            ui.label_StylusTipTransform->setText(tr("N/A"));
-
-            m_ParentMainWindow->SetStatusBarText(QString(""));
-            m_ParentMainWindow->SetStatusBarProgress(-1);
-
-            QApplication::restoreOverrideCursor();
-          }
+    QApplication::restoreOverrideCursor();
+  }
 }
 
 //-----------------------------------------------------------------------------

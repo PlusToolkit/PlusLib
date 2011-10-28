@@ -238,7 +238,8 @@ void FreehandCalibrationToolbox::SetDisplayAccordingToState()
   }
 
   // If initialization failed
-  if (m_State == ToolboxState_Uninitialized) {
+  if (m_State == ToolboxState_Uninitialized)
+  {
     ui.label_InstructionsTemporal->setText(tr(""));
     ui.pushButton_StartTemporal->setEnabled(false);
     ui.pushButton_CancelTemporal->setEnabled(false);
@@ -251,96 +252,95 @@ void FreehandCalibrationToolbox::SetDisplayAccordingToState()
     m_ParentMainWindow->SetStatusBarText(QString(""));
     m_ParentMainWindow->SetStatusBarProgress(-1);
 
-  } else
-    // If initialized
-    if (m_State == ToolboxState_Idle) {
-      ui.label_InstructionsTemporal->setText(tr("Current video time offset: %1 ms").arg(videoTimeOffset));
-      ui.pushButton_StartTemporal->setEnabled(false); ui.pushButton_StartTemporal->setToolTip(tr("Temporal calibration is disabled until fixing the algorithm, sorry!")); //TODO this is temporarily disabled
-      ui.pushButton_CancelTemporal->setEnabled(false);
+  }
+  else if (m_State == ToolboxState_Idle)
+  {
+    ui.label_InstructionsTemporal->setText(tr("Current video time offset: %1 ms").arg(videoTimeOffset));
+    ui.pushButton_StartTemporal->setEnabled(false); ui.pushButton_StartTemporal->setToolTip(tr("Temporal calibration is disabled until fixing the algorithm, sorry!")); //TODO this is temporarily disabled
+    ui.pushButton_CancelTemporal->setEnabled(false);
 
-      if (IsReadyToStartSpatialCalibration()) {
-        ui.label_InstructionsSpatial->setText(tr("Press Start and start scanning the phantom"));
-      } else {
-        ui.label_InstructionsSpatial->setText(tr("Configuration files need to be loaded"));
-      }
+    if (IsReadyToStartSpatialCalibration()) {
+      ui.label_InstructionsSpatial->setText(tr("Press Start and start scanning the phantom"));
+    } else {
+      ui.label_InstructionsSpatial->setText(tr("Configuration files need to be loaded"));
+    }
+    ui.pushButton_CancelSpatial->setEnabled(false);
+
+    if ((IsReadyToStartSpatialCalibration()) && (m_Calibration->GetCalibrationDate() != NULL)) {
+      ui.checkBox_ShowDevices->setEnabled(true);
+    } else {
+      ui.checkBox_ShowDevices->setEnabled(false);
+    }
+
+    ui.pushButton_Save->setEnabled(false);
+    ui.label_Results->setText(tr(""));
+
+    ui.pushButton_StartSpatial->setFocus();
+
+    ui.pushButton_StartSpatial->setEnabled(IsReadyToStartSpatialCalibration());
+
+    m_ParentMainWindow->SetStatusBarText(QString(""));
+    m_ParentMainWindow->SetStatusBarProgress(-1);
+
+    QApplication::restoreOverrideCursor();
+  }
+  else if (m_State == ToolboxState_InProgress)
+  {
+    ui.label_InstructionsTemporal->setText(tr("Current video time offset: %1 ms").arg(videoTimeOffset));
+    ui.pushButton_StartTemporal->setEnabled(false);
+
+    ui.label_InstructionsSpatial->setText(tr("Scan the phantom in the most degrees of freedom possible"));
+    ui.frame_SpatialCalibration->setEnabled(true);
+    ui.pushButton_StartSpatial->setEnabled(false);
+
+    ui.checkBox_ShowDevices->setEnabled(false);
+    ui.pushButton_Save->setEnabled(false);
+    ui.label_Results->setText(tr(""));
+
+    m_ParentMainWindow->SetStatusBarText(QString(" Acquiring and adding images to calibrator"));
+    m_ParentMainWindow->SetStatusBarProgress(0);
+  }
+  else if (m_State == ToolboxState_Done)
+  {
+    ui.label_InstructionsTemporal->setText(tr("Temporal calibration is ready to save\n(video time offset: %1 ms)").arg(videoTimeOffset));
+    ui.pushButton_StartTemporal->setEnabled(true);
+    ui.pushButton_CancelSpatial->setEnabled(false);
+
+    ui.label_InstructionsSpatial->setText(tr("Spatial calibration is ready to save"));
+    ui.pushButton_StartSpatial->setEnabled(true);
+    ui.pushButton_CancelSpatial->setEnabled(false);
+
+    ui.checkBox_ShowDevices->setEnabled(true);
+    ui.pushButton_Save->setEnabled(true);
+    ui.label_Results->setText(m_Calibration->GetResultString().c_str());
+
+    ui.pushButton_Save->setFocus();
+
+    m_ParentMainWindow->SetStatusBarText(QString(" Calibration done"));
+    m_ParentMainWindow->SetStatusBarProgress(-1);
+
+    QApplication::restoreOverrideCursor();
+
+  }
+  else if (m_State == ToolboxState_Error)
+  {
+      ui.label_InstructionsTemporal->setText(tr("Error occured!"));
+      ui.label_InstructionsTemporal->setFont(QFont("SansSerif", 8, QFont::Bold));
+      ui.pushButton_StartTemporal->setEnabled(false);
       ui.pushButton_CancelSpatial->setEnabled(false);
 
-      if ((IsReadyToStartSpatialCalibration()) && (m_Calibration->GetCalibrationDate() != NULL)) {
-        ui.checkBox_ShowDevices->setEnabled(true);
-      } else {
-        ui.checkBox_ShowDevices->setEnabled(false);
-      }
+      ui.label_InstructionsSpatial->setText(tr(""));
+      ui.pushButton_StartSpatial->setEnabled(false);
+      ui.pushButton_CancelSpatial->setEnabled(false);
+
+      ui.checkBox_ShowDevices->setEnabled(false);
       ui.pushButton_Save->setEnabled(false);
-      ui.label_Results->setText(tr(""));
-
-      ui.pushButton_StartSpatial->setFocus();
-
-      ui.pushButton_StartSpatial->setEnabled(IsReadyToStartSpatialCalibration());
 
       m_ParentMainWindow->SetStatusBarText(QString(""));
       m_ParentMainWindow->SetStatusBarProgress(-1);
 
       QApplication::restoreOverrideCursor();
-
-    } else
-      // If in progress
-      if (m_State == ToolboxState_InProgress) {
-        ui.label_InstructionsTemporal->setText(tr("Current video time offset: %1 ms").arg(videoTimeOffset));
-        ui.pushButton_StartTemporal->setEnabled(false);
-
-        ui.label_InstructionsSpatial->setText(tr("Scan the phantom in the most degrees of freedom possible"));
-        ui.frame_SpatialCalibration->setEnabled(true);
-        ui.pushButton_StartSpatial->setEnabled(false);
-
-        ui.checkBox_ShowDevices->setEnabled(false);
-        ui.pushButton_Save->setEnabled(false);
-        ui.label_Results->setText(tr(""));
-
-        m_ParentMainWindow->SetStatusBarText(QString(" Acquiring and adding images to calibrator"));
-        m_ParentMainWindow->SetStatusBarProgress(0);
-
-      } else
-        // If done
-        if (m_State == ToolboxState_Done) {
-          ui.label_InstructionsTemporal->setText(tr("Temporal calibration is ready to save\n(video time offset: %1 ms)").arg(videoTimeOffset));
-          ui.pushButton_StartTemporal->setEnabled(true);
-          ui.pushButton_CancelSpatial->setEnabled(false);
-
-          ui.label_InstructionsSpatial->setText(tr("Spatial calibration is ready to save"));
-          ui.pushButton_StartSpatial->setEnabled(true);
-          ui.pushButton_CancelSpatial->setEnabled(false);
-
-          ui.checkBox_ShowDevices->setEnabled(true);
-          ui.pushButton_Save->setEnabled(true);
-          ui.label_Results->setText(m_Calibration->GetResultString().c_str());
-
-          ui.pushButton_Save->setFocus();
-
-          m_ParentMainWindow->SetStatusBarText(QString(" Calibration done"));
-          m_ParentMainWindow->SetStatusBarProgress(-1);
-
-          QApplication::restoreOverrideCursor();
-
-        } else
-          // If error occured
-          if (m_State == ToolboxState_Error) {
-            ui.label_InstructionsTemporal->setText(tr("Error occured!"));
-            ui.label_InstructionsTemporal->setFont(QFont("SansSerif", 8, QFont::Bold));
-            ui.pushButton_StartTemporal->setEnabled(false);
-            ui.pushButton_CancelSpatial->setEnabled(false);
-
-            ui.label_InstructionsSpatial->setText(tr(""));
-            ui.pushButton_StartSpatial->setEnabled(false);
-            ui.pushButton_CancelSpatial->setEnabled(false);
-
-            ui.checkBox_ShowDevices->setEnabled(false);
-            ui.pushButton_Save->setEnabled(false);
-
-            m_ParentMainWindow->SetStatusBarText(QString(""));
-            m_ParentMainWindow->SetStatusBarProgress(-1);
-
-            QApplication::restoreOverrideCursor();
-          }
+    }
 }
 
 //-----------------------------------------------------------------------------

@@ -7,13 +7,13 @@
     <x>0</x>
     <y>0</y>
     <width>998</width>
-    <height>580</height>
+    <height>590</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
     <width>998</width>
-    <height>580</height>
+    <height>590</height>
    </size>
   </property>
   <property name="windowTitle">
@@ -119,7 +119,7 @@
         <property name="sizeHint" stdset="0">
          <size>
           <width>20</width>
-          <height>12</height>
+          <height>8</height>
          </size>
         </property>
        </spacer>
@@ -297,7 +297,7 @@
         <property name="sizeHint" stdset="0">
          <size>
           <width>28</width>
-          <height>8</height>
+          <height>4</height>
          </size>
         </property>
        </spacer>
@@ -423,7 +423,7 @@
         <property name="sizeHint" stdset="0">
          <size>
           <width>28</width>
-          <height>8</height>
+          <height>4</height>
          </size>
         </property>
        </spacer>
@@ -445,8 +445,11 @@
          </property>
          <item row="0" column="0">
           <widget class="QLabel" name="label_OpeningCircleRadius">
+           <property name="toolTip">
+            <string>This is called OpeningCircleRadius in configuration file</string>
+           </property>
            <property name="text">
-            <string>Opening circle radius (mm):</string>
+            <string>Minimum dot size (mm):</string>
            </property>
           </widget>
          </item>
@@ -557,7 +560,7 @@
         <property name="sizeHint" stdset="0">
          <size>
           <width>28</width>
-          <height>8</height>
+          <height>4</height>
          </size>
         </property>
        </spacer>
@@ -709,16 +712,16 @@
             <number>1</number>
            </property>
            <property name="minimum">
-            <double>0.000000000000000</double>
+            <double>-180.000000000000000</double>
            </property>
            <property name="maximum">
-            <double>360.000000000000000</double>
+            <double>180.000000000000000</double>
            </property>
            <property name="singleStep">
             <double>10.000000000000000</double>
            </property>
            <property name="value">
-            <double>20.000000000000000</double>
+            <double>-70.000000000000000</double>
            </property>
           </widget>
          </item>
@@ -741,20 +744,20 @@
             <number>1</number>
            </property>
            <property name="minimum">
-            <double>1.000000000000000</double>
+            <double>-180.000000000000000</double>
            </property>
            <property name="maximum">
-            <double>360.000000000000000</double>
+            <double>180.000000000000000</double>
            </property>
            <property name="singleStep">
             <double>10.000000000000000</double>
            </property>
            <property name="value">
-            <double>160.000000000000000</double>
+            <double>70.000000000000000</double>
            </property>
           </widget>
          </item>
-         <item row="6" column="0">
+         <item row="7" column="0">
           <widget class="QLabel" name="label_CollinearPointsMaxDistanceFromLine">
            <property name="toolTip">
             <string>Collinear points maximum distance from line in mm</string>
@@ -764,7 +767,7 @@
            </property>
           </widget>
          </item>
-         <item row="6" column="1">
+         <item row="7" column="1">
           <widget class="QDoubleSpinBox" name="doubleSpinBox_CollinearPointsMaxDistanceFromLine">
            <property name="maximumSize">
             <size>
@@ -786,6 +789,26 @@
            </property>
            <property name="value">
             <double>5.300000000000000</double>
+           </property>
+          </widget>
+         </item>
+         <item row="6" column="0">
+          <widget class="QLabel" name="label_AngleTolerance">
+           <property name="text">
+            <string>Angle tolerance (°):</string>
+           </property>
+          </widget>
+         </item>
+         <item row="6" column="1">
+          <widget class="QDoubleSpinBox" name="doubleSpinBox_AngleTolerance">
+           <property name="minimum">
+            <double>0.100000000000000</double>
+           </property>
+           <property name="maximum">
+            <double>99.900000000000006</double>
+           </property>
+           <property name="value">
+            <double>10.000000000000000</double>
            </property>
           </widget>
          </item>

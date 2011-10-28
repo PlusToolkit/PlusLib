@@ -954,6 +954,7 @@ SegmentationParameterDialog::SegmentationParameterDialog(QWidget* aParent, vtkDa
 	connect( ui.doubleSpinBox_AngleDifference, SIGNAL( valueChanged(double) ), this, SLOT( AngleDifferenceChanged(double) ) );
 	connect( ui.doubleSpinBox_MinTheta, SIGNAL( valueChanged(double) ), this, SLOT( MinThetaChanged(double) ) );
 	connect( ui.doubleSpinBox_MaxTheta, SIGNAL( valueChanged(double) ), this, SLOT( MaxThetaChanged(double) ) );
+	connect( ui.doubleSpinBox_AngleTolerance, SIGNAL( valueChanged(double) ), this, SLOT( AngleToleranceChanged(double) ) );
 	connect( ui.doubleSpinBox_CollinearPointsMaxDistanceFromLine, SIGNAL( valueChanged(double) ), this, SLOT( CollinearPointsMaxDistanceFromLineChanged(double) ) );
 	connect( ui.doubleSpinBox_ImageThreshold, SIGNAL( valueChanged(double) ), this, SLOT( ImageThresholdChanged(double) ) );
 	connect( ui.checkBox_OriginalIntensityForDots, SIGNAL( toggled(bool) ), this, SLOT( OriginalIntensityForDotsToggled(bool) ) );
@@ -1917,6 +1918,7 @@ void SegmentationParameterDialog::MinThetaChanged(double aValue)
   LOG_TRACE("SegmentationParameterDialog::MinThetaChanged(" << aValue << ")");
 
   m_PatternRecognition->GetFidLineFinder()->SetMinThetaDegrees(aValue);
+  m_PatternRecognition->GetFidLabeling()->SetMinThetaDegrees(aValue);
 }
 
 //-----------------------------------------------------------------------------
@@ -1926,6 +1928,16 @@ void SegmentationParameterDialog::MaxThetaChanged(double aValue)
   LOG_TRACE("SegmentationParameterDialog::MaxThetaChanged(" << aValue << ")");
 
   m_PatternRecognition->GetFidLineFinder()->SetMaxThetaDegrees(aValue);
+  m_PatternRecognition->GetFidLabeling()->SetMaxThetaDegrees(aValue);
+}
+
+//-----------------------------------------------------------------------------
+
+void SegmentationParameterDialog::AngleToleranceChanged(double aValue)
+{
+  LOG_TRACE("SegmentationParameterDialog::AngleToleranceChanged(" << aValue << ")");
+
+  m_PatternRecognition->GetFidLabeling()->SetAngleToleranceDegrees(aValue);
 }
 
 //-----------------------------------------------------------------------------
