@@ -97,7 +97,7 @@ int main( int argc, char** argv )
   std::string inputVideoBufferMetafile;
   std::string inputTrackerBufferMetafile;
   bool inputReplay(false); 
-  int verboseLevel=vtkPlusLogger::LOG_LEVEL_INFO;
+  int verboseLevel=vtkPlusLogger::LOG_LEVEL_DEFAULT;
   
   vtksys::CommandLineArguments args;
   args.Initialize( argc, argv );
@@ -127,7 +127,6 @@ int main( int argc, char** argv )
   }
   
   vtkPlusLogger::Instance()->SetLogLevel( verboseLevel );
-  vtkPlusLogger::Instance()->SetDisplayLogLevel( verboseLevel );
   
   
     // Prepare data collector object.

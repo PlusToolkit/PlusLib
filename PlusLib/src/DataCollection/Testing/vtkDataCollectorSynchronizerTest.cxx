@@ -45,7 +45,7 @@ int main(int argc, char **argv)
   double thresholdMultiplier(5); 
   bool generateReport(false); 
 
-  int verboseLevel=vtkPlusLogger::LOG_LEVEL_INFO;
+  int verboseLevel=vtkPlusLogger::LOG_LEVEL_DEFAULT;
 
   vtksys::CommandLineArguments args;
   args.Initialize(argc, argv);
@@ -62,7 +62,7 @@ int main(int argc, char **argv)
   args.AddArgument("--input-baseline-report-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputBaselineReportFilePath, "Baseline report file path");
   args.AddArgument("--generate-report", vtksys::CommandLineArguments::NO_ARGUMENT, &generateReport, "Generate HTML report (it assumes ../gnuplot/gnuplot.exe and ../scripts/ are valid)");
 
-  args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug)");	
+	args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");	
 
   if ( !args.Parse() )
   {
@@ -78,10 +78,7 @@ int main(int argc, char **argv)
     exit(EXIT_FAILURE);
   }
 
-  ///////////////
-
   vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
-  vtkPlusLogger::Instance()->SetDisplayLogLevel(verboseLevel);
 
   // Read tracker buffer 
   LOG_INFO("Reading tracker buffer meta file..."); 

@@ -28,7 +28,7 @@ int main(int argc, char **argv)
   double inputMaxTimestampDifference(0.080); 
   double inputMinStdevReductionFactor(3.0); 
 
-	int verboseLevel = vtkPlusLogger::LOG_LEVEL_INFO;
+	int verboseLevel = vtkPlusLogger::LOG_LEVEL_DEFAULT;
 
 	vtksys::CommandLineArguments args;
 	args.Initialize(argc, argv);
@@ -38,7 +38,7 @@ int main(int argc, char **argv)
   args.AddArgument("--input-averaged-items-for-filtering", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputAveragedItemsForFiltering, "Number of averaged items used for filtering (Default: 20).");
   args.AddArgument("--input-max-timestamp-difference", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputMaxTimestampDifference, "The maximum difference between the filtered and nonfiltered timestamps for each frame (Default: 0.08s).");
   args.AddArgument("--input-min-stdev-reduction-factor", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputMinStdevReductionFactor, "Minimum factor that the filtering should reduces the standard deviation of the frame periods on filtered data (Default: 3.0 ).");
-	args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug)");	
+	args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");	
 	
 	if ( !args.Parse() )
 	{
@@ -62,7 +62,6 @@ int main(int argc, char **argv)
   }
 
 	vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
-  vtkPlusLogger::Instance()->SetDisplayLogLevel(verboseLevel);
 
   // Read buffer 
   LOG_INFO("Reading meta file..."); 

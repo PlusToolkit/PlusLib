@@ -24,7 +24,7 @@ int main(int argc, char **argv)
 
   bool printHelp(false);
 
-  int verboseLevel = vtkPlusLogger::LOG_LEVEL_INFO;
+  int verboseLevel = vtkPlusLogger::LOG_LEVEL_DEFAULT;
 
   vtksys::CommandLineArguments args;
   args.Initialize(argc, argv);
@@ -35,7 +35,7 @@ int main(int argc, char **argv)
   std::string inputGnuplotCommand(""); 
 
   args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");	
-  args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug)");	
+	args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");	
   args.AddArgument("--input-sequence-metafiles", vtksys::CommandLineArguments::MULTI_ARGUMENT, &inputSequenceMetafiles, "Input sequence metafile name with path");	
   args.AddArgument("--input-baseline-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputBaselineFileName, "Input xml baseline file name with path");	
   args.AddArgument("--input-config-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "Input xml config file name with path");	
@@ -63,7 +63,6 @@ int main(int argc, char **argv)
   }
 
   vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
-  vtkPlusLogger::Instance()->SetDisplayLogLevel(verboseLevel);
 
   // Read configuration
   vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkXMLUtilities::ReadElementFromFile(inputConfigFileName.c_str());

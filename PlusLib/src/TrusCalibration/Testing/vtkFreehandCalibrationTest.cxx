@@ -47,7 +47,7 @@ int main (int argc, char* argv[])
   double inputTranslationErrorThreshold(0);
   double inputRotationErrorThreshold(0);
 
-  int verboseLevel=vtkPlusLogger::LOG_LEVEL_WARNING;
+  int verboseLevel=vtkPlusLogger::LOG_LEVEL_DEFAULT;
 
   vtksys::CommandLineArguments cmdargs;
   cmdargs.Initialize(argc, argv);
@@ -61,7 +61,7 @@ int main (int argc, char* argv[])
   cmdargs.AddArgument("--translation-error-threshold", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputTranslationErrorThreshold, "Translation error threshold in mm.");	
   cmdargs.AddArgument("--rotation-error-threshold", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputRotationErrorThreshold, "Rotation error threshold in degrees.");	
 
-  cmdargs.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug)");	
+	cmdargs.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");	
 
   if ( !cmdargs.Parse() )
   {
@@ -82,7 +82,6 @@ int main (int argc, char* argv[])
   vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationData(configRootElement);
 
   vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
-  vtkPlusLogger::Instance()->SetDisplayLogLevel(verboseLevel);
 
   // Load phantom definition and registration
   vtkPhantomRegistrationAlgo* phantomRegistration = vtkPhantomRegistrationAlgo::New();

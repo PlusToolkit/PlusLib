@@ -26,7 +26,7 @@ int main (int argc, char* argv[])
   std::string outputVolumeAlphaFileName;
   std::string outputFrameFileName; 
 
-  int verboseLevel=vtkPlusLogger::LOG_LEVEL_INFO;
+  int verboseLevel=vtkPlusLogger::LOG_LEVEL_DEFAULT;
 
   vtksys::CommandLineArguments cmdargs;
   cmdargs.Initialize(argc, argv);
@@ -36,7 +36,7 @@ int main (int argc, char* argv[])
   cmdargs.AddArgument( "--output-volume-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputVolumeFileName, "Output file name of the reconstructed volume (.vtk)" );
   cmdargs.AddArgument( "--output-volume-alpha-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputVolumeAlphaFileName, "Output file name of the alpha channel of the reconstructed volume (.vtk)" );
   cmdargs.AddArgument( "--output-frame-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputFrameFileName, "A filename that will be used for storing the tracked image frames. Each frame will be exported individually, with the proper position and orientation in the reference coordinate system");
-  cmdargs.AddArgument( "--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug)" );
+	cmdargs.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");	
 
   if ( !cmdargs.Parse() )
   {
@@ -54,7 +54,6 @@ int main (int argc, char* argv[])
 
   // Set the log level
   vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
-  vtkPlusLogger::Instance()->SetDisplayLogLevel(verboseLevel);
 
   vtkSmartPointer<vtkVolumeReconstructor> reconstructor = vtkSmartPointer<vtkVolumeReconstructor>::New(); 
 
