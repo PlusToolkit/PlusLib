@@ -181,6 +181,9 @@ configure_file(
 #-----------------------------------------------------------------------------
 # Generate default application configuration files in the non-installed executable directories (Release and Debug too)
 # 
+SET( PLUSCONFIG_DEVICESET_CONFIG_DIR "${PLUSLIB_SOURCE_DIR}/data/ConfigFiles" )
+SET( PLUSCONFIG_IMAGE_DIR "${PLUSLIB_SOURCE_DIR}/data/TestImages" )
+
  IF ( ${CMAKE_GENERATOR} MATCHES "Visual Studio" )
     IF ( NOT EXISTS "${PLUS_EXECUTABLE_OUTPUT_PATH}/Release/PlusConfig.xml" )
         configure_file(

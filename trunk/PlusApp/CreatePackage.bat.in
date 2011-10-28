@@ -4,9 +4,6 @@ REM Hide all your directories from users
 SET ORIGPATH=%PATH%
 SET DIRCMD=0 
 
-REM Set up PATH env variable
-CALL DevEnv_Release.bat no-sln 
-
 REM First we need to build a Release version 
 "${CMAKE_MAKE_PROGRAM}" PlusApp.sln /build Release /project ALL_BUILD
 
