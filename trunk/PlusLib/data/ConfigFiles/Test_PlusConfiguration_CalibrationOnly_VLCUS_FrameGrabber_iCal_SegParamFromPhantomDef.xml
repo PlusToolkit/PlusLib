@@ -1,6 +1,6 @@
 <PlusConfiguration version="1.3">
 
-	<USCalibration version="1.0">
+	<USCalibration>
 		<!-- CalibrationMode: OFFLINE or REALTIME -->
 		<CalibrationController>
 			<ProbeCalibration />

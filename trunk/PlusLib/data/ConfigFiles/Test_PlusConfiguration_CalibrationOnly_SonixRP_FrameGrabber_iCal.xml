@@ -1,58 +1,8 @@
-<PlusConfiguration version="1.2">
+<PlusConfiguration version="1.3">
 
-	<USCalibration version="1.0">
-		<CalibrationController LogLevel="INFO" OutputPath="./Output"    >
-			<StepperCalibration MinNumberOfRotationClusters="4" >
-				<!-- TemplateTranslationData: These are the data files used to calculate the template translation axis  -->
-				<TemplateTranslationData 
-                        NumberOfImagesToAcquire="100" 
-                        OutputSequenceMetaFileSuffix=".TemplateTranslationData"
-						/>
-
-				<!-- ProbeTranslationData: These are the data files used to calculate the stepper translation axis  -->
-				<ProbeTranslationData 
-                        NumberOfImagesToAcquire="200" 
-                        OutputSequenceMetaFileSuffix=".ProbeTranslationData"
-						/>
-				 <!-- ProbeRotationData: These are the data files used to calculate the frame center of rotation  -->
-				<ProbeRotationData 
-                        NumberOfImagesToAcquire="500" 
-                        OutputSequenceMetaFileSuffix=".ProbeRotationData"
-						/>
-			</StepperCalibration>	
-			
-			<ProbeCalibration
-					
-					ImageHomeToUserImageHomeTransform=" 1  0  0  0 
-														0  1  0  0 
-														0  0  1  0 
-														0  0  0  1"
-					DataFileSuffix=".data"
-					CalibrationResultFileSuffix=".Calibration.results"
-					SegmentationErrorLogFileNameSuffix=".Segmentation.errors"
-					SegmentationAnalysisFileNameSuffix = ".Segmentation.analysis"
-					Temp2StepCalibAnalysisFileNameSuffix = ".Template2StepperCalibration.analysis"
-					>
-				
-				 <!-- RandomStepperMotionData1: These are the data files used for calibration. -->
-				<RandomStepperMotionData1
-                        NumberOfImagesToAcquire="200" 
-                        OutputSequenceMetaFileSuffix=".RandomStepperMotionData1"
-						/>
-
-				<!-- RandomStepperMotionData2: These are the data files used to validate the calibration accuracy.  -->
-				<RandomStepperMotionData2
-                        NumberOfImagesToAcquire="100" 
-                        OutputSequenceMetaFileSuffix=".RandomStepperMotionData2"
-						/>
-
-				<TemplateModel ConfigFile="../config/TemplateModel.xml" >
-				</TemplateModel>
-
-				<!-- IncorporatingUS3DBeamProfile: 0 - NO | 1 - BeamwidthVariance | 2 - BeamwidthRatio | 3 - BeamwidthVarianceAndThresholding -->
-				<!-- ConfigFile: The name and the relative or absolute path of the US beam profile file -->
-				<US3DBeamProfile IncorporatingUS3DBeamProfile="0" ConfigFile="./Component_US3DBeamProfile.config" />
-			</ProbeCalibration>
+	<USCalibration>
+		<CalibrationController>
+			<ProbeCalibration />
 			
 			<SegmentationParameters
 					ApproximateSpacingMmPerPixel="0.26"
@@ -82,7 +32,7 @@
 		</CalibrationController>
 	</USCalibration>
 
-	<PhantomDefinition version="1.0">
+	<PhantomDefinition version="1.1">
 		<!-- Supported types are: Double-N, U-Shaped-N -->
 		<Description
 			Name="iCAL"

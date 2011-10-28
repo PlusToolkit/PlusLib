@@ -38,7 +38,7 @@
 	</USDataCollection>
 
 	<!-- CALIBRATION -->
-	<USCalibration version="1.0">
+	<USCalibration>
 		<CalibrationController>
 			<ProbeCalibration />
 			
