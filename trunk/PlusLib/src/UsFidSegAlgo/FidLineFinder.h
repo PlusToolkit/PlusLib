@@ -71,7 +71,7 @@ class FidLineFinder
     void        SetMinThetaDegrees(double value) { m_MinTheta = value; };
     void        SetMaxThetaDegrees(double value) { m_MaxTheta = value; };
 
-	protected:
+  protected:
 		int					m_FrameSize[2];
 		double			m_ApproximateSpacingMmPerPixel;
 		double			m_ImageNormalVectorInPhantomFrameMaximumRotationAngleDeg[6];
