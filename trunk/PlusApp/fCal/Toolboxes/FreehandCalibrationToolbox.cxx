@@ -237,7 +237,6 @@ void FreehandCalibrationToolbox::SetDisplayAccordingToState()
     videoTimeOffset = m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->GetVideoSource()->GetBuffer()->GetLocalTimeOffset();
   }
 
-  // If initialization failed
   if (m_State == ToolboxState_Uninitialized)
   {
     ui.label_InstructionsTemporal->setText(tr(""));

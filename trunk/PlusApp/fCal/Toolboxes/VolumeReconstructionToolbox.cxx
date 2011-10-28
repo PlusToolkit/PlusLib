@@ -109,16 +109,16 @@ void VolumeReconstructionToolbox::SetDisplayAccordingToState()
 
   m_ParentMainWindow->GetToolVisualizer()->HideAll();
 
-	// If initialization failed
-	if (m_State == ToolboxState_Uninitialized) {
+	if (m_State == ToolboxState_Uninitialized)
+  {
 		ui.label_Instructions->setText("N/A");
 
 		ui.pushButton_Reconstruct->setEnabled(false);
 		ui.pushButton_Save->setEnabled(false);
 
-	} else
-	// If initialized
-	if (m_State == ToolboxState_Idle) {
+	}
+  else if (m_State == ToolboxState_Idle)
+  {
 		ui.label_Instructions->setText(tr("N/A"));
 
 		if (! m_VolumeReconstructionConfigFileLoaded) {
@@ -137,17 +137,17 @@ void VolumeReconstructionToolbox::SetDisplayAccordingToState()
 
 		ui.label_Instructions->setFont(QFont("SansSerif", 8, QFont::Bold));
 
-	} else
-	// If in progress
-	if (m_State == ToolboxState_InProgress) {
+	}
+  else if (m_State == ToolboxState_InProgress)
+  {
 		ui.label_Instructions->setText("");
 
 		ui.pushButton_Reconstruct->setEnabled(false);
 		ui.pushButton_Save->setEnabled(false);
 
-	} else
-	// If done
-	if (m_State == ToolboxState_Done) {
+	}
+  else if (m_State == ToolboxState_Done)
+  {
 		ui.label_Instructions->setText("Reconstructed volume saved successfully");
 
 		ui.pushButton_Reconstruct->setEnabled(false);
@@ -160,9 +160,9 @@ void VolumeReconstructionToolbox::SetDisplayAccordingToState()
 	  m_ParentMainWindow->GetToolVisualizer()->GetCanvasRenderer()->Modified();
 	  m_ParentMainWindow->GetToolVisualizer()->GetCanvasRenderer()->ResetCamera();
 
-	} else
-	// If error occured
-	if (m_State == ToolboxState_Error) {
+	}
+  else if (m_State == ToolboxState_Error)
+  {
 		ui.label_Instructions->setText("Error occured!");
 
 		ui.pushButton_Reconstruct->setEnabled(false);
