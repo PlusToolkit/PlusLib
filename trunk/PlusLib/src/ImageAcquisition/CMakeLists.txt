@@ -79,7 +79,7 @@ IF (PLUS_USE_ULTRASONIX_VIDEO)
        SET  ( External_Libraries_Debug ${External_Libraries_Debug}
           ${ULTRASONIX_SDK_BINARY_DIR}/d/ulterius${CMAKE_SHARED_LIBRARY_SUFFIX}
           ${ULTRASONIX_SDK_BINARY_DIR}/d/utx_utils${CMAKE_SHARED_LIBRARY_SUFFIX}
-          }
+          )
 	ELSEIF (PLUS_ULTRASONIX_SDK_MAJOR_VERSION EQUAL 2)
         # Use Ultrasonix SDK 2.0 (only Ulterius is supported)
         SET(ULTRASONIX_SDK_BINARY_DIR ${ULTRASONIX_SDK_DIR}/bin CACHE PATH "Path to the Ulterius SDK binary directory." FORCE)
@@ -178,8 +178,8 @@ IF (PLUS_USE_ICCAPTURING_VIDEO)
 		${ICCAPTURING_BIN_DIR}/release/TIS_DShowLib08${CMAKE_SHARED_LIBRARY_SUFFIX}
 		)
   SET ( External_Libraries_Debug ${External_Libraries_Debug} 
-    ${ICCAPTURING_BIN_DIR}/debug/TIS_UDSHL08${SUFFIX_TIS_UDSHL08}${CMAKE_SHARED_LIBRARY_SUFFIX}
-		${ICCAPTURING_BIN_DIR}/debug/TIS_DShowLib08${CMAKE_SHARED_LIBRARY_SUFFIX}
+    ${ICCAPTURING_BIN_DIR}/debug/TIS_UDSHL08${SUFFIX_TIS_UDSHL08}d${CMAKE_SHARED_LIBRARY_SUFFIX}
+		${ICCAPTURING_BIN_DIR}/debug/TIS_DShowLib08d${CMAKE_SHARED_LIBRARY_SUFFIX}
     )
 ENDIF (PLUS_USE_ICCAPTURING_VIDEO)
 
@@ -199,7 +199,7 @@ IF (PLUS_USE_VFW_VIDEO)
 	SET (ImageAcquisition_LIBS ${ImageAcquisition_LIBS} 
     ws2_32
     )		
-  SET (ImageAcquisition_INCLUDE_DIRS ${ImageAcquisition_INCLUDE_DIRS}
+  SET (ImageAcquisition_INCLUDE_DIRS ${ImageAcquisition_INCLUDE_DIRS} 
   	${CMAKE_CURRENT_SOURCE_DIR}/VideoForWindows 	
   	CACHE INTERNAL "" FORCE
     )      
