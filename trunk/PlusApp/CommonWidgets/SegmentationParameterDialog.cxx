@@ -1428,12 +1428,12 @@ PlusStatus SegmentationParameterDialog::CalculateImageCameraParameters()
 	imageCamera->ParallelProjectionOn();
 
 	// Calculate distance of camera from the plane
-	int *size = m_CanvasRenderer->GetRenderWindow()->GetSize();
-	if ((double)size[0] / (double)size[1] > imageCenterX / imageCenterY) {
+  QSize size = ui.canvas->size();
+  if ((double)size.width() / (double)size.height() > imageCenterX / imageCenterY) {
 		// If canvas aspect ratio is more elongenated in the X position then compute the distance according to the Y axis
 		imageCamera->SetParallelScale(imageCenterY);
 	} else {
-		imageCamera->SetParallelScale(imageCenterX * (double)size[1] / (double)size[0]);
+		imageCamera->SetParallelScale(imageCenterX * (double)size.height() / (double)size.width());
 	}
 
 	imageCamera->SetPosition(imageCenterX, imageCenterY, -200.0);
