@@ -1,12 +1,3 @@
-
-## PROJECT - Set a name for the entire project. One argument. 
-## Usage: PROJECT(projectname [C++ C Java]) Sets the name of the project. 
-## This creates the variables projectname_BINARY_DIR and 
-## projectname_SOURCE_DIR. Optionally you can specify which languages 
-## your project supports. By default all languages are supported. 
-## If you do not have a C++ compiler, but want to build a c program 
-## with cmake, then use this option.
-
 PROJECT(MICRONTRACKERFILES)
 
 ## INCLUDE_REGULAR_EXPRESSION - Set the regular expression used for 
@@ -21,32 +12,34 @@ PROJECT(MICRONTRACKERFILES)
 
 INCLUDE_REGULAR_EXPRESSION("^(microntrackerfiles).*$")
 
-SET (MICRONTRACKERFILES_INCLUDE_DIRS ${MICRONTRACKERFILES_SOURCE_DIR} ${MICRONTRACKERFILES_BINARY_DIR} )
+SET (MICRONTRACKERFILES_INCLUDE_DIRS 
+  ${MICRONTRACKERFILES_SOURCE_DIR} 
+  ${MICRONTRACKERFILES_BINARY_DIR} 
+  )
 
 SET(MICRONTRACKERFILES_SRCS
-MicronTrackerInterface.h
-MicronTrackerInterface.cpp
-UtilityFunctions.h
-UtilityFunctions.cpp
-Cameras.h
-Cameras.cpp
-MCamera.h
-MCamera.cpp
-Collection.h
-Collection.cpp
-Facet.h
-Facet.cpp
-Marker.h
-Marker.cpp
-Markers.h
-Markers.cpp
-Persistence.h
-Persistence.cpp
-Vector.h
-Vector.cpp
-Xform3D.h
-Xform3D.cpp
-MTC.h
+  MicronTrackerInterface.h
+  MicronTrackerInterface.cpp
+  UtilityFunctions.h
+  UtilityFunctions.cpp
+  Cameras.h
+  Cameras.cpp
+  MCamera.h
+  MCamera.cpp
+  Collection.h
+  Collection.cpp
+  Facet.h
+  Facet.cpp
+  Marker.h
+  Marker.cpp
+  Markers.h
+  Markers.cpp
+  Persistence.h
+  Persistence.cpp
+  Vector.h
+  Vector.cpp
+  Xform3D.h
+  Xform3D.cpp
 )
 
 IF(WIN32)
@@ -68,13 +61,18 @@ IF (WIN32)
   ENDIF (NOT BORLAND)
 ENDIF (WIN32)
 
-SET (MICRONTRACKERFILES_INCLUDE_DIRS ${MICRONTRACKERFILES_INCLUDE_DIRS} ${MICRONTRACKERFILES_SRCS}/Dist )
+SET (MICRONTRACKERFILES_INCLUDE_DIRS 
+  ${MICRONTRACKERFILES_INCLUDE_DIRS} 
+  ${MTC_INCLUDE_DIR}
+  )
 
 INCLUDE_DIRECTORIES( ${MICRONTRACKERFILES_INCLUDE_DIRS} )
 SET (Tracking_INCLUDE_DIRS ${Tracking_INCLUDE_DIRS} ${MICRONTRACKERFILES_INCLUDE_DIRS} CACHE INTERNAL "")
 
 ADD_LIBRARY(vtkMicrontrackerfiles ${MICRONTRACKERFILES_SRCS})
-TARGET_LINK_LIBRARIES( vtkMicrontrackerfiles)
+TARGET_LINK_LIBRARIES( vtkMicrontrackerfiles
+  ${MTC_LIB_DIR}/MTC${CMAKE_STATIC_LIBRARY_SUFFIX}
+)
 
 INSTALL_TARGETS(/lib/vtk vtkMicrontrackerfiles )
 #vtkMicrontracker)

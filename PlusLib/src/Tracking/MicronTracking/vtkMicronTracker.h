@@ -71,7 +71,6 @@ POSSIBILITY OF SUCH DAMAGES.
 #include "vtkCriticalSection.h"
 #include "vtkMicronTracker.h"
 #include "vtkTrackerTool.h"
-#include "vtkFrameToTimeConverter.h"
 #include "vtkObjectFactory.h"
 #include "vtkImageImport.h"
 #include "vtkTracker.h"
@@ -105,25 +104,12 @@ public:
   // Probe to see if the tracking system is present on the
   // specified serial port.  If the SerialPort is set to -1,
   // then all serial ports will be checked.
-  int Probe();
+  PlusStatus Probe();
 
   // Description:
   // Get an update from the tracking system and push the new transforms
   // to the tools.  This should only be used within vtkTracker.cxx.
-  void InternalUpdate();
-
-  // Description:
-  // Send a command to the POLARIS in the format INIT: or VER:0 (the
-  // command should include a colon).  Commands can only be done after
-  // either Probe() or StartTracking() has been called.
-  // The text reply from the POLARIS is returned, without the CRC or
-  // final carriage return.
-  //  char *Command(const char *command);
-
-  // Description:
-  // Get the a string (perhaps a long one) describing the type and version
-  // of the device.
-//  vtkGetStringMacro(Version);
+  PlusStatus InternalUpdate();
 
   // Description:
   // Set which serial port to use, 1 through 4.  Default: 1.
@@ -519,21 +505,21 @@ protected:
   // its ground state into full tracking mode.  The POLARIS will
   // only be reset if communication cannot be established without
   // a reset.
-  int InternalStartTracking();
+  PlusStatus InternalStartTracking();
 
   // Description:
   // Stop the tracking system and bring it back to its ground state:
   // Initialized, not tracking, at 9600 Baud.
-  int InternalStopTracking();
+  PlusStatus InternalStopTracking();
 
-  // Description:
-  // Class for updating the virtual clock that accurately times the
-  // arrival of each transform, more accurately than is possible with
-  // the system clock alone because the virtual clock averages out the
-  // jitter.
-  vtkFrameToTimeConverter *Timer;
+  /** Requested frequency of position updates in Hz (1/sec) */
+  double UpdateNominalFrequency;
 
-  char *Version;
+  /** Index of the last frame number. This is used for providing a frame number when the tracker doesn't return any transform */
+  double LastFrameNumber;
+
+  int ReferenceTool;
+
   int SerialPort; 
   vtkMatrix4x4 *SendMatrix;
   int BaudRate;

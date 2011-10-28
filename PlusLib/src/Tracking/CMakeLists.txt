@@ -104,6 +104,12 @@ ENDIF (PLUS_USE_POLARIS)
 # MICRONTRACKER support
 IF (PLUS_USE_MICRONTRACKER)
 
+  SET(MTC_BASE_DIR ${PLUSLIB_TOOLS_DIR}/Claron/MTC-2.1.0)
+  
+  SET(MTC_INCLUDE_DIR ${MTC_BASE_DIR}/inc CACHE PATH "Path to the Claron MicronTracker MTC include directory." FORCE)
+  SET(MTC_BINARY_DIR ${MTC_BASE_DIR}/bin CACHE PATH "Path to the Claron MicronTracker MTC binary directory." FORCE)
+  SET(MTC_LIB_DIR ${MTC_BASE_DIR}/lib CACHE PATH "Path to the Claron MicronTracker MTC library directory." FORCE)
+
 	SET (Tracking_SRCS ${Tracking_SRCS}
 		MicronTracking/vtkMicronTracker.cxx
 	)
@@ -129,6 +135,13 @@ IF (PLUS_USE_MICRONTRACKER)
   ADD_SUBDIRECTORY(MicronTracking/Utils)
   
   SET (PLUSLIB_DEPENDENCIES ${PLUSLIB_DEPENDENCIES} vtkMicrontrackerfiles CACHE INTERNAL "" FORCE	)
+
+  SET ( External_Libraries_Install ${External_Libraries_Install}
+    ${MTC_BINARY_DIR}/MTC${CMAKE_SHARED_LIBRARY_SUFFIX}
+    ${MTC_BINARY_DIR}/digiclops${CMAKE_SHARED_LIBRARY_SUFFIX}
+    ${MTC_BINARY_DIR}/triclops${CMAKE_SHARED_LIBRARY_SUFFIX}
+    )
+
   
 ENDIF (PLUS_USE_MICRONTRACKER)
 
