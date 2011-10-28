@@ -35,6 +35,7 @@ endif (WIN32)
 
 SET (ImageAcquisition_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} CACHE INTERNAL "" FORCE)
 SET (External_Libraries_Install "")
+SET (External_Libraries_Debug "")
 
 # --------------------------------------------------------------------------
 # Ultrasonix support
@@ -75,6 +76,10 @@ IF (PLUS_USE_ULTRASONIX_VIDEO)
           ${ULTRASONIX_SDK_BINARY_DIR}/r/ulterius${CMAKE_SHARED_LIBRARY_SUFFIX}
           ${ULTRASONIX_SDK_BINARY_DIR}/r/utx_utils${CMAKE_SHARED_LIBRARY_SUFFIX}
           )
+       SET  ( External_Libraries_Debug ${External_Libraries_Debug}
+          ${ULTRASONIX_SDK_BINARY_DIR}/d/ulterius${CMAKE_SHARED_LIBRARY_SUFFIX}
+          ${ULTRASONIX_SDK_BINARY_DIR}/d/utx_utils${CMAKE_SHARED_LIBRARY_SUFFIX}
+          }
 	ELSEIF (PLUS_ULTRASONIX_SDK_MAJOR_VERSION EQUAL 2)
         # Use Ultrasonix SDK 2.0 (only Ulterius is supported)
         SET(ULTRASONIX_SDK_BINARY_DIR ${ULTRASONIX_SDK_DIR}/bin CACHE PATH "Path to the Ulterius SDK binary directory." FORCE)
@@ -83,7 +88,7 @@ IF (PLUS_USE_ULTRASONIX_VIDEO)
         SET (ImageAcquisition_LIBS ${ImageAcquisition_LIBS}
           ${ULTERIUS_LIB_DIR}/ulterius.lib
           )
-        SET ( External_Libraries_Install ${External_Libraries_Install}
+        SET ( Ultrasonix_External_Libs 
           ${ULTRASONIX_SDK_BINARY_DIR}/ulterius${CMAKE_SHARED_LIBRARY_SUFFIX}
           ${ULTRASONIX_SDK_BINARY_DIR}/utx_utils${CMAKE_SHARED_LIBRARY_SUFFIX}
           ${ULTRASONIX_SDK_BINARY_DIR}/umc_string_convert${CMAKE_SHARED_LIBRARY_SUFFIX}
@@ -91,6 +96,8 @@ IF (PLUS_USE_ULTRASONIX_VIDEO)
           ${ULTRASONIX_SDK_BINARY_DIR}/umc_xml${CMAKE_SHARED_LIBRARY_SUFFIX}
           ${ULTRASONIX_SDK_BINARY_DIR}/xerces-c_2_7_u_vc6${CMAKE_SHARED_LIBRARY_SUFFIX}
           )
+       SET ( External_Libraries_Install ${External_Libraries_Install} ${Ultrasonix_External_Libs} )
+       SET ( External_Libraries_Debug ${External_Libraries_Debug} ${Ultrasonix_External_Libs} )
     ELSE()
         SET(ULTRASONIX_SDK_BINARY_DIR ${ULTRASONIX_SDK_DIR}/bin CACHE PATH "Path to the Ultrasonix SDK binary directory." FORCE)
         SET(ULTERIUS_INCLUDE_DIR ${ULTRASONIX_SDK_DIR}/ulterius/inc CACHE PATH "Path to the Ultrasonix SDK Ulterius include directory." FORCE)
@@ -104,6 +111,7 @@ IF (PLUS_USE_ULTRASONIX_VIDEO)
             )
         FILE(GLOB ULTRASONIX_SDK_SHARED_LIBRARIES "${ULTRASONIX_SDK_BINARY_DIR}/[^.]*${CMAKE_SHARED_LIBRARY_SUFFIX}") 
         SET ( External_Libraries_Install ${External_Libraries_Install} ${ULTRASONIX_SDK_SHARED_LIBRARIES} )
+        SET ( External_Libraries_Debug ${External_Libraries_Debug} ${ULTRASONIX_SDK_SHARED_LIBRARIES} )
     ENDIF()
     
     SET (ImageAcquisition_INCLUDE_DIRS ${ImageAcquisition_INCLUDE_DIRS}
@@ -169,6 +177,10 @@ IF (PLUS_USE_ICCAPTURING_VIDEO)
 		${ICCAPTURING_BIN_DIR}/release/TIS_UDSHL08${SUFFIX_TIS_UDSHL08}${CMAKE_SHARED_LIBRARY_SUFFIX}
 		${ICCAPTURING_BIN_DIR}/release/TIS_DShowLib08${CMAKE_SHARED_LIBRARY_SUFFIX}
 		)
+  SET ( External_Libraries_Debug ${External_Libraries_Debug} 
+    ${ICCAPTURING_BIN_DIR}/debug/TIS_UDSHL08${SUFFIX_TIS_UDSHL08}${CMAKE_SHARED_LIBRARY_SUFFIX}
+		${ICCAPTURING_BIN_DIR}/debug/TIS_DShowLib08${CMAKE_SHARED_LIBRARY_SUFFIX}
+    )
 ENDIF (PLUS_USE_ICCAPTURING_VIDEO)
 
     
@@ -220,16 +232,13 @@ SET(vcProj_vtkImageAcquisition vtkImageAcquisition ${PlusLib_BINARY_DIR}/src/Ima
 IF ( ${CMAKE_GENERATOR} MATCHES "Visual Studio" )
     FILE(COPY ${External_Libraries_Install}
         DESTINATION ${PLUS_EXECUTABLE_OUTPUT_PATH}/Release
-        FILES_MATCHING REGEX .*${CMAKE_SHARED_LIBRARY_SUFFIX}
         )
-    FILE(COPY ${External_Libraries_Install}
+    FILE(COPY ${External_Libraries_Debug}
         DESTINATION ${PLUS_EXECUTABLE_OUTPUT_PATH}/Debug
-        FILES_MATCHING REGEX .*${CMAKE_SHARED_LIBRARY_SUFFIX}
         )                
 ELSE()
-    FILE(COPY "${QT_BINARY_DIR}/"
+    FILE(COPY ${External_Libraries_Install}
         DESTINATION ${PLUS_EXECUTABLE_OUTPUT_PATH}
-        FILES_MATCHING REGEX .*${CMAKE_SHARED_LIBRARY_SUFFIX}
         )        
 ENDIF()
     
