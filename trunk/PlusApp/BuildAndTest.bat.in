@@ -4,7 +4,6 @@ REM Hide all your directories from users
 SET ORIGPATH=%PATH%
 
 SET DIRCMD=0 
-CALL DevEnv_Release.bat no-sln 
 
 if "%1" == "" goto experimental
 if "%1" == "-E" goto experimental
