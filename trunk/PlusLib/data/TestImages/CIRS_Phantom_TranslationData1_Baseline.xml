@@ -1,0 +1,1652 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TestResults>
+ <AlgorithmOptions SegmentationThreshold="19" ImportSegResultsFromFile="" />
+  <TestCase id="CIRS_TranslationData1_0">
+    <Input ImageSeqFileName="CIRS_TranslationData1.mha" ImageSeqFrameIndex="0" />
+    <Output SegmentationSuccess="1"
+      SegmentationQualityInIntensityScore="61.2432"
+      SegmentationPoints="579.74 248.999 587.752 184.538 573.079 316.456 564.067 381.507 557.991 446.377 587.752 184.538 515.063 241.805 439.612 298.069 367.946 354.955 298.258 412.416 303.644 346.958 313.393 282.092 322.239 213.637 298.258 412.416 331.064 147.489" />
+     <FiducialPointCandidates>
+       <Point id="0" Intensity ="6.3804" Positon="579.74 248.999" />
+       <Point id="1" Intensity ="5.79608" Positon="587.752 184.538" />
+       <Point id="2" Intensity ="5.78824" Positon="515.063 241.805" />
+       <Point id="3" Intensity ="5.78039" Positon="573.079 316.456" />
+       <Point id="4" Intensity ="5.06275" Positon="564.067 381.507" />
+       <Point id="5" Intensity ="4.98431" Positon="303.644 346.958" />
+       <Point id="6" Intensity ="4.40784" Positon="313.393 282.092" />
+       <Point id="7" Intensity ="3.08235" Positon="439.612 298.069" />
+       <Point id="8" Intensity ="2.97647" Positon="557.991 446.377" />
+       <Point id="9" Intensity ="2.90588" Positon="367.946 354.955" />
+       <Point id="10" Intensity ="2.50588" Positon="322.239 213.637" />
+       <Point id="11" Intensity ="2.45882" Positon="298.258 412.416" />
+       <Point id="12" Intensity ="0.858824" Positon="331.064 147.489" />
+       </FiducialPointCandidates>
+  </TestCase>
+  <TestCase id="CIRS_TranslationData1_1">
+    <Input ImageSeqFileName="CIRS_TranslationData1.mha" ImageSeqFrameIndex="1" />
+    <Output SegmentationSuccess="1"
+      SegmentationQualityInIntensityScore="61.4941"
+      SegmentationPoints="580.488 249.438 573.47 316.857 564.324 381.761 587.668 184.548 558.182 446.654 515.608 242.04 587.668 184.548 440.001 298.13 368.234 354.892 298.597 412.173 303.862 346.787 313.206 282.314 323.212 213.305 298.597 412.173 329.554 148" />
+     <FiducialPointCandidates>
+       <Point id="0" Intensity ="6.45883" Positon="580.488 249.438" />
+       <Point id="1" Intensity ="6.4" Positon="515.608 242.04" />
+       <Point id="2" Intensity ="5.6902" Positon="573.47 316.857" />
+       <Point id="3" Intensity ="5.4" Positon="564.324 381.761" />
+       <Point id="4" Intensity ="5.2549" Positon="303.862 346.787" />
+       <Point id="5" Intensity ="5.12941" Positon="587.668 184.548" />
+       <Point id="6" Intensity ="4.72549" Positon="313.206 282.314" />
+       <Point id="7" Intensity ="3.12549" Positon="440.001 298.13" />
+       <Point id="8" Intensity ="2.9451" Positon="368.234 354.892" />
+       <Point id="9" Intensity ="2.92549" Positon="558.182 446.654" />
+       <Point id="10" Intensity ="2.77647" Positon="323.212 213.305" />
+       <Point id="11" Intensity ="2.52941" Positon="298.597 412.173" />
+       <Point id="12" Intensity ="0.47451" Positon="329.554 148" />
+       </FiducialPointCandidates>
+  </TestCase>
+  <TestCase id="CIRS_TranslationData1_2">
+    <Input ImageSeqFileName="CIRS_TranslationData1.mha" ImageSeqFrameIndex="2" />
+    <Output SegmentationSuccess="0" />
+     <FiducialPointCandidates>
+       <Point id="0" Intensity ="6.91765" Positon="580.435 249.561" />
+       <Point id="1" Intensity ="6.25882" Positon="515.82 242.147" />
+       <Point id="2" Intensity ="6.08236" Positon="573.539 316.923" />
+       <Point id="3" Intensity ="5.77255" Positon="588.393 185.029" />
+       <Point id="4" Intensity ="5.4549" Positon="304.047 346.809" />
+       <Point id="5" Intensity ="5.45098" Positon="564.395 381.829" />
+       <Point id="6" Intensity ="4.99608" Positon="313.622 282.238" />
+       <Point id="7" Intensity ="3.23922" Positon="440.599 298.258" />
+       <Point id="8" Intensity ="2.97647" Positon="323.527 213.344" />
+       <Point id="9" Intensity ="2.9451" Positon="368.462 354.828" />
+       <Point id="10" Intensity ="2.76471" Positon="558.318 447.03" />
+       <Point id="11" Intensity ="2.65098" Positon="298.615 412.143" />
+       <Point id="12" Intensity ="0.870588" Positon="332.014 147.324" />
+       </FiducialPointCandidates>
+  </TestCase>
+  <TestCase id="CIRS_TranslationData1_3">
+    <Input ImageSeqFileName="CIRS_TranslationData1.mha" ImageSeqFrameIndex="3" />
+    <Output SegmentationSuccess="1"
+      SegmentationQualityInIntensityScore="62.3294"
+      SegmentationPoints="580.974 249.827 573.82 317.035 564.941 382.155 589.935 185.784 558.886 447.437 516.451 242.565 589.935 185.784 441.741 298.621 369.653 355.045 299.119 412.466 304.803 346.932 314.337 282.505 299.119 412.466 324.734 213.625 332.412 147.892" />
+     <FiducialPointCandidates>
+       <Point id="0" Intensity ="8.21961" Positon="580.974 249.827" />
+       <Point id="1" Intensity ="7.30196" Positon="573.82 317.035" />
+       <Point id="2" Intensity ="6.36471" Positon="516.451 242.565" />
+       <Point id="3" Intensity ="5.24314" Positon="564.941 382.155" />
+       <Point id="4" Intensity ="5.20784" Positon="304.803 346.932" />
+       <Point id="5" Intensity ="4.66275" Positon="314.337 282.505" />
+       <Point id="6" Intensity ="4.17255" Positon="589.935 185.784" />
+       <Point id="7" Intensity ="3.26275" Positon="441.741 298.621" />
+       <Point id="8" Intensity ="3.10588" Positon="369.653 355.045" />
+       <Point id="9" Intensity ="2.51373" Positon="558.886 447.437" />
+       <Point id="10" Intensity ="2.44706" Positon="299.119 412.466" />
+       <Point id="11" Intensity ="2.12157" Positon="324.734 213.625" />
+       <Point id="12" Intensity ="1.08627" Positon="332.412 147.892" />
+       </FiducialPointCandidates>
+  </TestCase>
+  <TestCase id="CIRS_TranslationData1_4">
+    <Input ImageSeqFileName="CIRS_TranslationData1.mha" ImageSeqFrameIndex="4" />
+    <Output SegmentationSuccess="1"
+      SegmentationQualityInIntensityScore="61.7922"
+      SegmentationPoints="580.998 249.853 574.244 317.224 564.949 382.184 590.43 186.047 558.95 447.567 516.514 242.6 590.43 186.047 442.1 298.737 369.96 355.228 299.129 412.73 304.942 347.029 314.349 282.695 299.129 412.73 325.004 213.733 332.203 148.385" />
+     <FiducialPointCandidates>
+       <Point id="0" Intensity ="8.03137" Positon="580.998 249.853" />
+       <Point id="1" Intensity ="7.26667" Positon="574.244 317.224" />
+       <Point id="2" Intensity ="5.90981" Positon="516.514 242.6" />
+       <Point id="3" Intensity ="5.38039" Positon="564.949 382.184" />
+       <Point id="4" Intensity ="5.09804" Positon="304.942 347.029" />
+       <Point id="5" Intensity ="4.68628" Positon="314.349 282.695" />
+       <Point id="6" Intensity ="4.38824" Positon="590.43 186.047" />
+       <Point id="7" Intensity ="3.58039" Positon="442.1 298.737" />
+       <Point id="8" Intensity ="2.81569" Positon="369.96 355.228" />
+       <Point id="9" Intensity ="2.50196" Positon="299.129 412.73" />
+       <Point id="10" Intensity ="2.38039" Positon="558.95 447.567" />
+       <Point id="11" Intensity ="2.12941" Positon="325.004 213.733" />
+       <Point id="12" Intensity ="0.733333" Positon="332.203 148.385" />
+       </FiducialPointCandidates>
+  </TestCase>
+  <TestCase id="CIRS_TranslationData1_5">
+    <Input ImageSeqFileName="CIRS_TranslationData1.mha" ImageSeqFrameIndex="5" />
+    <Output SegmentationSuccess="1"
+      SegmentationQualityInIntensityScore="67.0314"
+      SegmentationPoints="580.884 249.814 574.174 317.131 590.431 185.945 564.999 382.195 558.95 447.567 516.633 242.584 590.431 185.945 442.186 298.806 369.749 355.232 299.113 412.732 304.947 347.025 314.233 282.779 324.843 213.785 299.113 412.732 331.724 148.668" />
+     <FiducialPointCandidates>
+       <Point id="0" Intensity ="8.01176" Positon="580.884 249.814" />
+       <Point id="1" Intensity ="7.56079" Positon="574.174 317.131" />
+       <Point id="2" Intensity ="6.26667" Positon="516.633 242.584" />
+       <Point id="3" Intensity ="5.99608" Positon="590.431 185.945" />
+       <Point id="4" Intensity ="5.24706" Positon="564.999 382.195" />
+       <Point id="5" Intensity ="5.12941" Positon="304.947 347.025" />
+       <Point id="6" Intensity ="4.8549" Positon="314.233 282.779" />
+       <Point id="7" Intensity ="3.63922" Positon="442.186 298.806" />
+       <Point id="8" Intensity ="3.22745" Positon="369.749 355.232" />
+       <Point id="9" Intensity ="2.62745" Positon="324.843 213.785" />
+       <Point id="10" Intensity ="2.52157" Positon="299.113 412.732" />
+       <Point id="11" Intensity ="2.38039" Positon="558.95 447.567" />
+       <Point id="12" Intensity ="1.05098" Positon="331.724 148.668" />
+       </FiducialPointCandidates>
+  </TestCase>
+  <TestCase id="CIRS_TranslationData1_6">
+    <Input ImageSeqFileName="CIRS_TranslationData1.mha" ImageSeqFrameIndex="6" />
+    <Output SegmentationSuccess="1"
+      SegmentationQualityInIntensityScore="66.1334"
+      SegmentationPoints="574.2 317.187 581.017 249.961 589.977 185.874 565.034 382.311 558.991 447.641 516.702 242.737 589.977 185.874 442.189 298.855 369.627 355.312 299.1 412.758 304.907 347.093 314.154 282.793 299.1 412.758 324.925 213.741 332.597 148.29" />
+     <FiducialPointCandidates>
+       <Point id="0" Intensity ="7.96078" Positon="574.2 317.187" />
+       <Point id="1" Intensity ="7.67059" Positon="581.017 249.961" />
+       <Point id="2" Intensity ="6.34902" Positon="516.702 242.737" />
+       <Point id="3" Intensity ="5.87059" Positon="589.977 185.874" />
+       <Point id="4" Intensity ="5.44314" Positon="565.034 382.311" />
+       <Point id="5" Intensity ="5.12157" Positon="304.907 347.093" />
+       <Point id="6" Intensity ="4.58432" Positon="314.154 282.793" />
+       <Point id="7" Intensity ="3.74902" Positon="442.189 298.855" />
+       <Point id="8" Intensity ="3.23922" Positon="369.627 355.312" />
+       <Point id="9" Intensity ="2.51765" Positon="299.1 412.758" />
+       <Point id="10" Intensity ="2.31765" Positon="558.991 447.641" />
+       <Point id="11" Intensity ="2.19216" Positon="324.925 213.741" />
+       <Point id="12" Intensity ="0.729412" Positon="332.597 148.29" />
+       </FiducialPointCandidates>
+  </TestCase>
+  <TestCase id="CIRS_TranslationData1_7">
+    <Input ImageSeqFileName="CIRS_TranslationData1.mha" ImageSeqFrameIndex="7" />
+    <Output SegmentationSuccess="0" />
+     <FiducialPointCandidates>
+       <Point id="0" Intensity ="8.32942" Positon="580.861 250.029" />
+       <Point id="1" Intensity ="8.0902" Positon="574.068 317.136" />
+       <Point id="2" Intensity ="6.83138" Positon="516.653 242.863" />
+       <Point id="3" Intensity ="5.5098" Positon="565.002 382.378" />
+       <Point id="4" Intensity ="4.98039" Positon="304.872 347.171" />
+       <Point id="5" Intensity ="4.92549" Positon="589.842 185.889" />
+       <Point id="6" Intensity ="4.80784" Positon="314.077 282.897" />
+       <Point id="7" Intensity ="3.83922" Positon="441.812 298.969" />
+       <Point id="8" Intensity ="3.07451" Positon="369.756 355.157" />
+       <Point id="9" Intensity ="2.43137" Positon="299.103 412.837" />
+       <Point id="10" Intensity ="2.18824" Positon="558.978 447.699" />
+       <Point id="11" Intensity ="2.13726" Positon="324.965 213.857" />
+       <Point id="12" Intensity ="0.423529" Positon="333.5 148" />
+       </FiducialPointCandidates>
+  </TestCase>
+  <TestCase id="CIRS_TranslationData1_8">
+    <Input ImageSeqFileName="CIRS_TranslationData1.mha" ImageSeqFrameIndex="8" />
+    <Output SegmentationSuccess="1"
+      SegmentationQualityInIntensityScore="64.4941"
+      SegmentationPoints="580.767 249.985 574.093 317.208 564.969 382.332 589.886 185.837 558.978 447.699 516.662 242.839 589.886 185.837 441.661 298.93 369.732 355.179 299.083 412.825 304.931 347.174 314.283 282.797 299.083 412.825 324.839 213.834 331.653 148.612" />
+     <FiducialPointCandidates>
+       <Point id="0" Intensity ="7.89804" Positon="580.767 249.985" />
+       <Point id="1" Intensity ="7.85098" Positon="574.093 317.208" />
+       <Point id="2" Intensity ="6.21176" Positon="516.662 242.839" />
+       <Point id="3" Intensity ="5.57255" Positon="564.969 382.332" />
+       <Point id="4" Intensity ="5.0902" Positon="589.886 185.837" />
+       <Point id="5" Intensity ="4.87844" Positon="304.931 347.174" />
+       <Point id="6" Intensity ="4.66667" Positon="314.283 282.797" />
+       <Point id="7" Intensity ="3.89412" Positon="441.661 298.93" />
+       <Point id="8" Intensity ="2.95294" Positon="369.732 355.179" />
+       <Point id="9" Intensity ="2.46275" Positon="299.083 412.825" />
+       <Point id="10" Intensity ="2.31373" Positon="324.839 213.834" />
+       <Point id="11" Intensity ="2.18824" Positon="558.978 447.699" />
+       <Point id="12" Intensity ="0.960784" Positon="331.653 148.612" />
+       </FiducialPointCandidates>
+  </TestCase>
+  <TestCase id="CIRS_TranslationData1_9">
+    <Input ImageSeqFileName="CIRS_TranslationData1.mha" ImageSeqFrameIndex="9" />
+    <Output SegmentationSuccess="1"
+      SegmentationQualityInIntensityScore="64.8588"
+      SegmentationPoints="580.919 250.166 574.223 317.308 564.967 382.361 590.075 186.058 558.946 447.709 516.766 242.904 590.075 186.058 441.768 299.01 369.702 355.157 299.11 412.809 314.14 282.864 304.849 347.212 324.792 213.696 299.11 412.809 332.039 148.236" />
+     <FiducialPointCandidates>
+       <Point id="0" Intensity ="7.93334" Positon="580.919 250.166" />
+       <Point id="1" Intensity ="7.6902" Positon="574.223 317.308" />
+       <Point id="2" Intensity ="6.11765" Positon="516.766 242.904" />
+       <Point id="3" Intensity ="5.76471" Positon="564.967 382.361" />
+       <Point id="4" Intensity ="5.33334" Positon="590.075 186.058" />
+       <Point id="5" Intensity ="4.72157" Positon="314.14 282.864" />
+       <Point id="6" Intensity ="4.58824" Positon="304.849 347.212" />
+       <Point id="7" Intensity ="3.63922" Positon="441.768 299.01" />
+       <Point id="8" Intensity ="2.99216" Positon="369.702 355.157" />
+       <Point id="9" Intensity ="2.90196" Positon="324.792 213.696" />
+       <Point id="10" Intensity ="2.38039" Positon="299.11 412.809" />
+       <Point id="11" Intensity ="2.18431" Positon="558.946 447.709" />
+       <Point id="12" Intensity ="0.898039" Positon="332.039 148.236" />
+       </FiducialPointCandidates>
+  </TestCase>
+  <TestCase id="CIRS_TranslationData1_10">
+    <Input ImageSeqFileName="CIRS_TranslationData1.mha" ImageSeqFrameIndex="10" />
+    <Output SegmentationSuccess="1"
+      SegmentationQualityInIntensityScore="65.2706"
+      SegmentationPoints="580.512 249.958 574.026 317.15 564.959 382.349 590.006 186.035 558.829 447.555 516.633 242.877 590.006 186.035 441.716 298.988 369.744 355.164 299.11 412.809 304.918 347.146 314.115 282.882 324.788 213.755 299.11 412.809 332.378 148.162" />
+     <FiducialPointCandidates>
+       <Point id="0" Intensity ="8.10589" Positon="580.512 249.958" />
+       <Point id="1" Intensity ="7.80392" Positon="574.026 317.15" />
+       <Point id="2" Intensity ="6.29804" Positon="516.633 242.877" />
+       <Point id="3" Intensity ="5.79608" Positon="564.959 382.349" />
+       <Point id="4" Intensity ="5.53334" Positon="590.006 186.035" />
+       <Point id="5" Intensity ="4.74118" Positon="304.918 347.146" />
+       <Point id="6" Intensity ="4.59216" Positon="314.115 282.882" />
+       <Point id="7" Intensity ="3.84314" Positon="441.716 298.988" />
+       <Point id="8" Intensity ="2.94118" Positon="369.744 355.164" />
+       <Point id="9" Intensity ="2.38824" Positon="324.788 213.755" />
+       <Point id="10" Intensity ="2.38039" Positon="299.11 412.809" />
+       <Point id="11" Intensity ="2.06275" Positon="558.829 447.555" />
+       <Point id="12" Intensity ="0.870588" Positon="332.378 148.162" />
+       </FiducialPointCandidates>
+  </TestCase>
+  <TestCase id="CIRS_TranslationData1_11">
+    <Input ImageSeqFileName="CIRS_TranslationData1.mha" ImageSeqFrameIndex="11" />
+    <Output SegmentationSuccess="0" />
+     <FiducialPointCandidates>
+       <Point id="0" Intensity ="8.00392" Positon="580.648 249.92" />
+       <Point id="1" Intensity ="7.96078" Positon="574.01 317.111" />
+       <Point id="2" Intensity ="6.55294" Positon="516.567 242.768" />
+       <Point id="3" Intensity ="5.81177" Positon="564.926 382.273" />
+       <Point id="4" Intensity ="4.88628" Positon="589.346 185.626" />
+       <Point id="5" Intensity ="4.79216" Positon="313.812 282.882" />
+       <Point id="6" Intensity ="4.48628" Positon="304.784 347.177" />
+       <Point id="7" Intensity ="3.58824" Positon="441.504 298.921" />
+       <Point id="8" Intensity ="3.06275" Positon="369.721 355.153" />
+       <Point id="9" Intensity ="2.3451" Positon="299.095 412.787" />
+       <Point id="10" Intensity ="2.26667" Positon="324.766 213.702" />
+       <Point id="11" Intensity ="2.03922" Positon="558.821 447.55" />
+       </FiducialPointCandidates>
+  </TestCase>
+  <TestCase id="CIRS_TranslationData1_12">
+    <Input ImageSeqFileName="CIRS_TranslationData1.mha" ImageSeqFrameIndex="12" />
+    <Output SegmentationSuccess="0" />
+     <FiducialPointCandidates>
+       <Point id="0" Intensity ="8.47059" Positon="580.549 249.792" />
+       <Point id="1" Intensity ="8.02353" Positon="573.993 317.099" />
+       <Point id="2" Intensity ="6.06275" Positon="516.671 242.845" />
+       <Point id="3" Intensity ="5.76863" Positon="564.913 382.269" />
+       <Point id="4" Intensity ="4.97647" Positon="589.784 185.903" />
+       <Point id="5" Intensity ="4.44706" Positon="304.818 347.147" />
+       <Point id="6" Intensity ="4.33726" Positon="314.19 282.811" />
+       <Point id="7" Intensity ="3.46667" Positon="441.578 298.98" />
+       <Point id="8" Intensity ="3.09804" Positon="369.692 355.148" />
+       <Point id="9" Intensity ="2.47059" Positon="299.309 412.587" />
+       <Point id="10" Intensity ="2.21569" Positon="324.782 213.768" />
+       <Point id="11" Intensity ="2.05098" Positon="558.782 447.506" />
+       <Point id="12" Intensity ="0.623529" Positon="333 148" />
+       </FiducialPointCandidates>
+  </TestCase>
+  <TestCase id="CIRS_TranslationData1_13">
+    <Input ImageSeqFileName="CIRS_TranslationData1.mha" ImageSeqFrameIndex="13" />
+    <Output SegmentationSuccess="1"
+      SegmentationQualityInIntensityScore="65.6706"
+      SegmentationPoints="574.104 317.127 580.638 249.968 589.935 185.788 564.946 382.273 558.782 447.506 516.608 242.678 589.935 185.788 441.913 299 369.521 355.283 299.25 412.525 305.064 347.077 314.197 282.716 299.25 412.525 324.876 213.755 332.5 147.735" />
+     <FiducialPointCandidates>
+       <Point id="0" Intensity ="8.21177" Positon="574.104 317.127" />
+       <Point id="1" Intensity ="7.96471" Positon="580.638 249.968" />
+       <Point id="2" Intensity ="6.70588" Positon="516.608 242.678" />
+       <Point id="3" Intensity ="5.97255" Positon="589.935 185.788" />
+       <Point id="4" Intensity ="5.77647" Positon="564.946 382.273" />
+       <Point id="5" Intensity ="4.59608" Positon="305.064 347.077" />
+       <Point id="6" Intensity ="4.06275" Positon="314.197 282.716" />
+       <Point id="7" Intensity ="3.58432" Positon="441.913 299" />
+       <Point id="8" Intensity ="3.16079" Positon="369.521 355.283" />
+       <Point id="9" Intensity ="2.36471" Positon="299.25 412.525" />
+       <Point id="10" Intensity ="2.08235" Positon="324.876 213.755" />
+       <Point id="11" Intensity ="2.05098" Positon="558.782 447.506" />
+       <Point id="12" Intensity ="0.8" Positon="332.5 147.735" />
+       </FiducialPointCandidates>
+  </TestCase>
+  <TestCase id="CIRS_TranslationData1_14">
+    <Input ImageSeqFileName="CIRS_TranslationData1.mha" ImageSeqFrameIndex="14" />
+    <Output SegmentationSuccess="1"
+      SegmentationQualityInIntensityScore="64.4981"
+      SegmentationPoints="574.072 317.186 580.859 249.941 564.942 382.255 590.321 186.029 558.824 447.549 516.742 242.743 590.321 186.029 441.888 298.956 369.674 355.129 299.266 412.498 305.035 347.007 314.609 282.531 325.086 213.607 299.266 412.498 333.058 148" />
+     <FiducialPointCandidates>
+       <Point id="0" Intensity ="8.13726" Positon="574.072 317.186" />
+       <Point id="1" Intensity ="8.11765" Positon="580.859 249.941" />
+       <Point id="2" Intensity ="6.42745" Positon="516.742 242.743" />
+       <Point id="3" Intensity ="5.81569" Positon="564.942 382.255" />
+       <Point id="4" Intensity ="5.56863" Positon="590.321 186.029" />
+       <Point id="5" Intensity ="4.63922" Positon="305.035 347.007" />
+       <Point id="6" Intensity ="4.23922" Positon="314.609 282.531" />
+       <Point id="7" Intensity ="3.51765" Positon="441.888 298.956" />
+       <Point id="8" Intensity ="2.91765" Positon="369.674 355.129" />
+       <Point id="9" Intensity ="2.33333" Positon="325.086 213.607" />
+       <Point id="10" Intensity ="2.29804" Positon="299.266 412.498" />
+       <Point id="11" Intensity ="2.00784" Positon="558.824 447.549" />
+       <Point id="12" Intensity ="0.611765" Positon="333.058 148" />
+       </FiducialPointCandidates>
+  </TestCase>
+  <TestCase id="CIRS_TranslationData1_15">
+    <Input ImageSeqFileName="CIRS_TranslationData1.mha" ImageSeqFrameIndex="15" />
+    <Output SegmentationSuccess="0" />
+     <FiducialPointCandidates>
+       <Point id="0" Intensity ="7.76471" Positon="581.242 250.107" />
+       <Point id="1" Intensity ="7.72549" Positon="574.507 317.38" />
+       <Point id="2" Intensity ="6.90196" Positon="517.257 242.825" />
+       <Point id="3" Intensity ="5.62745" Positon="565.099 382.381" />
+       <Point id="4" Intensity ="4.92941" Positon="590.249 185.986" />
+       <Point id="5" Intensity ="4.18823" Positon="314.753 282.254" />
+       <Point id="6" Intensity ="3.91373" Positon="441.918 298.858" />
+       <Point id="7" Intensity ="3.82745" Positon="305.055 347.226" />
+       <Point id="8" Intensity ="3.00392" Positon="369.716 355.168" />
+       <Point id="9" Intensity ="2.81961" Positon="325.029 213.599" />
+       <Point id="10" Intensity ="2.42745" Positon="299.704 412.31" />
+       <Point id="11" Intensity ="2.16863" Positon="559.054 447.729" />
+       <Point id="12" Intensity ="0.47451" Positon="333.554 148" />
+       </FiducialPointCandidates>
+  </TestCase>
+  <TestCase id="CIRS_TranslationData1_16">
+    <Input ImageSeqFileName="CIRS_TranslationData1.mha" ImageSeqFrameIndex="16" />
+    <Output SegmentationSuccess="1"
+      SegmentationQualityInIntensityScore="64.4824"
+      SegmentationPoints="582.073 250.293 575.403 317.92 591.587 186.58 565.804 383.04 559.443 447.946 591.587 186.58 517.802 243.146 443.084 298.992 300.051 411.993 370.713 354.715 315.092 282.246 300.051 411.993 305.834 346.445 325.363 213.945 333.75 147.72" />
+     <FiducialPointCandidates>
+       <Point id="0" Intensity ="7.76863" Positon="582.073 250.293" />
+       <Point id="1" Intensity ="7.22745" Positon="575.403 317.92" />
+       <Point id="2" Intensity ="6.49804" Positon="591.587 186.58" />
+       <Point id="3" Intensity ="6.0353" Positon="517.802 243.146" />
+       <Point id="4" Intensity ="4.63922" Positon="565.804 383.04" />
+       <Point id="5" Intensity ="4.09804" Positon="443.084 298.992" />
+       <Point id="6" Intensity ="3.6549" Positon="315.092 282.246" />
+       <Point id="7" Intensity ="3.40392" Positon="300.051 411.993" />
+       <Point id="8" Intensity ="3.10588" Positon="305.834 346.445" />
+       <Point id="9" Intensity ="2.68235" Positon="370.713 354.715" />
+       <Point id="10" Intensity ="2.35686" Positon="325.363 213.945" />
+       <Point id="11" Intensity ="2.18431" Positon="559.443 447.946" />
+       <Point id="12" Intensity ="0.92549" Positon="333.75 147.72" />
+       </FiducialPointCandidates>
+  </TestCase>
+  <TestCase id="CIRS_TranslationData1_17">
+    <Input ImageSeqFileName="CIRS_TranslationData1.mha" ImageSeqFrameIndex="17" />
+    <Output SegmentationSuccess="1"
+      SegmentationQualityInIntensityScore="61.6863"
+      SegmentationPoints="582.289 250.323 575.811 317.909 591.418 186.124 566.13 382.984 559.763 447.966 591.418 186.124 517.91 242.97 443.094 298.593 300.278 411.797 370.818 354.335 315.6 282 300.278 411.797 306.24 346.106 325.943 213.559 334.513 147.366" />
+     <FiducialPointCandidates>
+       <Point id="0" Intensity ="7.81569" Positon="582.289 250.323" />
+       <Point id="1" Intensity ="7.49412" Positon="575.811 317.909" />
+       <Point id="2" Intensity ="5.95686" Positon="591.418 186.124" />
+       <Point id="3" Intensity ="5.45098" Positon="517.91 242.97" />
+       <Point id="4" Intensity ="4.8353" Positon="566.13 382.984" />
+       <Point id="5" Intensity ="3.50196" Positon="315.6 282" />
+       <Point id="6" Intensity ="3.32549" Positon="443.094 298.593" />
+       <Point id="7" Intensity ="3.16863" Positon="300.278 411.797" />
+       <Point id="8" Intensity ="3.14902" Positon="306.24 346.106" />
+       <Point id="9" Intensity ="2.41177" Positon="370.818 354.335" />
+       <Point id="10" Intensity ="2.29412" Positon="325.943 213.559" />
+       <Point id="11" Intensity ="2.08628" Positon="559.763 447.966" />
+       <Point id="12" Intensity ="1.07059" Positon="334.513 147.366" />
+       </FiducialPointCandidates>
+  </TestCase>
+  <TestCase id="CIRS_TranslationData1_18">
+    <Input ImageSeqFileName="CIRS_TranslationData1.mha" ImageSeqFrameIndex="18" />
+    <Output SegmentationSuccess="1"
+      SegmentationQualityInIntensityScore="59.9098"
+      SegmentationPoints="582.634 250.399 575.896 317.819 566.195 382.854 592.052 186.249 559.845 447.83 518.318 242.954 592.052 186.249 300.467 411.65 443.357 298.52 371.141 354.17 315.622 281.967 306.79 345.892 300.467 411.65 326.243 213.394 334.125 147.389" />
+     <FiducialPointCandidates>
+       <Point id="0" Intensity ="8.01961" Positon="582.634 250.399" />
+       <Point id="1" Intensity ="7.63137" Positon="575.896 317.819" />
+       <Point id="2" Intensity ="5.72549" Positon="518.318 242.954" />
+       <Point id="3" Intensity ="5.01961" Positon="566.195 382.854" />
+       <Point id="4" Intensity ="5.01569" Positon="592.052 186.249" />
+       <Point id="5" Intensity ="3.32549" Positon="315.622 281.967" />
+       <Point id="6" Intensity ="3.28235" Positon="306.79 345.892" />
+       <Point id="7" Intensity ="3.12157" Positon="300.467 411.65" />
+       <Point id="8" Intensity ="3.0902" Positon="443.357 298.52" />
+       <Point id="9" Intensity ="2.28235" Positon="371.141 354.17" />
+       <Point id="10" Intensity ="2.23137" Positon="559.845 447.83" />
+       <Point id="11" Intensity ="2.18039" Positon="326.243 213.394" />
+       <Point id="12" Intensity ="0.847059" Positon="334.125 147.389" />
+       </FiducialPointCandidates>
+  </TestCase>
+  <TestCase id="CIRS_TranslationData1_19">
+    <Input ImageSeqFileName="CIRS_TranslationData1.mha" ImageSeqFrameIndex="19" />
+    <Output SegmentationSuccess="1"
+      SegmentationQualityInIntensityScore="58.8196"
+      SegmentationPoints="576.06 317.441 582.497 250.13 592.205 185.727 566.42 382.694 559.944 447.602 592.205 185.727 518.431 242.736 443.494 298.268 300.714 411.435 371.313 354.126 306.853 345.843 300.714 411.435 316.096 281.865 326.356 213.098 335.034 147" />
+     <FiducialPointCandidates>
+       <Point id="0" Intensity ="7.75294" Positon="576.06 317.441" />
+       <Point id="1" Intensity ="7.36863" Positon="582.497 250.13" />
+       <Point id="2" Intensity ="5.14118" Positon="592.205 185.727" />
+       <Point id="3" Intensity ="5.07451" Positon="518.431 242.736" />
+       <Point id="4" Intensity ="4.92157" Positon="566.42 382.694" />
+       <Point id="5" Intensity ="3.80392" Positon="306.853 345.843" />
+       <Point id="6" Intensity ="3.29412" Positon="443.494 298.268" />
+       <Point id="7" Intensity ="2.97647" Positon="300.714 411.435" />
+       <Point id="8" Intensity ="2.73726" Positon="316.096 281.865" />
+       <Point id="9" Intensity ="2.53333" Positon="559.944 447.602" />
+       <Point id="10" Intensity ="2.1451" Positon="371.313 354.126" />
+       <Point id="11" Intensity ="1.92549" Positon="326.356 213.098" />
+       <Point id="12" Intensity ="1.02745" Positon="335.034 147" />
+       </FiducialPointCandidates>
+  </TestCase>
+  <TestCase id="CIRS_TranslationData1_20">
+    <Input ImageSeqFileName="CIRS_TranslationData1.mha" ImageSeqFrameIndex="20" />
+    <Output SegmentationSuccess="1"
+      SegmentationQualityInIntensityScore="61.2785"
+      SegmentationPoints="575.975 317.098 582.911 249.947 592.054 185.553 566.285 382.274 559.803 447.294 592.054 185.553 518.707 242.496 443.57 298.038 300.886 411.03 371.818 353.823 307.153 345.462 300.886 411.03 315.965 281.515 325.682 212.746 335.238 146.525" />
+     <FiducialPointCandidates>
+       <Point id="0" Intensity ="7.87451" Positon="575.975 317.098" />
+       <Point id="1" Intensity ="7.6353" Positon="582.911 249.947" />
+       <Point id="2" Intensity ="5.73334" Positon="592.054 185.553" />
+       <Point id="3" Intensity ="5.2549" Positon="518.707 242.496" />
+       <Point id="4" Intensity ="5.05882" Positon="566.285 382.274" />
+       <Point id="5" Intensity ="3.75294" Positon="443.57 298.038" />
+       <Point id="6" Intensity ="3.38824" Positon="307.153 345.462" />
+       <Point id="7" Intensity ="2.88628" Positon="300.886 411.03" />
+       <Point id="8" Intensity ="2.83922" Positon="315.965 281.515" />
+       <Point id="9" Intensity ="2.54902" Positon="559.803 447.294" />
+       <Point id="10" Intensity ="2.46275" Positon="371.818 353.823" />
+       <Point id="11" Intensity ="2.03529" Positon="325.682 212.746" />
+       <Point id="12" Intensity ="1.18824" Positon="335.238 146.525" />
+       </FiducialPointCandidates>
+  </TestCase>
+  <TestCase id="CIRS_TranslationData1_21">
+    <Input ImageSeqFileName="CIRS_TranslationData1.mha" ImageSeqFrameIndex="21" />
+    <Output SegmentationSuccess="1"
+      SegmentationQualityInIntensityScore="63.3373"
+      SegmentationPoints="582.721 249.622 575.978 316.85 592.295 185.451 566.417 382.09 559.916 446.89 592.295 185.451 518.16 242.101 443.399 297.949 300.888 410.814 371.572 353.764 307.017 345.262 316.285 281.295 300.888 410.814 326.082 212.468 335.565 146.365" />
+     <FiducialPointCandidates>
+       <Point id="0" Intensity ="8.0902" Positon="582.721 249.622" />
+       <Point id="1" Intensity ="7.6" Positon="575.978 316.85" />
+       <Point id="2" Intensity ="6.18039" Positon="592.295 185.451" />
+       <Point id="3" Intensity ="5.9451" Positon="518.16 242.101" />
+       <Point id="4" Intensity ="5.24706" Positon="566.417 382.09" />
+       <Point id="5" Intensity ="3.46275" Positon="443.399 297.949" />
+       <Point id="6" Intensity ="3.3451" Positon="307.017 345.262" />
+       <Point id="7" Intensity ="3.17647" Positon="316.285 281.295" />
+       <Point id="8" Intensity ="2.88628" Positon="300.888 410.814" />
+       <Point id="9" Intensity ="2.69412" Positon="371.572 353.764" />
+       <Point id="10" Intensity ="2.32941" Positon="559.916 446.89" />
+       <Point id="11" Intensity ="2.29412" Positon="326.082 212.468" />
+       <Point id="12" Intensity ="1.01961" Positon="335.565 146.365" />
+       </FiducialPointCandidates>
+  </TestCase>
+  <TestCase id="CIRS_TranslationData1_22">
+    <Input ImageSeqFileName="CIRS_TranslationData1.mha" ImageSeqFrameIndex="22" />
+    <Output SegmentationSuccess="1"
+      SegmentationQualityInIntensityScore="60.8981"
+      SegmentationPoints="576.181 316.861 583.327 249.806 592.467 185.498 566.4 382.001 560.016 446.919 518.956 242.224 592.467 185.498 443.902 297.876 301.223 410.412 371.519 353.686 307.328 344.886 316.847 280.896 301.223 410.412 326.61 212.357 334.5 146.5" />
+     <FiducialPointCandidates>
+       <Point id="0" Intensity ="7.9255" Positon="576.181 316.861" />
+       <Point id="1" Intensity ="7.80392" Positon="583.327 249.806" />
+       <Point id="2" Intensity ="5.88236" Positon="518.956 242.224" />
+       <Point id="3" Intensity ="5.31765" Positon="592.467 185.498" />
+       <Point id="4" Intensity ="5.14902" Positon="566.4 382.001" />
+       <Point id="5" Intensity ="3.61961" Positon="443.902 297.876" />
+       <Point id="6" Intensity ="3.5098" Positon="307.328 344.886" />
+       <Point id="7" Intensity ="3.08235" Positon="316.847 280.896" />
+       <Point id="8" Intensity ="2.93333" Positon="301.223 410.412" />
+       <Point id="9" Intensity ="2.41177" Positon="560.016 446.919" />
+       <Point id="10" Intensity ="2.21177" Positon="371.519 353.686" />
+       <Point id="11" Intensity ="2" Positon="326.61 212.357" />
+       <Point id="12" Intensity ="0.8" Positon="334.5 146.5" />
+       </FiducialPointCandidates>
+  </TestCase>
+  <TestCase id="CIRS_TranslationData1_23">
+    <Input ImageSeqFileName="CIRS_TranslationData1.mha" ImageSeqFrameIndex="23" />
+    <Output SegmentationSuccess="1"
+      SegmentationQualityInIntensityScore="59.7216"
+      SegmentationPoints="576.126 316.586 583.263 249.552 592.596 185.102 566.473 381.698 559.733 446.39 518.688 241.721 592.596 185.102 443.81 297.479 301.171 410.045 371.964 353.256 307.831 344.344 316.837 280.371 301.171 410.045 326.534 211.84 335.244 146.269" />
+     <FiducialPointCandidates>
+       <Point id="0" Intensity ="8.18823" Positon="576.126 316.586" />
+       <Point id="1" Intensity ="7.20393" Positon="583.263 249.552" />
+       <Point id="2" Intensity ="6.27059" Positon="518.688 241.721" />
+       <Point id="3" Intensity ="5.01569" Positon="592.596 185.102" />
+       <Point id="4" Intensity ="4.66274" Positon="566.473 381.698" />
+       <Point id="5" Intensity ="3.52549" Positon="307.831 344.344" />
+       <Point id="6" Intensity ="3.2549" Positon="443.81 297.479" />
+       <Point id="7" Intensity ="3.20392" Positon="316.837 280.371" />
+       <Point id="8" Intensity ="2.98039" Positon="301.171 410.045" />
+       <Point id="9" Intensity ="2.47059" Positon="559.733 446.39" />
+       <Point id="10" Intensity ="1.95686" Positon="371.964 353.256" />
+       <Point id="11" Intensity ="1.76863" Positon="326.534 211.84" />
+       <Point id="12" Intensity ="1.22353" Positon="335.244 146.269" />
+       </FiducialPointCandidates>
+  </TestCase>
+  <TestCase id="CIRS_TranslationData1_24">
+    <Input ImageSeqFileName="CIRS_TranslationData1.mha" ImageSeqFrameIndex="24" />
+    <Output SegmentationSuccess="1"
+      SegmentationQualityInIntensityScore="62.4706"
+      SegmentationPoints="576.499 316.408 583.5 249.119 593.297 185.009 566.252 381.018 559.895 445.809 519.095 241.452 593.297 185.009 443.895 297.086 301.358 409.358 372.508 352.839 308.012 343.751 318.107 279.611 301.358 409.358 326.284 211.494 336.627 145.108" />
+     <FiducialPointCandidates>
+       <Point id="0" Intensity ="8.45491" Positon="576.499 316.408" />
+       <Point id="1" Intensity ="7.04314" Positon="583.5 249.119" />
+       <Point id="2" Intensity ="5.84314" Positon="519.095 241.452" />
+       <Point id="3" Intensity ="5.36079" Positon="593.297 185.009" />
+       <Point id="4" Intensity ="5.2902" Positon="566.252 381.018" />
+       <Point id="5" Intensity ="3.96863" Positon="443.895 297.086" />
+       <Point id="6" Intensity ="3.76863" Positon="308.012 343.751" />
+       <Point id="7" Intensity ="3.67059" Positon="318.107 279.611" />
+       <Point id="8" Intensity ="2.72941" Positon="559.895 445.809" />
+       <Point id="9" Intensity ="2.68235" Positon="301.358 409.358" />
+       <Point id="10" Intensity ="2.26275" Positon="372.508 352.839" />
+       <Point id="11" Intensity ="2.03922" Positon="326.284 211.494" />
+       <Point id="12" Intensity ="1.31373" Positon="336.627 145.108" />
+       </FiducialPointCandidates>
+  </TestCase>
+  <TestCase id="CIRS_TranslationData1_25">
+    <Input ImageSeqFileName="CIRS_TranslationData1.mha" ImageSeqFrameIndex="25" />
+    <Output SegmentationSuccess="1"
+      SegmentationQualityInIntensityScore="60.5804"
+      SegmentationPoints="576.68 316.021 584.007 248.569 593.568 184.751 566.43 380.757 560.233 445.672 593.568 184.751 519.639 241.176 444.678 296.823 301.947 408.681 373.18 352.521 308.655 343.301 318.613 279.116 301.947 408.681 327.649 210.581 338 144.391" />
+     <FiducialPointCandidates>
+       <Point id="0" Intensity ="8.35294" Positon="576.68 316.021" />
+       <Point id="1" Intensity ="7.15686" Positon="584.007 248.569" />
+       <Point id="2" Intensity ="5.76079" Positon="593.568 184.751" />
+       <Point id="3" Intensity ="5.43922" Positon="519.639 241.176" />
+       <Point id="4" Intensity ="5.34902" Positon="566.43 380.757" />
+       <Point id="5" Intensity ="3.70981" Positon="308.655 343.301" />
+       <Point id="6" Intensity ="3.58039" Positon="318.613 279.116" />
+       <Point id="7" Intensity ="3.32549" Positon="560.233 445.672" />
+       <Point id="8" Intensity ="3.25883" Positon="444.678 296.823" />
+       <Point id="9" Intensity ="2.27451" Positon="301.947 408.681" />
+       <Point id="10" Intensity ="1.9451" Positon="327.649 210.581" />
+       <Point id="11" Intensity ="1.76078" Positon="373.18 352.521" />
+       <Point id="12" Intensity ="0.631373" Positon="338 144.391" />
+       </FiducialPointCandidates>
+  </TestCase>
+  <TestCase id="CIRS_TranslationData1_26">
+    <Input ImageSeqFileName="CIRS_TranslationData1.mha" ImageSeqFrameIndex="26" />
+    <Output SegmentationSuccess="1"
+      SegmentationQualityInIntensityScore="66.4353"
+      SegmentationPoints="579.013 314.213 595.866 182.87 586.343 247.063 568.832 378.875 562.088 443.538 522.466 239.412 595.866 182.87 447.588 294.385 375.713 350.344 305.401 405.549 311.228 340.811 321.237 276.734 330.131 208.759 305.401 405.549 340 142" />
+     <FiducialPointCandidates>
+       <Point id="0" Intensity ="8.23922" Positon="579.013 314.213" />
+       <Point id="1" Intensity ="6.46275" Positon="522.466 239.412" />
+       <Point id="2" Intensity ="5.80785" Positon="595.866 182.87" />
+       <Point id="3" Intensity ="5.77647" Positon="586.343 247.063" />
+       <Point id="4" Intensity ="5.40784" Positon="311.228 340.811" />
+       <Point id="5" Intensity ="4.98431" Positon="321.237 276.734" />
+       <Point id="6" Intensity ="4.80392" Positon="568.832 378.875" />
+       <Point id="7" Intensity ="4.56471" Positon="447.588 294.385" />
+       <Point id="8" Intensity ="3.74902" Positon="375.713 350.344" />
+       <Point id="9" Intensity ="2.71373" Positon="330.131 208.759" />
+       <Point id="10" Intensity ="2.67843" Positon="305.401 405.549" />
+       <Point id="11" Intensity ="2.4549" Positon="562.088 443.538" />
+       <Point id="12" Intensity ="0.305882" Positon="340 142" />
+       </FiducialPointCandidates>
+  </TestCase>
+  <TestCase id="CIRS_TranslationData1_27">
+    <Input ImageSeqFileName="CIRS_TranslationData1.mha" ImageSeqFrameIndex="27" />
+    <Output SegmentationSuccess="0" />
+     <FiducialPointCandidates>
+       <Point id="0" Intensity ="9.21177" Positon="579.528 312.263" />
+       <Point id="1" Intensity ="7.54902" Positon="587.926 245.6" />
+       <Point id="2" Intensity ="7.09804" Positon="523.465 237.524" />
+       <Point id="3" Intensity ="6.45098" Positon="596.714 180.988" />
+       <Point id="4" Intensity ="6.12549" Positon="569.189 376.559" />
+       <Point id="5" Intensity ="5.2549" Positon="449.051 291.989" />
+       <Point id="6" Intensity ="5.21177" Positon="323.811 272.669" />
+       <Point id="7" Intensity ="4.30588" Positon="312.653 336.905" />
+       <Point id="8" Intensity ="3.84706" Positon="377.26 347.272" />
+       <Point id="9" Intensity ="2.92549" Positon="333.909 204.509" />
+       <Point id="10" Intensity ="2.86667" Positon="306.079 402.038" />
+       <Point id="11" Intensity ="2.60392" Positon="562.185 441.253" />
+       </FiducialPointCandidates>
+  </TestCase>
+  <TestCase id="CIRS_TranslationData1_28">
+    <Input ImageSeqFileName="CIRS_TranslationData1.mha" ImageSeqFrameIndex="28" />
+    <Output SegmentationSuccess="0" />
+     <FiducialPointCandidates>
+       <Point id="0" Intensity ="8.22353" Positon="579.307 312.564" />
+       <Point id="1" Intensity ="7.68236" Positon="587.538 245.686" />
+       <Point id="2" Intensity ="7.29804" Positon="523.096 237.821" />
+       <Point id="3" Intensity ="6.81177" Positon="596.767 181.414" />
+       <Point id="4" Intensity ="6.42353" Positon="569.447 376.918" />
+       <Point id="5" Intensity ="5.23529" Positon="448.62 292.734" />
+       <Point id="6" Intensity ="5.07843" Positon="322.964 274.374" />
+       <Point id="7" Intensity ="3.90588" Positon="312.746 338.255" />
+       <Point id="8" Intensity ="3.78824" Positon="332.994 205.372" />
+       <Point id="9" Intensity ="3.70196" Positon="377.174 348.13" />
+       <Point id="10" Intensity ="3.18039" Positon="306.009 403.534" />
+       <Point id="11" Intensity ="2.76079" Positon="562.758 441.66" />
+       </FiducialPointCandidates>
+  </TestCase>
+  <TestCase id="CIRS_TranslationData1_29">
+    <Input ImageSeqFileName="CIRS_TranslationData1.mha" ImageSeqFrameIndex="29" />
+    <Output SegmentationSuccess="0" />
+     <FiducialPointCandidates>
+       <Point id="0" Intensity ="8.87844" Positon="579.785 312.602" />
+       <Point id="1" Intensity ="7.88236" Positon="587.033 245.487" />
+       <Point id="2" Intensity ="6.71373" Positon="522.78 237.81" />
+       <Point id="3" Intensity ="5.72549" Positon="595.853 181.075" />
+       <Point id="4" Intensity ="5.23922" Positon="569.297 376.85" />
+       <Point id="5" Intensity ="5.06275" Positon="448.695 293.053" />
+       <Point id="6" Intensity ="4.90588" Positon="322.766 274.852" />
+       <Point id="7" Intensity ="4.38824" Positon="312.561 339.11" />
+       <Point id="8" Intensity ="3.14902" Positon="376.921 348.581" />
+       <Point id="9" Intensity ="2.6353" Positon="563.08 441.393" />
+       <Point id="10" Intensity ="2.42745" Positon="306.07 404.241" />
+       <Point id="11" Intensity ="2.15294" Positon="332.77 206.366" />
+       </FiducialPointCandidates>
+  </TestCase>
+  <TestCase id="CIRS_TranslationData1_30">
+    <Input ImageSeqFileName="CIRS_TranslationData1.mha" ImageSeqFrameIndex="30" />
+    <Output SegmentationSuccess="0" />
+     <FiducialPointCandidates>
+       <Point id="0" Intensity ="8.92549" Positon="586.441 245.138" />
+       <Point id="1" Intensity ="8.49412" Positon="579.742 312.913" />
+       <Point id="2" Intensity ="7.84706" Positon="596.178 181.449" />
+       <Point id="3" Intensity ="7.17255" Positon="523.42 238.351" />
+       <Point id="4" Intensity ="5.44314" Positon="448.774 293.013" />
+       <Point id="5" Intensity ="5.43138" Positon="323.414 274.786" />
+       <Point id="6" Intensity ="5.34118" Positon="312.835 339.029" />
+       <Point id="7" Intensity ="5.14118" Positon="569.71 376.939" />
+       <Point id="8" Intensity ="3.22745" Positon="376.825 348.634" />
+       <Point id="9" Intensity ="3.18039" Positon="306.406 404.132" />
+       <Point id="10" Intensity ="2.76471" Positon="563.186 441.438" />
+       <Point id="11" Intensity ="2.21961" Positon="332.647 206.401" />
+       </FiducialPointCandidates>
+  </TestCase>
+  <TestCase id="CIRS_TranslationData1_31">
+    <Input ImageSeqFileName="CIRS_TranslationData1.mha" ImageSeqFrameIndex="31" />
+    <Output SegmentationSuccess="0" />
+     <FiducialPointCandidates>
+       <Point id="0" Intensity ="8.73726" Positon="587.218 247.245" />
+       <Point id="1" Intensity ="7.76863" Positon="578.761 313.912" />
+       <Point id="2" Intensity ="7.10196" Positon="522.926 239.544" />
+       <Point id="3" Intensity ="6.75295" Positon="595.546 182.907" />
+       <Point id="4" Intensity ="5.56863" Positon="569.211 378.198" />
+       <Point id="5" Intensity ="5.23137" Positon="447.889 294.062" />
+       <Point id="6" Intensity ="5.22353" Positon="311.793 340.466" />
+       <Point id="7" Intensity ="4.34902" Positon="322.335 276.449" />
+       <Point id="8" Intensity ="3.27059" Positon="376.143 350.036" />
+       <Point id="9" Intensity ="2.96078" Positon="562.912 442.826" />
+       <Point id="10" Intensity ="2.44706" Positon="305.662 405.71" />
+       <Point id="11" Intensity ="1.32941" Positon="330.566 208.301" />
+       <Point id="12" Intensity ="0.356863" Positon="342 141" />
+       </FiducialPointCandidates>
+  </TestCase>
+  <TestCase id="CIRS_TranslationData1_32">
+    <Input ImageSeqFileName="CIRS_TranslationData1.mha" ImageSeqFrameIndex="32" />
+    <Output SegmentationSuccess="0" />
+     <FiducialPointCandidates>
+       <Point id="0" Intensity ="7.7451" Positon="586.392 248.518" />
+       <Point id="1" Intensity ="6.92157" Positon="578.721 315.283" />
+       <Point id="2" Intensity ="6.67451" Positon="521.798 240.645" />
+       <Point id="3" Intensity ="5.46667" Positon="568.878 379.759" />
+       <Point id="4" Intensity ="4.75294" Positon="310.701 341.954" />
+       <Point id="5" Intensity ="4.47843" Positon="594.662 184.188" />
+       <Point id="6" Intensity ="4.05098" Positon="447.821 295.328" />
+       <Point id="7" Intensity ="3.2902" Positon="321.232 277.754" />
+       <Point id="8" Intensity ="2.67059" Positon="329.571 209.294" />
+       <Point id="9" Intensity ="2.61569" Positon="562.629 444.535" />
+       <Point id="10" Intensity ="2.53726" Positon="375.298 351.212" />
+       <Point id="11" Intensity ="2.08235" Positon="304.331 407.478" />
+       </FiducialPointCandidates>
+  </TestCase>
+  <TestCase id="CIRS_TranslationData1_33">
+    <Input ImageSeqFileName="CIRS_TranslationData1.mha" ImageSeqFrameIndex="33" />
+    <Output SegmentationSuccess="0" />
+     <FiducialPointCandidates>
+       <Point id="0" Intensity ="7.96471" Positon="578.755 315.979" />
+       <Point id="1" Intensity ="6.46667" Positon="585.858 249.017" />
+       <Point id="2" Intensity ="5.49412" Positon="521.655 241.48" />
+       <Point id="3" Intensity ="5.18824" Positon="568.691 380.22" />
+       <Point id="4" Intensity ="5.06667" Positon="310.255 342.517" />
+       <Point id="5" Intensity ="4.36471" Positon="594.263 184.476" />
+       <Point id="6" Intensity ="4.33726" Positon="446.932 295.684" />
+       <Point id="7" Intensity ="4.12941" Positon="320.356 278.171" />
+       <Point id="8" Intensity ="3.15294" Positon="374.818 351.632" />
+       <Point id="9" Intensity ="2.61961" Positon="330.558 209.136" />
+       <Point id="10" Intensity ="2.52549" Positon="303.686 407.885" />
+       <Point id="11" Intensity ="2.34118" Positon="561.837 444.616" />
+       </FiducialPointCandidates>
+  </TestCase>
+  <TestCase id="CIRS_TranslationData1_34">
+    <Input ImageSeqFileName="CIRS_TranslationData1.mha" ImageSeqFrameIndex="34" />
+    <Output SegmentationSuccess="0" />
+     <FiducialPointCandidates>
+       <Point id="0" Intensity ="7.47059" Positon="577.971 316.039" />
+       <Point id="1" Intensity ="6.21961" Positon="585.833 249.33" />
+       <Point id="2" Intensity ="5.92941" Positon="320.11 277.831" />
+       <Point id="3" Intensity ="5.67843" Positon="309.733 342.492" />
+       <Point id="4" Intensity ="5.5451" Positon="567.814 380.259" />
+       <Point id="5" Intensity ="5.48628" Positon="594.147 184.747" />
+       <Point id="6" Intensity ="5.30981" Positon="445.934 295.512" />
+       <Point id="7" Intensity ="5.02745" Positon="520.605 241.035" />
+       <Point id="8" Intensity ="3.15686" Positon="302.848 408.211" />
+       <Point id="9" Intensity ="2.81569" Positon="374.642 351.583" />
+       <Point id="10" Intensity ="2.71765" Positon="328.88 209.506" />
+       <Point id="11" Intensity ="2.53333" Positon="561.459 444.545" />
+       </FiducialPointCandidates>
+  </TestCase>
+  <TestCase id="CIRS_TranslationData1_35">
+    <Input ImageSeqFileName="CIRS_TranslationData1.mha" ImageSeqFrameIndex="35" />
+    <Output SegmentationSuccess="0" />
+     <FiducialPointCandidates>
+       <Point id="0" Intensity ="7.19216" Positon="577.435 316.261" />
+       <Point id="1" Intensity ="6.34902" Positon="584.014 248.921" />
+       <Point id="2" Intensity ="5.0549" Positon="319.582 278.394" />
+       <Point id="3" Intensity ="4.76863" Positon="309.27 343.082" />
+       <Point id="4" Intensity ="4.7451" Positon="567.744 380.566" />
+       <Point id="5" Intensity ="4.47451" Positon="593.201 185.112" />
+       <Point id="6" Intensity ="4.11765" Positon="520.574 241.708" />
+       <Point id="7" Intensity ="3.48236" Positon="445.882 296.05" />
+       <Point id="8" Intensity ="3.38039" Positon="374.208 352.07" />
+       <Point id="9" Intensity ="3.14902" Positon="302.573 408.615" />
+       <Point id="10" Intensity ="2.48235" Positon="561.161 444.848" />
+       <Point id="11" Intensity ="1.82745" Positon="328.099 210.253" />
+       </FiducialPointCandidates>
+  </TestCase>
+  <TestCase id="CIRS_TranslationData1_36">
+    <Input ImageSeqFileName="CIRS_TranslationData1.mha" ImageSeqFrameIndex="36" />
+    <Output SegmentationSuccess="0" />
+     <FiducialPointCandidates>
+       <Point id="0" Intensity ="6.6" Positon="584.547 249.449" />
+       <Point id="1" Intensity ="6.36471" Positon="577.284 316.738" />
+       <Point id="2" Intensity ="5.95294" Positon="520.022 241.892" />
+       <Point id="3" Intensity ="5.13726" Positon="567.705 380.914" />
+       <Point id="4" Intensity ="4.06275" Positon="308.937 343.44" />
+       <Point id="5" Intensity ="3.85098" Positon="319.692 278.906" />
+       <Point id="6" Intensity ="3.70981" Positon="592.718 185.113" />
+       <Point id="7" Intensity ="3.57647" Positon="446.192 296.759" />
+       <Point id="8" Intensity ="3.0902" Positon="302.485 408.678" />
+       <Point id="9" Intensity ="3.05098" Positon="373.929 352.119" />
+       <Point id="10" Intensity ="2.67843" Positon="561.196 445.539" />
+       <Point id="11" Intensity ="2.21961" Positon="327.604 210.606" />
+       </FiducialPointCandidates>
+  </TestCase>
+  <TestCase id="CIRS_TranslationData1_37">
+    <Input ImageSeqFileName="CIRS_TranslationData1.mha" ImageSeqFrameIndex="37" />
+    <Output SegmentationSuccess="0" />
+     <FiducialPointCandidates>
+       <Point id="0" Intensity ="7.46667" Positon="584.242 249.523" />
+       <Point id="1" Intensity ="6.76079" Positon="577.776 316.982" />
+       <Point id="2" Intensity ="5.49804" Positon="520.461 241.891" />
+       <Point id="3" Intensity ="4.85098" Positon="309.112 343.262" />
+       <Point id="4" Intensity ="4.75687" Positon="567.779 380.917" />
+       <Point id="5" Intensity ="4.61177" Positon="593.405 185.443" />
+       <Point id="6" Intensity ="3.97255" Positon="319.251 278.936" />
+       <Point id="7" Intensity ="3.57255" Positon="446.148 296.746" />
+       <Point id="8" Intensity ="3.14118" Positon="374.147 352.251" />
+       <Point id="9" Intensity ="2.93726" Positon="302.543 409.03" />
+       <Point id="10" Intensity ="2.69412" Positon="561.294 445.737" />
+       <Point id="11" Intensity ="2.66275" Positon="328.5 210.265" />
+       <Point id="12" Intensity ="0.305882" Positon="456 229" />
+       </FiducialPointCandidates>
+  </TestCase>
+  <TestCase id="CIRS_TranslationData1_38">
+    <Input ImageSeqFileName="CIRS_TranslationData1.mha" ImageSeqFrameIndex="38" />
+    <Output SegmentationSuccess="1"
+      SegmentationQualityInIntensityScore="58.5137"
+      SegmentationPoints="577.782 316.883 585.153 250.056 568.32 380.928 594.479 186.1 561.584 445.616 520.203 241.932 446.252 296.569 594.479 186.1 374.352 352.47 302.805 409.285 309.407 343.742 319.376 279.476 302.805 409.285 328.548 210.994 337.058 143.346" />
+     <FiducialPointCandidates>
+       <Point id="0" Intensity ="8.04706" Positon="577.782 316.883" />
+       <Point id="1" Intensity ="7.59216" Positon="585.153 250.056" />
+       <Point id="2" Intensity ="4.94118" Positon="520.203 241.932" />
+       <Point id="3" Intensity ="4.85098" Positon="568.32 380.928" />
+       <Point id="4" Intensity ="4.29804" Positon="446.252 296.569" />
+       <Point id="5" Intensity ="3.85098" Positon="309.407 343.742" />
+       <Point id="6" Intensity ="3.84314" Positon="594.479 186.1" />
+       <Point id="7" Intensity ="3.61569" Positon="319.376 279.476" />
+       <Point id="8" Intensity ="2.90981" Positon="374.352 352.47" />
+       <Point id="9" Intensity ="2.83922" Positon="302.805 409.285" />
+       <Point id="10" Intensity ="2.58432" Positon="561.584 445.616" />
+       <Point id="11" Intensity ="1.84706" Positon="328.548 210.994" />
+       <Point id="12" Intensity ="0.611765" Positon="337.058 143.346" />
+       </FiducialPointCandidates>
+  </TestCase>
+  <TestCase id="CIRS_TranslationData1_39">
+    <Input ImageSeqFileName="CIRS_TranslationData1.mha" ImageSeqFrameIndex="39" />
+    <Output SegmentationSuccess="1"
+      SegmentationQualityInIntensityScore="57.3255"
+      SegmentationPoints="577.1 317.192 567.514 381.481 584.266 250.035 593.543 186.56 561.527 446.315 593.543 186.56 519.869 242.557 445.493 296.954 373.614 353.087 302.111 410.196 319.004 280.13 308.851 344.475 302.111 410.196 327.315 211.874 336.119 143.945" />
+     <FiducialPointCandidates>
+       <Point id="0" Intensity ="6.39608" Positon="577.1 317.192" />
+       <Point id="1" Intensity ="5.29412" Positon="567.514 381.481" />
+       <Point id="2" Intensity ="5.2902" Positon="584.266 250.035" />
+       <Point id="3" Intensity ="5.02353" Positon="593.543 186.56" />
+       <Point id="4" Intensity ="4.65098" Positon="519.869 242.557" />
+       <Point id="5" Intensity ="4.07451" Positon="319.004 280.13" />
+       <Point id="6" Intensity ="4.05882" Positon="445.493 296.954" />
+       <Point id="7" Intensity ="3.76863" Positon="308.851 344.475" />
+       <Point id="8" Intensity ="3.23922" Positon="373.614 353.087" />
+       <Point id="9" Intensity ="2.55294" Positon="561.527 446.315" />
+       <Point id="10" Intensity ="2.46275" Positon="302.111 410.196" />
+       <Point id="11" Intensity ="1.74118" Positon="327.315 211.874" />
+       <Point id="12" Intensity ="1.28627" Positon="336.119 143.945" />
+       </FiducialPointCandidates>
+  </TestCase>
+  <TestCase id="CIRS_TranslationData1_40">
+    <Input ImageSeqFileName="CIRS_TranslationData1.mha" ImageSeqFrameIndex="40" />
+    <Output SegmentationSuccess="0" />
+     <FiducialPointCandidates>
+       <Point id="0" Intensity ="6.86667" Positon="577.069 317.474" />
+       <Point id="1" Intensity ="5.27059" Positon="567.424 381.9" />
+       <Point id="2" Intensity ="4.84314" Positon="584.177 250.533" />
+       <Point id="3" Intensity ="4.51373" Positon="593.043 186.564" />
+       <Point id="4" Intensity ="3.95294" Positon="308.573 344.638" />
+       <Point id="5" Intensity ="3.89412" Positon="520.164 242.957" />
+       <Point id="6" Intensity ="3.75294" Positon="318.908 280.145" />
+       <Point id="7" Intensity ="3.15686" Positon="373.75 353.071" />
+       <Point id="8" Intensity ="2.94118" Positon="445.543 297.28" />
+       <Point id="9" Intensity ="2.59216" Positon="302.06 410.283" />
+       <Point id="10" Intensity ="2.44314" Positon="561.409 446.419" />
+       <Point id="11" Intensity ="2.24706" Positon="327.143 212.183" />
+       </FiducialPointCandidates>
+  </TestCase>
+  <TestCase id="CIRS_TranslationData1_41">
+    <Input ImageSeqFileName="CIRS_TranslationData1.mha" ImageSeqFrameIndex="41" />
+    <Output SegmentationSuccess="1"
+      SegmentationQualityInIntensityScore="51.7137"
+      SegmentationPoints="567.542 382.403 583.49 250.618 577.369 318.404 592.716 186.788 561.232 446.827 519.784 243.265 592.716 186.788 445.595 297.989 373.681 353.927 302.107 411.113 317.637 281.024 308.748 345.003 327.365 212.229 302.107 411.113 336.694 144.888" />
+     <FiducialPointCandidates>
+       <Point id="0" Intensity ="5.51373" Positon="567.542 382.403" />
+       <Point id="1" Intensity ="5.08236" Positon="583.49 250.618" />
+       <Point id="2" Intensity ="4.85098" Positon="317.637 281.024" />
+       <Point id="3" Intensity ="4.52942" Positon="577.369 318.404" />
+       <Point id="4" Intensity ="3.91765" Positon="308.748 345.003" />
+       <Point id="5" Intensity ="3.32549" Positon="519.784 243.265" />
+       <Point id="6" Intensity ="3.18432" Positon="592.716 186.788" />
+       <Point id="7" Intensity ="3.14902" Positon="445.595 297.989" />
+       <Point id="8" Intensity ="3.06667" Positon="373.681 353.927" />
+       <Point id="9" Intensity ="2.83922" Positon="561.232 446.827" />
+       <Point id="10" Intensity ="2.72157" Positon="327.365 212.229" />
+       <Point id="11" Intensity ="2.49412" Positon="302.107 411.113" />
+       <Point id="12" Intensity ="1.36078" Positon="336.694 144.888" />
+       </FiducialPointCandidates>
+  </TestCase>
+  <TestCase id="CIRS_TranslationData1_42">
+    <Input ImageSeqFileName="CIRS_TranslationData1.mha" ImageSeqFrameIndex="42" />
+    <Output SegmentationSuccess="1"
+      SegmentationQualityInIntensityScore="47.2392"
+      SegmentationPoints="568.237 382.888 583.982 250.929 577.614 318.575 561.238 446.946 592.546 187.069 445.547 298.039 519.924 243.085 374.089 353.915 302.248 410.951 592.546 187.069 318.268 280.975 308.709 345.205 327.149 212.092 302.248 410.951 337.533 145" />
+     <FiducialPointCandidates>
+       <Point id="0" Intensity ="5.15294" Positon="568.237 382.888" />
+       <Point id="1" Intensity ="4.71373" Positon="318.268 280.975" />
+       <Point id="2" Intensity ="4.57647" Positon="583.982 250.929" />
+       <Point id="3" Intensity ="4.14118" Positon="577.614 318.575" />
+       <Point id="4" Intensity ="3.64706" Positon="445.547 298.039" />
+       <Point id="5" Intensity ="3.59608" Positon="519.924 243.085" />
+       <Point id="6" Intensity ="3.42353" Positon="308.709 345.205" />
+       <Point id="7" Intensity ="2.90588" Positon="374.089 353.915" />
+       <Point id="8" Intensity ="2.8902" Positon="327.149 212.092" />
+       <Point id="9" Intensity ="2.73726" Positon="302.248 410.951" />
+       <Point id="10" Intensity ="2.53333" Positon="561.238 446.946" />
+       <Point id="11" Intensity ="1.70196" Positon="592.546 187.069" />
+       <Point id="12" Intensity ="0.780392" Positon="337.533 145" />
+       </FiducialPointCandidates>
+  </TestCase>
+  <TestCase id="CIRS_TranslationData1_43">
+    <Input ImageSeqFileName="CIRS_TranslationData1.mha" ImageSeqFrameIndex="43" />
+    <Output SegmentationSuccess="1"
+      SegmentationQualityInIntensityScore="47.6157"
+      SegmentationPoints="577.426 318.591 584.25 251.571 567.503 382.681 561.46 447.164 593.12 187.424 519.489 243.33 593.12 187.424 445.594 298.394 372.829 354.041 301.811 411.571 317.858 281.391 307.994 346.103 326.909 212.731 301.811 411.571 336.518 145.366" />
+     <FiducialPointCandidates>
+       <Point id="0" Intensity ="5.78039" Positon="577.426 318.591" />
+       <Point id="1" Intensity ="5.4902" Positon="584.25 251.571" />
+       <Point id="2" Intensity ="4.51373" Positon="519.489 243.33" />
+       <Point id="3" Intensity ="4.17255" Positon="567.503 382.681" />
+       <Point id="4" Intensity ="3.83922" Positon="317.858 281.391" />
+       <Point id="5" Intensity ="2.82745" Positon="307.994 346.103" />
+       <Point id="6" Intensity ="2.77647" Positon="561.46 447.164" />
+       <Point id="7" Intensity ="2.76471" Positon="593.12 187.424" />
+       <Point id="8" Intensity ="2.60785" Positon="326.909 212.731" />
+       <Point id="9" Intensity ="2.59608" Positon="445.594 298.394" />
+       <Point id="10" Intensity ="2.2902" Positon="372.829 354.041" />
+       <Point id="11" Intensity ="2.15686" Positon="301.811 411.571" />
+       <Point id="12" Intensity ="0.878431" Positon="336.518 145.366" />
+       <Point id="13" Intensity ="0.352941" Positon="372.5 512.5" />
+       </FiducialPointCandidates>
+  </TestCase>
+  <TestCase id="CIRS_TranslationData1_44">
+    <Input ImageSeqFileName="CIRS_TranslationData1.mha" ImageSeqFrameIndex="44" />
+    <Output SegmentationSuccess="0" />
+     <FiducialPointCandidates>
+       <Point id="0" Intensity ="5.10981" Positon="576.433 318.676" />
+       <Point id="1" Intensity ="4.44706" Positon="567.373 382.954" />
+       <Point id="2" Intensity ="4.12941" Positon="317.612 281.707" />
+       <Point id="3" Intensity ="3.80784" Positon="518.695 243.77" />
+       <Point id="4" Intensity ="3.67059" Positon="584.03 252.154" />
+       <Point id="5" Intensity ="3.2353" Positon="307.474 346.235" />
+       <Point id="6" Intensity ="3.22353" Positon="301.731 411.491" />
+       <Point id="7" Intensity ="3.12941" Positon="592.878 188.002" />
+       <Point id="8" Intensity ="2.88235" Positon="445.099 298.619" />
+       <Point id="9" Intensity ="2.74118" Positon="561.302 447.955" />
+       <Point id="10" Intensity ="2.53726" Positon="373.202 354.405" />
+       <Point id="11" Intensity ="1.92549" Positon="327.431 212.992" />
+       <Point id="12" Intensity ="1.55294" Positon="336.765 145.518" />
+       <Point id="13" Intensity ="0.6" Positon="372.366 512.64" />
+       </FiducialPointCandidates>
+  </TestCase>
+  <TestCase id="CIRS_TranslationData1_45">
+    <Input ImageSeqFileName="CIRS_TranslationData1.mha" ImageSeqFrameIndex="45" />
+    <Output SegmentationSuccess="1"
+      SegmentationQualityInIntensityScore="43.1333"
+      SegmentationPoints="576.599 319.353 567.38 383.348 584.176 252.447 561.135 448.199 592.571 187.949 445.049 298.641 519.804 244.101 301.359 411.949 373.028 354.699 592.571 187.949 316.899 282.148 326.514 213.294 307.832 346.402 301.359 411.949 335.275 146.122" />
+     <FiducialPointCandidates>
+       <Point id="0" Intensity ="5.22745" Positon="576.599 319.353" />
+       <Point id="1" Intensity ="3.7451" Positon="445.049 298.641" />
+       <Point id="2" Intensity ="3.52157" Positon="567.38 383.348" />
+       <Point id="3" Intensity ="3.38039" Positon="316.899 282.148" />
+       <Point id="4" Intensity ="3.17255" Positon="326.514 213.294" />
+       <Point id="5" Intensity ="3.09412" Positon="584.176 252.447" />
+       <Point id="6" Intensity ="3.06275" Positon="519.804 244.101" />
+       <Point id="7" Intensity ="2.98431" Positon="307.832 346.402" />
+       <Point id="8" Intensity ="2.95686" Positon="301.359 411.949" />
+       <Point id="9" Intensity ="2.92941" Positon="373.028 354.699" />
+       <Point id="10" Intensity ="2.9098" Positon="561.135 448.199" />
+       <Point id="11" Intensity ="1.63922" Positon="335.275 146.122" />
+       <Point id="12" Intensity ="0.776471" Positon="592.571 187.949" />
+       </FiducialPointCandidates>
+  </TestCase>
+  <TestCase id="CIRS_TranslationData1_46">
+    <Input ImageSeqFileName="CIRS_TranslationData1.mha" ImageSeqFrameIndex="46" />
+    <Output SegmentationSuccess="0" />
+     <FiducialPointCandidates>
+       <Point id="0" Intensity ="4.63922" Positon="582.923 251.74" />
+       <Point id="1" Intensity ="4.59216" Positon="576.868 319.485" />
+       <Point id="2" Intensity ="4.36863" Positon="567.168 383.134" />
+       <Point id="3" Intensity ="3.93333" Positon="317.833 281.714" />
+       <Point id="4" Intensity ="3.6" Positon="307.568 346.139" />
+       <Point id="5" Intensity ="3.16863" Positon="335.788 145.78" />
+       <Point id="6" Intensity ="3.10196" Positon="301.55 411.929" />
+       <Point id="7" Intensity ="3.03529" Positon="326.747 213.366" />
+       <Point id="8" Intensity ="2.70196" Positon="561.164 448.255" />
+       <Point id="9" Intensity ="2.6" Positon="518.766 244.152" />
+       <Point id="10" Intensity ="2.58431" Positon="373.052 354.646" />
+       <Point id="11" Intensity ="2.55294" Positon="445.441 298.843" />
+       <Point id="12" Intensity ="1.2549" Positon="594.016 188.678" />
+       <Point id="13" Intensity ="0.529412" Positon="372.481 512.593" />
+       </FiducialPointCandidates>
+  </TestCase>
+  <TestCase id="CIRS_TranslationData1_47">
+    <Input ImageSeqFileName="CIRS_TranslationData1.mha" ImageSeqFrameIndex="47" />
+    <Output SegmentationSuccess="1"
+      SegmentationQualityInIntensityScore="45.7608"
+      SegmentationPoints="567.509 383.238 576.265 318.925 584.514 252.095 561.233 447.879 592.407 187.895 445.076 298.416 301.488 412 519.164 244.116 373.451 354.155 592.407 187.895 316.876 282.028 307.74 346.285 301.488 412 327.033 213.354 336.117 146.311" />
+     <FiducialPointCandidates>
+       <Point id="0" Intensity ="4.63922" Positon="567.509 383.238" />
+       <Point id="1" Intensity ="3.61961" Positon="576.265 318.925" />
+       <Point id="2" Intensity ="3.60392" Positon="316.876 282.028" />
+       <Point id="3" Intensity ="3.49804" Positon="307.74 346.285" />
+       <Point id="4" Intensity ="3.46667" Positon="445.076 298.416" />
+       <Point id="5" Intensity ="3.18824" Positon="301.488 412" />
+       <Point id="6" Intensity ="3.16471" Positon="327.033 213.354" />
+       <Point id="7" Intensity ="3.0549" Positon="519.164 244.116" />
+       <Point id="8" Intensity ="2.81177" Positon="584.514 252.095" />
+       <Point id="9" Intensity ="2.76079" Positon="561.233 447.879" />
+       <Point id="10" Intensity ="2.65882" Positon="373.451 354.155" />
+       <Point id="11" Intensity ="2.6" Positon="336.117 146.311" />
+       <Point id="12" Intensity ="1.75294" Positon="592.407 187.895" />
+       <Point id="13" Intensity ="0.254902" Positon="374 512" />
+       </FiducialPointCandidates>
+  </TestCase>
+  <TestCase id="CIRS_TranslationData1_48">
+    <Input ImageSeqFileName="CIRS_TranslationData1.mha" ImageSeqFrameIndex="48" />
+    <Output SegmentationSuccess="1"
+      SegmentationQualityInIntensityScore="51.8824"
+      SegmentationPoints="576.739 318.815 567.559 383.194 592.555 187.809 583.415 251.73 561.161 447.623 518.772 243.495 592.555 187.809 445.249 298.714 301.246 412.122 372.769 354.588 325.952 213.422 317.557 281.835 307.816 346.149 335.177 146.604 301.246 412.122" />
+     <FiducialPointCandidates>
+       <Point id="0" Intensity ="5.12157" Positon="325.952 213.422" />
+       <Point id="1" Intensity ="4.53334" Positon="576.739 318.815" />
+       <Point id="2" Intensity ="4.14118" Positon="317.557 281.835" />
+       <Point id="3" Intensity ="3.93334" Positon="518.772 243.495" />
+       <Point id="4" Intensity ="3.65098" Positon="567.559 383.194" />
+       <Point id="5" Intensity ="3.45883" Positon="592.555 187.809" />
+       <Point id="6" Intensity ="3.38039" Positon="583.415 251.73" />
+       <Point id="7" Intensity ="3.32157" Positon="307.816 346.149" />
+       <Point id="8" Intensity ="3.08628" Positon="445.249 298.714" />
+       <Point id="9" Intensity ="2.98432" Positon="335.177 146.604" />
+       <Point id="10" Intensity ="2.82353" Positon="301.246 412.122" />
+       <Point id="11" Intensity ="2.76863" Positon="561.161 447.623" />
+       <Point id="12" Intensity ="2.39608" Positon="372.769 354.588" />
+       <Point id="13" Intensity ="0.501961" Positon="372.25 513" />
+       </FiducialPointCandidates>
+  </TestCase>
+  <TestCase id="CIRS_TranslationData1_49">
+    <Input ImageSeqFileName="CIRS_TranslationData1.mha" ImageSeqFrameIndex="49" />
+    <Output SegmentationSuccess="1"
+      SegmentationQualityInIntensityScore="50.7687"
+      SegmentationPoints="582.973 251.173 576.415 318.808 567.282 382.581 592.346 187.701 561.228 447.501 445.263 298.561 592.346 187.701 301.523 412.152 372.669 354.74 519.275 243.819 307.456 346.478 326.552 213.967 335.014 146.861 301.523 412.152 317.361 281.79" />
+     <FiducialPointCandidates>
+       <Point id="0" Intensity ="4.45098" Positon="582.973 251.173" />
+       <Point id="1" Intensity ="4.27451" Positon="576.415 318.808" />
+       <Point id="2" Intensity ="4.25098" Positon="307.456 346.478" />
+       <Point id="3" Intensity ="4.12549" Positon="567.282 382.581" />
+       <Point id="4" Intensity ="3.61961" Positon="445.263 298.561" />
+       <Point id="5" Intensity ="3.33334" Positon="592.346 187.701" />
+       <Point id="6" Intensity ="3.22745" Positon="326.552 213.967" />
+       <Point id="7" Intensity ="3.08236" Positon="335.014 146.861" />
+       <Point id="8" Intensity ="2.98824" Positon="561.228 447.501" />
+       <Point id="9" Intensity ="2.96079" Positon="301.523 412.152" />
+       <Point id="10" Intensity ="2.93334" Positon="317.361 281.79" />
+       <Point id="11" Intensity ="2.75686" Positon="372.669 354.74" />
+       <Point id="12" Intensity ="2.47059" Positon="519.275 243.819" />
+       </FiducialPointCandidates>
+  </TestCase>
+  <TestCase id="CIRS_TranslationData1_50">
+    <Input ImageSeqFileName="CIRS_TranslationData1.mha" ImageSeqFrameIndex="50" />
+    <Output SegmentationSuccess="1"
+      SegmentationQualityInIntensityScore="46.5177"
+      SegmentationPoints="567.259 382.523 584.108 251.211 576.813 318.48 592.92 187.825 561.389 447.239 592.92 187.825 444.828 298.514 301.474 412.139 373.164 354.582 519.691 244.137 317.177 281.889 308.246 346.345 335.848 146.653 301.474 412.139 328.062 213.586" />
+     <FiducialPointCandidates>
+       <Point id="0" Intensity ="5.21961" Positon="567.259 382.523" />
+       <Point id="1" Intensity ="4.54118" Positon="317.177 281.889" />
+       <Point id="2" Intensity ="4.09804" Positon="308.246 346.345" />
+       <Point id="3" Intensity ="3.98824" Positon="584.108 251.211" />
+       <Point id="4" Intensity ="3.96079" Positon="576.813 318.48" />
+       <Point id="5" Intensity ="3.03922" Positon="335.848 146.653" />
+       <Point id="6" Intensity ="2.61961" Positon="592.92 187.825" />
+       <Point id="7" Intensity ="2.59216" Positon="561.389 447.239" />
+       <Point id="8" Intensity ="2.53333" Positon="444.828 298.514" />
+       <Point id="9" Intensity ="2.45882" Positon="301.474 412.139" />
+       <Point id="10" Intensity ="2.25098" Positon="373.164 354.582" />
+       <Point id="11" Intensity ="2.19608" Positon="328.062 213.586" />
+       <Point id="12" Intensity ="1.94118" Positon="519.691 244.137" />
+       </FiducialPointCandidates>
+  </TestCase>
+  <TestCase id="CIRS_TranslationData1_51">
+    <Input ImageSeqFileName="CIRS_TranslationData1.mha" ImageSeqFrameIndex="51" />
+    <Output SegmentationSuccess="1"
+      SegmentationQualityInIntensityScore="48.6745"
+      SegmentationPoints="577.404 318.524 568.317 382.686 584.341 251.285 562.084 447.324 592.622 187.116 446.43 298.455 518.885 243.068 302.044 411.889 374.001 354.357 592.622 187.116 335.904 146.449 326.875 213.716 319.034 281.198 309.005 345.94 302.044 411.889" />
+     <FiducialPointCandidates>
+       <Point id="0" Intensity ="5.21177" Positon="577.404 318.524" />
+       <Point id="1" Intensity ="4.45882" Positon="335.904 146.449" />
+       <Point id="2" Intensity ="4.37255" Positon="326.875 213.716" />
+       <Point id="3" Intensity ="4.29804" Positon="568.317 382.686" />
+       <Point id="4" Intensity ="4.04314" Positon="446.43 298.455" />
+       <Point id="5" Intensity ="3.90196" Positon="319.034 281.198" />
+       <Point id="6" Intensity ="3.22353" Positon="309.005 345.94" />
+       <Point id="7" Intensity ="3.10588" Positon="518.885 243.068" />
+       <Point id="8" Intensity ="3.04706" Positon="302.044 411.889" />
+       <Point id="9" Intensity ="2.93333" Positon="584.341 251.285" />
+       <Point id="10" Intensity ="2.73334" Positon="562.084 447.324" />
+       <Point id="11" Intensity ="2.53333" Positon="374.001 354.357" />
+       <Point id="12" Intensity ="0.882353" Positon="592.622 187.116" />
+       <Point id="13" Intensity ="0.686275" Positon="372.628 514.543" />
+       </FiducialPointCandidates>
+  </TestCase>
+  <TestCase id="CIRS_TranslationData1_52">
+    <Input ImageSeqFileName="CIRS_TranslationData1.mha" ImageSeqFrameIndex="52" />
+    <Output SegmentationSuccess="1"
+      SegmentationQualityInIntensityScore="48.2118"
+      SegmentationPoints="577.943 318.425 568.123 382.303 584.799 251.286 562.657 447.119 592.635 186.691 520.269 243.185 446.831 298.703 302.463 411.744 374.524 354.163 592.635 186.691 319.503 281.111 327.78 213.537 336.686 146.774 309.066 346.034 302.463 411.744" />
+     <FiducialPointCandidates>
+       <Point id="0" Intensity ="4.80392" Positon="577.943 318.425" />
+       <Point id="1" Intensity ="3.93726" Positon="568.123 382.303" />
+       <Point id="2" Intensity ="3.75686" Positon="520.269 243.185" />
+       <Point id="3" Intensity ="3.50588" Positon="319.503 281.111" />
+       <Point id="4" Intensity ="3.45098" Positon="327.78 213.537" />
+       <Point id="5" Intensity ="3.42353" Positon="446.831 298.703" />
+       <Point id="6" Intensity ="3.36863" Positon="336.686 146.774" />
+       <Point id="7" Intensity ="3.20784" Positon="309.066 346.034" />
+       <Point id="8" Intensity ="3.17647" Positon="584.799 251.286" />
+       <Point id="9" Intensity ="3.09804" Positon="302.463 411.744" />
+       <Point id="10" Intensity ="2.96079" Positon="374.524 354.163" />
+       <Point id="11" Intensity ="2.89412" Positon="562.657 447.119" />
+       <Point id="12" Intensity ="1.76471" Positon="592.635 186.691" />
+       </FiducialPointCandidates>
+  </TestCase>
+  <TestCase id="CIRS_TranslationData1_53">
+    <Input ImageSeqFileName="CIRS_TranslationData1.mha" ImageSeqFrameIndex="53" />
+    <Output SegmentationSuccess="1"
+      SegmentationQualityInIntensityScore="48.4667"
+      SegmentationPoints="568.789 381.627 585.161 250.633 578.559 318.487 593.509 186.724 562.998 446.861 593.509 186.724 374.745 353.959 446.392 298.068 520.605 243.186 302.787 411.66 319.56 281.345 336.189 146.947 309.206 345.703 328.072 213.053 302.787 411.66" />
+     <FiducialPointCandidates>
+       <Point id="0" Intensity ="5.35686" Positon="568.789 381.627" />
+       <Point id="1" Intensity ="4.52941" Positon="585.161 250.633" />
+       <Point id="2" Intensity ="4.20784" Positon="319.56 281.345" />
+       <Point id="3" Intensity ="3.95294" Positon="336.189 146.947" />
+       <Point id="4" Intensity ="3.48628" Positon="309.206 345.703" />
+       <Point id="5" Intensity ="3.28235" Positon="578.559 318.487" />
+       <Point id="6" Intensity ="3.18824" Positon="593.509 186.724" />
+       <Point id="7" Intensity ="2.90588" Positon="374.745 353.959" />
+       <Point id="8" Intensity ="2.81569" Positon="328.072 213.053" />
+       <Point id="9" Intensity ="2.76079" Positon="446.392 298.068" />
+       <Point id="10" Intensity ="2.43137" Positon="562.998 446.861" />
+       <Point id="11" Intensity ="2.22745" Positon="520.605 243.186" />
+       <Point id="12" Intensity ="2.06667" Positon="302.787 411.66" />
+       </FiducialPointCandidates>
+  </TestCase>
+  <TestCase id="CIRS_TranslationData1_54">
+    <Input ImageSeqFileName="CIRS_TranslationData1.mha" ImageSeqFrameIndex="54" />
+    <Output SegmentationSuccess="1"
+      SegmentationQualityInIntensityScore="51.1883"
+      SegmentationPoints="568.432 381.213 584.719 250.426 578.565 318.108 592.352 185.793 562.984 446.245 447.033 297.887 592.352 185.793 374.991 353.964 303.078 411.435 520.47 242.528 319.597 281.524 336.599 146.888 327.901 213.301 309.41 345.484 303.078 411.435" />
+     <FiducialPointCandidates>
+       <Point id="0" Intensity ="4.90981" Positon="568.432 381.213" />
+       <Point id="1" Intensity ="4.47843" Positon="584.719 250.426" />
+       <Point id="2" Intensity ="4.08627" Positon="578.565 318.108" />
+       <Point id="3" Intensity ="3.89412" Positon="319.597 281.524" />
+       <Point id="4" Intensity ="3.76079" Positon="447.033 297.887" />
+       <Point id="5" Intensity ="3.56471" Positon="336.599 146.888" />
+       <Point id="6" Intensity ="3.33726" Positon="592.352 185.793" />
+       <Point id="7" Intensity ="3.26667" Positon="327.901 213.301" />
+       <Point id="8" Intensity ="3.03137" Positon="309.41 345.484" />
+       <Point id="9" Intensity ="2.97647" Positon="374.991 353.964" />
+       <Point id="10" Intensity ="2.9451" Positon="303.078 411.435" />
+       <Point id="11" Intensity ="2.52941" Positon="562.984 446.245" />
+       <Point id="12" Intensity ="2.12549" Positon="520.47 242.528" />
+       <Point id="13" Intensity ="0.635294" Positon="372.482 512.593" />
+       </FiducialPointCandidates>
+  </TestCase>
+  <TestCase id="CIRS_TranslationData1_55">
+    <Input ImageSeqFileName="CIRS_TranslationData1.mha" ImageSeqFrameIndex="55" />
+    <Output SegmentationSuccess="1"
+      SegmentationQualityInIntensityScore="47.9608"
+      SegmentationPoints="578.089 317.227 585.207 250.002 568.869 381.283 563.231 446.081 592.727 185.668 447.073 297.256 375.545 353.766 520.838 241.999 303.455 411.223 592.727 185.668 328.734 212.944 319.056 281.533 336.651 146.905 309.625 345.468 303.455 411.223" />
+     <FiducialPointCandidates>
+       <Point id="0" Intensity ="5.13726" Positon="578.089 317.227" />
+       <Point id="1" Intensity ="4.8" Positon="585.207 250.002" />
+       <Point id="2" Intensity ="3.85098" Positon="328.734 212.944" />
+       <Point id="3" Intensity ="3.67059" Positon="568.869 381.283" />
+       <Point id="4" Intensity ="3.64706" Positon="319.056 281.533" />
+       <Point id="5" Intensity ="3.47059" Positon="336.651 146.905" />
+       <Point id="6" Intensity ="3.1098" Positon="447.073 297.256" />
+       <Point id="7" Intensity ="3.06275" Positon="375.545 353.766" />
+       <Point id="8" Intensity ="2.92549" Positon="520.838 241.999" />
+       <Point id="9" Intensity ="2.90196" Positon="563.231 446.081" />
+       <Point id="10" Intensity ="2.42745" Positon="309.625 345.468" />
+       <Point id="11" Intensity ="2.26667" Positon="303.455 411.223" />
+       <Point id="12" Intensity ="2.21177" Positon="592.727 185.668" />
+       <Point id="13" Intensity ="0.72549" Positon="372.449 512.778" />
+       </FiducialPointCandidates>
+  </TestCase>
+  <TestCase id="CIRS_TranslationData1_56">
+    <Input ImageSeqFileName="CIRS_TranslationData1.mha" ImageSeqFrameIndex="56" />
+    <Output SegmentationSuccess="1"
+      SegmentationQualityInIntensityScore="50.6314"
+      SegmentationPoints="578.463 317.533 586.218 250.567 568.856 381.198 563.142 446.025 593.276 185.649 521.107 242.837 447.269 297.404 375.66 353.823 303.665 411.064 593.276 185.649 328.626 213.149 336.898 147.206 320.129 281.113 303.665 411.064 310.038 345.147" />
+     <FiducialPointCandidates>
+       <Point id="0" Intensity ="5.02353" Positon="578.463 317.533" />
+       <Point id="1" Intensity ="4.41961" Positon="521.107 242.837" />
+       <Point id="2" Intensity ="4.05883" Positon="328.626 213.149" />
+       <Point id="3" Intensity ="3.9804" Positon="586.218 250.567" />
+       <Point id="4" Intensity ="3.88235" Positon="568.856 381.198" />
+       <Point id="5" Intensity ="3.67059" Positon="447.269 297.404" />
+       <Point id="6" Intensity ="3.18824" Positon="375.66 353.823" />
+       <Point id="7" Intensity ="3.18432" Positon="336.898 147.206" />
+       <Point id="8" Intensity ="3.09412" Positon="320.129 281.113" />
+       <Point id="9" Intensity ="2.8902" Positon="303.665 411.064" />
+       <Point id="10" Intensity ="2.61569" Positon="563.142 446.025" />
+       <Point id="11" Intensity ="2.59608" Positon="310.038 345.147" />
+       <Point id="12" Intensity ="2.56863" Positon="593.276 185.649" />
+       <Point id="13" Intensity ="0.615686" Positon="372.554 512.58" />
+       </FiducialPointCandidates>
+  </TestCase>
+  <TestCase id="CIRS_TranslationData1_57">
+    <Input ImageSeqFileName="CIRS_TranslationData1.mha" ImageSeqFrameIndex="57" />
+    <Output SegmentationSuccess="1"
+      SegmentationQualityInIntensityScore="50.153"
+      SegmentationPoints="578.548 317.483 568.816 381.17 585.852 250.664 593.628 185.934 563.222 446.129 521.904 243.349 447.488 297.553 375.614 353.81 303.811 410.939 593.628 185.934 328.531 213.23 303.811 410.939 320.352 280.822 309.905 345.145 336.833 147.185" />
+     <FiducialPointCandidates>
+       <Point id="0" Intensity ="5.42745" Positon="578.548 317.483" />
+       <Point id="1" Intensity ="4.25098" Positon="521.904 243.349" />
+       <Point id="2" Intensity ="3.99608" Positon="568.816 381.17" />
+       <Point id="3" Intensity ="3.72157" Positon="328.531 213.23" />
+       <Point id="4" Intensity ="3.51373" Positon="447.488 297.553" />
+       <Point id="5" Intensity ="3.16079" Positon="375.614 353.81" />
+       <Point id="6" Intensity ="3.05883" Positon="303.811 410.939" />
+       <Point id="7" Intensity ="3.04314" Positon="320.352 280.822" />
+       <Point id="8" Intensity ="2.93334" Positon="309.905 345.145" />
+       <Point id="9" Intensity ="2.92941" Positon="585.852 250.664" />
+       <Point id="10" Intensity ="2.86667" Positon="336.833 147.185" />
+       <Point id="11" Intensity ="2.86275" Positon="593.628 185.934" />
+       <Point id="12" Intensity ="2.46667" Positon="563.222 446.129" />
+       <Point id="13" Intensity ="0.635294" Positon="372.568 512.654" />
+       </FiducialPointCandidates>
+  </TestCase>
+  <TestCase id="CIRS_TranslationData1_58">
+    <Input ImageSeqFileName="CIRS_TranslationData1.mha" ImageSeqFrameIndex="58" />
+    <Output SegmentationSuccess="1"
+      SegmentationQualityInIntensityScore="50.6118"
+      SegmentationPoints="568.345 380.441 577.953 316.982 594.178 185.913 585.565 250.157 563.045 445.465 594.178 185.913 521.471 242.425 447.039 297.501 375.256 353.613 303.839 410.827 319.901 280.635 328.54 213.254 310.056 345.118 337.554 146.973 303.839 410.827" />
+     <FiducialPointCandidates>
+       <Point id="0" Intensity ="5.72157" Positon="568.345 380.441" />
+       <Point id="1" Intensity ="4.10981" Positon="577.953 316.982" />
+       <Point id="2" Intensity ="3.98039" Positon="319.901 280.635" />
+       <Point id="3" Intensity ="3.4" Positon="594.178 185.913" />
+       <Point id="4" Intensity ="3.24314" Positon="328.54 213.254" />
+       <Point id="5" Intensity ="3.23922" Positon="521.471 242.425" />
+       <Point id="6" Intensity ="3.2353" Positon="447.039 297.501" />
+       <Point id="7" Intensity ="3.07843" Positon="310.056 345.118" />
+       <Point id="8" Intensity ="3.01569" Positon="337.554 146.973" />
+       <Point id="9" Intensity ="2.94118" Positon="585.565 250.157" />
+       <Point id="10" Intensity ="2.92157" Positon="375.256 353.613" />
+       <Point id="11" Intensity ="2.85883" Positon="303.839 410.827" />
+       <Point id="12" Intensity ="2.60784" Positon="563.045 445.465" />
+       <Point id="13" Intensity ="0.541176" Positon="373 512.609" />
+       </FiducialPointCandidates>
+  </TestCase>
+  <TestCase id="CIRS_TranslationData1_59">
+    <Input ImageSeqFileName="CIRS_TranslationData1.mha" ImageSeqFrameIndex="59" />
+    <Output SegmentationSuccess="1"
+      SegmentationQualityInIntensityScore="50.7098"
+      SegmentationPoints="568.743 380.515 577.782 316.448 585.62 249.863 562.955 445.104 593.398 185.479 520.417 241.604 446.36 297.084 303.309 410.814 375.39 353.401 593.398 185.479 327.727 213.055 336.359 147.023 309.693 344.752 319.732 280.661 303.309 410.814" />
+     <FiducialPointCandidates>
+       <Point id="0" Intensity ="5.72157" Positon="568.743 380.515" />
+       <Point id="1" Intensity ="5.42745" Positon="577.782 316.448" />
+       <Point id="2" Intensity ="4.74118" Positon="520.417 241.604" />
+       <Point id="3" Intensity ="4.6" Positon="327.727 213.055" />
+       <Point id="4" Intensity ="3.91373" Positon="336.359 147.023" />
+       <Point id="5" Intensity ="3.7451" Positon="585.62 249.863" />
+       <Point id="6" Intensity ="3.48627" Positon="309.693 344.752" />
+       <Point id="7" Intensity ="3.21961" Positon="446.36 297.084" />
+       <Point id="8" Intensity ="2.93726" Positon="319.732 280.661" />
+       <Point id="9" Intensity ="2.63922" Positon="303.309 410.814" />
+       <Point id="10" Intensity ="2.37647" Positon="562.955 445.104" />
+       <Point id="11" Intensity ="2.32941" Positon="375.39 353.401" />
+       <Point id="12" Intensity ="1.46667" Positon="593.398 185.479" />
+       <Point id="13" Intensity ="0.423529" Positon="371.5 513.5" />
+       </FiducialPointCandidates>
+  </TestCase>
+  <TestCase id="CIRS_TranslationData1_60">
+    <Input ImageSeqFileName="CIRS_TranslationData1.mha" ImageSeqFrameIndex="60" />
+    <Output SegmentationSuccess="1"
+      SegmentationQualityInIntensityScore="53.9177"
+      SegmentationPoints="584.633 249.182 577.917 316.366 568.688 380.14 562.841 444.837 594.038 185.365 520.451 241.498 447.228 297.054 303.464 410.541 375.332 353.231 594.038 185.365 326.652 213.255 336.457 147.054 309.836 344.765 303.464 410.541 319.256 280.818" />
+     <FiducialPointCandidates>
+       <Point id="0" Intensity ="7.21177" Positon="584.633 249.182" />
+       <Point id="1" Intensity ="5.8" Positon="577.917 316.366" />
+       <Point id="2" Intensity ="4.35686" Positon="568.688 380.14" />
+       <Point id="3" Intensity ="4.10196" Positon="326.652 213.255" />
+       <Point id="4" Intensity ="4.07843" Positon="336.457 147.054" />
+       <Point id="5" Intensity ="4.05883" Positon="520.451 241.498" />
+       <Point id="6" Intensity ="3.30196" Positon="309.836 344.765" />
+       <Point id="7" Intensity ="3.26275" Positon="447.228 297.054" />
+       <Point id="8" Intensity ="2.7451" Positon="303.464 410.541" />
+       <Point id="9" Intensity ="2.54118" Positon="319.256 280.818" />
+       <Point id="10" Intensity ="2.52941" Positon="375.332 353.231" />
+       <Point id="11" Intensity ="2.50196" Positon="562.841 444.837" />
+       <Point id="12" Intensity ="2.34118" Positon="594.038 185.365" />
+       </FiducialPointCandidates>
+  </TestCase>
+  <TestCase id="CIRS_TranslationData1_61">
+    <Input ImageSeqFileName="CIRS_TranslationData1.mha" ImageSeqFrameIndex="61" />
+    <Output SegmentationSuccess="1"
+      SegmentationQualityInIntensityScore="51.5961"
+      SegmentationPoints="568.451 379.523 577.83 315.987 584.561 248.658 562.921 444.415 593.791 184.838 520.688 241.553 447.444 296.993 375.514 353.105 303.816 410.187 593.791 184.838 309.704 344.454 336.519 146.962 319.221 280.357 303.816 410.187 327.793 212.846" />
+     <FiducialPointCandidates>
+       <Point id="0" Intensity ="4.87059" Positon="520.688 241.553" />
+       <Point id="1" Intensity ="4.8549" Positon="568.451 379.523" />
+       <Point id="2" Intensity ="4.44706" Positon="577.83 315.987" />
+       <Point id="3" Intensity ="4.36079" Positon="447.444 296.993" />
+       <Point id="4" Intensity ="3.8" Positon="309.704 344.454" />
+       <Point id="5" Intensity ="3.74902" Positon="336.519 146.962" />
+       <Point id="6" Intensity ="3.71373" Positon="319.221 280.357" />
+       <Point id="7" Intensity ="3.59216" Positon="375.514 353.105" />
+       <Point id="8" Intensity ="3.56863" Positon="584.561 248.658" />
+       <Point id="9" Intensity ="3.16863" Positon="303.816 410.187" />
+       <Point id="10" Intensity ="2.9451" Positon="562.921 444.415" />
+       <Point id="11" Intensity ="2.50196" Positon="327.793 212.846" />
+       <Point id="12" Intensity ="1.42745" Positon="593.791 184.838" />
+       </FiducialPointCandidates>
+  </TestCase>
+  <TestCase id="CIRS_TranslationData1_62">
+    <Input ImageSeqFileName="CIRS_TranslationData1.mha" ImageSeqFrameIndex="62" />
+    <Output SegmentationSuccess="1"
+      SegmentationQualityInIntensityScore="53.1373"
+      SegmentationPoints="577.647 315.275 568.745 378.675 584.75 247.985 563.201 443.391 590.867 182.889 520.244 240.437 446.914 296.326 375.055 352.661 303.839 410.088 590.867 182.889 320.117 279.667 336.453 147.257 327.879 212.529 309.978 344.215 303.839 410.088" />
+     <FiducialPointCandidates>
+       <Point id="0" Intensity ="5.79608" Positon="577.647 315.275" />
+       <Point id="1" Intensity ="4.95294" Positon="568.745 378.675" />
+       <Point id="2" Intensity ="4.85882" Positon="520.244 240.437" />
+       <Point id="3" Intensity ="3.72549" Positon="320.117 279.667" />
+       <Point id="4" Intensity ="3.53334" Positon="584.75 247.985" />
+       <Point id="5" Intensity ="3.46275" Positon="336.453 147.257" />
+       <Point id="6" Intensity ="3.44706" Positon="327.879 212.529" />
+       <Point id="7" Intensity ="3.37255" Positon="309.978 344.215" />
+       <Point id="8" Intensity ="3.16078" Positon="446.914 296.326" />
+       <Point id="9" Intensity ="3.11373" Positon="375.055 352.661" />
+       <Point id="10" Intensity ="2.98824" Positon="303.839 410.088" />
+       <Point id="11" Intensity ="2.85098" Positon="563.201 443.391" />
+       <Point id="12" Intensity ="2.44314" Positon="590.867 182.889" />
+       </FiducialPointCandidates>
+  </TestCase>
+  <TestCase id="CIRS_TranslationData1_63">
+    <Input ImageSeqFileName="CIRS_TranslationData1.mha" ImageSeqFrameIndex="63" />
+    <Output SegmentationSuccess="1"
+      SegmentationQualityInIntensityScore="52.3608"
+      SegmentationPoints="577.94 314.765 568.505 378.128 583.958 247.401 563.126 442.966 591.371 182.519 520.783 240.688 375.559 352.484 446.958 296.145 304.053 409.817 591.371 182.519 327.881 212.294 309.97 343.848 319.941 279.667 336.983 146.917 304.053 409.817" />
+     <FiducialPointCandidates>
+       <Point id="0" Intensity ="5.81177" Positon="577.94 314.765" />
+       <Point id="1" Intensity ="5.73726" Positon="568.505 378.128" />
+       <Point id="2" Intensity ="5.72157" Positon="520.783 240.688" />
+       <Point id="3" Intensity ="5.14118" Positon="583.958 247.401" />
+       <Point id="4" Intensity ="3.73726" Positon="327.881 212.294" />
+       <Point id="5" Intensity ="3.61569" Positon="309.97 343.848" />
+       <Point id="6" Intensity ="3.15686" Positon="319.941 279.667" />
+       <Point id="7" Intensity ="2.8549" Positon="336.983 146.917" />
+       <Point id="8" Intensity ="2.84314" Positon="375.559 352.484" />
+       <Point id="9" Intensity ="2.83922" Positon="446.958 296.145" />
+       <Point id="10" Intensity ="2.83529" Positon="304.053 409.817" />
+       <Point id="11" Intensity ="2.42353" Positon="563.126 442.966" />
+       <Point id="12" Intensity ="1.40392" Positon="591.371 182.519" />
+       </FiducialPointCandidates>
+  </TestCase>
+  <TestCase id="CIRS_TranslationData1_64">
+    <Input ImageSeqFileName="CIRS_TranslationData1.mha" ImageSeqFrameIndex="64" />
+    <Output SegmentationSuccess="1"
+      SegmentationQualityInIntensityScore="57.553"
+      SegmentationPoints="584.88 247.039 577.974 314.212 568.756 377.52 563.253 442.249 591.936 182.427 520.668 240.08 447.211 295.935 375.811 352.02 304.419 409.534 591.936 182.427 320.512 279.471 327.645 212.317 310.518 343.637 304.419 409.534 335.64 147.091" />
+     <FiducialPointCandidates>
+       <Point id="0" Intensity ="7.08628" Positon="584.88 247.039" />
+       <Point id="1" Intensity ="6.47843" Positon="577.974 314.212" />
+       <Point id="2" Intensity ="4.47059" Positon="568.756 377.52" />
+       <Point id="3" Intensity ="4.3098" Positon="320.512 279.471" />
+       <Point id="4" Intensity ="4.27451" Positon="520.668 240.08" />
+       <Point id="5" Intensity ="4.08235" Positon="327.645 212.317" />
+       <Point id="6" Intensity ="3.73726" Positon="447.211 295.935" />
+       <Point id="7" Intensity ="3.63137" Positon="310.518 343.637" />
+       <Point id="8" Intensity ="2.98431" Positon="375.811 352.02" />
+       <Point id="9" Intensity ="2.92941" Positon="304.419 409.534" />
+       <Point id="10" Intensity ="2.84706" Positon="335.64 147.091" />
+       <Point id="11" Intensity ="2.72549" Positon="563.253 442.249" />
+       <Point id="12" Intensity ="2.53334" Positon="591.936 182.427" />
+       </FiducialPointCandidates>
+  </TestCase>
+  <TestCase id="CIRS_TranslationData1_65">
+    <Input ImageSeqFileName="CIRS_TranslationData1.mha" ImageSeqFrameIndex="65" />
+    <Output SegmentationSuccess="1"
+      SegmentationQualityInIntensityScore="51.9216"
+      SegmentationPoints="577.91 313.822 569.146 377.117 584.652 246.986 563.443 442.056 593.471 182.427 521.207 239.727 376.245 351.926 447.165 295.134 304.493 409.32 593.471 182.427 320.891 278.741 310.279 343.262 327.902 212.124 304.493 409.32 336.145 147.076" />
+     <FiducialPointCandidates>
+       <Point id="0" Intensity ="6.54902" Positon="577.91 313.822" />
+       <Point id="1" Intensity ="5.76863" Positon="521.207 239.727" />
+       <Point id="2" Intensity ="5.04706" Positon="569.146 377.117" />
+       <Point id="3" Intensity ="4.66667" Positon="584.652 246.986" />
+       <Point id="4" Intensity ="3.54902" Positon="320.891 278.741" />
+       <Point id="5" Intensity ="3.39608" Positon="310.279 343.262" />
+       <Point id="6" Intensity ="3.3451" Positon="327.902 212.124" />
+       <Point id="7" Intensity ="3.16471" Positon="376.245 351.926" />
+       <Point id="8" Intensity ="2.98824" Positon="447.165 295.134" />
+       <Point id="9" Intensity ="2.75686" Positon="304.493 409.32" />
+       <Point id="10" Intensity ="2.62745" Positon="563.443 442.056" />
+       <Point id="11" Intensity ="2.62353" Positon="336.145 147.076" />
+       <Point id="12" Intensity ="1.34118" Positon="593.471 182.427" />
+       <Point id="13" Intensity ="0.254902" Positon="506 320" />
+       </FiducialPointCandidates>
+  </TestCase>
+  <TestCase id="CIRS_TranslationData1_66">
+    <Input ImageSeqFileName="CIRS_TranslationData1.mha" ImageSeqFrameIndex="66" />
+    <Output SegmentationSuccess="1"
+      SegmentationQualityInIntensityScore="51.9373"
+      SegmentationPoints="568.966 376.961 578.214 313.994 585.448 246.664 563.585 441.653 592.199 181.744 521.297 240.196 376.666 351.798 447.684 295.084 305.082 408.967 592.199 181.744 310.493 343.184 321.043 278.987 328.038 212.079 305.082 408.967 336.829 147.065" />
+     <FiducialPointCandidates>
+       <Point id="0" Intensity ="5.75294" Positon="568.966 376.961" />
+       <Point id="1" Intensity ="5.12549" Positon="521.297 240.196" />
+       <Point id="2" Intensity ="4.86667" Positon="578.214 313.994" />
+       <Point id="3" Intensity ="4.2549" Positon="310.493 343.184" />
+       <Point id="4" Intensity ="3.72157" Positon="321.043 278.987" />
+       <Point id="5" Intensity ="3.55686" Positon="376.666 351.798" />
+       <Point id="6" Intensity ="3.49804" Positon="585.448 246.664" />
+       <Point id="7" Intensity ="3.37255" Positon="447.684 295.084" />
+       <Point id="8" Intensity ="3.16863" Positon="328.038 212.079" />
+       <Point id="9" Intensity ="2.86667" Positon="305.082 408.967" />
+       <Point id="10" Intensity ="2.75686" Positon="563.585 441.653" />
+       <Point id="11" Intensity ="2.45883" Positon="336.829 147.065" />
+       <Point id="12" Intensity ="1.83529" Positon="592.199 181.744" />
+       </FiducialPointCandidates>
+  </TestCase>
+  <TestCase id="CIRS_TranslationData1_67">
+    <Input ImageSeqFileName="CIRS_TranslationData1.mha" ImageSeqFrameIndex="67" />
+    <Output SegmentationSuccess="1"
+      SegmentationQualityInIntensityScore="47.6628"
+      SegmentationPoints="569.183 377.08 585.237 246.345 578.819 314.223 563.783 441.625 592.463 181.926 520.601 239.556 447.89 295.187 376.777 351.799 305.244 409.23 592.463 181.926 310.866 343.09 320.713 279.108 305.244 409.23 328.101 212.022 337.208 146.8" />
+     <FiducialPointCandidates>
+       <Point id="0" Intensity ="5.19608" Positon="569.183 377.08" />
+       <Point id="1" Intensity ="4.85883" Positon="585.237 246.345" />
+       <Point id="2" Intensity ="4.73334" Positon="310.866 343.09" />
+       <Point id="3" Intensity ="4.62745" Positon="578.819 314.223" />
+       <Point id="4" Intensity ="4.18039" Positon="520.601 239.556" />
+       <Point id="5" Intensity ="3.27451" Positon="447.89 295.187" />
+       <Point id="6" Intensity ="3.22745" Positon="320.713 279.108" />
+       <Point id="7" Intensity ="3.16078" Positon="376.777 351.799" />
+       <Point id="8" Intensity ="2.68628" Positon="305.244 409.23" />
+       <Point id="9" Intensity ="2.60784" Positon="328.101 212.022" />
+       <Point id="10" Intensity ="2.44706" Positon="337.208 146.8" />
+       <Point id="11" Intensity ="2.38431" Positon="563.783 441.625" />
+       <Point id="12" Intensity ="0.796078" Positon="592.463 181.926" />
+       </FiducialPointCandidates>
+  </TestCase>
+  <TestCase id="CIRS_TranslationData1_68">
+    <Input ImageSeqFileName="CIRS_TranslationData1.mha" ImageSeqFrameIndex="68" />
+    <Output SegmentationSuccess="1"
+      SegmentationQualityInIntensityScore="49.2667"
+      SegmentationPoints="578.778 313.906 569.403 377.01 585.365 246.299 564.019 441.659 592.759 181.597 520.42 239.38 448.391 295.347 376.752 351.946 304.595 409.68 592.759 181.597 310.866 343.424 320.689 279.18 304.595 409.68 328.277 212.264 337.07 147.244" />
+     <FiducialPointCandidates>
+       <Point id="0" Intensity ="5.62353" Positon="578.778 313.906" />
+       <Point id="1" Intensity ="5.33334" Positon="569.403 377.01" />
+       <Point id="2" Intensity ="4.8353" Positon="585.365 246.299" />
+       <Point id="3" Intensity ="4.52157" Positon="310.866 343.424" />
+       <Point id="4" Intensity ="4.45882" Positon="520.42 239.38" />
+       <Point id="5" Intensity ="3.60784" Positon="448.391 295.347" />
+       <Point id="6" Intensity ="3.02353" Positon="320.689 279.18" />
+       <Point id="7" Intensity ="2.81569" Positon="376.752 351.946" />
+       <Point id="8" Intensity ="2.81569" Positon="304.595 409.68" />
+       <Point id="9" Intensity ="2.45882" Positon="564.019 441.659" />
+       <Point id="10" Intensity ="2.36079" Positon="328.277 212.264" />
+       <Point id="11" Intensity ="2.02353" Positon="337.07 147.244" />
+       <Point id="12" Intensity ="1.28628" Positon="592.759 181.597" />
+       </FiducialPointCandidates>
+  </TestCase>
+  <TestCase id="CIRS_TranslationData1_69">
+    <Input ImageSeqFileName="CIRS_TranslationData1.mha" ImageSeqFrameIndex="69" />
+    <Output SegmentationSuccess="1"
+      SegmentationQualityInIntensityScore="50.0432"
+      SegmentationPoints="578.71 313.646 569.619 376.916 585.508 246.291 564.076 441.634 592.281 180.926 521.159 239.511 448.15 295.297 305.112 409.463 376.795 351.903 592.281 180.926 311 343.449 320.759 279.135 305.112 409.463 327.561 212.134 337.653 147.045" />
+     <FiducialPointCandidates>
+       <Point id="0" Intensity ="6.13333" Positon="578.71 313.646" />
+       <Point id="1" Intensity ="5.30196" Positon="569.619 376.916" />
+       <Point id="2" Intensity ="4.71373" Positon="585.508 246.291" />
+       <Point id="3" Intensity ="4.51373" Positon="521.159 239.511" />
+       <Point id="4" Intensity ="3.78039" Positon="311 343.449" />
+       <Point id="5" Intensity ="3.40392" Positon="448.15 295.297" />
+       <Point id="6" Intensity ="3.04706" Positon="320.759 279.135" />
+       <Point id="7" Intensity ="2.92941" Positon="305.112 409.463" />
+       <Point id="8" Intensity ="2.7451" Positon="327.561 212.134" />
+       <Point id="9" Intensity ="2.5451" Positon="376.795 351.903" />
+       <Point id="10" Intensity ="2.27451" Positon="564.076 441.634" />
+       <Point id="11" Intensity ="2.10196" Positon="337.653 147.045" />
+       <Point id="12" Intensity ="1.81177" Positon="592.281 180.926" />
+       </FiducialPointCandidates>
+  </TestCase>
+  <TestCase id="CIRS_TranslationData1_70">
+    <Input ImageSeqFileName="CIRS_TranslationData1.mha" ImageSeqFrameIndex="70" />
+    <Output SegmentationSuccess="0" />
+     <FiducialPointCandidates>
+       <Point id="0" Intensity ="7.23922" Positon="578.952 313.258" />
+       <Point id="1" Intensity ="4.85098" Positon="569.853 376.931" />
+       <Point id="2" Intensity ="3.56471" Positon="448.568 295.01" />
+       <Point id="3" Intensity ="3.5451" Positon="585.72 246.294" />
+       <Point id="4" Intensity ="3.46275" Positon="328.977 211.419" />
+       <Point id="5" Intensity ="3.36471" Positon="522.672 240.28" />
+       <Point id="6" Intensity ="3.29412" Positon="592.67 181.168" />
+       <Point id="7" Intensity ="3.28628" Positon="376.914 352.061" />
+       <Point id="8" Intensity ="3.17647" Positon="311.288 342.99" />
+       <Point id="9" Intensity ="2.65098" Positon="321.886 278.819" />
+       <Point id="10" Intensity ="2.5451" Positon="564.362 441.496" />
+       <Point id="11" Intensity ="2.43922" Positon="305.77 408.929" />
+       <Point id="12" Intensity ="2.08235" Positon="337.38 147.055" />
+       <Point id="13" Intensity ="0.305882" Positon="265 266" />
+       </FiducialPointCandidates>
+  </TestCase>
+  <TestCase id="CIRS_TranslationData1_71">
+    <Input ImageSeqFileName="CIRS_TranslationData1.mha" ImageSeqFrameIndex="71" />
+    <Output SegmentationSuccess="1"
+      SegmentationQualityInIntensityScore="49.949"
+      SegmentationPoints="578.806 313.127 569.305 376.251 584.864 245.552 593.295 181.022 564.358 440.897 448.58 294.785 521.892 239.89 593.295 181.022 305.251 409.062 376.738 351.449 311.216 342.771 305.251 409.062 328.398 212.202 321.338 278.778 337.348 146.457" />
+     <FiducialPointCandidates>
+       <Point id="0" Intensity ="6.0549" Positon="578.806 313.127" />
+       <Point id="1" Intensity ="4.32941" Positon="448.58 294.785" />
+       <Point id="2" Intensity ="4.28628" Positon="569.305 376.251" />
+       <Point id="3" Intensity ="4.08628" Positon="584.864 245.552" />
+       <Point id="4" Intensity ="3.64314" Positon="521.892 239.89" />
+       <Point id="5" Intensity ="3.42353" Positon="311.216 342.771" />
+       <Point id="6" Intensity ="3.36863" Positon="593.295 181.022" />
+       <Point id="7" Intensity ="2.63922" Positon="305.251 409.062" />
+       <Point id="8" Intensity ="2.61961" Positon="376.738 351.449" />
+       <Point id="9" Intensity ="2.58431" Positon="564.358 440.897" />
+       <Point id="10" Intensity ="2.38432" Positon="328.398 212.202" />
+       <Point id="11" Intensity ="2.28235" Positon="321.338 278.778" />
+       <Point id="12" Intensity ="2.23922" Positon="337.348 146.457" />
+       </FiducialPointCandidates>
+  </TestCase>
+  <TestCase id="CIRS_TranslationData1_72">
+    <Input ImageSeqFileName="CIRS_TranslationData1.mha" ImageSeqFrameIndex="72" />
+    <Output SegmentationSuccess="1"
+      SegmentationQualityInIntensityScore="51.0785"
+      SegmentationPoints="577.957 312.133 584.091 244.604 569.022 375.472 564.134 440.66 592.357 180.125 521.316 238.927 376.842 351.023 448.244 294.871 592.357 180.125 304.956 408.916 310.79 342.837 327.503 211.268 321.144 278.295 304.956 408.916 337.469 146.434" />
+     <FiducialPointCandidates>
+       <Point id="0" Intensity ="7.32942" Positon="577.957 312.133" />
+       <Point id="1" Intensity ="5.06275" Positon="584.091 244.604" />
+       <Point id="2" Intensity ="4.7451" Positon="569.022 375.472" />
+       <Point id="3" Intensity ="4.51765" Positon="521.316 238.927" />
+       <Point id="4" Intensity ="3.49412" Positon="310.79 342.837" />
+       <Point id="5" Intensity ="3.01961" Positon="376.842 351.023" />
+       <Point id="6" Intensity ="2.93334" Positon="448.244 294.871" />
+       <Point id="7" Intensity ="2.8549" Positon="327.503 211.268" />
+       <Point id="8" Intensity ="2.6902" Positon="564.134 440.66" />
+       <Point id="9" Intensity ="2.67059" Positon="321.144 278.295" />
+       <Point id="10" Intensity ="2.6549" Positon="592.357 180.125" />
+       <Point id="11" Intensity ="2.56078" Positon="304.956 408.916" />
+       <Point id="12" Intensity ="1.32941" Positon="337.469 146.434" />
+       </FiducialPointCandidates>
+  </TestCase>
+  <TestCase id="CIRS_TranslationData1_73">
+    <Input ImageSeqFileName="CIRS_TranslationData1.mha" ImageSeqFrameIndex="73" />
+    <Output SegmentationSuccess="1"
+      SegmentationQualityInIntensityScore="49.5451"
+      SegmentationPoints="578.18 312.098 569.476 375.536 584.415 244.753 563.89 440.179 592.854 180.095 520.98 238.594 376.623 350.78 447.831 294.021 305.373 408.338 592.854 180.095 310.736 342.271 305.373 408.338 321.119 278.338 328.214 210.926 336.526 146.456" />
+     <FiducialPointCandidates>
+       <Point id="0" Intensity ="5.90196" Positon="578.18 312.098" />
+       <Point id="1" Intensity ="5.68628" Positon="520.98 238.594" />
+       <Point id="2" Intensity ="5.29804" Positon="569.476 375.536" />
+       <Point id="3" Intensity ="3.78039" Positon="584.415 244.753" />
+       <Point id="4" Intensity ="3.71765" Positon="310.736 342.271" />
+       <Point id="5" Intensity ="3.60785" Positon="376.623 350.78" />
+       <Point id="6" Intensity ="3.34118" Positon="447.831 294.021" />
+       <Point id="7" Intensity ="3.02745" Positon="563.89 440.179" />
+       <Point id="8" Intensity ="2.50196" Positon="305.373 408.338" />
+       <Point id="9" Intensity ="2.4353" Positon="321.119 278.338" />
+       <Point id="10" Intensity ="2.38039" Positon="328.214 210.926" />
+       <Point id="11" Intensity ="2.24314" Positon="336.526 146.456" />
+       <Point id="12" Intensity ="1.56078" Positon="592.854 180.095" />
+       </FiducialPointCandidates>
+  </TestCase>
+  <TestCase id="CIRS_TranslationData1_74">
+    <Input ImageSeqFileName="CIRS_TranslationData1.mha" ImageSeqFrameIndex="74" />
+    <Output SegmentationSuccess="1"
+      SegmentationQualityInIntensityScore="47.0353"
+      SegmentationPoints="578.076 311.77 568.357 374.774 584.116 244.36 563.238 439.431 592.516 179.884 447.635 293.865 521.32 238.573 376.199 350.715 304.938 408.112 592.516 179.884 320.503 277.333 327.725 210.949 304.938 408.112 310.671 342.169 336.302 146.032" />
+     <FiducialPointCandidates>
+       <Point id="0" Intensity ="5.53334" Positon="578.076 311.77" />
+       <Point id="1" Intensity ="4.72549" Positon="568.357 374.774" />
+       <Point id="2" Intensity ="4.58824" Positon="584.116 244.36" />
+       <Point id="3" Intensity ="3.73726" Positon="447.635 293.865" />
+       <Point id="4" Intensity ="3.2" Positon="320.503 277.333" />
+       <Point id="5" Intensity ="3.13333" Positon="521.32 238.573" />
+       <Point id="6" Intensity ="3.0549" Positon="376.199 350.715" />
+       <Point id="7" Intensity ="2.88235" Positon="563.238 439.431" />
+       <Point id="8" Intensity ="2.68235" Positon="327.725 210.949" />
+       <Point id="9" Intensity ="2.6" Positon="304.938 408.112" />
+       <Point id="10" Intensity ="2.57255" Positon="310.671 342.169" />
+       <Point id="11" Intensity ="2.07843" Positon="336.302 146.032" />
+       <Point id="12" Intensity ="1.82353" Positon="592.516 179.884" />
+       </FiducialPointCandidates>
+  </TestCase>
+  <TestCase id="CIRS_TranslationData1_75">
+    <Input ImageSeqFileName="CIRS_TranslationData1.mha" ImageSeqFrameIndex="75" />
+    <Output SegmentationSuccess="1"
+      SegmentationQualityInIntensityScore="48.9294"
+      SegmentationPoints="568.692 374.508 584.016 243.994 577.79 311.79 563.203 439.171 591.515 178.631 520.6 237.739 447.332 293.409 304.672 408.076 376.157 350.543 591.515 178.631 310.629 341.708 320.056 277.738 327.024 210.861 304.672 408.076 335.84 146.369" />
+     <FiducialPointCandidates>
+       <Point id="0" Intensity ="6.64314" Positon="568.692 374.508" />
+       <Point id="1" Intensity ="5.73333" Positon="584.016 243.994" />
+       <Point id="2" Intensity ="4.16079" Positon="577.79 311.79" />
+       <Point id="3" Intensity ="4.12549" Positon="310.629 341.708" />
+       <Point id="4" Intensity ="3.51373" Positon="320.056 277.738" />
+       <Point id="5" Intensity ="3.18824" Positon="520.6 237.739" />
+       <Point id="6" Intensity ="3.06667" Positon="327.024 210.861" />
+       <Point id="7" Intensity ="2.91373" Positon="563.203 439.171" />
+       <Point id="8" Intensity ="2.87843" Positon="447.332 293.409" />
+       <Point id="9" Intensity ="2.8353" Positon="304.672 408.076" />
+       <Point id="10" Intensity ="2.47059" Positon="376.157 350.543" />
+       <Point id="11" Intensity ="1.52157" Positon="591.515 178.631" />
+       <Point id="12" Intensity ="1.52157" Positon="335.84 146.369" />
+       </FiducialPointCandidates>
+  </TestCase>
+  <TestCase id="CIRS_TranslationData1_76">
+    <Input ImageSeqFileName="CIRS_TranslationData1.mha" ImageSeqFrameIndex="76" />
+    <Output SegmentationSuccess="1"
+      SegmentationQualityInIntensityScore="48.8196"
+      SegmentationPoints="577.669 311.288 568.56 374.535 584.986 244.317 563.118 439.106 591.463 178.636 520.779 237.577 447.61 293.271 375.867 350.232 304.952 407.881 591.463 178.636 320.236 277.518 310.48 341.77 304.952 407.881 327.433 210.911 335.715 146.28" />
+     <FiducialPointCandidates>
+       <Point id="0" Intensity ="6.46667" Positon="577.669 311.288" />
+       <Point id="1" Intensity ="5.35686" Positon="520.779 237.577" />
+       <Point id="2" Intensity ="5.02353" Positon="568.56 374.535" />
+       <Point id="3" Intensity ="4.50196" Positon="584.986 244.317" />
+       <Point id="4" Intensity ="3.94902" Positon="320.236 277.518" />
+       <Point id="5" Intensity ="3.50196" Positon="447.61 293.271" />
+       <Point id="6" Intensity ="2.95294" Positon="563.118 439.106" />
+       <Point id="7" Intensity ="2.8353" Positon="310.48 341.77" />
+       <Point id="8" Intensity ="2.71765" Positon="375.867 350.232" />
+       <Point id="9" Intensity ="2.38824" Positon="304.952 407.881" />
+       <Point id="10" Intensity ="2.3451" Positon="327.433 210.911" />
+       <Point id="11" Intensity ="2.17255" Positon="335.715 146.28" />
+       <Point id="12" Intensity ="1.1098" Positon="591.463 178.636" />
+       <Point id="13" Intensity ="0.568627" Positon="512.09 267.545" />
+       </FiducialPointCandidates>
+  </TestCase>
+  <TestCase id="CIRS_TranslationData1_77">
+    <Input ImageSeqFileName="CIRS_TranslationData1.mha" ImageSeqFrameIndex="77" />
+    <Output SegmentationSuccess="1"
+      SegmentationQualityInIntensityScore="48.1137"
+      SegmentationPoints="578.225 311.549 584.449 243.746 568.885 374.331 563.494 439.158 591.048 178.008 447.929 293.12 520.993 237.637 305.296 407.701 376.443 350.254 591.048 178.008 311.222 341.29 328.15 210.536 320.184 277.499 305.296 407.701 336.932 145.701" />
+     <FiducialPointCandidates>
+       <Point id="0" Intensity ="5.54902" Positon="578.225 311.549" />
+       <Point id="1" Intensity ="4.6902" Positon="584.449 243.746" />
+       <Point id="2" Intensity ="4.45098" Positon="568.885 374.331" />
+       <Point id="3" Intensity ="4.07843" Positon="447.929 293.12" />
+       <Point id="4" Intensity ="3.59216" Positon="311.222 341.29" />
+       <Point id="5" Intensity ="3.55686" Positon="520.993 237.637" />
+       <Point id="6" Intensity ="3.06275" Positon="328.15 210.536" />
+       <Point id="7" Intensity ="3.00392" Positon="320.184 277.499" />
+       <Point id="8" Intensity ="2.96863" Positon="305.296 407.701" />
+       <Point id="9" Intensity ="2.70196" Positon="376.443 350.254" />
+       <Point id="10" Intensity ="2.20784" Positon="563.494 439.158" />
+       <Point id="11" Intensity ="1.88628" Positon="591.048 178.008" />
+       <Point id="12" Intensity ="1.5098" Positon="336.932 145.701" />
+       <Point id="13" Intensity ="0.254902" Positon="506 285" />
+       </FiducialPointCandidates>
+  </TestCase>
+  <TestCase id="CIRS_TranslationData1_78">
+    <Input ImageSeqFileName="CIRS_TranslationData1.mha" ImageSeqFrameIndex="78" />
+    <Output SegmentationSuccess="1"
+      SegmentationQualityInIntensityScore="51.0157"
+      SegmentationPoints="568.582 374.113 577.949 311.115 584.141 243.615 563.723 439.077 592.15 178.286 520.889 237.586 447.701 293.105 376.224 350.168 304.976 407.876 592.15 178.286 310.33 341.853 328.417 210.126 304.976 407.876 320.138 277.824 336.116 145.761" />
+     <FiducialPointCandidates>
+       <Point id="0" Intensity ="5.0353" Positon="568.582 374.113" />
+       <Point id="1" Intensity ="4.90589" Positon="577.949 311.115" />
+       <Point id="2" Intensity ="4.83922" Positon="310.33 341.853" />
+       <Point id="3" Intensity ="4.65098" Positon="584.141 243.615" />
+       <Point id="4" Intensity ="4.07451" Positon="520.889 237.586" />
+       <Point id="5" Intensity ="3.58824" Positon="447.701 293.105" />
+       <Point id="6" Intensity ="3.20785" Positon="328.417 210.126" />
+       <Point id="7" Intensity ="3.00784" Positon="376.224 350.168" />
+       <Point id="8" Intensity ="2.90196" Positon="563.723 439.077" />
+       <Point id="9" Intensity ="2.78431" Positon="304.976 407.876" />
+       <Point id="10" Intensity ="2.6353" Positon="320.138 277.824" />
+       <Point id="11" Intensity ="2.2902" Positon="592.15 178.286" />
+       <Point id="12" Intensity ="2.01961" Positon="336.116 145.761" />
+       </FiducialPointCandidates>
+  </TestCase>
+  <TestCase id="CIRS_TranslationData1_79">
+    <Input ImageSeqFileName="CIRS_TranslationData1.mha" ImageSeqFrameIndex="79" />
+    <Output SegmentationSuccess="1"
+      SegmentationQualityInIntensityScore="48.9294"
+      SegmentationPoints="577.997 310.205 583.616 242.851 568.285 373.244 563.89 438.65 591.608 178.039 520.508 237.235 447.432 292.713 376.708 349.992 305.383 407.696 591.608 178.039 311.014 341.221 321.218 277.079 305.383 407.696 326.673 210.569 336.245 145.596" />
+     <FiducialPointCandidates>
+       <Point id="0" Intensity ="6.99216" Positon="577.997 310.205" />
+       <Point id="1" Intensity ="4.53333" Positon="583.616 242.851" />
+       <Point id="2" Intensity ="4.52157" Positon="568.285 373.244" />
+       <Point id="3" Intensity ="4.18824" Positon="520.508 237.235" />
+       <Point id="4" Intensity ="3.90196" Positon="447.432 292.713" />
+       <Point id="5" Intensity ="3.87843" Positon="311.014 341.221" />
+       <Point id="6" Intensity ="3.70588" Positon="321.218 277.079" />
+       <Point id="7" Intensity ="2.92941" Positon="376.708 349.992" />
+       <Point id="8" Intensity ="2.42745" Positon="305.383 407.696" />
+       <Point id="9" Intensity ="2.36471" Positon="563.89 438.65" />
+       <Point id="10" Intensity ="2.1098" Positon="326.673 210.569" />
+       <Point id="11" Intensity ="1.92157" Positon="591.608 178.039" />
+       <Point id="12" Intensity ="1.10588" Positon="336.245 145.596" />
+       </FiducialPointCandidates>
+  </TestCase>
+ <Statistics>
+  <Segmentation MeanFoundFiducialsCount="11.25" MeanFiducialCandidateCount="13.0625" />
+ </Statistics>
+</TestResults>
