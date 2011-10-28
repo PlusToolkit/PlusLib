@@ -40,7 +40,6 @@ TARGET_LINK_LIBRARIES(SegmentationParameterDialogTest ${SegmentationParameterDia
 
 # --------------------------------------------------------------------------
 # Install
-#
 IF(PLUSAPP_INSTALL_BIN_DIR)
 # show up in the Start Menu in Windows
 if( WIN32 AND NOT UNIX )
@@ -93,8 +92,6 @@ ADD_TEST(DeviceSetSelectorWidgetTest
     -stderr
     -run ${PlusApp_SOURCE_DIR}/CommonWidgets/Testing/DeviceSetSelectorWidgetTest.sikuli
     --args
-      ${PlusApp_BINARY_DIR}/DevEnv_Release.bat
-      --launch
         ${TEST_EXECUTABLE_OUTPUT_PATH}/SegmentationParameterDialogTest
         --device-set-configuration-directory-path=${ConfigFilesDir}
         --image-directory-path=${TestDataDir}
@@ -108,8 +105,6 @@ ADD_TEST(StatusIconTest
     -stderr
     -run ${PlusApp_SOURCE_DIR}/CommonWidgets/Testing/StatusIconTest.sikuli
     --args
-      ${PlusApp_BINARY_DIR}/DevEnv_Release.bat
-      --launch
         ${TEST_EXECUTABLE_OUTPUT_PATH}/SegmentationParameterDialogTest
         --device-set-configuration-directory-path=${ConfigFilesDir}
         --input-config-file-name=${ConfigFilesDir}/PlusConfiguration_SonixTouch_Ascension3DG_EC9_fCal1.xml
@@ -124,8 +119,6 @@ ADD_TEST(SegmentationParameterDialogTest
     -stderr
     -run ${PlusApp_SOURCE_DIR}/CommonWidgets/Testing/SegmentationParameterDialogTest.sikuli
     --args
-      ${PlusApp_BINARY_DIR}/DevEnv_Release.bat
-      --launch
         ${TEST_EXECUTABLE_OUTPUT_PATH}/SegmentationParameterDialogTest
         --device-set-configuration-directory-path=${ConfigFilesDir}
         --input-config-file-name=${ConfigFilesDir}/Test_PlusConfiguration_SegmentationParameterDialog_SavedDataset_fCal_1.0_VideoOnly.xml
@@ -140,8 +133,6 @@ ADD_TEST(ConfigFileSaverDialogTest
     -stderr
     -run ${PlusApp_SOURCE_DIR}/CommonWidgets/Testing/ConfigFileSaverDialogTest.sikuli
     --args
-      ${PlusApp_BINARY_DIR}/DevEnv_Release.bat
-      --launch
         ${TEST_EXECUTABLE_OUTPUT_PATH}/SegmentationParameterDialogTest
         --device-set-configuration-directory-path=${ConfigFilesDir}
         --input-config-file-name=${ConfigFilesDir}/Test_PlusConfiguration_SegmentationParameterDialog_SavedDataset_fCal_1.0_VideoOnly.xml
@@ -156,9 +147,7 @@ ADD_TEST(ToolStateDisplayWidgetTest
     ${SIKULI_BIN_DIR}/Sikuli-IDE.exe
     -stderr
     -run ${PlusApp_SOURCE_DIR}/CommonWidgets/Testing/ToolStateDisplayWidgetTest.sikuli
-    --args
-      ${PlusApp_BINARY_DIR}/DevEnv_Release.bat
-      --launch
+      --args
         ${TEST_EXECUTABLE_OUTPUT_PATH}/ToolStateDisplayWidgetTest
         --device-set-configuration-directory-path=${ConfigFilesDir}
         --input-config-file-name=${ConfigFilesDir}/Test_PlusConfiguration_VideoNone_FakeTracker_ToolState.xml
