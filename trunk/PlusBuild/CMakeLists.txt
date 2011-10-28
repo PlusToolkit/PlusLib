@@ -61,15 +61,16 @@ OPTION(PLUSBUILD_USE_OpenIGTLink "Use OpenIGTLink" ON)
 OPTION(PLUSBUILD_BUILD_SHARED_LIBS "Build shared libs" ON)
 OPTION(PLUSBUILD_BUILD_PLUSAPP "Build PlusApp applications" ON)
 
-OPTION(PLUS_USE_ULTRASONIX_VIDEO "Provide support for the Ultrasonix ultrasound systems" ON)
+OPTION(PLUS_USE_ULTRASONIX_VIDEO "Provide support for the Ultrasonix ultrasound systems" OFF)
 SET (PLUS_ULTRASONIX_SDK_MAJOR_VERSION 5 CACHE STRING "Set Ultrasonix SDK major version")
 SET (PLUS_ULTRASONIX_SDK_MINOR_VERSION 6 CACHE STRING "Set Ultrasonix SDK minor version")
+SET (PLUS_ULTRASONIX_SDK_PATCH_VERSION 4 CACHE STRING "Set Ultrasonix SDK patch version")
 
 OPTION(PLUS_USE_ICCAPTURING_VIDEO "Provide support for the IC framegrabber device" ON)
 OPTION(PLUS_USE_VFW_VIDEO "Provide support for the Video-for-Windows video digitizer" OFF)
 
 OPTION(PLUS_USE_POLARIS "Provide support for the NDI POLARIS and AURORA" OFF)
-OPTION(PLUS_USE_CERTUS "Provide support for the NDI Certus" ON)
+OPTION(PLUS_USE_CERTUS "Provide support for the NDI Certus" OFF)
 OPTION(PLUS_USE_MICRONTRACKER "Provide support for the Claron MicronTracker" OFF)
 OPTION(PLUS_USE_BRACHY_TRACKER "Provide support for the Brachy Steppers" ON)
 OPTION(PLUS_USE_Ascension3DG "Provide support for the Ascension 3DG Tracker" ON)
@@ -143,7 +144,7 @@ IF ( NOT PLUSBUILD_USE_3DSlicer )
 
 ENDIF ( NOT PLUSBUILD_USE_3DSlicer )
 
-LIST(APPEND PlusLib_DEPENDENCIES PLTools)
+LIST(APPEND PlusLib_DEPENDENCIES )
 
 SET(PlusApp_DEPENDENCIES PlusLib)
 
@@ -223,12 +224,17 @@ ELSE ( PLUSBUILD_USE_3DSlicer )
     ENDIF(PLUSBUILD_USE_OpenIGTLink)
 ENDIF ( PLUSBUILD_USE_3DSlicer )
 
-INCLUDE(External_PLTools.cmake)
-
 IF ( PLUS_USE_CERTUS )
     FIND_PACKAGE (NDIOAPI)
     IF ( NOT NDIOAPI_FOUND)
         MESSAGE( FATAL_ERROR "This project requires NDI Oapi for CERTUS tracking. One of these components is missing. Please verify configuration or turn off PLUS_USE_CERTUS.")
+    ENDIF()
+ENDIF() 
+
+IF ( PLUS_USE_ULTRASONIX_VIDEO )
+    FIND_PACKAGE (ULTRASONIX_SDK)
+    IF ( NOT ULTRASONIX_SDK_FOUND)
+        MESSAGE( FATAL_ERROR "This project requires Ultrasonix SDK for Ultrasonix video. One of these components is missing. Please verify configuration or turn off PLUS_USE_ULTRASONIX_VIDEO.")
     ENDIF()
 ENDIF() 
 
