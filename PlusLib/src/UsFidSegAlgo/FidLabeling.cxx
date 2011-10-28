@@ -27,6 +27,7 @@ FidLabeling::FidLabeling()
 	m_MaxLineErrorMm = -1.0;
 	m_MinTheta = -1.0;
 	m_MaxTheta = -1.0;
+  m_AngleTolerance = -1.0;
 	
 	m_DotsFound = false;
 

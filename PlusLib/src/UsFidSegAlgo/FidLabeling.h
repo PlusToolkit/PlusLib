@@ -72,6 +72,11 @@ class FidLabeling
     void          SetMaxLinePairDistanceErrorPercent(double value) { m_MaxLinePairDistanceErrorPercent = value; };
     void          SetMaxAngleDifferenceDegrees(double value) { m_MaxAngleDiff = value; };
 
+    void          SetMinThetaDegrees(double value) { m_MinTheta = value; };
+    void          SetMaxThetaDegrees(double value) { m_MaxTheta = value; };
+
+    void          SetAngleToleranceDegrees(double value) { m_AngleTolerance = value; };
+
 	protected:
     int					  m_FrameSize[2];
 
