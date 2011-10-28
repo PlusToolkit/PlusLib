@@ -18,7 +18,7 @@ def getCommandFromArguments(plusDir=''):
     if plusDir == '':
       exe = ''
 
-    exe = '"' + plusDir + '/PlusApp-bin/DevEnv_Release.bat" "--launch" "' + plusDir + '/PlusApp-bin/bin/Release/ToolStateDisplayWidgetTest" "--device-set-configuration-directory-path=' + plusDir + '/PlusLib/data/ConfigFiles" "--input-config-file-name=' + plusDir + '/PlusLib/data/ConfigFiles/Test_PlusConfiguration_VideoNone_FakeTracker_ToolState.xml"'
+    exe = '"' + plusDir + '/bin/Release/ToolStateDisplayWidgetTest" "--device-set-configuration-directory-path=' + plusDir + '/PlusLib/data/ConfigFiles" "--input-config-file-name=' + plusDir + '/PlusLib/data/ConfigFiles/Test_PlusConfiguration_VideoNone_FakeTracker_ToolState.xml"'
   
   return exe
 
@@ -40,7 +40,7 @@ def captureScreenAndExit():
 #------------------------------------------------------------------------------
 # Main program
 
-exe = getCommandFromArguments("D:/devel/Plus-build-bin")
+exe = getCommandFromArguments("D:/devel/PlusBuild-bin")
 
 appTitle = "ToolStateDisplayWidgetTest"
 

@@ -90,7 +90,7 @@
 </span>    <span class="kw">if</span> plusDir == <span class="str">''</span>:
       exe = <span class="str">''</span>
 
-    exe = <span class="str">'"'</span> + plusDir + <span class="str">'/PlusApp-bin/DevEnv_Release.bat" "--launch" "'</span> + plusDir + <span class="str">'/PlusApp-bin/bin/Release/SegmentationParameterDialogTest" "--device-set-configuration-directory-path='</span> + plusDir + <span class="str">'/PlusLib/data/ConfigFiles" "--input-config-file-name='</span> + plusDir + <span class="str">'/PlusLib/data/ConfigFiles/Test_PlusConfiguration_SegmentationParameterDialog_SavedDataset_fCal_1.0_VideoOnly.xml" "--image-directory-path='</span> + plusDir + <span class="str">'/PlusLib/data/TestImages" --verify-saved-configuration-file'</span>
+    exe = <span class="str">'"'</span> + plusDir + <span class="str">'/bin/Release/SegmentationParameterDialogTest" "--device-set-configuration-directory-path='</span> + plusDir + <span class="str">'/PlusLib/data/ConfigFiles" "--input-config-file-name='</span> + plusDir + <span class="str">'/PlusLib/data/ConfigFiles/Test_PlusConfiguration_SegmentationParameterDialog_SavedDataset_fCal_1.0_VideoOnly.xml" "--image-directory-path='</span> + plusDir + <span class="str">'/PlusLib/data/TestImages" --verify-saved-configuration-file'</span>
 
   <span class="kw">return</span> exe
 
@@ -112,7 +112,7 @@
 <span class="cmt">#------------------------------------------------------------------------------
 </span><span class="cmt"># Main program
 </span>
-exe = getCommandFromArguments(<span class="str">"D:/devel/Plus-build-bin"</span>)
+exe = getCommandFromArguments(<span class="str">"D:/devel/PlusBuild-bin"</span>)
 
 appTitle = <span class="str">"SegmentationParameterDialogTest"</span>
 

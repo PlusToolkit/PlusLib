@@ -90,7 +90,7 @@
 </span>    <span class="kw">if</span> plusDir == <span class="str">''</span>:
       exe = <span class="str">''</span>
 
-    exe = <span class="str">'"'</span> + plusDir + <span class="str">'/PlusApp-bin/DevEnv_Release.bat" "--launch" "'</span> + plusDir + <span class="str">'/PlusApp-bin/bin/Release/ToolStateDisplayWidgetTest" "--device-set-configuration-directory-path='</span> + plusDir + <span class="str">'/PlusLib/data/ConfigFiles" "--input-config-file-name='</span> + plusDir + <span class="str">'/PlusLib/data/ConfigFiles/Test_PlusConfiguration_VideoNone_FakeTracker_ToolState.xml"'</span>
+    exe = <span class="str">'"'</span> + plusDir + <span class="str">'/bin/Release/ToolStateDisplayWidgetTest" "--device-set-configuration-directory-path='</span> + plusDir + <span class="str">'/PlusLib/data/ConfigFiles" "--input-config-file-name='</span> + plusDir + <span class="str">'/PlusLib/data/ConfigFiles/Test_PlusConfiguration_VideoNone_FakeTracker_ToolState.xml"'</span>
 
   <span class="kw">return</span> exe
 
@@ -112,7 +112,7 @@
 <span class="cmt">#------------------------------------------------------------------------------
 </span><span class="cmt"># Main program
 </span>
-exe = getCommandFromArguments(<span class="str">"D:/devel/Plus-build-bin"</span>)
+exe = getCommandFromArguments(<span class="str">"D:/devel/PlusBuild-bin"</span>)
 
 appTitle = <span class="str">"ToolStateDisplayWidgetTest"</span>
 
@@ -128,8 +128,8 @@ App.focus(appTitle)
 
 <span class="cmt"># Get the region of the segmentation parameter dialog window
 </span>applicationTopLeft = connectButton.getTopLeft()
-applicationTopLeft = applicationTopLeft.left(<span class="dig">205</span>).above(<span class="dig">190</span>)
-windowRegion = Region(applicationTopLeft.x, applicationTopLeft.y, <span class="dig">495</span>, <span class="dig">293</span>)
+applicationTopLeft = applicationTopLeft.left(<span class="dig">215</span>).above(<span class="dig">230</span>)
+windowRegion = Region(applicationTopLeft.x, applicationTopLeft.y, <span class="dig">495</span>, <span class="dig">340</span>)
 
 <span class="cmt"># Connect to the device set (it is already selected because of the command line arguments)
 </span><span class="skw">click</span>(connectButton)

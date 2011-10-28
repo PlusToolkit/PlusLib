@@ -18,7 +18,7 @@ def getCommandFromArguments(plusDir=''):
     if plusDir == '':
       exe = ''
 
-    exe = '"' + plusDir + '/PlusApp-bin/DevEnv_Release.bat" "--launch" "' + plusDir + '/PlusApp-bin/bin/Release/SegmentationParameterDialogTest" "--device-set-configuration-directory-path=' + plusDir + '/PlusLib/data/ConfigFiles" "--image-directory-path=' + plusDir + '/PlusLib/data/TestImages"'
+    exe = '"' + plusDir + '/bin/Release/SegmentationParameterDialogTest" "--device-set-configuration-directory-path=' + plusDir + '/PlusLib/data/ConfigFiles" "--image-directory-path=' + plusDir + '/PlusLib/data/TestImages"'
 
   return exe
 
@@ -40,7 +40,7 @@ def captureScreenAndExit():
 #------------------------------------------------------------------------------
 # Main program
 
-exe = getCommandFromArguments("D:/devel/Plus-build-bin")
+exe = getCommandFromArguments("D:/devel/PlusBuild-bin")
 
 appTitle = "SegmentationParameterDialogTest"
 

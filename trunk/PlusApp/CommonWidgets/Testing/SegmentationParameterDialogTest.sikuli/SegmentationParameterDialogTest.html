@@ -72,36 +72,56 @@
 <pre class="sikuli-code">
 <span class="kw">import</span> sys
 
+<span class="cmt">#------------------------------------------------------------------------------
+</span>
+<span class="cmt"># Assembles the application executable command properly according to the script's arguments
+</span><span class="kw">def</span> getCommandFromArguments(plusDir=<span class="str">''</span>):
+  <span class="kw">if</span> len(sys.argv) &gt; <span class="dig">1</span>:
+    exe = sys.argv[<span class="dig">1</span>]
+
+    <span class="cmt"># Concatenate the command line arguments to the executable name
+</span>    <span class="kw">for</span> argnum <span class="kw">in</span> range(<span class="dig">2</span>,len(sys.argv)):
+      <span class="kw">if</span> argnum == <span class="dig">2</span>:
+        exe = exe + <span class="str">' '</span> + sys.argv[argnum]
+      <span class="kw">else</span>:
+        exe = exe + <span class="str">' "'</span> + sys.argv[argnum] + <span class="str">'"'</span>
+  <span class="kw">else</span>:
+    <span class="cmt"># Temporary setting of the executable (for trying in Sikuli IDE)
+</span>    <span class="kw">if</span> plusDir == <span class="str">''</span>:
+      exe = <span class="str">''</span>
+
+    exe = <span class="str">'"'</span> + plusDir + <span class="str">'bin/Release/SegmentationParameterDialogTest" "--device-set-configuration-directory-path='</span> + plusDir + <span class="str">'/PlusLib/data/ConfigFiles" "--input-config-file-name='</span> + plusDir + <span class="str">'/PlusLib/data/ConfigFiles/Test_PlusConfiguration_SegmentationParameterDialog_SavedDataset_fCal_1.0_VideoOnly.xml" "--image-directory-path='</span> + plusDir + <span class="str">'/PlusLib/data/TestImages"'</span>
+
+  <span class="kw">return</span> exe
+
+<span class="cmt">#------------------------------------------------------------------------------
+</span>
+<span class="kw">from</span> os <span class="kw">import</span> getenv
+<span class="kw">from</span> shutil <span class="kw">import</span> copyfile
+<span class="kw">from</span> datetime <span class="kw">import</span> datetime
+
 <span class="cmt"># Define function that is run when error occurs
 </span><span class="kw">def</span> captureScreenAndExit():
-  message = <span class="str">"The screen capture of the application in time of the error was saved to: "</span>
-  message += <span class="skw">capture</span>(SCREEN)
-  <span class="kw">print</span> message
+  capturedFileName = <span class="skw">capture</span>(SCREEN)
+  newFileName = getenv(<span class="str">'APPDATA'</span>) + <span class="str">'/'</span> + appTitle + datetime.now().strftime(<span class="str">"_%Y%m%d_%H%M%S"</span>) + <span class="str">'.png'</span>
+  copyfile(capturedFileName, newFileName)
+  <span class="kw">print</span> <span class="str">"The screen capture of the application in time of the error was saved to: "</span> + newFileName
   closeApp(appTitle)
-  exit
+  sys.exit(<span class="dig">1</span>)
 
-
-<span class="kw">if</span> len(sys.argv) &gt; <span class="dig">1</span>:
-  exe = sys.argv[<span class="dig">1</span>]
-
-  <span class="cmt"># Concatenate the command line arguments to the executable name
-</span>  <span class="kw">for</span> argnum <span class="kw">in</span> range(<span class="dig">2</span>,len(sys.argv)):
-    <span class="kw">if</span> argnum == <span class="dig">2</span>:
-      exe = exe + <span class="str">' '</span> + sys.argv[argnum]
-    <span class="kw">else</span>:
-      exe = exe + <span class="str">' "'</span> + sys.argv[argnum] + <span class="str">'"'</span>
-<span class="kw">else</span>:
-  <span class="cmt"># Temporary setting of the executable (for trying in Sikuli IDE)
-</span>  plusDir = <span class="str">"D:/devel/Plus-bin_Assembla"</span>
-  exe = <span class="str">'"'</span> + plusDir + <span class="str">'/PlusApp-bin/DevEnv_Release.bat" "--launch" "'</span> + plusDir + <span class="str">'/PlusApp-bin/bin/Release/SegmentationParameterDialogTest" "--device-set-configuration-directory-path='</span> + plusDir + <span class="str">'/PlusLib/data/ConfigFiles" "--input-config-file-name='</span> + plusDir + <span class="str">'/PlusLib/data/ConfigFiles/Test_PlusConfiguration_SegmentationParameterDialog_SavedDataset_fCal_1.0_VideoOnly.xml" "--image-directory-path='</span> + plusDir + <span class="str">'/PlusLib/data/TestImages"'</span>
+<span class="cmt">#------------------------------------------------------------------------------
+</span><span class="cmt"># Main program
+</span>
+exe = getCommandFromArguments(<span class="str">"D:/devel/PlusBuild-bin"</span>)
 
 appTitle = <span class="str">"SegmentationParameterDialogTest"</span>
 
 testApp = App.open(exe)
-<span class="skw">wait</span>(<span class="dig">5</span>) <span class="cmt"># Wait for the application to initialize (else the next wait check does not not run properly)</span>
+<span class="skw">wait</span>(<span class="dig">10</span>) <span class="cmt"># Wait for the application to initialize (else the next wait check does not not run properly)</span>
+App.focus(appTitle)
 
 <span class="kw">try</span>:
-  connectButton = <span class="skw">wait</span>(<img src="1318969886531.png" />, <span class="dig">60</span>)
+  connectButton = <span class="skw">wait</span>(<img src="ConnectButton.png" />, <span class="dig">60</span>)
 <span class="kw">except</span> FindFailed:
   <span class="kw">print</span> <span class="str">"[ERROR] Application did not start!"</span>
   captureScreenAndExit()
@@ -110,7 +130,7 @@ testApp = App.open(exe)
 </span><span class="skw">click</span>(connectButton)
 
 <span class="kw">try</span>:
-  freezeButton = <span class="skw">wait</span>(<img src="FreezeImage-1.png" />, <span class="dig">10</span>)
+  freezeButton = <span class="skw">wait</span>(<img src="FreezeButton.png" />, <span class="dig">10</span>)
 <span class="kw">except</span> FindFailed:
   <span class="kw">print</span> <span class="str">"[ERROR] Connection failed!"</span>
   captureScreenAndExit()
@@ -119,12 +139,11 @@ testApp = App.open(exe)
 </span>applicationTopLeft = freezeButton.getTopLeft()
 applicationTopLeft = applicationTopLeft.left(<span class="dig">70</span>).above(<span class="dig">35</span>)
 windowRegion = Region(applicationTopLeft.x, applicationTopLeft.y, <span class="dig">1000</span>, <span class="dig">600</span>)
-<span class="skw">capture</span>(windowRegion)
 
 windowRegion.<span class="skw">click</span>(freezeButton)
 
 <span class="kw">try</span>:
-  windowRegion.<span class="skw">wait</span>(<img src="1319226607360.png" />, <span class="dig">20</span>)
+  windowRegion.<span class="skw">wait</span>(<img src="GreenDot.png" />, <span class="dig">20</span>)
 <span class="kw">except</span> FindFailed:
   <span class="kw">print</span> <span class="str">"[ERROR] Cannot segment!"</span>
   captureScreenAndExit()
