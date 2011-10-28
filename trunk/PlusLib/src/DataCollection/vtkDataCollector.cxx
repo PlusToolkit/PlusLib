@@ -1303,9 +1303,9 @@ PlusStatus vtkDataCollector::GetTrackedFrameList(double& frameTimestamp, vtkTrac
 
   PlusStatus status = PLUS_SUCCESS; 
   double oldestTimestamp(0); 
-  if ( this->VideoSource->GetBuffer()->GetOldestTimeStamp(oldestTimestamp) != PLUS_SUCCESS )
+  if ( this->VideoSource->GetBuffer()->GetOldestTimeStamp(oldestTimestamp) != ITEM_OK )
   {
-    LOG_ERROR("Failed to get oldest timestamp from buffer!"); 
+    LOG_WARNING("Failed to get oldest timestamp from buffer!"); 
     return PLUS_FAIL; 
   }
 
@@ -1321,7 +1321,7 @@ PlusStatus vtkDataCollector::GetTrackedFrameList(double& frameTimestamp, vtkTrac
   {
     frameTimestamp = mostRecentTimestamp; 
   }
-  else if ( frameTimestamp > frameTimestamp )
+  else if ( oldestTimestamp > frameTimestamp )
   {
     frameTimestamp = oldestTimestamp; 
   }
@@ -1354,9 +1354,9 @@ PlusStatus vtkDataCollector::GetTrackedFrameList(double& frameTimestamp, vtkTrac
       }
 
       // Get the timestamp of the next item in the buffer
-      if ( this->VideoSource->GetBuffer()->GetTimeStamp(++videoUid, frameTimestamp) != PLUS_SUCCESS )
+      if ( this->VideoSource->GetBuffer()->GetTimeStamp(++videoUid, frameTimestamp) != ITEM_OK )
       {
-          LOG_ERROR("Unable to get timestamp from video buffer by UID: " << videoUid); 
+          LOG_WARNING("Unable to get timestamp from video buffer by UID: " << videoUid); 
           status = PLUS_FAIL; 
       }
     }
