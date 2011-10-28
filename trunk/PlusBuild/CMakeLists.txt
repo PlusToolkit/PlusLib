@@ -26,9 +26,10 @@ FIND_PACKAGE(Subversion REQUIRED)
 
 #-----------------------------------------------------------------------------
 # ASSEMBLA - Set username and password for assembla 
+# Anonymous user name for Plus assembla server: https://subversion.assembla.com/svn/plus/
 #-----------------------------------------------------------------------------
-SET(PLUSBUILD_ASSEMBLA_USERNAME "perklab_anonymous" CACHE STRING "Username for Plus assembla server: https://subversion.assembla.com/svn/plus/" )
-SET(PLUSBUILD_ASSEMBLA_PASSWORD "anonymous" CACHE STRING "Password for Plus assembla server: https://subversion.assembla.com/svn/plus/" )
+SET(PLUSBUILD_ASSEMBLA_USERNAME "perklab_anonymous" )
+SET(PLUSBUILD_ASSEMBLA_PASSWORD "anonymous" )
 
 #-----------------------------------------------------------------------------
 # GIT - Let's check if a valid version of GIT is available
