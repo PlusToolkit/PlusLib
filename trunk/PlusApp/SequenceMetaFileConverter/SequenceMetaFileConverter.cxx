@@ -126,7 +126,7 @@ int main (int argc, char* argv[])
 
 
 
-  std::string verboseLevel("INFO");
+  int verboseLevel = vtkPlusLogger::LOG_LEVEL_DEFAULT;
 
   vtksys::CommandLineArguments cmdargs;
   cmdargs.Initialize(argc, argv);
@@ -161,7 +161,7 @@ int main (int argc, char* argv[])
 
 
   cmdargs.AddArgument("--output-folder", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputFolder, "Path to the output folder where to save the converted files (Default: ./Output).");
-  cmdargs.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (Default: INFO; ERROR, WARNING, INFO, DEBUG)");	
+	cmdargs.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");	
 
   if ( !cmdargs.Parse() )
   {
@@ -178,26 +178,8 @@ int main (int argc, char* argv[])
 
   ////////////////////////////////////////////////////
 
-  if ( STRCASECMP("ERROR", verboseLevel.c_str())==0 )
-  {
-    vtkPlusLogger::Instance()->SetLogLevel(vtkPlusLogger::LOG_LEVEL_ERROR);
-    vtkPlusLogger::Instance()->SetDisplayLogLevel(vtkPlusLogger::LOG_LEVEL_ERROR);
-  }
-  else if ( STRCASECMP("WARNING", verboseLevel.c_str())==0 )
-  {
-    vtkPlusLogger::Instance()->SetLogLevel(vtkPlusLogger::LOG_LEVEL_WARNING);
-    vtkPlusLogger::Instance()->SetDisplayLogLevel(vtkPlusLogger::LOG_LEVEL_WARNING);
-  }
-  else if ( STRCASECMP("INFO", verboseLevel.c_str())==0 )
-  {
-    vtkPlusLogger::Instance()->SetLogLevel(vtkPlusLogger::LOG_LEVEL_INFO);
-    vtkPlusLogger::Instance()->SetDisplayLogLevel(vtkPlusLogger::LOG_LEVEL_INFO);
-  }
-  else if ( STRCASECMP("DEBUG", verboseLevel.c_str())==0 )
-  {
-    vtkPlusLogger::Instance()->SetLogLevel(vtkPlusLogger::LOG_LEVEL_DEBUG);
-    vtkPlusLogger::Instance()->SetDisplayLogLevel(vtkPlusLogger::LOG_LEVEL_DEBUG);
-  }
+  vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
+
 
   if ( STRCASECMP("METAFILE", inputSavingMethod.c_str())==0 )
   {

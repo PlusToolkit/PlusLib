@@ -807,27 +807,22 @@ void TrackedUltrasoundCapturingGUI::ChangeLogLevel()
   if ( STRCASECMP(this->LogLevelComboBox->currentText().ascii(), "ERROR") == 0 )
   {
     vtkPlusLogger::Instance()->SetLogLevel(vtkPlusLogger::LOG_LEVEL_ERROR); 
-    vtkPlusLogger::Instance()->SetDisplayLogLevel(vtkPlusLogger::LOG_LEVEL_ERROR); 
   }
   else if ( STRCASECMP(this->LogLevelComboBox->currentText().ascii(), "WARNING") == 0 )
   {
     vtkPlusLogger::Instance()->SetLogLevel(vtkPlusLogger::LOG_LEVEL_WARNING); 
-    vtkPlusLogger::Instance()->SetDisplayLogLevel(vtkPlusLogger::LOG_LEVEL_WARNING);
   }
   else if ( STRCASECMP(this->LogLevelComboBox->currentText().ascii(), "INFO") == 0 )
   {
     vtkPlusLogger::Instance()->SetLogLevel(vtkPlusLogger::LOG_LEVEL_INFO); 
-    vtkPlusLogger::Instance()->SetDisplayLogLevel(vtkPlusLogger::LOG_LEVEL_INFO);
   }
   else if ( STRCASECMP(this->LogLevelComboBox->currentText().ascii(), "DEBUG") == 0 )
   {
     vtkPlusLogger::Instance()->SetLogLevel(vtkPlusLogger::LOG_LEVEL_DEBUG); 
-    vtkPlusLogger::Instance()->SetDisplayLogLevel(vtkPlusLogger::LOG_LEVEL_DEBUG);
   }
   else if ( STRCASECMP(this->LogLevelComboBox->currentText().ascii(), "TRACE") == 0 )
   {
     vtkPlusLogger::Instance()->SetLogLevel(vtkPlusLogger::LOG_LEVEL_TRACE); 
-    vtkPlusLogger::Instance()->SetDisplayLogLevel(vtkPlusLogger::LOG_LEVEL_TRACE);
   }
 
   LOG_INFO("Log level changed to: " << this->LogLevelComboBox->currentText().ascii() )

@@ -30,7 +30,7 @@ int main(int argc, char **argv)
 	int numberOfAveragedTransforms(20); 
 	double thresholdMultiplier(5); 
 
-	int verboseLevel=vtkPlusLogger::LOG_LEVEL_INFO;
+	int verboseLevel=vtkPlusLogger::LOG_LEVEL_DEFAULT;
 
 	vtksys::CommandLineArguments args;
 	args.Initialize(argc, argv);
@@ -45,7 +45,7 @@ int main(int argc, char **argv)
 	args.AddArgument("--averaged-transforms", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &numberOfAveragedTransforms, "Number of averaged transforms for synchronization (Default: 20)");
 	args.AddArgument("--threshold-multiplier", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &thresholdMultiplier, "Set the stdev multiplier of threshold value for synchronization (Default: 5)");
 
-	args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug)");	
+	args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");	
 
 	vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
 
