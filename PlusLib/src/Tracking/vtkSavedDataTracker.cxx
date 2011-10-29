@@ -66,10 +66,6 @@ void vtkSavedDataTracker::PrintSelf(ostream& os, vtkIndent indent)
   vtkTracker::PrintSelf(os,indent);
 }
 
-
-/**
-* @returns 1 on success, 0 on failure.
-*/
 //----------------------------------------------------------------------------
 PlusStatus vtkSavedDataTracker::Connect()
 {

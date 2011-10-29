@@ -1,58 +1,8 @@
 /*=Plus=header=begin======================================================
-  Program: Plus
-  Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
-  See License.txt for details.
+Program: Plus
+Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+See License.txt for details.
 =========================================================Plus=header=end*/
-
-/*=========================================================================
-The following copyright notice is applicable to parts of this file:
-
-Copyright (c) 2000-2005 Atamai, Inc.
-
-Use, modification and redistribution of the software, in source or
-binary forms, are permitted provided that the following terms and
-conditions are met:
-
-1) Redistribution of the source code, in verbatim or modified
-form, must retain the above copyright notice, this license,
-the following disclaimer, and any notices that refer to this
-license and/or the following disclaimer.  
-
-2) Redistribution in binary form must include the above copyright
-notice, a copy of this license and the following disclaimer
-in the documentation or with other materials provided with the
-distribution.
-
-3) Modified copies of the source code must be clearly marked as such,
-and must not be misrepresented as verbatim copies of the source code.
-
-THE COPYRIGHT HOLDERS AND/OR OTHER PARTIES PROVIDE THE SOFTWARE "AS IS"
-WITHOUT EXPRESSED OR IMPLIED WARRANTY INCLUDING, BUT NOT LIMITED TO,
-THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-PURPOSE.  IN NO EVENT SHALL ANY COPYRIGHT HOLDER OR OTHER PARTY WHO MAY
-MODIFY AND/OR REDISTRIBUTE THE SOFTWARE UNDER THE TERMS OF THIS LICENSE
-BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL OR CONSEQUENTIAL DAMAGES
-(INCLUDING, BUT NOT LIMITED TO, LOSS OF DATA OR DATA BECOMING INACCURATE
-OR LOSS OF PROFIT OR BUSINESS INTERRUPTION) ARISING IN ANY WAY OUT OF
-THE USE OR INABILITY TO USE THE SOFTWARE, EVEN IF ADVISED OF THE
-POSSIBILITY OF SUCH DAMAGES.
-
-=========================================================================*/
-// .NAME vtkTracker - interfaces VTK with real-time 3D tracking systems
-// .SECTION Description
-// The vtkTracker is a generic VTK interface to real-time tracking
-// systems.  Subclasses to this class implement this interface for
-// the POLARIS (Northern Digital Inc., Waterloo, Canada), the
-// Flock of Birds (Ascension Technology Corporation), and a few
-// other systems.
-// Derived classes should override the Probe(), InternalUpdate(),
-// InternalStartTracking(), and InternalStopTracking() methods.
-// The InternalUpdate() method is called from within a separate
-// thread, therefore its contents must be thread safe.  Use the
-// vtkPOLARISTracker as a framework for developing subclasses
-// for new tracking systems.
-// .SECTION see also
-// vtkTrackerTool vtkPOLARISTracker vtkFlockTracker
 
 #ifndef __vtkTracker_h
 #define __vtkTracker_h
@@ -76,27 +26,14 @@ class vtkDoubleArray;
 class vtkHTMLGenerator; 
 class vtkGnuplotExecuter;
 
-//// several flags which give added info about a transform
-//enum {
-//	TR_OK			   = 0x0000,  // Tool OK
-//	TR_MISSING       = 0x0001,  // tool or tool port is not available
-//	TR_OUT_OF_VIEW   = 0x0002,  // cannot obtain transform for tool
-//	TR_OUT_OF_VOLUME = 0x0004,  // tool is not within the sweet spot of system
-//	TR_SWITCH1_IS_ON = 0x0010,  // various buttons/switches on tool
-//	TR_SWITCH2_IS_ON = 0x0020,
-//	TR_SWITCH3_IS_ON = 0x0040, 
-//	TR_REQ_TIMEOUT   = 0x0100   // Request timeout
-//
-//};
-
-// Flags for tool LEDs (specifically for the POLARIS)
+/*! Flags for tool LEDs (specifically for the POLARIS) */
 enum {
-	TR_LED_OFF   = 0,
-	TR_LED_ON    = 1,
-	TR_LED_FLASH = 2
+  TR_LED_OFF   = 0,
+  TR_LED_ON    = 1,
+  TR_LED_FLASH = 2
 };
 
-// Tracker tool types
+/*! Tracker tool types */
 enum TRACKER_TOOL_TYPE
 {
   TRACKER_TOOL_NONE=0, 
@@ -107,220 +44,240 @@ enum TRACKER_TOOL_TYPE
   TRACKER_TOOL_GENERAL
 }; 
 
+/*!
+\class vtkTracker 
+\brief Generic interfaces with real-time 3D tracking systems
+
+The vtkTracker is a generic VTK interface to real-time tracking
+systems.  Derived classes should override the Connect(), Disconnect(), 
+Probe(), InternalUpdate(), InternalStartTracking(), and InternalStopTracking() methods.
+The InternalUpdate() method is called from within a separate
+thread, therefore its contents must be thread safe.  Use the
+vtkBrachyTracker or vtkNDICertusTracker as a framework for developing subclasses
+for new tracking systems.
+
+\ingroup PlusLibTracking
+*/
 class VTK_EXPORT vtkTracker : public vtkObject
 {
 public:
-	static vtkTracker *New();
-	vtkTypeMacro(vtkTracker,vtkObject);
-	void PrintSelf(ostream& os, vtkIndent indent);
+  static vtkTracker *New();
+  vtkTypeMacro(vtkTracker,vtkObject);
+  void PrintSelf(ostream& os, vtkIndent indent);
 
-	//! Probe to see to see if the tracking system is connected to the
-	// computer.  Returns 1 if the tracking system was found and is working.
-	// Do not call this method while the system is Tracking.  This method
-	// should be overridden in subclasses. 
-	virtual PlusStatus Probe();
+  /*! 
+  Probe to see to see if the tracking system is connected to the 
+  computer.  This method should be overridden in subclasses. 
+  */
+  virtual PlusStatus Probe();
 
-	//! Start the tracking system.  The tracking system is brought from
-	// its ground state (i.e. on but not necessarily initialized) into
-	// full tracking mode.  This method calls InternalStartTracking()
-	// after doing a bit of housekeeping.
-	virtual PlusStatus StartTracking();
+  /*! 
+  Start the tracking system. The tracking system is brought from
+  its ground state (i.e. on but not necessarily initialized) into
+  full tracking mode.  This method calls InternalStartTracking()
+  after doing a bit of housekeeping.
+  */
+  virtual PlusStatus StartTracking();
 
-	//! Stop the tracking system and bring it back to its ground state.
-	// This method calls InternalStopTracking().
-	virtual PlusStatus StopTracking();
+  /*! Stop the tracking system and bring it back to its ground state. This method calls InternalStopTracking(). */
+  virtual PlusStatus StopTracking();
 
-	//! Test whether or not the system is tracking.
-	virtual int IsTracking() { return this->Tracking; };
+  /*! Test whether or not the system is tracking. */
+  virtual int IsTracking() { return this->Tracking; };
 
-  //! Set/get recording start time for each tool
+  /*! Set recording start time for each tool */
   virtual void SetStartTime( double startTime ); 
+
+  /*! Get recording start time */
   virtual double GetStartTime(); 
 
-	//! This method will call Update() on each of the tools.  Note that
-	// this method does not call the InternalUpdate() method, which
-	// is called by a separate thread.
-	//virtual PlusStatus Update();
+  /*! Read main configuration from xml data */
+  virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config); 
 
-	//! Read/write main configuration from/to xml data
-	virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config); 
-	virtual PlusStatus WriteConfiguration(vtkXMLDataElement* config); 
+  /*! Write main configuration to xml data */
+  virtual PlusStatus WriteConfiguration(vtkXMLDataElement* config); 
 
-	//! Convert tracker status to string 
-	// TODO the return value should be PLusStatus and the result should be got using parameter by reference
-	static std::string ConvertTrackerStatusToString(TrackerStatus status); 
+  /*! Convert tracker status to string */
+  //TODO: the return value should be PLusStatus and the result should be got using parameter by reference
+  static std::string ConvertTrackerStatusToString(TrackerStatus status); 
 
-	//! Get tool type enum from string and vice versa
-	static PlusStatus ConvertStringToToolType(const char* typeString, TRACKER_TOOL_TYPE &type);
+  /*! Get tool type enum from string */
+  static PlusStatus ConvertStringToToolType(const char* typeString, TRACKER_TOOL_TYPE &type);
+
+  /*! Get tool type string  from enum */
   static PlusStatus ConvertToolTypeToString(const TRACKER_TOOL_TYPE type, std::string &typeString);
 
-	//! Get the buffer element values of each tool in a string list by timestamp. 
-	virtual PlusStatus GetTrackerToolBufferStringList(double timestamp, 
-		std::map<std::string, std::string> &toolsBufferMatrices, 
-		std::map<std::string, std::string> &toolsStatuses,
-		bool calibratedTransform = false); 
+  /*! Get the buffer element values of each tool in a string list by timestamp. */
+  virtual PlusStatus GetTrackerToolBufferStringList(double timestamp, 
+    std::map<std::string, std::string> &toolsBufferMatrices, 
+    std::map<std::string, std::string> &toolsStatuses,
+    bool calibratedTransform = false); 
 
-	//! Get the calibration matrices for all tools in a string
-	virtual PlusStatus GetTrackerToolCalibrationMatrixStringList(std::map<std::string, std::string> &toolsCalibrationMatrices); 
-	
-	//! Add generated html report from tracking data acquisition to the existing html report
-	// htmlReport and plotter arguments has to be defined by the caller function
-	virtual PlusStatus GenerateTrackingDataAcquisitionReport( vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter, const char* gnuplotScriptsFolder); 
+  /*! Get the calibration matrices for all tools in a string */
+  virtual PlusStatus GetTrackerToolCalibrationMatrixStringList(std::map<std::string, std::string> &toolsCalibrationMatrices); 
 
-	//! Get the internal update rate for this tracking system.  This is
-	// the number of transformations sent by the tracking system per
-	// second per tool.
-	double GetInternalUpdateRate() { return this->InternalUpdateRate; };
+  /*! Add generated html report from tracking data acquisition to the existing html report. htmlReport and plotter arguments has to be defined by the caller function */
+  virtual PlusStatus GenerateTrackingDataAcquisitionReport( vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter, const char* gnuplotScriptsFolder); 
 
-	//! Get the tool object for the specified port.  The first tool is
-	// retrieved by GetTool(0).  See vtkTrackerTool for more information.
-	vtkTrackerTool *GetTool(int port);
+  /*! Get the internal update rate for this tracking system.  This is the number of transformations sent by the tracking system per second per tool. */
+  double GetInternalUpdateRate() { return this->InternalUpdateRate; };
 
-	//! Get the number of available tool ports.  This is the maxiumum that a
-	// particular tracking system can support, not the number of tools
-	// that are actually connected to the system.  In order to determine
-	// how many tools are connected, you must call Update() and then
-	// check IsMissing() for each tool between 0 and NumberOfTools-1.
-	vtkGetMacro(NumberOfTools, int);
+  /*! Get the tool object for the specified port.  The first tool is retrieved by GetTool(0). */
+  vtkTrackerTool *GetTool(int port);
 
-	//! Get the timestamp for the last time that Update() was called, in
-	// seconds since 1970 (i.e. the UNIX epoch).  This method is not a
-	// good method of getting timestamps for tracking information,
-	// you should use the vtkTrackerTool GetTimeStamp() method to get
-	// the timestamp associated with each transform.  This method is
-	// only valuable for determining e.g. how old the transforms were
-	// before the Update method was called.
-	vtkGetMacro(UpdateTimeStamp,double);
+  /*! 
+  Get the number of available tool ports. This is the maxiumum that a
+  particular tracking system can support, not the number of tools
+  that are actually connected to the system.  In order to determine
+  how many tools are connected, you must call Update() and then
+  check IsMissing() for each tool between 0 and NumberOfTools-1.
+  */
+  vtkGetMacro(NumberOfTools, int);
 
-  //! Get tool port by name 
-	int GetToolPortByName(const char* toolName); 
+  /*! Get tool port by name */
+  int GetToolPortByName(const char* toolName); 
 
-  //! Get tool ports by type
-	PlusStatus GetToolPortNumbersByType(TRACKER_TOOL_TYPE type, std::vector<int> &toolNumbersVector);
-	int GetFirstPortNumberByType(TRACKER_TOOL_TYPE type);
+  /*! Get tool ports by type */
+  PlusStatus GetToolPortNumbersByType(TRACKER_TOOL_TYPE type, std::vector<int> &toolNumbersVector);
 
-  //! Get port number of reference tool
-	int GetReferenceToolNumber();
+  /*! Get first active tool port number by type */
+  int GetFirstPortNumberByType(TRACKER_TOOL_TYPE type);
 
-  //! Get port number of the first active tool tool
-	PlusStatus GetFirstActiveTool(int &tool);
+  /*! Get port number of reference tool */
+  int GetReferenceToolNumber();
 
-	// Make the unit emit a string of audible beeps.  This is
-	// supported by the POLARIS.
-	void Beep(int n);
+  /*! Get port number of the first active tool */
+  PlusStatus GetFirstActiveTool(int &tool);
 
-  //! Turn one of the LEDs on the specified tool on or off.  This
-	// is supported by the POLARIS.
-	void SetToolLED(int tool, int led, int state);
+  /*! Make the unit emit a string of audible beeps.  This is supported by the POLARIS. */
+  void Beep(int n);
 
-  //! The subclass will do all the hardware-specific update stuff
-	// in this function.   It should call ToolUpdate() for each tool.
-	// Note that vtkTracker.cxx starts up a separate thread after
-	// InternalStartTracking() is called, and that InternalUpdate() is
-	// called repeatedly from within that thread.  Therefore, any code
-	// within InternalUpdate() must be thread safe.  You can temporarily
-	// pause the thread by locking this->UpdateMutex->Lock() e.g. if you
-	// need to communicate with the device from outside of InternalUpdate().
-	// A call to this->UpdateMutex->Unlock() will resume the thread.
-	virtual PlusStatus InternalUpdate() { return PLUS_SUCCESS; };
+  /*! Turn one of the LEDs on the specified tool on or off.  This is supported by the POLARIS. */
+  void SetToolLED(int tool, int led, int state);
 
-	//BTX
-	// These are used by static functions in vtkTracker.cxx, and since
-	// VTK doesn't generally use 'friend' functions they are public
-	// instead of protected.  Do not use them anywhere except inside
-	// vtkTracker.cxx.
-	vtkCriticalSection *UpdateMutex;
-	vtkCriticalSection *RequestUpdateMutex;
-	vtkTimeStamp UpdateTime;
-	double InternalUpdateRate;  
-	//ETX
+  /*! 
+  The subclass will do all the hardware-specific update stuff
+  in this function. It should call ToolUpdate() for each tool.
+  Note that vtkTracker.cxx starts up a separate thread after
+  InternalStartTracking() is called, and that InternalUpdate() is
+  called repeatedly from within that thread.  Therefore, any code
+  within InternalUpdate() must be thread safe.  You can temporarily
+  pause the thread by locking this->UpdateMutex->Lock() e.g. if you
+  need to communicate with the device from outside of InternalUpdate().
+  A call to this->UpdateMutex->Unlock() will resume the thread.
+  */
+  virtual PlusStatus InternalUpdate() { return PLUS_SUCCESS; };
 
-  //! The ServerTracker should call this function. This creates
-	// a thread that allows it to wait till a client connects. 
-	virtual PlusStatus Connect();
-	virtual PlusStatus Disconnect();
+  //BTX
+  // These are used by static functions in vtkTracker.cxx, and since
+  // VTK doesn't generally use 'friend' functions they are public
+  // instead of protected.  Do not use them anywhere except inside
+  // vtkTracker.cxx.
+  vtkCriticalSection *UpdateMutex;
+  vtkCriticalSection *RequestUpdateMutex;
+  vtkTimeStamp UpdateTime;
+  double InternalUpdateRate;  
+  //ETX
 
-  //! Make this tracker into a copy of another tracker.
-	void DeepCopy(vtkTracker *tracker);
+  /*! Connects to device. Derived classes should override this */
+  virtual PlusStatus Connect();
 
-  //! Clear all tool buffers
+  /*! Disconnects from device. Derived classes should override this */
+  virtual PlusStatus Disconnect();
+
+  /*! Make this tracker into a copy of another tracker. */
+  void DeepCopy(vtkTracker *tracker);
+
+  /*! Clear all tool buffers */
   void ClearAllBuffers();
 
 public:
-	//! Set/get the acquisition frequency
-	vtkSetMacro(Frequency, double);
-	vtkGetMacro(Frequency, double);
+  /*! Set the acquisition frequency */
+  vtkSetMacro(Frequency, double);
+  /*! Get the acquisition frequency */
+  vtkGetMacro(Frequency, double);
 
-	//! Set/get the acquisition frequency
-	vtkSetMacro(TrackerCalibrated, bool);
-	vtkGetMacro(TrackerCalibrated, bool);
-	vtkBooleanMacro(TrackerCalibrated, bool); 
+  /*! Flag to store tracker calibrated state */
+  vtkSetMacro(TrackerCalibrated, bool);
+  /*! Flag to store tracker calibrated state */
+  vtkGetMacro(TrackerCalibrated, bool);
+  /*! Flag to store tracker calibrated state */
+  vtkBooleanMacro(TrackerCalibrated, bool); 
 
-	//! Set the transformation matrix between tracking-system coordinates
-	// and the desired world coordinate system.  You can use 
-	// vtkLandmarkTransform to create this matrix from a set of 
-	// registration points.  Warning: the matrix is copied,
-	// not referenced.
+  /*! 
+  Set the transformation matrix between tracking-system coordinates
+  and the desired world coordinate system.  You can use 
+  vtkLandmarkTransform to create this matrix from a set of 
+  registration points.  Warning: the matrix is copied,
+  not referenced.
+  */
   vtkSetObjectMacro(WorldCalibrationMatrix, vtkMatrix4x4); 
+  /*! Get the transformation matrix between tracking-system coordinates and the desired world coordinate system. */
   vtkGetObjectMacro(WorldCalibrationMatrix, vtkMatrix4x4); 
 
 protected:
-	vtkTracker();
-	~vtkTracker();
+  vtkTracker();
+  ~vtkTracker();
 
-  //! This function is called by InternalUpdate() so that the subclasses
-	// can communicate information back to the vtkTracker base class, which
-	// will in turn relay the information to the appropriate vtkTrackerTool.
-	PlusStatus ToolTimeStampedUpdate(int tool, vtkMatrix4x4 *matrix, TrackerStatus status, unsigned long frameNumber, double unfilteredtimestamp);
+  /*! 
+  This function is called by InternalUpdate() so that the subclasses
+  can communicate information back to the vtkTracker base class, which
+  will in turn relay the information to the appropriate vtkTrackerTool.
+  */
+  PlusStatus ToolTimeStampedUpdate(int tool, vtkMatrix4x4 *matrix, TrackerStatus status, unsigned long frameNumber, double unfilteredtimestamp);
 
-  //! Set the number of tools for the tracker -- this method is
-	// only called once within the constructor for derived classes.
-	void SetNumberOfTools(int num);
+  /*! Set the number of tools for the tracker -- this method is only called once within the constructor for derived classes. */
+  void SetNumberOfTools(int num);
 
-  //! Set the tool name
-	void SetToolName(int tool, const char* name);
+  /*! Set the tool name */
+  void SetToolName(int tool, const char* name);
 
-  // Description:
-	// Set the tool enabled
+  /*! Enable tool by tool number */
   void SetToolEnabled(int tool, bool enabled ); 
 
-  //! These methods should be overridden in derived classes: 
-	// InternalStartTracking() should initialize the tracking device, and
-	// InternalStopTracking() should free all resources associated with
-	// the device.  These methods should return 1 if they are successful,
-	// or 0 if they are not.
-	virtual PlusStatus InternalStartTracking() { return PLUS_SUCCESS; };
-	virtual PlusStatus InternalStopTracking() { return PLUS_SUCCESS; };
-	virtual PlusStatus InternalInterpretCommand( char * c) { LOG_ERROR("InternalInterpretCommand is not implemented for this class"); return PLUS_FAIL; };
-  //! This method should be overridden in derived classes that can make
-	// an audible beep.  The return value should be zero if an error
-	// occurred while the request was being processed.
-	virtual PlusStatus InternalBeep(int n) { return PLUS_SUCCESS; };
+ /*! InternalStartTracking() initialize the tracking device, this methods should be overridden in derived classes */
+  virtual PlusStatus InternalStartTracking() { return PLUS_SUCCESS; };
 
-  //! This method should be overridden for devices that have one or more LEDs
-	// on the tracked tools. The return value should be zero if an error
-	// occurred while the request was being processed.
-	virtual PlusStatus InternalSetToolLED(int tool, int led, int state) { return PLUS_SUCCESS; };
+  /*! InternalStopTracking() free all resources associated with the device, this methods should be overridden in derived classes */
+  virtual PlusStatus InternalStopTracking() { return PLUS_SUCCESS; };
+
+  /*! This method should be overridden in derived classes that can make an audible beep. */
+  virtual PlusStatus InternalBeep(int n) { return PLUS_SUCCESS; };
+
+  /*! This method should be overridden for devices that have one or more LEDs on the tracked tools. */
+  virtual PlusStatus InternalSetToolLED(int tool, int led, int state) { return PLUS_SUCCESS; };
 
 protected:
-	vtkMatrix4x4 *WorldCalibrationMatrix;
-	int NumberOfTools;
-	vtkTrackerTool **Tools;
-	int Tracking;
+  /*! Transformation matrix between tracking-system coordinates and the desired world coordinate system */
+  vtkMatrix4x4 *WorldCalibrationMatrix;
 
-	double UpdateTimeStamp;
-	unsigned long LastUpdateTime;
+  /*! Number of tools that this class can handle */
+  int NumberOfTools;
 
-	vtkMultiThreader *Threader;
-	int ThreadId;
+  /*! Tracker tools */
+  vtkTrackerTool **Tools;
 
-	double Frequency; 
+  /*! Flag to strore tracking state of the class */
+  int Tracking;
 
-	bool TrackerCalibrated; 
+  /*! Last updated timestamp */
+  unsigned long LastUpdateTime;
+
+  /*! Thread used for data acquisition */
+  vtkMultiThreader *Threader;
+  
+  /*! Tracking thread id */
+  int ThreadId;
+
+  /*! Tracking frequency */
+  double Frequency; 
+
+  /*! Flag used for identifying tracker calibration state */
+  bool TrackerCalibrated; 
 
 private:
-	vtkTracker(const vtkTracker&);
-	void operator=(const vtkTracker&);  
+  vtkTracker(const vtkTracker&);
+  void operator=(const vtkTracker&);  
 };
 
 #endif

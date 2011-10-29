@@ -11,6 +11,14 @@
 
 class vtkTrackerBuffer; 
 
+/*!
+\class vtkSavedDataTracker 
+\brief Simulator interface for exported buffers 
+
+Simualtor reads exported tracked buffer from sequence metafile and play back it 
+
+\ingroup PlusLibTracking
+*/
 class VTK_EXPORT vtkSavedDataTracker : public vtkTracker
 {
 public:
@@ -19,90 +27,88 @@ public:
 	vtkTypeMacro(vtkSavedDataTracker,vtkTracker);
 	void PrintSelf(ostream& os, vtkIndent indent);
 
-	// Description:
-	// Connect to device
+	/*! Connect to device */
 	PlusStatus Connect();
 
-	// Description:
-	// Disconnect from device 
+	/*! Disconnect from device */
 	virtual PlusStatus Disconnect();
 
-	// Description:
-	// Probe to see if the tracking system is present on the
-	// specified serial port.  If the SerialPort is set to -1,
-	// then all serial ports will be checked.
+	/*! Probe to see if the tracking system is present on the specified serial port. */
 	PlusStatus Probe();
 
-	// Description:
-	// Get an update from the tracking system and push the new transforms
-	// to the tools.  This should only be used within vtkTracker.cxx.
+	/*! Get an update from the tracking system and push the new transforms to the tools. */
 	PlusStatus InternalUpdate();
 
-	// Description:
-	// Read/write tracker configuration to xml data
+	/*! Read tracker configuration from xml data */
 	PlusStatus ReadConfiguration(vtkXMLDataElement* config); 
+
+  /*! Write tracker configuration to xml data */
 	PlusStatus WriteConfiguration(vtkXMLDataElement* config); 
 
-	// Description:
-	// Set/get SequenceMetafile name with path with tracking buffer data 
+	/*! Set SequenceMetafile name with path with tracking buffer data */
 	vtkSetStringMacro(SequenceMetafile);
+
+  /*! Get SequenceMetafile name with path with tracking buffer data */
 	vtkGetStringMacro(SequenceMetafile);
 
-  // Description: 
-  // Set/get loop start time 
-  // itemTimestamp = loopStartTime + (actualTimestamp - startTimestamp) % loopTime 
+  /*! Set loop start time: itemTimestamp = loopStartTime + (actualTimestamp - startTimestamp) % loopTime */
 	vtkSetMacro(LoopStartTime, double); 
-	vtkGetMacro(LoopStartTime, double); 
+	
+  /*! Get loop start time: itemTimestamp = loopStartTime + (actualTimestamp - startTimestamp) % loopTime */
+  vtkGetMacro(LoopStartTime, double); 
 
-  // Description: 
-  // Set/get loop time 
-  // itemTimestamp = loopStartTime + (actualTimestamp - startTimestamp) % loopTime 
+  /*! Set loop time: itemTimestamp = loopStartTime + (actualTimestamp - startTimestamp) % loopTime */
 	vtkSetMacro(LoopTime, double); 
+
+  /*! Get loop time: itemTimestamp = loopStartTime + (actualTimestamp - startTimestamp) % loopTime */
 	vtkGetMacro(LoopTime, double); 
 
-	//! Description 
-	// Flag to to enable saved dataset reply
-	// If it's enabled, the video source will continuously play saved data
+	/*! Flag to to enable saved dataset reply. If it's enabled, the video source will continuously play saved data */
 	vtkGetMacro(ReplayEnabled, bool);
+  
+  /*! Flag to to enable saved dataset reply. If it's enabled, the video source will continuously play saved data */
 	vtkSetMacro(ReplayEnabled, bool);
+
+  /*! Flag to to enable saved dataset reply. If it's enabled, the video source will continuously play saved data */
 	vtkBooleanMacro(ReplayEnabled, bool);
 
-  //! Description 
-  // Get local tracker buffer 
+  /*! Get local tracker buffer */
   vtkGetObjectMacro(LocalTrackerBuffer, vtkTrackerBuffer); 
 
 protected:
 	vtkSavedDataTracker();
 	~vtkSavedDataTracker();
 
-	// Description:
-	// Initialize the tracking device
+	/*! Initialize the tracking device */
 	PlusStatus InitSavedDataTracker();
 
-	// Description:
-	// Start the tracking system.  The tracking system is brought from
-	// its ground state into full tracking mode.  The device will
-	// only be reset if communication cannot be established without
-	// a reset.
+	/*! Start the tracking system. */
 	PlusStatus InternalStartTracking();
 
-	// Description:
-	// Stop the tracking system and bring it back to its ground state:
-	// Initialized, not tracking, at 9600 Baud.
+	/*! Stop the tracking system */
 	PlusStatus InternalStopTracking();
 
+  /*! Sequence metafile name */
 	char* SequenceMetafile; 
+
+  /*! Flag to enable saved dataset replay */
 	bool ReplayEnabled; 
 
+  /*! Local buffer used for storing data read from sequence metafile */
 	vtkTrackerBuffer* LocalTrackerBuffer; 
 	
+  /*! Flag used for storing initialization state */
 	bool Initialized;
+
+  /*! Frame number counter */
   long FrameNumber; 
 
+  /*! Initila loop start timestamp */
   double LoopStartTime; 
+
+  /*! Length of the loop time */
   double LoopTime; 
-	
-	
+		
 private:
 	vtkSavedDataTracker(const vtkSavedDataTracker&);
 	void operator=(const vtkSavedDataTracker&);  

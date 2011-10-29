@@ -1,100 +1,89 @@
 /*=Plus=header=begin======================================================
-  Program: Plus
-  Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
-  See License.txt for details.
+Program: Plus
+Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+See License.txt for details.
 =========================================================Plus=header=end*/
-
-/*============================================================================
-Authors include: Kyle Charbonneau <kcharbon@imaging.robarts.ca>
-
-Description: 
-This class represents a fake tracking system with tools that have
-predetermined behaviour. This allows someonew who doesn't have access to
-a tracking system to test code that relies on having one active.
-
-============================================================================ */
 
 #ifndef __vtkFakeTracker_h
 #define __vtkFakeTracker_h
 
 #include "vtkTracker.h"
 
+/*! Fake tracker modes */
 enum FakeTrackerMode
 {
-	FakeTrackerMode_Undefined = 0,
-	FakeTrackerMode_Default,
+  FakeTrackerMode_Undefined = 0,
+  FakeTrackerMode_Default,
   FakeTrackerMode_SmoothMove,
-	FakeTrackerMode_PivotCalibration,
-	FakeTrackerMode_RecordPhantomLandmarks,
-	FakeTrackerMode_ToolState
+  FakeTrackerMode_PivotCalibration,
+  FakeTrackerMode_RecordPhantomLandmarks,
+  FakeTrackerMode_ToolState
 };
 
 class vtkTransform;
 
+/*!
+\class vtkFakeTracker 
+\brief Represents a fake tracking system as a simulator 
+
+This class represents a fake tracking system with tools that have
+predetermined behaviour. This allows someonew who doesn't have access to
+a tracking system to test code that relies on having one active.
+
+\ingroup PlusLibTracking
+*/
 class VTK_EXPORT vtkFakeTracker : public vtkTracker
 {
 public:
-	static vtkFakeTracker *New();
-	vtkTypeMacro(vtkFakeTracker,vtkTracker);
+  static vtkFakeTracker *New();
+  vtkTypeMacro(vtkFakeTracker,vtkTracker);
 
-	// Description:
-	// Connect to device
-	PlusStatus Connect();
+  /*! Connect to device */
+  PlusStatus Connect();
 
-	// Description:
-	// Disconnect from device 
-	PlusStatus Disconnect();
+  /*! Disconnect from device */
+  PlusStatus Disconnect();
 
-	// Description:
-	// Checks availibility of tracker (this always returns 1)
-	PlusStatus Probe();
+  /*! Checks availibility of tracker (this always returns 1) */
+  PlusStatus Probe();
 
-	// Description:
-	// Read configuration from xml data
-	PlusStatus ReadConfiguration(vtkXMLDataElement* config); 
+  /*! Read configuration from xml data */
+  PlusStatus ReadConfiguration(vtkXMLDataElement* config); 
 
-	// Set fake mode (tool info for fake tools)
-	void SetMode(FakeTrackerMode);
+  /*! Set fake mode (tool info for fake tools) */
+  void SetMode(FakeTrackerMode);
 
-	vtkSetMacro(SerialPort, int);
-	vtkGetMacro(SerialPort, int);
-
-	vtkSetMacro(Counter, int);
+  /*! Set counter value used for translating landmark points */
+  vtkSetMacro(Counter, int);
 
 protected:
-	// Description:
-	// Start the tracking system.
-	PlusStatus InternalStartTracking();
+  /*! Start the tracking system. */
+  PlusStatus InternalStartTracking();
 
-	// Description:
-	// Stop the tracking system.
-	PlusStatus InternalStopTracking();
+  /*! Stop the tracking system. */
+  PlusStatus InternalStopTracking();
 
-	// Description:
-	// Get an update from the tracking system and push the new transforms
-	// to the tools.  This should only be used within vtkTracker.cxx.
-	PlusStatus InternalUpdate();
+  /*! Get an update from the tracking system and push the new transforms to the tools. */
+  PlusStatus InternalUpdate();
 
-	// Description:
-	// Constructor
-	vtkFakeTracker();
-
-	// Description:
-	// Destructor
-	~vtkFakeTracker();
+  vtkFakeTracker();
+  ~vtkFakeTracker();
 
 protected:
-	int Frame;
+  /*! Internal frame number cunting */
+  int Frame;
 
-	vtkTransform *InternalTransform;
+  /*! Internal transform used for simulating tool movements */
+  vtkTransform *InternalTransform;
 
-	int SerialPort;
+  /*! Stores the selected fake tracker mode */
+  FakeTrackerMode Mode;
 
-	FakeTrackerMode Mode;
+  /*! Constant seed used for random generator */
+  int RandomSeed;
 
-	int RandomSeed;
-
-	int Counter;
+  /*! Stores counter value used for translating landmark points */
+  int Counter;
 };
 
 
