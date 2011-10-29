@@ -53,7 +53,8 @@ int main(int argc, char **argv)
 
 	///////////////
 
-  vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkXMLUtilities::ReadElementFromFile(inputConfigFileName.c_str());
+  vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkSmartPointer<vtkXMLDataElement>::Take(
+    vtkXMLUtilities::ReadElementFromFile(inputConfigFileName.c_str()));
   if (configRootElement == NULL)
   {	
     std::cerr << "Unable to read configuration from file " << inputConfigFileName.c_str()<< std::endl;

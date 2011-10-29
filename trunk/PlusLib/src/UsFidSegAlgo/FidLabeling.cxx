@@ -126,14 +126,14 @@ PlusStatus FidLabeling::ReadConfiguration( vtkXMLDataElement* configData, double
 		return PLUS_FAIL; 
 	}
 
-  vtkSmartPointer<vtkXMLDataElement> usCalibration = configData->FindNestedElementWithName("USCalibration");
+  vtkXMLDataElement* usCalibration = configData->FindNestedElementWithName("USCalibration");
 	if (usCalibration == NULL)
   {
     LOG_ERROR("Cannot find USCalibration element in XML tree!");
     return PLUS_FAIL;
 	}
 
-  vtkSmartPointer<vtkXMLDataElement> segmentationParameters = usCalibration->FindNestedElementWithName("CalibrationController")->FindNestedElementWithName("SegmentationParameters");
+  vtkXMLDataElement* segmentationParameters = usCalibration->FindNestedElementWithName("CalibrationController")->FindNestedElementWithName("SegmentationParameters");
 	if (segmentationParameters == NULL)
   {
 		LOG_ERROR("No Segmentation parameters is found in the XML tree!");

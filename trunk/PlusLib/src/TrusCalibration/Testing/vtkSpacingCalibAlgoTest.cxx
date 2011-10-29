@@ -65,7 +65,8 @@ int main(int argc, char **argv)
   vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
 
   // Read configuration
-  vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkXMLUtilities::ReadElementFromFile(inputConfigFileName.c_str());
+  vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkSmartPointer<vtkXMLDataElement>::Take(
+    vtkXMLUtilities::ReadElementFromFile(inputConfigFileName.c_str()));
   if (configRootElement == NULL)
   {	
     LOG_ERROR("Unable to read configuration from file " << inputConfigFileName.c_str()); 
@@ -166,7 +167,9 @@ int main(int argc, char **argv)
   
   LOG_INFO("Comparing result with baseline..."); 
 
-  vtkSmartPointer<vtkXMLDataElement> xmlBaseline = vtkXMLUtilities::ReadElementFromFile(inputBaselineFileName.c_str()); 
+  vtkSmartPointer<vtkXMLDataElement> xmlBaseline = vtkSmartPointer<vtkXMLDataElement>::Take(
+    vtkXMLUtilities::ReadElementFromFile(inputBaselineFileName.c_str()));
+
   vtkXMLDataElement* xmlSpacingCalibrationBaseline = NULL; 
   if ( xmlBaseline != NULL )
   {

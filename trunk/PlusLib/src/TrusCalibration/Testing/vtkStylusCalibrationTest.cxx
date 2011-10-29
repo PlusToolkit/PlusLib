@@ -65,7 +65,8 @@ int main (int argc, char* argv[])
   LOG_INFO("Initialize"); 
 
   // Read configuration
-  vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkXMLUtilities::ReadElementFromFile(inputConfigFileName.c_str());
+  vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkSmartPointer<vtkXMLDataElement>::Take(
+    vtkXMLUtilities::ReadElementFromFile(inputConfigFileName.c_str()));
   if (configRootElement == NULL)
   {	
     LOG_ERROR("Unable to read configuration from file " << inputConfigFileName.c_str()); 
@@ -165,17 +166,18 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
 	}
 
 	// Load current stylus calibration
-	vtkSmartPointer<vtkXMLDataElement> rootElementCurrent = vtkXMLUtilities::ReadElementFromFile(currentResultFileName);
-	if (rootElementCurrent == NULL) {	
+  vtkSmartPointer<vtkXMLDataElement> currentRootElem = vtkSmartPointer<vtkXMLDataElement>::Take(
+    vtkXMLUtilities::ReadElementFromFile(currentResultFileName));
+	if (currentRootElem == NULL) {	
 		LOG_ERROR("Unable to read the current configuration file: " << currentResultFileName); 
 		return ++numberOfFailures;
 	}
-	vtkSmartPointer<vtkXMLDataElement> stylusDefinitionCurrent = vtkPlusConfig::LookupElementWithNameContainingChildWithNameAndAttribute(rootElementCurrent, "Tracker", "Tool", "Type", "Stylus");
+	vtkXMLDataElement* stylusDefinitionCurrent = vtkPlusConfig::LookupElementWithNameContainingChildWithNameAndAttribute(currentRootElem, "Tracker", "Tool", "Type", "Stylus");
 	if (stylusDefinitionCurrent == NULL) {
 		LOG_ERROR("No stylus definition is found in the test result XML tree!");
 		return ++numberOfFailures;
 	}
-	vtkSmartPointer<vtkXMLDataElement> calibrationCurrent = stylusDefinitionCurrent->FindNestedElementWithName("Calibration");
+	vtkXMLDataElement* calibrationCurrent = stylusDefinitionCurrent->FindNestedElementWithName("Calibration");
 	if (calibrationCurrent == NULL) {
 		LOG_ERROR("No calibration section is found in stylus definition in test result!");
 		return ++numberOfFailures;
@@ -184,17 +186,18 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
 	}
 
 	// Load baseline stylus calibration
-	vtkSmartPointer<vtkXMLDataElement> rootElementBaseline = vtkXMLUtilities::ReadElementFromFile(baselineFileName);
-	if (rootElementBaseline == NULL) {	
+  vtkSmartPointer<vtkXMLDataElement> baselineRootElem = vtkSmartPointer<vtkXMLDataElement>::Take(
+    vtkXMLUtilities::ReadElementFromFile(baselineFileName));
+	if (baselineRootElem == NULL) {	
 		LOG_ERROR("Unable to read the baseline configuration file: " << baselineFileName); 
 		return ++numberOfFailures;
 	}
-	vtkSmartPointer<vtkXMLDataElement> stylusDefinitionBaseline = vtkPlusConfig::LookupElementWithNameContainingChildWithNameAndAttribute(rootElementBaseline, "Tracker", "Tool", "Type", "Stylus");
+	vtkXMLDataElement* stylusDefinitionBaseline = vtkPlusConfig::LookupElementWithNameContainingChildWithNameAndAttribute(baselineRootElem, "Tracker", "Tool", "Type", "Stylus");
 	if (stylusDefinitionBaseline == NULL) {
 		LOG_ERROR("No stylus definition is found in the baseline XML tree!");
 		return ++numberOfFailures;
 	}
-	vtkSmartPointer<vtkXMLDataElement> calibrationBaseline = stylusDefinitionBaseline->FindNestedElementWithName("Calibration");
+	vtkXMLDataElement* calibrationBaseline = stylusDefinitionBaseline->FindNestedElementWithName("Calibration");
 	if (calibrationBaseline == NULL) {
 		LOG_ERROR("No calibration section is found in stylus definition in baseline!");
 		return ++numberOfFailures;

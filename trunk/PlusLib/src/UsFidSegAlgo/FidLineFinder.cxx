@@ -248,14 +248,14 @@ PlusStatus FidLineFinder::ReadConfiguration( vtkXMLDataElement* configData )
 		return PLUS_FAIL; 
 	}
 
-  vtkSmartPointer<vtkXMLDataElement> usCalibration = configData->FindNestedElementWithName("USCalibration");
+  vtkXMLDataElement* usCalibration = configData->FindNestedElementWithName("USCalibration");
 	if (usCalibration == NULL)
   {
     LOG_ERROR("Cannot find USCalibration element in XML tree!");
     return PLUS_FAIL;
 	}
 
-  vtkSmartPointer<vtkXMLDataElement> segmentationParameters = usCalibration->FindNestedElementWithName("CalibrationController")->FindNestedElementWithName("SegmentationParameters");
+  vtkXMLDataElement* segmentationParameters = usCalibration->FindNestedElementWithName("CalibrationController")->FindNestedElementWithName("SegmentationParameters");
 	if (segmentationParameters == NULL)
   {
 		LOG_ERROR("No Segmentation parameters is found in the XML tree!");
@@ -277,12 +277,12 @@ PlusStatus FidLineFinder::ReadConfiguration( vtkXMLDataElement* configData )
 	if(segmentationParameters->GetScalarAttribute("ComputeSegmentationParametersFromPhantomDefinition", computeSegmentationParametersFromPhantomDefinition)
 		&& computeSegmentationParametersFromPhantomDefinition!=0 )
 	{
-		vtkSmartPointer<vtkXMLDataElement> phantomDefinition = segmentationParameters->GetRoot()->FindNestedElementWithName("PhantomDefinition");
+		vtkXMLDataElement* phantomDefinition = segmentationParameters->GetRoot()->FindNestedElementWithName("PhantomDefinition");
 		if (phantomDefinition == NULL)
 		{
 			LOG_ERROR("No phantom definition is found in the XML tree!");
 		}
-		vtkSmartPointer<vtkXMLDataElement> customTransforms = phantomDefinition->FindNestedElementWithName("CustomTransforms"); 
+		vtkXMLDataElement* customTransforms = phantomDefinition->FindNestedElementWithName("CustomTransforms"); 
 		if (customTransforms == NULL) 
 		{
 			LOG_ERROR("Custom transforms are not found in phantom model");

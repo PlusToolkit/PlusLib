@@ -911,12 +911,12 @@ PlusStatus SegmentationParameters::ReadSegmentationParametersConfiguration( vtkX
 		}
 		delete [] imageNormalVectorInPhantomFrameMaximumRotationAngleDeg;
 
-		vtkSmartPointer<vtkXMLDataElement> phantomDefinition = segmentationParameters->GetRoot()->FindNestedElementWithName("PhantomDefinition");
+		vtkXMLDataElement* phantomDefinition = segmentationParameters->GetRoot()->FindNestedElementWithName("PhantomDefinition");
 		if (phantomDefinition == NULL)
 		{
 			LOG_ERROR("No phantom definition is found in the XML tree!");
 		}
-		vtkSmartPointer<vtkXMLDataElement> customTransforms = phantomDefinition->FindNestedElementWithName("CustomTransforms"); 
+		vtkXMLDataElement* customTransforms = phantomDefinition->FindNestedElementWithName("CustomTransforms"); 
 		if (customTransforms == NULL) 
 		{
 			LOG_ERROR("Custom transforms are not found in phantom model");

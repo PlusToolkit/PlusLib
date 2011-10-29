@@ -47,6 +47,16 @@ vtkBrachyStepperPhantomRegistrationAlgo::~vtkBrachyStepperPhantomRegistrationAlg
     this->PhantomToReferenceTransform->Delete(); 
     this->PhantomToReferenceTransform = NULL; 
   }
+  if ( this->TransformTemplateHolderToPhantom != NULL )
+  {
+    this->TransformTemplateHolderToPhantom->Delete(); 
+    this->TransformTemplateHolderToPhantom = NULL; 
+  }
+  if ( this->TransformReferenceToTemplateHolder != NULL )
+  {
+    this->TransformReferenceToTemplateHolder->Delete(); 
+    this->TransformReferenceToTemplateHolder = NULL; 
+  }
 }
 
 //----------------------------------------------------------------------------

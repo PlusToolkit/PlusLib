@@ -487,21 +487,21 @@ PlusStatus vtkProbeCalibrationAlgo::ReadProbeCalibrationConfiguration( vtkXMLDat
 		return PLUS_FAIL; 
 	}
 
-	vtkSmartPointer<vtkXMLDataElement> usCalibration = rootElement->FindNestedElementWithName("USCalibration");
+	vtkXMLDataElement* usCalibration = rootElement->FindNestedElementWithName("USCalibration");
 	if (usCalibration == NULL)
   {
     LOG_ERROR("Cannot find USCalibration element in XML tree!");
     return PLUS_FAIL;
 	}
 
-	vtkSmartPointer<vtkXMLDataElement> calibrationController = usCalibration->FindNestedElementWithName("CalibrationController"); 
+	vtkXMLDataElement* calibrationController = usCalibration->FindNestedElementWithName("CalibrationController"); 
 	if (calibrationController == NULL)
   {
     LOG_ERROR("Unable to find calibration controller tag in configuration file!"); 
     return PLUS_FAIL; 
   }
 
-	vtkSmartPointer<vtkXMLDataElement> probeCalibration = calibrationController->FindNestedElementWithName("ProbeCalibration"); 
+	vtkXMLDataElement* probeCalibration = calibrationController->FindNestedElementWithName("ProbeCalibration"); 
 	if (probeCalibration == NULL)
   {
     LOG_ERROR("Unable to find probe calibration tag in configuration file!"); 
@@ -516,7 +516,7 @@ PlusStatus vtkProbeCalibrationAlgo::ReadProbeCalibrationConfiguration( vtkXMLDat
 	}
 
 	// US3DBeamwidth specifications
-	vtkSmartPointer<vtkXMLDataElement> us3DBeamProfile = probeCalibration->FindNestedElementWithName("US3DBeamProfile"); 
+	vtkXMLDataElement* us3DBeamProfile = probeCalibration->FindNestedElementWithName("US3DBeamProfile"); 
 	if ( us3DBeamProfile != NULL) 
 	{
 		// To incorporate the ultrasound beam profile (3D beam width)
@@ -544,7 +544,7 @@ PlusStatus vtkProbeCalibrationAlgo::ReadProbeCalibrationConfiguration( vtkXMLDat
 	}
 
   // CalibrationResult specifications
-  vtkSmartPointer<vtkXMLDataElement> calibrationResult = probeCalibration->FindNestedElementWithName("CalibrationResult"); 
+  vtkXMLDataElement* calibrationResult = probeCalibration->FindNestedElementWithName("CalibrationResult"); 
 
   if ( calibrationResult != NULL )
   {
@@ -656,13 +656,13 @@ PlusStatus vtkProbeCalibrationAlgo::ReadProbeCalibrationConfiguration( vtkXMLDat
   }
 
 	// Custom transforms
-	vtkSmartPointer<vtkXMLDataElement> phantomDefinition = rootElement->FindNestedElementWithName("PhantomDefinition");
+	vtkXMLDataElement* phantomDefinition = rootElement->FindNestedElementWithName("PhantomDefinition");
 	if (phantomDefinition == NULL)
   {
 		LOG_ERROR("No phantom definition is found in the XML tree!");
 		return PLUS_FAIL;
 	}
-	vtkSmartPointer<vtkXMLDataElement> customTransforms = phantomDefinition->FindNestedElementWithName("CustomTransforms"); 
+	vtkXMLDataElement* customTransforms = phantomDefinition->FindNestedElementWithName("CustomTransforms"); 
 	if (customTransforms == NULL) 
   {
 		LOG_ERROR("Custom transforms are not found in phantom model");
@@ -696,7 +696,7 @@ PlusStatus vtkProbeCalibrationAlgo::WriteConfiguration(vtkXMLDataElement* aConfi
   //   videoTimeOffset = this->DataCollector->GetVideoSource()->GetBuffer()->GetLocalTimeOffset();
   // }
 
-  // vtkSmartPointer<vtkXMLDataElement> imageAcquisition = vtkPlusConfig::LookupElementWithNameContainingChildWithNameAndAttribute(aConfig, "USDataCollection", "ImageAcquisition", NULL, NULL);
+  // vtkXMLDataElement* imageAcquisition = vtkPlusConfig::LookupElementWithNameContainingChildWithNameAndAttribute(aConfig, "USDataCollection", "ImageAcquisition", NULL, NULL);
   // imageAcquisition->SetDoubleAttribute("LocalTimeOffset", videoTimeOffset);
 
 	// Save spatial calibration result
@@ -704,13 +704,13 @@ PlusStatus vtkProbeCalibrationAlgo::WriteConfiguration(vtkXMLDataElement* aConfi
 	vtkTracker::ConvertToolTypeToString(TRACKER_TOOL_PROBE, toolType);
 
   // Find probe definition element
-	vtkSmartPointer<vtkXMLDataElement> probeDefinition = vtkPlusConfig::LookupElementWithNameContainingChildWithNameAndAttribute(aConfig, "Tracker", "Tool", "Type", toolType.c_str());
+	vtkXMLDataElement* probeDefinition = vtkPlusConfig::LookupElementWithNameContainingChildWithNameAndAttribute(aConfig, "Tracker", "Tool", "Type", toolType.c_str());
 	if (probeDefinition == NULL) {
 		LOG_ERROR("No probe definition is found in the XML tree!");
 		return PLUS_FAIL;
 	}
 
-	vtkSmartPointer<vtkXMLDataElement> calibration = probeDefinition->FindNestedElementWithName("Calibration");
+	vtkXMLDataElement* calibration = probeDefinition->FindNestedElementWithName("Calibration");
 	if (calibration == NULL) {
 		LOG_ERROR("No calibration section is found in probe definition!");
 		return PLUS_FAIL;
@@ -727,19 +727,19 @@ PlusStatus vtkProbeCalibrationAlgo::WriteConfiguration(vtkXMLDataElement* aConfi
 	calibration->SetDoubleAttribute("Error", this->PointLineDistanceErrorAnalysisVector[0]); // TODO find the best error number
 
   // TRUS results
-	vtkSmartPointer<vtkXMLDataElement> usCalibration = aConfig->FindNestedElementWithName("USCalibration");
+	vtkXMLDataElement* usCalibration = aConfig->FindNestedElementWithName("USCalibration");
 	if (usCalibration == NULL) {
 		LOG_ERROR("No calibration configuration is found in the XML tree!");
 		return PLUS_FAIL;
 	}
 
-	vtkSmartPointer<vtkXMLDataElement> calibrationController = usCalibration->FindNestedElementWithName("CalibrationController"); 
+	vtkXMLDataElement* calibrationController = usCalibration->FindNestedElementWithName("CalibrationController"); 
 	if (calibrationController == NULL) {
 		LOG_ERROR("Unable to read configuration");
 		return PLUS_FAIL;
 	}
 
-  vtkSmartPointer<vtkXMLDataElement> probeCalibration = calibrationController->FindNestedElementWithName("ProbeCalibration");
+  vtkXMLDataElement* probeCalibration = calibrationController->FindNestedElementWithName("ProbeCalibration");
   if ( probeCalibration == NULL )
   {
     LOG_ERROR("Failed to write results to ProbeCalibration XML data element - element not found!"); 
@@ -748,14 +748,15 @@ PlusStatus vtkProbeCalibrationAlgo::WriteConfiguration(vtkXMLDataElement* aConfi
 
   if ( this->CalibrationDone )
   {
-    vtkSmartPointer<vtkXMLDataElement> calibrationResult = probeCalibration->FindNestedElementWithName("CalibrationResult");
+    vtkXMLDataElement* calibrationResult = probeCalibration->FindNestedElementWithName("CalibrationResult");
 
     if ( calibrationResult == NULL )
     {
-      calibrationResult = vtkSmartPointer<vtkXMLDataElement>::New(); 
+      calibrationResult = vtkXMLDataElement::New(); 
       calibrationResult->SetName("CalibrationResult"); 
       calibrationResult->SetParent(probeCalibration); 
       probeCalibration->AddNestedElement(calibrationResult); 
+      calibrationResult->UnRegister(NULL); // release the element, it is now owned by probeCalibration
     }
 
     if ( this->CalibrationDate != NULL )
@@ -1935,7 +1936,7 @@ void vtkProbeCalibrationAlgo::SaveCalibrationResultsAndErrorReportsToXML()
 	vtkSmartPointer<vtkXMLDataElement> tagCalibrationResults = vtkSmartPointer<vtkXMLDataElement>::New(); 
 	tagCalibrationResults->SetName("CalibrationResults"); 
 
-	double *imageToUserImageMatrix = new double[16]; 
+	double imageToUserImageMatrix[16]; 
 	for (int i = 0; i < 4; i++)
 	{
 		for (int j = 0; j < 4; j++) 
@@ -1944,7 +1945,7 @@ void vtkProbeCalibrationAlgo::SaveCalibrationResultsAndErrorReportsToXML()
 		}
 	}
 
-	double *userImageToProbeMatrix = new double[16]; 
+	double userImageToProbeMatrix[16]; 
 	for (int i = 0; i < 4; i++)
 	{
 		for (int j = 0; j < 4; j++) 
@@ -1953,7 +1954,7 @@ void vtkProbeCalibrationAlgo::SaveCalibrationResultsAndErrorReportsToXML()
 		}
 	}
 
-	double *referenceToTemplateHolderHomeMatrix = new double[16]; 
+	double referenceToTemplateHolderHomeMatrix[16]; 
 	for (int i = 0; i < 4; i++)
 	{
 		for (int j = 0; j < 4; j++) 
@@ -1962,7 +1963,7 @@ void vtkProbeCalibrationAlgo::SaveCalibrationResultsAndErrorReportsToXML()
 		}
 	}
 
-	double *templateHolderToTemplateMatrix = new double[16]; 
+	double templateHolderToTemplateMatrix[16]; 
 	for (int i = 0; i < 4; i++)
 	{
 		for (int j = 0; j < 4; j++) 
@@ -1971,7 +1972,7 @@ void vtkProbeCalibrationAlgo::SaveCalibrationResultsAndErrorReportsToXML()
 		}
 	}
 
-	double *templateHomeToTemplateMatrix = new double[16]; 
+	double templateHomeToTemplateMatrix[16]; 
 	for (int i = 0; i < 4; i++)
 	{
 		for (int j = 0; j < 4; j++) 
@@ -1980,7 +1981,7 @@ void vtkProbeCalibrationAlgo::SaveCalibrationResultsAndErrorReportsToXML()
 		}
 	}
 
-	double *imageToTemplateMatrix = new double[16]; 
+	double imageToTemplateMatrix[16]; 
 	for (int i = 0; i < 4; i++)
 	{
 		for (int j = 0; j < 4; j++) 
@@ -1999,20 +2000,13 @@ void vtkProbeCalibrationAlgo::SaveCalibrationResultsAndErrorReportsToXML()
 	tagCalibrationTransform->SetVectorAttribute("TransformTemplateHomeToTemplate", 16, templateHomeToTemplateMatrix); 
 	tagCalibrationTransform->SetVectorAttribute("TransformImageToTemplate", 16, imageToTemplateMatrix); 
 
-	delete[] imageToUserImageMatrix; 
-	delete[] userImageToProbeMatrix; 
-	delete[] referenceToTemplateHolderHomeMatrix; 
-	delete[] templateHolderToTemplateMatrix; 
-	delete[] templateHomeToTemplateMatrix; 
-	delete[] imageToTemplateMatrix; 
-
 	tagCalibrationResults->AddNestedElement(tagCalibrationTransform); 
 
 	// <ErrorReports>
 	vtkSmartPointer<vtkXMLDataElement> tagErrorReports = vtkSmartPointer<vtkXMLDataElement>::New(); 
 	tagErrorReports->SetName("ErrorReports"); 
 
-	double *preAnalysis = new double[9]; 
+	double preAnalysis[9]; 
 	for (int i = 0; i < 9; i++)
 	{
 		preAnalysis[i] = this->PointReconstructionErrorAnalysisVector[i]; 
@@ -2026,8 +2020,6 @@ void vtkProbeCalibrationAlgo::SaveCalibrationResultsAndErrorReportsToXML()
 	tagPointReconstructionErrorAnalysis->SetDoubleAttribute("ValidationDataConfidenceLevel", this->PointReconstructionErrorAnalysisVector[9]);  
 	vtkstd::string commentPointReconstructionErrorAnalysis("# PRE format: PRE3D_X_mean, PRE3D_X_rms, PRE3D_X_std PRE3D_Y_mean, PRE3D_Y_rms, PRE3D_Y_std PRE3D_Z_mean, PRE3D_Z_rms, PRE3D_Z_std"); 
 	tagPointReconstructionErrorAnalysis->AddCharacterData(commentPointReconstructionErrorAnalysis.c_str(), commentPointReconstructionErrorAnalysis.size()); 
-
-  delete[] preAnalysis; 
 
 	double *rawPointReconstructionErrors = new double[this->PointReconstructionErrorMatrix.size()]; 
 	for ( int row = 0; row < this->PointReconstructionErrorMatrix.rows(); row++)
@@ -2050,7 +2042,7 @@ void vtkProbeCalibrationAlgo::SaveCalibrationResultsAndErrorReportsToXML()
 
 	delete[] rawPointReconstructionErrors; 
 
-	double *pldeAnalysis = new double[3]; 
+	double pldeAnalysis[3]; 
 	for (int i = 0; i < 3; i++)
 	{
 		pldeAnalysis[i] = this->PointLineDistanceErrorAnalysisVector[i]; 
@@ -2064,8 +2056,6 @@ void vtkProbeCalibrationAlgo::SaveCalibrationResultsAndErrorReportsToXML()
 	tagPointLineDistanceErrorAnalysis->SetDoubleAttribute("ValidationDataConfidenceLevel", this->PointLineDistanceErrorAnalysisVector[3]);  
 	vtkstd::string commentPointLineDistanceErrorAnalysis("# PLDE format: PLDE_mean, PLDE_rms, PLDE_std"); 
 	tagPointLineDistanceErrorAnalysis->AddCharacterData(commentPointLineDistanceErrorAnalysis.c_str(), commentPointLineDistanceErrorAnalysis.size()); 
-
-  delete[] pldeAnalysis; 
 
 	double *rawPointLineDistanceErrors = new double[this->PointLineDistanceErrorVector.size()]; 
 	for (int i = 0; i < this->PointLineDistanceErrorVector.size(); i++)
@@ -2099,7 +2089,7 @@ void vtkProbeCalibrationAlgo::SaveCalibrationResultsAndErrorReportsToXML()
   }
   else
   {
-    double *w1LREAnalysis = new double[6]; 
+    double w1LREAnalysis[6]; 
     for (int i = 0; i < 6; i++)
     {
       w1LREAnalysis[i] = w1LREVector[i]; 
@@ -2113,7 +2103,6 @@ void vtkProbeCalibrationAlgo::SaveCalibrationResultsAndErrorReportsToXML()
     tagWire1LineReconstructionErrorAnalysis->SetDoubleAttribute("ValidationDataConfidenceLevel", w1LREVector[6]);  
     vtkstd::string commentWire1LineReconstructionErrorAnalysis("# LRE format: LRE_X_mean, LRE_X_std, LRE_Y_mean, LRE_Y_std, LRE_EUC_mean, LRE_EUC_std"); 
     tagWire1LineReconstructionErrorAnalysis->AddCharacterData(commentWire1LineReconstructionErrorAnalysis.c_str(), commentWire1LineReconstructionErrorAnalysis.size()); 
-    delete[] w1LREAnalysis; 
 
     tagErrorReports->AddNestedElement(tagWire1LineReconstructionErrorAnalysis);
   }
@@ -2154,7 +2143,7 @@ void vtkProbeCalibrationAlgo::SaveCalibrationResultsAndErrorReportsToXML()
   }
   else
   {
-    double *w3LREAnalysis = new double[6]; 
+    double w3LREAnalysis[6]; 
     for (int i = 0; i < 6; i++)
     {
       w3LREAnalysis[i] = w3LREVector[i]; 
@@ -2167,8 +2156,6 @@ void vtkProbeCalibrationAlgo::SaveCalibrationResultsAndErrorReportsToXML()
     tagWire3LineReconstructionErrorAnalysis->SetDoubleAttribute("ValidationDataConfidenceLevel", w3LREVector[6]);  
     vtkstd::string commentWire3LineReconstructionErrorAnalysis("# LRE format: LRE_X_mean, LRE_X_std, LRE_Y_mean, LRE_Y_std, LRE_EUC_mean, LRE_EUC_std"); 
     tagWire3LineReconstructionErrorAnalysis->AddCharacterData(commentWire3LineReconstructionErrorAnalysis.c_str(), commentWire3LineReconstructionErrorAnalysis.size()); 
-
-    delete[] w3LREAnalysis;
 
     tagErrorReports->AddNestedElement(tagWire3LineReconstructionErrorAnalysis);
   }
@@ -2209,7 +2196,7 @@ void vtkProbeCalibrationAlgo::SaveCalibrationResultsAndErrorReportsToXML()
   }
   else
   {
-    double *w4LREAnalysis = new double[6]; 
+    double w4LREAnalysis[6]; 
     for (int i = 0; i < 6; i++)
     {
       w4LREAnalysis[i] = w4LREVector[i]; 
@@ -2223,8 +2210,6 @@ void vtkProbeCalibrationAlgo::SaveCalibrationResultsAndErrorReportsToXML()
     tagWire4LineReconstructionErrorAnalysis->SetDoubleAttribute("ValidationDataConfidenceLevel", w4LREVector[6]);  
     vtkstd::string commentWire4LineReconstructionErrorAnalysis("# LRE format: LRE_X_mean, LRE_X_std, LRE_Y_mean, LRE_Y_std, LRE_EUC_mean, LRE_EUC_std"); 
     tagWire4LineReconstructionErrorAnalysis->AddCharacterData(commentWire4LineReconstructionErrorAnalysis.c_str(), commentWire4LineReconstructionErrorAnalysis.size()); 
-
-    delete[] w4LREAnalysis;
 
     tagErrorReports->AddNestedElement(tagWire4LineReconstructionErrorAnalysis);
   }
@@ -2265,7 +2250,7 @@ void vtkProbeCalibrationAlgo::SaveCalibrationResultsAndErrorReportsToXML()
   }
   else
   {
-    double *w6LREAnalysis = new double[6];
+    double w6LREAnalysis[6];
     for (int i = 0; i < 6; i++)
     {
       w6LREAnalysis[i] = w6LREVector[i]; 
@@ -2279,8 +2264,6 @@ void vtkProbeCalibrationAlgo::SaveCalibrationResultsAndErrorReportsToXML()
     tagWire6LineReconstructionErrorAnalysis->SetDoubleAttribute("ValidationDataConfidenceLevel", w6LREVector[6]);  
     vtkstd::string commentWire6LineReconstructionErrorAnalysis("# LRE format: LRE_X_mean, LRE_X_std, LRE_Y_mean, LRE_Y_std, LRE_EUC_mean, LRE_EUC_std"); 
     tagWire6LineReconstructionErrorAnalysis->AddCharacterData(commentWire6LineReconstructionErrorAnalysis.c_str(), commentWire6LineReconstructionErrorAnalysis.size()); 
-
-    delete[] w6LREAnalysis;
   
     tagErrorReports->AddNestedElement(tagWire6LineReconstructionErrorAnalysis);
   }

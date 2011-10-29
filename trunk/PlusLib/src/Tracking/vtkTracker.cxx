@@ -381,14 +381,14 @@ PlusStatus vtkTracker::WriteConfiguration(vtkXMLDataElement* config)
     return PLUS_FAIL;
   }
 
-	vtkSmartPointer<vtkXMLDataElement> dataCollectionConfig = config->FindNestedElementWithName("USDataCollection");
+	vtkXMLDataElement* dataCollectionConfig = config->FindNestedElementWithName("USDataCollection");
 	if (dataCollectionConfig == NULL)
   {
     LOG_ERROR("Cannot find USDataCollection element in XML tree!");
 		return PLUS_FAIL;
 	}
 
-  vtkSmartPointer<vtkXMLDataElement> trackerConfig = dataCollectionConfig->FindNestedElementWithName("Tracker"); 
+  vtkXMLDataElement* trackerConfig = dataCollectionConfig->FindNestedElementWithName("Tracker"); 
   if (trackerConfig == NULL) 
   {
     LOG_ERROR("Cannot find Tracker element in XML tree!");
@@ -433,14 +433,14 @@ PlusStatus vtkTracker::ReadConfiguration(vtkXMLDataElement* config)
     return PLUS_FAIL; 
   }
 
-  vtkSmartPointer<vtkXMLDataElement> dataCollectionConfig = config->FindNestedElementWithName("USDataCollection");
+  vtkXMLDataElement* dataCollectionConfig = config->FindNestedElementWithName("USDataCollection");
 	if (dataCollectionConfig == NULL)
   {
     LOG_ERROR("Cannot find USDataCollection element in XML tree!");
 		return PLUS_FAIL;
 	}
 
-  vtkSmartPointer<vtkXMLDataElement> trackerConfig = dataCollectionConfig->FindNestedElementWithName("Tracker"); 
+  vtkXMLDataElement* trackerConfig = dataCollectionConfig->FindNestedElementWithName("Tracker"); 
   if (trackerConfig == NULL) 
   {
     LOG_ERROR("Cannot find Tracker element in XML tree!");
@@ -488,7 +488,7 @@ PlusStatus vtkTracker::ReadConfiguration(vtkXMLDataElement* config)
   // Read tool configurations 
   for ( int tool = 0; tool < trackerConfig->GetNumberOfNestedElements(); tool++ )
   {
-    vtkSmartPointer<vtkXMLDataElement> toolDataElement = trackerConfig->GetNestedElement(tool); 
+    vtkXMLDataElement* toolDataElement = trackerConfig->GetNestedElement(tool); 
     if ( STRCASECMP(toolDataElement->GetName(), "Tool") != 0 )
     {
       // if this is not a Tool element, skip it

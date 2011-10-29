@@ -283,14 +283,14 @@ PlusStatus vtkBrachyTracker::ReadConfiguration(vtkXMLDataElement* config)
     return PLUS_FAIL; 
   }
 
-  vtkSmartPointer<vtkXMLDataElement> dataCollectionConfig = config->FindNestedElementWithName("USDataCollection");
-  if (dataCollectionConfig == NULL)
+	vtkXMLDataElement* dataCollectionConfig = config->FindNestedElementWithName("USDataCollection");
+	if (dataCollectionConfig == NULL)
   {
     LOG_ERROR("Cannot find USDataCollection element in XML tree!");
     return PLUS_FAIL;
   }
 
-  vtkSmartPointer<vtkXMLDataElement> trackerConfig = dataCollectionConfig->FindNestedElementWithName("Tracker"); 
+  vtkXMLDataElement* trackerConfig = dataCollectionConfig->FindNestedElementWithName("Tracker"); 
   if (trackerConfig == NULL) 
   {
     LOG_ERROR("Cannot find Tracker element in XML tree!");
@@ -383,12 +383,12 @@ PlusStatus vtkBrachyTracker::ReadConfiguration(vtkXMLDataElement* config)
 
   }
 
-  vtkSmartPointer<vtkXMLDataElement> calibration = trackerConfig->FindNestedElementWithName("StepperCalibrationResult"); 
-  if ( calibration != NULL ) 
-  {
-    const char* calibrationAlgorithmVersion = calibration->GetAttribute("AlgorithmVersion"); 
-    if ( calibrationAlgorithmVersion != NULL )
-    {
+	vtkXMLDataElement* calibration = trackerConfig->FindNestedElementWithName("StepperCalibrationResult"); 
+	if ( calibration != NULL ) 
+	{
+		const char* calibrationAlgorithmVersion = calibration->GetAttribute("AlgorithmVersion"); 
+		if ( calibrationAlgorithmVersion != NULL )
+		{
       this->SetCalibrationAlgorithmVersion(calibrationAlgorithmVersion); 
     }
     else
@@ -457,14 +457,14 @@ PlusStatus vtkBrachyTracker::WriteConfiguration(vtkXMLDataElement* rootConfigEle
   }
 
   // Get data collection and then Tracker configuration element
-  vtkSmartPointer<vtkXMLDataElement> dataCollectionConfig = rootConfigElement->FindNestedElementWithName("USDataCollection");
-  if (dataCollectionConfig == NULL)
+	vtkXMLDataElement* dataCollectionConfig = rootConfigElement->FindNestedElementWithName("USDataCollection");
+	if (dataCollectionConfig == NULL)
   {
     LOG_ERROR("Cannot find USDataCollection element in XML tree!");
     return PLUS_FAIL;
   }
 
-  vtkSmartPointer<vtkXMLDataElement> trackerConfig = dataCollectionConfig->FindNestedElementWithName("Tracker"); 
+  vtkXMLDataElement* trackerConfig = dataCollectionConfig->FindNestedElementWithName("Tracker"); 
   if ( trackerConfig == NULL) 
   {
     LOG_ERROR("Cannot find Tracker element in XML tree!");
@@ -487,7 +487,7 @@ PlusStatus vtkBrachyTracker::WriteConfiguration(vtkXMLDataElement* rootConfigEle
   if ( this->GetTrackerCalibrated() )
   {
     // Save stepper calibration results to file
-    vtkSmartPointer<vtkXMLDataElement> calibration = trackerConfig->FindNestedElementWithName("StepperCalibrationResult"); 
+  	vtkXMLDataElement* calibration = trackerConfig->FindNestedElementWithName("StepperCalibrationResult"); 
     if ( calibration == NULL )
     {
       // create new element and add to trackerTool 

@@ -5,7 +5,8 @@ See License.txt for details.
 =========================================================Plus=header=end*/ 
 
 /*!
-  \file This program acquires tracked ultrasound data. It can displays the result in real-time in a 3D viewer and also broadcasts it through OpenIGTLink.
+  \file This program acquires tracked ultrasound data and displays it on the screen (in a 2D viewer).
+  It can also broadcast the acquired data through OpenIGTLink.
 */ 
 
 #include "PlusConfigure.h"
@@ -26,15 +27,8 @@ See License.txt for details.
 #include "vtkXMLUtilities.h"
 #include "vtkImageData.h" 
 
-vtkDataCollector* dataCollector = NULL; 
-vtkImageViewer *viewer = NULL;
-vtkRenderWindowInteractor *iren = NULL;
-vtkTextActor *stepperTextActor = NULL; 
-vtkOpenIGTLinkBroadcaster* broadcaster = NULL; 
-vtkImageData* realtimeImage; 
-
-PlusStatus InitBroadcater(); 
-PlusStatus InvokeBroadcasterMessage(); 
+PlusStatus InitBroadcaster(vtkSmartPointer<vtkOpenIGTLinkBroadcaster> &broadcaster, vtkDataCollector* dataCollector); 
+PlusStatus InvokeBroadcasterMessage(vtkOpenIGTLinkBroadcaster* broadcaster); 
 
 class vtkMyCallback : public vtkCommand
 {
@@ -47,16 +41,16 @@ public:
     double synchronizedTime(0); 
     vtkSmartPointer<vtkMatrix4x4> tFrame2Tracker = vtkSmartPointer<vtkMatrix4x4>::New(); 
 
-	int probeToolNumber = dataCollector->GetTracker()->GetFirstPortNumberByType(TRACKER_TOOL_PROBE);
+	int probeToolNumber = this->DataCollector->GetTracker()->GetFirstPortNumberByType(TRACKER_TOOL_PROBE);
 	if ( probeToolNumber < 0 )
 	{
 		LOG_ERROR("Unable to find probe!");
 		return;
 	}
-    if ( dataCollector->GetTrackedFrame(realtimeImage, tFrame2Tracker, status, synchronizedTime, probeToolNumber) == PLUS_SUCCESS )
+    if ( this->DataCollector->GetTrackedFrame(this->RealtimeImage, tFrame2Tracker, status, synchronizedTime, probeToolNumber) == PLUS_SUCCESS )
     {
-      viewer->SetInput(realtimeImage); 
-      viewer->Modified(); 
+      this->Viewer->SetInput(this->RealtimeImage); 
+      this->Viewer->Modified(); 
     }
     else
     {
@@ -66,7 +60,7 @@ public:
 
     std::ostringstream ss;
     ss.precision( 2 ); 
-    if ( dataCollector->GetTracker()->IsTracking())
+    if ( this->DataCollector->GetTracker()->IsTracking())
     {
       if (status == TR_MISSING || status == TR_OUT_OF_VIEW ) 
       {
@@ -90,16 +84,23 @@ public:
       ss << "Unable to connect to tracker...";		
     }
 
-    stepperTextActor->SetInput(ss.str().c_str());
-    stepperTextActor->Modified(); 
+    this->StepperTextActor->SetInput(ss.str().c_str());
+    this->StepperTextActor->Modified(); 
 
-    viewer->Render();
+    this->Viewer->Render();
 
-    InvokeBroadcasterMessage(); 
+    InvokeBroadcasterMessage(this->Broadcaster); 
 
     //update the timer so it will trigger again
-    iren->CreateTimer(VTKI_TIMER_UPDATE);
+    this->Iren->CreateTimer(VTKI_TIMER_UPDATE);
   }
+
+  vtkDataCollector* DataCollector; 
+  vtkImageViewer *Viewer;
+  vtkRenderWindowInteractor *Iren;
+  vtkTextActor *StepperTextActor; 
+  vtkImageData* RealtimeImage; 
+  vtkOpenIGTLinkBroadcaster* Broadcaster;
 };
 
 int main(int argc, char **argv)
@@ -142,14 +143,15 @@ int main(int argc, char **argv)
 
   ///////////////
 
-  vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkXMLUtilities::ReadElementFromFile(inputConfigFileName.c_str());
+  vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkSmartPointer<vtkXMLDataElement>::Take(
+    vtkXMLUtilities::ReadElementFromFile(inputConfigFileName.c_str()));
   if (configRootElement == NULL)
   {	
     std::cerr << "Unable to read configuration from file " << inputConfigFileName.c_str() << std::endl;
     exit( EXIT_FAILURE );
   }
 
-  dataCollector = vtkDataCollector::New(); 
+  vtkSmartPointer<vtkDataCollector> dataCollector = vtkSmartPointer<vtkDataCollector>::New(); 
   dataCollector->ReadConfiguration( configRootElement );
 
   if ( ! inputVideoBufferMetafile.empty()
@@ -180,7 +182,8 @@ int main(int argc, char **argv)
 
   dataCollector->Connect(); 
 
-  if ( inputEnableBroadcasting && InitBroadcater() != PLUS_SUCCESS )
+  vtkSmartPointer<vtkOpenIGTLinkBroadcaster> broadcaster;
+  if ( inputEnableBroadcasting && InitBroadcaster(broadcaster, dataCollector) != PLUS_SUCCESS )
   {
     LOG_ERROR("Unable to initialize OpenIGTLink bradcaster!"); 
     if ( broadcaster != NULL )
@@ -194,83 +197,70 @@ int main(int argc, char **argv)
 
   if (renderingOff)
   {
-    if ( dataCollector != NULL ) 
-    {
-      dataCollector->Delete();
-    }
-
-    exit(EXIT_SUCCESS); 
+    LOG_DEBUG("Rendering is disabled");
   }
-
-  int * frameSize = dataCollector->GetVideoSource()->GetFrameSize(); 
-  realtimeImage = vtkImageData::New(); 
-  realtimeImage->SetExtent( 0, frameSize[0] - 1, 0, frameSize[1] - 1, 0, 0); 
-  realtimeImage->SetNumberOfScalarComponents(1); 
-  realtimeImage->SetScalarTypeToUnsignedChar(); 
-  realtimeImage->AllocateScalars();
-
-  viewer = vtkImageViewer::New();
-  viewer->SetInput(realtimeImage);   //set image to the render and window
-  viewer->SetColorWindow(255);
-  viewer->SetColorLevel(127.5);
-  viewer->SetZSlice(0);
-
-  // Create a text actor for tracking information
-  stepperTextActor = vtkTextActor::New(); 
-  vtkSmartPointer<vtkTextProperty> textprop = stepperTextActor->GetTextProperty();
-  textprop->SetColor(1,0,0);
-  textprop->SetFontFamilyToArial();
-  textprop->SetFontSize(15);
-  textprop->SetJustificationToLeft();
-  textprop->SetVerticalJustificationToTop();
-  stepperTextActor->VisibilityOn(); 
-  stepperTextActor->SetDisplayPosition(20,65); 
-  viewer->GetRenderer()->AddActor(stepperTextActor); 
-
-  //Create the interactor that handles the event loop
-  iren = vtkRenderWindowInteractor::New();
-  iren->SetRenderWindow(viewer->GetRenderWindow());
-  viewer->SetupInteractor(iren);
-
-  viewer->Render();	//must be called after iren and viewer are linked
-  //or there will be problems
-
-  //establish timer event and create timer
-  vtkMyCallback* call = vtkMyCallback::New();
-  iren->AddObserver(vtkCommand::TimerEvent, call);
-  iren->CreateTimer(VTKI_TIMER_FIRST);		//VTKI_TIMER_FIRST = 0
-
-  //iren must be initialized so that it can handle events
-  iren->Initialize();
-  iren->Start();
-
-  if ( dataCollector != NULL )
+  else
   {
-    dataCollector->Delete();
-    dataCollector = NULL; 
-  }
 
-  if ( broadcaster != NULL )
-  {
-    broadcaster->Delete(); 
-    broadcaster = NULL; 
-  }
+    int * frameSize = dataCollector->GetVideoSource()->GetFrameSize(); 
+    vtkSmartPointer<vtkImageData> realtimeImage = vtkSmartPointer<vtkImageData>::New(); 
+    realtimeImage->SetExtent( 0, frameSize[0] - 1, 0, frameSize[1] - 1, 0, 0); 
+    realtimeImage->SetNumberOfScalarComponents(1); 
+    realtimeImage->SetScalarTypeToUnsignedChar(); 
+    realtimeImage->AllocateScalars();
 
-  call->Delete(); 
-  viewer->Delete();
-  iren->Delete();
-  stepperTextActor->Delete(); 
-  realtimeImage->Delete(); 
+    vtkSmartPointer<vtkImageViewer> viewer = vtkSmartPointer<vtkImageViewer>::New();
+    viewer->SetInput(realtimeImage);   //set image to the render and window
+    viewer->SetColorWindow(255);
+    viewer->SetColorLevel(127.5);
+    viewer->SetZSlice(0);
+
+    // Create a text actor for tracking information
+    vtkSmartPointer<vtkTextActor> stepperTextActor = vtkSmartPointer<vtkTextActor>::New(); 
+    vtkSmartPointer<vtkTextProperty> textprop = stepperTextActor->GetTextProperty();
+    textprop->SetColor(1,0,0);
+    textprop->SetFontFamilyToArial();
+    textprop->SetFontSize(15);
+    textprop->SetJustificationToLeft();
+    textprop->SetVerticalJustificationToTop();
+    stepperTextActor->VisibilityOn(); 
+    stepperTextActor->SetDisplayPosition(20,65); 
+    viewer->GetRenderer()->AddActor(stepperTextActor); 
+
+    //Create the interactor that handles the event loop
+    vtkSmartPointer<vtkRenderWindowInteractor> iren = vtkSmartPointer<vtkRenderWindowInteractor>::New();
+    iren->SetRenderWindow(viewer->GetRenderWindow());
+    viewer->SetupInteractor(iren);
+
+    viewer->Render();	//must be called after iren and viewer are linked
+    //or there will be problems
+
+    //establish timer event and create timer
+    vtkSmartPointer<vtkMyCallback> call = vtkSmartPointer<vtkMyCallback>::New();
+    call->DataCollector=dataCollector; 
+    call->Viewer=viewer;
+    call->Iren=iren;
+    call->StepperTextActor=stepperTextActor; 
+    call->RealtimeImage=realtimeImage; 
+    call->Broadcaster=broadcaster; 
+
+    iren->AddObserver(vtkCommand::TimerEvent, call);
+    iren->CreateTimer(VTKI_TIMER_FIRST);		//VTKI_TIMER_FIRST = 0
+
+    //iren must be initialized so that it can handle events
+    iren->Initialize();
+    iren->Start();
+  }
 
   std::cout << "vtkDataCollectorTest1 completed successfully!" << std::endl;
   return EXIT_SUCCESS; 
 
 }
 
-PlusStatus InitBroadcater()
+PlusStatus InitBroadcaster(vtkSmartPointer<vtkOpenIGTLinkBroadcaster> &broadcaster, vtkDataCollector* dataCollector)
 {
   vtkOpenIGTLinkBroadcaster::Status broadcasterStatus = vtkOpenIGTLinkBroadcaster::STATUS_NOT_INITIALIZED;
-  broadcaster = vtkOpenIGTLinkBroadcaster::New();
+  broadcaster = vtkSmartPointer<vtkOpenIGTLinkBroadcaster>::New();
   broadcaster->SetDataCollector( dataCollector );
 
   std::string errorMessage;
@@ -297,7 +287,7 @@ PlusStatus InitBroadcater()
   return PLUS_SUCCESS; 
 }
 
-PlusStatus InvokeBroadcasterMessage()
+PlusStatus InvokeBroadcasterMessage(vtkOpenIGTLinkBroadcaster* broadcaster)
 {
   if ( broadcaster == NULL )
   {
