@@ -74,5 +74,13 @@ TARGET_LINK_LIBRARIES( vtkMicrontrackerfiles
   ${MTC_LIB_DIR}/MTC${CMAKE_STATIC_LIBRARY_SUFFIX}
 )
 
-INSTALL_TARGETS(/lib/vtk vtkMicrontrackerfiles )
+#INSTALL_TARGETS(/lib/vtk vtkMicrontrackerfiles )
 #vtkMicrontracker)
+
+
+# --------------------------------------------------------------------------
+# Set external MS project 
+SET (PLUSLIB_DEPENDENCIES ${PLUSLIB_DEPENDENCIES} vtkMicrontrackerfiles CACHE INTERNAL "" FORCE)
+LIST(REMOVE_DUPLICATES PLUSLIB_DEPENDENCIES)
+# Add this variable to UsePlusLib.cmake.in INCLUDE_PLUSLIB_MS_PROJECTS macro
+SET(vcProj_Microntrackerfiles vtkMicrontrackerfiles "${PlusLib_BINARY_DIR}/src/Tracking/MicronTracking/Utils/vtkMicrontrackerfiles.vcproj" vtkPlusCommon CACHE INTERNAL "" FORCE) 
