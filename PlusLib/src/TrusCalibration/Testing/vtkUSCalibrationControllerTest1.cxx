@@ -67,7 +67,8 @@ int main (int argc, char* argv[])
 	}
 
   // Read configuration
-  vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkXMLUtilities::ReadElementFromFile(inputConfigFileName.c_str());
+  vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkSmartPointer<vtkXMLDataElement>::Take(
+    vtkXMLUtilities::ReadElementFromFile(inputConfigFileName.c_str()));
   if (configRootElement == NULL)
   {	
     LOG_ERROR("Unable to read configuration from file " << inputConfigFileName.c_str()); 
@@ -222,8 +223,11 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
 {
 	int numberOfFailures=0;
 
-	vtkSmartPointer<vtkXMLDataElement> baselineRootElem = vtkXMLUtilities::ReadElementFromFile(baselineFileName);
-	vtkSmartPointer<vtkXMLDataElement> currentRootElem = vtkXMLUtilities::ReadElementFromFile(currentResultFileName); 
+  vtkSmartPointer<vtkXMLDataElement> baselineRootElem = vtkSmartPointer<vtkXMLDataElement>::Take(
+    vtkXMLUtilities::ReadElementFromFile(baselineFileName));
+  vtkSmartPointer<vtkXMLDataElement> currentRootElem = vtkSmartPointer<vtkXMLDataElement>::Take(
+    vtkXMLUtilities::ReadElementFromFile(currentResultFileName));
+  
 	// check to make sure we have the right element
 	if (baselineRootElem == NULL )
 	{
@@ -239,8 +243,8 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
 	}
 
 	{	//<CalibrationResults>
-		vtkSmartPointer<vtkXMLDataElement> calibrationResultsBaseline = baselineRootElem->FindNestedElementWithName("CalibrationResults"); 
-		vtkSmartPointer<vtkXMLDataElement> calibrationResults = currentRootElem->FindNestedElementWithName("CalibrationResults"); 
+		vtkXMLDataElement* calibrationResultsBaseline = baselineRootElem->FindNestedElementWithName("CalibrationResults"); 
+		vtkXMLDataElement* calibrationResults = currentRootElem->FindNestedElementWithName("CalibrationResults"); 
 
 		if ( calibrationResultsBaseline == NULL) 
 		{
@@ -257,8 +261,8 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
 		}
 
 		{	// <CalibrationTransform>
-			vtkSmartPointer<vtkXMLDataElement> calibrationTransformBaseline = calibrationResultsBaseline->FindNestedElementWithName("CalibrationTransform"); 
-			vtkSmartPointer<vtkXMLDataElement> calibrationTransform = calibrationResults->FindNestedElementWithName("CalibrationTransform");
+			vtkXMLDataElement* calibrationTransformBaseline = calibrationResultsBaseline->FindNestedElementWithName("CalibrationTransform"); 
+			vtkXMLDataElement* calibrationTransform = calibrationResults->FindNestedElementWithName("CalibrationTransform");
 
 			if ( calibrationTransformBaseline == NULL) 
 			{
@@ -275,8 +279,8 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
 			}
 			
 			//********************************* TransformImageToUserImage *************************************
-			double *blTransformImageToUserImage = new double[16]; 
-			double *cTransformImageToUserImage = new double[16]; 
+			double blTransformImageToUserImage[16]; 
+			double cTransformImageToUserImage[16]; 
 
 			if (!calibrationTransformBaseline->GetVectorAttribute("TransformImageToUserImage", 16, blTransformImageToUserImage))
 			{
@@ -317,13 +321,10 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
 					}
 				
 			}
-			delete[] blTransformImageToUserImage; 
-			delete[] cTransformImageToUserImage; 
-
 
 			//********************************* TransformUserImageToProbe *************************************
-			double *blTransformUserImageToProbe = new double[16]; 
-			double *cTransformUserImageToProbe = new double[16]; 
+			double blTransformUserImageToProbe[16]; 
+			double cTransformUserImageToProbe[16]; 
 
 			if (!calibrationTransformBaseline->GetVectorAttribute("TransformUserImageToProbe", 16, blTransformUserImageToProbe))
 			{
@@ -364,13 +365,10 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
 					}
 				
 			}
-			delete[] blTransformUserImageToProbe; 
-			delete[] cTransformUserImageToProbe; 
-
 
 			//********************************* TransformReferenceToTemplateHolderHome *************************************
-			double *blTransformReferenceToTemplateHolderHome = new double[16]; 
-			double *cTransformReferenceToTemplateHolderHome = new double[16]; 
+			double blTransformReferenceToTemplateHolderHome[16]; 
+			double cTransformReferenceToTemplateHolderHome[16]; 
 
 			if (!calibrationTransformBaseline->GetVectorAttribute("TransformReferenceToTemplateHolderHome", 16, blTransformReferenceToTemplateHolderHome))
 			{
@@ -411,12 +409,10 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
 					}
 				
 			}
-			delete[] blTransformReferenceToTemplateHolderHome; 
-			delete[] cTransformReferenceToTemplateHolderHome; 
 
 			//********************************* TransformTemplateHolderToTemplate *************************************
-			double *blTransformTemplateHolderToTemplate = new double[16]; 
-			double *cTransformTemplateHolderToTemplate = new double[16]; 
+			double blTransformTemplateHolderToTemplate[16]; 
+			double cTransformTemplateHolderToTemplate[16]; 
 
 			if (!calibrationTransformBaseline->GetVectorAttribute("TransformTemplateHolderToTemplate", 16, blTransformTemplateHolderToTemplate))
 			{
@@ -457,12 +453,10 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
 					}
 				
 			}
-			delete[] blTransformTemplateHolderToTemplate; 
-			delete[] cTransformTemplateHolderToTemplate; 
 
 			//********************************* TransformTemplateHomeToTemplate *************************************
-			double *blTransformTemplateHomeToTemplate = new double[16]; 
-			double *cTransformTemplateHomeToTemplate = new double[16]; 
+			double blTransformTemplateHomeToTemplate[16]; 
+			double cTransformTemplateHomeToTemplate[16]; 
 
 			if (!calibrationTransformBaseline->GetVectorAttribute("TransformTemplateHomeToTemplate", 16, blTransformTemplateHomeToTemplate))
 			{
@@ -503,12 +497,10 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
 					}
 				
 			}
-			delete[] blTransformTemplateHomeToTemplate; 
-			delete[] cTransformTemplateHomeToTemplate; 
 
 			//********************************* TransformImageToTemplate *************************************
-			double *blTransformImageToTemplate = new double[16]; 
-			double *cTransformImageToTemplate = new double[16]; 
+			double blTransformImageToTemplate[16]; 
+			double cTransformImageToTemplate[16]; 
 
 			if (!calibrationTransformBaseline->GetVectorAttribute("TransformImageToTemplate", 16, blTransformImageToTemplate))
 			{
@@ -549,16 +541,14 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
 					}
 				
 			}
-			delete[] blTransformImageToTemplate; 
-			delete[] cTransformImageToTemplate; 
 
 		}//</CalibrationTransform>
 
 	}//</CalibrationResults>
 
 	{	// <ErrorReports>
-		vtkSmartPointer<vtkXMLDataElement> errorReportsBaseline = baselineRootElem->FindNestedElementWithName("ErrorReports"); 
-		vtkSmartPointer<vtkXMLDataElement> errorReports = currentRootElem->FindNestedElementWithName("ErrorReports");
+		vtkXMLDataElement* errorReportsBaseline = baselineRootElem->FindNestedElementWithName("ErrorReports"); 
+		vtkXMLDataElement* errorReports = currentRootElem->FindNestedElementWithName("ErrorReports");
 
 		if ( errorReportsBaseline == NULL) 
 		{
@@ -575,8 +565,8 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
 		}
 
 		{	// <PointReconstructionErrorAnalysis>
-			vtkSmartPointer<vtkXMLDataElement> pointReconstructionErrorAnalysisBaseline = errorReportsBaseline->FindNestedElementWithName("PointReconstructionErrorAnalysis"); 
-			vtkSmartPointer<vtkXMLDataElement> pointReconstructionErrorAnalysis = errorReports->FindNestedElementWithName("PointReconstructionErrorAnalysis");
+			vtkXMLDataElement* pointReconstructionErrorAnalysisBaseline = errorReportsBaseline->FindNestedElementWithName("PointReconstructionErrorAnalysis"); 
+			vtkXMLDataElement* pointReconstructionErrorAnalysis = errorReports->FindNestedElementWithName("PointReconstructionErrorAnalysis");
 
 			if ( pointReconstructionErrorAnalysisBaseline == NULL) 
 			{
@@ -592,8 +582,8 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
 				return numberOfFailures;
 			}
 
-			double *blPRE = new double[9]; 
-			double *cPRE = new double[9]; 
+			double blPRE[9]; 
+			double cPRE[9]; 
 
 			if (!pointReconstructionErrorAnalysisBaseline->GetVectorAttribute("PRE", 9, blPRE))
 			{
@@ -618,8 +608,6 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
 					}
 				}
 			}
-			delete[] blPRE; 
-			delete[] cPRE; 
 
 			double blValidationDataConfidenceLevel, cValidationDataConfidenceLevel; 
 			if (!pointReconstructionErrorAnalysisBaseline->GetScalarAttribute("ValidationDataConfidenceLevel", blValidationDataConfidenceLevel))
@@ -646,8 +634,8 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
 		}// </PointReconstructionErrorAnalysis>
 
 		{	// <PointLineDistanceErrorAnalysis>
-			vtkSmartPointer<vtkXMLDataElement> pointLineDistanceErrorAnalysisBaseline = errorReportsBaseline->FindNestedElementWithName("PointLineDistanceErrorAnalysis"); 
-			vtkSmartPointer<vtkXMLDataElement> pointLineDistanceErrorAnalysis = errorReports->FindNestedElementWithName("PointLineDistanceErrorAnalysis");
+			vtkXMLDataElement* pointLineDistanceErrorAnalysisBaseline = errorReportsBaseline->FindNestedElementWithName("PointLineDistanceErrorAnalysis"); 
+			vtkXMLDataElement* pointLineDistanceErrorAnalysis = errorReports->FindNestedElementWithName("PointLineDistanceErrorAnalysis");
 
 			if ( pointLineDistanceErrorAnalysisBaseline == NULL) 
 			{
@@ -663,8 +651,8 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
 				return numberOfFailures;
 			}
 
-			double *blPLDE = new double[3]; 
-			double *cPLDE= new double[3]; 
+			double blPLDE[3]; 
+			double cPLDE[3]; 
 
 			if (!pointLineDistanceErrorAnalysisBaseline->GetVectorAttribute("PLDE", 3, blPLDE))
 			{
@@ -689,8 +677,6 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
 					}
 				}
 			}
-			delete[] blPLDE; 
-			delete[] cPLDE; 
 
 			double blValidationDataConfidenceLevel, cValidationDataConfidenceLevel; 
 			if (!pointLineDistanceErrorAnalysisBaseline->GetScalarAttribute("ValidationDataConfidenceLevel", blValidationDataConfidenceLevel))

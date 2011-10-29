@@ -240,40 +240,39 @@ int main(int argc, char **argv)
 	if (renderingOff)
 	{
 		LOG_INFO("No need for rendering..."); 
-		LOG_INFO("Exit successfully"); 
-		exit(EXIT_SUCCESS); 
 	}
+  else
+  {
+	  // Create a text actor for image position information
+    vtkSmartPointer<vtkTextActor> textActor = vtkSmartPointer<vtkTextActor>::New();
+	  vtkSmartPointer<vtkTextProperty> textprop = textActor->GetTextProperty();
+	  textprop->SetColor(1,0,0);
+	  textprop->SetFontFamilyToArial();
+	  textprop->SetFontSize(15);
+	  textprop->SetJustificationToLeft();
+	  textprop->SetVerticalJustificationToTop();
 
-	// Create a text actor for image position information
-  vtkSmartPointer<vtkTextActor> textActor = vtkSmartPointer<vtkTextActor>::New();
-	vtkSmartPointer<vtkTextProperty> textprop = textActor->GetTextProperty();
-	textprop->SetColor(1,0,0);
-	textprop->SetFontFamilyToArial();
-	textprop->SetFontSize(15);
-	textprop->SetJustificationToLeft();
-	textprop->SetVerticalJustificationToTop();
+	  textActor->VisibilityOn(); 
+	  textActor->SetDisplayPosition(10,50); 
 
-	textActor->VisibilityOn(); 
-	textActor->SetDisplayPosition(10,50); 
+	  renderer->AddActor(textActor); 
 
-	renderer->AddActor(textActor); 
+	  renderer->SetBackground(0.1,0.2,0.4);
+	  renWin->SetSize(800,600);
+	  renWin->Render();
 
-	renderer->SetBackground(0.1,0.2,0.4);
-	renWin->SetSize(800,600);
-	renWin->Render();
+	  //establish timer event and create timer
+	  vtkSmartPointer<vtkMyCallback> call = vtkSmartPointer<vtkMyCallback>::New();
+    call->Initialize(renWin, iren, textActor, imageActors, &imageTransforms);
+	  iren->AddObserver(vtkCommand::TimerEvent, call);
+	  iren->AddObserver(vtkCommand::CharEvent, call);
+	  iren->CreateTimer(VTKI_TIMER_FIRST);		//VTKI_TIMER_FIRST = 0
 
-	//establish timer event and create timer
-	vtkSmartPointer<vtkMyCallback> call = vtkSmartPointer<vtkMyCallback>::New();
-  call->Initialize(renWin, iren, textActor, imageActors, &imageTransforms);
-	iren->AddObserver(vtkCommand::TimerEvent, call);
-	iren->AddObserver(vtkCommand::CharEvent, call);
-	iren->CreateTimer(VTKI_TIMER_FIRST);		//VTKI_TIMER_FIRST = 0
+	  //iren must be initialized so that it can handle events
+	  iren->Initialize();
+	  iren->Start();
+  }
 
-	//iren must be initialized so that it can handle events
-	iren->Initialize();
-	iren->Start();
-
-	std::cout << "vtkMetaImageSequenceIOTest2 completed successfully!" << std::endl;
+	std::cout << "MetaImageSequenceViewer completed successfully!" << std::endl;
 	return EXIT_SUCCESS; 
-
 }

@@ -313,48 +313,48 @@ int main(int argc, char* argv[])
   if (renderingOff)
   {
     // just run the recording for  a few seconds then exit
+    LOG_DEBUG("Rendering disabled. Wait for just a few seconds to acquire data before exiting");
     Sleep(5000); // no need to use accurate timer, it's just an approximate delay
     sonixGrabber->StopRecording(); 
     sonixGrabber->Disconnect();
-    exit(EXIT_SUCCESS);
-  }
-
-  if (displayMode==SHOW_PLOT)
-  {
-    TestLinePlot(sonixGrabber);
   }
   else
   {
-    // Show the live ultrasound image in a VTK renderer window
+    if (displayMode==SHOW_PLOT)
+    {
+      TestLinePlot(sonixGrabber);
+    }
+    else
+    {
+      // Show the live ultrasound image in a VTK renderer window
 
-    vtkSmartPointer<vtkImageViewer> viewer = vtkSmartPointer<vtkImageViewer>::New();
-    viewer->SetInput(sonixGrabber->GetOutput());   //set image to the render and window
-    viewer->SetColorWindow(255);
-    viewer->SetColorLevel(127.5);
-    viewer->SetZSlice(0);
+      vtkSmartPointer<vtkImageViewer> viewer = vtkSmartPointer<vtkImageViewer>::New();
+      viewer->SetInput(sonixGrabber->GetOutput());   //set image to the render and window
+      viewer->SetColorWindow(255);
+      viewer->SetColorLevel(127.5);
+      viewer->SetZSlice(0);
 
-    //Create the interactor that handles the event loop
-    vtkSmartPointer<vtkRenderWindowInteractor> iren = vtkSmartPointer<vtkRenderWindowInteractor>::New();
-    iren->SetRenderWindow(viewer->GetRenderWindow());
-    viewer->SetupInteractor(iren);
+      //Create the interactor that handles the event loop
+      vtkSmartPointer<vtkRenderWindowInteractor> iren = vtkSmartPointer<vtkRenderWindowInteractor>::New();
+      iren->SetRenderWindow(viewer->GetRenderWindow());
+      viewer->SetupInteractor(iren);
 
-    viewer->Render();	//must be called after iren and viewer are linked or there will be problems
+      viewer->Render();	//must be called after iren and viewer are linked or there will be problems
 
-    // Establish timer event and create timer to update the live image
-    vtkSmartPointer<vtkMyCallback> call = vtkSmartPointer<vtkMyCallback>::New();
-    call->m_Interactor=iren;
-    call->m_Viewer=viewer;
-    iren->AddObserver(vtkCommand::TimerEvent, call);
-    iren->CreateTimer(VTKI_TIMER_FIRST);
+      // Establish timer event and create timer to update the live image
+      vtkSmartPointer<vtkMyCallback> call = vtkSmartPointer<vtkMyCallback>::New();
+      call->m_Interactor=iren;
+      call->m_Viewer=viewer;
+      iren->AddObserver(vtkCommand::TimerEvent, call);
+      iren->CreateTimer(VTKI_TIMER_FIRST);
 
-    //iren must be initialized so that it can handle events
-    iren->Initialize();
-    iren->Start();
+      //iren must be initialized so that it can handle events
+      iren->Initialize();
+      iren->Start();
+    }
   }
 
   sonixGrabber->Disconnect();
-
   return EXIT_SUCCESS;
 }
-
 

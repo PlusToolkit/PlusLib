@@ -126,7 +126,7 @@ PlusStatus vtkPhantomRegistrationAlgo::ReadConfiguration(vtkXMLDataElement* aCon
   }
 
 	// Find phantom definition element
-	vtkSmartPointer<vtkXMLDataElement> phantomDefinition = aConfig->FindNestedElementWithName("PhantomDefinition");
+	vtkXMLDataElement* phantomDefinition = aConfig->FindNestedElementWithName("PhantomDefinition");
 	if (phantomDefinition == NULL) {
 		LOG_ERROR("No phantom definition is found in the XML tree!");
 		return PLUS_FAIL;
@@ -137,14 +137,14 @@ PlusStatus vtkPhantomRegistrationAlgo::ReadConfiguration(vtkXMLDataElement* aCon
 	this->DefinedLandmarkNames.clear();
 
 	// Load geometry
-	vtkSmartPointer<vtkXMLDataElement> geometry = phantomDefinition->FindNestedElementWithName("Geometry"); 
+	vtkXMLDataElement* geometry = phantomDefinition->FindNestedElementWithName("Geometry"); 
 	if (geometry == NULL) {
 		LOG_ERROR("Phantom geometry information not found!");
 		return PLUS_FAIL;
 	}
 
 	// Read landmarks (NWires are not interesting at this point, it is only parsed if segmentation is needed)
-	vtkSmartPointer<vtkXMLDataElement> landmarks = geometry->FindNestedElementWithName("Landmarks"); 
+	vtkXMLDataElement* landmarks = geometry->FindNestedElementWithName("Landmarks"); 
 	if (landmarks == NULL) {
 		LOG_ERROR("Landmarks not found, registration is not possible!");
 		return PLUS_FAIL;
@@ -153,7 +153,7 @@ PlusStatus vtkPhantomRegistrationAlgo::ReadConfiguration(vtkXMLDataElement* aCon
 		this->DefinedLandmarkNames.resize(numberOfLandmarks);
 
 		for (int i=0; i<numberOfLandmarks; ++i) {
-			vtkSmartPointer<vtkXMLDataElement> landmark = landmarks->GetNestedElement(i);
+			vtkXMLDataElement* landmark = landmarks->GetNestedElement(i);
 
 			if ((landmark == NULL) || (STRCASECMP("Landmark", landmark->GetName()))) {
 				LOG_WARNING("Invalid landmark definition found!");
@@ -184,7 +184,7 @@ PlusStatus vtkPhantomRegistrationAlgo::ReadConfiguration(vtkXMLDataElement* aCon
 	}
 
 	// Load phantom registration transform
-	vtkSmartPointer<vtkXMLDataElement> registration = geometry->FindNestedElementWithName("Registration"); 
+	vtkXMLDataElement* registration = geometry->FindNestedElementWithName("Registration"); 
 	if (registration == NULL) {
 		LOG_ERROR("Registration element not found!");
 		return PLUS_FAIL;
@@ -216,20 +216,20 @@ PlusStatus vtkPhantomRegistrationAlgo::WriteConfiguration(vtkXMLDataElement* aCo
 	LOG_TRACE("vtkPhantomRegistrationAlgo::WriteConfiguration");
 
 	// Find phantom definition element
-	vtkSmartPointer<vtkXMLDataElement> phantomDefinition = aConfig->FindNestedElementWithName("PhantomDefinition");
+	vtkXMLDataElement* phantomDefinition = aConfig->FindNestedElementWithName("PhantomDefinition");
 	if (phantomDefinition == NULL) {
 		LOG_ERROR("No phantom definition is found in the XML tree!");
 		return PLUS_FAIL;
 	}
 
-	vtkSmartPointer<vtkXMLDataElement> geometry = phantomDefinition->FindNestedElementWithName("Geometry"); 
+	vtkXMLDataElement* geometry = phantomDefinition->FindNestedElementWithName("Geometry"); 
 	if (geometry == NULL) {
 		LOG_ERROR("Phantom geometry information not found!");
 		return PLUS_FAIL;
 	}
 
 	// Load stylus calibration transform
-	vtkSmartPointer<vtkXMLDataElement> registration = geometry->FindNestedElementWithName("Registration"); 
+	vtkXMLDataElement* registration = geometry->FindNestedElementWithName("Registration"); 
 	if (registration == NULL) {
 		LOG_ERROR("Registration element not found!");
 		return PLUS_FAIL;

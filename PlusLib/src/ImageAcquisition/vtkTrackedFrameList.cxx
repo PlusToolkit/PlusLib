@@ -611,14 +611,14 @@ PlusStatus vtkTrackedFrameList::ReadConfiguration(vtkXMLDataElement* config)
 		return PLUS_FAIL; 
 	}
 
-  vtkSmartPointer<vtkXMLDataElement> dataCollectionConfig = config->FindNestedElementWithName("USDataCollection");
+  vtkXMLDataElement* dataCollectionConfig = config->FindNestedElementWithName("USDataCollection");
 	if (dataCollectionConfig == NULL)
   {
     LOG_DEBUG("Cannot find USDataCollection element in XML tree. Use default values");
 		return PLUS_SUCCESS;
 	}
 
-  vtkSmartPointer<vtkXMLDataElement> trackerConfig = dataCollectionConfig->FindNestedElementWithName("Tracker"); 
+  vtkXMLDataElement* trackerConfig = dataCollectionConfig->FindNestedElementWithName("Tracker"); 
   if (trackerConfig == NULL) 
   {
     LOG_DEBUG("Cannot find Tracker element in XML tree. Use default values");

@@ -239,7 +239,7 @@ PlusStatus vtkTrackerTool::ReadConfiguration(vtkXMLDataElement* config)
 		this->SetSendToLink(sendToLink); 
 	}
 
-	vtkSmartPointer<vtkXMLDataElement> toolCalibrationDataElement = config->FindNestedElementWithName("Calibration"); 
+	vtkXMLDataElement* toolCalibrationDataElement = config->FindNestedElementWithName("Calibration"); 
 	if ( toolCalibrationDataElement != NULL ) 
 	{
 		const char* matrixName = toolCalibrationDataElement->GetAttribute("MatrixName"); 
@@ -275,7 +275,7 @@ PlusStatus vtkTrackerTool::ReadConfiguration(vtkXMLDataElement* config)
     }
 	}
 
-	vtkSmartPointer<vtkXMLDataElement> modelDataElement = config->FindNestedElementWithName("Model"); 
+	vtkXMLDataElement* modelDataElement = config->FindNestedElementWithName("Model"); 
 	if ( modelDataElement != NULL ) 
 	{
 		const char* file = modelDataElement->GetAttribute("File");
@@ -310,14 +310,14 @@ PlusStatus vtkTrackerTool::WriteConfiguration(vtkXMLDataElement* config)
     return PLUS_FAIL;
   }
 
-	vtkSmartPointer<vtkXMLDataElement> dataCollectionConfig = config->FindNestedElementWithName("USDataCollection");
+	vtkXMLDataElement* dataCollectionConfig = config->FindNestedElementWithName("USDataCollection");
 	if (dataCollectionConfig == NULL)
   {
     LOG_ERROR("Cannot find USDataCollection element in XML tree!");
 		return PLUS_FAIL;
 	}
 
-  vtkSmartPointer<vtkXMLDataElement> trackerConfig = dataCollectionConfig->FindNestedElementWithName("Tracker"); 
+  vtkXMLDataElement* trackerConfig = dataCollectionConfig->FindNestedElementWithName("Tracker"); 
   if ( trackerConfig == NULL) 
   {
     LOG_ERROR("Cannot find Tracker element in XML tree!");
@@ -332,15 +332,14 @@ PlusStatus vtkTrackerTool::WriteConfiguration(vtkXMLDataElement* config)
   }
 
   // Find tracker tool with type and name
-  vtkSmartPointer<vtkXMLDataElement> trackerTool = trackerConfig->FindNestedElementWithNameAndAttribute("Tool", "Type", toolType.c_str() );
+  vtkXMLDataElement* trackerTool = trackerConfig->FindNestedElementWithNameAndAttribute("Tool", "Type", toolType.c_str() );
 	if (trackerTool == NULL) 
   {
     LOG_ERROR("Unable to find tracker tool configuration file for type: " << toolType);
 		return PLUS_FAIL;
 	}
 
-  vtkSmartPointer<vtkXMLDataElement> tool; 
-  vtkSmartPointer<vtkXMLDataElement> calibration = trackerTool->FindNestedElementWithName("Calibration"); 
+  vtkXMLDataElement* calibration = trackerTool->FindNestedElementWithName("Calibration"); 
 	if ( calibration == NULL ) 
   {
     // create new element and add to trackerTool 

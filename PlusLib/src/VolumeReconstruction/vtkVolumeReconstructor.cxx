@@ -61,7 +61,7 @@ void vtkVolumeReconstructor::PrintSelf(ostream& os, vtkIndent indent)
 //----------------------------------------------------------------------------
 PlusStatus vtkVolumeReconstructor::ReadConfiguration(vtkXMLDataElement* config)
 {
-  vtkSmartPointer<vtkXMLDataElement> reconConfig = config->FindNestedElementWithName("VolumeReconstruction");
+  vtkXMLDataElement* reconConfig = config->FindNestedElementWithName("VolumeReconstruction");
   if (reconConfig == NULL)
   {
     LOG_ERROR("No volume reconstruction is found in the XML tree!");
@@ -186,13 +186,13 @@ PlusStatus vtkVolumeReconstructor::ReadConfiguration(vtkXMLDataElement* config)
   }
 
   // Read calibration matrix (ImageToTool transform)
-  vtkSmartPointer<vtkXMLDataElement> dataCollectionConfig = config->FindNestedElementWithName("USDataCollection");
+  vtkXMLDataElement* dataCollectionConfig = config->FindNestedElementWithName("USDataCollection");
   if (dataCollectionConfig == NULL)
   {
     LOG_ERROR("Cannot find USDataCollection element in XML tree!");
     return PLUS_FAIL;
   }
-  vtkSmartPointer<vtkXMLDataElement> trackerDefinition = dataCollectionConfig->FindNestedElementWithName("Tracker"); 
+  vtkXMLDataElement* trackerDefinition = dataCollectionConfig->FindNestedElementWithName("Tracker"); 
   if ( trackerDefinition == NULL) 
   {
     LOG_ERROR("Cannot find Tracker element in XML tree!");
@@ -200,12 +200,12 @@ PlusStatus vtkVolumeReconstructor::ReadConfiguration(vtkXMLDataElement* config)
   }
   std::string toolType;
   vtkTracker::ConvertToolTypeToString(TRACKER_TOOL_PROBE, toolType);
-  vtkSmartPointer<vtkXMLDataElement> probeDefinition = trackerDefinition->FindNestedElementWithNameAndAttribute("Tool", "Type", toolType.c_str());
+  vtkXMLDataElement* probeDefinition = trackerDefinition->FindNestedElementWithNameAndAttribute("Tool", "Type", toolType.c_str());
   if (probeDefinition == NULL) {
     LOG_ERROR("No probe definition is found in the XML tree!");
     return PLUS_FAIL;
   }
-  vtkSmartPointer<vtkXMLDataElement> calibration = probeDefinition->FindNestedElementWithName("Calibration");
+  vtkXMLDataElement* calibration = probeDefinition->FindNestedElementWithName("Calibration");
   if (calibration == NULL) {
     LOG_ERROR("No calibration section is found in probe definition!");
     return PLUS_FAIL;
@@ -232,10 +232,10 @@ PlusStatus vtkVolumeReconstructor::WriteConfiguration(vtkXMLDataElement *config)
 		return PLUS_FAIL; 
 	}
 
-	vtkSmartPointer<vtkXMLDataElement> reconConfig = config->FindNestedElementWithName("VolumeReconstruction");
+	vtkXMLDataElement* reconConfig = config->FindNestedElementWithName("VolumeReconstruction");
 	if (reconConfig == NULL)
   {
-    vtkSmartPointer<vtkXMLDataElement> newReconConfig = vtkXMLDataElement::New();
+    vtkSmartPointer<vtkXMLDataElement> newReconConfig = vtkSmartPointer<vtkXMLDataElement>::New();
     newReconConfig->SetName("VolumeReconstruction");
     config->AddNestedElement(newReconConfig);
     reconConfig = config->FindNestedElementWithName("VolumeReconstruction");

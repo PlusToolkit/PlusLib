@@ -118,21 +118,21 @@ PlusStatus FidSegmentation::ReadConfiguration( vtkXMLDataElement* configData )
 		return PLUS_FAIL; 
 	}
 
-  vtkSmartPointer<vtkXMLDataElement> usCalibration = configData->FindNestedElementWithName("USCalibration");
+  vtkXMLDataElement* usCalibration = configData->FindNestedElementWithName("USCalibration");
 	if (usCalibration == NULL)
   {
     LOG_ERROR("Cannot find USCalibration element in XML tree!");
     return PLUS_FAIL;
 	}
 
-  vtkSmartPointer<vtkXMLDataElement> segmentationParameters = usCalibration->FindNestedElementWithName("CalibrationController")->FindNestedElementWithName("SegmentationParameters");
+  vtkXMLDataElement* segmentationParameters = usCalibration->FindNestedElementWithName("CalibrationController")->FindNestedElementWithName("SegmentationParameters");
 	if (segmentationParameters == NULL)
   {
 		LOG_ERROR("No Segmentation parameters is found in the XML tree!");
 		return PLUS_FAIL;
 	}
 
-  vtkSmartPointer<vtkXMLDataElement> phantomDefinition = configData->FindNestedElementWithName("PhantomDefinition");
+  vtkXMLDataElement* phantomDefinition = configData->FindNestedElementWithName("PhantomDefinition");
 	if (phantomDefinition == NULL)
   {
 		LOG_ERROR("No phantom definition is found in the XML tree!");
@@ -140,7 +140,7 @@ PlusStatus FidSegmentation::ReadConfiguration( vtkXMLDataElement* configData )
 	}
 
   // Load type
-	vtkSmartPointer<vtkXMLDataElement> description = phantomDefinition->FindNestedElementWithName("Description"); 
+	vtkXMLDataElement* description = phantomDefinition->FindNestedElementWithName("Description"); 
 	if (description == NULL) 
   {
 		LOG_ERROR("Phantom description not found!");

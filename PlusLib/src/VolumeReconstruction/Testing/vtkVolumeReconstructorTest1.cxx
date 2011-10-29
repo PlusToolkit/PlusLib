@@ -58,10 +58,9 @@ int main (int argc, char* argv[])
   vtkSmartPointer<vtkVolumeReconstructor> reconstructor = vtkSmartPointer<vtkVolumeReconstructor>::New(); 
 
   LOG_INFO( "Reading configuration file:" << inputConfigFileName );
-  vtkXMLDataElement *configRead = vtkXMLUtilities::ReadElementFromFile(inputConfigFileName.c_str());
-  reconstructor->ReadConfiguration(configRead);
-  configRead->Delete();
-  configRead=NULL;
+  vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkSmartPointer<vtkXMLDataElement>::Take(
+    vtkXMLUtilities::ReadElementFromFile(inputConfigFileName.c_str()));
+  reconstructor->ReadConfiguration(configRootElement);
 
   // Print calibration transform
   std::ostringstream osTransformImageToTool; 

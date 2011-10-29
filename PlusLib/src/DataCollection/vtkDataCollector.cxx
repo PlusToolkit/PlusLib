@@ -1598,7 +1598,7 @@ PlusStatus vtkDataCollector::ReadConfiguration(vtkXMLDataElement* aConfiguration
 	}
 
   // Get data collection configuration element
-	vtkSmartPointer<vtkXMLDataElement> dataCollectionConfig = aConfigurationData->FindNestedElementWithName("USDataCollection");
+	vtkXMLDataElement* dataCollectionConfig = aConfigurationData->FindNestedElementWithName("USDataCollection");
 	if (dataCollectionConfig == NULL)
   {
     LOG_ERROR("Cannot find USDataCollection element in XML tree!");
@@ -1653,14 +1653,14 @@ PlusStatus vtkDataCollector::ReadTrackerProperties(vtkXMLDataElement* aConfigura
 {
   LOG_TRACE("vtkDataCollector::ReadTrackerProperties");
 
-	vtkSmartPointer<vtkXMLDataElement> dataCollectionConfig = aConfigurationData->FindNestedElementWithName("USDataCollection");
+	vtkXMLDataElement* dataCollectionConfig = aConfigurationData->FindNestedElementWithName("USDataCollection");
 	if (dataCollectionConfig == NULL)
   {
     LOG_ERROR("Cannot find USDataCollection element in XML tree!");
 		return PLUS_FAIL;
 	}
 
-  vtkSmartPointer<vtkXMLDataElement> trackerConfig = dataCollectionConfig->FindNestedElementWithName("Tracker"); 
+  vtkXMLDataElement* trackerConfig = dataCollectionConfig->FindNestedElementWithName("Tracker"); 
   if (trackerConfig == NULL) 
   {
     LOG_ERROR("Cannot find Tracker element in XML tree!");
@@ -1790,14 +1790,14 @@ PlusStatus vtkDataCollector::ReadImageAcquisitionProperties(vtkXMLDataElement* a
 {
   LOG_TRACE("vtkDataCollector::ReadImageAcquisitionProperties");
 
-	vtkSmartPointer<vtkXMLDataElement> dataCollectionConfig = aConfigurationData->FindNestedElementWithName("USDataCollection");
+	vtkXMLDataElement* dataCollectionConfig = aConfigurationData->FindNestedElementWithName("USDataCollection");
 	if (dataCollectionConfig == NULL)
   {
     LOG_ERROR("Cannot find USDataCollection element in XML tree!");
 		return PLUS_FAIL;
 	}
 
-  vtkSmartPointer<vtkXMLDataElement> imageAcquisitionConfig = dataCollectionConfig->FindNestedElementWithName("ImageAcquisition"); 
+  vtkXMLDataElement* imageAcquisitionConfig = dataCollectionConfig->FindNestedElementWithName("ImageAcquisition"); 
   if (imageAcquisitionConfig == NULL) 
   {
     LOG_ERROR("Unable to find ImageAcquisition element in configuration XML structure!");
@@ -1917,14 +1917,14 @@ PlusStatus vtkDataCollector::ReadSynchronizationProperties(vtkXMLDataElement* aC
 {
   LOG_TRACE("vtkDataCollector::ReadSynchronizationProperties");
 
-	vtkSmartPointer<vtkXMLDataElement> dataCollectionConfig = aConfigurationData->FindNestedElementWithName("USDataCollection");
+	vtkXMLDataElement* dataCollectionConfig = aConfigurationData->FindNestedElementWithName("USDataCollection");
 	if (dataCollectionConfig == NULL)
   {
     LOG_ERROR("Cannot find USDataCollection element in XML tree!");
 		return PLUS_FAIL;
 	}
 
-  vtkSmartPointer<vtkXMLDataElement> synchronizationConfig = dataCollectionConfig->FindNestedElementWithName("Synchronization"); 
+  vtkXMLDataElement* synchronizationConfig = dataCollectionConfig->FindNestedElementWithName("Synchronization"); 
   if (synchronizationConfig == NULL) 
   {
     LOG_ERROR("Cannot find Synchronization element in XML tree!");

@@ -1,16 +1,8 @@
-/*==========================================================================
-
-Portions (c) Copyright 2008 Brigham and Women's Hospital (BWH) All Rights Reserved.
-
-See Doc/copyright/copyright.txt
-or http://www.slicer.org/copyright/copyright.txt for details.
-
-Program:   3D Slicer
-Module:    $HeadURL: $
-Date:      $Date: $
-Version:   $Revision: $
-
-==========================================================================*/
+/*=Plus=header=begin======================================================
+  Program: Plus
+  Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+  See License.txt for details.
+=========================================================Plus=header=end*/
 
 /* 
  * Here is where system computed values get stored.

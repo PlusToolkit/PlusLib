@@ -4,20 +4,43 @@
   See License.txt for details.
 =========================================================Plus=header=end*/
 
-#include "vtkPlusConfig.h"
-
 #include "PlusConfigure.h"
+
+// Needed for proper singleton initialization 
+// The vtkDebugLeaks singleton must be initialized before and
+// destroyed after the vtkPlusConfig singleton.
+#include "vtkDebugLeaksManager.h"
+#include "vtkObjectFactory.h"
+
+#include "vtkPlusConfig.h"
 
 #include "vtksys/SystemTools.hxx" 
 #include "vtkDirectory.h"
 #include "vtkXMLUtilities.h"
+
+//----------------------------------------------------------------------------
+class vtkPlusConfigCleanup
+{
+public:
+  inline void Use()
+  {
+  }
+  ~vtkPlusConfigCleanup()
+  {
+    if( vtkPlusConfig::GetInstance() )
+    {
+      vtkPlusConfig::SetInstance(NULL);
+    }
+  }
+};
+static vtkPlusConfigCleanup vtkPlusConfigCleanupGlobal;
 
 
 //-----------------------------------------------------------------------------
 
 vtkCxxRevisionMacro(vtkPlusConfig, "$Revision: 1.0 $");
 
-vtkPlusConfig *vtkPlusConfig::Instance = new vtkPlusConfig();
+vtkPlusConfig *vtkPlusConfig::Instance = 0;
 
 //-----------------------------------------------------------------------------
 
@@ -29,13 +52,50 @@ vtkPlusConfig* vtkPlusConfig::New()
 //-----------------------------------------------------------------------------
 
 vtkPlusConfig* vtkPlusConfig::GetInstance() {
-	if(!vtkPlusConfig::Instance) {
-		if(!vtkPlusConfig::Instance) {
-			vtkPlusConfig::Instance = new vtkPlusConfig();	 
+	if(!vtkPlusConfig::Instance) 
+  {
+		if(!vtkPlusConfig::Instance) 
+    {
+      vtkPlusConfigCleanupGlobal.Use();
+
+      // Need to call vtkObjectFactory::CreateInstance method because this
+      // registers the class in the vtkDebugLeaks::MemoryTable.
+      // Without this we would get a "Deleting unknown object" VTK warning on application exit
+      // (in debug mode, with debug leak checking enabled).
+      vtkObject* ret = vtkObjectFactory::CreateInstance("vtkPlusConfig");
+      if(ret)
+      {
+        vtkPlusConfig::Instance = static_cast<vtkPlusConfig*>(ret);
+      }
+      else
+      {
+        vtkPlusConfig::Instance = new vtkPlusConfig();	 
+      }
+
 		}
 	}
 	// return the instance
 	return vtkPlusConfig::Instance;
+}
+
+void vtkPlusConfig::SetInstance(vtkPlusConfig* instance)
+{
+	if (vtkPlusConfig::Instance==instance)
+	{
+		return;
+	}
+	// preferably this will be NULL
+	if (vtkPlusConfig::Instance)
+	{
+		vtkPlusConfig::Instance->Delete();
+	}
+	vtkPlusConfig::Instance = instance;
+	if (!instance)
+	{
+		return;
+	}
+	// user will call ->Delete() after setting instance
+	instance->Register(NULL);
 }
 
 //-----------------------------------------------------------------------------
@@ -101,7 +161,7 @@ PlusStatus vtkPlusConfig::WriteApplicationConfiguration()
 {
 	LOG_TRACE("vtkPlusConfig::WriteApplicationConfiguration");
 
-  vtkSmartPointer<vtkXMLDataElement> applicationConfigurationRoot = this->ApplicationConfigurationData;
+  vtkSmartPointer<vtkXMLDataElement> applicationConfigurationRoot = vtkSmartPointer<vtkXMLDataElement>::Take(this->ApplicationConfigurationData);
 	if (applicationConfigurationRoot == NULL) {
     applicationConfigurationRoot = vtkSmartPointer<vtkXMLDataElement>::New();
     applicationConfigurationRoot->SetName("PlusConfig");
@@ -154,9 +214,9 @@ PlusStatus vtkPlusConfig::ReadApplicationConfiguration()
   bool saveNeeded = false;
 
   // Read configuration
-  vtkSmartPointer<vtkXMLDataElement> applicationConfigurationRoot = NULL;
+  vtkSmartPointer<vtkXMLDataElement> applicationConfigurationRoot;
   if (vtksys::SystemTools::FileExists(this->ApplicationConfigurationFileName, true)) {
-    applicationConfigurationRoot = vtkXMLUtilities::ReadElementFromFile(this->ApplicationConfigurationFileName);
+    applicationConfigurationRoot.TakeReference(vtkXMLUtilities::ReadElementFromFile(this->ApplicationConfigurationFileName));
   }
 	if (applicationConfigurationRoot == NULL) {
     LOG_INFO("Application configuration file is not found'" << this->ApplicationConfigurationFileName << "' - default values will be used and the file created"); 
@@ -312,12 +372,12 @@ PlusStatus vtkPlusConfig::ReplaceElementInDeviceSetConfiguration(const char* aEl
   LOG_TRACE("vtkPlusConfig::ReplaceElementInDeviceSetConfiguration(" << aElementName << ")");
 
   vtkXMLDataElement* deviceSetConfigRootElement = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData();
-  vtkSmartPointer<vtkXMLDataElement> orginalElement = deviceSetConfigRootElement->FindNestedElementWithName(aElementName);
+  vtkXMLDataElement* orginalElement = deviceSetConfigRootElement->FindNestedElementWithName(aElementName);
   if (orginalElement != NULL) {
     deviceSetConfigRootElement->RemoveNestedElement(orginalElement);
   }
 
-  vtkSmartPointer<vtkXMLDataElement> newElement = aNewRootElement->FindNestedElementWithName(aElementName);
+  vtkXMLDataElement* newElement = aNewRootElement->FindNestedElementWithName(aElementName);
   if (newElement != NULL) {
     deviceSetConfigRootElement->AddNestedElement(newElement);
 
@@ -344,7 +404,7 @@ vtkXMLDataElement* vtkPlusConfig::LookupElementWithNameContainingChildWithNameAn
     return NULL;
   }
 
-	vtkSmartPointer<vtkXMLDataElement> firstElement = aConfig->LookupElementWithName(aElementName);
+	vtkXMLDataElement* firstElement = aConfig->LookupElementWithName(aElementName);
 	if (firstElement == NULL) {
 		return NULL;
 	} else {

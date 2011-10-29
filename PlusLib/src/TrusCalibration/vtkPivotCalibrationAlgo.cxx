@@ -205,13 +205,13 @@ PlusStatus vtkPivotCalibrationAlgo::ReadConfiguration(vtkXMLDataElement* aConfig
 	// Find tool definition element
   std::string toolType;
 	vtkTracker::ConvertToolTypeToString(aType, toolType);
-  vtkSmartPointer<vtkXMLDataElement> toolDefinition = vtkPlusConfig::LookupElementWithNameContainingChildWithNameAndAttribute(aConfig, "Tracker", "Tool", "Type", toolType.c_str());
+  vtkXMLDataElement* toolDefinition = vtkPlusConfig::LookupElementWithNameContainingChildWithNameAndAttribute(aConfig, "Tracker", "Tool", "Type", toolType.c_str());
 	if (toolDefinition == NULL) {
     LOG_ERROR("No tool definition is found in the XML tree with type: " << aType);
 		return PLUS_FAIL;
 	}
 
-	vtkSmartPointer<vtkXMLDataElement> calibration = toolDefinition->FindNestedElementWithName("Calibration");
+	vtkXMLDataElement* calibration = toolDefinition->FindNestedElementWithName("Calibration");
 	if (calibration == NULL) {
 		LOG_ERROR("No calibration section is found in tool definition!");
 		return PLUS_FAIL;
@@ -246,13 +246,13 @@ PlusStatus vtkPivotCalibrationAlgo::WriteConfiguration(vtkXMLDataElement* aConfi
 	// Find tool definition element
   std::string toolType;
 	vtkTracker::ConvertToolTypeToString(aType, toolType);
-	vtkSmartPointer<vtkXMLDataElement> toolDefinition = vtkPlusConfig::LookupElementWithNameContainingChildWithNameAndAttribute(aConfig, "Tracker", "Tool", "Type", toolType.c_str());
+	vtkXMLDataElement* toolDefinition = vtkPlusConfig::LookupElementWithNameContainingChildWithNameAndAttribute(aConfig, "Tracker", "Tool", "Type", toolType.c_str());
 	if (toolDefinition == NULL) {
     LOG_ERROR("No tool definition is found in the XML tree with type: " << aType);
 		return PLUS_FAIL;
 	}
 
-	vtkSmartPointer<vtkXMLDataElement> calibration = toolDefinition->FindNestedElementWithName("Calibration");
+	vtkXMLDataElement* calibration = toolDefinition->FindNestedElementWithName("Calibration");
 	if (calibration == NULL) {
 		LOG_ERROR("No calibration section is found in tool definition!");
 		return PLUS_FAIL;

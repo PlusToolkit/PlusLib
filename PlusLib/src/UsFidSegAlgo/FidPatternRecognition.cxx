@@ -294,7 +294,7 @@ PlusStatus FidPatternRecognition::ReadPhantomDefinition(vtkXMLDataElement* confi
 
   bool nwireFlag = false;
 
-	vtkSmartPointer<vtkXMLDataElement> phantomDefinition = config->FindNestedElementWithName("PhantomDefinition");
+	vtkXMLDataElement* phantomDefinition = config->FindNestedElementWithName("PhantomDefinition");
 	if (phantomDefinition == NULL)
   {
 		LOG_ERROR("No phantom definition is found in the XML tree!");
@@ -305,7 +305,7 @@ PlusStatus FidPatternRecognition::ReadPhantomDefinition(vtkXMLDataElement* confi
     std::vector<Pattern*> tempPatterns;
 
 		// Load geometry
-		vtkSmartPointer<vtkXMLDataElement> geometry = phantomDefinition->FindNestedElementWithName("Geometry"); 
+		vtkXMLDataElement* geometry = phantomDefinition->FindNestedElementWithName("Geometry"); 
 		if (geometry == NULL) 
     {
 			LOG_ERROR("Phantom geometry information not found!");
@@ -317,7 +317,7 @@ PlusStatus FidPatternRecognition::ReadPhantomDefinition(vtkXMLDataElement* confi
 			int numberOfGeometryChildren = geometry->GetNumberOfNestedElements();
 			for (int i=0; i<numberOfGeometryChildren; ++i) 
       {
-				vtkSmartPointer<vtkXMLDataElement> patternElement = geometry->GetNestedElement(i);
+				vtkXMLDataElement* patternElement = geometry->GetNestedElement(i);
 
 				if ((patternElement == NULL) || (STRCASECMP("Pattern", patternElement->GetName()))) 
         {
@@ -337,7 +337,7 @@ PlusStatus FidPatternRecognition::ReadPhantomDefinition(vtkXMLDataElement* confi
 
 			  for (int j=0; j<numberOfWires; ++j) 
         {
-				  vtkSmartPointer<vtkXMLDataElement> wireElement = patternElement->GetNestedElement(j);
+				  vtkXMLDataElement* wireElement = patternElement->GetNestedElement(j);
 
 				  if (wireElement == NULL) 
           {

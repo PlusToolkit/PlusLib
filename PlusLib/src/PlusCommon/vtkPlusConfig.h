@@ -37,6 +37,9 @@ public:
 	*/
 	static vtkPlusConfig* GetInstance();
 
+  /*! Allows cleanup of the singleton at application exit */
+  static void SetInstance(vtkPlusConfig* instance);
+
 	/*!
 	* \brief Saves application configuration data to file with the name that is stored in ApplicationConfigurationFileName
 	* \return Success flag

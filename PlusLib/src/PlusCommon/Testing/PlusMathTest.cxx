@@ -3,6 +3,9 @@
   Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
   See License.txt for details.
 =========================================================Plus=header=end*/
+#include "vtkDebugLeaksManager.h"
+#include "vtkSystemIncludes.h"
+#include "vtkDebugLeaksManager.h"
 
 #include "PlusConfigure.h"
 #include "vtksys/CommandLineArguments.hxx"
@@ -11,7 +14,6 @@
 #include "vtkXMLUtilities.h"
 
 const double DOUBLE_DIFF = 0.0001; // used for comparing double numbers
-
 
 // ************************ PlusMath::LSQRMinimize ****************************
 int TestLSQRMinimize(vtkXMLDataElement* xmlPlusMathTest); 
@@ -57,7 +59,8 @@ int main(int argc, char **argv)
 
   vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
 
-  vtkSmartPointer<vtkXMLDataElement> xmlPlusMathTest = vtkXMLUtilities::ReadElementFromFile(inputDataFileName.c_str()); 
+  vtkSmartPointer<vtkXMLDataElement> xmlPlusMathTest = vtkSmartPointer<vtkXMLDataElement>::Take(
+    vtkXMLUtilities::ReadElementFromFile(inputDataFileName.c_str()));
 
   if ( xmlPlusMathTest == NULL )
   {
@@ -98,7 +101,7 @@ int TestLSQRMinimize(vtkXMLDataElement* xmlPlusMathTest)
   std::vector<double> bVector;  
   vnl_vector<double> resultVector(2,0); 
 
-  vtkSmartPointer<vtkXMLDataElement> xmlLSQRMinimize = xmlPlusMathTest->FindNestedElementWithName("LSQRMinimize"); 
+  vtkXMLDataElement* xmlLSQRMinimize = xmlPlusMathTest->FindNestedElementWithName("LSQRMinimize"); 
 
   if ( xmlLSQRMinimize != NULL )
   {
@@ -115,7 +118,7 @@ int TestLSQRMinimize(vtkXMLDataElement* xmlPlusMathTest)
     LOG_INFO("Linear equation: y = " << resultVector[1] << " + " << resultVector[0] << " x "); 
 
     // Compare result to baseline
-    vtkSmartPointer<vtkXMLDataElement> xmlResult = xmlLSQRMinimize->FindNestedElementWithName("Result"); 
+    vtkXMLDataElement* xmlResult = xmlLSQRMinimize->FindNestedElementWithName("Result"); 
     if ( xmlResult != NULL )
     {
       double x0Base(0); 
@@ -168,7 +171,7 @@ int TestLSQRMinimize(vtkXMLDataElement* xmlPlusMathTest)
 //----------------------------------------------------------------------------
 PlusStatus ReadLSQRDataFromXml(vtkXMLDataElement* xmlLSQRMinimize, std::vector<vnl_vector<double>> &aMatrix, std::vector<double> &bVector)
 {
-  vtkSmartPointer<vtkXMLDataElement> xmlLinearEquation = xmlLSQRMinimize->FindNestedElementWithName("LinearEquation"); 
+  vtkXMLDataElement* xmlLinearEquation = xmlLSQRMinimize->FindNestedElementWithName("LinearEquation"); 
   if ( xmlLinearEquation == NULL )
   {
     LOG_ERROR("Unable to find LinearEquation xml data element in file!"); 
@@ -267,7 +270,7 @@ PlusStatus GenerateLSQRData(vtkXMLDataElement* xmlLSQRMinimize, int numberOfData
     bVector.push_back(y); 
   }
 
-  vtkSmartPointer<vtkXMLDataElement> xmlLinearEquation = xmlLSQRMinimize->FindNestedElementWithName("LinearEquation"); 
+  vtkXMLDataElement* xmlLinearEquation = xmlLSQRMinimize->FindNestedElementWithName("LinearEquation"); 
   if ( xmlLinearEquation == NULL )
   {
     xmlLinearEquation = vtkSmartPointer<vtkXMLDataElement>::New(); 

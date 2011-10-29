@@ -23,25 +23,25 @@ int main( int argc, char** argv )
 
   // Check command line arguments.
 
-  std::string  InputConfigFileName;
-  std::string  InputVideoBufferMetafile;
-  std::string  InputTrackerBufferMetafile;
-  int          Port = 0;
-  int          VerboseLevel = vtkPlusLogger::LOG_LEVEL_DEFAULT;
+  std::string  inputConfigFileName;
+  std::string  inputVideoBufferMetafile;
+  std::string  inputTrackerBufferMetafile;
+  int          port = 0;
+  int          verboseLevel = vtkPlusLogger::LOG_LEVEL_DEFAULT;
 
   vtksys::CommandLineArguments args;
   args.Initialize( argc, argv );
 
   args.AddArgument( "--config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT,
-    &InputConfigFileName, "Name of the input configuration file." );
+    &inputConfigFileName, "Name of the input configuration file." );
   args.AddArgument( "--input-video-buffer-metafile", vtksys::CommandLineArguments::EQUAL_ARGUMENT,
-    &InputVideoBufferMetafile, "Video buffer sequence metafile." );
+    &inputVideoBufferMetafile, "Video buffer sequence metafile." );
   args.AddArgument( "--input-tracker-buffer-metafile", vtksys::CommandLineArguments::EQUAL_ARGUMENT,
-    &InputTrackerBufferMetafile, "Tracker buffer sequence metafile." );
+    &inputTrackerBufferMetafile, "Tracker buffer sequence metafile." );
   args.AddArgument( "--port", vtksys::CommandLineArguments::EQUAL_ARGUMENT,
-    &Port, "Port number for OpenIGTLink communication." );
+    &port, "Port number for OpenIGTLink communication." );
   args.AddArgument( "--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, 
-    &VerboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug 5=trace)" );  
+    &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug 5=trace)" );  
 
   if ( ! args.Parse() )
   {
@@ -50,22 +50,23 @@ int main( int argc, char** argv )
     return 1;
   }
 
-  vtkPlusLogger::Instance()->SetLogLevel( VerboseLevel );
+  vtkPlusLogger::Instance()->SetLogLevel( verboseLevel );
 
   // Prepare data collector object.
-  vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkXMLUtilities::ReadElementFromFile(InputConfigFileName.c_str());
+  vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkSmartPointer<vtkXMLDataElement>::Take(
+    vtkXMLUtilities::ReadElementFromFile(inputConfigFileName.c_str()));
   if (configRootElement == NULL)
   {	
-    LOG_ERROR("Unable to read configuration from file " << InputConfigFileName.c_str()); 
+    LOG_ERROR("Unable to read configuration from file " << inputConfigFileName.c_str()); 
     return 1;
   }
 
-  vtkDataCollector* dataCollector = vtkDataCollector::New();
+  vtkSmartPointer<vtkDataCollector> dataCollector = vtkSmartPointer<vtkDataCollector>::New();
   dataCollector->ReadConfiguration( configRootElement );
 
   if ( dataCollector->GetAcquisitionType() == SYNCHRO_VIDEO_SAVEDDATASET )
   {
-    if ( InputVideoBufferMetafile.empty() )
+    if ( inputVideoBufferMetafile.empty() )
     {
       LOG_ERROR( "Video source metafile missing." );
       return 1;
@@ -78,19 +79,19 @@ int main( int argc, char** argv )
       LOG_ERROR( "Invalid saved data video source." );
       exit( 1 );
     }
-    videoSource->SetSequenceMetafile( InputVideoBufferMetafile.c_str() );
+    videoSource->SetSequenceMetafile( inputVideoBufferMetafile.c_str() );
     videoSource->SetReplayEnabled( true ); 
   }
 
   if ( dataCollector->GetTrackerType() == TRACKER_SAVEDDATASET )
   {
-    if ( InputTrackerBufferMetafile.empty() )
+    if ( inputTrackerBufferMetafile.empty() )
     {
       LOG_ERROR( "Tracker source metafile missing." );
       return 1;
     }
     vtkSavedDataTracker* tracker = static_cast< vtkSavedDataTracker* >( dataCollector->GetTracker() );
-    tracker->SetSequenceMetafile( InputTrackerBufferMetafile.c_str() );
+    tracker->SetSequenceMetafile( inputTrackerBufferMetafile.c_str() );
     tracker->SetReplayEnabled( true ); 
     tracker->Connect();
   }

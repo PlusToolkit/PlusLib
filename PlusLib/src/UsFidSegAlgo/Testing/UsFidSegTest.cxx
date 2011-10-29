@@ -115,8 +115,10 @@ int CompareSegmentationResults(const std::string& inputBaselineFileName, const s
 	const bool reportWarningsAsFailure=true;
 	int numberOfFailures=0;
 	
-	vtkSmartPointer<vtkXMLDataElement> currentRootElem = vtkXMLUtilities::ReadElementFromFile( outputTestResultsFileName.c_str()); 
-	vtkSmartPointer<vtkXMLDataElement> baselineRootElem = vtkXMLUtilities::ReadElementFromFile(inputBaselineFileName.c_str());
+  vtkSmartPointer<vtkXMLDataElement> currentRootElem = vtkSmartPointer<vtkXMLDataElement>::Take(
+    vtkXMLUtilities::ReadElementFromFile(outputTestResultsFileName.c_str()));
+  vtkSmartPointer<vtkXMLDataElement> baselineRootElem = vtkSmartPointer<vtkXMLDataElement>::Take(
+    vtkXMLUtilities::ReadElementFromFile(inputBaselineFileName.c_str()));
 
   bool writeFidFoundRatioToFile=vtkPlusLogger::Instance()->GetLogLevel()>=vtkPlusLogger::LOG_LEVEL_TRACE; 
 	
@@ -157,7 +159,7 @@ int CompareSegmentationResults(const std::string& inputBaselineFileName, const s
 	for (int nestedElemInd=0; nestedElemInd<currentRootElem->GetNumberOfNestedElements(); nestedElemInd++)
 	{
     LOG_DEBUG( "Current Frame: " << nestedElemInd);
-		vtkSmartPointer<vtkXMLDataElement> currentElem=currentRootElem->GetNestedElement(nestedElemInd); 
+		vtkXMLDataElement* currentElem=currentRootElem->GetNestedElement(nestedElemInd); 
 		if (currentElem==NULL)  
 		{
 			LOG_WARNING("Invalid current data element");
@@ -185,7 +187,7 @@ int CompareSegmentationResults(const std::string& inputBaselineFileName, const s
 
 		LOG_DEBUG("Comparing "<<currentElem->GetAttribute(UsFidSegResultFile::ID_ATTRIBUTE_NAME));
 
-		vtkSmartPointer<vtkXMLDataElement> baselineElem=baselineRootElem->FindNestedElementWithNameAndId(UsFidSegResultFile::TEST_CASE_ELEMENT_NAME, currentElem->GetId());		
+		vtkXMLDataElement* baselineElem=baselineRootElem->FindNestedElementWithNameAndId(UsFidSegResultFile::TEST_CASE_ELEMENT_NAME, currentElem->GetId());		
 
 		if (baselineElem==NULL)
 		{
@@ -201,8 +203,8 @@ int CompareSegmentationResults(const std::string& inputBaselineFileName, const s
 			continue;	
 		}
 		
-		vtkSmartPointer<vtkXMLDataElement> outputElementBaseline=baselineElem->FindNestedElementWithName("Output");
-		vtkSmartPointer<vtkXMLDataElement> outputElementCurrent=currentElem->FindNestedElementWithName("Output");
+		vtkXMLDataElement* outputElementBaseline=baselineElem->FindNestedElementWithName("Output");
+		vtkXMLDataElement* outputElementCurrent=currentElem->FindNestedElementWithName("Output");
 		const int MAX_FIDUCIAL_COORDINATE_COUNT=MAX_FIDUCIAL_COUNT*2;
 
 		int baselineSegmentationSuccess=0;
@@ -235,7 +237,7 @@ int CompareSegmentationResults(const std::string& inputBaselineFileName, const s
 		int baselineFidPointsRead = outputElementBaseline->GetVectorAttribute("SegmentationPoints", MAX_FIDUCIAL_COORDINATE_COUNT, baselineFiducialPoints);
 
 		// Count how many baseline fiducials are detected as fiducial candidates
-    vtkSmartPointer<vtkXMLDataElement> fidCandidElement = currentElem->FindNestedElementWithName("FiducialPointCandidates");
+    vtkXMLDataElement* fidCandidElement = currentElem->FindNestedElementWithName("FiducialPointCandidates");
     const char *fidCandid = "FiducialPointCandidates";
     if((fidCandidElement != NULL) && (strcmp(fidCandidElement->GetName(),fidCandid) == 0))
     {					
@@ -354,8 +356,6 @@ int CompareSegmentationResults(const std::string& inputBaselineFileName, const s
 
   std::cout<<numberOfFailures<<std::endl;
 
-	baselineRootElem->Delete();
-	currentRootElem->Delete();
   if (writeFidFoundRatioToFile)
   {
 	  outFileFidFindingResults.close(); 
@@ -410,7 +410,8 @@ int main(int argc, char **argv)
 	}
 
   // Read configuration
-  vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkXMLUtilities::ReadElementFromFile(inputConfigFileName.c_str());
+  vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkSmartPointer<vtkXMLDataElement>::Take(
+    vtkXMLUtilities::ReadElementFromFile(inputConfigFileName.c_str()));
   if (configRootElement == NULL)
   {	
     LOG_ERROR("Unable to read configuration from file " << inputConfigFileName.c_str()); 

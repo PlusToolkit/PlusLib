@@ -54,7 +54,9 @@ int main(int argc, char **argv)
 	std::ofstream of; 
 	of.open( outputFcsvFileName.c_str());
 
-	vtkXMLDataElement* rootElem = vtkXMLUtilities::ReadElementFromFile(inputXmlFileName.c_str());	
+  vtkSmartPointer<vtkXMLDataElement> rootElem = vtkSmartPointer<vtkXMLDataElement>::Take(
+    vtkXMLUtilities::ReadElementFromFile(inputXmlFileName.c_str()));
+
 	// check to make sure we have the right element
 	if (rootElem == NULL )
 	{
@@ -91,7 +93,7 @@ int main(int argc, char **argv)
 
 	for (int nestedElemInd=0; nestedElemInd<rootElem->GetNumberOfNestedElements(); nestedElemInd++)
 	{
-		vtkSmartPointer<vtkXMLDataElement> currentElem=rootElem->GetNestedElement(nestedElemInd); 
+		vtkXMLDataElement* currentElem=rootElem->GetNestedElement(nestedElemInd); 
 		if (currentElem==NULL)  
 		{
 			LOG_ERROR("Invalid current data element");
@@ -103,11 +105,11 @@ int main(int argc, char **argv)
 			continue;	
 		}
 
-		vtkSmartPointer<vtkXMLDataElement> inputElem=currentElem->FindNestedElementWithName("Input");
+		vtkXMLDataElement* inputElem=currentElem->FindNestedElementWithName("Input");
 		int frameIndex=0;
 		inputElem->GetScalarAttribute("ImageSeqFrameIndex",frameIndex);
 
-		vtkSmartPointer<vtkXMLDataElement> outputElem=currentElem->FindNestedElementWithName("Output");
+		vtkXMLDataElement* outputElem=currentElem->FindNestedElementWithName("Output");
 		
 		const int MAX_FIDUCIAL_COORDINATE_COUNT=MAX_FIDUCIAL_COUNT*2;
 		double fiducialPoints[MAX_FIDUCIAL_COORDINATE_COUNT]; // baseline fiducial Points
@@ -208,11 +210,6 @@ int main(int argc, char **argv)
 	
 	}
 	
-	if ( rootElem != NULL ) 
-	{
-		rootElem->Delete(); 
-	}
-
 	LOG_DEBUG("Done!"); 
 		
  	return EXIT_SUCCESS;

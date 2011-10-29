@@ -35,7 +35,7 @@ int main( int argc, char** argv )
 
   bool printHelp(false);
   std::string inputMetaFilename;
-  std::string inputConfigFilename; 
+  std::string inputConfigFileName; 
   std::string outputModelFilename; 
 
   int verboseLevel = vtkPlusLogger::LOG_LEVEL_DEFAULT;
@@ -45,7 +45,7 @@ int main( int argc, char** argv )
 
   args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");	
   args.AddArgument("--input-metafile", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputMetaFilename, "Tracked ultrasound recorded by Plus (e.g., by the TrackedUltrasoundCapturing application) in a sequence metafile (.mha)");
-  args.AddArgument("--input-configfile", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFilename, "Config file used for volume reconstrucion. It contains the probe calibration matrix, the ImageToTool transform (.xml) ");
+  args.AddArgument("--input-configfile", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "Config file used for volume reconstrucion. It contains the probe calibration matrix, the ImageToTool transform (.xml) ");
   args.AddArgument("--output-modelfile", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputModelFilename, "A 3D model file that contains rectangles corresponding to each US image slice (.vtk)");
 	args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");	
 
@@ -71,7 +71,7 @@ int main( int argc, char** argv )
     std::cout << "Help: " << args.GetHelp() << std::endl;
     exit(EXIT_FAILURE); 
   }
-  if ( inputConfigFilename.empty() )
+  if ( inputConfigFileName.empty() )
   {
     std::cerr << "--input-configfile argument required!" << std::endl; 
     std::cout << "Help: " << args.GetHelp() << std::endl;
@@ -97,10 +97,9 @@ int main( int argc, char** argv )
 
   LOG_DEBUG("Reading config file...");
   vtkSmartPointer< vtkVolumeReconstructor > reconstructor = vtkSmartPointer< vtkVolumeReconstructor >::New();   
-  vtkXMLDataElement *configRead = vtkXMLUtilities::ReadElementFromFile(inputConfigFilename.c_str());
+  vtkSmartPointer<vtkXMLDataElement> configRead = vtkSmartPointer<vtkXMLDataElement>::Take(
+    vtkXMLUtilities::ReadElementFromFile(inputConfigFileName.c_str()));
   reconstructor->ReadConfiguration(configRead);
-  configRead->Delete();
-  configRead=NULL;
   LOG_DEBUG("Reading config file done.");
 
   const vtkMatrix4x4* mImageToTool = reconstructor->GetImageToToolTransform()->GetMatrix();
