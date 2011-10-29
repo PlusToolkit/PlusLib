@@ -73,13 +73,13 @@ PlusStatus ConfigFileSaverDialog::ReadConfiguration()
   LOG_TRACE("ConfigFileSaverDialog::ReadConfiguration");
 
   // Find Device set element
-	vtkSmartPointer<vtkXMLDataElement> usDataCollection = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()->FindNestedElementWithName("USDataCollection");
+	vtkXMLDataElement* usDataCollection = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()->FindNestedElementWithName("USDataCollection");
 	if (usDataCollection == NULL) {
 		LOG_ERROR("No USDataCollection element is found in the XML tree!");
 		return PLUS_FAIL;
 	}
 
-	vtkSmartPointer<vtkXMLDataElement> deviceSet = usDataCollection->FindNestedElementWithName("DeviceSet");
+	vtkXMLDataElement* deviceSet = usDataCollection->FindNestedElementWithName("DeviceSet");
 	if (deviceSet == NULL) {
 		LOG_ERROR("No DeviceSet element is found in the XML tree!");
 		return PLUS_FAIL;
@@ -112,13 +112,13 @@ void ConfigFileSaverDialog::SaveClicked()
   LOG_TRACE("ConfigFileSaverDialog::SaveClicked");
 
   // Find Device set element
-	vtkSmartPointer<vtkXMLDataElement> usDataCollection = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()->FindNestedElementWithName("USDataCollection");
+	vtkXMLDataElement* usDataCollection = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()->FindNestedElementWithName("USDataCollection");
 	if (usDataCollection == NULL) {
 		LOG_ERROR("No USDataCollection element is found in the XML tree!");
 		return;
 	}
 
-	vtkSmartPointer<vtkXMLDataElement> deviceSet = usDataCollection->FindNestedElementWithName("DeviceSet");
+	vtkXMLDataElement* deviceSet = usDataCollection->FindNestedElementWithName("DeviceSet");
 	if (deviceSet == NULL) {
 		LOG_ERROR("No DeviceSet element is found in the XML tree!");
 		return;

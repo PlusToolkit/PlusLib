@@ -164,13 +164,13 @@ PlusStatus FreehandCalibrationToolbox::ReadConfiguration(vtkXMLDataElement* aCon
   std::string toolType;
 	vtkTracker::ConvertToolTypeToString(TRACKER_TOOL_PROBE, toolType);
 
-  vtkSmartPointer<vtkXMLDataElement> probeDefinition = vtkPlusConfig::LookupElementWithNameContainingChildWithNameAndAttribute(aConfig, "Tracker", "Tool", "Type", toolType.c_str());
+  vtkXMLDataElement* probeDefinition = vtkPlusConfig::LookupElementWithNameContainingChildWithNameAndAttribute(aConfig, "Tracker", "Tool", "Type", toolType.c_str());
 	if (probeDefinition == NULL) {
 		LOG_ERROR("No probe definition is found in the XML tree!");
 		return PLUS_FAIL;
 	}
 
-	vtkSmartPointer<vtkXMLDataElement> calibration = probeDefinition->FindNestedElementWithName("Calibration");
+	vtkXMLDataElement* calibration = probeDefinition->FindNestedElementWithName("Calibration");
 	if (calibration == NULL) {
 		LOG_ERROR("No calibration section is found in probe definition!");
 		return PLUS_FAIL;
@@ -356,7 +356,8 @@ void FreehandCalibrationToolbox::OpenPhantomRegistration()
   }
 
   // Parse XML file
-  vtkSmartPointer<vtkXMLDataElement> rootElement = vtkXMLUtilities::ReadElementFromFile(fileName.toAscii().data());
+  vtkSmartPointer<vtkXMLDataElement> rootElement = vtkSmartPointer<vtkXMLDataElement>::Take(
+    vtkXMLUtilities::ReadElementFromFile(fileName.toAscii().data()));
   if (rootElement == NULL) {	
     LOG_ERROR("Unable to read the configuration file: " << fileName.toAscii().data()); 
     return;
@@ -399,7 +400,8 @@ void FreehandCalibrationToolbox::OpenSegmentationParameters()
   }
 
   // Parse XML file
-  vtkSmartPointer<vtkXMLDataElement> rootElement = vtkXMLUtilities::ReadElementFromFile(fileName.toAscii().data());
+  vtkSmartPointer<vtkXMLDataElement> rootElement = vtkSmartPointer<vtkXMLDataElement>::Take(
+    vtkXMLUtilities::ReadElementFromFile(fileName.toAscii().data()));
   if (rootElement == NULL)
   {
     LOG_ERROR("Unable to read the configuration file: " << fileName.toAscii().data()); 

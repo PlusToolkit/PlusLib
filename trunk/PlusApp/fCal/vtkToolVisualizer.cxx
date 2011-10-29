@@ -701,20 +701,20 @@ PlusStatus vtkToolVisualizer::InitializePhantomVisualization()
   this->DisplayableToolVector[TRACKER_TOOL_REFERENCE] = displayableTool;
 
   // Get phantom definition xml data element
-	vtkSmartPointer<vtkXMLDataElement> phantomDefinition = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()->FindNestedElementWithName("PhantomDefinition");
+	vtkXMLDataElement* phantomDefinition = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()->FindNestedElementWithName("PhantomDefinition");
 	if (phantomDefinition == NULL) {
 		LOG_WARNING("No phantom definition is found in the XML tree - no phantom will be displayed!");
 		return PLUS_FAIL;
 	}
 
 	// Load phantom registration transform
-  vtkSmartPointer<vtkXMLDataElement> geometry = phantomDefinition->FindNestedElementWithName("Geometry"); 
+  vtkXMLDataElement* geometry = phantomDefinition->FindNestedElementWithName("Geometry"); 
   if (geometry == NULL) {
 	  LOG_ERROR("Phantom geometry information not found!");
 	  return PLUS_FAIL;
   }
 
-  vtkSmartPointer<vtkXMLDataElement> registration = geometry->FindNestedElementWithName("Registration"); 
+  vtkXMLDataElement* registration = geometry->FindNestedElementWithName("Registration"); 
   if (registration == NULL) {
 	  LOG_ERROR("Registration element not found!");
 	  return PLUS_FAIL;
@@ -741,7 +741,7 @@ PlusStatus vtkToolVisualizer::InitializePhantomVisualization()
   }
 
 	// Load model to phantom transform
-  vtkSmartPointer<vtkXMLDataElement> model = phantomDefinition->FindNestedElementWithName("Model"); 
+  vtkXMLDataElement* model = phantomDefinition->FindNestedElementWithName("Model"); 
 	if (model == NULL) {
 		LOG_WARNING("Phantom model information not found - no model displayed");
 	} else {
@@ -885,13 +885,13 @@ PlusStatus vtkToolVisualizer::LoadPhantomModel(vtkSTLReader* aSTLReader)
 {
 	LOG_TRACE("vtkToolVisualizer::LoadPhantomModel");
 
-	vtkSmartPointer<vtkXMLDataElement> phantomDefinition = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()->FindNestedElementWithName("PhantomDefinition");
+	vtkXMLDataElement* phantomDefinition = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()->FindNestedElementWithName("PhantomDefinition");
 	if (phantomDefinition == NULL) {
 		LOG_WARNING("No phantom definition is found in the XML tree - no phantom will be displayed!");
 		return PLUS_FAIL;
 	}
 
-  vtkSmartPointer<vtkXMLDataElement> model = phantomDefinition->FindNestedElementWithName("Model"); 
+  vtkXMLDataElement* model = phantomDefinition->FindNestedElementWithName("Model"); 
 	if (model == NULL) {
 		LOG_WARNING("Phantom model information not found - no model displayed");
 		return PLUS_FAIL;

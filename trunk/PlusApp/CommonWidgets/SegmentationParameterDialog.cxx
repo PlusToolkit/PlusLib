@@ -1131,19 +1131,19 @@ PlusStatus SegmentationParameterDialog::ReadConfiguration()
   LOG_TRACE("SegmentationParameterDialog::ReadConfiguration");
 
   //Find segmentation parameters element
-  vtkSmartPointer<vtkXMLDataElement> usCalibration = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()->FindNestedElementWithName("USCalibration");
+  vtkXMLDataElement* usCalibration = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()->FindNestedElementWithName("USCalibration");
 	if (usCalibration == NULL) {
 		LOG_ERROR("No USCalibration element is found in the XML tree!");
 		return PLUS_FAIL;
 	}
 
-	vtkSmartPointer<vtkXMLDataElement> calibrationController = usCalibration->FindNestedElementWithName("CalibrationController");
+	vtkXMLDataElement* calibrationController = usCalibration->FindNestedElementWithName("CalibrationController");
 	if (calibrationController == NULL) {
 		LOG_ERROR("No CalibrationController element is found in the XML tree!");
 		return PLUS_FAIL;
 	}
 
-	vtkSmartPointer<vtkXMLDataElement> segmentationParameters = calibrationController->FindNestedElementWithName("SegmentationParameters");
+	vtkXMLDataElement* segmentationParameters = calibrationController->FindNestedElementWithName("SegmentationParameters");
 	if (segmentationParameters == NULL) {
 		LOG_ERROR("No SegmentationParameters element is found in the XML tree!");
 		return PLUS_FAIL;
@@ -1288,19 +1288,19 @@ PlusStatus SegmentationParameterDialog::WriteConfiguration()
   LOG_TRACE("SegmentationParameterDialog::WriteConfiguration");
 
   //Find segmentation parameters element
-  vtkSmartPointer<vtkXMLDataElement> usCalibration = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()->FindNestedElementWithName("USCalibration");
+  vtkXMLDataElement* usCalibration = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()->FindNestedElementWithName("USCalibration");
 	if (usCalibration == NULL) {
 		LOG_ERROR("No USCalibration element is found in the XML tree!");
 		return PLUS_FAIL;
 	}
 
-	vtkSmartPointer<vtkXMLDataElement> calibrationController = usCalibration->FindNestedElementWithName("CalibrationController");
+	vtkXMLDataElement* calibrationController = usCalibration->FindNestedElementWithName("CalibrationController");
 	if (calibrationController == NULL) {
 		LOG_ERROR("No CalibrationController element is found in the XML tree!");
 		return PLUS_FAIL;
 	}
 
-	vtkSmartPointer<vtkXMLDataElement> segmentationParameters = calibrationController->FindNestedElementWithName("SegmentationParameters");
+	vtkXMLDataElement* segmentationParameters = calibrationController->FindNestedElementWithName("SegmentationParameters");
 	if (segmentationParameters == NULL) {
 		LOG_ERROR("No SegmentationParameters element is found in the XML tree!");
 		return PLUS_FAIL;

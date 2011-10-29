@@ -424,7 +424,8 @@ void PhantomRegistrationToolbox::OpenPhantomDefinition()
 	}
 
   // Parse XML file
-  vtkSmartPointer<vtkXMLDataElement> rootElement = vtkXMLUtilities::ReadElementFromFile(fileName.toAscii().data());
+  vtkSmartPointer<vtkXMLDataElement> rootElement = vtkSmartPointer<vtkXMLDataElement>::Take(
+    vtkXMLUtilities::ReadElementFromFile(fileName.toAscii().data()));
 	if (rootElement == NULL) {	
 		LOG_ERROR("Unable to read the configuration file: " << fileName.toAscii().data()); 
 		return;

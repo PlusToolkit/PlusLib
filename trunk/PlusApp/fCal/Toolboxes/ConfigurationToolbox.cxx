@@ -125,7 +125,8 @@ void ConfigurationToolbox::ConnectToDevicesByConfigFile(std::string aConfigFile)
   // If not empty, then try to connect; empty parameter string means disconnect
   if (STRCASECMP(aConfigFile.c_str(), "") != 0) {
     // Read configuration
-    vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkXMLUtilities::ReadElementFromFile(aConfigFile.c_str());
+    vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkSmartPointer<vtkXMLDataElement>::Take(
+      vtkXMLUtilities::ReadElementFromFile(aConfigFile.c_str()));
     if (configRootElement == NULL) {	
       LOG_ERROR("Unable to read configuration from file " << aConfigFile); 
       return;
