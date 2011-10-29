@@ -137,16 +137,16 @@ ADD_TEST(UsFidSegTest_CALIBRATION_PHANTOM_6_POINT_USTC_Ulterius_ProbeRotationDat
 	)
 SET_TESTS_PROPERTIES( UsFidSegTest_CALIBRATION_PHANTOM_6_POINT_USTC_Ulterius_ProbeRotationData PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
-ADD_TEST(UsFidSegTest_CIRS_PHANTOM_13_POINT_TranslationData1
-	${EXECUTABLE_OUTPUT_PATH}/UsFidSegTest
-	--input-test-data-dir=${TestDataDir}
-	--input-img-seq-file=CIRS_TranslationData1.mha
-	--input-testcase-name=CIRS_TranslationData1
-	--input-baseline-file=${TestDataDir}/CIRS_Phantom_TranslationData1_Baseline.xml
-	--output-result-file=testcomparisons.xml
-	--input-config-file-name=${ConfigFilesDir}/Test_PlusConfiguration_CalibrationOnly_SonixTouch_Ulterius_CIRS_Phantom.xml
-	)
-SET_TESTS_PROPERTIES( UsFidSegTest_CIRS_PHANTOM_13_POINT_TranslationData1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+# ADD_TEST(UsFidSegTest_CIRS_PHANTOM_13_POINT_TranslationData1
+	# ${EXECUTABLE_OUTPUT_PATH}/UsFidSegTest
+	# --input-test-data-dir=${TestDataDir}
+	# --input-img-seq-file=CIRS_TranslationData1.mha
+	# --input-testcase-name=CIRS_TranslationData1
+	# --input-baseline-file=${TestDataDir}/CIRS_Phantom_TranslationData1_Baseline.xml
+	# --output-result-file=testcomparisons.xml
+	# --input-config-file-name=${ConfigFilesDir}/Test_PlusConfiguration_CalibrationOnly_SonixTouch_Ulterius_CIRS_Phantom.xml
+	# )
+# SET_TESTS_PROPERTIES( UsFidSegTest_CIRS_PHANTOM_13_POINT_TranslationData1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
 #######################################################
 #Test with parameters computed from Phantom Definition and configuration file
