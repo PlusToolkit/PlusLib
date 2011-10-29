@@ -426,7 +426,17 @@ void TrackedUltrasoundCapturingGUI::UpdateWidgets()
       this->SyncTrackerMatrix->show(); 
       this->CapturingTrackerMatrix->show(); 
 
-      const int defaultToolNumber = tracker->GetFirstPortNumberByType(TRACKER_TOOL_PROBE);
+      int defaultToolNumber = tracker->GetFirstPortNumberByType(TRACKER_TOOL_PROBE);
+      if ( defaultToolNumber == -1 )
+      {
+        if ( tracker->GetFirstActiveTool(defaultToolNumber) != PLUS_SUCCESS )
+        {
+          this->SyncTrackerMatrix->hide(); 
+          this->CapturingTrackerMatrix->hide(); 
+          return; 
+        }
+      }
+
       if (tracker->GetTool( defaultToolNumber )==NULL)
       {
         LOG_WARNING("Cannot get tracker tool (number="<<defaultToolNumber<<")");        

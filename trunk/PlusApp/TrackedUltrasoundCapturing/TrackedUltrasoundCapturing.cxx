@@ -187,14 +187,32 @@ PlusStatus TrackedUltrasoundCapturing::Initialize()
 	{
 		this->TrackedFrameContainer = vtkTrackedFrameList::New(); 
     this->TrackedFrameContainer->ReadConfiguration(configRootElement);
-    this->TrackedFrameContainer->SetDefaultFrameTransformName(DefaultFrameTransformName.c_str());
 	}
 
 	vtkSmartPointer<vtkImageActor> realtimeImageActor = vtkSmartPointer<vtkImageActor>::New();
 	realtimeImageActor->VisibilityOn(); 
 	this->SetRealtimeImageActor(realtimeImageActor); 
 
-	realtimeImageActor->SetInput( this->DataCollector->GetOutput() ); 
+  if ( this->DataCollector->GetVideoEnabled() )
+  {
+	  realtimeImageActor->SetInput( this->DataCollector->GetOutput() ); 
+  }
+
+  if ( this->DataCollector->GetTrackingEnabled() )
+  {
+    int defaultToolNumber =  this->DataCollector->GetTracker()->GetFirstPortNumberByType( TRACKER_TOOL_PROBE ); 
+    if ( defaultToolNumber == -1 )
+    {
+      if ( this->DataCollector->GetTracker()->GetFirstActiveTool( defaultToolNumber ) != PLUS_SUCCESS )
+      {
+        LOG_ERROR("Failed to get first active tool number!"); 
+        return PLUS_FAIL; 
+      }
+    }
+    DefaultFrameTransformName = this->DataCollector->GetTracker()->GetTool(defaultToolNumber)->GetToolName(); 
+  }
+
+  this->TrackedFrameContainer->SetDefaultFrameTransformName(DefaultFrameTransformName.c_str());
 
 	// Set up the realtime renderer
 	vtkSmartPointer<vtkRenderer> realtimeRenderer = vtkSmartPointer<vtkRenderer>::New(); 
@@ -315,7 +333,7 @@ PlusStatus TrackedUltrasoundCapturing::UpdateRecording()
   }
 	const double samplingTime = (1.0 / this->GetFrameRate()); 
 
-	if ( this->GetRecordingStartTime() == 0 )
+	if ( this->GetRecordingStartTime() < 0.0001 )
 	{
 		this->SetRecordingStartTime(newestTimestamp); 
 		this->RecordTrackedFrame(newestTimestamp); 
@@ -324,17 +342,31 @@ PlusStatus TrackedUltrasoundCapturing::UpdateRecording()
 	double lastTimestamp = this->GetLastRecordedFrameTimestamp(); 
 
   double oldestTimestamp(0); 
-  if ( this->DataCollector->GetVideoSource()->GetBuffer()->GetOldestTimeStamp(oldestTimestamp) != ITEM_OK )
+  if ( this->DataCollector->GetVideoEnabled() )
   {
-    LOG_WARNING("Failed to get oldest frame timestamp from video buffer"); 
-  }
- 
-  if ( oldestTimestamp == 0 || lastTimestamp < oldestTimestamp )
-  {
-    if ( this->DataCollector->GetVideoSource()->GetBuffer()->GetLatestTimeStamp(lastTimestamp) != ITEM_OK )
+    if ( this->DataCollector->GetVideoSource()->GetBuffer()->GetOldestTimeStamp(oldestTimestamp) != ITEM_OK )
     {
-      LOG_WARNING("Failed to get latest frame timestamp from video buffer"); 
+      LOG_WARNING("Failed to get oldest frame timestamp from video buffer"); 
     }
+  }
+  else if ( this->DataCollector->GetTrackingEnabled() )
+  {
+    int toolNumber(-1); 
+    if ( this->DataCollector->GetTracker()->GetFirstActiveTool(toolNumber) == PLUS_SUCCESS 
+      && this->DataCollector->GetTracker()->GetTool(toolNumber)->GetBuffer()->GetOldestTimeStamp(oldestTimestamp) != ITEM_OK )
+    {
+      LOG_WARNING("Failed to get oldest frame timestamp from tracker buffer"); 
+    }
+  }
+
+  if ( oldestTimestamp < 0.0001 || lastTimestamp < 0.0001 )
+  {
+    lastTimestamp = this->RecordingStartTime; 
+  }
+
+  if ( lastTimestamp < oldestTimestamp )
+  {
+    lastTimestamp = oldestTimestamp; 
   }
 	
   PlusStatus status = PLUS_SUCCESS; 
@@ -348,6 +380,7 @@ PlusStatus TrackedUltrasoundCapturing::UpdateRecording()
     }
 	}
 
+  this->SetRecordingStartTime(lastTimestamp); 
   return PLUS_SUCCESS;
 }
 
