@@ -1,7 +1,7 @@
 /*=Plus=header=begin======================================================
-  Program: Plus
-  Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
-  See License.txt for details.
+Program: Plus
+Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+See License.txt for details.
 =========================================================Plus=header=end*/
 
 #include "PlusConfigure.h"
@@ -35,8 +35,7 @@ namespace atc
 #include "vtkTrackerTool.h"
 #include "vtkTrackerBuffer.h"
 
-vtkAscension3DGTracker*
-vtkAscension3DGTracker::New()
+vtkAscension3DGTracker* vtkAscension3DGTracker::New()
 {
   // First try to create the object from the vtkObjectFactory
   vtkObject* ret = vtkObjectFactory::CreateInstance("vtkAscension3DGTracker");
@@ -50,8 +49,7 @@ vtkAscension3DGTracker::New()
 
 
 
-vtkAscension3DGTracker
-::vtkAscension3DGTracker()
+vtkAscension3DGTracker::vtkAscension3DGTracker()
 {
   this->LocalTrackerBuffer = NULL;
 
@@ -65,8 +63,7 @@ vtkAscension3DGTracker
 
 
 
-vtkAscension3DGTracker
-::~vtkAscension3DGTracker() 
+vtkAscension3DGTracker::~vtkAscension3DGTracker() 
 {
   if ( this->Tracking )
   {
@@ -82,18 +79,14 @@ vtkAscension3DGTracker
 
 
 
-void
-vtkAscension3DGTracker
-::PrintSelf( ostream& os, vtkIndent indent )
+void vtkAscension3DGTracker::PrintSelf( ostream& os, vtkIndent indent )
 {
   vtkTracker::PrintSelf( os, indent );
 }
 
 
 
-PlusStatus
-vtkAscension3DGTracker
-::Connect()
+PlusStatus vtkAscension3DGTracker::Connect()
 {
   LOG_TRACE( "vtkAscension3DGTracker::Connect" ); 
 
@@ -158,9 +151,7 @@ vtkAscension3DGTracker
 
 
 
-PlusStatus
-vtkAscension3DGTracker
-::Disconnect()
+PlusStatus vtkAscension3DGTracker::Disconnect()
 {
   LOG_TRACE( "vtkAscension3DGTracker::Disconnect" ); 
   return this->StopTracking(); 
@@ -168,9 +159,7 @@ vtkAscension3DGTracker
 
 
 
-PlusStatus
-vtkAscension3DGTracker
-::Probe()
+PlusStatus vtkAscension3DGTracker::Probe()
 {
   LOG_TRACE( "vtkAscension3DGTracker::Probe" ); 
 
@@ -178,13 +167,7 @@ vtkAscension3DGTracker
 } 
 
 
-
-/**
-* @returns 1 on success, 0 on failure.
-*/
-PlusStatus
-vtkAscension3DGTracker
-::InternalStartTracking()
+PlusStatus vtkAscension3DGTracker::InternalStartTracking()
 {
   LOG_TRACE( "vtkAscension3DGTracker::InternalStartTracking" ); 
   if ( this->Tracking )
@@ -197,8 +180,6 @@ vtkAscension3DGTracker
     LOG_ERROR( "Couldn't initialize vtkAscension3DGTracker" );
     return PLUS_FAIL;
   } 
-
-
 
   // Turn on the first attached transmitter.
 
@@ -231,9 +212,7 @@ vtkAscension3DGTracker
 
 
 
-PlusStatus
-vtkAscension3DGTracker
-::InternalStopTracking()
+PlusStatus vtkAscension3DGTracker::InternalStopTracking()
 {
   LOG_TRACE( "vtkAscension3DGTracker::InternalStopTracking" ); 
 
@@ -253,9 +232,7 @@ vtkAscension3DGTracker
 /**
 * This function is called by the tracker thread.
 */
-PlusStatus
-vtkAscension3DGTracker
-::InternalUpdate()
+PlusStatus vtkAscension3DGTracker::InternalUpdate()
 {
   LOG_TRACE( "vtkAscension3DGTracker::InternalUpdate" ); 
 
@@ -331,7 +308,7 @@ vtkAscension3DGTracker
           mTrackerToReference->SetElement( row, col, record[ this->GetReferenceToolNumber() ].s[ row ][ col ] );
         }
       }
-      
+
       mTrackerToReference->Invert();
 
       mTrackerToReference->SetElement( 0, 3, record[ this->GetReferenceToolNumber() ].x );
@@ -395,9 +372,7 @@ vtkAscension3DGTracker
 
 
 
-PlusStatus
-vtkAscension3DGTracker
-::InitAscension3DGTracker()
+PlusStatus vtkAscension3DGTracker::InitAscension3DGTracker()
 {
   LOG_TRACE( "vtkAscension3DGTracker::InitAscension3DGTracker" ); 
   return this->Connect(); 
@@ -405,9 +380,7 @@ vtkAscension3DGTracker
 
 
 
-PlusStatus
-vtkAscension3DGTracker
-::ReadConfiguration( vtkXMLDataElement* config )
+PlusStatus vtkAscension3DGTracker::ReadConfiguration( vtkXMLDataElement* config )
 {
   // Read superclass configuration first
   Superclass::ReadConfiguration(config); 
@@ -419,18 +392,18 @@ vtkAscension3DGTracker
     return PLUS_FAIL; 
   }
 
-	vtkSmartPointer<vtkXMLDataElement> dataCollectionConfig = config->FindNestedElementWithName("USDataCollection");
-	if (dataCollectionConfig == NULL)
+  vtkSmartPointer<vtkXMLDataElement> dataCollectionConfig = config->FindNestedElementWithName("USDataCollection");
+  if (dataCollectionConfig == NULL)
   {
     LOG_ERROR("Cannot find USDataCollection element in XML tree!");
-		return PLUS_FAIL;
-	}
+    return PLUS_FAIL;
+  }
 
   vtkSmartPointer<vtkXMLDataElement> trackerConfig = dataCollectionConfig->FindNestedElementWithName("Tracker"); 
   if (trackerConfig == NULL) 
   {
     LOG_ERROR("Cannot find Tracker element in XML tree!");
-		return PLUS_FAIL;
+    return PLUS_FAIL;
   }
 
   return PLUS_SUCCESS;
@@ -438,9 +411,7 @@ vtkAscension3DGTracker
 
 
 
-PlusStatus
-vtkAscension3DGTracker
-::WriteConfiguration( vtkXMLDataElement* config )
+PlusStatus vtkAscension3DGTracker::WriteConfiguration( vtkXMLDataElement* config )
 {
   LOG_TRACE( "vtkAscension3DGTracker::WriteConfiguration" ); 
   if ( config == NULL )
@@ -456,9 +427,7 @@ vtkAscension3DGTracker
 }
 
 
-PlusStatus
-vtkAscension3DGTracker
-::CheckReturnStatus( int status )
+PlusStatus vtkAscension3DGTracker::CheckReturnStatus( int status )
 {
   if( status != atc::BIRD_ERROR_SUCCESS )
   {

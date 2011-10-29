@@ -1,7 +1,7 @@
 /*=Plus=header=begin======================================================
-  Program: Plus
-  Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
-  See License.txt for details.
+Program: Plus
+Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+See License.txt for details.
 =========================================================Plus=header=end*/
 
 /* ============================================================================
@@ -39,7 +39,6 @@ vtkFakeTracker::vtkFakeTracker()
 {
   this->Frame = 0;
   this->InternalTransform = vtkTransform::New();
-  this->SerialPort = 0;
   this->Mode = FakeTrackerMode_Undefined;
   this->Counter = -1;
 }
@@ -370,30 +369,30 @@ PlusStatus vtkFakeTracker::InternalUpdate()
 
       // Translate to actual landmark point
       switch (this->Counter) { // TODO Read from xml?
-        case 0:
-          phantomToLandmarkTransform->Translate(95.0, 5.0, 15.0);
-          break;
-        case 1:
-          phantomToLandmarkTransform->Translate(95.0, 40.0, 15.0);
-          break;
-        case 2:
-          phantomToLandmarkTransform->Translate(95.0, 40.0, 0.0);
-          break;
-        case 3:
-          phantomToLandmarkTransform->Translate(95.0, 0.0, 0.0);
-          break;
-        case 4:
-          phantomToLandmarkTransform->Translate(-25.0, 40.0, 15.0);
-          break;
-        case 5:
-          phantomToLandmarkTransform->Translate(-25.0, 0.0, 10.0);
-          break;
-        case 6:
-          phantomToLandmarkTransform->Translate(-25.0, 0.0, 0.0);
-          break;
-        case 7:
-          phantomToLandmarkTransform->Translate(-25.0, 40.0, 0.0);
-          break;
+  case 0:
+    phantomToLandmarkTransform->Translate(95.0, 5.0, 15.0);
+    break;
+  case 1:
+    phantomToLandmarkTransform->Translate(95.0, 40.0, 15.0);
+    break;
+  case 2:
+    phantomToLandmarkTransform->Translate(95.0, 40.0, 0.0);
+    break;
+  case 3:
+    phantomToLandmarkTransform->Translate(95.0, 0.0, 0.0);
+    break;
+  case 4:
+    phantomToLandmarkTransform->Translate(-25.0, 40.0, 15.0);
+    break;
+  case 5:
+    phantomToLandmarkTransform->Translate(-25.0, 0.0, 10.0);
+    break;
+  case 6:
+    phantomToLandmarkTransform->Translate(-25.0, 0.0, 0.0);
+    break;
+  case 7:
+    phantomToLandmarkTransform->Translate(-25.0, 40.0, 0.0);
+    break;
       }
 
       // Rotate to make motion visible even if the camera is reset every time
@@ -411,7 +410,7 @@ PlusStatus vtkFakeTracker::InternalUpdate()
       // Apply inverse calibration so that when applying calibration during acquisition, the position is right
       vtkSmartPointer<vtkTransform> stylustipToStylusTransform = vtkSmartPointer<vtkTransform>::New();
       stylustipToStylusTransform->Identity();
-  	  stylustipToStylusTransform->SetMatrix(this->GetTool(this->GetToolPortByName("Stylus"))->GetCalibrationMatrix());
+      stylustipToStylusTransform->SetMatrix(this->GetTool(this->GetToolPortByName("Stylus"))->GetCalibrationMatrix());
       stylustipToStylusTransform->Inverse();
       stylustipToStylusTransform->Modified();
 
@@ -472,18 +471,18 @@ PlusStatus vtkFakeTracker::ReadConfiguration(vtkXMLDataElement* config)
     return PLUS_FAIL; 
   }
 
-	vtkSmartPointer<vtkXMLDataElement> dataCollectionConfig = config->FindNestedElementWithName("USDataCollection");
-	if (dataCollectionConfig == NULL)
+  vtkSmartPointer<vtkXMLDataElement> dataCollectionConfig = config->FindNestedElementWithName("USDataCollection");
+  if (dataCollectionConfig == NULL)
   {
     LOG_ERROR("Cannot find USDataCollection element in XML tree!");
-		return PLUS_FAIL;
-	}
+    return PLUS_FAIL;
+  }
 
   vtkSmartPointer<vtkXMLDataElement> trackerConfig = dataCollectionConfig->FindNestedElementWithName("Tracker"); 
   if (trackerConfig == NULL) 
   {
     LOG_ERROR("Cannot find Tracker element in XML tree!");
-		return PLUS_FAIL;
+    return PLUS_FAIL;
   }
 
   if ( !this->Tracking )
