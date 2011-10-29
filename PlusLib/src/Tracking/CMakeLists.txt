@@ -130,12 +130,11 @@ IF (PLUS_USE_MICRONTRACKER)
   
 	SET (Tracking_LIBS ${Tracking_LIBS} 
 		vtkMicrontrackerfiles
+    ${MTC_LIB_DIR}/MTC${CMAKE_STATIC_LIBRARY_SUFFIX}
 		)
     
   ADD_SUBDIRECTORY(MicronTracking/Utils)
   
-  SET (PLUSLIB_DEPENDENCIES ${PLUSLIB_DEPENDENCIES} vtkMicrontrackerfiles CACHE INTERNAL "" FORCE	)
-
   SET ( External_Libraries_Install ${External_Libraries_Install}
     ${MTC_BINARY_DIR}/MTC${CMAKE_SHARED_LIBRARY_SUFFIX}
     ${MTC_BINARY_DIR}/digiclops${CMAKE_SHARED_LIBRARY_SUFFIX}

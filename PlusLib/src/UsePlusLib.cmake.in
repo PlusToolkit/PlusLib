@@ -152,6 +152,10 @@ IF(NOT PLUSLIB_USE_FILE_INCLUDED)
       IF ("@vcProj_vtkndicapi@" STRGREATER "")
         INCLUDE_EXTERNAL_MSPROJECT(@vcProj_vtkndicapi@)
       ENDIF()
+      
+      IF ("@vcProj_Microntrackerfiles@" STRGREATER "")
+        INCLUDE_EXTERNAL_MSPROJECT(@vcProj_Microntrackerfiles@)
+      ENDIF()
     ENDIF ()
   endmacro()
     
