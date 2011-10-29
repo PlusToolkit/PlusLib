@@ -80,6 +80,9 @@ POSSIBILITY OF SUCH DAMAGES.
 #include "MicronTrackerInterface.h"
 //#include "tracking.h"
 #include "time.h"
+//#include "Cameras.h"
+//#include "MTC.h"
+//#include "MCamera.h"
 
 #define MAX_TOOL_NUM 10
 
@@ -554,6 +557,12 @@ protected:
   string toolClassNames[MAX_TOOL_NUM];
   int markerIndexAssingedToTools[MAX_TOOL_NUM];
   void ReadToolsFile();
+/*  PlusStatus ReadConfiguration( vtkXMLDataElement* config );
+	Markers* pMarkers;
+	Cameras* pCameras;
+	MCamera* pCurrCam;
+	bool isShowingHalfSize;*/
+
 
 private:
   vtkMicronTracker(const vtkMicronTracker&);
