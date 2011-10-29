@@ -48,6 +48,10 @@ POSSIBILITY OF SUCH DAMAGES.
 #include "vtkImageData.h"
 #include "PlusVideoFrame.h"
 
+//#include "Cameras.h"
+//#include "MTC.h"
+//#include "MCamera.h"
+
 //----------------------------------------------------------------------------
 vtkMicronTracker* vtkMicronTracker::New()
 {
@@ -870,3 +874,48 @@ static char *vtkStripWhitespace(char *text)
   }
   return text;
 }
+/*
+PlusStatus vtkMicronTracker::ReadConfiguration( vtkXMLDataElement* config )
+{
+  // Read superclass configuration first
+  Superclass::ReadConfiguration(config); 
+
+  LOG_TRACE( "vtkAscension3DGTracker::ReadConfiguration" ); 
+  if ( config == NULL ) 
+  {
+    LOG_ERROR("Unable to find Ascension3DGTracker XML data element");
+    return PLUS_FAIL; 
+  }
+
+	vtkSmartPointer<vtkXMLDataElement> dataCollectionConfig = config->FindNestedElementWithName("USDataCollection");
+	if (dataCollectionConfig == NULL)
+  {
+    LOG_ERROR("Cannot find USDataCollection element in XML tree!");
+		return PLUS_FAIL;
+	}
+
+  vtkSmartPointer<vtkXMLDataElement> trackerConfig = dataCollectionConfig->FindNestedElementWithName("Tracker"); 
+  if (trackerConfig == NULL) 
+  {
+    LOG_ERROR("Cannot find Tracker element in XML tree!");
+		return PLUS_FAIL;
+  }
+
+
+	this->pCameras = new Cameras();
+	int result = this->pCameras->AttachAvailableCameras();
+
+	if (result == 0 &&  this->pCameras->getCount() >= 1 ) {
+		this->pCurrCam = this->pCameras->m_vCameras[0];
+		if (this->pCurrCam->getXRes() > 1200 ) this->isShowingHalfSize = true;
+		cout << " Camera attached successfully " << endl;
+	} else {
+		LOG_ERROR(" No camera available or missing calibration file. Please also check that MTHome system environment variable is set ");
+		return PLUS_FAIL;
+	}
+
+
+
+  return PLUS_SUCCESS;
+}
+*/
