@@ -219,6 +219,7 @@ void StylusCalibrationToolbox::SetDisplayAccordingToState()
     m_ParentMainWindow->GetToolVisualizer()->ShowInput(true);
     m_ParentMainWindow->GetToolVisualizer()->ShowTool(TRACKER_TOOL_STYLUS, true);
     m_ParentMainWindow->GetToolVisualizer()->ShowResult(true);
+    m_ParentMainWindow->GetToolVisualizer()->GetCanvasRenderer()->ResetCamera();
 
     QApplication::restoreOverrideCursor();
   }

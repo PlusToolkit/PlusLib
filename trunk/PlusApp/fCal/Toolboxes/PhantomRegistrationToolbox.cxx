@@ -279,7 +279,6 @@ void PhantomRegistrationToolbox::SetDisplayAccordingToState()
 
 		m_ParentMainWindow->SetStatusBarText(QString(""));
 		m_ParentMainWindow->SetStatusBarProgress(-1);
-
   }
   else if (m_State == ToolboxState_Idle)
   {
@@ -300,7 +299,6 @@ void PhantomRegistrationToolbox::SetDisplayAccordingToState()
 
 		m_ParentMainWindow->SetStatusBarText(QString(""));
 		m_ParentMainWindow->SetStatusBarProgress(-1);
-
   }
   else if (m_State == ToolboxState_InProgress)
   {
@@ -329,7 +327,6 @@ void PhantomRegistrationToolbox::SetDisplayAccordingToState()
     }
 
     ui.pushButton_RecordPoint->setFocus();
-
   }
   else if (m_State == ToolboxState_Done)
   {

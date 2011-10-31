@@ -259,22 +259,28 @@ void fCalMainWindow::UpdateGUI()
   //LOG_TRACE("fCalMainWindow::UpdateGUI");
 
 	// We do not update the gui when a mouse button is pressed
-	if (QApplication::mouseButtons() != Qt::NoButton) {
+	if (QApplication::mouseButtons() != Qt::NoButton)
+  {
 		return;
 	}
 
   m_ToolboxList[m_ActiveToolbox]->RefreshContent();
 
 	// Refresh tool state display if detached
-  if (m_ActiveToolbox != ToolboxType_Configuration) {
+  if (m_ActiveToolbox != ToolboxType_Configuration)
+  {
     ConfigurationToolbox* configurationToolbox = dynamic_cast<ConfigurationToolbox*>(m_ToolboxList[ToolboxType_Configuration]);
-    if (configurationToolbox) {
+    if (configurationToolbox)
+    {
       configurationToolbox->RefreshToolDisplayIfDetached();
     }
 	}
 
 	// Update canvas
-	ui.canvas->update();
+  if ((m_ToolVisualizer->GetDataCollector() != NULL) && (m_ToolVisualizer->GetDataCollector()->GetConnected()))
+  {
+	  ui.canvas->update();
+  }
 
 	// Process all events
 	QApplication::processEvents(); //TODO is it needed here?

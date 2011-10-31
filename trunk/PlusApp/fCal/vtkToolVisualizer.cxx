@@ -227,6 +227,12 @@ PlusStatus vtkToolVisualizer::InitializeDeviceVisualization()
 {
 	LOG_TRACE("vtkToolVisualizer::InitializeDeviceVisualization");
 
+  if (this->DataCollector->GetConnected() == false)
+  {
+    LOG_ERROR("Device visualization cannot be initialized unless they are connected");
+    return PLUS_FAIL;
+  }
+
   // Delete displayable tools
   for (std::vector<vtkDisplayableTool*>::iterator it = this->DisplayableToolVector.begin(); it != this->DisplayableToolVector.end(); ++it) {
     if ((*it) != NULL) {

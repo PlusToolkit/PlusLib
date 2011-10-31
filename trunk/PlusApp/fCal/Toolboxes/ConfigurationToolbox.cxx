@@ -168,6 +168,9 @@ void ConfigurationToolbox::ConnectToDevicesByConfigFile(std::string aConfigFile)
         // Successful connection
 			  m_DeviceSetSelectorWidget->SetConnectionSuccessful(true);
 
+        // Load device models based on the new configuration
+        m_ParentMainWindow->GetToolVisualizer()->InitializeDeviceVisualization();
+
         vtkPlusConfig::GetInstance()->SaveApplicationConfigurationToFile();
 
 			  if (m_ToolStateDisplayWidget->InitializeTools(m_ParentMainWindow->GetToolVisualizer()->GetDataCollector(), true)) {
@@ -175,9 +178,6 @@ void ConfigurationToolbox::ConnectToDevicesByConfigFile(std::string aConfigFile)
 				  ui.toolStateDisplayWidget->setMaximumHeight(m_ToolStateDisplayWidget->GetDesiredHeight());
 			  }
 		  }
-
-      // Load device models based on the new configuration
-      m_ParentMainWindow->GetToolVisualizer()->InitializeDeviceVisualization();
 
 		  // Close dialog
 		  connectDialog->done(0);
