@@ -161,7 +161,7 @@ PlusStatus vtkPlusConfig::WriteApplicationConfiguration()
 {
 	LOG_TRACE("vtkPlusConfig::WriteApplicationConfiguration");
 
-  vtkSmartPointer<vtkXMLDataElement> applicationConfigurationRoot = vtkSmartPointer<vtkXMLDataElement>::Take(this->ApplicationConfigurationData);
+  vtkXMLDataElement* applicationConfigurationRoot = this->ApplicationConfigurationData;
 	if (applicationConfigurationRoot == NULL) {
     applicationConfigurationRoot = vtkSmartPointer<vtkXMLDataElement>::New();
     applicationConfigurationRoot->SetName("PlusConfig");
