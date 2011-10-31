@@ -622,6 +622,11 @@ void FidLineFinder::FindLines2Points()
 {
 	LOG_TRACE("FidLineFinder::FindLines2Points");
 
+  if (m_DotsVector.size() < 2)
+  {
+    return;
+  }
+
   std::vector<Line> twoPointsLinesVector;
 
   for( int i=0 ; i<m_Patterns.size() ; i++)
@@ -693,7 +698,12 @@ void FidLineFinder::FindLinesNPoints()
   for( int i=0 ; i<m_Patterns.size() ; i++)
   {
     for( int linesVectorIndex = 3 ; linesVectorIndex <= maxNumberOfPointsPerLine ; linesVectorIndex++ )
-    {  
+    {
+      if (linesVectorIndex > m_LinesVector.size)
+      {
+        continue;
+      }
+
       for ( int l = 0; l < m_LinesVector[linesVectorIndex-1].size(); l++ ) 
 	    {
         Line currentShorterPointsLine;
