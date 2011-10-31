@@ -75,7 +75,7 @@ class FidLabeling
     void          SetMinThetaDegrees(double value) { m_MinTheta = value; };
     void          SetMaxThetaDegrees(double value) { m_MaxTheta = value; };
 
-    void          SetAngleToleranceDegrees(double value) { m_AngleTolerance = value; };
+    void          SetAngleToleranceDegrees(double value);
 
 	protected:
     int					  m_FrameSize[2];
@@ -93,7 +93,7 @@ class FidLabeling
 		bool					m_DotsFound;
 
 		float					m_AngleConf;
-    float         m_AngleTolerance;
+    float         m_AngleToleranceRad;
     float         m_InclinedLineAngle;
 		float					m_LinePairIntensity;
 		

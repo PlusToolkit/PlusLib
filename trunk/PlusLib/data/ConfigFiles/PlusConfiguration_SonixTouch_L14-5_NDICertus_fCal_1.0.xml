@@ -134,7 +134,7 @@ The computer needs to be on the same local network as SonixTOUCH and the Certus 
       <ProbeCalibration />
 			<SegmentationParameters
 					ApproximateSpacingMmPerPixel="0.078"
-					MorphologicalOpeningCircleRadiusMm="0.47"
+					MorphologicalOpeningCircleRadiusMm="0.4"
 					MorphologicalOpeningBarSizeMm="1.0"
 
 					RegionOfInterest="27 27 793 589"
@@ -143,7 +143,7 @@ The computer needs to be on the same local network as SonixTOUCH and the Certus 
 					MaxLinePairDistanceErrorPercent="10.0"
 					MaxLineErrorMm="2.0"
 
-					MaxAngleDifferenceDegrees="11"
+					MaxAngleDifferenceDegrees="10"
 					MinThetaDegrees="-70"
 					MaxThetaDegrees="70"
 					
@@ -151,7 +151,7 @@ The computer needs to be on the same local network as SonixTOUCH and the Certus 
 
 					ThresholdImagePercent="10.0"
 
-					CollinearPointsMaxDistanceFromLineMm="0.41"
+					CollinearPointsMaxDistanceFromLineMm="1.5"
 
 					UseOriginalImageIntensityForDotIntensityScore="0"
 					>

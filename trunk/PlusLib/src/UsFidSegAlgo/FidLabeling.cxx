@@ -27,7 +27,7 @@ FidLabeling::FidLabeling()
 	m_MaxLineErrorMm = -1.0;
 	m_MinTheta = -1.0;
 	m_MaxTheta = -1.0;
-  m_AngleTolerance = -1.0;
+  m_AngleToleranceRad = -1.0;
 	
 	m_DotsFound = false;
 
@@ -181,7 +181,7 @@ PlusStatus FidLabeling::ReadConfiguration( vtkXMLDataElement* configData, double
   double angleToleranceDegrees(0.0); 
 	if ( segmentationParameters->GetScalarAttribute("AngleToleranceDegrees", angleToleranceDegrees) )
 	{
-    m_AngleTolerance = angleToleranceDegrees * vtkMath::Pi() / 180.0; 
+    m_AngleToleranceRad = angleToleranceDegrees * vtkMath::Pi() / 180.0; 
 	}
   else
   {
@@ -242,6 +242,14 @@ void FidLabeling::SetFrameSize(int frameSize[2])
     LOG_ERROR("Dimensions of the frame size are not positive!");
     return;
   }
+}
+
+//-----------------------------------------------------------------------------
+
+void FidLabeling::SetAngleToleranceDegrees(double value)
+{
+  // In the source file because vtkMath would need an additional include in the header
+  m_AngleToleranceRad = value * vtkMath::Pi() / 180.0;
 }
 
 //-----------------------------------------------------------------------------
@@ -605,7 +613,7 @@ void FidLabeling::FindPattern()
         float shift = -1;
         int commonPointIndex = -1;
         
-        if(angleDifference < m_AngleTolerance)//The angle between 2 lines is close to 0
+        if(angleDifference < m_AngleToleranceRad)//The angle between 2 lines is close to 0
         {
           distance = ComputeDistancePointLine(m_DotsVector[currentLine1.GetOrigin()], currentLine2);
           shift = ComputeShift(currentLine1,currentLine2);
@@ -647,7 +655,7 @@ void FidLabeling::FindPattern()
         {
           distanceTest = true;
           //if there is a common point, we check that the angle difference is correct (45 degres in CIRS phantom)
-          if((commonPointIndex != -1) && (angleDifference > m_InclinedLineAngle-m_AngleTolerance) && (angleDifference < m_InclinedLineAngle+m_AngleTolerance))
+          if((commonPointIndex != -1) && (angleDifference > m_InclinedLineAngle-m_AngleToleranceRad) && (angleDifference < m_InclinedLineAngle+m_AngleToleranceRad))
           {
             commonPointTest = true;
           }
