@@ -247,6 +247,7 @@ void FreehandCalibrationToolbox::SetDisplayAccordingToState()
 
     ui.checkBox_ShowDevices->setEnabled(false);
     ui.pushButton_Save->setEnabled(false);
+    ui.pushButton_EditSegmentationParameters->setEnabled(false);
 
     m_ParentMainWindow->SetStatusBarText(QString(""));
     m_ParentMainWindow->SetStatusBarProgress(-1);
@@ -271,6 +272,7 @@ void FreehandCalibrationToolbox::SetDisplayAccordingToState()
       ui.checkBox_ShowDevices->setEnabled(false);
     }
 
+    ui.pushButton_EditSegmentationParameters->setEnabled(true);
     ui.pushButton_Save->setEnabled(false);
     ui.label_Results->setText(tr(""));
 
@@ -292,6 +294,7 @@ void FreehandCalibrationToolbox::SetDisplayAccordingToState()
     ui.frame_SpatialCalibration->setEnabled(true);
     ui.pushButton_StartSpatial->setEnabled(false);
 
+    ui.pushButton_EditSegmentationParameters->setEnabled(false);
     ui.checkBox_ShowDevices->setEnabled(false);
     ui.pushButton_Save->setEnabled(false);
     ui.label_Results->setText(tr(""));
@@ -309,6 +312,7 @@ void FreehandCalibrationToolbox::SetDisplayAccordingToState()
     ui.pushButton_StartSpatial->setEnabled(true);
     ui.pushButton_CancelSpatial->setEnabled(false);
 
+    ui.pushButton_EditSegmentationParameters->setEnabled(true);
     ui.checkBox_ShowDevices->setEnabled(true);
     ui.pushButton_Save->setEnabled(true);
     ui.label_Results->setText(m_Calibration->GetResultString().c_str());

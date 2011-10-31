@@ -281,9 +281,6 @@ void fCalMainWindow::UpdateGUI()
   {
 	  ui.canvas->update();
   }
-
-	// Process all events
-	QApplication::processEvents(); //TODO is it needed here?
 }
 
 //-----------------------------------------------------------------------------
