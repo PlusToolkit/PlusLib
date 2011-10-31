@@ -118,21 +118,21 @@ PlusStatus FidSegmentation::ReadConfiguration( vtkXMLDataElement* configData )
 		return PLUS_FAIL; 
 	}
 
-  vtkXMLDataElement* usCalibration = configData->FindNestedElementWithName("USCalibration");
+  vtkSmartPointer<vtkXMLDataElement> usCalibration = configData->FindNestedElementWithName("USCalibration");
 	if (usCalibration == NULL)
   {
     LOG_ERROR("Cannot find USCalibration element in XML tree!");
     return PLUS_FAIL;
 	}
 
-  vtkXMLDataElement* segmentationParameters = usCalibration->FindNestedElementWithName("CalibrationController")->FindNestedElementWithName("SegmentationParameters");
+  vtkSmartPointer<vtkXMLDataElement> segmentationParameters = usCalibration->FindNestedElementWithName("CalibrationController")->FindNestedElementWithName("SegmentationParameters");
 	if (segmentationParameters == NULL)
   {
 		LOG_ERROR("No Segmentation parameters is found in the XML tree!");
 		return PLUS_FAIL;
 	}
 
-  vtkXMLDataElement* phantomDefinition = configData->FindNestedElementWithName("PhantomDefinition");
+  vtkSmartPointer<vtkXMLDataElement> phantomDefinition = configData->FindNestedElementWithName("PhantomDefinition");
 	if (phantomDefinition == NULL)
   {
 		LOG_ERROR("No phantom definition is found in the XML tree!");
@@ -140,7 +140,7 @@ PlusStatus FidSegmentation::ReadConfiguration( vtkXMLDataElement* configData )
 	}
 
   // Load type
-	vtkXMLDataElement* description = phantomDefinition->FindNestedElementWithName("Description"); 
+	vtkSmartPointer<vtkXMLDataElement> description = phantomDefinition->FindNestedElementWithName("Description"); 
 	if (description == NULL) 
   {
 		LOG_ERROR("Phantom description not found!");
@@ -155,10 +155,10 @@ PlusStatus FidSegmentation::ReadConfiguration( vtkXMLDataElement* configData )
       {
         m_FiducialGeometry = CALIBRATION_PHANTOM_6_POINT;
 			} 
-      else if (STRCASECMP("U-Shaped-N", type) == 0) 
+      else if(STRCASECMP("CIRS", type) == 0) 
       {
-				//SetFiducialGeometry(TAB2_5_POINT);
-			}
+        m_FiducialGeometry = CIRS_PHANTOM_13_POINT;
+			} 
 		} 
     else 
     {
