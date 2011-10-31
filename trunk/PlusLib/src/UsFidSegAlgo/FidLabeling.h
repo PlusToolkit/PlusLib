@@ -58,7 +58,6 @@ class FidLabeling
     std::vector<Pattern*> GetPatterns() { return m_Patterns; };
     void          SetPatterns( std::vector<Pattern*> value ) { m_Patterns = value; };
 
-    float					GetAngleConf() { return m_AngleConf; };
     float					GetLinePairIntensity() { return m_LinePairIntensity; };
 
     void					SetDotsFound(bool value) { m_DotsFound = value; };
@@ -92,7 +91,6 @@ class FidLabeling
 		
 		bool					m_DotsFound;
 
-		float					m_AngleConf;
     float         m_AngleToleranceRad;
     float         m_InclinedLineAngle;
 		float					m_LinePairIntensity;

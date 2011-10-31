@@ -56,7 +56,6 @@ PlusStatus FidPatternRecognition::RecognizePattern(TrackedFrame* trackedFrame, P
     return PLUS_FAIL;
   }
 
-  patternRecognitionResult.SetAngles(m_FidLabeling.GetAngleConf());
 	patternRecognitionResult.SetIntensity(m_FidLabeling.GetLinePairIntensity());
 	patternRecognitionResult.SetNumDots(m_FidLabeling.GetDotsVector().size()); 
 	patternRecognitionResult.SetDotsFound(m_FidLabeling.GetDotsFound());
@@ -410,10 +409,24 @@ PlusStatus FidPatternRecognition::ReadPhantomDefinition(vtkXMLDataElement* confi
 
           tempPatterns[i]->distanceToOriginMm.push_back(0);
           tempPatterns[i]->distanceToOriginToleranceMm.push_back(0);
-          double midMean[2] = {(tempPatterns[i]->wires[1].endPointBack[0]+tempPatterns[i]->wires[1].endPointFront[0])/2,(tempPatterns[i]->wires[1].endPointBack[1]+tempPatterns[i]->wires[1].endPointFront[1])/2};
-          double distMidToOrigin = sqrt((tempPatterns[i]->wires[0].endPointBack[0]-midMean[0])*(tempPatterns[i]->wires[0].endPointBack[0]-midMean[0])+(tempPatterns[i]->wires[0].endPointBack[1]-midMean[1])*(tempPatterns[i]->wires[0].endPointBack[1]-midMean[1]));
+
+          double originToMiddle[3] = {(tempPatterns[i]->wires[1].endPointBack[0]+tempPatterns[i]->wires[1].endPointFront[0])/2-tempPatterns[i]->wires[0].endPointFront[0],
+                                      (tempPatterns[i]->wires[1].endPointBack[1]+tempPatterns[i]->wires[1].endPointFront[1])/2-tempPatterns[i]->wires[0].endPointFront[1],
+                                      (tempPatterns[i]->wires[1].endPointBack[2]+tempPatterns[i]->wires[1].endPointFront[2])/2-tempPatterns[i]->wires[0].endPointFront[2]};
+
+          double originToEnd[3] = {tempPatterns[i]->wires[2].endPointFront[0]-tempPatterns[i]->wires[0].endPointFront[0],
+                                    tempPatterns[i]->wires[2].endPointFront[1]-tempPatterns[i]->wires[0].endPointFront[1],
+                                    tempPatterns[i]->wires[2].endPointFront[2]-tempPatterns[i]->wires[0].endPointFront[2]};
+
+          vtkMath::Normalize(originToEnd);
+
+          double dot = vtkMath::Dot(originToMiddle,originToEnd);
+          const double projectedMiddle[3] = {originToEnd[0]*dot, originToEnd[1]*dot, originToEnd[2]*dot};
+          double distMidToOrigin = vtkMath::Norm(projectedMiddle);
+
           tempPatterns[i]->distanceToOriginMm.push_back(distMidToOrigin);
           tempPatterns[i]->distanceToOriginToleranceMm.push_back(15);
+
           double distEndToOrigin = sqrt((tempPatterns[i]->wires[0].endPointBack[0]-tempPatterns[i]->wires[2].endPointBack[0])*(tempPatterns[i]->wires[0].endPointBack[0]-tempPatterns[i]->wires[2].endPointBack[0])+(tempPatterns[i]->wires[0].endPointBack[1]-tempPatterns[i]->wires[2].endPointBack[1])*(tempPatterns[i]->wires[0].endPointBack[1]-tempPatterns[i]->wires[2].endPointBack[1]));
           tempPatterns[i]->distanceToOriginMm.push_back(distEndToOrigin);
           tempPatterns[i]->distanceToOriginToleranceMm.push_back(4);

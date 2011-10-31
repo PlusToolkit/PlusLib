@@ -18,7 +18,6 @@ class FidLineFinder
 		FidLineFinder();
 		virtual ~FidLineFinder();
 
-		void				UpdateParameters();
 		void				ComputeParameters();
 
     void        Clear();
@@ -81,9 +80,6 @@ class FidLineFinder
 		double 			m_MaxLineLengthErrorPercent;
 		double 			m_MaxLinePairDistanceErrorPercent;
 
-		// min and max length of line (mm) - computed from input error percent and NWire definitions
-		double 			m_MinLineLenMm;
-		double 			m_MaxLineLenMm;
 		double 			m_MaxLineErrorMm;
 
 		double 			m_CollinearPointsMaxDistanceFromLineMm; 
@@ -91,9 +87,6 @@ class FidLineFinder
 		double 			m_MinTheta; 
 		double 			m_MaxTheta;
 
-		/* The degree to which the lines are parallel and the dots linear.  On the
-		 * range 0-1, with 0 being a very good angles score and 1 being the
-		 * threshold of acceptability. */
 		float			  m_Angles;
 
 		std::vector<Dot>	m_CandidateFidValues; // pointer to the fiducial candidates coordinates

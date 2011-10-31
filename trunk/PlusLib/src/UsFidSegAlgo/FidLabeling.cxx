@@ -31,7 +31,6 @@ FidLabeling::FidLabeling()
 	
 	m_DotsFound = false;
 
-	m_AngleConf = -1.0;
 	m_LinePairIntensity = -1.0;
 }
 
@@ -370,7 +369,6 @@ void FidLabeling::FindDoubleNLines()
 	//std::vector<std::vector<double>> sortedFiducials = SortInAscendingOrder(m_FoundDotsCoordinateValue); 
 	//m_FoundDotsCoordinateValue = sortedFiducials; 					
 
-	m_AngleConf = pair->GetAngleConf();
 	m_LinePairIntensity = pair->GetLinePairIntensity();
 	m_NumDots = m_DotsVector.size(); 
 }
@@ -591,11 +589,6 @@ void FidLabeling::FindPattern()
       }
     }
 
-    /*for(int i=0 ; i<lineIndices.size(); i++)
-    {
-      std::cout<<lineIndices[i]<<" "<<std::flush;
-    }
-    std::cout<<std::endl;*/
     // we have a new permutation in lineIndices
     std::vector<int> testFlags(numberOfLines*(numberOfLines-1)/2,-1);
     int counter = 0;
@@ -604,7 +597,7 @@ void FidLabeling::FindPattern()
     {
       Line currentLine1 = maxPointsLines[lineIndices[i]];
       float angle1 = Line::ComputeHalfSpaceAngle(currentLine1);
-      for( int j=i+1 ; j<numberOfLines ; j++)// ?
+      for( int j=i+1 ; j<numberOfLines ; j++)
       {
         Line currentLine2 = maxPointsLines[lineIndices[j]];
         float angle2 = Line::ComputeHalfSpaceAngle(currentLine2);

@@ -42,8 +42,6 @@ FidLineFinder::FidLineFinder()
 	m_MaxLineLengthErrorPercent = -1.0;
 	m_MaxLinePairDistanceErrorPercent = -1.0;
 
-	m_MinLineLenMm = -1.0;
-	m_MaxLineLenMm = -1.0;
 	m_MaxLineErrorMm = -1.0;
 
 	m_CollinearPointsMaxDistanceFromLineMm = -1.0; 
@@ -59,53 +57,6 @@ FidLineFinder::FidLineFinder()
 FidLineFinder::~FidLineFinder()
 {
 
-}
-
-//-----------------------------------------------------------------------------
-
-void FidLineFinder::UpdateParameters()
-{
-	LOG_TRACE("FidLineFinder::UpdateParameters");
-
-	// Compute error boundaries based on error percents and the NWire definition (supposing that the NWire is regular - parallel sides)
-	// Line length of an N-wire: the maximum distance between its wires' front endpoints
-	double maxLineLengthSquared = -1.0;
-	double minLineLengthSquared = FLT_MAX;
-	std::vector<NWire> nWires;
-
-  for( int i=0 ; i< m_Patterns.size() ; i++)
-  {
-    NWire* nWire = static_cast<NWire*>(m_Patterns.at(i));
-    if(nWire)//if it is a NWire*
-    {
-      nWires.push_back(*nWire);
-    }
-  }
-
-	for (std::vector<NWire>::iterator it = nWires.begin(); it != nWires.end(); ++it) 
-  {
-		Wire wire0 = it->wires[0];
-		Wire wire1 = it->wires[1];
-		Wire wire2 = it->wires[2];
-
-		double distance01Squared = vtkMath::Distance2BetweenPoints(wire0.endPointFront, wire1.endPointFront);
-		double distance02Squared = vtkMath::Distance2BetweenPoints(wire0.endPointFront, wire2.endPointFront);
-		double distance12Squared = vtkMath::Distance2BetweenPoints(wire1.endPointFront, wire2.endPointFront);
-		double lineLengthSquared = std::max( std::max(distance01Squared, distance02Squared), distance12Squared );
-
-		if(maxLineLengthSquared < lineLengthSquared) 
-    {
-			maxLineLengthSquared = lineLengthSquared;
-		}
-		if(minLineLengthSquared > lineLengthSquared) 
-    {
-			minLineLengthSquared = lineLengthSquared;
-		}
-	}
-
-	m_MaxLineLenMm = sqrt(maxLineLengthSquared) * (1.0 + (m_MaxLineLengthErrorPercent / 100.0));
-	m_MinLineLenMm = sqrt(minLineLengthSquared) * (1.0 - (m_MaxLineLengthErrorPercent / 100.0));
-	LOG_DEBUG("Line length - computed min: " << sqrt(minLineLengthSquared) << " , max: " << sqrt(maxLineLengthSquared) << ";  allowed min: " << m_MinLineLenMm << ", max: " << m_MaxLineLenMm);
 }
 
 //-----------------------------------------------------------------------------
@@ -404,8 +355,6 @@ PlusStatus FidLineFinder::ReadConfiguration( vtkXMLDataElement* configData )
       LOG_WARNING("Could not read maxLineErrorMm from configuration file.");
     }
 	}
-
-  UpdateParameters();
 
   return PLUS_SUCCESS; 
 }
@@ -857,13 +806,14 @@ bool FidLineFinder::AcceptLine( Line &line )
 {
 	//LOG_TRACE("FidLineFinder::AcceptLine");
 
-	//int maxLineLenPx = floor(m_MaxLineLenMm / m_ApproximateSpacingMmPerPixel + 0.5 );
-	//int minLineLenPx = floor(m_MinLineLenMm / m_ApproximateSpacingMmPerPixel + 0.5 );
   float angle = Line::ComputeAngle(line);
   bool acceptAngle = AcceptAngle(angle);
 
 	if ( acceptAngle )
+  {
 		return true;
+  }
+
 	return false;
 }
 
