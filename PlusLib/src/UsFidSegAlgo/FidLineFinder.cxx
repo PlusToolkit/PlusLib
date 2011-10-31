@@ -699,7 +699,7 @@ void FidLineFinder::FindLinesNPoints()
   {
     for( int linesVectorIndex = 3 ; linesVectorIndex <= maxNumberOfPointsPerLine ; linesVectorIndex++ )
     {
-      if (linesVectorIndex > m_LinesVector.size)
+      if (linesVectorIndex > m_LinesVector.size())
       {
         continue;
       }
