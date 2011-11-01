@@ -78,9 +78,6 @@ protected:
 
 	//! Flag showing if the widget is initialized (the tools are loaded)
 	bool					m_Initialized;
-
-	//! Number of active tools
-	int						m_NumberOfActiveTools;
 };
 
 #endif

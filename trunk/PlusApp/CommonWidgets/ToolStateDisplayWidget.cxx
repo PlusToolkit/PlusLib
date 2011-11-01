@@ -19,7 +19,6 @@ ToolStateDisplayWidget::ToolStateDisplayWidget(QWidget* aParent, Qt::WFlags aFla
 	: QWidget(aParent, aFlags)
 	, m_DataCollector(NULL)
 	, m_Initialized(false)
-	, m_NumberOfActiveTools(-1)
 {
 	m_ToolNameLabels.clear();
 	m_ToolStateLabels.clear();
@@ -94,15 +93,13 @@ PlusStatus ToolStateDisplayWidget::InitializeTools(vtkDataCollector* aDataCollec
 	grid->setVerticalSpacing(4);
 	grid->setContentsMargins(4, 4, 4, 4);
 
-	m_NumberOfActiveTools = 0;
+  m_ToolStateLabels.resize(m_DataCollector->GetTracker()->GetNumberOfTools(), NULL);
 
 	for (int i=0; i<m_DataCollector->GetTracker()->GetNumberOfTools(); ++i) {
 		vtkTrackerTool *tool = m_DataCollector->GetTracker()->GetTool(i);
 		if ((tool == NULL) || (!tool->GetEnabled())) {
 			LOG_DEBUG("Tool " << i << " is not enabled or not present");
 			continue;
-		} else {
-			m_NumberOfActiveTools++;
 		}
 
 		// Assemble tool name and add label to layout and label list
@@ -133,7 +130,7 @@ PlusStatus ToolStateDisplayWidget::InitializeTools(vtkDataCollector* aDataCollec
 		sizePolicyStateLabel.setHorizontalStretch(1);
 		toolStateLabel->setSizePolicy(sizePolicyStateLabel);
 		grid->addWidget(toolStateLabel, i, 1, Qt::AlignRight);
-		m_ToolStateLabels.push_back(toolStateLabel);
+		m_ToolStateLabels[i] = toolStateLabel;
 	}
 	
 	this->setLayout(grid);
@@ -158,7 +155,22 @@ int ToolStateDisplayWidget::GetDesiredHeight()
 {
 	LOG_TRACE("ToolStateDisplayWidget::GetDesiredHeight"); 
 
-	return (m_NumberOfActiveTools>0 ? m_NumberOfActiveTools * 23 : 23);
+  if ( m_DataCollector == NULL || m_DataCollector->GetTracker() == NULL )
+  {
+    return 23; 
+  }
+
+  int numberOfActiveTools = 0;
+
+	for (int i=0; i<m_DataCollector->GetTracker()->GetNumberOfTools(); ++i) {
+		vtkTrackerTool *tool = m_DataCollector->GetTracker()->GetTool(i);
+		if ((tool != NULL) && (tool->GetEnabled()))
+    {
+			numberOfActiveTools++;
+		}
+  }
+
+	return (numberOfActiveTools>0 ? numberOfActiveTools * 23 : 23);
 }
 
 //-----------------------------------------------------------------------------
@@ -169,25 +181,40 @@ PlusStatus ToolStateDisplayWidget::Update()
 		LOG_ERROR("Widget is not inialized!");
 		return PLUS_FAIL;
 	}
-	if (m_ToolStateLabels.size() != m_NumberOfActiveTools) {
-		LOG_ERROR("Tool number inconsistency!");
-		return PLUS_FAIL;
-	}
+
+  // Re-initialize widget if enabled statuses have changed
+  int numberOfEnabledTools = 0;
+  int numberOfDisplayedTools = 0;
 
 	for (int i=0; i<m_DataCollector->GetTracker()->GetNumberOfTools(); ++i) {
 		vtkTrackerTool *tool = m_DataCollector->GetTracker()->GetTool(i);
-		if ((tool == NULL) || (!tool->GetEnabled())) {
+    if (tool->GetEnabled())
+    {
+      numberOfEnabledTools++;
+    }
+
+    if (m_ToolStateLabels.at(i))
+    {
+      numberOfDisplayedTools++;
+    }
+
+		if ((tool == NULL) || (!tool->GetEnabled()) || (m_ToolStateLabels.at(i) == NULL))
+    {
 			continue;
 		}
 
 		TrackerStatus status = TR_MISSING;
 		TrackerBufferItem latestItem;
-		if (tool->GetBuffer()->GetLatestTrackerBufferItem(&latestItem) != ITEM_OK) {
+		if (tool->GetBuffer()->GetLatestTrackerBufferItem(&latestItem) != ITEM_OK)
+    {
 			LOG_WARNING("Latest tracker buffer item is not available");
 			m_ToolStateLabels.at(i)->setText("BUFFER ERROR");
 			m_ToolStateLabels.at(i)->setTextColor(QColor::fromRgb(223, 0, 0));
-		} else {
-			switch (latestItem.GetStatus()) {
+		}
+    else
+    {
+			switch (latestItem.GetStatus())
+      {
 				case (TR_OK):
 					m_ToolStateLabels.at(i)->setText("OK");
 					m_ToolStateLabels.at(i)->setTextColor(Qt::green);
@@ -214,6 +241,16 @@ PlusStatus ToolStateDisplayWidget::Update()
 					break;
 			}
 		}
+	}
+
+	if (numberOfEnabledTools != numberOfDisplayedTools) {
+		LOG_WARNING("Tool number inconsistency!");
+
+		if (InitializeTools(m_DataCollector, true) != PLUS_SUCCESS)
+    {
+      LOG_ERROR("Re-initializing tool state widget failed");
+      return PLUS_FAIL;
+    }
 	}
 
 	return PLUS_SUCCESS;
