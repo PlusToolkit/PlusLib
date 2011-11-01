@@ -149,8 +149,13 @@ PlusStatus FidPatternRecognition::RecognizePattern(vtkTrackedFrameList* trackedF
   {
     TrackedFrame * trackedFrame = trackedFrameList->GetTrackedFrame(currentFrameIndex); 
 
-    if ( trackedFrame->GetFiducialPointsCoordinatePx() == NULL // segment only non segmented frames
-      && RecognizePattern(trackedFrame) != PLUS_SUCCESS)
+    // segment only non segmented frames
+    if (trackedFrame->GetFiducialPointsCoordinatePx() != NULL)
+    {
+      continue;
+    }
+
+    if (RecognizePattern(trackedFrame) != PLUS_SUCCESS)
     {
       LOG_ERROR("Recognizing pattern failed on frame " << currentFrameIndex);
       status = PLUS_FAIL;
