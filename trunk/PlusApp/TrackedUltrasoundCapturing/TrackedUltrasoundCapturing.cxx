@@ -259,6 +259,11 @@ void TrackedUltrasoundCapturing::AddTrackedFrame( TrackedFrame* trackedFrame )
 		(*UpdateRequestCallbackFunction)();
 	}
 
+  if ( this->TrackedFrameContainer->GetDefaultFrameTransformName() != DefaultFrameTransformName )
+  {
+    this->TrackedFrameContainer->SetDefaultFrameTransformName(DefaultFrameTransformName.c_str()); 
+  }
+
 	bool isDataUnique(false); 
 	if ( this->GetDataCollector()->GetTracker() != NULL )
 	{
