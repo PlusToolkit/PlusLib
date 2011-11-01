@@ -918,6 +918,20 @@ void TrackedUltrasoundCapturingGUI::ConnectToDevicesByConfigFile(std::string aCo
     }
     else
     {
+      if ( this->m_USCapturing->GetDataCollector()->GetTrackingEnabled() )
+      {
+        int defaultToolNumber =  this->m_USCapturing->GetDataCollector()->GetTracker()->GetFirstPortNumberByType( TRACKER_TOOL_PROBE ); 
+        if ( defaultToolNumber == -1 )
+        {
+          if ( this->m_USCapturing->GetDataCollector()->GetTracker()->GetFirstActiveTool( defaultToolNumber ) != PLUS_SUCCESS )
+          {
+            LOG_ERROR("Failed to get first active tool number!"); 
+            return; 
+          }
+        }
+        this->m_USCapturing->DefaultFrameTransformName = this->m_USCapturing->GetDataCollector()->GetTracker()->GetTool(defaultToolNumber)->GetToolName(); 
+      }
+
       m_DeviceSetSelectorWidget->SetConnectionSuccessful(true);
       if (m_RecordingToolStateDisplayWidget->InitializeTools(this->m_USCapturing->GetDataCollector(), true) != PLUS_SUCCESS )
       {

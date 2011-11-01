@@ -199,23 +199,7 @@ PlusStatus TrackedUltrasoundCapturing::Initialize()
 	  realtimeImageActor->SetInput( this->DataCollector->GetOutput() ); 
   }
 
-  if ( this->DataCollector->GetTrackingEnabled() )
-  {
-    int defaultToolNumber =  this->DataCollector->GetTracker()->GetFirstPortNumberByType( TRACKER_TOOL_PROBE ); 
-    if ( defaultToolNumber == -1 )
-    {
-      if ( this->DataCollector->GetTracker()->GetFirstActiveTool( defaultToolNumber ) != PLUS_SUCCESS )
-      {
-        LOG_ERROR("Failed to get first active tool number!"); 
-        return PLUS_FAIL; 
-      }
-    }
-    DefaultFrameTransformName = this->DataCollector->GetTracker()->GetTool(defaultToolNumber)->GetToolName(); 
-  }
-
-  this->TrackedFrameContainer->SetDefaultFrameTransformName(DefaultFrameTransformName.c_str());
-
-	// Set up the realtime renderer
+  // Set up the realtime renderer
 	vtkSmartPointer<vtkRenderer> realtimeRenderer = vtkSmartPointer<vtkRenderer>::New(); 
 	realtimeRenderer->SetBackground(0,0,0); 
 	this->SetRealtimeRenderer(realtimeRenderer); 

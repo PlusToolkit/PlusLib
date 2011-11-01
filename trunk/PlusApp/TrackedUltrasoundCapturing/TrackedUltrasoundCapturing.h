@@ -140,6 +140,9 @@ public:
 	typedef void (*ProgressBarUpdatePtr)(int percent);
     void SetProgressBarUpdateCallbackFunction(ProgressBarUpdatePtr cb) { ProgressBarUpdateCallbackFunction = cb; } 
 
+
+  static std::string DefaultFrameTransformName;
+
 protected: 
 	TrackedUltrasoundCapturing();
 	virtual ~TrackedUltrasoundCapturing();
@@ -159,7 +162,7 @@ protected:
 	int FrameRate; 
 	double RecordingStartTime; 
 
-  static std::string DefaultFrameTransformName;
+  
 
 	//! Pointer to the callback function that is executed each time an update requested
   UpdateRequestPtr UpdateRequestCallbackFunction;
