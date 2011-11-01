@@ -48,6 +48,9 @@ public:
   //! Returns a string containing the parameters (rotation, translation, scaling) from a transformation
   static std::string GetTransformParametersString(vtkTransform* transform);
 
+  //! Returns a string containing the parameters (rotation, translation, scaling) from a vtkMatrix 
+  static std::string GetTransformParametersString(vtkMatrix4x4* matrix); 
+
   //! Convert matrix between VTK and VNL
 	static void ConvertVnlMatrixToVtkMatrix(vnl_matrix<double>& inVnlMatrix, vtkMatrix4x4* outVtkMatrix); 
 	static void ConvertVtkMatrixToVnlMatrix(vtkMatrix4x4* inVtkMatrix, vnl_matrix<double>& outVnlMatrix ); 

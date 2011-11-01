@@ -431,6 +431,17 @@ std::string PlusMath::GetTransformParametersString(vtkTransform* transform)
 
 //----------------------------------------------------------------------------
 
+std::string PlusMath::GetTransformParametersString(vtkMatrix4x4* matrix)
+{
+  vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New(); 
+  transform->SetMatrix(matrix); 
+
+  return PlusMath::GetTransformParametersString(transform); 
+}
+
+
+//----------------------------------------------------------------------------
+
 void PlusMath::ConvertVtkMatrixToVnlMatrix(vtkMatrix4x4* inVtkMatrix, vnl_matrix<double>& outVnlMatrix )
 {
 	LOG_TRACE("PlusMath::ConvertVtkMatrixToVnlMatrix"); 
