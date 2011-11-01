@@ -74,9 +74,14 @@ TARGET_LINK_LIBRARIES( vtkMicrontrackerfiles
   ${MTC_LIB_DIR}/MTC${CMAKE_STATIC_LIBRARY_SUFFIX}
 )
 
-#INSTALL_TARGETS(/lib/vtk vtkMicrontrackerfiles )
-#vtkMicrontracker)
+# --------------------------------------------------------------------------
+# Install
 
+INSTALL(TARGETS vtkMicrontrackerfiles
+    RUNTIME
+    DESTINATION bin
+    CONFIGURATIONS Release
+    COMPONENT RuntimeLibraries)
 
 # --------------------------------------------------------------------------
 # Set external MS project 
