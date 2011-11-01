@@ -4,15 +4,6 @@ Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/
 
-/* ============================================================================
-Authors include: Kyle Charbonneau <kcharbon@imaging.robarts.ca>
-
-Description: 
-This class represents a fake tracking system with tools that have
-predetermined behaviour. This allows someonew who doesn't have access to
-a tracking system to test code that relies on having one active.
-
-============================================================================ */
 #include "PlusConfigure.h"
 #include "vtkFakeTracker.h"
 #include "vtkObjectFactory.h"
@@ -90,10 +81,13 @@ void vtkFakeTracker::SetMode(FakeTrackerMode mode)
   case ( FakeTrackerMode_SmoothMove ): 
     this->SetNumberOfTools(3); 
     this->Tools[0]->SetToolName("Probe"); 
+    this->Tools[0]->SetToolType( TRACKER_TOOL_PROBE ); 
     this->Tools[0]->EnabledOn(); 
     this->Tools[1]->SetToolName("Reference"); 
+    this->Tools[1]->SetToolType( TRACKER_TOOL_GENERAL ); 
     this->Tools[1]->EnabledOn(); 
     this->Tools[2]->SetToolName("DisabledTool"); 
+    this->Tools[2]->SetToolType( TRACKER_TOOL_GENERAL ); 
     this->Tools[2]->EnabledOff();
     break; 
 
