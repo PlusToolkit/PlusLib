@@ -89,6 +89,12 @@ void DeviceSetSelectorWidget::InvokeConnect()
 {
 	LOG_TRACE("DeviceSetSelectorWidget::InvokeConnect"); 
 
+  if ( ui.comboBox_DeviceSet->currentIndex() < 0 )
+  {
+    // combo box is empty 
+    return; 
+  }
+
   ui.pushButton_Connect->setEnabled(false);
 
 	emit ConnectToDevicesByConfigFileInvoked(ui.comboBox_DeviceSet->itemData(ui.comboBox_DeviceSet->currentIndex()).toStringList().at(0).toAscii().data());
