@@ -154,6 +154,9 @@ bool StatusIcon::eventFilter(QObject *obj, QEvent *ev)
       if (mouseEvent->buttons() == Qt::LeftButton) {
 
         if ((m_MessageListWidget == NULL) || (! m_MessageListWidget->isVisible())) {
+          m_Level = vtkPlusLogger::LOG_LEVEL_INFO;
+          m_DotLabel->setPixmap( QPixmap( ":/icons/Resources/icon_DotGreen.png" ) );
+
           QTextCursor cursor(m_MessageTextEdit->textCursor());
           cursor.movePosition(QTextCursor::End);
           cursor.movePosition(QTextCursor::StartOfLine);
