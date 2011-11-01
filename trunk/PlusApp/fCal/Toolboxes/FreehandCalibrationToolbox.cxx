@@ -615,6 +615,8 @@ void FreehandCalibrationToolbox::DoSpatialCalibration()
     trackedFrameListToUse = m_CalibrationData;
   }
 
+  int numberOfFramesBeforeRecording = trackedFrameListToUse->GetNumberOfTrackedFrames();
+
   // Acquire tracked frames since last acquisition
   if ( m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->GetTrackedFrameList(
     m_LastRecordedFrameTimestamp, trackedFrameListToUse, m_ValidationFlags, "Probe") != PLUS_SUCCESS )
@@ -642,7 +644,8 @@ void FreehandCalibrationToolbox::DoSpatialCalibration()
     m_NumberOfSegmentedCalibrationImages += numberOfNewlySegmentedImages;
   }
 
-LOG_INFO("    " << numberOfNewlySegmentedImages);
+  LOG_DEBUG("Number of segmented images in this recording round: " << numberOfNewlySegmentedImages << " out of " << trackedFrameListToUse->GetNumberOfTrackedFrames() - numberOfFramesBeforeRecording);
+
   // Update progress if tracked frame has been successfully added
   int progressPercent = (int)(((m_NumberOfSegmentedCalibrationImages + m_NumberOfSegmentedValidationImages) / (double)(std::max(m_NumberOfValidationImagesToAcquire, m_NumberOfSegmentedValidationImages) + m_NumberOfCalibrationImagesToAcquire)) * 100.0);
   m_ParentMainWindow->SetStatusBarProgress(progressPercent);
