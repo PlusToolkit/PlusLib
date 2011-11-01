@@ -294,6 +294,9 @@ PlusStatus DeviceSetSelectorWidget::ParseDirectory(QString aDirectory)
     return PLUS_FAIL;
   }
 
+  // Set current index to default so that setting the last selected item raises the event even if it is the first item
+  ui.comboBox_DeviceSet->setCurrentIndex(-1);
+
   // Unblock signals after we add items
   ui.comboBox_DeviceSet->blockSignals(false); 
 
