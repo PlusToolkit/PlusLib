@@ -113,11 +113,14 @@ int main (int argc, char* argv[])
     return EXIT_FAILURE;
   }
 
-  if (patternRecognition.RecognizePattern(calibrationTrackedFrameList) != PLUS_SUCCESS)
+  int numberOfSuccessfullySegmentedCalibrationImages = 0;
+  if (patternRecognition.RecognizePattern(calibrationTrackedFrameList, &numberOfSuccessfullySegmentedCalibrationImages) != PLUS_SUCCESS)
   {
     LOG_ERROR("Error occured during segmentation of calibration images!"); 
     return EXIT_FAILURE;
   }
+
+  LOG_INFO("Segmentation success rate of calibration images: " << numberOfSuccessfullySegmentedCalibrationImages << " out of " << calibrationTrackedFrameList->GetNumberOfTrackedFrames());
 
   // Load and segment validation image
   vtkSmartPointer<vtkTrackedFrameList> validationTrackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New();
@@ -127,11 +130,14 @@ int main (int argc, char* argv[])
     return EXIT_FAILURE;
   }
 
-  if (patternRecognition.RecognizePattern(validationTrackedFrameList) != PLUS_SUCCESS)
+  int numberOfSuccessfullySegmentedValidationImages = 0;
+  if (patternRecognition.RecognizePattern(validationTrackedFrameList, &numberOfSuccessfullySegmentedValidationImages) != PLUS_SUCCESS)
   {
     LOG_ERROR("Error occured during segmentation of validation images!"); 
     return EXIT_FAILURE;
   }
+
+  LOG_INFO("Segmentation success rate of validation images: " << numberOfSuccessfullySegmentedValidationImages << " out of " << validationTrackedFrameList->GetNumberOfTrackedFrames());
 
   // Calibrate
   if (freehandCalibration->Calibrate( validationTrackedFrameList, calibrationTrackedFrameList, "Probe", patternRecognition.GetFidLineFinder()->GetNWires()) != PLUS_SUCCESS)
