@@ -23,24 +23,37 @@ See License.txt for details.
 #include "vtkXMLUtilities.h"
 
 #include <QFileDialog>
+#include <QTimer>
 
 //-----------------------------------------------------------------------------
 
 FreehandCalibrationToolbox::FreehandCalibrationToolbox(fCalMainWindow* aParentMainWindow, Qt::WFlags aFlags)
-: AbstractToolbox(aParentMainWindow)
-, QWidget(aParentMainWindow, aFlags)
-, m_CancelRequest(false)
-, m_NumberOfCalibrationImagesToAcquire(200)
-, m_NumberOfValidationImagesToAcquire(100)
+  : AbstractToolbox(aParentMainWindow)
+  , QWidget(aParentMainWindow, aFlags)
+  , m_CancelRequest(false)
+  , m_LastRecordedFrameTimestamp(0.0)
+  , m_NumberOfCalibrationImagesToAcquire(200)
+  , m_NumberOfValidationImagesToAcquire(100)
+  , m_NumberOfSegmentedCalibrationImages(0)
+  , m_NumberOfSegmentedValidationImages(0)
+  , m_AcquisitionFrameRate(5)
+  , m_ValidationFlags(REQUIRE_UNIQUE_TIMESTAMP | REQUIRE_TRACKING_OK | REQUIRE_CHANGED_ENCODER_POSITION | REQUIRE_SPEED_BELOW_THRESHOLD)
 {
   ui.setupUi(this);
 
-  // Create algorithm
+  // Create algorithms
   m_Calibration = vtkProbeCalibrationAlgo::New();
 
-  ui.label_SpatialCalibration->setFont(QFont("SansSerif", 9, QFont::Bold));
-  ui.label_TemporalCalibration->setFont(QFont("SansSerif", 9, QFont::Bold));
+  m_PatternRecognition = new FidPatternRecognition();
 
+  // Create tracked frame lists
+  m_CalibrationData = vtkTrackedFrameList::New();
+  m_CalibrationData->SetDefaultFrameTransformName("Probe");
+
+  m_ValidationData = vtkTrackedFrameList::New();
+  m_ValidationData->SetDefaultFrameTransformName("Probe");
+
+  // Change result display properties
   //ui.label_Results->setFont(QFont("Courier", 7));
 
   // Connect events
@@ -62,6 +75,21 @@ FreehandCalibrationToolbox::~FreehandCalibrationToolbox()
   if (m_Calibration != NULL) {
     m_Calibration->Delete();
     m_Calibration = NULL;
+  } 
+
+  if (m_PatternRecognition != NULL) {
+    delete m_PatternRecognition;
+    m_PatternRecognition = NULL;
+  } 
+
+  if (m_CalibrationData != NULL) {
+    m_CalibrationData->Delete();
+    m_CalibrationData = NULL;
+  } 
+
+  if (m_ValidationData != NULL) {
+    m_ValidationData->Delete();
+    m_ValidationData = NULL;
   } 
 }
 
@@ -251,7 +279,6 @@ void FreehandCalibrationToolbox::SetDisplayAccordingToState()
 
     m_ParentMainWindow->SetStatusBarText(QString(""));
     m_ParentMainWindow->SetStatusBarProgress(-1);
-
   }
   else if (m_State == ToolboxState_Idle)
   {
@@ -323,27 +350,26 @@ void FreehandCalibrationToolbox::SetDisplayAccordingToState()
     m_ParentMainWindow->SetStatusBarProgress(-1);
 
     QApplication::restoreOverrideCursor();
-
   }
   else if (m_State == ToolboxState_Error)
   {
-      ui.label_InstructionsTemporal->setText(tr("Error occured!"));
-      ui.label_InstructionsTemporal->setFont(QFont("SansSerif", 8, QFont::Bold));
-      ui.pushButton_StartTemporal->setEnabled(false);
-      ui.pushButton_CancelSpatial->setEnabled(false);
+    ui.label_InstructionsTemporal->setText(tr("Error occured!"));
+    ui.label_InstructionsTemporal->setFont(QFont("SansSerif", 8, QFont::Bold));
+    ui.pushButton_StartTemporal->setEnabled(false);
+    ui.pushButton_CancelSpatial->setEnabled(false);
 
-      ui.label_InstructionsSpatial->setText(tr(""));
-      ui.pushButton_StartSpatial->setEnabled(false);
-      ui.pushButton_CancelSpatial->setEnabled(false);
+    ui.label_InstructionsSpatial->setText(tr(""));
+    ui.pushButton_StartSpatial->setEnabled(false);
+    ui.pushButton_CancelSpatial->setEnabled(false);
 
-      ui.checkBox_ShowDevices->setEnabled(false);
-      ui.pushButton_Save->setEnabled(false);
+    ui.checkBox_ShowDevices->setEnabled(false);
+    ui.pushButton_Save->setEnabled(false);
 
-      m_ParentMainWindow->SetStatusBarText(QString(""));
-      m_ParentMainWindow->SetStatusBarProgress(-1);
+    m_ParentMainWindow->SetStatusBarText(QString(""));
+    m_ParentMainWindow->SetStatusBarProgress(-1);
 
-      QApplication::restoreOverrideCursor();
-    }
+    QApplication::restoreOverrideCursor();
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -413,8 +439,7 @@ void FreehandCalibrationToolbox::OpenSegmentationParameters()
   }
 
   // Load calibration configuration xml
-  FidPatternRecognition* patternRecognition = new FidPatternRecognition();
-  if (patternRecognition->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS)
+  if (m_PatternRecognition->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS)
   {
     ui.lineEdit_SegmentationParameters->setText(tr("Invalid file!"));
     ui.lineEdit_SegmentationParameters->setToolTip("");
@@ -422,7 +447,6 @@ void FreehandCalibrationToolbox::OpenSegmentationParameters()
     LOG_ERROR("Configuration file " << fileName.toAscii().data() << " cannot be loaded!");
     return;
   }
-  delete patternRecognition;
 
   // Replace USCalibration element with the one in the just read file
   vtkPlusConfig::ReplaceElementInDeviceSetConfiguration("USCalibration", rootElement);
@@ -522,119 +546,119 @@ void FreehandCalibrationToolbox::StartSpatial()
   ui.pushButton_CancelSpatial->setEnabled(true);
   ui.pushButton_CancelSpatial->setFocus();
 
+  // Initialize algorithms and containers
+  m_PatternRecognition->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData());
+
+  m_CalibrationData->Clear();
+  m_CalibrationData->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData());
+
+  m_ValidationData->Clear();
+  m_ValidationData->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData());
+
+  m_NumberOfSegmentedCalibrationImages = 0;
+  m_NumberOfSegmentedValidationImages = 0;
+
+  m_LastRecordedFrameTimestamp = 0.0;
+
+  m_CancelRequest = false;
+
   // Start calibration and compute results on success
-  if (DoSpatialCalibration() == PLUS_SUCCESS)
+  DoSpatialCalibration();
+}
+
+//-----------------------------------------------------------------------------
+
+void FreehandCalibrationToolbox::DoSpatialCalibration()
+{
+  LOG_TRACE("FreehandCalibrationToolbox::DoSpatialCalibration");
+
+  // Calibrate if acquisition is ready
+  if ( m_NumberOfSegmentedCalibrationImages >= m_NumberOfCalibrationImagesToAcquire
+    && m_NumberOfSegmentedValidationImages >= m_NumberOfValidationImagesToAcquire)
   {
+    LOG_INFO("Segmentation success rate: " << m_NumberOfSegmentedCalibrationImages + m_NumberOfSegmentedValidationImages << " out of " << m_CalibrationData->GetNumberOfTrackedFrames() + m_ValidationData->GetNumberOfTrackedFrames() << " (" << (int)(((double)(m_NumberOfSegmentedCalibrationImages + m_NumberOfSegmentedValidationImages) / (double)(m_CalibrationData->GetNumberOfTrackedFrames() + m_ValidationData->GetNumberOfTrackedFrames())) * 100.0 + 0.49) << " percent)");
+
+    if (m_Calibration->Calibrate( m_ValidationData, m_CalibrationData, "Probe", m_PatternRecognition->GetFidLineFinder()->GetNWires() ) != PLUS_SUCCESS)
+    {
+      LOG_ERROR("Calibration failed!");
+      CancelSpatial();
+      return;
+    }
+
     // Set result for visualization
     m_ParentMainWindow->GetToolVisualizer()->GetDisplayableTool(TRACKER_TOOL_PROBE)->DisplayableOn();
     m_ParentMainWindow->GetToolVisualizer()->SetImageToProbeTransform(m_Calibration->GetTransformUserImageToProbe());
 
     SetState(ToolboxState_Done);
+
+    m_ParentMainWindow->SetTabsEnabled(true);
+
+    return;
   }
 
-  m_ParentMainWindow->SetTabsEnabled(true);
-}
 
-//-----------------------------------------------------------------------------
+  // Cancel if requested
+  if (m_CancelRequest) {
+    LOG_INFO("Calibration process cancelled by the user");
+    CancelSpatial();
+    return;
+  }
 
-PlusStatus FreehandCalibrationToolbox::DoSpatialCalibration()
-{
-  LOG_TRACE("FreehandCalibrationToolbox::DoSpatialCalibration");
-
-  // Create tracked frame lists
-  vtkTrackedFrameList* validationTrackedFrameList = vtkTrackedFrameList::New();
-  validationTrackedFrameList->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData());
-
-  vtkTrackedFrameList* calibrationTrackedFrameList = vtkTrackedFrameList::New();
-  calibrationTrackedFrameList->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData());
-
-  int numberOfSegmentedImages = 0;
-  int numberOfFailedSegmentations = 0;
-
-  // Create segmenter
-  FidPatternRecognition* patternRecognition = new FidPatternRecognition();
-  patternRecognition->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData());
-
-  // Reset cancel request flag
-  m_CancelRequest = false;
-
-  // Acquire and add validation and calibration data
-  while (numberOfSegmentedImages < m_NumberOfValidationImagesToAcquire + m_NumberOfCalibrationImagesToAcquire)
+  // Determine which data container to use
+  vtkTrackedFrameList* trackedFrameListToUse = NULL;
+  if (m_NumberOfSegmentedValidationImages < m_NumberOfValidationImagesToAcquire)
   {
-    if (m_CancelRequest) {
-      // Cancel the job
-      delete patternRecognition;
-      return PLUS_FAIL;
-    }
-
-    // Get latest tracked frame from data collector
-    TrackedFrame trackedFrame; 
-    m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->GetTrackedFrame(&trackedFrame);     
-
-    if (trackedFrame.GetStatus() & (TR_MISSING | TR_OUT_OF_VIEW))
-    {
-      LOG_DEBUG("Tracker out of view"); 
-      m_ParentMainWindow->GetToolVisualizer()->ShowResult(false);
-    }
-    else if (trackedFrame.GetStatus() & (TR_REQ_TIMEOUT))
-    {
-      LOG_DEBUG("Tracker request timeout"); 
-      m_ParentMainWindow->GetToolVisualizer()->ShowResult(false);
-    }
-    else // TR_OK
-    {
-      // Segment image
-      PatternRecognitionResult segmentationResults;
-      if (patternRecognition->RecognizePattern(&trackedFrame, segmentationResults) != PLUS_SUCCESS)
-      {
-        LOG_ERROR("Segmentation encountered errors!");
-        delete patternRecognition;
-        return PLUS_FAIL;
-      }
-
-      // Update progress if tracked frame has been successfully added
-      int progressPercent = (int)((numberOfSegmentedImages / (double)(m_NumberOfValidationImagesToAcquire + m_NumberOfCalibrationImagesToAcquire)) * 100.0);
-      m_ParentMainWindow->SetStatusBarProgress(progressPercent);
-
-      // Display segmented points (or hide them if unsuccessful)
-      DisplaySegmentedPoints(&segmentationResults);
-
-      // Check if segmentation was unsuccessful
-      if (trackedFrame.GetFiducialPointsCoordinatePx() == NULL || trackedFrame.GetFiducialPointsCoordinatePx()->GetNumberOfPoints() == 0)
-      {
-        ++numberOfFailedSegmentations;
-        QApplication::processEvents();
-        continue;
-      }
-
-      // Add tracked frame to the proper list
-      if (numberOfSegmentedImages < m_NumberOfValidationImagesToAcquire)
-      { // Validation data
-        validationTrackedFrameList->AddTrackedFrame(&trackedFrame);
-      }
-      else
-      { // Calibration data
-        calibrationTrackedFrameList->AddTrackedFrame(&trackedFrame);
-      }
-
-      ++numberOfSegmentedImages;
-    }
-
-    QApplication::processEvents();
+    trackedFrameListToUse = m_ValidationData;
   }
-
-  LOG_INFO("Segmentation success rate: " << numberOfSegmentedImages << " out of " << numberOfSegmentedImages + numberOfFailedSegmentations << " (" << (int)(((double)numberOfSegmentedImages / (double)(numberOfSegmentedImages + numberOfFailedSegmentations)) * 100.0 + 0.49) << " percent)");
-
-  if (m_Calibration->Calibrate( validationTrackedFrameList, calibrationTrackedFrameList, "Probe", patternRecognition->GetFidLineFinder()->GetNWires() ) != PLUS_SUCCESS)
+  else
   {
-    LOG_ERROR("Calibration failed!");
-    delete patternRecognition;
-    return PLUS_FAIL;
+    trackedFrameListToUse = m_CalibrationData;
   }
 
-  delete patternRecognition;
+  // Acquire tracked frames since last acquisition
+  if ( m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->GetTrackedFrameList(
+    m_LastRecordedFrameTimestamp, trackedFrameListToUse, m_ValidationFlags, "Probe") != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to get tracked frame list from data collector (last recorded timestamp: " << std::fixed << m_LastRecordedFrameTimestamp ); 
+    CancelSpatial();
+    return; 
+  }
 
-  return PLUS_SUCCESS;
+  // Segment last recorded images
+  int numberOfNewlySegmentedImages = 0;
+  if ( m_PatternRecognition->RecognizePattern(trackedFrameListToUse, &numberOfNewlySegmentedImages) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to segment tracked frame list!"); 
+    CancelSpatial();
+    return; 
+  }
+
+  if (m_NumberOfSegmentedValidationImages < m_NumberOfValidationImagesToAcquire)
+  {
+    m_NumberOfSegmentedValidationImages += numberOfNewlySegmentedImages;
+  }
+  else
+  {
+    m_NumberOfSegmentedCalibrationImages += numberOfNewlySegmentedImages;
+  }
+
+LOG_INFO("    " << numberOfNewlySegmentedImages);
+  // Update progress if tracked frame has been successfully added
+  int progressPercent = (int)(((m_NumberOfSegmentedCalibrationImages + m_NumberOfSegmentedValidationImages) / (double)(std::max(m_NumberOfValidationImagesToAcquire, m_NumberOfSegmentedValidationImages) + m_NumberOfCalibrationImagesToAcquire)) * 100.0);
+  m_ParentMainWindow->SetStatusBarProgress(progressPercent);
+
+  // Display segmented points (or hide them if unsuccessful)
+  if (numberOfNewlySegmentedImages > 0)
+  {
+    DisplaySegmentedPoints();
+  }
+  else
+  {
+    m_ParentMainWindow->GetToolVisualizer()->ShowResult(false);
+  }
+
+  // Launch timer to run acquisition again
+  QTimer::singleShot(1000.0 / (double)m_AcquisitionFrameRate, this, SLOT(DoSpatialCalibration())); 
 }
 
 //-----------------------------------------------------------------------------
@@ -701,30 +725,30 @@ void FreehandCalibrationToolbox::ShowDevicesToggled(bool aOn)
 
 //-----------------------------------------------------------------------------
 
-PlusStatus FreehandCalibrationToolbox::DisplaySegmentedPoints(PatternRecognitionResult* aSegmentationResult)
+void FreehandCalibrationToolbox::DisplaySegmentedPoints()
 {
-  LOG_TRACE("vtkFreehandCalibrationController::DisplaySegmentedPoints");
+  LOG_TRACE("FreehandCalibrationToolbox::DisplaySegmentedPoints");
 
-  if (aSegmentationResult->GetDotsFound() == false)
+  // Determine which data container to use
+  vtkTrackedFrameList* trackedFrameListToUse = NULL;
+  if (m_NumberOfSegmentedValidationImages < m_NumberOfValidationImagesToAcquire)
   {
-    m_ParentMainWindow->GetToolVisualizer()->ShowResult(false);
-    return PLUS_SUCCESS;
+    trackedFrameListToUse = m_ValidationData;
+  }
+  else
+  {
+    trackedFrameListToUse = m_CalibrationData;
   }
 
-  // Get last results and feed the points into vtkPolyData for displaying
-  vtkSmartPointer<vtkPoints> segmentedPoints = vtkSmartPointer<vtkPoints>::New();
-  segmentedPoints->SetNumberOfPoints(aSegmentationResult->GetFoundDotsCoordinateValue().size());
-
-  std::vector<std::vector<double>> dots = aSegmentationResult->GetFoundDotsCoordinateValue();
-  for (int i=0; i<dots.size(); ++i)
+  // Look for last segmented image and display the points
+  for (int i=trackedFrameListToUse->GetNumberOfTrackedFrames() - 1; i>=0; --i)
   {
-    segmentedPoints->InsertPoint(i, dots[i][0], dots[i][1], 0.0);
+    vtkPoints* segmentedPoints = trackedFrameListToUse->GetTrackedFrame(i)->GetFiducialPointsCoordinatePx();
+    if (segmentedPoints)
+    {
+      m_ParentMainWindow->GetToolVisualizer()->GetResultPolyData()->SetPoints(segmentedPoints);
+      m_ParentMainWindow->GetToolVisualizer()->ShowResult(true);
+      break;
+    }
   }
-  segmentedPoints->Modified();
-
-  m_ParentMainWindow->GetToolVisualizer()->GetResultPolyData()->SetPoints(segmentedPoints);
-
-  m_ParentMainWindow->GetToolVisualizer()->ShowResult(true);
-
-  return PLUS_SUCCESS;
 }

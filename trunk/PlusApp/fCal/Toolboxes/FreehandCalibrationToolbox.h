@@ -17,6 +17,8 @@ See License.txt for details.
 #include <QWidget>
 
 class vtkProbeCalibrationAlgo;
+class FidPatternRecognition;
+class vtkTrackedFrameList;
 
 //-----------------------------------------------------------------------------
 
@@ -75,19 +77,16 @@ protected:
   bool IsReadyToStartSpatialCalibration();
 
   /*!
-  * Execute spatial calibration
-  * \return Success flag
+  * Prepares and shows the last segmented points from the current acquisition
   */
-  PlusStatus DoSpatialCalibration();
-
-  /*!
-  * Prepares and shows the currently segmented points (or hide if unsuccessful)
-  * \param aSegmentationResult Segmentation result structure holding the possible segmented points and the candidates
-  * \return Success flag
-  */
-  PlusStatus DisplaySegmentedPoints(PatternRecognitionResult* aSegmentationResult);
+  void DisplaySegmentedPoints();
 
 protected slots:
+  /*!
+  * Acquire tracked frames and segment them. Runs calibration if acquisition is ready
+  */
+  void DoSpatialCalibration();
+
   /*!
   * Slot handling open phantom registration button click
   */
@@ -138,6 +137,18 @@ protected:
   /*! Calibration algorithm */
   vtkProbeCalibrationAlgo* m_Calibration;
 
+  /*! Pattern recognition algorithm */
+  FidPatternRecognition* m_PatternRecognition;
+
+  /*! Tracked frame data for calibration */
+  vtkTrackedFrameList* m_CalibrationData;
+
+  /*! Tracked frame data for validation */
+  vtkTrackedFrameList* m_ValidationData;
+
+  /*! Timestamp of last recorded frame (the tracked frames acquired since this timestamp will be recorded) */
+  double m_LastRecordedFrameTimestamp;
+
   /*! Flag if cancel is requested */
   bool m_CancelRequest;
 
@@ -146,6 +157,18 @@ protected:
 
   /*! Number of needed validation images */
   int m_NumberOfValidationImagesToAcquire;
+
+  /*! Number of segmented calibration images */
+  int m_NumberOfSegmentedCalibrationImages;
+
+  /*! Number of segmented validation images */
+  int m_NumberOfSegmentedValidationImages;
+
+  /*! Number of acquisition cycles per second */
+  int m_AcquisitionFrameRate;
+
+  /*! Flags of validation types to perform */
+  long m_ValidationFlags;
 
 protected:
   Ui::FreehandCalibrationToolbox ui;
