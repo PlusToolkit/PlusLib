@@ -80,6 +80,19 @@ OPTION(PLUS_USE_HEARTSIGNALBOX "Enable Heart Signal Box" OFF)
 OPTION(PLUS_USE_USBECGBOX "Enable USB ECG Signal Box" OFF)
 
 #-----------------------------------------------------------------------------
+# Warnings for work in progress features
+#-----------------------------------------------------------------------------
+IF (PLUS_USE_MICRONTRACKER)
+  MESSAGE("Provide support for the Claron MicronTracker option was selected. This is a work in progress feature. See more details at https://www.assembla.com/spaces/plus/tickets/348")
+ENDIF()
+IF (PLUS_USE_VFW_VIDEO)
+  MESSAGE("Provide support for Video-for-Windows video digitizer option was selected. This is a work in progress feature. See more details at https://www.assembla.com/spaces/plus/tickets/364")
+ENDIF()
+IF (PLUS_USE_POLARIS)
+  MESSAGE("Provide support for the NDI POLARIS and AURORA option was selected. This is a work in progress feature. See more details at https://www.assembla.com/spaces/plus/tickets/336")
+ENDIF()
+
+#-----------------------------------------------------------------------------
 # Plus revision - Set Plus stable relase revision (0 means latest)
 #-----------------------------------------------------------------------------
 SET (PLUS_SVN_REVISION 0 CACHE STRING "Set Plus desired SVN revision number (0 means latest)")
