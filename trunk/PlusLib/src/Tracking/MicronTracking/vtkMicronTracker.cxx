@@ -281,8 +281,8 @@ PlusStatus vtkMicronTracker::InternalUpdate()
 
     if (-1 == callResult)
     {
-      this->InternalStopTracking();
-     LOG_ERROR("Error in grabing a frame! %s \n" << this->MT->mtGetErrorString());
+      LOG_ERROR("Error in grabing a frame! (" << this->MT->mtGetErrorString() <<")");
+      this->InternalStopTracking();      
       return PLUS_FAIL;
     }
     else
@@ -291,8 +291,8 @@ PlusStatus vtkMicronTracker::InternalUpdate()
     }
     if (-1 == callResult)
     {
-      this->InternalStopTracking();
-      LOG_ERROR("Error in processing a frame! %s\n" << this->MT->mtGetErrorString());
+      LOG_ERROR("Error in processing a frame! (" << this->MT->mtGetErrorString() <<")");
+      this->InternalStopTracking();      
       return PLUS_FAIL;
     }
     this->MT->mtFindIdentifiedMarkers();
