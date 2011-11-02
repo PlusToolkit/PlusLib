@@ -65,6 +65,8 @@ vtkTrackerTool::vtkTrackerTool()
 	this->Buffer = vtkTrackerBuffer::New();
 	this->Buffer->SetToolCalibrationMatrix(this->CalibrationMatrix);
 	
+  this->PortName = NULL;
+
 	this->FrameNumber = 0;
 }
 
@@ -72,6 +74,8 @@ vtkTrackerTool::vtkTrackerTool()
 vtkTrackerTool::~vtkTrackerTool()
 {
 	this->CalibrationMatrix->Delete();
+
+  this->SetPortName(NULL); 
 
 	this->SetTool3DModelFileName(NULL); 
 	this->SetToolRevision(NULL); 
