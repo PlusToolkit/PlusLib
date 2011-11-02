@@ -80,9 +80,6 @@ POSSIBILITY OF SUCH DAMAGES.
 #include "MicronTrackerInterface.h"
 //#include "tracking.h"
 #include "time.h"
-//#include "Cameras.h"
-//#include "MTC.h"
-//#include "MCamera.h"
 
 #define MAX_TOOL_NUM 10
 
@@ -498,6 +495,9 @@ public:
   // An instance of the MicronTrackerInterface class.
   MicronTrackerInterface* MT;
 
+  /*! Read MicronTracker configuration to xml data */
+  PlusStatus ReadConfiguration( vtkXMLDataElement* config );
+  PlusStatus Connect();
 
 protected:
   vtkMicronTracker();
@@ -557,12 +557,6 @@ protected:
   string toolClassNames[MAX_TOOL_NUM];
   int markerIndexAssingedToTools[MAX_TOOL_NUM];
   void ReadToolsFile();
-/*  PlusStatus ReadConfiguration( vtkXMLDataElement* config );
-	Markers* pMarkers;
-	Cameras* pCameras;
-	MCamera* pCurrCam;
-	bool isShowingHalfSize;*/
-
 
 private:
   vtkMicronTracker(const vtkMicronTracker&);
@@ -574,7 +568,6 @@ private:
   float matrices [50][4][4];
 //  vtkMatrix4x4* finalCalibrationMatrix;
   vtkMatrix4x4 *rm[MAX_TOOL_NUM];
-
 };
 
 #endif

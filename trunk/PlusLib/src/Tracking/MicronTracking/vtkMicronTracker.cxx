@@ -48,10 +48,6 @@ POSSIBILITY OF SUCH DAMAGES.
 #include "vtkImageData.h"
 #include "PlusVideoFrame.h"
 
-//#include "Cameras.h"
-//#include "MTC.h"
-//#include "MCamera.h"
-
 //----------------------------------------------------------------------------
 vtkMicronTracker* vtkMicronTracker::New()
 {
@@ -286,7 +282,7 @@ PlusStatus vtkMicronTracker::InternalUpdate()
     if (-1 == callResult)
     {
       this->InternalStopTracking();
-      LOG_ERROR("Error in grabing a frame!\n" << this->MT->mtGetErrorString());
+     LOG_ERROR("Error in grabing a frame! %s \n" << this->MT->mtGetErrorString());
       return PLUS_FAIL;
     }
     else
@@ -296,11 +292,11 @@ PlusStatus vtkMicronTracker::InternalUpdate()
     if (-1 == callResult)
     {
       this->InternalStopTracking();
-      LOG_ERROR("Error in processing a frame!\n" << this->MT->mtGetErrorString());
+      LOG_ERROR("Error in processing a frame! %s\n" << this->MT->mtGetErrorString());
       return PLUS_FAIL;
     }
     this->MT->mtFindIdentifiedMarkers();
-    this->MT->mtFindUnidentifiedMarkers();
+//    this->MT->mtFindUnidentifiedMarkers();
     // Collecting new samples if creating a new template by the user
     if (this->isCollectingNewSamples == 1)
     {
@@ -361,6 +357,7 @@ PlusStatus vtkMicronTracker::InternalUpdate()
       this->ToolTimeStampedUpdate(i, this->SendMatrix, (TrackerStatus)statusFlags[i], this->LastFrameNumber, unfilteredTimestamp);   
     }
   }
+  Sleep(600);
   return PLUS_SUCCESS;
 }
 
@@ -874,16 +871,16 @@ static char *vtkStripWhitespace(char *text)
   }
   return text;
 }
-/*
+
 PlusStatus vtkMicronTracker::ReadConfiguration( vtkXMLDataElement* config )
 {
   // Read superclass configuration first
   Superclass::ReadConfiguration(config); 
 
-  LOG_TRACE( "vtkAscension3DGTracker::ReadConfiguration" ); 
+  LOG_TRACE( "vtkMicronTrackerTracker::ReadConfiguration" ); 
   if ( config == NULL ) 
   {
-    LOG_ERROR("Unable to find Ascension3DGTracker XML data element");
+    LOG_ERROR("Unable to find vtkMicronTrackerTracker XML data element");
     return PLUS_FAIL; 
   }
 
@@ -901,21 +898,26 @@ PlusStatus vtkMicronTracker::ReadConfiguration( vtkXMLDataElement* config )
 		return PLUS_FAIL;
   }
 
-
-	this->pCameras = new Cameras();
-	int result = this->pCameras->AttachAvailableCameras();
-
-	if (result == 0 &&  this->pCameras->getCount() >= 1 ) {
-		this->pCurrCam = this->pCameras->m_vCameras[0];
-		if (this->pCurrCam->getXRes() > 1200 ) this->isShowingHalfSize = true;
-		cout << " Camera attached successfully " << endl;
-	} else {
-		LOG_ERROR(" No camera available or missing calibration file. Please also check that MTHome system environment variable is set ");
-		return PLUS_FAIL;
-	}
-
+	ReadToolsFile();
+	RefreshMarkerTemplates();	//
+	Probe();					// setup and attach to cameras. IsTracking will be set to 1.
+	Connect();
 
 
   return PLUS_SUCCESS;
 }
-*/
+
+PlusStatus vtkMicronTracker::Connect()
+{ 
+
+  // Enable tools
+  for ( int tool = 0; tool < this->GetNumberOfTools(); tool ++ )
+  {
+      this->GetTool( tool )->EnabledOn();
+
+  }
+	
+	return PLUS_SUCCESS;
+
+
+}
