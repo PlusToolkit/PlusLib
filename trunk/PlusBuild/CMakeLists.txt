@@ -64,8 +64,8 @@ OPTION(PLUSBUILD_BUILD_PLUSAPP "Build PlusApp applications" ON)
 
 OPTION(PLUS_USE_ULTRASONIX_VIDEO "Provide support for the Ultrasonix ultrasound systems" OFF)
 SET (PLUS_ULTRASONIX_SDK_MAJOR_VERSION 5 CACHE STRING "Set Ultrasonix SDK major version (version: [major].[minor].[patch])")
-SET (PLUS_ULTRASONIX_SDK_MINOR_VERSION 6 CACHE STRING "Set Ultrasonix SDK minor version (version: [major].[minor].[patch])")
-SET (PLUS_ULTRASONIX_SDK_PATCH_VERSION 4 CACHE STRING "Set Ultrasonix SDK patch version (version: [major].[minor].[patch])")
+SET (PLUS_ULTRASONIX_SDK_MINOR_VERSION 7 CACHE STRING "Set Ultrasonix SDK minor version (version: [major].[minor].[patch])")
+SET (PLUS_ULTRASONIX_SDK_PATCH_VERSION 1 CACHE STRING "Set Ultrasonix SDK patch version (version: [major].[minor].[patch])")
 
 OPTION(PLUS_USE_ICCAPTURING_VIDEO "Provide support for the IC framegrabber device" ON)
 OPTION(PLUS_USE_VFW_VIDEO "Provide support for the Video-for-Windows video digitizer" OFF)
