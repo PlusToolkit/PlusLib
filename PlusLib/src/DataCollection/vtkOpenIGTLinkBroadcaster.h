@@ -81,6 +81,7 @@ public:
 	vtkTypeRevisionMacro( vtkOpenIGTLinkBroadcaster, vtkObject );
 	virtual void PrintSelf( ostream& os, vtkIndent indent );
   
+  void SetApplyStylusCalibration( bool apply );
   
   Status SetDataCollector( vtkDataCollector* dataCollector );
   Status Initialize( std::string &strError );
@@ -108,6 +109,7 @@ private:
   
   Status             InternalStatus;
   vtkDataCollector*  DataCollector;
+  bool               ApplyStylusCalibration;
   
   /*! List of tools */
   std::vector< IgtToolInfo > NonReferenceToolInfos; 
