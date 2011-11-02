@@ -85,11 +85,9 @@ vtkAccurateTimer* vtkAccurateTimer::New()
 	return ret;
 } 
 
-
 //----------------------------------------------------------------------------
 vtkAccurateTimer::vtkAccurateTimer()
 {
-
 
 }
 
@@ -97,15 +95,12 @@ vtkAccurateTimer::vtkAccurateTimer()
 vtkAccurateTimer::~vtkAccurateTimer()
 {
 
-
 }
-
 
 //----------------------------------------------------------------------------
 void vtkAccurateTimer::PrintSelf(ostream& os, vtkIndent indent)
 {
 	this->Superclass::PrintSelf(os,indent);
-
 }
 
 //----------------------------------------------------------------------------
@@ -187,5 +182,3 @@ std::string vtkAccurateTimer::GetDateAndTimeMSecString()
 	dateAndTimeMs << date << "_"  << time << "." << ms;  
 	return dateAndTimeMs.str(); 
 }
-
-

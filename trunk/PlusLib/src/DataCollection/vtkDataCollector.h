@@ -121,7 +121,10 @@ public:
   /*! Get the most recent tracked frame from devices with each tool transforms */
   virtual PlusStatus GetTrackedFrame(TrackedFrame* trackedFrame, bool calibratedTransform = false); 
 
-  /*! Get the tracked frame list from devices since time specified */
+  /*!
+    Get the tracked frame list from devices since time specified
+    \param trackedFrameList Tracked frame list used to get the newly acquired frames into. The new frames are appended to the tracked frame.
+  */
   virtual PlusStatus GetTrackedFrameList(double& frameTimestamp, vtkTrackedFrameList* trackedFrameList, long validationRequirements, const char* frameTransformNameForPositionValidation = NULL ); 
 
   const char* vtkDataCollector::GetDefaultFrameTransformName(int toolNumber);
