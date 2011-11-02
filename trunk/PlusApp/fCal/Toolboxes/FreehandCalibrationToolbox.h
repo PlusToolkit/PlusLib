@@ -164,8 +164,8 @@ protected:
   /*! Number of segmented validation images */
   int m_NumberOfSegmentedValidationImages;
 
-  /*! Number of acquisition cycles per second */
-  int m_AcquisitionFrameRate;
+  /*! Number of recording cycles per second */
+  int m_RecordingFrameRate;
 
   /*! Flags of validation types to perform */
   long m_ValidationFlags;

@@ -36,7 +36,7 @@ FreehandCalibrationToolbox::FreehandCalibrationToolbox(fCalMainWindow* aParentMa
   , m_NumberOfValidationImagesToAcquire(100)
   , m_NumberOfSegmentedCalibrationImages(0)
   , m_NumberOfSegmentedValidationImages(0)
-  , m_AcquisitionFrameRate(5)
+  , m_RecordingFrameRate(10)
   , m_ValidationFlags(REQUIRE_UNIQUE_TIMESTAMP | REQUIRE_TRACKING_OK | REQUIRE_CHANGED_ENCODER_POSITION | REQUIRE_SPEED_BELOW_THRESHOLD)
 {
   ui.setupUi(this);
@@ -54,7 +54,7 @@ FreehandCalibrationToolbox::FreehandCalibrationToolbox(fCalMainWindow* aParentMa
   m_ValidationData->SetDefaultFrameTransformName("Probe");
 
   // Change result display properties
-  //ui.label_Results->setFont(QFont("Courier", 7));
+  ui.label_Results->setFont(QFont("Courier", 8));
 
   // Connect events
   connect( ui.pushButton_OpenPhantomRegistration, SIGNAL( clicked() ), this, SLOT( OpenPhantomRegistration() ) );
@@ -572,6 +572,9 @@ void FreehandCalibrationToolbox::DoSpatialCalibration()
 {
   LOG_TRACE("FreehandCalibrationToolbox::DoSpatialCalibration");
 
+  // Get current time
+  double startTime = vtkAccurateTimer::GetSystemTime();
+
   // Calibrate if acquisition is ready
   if ( m_NumberOfSegmentedCalibrationImages >= m_NumberOfCalibrationImagesToAcquire
     && m_NumberOfSegmentedValidationImages >= m_NumberOfValidationImagesToAcquire)
@@ -661,7 +664,9 @@ void FreehandCalibrationToolbox::DoSpatialCalibration()
   }
 
   // Launch timer to run acquisition again
-  QTimer::singleShot(1000.0 / (double)m_AcquisitionFrameRate, this, SLOT(DoSpatialCalibration())); 
+  double computationTime = vtkAccurateTimer::GetSystemTime() - startTime;
+  int waitTime = std::max((int)(1000.0 / (double)m_RecordingFrameRate - computationTime * 1000.0), 0);
+  QTimer::singleShot(waitTime , this, SLOT(DoSpatialCalibration())); 
 }
 
 //-----------------------------------------------------------------------------
