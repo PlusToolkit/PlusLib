@@ -7,6 +7,7 @@
 
 #define __MICRONTRACKERINTERFACE_CPP__
 #include "MicronTrackerInterface.h"
+#include "UtilityFunctions.h"
 #include "Cameras.h"
 //------------------------------------------
 /** Destructor */
@@ -429,7 +430,7 @@ void MicronTrackerInterface::mtFindIdentifiedMarkers()
   this->m_numOfIdentifiedMarkers = markersCollection->count();
   if (this->m_numOfIdentifiedMarkers == 0)
     {
-      this->m_markerStatus = MTI_NO_MARKER_CAPTURED;
+      this->m_markerStatus = mtUtils::MTI_NO_MARKER_CAPTURED;
       delete markersCollection; 
       return;
     }
@@ -446,7 +447,7 @@ void MicronTrackerInterface::mtFindIdentifiedMarkers()
   this->m_vNumOfFacetsInEachMarker.clear();
   this->m_vNumOfTotalFacetsInEachMarker.clear();
   
-  this->m_markerStatus = MTI_MARKER_CAPTURED;
+  this->m_markerStatus = mtUtils::MTI_MARKER_CAPTURED;
   int markerNum = 1;
   int facetNum = 1;
   
@@ -638,19 +639,19 @@ int MicronTrackerInterface::mtGetMarkerStatus(int loadedMarkerIndex, int* identi
   // Safety check. If the request marke index is greater than the identified markers,
   // return NO_MARKER_CAPTURED
   if (loadedMarkerIndex > this->mtGetLoadedTemplatesNum() || loadedMarkerIndex < 0)
-    {
-      return MTI_NO_MARKER_CAPTURED;
-    }
+  {
+    return mtUtils::MTI_NO_MARKER_CAPTURED;
+  }
   char* markerName = this->mtGetTemplateName(loadedMarkerIndex);
   for (int i=0; i< this->m_numOfIdentifiedMarkers; i++)
-    {
-      if (markerName == this->m_vIdentifiedMarkersName[i])
   {
-    *identifiedMarkerIndex = i;
-    return MTI_MARKER_CAPTURED;
-  }
+    if (markerName == this->m_vIdentifiedMarkersName[i])
+    {
+      *identifiedMarkerIndex = i;
+      return mtUtils::MTI_MARKER_CAPTURED;
     }
-  return MTI_NO_MARKER_CAPTURED;
+  }
+  return mtUtils::MTI_NO_MARKER_CAPTURED;
 }
 
 //------------------------------------------

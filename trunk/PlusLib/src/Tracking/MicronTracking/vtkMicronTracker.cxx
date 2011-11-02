@@ -44,6 +44,7 @@ POSSIBILITY OF SUCH DAMAGES.
 #include "vtkMicronTracker.h"
 #include <fstream>
 #include <iostream>
+#include <set>
 
 #include "vtkImageData.h"
 #include "PlusVideoFrame.h"
@@ -64,100 +65,23 @@ vtkMicronTracker* vtkMicronTracker::New()
 //----------------------------------------------------------------------------
 vtkMicronTracker::vtkMicronTracker()
 {
-  this->SendMatrix = vtkMatrix4x4::New();
-  this->IsMicronTracking = 0;
+  this->IsMicronTrackingInitialized = 0;
   this->MT = new MicronTrackerInterface();
 
   // for accurate timing
-  this->UpdateNominalFrequency=20.0;
   this->LastFrameNumber=0;
-  this->ReferenceTool=0;
 
-  // Initialize 
-  this->serialNums = vtkIntArray::New();
-  this->xResolutions = vtkIntArray::New();
-  this->yResolutions = vtkIntArray::New();
-  this->sensorNums = vtkIntArray::New();
+  this->IsAdditionalFacetAdding = 0;
+  this->IsCollectingNewSamples = 0;
+  this->NewSampleFramesCollected = 0;
 
-  for (int i=0; i< MAX_TOOL_NUM; i++)
-  {
-    this->previousTransformMatrix[i] = vtkMatrix4x4::New();
-    this->previousTransformMatrix[i]->Identity();
-    rm[i] = vtkMatrix4x4::New();
-    rm[i] = this->previousTransformMatrix[i];
-  }
+  this->LeftImage = NULL;
+  this->RightImage = NULL;
+  this->Xpoints = NULL;
+  this->VectorEnds = NULL;
+  //  this->LeftImageArray = new unsigned char();
+  //  this->RightImageArray = new unsigned char();
 
-  this->isAdditionalFacetAdding = 0;
-  this->isCollectingNewSamples = 0;
-  this->newSampleFramesCollected = 0;
-  this->numOfLoadedTools = 0;
-
-  this->ReadToolsFile();
-  this->SetNumberOfTools(this->numOfLoadedTools);
-  //  finalCalibrationMatrix = vtkMatrix4x4::New();
-
-  leftImage = NULL;
-  rightImage = NULL;
-  xpoints = NULL;
-  vectorEnds = NULL;
-  //  leftImageArray = new unsigned char();
-  //  rightImageArray = new unsigned char();
-
-}
-
-//----------------------------------------------------------------------------
-void vtkMicronTracker::ReadToolsFile()
-{
-  string toolsFileAddress = this->MT->mtGetCurrDir();
-#if(WIN32)
-  toolsFileAddress += "\\Tools\\ToolNames.txt";
-#else
-  toolsFileAddress += "/Tools/ToolNames.txt";
-#endif
-
-  std::ifstream fs;
-  string toolName;
-  string toolClassName;
-  fs.open(toolsFileAddress.c_str());
-  if (fs.fail())
-  {
-    LOG_ERROR("Couldn't open tools file");
-  }
-  int counter = 0;
-  while (true)
-  {
-    std::getline(fs, toolFileLines[counter]);
-    if (fs.fail()) 
-    {
-      break; // no more lines to read
-    }
-    // Find the tool's name in the string. (The tool name is separated from the tool class name by a comma.
-    int lineSize = toolFileLines[counter].size();
-    int commaPos = toolFileLines[counter].find(",");
-    toolName = toolFileLines[counter].substr(0,commaPos);
-    // Add the tool name to the storage container
-    this->toolNames[this->numOfLoadedTools] = toolName;
-
-    // Find the tool's class name in the string.
-    toolClassName = toolFileLines[counter].substr(commaPos+1, lineSize);
-    // Add the tool's class name to the storage container
-    this->toolClassNames[this->numOfLoadedTools] = toolClassName;
-    this->numOfLoadedTools++;
-    counter++;
-  }
-  fs.close();   
-}
-
-//----------------------------------------------------------------------------
-char* vtkMicronTracker::GetToolName(int toolIndex)
-{
-  return (char*)this->toolNames[toolIndex].c_str();
-}
-
-//----------------------------------------------------------------------------
-char* vtkMicronTracker::GetToolClassName(int toolIndex)
-{
-  return (char*)this->toolClassNames[toolIndex].c_str();
 }
 
 //----------------------------------------------------------------------------
@@ -180,91 +104,63 @@ void vtkMicronTracker::UpdateINI()
 //----------------------------------------------------------------------------
 PlusStatus vtkMicronTracker::Probe()
 {  
-  // This function should not be called while the device is tracking (see the documentation of vtkTracker)
-  if (this->IsMicronTracking)
+  if (this->IsMicronTrackingInitialized)
   {
+    LOG_ERROR("vtkMicronTracker::Probe should not be called while the device is already initialized");
     return PLUS_FAIL;
   }
-  int callResult = 0;
-  callResult = this->MT->mtInit();
-
-  if (1 == callResult)
+ 
+  if (this->MT->mtInit()!=1)
   {
-    // Try to attach the cameras till find the cameras
-    callResult = this->MT->mtSetupCameras();
-    if (callResult == 1)
-    {
-      this->numOfCameras = this->MT->mtGetNumOfCameras();
-      const char* camString = (numOfCameras = 1) ? " camera is " : " cameras are ";
-      LOG_DEBUG(numOfCameras << camString << "attached!");
-      for (int i=0; i<numOfCameras; i++)
-      {
-        serialNums->InsertValue(i, this->MT->mtGetSerialNum(i));
-        xResolutions->InsertValue(i, this->MT->mtGetXResolution(i));
-        yResolutions->InsertValue(i, this->MT->mtGetYResolution(i));
-        sensorNums->InsertValue(i, this->MT->mtGetNumOfSensors(i));
-      }
-      LOG_DEBUG("Serial number of the current camera: " << serialNums->GetValue(0));
-      LOG_DEBUG("Resolution of the current camera: " << xResolutions->GetValue(0) << " x " << yResolutions->GetValue(0));
-      this->IsMicronTracking = 1;
+    LOG_ERROR("Error in initializing Micron Tracker");
+    return PLUS_FAIL;
+  }
 
-    }
-    else
-    {
-      this->MT->mtEnd();
-      this->MT = NULL;
-      callResult = 0;
-      LOG_ERROR("Failed to find any cameras! \nCheck the camera connections..."); //vtkErrorMacro( << "No camera found!");
-    }
-  }
-  else
+  // Try to attach the cameras till find the cameras
+  if (this->MT->mtSetupCameras()!=1)
   {
-    this->MT->mtEnd();
-    this->MT = NULL;
-    LOG_ERROR("Error in initializing Micron Tracker!"); //vtkErrorMacro( << "Error in initializing COM components! ");
+    LOG_ERROR("Error in initializing Micron Tracker: setup cameras failed. Check the camera connections.");
+    return PLUS_FAIL;
   }
-  return (callResult==0)?PLUS_FAIL:PLUS_SUCCESS;
+
+  int numOfCameras = this->MT->mtGetNumOfCameras();
+  if (numOfCameras==0)
+  {
+    LOG_ERROR("Error in initializing Micron Tracker: no cameras attached. Check the camera connections.");
+    return PLUS_FAIL;
+  }
+
+  LOG_DEBUG("Number of attached cameras: " << numOfCameras );
+
+  this->MT->mtEnd();
+
+  return PLUS_SUCCESS;
 } 
 
 //----------------------------------------------------------------------------
 PlusStatus vtkMicronTracker::InternalStartTracking()
 {
-  if (this->IsMicronTracking)
+  if (!this->IsMicronTrackingInitialized)
   {
-    this->RefreshMarkerTemplates();
+    LOG_ERROR("InternalStartTracking failed: MicronTracker has not been initialized");
+    return PLUS_FAIL;
   }
-  return (this->IsMicronTracking)?PLUS_SUCCESS:PLUS_FAIL;
+
+  this->RefreshMarkerTemplates();
+
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkMicronTracker::InternalStopTracking()
 {
-  if (this->MT != NULL )
-  {
-    //    this->UpdateMutex->Lock();
-    // Ends the COM services and calls the destructor of MicronTracker class
-    this->MT->mtEnd();
-    this->MT = NULL;
-    this->IsMicronTracking = 0;
-    for (int i=0; i<MAX_TOOL_NUM; i++)
-    {
-      //if ( this->previousTransformMatrix[i] != NULL )
-      //  this->previousTransformMatrix[i]->Delete();
-      if (this->rm[i] != NULL)
-      {
-        this->rm[i]->Delete();
-      }
-    }
-    if ( this->serialNums != NULL )
-    {
-      this->serialNums->Delete();
-    }
-    if ( this->yResolutions != NULL )
-    {
-      this->yResolutions->Delete();
-      // this->UpdateMutex->Unlock();
-    }
+  if (!this->IsMicronTrackingInitialized)
+  {    
+    return PLUS_SUCCESS;
   }
+
+  // :TODO: we could stop the MicronTracker
+
   return PLUS_SUCCESS;
 }
 
@@ -273,102 +169,92 @@ PlusStatus vtkMicronTracker::InternalUpdate()
 {
   int callResult = 0;
 
-  if (this->IsMicronTracking)
+  if (!this->IsMicronTrackingInitialized)
   {
-    // If grabing a frame was not successful prevent it from calling the mtGrabFrame
-    // method of this->MT, until the problem is solved.
-    callResult = this->MT->mtGrabFrame();
-
-    if (-1 == callResult)
-    {
-      LOG_ERROR("Error in grabing a frame! (" << this->MT->mtGetErrorString() <<")");
-      this->InternalStopTracking();      
-      return PLUS_FAIL;
-    }
-    else
-    {
-      callResult = this->MT->mtProcessFrame();
-    }
-    if (-1 == callResult)
-    {
-      LOG_ERROR("Error in processing a frame! (" << this->MT->mtGetErrorString() <<")");
-      this->InternalStopTracking();      
-      return PLUS_FAIL;
-    }
-    this->MT->mtFindIdentifiedMarkers();
-//    this->MT->mtFindUnidentifiedMarkers();
-    // Collecting new samples if creating a new template by the user
-    if (this->isCollectingNewSamples == 1)
-    {
-      callResult = this->MT->mtCollectNewSamples(this->isAdditionalFacetAdding);
-      if (callResult == -1)
-      {
-        LOG_ERROR("Less than two vectors are detected.");
-      }
-      else if (callResult == 1)
-      {
-        LOG_ERROR("More than two vectors are detected.");
-      }
-      else if (callResult == 99)
-      {
-        LOG_ERROR("No known facet detected.");
-      }
-      else
-      {
-        this->newSampleFramesCollected++;
-        LOG_TRACE("Samples collected so far: " << newSampleFramesCollected);
-      }
-    }
-    // Setting the timestamp
-    this->LastFrameNumber++;
-    const double unfilteredTimestamp = vtkAccurateTimer::GetSystemTime();
-
-    int identifiedMarkerIndexAssignedToTool=0;
-    this->numOfIdentifiedMarkers = this->MT->mtGetIdentifiedMarkersCount();
-    //  if(this->MT->mtGetIdentifiedMarkersCount() == 0)
-    //   {  
-    //     LOG_ERROR("No Markers found");
-    //   }
-    for (int i=0; i< this->NumberOfTools; i++)
-    {
-      // If no marker is assigned to the tool, grab the first one available and so on till 
-      // the list of the identified markers is exhausted (in which case the statusFlag would
-      // be set to TR_OUT_OF_VIEW.
-      if (this->markerIndexAssingedToTools[i] == 99)
-      {
-        //if (i<this->numOfIdentifiedMarkers)
-        //  statusFlags[i] = 0;
-        //else
-        statusFlags[i] = TR_OUT_OF_VIEW;
-      }
-      else
-      {  
-        if (this->MT->mtGetMarkerStatus(this->markerIndexAssingedToTools[i], &identifiedMarkerIndexAssignedToTool) != MTI_MARKER_CAPTURED)
-          //if (this->MT->mtGetStatus() != mti_utils::MTI_MARKER_CAPTURED)
-        {  
-          statusFlags[i] = 0;
-        }
-        else
-        {
-          statusFlags[i] = TR_OUT_OF_VIEW;//TR_MISSING;  
-        }
-      }
-      SendMatrix->DeepCopy(this->GetTransformMatrix(identifiedMarkerIndexAssignedToTool, i));
-      this->ToolTimeStampedUpdate(i, this->SendMatrix, (TrackerStatus)statusFlags[i], this->LastFrameNumber, unfilteredTimestamp);   
-    }
+    LOG_ERROR("InternalUpdate failed: MicronTracker has not been initialized");
+    return PLUS_FAIL;
   }
-  Sleep(600);
+
+  // If grabing a frame was not successful prevent it from calling the mtGrabFrame
+  // method of this->MT, until the problem is solved.
+  if (this->MT->mtGrabFrame() == -1)
+  {
+    LOG_ERROR("Error in grabing a frame! (" << this->MT->mtGetErrorString() <<")");
+    return PLUS_FAIL;
+  }
+  if (this->MT->mtProcessFrame() == -1)
+  {
+    LOG_ERROR("Error in processing a frame! (" << this->MT->mtGetErrorString() <<")");
+    return PLUS_FAIL;
+  }
+
+  this->MT->mtFindIdentifiedMarkers();
+  // this->MT->mtFindUnidentifiedMarkers();
+
+  // Collecting new samples if creating a new template by the user
+  int collectNewSamplesResult=this->MT->mtCollectNewSamples(this->IsAdditionalFacetAdding);
+  if ( collectNewSamplesResult == -1)
+  {
+    LOG_ERROR("Less than two vectors are detected.");
+    return PLUS_FAIL;
+  }
+  else if (collectNewSamplesResult == 1)
+  {
+    LOG_ERROR("More than two vectors are detected.");
+    return PLUS_FAIL;
+  }
+  else if (collectNewSamplesResult == 99)
+  {
+    LOG_ERROR("No known facet detected.");
+    return PLUS_FAIL;
+  }
+
+  this->NewSampleFramesCollected++;
+  LOG_TRACE("Samples collected so far: " << this->NewSampleFramesCollected);
+
+  // Setting the timestamp
+  this->LastFrameNumber++;
+  const double unfilteredTimestamp = vtkAccurateTimer::GetSystemTime();
+  
+  int numOfIdentifiedMarkers = this->MT->mtGetIdentifiedMarkersCount();
+  LOG_DEBUG("Number of identified markers: " << numOfIdentifiedMarkers);
+
+  // Set status and transform for tools with detected markers
+  vtkSmartPointer<vtkMatrix4x4> transformMatrix=vtkSmartPointer<vtkMatrix4x4>::New();
+  std::set<int> identifiedToolPorts;
+  for (int identifedMarkerIndex=0; identifedMarkerIndex<this->MT->mtGetIdentifiedMarkersCount(); identifedMarkerIndex++)
+  {
+    char* identifiedTemplateName=this->MT->mtGetIdentifiedTemplateName(identifedMarkerIndex);
+    
+    int toolPortNumber=GetToolPortNumberByPortName(identifiedTemplateName);
+    if (toolPortNumber<0)
+    {
+      // the template name does not match any of the tool PortNames, so we are not interested in this marker 
+      continue;
+    }
+
+    GetTransformMatrix(identifedMarkerIndex, transformMatrix);
+    ToolTimeStampedUpdate(toolPortNumber, transformMatrix, TR_OK, this->LastFrameNumber, unfilteredTimestamp);   
+    identifiedToolPorts.insert(toolPortNumber);
+  }
+
+  // Set status for tools with non-detected markers
+  transformMatrix->Identity();
+  for (int toolPortNumber=0; toolPortNumber<this->GetNumberOfTools(); toolPortNumber++)
+  {
+    if (identifiedToolPorts.find(toolPortNumber)!=identifiedToolPorts.end())
+    {
+      // this tool has been found and update has been already called with the correct transform
+      continue;
+    }
+    ToolTimeStampedUpdate(toolPortNumber, transformMatrix, TR_OUT_OF_VIEW, this->LastFrameNumber, unfilteredTimestamp);   
+  }
+
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------
-void vtkMicronTracker::SetMarkerIndexAssignedToTool(int toolIndex, int markerIndex)
-{
-  this->markerIndexAssingedToTools[toolIndex] = markerIndex;
-}
-
-//----------------------------------------------
-void vtkMicronTracker::print_matrix(vtkMatrix4x4* m)
+void vtkMicronTracker::PrintMatrix(vtkMatrix4x4* m)
 {
   std::ostringstream dumpStr; 
   for (int i=0; i<4; i++)
@@ -415,85 +301,70 @@ int vtkMicronTracker::GetNumOfLoadedMarkers()
 }
 
 //----------------------------------------------
-vtkMatrix4x4* vtkMicronTracker::GetTransformMatrix(int markerIndex, int toolIndex)
+void vtkMicronTracker::GetTransformMatrix(int markerIndex, vtkMatrix4x4* transformMatrix)
 {  
-  // Safety check
-  if ( statusFlags[toolIndex] == 0 && markerIndex < this->numOfIdentifiedMarkers)
-  {  
-    //this->UpdateMutex->Lock();
-    rm[markerIndex]->Identity();
-    vector<double> vRotMat;
-    this->MT->mtGetRotations( vRotMat, markerIndex );
-    vector<double> vPos;
-    this->MT->mtGetTranslations(vPos, markerIndex);
-    //this->UpdateMutex->Unlock();
-    int rotIndex =0;
+  vector<double> vRotMat;
+  this->MT->mtGetRotations( vRotMat, markerIndex );
+  vector<double> vPos;
+  this->MT->mtGetTranslations(vPos, markerIndex);
 
-    for(int col=0; col < 3; col++)
-    {
-      for (int row=0; row < 3; row++)
-      {
-        rm[markerIndex]->SetElement(row, col, vRotMat[rotIndex++]);
-      }
-    }
-    // Add the offset to the last column of the transformation matrix
-    rm[markerIndex]->SetElement(0,3,vPos[0]);
-    rm[markerIndex]->SetElement(1,3,vPos[1]);
-    rm[markerIndex]->SetElement(2,3,vPos[2]);
-
-    this->previousTransformMatrix[markerIndex] = rm[markerIndex];
-    return rm[markerIndex];
-  }
-  else
+  transformMatrix->Identity();
+  int rotIndex =0;
+  for(int col=0; col < 3; col++)
   {
-    return this->previousTransformMatrix[markerIndex];
+    for (int row=0; row < 3; row++)
+    {
+      transformMatrix->SetElement(row, col, vRotMat[rotIndex++]);
+    }
   }
+  // Add the offset to the last column of the transformation matrix
+  transformMatrix->SetElement(0,3,vPos[0]);
+  transformMatrix->SetElement(1,3,vPos[1]);
+  transformMatrix->SetElement(2,3,vPos[2]);
 }
 
 //----------------------------------------------------------------------------
 void vtkMicronTracker::UpdateLeftRightImage()
 {
   this->UpdateMutex->Lock();
-  this->MT->mtGetLeftRightImageArray(leftImageArray, rightImageArray, 0);
-  this->numOfIdentifiedMarkers = this->MT->mtGetIdentifiedMarkersCount();
-  this->numOfUnidentifiedMarkers = this->MT->mtGetUnidentifiedMarkersCount();
+  this->MT->mtGetLeftRightImageArray(this->LeftImageArray, this->RightImageArray, 0);
   this->UpdateMutex->Unlock();
 
-  if (leftImage != NULL)
+  if (this->LeftImage != NULL)
   {
-    leftImage->Delete();
+    this->LeftImage->Delete();
   }
-  if (rightImage != NULL)
+  if (this->RightImage != NULL)
   {
-    rightImage->Delete();
+    this->RightImage->Delete();
   }
 
-  leftImage = vtkImageImport::New();
-  rightImage = vtkImageImport::New();
+  this->LeftImage = vtkImageImport::New();
+  this->RightImage = vtkImageImport::New();
 
-  leftImage->SetDataScalarTypeToUnsignedChar();
-  leftImage->SetImportVoidPointer((unsigned char*)leftImageArray);
-  leftImage->SetDataScalarTypeToUnsignedChar();
-  leftImage->SetDataExtent(0,CAM_FRAME_WIDTH-1, 0,CAM_FRAME_HEIGHT-1, 0,0);
+  this->LeftImage->SetDataScalarTypeToUnsignedChar();
+  this->LeftImage->SetImportVoidPointer((unsigned char*)this->LeftImageArray);
+  this->LeftImage->SetDataScalarTypeToUnsignedChar();
+  this->LeftImage->SetDataExtent(0,CAM_FRAME_WIDTH-1, 0,CAM_FRAME_HEIGHT-1, 0,0);
 
-  rightImage->SetDataScalarTypeToUnsignedChar();
-  rightImage->SetImportVoidPointer((unsigned char*)rightImageArray);
-  rightImage->SetDataScalarTypeToUnsignedChar();
-  rightImage->SetDataExtent(0,CAM_FRAME_WIDTH-1, 0,CAM_FRAME_HEIGHT-1, 0,0);
+  this->RightImage->SetDataScalarTypeToUnsignedChar();
+  this->RightImage->SetImportVoidPointer((unsigned char*)this->RightImageArray);
+  this->RightImage->SetDataScalarTypeToUnsignedChar();
+  this->RightImage->SetDataExtent(0,CAM_FRAME_WIDTH-1, 0,CAM_FRAME_HEIGHT-1, 0,0);
 }
 
 //----------------------------------------------------------------------------
 vtkImageImport* vtkMicronTracker::GetLeftImage()
 {
-  leftImage->GlobalWarningDisplayOff();
-  return leftImage;
+  this->LeftImage->GlobalWarningDisplayOff();
+  return this->LeftImage;
 }
 
 //----------------------------------------------------------------------------
 vtkImageImport* vtkMicronTracker::GetRightImage()
 {
-  rightImage->GlobalWarningDisplayOff();
-  return rightImage;
+  this->RightImage->GlobalWarningDisplayOff();
+  return this->RightImage;
 }
 
 //----------------------------------------------------------------------------
@@ -542,7 +413,7 @@ int vtkMicronTracker::StopSampling(char* name, double jitter)
 //----------------------------------------------------------------------------
 void vtkMicronTracker::ResetNewSampleFramesCollected()
 {
-  this->newSampleFramesCollected = 0;
+  this->NewSampleFramesCollected = 0;
   this->MT->mtResetSamples();
 }
 
@@ -573,11 +444,11 @@ int vtkMicronTracker::GetNumberOfTotalFacetsInMarker(int markerIdx)
 //----------------------------------------------------------------------------
 vtkDoubleArray* vtkMicronTracker::vtkGetIdentifiedMarkersXPoints(int markerIdx)
 {
-  if (xpoints != NULL)
+  if (this->Xpoints != NULL)
   {
-    xpoints->Delete();
+    this->Xpoints->Delete();
   }
-  xpoints = vtkDoubleArray::New();
+  this->Xpoints = vtkDoubleArray::New();
   double* xpointsTemp;
   // Note: Removing lock/unlock here causes crash
   this->UpdateMutex->Lock();
@@ -585,26 +456,26 @@ vtkDoubleArray* vtkMicronTracker::vtkGetIdentifiedMarkersXPoints(int markerIdx)
   int arraySize = this->MT->mtGetNumOfFacetsInMarker(markerIdx);
   this->UpdateMutex->Unlock();
   // Each facet contains 16*numberOfFacets piece of information 
-  xpoints->SetArray(xpointsTemp,arraySize*16,1);
-  return xpoints;
+  this->Xpoints->SetArray(xpointsTemp,arraySize*16,1);
+  return this->Xpoints;
 }
 
 //----------------------------------------------------------------------------
 vtkDoubleArray* vtkMicronTracker::vtkGetUnidentifiedMarkersEnds(int vectorIdx)
 {  
-  if (vectorEnds != NULL)
+  if (this->VectorEnds != NULL)
   {
-    vectorEnds->Delete();
+    this->VectorEnds->Delete();
   }
-  vectorEnds = vtkDoubleArray::New();
+  this->VectorEnds = vtkDoubleArray::New();
   double* vectorEndsTemp;
   // Note: Removing lock/unlock here causes crash
   this->UpdateMutex->Lock();
   this->MT->mtGetUnidentifiedMarkersEnds(vectorEndsTemp, vectorIdx);
   this->UpdateMutex->Unlock();
   // Each facet contains 8 piece of information
-  vectorEnds->SetArray(vectorEndsTemp,8,1);
-  return vectorEnds;
+  this->VectorEnds->SetArray(vectorEndsTemp,8,1);
+  return this->VectorEnds;
 }
 
 //----------------------------------------------------------------------------
@@ -618,8 +489,8 @@ void vtkMicronTracker::SelectCamera(int n)
 //----------------------------------------------------------------------------
 int vtkMicronTracker::GetCurrCamIndex()
 {
-  this->currCamIndex = this->MT->mtGetCurrCamIndex();
-  return this->currCamIndex;
+  int currCamIndex = this->MT->mtGetCurrCamIndex();
+  return currCamIndex;
 }
 
 //----------------------------------------------------------------------------
@@ -896,28 +767,88 @@ PlusStatus vtkMicronTracker::ReadConfiguration( vtkXMLDataElement* config )
   {
     LOG_ERROR("Cannot find Tracker element in XML tree!");
 		return PLUS_FAIL;
-  }
-
-	ReadToolsFile();
-	RefreshMarkerTemplates();	//
-	Probe();					// setup and attach to cameras. IsTracking will be set to 1.
-	Connect();
-
-
+  }	
+	
   return PLUS_SUCCESS;
 }
 
 PlusStatus vtkMicronTracker::Connect()
 { 
+  if (this->IsMicronTrackingInitialized)
+  {
+    LOG_DEBUG("Already connected to MicronTracker");
+    return PLUS_SUCCESS;
+  }
+
+  if (this->MT->mtInit()!=1)
+  {
+    LOG_ERROR("Error in initializing Micron Tracker");
+    return PLUS_FAIL;
+  }
+
+  // Try to attach the cameras till find the cameras
+  if (this->MT->mtSetupCameras()!=1)
+  {
+    LOG_ERROR("Error in initializing Micron Tracker: setup cameras failed. Check the camera connections.");
+    this->MT->mtEnd();
+    return PLUS_FAIL;
+  }
+
+  int numOfCameras = this->MT->mtGetNumOfCameras();
+  if (numOfCameras==0)
+  {
+    LOG_ERROR("Error in initializing Micron Tracker: no cameras attached. Check the camera connections.");
+    this->MT->mtEnd();
+    return PLUS_FAIL;
+  }
+
+  RefreshMarkerTemplates();
+
+  this->IsMicronTrackingInitialized=1;
+
+  LOG_DEBUG("Number of attached cameras: " << numOfCameras );
+  this->CameraInfoList.clear();
+  for (int i=0; i<numOfCameras; i++)
+  {
+    CameraInfo info;
+    info.serialNum=this->MT->mtGetSerialNum(i);
+    info.xResolution=this->MT->mtGetXResolution(i);
+    info.yResolution=this->MT->mtGetYResolution(i);
+    info.numOfSensors=this->MT->mtGetNumOfSensors(i);
+    this->CameraInfoList.push_back(info);
+  }
+  if (numOfCameras>0)
+  {
+    LOG_DEBUG("Serial number of the current camera: " << this->CameraInfoList[0].serialNum);
+    LOG_DEBUG("Resolution of the current camera: " << this->CameraInfoList[0].xResolution << " x " << this->CameraInfoList[0].yResolution );
+  }
 
   // Enable tools
   for ( int tool = 0; tool < this->GetNumberOfTools(); tool ++ )
   {
       this->GetTool( tool )->EnabledOn();
-
   }
 	
 	return PLUS_SUCCESS;
+}
 
+PlusStatus vtkMicronTracker::Disconnect()
+{ 
+  this->MT->mtEnd();  
+	return PLUS_SUCCESS;
+}
 
+int vtkMicronTracker::GetNumOfCameras()
+{
+  return this->MT->mtGetNumOfCameras();
+}
+
+int vtkMicronTracker::GetNumOfIdentifiedMarkers()
+{
+  return this->MT->mtGetIdentifiedMarkersCount();
+}
+
+int vtkMicronTracker::GetNumOfUnidentifiedMarkers()
+{
+  return this->MT->mtGetUnidentifiedMarkersCount();
 }

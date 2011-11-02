@@ -505,6 +505,14 @@ PlusStatus vtkTracker::ReadConfiguration(vtkXMLDataElement* config)
 
       if (portNumber < this->GetNumberOfTools() )
       {
+
+        // :TODO: PortName should replace PortNumber
+        const char* portName = config->GetAttribute("PortName"); 
+        if ( portName != NULL ) 
+        {
+          this->GetTool(portNumber)->SetPortName(portName); 
+        }
+
         this->GetTool(portNumber)->ReadConfiguration(toolDataElement); 
       }
       else
@@ -524,6 +532,23 @@ PlusStatus vtkTracker::ReadConfiguration(vtkXMLDataElement* config)
   return PLUS_SUCCESS; 
 }
 
+
+//-----------------------------------------------------------------------------
+int vtkTracker::GetToolPortNumberByPortName( const char* portName)
+{
+  if ( portName != NULL )
+  {
+    for ( int tool = 0; tool < this->GetNumberOfTools(); tool++ )
+    {
+      if ( STRCASECMP( portName, this->GetTool(tool)->GetPortName() ) == 0 )
+      {
+        return tool;
+      }
+    }
+  }
+
+  return -1; 
+}
 
 //-----------------------------------------------------------------------------
 int vtkTracker::GetToolPortByName( const char* toolName)

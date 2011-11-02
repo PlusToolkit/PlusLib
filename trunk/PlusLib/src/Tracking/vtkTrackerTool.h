@@ -56,6 +56,9 @@ public:
   /*! Get a numeric identifier for this tool i.e. 0, 1, 2. */
   vtkGetMacro(ToolPort,int);
 
+  /*! Get port name. Port name is used to identify the tool among all the tools provided by the tracker device. */
+  vtkGetStringMacro(PortName); 
+
   /*! Get the frame number (some devices has frame numbering, otherwise just increment if new frame received) */
   vtkGetMacro(FrameNumber, unsigned long);
   vtkSetMacro(FrameNumber, unsigned long);
@@ -96,12 +99,14 @@ public:
   /*! Get tool name */
   vtkGetStringMacro(ToolName); 
   /*! Get tool model */
-  vtkGetStringMacro(ToolModel); 
+  vtkGetStringMacro(ToolModel);
 
   /*! Set tracker which owns this tool */
   void SetTracker(vtkTracker *tracker);
   /*! Set tool port number */
   vtkSetMacro(ToolPort, int);
+  /*! Set port name. Port name is used to identify the tool among all the tools provided by the tracker device. */
+  vtkSetStringMacro(PortName); 
   /*! Set tool revision */
   vtkSetStringMacro(ToolRevision);
   /*! Set tool manufacturer */
@@ -167,6 +172,7 @@ protected:
   vtkTracker *Tracker;
 
   int ToolPort;
+  char *PortName;
 
   TRACKER_TOOL_TYPE ToolType;
 

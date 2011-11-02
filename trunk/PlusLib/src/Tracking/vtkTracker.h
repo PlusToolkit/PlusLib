@@ -143,6 +143,9 @@ public:
   /*! Get first active tool port number by type */
   int GetFirstPortNumberByType(TRACKER_TOOL_TYPE type);
 
+  /*! Get the port number from the port name */
+  int GetToolPortNumberByPortName(const char* portName);
+
   /*! Get port number of reference tool */
   int GetReferenceToolNumber();
 

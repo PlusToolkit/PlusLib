@@ -97,6 +97,14 @@ class VTK_EXPORT vtkMicronTracker : public vtkTracker
 {
 public:
 
+  struct CameraInfo
+  {
+    int serialNum;
+    int xResolution;
+    int yResolution;
+    int numOfSensors;
+  };
+
   static vtkMicronTracker *New();
   vtkTypeMacro(vtkMicronTracker,vtkTracker);
  
@@ -110,32 +118,6 @@ public:
   // Get an update from the tracking system and push the new transforms
   // to the tools.  This should only be used within vtkTracker.cxx.
   PlusStatus InternalUpdate();
-
-  // Description:
-  // Set which serial port to use, 1 through 4.  Default: 1.
-  // user calls SetSerialPort(int portNumber)
-  // Python: lap.SetSerialPort(int)
-  // C++: void SetSerialPort (int );
-  vtkSetMacro(SerialPort, int); // you call SetSerialPort(int PortNumber)
- 
-  // Description:
-  // Get the set serial port.
-  // Python: lap.GetSerialPort() -> int
-  // C++: int GetSerialPort ();
-  vtkGetMacro(SerialPort, int); // you call GetSerialPort()
-
-  // Description:
-  // Set the desired baud rate.  Default: 9600.
-  // user calls SetBaudRate(int baudRate)
-  // 9600; 14400; 19200; 38400;  57600; 115200;
-  // The baud parameter is the desired baud rate in bits per
-  // second. The actual baud rate used will be the
-  // closest one available on the host system.
-  vtkSetMacro(BaudRate, int); // you call SetBaudRate(int bps)
-
-  // Description:
-  // Get the set baud rate.
-  vtkGetMacro(BaudRate, int); // you call GetBaudRate()
 
   /*********************************/
   /*
@@ -152,19 +134,14 @@ public:
   /*
   /*********************************/
   // Description:
-  // Set / Get the number of attached cameras.
-  vtkSetMacro(numOfCameras, int);
-  vtkGetMacro(numOfCameras, int);
+  // Get the number of attached cameras.
+  int GetNumOfCameras();
 
   // Description:
   // Set / Get the camera(s) serial number and x and y resolution. 
   // Each of these properties are stored in an array. The first element of the array
   // belongs to the first camera, the second to the second cameras and so on.
-  vtkGetObjectMacro(serialNums, vtkIntArray);
-  vtkGetObjectMacro(xResolutions, vtkIntArray);
-  vtkGetObjectMacro(yResolutions, vtkIntArray);
-  vtkGetObjectMacro(sensorNums, vtkIntArray);
-
+  const CameraInfo& GetCameraInfo(int cameraIndex) { return this->CameraInfoList[cameraIndex]; };
 
   /*********************************/
   /*
@@ -202,7 +179,7 @@ public:
   /* Get the general information about the identified markers
   /*
   /*********************************/
-  vtkGetMacro(numOfIdentifiedMarkers, int);
+  int GetNumOfIdentifiedMarkers();
 
   int GetNumberOfFacetsInMarker(int markerIdx);
   int GetNumberOfTotalFacetsInMarker(int markerIdx);
@@ -212,7 +189,7 @@ public:
   /* Get the general information about the unidentified markers
   /*
   /*********************************/
-  vtkGetMacro(numOfUnidentifiedMarkers, int);
+  int GetNumOfUnidentifiedMarkers();
 
   /*********************************/
   /*
@@ -408,17 +385,17 @@ public:
   // Description:
   // Set the flag that indicates whether new samples are to be collected 
   // for new templates.
-  vtkSetMacro(isCollectingNewSamples, int);
+  vtkSetMacro(IsCollectingNewSamples, int);
 
   // Description:
   // Set the flag that indiates an additional facet is being added to 
   // an existing marker.
-  vtkSetMacro(isAdditionalFacetAdding, int);
+  vtkSetMacro(IsAdditionalFacetAdding, int);
 
   // Description:
   // Resets the counter of the frames collected for the new marker to 0.
   void ResetNewSampleFramesCollected();
-  vtkGetMacro(newSampleFramesCollected, int);
+  vtkGetMacro(NewSampleFramesCollected, int);
 
   /*********************************/
   /*
@@ -482,15 +459,10 @@ public:
   /* Get the status of the MicronTracker (Tracking or not)
   /*
   /*********************************/
-  int IsMicronTracking;
-  vtkGetMacro(IsMicronTracking, int);
-
-  // Description:
-  // Returns the transformation matrix of the index_th marker for the toolIndex_th tool. The default
-  // value of the toolIndex is 0. For internal use only (? made public Aug 5).
-  vtkMatrix4x4* GetTransformMatrix(int index, int toolIndex = 0);
-  vtkMatrix4x4* previousTransformMatrix[MAX_TOOL_NUM];
-
+  vtkGetMacro(IsMicronTrackingInitialized, int);
+ 
+  /*! Returns the transformation matrix of the index_th marker */
+  void GetTransformMatrix(int markerIndex, vtkMatrix4x4* transformMatrix);
 
   // An instance of the MicronTrackerInterface class.
   MicronTrackerInterface* MT;
@@ -498,6 +470,7 @@ public:
   /*! Read MicronTracker configuration to xml data */
   PlusStatus ReadConfiguration( vtkXMLDataElement* config );
   PlusStatus Connect();
+  PlusStatus Disconnect();
 
 protected:
   vtkMicronTracker();
@@ -515,59 +488,41 @@ protected:
   // Initialized, not tracking, at 9600 Baud.
   PlusStatus InternalStopTracking();
 
-  /** Requested frequency of position updates in Hz (1/sec) */
-  double UpdateNominalFrequency;
+  int IsMicronTrackingInitialized;
 
   /** Index of the last frame number. This is used for providing a frame number when the tracker doesn't return any transform */
   double LastFrameNumber;
 
-  int ReferenceTool;
-
-  int SerialPort; 
-  vtkMatrix4x4 *SendMatrix;
-  int BaudRate;
-
   //SI
-  int pos[3];
-  int numOfCameras;
-  int currCamIndex;  // index of the current camera, if -1 then all cameras selected
-  int numOfIdentifiedMarkers;
-  int isCollectingNewSamples;
-  int isAdditionalFacetAdding;
-  int newSampleFramesCollected;
-  int numOfUnidentifiedMarkers;
+  int CurrCamIndex;  // index of the current camera, if -1 then all cameras selected
+  int NumOfIdentifiedMarkers;
+  int NumOfUnidentifiedMarkers;
+  int IsCollectingNewSamples;
+  int IsAdditionalFacetAdding;
+  int NewSampleFramesCollected;
  
-  // Three vtkIntArrays to keep the serial number, xResolution and yResulotions of the cameras.
-  vtkIntArray* serialNums;
-  vtkIntArray* xResolutions;
-  vtkIntArray* yResolutions;
-  vtkIntArray* sensorNums;
+  std::vector<CameraInfo> CameraInfoList;
 
   // Camera image data 
-  vtkImageImport* leftImage;
-  vtkImageImport* rightImage;
-  unsigned char** leftImageArray;
-  unsigned char** rightImageArray;
+  vtkImageImport* LeftImage;
+  vtkImageImport* RightImage;
+  unsigned char** LeftImageArray;
+  unsigned char** RightImageArray;
 
-  vtkDoubleArray* xpoints;
-  vtkDoubleArray* vectorEnds;
+  vtkDoubleArray* Xpoints;
+  vtkDoubleArray* VectorEnds;
 
-  string toolNames[MAX_TOOL_NUM];
-  string toolFileLines[12];
-  string toolClassNames[MAX_TOOL_NUM];
-  int markerIndexAssingedToTools[MAX_TOOL_NUM];
-  void ReadToolsFile();
+  string ToolNames[MAX_TOOL_NUM];
+  string ToolFileLines[12];
+  string ToolClassNames[MAX_TOOL_NUM];
+  int MarkerIndexAssingedToTools[MAX_TOOL_NUM];
 
 private:
   vtkMicronTracker(const vtkMicronTracker&);
   void operator=(const vtkMicronTracker&);  
-  long statusFlags[MAX_TOOL_NUM];
-  void print_matrix(FILE *file, float a[4][4]);
-  void print_matrix(float a[4][4]);
-  void print_matrix(vtkMatrix4x4*);
-  float matrices [50][4][4];
-//  vtkMatrix4x4* finalCalibrationMatrix;
-  vtkMatrix4x4 *rm[MAX_TOOL_NUM];
+  void PrintMatrix(FILE *file, float a[4][4]);
+  void PrintMatrix(float a[4][4]);
+  void PrintMatrix(vtkMatrix4x4*);
 };
 
 #endif

@@ -31,22 +31,11 @@
 using std::vector;
 using std::string;
 
-enum    mti_Error{
-  MTI_FAIL = 0,
-  MTI_SUCCESS = 1,
-  MTI_CAMERA_NOT_FOUND = 2,
-  MTI_GRAB_FRAME_ERROR = 3,
-  MTI_MARKER_CAPTURED = 4,
-  MTI_NO_MARKER_CAPTURED = 5,
-  MTI_CAMERA_INDEX_OUT_OF_RANGE = 6
-};
-
-
 class MICRONTRACKERINTERFACE_EXPORT MicronTrackerInterface
 {
   public:
-        //--------------------------
-        //
+  //--------------------------
+  //
   // Constructor / Destructor
   //
   //--------------------------
