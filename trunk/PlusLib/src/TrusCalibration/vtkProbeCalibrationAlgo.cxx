@@ -1118,7 +1118,7 @@ std::string vtkProbeCalibrationAlgo::GetResultString()
 	errorsStringStream << std::fixed << std::setprecision(3) << "  " << this->PointLineDistanceErrorAnalysisVector[0] << ", " << this->PointLineDistanceErrorAnalysisVector[1] << ", " << this->PointLineDistanceErrorAnalysisVector[2] << std::endl;
 
 	std::ostringstream resultStringStream;
-	resultStringStream << matrixStringStream.str() << errorsStringStream.str() << std::endl;
+	resultStringStream << matrixStringStream.str() << std::endl << errorsStringStream.str() << std::endl;
 
 	resultStringStream << "Validation data confidence:" << std::endl;
 	resultStringStream << "  " << this->PointLineDistanceErrorAnalysisVector[3];

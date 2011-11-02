@@ -137,7 +137,7 @@ PlusStatus FidPatternRecognition::RecognizePattern(TrackedFrame* trackedFrame)
 
 PlusStatus FidPatternRecognition::RecognizePattern(vtkTrackedFrameList* trackedFrameList, int* numberOfSuccessfullySegmentedImages/*=NULL*/)
 {
-	LOG_TRACE("FidPatternRecognition::DrawResults"); 
+	LOG_TRACE("FidPatternRecognition::RecognizePattern"); 
 
   PlusStatus status = PLUS_SUCCESS;
   if ( numberOfSuccessfullySegmentedImages )
