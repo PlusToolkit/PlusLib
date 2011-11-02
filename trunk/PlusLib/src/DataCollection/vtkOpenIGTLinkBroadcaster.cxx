@@ -128,14 +128,16 @@ vtkOpenIGTLinkBroadcaster::Status vtkOpenIGTLinkBroadcaster::Initialize( std::st
 }
 
 
-//----------------------------------------------------------------------------
+
 vtkOpenIGTLinkBroadcaster::vtkOpenIGTLinkBroadcaster()
 {
   this->DataCollector = NULL;
   this->InternalStatus = STATUS_NOT_INITIALIZED;
+  this->ApplyStylusCalibration = false;
 }
 
-//----------------------------------------------------------------------------
+
+
 vtkOpenIGTLinkBroadcaster::~vtkOpenIGTLinkBroadcaster()
 {
   for ( int i = 0; i < this->SocketInfos.size(); ++ i )
@@ -146,13 +148,22 @@ vtkOpenIGTLinkBroadcaster::~vtkOpenIGTLinkBroadcaster()
   this->SocketInfos.clear();
 }
 
-//----------------------------------------------------------------------------
+
+
 void vtkOpenIGTLinkBroadcaster::PrintSelf( ostream& os, vtkIndent indent )
 {
   this->Superclass::PrintSelf( os, indent );
 }
 
-//----------------------------------------------------------------------------
+
+
+void vtkOpenIGTLinkBroadcaster::SetApplyStylusCalibration( bool apply )
+{
+  this->ApplyStylusCalibration = apply;
+}
+
+
+
 vtkOpenIGTLinkBroadcaster::Status vtkOpenIGTLinkBroadcaster::SendMessages()
 {
   std::string str;
@@ -186,8 +197,9 @@ vtkOpenIGTLinkBroadcaster::Status vtkOpenIGTLinkBroadcaster::SendMessages( std::
 
 
   TrackedFrame trackedFrame;
+  TrackedFrame trackedFrameCalibrated;
   this->DataCollector->GetTrackedFrame( &trackedFrame, false );
-
+  this->DataCollector->GetTrackedFrame( &trackedFrameCalibrated, true );
 
   double timestamp = trackedFrame.GetTimestamp();
 
@@ -204,13 +216,19 @@ vtkOpenIGTLinkBroadcaster::Status vtkOpenIGTLinkBroadcaster::SendMessages( std::
     int toolNumber = this->NonReferenceToolInfos[ igtIndex ].TrackerPortNumber;
     const char* toolName = this->NonReferenceToolInfos[ igtIndex ].ToolName.c_str();
     igtl::ClientSocket::Pointer toolSocket = this->NonReferenceToolInfos[ igtIndex ].Socket;
-
-    /*
-    PlusStatus pStatus = this->DataCollector->GetTransformWithTimestamp( mToolToTracker, timestamp, status,
-    toolNumber, true );
-    */
-
+    
     double transform[ 16 ] = { 0 };
+    
+    if (    this->ApplyStylusCalibration
+         && strcmp( toolName, "Stylus" ) == 0 )
+    {
+      trackedFrameCalibrated.GetCustomFrameTransform( toolName, transform );  
+    }
+    else
+    {
+      trackedFrame.GetCustomFrameTransform( toolName, transform );
+    }
+    
     trackedFrame.GetCustomFrameTransform( toolName, transform );
     TrackerStatus status = trackedFrame.GetStatus();
 
