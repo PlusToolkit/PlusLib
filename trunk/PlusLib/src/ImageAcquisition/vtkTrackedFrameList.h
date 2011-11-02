@@ -39,7 +39,7 @@ public:
 
 public:
   /*! Set image data */
-  void SetImageData(PlusVideoFrame value) { this->ImageData = value; }; 
+  void SetImageData(const PlusVideoFrame &value) { this->ImageData = value; }; 
 
   /*! Get image data */
   PlusVideoFrame* GetImageData() { return &(this->ImageData); };

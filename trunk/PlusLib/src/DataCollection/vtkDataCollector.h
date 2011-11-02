@@ -106,8 +106,11 @@ public:
   /*! Dump the current state of the video buffer to metafile */
   static PlusStatus WriteVideoBufferToMetafile( vtkVideoBuffer* videoBuffer, const char* outputFolder, const char* metaFileName, bool useCompression = false ); 
 
-  /*! Return the most recent frame timestamp in the buffer */
+  /*! Return the most recent synchronized timestamp in the buffers */
   virtual PlusStatus GetMostRecentTimestamp(double &ts); 
+
+  /*! Return the oldest synchronized timestamp in the buffers */
+  virtual PlusStatus GetOldestTimestamp(double &ts); 
 
   /*! Return the tool status at a given time */
   virtual PlusStatus GetToolStatus( double time, int toolNumber, TrackerStatus &status ); 
@@ -123,9 +126,11 @@ public:
 
   /*!
     Get the tracked frame list from devices since time specified
+    \param frameTimestamp The oldest timestamp we search for in the buffer. If -1 get all frames in the time range since the most recent timestamp 
     \param trackedFrameList Tracked frame list used to get the newly acquired frames into. The new frames are appended to the tracked frame.
+    \param maxNumberOfFrames The maximum number of latest frames acquired from the buffers (till most recent timestamp). If -1 get all frames in the time range since frameTimestamp
   */
-  virtual PlusStatus GetTrackedFrameList(double& frameTimestamp, vtkTrackedFrameList* trackedFrameList, long validationRequirements, const char* frameTransformNameForPositionValidation = NULL ); 
+  virtual PlusStatus GetTrackedFrameList(double& frameTimestamp, vtkTrackedFrameList* trackedFrameList, int maxNumberOfFrames = -1, long validationRequirements = 0, const char* frameTransformNameForPositionValidation = NULL ); 
 
   const char* vtkDataCollector::GetDefaultFrameTransformName(int toolNumber);
 
