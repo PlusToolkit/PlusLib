@@ -622,7 +622,7 @@ void FreehandCalibrationToolbox::DoSpatialCalibration()
 
   // Acquire tracked frames since last acquisition
   if ( m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->GetTrackedFrameList(
-    m_LastRecordedFrameTimestamp, trackedFrameListToUse, m_ValidationFlags, "Probe") != PLUS_SUCCESS )
+    m_LastRecordedFrameTimestamp, trackedFrameListToUse, m_ValidationFlags, -1, "Probe") != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to get tracked frame list from data collector (last recorded timestamp: " << std::fixed << m_LastRecordedFrameTimestamp ); 
     CancelSpatial();
