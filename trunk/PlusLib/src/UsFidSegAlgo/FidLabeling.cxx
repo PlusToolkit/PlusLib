@@ -207,6 +207,7 @@ void FidLabeling::Clear()
   m_LinesVector.clear();
   m_FoundDotsCoordinateValue.clear();
   m_Results.clear();
+  m_FoundLines.clear();
 
   std::vector<Line> emptyLine;
   m_LinesVector.push_back(emptyLine);//initializing the 0 vector of lines (unused)
@@ -409,6 +410,9 @@ void FidLabeling::UpdateNWiresResults(Line resultLine1, Line resultLine2)//resul
   }
   intensity += resultLine2.GetIntensity();
 
+  m_FoundLines.push_back(resultLine1);
+  m_FoundLines.push_back(resultLine2);
+
   m_FoundDotsCoordinateValue = foundDotsCoordinateValues;
   m_LinePairIntensity = intensity;
   m_DotsFound = true;
@@ -466,6 +470,10 @@ void FidLabeling::UpdateCirsResults(Line resultLine1, Line resultLine2, Line res
     dotCoords.clear();
   }
   intensity += resultLine3.GetIntensity();
+
+  m_FoundLines.push_back(resultLine1);
+  m_FoundLines.push_back(resultLine2);
+  m_FoundLines.push_back(resultLine3);
 
   m_FoundDotsCoordinateValue = foundDotsCoordinateValues;
   m_LinePairIntensity = intensity;

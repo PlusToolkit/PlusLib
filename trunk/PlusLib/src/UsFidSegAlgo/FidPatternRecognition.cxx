@@ -176,24 +176,13 @@ PlusStatus FidPatternRecognition::RecognizePattern(vtkTrackedFrameList* trackedF
 
 //-----------------------------------------------------------------------------
 
-void FidPatternRecognition::DrawResults( PixelType *image )
-{
-	LOG_TRACE("FidPatternRecognition::DrawResults"); 
-
-  std::vector<Line> maxPointsLines = m_FidLabeling.GetLinesVector()[m_FidLabeling.GetLinesVector().size()-1];
-	DrawLines( image, maxPointsLines.begin(), maxPointsLines.size() );
-	DrawDots( image, m_FidLabeling.GetDotsVector().begin(), m_FidLabeling.GetDotsVector().size() );
-}
-
-//-----------------------------------------------------------------------------
-
-void FidPatternRecognition::DrawDots( PixelType *image, std::vector<Dot>::iterator dotsIterator, int ndots)
+void FidPatternRecognition::DrawDots( PixelType *image)
 {
 	LOG_TRACE("FidPatternRecognition::DrawDots"); 
 
-	for ( int d = 0; d < ndots; d++ ) {
-		float row = dotsIterator[d].GetY();
-		float col = dotsIterator[d].GetX();
+  for ( int d = 0; d < m_FidLabeling.GetFoundDotsCoordinateValue().size(); d++ ) {
+    float row = m_FidLabeling.GetFoundDotsCoordinateValue()[d][1];
+		float col = m_FidLabeling.GetFoundDotsCoordinateValue()[d][0];
 
 		for ( float t = 0; t < 2*vtkMath::Pi(); t += vtkMath::Pi()/DOT_STEPS ) {
 			int r = (int)floor( row + cos(t) * DOT_RADIUS );
@@ -211,42 +200,29 @@ void FidPatternRecognition::DrawDots( PixelType *image, std::vector<Dot>::iterat
 
 //-----------------------------------------------------------------------------
 
-void FidPatternRecognition::DrawLines( PixelType *image, std::vector<Line>::iterator linesIterator, int nlines )
+void FidPatternRecognition::DrawResults( PixelType *image )
 {
 	LOG_TRACE("FidPatternRecognition::DrawLines"); 
 
-	for ( int l = 0; l < nlines; l++ )
-	{
-    float theta = Line::ComputeAngle(linesIterator[l]);
-		float p = 0;//linesIterator[l].GetPosition(); TODO: draw lines in another manner
+  std::vector<Line> foundLines = m_FidLabeling.GetFoundLinesVector();
 
-		for (int i=0; i<3; i++)
+	for ( int l = 0; l < foundLines.size(); l++ )
+	{
+    for (int i=0; i<foundLines[l].GetPoints()->size(); i++)
 		{
-			DrawDots( image, m_FidLabeling.GetDotsVector().begin()+linesIterator[l].GetPoint(i), 1 );//watch out, check for iterators problems if errors
+			DrawDots(image);
 		}		
 
-		if ( theta < vtkMath::Pi()/4 || theta > 3*vtkMath::Pi()/4 ) {
-			for ( int y = 0; y <  m_FidSegmentation.GetFrameSize()[1]; y++ ) {
-				// Thomas Kuiran Chen - retouched for ANSI-C++
-				//float x = roundf(( p - y * sin(theta) ) / cos(theta));
-				double x = floor( ( p - y * sin(theta) ) / cos(theta) + 0.5 );
-				int r =  m_FidSegmentation.GetFrameSize()[1] - y - 1;
-				int c = (unsigned int)x;
-				if ( c >= 0 && c <  m_FidSegmentation.GetFrameSize()[0] )
-					image[r* m_FidSegmentation.GetFrameSize()[0]+c] = UCHAR_MAX;
-			}
-		}
-		else {
-			for ( int x = 0; x < m_FidSegmentation.GetFrameSize()[0]; x++ ) {
-				// Thomas Kuiran Chen - retouched for ANSI-C++
-				//float y = roundf(( p - x * cos(theta) ) / sin(theta));
-				double y = floor( ( p - x * cos(theta) ) / sin(theta) + 0.5 );
-				int r =  m_FidSegmentation.GetFrameSize()[1] - (unsigned int)y - 1;
-				int c = x;
-				if ( r >= 0 && r <  m_FidSegmentation.GetFrameSize()[1] )
-					image[r* m_FidSegmentation.GetFrameSize()[0]+c] = UCHAR_MAX;
-			}
-		}
+    for( int t=-500 ; t<500 ; t++ )
+    {
+      int r = floor(foundLines[l].GetDirectionVector(1)*t+m_FidLabeling.GetDotsVector()[foundLines[l].GetOrigin()].GetY());
+      int c = floor(foundLines[l].GetDirectionVector(0)*t+m_FidLabeling.GetDotsVector()[foundLines[l].GetOrigin()].GetX());
+
+      if ( r >= 0 && r <  m_FidSegmentation.GetFrameSize()[1] && c>=0 && c<m_FidSegmentation.GetFrameSize()[0] )//if the point is in the image
+      {
+        image[r* m_FidSegmentation.GetFrameSize()[0]+c] = UCHAR_MAX;
+      }
+    }
 	}
 }
 

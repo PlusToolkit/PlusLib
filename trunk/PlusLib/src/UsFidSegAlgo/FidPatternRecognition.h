@@ -54,10 +54,7 @@ class FidPatternRecognition
 		PlusStatus        RecognizePattern(TrackedFrame* trackedFrame, PatternRecognitionResult &patternRecognitionResult);
 
     /*! Draw dots for debug purpose */
-    void              DrawDots(PixelType* image, std::vector<Dot>::iterator dotsIterator, int ndots);
-
-    /*! Draw lines for debug purpose */
-    void              DrawLines(PixelType* image, std::vector<Line>::iterator linesIterator, int nlines);
+    void              DrawDots(PixelType* image);
 
     /*! Draw the results on an image for debug purpose */
     void              DrawResults(PixelType* image);
