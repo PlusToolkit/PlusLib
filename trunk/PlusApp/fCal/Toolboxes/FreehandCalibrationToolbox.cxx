@@ -49,9 +49,11 @@ FreehandCalibrationToolbox::FreehandCalibrationToolbox(fCalMainWindow* aParentMa
   // Create tracked frame lists
   m_CalibrationData = vtkTrackedFrameList::New();
   m_CalibrationData->SetDefaultFrameTransformName("Probe");
+  m_CalibrationData->SetValidationRequirements(m_ValidationFlags); 
 
   m_ValidationData = vtkTrackedFrameList::New();
   m_ValidationData->SetDefaultFrameTransformName("Probe");
+  m_ValidationData->SetValidationRequirements(m_ValidationFlags); 
 
   // Change result display properties
   ui.label_Results->setFont(QFont("Courier", 8));
@@ -550,10 +552,7 @@ void FreehandCalibrationToolbox::StartSpatial()
   m_PatternRecognition->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData());
 
   m_CalibrationData->Clear();
-  m_CalibrationData->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData());
-
   m_ValidationData->Clear();
-  m_ValidationData->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData());
 
   m_NumberOfSegmentedCalibrationImages = 0;
   m_NumberOfSegmentedValidationImages = 0;
@@ -622,7 +621,7 @@ void FreehandCalibrationToolbox::DoSpatialCalibration()
 
   // Acquire tracked frames since last acquisition
   if ( m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->GetTrackedFrameList(
-    m_LastRecordedFrameTimestamp, trackedFrameListToUse, -1, m_ValidationFlags, "Probe") != PLUS_SUCCESS )
+    m_LastRecordedFrameTimestamp, trackedFrameListToUse, -1) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to get tracked frame list from data collector (last recorded timestamp: " << std::fixed << m_LastRecordedFrameTimestamp ); 
     CancelSpatial();

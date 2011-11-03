@@ -187,7 +187,15 @@ PlusStatus TrackedUltrasoundCapturing::Initialize()
   if ( this->TrackedFrameContainer == NULL )
 	{
 		this->TrackedFrameContainer = vtkTrackedFrameList::New(); 
-    this->TrackedFrameContainer->ReadConfiguration(configRootElement);
+    if ( this->GetDataCollector()->GetTracker() != NULL )
+    {
+      this->TrackedFrameContainer->SetValidationRequirements( REQUIRE_UNIQUE_TIMESTAMP | REQUIRE_TRACKING_OK | REQUIRE_SPEED_BELOW_THRESHOLD ); 
+    }
+    else
+    {
+      // If we don't have tracking device, we don't need to validate status and position
+      this->TrackedFrameContainer->SetValidationRequirements( REQUIRE_UNIQUE_TIMESTAMP | REQUIRE_SPEED_BELOW_THRESHOLD ); 
+    }
 	}
 
 	vtkSmartPointer<vtkImageActor> realtimeImageActor = vtkSmartPointer<vtkImageActor>::New();
@@ -264,26 +272,7 @@ void TrackedUltrasoundCapturing::AddTrackedFrame( TrackedFrame* trackedFrame )
     this->TrackedFrameContainer->SetDefaultFrameTransformName(DefaultFrameTransformName.c_str()); 
   }
 
-	bool isDataUnique(false); 
-	if ( this->GetDataCollector()->GetTracker() != NULL )
-	{
-		isDataUnique = this->TrackedFrameContainer->ValidateData(trackedFrame, REQUIRE_UNIQUE_TIMESTAMP | REQUIRE_TRACKING_OK | REQUIRE_SPEED_BELOW_THRESHOLD, DefaultFrameTransformName.c_str()); 
-	}
-	else
-	{
-		// If we don't have tracking device, we don't need to validate status and position
-    isDataUnique = this->TrackedFrameContainer->ValidateData(trackedFrame, REQUIRE_UNIQUE_TIMESTAMP | REQUIRE_SPEED_BELOW_THRESHOLD, DefaultFrameTransformName.c_str()); 
-	}
-
-	if ( !isDataUnique )
-	{
-		LOG_DEBUG("We've already inserted this frame into the sequence."); 
-		return; 
-	}
-
 	this->TrackedFrameContainer->AddTrackedFrame(trackedFrame); 
-
-	LOG_DEBUG( "Added new tracked frame to container..." ); 
 }
 
 //----------------------------------------------------------------------------

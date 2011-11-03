@@ -109,7 +109,6 @@ std::string outputUsImageOrientation("XX");
 bool inputUseCompression(false); 
 bool inputNoImageData(false); 
 std::string inputToolToReferenceName, inputReferenceToTrackerName; 
-int inputMaxNumOfFramesInSeqMetafile(500); 
 
 //-------------------------------------------------------------------------------
 int main (int argc, char* argv[])
@@ -157,8 +156,6 @@ int main (int argc, char* argv[])
   cmdargs.AddArgument("--output-sequence-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputSequenceFileName, "Output sequence file name of saving method SEQUENCE_METAFILE. (Default: SeqMetafile)");
   cmdargs.AddArgument("--use-compression", vtksys::CommandLineArguments::NO_ARGUMENT, &inputUseCompression, "Compress metafile and sequence metafile images.");	
   cmdargs.AddArgument("--no-image-data", vtksys::CommandLineArguments::NO_ARGUMENT, &inputNoImageData, "Save sequence metafile without image data.");	
-  cmdargs.AddArgument("--max-number-of-frames-in-seq-metafile", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputMaxNumOfFramesInSeqMetafile, "Maximum number of frames saved into a single metafile (Default: 500).");	
-
 
   cmdargs.AddArgument("--output-folder", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputFolder, "Path to the output folder where to save the converted files (Default: ./Output).");
 	cmdargs.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");	
@@ -541,8 +538,6 @@ void SaveImages( vtkTrackedFrameList* trackedFrameList, SAVING_METHOD savingMeth
       {
         metaExtension = vtkTrackedFrameList::SEQ_METAFILE_MHD; 
       }
-
-      trackedFrameList->SetMaxNumOfFramesToWrite(inputMaxNumOfFramesInSeqMetafile); 
 
       if ( trackedFrameList->SaveToSequenceMetafile(outputFolder.c_str(), fileName.c_str(), metaExtension, inputUseCompression) != PLUS_SUCCESS )
       {
