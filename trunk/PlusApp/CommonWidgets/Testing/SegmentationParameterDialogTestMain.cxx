@@ -66,109 +66,18 @@ int main(int argc, char *argv[])
   // Start the application
   QApplication app(argc, argv);
 
-	SegmentationParameterDialogTest segmentationParameterDialogTest;
-	segmentationParameterDialogTest.show();
+  SegmentationParameterDialogTest segmentationParameterDialogTest;
 
-	int returnValue = app.exec();
-
+  // If verification is needed then set the file name to the tester
   if (verifySavedConfigurationFile)
   {
-    if (VerifySavedConfigurationFile() != PLUS_SUCCESS)
-    {
-      LOG_ERROR("Saved configuration file does not contain the expected values!");
-      returnValue = 1;
-    }
+    std::string resultConfigFileName = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationDirectory();
+    resultConfigFileName.append("/TEST_ConfigFileSaverDialogTest_Result.xml");
+
+    segmentationParameterDialogTest.SetSavedConfigurationFileVerification(resultConfigFileName);
   }
 
-  return returnValue;
-}
+	segmentationParameterDialogTest.show();
 
-//-----------------------------------------------------------------------------
-
-PlusStatus VerifySavedConfigurationFile()
-{
-  // Assemble result configuration file name
-  std::string resultConfigFileName = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationDirectory();
-  resultConfigFileName.append("/TEST_ConfigFileSaverDialogTest_Result.xml");
-
-	// Load result configuration file
-  vtkSmartPointer<vtkXMLDataElement> resultRootElement = vtkSmartPointer<vtkXMLDataElement>::Take(
-    vtkXMLUtilities::ReadElementFromFile(resultConfigFileName.c_str())); 
-	if (resultRootElement == NULL) {	
-		LOG_ERROR("Unable to read the result configuration file: " << resultConfigFileName); 
-		return PLUS_FAIL;
-	}
-
-  // Find Device set element
-	vtkXMLDataElement* usDataCollection = resultRootElement->FindNestedElementWithName("USDataCollection");
-	if (usDataCollection == NULL) {
-		LOG_ERROR("No USDataCollection element is found in the XML tree!");
-		return PLUS_FAIL;
-	}
-
-	vtkXMLDataElement* deviceSet = usDataCollection->FindNestedElementWithName("DeviceSet");
-	if (deviceSet == NULL) {
-		LOG_ERROR("No DeviceSet element is found in the XML tree!");
-		return PLUS_FAIL;
-	}
-
-  // Get name and description
-  const char* name = deviceSet->GetAttribute("Name");
-  if ((name == NULL) || (STRCASECMP(name, "") == 0)) {
-    LOG_WARNING("Name attribute cannot be found in DeviceSet element!");
-    return PLUS_FAIL;
-  }
-
-  const char* description = deviceSet->GetAttribute("Description");
-  if ((description == NULL) || (STRCASECMP(description, "") == 0)) {
-    LOG_WARNING("Description attribute cannot be found in DeviceSet element!");
-    return PLUS_FAIL;
-  }
-
-  // Verify name and description
-  if (STRCASECMP(name, "TEST ConfigFileSaverDialogTest Result") != 0)
-  {
-    LOG_ERROR("Device set name does not match the expected value!");
-    return PLUS_FAIL;
-  }
-
-  if (STRCASECMP(description, "ConfigFileSaverDialogTest result with changed line length tolerance value 11.0") != 0)
-  {
-    LOG_ERROR("Device set description does not match the expected value!");
-    return PLUS_FAIL;
-  }
-
-  // Check segmentation parameter calue change
-  vtkXMLDataElement* usCalibration = resultRootElement->FindNestedElementWithName("USCalibration");
-	if (usCalibration == NULL) {
-		LOG_ERROR("No USCalibration element is found in the XML tree!");
-		return PLUS_FAIL;
-	}
-
-	vtkXMLDataElement* calibrationController = usCalibration->FindNestedElementWithName("CalibrationController");
-	if (calibrationController == NULL) {
-		LOG_ERROR("No CalibrationController element is found in the XML tree!");
-		return PLUS_FAIL;
-	}
-
-	vtkXMLDataElement* segmentationParameters = calibrationController->FindNestedElementWithName("SegmentationParameters");
-	if (segmentationParameters == NULL) {
-		LOG_ERROR("No SegmentationParameters element is found in the XML tree!");
-		return PLUS_FAIL;
-	}
-
-	double maxLineLengthErrorPercent(0.0); 
-	if ( segmentationParameters->GetScalarAttribute("MaxLineLengthErrorPercent", maxLineLengthErrorPercent) )
-	{
-		if (maxLineLengthErrorPercent != 11.0)
-    {
-      LOG_ERROR("Line length tolerance does not match the expected value!");
-      return PLUS_FAIL;
-    }
-	} else {
-    LOG_ERROR("Could not read MaxLineLengthErrorPercent from configuration");
-		return PLUS_FAIL;
-  }
-
-  return PLUS_SUCCESS;
+	return app.exec();
 }

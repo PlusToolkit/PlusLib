@@ -136,13 +136,13 @@ messageBoxRegion = Region(applicationTopLeft.x - <span class="dig">15</span>, ap
 </span><span class="skw">click</span>(connectButton)
 
 <span class="kw">try</span>:
-  increaseLineLengthButton = <span class="skw">wait</span>(Pattern(<img src="LineLengthParameterRow.png" />).targetOffset(<span class="dig">96</span>,-<span class="dig">3</span>), <span class="dig">10</span>)
+  increaseLinePairDistanceButton = <span class="skw">wait</span>(Pattern(<img src="LinePairDistanceParameterRow.png" />).targetOffset(<span class="dig">96</span>,-<span class="dig">3</span>), <span class="dig">10</span>)
 <span class="kw">except</span> FindFailed:
-  <span class="kw">print</span> <span class="str">"[ERROR] Segmentation parameter dialog did not appear!"</span>
+  <span class="kw">print</span> <span class="str">"[ERROR] Segmentation parameter dialog did not appear (cannot find Line pair distance parameter)!"</span>
   captureScreenAndExit()
 
 <span class="cmt"># Change a parameter and close the window
-</span><span class="skw">click</span>(increaseLineLengthButton)
+</span><span class="skw">click</span>(increaseLinePairDistanceButton)
 <span class="skw">click</span>(<img src="ApplyAndCloseButton.png" />)
 
 <span class="kw">try</span>:
@@ -169,7 +169,7 @@ messageBoxRegion = Region(applicationTopLeft.x - <span class="dig">15</span>, ap
 
 <span class="cmt"># Find description field
 </span><span class="kw">try</span>:
-  descriptionField = windowRegion.<span class="skw">find</span>(Pattern(<img src="DescriptionLabel.png" />).targetOffset(<span class="dig">15</span>,<span class="dig">14</span>))
+  descriptionField = windowRegion.<span class="skw">find</span>(Pattern(<img src="DescriptionLabel.png" />).targetOffset(-<span class="dig">21</span>,<span class="dig">16</span>))
 <span class="kw">except</span> FindFailed:
   <span class="kw">print</span> <span class="str">"[ERROR] Cannot find description field!"</span>
   captureScreenAndExit()
@@ -178,7 +178,7 @@ messageBoxRegion = Region(applicationTopLeft.x - <span class="dig">15</span>, ap
 </span><span class="skw">click</span>(descriptionField)
 <span class="skw">type</span>(<span class="str">'a'</span>, KeyModifier.CTRL)
 
-<span class="skw">type</span>(<span class="str">"ConfigFileSaverDialogTest result with changed line length tolerance value 11.0"</span>)
+<span class="skw">type</span>(<span class="str">"ConfigFileSaverDialogTest result with changed line pair distance tolerance value 11.0"</span>)
 
 <span class="cmt"># Click save button, enter the new file name and save the file
 </span><span class="kw">try</span>:

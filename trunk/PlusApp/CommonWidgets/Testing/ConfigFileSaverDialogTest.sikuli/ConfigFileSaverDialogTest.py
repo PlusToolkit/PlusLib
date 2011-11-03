@@ -64,13 +64,13 @@ messageBoxRegion = Region(applicationTopLeft.x - 15, applicationTopLeft.y - 195,
 click(connectButton)
 
 try:
-  increaseLineLengthButton = wait(Pattern("LineLengthParameterRow.png").targetOffset(96,-3), 10)
+  increaseLinePairDistanceButton = wait(Pattern("LinePairDistanceParameterRow.png").targetOffset(96,-3), 10)
 except FindFailed:
-  print "[ERROR] Segmentation parameter dialog did not appear!"
+  print "[ERROR] Segmentation parameter dialog did not appear (cannot find Line pair distance parameter)!"
   captureScreenAndExit()
 
 # Change a parameter and close the window
-click(increaseLineLengthButton)
+click(increaseLinePairDistanceButton)
 click("ApplyAndCloseButton.png")
 
 try:
@@ -97,7 +97,7 @@ type("TEST ConfigFileSaverDialogTest Result")
 
 # Find description field
 try:
-  descriptionField = windowRegion.find(Pattern("DescriptionLabel.png").targetOffset(15,14))
+  descriptionField = windowRegion.find(Pattern("DescriptionLabel.png").targetOffset(-21,16))
 except FindFailed:
   print "[ERROR] Cannot find description field!"
   captureScreenAndExit()
@@ -106,7 +106,7 @@ except FindFailed:
 click(descriptionField)
 type('a', KeyModifier.CTRL)
 
-type("ConfigFileSaverDialogTest result with changed line length tolerance value 11.0")
+type("ConfigFileSaverDialogTest result with changed line pair distance tolerance value 11.0")
 
 # Click save button, enter the new file name and save the file
 try:

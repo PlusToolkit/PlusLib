@@ -21,6 +21,7 @@ SegmentationParameterDialogTest::SegmentationParameterDialogTest(QWidget *parent
   : QDialog(parent, flags)
   , m_DeviceSetSelectorWidget(NULL)
   , m_DataCollector(NULL)
+  , m_VerificationBaselineFileName("")
 {
   this->setMinimumSize(480, 320);
   this->setMaximumSize(480, 320);
@@ -193,4 +194,111 @@ void SegmentationParameterDialogTest::SaveConfigurationClicked()
   configSaverDialog->exec();
 
   delete configSaverDialog;
+
+  // Verify if it has been set
+  if (m_VerificationBaselineFileName.compare("") != 0)
+  {
+    if (VerifySavedConfigurationFile() != PLUS_SUCCESS)
+    {
+      LOG_ERROR("Saved configuration file does not contain the expected values!");
+    }
+  }
+}
+
+//-----------------------------------------------------------------------------
+
+void SegmentationParameterDialogTest::SetSavedConfigurationFileVerification(std::string aBaseLineFileName)
+{
+	LOG_TRACE("SegmentationParameterDialogTest::SetSavedConfigurationFileVerification(" << aBaseLineFileName << ")");
+
+  m_VerificationBaselineFileName = aBaseLineFileName;
+}
+
+//-----------------------------------------------------------------------------
+
+PlusStatus SegmentationParameterDialogTest::VerifySavedConfigurationFile()
+{
+	LOG_TRACE("SegmentationParameterDialogTest::VerifySavedConfigurationFile"); 
+
+	// Load result configuration file
+  vtkSmartPointer<vtkXMLDataElement> resultRootElement = vtkSmartPointer<vtkXMLDataElement>::Take(
+    vtkXMLUtilities::ReadElementFromFile(m_VerificationBaselineFileName.c_str())); 
+
+	if (resultRootElement == NULL) {	
+		LOG_ERROR("Unable to read the result configuration file: " << m_VerificationBaselineFileName); 
+		return PLUS_FAIL;
+	}
+
+  // Find Device set element
+	vtkXMLDataElement* usDataCollection = resultRootElement->FindNestedElementWithName("USDataCollection");
+	if (usDataCollection == NULL) {
+		LOG_ERROR("No USDataCollection element is found in the XML tree!");
+		return PLUS_FAIL;
+	}
+
+	vtkXMLDataElement* deviceSet = usDataCollection->FindNestedElementWithName("DeviceSet");
+	if (deviceSet == NULL) {
+		LOG_ERROR("No DeviceSet element is found in the XML tree!");
+		return PLUS_FAIL;
+	}
+
+  // Get name and description
+  const char* name = deviceSet->GetAttribute("Name");
+  if ((name == NULL) || (STRCASECMP(name, "") == 0)) {
+    LOG_WARNING("Name attribute cannot be found in DeviceSet element!");
+    return PLUS_FAIL;
+  }
+
+  const char* description = deviceSet->GetAttribute("Description");
+  if ((description == NULL) || (STRCASECMP(description, "") == 0)) {
+    LOG_WARNING("Description attribute cannot be found in DeviceSet element!");
+    return PLUS_FAIL;
+  }
+
+  // Verify name and description
+  if (STRCASECMP(name, "TEST ConfigFileSaverDialogTest Result") != 0)
+  {
+    LOG_ERROR("Device set name does not match the expected value!");
+    return PLUS_FAIL;
+  }
+
+  if (STRCASECMP(description, "ConfigFileSaverDialogTest result with changed line pair distance tolerance value 11.0") != 0)
+  {
+    LOG_ERROR("Device set description does not match the expected value!");
+    return PLUS_FAIL;
+  }
+
+  // Check segmentation parameter calue change
+  vtkXMLDataElement* usCalibration = resultRootElement->FindNestedElementWithName("USCalibration");
+	if (usCalibration == NULL) {
+		LOG_ERROR("No USCalibration element is found in the XML tree!");
+		return PLUS_FAIL;
+	}
+
+	vtkXMLDataElement* calibrationController = usCalibration->FindNestedElementWithName("CalibrationController");
+	if (calibrationController == NULL) {
+		LOG_ERROR("No CalibrationController element is found in the XML tree!");
+		return PLUS_FAIL;
+	}
+
+	vtkXMLDataElement* segmentationParameters = calibrationController->FindNestedElementWithName("SegmentationParameters");
+	if (segmentationParameters == NULL) {
+		LOG_ERROR("No SegmentationParameters element is found in the XML tree!");
+		return PLUS_FAIL;
+	}
+
+	double maxLinePairDistanceErrorPercent(0.0); 
+	if ( segmentationParameters->GetScalarAttribute("MaxLinePairDistanceErrorPercent", maxLinePairDistanceErrorPercent) )
+	{
+		if (maxLinePairDistanceErrorPercent != 11.0)
+    {
+      LOG_ERROR("Line pair distance tolerance does not match the expected value!");
+      return PLUS_FAIL;
+    }
+	} else {
+    LOG_ERROR("Could not read MaxLinePairDistanceErrorPercent from configuration");
+		return PLUS_FAIL;
+  }
+
+  return PLUS_SUCCESS;
 }
