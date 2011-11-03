@@ -225,12 +225,12 @@ PlusStatus vtkBrachyStepperPhantomRegistrationAlgo::Update()
 
   double wire6ToProbeDistanceInMm[2] = { listOfPhantomToProbeHorizontalDistanceInMm.mean(), listOfPhantomToProbeVerticalDistanceInMm.mean() }; 
 
-  LOG_INFO("Wire #6 position in phantom (mm): " << this->NWires[1].wires[2].endPointFront[0] << "   " << this->NWires[1].wires[2].endPointFront[1]); 
+  LOG_INFO("Wire #6 position in phantom (mm): " << this->NWires[1].Wires[2].EndPointFront[0] << "   " << this->NWires[1].Wires[2].EndPointFront[1]); 
   LOG_INFO("Wire #6 to probe distance (mm): " << wire6ToProbeDistanceInMm[0] << "   " << wire6ToProbeDistanceInMm[1]); 
 
   double phantomToReferenceDistanceInMm[2] = { 
-    this->NWires[1].wires[2].endPointFront[0] + wire6ToProbeDistanceInMm[0], 
-    this->NWires[1].wires[2].endPointFront[1] + wire6ToProbeDistanceInMm[1] }; 
+    this->NWires[1].Wires[2].EndPointFront[0] + wire6ToProbeDistanceInMm[0], 
+    this->NWires[1].Wires[2].EndPointFront[1] + wire6ToProbeDistanceInMm[1] }; 
 
 
   LOG_INFO("Phantom to probe distance (mm): " << phantomToReferenceDistanceInMm[0] << "   " << phantomToReferenceDistanceInMm[1] ); 

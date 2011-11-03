@@ -12,38 +12,67 @@
 
 #include "vtkXMLDataElement.h"
 
+/*!
+  \class FidLineFinder
+  \brief This class is used to find the n-points lines from a list of dots. The lines have fixed length and tolerance
+         and their direction vector restricted according to the configuration file. It first finds 2-points lines and 
+         then computes n-points lines from these 2-points lines.
+  \ingroup PlusLibPatternRecognition
+*/
+
 class FidLineFinder
 {
 	public:
 		FidLineFinder();
 		virtual ~FidLineFinder();
 
+    /*! Compute parameters such as the minimum and the maximum angle allowed for one line in the case where the sgmentation 
+        parameters are to be computed. This allows a better precision and possibly an increase of computation speed. */
 		void				ComputeParameters();
 
+    /*! Clear the member attributes when not needed anymore */
     void        Clear();
 
+    /*! Read the configuration file from a vtk XML data element */
 		PlusStatus	ReadConfiguration( vtkXMLDataElement* rootConfigElement );
+
+    /*! Set the size of the frame as an array */
     void        SetFrameSize( int frameSize[2] );
 
+    /*! Find the n-points lines from a list of 2-points lines */
     void 				FindLinesNPoints();
+
+    /*! Find 2-points lines from a list of Dots */
 		void 				FindLines2Points();
 
-		float				SegmentLength( Dot *d1, Dot *d2 );
+    /*! Compute the length of the segment between 2 dots */
+		float				SegmentLength( Dot *dot1, Dot *dot2 );
+
+    /*! Compute the length of a line and sets it origin */
 		float				LineLength( Line &line );
+
+    /*! Compute the shortest distance from a point: dot, to a line: line */
     float       ComputeDistancePointLine(Dot dot, Line line);
 
-
+    /*! Compute a line, all that is required is a set origin and the dots part of the line. It computes then the line length,
+        the direction vector, the endpoint */
 		void 				ComputeLine( Line &line );
+
+    /*! Compute the angle between the lin formed by 2 dots and the x-axis */
 		float				ComputeSlope( Dot *dot1, Dot *dot2 );
 
+    /*! Return true if a line matches the requirements, false otherwise */
 		bool				AcceptLine( Line &line );  
+
+    /*! Return true if an angle is in the allowed angle range, false otherwise */
     bool        AcceptAngle(float angle);
 
+    /*! Find lines, runs the FindLines2Points and FindLinesNPoints and then sort the lines by intensity */
 		void				FindLines();
 
-		void				SortRightToLeft( Line *line );
-
     //Accessors and mutators
+
+    /*! Get the */
     double			GetMaxTheta() { return m_MaxTheta; };
     double			GetMinTheta() { return m_MinTheta; };
 
@@ -86,8 +115,6 @@ class FidLineFinder
 
 		double 			m_MinTheta; 
 		double 			m_MaxTheta;
-
-		float			  m_Angles;
 
 		std::vector<Dot>	m_CandidateFidValues; // pointer to the fiducial candidates coordinates
 

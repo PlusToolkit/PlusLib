@@ -366,8 +366,8 @@ PlusStatus vtkProbeCalibrationAlgo::AddPositionsPerImage( TrackedFrame* trackedF
 
     for (int i=0; i<3; ++i)
     {
-      intersectPosW12[i] = nWires[n].intersectPosW12[i];
-      intersectPosW32[i] = nWires[n].intersectPosW32[i];
+      intersectPosW12[i] = nWires[n].IntersectPosW12[i];
+      intersectPosW32[i] = nWires[n].IntersectPosW32[i];
     }
 
     intersectPosW12[3] = 1.0;

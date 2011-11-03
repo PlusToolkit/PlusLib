@@ -48,8 +48,6 @@ FidLineFinder::FidLineFinder()
 
 	m_MinTheta = -1.0; 
 	m_MaxTheta = -1.0;
-
-	m_Angles = -1.0;
 }
 
 //-----------------------------------------------------------------------------
@@ -64,12 +62,6 @@ FidLineFinder::~FidLineFinder()
 void FidLineFinder::ComputeParameters()
 {
 	LOG_TRACE("FidLineFinder::ComputeParameters");
-
-	/*double maxAngleY = std::max(fabs(m_ImageNormalVectorInPhantomFrameMaximumRotationAngleDeg[2]),m_ImageNormalVectorInPhantomFrameMaximumRotationAngleDeg[3]);//the maximum of the rotation around the Y axis
-	m_MaxLineLengthErrorPercent = 1/cos(maxAngleY) - 1;
-
-	double maxAngleX = std::max(fabs(m_ImageNormalVectorInPhantomFrameMaximumRotationAngleDeg[0]),m_ImageNormalVectorInPhantomFrameMaximumRotationAngleDeg[1]);//the maximum of the rotation around the X axis
-	m_MaxLinePairDistanceErrorPercent = 1/cos(maxAngleX) - 1;*/
 
   std::vector<NWire> nWires;
 
@@ -107,9 +99,9 @@ void FidLineFinder::ComputeParameters()
 
 	for( int i = 0; i<3 ;i++)
 	{
-		pointA.put(i,nWires[0].wires[0].endPointFront[i]);
-		pointB.put(i,nWires[0].wires[0].endPointBack[i]);
-		pointC.put(i,nWires[0].wires[1].endPointFront[i]);
+		pointA.put(i,nWires[0].Wires[0].EndPointFront[i]);
+		pointB.put(i,nWires[0].Wires[0].EndPointBack[i]);
+		pointC.put(i,nWires[0].Wires[1].EndPointFront[i]);
 	}
 
 	vnl_vector<double> AB(3);
@@ -580,14 +572,14 @@ void FidLineFinder::FindLines2Points()
 
   for( int i=0 ; i<m_Patterns.size() ; i++)
   {
-    int lineLenPx = floor(m_Patterns[i]->distanceToOriginMm[m_Patterns[i]->wires.size()-1] / m_ApproximateSpacingMmPerPixel + 0.5 );
+    int lineLenPx = floor(m_Patterns[i]->DistanceToOriginMm[m_Patterns[i]->Wires.size()-1] / m_ApproximateSpacingMmPerPixel + 0.5 );
 
 	  for ( int b1 = 0; b1 < m_DotsVector.size()-1; b1++ ) 
     {
 		  for ( int b2 = b1+1; b2 < m_DotsVector.size(); b2++ ) 
       {
         float length = SegmentLength(&m_DotsVector[b1],&m_DotsVector[b2]);
-        bool acceptLength = fabs(length-lineLenPx) < floor(m_Patterns[i]->distanceToOriginToleranceMm[m_Patterns[i]->wires.size()-1] / m_ApproximateSpacingMmPerPixel + 0.5 );
+        bool acceptLength = fabs(length-lineLenPx) < floor(m_Patterns[i]->DistanceToOriginToleranceMm[m_Patterns[i]->Wires.size()-1] / m_ApproximateSpacingMmPerPixel + 0.5 );
         
         if(acceptLength)//to only add valid two point lines
         {
@@ -638,9 +630,9 @@ void FidLineFinder::FindLinesNPoints()
   
   for( int i=0 ; i<m_Patterns.size() ; i++ )
   {
-    if(int(m_Patterns[i]->wires.size()) > maxNumberOfPointsPerLine)
+    if(int(m_Patterns[i]->Wires.size()) > maxNumberOfPointsPerLine)
     {
-      maxNumberOfPointsPerLine = m_Patterns[i]->wires.size();
+      maxNumberOfPointsPerLine = m_Patterns[i]->Wires.size();
     }
   }
 
@@ -694,8 +686,8 @@ void FidLineFinder::FindLinesNPoints()
             
             float length = SegmentLength(&m_DotsVector[currentShorterPointsLine.GetOrigin()],&m_DotsVector[b3]); 
 
-            int lineLenPx = floor(m_Patterns[i]->distanceToOriginMm[linesVectorIndex-2] / m_ApproximateSpacingMmPerPixel + 0.5 );
-            bool acceptLength = fabs(length-lineLenPx) < floor(m_Patterns[i]->distanceToOriginToleranceMm[linesVectorIndex-2] / m_ApproximateSpacingMmPerPixel + 0.5 );
+            int lineLenPx = floor(m_Patterns[i]->DistanceToOriginMm[linesVectorIndex-2] / m_ApproximateSpacingMmPerPixel + 0.5 );
+            bool acceptLength = fabs(length-lineLenPx) < floor(m_Patterns[i]->DistanceToOriginToleranceMm[linesVectorIndex-2] / m_ApproximateSpacingMmPerPixel + 0.5 );
 
             if(!acceptLength)
               continue;
@@ -740,30 +732,6 @@ void FidLineFinder::Clear()
   std::vector<Line> emptyLine;
   m_LinesVector.push_back(emptyLine);//initializing the 0 vector of lines (unused)
   m_LinesVector.push_back(emptyLine);//initializing the 1 vector of lines (unused)
-}
-
-//-----------------------------------------------------------------------------
-
-void FidLineFinder::SortRightToLeft( Line *line )
-{
-	//LOG_TRACE("FidLineFinder::SortRightToLeft");
-
-	/* Since we prohibit stepp lines (see MAX_T and MIN_T) we can use the x
-	 * values to sort the points. */
-	std::vector<std::vector<Dot>::iterator> pointsIterator(3);//TODO Make it general
-
-	for (int i=0; i<3; i++)
-	{
-		pointsIterator[i] = m_DotsVector.begin() + line->GetPoint(i);
-	}
-	//UltraSoundFiducialSegmentationTools::sort<std::vector<Dot>::iterator, Position>( pointsIterator, line->GetLinePoints()->size() );
-	std::sort (pointsIterator.begin(), pointsIterator.end(), Position::lessThan);
-	//std::sort(points.begin(),points.end(), Position::lessThan);
-
-	for (int i=0; i<3; i++)
-	{
-		line->SetPoint(i,pointsIterator[i] - m_DotsVector.begin());
-	}
 }
 
 //-----------------------------------------------------------------------------

@@ -33,6 +33,7 @@ FidSegmentation::FidSegmentation() :
 
 		m_UseOriginalImageIntensityForDotIntensityScore (false)
 {
+  //Initialization of member variables
 	m_FrameSize[0] = -1;
 	m_FrameSize[1] = -1;
 
@@ -100,7 +101,10 @@ void FidSegmentation::UpdateParameters()
 		{
 			if ( sqrt( pow(x,2.0) + pow(y,2.0) ) <= radiuspx )
 			{
-				m_MorphologicalCircle.push_back( Item(x, y) ); 
+        Dot dot;
+        dot.SetX(y);
+        dot.SetY(x);
+				m_MorphologicalCircle.push_back(dot); 
 			}
 		}
 	}
@@ -262,9 +266,6 @@ PlusStatus FidSegmentation::ReadConfiguration( vtkXMLDataElement* configData )
       LOG_WARNING("Could not read imageNormalVectorInPhantomFrameEstimation from configuration file.");
     }
 		delete [] imageNormalVectorInPhantomFrameEstimation;
-
-		// Compute the tolerances parameters automatically
-		ComputeParameters();
 	}
 	else // If the tolerances parameters are given by the configuration file
 	{
@@ -345,13 +346,6 @@ void FidSegmentation::SetFrameSize(int frameSize[2])
 		  LOG_WARNING("The region of interest is too big, bar size is " << barSize);
 	  }
   }
-}
-
-//-----------------------------------------------------------------------------
-
-void FidSegmentation::ComputeParameters()
-{
-	// TODO This function is empty. Should something be here? - Csaba
 }
 
 //-----------------------------------------------------------------------------
@@ -630,8 +624,8 @@ void FidSegmentation::ErodeCircle( PixelType *dest, PixelType *image )
 		for ( unsigned int ic = m_RegionOfInterest[0]; ic < m_RegionOfInterest[2]; ic++ ) {
 			PixelType dval = UCHAR_MAX;
 			for ( unsigned int sp = 0; sp < slen; sp++ ) {
-				unsigned int sr = ir + m_MorphologicalCircle[sp].roff;
-				unsigned int sc = ic + m_MorphologicalCircle[sp].coff;
+				unsigned int sr = ir + m_MorphologicalCircle[sp].GetX();
+				unsigned int sc = ic + m_MorphologicalCircle[sp].GetY();
         PixelType pixSrc=image[sr*m_FrameSize[0]+sc];
 				if ( pixSrc < dval )
 					dval = pixSrc;
@@ -863,14 +857,14 @@ void FidSegmentation::Dilate135( PixelType *dest, PixelType *image )
 //-----------------------------------------------------------------------------
 
 inline PixelType FidSegmentation::DilatePoint( PixelType *image, unsigned int ir, unsigned int ic, 
-                Item *shape, int slen )
+                Dot *shape, int slen )
 {
 	//LOG_TRACE("FidSegmentation::DilatePoint");
 
 	PixelType dval = 0;
 	for ( int sp = 0; sp < slen; sp++ ) {
-		unsigned int sr = ir + shape[sp].roff;
-		unsigned int sc = ic + shape[sp].coff;
+		unsigned int sr = ir + shape[sp].GetY();
+		unsigned int sc = ic + shape[sp].GetX();
 		if ( image[sr*m_FrameSize[0]+sc] > dval )
 			dval = image[sr*m_FrameSize[0]+sc];
 	}
@@ -885,7 +879,7 @@ void FidSegmentation::DilateCircle( PixelType *dest, PixelType *image )
 
   unsigned int slen = m_MorphologicalCircle.size();
 
-	Item *shape = new Item[slen]; 
+	Dot *shape = new Dot[slen]; 
 
 	for ( unsigned int i = 0; i < slen; i++ )
 	{
@@ -900,55 +894,65 @@ void FidSegmentation::DilateCircle( PixelType *dest, PixelType *image )
 	memset( sr_exist, 0, slen*sizeof(bool) );
 	for ( int si = 0; si < slen; si++ ) 
 	{
-		if ( ShapeContains( m_MorphologicalCircle, Item(m_MorphologicalCircle[si].roff, m_MorphologicalCircle[si].coff+1) ) )
+    Dot dot;
+    dot.SetX(m_MorphologicalCircle[si].GetX()+1);
+    dot.SetY(m_MorphologicalCircle[si].GetY());
+		if(ShapeContains( m_MorphologicalCircle, dot))
 			sr_exist[si] = true, n++;
 	}
 	//cout << "shift_exist: " << n << endl;
 
-	Item *new_items = new Item[slen]; 
-	Item *old_items = new Item[slen];
+	Dot *newDots = new Dot[slen]; 
+	Dot *oldDots = new Dot[slen];
 	
-	int n_new_items = 0, n_old_items = 0;
+	int nNewDots = 0, nOldDots = 0;
 	for ( int si = 0; si < slen; si++ ) {
 		if ( sr_exist[si] )
-			old_items[n_old_items++] = shape[si];
+			oldDots[nOldDots++] = shape[si];
 		else
-			new_items[n_new_items++] = shape[si];
+			newDots[nNewDots++] = shape[si];
 	}
 
 	delete [] sr_exist; 
 
 	memset( dest, 0, m_FrameSize[1]*m_FrameSize[0]*sizeof(PixelType) );
-	for ( unsigned int ir = m_RegionOfInterest[1]; ir < m_RegionOfInterest[3]; ir++ ) {
+	for ( unsigned int ir = m_RegionOfInterest[1]; ir < m_RegionOfInterest[3]; ir++ ) 
+  {
 		unsigned int ic = m_RegionOfInterest[0];
 
 		PixelType dval = DilatePoint( image, ir, ic, shape, slen );
 		PixelType last = dest[ir*m_FrameSize[0]+ic] = dval;
 		
-		for ( ic++; ic < m_RegionOfInterest[2]; ic++ ) {
-			PixelType dval = DilatePoint( image, ir, ic, new_items, n_new_items );
+		for ( ic++; ic < m_RegionOfInterest[2]; ic++ ) 
+    {
+			PixelType dval = DilatePoint( image, ir, ic, newDots, nNewDots );
 
-			if ( dval < last ) {
-				for ( int sp = 0; sp < n_old_items; sp++ ) {
-					unsigned int sr = ir + old_items[sp].roff;
-					unsigned int sc = ic + old_items[sp].coff;
+			if ( dval < last ) 
+      {
+				for ( int sp = 0; sp < nOldDots; sp++ ) 
+        {
+					unsigned int sr = ir + oldDots[sp].GetY();
+					unsigned int sc = ic + oldDots[sp].GetX();
 					if ( image[sr*m_FrameSize[0]+sc] > dval )
+          {
 						dval = image[sr*m_FrameSize[0]+sc];
-
+          }
 					if ( image[sr*m_FrameSize[0]+sc] == last )
+          {
 						break;
+          }
 				}
 			}
 			last = dest[ir*m_FrameSize[0]+ic] = dval ;
 		}
 	}
-	delete [] new_items; 
-	delete [] old_items; 
+	delete [] newDots; 
+	delete [] oldDots; 
 }
 
 //-----------------------------------------------------------------------------
 
-bool FidSegmentation::ShapeContains( std::vector<Item> shape, Item newItem )
+bool FidSegmentation::ShapeContains( std::vector<Dot> shape, Dot newItem )
 {
 	//LOG_TRACE("FidSegmentation::ShapeContains");
 
@@ -1274,18 +1278,18 @@ void FidSegmentation::Suppress( PixelType *image, float percent_thresh )
 
 //-----------------------------------------------------------------------------
 
-inline void FidSegmentation::ClusteringAddNeighbors( PixelType *image, int r, int c, std::vector<Position> &testPosition, std::vector<Position> &setPosition, std::vector<PixelType>& valuesOfPosition)
+inline void FidSegmentation::ClusteringAddNeighbors( PixelType *image, int r, int c, std::vector<Dot> &testPosition, std::vector<Dot> &setPosition, std::vector<PixelType>& valuesOfPosition)
 {
 	//LOG_TRACE("FidSegmentation::ClusteringAddNeighbors");
 
   if ( image[r*m_FrameSize[0]+c] > 0 && testPosition.size() < MAX_CLUSTER_VALS && 
 			setPosition.size() < MAX_CLUSTER_VALS )
 	{
-    Position pos;
-    pos.SetY(r);
-    pos.SetX(c);
-    testPosition.push_back(pos);
-    setPosition.push_back(pos);  
+    Dot dot;
+    dot.SetY(r);
+    dot.SetX(c);
+    testPosition.push_back(dot);
+    setPosition.push_back(dot);  
     valuesOfPosition.push_back(image[r*m_FrameSize[0]+c]);
 		image[r*m_FrameSize[0]+c] = 0;
 	}
@@ -1316,11 +1320,9 @@ inline bool FidSegmentation::AcceptDot( Dot &dot )
 void FidSegmentation::Cluster()
 {
 	LOG_TRACE("FidSegmentation::Cluster");
-
-	Dot dot;
   
-  std::vector<Position> testPosition;
-  std::vector<Position> setPosition;
+  std::vector<Dot> testPosition;
+  std::vector<Dot> setPosition;
   std::vector<PixelType> valuesOfPosition;
 
 	for ( unsigned int r = m_RegionOfInterest[1]; r < m_RegionOfInterest[3]; r++ ) 
@@ -1331,13 +1333,13 @@ void FidSegmentation::Cluster()
       {
         testPosition.clear();
 
-        Position pos;
-        pos.SetX(c);
-        pos.SetY(r);
-        testPosition.push_back(pos);
+        Dot dot;
+        dot.SetX(c);
+        dot.SetY(r);
+        testPosition.push_back(dot);
 
         setPosition.clear();
-        setPosition.push_back(pos);
+        setPosition.push_back(dot);
 
         valuesOfPosition.clear();
         valuesOfPosition.push_back(m_Working[r*m_FrameSize[0]+c]);
@@ -1346,19 +1348,19 @@ void FidSegmentation::Cluster()
 
         while ( testPosition.size() > 0 ) 
         {
-          Position pos=testPosition.back();
+          Dot dot=testPosition.back();
           testPosition.pop_back();
 
-          ClusteringAddNeighbors( m_Working, pos.GetY()-1, pos.GetX()-1, testPosition, setPosition, valuesOfPosition);
-					ClusteringAddNeighbors( m_Working, pos.GetY()-1, pos.GetX(), testPosition, setPosition, valuesOfPosition);
-					ClusteringAddNeighbors( m_Working, pos.GetY()-1, pos.GetX()+1, testPosition, setPosition, valuesOfPosition );
+          ClusteringAddNeighbors( m_Working, dot.GetY()-1, dot.GetX()-1, testPosition, setPosition, valuesOfPosition);
+					ClusteringAddNeighbors( m_Working, dot.GetY()-1, dot.GetX(), testPosition, setPosition, valuesOfPosition);
+					ClusteringAddNeighbors( m_Working, dot.GetY()-1, dot.GetX()+1, testPosition, setPosition, valuesOfPosition );
 
-					ClusteringAddNeighbors( m_Working, pos.GetY(), pos.GetX()-1, testPosition, setPosition, valuesOfPosition );
-					ClusteringAddNeighbors( m_Working, pos.GetY(), pos.GetX()+1, testPosition, setPosition, valuesOfPosition );
+					ClusteringAddNeighbors( m_Working, dot.GetY(), dot.GetX()-1, testPosition, setPosition, valuesOfPosition );
+					ClusteringAddNeighbors( m_Working, dot.GetY(), dot.GetX()+1, testPosition, setPosition, valuesOfPosition );
 
-					ClusteringAddNeighbors( m_Working, pos.GetY()+1, pos.GetX()-1, testPosition, setPosition, valuesOfPosition );
-					ClusteringAddNeighbors( m_Working, pos.GetY()+1, pos.GetX(), testPosition, setPosition, valuesOfPosition );
-					ClusteringAddNeighbors( m_Working, pos.GetY()+1, pos.GetX()+1, testPosition, setPosition, valuesOfPosition );
+					ClusteringAddNeighbors( m_Working, dot.GetY()+1, dot.GetX()-1, testPosition, setPosition, valuesOfPosition );
+					ClusteringAddNeighbors( m_Working, dot.GetY()+1, dot.GetX(), testPosition, setPosition, valuesOfPosition );
+					ClusteringAddNeighbors( m_Working, dot.GetY()+1, dot.GetX()+1, testPosition, setPosition, valuesOfPosition );
 				}
 
 				float dest_r = 0, dest_c = 0, total = 0;
@@ -1386,7 +1388,7 @@ void FidSegmentation::Cluster()
 							if ( (setPosition[p].GetY()-dot.GetY())*(setPosition[p].GetY()-dot.GetY())+(setPosition[p].GetX()-dot.GetX())*(setPosition[p].GetX()-dot.GetX())<=dotRadius2)
 							{
 								//float amount = (float)vals[p] / (float)UCHAR_MAX;
-								float amount = (float)m_UnalteredImage[setPosition[p].GetY()*m_FrameSize[0]+setPosition[p].GetX()] / (float)UCHAR_MAX;
+								float amount = (float)m_UnalteredImage[int(setPosition[p].GetY()*m_FrameSize[0]+setPosition[p].GetX())] / (float)UCHAR_MAX;
 								dest_r += setPosition[p].GetY() * amount;
 								dest_c += setPosition[p].GetX() * amount;
 								total += amount;
@@ -1401,7 +1403,7 @@ void FidSegmentation::Cluster()
 		}
 	}
 
-	std::sort(m_DotsVector.begin(), m_DotsVector.end(), Dot::lessThan);
+	std::sort(m_DotsVector.begin(), m_DotsVector.end(), Dot::IntensityLessThan);
 }
 
 //-----------------------------------------------------------------------------

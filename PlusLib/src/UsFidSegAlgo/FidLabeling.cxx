@@ -23,7 +23,6 @@ FidLabeling::FidLabeling()
 	m_MinLinePairDistMm = -1.0; 	
 	m_MaxLinePairDistMm = -1.0;
 	m_MaxLinePairDistanceErrorPercent = -1.0;
-	m_NumDots = -1.0;
 	m_MaxLineErrorMm = -1.0;
 	m_MinTheta = -1.0;
 	m_MaxTheta = -1.0;
@@ -67,16 +66,16 @@ void FidLabeling::UpdateParameters()
 	for (int i=0; i<numOfNWires; ++i) 
   {
 		double normal[3];
-		vtkTriangle::ComputeNormal(nWires.at(i).wires[0].endPointFront, nWires.at(i).wires[0].endPointBack, nWires.at(i).wires[2].endPointFront, normal);
+		vtkTriangle::ComputeNormal(nWires.at(i).Wires[0].EndPointFront, nWires.at(i).Wires[0].EndPointBack, nWires.at(i).Wires[2].EndPointFront, normal);
 
 		vtkSmartPointer<vtkPlane> plane = vtkSmartPointer<vtkPlane>::New();
 		plane->SetNormal(normal);
-		plane->SetOrigin(nWires.at(i).wires[0].endPointFront);
+		plane->SetOrigin(nWires.at(i).Wires[0].EndPointFront);
 		planes.push_back(plane);
 
-		double distance1F = plane->DistanceToPlane(nWires.at(i).wires[1].endPointFront);
-		double distance1B = plane->DistanceToPlane(nWires.at(i).wires[1].endPointBack);
-		double distance2B = plane->DistanceToPlane(nWires.at(i).wires[2].endPointBack);
+		double distance1F = plane->DistanceToPlane(nWires.at(i).Wires[1].EndPointFront);
+		double distance1B = plane->DistanceToPlane(nWires.at(i).Wires[1].EndPointBack);
+		double distance2B = plane->DistanceToPlane(nWires.at(i).Wires[2].EndPointBack);
 
 		if (distance1F > epsilon || distance1B > epsilon || distance2B > epsilon) {
 			LOG_ERROR("NWire number " << i << " is invalid: the endpoints are not on the same plane");
@@ -104,13 +103,6 @@ void FidLabeling::UpdateParameters()
 	m_MaxLinePairDistMm = maxNPlaneDistance * (1.0 + (m_MaxLinePairDistanceErrorPercent / 100.0));
 	m_MinLinePairDistMm = minNPlaneDistance * (1.0 - (m_MaxLinePairDistanceErrorPercent / 100.0));
 	LOG_DEBUG("Line pair distance - computed min: " << minNPlaneDistance << " , max: " << maxNPlaneDistance << ";  allowed min: " << m_MinLinePairDistMm << ", max: " << m_MaxLinePairDistMm);
-}
-
-//-----------------------------------------------------------------------------
-
-void FidLabeling::ComputeParameters()
-{
-  // TODO: to be completed (currently the parameters are read from the config xml)
 }
 
 //-----------------------------------------------------------------------------
@@ -213,7 +205,6 @@ void FidLabeling::Clear()
 	//LOG_TRACE("FidLabeling::Clear");
   m_DotsVector.clear();
   m_LinesVector.clear();
-  m_PairsVector.clear();
   m_FoundDotsCoordinateValue.clear();
   m_Results.clear();
 
@@ -324,57 +315,6 @@ float FidLabeling::ComputeSlope( Line &line )
 
 //-----------------------------------------------------------------------------
 
-void FidLabeling::FindDoubleNLines()
-{	
-	LOG_TRACE("FidLabeling::FindDoubleNLines");
-  std::vector<Line> maxPointsLines = m_LinesVector[m_LinesVector.size()-1];
-
-	FindPattern();
-
-  if ( m_PairsVector.size() < 1 ) 
-	{
-		LOG_DEBUG("Segmentation was NOT successful! (Number of dots found: " << m_FoundDotsCoordinateValue.size() << " Number of possible fiducial points: " << m_NumDots << ")"); 
-		SetDotsFound(false);				
-		return;
-	}
-
-	SetDotsFound(true);
-
-  LinePair *  pair = &m_PairsVector[0];
-  SortTopToBottom( pair );
-
-  Line *line1 = &maxPointsLines[pair->GetLine1()];
-  Line *line2 = &maxPointsLines[pair->GetLine2()];
-
-  SortRightToLeft( line1 );
-  SortRightToLeft( line2 );
-
-	std::vector<double> dotCoords;
-	std::vector< std::vector<double> > foundDotsCoordinateValues = m_FoundDotsCoordinateValue;
-	for (int i=0; i<3; i++)
-	{
-		dotCoords.push_back(m_DotsVector[line1->GetPoint(i)].GetX());
-		dotCoords.push_back(m_DotsVector[line1->GetPoint(i)].GetY());
-		foundDotsCoordinateValues.push_back(dotCoords);
-		dotCoords.clear();
-	}
-	for (int i=0; i<3; i++)
-	{
-		dotCoords.push_back(m_DotsVector[line2->GetPoint(i)].GetX());
-		dotCoords.push_back(m_DotsVector[line2->GetPoint(i)].GetY());
-		foundDotsCoordinateValues.push_back(dotCoords);
-		dotCoords.clear();
-	}
-	m_FoundDotsCoordinateValue = foundDotsCoordinateValues;
-	//std::vector<std::vector<double>> sortedFiducials = SortInAscendingOrder(m_FoundDotsCoordinateValue); 
-	//m_FoundDotsCoordinateValue = sortedFiducials; 					
-
-	m_LinePairIntensity = pair->GetLinePairIntensity();
-	m_NumDots = m_DotsVector.size(); 
-}
-
-//-----------------------------------------------------------------------------
-
 float FidLabeling::ComputeDistancePointLine(Dot dot, Line line)
 {     
   double x[3], y[3], z[3];
@@ -472,7 +412,6 @@ void FidLabeling::UpdateNWiresResults(Line resultLine1, Line resultLine2)//resul
   m_FoundDotsCoordinateValue = foundDotsCoordinateValues;
   m_LinePairIntensity = intensity;
   m_DotsFound = true;
-  m_NumDots = m_DotsVector.size(); 
 }
 
 //-----------------------------------------------------------------------------
@@ -482,10 +421,6 @@ void FidLabeling::UpdateCirsResults(Line resultLine1, Line resultLine2, Line res
   float intensity = 0;
   std::vector<double> dotCoords;
   std::vector< std::vector<double> > foundDotsCoordinateValues = m_FoundDotsCoordinateValue;
-
-  /*SortRightToLeft(&resultLine1);
-  SortRightToLeft(&resultLine2);
-  SortRightToLeft(&resultLine3);*/
 
   for(int i=0 ; i<resultLine1.GetPoints()->size() ; i++)
   {
@@ -535,7 +470,6 @@ void FidLabeling::UpdateCirsResults(Line resultLine1, Line resultLine2, Line res
   m_FoundDotsCoordinateValue = foundDotsCoordinateValues;
   m_LinePairIntensity = intensity;
   m_DotsFound = true;
-  m_NumDots = m_DotsVector.size(); 
 }
 
 //-----------------------------------------------------------------------------
@@ -627,7 +561,6 @@ void FidLabeling::FindPattern()
           }
         }
 
-        //Compare the results to the config file
         //Here we will check the parameters between all possible pairs as so far there will be only 2 or 3 lines per pattern
         //TODO: make it smarter to lower the number of checks if there are a higher number of lines
         bool distanceTest = false;
@@ -742,36 +675,18 @@ void FidLabeling::FindPattern()
 
 //-----------------------------------------------------------------------------
 
-void FidLabeling::SortTopToBottom( LinePair *pair )
-{
-	//LOG_TRACE("FidLabeling::SortTopToBottom");
-
-	/* check if we need to swap the pairs.
-	if ( m_LinesVector[pair->GetLine1()].GetLinePosition() < m_LinesVector[pair->GetLine2()].GetLinePosition() ) 
-  {
-		int swp_tmp = pair->GetLine1();
-		pair->SetLine1(pair->GetLine2());
-		pair->SetLine2(swp_tmp);
-	} */
-}
-
-//-----------------------------------------------------------------------------
-
 void FidLabeling::SortRightToLeft( Line *line )
 {
 	//LOG_TRACE("FidLabeling::SortRightToLeft");
 
-	/* Since we prohibit stepp lines (see MAX_T and MIN_T) we can use the x
-	 * values to sort the points. */
 	std::vector<std::vector<Dot>::iterator> pointsIterator(line->GetPoints()->size());
 
   for (int i=0; i<line->GetPoints()->size() ; i++)
 	{
 		pointsIterator[i] = m_DotsVector.begin() + line->GetPoint(i);
 	}
-	//UltraSoundFiducialSegmentationTools::sort<std::vector<Dot>::iterator, Position>( pointsIterator, line->GetLinePoints()->size() );
-	std::sort(pointsIterator.begin(), pointsIterator.end(), Position::lessThan);
-	//std::sort(points.begin(),points.end(), Position::lessThan);
+
+	std::sort(pointsIterator.begin(), pointsIterator.end(), Dot::PositionLessThan);
 
 	for (int i=0; i<line->GetPoints()->size(); i++)
 	{

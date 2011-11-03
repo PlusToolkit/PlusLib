@@ -44,15 +44,6 @@ void UsFidSegResultFile::WriteSegmentationResultsFooter(std::ostream &outFile)
 	outFile << "</"<<TEST_RESULTS_ELEMENT_NAME<<">" << std::endl; 
 }
 
-/* Write segmentation results into XML:
-<TestCase id="UsTestSeq001_000">
-<Input ImageSeqFileName="UsTestSeq001.b8" ImageSeqFrameIndex="0" />
-<Output SegmentationSuccess="1" 
-SegmentationQualityInAngleScore="33.3"
-SegmentationQualityInIntensityScore="44.3"
-SegmentationPoints="12 12 23 23 34 34 45 45 56 56 67 67" />
-</TestCase>
-*/
 void UsFidSegResultFile::WriteSegmentationResults(std::ostream &outFile, PatternRecognitionResult &segResults, const std::string &inputTestcaseName, int currentFrameIndex, const std::string &inputImageSequenceFileName)
 { 	
 	LOG_DEBUG("Writing test case " << inputTestcaseName.c_str() << " frame " << currentFrameIndex);
@@ -65,10 +56,6 @@ void UsFidSegResultFile::WriteSegmentationResults(std::ostream &outFile, Pattern
 	if (algoSuccessful)
 	{
 		outFile << std::endl;
-		if (segResults.GetAngles()>=0)
-		{
-			outFile << "      SegmentationQualityInAngleScore=\""<< segResults.GetAngles() <<"\"" << std::endl;
-		}
 		if (segResults.GetIntensity()>=0)
 		{
 			outFile << "      SegmentationQualityInIntensityScore=\"" << segResults.GetIntensity()<< "\""<< std::endl;

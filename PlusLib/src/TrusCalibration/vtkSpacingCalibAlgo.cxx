@@ -171,8 +171,8 @@ PlusStatus vtkSpacingCalibAlgo::ConstructLinearEquationForCalibration( std::vect
   }
 
   // Compute wire distance from phantom definition 
-  const double distanceW1ToW3inMm = fabs(this->NWires[0].wires[0].endPointFront[0] - this->NWires[0].wires[2].endPointFront[0]); // horizontal distance
-  const double distanceW3ToW6inMm = fabs(this->NWires[0].wires[2].endPointFront[1] - this->NWires[1].wires[2].endPointFront[1]); // vertical  distance 
+  const double distanceW1ToW3inMm = fabs(this->NWires[0].Wires[0].EndPointFront[0] - this->NWires[0].Wires[2].EndPointFront[0]); // horizontal distance
+  const double distanceW3ToW6inMm = fabs(this->NWires[0].Wires[2].EndPointFront[1] - this->NWires[1].Wires[2].EndPointFront[1]); // vertical  distance 
   
   for ( int frame = 0; frame < this->GetTrackedFrameList()->GetNumberOfTrackedFrames(); ++frame )
   {
