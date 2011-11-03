@@ -124,13 +124,16 @@ public:
   /*! Get the most recent tracked frame from devices with each tool transforms */
   virtual PlusStatus GetTrackedFrame(TrackedFrame* trackedFrame, bool calibratedTransform = false); 
 
+  /*! Get number of tracked frames between two given timestamps (inclusive) */
+  int GetNumberOfFramesBetweenTimestamps(double frameTimestampFrom, double frameTimestampTo);
+
   /*!
     Get the tracked frame list from devices since time specified
-    \param frameTimestamp The oldest timestamp we search for in the buffer. If -1 get all frames in the time range since the most recent timestamp 
+    \param frameTimestamp The oldest timestamp we search for in the buffer. If -1 get all frames in the time range since the most recent timestamp. Out parameter - changed to timestamp of last added frame
     \param trackedFrameList Tracked frame list used to get the newly acquired frames into. The new frames are appended to the tracked frame.
-    \param maxNumberOfFrames The maximum number of latest frames acquired from the buffers (till most recent timestamp). If -1 get all frames in the time range since frameTimestamp
+    \param maxNumberOfFramesToAdd The maximum number of latest frames acquired from the buffers (till most recent timestamp). If -1 get all frames in the time range since frameTimestamp
   */
-  virtual PlusStatus GetTrackedFrameList(double& frameTimestamp, vtkTrackedFrameList* trackedFrameList, int maxNumberOfFrames = -1); 
+  virtual PlusStatus GetTrackedFrameList(double& frameTimestamp, vtkTrackedFrameList* trackedFrameList, int maxNumberOfFramesToAdd = -1); 
 
   const char* vtkDataCollector::GetDefaultFrameTransformName(int toolNumber);
 
