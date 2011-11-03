@@ -7,11 +7,7 @@
 Connect the framegrabber via USB and plug in the stepper through Serial2USB converter cable into USB slot. Look for the Serial port number in the control panel" 
         />
 
-      <Tracker Type="BrachyTracker" BufferSize="300" Frequency="20" AveragedItemsForFiltering="20" LocalTimeOffset="0.0" SerialPort="3" BaudRate="19200" BrachyStepperType="Burdette Medical Systems Digital Stepper" ModelNumber="4012A18-a" ModelVersion="" ModelSerialNumber="01-50-149"
-        MaxAllowedTranslationSpeedMmPerSec="10.0"
-        MaxAllowedRotationSpeedDegPerSec="15.0"
-        MinRequiredTranslationDifferenceMm="0.5"
-        MinRequiredAngleDifferenceDeg="5.0">
+      <Tracker Type="BrachyTracker" BufferSize="300" Frequency="20" AveragedItemsForFiltering="20" LocalTimeOffset="0.0" SerialPort="3" BaudRate="19200" BrachyStepperType="Burdette Medical Systems Digital Stepper" ModelNumber="4012A18-a" ModelVersion="" ModelSerialNumber="01-50-149" >
         
          <Tool PortNumber="0" Type="Probe" Name="Probe" SendTo="127.0.0.1:1111">
               <Calibration 
@@ -58,10 +54,10 @@ Connect the framegrabber via USB and plug in the stepper through Serial2USB conv
 	</USDataCollection>
   
     <iCal version="1.0" NumberOfImagesForValidation="50"    >
-     <CalibrationData Type="CALIB_TEMPLATE_TRANSLATION" NumberOfImagesToAcquire="50" FrameTransformNameForValidation="" />
-     <CalibrationData Type="CALIB_PROBE_TRANSLATION" NumberOfImagesToAcquire="50" FrameTransformNameForValidation="" />
-     <CalibrationData Type="CALIB_PROBE_ROTATION" NumberOfImagesToAcquire="100" FrameTransformNameForValidation="" />
-     <CalibrationData Type="CALIB_RANDOM_STEPPER_MOTION" NumberOfImagesToAcquire="150" FrameTransformNameForValidation="" />
+     <CalibrationData Type="CALIB_TEMPLATE_TRANSLATION" NumberOfImagesToAcquire="50" FrameTransformNameForValidation="" MaxAllowedTranslationSpeedMmPerSec="10.0" MaxAllowedRotationSpeedDegPerSec="15.0" MinRequiredTranslationDifferenceMm="0.5" MinRequiredAngleDifferenceDeg="5.0"/>
+     <CalibrationData Type="CALIB_PROBE_TRANSLATION" NumberOfImagesToAcquire="50" FrameTransformNameForValidation="" MaxAllowedTranslationSpeedMmPerSec="10.0" MaxAllowedRotationSpeedDegPerSec="15.0" MinRequiredTranslationDifferenceMm="0.5" MinRequiredAngleDifferenceDeg="5.0" />
+     <CalibrationData Type="CALIB_PROBE_ROTATION" NumberOfImagesToAcquire="100" FrameTransformNameForValidation="" MaxAllowedTranslationSpeedMmPerSec="10.0" MaxAllowedRotationSpeedDegPerSec="15.0" MinRequiredTranslationDifferenceMm="0.5" MinRequiredAngleDifferenceDeg="5.0" />
+     <CalibrationData Type="CALIB_RANDOM_STEPPER_MOTION" NumberOfImagesToAcquire="150" FrameTransformNameForValidation="" MaxAllowedTranslationSpeedMmPerSec="10.0" MaxAllowedRotationSpeedDegPerSec="15.0" MinRequiredTranslationDifferenceMm="0.5" MinRequiredAngleDifferenceDeg="5.0" />
     </iCal>
     
 	<USCalibration>

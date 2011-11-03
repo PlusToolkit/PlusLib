@@ -1399,9 +1399,7 @@ PlusStatus vtkDataCollector::GetTrackedFrame(vtkImageData* frame, vtkMatrix4x4* 
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkDataCollector::GetTrackedFrameList(double& frameTimestamp, vtkTrackedFrameList* trackedFrameList, int maxNumberOfFrames/*=-1*/, 
-                                                 long validationRequirements, 
-                                                 const char* frameTransformNameForPositionValidation/*=NULL*/ )
+PlusStatus vtkDataCollector::GetTrackedFrameList(double& frameTimestamp, vtkTrackedFrameList* trackedFrameList, int maxNumberOfFrames/*=-1*/)
 {
   if ( trackedFrameList == NULL )
   {
@@ -1510,8 +1508,7 @@ PlusStatus vtkDataCollector::GetTrackedFrameList(double& frameTimestamp, vtkTrac
     else 
     {
       // Add tracked frame to the list 
-      if ( trackedFrameList->ValidateData(&trackedFrame, validationRequirements, frameTransformNameForPositionValidation )
-        && trackedFrameList->AddTrackedFrame(&trackedFrame) != PLUS_SUCCESS )
+      if ( trackedFrameList->AddTrackedFrame(&trackedFrame) != PLUS_SUCCESS )
       {
         LOG_ERROR("Unable to add tracked frame to the list!" ); 
         status = PLUS_FAIL; 

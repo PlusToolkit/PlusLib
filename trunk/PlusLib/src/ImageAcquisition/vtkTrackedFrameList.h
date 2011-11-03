@@ -380,9 +380,6 @@ public:
   /*! Get number of tracked frames */
   virtual unsigned int GetNumberOfTrackedFrames() { return this->TrackedFrameList.size(); } 
 
-  /*! Read configuration from xml data */
-  virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config); 
-
   /*! Save the tracked data to sequence metafile */
   PlusStatus SaveToSequenceMetafile(const char* outputFolder, const char* sequenceDataFileName, SEQ_METAFILE_EXTENSION extension = SEQ_METAFILE_MHA, bool useCompression = true);
   
@@ -395,37 +392,64 @@ public:
   /*! Get the tracked frame list */
   TrackedFrameListType GetTrackedFrameList() { return this->TrackedFrameList; }
 
-  /*! Perform validation on a tracked frame before adding to the list. If any of the requested requirement is not fulfilled then the validation fails
-   \param trackedFrame Input tracked frame 
-   \param validationRequirements Data validation regurirements (like: REQUIRE_UNIQUE_TIMESTAMP | REQUIRE_TRACKING_OK )
-   \param frameTransformNameforPositionValidation Frame transform name used for position validation
-   \sa TrackedFrameValidationRequirements 
-  */
-  virtual bool ValidateData(TrackedFrame* trackedFrame, long validationRequirements, const char* frameTransformNameForValidation = NULL ); 
+  /*! Remove tracked frame from the list and free up memory */
+  virtual PlusStatus RemoveTrackedFrame( int frameNumber ); 
 
   /*! Clear tracked frame list and free memory */
   virtual void Clear(); 
 
-  /*! Set/getdefault frame transform name */
+  /*! Get default frame transform name */
   virtual std::string GetDefaultFrameTransformName(); 
+
+  /*! Set default frame transform name */
   virtual void SetDefaultFrameTransformName(const char* name); 
 
-  /*! Set/get the maximum number of frames to write into a single metafile. */
-  vtkSetMacro(MaxNumOfFramesToWrite, int); 
-  vtkGetMacro(MaxNumOfFramesToWrite, int); 
-
-  /*! Set/get the number of following unique frames needed in the tracked frame list */
+  /*! Set the number of following unique frames needed in the tracked frame list */
   vtkSetMacro(NumberOfUniqueFrames, int); 
+
+  /*! Get the number of following unique frames needed in the tracked frame list */
   vtkGetMacro(NumberOfUniqueFrames, int); 
 
-  /*! Set/get the threshold of acceptable speed of position change */
+  /*! Set the threshold of acceptable speed of position change */
   vtkSetMacro(MinRequiredTranslationDifferenceMm, double); 
+
+  /*!Get the threshold of acceptable speed of position change */
   vtkGetMacro(MinRequiredTranslationDifferenceMm, double); 
 
-  /*! Set/get the threshold of acceptable speed of orientation change in degrees */
+  /*! Set the threshold of acceptable speed of orientation change in degrees */
   vtkSetMacro(MinRequiredAngleDifferenceDeg, double); 
+
+  /*! Get the threshold of acceptable speed of orientation change in degrees */
   vtkGetMacro(MinRequiredAngleDifferenceDeg, double); 
 
+  /*! Set the maximum allowed translation speed in mm/sec */
+  vtkSetMacro(MaxAllowedTranslationSpeedMmPerSec, double); 
+
+  /*! Get the maximum allowed translation speed in mm/sec */
+  vtkGetMacro(MaxAllowedTranslationSpeedMmPerSec, double); 
+
+  /*! Set the maximum allowed rotation speed in degree/sec */
+  vtkSetMacro(MaxAllowedRotationSpeedDegPerSec, double); 
+
+  /*! Get the maximum allowed rotation speed in degree/sec */
+  vtkGetMacro(MaxAllowedRotationSpeedDegPerSec, double); 
+
+  /*! Set validation requirements 
+  \sa TrackedFrameValidationRequirements
+  */
+  vtkSetMacro(ValidationRequirements, long); 
+
+  /*! Get validation requirements 
+  \sa TrackedFrameValidationRequirements
+  */
+  vtkGetMacro(ValidationRequirements, long); 
+  
+  /*! Set frame transform name used for transform validation */
+  vtkSetStringMacro(FrameTransformNameForValidation); 
+
+  /*! Get frame transform name used for transform validation */
+  vtkGetStringMacro(FrameTransformNameForValidation); 
+  
   /*! Get tracked frame pixel size in bits */
   virtual int GetNumberOfBitsPerPixel(); 
 
@@ -442,34 +466,50 @@ public:
   * It will search for a field like: Seq_Frame<frameNumber>_<frameTransformName>
   * Return false if the the field is missing */
   virtual PlusStatus GetCustomTransform( const char* frameTransformName, vtkMatrix4x4* transformMatrix ); 
+  
+  /*! Get the custom transformation matrix from metafile by custom frame transform name
+  * It will search for a field like: Seq_Frame<frameNumber>_<frameTransformName>
+  * Return false if the the field is missing */
   virtual PlusStatus GetCustomTransform( const char* frameTransformName, double* transformMatrix ); 
 
   /*! Set the custom transformation matrix from metafile by custom frame transform name
   * It will search for a field like: Seq_Frame<frameNumber>_<frameTransformName> */
   virtual void SetCustomTransform( const char* frameTransformName, vtkMatrix4x4* transformMatrix ); 
+  
+  /*! Set the custom transformation matrix from metafile by custom frame transform name
+  * It will search for a field like: Seq_Frame<frameNumber>_<frameTransformName> */
   virtual void SetCustomTransform( const char* frameTransformName, double* transformMatrix ); 
 
   /*! Get custom field name list */
   void GetCustomFieldNameList(std::vector<std::string> &fieldNames);
 
-  /*! Get/Set global transform (stored in the Offset and TransformMatrix fields) */
+  /*! Get global transform (stored in the Offset and TransformMatrix fields) */
   PlusStatus GetGlobalTransform(vtkMatrix4x4* globalTransform);
+
+  /*! Set global transform (stored in the Offset and TransformMatrix fields) */
   PlusStatus SetGlobalTransform(vtkMatrix4x4* globalTransform);
 
 protected:
   vtkTrackedFrameList();
   virtual ~vtkTrackedFrameList();
 
+    /*! Perform validation on a tracked frame before adding to the list. If any of the requested requirement is not fulfilled then the validation fails
+   \param trackedFrame Input tracked frame 
+   \param validationRequirements Data validation regurirements (like: REQUIRE_UNIQUE_TIMESTAMP | REQUIRE_TRACKING_OK )
+   \param frameTransformNameforPositionValidation Frame transform name used for position validation
+   \sa TrackedFrameValidationRequirements 
+  */
+  virtual bool ValidateData(TrackedFrame* trackedFrame); 
+
   bool ValidateTimestamp(TrackedFrame* trackedFrame); 
   bool ValidateStatus(TrackedFrame* trackedFrame); 
-  bool ValidateTransform(TrackedFrame* trackedFrame, const char* frameTransformNameForValidation); 
+  bool ValidateTransform(TrackedFrame* trackedFrame); 
   bool ValidateEncoderPosition(TrackedFrame* trackedFrame);
   bool ValidateSpeed(TrackedFrame* trackedFrame);
 
   TrackedFrameListType TrackedFrameList; 
   FieldMapType CustomFields;
 
-  int MaxNumOfFramesToWrite;
   int NumberOfUniqueFrames;
 
   /*! If the threshold==0 it means that no checking is needed (the frame is always accepted). \n
@@ -479,6 +519,9 @@ protected:
   double MinRequiredAngleDifferenceDeg;
   double MaxAllowedTranslationSpeedMmPerSec;
   double MaxAllowedRotationSpeedDegPerSec;
+
+  long ValidationRequirements; 
+  char* FrameTransformNameForValidation;  
 
 private:
   vtkTrackedFrameList(const vtkTrackedFrameList&);

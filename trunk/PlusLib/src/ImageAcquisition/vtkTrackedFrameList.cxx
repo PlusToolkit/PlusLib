@@ -258,13 +258,14 @@ vtkTrackedFrameList::vtkTrackedFrameList()
   this->CustomFields["DefaultFrameTransformName"] = "ToolToTrackerTransform"; 
   this->CustomFields["UltrasoundImageOrientation"] = "MF"; 
 
-  this->SetMaxNumOfFramesToWrite(500); 
   this->SetNumberOfUniqueFrames(5); 
 
   this->MinRequiredTranslationDifferenceMm=0.0;
   this->MinRequiredAngleDifferenceDeg=0.0;
   this->MaxAllowedTranslationSpeedMmPerSec=0.0;
   this->MaxAllowedRotationSpeedDegPerSec=0.0;
+  this->FrameTransformNameForValidation = NULL; 
+  this->ValidationRequirements = 0; 
 
 }
 
@@ -272,6 +273,21 @@ vtkTrackedFrameList::vtkTrackedFrameList()
 vtkTrackedFrameList::~vtkTrackedFrameList()
 {
   this->Clear(); 
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkTrackedFrameList::RemoveTrackedFrame( int frameNumber )
+{
+  if ( frameNumber <= 0 || frameNumber > this->GetNumberOfTrackedFrames() )
+  {
+    LOG_WARNING("Failed to remove tracked frame from list - invalid frame number: " << frameNumber ); 
+    return PLUS_FAIL; 
+  }
+
+  delete this->TrackedFrameList[frameNumber]; 
+  this->TrackedFrameList.erase(this->TrackedFrameList.begin()+frameNumber); 
+
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
@@ -331,51 +347,68 @@ PlusStatus vtkTrackedFrameList::AddTrackedFrameList(vtkTrackedFrameList* inTrack
 //----------------------------------------------------------------------------
 PlusStatus vtkTrackedFrameList::AddTrackedFrame(TrackedFrame *trackedFrame)
 {
+  if ( !this->ValidateData(trackedFrame) )
+  {
+    LOG_DEBUG("A similar frame is already found in the tracked frame list!"); 
+    return PLUS_SUCCESS; 
+  }
+
   TrackedFrame* pTrackedFrame = new TrackedFrame(*trackedFrame); 
   this->TrackedFrameList.push_back(pTrackedFrame); 
   return PLUS_SUCCESS; 
 }
 
 //----------------------------------------------------------------------------
-bool vtkTrackedFrameList::ValidateData(TrackedFrame* trackedFrame, long validationRequirements, const char* frameTransformNameForValidation /*=NULL*/ )
+bool vtkTrackedFrameList::ValidateData(TrackedFrame* trackedFrame )
 {
-  if ( validationRequirements & REQUIRE_UNIQUE_TIMESTAMP )
+  if ( this->ValidationRequirements == 0 )
+  {
+    // If we don't want to validate return immediately
+    return true; 
+  }
+
+  if ( this->ValidationRequirements & REQUIRE_UNIQUE_TIMESTAMP )
   {
     if (! this->ValidateTimestamp(trackedFrame))
     {
+      LOG_DEBUG("Validation failed - timestamp is not unique!"); 
       return false;
     }
   }
 
-  if ( validationRequirements & REQUIRE_TRACKING_OK )
+  if ( this->ValidationRequirements & REQUIRE_TRACKING_OK )
   {
     if (! this->ValidateStatus(trackedFrame))
     {
+      LOG_DEBUG("Validation failed - tracking status in not OK!"); 
       return false;
     }
   }
 
-  if ( validationRequirements & REQUIRE_CHANGED_TRANSFORM )
+  if ( this->ValidationRequirements & REQUIRE_CHANGED_TRANSFORM )
   {
-    if (! this->ValidateTransform(trackedFrame, frameTransformNameForValidation))
+    if (! this->ValidateTransform(trackedFrame))
     {
+      LOG_DEBUG("Validation failed - transform is not changed!"); 
       return false;
     }
   }
 
-  if ( validationRequirements & REQUIRE_CHANGED_ENCODER_POSITION )
+  if ( this->ValidationRequirements & REQUIRE_CHANGED_ENCODER_POSITION )
   {
     if (! this->ValidateEncoderPosition(trackedFrame))
     {
+      LOG_DEBUG("Validation failed - encoder position is not changed!"); 
       return false;
     }
   }
 
 
-  if ( validationRequirements & REQUIRE_SPEED_BELOW_THRESHOLD )
+  if ( this->ValidationRequirements & REQUIRE_SPEED_BELOW_THRESHOLD )
   {
     if (! this->ValidateSpeed(trackedFrame))
     {
+      LOG_DEBUG("Validation failed - speed is higher than threshold!"); 
       return false;
     }
   }
@@ -427,7 +460,7 @@ bool vtkTrackedFrameList::ValidateEncoderPosition( TrackedFrame* trackedFrame )
 }
 
 //----------------------------------------------------------------------------
-bool vtkTrackedFrameList::ValidateTransform(TrackedFrame* trackedFrame, const char* frameTransformNameForValidation)
+bool vtkTrackedFrameList::ValidateTransform(TrackedFrame* trackedFrame)
 {
   TrackedFrameListType::iterator searchIndex; 
   const int containerSize = this->TrackedFrameList.size(); 
@@ -440,7 +473,7 @@ bool vtkTrackedFrameList::ValidateTransform(TrackedFrame* trackedFrame, const ch
     searchIndex =this->TrackedFrameList.end() - this->NumberOfUniqueFrames; 
   }
 
-  if (std::find_if(searchIndex, this->TrackedFrameList.end(), TrackedFrameTransformFinder(trackedFrame, frameTransformNameForValidation,
+  if (std::find_if(searchIndex, this->TrackedFrameList.end(), TrackedFrameTransformFinder(trackedFrame, this->FrameTransformNameForValidation,
     this->MinRequiredTranslationDifferenceMm, this->MinRequiredAngleDifferenceDeg) ) != this->TrackedFrameList.end() )
   {
     // We've already inserted this frame 
@@ -596,51 +629,6 @@ PlusStatus vtkTrackedFrameList::SaveToSequenceMetafile(const char* outputFolder,
   {		
     LOG_ERROR("Couldn't write sequence metafile: " <<  trackedSequenceDataFileName ); 
     return PLUS_FAIL;
-  }
-
-  return PLUS_SUCCESS;
-}
-
-//-----------------------------------------------------------------------------
-PlusStatus vtkTrackedFrameList::ReadConfiguration(vtkXMLDataElement* config)
-{
-  LOG_TRACE("vtkTrackedFrameList::ReadConfiguration"); 
-	if ( config == NULL )
-	{
-		LOG_ERROR("Unable to read configuration from video source! (XML data element is NULL)"); 
-		return PLUS_FAIL; 
-	}
-
-  vtkXMLDataElement* dataCollectionConfig = config->FindNestedElementWithName("USDataCollection");
-	if (dataCollectionConfig == NULL)
-  {
-    LOG_DEBUG("Cannot find USDataCollection element in XML tree. Use default values");
-		return PLUS_SUCCESS;
-	}
-
-  vtkXMLDataElement* trackerConfig = dataCollectionConfig->FindNestedElementWithName("Tracker"); 
-  if (trackerConfig == NULL) 
-  {
-    LOG_DEBUG("Cannot find Tracker element in XML tree. Use default values");
-		return PLUS_SUCCESS;
-  }
-
-	if ( !trackerConfig->GetScalarAttribute("MinRequiredTranslationDifferenceMm", this->MinRequiredTranslationDifferenceMm) )
-	{
-    LOG_DEBUG("ImageAcquisition MinRequiredTranslationDifferenceMm attribute is not defined, use default value"); 
-  }
-  if ( !trackerConfig->GetScalarAttribute("MinRequiredAngleDifferenceDeg", this->MinRequiredAngleDifferenceDeg) )
-	{
-    LOG_DEBUG("ImageAcquisition MinRequiredAngleDifferenceDeg attribute is not defined, use default value"); 
-  }
-
-	if ( !trackerConfig->GetScalarAttribute("MaxAllowedTranslationSpeedMmPerSec", this->MaxAllowedTranslationSpeedMmPerSec) )
-  {
-    LOG_DEBUG("ImageAcquisition MaxAllowedTranslationSpeedMmPerSec attribute is not defined, use default value"); 
-  }
-	if ( !trackerConfig->GetScalarAttribute("MaxAllowedRotationSpeedDegPerSec", this->MaxAllowedRotationSpeedDegPerSec) )
-  {
-    LOG_DEBUG("ImageAcquisition MaxAllowedRotationSpeedDegPerSec attribute is not defined, use default value"); 
   }
 
   return PLUS_SUCCESS;

@@ -130,7 +130,7 @@ public:
     \param trackedFrameList Tracked frame list used to get the newly acquired frames into. The new frames are appended to the tracked frame.
     \param maxNumberOfFrames The maximum number of latest frames acquired from the buffers (till most recent timestamp). If -1 get all frames in the time range since frameTimestamp
   */
-  virtual PlusStatus GetTrackedFrameList(double& frameTimestamp, vtkTrackedFrameList* trackedFrameList, int maxNumberOfFrames = -1, long validationRequirements = 0, const char* frameTransformNameForPositionValidation = NULL ); 
+  virtual PlusStatus GetTrackedFrameList(double& frameTimestamp, vtkTrackedFrameList* trackedFrameList, int maxNumberOfFrames = -1); 
 
   const char* vtkDataCollector::GetDefaultFrameTransformName(int toolNumber);
 
