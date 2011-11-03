@@ -39,7 +39,7 @@ PlusStatus FidPatternRecognition::ReadConfiguration(vtkXMLDataElement* rootConfi
 
 	m_FidSegmentation.ReadConfiguration(rootConfigElement);
 	m_FidLineFinder.ReadConfiguration(rootConfigElement);
-  m_FidLabeling.ReadConfiguration(rootConfigElement, m_FidLineFinder.GetMinTheta(), m_FidLineFinder.GetMaxTheta(), m_FidLineFinder.GetMaxLineErrorMm());
+  m_FidLabeling.ReadConfiguration(rootConfigElement, m_FidLineFinder.GetMinTheta(), m_FidLineFinder.GetMaxTheta());
 
   return PLUS_SUCCESS;
 }

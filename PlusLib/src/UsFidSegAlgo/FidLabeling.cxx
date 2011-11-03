@@ -23,7 +23,6 @@ FidLabeling::FidLabeling()
 	m_MinLinePairDistMm = -1.0; 	
 	m_MaxLinePairDistMm = -1.0;
 	m_MaxLinePairDistanceErrorPercent = -1.0;
-	m_MaxLineErrorMm = -1.0;
 	m_MinTheta = -1.0;
 	m_MaxTheta = -1.0;
   m_AngleToleranceRad = -1.0;
@@ -107,7 +106,7 @@ void FidLabeling::UpdateParameters()
 
 //-----------------------------------------------------------------------------
 
-PlusStatus FidLabeling::ReadConfiguration( vtkXMLDataElement* configData, double minTheta, double maxTheta, double maxLineErrorMm )
+PlusStatus FidLabeling::ReadConfiguration( vtkXMLDataElement* configData, double minTheta, double maxTheta )
 {
 	LOG_TRACE("FidLabeling::ReadConfiguration");
 
@@ -193,7 +192,6 @@ PlusStatus FidLabeling::ReadConfiguration( vtkXMLDataElement* configData, double
 
 	m_MinTheta = minTheta;
 	m_MaxTheta = maxTheta;
-	m_MaxLineErrorMm = maxLineErrorMm;
 
   return PLUS_SUCCESS; 
 }

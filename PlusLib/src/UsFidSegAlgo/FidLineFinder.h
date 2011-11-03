@@ -28,76 +28,91 @@ class FidLineFinder
 
     /*! Compute parameters such as the minimum and the maximum angle allowed for one line in the case where the sgmentation 
         parameters are to be computed. This allows a better precision and possibly an increase of computation speed. */
-		void				ComputeParameters();
+		void ComputeParameters();
 
     /*! Clear the member attributes when not needed anymore */
-    void        Clear();
+    void Clear();
 
     /*! Read the configuration file from a vtk XML data element */
 		PlusStatus	ReadConfiguration( vtkXMLDataElement* rootConfigElement );
 
     /*! Set the size of the frame as an array */
-    void        SetFrameSize( int frameSize[2] );
+    void SetFrameSize( int frameSize[2] );
 
     /*! Find the n-points lines from a list of 2-points lines */
-    void 				FindLinesNPoints();
+    void FindLinesNPoints();
 
     /*! Find 2-points lines from a list of Dots */
-		void 				FindLines2Points();
+		void FindLines2Points();
 
     /*! Compute the length of the segment between 2 dots */
-		float				SegmentLength( Dot *dot1, Dot *dot2 );
+		float SegmentLength( Dot *dot1, Dot *dot2 );
 
     /*! Compute the length of a line and sets it origin */
-		float				LineLength( Line &line );
+		float LineLength( Line &line );
 
     /*! Compute the shortest distance from a point: dot, to a line: line */
-    float       ComputeDistancePointLine(Dot dot, Line line);
+    float ComputeDistancePointLine(Dot dot, Line line);
 
     /*! Compute a line, all that is required is a set origin and the dots part of the line. It computes then the line length,
         the direction vector, the endpoint */
-		void 				ComputeLine( Line &line );
+		void ComputeLine( Line &line );
 
     /*! Compute the angle between the lin formed by 2 dots and the x-axis */
-		float				ComputeSlope( Dot *dot1, Dot *dot2 );
+		float ComputeSlope( Dot *dot1, Dot *dot2 );
 
     /*! Return true if a line matches the requirements, false otherwise */
-		bool				AcceptLine( Line &line );  
+		bool AcceptLine( Line &line );  
 
     /*! Return true if an angle is in the allowed angle range, false otherwise */
-    bool        AcceptAngle(float angle);
+    bool AcceptAngle(float angle);
 
     /*! Find lines, runs the FindLines2Points and FindLinesNPoints and then sort the lines by intensity */
-		void				FindLines();
+		void FindLines();
 
     //Accessors and mutators
+    /*! Get the maximum angle allowed for a line, in radiants */
+    double GetMaxTheta() { return m_MaxTheta; };
 
-    /*! Get the */
-    double			GetMaxTheta() { return m_MaxTheta; };
-    double			GetMinTheta() { return m_MinTheta; };
+    /*! Set the maximum angle allowed for a line, in radiants */
+    double GetMinTheta() { return m_MinTheta; };
 
-    double			GetMaxLineErrorMm() { return m_MaxLineErrorMm; };
+    /*! Set the values of the candidate fiducials */
+    void SetCandidateFidValues(std::vector<Dot> value) { m_CandidateFidValues = value; };
+ 
+    /*! Get the pattern structure vector, this defines the patterns that the algorthm finds */
+    std::vector<Pattern*> GetPatterns() { return m_Patterns; };
 
-    void				SetCandidateFidValues(std::vector<Dot> value) { m_CandidateFidValues = value; };
-
-    std::vector<Pattern*>     GetPatterns() { return m_Patterns; };
-    void        SetPatterns( std::vector<Pattern*> value ) { m_Patterns = value; };
+    /*! Set the pattern structure vector, this defines the patterns that the algorthm finds */
+    void SetPatterns( std::vector<Pattern*> value ) { m_Patterns = value; };
     
+    /*! Get the vector of lines, this vector contains all lines of different number of points that match the criteria */
     std::vector<std::vector<Line> >	GetLinesVector() { return m_LinesVector; };
 
-    void				SetDotsVector(std::vector<Dot> value) { m_DotsVector = value; };
+    /*! Set the vector of dots that have been found by FidSegmentation */
+    void SetDotsVector(std::vector<Dot> value) { m_DotsVector = value; };
 
+    /*! Get the NWires vector, these NWires are extracted from the pattern vector */
     std::vector<NWire> GetNWires();
 
-    double *		GetImageNormalVectorInPhantomFrameMaximumRotationAngleDeg() { return m_ImageNormalVectorInPhantomFrameMaximumRotationAngleDeg; };
-    double *		GetImageToPhantomTransform() { return m_ImageToPhantomTransform; };
+    /*! Get the maximum rotation vector, this maximum rotation represents the physical limitation of the probe, 
+        used for automatic parameters computation */
+    double * GetImageNormalVectorInPhantomFrameMaximumRotationAngleDeg() { return m_ImageNormalVectorInPhantomFrameMaximumRotationAngleDeg; };
 
-    void        SetApproximateSpacingMmPerPixel(double value) { m_ApproximateSpacingMmPerPixel = value; };
-    void        SetMaxLineLengthErrorPercent(double value) { m_MaxLineLengthErrorPercent = value; };
-    void        SetCollinearPointsMaxDistanceFromLineMm(double value) { m_CollinearPointsMaxDistanceFromLineMm = value; };
-    void        SetMaxLineErrorMm(double value) { m_MaxLineErrorMm = value; };
-    void        SetMinThetaDegrees(double value) { m_MinTheta = value; };
-    void        SetMaxThetaDegrees(double value) { m_MaxTheta = value; };
+    /*! Get the image to phantom transform matrix */
+    double * GetImageToPhantomTransform() { return m_ImageToPhantomTransform; };
+
+    /*! Set the approximate spacing in Mm per pixel */
+    void SetApproximateSpacingMmPerPixel(double value) { m_ApproximateSpacingMmPerPixel = value; };
+
+    /*! Set the maximum distance from a point to a line when the point is tested to be a point of the line */
+    void SetCollinearPointsMaxDistanceFromLineMm(double value) { m_CollinearPointsMaxDistanceFromLineMm = value; };
+    
+    /*! Set the minimum angle allowed for a line, in degrees */
+    void SetMinThetaDegrees(double value) { m_MinTheta = value; };
+
+    /*! Set the maximum angle allowed for a line, in degrees */
+    void SetMaxThetaDegrees(double value) { m_MaxTheta = value; };
 
   protected:
 		int					m_FrameSize[2];
@@ -106,13 +121,8 @@ class FidLineFinder
 		double			m_ImageToPhantomTransform[16];
 
 		// line length and line pair distance errors in percent - read from phantom definition
-		double 			m_MaxLineLengthErrorPercent;
 		double 			m_MaxLinePairDistanceErrorPercent;
-
-		double 			m_MaxLineErrorMm;
-
 		double 			m_CollinearPointsMaxDistanceFromLineMm; 
-
 		double 			m_MinTheta; 
 		double 			m_MaxTheta;
 
