@@ -219,17 +219,23 @@ vtkOpenIGTLinkBroadcaster::Status vtkOpenIGTLinkBroadcaster::SendMessages( std::
     
     double transform[ 16 ] = { 0 };
     
+    // debug
+    double c[ 16 ] = { 0 };
+    double n[ 16 ] = { 0 };
+    trackedFrameCalibrated.GetCustomFrameTransform( toolName, c );
+    trackedFrame.GetCustomFrameTransform( toolName, n );
+    
+    
     if (    this->ApplyStylusCalibration
          && strcmp( toolName, "Stylus" ) == 0 )
     {
-      trackedFrameCalibrated.GetCustomFrameTransform( toolName, transform );  
+      trackedFrameCalibrated.GetCustomFrameTransform( toolName, transform );
     }
     else
     {
       trackedFrame.GetCustomFrameTransform( toolName, transform );
     }
     
-    trackedFrame.GetCustomFrameTransform( toolName, transform );
     TrackerStatus status = trackedFrame.GetStatus();
 
     if ( status != TR_OK )
