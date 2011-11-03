@@ -164,11 +164,14 @@ protected:
   /*! Number of segmented validation images */
   int m_NumberOfSegmentedValidationImages;
 
-  /*! Number of recording cycles per second */
-  int m_RecordingFrameRate;
+  /*! Time interval between recording (sampling) cycles (in milliseconds) */
+  int m_RecordingIntervalMs;
 
-  /*! Flags of validation types to perform */
-  long m_ValidationFlags;
+  /*! Maximum time spent with processing (getting tracked frames, segmentation) per second (in milliseconds) */
+  int m_MaxTimeSpentWithProcessingMs;
+
+  /*! Time needed to process one frame in the latest recording round (in milliseconds) */
+  int m_LastProcessingTimePerFrameMs;
 
 protected:
   Ui::FreehandCalibrationToolbox ui;

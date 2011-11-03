@@ -36,8 +36,9 @@ FreehandCalibrationToolbox::FreehandCalibrationToolbox(fCalMainWindow* aParentMa
   , m_NumberOfValidationImagesToAcquire(100)
   , m_NumberOfSegmentedCalibrationImages(0)
   , m_NumberOfSegmentedValidationImages(0)
-  , m_RecordingFrameRate(10)
-  , m_ValidationFlags(REQUIRE_UNIQUE_TIMESTAMP | REQUIRE_TRACKING_OK | REQUIRE_CHANGED_ENCODER_POSITION | REQUIRE_SPEED_BELOW_THRESHOLD)
+  , m_RecordingIntervalMs(200)
+  , m_MaxTimeSpentWithProcessingMs(150)
+  , m_LastProcessingTimePerFrameMs(-1)
 {
   ui.setupUi(this);
 
@@ -49,11 +50,11 @@ FreehandCalibrationToolbox::FreehandCalibrationToolbox(fCalMainWindow* aParentMa
   // Create tracked frame lists
   m_CalibrationData = vtkTrackedFrameList::New();
   m_CalibrationData->SetDefaultFrameTransformName("Probe");
-  m_CalibrationData->SetValidationRequirements(m_ValidationFlags); 
+  m_CalibrationData->SetValidationRequirements(REQUIRE_UNIQUE_TIMESTAMP | REQUIRE_TRACKING_OK); 
 
   m_ValidationData = vtkTrackedFrameList::New();
   m_ValidationData->SetDefaultFrameTransformName("Probe");
-  m_ValidationData->SetValidationRequirements(m_ValidationFlags); 
+  m_ValidationData->SetValidationRequirements(REQUIRE_UNIQUE_TIMESTAMP | REQUIRE_TRACKING_OK); 
 
   // Change result display properties
   ui.label_Results->setFont(QFont("Courier", 8));
@@ -188,6 +189,19 @@ PlusStatus FreehandCalibrationToolbox::ReadConfiguration(vtkXMLDataElement* aCon
   if ( fCalElement->GetScalarAttribute("NumberOfValidationImagesToAcquire", numberOfValidationImagesToAcquire ) )
   {
     m_NumberOfValidationImagesToAcquire = numberOfValidationImagesToAcquire;
+  }
+
+  // Recording interval and processing time
+  int recordingIntervalMs = 0; 
+  if ( fCalElement->GetScalarAttribute("RecordingIntervalMs", recordingIntervalMs ) )
+  {
+    m_RecordingIntervalMs = recordingIntervalMs;
+  }
+
+  int maxTimeSpentWithProcessingMs = 0; 
+  if ( fCalElement->GetScalarAttribute("MaxTimeSpentWithProcessingMs", maxTimeSpentWithProcessingMs ) )
+  {
+    m_MaxTimeSpentWithProcessingMs = maxTimeSpentWithProcessingMs;
   }
 
   // Read probe calibration
@@ -572,7 +586,7 @@ void FreehandCalibrationToolbox::DoSpatialCalibration()
   LOG_TRACE("FreehandCalibrationToolbox::DoSpatialCalibration");
 
   // Get current time
-  double startTime = vtkAccurateTimer::GetSystemTime();
+  double startTimeSec = vtkAccurateTimer::GetSystemTime();
 
   // Calibrate if acquisition is ready
   if ( m_NumberOfSegmentedCalibrationImages >= m_NumberOfCalibrationImagesToAcquire
@@ -600,7 +614,8 @@ void FreehandCalibrationToolbox::DoSpatialCalibration()
 
 
   // Cancel if requested
-  if (m_CancelRequest) {
+  if (m_CancelRequest)
+  {
     LOG_INFO("Calibration process cancelled by the user");
     CancelSpatial();
     return;
@@ -619,9 +634,11 @@ void FreehandCalibrationToolbox::DoSpatialCalibration()
 
   int numberOfFramesBeforeRecording = trackedFrameListToUse->GetNumberOfTrackedFrames();
 
-  // Acquire tracked frames since last acquisition
+  // Acquire tracked frames since last acquisition (minimum 1 frame)
+  int numberOfFramesToGet = std::max(m_MaxTimeSpentWithProcessingMs / m_LastProcessingTimePerFrameMs, 1);
+
   if ( m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->GetTrackedFrameList(
-    m_LastRecordedFrameTimestamp, trackedFrameListToUse, -1) != PLUS_SUCCESS )
+    m_LastRecordedFrameTimestamp, trackedFrameListToUse, numberOfFramesToGet) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to get tracked frame list from data collector (last recorded timestamp: " << std::fixed << m_LastRecordedFrameTimestamp ); 
     CancelSpatial();
@@ -662,10 +679,28 @@ void FreehandCalibrationToolbox::DoSpatialCalibration()
     m_ParentMainWindow->GetToolVisualizer()->ShowResult(false);
   }
 
+  // Compute time spent with processing one frame in this round
+  double computationTimeMs = (vtkAccurateTimer::GetSystemTime() - startTimeSec) * 1000.0;
+
+  // Update last processing time if new tracked frames have been aquired
+  if (trackedFrameListToUse->GetNumberOfTrackedFrames() > numberOfFramesBeforeRecording)
+  {
+    m_LastProcessingTimePerFrameMs = computationTimeMs / (trackedFrameListToUse->GetNumberOfTrackedFrames() - numberOfFramesBeforeRecording);
+  }
+
   // Launch timer to run acquisition again
-  double computationTime = vtkAccurateTimer::GetSystemTime() - startTime;
-  int waitTime = std::max((int)(1000.0 / (double)m_RecordingFrameRate - computationTime * 1000.0), 0);
-  QTimer::singleShot(waitTime , this, SLOT(DoSpatialCalibration())); 
+  int waitTimeMs = std::max((int)(m_RecordingIntervalMs - computationTimeMs), 0);
+
+  if (waitTimeMs == 0)
+  {
+    LOG_WARNING("Processing cannot keep up with aquisition! Try to decrease MaxTimeSpentWithProcessingMs parameter in device set configuration");
+  }
+
+  LOG_DEBUG("Number of requested frames: " << std::setw(3) << numberOfFramesToGet << ", number of tracked frames in the list: " << numberOfFramesBeforeRecording << " => " << trackedFrameListToUse->GetNumberOfTrackedFrames());
+  LOG_DEBUG("Computation time: " << std::setw(4) << computationTimeMs << ", Waiting time: " << waitTimeMs);
+  LOG_DEBUG("Last processing time: " << m_LastProcessingTimePerFrameMs);
+
+  QTimer::singleShot(waitTimeMs , this, SLOT(DoSpatialCalibration())); 
 }
 
 //-----------------------------------------------------------------------------
