@@ -28,10 +28,7 @@
 #include "MTVideo.h"
 #include "MTC.h"
 
-using std::vector;
-using std::string;
-
-class MICRONTRACKERINTERFACE_EXPORT MicronTrackerInterface
+class MicronTrackerInterface
 {
   public:
   //--------------------------
@@ -43,15 +40,7 @@ class MICRONTRACKERINTERFACE_EXPORT MicronTrackerInterface
 
   MicronTrackerInterface(){};
 
-
   ~MicronTrackerInterface();
-
-
-
-
-
-
-
 
   //----------------------------
   //
@@ -72,7 +61,7 @@ class MICRONTRACKERINTERFACE_EXPORT MicronTrackerInterface
 
   /** */
 
-  string mtGetCurrDir();
+  std::string mtGetCurrDir();
 
   //-----------------------------
   //
@@ -364,7 +353,7 @@ class MICRONTRACKERINTERFACE_EXPORT MicronTrackerInterface
   //      \param tmplsWarn Holds the warning strings (if any) during the templates loading process. 
   // Returns 0 if successful, -1 if not. 
  
-  int mtRefreshTemplates(vector<string> &tmplsName, vector<string> &tmplsError);
+  int mtRefreshTemplates(std::vector<std::string> &tmplsName, std::vector<std::string> &tmplsError);
 
   // Sets the match tolerance of the marker templates to \param matchTolerance in mm. 
 
@@ -481,13 +470,13 @@ class MICRONTRACKERINTERFACE_EXPORT MicronTrackerInterface
    // This rotation matrix represents the center of the long vector of the marker. 
   // Markers' index start at 0. 
 
-  void mtGetRotations(vector<double> &vRotations, int markerIndex);
+  void mtGetRotations(std::vector<double> &vRotations, int markerIndex);
 
   // Inserts the Translation (offset) of the markerIndex_th marker into \param vTranslation.
   // This offset  is in fact the offset of the center of the long vector of the marker. 
   // Markers' index start at 0. 
 
-  void mtGetTranslations(vector<double> &vTranslations, int markerIndex);
+  void mtGetTranslations(std::vector<double> &vTranslations, int markerIndex);
 
   //------------------------
   //
@@ -551,13 +540,13 @@ class MICRONTRACKERINTERFACE_EXPORT MicronTrackerInterface
 
   int mtGetLeftRightImageArrayHalfSize(unsigned char** &leftImageArray, unsigned char** &rightImageArray, 
                int xResolution, int yResolution, int index = -1);
-  string mtGetErrorString(){ return m_errorString; };
+  std::string mtGetErrorString(){ return m_errorString; };
   void mtFindUnidentifiedMarkers();
   void mtUpdateINI();
 
-  int  removeFile(string fileName, char* dir);
-  int renameFile(string oldName, string newName, char* dir);
-  string handleErrors(int errorNum);
+  int  removeFile(const std::string &fileName, char* dir);
+  int renameFile(const std::string &oldName, const std::string &newName, char* dir);
+  std::string handleErrors(int errorNum);
 
 private:
   // Accesses the "MicronTracker.ini" file to retrieve some values from it and then
@@ -568,48 +557,48 @@ private:
   // A two dimensional vector for storing the rotation matrices. The first dimension is the marker number.
   // The second dimension is the vector of rotation matrices
 
-  vector< vector<double> > m_2dvRotations;
+  std::vector< std::vector<double> > m_2dvRotations;
 
   // A two dimensional vector for storing the translations. 
 
-  vector< vector<double> > m_2dvTranslations;
+  std::vector< std::vector<double> > m_2dvTranslations;
 
   // A two dimensional vector for storing the xpoints of the identified vectors. The first vector is the index 
   // of the marker. The second dimension is the vector of xpoints. The latter vector is divided into group of 16s, 
   // i.e. the first 16 elements belong to the first facet in the marker, if there are more than one facet in that 
   // marker then the next 16 elements represent the xpoints of that facet and so on.
 
-  vector< vector<double> > m_vIdentifiedMarkersXPoints;
+  std::vector< std::vector<double> > m_vIdentifiedMarkersXPoints;
 
   // A vector for storing the name of the indentified markers 
 
-  vector<string> m_vIdentifiedMarkersName;
+  std::vector<std::string> m_vIdentifiedMarkersName;
 
   // A two dimensional vector for storing the xpoints of the unidentified vectors.
 
-  vector< vector<double> > m_vUnidentifiedMarkersEndPoints;
+  std::vector< std::vector<double> > m_vUnidentifiedMarkersEndPoints;
 
   // A vector for storing new sample vectors.
 
-  vector<Collection*> m_sampleVectors;
+  std::vector<Collection*> m_sampleVectors;
 
   Marker* m_pCurrMarker;
 
   // A vector for storing the number of facets for each identified marker. So the first element
   // is the number of facets in the first marker and so on.
 
-  vector<int> m_vNumOfFacetsInEachMarker;
+  std::vector<int> m_vNumOfFacetsInEachMarker;
 
   // A vector for storing the total number of facets for each identified marker. So the first element
   // is the number of total facets in the first marker and so on.
 
-  vector<int> m_vNumOfTotalFacetsInEachMarker;
+  std::vector<int> m_vNumOfTotalFacetsInEachMarker;
 
   bool isCameraAttached;
   double LS_LR_BH_XY[2][2][2][2];
   double LR_BH_XY[2][2][2];
-  vector<double> vXPointsTemp;
-  vector<double> vUnidentifiedEndPointsTemp;
+  std::vector<double> vXPointsTemp;
+  std::vector<double> vUnidentifiedEndPointsTemp;
   Cameras* m_pCameras;
   MCamera* m_pCurrCam;
   int m_currCamIndex;
@@ -626,8 +615,8 @@ private:
   // a new facet or it is a new facet being added to an already existing marker. 0 = false; 1 = true
 
   int m_isAddingAdditionalFacet;
-  vector<Xform3D*> facet1ToCameraXfs;
-  string m_errorString;
+  std::vector<Xform3D*> facet1ToCameraXfs;
+  std::string m_errorString;
 };
 
 #endif

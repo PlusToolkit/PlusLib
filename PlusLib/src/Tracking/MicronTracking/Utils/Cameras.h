@@ -16,10 +16,6 @@
 #include <vector>
 #include "MCamera.h"
 
-//#define MaxCameras 5
-
-using namespace std;
-
 class Cameras
 {
 public:
@@ -46,7 +42,7 @@ public:
 //  void getIdentifiedMarkersXPoints( double* &xp, int mIndex, int fIndex);
   
   // need to lear how to hide it, and keep same access syntax
-  vector<MCamera *> m_vCameras;
+  std::vector<MCamera *> m_vCameras;
 
 
 private:

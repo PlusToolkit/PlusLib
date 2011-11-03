@@ -41,7 +41,6 @@
 #define Cos30Degs 0.866
 #define Cos40Degs 0.766
 #define UnknownX 1E20
-using namespace std;
 
 namespace mtUtils
 {
@@ -55,11 +54,11 @@ namespace mtUtils
             MTI_CAMERA_INDEX_OUT_OF_RANGE = 6
           };
   void getCurrPath(char* currPath);
-  void getFileNamesFromDirectory(vector<string> &fileNames, char* dir, bool returnCompletePath);
-  int  renameFile(string oldName, string newName, char* dir);
-  int  removeFile(string fileName, char* dir); 
+  void getFileNamesFromDirectory(std::vector<std::string> &fileNames, char* dir, bool returnCompletePath);
+  int  renameFile(const std::string& oldName, const std::string& newName, char* dir);
+  int  removeFile(const std::string& fileName, char* dir); 
   double acos(double x);
-  string handleErrors(int errorNum);
+  std::string handleErrors(int errorNum);
 
 };
 

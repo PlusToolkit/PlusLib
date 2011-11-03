@@ -36,7 +36,7 @@ void MicronTrackerInterface::mtEnd()
 }
 
 //------------------------------------------
-string MicronTrackerInterface::mtGetCurrDir()
+std::string MicronTrackerInterface::mtGetCurrDir()
 {
   char currDir[255];
   mtUtils::getCurrPath(currDir);
@@ -46,9 +46,11 @@ string MicronTrackerInterface::mtGetCurrDir()
 //------------------------------------------
 void MicronTrackerInterface::initialINIAccess()
 {
-  char currDir[255];
+  const int currDirSize=255;
+  char currDir[currDirSize+1];
+  currDir[currDirSize]=0;
   mtUtils::getCurrPath(currDir);
-  strcat(currDir,"\\MicronTracker Demo.ini");
+  strcat_s(currDir,currDirSize,"\\MicronTracker Demo.ini");
   this->m_pPers->setPath(currDir);
   this->m_pPers->setSection ("General");
   
@@ -175,18 +177,20 @@ int MicronTrackerInterface::mtGetNumOfCameras()
   return this->m_pCameras->getCount();
 }
 //------------------------------------------
-int MicronTrackerInterface::mtRefreshTemplates(vector<string> &tmplsName,
-                 vector<string> &tmplsError)
+int MicronTrackerInterface::mtRefreshTemplates(std::vector<std::string> &tmplsName,
+                 std::vector<std::string> &tmplsError)
 {
   mtUtils::getFileNamesFromDirectory( tmplsName,"Markers", true);
   int result = this->m_pMarkers->clearTemplates();
   std::cout << "Cleared templates..." << std::endl;
-  char currentFolderPath[MT_MAX_STRING_LENGTH];
+  const int currentFolderPathSize=MT_MAX_STRING_LENGTH;
+  char currentFolderPath[currentFolderPathSize+1];
+  currentFolderPath[currentFolderPathSize]=0;
   mtCompletionCode st;
   mtUtils::getCurrPath(currentFolderPath);
   
 #ifdef WIN32
-  strcat(currentFolderPath, "\\Markers\\");
+  strcat_s(currentFolderPath, MT_MAX_STRING_LENGTH-1, "\\Markers\\");
 #else
   strcat(currentFolderPath, "/Markers/");
 #endif
@@ -296,9 +300,9 @@ int MicronTrackerInterface::mtCollectNewSamples(int collectingAdditionalFacet)
 //------------------------------------------
 int MicronTrackerInterface::mtStopSampling(char* templateName, double jitterValue)
 {  
-  string errorsString;
+  std::string errorsString;
   Facet* f = new Facet();
-  vector<Vector*> vectorPair;
+  std::vector<Vector*> vectorPair;
   int result = 0;
   if (f->setVectorsFromSample(this->m_sampleVectors, errorsString))
     {
@@ -307,10 +311,10 @@ int MicronTrackerInterface::mtStopSampling(char* templateName, double jitterValu
     Collection* markersCollection = new Collection(this->m_pMarkers->identifiedMarkers(this->m_pCurrCam));
     //this->m_pTempMarkerForAddingFacet->setHandle(markersCollection->itemI(1));
     Collection* identifiedFacetsCol = new Collection(this->m_pTempMarkerForAddingFacet->getTemplateFacets());
-    vector<Xform3D*> facet1ToNewFacetXfs;
+    std::vector<Xform3D*> facet1ToNewFacetXfs;
     Xform3D* facet1ToNewFacetXf;// = new Xform3D();
     
-    for (int i=0; i<this->m_sampleVectors.size(); i++)
+    for (unsigned int i=0; i<this->m_sampleVectors.size(); i++)
       {
         vectorPair.clear();
         vectorPair.push_back(new Vector( this->m_sampleVectors[i]->itemI(0) ));
@@ -327,7 +331,7 @@ int MicronTrackerInterface::mtStopSampling(char* templateName, double jitterValu
       }
     // Combine the transforms accumulated to a new one and save it with the facet in the marker
     facet1ToNewFacetXf = facet1ToNewFacetXfs[1];
-    for (int i=2; i<facet1ToNewFacetXfs.size(); i++)
+    for (unsigned int i=2; i<facet1ToNewFacetXfs.size(); i++)
       {
         facet1ToNewFacetXf->inBetween(facet1ToNewFacetXfs[i], 1);// will result in equal contribution by all faces
       }
@@ -360,14 +364,16 @@ int MicronTrackerInterface::mtStopSampling(char* templateName, double jitterValu
 //------------------------------------------
 int MicronTrackerInterface::mtSaveMarkerTemplate(char* templName)
 {
-  char currDir[255];
+  const int currDirSize=255;
+  char currDir[currDirSize+1];
+  currDir[currDirSize]=0;
   mtUtils::getCurrPath(currDir);
 #if(WIN32)
-  strcat(currDir, "\\Markers\\");
+  strcat_s(currDir, currDirSize, "\\Markers\\");
 #else
-  strcat(currDir, "/Markers/");
+  strcat_s(currDir, currDirSize, "/Markers/");
 #endif
-  strcat(currDir, templName);
+  strcat_s(currDir, currDirSize, templName);
   Persistence* newPersistence = new Persistence();
   newPersistence->setPath(currDir);
   int storeResult = this->m_pCurrMarker->storeTemplate(newPersistence, "");//(char*)(name.c_str()) );
@@ -386,7 +392,7 @@ int MicronTrackerInterface::mtSaveMarkerTemplate(char* templName)
 //------------------------------------------
 void MicronTrackerInterface::mtResetSamples()
 {
-  for (int i=0; i<this->m_sampleVectors.size(); i++)
+  for (unsigned int i=0; i<this->m_sampleVectors.size(); i++)
     {
       delete this->m_sampleVectors[i];
     }
@@ -437,7 +443,7 @@ void MicronTrackerInterface::mtFindIdentifiedMarkers()
   this->m_2dvRotations.clear();
   this->m_2dvTranslations.clear();
   this->m_vIdentifiedMarkersXPoints.clear();
-  for (int i=0;i<this->m_vIdentifiedMarkersName.size();i++)
+  for (unsigned int i=0;i<this->m_vIdentifiedMarkersName.size();i++)
     {
       this->m_vIdentifiedMarkersName[i].erase();
     }
@@ -526,7 +532,7 @@ void MicronTrackerInterface::mtFindIdentifiedMarkers()
     Xform3D* Marker2CurrCameraXf = marker->marker2CameraXf(this->m_pCurrCam->getHandle());
     // Find the translations and push them in a 2 temporary vector and then push that temp vector into a 
     // 2 dimensional vector.
-    vector<double> vTransTemp;
+    std::vector<double> vTransTemp;
     vTransTemp.clear();
     for (int i = 0 ; i < 3; i++)
       {
@@ -539,7 +545,7 @@ void MicronTrackerInterface::mtFindIdentifiedMarkers()
     
     double vR[3][3];
     
-    vector<double> vRotTemp;
+    std::vector<double> vRotTemp;
     // problem lies here !
     Xform3D_RotMatGet(Marker2CurrCameraXf->getHandle(), reinterpret_cast<double *>(vR[0]));
    //Marker2CurrCameraXf->getRotationMatrix(reinterpret_cast<double *>(vR[0]));
@@ -616,13 +622,13 @@ void MicronTrackerInterface::mtFindUnidentifiedMarkers()
 }
 
 //------------------------------------------
-void MicronTrackerInterface::mtGetTranslations(vector<double> &vTranslations, int markerIndex)
+void MicronTrackerInterface::mtGetTranslations(std::vector<double> &vTranslations, int markerIndex)
 {  
   vTranslations = this->m_2dvTranslations[markerIndex];  
 }
 
 //------------------------------------------
-void MicronTrackerInterface::mtGetRotations(vector<double> &vRotations, int markerIndex)
+void MicronTrackerInterface::mtGetRotations(std::vector<double> &vRotations, int markerIndex)
 {
   vRotations = this->m_2dvRotations[markerIndex];
 }
@@ -1219,23 +1225,25 @@ void MicronTrackerInterface::mtGetUnidentifiedMarkersEnds(double* &endPoints, in
 }
 
 //------------------------------------------
-int MicronTrackerInterface::removeFile(string fileName, char* dir)
+int MicronTrackerInterface::removeFile(const std::string& fileName, char* dir)
 {
-  char currentFolderPath[255];
+  const int currentFolderPathSize=255;
+  char currentFolderPath[currentFolderPathSize+1];
+  currentFolderPath[currentFolderPathSize]=0;
   mtUtils::getCurrPath(currentFolderPath);
   if ( dir != NULL )
     {
 #if(WIN32)
       {
-  strcat(currentFolderPath, "\\");
-  strcat(currentFolderPath, dir);
-  strcat(currentFolderPath, "\\");
+  strcat_s(currentFolderPath, currentFolderPathSize, "\\");
+  strcat_s(currentFolderPath, currentFolderPathSize, dir);
+  strcat_s(currentFolderPath, currentFolderPathSize, "\\");
       }
 #else
       {
-  strcat(currentFolderPath, "/");
-  strcat(currentFolderPath, dir);
-  strcat(currentFolderPath, "/");
+  strcat_s(currentFolderPath, currentFolderPathSize, "/");
+  strcat_s(currentFolderPath, currentFolderPathSize, dir);
+  strcat_s(currentFolderPath, currentFolderPathSize, "/");
       }
 #endif
     }
@@ -1257,24 +1265,26 @@ int MicronTrackerInterface::removeFile(string fileName, char* dir)
 }
 
 //---------------------------------------------
-int MicronTrackerInterface::renameFile(string oldName, string newName, char* dir)
+int MicronTrackerInterface::renameFile(const std::string& oldName, const std::string& newName, char* dir)
 {
   std::cout << "old name is " << oldName << " new name " << newName << std::endl;
-  char currentFolderPath[255];
+  const int currentFolderPathSize=255;
+  char currentFolderPath[currentFolderPathSize+1];
+  currentFolderPath[currentFolderPathSize]=0;
   mtUtils::getCurrPath(currentFolderPath);
   if ( dir != NULL )
     {
 #if(WIN32)
       {
-  strcat(currentFolderPath, "\\");
-  strcat(currentFolderPath, dir);
-  strcat(currentFolderPath, "\\");
+  strcat_s(currentFolderPath, currentFolderPathSize, "\\");
+  strcat_s(currentFolderPath, currentFolderPathSize, dir);
+  strcat_s(currentFolderPath, currentFolderPathSize, "\\");
       }
 #else
       {
-  strcat(currentFolderPath, "/");
-  strcat(currentFolderPath, dir);
-  strcat(currentFolderPath, "/");
+  strcat_s(currentFolderPath, currentFolderPathSize, "/");
+  strcat_s(currentFolderPath, currentFolderPathSize, dir);
+  strcat_s(currentFolderPath, currentFolderPathSize, "/");
       }
 #endif
     }
@@ -1297,7 +1307,7 @@ int MicronTrackerInterface::renameFile(string oldName, string newName, char* dir
   return -1;
 }
 //------------------------------------------
-string MicronTrackerInterface::handleErrors(int errorNum)
+std::string MicronTrackerInterface::handleErrors(int errorNum)
 {
   /*mtOK=0,
     mtError,
@@ -1334,7 +1344,7 @@ string MicronTrackerInterface::handleErrors(int errorNum)
     mtCalibrationFileIncomplete,
     mtCameraInitializeFailed,
     mtGrabFrameError*/
-  string error = "";
+  std::string error = "";
   switch (errorNum)
     {
     case 1:

@@ -129,7 +129,7 @@ IF (PLUS_USE_MICRONTRACKER)
   INCLUDE (${CMAKE_ROOT}/Modules/FindOpenGL.cmake)
   
 	SET (Tracking_LIBS ${Tracking_LIBS} 
-		vtkMicrontrackerfiles
+		MicronTrackerInterface
     ${MTC_LIB_DIR}/MTC${CMAKE_STATIC_LIBRARY_SUFFIX}
 		)
     

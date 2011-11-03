@@ -274,9 +274,9 @@ void vtkMicronTracker::PrintMatrix(vtkMatrix4x4* m)
 //----------------------------------------------
 void vtkMicronTracker::RefreshMarkerTemplates()
 {
-  vector<string> vTemplatesName;
-  vector<string> vTemplatesError;
-  vector<string> vTemplatesWarn;
+  std::vector<std::string> vTemplatesName;
+  std::vector<std::string> vTemplatesError;
+  std::vector<std::string> vTemplatesWarn;
 
   int i = 0;
   int callResult = this->MT->mtRefreshTemplates(vTemplatesName, vTemplatesError);
@@ -303,9 +303,9 @@ int vtkMicronTracker::GetNumOfLoadedMarkers()
 //----------------------------------------------
 void vtkMicronTracker::GetTransformMatrix(int markerIndex, vtkMatrix4x4* transformMatrix)
 {  
-  vector<double> vRotMat;
+  std::vector<double> vRotMat;
   this->MT->mtGetRotations( vRotMat, markerIndex );
-  vector<double> vPos;
+  std::vector<double> vPos;
   this->MT->mtGetTranslations(vPos, markerIndex);
 
   transformMatrix->Identity();
@@ -376,7 +376,7 @@ void vtkMicronTracker::GetSnapShot(char* testNum, char* identifier)
   //static rightSnapShotCounter = 0;
 
   // For left image
-  string fileName = this->MT->mtGetCurrDir();
+  std::string fileName = this->MT->mtGetCurrDir();
 #if (WIN32)
   fileName += "\\SnapShots\\";
 #else
