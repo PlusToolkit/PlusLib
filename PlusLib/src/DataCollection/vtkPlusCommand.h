@@ -23,9 +23,9 @@
   \class vtkPlusCommandCollection 
   \brief This is an abstract superclass for commands in the OpenIGTLink network interface for Plus.
 
-  A Pluggable Factory pattern is used to allow different kinds of
-  commands to be registered without having to modify the code in this class.
-
+  All commands have a unique string representation to enable sending commands as string messages.
+  For e.g. through OpenIGTLink.
+  
   \ingroup PlusLibDataCollection
 */
 class
@@ -38,8 +38,16 @@ public:
   vtkTypeRevisionMacro( vtkPlusCommand, vtkObject );
   virtual void PrintSelf( ostream& os, vtkIndent indent );
   
+  /*!
+   Determines if a string can be converted to a specific command.
+   \param str String representation of the command to be examined.
+  */
   virtual bool CanExecute( std::string str ) = 0;
+  
+  /*! Performs the actions defined in a specific command. */
   virtual bool Execute() = 0;
+  
+  /*! Returns the string representation of a specific command. */
   virtual std::string GetStringRepresentation() = 0;
   
   typedef std::vector< std::string > CommandStringsType;
