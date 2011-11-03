@@ -93,7 +93,6 @@ PlusStatus FidPatternRecognition::RecognizePattern(TrackedFrame* trackedFrame)
 
   m_FidSegmentation.Cluster();
 
-  m_FidLabeling.SetNumDots(m_FidSegmentation.GetDotsVector().size()); 
 	m_FidSegmentation.SetCandidateFidValues(m_FidSegmentation.GetDotsVector());	 
   //m_FidSegmentation.SetDebugOutput(true);//for testing purpose only
 
@@ -181,18 +180,9 @@ void FidPatternRecognition::DrawResults( PixelType *image )
 {
 	LOG_TRACE("FidPatternRecognition::DrawResults"); 
 
-  if ( m_FidLabeling.GetPairsVector().size() > 0 )
-  {
-		DrawPair( image, m_FidLabeling.GetPairsVector().begin() );
-  }
-	else
-	{
-    std::vector<Line> maxPointsLines = m_FidLabeling.GetLinesVector()[m_FidLabeling.GetLinesVector().size()-1];
-		cout << "ERROR: could not find the pair of the wires!  See other drawing outputs for more information!" << endl;
-		DrawLines( image, maxPointsLines.begin(), maxPointsLines.size() );
-		DrawDots( image, m_FidLabeling.GetDotsVector().begin(), m_FidLabeling.GetDotsVector().size() );
-	}
-
+  std::vector<Line> maxPointsLines = m_FidLabeling.GetLinesVector()[m_FidLabeling.GetLinesVector().size()-1];
+	DrawLines( image, maxPointsLines.begin(), maxPointsLines.size() );
+	DrawDots( image, m_FidLabeling.GetDotsVector().begin(), m_FidLabeling.GetDotsVector().size() );
 }
 
 //-----------------------------------------------------------------------------
@@ -258,30 +248,6 @@ void FidPatternRecognition::DrawLines( PixelType *image, std::vector<Line>::iter
 			}
 		}
 	}
-}
-
-//-----------------------------------------------------------------------------
-
-void FidPatternRecognition::DrawPair( PixelType *image, std::vector<LinePair>::iterator pairIterator )
-{
-	LOG_TRACE("FidPatternRecognition::DrawPair"); 
-
-  std::vector<Line> maxPointsLines = m_FidLabeling.GetLinesVector()[m_FidLabeling.GetLinesVector().size()-1];
-
-	/* Drawing on the original. */
-	DrawLines( image, maxPointsLines.begin()+pairIterator->GetLine1(), 1 );
-	DrawLines( image,maxPointsLines.begin()+pairIterator->GetLine2(), 1 );
-}
-
-//-----------------------------------------------------------------------------
-
-PlusStatus FidPatternRecognition::ComputeNWireIntersections()
-{
-	LOG_TRACE("FidPatternRecognition::ComputeNWireInstersections");
-
-	
-
-	return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
@@ -354,14 +320,14 @@ PlusStatus FidPatternRecognition::ReadPhantomDefinition(vtkXMLDataElement* confi
 				  const char* wireName =  wireElement->GetAttribute("Name"); 
 				  if ( wireName != NULL )
 				  {
-					  wire.name = wireName;
+					  wire.Name = wireName;
 				  }
-				  if (! wireElement->GetVectorAttribute("EndPointFront", 3, wire.endPointFront)) 
+				  if (! wireElement->GetVectorAttribute("EndPointFront", 3, wire.EndPointFront)) 
           {
 					  LOG_WARNING("Wrong wire end point detected - skipped");
 					  continue;
 				  }
-				  if (! wireElement->GetVectorAttribute("EndPointBack", 3, wire.endPointBack)) 
+				  if (! wireElement->GetVectorAttribute("EndPointBack", 3, wire.EndPointBack)) 
           {
 					  LOG_WARNING("Wrong wire end point detected - skipped");
 					  continue;
@@ -369,11 +335,11 @@ PlusStatus FidPatternRecognition::ReadPhantomDefinition(vtkXMLDataElement* confi
           
           if(STRCASECMP("CoplanarParallelWires", patternElement->GetAttribute("Type")) == 0)
           {
-            coplanarParallelWires->wires.push_back(wire);
+            coplanarParallelWires->Wires.push_back(wire);
           }
           else if(STRCASECMP("NWire", patternElement->GetAttribute("Type")) == 0)
           {
-            nWire->wires.push_back(wire);
+            nWire->Wires.push_back(wire);
           }
 			  }
 
@@ -383,45 +349,45 @@ PlusStatus FidPatternRecognition::ReadPhantomDefinition(vtkXMLDataElement* confi
 
           if(i == 1)
           {
-            tempPatterns[i]->distanceToOriginMm.push_back(0);
-            tempPatterns[i]->distanceToOriginToleranceMm.push_back(0);
-            tempPatterns[i]->distanceToOriginMm.push_back(10*std::sqrt(2.0));
-            tempPatterns[i]->distanceToOriginToleranceMm.push_back(2);
-            tempPatterns[i]->distanceToOriginMm.push_back(20*std::sqrt(2.0));
-            tempPatterns[i]->distanceToOriginToleranceMm.push_back(2);
-            tempPatterns[i]->distanceToOriginMm.push_back(30*std::sqrt(2.0));
-            tempPatterns[i]->distanceToOriginToleranceMm.push_back(2);
-            tempPatterns[i]->distanceToOriginMm.push_back(40*std::sqrt(2.0));
-            tempPatterns[i]->distanceToOriginToleranceMm.push_back(2);
+            tempPatterns[i]->DistanceToOriginMm.push_back(0);
+            tempPatterns[i]->DistanceToOriginToleranceMm.push_back(0);
+            tempPatterns[i]->DistanceToOriginMm.push_back(10*std::sqrt(2.0));
+            tempPatterns[i]->DistanceToOriginToleranceMm.push_back(2);
+            tempPatterns[i]->DistanceToOriginMm.push_back(20*std::sqrt(2.0));
+            tempPatterns[i]->DistanceToOriginToleranceMm.push_back(2);
+            tempPatterns[i]->DistanceToOriginMm.push_back(30*std::sqrt(2.0));
+            tempPatterns[i]->DistanceToOriginToleranceMm.push_back(2);
+            tempPatterns[i]->DistanceToOriginMm.push_back(40*std::sqrt(2.0));
+            tempPatterns[i]->DistanceToOriginToleranceMm.push_back(2);
           }
           else
           {
-            tempPatterns[i]->distanceToOriginMm.push_back(0);
-            tempPatterns[i]->distanceToOriginToleranceMm.push_back(0);
-            tempPatterns[i]->distanceToOriginMm.push_back(10);
-            tempPatterns[i]->distanceToOriginToleranceMm.push_back(2);
-            tempPatterns[i]->distanceToOriginMm.push_back(20);
-            tempPatterns[i]->distanceToOriginToleranceMm.push_back(2);
-            tempPatterns[i]->distanceToOriginMm.push_back(30);
-            tempPatterns[i]->distanceToOriginToleranceMm.push_back(2);
-            tempPatterns[i]->distanceToOriginMm.push_back(40);
-            tempPatterns[i]->distanceToOriginToleranceMm.push_back(2);
+            tempPatterns[i]->DistanceToOriginMm.push_back(0);
+            tempPatterns[i]->DistanceToOriginToleranceMm.push_back(0);
+            tempPatterns[i]->DistanceToOriginMm.push_back(10);
+            tempPatterns[i]->DistanceToOriginToleranceMm.push_back(2);
+            tempPatterns[i]->DistanceToOriginMm.push_back(20);
+            tempPatterns[i]->DistanceToOriginToleranceMm.push_back(2);
+            tempPatterns[i]->DistanceToOriginMm.push_back(30);
+            tempPatterns[i]->DistanceToOriginToleranceMm.push_back(2);
+            tempPatterns[i]->DistanceToOriginMm.push_back(40);
+            tempPatterns[i]->DistanceToOriginToleranceMm.push_back(2);
           }
         }
         else if(STRCASECMP("NWire", patternElement->GetAttribute("Type")) == 0)
         {
           tempPatterns.push_back(nWire);
 
-          tempPatterns[i]->distanceToOriginMm.push_back(0);
-          tempPatterns[i]->distanceToOriginToleranceMm.push_back(0);
+          tempPatterns[i]->DistanceToOriginMm.push_back(0);
+          tempPatterns[i]->DistanceToOriginToleranceMm.push_back(0);
 
-          double originToMiddle[3] = {(tempPatterns[i]->wires[1].endPointBack[0]+tempPatterns[i]->wires[1].endPointFront[0])/2-tempPatterns[i]->wires[0].endPointFront[0],
-                                      (tempPatterns[i]->wires[1].endPointBack[1]+tempPatterns[i]->wires[1].endPointFront[1])/2-tempPatterns[i]->wires[0].endPointFront[1],
-                                      (tempPatterns[i]->wires[1].endPointBack[2]+tempPatterns[i]->wires[1].endPointFront[2])/2-tempPatterns[i]->wires[0].endPointFront[2]};
+          double originToMiddle[3] = {(tempPatterns[i]->Wires[1].EndPointBack[0]+tempPatterns[i]->Wires[1].EndPointFront[0])/2-tempPatterns[i]->Wires[0].EndPointFront[0],
+                                      (tempPatterns[i]->Wires[1].EndPointBack[1]+tempPatterns[i]->Wires[1].EndPointFront[1])/2-tempPatterns[i]->Wires[0].EndPointFront[1],
+                                      (tempPatterns[i]->Wires[1].EndPointBack[2]+tempPatterns[i]->Wires[1].EndPointFront[2])/2-tempPatterns[i]->Wires[0].EndPointFront[2]};
 
-          double originToEnd[3] = {tempPatterns[i]->wires[2].endPointFront[0]-tempPatterns[i]->wires[0].endPointFront[0],
-                                    tempPatterns[i]->wires[2].endPointFront[1]-tempPatterns[i]->wires[0].endPointFront[1],
-                                    tempPatterns[i]->wires[2].endPointFront[2]-tempPatterns[i]->wires[0].endPointFront[2]};
+          double originToEnd[3] = {tempPatterns[i]->Wires[2].EndPointFront[0]-tempPatterns[i]->Wires[0].EndPointFront[0],
+                                    tempPatterns[i]->Wires[2].EndPointFront[1]-tempPatterns[i]->Wires[0].EndPointFront[1],
+                                    tempPatterns[i]->Wires[2].EndPointFront[2]-tempPatterns[i]->Wires[0].EndPointFront[2]};
 
           vtkMath::Normalize(originToEnd);
 
@@ -429,12 +395,12 @@ PlusStatus FidPatternRecognition::ReadPhantomDefinition(vtkXMLDataElement* confi
           const double projectedMiddle[3] = {originToEnd[0]*dot, originToEnd[1]*dot, originToEnd[2]*dot};
           double distMidToOrigin = vtkMath::Norm(projectedMiddle);
 
-          tempPatterns[i]->distanceToOriginMm.push_back(distMidToOrigin);
-          tempPatterns[i]->distanceToOriginToleranceMm.push_back(15);
+          tempPatterns[i]->DistanceToOriginMm.push_back(distMidToOrigin);
+          tempPatterns[i]->DistanceToOriginToleranceMm.push_back(15);
 
-          double distEndToOrigin = sqrt((tempPatterns[i]->wires[0].endPointBack[0]-tempPatterns[i]->wires[2].endPointBack[0])*(tempPatterns[i]->wires[0].endPointBack[0]-tempPatterns[i]->wires[2].endPointBack[0])+(tempPatterns[i]->wires[0].endPointBack[1]-tempPatterns[i]->wires[2].endPointBack[1])*(tempPatterns[i]->wires[0].endPointBack[1]-tempPatterns[i]->wires[2].endPointBack[1]));
-          tempPatterns[i]->distanceToOriginMm.push_back(distEndToOrigin);
-          tempPatterns[i]->distanceToOriginToleranceMm.push_back(4);
+          double distEndToOrigin = sqrt((tempPatterns[i]->Wires[0].EndPointBack[0]-tempPatterns[i]->Wires[2].EndPointBack[0])*(tempPatterns[i]->Wires[0].EndPointBack[0]-tempPatterns[i]->Wires[2].EndPointBack[0])+(tempPatterns[i]->Wires[0].EndPointBack[1]-tempPatterns[i]->Wires[2].EndPointBack[1])*(tempPatterns[i]->Wires[0].EndPointBack[1]-tempPatterns[i]->Wires[2].EndPointBack[1]));
+          tempPatterns[i]->DistanceToOriginMm.push_back(distEndToOrigin);
+          tempPatterns[i]->DistanceToOriginToleranceMm.push_back(4);
 
           nwireFlag = true;
         }
@@ -463,8 +429,8 @@ PlusStatus FidPatternRecognition::ReadPhantomDefinition(vtkXMLDataElement* confi
     		
 			    for (int j=0; j<3; ++j) 
           {
-				    endPointFront[j] = tempPatterns[k]->wires[i].endPointFront[j];
-				    endPointBack[j] = tempPatterns[k]->wires[i].endPointBack[j];
+				    endPointFront[j] = tempPatterns[k]->Wires[i].EndPointFront[j];
+				    endPointBack[j] = tempPatterns[k]->Wires[i].EndPointBack[j];
 			    }
 
 			    LOG_DEBUG("\t Front endpoint of wire " << i << " on layer " << layer << " = " << endPointFront);
@@ -473,7 +439,7 @@ PlusStatus FidPatternRecognition::ReadPhantomDefinition(vtkXMLDataElement* confi
 
 		    /*if (sumLayer != layer * 9 + 6) 
         {
-			    LOG_ERROR("Invalid NWire IDs (" << tempPatterns[k]->wires[0].id << ", " << tempPatterns[k]->wires[1].id << ", " << tempPatterns[k]->wires[2].id << ")!");
+			    LOG_ERROR("Invalid NWire IDs (" << tempPatterns[k]->Wires[0].id << ", " << tempPatterns[k]->Wires[1].id << ", " << tempPatterns[k]->Wires[2].id << ")!");
 			    return PLUS_FAIL;
 		    }*/
 
@@ -482,8 +448,8 @@ PlusStatus FidPatternRecognition::ReadPhantomDefinition(vtkXMLDataElement* confi
 		    double wire3[3];
 		    double cross[3];
 
-        vtkMath::Subtract(tempPatterns[k]->wires[0].endPointFront, tempPatterns[k]->wires[0].endPointBack, wire1);
-		    vtkMath::Subtract(tempPatterns[k]->wires[2].endPointFront, tempPatterns[k]->wires[2].endPointBack, wire3);
+        vtkMath::Subtract(tempPatterns[k]->Wires[0].EndPointFront, tempPatterns[k]->Wires[0].EndPointBack, wire1);
+		    vtkMath::Subtract(tempPatterns[k]->Wires[2].EndPointFront, tempPatterns[k]->Wires[2].EndPointBack, wire3);
 		    vtkMath::Cross(wire1, wire3, cross);
 		    if (vtkMath::Norm(cross) > 0.001) 
         {
@@ -495,12 +461,12 @@ PlusStatus FidPatternRecognition::ReadPhantomDefinition(vtkXMLDataElement* confi
 
         NWire * tempNWire = (NWire*)(tempPatterns[k]);
 
-		    if (vtkLine::DistanceBetweenLines(tempNWire->wires[0].endPointFront, tempNWire->wires[0].endPointBack, tempNWire->wires[1].endPointFront, tempNWire->wires[1].endPointBack, tempNWire->intersectPosW12, closestTemp, parametricCoord1, parametricCoord2) > 0.000001) 
+		    if (vtkLine::DistanceBetweenLines(tempNWire->Wires[0].EndPointFront, tempNWire->Wires[0].EndPointBack, tempNWire->Wires[1].EndPointFront, tempNWire->Wires[1].EndPointBack, tempNWire->IntersectPosW12, closestTemp, parametricCoord1, parametricCoord2) > 0.000001) 
         {
 			    LOG_ERROR("The first and second wire of layer " << layer << " do not intersect each other!");
 			    return PLUS_FAIL;
 		    }
-		    if (vtkLine::DistanceBetweenLines(tempNWire->wires[2].endPointFront, tempNWire->wires[2].endPointBack, tempNWire->wires[1].endPointFront, tempNWire->wires[1].endPointBack, tempNWire->intersectPosW32, closestTemp, parametricCoord1, parametricCoord2) > 0.000001) 
+		    if (vtkLine::DistanceBetweenLines(tempNWire->Wires[2].EndPointFront, tempNWire->Wires[2].EndPointBack, tempNWire->Wires[1].EndPointFront, tempNWire->Wires[1].EndPointBack, tempNWire->IntersectPosW32, closestTemp, parametricCoord1, parametricCoord2) > 0.000001) 
         {
 			    LOG_ERROR("The second and third wire of layer " << layer << " do not intersect each other!");
 			    return PLUS_FAIL;
@@ -511,8 +477,8 @@ PlusStatus FidPatternRecognition::ReadPhantomDefinition(vtkXMLDataElement* confi
 	    int layer;
 	    for (int i=0, layer = 0; i<tempPatterns.size(); ++i, ++layer) 
       {
-		    LOG_DEBUG("\t Intersection of wire 1 and 2 in layer " << layer << " \t= (" << it->intersectPosW12[0] << ", " << it->intersectPosW12[1] << ", " << it->intersectPosW12[2] << ")");
-		    LOG_DEBUG("\t Intersection of wire 3 and 2 in layer " << layer << " \t= (" << it->intersectPosW32[0] << ", " << it->intersectPosW32[1] << ", " << it->intersectPosW32[2] << ")");
+		    LOG_DEBUG("\t Intersection of wire 1 and 2 in layer " << layer << " \t= (" << it->IntersectPosW12[0] << ", " << it->IntersectPosW12[1] << ", " << it->IntersectPosW12[2] << ")");
+		    LOG_DEBUG("\t Intersection of wire 3 and 2 in layer " << layer << " \t= (" << it->IntersectPosW32[0] << ", " << it->IntersectPosW32[1] << ", " << it->IntersectPosW32[2] << ")");
 	    }*/
     }
 

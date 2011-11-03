@@ -12,10 +12,17 @@
 #include "vtkXMLDataElement.h"
 #include <string.h>
 
+/*!
+  \class FidSegmentation
+  \brief Algorithm for segmenting dots in an image. The dots correspond to the fiducial lines that are orthogonal to the image plane
+  \ingroup PlusLibPatternRecognition
+*/
+
 class FidSegmentation
 {
 	public:
 
+    /*! The different types of phantom the algorithm covers */
 		enum FiducialGeometryType
 		{
 			CALIBRATION_PHANTOM_6_POINT, //PerkLab Double-N phantom
@@ -25,15 +32,22 @@ class FidSegmentation
 		FidSegmentation();
 		virtual ~FidSegmentation();
 
-		PlusStatus				ReadConfiguration( vtkXMLDataElement* rootConfigElement );
-    void              SetFrameSize( int frameSize[2] );
+    /* Read the configuration file */
+		PlusStatus ReadConfiguration( vtkXMLDataElement* rootConfigElement );
 
-		void					    UpdateParameters();
-		void				    	ComputeParameters();
-    void              Clear();
+    /*! Set the Frame Size of the image */
+    void SetFrameSize( int frameSize[2] );
 
-    void                ValidateRegionOfInterest();
+    /*! Update the parameters, espcially the circle need for morphological operations */
+		void UpdateParameters();
 
+    /*! Clear the member variables */
+    void Clear();
+
+    /*! Check and modify if necessary the region of interest */
+    void ValidateRegionOfInterest();
+
+    /*! Morphological operations performed by the algorithm */
     inline PixelType		ErodePoint0( PixelType *image, unsigned int ir, unsigned int ic );
 		void					      Erode0( PixelType *dest, PixelType *image );
 		inline PixelType		ErodePoint45( PixelType *image, unsigned int ir, unsigned int ic );
@@ -51,93 +65,136 @@ class FidSegmentation
 		void					      Dilate90( PixelType *dest, PixelType *image );
 		inline PixelType		DilatePoint135( PixelType *image, unsigned int ir, unsigned int ic );
 		void 					      Dilate135( PixelType *dest, PixelType *image );
-		inline PixelType		DilatePoint( PixelType *image, unsigned int ir, unsigned int ic, Item *shape, int slen );
+		inline PixelType		DilatePoint( PixelType *image, unsigned int ir, unsigned int ic, Dot *shape, int slen );
 		void 					      DilateCircle( PixelType *dest, PixelType *image );
 		void 					      Subtract( PixelType *image, PixelType *vals );
     		
-		void					    WritePossibleFiducialOverlayImage(std::vector<std::vector<double> > fiducials, PixelType *unalteredImage, int frameIndex); 
-    void              WritePossibleFiducialOverlayImage(std::vector<Dot> fiducials, PixelType *unalteredImage, int frameIndex);
+    /*! Write image with the selected points on it 
+      \param It takes a vector of vector of double as an input
+    */
+		void WritePossibleFiducialOverlayImage(std::vector<std::vector<double> > fiducials, PixelType *unalteredImage, int frameIndex); 
 
+    /*! Write image with the selected points on it 
+        \param It takes a vector of Dot as an input
+    */
+    void WritePossibleFiducialOverlayImage(std::vector<Dot> fiducials, PixelType *unalteredImage, int frameIndex);
 
-		void 					    MorphologicalOperations();	
-		void					    Suppress( PixelType *image, float percent_thresh ); 
+    /*! Perform the morphological operations on the image */
+		void MorphologicalOperations();	
 
-		inline bool				AcceptDot( Dot &dot );
-		void					    Cluster();
+    /* Suppress unwanted parts of the image */
+		void Suppress( PixelType *image, float percent_thresh ); 
 
-    static void				WritePng(PixelType *modifiedImage, std::string outImageName, int cols, int rows); // addition to write out intermediate files
+    /* Accept a dot as a possible fiducial */
+		inline bool AcceptDot( Dot &dot );
 
-		bool					    ShapeContains( std::vector<Item> shape, Item newItem );
+    /* Cluster the dots */
+		void Cluster();
 
-		inline void				ClusteringAddNeighbors(PixelType *image, int r, int c, std::vector<Position> &m_Test, std::vector<Position> &m_Set, std::vector<PixelType>&m_Vals);
+    /*! addition to write out intermediate files */
+    static void WritePng(PixelType *modifiedImage, std::string outImageName, int cols, int rows); 
+
+    /*! Check if shape contains the new element */
+		bool ShapeContains( std::vector<Dot> shape, Dot newItem );
+
+    /*! Add neighbors to the cluster */
+		inline void ClusteringAddNeighbors(PixelType *image, int r, int c, std::vector<Dot> &m_Test, std::vector<Dot> &m_Set, std::vector<PixelType>&m_Vals);
 		
 		//Accessors and mutators
-    void					    SetPossibleFiducialsImageFilename(std::string value) { m_PossibleFiducialsImageFilename = value; };
 
-    double				    GetThresholdImagePercent() { return m_ThresholdImagePercent; };
+    /*! Set the possible fiducials Image file name */
+    void SetPossibleFiducialsImageFilename(std::string value) { m_PossibleFiducialsImageFilename = value; };
 
-    bool					    GetDebugOutput() { return m_DebugOutput; };
-    void					    SetDebugOutput(bool value) { m_DebugOutput = value; };
+    /*! Get the threshold of the image, this is a percent value */
+    double GetThresholdImagePercent() { return m_ThresholdImagePercent; };
 
-    int						    GetMorphologicalOpeningBarSizePx(); 
+    /*! Get the debug output value, if true more debug information are provided but the speed is lower */
+    bool GetDebugOutput() { return m_DebugOutput; };
 
-    int *					    GetFrameSize() { return m_FrameSize; };
-    std::vector<Dot>	GetDotsVector() {return m_DotsVector; };	
+    /*! Set the debug output value, if true more debug information are provided but the speed is lower */
+    void SetDebugOutput(bool value) { m_DebugOutput = value; };
 
-    void					    SetCandidateFidValues(std::vector<Dot> value) { m_CandidateFidValues = value; };
-    std::vector<Dot>	GetCandidateFidValues() { return m_CandidateFidValues; };
+    /*1 Get the size of the bar for the morphological oprations */
+    int GetMorphologicalOpeningBarSizePx(); 
 
+    /*! Get the size of the frame as an array */
+    int *	 GetFrameSize() { return m_FrameSize; };
+
+    /*! Get the vector that contains all the dots that have been segmented */
+    std::vector<Dot> GetDotsVector() {return m_DotsVector; };	
+
+    /*! Get the dots that are considered candidates */
+    void SetCandidateFidValues(std::vector<Dot> value) { m_CandidateFidValues = value; };
+
+    /*! Set the dots that are considered candidates */
+    std::vector<Dot> GetCandidateFidValues() { return m_CandidateFidValues; };
+
+    /*! Get the geometry type of the phantom, so far only the 6 points NWires and the CIRS phantom model 45 are supported */
     FiducialGeometryType	GetFiducialGeometry() { return m_FiducialGeometry; };
 
-		PixelType *				GetWorking() {return m_Working; };
-		PixelType *				GetUnalteredImage() {return m_UnalteredImage; };
+    /*! Get the working copy of the image */
+		PixelType * GetWorking() {return m_Working; };
 
-    void              SetApproximateSpacingMmPerPixel(double value) { m_ApproximateSpacingMmPerPixel = value; };
-    void              SetMorphologicalOpeningCircleRadiusMm(double value) { m_MorphologicalOpeningCircleRadiusMm = value; };
-    void              SetMorphologicalOpeningBarSizeMm(double value) { m_MorphologicalOpeningBarSizeMm = value; };
-    void              SetRegionOfInterest(int xMin, int yMin, int xMax, int yMax);
-    void              SetThresholdImagePercent(double value) { m_ThresholdImagePercent = value; };
-    void              SetUseOriginalImageIntensityForDotIntensityScore(bool value) { m_UseOriginalImageIntensityForDotIntensityScore = value; };
+    /*! Get the unaltered copy of the image */
+		PixelType * GetUnalteredImage() {return m_UnalteredImage; };
+
+    /*! Set the Approximate spacing, this is in Mm per pixel */
+    void  SetApproximateSpacingMmPerPixel(double value) { m_ApproximateSpacingMmPerPixel = value; };
+
+    /*! Set the radius of the opening circle needed for the morphological operations */
+    void  SetMorphologicalOpeningCircleRadiusMm(double value) { m_MorphologicalOpeningCircleRadiusMm = value; };
+
+     /*! Set the size in Mm of the opening bar needed for the morphological operations */
+    void  SetMorphologicalOpeningBarSizeMm(double value) { m_MorphologicalOpeningBarSizeMm = value; };
+
+    /*! Set the region of interest in the image */
+    void  SetRegionOfInterest(int xMin, int yMin, int xMax, int yMax);
+
+    /*! Set the threshold of the image, this is a percent value */
+    void  SetThresholdImagePercent(double value) { m_ThresholdImagePercent = value; };
+
+    /*! Set to true to use the original image intensity for the dots intensity values */
+    void  SetUseOriginalImageIntensityForDotIntensityScore(bool value) { m_UseOriginalImageIntensityForDotIntensityScore = value; };
 
 	protected:
-		int						    m_FrameSize[2];
-		int						    m_RegionOfInterest[4];
-		bool					    m_UseOriginalImageIntensityForDotIntensityScore;
+		int						      m_FrameSize[2];
+		int						      m_RegionOfInterest[4];
+		bool					      m_UseOriginalImageIntensityForDotIntensityScore;
 
-		double 					  m_ThresholdImagePercent;  // segmentation threshold (in percentage, minimum is 0, maximum is 100)
+		double 					    m_ThresholdImagePercent;  // segmentation threshold (in percentage, minimum is 0, maximum is 100)
 
-		double					  m_MorphologicalOpeningBarSizeMm; 
-		double					  m_MorphologicalOpeningCircleRadiusMm; 
+		double					    m_MorphologicalOpeningBarSizeMm; 
+		double					    m_MorphologicalOpeningCircleRadiusMm; 
 
-		std::string				m_PossibleFiducialsImageFilename;
+		std::string				  m_PossibleFiducialsImageFilename;
 		
 		FiducialGeometryType	m_FiducialGeometry;
 		
-		std::vector<Item>		m_MorphologicalCircle; 
+		std::vector<Dot>		m_MorphologicalCircle; 
 
-		double					  m_ApproximateSpacingMmPerPixel;
-    double			      m_ImageScalingTolerancePercent[4];
-    double			      m_ImageNormalVectorInPhantomFrameEstimation[3];
-    double			      m_ImageNormalVectorInPhantomFrameMaximumRotationAngleDeg[6];
-		double					  m_ImageToPhantomTransform[16];
+		double					    m_ApproximateSpacingMmPerPixel;
+    double			        m_ImageScalingTolerancePercent[4];
+    double			        m_ImageNormalVectorInPhantomFrameEstimation[3];
+    double			        m_ImageNormalVectorInPhantomFrameMaximumRotationAngleDeg[6];
+		double					    m_ImageToPhantomTransform[16];
 
 		/* True if the dots are found, false otherwise. */
-		bool					    m_DotsFound;
+		bool					      m_DotsFound;
 
 		/* X and Y values of found dots. */
 		std::vector< std::vector<double> >	m_FoundDotsCoordinateValue; 
 
-		double					  m_NumDots; // number of possibel fiducial points
-		std::vector<Dot>	m_CandidateFidValues; // pointer to the fiducial candidates coordinates
+		double					    m_NumDots; // number of possibel fiducial points
+		std::vector<Dot>	  m_CandidateFidValues; // pointer to the fiducial candidates coordinates
 
-		PixelType*				m_Working;
-		PixelType*				m_Dilated;
-		PixelType*				m_Eroded;
-		PixelType*				m_UnalteredImage; 
+		PixelType*				  m_Working;
+		PixelType*				  m_Dilated;
+		PixelType*				  m_Eroded;
+		PixelType*				  m_UnalteredImage; 
 
-		std::vector<Dot>	m_DotsVector;
+		std::vector<Dot>	  m_DotsVector;
 
-		bool					    m_DebugOutput; 
+		bool					      m_DebugOutput; 
 };
 
 #endif // _FIDUCIAL_SEGMENTATION_H

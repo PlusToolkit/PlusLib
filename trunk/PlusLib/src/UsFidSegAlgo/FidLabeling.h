@@ -26,7 +26,6 @@ class FidLabeling
 		virtual ~FidLabeling();
 
 		void					UpdateParameters();
-		void					ComputeParameters();
     void          Clear();
 
 		PlusStatus		ReadConfiguration( vtkXMLDataElement* rootConfigElement, double minTheta, double maxTheta, double maxLineErrorMm );
@@ -36,20 +35,15 @@ class FidLabeling
     float         ComputeShift(Line line1, Line line2);
     float         ComputeSlope( Line &line );
 
-		void					FindDoubleNLines();
 		void					FindPattern();
     void          UpdateCirsResults(Line resultLine1, Line resultLine2, Line resultLine3);
     void          UpdateNWiresResults(Line resultLine1, Line resultLine2);
 
-		void					SortTopToBottom( LinePair *pair );
 		void					SortRightToLeft( Line *line );
     static bool   SortCompare(std::vector<double> temporaryLine1, std::vector<double> temporaryLine2);
 		Line          SortPointsByDistanceFromOrigin(Line fiducials); 
 
     //Accessors and mutators
-    double				GetNumDots() { return m_NumDots; };
-    void					SetNumDots(double value) { m_NumDots = value; };
-
     std::vector<Dot>		GetDotsVector() {return m_DotsVector; };	
     void				  SetDotsVector(std::vector<Dot> value) { m_DotsVector = value; };
 
@@ -63,7 +57,6 @@ class FidLabeling
     void					SetDotsFound(bool value) { m_DotsFound = value; };
     bool					GetDotsFound() { return m_DotsFound; };
 
-    std::vector<LinePair>		GetPairsVector() {return m_PairsVector; };	
     std::vector< std::vector<double> >	GetFoundDotsCoordinateValue() { return m_FoundDotsCoordinateValue; };
     std::vector<std::vector<Line> >	GetLinesVector() { return m_LinesVector; };
 
@@ -84,7 +77,6 @@ class FidLabeling
 		double 				m_MinLinePairDistMm; 	
 		double 				m_MaxLinePairDistMm;
 		double 				m_MaxLinePairDistanceErrorPercent;
-		double				m_NumDots;
 		double 				m_MaxLineErrorMm;
 		double 				m_MinTheta;
 		double 				m_MaxTheta;
@@ -97,7 +89,6 @@ class FidLabeling
 		
 		std::vector<Dot>		  m_DotsVector;
     std::vector<Pattern*>  m_Patterns;
-		std::vector<LinePair>	m_PairsVector;
     std::vector<std::vector<Line> > m_LinesVector;
 		std::vector< std::vector<double> >  m_FoundDotsCoordinateValue;
     std::vector<LabelingResults> m_Results;

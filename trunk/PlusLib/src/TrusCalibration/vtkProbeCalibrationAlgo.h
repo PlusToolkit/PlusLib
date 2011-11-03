@@ -24,7 +24,7 @@
 
 class vtkHTMLGenerator; 
 class vtkGnuplotExecuter;
-class NWire;
+struct NWire;
 
 /*!
   \class vtkProbeCalibrationAlgo 
