@@ -125,7 +125,7 @@ int Marker::addTemplateFacet(Facet* newFacet, Xform3D* facet1ToNewFacetXf)
 
 /****************************/
 /** */
-bool Marker::validateTemplate(double positionToleranceMM, string complString)
+bool Marker::validateTemplate(double positionToleranceMM, std::string complString)
 {
   Collection* facetsColl = new Collection(this->getTemplateFacets());
   
@@ -136,7 +136,7 @@ bool Marker::validateTemplate(double positionToleranceMM, string complString)
       return false;
   }
 
-  vector<Vector*> vs;
+  std::vector<Vector*> vs;
   for (int fi=1; fi < facetsColl->count()-1; fi++)
   {
     Facet* Fti = new Facet(fi);

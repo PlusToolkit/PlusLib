@@ -1,23 +1,11 @@
-PROJECT(MICRONTRACKERFILES)
-
-## INCLUDE_REGULAR_EXPRESSION - Set the regular expression used for 
-## dependency checking. 
-## Usage: INCLUDE_REGULAR_EXPRESSION(regex_match [regex_complain]) 
-## Set the regular expressions used in dependency checking. Only files 
-## matching regex_match will be traced as dependencies. Only files 
-## matching regex_complain will generate warnings if they cannot be 
-## found (standard header paths are not searched). The defaults are: 
-## regex_match = "^.*$" (match everything) 
-## regex_complain = "^$" (match empty string only)
-
-INCLUDE_REGULAR_EXPRESSION("^(microntrackerfiles).*$")
+PROJECT(MicronTrackerInterface)
 
 SET (MICRONTRACKERFILES_INCLUDE_DIRS 
-  ${MICRONTRACKERFILES_SOURCE_DIR} 
-  ${MICRONTRACKERFILES_BINARY_DIR} 
+  ${MicronTrackerInterface_SOURCE_DIR} 
+  ${MicronTrackerInterface_BINARY_DIR} 
   )
 
-SET(MICRONTRACKERFILES_SRCS
+SET(MicronTrackerInterface_SRCS
   MicronTrackerInterface.h
   MicronTrackerInterface.cpp
   UtilityFunctions.h
@@ -43,49 +31,31 @@ SET(MICRONTRACKERFILES_SRCS
 )
 
 IF(WIN32)
- SET( MICRONTRACKERFILES_SRCS ${MICRONTRACKERFILES_SRCS} 
+ SET( MicronTrackerInterface_SRCS ${MicronTrackerInterface_SRCS} 
       drive32.c )
 ENDIF(WIN32)
 
 IF(UNIX)
- SET( MICRONTRACKERFILES_SRCS ${MICRONTRACKERFILES_SRCS} 
+ SET( MicronTrackerInterface_SRCS ${MicronTrackerInterface_SRCS} 
       driveunx-merge.c )
 ENDIF(UNIX)
 
-## VC++ .lib file linking
-IF (WIN32)
-  IF (NOT BORLAND)
-    IF (NOT CYGWIN)
-      SET(MICRONTRACKERFILES_SRCS ${MICRONTRACKERFILES_SRCS} vtkMicrontrackerfiles.def)
-    ENDIF (NOT CYGWIN)
-  ENDIF (NOT BORLAND)
-ENDIF (WIN32)
-
-SET (MICRONTRACKERFILES_INCLUDE_DIRS 
-  ${MICRONTRACKERFILES_INCLUDE_DIRS} 
+SET (MicronTrackerInterface_INCLUDE_DIRS 
+  ${MicronTrackerInterface_INCLUDE_DIRS} 
   ${MTC_INCLUDE_DIR}
   )
 
-INCLUDE_DIRECTORIES( ${MICRONTRACKERFILES_INCLUDE_DIRS} )
-SET (Tracking_INCLUDE_DIRS ${Tracking_INCLUDE_DIRS} ${MICRONTRACKERFILES_INCLUDE_DIRS} CACHE INTERNAL "")
+INCLUDE_DIRECTORIES( ${MicronTrackerInterface_INCLUDE_DIRS} )
+SET (Tracking_INCLUDE_DIRS ${Tracking_INCLUDE_DIRS} ${MicronTrackerInterface_INCLUDE_DIRS} CACHE INTERNAL "")
 
-ADD_LIBRARY(vtkMicrontrackerfiles ${MICRONTRACKERFILES_SRCS})
-TARGET_LINK_LIBRARIES( vtkMicrontrackerfiles
-  ${MTC_LIB_DIR}/MTC${CMAKE_STATIC_LIBRARY_SUFFIX}
-)
-
-# --------------------------------------------------------------------------
-# Install
-
-INSTALL(TARGETS vtkMicrontrackerfiles
-    RUNTIME
-    DESTINATION bin
-    CONFIGURATIONS Release
-    COMPONENT RuntimeLibraries)
+# Create a static library (to not have too many DLLs and also because
+# the driver library interface havily uses STL containers, which are unsafe
+# to use at a DLL interface)
+ADD_LIBRARY(MicronTrackerInterface STATIC ${MicronTrackerInterface_SRCS})
 
 # --------------------------------------------------------------------------
 # Set external MS project 
-SET (PLUSLIB_DEPENDENCIES ${PLUSLIB_DEPENDENCIES} vtkMicrontrackerfiles CACHE INTERNAL "" FORCE)
+SET (PLUSLIB_DEPENDENCIES ${PLUSLIB_DEPENDENCIES} MicronTrackerInterface CACHE INTERNAL "" FORCE)
 LIST(REMOVE_DUPLICATES PLUSLIB_DEPENDENCIES)
 # Add this variable to UsePlusLib.cmake.in INCLUDE_PLUSLIB_MS_PROJECTS macro
-SET(vcProj_Microntrackerfiles vtkMicrontrackerfiles "${PlusLib_BINARY_DIR}/src/Tracking/MicronTracking/Utils/vtkMicrontrackerfiles.vcproj" vtkPlusCommon CACHE INTERNAL "" FORCE) 
+SET(vcProj_MicronTrackerInterface MicronTrackerInterface "${PlusLib_BINARY_DIR}/src/Tracking/MicronTracking/Utils/MicronTrackerInterface.vcproj" vtkPlusCommon CACHE INTERNAL "" FORCE) 

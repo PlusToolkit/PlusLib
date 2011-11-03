@@ -26,11 +26,11 @@ public:
   ~Facet();
   inline int getHandle(){ return m_handle; };
   int getXpoints( MCamera *cam, double *result2x2x2x2); //[LV/SV][L/R][base/head][X/Y]
-  vector<Vector *> IdentifiedVectors();
-  vector<Vector *> TemplateVectors();
-  bool setVectorsFromSample(vector<Collection*> &sampledVectorSets, string &outCompletionExplanation , double maxSampleErrorAllowedMM = 2.0);
-  bool validateTemplate(double positionToleranceMM, string outCompletionString = NULL);
-  bool identify(MCamera* cam, vector<Vector*> vectorSet, double positionToleranceMM);
+  std::vector<Vector *> IdentifiedVectors();
+  std::vector<Vector *> TemplateVectors();
+  bool setVectorsFromSample(std::vector<Collection*> &sampledVectorSets, std::string &outCompletionExplanation , double maxSampleErrorAllowedMM = 2.0);
+  bool validateTemplate(double positionToleranceMM, std::string outCompletionString = NULL);
+  bool identify(MCamera* cam, std::vector<Vector*> vectorSet, double positionToleranceMM);
   Xform3D* getFacet2CameraXf(MCamera* cam);
 
 

@@ -6,9 +6,6 @@
 #include "ImportStatements.h"
 #include "utilityFunctions.h"
 
-using std::vector;
-using std::string;
-
 class MarkerTemplates
 {
 public:

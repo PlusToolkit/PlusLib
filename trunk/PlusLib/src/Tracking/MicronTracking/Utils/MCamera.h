@@ -16,8 +16,6 @@
 #include "MTC.h" // need this here for mtMeasurementHazardCode
 #include <vector>
 
-using namespace std;
-
 class MCamera
 {
 public:

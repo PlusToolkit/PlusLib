@@ -14,7 +14,7 @@
 
 #include "MTC.h"
 
-class Xform3D
+class Xform3D 
 {
 
 public:

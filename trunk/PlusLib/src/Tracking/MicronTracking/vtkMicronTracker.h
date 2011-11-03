@@ -512,9 +512,9 @@ protected:
   vtkDoubleArray* Xpoints;
   vtkDoubleArray* VectorEnds;
 
-  string ToolNames[MAX_TOOL_NUM];
-  string ToolFileLines[12];
-  string ToolClassNames[MAX_TOOL_NUM];
+  std::string ToolNames[MAX_TOOL_NUM];
+  std::string ToolFileLines[12];
+  std::string ToolClassNames[MAX_TOOL_NUM];
   int MarkerIndexAssingedToTools[MAX_TOOL_NUM];
 
 private:

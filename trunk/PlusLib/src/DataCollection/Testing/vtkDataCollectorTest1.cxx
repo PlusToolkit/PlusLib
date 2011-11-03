@@ -252,6 +252,8 @@ int main(int argc, char **argv)
     iren->Start();
   }
 
+  dataCollector->Disconnect();
+
   std::cout << "vtkDataCollectorTest1 completed successfully!" << std::endl;
   return EXIT_SUCCESS; 
 

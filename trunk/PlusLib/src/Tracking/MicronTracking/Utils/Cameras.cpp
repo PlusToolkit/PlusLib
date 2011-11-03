@@ -31,7 +31,7 @@ Cameras::Cameras()
 Cameras::~Cameras()
 {
   // Clear all previously connected camera
-  vector<MCamera *>::iterator camsIterator;
+  std::vector<MCamera *>::iterator camsIterator;
   for (camsIterator = m_vCameras.begin(); camsIterator != m_vCameras.end();
          camsIterator++)
     {
@@ -56,7 +56,7 @@ bool Cameras::grabFrame(MCamera *cam)
   if (NULL == cam)
     {
     // grab from all cameras
-    vector<MCamera *>::iterator camsIterator;
+    std::vector<MCamera *>::iterator camsIterator;
     for (camsIterator = m_vCameras.begin(); camsIterator != m_vCameras.end();
        camsIterator++)
     {
@@ -127,14 +127,16 @@ int Cameras::getMTHome (  char *sMTHome, int size )
 
 int Cameras::AttachAvailableCameras()
 {
-  char calibrationDir[512];
+  const int calibrationDirSize=512;
+  char calibrationDir[calibrationDirSize+1];
+  calibrationDir[calibrationDirSize]=0;
   int result = 0;
 
     if ( getMTHome (calibrationDir, sizeof(calibrationDir)) < 0 ) {
     // No Environment
     return result;
   } else {
-    sprintf(calibrationDir,"%s/CalibrationFiles",calibrationDir);
+    sprintf_s(calibrationDir, calibrationDirSize, "%s/CalibrationFiles",calibrationDir);
   }
 #if 0
   // Clear all previously connected camera

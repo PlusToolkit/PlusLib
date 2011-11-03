@@ -48,7 +48,7 @@ void host_pause(float delay_sec)
  */
 float host_get_timeout(int port)
 {
-  return (float) timeout_ticks[port] / 1000.0;
+  return 0.001f*timeout_ticks[port];
 }
 
 

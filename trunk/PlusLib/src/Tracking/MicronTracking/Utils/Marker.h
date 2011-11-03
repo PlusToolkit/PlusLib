@@ -36,7 +36,7 @@ public:
   Xform3D* marker2CameraXf(int camHandle);
   int identifiedFacets (MCamera *cam);
   int addTemplateFacet(Facet* newFacet, Xform3D* facet1ToNewFacetXf);
-  bool validateTemplate(double positionToleranceMM, string complString);
+  bool validateTemplate(double positionToleranceMM, std::string complString);
   int storeTemplate(Persistence* p, char* name);
 
 private:

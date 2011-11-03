@@ -8,9 +8,6 @@
 #include "ImportStatements.h"
 #include "utilityFunctions.h"
 
-
-using std::vector;
-
 #define ROTATION_MATRIX_SIZE 9
 
 class CurrentCameras

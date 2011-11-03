@@ -21,33 +21,36 @@
 void mtUtils::getCurrPath(char* currPath)
 {
   int currDirResult = 1;
-  const short buffer = 255;
-  char currDir[255];
+  const short bufferSize = 255;
+  char currDir[bufferSize+1];
+  currDir[bufferSize]=0;
   
-  if( getcwd(currDir, buffer) == NULL )
+  if( _getcwd(currDir, bufferSize) == NULL )
     {
-      strcpy(currPath, "ERROR");
+      strcpy_s(currPath,bufferSize,"ERROR");
     }
   else
     {
-      strcpy(currPath,currDir);
+      strcpy_s(currPath,bufferSize,currDir);
     }
 }
 
 
-void mtUtils::getFileNamesFromDirectory(vector<string> &fileNames, char* dir, bool returnCompletePath)
+void mtUtils::getFileNamesFromDirectory(std::vector<std::string> &fileNames, char* dir, bool returnCompletePath)
 {  
 #if(WIN32)
   {
     _finddata_t file; 
-    char currentFolderPath[255];
+    const int currentFolderPathSize=255;
+    char currentFolderPath[currentFolderPathSize+1];
+    currentFolderPath[currentFolderPathSize]=0;
     mtUtils::getCurrPath(currentFolderPath);
     //if NULL is passed as the last argument, search the current directory
     if ( dir != NULL )
       {
-  strcat(currentFolderPath, "\\");
-  strcat(currentFolderPath, dir);
-  strcat(currentFolderPath, "\\");
+  strcat_s(currentFolderPath, currentFolderPathSize, "\\");
+  strcat_s(currentFolderPath, currentFolderPathSize, dir);
+  strcat_s(currentFolderPath, currentFolderPathSize, "\\");
       }
     
     //change the directory to the currrent\Markers (as done above)
@@ -60,7 +63,7 @@ void mtUtils::getFileNamesFromDirectory(vector<string> &fileNames, char* dir, bo
     {
       do
         {
-    string fileName = file.name;
+    std::string fileName = file.name;
     //ignore . and ..
     if(strcmp(fileName.c_str() , ".") != 0 && strcmp(fileName.c_str() , "..") !=0 )
       {
