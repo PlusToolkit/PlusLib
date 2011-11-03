@@ -195,5 +195,7 @@ It loads an fCal test image, but it can be changed by modifying the SequenceMeta
   <fCal NumberOfCalibrationImagesToAcquire="200"
         NumberOfValidationImagesToAcquire="100"
         NumberOfStylusCalibrationPointsToAcquire="200"
+        RecordingIntervalMs="100"
+        MaxTimeSpentWithProcessingMs="70"
   />
 </PlusConfiguration>

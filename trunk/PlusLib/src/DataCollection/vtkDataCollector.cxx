@@ -1399,8 +1399,67 @@ PlusStatus vtkDataCollector::GetTrackedFrame(vtkImageData* frame, vtkMatrix4x4* 
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkDataCollector::GetTrackedFrameList(double& frameTimestamp, vtkTrackedFrameList* trackedFrameList, int maxNumberOfFrames/*=-1*/)
+int vtkDataCollector::GetNumberOfFramesBetweenTimestamps(double frameTimestampFrom, double frameTimestampTo)
 {
+  LOG_TRACE("vtkDataCollector::GetNumberOfFramesBetweenTimestamps(" << frameTimestampFrom << ", " << frameTimestampTo << ")");
+
+  int numberOfFrames = 0;
+
+  if ( this->GetVideoEnabled() )
+  {
+    VideoBufferItem vFromItem; 
+    if (this->GetVideoSource()->GetBuffer()->GetVideoBufferItemFromTime(frameTimestampFrom, &vFromItem) != ITEM_OK )
+    {
+      return 0;
+    }
+
+    VideoBufferItem vToItem; 
+    if (this->GetVideoSource()->GetBuffer()->GetVideoBufferItemFromTime(frameTimestampTo, &vToItem) != ITEM_OK )
+    {
+      return 0;
+    }
+
+    numberOfFrames = abs((int)(vToItem.GetUid() - vFromItem.GetUid()));
+  }
+  else if ( this->GetTrackingEnabled() )
+  {
+    int firstActiveToolNumber = -1; 
+    if ( this->GetTracker()->GetFirstActiveTool(firstActiveToolNumber) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("There are no active tracker tools!"); 
+      return 0; 
+    }
+
+    vtkTrackerBuffer* trackerBuffer = this->GetTracker()->GetTool(firstActiveToolNumber)->GetBuffer(); 
+    if ( trackerBuffer == NULL )
+    {
+      LOG_ERROR("Failed to get first active tool!"); 
+      return 0; 
+    }
+
+    TrackerBufferItem tFromItem; 
+    if (trackerBuffer->GetTrackerBufferItem(frameTimestampFrom, &tFromItem) != ITEM_OK )
+    {
+      return 0;
+    } 
+
+    TrackerBufferItem tToItem; 
+    if (trackerBuffer->GetTrackerBufferItem(frameTimestampTo, &tToItem) != ITEM_OK )
+    {
+      return 0;
+    }
+
+    numberOfFrames = abs((int)(tToItem.GetUid() - tFromItem.GetUid())); 
+  }
+
+  return numberOfFrames + 1;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkDataCollector::GetTrackedFrameList(double& frameTimestamp, vtkTrackedFrameList* trackedFrameList, int maxNumberOfFramesToAdd/*=-1*/)
+{
+  LOG_TRACE("vtkDataCollector::GetTrackedFrameList(" << frameTimestamp << ", " << maxNumberOfFramesToAdd << ")"); 
+
   if ( trackedFrameList == NULL )
   {
     LOG_ERROR("Unable to get tracked frame list - output tracked frmae list is NULL!"); 
@@ -1422,23 +1481,29 @@ PlusStatus vtkDataCollector::GetTrackedFrameList(double& frameTimestamp, vtkTrac
     return PLUS_FAIL; 
   }
 
-  if ( maxNumberOfFrames > 0 ) 
+  if ( maxNumberOfFramesToAdd > 0 ) 
   {
     if ( this->GetVideoEnabled() )
     {
-      BufferItemUidType videoUid = this->VideoSource->GetBuffer()->GetLatestItemUidInBuffer(); 
-      if ( videoUid - maxNumberOfFrames >= this->VideoSource->GetBuffer()->GetOldestItemUidInBuffer() )
+      BufferItemUidType mostRecentVideoUid; 
+      if ( this->VideoSource->GetBuffer()->GetItemUidFromTime(mostRecentTimestamp, mostRecentVideoUid) != ITEM_OK )
       {
-        videoUid = videoUid - maxNumberOfFrames; 
+        LOG_ERROR("Failed to get video buffer item by timestamp " << mostRecentTimestamp);
+        return PLUS_FAIL;
+      }
+      if ( mostRecentVideoUid - maxNumberOfFramesToAdd > this->VideoSource->GetBuffer()->GetOldestItemUidInBuffer() )
+      {
+        // Most recent is needed too
+        mostRecentVideoUid = mostRecentVideoUid - maxNumberOfFramesToAdd + 1; 
       }
       else
       {
-        LOG_WARNING("Number of frames in the buffer is less than maxNumberOfFrames!"); 
+        LOG_WARNING("Number of frames in the buffer is less than maxNumberOfFramesToAdd!"); 
       }
 
-      if ( this->VideoSource->GetBuffer()->GetTimeStamp(videoUid, frameTimestamp ) != ITEM_OK )
+      if ( this->VideoSource->GetBuffer()->GetTimeStamp(mostRecentVideoUid, frameTimestamp ) != ITEM_OK )
       {
-        LOG_ERROR("Failed to get video buffer timestamp from UID: " << videoUid ); 
+        LOG_ERROR("Failed to get video buffer timestamp from UID: " << mostRecentVideoUid ); 
         return PLUS_FAIL; 
       }
     }
@@ -1458,24 +1523,28 @@ PlusStatus vtkDataCollector::GetTrackedFrameList(double& frameTimestamp, vtkTrac
         return PLUS_FAIL; 
       }
 
-      BufferItemUidType trackerUid = trackerBuffer->GetLatestItemUidInBuffer(); 
-      if ( trackerUid - maxNumberOfFrames >= trackerBuffer->GetOldestItemUidInBuffer() )
+      BufferItemUidType mostRecentTrackerUid;
+      if ( trackerBuffer->GetItemUidFromTime(mostRecentTimestamp, mostRecentTrackerUid ) != ITEM_OK )
       {
-        trackerUid = trackerUid - maxNumberOfFrames; 
+        LOG_ERROR("Failed to get tracked buffer item by timestamp " << mostRecentTimestamp);
+        return PLUS_FAIL;
+      }
+      if ( mostRecentTrackerUid - maxNumberOfFramesToAdd > trackerBuffer->GetOldestItemUidInBuffer() )
+      {
+        // Most recent is needed too
+        mostRecentTrackerUid = mostRecentTrackerUid - maxNumberOfFramesToAdd + 1; 
       }
       else
       {
-        LOG_WARNING("Number of frames in the buffer is less than maxNumberOfFrames!"); 
+        LOG_WARNING("Number of frames in the buffer is less than maxNumberOfFramesToAdd!"); 
       }
 
-      if ( trackerBuffer->GetTimeStamp(trackerUid, frameTimestamp ) != ITEM_OK )
+      if ( trackerBuffer->GetTimeStamp(mostRecentTrackerUid, frameTimestamp ) != ITEM_OK )
       {
-        LOG_ERROR("Failed to get tracker buffer timestamp from UID: " << trackerUid ); 
+        LOG_ERROR("Failed to get tracker buffer timestamp from UID: " << mostRecentTrackerUid ); 
         return PLUS_FAIL; 
       }
-
     }
-
   }
 
   // Check input frameTimestamp to be in a valid range 
@@ -1488,41 +1557,90 @@ PlusStatus vtkDataCollector::GetTrackedFrameList(double& frameTimestamp, vtkTrac
     frameTimestamp = oldestTimestamp; 
   }
 
-  
-  BufferItemUidType videoUid(0); 
-  if ( this->VideoSource->GetBuffer()->GetItemUidFromTime(frameTimestamp, videoUid) != ITEM_OK )
-  {
-    LOG_ERROR("Failed to get video buffer item UID from time: " << std::fixed << frameTimestamp ); 
-    return PLUS_FAIL; 
-  }
+  // Determine how many frames to add
+  int numberOfFramesSinceTimestamp = GetNumberOfFramesBetweenTimestamps(frameTimestamp, mostRecentTimestamp);
+  int numberOfFramesToAdd = std::min( maxNumberOfFramesToAdd, numberOfFramesSinceTimestamp );
 
-  do 
+  LOG_DEBUG("Number of added frames: " << numberOfFramesToAdd << " out of " << numberOfFramesSinceTimestamp);
+
+  for (int i=0; i<numberOfFramesToAdd; ++i)
   {
     // Get tracked frame from buffer
     TrackedFrame trackedFrame; 
+
     if ( this->GetTrackedFrameByTime(frameTimestamp, &trackedFrame) != PLUS_SUCCESS )
     {
       LOG_ERROR("Unable to get tracked frame by time: " << std::fixed << frameTimestamp ); 
-      status = PLUS_FAIL; 
+      return PLUS_FAIL;
     }
-    else 
+
+    // Add tracked frame to the list 
+    if ( trackedFrameList->AddTrackedFrame(&trackedFrame) != PLUS_SUCCESS )
     {
-      // Add tracked frame to the list 
-      if ( trackedFrameList->AddTrackedFrame(&trackedFrame) != PLUS_SUCCESS )
+      LOG_ERROR("Unable to add tracked frame to the list!" ); 
+      return PLUS_FAIL; 
+    }
+
+    // Get next timestamp
+    if ( this->GetVideoEnabled() )
+    {
+      BufferItemUidType videoUid(0); 
+      if ( this->VideoSource->GetBuffer()->GetItemUidFromTime(frameTimestamp, videoUid) != ITEM_OK )
       {
-        LOG_ERROR("Unable to add tracked frame to the list!" ); 
-        status = PLUS_FAIL; 
+        LOG_ERROR("Failed to get video buffer item UID from time: " << std::fixed << frameTimestamp ); 
+        return PLUS_FAIL; 
+      }
+
+      if ( videoUid >= this->VideoSource->GetBuffer()->GetLatestItemUidInBuffer() )
+      {
+        LOG_WARNING("Requested video uid (" << videoUid+1 << ") is not in the buffer yet!");
+        break;
       }
 
       // Get the timestamp of the next item in the buffer
       if ( this->VideoSource->GetBuffer()->GetTimeStamp(++videoUid, frameTimestamp) != ITEM_OK )
       {
-          LOG_WARNING("Unable to get timestamp from video buffer by UID: " << videoUid); 
-          status = PLUS_FAIL; 
+        LOG_ERROR("Unable to get timestamp from video buffer by UID: " << videoUid); 
+        return PLUS_FAIL;
       }
     }
+    else if ( this->GetTrackingEnabled() )
+    {
+      int firstActiveToolNumber = -1; 
+      if ( this->GetTracker()->GetFirstActiveTool(firstActiveToolNumber) != PLUS_SUCCESS )
+      {
+        LOG_ERROR("There are no active tracker tools!"); 
+        return PLUS_FAIL; 
+      }
 
-  } while(status == PLUS_SUCCESS && frameTimestamp <= mostRecentTimestamp); 
+      vtkTrackerBuffer* trackerBuffer = this->GetTracker()->GetTool(firstActiveToolNumber)->GetBuffer(); 
+      if ( trackerBuffer == NULL )
+      {
+        LOG_ERROR("Failed to get first active tool!"); 
+        return PLUS_FAIL;
+      }
+
+      BufferItemUidType trackerUid(0); 
+      if ( trackerBuffer->GetItemUidFromTime(frameTimestamp, trackerUid) != ITEM_OK )
+      {
+        LOG_ERROR("Failed to get tracker buffer item UID from time: " << std::fixed << frameTimestamp ); 
+        return PLUS_FAIL; 
+      }
+
+      if ( trackerUid >= trackerBuffer->GetLatestItemUidInBuffer() )
+      {
+        LOG_ERROR("Requested tracker uid (" << trackerUid+1 << ") is not in the buffer yet!");
+        break;
+      }
+
+      // Get the timestamp of the next item in the buffer
+      if ( trackerBuffer->GetTimeStamp(++trackerUid, frameTimestamp) != ITEM_OK )
+      {
+        LOG_WARNING("Unable to get timestamp from tracker buffer by UID: " << trackerUid); 
+        return PLUS_FAIL;
+      }
+    }
+  }
 
   return status; 
 }
