@@ -47,6 +47,8 @@ class FidLabeling
     std::vector<Dot>		GetDotsVector() {return m_DotsVector; };	
     void				  SetDotsVector(std::vector<Dot> value) { m_DotsVector = value; };
 
+    std::vector<Line> GetFoundLinesVector() {return m_FoundLines; };
+
     void				  SetLinesVector(std::vector<std::vector<Line> > value) { m_LinesVector = value; };
 
     std::vector<Pattern*> GetPatterns() { return m_Patterns; };
@@ -88,7 +90,8 @@ class FidLabeling
 		float					m_LinePairIntensity;
 		
 		std::vector<Dot>		  m_DotsVector;
-    std::vector<Pattern*>  m_Patterns;
+    std::vector<Pattern*> m_Patterns;
+    std::vector<Line>     m_FoundLines;
     std::vector<std::vector<Line> > m_LinesVector;
 		std::vector< std::vector<double> >  m_FoundDotsCoordinateValue;
     std::vector<LabelingResults> m_Results;
