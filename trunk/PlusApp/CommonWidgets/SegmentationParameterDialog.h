@@ -230,22 +230,10 @@ protected slots:
   void OpeningBarSizeChanged(double aValue);
 
 	/*!
-	* Slot handling line length error value change
-  * \param aValue New value
-	*/
-  void LineLengthErrorChanged(double aValue);
-
-	/*!
 	* Slot handling line pair distance error value change
   * \param aValue New value
 	*/
   void LinePairDistanceErrorChanged(double aValue);
-
-	/*!
-	* Slot handling line error value change
-  * \param aValue New value
-	*/
-  void LineErrorChanged(double aValue);
 
 	/*!
 	* Slot handling angle difference value change

@@ -948,9 +948,7 @@ SegmentationParameterDialog::SegmentationParameterDialog(QWidget* aParent, vtkDa
 	connect( ui.spinBox_ReferenceHeight, SIGNAL( valueChanged(int) ), this, SLOT( ReferenceHeightChanged(int) ) );
 	connect( ui.doubleSpinBox_OpeningCircleRadius, SIGNAL( valueChanged(double) ), this, SLOT( OpeningCircleRadiusChanged(double) ) );
 	connect( ui.doubleSpinBox_OpeningBarSize, SIGNAL( valueChanged(double) ), this, SLOT( OpeningBarSizeChanged(double) ) );
-	connect( ui.doubleSpinBox_LineLengthError, SIGNAL( valueChanged(double) ), this, SLOT( LineLengthErrorChanged(double) ) );
-	connect( ui.doubleSpinBox_LinePairDistanceError, SIGNAL( valueChanged(double) ), this, SLOT( LinePairDistanceErrorChanged(double) ) );
-	connect( ui.doubleSpinBox_LineError, SIGNAL( valueChanged(double) ), this, SLOT( LineErrorChanged(double) ) );
+  connect( ui.doubleSpinBox_LinePairDistanceError, SIGNAL( valueChanged(double) ), this, SLOT( LinePairDistanceErrorChanged(double) ) );
 	connect( ui.doubleSpinBox_AngleDifference, SIGNAL( valueChanged(double) ), this, SLOT( AngleDifferenceChanged(double) ) );
 	connect( ui.doubleSpinBox_MinTheta, SIGNAL( valueChanged(double) ), this, SLOT( MinThetaChanged(double) ) );
 	connect( ui.doubleSpinBox_MaxTheta, SIGNAL( valueChanged(double) ), this, SLOT( MaxThetaChanged(double) ) );
@@ -1186,28 +1184,12 @@ PlusStatus SegmentationParameterDialog::ReadConfiguration()
 		LOG_WARNING("Cannot find RegionOfInterest attribute in the configuration");
 	}
 
-	double maxLineLengthErrorPercent(0.0); 
-	if ( segmentationParameters->GetScalarAttribute("MaxLineLengthErrorPercent", maxLineLengthErrorPercent) )
-	{
-		ui.doubleSpinBox_LineLengthError->setValue(maxLineLengthErrorPercent);
-	} else {
-    LOG_WARNING("Could not read MaxLineLengthErrorPercent from configuration");
-  }
-
 	double maxLinePairDistanceErrorPercent(0.0); 
 	if ( segmentationParameters->GetScalarAttribute("MaxLinePairDistanceErrorPercent", maxLinePairDistanceErrorPercent) )
 	{
 		ui.doubleSpinBox_LinePairDistanceError->setValue(maxLinePairDistanceErrorPercent);
 	} else {
     LOG_WARNING("Could not read MaxLinePairDistanceErrorPercent from configuration");
-  }
-
-	double maxLineErrorMm(0.0); 
-	if ( segmentationParameters->GetScalarAttribute("MaxLineErrorMm", maxLineErrorMm) )
-	{
-		ui.doubleSpinBox_LineError->setValue(maxLineErrorMm);
-	} else {
-    LOG_WARNING("Could not read MaxLineErrorMm from configuration");
   }
 
 	double maxAngleDifferenceDegrees(0.0); 
@@ -1326,11 +1308,7 @@ PlusStatus SegmentationParameterDialog::WriteConfiguration()
   sprintf_s(ROIChars, 64, "%d %d %d %d", ui.spinBox_XMin->value(), ui.spinBox_YMin->value(), ui.spinBox_XMax->value(), ui.spinBox_YMax->value());
 	segmentationParameters->SetAttribute("RegionOfInterest", ROIChars);
 
-  segmentationParameters->SetDoubleAttribute("MaxLineLengthErrorPercent", ui.doubleSpinBox_LineLengthError->value());
-
   segmentationParameters->SetDoubleAttribute("MaxLinePairDistanceErrorPercent", ui.doubleSpinBox_LinePairDistanceError->value());
-
-  segmentationParameters->SetDoubleAttribute("MaxLineErrorMm", ui.doubleSpinBox_LineError->value());
 
   segmentationParameters->SetDoubleAttribute("MaxAngleDifferenceDegrees", ui.doubleSpinBox_AngleDifference->value());
 
@@ -1877,29 +1855,11 @@ void SegmentationParameterDialog::OpeningBarSizeChanged(double aValue)
 
 //-----------------------------------------------------------------------------
 
-void SegmentationParameterDialog::LineLengthErrorChanged(double aValue)
-{
-  LOG_TRACE("SegmentationParameterDialog::LineLengthErrorChanged(" << aValue << ")");
-
-  m_PatternRecognition->GetFidLineFinder()->SetMaxLineLengthErrorPercent(aValue);
-}
-
-//-----------------------------------------------------------------------------
-
 void SegmentationParameterDialog::LinePairDistanceErrorChanged(double aValue)
 {
   LOG_TRACE("SegmentationParameterDialog::LinePairDistanceErrorChanged(" << aValue << ")");
 
   m_PatternRecognition->GetFidLabeling()->SetMaxLinePairDistanceErrorPercent(aValue);
-}
-
-//-----------------------------------------------------------------------------
-
-void SegmentationParameterDialog::LineErrorChanged(double aValue)
-{
-  LOG_TRACE("SegmentationParameterDialog::LineErrorChanged(" << aValue << ")");
-
-  m_PatternRecognition->GetFidLineFinder()->SetMaxLineErrorMm(aValue);
 }
 
 //-----------------------------------------------------------------------------
