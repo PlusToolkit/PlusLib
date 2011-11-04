@@ -145,7 +145,7 @@ void FreehandCalibrationToolbox::Initialize()
     {
       if (ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS)
       {
-        LOG_ERROR("Reading stylus calibration configuraiton failed!");
+        LOG_ERROR("Reading calibration configuration failed!");
         return;
       }
 
@@ -563,7 +563,12 @@ void FreehandCalibrationToolbox::StartSpatial()
   ui.pushButton_CancelSpatial->setFocus();
 
   // Initialize algorithms and containers
-  m_PatternRecognition->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData());
+  if ( (this->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS)
+    || (m_PatternRecognition->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS) )
+  {
+    LOG_ERROR("Reading configuration failed!");
+    return;
+  }
 
   m_CalibrationData->Clear();
   m_ValidationData->Clear();
@@ -663,7 +668,7 @@ void FreehandCalibrationToolbox::DoSpatialCalibration()
     m_NumberOfSegmentedCalibrationImages += numberOfNewlySegmentedImages;
   }
 
-  LOG_DEBUG("Number of segmented images in this recording round: " << numberOfNewlySegmentedImages << " out of " << trackedFrameListToUse->GetNumberOfTrackedFrames() - numberOfFramesBeforeRecording);
+  LOG_DEBUG("Number of segmented images in this round: " << numberOfNewlySegmentedImages << " out of " << trackedFrameListToUse->GetNumberOfTrackedFrames() - numberOfFramesBeforeRecording);
 
   // Update progress if tracked frame has been successfully added
   int progressPercent = (int)(((m_NumberOfSegmentedCalibrationImages + m_NumberOfSegmentedValidationImages) / (double)(std::max(m_NumberOfValidationImagesToAcquire, m_NumberOfSegmentedValidationImages) + m_NumberOfCalibrationImagesToAcquire)) * 100.0);
@@ -696,9 +701,11 @@ void FreehandCalibrationToolbox::DoSpatialCalibration()
     LOG_WARNING("Processing cannot keep up with aquisition! Try to decrease MaxTimeSpentWithProcessingMs parameter in device set configuration");
   }
 
-  LOG_DEBUG("Number of requested frames: " << std::setw(3) << numberOfFramesToGet << ", number of tracked frames in the list: " << numberOfFramesBeforeRecording << " => " << trackedFrameListToUse->GetNumberOfTrackedFrames());
-  LOG_DEBUG("Computation time: " << std::setw(4) << computationTimeMs << ", Waiting time: " << waitTimeMs);
+  LOG_DEBUG("Number of requested frames: " << numberOfFramesToGet);
+  LOG_DEBUG("Number of tracked frames in the list: " << std::setw(3) << numberOfFramesBeforeRecording << " => " << trackedFrameListToUse->GetNumberOfTrackedFrames());
   LOG_DEBUG("Last processing time: " << m_LastProcessingTimePerFrameMs);
+  LOG_DEBUG("Computation time: " << computationTimeMs);
+  LOG_DEBUG("Waiting time: " << waitTimeMs);
 
   QTimer::singleShot(waitTimeMs , this, SLOT(DoSpatialCalibration())); 
 }
