@@ -37,6 +37,7 @@ PlusStatus FidPatternRecognition::ReadConfiguration(vtkXMLDataElement* rootConfi
     return PLUS_FAIL;
   }
 
+  //Read the configuration in each of the component of the algorithm
 	m_FidSegmentation.ReadConfiguration(rootConfigElement);
 	m_FidLineFinder.ReadConfiguration(rootConfigElement);
   m_FidLabeling.ReadConfiguration(rootConfigElement, m_FidLineFinder.GetMinTheta(), m_FidLineFinder.GetMaxTheta());
@@ -56,6 +57,7 @@ PlusStatus FidPatternRecognition::RecognizePattern(TrackedFrame* trackedFrame, P
     return PLUS_FAIL;
   }
 
+  //Set the results
 	patternRecognitionResult.SetIntensity(m_FidLabeling.GetLinePairIntensity());
 	patternRecognitionResult.SetNumDots(m_FidLabeling.GetDotsVector().size()); 
 	patternRecognitionResult.SetDotsFound(m_FidLabeling.GetDotsFound());
@@ -87,11 +89,11 @@ PlusStatus FidPatternRecognition::RecognizePattern(TrackedFrame* trackedFrame)
   memcpy( m_FidSegmentation.GetWorking(), image, bytes );
 	memcpy( m_FidSegmentation.GetUnalteredImage(), image, bytes);
 
+  //Start of the segmentation
   m_FidSegmentation.MorphologicalOperations();
-
   m_FidSegmentation.Suppress( m_FidSegmentation.GetWorking(), m_FidSegmentation.GetThresholdImagePercent()/100.00 );
-
   m_FidSegmentation.Cluster();
+  //End of the semgmentation
 
 	m_FidSegmentation.SetCandidateFidValues(m_FidSegmentation.GetDotsVector());	 
   //m_FidSegmentation.SetDebugOutput(true);//for testing purpose only
@@ -105,14 +107,13 @@ PlusStatus FidPatternRecognition::RecognizePattern(TrackedFrame* trackedFrame)
   if(m_FidLineFinder.GetLinesVector().size() > 3)
   {
     m_FidLabeling.SetLinesVector(m_FidLineFinder.GetLinesVector());
-
     m_FidLabeling.FindPattern();
   }
 
   if(m_FidSegmentation.GetDebugOutput()) 
 	{
-		m_FidSegmentation.WritePossibleFiducialOverlayImage(m_FidLabeling.GetFoundDotsCoordinateValue(), m_FidSegmentation.GetUnalteredImage(), m_CurrentFrame); 
-    //m_FidSegmentation.WritePossibleFiducialOverlayImage(m_FidSegmentation.GetCandidateFidValues(), m_FidSegmentation.GetUnalteredImage(), m_CurrentFrame); 
+		m_FidSegmentation.WritePossibleFiducialOverlayImage(m_FidLabeling.GetFoundDotsCoordinateValue(), m_FidSegmentation.GetUnalteredImage(), m_CurrentFrame);//Displays the result dots
+    //m_FidSegmentation.WritePossibleFiducialOverlayImage(m_FidSegmentation.GetCandidateFidValues(), m_FidSegmentation.GetUnalteredImage(), m_CurrentFrame);//Display all candidates dots
 	}
 
   // Set results
@@ -205,23 +206,28 @@ void FidPatternRecognition::DrawResults( PixelType *image )
 	LOG_TRACE("FidPatternRecognition::DrawLines"); 
 
   std::vector<Line> foundLines = m_FidLabeling.GetFoundLinesVector();
+  DrawDots(image);	
 
 	for ( int l = 0; l < foundLines.size(); l++ )
 	{
-    for (int i=0; i<foundLines[l].GetPoints()->size(); i++)
-		{
-			DrawDots(image);
-		}		
-
-    for( int t=-500 ; t<500 ; t++ )
+    double origin[2] = { m_FidLabeling.GetDotsVector()[foundLines[l].GetOrigin()].GetX() , m_FidLabeling.GetDotsVector()[foundLines[l].GetOrigin()].GetY()};
+    double directionVector[2] = {foundLines[l].GetDirectionVector(0) , foundLines[l].GetDirectionVector(1)};
+    if(directionVector[0] < 0)
     {
-      int r = floor(foundLines[l].GetDirectionVector(1)*t+m_FidLabeling.GetDotsVector()[foundLines[l].GetOrigin()].GetY());
-      int c = floor(foundLines[l].GetDirectionVector(0)*t+m_FidLabeling.GetDotsVector()[foundLines[l].GetOrigin()].GetX());
+      directionVector[0] = -directionVector[0];
+      directionVector[1] = -directionVector[1];
+    }
 
-      if ( r >= 0 && r <  m_FidSegmentation.GetFrameSize()[1] && c>=0 && c<m_FidSegmentation.GetFrameSize()[0] )//if the point is in the image
-      {
-        image[r* m_FidSegmentation.GetFrameSize()[0]+c] = UCHAR_MAX;
-      }
+    vtkMath::Normalize2D(directionVector);
+    double r = origin[1]-0.2*foundLines[l].GetLength()*directionVector[1];
+    double c = origin[0]-0.2*foundLines[l].GetLength()*directionVector[0];
+    image[int(r*m_FidSegmentation.GetFrameSize()[0]+c)] = UCHAR_MAX;
+
+    for( int i=0 ; i<foundLines[l].GetLength()*1.4 ; i++ )
+    {
+      r += directionVector[1];
+      c += directionVector[0];
+      image[int(int(r)*m_FidSegmentation.GetFrameSize()[0]+c)] = UCHAR_MAX;
     }
 	}
 }
