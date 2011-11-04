@@ -12,6 +12,20 @@
 #include "vtkXMLDataElement.h"
 #include <string.h>
 
+//-----------------------------------------------------------------------------
+
+/*! Structure holding a coordinate of a structuring element - to be removed when changing to ITK */
+struct Coordinate2D
+{
+	Coordinate2D(){ Y = 0; X = 0; }; 
+	Coordinate2D( int y, int x) { Y = y; X = x; }; 
+	bool operator== (const Coordinate2D& data) const { return (Y == data.Y && X == data.X) ; }
+	int Y;
+	int X;
+}; 
+
+//-----------------------------------------------------------------------------
+
 /*!
   \class FidSegmentation
   \brief Algorithm for segmenting dots in an image. The dots correspond to the fiducial lines that are orthogonal to the image plane
@@ -65,7 +79,7 @@ class FidSegmentation
 		void					      Dilate90( PixelType *dest, PixelType *image );
 		inline PixelType		DilatePoint135( PixelType *image, unsigned int ir, unsigned int ic );
 		void 					      Dilate135( PixelType *dest, PixelType *image );
-		inline PixelType		DilatePoint( PixelType *image, unsigned int ir, unsigned int ic, Dot *shape, int slen );
+		inline PixelType		DilatePoint( PixelType *image, unsigned int ir, unsigned int ic, Coordinate2D *shape, int slen );
 		void 					      DilateCircle( PixelType *dest, PixelType *image );
 		void 					      Subtract( PixelType *image, PixelType *vals );
     		
@@ -94,8 +108,8 @@ class FidSegmentation
     /*! addition to write out intermediate files */
     static void WritePng(PixelType *modifiedImage, std::string outImageName, int cols, int rows); 
 
-    /*! Check if shape contains the new element */
-		bool ShapeContains( std::vector<Dot> shape, Dot newItem );
+    /*! Check if shape (structuring element) contains the new element (a point) */
+		bool ShapeContains( std::vector<Coordinate2D> &shape, Coordinate2D point );
 
     /*! Add neighbors to the cluster */
 		inline void ClusteringAddNeighbors(PixelType *image, int r, int c, std::vector<Dot> &m_Test, std::vector<Dot> &m_Set, std::vector<PixelType>&m_Vals);
@@ -118,7 +132,7 @@ class FidSegmentation
     int GetMorphologicalOpeningBarSizePx(); 
 
     /*! Get the size of the frame as an array */
-    int *	 GetFrameSize() { return m_FrameSize; };
+    int* GetFrameSize() { return m_FrameSize; };
 
     /*! Get the vector that contains all the dots that have been segmented */
     std::vector<Dot> GetDotsVector() {return m_DotsVector; };	
@@ -133,10 +147,10 @@ class FidSegmentation
     FiducialGeometryType	GetFiducialGeometry() { return m_FiducialGeometry; };
 
     /*! Get the working copy of the image */
-		PixelType * GetWorking() {return m_Working; };
+		PixelType* GetWorking() {return m_Working; };
 
     /*! Get the unaltered copy of the image */
-		PixelType * GetUnalteredImage() {return m_UnalteredImage; };
+		PixelType* GetUnalteredImage() {return m_UnalteredImage; };
 
     /*! Set the Approximate spacing, this is in Mm per pixel */
     void  SetApproximateSpacingMmPerPixel(double value) { m_ApproximateSpacingMmPerPixel = value; };
@@ -170,7 +184,7 @@ class FidSegmentation
 		
 		FiducialGeometryType	m_FiducialGeometry;
 		
-		std::vector<Dot>		m_MorphologicalCircle; 
+		std::vector<Coordinate2D>		m_MorphologicalCircle; 
 
 		double					    m_ApproximateSpacingMmPerPixel;
     double			        m_ImageScalingTolerancePercent[4];
