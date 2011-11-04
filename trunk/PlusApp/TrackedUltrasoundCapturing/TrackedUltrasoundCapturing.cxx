@@ -272,7 +272,7 @@ void TrackedUltrasoundCapturing::AddTrackedFrame( TrackedFrame* trackedFrame )
     this->TrackedFrameContainer->SetDefaultFrameTransformName(DefaultFrameTransformName.c_str()); 
   }
 
-	this->TrackedFrameContainer->AddTrackedFrame(trackedFrame); 
+	this->TrackedFrameContainer->AddTrackedFrame(trackedFrame, vtkTrackedFrameList::SKIP_INVALID_FRAME); 
 }
 
 //----------------------------------------------------------------------------
