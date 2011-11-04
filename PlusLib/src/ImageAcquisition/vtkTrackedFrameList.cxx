@@ -517,7 +517,7 @@ bool vtkTrackedFrameList::ValidateSpeed(TrackedFrame* trackedFrame)
   // Get default frame transform of the input frame and the latest frame in the list
   vtkSmartPointer<vtkTransform> inputTransform = vtkSmartPointer<vtkTransform>::New(); 
   double inputTransformVector[16]={0}; 
-  if ( trackedFrame->GetCustomFrameTransform(this->GetDefaultFrameTransformName().c_str(), inputTransformVector) )
+  if ( trackedFrame->GetCustomFrameTransform(this->FrameTransformNameForValidation, inputTransformVector) )
   {
     inputTransform->SetMatrix(inputTransformVector); 
   }
@@ -529,7 +529,7 @@ bool vtkTrackedFrameList::ValidateSpeed(TrackedFrame* trackedFrame)
 
   vtkSmartPointer<vtkTransform> latestTransform = vtkSmartPointer<vtkTransform>::New(); 
   double latestTransformVector[16]={0}; 
-  if ( (*latestFrameInList)->GetCustomFrameTransform(this->GetDefaultFrameTransformName().c_str(), latestTransformVector) )
+  if ( (*latestFrameInList)->GetCustomFrameTransform(this->FrameTransformNameForValidation, latestTransformVector) )
   {
     latestTransform->SetMatrix(latestTransformVector); 
   }
