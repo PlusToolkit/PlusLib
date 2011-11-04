@@ -60,6 +60,7 @@ void FidLineFinder::ComputeParameters()
 {
 	LOG_TRACE("FidLineFinder::ComputeParameters");
 
+  //Computation of MinTheta and MaxTheta from the physical probe rotation range
   std::vector<NWire> nWires;
 
   for( int i=0 ; i< m_Patterns.size() ; i++)
@@ -94,6 +95,7 @@ void FidLineFinder::ComputeParameters()
 	
 	vnl_vector<double> pointA(3), pointB(3), pointC(3);
 
+  //3 points from the Nwires
 	for( int i = 0; i<3 ;i++)
 	{
 		pointA.put(i,nWires[0].Wires[0].EndPointFront[i]);
@@ -101,13 +103,14 @@ void FidLineFinder::ComputeParameters()
 		pointC.put(i,nWires[0].Wires[1].EndPointFront[i]);
 	}
 
+  //create 2 vectors out of them
 	vnl_vector<double> AB(3);
 	AB = pointB - pointA;
 	vnl_vector<double> AC(3);
 	AC = pointC - pointA;
 
 	vnl_vector<double> normalVectorInPhantomCoord(3);
-	normalVectorInPhantomCoord = vnl_cross_3d(AB,AC);
+	normalVectorInPhantomCoord = vnl_cross_3d(AB,AC);//Get the vector normal to the wire plane
 
 	vnl_vector<double> normalVectorInPhantomCoordExtended(4,0);
 
@@ -128,14 +131,14 @@ void FidLineFinder::ComputeParameters()
 
 	for(int i = 0 ; i<3 ; i++)
 	{
-		tempThetaX = thetaX[i]*vtkMath::Pi()/180;
+		tempThetaX = thetaX[i]*vtkMath::Pi()/180;//Convert angles to radiant
 		for(int j = 0 ; j<3 ; j++)
 		{
-			tempThetaY = thetaY[j]*vtkMath::Pi()/180;
+			tempThetaY = thetaY[j]*vtkMath::Pi()/180;//Convert angles to radiant
 			for(int k = 0 ; k<3 ; k++)
 			{
-				tempThetaZ = thetaZ[k]*vtkMath::Pi()/180;
-				vnl_matrix<double> totalRotation(4,4,0);
+				tempThetaZ = thetaZ[k]*vtkMath::Pi()/180;//Convert angles to radiant
+				vnl_matrix<double> totalRotation(4,4,0);//The overall rotation matrix (after applying rotation around X, Y and Z axis
 
 				totalRotation.put(0,0,cos(tempThetaY)*cos(tempThetaZ));
 				totalRotation.put(0,1,-cos(tempThetaX)*sin(tempThetaZ)+sin(tempThetaX)*sin(tempThetaY)*cos(tempThetaZ));
@@ -148,13 +151,15 @@ void FidLineFinder::ComputeParameters()
 				totalRotation.put(2,2,cos(tempThetaX)*cos(tempThetaY));
 				totalRotation.put(3,3,1);
 
-				vnl_matrix<double> totalTranform(4,4);
+				vnl_matrix<double> totalTranform(4,4);//The overall tranform matrix: Rotation*ImageToPhantom
 				totalTranform = totalRotation*imageToPhantomTransform;
 
-				vnl_vector<double> normalVectorInImageCoordExtended(4);
+				vnl_vector<double> normalVectorInImageCoordExtended(4);//extended because it is a 4 dimension vector (result from a 4x4 matrix)
+
+        //Get the normal vector in image coordinates by applying the total transform to the normal vector in phantom coordinates
 				normalVectorInImageCoordExtended = totalTranform*normalVectorInPhantomCoordExtended;
 
-				vnl_vector<double> normalVectorInImageCoord(3);
+				vnl_vector<double> normalVectorInImageCoord(3);//Make it 3 dimensions, the 4th is a useless value only needed for 4x4 matrix operations
 				
 				for( int i = 0 ;i<normalVectorInImageCoord.size() ;i++)
 				{
@@ -166,12 +171,13 @@ void FidLineFinder::ComputeParameters()
 
 				double dotProductValue = dot_product(lineDirectionVector,imageYunitVector);
 				double normOfLineDirectionvector = lineDirectionVector.two_norm();
-				double angle = acos(dotProductValue/normOfLineDirectionvector);
+				double angle = acos(dotProductValue/normOfLineDirectionvector);//get the angle between the line direction vector and the (0,1,0) vector
 				finalAngleTable.push_back(angle);
 			}
 		}
 	}
 
+  //Get the maximum and the minimum angle from the table
 	m_MaxTheta = (*std::max_element(finalAngleTable.begin(),finalAngleTable.end()));
 	m_MinTheta = (*std::min_element(finalAngleTable.begin(),finalAngleTable.end()));
 }
@@ -399,9 +405,9 @@ void FidLineFinder::ComputeLine( Line &line )
   line.SetOrigin(originIndex);
 
   line.SetIntensity(lineIntensity);
-	line.SetLength(LineLength( line ));
+	line.SetLength(LineLength( line ));//This actually computes the length (not return) and set the endpoint as well
 
-  if(line.GetPoints()->size() > 2)
+  if(line.GetPoints()->size() > 2)//separating cases: 2-points lines and n-points lines, way simpler for 2-points lines
   {
     //computing the line equation c + n1*x + n2*y = 0
     std::vector<float> x;
@@ -419,18 +425,22 @@ void FidLineFinder::ComputeLine( Line &line )
       A.put(i,2,y[i]);
 	  }
 
+    //using QR matrix decomposition
     vnl_qr<double> QR(A);
     vnl_matrix<double> Q = QR.Q();
     vnl_matrix<double> R = QR.R();
 
+    //the B matrix is a subset of the R matrix (because we are in 2D)
     vnl_matrix<double> B(2,2,0);
     B.put(0,0,R(1,1));
     B.put(0,1,R(1,2));
     B.put(1,1,R(2,2));
 
+    //single Value decomposition of B
     vnl_svd<double> SVD(B);
     vnl_matrix<double> V = SVD.V();
 
+    //We get the needed coefficients from V
     n1 = V(0,1);
     n2 = V(1,1);
     c = -(n1*R(0,1)+n2*R(0,2))/R(0,0);
@@ -446,7 +456,7 @@ void FidLineFinder::ComputeLine( Line &line )
       line.SetDirectionVector(1,n1);
     }
   }
-  else
+  else//for 2-points lines, way simpler and faster
   {
     float xdif = m_DotsVector[line.GetEndPoint()].GetX()-m_DotsVector[line.GetOrigin()].GetX();
     float ydif = m_DotsVector[line.GetEndPoint()].GetY()-m_DotsVector[line.GetOrigin()].GetY();
@@ -472,6 +482,8 @@ float FidLineFinder::SegmentLength( Dot *d1, Dot *d2 )
 float FidLineFinder::LineLength( Line &line )
 {
 	//LOG_TRACE("FidLineFinder::LineLength");
+
+  //Compute the length and set the endpoint (corresponding to the longest segment from origin)
   float maxLength = -1;
   float currentLength = -1;
   int endPointIndex;
@@ -528,6 +540,7 @@ void FidLineFinder::FindLines2Points()
 
   for( int i=0 ; i<m_Patterns.size() ; i++)
   {
+    //the expected length of the line
     int lineLenPx = floor(m_Patterns[i]->DistanceToOriginMm[m_Patterns[i]->Wires.size()-1] / m_ApproximateSpacingMmPerPixel + 0.5 );
 
 	  for ( int b1 = 0; b1 < m_DotsVector.size()-1; b1++ ) 
@@ -558,14 +571,14 @@ void FidLineFinder::FindLines2Points()
               ComputeLine(twoPointsLine);
               
 			        twoPointsLinesVector.push_back(twoPointsLine);
-              std::sort(twoPointsLinesVector.begin(), twoPointsLinesVector.end(), Line::compareLines);
+              std::sort(twoPointsLinesVector.begin(), twoPointsLinesVector.end(), Line::compareLines);//the lines need to be sorted that way each time for the binary search to be performed
             }
           }
         }
 		  }
 	  }
   }
-  std::sort(twoPointsLinesVector.begin(), twoPointsLinesVector.end(), Line::lessThan);
+  std::sort(twoPointsLinesVector.begin(), twoPointsLinesVector.end(), Line::lessThan);//sort the lines by intensity finally 
 
   m_LinesVector.push_back(twoPointsLinesVector);
 }
@@ -604,7 +617,7 @@ void FidLineFinder::FindLinesNPoints()
       for ( int l = 0; l < m_LinesVector[linesVectorIndex-1].size(); l++ ) 
 	    {
         Line currentShorterPointsLine;
-		    currentShorterPointsLine = m_LinesVector[linesVectorIndex-1][l];
+		    currentShorterPointsLine = m_LinesVector[linesVectorIndex-1][l];//the current max point line we want to expand
 
         for ( int b3 = 0; b3 < m_DotsVector.size(); b3++ ) 
         {
@@ -640,7 +653,7 @@ void FidLineFinder::FindLinesNPoints()
             line.SetOrigin(currentShorterPointsLine.GetOrigin());
 
             
-            float length = SegmentLength(&m_DotsVector[currentShorterPointsLine.GetOrigin()],&m_DotsVector[b3]); 
+            float length = SegmentLength(&m_DotsVector[currentShorterPointsLine.GetOrigin()],&m_DotsVector[b3]); //distance between the origin and the point we try to add
 
             int lineLenPx = floor(m_Patterns[i]->DistanceToOriginMm[linesVectorIndex-2] / m_ApproximateSpacingMmPerPixel + 0.5 );
             bool acceptLength = fabs(length-lineLenPx) < floor(m_Patterns[i]->DistanceToOriginToleranceMm[linesVectorIndex-2] / m_ApproximateSpacingMmPerPixel + 0.5 );
@@ -648,7 +661,7 @@ void FidLineFinder::FindLinesNPoints()
             if(!acceptLength)
               continue;
             
-            if(m_LinesVector.size() <= linesVectorIndex)
+            if(m_LinesVector.size() <= linesVectorIndex)//in case the maxpoint lines has not found any yet (the binary search works on empty vector, not on NULL one obviously)
             { 
               std::vector<Line> emptyLine;
               m_LinesVector.push_back(emptyLine);
@@ -695,6 +708,8 @@ void FidLineFinder::Clear()
 bool FidLineFinder::AcceptAngle( float angle )
 {
   //LOG_TRACE("FidLineFinder::AcceptLine");
+
+  //then angle must be in a certain range that is given in half space (in config file) so it needs to check the whole space (if 20 is accepted, so should -160 as it is the same orientation)
   
   if(angle > m_MinTheta && angle < m_MaxTheta)
   {

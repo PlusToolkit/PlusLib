@@ -245,6 +245,9 @@ void FidLabeling::SetAngleToleranceDegrees(double value)
 
 bool FidLabeling::SortCompare(std::vector<double> temporaryLine1, std::vector<double> temporaryLine2)
 {
+  //LOG_TRACE("FidLabeling::SortCompare");
+
+  //used for SortPointsByDistanceFromOrigin
   return temporaryLine1[1] < temporaryLine2[1];
 }
 
@@ -252,7 +255,7 @@ bool FidLabeling::SortCompare(std::vector<double> temporaryLine1, std::vector<do
 
 Line FidLabeling::SortPointsByDistanceFromOrigin(Line fiducials) 
 {
-	//LOG_TRACE("FidLabeling::SortInAscendingOrder");
+	//LOG_TRACE("FidLabeling::SortPointsByDistanceFromOrigin");
 
   std::vector<std::vector<double>> temporaryLine;
   Dot origin = m_DotsVector[fiducials.GetOrigin()];
@@ -266,6 +269,7 @@ Line FidLabeling::SortPointsByDistanceFromOrigin(Line fiducials)
     temporaryLine.push_back(temp);
   }
 
+  //sort the indexes by the distance of their respective pioint to the origin
   std::sort(temporaryLine.begin(),temporaryLine.end(), FidLabeling::SortCompare); 
 
   Line resultLine = fiducials;
@@ -294,8 +298,6 @@ float FidLabeling::ComputeSlope( Line &line )
 
 	float y = (y2 - y1);
 	float x = (x2 - x1);
-
-	// :TODO: check if it can be simplified by using atan2 instead of atan+fabsf
 
 	float t;
 	if ( fabsf(x) > fabsf(y) )
@@ -337,16 +339,19 @@ float FidLabeling::ComputeDistancePointLine(Dot dot, Line line)
 
 float FidLabeling::ComputeShift(Line line1, Line line2)
 {
+  //middle of the line 1
   double midLine1[2]=
   {
     (m_DotsVector[line1.GetOrigin()].GetX()+m_DotsVector[line1.GetEndPoint()].GetX())/2,
     (m_DotsVector[line1.GetOrigin()].GetY()+m_DotsVector[line1.GetEndPoint()].GetY())/2
   };
+  //middle of the line 2
   double midLine2[2]=
   {
     (m_DotsVector[line2.GetOrigin()].GetX()+m_DotsVector[line2.GetEndPoint()].GetX())/2,
     (m_DotsVector[line2.GetOrigin()].GetY()+m_DotsVector[line2.GetEndPoint()].GetY())/2
   };
+  //vector from one middle to the other
   double midLine1_to_midLine2[3]=
   {
     midLine2[0]-midLine1[0],
@@ -360,7 +365,7 @@ float FidLabeling::ComputeShift(Line line1, Line line2)
     m_DotsVector[line1.GetEndPoint()].GetY()-m_DotsVector[line1.GetOrigin()].GetY(),
     0
   };
-  vtkMath::Normalize(line1vector);
+  vtkMath::Normalize(line1vector);//need to normalize for the dot product to provide significant result
 
   double midLine1_to_midLine2_projectionToLine1_length = vtkMath::Dot(line1vector,midLine1_to_midLine2);
 
@@ -420,6 +425,7 @@ void FidLabeling::UpdateNWiresResults(Line resultLine1, Line resultLine2)//resul
 
 void FidLabeling::UpdateCirsResults(Line resultLine1, Line resultLine2, Line resultLine3)
 {
+  //resultLine1 is the left line, resultLine2 is the diagonal, resultLine3 is the right line
   float intensity = 0;
   std::vector<double> dotCoords;
   std::vector< std::vector<double> > foundDotsCoordinateValues = m_FoundDotsCoordinateValue;
@@ -442,7 +448,7 @@ void FidLabeling::UpdateCirsResults(Line resultLine1, Line resultLine2, Line res
   for(int i=0 ; i<resultLine2.GetPoints()->size() ; i++)
   {
     LabelingResults result;
-    result.x = m_DotsVector[resultLine2.GetPoint(i)].GetX();//line 2 is the diagonal one
+    result.x = m_DotsVector[resultLine2.GetPoint(i)].GetX();
     dotCoords.push_back(result.x);
     result.y = m_DotsVector[resultLine2.GetPoint(i)].GetY();
     dotCoords.push_back(result.y);
@@ -485,7 +491,7 @@ void FidLabeling::FindPattern()
 	//LOG_TRACE("FidLabeling::FindPattern");
   
   std::vector<Line> maxPointsLines = m_LinesVector[m_LinesVector.size()-1];
-  int numberOfLines = m_Patterns.size();
+  int numberOfLines = m_Patterns.size();//the number of lines in the pattern
   int numberOfCandidateLines = maxPointsLines.size();
   std::vector<int> lineIndices(numberOfLines);
   std::vector<LabelingResults> results;
@@ -493,6 +499,7 @@ void FidLabeling::FindPattern()
 
   m_DotsFound = false;
 
+  //permutation generator
   for(int i=0 ; i<lineIndices.size() ; i++)
   {
     lineIndices[i] = lineIndices.size()-1-i;
@@ -541,19 +548,19 @@ void FidLabeling::FindPattern()
       {
         Line currentLine2 = maxPointsLines[lineIndices[j]];
         float angle2 = Line::ComputeHalfSpaceAngle(currentLine2);
-        float angleDifference = fabsf( angle2 - angle1 );
+        float angleDifference = fabsf( angle2 - angle1 );//the angle between the 2 lines
         float distance = -1;
         float shift = -1;
         int commonPointIndex = -1;
         
         if(angleDifference < m_AngleToleranceRad)//The angle between 2 lines is close to 0
         {
-          distance = ComputeDistancePointLine(m_DotsVector[currentLine1.GetOrigin()], currentLine2);
-          shift = ComputeShift(currentLine1,currentLine2);
+          distance = ComputeDistancePointLine(m_DotsVector[currentLine1.GetOrigin()], currentLine2);//the distance between the parrallel lines
+          shift = ComputeShift(currentLine1,currentLine2);//shift between the 2 lines
         }
         else if(numberOfLines != 2)
         {
-          //find the common point between the two lines, we assume so far that the common point is an endpoint (CIRS phantom case)
+          //find the common point between the two lines, we assume so far that the common point is an endpoint (CIRS phantom model 45 case)
           //TODO: make it more general
           if((currentLine1.GetOrigin() == currentLine2.GetOrigin()) || (currentLine1.GetOrigin() == currentLine2.GetEndPoint()))
           {
@@ -572,20 +579,20 @@ void FidLabeling::FindPattern()
         bool distanceTest = false;
         bool commonPointTest = false;
         bool shiftTest = false;
-        if(distance != -1)
+        if(distance != -1)//the lines are parallel
         {
-          commonPointTest = true;
+          commonPointTest = true;//so we set the commonpoint test to true (as it is meaningless in this case)
           int maxLinePairDistPx = floor(m_MaxLinePairDistMm / m_ApproximateSpacingMmPerPixel + 0.5 );
 	        int minLinePairDistPx = floor(m_MinLinePairDistMm / m_ApproximateSpacingMmPerPixel + 0.5 );
 
-          if((distance < maxLinePairDistPx) && (distance > minLinePairDistPx))
+          if((distance < maxLinePairDistPx) && (distance > minLinePairDistPx))//check the distance between the 2 lines is in the range
           {
             distanceTest = true;
           }
         }
         else
         {
-          distanceTest = true;
+          distanceTest = true;//no distance is computed, so we set this to true as it is meaningless
           //if there is a common point, we check that the angle difference is correct (45 degres in CIRS phantom)
           if((commonPointIndex != -1) && (angleDifference > m_InclinedLineAngle-m_AngleToleranceRad) && (angleDifference < m_InclinedLineAngle+m_AngleToleranceRad))
           {
@@ -593,7 +600,8 @@ void FidLabeling::FindPattern()
           }
           
         }
-        if(shift != -1 && fabs(shift) < 35)
+        //TODO make the shift threshold a parameter
+        if(shift != -1 && fabs(shift) < 35)//check the shift
         {
           shiftTest=true;
         }
@@ -605,12 +613,12 @@ void FidLabeling::FindPattern()
         counter++;
       }
     }
-    foundPattern = true;
+    foundPattern = true;//assum the pattern is found
     for(int i=0 ; i<testFlags.size() ; i++)
     {
       if(testFlags[i] != 1)
       {
-        foundPattern = false;
+        foundPattern = false;//if for one pair of lines the conditions are not met, the pattern is not found
       }
     }
   }while ((lineIndices[numberOfLines-1]!=numberOfCandidateLines-numberOfLines+2) && (foundPattern==false)); ///
