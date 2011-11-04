@@ -6,6 +6,8 @@
 
 #include "SegmentationParameterDialog.h"
 
+#include "ConfigFileSaverDialog.h"
+
 #include <QTimer>
 
 #include "vtkDataCollector.h"
@@ -940,6 +942,7 @@ SegmentationParameterDialog::SegmentationParameterDialog(QWidget* aParent, vtkDa
   connect( ui.groupBox_Spacing, SIGNAL( toggled(bool) ), this, SLOT( GroupBoxSpacingToggled(bool) ) );
 	connect( ui.pushButton_FreezeImage, SIGNAL( toggled(bool) ), this, SLOT( FreezeImage(bool) ) );
 	connect( ui.pushButton_ApplyAndClose, SIGNAL( clicked() ), this, SLOT( ApplyAndCloseClicked() ) );
+	connect( ui.pushButton_SaveAndClose, SIGNAL( clicked() ), this, SLOT( SaveAndCloseClicked() ) );
   connect( ui.spinBox_XMin, SIGNAL( valueChanged(int) ), this, SLOT( ROIXMinChanged(int) ) );
 	connect( ui.spinBox_YMin, SIGNAL( valueChanged(int) ), this, SLOT( ROIYMinChanged(int) ) );
 	connect( ui.spinBox_XMax, SIGNAL( valueChanged(int) ), this, SLOT( ROIXMaxChanged(int) ) );
@@ -1216,6 +1219,14 @@ PlusStatus SegmentationParameterDialog::ReadConfiguration()
     LOG_WARNING("Could not read MaxThetaDegrees from configuration");
   }
 
+	double angleToleranceDegrees(0.0); 
+	if ( segmentationParameters->GetScalarAttribute("AngleToleranceDegrees", angleToleranceDegrees) )
+	{
+		ui.doubleSpinBox_AngleTolerance->setValue(angleToleranceDegrees);
+	} else {
+    LOG_WARNING("Could not read AngleToleranceDegrees from configuration");
+  }
+
 	double thresholdImagePercent(0.0); 
 	if ( segmentationParameters->GetScalarAttribute("ThresholdImagePercent", thresholdImagePercent) )
 	{
@@ -1259,6 +1270,25 @@ void SegmentationParameterDialog::ApplyAndCloseClicked()
     LOG_ERROR("Write configuration failed!");
     return;
   }
+
+  accept();
+}
+
+//-----------------------------------------------------------------------------
+
+void SegmentationParameterDialog::SaveAndCloseClicked()
+{
+  LOG_TRACE("SegmentationParameterDialog::SaveAndCloseClicked");
+
+  if (WriteConfiguration() != PLUS_SUCCESS) {
+    LOG_ERROR("Write configuration failed!");
+    return;
+  }
+
+  ConfigFileSaverDialog* configSaverDialog = new ConfigFileSaverDialog(this);
+  configSaverDialog->exec();
+
+  delete configSaverDialog;
 
   accept();
 }
@@ -1315,6 +1345,8 @@ PlusStatus SegmentationParameterDialog::WriteConfiguration()
   segmentationParameters->SetDoubleAttribute("MinThetaDegrees", ui.doubleSpinBox_MinTheta->value());
 
   segmentationParameters->SetDoubleAttribute("MaxThetaDegrees", ui.doubleSpinBox_MaxTheta->value());
+
+  segmentationParameters->SetDoubleAttribute("AngleToleranceDegrees", ui.doubleSpinBox_AngleTolerance->value());
 
   segmentationParameters->SetDoubleAttribute("ThresholdImagePercent", ui.doubleSpinBox_ImageThreshold->value());
 

@@ -153,6 +153,11 @@ protected slots:
 	void ApplyAndCloseClicked();
 
 	/*!
+	* Shows config file saver dialog, saves the configuration file and closes window
+	*/
+	void SaveAndCloseClicked();
+
+	/*!
 	* Slot handling ROI groupbox toggle
   * \param aOn True if checked, false if unchecked
 	*/
