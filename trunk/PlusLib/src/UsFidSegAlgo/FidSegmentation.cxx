@@ -267,11 +267,7 @@ PlusStatus FidSegmentation::ReadConfiguration( vtkXMLDataElement* configData )
     }
 		delete [] imageNormalVectorInPhantomFrameEstimation;
 	}
-	else // If the tolerances parameters are given by the configuration file
-	{
-		// TODO This block is empty. Should something be here? - Csaba
-	}
-  
+
   UpdateParameters();
 
 	return PLUS_SUCCESS;

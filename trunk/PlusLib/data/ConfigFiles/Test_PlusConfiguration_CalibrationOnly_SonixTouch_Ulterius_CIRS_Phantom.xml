@@ -17,8 +17,8 @@
 					MaxLineErrorMm="2.0"
 
 					MaxAngleDifferenceDegrees="11"
-					MinThetaDegrees="-70"
-					MaxThetaDegrees="70"
+					MinThetaDegrees="20"
+					MaxThetaDegrees="160"
 
 					InclinedLineAngleDegrees="45"
 					AngleToleranceDegrees="10"

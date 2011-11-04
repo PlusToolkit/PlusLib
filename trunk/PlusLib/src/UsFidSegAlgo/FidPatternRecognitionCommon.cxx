@@ -22,7 +22,8 @@ float Line::ComputeAngle(Line &line)
 {
   float x = line.GetDirectionVector(0);
   float y = line.GetDirectionVector(1);
- 
+  
+  //atan2 return the angle between the line and the x-axis from -Pi to Pi
   float angle = atan2(y,x);
 
   return angle;
@@ -35,8 +36,10 @@ float Line::ComputeHalfSpaceAngle(Line &line)
   float x = line.GetDirectionVector(0);
   float y = line.GetDirectionVector(1);
  
+  //atan2 return the angle between the line and the x-axis from -Pi to Pi
   float angle = atan2(y,x);
 
+  //here, we want the angles to be between -Pi/2 and Pi/2
   if(angle > vtkMath::Pi()/2)
     angle -= vtkMath::Pi();
   else if(angle < -vtkMath::Pi()/2)
@@ -73,6 +76,7 @@ bool Line::lessThan( Line &line1, Line &line2 )
 
 bool Line::compareLines(Line line1, Line line2 )
 {
+  //make sure the lines are not the same, dot-wise
   for (unsigned int i=0; i<line1.GetPoints()->size(); i++)
 	{
 		if ( line1.GetPoint(i) < line2.GetPoint(i) )
