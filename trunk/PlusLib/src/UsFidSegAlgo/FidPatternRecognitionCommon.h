@@ -12,7 +12,13 @@
 typedef unsigned char PixelType;
 
 //-----------------------------------------------------------------------------
-
+/*!
+  \class Dot
+  \brief This class defines a single dot made obtained from the segmentation part of the algorithm.
+         It contains the X and Y coordinate of the dot as well as its intensity. Also contains an operator 
+         to check if dots are equal (both X and Y are the same).
+  \ingroup PlusLibPatternRecognition
+*/
 class Dot
 {
 	public:
@@ -50,7 +56,13 @@ class Dot
 };
 
 //-----------------------------------------------------------------------------
-
+/*!
+  \class Line
+  \brief This class defines a single line made from a vector of dots obtained from the segmentation part of the algorithm.
+         It contains the list of indexes of the dots, the length of the line, the origin and the endpoint as well as the
+         line intensity and its direction vector.
+  \ingroup PlusLibPatternRecognition
+*/
 class Line
 {
 	public:
@@ -121,7 +133,11 @@ class Line
 };
 
 //-----------------------------------------------------------------------------
-
+/*!
+  \class Wire
+  \brief This structure defines a single fiducial wire by its name and its endpoint (front and back)
+  \ingroup PlusLibPatternRecognition
+*/
 struct Wire
 {
   std::string Name;
@@ -130,10 +146,15 @@ struct Wire
 };
 
 //-----------------------------------------------------------------------------
-
+/*!
+  \class Pattern
+  \brief This class stores the different Patterns defined in the configuration file. It contains the wires
+         defintion, the distance from the line origin of each expected "dot" and the tolerances on these
+         distances.
+  \ingroup PlusLibPatternRecognition
+*/
 struct Pattern
 {
-  unsigned short    Id;
   std::vector<Wire> Wires;
   std::vector<float> DistanceToOriginMm;//These distances are in mm.
   std::vector<float> DistanceToOriginToleranceMm;//These tolerances are in mm.
@@ -166,7 +187,12 @@ struct Pattern
 };
 
 //-----------------------------------------------------------------------------
-
+/*!
+  \class NWire
+  \brief The struct NWire is a child from Pattern and has two more features that are the intersections of the NWires
+         between lines 1 and 2, and, 2 and 3.
+  \ingroup PlusLibPatternRecognition
+*/
 struct NWire : public Pattern
 {
   double  IntersectPosW12[3];
@@ -174,13 +200,22 @@ struct NWire : public Pattern
 };
 
 //-----------------------------------------------------------------------------
-
+/*!
+  \class CoplanarParallelWires
+  \brief The struct CoplanarparallelWires is a child from Pattern and represents an undefinite number of coplanar 
+         parallel fiducial wires.
+  \ingroup PlusLibPatternRecognition
+*/
 struct CoplanarParallelWires : public Pattern
 {
 };
 
 //-----------------------------------------------------------------------------
-
+/*!
+  \class PatternRecognitionResult
+  \brief This class stores the Pattern Recognition algorithm results.
+  \ingroup PlusLibPatternRecognition
+*/
 class PatternRecognitionResult
 {
 	public:

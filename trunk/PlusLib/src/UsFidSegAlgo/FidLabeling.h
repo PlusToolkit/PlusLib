@@ -11,6 +11,12 @@
 #include "PlusConfigure.h"
 #include "vtkXMLDataElement.h"
 
+/*!
+  \class LabelingResults
+  \brief This class contains the result of the labeling algorithm. It contains the x and y coordinates of 
+         a dot as well as its wire and pattern id to allow identification of the dot.
+  \ingroup PlusLibPatternRecognition
+*/
 class LabelingResults
 {
   public:
@@ -19,13 +25,14 @@ class LabelingResults
     float x,y;//coordinate in the image plane
 };
 
+//-----------------------------------------------------------------------------
+
 /*!
   \class FidLabeling
   \brief From a list of n-points lines, identifies the relationship between the lines and recognizes
          patterns defined in the configuration file. It also labels the dots found.
   \ingroup PlusLibPatternRecognition
 */
-
 class FidLabeling
 {
 	public:
