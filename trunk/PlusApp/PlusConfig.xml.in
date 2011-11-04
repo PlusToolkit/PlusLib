@@ -2,5 +2,6 @@
   LogLevel="3"
   DeviceSetConfigurationDirectory="${PLUSCONFIG_DEVICESET_CONFIG_DIR}"
   ImageDirectory="${PLUSCONFIG_IMAGE_DIR}"
+  GnuplotDirectory="${PLUSCONFIG_GNUPLOT_DIR}"
   >
 </PlusConfig>
