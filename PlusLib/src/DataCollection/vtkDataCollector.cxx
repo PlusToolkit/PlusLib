@@ -1575,7 +1575,7 @@ PlusStatus vtkDataCollector::GetTrackedFrameList(double& frameTimestamp, vtkTrac
     }
 
     // Add tracked frame to the list 
-    if ( trackedFrameList->AddTrackedFrame(&trackedFrame) != PLUS_SUCCESS )
+    if ( trackedFrameList->AddTrackedFrame(&trackedFrame, vtkTrackedFrameList::SKIP_INVALID_FRAME) != PLUS_SUCCESS )
     {
       LOG_ERROR("Unable to add tracked frame to the list!" ); 
       return PLUS_FAIL; 

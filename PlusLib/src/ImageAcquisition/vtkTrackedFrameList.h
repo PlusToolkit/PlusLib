@@ -368,8 +368,19 @@ public:
   vtkTypeRevisionMacro(vtkTrackedFrameList, vtkObject);
   virtual void PrintSelf(ostream& os, vtkIndent indent); 
 
+  /*! Action performed after AddTrackedFrame got invalid frame. 
+  Invalid frame can be a TrackedFrame if the validation requirement didn't meet the expectation.
+  */
+  enum InvalidFrameAction
+  {
+    ADD_INVALID_FRAME_AND_REPORT_ERROR=0, /*!< Add invalid frame to the list and report an error */
+    ADD_INVALID_FRAME, /*!< Add invalid frame to the list wihout notification */
+    SKIP_INVALID_FRAME_AND_REPORT_ERROR, /*!< Skip invalid frame and report an error */
+    SKIP_INVALID_FRAME /*!< Skip invalid frame wihout notification */
+  }; 
+
   /*! Add tracked frame to container */
-  virtual PlusStatus AddTrackedFrame(TrackedFrame *trackedFrame); 
+  virtual PlusStatus AddTrackedFrame(TrackedFrame *trackedFrame, InvalidFrameAction action=ADD_INVALID_FRAME_AND_REPORT_ERROR); 
 
   /*! Add all frames from a tracked frame list to the container */
   virtual PlusStatus AddTrackedFrameList(vtkTrackedFrameList* inTrackedFrameList); 

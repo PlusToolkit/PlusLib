@@ -345,14 +345,30 @@ PlusStatus vtkTrackedFrameList::AddTrackedFrameList(vtkTrackedFrameList* inTrack
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkTrackedFrameList::AddTrackedFrame(TrackedFrame *trackedFrame)
+PlusStatus vtkTrackedFrameList::AddTrackedFrame(TrackedFrame *trackedFrame, InvalidFrameAction action/*=ADD_INVALID_FRAME_AND_REPORT_ERROR*/ )
 {
-  if ( !this->ValidateData(trackedFrame) )
+  bool isFrameValid = this->ValidateData(trackedFrame); 
+
+  if ( !isFrameValid )
   {
-    LOG_DEBUG("A similar frame is already found in the tracked frame list!"); 
-    return PLUS_SUCCESS; 
+    switch(action)
+    {
+    case ADD_INVALID_FRAME_AND_REPORT_ERROR: 
+      LOG_ERROR("A similar frame is already found in the tracked frame list, but invalid frame added to the list."); 
+      break; 
+    case ADD_INVALID_FRAME: 
+      LOG_DEBUG("A similar frame is already found in the tracked frame list, but invalid frame added to the list.");
+      break; 
+    case SKIP_INVALID_FRAME_AND_REPORT_ERROR: 
+      LOG_ERROR("A similar frame is already found in the tracked frame list, invalid frame skipped."); 
+      return PLUS_FAIL;
+    case SKIP_INVALID_FRAME: 
+      LOG_DEBUG("A similar frame is already found in the tracked frame list, invalid frame skipped.");
+      return PLUS_SUCCESS; 
+    }
   }
 
+  // Make a copy and add frame to the list 
   TrackedFrame* pTrackedFrame = new TrackedFrame(*trackedFrame); 
   this->TrackedFrameList.push_back(pTrackedFrame); 
   return PLUS_SUCCESS; 

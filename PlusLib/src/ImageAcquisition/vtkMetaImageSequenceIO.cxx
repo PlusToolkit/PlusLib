@@ -432,7 +432,7 @@ void vtkMetaImageSequenceIO::CreateTrackedFrameIfNonExisting(int frameNumber)
   TrackedFrame emptyFrame;
   for (int i=this->TrackedFrameList->GetNumberOfTrackedFrames(); i<frameNumber+1; i++)
   {
-    this->TrackedFrameList->AddTrackedFrame(&emptyFrame);
+    this->TrackedFrameList->AddTrackedFrame(&emptyFrame, vtkTrackedFrameList::ADD_INVALID_FRAME);
   }
 }
 
