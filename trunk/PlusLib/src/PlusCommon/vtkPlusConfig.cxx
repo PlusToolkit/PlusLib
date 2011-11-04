@@ -33,8 +33,8 @@ public:
     }
   }
 };
-static vtkPlusConfigCleanup vtkPlusConfigCleanupGlobal;
 
+static vtkPlusConfigCleanup vtkPlusConfigCleanupGlobal;
 
 //-----------------------------------------------------------------------------
 
@@ -78,6 +78,8 @@ vtkPlusConfig* vtkPlusConfig::GetInstance() {
 	return vtkPlusConfig::Instance;
 }
 
+//-----------------------------------------------------------------------------
+
 void vtkPlusConfig::SetInstance(vtkPlusConfig* instance)
 {
 	if (vtkPlusConfig::Instance==instance)
@@ -111,6 +113,7 @@ vtkPlusConfig::vtkPlusConfig()
   this->OutputDirectory = NULL;
   this->ProgramDirectory = NULL;
   this->ImageDirectory = NULL;
+  this->GnuplotDirectory = NULL;
 
 	this->SetDeviceSetConfigurationDirectory("");
 	this->SetDeviceSetConfigurationFileName("");
@@ -191,8 +194,11 @@ PlusStatus vtkPlusConfig::WriteApplicationConfiguration()
   // Save output path
   applicationConfigurationRoot->SetAttribute("OutputDirectory", this->OutputDirectory);
 
-  // Save output path
+  // Save image directory path
   applicationConfigurationRoot->SetAttribute("ImageDirectory", this->ImageDirectory);
+
+  // Save gnuplot directory path
+  applicationConfigurationRoot->SetAttribute("GnuplotDirectory", this->GnuplotDirectory);
 
   // Save configuration
   this->SetApplicationConfigurationData(applicationConfigurationRoot);
@@ -304,6 +310,18 @@ PlusStatus vtkPlusConfig::ReadApplicationConfiguration()
     LOG_INFO("Image directory is not set - default './' will be used");
   	std::string defaultImageDirectory = vtksys::SystemTools::CollapseFullPath("./", this->ProgramDirectory); 
     this->SetImageDirectory(defaultImageDirectory.c_str());
+    saveNeeded = true;
+  }
+
+  // Read gnuplot directory
+  const char* gnuplotDirectory = applicationConfigurationRoot->GetAttribute("GnuplotDirectory");
+  if ((gnuplotDirectory != NULL) && (STRCASECMP(gnuplotDirectory, "") != 0)) {
+	  this->SetGnuplotDirectory(gnuplotDirectory);
+
+  } else {
+    LOG_INFO("Gnuplot directory is not set - default '../gnuplot' will be used");
+  	std::string defaultGnuplotDirectory = vtksys::SystemTools::CollapseFullPath("../gnuplot", this->ProgramDirectory); 
+    this->SetGnuplotDirectory(defaultGnuplotDirectory.c_str());
     saveNeeded = true;
   }
 

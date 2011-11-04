@@ -147,6 +147,11 @@ public:
 	/*! Set image directory path */
 	vtkSetStringMacro(ImageDirectory);
 
+	/*! Get gnuplot directory path */
+	vtkGetStringMacro(GnuplotDirectory);
+	/*! Set gnuplot directory path */
+	vtkSetStringMacro(GnuplotDirectory);
+
 protected:
 	/*! Set program directory path */
 	vtkSetStringMacro(ProgramDirectory);
@@ -215,6 +220,9 @@ protected:
 
   /*! Image directory path. It is used as home directory for images when the image path for a saved dataset is not an absolute path */
   char*               ImageDirectory;
+
+  /*! Gnuplot binary directory path */
+  char*               GnuplotDirectory;
 
 private:
 	/*! Instance of the singleton */
