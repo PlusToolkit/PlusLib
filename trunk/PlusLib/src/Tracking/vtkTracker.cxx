@@ -507,7 +507,7 @@ PlusStatus vtkTracker::ReadConfiguration(vtkXMLDataElement* config)
       {
 
         // :TODO: PortName should replace PortNumber
-        const char* portName = config->GetAttribute("PortName"); 
+        const char* portName = toolDataElement->GetAttribute("PortName"); 
         if ( portName != NULL ) 
         {
           this->GetTool(portNumber)->SetPortName(portName); 
