@@ -1582,7 +1582,7 @@ PlusStatus vtkDataCollector::GetTrackedFrameList(double& frameTimestamp, vtkTrac
     }
 
     // Get next timestamp
-    if ( this->GetVideoEnabled() )
+    if ( this->GetVideoEnabled() && i < numberOfFramesToAdd - 1 )
     {
       BufferItemUidType videoUid(0); 
       if ( this->VideoSource->GetBuffer()->GetItemUidFromTime(frameTimestamp, videoUid) != ITEM_OK )
@@ -1604,7 +1604,7 @@ PlusStatus vtkDataCollector::GetTrackedFrameList(double& frameTimestamp, vtkTrac
         return PLUS_FAIL;
       }
     }
-    else if ( this->GetTrackingEnabled() )
+    else if ( this->GetTrackingEnabled() && i < numberOfFramesToAdd - 1 )
     {
       int firstActiveToolNumber = -1; 
       if ( this->GetTracker()->GetFirstActiveTool(firstActiveToolNumber) != PLUS_SUCCESS )
