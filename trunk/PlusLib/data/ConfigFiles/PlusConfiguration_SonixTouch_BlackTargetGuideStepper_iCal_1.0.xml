@@ -88,11 +88,11 @@ Plug in the stepper through Serial2USB converter cable into USB slot. Look for t
 		</CalibrationController>
 	</USCalibration>
 
-  <iCal version="1.0" NumberOfImagesForValidation="50"    >
-     <CalibrationData Type="CALIB_TEMPLATE_TRANSLATION" NumberOfImagesToAcquire="50" FrameTransformNameForValidation="" MaxAllowedTranslationSpeedMmPerSec="10.0" MaxAllowedRotationSpeedDegPerSec="15.0" MinRequiredTranslationDifferenceMm="0.5" MinRequiredAngleDifferenceDeg="5.0"/>
-     <CalibrationData Type="CALIB_PROBE_TRANSLATION" NumberOfImagesToAcquire="50" FrameTransformNameForValidation="" MaxAllowedTranslationSpeedMmPerSec="10.0" MaxAllowedRotationSpeedDegPerSec="15.0" MinRequiredTranslationDifferenceMm="0.5" MinRequiredAngleDifferenceDeg="5.0" />
-     <CalibrationData Type="CALIB_PROBE_ROTATION" NumberOfImagesToAcquire="100" FrameTransformNameForValidation="" MaxAllowedTranslationSpeedMmPerSec="10.0" MaxAllowedRotationSpeedDegPerSec="15.0" MinRequiredTranslationDifferenceMm="0.5" MinRequiredAngleDifferenceDeg="5.0" />
-     <CalibrationData Type="CALIB_RANDOM_STEPPER_MOTION" NumberOfImagesToAcquire="150" FrameTransformNameForValidation="" MaxAllowedTranslationSpeedMmPerSec="10.0" MaxAllowedRotationSpeedDegPerSec="15.0" MinRequiredTranslationDifferenceMm="0.5" MinRequiredAngleDifferenceDeg="5.0" />
+  <iCal version="1.0" NumberOfImagesForValidation="50" RecordingIntervalMs="200" MaxTimeSpentWithProcessingMs="180"   >
+     <CalibrationData Type="CALIB_TEMPLATE_TRANSLATION" NumberOfImagesToAcquire="50" FrameTransformNameForValidation="Probe" MaxAllowedTranslationSpeedMmPerSec="10.0" MaxAllowedRotationSpeedDegPerSec="15.0" MinRequiredTranslationDifferenceMm="0.5" MinRequiredAngleDifferenceDeg="5.0"/>
+     <CalibrationData Type="CALIB_PROBE_TRANSLATION" NumberOfImagesToAcquire="50" FrameTransformNameForValidation="Probe" MaxAllowedTranslationSpeedMmPerSec="10.0" MaxAllowedRotationSpeedDegPerSec="15.0" MinRequiredTranslationDifferenceMm="0.5" MinRequiredAngleDifferenceDeg="5.0" />
+     <CalibrationData Type="CALIB_PROBE_ROTATION" NumberOfImagesToAcquire="100" FrameTransformNameForValidation="Probe" MaxAllowedTranslationSpeedMmPerSec="10.0" MaxAllowedRotationSpeedDegPerSec="15.0" MinRequiredTranslationDifferenceMm="0.5" MinRequiredAngleDifferenceDeg="5.0" />
+     <CalibrationData Type="CALIB_RANDOM_STEPPER_MOTION" NumberOfImagesToAcquire="150" FrameTransformNameForValidation="Probe" MaxAllowedTranslationSpeedMmPerSec="10.0" MaxAllowedRotationSpeedDegPerSec="15.0" MinRequiredTranslationDifferenceMm="0.5" MinRequiredAngleDifferenceDeg="5.0" />
   </iCal>
     
 	<PhantomDefinition version="1.1">

@@ -142,7 +142,7 @@ enum TrackedFrameValidationRequirements
   REQUIRE_TRACKING_OK = 0x0002, /*!<  the tracking flags shall be valid (TR_OK) */  
   REQUIRE_CHANGED_ENCODER_POSITION = 0x0004, /*!<  the stepper encoder position shall be different from the previous ones  */  
   REQUIRE_SPEED_BELOW_THRESHOLD = 0x0008, /*!<  the frame acquisition speed shall be less than a threshold */  
-  REQUIRE_CHANGED_TRANSFORM = 0x0016, /*!<  the transform defined by name shall be different from the previous ones  */  
+  REQUIRE_CHANGED_TRANSFORM = 0x0010, /*!<  the transform defined by name shall be different from the previous ones  */  
 }; 
 
 /** \class TrackedFrameTimestampFinder 
