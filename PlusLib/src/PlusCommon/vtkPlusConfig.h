@@ -152,6 +152,11 @@ public:
 	/*! Set gnuplot directory path */
 	vtkSetStringMacro(GnuplotDirectory);
 
+    /*! Get scripts directory path */
+	vtkGetStringMacro(ScriptsDirectory);
+	/*! Set scripts directory path */
+	vtkSetStringMacro(ScriptsDirectory);
+
 protected:
 	/*! Set program directory path */
 	vtkSetStringMacro(ProgramDirectory);
@@ -223,6 +228,9 @@ protected:
 
   /*! Gnuplot binary directory path */
   char*               GnuplotDirectory;
+
+  /*! Scripts directory path */
+  char*               ScriptsDirectory;
 
 private:
 	/*! Instance of the singleton */

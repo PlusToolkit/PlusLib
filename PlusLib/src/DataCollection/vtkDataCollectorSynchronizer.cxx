@@ -1089,7 +1089,7 @@ double vtkDataCollectorSynchronizer::GetFrameDifference(vtkImageData* frame)
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkDataCollectorSynchronizer::GenerateSynchronizationReport( vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter, const char* gnuplotScriptsFolder)
+PlusStatus vtkDataCollectorSynchronizer::GenerateSynchronizationReport( vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter)
 {
   LOG_TRACE("vtkDataCollectorSynchronizer::GenerateSynchronizationReport"); 
   if ( !this->GetSynchronized() )
@@ -1104,7 +1104,8 @@ PlusStatus vtkDataCollectorSynchronizer::GenerateSynchronizationReport( vtkHTMLG
     return PLUS_FAIL;
   }
 
-  std::string plotSyncResultScript = gnuplotScriptsFolder + std::string("/PlotSyncResult.gnu"); 
+  const char* scriptsFolder = vtkPlusConfig::GetInstance()->GetScriptsDirectory();
+  std::string plotSyncResultScript = scriptsFolder + std::string("/gnuplot/PlotSyncResult.gnu"); 
   if ( !vtksys::SystemTools::FileExists( plotSyncResultScript.c_str(), true) )
   {
     LOG_ERROR("Unable to find gnuplot script at: " << plotSyncResultScript); 

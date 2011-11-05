@@ -114,6 +114,7 @@ vtkPlusConfig::vtkPlusConfig()
   this->ProgramDirectory = NULL;
   this->ImageDirectory = NULL;
   this->GnuplotDirectory = NULL;
+  this->ScriptsDirectory = NULL;
 
 	this->SetDeviceSetConfigurationDirectory("");
 	this->SetDeviceSetConfigurationFileName("");
@@ -199,6 +200,9 @@ PlusStatus vtkPlusConfig::WriteApplicationConfiguration()
 
   // Save gnuplot directory path
   applicationConfigurationRoot->SetAttribute("GnuplotDirectory", this->GnuplotDirectory);
+
+  // Save scripts directory path
+  applicationConfigurationRoot->SetAttribute("ScriptsDirectory", this->ScriptsDirectory);
 
   // Save configuration
   this->SetApplicationConfigurationData(applicationConfigurationRoot);
@@ -322,6 +326,18 @@ PlusStatus vtkPlusConfig::ReadApplicationConfiguration()
     LOG_INFO("Gnuplot directory is not set - default '../gnuplot' will be used");
   	std::string defaultGnuplotDirectory = vtksys::SystemTools::CollapseFullPath("../gnuplot", this->ProgramDirectory); 
     this->SetGnuplotDirectory(defaultGnuplotDirectory.c_str());
+    saveNeeded = true;
+  }
+
+  // Read scripts directory
+  const char* scriptsDirectory = applicationConfigurationRoot->GetAttribute("ScriptsDirectory");
+  if ((scriptsDirectory != NULL) && (STRCASECMP(scriptsDirectory, "") != 0)) {
+	  this->SetScriptsDirectory(scriptsDirectory);
+
+  } else {
+    LOG_INFO("Scripts directory is not set - default '../scripts' will be used");
+  	std::string defaultScriptsDirectory = vtksys::SystemTools::CollapseFullPath("../scripts", this->ProgramDirectory); 
+    this->SetScriptsDirectory(defaultScriptsDirectory.c_str());
     saveNeeded = true;
   }
 

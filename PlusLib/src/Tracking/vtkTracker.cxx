@@ -730,14 +730,13 @@ PlusStatus vtkTracker::GetFirstActiveTool(int &tool)
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkTracker::GenerateTrackingDataAcquisitionReport( vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter, const char* gnuplotScriptsFolder)
+PlusStatus vtkTracker::GenerateTrackingDataAcquisitionReport( vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter)
 {
   if ( htmlReport == NULL || plotter == NULL )
   {
     LOG_ERROR("Caller should define HTML report generator and gnuplot plotter before report generation!"); 
     return PLUS_FAIL; 
   }
-
 
   vtkSmartPointer<vtkTable> timestampReportTable = vtkSmartPointer<vtkTable>::New(); 
   int firstActiveTool = -1;
@@ -766,7 +765,8 @@ PlusStatus vtkTracker::GenerateTrackingDataAcquisitionReport( vtkHTMLGenerator* 
     return PLUS_FAIL; 
   }
 
-  std::string plotBufferTimestampScript = gnuplotScriptsFolder + std::string("/PlotBufferTimestamp.gnu"); 
+  const char* scriptsFolder = vtkPlusConfig::GetInstance()->GetScriptsDirectory();
+  std::string plotBufferTimestampScript = scriptsFolder + std::string("/gnuplot/PlotBufferTimestamp.gnu"); 
   if ( !vtksys::SystemTools::FileExists( plotBufferTimestampScript.c_str(), true) )
   {
     LOG_ERROR("Unable to find gnuplot script at: " << plotBufferTimestampScript); 

@@ -312,7 +312,7 @@ PlusStatus vtkSpacingCalibAlgo::AddNewColumnToReportTable( const char* columnNam
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkSpacingCalibAlgo::GenerateReport( vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter, const char* gnuplotScriptsFolder)
+PlusStatus vtkSpacingCalibAlgo::GenerateReport( vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter)
 {
   LOG_TRACE("vtkSpacingCalibAlgo::GenerateReport"); 
 
@@ -329,8 +329,10 @@ PlusStatus vtkSpacingCalibAlgo::GenerateReport( vtkHTMLGenerator* htmlReport, vt
     return PLUS_FAIL; 
   }
 
+  const char* scriptsFolder = vtkPlusConfig::GetInstance()->GetScriptsDirectory();
+
   // Check gnuplot scripts 
-  std::string plotSpacingCalculationErrorScript = gnuplotScriptsFolder + std::string("/PlotSpacingCalculationErrorHistogram.gnu"); 
+  std::string plotSpacingCalculationErrorScript = scriptsFolder + std::string("/gnuplot/PlotSpacingCalculationErrorHistogram.gnu"); 
   if ( !vtksys::SystemTools::FileExists( plotSpacingCalculationErrorScript.c_str(), true) )
   {
     LOG_ERROR("Unable to find gnuplot script at: " << plotSpacingCalculationErrorScript); 
