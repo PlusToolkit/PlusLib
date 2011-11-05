@@ -73,19 +73,17 @@ public:
   vtkGetObjectMacro(ReportTable, vtkTable); 
 
   /*! Add generated html report from center of rotation calibration to the existing html report */
-  virtual PlusStatus GenerateReport( vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter, const char* gnuplotScriptsFolder); 
+  virtual PlusStatus GenerateReport( vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter); 
 
   /*!
     Add generated html report from center of rotation calibration to the existing html report
     \param htmlReport Has to be defined by the caller function
     \param plotter Has to be defined by the caller function
-    \param gnuplotScriptsFolder Has to be defined by the caller function
     \param reportTable Computed output
     \param centerOfRotationPx Computed output
   */
   static PlusStatus GenerateCenterOfRotationReport( vtkHTMLGenerator* htmlReport, 
     vtkGnuplotExecuter* plotter, 
-    const char* gnuplotScriptsFolder, 
     vtkTable* reportTable,
     double centerOfRotationPx[2]); 
 

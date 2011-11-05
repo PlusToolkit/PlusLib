@@ -25,8 +25,14 @@ vtkGnuplotExecuter::vtkGnuplotExecuter()
 
   this->HideWindowOff(); 
   this->SetTimeout(15.0);  // seconds
-  this->SetWorkingDirectory(vtksys::SystemTools::GetCurrentWorkingDirectory().c_str() ); 
+  
+  std::ostringstream commandpath; 
+  commandpath << vtkPlusConfig::GetInstance()->GetGnuplotDirectory() << "/gnuplot.exe"; 
+  this->SetGnuplotCommand(  vtksys::SystemTools::CollapseFullPath(commandpath.str().c_str()).c_str()); 
 
+  std::ostringstream workingDirectory; 
+  workingDirectory << vtkPlusConfig::GetInstance()->GetOutputDirectory() << "/Report" << std::ends;
+  this->SetWorkingDirectory( vtksys::SystemTools::CollapseFullPath(workingDirectory.str().c_str()).c_str() );
 }
 
 //----------------------------------------------------------------------------

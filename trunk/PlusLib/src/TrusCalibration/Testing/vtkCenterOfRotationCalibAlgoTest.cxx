@@ -36,17 +36,13 @@ int main(int argc, char **argv)
   std::string inputSequenceMetafile(""); 
   std::string inputBaselineFileName(""); 
   std::string inputConfigFileName(""); 
-  std::string inputGnuplotScriptsFolder(""); 
-  std::string inputGnuplotCommand(""); 
 
   args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");	
 	args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");	
   args.AddArgument("--input-sequence-metafile", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputSequenceMetafile, "Input sequence metafile name with path");	
   args.AddArgument("--input-baseline-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputBaselineFileName, "Input xml baseline file name with path");	
   args.AddArgument("--input-config-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "Input xml config file name with path");	
-  args.AddArgument("--input-gnuplot-scripts-folder", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputGnuplotScriptsFolder, "Path to gnuplot scripts folder");	
-  args.AddArgument("--input-gnuplot-command", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputGnuplotCommand, "Path to gnuplot command.");	
-  
+    
   if ( !args.Parse() )
   {
     std::cerr << "Problem parsing arguments" << std::endl;
@@ -174,19 +170,14 @@ int main(int argc, char **argv)
     numberOfFailures++; 
   }
 
-  if ( !inputGnuplotCommand.empty() && !inputGnuplotScriptsFolder.empty() )
-  {
-    LOG_INFO("Testing HTML report generation..."); 
-    vtkSmartPointer<vtkHTMLGenerator> htmlGenerator = vtkSmartPointer<vtkHTMLGenerator>::New(); 
-    htmlGenerator->SetTitle("Center of Rotation Calibration Report"); 
-    vtkSmartPointer<vtkGnuplotExecuter> gnuplotExecuter = vtkSmartPointer<vtkGnuplotExecuter>::New(); 
-    gnuplotExecuter->SetWorkingDirectory("./"); 
-    gnuplotExecuter->SetGnuplotCommand(inputGnuplotCommand.c_str()); 
-    gnuplotExecuter->SetHideWindow(true); 
-    spacingCalibAlgo->GenerateReport(htmlGenerator, gnuplotExecuter, inputGnuplotScriptsFolder.c_str()); 
-    centerOfRotationCalibAlgo->GenerateReport(htmlGenerator, gnuplotExecuter, inputGnuplotScriptsFolder.c_str()); 
-    htmlGenerator->SaveHtmlPage("CenterOfRotationCalibrationErrorReport.html"); 
-  }
+  LOG_INFO("Testing HTML report generation..."); 
+  vtkSmartPointer<vtkHTMLGenerator> htmlGenerator = vtkSmartPointer<vtkHTMLGenerator>::New(); 
+  htmlGenerator->SetTitle("Center of Rotation Calibration Report"); 
+  vtkSmartPointer<vtkGnuplotExecuter> gnuplotExecuter = vtkSmartPointer<vtkGnuplotExecuter>::New(); 
+  gnuplotExecuter->SetHideWindow(true); 
+  spacingCalibAlgo->GenerateReport(htmlGenerator, gnuplotExecuter); 
+  centerOfRotationCalibAlgo->GenerateReport(htmlGenerator, gnuplotExecuter); 
+  htmlGenerator->SaveHtmlPage("CenterOfRotationCalibrationErrorReport.html"); 
 
   std::ostringstream centerOfRotationCalibAlgoStream; 
   centerOfRotationCalibAlgo->PrintSelf(centerOfRotationCalibAlgoStream, vtkIndent(0)); 

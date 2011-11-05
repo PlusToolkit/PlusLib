@@ -31,16 +31,12 @@ int main(int argc, char **argv)
   std::vector<std::string> inputSequenceMetafiles; 
   std::string inputBaselineFileName(""); 
   std::string inputConfigFileName(""); 
-  std::string inputGnuplotScriptsFolder(""); 
-  std::string inputGnuplotCommand(""); 
 
   args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");	
 	args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");	
   args.AddArgument("--input-sequence-metafiles", vtksys::CommandLineArguments::MULTI_ARGUMENT, &inputSequenceMetafiles, "Input sequence metafile name with path");	
   args.AddArgument("--input-baseline-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputBaselineFileName, "Input xml baseline file name with path");	
   args.AddArgument("--input-config-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "Input xml config file name with path");	
-  args.AddArgument("--input-gnuplot-scripts-folder", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputGnuplotScriptsFolder, "Path to gnuplot scripts folder");	
-  args.AddArgument("--input-gnuplot-command", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputGnuplotCommand, "Path to gnuplot command.");	
   
   if ( !args.Parse() )
   {
@@ -145,18 +141,13 @@ int main(int argc, char **argv)
     numberOfFailures++; 
   }
 
-  if ( !inputGnuplotCommand.empty() && !inputGnuplotScriptsFolder.empty() )
-  {
-    LOG_INFO("Testing HTML report generation..."); 
-    vtkSmartPointer<vtkHTMLGenerator> htmlGenerator = vtkSmartPointer<vtkHTMLGenerator>::New(); 
-    htmlGenerator->SetTitle("Spacing Calibration Test Report"); 
-    vtkSmartPointer<vtkGnuplotExecuter> gnuplotExecuter = vtkSmartPointer<vtkGnuplotExecuter>::New(); 
-    gnuplotExecuter->SetWorkingDirectory("./"); 
-    gnuplotExecuter->SetGnuplotCommand(inputGnuplotCommand.c_str()); 
-    gnuplotExecuter->SetHideWindow(true); 
-    spacingCalibAlgo->GenerateReport(htmlGenerator, gnuplotExecuter, inputGnuplotScriptsFolder.c_str()); 
-    htmlGenerator->SaveHtmlPage("SpacingCalibrationErrorReport.html"); 
-  }
+  LOG_INFO("Testing HTML report generation..."); 
+  vtkSmartPointer<vtkHTMLGenerator> htmlGenerator = vtkSmartPointer<vtkHTMLGenerator>::New(); 
+  htmlGenerator->SetTitle("Spacing Calibration Test Report"); 
+  vtkSmartPointer<vtkGnuplotExecuter> gnuplotExecuter = vtkSmartPointer<vtkGnuplotExecuter>::New(); 
+  gnuplotExecuter->SetHideWindow(true); 
+  spacingCalibAlgo->GenerateReport(htmlGenerator, gnuplotExecuter); 
+  htmlGenerator->SaveHtmlPage("SpacingCalibrationErrorReport.html"); 
 
   std::ostringstream spacingCalibAlgoStream; 
   spacingCalibAlgo->PrintSelf(spacingCalibAlgoStream, vtkIndent(0)); 

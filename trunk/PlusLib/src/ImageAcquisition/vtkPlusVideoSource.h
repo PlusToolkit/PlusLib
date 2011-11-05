@@ -176,7 +176,7 @@ public:
     // Description:
     // Add generated html report from video data acquisition to the existing html report
     // htmlReport and plotter arguments has to be defined by the caller function
-    virtual PlusStatus GenerateVideoDataAcquisitionReport( vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter, const char* gnuplotScriptsFolder); 
+    virtual PlusStatus GenerateVideoDataAcquisitionReport( vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter); 
 
 protected:
     vtkPlusVideoSource();

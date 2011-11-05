@@ -454,7 +454,7 @@ PlusStatus vtkCenterOfRotationCalibAlgo::AddNewColumnToReportTable( const char* 
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkCenterOfRotationCalibAlgo::GenerateReport( vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter, const char* gnuplotScriptsFolder)
+PlusStatus vtkCenterOfRotationCalibAlgo::GenerateReport( vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter)
 {
   LOG_TRACE("vtkCenterOfRotationCalibAlgo::GenerateReport"); 
 
@@ -465,13 +465,12 @@ PlusStatus vtkCenterOfRotationCalibAlgo::GenerateReport( vtkHTMLGenerator* htmlR
     return PLUS_FAIL;
   }
 
-  return vtkCenterOfRotationCalibAlgo::GenerateCenterOfRotationReport(htmlReport, plotter, gnuplotScriptsFolder, this->ReportTable, this->CenterOfRotationPx); 
+  return vtkCenterOfRotationCalibAlgo::GenerateCenterOfRotationReport(htmlReport, plotter, this->ReportTable, this->CenterOfRotationPx); 
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkCenterOfRotationCalibAlgo::GenerateCenterOfRotationReport( vtkHTMLGenerator* htmlReport, 
                                                                         vtkGnuplotExecuter* plotter, 
-                                                                        const char* gnuplotScriptsFolder, 
                                                                         vtkTable* reportTable,
                                                                         double centerOfRotationPx[2])
 {
@@ -493,21 +492,22 @@ PlusStatus vtkCenterOfRotationCalibAlgo::GenerateCenterOfRotationReport( vtkHTML
     return PLUS_FAIL; 
   }
 
-  if ( gnuplotScriptsFolder == NULL )
+  const char* scriptsFolder = vtkPlusConfig::GetInstance()->GetScriptsDirectory();
+  if ( scriptsFolder == NULL )
   {
     LOG_ERROR("Unable to generate report - gnuplot scripts folder is NULL!"); 
     return PLUS_FAIL; 
   }
 
   // Check gnuplot scripts 
-  std::string plotCenterOfRotCalcErrorScript = gnuplotScriptsFolder + std::string("/PlotCenterOfRotationCalculationError.gnu"); 
+  std::string plotCenterOfRotCalcErrorScript = scriptsFolder + std::string("/gnuplot/PlotCenterOfRotationCalculationError.gnu"); 
   if ( !vtksys::SystemTools::FileExists( plotCenterOfRotCalcErrorScript.c_str(), true) )
   {
     LOG_ERROR("Unable to find gnuplot script at: " << plotCenterOfRotCalcErrorScript); 
     return PLUS_FAIL; 
   }
 
-  std::string plotCenterOfRotCalcErrorHistogramScript = gnuplotScriptsFolder + std::string("/PlotCenterOfRotationCalculationErrorHistogram.gnu"); 
+  std::string plotCenterOfRotCalcErrorHistogramScript = scriptsFolder + std::string("/gnuplot/PlotCenterOfRotationCalculationErrorHistogram.gnu"); 
   if ( !vtksys::SystemTools::FileExists( plotCenterOfRotCalcErrorHistogramScript.c_str(), true) )
   {
     LOG_ERROR("Unable to find gnuplot script at: " << plotCenterOfRotCalcErrorHistogramScript); 

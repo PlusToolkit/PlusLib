@@ -33,7 +33,7 @@ public:
     Add generated html report from spacing calibration to the existing html report
     htmlReport and plotter arguments has to be defined by the caller function 
   */
-  virtual PlusStatus GenerateReport( vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter, const char* gnuplotScriptsFolder); 
+  virtual PlusStatus GenerateReport( vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter); 
 
   /*!
     Set inputs: 

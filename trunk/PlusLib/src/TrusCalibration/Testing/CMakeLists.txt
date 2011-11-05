@@ -74,8 +74,6 @@ ADD_TEST(CenterOfRotationCalibration-Ulterius
         --input-config-file-name=${ConfigFilesDir}/Test_PlusConfiguration_CalibrationOnly_SonixRP_Ulterius_iCal.xml 
         --input-sequence-metafile=${TestDataDir}/USTC_Ulterius_ProbeRotationData.mha
         --input-baseline-file-name=${TestDataDir}/USTC_Ulterius_StepperCalibrationResultBaseline.xml
-        --input-gnuplot-scripts-folder=${PlusLib_SOURCE_DIR}/src/scripts/gnuplot
-        --input-gnuplot-command=${GNUPLOT_BIN_DIR}/gnuplot.exe
         )
 SET_TESTS_PROPERTIES( CenterOfRotationCalibration-Ulterius PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
@@ -84,8 +82,6 @@ ADD_TEST(CenterOfRotationCalibration-FrameGrabber
         --input-config-file-name=${ConfigFilesDir}/Test_PlusConfiguration_CalibrationOnly_FrameGrabber_iCal.xml 
         --input-sequence-metafile=${TestDataDir}/USTC_FrameGrabber_ProbeRotationData.mha
         --input-baseline-file-name=${TestDataDir}/USTC_FrameGrabber_StepperCalibrationResultBaseline.xml
-        --input-gnuplot-scripts-folder=${PlusLib_SOURCE_DIR}/src/scripts/gnuplot
-        --input-gnuplot-command=${GNUPLOT_BIN_DIR}/gnuplot.exe
         )
 SET_TESTS_PROPERTIES( CenterOfRotationCalibration-FrameGrabber PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
@@ -98,8 +94,6 @@ ADD_TEST(SpacingCalibAlgoTest-Ulterius
             --input-config-file-name=${ConfigFilesDir}/Test_PlusConfiguration_CalibrationOnly_SonixRP_Ulterius_iCal.xml 
             --input-sequence-metafiles ${TestDataDir}/USTC_Ulterius_ProbeRotationData.mha 
             --input-baseline-file-name=${TestDataDir}/USTC_Ulterius_StepperCalibrationResultBaseline.xml
-            --input-gnuplot-scripts-folder=${PlusLib_SOURCE_DIR}/src/scripts/gnuplot
-            --input-gnuplot-command=${GNUPLOT_BIN_DIR}/gnuplot.exe
             )
 SET_TESTS_PROPERTIES( SpacingCalibAlgoTest-Ulterius PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
@@ -108,8 +102,6 @@ ADD_TEST(SpacingCalibAlgoTest-FrameGrabber
             --input-config-file-name=${ConfigFilesDir}/Test_PlusConfiguration_CalibrationOnly_FrameGrabber_iCal.xml 
             --input-sequence-metafiles ${TestDataDir}/USTC_FrameGrabber_ProbeRotationData.mha 
             --input-baseline-file-name=${TestDataDir}/USTC_FrameGrabber_StepperCalibrationResultBaseline.xml
-            --input-gnuplot-scripts-folder=${PlusLib_SOURCE_DIR}/src/scripts/gnuplot
-            --input-gnuplot-command=${GNUPLOT_BIN_DIR}/gnuplot.exe
             )
 SET_TESTS_PROPERTIES( SpacingCalibAlgoTest-FrameGrabber PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 

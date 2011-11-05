@@ -605,7 +605,7 @@ PlusStatus vtkPlusVideoSource::ReadConfiguration(vtkXMLDataElement* config)
 
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusVideoSource::GenerateVideoDataAcquisitionReport( vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter, const char* gnuplotScriptsFolder)
+PlusStatus vtkPlusVideoSource::GenerateVideoDataAcquisitionReport( vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter)
 {
 	if ( htmlReport == NULL || plotter == NULL )
 	{
@@ -634,7 +634,8 @@ PlusStatus vtkPlusVideoSource::GenerateVideoDataAcquisitionReport( vtkHTMLGenera
 		return PLUS_FAIL; 
 	}
 
-	std::string plotBufferTimestampScript = gnuplotScriptsFolder + std::string("/PlotBufferTimestamp.gnu"); 
+    const char* scriptsFolder = vtkPlusConfig::GetInstance()->GetScriptsDirectory();
+	std::string plotBufferTimestampScript = scriptsFolder + std::string("/gnuplot/PlotBufferTimestamp.gnu"); 
 	if ( !vtksys::SystemTools::FileExists( plotBufferTimestampScript.c_str(), true) )
 	{
 		LOG_ERROR("Unable to find gnuplot script at: " << plotBufferTimestampScript); 

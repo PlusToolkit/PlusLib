@@ -45,7 +45,7 @@ public:
     Add generated html report from synchronization to the existing html report
     htmlReport and plotter arguments has to be defined by the caller function
   */
-	virtual PlusStatus GenerateSynchronizationReport( vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter, const char* gnuplotScriptsFolder); 
+	virtual PlusStatus GenerateSynchronizationReport( vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter); 
 	
 	/*! Set/get video buffer  */
 	vtkSetObjectMacro(VideoBuffer, vtkVideoBuffer); 
