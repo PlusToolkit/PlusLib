@@ -39,35 +39,41 @@ POSSIBILITY OF SUCH DAMAGES.
 
 =========================================================================*/
 
-// A fixed-point math type, with the pivot between bit 13 and bit 14.
-
-// All basic arithmetic operations are supported.
-// For balancing, this type lies between the integer and float types.
-
-// *************** VERY IMPORTANT ********************
-// Note that the "*" (multiply) operator doesn't check for overflow,
-// and assumes that the result of the multiplication is less than 2.0,
-// the "*=" operator will work for products up to 131071.0 but is much
-// less efficient.
-
-// Three special methods are provided for the sake of efficient conversion:
-// f.floor()  - convert to int using round-to-negative-infinity
-// f.ceil()   - convert to int using round-to-positive-infinity
-// f.round()  - convert to int using round-to-nearest, round to the larger
-//              number in case of a tie
 
 #ifndef _FIXED_H
 #define _FIXED_H 1 
 
-// because not all compilers support 'bool', use int for comparisons
-typedef int fixed_bool;
+/*!
+  \class fixed
+  \brief A fixed-point math type, with the pivot between bit 13 and bit 14.
 
-// a really stupid constant that I hope with make the code clearer
+  All basic arithmetic operations are supported.
+  For balancing, this type lies between the integer and float types.
+
+  VERY IMPORTANT: Note that the "*" (multiply) operator doesn't check for overflow,
+  and assumes that the result of the multiplication is less than 2.0,
+  the "*=" operator will work for products up to 131071.0 but is much
+  less efficient.
+
+  Three special methods are provided for the sake of efficient conversion:
+  f.floor()  - convert to int using round-to-negative-infinity
+  f.ceil()   - convert to int using round-to-positive-infinity
+  f.round()  - convert to int using round-to-nearest, round to the larger
+               number in case of a tie
+
+  \ingroup VolumeReconstruction
+*/
+
+/*! A really stupid constant that I hope with make the code clearer. */
 #define INTERPRET_AS_FIXED 0
+
+/*! Because not all compilers support 'bool', use int for comparisons. */
+typedef int fixed_bool;
 
 class fixed
 {
 private:
+
   static inline int point() { return 14; };
 
   static inline int from_float(double x) {
@@ -97,11 +103,14 @@ private:
   static inline int divide(int x, int y) {
     return from_float(double(x)/y); };
 
-  inline fixed(int x, int) : i(x) {}; // dummy null-conversion
+  /*! Dummy null-conversion (to directly set the value of the integer container with an existing integer, without conversion */
+  inline fixed(int x, int) : i(x) {};
 
 public:
+  /*! This member stores the fixed point number */
   int i;
 
+  /*! Constructs the object. Its value is not initialized. */
   inline fixed() {};
   inline fixed(const fixed &x) : i(x.i) {}; 
   inline fixed& operator=(const fixed& x) { i = x.i; return *this; };
@@ -447,4 +456,4 @@ inline fixed_bool operator<=(const fixed& x, float y) { return float(x) <= y; }
 inline fixed_bool operator>=(float x, const fixed& y) { return x >= float(y); }
 inline fixed_bool operator>=(const fixed& x, float y) { return float(x) >= y; }
 
-#endif
+#endif // _FIXED_H

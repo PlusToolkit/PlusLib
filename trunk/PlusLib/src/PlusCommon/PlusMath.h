@@ -16,56 +16,80 @@
 #include "vtkMatrix4x4.h"
 #include "vtkTransform.h"
 
+/*!
+  \class PlusMath
+  \brief A utility class that contains static functions for various
+  useful commonly used computations
+  \ingroup PlusLibCommon
+*/
 class VTK_EXPORT PlusMath
 {
 public:
 
-  //! Solve Ax = b sparse linear equations with robust linear least squares method (vnl_lsqr + outlier removal)
-	// The coefficient matrix aMatrix should be m-by-n and the column vector bVector must have length m. 
-	// resultVector size need to be fixed by constructor time
+  /*!
+    Solve Ax = b sparse linear equations with robust linear least squares method (vnl_lsqr and outlier removal)
+    \param aMatrix The coefficient matrix of size m-by-n.
+    \param bVector Column vector of length m.
+    \resultsVector Vector to store the results.
+  */
   static PlusStatus LSQRMinimize(const std::vector< std::vector<double> > &aMatrix, const std::vector<double> &bVector, vnl_vector<double> &resultVector, double* mean = NULL, double* stdev = NULL); 
+  /*!
+    Solve Ax = b sparse linear equations with robust linear least squares method (vnl_lsqr and outlier removal)
+    \param aMatrix The coefficient matrix of size m-by-n.
+    \param bVector Column vector of length m.
+    \resultsVector Vector to store the results.
+  */
   static PlusStatus LSQRMinimize(const std::vector<vnl_vector<double>> &aMatrix, const std::vector<double> &bVector, vnl_vector<double> &resultVector, double* mean = NULL, double* stdev = NULL); 
+  /*!
+    Solve Ax = b sparse linear equations with robust linear least squares method (vnl_lsqr and outlier removal)
+    \param aMatrix The coefficient matrix of size m-by-n.
+    \param bVector Column vector of length m.
+    \resultsVector Vector to store the results.
+  */
   static PlusStatus LSQRMinimize(const vnl_sparse_matrix<double> &sparseMatrixLeftSide, const vnl_vector<double> &vectorRightSide, vnl_vector<double> &resultVector, double* mean = NULL, double* stdev = NULL); 
 
-  //! Returns the Euclidean distance between two 4x4 homogeneous transformation matrix
+  /*! Returns the Euclidean distance between two 4x4 homogeneous transformation matrix */
   static double GetPositionDifference(vtkMatrix4x4* aMatrix, vtkMatrix4x4* bMatrix); 
 
-  //! Returns the orientation difference in degrees between two 4x4 homogeneous transformation matrix
+  /*! Returns the orientation difference in degrees between two 4x4 homogeneous transformation matrix */
   static double GetOrientationDifference(vtkMatrix4x4* aMatrix, vtkMatrix4x4* bMatrix); 
 
-  //! Description:
-  // Returns the distance between a line, defined by two point (x and y) and a point (z)
+  /*! Returns the distance between a line, defined by two point (x and y) and a point (z) */
   static double PlusMath::ComputeDistanceLinePoint(const double x[3], const double y[3], const double z[3]);
 
-  //! Description:
-  // Spherical linear interpolation between two rotation quaternions.
-  // t is a value between 0 and 1 that interpolates between from and to (t=0 means the results is the same as "from").
-  // Precondition: no aliasing problems to worry about ("result" can be "from" or "to" param).
-  // Parameters: adjustSign - If true, then slerp will operate by adjusting the sign of the slerp to take shortest path
-  // References: From Adv Anim and Rendering Tech. Pg 364
+  /*!
+    Spherical linear interpolation between two rotation quaternions.
+    Precondition: no aliasing problems to worry about ("result" can be "from" or "to" param).
+    \param result Interpolated quaternion
+    \param from Input quaternion
+    \param to Input quaternion
+    \param t Value between 0 and 1 that interpolates between from and to (t=0 means the results is the same as "from").    
+    \param adjustSign If true, then slerp will operate by adjusting the sign of the slerp to take shortest path
+    References: From Adv Anim and Rendering Tech. Pg 364
+  */
   static void Slerp(double *result, double t, double *from, double *to, bool adjustSign = true); 
 
-  //! Returns a string containing the parameters (rotation, translation, scaling) from a transformation
+  /*! Returns a string containing the parameters (rotation, translation, scaling) from a transformation */
   static std::string GetTransformParametersString(vtkTransform* transform);
 
-  //! Returns a string containing the parameters (rotation, translation, scaling) from a vtkMatrix 
+  /*! Returns a string containing the parameters (rotation, translation, scaling) from a vtkMatrix */
   static std::string GetTransformParametersString(vtkMatrix4x4* matrix); 
 
-  //! Convert matrix between VTK and VNL
+  /*! Convert matrix between VTK and VNL */
 	static void ConvertVnlMatrixToVtkMatrix(vnl_matrix<double>& inVnlMatrix, vtkMatrix4x4* outVtkMatrix); 
 	static void ConvertVtkMatrixToVnlMatrix(vtkMatrix4x4* inVtkMatrix, vnl_matrix<double>& outVnlMatrix ); 
 
-  //! Print VTK matrix into STL stream
+  /*! Print VTK matrix into STL stream */
   static void PrintVtkMatrix(vtkMatrix4x4* matrix, std::ostringstream &stream);
 
-  //! Print VTK matrix into log as info
+  /*! Print VTK matrix into log as info */
   static void LogVtkMatrix(vtkMatrix4x4* matrix);
 
 protected:
   PlusMath(); 
   ~PlusMath();
 
-  //! Remove outliers from Ax = b sparse linear equations after linear least squares method (vnl_lsqr)
+  /*! Remove outliers from Ax = b sparse linear equations after linear least squares method (vnl_lsqr) */
   static PlusStatus RemoveOutliersFromLSRQ(
     vnl_sparse_matrix<double> &sparseMatrixLeftSide, 
     vnl_vector<double> &vectorRightSide, 
@@ -149,7 +173,7 @@ static inline int vtkUltraRound(float x)
   return vtkUltraRound((double)x);
 }
 
-// convert a float into an integer plus a fraction
+/*! convert a float into an integer plus a fraction */
 template <class F>
 static inline int vtkUltraFloor(F x, F &f)
 {
