@@ -3,5 +3,6 @@
   DeviceSetConfigurationDirectory="${PLUSCONFIG_DEVICESET_CONFIG_DIR}"
   ImageDirectory="${PLUSCONFIG_IMAGE_DIR}"
   GnuplotDirectory="${PLUSCONFIG_GNUPLOT_DIR}"
+  ScriptsDirectory="${PLUSCONFIG_SCRIPTS_DIR}"
   >
 </PlusConfig>

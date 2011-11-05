@@ -157,48 +157,27 @@ int main(int argc, char **argv)
 
 	//************************************************************************************
 	// Generate html report
-	LOG_INFO("Generate report ...");
-	const std::string gnuplotPath = vtksys::SystemTools::CollapseFullPath("../gnuplot/gnuplot.exe", programPath.c_str()); 
-	const std::string gnuplotScriptsFolder = vtksys::SystemTools::CollapseFullPath("../scripts/"  , programPath.c_str()); 
+  LOG_INFO("Generate report ...");
+  vtkSmartPointer<vtkHTMLGenerator> htmlReport = vtkSmartPointer<vtkHTMLGenerator>::New(); 
+  htmlReport->SetTitle("iCAL Temporal Calibration Report"); 
 
-  if ( vtksys::SystemTools::FileExists(gnuplotPath.c_str(), true) && vtksys::SystemTools::FileExists(gnuplotScriptsFolder.c_str(), false) )
+  vtkSmartPointer<vtkGnuplotExecuter> plotter = vtkSmartPointer<vtkGnuplotExecuter>::New(); 
+  plotter->SetHideWindow(true); 
+
+  // Generate tracking data acq report
+  if ( dataCollector->GetTracker() != NULL )
   {
-    vtkSmartPointer<vtkHTMLGenerator> htmlReport = vtkSmartPointer<vtkHTMLGenerator>::New(); 
-    htmlReport->SetTitle("iCAL Temporal Calibration Report"); 
-
-    vtkSmartPointer<vtkGnuplotExecuter> plotter = vtkSmartPointer<vtkGnuplotExecuter>::New(); 
-    plotter->SetGnuplotCommand(gnuplotPath.c_str()); 
-    plotter->SetWorkingDirectory( programPath.c_str() ); 
-    plotter->SetHideWindow(true); 
-
-    // Generate tracking data acq report
-    if ( dataCollector->GetTracker() != NULL )
-    {
-      dataCollector->GetTracker()->GenerateTrackingDataAcquisitionReport(htmlReport, plotter, gnuplotScriptsFolder.c_str()); 
-    }
-
-    // Generate video data acq report
-    if ( dataCollector->GetVideoSource() != NULL ) 
-    {
-      dataCollector->GetVideoSource()->GenerateVideoDataAcquisitionReport(htmlReport, plotter, gnuplotScriptsFolder.c_str()); 
-    }
-
-    std::string reportFileName = plotter->GetWorkingDirectory() + std::string("/iCALDataCollectionReport.html"); 
-    htmlReport->SaveHtmlPage(reportFileName.c_str()); 
-
-  } 
-  else
-  {
-    if ( !vtksys::SystemTools::FileExists(gnuplotPath.c_str(), true) )
-    {
-      LOG_WARNING("Failed to generate report: Unable to find gnuplot executer at " << gnuplotPath); 
-    }
-
-    if ( !vtksys::SystemTools::FileExists(gnuplotScriptsFolder.c_str(), false) )
-    {
-      LOG_WARNING("Failed to generate report: Unable to find gnuplot scripts folder at " << gnuplotPath); 
-    }
+    dataCollector->GetTracker()->GenerateTrackingDataAcquisitionReport(htmlReport, plotter); 
   }
+
+  // Generate video data acq report
+  if ( dataCollector->GetVideoSource() != NULL ) 
+  {
+    dataCollector->GetVideoSource()->GenerateVideoDataAcquisitionReport(htmlReport, plotter); 
+  }
+
+  std::string reportFileName = plotter->GetWorkingDirectory() + std::string("/iCALDataCollectionReport.html"); 
+  htmlReport->SaveHtmlPage(reportFileName.c_str()); 
 
 	//************************************************************************************
 	// Dump buffers to file 

@@ -160,25 +160,20 @@ int main(int argc, char **argv)
 	//************************************************************************************
 	// Generate html report
 	LOG_INFO("Generate report ...");
-	const std::string gnuplotPath = vtksys::SystemTools::CollapseFullPath("../gnuplot/gnuplot.exe", programPath.c_str()); 
-	const std::string gnuplotScriptsFolder = vtksys::SystemTools::CollapseFullPath("../scripts/"  , programPath.c_str()); 
-
 	vtkSmartPointer<vtkHTMLGenerator> htmlReport = vtkSmartPointer<vtkHTMLGenerator>::New(); 
 	htmlReport->SetTitle("iCAL Temporal Calibration Report"); 
 
 	vtkSmartPointer<vtkGnuplotExecuter> plotter = vtkSmartPointer<vtkGnuplotExecuter>::New(); 
-	plotter->SetGnuplotCommand(gnuplotPath.c_str()); 
-	plotter->SetWorkingDirectory( programPath.c_str() ); 
 	plotter->SetHideWindow(true); 
 
 	// Generate tracking data acq report
-	tracker->GenerateTrackingDataAcquisitionReport(htmlReport, plotter, gnuplotScriptsFolder.c_str()); 
+	tracker->GenerateTrackingDataAcquisitionReport(htmlReport, plotter); 
 
 	// Generate video data acq report
-	dataCollector->GetVideoSource()->GenerateVideoDataAcquisitionReport(htmlReport, plotter, gnuplotScriptsFolder.c_str()); 
+	dataCollector->GetVideoSource()->GenerateVideoDataAcquisitionReport(htmlReport, plotter); 
 
 	// Synchronizer Analysis report
-	synchronizer->GenerateSynchronizationReport(htmlReport, plotter, gnuplotScriptsFolder.c_str()); 
+	synchronizer->GenerateSynchronizationReport(htmlReport, plotter); 
 
 	htmlReport->SaveHtmlPage("iCALTemporalCalibrationReport.html"); 
 	//************************************************************************************
