@@ -138,7 +138,6 @@ int main (int argc, char* argv[])
 	vtkSmartPointer<vtkProbeCalibrationAlgo> probeCal = vtkSmartPointer<vtkProbeCalibrationAlgo>::New(); 
 	probeCal->ReadConfiguration(configRootElement); 
   probeCal->ReadProbeCalibrationConfiguration(configRootElement);
-  probeCal->EnableSegmentationAnalysisOn(); // So that results are drawn (there was a condition for that if the calibration is in OFFLINE mode - now that enum has been removed)
 
 	probeCal->Initialize(); 
 
@@ -161,9 +160,6 @@ int main (int argc, char* argv[])
   // TODO: remove these transforms from vtkProbeCalibrationAlgo
   probeCal->GetTransformTemplateHolderToTemplate()->SetMatrix(probeCal->GetTransformTemplateHolderToPhantom()->GetMatrix() ); 
   probeCal->GetTransformReferenceToTemplateHolderHome()->SetMatrix( phantomRegistrationAlgo->GetTransformReferenceToTemplateHolder()->GetMatrix() ); 
-
-  // Draw segmentation results to image 
-  probeCal->EnableSegmentationAnalysisOn(); 
 
   // Load and segment validation tracked frame list
   vtkSmartPointer<vtkTrackedFrameList> validationTrackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New();
@@ -201,7 +197,7 @@ int main (int argc, char* argv[])
   }
 
   // Compare results
-	vtkstd::string currentConfigFileName = probeCal->GetCalibrationResultFileNameWithPath(); 
+	std::string currentConfigFileName = vtkPlusConfig::GetInstance()->GetOutputDirectory() + std::string("/") + std::string(vtkPlusConfig::GetInstance()->GetApplicationStartTimestamp()) + ".Calibration.results.xml";
 	if ( CompareCalibrationResultsWithBaseline( inputBaselineFileName.c_str(), currentConfigFileName.c_str(), inputTranslationErrorThreshold, inputRotationErrorThreshold ) !=0 )
 	{
     numberOfFailures++; 

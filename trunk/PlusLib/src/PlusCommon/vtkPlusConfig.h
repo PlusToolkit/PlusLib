@@ -152,10 +152,13 @@ public:
 	/*! Set gnuplot directory path */
 	vtkSetStringMacro(GnuplotDirectory);
 
-    /*! Get scripts directory path */
+  /*! Get scripts directory path */
 	vtkGetStringMacro(ScriptsDirectory);
 	/*! Set scripts directory path */
 	vtkSetStringMacro(ScriptsDirectory);
+
+  /*! Get application start timestamp */
+	vtkGetStringMacro(ApplicationStartTimestamp);
 
 protected:
 	/*! Set program directory path */
@@ -165,6 +168,9 @@ protected:
   vtkGetObjectMacro(ApplicationConfigurationData, vtkXMLDataElement); 
 	/*! Set application configuration data */
   vtkSetObjectMacro(ApplicationConfigurationData, vtkXMLDataElement); 
+
+  /*! Set application start timestamp */
+	vtkSetStringMacro(ApplicationStartTimestamp);
 
 protected:
   /*!
@@ -231,6 +237,9 @@ protected:
 
   /*! Scripts directory path */
   char*               ScriptsDirectory;
+
+  /*! Formatted string timestamp of the application start time - used as a prefix for most outputs */
+  char*               ApplicationStartTimestamp;
 
 private:
 	/*! Instance of the singleton */

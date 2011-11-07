@@ -84,7 +84,9 @@ public:
   */
 	virtual PlusStatus AddPositionsPerImage( TrackedFrame* trackedFrame, const char* defaultTransformName, std::vector<NWire> &nWires, bool isValidation );
 	
+	/*! Get Phantom to Reference transform */
 	vtkGetObjectMacro(PhantomToReferenceTransform, vtkTransform);
+	/*! Set Phantom to Reference transform */
 	vtkSetObjectMacro(PhantomToReferenceTransform, vtkTransform);
 
 	/*! Get flag to show the initialized state */
@@ -95,24 +97,12 @@ public:
   /*! Set/get the calibration date and time in string format */
 	vtkGetStringMacro(CalibrationDate);
 
-  /*! Set/get the calibration date and time in string format for file names */
-	vtkSetStringMacro(CalibrationTimestamp); 
-  /*! Set/get the calibration date and time in string format for file names */
-	vtkGetStringMacro(CalibrationTimestamp);
-
   /*! Flag to identify the calibration state */
 	vtkGetMacro(CalibrationDone, bool);
   /*! Flag to identify the calibration state */
 	vtkSetMacro(CalibrationDone, bool);
   /*! Flag to identify the calibration state */
 	vtkBooleanMacro(CalibrationDone, bool);
-  
-	/*! Flag to enable the Segmentation Analysis */
-	vtkGetMacro(EnableSegmentationAnalysis, bool);
-  /*! Flag to enable the Segmentation Analysis */
-	vtkSetMacro(EnableSegmentationAnalysis, bool);
-  /*! Flag to enable the Segmentation Analysis */
-	vtkBooleanMacro(EnableSegmentationAnalysis, bool);
 
   /*! Reset data containers */
   void ResetDataContainers();
@@ -198,26 +188,6 @@ public: // Former ProbeCalibrationController and FreehandCalibraitonController f
 	vtkGetMacro(CurrentPRE3DdistributionID, int);
   /*! Track the current position ID of the output in PRE3D distribution data */
 	vtkSetMacro(CurrentPRE3DdistributionID, int);
-
-	/*! Calibration config file name */
-	vtkGetStringMacro(CalibrationConfigFileNameWithPath);
-  /*! Calibration config file name */
-	vtkSetStringMacro(CalibrationConfigFileNameWithPath);
-
-	/*! Calibration result file name */
-	vtkGetStringMacro(CalibrationResultFileNameWithPath);
-  /*! Calibration result file name */
-	vtkSetStringMacro(CalibrationResultFileNameWithPath);
-
-	/*! Segmentation error log file name with timestamp */
-	vtkGetStringMacro(SegmentationErrorLogFileNameWithTimeStamp);
-  /*! Segmentation error log file name with timestamp */
-	vtkSetStringMacro(SegmentationErrorLogFileNameWithTimeStamp);
-
-	/*! Segmentation analysis file name with timestamp */
-	vtkGetStringMacro(SegmentationAnalysisFileNameWithTimeStamp);
-  /*! Segmentation analysis file name with timestamp */
-	vtkSetStringMacro(SegmentationAnalysisFileNameWithTimeStamp);
 	
 	/*! US 3D beam profile name and path */
 	vtkGetStringMacro(US3DBeamProfileDataFileNameAndPath); 
@@ -333,9 +303,6 @@ protected: // from former vtkProbeCalibrationControllerIO class
 	virtual PlusStatus LoadUS3DBeamProfileData();
 
 protected:
-	/*! Flag to enable the Segmentation Analysis file */
-	bool EnableSegmentationAnalysis; 
-
 	/*! Flag to show the initialized state */
 	bool Initialized; 
 
@@ -344,9 +311,6 @@ protected:
 
   /*! Calibration date in string format */
   char* CalibrationDate; 
-
-  /*! Calibration date and time in string format for file names */
-  char* CalibrationTimestamp; 
 
 protected: // Former ProbeCalibrationController and FreehandCalibrationController members
 
@@ -381,18 +345,6 @@ protected: // Former ProbeCalibrationController and FreehandCalibrationControlle
 
   /*! Center of rotation position in pixels */
   double CenterOfRotationPx[2];
-
-	/*! calibration config file name */
-	char* CalibrationConfigFileNameWithPath;
-
-	/*! calibration result file name */
-	char* CalibrationResultFileNameWithPath; 
-
-	/*! Segmentation error log file name with timestamp */
-	char* SegmentationErrorLogFileNameWithTimeStamp;
-
-	/*! Segmentation analysis file name with timestamp */
-	char* SegmentationAnalysisFileNameWithTimeStamp;
 
 	/*! US 3D beam profile name and path */
 	char* US3DBeamProfileDataFileNameAndPath;
@@ -577,9 +529,6 @@ protected: // From former Phantom class
   */
 	std::vector<double> mWeightsForDataPositions;
 
-	/*! The flag to set when the ultrasound probe has been calibrated */
-	bool mHasBeenCalibrated;
-
 	/*! Data positions collected as inputs for the US calibration */
 	std::vector< vnl_vector<double> > mDataPositionsInUSProbeFrame;
   /*! Data positions collected as inputs for the US calibration */
@@ -652,12 +601,6 @@ protected: // From former Phantom class
 
 	/*! Flag to set when the validation data matrices are populated */
 	bool mAreValidationDataMatricesConstructed;
-
-	/*!
-    Weights for the validation positions defined by prior knowledge of the imaging condition
-	  E.g., the ultrasound 3D beamwidth in axial, lateral and elevational axes
-  */
-	std::vector<double> mWeightsForValidationPositions; //Not in use yet!
 
 	/*!
     Final calibration transform in vnl_matrix format.
@@ -828,9 +771,6 @@ protected: // From former Phantom class
 	std::vector<double> mNWire4AbsLREAnalysisInUSProbeFrame;
   /*! Line Reconstruction Error Analysis for the validation positions in the US probe frame */
 	std::vector<double> mNWire6AbsLREAnalysisInUSProbeFrame;
-
-	/*! Frames where the LRE is larger than LRE stdev * OutlierDetectionThreshold will be considered as outliers */
-	double mOutlierDetectionThreshold;
 
 	/*! This is the threshold to filter out input data acquired at large beamwidth */
 	double mNumOfTimesOfMinBeamWidth;
