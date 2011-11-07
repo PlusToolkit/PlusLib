@@ -26,7 +26,6 @@ int main( int argc, char** argv )
   std::string  inputConfigFileName;
   std::string  inputVideoBufferMetafile;
   std::string  inputTrackerBufferMetafile;
-  int          port = 0;
   int          verboseLevel = vtkPlusLogger::LOG_LEVEL_DEFAULT;
 
   vtksys::CommandLineArguments args;
@@ -38,8 +37,6 @@ int main( int argc, char** argv )
     &inputVideoBufferMetafile, "Video buffer sequence metafile." );
   args.AddArgument( "--input-tracker-buffer-metafile", vtksys::CommandLineArguments::EQUAL_ARGUMENT,
     &inputTrackerBufferMetafile, "Tracker buffer sequence metafile." );
-  args.AddArgument( "--port", vtksys::CommandLineArguments::EQUAL_ARGUMENT,
-    &port, "Port number for OpenIGTLink communication." );
   args.AddArgument( "--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, 
     &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug 5=trace)" );  
 
