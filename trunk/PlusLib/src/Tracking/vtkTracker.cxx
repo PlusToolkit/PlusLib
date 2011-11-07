@@ -751,7 +751,9 @@ PlusStatus vtkTracker::GenerateTrackingDataAcquisitionReport( vtkHTMLGenerator* 
     return PLUS_FAIL; 
   }
 
-  std::string reportFile = vtkPlusConfig::GetInstance()->GetOutputDirectory() + std::string("/TrackerBufferTimestamps.txt"); 
+  std::string reportFile = vtkPlusConfig::GetInstance()->GetOutputDirectory() + std::string("/")
+    + std::string(vtkPlusConfig::GetInstance()->GetApplicationStartTimestamp()) 
+    + std::string(".TrackerBufferTimestamps.txt"); 
 
   if ( vtkGnuplotExecuter::DumpTableToFileInGnuplotFormat( timestampReportTable, reportFile.c_str() ) != PLUS_SUCCESS )
   {

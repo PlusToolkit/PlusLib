@@ -515,7 +515,9 @@ PlusStatus vtkCenterOfRotationCalibAlgo::GenerateCenterOfRotationReport( vtkHTML
   }
 
   // Generate report files from table 
-  std::string reportFile = std::string(vtkPlusConfig::GetInstance()->GetOutputDirectory()) + std::string("/CenterOfRotationCalculationError.txt");
+  std::string reportFile = std::string(vtkPlusConfig::GetInstance()->GetOutputDirectory()) + std::string("/")
+    + std::string(vtkPlusConfig::GetInstance()->GetApplicationStartTimestamp())
+    + std::string(".CenterOfRotationCalculationError.txt");
   if ( vtkGnuplotExecuter::DumpTableToFileInGnuplotFormat( reportTable, reportFile.c_str()) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to dump translation axis calibration report table to " << reportFile );

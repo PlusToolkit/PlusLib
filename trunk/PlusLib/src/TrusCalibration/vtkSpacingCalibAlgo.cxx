@@ -340,7 +340,9 @@ PlusStatus vtkSpacingCalibAlgo::GenerateReport( vtkHTMLGenerator* htmlReport, vt
   }
 
   // Generate report files from table 
-  std::string reportFile = std::string(vtkPlusConfig::GetInstance()->GetOutputDirectory()) + std::string("/SpacingCalibrationReport.txt");
+  std::string reportFile = std::string(vtkPlusConfig::GetInstance()->GetOutputDirectory()) + std::string("/")
+    + std::string(vtkPlusConfig::GetInstance()->GetApplicationStartTimestamp()) 
+    + std::string(".SpacingCalibrationReport.txt");
   if ( vtkGnuplotExecuter::DumpTableToFileInGnuplotFormat( this->ReportTable, reportFile.c_str()) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to dump spacing calibration report table to " << reportFile );

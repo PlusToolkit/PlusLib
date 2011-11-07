@@ -112,10 +112,16 @@ const char* TrackedFrame::GetCustomFrameField(const char* fieldName)
 //----------------------------------------------------------------------------
 PlusStatus TrackedFrame::GetCustomFrameTransform(const char* frameTransformName, double transform[16]) 
 {
+  if (frameTransformName == NULL )
+  {
+    LOG_ERROR("Unable to get custom transform, transform name is NULL!"); 
+    return PLUS_FAIL; 
+  }
+
   const char *frameTransformStr=GetCustomFrameField(frameTransformName);
   if (frameTransformStr == NULL )
   {
-    LOG_ERROR("Unable to get custom transform"); 
+    LOG_ERROR("Unable to get custom transform from name: " << frameTransformName); 
     return PLUS_FAIL; 
   }
 
