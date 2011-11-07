@@ -51,21 +51,6 @@ POSSIBILITY OF SUCH DAMAGES.
 #include "vtkPasteSliceIntoVolumeHelperCommon.h"
 #include "fixed.h"
 
-static inline int vtkUltraFloor(fixed x)
-{
-  return x.floor();
-}
-
-static inline int vtkUltraCeil(fixed x)
-{
-  return x.ceil();
-}
-
-static inline int vtkUltraRound(fixed x)
-{
-  return x.round();
-}
-
 //****************************************************************************
 // HELPER FUNCTIONS FOR THE RECONSTRUCTION
 //****************************************************************************
@@ -109,7 +94,7 @@ static int intersectionLow(F *point, F *axis, int *sign,
 
     if ((sign[ai] < 0 && r > inExt[0] ||
       sign[ai] > 0 && r < inExt[1]) && 
-      vtkUltraRound(p) < limit[ai])
+      PlusMath::Round(p) < limit[ai])
     {
       r += sign[ai];
     }
@@ -125,7 +110,7 @@ static int intersectionLow(F *point, F *axis, int *sign,
 
     if ((sign[ai] > 0 && r > inExt[0] ||
       sign[ai] < 0 && r < inExt[1]) && 
-      vtkUltraRound(p) >= limit[ai])
+      PlusMath::Round(p) >= limit[ai])
     {
       r -= sign[ai];
     }
@@ -154,7 +139,7 @@ static int intersectionHigh(F *point, F *axis, int *sign,
 
     if ((sign[ai] > 0 && r > inExt[0] ||
       sign[ai] < 0 && r < inExt[1]) &&
-      vtkUltraRound(p) > limit[ai])
+      PlusMath::Round(p) > limit[ai])
     {
       r -= sign[ai];
     }
@@ -170,7 +155,7 @@ static int intersectionHigh(F *point, F *axis, int *sign,
 
     if ((sign[ai] < 0 && r > inExt[0] ||
       sign[ai] > 0 && r < inExt[1]) && 
-      vtkUltraRound(p) <= limit[ai])
+      PlusMath::Round(p) <= limit[ai])
     {
       r += sign[ai];
     }
@@ -202,8 +187,8 @@ static int isBounded(F *point, F *xAxis, int *inMin,
   F fbp = point[bi]+r*xAxis[bi];
   F fcp = point[ci]+r*xAxis[ci];
 
-  int bp = vtkUltraRound(fbp);
-  int cp = vtkUltraRound(fcp);
+  int bp = PlusMath::Round(fbp);
+  int cp = PlusMath::Round(fcp);
 
   return (bp >= inMin[bi] && bp <= inMax[bi] &&
     cp >= inMin[ci] && cp <= inMax[ci]);
@@ -297,8 +282,8 @@ static void vtkUltraFindExtent(int& xIntersectionPixStart, int& xIntersectionPix
     p1 = point[i]+xIntersectionPixStart*xAxis[i];
     p2 = point[i]+xIntersectionPixEnd*xAxis[i];
 
-    indx1[i] = vtkUltraRound(p1);
-    indx2[i] = vtkUltraRound(p2);
+    indx1[i] = PlusMath::Round(p1);
+    indx2[i] = PlusMath::Round(p2);
   }
 
   // passed through x face, check opposing face
@@ -526,9 +511,9 @@ static inline void vtkFreehand2OptimizedNNHelper(int xIntersectionPixStart, int 
       outPoint[1] = outPoint1[1] + idX*xAxis[1];
       outPoint[2] = outPoint1[2] + idX*xAxis[2];
 
-      int outIdX = vtkUltraRound(outPoint[0]) - outExt[0];
-      int outIdY = vtkUltraRound(outPoint[1]) - outExt[2];
-      int outIdZ = vtkUltraRound(outPoint[2]) - outExt[4];
+      int outIdX = PlusMath::Round(outPoint[0]) - outExt[0];
+      int outIdY = PlusMath::Round(outPoint[1]) - outExt[2];
+      int outIdZ = PlusMath::Round(outPoint[2]) - outExt[4];
 
       // bounds checking turned off to improve performance
       //if (outIdX < 0 || outIdX > outExt[1] - outExt[0] ||
@@ -574,9 +559,9 @@ static inline void vtkFreehand2OptimizedNNHelper(int xIntersectionPixStart, int 
       outPoint[1] = outPoint1[1] + idX*xAxis[1];
       outPoint[2] = outPoint1[2] + idX*xAxis[2];
 
-      int outIdX = vtkUltraRound(outPoint[0]) - outExt[0];
-      int outIdY = vtkUltraRound(outPoint[1]) - outExt[2];
-      int outIdZ = vtkUltraRound(outPoint[2]) - outExt[4];
+      int outIdX = PlusMath::Round(outPoint[0]) - outExt[0];
+      int outIdY = PlusMath::Round(outPoint[1]) - outExt[2];
+      int outIdZ = PlusMath::Round(outPoint[2]) - outExt[4];
 
       // bounds checking turned off to improve performance
       //if (outIdX < 0 || outIdX > outExt[1] - outExt[0] ||
@@ -626,9 +611,9 @@ static inline void vtkFreehand2OptimizedNNHelper(int xIntersectionPixStart, int 
   {
     for (int idX = xIntersectionPixStart; idX <= xIntersectionPixEnd; idX++)
     {
-      int outIdX = vtkUltraRound(outPoint[0]);
-      int outIdY = vtkUltraRound(outPoint[1]);
-      int outIdZ = vtkUltraRound(outPoint[2]);
+      int outIdX = PlusMath::Round(outPoint[0]);
+      int outIdY = PlusMath::Round(outPoint[1]);
+      int outIdZ = PlusMath::Round(outPoint[2]);
 
       // bounds checking turned off to improve performance
       //if (outIdX < 0 || outIdX > outExt[1] - outExt[0] ||
@@ -674,9 +659,9 @@ static inline void vtkFreehand2OptimizedNNHelper(int xIntersectionPixStart, int 
   {
     for (int idX = xIntersectionPixStart; idX <= xIntersectionPixEnd; idX++)
     {
-      int outIdX = vtkUltraRound(outPoint[0]);
-      int outIdY = vtkUltraRound(outPoint[1]);
-      int outIdZ = vtkUltraRound(outPoint[2]);
+      int outIdX = PlusMath::Round(outPoint[0]);
+      int outIdY = PlusMath::Round(outPoint[1]);
+      int outIdZ = PlusMath::Round(outPoint[2]);
 
       // bounds checking turned off to improve performance
       //if (outIdX < 0 || outIdX > outExt[1] - outExt[0] ||
@@ -866,15 +851,15 @@ static void vtkOptimizedInsertSlice(vtkImageData *outData, // the output volume
       // line of the video image
       if (!(fanLinePixelRatioLeft == 0 && fanLinePixelRatioRight == 0))
       {
-        // equivalent to: xIntersectionPixStart < vtkUltraCeil(fanLinePixelRatioLeft*y + fanOriginInPixels[0] + 1)
+        // equivalent to: xIntersectionPixStart < PlusMath::Ceil(fanLinePixelRatioLeft*y + fanOriginInPixels[0] + 1)
         // this is what the radius would be based on tan(fanAngle)
-        if (xIntersectionPixStart < -vtkUltraFloor(-(fanLinePixelRatioLeft*y + fanOriginInPixels[0] + 1)))
+        if (xIntersectionPixStart < -PlusMath::Floor(-(fanLinePixelRatioLeft*y + fanOriginInPixels[0] + 1)))
         {
-          xIntersectionPixStart = -vtkUltraFloor(-(fanLinePixelRatioLeft*y + fanOriginInPixels[0] + 1));
+          xIntersectionPixStart = -PlusMath::Floor(-(fanLinePixelRatioLeft*y + fanOriginInPixels[0] + 1));
         }
-        if (xIntersectionPixEnd > vtkUltraFloor(fanLinePixelRatioRight*y + fanOriginInPixels[0] - 1))
+        if (xIntersectionPixEnd > PlusMath::Floor(fanLinePixelRatioRight*y + fanOriginInPixels[0] - 1))
         {
-          xIntersectionPixEnd = vtkUltraFloor(fanLinePixelRatioRight*y + fanOriginInPixels[0] - 1);
+          xIntersectionPixEnd = PlusMath::Floor(fanLinePixelRatioRight*y + fanOriginInPixels[0] - 1);
         }
 
         // next, check the radius of the fan - crop the triangle to the fan
@@ -895,13 +880,13 @@ static void vtkOptimizedInsertSlice(vtkImageData *outData, // the output volume
           dx = sqrt(dx);
           // this is what xIntersectionPixStart would be if we calculated it based on the
           // pythagorean theorem
-          if (xIntersectionPixStart < -vtkUltraFloor(-(fanOriginInPixels[0] - dx + 1)))
+          if (xIntersectionPixStart < -PlusMath::Floor(-(fanOriginInPixels[0] - dx + 1)))
           {
-            xIntersectionPixStart = -vtkUltraFloor(-(fanOriginInPixels[0] - dx + 1));
+            xIntersectionPixStart = -PlusMath::Floor(-(fanOriginInPixels[0] - dx + 1));
           }
-          if (xIntersectionPixEnd > vtkUltraFloor(fanOriginInPixels[0] + dx - 1))
+          if (xIntersectionPixEnd > PlusMath::Floor(fanOriginInPixels[0] + dx - 1))
           {
-            xIntersectionPixEnd = vtkUltraFloor(fanOriginInPixels[0] + dx - 1);
+            xIntersectionPixEnd = PlusMath::Floor(fanOriginInPixels[0] + dx - 1);
           }
         }
       }

@@ -85,6 +85,74 @@ public:
   /*! Print VTK matrix into log as info */
   static void LogVtkMatrix(vtkMatrix4x4* matrix);
 
+  /*! 
+  The 'floor' function on x86 and mips is 4-10 times slower than these
+  and is used a lot in this code, optimize for different CPU architectures.
+  The output type is int, as we don't want to round if the result is a float.
+  */
+  static inline int Floor(double x)
+  {
+#if defined mips || defined sparc || defined __ppc__
+    x += 2147483648.0;
+    unsigned int i = (unsigned int)(x);
+    return (int)(i - 2147483648U);
+#elif defined i386 || defined _M_IX86
+    union { double d; unsigned short s[4]; unsigned int i[2]; } dual;
+    // use 52-bit precision of IEEE double to round (x - 0.25) to 
+    // the nearest multiple of 0.5, according to prevailing rounding
+    // mode which is IEEE round-to-nearest,even
+    dual.d = x + 103079215104.0;  // (2**(52-16))*1.5
+    // extract mantissa, use shift to divide by 2 and hence get rid
+    // of the bit that gets messed up because the FPU uses
+    // round-to-nearest,even mode instead of round-to-nearest,+infinity
+    return (int)((dual.i[1]<<16)|((dual.i[0])>>16));
+#elif defined ia64 || defined __ia64__ || defined IA64
+    x += 103079215104.0;
+    long long i = (long long)(x);
+    return (int)(i - 103079215104LL);
+#else
+    double y = floor(x);
+    return (int)(y);
+#endif
+  }
+
+  /*! Ceiling operation optimized for speed */
+  static inline int Ceil(double x)
+  {
+    return -Floor(-x - 1.0) - 1;
+  }
+
+  /*! Round operation optimized for speed  */
+  static inline int Round(double x)
+  {
+    return Floor(x + 0.5);
+  }
+
+  /*! 
+  Convert a float into an integer plus a fraction, optimized for speed 
+  \param x Input floating point value
+  \param f Output fraction part
+  \return Output integer part
+  */
+  template <class F>
+  static inline int Floor(F x, F &f)
+  {
+    int ix = Floor(x);
+    f = x - ix;
+    return ix;
+  }
+
+  /*! 
+  Round operation that copies the result to a specified memory address, optimized for speed  
+  \param val Input floating point value
+  \param rnd Output rounded value
+  */
+  template <class F, class T>
+  static inline void Round(F val, T& rnd)
+  {
+    rnd = Round(val);
+  }
+
 protected:
   PlusMath(); 
   ~PlusMath();
@@ -103,90 +171,6 @@ private:
   PlusMath(PlusMath const&);
   PlusMath& operator=(PlusMath const&);
 };
-
-//****************************************************************************
-// ROUNDING CODE
-//****************************************************************************
-
-//----------------------------------------------------------------------------
-// rounding functions, split and optimized for each type
-// (because we don't want to round if the result is a float!)
-
-// in the case of a tie between integers, the larger integer wins.
-
-// The 'floor' function on x86 and mips is many times slower than these
-// and is used a lot in this code, optimize for different CPU architectures
-// static inline int vtkUltraFloor(double x)
-// {
-// #if defined mips || defined sparc
-//   return (int)((unsigned int)(x + 2147483648.0) - 2147483648U);
-// #elif defined i386
-//   double tempval = (x - 0.25) + 3377699720527872.0; // (2**51)*1.5
-//   return ((int*)&tempval)[0] >> 1;
-// #else
-//   return int(floor(x));
-// #endif
-// }
-
-static inline int vtkUltraFloor(double x)
-{
-#if defined mips || defined sparc || defined __ppc__
-  x += 2147483648.0;
-  unsigned int i = (unsigned int)(x);
-  return (int)(i - 2147483648U);
-#elif defined i386 || defined _M_IX86
-  union { double d; unsigned short s[4]; unsigned int i[2]; } dual;
-  dual.d = x + 103079215104.0;  // (2**(52-16))*1.5
-  return (int)((dual.i[1]<<16)|((dual.i[0])>>16));
-#elif defined ia64 || defined __ia64__ || defined IA64
-  x += 103079215104.0;
-  long long i = (long long)(x);
-  return (int)(i - 103079215104LL);
-#else
-  double y = floor(x);
-  return (int)(y);
-#endif
-}
-
-static inline int vtkUltraCeil(double x)
-{
-  return -vtkUltraFloor(-x - 1.0) - 1;
-}
-
-static inline int vtkUltraRound(double x)
-{
-  return vtkUltraFloor(x + 0.5);
-}
-
-static inline int vtkUltraFloor(float x)
-{
-  return vtkUltraFloor((double)x);
-}
-
-static inline int vtkUltraCeil(float x)
-{
-  return vtkUltraCeil((double)x);
-}
-
-static inline int vtkUltraRound(float x)
-{
-  return vtkUltraRound((double)x);
-}
-
-/*! convert a float into an integer plus a fraction */
-template <class F>
-static inline int vtkUltraFloor(F x, F &f)
-{
-  int ix = vtkUltraFloor(x);
-  f = x - ix;
-  return ix;
-}
-
-template <class F, class T>
-static inline void vtkUltraRound(F val, T& rnd)
-{
-  rnd = vtkUltraRound(val);
-}
 
 
 #endif 

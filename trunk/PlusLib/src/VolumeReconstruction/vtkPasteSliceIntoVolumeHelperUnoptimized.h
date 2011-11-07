@@ -85,9 +85,9 @@ static int vtkNearestNeighborInterpolation(F *point, T *inPtr, T *outPtr,
   // The nearest neighbor interpolation occurs here
   // The output point is the closest point to the input point - rounding
   // to get closest point
-  int outIdX = vtkUltraRound(point[0])-outExt[0];
-  int outIdY = vtkUltraRound(point[1])-outExt[2];
-  int outIdZ = vtkUltraRound(point[2])-outExt[4];
+  int outIdX = PlusMath::Round(point[0])-outExt[0];
+  int outIdY = PlusMath::Round(point[1])-outExt[2];
+  int outIdZ = PlusMath::Round(point[2])-outExt[4];
 
   // fancy way of checking bounds
   if ((outIdX | (outExt[1]-outExt[0] - outIdX) |
