@@ -12,6 +12,7 @@
 #include "PlusMath.h"
 #include "vtkXMLDataElement.h"
 #include "vtkXMLUtilities.h"
+#include "vtkMath.h"
 
 const double DOUBLE_DIFF = 0.0001; // used for comparing double numbers
 
@@ -19,6 +20,8 @@ const double DOUBLE_DIFF = 0.0001; // used for comparing double numbers
 int TestLSQRMinimize(vtkXMLDataElement* xmlPlusMathTest); 
 PlusStatus ReadLSQRDataFromXml(vtkXMLDataElement* xmlLSQRMinimize, std::vector<vnl_vector<double>> &aMatrix, std::vector<double> &bVector); 
 PlusStatus GenerateLSQRData(vtkXMLDataElement* xmlLSQRMinimize, int numberOfData, int numberOfOutliers); 
+
+template<class floatType> int TestFloor(const char* floatName);
 
 //----------------------------------------------------------------------------
 int main(int argc, char **argv)
@@ -70,6 +73,9 @@ int main(int argc, char **argv)
   
   // Test PlusMath::LSQRMinimize 
   numberOfErrors += TestLSQRMinimize(xmlPlusMathTest); 
+
+  numberOfErrors += TestFloor<float>("float");
+  numberOfErrors += TestFloor<double>("double");
 
   if ( numberOfErrors > 0 ) 
   {
@@ -231,6 +237,9 @@ PlusStatus ReadLSQRDataFromXml(vtkXMLDataElement* xmlLSQRMinimize, std::vector<v
 //----------------------------------------------------------------------------
 PlusStatus GenerateLSQRData(vtkXMLDataElement* xmlLSQRMinimize, int numberOfData, int numberOfOutliers)
 {
+  // initialize random number generation with the sub-millisecond part of the current time
+  srand((unsigned int)(vtkAccurateTimer::GetSystemTime()-floor(vtkAccurateTimer::GetSystemTime()))*1e6); 
+
   // Generate y = x - 1 linear equation coefficients for LSQR optimizer test and save it to xmlData 
   // Add some outliers also to the dataset 
 
@@ -286,4 +295,108 @@ PlusStatus GenerateLSQRData(vtkXMLDataElement* xmlLSQRMinimize, int numberOfData
 
   return PLUS_SUCCESS; 
 
+}
+
+template<class floatType> int TestFloor(const char* floatName)
+{
+  const int repeatOperations=1000;
+  const int numberOfOperations=100000;
+
+  // initialize random number generation with the sub-millisecond part of the current time
+  srand((unsigned int)(vtkAccurateTimer::GetSystemTime()-floor(vtkAccurateTimer::GetSystemTime()))*1e6); 
+
+  //typedef double floatType;
+
+  floatType testFloatNumbers[numberOfOperations];
+  for (int i=0; i<numberOfOperations; i++)
+  {
+    testFloatNumbers[i]=1000 * floatType(rand())/floatType(RAND_MAX) - 500;
+  }
+  
+  floatType testResultsPlusFloor[numberOfOperations];
+  double timestampDiffPlusFloor=0;
+  {
+    double timestampBefore=vtkAccurateTimer::GetSystemTime();
+    for (int rep=0; rep<repeatOperations; rep++)
+    {
+      floatType *inputVal=testFloatNumbers;
+      floatType *outputVal=testResultsPlusFloor;
+      for (int i=0; i<numberOfOperations; i++)
+      {
+        *outputVal++=PlusMath::Floor(*inputVal++);
+      }
+    }
+    double timestampAfter=vtkAccurateTimer::GetSystemTime(); 
+    timestampDiffPlusFloor=timestampAfter-timestampBefore;
+  }
+
+  floatType testResultsFloor[numberOfOperations];
+  double timestampDiffFloor=0;
+  {
+    double timestampBefore=vtkAccurateTimer::GetSystemTime();
+    for (int rep=0; rep<repeatOperations; rep++)
+    {
+      floatType *inputVal=testFloatNumbers;
+      floatType *outputVal=testResultsFloor;
+      for (int i=0; i<numberOfOperations; i++)
+      {
+        *outputVal++=floor(*inputVal++);
+      }
+    }
+    double timestampAfter=vtkAccurateTimer::GetSystemTime(); 
+    timestampDiffFloor=timestampAfter-timestampBefore;
+  }
+
+  double timestampDiffVtkFloor=0;
+  {
+    double timestampBefore=vtkAccurateTimer::GetSystemTime();
+    for (int rep=0; rep<repeatOperations; rep++)
+    {
+      floatType *inputVal=testFloatNumbers;
+      floatType *outputVal=testResultsFloor;
+      for (int i=0; i<numberOfOperations; i++)
+      {
+        *outputVal++=vtkMath::Floor(*inputVal++);
+      }
+    }
+    double timestampAfter=vtkAccurateTimer::GetSystemTime(); 
+    timestampDiffVtkFloor=timestampAfter-timestampBefore;
+  }
+
+  int numberOfErrors=0;
+  floatType *floorResults=testResultsFloor;
+  floatType *plusFloorResults=testResultsPlusFloor;
+  for (int i=0; i<numberOfOperations; i++)
+  {
+    if ( *floorResults != *plusFloorResults )
+    {
+      LOG_ERROR("PlusMath::Floor computation mismatch: "<<*floorResults<<" != "<<*plusFloorResults);
+      numberOfErrors++;
+    }
+    floorResults++;
+    plusFloorResults++;
+  }
+
+  LOG_INFO("Time required for "<<numberOfOperations*repeatOperations<<" floor operations on type "<<floatName<<": "
+    <<"using PlusMath::Floor: "<<timestampDiffPlusFloor<<"sec, "
+    <<"using vtkMath::Floor: "<<timestampDiffVtkFloor<<"sec, "
+    
+    <<"using floor:"<<timestampDiffFloor<<"sec");
+
+  if (timestampDiffPlusFloor>timestampDiffFloor)
+  {
+    LOG_ERROR("The optimized floor implementation is slower than the unoptimized version.");
+    numberOfErrors++;
+  }
+
+  // Testing a special value, see http://web.archiveorange.com/archive/v/aysypwArfEx6YnyPN3OM
+  floatType specialValue=0.99989;
+  int shouldBeZero=PlusMath::Floor(specialValue);
+  if (shouldBeZero!=0)
+  {
+    LOG_ERROR("The "<<specialValue<<" value was incorrectly floored to "<<shouldBeZero);
+    numberOfErrors++;
+  }
+
+  return numberOfErrors;
 }

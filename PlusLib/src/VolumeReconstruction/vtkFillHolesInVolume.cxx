@@ -496,7 +496,7 @@ void vtkFillHolesInVolumeExecute(vtkFillHolesInVolume *self,
 					{
 						for (int c = 0; c < numscalars; c++)
 						{
-							vtkUltraRound(sum[c]/asum, outPtrX[c]);
+							PlusMath::Round(sum[c]/asum, outPtrX[c]);
 						}
 						// set alpha to 1 now, change to 255 later
 						outPtrX[numscalars] = 1;
@@ -851,7 +851,7 @@ static void vtkPasteSliceIntoVolumeFillHolesInOutput(
 					{
 						for (int c = 0; c < numscalars; c++)
 						{
-							vtkUltraRound(sum[c]/asum, outPtrX[c]);
+							PlusMath::Round(sum[c]/asum, outPtrX[c]);
 						}
 						// set alpha to 1 now, change to 255 later
 						outPtrX[numscalars] = 1;

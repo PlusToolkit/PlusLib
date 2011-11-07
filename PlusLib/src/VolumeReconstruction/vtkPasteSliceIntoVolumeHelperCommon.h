@@ -76,10 +76,10 @@ static int vtkTrilinearInterpolation(F *point, T *inPtr, T *outPtr,
   F fx, fy, fz;
 
   // convert point[0] into integer component and a fraction
-  int outIdX0 = vtkUltraFloor(point[0], fx);
+  int outIdX0 = PlusMath::Floor(point[0], fx);
   // point[0] is unchanged, outIdX0 is the integer (floor), fx is the float
-  int outIdY0 = vtkUltraFloor(point[1], fy);
-  int outIdZ0 = vtkUltraFloor(point[2], fz);
+  int outIdY0 = PlusMath::Floor(point[1], fy);
+  int outIdZ0 = PlusMath::Floor(point[2], fz);
 
   int outIdX1 = outIdX0 + (fx != 0); // ceiling
   int outIdY1 = outIdY0 + (fy != 0);
@@ -165,7 +165,7 @@ static int vtkTrilinearInterpolation(F *point, T *inPtr, T *outPtr,
         do
         {
           i--;
-          vtkUltraRound((f*(*inPtrTmp++) + r*(*outPtrTmp))/a, *outPtrTmp);
+          PlusMath::Round((f*(*inPtrTmp++) + r*(*outPtrTmp))/a, *outPtrTmp);
           outPtrTmp++;
         }
         while (i);
@@ -176,7 +176,7 @@ static int vtkTrilinearInterpolation(F *point, T *inPtr, T *outPtr,
         // don't allow accumulation buffer overflow
         if (a < F(65535))
         {
-          vtkUltraRound(a, *accPtrTmp);
+          PlusMath::Round(a, *accPtrTmp);
         }
       }
       while (j);
@@ -206,7 +206,7 @@ static int vtkTrilinearInterpolation(F *point, T *inPtr, T *outPtr,
           do
           {
             i--;
-            vtkUltraRound(f*(*inPtrTmp++) + r*(*outPtrTmp), *outPtrTmp);
+            PlusMath::Round(f*(*inPtrTmp++) + r*(*outPtrTmp), *outPtrTmp);
             outPtrTmp++;
           }
           while (i);
