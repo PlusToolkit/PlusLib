@@ -177,6 +177,37 @@ configure_file(
 	${CMAKE_CURRENT_BINARY_DIR}/UsePlusLib.cmake @ONLY)	
 
 #-----------------------------------------------------------------------------
+# Generate default application configuration files in the non-installed executable directories (Release and Debug too)
+# 
+SET( PLUSCONFIG_DEVICESET_CONFIG_DIR "${PLUSLIB_SOURCE_DIR}/data/ConfigFiles" )
+SET( PLUSCONFIG_IMAGE_DIR "${PLUSLIB_SOURCE_DIR}/data/TestImages" )
+SET( PLUSCONFIG_GNUPLOT_DIR "${GNUPLOT_BIN_DIR}" )
+SET( PLUSCONFIG_SCRIPTS_DIR "${PLUSLIB_SCRIPTS_DIR}" )
+
+ IF ( ${CMAKE_GENERATOR} MATCHES "Visual Studio" )
+    #IF ( NOT EXISTS "${PLUS_EXECUTABLE_OUTPUT_PATH}/Release/PlusConfig.xml" )
+        configure_file(
+            ${CMAKE_CURRENT_SOURCE_DIR}/PlusConfig.xml.in
+            ${PLUS_EXECUTABLE_OUTPUT_PATH}/Release/PlusConfig.xml
+            )	
+    #ENDIF()
+    
+    #IF ( NOT EXISTS "${PLUS_EXECUTABLE_OUTPUT_PATH}/Debug/PlusConfig.xml" )
+        configure_file(
+            ${CMAKE_CURRENT_SOURCE_DIR}/PlusConfig.xml.in
+            ${PLUS_EXECUTABLE_OUTPUT_PATH}/Debug/PlusConfig.xml
+            )
+    #ENDIF()
+ELSE()
+     #IF ( NOT EXISTS "${PLUS_EXECUTABLE_OUTPUT_PATH}/PlusConfig.xml" )
+        configure_file(
+            ${CMAKE_CURRENT_SOURCE_DIR}/PlusConfig.xml.in
+            ${PLUS_EXECUTABLE_OUTPUT_PATH}/PlusConfig.xml
+            )
+    #ENDIF()
+ENDIF()
+  
+#-----------------------------------------------------------------------------
 # Documentation
 #
 option(DOCUMENTATION_TARGET_IN_ALL "Include the custom target for building documentation in 'all'" OFF)
