@@ -1112,7 +1112,7 @@ PlusStatus vtkDataCollectorSynchronizer::GenerateSynchronizationReport( vtkHTMLG
     return PLUS_FAIL; 
   }
 
-  std::string reportFile = vtksys::SystemTools::GetCurrentWorkingDirectory() + std::string("/SyncResult.txt"); 
+  std::string reportFile = vtkPlusConfig::GetInstance()->GetOutputDirectory() + std::string("/SyncResult.txt"); 
 
   if ( vtkGnuplotExecuter::DumpTableToFileInGnuplotFormat( this->SyncReportTable, reportFile.c_str() ) != PLUS_SUCCESS )
   {
