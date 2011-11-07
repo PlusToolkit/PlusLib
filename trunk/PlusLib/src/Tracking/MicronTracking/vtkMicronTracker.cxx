@@ -74,6 +74,7 @@ vtkMicronTracker::vtkMicronTracker()
   this->IsAdditionalFacetAdding = 0;
   this->IsCollectingNewSamples = 0;
   this->NewSampleFramesCollected = 0;
+  this->SetNumberOfTools(3); 
 
   this->LeftImage = NULL;
   this->RightImage = NULL;
@@ -192,6 +193,9 @@ PlusStatus vtkMicronTracker::InternalUpdate()
   // this->MT->mtFindUnidentifiedMarkers();
 
   // Collecting new samples if creating a new template by the user
+if (this->IsCollectingNewSamples == 1)
+{
+ 
   int collectNewSamplesResult=this->MT->mtCollectNewSamples(this->IsAdditionalFacetAdding);
   if ( collectNewSamplesResult == -1)
   {
@@ -208,9 +212,10 @@ PlusStatus vtkMicronTracker::InternalUpdate()
     LOG_ERROR("No known facet detected.");
     return PLUS_FAIL;
   }
-
   this->NewSampleFramesCollected++;
   LOG_TRACE("Samples collected so far: " << this->NewSampleFramesCollected);
+
+}
 
   // Setting the timestamp
   this->LastFrameNumber++;
@@ -225,7 +230,6 @@ PlusStatus vtkMicronTracker::InternalUpdate()
   for (int identifedMarkerIndex=0; identifedMarkerIndex<this->MT->mtGetIdentifiedMarkersCount(); identifedMarkerIndex++)
   {
     char* identifiedTemplateName=this->MT->mtGetIdentifiedTemplateName(identifedMarkerIndex);
-    
     int toolPortNumber=GetToolPortNumberByPortName(identifiedTemplateName);
     if (toolPortNumber<0)
     {
