@@ -75,10 +75,13 @@ void StylusCalibrationToolbox::Initialize()
 
       SetState(ToolboxState_Idle);
     }
-
-    if (m_State != ToolboxState_Done)
+    else if (m_State != ToolboxState_Done)
     {
       m_ParentMainWindow->GetToolVisualizer()->GetResultPolyData()->Initialize();
+    }
+    else
+    {
+      SetDisplayAccordingToState();
     }
   }
 }

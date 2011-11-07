@@ -171,6 +171,10 @@ void PhantomRegistrationToolbox::Initialize()
     }
 
   }
+  else
+  {
+    SetDisplayAccordingToState();
+  }
 }
 
 //-----------------------------------------------------------------------------

@@ -253,7 +253,7 @@ void FreehandCalibrationToolbox::Reset()
     m_ParentMainWindow->GetToolVisualizer()->GetDisplayableTool(TRACKER_TOOL_PROBE)->DisplayableOff();
   }
 
-  SetState(ToolboxState_Idle);
+  SetState(ToolboxState_Uninitialized);
 }
 
 //-----------------------------------------------------------------------------
