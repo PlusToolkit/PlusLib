@@ -115,11 +115,14 @@ vtkPlusConfig::vtkPlusConfig()
   this->ImageDirectory = NULL;
   this->GnuplotDirectory = NULL;
   this->ScriptsDirectory = NULL;
+  this->ApplicationStartTimestamp = NULL;
 
 	this->SetDeviceSetConfigurationDirectory("");
 	this->SetDeviceSetConfigurationFileName("");
   this->SetApplicationConfigurationFileName("PlusConfig.xml");
   this->SetEditorApplicationExecutable("notepad.exe");
+
+  this->SetApplicationStartTimestamp(vtkAccurateTimer::GetInstance()->GetDateAndTimeString().c_str()); 
 
 #ifdef WIN32
   char cProgramPath[2048]={'\0'};
@@ -355,11 +358,14 @@ std::string vtkPlusConfig::GetNewDeviceSetConfigurationFileName()
   LOG_TRACE("vtkPlusConfig::GetNewDeviceSetConfigurationFileName");
 
   std::string resultFileName; 
-  if ((this->DeviceSetConfigurationFileName == NULL) || (STRCASECMP(this->DeviceSetConfigurationFileName, "") == 0)) {
+  if ((this->DeviceSetConfigurationFileName == NULL) || (STRCASECMP(this->DeviceSetConfigurationFileName, "") == 0))
+  {
     LOG_WARNING("New configuration file name cannot be assembled due to absence of input configuration file name");
 
     resultFileName = "PlusConfiguration";
-  } else {
+  }
+  else
+  {
     resultFileName = this->DeviceSetConfigurationFileName;
     resultFileName = resultFileName.substr(0, resultFileName.find(".xml"));
     resultFileName = resultFileName.substr(resultFileName.find_last_of("/\\") + 1);
@@ -369,7 +375,8 @@ std::string vtkPlusConfig::GetNewDeviceSetConfigurationFileName()
   std::string possibleDate = resultFileName.substr(resultFileName.length() - 15, 15);
   std::string possibleDay = possibleDate.substr(0, 8);
   std::string possibleTime = possibleDate.substr(9, 6);
-  if (atoi(possibleDay.c_str()) && atoi(possibleTime.c_str())) {
+  if (atoi(possibleDay.c_str()) && atoi(possibleTime.c_str()))
+  {
     resultFileName = resultFileName.substr(0, resultFileName.length() - 16);
   }
 
@@ -564,7 +571,7 @@ void vtkPlusConfig::SetOutputDirectory(const char* outputDir)
 
     // Set log file name and path to the output directory 
     std::ostringstream logfilename;
-    logfilename << this->OutputDirectory << "/" << vtkAccurateTimer::GetInstance()->GetDateAndTimeString() << "_PlusLog.txt";
+    logfilename << this->OutputDirectory << "/" << this->ApplicationStartTimestamp << "_PlusLog.txt";
     vtkPlusLogger::Instance()->SetLogFileName(logfilename.str().c_str()); 
   } 
 

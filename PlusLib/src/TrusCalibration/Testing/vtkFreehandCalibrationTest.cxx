@@ -97,7 +97,6 @@ int main (int argc, char* argv[])
 
   vtkSmartPointer<vtkProbeCalibrationAlgo> freehandCalibration = vtkSmartPointer<vtkProbeCalibrationAlgo>::New();
   freehandCalibration->ReadConfiguration(configRootElement);
-  freehandCalibration->EnableSegmentationAnalysisOn(); // So that results are drawn (there was a condition for that if the calibration is in OFFLINE mode - now that enum has been removed)
 
   freehandCalibration->Initialize();
   freehandCalibration->SetPhantomToReferenceTransform(phantomRegistration->GetPhantomToPhantomReferenceTransform());
@@ -147,7 +146,7 @@ int main (int argc, char* argv[])
   }
 
   // Compare results
-  vtkstd::string currentConfigFileName = freehandCalibration->GetCalibrationResultFileNameWithPath(); 
+	std::string currentConfigFileName = vtkPlusConfig::GetInstance()->GetOutputDirectory() + std::string("/") + std::string(vtkPlusConfig::GetInstance()->GetApplicationStartTimestamp()) + ".Calibration.results.xml";
   if ( CompareCalibrationResultsWithBaseline( inputBaselineFileName.c_str(), currentConfigFileName.c_str(), inputTranslationErrorThreshold, inputRotationErrorThreshold ) !=0 )
   {
     LOG_ERROR("Comparison of calibration data to baseline failed");

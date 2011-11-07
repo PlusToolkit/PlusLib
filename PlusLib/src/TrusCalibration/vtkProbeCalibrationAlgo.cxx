@@ -48,12 +48,10 @@ void vtkProbeCalibrationAlgo::PrintSelf(ostream& os, vtkIndent indent)
 vtkProbeCalibrationAlgo::vtkProbeCalibrationAlgo() 
   : MinElevationBeamwidthAndFocalZoneInUSImageFrame(2,0)
 {
-  this->EnableSegmentationAnalysisOff();
   this->InitializedOff(); 
   this->CalibrationDoneOff(); 
 
   this->CalibrationDate = NULL; 
-  this->CalibrationTimestamp = NULL; 
 
 	this->US3DBeamwidthDataReadyOff();
   this->NumUS3DBeamwidthProfileData = -1;
@@ -66,11 +64,7 @@ vtkProbeCalibrationAlgo::vtkProbeCalibrationAlgo()
 
 	this->SetAxialPositionOfCrystalSurfaceInTRUSImageFrame(-1);
 
-	this->CalibrationConfigFileNameWithPath = NULL;
-  this->CalibrationResultFileNameWithPath = NULL;
 	this->US3DBeamProfileDataFileNameAndPath = NULL; 
-	this->SegmentationAnalysisFileNameWithTimeStamp = NULL; 
-	this->SegmentationErrorLogFileNameWithTimeStamp = NULL;
 	
 	vtkSmartPointer<vtkTransform> transformProbeToReference = vtkSmartPointer<vtkTransform>::New(); 
 	this->TransformProbeToReference = NULL;
@@ -127,7 +121,6 @@ vtkProbeCalibrationAlgo::vtkProbeCalibrationAlgo()
 	mUS3DBeamwidthAtNearestAxialDepth.set_size(3);
 	mUS3DBeamwidthAtFarestAxialDepth.set_size(3);
   mValidationDataConfidenceLevel = 0.95;
-  mOutlierDetectionThreshold = 3.0;
 
   // 1. We set the maximum tolerance to be the number of times of the current 
 	//    minimum magnitude of the US beamwidth typically measured at the 
@@ -824,7 +817,7 @@ PlusStatus vtkProbeCalibrationAlgo::DoCalibration()
 {
 	LOG_TRACE("vtkProbeCalibrationAlgo::DoCalibration"); 
 
-	mHasBeenCalibrated = false;
+  this->CalibrationDoneOff();
 
   if ( mDataPositionsInUSImageFrame.empty() )
   {
@@ -877,7 +870,7 @@ PlusStatus vtkProbeCalibrationAlgo::DoCalibration()
 	lastRow.put(3, 1);
 	mTransformUSImageFrame2USProbeFrameMatrix4x4.set_row(3, lastRow);
 
-	mHasBeenCalibrated = true;
+  this->CalibrationDoneOn();
 
 	// Validate the calibration accuracy
 	this->compute3DPointReconstructionError();
@@ -934,7 +927,6 @@ PlusStatus vtkProbeCalibrationAlgo::ComputeCalibrationResults()
 
   // Set calibration date
   this->SetCalibrationDate(vtksys::SystemTools::GetCurrentDateTime("%Y.%m.%d %X").c_str()); 
-  this->SetCalibrationTimestamp(vtksys::SystemTools::GetCurrentDateTime("%Y%m%d_%H%M%S").c_str()); 
 
 	// Do final calibration 
 	if ( DoCalibration() != PLUS_SUCCESS )
@@ -1212,7 +1204,6 @@ void vtkProbeCalibrationAlgo::ResetDataContainers()
   // Initialize flags
 	mArePRE3DsForValidationPositionsReady = false;
 	mAreIndependentPointLineReconErrorsReady = false;
-  mHasBeenCalibrated = false;
   mAreValidationDataMatricesConstructed = false;
 
 	// Initialize data containers
@@ -1236,7 +1227,6 @@ void vtkProbeCalibrationAlgo::ResetDataContainers()
 	mValidationPositionsNWire6InUSProbeFrame.resize(0);
 
 	mValidationPositionsInUSImageFrame.resize(0);
-	mWeightsForValidationPositions.resize(0);
 	mValidationPositionsInUSImageFrameMatrix4xN.set_size(0,0);
 
 	mValidationPositionsNWire1InUSImageFrame4xN.set_size(0,0);
@@ -1905,19 +1895,8 @@ PlusStatus vtkProbeCalibrationAlgo::constructValidationDataMatrices()
 //----------------------------------------------------------------------------
 void vtkProbeCalibrationAlgo::SaveCalibrationResultsAndErrorReportsToXML()
 {
-  // Construct the calibration result file name with path and timestamp
-  std::string calibrationTimestamp;
-  if (this->CalibrationTimestamp == NULL) {
-    LOG_ERROR("Calibration timestamp is not set!");
-    calibrationTimestamp = "";
-  }
-  else
-  {
-    calibrationTimestamp = this->CalibrationTimestamp;
-  }
-  const std::string calibrationResultFileName = calibrationTimestamp + ".Calibration.results.xml";
-	const std::string calibrationResultFileNameWithPath = vtkPlusConfig::GetInstance()->GetOutputDirectory() + std::string("/") + calibrationResultFileName;
-  this->SetCalibrationResultFileNameWithPath(calibrationResultFileNameWithPath.c_str());
+  std::string calibrationResultFileName = std::string(vtkPlusConfig::GetInstance()->GetApplicationStartTimestamp()) + ".Calibration.results.xml";
+	std::string calibrationResultFileNameWithPath = vtkPlusConfig::GetInstance()->GetOutputDirectory() + std::string("/") + calibrationResultFileName;
 
 	// <USTemplateCalibrationResult>
 	vtkSmartPointer<vtkXMLDataElement> xmlCalibrationResults = vtkSmartPointer<vtkXMLDataElement>::New(); 
@@ -1927,7 +1906,7 @@ void vtkProbeCalibrationAlgo::SaveCalibrationResultsAndErrorReportsToXML()
 	// <CalibrationFile> 
 	vtkSmartPointer<vtkXMLDataElement> tagCalibrationFile = vtkSmartPointer<vtkXMLDataElement>::New(); 
 	tagCalibrationFile->SetName("CalibrationFile"); 
-	tagCalibrationFile->SetAttribute("Timestamp", calibrationTimestamp.c_str()); 
+	tagCalibrationFile->SetAttribute("Timestamp", vtkPlusConfig::GetInstance()->GetApplicationStartTimestamp()); 
 	tagCalibrationFile->SetAttribute("FileName", calibrationResultFileName.c_str()); 
 	vtkstd::string commentCalibrationFile("# Timestamp format: MM/DD/YY HH:MM:SS"); 
 	tagCalibrationFile->AddCharacterData(commentCalibrationFile.c_str(), commentCalibrationFile.size()); 
