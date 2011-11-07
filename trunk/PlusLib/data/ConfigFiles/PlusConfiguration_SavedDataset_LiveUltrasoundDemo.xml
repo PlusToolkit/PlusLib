@@ -109,15 +109,13 @@ The desired file name with path needs to be added to this XML file as values Seq
 
 					RegionOfInterest="27 27 793 589"
 
-					MaxLineLengthErrorPercent="10.0"
 					MaxLinePairDistanceErrorPercent="10.0"
-					MaxLineErrorMm="2.0"
 
 					MaxAngleDifferenceDegrees="11"
 					MinThetaDegrees="-70"
 					MaxThetaDegrees="70"
 					
-          AngleToleranceDegrees="10"
+					AngleToleranceDegrees="10"
 
 					ThresholdImagePercent="10.0"
 

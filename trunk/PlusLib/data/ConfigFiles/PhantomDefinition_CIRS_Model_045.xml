@@ -19,26 +19,26 @@
 
 		<Geometry>
 			<!-- Pattern definitions -->
-			<Pattern Type="CoplanarParallelWires" Id="0">
-				<Wire Id="0" Name="F1" EndPointFront="60.65 38.0 3.0" EndPointBack="60.65 38.0 103.0" />
-				<Wire Id="1" Name="F2" EndPointFront="60.65 48.0 3.0" EndPointBack="60.65 48.0 103.0" />
-				<Wire Id="2" Name="F3" EndPointFront="60.65 58.0 3.0" EndPointBack="60.65 58.0 103.0" />
-				<Wire Id="3" Name="F4" EndPointFront="60.65 68.0 3.0" EndPointBack="60.65 68.0 103.0" />
-				<Wire Id="4" Name="F5" EndPointFront="60.65 78.0 3.0" EndPointBack="60.65 78.0 103.0" />
+			<Pattern Type="CoplanarParallelWires" Name="Left">
+				<Wire Name="F1" EndPointFront="60.65 38.0 3.0" EndPointBack="60.65 38.0 103.0" />
+				<Wire Name="F2" EndPointFront="60.65 48.0 3.0" EndPointBack="60.65 48.0 103.0" />
+				<Wire Name="F3" EndPointFront="60.65 58.0 3.0" EndPointBack="60.65 58.0 103.0" />
+				<Wire Name="F4" EndPointFront="60.65 68.0 3.0" EndPointBack="60.65 68.0 103.0" />
+				<Wire Name="F5" EndPointFront="60.65 78.0 3.0" EndPointBack="60.65 78.0 103.0" />
 			</Pattern>
-			<Pattern Type="CoplanarParallelWires" Id="1">
-				<Wire Id="0" Name="F5" EndPointFront="60.65 78.0 3.0" EndPointBack="60.65 78.0 103.0" />
-				<Wire Id="1" Name="E4" EndPointFront="70.65 68.0 3.0" EndPointBack="70.65 68.0 103.0" />
-				<Wire Id="2" Name="D3" EndPointFront="80.65 58.0 3.0" EndPointBack="80.65 58.0 103.0" />
-				<Wire Id="3" Name="C2" EndPointFront="90.65 48.0 3.0" EndPointBack="90.65 48.0 103.0" />
-				<Wire Id="4" Name="B1" EndPointFront="100.65 38.0 3.0" EndPointBack="100.65 38.0 103.0" />
+			<Pattern Type="CoplanarParallelWires" name="Diagonal">
+				<Wire Name="F5" EndPointFront="60.65 78.0 3.0" EndPointBack="60.65 78.0 103.0" />
+				<Wire Name="E4" EndPointFront="70.65 68.0 3.0" EndPointBack="70.65 68.0 103.0" />
+				<Wire Name="D3" EndPointFront="80.65 58.0 3.0" EndPointBack="80.65 58.0 103.0" />
+				<Wire Name="C2" EndPointFront="90.65 48.0 3.0" EndPointBack="90.65 48.0 103.0" />
+				<Wire Name="B1" EndPointFront="100.65 38.0 3.0" EndPointBack="100.65 38.0 103.0" />
 			</Pattern>
-			<Pattern Type="CoplanarParallelWires" Id="2">
-				<Wire Id="0" Name="B1" EndPointFront="100.65 38.0 3.0" EndPointBack="100.65 38.0 103.0" />
-				<Wire Id="1" Name="B2" EndPointFront="100.65 48.0 3.0" EndPointBack="100.65 48.0 103.0" />
-				<Wire Id="2" Name="B3" EndPointFront="100.65 58.0 3.0" EndPointBack="100.65 58.0 103.0" />
-				<Wire Id="3" Name="B4" EndPointFront="100.65 68.0 3.0" EndPointBack="100.65 68.0 103.0" />
-				<Wire Id="4" Name="B5" EndPointFront="100.65 78.0 3.0" EndPointBack="100.65 78.0 103.0" />
+			<Pattern Type="CoplanarParallelWires" name="Right">
+				<Wire Name="B1" EndPointFront="100.65 38.0 3.0" EndPointBack="100.65 38.0 103.0" />
+				<Wire Name="B2" EndPointFront="100.65 48.0 3.0" EndPointBack="100.65 48.0 103.0" />
+				<Wire Name="B3" EndPointFront="100.65 58.0 3.0" EndPointBack="100.65 58.0 103.0" />
+				<Wire Name="B4" EndPointFront="100.65 68.0 3.0" EndPointBack="100.65 68.0 103.0" />
+				<Wire Name="B5" EndPointFront="100.65 78.0 3.0" EndPointBack="100.65 78.0 103.0" />
 			</Pattern>
 
 			<!-- Landmark list for registration -->

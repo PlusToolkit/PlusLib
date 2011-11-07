@@ -41,9 +41,7 @@
 
 					RegionOfInterest="27 27 793 589"
 
-					MaxLineLengthErrorPercent="10.0"
 					MaxLinePairDistanceErrorPercent="10.0"
-					MaxLineErrorMm="2.0"
 
 					MaxAngleDifferenceDegrees="11"
 					MinThetaDegrees="-70"

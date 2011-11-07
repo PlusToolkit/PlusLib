@@ -71,9 +71,7 @@ Connect the framegrabber via USB and plug in the stepper through Serial2USB conv
 
 					RegionOfInterest="130 120 435 330"
 
-					MaxLineLengthErrorPercent="10.0"
 					MaxLinePairDistanceErrorPercent="10.0"
-					MaxLineErrorMm="2.0"
 
 					MaxAngleDifferenceDegrees="11"
 					MinThetaDegrees="-70"
