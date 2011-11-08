@@ -219,7 +219,12 @@ void vtkSonixPortaVideoSource::PrintSelf(ostream& os, vtkIndent indent) {
 
 //----------------------------------------------------------------------------
 // the callback function used when there is a new frame of data received
-bool vtkSonixPortaVideoSource::vtkSonixPortaVideoSourceNewFrameCallback( void *param, int id ) {
+#if (PLUS_ULTRASONIX_SDK_MAJOR_VERSION < 5) || (PLUS_ULTRASONIX_SDK_MAJOR_VERSION == 5 && PLUS_ULTRASONIX_SDK_MINOR_VERSION < 7)
+  bool vtkSonixPortaVideoSource::vtkSonixPortaVideoSourceNewFrameCallback( void *param, int id )
+#else // SDK version 5.7.x or newer
+  bool vtkSonixPortaVideoSource::vtkSonixPortaVideoSourceNewFrameCallback( void *param, int id, int header )
+#endif
+{
 
   /*if ( id == 0 )  
   {
