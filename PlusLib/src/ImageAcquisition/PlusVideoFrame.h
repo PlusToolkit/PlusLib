@@ -51,10 +51,16 @@ public:
   /*! Utility function to get the pixel type of an ImageBaseType object */
   static PlusCommon::ITKScalarPixelType GetITKScalarPixelType(ImageBaseType* itkImageBase);
 
+  /*! Constructor */
   PlusVideoFrame();
+
+  /*! Destructor */
   virtual ~PlusVideoFrame();
 
-  PlusVideoFrame(const PlusVideoFrame& videoBufferItem); 
+  /*! Copy constructor */
+  PlusVideoFrame(const PlusVideoFrame& videoBufferItem);
+
+  /*! Equality operator */
   PlusVideoFrame& operator=(PlusVideoFrame const&videoItem); 
 
   /*! Allocate memory for the image */
