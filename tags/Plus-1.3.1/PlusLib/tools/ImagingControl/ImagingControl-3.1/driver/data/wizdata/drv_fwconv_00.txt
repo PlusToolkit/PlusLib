@@ -1,0 +1,3 @@
+# This contains the definitions of the hardware ids of the fw converter
+1394 Frame Grabber ( Rev.2 )=Video-To-1394 Converter
+1394 Frame Grabber ( Rev.1 )=Video-To-1394 Converter

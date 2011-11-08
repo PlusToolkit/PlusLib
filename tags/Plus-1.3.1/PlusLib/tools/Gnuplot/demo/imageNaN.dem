@@ -1,0 +1,49 @@
+#
+# Explore the effect of image data pixels that are
+# missing/NaN/Inf/garbage/...
+#
+
+set title "Treatment of missing/undefined/NaN/Inf data"
+unset key
+set tic scale 0
+set border 3 front
+
+set cbrange [-2:7]
+set cblabel "Score"
+set cbtics 0,1,5
+
+set xrange [-0.5:5.5]
+set yrange [-0.5:5.5]
+
+set datafile missing "?"
+set ytics ("-Inf" 5, "Inf" 4, "NaN" 3, "Junk" 2, "?" 1, "0" 0)
+unset xtics
+set xlabel "First column contains various odd values" offset 0,1
+
+set view map
+splot '-' matrix with image 
+0    5 4 3 1 0
+?    2 2 0 0 1
+Junk 1 2 3 4 5
+NaN  0 0 3 1 0
+Inf  3 2 0 2 3
+-Inf 0 1 2 4 3
+e
+e
+
+pause -1 "Hit return to continue"
+#
+#
+set title "Same thing in failsafe mode"
+
+splot '-' matrix with image failsafe
+0    5 4 3 1 0
+?    2 2 0 0 1
+Junk 1 2 3 4 5
+NaN  0 0 3 1 0
+Inf  3 2 0 2 3
+-Inf 0 1 2 4 3
+e
+e
+
+pause -1 "Hit return to continue"
