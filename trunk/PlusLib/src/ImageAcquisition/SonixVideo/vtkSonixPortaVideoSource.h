@@ -36,8 +36,6 @@ Authors include: Elvis Chen (Queen's University)
 // .SECTION See Also
 // vtkWin32VideoSource vtkMILVideoSource
 
-
-
 #ifndef __VTKSONIXPORTAVIDEOSOURCE_H__
 #define __VTKSONIXPORTAVIDEOSOURCE_H__
 
@@ -245,7 +243,12 @@ private:
   
   // Description:
   // call back whenever a new frame is available
+#if (PLUS_ULTRASONIX_SDK_MAJOR_VERSION < 5) || (PLUS_ULTRASONIX_SDK_MAJOR_VERSION == 5 && PLUS_ULTRASONIX_SDK_MINOR_VERSION < 7)
   static bool vtkSonixPortaVideoSourceNewFrameCallback( void *param, int id );
+#else // SDK version 5.7.x or newer
+  static bool vtkSonixPortaVideoSourceNewFrameCallback( void *param, int id, int header );
+#endif
+  
   // vtkSonixVideoSource(const vtkSonixVideoSource&);  // Not implemented.
   // void operator=(const vtkSonixVideoSource&);  // Not implemented.							
   
