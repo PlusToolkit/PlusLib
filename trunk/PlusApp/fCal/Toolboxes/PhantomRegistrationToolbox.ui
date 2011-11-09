@@ -39,27 +39,14 @@
     <number>4</number>
    </property>
    <item>
-    <widget class="QLabel" name="label_StylusCalibration">
-     <property name="text">
-      <string>Stylus calibration:</string>
-     </property>
-    </widget>
-   </item>
-   <item>
     <layout class="QHBoxLayout" name="horizontalLayout_3">
      <property name="spacing">
       <number>2</number>
      </property>
      <item>
-      <widget class="QLineEdit" name="lineEdit_StylusCalibration">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="readOnly">
-        <bool>true</bool>
+      <widget class="QLabel" name="label_StylusCalibration">
+       <property name="text">
+        <string>Import stylus calibration result:</string>
        </property>
       </widget>
      </item>
@@ -88,69 +75,7 @@
        </property>
        <property name="icon">
         <iconset resource="../fCal.qrc">
-         <normaloff>:/icons/CommonWidgets/Resources/icon_OpenFile.png</normaloff>:/icons/CommonWidgets/Resources/icon_OpenFile.png</iconset>
-       </property>
-       <property name="iconSize">
-        <size>
-         <width>16</width>
-         <height>16</height>
-        </size>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </item>
-   <item>
-    <widget class="QLabel" name="label_PhantomDefinition">
-     <property name="text">
-      <string>Phantom definition XML:</string>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <layout class="QHBoxLayout" name="horizontalLayout">
-     <property name="spacing">
-      <number>2</number>
-     </property>
-     <item>
-      <widget class="QLineEdit" name="lineEdit_PhantomDefinition">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="readOnly">
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="pushButton_OpenPhantomDefinition">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="minimumSize">
-        <size>
-         <width>23</width>
-         <height>23</height>
-        </size>
-       </property>
-       <property name="maximumSize">
-        <size>
-         <width>23</width>
-         <height>23</height>
-        </size>
-       </property>
-       <property name="text">
-        <string/>
-       </property>
-       <property name="icon">
-        <iconset resource="../fCal.qrc">
-         <normaloff>:/icons/CommonWidgets/Resources/icon_OpenFile.png</normaloff>:/icons/CommonWidgets/Resources/icon_OpenFile.png</iconset>
+         <normaloff>:/icons/Resources/icon_Import.png</normaloff>:/icons/Resources/icon_Import.png</iconset>
        </property>
        <property name="iconSize">
         <size>
@@ -222,6 +147,12 @@
    </item>
    <item>
     <widget class="QLabel" name="label_Instructions">
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
      <property name="text">
       <string>Instructions</string>
      </property>

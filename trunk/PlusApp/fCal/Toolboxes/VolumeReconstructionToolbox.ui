@@ -38,34 +38,15 @@
    <property name="spacing">
     <number>4</number>
    </property>
-   <item row="0" column="0">
-    <widget class="QLabel" name="label_VolumeReconstructionConfig">
-     <property name="text">
-      <string>Volume reconstruction config XML:</string>
-     </property>
-    </widget>
-   </item>
    <item row="1" column="0">
     <layout class="QHBoxLayout" name="horizontalLayout_3">
      <property name="spacing">
       <number>2</number>
      </property>
      <item>
-      <widget class="QLineEdit" name="lineEdit_VolumeReconstructionConfig">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="minimumSize">
-        <size>
-         <width>191</width>
-         <height>0</height>
-        </size>
-       </property>
-       <property name="readOnly">
-        <bool>true</bool>
+      <widget class="QLabel" name="label_VolumeReconstructionConfig">
+       <property name="text">
+        <string>Import volume reconstruction settings:</string>
        </property>
       </widget>
      </item>
@@ -94,7 +75,7 @@
        </property>
        <property name="icon">
         <iconset resource="../fCal.qrc">
-         <normaloff>:/icons/CommonWidgets/Resources/icon_OpenFile.png</normaloff>:/icons/CommonWidgets/Resources/icon_OpenFile.png</iconset>
+         <normaloff>:/icons/Resources/icon_Import.png</normaloff>:/icons/Resources/icon_Import.png</iconset>
        </property>
        <property name="iconSize">
         <size>
@@ -222,6 +203,12 @@
    </item>
    <item row="5" column="0">
     <widget class="QLabel" name="label_Instructions">
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
      <property name="text">
       <string>Instructions</string>
      </property>

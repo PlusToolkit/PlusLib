@@ -61,28 +61,39 @@ void StylusCalibrationToolbox::Initialize()
 {
   LOG_TRACE("StylusCalibrationToolbox::Initialize");
 
-  if ((m_ParentMainWindow->GetToolVisualizer()->GetDataCollector() != NULL) && (m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->GetConnected()))
+  if (m_State == ToolboxState_Done)
+  {
+    SetDisplayAccordingToState();
+    return;
+  }
+
+  if ( (m_ParentMainWindow->GetToolVisualizer()->GetDataCollector() != NULL)
+    && (m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->GetConnected()))
   {
     m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->SetTrackingOnly(true);
 
+    if (ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS)
+    {
+      LOG_ERROR("Reading stylus calibration configuraiton failed!");
+      return;
+    }
+
+    // Clear results poly data
+    m_ParentMainWindow->GetToolVisualizer()->GetResultPolyData()->Initialize();
+
+    // Set initialized if it was uninitialized
     if (m_State == ToolboxState_Uninitialized)
     {
-      if (ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS)
-      {
-        LOG_ERROR("Reading stylus calibration configuraiton failed!");
-        return;
-      }
-
       SetState(ToolboxState_Idle);
-    }
-    else if (m_State != ToolboxState_Done)
-    {
-      m_ParentMainWindow->GetToolVisualizer()->GetResultPolyData()->Initialize();
     }
     else
     {
       SetDisplayAccordingToState();
     }
+  }
+  else
+  {
+    SetState(ToolboxState_Uninitialized);
   }
 }
 
@@ -123,23 +134,21 @@ void StylusCalibrationToolbox::RefreshContent()
 {
   //LOG_TRACE("StylusCalibrationToolbox: Refresh stylus calibration toolbox content"); 
 
-  // If initialized
-  if (m_State == ToolboxState_Idle) {
+  if (m_State == ToolboxState_Idle)
+  {
     ui.label_NumberOfPoints->setText(QString("%1 / %2").arg(0).arg(m_NumberOfPoints));
     ui.label_CurrentPosition->setText(m_StylusPositionString.c_str());
-
-  } else
-    // If in progress
-    if (m_State == ToolboxState_InProgress) {
-      ui.label_NumberOfPoints->setText(QString("%1 / %2").arg(m_CurrentPointNumber).arg(m_NumberOfPoints));
-      ui.label_CurrentPosition->setText(m_StylusPositionString.c_str());
-      m_ParentMainWindow->SetStatusBarProgress((int)(100.0 * (m_CurrentPointNumber / (double)m_NumberOfPoints) + 0.5));
-
-    } else
-      // If done
-      if (m_State == ToolboxState_Done) {
-        ui.label_CurrentPosition->setText(m_ParentMainWindow->GetToolVisualizer()->GetToolPositionString(TRACKER_TOOL_STYLUS, true).c_str());
-      }
+  }
+  else if (m_State == ToolboxState_InProgress)
+  {
+    ui.label_NumberOfPoints->setText(QString("%1 / %2").arg(m_CurrentPointNumber).arg(m_NumberOfPoints));
+    ui.label_CurrentPosition->setText(m_StylusPositionString.c_str());
+    m_ParentMainWindow->SetStatusBarProgress((int)(100.0 * (m_CurrentPointNumber / (double)m_NumberOfPoints) + 0.5));
+  }
+  else if (m_State == ToolboxState_Done)
+  {
+    ui.label_CurrentPosition->setText(m_ParentMainWindow->GetToolVisualizer()->GetToolPositionString(TRACKER_TOOL_STYLUS, true).c_str());
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -172,7 +181,6 @@ void StylusCalibrationToolbox::SetDisplayAccordingToState()
     ui.label_CurrentPosition->setText(tr("N/A"));
     ui.label_StylusTipTransform->setText(tr("N/A"));
     ui.label_Instructions->setText(tr("Put stylus so that its tip is in steady position, and press Start"));
-    ui.label_Instructions->setFont(QFont("SansSerif", 8, QFont::Bold));
 
     ui.pushButton_Start->setEnabled(true);
     ui.pushButton_Stop->setEnabled(false);
@@ -190,7 +198,6 @@ void StylusCalibrationToolbox::SetDisplayAccordingToState()
     ui.label_CurrentPosition->setText(m_StylusPositionString.c_str());
     ui.label_StylusTipTransform->setText(tr("N/A"));
     ui.label_Instructions->setText(tr("Move around stylus with its tip fixed until the required amount of points are aquired"));
-    ui.label_Instructions->setFont(QFont("SansSerif", 8, QFont::Bold));
 
     ui.pushButton_Start->setEnabled(false);
     ui.pushButton_Stop->setEnabled(true);
@@ -209,7 +216,6 @@ void StylusCalibrationToolbox::SetDisplayAccordingToState()
     ui.pushButton_Stop->setEnabled(false);
     ui.pushButton_Save->setEnabled(true);
     ui.label_Instructions->setText(tr("Calibration transform is ready to save"));
-    ui.label_Instructions->setFont(QFont("SansSerif", 8, QFont::Bold));
 
     ui.label_NumberOfPoints->setText(QString("%1 / %2").arg(m_CurrentPointNumber).arg(m_NumberOfPoints));
     ui.label_CalibrationError->setText(QString("%1 mm").arg(m_PivotCalibration->GetCalibrationError(), 2));
@@ -220,9 +226,9 @@ void StylusCalibrationToolbox::SetDisplayAccordingToState()
     m_ParentMainWindow->SetStatusBarProgress(-1);
 
     m_ParentMainWindow->GetToolVisualizer()->ShowInput(true);
-    m_ParentMainWindow->GetToolVisualizer()->ShowTool(TRACKER_TOOL_STYLUS, true);
     m_ParentMainWindow->GetToolVisualizer()->ShowResult(true);
     m_ParentMainWindow->GetToolVisualizer()->GetCanvasRenderer()->ResetCamera();
+    m_ParentMainWindow->GetToolVisualizer()->ShowTool(TRACKER_TOOL_STYLUS, true);
 
     QApplication::restoreOverrideCursor();
   }
@@ -232,7 +238,6 @@ void StylusCalibrationToolbox::SetDisplayAccordingToState()
     ui.pushButton_Stop->setEnabled(false);
     ui.pushButton_Save->setEnabled(false);
     ui.label_Instructions->setText(tr(""));
-    ui.label_Instructions->setFont(QFont("SansSerif", 8, QFont::Bold));
 
     ui.label_NumberOfPoints->setText(tr("N/A"));
     ui.label_CalibrationError->setText(tr("N/A"));
@@ -269,7 +274,8 @@ void StylusCalibrationToolbox::Start()
 
   // Initialize stylus tool
   vtkDisplayableTool* stylusDisplayable = m_ParentMainWindow->GetToolVisualizer()->GetDisplayableTool(TRACKER_TOOL_STYLUS);
-  if (stylusDisplayable == NULL) {
+  if (stylusDisplayable == NULL)
+  {
     LOG_ERROR("Stylus tool not found!");
     return;
   }
@@ -297,12 +303,14 @@ void StylusCalibrationToolbox::Stop()
   // Calibrate
   PlusStatus success = m_PivotCalibration->DoTooltipCalibration();
 
-  if (success == PLUS_SUCCESS) {
+  if (success == PLUS_SUCCESS)
+  {
     LOG_INFO("Stylus calibration successful");
 
     // Feed result to tool
     vtkDisplayableTool* stylusDisplayable = m_ParentMainWindow->GetToolVisualizer()->GetDisplayableTool(TRACKER_TOOL_STYLUS);
-    if (stylusDisplayable == NULL) {
+    if (stylusDisplayable == NULL)
+    {
       LOG_ERROR("Stylus tool not found!");
       SetState(ToolboxState_Error);
       return;
@@ -318,19 +326,20 @@ void StylusCalibrationToolbox::Stop()
     points->Modified();
 
     // Write result in configuration
-    if (m_PivotCalibration->WriteConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData(), TRACKER_TOOL_STYLUS) != PLUS_SUCCESS) {
+    if (m_PivotCalibration->WriteConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData(), TRACKER_TOOL_STYLUS) != PLUS_SUCCESS)
+    {
       LOG_ERROR("Unable to save stylus calibration result in configuration XML tree!");
       SetState(ToolboxState_Error);
       return;
     }
 
     SetState(ToolboxState_Done);
-
-  } else {
+  }
+  else
+  {
     LOG_ERROR("Stylus calibration failed!");
 
     m_CurrentPointNumber = 0;
-
     SetState(ToolboxState_Error);
   }
 

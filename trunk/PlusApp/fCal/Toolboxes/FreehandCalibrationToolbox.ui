@@ -67,28 +67,15 @@
         </property>
        </widget>
       </item>
-      <item row="2" column="0" colspan="2">
-       <widget class="QLabel" name="label_PhantomRegistration">
-        <property name="text">
-         <string>Phantom registration:</string>
-        </property>
-       </widget>
-      </item>
       <item row="3" column="0" colspan="2">
        <layout class="QHBoxLayout" name="horizontalLayout_3">
         <property name="spacing">
          <number>2</number>
         </property>
         <item>
-         <widget class="QLineEdit" name="lineEdit_PhantomRegistration">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="readOnly">
-           <bool>true</bool>
+         <widget class="QLabel" name="label_PhantomRegistration">
+          <property name="text">
+           <string>Import phantom registration result:</string>
           </property>
          </widget>
         </item>
@@ -117,7 +104,7 @@
           </property>
           <property name="icon">
            <iconset resource="../fCal.qrc">
-            <normaloff>:/icons/CommonWidgets/Resources/icon_OpenFile.png</normaloff>:/icons/CommonWidgets/Resources/icon_OpenFile.png</iconset>
+            <normaloff>:/icons/Resources/icon_Import.png</normaloff>:/icons/Resources/icon_Import.png</iconset>
           </property>
           <property name="iconSize">
            <size>
@@ -129,28 +116,15 @@
         </item>
        </layout>
       </item>
-      <item row="4" column="0" colspan="2">
-       <widget class="QLabel" name="label_SegmentationParameters">
-        <property name="text">
-         <string>Segmentation parameters:</string>
-        </property>
-       </widget>
-      </item>
       <item row="5" column="0" colspan="2">
        <layout class="QHBoxLayout" name="horizontalLayout_6">
         <property name="spacing">
-         <number>2</number>
+         <number>6</number>
         </property>
         <item>
-         <widget class="QLineEdit" name="lineEdit_SegmentationParameters">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="readOnly">
-           <bool>true</bool>
+         <widget class="QLabel" name="label_SegmentationParameters">
+          <property name="text">
+           <string>Pattern recognition parameters:</string>
           </property>
          </widget>
         </item>
@@ -174,12 +148,15 @@
             <height>23</height>
            </size>
           </property>
+          <property name="toolTip">
+           <string>Import segmentation parameters</string>
+          </property>
           <property name="text">
            <string/>
           </property>
           <property name="icon">
            <iconset resource="../fCal.qrc">
-            <normaloff>:/icons/CommonWidgets/Resources/icon_OpenFile.png</normaloff>:/icons/CommonWidgets/Resources/icon_OpenFile.png</iconset>
+            <normaloff>:/icons/Resources/icon_Import.png</normaloff>:/icons/Resources/icon_Import.png</iconset>
           </property>
           <property name="iconSize">
            <size>
@@ -219,6 +196,12 @@
       </item>
       <item row="8" column="0" colspan="2">
        <widget class="QLabel" name="label_InstructionsSpatial">
+        <property name="font">
+         <font>
+          <weight>75</weight>
+          <bold>true</bold>
+         </font>
+        </property>
         <property name="text">
          <string>Instructions</string>
         </property>
@@ -418,6 +401,12 @@
       </item>
       <item>
        <widget class="QLabel" name="label_InstructionsTemporal">
+        <property name="font">
+         <font>
+          <weight>75</weight>
+          <bold>true</bold>
+         </font>
+        </property>
         <property name="text">
          <string>Instructions</string>
         </property>

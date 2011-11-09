@@ -74,16 +74,22 @@ void VolumeReconstructionToolbox::Initialize()
     && (m_VolumeReconstructor->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) == PLUS_SUCCESS))
   {
     m_VolumeReconstructionConfigFileLoaded = true;
-    ui.lineEdit_VolumeReconstructionConfig->setText(tr("Using session configuration"));
+  }
+
+  // Clear results poly data
+  if (m_State != ToolboxState_Done)
+  {
+    m_ParentMainWindow->GetToolVisualizer()->GetResultPolyData()->Initialize();
   }
 
   // Set initialized if it was uninitialized
-  if (m_State == ToolboxState_Uninitialized) {
+  if (m_State == ToolboxState_Uninitialized)
+  {
 	  SetState(ToolboxState_Idle);
   }
-
-  if (m_State != ToolboxState_Done) {
-    m_ParentMainWindow->GetToolVisualizer()->GetResultPolyData()->Initialize();
+  else
+  {
+    SetDisplayAccordingToState();
   }
 }
 
@@ -134,9 +140,6 @@ void VolumeReconstructionToolbox::SetDisplayAccordingToState()
 			ui.pushButton_Reconstruct->setEnabled(true);
 			ui.pushButton_Save->setEnabled(false);
 		}
-
-		ui.label_Instructions->setFont(QFont("SansSerif", 8, QFont::Bold));
-
 	}
   else if (m_State == ToolboxState_InProgress)
   {
@@ -179,14 +182,15 @@ void VolumeReconstructionToolbox::OpenVolumeReconstructionConfig()
 	// File open dialog for selecting phantom definition xml
 	QString filter = QString( tr( "XML files ( *.xml );;" ) );
   QString fileName = QFileDialog::getOpenFileName(NULL, QString( tr( "Open volume reconstruction configuration XML" ) ), vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationDirectory(), filter);
-	if (fileName.isNull()) {
+	if (fileName.isNull())
+  {
 		return;
 	}
 
   // Parse XML file
-  vtkSmartPointer<vtkXMLDataElement> rootElement = vtkSmartPointer<vtkXMLDataElement>::Take(
-    vtkXMLUtilities::ReadElementFromFile(fileName.toAscii().data()));
-	if (rootElement == NULL) {	
+  vtkSmartPointer<vtkXMLDataElement> rootElement = vtkSmartPointer<vtkXMLDataElement>::Take(vtkXMLUtilities::ReadElementFromFile(fileName.toAscii().data()));
+  if (rootElement == NULL)
+  {
 		LOG_ERROR("Unable to read the configuration file: " << fileName.toAscii().data()); 
 		return;
 	}
@@ -196,16 +200,11 @@ void VolumeReconstructionToolbox::OpenVolumeReconstructionConfig()
   {
     m_VolumeReconstructionConfigFileLoaded = false;
 
-    ui.lineEdit_VolumeReconstructionConfig->setText(tr("Invalid file!"));
-		ui.lineEdit_VolumeReconstructionConfig->setToolTip("");
-
-		LOG_ERROR("Failed to open volume reconstruction file: " << fileName.toAscii().data());
+		LOG_ERROR("Failed to import volume reconstruction settings from " << fileName.toAscii().data());
 		return;
 	}
 
   m_VolumeReconstructionConfigFileLoaded = true;
-	ui.lineEdit_VolumeReconstructionConfig->setText(fileName);
-	ui.lineEdit_VolumeReconstructionConfig->setToolTip(fileName);
 
 	SetState(ToolboxState_Idle);
 }
@@ -220,7 +219,8 @@ void VolumeReconstructionToolbox::OpenInputImage()
 	QString filter = QString( tr( "MHA files ( *.mha );;" ) );
 	QString fileName = QFileDialog::getOpenFileName(NULL, QString( tr( "Open input sequence metafile image" ) ), "", filter);
 
-	if (fileName.isNull()) {
+	if (fileName.isNull())
+  {
 		return;
 	}
 
@@ -255,7 +255,8 @@ void VolumeReconstructionToolbox::Save()
 	QString filter = QString( tr( "VTK files ( *.vtk );;" ) );
 	QString fileName = QFileDialog::getSaveFileName(NULL, tr("Save reconstructed volume"), "", filter);
 
-	if (! fileName.isNull() ) {
+	if (! fileName.isNull() )
+  {
 		QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
 
 		if (SaveVolumeToFile(fileName.toAscii().data()) != PLUS_SUCCESS)
@@ -281,7 +282,8 @@ PlusStatus VolumeReconstructionToolbox::ReconstructVolumeFromInputImage(std::str
 	RefreshContent();
 
   vtkSmartPointer<vtkTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New(); 
-  if (trackedFrameList->ReadFromSequenceMetafile(aInputImage.c_str()) != PLUS_SUCCESS) {
+  if (trackedFrameList->ReadFromSequenceMetafile(aInputImage.c_str()) != PLUS_SUCCESS)
+  {
     LOG_ERROR("Unable to load input image file!");
     return PLUS_FAIL;
   }

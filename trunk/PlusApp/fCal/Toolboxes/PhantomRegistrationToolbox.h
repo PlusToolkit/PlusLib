@@ -80,11 +80,6 @@ protected:
 	PlusStatus Start();
 
 protected slots:
-  /*!
-	* \brief Slot handling open phantom definition button click
-	*/
-	void OpenPhantomDefinition();
-
 	/*!
 	* \brief Slot handling open stylus calibration button click
 	*/
