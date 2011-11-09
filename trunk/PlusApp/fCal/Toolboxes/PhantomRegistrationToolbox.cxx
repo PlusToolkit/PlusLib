@@ -61,7 +61,6 @@ PhantomRegistrationToolbox::PhantomRegistrationToolbox(fCalMainWindow* aParentMa
 	connect( ui.pushButton_RecordPoint, SIGNAL( clicked() ), this, SLOT( RecordPoint() ) );
 	connect( ui.pushButton_Undo, SIGNAL( clicked() ), this, SLOT( Undo() ) );
 	connect( ui.pushButton_Reset, SIGNAL( clicked() ), this, SLOT( Reset() ) );
-	connect( ui.pushButton_Save, SIGNAL( clicked() ), this, SLOT( Save() ) );
 }
 
 //-----------------------------------------------------------------------------
@@ -274,7 +273,6 @@ void PhantomRegistrationToolbox::SetDisplayAccordingToState()
 		ui.pushButton_OpenStylusCalibration->setEnabled(false);
 		ui.pushButton_RecordPoint->setEnabled(false);
 		ui.pushButton_Reset->setEnabled(false);
-		ui.pushButton_Save->setEnabled(false);
 		ui.pushButton_Undo->setEnabled(false);
 
 		m_ParentMainWindow->SetStatusBarText(QString(""));
@@ -287,7 +285,6 @@ void PhantomRegistrationToolbox::SetDisplayAccordingToState()
 		ui.pushButton_OpenStylusCalibration->setEnabled(true);
 		ui.pushButton_RecordPoint->setEnabled(false);
 		ui.pushButton_Reset->setEnabled(false);
-		ui.pushButton_Save->setEnabled(false);
 		ui.pushButton_Undo->setEnabled(false);
 
 		m_ParentMainWindow->SetStatusBarText(QString(""));
@@ -297,7 +294,6 @@ void PhantomRegistrationToolbox::SetDisplayAccordingToState()
   {
 		ui.pushButton_OpenStylusCalibration->setEnabled(true);
 		ui.pushButton_RecordPoint->setEnabled(true);
-		ui.pushButton_Save->setEnabled(false);
 
 		if (m_CurrentLandmarkIndex < 1) {
 			ui.pushButton_Undo->setEnabled(false);
@@ -323,7 +319,6 @@ void PhantomRegistrationToolbox::SetDisplayAccordingToState()
 		ui.label_Instructions->setText(tr("Transform is ready to save"));
 
 		ui.pushButton_OpenStylusCalibration->setEnabled(true);
-		ui.pushButton_Save->setEnabled(true);
 		ui.pushButton_RecordPoint->setEnabled(false);
 		ui.pushButton_Reset->setEnabled(true);
 		ui.pushButton_Undo->setEnabled(true);
@@ -344,7 +339,6 @@ void PhantomRegistrationToolbox::SetDisplayAccordingToState()
 		ui.pushButton_OpenStylusCalibration->setEnabled(true);
 		ui.pushButton_RecordPoint->setEnabled(false);
 		ui.pushButton_Reset->setEnabled(false);
-		ui.pushButton_Save->setEnabled(false);
 		ui.pushButton_Undo->setEnabled(false);
 
     m_ParentMainWindow->SetStatusBarText(QString(""));
@@ -582,16 +576,4 @@ void PhantomRegistrationToolbox::Reset()
 	if (fakeTracker != NULL) {
 		fakeTracker->SetCounter(m_CurrentLandmarkIndex);
 	}
-}
-
-//-----------------------------------------------------------------------------
-
-void PhantomRegistrationToolbox::Save()
-{
-  LOG_TRACE("PhantomRegistrationToolbox::Save"); 
-
-  ConfigFileSaverDialog* configSaverDialog = new ConfigFileSaverDialog(this);
-  configSaverDialog->exec();
-
-  delete configSaverDialog;
 }

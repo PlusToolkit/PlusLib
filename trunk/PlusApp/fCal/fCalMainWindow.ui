@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1020</width>
+    <width>1022</width>
     <height>720</height>
    </rect>
   </property>
@@ -25,54 +25,7 @@
     <property name="spacing">
      <number>0</number>
     </property>
-    <item row="0" column="0">
-     <widget class="QTabWidget" name="tabWidgetToolbox">
-      <property name="minimumSize">
-       <size>
-        <width>250</width>
-        <height>700</height>
-       </size>
-      </property>
-      <property name="maximumSize">
-       <size>
-        <width>250</width>
-        <height>16777215</height>
-       </size>
-      </property>
-      <property name="tabPosition">
-       <enum>QTabWidget::West</enum>
-      </property>
-      <property name="currentIndex">
-       <number>0</number>
-      </property>
-      <widget class="QWidget" name="tab_Configuration">
-       <attribute name="title">
-        <string>Configuration</string>
-       </attribute>
-      </widget>
-      <widget class="QWidget" name="tab_StylusCalibration">
-       <attribute name="title">
-        <string>Stylus Calibration</string>
-       </attribute>
-      </widget>
-      <widget class="QWidget" name="tab_PhantomRegistration">
-       <attribute name="title">
-        <string>Phantom Registration</string>
-       </attribute>
-      </widget>
-      <widget class="QWidget" name="tab_FreehandCalibration">
-       <attribute name="title">
-        <string>Freehand Calibration</string>
-       </attribute>
-      </widget>
-      <widget class="QWidget" name="tab_VolumeReconstruction">
-       <attribute name="title">
-        <string>Volume Reconstruction</string>
-       </attribute>
-      </widget>
-     </widget>
-    </item>
-    <item row="0" column="1">
+    <item row="0" column="2">
      <widget class="QVTKWidget" name="canvas" native="true">
       <property name="sizePolicy">
        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
@@ -93,6 +46,146 @@
        </size>
       </property>
      </widget>
+    </item>
+    <item row="0" column="1">
+     <layout class="QVBoxLayout" name="verticalLayout">
+      <property name="spacing">
+       <number>0</number>
+      </property>
+      <item>
+       <widget class="QFrame" name="frame_Toolbar">
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>27</height>
+         </size>
+        </property>
+        <property name="frameShape">
+         <enum>QFrame::StyledPanel</enum>
+        </property>
+        <property name="frameShadow">
+         <enum>QFrame::Raised</enum>
+        </property>
+        <layout class="QHBoxLayout" name="horizontalLayout">
+         <property name="spacing">
+          <number>4</number>
+         </property>
+         <property name="leftMargin">
+          <number>4</number>
+         </property>
+         <property name="topMargin">
+          <number>2</number>
+         </property>
+         <property name="rightMargin">
+          <number>4</number>
+         </property>
+         <property name="bottomMargin">
+          <number>2</number>
+         </property>
+         <item>
+          <widget class="QPushButton" name="pushButton_SaveConfiguration">
+           <property name="minimumSize">
+            <size>
+             <width>23</width>
+             <height>23</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>23</width>
+             <height>23</height>
+            </size>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+           <property name="icon">
+            <iconset resource="fCal.qrc">
+             <normaloff>:/icons/Resources/icon_Save.png</normaloff>:/icons/Resources/icon_Save.png</iconset>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="horizontalSpacer">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QPushButton" name="pushButton_Tools">
+           <property name="maximumSize">
+            <size>
+             <width>23</width>
+             <height>23</height>
+            </size>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+           <property name="icon">
+            <iconset resource="fCal.qrc">
+             <normaloff>:/icons/Resources/icon_Tools.png</normaloff>:/icons/Resources/icon_Tools.png</iconset>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item>
+       <widget class="QTabWidget" name="tabWidgetToolbox">
+        <property name="minimumSize">
+         <size>
+          <width>250</width>
+          <height>660</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>250</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="tabPosition">
+         <enum>QTabWidget::West</enum>
+        </property>
+        <property name="currentIndex">
+         <number>0</number>
+        </property>
+        <widget class="QWidget" name="tab_Configuration">
+         <attribute name="title">
+          <string>Configuration</string>
+         </attribute>
+        </widget>
+        <widget class="QWidget" name="tab_StylusCalibration">
+         <attribute name="title">
+          <string>Stylus Calibration</string>
+         </attribute>
+        </widget>
+        <widget class="QWidget" name="tab_PhantomRegistration">
+         <attribute name="title">
+          <string>Phantom Registration</string>
+         </attribute>
+        </widget>
+        <widget class="QWidget" name="tab_FreehandCalibration">
+         <attribute name="title">
+          <string>Freehand Calibration</string>
+         </attribute>
+        </widget>
+        <widget class="QWidget" name="tab_VolumeReconstruction">
+         <attribute name="title">
+          <string>Volume Reconstruction</string>
+         </attribute>
+        </widget>
+       </widget>
+      </item>
+     </layout>
     </item>
    </layout>
   </widget>

@@ -979,7 +979,7 @@ PlusStatus vtkToolVisualizer::DumpBuffersToDirectory(const char* aDirectory)
   LOG_TRACE("vtkToolVisualizer::DumpBuffersToDirectory(" << aDirectory << ")");
 
   if ((this->DataCollector == NULL) || (! this->DataCollector->GetConnected())) {
-		LOG_ERROR("Data collector is not initialized!");
+		LOG_INFO("Data collector is not connected, buffers cannot be saved");
 		return PLUS_FAIL;
 	}
 

@@ -78,11 +78,6 @@ protected slots:
   void Stop();
 
   /*!
-  * Save result to XML file
-  */
-  void Save();
-
-  /*!
   * Slot handling change of stylus calibration number of points
   * \param aLevel New number of points
   */

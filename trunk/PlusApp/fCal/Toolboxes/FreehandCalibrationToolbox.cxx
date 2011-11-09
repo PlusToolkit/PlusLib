@@ -67,7 +67,6 @@ FreehandCalibrationToolbox::FreehandCalibrationToolbox(fCalMainWindow* aParentMa
   connect( ui.pushButton_CancelTemporal, SIGNAL( clicked() ), this, SLOT( CancelTemporal() ) );
   connect( ui.pushButton_StartSpatial, SIGNAL( clicked() ), this, SLOT( StartSpatial() ) );
   connect( ui.pushButton_CancelSpatial, SIGNAL( clicked() ), this, SLOT( CancelSpatial() ) );
-  connect( ui.pushButton_Save, SIGNAL( clicked() ), this, SLOT( Save() ) );
   connect( ui.checkBox_ShowDevices, SIGNAL( toggled(bool) ), this, SLOT( ShowDevicesToggled(bool) ) );
 }
 
@@ -274,7 +273,6 @@ void FreehandCalibrationToolbox::SetDisplayAccordingToState()
     ui.pushButton_CancelSpatial->setEnabled(false);
 
     ui.checkBox_ShowDevices->setEnabled(false);
-    ui.pushButton_Save->setEnabled(false);
     ui.pushButton_EditSegmentationParameters->setEnabled(false);
 
     ui.pushButton_StartTemporal->setEnabled(false);
@@ -304,7 +302,6 @@ void FreehandCalibrationToolbox::SetDisplayAccordingToState()
     }
 
     ui.pushButton_EditSegmentationParameters->setEnabled(true);
-    ui.pushButton_Save->setEnabled(false);
     ui.label_Results->setText(tr(""));
 
     ui.pushButton_CancelSpatial->setEnabled(false);
@@ -332,7 +329,6 @@ void FreehandCalibrationToolbox::SetDisplayAccordingToState()
 
     ui.pushButton_EditSegmentationParameters->setEnabled(false);
     ui.checkBox_ShowDevices->setEnabled(false);
-    ui.pushButton_Save->setEnabled(false);
     ui.label_Results->setText(tr(""));
 
     m_ParentMainWindow->SetStatusBarText(QString(" Acquiring and adding images to calibrator"));
@@ -352,10 +348,7 @@ void FreehandCalibrationToolbox::SetDisplayAccordingToState()
 
     ui.pushButton_EditSegmentationParameters->setEnabled(true);
     ui.checkBox_ShowDevices->setEnabled(true);
-    ui.pushButton_Save->setEnabled(true);
     ui.label_Results->setText(m_Calibration->GetResultString().c_str());
-
-    ui.pushButton_Save->setFocus();
 
     ui.label_InstructionsTemporal->setText(tr("Temporal calibration is ready to save\n(video time offset: %1 ms)").arg(videoTimeOffset));
     ui.pushButton_StartTemporal->setEnabled(true);
@@ -376,7 +369,6 @@ void FreehandCalibrationToolbox::SetDisplayAccordingToState()
     ui.pushButton_CancelSpatial->setEnabled(false);
 
     ui.checkBox_ShowDevices->setEnabled(false);
-    ui.pushButton_Save->setEnabled(false);
 
     ui.label_InstructionsTemporal->setText(tr("Error occured!"));
     ui.pushButton_StartTemporal->setEnabled(false);
@@ -760,18 +752,6 @@ bool FreehandCalibrationToolbox::IsReadyToStartSpatialCalibration()
   ui.label_InstructionsSpatial->setText(tr("Press Start and start scanning the phantom"));
 
   return true;
-}
-
-//-----------------------------------------------------------------------------
-
-void FreehandCalibrationToolbox::Save()
-{
-  LOG_TRACE("FreehandCalibrationToolbox::Save"); 
-
-  ConfigFileSaverDialog* configSaverDialog = new ConfigFileSaverDialog(this);
-  configSaverDialog->exec();
-
-  delete configSaverDialog;
 }
 
 //-----------------------------------------------------------------------------

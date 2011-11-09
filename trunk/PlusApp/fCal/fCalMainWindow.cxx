@@ -33,7 +33,6 @@ fCalMainWindow::fCalMainWindow(QWidget *parent, Qt::WFlags flags)
 	, m_ActiveToolbox(ToolboxType_Undefined)
   , m_ToolVisualizer(NULL)
   , m_StatusIcon(NULL)
-  , m_OptionsIcon(NULL)
 {
 	// Set up UI
 	ui.setupUi(this);
@@ -42,9 +41,6 @@ fCalMainWindow::fCalMainWindow(QWidget *parent, Qt::WFlags flags)
   this->setWindowState(this->windowState() ^ Qt::WindowMaximized);
 
   m_ToolboxList.resize(5);
-
-	// Make connections
-	connect(ui.tabWidgetToolbox, SIGNAL(currentChanged(int)), this, SLOT(CurrentTabChanged(int)) );
 }
 
 //-----------------------------------------------------------------------------
@@ -59,11 +55,6 @@ fCalMainWindow::~fCalMainWindow()
   if (m_StatusIcon != NULL) {
 		delete m_StatusIcon;
     m_StatusIcon = NULL;
-	}
-
-  if (m_OptionsIcon != NULL) {
-		delete m_OptionsIcon;
-    m_OptionsIcon = NULL;
 	}
 
   if (m_UiRefreshTimer != NULL) {
@@ -81,35 +72,18 @@ void fCalMainWindow::Initialize()
 {
   LOG_TRACE("fCalMainWindow::Initialize");
 
+  // Create status icon
 	m_StatusIcon = new StatusIcon(this);
 
-  // Create options icon
-  QWidget* optionsContainer = new QWidget(this);
+	// Set up timer for refreshing UI
+	m_UiRefreshTimer = new QTimer(this);
 
-  optionsContainer->setMinimumSize(18, 16);
-  optionsContainer->setMaximumSize(18, 16);
-  optionsContainer->setSizePolicy(QSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed));
-
-  // Set up layout and create dot label
-  QGridLayout* optionsGrid = new QGridLayout();
-  optionsGrid->setSpacing(0);
-  optionsGrid->setContentsMargins(0, 0, 2, 0);
-
-  m_OptionsIcon = new QLabel(this);
-  m_OptionsIcon->setPixmap( QPixmap( ":/icons/Resources/icon_Options.png" ) );
-  optionsGrid->addWidget(m_OptionsIcon);
-
-  optionsContainer->setLayout(optionsGrid);
-
-  QAction* dumpBuffersAction = new QAction("Dump buffers into files...", m_OptionsIcon);
+  // Set up menu items for tools button
+  QAction* dumpBuffersAction = new QAction("Dump buffers into files...", ui.pushButton_Tools);
   connect(dumpBuffersAction, SIGNAL(triggered()), this, SLOT(DumpBuffers()));
-  m_OptionsIcon->addAction(dumpBuffersAction);
+  ui.pushButton_Tools->addAction(dumpBuffersAction);
 
-  QAction* saveConfigAction = new QAction("Save current device set configuration...", m_OptionsIcon);
-  connect(saveConfigAction, SIGNAL(triggered()), this, SLOT(SaveDeviceSetConfiguration()));
-  m_OptionsIcon->addAction(saveConfigAction);
-
-  m_OptionsIcon->installEventFilter(this);
+  ui.pushButton_Tools->installEventFilter(this);
 
   // Create visualizer
   m_ToolVisualizer = vtkToolVisualizer::New();
@@ -122,12 +96,15 @@ void fCalMainWindow::Initialize()
 	// Set up status bar (message and progress bar)
 	SetupStatusBar();
 
-	// Initialize default tab widget
+	// Make connections
+	connect(ui.tabWidgetToolbox, SIGNAL(currentChanged(int)), this, SLOT(CurrentTabChanged(int)) );
+  connect(ui.pushButton_SaveConfiguration, SIGNAL(clicked()), this, SLOT(SaveDeviceSetConfiguration()));
+	connect(m_UiRefreshTimer, SIGNAL(timeout()), this, SLOT(UpdateGUI()));
+
+  // Initialize default tab widget
 	CurrentTabChanged(ui.tabWidgetToolbox->currentIndex());
 
-	// Set up timer for refreshing UI
-	m_UiRefreshTimer = new QTimer(this);
-	connect(m_UiRefreshTimer, SIGNAL(timeout()), this, SLOT(UpdateGUI()));
+  // Start timer
 	m_UiRefreshTimer->start(50);
 }
 
@@ -208,7 +185,6 @@ void fCalMainWindow::SetupStatusBar()
 	ui.statusBar->addWidget(m_StatusBarLabel, 1);
 	ui.statusBar->addPermanentWidget(m_StatusBarProgress, 3);
 	
-	ui.statusBar->addPermanentWidget(m_OptionsIcon);
 	ui.statusBar->addPermanentWidget(m_StatusIcon);
 }
 
@@ -352,17 +328,19 @@ bool fCalMainWindow::eventFilter(QObject *obj, QEvent *ev)
 {
 	//LOG_TRACE("fCalMainWindow::eventFilter"); 
 
-	if (obj == m_OptionsIcon)
+	if (obj == ui.pushButton_Tools)
   {
 		if (ev->type() == QEvent::MouseButtonRelease)
     {
 			QMouseEvent *mouseEvent = static_cast<QMouseEvent*>(ev);
 			if ( mouseEvent->button() == Qt::LeftButton )
 			{
-        QMenu* menu = new QMenu(tr("Options"), m_OptionsIcon);
-        menu->addActions(m_OptionsIcon->actions());
-        menu->move( QPoint( m_OptionsIcon->x(), ui.statusBar->y() - 27 ) );
+        QMenu* menu = new QMenu(tr("Options"), ui.pushButton_Tools);
+        menu->addActions(ui.pushButton_Tools->actions());
+        menu->move( QPoint( ui.pushButton_Tools->x(), ui.pushButton_Tools->y() + 23 ) );
         menu->exec();
+        delete menu;
+
         return true;
 			}	
 		}
@@ -392,6 +370,12 @@ void fCalMainWindow::DumpBuffers()
 void fCalMainWindow::SaveDeviceSetConfiguration()
 {
   LOG_TRACE("fCalMainWindow::SaveDeviceSetConfiguration");
+
+  if (vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData() == NULL)
+  {
+    LOG_ERROR("Failed to save device set configuration, because it is missing. Connect to a device set first!");
+    return;
+  }
 
   ConfigFileSaverDialog* configSaverDialog = new ConfigFileSaverDialog(this);
   configSaverDialog->exec();

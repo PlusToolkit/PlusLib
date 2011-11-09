@@ -23,7 +23,7 @@
    </size>
   </property>
   <property name="windowTitle">
-   <string>Save Configuration File</string>
+   <string>Save device set configuration to file</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <property name="spacing">

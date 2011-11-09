@@ -100,11 +100,6 @@ protected slots:
 	*/
 	void Reset();
 
-	/*!
-	* \brief Slot handling save button click
-	*/
-	void Save();
-
 protected:
   //! Phantom registration algorithm
   vtkPhantomRegistrationAlgo* m_PhantomRegistration;

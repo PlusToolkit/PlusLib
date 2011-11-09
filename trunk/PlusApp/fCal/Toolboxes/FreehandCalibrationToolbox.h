@@ -123,11 +123,6 @@ protected slots:
   void CancelSpatial();
 
   /*!
-  * Slot handling save results button click
-  */
-  void Save();
-
-  /*!
   * Slot handling show devices combobox state change
   * \param Slot aOn True if toggled, false otherwise
   */

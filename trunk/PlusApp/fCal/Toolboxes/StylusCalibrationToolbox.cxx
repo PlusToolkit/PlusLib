@@ -41,7 +41,6 @@ StylusCalibrationToolbox::StylusCalibrationToolbox(fCalMainWindow* aParentMainWi
   // Connect events
   connect( ui.pushButton_Start, SIGNAL( clicked() ), this, SLOT( Start() ) );
   connect( ui.pushButton_Stop, SIGNAL( clicked() ), this, SLOT( Stop() ) );
-  connect( ui.pushButton_Save, SIGNAL( clicked() ), this, SLOT( Save() ) );
   connect( ui.spinBox_NumberOfStylusCalibrationPoints, SIGNAL( valueChanged(int) ), this, SLOT( NumberOfStylusCalibrationPointsChanged(int) ) );
 }
 
@@ -170,7 +169,6 @@ void StylusCalibrationToolbox::SetDisplayAccordingToState()
 
     ui.pushButton_Start->setEnabled(false);
     ui.pushButton_Stop->setEnabled(false);
-    ui.pushButton_Save->setEnabled(false);
 
     m_ParentMainWindow->SetStatusBarText(QString(""));
     m_ParentMainWindow->SetStatusBarProgress(-1);
@@ -184,7 +182,6 @@ void StylusCalibrationToolbox::SetDisplayAccordingToState()
 
     ui.pushButton_Start->setEnabled(true);
     ui.pushButton_Stop->setEnabled(false);
-    ui.pushButton_Save->setEnabled(false);
 
     ui.pushButton_Start->setFocus();
 
@@ -201,7 +198,6 @@ void StylusCalibrationToolbox::SetDisplayAccordingToState()
 
     ui.pushButton_Start->setEnabled(false);
     ui.pushButton_Stop->setEnabled(true);
-    ui.pushButton_Save->setEnabled(false);
 
     m_ParentMainWindow->SetStatusBarText(QString(" Recording stylus positions"));
     m_ParentMainWindow->SetStatusBarProgress(0);
@@ -214,7 +210,6 @@ void StylusCalibrationToolbox::SetDisplayAccordingToState()
   {
     ui.pushButton_Start->setEnabled(true);
     ui.pushButton_Stop->setEnabled(false);
-    ui.pushButton_Save->setEnabled(true);
     ui.label_Instructions->setText(tr("Calibration transform is ready to save"));
 
     ui.label_NumberOfPoints->setText(QString("%1 / %2").arg(m_CurrentPointNumber).arg(m_NumberOfPoints));
@@ -236,7 +231,6 @@ void StylusCalibrationToolbox::SetDisplayAccordingToState()
   {
     ui.pushButton_Start->setEnabled(true);
     ui.pushButton_Stop->setEnabled(false);
-    ui.pushButton_Save->setEnabled(false);
     ui.label_Instructions->setText(tr(""));
 
     ui.label_NumberOfPoints->setText(tr("N/A"));
@@ -344,18 +338,6 @@ void StylusCalibrationToolbox::Stop()
   }
 
   m_ParentMainWindow->SetTabsEnabled(true);
-}
-
-//-----------------------------------------------------------------------------
-
-void StylusCalibrationToolbox::Save()
-{
-  LOG_TRACE("StylusCalibrationToolbox::Save");
-
-  ConfigFileSaverDialog* configSaverDialog = new ConfigFileSaverDialog(this);
-  configSaverDialog->exec();
-
-  delete configSaverDialog;
 }
 
 //-----------------------------------------------------------------------------

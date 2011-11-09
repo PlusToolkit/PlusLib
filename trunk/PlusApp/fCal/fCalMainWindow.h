@@ -167,9 +167,6 @@ protected:
   /*! Status icon instance */
   StatusIcon*         m_StatusIcon;
 
-  /*! Options icon */
-  QLabel*             m_OptionsIcon;
-
   /*! List of toolbox objects (the indices are the type identifiers) */
   std::vector<AbstractToolbox*> m_ToolboxList;
 
