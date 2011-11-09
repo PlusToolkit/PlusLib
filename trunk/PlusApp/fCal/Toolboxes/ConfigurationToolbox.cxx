@@ -21,9 +21,9 @@
 
 //-----------------------------------------------------------------------------
 
-ConfigurationToolbox::ConfigurationToolbox(fCalMainWindow* aParentMainWindow, QWidget* aParent, Qt::WFlags aFlags)
+ConfigurationToolbox::ConfigurationToolbox(fCalMainWindow* aParentMainWindow, Qt::WFlags aFlags)
 	: AbstractToolbox(aParentMainWindow)
-	, QWidget(aParent, aFlags)
+	, QWidget(aParentMainWindow, aFlags)
 	, m_ToolStatePopOutWindow(NULL)
   , m_IsToolDisplayDetached(false)
 {
@@ -62,9 +62,6 @@ ConfigurationToolbox::ConfigurationToolbox(fCalMainWindow* aParentMainWindow, QW
 
   ui.lineEdit_EditorApplicationExecutable->setText( QDir::toNativeSeparators(QString(vtkPlusConfig::GetInstance()->GetEditorApplicationExecutable())) );
   ui.lineEdit_ImageDirectory->setText( QDir::toNativeSeparators(QString(vtkPlusConfig::GetInstance()->GetImageDirectory())) );
-
-  // Install event filters to capture key event for dumping raw buffer data
-	this->installEventFilter(this); //TODO make this a button or something, this is unreliable
 }
 
 //-----------------------------------------------------------------------------
@@ -252,39 +249,6 @@ void ConfigurationToolbox::PopOutToggled(bool aOn)
 
 	// Set detached flag
 	m_IsToolDisplayDetached = aOn;
-}
-
-//-----------------------------------------------------------------------------
-
-bool ConfigurationToolbox::eventFilter(QObject *obj, QEvent *ev)
-{
-	LOG_TRACE("ConfigurationToolbox::eventFilter"); 
-
-  bool passToParent = true;
-
-	if (obj == m_ToolStatePopOutWindow) {
-		if (ev->type() == QEvent::Close) {
-			ui.pushButton_PopOut->setChecked(false);
-      return true;
-		}
-  } else {
-    if (ev->type() == QEvent::KeyPress) {
-      QKeyEvent* keyEvent = dynamic_cast<QKeyEvent*>(ev);
-      if (keyEvent) {
-	      if ( ( keyEvent->key() == Qt::Key_D ) && ( keyEvent->modifiers() == Qt::ControlModifier ) ) {
-	        // Directory open dialog for selecting directory to save the buffers into 
-          QString dirName = QFileDialog::getExistingDirectory(NULL, QString( tr( "Open output directory for buffer dump files" ) ), vtkPlusConfig::GetInstance()->GetOutputDirectory());
-	        if ( (dirName.isNull()) || (m_ParentMainWindow->GetToolVisualizer()->DumpBuffersToDirectory(dirName.toAscii().data()) != PLUS_SUCCESS) ) {
-              LOG_ERROR("Writing raw buffers into files failed (output directory: " << dirName.toAscii().data() << ")!");
-          }
-          return true;
-        }
-      }
-		}
-  }
-
-	// Pass the event on to the parent class
-	return QWidget::eventFilter( obj, ev );
 }
 
 //-----------------------------------------------------------------------------

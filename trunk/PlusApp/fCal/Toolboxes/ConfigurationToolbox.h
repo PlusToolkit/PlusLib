@@ -20,11 +20,8 @@ class ToolStateDisplayWidget;
 //-----------------------------------------------------------------------------
 
 /*! \class ConfigurationToolbox 
- *
  * \brief Configuration toolbox that handles device sets and common preferences of fCal
- *
  * \ingroup PlusAppFCal
- *
  */
 class ConfigurationToolbox : public QWidget, public AbstractToolbox
 {
@@ -32,94 +29,84 @@ class ConfigurationToolbox : public QWidget, public AbstractToolbox
 
 public:
 	/*!
-	* \brief Constructor
-  * TODO
-	* \param aParent parent
+	* Constructor
+  * \param aParentWindow Parent main window
 	* \param aFlags widget flag
 	*/
-	ConfigurationToolbox(fCalMainWindow* aParentMainWindow, QWidget* aParent = 0, Qt::WFlags aFlags = 0);
+	ConfigurationToolbox(fCalMainWindow* aParentMainWindow, Qt::WFlags aFlags = 0);
 
 	/*!
-	* \brief Destructor
+	* Destructor
 	*/
 	~ConfigurationToolbox();
 
 	/*!
-	* \brief Initialize toolbox
+	* Initialize toolbox
 	*/
 	void Initialize();
 
 	/*!
-	* \brief Refresh contents (e.g. GUI elements) of toolbox according to the state in the toolbox controller - implementation of a pure virtual function
+	* Refresh contents (e.g. GUI elements) of toolbox according to the state in the toolbox controller - implementation of a pure virtual function
 	*/
 	void RefreshContent();
 
 	/*!
-	* \brief Refresh contents if tool display is detached
+	* Refresh contents if tool display is detached
 	*/
   void RefreshToolDisplayIfDetached();
 
 	/*!
-	* \brief Sets display mode (visibility of actors) according to the current state - implementation of a pure virtual function
+	* Sets display mode (visibility of actors) according to the current state - implementation of a pure virtual function
 	*/
 	void SetDisplayAccordingToState();
 
 signals:
 	/*!
-	* \brief Executes operations needed after stopping the process
+	* Executes operations needed after stopping the process
 	* \param Enable/disable flag
 	*/
 	void SetTabsEnabled(bool);
 
 protected slots:
 	/*!
-	* \brief Connect to devices described in the argument configuration file in response by clicking on the Connect button
+	* Connect to devices described in the argument configuration file in response by clicking on the Connect button
 	* \param aConfigFile DeviceSet configuration file path and name
 	*/
 	void ConnectToDevicesByConfigFile(std::string aConfigFile);
 
 	/*!
-	* \brief Slot handling pop out toggle button state change
+	* Slot handling pop out toggle button state change
 	* \param aOn True if toggled, false otherwise
 	*/
 	void PopOutToggled(bool aOn);
 
 	/*!
-	* \brief Slot handling log level combobox item change
+	* Slot handling log level combobox item change
 	* \param aLevel New log level
 	*/
 	void LogLevelChanged(int aLevel);
 
 	/*!
-	* \brief Slot handling select editor application executable button click
+	* Slot handling select editor application executable button click
 	*/
   void SelectEditorApplicationExecutable();
 
 	/*!
-	* \brief Pops up open directory dialog and saves the selected one as image directory. It is the directory that contains the usually used input images (to act as home for relative paths in device set configuration files)
+	* Pops up open directory dialog and saves the selected one as image directory. It is the directory that contains the usually used input images (to act as home for relative paths in device set configuration files)
 	*/
 	void SelectImageDirectory();
 
 protected:
-  /*!
-	* \brief Filters events if this object has been installed as an event filter for the watched object
-	* \param obj object
-	* \param ev event
-	* \return if you want to filter the event out, i.e. stop it being handled further, return true; otherwise return false
-	*/
-	bool eventFilter(QObject *obj, QEvent *ev);
-
-protected:
-	//! Device set selector widget
+	/*! Device set selector widget */
 	DeviceSetSelectorWidget*	m_DeviceSetSelectorWidget;
 
-	//! Tool state display widget
+	/*! Tool state display widget */
 	ToolStateDisplayWidget*		m_ToolStateDisplayWidget;
 
-	//! Window that is created when tool state display widget is popped out
+	/*! Window that is created when tool state display widget is popped out */
 	QWidget*					        m_ToolStatePopOutWindow;
 
-	//! Flag indicating if tool state display widget is detached
+	/*! Flag indicating if tool state display widget is detached */
 	bool                      m_IsToolDisplayDetached;
 
 protected:

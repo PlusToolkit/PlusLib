@@ -35,11 +35,8 @@ enum ToolboxType
 //-----------------------------------------------------------------------------
 
 /*! \class fCalMainWindow 
- *
  * \brief Main window of the fCal application
- *
  * \ingroup PlusAppFCal
- *
  */
 class fCalMainWindow : public QMainWindow
 {
@@ -47,53 +44,53 @@ class fCalMainWindow : public QMainWindow
 
 public:
 	/*!
-	* \brief Constructor
+	* Constructor
 	* \param aParent parent
 	* \param aFlags widget flag
 	*/
 	fCalMainWindow(QWidget *parent = 0, Qt::WFlags flags = 0);
 
 	/*!
-	* \brief Destructor
+	* Destructor
 	*/
 	~fCalMainWindow();
 
 	/*!
-	* \brief Initialize controller, toolboxes, canvas and connect to devices
+	* Initialize controller, toolboxes, canvas and connect to devices
 	*/
 	void Initialize();
 
 	/*!
-	* \brief Get tool visualizer object
+	* Get tool visualizer object
   * \return Tool visualizer
 	*/
   vtkToolVisualizer* GetToolVisualizer() { return m_ToolVisualizer; };
 
 	/*!
-	* \brief Set status bar text
+	* Set status bar text
   * \param aText Status bar text
 	*/
   void SetStatusBarText(QString aText);
 
 	/*!
-	* \brief Set status bar progress
+	* Set status bar progress
   * \param aPercent Progress percent of the status bar (if -1 then hide progress bar)
 	*/
   void SetStatusBarProgress(int aPercent);
 
 	/*!
-	* \brief Enable/disable tab changing
+	* Enable/disable tab changing
 	* \param Enable/Disable flag
 	*/
 	void SetTabsEnabled(bool);
 
 	/*!
-	* \brief Reset all toolboxes and hide all tools (called when disconnected from a device set)
+	* Reset all toolboxes and hide all tools (called when disconnected from a device set)
 	*/
   void ResetAllToolboxes();
 
 	/*!
-	* \brief Return a toolbox
+	* Return a toolbox
   * \param aType Toolbox type identifier
   * \return Toolbox object
 	*/
@@ -101,62 +98,79 @@ public:
 
 protected:
 	/*!
-	* \brief Create toolboxes
+	* Create toolboxes
 	*/
 	void CreateToolboxes();
 
 	/*!
-	* \brief Set up status bar (label and progress)
+	* Set up status bar (label and progress)
 	*/
 	void SetupStatusBar();
 
+  /*!
+	* Filters events if this object has been installed as an event filter for the watched object
+	* \param obj object
+	* \param ev event
+	* \return if you want to filter the event out, i.e. stop it being handled further, return true; otherwise return false
+	*/
+	bool eventFilter(QObject *obj, QEvent *ev);
+
 protected slots:
 	/*!
-	* \brief Handle tab change
+	* Handle tab change
 	* \param aTabIndex Index of the currently active tab
 	*/
 	void CurrentTabChanged(int aTabIndex);
 
 	/*!
-	* \brief Changes tab back to the locked one if tabbing is disabled
+	* Changes tab back to the locked one if tabbing is disabled
 	* \param Mandatory but unused argument to match the signal
 	*/
 	void ChangeBackTab(int);
 
 	/*!
-	* \brief Updates every part of the GUI (called by ui refresh timer)
+	* Updates every part of the GUI (called by ui refresh timer)
 	*/
 	void UpdateGUI();
 
 	/*!
-	* \brief Resize event handler
+	* Resize event handler
   * \param aEvent Resize event
 	*/
   virtual void resizeEvent(QResizeEvent* aEvent);
 
+  /*! Save buffers into files */
+  void DumpBuffers();
+
+  /*! Save current device set configuration */
+  void SaveDeviceSetConfiguration();
+
 protected:
-  //! Tool visualizer
+  /*! Tool visualizer */
   vtkToolVisualizer*  m_ToolVisualizer;
 
-	//! Label on the left of the statusbar
+	/*! Label on the left of the statusbar */
 	QLabel*					    m_StatusBarLabel;
 
-	//! Progress bar on the right of the statusbar
+	/*! Progress bar on the right of the statusbar */
 	QProgressBar*		    m_StatusBarProgress;
 
-	//! Index of locked (current) tab if tabbing is disabled
+	/*! Index of locked (current) tab if tabbing is disabled */
 	int							    m_LockedTabIndex;
 
-	//! Active toolbox identifier
+	/*! Active toolbox identifier */
 	ToolboxType			    m_ActiveToolbox;
 
-  //! Timer that refreshes the UI
+  /*! Timer that refreshes the UI */
   QTimer*             m_UiRefreshTimer;
 
-  //! Status icon instance
+  /*! Status icon instance */
   StatusIcon*         m_StatusIcon;
 
-  //! List of toolbox objects (the indices are the type identifiers)
+  /*! Options icon */
+  QLabel*             m_OptionsIcon;
+
+  /*! List of toolbox objects (the indices are the type identifiers) */
   std::vector<AbstractToolbox*> m_ToolboxList;
 
 private:

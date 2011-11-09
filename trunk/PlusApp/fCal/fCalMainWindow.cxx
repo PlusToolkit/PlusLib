@@ -13,12 +13,13 @@
 #include "FreehandCalibrationToolbox.h"
 #include "VolumeReconstructionToolbox.h"
 #include "StatusIcon.h"
+#include "ConfigFileSaverDialog.h"
 
 #include <QTimer>
-#include <QDir>
-#include <QMessageBox>
+#include <QMenu>
 #include <QLabel>
 #include <QProgressBar>
+#include <QFileDialog>
 
 #include "vtkRenderWindow.h"
 
@@ -31,6 +32,8 @@ fCalMainWindow::fCalMainWindow(QWidget *parent, Qt::WFlags flags)
 	, m_LockedTabIndex(-1)
 	, m_ActiveToolbox(ToolboxType_Undefined)
   , m_ToolVisualizer(NULL)
+  , m_StatusIcon(NULL)
+  , m_OptionsIcon(NULL)
 {
 	// Set up UI
 	ui.setupUi(this);
@@ -58,7 +61,12 @@ fCalMainWindow::~fCalMainWindow()
     m_StatusIcon = NULL;
 	}
 
-	if (m_UiRefreshTimer != NULL) {
+  if (m_OptionsIcon != NULL) {
+		delete m_OptionsIcon;
+    m_OptionsIcon = NULL;
+	}
+
+  if (m_UiRefreshTimer != NULL) {
     m_UiRefreshTimer->stop();
 		delete m_UiRefreshTimer;
 		m_UiRefreshTimer = NULL;
@@ -74,6 +82,34 @@ void fCalMainWindow::Initialize()
   LOG_TRACE("fCalMainWindow::Initialize");
 
 	m_StatusIcon = new StatusIcon(this);
+
+  // Create options icon
+  QWidget* optionsContainer = new QWidget(this);
+
+  optionsContainer->setMinimumSize(18, 16);
+  optionsContainer->setMaximumSize(18, 16);
+  optionsContainer->setSizePolicy(QSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed));
+
+  // Set up layout and create dot label
+  QGridLayout* optionsGrid = new QGridLayout();
+  optionsGrid->setSpacing(0);
+  optionsGrid->setContentsMargins(0, 0, 2, 0);
+
+  m_OptionsIcon = new QLabel(this);
+  m_OptionsIcon->setPixmap( QPixmap( ":/icons/Resources/icon_Options.png" ) );
+  optionsGrid->addWidget(m_OptionsIcon);
+
+  optionsContainer->setLayout(optionsGrid);
+
+  QAction* dumpBuffersAction = new QAction("Dump buffers into files...", m_OptionsIcon);
+  connect(dumpBuffersAction, SIGNAL(triggered()), this, SLOT(DumpBuffers()));
+  m_OptionsIcon->addAction(dumpBuffersAction);
+
+  QAction* saveConfigAction = new QAction("Save current device set configuration...", m_OptionsIcon);
+  connect(saveConfigAction, SIGNAL(triggered()), this, SLOT(SaveDeviceSetConfiguration()));
+  m_OptionsIcon->addAction(saveConfigAction);
+
+  m_OptionsIcon->installEventFilter(this);
 
   // Create visualizer
   m_ToolVisualizer = vtkToolVisualizer::New();
@@ -102,7 +138,7 @@ void fCalMainWindow::CreateToolboxes()
   LOG_TRACE("fCalMainWindow::CreateToolboxes");
 
 	// Configuration widget
-	ConfigurationToolbox* configurationToolbox = new ConfigurationToolbox(this, this);
+	ConfigurationToolbox* configurationToolbox = new ConfigurationToolbox(this);
 	if (configurationToolbox != NULL) {
 		QGridLayout* grid = new QGridLayout(ui.tab_Configuration, 1, 1, 0, 0, "");
 		grid->addWidget(configurationToolbox);
@@ -172,6 +208,7 @@ void fCalMainWindow::SetupStatusBar()
 	ui.statusBar->addWidget(m_StatusBarLabel, 1);
 	ui.statusBar->addPermanentWidget(m_StatusBarProgress, 3);
 	
+	ui.statusBar->addPermanentWidget(m_OptionsIcon);
 	ui.statusBar->addPermanentWidget(m_StatusIcon);
 }
 
@@ -307,4 +344,57 @@ void fCalMainWindow::ResetAllToolboxes()
       (*it)->Reset();
     }
   }
+}
+
+//-----------------------------------------------------------------------------
+
+bool fCalMainWindow::eventFilter(QObject *obj, QEvent *ev)
+{
+	//LOG_TRACE("fCalMainWindow::eventFilter"); 
+
+	if (obj == m_OptionsIcon)
+  {
+		if (ev->type() == QEvent::MouseButtonRelease)
+    {
+			QMouseEvent *mouseEvent = static_cast<QMouseEvent*>(ev);
+			if ( mouseEvent->button() == Qt::LeftButton )
+			{
+        QMenu* menu = new QMenu(tr("Options"), m_OptionsIcon);
+        menu->addActions(m_OptionsIcon->actions());
+        menu->move( QPoint( m_OptionsIcon->x(), ui.statusBar->y() - 27 ) );
+        menu->exec();
+        return true;
+			}	
+		}
+  }
+
+	// Pass the event on to the parent class
+	return QWidget::eventFilter( obj, ev );
+}
+
+//-----------------------------------------------------------------------------
+
+void fCalMainWindow::DumpBuffers()
+{
+  LOG_TRACE("fCalMainWindow::DumpBuffers");
+
+  // Directory open dialog for selecting directory to save the buffers into 
+  QString dirName = QFileDialog::getExistingDirectory(NULL, QString( tr( "Open output directory for buffer dump files" ) ), vtkPlusConfig::GetInstance()->GetOutputDirectory());
+
+  if ( (dirName.isNull()) || (m_ToolVisualizer->DumpBuffersToDirectory(dirName.toAscii().data()) != PLUS_SUCCESS) )
+  {
+    LOG_ERROR("Writing raw buffers into files failed (output directory: " << dirName.toAscii().data() << ")!");
+  }
+}
+
+//-----------------------------------------------------------------------------
+
+void fCalMainWindow::SaveDeviceSetConfiguration()
+{
+  LOG_TRACE("fCalMainWindow::SaveDeviceSetConfiguration");
+
+  ConfigFileSaverDialog* configSaverDialog = new ConfigFileSaverDialog(this);
+  configSaverDialog->exec();
+
+  delete configSaverDialog;
 }

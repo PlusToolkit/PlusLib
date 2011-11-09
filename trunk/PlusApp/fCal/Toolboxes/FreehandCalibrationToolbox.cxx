@@ -284,6 +284,7 @@ void FreehandCalibrationToolbox::SetDisplayAccordingToState()
   if (m_State == ToolboxState_Uninitialized)
   {
     ui.label_InstructionsTemporal->setText(tr(""));
+    ui.label_Results->setText(tr(""));
     ui.pushButton_StartTemporal->setEnabled(false);
     ui.pushButton_CancelTemporal->setEnabled(false);
 
