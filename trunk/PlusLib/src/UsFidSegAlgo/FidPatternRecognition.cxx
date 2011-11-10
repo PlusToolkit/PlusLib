@@ -234,6 +234,21 @@ void FidPatternRecognition::DrawResults( PixelType *image )
 
 //----------------------------------------------------------------------------
 
+void FidPatternRecognition::SetMaxLineLengthToleranceMm(double value)
+{
+  m_MaxLineLengthToleranceMm = value;
+  for( int i=0 ; i<m_FidLabeling.GetPatterns().size() ; i++)
+  {
+    m_FidLabeling.GetPatterns()[i]->DistanceToOriginToleranceMm[m_FidLabeling.GetPatterns()[i]->Wires.size()-1] = m_MaxLineLengthToleranceMm;
+  }
+  for( int i=0 ; i<m_FidLineFinder.GetPatterns().size() ; i++)
+  {
+    m_FidLineFinder.GetPatterns()[i]->DistanceToOriginToleranceMm[m_FidLineFinder.GetPatterns()[i]->Wires.size()-1] = m_MaxLineLengthToleranceMm;
+  }
+}
+
+//----------------------------------------------------------------------------
+
 PlusStatus FidPatternRecognition::ReadPhantomDefinition(vtkXMLDataElement* config)
 {
 	LOG_TRACE("FidPatternRecognition::ReadPhantomDefinition");
@@ -358,6 +373,7 @@ PlusStatus FidPatternRecognition::ReadPhantomDefinition(vtkXMLDataElement* confi
         }
         else if(STRCASECMP("NWire", patternElement->GetAttribute("Type")) == 0)
         {
+          m_MaxLineLengthToleranceMm = 4;
           tempPatterns.push_back(nWire);
 
           tempPatterns[i]->DistanceToOriginMm.push_back(0);
@@ -382,7 +398,7 @@ PlusStatus FidPatternRecognition::ReadPhantomDefinition(vtkXMLDataElement* confi
 
           double distEndToOrigin = sqrt((tempPatterns[i]->Wires[0].EndPointBack[0]-tempPatterns[i]->Wires[2].EndPointBack[0])*(tempPatterns[i]->Wires[0].EndPointBack[0]-tempPatterns[i]->Wires[2].EndPointBack[0])+(tempPatterns[i]->Wires[0].EndPointBack[1]-tempPatterns[i]->Wires[2].EndPointBack[1])*(tempPatterns[i]->Wires[0].EndPointBack[1]-tempPatterns[i]->Wires[2].EndPointBack[1]));
           tempPatterns[i]->DistanceToOriginMm.push_back(distEndToOrigin);
-          tempPatterns[i]->DistanceToOriginToleranceMm.push_back(4);
+          tempPatterns[i]->DistanceToOriginToleranceMm.push_back(m_MaxLineLengthToleranceMm);
 
           nwireFlag = true;
         }
