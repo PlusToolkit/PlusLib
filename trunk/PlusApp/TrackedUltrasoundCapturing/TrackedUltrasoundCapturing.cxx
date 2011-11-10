@@ -196,6 +196,8 @@ PlusStatus TrackedUltrasoundCapturing::Initialize()
       // If we don't have tracking device, we don't need to validate status and position
       this->TrackedFrameContainer->SetValidationRequirements( REQUIRE_UNIQUE_TIMESTAMP | REQUIRE_SPEED_BELOW_THRESHOLD ); 
     }
+	this->TrackedFrameContainer->SetFrameTransformNameForValidation("Probe"); 
+
 	}
 
 	vtkSmartPointer<vtkImageActor> realtimeImageActor = vtkSmartPointer<vtkImageActor>::New();
