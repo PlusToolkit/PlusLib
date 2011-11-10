@@ -179,32 +179,27 @@ configure_file(
 #-----------------------------------------------------------------------------
 # Generate default application configuration files in the non-installed executable directories (Release and Debug too)
 # 
-SET( PLUSCONFIG_DEVICESET_CONFIG_DIR "${PLUSLIB_SOURCE_DIR}/data/ConfigFiles" )
-SET( PLUSCONFIG_IMAGE_DIR "${PLUSLIB_SOURCE_DIR}/data/TestImages" )
+SET( PLUSCONFIG_DEVICESET_CONFIG_DIR "${PLUSLIB_DATA_DIR}/ConfigFiles" )
+SET( PLUSCONFIG_IMAGE_DIR "${PLUSLIB_DATA_DIR}/TestImages" )
 SET( PLUSCONFIG_GNUPLOT_DIR "${GNUPLOT_BIN_DIR}" )
 SET( PLUSCONFIG_SCRIPTS_DIR "${PLUSLIB_SCRIPTS_DIR}" )
 
- IF ( ${CMAKE_GENERATOR} MATCHES "Visual Studio" )
-    #IF ( NOT EXISTS "${PLUS_EXECUTABLE_OUTPUT_PATH}/Release/PlusConfig.xml" )
-        configure_file(
-            ${CMAKE_CURRENT_SOURCE_DIR}/PlusConfig.xml.in
-            ${PLUS_EXECUTABLE_OUTPUT_PATH}/Release/PlusConfig.xml
-            )	
-    #ENDIF()
-    
-    #IF ( NOT EXISTS "${PLUS_EXECUTABLE_OUTPUT_PATH}/Debug/PlusConfig.xml" )
-        configure_file(
-            ${CMAKE_CURRENT_SOURCE_DIR}/PlusConfig.xml.in
-            ${PLUS_EXECUTABLE_OUTPUT_PATH}/Debug/PlusConfig.xml
-            )
-    #ENDIF()
+IF ( ${CMAKE_GENERATOR} MATCHES "Visual Studio" )
+  # PlusConfig.xml generation for Windows (separate directories for different build types)
+  configure_file(
+    ${CMAKE_CURRENT_SOURCE_DIR}/PlusConfig.xml.in
+    ${PLUS_EXECUTABLE_OUTPUT_PATH}/Release/PlusConfig.xml
+    )	    
+  configure_file(
+    ${CMAKE_CURRENT_SOURCE_DIR}/PlusConfig.xml.in
+    ${PLUS_EXECUTABLE_OUTPUT_PATH}/Debug/PlusConfig.xml
+    )
 ELSE()
-     #IF ( NOT EXISTS "${PLUS_EXECUTABLE_OUTPUT_PATH}/PlusConfig.xml" )
-        configure_file(
-            ${CMAKE_CURRENT_SOURCE_DIR}/PlusConfig.xml.in
-            ${PLUS_EXECUTABLE_OUTPUT_PATH}/PlusConfig.xml
-            )
-    #ENDIF()
+  # PlusConfig.xml generation for other OS (only one build type is supported)
+  configure_file(
+    ${CMAKE_CURRENT_SOURCE_DIR}/PlusConfig.xml.in
+    ${PLUS_EXECUTABLE_OUTPUT_PATH}/PlusConfig.xml
+    )
 ENDIF()
   
 #-----------------------------------------------------------------------------
