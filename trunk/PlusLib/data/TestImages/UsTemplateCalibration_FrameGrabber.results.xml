@@ -1,9 +1,9 @@
 <USTemplateCalibrationResult version="1.0">
-  <CalibrationFile Timestamp="20111027_124609" FileName="20111027_124609.Calibration.results.xml">
+  <CalibrationFile Timestamp="111011_142309" FileName="111011_142309.Calibration.results.xml">
     # Timestamp format: MM/DD/YY HH:MM:SS
   </CalibrationFile>
   <CalibrationResults>
-    <CalibrationTransform TransformImageToUserImage="1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1" TransformUserImageToProbe="0.264939 -0.0091724 -0.0273503 -74.5845 -0.00434363 -0.26019 0.0048852 22.0418 -0.0277452 -0.00389494 -0.261933 162.88 0 0 0 1" TransformReferenceToTemplateHolderHome="1 0 0 24.6466 0 1 0 15.482 0 0 1 0 0 0 0 1" TransformTemplateHolderToTemplate="1 0 0 5 0 1 0 63.5 0 0 1 0 0 0 0 1" TransformTemplateHomeToTemplate="1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1" TransformImageToTemplate="0.264939 -0.0091724 -0.0273503 -44.9379 -0.00434363 -0.26019 0.0048852 101.024 -0.0277452 -0.00389494 -0.261933 162.88 0 0 0 1">
+    <CalibrationTransform TransformImageToUserImage="1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1" TransformUserImageToProbe="0.264939 -0.0091724 -0.0273503 -74.6453 -0.00434363 -0.26019 0.0048852 22.0379 -0.0277452 -0.00389494 -0.261933 162.88 0 0 0 1" TransformReferenceToTemplateHolderHome="1 0 0 24.7074 0 1 0 15.4859 0 0 1 0 0 0 0 1" TransformTemplateHolderToTemplate="1 0 0 5 0 1 0 63.5 0 0 1 0 0 0 0 1" TransformTemplateHomeToTemplate="1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1" TransformImageToTemplate="0.264939 -0.0091724 -0.0273503 -44.9379 -0.00434363 -0.26019 0.0048852 101.024 -0.0277452 -0.00389494 -0.261933 162.88 0 0 0 1">
       
     </CalibrationTransform>
     
