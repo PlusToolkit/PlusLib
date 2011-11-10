@@ -574,7 +574,7 @@ void FreehandCalibrationToolbox::StartSpatial()
 
 void FreehandCalibrationToolbox::DoSpatialCalibration()
 {
-  LOG_TRACE("FreehandCalibrationToolbox::DoSpatialCalibration");
+  //LOG_TRACE("FreehandCalibrationToolbox::DoSpatialCalibration");
 
   // Get current time
   double startTimeSec = vtkAccurateTimer::GetSystemTime();

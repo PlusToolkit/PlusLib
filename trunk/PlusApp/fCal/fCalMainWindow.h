@@ -29,6 +29,7 @@ enum ToolboxType
 	ToolboxType_StylusCalibration,
 	ToolboxType_PhantomRegistration,
 	ToolboxType_FreehandCalibration,
+  ToolboxType_Capturing,
 	ToolboxType_VolumeReconstruction
 };
 

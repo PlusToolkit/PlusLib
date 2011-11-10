@@ -11,6 +11,7 @@
 #include "StylusCalibrationToolbox.h"
 #include "PhantomRegistrationToolbox.h"
 #include "FreehandCalibrationToolbox.h"
+#include "CapturingToolbox.h"
 #include "VolumeReconstructionToolbox.h"
 #include "StatusIcon.h"
 #include "ConfigFileSaverDialog.h"
@@ -39,8 +40,6 @@ fCalMainWindow::fCalMainWindow(QWidget *parent, Qt::WFlags flags)
 
   // Maximize window
   this->setWindowState(this->windowState() ^ Qt::WindowMaximized);
-
-  m_ToolboxList.resize(5);
 }
 
 //-----------------------------------------------------------------------------
@@ -114,6 +113,9 @@ void fCalMainWindow::CreateToolboxes()
 {
   LOG_TRACE("fCalMainWindow::CreateToolboxes");
 
+  // Resize toolbox list to the number of toolboxes
+  m_ToolboxList.resize(6);
+
 	// Configuration widget
 	ConfigurationToolbox* configurationToolbox = new ConfigurationToolbox(this);
 	if (configurationToolbox != NULL) {
@@ -154,7 +156,17 @@ void fCalMainWindow::CreateToolboxes()
 
   m_ToolboxList[ToolboxType_FreehandCalibration] = freehandCalibrationToolbox;
 
-	// Volume reconstruction widget
+	// Capturing widget
+	CapturingToolbox* capturingToolbox = new CapturingToolbox(this);
+	if (capturingToolbox != NULL) {
+    QGridLayout* grid = new QGridLayout(ui.tab_Capturing, 1, 1, 0, 0, "");
+		grid->addWidget(capturingToolbox);
+    ui.tab_Capturing->setLayout(grid);
+	}
+
+  m_ToolboxList[ToolboxType_Capturing] = capturingToolbox;
+
+  // Volume reconstruction widget
 	VolumeReconstructionToolbox* volumeReconstructionToolbox = new VolumeReconstructionToolbox(this);
 	if (volumeReconstructionToolbox != NULL) {
 		QGridLayout* grid = new QGridLayout(ui.tab_VolumeReconstruction, 1, 1, 0, 0, "");
@@ -203,6 +215,8 @@ void fCalMainWindow::CurrentTabChanged(int aTabIndex)
 		m_ActiveToolbox = ToolboxType_PhantomRegistration;
 	} else if (ui.tabWidgetToolbox->tabText(aTabIndex) == "Freehand Calibration") {
 		m_ActiveToolbox = ToolboxType_FreehandCalibration;
+	} else if (ui.tabWidgetToolbox->tabText(aTabIndex) == "Capturing") {
+		m_ActiveToolbox = ToolboxType_Capturing;
 	} else if (ui.tabWidgetToolbox->tabText(aTabIndex) == "Volume Reconstruction") {
 		m_ActiveToolbox = ToolboxType_VolumeReconstruction;
 	} else {

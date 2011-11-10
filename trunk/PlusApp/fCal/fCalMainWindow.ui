@@ -178,6 +178,11 @@
           <string>Freehand Calibration</string>
          </attribute>
         </widget>
+        <widget class="QWidget" name="tab_Capturing">
+         <attribute name="title">
+          <string>Capturing</string>
+         </attribute>
+        </widget>
         <widget class="QWidget" name="tab_VolumeReconstruction">
          <attribute name="title">
           <string>Volume Reconstruction</string>

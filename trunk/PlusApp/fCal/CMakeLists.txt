@@ -12,6 +12,7 @@ SET (fCal_SRCS
 	fCalMainWindow.cxx
   vtkToolVisualizer.cxx
 	Toolboxes/ConfigurationToolbox.cxx
+	Toolboxes/CapturingToolbox.cxx
 	Toolboxes/FreehandCalibrationToolbox.cxx
 	Toolboxes/StylusCalibrationToolbox.cxx
 	Toolboxes/PhantomRegistrationToolbox.cxx
@@ -29,6 +30,7 @@ SET (fCal_UI_HDRS
     vtkToolVisualizer.h
     Toolboxes/AbstractToolbox.h
 		Toolboxes/ConfigurationToolbox.h
+    Toolboxes/CapturingToolbox.h
 		Toolboxes/FreehandCalibrationToolbox.h
 		Toolboxes/StylusCalibrationToolbox.h
 		Toolboxes/PhantomRegistrationToolbox.h
@@ -38,6 +40,7 @@ SET (fCal_UI_HDRS
 SET (fCal_UI_SRCS
 	fCalMainWindow.ui 
 	Toolboxes/ConfigurationToolbox.ui
+	Toolboxes/CapturingToolbox.ui
 	Toolboxes/FreehandCalibrationToolbox.ui
 	Toolboxes/StylusCalibrationToolbox.ui
 	Toolboxes/PhantomRegistrationToolbox.ui
