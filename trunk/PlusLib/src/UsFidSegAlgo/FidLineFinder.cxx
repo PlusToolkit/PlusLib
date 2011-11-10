@@ -634,7 +634,9 @@ void FidLineFinder::FindLinesNPoints()
           }
 
           if(checkDuplicateFlag)
+          {
             continue;
+          }
 
           candidatesIndex.push_back(b3);                 
           float pointToLineDistance = ComputeDistancePointLine(m_DotsVector[b3], currentShorterPointsLine);
@@ -659,7 +661,26 @@ void FidLineFinder::FindLinesNPoints()
             bool acceptLength = fabs(length-lineLenPx) < floor(m_Patterns[i]->DistanceToOriginToleranceMm[linesVectorIndex-2] / m_ApproximateSpacingMmPerPixel + 0.5 );
 
             if(!acceptLength)
+            {
               continue;
+            }
+
+            // Create the vector between the origin point to the end point and between the origin point to the new point to check if the new point is between the origin and the end point
+            double originToEndPointVector[3] = { m_DotsVector[currentShorterPointsLine.GetEndPoint()].GetX()-m_DotsVector[currentShorterPointsLine.GetOrigin()].GetX() ,
+                                                m_DotsVector[currentShorterPointsLine.GetEndPoint()].GetY()-m_DotsVector[currentShorterPointsLine.GetOrigin()].GetY() ,
+                                                0 };
+
+            double originToNewPointVector[3] = {m_DotsVector[b3].GetX()-m_DotsVector[currentShorterPointsLine.GetOrigin()].GetX() ,
+                                                m_DotsVector[b3].GetY()-m_DotsVector[currentShorterPointsLine.GetOrigin()].GetY() ,
+                                                0 };
+
+            double dot = vtkMath::Dot(originToEndPointVector,originToNewPointVector);
+
+            // Reject the line if the middle point is outside the original line
+            if( dot < 0 )
+            {
+              continue;
+            }                                                
             
             if(m_LinesVector.size() <= linesVectorIndex)//in case the maxpoint lines has not found any yet (the binary search works on empty vector, not on NULL one obviously)
             { 
