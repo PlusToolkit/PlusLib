@@ -569,7 +569,7 @@ PlusStatus vtkMetaImageSequenceIO::WriteImageHeader()
   if (GetCustomString("DefaultFrameTransformName")==NULL) { SetCustomString("DefaultFrameTransformName", "Unknown"); }
   if (GetCustomString("AnatomicalOrientation")==NULL) { SetCustomString("AnatomicalOrientation", "RAI"); }
 
-  std::string fileExt=vtksys::SystemTools::GetFilenameExtension(this->FileName);
+  std::string fileExt=vtksys::SystemTools::GetFilenameLastExtension(this->FileName);
   if (STRCASECMP(fileExt.c_str(),".mha")==0)
   {
     SetPixelDataFileName("LOCAL");
