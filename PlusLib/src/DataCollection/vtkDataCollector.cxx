@@ -1559,7 +1559,16 @@ PlusStatus vtkDataCollector::GetTrackedFrameList(double& frameTimestamp, vtkTrac
 
   // Determine how many frames to add
   int numberOfFramesSinceTimestamp = GetNumberOfFramesBetweenTimestamps(frameTimestamp, mostRecentTimestamp);
-  int numberOfFramesToAdd = std::min( maxNumberOfFramesToAdd, numberOfFramesSinceTimestamp );
+
+  int numberOfFramesToAdd = 0;
+  if (maxNumberOfFramesToAdd > 0)
+  {
+    numberOfFramesToAdd = std::min( maxNumberOfFramesToAdd, numberOfFramesSinceTimestamp );
+  }
+  else
+  {
+    numberOfFramesToAdd = numberOfFramesSinceTimestamp;
+  }
 
   LOG_DEBUG("Number of added frames: " << numberOfFramesToAdd << " out of " << numberOfFramesSinceTimestamp);
 
