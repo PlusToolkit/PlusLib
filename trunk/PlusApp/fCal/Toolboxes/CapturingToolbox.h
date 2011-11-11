@@ -11,10 +11,14 @@
 
 #include "AbstractToolbox.h"
 #include "PlusConfigure.h"
+#include "vtkTimestampedCircularBuffer.h"
 
 #include <QWidget>
 
+#include <deque>
+
 class vtkTrackedFrameList;
+class QTimer;
 
 //-----------------------------------------------------------------------------
 
@@ -109,14 +113,26 @@ protected:
   /*! Recorded tracked frame list */
   vtkTrackedFrameList* m_RecordedFrames;
 
+  /*! Timer triggering the */
+  QTimer* m_RecordingTimer;
+
   /*! Timestamp of last recorded frame (the tracked frames acquired since this timestamp will be recorded) */
   double m_LastRecordedFrameTimestamp;
 
-  /*! Flag if cancel is requested */
-  bool m_CancelRequest;
+  /*! Number of all the incoming (not the recorded) frames since starting recording */
+  unsigned long m_NumberOfIncomingFramesSinceStart;
 
-  /*! Requested recording frame rate (frame per second) */
-  double m_RequestedFrameRate;
+  /*! Sampling rate n: every nth frame will be recorded */
+  int m_SamplingRate;
+
+  /*! Frame rate of the sampling */
+  const int m_SamplingFrameRate;
+
+  /*! Actual frame rate (frames per second) */
+  int m_ActualFrameRate;
+
+  /*! Queue storing the number of recorded frames in each round in the last two seconds */
+  std::deque<int> m_RecordedFrameNumberQueue;
 
   /*! Name of the frame transform that is used for validation */
   std::string m_DefaultFrameTransformName;

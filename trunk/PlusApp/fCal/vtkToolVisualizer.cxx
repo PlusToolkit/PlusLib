@@ -62,20 +62,25 @@ vtkToolVisualizer::vtkToolVisualizer()
 	// Create timer
   this->AcquisitionTimer = NULL;
 
+	// Create data collector
+	vtkSmartPointer<vtkDataCollector> dataCollector = vtkSmartPointer<vtkDataCollector>::New(); 
+	this->SetDataCollector(dataCollector);
 }
 
 //-----------------------------------------------------------------------------
 
 vtkToolVisualizer::~vtkToolVisualizer()
 {
-	if (this->AcquisitionTimer != NULL) {
+	if (this->AcquisitionTimer != NULL)
+  {
     disconnect( this->AcquisitionTimer, SIGNAL( timeout() ), this, SLOT( DisplayDevices() ) );
     this->AcquisitionTimer->stop();
 		delete this->AcquisitionTimer;
 		this->AcquisitionTimer = NULL;
 	} 
   
-  if (this->DataCollector != NULL) {
+  if (this->DataCollector != NULL)
+  {
 		this->DataCollector->Stop();
 	}
 	this->SetDataCollector(NULL);
@@ -90,8 +95,10 @@ vtkToolVisualizer::~vtkToolVisualizer()
 	this->SetImageActor(NULL);
 	this->SetImageCamera(NULL);
 
-  for (std::vector<vtkDisplayableTool*>::iterator it = this->DisplayableToolVector.begin(); it != this->DisplayableToolVector.end(); ++it) {
-    if ((*it) != NULL) {
+  for (std::vector<vtkDisplayableTool*>::iterator it = this->DisplayableToolVector.begin(); it != this->DisplayableToolVector.end(); ++it)
+  {
+    if ((*it) != NULL)
+    {
       (*it)->Delete();
       (*it) = NULL;
     }
@@ -107,7 +114,8 @@ PlusStatus vtkToolVisualizer::Initialize()
 {
 	LOG_TRACE("vtkToolVisualizer::Initialize"); 
 
-	if (this->Initialized) {
+	if (this->Initialized)
+  {
 		return PLUS_SUCCESS;
 	}
 
@@ -119,7 +127,8 @@ PlusStatus vtkToolVisualizer::Initialize()
 	this->SetCanvasRenderer(canvasRenderer);
 
 	// Initialize visualization
-	if (InitializeVisualization() != PLUS_SUCCESS) {
+	if (InitializeVisualization() != PLUS_SUCCESS)
+  {
     LOG_ERROR("Initializing visualization failed!");
     return PLUS_FAIL;
   }
@@ -234,9 +243,12 @@ PlusStatus vtkToolVisualizer::InitializeDeviceVisualization()
   }
 
   // Delete displayable tools
-  for (std::vector<vtkDisplayableTool*>::iterator it = this->DisplayableToolVector.begin(); it != this->DisplayableToolVector.end(); ++it) {
-    if ((*it) != NULL) {
-      if ((*it)->GetActor() != NULL) {
+  for (std::vector<vtkDisplayableTool*>::iterator it = this->DisplayableToolVector.begin(); it != this->DisplayableToolVector.end(); ++it)
+  {
+    if ((*it) != NULL)
+    {
+      if ((*it)->GetActor() != NULL)
+      {
         this->CanvasRenderer->RemoveActor((*it)->GetActor());
       }
 
@@ -246,15 +258,19 @@ PlusStatus vtkToolVisualizer::InitializeDeviceVisualization()
   }
 
   // Connect data collector to image actor
-	if (this->DataCollector->GetAcquisitionType() != SYNCHRO_VIDEO_NONE) {
+	if (this->DataCollector->GetAcquisitionType() != SYNCHRO_VIDEO_NONE)
+  {
 		this->ImageActor->VisibilityOn();
 		this->ImageActor->SetInput(this->DataCollector->GetOutput());
-	} else {
+	}
+  else
+  {
 		LOG_WARNING("Data collector has no video output, cannot initialize image actor");
 	}
 
   // Load phantom model and registration from configuration and set up visualization
-  if (InitializePhantomVisualization() == PLUS_FAIL) {
+  if (InitializePhantomVisualization() == PLUS_FAIL)
+  {
     LOG_WARNING("Initializing phantom visualization failed!");
   }
 
@@ -265,21 +281,27 @@ PlusStatus vtkToolVisualizer::InitializeDeviceVisualization()
   }
 
 	// Load tool models
-	for (int i=0; i < this->DataCollector->GetTracker()->GetNumberOfTools(); ++i) {
+	for (int i=0; i < this->DataCollector->GetTracker()->GetNumberOfTools(); ++i)
+  {
 		vtkTrackerTool *tool = this->DataCollector->GetTracker()->GetTool(i);
-		if ((tool == NULL) || (!tool->GetEnabled())) {
+		if ((tool == NULL) || (!tool->GetEnabled()))
+    {
 			continue;
 		}
 
     vtkDisplayableTool* displayableTool = NULL;
 
 		// Load model if file name exists and file can be found
-		if (STRCASECMP(tool->GetTool3DModelFileName(), "") != 0) {
+		if (STRCASECMP(tool->GetTool3DModelFileName(), "") != 0)
+    {
 			std::string searchResult = vtkPlusConfig::GetFirstFileFoundInConfigurationDirectory(tool->GetTool3DModelFileName());
 
-			if (STRCASECMP("", searchResult.c_str()) == 0) {
+			if (STRCASECMP("", searchResult.c_str()) == 0)
+      {
 				LOG_WARNING("Tool (" << tool->GetToolName() << ") model file is not found with name: " << tool->GetTool3DModelFileName());
-			} else {
+			}
+      else
+      {
 				vtkSmartPointer<vtkSTLReader> stlReader = vtkSmartPointer<vtkSTLReader>::New();
 				stlReader->SetFileName(searchResult.c_str());
 
@@ -290,7 +312,8 @@ PlusStatus vtkToolVisualizer::InitializeDeviceVisualization()
 				displayableTool->GetActor()->SetMapper(toolMapper);
         displayableTool->SetTool(tool);
 
-				if (tool->GetToolType() == TRACKER_TOOL_STYLUS) { // Stylus is always black
+				if (tool->GetToolType() == TRACKER_TOOL_STYLUS) // Stylus is always black
+        {
           displayableTool->GetActor()->GetProperty()->SetColor(0.0, 0.0, 0.0);
 				}
 
@@ -300,10 +323,12 @@ PlusStatus vtkToolVisualizer::InitializeDeviceVisualization()
 		}
 
     // Handle missing tool models
-	  if ((tool->GetToolType() == TRACKER_TOOL_PROBE) && (this->DisplayableToolVector[TRACKER_TOOL_PROBE] == NULL)) {
+	  if ((tool->GetToolType() == TRACKER_TOOL_PROBE) && (this->DisplayableToolVector[TRACKER_TOOL_PROBE] == NULL))
+    {
 		  LOG_WARNING("Unable to initialize probe visualization - no probe is displayed");
-	  } else
-    if ((tool->GetToolType() == TRACKER_TOOL_STYLUS) && (this->DisplayableToolVector[TRACKER_TOOL_STYLUS] == NULL)) {
+	  }
+    else if ((tool->GetToolType() == TRACKER_TOOL_STYLUS) && (this->DisplayableToolVector[TRACKER_TOOL_STYLUS] == NULL))
+    {
 		  LOG_INFO("No stylus model file found - default model will be displayed");
 
       displayableTool = vtkDisplayableTool::New();
@@ -311,8 +336,9 @@ PlusStatus vtkToolVisualizer::InitializeDeviceVisualization()
       SetDefaultStylusModel(displayableTool->GetActor());
       this->DisplayableToolVector[TRACKER_TOOL_STYLUS] = displayableTool;
       this->CanvasRenderer->AddActor(displayableTool->GetActor());
-	  } else
-	  if ((tool->GetToolType() == TRACKER_TOOL_NEEDLE) && (this->DisplayableToolVector[TRACKER_TOOL_NEEDLE] == NULL)) {
+	  }
+    else if ((tool->GetToolType() == TRACKER_TOOL_NEEDLE) && (this->DisplayableToolVector[TRACKER_TOOL_NEEDLE] == NULL))
+    {
 		  LOG_INFO("Unable to initialize needle visualization - no needle is displayed");
 	  }
 
@@ -332,10 +358,13 @@ PlusStatus vtkToolVisualizer::SetAcquisitionFrameRate(int aFrameRate)
 
   this->AcquisitionFrameRate = aFrameRate;
 
-  if (this->AcquisitionTimer != NULL) {
+  if (this->AcquisitionTimer != NULL)
+  {
     this->AcquisitionTimer->stop();
     this->AcquisitionTimer->start(1000.0 / this->AcquisitionFrameRate);
-  } else {
+  }
+  else
+  {
     LOG_ERROR("Acquisition timer is not initialized!");
     return PLUS_FAIL;
   }
@@ -355,8 +384,10 @@ PlusStatus vtkToolVisualizer::HideAll()
 	this->VolumeActor->VisibilityOff();
   this->ImageActor->VisibilityOff();
 
-  for (std::vector<vtkDisplayableTool*>::iterator it = this->DisplayableToolVector.begin(); it != this->DisplayableToolVector.end(); ++it) {
-    if (((*it) != NULL) && ((*it)->GetActor() != NULL)) {
+  for (std::vector<vtkDisplayableTool*>::iterator it = this->DisplayableToolVector.begin(); it != this->DisplayableToolVector.end(); ++it)
+  {
+    if (((*it) != NULL) && ((*it)->GetActor() != NULL))
+    {
       (*it)->GetActor()->VisibilityOff();
     }
   }
@@ -372,7 +403,8 @@ PlusStatus vtkToolVisualizer::ShowTool(TRACKER_TOOL_TYPE aType, bool aOn)
 {
   LOG_TRACE("vtkToolVisualizer::ShowTool(" << aType << ", " << (aOn?"true":"false") << ")");
 
-  if (this->DisplayableToolVector[aType] != NULL) {
+  if (this->DisplayableToolVector[aType] != NULL)
+  {
     this->DisplayableToolVector[aType]->GetActor()->SetVisibility(aOn);
   }
 
@@ -428,9 +460,12 @@ vtkDisplayableTool* vtkToolVisualizer::GetDisplayableTool(TRACKER_TOOL_TYPE aTyp
 {
 	LOG_TRACE("vtkToolVisualizer::GetDisplayableTool(" << aType << ")");
 
-  if (this->DisplayableToolVector.size() > aType) {
+  if (this->DisplayableToolVector.size() > aType)
+  {
     return this->DisplayableToolVector[aType];
-  } else {
+  }
+  else
+  {
     return NULL;
   }
 }
@@ -441,7 +476,8 @@ TrackerStatus vtkToolVisualizer::AcquireTrackerPositionForToolByType(TRACKER_TOO
 {
 	//LOG_TRACE("vtkToolVisualizer::AcquireTrackerPositionForToolByType");
 
-	if (this->DataCollector->GetTracker() == NULL) {
+	if (this->DataCollector->GetTracker() == NULL)
+  {
 		LOG_ERROR("Tracker is not initialized!");
 		return TR_MISSING;
 	}
@@ -451,12 +487,14 @@ TrackerStatus vtkToolVisualizer::AcquireTrackerPositionForToolByType(TRACKER_TOO
 	double timestamp;
 
   int toolNumber = this->DataCollector->GetTracker()->GetFirstPortNumberByType(aType);
-  if (toolNumber == -1) {
+  if (toolNumber == -1)
+  {
     LOG_ERROR("Unable to find tool with type " << aType << " in tracker!");
     return TR_MISSING;
   }
 
-	if (this->DataCollector->GetTracker()->GetTool(toolNumber)->GetEnabled()) {
+	if (this->DataCollector->GetTracker()->GetTool(toolNumber)->GetEnabled())
+  {
 		this->DataCollector->GetTransformWithTimestamp(transformMatrix, timestamp, status, toolNumber, aCalibrated); 
 	}
 
@@ -486,14 +524,17 @@ std::string vtkToolVisualizer::GetToolPositionString(TRACKER_TOOL_TYPE aType, bo
 
   vtkSmartPointer<vtkMatrix4x4> toolToReferenceMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
   TrackerStatus status = AcquireTrackerPositionForToolByType(aType, toolToReferenceMatrix, aCalibrated);
-  if (status == TR_OK) {
+  if (status == TR_OK)
+  {
 		// Compute the new position - TODO: find other way
     double toolPosition[4];
 		double elements[16];
 		double origin[4] = {0.0, 0.0, 0.0, 1.0};
 
-    for (int i=0; i<4; ++i) {
-      for (int j=0; j<4; ++j) {
+    for (int i=0; i<4; ++i)
+    {
+      for (int j=0; j<4; ++j)
+      {
         elements[4*j+i] = toolToReferenceMatrix->GetElement(i,j);
       }
     }
@@ -505,7 +546,9 @@ std::string vtkToolVisualizer::GetToolPositionString(TRACKER_TOOL_TYPE aType, bo
 
 		sprintf_s(toolPositionChars, 32, "%.1lf X %.1lf X %.1lf", toolPosition[0], toolPosition[1], toolPosition[2]);
 		return std::string(toolPositionChars);
-  } else {
+  }
+  else
+  {
     switch (status)
     {
       case TR_MISSING:
@@ -526,15 +569,18 @@ PlusStatus vtkToolVisualizer::EnableImageMode(bool aOn)
 {
 	LOG_TRACE("vtkToolVisualizer::EnableImageMode(" << (aOn?"true":"false") << ")");
 
-  if (this->DataCollector == NULL) {
+  if (this->DataCollector == NULL)
+  {
     return PLUS_SUCCESS;
   }
 
-  if (aOn) {
+  if (aOn)
+  {
     this->ImageActor->VisibilityOn();
     this->ImageActor->SetOpacity(1.0);
 
-    if (CalculateImageCameraParameters() != PLUS_SUCCESS) {
+    if (CalculateImageCameraParameters() != PLUS_SUCCESS)
+    {
       LOG_ERROR("Calculating image camera parameters failed!");
       return PLUS_FAIL;
     }
@@ -544,14 +590,18 @@ PlusStatus vtkToolVisualizer::EnableImageMode(bool aOn)
     this->ImageActor->SetUserTransform(identity);
 
     // Set opacity of all tools to zero (if image mode is turned off, display devices function will set it back)
-    for (std::vector<vtkDisplayableTool*>::iterator it = this->DisplayableToolVector.begin(); it != this->DisplayableToolVector.end(); ++it) {
-      if (((*it) != NULL) && ((*it)->GetActor() != NULL)) {
+    for (std::vector<vtkDisplayableTool*>::iterator it = this->DisplayableToolVector.begin(); it != this->DisplayableToolVector.end(); ++it)
+    {
+      if (((*it) != NULL) && ((*it)->GetActor() != NULL))
+      {
         (*it)->GetActor()->GetProperty()->SetOpacity(0.0);
       }
     }
 
   // If just changed from image mode to show devices mode
-  } else if (this->ImageMode == true) {
+  }
+  else if (this->ImageMode == true)
+  {
     // Reset opacity of phantom
     this->DisplayableToolVector[TRACKER_TOOL_REFERENCE]->GetActor()->GetProperty()->SetOpacity(0.6);
 
@@ -582,7 +632,8 @@ PlusStatus vtkToolVisualizer::DisplayDevices()
 	//LOG_TRACE("vtkToolVisualizer::DisplayDevices");
 
   // In image mode there is no need for device visualization
-  if (this->ImageMode) {
+  if (this->ImageMode)
+  {
     return PLUS_FAIL;
   }
 
@@ -597,18 +648,23 @@ PlusStatus vtkToolVisualizer::DisplayDevices()
   bool resetCameraNeeded = false;
 
   // For all tools
-  for (std::vector<vtkDisplayableTool*>::iterator it = this->DisplayableToolVector.begin(); it != this->DisplayableToolVector.end(); ++it) {
+  for (std::vector<vtkDisplayableTool*>::iterator it = this->DisplayableToolVector.begin(); it != this->DisplayableToolVector.end(); ++it)
+  {
     vtkDisplayableTool* tool = (*it);
 
 	  // If reference then no need for setting transform (the phantom is fixed to the reference) - also skip is tool is missing
-    if ((tool == NULL) || (tool->GetTool() == NULL) || (tool->GetTool()->GetToolType() == TRACKER_TOOL_REFERENCE)) {
+    if ((tool == NULL) || (tool->GetTool() == NULL) || (tool->GetTool()->GetToolType() == TRACKER_TOOL_REFERENCE))
+    {
 		  continue;
-	  } else if ((tool->GetTool()->GetEnabled() == false) || (tool->GetDisplayable() == false)) {
+	  }
+    else if ((tool->GetTool()->GetEnabled() == false) || (tool->GetDisplayable() == false))
+    {
       tool->GetActor()->VisibilityOff();
     }
 
     // If opacity was 0.0, then this is the first visualization iteration after switvhing back from image mode - reset camera is needed
-    if (tool->GetActor()->GetProperty()->GetOpacity() == 0.0) {
+    if (tool->GetActor()->GetProperty()->GetOpacity() == 0.0)
+    {
       resetCameraNeeded = true;
     }
 
@@ -622,32 +678,40 @@ PlusStatus vtkToolVisualizer::DisplayDevices()
     this->DataCollector->GetTransformWithTimestamp(toolToReferenceTransformMatrix, timestamp, status, tool->GetTool()->GetToolPort()); 
 
 	  // Compute and set transforms for actors
-	  if (status == TR_OK) {
+	  if (status == TR_OK)
+    {
 		  vtkSmartPointer<vtkTransform> toolModelToPhantomReferenceTransform = vtkSmartPointer<vtkTransform>::New();
 		  toolModelToPhantomReferenceTransform->Identity();
 		  toolModelToPhantomReferenceTransform->Concatenate(toolToReferenceTransformMatrix);
-      if (tool->GetTool()->GetToolType() != TRACKER_TOOL_PROBE) {
+
+      if (tool->GetTool()->GetToolType() != TRACKER_TOOL_PROBE)
+      {
         toolModelToPhantomReferenceTransform->Concatenate(tool->GetTool()->GetCalibrationMatrix());
       }
       toolModelToPhantomReferenceTransform->Concatenate(tool->GetTool()->GetModelToToolTransform());
 		  toolModelToPhantomReferenceTransform->Modified();
 
       // If probe then take care of the image canvas
-      if (tool->GetTool()->GetToolType() == TRACKER_TOOL_PROBE) {
-        if (tool->GetActor()->GetProperty()->GetOpacity() == 0.3) {
+      if (tool->GetTool()->GetToolType() == TRACKER_TOOL_PROBE)
+      {
+        if (tool->GetActor()->GetProperty()->GetOpacity() == 0.3)
+        {
           resetCameraNeeded = true;
         }
 
         // If image to probe matrix has non-null element, then it is considered calibrated, so we show the image (the transform matrix was initialized to zero)
         bool calibrated = false;
-        for (int i=0; i<16; ++i) {
-          if (this->ImageToProbeTransform->GetMatrix()->GetElement(i/4, i%4) != 0) {
+        for (int i=0; i<16; ++i)
+        {
+          if (this->ImageToProbeTransform->GetMatrix()->GetElement(i/4, i%4) != 0)
+          {
             calibrated = true;
             break;
           }
         }
 
-        if (calibrated) {
+        if (calibrated)
+        {
           // Image canvas transform
 			    vtkSmartPointer<vtkTransform> imageToPhantomReferenceTransform = vtkSmartPointer<vtkTransform>::New();
 			    imageToPhantomReferenceTransform->Identity();
@@ -657,25 +721,29 @@ PlusStatus vtkToolVisualizer::DisplayDevices()
           this->ImageActor->VisibilityOn();
           this->ImageActor->SetOpacity(1.0);
 			    this->ImageActor->SetUserTransform(imageToPhantomReferenceTransform);
-
-        } else {
+        }
+        else
+        {
           this->ImageActor->VisibilityOff();
         }
       }
 
       tool->GetActor()->GetProperty()->SetOpacity(1.0);
 		  tool->GetActor()->SetUserTransform(toolModelToPhantomReferenceTransform);
-
-    } else { // if status is not TR_OK
+    }
+    else // if status is not TR_OK
+    {
       tool->GetActor()->GetProperty()->SetOpacity(0.3);
 
-      if (tool->GetTool()->GetToolType() == TRACKER_TOOL_PROBE) {
+      if (tool->GetTool()->GetToolType() == TRACKER_TOOL_PROBE)
+      {
          this->ImageActor->SetOpacity(0.3);
       }
     }
   } // for all tools
 
-  if (resetCameraNeeded) {
+  if (resetCameraNeeded)
+  {
 	  this->CanvasRenderer->ResetCamera();
   }
 
@@ -687,13 +755,15 @@ PlusStatus vtkToolVisualizer::DisplayDevices()
 PlusStatus vtkToolVisualizer::InitializePhantomVisualization()
 {
 	LOG_TRACE("vtkToolVisualizer::InitializePhantomVisualization");
-  if (this->DataCollector->GetTracker()==NULL)
+  if (this->DataCollector->GetTracker() == NULL)
   {
     LOG_ERROR("No tracker is available");
     return PLUS_FAIL;
   }
+
   vtkSmartPointer<vtkTrackerTool> referenceTool = this->DataCollector->GetTracker()->GetTool(this->DataCollector->GetTracker()->GetReferenceToolNumber());
-  if (referenceTool == NULL) {
+  if (referenceTool == NULL)
+  {
     LOG_WARNING("No reference tool is present in the tracker - one is created for visualization");
 
     referenceTool = vtkSmartPointer<vtkTrackerTool>::New();
@@ -708,58 +778,71 @@ PlusStatus vtkToolVisualizer::InitializePhantomVisualization()
 
   // Get phantom definition xml data element
 	vtkXMLDataElement* phantomDefinition = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()->FindNestedElementWithName("PhantomDefinition");
-	if (phantomDefinition == NULL) {
+	if (phantomDefinition == NULL)
+  {
 		LOG_WARNING("No phantom definition is found in the XML tree - no phantom will be displayed!");
 		return PLUS_FAIL;
 	}
 
 	// Load phantom registration transform
   vtkXMLDataElement* geometry = phantomDefinition->FindNestedElementWithName("Geometry"); 
-  if (geometry == NULL) {
+  if (geometry == NULL)
+  {
 	  LOG_ERROR("Phantom geometry information not found!");
 	  return PLUS_FAIL;
   }
 
   vtkXMLDataElement* registration = geometry->FindNestedElementWithName("Registration"); 
-  if (registration == NULL) {
+  if (registration == NULL)
+  {
 	  LOG_ERROR("Registration element not found!");
 	  return PLUS_FAIL;
-  } else {
+  }
 
-    // Check date - if it is empty, the calibration is considered as invalid (as the calibration transforms in the installed config files are identity matrices with empty dates)
-    const char* date = registration->GetAttribute("Date");
-    if ((date == NULL) || (STRCASECMP(date, "") == 0)) {
-      LOG_INFO("Transform cannot be loaded with no date entered - phantom model is not shown until registering it");
-    } else {
-      // Load transform
-	    double* transform = new double[16]; 
-	    if (registration->GetVectorAttribute("MatrixValue", 16, transform)) {
-        vtkSmartPointer<vtkTransform> phantomToPhantomReferenceTransform = vtkSmartPointer<vtkTransform>::New();
-        phantomToPhantomReferenceTransform->Identity();
-		    phantomToPhantomReferenceTransform->SetMatrix(transform);
-        this->SetPhantomToPhantomReferenceTransform(phantomToPhantomReferenceTransform);
-      } else {
-        LOG_ERROR("Unable to read MatrixValue element in phantom registration!");
-        return PLUS_FAIL;
-	    }
-	    delete[] transform;
+  // Check date - if it is empty, the calibration is considered as invalid (as the calibration transforms in the installed config files are identity matrices with empty dates)
+  const char* date = registration->GetAttribute("Date");
+  if ((date == NULL) || (STRCASECMP(date, "") == 0))
+  {
+    LOG_INFO("Transform cannot be loaded with no date entered - phantom model is not shown until registering it");
+  }
+  else
+  {
+    // Load transform
+    double* transform = new double[16]; 
+    if (registration->GetVectorAttribute("MatrixValue", 16, transform))
+    {
+      vtkSmartPointer<vtkTransform> phantomToPhantomReferenceTransform = vtkSmartPointer<vtkTransform>::New();
+      phantomToPhantomReferenceTransform->Identity();
+	    phantomToPhantomReferenceTransform->SetMatrix(transform);
+      this->SetPhantomToPhantomReferenceTransform(phantomToPhantomReferenceTransform);
     }
+    else
+    {
+      LOG_ERROR("Unable to read MatrixValue element in phantom registration!");
+      return PLUS_FAIL;
+    }
+    delete[] transform;
   }
 
 	// Load model to phantom transform
   vtkXMLDataElement* model = phantomDefinition->FindNestedElementWithName("Model"); 
-	if (model == NULL) {
+	if (model == NULL)
+  {
 		LOG_WARNING("Phantom model information not found - no model displayed");
-	} else {
+	}
+  else
+  {
 		// PhantomModelToPhantomTransform - transform input model for proper visualization
 		double* phantomModelToPhantomTransformVector = new double[16]; 
-		if (model->GetVectorAttribute("ModelToPhantomTransform", 16, phantomModelToPhantomTransformVector)) {
+		if (model->GetVectorAttribute("ModelToPhantomTransform", 16, phantomModelToPhantomTransformVector))
+    {
 			vtkSmartPointer<vtkTransform> phantomModelToPhantomTransform = vtkSmartPointer<vtkTransform>::New();
       phantomModelToPhantomTransform->Identity();
 			phantomModelToPhantomTransform->SetMatrix(phantomModelToPhantomTransformVector);
       this->DisplayableToolVector[TRACKER_TOOL_REFERENCE]->GetTool()->SetModelToToolTransform(phantomModelToPhantomTransform);
-
-    } else {
+    }
+    else
+    {
       LOG_ERROR("Unable to read ModelToPhantomTransform element!");
       return PLUS_FAIL;
     }
@@ -769,7 +852,8 @@ PlusStatus vtkToolVisualizer::InitializePhantomVisualization()
 
   // If model and all transforms has been found, set up the visualization pipeline
   vtkSmartPointer<vtkSTLReader> stlReader = vtkSmartPointer<vtkSTLReader>::New();
-  if (LoadPhantomModel(stlReader) == PLUS_SUCCESS) {
+  if (LoadPhantomModel(stlReader) == PLUS_SUCCESS)
+  {
 	  vtkSmartPointer<vtkPolyDataMapper> phantomMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
 	  phantomMapper->SetInputConnection(stlReader->GetOutputPort());
 
@@ -788,11 +872,13 @@ PlusStatus vtkToolVisualizer::CalculateImageCameraParameters()
 	//LOG_TRACE("vtkToolVisualizer::CalculateImageCameraParameters");
 
   // Only set new camera if image actor is visible
-  if ((this->ImageActor == NULL) || (this->ImageActor->GetVisibility() == 0)) {
+  if ((this->ImageActor == NULL) || (this->ImageActor->GetVisibility() == 0))
+  {
     return PLUS_SUCCESS;
   }
 
-	if (this->DataCollector->GetVideoSource() == NULL) {
+	if (this->DataCollector->GetVideoSource() == NULL)
+  {
 		LOG_WARNING("Data collector has no video source!");
 		return PLUS_FAIL;
 	}
@@ -814,10 +900,13 @@ PlusStatus vtkToolVisualizer::CalculateImageCameraParameters()
 
 	// Calculate distance of camera from the plane
   int *renderWindowSize = this->CanvasRenderer->GetRenderWindow()->GetSize();
-	if ((double)renderWindowSize[0] / (double)renderWindowSize[1] > imageCenterX / imageCenterY) {
+	if ((double)renderWindowSize[0] / (double)renderWindowSize[1] > imageCenterX / imageCenterY)
+  {
 		// If canvas aspect ratio is more elongenated in the X position then compute the distance according to the Y axis
 		imageCamera->SetParallelScale(imageCenterY);
-	} else {
+	}
+  else
+  {
 		imageCamera->SetParallelScale(imageCenterX * (double)renderWindowSize[1] / (double)renderWindowSize[0]);
 	}
 
@@ -837,9 +926,12 @@ PlusStatus vtkToolVisualizer::EnableCameraMovements(bool aEnabled)
 {
 	LOG_TRACE("vtkToolVisualizer::EnableCameraMovements(" << (aEnabled?"true":"false") << ")");
 
-  if (aEnabled) {
+  if (aEnabled)
+  {
     this->CanvasRenderer->GetRenderWindow()->GetInteractor()->SetInteractorStyle(vtkInteractorStyleTrackballCamera::New());
-  } else {
+  }
+  else
+  {
     this->CanvasRenderer->GetRenderWindow()->GetInteractor()->RemoveAllObservers();
   }
 
@@ -853,31 +945,37 @@ PlusStatus vtkToolVisualizer::StartDataCollection()
 	LOG_TRACE("vtkToolVisualizer::StartDataCollection"); 
 
 	// Stop data collection if already started
-	if (this->DataCollector != NULL) {
-		this->DataCollector->Stop();
-	}
+	if (this->DataCollector == NULL)
+  {
+    LOG_ERROR("Data collector has not been created!");
+    return PLUS_FAIL;
+  }
 
-	// Initialize data collector and read configuration
-	vtkSmartPointer<vtkDataCollector> dataCollector = vtkSmartPointer<vtkDataCollector>::New(); 
-	this->SetDataCollector(dataCollector);
+  this->DataCollector->Stop();
 
-  if (this->DataCollector->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS) {
+	// Read configuration
+  if (this->DataCollector->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS)
+  {
 		return PLUS_FAIL;
 	}
 
-	if (this->DataCollector->Connect() != PLUS_SUCCESS) {
+	if (this->DataCollector->Connect() != PLUS_SUCCESS)
+  {
 		return PLUS_FAIL;
 	}
 
-	if (this->DataCollector->Start() != PLUS_SUCCESS) {
+	if (this->DataCollector->Start() != PLUS_SUCCESS)
+  {
 		return PLUS_FAIL;
 	}
 
-	if ((this->DataCollector->GetTracker() == NULL) || (this->DataCollector->GetTracker()->GetNumberOfTools() < 1)) {
+	if ((this->DataCollector->GetTracker() == NULL) || (this->DataCollector->GetTracker()->GetNumberOfTools() < 1))
+  {
 		LOG_WARNING("Unable to initialize Tracker!"); 
 	}
 
-	if (! this->DataCollector->GetConnected()) {
+	if (! this->DataCollector->GetConnected())
+  {
 		LOG_ERROR("Unable to initialize DataCollector!"); 
 		return PLUS_FAIL;
 	}
@@ -892,31 +990,37 @@ PlusStatus vtkToolVisualizer::LoadPhantomModel(vtkSTLReader* aSTLReader)
 	LOG_TRACE("vtkToolVisualizer::LoadPhantomModel");
 
 	vtkXMLDataElement* phantomDefinition = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()->FindNestedElementWithName("PhantomDefinition");
-	if (phantomDefinition == NULL) {
+	if (phantomDefinition == NULL)
+  {
 		LOG_WARNING("No phantom definition is found in the XML tree - no phantom will be displayed!");
 		return PLUS_FAIL;
 	}
 
   vtkXMLDataElement* model = phantomDefinition->FindNestedElementWithName("Model"); 
-	if (model == NULL) {
+	if (model == NULL)
+  {
 		LOG_WARNING("Phantom model information not found - no model displayed");
 		return PLUS_FAIL;
   }
 
 	const char* file = model->GetAttribute("File");
-	if (!file) {
+	if (!file)
+  {
 		LOG_WARNING("Phantom model file name not found - no model displayed");
 		return PLUS_FAIL;
-  } else {
-		// Initialize phantom model visualization
-		std::string searchResult = vtkPlusConfig::GetFirstFileFoundInConfigurationDirectory(file);
-		if (STRCASECMP("", searchResult.c_str()) == 0) {
-			LOG_WARNING("Phantom model file is not found with name: " << file << " - no model is displayed");
-  		return PLUS_FAIL;
-		} else {
-			aSTLReader->SetFileName(searchResult.c_str());
-		}
   }
+
+  // Initialize phantom model visualization
+	std::string searchResult = vtkPlusConfig::GetFirstFileFoundInConfigurationDirectory(file);
+	if (STRCASECMP("", searchResult.c_str()) == 0)
+  {
+		LOG_WARNING("Phantom model file is not found with name: " << file << " - no model is displayed");
+		return PLUS_FAIL;
+	}
+  else
+  {
+		aSTLReader->SetFileName(searchResult.c_str());
+	}
 
   return PLUS_SUCCESS;
 }
@@ -927,7 +1031,8 @@ PlusStatus vtkToolVisualizer::SetDefaultStylusModel(vtkActor* aActor)
 {
 	LOG_TRACE("vtkToolVisualizer::SetDefaultStylusModel");
 
-	if (aActor == NULL) {
+	if (aActor == NULL)
+  {
 		LOG_ERROR("Unable to load stylus model to an uninitialized actor!");
 		return PLUS_FAIL;
 	}
@@ -978,7 +1083,8 @@ PlusStatus vtkToolVisualizer::DumpBuffersToDirectory(const char* aDirectory)
 {
   LOG_TRACE("vtkToolVisualizer::DumpBuffersToDirectory(" << aDirectory << ")");
 
-  if ((this->DataCollector == NULL) || (! this->DataCollector->GetConnected())) {
+  if ((this->DataCollector == NULL) || (! this->DataCollector->GetConnected()))
+  {
 		LOG_INFO("Data collector is not connected, buffers cannot be saved");
 		return PLUS_FAIL;
 	}
@@ -991,12 +1097,14 @@ PlusStatus vtkToolVisualizer::DumpBuffersToDirectory(const char* aDirectory)
   outputTrackerBufferSequenceFileName.append(dateAndTime);
 
   // Dump buffers to file 
-  if ( this->DataCollector->GetVideoSource() != NULL )  {
+  if ( this->DataCollector->GetVideoSource() != NULL )
+  {
     LOG_INFO("Write video buffer to " << outputVideoBufferSequenceFileName);
     this->DataCollector->WriteVideoBufferToMetafile( this->DataCollector->GetVideoSource()->GetBuffer(), aDirectory, outputVideoBufferSequenceFileName.c_str(), false); 
   }
 
-  if ( this->DataCollector->GetTracker() != NULL ) {
+  if ( this->DataCollector->GetTracker() != NULL )
+  {
     LOG_INFO("Write tracker buffer to " << outputTrackerBufferSequenceFileName);
     this->DataCollector->WriteTrackerToMetafile( this->DataCollector->GetTracker(), aDirectory, outputTrackerBufferSequenceFileName.c_str(), false); 
   }
