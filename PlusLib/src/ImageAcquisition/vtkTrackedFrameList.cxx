@@ -109,6 +109,25 @@ const char* TrackedFrame::GetCustomFrameField(const char* fieldName)
   return NULL; 
 }
 
+bool TrackedFrame::IsCustomFrameFieldDefined(const char* fieldName)
+{
+  if (fieldName == NULL )
+  {
+    LOG_ERROR("Unable to find custom frame field: field name is NULL!"); 
+    return false; 
+  }
+
+  FieldMapType::iterator fieldIterator; 
+  fieldIterator = this->CustomFrameFields.find(fieldName); 
+  if ( fieldIterator != this->CustomFrameFields.end() )
+  {
+    // field is found
+    return true; 
+  }
+  // field is undefined
+  return false; 
+}
+
 //----------------------------------------------------------------------------
 PlusStatus TrackedFrame::GetCustomFrameTransform(const char* frameTransformName, double transform[16]) 
 {

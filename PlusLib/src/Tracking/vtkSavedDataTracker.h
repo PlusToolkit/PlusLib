@@ -73,14 +73,11 @@ public:
 	vtkBooleanMacro(ReplayEnabled, bool);
 
   /*! Get local tracker buffer */
-  vtkGetObjectMacro(LocalTrackerBuffer, vtkTrackerBuffer); 
+  vtkTrackerBuffer* GetLocalTrackerBuffer(); 
 
 protected:
 	vtkSavedDataTracker();
 	~vtkSavedDataTracker();
-
-	/*! Initialize the tracking device */
-	PlusStatus InitSavedDataTracker();
 
 	/*! Start the tracking system. */
 	PlusStatus InternalStartTracking();
@@ -94,8 +91,8 @@ protected:
   /*! Flag to enable saved dataset replay */
 	bool ReplayEnabled; 
 
-  /*! Local buffer used for storing data read from sequence metafile */
-	vtkTrackerBuffer* LocalTrackerBuffer; 
+  /*! Local buffer for each tracker tool, used for storing data read from sequence metafile */
+  std::vector<vtkTrackerBuffer*> LocalTrackerBuffers; 
 	
   /*! Flag used for storing initialization state */
 	bool Initialized;

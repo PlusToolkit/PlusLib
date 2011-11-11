@@ -675,6 +675,13 @@ double vtkTrackerBuffer::GetLocalTimeOffset()
 //-----------------------------------------------------------------------------
 PlusStatus vtkTrackerBuffer::CopyDefaultTransformFromTrackedFrameList(vtkTrackedFrameList *sourceTrackedFrameList, TIMESTAMP_FILTERING_OPTION timestampFiltering)
 {
+  std::string defaultTransformName=sourceTrackedFrameList->GetDefaultFrameTransformName();  
+  return CopyTransformFromTrackedFrameList(sourceTrackedFrameList, timestampFiltering, defaultTransformName.c_str());
+}
+
+//-----------------------------------------------------------------------------
+PlusStatus vtkTrackerBuffer::CopyTransformFromTrackedFrameList(vtkTrackedFrameList *sourceTrackedFrameList, TIMESTAMP_FILTERING_OPTION timestampFiltering, const char* transformName)
+{
   int numberOfErrors=0;
 
   int numberOfFrames = sourceTrackedFrameList->GetNumberOfTrackedFrames();
@@ -700,8 +707,7 @@ PlusStatus vtkTrackerBuffer::CopyDefaultTransformFromTrackedFrameList(vtkTracked
     requireFrameStatus=true;
     requireFrameNumber=true;
   }
-
-  std::string defaultTransformName=sourceTrackedFrameList->GetDefaultFrameTransformName();
+  
   for ( int frameNumber = 0; frameNumber < numberOfFrames; frameNumber++ )
   {
 
@@ -761,27 +767,27 @@ PlusStatus vtkTrackerBuffer::CopyDefaultTransformFromTrackedFrameList(vtkTracked
       continue; 
     }
 
-    double defaultTransform[16]; 
-    if ( !sourceTrackedFrameList->GetTrackedFrame(frameNumber)->GetCustomFrameTransform(defaultTransformName.c_str(), defaultTransform) )
+    double copiedTransform[16]; 
+    if ( !sourceTrackedFrameList->GetTrackedFrame(frameNumber)->GetCustomFrameTransform(transformName, copiedTransform) )
     {
-      LOG_ERROR("Unable to get default frame transform for frame #" << frameNumber); 
+      LOG_ERROR("Unable to get the "<<transformName<<" frame transform for frame #" << frameNumber); 
       numberOfErrors++; 
       continue; 
     }
 
-    vtkSmartPointer<vtkMatrix4x4> defaultTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
-    defaultTransformMatrix->DeepCopy(defaultTransform); 
+    vtkSmartPointer<vtkMatrix4x4> copiedTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
+    copiedTransformMatrix->DeepCopy(copiedTransform); 
 
     switch (timestampFiltering)
     {
     case READ_FILTERED_AND_UNFILTERED_TIMESTAMPS:
-      this->AddTimeStampedItem(defaultTransformMatrix, status, frmnum, unfilteredtimestamp, timestamp); 
+      this->AddTimeStampedItem(copiedTransformMatrix, status, frmnum, unfilteredtimestamp, timestamp); 
       break;
     case READ_UNFILTERED_COMPUTE_FILTERED_TIMESTAMPS:
-      this->AddTimeStampedItem(defaultTransformMatrix, status, frmnum, unfilteredtimestamp); 
+      this->AddTimeStampedItem(copiedTransformMatrix, status, frmnum, unfilteredtimestamp); 
       break;
     case READ_FILTERED_IGNORE_UNFILTERED_TIMESTAMPS:
-      this->AddTimeStampedItem(defaultTransformMatrix, status, frmnum, timestamp, timestamp); 
+      this->AddTimeStampedItem(copiedTransformMatrix, status, frmnum, timestamp, timestamp); 
       break;
     default:
       break;

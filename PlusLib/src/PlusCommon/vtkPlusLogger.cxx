@@ -61,6 +61,10 @@ void vtkPlusLoggerOutputWindow::DisplayErrorText(const char* text)
   std::string textStr=text;
   ReplaceNewlineBySeparator(textStr);
   LOG_ERROR("VTK log: " << textStr);
+
+  DWORD lastErr=GetLastError();
+  LOG_ERROR("Last error: "<<lastErr);
+
   this->InvokeEvent(vtkCommand::ErrorEvent, (void*)text);
 }
 
