@@ -62,6 +62,12 @@ public:
   /*! Get custom frame field value */
   const char* GetCustomFrameField(const char* fieldName); 
 
+  /*! 
+    Check if a custom frame field is defined or not 
+    \return true, if the field is defined; false, if the field is not defined
+  */
+  bool IsCustomFrameFieldDefined(const char* fieldName);
+
   /*! Get custom frame transform */
   PlusStatus GetCustomFrameTransform(const char* frameTransformName, double transform[16]); 
   PlusStatus GetCustomFrameTransform(const char* frameTransformName, vtkMatrix4x4* transformMatrix); 
