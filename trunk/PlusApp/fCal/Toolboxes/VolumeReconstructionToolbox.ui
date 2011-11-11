@@ -45,6 +45,9 @@
      </property>
      <item>
       <widget class="QLabel" name="label_VolumeReconstructionConfig">
+       <property name="toolTip">
+        <string>Also overwrites probe calibration</string>
+       </property>
        <property name="text">
         <string>Import volume reconstruction settings:</string>
        </property>
@@ -100,17 +103,7 @@
       <number>2</number>
      </property>
      <item>
-      <widget class="QLineEdit" name="lineEdit_InputImage">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="readOnly">
-        <bool>true</bool>
-       </property>
-      </widget>
+      <widget class="QComboBox" name="comboBox_InputImage"/>
      </item>
      <item>
       <widget class="QPushButton" name="pushButton_OpenInputImage">
@@ -257,6 +250,10 @@
        </property>
        <property name="text">
         <string>Save volume...</string>
+       </property>
+       <property name="icon">
+        <iconset resource="../fCal.qrc">
+         <normaloff>:/icons/Resources/icon_Save.png</normaloff>:/icons/Resources/icon_Save.png</iconset>
        </property>
       </widget>
      </item>

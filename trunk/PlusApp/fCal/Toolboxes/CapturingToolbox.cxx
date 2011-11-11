@@ -8,6 +8,7 @@
 
 #include "fCalMainWindow.h"
 #include "vtkToolVisualizer.h"
+#include "VolumeReconstructionToolbox.h"
 
 #include <QFileDialog>
 #include <QMessageBox>
@@ -348,7 +349,15 @@ void CapturingToolbox::Save()
        return;
     }
 
+    // Add file name to image list in Volume reconstruction toolbox
+    VolumeReconstructionToolbox* volumeReconstructionToolbox = dynamic_cast<VolumeReconstructionToolbox*>(m_ParentMainWindow->GetToolbox(ToolboxType_VolumeReconstruction));
+    if (volumeReconstructionToolbox != NULL)
+    {
+      volumeReconstructionToolbox->AddImageFileName(fileName);
+    }
+
 	  m_RecordedFrames->Clear(); 
+    SetState(ToolboxState_Idle);
 
 		QApplication::restoreOverrideCursor();
 	}	

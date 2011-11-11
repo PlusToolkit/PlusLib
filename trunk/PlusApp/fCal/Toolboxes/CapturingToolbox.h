@@ -58,6 +58,11 @@ public:
 	*/
 	void SetDisplayAccordingToState();
 
+  /*!
+  * Get recorded tracked frame list
+  */
+  vtkTrackedFrameList* GetRecordedFrames() { return m_RecordedFrames; };
+
 protected:
 	/*!
 	* Saves recorded tracked frame list to file

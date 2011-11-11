@@ -8,6 +8,7 @@
 
 #include "fCalMainWindow.h"
 #include "vtkToolVisualizer.h"
+#include "CapturingToolbox.h"
 
 #include <QFileDialog>
 
@@ -80,6 +81,9 @@ void VolumeReconstructionToolbox::Initialize()
   if (m_State != ToolboxState_Done)
   {
     m_ParentMainWindow->GetToolVisualizer()->GetResultPolyData()->Initialize();
+
+    // Check for new images
+    PopulateImageComboBox();
   }
 
   // Set initialized if it was uninitialized
@@ -127,11 +131,13 @@ void VolumeReconstructionToolbox::SetDisplayAccordingToState()
   {
 		ui.label_Instructions->setText(tr("N/A"));
 
+    PopulateImageComboBox();
+
 		if (! m_VolumeReconstructionConfigFileLoaded) {
 			ui.label_Instructions->setText(tr("Volume reconstruction config XML has to be loaded"));
 			ui.pushButton_Reconstruct->setEnabled(false);
 			ui.pushButton_Save->setEnabled(false);
-		} else if (ui.lineEdit_InputImage->text().length() == 0) {
+    } else if (ui.comboBox_InputImage->currentIndex() == -1) {
 			ui.label_Instructions->setText(tr("Input image has to be selected"));
 			ui.pushButton_Reconstruct->setEnabled(false);
 			ui.pushButton_Save->setEnabled(false);
@@ -224,8 +230,7 @@ void VolumeReconstructionToolbox::OpenInputImage()
 		return;
 	}
 
-	ui.lineEdit_InputImage->setText(fileName);
-	ui.lineEdit_InputImage->setToolTip(fileName);
+  m_ImageFileNames.append(fileName);
 
 	SetState(ToolboxState_Idle);
 }
@@ -238,7 +243,7 @@ void VolumeReconstructionToolbox::Reconstruct()
 
 	QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
 
-	if (ReconstructVolumeFromInputImage(ui.lineEdit_InputImage->text().toAscii().data()) != PLUS_SUCCESS)
+	if (ReconstructVolumeFromInputImage() != PLUS_SUCCESS)
   {
     LOG_ERROR("Unable to reconstruct volume!");
   }
@@ -270,9 +275,9 @@ void VolumeReconstructionToolbox::Save()
 
 //-----------------------------------------------------------------------------
 
-PlusStatus VolumeReconstructionToolbox::ReconstructVolumeFromInputImage(std::string aInputImage)
+PlusStatus VolumeReconstructionToolbox::ReconstructVolumeFromInputImage()
 {
-	LOG_TRACE("VolumeReconstructionToolbox::ReconstructVolumeFromInputImage(" << aInputImage << ")");
+	LOG_TRACE("VolumeReconstructionToolbox::ReconstructVolumeFromInputImage");
 
 	SetState(ToolboxState_InProgress);
 
@@ -281,11 +286,35 @@ PlusStatus VolumeReconstructionToolbox::ReconstructVolumeFromInputImage(std::str
 	m_ParentMainWindow->SetStatusBarProgress(0);
 	RefreshContent();
 
-  vtkSmartPointer<vtkTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New(); 
-  if (trackedFrameList->ReadFromSequenceMetafile(aInputImage.c_str()) != PLUS_SUCCESS)
+  vtkSmartPointer<vtkTrackedFrameList> trackedFrameList = NULL;
+
+  if (ui.comboBox_InputImage->currentText().left(1) == "<" && ui.comboBox_InputImage->currentText().right(1) == ">") // If unsaved image is selected
   {
-    LOG_ERROR("Unable to load input image file!");
-    return PLUS_FAIL;
+    CapturingToolbox* capturingToolbox = dynamic_cast<CapturingToolbox*>(m_ParentMainWindow->GetToolbox(ToolboxType_Capturing));
+    if ((capturingToolbox == NULL) || ((trackedFrameList = capturingToolbox->GetRecordedFrames()) == NULL))
+    {
+      LOG_ERROR("Unable to get recorded frame list from Capturing toolbox!");
+      return PLUS_FAIL;
+    }
+  }
+  else
+  {
+    int imageFileNameIndex = -1;
+    if (ui.comboBox_InputImage->itemText(0).left(1) == "<" && ui.comboBox_InputImage->itemText(0).right(0) == ">") // If unsaved image exists
+    {
+      imageFileNameIndex = ui.comboBox_InputImage->currentIndex() - 1;
+    }
+    else
+    {
+      imageFileNameIndex = ui.comboBox_InputImage->currentIndex();
+    }
+
+    trackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New();
+    if (trackedFrameList->ReadFromSequenceMetafile( m_ImageFileNames.at( imageFileNameIndex ) ) != PLUS_SUCCESS)
+    {
+      LOG_ERROR("Unable to load input image file!");
+      return PLUS_FAIL;
+    }
   }
 	
 	m_ParentMainWindow->SetStatusBarText(QString(" Reconstructing volume ..."));
@@ -361,4 +390,54 @@ PlusStatus VolumeReconstructionToolbox::SaveVolumeToFile(std::string aOutput)
 	writer->Update();
 
 	return PLUS_SUCCESS;
+}
+
+//-----------------------------------------------------------------------------
+
+void VolumeReconstructionToolbox::AddImageFileName(QString aImageFileName)
+{
+	LOG_TRACE("VolumeReconstructionToolbox::AddImageFileName(" << aImageFileName.toAscii().data() << ")");
+
+  m_ImageFileNames.append(aImageFileName);
+}
+
+//-----------------------------------------------------------------------------
+
+void VolumeReconstructionToolbox::PopulateImageComboBox()
+{
+	LOG_TRACE("VolumeReconstructionToolbox::PopulateImageComboBox");
+
+  // Clear images combobox
+  for (int i=0; i<ui.comboBox_InputImage->count(); ++i)
+  {
+    ui.comboBox_InputImage->removeItem(i);
+  }
+
+  // Get recorded tracked frame list from Capturing toolbox
+  vtkTrackedFrameList* recordedFrames = NULL;
+  CapturingToolbox* capturingToolbox = dynamic_cast<CapturingToolbox*>(m_ParentMainWindow->GetToolbox(ToolboxType_Capturing));
+  if ((capturingToolbox == NULL) || ((recordedFrames = capturingToolbox->GetRecordedFrames()) == NULL))
+  {
+    LOG_ERROR("Capturing toolbox not found!");
+    return;
+  }
+
+  if (recordedFrames->GetNumberOfTrackedFrames() > 0)
+  {
+    ui.comboBox_InputImage->addItem("<unsaved image from Capturing>");
+  }
+
+  // Add images from the stored list
+  QStringListIterator imagesIterator(m_ImageFileNames);
+  while (imagesIterator.hasNext())
+  {
+    QString imageFileName(imagesIterator.next());
+    int lastIndexOfSlash = imageFileName.lastIndexOf('/');
+    int lastIndexOfBackslash = imageFileName.lastIndexOf('\\');
+    imageFileName.right( imageFileName.length() - std::max(lastIndexOfSlash, lastIndexOfBackslash) );
+
+    ui.comboBox_InputImage->addItem(imageFileName);
+  }
+
+  ui.comboBox_InputImage->setCurrentIndex(-1);
 }

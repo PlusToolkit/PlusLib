@@ -55,13 +55,18 @@ public:
 	*/
 	void SetDisplayAccordingToState();
 
+  /*!
+  * Add image file name to the list (usually when one is saved in Capturing toolbox)
+  * \param aImageFileName Path and filename of the image
+  */
+  void AddImageFileName(QString aImageFileName);
+
 protected:
 	/*!
 	* Reconstructs volume from input file
-	* \param aInputImage Input sequence metafile image
 	* \return Success flag
 	*/
-	PlusStatus ReconstructVolumeFromInputImage(std::string aInputImage);
+	PlusStatus ReconstructVolumeFromInputImage();
 
 	/*!
 	* Saves volume to file
@@ -74,6 +79,11 @@ protected:
 	* Display reconstructed volume in canvas
 	*/
 	void DisplayReconstructedVolume();
+
+  /*!
+  * Populate image combobox from the image file name list and the unsaved data in Capturing toolbox if present
+  */
+  void PopulateImageComboBox();
 
 protected slots:
 	/*!
@@ -108,6 +118,9 @@ protected:
 
   /*! Contouring threshold */
 	double					        m_ContouringThreshold;
+
+  /*! String list containing the file names of the loaded images and the images that have been saved by Capturing toolbox */
+  QStringList             m_ImageFileNames;
 
 protected:
 	Ui::VolumeReconstructionToolbox ui;
