@@ -5,7 +5,8 @@ See License.txt for details.
 =========================================================Plus=header=end*/ 
 
 /*!
-  \file This a simple test program to acquire a tracking data and write to a metafile
+  \file This a simple test program to acquire a tracking data and optionally writes the buffer to a metafile
+  and display the live transform in a 3D view.
 */ 
 
 #include "PlusConfigure.h"
@@ -31,6 +32,7 @@ See License.txt for details.
 #include "vtkToolAxesActor.h" 
 #include "vtkOrientationMarkerWidget.h" 
 #include "vtkInteractorStyleTrackballCamera.h"
+#include "vtkCamera.h"
 
 class vtkMyCallback : public vtkCommand
 {
@@ -41,22 +43,56 @@ public:
   vtkMyCallback()
   {
     this->TimerId=-1;
+    this->StepperTextActor = vtkTextActor::New(); 
   }
 
   virtual ~vtkMyCallback()
   {
+    this->StepperTextActor->Delete();
+    this->StepperTextActor=NULL;
     for (int i=0; i<this->ToolActors.size(); i++)
     {
-      this->Renderer->RemoveActor(this->ToolActors[i]);
+      //this->Renderer->RemoveActor(this->ToolActors[i]);
       this->ToolActors[i]->Delete();
       this->ToolActors[i]=NULL;
     }
   }
 
+  void Init()
+  {        
+
+    // Create a text actor for tracking information
+    vtkTextProperty* textprop = this->StepperTextActor->GetTextProperty();
+    textprop->SetColor(1,0,0);
+    textprop->SetFontFamilyToArial();
+    textprop->SetFontSize(15);
+    textprop->SetJustificationToLeft();
+    textprop->SetVerticalJustificationToTop();
+    this->StepperTextActor->VisibilityOn(); 
+    this->StepperTextActor->SetDisplayPosition(20,65); 
+    this->Renderer->AddActor(this->StepperTextActor); 
+
+    for (int toolNumber=0; toolNumber<this->DataCollector->GetNumberOfTools(); toolNumber++)
+    {
+      AddNewToolActor();
+      vtkTrackerTool* tool=this->DataCollector->GetTracker()->GetTool(toolNumber);
+      this->ToolActors[toolNumber]->SetName(tool->GetToolName());
+      if (tool->GetEnabled())
+      {
+        SetToolVisible(toolNumber,true);        
+      }
+    }
+
+    this->Iren->AddObserver(vtkCommand::TimerEvent, this);
+    // When the interactor stops it stops our timer as well, trigger a restart when the interactor stops    
+    this->Iren->AddObserver(vtkCommand::EndInteractionEvent, this);
+
+    this->TimerId=this->Iren->CreateOneShotTimer(100);
+  }
+
   void AddNewToolActor()
   {
     vtkToolAxesActor* actor=vtkToolAxesActor::New();
-    actor->SetTotalLength(10,10,10);
     this->Renderer->AddActor(actor);
     actor->SetVisibility(false);
     this->ToolActors.push_back(actor);
@@ -64,20 +100,11 @@ public:
 
   void SetToolVisible(int toolNumber, bool visible)
   {
-    while (toolNumber>=this->ToolActors.size())
-    {
-      AddNewToolActor();
-    }
     this->ToolActors[toolNumber]->SetVisibility(visible);
   }
 
   void SetToolToTrackerTransform(int toolNumber, vtkMatrix4x4*  toolToTrackerTransform)
   {
-    while (toolNumber>=this->ToolActors.size())
-    {
-      AddNewToolActor();
-    }
-
     // Get position and orientation from toolToTrackerTransform
     vtkSmartPointer<vtkTransform> transform=vtkSmartPointer<vtkTransform>::New();
     transform->SetMatrix(toolToTrackerTransform);    
@@ -95,52 +122,61 @@ public:
 
   virtual void Execute(vtkObject *caller, unsigned long, void*)
   {       
-    int currentToolNumber=0;
-
     std::ostringstream ss;
     ss.precision( 2 ); 
 
     double toolToTrackerTransformTimestamp=0;
     TrackerStatus trackerStatus=TR_OK;
     for (int toolNumber=0; toolNumber<this->DataCollector->GetNumberOfTools(); toolNumber++)
-    {
-      vtkSmartPointer<vtkMatrix4x4> toolToTrackerTransform=vtkSmartPointer<vtkMatrix4x4>::New(); // a new transform matrix has to be provided to each SetToolToTrackerTransform call
-      if (!this->DataCollector->GetTracker()->GetTool(toolNumber)->GetEnabled() ||
-        this->DataCollector->GetTransformWithTimestamp(toolToTrackerTransform, toolToTrackerTransformTimestamp, trackerStatus, toolNumber)!=PLUS_SUCCESS
-        || trackerStatus!=TR_OK)
+    {      
+      vtkTrackerTool* tool=this->DataCollector->GetTracker()->GetTool(toolNumber);
+      if (!tool->GetEnabled())
       {
         SetToolVisible(toolNumber,false);        
+        continue;  
       }
-      else
+
+      // Tool enabled
+      ss << tool->GetToolName() << ": ";
+
+      vtkSmartPointer<vtkMatrix4x4> toolToTrackerTransform=vtkSmartPointer<vtkMatrix4x4>::New(); // a new transform matrix has to be provided to each SetToolToTrackerTransform call
+      if (this->DataCollector->GetTransformWithTimestamp(toolToTrackerTransform, toolToTrackerTransformTimestamp, trackerStatus, toolNumber)!=PLUS_SUCCESS)
       {
-        SetToolToTrackerTransform(toolNumber, toolToTrackerTransform);
-        SetToolVisible(toolNumber,true);
-      }      
-      if (toolNumber==currentToolNumber)
-      {
-        if ( trackerStatus!=TR_OK )
-        {
-          ss	<< "Tool is missing or out of view"; 
-        }
-        else
-        {
-          ss	<< std::fixed 
-            << toolToTrackerTransform->GetElement(0,0) << "   " << toolToTrackerTransform->GetElement(0,1) << "   " << toolToTrackerTransform->GetElement(0,2) << "   " << toolToTrackerTransform->GetElement(0,3) << "\n"
-            << toolToTrackerTransform->GetElement(1,0) << "   " << toolToTrackerTransform->GetElement(1,1) << "   " << toolToTrackerTransform->GetElement(1,2) << "   " << toolToTrackerTransform->GetElement(1,3) << "\n"
-            << toolToTrackerTransform->GetElement(2,0) << "   " << toolToTrackerTransform->GetElement(2,1) << "   " << toolToTrackerTransform->GetElement(2,2) << "   " << toolToTrackerTransform->GetElement(2,3) << "\n"
-            << toolToTrackerTransform->GetElement(3,0) << "   " << toolToTrackerTransform->GetElement(3,1) << "   " << toolToTrackerTransform->GetElement(3,2) << "   " << toolToTrackerTransform->GetElement(3,3) << "\n"; 
-        }
+        ss << "failed to get transform\n";
+        SetToolVisible(toolNumber,false);        
+        continue;
       }
+
+      if ( trackerStatus!=TR_OK )
+      {
+        ss	<< "missing or out of view\n"; 
+        SetToolVisible(toolNumber,false);        
+        continue;
+      }
+
+      // There is a valid transform
+      SetToolToTrackerTransform(toolNumber, toolToTrackerTransform);
+      SetToolVisible(toolNumber,true);
+      ss	<< std::fixed 
+        << toolToTrackerTransform->GetElement(0,0) << "   " << toolToTrackerTransform->GetElement(0,1) << "   " << toolToTrackerTransform->GetElement(0,2) << "   " << toolToTrackerTransform->GetElement(0,3) << " / "
+        << toolToTrackerTransform->GetElement(1,0) << "   " << toolToTrackerTransform->GetElement(1,1) << "   " << toolToTrackerTransform->GetElement(1,2) << "   " << toolToTrackerTransform->GetElement(1,3) << " / "
+        << toolToTrackerTransform->GetElement(2,0) << "   " << toolToTrackerTransform->GetElement(2,1) << "   " << toolToTrackerTransform->GetElement(2,2) << "   " << toolToTrackerTransform->GetElement(2,3) << " / "
+        << toolToTrackerTransform->GetElement(3,0) << "   " << toolToTrackerTransform->GetElement(3,1) << "   " << toolToTrackerTransform->GetElement(3,2) << "   " << toolToTrackerTransform->GetElement(3,3) << "\n"; 
+
     }
 
     this->StepperTextActor->SetInput(ss.str().c_str());
     this->StepperTextActor->Modified(); 
 
-    //this->Renderer->ResetCameraClippingRange();
     this->Renderer->GetRenderWindow()->Render();
 
-    //update the timer so it will trigger again
-    //this->Iren->CreateTimer(VTKI_TIMER_UPDATE);
+    static bool firstUpdate=true;
+    if (firstUpdate)
+    {
+      this->Renderer->ResetCamera();
+      firstUpdate=false;
+    }
+
     this->TimerId=this->Iren->CreateOneShotTimer(100); 
   }
 
@@ -157,7 +193,7 @@ int main(int argc, char **argv)
 	std::string inputConfigFileName;
   std::string inputToolName; 
 	double inputAcqTimeLength(60);
-	std::string outputTrackerBufferSequenceFileName("TrackerBufferMetafile"); 
+	std::string outputTrackerBufferSequenceFileName; 
 	std::string outputFolder("./");
   bool renderingOff(false);
 
@@ -232,6 +268,8 @@ int main(int argc, char **argv)
 
   if (renderingOff)
   {
+    // No rendering, just show the output on the console
+
     LOG_DEBUG("Rendering is disabled");
 
     TrackerBufferItem bufferItem; 
@@ -270,63 +308,55 @@ int main(int argc, char **argv)
   }
   else
   {
+    // Start live rendering
 
     vtkSmartPointer<vtkRenderWindow> renWin = vtkSmartPointer<vtkRenderWindow>::New(); 
     vtkSmartPointer<vtkRenderer> renderer = vtkSmartPointer<vtkRenderer>::New(); 
     renWin->AddRenderer(renderer);  
 
-    // Create a text actor for tracking information
-    vtkSmartPointer<vtkTextActor> stepperTextActor = vtkSmartPointer<vtkTextActor>::New(); 
-    vtkSmartPointer<vtkTextProperty> textprop = stepperTextActor->GetTextProperty();
-    textprop->SetColor(1,0,0);
-    textprop->SetFontFamilyToArial();
-    textprop->SetFontSize(15);
-    textprop->SetJustificationToLeft();
-    textprop->SetVerticalJustificationToTop();
-    stepperTextActor->VisibilityOn(); 
-    stepperTextActor->SetDisplayPosition(20,65); 
-    renderer->AddActor(stepperTextActor); 
-
     //Create the interactor that handles the event loop
     vtkSmartPointer<vtkRenderWindowInteractor> iren = vtkSmartPointer<vtkRenderWindowInteractor>::New();
     iren->SetRenderWindow(renWin);
 
+    // Switch interactor style to trackball
     vtkSmartPointer<vtkInteractorStyleTrackballCamera> style = vtkSmartPointer<vtkInteractorStyleTrackballCamera>::New();
     iren->SetInteractorStyle(style); 
 
-    renderer->Render();	//must be called after iren and renderer are linked
-    //or there will be problems
+    // Must be called after iren and renderer are linked or there will be problems
+    renderer->Render();	
 
-    //iren must be initialized so that it can handle events
+    // iren must be initialized so that it can handle events
     iren->Initialize();
 
-    //establish timer event and create timer
-    vtkSmartPointer<vtkMyCallback> call = vtkSmartPointer<vtkMyCallback>::New();
-    call->DataCollector=dataCollector; 
-    call->Renderer=renderer;
-    call->Iren=iren;
-    call->StepperTextActor=stepperTextActor; 
-    call->TimerId=iren->CreateOneShotTimer(100); 
-    //call->TimerId=iren->CreateRepeatingTimer(1000); 
-    iren->AddObserver(vtkCommand::TimerEvent, call);
-    iren->AddObserver(vtkCommand::CharEvent, call);
-    iren->AddObserver(vtkCommand::EndInteractionEvent, call); // when the interactor stops it stops our timer as well, trigger a restart when the interactor stops    
-    //iren->CreateTimer(VTKI_TIMER_FIRST);		//VTKI_TIMER_FIRST = 0
+    // Set up transform display actors
+    vtkSmartPointer<vtkMyCallback> transformDisplayUpdater = vtkSmartPointer<vtkMyCallback>::New();
+    transformDisplayUpdater->DataCollector=dataCollector; 
+    transformDisplayUpdater->Renderer=renderer;
+    transformDisplayUpdater->Iren=iren;
+    transformDisplayUpdater->Init();
 
-    renderer->ResetCamera();
+    // Add an origin display actor
+    vtkSmartPointer<vtkToolAxesActor> originActor=vtkSmartPointer<vtkToolAxesActor>::New();
+    originActor->SetName("origin");
+    renderer->AddActor(originActor);
+   
+    // Set projection to parallel to enable estimate distances
+    renderer->GetActiveCamera()->ParallelProjectionOn();
 
     iren->Start();
+
   }
 
+  dataCollector->Disconnect();
 
-	LOG_INFO("Copy tracker..."); 
-	vtkTracker *tracker = vtkTracker::New(); 
-	dataCollector->CopyTracker(tracker); 
-
-	LOG_INFO("Write tracker to " << outputTrackerBufferSequenceFileName);
-	dataCollector->WriteTrackerToMetafile( tracker, outputFolder.c_str(), outputTrackerBufferSequenceFileName.c_str(), true); 
-
-	tracker->Delete(); 
+  if (!outputTrackerBufferSequenceFileName.empty())
+  {
+    LOG_INFO("Copy tracker..."); 
+    vtkSmartPointer<vtkTracker> tracker = vtkSmartPointer<vtkTracker>::New(); 
+    dataCollector->CopyTracker(tracker); 
+    LOG_INFO("Write tracker to " << outputTrackerBufferSequenceFileName);
+    dataCollector->WriteTrackerToMetafile( tracker, outputFolder.c_str(), outputTrackerBufferSequenceFileName.c_str(), true); 
+  }
 
 	std::cout << "Test completed successfully!" << std::endl;
 	return EXIT_SUCCESS; 

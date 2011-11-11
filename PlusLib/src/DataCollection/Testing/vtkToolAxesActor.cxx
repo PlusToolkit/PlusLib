@@ -4,12 +4,14 @@ Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/ 
 
+#include "PlusConfigure.h"
+
 #include "vtkToolAxesActor.h"
 
+#include "vtkSmartPointer.h"
 #include "vtkActor.h"
 #include "vtkCaptionActor2D.h"
 #include "vtkConeSource.h"
-#include "vtkCylinderSource.h"
 #include "vtkLineSource.h"
 #include "vtkObject.h"
 #include "vtkObjectFactory.h"
@@ -19,119 +21,65 @@ See License.txt for details.
 #include "vtkProperty.h"
 #include "vtkRenderer.h"
 #include "vtkRenderWindow.h"
-#include "vtkSphereSource.h"
 #include "vtkTextProperty.h"
 #include "vtkTransform.h"
+#include "vtkTextActor.h"
 
 vtkStandardNewMacro(vtkToolAxesActor);
 
-vtkCxxSetObjectMacro( vtkToolAxesActor, UserDefinedTip, vtkPolyData );
-vtkCxxSetObjectMacro( vtkToolAxesActor, UserDefinedShaft, vtkPolyData );
+//----------------------------------------------------------------------------
+vtkToolAxesActor::AxisInfo::AxisInfo()
+{
+  ArrowShaftActor=vtkActor::New();
+  ArrowShaftLine=vtkLineSource::New();
+  vtkSmartPointer<vtkPolyDataMapper> mapper=vtkSmartPointer<vtkPolyDataMapper>::New();
+  ArrowShaftActor->SetMapper(mapper);
+  mapper->SetInputConnection(ArrowShaftLine->GetOutputPort());
+  LabelActor=vtkCaptionActor2D::New();
+  LabelActor->SetHeight(0.03);
+  LabelActor->LeaderOff();
+  LabelActor->SetPadding(0);
+  vtkTextProperty* textprop = LabelActor->GetTextActor()->GetTextProperty();
+  textprop->ItalicOff();
+  textprop->SetJustificationToLeft();
+  textprop->SetVerticalJustificationToCentered(); 
+}
+
+//----------------------------------------------------------------------------
+vtkToolAxesActor::AxisInfo::~AxisInfo()
+{
+  ArrowShaftActor->Delete();
+  ArrowShaftActor=NULL;
+  ArrowShaftLine->Delete();
+  ArrowShaftLine=NULL;
+  LabelActor->Delete();
+  LabelActor=NULL;
+}
+
+//----------------------------------------------------------------------------
+void vtkToolAxesActor::AxisInfo::ReleaseGraphicsResources(vtkWindow *win)
+{
+  ArrowShaftActor->ReleaseGraphicsResources( win );
+  LabelActor->ReleaseGraphicsResources( win );
+}
 
 //----------------------------------------------------------------------------
 vtkToolAxesActor::vtkToolAxesActor()
 {
-  this->AxisLabels = 1;
+  this->Axes[0].LabelActor->SetCaption("X");  
+  this->Axes[0].LabelActor->BorderOff();
+  this->Axes[0].ArrowShaftActor->GetProperty()->SetColor(1, 0, 0);
+  this->Axes[1].LabelActor->SetCaption("Y");
+  this->Axes[1].LabelActor->BorderOff();
+  this->Axes[1].ArrowShaftActor->GetProperty()->SetColor(0, 1, 0);
+  this->Axes[2].LabelActor->SetCaption("Z");
+  this->Axes[2].LabelActor->BorderOff();
+  this->Axes[2].ArrowShaftActor->GetProperty()->SetColor(0, 0, 1);
 
-  this->XAxisLabelText = NULL;
-  this->YAxisLabelText = NULL;
-  this->ZAxisLabelText = NULL;
-
-  this->SetXAxisLabelText("X");
-  this->SetYAxisLabelText("Y");
-  this->SetZAxisLabelText("Z");
-
-  this->XAxisShaft = vtkActor::New();
-  this->XAxisShaft->GetProperty()->SetColor(1, 0, 0);
-  this->YAxisShaft = vtkActor::New();
-  this->YAxisShaft->GetProperty()->SetColor(0, 1, 0);
-  this->ZAxisShaft = vtkActor::New();
-  this->ZAxisShaft->GetProperty()->SetColor(0, 0, 1);
-
-  this->XAxisTip = vtkActor::New();
-  this->XAxisTip->GetProperty()->SetColor(1, 0, 0);
-  this->YAxisTip = vtkActor::New();
-  this->YAxisTip->GetProperty()->SetColor(0, 1, 0);
-  this->ZAxisTip = vtkActor::New();
-  this->ZAxisTip->GetProperty()->SetColor(0, 0, 1);
-
-  this->CylinderSource = vtkCylinderSource::New();
-  this->CylinderSource->SetHeight(1.0);
-
-  this->LineSource = vtkLineSource::New();
-  this->LineSource->SetPoint1( 0.0, 0.0, 0.0 );
-  this->LineSource->SetPoint2( 0.0, 1.0, 0.0 );
-
-  this->ConeSource = vtkConeSource::New();
-  this->ConeSource->SetDirection( 0, 1, 0 );
-  this->ConeSource->SetHeight( 1.0 );
-
-  this->SphereSource = vtkSphereSource::New();
-
-  vtkPolyDataMapper *shaftMapper = vtkPolyDataMapper::New();
-
-  this->XAxisShaft->SetMapper( shaftMapper );
-  this->YAxisShaft->SetMapper( shaftMapper );
-  this->ZAxisShaft->SetMapper( shaftMapper );
-
-  shaftMapper->Delete();
-
-  vtkPolyDataMapper *tipMapper = vtkPolyDataMapper::New();
-
-  this->XAxisTip->SetMapper( tipMapper );
-  this->YAxisTip->SetMapper( tipMapper );
-  this->ZAxisTip->SetMapper( tipMapper );
-
-  tipMapper->Delete();
-
-  this->TotalLength[0] = 1.0;
-  this->TotalLength[1] = 1.0;
-  this->TotalLength[2] = 1.0;
-
-  this->NormalizedShaftLength[0] = 0.8;
-  this->NormalizedShaftLength[1] = 0.8;
-  this->NormalizedShaftLength[2] = 0.8;
-
-  this->NormalizedTipLength[0] = 0.2;
-  this->NormalizedTipLength[1] = 0.2;
-  this->NormalizedTipLength[2] = 0.2;
-
-  this->NormalizedLabelPosition[0] = 1.0;
-  this->NormalizedLabelPosition[1] = 1.0;
-  this->NormalizedLabelPosition[2] = 1.0;
-
-  this->ConeResolution = 16;
-  this->SphereResolution = 16;
-  this->CylinderResolution = 16;
-
-  this->ConeRadius = 0.4;
-  this->SphereRadius = 0.5;
-  this->CylinderRadius = 0.05;
-
-  this->ShaftType = vtkToolAxesActor::LINE_SHAFT;
-  this->TipType   = vtkToolAxesActor::CONE_TIP;
-
-  this->UserDefinedTip = NULL;
-  this->UserDefinedShaft = NULL;
-
-  this->XAxisLabel = vtkCaptionActor2D::New();
-  this->YAxisLabel = vtkCaptionActor2D::New();
-  this->ZAxisLabel = vtkCaptionActor2D::New();
-
-  this->XAxisLabel->ThreeDimensionalLeaderOff();
-  this->XAxisLabel->LeaderOff();
-  this->XAxisLabel->BorderOff();
-  this->XAxisLabel->SetPosition(0, 0);
-
-  this->YAxisLabel->ThreeDimensionalLeaderOff();
-  this->YAxisLabel->LeaderOff();
-  this->YAxisLabel->BorderOff();
-  this->YAxisLabel->SetPosition(0, 0);
-
-  this->ZAxisLabel->ThreeDimensionalLeaderOff();
-  this->ZAxisLabel->LeaderOff();
-  this->ZAxisLabel->BorderOff();
-  this->ZAxisLabel->SetPosition(0, 0);
+  this->NameLabelActor=vtkCaptionActor2D::New();
+  this->NameLabelActor->BorderOff();
+  
+  this->ShaftLength = 10.0;
 
   this->UpdateProps();
 }
@@ -139,71 +87,21 @@ vtkToolAxesActor::vtkToolAxesActor()
 //----------------------------------------------------------------------------
 vtkToolAxesActor::~vtkToolAxesActor()
 {
-  this->CylinderSource->Delete();
-  this->LineSource->Delete();
-  this->ConeSource->Delete();
-  this->SphereSource->Delete();
-
-  this->XAxisShaft->Delete();
-  this->YAxisShaft->Delete();
-  this->ZAxisShaft->Delete();
-
-  this->XAxisTip->Delete();
-  this->YAxisTip->Delete();
-  this->ZAxisTip->Delete();
-
-  this->SetUserDefinedTip( NULL );
-  this->SetUserDefinedShaft( NULL );
-
-  this->SetXAxisLabelText( NULL );
-  this->SetYAxisLabelText( NULL );
-  this->SetZAxisLabelText( NULL );
-
-  this->XAxisLabel->Delete();
-  this->YAxisLabel->Delete();
-  this->ZAxisLabel->Delete();
-}
-
-//----------------------------------------------------------------------------
-// Shallow copy of an actor.
-void vtkToolAxesActor::ShallowCopy(vtkProp *prop)
-{
-  vtkToolAxesActor *a = vtkToolAxesActor::SafeDownCast(prop);
-  if ( a != NULL )
-    {
-    this->SetAxisLabels( a->GetAxisLabels() );
-    this->SetXAxisLabelText( a->GetXAxisLabelText() );
-    this->SetYAxisLabelText( a->GetYAxisLabelText() );
-    this->SetZAxisLabelText( a->GetZAxisLabelText() );
-    this->SetTotalLength( a->GetTotalLength() );
-    this->SetNormalizedShaftLength( a->GetNormalizedShaftLength() );
-    this->SetNormalizedTipLength( a->GetNormalizedTipLength() );
-    this->SetNormalizedLabelPosition( a->GetNormalizedLabelPosition() );
-    this->SetConeResolution( a->GetConeResolution() );
-    this->SetSphereResolution( a->GetSphereResolution() );
-    this->SetCylinderResolution( a->GetCylinderResolution() );
-    this->SetConeRadius( a->GetConeRadius() );
-    this->SetSphereRadius( a->GetSphereRadius() );
-    this->SetCylinderRadius( a->GetCylinderRadius() );
-    this->SetTipType( a->GetTipType() );
-    this->SetShaftType( a->GetShaftType() );
-    this->SetUserDefinedTip( a->GetUserDefinedTip() );
-    this->SetUserDefinedShaft( a->GetUserDefinedShaft() );
-    }
-
-  // Now do superclass
-  this->vtkProp3D::ShallowCopy(prop);
+  this->NameLabelActor->Delete();
+  this->NameLabelActor=NULL;
 }
 
 //----------------------------------------------------------------------------
 void vtkToolAxesActor::GetActors(vtkPropCollection *ac)
 {
-  ac->AddItem( this->XAxisShaft );
-  ac->AddItem( this->YAxisShaft );
-  ac->AddItem( this->ZAxisShaft );
-  ac->AddItem( this->XAxisTip );
-  ac->AddItem( this->YAxisTip );
-  ac->AddItem( this->ZAxisTip );
+  ac->AddItem(this->Axes[0].ArrowShaftActor);
+  ac->AddItem(this->Axes[0].LabelActor);
+  ac->AddItem(this->Axes[1].ArrowShaftActor);
+  ac->AddItem(this->Axes[1].LabelActor);
+  ac->AddItem(this->Axes[2].ArrowShaftActor);
+  ac->AddItem(this->Axes[2].LabelActor);
+  
+  ac->AddItem(this->NameLabelActor);  
 }
 
 //----------------------------------------------------------------------------
@@ -213,20 +111,15 @@ int vtkToolAxesActor::RenderOpaqueGeometry(vtkViewport *vp)
 
   this->UpdateProps();
 
-  renderedSomething += this->XAxisShaft->RenderOpaqueGeometry( vp );
-  renderedSomething += this->YAxisShaft->RenderOpaqueGeometry( vp );
-  renderedSomething += this->ZAxisShaft->RenderOpaqueGeometry( vp );
+  renderedSomething += this->Axes[0].ArrowShaftActor->RenderOpaqueGeometry( vp );
+  renderedSomething += this->Axes[1].ArrowShaftActor->RenderOpaqueGeometry( vp );
+  renderedSomething += this->Axes[2].ArrowShaftActor->RenderOpaqueGeometry( vp );
 
-  renderedSomething += this->XAxisTip->RenderOpaqueGeometry( vp );
-  renderedSomething += this->YAxisTip->RenderOpaqueGeometry( vp );
-  renderedSomething += this->ZAxisTip->RenderOpaqueGeometry( vp );
+  renderedSomething += this->Axes[0].LabelActor->RenderOpaqueGeometry( vp );
+  renderedSomething += this->Axes[1].LabelActor->RenderOpaqueGeometry( vp );
+  renderedSomething += this->Axes[2].LabelActor->RenderOpaqueGeometry( vp );
 
-  if ( this->AxisLabels )
-    {
-    renderedSomething += this->XAxisLabel->RenderOpaqueGeometry( vp );
-    renderedSomething += this->YAxisLabel->RenderOpaqueGeometry( vp );
-    renderedSomething += this->ZAxisLabel->RenderOpaqueGeometry( vp );
-    }
+  renderedSomething += this->NameLabelActor->RenderOpaqueGeometry( vp );
 
   renderedSomething = (renderedSomething > 0)?(1):(0);
   return renderedSomething;
@@ -239,20 +132,15 @@ int vtkToolAxesActor::RenderTranslucentPolygonalGeometry(vtkViewport *vp)
 
   this->UpdateProps();
 
-  renderedSomething += this->XAxisShaft->RenderTranslucentPolygonalGeometry( vp );
-  renderedSomething += this->YAxisShaft->RenderTranslucentPolygonalGeometry( vp );
-  renderedSomething += this->ZAxisShaft->RenderTranslucentPolygonalGeometry( vp );
+  renderedSomething += this->Axes[0].ArrowShaftActor->RenderTranslucentPolygonalGeometry( vp );
+  renderedSomething += this->Axes[1].ArrowShaftActor->RenderTranslucentPolygonalGeometry( vp );
+  renderedSomething += this->Axes[2].ArrowShaftActor->RenderTranslucentPolygonalGeometry( vp );
 
-  renderedSomething += this->XAxisTip->RenderTranslucentPolygonalGeometry( vp );
-  renderedSomething += this->YAxisTip->RenderTranslucentPolygonalGeometry( vp );
-  renderedSomething += this->ZAxisTip->RenderTranslucentPolygonalGeometry( vp );
+  renderedSomething += this->Axes[0].LabelActor->RenderTranslucentPolygonalGeometry( vp );
+  renderedSomething += this->Axes[1].LabelActor->RenderTranslucentPolygonalGeometry( vp );
+  renderedSomething += this->Axes[2].LabelActor->RenderTranslucentPolygonalGeometry( vp );
 
-  if ( this->AxisLabels )
-    {
-    renderedSomething += this->XAxisLabel->RenderTranslucentPolygonalGeometry( vp );
-    renderedSomething += this->YAxisLabel->RenderTranslucentPolygonalGeometry( vp );
-    renderedSomething += this->ZAxisLabel->RenderTranslucentPolygonalGeometry( vp );
-    }
+  renderedSomething += this->NameLabelActor->RenderTranslucentPolygonalGeometry( vp );
 
   renderedSomething = (renderedSomething > 0)?(1):(0);
   return renderedSomething;
@@ -267,20 +155,16 @@ int vtkToolAxesActor::HasTranslucentPolygonalGeometry()
 
   this->UpdateProps();
 
-  result |= this->XAxisShaft->HasTranslucentPolygonalGeometry();
-  result |= this->YAxisShaft->HasTranslucentPolygonalGeometry();
-  result |= this->ZAxisShaft->HasTranslucentPolygonalGeometry();
+  result |= this->Axes[0].ArrowShaftActor->HasTranslucentPolygonalGeometry();
+  result |= this->Axes[1].ArrowShaftActor->HasTranslucentPolygonalGeometry();
+  result |= this->Axes[2].ArrowShaftActor->HasTranslucentPolygonalGeometry();
 
-  result |= this->XAxisTip->HasTranslucentPolygonalGeometry();
-  result |= this->YAxisTip->HasTranslucentPolygonalGeometry();
-  result |= this->ZAxisTip->HasTranslucentPolygonalGeometry();
+  result |= this->Axes[0].LabelActor->HasTranslucentPolygonalGeometry();
+  result |= this->Axes[1].LabelActor->HasTranslucentPolygonalGeometry();
+  result |= this->Axes[2].LabelActor->HasTranslucentPolygonalGeometry();
 
-  if ( this->AxisLabels )
-    {
-    result |= this->XAxisLabel->HasTranslucentPolygonalGeometry();
-    result |= this->YAxisLabel->HasTranslucentPolygonalGeometry();
-    result |= this->ZAxisLabel->HasTranslucentPolygonalGeometry();
-    }
+  result |= this->NameLabelActor->HasTranslucentPolygonalGeometry();
+
   return result;
 }
 
@@ -289,35 +173,25 @@ int vtkToolAxesActor::RenderOverlay(vtkViewport *vp)
 {
   int renderedSomething = 0;
 
-  if ( !this->AxisLabels )
-    {
-    return renderedSomething;
-    }
-
   this->UpdateProps();
 
-  renderedSomething += this->XAxisLabel->RenderOverlay( vp );
-  renderedSomething += this->YAxisLabel->RenderOverlay( vp );
-  renderedSomething += this->ZAxisLabel->RenderOverlay( vp );
+  renderedSomething += this->Axes[0].LabelActor->RenderOverlay( vp );
+  renderedSomething += this->Axes[1].LabelActor->RenderOverlay( vp );
+  renderedSomething += this->Axes[2].LabelActor->RenderOverlay( vp );
 
-  renderedSomething = (renderedSomething > 0)?(1):(0);
-  return renderedSomething;
+  renderedSomething += this->NameLabelActor->RenderOverlay( vp );
+
+  return (renderedSomething > 0)?(1):(0);
 }
 
 //----------------------------------------------------------------------------
 void vtkToolAxesActor::ReleaseGraphicsResources(vtkWindow *win)
 {
-  this->XAxisShaft->ReleaseGraphicsResources( win );
-  this->YAxisShaft->ReleaseGraphicsResources( win );
-  this->ZAxisShaft->ReleaseGraphicsResources( win );
-
-  this->XAxisTip->ReleaseGraphicsResources( win );
-  this->YAxisTip->ReleaseGraphicsResources( win );
-  this->ZAxisTip->ReleaseGraphicsResources( win );
-
-  this->XAxisLabel->ReleaseGraphicsResources( win );
-  this->YAxisLabel->ReleaseGraphicsResources( win );
-  this->ZAxisLabel->ReleaseGraphicsResources( win );
+  this->Axes[0].ReleaseGraphicsResources( win );
+  this->Axes[1].ReleaseGraphicsResources( win );
+  this->Axes[2].ReleaseGraphicsResources( win );
+  
+  this->NameLabelActor->ReleaseGraphicsResources( win );  
 }
 
 //----------------------------------------------------------------------------
@@ -332,66 +206,30 @@ void vtkToolAxesActor::GetBounds(double bounds[6])
   bounds[5] = bds[5];
 }
 
+void vtkToolAxesActor::ExtendMaxBounds(vtkActor *actor, double* bounds)
+{
+  double thisActorsBounds[6]={0};
+  actor->GetBounds(thisActorsBounds);
+  for ( int i = 0; i < 3; ++i )
+  {
+    if (thisActorsBounds[2*i]<bounds[2*i])
+    {
+      bounds[2*i] = thisActorsBounds[2*i];
+    }
+    if (thisActorsBounds[2*i+1]>bounds[2*i+1])
+    {
+      bounds[2*i+1] = thisActorsBounds[2*i+1];
+    }
+  }
+}
+
 //----------------------------------------------------------------------------
 // Get the bounds for this Actor as (Xmin,Xmax,Ymin,Ymax,Zmin,Zmax).
 double *vtkToolAxesActor::GetBounds()
 {
-  double bounds[6];
-  int i;
-
-  this->XAxisShaft->GetBounds(this->Bounds);
-
-  this->YAxisShaft->GetBounds(bounds);
-  for ( i = 0; i < 3; ++i )
-    {
-    this->Bounds[2*i+1] =
-      (bounds[2*i+1]>this->Bounds[2*i+1])?(bounds[2*i+1]):(this->Bounds[2*i+1]);
-    }
-
-  this->ZAxisShaft->GetBounds(bounds);
-  for ( i = 0; i < 3; ++i )
-    {
-    this->Bounds[2*i+1] = 
-      (bounds[2*i+1]>this->Bounds[2*i+1])?(bounds[2*i+1]):(this->Bounds[2*i+1]);
-    }
-
-  this->XAxisTip->GetBounds(bounds);
-  for ( i = 0; i < 3; ++i )
-    {
-    this->Bounds[2*i+1] = 
-      (bounds[2*i+1]>this->Bounds[2*i+1])?(bounds[2*i+1]):(this->Bounds[2*i+1]);
-    }
-
-  this->YAxisTip->GetBounds(bounds);
-  for ( i = 0; i < 3; ++i )
-    {
-    this->Bounds[2*i+1] = 
-      (bounds[2*i+1]>this->Bounds[2*i+1])?(bounds[2*i+1]):(this->Bounds[2*i+1]);
-    }
-
-  this->ZAxisTip->GetBounds(bounds);
-  for ( i = 0; i < 3; ++i )
-    {
-    this->Bounds[2*i+1] = 
-      (bounds[2*i+1]>this->Bounds[2*i+1])?(bounds[2*i+1]):(this->Bounds[2*i+1]);
-    }
-
-  double dbounds[6];
-  (vtkPolyDataMapper::SafeDownCast(this->YAxisShaft->GetMapper()))->
-    GetInput()->GetBounds( dbounds );
-
-  for ( i = 0; i < 3; ++i )
-    {
-    this->Bounds[2*i+1] = 
-      (dbounds[2*i+1]>this->Bounds[2*i+1])?(dbounds[2*i+1]):(this->Bounds[2*i+1]);
-    }
-
-  // We want this actor to rotate / re-center about the origin, so give it
-  // the bounds it would have if the axes were symmetric.
-  for ( i = 0; i < 3; ++i )
-    {
-    this->Bounds[2*i] = -this->Bounds[2*i+1];
-    }
+  this->Axes[0].ArrowShaftActor->GetBounds(this->Bounds);
+  ExtendMaxBounds(this->Axes[1].ArrowShaftActor, this->Bounds);
+  ExtendMaxBounds(this->Axes[2].ArrowShaftActor, this->Bounds);
 
   return this->Bounds;
 }
@@ -411,463 +249,67 @@ unsigned long int vtkToolAxesActor::GetRedrawMTime()
 }
 
 //----------------------------------------------------------------------------
-void vtkToolAxesActor::SetTotalLength( double x, double y, double z )
-{
-  if ( this->TotalLength[0] != x ||
-       this->TotalLength[1] != y ||
-       this->TotalLength[2] != z )
-    {
-    this->TotalLength[0] = x;
-    this->TotalLength[1] = y;
-    this->TotalLength[2] = z;
-
-    if ( x < 0.0 || y < 0.0 || z < 0.0 )
-      {
-      vtkGenericWarningMacro("One or more axes lengths are < 0 \
-                        and may produce unexpected results.");
-      }
-
-    this->Modified();
-
-    this->UpdateProps();
-    }
-}
-
-//----------------------------------------------------------------------------
-void vtkToolAxesActor::SetNormalizedShaftLength( double x, double y, double z )
-{
-  if ( this->NormalizedShaftLength[0] != x ||
-       this->NormalizedShaftLength[1] != y ||
-       this->NormalizedShaftLength[2] != z )
-    {
-    this->NormalizedShaftLength[0] = x;
-    this->NormalizedShaftLength[1] = y;
-    this->NormalizedShaftLength[2] = z;
-
-    if ( x < 0.0 || x > 1.0 || y < 0.0 || y > 1.0 || z < 0.0 || z > 1.0 )
-      {
-      vtkGenericWarningMacro( "One or more normalized shaft lengths \
-      are < 0 or > 1 and may produce unexpected results." );
-      }
-
-    this->Modified();
-
-    this->UpdateProps();
-    }
-}
-
-//----------------------------------------------------------------------------
-void vtkToolAxesActor::SetNormalizedTipLength( double x, double y, double z )
-{
-  if ( this->NormalizedTipLength[0] != x ||
-       this->NormalizedTipLength[1] != y ||
-       this->NormalizedTipLength[2] != z )
-    {
-    this->NormalizedTipLength[0] = x;
-    this->NormalizedTipLength[1] = y;
-    this->NormalizedTipLength[2] = z;
-
-    if ( x < 0.0 || x > 1.0 || y < 0.0 || y > 1.0 || z < 0.0 || z > 1.0 )
-      {
-      vtkGenericWarningMacro( "One or more normalized tip lengths \
-      are < 0 or > 1 and may produce unexpected results." );
-      }
-
-    this->Modified();
-
-    this->UpdateProps();
-    }
-}
-
-//----------------------------------------------------------------------------
-void vtkToolAxesActor::SetNormalizedLabelPosition( double x, double y, double z )
-{
-  if ( this->NormalizedLabelPosition[0] != x ||
-       this->NormalizedLabelPosition[1] != y ||
-       this->NormalizedLabelPosition[2] != z )
-    {
-    this->NormalizedLabelPosition[0] = x;
-    this->NormalizedLabelPosition[1] = y;
-    this->NormalizedLabelPosition[2] = z;
-
-    if ( x < 0.0 || y < 0.0 || z < 0.0 )
-      {
-      vtkGenericWarningMacro( "One or more label positions are < 0 \
-                        and may produce unexpected results." );
-      }
-
-    this->Modified();
-
-    this->UpdateProps();
-    }
-}
-
-//----------------------------------------------------------------------------
-void vtkToolAxesActor::SetShaftType( int type )
-{
-  if ( this->ShaftType != type )
-    {
-    if (type < vtkToolAxesActor::CYLINDER_SHAFT || \
-        type > vtkToolAxesActor::USER_DEFINED_SHAFT)
-      {
-      vtkErrorMacro( "Undefined axes shaft type." );
-      return;
-      }
-
-    if ( type == vtkToolAxesActor::USER_DEFINED_SHAFT && \
-         this->UserDefinedShaft == NULL)
-      {
-      vtkErrorMacro( "Set the user defined shaft before changing the type." );
-      return;
-      }
-
-    this->ShaftType = type;
-
-    this->Modified();
-
-    this->UpdateProps();
-    }
-}
-
-//----------------------------------------------------------------------------
-void vtkToolAxesActor::SetTipType( int type )
-{
-  if ( this->TipType != type )
-    {
-    if (type < vtkToolAxesActor::CONE_TIP || \
-        type > vtkToolAxesActor::USER_DEFINED_TIP)
-      {
-      vtkErrorMacro( "Undefined axes tip type." );
-      return;
-      }
-
-    if ( type == vtkToolAxesActor::USER_DEFINED_TIP && \
-         this->UserDefinedTip == NULL)
-      {
-      vtkErrorMacro( "Set the user defined tip before changing the type." );
-      return;
-      }
-
-    this->TipType = type;
-
-    this->Modified();
-
-    this->UpdateProps();
-    }
-}
-
-//----------------------------------------------------------------------------
 void vtkToolAxesActor::UpdateProps()
 {
-  this->CylinderSource->SetRadius( this->CylinderRadius );
-  this->CylinderSource->SetResolution( this->CylinderResolution );
+  // Get the Tool to World transform
+  if ( vtkTransform::SafeDownCast(this->GetUserTransform())==NULL )
+  {
+    vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
+    this->SetUserTransform(transform);
+  }
+  vtkTransform* toolToWorldTransform=vtkTransform::SafeDownCast(this->GetUserTransform());
+  if (toolToWorldTransform==NULL)
+  {
+    LOG_ERROR("vtkToolAxesActor UserTransform is invalid");
+    return;
+  }
 
-  this->ConeSource->SetResolution( this->ConeResolution );
-  this->ConeSource->SetRadius( this->ConeRadius );
+  // Set the shaft origins
+  double origin_Tool[4]={0,0,0,1}; // Tool coordinate system origin position (in the Tool cordinate system)
+  double origin_World[4]={0,0,0,1}; // Tool coordinate system origin position (in the World cordinate system)
+  toolToWorldTransform->MultiplyPoint(origin_Tool,origin_World);
+  this->Axes[0].ArrowShaftLine->SetPoint1(origin_World);
+  this->Axes[1].ArrowShaftLine->SetPoint1(origin_World);
+  this->Axes[2].ArrowShaftLine->SetPoint1(origin_World);
 
-  this->SphereSource->SetThetaResolution( this->SphereResolution );
-  this->SphereSource->SetPhiResolution( this->SphereResolution );
-  this->SphereSource->SetRadius( this->SphereRadius );
+  // Set shaft tips
 
-  switch ( this->ShaftType )
-    {
-    case vtkToolAxesActor::CYLINDER_SHAFT:
-      (vtkPolyDataMapper::SafeDownCast(this->XAxisShaft->GetMapper()))->
-        SetInputConnection( this->CylinderSource->GetOutputPort() );
-      break;
-    case vtkToolAxesActor::LINE_SHAFT:
-      (vtkPolyDataMapper::SafeDownCast(this->XAxisShaft->GetMapper()))->
-        SetInputConnection( this->LineSource->GetOutputPort() );
-      break;
-    case vtkToolAxesActor::USER_DEFINED_SHAFT:
-      (vtkPolyDataMapper::SafeDownCast(this->XAxisShaft->GetMapper()))->
-        SetInputConnection( this->UserDefinedShaft->GetProducerPort() );
-    }
+  double shaftTip0_Tool[4]={this->ShaftLength,0,0,1};  // tip of the X shaft (in the Tool cordinate system)
+  double shaftTip0_World[4]={0,0,0,1}; // tip of the X shaft (in the World cordinate system)
+  toolToWorldTransform->MultiplyPoint(shaftTip0_Tool,shaftTip0_World);
+  this->Axes[0].ArrowShaftLine->SetPoint2(shaftTip0_World);
+  
+  double shaftTip1_Tool[4]={0,this->ShaftLength,0,1};  // tip of the Y shaft (in the Tool cordinate system)
+  double shaftTip1_World[4]={0,0,0,1}; // tip of the Y shaft (in the World cordinate system)
+  toolToWorldTransform->MultiplyPoint(shaftTip1_Tool,shaftTip1_World);
+  this->Axes[1].ArrowShaftLine->SetPoint2(shaftTip1_World);
 
-  switch ( this->TipType )
-    {
-    case vtkToolAxesActor::CONE_TIP:
-      (vtkPolyDataMapper::SafeDownCast(this->XAxisTip->GetMapper()))->
-        SetInputConnection( this->ConeSource->GetOutputPort() );
-      break;
-    case vtkToolAxesActor::SPHERE_TIP:
-      (vtkPolyDataMapper::SafeDownCast(this->XAxisTip->GetMapper()))->
-        SetInputConnection( this->SphereSource->GetOutputPort() );
-      break;
-    case vtkToolAxesActor::USER_DEFINED_TIP:
-      (vtkPolyDataMapper::SafeDownCast(this->XAxisTip->GetMapper()))->
-        SetInputConnection( this->UserDefinedTip->GetProducerPort() );
-    }
+  double shaftTip2_Tool[4]={0,0,this->ShaftLength,1};  // tip of the Z shaft (in the Tool cordinate system)
+  double shaftTip2_World[4]={0,0,0,1}; // tip of the Z shaft (in the World cordinate system)
+  toolToWorldTransform->MultiplyPoint(shaftTip2_Tool,shaftTip2_World);
+  this->Axes[2].ArrowShaftLine->SetPoint2(shaftTip2_World);  
+  
+  // Draw axis labels
+  this->Axes[0].LabelActor->SetAttachmentPoint(shaftTip0_World);
+  this->Axes[1].LabelActor->SetAttachmentPoint(shaftTip1_World);
+  this->Axes[2].LabelActor->SetAttachmentPoint(shaftTip2_World);
 
-  (vtkPolyDataMapper::SafeDownCast(this->XAxisTip->GetMapper()))->
-    GetInput()->Update();
-  (vtkPolyDataMapper::SafeDownCast(this->XAxisShaft->GetMapper()))->
-    GetInput()->Update();
-
-  if ( this->GetUserTransform() )
-    {
-    this->XAxisShaft->SetUserTransform( NULL );
-    this->YAxisShaft->SetUserTransform( NULL );
-    this->ZAxisShaft->SetUserTransform( NULL );
-    this->XAxisTip->SetUserTransform( NULL );
-    this->YAxisTip->SetUserTransform( NULL );
-    this->ZAxisTip->SetUserTransform( NULL );
-    }
-
-  double scale[3];
-  double bounds[6];
-
-  (vtkPolyDataMapper::SafeDownCast(this->XAxisShaft->GetMapper()))->
-    GetInput()->GetBounds( bounds );
-
-  // The shaft and tip geometry are both initially along direction 0 1 0
-  // in the case of cylinder, line, and cone.  Build up the axis from
-  // constituent elements defined in their default positions.
-
-  int i;
-  for ( i = 0; i < 3; ++i )
-    {
-    scale[i] =
-      this->NormalizedShaftLength[i]*this->TotalLength[i] /
-      (bounds[3] - bounds[2]);
-    }
-
-  vtkTransform *xTransform = vtkTransform::New();
-  vtkTransform *yTransform = vtkTransform::New();
-  vtkTransform *zTransform = vtkTransform::New();
-
-  xTransform->RotateZ( -90 );
-  zTransform->RotateX( 90 );
-
-  xTransform->Scale( scale[0], scale[0], scale[0] );
-  yTransform->Scale( scale[1], scale[1], scale[1] );
-  zTransform->Scale( scale[2], scale[2], scale[2] );
-
-  xTransform->Translate( -(bounds[0]+bounds[1])/2,
-                         -bounds[2],
-                         -(bounds[4]+bounds[5])/2 );
-  yTransform->Translate( -(bounds[0]+bounds[1])/2,
-                         -bounds[2],
-                         -(bounds[4]+bounds[5])/2 );
-  zTransform->Translate( -(bounds[0]+bounds[1])/2,
-                         -bounds[2],
-                         -(bounds[4]+bounds[5])/2 );
-
-  this->XAxisShaft->SetScale( xTransform->GetScale() );
-  this->XAxisShaft->SetPosition( xTransform->GetPosition() );
-  this->XAxisShaft->SetOrientation( xTransform->GetOrientation() );
-
-  this->YAxisShaft->SetScale( yTransform->GetScale() );
-  this->YAxisShaft->SetPosition( yTransform->GetPosition() );
-  this->YAxisShaft->SetOrientation( yTransform->GetOrientation() );
-
-  this->ZAxisShaft->SetScale( zTransform->GetScale() );
-  this->ZAxisShaft->SetPosition( zTransform->GetPosition() );
-  this->ZAxisShaft->SetOrientation( zTransform->GetOrientation() );
-
-  (vtkPolyDataMapper::SafeDownCast(this->XAxisTip->GetMapper()))->
-    GetInput()->GetBounds( bounds );
-
-  xTransform->Identity();
-  yTransform->Identity();
-  zTransform->Identity();
-
-  xTransform->RotateZ( -90 );
-  zTransform->RotateX( 90 );
-
-  xTransform->Scale( this->TotalLength[0], this->TotalLength[0], this->TotalLength[0] );
-  yTransform->Scale( this->TotalLength[1], this->TotalLength[1], this->TotalLength[1] );
-  zTransform->Scale( this->TotalLength[2], this->TotalLength[2], this->TotalLength[2] );
-
-  xTransform->Translate( 0, (1.0 - this->NormalizedTipLength[0]), 0 );
-  yTransform->Translate( 0, (1.0 - this->NormalizedTipLength[1]), 0 );
-  zTransform->Translate( 0, (1.0 - this->NormalizedTipLength[2]), 0 );
-
-  xTransform->Scale( this->NormalizedTipLength[0],
-                     this->NormalizedTipLength[0],
-                     this->NormalizedTipLength[0] );
-
-  yTransform->Scale( this->NormalizedTipLength[1],
-                     this->NormalizedTipLength[1],
-                     this->NormalizedTipLength[1] );
-
-  zTransform->Scale( this->NormalizedTipLength[2],
-                     this->NormalizedTipLength[2],
-                     this->NormalizedTipLength[2] );
-
-  xTransform->Translate( -(bounds[0]+bounds[1])/2,
-                         -bounds[2],
-                         -(bounds[4]+bounds[5])/2 );
-  yTransform->Translate( -(bounds[0]+bounds[1])/2,
-                         -bounds[2],
-                         -(bounds[4]+bounds[5])/2 );
-  zTransform->Translate( -(bounds[0]+bounds[1])/2,
-                         -bounds[2],
-                         -(bounds[4]+bounds[5])/2 );
-
-  this->XAxisTip->SetScale( xTransform->GetScale() );
-  this->XAxisTip->SetPosition( xTransform->GetPosition() );
-  this->XAxisTip->SetOrientation( xTransform->GetOrientation() );
-
-  this->YAxisTip->SetScale( yTransform->GetScale() );
-  this->YAxisTip->SetPosition( yTransform->GetPosition() );
-  this->YAxisTip->SetOrientation( yTransform->GetOrientation() );
-
-  this->ZAxisTip->SetScale( zTransform->GetScale() );
-  this->ZAxisTip->SetPosition( zTransform->GetPosition() );
-  this->ZAxisTip->SetOrientation( zTransform->GetOrientation() );
-
-  xTransform->Delete();
-  yTransform->Delete();
-  zTransform->Delete();
-
-  this->XAxisLabel->SetCaption( this->XAxisLabelText );
-  this->YAxisLabel->SetCaption( this->YAxisLabelText );
-  this->ZAxisLabel->SetCaption( this->ZAxisLabelText );
-
-  this->XAxisShaft->GetBounds(bounds);
-  double offset = this->NormalizedLabelPosition[0]*(bounds[1]-bounds[0]);
-  this->XAxisLabel->SetAttachmentPoint( bounds[0] + offset,
-                                 bounds[2] - (bounds[3]-bounds[2])*2.0,
-                                 bounds[5] + (bounds[5]-bounds[4])/2.0);
-
-  this->YAxisShaft->GetBounds(bounds);
-  offset = this->NormalizedLabelPosition[1]*(bounds[3]-bounds[2]);
-  this->YAxisLabel->SetAttachmentPoint( (bounds[0]+bounds[1])/2,
-                                 bounds[2] + offset,
-                                 bounds[5] + (bounds[5]-bounds[4])/2.0 );
-
-  this->ZAxisShaft->GetBounds(bounds);
-  offset = this->NormalizedLabelPosition[2]*(bounds[5]-bounds[4]);
-  this->ZAxisLabel->SetAttachmentPoint( bounds[0],
-                                 bounds[2] - (bounds[3]-bounds[2])*2.0,
-                                 bounds[4] + offset );
-
-  vtkLinearTransform* transform = this->GetUserTransform();
-  if ( transform )
-    {
-    this->XAxisShaft->SetUserTransform( transform );
-    this->YAxisShaft->SetUserTransform( transform );
-    this->ZAxisShaft->SetUserTransform( transform );
-
-    this->XAxisTip->SetUserTransform( transform );
-    this->YAxisTip->SetUserTransform( transform );
-    this->ZAxisTip->SetUserTransform( transform );
-
-    double newpos[3];
-    double* pos = this->XAxisLabel->GetAttachmentPoint();
-    transform->TransformPoint( pos, newpos );
-    this->XAxisLabel->SetAttachmentPoint( newpos );
-
-    pos = this->YAxisLabel->GetAttachmentPoint();
-    transform->TransformPoint( pos, newpos );
-    this->YAxisLabel->SetAttachmentPoint( newpos );
-
-    pos = this->ZAxisLabel->GetAttachmentPoint();
-    transform->TransformPoint( pos, newpos );
-    this->ZAxisLabel->SetAttachmentPoint( newpos );
-    }
+  this->NameLabelActor->SetAttachmentPoint(origin_World);
+  this->NameLabelActor->SetHeight(0.05);
 }
 
-//----------------------------------------------------------------------------
-vtkProperty *vtkToolAxesActor::GetXAxisTipProperty()
-{
-  return this->XAxisTip->GetProperty();
-}
-
-//----------------------------------------------------------------------------
-vtkProperty *vtkToolAxesActor::GetYAxisTipProperty()
-{
-  return this->YAxisTip->GetProperty();
-}
-
-//----------------------------------------------------------------------------
-vtkProperty *vtkToolAxesActor::GetZAxisTipProperty()
-{
-  return this->ZAxisTip->GetProperty();
-}
-
-//----------------------------------------------------------------------------
-vtkProperty *vtkToolAxesActor::GetXAxisShaftProperty()
-{
-  return this->XAxisShaft->GetProperty();
-}
-
-//----------------------------------------------------------------------------
-vtkProperty *vtkToolAxesActor::GetYAxisShaftProperty()
-{
-  return this->YAxisShaft->GetProperty();
-}
-
-//----------------------------------------------------------------------------
-vtkProperty *vtkToolAxesActor::GetZAxisShaftProperty()
-{
-  return this->ZAxisShaft->GetProperty();
-}
 
 //----------------------------------------------------------------------------
 void vtkToolAxesActor::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os,indent);
 
-  os << indent << "UserDefinedShaft: ";
-  if (this->UserDefinedShaft)
-    {
-    os << this->UserDefinedShaft << endl;
-    }
-  else
-    {
-    os << "(none)" << endl;
-    }
-  
-  os << indent << "UserDefinedTip: ";
-  if (this->UserDefinedTip)
-    {
-    os << this->UserDefinedTip << endl;
-    }
-  else
-    {
-    os << "(none)" << endl;
-    }
-  
-  os << indent << "XAxisLabelText: " << (this->XAxisLabelText ?
-                                         this->XAxisLabelText : "(none)")
-     << endl;
-  os << indent << "YAxisLabelText: " << (this->YAxisLabelText ?
-                                         this->YAxisLabelText : "(none)")
-     << endl;
-  os << indent << "ZAxisLabelText: " << (this->ZAxisLabelText ?
-                                         this->ZAxisLabelText : "(none)")
-     << endl;
+  os << indent << "Name: " << this->NameLabelActor->GetCaption() << endl;  
+  os << indent << "ShaftLength: " << this->ShaftLength << endl;
+}
 
-  os << indent << "AxisLabels: " << (this->AxisLabels ? "On\n" : "Off\n");
-
-  os << indent << "ShaftType: " << this->ShaftType << endl;
-  os << indent << "TipType: " << this->TipType << endl;
-  os << indent << "SphereRadius: " << this->SphereRadius << endl;
-  os << indent << "SphereResolution: " << this->SphereResolution << endl;
-  os << indent << "CylinderRadius: " << this->CylinderRadius << endl;
-  os << indent << "CylinderResolution: " << this->CylinderResolution << endl;
-  os << indent << "ConeRadius: " << this->ConeRadius << endl;
-  os << indent << "ConeResolution: " << this->ConeResolution << endl;
-
-  os << indent << "NormalizedShaftLength: "
-     << this->NormalizedShaftLength[0] << ","
-     << this->NormalizedShaftLength[1] << ","
-     << this->NormalizedShaftLength[2] << endl;
-
-  os << indent << "NormalizedTipLength: "
-     << this->NormalizedTipLength[0] << ","
-     << this->NormalizedTipLength[1] << ","
-     << this->NormalizedTipLength[2] << endl;
-
-  os << indent << "TotalLength: "
-     << this->TotalLength[0] << ","
-     << this->TotalLength[1] << ","
-     << this->TotalLength[2] << endl;
-     
-  os << indent << "NormalizedLabelPosition: "
-     << this->NormalizedLabelPosition[0] << ","
-     << this->NormalizedLabelPosition[1] << ","
-     << this->NormalizedLabelPosition[2] << endl;
+//----------------------------------------------------------------------------
+void vtkToolAxesActor::SetName(const std::string& name)
+{
+  this->NameLabelActor->SetCaption(name.c_str());
 }
