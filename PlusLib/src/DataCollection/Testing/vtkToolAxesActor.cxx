@@ -79,7 +79,7 @@ vtkToolAxesActor::vtkToolAxesActor()
   this->NameLabelActor=vtkCaptionActor2D::New();
   this->NameLabelActor->BorderOff();
   
-  this->ShaftLength = 10.0;
+  this->ShaftLength = 100.0;
 
   this->UpdateProps();
 }

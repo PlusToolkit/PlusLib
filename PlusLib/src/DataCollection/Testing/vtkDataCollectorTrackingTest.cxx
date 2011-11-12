@@ -105,18 +105,9 @@ public:
 
   void SetToolToTrackerTransform(int toolNumber, vtkMatrix4x4*  toolToTrackerTransform)
   {
-    // Get position and orientation from toolToTrackerTransform
-    vtkSmartPointer<vtkTransform> transform=vtkSmartPointer<vtkTransform>::New();
-    transform->SetMatrix(toolToTrackerTransform);    
-    double *pos=transform->GetPosition();
-    double *orient=transform->GetOrientationWXYZ();
-
-    // Set position and orientation in the axes actor (ignore scale)
-    vtkSmartPointer<vtkTransform> normalizedTransform=vtkSmartPointer<vtkTransform>::New();
-    normalizedTransform->Translate(pos);
-    normalizedTransform->RotateWXYZ(orient[0],orient[1],orient[2],orient[3]);
-
-    this->ToolActors[toolNumber]->SetUserTransform(normalizedTransform);
+	vtkSmartPointer<vtkTransform> normalizedTransform=vtkSmartPointer<vtkTransform>::New();
+	normalizedTransform->SetMatrix(toolToTrackerTransform);	
+	this->ToolActors[toolNumber]->SetUserTransform(normalizedTransform);
   }
   
 
