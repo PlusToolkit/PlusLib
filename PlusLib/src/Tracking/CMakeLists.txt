@@ -104,7 +104,7 @@ ENDIF (PLUS_USE_POLARIS)
 # MICRONTRACKER support
 IF (PLUS_USE_MICRONTRACKER)
 
-  SET(MTC_BASE_DIR ${PLUSLIB_TOOLS_DIR}/Claron/MTC-2.1.0)
+  SET(MTC_BASE_DIR ${PLUSLIB_TOOLS_DIR}/Claron/MTC-3.6.0)
   
   SET(MTC_INCLUDE_DIR ${MTC_BASE_DIR}/inc CACHE PATH "Path to the Claron MicronTracker MTC include directory." FORCE)
   SET(MTC_BINARY_DIR ${MTC_BASE_DIR}/bin CACHE PATH "Path to the Claron MicronTracker MTC binary directory." FORCE)
