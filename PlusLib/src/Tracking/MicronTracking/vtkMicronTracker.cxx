@@ -49,6 +49,9 @@ POSSIBILITY OF SUCH DAMAGES.
 #include "vtkImageData.h"
 #include "PlusVideoFrame.h"
 
+/****************************************************************************/
+
+
 //----------------------------------------------------------------------------
 vtkMicronTracker* vtkMicronTracker::New()
 {
@@ -75,7 +78,7 @@ vtkMicronTracker::vtkMicronTracker()
   this->IsCollectingNewSamples = 0;
   this->NewSampleFramesCollected = 0;
   this->SetNumberOfTools(3); 
-
+	this->FrameNumber = 0;
   this->LeftImage = NULL;
   this->RightImage = NULL;
   this->Xpoints = NULL;
@@ -175,7 +178,8 @@ PlusStatus vtkMicronTracker::InternalUpdate()
     LOG_ERROR("InternalUpdate failed: MicronTracker has not been initialized");
     return PLUS_FAIL;
   }
-
+  // TODO: Frame number is fake here!
+  ++ this->FrameNumber;
   // If grabing a frame was not successful prevent it from calling the mtGrabFrame
   // method of this->MT, until the problem is solved.
   if (this->MT->mtGrabFrame() == -1)
@@ -225,23 +229,43 @@ if (this->IsCollectingNewSamples == 1)
   LOG_DEBUG("Number of identified markers: " << numOfIdentifiedMarkers);
 
   // Set status and transform for tools with detected markers
-  vtkSmartPointer<vtkMatrix4x4> transformMatrix=vtkSmartPointer<vtkMatrix4x4>::New();
-  std::set<int> identifiedToolPorts;
+	vtkSmartPointer<vtkMatrix4x4> transformMatrix=vtkSmartPointer<vtkMatrix4x4>::New();
+	std::set<int> identifiedToolPorts;
+	/*************************************************************************/
+	vtkSmartPointer< vtkMatrix4x4 > mTrackerToReference = vtkSmartPointer< vtkMatrix4x4 >::New();
+	mTrackerToReference->Identity();
+	vtkSmartPointer< vtkMatrix4x4 > mToolToReference = vtkSmartPointer< vtkMatrix4x4 >::New();
+	mToolToReference->Identity();
+	vtkSmartPointer< vtkMatrix4x4 > mToolToTracker = vtkSmartPointer< vtkMatrix4x4 >::New();
+	mToolToTracker->Identity();
   for (int identifedMarkerIndex=0; identifedMarkerIndex<this->MT->mtGetIdentifiedMarkersCount(); identifedMarkerIndex++)
   {
     char* identifiedTemplateName=this->MT->mtGetIdentifiedTemplateName(identifedMarkerIndex);
     int toolPortNumber=GetToolPortNumberByPortName(identifiedTemplateName);
+
+
     if (toolPortNumber<0)
     {
       // the template name does not match any of the tool PortNames, so we are not interested in this marker 
       continue;
     }
 
-    GetTransformMatrix(identifedMarkerIndex, transformMatrix);
-    ToolTimeStampedUpdate(toolPortNumber, transformMatrix, TR_OK, this->LastFrameNumber, unfilteredTimestamp);   
+	if(strcmp(identifiedTemplateName,"patientMarker")==0)
+	{
+		GetReferenceTransformMatrix(identifedMarkerIndex, mTrackerToReference);
+		mTrackerToReference->Invert();
+		this->ToolTimeStampedUpdate( toolPortNumber, mTrackerToReference, TR_OK, this->LastFrameNumber, unfilteredTimestamp);
+	}
+	else
+    {
+	  GetTransformMatrix(identifedMarkerIndex, mToolToTracker);
+      vtkMatrix4x4::Multiply4x4( mTrackerToReference, mToolToTracker , mToolToReference );
+      this->ToolTimeStampedUpdate( toolPortNumber, mToolToReference, TR_OK, this->LastFrameNumber, unfilteredTimestamp);
+    }
     identifiedToolPorts.insert(toolPortNumber);
   }
 
+/**************************************************/
   // Set status for tools with non-detected markers
   transformMatrix->Identity();
   for (int toolPortNumber=0; toolPortNumber<this->GetNumberOfTools(); toolPortNumber++)
@@ -273,6 +297,7 @@ void vtkMicronTracker::PrintMatrix(vtkMatrix4x4* m)
     }
   }
   LOG_INFO(dumpStr.str());
+  LOG_DEBUG(dumpStr.str());
 }
 
 //----------------------------------------------
@@ -303,7 +328,29 @@ int vtkMicronTracker::GetNumOfLoadedMarkers()
 {
   return this->MT->mtGetLoadedTemplatesNum();
 }
+//----------------------------------------------
+void vtkMicronTracker::GetReferenceTransformMatrix(int markerIndex, vtkMatrix4x4* ReferencetransformMatrix)
+{  
+  std::vector<double> vRotMat;
+  this->MT->mtGetRotations( vRotMat, markerIndex );
+  std::vector<double> vPos;
+  this->MT->mtGetTranslations(vPos, markerIndex);
 
+  ReferencetransformMatrix->Identity();
+  int rotIndex =0;
+  for(int col=0; col < 3; col++)
+  {
+    for (int row=0; row < 3; row++)
+    {
+      ReferencetransformMatrix->SetElement(row, col, vRotMat[rotIndex++]);
+    }
+  }
+//      transformMatrix->Invert();
+  // Add the offset to the last column of the transformation matrix
+  ReferencetransformMatrix->SetElement(0,3,vPos[0]);
+  ReferencetransformMatrix->SetElement(1,3,vPos[1]);
+  ReferencetransformMatrix->SetElement(2,3,vPos[2]);
+}
 //----------------------------------------------
 void vtkMicronTracker::GetTransformMatrix(int markerIndex, vtkMatrix4x4* transformMatrix)
 {  
@@ -321,6 +368,7 @@ void vtkMicronTracker::GetTransformMatrix(int markerIndex, vtkMatrix4x4* transfo
       transformMatrix->SetElement(row, col, vRotMat[rotIndex++]);
     }
   }
+//      transformMatrix->Invert();
   // Add the offset to the last column of the transformation matrix
   transformMatrix->SetElement(0,3,vPos[0]);
   transformMatrix->SetElement(1,3,vPos[1]);
