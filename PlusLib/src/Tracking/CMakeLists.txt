@@ -104,11 +104,20 @@ ENDIF (PLUS_USE_POLARIS)
 # MICRONTRACKER support
 IF (PLUS_USE_MICRONTRACKER)
 
-  SET(MTC_BASE_DIR ${PLUSLIB_TOOLS_DIR}/Claron/MTC-3.6.0)
+  # A relatively old MicronTracker SDK is available in the Tools/Claron directory.
+  # By default use that, but the users can override the directory name.
+  FIND_PATH(MICRONTRACKER_SDK_BASE_DIR bin/MTC${CMAKE_SHARED_LIBRARY_SUFFIX}
+  DOC "Path to the Claron MicronTracker driver files. It shall contain the following subdirectories: inc (contains .h files), bin (contains .dll files), lib (contains .lib files)."
+  PATH_SUFFIXES 
+    MTC-3.6.0
+    MTC-2.1.0
+  PATHS 
+    ${PLUSLIB_TOOLS_DIR}/Claron 
+  )
   
-  SET(MTC_INCLUDE_DIR ${MTC_BASE_DIR}/inc CACHE PATH "Path to the Claron MicronTracker MTC include directory." FORCE)
-  SET(MTC_BINARY_DIR ${MTC_BASE_DIR}/bin CACHE PATH "Path to the Claron MicronTracker MTC binary directory." FORCE)
-  SET(MTC_LIB_DIR ${MTC_BASE_DIR}/lib CACHE PATH "Path to the Claron MicronTracker MTC library directory." FORCE)
+  SET(MTC_INCLUDE_DIR ${MICRONTRACKER_SDK_BASE_DIR}/inc)
+  SET(MTC_BINARY_DIR ${MICRONTRACKER_SDK_BASE_DIR}/bin)
+  SET(MTC_LIB_DIR ${MICRONTRACKER_SDK_BASE_DIR}/lib)
 
 	SET (Tracking_SRCS ${Tracking_SRCS}
 		MicronTracking/vtkMicronTracker.cxx
