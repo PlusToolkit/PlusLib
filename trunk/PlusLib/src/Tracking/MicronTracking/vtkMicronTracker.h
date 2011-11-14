@@ -463,6 +463,7 @@ public:
  
   /*! Returns the transformation matrix of the index_th marker */
   void GetTransformMatrix(int markerIndex, vtkMatrix4x4* transformMatrix);
+  void GetReferenceTransformMatrix(int markerIndex, vtkMatrix4x4* ReferencetransformMatrix);
 
   // An instance of the MicronTrackerInterface class.
   MicronTrackerInterface* MT;
@@ -516,13 +517,13 @@ protected:
   std::string ToolFileLines[12];
   std::string ToolClassNames[MAX_TOOL_NUM];
   int MarkerIndexAssingedToTools[MAX_TOOL_NUM];
-
 private:
   vtkMicronTracker(const vtkMicronTracker&);
   void operator=(const vtkMicronTracker&);  
   void PrintMatrix(FILE *file, float a[4][4]);
   void PrintMatrix(float a[4][4]);
   void PrintMatrix(vtkMatrix4x4*);
+  unsigned int FrameNumber;
 };
 
 #endif
