@@ -158,6 +158,7 @@ vtkSonixVideoSource::vtkSonixVideoSource()
     this->DynRange = -1; //in dB
     this->Zoom = -1; //in %
     this->Timeout = -1; // in ms
+	this->ConnectionSetupDelayMs = 3000; // in ms
     this->CompressionStatus = 0; // no compression by default
     this->AcquisitionDataType = udtBPost; //corresponds to type: BPost 8-bit  
     this->ImagingMode = BMode; //corresponds to BMode imaging  
@@ -370,7 +371,7 @@ PlusStatus vtkSonixVideoSource::InternalConnect()
 
     // do we need to wait for a little while before the mode actually gets selected??
     // like a thread sleep or something??
-    vtkAccurateTimer::Delay(2); 
+    vtkAccurateTimer::Delay(0.001*this->ConnectionSetupDelayMs); 
 
     // double-check to see if the mode has actually been set
     if (this->ImagingMode != this->Ult.getActiveImagingMode())
@@ -736,6 +737,12 @@ PlusStatus vtkSonixVideoSource::ReadConfiguration(vtkXMLDataElement* config)
   if ( imageAcquisitionConfig->GetScalarAttribute("Timeout", timeout)) 
   {
       this->SetTimeout(timeout); 
+  }
+
+  double connectionSetupDelayMs=3.0; 
+  if ( imageAcquisitionConfig->GetScalarAttribute("ConnectionSetupDelayMs", connectionSetupDelayMs)) 
+  {
+      this->SetConnectionSetupDelayMs(connectionSetupDelayMs); 
   }
 
   return PLUS_SUCCESS;

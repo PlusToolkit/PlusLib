@@ -219,6 +219,13 @@ public:
   vtkGetMacro(Timeout, int);
   vtkSetMacro(Timeout, int);
 
+  // Get/set the time required for setting up the connection
+  // the value depends on the probe type, typical values are between 2000-3000ms
+  // (Default: 3000) 
+  vtkGetMacro(ConnectionSetupDelayMs, int);
+  vtkSetMacro(ConnectionSetupDelayMs, int);
+
+
   // Description:
   // Request a particular data type from sonix machine by means of a bitmask.
   // The mask must be applied before any data can be acquired via realtime imaging or cine retrieval
@@ -284,7 +291,8 @@ protected:
   int ImagingMode;
   int OutputFormat;
   int CompressionStatus; 
-  int Timeout; 
+  int Timeout;
+  int ConnectionSetupDelayMs;
   
   char *SonixIP;
 
