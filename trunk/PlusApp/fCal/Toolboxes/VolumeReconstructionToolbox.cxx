@@ -40,6 +40,7 @@ VolumeReconstructionToolbox::VolumeReconstructionToolbox(fCalMainWindow* aParent
   // Connect events
 	connect( ui.pushButton_OpenVolumeReconstructionConfig, SIGNAL( clicked() ), this, SLOT( OpenVolumeReconstructionConfig() ) );
 	connect( ui.pushButton_OpenInputImage, SIGNAL( clicked() ), this, SLOT( OpenInputImage() ) );
+	connect( ui.comboBox_InputImage, SIGNAL( currentIndexChanged(int) ), this, SLOT( InputImageChanged(int) ) );
 	connect( ui.pushButton_Reconstruct, SIGNAL( clicked() ), this, SLOT( Reconstruct() ) );
 	connect( ui.pushButton_Save, SIGNAL( clicked() ), this, SLOT( Save() ) );
 }
@@ -118,6 +119,7 @@ void VolumeReconstructionToolbox::SetDisplayAccordingToState()
   LOG_TRACE("VolumeReconstructionToolbox::SetDisplayAccordingToState");
 
   m_ParentMainWindow->GetToolVisualizer()->HideAll();
+  m_ParentMainWindow->GetToolVisualizer()->EnableImageMode(false);
 
 	if (m_State == ToolboxState_Uninitialized)
   {
@@ -131,20 +133,24 @@ void VolumeReconstructionToolbox::SetDisplayAccordingToState()
   {
 		ui.label_Instructions->setText(tr("N/A"));
 
-    PopulateImageComboBox();
-
-		if (! m_VolumeReconstructionConfigFileLoaded) {
+		if (! m_VolumeReconstructionConfigFileLoaded)
+    {
 			ui.label_Instructions->setText(tr("Volume reconstruction config XML has to be loaded"));
 			ui.pushButton_Reconstruct->setEnabled(false);
 			ui.pushButton_Save->setEnabled(false);
-    } else if (ui.comboBox_InputImage->currentIndex() == -1) {
+    }
+    else if (ui.comboBox_InputImage->currentIndex() == -1)
+    {
 			ui.label_Instructions->setText(tr("Input image has to be selected"));
 			ui.pushButton_Reconstruct->setEnabled(false);
 			ui.pushButton_Save->setEnabled(false);
-		} else {
+		}
+    else
+    {
 			ui.label_Instructions->setText(tr("Press Reconstruct button start reconstruction"));
 			ui.pushButton_Reconstruct->setEnabled(true);
 			ui.pushButton_Save->setEnabled(false);
+      ui.comboBox_InputImage->setToolTip(ui.comboBox_InputImage->currentText());
 		}
 	}
   else if (m_State == ToolboxState_InProgress)
@@ -168,7 +174,6 @@ void VolumeReconstructionToolbox::SetDisplayAccordingToState()
     m_ParentMainWindow->GetToolVisualizer()->GetVolumeActor()->VisibilityOn();
 	  m_ParentMainWindow->GetToolVisualizer()->GetCanvasRenderer()->Modified();
 	  m_ParentMainWindow->GetToolVisualizer()->GetCanvasRenderer()->ResetCamera();
-
 	}
   else if (m_State == ToolboxState_Error)
   {
@@ -232,7 +237,9 @@ void VolumeReconstructionToolbox::OpenInputImage()
 
   m_ImageFileNames.append(fileName);
 
-	SetState(ToolboxState_Idle);
+  PopulateImageComboBox();
+
+  ui.comboBox_InputImage->setCurrentIndex( ui.comboBox_InputImage->count() - 1 );
 }
 
 //-----------------------------------------------------------------------------
@@ -300,7 +307,7 @@ PlusStatus VolumeReconstructionToolbox::ReconstructVolumeFromInputImage()
   else
   {
     int imageFileNameIndex = -1;
-    if (ui.comboBox_InputImage->itemText(0).left(1) == "<" && ui.comboBox_InputImage->itemText(0).right(0) == ">") // If unsaved image exists
+    if (ui.comboBox_InputImage->itemText(0).left(1) == "<" && ui.comboBox_InputImage->itemText(0).right(1) == ">") // If unsaved image exists
     {
       imageFileNameIndex = ui.comboBox_InputImage->currentIndex() - 1;
     }
@@ -425,6 +432,7 @@ void VolumeReconstructionToolbox::PopulateImageComboBox()
   if (recordedFrames->GetNumberOfTrackedFrames() > 0)
   {
     ui.comboBox_InputImage->addItem("<unsaved image from Capturing>");
+    ui.comboBox_InputImage->setCurrentIndex(0);
   }
 
   // Add images from the stored list
@@ -439,5 +447,22 @@ void VolumeReconstructionToolbox::PopulateImageComboBox()
     ui.comboBox_InputImage->addItem(imageFileName);
   }
 
-  ui.comboBox_InputImage->setCurrentIndex(-1);
+  if (ui.comboBox_InputImage->count() > 0)
+  {
+    ui.comboBox_InputImage->setEnabled(true);
+  }
+  else // Disable the combobox and indicate that it is empty
+  {
+    ui.comboBox_InputImage->addItem(tr("Open or capture image first"));
+    ui.comboBox_InputImage->setEnabled(false);
+  }
+}
+
+//-----------------------------------------------------------------------------
+
+void VolumeReconstructionToolbox::InputImageChanged(int aItemIndex)
+{
+	LOG_TRACE("VolumeReconstructionToolbox::InputImageChanged(" << aItemIndex << ")");
+
+  SetState(ToolboxState_Idle);
 }

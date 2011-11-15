@@ -18,11 +18,8 @@ class vtkXMLDataElement;
 //-----------------------------------------------------------------------------
 
 /*! \class ConfigFileSaverDialog 
- *
  * \brief Configuration file saver dialog class
- *
  * \ingroup PlusAppCommonWidgets
- *
  */
 class ConfigFileSaverDialog : public QDialog
 {
@@ -30,42 +27,42 @@ class ConfigFileSaverDialog : public QDialog
 
 public:
 	/*!
-	* \brief Constructor
+	* Constructor
 	* \param aParent Parent object
 	*/
 	ConfigFileSaverDialog(QWidget* aParent);
 
 	/*!
-	* \brief Destructor
+	* Destructor
 	*/
 	~ConfigFileSaverDialog();
 
 	/*!
-	* \brief Set destination directory for configuration file
+	* Set destination directory for configuration file
 	* \param aDirectory Input configuration directory
 	*/
 	void SetDestinationDirectory(std::string aDirectory);
 
 protected:
   /*!
-	* \brief Parses configuration data and fills form (title and description)
+	* Parses configuration data and fills form (title and description)
   * \return Success flag
 	*/
   PlusStatus ReadConfiguration(); 
 
 protected slots:
 	/*!
-	* \brief Pops up open directory dialog and saves the selected one into application
+	* Pops up open directory dialog and saves the selected one into application
 	*/
 	void OpenDestinationDirectoryClicked();
 
 	/*!
-	* \brief Pops up save file dialog and saves the configuration file with the changed fields into that directory
+	* Pops up save file dialog and saves the configuration file with the changed fields into that directory
 	*/
 	void SaveClicked();
 
 protected:
-	//! Destination directory path
+	/*! Destination directory path */
 	QString             m_DestinationDirectory;
 
 protected:

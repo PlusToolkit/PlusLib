@@ -283,43 +283,43 @@ protected slots:
   void OriginalIntensityForDotsToggled(bool aOn);
 
 protected:
-  //! Data collector
+  /*! Data collector */
   vtkDataCollector*         m_DataCollector;
 
-	//! Actor displaying the image
+	/*! Actor displaying the image */
 	vtkImageActor*	          m_CanvasImageActor;
 
-	//! Actor for displaying segmented points
+	/*! Actor for displaying segmented points */
 	vtkActor*                 m_SegmentedPointsActor;
 
-	//! Poly data for holding the segmented points
+	/*! Poly data for holding the segmented points */
 	vtkPolyData*              m_SegmentedPointsPolyData;
 
-	//! Actor for displaying fiducial candidates
+	/*! Actor for displaying fiducial candidates */
 	vtkActor*                 m_CandidatesActor;
 
-	//! Poly data for holding the fiducial candidates
+	/*! Poly data for holding the fiducial candidates */
 	vtkPolyData*              m_CandidatesPolyData;
 
-  //! ROI mode handler callback command instance
+  /*! ROI mode handler callback command instance */
   vtkROIModeHandler*        m_ROIModeHandler;
 
-  //! Spacing mode handler callback command instance
+  /*! Spacing mode handler callback command instance */
   vtkSpacingModeHandler*    m_SpacingModeHandler;
 
-  //! Renderer for the canvas
+  /*! Renderer for the canvas */
 	vtkRenderer*			        m_CanvasRenderer; 
 
-  //! Timer for refreshing the canvas
+  /*! Timer for refreshing the canvas */
   QTimer*                   m_CanvasRefreshTimer;
 
-  //! Original mm per pixel spacing (from input configuration)
+  /*! Original mm per pixel spacing (from input configuration) */
   double                    m_ApproximateSpacingMmPerPixel;
 
-  //! Pattern recognition object for segmenting the images
+  /*! Pattern recognition object for segmenting the images */
   FidPatternRecognition*    m_PatternRecognition;
 
-  //! Flag indigating if image is frozen (using Freeze button)
+  /*! Flag indigating if image is frozen (using Freeze button) */
   bool                      m_ImageFrozen;
 
 protected:

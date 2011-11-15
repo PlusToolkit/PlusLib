@@ -92,6 +92,11 @@ protected slots:
 	void OpenVolumeReconstructionConfig();
 
 	/*!
+	* Called when input image selection has been changed
+	*/
+	void InputImageChanged(int aItemIndex);
+
+	/*!
 	* Slot handling open input image button click
 	*/
 	void OpenInputImage();
