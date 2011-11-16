@@ -27,10 +27,9 @@ CapturingToolbox::CapturingToolbox(fCalMainWindow* aParentMainWindow, Qt::WFlags
 	, m_RecordedFrames(NULL)
   , m_RecordingTimer(NULL)
   , m_LastRecordedFrameTimestamp(0.0)
-  , m_NumberOfIncomingFramesSinceStart(0)
-  , m_SamplingRate(1)
   , m_SamplingFrameRate(8)
-  , m_ActualFrameRate(0)
+  , m_RequestedFrameRate(0.0)
+  , m_ActualFrameRate(0.0)
   , m_DefaultFrameTransformName("Probe")
 {
 	ui.setupUi(this);
@@ -207,7 +206,7 @@ void CapturingToolbox::TakeSnapshot()
   // Add tracked frame to the list
   m_RecordedFrames->AddTrackedFrame(&trackedFrame, vtkTrackedFrameList::SKIP_INVALID_FRAME);
 
-  ui.label_NumberOfRecordedFrames->setText(QString::number(m_RecordedFrames->GetNumberOfTrackedFrames()));
+  SetState(ToolboxState_Done);
 }
 
 //-----------------------------------------------------------------------------
@@ -219,7 +218,6 @@ void CapturingToolbox::Record()
   m_ParentMainWindow->SetTabsEnabled(false);
 
   // Reset accessory members
-  m_NumberOfIncomingFramesSinceStart = 0;
   m_RecordedFrameNumberQueue.clear();
 
   vtkDataCollector* dataCollector = NULL;
@@ -244,9 +242,6 @@ void CapturingToolbox::Capture()
 
   double startTimeSec = vtkAccurateTimer::GetSystemTime();
 
-  vtkTrackedFrameList* acquiredFrames = vtkTrackedFrameList::New();
-  acquiredFrames->SetDefaultFrameTransformName(m_DefaultFrameTransformName.c_str());
-
   vtkDataCollector* dataCollector = NULL;
   if ( (m_ParentMainWindow == NULL) || (m_ParentMainWindow->GetToolVisualizer() == NULL) || ((dataCollector = m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()) == NULL) )
   {
@@ -254,29 +249,16 @@ void CapturingToolbox::Capture()
     return;
   }
 
+  int numberOfFramesBeforeRecording = m_RecordedFrames->GetNumberOfTrackedFrames();
+
   // Record
-  if ( dataCollector->GetTrackedFrameList(m_LastRecordedFrameTimestamp, acquiredFrames) != PLUS_SUCCESS )
+  if ( dataCollector->GetTrackedFrameListSampled(m_LastRecordedFrameTimestamp, m_RecordedFrames, 1.0 / m_RequestedFrameRate) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to get tracked frame list from data collector (last recorded timestamp: " << std::fixed << m_LastRecordedFrameTimestamp ); 
     return; 
   }
 
-  int numberOfAcquiredFrames = acquiredFrames->GetNumberOfTrackedFrames();
-  int numberOfRecordedFrames = 0;
-
-  // Add tracked frames to the recorded list according to the sampling rate
-  for (int i=0; i<numberOfAcquiredFrames; ++i)
-  {
-    if ( (m_NumberOfIncomingFramesSinceStart + i + 1) % m_SamplingRate == 0 )
-    {
-      m_RecordedFrames->AddTrackedFrame(acquiredFrames->GetTrackedFrame(i));
-      numberOfRecordedFrames++;
-    }
-  }
-
-  acquiredFrames->Delete();
-
-  m_NumberOfIncomingFramesSinceStart += numberOfAcquiredFrames;
+  int numberOfRecordedFrames = m_RecordedFrames->GetNumberOfTrackedFrames() - numberOfFramesBeforeRecording;
 
   // Compute actual frame rate
   m_RecordedFrameNumberQueue.push_back(numberOfRecordedFrames);
@@ -388,12 +370,11 @@ void CapturingToolbox::SamplingRateChanged(int aValue)
 
   double maxFrameRate = GetMaximumFrameRate();
   int samplingRate = (int)(pow(2.0, ui.horizontalSlider_SamplingRate->maxValue() - aValue));
-  double requestedFrameRate = maxFrameRate / (double)samplingRate;
 
-  m_SamplingRate = samplingRate;
+  m_RequestedFrameRate = maxFrameRate / (double)samplingRate;
 
   ui.horizontalSlider_SamplingRate->setToolTip(tr("1 / ").append(QString::number((int)samplingRate)));
-  ui.label_RequestedRecordingFrameRate->setText(QString::number(requestedFrameRate, 'f', 2));
+  ui.label_RequestedRecordingFrameRate->setText(QString::number(m_RequestedFrameRate, 'f', 2));
 }
 
 //-----------------------------------------------------------------------------

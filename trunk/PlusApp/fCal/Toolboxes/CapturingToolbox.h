@@ -124,17 +124,14 @@ protected:
   /*! Timestamp of last recorded frame (the tracked frames acquired since this timestamp will be recorded) */
   double m_LastRecordedFrameTimestamp;
 
-  /*! Number of all the incoming (not the recorded) frames since starting recording */
-  unsigned long m_NumberOfIncomingFramesSinceStart;
-
-  /*! Sampling rate n: every nth frame will be recorded */
-  int m_SamplingRate;
-
   /*! Frame rate of the sampling */
   const int m_SamplingFrameRate;
 
+  /*! Requested frame rate (frames per second) */
+  double m_RequestedFrameRate;
+
   /*! Actual frame rate (frames per second) */
-  int m_ActualFrameRate;
+  double m_ActualFrameRate;
 
   /*! Queue storing the number of recorded frames in each round in the last two seconds */
   std::deque<int> m_RecordedFrameNumberQueue;

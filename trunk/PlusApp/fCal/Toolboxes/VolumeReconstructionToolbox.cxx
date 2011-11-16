@@ -265,7 +265,7 @@ void VolumeReconstructionToolbox::Save()
 	LOG_TRACE("VolumeReconstructionToolbox::Save"); 
 
 	QString filter = QString( tr( "VTK files ( *.vtk );;" ) );
-	QString fileName = QFileDialog::getSaveFileName(NULL, tr("Save reconstructed volume"), "", filter);
+	QString fileName = QFileDialog::getSaveFileName(NULL, tr("Save reconstructed volume"), QString(vtkPlusConfig::GetInstance()->GetImageDirectory()), filter);
 
 	if (! fileName.isNull() )
   {
