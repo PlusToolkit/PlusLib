@@ -132,6 +132,9 @@ PlusStatus CivcoBrachyStepper::GetEncoderValues(double &PPosition,
 
   PPosition = this->ConvertFloatToDecimal(probePositionInCm) * 10.0; 
 
+  // Change the sign of the encoder value to be correspond with the tracker coordinate system defined in the model 
+  PPosition = -1.0 * PPosition; 
+
   return PLUS_SUCCESS; 
 }
 
