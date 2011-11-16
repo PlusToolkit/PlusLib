@@ -24,7 +24,7 @@
         </Tracker>
  
         <ImageAcquisition Type="SonixVideo" 
-          BufferSize="500" 
+          BufferSize="200" 
           FrameSize="820 616" 
           UsImageOrientation="UF"
           FrameRate="30" 
@@ -86,11 +86,11 @@
 		</CalibrationController>
 	</USCalibration>
 
-  <iCal version="1.0" NumberOfImagesForValidation="50"    >
-     <CalibrationData Type="CALIB_TEMPLATE_TRANSLATION" NumberOfImagesToAcquire="50" FrameTransformNameForValidation="" MaxAllowedTranslationSpeedMmPerSec="10.0" MaxAllowedRotationSpeedDegPerSec="15.0" MinRequiredTranslationDifferenceMm="0.5" MinRequiredAngleDifferenceDeg="5.0"/>
-     <CalibrationData Type="CALIB_PROBE_TRANSLATION" NumberOfImagesToAcquire="50" FrameTransformNameForValidation="" MaxAllowedTranslationSpeedMmPerSec="10.0" MaxAllowedRotationSpeedDegPerSec="15.0" MinRequiredTranslationDifferenceMm="0.5" MinRequiredAngleDifferenceDeg="5.0" />
-     <CalibrationData Type="CALIB_PROBE_ROTATION" NumberOfImagesToAcquire="100" FrameTransformNameForValidation="" MaxAllowedTranslationSpeedMmPerSec="10.0" MaxAllowedRotationSpeedDegPerSec="15.0" MinRequiredTranslationDifferenceMm="0.5" MinRequiredAngleDifferenceDeg="5.0" />
-     <CalibrationData Type="CALIB_RANDOM_STEPPER_MOTION" NumberOfImagesToAcquire="150" FrameTransformNameForValidation="" MaxAllowedTranslationSpeedMmPerSec="10.0" MaxAllowedRotationSpeedDegPerSec="15.0" MinRequiredTranslationDifferenceMm="0.5" MinRequiredAngleDifferenceDeg="5.0" />
+  <iCal version="1.0" NumberOfImagesForValidation="100" RecordingIntervalMs="200" MaxTimeSpentWithProcessingMs="170" >
+     <CalibrationData Type="CALIB_TEMPLATE_TRANSLATION" NumberOfImagesToAcquire="50" FrameTransformNameForValidation="Probe" MaxAllowedTranslationSpeedMmPerSec="5.0" MaxAllowedRotationSpeedDegPerSec="15.0" MinRequiredTranslationDifferenceMm="0.5" MinRequiredAngleDifferenceDeg="1.0"/>
+     <CalibrationData Type="CALIB_PROBE_TRANSLATION" NumberOfImagesToAcquire="150" FrameTransformNameForValidation="Probe" MaxAllowedTranslationSpeedMmPerSec="10.0" MaxAllowedRotationSpeedDegPerSec="15.0" MinRequiredTranslationDifferenceMm="0.5" MinRequiredAngleDifferenceDeg="1.0" />
+     <CalibrationData Type="CALIB_PROBE_ROTATION" NumberOfImagesToAcquire="100" FrameTransformNameForValidation="Probe" MaxAllowedTranslationSpeedMmPerSec="10.0" MaxAllowedRotationSpeedDegPerSec="15.0" MinRequiredTranslationDifferenceMm="0.5" MinRequiredAngleDifferenceDeg="1.0" />
+     <CalibrationData Type="CALIB_RANDOM_STEPPER_MOTION" NumberOfImagesToAcquire="300" FrameTransformNameForValidation="Probe" MaxAllowedTranslationSpeedMmPerSec="10.0" MaxAllowedRotationSpeedDegPerSec="15.0" MinRequiredTranslationDifferenceMm="0.5" MinRequiredAngleDifferenceDeg="1.0" />
   </iCal>
     
 	<PhantomDefinition version="1.1">
@@ -104,12 +104,12 @@
 		
 		<!-- ModelToPhantomTransform - transforming model into phantom coordinate system for proper visualization -->
 		<Model
-			File="iCalPhantom.stl"
+			File="DoubleN-EG-Phantom-SolidEdge_DemoVersionSinglePiece_v1.0_R3-EngravedByCarolyn.stl"
 			ModelToPhantomTransform="
-                        -1 0 0 36.5
-                         0 0 -1 58
-                         0 -1 0 61
-						 0 0 0 1"
+            1 0 0  0.7
+            0 0 -1 48.6
+            0 1 0  51.3
+            0 0 0  1"
 		/>
 
 		<Geometry>
