@@ -1466,6 +1466,7 @@ PlusStatus vtkDataCollector::GetTrackedFrameList(double& frameTimestamp, vtkTrac
     return PLUS_FAIL; 
   }
 
+  // Get latest and oldest timestamp
   double mostRecentTimestamp(0); 
   if ( this->GetMostRecentTimestamp(mostRecentTimestamp) != PLUS_SUCCESS )
   {
@@ -1652,6 +1653,78 @@ PlusStatus vtkDataCollector::GetTrackedFrameList(double& frameTimestamp, vtkTrac
   }
 
   return status; 
+}
+
+//----------------------------------------------------------------------------
+
+PlusStatus vtkDataCollector::GetTrackedFrameListSampled(double& frameTimestamp, vtkTrackedFrameList* trackedFrameList, double samplingRateSec)
+{
+  LOG_TRACE("vtkDataCollector::GetTrackedFrameListSampled(" << frameTimestamp << ", " << samplingRateSec << ")"); 
+
+  if ( trackedFrameList == NULL )
+  {
+    LOG_ERROR("Unable to get tracked frame list - output tracked frmae list is NULL!"); 
+    return PLUS_FAIL; 
+  }
+
+  // Get latest and oldest timestamp
+  double mostRecentTimestamp(0); 
+  if ( this->GetMostRecentTimestamp(mostRecentTimestamp) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Unable to get most recent timestamp!"); 
+    return PLUS_FAIL; 
+  }
+
+  double oldestTimestamp(0); 
+  if ( this->GetOldestTimestamp(oldestTimestamp) != PLUS_SUCCESS )
+  {
+    LOG_WARNING("Failed to get oldest timestamp from buffer!"); 
+    return PLUS_FAIL; 
+  }
+
+  // Check input frameTimestamp to be in a valid range 
+  if ( frameTimestamp < 0.0001 || frameTimestamp > mostRecentTimestamp )
+  {
+    frameTimestamp = mostRecentTimestamp; 
+  }
+  else if ( oldestTimestamp > frameTimestamp )
+  {
+    frameTimestamp = oldestTimestamp; 
+  }
+
+  // Check if there are less frames than it would be needed according to the sampling rate
+  int numberOfFramesSinceTimestamp = GetNumberOfFramesBetweenTimestamps(frameTimestamp, mostRecentTimestamp);
+  int numberOfSampledFrames = (int)((mostRecentTimestamp - frameTimestamp) / samplingRateSec);
+
+  if (numberOfFramesSinceTimestamp < numberOfSampledFrames)
+  {
+    LOG_WARNING("The requested sampling rate is faster than the acquisition itself - fewer unique frames will be added to the list!");
+  }
+
+  // Add frames to input trackedFrameList
+  while (frameTimestamp + samplingRateSec <= mostRecentTimestamp)
+  {
+    // Get tracked frame from buffer
+    TrackedFrame trackedFrame; 
+
+    if ( this->GetTrackedFrameByTime(frameTimestamp, &trackedFrame) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Unable to get tracked frame by time: " << std::fixed << frameTimestamp ); 
+      return PLUS_FAIL;
+    }
+
+    // Add tracked frame to the list 
+    if ( trackedFrameList->AddTrackedFrame(&trackedFrame, vtkTrackedFrameList::SKIP_INVALID_FRAME) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Unable to add tracked frame to the list!" ); 
+      return PLUS_FAIL; 
+    }
+
+    // Set timestamp to the next sampled one
+    frameTimestamp += samplingRateSec;
+  }
+
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------

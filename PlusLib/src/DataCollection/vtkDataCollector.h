@@ -135,6 +135,14 @@ public:
   */
   virtual PlusStatus GetTrackedFrameList(double& frameTimestamp, vtkTrackedFrameList* trackedFrameList, int maxNumberOfFramesToAdd = -1); 
 
+  /*!
+    Get the tracked frame list from devices since time specified
+    \param frameTimestamp The oldest timestamp we search for in the buffer. If -1 get all frames in the time range since the most recent timestamp. Out parameter - changed to timestamp of last added frame
+    \param trackedFrameList Tracked frame list used to get the newly acquired frames into. The new frames are appended to the tracked frame.
+    \param samplingRateSec Sampling rate for getting the frames in seconds (timestamps are in seconds too)
+  */
+  virtual PlusStatus GetTrackedFrameListSampled(double& frameTimestamp, vtkTrackedFrameList* trackedFrameList, double samplingRateMs); 
+
   const char* vtkDataCollector::GetDefaultFrameTransformName(int toolNumber);
 
   /*! Get the tracked frame from devices by time with each tool transforms */
