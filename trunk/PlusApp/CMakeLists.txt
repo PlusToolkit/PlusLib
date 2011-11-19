@@ -86,6 +86,8 @@ OPTION (PLUSAPP_BUILD_SequenceMetaFileConverter "Build the SequenceMetaFileConve
 OPTION (PLUSAPP_BUILD_TrackedUltrasoundCapturing "Build the TrackedUltrasoundCapturing application (Qt version)" ON)
 OPTION (PLUSAPP_BUILD_fCal "Build the fCal application (Qt)" ON)
 
+OPTION (PLUSAPP_TEST_GUI "Run Sikuli GUI tests" ON)
+
 # --------------------------------------------------------------------------
 # Packaging
 # 
