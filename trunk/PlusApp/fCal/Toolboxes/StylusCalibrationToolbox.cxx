@@ -66,6 +66,9 @@ void StylusCalibrationToolbox::Initialize()
     return;
   }
 
+  // Clear results poly data
+  m_ParentMainWindow->GetToolVisualizer()->GetResultPolyData()->Initialize();
+
   if ( (m_ParentMainWindow->GetToolVisualizer()->GetDataCollector() != NULL)
     && (m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->GetConnected()))
   {
@@ -73,12 +76,9 @@ void StylusCalibrationToolbox::Initialize()
 
     if (ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS)
     {
-      LOG_ERROR("Reading stylus calibration configuraiton failed!");
+      LOG_ERROR("Reading stylus calibration configuration failed!");
       return;
     }
-
-    // Clear results poly data
-    m_ParentMainWindow->GetToolVisualizer()->GetResultPolyData()->Initialize();
 
     // Set initialized if it was uninitialized
     if (m_State == ToolboxState_Uninitialized)
@@ -156,8 +156,8 @@ void StylusCalibrationToolbox::SetDisplayAccordingToState()
 {
   LOG_TRACE("StylusCalibrationToolbox::SetDisplayAccordingToState"); 
 
-  m_ParentMainWindow->GetToolVisualizer()->HideAll();
   m_ParentMainWindow->GetToolVisualizer()->EnableImageMode(false);
+  m_ParentMainWindow->GetToolVisualizer()->HideAll();
 
   if (m_State == ToolboxState_Uninitialized)
   {
@@ -379,7 +379,7 @@ void StylusCalibrationToolbox::AddStylusPositionToCalibration()
     // Add point to the input if fulfills the criteria
     vtkPoints* points = m_ParentMainWindow->GetToolVisualizer()->GetInputPolyData()->GetPoints();
 
-    double distance_lowThreshold_mm = 3.0; // TODO: review these thresholds with the guys
+    double distance_lowThreshold_mm = 2.0; // TODO: review these thresholds with the guys
     double distance_highThreshold_mm = 1000.0;
     double distance = -1.0;
     if (m_CurrentPointNumber < 1) {

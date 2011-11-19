@@ -76,7 +76,7 @@ void ConfigurationToolbox::Initialize()
 {
 	LOG_TRACE("ConfigurationToolbox::Initialize"); 
 
-  // No actions needed when tab becomes active
+  SetDisplayAccordingToState();
 }
 
 //-----------------------------------------------------------------------------

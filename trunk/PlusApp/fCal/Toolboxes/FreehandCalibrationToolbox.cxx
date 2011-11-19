@@ -107,6 +107,9 @@ void FreehandCalibrationToolbox::Initialize()
     return;
   }
 
+  // Clear results poly data
+  m_ParentMainWindow->GetToolVisualizer()->GetResultPolyData()->Initialize();
+
   if ( (m_ParentMainWindow->GetToolVisualizer()->GetDataCollector() != NULL)
     && (m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->GetConnected()))
   {
@@ -118,9 +121,6 @@ void FreehandCalibrationToolbox::Initialize()
       LOG_ERROR("Reading calibration configuration failed!");
       return;
     }
-
-    // Clear results poly data
-    m_ParentMainWindow->GetToolVisualizer()->GetResultPolyData()->Initialize();
 
     // Set initialized if it was uninitialized
     if (m_State == ToolboxState_Uninitialized)
