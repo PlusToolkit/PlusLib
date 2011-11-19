@@ -293,7 +293,11 @@ void FreehandCalibrationToolbox::SetDisplayAccordingToState()
       ui.checkBox_ShowDevices->setEnabled(true);
 
       // Load calibration matrix into tool visualizer
-      m_ParentMainWindow->GetToolVisualizer()->GetDisplayableTool(TRACKER_TOOL_PROBE)->DisplayableOn();
+      if (m_ParentMainWindow->GetToolVisualizer()->GetDisplayableTool(TRACKER_TOOL_PROBE))
+      {
+        m_ParentMainWindow->GetToolVisualizer()->GetDisplayableTool(TRACKER_TOOL_PROBE)->DisplayableOn();
+      }
+
       m_ParentMainWindow->GetToolVisualizer()->SetImageToProbeTransform(m_Calibration->GetTransformUserImageToProbe());
     }
     else

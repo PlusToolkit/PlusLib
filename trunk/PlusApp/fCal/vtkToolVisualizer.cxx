@@ -466,6 +466,7 @@ vtkDisplayableTool* vtkToolVisualizer::GetDisplayableTool(TRACKER_TOOL_TYPE aTyp
   }
   else
   {
+    LOG_ERROR("Requested displayable tool is missing!");
     return NULL;
   }
 }
