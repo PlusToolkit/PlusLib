@@ -20,6 +20,7 @@ SET(CMAKE_MODULE_PATH
 MARK_AS_ADVANCED(CLEAR Subversion_SVN_EXECUTABLE)
 FIND_FILE(Subversion_SVN_EXECUTABLE svn${CMAKE_EXECUTABLE_SUFFIX} 
   PATHS 
+    "c:/Program Files/TortoiseSVN/bin/"
     "c:/Program Files/SlikSvn/bin/"
   )
 FIND_PACKAGE(Subversion REQUIRED)
