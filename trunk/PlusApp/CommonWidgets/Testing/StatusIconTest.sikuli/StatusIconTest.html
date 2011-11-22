@@ -110,6 +110,25 @@
   sys.exit(<span class="dig">1</span>)
 
 <span class="cmt">#------------------------------------------------------------------------------
+</span>
+<span class="cmt"># Tries to find application on all monitors
+</span><span class="kw">def</span> findApplicationOnAllMonitors(pattern, maxNumberOfTries=<span class="dig">20</span>):
+  <span class="kw">for</span> count <span class="kw">in</span> range (maxNumberOfTries):
+    <span class="kw">for</span> screenId <span class="kw">in</span> range(SCREEN.getNumberScreens()):
+      screen = Screen(screenId)
+
+      <span class="kw">try</span>:
+        foundRegion = screen.<span class="skw">find</span>(pattern)
+      <span class="kw">except</span> FindFailed:
+        <span class="kw">continue</span>
+
+      <span class="kw">print</span> <span class="str">"Application found on screen "</span>, screenId, <span class="str">" after "</span>, count, <span class="str">" tries"</span>
+      <span class="kw">return</span> foundRegion
+
+  <span class="kw">print</span> <span class="str">"[ERROR] Application cannot be found on any screen after "</span>, maxNumberOfTries , <span class="str">"tries!"</span>
+  captureScreenAndExit()
+
+<span class="cmt">#------------------------------------------------------------------------------
 </span><span class="cmt"># Main program
 </span>
 exe = getCommandFromArguments(<span class="str">"D:/devel/PlusBuild-bin"</span>)
@@ -117,17 +136,13 @@ exe = getCommandFromArguments(<span class="str">"D:/devel/PlusBuild-bin"</span>)
 appTitle = <span class="str">"SegmentationParameterDialogTest"</span>
 
 testApp = App.open(exe)
-<span class="skw">wait</span>(<span class="dig">10</span>) <span class="cmt"># Wait for the application to initialize (else the next wait check does not not run properly)</span>
-App.focus(appTitle)
 
 <span class="kw">import</span> java.awt.Robot <span class="kw">as</span> JRobot
 colorPickerRobot = JRobot()
 
-<span class="kw">try</span>:
-  connectButton = <span class="skw">wait</span>(<img src="ConnectButton.png" />, <span class="dig">60</span>)
-<span class="kw">except</span> FindFailed:
-  <span class="kw">print</span> <span class="str">"[ERROR] Application did not start!"</span>
-  captureScreenAndExit()
+connectButton = findApplicationOnAllMonitors(<img src="ConnectButton.png" />)
+
+App.focus(appTitle)
 
 <span class="cmt"># Get the region of the segmentation parameter dialog window
 </span>applicationTopLeft = connectButton.getTopLeft()

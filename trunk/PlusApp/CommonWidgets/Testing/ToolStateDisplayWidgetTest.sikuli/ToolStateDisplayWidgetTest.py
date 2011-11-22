@@ -36,7 +36,26 @@ def captureScreenAndExit():
   print "The screen capture of the application in time of the error was saved to: " + newFileName
   closeApp(appTitle)
   sys.exit(1)
-  
+
+#------------------------------------------------------------------------------
+
+# Tries to find application on all monitors
+def findApplicationOnAllMonitors(pattern, maxNumberOfTries=20):
+  for count in range (maxNumberOfTries):
+    for screenId in range(SCREEN.getNumberScreens()):
+      screen = Screen(screenId)
+
+      try:
+        foundRegion = screen.find(pattern)
+      except FindFailed:
+        continue
+
+      print "Application found on screen ", screenId, " after ", count, " tries"
+      return foundRegion
+
+  print "[ERROR] Application cannot be found on any screen after ", maxNumberOfTries , "tries!"
+  captureScreenAndExit()
+
 #------------------------------------------------------------------------------
 # Main program
 
@@ -45,14 +64,10 @@ exe = getCommandFromArguments("D:/devel/PlusBuild-bin")
 appTitle = "ToolStateDisplayWidgetTest"
 
 testApp = App.open(exe)
-wait(10) # Wait for the application to initialize (else the next wait check does not not run properly)
-App.focus(appTitle)
 
-try:
-  connectButton = wait("ConnectButton.png", 60)
-except FindFailed:
-  print "[ERROR] Application did not start!"
-  captureScreenAndExit()
+connectButton = findApplicationOnAllMonitors("ConnectButton.png")
+
+App.focus(appTitle)
 
 # Get the region of the segmentation parameter dialog window
 applicationTopLeft = connectButton.getTopLeft()
