@@ -236,7 +236,6 @@ if (this->IsCollectingNewSamples == 1)
   std::set<int> identifiedToolPorts;
   vtkSmartPointer< vtkMatrix4x4 > mTrackerToReference = vtkSmartPointer< vtkMatrix4x4 >::New();
   mTrackerToReference->Identity();
-
   vtkSmartPointer< vtkMatrix4x4 > mToolToReference = vtkSmartPointer< vtkMatrix4x4 >::New();
   mToolToReference->Identity();
   vtkSmartPointer< vtkMatrix4x4 > mToolToTracker = vtkSmartPointer< vtkMatrix4x4 >::New();
