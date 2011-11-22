@@ -12,9 +12,7 @@
 ***************************************************************/
 #include "MCamera.h"
 #include "UtilityFunctions.h"
-//#include "MTC.h" // now in MCamera.h
-
-
+#include "MTC.h"
 
 /****************************/
 /** Constructor */
@@ -360,7 +358,7 @@ bool MCamera::grabFrame( )
   return (mtOK == r);
 }
 
-mtMeasurementHazardCode MCamera::getHazardCode()
+int MCamera::getHazardCode()
 {
     return  ( Camera_LastFrameThermalHazard (this->m_handle) );
 }

@@ -5,8 +5,9 @@
 /* Modified: June 20, 2003 This file has been converted to a class to make it more compatible with OOD */
 /****************************/
 
-#define __MICRONTRACKERINTERFACE_CPP__
 #include "MicronTrackerInterface.h"
+#include "MTC.h"
+#include "MTVideo.h"
 #include "UtilityFunctions.h"
 #include "Cameras.h"
 //------------------------------------------
@@ -1085,7 +1086,7 @@ int MicronTrackerInterface::mtGetLatestFramePixHistogram(long* &aPixHist, int su
 }
 
 //------------------------------------------
-mtMeasurementHazardCode MicronTrackerInterface::mtGetLatestFrameHazard()
+int MicronTrackerInterface::mtGetLatestFrameHazard()
 {
   return Camera_LastFrameThermalHazard(this->m_pCurrCam->getHandle());
   // return this->m_pCurrCam->getHazardCode();

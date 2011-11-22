@@ -11,22 +11,13 @@
  ***************************/
 
 #ifndef __MICRONTRACKERINTERFACE_H__
-
 #define __MICRONTRACKERINTERFACE_H__
-
-#ifdef __MICRONTRACKERINTERFACE_CPP__
-#define MICRONTRACKERINTERFACE_EXPORT __declspec(dllexport) 
-#else
-#define MICRONTRACKERINTERFACE_EXPORT __declspec(dllimport)
-#endif
 
 #include "UtilityFunctions.h"
 #include "Persistence.h"
 #include "Cameras.h"
 #include "Markers.h"
 #include "Collection.h"
-#include "MTVideo.h"
-#include "MTC.h"
 
 class MicronTrackerInterface
 {
@@ -336,7 +327,7 @@ class MicronTrackerInterface
   
   // Check for hazard codes on the lastest frame (e.g. thermal instability) */
   
-  mtMeasurementHazardCode mtGetLatestFrameHazard();
+  int mtGetLatestFrameHazard();
 
   //------------------------
   //

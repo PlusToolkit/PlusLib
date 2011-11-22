@@ -11,6 +11,7 @@
 ***************************************************************/
 #include "Collection.h"
 
+#include "MTC.h"
 
 Collection::Collection(int h)
 {

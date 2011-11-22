@@ -49,6 +49,8 @@ POSSIBILITY OF SUCH DAMAGES.
 #include "vtkImageData.h"
 #include "PlusVideoFrame.h"
 
+#include "MicronTrackerInterface.h"
+
 /****************************************************************************/
 
 
@@ -903,4 +905,14 @@ int vtkMicronTracker::GetNumOfIdentifiedMarkers()
 int vtkMicronTracker::GetNumOfUnidentifiedMarkers()
 {
   return this->MT->mtGetUnidentifiedMarkersCount();
+}
+
+double vtkMicronTracker::GetLightCoolness(int cam /* = -1 */) 
+{
+  return MT->mtGetLightCoolness(cam);
+}
+
+int vtkMicronTracker::GetLatestFrameHazard() 
+{
+  return MT->mtGetLatestFrameHazard();
 }

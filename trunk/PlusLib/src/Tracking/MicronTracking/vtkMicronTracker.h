@@ -77,14 +77,13 @@ POSSIBILITY OF SUCH DAMAGES.
 #include "vtkIntArray.h"
 #include "vtkLongArray.h"
 #include "vtkDoubleArray.h"
-#include "MicronTrackerInterface.h"
-//#include "tracking.h"
 #include "time.h"
 
 #define MAX_TOOL_NUM 10
 
 class vtkFrameToTimeConverter;
 class vtkTrackerBuffer;
+class MicronTrackerInterface;
 
 // the number of tools the polaris can handle
 //#define VTK_POLARIS_NTOOLS 12
@@ -338,7 +337,7 @@ public:
 
   // Description:
   // Get the colour temperature setting of the camera.
-  double GetLightCoolness(int cam = -1) {return MT->mtGetLightCoolness(cam);}
+  double GetLightCoolness(int cam = -1);
 
   /*********************************/
   /*
@@ -380,7 +379,7 @@ public:
   // Description:
   // Query current camera's readiness; if more detail is desired this is available
   // in the value returned by mtGetLatestFrameHazard()
-  int GetLatestFrameHazard() {return MT->mtGetLatestFrameHazard();}
+  int GetLatestFrameHazard();
 
   // Description:
   // Set the flag that indicates whether new samples are to be collected 

@@ -22,7 +22,6 @@
 //#include "FL/filename.H"
 #include <iostream>
 #include "math.h"
-#include "MTC.h"
 
 #ifdef _DEBUG
   #pragma warning(disable:4786)

@@ -12,8 +12,6 @@
 #ifndef __PERSISTENCE_H__
 #define  __PERSISTENCE_H__
 
-#include "MTC.h"
-
 class Persistence
 {
 public:

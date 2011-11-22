@@ -13,7 +13,6 @@
 #ifndef __CAMERA_H__
 #define __CAMERA_H__
 
-#include "MTC.h" // need this here for mtMeasurementHazardCode
 #include <vector>
 
 class MCamera
@@ -65,7 +64,7 @@ public:
   bool getImages( unsigned char ***li, unsigned char ***ri);
   bool getHalfSizeImages(unsigned char ***li, unsigned char ***ri, int xRes, int yRes);
   bool grabFrame(); // returns true for success
-    mtMeasurementHazardCode getHazardCode();
+  int getHazardCode();
   int Handle();
 
 private:
