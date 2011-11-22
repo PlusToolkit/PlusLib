@@ -100,6 +100,12 @@ ToolIteratorType vtkTracker::GetToolIteratorEnd()
 }
 
 //----------------------------------------------------------------------------
+int vtkTracker::GetNumberOfTools()
+{
+  return this->ToolContainer.size(); 
+}
+
+//----------------------------------------------------------------------------
 // allocates a vtkTrackerTool object for each of the tools.
 PlusStatus vtkTracker::AddTool( const char* aToolName, const char* aPortName )
 {

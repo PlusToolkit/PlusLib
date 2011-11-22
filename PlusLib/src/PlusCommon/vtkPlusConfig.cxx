@@ -25,6 +25,7 @@ public:
   inline void Use()
   {
   }
+
   ~vtkPlusConfigCleanup()
   {
     if( vtkPlusConfig::GetInstance() )
@@ -51,7 +52,8 @@ vtkPlusConfig* vtkPlusConfig::New()
 
 //-----------------------------------------------------------------------------
 
-vtkPlusConfig* vtkPlusConfig::GetInstance() {
+vtkPlusConfig* vtkPlusConfig::GetInstance()
+{
 	if(!vtkPlusConfig::Instance) 
   {
 		if(!vtkPlusConfig::Instance) 
@@ -169,13 +171,15 @@ PlusStatus vtkPlusConfig::WriteApplicationConfiguration()
 	LOG_TRACE("vtkPlusConfig::WriteApplicationConfiguration");
 
   vtkXMLDataElement* applicationConfigurationRoot = this->ApplicationConfigurationData;
-	if (applicationConfigurationRoot == NULL) {
+	if (applicationConfigurationRoot == NULL)
+  {
     applicationConfigurationRoot = vtkSmartPointer<vtkXMLDataElement>::New();
     applicationConfigurationRoot->SetName("PlusConfig");
 	}
 
   // Verify root element name
-  if (STRCASECMP(applicationConfigurationRoot->GetName(), "PlusConfig") != NULL) {
+  if (STRCASECMP(applicationConfigurationRoot->GetName(), "PlusConfig") != NULL)
+  {
     LOG_ERROR("Invalid application configuration file (root XML element of the file '" << this->ApplicationConfigurationFileName << "' should be 'PlusConfig')");
     return PLUS_FAIL;
   }
@@ -219,7 +223,8 @@ PlusStatus vtkPlusConfig::ReadApplicationConfiguration()
 {
 	LOG_TRACE("vtkPlusConfig::ReadApplicationConfiguration");
 
-  if (this->ProgramDirectory == NULL) {
+  if (this->ProgramDirectory == NULL)
+  {
     LOG_ERROR("Unable to read configuration - program directory has to be set first!");
     return PLUS_FAIL;
   }
@@ -228,10 +233,12 @@ PlusStatus vtkPlusConfig::ReadApplicationConfiguration()
 
   // Read configuration
   vtkSmartPointer<vtkXMLDataElement> applicationConfigurationRoot;
-  if (vtksys::SystemTools::FileExists(this->ApplicationConfigurationFileName, true)) {
+  if (vtksys::SystemTools::FileExists(this->ApplicationConfigurationFileName, true))
+  {
     applicationConfigurationRoot.TakeReference(vtkXMLUtilities::ReadElementFromFile(this->ApplicationConfigurationFileName));
   }
-	if (applicationConfigurationRoot == NULL) {
+	if (applicationConfigurationRoot == NULL)
+  {
     LOG_INFO("Application configuration file is not found'" << this->ApplicationConfigurationFileName << "' - default values will be used and the file created"); 
     applicationConfigurationRoot = vtkSmartPointer<vtkXMLDataElement>::New();
     applicationConfigurationRoot->SetName("PlusConfig");
@@ -241,17 +248,20 @@ PlusStatus vtkPlusConfig::ReadApplicationConfiguration()
   this->SetApplicationConfigurationData(applicationConfigurationRoot); 
 
   // Verify root element name
-  if (STRCASECMP(applicationConfigurationRoot->GetName(), "PlusConfig") != NULL) {
+  if (STRCASECMP(applicationConfigurationRoot->GetName(), "PlusConfig") != NULL)
+  {
     LOG_ERROR("Invalid application configuration file (root XML element of the file '" << this->ApplicationConfigurationFileName << "' should be 'PlusConfig' instead of '" << applicationConfigurationRoot->GetName() << "')");
     return PLUS_FAIL;
   }
 
   // Read log level
 	int logLevel = 0;
-	if (applicationConfigurationRoot->GetScalarAttribute("LogLevel", logLevel) ) {
+	if (applicationConfigurationRoot->GetScalarAttribute("LogLevel", logLevel) )
+  {
     vtkPlusLogger::Instance()->SetLogLevel(logLevel);
-
-	} else {
+	}
+  else
+  {
 		LOG_INFO("LogLevel attribute is not found - default 'Info' log level will be used");
     vtkPlusLogger::Instance()->SetLogLevel(vtkPlusLogger::LOG_LEVEL_INFO);
     saveNeeded = true;
@@ -259,19 +269,23 @@ PlusStatus vtkPlusConfig::ReadApplicationConfiguration()
 
   // Read last device set config file
   const char* lastDeviceSetConfigFile = applicationConfigurationRoot->GetAttribute("LastDeviceSetConfigurationFileName");
-  if ((lastDeviceSetConfigFile != NULL) && (STRCASECMP(lastDeviceSetConfigFile, "") != 0)) {
+  if ((lastDeviceSetConfigFile != NULL) && (STRCASECMP(lastDeviceSetConfigFile, "") != 0))
+  {
     this->SetDeviceSetConfigurationFileName(lastDeviceSetConfigFile);
-
-  } else {
+  }
+  else
+  {
     LOG_DEBUG("Cannot read last used device set config file until you connect to one first");
   }
 
   // Read device set configuration directory
   const char* deviceSetDirectory = applicationConfigurationRoot->GetAttribute("DeviceSetConfigurationDirectory");
-  if ((deviceSetDirectory != NULL) && (STRCASECMP(deviceSetDirectory, "") != 0)) {
+  if ((deviceSetDirectory != NULL) && (STRCASECMP(deviceSetDirectory, "") != 0))
+  {
 	  this->SetDeviceSetConfigurationDirectory(deviceSetDirectory);
-
-  } else {
+  }
+  else
+  {
     LOG_INFO("Device set configuration directory is not set - default '../Config' will be used");
     std::string parentDirectory = vtksys::SystemTools::GetParentDirectory(this->ProgramDirectory);
     std::string defaultDeviceSetConfigDirectory = vtksys::SystemTools::CollapseFullPath("./Config", parentDirectory.c_str()); 
@@ -280,17 +294,20 @@ PlusStatus vtkPlusConfig::ReadApplicationConfiguration()
   }
 
 	// Make device set configuraiton directory
-  if (! vtksys::SystemTools::MakeDirectory(this->DeviceSetConfigurationDirectory)) {
+  if (! vtksys::SystemTools::MakeDirectory(this->DeviceSetConfigurationDirectory))
+  {
     LOG_ERROR("Unable to create device set configuration directory '" << this->DeviceSetConfigurationDirectory << "'");
     return PLUS_FAIL;
   }
 
   // Read editor application
   const char* editorApplicationExecutable = applicationConfigurationRoot->GetAttribute("EditorApplicationExecutable");
-  if ((editorApplicationExecutable != NULL) && (STRCASECMP(editorApplicationExecutable, "") != 0)) {
+  if ((editorApplicationExecutable != NULL) && (STRCASECMP(editorApplicationExecutable, "") != 0))
+  {
     this->SetEditorApplicationExecutable(editorApplicationExecutable);
-
-  } else {
+  }
+  else
+  {
     LOG_INFO("Editor application executable is not set - default 'notepad.exe' will be used");
     this->SetEditorApplicationExecutable("notepad.exe");
     saveNeeded = true;
@@ -298,10 +315,12 @@ PlusStatus vtkPlusConfig::ReadApplicationConfiguration()
 
   // Read output directory
   const char* outputDirectory = applicationConfigurationRoot->GetAttribute("OutputDirectory");
-  if ((outputDirectory != NULL) && (STRCASECMP(outputDirectory, "") != 0)) {
+  if ((outputDirectory != NULL) && (STRCASECMP(outputDirectory, "") != 0))
+  {
 	  this->SetOutputDirectory(outputDirectory);
-
-  } else {
+  }
+  else
+  {
     LOG_INFO("Output directory is not set - default './Output' will be used");
   	std::string defaultOutputDirectory = vtksys::SystemTools::CollapseFullPath("./Output", this->ProgramDirectory); 
     this->SetOutputDirectory(defaultOutputDirectory.c_str());
@@ -310,10 +329,12 @@ PlusStatus vtkPlusConfig::ReadApplicationConfiguration()
 
   // Read image directory
   const char* imageDirectory = applicationConfigurationRoot->GetAttribute("ImageDirectory");
-  if ((imageDirectory != NULL) && (STRCASECMP(imageDirectory, "") != 0)) {
+  if ((imageDirectory != NULL) && (STRCASECMP(imageDirectory, "") != 0))
+  {
 	  this->SetImageDirectory(imageDirectory);
-
-  } else {
+  }
+  else
+  {
     LOG_INFO("Image directory is not set - default './' will be used");
   	std::string defaultImageDirectory = vtksys::SystemTools::CollapseFullPath("./", this->ProgramDirectory); 
     this->SetImageDirectory(defaultImageDirectory.c_str());
@@ -322,10 +343,12 @@ PlusStatus vtkPlusConfig::ReadApplicationConfiguration()
 
   // Read gnuplot directory
   const char* gnuplotDirectory = applicationConfigurationRoot->GetAttribute("GnuplotDirectory");
-  if ((gnuplotDirectory != NULL) && (STRCASECMP(gnuplotDirectory, "") != 0)) {
+  if ((gnuplotDirectory != NULL) && (STRCASECMP(gnuplotDirectory, "") != 0))
+  {
 	  this->SetGnuplotDirectory(gnuplotDirectory);
-
-  } else {
+  }
+  else
+  {
     LOG_INFO("Gnuplot directory is not set - default '../gnuplot' will be used");
   	std::string defaultGnuplotDirectory = vtksys::SystemTools::CollapseFullPath("../gnuplot", this->ProgramDirectory); 
     this->SetGnuplotDirectory(defaultGnuplotDirectory.c_str());
@@ -334,17 +357,20 @@ PlusStatus vtkPlusConfig::ReadApplicationConfiguration()
 
   // Read scripts directory
   const char* scriptsDirectory = applicationConfigurationRoot->GetAttribute("ScriptsDirectory");
-  if ((scriptsDirectory != NULL) && (STRCASECMP(scriptsDirectory, "") != 0)) {
+  if ((scriptsDirectory != NULL) && (STRCASECMP(scriptsDirectory, "") != 0))
+  {
 	  this->SetScriptsDirectory(scriptsDirectory);
-
-  } else {
+  }
+  else
+  {
     LOG_INFO("Scripts directory is not set - default '../scripts' will be used");
   	std::string defaultScriptsDirectory = vtksys::SystemTools::CollapseFullPath("../scripts", this->ProgramDirectory); 
     this->SetScriptsDirectory(defaultScriptsDirectory.c_str());
     saveNeeded = true;
   }
 
-  if (saveNeeded) {
+  if (saveNeeded)
+  {
     return SaveApplicationConfigurationToFile();
   }
 
@@ -394,7 +420,8 @@ PlusStatus vtkPlusConfig::SaveApplicationConfigurationToFile()
 {
   LOG_TRACE("vtkPlusConfig::SaveApplicationConfigurationToFile");
 
-  if (WriteApplicationConfiguration() != PLUS_SUCCESS) {
+  if (WriteApplicationConfiguration() != PLUS_SUCCESS)
+  {
     LOG_ERROR("Failed to save application configuration to XML data!"); 
     return PLUS_FAIL; 
   }
@@ -414,17 +441,21 @@ PlusStatus vtkPlusConfig::ReplaceElementInDeviceSetConfiguration(const char* aEl
 
   vtkXMLDataElement* deviceSetConfigRootElement = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData();
   vtkXMLDataElement* orginalElement = deviceSetConfigRootElement->FindNestedElementWithName(aElementName);
-  if (orginalElement != NULL) {
+  if (orginalElement != NULL)
+  {
     deviceSetConfigRootElement->RemoveNestedElement(orginalElement);
   }
 
   vtkXMLDataElement* newElement = aNewRootElement->FindNestedElementWithName(aElementName);
-  if (newElement != NULL) {
+  if (newElement != NULL)
+  {
     deviceSetConfigRootElement->AddNestedElement(newElement);
-
-  } else {
+  }
+  else
+  {
     // Re-add deleted element if there was one
-    if (orginalElement != NULL) {
+    if (orginalElement != NULL)
+  {
       deviceSetConfigRootElement->AddNestedElement(orginalElement);
     }
     LOG_ERROR("No element with the name '" << aElementName << "' can be found in the given XML data element!");
@@ -440,18 +471,25 @@ vtkXMLDataElement* vtkPlusConfig::LookupElementWithNameContainingChildWithNameAn
 {
   LOG_TRACE("vtkPlusConfig::LookupElementWithNameContainingChildWithNameAndAttribute(" << aElementName << ", " << aChildName << ", " << (aChildAttributeName==NULL ? "" : aChildAttributeName) << ", " << (aChildAttributeValue==NULL ? "" : aChildAttributeValue) << ")");
 
-  if (aConfig == NULL) {
+  if (aConfig == NULL)
+  {
     LOG_ERROR("No input XML data element is specified!");
     return NULL;
   }
 
 	vtkXMLDataElement* firstElement = aConfig->LookupElementWithName(aElementName);
-	if (firstElement == NULL) {
+	if (firstElement == NULL)
+  {
 		return NULL;
-	} else {
-    if (aChildAttributeName && aChildAttributeValue) {
+	}
+  else
+  {
+    if (aChildAttributeName && aChildAttributeValue)
+    {
 		  return firstElement->FindNestedElementWithNameAndAttribute(aChildName, aChildAttributeName, aChildAttributeValue);
-    } else {
+    }
+    else
+    {
       return firstElement->FindNestedElementWithName(aChildName);
     }
 	}
@@ -463,11 +501,13 @@ std::string vtkPlusConfig::GetFirstFileFoundInConfigurationDirectory(const char*
 {
 	LOG_TRACE("vtkPlusConfig::GetFirstFileFoundInConfigurationDirectory(" << aFileName << ")");
 
-  if ((vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationDirectory() == NULL) || (STRCASECMP(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationDirectory(), "") == 0)) {
+  if ((vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationDirectory() == NULL) || (STRCASECMP(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationDirectory(), "") == 0))
+  {
 		std::string configurationDirectory = vtksys::SystemTools::GetFilenamePath(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName());
 		return vtkPlusConfig::GetFirstFileFoundInParentOfDirectory(aFileName, configurationDirectory.c_str());
-
-  } else {
+  }
+  else
+  {
   	return GetFirstFileFoundInParentOfDirectory(aFileName, vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationDirectory());
   }
 };
@@ -490,7 +530,8 @@ std::string vtkPlusConfig::GetFirstFileFoundInDirectory(const char* aFileName, c
 	LOG_TRACE("vtkPlusConfig::GetFirstFileFoundInDirectory(" << aFileName << ", " << aDirectory << ")"); 
 
 	std::string result = FindFileRecursivelyInDirectory(aFileName, aDirectory);
-	if (STRCASECMP("", result.c_str()) == 0) {
+	if (STRCASECMP("", result.c_str()) == 0)
+  {
 		LOG_WARNING("File " << aFileName << " was not found in directory " << aDirectory);
 	}
 
@@ -508,15 +549,20 @@ std::string vtkPlusConfig::FindFileRecursivelyInDirectory(const char* aFileName,
 
 	// Search for the file in the input directory first (no system paths allowed)
 	std::string result = vtksys::SystemTools::FindFile(aFileName, directoryList, true);
-	if (STRCASECMP("", result.c_str())) {
+	if (STRCASECMP("", result.c_str()))
+  {
 		return result;
-	// If not found then call this function recursively for the subdirectories of the input directory
-	} else {
+	}
+  else // If not found then call this function recursively for the subdirectories of the input directory
+  {
 		vtkSmartPointer<vtkDirectory> dir = vtkSmartPointer<vtkDirectory>::New(); 
-		if (dir->Open(aDirectory)) {				
-			for (int i=0; i<dir->GetNumberOfFiles(); ++i) {
+		if (dir->Open(aDirectory))
+    {				
+			for (int i=0; i<dir->GetNumberOfFiles(); ++i)
+      {
 				const char* fileOrDirectory = dir->GetFile(i);
-				if ((! dir->FileIsDirectory(fileOrDirectory)) || (STRCASECMP(".", fileOrDirectory) == 0) || (STRCASECMP("..", fileOrDirectory) == 0)) {
+				if ((! dir->FileIsDirectory(fileOrDirectory)) || (STRCASECMP(".", fileOrDirectory) == 0) || (STRCASECMP("..", fileOrDirectory) == 0))
+        {
 					continue;
 				}
 
@@ -525,11 +571,14 @@ std::string vtkPlusConfig::FindFileRecursivelyInDirectory(const char* aFileName,
 				fullPath.append(fileOrDirectory);
 
 				result = FindFileRecursivelyInDirectory(aFileName, fullPath.c_str());
-				if (STRCASECMP("", result.c_str())) {
+				if (STRCASECMP("", result.c_str()))
+        {
 					return result;
 				}
 			}
-		} else {
+		}
+    else
+    {
 			LOG_DEBUG("Directory " << aDirectory << " cannot be opened");
 			return "";
 		}
@@ -544,19 +593,23 @@ void vtkPlusConfig::SetOutputDirectory(const char* outputDir)
 {
 	LOG_TRACE("vtkPlusConfig::SetOutputDirectory(" << outputDir << ")"); 
 
-  if (outputDir == NULL && this->OutputDirectory) { 
+  if (outputDir == NULL && this->OutputDirectory)
+  { 
     return;
   }
-  if ( this->OutputDirectory && outputDir && (!strcmp(this->OutputDirectory,outputDir))) { 
+  if ( this->OutputDirectory && outputDir && (!strcmp(this->OutputDirectory,outputDir)))
+  { 
     return;
   }
 
-  if (this->OutputDirectory) { 
+  if (this->OutputDirectory)
+  { 
     delete [] this->OutputDirectory; 
     this->OutputDirectory = NULL; 
   } 
 
-  if ( outputDir ) {
+  if ( outputDir )
+  {
     size_t n = strlen(outputDir) + 1;
     char *cp1 =  new char[n];
     const char *cp2 = (outputDir);
@@ -564,7 +617,8 @@ void vtkPlusConfig::SetOutputDirectory(const char* outputDir)
     do { *cp1++ = *cp2++; } while ( --n ); 
 
     // Make output directory
-    if (! vtksys::SystemTools::MakeDirectory(this->OutputDirectory)) {
+    if (! vtksys::SystemTools::MakeDirectory(this->OutputDirectory))
+  {
       LOG_ERROR("Unable to create output directory '" << this->OutputDirectory << "'");
       return;
     }
