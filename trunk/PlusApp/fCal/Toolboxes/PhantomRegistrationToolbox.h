@@ -47,7 +47,13 @@ public:
 	*/
 	void Initialize();
 
-	/*!
+  /*!
+  * Read stylus calibration configuration for fCal
+  * \param aConfig Root element of the input device set configuration XML data
+  */
+  PlusStatus ReadConfiguration(vtkXMLDataElement* aConfig);
+
+  /*!
 	* Refresh contents (e.g. GUI elements) of toolbox according to the state in the toolbox controller - implementation of a pure virtual function
 	*/
 	void RefreshContent();
@@ -100,6 +106,9 @@ protected slots:
 protected:
   /*! Phantom registration algorithm */
   vtkPhantomRegistrationAlgo* m_PhantomRegistration;
+
+  /*! Name of the tool that is handled as the stylus during point recording */
+  std::string                 m_StylusToolName;
 
 	/*! Renderer for the canvas */
 	vtkRenderer*							  m_PhantomRenderer;

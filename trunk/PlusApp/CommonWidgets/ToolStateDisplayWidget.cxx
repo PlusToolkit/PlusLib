@@ -82,7 +82,8 @@ PlusStatus ToolStateDisplayWidget::InitializeTools(vtkDataCollector* aDataCollec
 	m_DataCollector = aDataCollector;
 
 	// Fail if data collector or tracker is not initialized (once the content was deleted)
-	if ((m_DataCollector == NULL) || (m_DataCollector->GetTracker() == NULL)) {
+	if ((m_DataCollector == NULL) || (m_DataCollector->GetTracker() == NULL))
+  {
 		LOG_ERROR("Data collector or tracker is missing!");
 		return PLUS_FAIL;
 	}
@@ -95,17 +96,14 @@ PlusStatus ToolStateDisplayWidget::InitializeTools(vtkDataCollector* aDataCollec
 
   m_ToolStateLabels.resize(m_DataCollector->GetTracker()->GetNumberOfTools(), NULL);
 
-	for (int i=0; i<m_DataCollector->GetTracker()->GetNumberOfTools(); ++i) {
-		vtkTrackerTool *tool = m_DataCollector->GetTracker()->GetTool(i);
-		if ((tool == NULL) || (!tool->GetEnabled())) {
-			LOG_DEBUG("Tool " << i << " is not enabled or not present");
-			continue;
-		}
+  int i;
+  ToolIteratorType it;
+  for (it = m_DataCollector->GetTracker()->GetToolIteratorBegin(), i = 0; it != m_DataCollector->GetTracker()->GetToolIteratorEnd(); ++it, ++i)
+  {
+    vtkTrackerTool* tool = it->second;
 
 		// Assemble tool name and add label to layout and label list
-    std::string toolType;
-		vtkTracker::ConvertToolTypeToString(tool->GetToolType(), toolType);
-		QString toolNameString = QString("%1: %2.%3").arg(i).arg(toolType.c_str()).arg(tool->GetToolName());
+		QString toolNameString = QString("%1: %2").arg(i).arg(tool->GetToolName());
 
 		QLabel* toolNameLabel = new QLabel(this);
 		toolNameLabel->setText(toolNameString);
@@ -160,46 +158,34 @@ int ToolStateDisplayWidget::GetDesiredHeight()
     return 23; 
   }
 
-  int numberOfActiveTools = 0;
+  int numberOfTools = m_DataCollector->GetTracker()->GetNumberOfTools();
 
-	for (int i=0; i<m_DataCollector->GetTracker()->GetNumberOfTools(); ++i) {
-		vtkTrackerTool *tool = m_DataCollector->GetTracker()->GetTool(i);
-		if ((tool != NULL) && (tool->GetEnabled()))
-    {
-			numberOfActiveTools++;
-		}
-  }
-
-	return (numberOfActiveTools>0 ? numberOfActiveTools * 23 : 23);
+	return ((numberOfTools > 0) ? (numberOfTools * 23) : 23);
 }
 
 //-----------------------------------------------------------------------------
 
 PlusStatus ToolStateDisplayWidget::Update()
 {
-	if (! m_Initialized) {
+	if (! m_Initialized)
+  {
 		LOG_ERROR("Widget is not inialized!");
 		return PLUS_FAIL;
 	}
 
   // Re-initialize widget if enabled statuses have changed
-  int numberOfEnabledTools = 0;
   int numberOfDisplayedTools = 0;
 
-	for (int i=0; i<m_DataCollector->GetTracker()->GetNumberOfTools(); ++i) {
-		vtkTrackerTool *tool = m_DataCollector->GetTracker()->GetTool(i);
-    if (tool->GetEnabled())
-    {
-      numberOfEnabledTools++;
-    }
+  ToolIteratorType toolIt;
+  std::vector<QTextEdit*>::iterator labelIt;
+  for (toolIt = m_DataCollector->GetTracker()->GetToolIteratorBegin(), labelIt = m_ToolStateLabels.begin(); toolIt != m_DataCollector->GetTracker()->GetToolIteratorEnd(); ++toolIt, ++labelIt)
+  {
+    vtkTrackerTool* tool = toolIt->second;
+    QTextEdit* label = (*labelIt);
 
-    if (m_ToolStateLabels.at(i))
+		if ((tool == NULL) || (label == NULL))
     {
-      numberOfDisplayedTools++;
-    }
-
-		if ((tool == NULL) || (!tool->GetEnabled()) || (m_ToolStateLabels.at(i) == NULL))
-    {
+      LOG_WARNING("Invalid tool or tool state label");
 			continue;
 		}
 
@@ -208,42 +194,43 @@ PlusStatus ToolStateDisplayWidget::Update()
 		if (tool->GetBuffer()->GetLatestTrackerBufferItem(&latestItem) != ITEM_OK)
     {
 			LOG_WARNING("Latest tracker buffer item is not available");
-			m_ToolStateLabels.at(i)->setText("BUFFER ERROR");
-			m_ToolStateLabels.at(i)->setTextColor(QColor::fromRgb(223, 0, 0));
+			label->setText("BUFFER ERROR");
+			label->setTextColor(QColor::fromRgb(223, 0, 0));
 		}
     else
     {
 			switch (latestItem.GetStatus())
       {
 				case (TR_OK):
-					m_ToolStateLabels.at(i)->setText("OK");
-					m_ToolStateLabels.at(i)->setTextColor(Qt::green);
+					label->setText("OK");
+					label->setTextColor(Qt::green);
 					break;
 				case (TR_MISSING):
-					m_ToolStateLabels.at(i)->setText("MISSING");
-					m_ToolStateLabels.at(i)->setTextColor(QColor::fromRgb(223, 0, 0));
+					label->setText("MISSING");
+					label->setTextColor(QColor::fromRgb(223, 0, 0));
 					break;
 				case (TR_OUT_OF_VIEW):
-					m_ToolStateLabels.at(i)->setText("OUT OF VIEW");
-					m_ToolStateLabels.at(i)->setTextColor(QColor::fromRgb(255, 128, 0));
+					label->setText("OUT OF VIEW");
+					label->setTextColor(QColor::fromRgb(255, 128, 0));
 					break;
 				case (TR_OUT_OF_VOLUME):
-					m_ToolStateLabels.at(i)->setText("OUT OF VOLUME");
-					m_ToolStateLabels.at(i)->setTextColor(QColor::fromRgb(255, 128, 0));
+					label->setText("OUT OF VOLUME");
+					label->setTextColor(QColor::fromRgb(255, 128, 0));
 					break;
 				case (TR_REQ_TIMEOUT):
-					m_ToolStateLabels.at(i)->setText("TIMEOUT");
-					m_ToolStateLabels.at(i)->setTextColor(QColor::fromRgb(223, 0, 0));
+					label->setText("TIMEOUT");
+					label->setTextColor(QColor::fromRgb(223, 0, 0));
 					break;
 				default:
-					m_ToolStateLabels.at(i)->setText("UNKNOWN");
-					m_ToolStateLabels.at(i)->setTextColor(QColor::fromRgb(223, 0, 0));
+					label->setText("UNKNOWN");
+					label->setTextColor(QColor::fromRgb(223, 0, 0));
 					break;
 			}
 		}
 	}
 
-	if (numberOfEnabledTools != numberOfDisplayedTools) {
+  if (labelIt != m_ToolStateLabels.end())
+  {
 		LOG_WARNING("Tool number inconsistency!");
 
 		if (InitializeTools(m_DataCollector, true) != PLUS_SUCCESS)

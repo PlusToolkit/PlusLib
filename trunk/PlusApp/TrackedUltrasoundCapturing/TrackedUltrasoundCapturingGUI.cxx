@@ -426,25 +426,16 @@ void TrackedUltrasoundCapturingGUI::UpdateWidgets()
       this->SyncTrackerMatrix->show(); 
       this->CapturingTrackerMatrix->show(); 
 
-      int defaultToolNumber = tracker->GetFirstPortNumberByType(TRACKER_TOOL_PROBE);
-      if ( defaultToolNumber == -1 )
+      vtkTrackerTool* tool = NULL;
+      if (tracker->GetTool("Probe", tool) != PLUS_SUCCESS) //TODO
       {
-        if ( tracker->GetFirstActiveTool(defaultToolNumber) != PLUS_SUCCESS )
-        {
-          this->SyncTrackerMatrix->hide(); 
-          this->CapturingTrackerMatrix->hide(); 
-          return; 
-        }
-      }
-
-      if (tracker->GetTool( defaultToolNumber )==NULL)
-      {
-        LOG_WARNING("Cannot get tracker tool (number="<<defaultToolNumber<<")");        
+        LOG_ERROR("No probe found!");
         this->SyncTrackerMatrix->hide(); 
         this->CapturingTrackerMatrix->hide(); 
-        return;
+        return; 
       }
-      vtkTrackerBuffer* trackerBuffer = tracker->GetTool( defaultToolNumber )->GetBuffer();  
+
+      vtkTrackerBuffer* trackerBuffer = tool->GetBuffer();  
 
       vtkSmartPointer<vtkMatrix4x4> transformMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
       TrackerBufferItem bufferItem; 
@@ -896,10 +887,10 @@ void TrackedUltrasoundCapturingGUI::ConnectToDevicesByConfigFile(std::string aCo
       m_SyncToolStateDisplayWidget->InitializeTools(NULL, false);
       m_RecordingToolStateDisplayWidget->InitializeTools(NULL, false);
 
-	  // Close dialog
-	  connectDialog->done(0);
+	    // Close dialog
+	    connectDialog->done(0);
       QApplication::restoreOverrideCursor();
-	  return;
+	    return;
     }
 
     // Start data collection 
@@ -920,16 +911,7 @@ void TrackedUltrasoundCapturingGUI::ConnectToDevicesByConfigFile(std::string aCo
     {
       if ( this->m_USCapturing->GetDataCollector()->GetTrackingEnabled() )
       {
-        int defaultToolNumber =  this->m_USCapturing->GetDataCollector()->GetTracker()->GetFirstPortNumberByType( TRACKER_TOOL_PROBE ); 
-        if ( defaultToolNumber == -1 )
-        {
-          if ( this->m_USCapturing->GetDataCollector()->GetTracker()->GetFirstActiveTool( defaultToolNumber ) != PLUS_SUCCESS )
-          {
-            LOG_ERROR("Failed to get first active tool number!"); 
-            return; 
-          }
-        }
-        this->m_USCapturing->DefaultFrameTransformName = this->m_USCapturing->GetDataCollector()->GetTracker()->GetTool(defaultToolNumber)->GetToolName(); 
+        this->m_USCapturing->DefaultFrameTransformName = "Probe";
       }
 
       m_DeviceSetSelectorWidget->SetConnectionSuccessful(true);

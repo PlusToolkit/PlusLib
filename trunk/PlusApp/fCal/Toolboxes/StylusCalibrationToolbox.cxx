@@ -24,6 +24,7 @@ StylusCalibrationToolbox::StylusCalibrationToolbox(fCalMainWindow* aParentMainWi
   , QWidget(aParentMainWindow, aFlags)
   , m_NumberOfPoints(200)
   , m_CurrentPointNumber(0)
+  , m_StylusToolName("")
   , m_StylusPositionString("")
 {
   ui.setupUi(this);
@@ -116,6 +117,7 @@ PlusStatus StylusCalibrationToolbox::ReadConfiguration(vtkXMLDataElement* aConfi
     return PLUS_FAIL;     
   }
 
+  // Number of stylus calibraiton points to acquire
   int numberOfStylusCalibrationPointsToAcquire = 0; 
   if ( fCalElement->GetScalarAttribute("NumberOfStylusCalibrationPointsToAcquire", numberOfStylusCalibrationPointsToAcquire ) )
   {
@@ -123,9 +125,46 @@ PlusStatus StylusCalibrationToolbox::ReadConfiguration(vtkXMLDataElement* aConfi
     ui.spinBox_NumberOfStylusCalibrationPoints->setValue(m_NumberOfPoints);
   }
 
+  // Stylus tool name
+  vtkXMLDataElement* trackerToolNames = fCalElement->FindNestedElementWithName("TrackerToolNames"); 
+
+  if (trackerToolNames == NULL)
+  {
+    LOG_ERROR("Unable to find TrackerToolNames element in XML tree!"); 
+    return PLUS_FAIL;     
+  }
+
+  const char* stylusToolName = trackerToolNames->GetAttribute("Stylus");
+  if (stylusToolName == NULL)
+  {
+	  LOG_ERROR("Stylus tool name is not specified in the fCal section of the configuration!");
+    return PLUS_FAIL;     
+  }
+
+  m_StylusToolName = std::string(stylusToolName);
+
+  // Check if a tool with the specified name exists
+  if (m_ParentMainWindow->GetToolVisualizer()->GetDataCollector() == NULL)
+  {
+    LOG_ERROR("Data collector object is invalid!");
+    return PLUS_FAIL;
+  }
+
+  if (m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->GetTracker() == NULL)
+  {
+    LOG_ERROR("Tracker object is invalid!");
+    return PLUS_FAIL;
+  }
+
+  vtkTrackerTool* stylusTool = NULL;
+  if (m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->GetTracker()->GetTool(m_StylusToolName.c_str(), stylusTool) != PLUS_SUCCESS)
+  {
+    LOG_ERROR("No tool found with the specified name '" << m_StylusToolName << "'!");
+    return PLUS_FAIL;
+  }
+
   return PLUS_SUCCESS;
 }
-
 
 //-----------------------------------------------------------------------------
 
@@ -146,7 +185,7 @@ void StylusCalibrationToolbox::RefreshContent()
   }
   else if (m_State == ToolboxState_Done)
   {
-    ui.label_CurrentPosition->setText(m_ParentMainWindow->GetToolVisualizer()->GetToolPositionString(TRACKER_TOOL_STYLUS, true).c_str());
+    ui.label_CurrentPosition->setText(m_ParentMainWindow->GetToolVisualizer()->GetToolPositionString(m_StylusToolName.c_str(), true).c_str());
   }
 }
 
@@ -223,7 +262,7 @@ void StylusCalibrationToolbox::SetDisplayAccordingToState()
     m_ParentMainWindow->GetToolVisualizer()->ShowInput(true);
     m_ParentMainWindow->GetToolVisualizer()->ShowResult(true);
     m_ParentMainWindow->GetToolVisualizer()->GetCanvasRenderer()->ResetCamera();
-    m_ParentMainWindow->GetToolVisualizer()->ShowTool(TRACKER_TOOL_STYLUS, true);
+    m_ParentMainWindow->GetToolVisualizer()->ShowTool(m_StylusToolName.c_str(), true);
 
     QApplication::restoreOverrideCursor();
   }
@@ -267,8 +306,8 @@ void StylusCalibrationToolbox::Start()
   m_PivotCalibration->Initialize();
 
   // Initialize stylus tool
-  vtkDisplayableTool* stylusDisplayable = m_ParentMainWindow->GetToolVisualizer()->GetDisplayableTool(TRACKER_TOOL_STYLUS);
-  if (stylusDisplayable == NULL)
+  vtkDisplayableTool* stylusDisplayable = NULL;
+  if (m_ParentMainWindow->GetToolVisualizer()->GetDisplayableTool(m_StylusToolName.c_str(), stylusDisplayable) != PLUS_SUCCESS)
   {
     LOG_ERROR("Stylus tool not found!");
     return;
@@ -302,8 +341,8 @@ void StylusCalibrationToolbox::Stop()
     LOG_INFO("Stylus calibration successful");
 
     // Feed result to tool
-    vtkDisplayableTool* stylusDisplayable = m_ParentMainWindow->GetToolVisualizer()->GetDisplayableTool(TRACKER_TOOL_STYLUS);
-    if (stylusDisplayable == NULL)
+    vtkDisplayableTool* stylusDisplayable = NULL;
+    if (m_ParentMainWindow->GetToolVisualizer()->GetDisplayableTool(m_StylusToolName.c_str(), stylusDisplayable) != PLUS_SUCCESS)
     {
       LOG_ERROR("Stylus tool not found!");
       SetState(ToolboxState_Error);
@@ -320,7 +359,7 @@ void StylusCalibrationToolbox::Stop()
     points->Modified();
 
     // Write result in configuration
-    if (m_PivotCalibration->WriteConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData(), TRACKER_TOOL_STYLUS) != PLUS_SUCCESS)
+    if (m_PivotCalibration->WriteConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData(), m_StylusToolName.c_str()) != PLUS_SUCCESS) //TODO
     {
       LOG_ERROR("Unable to save stylus calibration result in configuration XML tree!");
       SetState(ToolboxState_Error);
@@ -356,7 +395,8 @@ void StylusCalibrationToolbox::AddStylusPositionToCalibration()
   LOG_TRACE("StylusCalibrationToolbox::AddStylusPositionToCalibration");
 
   vtkSmartPointer<vtkMatrix4x4> stylusToReferenceMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-  if (m_ParentMainWindow->GetToolVisualizer()->AcquireTrackerPositionForToolByType(TRACKER_TOOL_STYLUS, stylusToReferenceMatrix) == TR_OK) {
+  if (m_ParentMainWindow->GetToolVisualizer()->AcquireTrackerPositionForToolByName(m_StylusToolName.c_str(), stylusToReferenceMatrix) == TR_OK)
+  {
     // Compute the new position - TODO: find other way
     double stylusPosition[4];
     double elements[16];
@@ -382,10 +422,13 @@ void StylusCalibrationToolbox::AddStylusPositionToCalibration()
     double distance_lowThreshold_mm = 2.0; // TODO: review these thresholds with the guys
     double distance_highThreshold_mm = 1000.0;
     double distance = -1.0;
-    if (m_CurrentPointNumber < 1) {
+    if (m_CurrentPointNumber < 1)
+    {
       // Always allow
       distance = (distance_lowThreshold_mm + distance_highThreshold_mm) / 2.0;
-    } else {
+    }
+    else
+    {
       double previousPosition[4];
       points->GetPoint(m_CurrentPointNumber-1, previousPosition);
       previousPosition[3] = 1.0;
@@ -394,11 +437,16 @@ void StylusCalibrationToolbox::AddStylusPositionToCalibration()
     }
 
     // If current point is close to the previous one, or too far (outlier), we do not insert it
-    if (distance < distance_lowThreshold_mm * distance_lowThreshold_mm) {
+    if (distance < distance_lowThreshold_mm * distance_lowThreshold_mm)
+    {
       LOG_DEBUG("Acquired position is too close to the previous - it is skipped");
-    } else if (distance > distance_highThreshold_mm * distance_highThreshold_mm) {
+    }
+    else if (distance > distance_highThreshold_mm * distance_highThreshold_mm)
+    {
       LOG_DEBUG("Acquired position seems to be an outlier - it is skipped");
-    } else {
+    }
+    else
+    {
       // Add the point into the calibration dataset
       m_PivotCalibration->InsertNextCalibrationPoint(stylusToReferenceMatrix);
 
@@ -410,12 +458,14 @@ void StylusCalibrationToolbox::AddStylusPositionToCalibration()
       ++m_CurrentPointNumber;
 
       // Reset the camera once in a while
-      if ((m_CurrentPointNumber > 0) && ((m_CurrentPointNumber % 10 == 0) || (m_CurrentPointNumber == 5) || (m_CurrentPointNumber >= m_NumberOfPoints))) {
+      if ((m_CurrentPointNumber > 0) && ((m_CurrentPointNumber % 10 == 0) || (m_CurrentPointNumber == 5) || (m_CurrentPointNumber >= m_NumberOfPoints)))
+      {
         m_ParentMainWindow->GetToolVisualizer()->GetCanvasRenderer()->ResetCamera();
       }
 
       // If enough points have been acquired, stop
-      if (m_CurrentPointNumber >= m_NumberOfPoints) {
+      if (m_CurrentPointNumber >= m_NumberOfPoints)
+      {
         Stop();
       }
     }

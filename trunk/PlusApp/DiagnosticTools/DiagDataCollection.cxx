@@ -137,20 +137,19 @@ int main(int argc, char **argv)
 
 	if ( dataCollector->GetTracker() != NULL )
 	{
-		for ( int tool = 0; tool < dataCollector->GetTracker()->GetNumberOfTools(); tool++ )
+    for (ToolIteratorType it = dataCollector->GetTracker()->GetToolIteratorBegin(); it != dataCollector->GetTracker()->GetToolIteratorEnd(); ++it)
 		{
-			if ( dataCollector->GetTracker()->GetTool(tool)->GetEnabled() )
-			{
-				int numOfItems = dataCollector->GetTracker()->GetTool(tool)->GetBuffer()->GetNumberOfItems(); 
-				int bufferSize = dataCollector->GetTracker()->GetTool(tool)->GetBuffer()->GetBufferSize(); 
-				double realFrameRate = dataCollector->GetTracker()->GetTool(tool)->GetBuffer()->GetFrameRate();
-				double idealFrameRate = dataCollector->GetTracker()->GetTool(tool)->GetBuffer()->GetFrameRate(true);
-				LOG_INFO("------------------ " << dataCollector->GetTracker()->GetTool(tool)->GetToolName() << " ---------------------"); 
-				LOG_INFO("Tracker tool " << tool <<  " real sampling frequency: " << realFrameRate << "fps"); 
-				LOG_INFO("Tracker tool " << tool <<  " ideal sampling frequency: " << idealFrameRate << "fps"); 
-				LOG_INFO("Number of items in the tool buffer: " << numOfItems ); 
-				LOG_INFO("Tool buffer size: " << bufferSize); 
-			}
+      vtkTrackerTool* tool = it->second;
+
+			int numOfItems = tool->GetBuffer()->GetNumberOfItems(); 
+			int bufferSize = tool->GetBuffer()->GetBufferSize(); 
+			double realFrameRate = tool->GetBuffer()->GetFrameRate();
+			double idealFrameRate = tool->GetBuffer()->GetFrameRate(true);
+			LOG_INFO("------------------ " << tool->GetToolName() << " ---------------------"); 
+			LOG_INFO("Tracker tool " << tool <<  " real sampling frequency: " << realFrameRate << "fps"); 
+			LOG_INFO("Tracker tool " << tool <<  " ideal sampling frequency: " << idealFrameRate << "fps"); 
+			LOG_INFO("Number of items in the tool buffer: " << numOfItems ); 
+			LOG_INFO("Tool buffer size: " << bufferSize); 
 		}
 	}
 

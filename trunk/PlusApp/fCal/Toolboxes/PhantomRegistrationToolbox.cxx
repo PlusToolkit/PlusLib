@@ -32,6 +32,7 @@
 PhantomRegistrationToolbox::PhantomRegistrationToolbox(fCalMainWindow* aParentMainWindow, Qt::WFlags aFlags)
 	: AbstractToolbox(aParentMainWindow)
 	, QWidget(aParentMainWindow, aFlags)
+  , m_StylusToolName("")
   , m_PhantomActor(NULL)
   , m_RequestedLandmarkActor(NULL)
   , m_RequestedLandmarkPolyData(NULL)
@@ -124,11 +125,11 @@ void PhantomRegistrationToolbox::Initialize()
     vtkPivotCalibrationAlgo* pivotCalibration = stylusCalibrationToolbox->GetPivotCalibrationAlgo();
 
     if ( (stylusCalibrationToolbox->GetState() == ToolboxState_Done)
-      || (pivotCalibration->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData(), TRACKER_TOOL_STYLUS) == PLUS_SUCCESS) )
+      || (pivotCalibration->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData(), m_StylusToolName.c_str()) == PLUS_SUCCESS) )
     {
       // Set calibration matrix to stylus tool for the upcoming acquisition
-      vtkDisplayableTool* stylusDisplayable = m_ParentMainWindow->GetToolVisualizer()->GetDisplayableTool(TRACKER_TOOL_STYLUS);
-      if (stylusDisplayable == NULL)
+      vtkDisplayableTool* stylusDisplayable = NULL;
+      if (m_ParentMainWindow->GetToolVisualizer()->GetDisplayableTool(m_StylusToolName.c_str(), stylusDisplayable) != PLUS_SUCCESS)
       {
         LOG_ERROR("Stylus tool not found!");
         return;
@@ -165,13 +166,75 @@ void PhantomRegistrationToolbox::Initialize()
 
 //-----------------------------------------------------------------------------
 
+PlusStatus PhantomRegistrationToolbox::ReadConfiguration(vtkXMLDataElement* aConfig)
+{
+  LOG_TRACE("PhantomRegistrationToolbox::ReadConfiguration");
+
+  if (aConfig == NULL)
+  {
+    LOG_ERROR("Unable to read configuration"); 
+    return PLUS_FAIL; 
+  }
+
+  vtkXMLDataElement* fCalElement = aConfig->FindNestedElementWithName("fCal"); 
+
+  if (fCalElement == NULL)
+  {
+    LOG_ERROR("Unable to find fCal element in XML tree!"); 
+    return PLUS_FAIL;     
+  }
+
+  // Stylus tool name
+  vtkXMLDataElement* trackerToolNames = fCalElement->FindNestedElementWithName("TrackerToolNames"); 
+
+  if (trackerToolNames == NULL)
+  {
+    LOG_ERROR("Unable to find TrackerToolNames element in XML tree!"); 
+    return PLUS_FAIL;     
+  }
+
+  const char* stylusToolName = trackerToolNames->GetAttribute("Stylus");
+  if (stylusToolName == NULL)
+  {
+	  LOG_ERROR("Stylus tool name is not specified in the fCal section of the configuration!");
+    return PLUS_FAIL;     
+  }
+
+  m_StylusToolName = std::string(stylusToolName);
+
+  // Check if a tool with the specified name exists
+  if (m_ParentMainWindow->GetToolVisualizer()->GetDataCollector() == NULL)
+  {
+    LOG_ERROR("Data collector object is invalid!");
+    return PLUS_FAIL;
+  }
+
+  if (m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->GetTracker() == NULL)
+  {
+    LOG_ERROR("Tracker object is invalid!");
+    return PLUS_FAIL;
+  }
+
+  vtkTrackerTool* stylusTool = NULL;
+  if (m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->GetTracker()->GetTool(m_StylusToolName.c_str(), stylusTool) != PLUS_SUCCESS)
+  {
+    LOG_ERROR("No tool found with the specified name '" << m_StylusToolName << "'!");
+    return PLUS_FAIL;
+  }
+
+  return PLUS_SUCCESS;
+}
+
+//-----------------------------------------------------------------------------
+
 PlusStatus PhantomRegistrationToolbox::InitializeVisualization()
 {
 	LOG_TRACE("PhantomRegistrationToolbox::InitializeVisualization"); 
 
   if (m_State == ToolboxState_Uninitialized)
   {
-    if (m_ParentMainWindow->GetToolVisualizer()->GetDisplayableTool(TRACKER_TOOL_REFERENCE) == NULL)
+    vtkDisplayableTool* referenceDisplayableTool = NULL;
+    if (m_ParentMainWindow->GetToolVisualizer()->GetDisplayableTool("Reference", referenceDisplayableTool) != PLUS_SUCCESS)
     {
       LOG_ERROR("Invalid reference tool actor! Probable device set is not connected.");
       return PLUS_FAIL;
@@ -204,7 +267,7 @@ PlusStatus PhantomRegistrationToolbox::InitializeVisualization()
 		  stlMapper->SetInputConnection(stlReader->GetOutputPort());
 		  m_PhantomActor->SetMapper(stlMapper);
       m_PhantomActor->GetProperty()->SetOpacity(0.6);
-      m_PhantomActor->SetUserTransform(m_ParentMainWindow->GetToolVisualizer()->GetDisplayableTool(TRACKER_TOOL_REFERENCE)->GetTool()->GetModelToToolTransform());
+      m_PhantomActor->SetUserTransform(referenceDisplayableTool->GetTool()->GetModelToToolTransform());
     }
     else
     {
@@ -231,7 +294,7 @@ void PhantomRegistrationToolbox::RefreshContent()
 	// If in progress
 	if (m_State == ToolboxState_InProgress)
   {
-		ui.label_StylusPosition->setText(m_ParentMainWindow->GetToolVisualizer()->GetToolPositionString(TRACKER_TOOL_STYLUS, true).c_str());
+    ui.label_StylusPosition->setText(m_ParentMainWindow->GetToolVisualizer()->GetToolPositionString(m_StylusToolName.c_str(), true).c_str());
     ui.label_Instructions->setText(QString("Touch landmark named %1 and press Record point button").arg(m_PhantomRegistration->GetDefinedLandmarkName(m_CurrentLandmarkIndex).c_str()));
 
 		if (m_CurrentLandmarkIndex < 1)
@@ -250,7 +313,7 @@ void PhantomRegistrationToolbox::RefreshContent()
   }
   else if (m_State == ToolboxState_Done)
   {
-    ui.label_StylusPosition->setText(m_ParentMainWindow->GetToolVisualizer()->GetToolPositionString(TRACKER_TOOL_STYLUS, true).c_str());
+    ui.label_StylusPosition->setText(m_ParentMainWindow->GetToolVisualizer()->GetToolPositionString(m_StylusToolName.c_str(), true).c_str());
   }
 
 	ui.canvasPhantom->update();
@@ -307,9 +370,10 @@ void PhantomRegistrationToolbox::SetDisplayAccordingToState()
 		m_ParentMainWindow->SetStatusBarProgress(0);
 
     m_ParentMainWindow->GetToolVisualizer()->ShowInput(true);
-    m_ParentMainWindow->GetToolVisualizer()->ShowTool(TRACKER_TOOL_STYLUS, true);
-    if (m_CurrentLandmarkIndex >= 3) {
-      m_ParentMainWindow->GetToolVisualizer()->ShowTool(TRACKER_TOOL_REFERENCE, true);
+    m_ParentMainWindow->GetToolVisualizer()->ShowTool(m_StylusToolName.c_str(), true);
+    if (m_CurrentLandmarkIndex >= 3)
+    {
+      m_ParentMainWindow->GetToolVisualizer()->ShowTool("Reference", true);
     }
 
     ui.pushButton_RecordPoint->setFocus();
@@ -327,8 +391,8 @@ void PhantomRegistrationToolbox::SetDisplayAccordingToState()
 		m_ParentMainWindow->SetStatusBarProgress(-1);
 
     m_ParentMainWindow->GetToolVisualizer()->ShowInput(true);
-    m_ParentMainWindow->GetToolVisualizer()->ShowTool(TRACKER_TOOL_REFERENCE, true);
-    m_ParentMainWindow->GetToolVisualizer()->ShowTool(TRACKER_TOOL_STYLUS, true);
+    m_ParentMainWindow->GetToolVisualizer()->ShowTool("Reference", true);
+    m_ParentMainWindow->GetToolVisualizer()->ShowTool(m_StylusToolName.c_str(), true);
 
   }
   else if (m_State == ToolboxState_Error)
@@ -420,7 +484,7 @@ void PhantomRegistrationToolbox::OpenStylusCalibration()
 
   vtkPivotCalibrationAlgo* pivotCalibration = stylusCalibrationToolbox->GetPivotCalibrationAlgo();
 
-  if (pivotCalibration->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData(), TRACKER_TOOL_STYLUS) == PLUS_SUCCESS)
+  if (pivotCalibration->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData(), m_StylusToolName.c_str()) == PLUS_SUCCESS) //TODO
   {
 	  // Set to InProgress if both stylus calibration and phantom definition are available
     Start();
@@ -443,7 +507,7 @@ void PhantomRegistrationToolbox::RecordPoint()
 
   // Acquire point and add to registration algorithm
   vtkSmartPointer<vtkMatrix4x4> stylusTipToReferenceMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-  if (m_ParentMainWindow->GetToolVisualizer()->AcquireTrackerPositionForToolByType(TRACKER_TOOL_STYLUS, stylusTipToReferenceMatrix, true) == TR_OK)
+  if (m_ParentMainWindow->GetToolVisualizer()->AcquireTrackerPositionForToolByName(m_StylusToolName.c_str(), stylusTipToReferenceMatrix, true) == TR_OK)
   {
 		double elements[16]; //TODO find other way
 		double stylusTipPosition[4];
@@ -469,7 +533,7 @@ void PhantomRegistrationToolbox::RecordPoint()
       {
         // Set result for visualization
         m_ParentMainWindow->GetToolVisualizer()->SetPhantomToPhantomReferenceTransform(m_PhantomRegistration->GetPhantomToPhantomReferenceTransform());
-        m_ParentMainWindow->GetToolVisualizer()->ShowTool(TRACKER_TOOL_REFERENCE, true);
+        m_ParentMainWindow->GetToolVisualizer()->ShowTool("Reference", true);
       } else {
         LOG_ERROR("Phantom registration failed!");
       }
@@ -531,12 +595,13 @@ void PhantomRegistrationToolbox::Undo()
 		m_RequestedLandmarkPolyData->GetPoints()->Modified();
 
     // Hide phantom from main canvas
-    m_ParentMainWindow->GetToolVisualizer()->ShowTool(TRACKER_TOOL_REFERENCE, false);
+    m_ParentMainWindow->GetToolVisualizer()->ShowTool("Reference", false);
   }
 
 	// If tracker is FakeTracker then set counter
 	vtkFakeTracker *fakeTracker = dynamic_cast<vtkFakeTracker*>(m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->GetTracker());
-	if (fakeTracker != NULL) {
+	if (fakeTracker != NULL)
+  {
 		fakeTracker->SetCounter(m_CurrentLandmarkIndex);
 	}
 }
@@ -547,7 +612,8 @@ void PhantomRegistrationToolbox::Reset()
 {
 	LOG_TRACE("PhantomRegistrationToolbox::Reset"); 
 
-	if (m_State == ToolboxState_Done) {
+	if (m_State == ToolboxState_Done)
+  {
 		SetState(ToolboxState_InProgress);
 	}
 
@@ -563,17 +629,19 @@ void PhantomRegistrationToolbox::Reset()
 	m_PhantomRegistration->SetPhantomToPhantomReferenceTransform(NULL);
 
 	// Highlight first landmark
-  if ((m_State != ToolboxState_Uninitialized) && (m_PhantomRegistration->GetDefinedLandmarks()->GetNumberOfPoints() > 0)) {
+  if ((m_State != ToolboxState_Uninitialized) && (m_PhantomRegistration->GetDefinedLandmarks()->GetNumberOfPoints() > 0))
+  {
 	  m_RequestedLandmarkPolyData->GetPoints()->InsertPoint(0, m_PhantomRegistration->GetDefinedLandmarks()->GetPoint(0));
 	  m_RequestedLandmarkPolyData->GetPoints()->Modified();
   }
 
   // Hide phantom from main canvas
-  m_ParentMainWindow->GetToolVisualizer()->ShowTool(TRACKER_TOOL_REFERENCE, false);
+  m_ParentMainWindow->GetToolVisualizer()->ShowTool("Reference", false);
 
 	// If tracker is FakeTracker then reset counter
 	vtkFakeTracker *fakeTracker = dynamic_cast<vtkFakeTracker*>(m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->GetTracker());
-	if (fakeTracker != NULL) {
+	if (fakeTracker != NULL)
+  {
 		fakeTracker->SetCounter(m_CurrentLandmarkIndex);
 	}
 }

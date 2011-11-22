@@ -28,7 +28,8 @@ int main(int argc, char **argv)
 	std::string outputVideoBufferSequenceFileName("VideoBufferMetafile"); 
 	int numberOfAveragedFrames(15); 
 	int numberOfAveragedTransforms(20); 
-	double thresholdMultiplier(5); 
+	double thresholdMultiplier(5);
+  std::string toolName("Probe");
 
 	int verboseLevel=vtkPlusLogger::LOG_LEVEL_DEFAULT;
 
@@ -44,6 +45,7 @@ int main(int argc, char **argv)
 	args.AddArgument("--averaged-frames", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &numberOfAveragedFrames, "Number of averaged frames for synchronization (Default: 15)");
 	args.AddArgument("--averaged-transforms", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &numberOfAveragedTransforms, "Number of averaged transforms for synchronization (Default: 20)");
 	args.AddArgument("--threshold-multiplier", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &thresholdMultiplier, "Set the stdev multiplier of threshold value for synchronization (Default: 5)");
+	args.AddArgument("--tool-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &toolName, "Name of the used tool (Default: Probe)");
 
 	args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");	
 
@@ -90,10 +92,9 @@ int main(int argc, char **argv)
 		exit(EXIT_FAILURE);
   }
 	dataCollector->ReadConfiguration(configRootElement);
-	dataCollector->Connect(); 
+	dataCollector->Connect();
 	dataCollector->Start();
 
-	const int mainToolNumber = dataCollector->GetTracker()->GetFirstPortNumberByType(TRACKER_TOOL_PROBE);
 	const double acqStartTime = vtkTimerLog::GetUniversalTime(); 
 
 	//************************************************************************************
@@ -120,7 +121,14 @@ int main(int argc, char **argv)
 		LOG_INFO("Copy tracker ..."); 
 		dataCollector->CopyTracker(tracker); 
 	}
-	vtkTrackerBuffer* trackerbuffer = tracker->GetTool(mainToolNumber)->GetBuffer(); 
+
+  vtkTrackerTool* tool = NULL;
+  if (dataCollector->GetTracker()->GetTool(toolName.c_str(), tool) != PLUS_SUCCESS)
+  {
+    LOG_ERROR("No tool found with name '" << toolName << "'");
+		exit(EXIT_FAILURE);
+  }
+	vtkTrackerBuffer* trackerbuffer = tool->GetBuffer(); 
 
 	//************************************************************************************
 	// Stop recording

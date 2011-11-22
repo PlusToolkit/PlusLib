@@ -181,7 +181,12 @@ void OpenIGTLinkBroadcasterWidget::StylusCalibrationChanged( int newValue )
 
 void OpenIGTLinkBroadcasterWidget::SendMessages()
 {
-  int defaultTool = this->m_DataCollector->GetTracker()->GetFirstPortNumberByType( TRACKER_TOOL_PROBE );
+  vtkTrackerTool* tool = NULL;
+  if (this->m_DataCollector->GetTracker()->GetTool("Probe", tool) != PLUS_SUCCESS) //TODO
+  {
+    LOG_ERROR("No probe found!");
+    return;
+  }
 
   vtkSmartPointer< vtkMatrix4x4 > mToolToReference = vtkSmartPointer< vtkMatrix4x4 >::New();
   
@@ -189,7 +194,7 @@ void OpenIGTLinkBroadcasterWidget::SendMessages()
   {
     double timeTracker = 0.0;
     TrackerStatus status = TR_OK;
-    this->m_DataCollector->GetTransformWithTimestamp( mToolToReference, timeTracker, status, defaultTool );
+    this->m_DataCollector->GetTransformWithTimestamp( mToolToReference, timeTracker, status, "Probe" ); //TODO
     if ( status == TR_OK )
     {
       LOG_INFO( "Tool position: " << mToolToReference->GetElement( 0, 3 ) << " "

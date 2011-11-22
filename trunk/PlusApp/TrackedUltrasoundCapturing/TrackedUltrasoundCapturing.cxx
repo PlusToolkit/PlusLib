@@ -332,9 +332,9 @@ PlusStatus TrackedUltrasoundCapturing::UpdateRecording()
   }
   else if ( this->DataCollector->GetTrackingEnabled() )
   {
-    int toolNumber(-1); 
-    if ( this->DataCollector->GetTracker()->GetFirstActiveTool(toolNumber) == PLUS_SUCCESS 
-      && this->DataCollector->GetTracker()->GetTool(toolNumber)->GetBuffer()->GetOldestTimeStamp(oldestTimestamp) != ITEM_OK )
+    vtkTrackerTool* tool = NULL;
+    if ( this->DataCollector->GetTracker()->GetFirstActiveTool(tool) == PLUS_SUCCESS 
+      && tool->GetBuffer()->GetOldestTimeStamp(oldestTimestamp) != ITEM_OK )
     {
       LOG_WARNING("Failed to get oldest frame timestamp from tracker buffer"); 
     }

@@ -184,11 +184,52 @@ PlusStatus FreehandCalibrationToolbox::ReadConfiguration(vtkXMLDataElement* aCon
     m_MaxTimeSpentWithProcessingMs = maxTimeSpentWithProcessingMs;
   }
 
-  // Read probe calibration
-  std::string toolType;
-	vtkTracker::ConvertToolTypeToString(TRACKER_TOOL_PROBE, toolType);
+  if (aConfig == NULL)
+  {
+    LOG_ERROR("Unable to read configuration"); 
+    return PLUS_FAIL; 
+  }
 
-  vtkXMLDataElement* probeDefinition = vtkPlusConfig::LookupElementWithNameContainingChildWithNameAndAttribute(aConfig, "Tracker", "Tool", "Type", toolType.c_str());
+  // Stylus tool name
+  vtkXMLDataElement* trackerToolNames = fCalElement->FindNestedElementWithName("TrackerToolNames"); 
+
+  if (trackerToolNames == NULL)
+  {
+    LOG_ERROR("Unable to find TrackerToolNames element in XML tree!"); 
+    return PLUS_FAIL;     
+  }
+
+  const char* probeToolName = trackerToolNames->GetAttribute("Probe");
+  if (probeToolName == NULL)
+  {
+	  LOG_ERROR("Probe tool name is not specified in the fCal section of the configuration!");
+    return PLUS_FAIL;     
+  }
+
+  m_ProbeToolName = std::string(probeToolName);
+
+  // Check if a tool with the specified name exists
+  if (m_ParentMainWindow->GetToolVisualizer()->GetDataCollector() == NULL)
+  {
+    LOG_ERROR("Data collector object is invalid!");
+    return PLUS_FAIL;
+  }
+
+  if (m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->GetTracker() == NULL)
+  {
+    LOG_ERROR("Tracker object is invalid!");
+    return PLUS_FAIL;
+  }
+
+  vtkTrackerTool* probeTool = NULL;
+  if (m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->GetTracker()->GetTool(m_ProbeToolName.c_str(), probeTool) != PLUS_SUCCESS)
+  {
+    LOG_ERROR("No tool found with the specified name '" << m_ProbeToolName << "'!");
+    return PLUS_FAIL;
+  }
+
+  // Read probe calibration
+  vtkXMLDataElement* probeDefinition = vtkPlusConfig::LookupElementWithNameContainingChildWithNameAndAttribute(aConfig, "Tracker", "Tool", "Name", m_ProbeToolName.c_str());
 	if (probeDefinition == NULL) {
 		LOG_ERROR("No probe definition is found in the XML tree!");
 		return PLUS_FAIL;
@@ -228,9 +269,10 @@ void FreehandCalibrationToolbox::Reset()
   // Turn off show devices (this function is called when disconnecting, there is no valid result anymore to show)
   ui.checkBox_ShowDevices->setChecked(false);
 
-  if (m_ParentMainWindow->GetToolVisualizer()->GetDisplayableTool(TRACKER_TOOL_PROBE) != NULL)
+  vtkDisplayableTool* displayableTool = NULL;
+  if (m_ParentMainWindow->GetToolVisualizer()->GetDisplayableTool(m_ProbeToolName.c_str(), displayableTool) == PLUS_SUCCESS)
   {
-    m_ParentMainWindow->GetToolVisualizer()->GetDisplayableTool(TRACKER_TOOL_PROBE)->DisplayableOff();
+    displayableTool->DisplayableOff();
   }
 
   SetState(ToolboxState_Idle);
@@ -293,9 +335,10 @@ void FreehandCalibrationToolbox::SetDisplayAccordingToState()
       ui.checkBox_ShowDevices->setEnabled(true);
 
       // Load calibration matrix into tool visualizer
-      if (m_ParentMainWindow->GetToolVisualizer()->GetDisplayableTool(TRACKER_TOOL_PROBE))
+      vtkDisplayableTool* displayableTool = NULL;
+      if (m_ParentMainWindow->GetToolVisualizer()->GetDisplayableTool(m_ProbeToolName.c_str(), displayableTool) == PLUS_SUCCESS)
       {
-        m_ParentMainWindow->GetToolVisualizer()->GetDisplayableTool(TRACKER_TOOL_PROBE)->DisplayableOn();
+        displayableTool->DisplayableOn();
       }
 
       m_ParentMainWindow->GetToolVisualizer()->SetImageToProbeTransform(m_Calibration->GetTransformUserImageToProbe());
@@ -597,7 +640,11 @@ void FreehandCalibrationToolbox::DoSpatialCalibration()
     }
 
     // Set result for visualization
-    m_ParentMainWindow->GetToolVisualizer()->GetDisplayableTool(TRACKER_TOOL_PROBE)->DisplayableOn();
+    vtkDisplayableTool* displayableTool = NULL;
+    if (m_ParentMainWindow->GetToolVisualizer()->GetDisplayableTool(m_ProbeToolName.c_str(), displayableTool) == PLUS_SUCCESS)
+    {
+      displayableTool->DisplayableOn();
+    }
     m_ParentMainWindow->GetToolVisualizer()->SetImageToProbeTransform(m_Calibration->GetTransformUserImageToProbe());
 
     SetState(ToolboxState_Done);
@@ -764,10 +811,7 @@ void FreehandCalibrationToolbox::ShowDevicesToggled(bool aOn)
 {
   LOG_TRACE("FreehandCalibrationToolbox::ShowDevicesToggled(" << (aOn?"true":"false") << ")"); 
 
-  m_ParentMainWindow->GetToolVisualizer()->ShowTool(TRACKER_TOOL_PROBE, aOn);
-  m_ParentMainWindow->GetToolVisualizer()->ShowTool(TRACKER_TOOL_REFERENCE, aOn);
-  m_ParentMainWindow->GetToolVisualizer()->ShowTool(TRACKER_TOOL_STYLUS, aOn);
-  m_ParentMainWindow->GetToolVisualizer()->ShowTool(TRACKER_TOOL_NEEDLE, aOn);
+  m_ParentMainWindow->GetToolVisualizer()->ShowAllTools(aOn);
 
   m_ParentMainWindow->GetToolVisualizer()->EnableImageMode(!aOn);
 }
