@@ -12,8 +12,6 @@
 #ifndef __XFORM3D_H__
 #define __XFORM3D_H__
 
-#include "MTC.h"
-
 class Xform3D 
 {
 

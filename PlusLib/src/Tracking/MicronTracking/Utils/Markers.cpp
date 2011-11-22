@@ -10,6 +10,7 @@
 *
 ***************************************************************/
 #include "Markers.h"
+#include "MTC.h"
 #include "Marker.h"
 #include "MCamera.h"
 

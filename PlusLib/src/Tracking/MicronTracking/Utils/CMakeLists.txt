@@ -1,6 +1,6 @@
 PROJECT(MicronTrackerInterface)
 
-SET (MICRONTRACKERFILES_INCLUDE_DIRS 
+SET (MicronTrackerInterface_INCLUDE_DIRS 
   ${MicronTrackerInterface_SOURCE_DIR} 
   ${MicronTrackerInterface_BINARY_DIR} 
   )
@@ -30,19 +30,9 @@ SET(MicronTrackerInterface_SRCS
   Xform3D.cpp
 )
 
-IF(WIN32)
- SET( MicronTrackerInterface_SRCS ${MicronTrackerInterface_SRCS} 
-      drive32.c )
-ENDIF(WIN32)
-
-IF(UNIX)
- SET( MicronTrackerInterface_SRCS ${MicronTrackerInterface_SRCS} 
-      driveunx-merge.c )
-ENDIF(UNIX)
-
 SET (MicronTrackerInterface_INCLUDE_DIRS 
   ${MicronTrackerInterface_INCLUDE_DIRS} 
-  ${MTC_INCLUDE_DIR}
+  ${MICRONTRACKER_INCLUDE_DIRS}
   )
 
 INCLUDE_DIRECTORIES( ${MicronTrackerInterface_INCLUDE_DIRS} )

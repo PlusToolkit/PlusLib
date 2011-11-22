@@ -12,7 +12,6 @@
 #ifndef __MARKER_H__
 #define __MARKER_H__
 
-#include "MTC.h"
 #include "Collection.h"
 #include "MCamera.h"
 #include "Facet.h"

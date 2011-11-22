@@ -12,7 +12,6 @@
 #ifndef __FACET_H__
 #define __FACET_H__
 
-#include "MTC.h"
 #include "MCamera.h"
 #include "Vector.h"
 #include "Collection.h"

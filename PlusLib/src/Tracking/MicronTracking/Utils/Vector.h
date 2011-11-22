@@ -12,8 +12,6 @@
 #ifndef __VECTOR_H__
 #define __VECTOR_H__
 
-#include "MTC.h"
-
 class Vector
 {
 public:
