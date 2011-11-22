@@ -36,9 +36,6 @@ vtkOpenIGTLinkTracker* vtkOpenIGTLinkTracker::New()
 vtkOpenIGTLinkTracker ::vtkOpenIGTLinkTracker()
 {
   this->FrameNumber = 0;
-
-    // Set the maximum number of sensors that this class can handle
-  this->SetNumberOfTools( 12 ); 
   this->NumberOfSensors = 0; 
 }
 

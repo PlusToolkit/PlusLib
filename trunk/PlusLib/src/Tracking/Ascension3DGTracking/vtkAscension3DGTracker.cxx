@@ -55,9 +55,6 @@ vtkAscension3DGTracker::vtkAscension3DGTracker()
 
   this->TransmitterAttached = false;
   this->FrameNumber = 0;
-
-  // Set the maximum number of sensors that this class can handle
-  this->SetNumberOfTools(12); 
   this->NumberOfSensors = 0; 
 }
 
@@ -136,16 +133,37 @@ PlusStatus vtkAscension3DGTracker::Connect()
   this->NumberOfSensors = systemConfig.numberSensors; 
 
   // Enable tools
-  for ( int tool = 0; tool < this->GetNumberOfTools(); tool ++ )
+  for ( int i = 0; i < this->GetNumberOfSensors(); i++ )
   {
-    if ( tool < this->GetNumberOfSensors() && this->SensorAttached[ tool ] )
+    if ( this->SensorAttached[ i ] )
     {
-      this->GetTool( tool )->EnabledOn();
+      std::ostringstream portName; 
+      portName << i; 
+      vtkTrackerTool * tool = NULL; 
+      if ( this->GetToolByPortName(portName.str().c_str(), tool) != PLUS_SUCCESS )
+      {
+        LOG_WARNING("Undefined connected tool found in the on port '" << portName << "', disabled it until not defined in the config file: " << vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName() ); 
+        this->SensorAttached[ i ] = false; 
+      }
     }
   }
 
-  // Set tool names
+  // Check that all tools were connected that was defined in the configuration file
+  for ( ToolIteratorType it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
+  {
+    std::stringstream convert(it->second->GetPortName());
+    int port(-1); 
+    if ( ! (convert >> port ) )
+    {
+      LOG_ERROR("Failed to convert tool '" << it->second->GetToolName() << "' port name '" << it->second->GetPortName() << "' to integer, please check config file: " << vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName() ); 
+      return PLUS_FAIL; 
+    }
 
+    if ( !this->SensorAttached[ port ] )
+    {
+      LOG_WARNING("Sensor not attached for tool '" << it->second->GetToolName() << "' on port name '" << it->second->GetPortName() << "', please check config file: " << vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName() ); 
+    }
+  }
   return PLUS_SUCCESS; 
 }
 
@@ -280,9 +298,20 @@ PlusStatus vtkAscension3DGTracker::InternalUpdate()
   vtkSmartPointer< vtkMatrix4x4 > mTrackerToReference = vtkSmartPointer< vtkMatrix4x4 >::New();
   mTrackerToReference->Identity();
 
-  if ( this->GetReferenceToolNumber() >= 0 )
+  vtkTrackerTool * referenceTool = NULL; 
+  this->GetTool("Reference", referenceTool); 
+  int referenceToolPort(-1); 
+
+  if ( referenceTool )
   {
-    atc::DEVICE_STATUS status = atc::GetSensorStatus( this->GetReferenceToolNumber() );
+    std::stringstream convert(referenceTool->GetPortName());
+    if ( ! (convert >> referenceToolPort ) )
+    {
+      LOG_ERROR("Failed to convert tool '" << referenceTool->GetToolName() << "' port name '" << referenceTool->GetPortName() << "' to integer, please check config file: " << vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName() ); 
+      return PLUS_FAIL; 
+    }
+
+    atc::DEVICE_STATUS status = atc::GetSensorStatus( referenceToolPort );
 
     saturated = status & SATURATED;
     attached = ! ( status & NOT_ATTACHED );
@@ -305,24 +334,31 @@ PlusStatus vtkAscension3DGTracker::InternalUpdate()
       {
         for ( int col = 0; col < 3; ++ col )
         {
-          mTrackerToReference->SetElement( row, col, record[ this->GetReferenceToolNumber() ].s[ row ][ col ] );
+          mTrackerToReference->SetElement( row, col, record[ referenceToolPort ].s[ row ][ col ] );
         }
       }
 
       mTrackerToReference->Invert();
 
-      mTrackerToReference->SetElement( 0, 3, record[ this->GetReferenceToolNumber() ].x );
-      mTrackerToReference->SetElement( 1, 3, record[ this->GetReferenceToolNumber() ].y );
-      mTrackerToReference->SetElement( 2, 3, record[ this->GetReferenceToolNumber() ].z );
+      mTrackerToReference->SetElement( 0, 3, record[ referenceToolPort ].x );
+      mTrackerToReference->SetElement( 1, 3, record[ referenceToolPort ].y );
+      mTrackerToReference->SetElement( 2, 3, record[ referenceToolPort ].z );
 
     }
     mTrackerToReference->Invert();
   }
 
   const double unfilteredTimestamp = vtkAccurateTimer::GetSystemTime();
+  int numberOfErrors(0); 
 
   for ( unsigned short sensorIndex = 0; sensorIndex < sysConfig.numberSensors; ++ sensorIndex )
   {
+    if ( ! SensorAttached [ sensorIndex ] )
+    {
+      // Sensor disabled because it was not defined in the configuration file
+      continue; 
+    }
+
     atc::DEVICE_STATUS status = atc::GetSensorStatus( sensorIndex );
 
     saturated = status & SATURATED;
@@ -355,16 +391,33 @@ PlusStatus vtkAscension3DGTracker::InternalUpdate()
     // Apply reference to get Tool-to-Reference.
 
     vtkSmartPointer< vtkMatrix4x4 > mToolToReference = vtkSmartPointer< vtkMatrix4x4 >::New();
+    
+    
+    std::ostringstream toolPortName; 
+    toolPortName << sensorIndex; 
+    vtkTrackerTool * tool = NULL;
 
-    if ( sensorIndex != this->GetReferenceToolNumber() )
+    if ( this->GetToolByPortName(toolPortName.str().c_str(), tool) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Unable to find tool on port: " << toolPortName.str() ); 
+      numberOfErrors++; 
+      continue; 
+    }
+    
+    if ( referenceToolPort >= 0 && sensorIndex != referenceToolPort )
     {
       vtkMatrix4x4::Multiply4x4( mTrackerToReference, mToolToTracker, mToolToReference );
-      this->ToolTimeStampedUpdate( sensorIndex, mToolToReference, trackerStatus, this->FrameNumber, unfilteredTimestamp);
+      this->ToolTimeStampedUpdate( tool->GetToolName(), mToolToReference, trackerStatus, this->FrameNumber, unfilteredTimestamp);
     }
     else
     {
-      this->ToolTimeStampedUpdate( sensorIndex, mToolToTracker, trackerStatus, this->FrameNumber, unfilteredTimestamp);
+      this->ToolTimeStampedUpdate( tool->GetToolName(), mToolToTracker, trackerStatus, this->FrameNumber, unfilteredTimestamp);
     }
+  }
+
+  if ( numberOfErrors > 0 )
+  {
+    return PLUS_FAIL;
   }
 
   return PLUS_SUCCESS;

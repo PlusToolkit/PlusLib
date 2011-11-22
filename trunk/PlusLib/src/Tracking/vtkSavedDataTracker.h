@@ -79,6 +79,8 @@ protected:
 	vtkSavedDataTracker();
 	~vtkSavedDataTracker();
 
+  void DeleteLocalTrackerBuffers(); 
+
 	/*! Start the tracking system. */
 	PlusStatus InternalStartTracking();
 
@@ -92,7 +94,7 @@ protected:
 	bool ReplayEnabled; 
 
   /*! Local buffer for each tracker tool, used for storing data read from sequence metafile */
-  std::vector<vtkTrackerBuffer*> LocalTrackerBuffers; 
+  std::map<std::string, vtkTrackerBuffer*> LocalTrackerBuffers; 
 	
   /*! Flag used for storing initialization state */
 	bool Initialized;

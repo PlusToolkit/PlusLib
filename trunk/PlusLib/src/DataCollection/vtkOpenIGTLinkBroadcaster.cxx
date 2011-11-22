@@ -47,15 +47,17 @@ vtkOpenIGTLinkBroadcaster::Status vtkOpenIGTLinkBroadcaster::Initialize( std::st
 
   // Create a socket for all non-reference tools that need to be broadcasted.
 
-  int refToolNumber = this->DataCollector->GetTracker()->GetReferenceToolNumber();
-
-  for ( int toolNumber = 0; toolNumber < this->DataCollector->GetTracker()->GetNumberOfTools(); ++ toolNumber )
+  for ( ToolIteratorType it = this->DataCollector->GetTracker()->GetToolIteratorBegin(); it != this->DataCollector->GetTracker()->GetToolIteratorEnd(); ++it)
   {
-    if ( toolNumber == refToolNumber ) continue;  // We never broadcast the reference tool.
+    if ( STRCASECMP(it->second->GetToolName(), "Reference") == 0 )
+    {
+      // We never broadcast the reference tool.
+      continue; 
+    }
 
     // Check if SendTo address exists for non reference tools.
 
-    vtkTrackerTool* tool = this->DataCollector->GetTracker()->GetTool( toolNumber );
+    vtkTrackerTool* tool = it->second;
     const char* constCharSendTo = tool->GetSendToLink();
 
     if ( constCharSendTo == NULL ) continue;  // This tool is not broadcasted.
@@ -69,12 +71,12 @@ vtkOpenIGTLinkBroadcaster::Status vtkOpenIGTLinkBroadcaster::Initialize( std::st
 
     if ( hostname.empty() || port <= 0 )
     {
-      LOG_WARNING( "SendTo address could not be parsed for tool: " << toolNumber
+      LOG_WARNING( "SendTo address could not be parsed for tool: " << tool->GetToolName()
         << " (hostname=" << hostname << ", port=" << port << ")" );
       continue;
     }      
 
-    LOG_TRACE( "SendTo address for tool " << toolNumber << ": hostname=" << hostname << ", port=" << port );
+    LOG_TRACE( "SendTo address for tool " << tool->GetToolName() << ": hostname=" << hostname << ", port=" << port );
 
     // Check if new socket has to be created.
 
@@ -112,7 +114,7 @@ vtkOpenIGTLinkBroadcaster::Status vtkOpenIGTLinkBroadcaster::Initialize( std::st
     IgtToolInfo info;
     info.Socket = socket;
     info.ToolName = tool->GetToolName();
-    info.TrackerPortNumber = toolNumber;
+    info.TrackerPortName = it->second->GetPortName();
 
     this->NonReferenceToolInfos.push_back( info );
   }
@@ -213,7 +215,7 @@ vtkOpenIGTLinkBroadcaster::Status vtkOpenIGTLinkBroadcaster::SendMessages( std::
     // TrackerStatus status = TR_OK;
     vtkSmartPointer< vtkMatrix4x4 > mToolToTracker  = vtkSmartPointer< vtkMatrix4x4 >::New();
 
-    int toolNumber = this->NonReferenceToolInfos[ igtIndex ].TrackerPortNumber;
+    std::string toolPortName = this->NonReferenceToolInfos[ igtIndex ].TrackerPortName;
     const char* toolName = this->NonReferenceToolInfos[ igtIndex ].ToolName.c_str();
     igtl::ClientSocket::Pointer toolSocket = this->NonReferenceToolInfos[ igtIndex ].Socket;
     
@@ -240,7 +242,7 @@ vtkOpenIGTLinkBroadcaster::Status vtkOpenIGTLinkBroadcaster::SendMessages( std::
 
     if ( status != TR_OK )
     {
-      LOG_INFO( "Tracking data invalid for tool: " << toolNumber );
+      LOG_INFO( "Tracking data invalid for tool: " << toolPortName );
       continue;
     }
 
@@ -275,7 +277,7 @@ vtkOpenIGTLinkBroadcaster::Status vtkOpenIGTLinkBroadcaster::SendMessages( std::
 
     if ( success == 0 )
     {
-      LOG_WARNING( "Could not broadcast tool: " << toolNumber );
+      LOG_WARNING( "Could not broadcast tool: " << toolPortName );
     }
   }
 
@@ -298,12 +300,19 @@ void vtkOpenIGTLinkBroadcaster::SendImageMessage( TrackedFrame* trackedFrame, st
 {
   // Get the socket information for the default tool;
 
-  int defaultTool = this->DataCollector->GetTracker()->GetFirstPortNumberByType(TRACKER_TOOL_PROBE);
+  // TODO: change this, see assemble ticket plus - #388
+  vtkTrackerTool* imageTool = NULL; 
+  if ( this->DataCollector->GetTracker()->GetTool("Probe", imageTool) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to send image message - unable to find tool 'Probe'!"); 
+    return; 
+  }
+
   igtl::ClientSocket::Pointer defaultSocket;
   bool found = false;
   for ( int i = 0; i < this->NonReferenceToolInfos.size(); ++ i )
   {
-    if ( defaultTool == this->NonReferenceToolInfos[ i ].TrackerPortNumber )
+    if ( STRCASECMP(imageTool->GetPortName(), this->NonReferenceToolInfos[ i ].TrackerPortName.c_str() ) == 0  )
     {
       defaultSocket = this->NonReferenceToolInfos[ i ].Socket;
       found = true;

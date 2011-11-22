@@ -46,8 +46,6 @@ vtkTracker::vtkTracker()
 {
   this->Tracking = 0;
   this->WorldCalibrationMatrix = vtkMatrix4x4::New();
-  this->NumberOfTools = 0;
-  this->Tools = 0;
   this->LastUpdateTime = 0;
   this->InternalUpdateRate = 0;
   this->Frequency = 50; 
@@ -66,14 +64,10 @@ vtkTracker::~vtkTracker()
   this->StopTracking();
   this->Disconnect();
 
-  for (int i = 0; i < this->NumberOfTools; i++)
-  { 
-    this->Tools[i]->SetTracker(NULL);
-    this->Tools[i]->Delete();
-  }
-  if (this->Tools)
+  for ( ToolIteratorType it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it )
   {
-    delete [] this->Tools;
+    it->second->SetTracker(NULL); 
+    it->second->Delete(); 
   }
 
   this->WorldCalibrationMatrix->Delete();
@@ -91,60 +85,99 @@ void vtkTracker::PrintSelf(ostream& os, vtkIndent indent)
   os << indent << "WorldCalibrationMatrix: " << this->WorldCalibrationMatrix << "\n";
   this->WorldCalibrationMatrix->PrintSelf(os,indent.GetNextIndent());
   os << indent << "Tracking: " << this->Tracking << "\n";
-  os << indent << "NumberOfTools: " << this->NumberOfTools << "\n";
+}
+
+//----------------------------------------------------------------------------
+ToolIteratorType vtkTracker::GetToolIteratorBegin()
+{
+  return this->ToolContainer.begin(); 
+}
+
+//----------------------------------------------------------------------------
+ToolIteratorType vtkTracker::GetToolIteratorEnd()
+{
+  return this->ToolContainer.end(); 
 }
 
 //----------------------------------------------------------------------------
 // allocates a vtkTrackerTool object for each of the tools.
-void vtkTracker::SetNumberOfTools(int numtools)
+PlusStatus vtkTracker::AddTool( const char* aToolName, const char* aPortName )
 {
-  int i;
-
-  if (this->NumberOfTools > 0) 
+  if ( aToolName == NULL )
   {
-    LOG_ERROR("SetNumberOfTools() can only be called once");
+    LOG_ERROR("Failed to add tool to tracker, tool name is NULL!"); 
+    return PLUS_FAIL; 
   }
-  this->NumberOfTools = numtools;
 
-  this->Tools = new vtkTrackerTool *[numtools];
-
-  for (i = 0; i < numtools; i++) 
+  if ( aPortName == NULL )
   {
-    this->Tools[i] = vtkTrackerTool::New();
-    this->Tools[i]->SetTracker(this);
-    this->Tools[i]->SetToolPort(i);
-    // Set default tool names
-    std::ostringstream toolname; 
-    toolname << "Tool" << i; 
-    this->SetToolName(i, toolname.str().c_str()); 
-
-    std::ostringstream toolcalibmatrixname; 
-    toolcalibmatrixname << "Tool" << i << "CalibMatrix"; 
-    this->Tools[i]->SetCalibrationMatrixName(toolcalibmatrixname.str().c_str()); 
+    LOG_ERROR("Failed to add tool to tracker, port name is NULL!"); 
+    return PLUS_FAIL; 
   }
-}  
 
-//----------------------------------------------------------------------------
-void vtkTracker::SetToolName(int tool, const char* name)
-{
-  this->Tools[tool]->SetToolName(name); 	
+  if ( this->ToolContainer.find(aToolName) == this->GetToolIteratorEnd() )
+  {
+    vtkTrackerTool *tool = vtkTrackerTool::New();
+    // Check tool port names, it should be unique too
+    if (this->GetToolByPortName(aPortName, tool) == PLUS_SUCCESS) 
+    {
+      LOG_ERROR("Failed to add '" << aToolName << "' tool to container: tool with name '" << tool->GetToolName() 
+        << "' is already defined on port '" << aPortName << "'!"); 
+      return PLUS_FAIL; 
+    }
+    
+    tool->SetTracker(this); 
+    tool->SetPortName(aPortName); 
+    this->ToolContainer[aToolName] = tool; 
+  }
+  else
+  {
+    LOG_ERROR("Tool with name '" << aToolName << "' is already in the tool conatainer!"); 
+    return PLUS_FAIL; 
+  }
+
+  return PLUS_SUCCESS; 
 }
 
 //----------------------------------------------------------------------------
-void vtkTracker::SetToolEnabled(int tool, bool enabled )
+PlusStatus vtkTracker::GetFirstActiveTool(vtkTrackerTool* &aTool)
 {
-  this->Tools[tool]->SetEnabled(enabled); 	
+  if ( this->GetToolIteratorBegin() == this->GetToolIteratorEnd() )
+  {
+    LOG_ERROR("Failed to get first active tool - there is no active tool!"); 
+    return PLUS_FAIL; 
+  }
+
+  // Get the first tool
+  aTool = this->GetToolIteratorBegin()->second; 
+
+  return PLUS_SUCCESS; 
 }
 
 //----------------------------------------------------------------------------
-vtkTrackerTool *vtkTracker::GetTool(int tool)
+PlusStatus vtkTracker::GetTool(const char* aToolName, vtkTrackerTool* &aTool)
 {
-  if (tool < 0 || tool > this->NumberOfTools) 
+  if ( aToolName == NULL )
   {
-    LOG_ERROR("GetTool(" << tool << "): only " << this->NumberOfTools << " are available");
-    return NULL;
+    LOG_ERROR("Failed to get tool, tool name is NULL!"); 
+    return PLUS_FAIL; 
   }
-  return this->Tools[tool];
+
+  ToolIteratorType tool = this->ToolContainer.find(aToolName); 
+  if ( tool == this->GetToolIteratorEnd() )
+  {
+    std::ostringstream availableTools; 
+    for ( ToolIteratorType it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it )
+    {
+      availableTools << it->first <<";"; 
+    }
+    LOG_ERROR("Unable to find tool '"<< aToolName <<"' in the list, please check the configuration file first (available tools: " << availableTools.str() << ")." ); 
+    return PLUS_FAIL; 
+  }
+
+  aTool = tool->second; 
+
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
@@ -307,12 +340,25 @@ PlusStatus vtkTracker::StopTracking()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkTracker::ToolTimeStampedUpdate(int tool, vtkMatrix4x4 *matrix, TrackerStatus status, unsigned long frameNumber, 
+PlusStatus vtkTracker::ToolTimeStampedUpdate(const char* aToolName, vtkMatrix4x4 *matrix, TrackerStatus status, unsigned long frameNumber, 
                                              double unfilteredtimestamp) 
 {
-  vtkTrackerBuffer *buffer = this->Tools[tool]->GetBuffer();
+  if ( aToolName == NULL )
+  {
+    LOG_ERROR("Failed to update tool - tool name is NULL!"); 
+    return PLUS_FAIL; 
+  }
+
+  vtkTrackerTool* tool = NULL; 
+  if ( this->GetTool(aToolName, tool) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to update tool - unable to find tool!" << aToolName ); 
+    return PLUS_FAIL; 
+  }
+
+  vtkTrackerBuffer *buffer = tool->GetBuffer();
   PlusStatus bufferStatus = buffer->AddTimeStampedItem(matrix, status, frameNumber, unfilteredtimestamp);
-  this->GetTool(tool)->SetFrameNumber(frameNumber); 
+  tool->SetFrameNumber(frameNumber); 
 
   return bufferStatus; 
 }
@@ -357,13 +403,25 @@ PlusStatus vtkTracker::Disconnect()
 void vtkTracker::DeepCopy(vtkTracker *tracker)
 {
   LOG_TRACE("vtkTracker::DeepCopy"); 
-  this->SetNumberOfTools( tracker->GetNumberOfTools() ); 
   this->SetTrackerCalibrated( tracker->GetTrackerCalibrated() ); 
 
-  for ( int i = 0; i < this->NumberOfTools; i++ )
+  for ( ToolIteratorType it = tracker->GetToolIteratorBegin(); it != tracker->GetToolIteratorEnd(); ++it )
   {
-    LOG_DEBUG("Copy the buffer of tracker tool: " << i ); 
-    this->Tools[i]->DeepCopy( tracker->GetTool(i) );
+    LOG_DEBUG("Copy the buffer of tracker tool: " << it->first ); 
+    if ( this->AddTool( it->first.c_str(), it->second->GetPortName()) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Copy of tool '" << it->first << "' failed - unabale to add tool to the container!"); 
+      continue; 
+    }
+    
+    vtkTrackerTool* tool = NULL; 
+    if ( this->GetTool(it->first.c_str(), tool ) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Copy of tool '" << it->first << "' failed - unabale to get tool from container!"); 
+      continue;   
+    }
+
+    tool->DeepCopy( it->second ); 
   }
 
   this->WorldCalibrationMatrix->DeepCopy( tracker->GetWorldCalibrationMatrix() ); 
@@ -401,27 +459,38 @@ PlusStatus vtkTracker::WriteConfiguration(vtkXMLDataElement* config)
     return PLUS_FAIL; 
   }
 
-  int firstActiveToolNumber(-1); 
-  if ( this->GetFirstActiveTool(firstActiveToolNumber) != PLUS_SUCCESS )
+  if ( !this->ToolContainer.empty() )  
   {
-    LOG_ERROR("Failed to get first active tool from tracker!"); 
-    return PLUS_FAIL; 
+    vtkTrackerTool* tool = this->GetToolIteratorBegin()->second; 
+
+    config->SetIntAttribute("BufferSize", tool->GetBuffer()->GetBufferSize()); 
+
+    config->SetDoubleAttribute("LocalTimeOffset", tool->GetBuffer()->GetLocalTimeOffset() ); 
   }
-  
-  vtkTrackerTool* tool = this->GetTool(firstActiveToolNumber); 
-
-  if ( tool == NULL )
-  {
-    LOG_ERROR("Unable to get first active tool by tool number - tool is NULL!"); 
-    return PLUS_FAIL; 
-  }
-
-  config->SetIntAttribute("BufferSize", tool->GetBuffer()->GetBufferSize()); 
-
-  config->SetDoubleAttribute("LocalTimeOffset", tool->GetBuffer()->GetLocalTimeOffset() ); 
 
   return PLUS_SUCCESS; 
 }
+
+//-----------------------------------------------------------------------------
+void vtkTracker::SetToolsBufferSize( int aBufferSize )
+{
+  LOG_TRACE("vtkTracker::SetToolsBufferSize to " << aBufferSize ); 
+  for ( ToolIteratorType it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
+  {
+    it->second->GetBuffer()->SetBufferSize( aBufferSize ); 
+  }
+}
+
+//-----------------------------------------------------------------------------
+void vtkTracker::SetToolsLocalTimeOffset( double aLocalTimeOffset )
+{
+  LOG_INFO("Tools local time offset: " << 1000*aLocalTimeOffset << "ms" ); 
+  for ( ToolIteratorType it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
+  {
+    it->second->GetBuffer()->SetLocalTimeOffset(aLocalTimeOffset); 
+  }
+}
+
 
 //-----------------------------------------------------------------------------
 PlusStatus vtkTracker::ReadConfiguration(vtkXMLDataElement* config)
@@ -447,13 +516,50 @@ PlusStatus vtkTracker::ReadConfiguration(vtkXMLDataElement* config)
 		return PLUS_FAIL;
   }
 
+  // Read tool configurations 
+  for ( int tool = 0; tool < trackerConfig->GetNumberOfNestedElements(); tool++ )
+  {
+    vtkXMLDataElement* toolDataElement = trackerConfig->GetNestedElement(tool); 
+    if ( STRCASECMP(toolDataElement->GetName(), "Tool") != 0 )
+    {
+      // if this is not a Tool element, skip it
+      continue; 
+    }
+
+    const char* toolName = toolDataElement->GetAttribute("Name"); 
+    if ( toolName == NULL ) 
+    {
+      LOG_WARNING("Unable to find tool name! Name attribute is mandatory in tool definition."); 
+      continue; 
+    }
+
+    const char* portName = toolDataElement->GetAttribute("PortName"); 
+    if ( portName == NULL ) 
+    {
+      LOG_WARNING("Failed to add tool '" << toolName << "' to tracker without PortName specified (attribute is mandatory in tool definition)!"); 
+      continue; 
+    }
+
+    if ( this->AddTool(toolName, portName) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Failed to add tool '" << toolName << "' to tracker on port " << portName );
+      continue; 
+    }
+    
+    vtkTrackerTool* trackerTool = NULL; 
+    if ( this->GetTool(toolName, trackerTool) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Unable to find tool '"<< toolName << "' in tracker tool container!"); 
+      continue; 
+    }
+    
+    trackerTool->ReadConfiguration(toolDataElement); 
+  }
+
   int bufferSize = 0; 
   if ( trackerConfig->GetScalarAttribute("BufferSize", bufferSize) ) 
   {
-    for ( int i = 0; i < this->GetNumberOfTools(); i++)
-    {
-      this->GetTool(i)->GetBuffer()->SetBufferSize( bufferSize ); 
-    }
+    this->SetToolsBufferSize(bufferSize); 
   }
 
   double frequency = 0; 
@@ -465,9 +571,9 @@ PlusStatus vtkTracker::ReadConfiguration(vtkXMLDataElement* config)
   int averagedItemsForFiltering = 0; 
   if ( trackerConfig->GetScalarAttribute("AveragedItemsForFiltering", averagedItemsForFiltering) )
   {
-    for ( int i = 0; i < this->GetNumberOfTools(); i++)
+    for ( ToolIteratorType it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
     {
-      this->GetTool(i)->GetBuffer()->SetAveragedItemsForFiltering(averagedItemsForFiltering);
+      it->second->GetBuffer()->SetAveragedItemsForFiltering(averagedItemsForFiltering); 
     }
   }
   else
@@ -478,101 +584,39 @@ PlusStatus vtkTracker::ReadConfiguration(vtkXMLDataElement* config)
   double localTimeOffset = 0; 
   if ( trackerConfig->GetScalarAttribute("LocalTimeOffset", localTimeOffset) )
   {
-    LOG_INFO("Tracker local time offset: " << 1000*localTimeOffset << "ms" ); 
-    for ( int i = 0; i < this->GetNumberOfTools(); i++)
-    {
-      this->GetTool(i)->GetBuffer()->SetLocalTimeOffset(localTimeOffset);
-    }
+    this->SetToolsLocalTimeOffset(localTimeOffset); 
   }
-
-  // Read tool configurations 
-  for ( int tool = 0; tool < trackerConfig->GetNumberOfNestedElements(); tool++ )
-  {
-    vtkXMLDataElement* toolDataElement = trackerConfig->GetNestedElement(tool); 
-    if ( STRCASECMP(toolDataElement->GetName(), "Tool") != 0 )
-    {
-      // if this is not a Tool element, skip it
-      continue; 
-    }
-
-    int portNumber(-1); 
-    if ( toolDataElement->GetScalarAttribute("PortNumber", portNumber) )
-    {
-      if ( portNumber < 0 )
-      {
-        LOG_WARNING("Port number should be larger than 0! Current: " << portNumber); 
-      }
-
-      if (portNumber < this->GetNumberOfTools() )
-      {
-
-        // :TODO: PortName should replace PortNumber
-        const char* portName = toolDataElement->GetAttribute("PortName"); 
-        if ( portName != NULL ) 
-        {
-          this->GetTool(portNumber)->SetPortName(portName); 
-        }
-
-        this->GetTool(portNumber)->ReadConfiguration(toolDataElement); 
-      }
-      else
-      {
-        LOG_WARNING("Unable to add tool data element configuration for port: " << portNumber << " - number of tools are: " << this->GetNumberOfTools() ); 
-      }
-    }
-    else
-    {
-      LOG_ERROR("Unable to find tool port number! PortNumber attribute is mandatory in tool definition."); 
-      return PLUS_FAIL; 
-    }
-  }
-
-  // Set reference tool 
-
+  
   return PLUS_SUCCESS; 
 }
 
-
 //-----------------------------------------------------------------------------
-int vtkTracker::GetToolPortNumberByPortName( const char* portName)
+PlusStatus vtkTracker::GetToolByPortName( const char* portName, vtkTrackerTool* &aTool)
 {
-  if ( portName != NULL )
+  if ( portName == NULL )
   {
-    for ( int tool = 0; tool < this->GetNumberOfTools(); tool++ )
+    LOG_ERROR("Failed to get tool - port name is NULL!"); 
+    return PLUS_FAIL; 
+  }
+
+  for ( ToolIteratorType it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
+  {
+    if ( STRCASECMP( portName, it->second->GetPortName() ) == 0 )
     {
-      if ( STRCASECMP( portName, this->GetTool(tool)->GetPortName() ) == 0 )
-      {
-        return tool;
-      }
+      aTool = it->second; 
+      return PLUS_SUCCESS; 
     }
   }
 
-  return -1; 
-}
-
-//-----------------------------------------------------------------------------
-int vtkTracker::GetToolPortByName( const char* toolName)
-{
-  if ( toolName != NULL )
-  {
-    for ( int tool = 0; tool < this->GetNumberOfTools(); tool++ )
-    {
-      if ( STRCASECMP( toolName, this->GetTool(tool)->GetToolName() ) == 0 )
-      {
-        return tool;
-      }
-    }
-  }
-
-  return -1; 
+  return PLUS_FAIL; 
 }
 
 //----------------------------------------------------------------------------
 void vtkTracker::SetStartTime( double startTime)
 {
-  for ( int i = 0; i < this->GetNumberOfTools(); ++i )
+  for ( ToolIteratorType it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
   {
-    this->GetTool(i)->GetBuffer()->SetStartTime(startTime); 
+    it->second->GetBuffer()->SetStartTime(startTime); 
   }
 }
 
@@ -580,12 +624,14 @@ void vtkTracker::SetStartTime( double startTime)
 double vtkTracker::GetStartTime()
 {
   double sumStartTime = 0.0;
-  for ( int i = 0; i < this->GetNumberOfTools(); ++i )
+  double numberOfTools(0); 
+  for ( ToolIteratorType it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
   {
-    sumStartTime += this->GetTool(i)->GetBuffer()->GetStartTime(); 
+    sumStartTime += it->second->GetBuffer()->GetStartTime(); 
+    numberOfTools++; 
   }
 
-  return sumStartTime / (double)this->GetNumberOfTools();
+  return sumStartTime / numberOfTools;
 }
 
 //----------------------------------------------------------------------------
@@ -630,51 +676,48 @@ PlusStatus vtkTracker::GetTrackerToolBufferStringList(double timestamp,
   toolsBufferMatrices.clear();  
   toolsStatuses.clear(); 
 
-  for ( int tool = 0; tool < this->GetNumberOfTools(); tool++ )
+  for ( ToolIteratorType it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
   {
-    if ( this->GetTool(tool)->GetEnabled() )
+    vtkSmartPointer<vtkMatrix4x4> toolMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
+    TrackerStatus trackerStatus = TR_OK; 
+
+    TrackerBufferItem bufferItem; 
+    if ( it->second->GetBuffer()->GetTrackerBufferItemFromTime(timestamp, &bufferItem, vtkTrackerBuffer::INTERPOLATED, calibratedTransform ) != ITEM_OK )
     {
-      vtkSmartPointer<vtkMatrix4x4> toolMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
-      TrackerStatus trackerStatus = TR_OK; 
-
-      TrackerBufferItem bufferItem; 
-      if ( this->GetTool(tool)->GetBuffer()->GetTrackerBufferItemFromTime(timestamp, &bufferItem, vtkTrackerBuffer::INTERPOLATED, calibratedTransform ) != ITEM_OK )
+      double latestTimestamp(0); 
+      if ( it->second->GetBuffer()->GetLatestTimeStamp(latestTimestamp) != ITEM_OK )
       {
-        double latestTimestamp(0); 
-        if ( this->GetTool(tool)->GetBuffer()->GetLatestTimeStamp(latestTimestamp) != ITEM_OK )
-        {
-          LOG_ERROR("Failed to get latest timestamp!"); 
-        }
-
-        double oldestTimestamp(0); 
-        if ( this->GetTool(tool)->GetBuffer()->GetOldestTimeStamp(oldestTimestamp) != ITEM_OK )
-        {
-          LOG_ERROR("Failed to get oldest timestamp!"); 
-        }
-
-        LOG_ERROR("Failed to get tracker item from buffer by time: " << std::fixed << timestamp << " (Latest timestamp: " << latestTimestamp << "   Oldest timestamp: " << oldestTimestamp << ")."); 
-        return PLUS_FAIL; 
+        LOG_ERROR("Failed to get latest timestamp!"); 
       }
 
-      vtkSmartPointer<vtkMatrix4x4> dMatrix=vtkSmartPointer<vtkMatrix4x4>::New();
-      if (bufferItem.GetMatrix(dMatrix)!=PLUS_SUCCESS)
+      double oldestTimestamp(0); 
+      if ( it->second->GetBuffer()->GetOldestTimeStamp(oldestTimestamp) != ITEM_OK )
       {
-        LOG_ERROR("Failed to get dMatrix"); 
-        return PLUS_FAIL;
+        LOG_ERROR("Failed to get oldest timestamp!"); 
       }
 
-      std::ostringstream strToolTransform; 
-      for ( int r = 0; r < 4; ++r )
-      {
-        for ( int c = 0; c < 4; ++c )
-        {
-          strToolTransform << dMatrix->GetElement(r,c) << " ";
-        }
-      }
-
-      toolsBufferMatrices[ this->GetTool(tool)->GetToolName() ] = strToolTransform.str(); 
-      toolsStatuses[ this->GetTool(tool)->GetToolName() ] = vtkTracker::ConvertTrackerStatusToString( bufferItem.GetStatus() ); 
+      LOG_ERROR("Failed to get tracker item from buffer by time: " << std::fixed << timestamp << " (Latest timestamp: " << latestTimestamp << "   Oldest timestamp: " << oldestTimestamp << ")."); 
+      return PLUS_FAIL; 
     }
+
+    vtkSmartPointer<vtkMatrix4x4> dMatrix=vtkSmartPointer<vtkMatrix4x4>::New();
+    if (bufferItem.GetMatrix(dMatrix)!=PLUS_SUCCESS)
+    {
+      LOG_ERROR("Failed to get dMatrix"); 
+      return PLUS_FAIL;
+    }
+
+    std::ostringstream strToolTransform; 
+    for ( int r = 0; r < 4; ++r )
+    {
+      for ( int c = 0; c < 4; ++c )
+      {
+        strToolTransform << dMatrix->GetElement(r,c) << " ";
+      }
+    }
+
+    toolsBufferMatrices[ it->second->GetToolName() ] = strToolTransform.str(); 
+    toolsStatuses[ it->second->GetToolName() ] = vtkTracker::ConvertTrackerStatusToString( bufferItem.GetStatus() ); 
   }
 
   return PLUS_SUCCESS; 
@@ -684,49 +727,28 @@ PlusStatus vtkTracker::GetTrackerToolBufferStringList(double timestamp,
 PlusStatus vtkTracker::GetTrackerToolCalibrationMatrixStringList(std::map<std::string, std::string> &toolsCalibrationMatrices)
 {
   toolsCalibrationMatrices.clear();  
-
-  for ( int tool = 0; tool < this->GetNumberOfTools(); tool++ )
+  for ( ToolIteratorType it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
   {
-    if ( this->GetTool(tool)->GetEnabled() )
+    const char* matrixName = it->second->GetCalibrationMatrixName(); 
+    if ( matrixName == NULL )
     {
-      vtkMatrix4x4* toolCalibrationMatrix = this->GetTool(tool)->GetCalibrationMatrix(); 
-      std::ostringstream strToolCalibMatrix; 
-      for ( int r = 0; r < 4; ++r )
-      {
-        for ( int c = 0; c < 4; ++c )
-        {
-          strToolCalibMatrix << toolCalibrationMatrix->GetElement(r,c)  << " ";
-        }
-      }
-      toolsCalibrationMatrices[ this->GetTool(tool)->GetCalibrationMatrixName() ] = strToolCalibMatrix.str(); 
+      LOG_DEBUG("Matrix name was not defined for tool " << it->second->GetToolName() ); 
+      continue; 
     }
+
+    vtkMatrix4x4* toolCalibrationMatrix = it->second->GetCalibrationMatrix(); 
+    std::ostringstream strToolCalibMatrix; 
+    for ( int r = 0; r < 4; ++r )
+    {
+      for ( int c = 0; c < 4; ++c )
+      {
+        strToolCalibMatrix << toolCalibrationMatrix->GetElement(r,c)  << " ";
+      }
+    }
+    toolsCalibrationMatrices[ matrixName ] = strToolCalibMatrix.str(); 
   }
 
   return PLUS_SUCCESS; 
-}
-
-
-//-----------------------------------------------------------------------------
-PlusStatus vtkTracker::GetFirstActiveTool(int &tool)
-{
-  tool = -1;
-
-  for ( int i = 0; i < this->GetNumberOfTools(); ++i )
-  {
-    if( this->GetTool(i)->GetEnabled() )
-	{
-		tool = i; 
-		return PLUS_SUCCESS; 
-	}
-  }
-
-  if ( tool < 0 ) 
-  {
-	LOG_ERROR("There are no active tools!");
-	return PLUS_FAIL;
-  }
-
-  return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
@@ -738,16 +760,20 @@ PlusStatus vtkTracker::GenerateTrackingDataAcquisitionReport( vtkHTMLGenerator* 
     return PLUS_FAIL; 
   }
 
-  vtkSmartPointer<vtkTable> timestampReportTable = vtkSmartPointer<vtkTable>::New(); 
-  int firstActiveTool = -1;
-  if ( GetFirstActiveTool(firstActiveTool) != PLUS_SUCCESS )
+  if ( this->ToolContainer.empty() )
   {
-    LOG_ERROR("Cannot get first active tool!");
+    LOG_ERROR("Failed to generate tracking data acqusition report - no tools available!"); 
     return PLUS_FAIL;
   }
-  if ( this->GetTool(firstActiveTool)->GetBuffer()->GetTimeStampReportTable(timestampReportTable) != PLUS_SUCCESS )
+
+  // Use the first tool in the container to generate the report
+  vtkTrackerTool* tool = this->GetToolIteratorBegin()->second;  
+
+  vtkSmartPointer<vtkTable> timestampReportTable = vtkSmartPointer<vtkTable>::New(); 
+ 
+  if ( tool->GetBuffer()->GetTimeStampReportTable(timestampReportTable) != PLUS_SUCCESS )
   { 
-    LOG_ERROR("Failed to get timestamp report table from default tool buffer!"); 
+    LOG_ERROR("Failed to get timestamp report table from tool '"<< tool->GetToolName() << "' buffer!"); 
     return PLUS_FAIL; 
   }
 
@@ -795,111 +821,10 @@ PlusStatus vtkTracker::GenerateTrackingDataAcquisitionReport( vtkHTMLGenerator* 
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkTracker::ConvertStringToToolType(const char* typeString, TRACKER_TOOL_TYPE &type)
-{
-	if (STRCASECMP(typeString, "Reference") == 0)
-	{
-		type = TRACKER_TOOL_REFERENCE;
-	}
-	else if (STRCASECMP(typeString, "Probe") == 0)
-	{
-		type = TRACKER_TOOL_PROBE;
-	}
-	else if (STRCASECMP(typeString, "Stylus") == 0)
-	{
-		type = TRACKER_TOOL_STYLUS;
-	}
-	else if (STRCASECMP(typeString, "Needle") == 0)
-	{
-		type = TRACKER_TOOL_NEEDLE;
-	}
-	else if (STRCASECMP(typeString, "General") == 0)
-	{
-		type = TRACKER_TOOL_GENERAL;
-	}
-	else
-	{
-		type = TRACKER_TOOL_NONE;
-		LOG_ERROR("Invalid tool type: " << typeString);
-		return PLUS_FAIL;
-	}
-
-	return PLUS_SUCCESS;
-}
-
-//-----------------------------------------------------------------------------
-PlusStatus vtkTracker::ConvertToolTypeToString(const TRACKER_TOOL_TYPE type, std::string &typeString)
-{
-	switch (type)
-	{
-	case TRACKER_TOOL_REFERENCE:
-		typeString = "Reference";
-		break;
-	case TRACKER_TOOL_PROBE:
-		typeString = "Probe";
-		break;
-	case TRACKER_TOOL_STYLUS:
-		typeString = "Stylus";
-		break;
-	case TRACKER_TOOL_NEEDLE:
-		typeString = "Needle";
-		break;
-	case TRACKER_TOOL_GENERAL:
-		typeString = "General";
-		break;
-	default:
-		typeString = "Invalid";
-		LOG_ERROR("Invalid tool type!");
-		return PLUS_FAIL;
-	}
-
-	return PLUS_SUCCESS;
-}
-
-//-----------------------------------------------------------------------------
-PlusStatus vtkTracker::GetToolPortNumbersByType(TRACKER_TOOL_TYPE type, std::vector<int> &toolNumbersVector)
-{
-	PlusStatus success = PLUS_FAIL;
-
-	toolNumbersVector.clear();
-
-  for ( int tool = 0; tool < this->GetNumberOfTools(); tool++ )
-  {
-    if ( this->GetTool(tool)->GetToolType() == type )
-    {
-      toolNumbersVector.push_back(tool);
-	    success = PLUS_SUCCESS;
-    }
-  }
-
-	return success;
-}
-
-//-----------------------------------------------------------------------------
-int vtkTracker::GetFirstPortNumberByType(TRACKER_TOOL_TYPE type)
-{
-  for ( int tool = 0; tool < this->GetNumberOfTools(); tool++ )
-  {
-    if ( this->GetTool(tool)->GetToolType() == type )
-    {
-      return tool;
-    }
-  }
-
-	return -1;
-}
-
-//-----------------------------------------------------------------------------
-int vtkTracker::GetReferenceToolNumber()
-{
-	return this->GetFirstPortNumberByType(TRACKER_TOOL_REFERENCE);
-}
-
-//-----------------------------------------------------------------------------
 void vtkTracker::ClearAllBuffers()
 {
-  for ( int i = 0; i < this->NumberOfTools; i++ )
+  for ( ToolIteratorType it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
   {
-    this->GetTool(i)->GetBuffer()->Clear(); 
+    it->second->GetBuffer()->Clear(); 
   }
 }

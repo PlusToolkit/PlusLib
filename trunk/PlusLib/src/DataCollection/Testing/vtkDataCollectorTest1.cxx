@@ -26,6 +26,7 @@ See License.txt for details.
 #include "vtkOpenIGTLinkBroadcaster.h"
 #include "vtkXMLUtilities.h"
 #include "vtkImageData.h" 
+#include "vtkTrackerTool.h"
 
 PlusStatus InitBroadcaster(vtkSmartPointer<vtkOpenIGTLinkBroadcaster> &broadcaster, vtkDataCollector* dataCollector); 
 PlusStatus InvokeBroadcasterMessage(vtkOpenIGTLinkBroadcaster* broadcaster); 
@@ -41,13 +42,21 @@ public:
     double synchronizedTime(0); 
     vtkSmartPointer<vtkMatrix4x4> tFrame2Tracker = vtkSmartPointer<vtkMatrix4x4>::New(); 
 
-	int probeToolNumber = this->DataCollector->GetTracker()->GetFirstPortNumberByType(TRACKER_TOOL_PROBE);
-	if ( probeToolNumber < 0 )
-	{
-		LOG_ERROR("Unable to find probe!");
-		return;
-	}
-    if ( this->DataCollector->GetTrackedFrame(this->RealtimeImage, tFrame2Tracker, status, synchronizedTime, probeToolNumber) == PLUS_SUCCESS )
+  if ( !ToolName.empty() )
+  {
+    if ( this->DataCollector->GetTracker()->GetToolIteratorBegin() == this->DataCollector->GetTracker()->GetToolIteratorEnd() )
+    {
+      LOG_ERROR("There is no active tool!"); 
+      return; 
+    }
+
+    // Use the first active tool 
+    ToolName = this->DataCollector->GetTracker()->GetToolIteratorBegin()->second->GetToolName(); 
+  }
+
+
+
+    if ( this->DataCollector->GetTrackedFrame(this->RealtimeImage, tFrame2Tracker, status, synchronizedTime, ToolName.c_str()) == PLUS_SUCCESS )
     {
       this->Viewer->SetInput(this->RealtimeImage); 
       this->Viewer->Modified(); 
@@ -101,6 +110,7 @@ public:
   vtkTextActor *StepperTextActor; 
   vtkImageData* RealtimeImage; 
   vtkOpenIGTLinkBroadcaster* Broadcaster;
+  std::string ToolName; 
 };
 
 int main(int argc, char **argv)

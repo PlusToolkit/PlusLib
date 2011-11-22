@@ -20,7 +20,7 @@
       Name="Probe"
       Type="Probe"
       PortName="probeMarker"
-      PortNumber="0"
+      PortName="0"
       SendTo="localhost:18944">
       <Model
         File="L14-5_38_ProbeModel.stl"
@@ -45,7 +45,7 @@
       Name="Reference"
       Type="Reference"
 	  PortName="patientMarker"
-      PortNumber="1"
+      PortName="1"
       >
     </Tool>
     
@@ -53,7 +53,7 @@
       Name="Stylus"
       Type="Stylus"
 	  PortName="stitchMarker"
-      PortNumber="2"
+      PortName="2"
       >
       <Model
         File="Stylus_Example.stl"

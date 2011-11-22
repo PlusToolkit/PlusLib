@@ -14,7 +14,7 @@ It loads an fCal test image, but it can be changed by modifying the SequenceMeta
 		>
 
 			<!-- PROBE -->
-			<Tool PortNumber="0" Type="Probe" Model="L14-5_38" Name="Probe" SendTo="127.0.0.1:1111">
+			<Tool PortName="0" Type="Probe" Model="L14-5_38" Name="Probe" SendTo="127.0.0.1:1111">
 				<!-- Supported types are: Probe, Stylus, Needle, Reference -->
 				
 				<!-- ModelToToolTransform - transforming model into tool origin coordinate system for proper visualization ( Note2: All tools that are not phantoms should use ModelToToolTransform as the entity name) -->
@@ -40,11 +40,11 @@ It loads an fCal test image, but it can be changed by modifying the SequenceMeta
 			</Tool>
 			
 			<!-- REFERENCE -->
-			<Tool Type="Reference" Name="PhantomReference" PortNumber="1" SendTo="127.0.0.1:1111">
+			<Tool Type="Reference" Name="PhantomReference" PortName="1" SendTo="127.0.0.1:1111">
 			</Tool>
 
 			<!-- STYLUS -->
-			<Tool PortNumber="2" Type="Stylus" Model="Example" Name="Stylus" SendTo="127.0.0.1:1112">
+			<Tool PortName="2" Type="Stylus" Model="Example" Name="Stylus" SendTo="127.0.0.1:1112">
 				<!-- Supported types are: Probe, Stylus, Needle, Reference -->
 				
 				<!-- ModelToToolTransform - transforming model into tool origin coordinate system for proper visualization ( Note2: All tools that are not phantoms should use ModelToToolTransform as the entity name) -->

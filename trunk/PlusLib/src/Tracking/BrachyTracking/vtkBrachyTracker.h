@@ -186,6 +186,8 @@ protected:
   vtkBrachyTracker();
   ~vtkBrachyTracker();
 
+  std::string GetBrachyToolName(BRACHY_STEPPER_TOOL tool); 
+
   /*! Set the stepper model version information. */
   vtkSetStringMacro(ModelVersion);
 

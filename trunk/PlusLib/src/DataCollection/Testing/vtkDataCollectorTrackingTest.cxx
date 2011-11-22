@@ -50,11 +50,11 @@ public:
   {
     this->StepperTextActor->Delete();
     this->StepperTextActor=NULL;
-    for (int i=0; i<this->ToolActors.size(); i++)
+    for (std::map<std::string,vtkToolAxesActor*>::iterator it=this->ToolActors.begin(); it!=this->ToolActors.end(); ++it)
     {
       //this->Renderer->RemoveActor(this->ToolActors[i]);
-      this->ToolActors[i]->Delete();
-      this->ToolActors[i]=NULL;
+      it->second->Delete(); 
+      it->second=NULL; 
     }
   }
 
@@ -72,15 +72,11 @@ public:
     this->StepperTextActor->SetDisplayPosition(20,65); 
     this->Renderer->AddActor(this->StepperTextActor); 
 
-    for (int toolNumber=0; toolNumber<this->DataCollector->GetNumberOfTools(); toolNumber++)
+    for ( ToolIteratorType it = this->DataCollector->GetTracker()->GetToolIteratorBegin(); it != this->DataCollector->GetTracker()->GetToolIteratorEnd(); ++it)
     {
-      AddNewToolActor();
-      vtkTrackerTool* tool=this->DataCollector->GetTracker()->GetTool(toolNumber);
-      this->ToolActors[toolNumber]->SetName(tool->GetToolName());
-      if (tool->GetEnabled())
-      {
-        SetToolVisible(toolNumber,true);        
-      }
+      vtkTrackerTool* tool=it->second;
+      AddNewToolActor(tool->GetToolName());
+      SetToolVisible(tool->GetToolName(),true);        
     }
 
     this->Iren->AddObserver(vtkCommand::TimerEvent, this);
@@ -90,24 +86,25 @@ public:
     this->TimerId=this->Iren->CreateOneShotTimer(100);
   }
 
-  void AddNewToolActor()
+  void AddNewToolActor(const char * aToolName)
   {
     vtkToolAxesActor* actor=vtkToolAxesActor::New();
     this->Renderer->AddActor(actor);
     actor->SetVisibility(false);
-    this->ToolActors.push_back(actor);
+    this->ToolActors[aToolName]=actor;
+    actor->SetName(aToolName); 
   }
 
-  void SetToolVisible(int toolNumber, bool visible)
+  void SetToolVisible(const char * aToolName, bool visible)
   {
-    this->ToolActors[toolNumber]->SetVisibility(visible);
+    this->ToolActors[aToolName]->SetVisibility(visible);
   }
 
-  void SetToolToTrackerTransform(int toolNumber, vtkMatrix4x4*  toolToTrackerTransform)
+  void SetToolToTrackerTransform(const char * aToolName, vtkMatrix4x4*  toolToTrackerTransform)
   {
 	vtkSmartPointer<vtkTransform> normalizedTransform=vtkSmartPointer<vtkTransform>::New();
 	normalizedTransform->SetMatrix(toolToTrackerTransform);	
-	this->ToolActors[toolNumber]->SetUserTransform(normalizedTransform);
+	this->ToolActors[aToolName]->SetUserTransform(normalizedTransform);
   }
   
 
@@ -118,36 +115,31 @@ public:
 
     double toolToTrackerTransformTimestamp=0;
     TrackerStatus trackerStatus=TR_OK;
-    for (int toolNumber=0; toolNumber<this->DataCollector->GetNumberOfTools(); toolNumber++)
+    for ( ToolIteratorType it = this->DataCollector->GetTracker()->GetToolIteratorBegin(); it != this->DataCollector->GetTracker()->GetToolIteratorEnd(); ++it)
     {      
-      vtkTrackerTool* tool=this->DataCollector->GetTracker()->GetTool(toolNumber);
-      if (!tool->GetEnabled())
-      {
-        SetToolVisible(toolNumber,false);        
-        continue;  
-      }
+      vtkTrackerTool* tool=it->second;
 
       // Tool enabled
       ss << tool->GetToolName() << ": ";
 
       vtkSmartPointer<vtkMatrix4x4> toolToTrackerTransform=vtkSmartPointer<vtkMatrix4x4>::New(); // a new transform matrix has to be provided to each SetToolToTrackerTransform call
-      if (this->DataCollector->GetTransformWithTimestamp(toolToTrackerTransform, toolToTrackerTransformTimestamp, trackerStatus, toolNumber)!=PLUS_SUCCESS)
+      if (this->DataCollector->GetTransformWithTimestamp(toolToTrackerTransform, toolToTrackerTransformTimestamp, trackerStatus, tool->GetToolName())!=PLUS_SUCCESS)
       {
         ss << "failed to get transform\n";
-        SetToolVisible(toolNumber,false);        
+        SetToolVisible(tool->GetToolName(),false);        
         continue;
       }
 
       if ( trackerStatus!=TR_OK )
       {
         ss	<< "missing or out of view\n"; 
-        SetToolVisible(toolNumber,false);        
+        SetToolVisible(tool->GetToolName(),false);        
         continue;
       }
 
       // There is a valid transform
-      SetToolToTrackerTransform(toolNumber, toolToTrackerTransform);
-      SetToolVisible(toolNumber,true);
+      SetToolToTrackerTransform(tool->GetToolName(), toolToTrackerTransform);
+      SetToolVisible(tool->GetToolName(),true);
       ss	<< std::fixed 
         << toolToTrackerTransform->GetElement(0,0) << "   " << toolToTrackerTransform->GetElement(0,1) << "   " << toolToTrackerTransform->GetElement(0,2) << "   " << toolToTrackerTransform->GetElement(0,3) << " / "
         << toolToTrackerTransform->GetElement(1,0) << "   " << toolToTrackerTransform->GetElement(1,1) << "   " << toolToTrackerTransform->GetElement(1,2) << "   " << toolToTrackerTransform->GetElement(1,3) << " / "
@@ -175,7 +167,7 @@ public:
   vtkRenderer *Renderer;
   vtkRenderWindowInteractor *Iren;
   vtkTextActor *StepperTextActor; 
-  std::vector<vtkToolAxesActor*> ToolActors;
+  std::map<std::string,vtkToolAxesActor*> ToolActors;
   int TimerId;
 };
 
@@ -239,17 +231,27 @@ int main(int argc, char **argv)
     return EXIT_FAILURE; 
   }
 
-  int portNumber = dataCollector->GetTracker()->GetToolPortByName(inputToolName.c_str());
-  if ( portNumber < 0 )
+
+  vtkTrackerTool* tool = NULL; 
+  if ( !inputToolName.empty() )
   {
-    if ( dataCollector->GetTracker()->GetFirstActiveTool(portNumber) != PLUS_SUCCESS )
+    if ( dataCollector->GetTracker()->GetTool(inputToolName.c_str(), tool) != PLUS_SUCCESS )
+    { 
+      LOG_ERROR("Failed to get tool with name: " << inputToolName ); 
+      return EXIT_FAILURE; 
+    }
+  }
+  else
+  {
+    if ( dataCollector->GetTracker()->GetToolIteratorBegin() == dataCollector->GetTracker()->GetToolIteratorEnd() )
     {
       LOG_ERROR("There is no active tool!"); 
       return EXIT_FAILURE; 
     }
-  }
 
-  vtkTrackerTool* tool = dataCollector->GetTracker()->GetTool(portNumber); 
+    // Use the first active tool 
+    tool = dataCollector->GetTracker()->GetToolIteratorBegin()->second; 
+  }
 
   if ( tool == NULL )
   {

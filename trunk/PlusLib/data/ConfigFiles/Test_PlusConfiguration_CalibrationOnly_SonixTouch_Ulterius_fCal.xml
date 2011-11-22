@@ -10,7 +10,7 @@
 		<Tracker Type="None" >
 
 			<!-- PROBE -->
-			<Tool PortNumber="0" Type="Probe" Model="L14-5_38" Name="Probe" SendTo="127.0.0.1:1111">
+			<Tool PortName="0" Type="Probe" Model="L14-5_38" Name="Probe" SendTo="127.0.0.1:1111">
 
       <!-- Calibration transform -->
 				<Calibration

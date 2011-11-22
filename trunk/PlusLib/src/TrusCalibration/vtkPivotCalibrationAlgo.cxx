@@ -198,77 +198,94 @@ void vtkTrackerToolCalibrationFunction(void *userData)
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkPivotCalibrationAlgo::ReadConfiguration(vtkXMLDataElement* aConfig, TRACKER_TOOL_TYPE aType)
+PlusStatus vtkPivotCalibrationAlgo::ReadConfiguration(vtkXMLDataElement* aConfig, const char * aCalibrationTransformName)
 {
-	LOG_TRACE("vtkPivotCalibrationAlgo::ReadConfiguration(" << aType << ")");
+	LOG_TRACE("vtkPivotCalibrationAlgo::ReadConfiguration");
 
-	// Find tool definition element
-  std::string toolType;
-	vtkTracker::ConvertToolTypeToString(aType, toolType);
-  vtkXMLDataElement* toolDefinition = vtkPlusConfig::LookupElementWithNameContainingChildWithNameAndAttribute(aConfig, "Tracker", "Tool", "Type", toolType.c_str());
-	if (toolDefinition == NULL) {
-    LOG_ERROR("No tool definition is found in the XML tree with type: " << aType);
-		return PLUS_FAIL;
-	}
-
-	vtkXMLDataElement* calibration = toolDefinition->FindNestedElementWithName("Calibration");
-	if (calibration == NULL) {
-		LOG_ERROR("No calibration section is found in tool definition!");
-		return PLUS_FAIL;
-	}
-
-  // Check date - if it is empty, the calibration is considered as invalid (as the calibration transforms in the installed config files are identity matrices with empty dates)
-  const char* date = calibration->GetAttribute("Date");
-  if ((date == NULL) || (STRCASECMP(date, "") == 0)) {
-    LOG_WARNING("Transform cannot be loaded with no date entered!");
-    return PLUS_FAIL;
+  if ( aConfig == NULL )
+  {
+    LOG_ERROR("Unable to read configuration - XML data is NULL"); 
+    return PLUS_FAIL; 
   }
 
-	// Get transform
-	double* tooltipToToolTransformVector = new double[16]; 
-	if (calibration->GetVectorAttribute("MatrixValue", 16, tooltipToToolTransformVector)) {
-    vtkSmartPointer<vtkTransform> tooltipToToolTransform = vtkSmartPointer<vtkTransform>::New();
-    tooltipToToolTransform->Identity();
-    tooltipToToolTransform->SetMatrix(tooltipToToolTransformVector);
-    this->SetTooltipToToolTransform(tooltipToToolTransform);
+  if ( aCalibrationTransformName == NULL )
+  {
+    LOG_ERROR("Unable to read configuration - calibration transform name is NULL"); 
+    return PLUS_FAIL; 
   }
-	delete[] tooltipToToolTransformVector; 
+
+  // TODO: see assembla ticket plus #391
+  //vtkXMLDataElement* calibration = toolDefinition->FindNestedElementWithName("Calibration");
+  //if (calibration == NULL) {
+  //	LOG_ERROR("No calibration section is found in tool definition!");
+  //	return PLUS_FAIL;
+  //}
+
+  // // Check date - if it is empty, the calibration is considered as invalid (as the calibration transforms in the installed config files are identity matrices with empty dates)
+  // const char* date = calibration->GetAttribute("Date");
+  // if ((date == NULL) || (STRCASECMP(date, "") == 0)) {
+  //   LOG_WARNING("Transform cannot be loaded with no date entered!");
+  //   return PLUS_FAIL;
+  // }
+
+  //// Get transform
+  //double* tooltipToToolTransformVector = new double[16]; 
+  //if (calibration->GetVectorAttribute("MatrixValue", 16, tooltipToToolTransformVector)) {
+  //   vtkSmartPointer<vtkTransform> tooltipToToolTransform = vtkSmartPointer<vtkTransform>::New();
+  //   tooltipToToolTransform->Identity();
+  //   tooltipToToolTransform->SetMatrix(tooltipToToolTransformVector);
+  //   this->SetTooltipToToolTransform(tooltipToToolTransform);
+  // }
+  //delete[] tooltipToToolTransformVector; 
 
   return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkPivotCalibrationAlgo::WriteConfiguration(vtkXMLDataElement* aConfig, TRACKER_TOOL_TYPE aType)
+PlusStatus vtkPivotCalibrationAlgo::WriteConfiguration(vtkXMLDataElement* aConfig, const char * aCalibrationTransformName)
 {
-	LOG_TRACE("vtkPivotCalibrationAlgo::WriteConfiguration(" << aType << ")");
+	LOG_TRACE("vtkPivotCalibrationAlgo::WriteConfiguration");
 
-	// Find tool definition element
-  std::string toolType;
-	vtkTracker::ConvertToolTypeToString(aType, toolType);
-	vtkXMLDataElement* toolDefinition = vtkPlusConfig::LookupElementWithNameContainingChildWithNameAndAttribute(aConfig, "Tracker", "Tool", "Type", toolType.c_str());
-	if (toolDefinition == NULL) {
-    LOG_ERROR("No tool definition is found in the XML tree with type: " << aType);
-		return PLUS_FAIL;
-	}
+  if ( aConfig == NULL )
+  {
+    LOG_ERROR("Unable to read configuration - XML data is NULL"); 
+    return PLUS_FAIL; 
+  }
 
-	vtkXMLDataElement* calibration = toolDefinition->FindNestedElementWithName("Calibration");
-	if (calibration == NULL) {
-		LOG_ERROR("No calibration section is found in tool definition!");
-		return PLUS_FAIL;
-	}
+  if ( aCalibrationTransformName == NULL )
+  {
+    LOG_ERROR("Unable to read configuration - calibration transform name is NULL"); 
+    return PLUS_FAIL; 
+  }
 
-	// Assemble and save transform
-	char tooltipToToolTransformChars[256];
-	vtkSmartPointer<vtkMatrix4x4> transformMatrix = this->TooltipToToolTransform->GetMatrix();
-	sprintf_s(tooltipToToolTransformChars, 256, "\n\t1 0 0 %.4lf\n\t0 1 0 %.4lf\n\t0 0 1 %.4lf\n\t0 0 0 1", transformMatrix->GetElement(0,3), transformMatrix->GetElement(1,3), transformMatrix->GetElement(2,3));
+  // TODO: see assembla ticket plus #391
+  //// Find tool definition element
+  // std::string toolType;
+  //vtkTracker::ConvertToolTypeToString(aType, toolType);
+  //vtkXMLDataElement* toolDefinition = vtkPlusConfig::LookupElementWithNameContainingChildWithNameAndAttribute(aConfig, "Tracker", "Tool", "Type", toolType.c_str());
+  //if (toolDefinition == NULL) {
+  //   LOG_ERROR("No tool definition is found in the XML tree with type: " << aType);
+  //	return PLUS_FAIL;
+  //}
 
-	calibration->SetAttribute("MatrixValue", tooltipToToolTransformChars);
+  //vtkXMLDataElement* calibration = toolDefinition->FindNestedElementWithName("Calibration");
+  //if (calibration == NULL) {
+  //	LOG_ERROR("No calibration section is found in tool definition!");
+  //	return PLUS_FAIL;
+  //}
 
-	// Save matrix name, date and error
-	calibration->SetAttribute("MatrixName", "TooltipToTool");
-	calibration->SetAttribute("Date", vtksys::SystemTools::GetCurrentDateTime("%Y.%m.%d %X").c_str());
-	calibration->SetDoubleAttribute("Error", CalibrationError);
+  //// Assemble and save transform
+  //char tooltipToToolTransformChars[256];
+  //vtkSmartPointer<vtkMatrix4x4> transformMatrix = this->TooltipToToolTransform->GetMatrix();
+  //sprintf_s(tooltipToToolTransformChars, 256, "\n\t1 0 0 %.4lf\n\t0 1 0 %.4lf\n\t0 0 1 %.4lf\n\t0 0 0 1", transformMatrix->GetElement(0,3), transformMatrix->GetElement(1,3), transformMatrix->GetElement(2,3));
+
+  //calibration->SetAttribute("MatrixValue", tooltipToToolTransformChars);
+
+  //// Save matrix name, date and error
+  //calibration->SetAttribute("MatrixName", "TooltipToTool");
+  //calibration->SetAttribute("Date", vtksys::SystemTools::GetCurrentDateTime("%Y.%m.%d %X").c_str());
+  //calibration->SetDoubleAttribute("Error", CalibrationError);
 
 	return PLUS_SUCCESS;
 }

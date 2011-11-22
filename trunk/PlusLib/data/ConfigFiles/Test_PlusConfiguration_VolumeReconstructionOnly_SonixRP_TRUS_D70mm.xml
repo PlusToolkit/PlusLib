@@ -16,7 +16,7 @@
 		<Tracker Type="CertusTracker" BufferSize="2500" Frequency="50" AveragedItemsForFiltering="20" LocalTimeOffset="0.0" >
 			
 			<!-- PROBE -->
-			<Tool PortNumber="0" Type="Probe" Model="L14-5_38" Name="Probe" SendTo="127.0.0.1:1111">
+			<Tool PortName="0" Type="Probe" Model="L14-5_38" Name="Probe" SendTo="127.0.0.1:1111">
 				<!-- Supported types are: Probe, Stylus, Needle, Reference -->
 				
 				<!-- ModelToToolTransform - transforming model into tool origin coordinate system for proper visualization ( Note2: All tools that are not phantoms should use ModelToToolTransform as the entity name) -->
@@ -28,10 +28,12 @@
 						0 0 1 0
 						0 0 0 1"
 				/>
-									
-				<!-- Calibration transform -->
-				<Calibration
-					MatrixName="ImageToProbe" 
+			</Tool>
+		</Tracker>
+	</USDataCollection>
+  
+  <Calibration>
+    <ImageToProbe
 					MatrixValue="
 						0.191647 0.00743877 0.0242208 -65.3006 
 						-0.00410587 0.183884 -0.00547576 -86.7768 
@@ -39,12 +41,11 @@
 						0 0 0 1"
 					Date="2011.07.28 21:42:34"
 					Error="0.0" />
-			</Tool>
-		</Tracker>
-	</USDataCollection>
-
+  </Calibration>
+  
 	<!-- VOLUME RECONSTRUCTION -->
-	<VolumeReconstruction OutputSpacing="0.3 0.3 0.3" 
+	<VolumeReconstruction CalibrationTransformName="ImageToProbe"
+                        OutputSpacing="0.3 0.3 0.3" 
                         FanAngles="-45 45" FanOrigin="320 465" FanDepth="300" 
                         Interpolation="LINEAR" Optimization="FULL" Compounding="On" FillHoles="Off"/>
 

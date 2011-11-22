@@ -692,32 +692,32 @@ PlusStatus vtkProbeCalibrationAlgo::WriteConfiguration(vtkXMLDataElement* aConfi
   // vtkXMLDataElement* imageAcquisition = vtkPlusConfig::LookupElementWithNameContainingChildWithNameAndAttribute(aConfig, "USDataCollection", "ImageAcquisition", NULL, NULL);
   // imageAcquisition->SetDoubleAttribute("LocalTimeOffset", videoTimeOffset);
 
+  //************* TODO: see assembla ticket plus #390
 	// Save spatial calibration result
-  std::string toolType;
-	vtkTracker::ConvertToolTypeToString(TRACKER_TOOL_PROBE, toolType);
+  // // Find probe definition element
+  //vtkXMLDataElement* probeDefinition = vtkPlusConfig::LookupElementWithNameContainingChildWithNameAndAttribute(aConfig, "Tracker", "Tool", "Type", toolType.c_str());
+  //if (probeDefinition == NULL) {
+  //	LOG_ERROR("No probe definition is found in the XML tree!");
+  //	return PLUS_FAIL;
+  //}
 
-  // Find probe definition element
-	vtkXMLDataElement* probeDefinition = vtkPlusConfig::LookupElementWithNameContainingChildWithNameAndAttribute(aConfig, "Tracker", "Tool", "Type", toolType.c_str());
-	if (probeDefinition == NULL) {
-		LOG_ERROR("No probe definition is found in the XML tree!");
-		return PLUS_FAIL;
-	}
+  //vtkXMLDataElement* calibration = probeDefinition->FindNestedElementWithName("Calibration");
+  //if (calibration == NULL) {
+  //	LOG_ERROR("No calibration section is found in probe definition!");
+  //	return PLUS_FAIL;
+  //}
 
-	vtkXMLDataElement* calibration = probeDefinition->FindNestedElementWithName("Calibration");
-	if (calibration == NULL) {
-		LOG_ERROR("No calibration section is found in probe definition!");
-		return PLUS_FAIL;
-	}
-
-	// Assemble and save transform
+  //// Assemble and save transform
   double tUserImageToProbe[16] = {0}; 
-  vtkMatrix4x4::DeepCopy(tUserImageToProbe, this->TransformUserImageToProbe->GetMatrix() ); 
-  calibration->SetVectorAttribute("MatrixValue", 16, tUserImageToProbe); 
+  // vtkMatrix4x4::DeepCopy(tUserImageToProbe, this->TransformUserImageToProbe->GetMatrix() ); 
+  // calibration->SetVectorAttribute("MatrixValue", 16, tUserImageToProbe); 
 
-	// Save matrix name, date and error
-	calibration->SetAttribute("MatrixName", "ImageToProbe");
-	calibration->SetAttribute("Date", vtksys::SystemTools::GetCurrentDateTime("%Y.%m.%d %X").c_str());
-	calibration->SetDoubleAttribute("Error", this->PointLineDistanceErrorAnalysisVector[0]); // TODO find the best error number
+  //// Save matrix name, date and error
+  //calibration->SetAttribute("MatrixName", "ImageToProbe");
+  //calibration->SetAttribute("Date", vtksys::SystemTools::GetCurrentDateTime("%Y.%m.%d %X").c_str());
+  //calibration->SetDoubleAttribute("Error", this->PointLineDistanceErrorAnalysisVector[0]); // TODO find the best error number
+  
+  //************** TODO-END: see assembla ticket plus #390
 
   // TRUS results
 	vtkXMLDataElement* usCalibration = aConfig->FindNestedElementWithName("USCalibration");

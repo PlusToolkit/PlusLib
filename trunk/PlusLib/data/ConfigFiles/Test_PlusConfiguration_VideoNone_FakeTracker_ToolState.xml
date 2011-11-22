@@ -8,10 +8,7 @@
 			/>
 
 		<Tracker Type="FakeTracker" BufferSize="1000" Frequency="50" LocalTimeOffset="0.0" Mode="ToolState" AveragedItemsForFiltering="20" >
-			
-			<Tool Type="Probe" Name="Test" PortNumber="0" SendTo="127.0.0.1:1111">
-			</Tool>
-
+    <Tool Name="Test" PortName="0"></Tool>
 		</Tracker>
 
 		<ImageAcquisition Type="None" />

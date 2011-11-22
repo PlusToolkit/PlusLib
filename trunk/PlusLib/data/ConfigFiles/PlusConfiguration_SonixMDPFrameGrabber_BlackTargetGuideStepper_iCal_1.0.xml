@@ -9,7 +9,7 @@ Connect the framegrabber via USB and plug in the stepper through Serial2USB conv
 
       <Tracker Type="BrachyTracker" BufferSize="300" Frequency="20" AveragedItemsForFiltering="20" LocalTimeOffset="0.0" SerialPort="3" BaudRate="19200" BrachyStepperType="Burdette Medical Systems Digital Stepper" ModelNumber="4012A18-a" ModelVersion="" ModelSerialNumber="01-50-149" >
         
-         <Tool PortNumber="0" Type="Probe" Name="Probe" SendTo="127.0.0.1:1111">
+         <Tool PortName="0" Type="Probe" Name="Probe" SendTo="127.0.0.1:1111">
               <Calibration 
                   MatrixName="ImageToProbe" 
                   MatrixValue="1 0 0 0 

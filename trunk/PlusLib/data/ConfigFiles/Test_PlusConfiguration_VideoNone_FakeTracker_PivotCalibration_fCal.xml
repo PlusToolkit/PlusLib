@@ -10,11 +10,11 @@ vtkStylusCalibrationTest uses this configuration"
 
 		<Tracker Type="FakeTracker" BufferSize="1000" Frequency="50" LocalTimeOffset="0.0" Mode="PivotCalibration" AveragedItemsForFiltering="20" >
 			
-			<Tool Type="Reference" Name="Reference" PortNumber="0" SendTo="127.0.0.1:1111">
+			<Tool Name="Reference" PortName="0" SendTo="127.0.0.1:1111">
 			</Tool>
 
 			<!-- STYLUS -->
-			<Tool PortNumber="1" Type="Stylus" Model="Example" Name="Stylus" SendTo="127.0.0.1:1111">
+			<Tool Name="Stylus" PortName="1" Model="Example" SendTo="127.0.0.1:1111">
 				<!-- Supported types are: Probe, Stylus, Needle, Reference -->
 				
 				<!-- ModelToToolTransform - transforming model into tool origin coordinate system for proper visualization ( Note2: All tools that are not phantoms should use ModelToToolTransform as the entity name) -->

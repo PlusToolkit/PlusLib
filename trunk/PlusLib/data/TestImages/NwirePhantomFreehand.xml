@@ -5,11 +5,6 @@
     <Tracker Type="CertusTracker" BufferSize="2500" Frequency="50" AveragedItemsForFiltering="20" LocalTimeOffset="0.0">
       <Tool PortNumber="0" Type="Probe" Model="L14-5_38" Name="Probe" SendTo="127.0.0.1:1111">
         <Model File="L14-5_38_ProbeModel.stl" ModelToToolTransform="       0.107721 0.979858 0.168146 -115.733132       -0.993248 0.113395 -0.024487 13.708913       -0.043061 -0.164373 0.985458 -107.578262       0 0 0 1" />
-        <Calibration MatrixName="ImageToProbe" MatrixValue="
-	-0.0094 -0.0739 -0.0028 -103.5322
-	0.0774 -0.0076 -0.0049 -43.1227
-	0.0046 -0.0032 0.0760 -93.3
-	0 0 0 1" Error="0.508027" Date="2011.08.19 14:11:53" />
       </Tool>
       <Tool Type="Reference" Name="PhantomReference" PortNumber="1" SendTo="127.0.0.1:1111" />
       <Tool PortNumber="2" Type="Stylus" Model="Example" Name="Stylus" SendTo="127.0.0.1:1112">
@@ -77,7 +72,17 @@
     </Geometry>
   </PhantomDefinition>
   
-  <VolumeReconstruction Interpolation="LINEAR" Optimization="NONE" Compounding="On" FillHoles="Off" NumberOfThreads="1"
+  <Calibration>
+    <ImageToProbe
+					MatrixValue="
+                        -0.0094 -0.0739 -0.0028 -103.5322
+                        0.0774 -0.0076 -0.0049 -43.1227
+	                      0.0046 -0.0032 0.0760 -93.3
+	                      0 0 0 1" 
+          Error="0.508027" Date="2011.08.19 14:11:53" />
+  </Calibration>
+  
+  <VolumeReconstruction CalibrationTransformName="ImageToProbe" Interpolation="LINEAR" Optimization="NONE" Compounding="On" FillHoles="Off" NumberOfThreads="1"
                            ClipRectangleOrigin="167 62" ClipRectangleSize="495 488"
                            OutputSpacing="0.5 0.5 0.5" />
 

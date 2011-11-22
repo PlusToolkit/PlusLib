@@ -34,6 +34,7 @@ int main (int argc, char* argv[])
 { 
 	std::string inputConfigFileName;
 	std::string inputBaselineFileName;
+  std::string inputStylusToolName("Stylus");
 
 	int numberOfAcquiredPoints=100;
 	int verboseLevel=vtkPlusLogger::LOG_LEVEL_DEFAULT;
@@ -41,6 +42,7 @@ int main (int argc, char* argv[])
 	vtksys::CommandLineArguments cmdargs;
 	cmdargs.Initialize(argc, argv);
 
+  cmdargs.AddArgument("--input-stylus-tool-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputStylusToolName, "Stylus tool name defined in the config file (Default: Stylus)");
 	cmdargs.AddArgument("--input-config-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "Configuration file name");
 	cmdargs.AddArgument("--input-baseline-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputBaselineFileName, "Name of file storing baseline calibration results");
 	cmdargs.AddArgument("--number-of-acquired-points", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &numberOfAcquiredPoints, "Number of acquired points during the pivot calibration");
@@ -87,7 +89,7 @@ int main (int argc, char* argv[])
     LOG_ERROR("Unable to start data collection!");
 		exit(EXIT_FAILURE);
 	}
-	if ((dataCollector->GetTracker() == NULL) || (dataCollector->GetTracker()->GetNumberOfTools() < 1)) {
+	if (dataCollector->GetTracker() == NULL) {
     LOG_ERROR("Unable to initialize tracker!");
 		exit(EXIT_FAILURE);
 	}
@@ -103,11 +105,12 @@ int main (int argc, char* argv[])
 
 	pivotCalibration->Initialize();
 
-  // Get stylus tool number
-  int stylusNumber = dataCollector->GetTracker()->GetFirstPortNumberByType(TRACKER_TOOL_STYLUS);
-  if (stylusNumber == -1) {
-    LOG_ERROR("Unable to find stylus in tracker!");
-		exit(EXIT_FAILURE);
+  // Get stylus tool 
+  vtkTrackerTool* stylus = NULL; 
+  if ( dataCollector->GetTracker()->GetTool(inputStylusToolName.c_str(), stylus) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Unable to get stylus tool: " << inputStylusToolName);
+    exit(EXIT_FAILURE);
   }
 
 	// Acquire positions for pivot calibration
@@ -119,9 +122,7 @@ int main (int argc, char* argv[])
 	  TrackerStatus status = TR_MISSING;
 	  double timestamp;
 
-	  if (dataCollector->GetTracker()->GetTool(stylusNumber)->GetEnabled()) {
-		  dataCollector->GetTransformWithTimestamp(stylusToReferenceMatrix, timestamp, status, stylusNumber);
-	  }
+    dataCollector->GetTransformWithTimestamp(stylusToReferenceMatrix, timestamp, status, stylus->GetToolName());
 
     if (status == TR_OK) {
       pivotCalibration->InsertNextCalibrationPoint(stylusToReferenceMatrix);
@@ -134,7 +135,8 @@ int main (int argc, char* argv[])
   }
 
 	// Save result
-	pivotCalibration->WriteConfiguration(configRootElement, TRACKER_TOOL_STYLUS);
+  std::string pivotCalibrationTransformName = inputStylusToolName + std::string("ToToolTip"); 
+	pivotCalibration->WriteConfiguration(configRootElement, pivotCalibrationTransformName.c_str());
   vtkstd::string calibrationResultFileName = "StylusCalibrationTest.xml";
 	vtksys::SystemTools::RemoveFile(calibrationResultFileName.c_str());
   configRootElement->PrintXML(calibrationResultFileName.c_str());

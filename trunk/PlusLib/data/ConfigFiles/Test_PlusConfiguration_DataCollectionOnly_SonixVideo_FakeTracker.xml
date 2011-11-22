@@ -8,8 +8,8 @@
 				/>
 
 		<Tracker Type="FakeTracker" BufferSize="200" Frequency="30" LocalTimeOffset="0.0" DefaultToolName="Stylus" Mode="PivotCalibration" ReferenceToolName="Reference" AveragedItemsForFiltering="20" >
-			<Tool Type="Reference" Name="Reference" PortNumber="0"></Tool> 
-			<Tool Type="Stylus" Name="Stylus" PortNumber="1" SendTo="localhost:18944">
+      <Tool Type="Reference" Name="Reference" PortName="0"></Tool> 
+      <Tool Type="Stylus" Name="Stylus" PortName="1" SendTo="127.0.0.1:1111">
 				<Calibration 
 					MatrixName="StylusTipToStylus" 
 					MatrixValue="1 0 0 0 
@@ -20,6 +20,7 @@
 					Error="0.0"
 					/> 
 			</Tool>
+
 		</Tracker>
 
 		<ImageAcquisition Type="SonixVideo" 

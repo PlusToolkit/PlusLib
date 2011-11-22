@@ -28,7 +28,7 @@
 struct IgtToolInfo
 {
   std::string                  ToolName;
-  int                          TrackerPortNumber;
+  std::string                  TrackerPortName;
   igtl::ClientSocket::Pointer  Socket;
 };
 

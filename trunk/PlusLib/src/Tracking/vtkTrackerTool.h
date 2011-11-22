@@ -120,11 +120,6 @@ public:
   /*! Set tool model */
   vtkSetStringMacro(ToolModel); 
 
-  /*! Set the tool type */
-  void SetToolType(TRACKER_TOOL_TYPE type) { ToolType = type; }
-  /*! Get the tool type */
-  TRACKER_TOOL_TYPE GetToolType() { return this->ToolType; }
-
   /*! Get tool definition data (model to tool transform, tool registration transform, model file path and filename) */
   vtkGetObjectMacro(ModelToToolTransform, vtkTransform);
   /*! Set tool definition data (model to tool transform, tool registration transform, model file path and filename) */
@@ -158,13 +153,6 @@ public:
   /*! Make this tracker into a copy of another tracker. You should lock both of the tracker buffers before doing this. */
   void DeepCopy(vtkTrackerTool *tool);
 
-  /*! Flag to store tool availability */
-	vtkSetMacro(Enabled, bool); 
-  /*! Flag to store tool availability */
-	vtkGetMacro(Enabled, bool);
-  /*! Flag to store tool availability */
-	vtkBooleanMacro(Enabled, bool); 
-
 protected:
   vtkTrackerTool();
   ~vtkTrackerTool();
@@ -174,8 +162,6 @@ protected:
   int ToolPort;
   char *PortName;
 
-  TRACKER_TOOL_TYPE ToolType;
-
   vtkMatrix4x4 *CalibrationMatrix;
 
   unsigned long FrameNumber; 
@@ -183,8 +169,6 @@ protected:
   int LED1;
   int LED2;
   int LED3;
-
-  bool Enabled; 
 
   char *ToolRevision;
   char *ToolSerialNumber;

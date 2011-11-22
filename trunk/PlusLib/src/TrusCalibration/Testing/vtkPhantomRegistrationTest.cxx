@@ -36,6 +36,8 @@ int CompareRegistrationResultsWithBaseline(const char* baselineFileName, const c
 int main (int argc, char* argv[])
 { 
 	std::string inputConfigFileName;
+  std::string inputStylusToolName("Stylus");
+  std::string inputPivotCalibrationTransformName; 
 	std::string inputBaselineFileName;
 
 	int verboseLevel=vtkPlusLogger::LOG_LEVEL_DEFAULT;
@@ -43,6 +45,8 @@ int main (int argc, char* argv[])
 	vtksys::CommandLineArguments cmdargs;
 	cmdargs.Initialize(argc, argv);
 
+  cmdargs.AddArgument("--input-pivot-calib-transform-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputPivotCalibrationTransformName, "Pivot calibration transform name searched in config file");
+  cmdargs.AddArgument("--input-stylus-tool-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputStylusToolName, "Stylus tool name defined in the config file (Default: Stylus)");
 	cmdargs.AddArgument("--input-config-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "Configuration file name");
 	cmdargs.AddArgument("--input-baseline-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputBaselineFileName, "Name of file storing baseline calibration results");
 	cmdargs.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");	
@@ -55,13 +59,6 @@ int main (int argc, char* argv[])
 	}
 
 	vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
-
-	std::string programPath("./"), errorMsg; 
-	if ( !vtksys::SystemTools::FindProgramPath(argv[0], programPath, errorMsg) )
-	{
-		LOG_ERROR(errorMsg); 
-	}
-	programPath = vtksys::SystemTools::GetParentDirectory(programPath.c_str()); 
 
 	LOG_INFO("Initialize"); 
 
@@ -88,7 +85,7 @@ int main (int argc, char* argv[])
     LOG_ERROR("Unable to start data collection!");
 		exit(EXIT_FAILURE);
 	}
-	if ((dataCollector->GetTracker() == NULL) || (dataCollector->GetTracker()->GetNumberOfTools() < 1)) {
+	if (dataCollector->GetTracker() == NULL) {
     LOG_ERROR("Unable to initialize tracker!");
 		exit(EXIT_FAILURE);
 	}
@@ -101,18 +98,25 @@ int main (int argc, char* argv[])
 		LOG_ERROR("Unable to instantiate pivot calibration algorithm class!");
 		exit(EXIT_FAILURE);
 	}
-  if (pivotCalibration->ReadConfiguration(configRootElement, TRACKER_TOOL_STYLUS) != PLUS_SUCCESS) {
+  if (pivotCalibration->ReadConfiguration(configRootElement, inputPivotCalibrationTransformName.c_str() ) != PLUS_SUCCESS) {
 		LOG_ERROR("Unable to read stylus calibration configuration!");
 		exit(EXIT_FAILURE);
 	}
 
   // Set stylus calibration to stylus tool
-  int stylusNumber = dataCollector->GetTracker()->GetFirstPortNumberByType(TRACKER_TOOL_STYLUS);
-  vtkTrackerTool* stylus = dataCollector->GetTracker()->GetTool(stylusNumber);
-  if (stylus == NULL) {
-    LOG_ERROR("Unable to get stylus tool!");
+  vtkTrackerTool* stylus = NULL; 
+  if ( dataCollector->GetTracker()->GetTool(inputStylusToolName.c_str(), stylus) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Unable to get stylus tool: " << inputStylusToolName);
     exit(EXIT_FAILURE);
   }
+  
+  if ( pivotCalibration->GetTooltipToToolTransform() == NULL )
+  {
+    LOG_ERROR("Tooltip to tool transform is NULL!");
+    exit(EXIT_FAILURE);
+  }
+
   vtkSmartPointer<vtkMatrix4x4> calibrationMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
   calibrationMatrix->DeepCopy(pivotCalibration->GetTooltipToToolTransform()->GetMatrix());
   stylus->SetCalibrationMatrix(calibrationMatrix);
@@ -148,10 +152,8 @@ int main (int argc, char* argv[])
 	  TrackerStatus status = TR_MISSING;
 	  double timestamp;
 
-	  if (dataCollector->GetTracker()->GetTool(stylusNumber)->GetEnabled()) {
-		  dataCollector->GetTransformWithTimestamp(stylusTipToReferenceMatrix, timestamp, status, stylusNumber, true);
-	  }
-
+    dataCollector->GetTransformWithTimestamp(stylusTipToReferenceMatrix, timestamp, status, stylus->GetToolName(), true);
+	
     if (status == TR_OK) {
       // Compute point position from matrix
       double elements[16];

@@ -92,7 +92,7 @@ public:
   virtual PlusStatus Synchronize( const char* bufferOutputFolder = NULL, bool acquireDataOnly = false ); 
 
   /*! Copy the current state of the tracker buffer  */
-  virtual PlusStatus CopyTrackerBuffer( vtkTrackerBuffer* trackerBuffer, int toolNumber ); 
+  virtual PlusStatus CopyTrackerBuffer( vtkTrackerBuffer* trackerBuffer, const char* aToolName); 
 
   /*! Copy the current state of the tracker (with each tools and buffers) */
   virtual PlusStatus CopyTracker( vtkTracker* tracker); 
@@ -113,13 +113,10 @@ public:
   virtual PlusStatus GetOldestTimestamp(double &ts); 
 
   /*! Return the tool status at a given time */
-  virtual PlusStatus GetToolStatus( double time, int toolNumber, TrackerStatus &status ); 
-
-  /*! Get the number of available tools */
-  int GetNumberOfTools();
+  virtual PlusStatus GetToolStatus( double time, const char* aToolName, TrackerStatus &status ); 
 
   /*! Get the most recent tracked frame from devices  */
-  virtual PlusStatus GetTrackedFrame(vtkImageData* frame, vtkMatrix4x4* toolTransMatrix, TrackerStatus& status, double& synchronizedTime, int toolNumber = 0, bool calibratedTransform = false); 
+  virtual PlusStatus GetTrackedFrame(vtkImageData* frame, vtkMatrix4x4* toolTransMatrix, TrackerStatus& status, double& synchronizedTime, const char* aToolName, bool calibratedTransform = false); 
 
   /*! Get the most recent tracked frame from devices with each tool transforms */
   virtual PlusStatus GetTrackedFrame(TrackedFrame* trackedFrame, bool calibratedTransform = false); 
@@ -143,8 +140,6 @@ public:
   */
   virtual PlusStatus GetTrackedFrameListSampled(double& frameTimestamp, vtkTrackedFrameList* trackedFrameList, double samplingRateMs); 
 
-  const char* vtkDataCollector::GetDefaultFrameTransformName(int toolNumber);
-
   /*! Get the tracked frame from devices by time with each tool transforms */
   virtual PlusStatus GetTrackedFrameByTime(double time, TrackedFrame* trackedFrame, bool calibratedTransform = false); 
 
@@ -152,13 +147,13 @@ public:
   virtual PlusStatus GetTrackedFrameByTime(double time, vtkImageData* frame, std::vector<vtkMatrix4x4*> &toolTransforms, std::vector<std::string> &toolTransformNames, std::vector<TrackerStatus> &status, double& synchronizedTime, bool calibratedTransform = false); 
 
   /*! Get transformation with timestamp from tracker  */
-  virtual PlusStatus GetTransformWithTimestamp(vtkMatrix4x4* toolTransMatrix, double& transformTimestamp, TrackerStatus& status, int toolNumber = 0, bool calibratedTransform = false); 
+  virtual PlusStatus GetTransformWithTimestamp(vtkMatrix4x4* toolTransMatrix, double& transformTimestamp, TrackerStatus& status, const char* aToolName, bool calibratedTransform = false); 
 
   /*! Get transformation by timestamp from tracker  */
-  virtual PlusStatus GetTransformByTimestamp(vtkMatrix4x4* toolTransMatrix, TrackerStatus& status, double synchronizedTime, int toolNumber = 0, bool calibratedTransform = false); 
+  virtual PlusStatus GetTransformByTimestamp(vtkMatrix4x4* toolTransMatrix, TrackerStatus& status, double synchronizedTime, const char* aToolName, bool calibratedTransform = false); 
 
   /*! Get transformations by timestamp range from tracker. The first returned transform is the one after the startTime, except if startTime is -1, then it refers to the oldest one. '-1' for end time means the latest transform. Returns the timestamp of the requested transform (makes sense if endTime is -1) */
-  virtual double GetTransformsByTimeInterval(std::vector<vtkMatrix4x4*> &toolTransMatrixVector, std::vector<TrackerStatus> &statusVector, double startTime, double endTime, int toolNumber = 0, bool calibratedTransform = false);
+  virtual double GetTransformsByTimeInterval(std::vector<vtkMatrix4x4*> &toolTransMatrixVector, std::vector<TrackerStatus> &statusVector, double startTime, double endTime, const char* aToolName, bool calibratedTransform = false);
 
   /*! Get frame data by time  */
   virtual PlusStatus GetFrameByTime(double time, vtkImageData* frame, double& frameTimestamp); 
@@ -283,11 +278,6 @@ protected:
   TRACKER_TYPE		              TrackerType; 
   /*! Synchronization algorithm type */
   SYNC_TYPE			                SyncType; 
-
-  /*! Latest tracking data (transformation matrices) */
-  std::vector<vtkMatrix4x4*>    ToolTransMatrices; 
-  /*! Latest tracking data (tool status information) */
-  std::vector<TrackerStatus>	  ToolStatus; 
 
   /*! Version of the configuration description XML data element */
   double			              	  DataCollectionConfigVersion; 

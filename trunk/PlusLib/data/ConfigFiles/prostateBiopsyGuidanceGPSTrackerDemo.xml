@@ -17,7 +17,7 @@
 						<Tool
 		  Name="Probe"
       Type="Probe"
-		  PortNumber="0"
+		  PortName="0"
 		  SendTo="localhost:18944">
 			<Model
 				File="L14-5_38_ProbeModel.stl"

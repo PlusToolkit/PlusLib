@@ -7,7 +7,7 @@
 
     <Tracker Type="MicronTracker" BufferSize="500" Frequency="5" LocalTimeOffset="0.0" AveragedItemsForFiltering="20">
 
-      <Tool Name="Probe" Type="Probe" PortNumber="0" PortName="probeMarker" SendTo="localhost:18944">
+      <Tool Name="Probe" Type="Probe" PortName="0" PortName="probeMarker" SendTo="localhost:18944">
         <Model File="L14-5_38_ProbeModel.stl" ModelToToolTransform="
           0.107721 0.979858 0.168146 -115.733132
           -0.993248 0.113395 -0.024487 13.708913
@@ -20,10 +20,10 @@
           0 0 0 1" />
       </Tool>
 
-      <Tool Name="Reference" Type="Reference" PortNumber="1" PortName="patientMarker">
+      <Tool Name="Reference" Type="Reference" PortName="1" PortName="patientMarker">
       </Tool>
 
-      <Tool Name="Stylus" Type="Stylus" PortNumber="2" PortName="stitchMarker">
+      <Tool Name="Stylus" Type="Stylus" PortName="2" PortName="stitchMarker">
         <Model File="Stylus_Example.stl" ModelToToolTransform="
           1 0 0 -210.0
           0 1 0 0

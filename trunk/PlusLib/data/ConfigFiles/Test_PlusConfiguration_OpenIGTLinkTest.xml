@@ -18,7 +18,7 @@
       <Tool
         Name="ToolToTrackerTransform"
         Type="Probe"
-        PortNumber="0"
+        PortName="0"
         SendTo="localhost:18944">
       </Tool>
 
