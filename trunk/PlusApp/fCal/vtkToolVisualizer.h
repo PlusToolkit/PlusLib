@@ -277,6 +277,9 @@ public:
   vtkGetStringMacro(ProbeToolName);
   vtkSetStringMacro(ProbeToolName);
 
+  vtkGetStringMacro(ReferenceToolName);
+  vtkSetStringMacro(ReferenceToolName);
+
 protected:
 	vtkSetObjectMacro(ImageActor, vtkImageActor);
 	vtkSetObjectMacro(InputActor, vtkActor);
@@ -321,6 +324,9 @@ protected:
 
   /*! Name of the tool (which must be a probe) that acquires the images to display */
   char* ProbeToolName;
+
+  /*! Name of the reference tool */
+  char* ReferenceToolName;
 
   //! Renderer for the canvas
 	vtkRenderer* CanvasRenderer; 

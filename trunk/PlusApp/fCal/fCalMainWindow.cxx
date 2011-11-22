@@ -86,7 +86,6 @@ void fCalMainWindow::Initialize()
 
   // Create visualizer
   m_ToolVisualizer = vtkToolVisualizer::New();
-  m_ToolVisualizer->SetProbeToolName("Probe"); //TODO
   m_ToolVisualizer->Initialize();
 	ui.canvas->GetRenderWindow()->AddRenderer(m_ToolVisualizer->GetCanvasRenderer());
 

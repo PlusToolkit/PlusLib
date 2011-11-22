@@ -46,6 +46,7 @@ vtkToolVisualizer::vtkToolVisualizer()
 	this->InitializedOff();
 	this->ImageModeOff();
   this->ProbeToolName = NULL;
+  this->ReferenceToolName = NULL;
 
 	this->CanvasRenderer = NULL;
 	this->InputPolyData = NULL;
@@ -57,6 +58,8 @@ vtkToolVisualizer::vtkToolVisualizer()
 	this->VolumeActor = NULL;
 
   this->ImageToProbeTransform = NULL;
+
+  this->SetReferenceToolName("Reference");
 
 	// Create timer
   this->AcquisitionTimer = NULL;
@@ -471,12 +474,12 @@ void vtkToolVisualizer::SetPhantomToPhantomReferenceTransform(vtkTransform* aTra
   vtkSmartPointer<vtkTransform> phantomModelToPhantomReferenceTransform = vtkSmartPointer<vtkTransform>::New();
   phantomModelToPhantomReferenceTransform->Identity();
   phantomModelToPhantomReferenceTransform->Concatenate(aTransform->GetMatrix());
-  phantomModelToPhantomReferenceTransform->Concatenate(this->DisplayableTools["Reference"]->GetTool()->GetModelToToolTransform());
+  phantomModelToPhantomReferenceTransform->Concatenate(this->DisplayableTools[this->ReferenceToolName]->GetTool()->GetModelToToolTransform());
   phantomModelToPhantomReferenceTransform->Modified();
 
-  this->DisplayableTools["Reference"]->GetActor()->SetUserTransform(phantomModelToPhantomReferenceTransform);
+  this->DisplayableTools[this->ReferenceToolName]->GetActor()->SetUserTransform(phantomModelToPhantomReferenceTransform);
 
-  this->DisplayableTools["Reference"]->DisplayableOn();
+  this->DisplayableTools[this->ReferenceToolName]->DisplayableOn();
 }
 
 //-----------------------------------------------------------------------------
@@ -626,12 +629,12 @@ PlusStatus vtkToolVisualizer::EnableImageMode(bool aOn)
   else if (this->ImageMode == true) // If just changed from image mode to show devices mode
   {
     // Reset opacity of phantom
-    if (this->DisplayableTools.find("Reference") == this->DisplayableTools.end())
+    if (this->DisplayableTools.find(this->ReferenceToolName) == this->DisplayableTools.end())
     {
       LOG_ERROR("Missing reference displayable tool!");
       return PLUS_FAIL;
     }
-    this->DisplayableTools["Reference"]->GetActor()->GetProperty()->SetOpacity(0.6);
+    this->DisplayableTools[this->ReferenceToolName]->GetActor()->GetProperty()->SetOpacity(0.6);
 
 		// Reset camera to show all devices and the image
 		vtkSmartPointer<vtkCamera> imageCamera = vtkSmartPointer<vtkCamera>::New(); 
@@ -690,7 +693,7 @@ PlusStatus vtkToolVisualizer::DisplayDevices()
     vtkDisplayableTool* tool = it->second;
 
 	  // If reference then no need for setting transform (the phantom is fixed to the reference) - also skip is tool is missing
-    if ((tool == NULL) || (tool->GetTool() == NULL) || (toolName.compare("Reference") == 0))
+    if ((tool == NULL) || (tool->GetTool() == NULL) || (toolName.compare(this->ReferenceToolName) == 0))
     {
 		  continue;
 	  }
@@ -792,6 +795,13 @@ PlusStatus vtkToolVisualizer::DisplayDevices()
 PlusStatus vtkToolVisualizer::InitializePhantomVisualization()
 {
 	LOG_TRACE("vtkToolVisualizer::InitializePhantomVisualization");
+
+  if (this->ReferenceToolName == NULL || STRCASECMP(this->ReferenceToolName, "") == 0)
+  {
+    LOG_ERROR("Reference name is unspecified!");
+    return PLUS_FAIL;
+  }
+
   if (this->DataCollector->GetTracker() == NULL)
   {
     LOG_ERROR("No tracker is available");
@@ -799,19 +809,19 @@ PlusStatus vtkToolVisualizer::InitializePhantomVisualization()
   }
 
   vtkTrackerTool* referenceTool = NULL;
-  if (this->DataCollector->GetTracker()->GetTool("Reference", referenceTool) != PLUS_SUCCESS) //TODO
+  if (this->DataCollector->GetTracker()->GetTool(this->ReferenceToolName, referenceTool) != PLUS_SUCCESS)
   {
     LOG_WARNING("No reference tool is present in the tracker - one is created for visualization");
 
     referenceTool = vtkSmartPointer<vtkTrackerTool>::New();
-    referenceTool->SetToolName("Reference");
+    referenceTool->SetToolName(this->ReferenceToolName);
   }
 
   // Create displayable tool object for phantom
   vtkDisplayableTool* displayableTool = vtkDisplayableTool::New();
   displayableTool->DisplayableOff(); // Until phantom registration is missing (phantom to phantom reference transform is set)
   displayableTool->SetTool(referenceTool);
-  this->DisplayableTools["Reference"] = displayableTool;
+  this->DisplayableTools[this->ReferenceToolName] = displayableTool;
 
   // Get phantom definition xml data element
 	vtkXMLDataElement* phantomDefinition = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()->FindNestedElementWithName("PhantomDefinition");
@@ -876,7 +886,7 @@ PlusStatus vtkToolVisualizer::InitializePhantomVisualization()
 			vtkSmartPointer<vtkTransform> phantomModelToPhantomTransform = vtkSmartPointer<vtkTransform>::New();
       phantomModelToPhantomTransform->Identity();
 			phantomModelToPhantomTransform->SetMatrix(phantomModelToPhantomTransformVector);
-      this->DisplayableTools["Reference"]->GetTool()->SetModelToToolTransform(phantomModelToPhantomTransform);
+      this->DisplayableTools[this->ReferenceToolName]->GetTool()->SetModelToToolTransform(phantomModelToPhantomTransform);
     }
     else
     {
@@ -894,9 +904,9 @@ PlusStatus vtkToolVisualizer::InitializePhantomVisualization()
 	  vtkSmartPointer<vtkPolyDataMapper> phantomMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
 	  phantomMapper->SetInputConnection(stlReader->GetOutputPort());
 
-  	this->DisplayableTools["Reference"]->GetActor()->SetMapper(phantomMapper);
-    this->DisplayableTools["Reference"]->GetActor()->GetProperty()->SetOpacity(0.6);
-    this->CanvasRenderer->AddActor(this->DisplayableTools["Reference"]->GetActor());
+  	this->DisplayableTools[this->ReferenceToolName]->GetActor()->SetMapper(phantomMapper);
+    this->DisplayableTools[this->ReferenceToolName]->GetActor()->GetProperty()->SetOpacity(0.6);
+    this->CanvasRenderer->AddActor(this->DisplayableTools[this->ReferenceToolName]->GetActor());
   }
 
   return PLUS_SUCCESS;

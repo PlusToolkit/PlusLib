@@ -60,6 +60,13 @@ public:
 	*/
 	void SetDisplayAccordingToState();
 
+protected:
+  /*!
+  * Read fCal configuration
+  * \param aConfig Root element of the configuration XML data element
+  */
+  PlusStatus ReadConfiguration(vtkXMLDataElement* aConfig);
+
 signals:
 	/*!
 	* Executes operations needed after stopping the process

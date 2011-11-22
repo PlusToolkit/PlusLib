@@ -30,6 +30,7 @@ See License.txt for details.
 FreehandCalibrationToolbox::FreehandCalibrationToolbox(fCalMainWindow* aParentMainWindow, Qt::WFlags aFlags)
   : AbstractToolbox(aParentMainWindow)
   , QWidget(aParentMainWindow, aFlags)
+  , m_ProbeToolName("")
   , m_CancelRequest(false)
   , m_LastRecordedFrameTimestamp(0.0)
   , m_NumberOfCalibrationImagesToAcquire(200)

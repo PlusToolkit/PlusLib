@@ -120,11 +120,12 @@ void ConfigurationToolbox::ConnectToDevicesByConfigFile(std::string aConfigFile)
   QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
 
   // If not empty, then try to connect; empty parameter string means disconnect
-  if (STRCASECMP(aConfigFile.c_str(), "") != 0) {
+  if (STRCASECMP(aConfigFile.c_str(), "") != 0)
+  {
     // Read configuration
-    vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkSmartPointer<vtkXMLDataElement>::Take(
-      vtkXMLUtilities::ReadElementFromFile(aConfigFile.c_str()));
-    if (configRootElement == NULL) {	
+    vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkSmartPointer<vtkXMLDataElement>::Take(vtkXMLUtilities::ReadElementFromFile(aConfigFile.c_str()));
+    if (configRootElement == NULL)
+    {	
       LOG_ERROR("Unable to read configuration from file " << aConfigFile); 
       return;
     }
@@ -132,7 +133,8 @@ void ConfigurationToolbox::ConnectToDevicesByConfigFile(std::string aConfigFile)
     vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationData(configRootElement); 
 
 	  // If connection has been successfully created then this action should disconnect
-	  if (! m_DeviceSetSelectorWidget->GetConnectionSuccessful()) {
+	  if (! m_DeviceSetSelectorWidget->GetConnectionSuccessful())
+    {
 		  LOG_INFO("Connect to devices"); 
 
       // Disable main window
@@ -156,12 +158,20 @@ void ConfigurationToolbox::ConnectToDevicesByConfigFile(std::string aConfigFile)
 		  QApplication::processEvents();
 
 		  // Connect to devices
-		  if (m_ParentMainWindow->GetToolVisualizer()->StartDataCollection() != PLUS_SUCCESS) {
+		  if (m_ParentMainWindow->GetToolVisualizer()->StartDataCollection() != PLUS_SUCCESS)
+      {
 			  LOG_ERROR("Unable to start collecting data!");
 			  m_DeviceSetSelectorWidget->SetConnectionSuccessful(false);
 			  m_ToolStateDisplayWidget->InitializeTools(NULL, false);
+		  }
+      else
+      {
+        // Read configuration
+        if (ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS)
+        {
+          LOG_ERROR("Failed to read fCal configuration");
+        }
 
-		  } else {
         // Successful connection
 			  m_DeviceSetSelectorWidget->SetConnectionSuccessful(true);
 
@@ -170,7 +180,8 @@ void ConfigurationToolbox::ConnectToDevicesByConfigFile(std::string aConfigFile)
 
         vtkPlusConfig::GetInstance()->SaveApplicationConfigurationToFile();
 
-			  if (m_ToolStateDisplayWidget->InitializeTools(m_ParentMainWindow->GetToolVisualizer()->GetDataCollector(), true)) {
+			  if (m_ToolStateDisplayWidget->InitializeTools(m_ParentMainWindow->GetToolVisualizer()->GetDataCollector(), true))
+        {
 				  ui.toolStateDisplayWidget->setMinimumHeight(m_ToolStateDisplayWidget->GetDesiredHeight());
 				  ui.toolStateDisplayWidget->setMaximumHeight(m_ToolStateDisplayWidget->GetDesiredHeight());
 			  }
@@ -184,11 +195,12 @@ void ConfigurationToolbox::ConnectToDevicesByConfigFile(std::string aConfigFile)
       // Re-enable main window
      	m_ParentMainWindow->setEnabled(true);
     }
-
-  } else { // Disconnect
+  }
+  else // Disconnect
+  {
 		vtkDataCollector* dataCollector = m_ParentMainWindow->GetToolVisualizer()->GetDataCollector();
-		if ((dataCollector != NULL) && (dataCollector->GetConnected())) {
-
+		if ((dataCollector != NULL) && (dataCollector->GetConnected()))
+    {
 			dataCollector->Stop();
 			dataCollector->Disconnect();
 
@@ -300,4 +312,55 @@ void ConfigurationToolbox::SelectImageDirectory()
   vtkPlusConfig::GetInstance()->SaveApplicationConfigurationToFile();
 
   ui.lineEdit_ImageDirectory->setText(dirName);
+}
+
+//-----------------------------------------------------------------------------
+
+PlusStatus ConfigurationToolbox::ReadConfiguration(vtkXMLDataElement* aConfig)
+{
+  LOG_TRACE("ConfigurationToolbox::ReadConfiguration");
+
+  if (aConfig == NULL)
+  {
+    LOG_ERROR("Unable to read configuration"); 
+    return PLUS_FAIL; 
+  }
+
+  vtkXMLDataElement* fCalElement = aConfig->FindNestedElementWithName("fCal"); 
+
+  if (fCalElement == NULL)
+  {
+    LOG_ERROR("Unable to find fCal element in XML tree!"); 
+    return PLUS_FAIL;     
+  }
+
+  vtkXMLDataElement* trackerToolNames = fCalElement->FindNestedElementWithName("TrackerToolNames"); 
+
+  if (trackerToolNames == NULL)
+  {
+    LOG_ERROR("Unable to find TrackerToolNames element in XML tree!"); 
+    return PLUS_FAIL;     
+  }
+
+  // Probe tool name
+  const char* probeToolName = trackerToolNames->GetAttribute("Probe");
+  if (probeToolName == NULL)
+  {
+	  LOG_ERROR("Probe tool name is not specified in the fCal section of the configuration!");
+    return PLUS_FAIL;     
+  }
+
+  m_ParentMainWindow->GetToolVisualizer()->SetProbeToolName(probeToolName);
+
+  // Reference tool name
+  const char* referenceToolName = trackerToolNames->GetAttribute("Reference");
+  if (referenceToolName == NULL)
+  {
+	  LOG_ERROR("Reference tool name is not specified in the fCal section of the configuration!");
+    return PLUS_FAIL;     
+  }
+
+  m_ParentMainWindow->GetToolVisualizer()->SetReferenceToolName(referenceToolName);
+
+  return PLUS_SUCCESS;
 }
