@@ -255,6 +255,14 @@ IF ( PLUS_USE_ULTRASONIX_VIDEO )
     ENDIF()
 ENDIF() 
 
+IF ( PLUS_USE_MICRONTRACKER )
+    FIND_PACKAGE (MicronTracker)
+    IF ( NOT MICRONTRACKER_FOUND)
+        MESSAGE( FATAL_ERROR "This project requires Claron MicronTracker SDK for supporting the MicronTracker tracking device. One of these components is missing. Please verify configuration or turn off PLUS_USE_MICRONTRACKER.")
+    ENDIF()
+ENDIF() 
+
+
 INCLUDE(External_PlusLib.cmake)
 
 IF(PLUSBUILD_BUILD_PLUSAPP) 
