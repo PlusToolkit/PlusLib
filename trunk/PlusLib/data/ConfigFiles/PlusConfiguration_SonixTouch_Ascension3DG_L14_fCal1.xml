@@ -208,6 +208,11 @@
         NumberOfStylusCalibrationPointsToAcquire="200"
         RecordingIntervalMs="100"
         MaxTimeSpentWithProcessingMs="70"
-  />
+  >
+    <TrackerToolNames
+      Probe="Probe"
+      Stylus="Stylus"
+    />
+  </fCal>
 
 </PlusConfiguration>

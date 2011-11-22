@@ -200,7 +200,7 @@ void vtkTrackerToolCalibrationFunction(void *userData)
 
 PlusStatus vtkPivotCalibrationAlgo::ReadConfiguration(vtkXMLDataElement* aConfig, const char * aCalibrationTransformName)
 {
-	LOG_TRACE("vtkPivotCalibrationAlgo::ReadConfiguration");
+	LOG_TRACE("vtkPivotCalibrationAlgo::ReadConfiguration(" << aCalibrationTransformName << ")");
 
   if ( aConfig == NULL )
   {
@@ -245,7 +245,7 @@ PlusStatus vtkPivotCalibrationAlgo::ReadConfiguration(vtkXMLDataElement* aConfig
 
 PlusStatus vtkPivotCalibrationAlgo::WriteConfiguration(vtkXMLDataElement* aConfig, const char * aCalibrationTransformName)
 {
-	LOG_TRACE("vtkPivotCalibrationAlgo::WriteConfiguration");
+	LOG_TRACE("vtkPivotCalibrationAlgo::WriteConfiguration(" << aCalibrationTransformName << ")");
 
   if ( aConfig == NULL )
   {

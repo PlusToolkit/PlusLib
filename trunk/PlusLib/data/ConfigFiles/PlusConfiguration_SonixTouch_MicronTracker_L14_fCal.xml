@@ -132,7 +132,17 @@
   <!-- VOLUME RECONSTRUCTION -->
   <VolumeReconstruction OutputSpacing="0.5 0.5 0.5" ClipRectangleOrigin="0 0" ClipRectangleSize="820 616" Interpolation="LINEAR" Optimization="FULL" Compou="" nding="On" FillHoles="Off" />
 
-  <fCal NumberOfCalibrationImagesToAcquire="200" NumberOfValidationImagesToAcquire="100" NumberOfStylusCalibrationPointsToAcquire="200"
+  <fCal NumberOfCalibrationImagesToAcquire="200"
+        NumberOfValidationImagesToAcquire="100"
+        NumberOfStylusCalibrationPointsToAcquire="200"
+        RecordingIntervalMs="100"
+        MaxTimeSpentWithProcessingMs="70"
+  >
+    <TrackerToolNames
+      Probe="Probe"
+      Stylus="Stylus"
+    />
+  </fCal>
 />
 
 </PlusConfiguration>

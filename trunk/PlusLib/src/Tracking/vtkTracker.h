@@ -123,6 +123,9 @@ public:
   /*! Get the end of the tool iterator */
   ToolIteratorType GetToolIteratorEnd(); 
 
+  /*! Get number of tools */
+  int GetNumberOfTools();
+
   /*! Add tool to the tracker with tool name and port name also allocates a vtkTrackerTool object for each of the tools*/
   PlusStatus AddTool( const char* aToolName, const char* aPortName ); 
 

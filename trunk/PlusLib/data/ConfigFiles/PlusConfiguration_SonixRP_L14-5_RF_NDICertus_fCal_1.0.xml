@@ -226,6 +226,11 @@ The computer needs to be on the same local network as SonixRP and the Certus SCU
         NumberOfStylusCalibrationPointsToAcquire="200"
         RecordingIntervalMs="100"
         MaxTimeSpentWithProcessingMs="70"
-  />
+  >
+    <TrackerToolNames
+      Probe="Probe"
+      Stylus="Stylus"
+    />
+  </fCal>
 
 </PlusConfiguration>

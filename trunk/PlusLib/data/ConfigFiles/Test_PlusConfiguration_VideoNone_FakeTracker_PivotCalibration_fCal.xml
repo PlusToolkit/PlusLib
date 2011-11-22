@@ -57,6 +57,11 @@ vtkStylusCalibrationTest uses this configuration"
 				/>
 	</USDataCollection>
 
-  <fCal NumberOfStylusCalibrationPointsToAcquire="200" />
+  <fCal NumberOfCalibrationImagesToAcquire="200">
+    <TrackerToolNames
+      Probe="Probe"
+      Stylus="Stylus"
+    />
+  </fCal>
   
 </PlusConfiguration>
