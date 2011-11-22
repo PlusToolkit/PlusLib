@@ -20,7 +20,6 @@
       Name="Probe"
       Type="Probe"
       PortName="probeMarker"
-      PortName="0"
       SendTo="localhost:18944">
       <Model
         File="L14-5_38_ProbeModel.stl"
@@ -44,16 +43,14 @@
     <Tool
       Name="Reference"
       Type="Reference"
-	  PortName="patientMarker"
-      PortName="1"
+      PortName="patientMarker"
       >
     </Tool>
     
     <Tool
       Name="Stylus"
       Type="Stylus"
-	  PortName="stitchMarker"
-      PortName="2"
+      PortName="stitchMarker"
       >
       <Model
         File="Stylus_Example.stl"
@@ -217,6 +214,7 @@
         MaxTimeSpentWithProcessingMs="70"
   >
     <TrackerToolNames
+      Reference="Reference"
       Probe="Probe"
       Stylus="Stylus"
     />

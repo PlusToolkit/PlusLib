@@ -139,10 +139,10 @@
         MaxTimeSpentWithProcessingMs="70"
   >
     <TrackerToolNames
+      Reference="Reference"
       Probe="Probe"
       Stylus="Stylus"
     />
   </fCal>
-/>
 
 </PlusConfiguration>

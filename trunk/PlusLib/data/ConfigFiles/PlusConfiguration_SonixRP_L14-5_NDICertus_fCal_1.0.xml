@@ -229,6 +229,7 @@ The computer needs to be on the same local network as SonixTOUCH and the Certus 
         MaxTimeSpentWithProcessingMs="70"
   >
     <TrackerToolNames
+      Reference="PhantomReference"
       Probe="Probe"
       Stylus="Stylus"
     />

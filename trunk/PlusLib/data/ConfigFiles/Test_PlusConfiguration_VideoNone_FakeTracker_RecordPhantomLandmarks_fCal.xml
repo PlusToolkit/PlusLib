@@ -112,6 +112,7 @@ vtkPhantomRegistrationTest uses this configuration"
 
   <fCal NumberOfCalibrationImagesToAcquire="200">
     <TrackerToolNames
+      Reference="Reference"
       Probe="Probe"
       Stylus="Stylus"
     />

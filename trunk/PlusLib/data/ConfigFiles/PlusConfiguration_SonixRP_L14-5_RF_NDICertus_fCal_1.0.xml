@@ -228,6 +228,7 @@ The computer needs to be on the same local network as SonixRP and the Certus SCU
         MaxTimeSpentWithProcessingMs="70"
   >
     <TrackerToolNames
+      Reference="PhantomReference"
       Probe="Probe"
       Stylus="Stylus"
     />
