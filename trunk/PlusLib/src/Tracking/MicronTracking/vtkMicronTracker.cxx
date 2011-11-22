@@ -80,7 +80,7 @@ vtkMicronTracker::vtkMicronTracker()
   this->IsCollectingNewSamples = 0;
   this->NewSampleFramesCollected = 0;
   this->SetNumberOfTools(3); 
-	this->FrameNumber = 0;
+  this->FrameNumber = 0;
   this->LeftImage = NULL;
   this->RightImage = NULL;
   this->Xpoints = NULL;
@@ -181,6 +181,7 @@ PlusStatus vtkMicronTracker::InternalUpdate()
     return PLUS_FAIL;
   }
   // TODO: Frame number is fake here!
+  // FrameNumber will be used in ToolTimeStampedUpdate
   ++ this->FrameNumber;
   // If grabing a frame was not successful prevent it from calling the mtGrabFrame
   // method of this->MT, until the problem is solved.
@@ -231,15 +232,15 @@ if (this->IsCollectingNewSamples == 1)
   LOG_DEBUG("Number of identified markers: " << numOfIdentifiedMarkers);
 
   // Set status and transform for tools with detected markers
-	vtkSmartPointer<vtkMatrix4x4> transformMatrix=vtkSmartPointer<vtkMatrix4x4>::New();
-	std::set<int> identifiedToolPorts;
-	/*************************************************************************/
-	vtkSmartPointer< vtkMatrix4x4 > mTrackerToReference = vtkSmartPointer< vtkMatrix4x4 >::New();
-	mTrackerToReference->Identity();
-	vtkSmartPointer< vtkMatrix4x4 > mToolToReference = vtkSmartPointer< vtkMatrix4x4 >::New();
-	mToolToReference->Identity();
-	vtkSmartPointer< vtkMatrix4x4 > mToolToTracker = vtkSmartPointer< vtkMatrix4x4 >::New();
-	mToolToTracker->Identity();
+  vtkSmartPointer<vtkMatrix4x4> transformMatrix=vtkSmartPointer<vtkMatrix4x4>::New();
+  std::set<int> identifiedToolPorts;
+  vtkSmartPointer< vtkMatrix4x4 > mTrackerToReference = vtkSmartPointer< vtkMatrix4x4 >::New();
+  mTrackerToReference->Identity();
+
+  vtkSmartPointer< vtkMatrix4x4 > mToolToReference = vtkSmartPointer< vtkMatrix4x4 >::New();
+  mToolToReference->Identity();
+  vtkSmartPointer< vtkMatrix4x4 > mToolToTracker = vtkSmartPointer< vtkMatrix4x4 >::New();
+  mToolToTracker->Identity();
   for (int identifedMarkerIndex=0; identifedMarkerIndex<this->MT->mtGetIdentifiedMarkersCount(); identifedMarkerIndex++)
   {
     char* identifiedTemplateName=this->MT->mtGetIdentifiedTemplateName(identifedMarkerIndex);
@@ -267,7 +268,6 @@ if (this->IsCollectingNewSamples == 1)
     identifiedToolPorts.insert(toolPortNumber);
   }
 
-/**************************************************/
   // Set status for tools with non-detected markers
   transformMatrix->Identity();
   for (int toolPortNumber=0; toolPortNumber<this->GetNumberOfTools(); toolPortNumber++)
@@ -331,27 +331,26 @@ int vtkMicronTracker::GetNumOfLoadedMarkers()
   return this->MT->mtGetLoadedTemplatesNum();
 }
 //----------------------------------------------
-void vtkMicronTracker::GetReferenceTransformMatrix(int markerIndex, vtkMatrix4x4* ReferencetransformMatrix)
+void vtkMicronTracker::GetReferenceTransformMatrix(int markerIndex, vtkMatrix4x4* Referencetransform)
 {  
   std::vector<double> vRotMat;
   this->MT->mtGetRotations( vRotMat, markerIndex );
   std::vector<double> vPos;
   this->MT->mtGetTranslations(vPos, markerIndex);
 
-  ReferencetransformMatrix->Identity();
+  Referencetransform->Identity();
   int rotIndex =0;
   for(int col=0; col < 3; col++)
   {
     for (int row=0; row < 3; row++)
     {
-      ReferencetransformMatrix->SetElement(row, col, vRotMat[rotIndex++]);
+      Referencetransform->SetElement(row, col, vRotMat[rotIndex++]);
     }
   }
-//      transformMatrix->Invert();
   // Add the offset to the last column of the transformation matrix
-  ReferencetransformMatrix->SetElement(0,3,vPos[0]);
-  ReferencetransformMatrix->SetElement(1,3,vPos[1]);
-  ReferencetransformMatrix->SetElement(2,3,vPos[2]);
+  Referencetransform->SetElement(0,3,vPos[0]);
+  Referencetransform->SetElement(1,3,vPos[1]);
+  Referencetransform->SetElement(2,3,vPos[2]);
 }
 //----------------------------------------------
 void vtkMicronTracker::GetTransformMatrix(int markerIndex, vtkMatrix4x4* transformMatrix)
@@ -370,7 +369,6 @@ void vtkMicronTracker::GetTransformMatrix(int markerIndex, vtkMatrix4x4* transfo
       transformMatrix->SetElement(row, col, vRotMat[rotIndex++]);
     }
   }
-//      transformMatrix->Invert();
   // Add the offset to the last column of the transformation matrix
   transformMatrix->SetElement(0,3,vPos[0]);
   transformMatrix->SetElement(1,3,vPos[1]);
