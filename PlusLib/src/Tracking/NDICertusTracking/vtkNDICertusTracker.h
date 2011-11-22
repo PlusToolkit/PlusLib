@@ -57,6 +57,9 @@ protected:
   /*! Set the version information. */
 	vtkSetStringMacro(Version);
 
+  /*! TODO: Remove it! Get port number of reference tool */
+  int GetReferenceToolNumber();
+
 	/*! 
     Start the tracking system.  The tracking system is brought from
 	  its ground state into full tracking mode.  The device will

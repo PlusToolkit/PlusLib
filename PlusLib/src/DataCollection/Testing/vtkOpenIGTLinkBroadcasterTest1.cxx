@@ -41,7 +41,7 @@ const double DELAY_BETWEEN_MESSAGES_SEC = 0.18;
 /**
  * Print acutal transform on the screen for debugging.
  */
-void PrintActualTransforms( vtkDataCollector* dataCollector )
+void PrintActualTransforms( vtkDataCollector* dataCollector, const char * aToolName )
 {
   vtkSmartPointer< vtkMatrix4x4 > tFrame2Tracker = vtkSmartPointer< vtkMatrix4x4 >::New(); 
   
@@ -51,8 +51,11 @@ void PrintActualTransforms( vtkDataCollector* dataCollector )
   {
     double timestamp( 0 ); 
     TrackerStatus status = TR_OK;
-    dataCollector->GetTransformWithTimestamp( tFrame2Tracker, timestamp, status,
-      dataCollector->GetTracker()->GetFirstPortNumberByType( TRACKER_TOOL_PROBE ) ); 
+    if ( dataCollector->GetTransformWithTimestamp( tFrame2Tracker, timestamp, status, aToolName) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Failed to get transform with timestamp!"); 
+      return; 
+    }
     
     ss << "Timestamp: " << timestamp << std::endl;
     
@@ -96,6 +99,7 @@ int main( int argc, char** argv )
   std::string inputConfigFileName;
   std::string inputVideoBufferMetafile;
   std::string inputTrackerBufferMetafile;
+  std::string inputToolName("Probe");
   bool inputReplay(false); 
   int verboseLevel=vtkPlusLogger::LOG_LEVEL_DEFAULT;
   
@@ -108,6 +112,8 @@ int main( int argc, char** argv )
                     &inputVideoBufferMetafile, "Video buffer sequence metafile." );
   args.AddArgument( "--input-tracker-buffer-metafile", vtksys::CommandLineArguments::EQUAL_ARGUMENT,
                     &inputTrackerBufferMetafile, "Tracker buffer sequence metafile." );
+  args.AddArgument( "--input-tool-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT,
+    &inputToolName, "Tracker tool used for transform display (Default: Probe)" );
   args.AddArgument( "--replay", vtksys::CommandLineArguments::NO_ARGUMENT,
                     &inputReplay, "Replay tracked frames after reached the latest one." );
   args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, 
@@ -247,7 +253,7 @@ int main( int argc, char** argv )
       }
     
     
-    PrintActualTransforms( dataCollector );
+    PrintActualTransforms( dataCollector, inputToolName.c_str() );
   }
 
   

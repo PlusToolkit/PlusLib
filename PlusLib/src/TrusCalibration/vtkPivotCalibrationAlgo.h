@@ -52,18 +52,18 @@ public:
 	/*!
 	  Read tool calibration matrix from XML data element
 	  \param aConfig Root XML data element containing the tool calibration
-	  \param aType Type of the tool with the calibration
+	  \param aCalibrationTransformName Name of the XML data element containing the calibration transform 
 	  \return Success flag
 	*/
-	PlusStatus ReadConfiguration(vtkXMLDataElement* aConfig, TRACKER_TOOL_TYPE aType);
+	PlusStatus ReadConfiguration(vtkXMLDataElement* aConfig, const char * aCalibrationTransformName);
 
   /*!
 	  Save result to XML data element
 	  \param aConfig Root XML data element containing the tool calibration
-	  \param aType The result is saved in the first tool element of this type
+	  \param aCalibrationTransformName Name of the XML data element containing the calibration transform 
 	  \return Success flag
 	*/
-	PlusStatus WriteConfiguration(vtkXMLDataElement* aConfig, TRACKER_TOOL_TYPE aType);
+	PlusStatus WriteConfiguration(vtkXMLDataElement* aConfig, const char * aCalibrationTransformName);
 
 public:
 

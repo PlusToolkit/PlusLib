@@ -36,7 +36,6 @@ vtkTrackerTool::vtkTrackerTool()
 	this->LED2 = 0;
 	this->LED3 = 0;
 
-	this->ToolType = TRACKER_TOOL_NONE;
 	this->ToolRevision = 0;
 	this->ToolSerialNumber = 0;
 	this->ToolPartNumber = 0;
@@ -51,9 +50,6 @@ vtkTrackerTool::vtkTrackerTool()
 	this->CalibrationError = 0.0; 
 
 	this->SendToLink = 0; 
-
-	// Set tool enabled off by default 
-	this->EnabledOff(); 
 
 	this->ModelToToolTransform = vtkTransform::New();
 	this->ModelToToolTransform->Identity();
@@ -103,7 +99,6 @@ void vtkTrackerTool::PrintSelf(ostream& os, vtkIndent indent)
 	os << indent << "LED2: " << this->GetLED2() << "\n"; 
 	os << indent << "LED3: " << this->GetLED3() << "\n";
 	os << indent << "SendTo: " << this->GetSendToLink() << "\n";
-	os << indent << "ToolType: " << this->GetToolType() << "\n";
 	os << indent << "ToolModel: " << this->GetToolModel() << "\n";
 	os << indent << "ModelToToolTransform: " << this->GetModelToToolTransform() << "\n";
 	os << indent << "ToolRevision: " << this->GetToolRevision() << "\n";
@@ -175,7 +170,6 @@ void vtkTrackerTool::DeepCopy(vtkTrackerTool *tool)
 
 	this->SetSendToLink( tool->GetSendToLink() );
 
-	this->SetToolType( tool->GetToolType() );
 	this->SetToolModel( tool->GetToolModel() );
 	this->SetTool3DModelFileName( tool->GetTool3DModelFileName() );
 	this->SetToolRevision( tool->GetToolRevision() );
@@ -190,8 +184,6 @@ void vtkTrackerTool::DeepCopy(vtkTrackerTool *tool)
 	this->SetCalibrationMatrixName( tool->GetCalibrationMatrixName() ); 
 	this->SetCalibrationDate( tool->GetCalibrationDate() ); 
 	this->SetCalibrationError( tool->GetCalibrationError() ); 
-
-	this->SetEnabled( tool->GetEnabled() ); 
 
 	this->Buffer->DeepCopy( tool->GetBuffer() );
 
@@ -219,21 +211,6 @@ PlusStatus vtkTrackerTool::ReadConfiguration(vtkXMLDataElement* config)
 	else
 	{
 		LOG_ERROR("Unable to find tool name! Name attribute is mandatory in tool definition."); 
-		return PLUS_FAIL; 
-	}
-
-	const char* typeString = config->GetAttribute("Type"); 
-	if ( typeString != NULL ) 
-	{
-		TRACKER_TOOL_TYPE type;
-    if (vtkTracker::ConvertStringToToolType(typeString, type) != PLUS_SUCCESS) {
-      return PLUS_FAIL;
-    }
-		this->SetToolType(type);
-	}
-	else
-	{
-		LOG_ERROR("Unable to find tool type! Type attribute is mandatory in tool definition."); 
 		return PLUS_FAIL; 
 	}
 
@@ -289,7 +266,7 @@ PlusStatus vtkTrackerTool::ReadConfiguration(vtkXMLDataElement* config)
 		}
     else
     {
-      LOG_WARNING("'" << typeString << "' CAD model has not been defined");
+      LOG_WARNING("'" << toolName << "' CAD model has not been defined");
     }
 
     // ModelToToolTransform stays identity if no model file has been found
@@ -328,18 +305,11 @@ PlusStatus vtkTrackerTool::WriteConfiguration(vtkXMLDataElement* config)
 		return PLUS_FAIL;
   }
 	
-  std::string toolType; 
-  if ( vtkTracker::ConvertToolTypeToString(this->GetToolType(), toolType) != PLUS_SUCCESS )
-  {
-    LOG_ERROR("Failed to get tool type in string format!"); 
-    return PLUS_FAIL; 
-  }
-
-  // Find tracker tool with type and name
-  vtkXMLDataElement* trackerTool = trackerConfig->FindNestedElementWithNameAndAttribute("Tool", "Type", toolType.c_str() );
+  // Find tracker tool with toolName
+  vtkXMLDataElement* trackerTool = trackerConfig->FindNestedElementWithNameAndAttribute("Tool", "Name", this->GetToolName() );
 	if (trackerTool == NULL) 
   {
-    LOG_ERROR("Unable to find tracker tool configuration file for type: " << toolType);
+    LOG_ERROR("Unable to find tracker tool configuration file for tool: " << this->GetToolName());
 		return PLUS_FAIL;
 	}
 

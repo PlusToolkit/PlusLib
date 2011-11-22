@@ -186,38 +186,38 @@ PlusStatus vtkVolumeReconstructor::ReadConfiguration(vtkXMLDataElement* config)
   }
 
   // Read calibration matrix (ImageToTool transform)
-  vtkXMLDataElement* dataCollectionConfig = config->FindNestedElementWithName("USDataCollection");
-  if (dataCollectionConfig == NULL)
+  if (reconConfig->GetAttribute("CalibrationTransformName"))
   {
-    LOG_ERROR("Cannot find USDataCollection element in XML tree!");
-    return PLUS_FAIL;
-  }
-  vtkXMLDataElement* trackerDefinition = dataCollectionConfig->FindNestedElementWithName("Tracker"); 
-  if ( trackerDefinition == NULL) 
-  {
-    LOG_ERROR("Cannot find Tracker element in XML tree!");
-    return PLUS_FAIL;
-  }
-  std::string toolType;
-  vtkTracker::ConvertToolTypeToString(TRACKER_TOOL_PROBE, toolType);
-  vtkXMLDataElement* probeDefinition = trackerDefinition->FindNestedElementWithNameAndAttribute("Tool", "Type", toolType.c_str());
-  if (probeDefinition == NULL) {
-    LOG_ERROR("No probe definition is found in the XML tree!");
-    return PLUS_FAIL;
-  }
-  vtkXMLDataElement* calibration = probeDefinition->FindNestedElementWithName("Calibration");
-  if (calibration == NULL) {
-    LOG_ERROR("No calibration section is found in probe definition!");
-    return PLUS_FAIL;
-  }
-  double aImageToTool[16];
-  if (!calibration->GetVectorAttribute("MatrixValue", 16, aImageToTool)) 
-  {
-    LOG_ERROR("No calibration matrix is found in probe definition!");
-    return PLUS_FAIL;
-  }
+    const char* calibrationTransformName = reconConfig->GetAttribute("CalibrationTransformName"); 
+    
+    vtkXMLDataElement* calibrationConfig = config->FindNestedElementWithName("Calibration");
+    if (calibrationConfig == NULL)
+    {
+      LOG_ERROR("Cannot find Calibration element in XML tree!");
+      return PLUS_FAIL;
+    }
 
-  this->ImageToToolTransform->SetMatrix( aImageToTool );
+    vtkXMLDataElement* toolCalibrationConfig = calibrationConfig->FindNestedElementWithName(calibrationTransformName);
+    if (toolCalibrationConfig == NULL)
+    {
+      LOG_ERROR("Cannot find " << calibrationTransformName << " element in " << calibrationConfig->GetName() << " XML tree!");
+      return PLUS_FAIL;
+    }
+
+    double aImageToTool[16];
+    if (!toolCalibrationConfig->GetVectorAttribute("MatrixValue", 16, aImageToTool)) 
+    {
+      LOG_ERROR("No calibration matrix is found in " << calibrationTransformName << " definition!");
+      return PLUS_FAIL;
+    }
+
+    this->ImageToToolTransform->SetMatrix( aImageToTool );
+  }
+  else
+  {
+    LOG_ERROR("Cannot find VolumeReconstruction/CalibrationTransformName attribute in XML tree!"); 
+    return PLUS_FAIL;
+  }
 
   return PLUS_SUCCESS;
 }

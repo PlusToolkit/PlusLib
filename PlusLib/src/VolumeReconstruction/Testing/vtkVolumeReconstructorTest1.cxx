@@ -60,7 +60,12 @@ int main (int argc, char* argv[])
   LOG_INFO( "Reading configuration file:" << inputConfigFileName );
   vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkSmartPointer<vtkXMLDataElement>::Take(
     vtkXMLUtilities::ReadElementFromFile(inputConfigFileName.c_str()));
-  reconstructor->ReadConfiguration(configRootElement);
+  
+  if ( reconstructor->ReadConfiguration(configRootElement) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to read configuration!"); 
+    return EXIT_FAILURE; 
+  }
 
   // Print calibration transform
   std::ostringstream osTransformImageToTool; 

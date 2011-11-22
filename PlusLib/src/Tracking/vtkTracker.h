@@ -26,23 +26,15 @@ class vtkDoubleArray;
 class vtkHTMLGenerator; 
 class vtkGnuplotExecuter;
 
+typedef std::map<std::string, vtkTrackerTool*> ToolContainerType;
+typedef ToolContainerType::const_iterator ToolIteratorType; 
+
 /*! Flags for tool LEDs (specifically for the POLARIS) */
 enum {
   TR_LED_OFF   = 0,
   TR_LED_ON    = 1,
   TR_LED_FLASH = 2
 };
-
-/*! Tracker tool types */
-enum TRACKER_TOOL_TYPE
-{
-  TRACKER_TOOL_NONE=0, 
-  TRACKER_TOOL_REFERENCE,
-  TRACKER_TOOL_PROBE,
-  TRACKER_TOOL_STYLUS, 
-  TRACKER_TOOL_NEEDLE,
-  TRACKER_TOOL_GENERAL
-}; 
 
 /*!
 \class vtkTracker 
@@ -101,12 +93,6 @@ public:
   //TODO: the return value should be PLusStatus and the result should be got using parameter by reference
   static std::string ConvertTrackerStatusToString(TrackerStatus status); 
 
-  /*! Get tool type enum from string */
-  static PlusStatus ConvertStringToToolType(const char* typeString, TRACKER_TOOL_TYPE &type);
-
-  /*! Get tool type string  from enum */
-  static PlusStatus ConvertToolTypeToString(const TRACKER_TOOL_TYPE type, std::string &typeString);
-
   /*! Get the buffer element values of each tool in a string list by timestamp. */
   virtual PlusStatus GetTrackerToolBufferStringList(double timestamp, 
     std::map<std::string, std::string> &toolsBufferMatrices, 
@@ -122,35 +108,29 @@ public:
   /*! Get the internal update rate for this tracking system.  This is the number of transformations sent by the tracking system per second per tool. */
   double GetInternalUpdateRate() { return this->InternalUpdateRate; };
 
-  /*! Get the tool object for the specified port.  The first tool is retrieved by GetTool(0). */
-  vtkTrackerTool *GetTool(int port);
+  /*! Get the tool object for the specified tool name */
+  PlusStatus GetTool(const char* aToolName, vtkTrackerTool* &aTool);
+  
+  /*! Get the first active tool object */
+  PlusStatus GetFirstActiveTool(vtkTrackerTool* &aTool); 
 
-  /*! 
-  Get the number of available tool ports. This is the maxiumum that a
-  particular tracking system can support, not the number of tools
-  that are actually connected to the system.  In order to determine
-  how many tools are connected, you must call Update() and then
-  check IsMissing() for each tool between 0 and NumberOfTools-1.
-  */
-  vtkGetMacro(NumberOfTools, int);
+  /*! Get the tool object for the specified tool port name */
+  PlusStatus GetToolByPortName( const char* aPortName, vtkTrackerTool* &aTool); 
 
-  /*! Get tool port by name */
-  int GetToolPortByName(const char* toolName); 
+  /*! Get the begining of the tool iterator */
+  ToolIteratorType GetToolIteratorBegin(); 
+  
+  /*! Get the end of the tool iterator */
+  ToolIteratorType GetToolIteratorEnd(); 
 
-  /*! Get tool ports by type */
-  PlusStatus GetToolPortNumbersByType(TRACKER_TOOL_TYPE type, std::vector<int> &toolNumbersVector);
+  /*! Add tool to the tracker with tool name and port name also allocates a vtkTrackerTool object for each of the tools*/
+  PlusStatus AddTool( const char* aToolName, const char* aPortName ); 
 
-  /*! Get first active tool port number by type */
-  int GetFirstPortNumberByType(TRACKER_TOOL_TYPE type);
+  /*! Set buffer size of all available tools */
+  void SetToolsBufferSize( int aBufferSize ); 
 
-  /*! Get the port number from the port name */
-  int GetToolPortNumberByPortName(const char* portName);
-
-  /*! Get port number of reference tool */
-  int GetReferenceToolNumber();
-
-  /*! Get port number of the first active tool */
-  PlusStatus GetFirstActiveTool(int &tool);
+  /*! Set local time offset of all available tools */
+  void SetToolsLocalTimeOffset( double aLocalTimeOffset ); 
 
   /*! Make the unit emit a string of audible beeps.  This is supported by the POLARIS. */
   void Beep(int n);
@@ -227,16 +207,7 @@ protected:
   can communicate information back to the vtkTracker base class, which
   will in turn relay the information to the appropriate vtkTrackerTool.
   */
-  PlusStatus ToolTimeStampedUpdate(int tool, vtkMatrix4x4 *matrix, TrackerStatus status, unsigned long frameNumber, double unfilteredtimestamp);
-
-  /*! Set the number of tools for the tracker -- this method is only called once within the constructor for derived classes. */
-  void SetNumberOfTools(int num);
-
-  /*! Set the tool name */
-  void SetToolName(int tool, const char* name);
-
-  /*! Enable tool by tool number */
-  void SetToolEnabled(int tool, bool enabled ); 
+  PlusStatus ToolTimeStampedUpdate(const char* aToolName, vtkMatrix4x4 *matrix, TrackerStatus status, unsigned long frameNumber, double unfilteredtimestamp);
 
  /*! InternalStartTracking() initialize the tracking device, this methods should be overridden in derived classes */
   virtual PlusStatus InternalStartTracking() { return PLUS_SUCCESS; };
@@ -254,11 +225,9 @@ protected:
   /*! Transformation matrix between tracking-system coordinates and the desired world coordinate system */
   vtkMatrix4x4 *WorldCalibrationMatrix;
 
-  /*! Number of tools that this class can handle */
-  int NumberOfTools;
-
   /*! Tracker tools */
-  vtkTrackerTool **Tools;
+  //vtkTrackerTool **Tools;
+  ToolContainerType ToolContainer; 
 
   /*! Flag to strore tracking state of the class */
   int Tracking;
