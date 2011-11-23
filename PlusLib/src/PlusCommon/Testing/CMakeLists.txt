@@ -35,3 +35,14 @@ ADD_TEST(vtkAccurateTimerTest
   --verbose=3
   )
 SET_TESTS_PROPERTIES( vtkAccurateTimerTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+
+#--------------------------------------------------------------------------------------------
+ADD_EXECUTABLE(vtkTransformCombinerTest vtkTransformCombinerTest.cxx )
+TARGET_LINK_LIBRARIES(vtkTransformCombinerTest vtkPlusCommon )
+
+ADD_TEST(vtkTransformCombinerTest 
+  ${EXECUTABLE_OUTPUT_PATH}/vtkTransformCombinerTest
+  --verbose=3
+  )
+# This test prints some errors when testing error cases, therefore the output is not
+# checked for the presence of ERROR or WARNING string
