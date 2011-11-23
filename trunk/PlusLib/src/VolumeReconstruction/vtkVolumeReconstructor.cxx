@@ -186,38 +186,30 @@ PlusStatus vtkVolumeReconstructor::ReadConfiguration(vtkXMLDataElement* config)
   }
 
   // Read calibration matrix (ImageToTool transform)
-  if (reconConfig->GetAttribute("CalibrationTransformName"))
+  //*************** TODO: remove it after assemble ticket plus #385 fixed 
+  vtkXMLDataElement* coordinateFrameDefinitions = config->FindNestedElementWithName("CoordinateFrameDefinitions");
+  if (coordinateFrameDefinitions == NULL)
   {
-    const char* calibrationTransformName = reconConfig->GetAttribute("CalibrationTransformName"); 
-    
-    vtkXMLDataElement* calibrationConfig = config->FindNestedElementWithName("Calibration");
-    if (calibrationConfig == NULL)
-    {
-      LOG_ERROR("Cannot find Calibration element in XML tree!");
-      return PLUS_FAIL;
-    }
-
-    vtkXMLDataElement* toolCalibrationConfig = calibrationConfig->FindNestedElementWithName(calibrationTransformName);
-    if (toolCalibrationConfig == NULL)
-    {
-      LOG_ERROR("Cannot find " << calibrationTransformName << " element in " << calibrationConfig->GetName() << " XML tree!");
-      return PLUS_FAIL;
-    }
-
-    double aImageToTool[16];
-    if (!toolCalibrationConfig->GetVectorAttribute("MatrixValue", 16, aImageToTool)) 
-    {
-      LOG_ERROR("No calibration matrix is found in " << calibrationTransformName << " definition!");
-      return PLUS_FAIL;
-    }
-
-    this->ImageToToolTransform->SetMatrix( aImageToTool );
-  }
-  else
-  {
-    LOG_ERROR("Cannot find VolumeReconstruction/CalibrationTransformName attribute in XML tree!"); 
+    LOG_ERROR("Cannot find CoordinateFrameDefinitions element in XML tree!");
     return PLUS_FAIL;
   }
+
+  vtkXMLDataElement* toolCalibrationConfig = coordinateFrameDefinitions->FindNestedElementWithNameAndAttribute("Transform", "From", "Image");
+  if (toolCalibrationConfig == NULL)
+  {
+    LOG_ERROR("Cannot find image to probe transform in " << coordinateFrameDefinitions->GetName() << " XML tree!");
+    return PLUS_FAIL;
+  }
+
+  double aImageToTool[16];
+  if (!toolCalibrationConfig->GetVectorAttribute("Matrix", 16, aImageToTool)) 
+  {
+    LOG_ERROR("No calibration matrix found!");
+    return PLUS_FAIL;
+  }
+
+  this->ImageToToolTransform->SetMatrix( aImageToTool );
+  //************* END-TODO: remove it after assemble ticket plus #385 fixed 
 
   return PLUS_SUCCESS;
 }

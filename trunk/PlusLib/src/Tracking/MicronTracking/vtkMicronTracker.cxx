@@ -79,7 +79,6 @@ vtkMicronTracker::vtkMicronTracker()
   this->IsAdditionalFacetAdding = 0;
   this->IsCollectingNewSamples = 0;
   this->NewSampleFramesCollected = 0;
-  this->SetNumberOfTools(3); 
   this->FrameNumber = 0;
   this->LeftImage = NULL;
   this->RightImage = NULL;
@@ -115,7 +114,7 @@ PlusStatus vtkMicronTracker::Probe()
     LOG_ERROR("vtkMicronTracker::Probe should not be called while the device is already initialized");
     return PLUS_FAIL;
   }
- 
+
   if (this->MT->mtInit()!=1)
   {
     LOG_ERROR("Error in initializing Micron Tracker");
@@ -200,40 +199,40 @@ PlusStatus vtkMicronTracker::InternalUpdate()
   // this->MT->mtFindUnidentifiedMarkers();
 
   // Collecting new samples if creating a new template by the user
-if (this->IsCollectingNewSamples == 1)
-{
- 
-  int collectNewSamplesResult=this->MT->mtCollectNewSamples(this->IsAdditionalFacetAdding);
-  if ( collectNewSamplesResult == -1)
+  if (this->IsCollectingNewSamples == 1)
   {
-    LOG_ERROR("Less than two vectors are detected.");
-    return PLUS_FAIL;
-  }
-  else if (collectNewSamplesResult == 1)
-  {
-    LOG_ERROR("More than two vectors are detected.");
-    return PLUS_FAIL;
-  }
-  else if (collectNewSamplesResult == 99)
-  {
-    LOG_ERROR("No known facet detected.");
-    return PLUS_FAIL;
-  }
-  this->NewSampleFramesCollected++;
-  LOG_TRACE("Samples collected so far: " << this->NewSampleFramesCollected);
 
-}
+    int collectNewSamplesResult=this->MT->mtCollectNewSamples(this->IsAdditionalFacetAdding);
+    if ( collectNewSamplesResult == -1)
+    {
+      LOG_ERROR("Less than two vectors are detected.");
+      return PLUS_FAIL;
+    }
+    else if (collectNewSamplesResult == 1)
+    {
+      LOG_ERROR("More than two vectors are detected.");
+      return PLUS_FAIL;
+    }
+    else if (collectNewSamplesResult == 99)
+    {
+      LOG_ERROR("No known facet detected.");
+      return PLUS_FAIL;
+    }
+    this->NewSampleFramesCollected++;
+    LOG_TRACE("Samples collected so far: " << this->NewSampleFramesCollected);
+
+  }
 
   // Setting the timestamp
   this->LastFrameNumber++;
   const double unfilteredTimestamp = vtkAccurateTimer::GetSystemTime();
-  
+
   int numOfIdentifiedMarkers = this->MT->mtGetIdentifiedMarkersCount();
   LOG_DEBUG("Number of identified markers: " << numOfIdentifiedMarkers);
 
   // Set status and transform for tools with detected markers
   vtkSmartPointer<vtkMatrix4x4> transformMatrix=vtkSmartPointer<vtkMatrix4x4>::New();
-  std::set<int> identifiedToolPorts;
+  std::set<std::string> identifiedToolNames;
   vtkSmartPointer< vtkMatrix4x4 > mTrackerToReference = vtkSmartPointer< vtkMatrix4x4 >::New();
   mTrackerToReference->Identity();
   vtkSmartPointer< vtkMatrix4x4 > mToolToReference = vtkSmartPointer< vtkMatrix4x4 >::New();
@@ -243,40 +242,39 @@ if (this->IsCollectingNewSamples == 1)
   for (int identifedMarkerIndex=0; identifedMarkerIndex<this->MT->mtGetIdentifiedMarkersCount(); identifedMarkerIndex++)
   {
     char* identifiedTemplateName=this->MT->mtGetIdentifiedTemplateName(identifedMarkerIndex);
-    int toolPortNumber=GetToolPortNumberByPortName(identifiedTemplateName);
-
-
-    if (toolPortNumber<0)
+    vtkTrackerTool* tool = NULL; 
+    if ( this->GetToolByPortName(identifiedTemplateName, tool) != PLUS_SUCCESS )
     {
-      // the template name does not match any of the tool PortNames, so we are not interested in this marker 
+      LOG_DEBUG("Marker " << identifiedTemplateName << " has no associated tool"); 
       continue;
     }
 
-	if(strcmp(identifiedTemplateName,"patientMarker")==0)
-	{
-		GetReferenceTransformMatrix(identifedMarkerIndex, mTrackerToReference);
-		mTrackerToReference->Invert();
-		this->ToolTimeStampedUpdate( toolPortNumber, mTrackerToReference, TR_OK, this->LastFrameNumber, unfilteredTimestamp);
-	}
-	else
+
+    if(strcmp(identifiedTemplateName,"patientMarker")==0)
     {
-	  GetTransformMatrix(identifedMarkerIndex, mToolToTracker);
-      vtkMatrix4x4::Multiply4x4( mTrackerToReference, mToolToTracker , mToolToReference );
-      this->ToolTimeStampedUpdate( toolPortNumber, mToolToReference, TR_OK, this->LastFrameNumber, unfilteredTimestamp);
+      GetReferenceTransformMatrix(identifedMarkerIndex, mTrackerToReference);
+      mTrackerToReference->Invert();
+      this->ToolTimeStampedUpdate( tool->GetToolName(), mTrackerToReference, TR_OK, this->LastFrameNumber, unfilteredTimestamp);
     }
-    identifiedToolPorts.insert(toolPortNumber);
+    else
+    {
+      GetTransformMatrix(identifedMarkerIndex, mToolToTracker);
+      vtkMatrix4x4::Multiply4x4( mTrackerToReference, mToolToTracker , mToolToReference );
+      this->ToolTimeStampedUpdate( tool->GetToolName(), mToolToReference, TR_OK, this->LastFrameNumber, unfilteredTimestamp);
+    }
+    identifiedToolNames.insert(tool->GetPortName());
   }
 
   // Set status for tools with non-detected markers
   transformMatrix->Identity();
-  for (int toolPortNumber=0; toolPortNumber<this->GetNumberOfTools(); toolPortNumber++)
+  for ( ToolIteratorType it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
   {
-    if (identifiedToolPorts.find(toolPortNumber)!=identifiedToolPorts.end())
+    if (identifiedToolNames.find(it->second->GetToolName())!=identifiedToolNames.end())
     {
       // this tool has been found and update has been already called with the correct transform
       continue;
     }
-    ToolTimeStampedUpdate(toolPortNumber, transformMatrix, TR_OUT_OF_VIEW, this->LastFrameNumber, unfilteredTimestamp);   
+    ToolTimeStampedUpdate(it->second->GetToolName(), transformMatrix, TR_OUT_OF_VIEW, this->LastFrameNumber, unfilteredTimestamp);   
   }
 
   return PLUS_SUCCESS;
@@ -806,20 +804,20 @@ PlusStatus vtkMicronTracker::ReadConfiguration( vtkXMLDataElement* config )
     return PLUS_FAIL; 
   }
 
-	vtkSmartPointer<vtkXMLDataElement> dataCollectionConfig = config->FindNestedElementWithName("USDataCollection");
-	if (dataCollectionConfig == NULL)
+  vtkSmartPointer<vtkXMLDataElement> dataCollectionConfig = config->FindNestedElementWithName("USDataCollection");
+  if (dataCollectionConfig == NULL)
   {
     LOG_ERROR("Cannot find USDataCollection element in XML tree!");
-		return PLUS_FAIL;
-	}
+    return PLUS_FAIL;
+  }
 
   vtkSmartPointer<vtkXMLDataElement> trackerConfig = dataCollectionConfig->FindNestedElementWithName("Tracker"); 
   if (trackerConfig == NULL) 
   {
     LOG_ERROR("Cannot find Tracker element in XML tree!");
-		return PLUS_FAIL;
+    return PLUS_FAIL;
   }	
-	
+
   return PLUS_SUCCESS;
 }
 
@@ -874,19 +872,13 @@ PlusStatus vtkMicronTracker::Connect()
     LOG_DEBUG("Resolution of the current camera: " << this->CameraInfoList[0].xResolution << " x " << this->CameraInfoList[0].yResolution );
   }
 
-  // Enable tools
-  for ( int tool = 0; tool < this->GetNumberOfTools(); tool ++ )
-  {
-      this->GetTool( tool )->EnabledOn();
-  }
-	
-	return PLUS_SUCCESS;
+  return PLUS_SUCCESS;
 }
 
 PlusStatus vtkMicronTracker::Disconnect()
 { 
   this->MT->mtEnd();  
-	return PLUS_SUCCESS;
+  return PLUS_SUCCESS;
 }
 
 int vtkMicronTracker::GetNumOfCameras()

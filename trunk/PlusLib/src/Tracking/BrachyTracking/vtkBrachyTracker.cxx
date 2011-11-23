@@ -50,17 +50,26 @@ vtkBrachyTracker::vtkBrachyTracker()
   this->BaudRate = 19200;
 
   // Add tools to the tracker 
+  vtkSmartPointer<vtkTrackerTool> probeTool = vtkSmartPointer<vtkTrackerTool>::New(); 
+  probeTool->SetToolName("Probe"); 
   std::ostringstream probePortName; 
   probePortName << PROBEHOME_TO_PROBE_TRANSFORM; 
-  this->AddTool("Probe", probePortName.str().c_str()); 
+  probeTool->SetPortName(probePortName.str().c_str()); 
+  this->AddTool(probeTool); 
 
+  vtkSmartPointer<vtkTrackerTool> templateTool = vtkSmartPointer<vtkTrackerTool>::New(); 
+  templateTool->SetToolName("Template"); 
   std::ostringstream templatePortName; 
   templatePortName << TEMPLATEHOME_TO_TEMPLATE_TRANSFORM; 
-  this->AddTool("Template", templatePortName.str().c_str()); 
+  templateTool->SetPortName(templatePortName.str().c_str()); 
+  this->AddTool(templateTool); 
 
+  vtkSmartPointer<vtkTrackerTool> encoderTool = vtkSmartPointer<vtkTrackerTool>::New(); 
+  encoderTool->SetToolName("StepperEncoderValues"); 
   std::ostringstream encoderPortName; 
   encoderPortName << RAW_ENCODER_VALUES; 
-  this->AddTool("StepperEncoderValues", encoderPortName.str().c_str()); 
+  encoderTool->SetPortName(encoderPortName.str().c_str()); 
+  this->AddTool(encoderTool); 
 
   this->BrachyStepperType = BrachyStepper::BURDETTE_MEDICAL_SYSTEMS_DIGITAL_STEPPER; 
 

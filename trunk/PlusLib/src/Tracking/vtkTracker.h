@@ -123,11 +123,11 @@ public:
   /*! Get the end of the tool iterator */
   ToolIteratorType GetToolIteratorEnd(); 
 
+  /*! Add tool to the tracker */
+  PlusStatus AddTool( vtkTrackerTool* tool ); 
+
   /*! Get number of tools */
   int GetNumberOfTools();
-
-  /*! Add tool to the tracker with tool name and port name also allocates a vtkTrackerTool object for each of the tools*/
-  PlusStatus AddTool( const char* aToolName, const char* aPortName ); 
 
   /*! Set buffer size of all available tools */
   void SetToolsBufferSize( int aBufferSize ); 
