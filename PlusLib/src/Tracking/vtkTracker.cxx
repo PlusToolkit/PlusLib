@@ -105,40 +105,36 @@ int vtkTracker::GetNumberOfTools()
   return this->ToolContainer.size(); 
 }
 
+
 //----------------------------------------------------------------------------
-// allocates a vtkTrackerTool object for each of the tools.
-PlusStatus vtkTracker::AddTool( const char* aToolName, const char* aPortName )
+PlusStatus vtkTracker::AddTool( vtkTrackerTool* tool )
 {
-  if ( aToolName == NULL )
+  if ( tool == NULL )
   {
-    LOG_ERROR("Failed to add tool to tracker, tool name is NULL!"); 
+    LOG_ERROR("Failed to add tool to tracker, tool is NULL!"); 
     return PLUS_FAIL; 
   }
 
-  if ( aPortName == NULL )
+  if ( this->ToolContainer.find( tool->GetToolName() ) == this->GetToolIteratorEnd() )
   {
-    LOG_ERROR("Failed to add tool to tracker, port name is NULL!"); 
-    return PLUS_FAIL; 
-  }
-
-  if ( this->ToolContainer.find(aToolName) == this->GetToolIteratorEnd() )
-  {
-    vtkTrackerTool *tool = vtkTrackerTool::New();
     // Check tool port names, it should be unique too
-    if (this->GetToolByPortName(aPortName, tool) == PLUS_SUCCESS) 
+    for ( ToolIteratorType it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
     {
-      LOG_ERROR("Failed to add '" << aToolName << "' tool to container: tool with name '" << tool->GetToolName() 
-        << "' is already defined on port '" << aPortName << "'!"); 
-      return PLUS_FAIL; 
+      if ( STRCASECMP( tool->GetPortName(), it->second->GetPortName() ) == 0 )
+      {
+        LOG_ERROR("Failed to add '" << tool->GetToolName() << "' tool to container: tool with name '" << it->second->GetToolName() 
+          << "' is already defined on port '" << tool->GetPortName() << "'!"); 
+        return PLUS_FAIL; 
+      }
     }
-    
+
+    tool->Register(this); 
     tool->SetTracker(this); 
-    tool->SetPortName(aPortName); 
-    this->ToolContainer[aToolName] = tool; 
+    this->ToolContainer[tool->GetToolName()] = tool; 
   }
   else
   {
-    LOG_ERROR("Tool with name '" << aToolName << "' is already in the tool conatainer!"); 
+    LOG_ERROR("Tool with name '" << tool->GetToolName() << "' is already in the tool conatainer!"); 
     return PLUS_FAIL; 
   }
 
@@ -414,7 +410,7 @@ void vtkTracker::DeepCopy(vtkTracker *tracker)
   for ( ToolIteratorType it = tracker->GetToolIteratorBegin(); it != tracker->GetToolIteratorEnd(); ++it )
   {
     LOG_DEBUG("Copy the buffer of tracker tool: " << it->first ); 
-    if ( this->AddTool( it->first.c_str(), it->second->GetPortName()) != PLUS_SUCCESS )
+    if ( this->AddTool(it->second) != PLUS_SUCCESS )
     {
       LOG_ERROR("Copy of tool '" << it->first << "' failed - unabale to add tool to the container!"); 
       continue; 
@@ -532,34 +528,14 @@ PlusStatus vtkTracker::ReadConfiguration(vtkXMLDataElement* config)
       continue; 
     }
 
-    const char* toolName = toolDataElement->GetAttribute("Name"); 
-    if ( toolName == NULL ) 
-    {
-      LOG_WARNING("Unable to find tool name! Name attribute is mandatory in tool definition."); 
-      continue; 
-    }
+    vtkSmartPointer<vtkTrackerTool> trackerTool = vtkSmartPointer<vtkTrackerTool>::New(); 
+    trackerTool->ReadConfiguration(toolDataElement);
 
-    const char* portName = toolDataElement->GetAttribute("PortName"); 
-    if ( portName == NULL ) 
+    if ( this->AddTool(trackerTool) != PLUS_SUCCESS )
     {
-      LOG_WARNING("Failed to add tool '" << toolName << "' to tracker without PortName specified (attribute is mandatory in tool definition)!"); 
+      LOG_ERROR("Failed to add tool '" << trackerTool->GetToolName() << "' to tracker on port " << trackerTool->GetPortName() );
       continue; 
     }
-
-    if ( this->AddTool(toolName, portName) != PLUS_SUCCESS )
-    {
-      LOG_ERROR("Failed to add tool '" << toolName << "' to tracker on port " << portName );
-      continue; 
-    }
-    
-    vtkTrackerTool* trackerTool = NULL; 
-    if ( this->GetTool(toolName, trackerTool) != PLUS_SUCCESS )
-    {
-      LOG_ERROR("Unable to find tool '"<< toolName << "' in tracker tool container!"); 
-      continue; 
-    }
-    
-    trackerTool->ReadConfiguration(toolDataElement); 
   }
 
   int bufferSize = 0; 

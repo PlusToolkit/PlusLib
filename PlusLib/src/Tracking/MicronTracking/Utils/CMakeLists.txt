@@ -32,7 +32,7 @@ SET(MicronTrackerInterface_SRCS
 
 SET (MicronTrackerInterface_INCLUDE_DIRS 
   ${MicronTrackerInterface_INCLUDE_DIRS} 
-  ${MICRONTRACKER_INCLUDE_DIRS}
+  ${MICRONTRACKER_INCLUDE_DIR}
   )
 
 INCLUDE_DIRECTORIES( ${MicronTrackerInterface_INCLUDE_DIRS} )
