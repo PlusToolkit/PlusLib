@@ -8,6 +8,7 @@ SET ( PlusCommon_SRCS
 		vtkGnuplotExecuter.cxx
 		vtkPlusConfig.cxx
     PlusMath.cxx 
+    vtkTransformCombiner.cxx
 		)
 
 SET (PlusCommon_HDRS)
@@ -23,6 +24,7 @@ if (WIN32)
     vtkTimestampedCircularBuffer.txx
 		vtkPlusConfig.h
     PlusMath.h
+    vtkTransformCombiner.h
 		)
 endif (WIN32)	
 
