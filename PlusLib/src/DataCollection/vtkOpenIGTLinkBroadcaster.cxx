@@ -15,6 +15,7 @@ See License.txt for details.
 #include "vtkMatrix4x4.h"
 #include "vtkObjectFactory.h"
 #include "vtkSmartPointer.h"
+#include "vtkPlusVideoSource.h"
 #include "PlusVideoFrame.h"
 
 #include "vtkTrackerTool.h"
@@ -34,6 +35,58 @@ vtkOpenIGTLinkBroadcaster::Status vtkOpenIGTLinkBroadcaster::SetDataCollector( v
 }
 
 //----------------------------------------------------------------------------
+PlusStatus vtkOpenIGTLinkBroadcaster::GetSocketInfoFromSendToLink( const char* sendToLink, SocketInfo& socketInfo )
+{
+  if ( sendToLink == NULL )
+  {
+    LOG_WARNING( "SendTo address could not be parsed if it's NULL!"); 
+    return PLUS_FAIL; 
+  }
+
+  // Parse the SendTo string to get hostname and port
+  std::istringstream iss(sendToLink);
+  std::string hostname;
+  getline(iss, hostname, ':');
+  int port=0;
+  iss >> port;    
+
+  if ( hostname.empty() || port <= 0 )
+  {
+    LOG_WARNING( "SendTo address '"<< sendToLink << "' could not be parsed (hostname=" << hostname << ", port=" << port << ")" );
+    return PLUS_FAIL;
+  }      
+
+  // Check if socket info already exists 
+  for ( int socketIndex = 0; socketIndex < this->SocketInfos.size(); ++ socketIndex )
+  {
+    if ( hostname.compare(this->SocketInfos[ socketIndex ].Host) == 0
+      && this->SocketInfos[ socketIndex ].Port == port )
+    {
+      // Socket found return with the socket info
+      socketInfo = this->SocketInfos[ socketIndex ]; 
+      return PLUS_SUCCESS; 
+    }
+  }
+
+  // Could find socket in the list, create new socket
+  igtl::ClientSocket::Pointer socket = igtl::ClientSocket::New();
+  if ( socket->ConnectToServer( hostname.c_str(), port ) )
+  {
+    LOG_WARNING( "Could not connect to OpenIGTLink host: " << sendToLink );
+    return PLUS_FAIL;
+  }
+
+  socketInfo.Host = hostname;
+  socketInfo.Port = port;
+  socketInfo.Socket = socket;
+
+  this->SocketInfos.push_back( socketInfo );
+
+  return PLUS_SUCCESS; 
+
+}
+
+//----------------------------------------------------------------------------
 vtkOpenIGTLinkBroadcaster::Status vtkOpenIGTLinkBroadcaster::Initialize( std::string &strError )
 {
   if (    this->DataCollector == NULL
@@ -44,9 +97,7 @@ vtkOpenIGTLinkBroadcaster::Status vtkOpenIGTLinkBroadcaster::Initialize( std::st
     return this->InternalStatus;
   }
 
-
   // Create a socket for all non-reference tools that need to be broadcasted.
-
   for ( ToolIteratorType it = this->DataCollector->GetTracker()->GetToolIteratorBegin(); it != this->DataCollector->GetTracker()->GetToolIteratorEnd(); ++it)
   {
     if ( STRCASECMP(it->second->GetToolName(), "Reference") == 0 )
@@ -56,69 +107,41 @@ vtkOpenIGTLinkBroadcaster::Status vtkOpenIGTLinkBroadcaster::Initialize( std::st
     }
 
     // Check if SendTo address exists for non reference tools.
-
     vtkTrackerTool* tool = it->second;
-    const char* constCharSendTo = tool->GetSendToLink();
-
-    if ( constCharSendTo == NULL ) continue;  // This tool is not broadcasted.
-
-    // Parse the SendTo string to get hostname and port
-    std::istringstream iss(constCharSendTo);
-    std::string hostname;
-    getline(iss, hostname, ':');
-    int port=0;
-    iss >> port;    
-
-    if ( hostname.empty() || port <= 0 )
+    if ( tool->GetSendToLink() == NULL ) 
     {
-      LOG_WARNING( "SendTo address could not be parsed for tool: " << tool->GetToolName()
-        << " (hostname=" << hostname << ", port=" << port << ")" );
-      continue;
-    }      
-
-    LOG_TRACE( "SendTo address for tool " << tool->GetToolName() << ": hostname=" << hostname << ", port=" << port );
-
-    // Check if new socket has to be created.
-
-    bool socketFound = false;
-    igtl::ClientSocket::Pointer socket;
-    for ( int socketIndex = 0; socketIndex < this->SocketInfos.size(); ++ socketIndex )
-    {
-      if (    hostname.compare(this->SocketInfos[ socketIndex ].Host) == 0
-        && this->SocketInfos[ socketIndex ].Port == port )
-      {
-        socketFound = true;
-        socket = this->SocketInfos[ socketIndex ].Socket;
-      }
+      // This tool is not broadcasted.
+      continue;  
     }
 
-    if ( socketFound == false )
+    SocketInfo socketInfo; 
+    if ( this->GetSocketInfoFromSendToLink(tool->GetSendToLink(), socketInfo) != PLUS_SUCCESS )
     {
-      socket = igtl::ClientSocket::New();
-      int fail = socket->ConnectToServer( hostname.c_str(), port );
-
-      if ( fail )
-      {
-        LOG_WARNING( "Could not connect to OpenIGTLink host: " << tool->GetSendToLink() );
-        continue;
-      }
-
-      SocketInfo sInfo;
-      sInfo.Host = std::string( hostname );
-      sInfo.Port = port;
-      sInfo.Socket = socket;
-
-      this->SocketInfos.push_back( sInfo );
+      LOG_ERROR("Failed to get socket info from send to adress for tool " << tool->GetToolName()); 
+      continue; 
     }
 
+    LOG_TRACE( "SendTo address for tool " << tool->GetToolName() << ": hostname=" << socketInfo.Host << ", port=" << socketInfo.Port);
+    
     IgtToolInfo info;
-    info.Socket = socket;
+    info.Socket = socketInfo.Socket;
     info.ToolName = tool->GetToolName();
     info.TrackerPortName = it->second->GetPortName();
 
     this->NonReferenceToolInfos.push_back( info );
   }
 
+
+  // Check image message send to address 
+  const char* imageSendToLink = this->DataCollector->GetVideoSource()->GetSendToLink(); 
+  if ( imageSendToLink )
+  {
+    SocketInfo socketInfo; 
+    if ( this->GetSocketInfoFromSendToLink(imageSendToLink, socketInfo) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Failed to get socket info from send to adress for image message (send to link: " << imageSendToLink <<")"); 
+    }
+  }
 
   // Everything worked.
 
@@ -298,31 +321,21 @@ vtkOpenIGTLinkBroadcaster::Status vtkOpenIGTLinkBroadcaster::SendMessages( std::
 //----------------------------------------------------------------------------
 void vtkOpenIGTLinkBroadcaster::SendImageMessage( TrackedFrame* trackedFrame, std::string strError )
 {
-  // Get the socket information for the default tool;
-
-  // TODO: change this, see assemble ticket plus - #388
-  vtkTrackerTool* imageTool = NULL; 
-  if ( this->DataCollector->GetTracker()->GetTool("Probe", imageTool) != PLUS_SUCCESS )
+  const char* imageSendToLink = this->DataCollector->GetVideoSource()->GetSendToLink(); 
+  if ( imageSendToLink == NULL )
   {
-    LOG_ERROR("Failed to send image message - unable to find tool 'Probe'!"); 
-    return; 
-  }
-
-  igtl::ClientSocket::Pointer defaultSocket;
-  bool found = false;
-  for ( int i = 0; i < this->NonReferenceToolInfos.size(); ++ i )
-  {
-    if ( STRCASECMP(imageTool->GetPortName(), this->NonReferenceToolInfos[ i ].TrackerPortName.c_str() ) == 0  )
-    {
-      defaultSocket = this->NonReferenceToolInfos[ i ].Socket;
-      found = true;
-    }
-  }
-  if ( ! found )
-  {
-    LOG_DEBUG( "No SendTo address found for default port." );
+    LOG_DEBUG( "No SendTo address found for image message." );
     return;
   }
+
+  SocketInfo imageSocket; 
+  if ( this->GetSocketInfoFromSendToLink(imageSendToLink, imageSocket) != PLUS_SUCCESS )
+  {
+    LOG_DEBUG( "Failed to get sokect info for image message!" );
+    return;
+  }
+
+  igtl::ClientSocket::Pointer defaultSocket = imageSocket.Socket;
 
   // Read the actual image data with transform.
   // vtkSmartPointer< vtkImageData > frameImage = vtkSmartPointer< vtkImageData >::New();

@@ -228,7 +228,7 @@ PlusStatus vtkSonixVideoSource::AddFrameToBuffer(void* dataPtr, int type, int sz
 {
 #if (PLUS_ULTRASONIX_SDK_MAJOR_VERSION < 4)
   LOG_ERROR("Minimum required Ultasonix SDK version is 5.x");
-  return PLUS_FAIL
+  return PLUS_FAIL; 
 #endif
 
   if (!this->Recording)

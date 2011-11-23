@@ -104,23 +104,60 @@ void vtkTrackerTool::PrintSelf(ostream& os, vtkIndent indent)
 {
 	vtkObject::PrintSelf(os,indent);
 
-	os << indent << "Tracker: " << this->Tracker << "\n";
-  os << indent << "ToolName: " << this->GetToolName() << "\n";
-	os << indent << "PortName: " << this->GetPortName() << "\n";
+  if ( this->Tracker )
+  {
+	  os << indent << "Tracker: " << this->Tracker << "\n";
+  }
+  if ( this->ToolName )
+  {
+    os << indent << "ToolName: " << this->GetToolName() << "\n";
+  }
+  if ( this->PortName )
+  {
+	  os << indent << "PortName: " << this->GetPortName() << "\n";
+  }
 	os << indent << "LED1: " << this->GetLED1() << "\n"; 
 	os << indent << "LED2: " << this->GetLED2() << "\n"; 
 	os << indent << "LED3: " << this->GetLED3() << "\n";
-	os << indent << "SendTo: " << this->GetSendToLink() << "\n";
-	os << indent << "ToolModel: " << this->GetToolModel() << "\n";
-	os << indent << "ModelToToolTransform: " << this->GetModelToToolTransform() << "\n";
-	os << indent << "ToolRevision: " << this->GetToolRevision() << "\n";
-	os << indent << "ToolManufacturer: " << this->GetToolManufacturer() << "\n";
-	os << indent << "ToolPartNumber: " << this->GetToolPartNumber() << "\n";
-	os << indent << "ToolSerialNumber: " << this->GetToolSerialNumber() << "\n";
-	os << indent << "CalibrationMatrix: " << this->CalibrationMatrix << "\n";
-	this->CalibrationMatrix->PrintSelf(os,indent.GetNextIndent());
-	os << indent << "Buffer: " << this->Buffer << "\n";
-	this->Buffer->PrintSelf(os,indent.GetNextIndent());
+  if ( this->SendToLink )
+  {
+	  os << indent << "SendTo: " << this->GetSendToLink() << "\n";
+  }
+  if ( this->ToolModel )
+  {
+	  os << indent << "ToolModel: " << this->GetToolModel() << "\n";
+  }
+	if ( this->ModelToToolTransform )
+  {
+    os << indent << "ModelToToolTransform: " << this->GetModelToToolTransform() << "\n";
+  }
+
+  if ( this->ToolRevision )
+  {
+	  os << indent << "ToolRevision: " << this->GetToolRevision() << "\n";
+  }
+  if ( this->ToolManufacturer )
+  {
+	  os << indent << "ToolManufacturer: " << this->GetToolManufacturer() << "\n";
+  }
+  if ( this->ToolPartNumber )
+  {
+	  os << indent << "ToolPartNumber: " << this->GetToolPartNumber() << "\n";
+  }
+  if ( this->ToolSerialNumber )
+  {
+	  os << indent << "ToolSerialNumber: " << this->GetToolSerialNumber() << "\n";
+  }
+  if ( this->CalibrationMatrix )
+  {
+    os << indent << "CalibrationMatrix: \n";
+    this->CalibrationMatrix->PrintSelf(os, indent.GetNextIndent()); 
+  }
+  if ( this->Buffer )
+  {
+    os << indent << "Buffer: " << this->Buffer << "\n";
+    this->Buffer->PrintSelf(os,indent.GetNextIndent());
+  }
 }
 
 //----------------------------------------------------------------------------

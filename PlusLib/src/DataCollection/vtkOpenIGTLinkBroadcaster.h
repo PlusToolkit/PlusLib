@@ -106,6 +106,7 @@ private:
   
   void SendImageMessage( TrackedFrame* trackedFrame, std::string strError );
   
+  PlusStatus GetSocketInfoFromSendToLink( const char* sendToLink, SocketInfo& socketInfo ); 
   
   Status             InternalStatus;
   vtkDataCollector*  DataCollector;
