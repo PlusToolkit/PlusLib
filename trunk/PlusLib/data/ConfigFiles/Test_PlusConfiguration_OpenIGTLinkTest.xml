@@ -32,6 +32,7 @@
       FrameRate="5" 
       AveragedItemsForFiltering="4" 
       LocalTimeOffset="0.0" 
+      SendTo="localhost:18944"
       />
 
 		<Synchronization
