@@ -864,14 +864,29 @@ static VLEDState vtkNDICertusMapVLEDState[] = {
 
   //----------------------------------------------------------------------------
   // change the state of an LED on the tool
-  PlusStatus vtkNDICertusTracker::InternalSetToolLED(int tool, int led, int state)
+  PlusStatus vtkNDICertusTracker::InternalSetToolLED(const char* portName, int led, int state)
+  {
+    int tool(-1); 
+    std::stringstream convert(portName);
+    if ( ! (convert >> tool ) )
+    {
+      LOG_ERROR("Failed to convert port name '" << portName << "' to integer, please check config file: " << vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName() ); 
+      return PLUS_FAIL; 
+    } 
+
+    return this->InternalSetToolLED(tool, led, state);
+  }
+
+  //----------------------------------------------------------------------------
+  // change the state of an LED on the tool
+  PlusStatus vtkNDICertusTracker::InternalSetToolLED(int portNumber, int led, int state)
   {
     if (this->Tracking &&
-      tool >= 0 && tool < VTK_CERTUS_NTOOLS &&
+      portNumber >= 0 && portNumber < VTK_CERTUS_NTOOLS &&
       led >= 0 && led < 3)
     {
       VLEDState pstate = vtkNDICertusMapVLEDState[led];
-      int ph = this->PortHandle[tool];
+      int ph = this->PortHandle[portNumber];
       if (ph == 0)
       {
         return PLUS_FAIL;
@@ -880,7 +895,7 @@ static VLEDState vtkNDICertusMapVLEDState[] = {
       OptotrakDeviceHandleSetVisibleLED(ph, led+1, pstate);
     }
 
-    return PLUS_SUCCESS;
+    return PLUS_FAIL;
   }
 
 

@@ -47,14 +47,19 @@ public:
   /*! Write main configuration to xml data */
   virtual PlusStatus WriteConfiguration(vtkXMLDataElement* config); 
 
+  /*! Set tool name. Tool name is used to identify the tool among all the tools provided by the tracker device 
+  therefore it must be unique and can be set only once */
+  PlusStatus SetToolName(const char* toolName);
+
+  /*! Set port name. Port name is used to identify the tool among all the tools provided by the tracker device 
+  therefore it must be unique and can be set only once */
+  PlusStatus SetPortName(const char* portName);
+
   /*! Get the tracked tool buffer */
   vtkGetObjectMacro(Buffer,vtkTrackerBuffer);
 
   /*! Get the tracker which owns this tool. */
   vtkGetObjectMacro(Tracker,vtkTracker);
-
-  /*! Get a numeric identifier for this tool i.e. 0, 1, 2. */
-  vtkGetMacro(ToolPort,int);
 
   /*! Get port name. Port name is used to identify the tool among all the tools provided by the tracker device. */
   vtkGetStringMacro(PortName); 
@@ -103,10 +108,7 @@ public:
 
   /*! Set tracker which owns this tool */
   void SetTracker(vtkTracker *tracker);
-  /*! Set tool port number */
-  vtkSetMacro(ToolPort, int);
-  /*! Set port name. Port name is used to identify the tool among all the tools provided by the tracker device. */
-  vtkSetStringMacro(PortName); 
+  
   /*! Set tool revision */
   vtkSetStringMacro(ToolRevision);
   /*! Set tool manufacturer */
@@ -115,8 +117,7 @@ public:
   vtkSetStringMacro(ToolPartNumber);
   /*! Set tool serial number */
   vtkSetStringMacro(ToolSerialNumber);
-  /*! Set tool name */
-  vtkSetStringMacro(ToolName);
+  
   /*! Set tool model */
   vtkSetStringMacro(ToolModel); 
 
@@ -159,7 +160,6 @@ protected:
 
   vtkTracker *Tracker;
 
-  int ToolPort;
   char *PortName;
 
   vtkMatrix4x4 *CalibrationMatrix;

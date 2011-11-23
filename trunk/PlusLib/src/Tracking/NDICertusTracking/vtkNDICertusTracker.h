@@ -81,7 +81,10 @@ protected:
 	PlusStatus InternalBeep(int n);
 
 	/*! Set the specified tool LED to the specified state. */
-	PlusStatus InternalSetToolLED(int tool, int led, int state);
+	PlusStatus InternalSetToolLED(const char* portName, int led, int state);
+
+  /*! Set the specified tool LED to the specified state. */
+	PlusStatus InternalSetToolLED(int portNumber, int led, int state);
 
 	/*! Initialize communication with the Certus system. */
 	PlusStatus InitializeCertusSystem();

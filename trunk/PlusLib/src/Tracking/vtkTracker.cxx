@@ -115,6 +115,12 @@ PlusStatus vtkTracker::AddTool( vtkTrackerTool* tool )
     return PLUS_FAIL; 
   }
 
+  if ( tool->GetToolName() == NULL || tool->GetPortName() == NULL )
+  {
+    LOG_ERROR("Failed to add tool to tracker, tool Name and PortName must be defined!"); 
+    return PLUS_FAIL; 
+  }
+
   if ( this->ToolContainer.find( tool->GetToolName() ) == this->GetToolIteratorEnd() )
   {
     // Check tool port names, it should be unique too
@@ -378,13 +384,13 @@ void vtkTracker::Beep(int n)
 }
 
 //----------------------------------------------------------------------------
-void vtkTracker::SetToolLED(int tool, int led, int state)
+void vtkTracker::SetToolLED(const char* portName, int led, int state)
 {
   this->RequestUpdateMutex->Lock();
   this->UpdateMutex->Lock();
   this->RequestUpdateMutex->Unlock();
 
-  this->InternalSetToolLED(tool, led, state);
+  this->InternalSetToolLED(portName, led, state);
 
   this->UpdateMutex->Unlock();
 }
@@ -529,7 +535,11 @@ PlusStatus vtkTracker::ReadConfiguration(vtkXMLDataElement* config)
     }
 
     vtkSmartPointer<vtkTrackerTool> trackerTool = vtkSmartPointer<vtkTrackerTool>::New(); 
-    trackerTool->ReadConfiguration(toolDataElement);
+    if ( trackerTool->ReadConfiguration(toolDataElement) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Unable to add tool to tracker - failed to read tool configuration"); 
+      continue; 
+    }
 
     if ( this->AddTool(trackerTool) != PLUS_SUCCESS )
     {

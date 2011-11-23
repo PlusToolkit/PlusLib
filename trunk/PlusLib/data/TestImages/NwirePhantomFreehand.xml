@@ -72,15 +72,19 @@
     </Geometry>
   </PhantomDefinition>
   
-  <Calibration>
-    <ImageToProbe
-					MatrixValue="
-                        -0.0094 -0.0739 -0.0028 -103.5322
+  <CoordinateFrameDefinitions>
+  
+    <Transform From="Phantom" To="Reference" Matrix="1 0 0 0  0 1 0 0  0 0 1 0 0 0 0 1" Error="0.0" />
+  
+    <Transform From="Image" To="Probe"
+      Matrix="
+						 -0.0094 -0.0739 -0.0028 -103.5322
                         0.0774 -0.0076 -0.0049 -43.1227
 	                      0.0046 -0.0032 0.0760 -93.3
 	                      0 0 0 1" 
           Error="0.508027" Date="2011.08.19 14:11:53" />
-  </Calibration>
+
+  </CoordinateFrameDefinitions>
   
   <VolumeReconstruction CalibrationTransformName="ImageToProbe" Interpolation="LINEAR" Optimization="NONE" Compounding="On" FillHoles="Off" NumberOfThreads="1"
                            ClipRectangleOrigin="167 62" ClipRectangleSize="495 488"
