@@ -55,6 +55,7 @@ POSSIBILITY OF SUCH DAMAGE.
 // and stream the frames to output. 
 // Note that the data coming out of the Sonix rp through ulterius is always RGB
 // This class talks to Ultrasonix's Ulterius SDK for executing the tasks 
+// Parameter setting doesn't work with Ulterius-2.x
 // .SECTION Usage
 //  sonixGrabber->SetSonixIP("130.15.7.212");
 //  sonixGrabber->SetImagingMode(0);
@@ -95,38 +96,110 @@ public:
   //static vtkSonixVideoSource *New();
   vtkTypeRevisionMacro(vtkSonixVideoSource,vtkPlusVideoSource);
   void PrintSelf(ostream& os, vtkIndent indent);   
-  // Description:
-  // This is a singleton pattern New.  There will only be ONE
-  // reference to a vtkOutputWindow object per process.  Clients that
-  // call this must call Delete on the object so that the reference
-  // counting will work.   The single instance will be unreferenced when
-  // the program exits.
+
+  /*!
+    This is a singleton pattern New.  There will only be ONE
+    reference to a vtkOutputWindow object per process.  Clients that
+    call this must call Delete on the object so that the reference
+    counting will work.   The single instance will be unreferenced when
+    the program exits.
+  */
   static vtkSonixVideoSource* New();
-  // Description:
-  // Return the singleton instance with no reference counting.
+  
+  /*! Return the singleton instance with no reference counting. */
   static vtkSonixVideoSource* GetInstance();
 
-  // Description:
-  // Supply a user defined output window. Call ->Delete() on the supplied
-  // instance after setting it.
+  /*!
+    Supply a user defined output window. Call ->Delete() on the supplied
+    instance after setting it.
+  */
   static void SetInstance(vtkSonixVideoSource *instance);
   //BTX
-  // use this as a way of memory management when the
-  // program exits the SmartPointer will be deleted which
-  // will delete the Instance singleton
+  /*!
+    Use this as a way of memory management when the
+    program exits the SmartPointer will be deleted which
+    will delete the Instance singleton
+  */
   static vtkSonixVideoSourceCleanup Cleanup;
   //ETX
 
-  // Description:
-  // Read/write main configuration from/to xml data
+  /*! Read/write main configuration from/to xml data */
   virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config); 
   virtual PlusStatus WriteConfiguration(vtkXMLDataElement* config);
 
-  // Description:
-  // Request a particular mode of imaging
-  // Usable values are described in ImagingModes.h
-  // default: B-mode
-  /*
+  /*! Get the IP address of the Ultrasonix host machine */
+  vtkSetStringMacro(SonixIP); 
+  /*! Set the IP address of the Ultrasonix host machine */
+  vtkGetStringMacro(SonixIP); 
+
+  /*! Set ultrasound transmitter frequency (MHz) */
+  PlusStatus SetFrequency(int aFrequency);
+  /*! Get ultrasound transmitter frequency (MHz) */
+  PlusStatus GetFrequency(int& aFrequency);
+
+  /*! Set the depth (mm) of B-mode ultrasound */
+  PlusStatus SetDepth(int aDepth);
+  /*! Get the depth (mm) of B-mode ultrasound */
+  PlusStatus GetDepth(int& aDepth);
+
+  /*! Set the Gain (%) of B-mode ultrasound; valid range: 0-100 */
+  PlusStatus SetGain(int aGain);
+  /*! Get the Gain (%) of B-mode ultrasound; valid range: 0-100 */
+  PlusStatus GetGain(int& aGain);
+
+  /*! Set the DynRange (dB) of B-mode ultrasound */
+  PlusStatus SetDynRange(int aDynRange);
+  /*! Get the DynRange (dB) of B-mode ultrasound */
+  PlusStatus GetDynRange(int& aDynRange);
+
+  /*! Set the Zoom (%) of B-mode ultrasound; valid range: 0-100 */
+  PlusStatus SetZoom(int aZoom);
+  /*! Get the Zoom (%) of B-mode ultrasound; valid range: 0-100 */
+  PlusStatus GetZoom(int& aZoom);
+
+  /*! Set the Sector (%) of B-mode ultrasound; valid range: 0-100 */
+  PlusStatus SetSector(int aSector);
+  /*! Get the Sector (%) of B-mode ultrasound; valid range: 0-100 */
+  PlusStatus GetSector(int& aSector);
+
+  /*! Set the CompressionStatus to 0 for compression off, 1 for compression on. (Default: off) */
+  PlusStatus SetCompressionStatus(int aCompressionStatus);
+  /*! Get the CompressionStatus to 0 for compression off, 1 for compression on. */
+  PlusStatus GetCompressionStatus(int& aCompressionStatus);
+
+  /*! Set the Timeout (ms) value for network function calls. */
+  PlusStatus SetTimeout(int aTimeout);
+  
+  /*!
+    Request a particular data type from sonix machine by means of a bitmask.
+    The mask must be applied before any data can be acquired via realtime imaging or cine retrieval
+
+    udtScreen = 0x00000001,   // Screen
+    udtBPre = 0x00000002,     // B Pre Scan Converted
+    udtBPost = 0x00000004,    // B Post Scan Converted (8 bit)
+    udtBPost32 = 0x00000008,  // B Post Scan Converted (32 bit)
+    udtRF = 0x00000010,       // RF
+    udtMPre = 0x00000020,     // M Pre Scan Converted
+    udtMPost = 0x00000040,    // M Post Scan Converted
+    udtPWRF = 0x00000080,     // PW RF
+    udtPWSpectrum = 0x00000100,           
+    udtColorRF = 0x00000200,              
+    udtColorCombined = 0x00000400,
+    udtColorVelocityVariance = 0x00000800,
+    udtElastoCombined = 0x00002000, // Elasto + B-image (32 bit)
+    udtElastoOverlay = 0x00004000,  // Elasto Overlay (8 bit)
+    udtElastoPre = 0x00008000,      // Elasto Pre Scan Coverted (8 bit)
+    udtECG = 0x00010000,
+    udtGPS = 0x00020000,
+    udtPNG = 0x10000000
+  */
+  PlusStatus SetAcquisitionDataType(int aAcquisitionDataType);
+  /*! Get acquisition data type  bitmask. */
+  PlusStatus GetAcquisitionDataType(int &acquisitionDataType);
+
+  /*!
+    Request a particular mode of imaging
+    Usable values are described in ImagingModes.h (default: B-mode)  
     BMode = 0,
     MMode = 1,
     ColourMode = 2,
@@ -156,126 +229,52 @@ public:
     SHINEMode = 26,
     ColourRfMode = 27,
   */
-  void SetImagingMode(int mode){ImagingMode = mode;};
-  void GetImagingMode(int & mode){mode = ImagingMode;};
+  PlusStatus SetImagingMode(int mode);
+  /*! Get current imaging mode */
+  PlusStatus GetImagingMode(int & mode);
 
-  // Description:
-  // Get/Set the IP address of the Ultrasonix host machine
-  vtkSetStringMacro(SonixIP); 
-  vtkGetStringMacro(SonixIP); 
-
-  /* List of parameters which can be set or read in B-mode, other mode parameters not currently implemented*/
-
-  // Description:
-  // Frequency corresponds to paramID value of 414 for Uterius SDK
-  vtkGetMacro(Frequency, int);
-  vtkSetMacro(Frequency, int);
-
-  // Description:
-  // Get/set the depth (mm) of B-mode ultrasound; valid range: ; in increments of 
-  // Depth corresponds to paramID value of 206 for Uterius SDK
-  vtkGetMacro(Depth, int);
-  vtkSetMacro(Depth, int);
-
-  // Description:
-  // Get/set the frame rate (fps) of B-mode ultrasound; valid range: ; in increments of 
-  // FrameRate corresponds to paramID value of 584 for Uterius SDK
-  vtkGetMacro(FrameRate, float);
-  vtkSetMacro(FrameRate, float);
-
-  // Description:
-  // Get/set the Gain (%) of B-mode ultrasound; valid range: 0-100 ; in increments of 
-  // Gain corresponds to paramID value of 15 for Uterius SDK
-  vtkGetMacro(Gain, int);
-  vtkSetMacro(Gain, int);
-
-    // Description:
-  // Get/set the DynRange (dB) of B-mode ultrasound; valid range: ; in increments of 
-  // Gain corresponds to paramID value of 361 for Uterius SDK
-  vtkGetMacro(DynRange, int);
-  vtkSetMacro(DynRange, int);
-
-    // Description:
-  // Get/set the Zoom (%) of B-mode ultrasound; valid range: 0-100 ; in increments of 
-  // Zoom corresponds to paramID value of 1176 for Uterius SDK
-  vtkGetMacro(Zoom, int);
-  vtkSetMacro(Zoom, int);
-
-  // Description:
-  // Get/set the Sector (%) of B-mode ultrasound; valid range: 0-100 ; in increments of 
-  // Sector corresponds to paramID value of 1116 for Uterius SDK
-  vtkGetMacro(Sector, int);
-  vtkSetMacro(Sector, int);
-
-  // Description:
-  // Get/set the CompressionStatus to 0 for compression off, 1 for compression on. 
-  // (Default: off)
-  vtkGetMacro(CompressionStatus, int);
-  vtkSetMacro(CompressionStatus, int);
-
-  // Description:
-  // Get/set the Timeout value for network function calls.
-  // (Default: -1) 
-  vtkGetMacro(Timeout, int);
-  vtkSetMacro(Timeout, int);
-
-  // Get/set the time required for setting up the connection
-  // the value depends on the probe type, typical values are between 2000-3000ms
-  // (Default: 3000) 
+  /*! 
+    Set the time required for setting up the connection.
+    The value depends on the probe type, typical values are between 2000-3000ms. (Default: 3000)
+  */
+  vtkSetMacro(ConnectionSetupDelayMs, int);  
+  /*! Set the time required for setting up the connection. */
   vtkGetMacro(ConnectionSetupDelayMs, int);
-  vtkSetMacro(ConnectionSetupDelayMs, int);
 
-
-  // Description:
-  // Request a particular data type from sonix machine by means of a bitmask.
-  // The mask must be applied before any data can be acquired via realtime imaging or cine retrieval
-  /*
-    udtScreen = 0x00000001,   // Screen
-    udtBPre = 0x00000002,     // B Pre Scan Converted
-    udtBPost = 0x00000004,    // B Post Scan Converted (8 bit)
-    udtBPost32 = 0x00000008,  // B Post Scan Converted (32 bit)
-    udtRF = 0x00000010,       // RF
-    udtMPre = 0x00000020,     // M Pre Scan Converted
-    udtMPost = 0x00000040,    // M Post Scan Converted
-    udtPWRF = 0x00000080,     // PW RF
-    udtPWSpectrum = 0x00000100,           
-    udtColorRF = 0x00000200,              
-    udtColorCombined = 0x00000400,
-    udtColorVelocityVariance = 0x00000800,
-    udtElastoCombined = 0x00002000, // Elasto + B-image (32 bit)
-    udtElastoOverlay = 0x00004000,  // Elasto Overlay (8 bit)
-    udtElastoPre = 0x00008000,      // Elasto Pre Scan Coverted (8 bit)
-    udtECG = 0x00010000,
-    udtGPS = 0x00020000,
-    udtPNG = 0x10000000
-*/
-  vtkGetMacro(AcquisitionDataType, int);
-  PlusStatus SetAcquisitionDataType(int acquisitionDataType);
+  /*! Print the list of supported parameters. For diagnostic purposes only. */
+  PlusStatus vtkSonixVideoSource::PrintListOfImagingParameters();
 
 protected:
   vtkSonixVideoSource();
   virtual ~vtkSonixVideoSource();
 
-  // Description:
-  // Connect to device
+  /*! Connect to device */
   virtual PlusStatus InternalConnect();
 
-  // Description:
-  // Disconnect from device
+  /*! Disconnect from device */
   virtual PlusStatus InternalDisconnect();
 
-  // Description:
-  // Record incoming video at the specified FrameRate.  The recording
-  // continues indefinitely until StopRecording() is called. 
+  /*!
+    Record incoming video.  The recording
+    continues indefinitely until StopRecording() is called. 
+  */
   virtual PlusStatus InternalStartRecording();
 
-  // Description:
-  // Stop recording or playing.
+  /*! Stop recording or playing */
   virtual PlusStatus InternalStopRecording();
+
+  /*! Get the last error string returned by Ulterius */
+  std::string GetLastUlteriusError();
 
   ////////////////////////
 
-  std::string GetLastUlteriusError();
+  /*! For internal use only */
+  PlusStatus AddFrameToBuffer(void * data, int type, int sz, bool cine, int frmnum);
+
+  /*! For internal use only */
+  PlusStatus SetParamValue(char* paramId, int paramValue, int &validatedParamValue);
+  /*! For internal use only */
+  PlusStatus GetParamValue(char* paramId, int& paramValue, int &validatedParamValue);
 
   ulterius Ult;
   uDataDesc DataDescriptor;
@@ -286,7 +285,6 @@ protected:
   int Gain; 
   int DynRange; 
   int Zoom; 
-  int FrameRate;
   int AcquisitionDataType;
   int ImagingMode;
   int OutputFormat;
@@ -295,11 +293,14 @@ protected:
   int ConnectionSetupDelayMs;
   
   char *SonixIP;
-
-  // Description:
-  // For internal use only
-  PlusStatus AddFrameToBuffer(void * data, int type, int sz, bool cine, int frmnum);
-  
+  /*!
+    Indicates if connection to the device has been established. It's not the same as the Connected parameter,
+    because Connected indicates that the connection is successfully completed; while UlteriusConnected
+    indicates that the connection to Ulterius has been established (so that Ulterius calls are allowed),
+    but the connection initialization (setup of requested imaging parameters, etc.) may fail.
+  */
+  bool UlteriusConnected;
+    
 private:
  
   static vtkSonixVideoSource* Instance;
@@ -309,8 +310,3 @@ private:
 };
 
 #endif
-
-
-
-
-

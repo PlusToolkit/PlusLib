@@ -107,7 +107,7 @@ protected:
       LOG_ERROR("Plotting is only supported for signed short data");
       return 0;
     }
-    int rowCount=inputImage->GetDimensions()[1]; // number of transudcer crystals
+    int rowCount=inputImage->GetDimensions()[1]; // number of transducer crystals
     int numPoints=inputImage->GetDimensions()[0]; // number of data points (RF data values) recorded for one crystal
     int selectedRow=rowCount/2; // plot the center column of the image
     short* pixelBuffer=reinterpret_cast<short*>(inputImage->GetScalarPointer())+selectedRow*numPoints;
@@ -240,6 +240,7 @@ int main(int argc, char* argv[])
 {
   bool printHelp(false); 
   bool renderingOff(false);
+  bool printParams(false);
   std::string inputSonixIP("130.15.7.212");
   std::string acqMode("B");
 
@@ -252,6 +253,7 @@ int main(int argc, char* argv[])
   args.AddArgument("--sonix-ip", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputSonixIP, "SonixRP ip address (Default: 130.15.7.212)" );
   args.AddArgument("--acq-mode", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &acqMode, "Acquisition mode: B or RF (Default: B).");	
   args.AddArgument("--rendering-off", vtksys::CommandLineArguments::NO_ARGUMENT, &renderingOff, "Run test without rendering.");	
+  args.AddArgument("--print-params", vtksys::CommandLineArguments::NO_ARGUMENT, &printParams, "Print all the supported imaging parameters (for diagnostic purposes only).");	
   args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level 1=error only, 2=warning, 3=info, 4=debug, 5=trace)");	
 
   if ( !args.Parse() )
@@ -306,6 +308,12 @@ int main(int argc, char* argv[])
   {
     LOG_ERROR( "Unable to connect to Sonix RP machine at: " << inputSonixIP ); 
     exit(EXIT_FAILURE); 
+  }
+
+  if (printParams)
+  {
+    LOG_INFO("List of supported imaging parameters:");
+    sonixGrabber->PrintListOfImagingParameters();
   }
 
   sonixGrabber->StartRecording();				//start recording frame from the video
