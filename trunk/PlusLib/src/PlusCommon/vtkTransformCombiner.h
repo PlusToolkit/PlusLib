@@ -25,6 +25,10 @@ The vtkTransformCombiner stores a number of transforms between coordinate frames
 it can multiply these transforms (or the inverse of these transforms) to
 compute the transform between any two coordinate frames.
 
+Only one transformation path shall be possible between any two coordinate frames.
+If this rule is violated then GetTransform may return unpredictable results or may hang.
+It could be an enhancement to automatically detect circular references when adding a transform.
+
 \ingroup PlusLibCommon
 */
 class VTK_EXPORT vtkTransformCombiner : public vtkObject
@@ -94,24 +98,11 @@ protected:
     bool m_IsComputed;
   };
 
-  typedef std::map<std::string, TransformInfo> TransformListType;
-
-  /*! A vertex in the transform graph, representing a coordinate frame */ 
-  class CoordinateFrameInfo
-  {
-  public:
-    CoordinateFrameInfo()
-    {
-    }
-    virtual ~CoordinateFrameInfo()
-    {
-    }
-    /*! List of edges (transforms) that are connected to this vertex (coordinate frame) */
-    TransformListType m_Transforms;
-  };
-
-  typedef std::map<std::string, CoordinateFrameInfo> CoordinateFrameListType;
+  typedef std::map<std::string, TransformInfo> TransformInfoMapType;
   typedef std::list<TransformInfo*> TransformInfoListType;
+
+  /*! Stores the list of transforms related to each coordinate frame */
+  typedef std::map<std::string, TransformInfoMapType> CoordinateFrameListType;
 
   /*! Get a user-defined input transform (or its inverse). Does not combine user-defined input transforms. */ 
   TransformInfo* GetInputTransform(const char* fromCoordFrameName, const char* toCoordFrameName);

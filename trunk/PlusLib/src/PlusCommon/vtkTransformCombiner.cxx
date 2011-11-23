@@ -76,7 +76,7 @@ void vtkTransformCombiner::PrintSelf(ostream& os, vtkIndent indent)
   for (CoordinateFrameListType::iterator coordFrame=this->CoordinateFrames.begin(); coordFrame!=this->CoordinateFrames.end(); ++coordFrame)
   {
     os << indent << coordFrame->first << " coordinate frame transforms:\n";
-    for (TransformListType::iterator transformInfo=coordFrame->second.m_Transforms.begin(); transformInfo!=coordFrame->second.m_Transforms.end(); ++transformInfo)
+    for (TransformInfoMapType::iterator transformInfo=coordFrame->second.begin(); transformInfo!=coordFrame->second.end(); ++transformInfo)
     {
       os << indent << "  To " << transformInfo->first << ": " 
         << (transformInfo->second.m_IsValid?"valid":"invalid") << ", " 
@@ -104,12 +104,12 @@ void vtkTransformCombiner::PrintSelf(ostream& os, vtkIndent indent)
 //----------------------------------------------------------------------------
 vtkTransformCombiner::TransformInfo* vtkTransformCombiner::GetInputTransform(const char* fromCoordFrameName, const char* toCoordFrameName)
 {
-  CoordinateFrameInfo& fromCoordFrame=this->CoordinateFrames[fromCoordFrameName];
-  CoordinateFrameInfo& toCoordFrame=this->CoordinateFrames[toCoordFrameName];
+  TransformInfoMapType& fromCoordFrame=this->CoordinateFrames[fromCoordFrameName];
+  TransformInfoMapType& toCoordFrame=this->CoordinateFrames[toCoordFrameName];
 
   // Check if the transform already exist
-  TransformListType::iterator fromToTransformInfoIt=fromCoordFrame.m_Transforms.find(toCoordFrameName);
-  if (fromToTransformInfoIt!=fromCoordFrame.m_Transforms.end())
+  TransformInfoMapType::iterator fromToTransformInfoIt=fromCoordFrame.find(toCoordFrameName);
+  if (fromToTransformInfoIt!=fromCoordFrame.end())
   {
     // transform is found
     return &(fromToTransformInfoIt->second);
@@ -169,24 +169,24 @@ PlusStatus vtkTransformCombiner::SetTransform(const char* fromCoordFrameName, co
   // The transform does not exist yet, add it now
   // :TODO: add circle check
   // Create the from->to transform
-  CoordinateFrameInfo& fromCoordFrame=this->CoordinateFrames[fromCoordFrameName];
-  fromCoordFrame.m_Transforms[toCoordFrameName].m_IsComputed=false;
+  TransformInfoMapType& fromCoordFrame=this->CoordinateFrames[fromCoordFrameName];
+  fromCoordFrame[toCoordFrameName].m_IsComputed=false;
   if (matrix!=NULL)
   {
-    fromCoordFrame.m_Transforms[toCoordFrameName].m_Transform->SetMatrix(matrix);
+    fromCoordFrame[toCoordFrameName].m_Transform->SetMatrix(matrix);
   }
   if (status!=KEEP_CURRENT_STATUS)
   {
-    fromCoordFrame.m_Transforms[toCoordFrameName].m_IsValid=(status==TRANSFORM_VALID);
+    fromCoordFrame[toCoordFrameName].m_IsValid=(status==TRANSFORM_VALID);
   }
   // Create the to->from inverse transform
-  CoordinateFrameInfo& toCoordFrame=this->CoordinateFrames[toCoordFrameName];
-  toCoordFrame.m_Transforms[fromCoordFrameName].m_IsComputed=true;
-  toCoordFrame.m_Transforms[fromCoordFrameName].m_Transform->SetInput(fromCoordFrame.m_Transforms[toCoordFrameName].m_Transform);
-  toCoordFrame.m_Transforms[fromCoordFrameName].m_Transform->Inverse();
+  TransformInfoMapType& toCoordFrame=this->CoordinateFrames[toCoordFrameName];
+  toCoordFrame[fromCoordFrameName].m_IsComputed=true;
+  toCoordFrame[fromCoordFrameName].m_Transform->SetInput(fromCoordFrame[toCoordFrameName].m_Transform);
+  toCoordFrame[fromCoordFrameName].m_Transform->Inverse();
   if (status!=KEEP_CURRENT_STATUS)
   {
-    toCoordFrame.m_Transforms[toCoordFrameName].m_IsValid=(status==TRANSFORM_VALID);
+    toCoordFrame[toCoordFrameName].m_IsValid=(status==TRANSFORM_VALID);
   }
   return PLUS_SUCCESS;
 }
@@ -270,8 +270,8 @@ PlusStatus vtkTransformCombiner::FindPath(const char* fromCoordFrameName, const 
     return PLUS_SUCCESS;
   }
   // not found, so try to find a path through all the connected coordinate frames
-  CoordinateFrameInfo& fromCoordFrame=this->CoordinateFrames[fromCoordFrameName];
-  for (TransformListType::iterator transformInfoIt=fromCoordFrame.m_Transforms.begin(); transformInfoIt!=fromCoordFrame.m_Transforms.end(); ++transformInfoIt)
+  TransformInfoMapType& fromCoordFrame=this->CoordinateFrames[fromCoordFrameName];
+  for (TransformInfoMapType::iterator transformInfoIt=fromCoordFrame.begin(); transformInfoIt!=fromCoordFrame.end(); ++transformInfoIt)
   {
     if (skipCoordFrameName!=NULL && transformInfoIt->first.compare(skipCoordFrameName)==0)
     {
