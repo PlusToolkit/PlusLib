@@ -25,10 +25,6 @@ The vtkTransformCombiner stores a number of transforms between coordinate frames
 it can multiply these transforms (or the inverse of these transforms) to
 compute the transform between any two coordinate frames.
 
-Only one transformation path shall be possible between any two coordinate frames.
-If this rule is violated then GetTransform may return unpredictable results or may hang.
-It could be an enhancement to automatically detect circular references when adding a transform.
-
 \ingroup PlusLibCommon
 */
 class VTK_EXPORT vtkTransformCombiner : public vtkObject

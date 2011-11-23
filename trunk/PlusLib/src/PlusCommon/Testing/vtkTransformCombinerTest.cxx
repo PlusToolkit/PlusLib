@@ -194,6 +194,15 @@ int main(int argc, char **argv)
     return EXIT_FAILURE;
   }
 
+  /////////////////////////////////////////////////////////////////////////////
+  // Check circle detection
+  vtkSmartPointer<vtkMatrix4x4> mxProbeToPhantom=vtkSmartPointer<vtkMatrix4x4>::New();    
+  if (transformCombiner->SetTransform("Probe", "Phantom", mxProbeToPhantom)==PLUS_SUCCESS)
+  {
+    LOG_ERROR("Circular reference between transforms is not detected");
+    return EXIT_FAILURE;
+  }
+
   LOG_INFO("Test successfully completed");
 	return EXIT_SUCCESS; 
  }

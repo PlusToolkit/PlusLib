@@ -167,7 +167,16 @@ PlusStatus vtkTransformCombiner::SetTransform(const char* fromCoordFrameName, co
     return PLUS_SUCCESS;
   }
   // The transform does not exist yet, add it now
-  // :TODO: add circle check
+
+  TransformInfoListType transformInfoList;
+  if (FindPath(fromCoordFrameName, toCoordFrameName, transformInfoList, NULL, true /*silent*/)==PLUS_SUCCESS)
+  {
+    // a path already exist between the two coordinate frames
+    // adding a new transform between these would result in a circle
+    LOG_ERROR("A transform path already exists between "<<fromCoordFrameName<<" and "<<toCoordFrameName);
+    return PLUS_FAIL;
+  }
+
   // Create the from->to transform
   TransformInfoMapType& fromCoordFrame=this->CoordinateFrames[fromCoordFrameName];
   fromCoordFrame[toCoordFrameName].m_IsComputed=false;
