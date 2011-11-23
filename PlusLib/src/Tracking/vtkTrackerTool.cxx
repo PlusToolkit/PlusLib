@@ -36,14 +36,16 @@ vtkTrackerTool::vtkTrackerTool()
 	this->LED2 = 0;
 	this->LED3 = 0;
 
+  this->ToolName = NULL;
+  this->PortName = NULL;
+
 	this->ToolRevision = 0;
 	this->ToolSerialNumber = 0;
 	this->ToolPartNumber = 0;
 	this->ToolManufacturer = 0;
-	this->ToolName = 0;
+	
 	this->ToolModel = 0;
 	this->Tool3DModelFileName = 0;
-	this->ToolPort = 0;
 
 	this->CalibrationMatrixName = 0; 
 	this->CalibrationDate = 0; 
@@ -53,16 +55,13 @@ vtkTrackerTool::vtkTrackerTool()
 
 	this->ModelToToolTransform = vtkTransform::New();
 	this->ModelToToolTransform->Identity();
-	this->SetToolName("");
 	this->SetTool3DModelFileName("");
 	this->SetToolModel("");
 	this->SetCalibrationDate("");
 
 	this->Buffer = vtkTrackerBuffer::New();
 	this->Buffer->SetToolCalibrationMatrix(this->CalibrationMatrix);
-	
-  this->PortName = NULL;
-
+	  
 	this->FrameNumber = 0;
 }
 
@@ -70,6 +69,18 @@ vtkTrackerTool::vtkTrackerTool()
 vtkTrackerTool::~vtkTrackerTool()
 {
 	this->CalibrationMatrix->Delete();
+  
+  if ( this->ToolName != NULL )
+  {
+    delete [] this->ToolName; 
+    this->ToolName = NULL; 
+  }
+
+  if ( this->PortName != NULL )
+  {
+    delete [] this->PortName; 
+    this->PortName = NULL; 
+  }
 
   this->SetPortName(NULL); 
 
@@ -94,7 +105,8 @@ void vtkTrackerTool::PrintSelf(ostream& os, vtkIndent indent)
 	vtkObject::PrintSelf(os,indent);
 
 	os << indent << "Tracker: " << this->Tracker << "\n";
-	os << indent << "ToolPort: " << this->ToolPort << "\n";
+  os << indent << "ToolName: " << this->GetToolName() << "\n";
+	os << indent << "PortName: " << this->GetPortName() << "\n";
 	os << indent << "LED1: " << this->GetLED1() << "\n"; 
 	os << indent << "LED2: " << this->GetLED2() << "\n"; 
 	os << indent << "LED3: " << this->GetLED3() << "\n";
@@ -112,21 +124,79 @@ void vtkTrackerTool::PrintSelf(ostream& os, vtkIndent indent)
 }
 
 //----------------------------------------------------------------------------
+PlusStatus vtkTrackerTool::SetToolName(const char* toolName)
+{
+  if ( this->ToolName == NULL && toolName == NULL) 
+  { 
+    return PLUS_SUCCESS;
+  } 
+
+  if ( this->ToolName && toolName && ( STRCASECMP(this->ToolName, toolName) == 0 ) ) 
+  { 
+    return PLUS_SUCCESS;
+  } 
+
+  if ( this->ToolName != NULL )
+  {
+    LOG_ERROR("Tool name change is not allowed for tool '" << this->ToolName << "'" ); 
+    return PLUS_FAIL; 
+  }
+
+  // Copy string 
+  size_t n = strlen(toolName) + 1; 
+  char *cp1 =  new char[n]; 
+  const char *cp2 = (toolName); 
+  this->ToolName = cp1;
+  do { *cp1++ = *cp2++; } while ( --n ); 
+
+  return PLUS_SUCCESS; 
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkTrackerTool::SetPortName(const char* portName)
+{
+  if ( this->PortName == NULL && portName == NULL) 
+  { 
+    return PLUS_SUCCESS;
+  } 
+
+  if ( this->PortName && portName && ( STRCASECMP(this->PortName, portName) == 0 ) ) 
+  { 
+    return PLUS_SUCCESS;
+  } 
+
+  if ( this->PortName != NULL )
+  {
+    LOG_ERROR("Port name change is not allowed on tool port'" << this->PortName << "'" ); 
+    return PLUS_FAIL; 
+  }
+
+  // Copy string 
+  size_t n = strlen(portName) + 1; 
+  char *cp1 =  new char[n]; 
+  const char *cp2 = (portName); 
+  this->PortName = cp1;
+  do { *cp1++ = *cp2++; } while ( --n ); 
+
+  return PLUS_SUCCESS; 
+}
+
+//----------------------------------------------------------------------------
 void vtkTrackerTool::SetLED1(int state)
 {
-	this->Tracker->SetToolLED(this->ToolPort,1,state);
+	this->Tracker->SetToolLED(this->PortName,1,state);
 }
 
 //----------------------------------------------------------------------------
 void vtkTrackerTool::SetLED2(int state)
 {
-	this->Tracker->SetToolLED(this->ToolPort,2,state);
+	this->Tracker->SetToolLED(this->PortName,2,state);
 }
 
 //----------------------------------------------------------------------------
 void vtkTrackerTool::SetLED3(int state)
 {
-	this->Tracker->SetToolLED(this->ToolPort,3,state);
+	this->Tracker->SetToolLED(this->PortName,3,state);
 }
 
 //----------------------------------------------------------------------------
@@ -211,6 +281,17 @@ PlusStatus vtkTrackerTool::ReadConfiguration(vtkXMLDataElement* config)
 	else
 	{
 		LOG_ERROR("Unable to find tool name! Name attribute is mandatory in tool definition."); 
+		return PLUS_FAIL; 
+	}
+
+  const char* portName = config->GetAttribute("PortName"); 
+	if ( portName != NULL ) 
+	{
+		this->SetPortName(portName); 
+	}
+	else
+	{
+		LOG_ERROR("Unable to find PortName! This attribute is mandatory in tool definition."); 
 		return PLUS_FAIL; 
 	}
 

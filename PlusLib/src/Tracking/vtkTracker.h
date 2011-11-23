@@ -139,7 +139,7 @@ public:
   void Beep(int n);
 
   /*! Turn one of the LEDs on the specified tool on or off.  This is supported by the POLARIS. */
-  void SetToolLED(int tool, int led, int state);
+  void SetToolLED(const char* portName, int led, int state);
 
   /*! 
   The subclass will do all the hardware-specific update stuff
@@ -222,7 +222,7 @@ protected:
   virtual PlusStatus InternalBeep(int n) { return PLUS_SUCCESS; };
 
   /*! This method should be overridden for devices that have one or more LEDs on the tracked tools. */
-  virtual PlusStatus InternalSetToolLED(int tool, int led, int state) { return PLUS_SUCCESS; };
+  virtual PlusStatus InternalSetToolLED(const char* portName, int led, int state) { return PLUS_SUCCESS; };
 
 protected:
   /*! Transformation matrix between tracking-system coordinates and the desired world coordinate system */
