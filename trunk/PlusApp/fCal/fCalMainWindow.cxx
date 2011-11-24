@@ -329,8 +329,10 @@ void fCalMainWindow::ResetAllToolboxes()
 
   m_ToolVisualizer->HideAll();
 
-  for (std::vector<AbstractToolbox*>::iterator it = m_ToolboxList.begin(); it != m_ToolboxList.end(); ++it) {
-    if ( (*it) != NULL ) {
+  for (std::vector<AbstractToolbox*>::iterator it = m_ToolboxList.begin(); it != m_ToolboxList.end(); ++it)
+  {
+    if ( ((*it) != NULL) && ((*it)->GetState() > ToolboxState_Idle) )
+    {
       (*it)->Reset();
     }
   }

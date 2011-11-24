@@ -465,7 +465,7 @@ void vtkToolVisualizer::SetPhantomToPhantomReferenceTransform(vtkTransform* aTra
 {
 	LOG_TRACE("vtkToolVisualizer::SetPhantomToPhantomReferenceTransform");
 
-  if (this->DisplayableTools.find("Reference") == this->DisplayableTools.end())
+  if (this->DisplayableTools.find(this->ReferenceToolName) == this->DisplayableTools.end())
   {
     LOG_ERROR("Missing reference displayable tool!");
     return;
@@ -724,7 +724,7 @@ PlusStatus vtkToolVisualizer::DisplayDevices()
 		  toolModelToPhantomReferenceTransform->Identity();
 		  toolModelToPhantomReferenceTransform->Concatenate(toolToReferenceTransformMatrix);
 
-      if (toolName.compare(this->ProbeToolName) == 0)
+      if (toolName.compare(this->ProbeToolName) != 0)
       {
         toolModelToPhantomReferenceTransform->Concatenate(tool->GetTool()->GetCalibrationMatrix());
       }

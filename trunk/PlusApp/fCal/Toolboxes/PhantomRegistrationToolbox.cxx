@@ -114,16 +114,16 @@ void PhantomRegistrationToolbox::Initialize()
   {
     m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->SetTrackingOnly(true);
 
-    // Determine if there is already a stylus calibration present (either in the tool if it was just performed or in the configuration data)
-    StylusCalibrationToolbox* stylusCalibrationToolbox = dynamic_cast<StylusCalibrationToolbox*>(m_ParentMainWindow->GetToolbox(ToolboxType_StylusCalibration));
-    if ((stylusCalibrationToolbox == NULL) || (stylusCalibrationToolbox->GetPivotCalibrationAlgo() == NULL))
+    // Load stylus tool name
+    if (ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS)
     {
-      LOG_ERROR("Stylus calibration toolbox not found!");
+      LOG_ERROR("Stylus tool name cannot be loaded from device set configuration data!");
       return;
     }
 
-    vtkSmartPointer<vtkMatrix4x4> toolTipToStylusCalibrationMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-    if ( vtkPlusConfig::ReadTransformToCoordinateDefinition("ToolTip", m_StylusToolName.c_str(), toolTipToStylusCalibrationMatrix) != PLUS_SUCCESS )
+    // Determine if there is already a stylus calibration present
+    vtkSmartPointer<vtkMatrix4x4> stylusTipToStylusCalibrationMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+    if ( vtkPlusConfig::ReadTransformToCoordinateDefinition("ToolTip", m_StylusToolName.c_str(), stylusTipToStylusCalibrationMatrix) != PLUS_SUCCESS )
     {
       // Set calibration matrix to stylus tool for the upcoming acquisition
       vtkDisplayableTool* stylusDisplayable = NULL;
@@ -133,8 +133,8 @@ void PhantomRegistrationToolbox::Initialize()
         return;
       }
 
-      stylusDisplayable->GetTool()->SetCalibrationMatrix(toolTipToStylusCalibrationMatrix);
-      stylusDisplayable->GetTool()->GetBuffer()->SetToolCalibrationMatrix(toolTipToStylusCalibrationMatrix); // TODO This is not good that we have to set a matrix to two classes. It should be stored in one member variable only
+      stylusDisplayable->GetTool()->SetCalibrationMatrix(stylusTipToStylusCalibrationMatrix);
+      stylusDisplayable->GetTool()->GetBuffer()->SetToolCalibrationMatrix(stylusTipToStylusCalibrationMatrix); // TODO This is not good that we have to set a matrix to two classes. It should be stored in one member variable only
 
       // Set to InProgress if both stylus calibration and phantom definition are available
       Start();
@@ -412,23 +412,17 @@ PlusStatus PhantomRegistrationToolbox::Start()
 {
 	LOG_TRACE("PhantomRegistrationToolbox::Start"); 
 
-	// Load phantom definition
+  // Load phantom geometry
   if (m_PhantomRegistration->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS)
   {
-    LOG_ERROR("Phantom definition cannot be loaded from device set configuration data!");
+    LOG_ERROR("Phantom geometry cannot be loaded from device set configuration data!");
     return PLUS_FAIL;
   }
 
+  // Check number of landmarks
   if (m_PhantomRegistration->GetDefinedLandmarks()->GetNumberOfPoints() < 4)
   {
     LOG_ERROR("Not enough (" << m_PhantomRegistration->GetDefinedLandmarks()->GetNumberOfPoints() << ") defined landmarks (should be at least 4)!");
-    return PLUS_FAIL;
-  }
-
-  StylusCalibrationToolbox* stylusCalibrationToolbox = dynamic_cast<StylusCalibrationToolbox*>(m_ParentMainWindow->GetToolbox(ToolboxType_StylusCalibration));
-  if ((stylusCalibrationToolbox == NULL) || (stylusCalibrationToolbox->GetPivotCalibrationAlgo() == NULL))
-  {
-    LOG_ERROR("Stylus calibration toolbox not found!");
     return PLUS_FAIL;
   }
 
@@ -439,8 +433,8 @@ PlusStatus PhantomRegistrationToolbox::Start()
     return PLUS_FAIL;
   }
 
-  vtkPivotCalibrationAlgo* pivotCalibration = stylusCalibrationToolbox->GetPivotCalibrationAlgo();
-  if (pivotCalibration->GetTooltipToToolTransform() != NULL)
+  vtkSmartPointer<vtkMatrix4x4> stylusTipToStylusCalibrationMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+  if ( vtkPlusConfig::ReadTransformToCoordinateDefinition( "ToolTip", m_StylusToolName.c_str(), stylusTipToStylusCalibrationMatrix) == PLUS_SUCCESS )
   {
 	  m_CurrentLandmarkIndex = 0;
 
@@ -467,25 +461,29 @@ void PhantomRegistrationToolbox::OpenStylusCalibration()
 	// File open dialog for selecting phantom definition xml
 	QString filter = QString( tr( "XML files ( *.xml );;" ) );
 	QString fileName = QFileDialog::getOpenFileName(NULL, QString( tr( "Open stylus calibration XML" ) ), vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationDirectory(), filter);
-	if (fileName.isNull()) {
+	if (fileName.isNull())
+  {
 		return;
 	}
 
-  StylusCalibrationToolbox* stylusCalibrationToolbox = dynamic_cast<StylusCalibrationToolbox*>(m_ParentMainWindow->GetToolbox(ToolboxType_StylusCalibration));
-  if ((stylusCalibrationToolbox == NULL) || (stylusCalibrationToolbox->GetPivotCalibrationAlgo() == NULL))
-  {
-    LOG_ERROR("Stylus calibration toolbox not found!");
+  // Parse XML file
+  vtkSmartPointer<vtkXMLDataElement> rootElement = vtkSmartPointer<vtkXMLDataElement>::Take(vtkXMLUtilities::ReadElementFromFile(fileName.toAscii().data()));
+  if (rootElement == NULL)
+  {	
+    LOG_ERROR("Unable to read the configuration file: " << fileName.toAscii().data()); 
     return;
   }
 
-  vtkPivotCalibrationAlgo* pivotCalibration = stylusCalibrationToolbox->GetPivotCalibrationAlgo();
+  // Read stylus calibration matrix
+  vtkSmartPointer<vtkMatrix4x4> stylusTipToStylusCalibrationMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+  if ( vtkPlusConfig::ReadTransformToCoordinateDefinition(rootElement, "ToolTip", m_StylusToolName.c_str(), stylusTipToStylusCalibrationMatrix) == PLUS_SUCCESS )
+  {
+    // Replace CoordinateDefinitions element with the one in the just read file // TODO not the whole element just the right one (revise all import functions like this)
+    vtkPlusConfig::ReplaceElementInDeviceSetConfiguration("CoordinateDefinitions", rootElement);
 
-  // TODO: Check this out since the vtkPivotCalibrationAlgo::ReadConfiguration not exists anymore
-  //if (pivotCalibration->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData(), m_StylusToolName.c_str()) == PLUS_SUCCESS) //TODO
-  //{
 	  // Set to InProgress if both stylus calibration and phantom definition are available
     Start();
-  //}
+  }
 }
 
 //-----------------------------------------------------------------------------
