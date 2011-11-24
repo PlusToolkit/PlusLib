@@ -11,7 +11,7 @@
 
 #include "vtkObject.h"
 #include "vtkXMLDataElement.h"
-
+class vtkMatrix4x4; 
 //-----------------------------------------------------------------------------
 
 /*!
@@ -50,7 +50,35 @@ public:
 	 */
   std::string GetNewDeviceSetConfigurationFileName();
 
-	/*!
+  /*! Write coordinate frame definition transfoms to the configuration file (if already exists update the values)
+  \param aFromCoordinateFrame Name of the 'from' coordinate frame used to define the transformation 
+  \param aToCoordinateFrame Name of the 'to' coordinate frame used to define the transformation 
+  \param aMatrix Matrix value of the FromFrameToFrame transformation  
+  \param aError Error value of the computed transform (if -1, we don't write it)
+  \param aDate Date in string format (if NULL, we don't write it)
+  */
+  static PlusStatus WriteTransformToCoordinateDefinition(const char* aFromCoordinateFrame, const char* aToCoordinateFrame, vtkMatrix4x4* aMatrix, double aError=-1, const char* aDate=NULL); 
+
+  /*! Read coordinate frame definition transfoms from the actual configuration data in the memory /vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()/ 
+  \param aFromCoordinateFrame Input name of the 'from' coordinate frame used to define the transformation 
+  \param aToCoordinateFrame Input name of the 'to' coordinate frame used to define the transformation 
+  \param aMatrix Output matrix value of the FromFrameToFrame transformation  
+  \param aError Output error value of the computed transform (if NULL, we don't read it)
+  \param aDate Output date in string format (if NULL, we don't read it)
+  */
+  static PlusStatus ReadTransformToCoordinateDefinition(const char* aFromCoordinateFrame, const char* aToCoordinateFrame, vtkMatrix4x4* aMatrix, double* aError=NULL, std::string* aDate=NULL); 
+  
+  /*! Read coordinate frame definition transfoms from specified configuration xml data 
+  \param aDeviceSetConfigRootElement Device set configuration root element 
+  \param aFromCoordinateFrame Input name of the 'from' coordinate frame used to define the transformation 
+  \param aToCoordinateFrame Input name of the 'to' coordinate frame used to define the transformation 
+  \param aMatrix Output matrix value of the FromFrameToFrame transformation  
+  \param aError Output error value of the computed transform (if NULL, we don't read it)
+  \param aDate Output date in string format (if NULL, we don't read it)
+  */
+  static PlusStatus ReadTransformToCoordinateDefinition(vtkXMLDataElement* aDeviceSetConfigRootElement, const char* aFromCoordinateFrame, const char* aToCoordinateFrame, vtkMatrix4x4* aMatrix, double* aError=NULL, std::string* aDate=NULL); 
+
+  /*!
 	 * Replaces an element with a name on the level under the top level in device set configuration with the element in the parameter root XML data element
    * \param Element name to replace
    * \param Root element containing the element to replace with
