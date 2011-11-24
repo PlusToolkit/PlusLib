@@ -122,10 +122,8 @@ void PhantomRegistrationToolbox::Initialize()
       return;
     }
 
-    vtkPivotCalibrationAlgo* pivotCalibration = stylusCalibrationToolbox->GetPivotCalibrationAlgo();
-
-    if ( (stylusCalibrationToolbox->GetState() == ToolboxState_Done)
-      || (pivotCalibration->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData(), m_StylusToolName.c_str()) == PLUS_SUCCESS) )
+    vtkSmartPointer<vtkMatrix4x4> toolTipToStylusCalibrationMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+    if ( vtkPlusConfig::ReadTransformToCoordinateDefinition("ToolTip", m_StylusToolName.c_str(), toolTipToStylusCalibrationMatrix) != PLUS_SUCCESS )
     {
       // Set calibration matrix to stylus tool for the upcoming acquisition
       vtkDisplayableTool* stylusDisplayable = NULL;
@@ -135,10 +133,8 @@ void PhantomRegistrationToolbox::Initialize()
         return;
       }
 
-      vtkSmartPointer<vtkMatrix4x4> calibrationMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-      calibrationMatrix->DeepCopy(pivotCalibration->GetTooltipToToolTransform()->GetMatrix());
-      stylusDisplayable->GetTool()->SetCalibrationMatrix(calibrationMatrix);
-      stylusDisplayable->GetTool()->GetBuffer()->SetToolCalibrationMatrix(calibrationMatrix); // TODO This is not good that we have to set a matrix to two classes. It should be stored in one member variable only
+      stylusDisplayable->GetTool()->SetCalibrationMatrix(toolTipToStylusCalibrationMatrix);
+      stylusDisplayable->GetTool()->GetBuffer()->SetToolCalibrationMatrix(toolTipToStylusCalibrationMatrix); // TODO This is not good that we have to set a matrix to two classes. It should be stored in one member variable only
 
       // Set to InProgress if both stylus calibration and phantom definition are available
       Start();
@@ -484,11 +480,12 @@ void PhantomRegistrationToolbox::OpenStylusCalibration()
 
   vtkPivotCalibrationAlgo* pivotCalibration = stylusCalibrationToolbox->GetPivotCalibrationAlgo();
 
-  if (pivotCalibration->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData(), m_StylusToolName.c_str()) == PLUS_SUCCESS) //TODO
-  {
+  // TODO: Check this out since the vtkPivotCalibrationAlgo::ReadConfiguration not exists anymore
+  //if (pivotCalibration->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData(), m_StylusToolName.c_str()) == PLUS_SUCCESS) //TODO
+  //{
 	  // Set to InProgress if both stylus calibration and phantom definition are available
     Start();
-  }
+  //}
 }
 
 //-----------------------------------------------------------------------------

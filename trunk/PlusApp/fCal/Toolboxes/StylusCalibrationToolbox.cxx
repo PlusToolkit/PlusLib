@@ -359,7 +359,8 @@ void StylusCalibrationToolbox::Stop()
     points->Modified();
 
     // Write result in configuration
-    if (m_PivotCalibration->WriteConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData(), m_StylusToolName.c_str()) != PLUS_SUCCESS) //TODO
+    if ( vtkPlusConfig::WriteTransformToCoordinateDefinition("ToolTip", m_StylusToolName.c_str(), m_PivotCalibration->GetTooltipToToolTransform()->GetMatrix(), 
+      m_PivotCalibration->GetCalibrationError()/*, vtksys::SystemTools::GetCurrentDateTime("%Y.%m.%d %X").c_str()*/) != PLUS_SUCCESS )
     {
       LOG_ERROR("Unable to save stylus calibration result in configuration XML tree!");
       SetState(ToolboxState_Error);
