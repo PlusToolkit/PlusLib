@@ -4,8 +4,8 @@ Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/
 
-#ifndef __vtkTransformCombiner_h
-#define __vtkTransformCombiner_h
+#ifndef __vtkTransformRepository_h
+#define __vtkTransformRepository_h
 
 #include "PlusConfigure.h"
 
@@ -18,28 +18,28 @@ class vtkMatrix4x4;
 class vtkTransform;
 
 /*!
-\class vtkTransformCombiner 
+\class vtkTransformRepository 
 \brief Combine multiple transforms to get a transform between arbitrary coordinate frames
 
-The vtkTransformCombiner stores a number of transforms between coordinate frames and
+The vtkTransformRepository stores a number of transforms between coordinate frames and
 it can multiply these transforms (or the inverse of these transforms) to
 compute the transform between any two coordinate frames.
 
 Example usage:
-  transformCombiner->SetTransform("Probe", "Tracker", mxProbeToTracker);
-  transformCombiner->SetTransform("Image", "Probe", mxImageToProbe);
+  transformRepository->SetTransform("Probe", "Tracker", mxProbeToTracker);
+  transformRepository->SetTransform("Image", "Probe", mxImageToProbe);
   ...
   vtkSmartPointer<vtkMatrix4x4> mxImageToTracker=vtkSmartPointer<vtkMatrix4x4>::New();
-  vtkTransformCombiner::TransformStatus status=vtkTransformCombiner::TRANSFORM_INVALID;
-  transformCombiner->GetTransform("Image", "Tracker", mxImageToTracker, &status);
+  vtkTransformRepository::TransformStatus status=vtkTransformRepository::TRANSFORM_INVALID;
+  transformRepository->GetTransform("Image", "Tracker", mxImageToTracker, &status);
 
 \ingroup PlusLibCommon
 */
-class VTK_EXPORT vtkTransformCombiner : public vtkObject
+class VTK_EXPORT vtkTransformRepository : public vtkObject
 {
 public:
-  static vtkTransformCombiner *New();
-  vtkTypeMacro(vtkTransformCombiner,vtkObject);
+  static vtkTransformRepository *New();
+  vtkTypeMacro(vtkTransformRepository,vtkObject);
   void PrintSelf(ostream& os, vtkIndent indent);
 
   enum TransformStatus
@@ -78,8 +78,8 @@ public:
   virtual PlusStatus GetTransformStatus(const char* fromCoordFrameName, const char* toCoordFrameName, TransformStatus &status);
 
 protected:
-  vtkTransformCombiner();
-  ~vtkTransformCombiner();  
+  vtkTransformRepository();
+  ~vtkTransformRepository();  
 
   /*! Stores a transformation matrix and some additional information (valid or not, computed or not)*/ 
   class TransformInfo
@@ -125,8 +125,8 @@ protected:
   CoordFrameToCoordFrameToTransformMapType CoordinateFrames;
 
 private:
-  vtkTransformCombiner(const vtkTransformCombiner&);
-  void operator=(const vtkTransformCombiner&);  
+  vtkTransformRepository(const vtkTransformRepository&);
+  void operator=(const vtkTransformRepository&);  
 };
 
 #endif
