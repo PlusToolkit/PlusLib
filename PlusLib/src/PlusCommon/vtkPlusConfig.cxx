@@ -439,6 +439,8 @@ PlusStatus vtkPlusConfig::SaveApplicationConfigurationToFile()
 // static
 PlusStatus vtkPlusConfig::WriteTransformToCoordinateDefinition(const char* aFromCoordinateFrame, const char* aToCoordinateFrame, vtkMatrix4x4* aMatrix, double aError/*=-1*/, const char* aDate/*=NULL*/)
 {
+  LOG_TRACE("vtkPlusConfig::WriteTransformToCoordinateDefinition(" << aFromCoordinateFrame << ", " << aToCoordinateFrame << ")");
+
   if ( aFromCoordinateFrame == NULL )
   {
     LOG_ERROR("Failed to write transform to CoordinateDefinitions - 'From' coordinate frame name is NULL"); 
@@ -513,6 +515,10 @@ PlusStatus vtkPlusConfig::WriteTransformToCoordinateDefinition(const char* aFrom
   {
     transformElement->SetAttribute("Date", aDate); 
   }
+  else // Add current date if it was not explicitly specified
+  {
+    transformElement->SetAttribute("Date", vtksys::SystemTools::GetCurrentDateTime("%Y.%m.%d %X").c_str() );
+  }
 
   return PLUS_SUCCESS; 
 }
@@ -522,6 +528,8 @@ PlusStatus vtkPlusConfig::WriteTransformToCoordinateDefinition(const char* aFrom
 // static
 PlusStatus vtkPlusConfig::ReadTransformToCoordinateDefinition(const char* aFromCoordinateFrame, const char* aToCoordinateFrame, vtkMatrix4x4* aMatrix, double* aError/*=NULL*/, std::string* aDate/*=NULL*/)
 {
+  LOG_TRACE("vtkPlusConfig::ReadTransformToCoordinateDefinition(" << aFromCoordinateFrame << ", " << aToCoordinateFrame << ")");
+
   vtkXMLDataElement* configRootElement = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData(); 
   return vtkPlusConfig::GetInstance()->ReadTransformToCoordinateDefinition(configRootElement, aFromCoordinateFrame, aToCoordinateFrame, aMatrix, aError, aDate); 
 }
@@ -531,6 +539,8 @@ PlusStatus vtkPlusConfig::ReadTransformToCoordinateDefinition(const char* aFromC
 // static
 PlusStatus vtkPlusConfig::ReadTransformToCoordinateDefinition(vtkXMLDataElement* aDeviceSetConfigRootElement, const char* aFromCoordinateFrame, const char* aToCoordinateFrame, vtkMatrix4x4* aMatrix, double* aError/*=NULL*/, std::string* aDate/*=NULL*/)
 {
+  LOG_TRACE("vtkPlusConfig::ReadTransformToCoordinateDefinition(" << aFromCoordinateFrame << ", " << aToCoordinateFrame << ")");
+
   if ( aDeviceSetConfigRootElement == NULL )
   {
     LOG_ERROR("Failed read transform from CoordinateDefinitions - config root element is NULL"); 
