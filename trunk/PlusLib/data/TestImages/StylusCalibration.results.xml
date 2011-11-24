@@ -25,17 +25,6 @@
 						0 0 1 0
 						0 0 0 1"
 				/>
-				
-				<!-- Calibration transform -->
-				<Calibration
-					MatrixName="StylusTipToStylus"
-					MatrixValue="
-						1 0 0 210.0474
-						0 1 0 -0.0521
-						0 0 1 -0.0000
-						0 0 0 1"
-					Date="2011.07.29 17:22:12"
-					Error="0.561812" />
 			</Tool>
 		</Tracker>
 
@@ -56,4 +45,9 @@
 				/>
 	</USDataCollection>
 
+  <CoordinateDefinitions>
+    <Transform From="ToolTip" To="Stylus" Matrix="1 0 0 210.0474 0 1 0 -0.0521 0 0 1 -0.0000 0 0 0 1" Error="0.561812" Date="2011.07.29 17:22:12"/>      
+  </CoordinateDefinitions>
+
+  
 </PlusConfiguration>

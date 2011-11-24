@@ -49,22 +49,6 @@ public:
 	*/
 	std::string GetTooltipToToolTranslationString();
 
-	/*!
-	  Read tool calibration matrix from XML data element
-	  \param aConfig Root XML data element containing the tool calibration
-	  \param aCalibrationTransformName Name of the XML data element containing the calibration transform 
-	  \return Success flag
-	*/
-	PlusStatus ReadConfiguration(vtkXMLDataElement* aConfig, const char * aCalibrationTransformName);
-
-  /*!
-	  Save result to XML data element
-	  \param aConfig Root XML data element containing the tool calibration
-	  \param aCalibrationTransformName Name of the XML data element containing the calibration transform 
-	  \return Success flag
-	*/
-	PlusStatus WriteConfiguration(vtkXMLDataElement* aConfig, const char * aCalibrationTransformName);
-
 public:
 
 	vtkGetMacro(CalibrationError, double);

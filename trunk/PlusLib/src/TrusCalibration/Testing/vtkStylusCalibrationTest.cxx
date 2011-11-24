@@ -21,14 +21,16 @@
 #include "vtksys/SystemTools.hxx"
 #include "vtkMatrix4x4.h"
 #include "vtkTransform.h"
+#include "PlusMath.h"
 
 #include <stdlib.h>
 #include <iostream>
 
 ///////////////////////////////////////////////////////////////////
-const double ERROR_THRESHOLD = 0.05; // error threshold is 5% 
+const double TRANSLATION_ERROR_THRESHOLD = 0.5; // error threshold is 0.5mm
+const double ROTATION_ERROR_THRESHOLD = 0.5; // error threshold is 0.5deg
 
-int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const char* currentResultFileName); 
+int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const char* currentResultFileName, const char* stylusToolName); 
 
 int main (int argc, char* argv[])
 { 
@@ -74,6 +76,8 @@ int main (int argc, char* argv[])
     LOG_ERROR("Unable to read configuration from file " << inputConfigFileName.c_str()); 
 		exit(EXIT_FAILURE);
   }
+
+  vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationData(configRootElement); 
 
   // Initialize data collection
 	vtkSmartPointer<vtkDataCollector> dataCollector = vtkSmartPointer<vtkDataCollector>::New(); 
@@ -135,14 +139,19 @@ int main (int argc, char* argv[])
   }
 
 	// Save result
-  std::string pivotCalibrationTransformName = inputStylusToolName + std::string("ToToolTip"); 
-	pivotCalibration->WriteConfiguration(configRootElement, pivotCalibrationTransformName.c_str());
+  if ( vtkPlusConfig::WriteTransformToCoordinateDefinition("ToolTip", inputStylusToolName.c_str(), pivotCalibration->GetTooltipToToolTransform()->GetMatrix(), 
+    pivotCalibration->GetCalibrationError(), vtksys::SystemTools::GetCurrentDateTime("%Y.%m.%d %X").c_str()) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to write pivot calibration result to config file!");
+		exit(EXIT_FAILURE);
+  }
+
   vtkstd::string calibrationResultFileName = "StylusCalibrationTest.xml";
 	vtksys::SystemTools::RemoveFile(calibrationResultFileName.c_str());
   configRootElement->PrintXML(calibrationResultFileName.c_str());
 
   // Compare to baseline
-	if ( CompareCalibrationResultsWithBaseline( inputBaselineFileName.c_str(), calibrationResultFileName.c_str() ) !=0 )
+	if ( CompareCalibrationResultsWithBaseline( inputBaselineFileName.c_str(), calibrationResultFileName.c_str(), inputStylusToolName.c_str() ) !=0 )
 	{
 		LOG_ERROR("Comparison of calibration data to baseline failed");
 		std::cout << "Exit failure!!!" << std::endl;
@@ -156,78 +165,59 @@ int main (int argc, char* argv[])
 //-----------------------------------------------------------------------------
 
 // return the number of differences
-int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const char* currentResultFileName)
+int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const char* currentResultFileName, const char* stylusToolName )
 {
 	int numberOfFailures=0;
 
-	double* transformCurrent = new double[16]; 
-	double* transformBaseline = new double[16];
-	for (int i=0; i<16; ++i) {
-		transformCurrent[i] = 0.0;
-		transformBaseline[i] = 0.0;
-	}
-
-	// Load current stylus calibration
+  // Load current stylus calibration
   vtkSmartPointer<vtkXMLDataElement> currentRootElem = vtkSmartPointer<vtkXMLDataElement>::Take(
     vtkXMLUtilities::ReadElementFromFile(currentResultFileName));
-	if (currentRootElem == NULL) {	
+	if (currentRootElem == NULL) 
+  {	
 		LOG_ERROR("Unable to read the current configuration file: " << currentResultFileName); 
 		return ++numberOfFailures;
 	}
-	vtkXMLDataElement* stylusDefinitionCurrent = vtkPlusConfig::LookupElementWithNameContainingChildWithNameAndAttribute(currentRootElem, "Tracker", "Tool", "Type", "Stylus");
-	if (stylusDefinitionCurrent == NULL) {
-		LOG_ERROR("No stylus definition is found in the test result XML tree!");
-		return ++numberOfFailures;
-	}
-	vtkXMLDataElement* calibrationCurrent = stylusDefinitionCurrent->FindNestedElementWithName("Calibration");
-	if (calibrationCurrent == NULL) {
-		LOG_ERROR("No calibration section is found in stylus definition in test result!");
-		return ++numberOfFailures;
-	} else {
-		calibrationCurrent->GetVectorAttribute("Transform", 16, transformCurrent);
-	}
+  
+  vtkSmartPointer<vtkMatrix4x4> transformCurrent = vtkSmartPointer<vtkMatrix4x4>::New(); 
+  double currentError(0); 
+  if ( vtkPlusConfig::ReadTransformToCoordinateDefinition(currentRootElem, "ToolTip", stylusToolName, transformCurrent, &currentError) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to read current pivot calibration result from configuration file!"); 
+    return ++numberOfFailures;
+  }
 
 	// Load baseline stylus calibration
   vtkSmartPointer<vtkXMLDataElement> baselineRootElem = vtkSmartPointer<vtkXMLDataElement>::Take(
     vtkXMLUtilities::ReadElementFromFile(baselineFileName));
-	if (baselineRootElem == NULL) {	
+	if (baselineRootElem == NULL) 
+  {	
 		LOG_ERROR("Unable to read the baseline configuration file: " << baselineFileName); 
 		return ++numberOfFailures;
 	}
-	vtkXMLDataElement* stylusDefinitionBaseline = vtkPlusConfig::LookupElementWithNameContainingChildWithNameAndAttribute(baselineRootElem, "Tracker", "Tool", "Type", "Stylus");
-	if (stylusDefinitionBaseline == NULL) {
-		LOG_ERROR("No stylus definition is found in the baseline XML tree!");
-		return ++numberOfFailures;
-	}
-	vtkXMLDataElement* calibrationBaseline = stylusDefinitionBaseline->FindNestedElementWithName("Calibration");
-	if (calibrationBaseline == NULL) {
-		LOG_ERROR("No calibration section is found in stylus definition in baseline!");
-		return ++numberOfFailures;
-	} else {
-		calibrationBaseline->GetVectorAttribute("Transform", 16, transformBaseline);
-	}
 
-	if (numberOfFailures > 0) {
-		delete[] transformCurrent;
-		delete[] transformBaseline;
+  vtkSmartPointer<vtkMatrix4x4> transformBaseline = vtkSmartPointer<vtkMatrix4x4>::New(); 
+  double baselineError(0); 
+  if ( vtkPlusConfig::ReadTransformToCoordinateDefinition(baselineRootElem, "ToolTip", stylusToolName, transformBaseline, &baselineError) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to read current pivot calibration result from configuration file!"); 
+    return ++numberOfFailures;
+  }
 
-		return numberOfFailures;
-	}
 
 	// Compare the transforms
-	for (int i=0; i<16; ++i) {
-		double ratio = 1.0 * transformCurrent[i] / transformBaseline[i];
-		double diff = fabs(transformCurrent[i] - transformBaseline[i]);
+  double posDiff = PlusMath::GetPositionDifference(transformCurrent, transformBaseline); 
+  double rotDiff = PlusMath::GetOrientationDifference(transformCurrent, transformBaseline); 
 
-		if ( (ratio > 1 + ERROR_THRESHOLD || ratio < 1 - ERROR_THRESHOLD) && (diff > 10.0 * ERROR_THRESHOLD) ) // error has to be greater than 5% and also greater than 0.5mm
-		{
-			LOG_ERROR("Transform element (" << i << ") mismatch: current=" << transformCurrent[i]<< ", baseline=" << transformBaseline[i]);
-			numberOfFailures++;
-		}
-	}
+  if ( posDiff > TRANSLATION_ERROR_THRESHOLD || rotDiff > ROTATION_ERROR_THRESHOLD )
+  {
+    std::ostringstream currentTransform; 
+    transformCurrent->PrintSelf(currentTransform, vtkIndent(0));
+    std::ostringstream baselineTransform; 
+    transformBaseline->PrintSelf(baselineTransform, vtkIndent(0));
 
-	delete[] transformCurrent;
-	delete[] transformBaseline;
+    LOG_ERROR("Transform mismatch: current=" << currentTransform.str() << ", baseline=" << baselineTransform.str() );
+	  numberOfFailures++;
+  }
 
 	return numberOfFailures;
 }

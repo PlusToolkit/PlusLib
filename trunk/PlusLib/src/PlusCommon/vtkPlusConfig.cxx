@@ -17,6 +17,7 @@
 #include "vtksys/SystemTools.hxx" 
 #include "vtkDirectory.h"
 #include "vtkXMLUtilities.h"
+#include "vtkMatrix4x4.h"
 
 //----------------------------------------------------------------------------
 class vtkPlusConfigCleanup
@@ -431,6 +432,196 @@ PlusStatus vtkPlusConfig::SaveApplicationConfigurationToFile()
   LOG_INFO("Application configuration file '" << this->ApplicationConfigurationFileName << "' saved");
 
   return PLUS_SUCCESS;
+}
+
+//-----------------------------------------------------------------------------
+
+// static
+PlusStatus vtkPlusConfig::WriteTransformToCoordinateDefinition(const char* aFromCoordinateFrame, const char* aToCoordinateFrame, vtkMatrix4x4* aMatrix, double aError/*=-1*/, const char* aDate/*=NULL*/)
+{
+  if ( aFromCoordinateFrame == NULL )
+  {
+    LOG_ERROR("Failed to write transform to CoordinateDefinitions - 'From' coordinate frame name is NULL"); 
+    return PLUS_FAIL; 
+  }
+
+  if ( aToCoordinateFrame == NULL )
+  {
+    LOG_ERROR("Failed to write transform to CoordinateDefinitions - 'To' coordinate frame name is NULL"); 
+    return PLUS_FAIL; 
+  }
+
+  if ( aMatrix == NULL )
+  {
+    LOG_ERROR("Failed to write transform to CoordinateDefinitions - matrix is NULL"); 
+    return PLUS_FAIL; 
+  }
+
+
+  vtkXMLDataElement* deviceSetConfigRootElement = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData();
+  if ( deviceSetConfigRootElement == NULL )
+  {
+    LOG_ERROR("Failed to write transform to CoordinateDefinitions - config root element is NULL"); 
+    return PLUS_FAIL; 
+  }
+
+  vtkSmartPointer<vtkXMLDataElement> coordinateDefinitions = deviceSetConfigRootElement->FindNestedElementWithName("CoordinateDefinitions");
+  if ( coordinateDefinitions == NULL )
+  {
+    coordinateDefinitions = vtkSmartPointer<vtkXMLDataElement>::New(); 
+    coordinateDefinitions->SetName("CoordinateDefinitions"); 
+    deviceSetConfigRootElement->AddNestedElement(coordinateDefinitions); 
+  }
+
+  // Check if we already have this entry in the config file 
+  vtkXMLDataElement* transformElement=NULL; 
+  int nestedElementIndex(0); 
+  while ( nestedElementIndex < coordinateDefinitions->GetNumberOfNestedElements() && transformElement == NULL )
+  {
+    vtkXMLDataElement* nestedElement = coordinateDefinitions->GetNestedElement(nestedElementIndex); 
+    const char* fromAttribute = nestedElement->GetAttribute("From"); 
+    const char* toAttribute = nestedElement->GetAttribute("To"); 
+
+    if ( fromAttribute && toAttribute 
+      && STRCASECMP(fromAttribute, aFromCoordinateFrame) == 0
+      && STRCASECMP(toAttribute, aToCoordinateFrame) == 0 )
+    {
+      transformElement = nestedElement; 
+    }
+  }
+
+  if ( transformElement == NULL )
+  {
+    vtkSmartPointer<vtkXMLDataElement> newElement=vtkSmartPointer<vtkXMLDataElement>::New();
+    newElement->SetName("Transform"); 
+    newElement->SetAttribute("From", aFromCoordinateFrame); 
+    newElement->SetAttribute("To", aToCoordinateFrame); 
+    coordinateDefinitions->AddNestedElement(newElement); 
+    transformElement=newElement;    
+  }
+
+  double vectorMatrix[16]={0}; 
+  vtkMatrix4x4::DeepCopy(vectorMatrix,aMatrix); 
+  transformElement->SetVectorAttribute("Matrix", 16, vectorMatrix); 
+
+  if ( aError > 0 ) 
+  {
+    transformElement->SetDoubleAttribute("Error", aError); 
+  }
+
+  if ( aDate != NULL )
+  {
+    transformElement->SetAttribute("Date", aDate); 
+  }
+
+  return PLUS_SUCCESS; 
+}
+
+//-----------------------------------------------------------------------------
+
+// static
+PlusStatus vtkPlusConfig::ReadTransformToCoordinateDefinition(const char* aFromCoordinateFrame, const char* aToCoordinateFrame, vtkMatrix4x4* aMatrix, double* aError/*=NULL*/, std::string* aDate/*=NULL*/)
+{
+  vtkXMLDataElement* configRootElement = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData(); 
+  return vtkPlusConfig::GetInstance()->ReadTransformToCoordinateDefinition(configRootElement, aFromCoordinateFrame, aToCoordinateFrame, aMatrix, aError, aDate); 
+}
+
+//-----------------------------------------------------------------------------
+
+// static
+PlusStatus vtkPlusConfig::ReadTransformToCoordinateDefinition(vtkXMLDataElement* aDeviceSetConfigRootElement, const char* aFromCoordinateFrame, const char* aToCoordinateFrame, vtkMatrix4x4* aMatrix, double* aError/*=NULL*/, std::string* aDate/*=NULL*/)
+{
+  if ( aDeviceSetConfigRootElement == NULL )
+  {
+    LOG_ERROR("Failed read transform from CoordinateDefinitions - config root element is NULL"); 
+    return PLUS_FAIL; 
+  }
+
+  if ( aFromCoordinateFrame == NULL )
+  {
+    LOG_ERROR("Failed to read transform from CoordinateDefinitions - 'From' coordinate frame name is NULL"); 
+    return PLUS_FAIL; 
+  }
+
+  if ( aToCoordinateFrame == NULL )
+  {
+    LOG_ERROR("Failed to read transform from CoordinateDefinitions - 'To' coordinate frame name is NULL"); 
+    return PLUS_FAIL; 
+  }
+
+  if ( aMatrix == NULL )
+  {
+    LOG_ERROR("Failed to read transform from CoordinateDefinitions - matrix is NULL"); 
+    return PLUS_FAIL; 
+  }
+
+  vtkXMLDataElement* coordinateDefinitions = aDeviceSetConfigRootElement->FindNestedElementWithName("CoordinateDefinitions");
+  if ( coordinateDefinitions == NULL )
+  {
+    LOG_ERROR("Failed read transform from CoordinateDefinitions - CoordinateDefinitions element not found"); 
+    return PLUS_FAIL;  
+  }
+
+  for ( int nestedElementIndex = 0; nestedElementIndex < coordinateDefinitions->GetNumberOfNestedElements(); ++nestedElementIndex )
+  {
+    vtkXMLDataElement* nestedElement = coordinateDefinitions->GetNestedElement(nestedElementIndex); 
+    if ( STRCASECMP(nestedElement->GetName(), "Transform" ) != 0 )
+    {
+      // Not a transform element, skip it
+      continue; 
+    }
+
+    const char* fromAttribute = nestedElement->GetAttribute("From"); 
+    const char* toAttribute = nestedElement->GetAttribute("To"); 
+
+    if ( fromAttribute && toAttribute 
+      && STRCASECMP(fromAttribute, aFromCoordinateFrame) == 0
+      && STRCASECMP(toAttribute, aToCoordinateFrame) == 0 )
+    {
+      double vectorMatrix[16]={0}; 
+      if ( nestedElement->GetVectorAttribute("Matrix", 16, vectorMatrix) )
+      {
+        aMatrix->DeepCopy(vectorMatrix); 
+      }
+      else
+      {
+        LOG_ERROR("Unable to find 'Matrix' attribute of '" << aFromCoordinateFrame << "' to '" << aToCoordinateFrame << "' transform among the CoordinateDefinitions in the configuration file"); 
+        return PLUS_FAIL; 
+      }
+
+      if ( aError != NULL )
+      {
+        double error(0); 
+        if ( nestedElement->GetScalarAttribute("Error", error) )
+        {
+          *aError = error; 
+        }
+        else
+        {
+          LOG_WARNING("Unable to find 'Error' attribute of '" << aFromCoordinateFrame << "' to '" << aToCoordinateFrame << "' transform among the CoordinateDefinitions in the configuration file"); 
+        }
+      }
+
+      if ( aDate != NULL )
+      {
+        const char* date =  nestedElement->GetAttribute("Date"); 
+        if ( date != NULL )
+        {
+          *aDate = date; 
+        }
+        else
+        {
+          LOG_WARNING("Unable to find 'Date' attribute of '" << aFromCoordinateFrame << "' to '" << aToCoordinateFrame << "' transform among the CoordinateDefinitions in the configuration file"); 
+        }
+      }
+
+      return PLUS_SUCCESS; 
+    }
+  }
+
+  LOG_DEBUG("Unable to find from '" << aFromCoordinateFrame << "' to '" << aToCoordinateFrame << "' transform among the CoordinateDefinitions in the configuration file"); 
+
+  return PLUS_FAIL; 
 }
 
 //-----------------------------------------------------------------------------

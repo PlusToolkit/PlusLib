@@ -9,7 +9,6 @@
 */ 
 
 #include "PlusConfigure.h"
-#include "vtkPivotCalibrationAlgo.h"
 #include "vtkPhantomRegistrationAlgo.h"
 #include "vtkDataCollector.h"
 #include "vtkTrackerTool.h"
@@ -37,7 +36,6 @@ int main (int argc, char* argv[])
 { 
 	std::string inputConfigFileName;
   std::string inputStylusToolName("Stylus");
-  std::string inputPivotCalibrationTransformName; 
 	std::string inputBaselineFileName;
 
 	int verboseLevel=vtkPlusLogger::LOG_LEVEL_DEFAULT;
@@ -45,7 +43,6 @@ int main (int argc, char* argv[])
 	vtksys::CommandLineArguments cmdargs;
 	cmdargs.Initialize(argc, argv);
 
-  cmdargs.AddArgument("--input-pivot-calib-transform-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputPivotCalibrationTransformName, "Pivot calibration transform name searched in config file");
   cmdargs.AddArgument("--input-stylus-tool-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputStylusToolName, "Stylus tool name defined in the config file (Default: Stylus)");
 	cmdargs.AddArgument("--input-config-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "Configuration file name");
 	cmdargs.AddArgument("--input-baseline-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputBaselineFileName, "Name of file storing baseline calibration results");
@@ -71,6 +68,8 @@ int main (int argc, char* argv[])
 		exit(EXIT_FAILURE);
   }
 
+  vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationData(configRootElement); 
+
   // Initialize data collection
 	vtkSmartPointer<vtkDataCollector> dataCollector = vtkSmartPointer<vtkDataCollector>::New(); 
   if (dataCollector->ReadConfiguration(configRootElement) != PLUS_SUCCESS) {
@@ -93,16 +92,13 @@ int main (int argc, char* argv[])
   dataCollector->SetTrackingOnly(true);
 
   // Read stylus calibration
-  vtkSmartPointer<vtkPivotCalibrationAlgo> pivotCalibration = vtkSmartPointer<vtkPivotCalibrationAlgo>::New();
-	if (pivotCalibration == NULL) {
-		LOG_ERROR("Unable to instantiate pivot calibration algorithm class!");
-		exit(EXIT_FAILURE);
-	}
-  if (pivotCalibration->ReadConfiguration(configRootElement, inputPivotCalibrationTransformName.c_str() ) != PLUS_SUCCESS) {
-		LOG_ERROR("Unable to read stylus calibration configuration!");
-		exit(EXIT_FAILURE);
-	}
-
+  vtkSmartPointer<vtkMatrix4x4> toolTipToStylusCalibrationMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+  if ( vtkPlusConfig::ReadTransformToCoordinateDefinition("ToolTip", inputStylusToolName.c_str(), toolTipToStylusCalibrationMatrix) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to read 'ToolTip' to '" << inputStylusToolName << "' pivot calibration result from configuration file: " << vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName() ); 
+    exit(EXIT_FAILURE);
+  }
+ 
   // Set stylus calibration to stylus tool
   vtkTrackerTool* stylus = NULL; 
   if ( dataCollector->GetTracker()->GetTool(inputStylusToolName.c_str(), stylus) != PLUS_SUCCESS )
@@ -110,16 +106,8 @@ int main (int argc, char* argv[])
     LOG_ERROR("Unable to get stylus tool: " << inputStylusToolName);
     exit(EXIT_FAILURE);
   }
-  
-  if ( pivotCalibration->GetTooltipToToolTransform() == NULL )
-  {
-    LOG_ERROR("Tooltip to tool transform is NULL!");
-    exit(EXIT_FAILURE);
-  }
-
-  vtkSmartPointer<vtkMatrix4x4> calibrationMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-  calibrationMatrix->DeepCopy(pivotCalibration->GetTooltipToToolTransform()->GetMatrix());
-  stylus->SetCalibrationMatrix(calibrationMatrix);
+ 
+  stylus->SetCalibrationMatrix(toolTipToStylusCalibrationMatrix);
 
   // Initialize phantom registration
 	vtkSmartPointer<vtkPhantomRegistrationAlgo> phantomRegistration = vtkSmartPointer<vtkPhantomRegistrationAlgo>::New();
