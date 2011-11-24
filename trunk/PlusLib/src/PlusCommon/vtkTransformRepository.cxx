@@ -5,14 +5,14 @@
 =========================================================Plus=header=end*/
 
 #include "PlusConfigure.h"
-#include "vtkTransformCombiner.h"
+#include "vtkTransformRepository.h"
 #include "vtkObjectFactory.h"
 #include "vtkTransform.h"
 
-vtkStandardNewMacro(vtkTransformCombiner);
+vtkStandardNewMacro(vtkTransformRepository);
 
 //----------------------------------------------------------------------------
-vtkTransformCombiner::TransformInfo::TransformInfo()
+vtkTransformRepository::TransformInfo::TransformInfo()
 {
   m_Transform=vtkTransform::New();
   m_IsValid=true;
@@ -20,7 +20,7 @@ vtkTransformCombiner::TransformInfo::TransformInfo()
 }
 
 //----------------------------------------------------------------------------
-vtkTransformCombiner::TransformInfo::~TransformInfo()
+vtkTransformRepository::TransformInfo::~TransformInfo()
 {
   if (m_Transform!=NULL)
   {
@@ -30,7 +30,7 @@ vtkTransformCombiner::TransformInfo::~TransformInfo()
 }
 
 //----------------------------------------------------------------------------
-vtkTransformCombiner::TransformInfo::TransformInfo(const TransformInfo& obj)
+vtkTransformRepository::TransformInfo::TransformInfo(const TransformInfo& obj)
 {
   m_Transform=obj.m_Transform;
   if (m_Transform!=NULL)
@@ -41,7 +41,7 @@ vtkTransformCombiner::TransformInfo::TransformInfo(const TransformInfo& obj)
   m_IsValid=obj.m_IsValid;
 }
 //----------------------------------------------------------------------------
-vtkTransformCombiner::TransformInfo& vtkTransformCombiner::TransformInfo::operator=(const TransformInfo& obj) 
+vtkTransformRepository::TransformInfo& vtkTransformRepository::TransformInfo::operator=(const TransformInfo& obj) 
 {
   if (m_Transform!=NULL)
   {
@@ -59,17 +59,17 @@ vtkTransformCombiner::TransformInfo& vtkTransformCombiner::TransformInfo::operat
 }
 
 //----------------------------------------------------------------------------
-vtkTransformCombiner::vtkTransformCombiner()
+vtkTransformRepository::vtkTransformRepository()
 {
 }
 
 //----------------------------------------------------------------------------
-vtkTransformCombiner::~vtkTransformCombiner()
+vtkTransformRepository::~vtkTransformRepository()
 {
 }
 
 //----------------------------------------------------------------------------
-void vtkTransformCombiner::PrintSelf(ostream& os, vtkIndent indent)
+void vtkTransformRepository::PrintSelf(ostream& os, vtkIndent indent)
 {
   vtkObject::PrintSelf(os,indent);
 
@@ -98,7 +98,7 @@ void vtkTransformCombiner::PrintSelf(ostream& os, vtkIndent indent)
 }
 
 //----------------------------------------------------------------------------
-vtkTransformCombiner::TransformInfo* vtkTransformCombiner::GetInputTransform(const char* fromCoordFrameName, const char* toCoordFrameName)
+vtkTransformRepository::TransformInfo* vtkTransformRepository::GetInputTransform(const char* fromCoordFrameName, const char* toCoordFrameName)
 {
   CoordFrameToTransformMapType& fromCoordFrame=this->CoordinateFrames[fromCoordFrameName];
   CoordFrameToTransformMapType& toCoordFrame=this->CoordinateFrames[toCoordFrameName];
@@ -115,7 +115,7 @@ vtkTransformCombiner::TransformInfo* vtkTransformCombiner::GetInputTransform(con
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkTransformCombiner::SetTransform(const char* fromCoordFrameName, const char* toCoordFrameName, vtkMatrix4x4* matrix, TransformStatus status /* = KEEP_CURRENT_STATUS*/ )
+PlusStatus vtkTransformRepository::SetTransform(const char* fromCoordFrameName, const char* toCoordFrameName, vtkMatrix4x4* matrix, TransformStatus status /* = KEEP_CURRENT_STATUS*/ )
 {
   if (fromCoordFrameName==NULL)
   {
@@ -197,13 +197,13 @@ PlusStatus vtkTransformCombiner::SetTransform(const char* fromCoordFrameName, co
 }
   
 //----------------------------------------------------------------------------
-PlusStatus vtkTransformCombiner::SetTransformStatus(const char* fromCoordFrameName, const char* toCoordFrameName, TransformStatus status)
+PlusStatus vtkTransformRepository::SetTransformStatus(const char* fromCoordFrameName, const char* toCoordFrameName, TransformStatus status)
 {
   return SetTransform(fromCoordFrameName, toCoordFrameName, NULL, status);
 }
   
 //----------------------------------------------------------------------------
-PlusStatus vtkTransformCombiner::GetTransform(const char* fromCoordFrameName, const char* toCoordFrameName, vtkMatrix4x4* matrix, TransformStatus* status /*=NULL*/ )
+PlusStatus vtkTransformRepository::GetTransform(const char* fromCoordFrameName, const char* toCoordFrameName, vtkMatrix4x4* matrix, TransformStatus* status /*=NULL*/ )
 {
   if (fromCoordFrameName==NULL)
   {
@@ -247,12 +247,12 @@ PlusStatus vtkTransformCombiner::GetTransform(const char* fromCoordFrameName, co
 }
   
 //----------------------------------------------------------------------------
-PlusStatus vtkTransformCombiner::GetTransformStatus(const char* fromCoordFrameName, const char* toCoordFrameName, TransformStatus &status)
+PlusStatus vtkTransformRepository::GetTransformStatus(const char* fromCoordFrameName, const char* toCoordFrameName, TransformStatus &status)
 {
   return GetTransform(fromCoordFrameName, toCoordFrameName, NULL, &status);
 }
 
-PlusStatus vtkTransformCombiner::FindPath(const char* fromCoordFrameName, const char* toCoordFrameName, TransformInfoListType &transformInfoList, const char* skipCoordFrameName /*=NULL*/, bool silent /*=false*/)
+PlusStatus vtkTransformRepository::FindPath(const char* fromCoordFrameName, const char* toCoordFrameName, TransformInfoListType &transformInfoList, const char* skipCoordFrameName /*=NULL*/, bool silent /*=false*/)
 {
   TransformInfo* fromToTransformInfo=GetInputTransform(fromCoordFrameName, toCoordFrameName);
   if (fromToTransformInfo!=NULL)

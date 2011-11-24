@@ -37,11 +37,11 @@ ADD_TEST(vtkAccurateTimerTest
 SET_TESTS_PROPERTIES( vtkAccurateTimerTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
 #--------------------------------------------------------------------------------------------
-ADD_EXECUTABLE(vtkTransformCombinerTest vtkTransformCombinerTest.cxx )
-TARGET_LINK_LIBRARIES(vtkTransformCombinerTest vtkPlusCommon )
+ADD_EXECUTABLE(vtkTransformRepositoryTest vtkTransformRepositoryTest.cxx )
+TARGET_LINK_LIBRARIES(vtkTransformRepositoryTest vtkPlusCommon )
 
-ADD_TEST(vtkTransformCombinerTest 
-  ${EXECUTABLE_OUTPUT_PATH}/vtkTransformCombinerTest
+ADD_TEST(vtkTransformRepositoryTest 
+  ${EXECUTABLE_OUTPUT_PATH}/vtkTransformRepositoryTest
   --verbose=3
   )
 # This test prints some errors when testing error cases, therefore the output is not

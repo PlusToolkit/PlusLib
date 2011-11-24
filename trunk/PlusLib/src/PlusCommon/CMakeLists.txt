@@ -1,31 +1,31 @@
 # --------------------------------------------------------------------------
 # Sources
 
-SET ( PlusCommon_SRCS 
-		vtkAccurateTimer.cxx 
-		vtkPlusLogger.cxx
-		vtkHTMLGenerator.cxx 
-		vtkGnuplotExecuter.cxx
-		vtkPlusConfig.cxx
-    PlusMath.cxx 
-    vtkTransformCombiner.cxx
-		)
+SET (PlusCommon_SRCS 
+  vtkAccurateTimer.cxx 
+  vtkPlusLogger.cxx
+  vtkHTMLGenerator.cxx 
+  vtkGnuplotExecuter.cxx
+  vtkPlusConfig.cxx
+  PlusMath.cxx 
+  vtkTransformRepository.cxx
+  )
 
 SET (PlusCommon_HDRS)
 if (WIN32)	
-	SET (PlusCommon_HDRS
-		PlusCommon.h
-		vtkAccurateTimer.h
-		WindowsAccurateTimer.h
-		vtkPlusLogger.h
-		vtkHTMLGenerator.h
-		vtkGnuplotExecuter.h
-    vtkTimestampedCircularBuffer.h 
+  SET (PlusCommon_HDRS
+    PlusCommon.h
+    vtkAccurateTimer.h
+    WindowsAccurateTimer.h
+    vtkPlusLogger.h
+    vtkHTMLGenerator.h
+    vtkGnuplotExecuter.h
+    vtkTimestampedCircularBuffer.h
     vtkTimestampedCircularBuffer.txx
-		vtkPlusConfig.h
+    vtkPlusConfig.h
     PlusMath.h
-    vtkTransformCombiner.h
-		)
+    vtkTransformRepository.h
+    )
 endif (WIN32)	
 
 SET (PlusCommon_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} CACHE INTERNAL "" FORCE)
@@ -36,7 +36,7 @@ SET (PlusCommon_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} CACHE INTERNAL "" FORCE
 SET (PlusCommon_LIBS ITKIO vtkCommon vtkHybrid vtkFiltering ${PlusCommon_LIBS} )
 
 if (WIN32)	
-	SET (PlusCommon_LIBS ${PlusCommon_LIBS} Winmm )
+  SET (PlusCommon_LIBS ${PlusCommon_LIBS} Winmm )
 endif (WIN32)
 
 INCLUDE_DIRECTORIES( ${PlusCommon_INCLUDE_DIRS} )
@@ -54,17 +54,17 @@ SET(vcProj_vtkPlusCommon vtkPlusCommon ${PlusLib_BINARY_DIR}/src/PlusCommon/vtkP
 # Install
 #
 	
-INSTALL(TARGETS vtkPlusCommon
-    RUNTIME
-    DESTINATION bin
-    CONFIGURATIONS Release
-    COMPONENT RuntimeLibraries
-    )
+INSTALL (TARGETS vtkPlusCommon
+  RUNTIME
+  DESTINATION bin
+  CONFIGURATIONS Release
+  COMPONENT RuntimeLibraries
+  )
 
 # --------------------------------------------------------------------------
 # Testing
 #
 
 IF (BUILD_TESTING)
-	SUBDIRS (Testing)
+  SUBDIRS (Testing)
 ENDIF (BUILD_TESTING)
