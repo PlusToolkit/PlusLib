@@ -73,10 +73,10 @@ void vtkTransformCombiner::PrintSelf(ostream& os, vtkIndent indent)
 {
   vtkObject::PrintSelf(os,indent);
 
-  for (CoordinateFrameListType::iterator coordFrame=this->CoordinateFrames.begin(); coordFrame!=this->CoordinateFrames.end(); ++coordFrame)
+  for (CoordFrameToCoordFrameToTransformMapType::iterator coordFrame=this->CoordinateFrames.begin(); coordFrame!=this->CoordinateFrames.end(); ++coordFrame)
   {
     os << indent << coordFrame->first << " coordinate frame transforms:\n";
-    for (TransformInfoMapType::iterator transformInfo=coordFrame->second.begin(); transformInfo!=coordFrame->second.end(); ++transformInfo)
+    for (CoordFrameToTransformMapType::iterator transformInfo=coordFrame->second.begin(); transformInfo!=coordFrame->second.end(); ++transformInfo)
     {
       os << indent << "  To " << transformInfo->first << ": " 
         << (transformInfo->second.m_IsValid?"valid":"invalid") << ", " 
@@ -95,20 +95,16 @@ void vtkTransformCombiner::PrintSelf(ostream& os, vtkIndent indent)
       }      
     }
   }
-  /*
-  os << indent << "Member: " << this->Member << "\n";
-  this->Member2->PrintSelf(os,indent.GetNextIndent());
-  */
 }
 
 //----------------------------------------------------------------------------
 vtkTransformCombiner::TransformInfo* vtkTransformCombiner::GetInputTransform(const char* fromCoordFrameName, const char* toCoordFrameName)
 {
-  TransformInfoMapType& fromCoordFrame=this->CoordinateFrames[fromCoordFrameName];
-  TransformInfoMapType& toCoordFrame=this->CoordinateFrames[toCoordFrameName];
+  CoordFrameToTransformMapType& fromCoordFrame=this->CoordinateFrames[fromCoordFrameName];
+  CoordFrameToTransformMapType& toCoordFrame=this->CoordinateFrames[toCoordFrameName];
 
   // Check if the transform already exist
-  TransformInfoMapType::iterator fromToTransformInfoIt=fromCoordFrame.find(toCoordFrameName);
+  CoordFrameToTransformMapType::iterator fromToTransformInfoIt=fromCoordFrame.find(toCoordFrameName);
   if (fromToTransformInfoIt!=fromCoordFrame.end())
   {
     // transform is found
@@ -178,7 +174,7 @@ PlusStatus vtkTransformCombiner::SetTransform(const char* fromCoordFrameName, co
   }
 
   // Create the from->to transform
-  TransformInfoMapType& fromCoordFrame=this->CoordinateFrames[fromCoordFrameName];
+  CoordFrameToTransformMapType& fromCoordFrame=this->CoordinateFrames[fromCoordFrameName];
   fromCoordFrame[toCoordFrameName].m_IsComputed=false;
   if (matrix!=NULL)
   {
@@ -189,7 +185,7 @@ PlusStatus vtkTransformCombiner::SetTransform(const char* fromCoordFrameName, co
     fromCoordFrame[toCoordFrameName].m_IsValid=(status==TRANSFORM_VALID);
   }
   // Create the to->from inverse transform
-  TransformInfoMapType& toCoordFrame=this->CoordinateFrames[toCoordFrameName];
+  CoordFrameToTransformMapType& toCoordFrame=this->CoordinateFrames[toCoordFrameName];
   toCoordFrame[fromCoordFrameName].m_IsComputed=true;
   toCoordFrame[fromCoordFrameName].m_Transform->SetInput(fromCoordFrame[toCoordFrameName].m_Transform);
   toCoordFrame[fromCoordFrameName].m_Transform->Inverse();
@@ -219,29 +215,15 @@ PlusStatus vtkTransformCombiner::GetTransform(const char* fromCoordFrameName, co
     LOG_ERROR("To coordinate frame name is invalid");
     return PLUS_FAIL;
   }
-  // Check if we can find the transform directly among the user-defined input transforms
-  TransformInfo* fromToTransformInfo=GetInputTransform(fromCoordFrameName, toCoordFrameName);
-  if (fromToTransformInfo!=NULL)
-  {
-    // transform found
-    if (matrix!=NULL)
-    {
-      matrix->DeepCopy(fromToTransformInfo->m_Transform->GetMatrix());
-    }
-    if (status!=NULL)
-    {
-      (*status)=fromToTransformInfo->m_IsValid?TRANSFORM_VALID:TRANSFORM_INVALID;
-    }
-    return PLUS_SUCCESS;
-  }
-  // Check if we can find the transform by combining the input transforms (could be cached to improve performance)
+  // Check if we can find the transform by combining the input transforms
+  // To improve performance the already found paths could be stored in a map of transform name -> transformInfoList
   TransformInfoListType transformInfoList;
   if (FindPath(fromCoordFrameName, toCoordFrameName, transformInfoList)!=PLUS_SUCCESS)
   {
     LOG_ERROR("Not enough transforms defined to get the transformation from "<<fromCoordFrameName<<" to "<<toCoordFrameName);
     return PLUS_FAIL;
   }
-  // Create transform chain
+  // Create transform chain and compute transform status
   vtkSmartPointer<vtkTransform> combinedTransform=vtkSmartPointer<vtkTransform>::New();
   bool combinedTransformValid=true;
   for (TransformInfoListType::iterator transformInfo=transformInfoList.begin(); transformInfo!=transformInfoList.end(); ++transformInfo)
@@ -252,6 +234,7 @@ PlusStatus vtkTransformCombiner::GetTransform(const char* fromCoordFrameName, co
       combinedTransformValid=false;
     }
   }
+  // Save the results
   if (matrix!=NULL)
   {
     matrix->DeepCopy(combinedTransform->GetMatrix());
@@ -279,8 +262,8 @@ PlusStatus vtkTransformCombiner::FindPath(const char* fromCoordFrameName, const 
     return PLUS_SUCCESS;
   }
   // not found, so try to find a path through all the connected coordinate frames
-  TransformInfoMapType& fromCoordFrame=this->CoordinateFrames[fromCoordFrameName];
-  for (TransformInfoMapType::iterator transformInfoIt=fromCoordFrame.begin(); transformInfoIt!=fromCoordFrame.end(); ++transformInfoIt)
+  CoordFrameToTransformMapType& fromCoordFrame=this->CoordinateFrames[fromCoordFrameName];
+  for (CoordFrameToTransformMapType::iterator transformInfoIt=fromCoordFrame.begin(); transformInfoIt!=fromCoordFrame.end(); ++transformInfoIt)
   {
     if (skipCoordFrameName!=NULL && transformInfoIt->first.compare(skipCoordFrameName)==0)
     {

@@ -25,6 +25,14 @@ The vtkTransformCombiner stores a number of transforms between coordinate frames
 it can multiply these transforms (or the inverse of these transforms) to
 compute the transform between any two coordinate frames.
 
+Example usage:
+  transformCombiner->SetTransform("Probe", "Tracker", mxProbeToTracker);
+  transformCombiner->SetTransform("Image", "Probe", mxImageToProbe);
+  ...
+  vtkSmartPointer<vtkMatrix4x4> mxImageToTracker=vtkSmartPointer<vtkMatrix4x4>::New();
+  vtkTransformCombiner::TransformStatus status=vtkTransformCombiner::TRANSFORM_INVALID;
+  transformCombiner->GetTransform("Image", "Tracker", mxImageToTracker, &status);
+
 \ingroup PlusLibCommon
 */
 class VTK_EXPORT vtkTransformCombiner : public vtkObject
@@ -73,7 +81,7 @@ protected:
   vtkTransformCombiner();
   ~vtkTransformCombiner();  
 
-  /*! An edge in the transform graph, representing a transform */ 
+  /*! Stores a transformation matrix and some additional information (valid or not, computed or not)*/ 
   class TransformInfo
   {
   public:
@@ -89,16 +97,18 @@ protected:
     /*!
       If the value is true then it means that the transform is computed from
       another transform (by inverting that). If the value is false it means
-      that it is an original transform (set by a SetTransform() method call)
+      that it is an original transform (set by the user by a SetTransform() method call)
     */
     bool m_IsComputed;
   };
 
-  typedef std::map<std::string, TransformInfo> TransformInfoMapType;
-  typedef std::list<TransformInfo*> TransformInfoListType;
+  /*! For each "to" coordinate frame name (first) stores a transform (second)*/
+  typedef std::map<std::string, TransformInfo> CoordFrameToTransformMapType;
+  /*! For each "from" coordinate frame (first) stores an array of transforms (second) */
+  typedef std::map<std::string, CoordFrameToTransformMapType> CoordFrameToCoordFrameToTransformMapType;
 
-  /*! Stores the list of transforms related to each coordinate frame */
-  typedef std::map<std::string, TransformInfoMapType> CoordinateFrameListType;
+  /*! List of transforms */
+  typedef std::list<TransformInfo*> TransformInfoListType;
 
   /*! Get a user-defined input transform (or its inverse). Does not combine user-defined input transforms. */ 
   TransformInfo* GetInputTransform(const char* fromCoordFrameName, const char* toCoordFrameName);
@@ -112,7 +122,7 @@ protected:
   */ 
   PlusStatus FindPath(const char* fromCoordFrameName, const char* toCoordFrameName, TransformInfoListType &transformInfoList, const char* skipCoordFrameName=NULL, bool silent=false);
 
-  CoordinateFrameListType CoordinateFrames;
+  CoordFrameToCoordFrameToTransformMapType CoordinateFrames;
 
 private:
   vtkTransformCombiner(const vtkTransformCombiner&);
