@@ -50,11 +50,11 @@ FreehandCalibrationToolbox::FreehandCalibrationToolbox(fCalMainWindow* aParentMa
 
   // Create tracked frame lists
   m_CalibrationData = vtkTrackedFrameList::New();
-  m_CalibrationData->SetDefaultFrameTransformName("Probe");
+  m_CalibrationData->SetFrameTransformNameForValidation("Probe");
   m_CalibrationData->SetValidationRequirements(REQUIRE_UNIQUE_TIMESTAMP | REQUIRE_TRACKING_OK); 
 
   m_ValidationData = vtkTrackedFrameList::New();
-  m_ValidationData->SetDefaultFrameTransformName("Probe");
+  m_ValidationData->SetFrameTransformNameForValidation("Probe");
   m_ValidationData->SetValidationRequirements(REQUIRE_UNIQUE_TIMESTAMP | REQUIRE_TRACKING_OK); 
 
   // Change result display properties
