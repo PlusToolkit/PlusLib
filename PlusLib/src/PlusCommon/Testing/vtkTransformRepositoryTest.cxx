@@ -203,6 +203,37 @@ int main(int argc, char **argv)
     return EXIT_FAILURE;
   }
 
+  /////////////////////////////////////////////////////////////////////////////
+  // Check delete
+  if (transformRepository->DeleteTransform("Tracker", "Probe")==PLUS_SUCCESS)
+  {
+    LOG_ERROR("Only the inverse of the transform has been set, delete should not have been allowed");
+    return EXIT_FAILURE;
+  }
+  if (transformRepository->DeleteTransform("Probe", "Tracker")!=PLUS_SUCCESS)
+  {
+    LOG_ERROR("Transform delete failed");
+    return EXIT_FAILURE;
+  }
+
+  /////////////////////////////////////////////////////////////////////////////
+  // Check circle detection - after delete
+  if (transformRepository->SetTransform("Probe", "Phantom", mxProbeToPhantom)!=PLUS_SUCCESS)
+  {
+    LOG_ERROR("Set transform should have been succeeded");
+    return EXIT_FAILURE;
+  }
+
+  /////////////////////////////////////////////////////////////////////////////
+  // Check clear
+  transformRepository->Clear();
+  if (transformRepository->GetTransform("StylusTip", "Tracker", mxStylusTipToTracker, &status)==PLUS_SUCCESS)
+  {
+    LOG_ERROR("GetTransform should have failed after clearing the transform repository");
+    return EXIT_FAILURE;
+  }
+
+
   LOG_INFO("Test successfully completed");
 	return EXIT_SUCCESS; 
  }

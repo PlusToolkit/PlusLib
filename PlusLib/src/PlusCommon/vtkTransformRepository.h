@@ -77,6 +77,12 @@ public:
   /*! Get the status of a transform matrix between two coordinate frames. */
   virtual PlusStatus GetTransformStatus(const char* fromCoordFrameName, const char* toCoordFrameName, TransformStatus &status);
 
+  /*! Removes a transform from the repository */
+  virtual PlusStatus DeleteTransform(const char* fromCoordFrameName, const char* toCoordFrameName);
+
+  /*! Removes all the transforms from the repository */
+  void Clear();
+
 protected:
   vtkTransformRepository();
   ~vtkTransformRepository();  
