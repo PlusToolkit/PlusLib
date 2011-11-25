@@ -55,17 +55,20 @@ PlusStatus ToolStateDisplayWidget::InitializeTools(vtkDataCollector* aDataCollec
 	if (this->layout()) {
 		delete this->layout();
 	}
-	for (std::vector<QLabel*>::iterator it = m_ToolNameLabels.begin(); it != m_ToolNameLabels.end(); ++it) {
+	for (std::vector<QLabel*>::iterator it = m_ToolNameLabels.begin(); it != m_ToolNameLabels.end(); ++it)
+  {
 		delete (*it);
 	}
 	m_ToolNameLabels.clear();
-	for (std::vector<QTextEdit*>::iterator it = m_ToolStateLabels.begin(); it != m_ToolStateLabels.end(); ++it) {
+	for (std::vector<QTextEdit*>::iterator it = m_ToolStateLabels.begin(); it != m_ToolStateLabels.end(); ++it)
+  {
 		delete (*it);
 	}
 	m_ToolStateLabels.clear();
 
 	// If connection was unsuccessful, create default appearance
-	if (! aConnectionSuccessful) {
+	if (! aConnectionSuccessful)
+  {
 		QGridLayout* grid = new QGridLayout(this, 1, 1, 0, 0, "");
 		QLabel* uninitializedLabel = new QLabel(tr("Tool state display is unavailable until not connected to a device set."), this);
 		uninitializedLabel->setWordWrap(true);

@@ -906,10 +906,10 @@ void TrackedUltrasoundCapturingGUI::ConnectToDevicesByConfigFile(std::string aCo
       m_SyncToolStateDisplayWidget->InitializeTools(NULL, false);
       m_RecordingToolStateDisplayWidget->InitializeTools(NULL, false);
 
-	  // Close dialog
-	  connectDialog->done(0);
+	    // Close dialog
+	    connectDialog->done(0);
       QApplication::restoreOverrideCursor();
-	  return;
+	    return;
     }
     else
     {

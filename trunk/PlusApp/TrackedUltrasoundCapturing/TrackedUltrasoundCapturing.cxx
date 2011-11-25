@@ -157,8 +157,6 @@ TrackedUltrasoundCapturing::~TrackedUltrasoundCapturing()
 PlusStatus TrackedUltrasoundCapturing::Initialize()
 {
 	LOG_TRACE("TrackedUltrasoundCapturing::Initialize"); 
-	vtkSmartPointer<vtkDataCollector> dataCollector = vtkSmartPointer<vtkDataCollector>::New(); 
-	this->SetDataCollector(dataCollector); 
 
   vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkSmartPointer<vtkXMLDataElement>::Take(
     vtkXMLUtilities::ReadElementFromFile(this->GetInputConfigFileName()));  
@@ -166,6 +164,11 @@ PlusStatus TrackedUltrasoundCapturing::Initialize()
     LOG_ERROR("Unable to read configuration from file " << this->GetInputConfigFileName()); 
     return PLUS_FAIL;
   }
+
+  vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationData(configRootElement); 
+
+  vtkSmartPointer<vtkDataCollector> dataCollector = vtkSmartPointer<vtkDataCollector>::New(); 
+	this->SetDataCollector(dataCollector); 
 
   if ( this->DataCollector->ReadConfiguration(configRootElement) != PLUS_SUCCESS )
   {
