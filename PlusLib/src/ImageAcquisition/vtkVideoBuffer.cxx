@@ -627,3 +627,66 @@ PlusStatus vtkVideoBuffer::CopyImagesFromTrackedFrameList(vtkTrackedFrameList *s
 
   return (numberOfErrors>0 ? PLUS_FAIL:PLUS_SUCCESS );
 }
+
+//----------------------------------------------------------------------------
+PlusStatus vtkVideoBuffer::WriteToMetafile( const char* outputFolder, const char* metaFileName, bool useCompression /*=false*/ )
+{
+  LOG_TRACE("vtkVideoBuffer::WriteToMetafile");
+
+  const int numberOfFrames = this->GetNumberOfItems();
+  vtkSmartPointer<vtkTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New();
+
+  PlusStatus status = PLUS_SUCCESS;
+
+  // Set default transform name
+  std::string defaulTransformName="IdentityTransform";
+  trackedFrameList->SetDefaultFrameTransformName(defaulTransformName.c_str());
+  for ( BufferItemUidType frameUid = this->GetOldestItemUidInBuffer(); frameUid <= this->GetLatestItemUidInBuffer(); ++frameUid )
+  {
+    VideoBufferItem videoItem;
+    if ( this->GetVideoBufferItem(frameUid, &videoItem) != ITEM_OK )
+    {
+      LOG_ERROR("Unable to get frame from buffer with UID: " << frameUid);
+      status=PLUS_FAIL;
+      continue;
+    }
+
+    TrackedFrame trackedFrame;
+    trackedFrame.SetImageData(videoItem.GetFrame());
+
+    // Add transform
+    vtkSmartPointer<vtkMatrix4x4> matrix = vtkSmartPointer<vtkMatrix4x4>::New();
+    matrix->Identity();
+    trackedFrame.SetCustomFrameTransform(defaulTransformName, matrix);
+
+    // Add filtered timestamp
+    double filteredTimestamp = videoItem.GetFilteredTimestamp( this->GetLocalTimeOffset() );
+    std::ostringstream timestampFieldValue;
+    timestampFieldValue << std::fixed << filteredTimestamp;
+    trackedFrame.SetCustomFrameField("Timestamp", timestampFieldValue.str());
+
+    // Add unfiltered timestamp
+    double unfilteredTimestamp = videoItem.GetUnfilteredTimestamp( this->GetLocalTimeOffset() );
+    std::ostringstream unfilteredtimestampFieldValue;
+    unfilteredtimestampFieldValue << std::fixed << unfilteredTimestamp;
+    trackedFrame.SetCustomFrameField("UnfilteredTimestamp", unfilteredtimestampFieldValue.str());
+
+    // Add frame number
+    unsigned long frameNumber = videoItem.GetIndex(); 
+    std::ostringstream frameNumberFieldValue;
+    frameNumberFieldValue << std::fixed << frameNumber;
+    trackedFrame.SetCustomFrameField("FrameNumber", frameNumberFieldValue.str());
+
+    // Add tracked frame to the list
+    trackedFrameList->AddTrackedFrame(&trackedFrame);
+  }
+
+  // Save tracked frames to metafile
+  if ( trackedFrameList->SaveToSequenceMetafile(outputFolder, metaFileName, vtkTrackedFrameList::SEQ_METAFILE_MHA, useCompression) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to save tracked frames to sequence metafile!");
+    return PLUS_FAIL;
+  }
+
+  return status;
+}

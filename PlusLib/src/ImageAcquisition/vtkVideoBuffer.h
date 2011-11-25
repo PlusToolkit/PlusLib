@@ -183,6 +183,9 @@ public:
   /*! Copy images from a tracked frame buffer. It is useful when data is stored in a metafile and the data is needed as a vtkVideoBuffer. */
   PlusStatus CopyImagesFromTrackedFrameList(vtkTrackedFrameList *sourceTrackedFrameList, TIMESTAMP_FILTERING_OPTION timestampFiltering);
 
+  /*! Dump the current state of the video buffer to metafile */
+  virtual PlusStatus WriteToMetafile( const char* outputFolder, const char* metaFileName, bool useCompression = false ); 
+
 protected:
   vtkVideoBuffer();
   ~vtkVideoBuffer();

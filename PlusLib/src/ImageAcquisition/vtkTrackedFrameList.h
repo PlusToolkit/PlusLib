@@ -44,12 +44,6 @@ public:
   /*! Get image data */
   PlusVideoFrame* GetImageData() { return &(this->ImageData); };
 
-  /*! Set Status of the item (out of view, ...) */
-  void SetStatus(TrackerStatus value) { this->Status = value; }; 
-
-  /*! Get Status of the item (out of view, ...) */
-  TrackerStatus GetStatus() { return this->Status; };
-
   /*! Set timestamp */
   void SetTimestamp(double value) { this->Timestamp = value; }; 
 
@@ -125,7 +119,6 @@ public:
 
 protected:
   PlusVideoFrame ImageData;
-  TrackerStatus Status; 
   double Timestamp; 
 
   FieldMapType CustomFrameFields;
@@ -519,7 +512,6 @@ protected:
   virtual bool ValidateData(TrackedFrame* trackedFrame); 
 
   bool ValidateTimestamp(TrackedFrame* trackedFrame); 
-  bool ValidateStatus(TrackedFrame* trackedFrame); 
   bool ValidateTransform(TrackedFrame* trackedFrame); 
   bool ValidateEncoderPosition(TrackedFrame* trackedFrame);
   bool ValidateSpeed(TrackedFrame* trackedFrame);

@@ -40,7 +40,7 @@ vtkPlusVideoSource is a superclass for video input interfaces for VTK.
 This base class records input from a noise source.  vtkPlusVideoSource uses
 vtkVideoBuffer to hold its image data. The output can be accessed while
 recording.
-\sa vtkWin32VideoSource2 vtkMILVideoSource2 vtkVideoBuffer
+\sa vtkWin32VideoSource2 vtkMILVideoSource2 vtkVideoBuffer2
 \ingroup PlusLibImaging
 */
 

@@ -24,7 +24,6 @@
 //----------------------------------------------------------------------------
 TrackedFrame::TrackedFrame()
 {
-  this->Status = TR_OK; 
   this->Timestamp = 0; 
   this->FrameSize[0] = 0; 
   this->FrameSize[1] = 0; 
@@ -40,7 +39,6 @@ TrackedFrame::~TrackedFrame()
 //----------------------------------------------------------------------------
 TrackedFrame::TrackedFrame(const TrackedFrame& frame)
 {
-  this->Status = TR_OK; 
   this->Timestamp = 0; 
   this->FrameSize[0] = 0; 
   this->FrameSize[1] = 0; 
@@ -61,7 +59,6 @@ TrackedFrame& TrackedFrame::operator=(TrackedFrame const&trackedFrame)
   this->CustomFrameFields = trackedFrame.CustomFrameFields; 
   this->ImageData = trackedFrame.ImageData; 
   this->Timestamp = trackedFrame.Timestamp;
-  this->Status = trackedFrame.Status; 
   this->FrameSize[0] = trackedFrame.FrameSize[0]; 
   this->FrameSize[1] = trackedFrame.FrameSize[1]; 
   this->SetFiducialPointsCoordinatePx(trackedFrame.FiducialPointsCoordinatePx);
@@ -109,6 +106,7 @@ const char* TrackedFrame::GetCustomFrameField(const char* fieldName)
   return NULL; 
 }
 
+//----------------------------------------------------------------------------
 bool TrackedFrame::IsCustomFrameFieldDefined(const char* fieldName)
 {
   if (fieldName == NULL )
@@ -417,15 +415,6 @@ bool vtkTrackedFrameList::ValidateData(TrackedFrame* trackedFrame )
     }
   }
 
-  if ( this->ValidationRequirements & REQUIRE_TRACKING_OK )
-  {
-    if (! this->ValidateStatus(trackedFrame))
-    {
-      LOG_DEBUG("Validation failed - tracking status in not OK!"); 
-      return false;
-    }
-  }
-
   if ( this->ValidationRequirements & REQUIRE_CHANGED_TRANSFORM )
   {
     if (! this->ValidateTransform(trackedFrame))
@@ -523,18 +512,6 @@ bool vtkTrackedFrameList::ValidateTransform(TrackedFrame* trackedFrame)
   }
 
   return true; 	
-}
-
-//----------------------------------------------------------------------------
-bool vtkTrackedFrameList::ValidateStatus(TrackedFrame* trackedFrame)
-{
-  const bool isStatusValid = (trackedFrame->GetStatus() == 0); 
-  if ( !isStatusValid )
-  {
-    LOG_DEBUG("Tracked frame status validation result: tracked frame status invalid!"); 
-  }
-
-  return isStatusValid; 
 }
 
 //----------------------------------------------------------------------------

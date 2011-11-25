@@ -26,6 +26,7 @@
 #include "vtkAccurateTimer.h"
 #include "vtkGnuplotExecuter.h"
 #include "vtkHTMLGenerator.h"
+#include "vtkTrackedFrameList.h"
 
 
 //----------------------------------------------------------------------------
@@ -275,8 +276,7 @@ PlusStatus vtkTracker::Probe()
 //----------------------------------------------------------------------------
 PlusStatus vtkTracker::StartTracking()
 {
-
-   // start the tracking thread
+  // start the tracking thread
   if ( this->Tracking )
   {
     LOG_ERROR("Cannot start the tracking thread - tracking still running!");
@@ -413,7 +413,7 @@ void vtkTracker::DeepCopy(vtkTracker *tracker)
   LOG_TRACE("vtkTracker::DeepCopy"); 
   this->SetTrackerCalibrated( tracker->GetTrackerCalibrated() ); 
 
-  for ( ToolIteratorType it = tracker->GetToolIteratorBegin(); it != tracker->GetToolIteratorEnd(); ++it )
+  for ( ToolIteratorType it = this->ToolContainer.begin(); it != this->ToolContainer.end(); ++it )
   {
     LOG_DEBUG("Copy the buffer of tracker tool: " << it->first ); 
     if ( this->AddTool(it->second) != PLUS_SUCCESS )
@@ -447,7 +447,7 @@ PlusStatus vtkTracker::WriteConfiguration(vtkXMLDataElement* config)
     return PLUS_FAIL;
   }
 
-	vtkXMLDataElement* dataCollectionConfig = config->FindNestedElementWithName("USDataCollection");
+	vtkXMLDataElement* dataCollectionConfig = config->FindNestedElementWithName("DataCollection");
 	if (dataCollectionConfig == NULL)
   {
     LOG_ERROR("Cannot find USDataCollection element in XML tree!");
@@ -510,7 +510,7 @@ PlusStatus vtkTracker::ReadConfiguration(vtkXMLDataElement* config)
     return PLUS_FAIL; 
   }
 
-  vtkXMLDataElement* dataCollectionConfig = config->FindNestedElementWithName("USDataCollection");
+  vtkXMLDataElement* dataCollectionConfig = config->FindNestedElementWithName("DataCollection");
 	if (dataCollectionConfig == NULL)
   {
     LOG_ERROR("Cannot find USDataCollection element in XML tree!");
@@ -819,4 +819,165 @@ void vtkTracker::ClearAllBuffers()
   {
     it->second->GetBuffer()->Clear(); 
   }
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkTracker::CopyBuffer( vtkTrackerBuffer* aTrackerBuffer, const char* aToolName )
+{
+  LOG_TRACE("vtkTracker::CopyBuffer"); 
+
+  if ( aTrackerBuffer == NULL )
+  {
+    LOG_ERROR("Unable to copy tracker buffer to a NULL buffer!"); 
+    return PLUS_FAIL; 
+  }
+
+  if ( aToolName == NULL )
+  {
+    LOG_ERROR("Unable to copy tracker buffer - tool name is NULL!"); 
+    return PLUS_FAIL; 
+  }
+
+  vtkTrackerTool * tool = NULL; 
+  if ( GetTool(aToolName, tool) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to get tool with name: " << aToolName ); 
+    return PLUS_FAIL; 
+  }
+
+  aTrackerBuffer->DeepCopy(tool->GetBuffer()); 
+
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkTracker::WriteToMetafile( const char* outputFolder, const char* metaFileName, bool useCompression /*= false*/ )
+{
+  LOG_TRACE("vtkTracker::WriteToMetafile: " << outputFolder << "/" << metaFileName); 
+
+  if ( this->ToolContainer.begin() == this->ToolContainer.end() )
+  {
+    LOG_ERROR("Failed to write tracker to metafile - there are no active tools!"); 
+    return PLUS_FAIL; 
+  }
+
+  // Get the number of items from buffers and use the lowest
+  int numberOfItems(-1); 
+  for ( ToolIteratorType it = this->ToolContainer.begin(); it != this->ToolContainer.end(); ++it)
+  {
+    if ( numberOfItems < 0 || numberOfItems > it->second->GetBuffer()->GetNumberOfItems() )
+    {
+      numberOfItems = it->second->GetBuffer()->GetNumberOfItems(); 
+    }
+  }
+
+  vtkSmartPointer<vtkTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New(); 
+
+  PlusStatus status=PLUS_SUCCESS;
+
+  // Get the first tool
+  vtkTrackerTool* firstActiveTool = this->ToolContainer.begin()->second; 
+
+  // Write calibration matrices into the trackedframelist
+  std::map<std::string, std::string> toolsCalibrationMatrices; 
+  if ( GetTrackerToolCalibrationMatrixStringList(toolsCalibrationMatrices) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to get tracker tool calibration matrix stringlist"); 
+    return PLUS_FAIL; 
+  }
+  for ( std::map<std::string, std::string>::iterator it = toolsCalibrationMatrices.begin(); it != toolsCalibrationMatrices.end(); it++ )
+  {
+    // Set tool calibration values 
+    trackedFrameList->SetCustomString(it->first.c_str(), it->second.c_str()); 
+  }
+
+  // Set default transform name
+  trackedFrameList->SetDefaultFrameTransformName(firstActiveTool->GetToolName()); 
+  for ( int i = 0 ; i < numberOfItems; i++ ) 
+  {
+    //Create fake image 
+    typedef itk::Image<unsigned char, 2> ImageType;
+    ImageType::Pointer frame = ImageType::New(); 
+    ImageType::SizeType size = {1, 1};
+    ImageType::IndexType start = {0,0};
+    ImageType::RegionType region;
+    region.SetSize(size);
+    region.SetIndex(start);
+    frame->SetRegions(region);
+
+    try
+    {
+      frame->Allocate();
+    }
+    catch (itk::ExceptionObject & err) 
+    {		
+      LOG_ERROR("Unable to allocate memory for image: " << err.GetDescription() );
+      status=PLUS_FAIL;
+      continue; 
+    }	
+
+    TrackedFrame trackedFrame; 
+    trackedFrame.GetImageData()->SetITKImageBase(frame);
+
+    TrackerBufferItem bufferItem; 
+    BufferItemUidType uid = firstActiveTool->GetBuffer()->GetOldestItemUidInBuffer() + i; 
+
+    if ( firstActiveTool->GetBuffer()->GetTrackerBufferItem(uid, &bufferItem, false) != ITEM_OK )
+    {
+      LOG_ERROR("Failed to get tracker buffer item with UID: " << uid ); 
+      continue; 
+    }
+
+    const double frameTimestamp = bufferItem.GetFilteredTimestamp(firstActiveTool->GetBuffer()->GetLocalTimeOffset()); 
+
+    // Add main tool timestamp
+    std::ostringstream timestampFieldValue; 
+    timestampFieldValue << std::fixed << frameTimestamp; 
+    trackedFrame.SetCustomFrameField("Timestamp", timestampFieldValue.str()); 
+
+    // Add main tool unfiltered timestamp
+    std::ostringstream unfilteredtimestampFieldValue; 
+    unfilteredtimestampFieldValue << std::fixed << bufferItem.GetUnfilteredTimestamp(firstActiveTool->GetBuffer()->GetLocalTimeOffset()); 
+    trackedFrame.SetCustomFrameField("UnfilteredTimestamp", unfilteredtimestampFieldValue.str()); 
+
+    // Add main tool frameNumber
+    std::ostringstream frameNumberFieldValue; 
+    frameNumberFieldValue << std::fixed << bufferItem.GetIndex(); 
+    trackedFrame.SetCustomFrameField("FrameNumber", frameNumberFieldValue.str()); 
+
+    // Add main tool status
+    trackedFrame.SetCustomFrameField("Status", vtkTracker::ConvertTrackerStatusToString(bufferItem.GetStatus()) ); 
+
+    // Add transforms
+    for ( ToolIteratorType it = this->ToolContainer.begin(); it != this->ToolContainer.end(); ++it)
+    {
+      TrackerBufferItem toolBufferItem; 
+      if ( it->second->GetBuffer()->GetTrackerBufferItemFromTime( frameTimestamp, &toolBufferItem, vtkTrackerBuffer::EXACT_TIME, false ) != ITEM_OK )
+      {
+        LOG_ERROR("Failed to get tracker buffer item from time: " << std::fixed << frameTimestamp ); 
+        continue; 
+      }
+
+      vtkSmartPointer<vtkMatrix4x4> toolMatrix=vtkSmartPointer<vtkMatrix4x4>::New();
+      if (toolBufferItem.GetMatrix(toolMatrix)!=PLUS_SUCCESS)
+      {
+        LOG_ERROR("Failed to get toolMatrix"); 
+        return PLUS_FAIL; 
+      }
+
+      trackedFrame.SetCustomFrameTransform(it->second->GetToolName(), toolMatrix ); 
+    }
+
+    // Add tracked frame to the list
+    trackedFrameList->AddTrackedFrame(&trackedFrame); 
+  }
+
+  // Save tracked frames to metafile
+  if ( trackedFrameList->SaveToSequenceMetafile(outputFolder, metaFileName, vtkTrackedFrameList::SEQ_METAFILE_MHA, useCompression) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to save tracked frames to sequence metafile!"); 
+    return PLUS_FAIL;
+  }
+
+  return status;
 }

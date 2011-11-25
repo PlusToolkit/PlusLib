@@ -689,7 +689,7 @@ PlusStatus vtkProbeCalibrationAlgo::WriteConfiguration(vtkXMLDataElement* aConfi
   //   videoTimeOffset = this->DataCollector->GetVideoSource()->GetBuffer()->GetLocalTimeOffset();
   // }
 
-  // vtkXMLDataElement* imageAcquisition = vtkPlusConfig::LookupElementWithNameContainingChildWithNameAndAttribute(aConfig, "USDataCollection", "ImageAcquisition", NULL, NULL);
+  // vtkXMLDataElement* imageAcquisition = vtkPlusConfig::LookupElementWithNameContainingChildWithNameAndAttribute(aConfig, "DataCollection", "ImageAcquisition", NULL, NULL);
   // imageAcquisition->SetDoubleAttribute("LocalTimeOffset", videoTimeOffset);
 
   //************* TODO: see assembla ticket plus #390
