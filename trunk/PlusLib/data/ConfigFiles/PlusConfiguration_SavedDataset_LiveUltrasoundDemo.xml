@@ -1,191 +1,191 @@
 <PlusConfiguration version="1.3">
 
-	<!-- DATA COLLECTION -->
-	<USDataCollection version="2.0" StartupDelaySec="1.0">
-		<DeviceSet 
-			Name="Saved dataset for both (fCal) - LiveUltrasoundDemo" 
-			Description="Configuration file for Saved dataset + fCal 1.0 - used in live ultrasound demo
+  <!-- DATA COLLECTION -->
+  <DataCollection version="2.0" StartupDelaySec="1.0">
+    <DeviceSet 
+      Name="Saved dataset for both (fCal) - LiveUltrasoundDemo" 
+      Description="Configuration file for Saved dataset + fCal 1.0 - used in live ultrasound demo
 The desired file name with path needs to be added to this XML file as values SequenceMetafile attributes" 
-			/>
+      />
 
-		<Tracker Type="SavedDataset" BufferSize="2500" Frequency="10" AveragedItemsForFiltering="20" LocalTimeOffset="0.0"
-		SequenceMetafile=""
-		ReplayEnabled="TRUE"
-		>
+    <Tracker Type="SavedDataset" BufferSize="2500" Frequency="10" AveragedItemsForFiltering="20" LocalTimeOffset="0.0"
+    SequenceMetafile=""
+    ReplayEnabled="TRUE"
+    >
 
-			<!-- PROBE -->
-			<Tool PortName="0" Type="Probe" Model="L14-5_38" Name="Probe" SendTo="127.0.0.1:1111">
-				<!-- Supported types are: Probe, Stylus, Needle, Reference -->
-				
-				<!-- ModelToToolTransform - transforming model into tool origin coordinate system for proper visualization ( Note2: All tools that are not phantoms should use ModelToToolTransform as the entity name) -->
-				<Model
-					File="L14-5_38_ProbeModel.stl"
-					ModelToToolTransform="
-						1 0 0 29.2
-						0 1 0 0
-						0 0 1 14.2
-						0 0 0 1"
-				/>
-									
-				<!-- Calibration transform -->
-				<Calibration
-					MatrixName="ImageToProbe" 
-					MatrixValue="
-						1 0 0 0
-						0 1 0 0
-						0 0 1 0
-						0 0 0 1"
-					Date="2011.07.28 21:42:34"
-					Error="0.0" />
-			</Tool>
-			
-			<!-- REFERENCE -->
-			<Tool Type="Reference" Name="PhantomReference" PortName="1" SendTo="127.0.0.1:1111">
-			</Tool>
+      <!-- PROBE -->
+      <Tool PortName="0" Type="Probe" Model="L14-5_38" Name="Probe" SendTo="127.0.0.1:1111">
+        <!-- Supported types are: Probe, Stylus, Needle, Reference -->
+        
+        <!-- ModelToToolTransform - transforming model into tool origin coordinate system for proper visualization ( Note2: All tools that are not phantoms should use ModelToToolTransform as the entity name) -->
+        <Model
+          File="L14-5_38_ProbeModel.stl"
+          ModelToToolTransform="
+            1 0 0 29.2
+            0 1 0 0
+            0 0 1 14.2
+            0 0 0 1"
+        />
+                  
+        <!-- Calibration transform -->
+        <Calibration
+          MatrixName="ImageToProbe" 
+          MatrixValue="
+            1 0 0 0
+            0 1 0 0
+            0 0 1 0
+            0 0 0 1"
+          Date="2011.07.28 21:42:34"
+          Error="0.0" />
+      </Tool>
+      
+      <!-- REFERENCE -->
+      <Tool Type="Reference" Name="PhantomReference" PortName="1" SendTo="127.0.0.1:1111">
+      </Tool>
 
-			<!-- STYLUS -->
-			<Tool PortName="2" Type="Stylus" Model="Example" Name="Stylus" SendTo="127.0.0.1:1112">
-				<!-- Supported types are: Probe, Stylus, Needle, Reference -->
-				
-				<!-- ModelToToolTransform - transforming model into tool origin coordinate system for proper visualization ( Note2: All tools that are not phantoms should use ModelToToolTransform as the entity name) -->
-				<Model
-					File="Stylus_Example.stl"
-					ModelToToolTransform="
-						1 0 0 -210.0
-						0 1 0 0
-						0 0 1 0
-						0 0 0 1"
-				/>
-				
-				<!-- Calibration transform -->
-				<Calibration
-					MatrixName="StylusTipToStylus" 
-					MatrixValue="
-						1 0 0 210.0474
-						0 1 0 -0.0521
-						0 0 1 -0.0000
-						0 0 0 1"
-					Date="2011.07.29 17:22:12"
-					Error="0.561812" /> 
-			</Tool>
+      <!-- STYLUS -->
+      <Tool PortName="2" Type="Stylus" Model="Example" Name="Stylus" SendTo="127.0.0.1:1112">
+        <!-- Supported types are: Probe, Stylus, Needle, Reference -->
+        
+        <!-- ModelToToolTransform - transforming model into tool origin coordinate system for proper visualization ( Note2: All tools that are not phantoms should use ModelToToolTransform as the entity name) -->
+        <Model
+          File="Stylus_Example.stl"
+          ModelToToolTransform="
+            1 0 0 -210.0
+            0 1 0 0
+            0 0 1 0
+            0 0 0 1"
+        />
+        
+        <!-- Calibration transform -->
+        <Calibration
+          MatrixName="StylusTipToStylus" 
+          MatrixValue="
+            1 0 0 210.0474
+            0 1 0 -0.0521
+            0 0 1 -0.0000
+            0 0 0 1"
+          Date="2011.07.29 17:22:12"
+          Error="0.561812" /> 
+      </Tool>
 
-		</Tracker>
+    </Tracker>
 
-		<ImageAcquisition Type="SavedDataset" 
-				BufferSize="200" 
-				FrameSize="820 616" 
-				FrameRate="10" 
-				AveragedItemsForFiltering="20" 
-				LocalTimeOffset="-0.1908" 
-				SequenceMetafile=""
-				UsImageOrientation="MF"
-				ReplayEnabled="TRUE"
-				/>
+    <ImageAcquisition Type="SavedDataset" 
+        BufferSize="200" 
+        FrameSize="820 616" 
+        FrameRate="10" 
+        AveragedItemsForFiltering="20" 
+        LocalTimeOffset="-0.1908" 
+        SequenceMetafile=""
+        UsImageOrientation="MF"
+        ReplayEnabled="TRUE"
+        />
 
-		<Synchronization Type="ChangeDetection" 
-				SynchronizationTimeLength="30" 
-				MinNumOfSyncSteps="5" 
-				ThresholdMultiplier="5"
+    <Synchronization Type="ChangeDetection" 
+        SynchronizationTimeLength="30" 
+        MinNumOfSyncSteps="5" 
+        ThresholdMultiplier="5"
 
-				NumberOfAveragedTransforms="20" 
-				MinTransformThreshold="2.0" 
-				MaxTransformDifference="2.0" 
+        NumberOfAveragedTransforms="20" 
+        MinTransformThreshold="2.0" 
+        MaxTransformDifference="2.0" 
 
-				NumberOfAveragedFrames="6" 
-				MinFrameThreshold="200.0" 
-				MaxFrameDifference="10.0" 
-				/>
-	</USDataCollection>
+        NumberOfAveragedFrames="6" 
+        MinFrameThreshold="200.0" 
+        MaxFrameDifference="10.0" 
+        />
+  </DataCollection>
 
-	<!-- CALIBRATION -->
-	<USCalibration>
-		<CalibrationController>
-			<ProbeCalibration />
-			
-			<SegmentationParameters
-					ApproximateSpacingMmPerPixel="0.078"
-					MorphologicalOpeningCircleRadiusMm="0.47"
-					MorphologicalOpeningBarSizeMm="1.0"
+  <!-- CALIBRATION -->
+  <USCalibration>
+    <CalibrationController>
+      <ProbeCalibration />
+      
+      <SegmentationParameters
+          ApproximateSpacingMmPerPixel="0.078"
+          MorphologicalOpeningCircleRadiusMm="0.47"
+          MorphologicalOpeningBarSizeMm="1.0"
 
-					RegionOfInterest="27 27 793 589"
+          RegionOfInterest="27 27 793 589"
 
-					MaxLinePairDistanceErrorPercent="10.0"
+          MaxLinePairDistanceErrorPercent="10.0"
 
-					MaxAngleDifferenceDegrees="11"
-					MinThetaDegrees="-70"
-					MaxThetaDegrees="70"
-					
-					AngleToleranceDegrees="10"
+          MaxAngleDifferenceDegrees="11"
+          MinThetaDegrees="-70"
+          MaxThetaDegrees="70"
+          
+          AngleToleranceDegrees="10"
 
-					ThresholdImagePercent="10.0"
+          ThresholdImagePercent="10.0"
 
-					CollinearPointsMaxDistanceFromLineMm="0.41"
+          CollinearPointsMaxDistanceFromLineMm="0.41"
 
-					UseOriginalImageIntensityForDotIntensityScore="0"
-					>
-			</SegmentationParameters>
-		</CalibrationController>
-	</USCalibration>
-	
-	<!-- PHANTOM -->
-	<PhantomDefinition version="1.1">
-		<!-- Supported types are: Double-N, U-Shaped-N -->
-		<Description
-			Name="fCAL"
-			Type="Double-N"
-			Version="1.0"
-			Institution="Queen's University PerkLab"
-		/>
-		
-		<!-- ModelToPhantomTransform - transforming model into phantom coordinate system for proper visualization -->
-		<Model
-			File="FCal_1.0.stl"
-			ModelToPhantomTransform="
-				1 0 0 -15.0
-				0 1 0 10.0
-				0 0 1 -5.0
-				0 0 0 1"
-		/>
+          UseOriginalImageIntensityForDotIntensityScore="0"
+          >
+      </SegmentationParameters>
+    </CalibrationController>
+  </USCalibration>
+  
+  <!-- PHANTOM -->
+  <PhantomDefinition version="1.1">
+    <!-- Supported types are: Double-N, U-Shaped-N -->
+    <Description
+      Name="fCAL"
+      Type="Double-N"
+      Version="1.0"
+      Institution="Queen's University PerkLab"
+    />
+    
+    <!-- ModelToPhantomTransform - transforming model into phantom coordinate system for proper visualization -->
+    <Model
+      File="FCal_1.0.stl"
+      ModelToPhantomTransform="
+        1 0 0 -15.0
+        0 1 0 10.0
+        0 0 1 -5.0
+        0 0 0 1"
+    />
 
-		<Geometry>
-			<!-- N wire definitions -->
-			<Pattern Type="NWire">
-				<Wire Name="1:E3_e3" EndPointFront="20.0 0.0 5.0" EndPointBack="20.0 40.0 5.0" />
-				<Wire Name="2:F3_j3" EndPointFront="25.0 0.0 5.0" EndPointBack="45.0 40.0 5.0" />
-				<Wire Name="3:K3_k3" EndPointFront="50.0 0.0 5.0" EndPointBack="50.0 40.0 5.0" />
-			</Pattern>
-			<Pattern Type="NWire">
-				<Wire Name="4:E4_e4" EndPointFront="20.0 0.0 0.0" EndPointBack="20.0 40.0 0.0" />
-				<Wire Name="5:J4_f4" EndPointFront="45.0 0.0 0.0" EndPointBack="25.0 40.0 0.0" />
-				<Wire Name="6:K4_k4" EndPointFront="50.0 0.0 0.0" EndPointBack="50.0 40.0 0.0" />
-			</Pattern>
+    <Geometry>
+      <!-- N wire definitions -->
+      <Pattern Type="NWire">
+        <Wire Name="1:E3_e3" EndPointFront="20.0 0.0 5.0" EndPointBack="20.0 40.0 5.0" />
+        <Wire Name="2:F3_j3" EndPointFront="25.0 0.0 5.0" EndPointBack="45.0 40.0 5.0" />
+        <Wire Name="3:K3_k3" EndPointFront="50.0 0.0 5.0" EndPointBack="50.0 40.0 5.0" />
+      </Pattern>
+      <Pattern Type="NWire">
+        <Wire Name="4:E4_e4" EndPointFront="20.0 0.0 0.0" EndPointBack="20.0 40.0 0.0" />
+        <Wire Name="5:J4_f4" EndPointFront="45.0 0.0 0.0" EndPointBack="25.0 40.0 0.0" />
+        <Wire Name="6:K4_k4" EndPointFront="50.0 0.0 0.0" EndPointBack="50.0 40.0 0.0" />
+      </Pattern>
 
-			<!-- Landmark list for registration -->
-			<Landmarks>
-				<Landmark Name="#1" Position="95.0 5.0 15.0" />
-				<Landmark Name="#2" Position="95.0 40.0 15.0" />
-				<Landmark Name="#3" Position="95.0 40.0 0.0" />
-				<Landmark Name="#4" Position="95.0 0.0 0.0" />
-				
-				<Landmark Name="#5" Position="-25.0 40.0 15.0" />
-				<Landmark Name="#6" Position="-25.0 0.0 10.0" />
-				<Landmark Name="#7" Position="-25.0 0.0 0.0" />
-				<Landmark Name="#8" Position="-25.0 40.0 0.0" />
-			</Landmarks>
-			
-			<Registration
-				MatrixName="PhantomToPhantomReference" 
-				MatrixValue="
-					0.9968 0.0075 -0.0795 -35.6089
-					0.0794 0.0055 0.9968 -124.9852
-					0.0079 -1.0000 0.0049 -16.7
-					0 0 0 1" 
-				Date="2011.07.20 15:09:35"
-				Error="-1.0" />
-		</Geometry>
-	</PhantomDefinition>
+      <!-- Landmark list for registration -->
+      <Landmarks>
+        <Landmark Name="#1" Position="95.0 5.0 15.0" />
+        <Landmark Name="#2" Position="95.0 40.0 15.0" />
+        <Landmark Name="#3" Position="95.0 40.0 0.0" />
+        <Landmark Name="#4" Position="95.0 0.0 0.0" />
+        
+        <Landmark Name="#5" Position="-25.0 40.0 15.0" />
+        <Landmark Name="#6" Position="-25.0 0.0 10.0" />
+        <Landmark Name="#7" Position="-25.0 0.0 0.0" />
+        <Landmark Name="#8" Position="-25.0 40.0 0.0" />
+      </Landmarks>
+      
+      <Registration
+        MatrixName="PhantomToPhantomReference" 
+        MatrixValue="
+          0.9968 0.0075 -0.0795 -35.6089
+          0.0794 0.0055 0.9968 -124.9852
+          0.0079 -1.0000 0.0049 -16.7
+          0 0 0 1" 
+        Date="2011.07.20 15:09:35"
+        Error="-1.0" />
+    </Geometry>
+  </PhantomDefinition>
 
-	<!-- VOLUME RECONSTRUCTION -->
+  <!-- VOLUME RECONSTRUCTION -->
   <VolumeReconstruction OutputSpacing="0.5 0.5 0.5"
                         ClipRectangleOrigin="0 0" ClipRectangleSize="820 616"
                         Interpolation="LINEAR" Optimization="FULL" Compounding="On" FillHoles="Off"/>

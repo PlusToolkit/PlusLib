@@ -482,7 +482,7 @@ PlusStatus vtkSonixPortaVideoSource::ReadConfiguration(vtkXMLDataElement* config
 
   Superclass::ReadConfiguration(config); 
 
-  vtkXMLDataElement* dataCollectionConfig = config->FindNestedElementWithName("USDataCollection");
+  vtkXMLDataElement* dataCollectionConfig = config->FindNestedElementWithName("DataCollection");
   if (dataCollectionConfig == NULL)
   {
     LOG_ERROR("Cannot find USDataCollection element in XML tree!");

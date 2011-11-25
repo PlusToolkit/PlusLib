@@ -251,8 +251,7 @@ vtkOpenIGTLinkBroadcaster::Status vtkOpenIGTLinkBroadcaster::SendMessages( std::
     trackedFrame.GetCustomFrameTransform( toolName, n );
     
     
-    if (    this->ApplyStylusCalibration
-         && strcmp( toolName, "Stylus" ) == 0 )
+    if ( this->ApplyStylusCalibration && strcmp( toolName, "Stylus" ) == 0 )
     {
       trackedFrameCalibrated.GetCustomFrameTransform( toolName, transform );
     }
@@ -260,10 +259,13 @@ vtkOpenIGTLinkBroadcaster::Status vtkOpenIGTLinkBroadcaster::SendMessages( std::
     {
       trackedFrame.GetCustomFrameTransform( toolName, transform );
     }
-    
-    TrackerStatus status = trackedFrame.GetStatus();
 
-    if ( status != TR_OK )
+
+    TrackerStatus status = TR_MISSING;
+    std::string toolStatusFrameFieldName = std::string(toolPortName) + "Status";
+    status = TrackedFrame::GetStatusFromString( trackedFrame.GetCustomFrameField( toolStatusFrameFieldName.c_str() ) );
+
+		if ( status != TR_OK )
     {
       LOG_INFO( "Tracking data invalid for tool: " << toolPortName );
       continue;
@@ -307,8 +309,10 @@ vtkOpenIGTLinkBroadcaster::Status vtkOpenIGTLinkBroadcaster::SendMessages( std::
 
   // If we should broadcast the image slice too, set up the image container.
 
-  if (    this->DataCollector->GetVideoSource() != NULL
-    && this->DataCollector->GetAcquisitionType() != SYNCHRO_VIDEO_NONE )
+  vtkDataCollectorHardwareDevice* dataCollectorHardwareDevice = dynamic_cast<vtkDataCollectorHardwareDevice*>(this->DataCollector);
+  if ( dataCollectorHardwareDevice != NULL
+    && dataCollectorHardwareDevice->GetVideoSource() != NULL
+    && dataCollectorHardwareDevice->GetAcquisitionType() != SYNCHRO_VIDEO_NONE )
   {
     this->SendImageMessage( &trackedFrame, strError );
   }
@@ -346,12 +350,28 @@ void vtkOpenIGTLinkBroadcaster::SendImageMessage( TrackedFrame* trackedFrame, st
   // PlusStatus pStatus = this->DataCollector->GetTrackedFrame( frameImage, mProbeToReference, status, timestamp, defaultTool, true );
 
   vtkImageData* frameImage = trackedFrame->GetImageData()->GetVtkImage();
-  TrackerStatus status = trackedFrame->GetStatus();
 
-  if ( status != TR_OK )
+  bool allToolStatusesInvalid = true;
+  for (std::vector< IgtToolInfo >::iterator it = this->NonReferenceToolInfos.begin(); it != this->NonReferenceToolInfos.end(); ++it)
   {
-    LOG_INFO( "Tracked frame status not OK." );
-    this->InternalStatus = STATUS_MISSING_TRACKED_FRAME;
+    TrackerStatus status = TR_MISSING;
+    std::string toolStatusFrameFieldName = it->ToolName + "Status";
+    status = TrackedFrame::GetStatusFromString( trackedFrame->GetCustomFrameField( toolStatusFrameFieldName.c_str() ) );
+
+    if ( status != TR_OK )
+    {
+      LOG_INFO( "Tracking data invalid for tool: " << it->ToolName );
+    }
+    else
+    {
+      allToolStatusesInvalid = false;
+    }
+  }
+
+  if (allToolStatusesInvalid)
+  {
+    LOG_INFO("All tool statuses are invalid!");
+    this->InternalStatus = STATUS_MISSING_DEFAULT_TOOL;
     return;
   }
 

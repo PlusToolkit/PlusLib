@@ -1,7 +1,7 @@
 <PlusConfiguration version="1.3">
 
   <!-- DATA COLLECTION -->
-  <USDataCollection version="2.0" StartupDelaySec="1.0">
+  <DataCollection version="2.0" StartupDelaySec="1.0">
     
     <DeviceSet 
     Name="SonixTouch MicronTracker L14-5 + Reference + Stylus"
@@ -109,7 +109,7 @@
       MaxFrameDifference="10.0" 
     />
     
-  </USDataCollection>
+  </DataCollection>
 
 
   <!-- CALIBRATION -->
@@ -165,16 +165,16 @@
 
     <Geometry>
       <!-- N wire definitions -->
-			<Pattern Type="NWire">
-				<Wire Name="1:E3_e3" EndPointFront="20.0 0.0 5.0" EndPointBack="20.0 40.0 5.0" />
-				<Wire Name="2:F3_j3" EndPointFront="25.0 0.0 5.0" EndPointBack="45.0 40.0 5.0" />
-				<Wire Name="3:K3_k3" EndPointFront="50.0 0.0 5.0" EndPointBack="50.0 40.0 5.0" />
-			</Pattern>
-			<Pattern Type="NWire">
-				<Wire Name="4:E4_e4" EndPointFront="20.0 0.0 0.0" EndPointBack="20.0 40.0 0.0" />
-				<Wire Name="5:J4_f4" EndPointFront="45.0 0.0 0.0" EndPointBack="25.0 40.0 0.0" />
-				<Wire Name="6:K4_k4" EndPointFront="50.0 0.0 0.0" EndPointBack="50.0 40.0 0.0" />
-			</Pattern>
+      <Pattern Type="NWire">
+        <Wire Name="1:E3_e3" EndPointFront="20.0 0.0 5.0" EndPointBack="20.0 40.0 5.0" />
+        <Wire Name="2:F3_j3" EndPointFront="25.0 0.0 5.0" EndPointBack="45.0 40.0 5.0" />
+        <Wire Name="3:K3_k3" EndPointFront="50.0 0.0 5.0" EndPointBack="50.0 40.0 5.0" />
+      </Pattern>
+      <Pattern Type="NWire">
+        <Wire Name="4:E4_e4" EndPointFront="20.0 0.0 0.0" EndPointBack="20.0 40.0 0.0" />
+        <Wire Name="5:J4_f4" EndPointFront="45.0 0.0 0.0" EndPointBack="25.0 40.0 0.0" />
+        <Wire Name="6:K4_k4" EndPointFront="50.0 0.0 0.0" EndPointBack="50.0 40.0 0.0" />
+      </Pattern>
 
       <!-- Landmark list for registration -->
       <Landmarks>

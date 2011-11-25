@@ -329,7 +329,7 @@ PlusStatus vtkBrachyTracker::ReadConfiguration(vtkXMLDataElement* config)
     return PLUS_FAIL; 
   }
 
-	vtkXMLDataElement* dataCollectionConfig = config->FindNestedElementWithName("USDataCollection");
+	vtkXMLDataElement* dataCollectionConfig = config->FindNestedElementWithName("DataCollection");
 	if (dataCollectionConfig == NULL)
   {
     LOG_ERROR("Cannot find USDataCollection element in XML tree!");
@@ -503,7 +503,7 @@ PlusStatus vtkBrachyTracker::WriteConfiguration(vtkXMLDataElement* rootConfigEle
   }
 
   // Get data collection and then Tracker configuration element
-	vtkXMLDataElement* dataCollectionConfig = rootConfigElement->FindNestedElementWithName("USDataCollection");
+	vtkXMLDataElement* dataCollectionConfig = rootConfigElement->FindNestedElementWithName("DataCollection");
 	if (dataCollectionConfig == NULL)
   {
     LOG_ERROR("Cannot find USDataCollection element in XML tree!");

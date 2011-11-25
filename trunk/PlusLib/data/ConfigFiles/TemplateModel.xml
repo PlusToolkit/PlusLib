@@ -3,221 +3,221 @@
                                      0 1 0 63.5
                                      0 0 1 0
                                      0 0 0 1" >
-	<TemplateHole Representation="Sphere" Radius="0.2"/>
-	<!--TemplateHole Representation="Disk" Radius="0.6"/-->
-	<OriginFromTemplateHolder OriginX="5" OriginY="63.5" />
+  <TemplateHole Representation="Sphere" Radius="0.2"/>
+  <!--TemplateHole Representation="Disk" Radius="0.6"/-->
+  <OriginFromTemplateHolder OriginX="5" OriginY="63.5" />
   
   <LetterPositions>
-		<Letter ID="A" PositionXYZ="0  -5 0" Type="Char"/>
-		<Letter ID="a" PositionXYZ="5  -5 0" Type="Char"/>
-		<Letter ID="B" PositionXYZ="10 -5 0" Type="Char"/>
-		<Letter ID="b" PositionXYZ="15 -5 0" Type="Char"/>
-		<Letter ID="C" PositionXYZ="20 -5 0" Type="Char"/>
-		<Letter ID="c" PositionXYZ="25 -5 0" Type="Char"/>
-		<Letter ID="D" PositionXYZ="30 -5 0" Type="Char"/>
-		<Letter ID="d" PositionXYZ="35 -5 0" Type="Char"/>
-		<Letter ID="E" PositionXYZ="40 -5 0" Type="Char"/>
-		<Letter ID="e" PositionXYZ="45 -5 0" Type="Char"/>
-		<Letter ID="F" PositionXYZ="50 -5 0" Type="Char"/>
-		<Letter ID="f" PositionXYZ="55 -5 0" Type="Char"/>
-		<Letter ID="G" PositionXYZ="60 -5 0" Type="Char"/>
-		
-		<Letter ID="7"   PositionXYZ="-7 0  0" Type="Num"/>
-		<Letter ID="6.5" PositionXYZ="-7 5  0" Type="Num"/>
-		<Letter ID="6"   PositionXYZ="-7 10 0" Type="Num"/>
-		<Letter ID="5.5" PositionXYZ="-7 15 0" Type="Num"/>
-		<Letter ID="5"   PositionXYZ="-7 20 0" Type="Num"/>
-		<Letter ID="4.5" PositionXYZ="-7 25 0" Type="Num"/>
-		<Letter ID="4"   PositionXYZ="-7 30 0" Type="Num"/>
-		<Letter ID="3.5" PositionXYZ="-7 35 0" Type="Num"/>
-		<Letter ID="3"   PositionXYZ="-7 40 0" Type="Num"/>
-		<Letter ID="2.5" PositionXYZ="-7 45 0" Type="Num"/>
-		<Letter ID="2"   PositionXYZ="-7 50 0" Type="Num"/>
-		<Letter ID="1.5" PositionXYZ="-7 55 0" Type="Num"/>
-		<Letter ID="1"   PositionXYZ="-7 60 0" Type="Num"/>
-	</LetterPositions>                
+    <Letter ID="A" PositionXYZ="0  -5 0" Type="Char"/>
+    <Letter ID="a" PositionXYZ="5  -5 0" Type="Char"/>
+    <Letter ID="B" PositionXYZ="10 -5 0" Type="Char"/>
+    <Letter ID="b" PositionXYZ="15 -5 0" Type="Char"/>
+    <Letter ID="C" PositionXYZ="20 -5 0" Type="Char"/>
+    <Letter ID="c" PositionXYZ="25 -5 0" Type="Char"/>
+    <Letter ID="D" PositionXYZ="30 -5 0" Type="Char"/>
+    <Letter ID="d" PositionXYZ="35 -5 0" Type="Char"/>
+    <Letter ID="E" PositionXYZ="40 -5 0" Type="Char"/>
+    <Letter ID="e" PositionXYZ="45 -5 0" Type="Char"/>
+    <Letter ID="F" PositionXYZ="50 -5 0" Type="Char"/>
+    <Letter ID="f" PositionXYZ="55 -5 0" Type="Char"/>
+    <Letter ID="G" PositionXYZ="60 -5 0" Type="Char"/>
+    
+    <Letter ID="7"   PositionXYZ="-7 0  0" Type="Num"/>
+    <Letter ID="6.5" PositionXYZ="-7 5  0" Type="Num"/>
+    <Letter ID="6"   PositionXYZ="-7 10 0" Type="Num"/>
+    <Letter ID="5.5" PositionXYZ="-7 15 0" Type="Num"/>
+    <Letter ID="5"   PositionXYZ="-7 20 0" Type="Num"/>
+    <Letter ID="4.5" PositionXYZ="-7 25 0" Type="Num"/>
+    <Letter ID="4"   PositionXYZ="-7 30 0" Type="Num"/>
+    <Letter ID="3.5" PositionXYZ="-7 35 0" Type="Num"/>
+    <Letter ID="3"   PositionXYZ="-7 40 0" Type="Num"/>
+    <Letter ID="2.5" PositionXYZ="-7 45 0" Type="Num"/>
+    <Letter ID="2"   PositionXYZ="-7 50 0" Type="Num"/>
+    <Letter ID="1.5" PositionXYZ="-7 55 0" Type="Num"/>
+    <Letter ID="1"   PositionXYZ="-7 60 0" Type="Num"/>
+  </LetterPositions>                
 
-	<HolePositions>
-		<Hole ID="A7" PositionXYZ="0  0 0"/>
-		<Hole ID="a7" PositionXYZ="5  0 0"/>
-		<Hole ID="B7" PositionXYZ="10 0 0"/>
-		<Hole ID="b7" PositionXYZ="15 0 0"/>
-		<Hole ID="C7" PositionXYZ="20 0 0"/>
-		<Hole ID="c7" PositionXYZ="25 0 0"/>
-		<Hole ID="D7" PositionXYZ="30 0 0"/>
-		<Hole ID="d7" PositionXYZ="35 0 0"/>
-		<Hole ID="E7" PositionXYZ="40 0 0"/>
-		<Hole ID="e7" PositionXYZ="45 0 0"/>
-		<Hole ID="F7" PositionXYZ="50 0 0"/>
-		<Hole ID="f7" PositionXYZ="55 0 0"/>
-		<Hole ID="G7" PositionXYZ="60 0 0"/>
-		
-		<Hole ID="A6.5" PositionXYZ="0  5 0"/>
-		<Hole ID="a6.5" PositionXYZ="5  5 0"/>
-		<Hole ID="B6.5" PositionXYZ="10 5 0"/>
-		<Hole ID="b6.5" PositionXYZ="15 5 0"/>
-		<Hole ID="C6.5" PositionXYZ="20 5 0"/>
-		<Hole ID="c6.5" PositionXYZ="25 5 0"/>
-		<Hole ID="D6.5" PositionXYZ="30 5 0"/>
-		<Hole ID="d6.5" PositionXYZ="35 5 0"/>
-		<Hole ID="E6.5" PositionXYZ="40 5 0"/>
-		<Hole ID="e6.5" PositionXYZ="45 5 0"/>
-		<Hole ID="F6.5" PositionXYZ="50 5 0"/>
-		<Hole ID="f6.5" PositionXYZ="55 5 0"/>
-		<Hole ID="G6.5" PositionXYZ="60 5 0"/>
-		
-		<Hole ID="A6" PositionXYZ="0  10 0"/>
-		<Hole ID="a6" PositionXYZ="5  10 0"/>
-		<Hole ID="B6" PositionXYZ="10 10 0"/>
-		<Hole ID="b6" PositionXYZ="15 10 0"/>
-		<Hole ID="C6" PositionXYZ="20 10 0"/>
-		<Hole ID="c6" PositionXYZ="25 10 0"/>
-		<Hole ID="D6" PositionXYZ="30 10 0"/>
-		<Hole ID="d6" PositionXYZ="35 10 0"/>
-		<Hole ID="E6" PositionXYZ="40 10 0"/>
-		<Hole ID="e6" PositionXYZ="45 10 0"/>
-		<Hole ID="F6" PositionXYZ="50 10 0"/>
-		<Hole ID="f6" PositionXYZ="55 10 0"/>
-		<Hole ID="G6" PositionXYZ="60 10 0"/>
+  <HolePositions>
+    <Hole ID="A7" PositionXYZ="0  0 0"/>
+    <Hole ID="a7" PositionXYZ="5  0 0"/>
+    <Hole ID="B7" PositionXYZ="10 0 0"/>
+    <Hole ID="b7" PositionXYZ="15 0 0"/>
+    <Hole ID="C7" PositionXYZ="20 0 0"/>
+    <Hole ID="c7" PositionXYZ="25 0 0"/>
+    <Hole ID="D7" PositionXYZ="30 0 0"/>
+    <Hole ID="d7" PositionXYZ="35 0 0"/>
+    <Hole ID="E7" PositionXYZ="40 0 0"/>
+    <Hole ID="e7" PositionXYZ="45 0 0"/>
+    <Hole ID="F7" PositionXYZ="50 0 0"/>
+    <Hole ID="f7" PositionXYZ="55 0 0"/>
+    <Hole ID="G7" PositionXYZ="60 0 0"/>
+    
+    <Hole ID="A6.5" PositionXYZ="0  5 0"/>
+    <Hole ID="a6.5" PositionXYZ="5  5 0"/>
+    <Hole ID="B6.5" PositionXYZ="10 5 0"/>
+    <Hole ID="b6.5" PositionXYZ="15 5 0"/>
+    <Hole ID="C6.5" PositionXYZ="20 5 0"/>
+    <Hole ID="c6.5" PositionXYZ="25 5 0"/>
+    <Hole ID="D6.5" PositionXYZ="30 5 0"/>
+    <Hole ID="d6.5" PositionXYZ="35 5 0"/>
+    <Hole ID="E6.5" PositionXYZ="40 5 0"/>
+    <Hole ID="e6.5" PositionXYZ="45 5 0"/>
+    <Hole ID="F6.5" PositionXYZ="50 5 0"/>
+    <Hole ID="f6.5" PositionXYZ="55 5 0"/>
+    <Hole ID="G6.5" PositionXYZ="60 5 0"/>
+    
+    <Hole ID="A6" PositionXYZ="0  10 0"/>
+    <Hole ID="a6" PositionXYZ="5  10 0"/>
+    <Hole ID="B6" PositionXYZ="10 10 0"/>
+    <Hole ID="b6" PositionXYZ="15 10 0"/>
+    <Hole ID="C6" PositionXYZ="20 10 0"/>
+    <Hole ID="c6" PositionXYZ="25 10 0"/>
+    <Hole ID="D6" PositionXYZ="30 10 0"/>
+    <Hole ID="d6" PositionXYZ="35 10 0"/>
+    <Hole ID="E6" PositionXYZ="40 10 0"/>
+    <Hole ID="e6" PositionXYZ="45 10 0"/>
+    <Hole ID="F6" PositionXYZ="50 10 0"/>
+    <Hole ID="f6" PositionXYZ="55 10 0"/>
+    <Hole ID="G6" PositionXYZ="60 10 0"/>
 
-		<Hole ID="A5.5" PositionXYZ="0  15 0"/>
-		<Hole ID="a5.5" PositionXYZ="5  15 0"/>
-		<Hole ID="B5.5" PositionXYZ="10 15 0"/>
-		<Hole ID="b5.5" PositionXYZ="15 15 0"/>
-		<Hole ID="C5.5" PositionXYZ="20 15 0"/>
-		<Hole ID="c5.5" PositionXYZ="25 15 0"/>
-		<Hole ID="D5.5" PositionXYZ="30 15 0"/>
-		<Hole ID="d5.5" PositionXYZ="35 15 0"/>
-		<Hole ID="E5.5" PositionXYZ="40 15 0"/>
-		<Hole ID="e5.5" PositionXYZ="45 15 0"/>
-		<Hole ID="F5.5" PositionXYZ="50 15 0"/>
-		<Hole ID="f5.5" PositionXYZ="55 15 0"/>
-		<Hole ID="G5.5" PositionXYZ="60 15 0"/>
+    <Hole ID="A5.5" PositionXYZ="0  15 0"/>
+    <Hole ID="a5.5" PositionXYZ="5  15 0"/>
+    <Hole ID="B5.5" PositionXYZ="10 15 0"/>
+    <Hole ID="b5.5" PositionXYZ="15 15 0"/>
+    <Hole ID="C5.5" PositionXYZ="20 15 0"/>
+    <Hole ID="c5.5" PositionXYZ="25 15 0"/>
+    <Hole ID="D5.5" PositionXYZ="30 15 0"/>
+    <Hole ID="d5.5" PositionXYZ="35 15 0"/>
+    <Hole ID="E5.5" PositionXYZ="40 15 0"/>
+    <Hole ID="e5.5" PositionXYZ="45 15 0"/>
+    <Hole ID="F5.5" PositionXYZ="50 15 0"/>
+    <Hole ID="f5.5" PositionXYZ="55 15 0"/>
+    <Hole ID="G5.5" PositionXYZ="60 15 0"/>
 
-		<Hole ID="A5" PositionXYZ="0  20 0"/>
-		<Hole ID="a5" PositionXYZ="5  20 0"/>
-		<Hole ID="B5" PositionXYZ="10 20 0"/>
-		<Hole ID="b5" PositionXYZ="15 20 0"/>
-		<Hole ID="C5" PositionXYZ="20 20 0"/>
-		<Hole ID="c5" PositionXYZ="25 20 0"/>
-		<Hole ID="D5" PositionXYZ="30 20 0"/>
-		<Hole ID="d5" PositionXYZ="35 20 0"/>
-		<Hole ID="E5" PositionXYZ="40 20 0"/>
-		<Hole ID="e5" PositionXYZ="45 20 0"/>
-		<Hole ID="F5" PositionXYZ="50 20 0"/>
-		<Hole ID="f5" PositionXYZ="55 20 0"/>
-		<Hole ID="G5" PositionXYZ="60 20 0"/>
+    <Hole ID="A5" PositionXYZ="0  20 0"/>
+    <Hole ID="a5" PositionXYZ="5  20 0"/>
+    <Hole ID="B5" PositionXYZ="10 20 0"/>
+    <Hole ID="b5" PositionXYZ="15 20 0"/>
+    <Hole ID="C5" PositionXYZ="20 20 0"/>
+    <Hole ID="c5" PositionXYZ="25 20 0"/>
+    <Hole ID="D5" PositionXYZ="30 20 0"/>
+    <Hole ID="d5" PositionXYZ="35 20 0"/>
+    <Hole ID="E5" PositionXYZ="40 20 0"/>
+    <Hole ID="e5" PositionXYZ="45 20 0"/>
+    <Hole ID="F5" PositionXYZ="50 20 0"/>
+    <Hole ID="f5" PositionXYZ="55 20 0"/>
+    <Hole ID="G5" PositionXYZ="60 20 0"/>
 
-		<Hole ID="A4.5" PositionXYZ="0  25 0"/>
-		<Hole ID="a4.5" PositionXYZ="5  25 0"/>
-		<Hole ID="B4.5" PositionXYZ="10 25 0"/>
-		<Hole ID="b4.5" PositionXYZ="15 25 0"/>
-		<Hole ID="C4.5" PositionXYZ="20 25 0"/>
-		<Hole ID="c4.5" PositionXYZ="25 25 0"/>
-		<Hole ID="D4.5" PositionXYZ="30 25 0"/>
-		<Hole ID="d4.5" PositionXYZ="35 25 0"/>
-		<Hole ID="E4.5" PositionXYZ="40 25 0"/>
-		<Hole ID="e4.5" PositionXYZ="45 25 0"/>
-		<Hole ID="F4.5" PositionXYZ="50 25 0"/>
-		<Hole ID="f4.5" PositionXYZ="55 25 0"/>
-		<Hole ID="G4.5" PositionXYZ="60 25 0"/>
-		
-		<Hole ID="A4" PositionXYZ="0  30 0"/>
-		<Hole ID="a4" PositionXYZ="5  30 0"/>
-		<Hole ID="B4" PositionXYZ="10 30 0"/>
-		<Hole ID="b4" PositionXYZ="15 30 0"/>
-		<Hole ID="C4" PositionXYZ="20 30 0"/>
-		<Hole ID="c4" PositionXYZ="25 30 0"/>
-		<Hole ID="D4" PositionXYZ="30 30 0"/>
-		<Hole ID="d4" PositionXYZ="35 30 0"/>
-		<Hole ID="E4" PositionXYZ="40 30 0"/>
-		<Hole ID="e4" PositionXYZ="45 30 0"/>
-		<Hole ID="F4" PositionXYZ="50 30 0"/>
-		<Hole ID="f4" PositionXYZ="55 30 0"/>
-		<Hole ID="G4" PositionXYZ="60 30 0"/>
-		
-		<Hole ID="A3.5" PositionXYZ="0  35 0"/>
-		<Hole ID="a3.5" PositionXYZ="5  35 0"/>
-		<Hole ID="B3.5" PositionXYZ="10 35 0"/>
-		<Hole ID="b3.5" PositionXYZ="15 35 0"/>
-		<Hole ID="C3.5" PositionXYZ="20 35 0"/>
-		<Hole ID="c3.5" PositionXYZ="25 35 0"/>
-		<Hole ID="D3.5" PositionXYZ="30 35 0"/>
-		<Hole ID="d3.5" PositionXYZ="35 35 0"/>
-		<Hole ID="E3.5" PositionXYZ="40 35 0"/>
-		<Hole ID="e3.5" PositionXYZ="45 35 0"/>
-		<Hole ID="F3.5" PositionXYZ="50 35 0"/>
-		<Hole ID="f3.5" PositionXYZ="55 35 0"/>
-		<Hole ID="G3.5" PositionXYZ="60 35 0"/>
-		
-		<Hole ID="A3" PositionXYZ="0  40 0"/>
-		<Hole ID="a3" PositionXYZ="5  40 0"/>
-		<Hole ID="B3" PositionXYZ="10 40 0"/>
-		<Hole ID="b3" PositionXYZ="15 40 0"/>
-		<Hole ID="C3" PositionXYZ="20 40 0"/>
-		<Hole ID="c3" PositionXYZ="25 40 0"/>
-		<Hole ID="D3" PositionXYZ="30 40 0"/>
-		<Hole ID="d3" PositionXYZ="35 40 0"/>
-		<Hole ID="E3" PositionXYZ="40 40 0"/>
-		<Hole ID="e3" PositionXYZ="45 40 0"/>
-		<Hole ID="F3" PositionXYZ="50 40 0"/>
-		<Hole ID="f3" PositionXYZ="55 40 0"/>
-		<Hole ID="G3" PositionXYZ="60 40 0"/>
-		
-		<Hole ID="A2.5" PositionXYZ="0  45 0"/>
-		<Hole ID="a2.5" PositionXYZ="5  45 0"/>
-		<Hole ID="B2.5" PositionXYZ="10 45 0"/>
-		<Hole ID="b2.5" PositionXYZ="15 45 0"/>
-		<Hole ID="C2.5" PositionXYZ="20 45 0"/>
-		<Hole ID="c2.5" PositionXYZ="25 45 0"/>
-		<Hole ID="D2.5" PositionXYZ="30 45 0"/>
-		<Hole ID="d2.5" PositionXYZ="35 45 0"/>
-		<Hole ID="E2.5" PositionXYZ="40 45 0"/>
-		<Hole ID="e2.5" PositionXYZ="45 45 0"/>
-		<Hole ID="F2.5" PositionXYZ="50 45 0"/>
-		<Hole ID="f2.5" PositionXYZ="55 45 0"/>
-		<Hole ID="G2.5" PositionXYZ="60 45 0"/>
-		
-		<Hole ID="A2" PositionXYZ="0  50 0"/>
-		<Hole ID="a2" PositionXYZ="5  50 0"/>
-		<Hole ID="B2" PositionXYZ="10 50 0"/>
-		<Hole ID="b2" PositionXYZ="15 50 0"/>
-		<Hole ID="C2" PositionXYZ="20 50 0"/>
-		<Hole ID="c2" PositionXYZ="25 50 0"/>
-		<Hole ID="D2" PositionXYZ="30 50 0"/>
-		<Hole ID="d2" PositionXYZ="35 50 0"/>
-		<Hole ID="E2" PositionXYZ="40 50 0"/>
-		<Hole ID="e2" PositionXYZ="45 50 0"/>
-		<Hole ID="F2" PositionXYZ="50 50 0"/>
-		<Hole ID="f2" PositionXYZ="55 50 0"/>
-		<Hole ID="G2" PositionXYZ="60 50 0"/>
-		
-		<Hole ID="A1.5" PositionXYZ="0  55 0"/>
-		<Hole ID="a1.5" PositionXYZ="5  55 0"/>
-		<Hole ID="B1.5" PositionXYZ="10 55 0"/>
-		<Hole ID="b1.5" PositionXYZ="15 55 0"/>
-		<Hole ID="C1.5" PositionXYZ="20 55 0"/>
-		<Hole ID="c1.5" PositionXYZ="25 55 0"/>
-		<Hole ID="D1.5" PositionXYZ="30 55 0"/>
-		<Hole ID="d1.5" PositionXYZ="35 55 0"/>
-		<Hole ID="E1.5" PositionXYZ="40 55 0"/>
-		<Hole ID="e1.5" PositionXYZ="45 55 0"/>
-		<Hole ID="F1.5" PositionXYZ="50 55 0"/>
-		<Hole ID="f1.5" PositionXYZ="55 55 0"/>
-		<Hole ID="G1.5" PositionXYZ="60 55 0"/>
-		
-		<Hole ID="A1" PositionXYZ="0  60 0"/>
-		<Hole ID="a1" PositionXYZ="5  60 0"/>
-		<Hole ID="B1" PositionXYZ="10 60 0"/>
-		<Hole ID="b1" PositionXYZ="15 60 0"/>
-		<Hole ID="C1" PositionXYZ="20 60 0"/>
-		<Hole ID="c1" PositionXYZ="25 60 0"/>
-		<Hole ID="D1" PositionXYZ="30 60 0"/>
-		<Hole ID="d1" PositionXYZ="35 60 0"/>
-		<Hole ID="E1" PositionXYZ="40 60 0"/>
-		<Hole ID="e1" PositionXYZ="45 60 0"/>
-		<Hole ID="F1" PositionXYZ="50 60 0"/>
-		<Hole ID="f1" PositionXYZ="55 60 0"/>
-		<Hole ID="G1" PositionXYZ="60 60 0"/>
-	</HolePositions>
+    <Hole ID="A4.5" PositionXYZ="0  25 0"/>
+    <Hole ID="a4.5" PositionXYZ="5  25 0"/>
+    <Hole ID="B4.5" PositionXYZ="10 25 0"/>
+    <Hole ID="b4.5" PositionXYZ="15 25 0"/>
+    <Hole ID="C4.5" PositionXYZ="20 25 0"/>
+    <Hole ID="c4.5" PositionXYZ="25 25 0"/>
+    <Hole ID="D4.5" PositionXYZ="30 25 0"/>
+    <Hole ID="d4.5" PositionXYZ="35 25 0"/>
+    <Hole ID="E4.5" PositionXYZ="40 25 0"/>
+    <Hole ID="e4.5" PositionXYZ="45 25 0"/>
+    <Hole ID="F4.5" PositionXYZ="50 25 0"/>
+    <Hole ID="f4.5" PositionXYZ="55 25 0"/>
+    <Hole ID="G4.5" PositionXYZ="60 25 0"/>
+    
+    <Hole ID="A4" PositionXYZ="0  30 0"/>
+    <Hole ID="a4" PositionXYZ="5  30 0"/>
+    <Hole ID="B4" PositionXYZ="10 30 0"/>
+    <Hole ID="b4" PositionXYZ="15 30 0"/>
+    <Hole ID="C4" PositionXYZ="20 30 0"/>
+    <Hole ID="c4" PositionXYZ="25 30 0"/>
+    <Hole ID="D4" PositionXYZ="30 30 0"/>
+    <Hole ID="d4" PositionXYZ="35 30 0"/>
+    <Hole ID="E4" PositionXYZ="40 30 0"/>
+    <Hole ID="e4" PositionXYZ="45 30 0"/>
+    <Hole ID="F4" PositionXYZ="50 30 0"/>
+    <Hole ID="f4" PositionXYZ="55 30 0"/>
+    <Hole ID="G4" PositionXYZ="60 30 0"/>
+    
+    <Hole ID="A3.5" PositionXYZ="0  35 0"/>
+    <Hole ID="a3.5" PositionXYZ="5  35 0"/>
+    <Hole ID="B3.5" PositionXYZ="10 35 0"/>
+    <Hole ID="b3.5" PositionXYZ="15 35 0"/>
+    <Hole ID="C3.5" PositionXYZ="20 35 0"/>
+    <Hole ID="c3.5" PositionXYZ="25 35 0"/>
+    <Hole ID="D3.5" PositionXYZ="30 35 0"/>
+    <Hole ID="d3.5" PositionXYZ="35 35 0"/>
+    <Hole ID="E3.5" PositionXYZ="40 35 0"/>
+    <Hole ID="e3.5" PositionXYZ="45 35 0"/>
+    <Hole ID="F3.5" PositionXYZ="50 35 0"/>
+    <Hole ID="f3.5" PositionXYZ="55 35 0"/>
+    <Hole ID="G3.5" PositionXYZ="60 35 0"/>
+    
+    <Hole ID="A3" PositionXYZ="0  40 0"/>
+    <Hole ID="a3" PositionXYZ="5  40 0"/>
+    <Hole ID="B3" PositionXYZ="10 40 0"/>
+    <Hole ID="b3" PositionXYZ="15 40 0"/>
+    <Hole ID="C3" PositionXYZ="20 40 0"/>
+    <Hole ID="c3" PositionXYZ="25 40 0"/>
+    <Hole ID="D3" PositionXYZ="30 40 0"/>
+    <Hole ID="d3" PositionXYZ="35 40 0"/>
+    <Hole ID="E3" PositionXYZ="40 40 0"/>
+    <Hole ID="e3" PositionXYZ="45 40 0"/>
+    <Hole ID="F3" PositionXYZ="50 40 0"/>
+    <Hole ID="f3" PositionXYZ="55 40 0"/>
+    <Hole ID="G3" PositionXYZ="60 40 0"/>
+    
+    <Hole ID="A2.5" PositionXYZ="0  45 0"/>
+    <Hole ID="a2.5" PositionXYZ="5  45 0"/>
+    <Hole ID="B2.5" PositionXYZ="10 45 0"/>
+    <Hole ID="b2.5" PositionXYZ="15 45 0"/>
+    <Hole ID="C2.5" PositionXYZ="20 45 0"/>
+    <Hole ID="c2.5" PositionXYZ="25 45 0"/>
+    <Hole ID="D2.5" PositionXYZ="30 45 0"/>
+    <Hole ID="d2.5" PositionXYZ="35 45 0"/>
+    <Hole ID="E2.5" PositionXYZ="40 45 0"/>
+    <Hole ID="e2.5" PositionXYZ="45 45 0"/>
+    <Hole ID="F2.5" PositionXYZ="50 45 0"/>
+    <Hole ID="f2.5" PositionXYZ="55 45 0"/>
+    <Hole ID="G2.5" PositionXYZ="60 45 0"/>
+    
+    <Hole ID="A2" PositionXYZ="0  50 0"/>
+    <Hole ID="a2" PositionXYZ="5  50 0"/>
+    <Hole ID="B2" PositionXYZ="10 50 0"/>
+    <Hole ID="b2" PositionXYZ="15 50 0"/>
+    <Hole ID="C2" PositionXYZ="20 50 0"/>
+    <Hole ID="c2" PositionXYZ="25 50 0"/>
+    <Hole ID="D2" PositionXYZ="30 50 0"/>
+    <Hole ID="d2" PositionXYZ="35 50 0"/>
+    <Hole ID="E2" PositionXYZ="40 50 0"/>
+    <Hole ID="e2" PositionXYZ="45 50 0"/>
+    <Hole ID="F2" PositionXYZ="50 50 0"/>
+    <Hole ID="f2" PositionXYZ="55 50 0"/>
+    <Hole ID="G2" PositionXYZ="60 50 0"/>
+    
+    <Hole ID="A1.5" PositionXYZ="0  55 0"/>
+    <Hole ID="a1.5" PositionXYZ="5  55 0"/>
+    <Hole ID="B1.5" PositionXYZ="10 55 0"/>
+    <Hole ID="b1.5" PositionXYZ="15 55 0"/>
+    <Hole ID="C1.5" PositionXYZ="20 55 0"/>
+    <Hole ID="c1.5" PositionXYZ="25 55 0"/>
+    <Hole ID="D1.5" PositionXYZ="30 55 0"/>
+    <Hole ID="d1.5" PositionXYZ="35 55 0"/>
+    <Hole ID="E1.5" PositionXYZ="40 55 0"/>
+    <Hole ID="e1.5" PositionXYZ="45 55 0"/>
+    <Hole ID="F1.5" PositionXYZ="50 55 0"/>
+    <Hole ID="f1.5" PositionXYZ="55 55 0"/>
+    <Hole ID="G1.5" PositionXYZ="60 55 0"/>
+    
+    <Hole ID="A1" PositionXYZ="0  60 0"/>
+    <Hole ID="a1" PositionXYZ="5  60 0"/>
+    <Hole ID="B1" PositionXYZ="10 60 0"/>
+    <Hole ID="b1" PositionXYZ="15 60 0"/>
+    <Hole ID="C1" PositionXYZ="20 60 0"/>
+    <Hole ID="c1" PositionXYZ="25 60 0"/>
+    <Hole ID="D1" PositionXYZ="30 60 0"/>
+    <Hole ID="d1" PositionXYZ="35 60 0"/>
+    <Hole ID="E1" PositionXYZ="40 60 0"/>
+    <Hole ID="e1" PositionXYZ="45 60 0"/>
+    <Hole ID="F1" PositionXYZ="50 60 0"/>
+    <Hole ID="f1" PositionXYZ="55 60 0"/>
+    <Hole ID="G1" PositionXYZ="60 60 0"/>
+  </HolePositions>
 </TemplateModel>

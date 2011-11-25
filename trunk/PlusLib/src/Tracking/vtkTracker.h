@@ -177,6 +177,12 @@ public:
   /*! Clear all tool buffers */
   void ClearAllBuffers();
 
+  /*! Copy the current state of the tracker buffer  */
+  virtual PlusStatus CopyBuffer( vtkTrackerBuffer* trackerBuffer, const char* aToolName);
+
+  /*! Dump the current state of the tracker to metafile (with each tools and buffers) */
+  virtual PlusStatus WriteToMetafile(const char* outputFolder, const char* metaFileName, bool useCompression = false );
+
 public:
   /*! Set the acquisition frequency */
   vtkSetMacro(Frequency, double);

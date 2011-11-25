@@ -1,6 +1,6 @@
 <PlusConfiguration version="1.3">
 
-  <USDataCollection version="2.0" StartupDelaySec="1.0">
+  <DataCollection version="2.0" StartupDelaySec="1.0">
 
     <Tracker Type="BrachyTracker" BufferSize="1000" Frequency="20" AveragedItemsForFiltering="20" LocalTimeOffset="0.0" SerialPort="3" BaudRate="19200" BrachyStepperType="Burdette Medical Systems Digital Stepper" ModelNumber="4012A18-a" ModelVersion="" ModelSerialNumber="01-50-149">
     
@@ -21,36 +21,36 @@
     <ImageAcquisition Type="None" />
 
     <Synchronization Type="None" />
-	</USDataCollection>
+  </DataCollection>
 
-	<USCalibration>
-		<CalibrationController>
-			<ProbeCalibration />
-			
-			<SegmentationParameters
-					ApproximateSpacingMmPerPixel="0.26"
-					MorphologicalOpeningCircleRadiusMm="0.55"
-					MorphologicalOpeningBarSizeMm="2.0"
-					
-					RegionOfInterest="50 40 600 340" 
+  <USCalibration>
+    <CalibrationController>
+      <ProbeCalibration />
+      
+      <SegmentationParameters
+          ApproximateSpacingMmPerPixel="0.26"
+          MorphologicalOpeningCircleRadiusMm="0.55"
+          MorphologicalOpeningBarSizeMm="2.0"
+          
+          RegionOfInterest="50 40 600 340" 
 
-					MaxLinePairDistanceErrorPercent="10.0"
+          MaxLinePairDistanceErrorPercent="10.0"
 
-					MaxAngleDifferenceDegrees="11"
-					MinThetaDegrees="-70"
-					MaxThetaDegrees="70"
-					
-					AngleToleranceDegrees="11"
-					
-					ThresholdImagePercent="10.0"
+          MaxAngleDifferenceDegrees="11"
+          MinThetaDegrees="-70"
+          MaxThetaDegrees="70"
+          
+          AngleToleranceDegrees="11"
+          
+          ThresholdImagePercent="10.0"
 
-					CollinearPointsMaxDistanceFromLineMm="1.38"
+          CollinearPointsMaxDistanceFromLineMm="1.38"
 
-					UseOriginalImageIntensityForDotIntensityScore="0"
-					>
-			</SegmentationParameters>
-		</CalibrationController>
-	</USCalibration>
+          UseOriginalImageIntensityForDotIntensityScore="0"
+          >
+      </SegmentationParameters>
+    </CalibrationController>
+  </USCalibration>
 
   <iCal version="1.0" NumberOfImagesForValidation="50"    >
      <CalibrationData Type="CALIB_TEMPLATE_TRANSLATION" NumberOfImagesToAcquire="50" FrameTransformNameForValidation="" MaxAllowedTranslationSpeedMmPerSec="10.0" MaxAllowedRotationSpeedDegPerSec="15.0" MinRequiredTranslationDifferenceMm="0.5" MinRequiredAngleDifferenceDeg="5.0"/>
@@ -59,60 +59,60 @@
      <CalibrationData Type="CALIB_RANDOM_STEPPER_MOTION" NumberOfImagesToAcquire="150" FrameTransformNameForValidation="" MaxAllowedTranslationSpeedMmPerSec="10.0" MaxAllowedRotationSpeedDegPerSec="15.0" MinRequiredTranslationDifferenceMm="0.5" MinRequiredAngleDifferenceDeg="5.0" />
   </iCal>
     
-	<PhantomDefinition version="1.1">
-		<!-- Supported types are: Double-N, U-Shaped-N -->
-		<Description
-			Name="iCAL"
-			Type="Double-N"
-			Version="1.0"
-			Institution="Queen's University PerkLab"
-		/>
-		
-		<!-- ModelToPhantomTransform - transforming model into phantom coordinate system for proper visualization -->
-		<Model
-			File="?"
-			ModelToPhantomTransform="
-				1 0 0 0.0
-				0 1 0 0.0
-				0 0 1 0.0
-				0 0 0 1"
-		/>
+  <PhantomDefinition version="1.1">
+    <!-- Supported types are: Double-N, U-Shaped-N -->
+    <Description
+      Name="iCAL"
+      Type="Double-N"
+      Version="1.0"
+      Institution="Queen's University PerkLab"
+    />
+    
+    <!-- ModelToPhantomTransform - transforming model into phantom coordinate system for proper visualization -->
+    <Model
+      File="?"
+      ModelToPhantomTransform="
+        1 0 0 0.0
+        0 1 0 0.0
+        0 0 1 0.0
+        0 0 0 1"
+    />
 
-		<Geometry>
-			<!-- N wire definitions -->
-			<!-- Phantom origin is the inner end of the hole that is on the side of the templete holder, on the side of the triangle shaped hole on the inner part, and closest to the probe -->
-			<Pattern Type="NWire" Name="top">
-				<Wire Name="wire4" EndPointFront="49.86 54.385 62.05" EndPointBack="49.86 54.385 142.05" />
-				<Wire Name="wire5" EndPointFront="39.86 54.385 62.05" EndPointBack="19.86 54.385 142.05" />
-				<Wire Name="wire6" EndPointFront="9.86 54.385 62.05" EndPointBack="9.86 54.385 142.05" />
-			</Pattern>
-			<Pattern Type="NWire" Name="bottom">
-				<Wire Name="wire1" EndPointFront="49.86 34.385 62.05" EndPointBack="49.86 34.385 142.05" />
-				<Wire Name="wire2" EndPointFront="19.86 34.385 62.05" EndPointBack="39.86 34.385 142.05" />
-				<Wire Name="wire3" EndPointFront="9.86 34.385 62.05" EndPointBack="9.86 34.385 142.05" />
-			</Pattern>
+    <Geometry>
+      <!-- N wire definitions -->
+      <!-- Phantom origin is the inner end of the hole that is on the side of the templete holder, on the side of the triangle shaped hole on the inner part, and closest to the probe -->
+      <Pattern Type="NWire" Name="top">
+        <Wire Name="wire4" EndPointFront="49.86 54.385 62.05" EndPointBack="49.86 54.385 142.05" />
+        <Wire Name="wire5" EndPointFront="39.86 54.385 62.05" EndPointBack="19.86 54.385 142.05" />
+        <Wire Name="wire6" EndPointFront="9.86 54.385 62.05" EndPointBack="9.86 54.385 142.05" />
+      </Pattern>
+      <Pattern Type="NWire" Name="bottom">
+        <Wire Name="wire1" EndPointFront="49.86 34.385 62.05" EndPointBack="49.86 34.385 142.05" />
+        <Wire Name="wire2" EndPointFront="19.86 34.385 62.05" EndPointBack="39.86 34.385 142.05" />
+        <Wire Name="wire3" EndPointFront="9.86 34.385 62.05" EndPointBack="9.86 34.385 142.05" />
+      </Pattern>
 
-			<!-- Landmark list for registration -->
-			<Landmarks>
-				<Landmark Name="?" Position="0.0 0.0 0.0" />
-			</Landmarks>
+      <!-- Landmark list for registration -->
+      <Landmarks>
+        <Landmark Name="?" Position="0.0 0.0 0.0" />
+      </Landmarks>
 
-			<Registration
-				MatrixName="PhantomToPhantomReference" 
-				MatrixValue="1 0 0 0 
-							 0 1 0 0 
-							 0 0 1 0
-							 0 0 0 1" 
-				Date=""
-				Error="0.0" />
-		</Geometry>
+      <Registration
+        MatrixName="PhantomToPhantomReference" 
+        MatrixValue="1 0 0 0 
+               0 1 0 0 
+               0 0 1 0
+               0 0 0 1" 
+        Date=""
+        Error="0.0" />
+    </Geometry>
 
-	  <CustomTransforms TemplateHolderToPhantomTransform="
-					1 0 0 5
-					0 1 0 63.5
-					0 0 1 0
-					0 0 0 1" />
+    <CustomTransforms TemplateHolderToPhantomTransform="
+          1 0 0 5
+          0 1 0 63.5
+          0 0 1 0
+          0 0 0 1" />
 
-	</PhantomDefinition>
+  </PhantomDefinition>
 
 </PlusConfiguration>

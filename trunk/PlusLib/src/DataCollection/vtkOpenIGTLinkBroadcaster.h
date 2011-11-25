@@ -16,7 +16,7 @@
 #include "igtlPositionMessage.h"
 #include "igtlClientSocket.h"
 
-#include "vtkDataCollector.h"
+#include "vtkDataCollectorHardwareDevice.h"
 #include "vtkTrackedFrameList.h"
 
 
@@ -74,7 +74,7 @@ public:
     STATUS_HOST_NOT_FOUND,
     STATUS_SEND_ERROR,
     STATUS_MISSING_DEFAULT_TOOL, 
-	STATUS_MISSING_TRACKED_FRAME
+	  STATUS_MISSING_TRACKED_FRAME
   };
   
   static vtkOpenIGTLinkBroadcaster *New();
