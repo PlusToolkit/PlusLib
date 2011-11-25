@@ -262,7 +262,7 @@ vtkOpenIGTLinkBroadcaster::Status vtkOpenIGTLinkBroadcaster::SendMessages( std::
 
 
     TrackerStatus status = TR_MISSING;
-    std::string toolStatusFrameFieldName = std::string(toolPortName) + "Status";
+    std::string toolStatusFrameFieldName = std::string(toolName) + "Status";
     status = TrackedFrame::GetStatusFromString( trackedFrame.GetCustomFrameField( toolStatusFrameFieldName.c_str() ) );
 
 		if ( status != TR_OK )

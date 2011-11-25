@@ -413,7 +413,7 @@ void vtkTracker::DeepCopy(vtkTracker *tracker)
   LOG_TRACE("vtkTracker::DeepCopy"); 
   this->SetTrackerCalibrated( tracker->GetTrackerCalibrated() ); 
 
-  for ( ToolIteratorType it = this->ToolContainer.begin(); it != this->ToolContainer.end(); ++it )
+  for ( ToolIteratorType it = tracker->ToolContainer.begin(); it != tracker->ToolContainer.end(); ++it )
   {
     LOG_DEBUG("Copy the buffer of tracker tool: " << it->first ); 
     if ( this->AddTool(it->second) != PLUS_SUCCESS )
@@ -855,7 +855,7 @@ PlusStatus vtkTracker::WriteToMetafile( const char* outputFolder, const char* me
 {
   LOG_TRACE("vtkTracker::WriteToMetafile: " << outputFolder << "/" << metaFileName); 
 
-  if ( this->ToolContainer.begin() == this->ToolContainer.end() )
+  if ( this->GetNumberOfTools() == 0 )
   {
     LOG_ERROR("Failed to write tracker to metafile - there are no active tools!"); 
     return PLUS_FAIL; 

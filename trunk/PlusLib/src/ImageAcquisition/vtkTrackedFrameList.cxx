@@ -185,6 +185,12 @@ void TrackedFrame::SetCustomFrameTransform(std::string frameTransformName, vtkMa
 //----------------------------------------------------------------------------
 TrackerStatus TrackedFrame::GetStatusFromString(const char* statusStr) 
 {
+  if (statusStr == NULL)
+  {
+    LOG_ERROR("Input status string is invalid!");
+    return TR_MISSING;
+  }
+
   TrackerStatus status = TR_OK;
   std::string strFlag(statusStr); 
   if ( strFlag.find("OK") != std::string::npos )

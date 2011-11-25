@@ -73,7 +73,6 @@ int main(int argc, char **argv)
   vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationData(configRootElement);
 
   vtkSmartPointer<vtkDataCollector> dataCollector = vtkSmartPointer<vtkDataCollector>::New(); 
-  dataCollector->ReadConfiguration( configRootElement );
 
   vtkDataCollectorHardwareDevice* dataCollectorHardwareDevice = dynamic_cast<vtkDataCollectorHardwareDevice*>(dataCollector.GetPointer());
   if ( dataCollectorHardwareDevice == NULL )
@@ -81,6 +80,8 @@ int main(int argc, char **argv)
     LOG_ERROR("Failed to create the propertype of data collector!");
     exit(EXIT_FAILURE);
   }
+
+  dataCollectorHardwareDevice->ReadConfiguration( configRootElement );
 
   vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
 
