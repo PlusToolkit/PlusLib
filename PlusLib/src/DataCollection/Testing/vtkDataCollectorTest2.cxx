@@ -11,7 +11,7 @@ See License.txt for details.
 #include "PlusConfigure.h"
 #include "vtksys/CommandLineArguments.hxx"
 #include "vtkSmartPointer.h"
-#include "vtkDataCollector.h"
+#include "vtkDataCollectorHardwareDevice.h"
 #include "vtkTracker.h"
 #include "vtkVideoBuffer.h"
 #include "vtkSavedDataTracker.h"
@@ -70,25 +70,34 @@ int main(int argc, char **argv)
     exit(EXIT_FAILURE);
   }
 
+  vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationData(configRootElement);
+
   vtkSmartPointer<vtkDataCollector> dataCollector = vtkSmartPointer<vtkDataCollector>::New(); 
   dataCollector->ReadConfiguration( configRootElement );
 
+  vtkDataCollectorHardwareDevice* dataCollectorHardwareDevice = dynamic_cast<vtkDataCollectorHardwareDevice*>(dataCollector.GetPointer());
+  if ( dataCollectorHardwareDevice == NULL )
+  {
+    LOG_ERROR("Failed to create the propertype of data collector!");
+    exit(EXIT_FAILURE);
+  }
+
   vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
 
-  if ( dataCollector->GetAcquisitionType() == SYNCHRO_VIDEO_SAVEDDATASET )
+  if ( dataCollectorHardwareDevice->GetAcquisitionType() == SYNCHRO_VIDEO_SAVEDDATASET )
   {
-    vtkSavedDataVideoSource* videoSource = static_cast<vtkSavedDataVideoSource*>(dataCollector->GetVideoSource()); 
+    vtkSavedDataVideoSource* videoSource = static_cast<vtkSavedDataVideoSource*>(dataCollectorHardwareDevice->GetVideoSource()); 
     videoSource->SetSequenceMetafile(inputVideoBufferMetafile.c_str()); 
   }
 
-  if ( dataCollector->GetTrackerType() == TRACKER_SAVEDDATASET )
+  if ( dataCollectorHardwareDevice->GetTrackerType() == TRACKER_SAVEDDATASET )
   {
-    vtkSavedDataTracker* tracker = static_cast<vtkSavedDataTracker*>(dataCollector->GetTracker()); 
+    vtkSavedDataTracker* tracker = static_cast<vtkSavedDataTracker*>(dataCollectorHardwareDevice->GetTracker()); 
     tracker->SetSequenceMetafile(inputTrackerBufferMetafile.c_str()); 
   }
 
-  dataCollector->Connect(); 
-  dataCollector->Start();
+  dataCollectorHardwareDevice->Connect(); 
+  dataCollectorHardwareDevice->Start();
 
   const double acqStartTime = vtkTimerLog::GetUniversalTime(); 
 
@@ -99,33 +108,33 @@ int main(int argc, char **argv)
   }
 
   vtkSmartPointer<vtkVideoBuffer> videobuffer = vtkSmartPointer<vtkVideoBuffer>::New(); 
-  if ( dataCollector->GetVideoSource() != NULL ) 
+  if ( dataCollectorHardwareDevice->GetVideoSource() != NULL ) 
   {
     LOG_INFO("Copy video buffer"); 
-    dataCollector->CopyVideoBuffer(videobuffer); 
+    videobuffer->DeepCopy(dataCollectorHardwareDevice->GetVideoSource()->GetBuffer());
   }
 
   vtkSmartPointer<vtkTracker> tracker = vtkSmartPointer<vtkTracker>::New(); 
-  if ( dataCollector->GetTracker() != NULL )
+  if ( dataCollectorHardwareDevice->GetTracker() != NULL )
   {
     LOG_INFO("Copy tracker"); 
-    dataCollector->CopyTracker(tracker); 
+    tracker->DeepCopy(dataCollectorHardwareDevice->GetTracker());
   }
 
-  if ( dataCollector->GetVideoSource() != NULL ) 
+  if ( dataCollectorHardwareDevice->GetVideoSource() != NULL ) 
   {
     LOG_INFO("Write video buffer to " << outputVideoBufferSequenceFileName);
-    vtkDataCollector::WriteVideoBufferToMetafile( videobuffer, outputFolder.c_str(), outputVideoBufferSequenceFileName.c_str(), outputCompressed); 
+    videobuffer->WriteToMetafile(outputFolder.c_str(), outputVideoBufferSequenceFileName.c_str(), outputCompressed); 
   }
 
-  if ( dataCollector->GetTracker() != NULL )
+  if ( dataCollectorHardwareDevice->GetTracker() != NULL )
   {
     LOG_INFO("Write tracker buffer to " << outputTrackerBufferSequenceFileName);
-    vtkDataCollector::WriteTrackerToMetafile( tracker, outputFolder.c_str(), outputTrackerBufferSequenceFileName.c_str(), outputCompressed); 
+    tracker->WriteToMetafile(outputFolder.c_str(), outputTrackerBufferSequenceFileName.c_str(), outputCompressed); 
   }
 
 
-  if ( dataCollector->GetVideoSource() != NULL )
+  if ( dataCollectorHardwareDevice->GetVideoSource() != NULL )
   {
     std::ostringstream filepath; 
     filepath << outputFolder << "/" << outputVideoBufferSequenceFileName << ".mha"; 
@@ -146,7 +155,7 @@ int main(int argc, char **argv)
     }
   }
 
-  if ( dataCollector->GetTracker() != NULL )
+  if ( dataCollectorHardwareDevice->GetTracker() != NULL )
   {
     std::ostringstream filepath; 
     filepath << outputFolder << "/" << outputTrackerBufferSequenceFileName << ".mha"; 
@@ -167,7 +176,7 @@ int main(int argc, char **argv)
     }
   }
 
-  if ( dataCollector->Stop() != PLUS_SUCCESS )
+  if ( dataCollectorHardwareDevice->Stop() != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to stop data collection!"); 
     numberOfFailures++; 

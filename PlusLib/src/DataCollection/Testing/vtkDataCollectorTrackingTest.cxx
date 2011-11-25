@@ -346,9 +346,9 @@ int main(int argc, char **argv)
   {
     LOG_INFO("Copy tracker..."); 
     vtkSmartPointer<vtkTracker> tracker = vtkSmartPointer<vtkTracker>::New(); 
-    dataCollector->CopyTracker(tracker); 
+    tracker->DeepCopy(dataCollector->GetTracker());
     LOG_INFO("Write tracker to " << outputTrackerBufferSequenceFileName);
-    dataCollector->WriteTrackerToMetafile( tracker, outputFolder.c_str(), outputTrackerBufferSequenceFileName.c_str(), true); 
+    tracker->WriteToMetafile(outputFolder.c_str(), outputTrackerBufferSequenceFileName.c_str(), true); 
   }
 
 	std::cout << "Test completed successfully!" << std::endl;

@@ -1648,15 +1648,15 @@ PlusStatus vtkDataCollectorHardwareDevice::ReadConfiguration(vtkXMLDataElement* 
   vtkXMLDataElement* dataCollectionConfig = aConfigurationData->FindNestedElementWithName("DataCollection");
   if (dataCollectionConfig == NULL)
   {
-    LOG_ERROR("Cannot find USDataCollection element in XML tree!");
+    LOG_ERROR("Cannot find DataCollection element in XML tree!");
     return PLUS_FAIL;
   }
 
   // Check data collection configuration version
-  double usDataCollectionVersion = 0; 
-  if ( dataCollectionConfig->GetScalarAttribute("version", usDataCollectionVersion) )
+  double dataCollectionVersion = 0; 
+  if ( dataCollectionConfig->GetScalarAttribute("version", dataCollectionVersion) )
   {
-    if ( usDataCollectionVersion < this->DataCollectionConfigVersion )
+    if ( dataCollectionVersion < this->DataCollectionConfigVersion )
     {
       LOG_ERROR("This version of configuration file is no longer supported! Please update to version " << std::fixed << this->DataCollectionConfigVersion ); 
       return PLUS_FAIL;
@@ -1703,7 +1703,7 @@ PlusStatus vtkDataCollectorHardwareDevice::ReadTrackerProperties(vtkXMLDataEleme
   vtkXMLDataElement* dataCollectionConfig = aConfigurationData->FindNestedElementWithName("DataCollection");
   if (dataCollectionConfig == NULL)
   {
-    LOG_ERROR("Cannot find USDataCollection element in XML tree!");
+    LOG_ERROR("Cannot find DataCollection element in XML tree!");
     return PLUS_FAIL;
   }
 
@@ -1840,7 +1840,7 @@ PlusStatus vtkDataCollectorHardwareDevice::ReadImageAcquisitionProperties(vtkXML
   vtkXMLDataElement* dataCollectionConfig = aConfigurationData->FindNestedElementWithName("DataCollection");
   if (dataCollectionConfig == NULL)
   {
-    LOG_ERROR("Cannot find USDataCollection element in XML tree!");
+    LOG_ERROR("Cannot find DataCollection element in XML tree!");
     return PLUS_FAIL;
   }
 
@@ -1967,7 +1967,7 @@ PlusStatus vtkDataCollectorHardwareDevice::ReadSynchronizationProperties(vtkXMLD
   vtkXMLDataElement* dataCollectionConfig = aConfigurationData->FindNestedElementWithName("DataCollection");
   if (dataCollectionConfig == NULL)
   {
-    LOG_ERROR("Cannot find USDataCollection element in XML tree!");
+    LOG_ERROR("Cannot find DataCollection element in XML tree!");
     return PLUS_FAIL;
   }
 

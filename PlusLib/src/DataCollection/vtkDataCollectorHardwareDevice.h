@@ -101,6 +101,10 @@ public:
   */
   virtual PlusStatus GetTrackedFrameList(double& frameTimestamp, vtkTrackedFrameList* trackedFrameList, int maxNumberOfFramesToAdd = -1); 
 
+  // TODO only vtkDataCollectorTest1 uses it, make it protected if possible
+  /*! Get the most recent tracked frame from devices  */
+  virtual PlusStatus GetTrackedFrame(vtkImageData* frame, vtkMatrix4x4* toolTransMatrix, TrackerStatus& status, double& synchronizedTime, const char* aToolName, bool calibratedTransform = false); 
+
   /*!
     Get the tracked frame list from devices since time specified
     \param frameTimestamp The oldest timestamp we search for in the buffer. If -1 get all frames in the time range since the most recent timestamp. Out parameter - changed to timestamp of last added frame
@@ -178,9 +182,6 @@ public:
   void SetProgressBarUpdateCallbackFunction(ProgressBarUpdatePtr cb) { ProgressBarUpdateCallbackFunction = cb; } 
 
 protected:
-  /*! Get the most recent tracked frame from devices  */
-  virtual PlusStatus GetTrackedFrame(vtkImageData* frame, vtkMatrix4x4* toolTransMatrix, TrackerStatus& status, double& synchronizedTime, const char* aToolName, bool calibratedTransform = false); 
-
   /*! Get number of tracked frames between two given timestamps (inclusive) */
   int GetNumberOfFramesBetweenTimestamps(double frameTimestampFrom, double frameTimestampTo);
 

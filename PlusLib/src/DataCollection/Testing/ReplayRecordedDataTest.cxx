@@ -13,7 +13,7 @@ See License.txt for details.
 #include "vtkXMLUtilities.h"
 
 #include "PlusConfigure.h"
-#include "vtkDataCollector.h"
+#include "vtkDataCollectorHardwareDevice.h"
 #include "vtkSavedDataTracker.h"
 #include "vtkSavedDataVideoSource.h"
 
@@ -58,10 +58,20 @@ int main( int argc, char** argv )
     return 1;
   }
 
-  vtkSmartPointer<vtkDataCollector> dataCollector = vtkSmartPointer<vtkDataCollector>::New();
-  dataCollector->ReadConfiguration( configRootElement );
+  vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationData(configRootElement);
 
-  if ( dataCollector->GetAcquisitionType() == SYNCHRO_VIDEO_SAVEDDATASET )
+  vtkSmartPointer<vtkDataCollector> dataCollector = vtkSmartPointer<vtkDataCollector>::New();
+
+  vtkDataCollectorHardwareDevice* dataCollectorHardwareDevice = dynamic_cast<vtkDataCollectorHardwareDevice*>(dataCollector.GetPointer());
+  if ( dataCollectorHardwareDevice == NULL )
+  {
+    LOG_ERROR("Failed to create the propertype of data collector!");
+    exit( 1 );
+  }
+
+  dataCollectorHardwareDevice->ReadConfiguration( configRootElement );
+
+  if ( dataCollectorHardwareDevice->GetAcquisitionType() == SYNCHRO_VIDEO_SAVEDDATASET )
   {
     if ( inputVideoBufferMetafile.empty() )
     {
@@ -70,7 +80,7 @@ int main( int argc, char** argv )
     }
 
     vtkSavedDataVideoSource* videoSource =
-      dynamic_cast< vtkSavedDataVideoSource* >( dataCollector->GetVideoSource() );
+      dynamic_cast< vtkSavedDataVideoSource* >( dataCollectorHardwareDevice->GetVideoSource() );
     if ( videoSource == NULL )
     {
       LOG_ERROR( "Invalid saved data video source." );
@@ -80,21 +90,21 @@ int main( int argc, char** argv )
     videoSource->SetReplayEnabled( true ); 
   }
 
-  if ( dataCollector->GetTrackerType() == TRACKER_SAVEDDATASET )
+  if ( dataCollectorHardwareDevice->GetTrackerType() == TRACKER_SAVEDDATASET )
   {
     if ( inputTrackerBufferMetafile.empty() )
     {
       LOG_ERROR( "Tracker source metafile missing." );
       return 1;
     }
-    vtkSavedDataTracker* tracker = static_cast< vtkSavedDataTracker* >( dataCollector->GetTracker() );
+    vtkSavedDataTracker* tracker = static_cast< vtkSavedDataTracker* >( dataCollectorHardwareDevice->GetTracker() );
     tracker->SetSequenceMetafile( inputTrackerBufferMetafile.c_str() );
     tracker->SetReplayEnabled( true ); 
     tracker->Connect();
   }
 
   LOG_DEBUG( "Initializing data collector... " );
-  dataCollector->Connect();
+  dataCollectorHardwareDevice->Connect();
 
 
   // TODO: Check if the read transforms are really the same as in the ones recorded in the data file.

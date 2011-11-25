@@ -1174,7 +1174,7 @@ PlusStatus vtkDataCollectorSynchronizer::ReadConfiguration(vtkXMLDataElement* ro
 	vtkXMLDataElement* dataCollectionConfig = rootElement->FindNestedElementWithName("DataCollection");
 	if (dataCollectionConfig == NULL)
   {
-    LOG_ERROR("Cannot find USDataCollection element in XML tree!");
+    LOG_ERROR("Cannot find DataCollection element in XML tree!");
 		return PLUS_FAIL;
 	}
 
