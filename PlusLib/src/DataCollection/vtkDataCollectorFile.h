@@ -4,9 +4,114 @@
   See License.txt for details.
 =========================================================Plus=header=end*/ 
 
-#ifndef __vtkDataCollectorHardwareDevice_h
-#define __vtkDataCollectorHardwareDevice_h
+#ifndef __vtkDataCollectorFile_h
+#define __vtkDataCollectorFile_h
 
-#include "vtkDataCollector.h" 
+#include "vtkDataCollector.h"
+
+/*!
+  \class vtkDataCollectorFile
+  \brief Collects tracked ultrasound data (images synchronized with tracking information) from sequence metafile
+
+  This class collects ultrasound images synchronized with pose tracking information.
+
+  \ingroup PlusLibDataCollection
+*/ 
+class VTK_EXPORT vtkDataCollectorFile: public vtkDataCollector
+{
+public:
+
+  static vtkDataCollectorFile *New();
+  vtkTypeRevisionMacro(vtkDataCollectorFile, vtkDataCollector);
+  virtual void PrintSelf(ostream& os, vtkIndent indent);
+
+  /*! Read the configuration file in XML format and set up the devices */
+  virtual PlusStatus ReadConfiguration( vtkXMLDataElement* aDataCollectionConfig ); 
+
+  /*! Disconnect from devices */
+  virtual PlusStatus Disconnect(); 
+
+  /*! Connect to devices */
+  virtual PlusStatus Connect(); 
+
+  /*! Stop data collection */
+  virtual PlusStatus Stop(); 
+
+  /*! Start data collection  */
+  virtual PlusStatus Start(); 
+
+  /*! Return the most recent synchronized timestamp in the buffers */
+  virtual PlusStatus GetMostRecentTimestamp(double &ts); 
+
+  /*! Return the oldest synchronized timestamp in the buffers */
+  virtual PlusStatus GetOldestTimestamp(double &ts); 
+
+  /*! Get the most recent tracked frame from devices with each tool transforms */
+  virtual PlusStatus GetTrackedFrame(TrackedFrame* trackedFrame, bool calibratedTransform = false); 
+
+  /*!
+    Get the tracked frame list from devices since time specified
+    \param frameTimestamp The oldest timestamp we search for in the buffer. If -1 get all frames in the time range since the most recent timestamp. Out parameter - changed to timestamp of last added frame
+    \param trackedFrameList Tracked frame list used to get the newly acquired frames into. The new frames are appended to the tracked frame.
+    \param maxNumberOfFramesToAdd The maximum number of latest frames acquired from the buffers (till most recent timestamp). If -1 get all frames in the time range since frameTimestamp
+  */
+  virtual PlusStatus GetTrackedFrameList(double& frameTimestamp, vtkTrackedFrameList* trackedFrameList, int maxNumberOfFramesToAdd = -1); 
+
+  /*!
+    Get the tracked frame list from devices since time specified
+    \param frameTimestamp The oldest timestamp we search for in the buffer. If -1 get all frames in the time range since the most recent timestamp. Out parameter - changed to timestamp of last added frame
+    \param trackedFrameList Tracked frame list used to get the newly acquired frames into. The new frames are appended to the tracked frame.
+    \param samplingRateSec Sampling rate for getting the frames in seconds (timestamps are in seconds too)
+  */
+  virtual PlusStatus GetTrackedFrameListSampled(double& frameTimestamp, vtkTrackedFrameList* trackedFrameList, double samplingRateMs); 
+
+  /*! Get transformation with timestamp from tracker  */
+  virtual PlusStatus GetTransformWithTimestamp(vtkMatrix4x4* toolTransMatrix, double& transformTimestamp, TrackerStatus& status, const char* aToolName, bool calibratedTransform = false); 
+
+  /*! Set video and tracker local time offset  */
+  virtual void SetLocalTimeOffset(double videoOffset, double trackerOffset); 
+
+public:
+  /*! Synchronize the connected devices */
+  virtual PlusStatus Synchronize( const char* bufferOutputFolder = NULL, bool acquireDataOnly = false ); 
+
+  /*! Set the Tracking only flag */
+  void SetTrackingOnly(bool);
+
+  /*! Set the Video only flag */
+  void SetVideoOnly(bool);
+
+  /*! Get the video source of ultrasound */
+  virtual vtkPlusVideoSource* GetVideoSource();
+
+  /*! Get the tracker  */
+  virtual vtkTracker* GetTracker();
+
+  /*! Callback function for progress bar refreshing */  
+  virtual void SetProgressBarUpdateCallbackFunction(ProgressBarUpdatePtr cb);
+
+protected:
+  /*! This is called by the superclass. */
+  virtual int RequestData(vtkInformation *request, vtkInformationVector** inputVector, vtkInformationVector* outputVector);
+
+protected:
+  /*! Set the tracked frame list  */
+  virtual void SetTrackedFrameList(vtkTrackedFrameList* trackedFrameList); 
+  /*! Get the tracked frame list  */
+  vtkGetObjectMacro(TrackedFrameList, vtkTrackedFrameList);
+
+protected:
+  vtkDataCollectorFile();
+  virtual ~vtkDataCollectorFile();
+
+protected:
+  /*! Tracked frame list containing the data to be played */
+  vtkTrackedFrameList*  TrackedFrameList;
+
+private:
+  vtkDataCollectorFile(const vtkDataCollectorFile&);
+  void operator=(const vtkDataCollectorFile&);
+
+};
 
 #endif

@@ -108,13 +108,6 @@ public:
   virtual void SetProgressBarUpdateCallbackFunction(ProgressBarUpdatePtr cb) = 0;
 
 protected:
-  /*!
-    Compute loop times for saved datasets (time intersection of the two buffers)
-    itemTimestamp = loopStartTime + (actualTimestamp - startTimestamp) % loopTime
-  */
-  virtual PlusStatus SetLoopTimes() = 0;
-
-protected:
   /*! Set the Connected flag  */
   vtkSetMacro(Connected,bool);  
   /*! Set the Connected flag  */

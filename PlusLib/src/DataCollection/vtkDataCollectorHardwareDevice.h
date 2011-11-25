@@ -63,7 +63,7 @@ class VTK_EXPORT vtkDataCollectorHardwareDevice: public vtkDataCollector
 public:
 
   static vtkDataCollectorHardwareDevice *New();
-  vtkTypeRevisionMacro(vtkDataCollectorHardwareDevice,vtkDataCollector);
+  vtkTypeRevisionMacro(vtkDataCollectorHardwareDevice, vtkDataCollector);
   virtual void PrintSelf(ostream& os, vtkIndent indent);
 
   /*! Read the configuration file in XML format and set up the devices */
@@ -153,9 +153,6 @@ public:
   /*! Get the tracker  */
   vtkGetObjectMacro(Tracker,vtkTracker);
   
-  /*! Get the Connected flag  */
-  vtkGetMacro(Connected,bool);
-  
   /*! Get the Tracking only flag */
   vtkGetMacro(TrackingEnabled,bool);
   /*! Set the Tracking only flag */
@@ -216,12 +213,6 @@ protected:
     itemTimestamp = loopStartTime + (actualTimestamp - startTimestamp) % loopTime
   */
   virtual PlusStatus SetLoopTimes(); 
-
-protected:
-  /*! Set the Connected flag  */
-  vtkSetMacro(Connected,bool);  
-  /*! Set the Connected flag  */
-  vtkBooleanMacro(Connected, bool); 
 
 protected:
   vtkDataCollectorHardwareDevice();
