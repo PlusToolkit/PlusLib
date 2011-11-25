@@ -220,7 +220,7 @@ PlusStatus vtkTransformRepository::GetTransform(const char* fromCoordFrameName, 
   TransformInfoListType transformInfoList;
   if (FindPath(fromCoordFrameName, toCoordFrameName, transformInfoList)!=PLUS_SUCCESS)
   {
-    LOG_ERROR("Not enough transforms defined to get the transformation from "<<fromCoordFrameName<<" to "<<toCoordFrameName);
+    // the transform cannot be computed, error has been already logged by FindPath
     return PLUS_FAIL;
   }
   // Create transform chain and compute transform status
@@ -282,4 +282,51 @@ PlusStatus vtkTransformRepository::FindPath(const char* fromCoordFrameName, cons
     LOG_ERROR("Path not found from "<<fromCoordFrameName<<" to "<<toCoordFrameName);
   }
   return PLUS_FAIL;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkTransformRepository::DeleteTransform(const char* fromCoordFrameName, const char* toCoordFrameName)
+{
+  CoordFrameToTransformMapType& fromCoordFrame=this->CoordinateFrames[fromCoordFrameName];
+  CoordFrameToTransformMapType::iterator fromToTransformInfoIt=fromCoordFrame.find(toCoordFrameName);
+  
+  if (fromToTransformInfoIt!=fromCoordFrame.end())
+  {
+    // from->to transform is found
+    if (fromToTransformInfoIt->second.m_IsComputed)
+    {
+      // this is not an original transform (has not been set by the user)
+      LOG_ERROR("The "<<fromCoordFrameName<<" to "<<toCoordFrameName
+        <<" transform cannot be deleted, only the inverse of the transform has been set in the repository ("
+        <<fromCoordFrameName<<" to "<<toCoordFrameName<<")");
+      return PLUS_FAIL;
+    }
+    fromCoordFrame.erase(fromToTransformInfoIt);
+  }
+  else
+  {
+    LOG_ERROR("Delete transform failed: could not find the "<<fromCoordFrameName<<" to "<<toCoordFrameName<<" transform");
+    // don't return yet, try to delete the inverse
+    return PLUS_FAIL;
+  }
+  
+  CoordFrameToTransformMapType& toCoordFrame=this->CoordinateFrames[toCoordFrameName];
+  CoordFrameToTransformMapType::iterator toFromTransformInfoIt=toCoordFrame.find(fromCoordFrameName);
+  if (toFromTransformInfoIt!=toCoordFrame.end())
+  {
+    // to->from transform is found
+    toCoordFrame.erase(toFromTransformInfoIt);
+  }
+  else
+  {
+    LOG_ERROR("Delete transform failed: could not find the "<<toCoordFrameName<<" to "<<fromCoordFrameName<<" transform");
+    return PLUS_FAIL;
+  }
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+void vtkTransformRepository::Clear()
+{
+  this->CoordinateFrames.clear();
 }
