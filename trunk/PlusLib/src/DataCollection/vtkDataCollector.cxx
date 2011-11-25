@@ -103,9 +103,14 @@ vtkDataCollector* vtkDataCollector::CreateDataCollectorAccordingToDeviceSetConfi
   vtkXMLDataElement* fileConfig = dataCollectionConfig->FindNestedElementWithName("File");
   if (fileConfig)
   {
-    //TODO
-    LOG_ERROR("vtkDataCollectorFile creation is NOT IMPLEMENTED");
-    return NULL;
+    // First try to create the object from the vtkObjectFactory
+    vtkObject* dataCollector = vtkObjectFactory::CreateInstance("vtkDataCollectorFile");
+    if (dataCollector)
+    {
+      return (vtkDataCollector*)dataCollector;
+    }
+    // If the factory was unable to create the object, then create it here.
+    return vtkDataCollectorFile::New();
   }
 
   LOG_ERROR("Data collector cannot be instantiated: Unable to identify the data collection type from device set configuration XML data!");

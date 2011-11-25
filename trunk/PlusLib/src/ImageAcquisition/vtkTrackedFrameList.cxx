@@ -532,6 +532,12 @@ bool vtkTrackedFrameList::ValidateTransform(TrackedFrame* trackedFrame)
 //----------------------------------------------------------------------------
 bool vtkTrackedFrameList::ValidateStatus(TrackedFrame* trackedFrame)
 {
+  if (this->FrameTransformNameForValidation == NULL)
+  {
+    LOG_ERROR("No transform name is set for validation!");
+    return false;
+  }
+
   TrackerStatus status = TR_MISSING;
   std::string toolStatusFrameFieldName = std::string(this->FrameTransformNameForValidation) + "Status";
   status = TrackedFrame::GetStatusFromString( trackedFrame->GetCustomFrameField( toolStatusFrameFieldName.c_str() ) );
@@ -548,8 +554,15 @@ bool vtkTrackedFrameList::ValidateStatus(TrackedFrame* trackedFrame)
 //----------------------------------------------------------------------------
 bool vtkTrackedFrameList::ValidateSpeed(TrackedFrame* trackedFrame)
 {
-  if ( this->TrackedFrameList.size() < 1 ) {
+  if ( this->TrackedFrameList.size() < 1 )
+  {
     return true;
+  }
+
+  if (this->FrameTransformNameForValidation == NULL)
+  {
+    LOG_ERROR("No transform name is set for validation!");
+    return false;
   }
 
   TrackedFrameListType::iterator latestFrameInList = this->TrackedFrameList.end() - 1;

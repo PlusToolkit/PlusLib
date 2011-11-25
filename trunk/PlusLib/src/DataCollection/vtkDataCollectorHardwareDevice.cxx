@@ -4,11 +4,8 @@ Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/ 
 
-#include "PlusConfigure.h"
-
 #include "vtkDataCollectorHardwareDevice.h"
 
-#include "vtkObjectFactory.h"
 #include "vtkXMLUtilities.h"
 #include "vtkTrackerTool.h"
 #include "vtkInformationVector.h"
@@ -21,10 +18,6 @@ See License.txt for details.
 #include "vtkDataCollectorSynchronizer.h"
 #include "vtkTracker.h"
 #include "vtkPlusVideoSource.h"
-
-#include "itkImage.h"
-#include "itkImageFileReader.h"
-#include "itkImageFileWriter.h"
 
 //----------------------------------------------------------------------------
 // Tracker devices
@@ -84,7 +77,7 @@ See License.txt for details.
 //#include "vtkUSBECGBox.h"
 //#endif
 
-static void *vtkFrameUpdaterThread(vtkMultiThreader::ThreadInfo *data); 
+//----------------------------------------------------------------------------
 
 vtkCxxRevisionMacro(vtkDataCollectorHardwareDevice, "$Revision: 1.0 $");
 vtkStandardNewMacro(vtkDataCollectorHardwareDevice);
@@ -116,16 +109,16 @@ void vtkDataCollectorHardwareDevice::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os,indent);
 
-  if ( this->GetTracker() != NULL )
+  if ( this->Tracker != NULL )
   {
     os << indent << "Tracker: " << std::endl; 
-    this->GetTracker()->PrintSelf(os, indent); 
+    this->Tracker->PrintSelf(os, indent); 
   }
 
-  if ( this->GetVideoSource() != NULL )
+  if ( this->VideoSource != NULL )
   {
     os << indent << "Video source: " << std::endl; 
-    this->GetVideoSource()->PrintSelf(os, indent); 
+    this->VideoSource->PrintSelf(os, indent); 
   }
 }
 
