@@ -512,6 +512,7 @@ protected:
   virtual bool ValidateData(TrackedFrame* trackedFrame); 
 
   bool ValidateTimestamp(TrackedFrame* trackedFrame); 
+  bool ValidateStatus(TrackedFrame* trackedFrame); 
   bool ValidateTransform(TrackedFrame* trackedFrame); 
   bool ValidateEncoderPosition(TrackedFrame* trackedFrame);
   bool ValidateSpeed(TrackedFrame* trackedFrame);

@@ -79,7 +79,7 @@ vtkDataCollector* vtkDataCollector::CreateDataCollectorAccordingToDeviceSetConfi
   vtkXMLDataElement* dataCollectionConfig = rootElement->FindNestedElementWithName("DataCollection");
   if (dataCollectionConfig == NULL)
   {
-    LOG_ERROR("Data collector cannot be instantiated: Cannot find USDataCollection element in XML tree!");
+    LOG_ERROR("Data collector cannot be instantiated: Cannot find DataCollection element in XML tree!");
     return NULL;
   }
 

@@ -415,6 +415,15 @@ bool vtkTrackedFrameList::ValidateData(TrackedFrame* trackedFrame )
     }
   }
 
+  if ( this->ValidationRequirements & REQUIRE_TRACKING_OK )
+  {
+    if (! this->ValidateStatus(trackedFrame))
+    {
+      LOG_DEBUG("Validation failed - tracking status in not OK!"); 
+      return false;
+    }
+  }
+
   if ( this->ValidationRequirements & REQUIRE_CHANGED_TRANSFORM )
   {
     if (! this->ValidateTransform(trackedFrame))
@@ -512,6 +521,22 @@ bool vtkTrackedFrameList::ValidateTransform(TrackedFrame* trackedFrame)
   }
 
   return true; 	
+}
+
+//----------------------------------------------------------------------------
+bool vtkTrackedFrameList::ValidateStatus(TrackedFrame* trackedFrame)
+{
+  TrackerStatus status = TR_MISSING;
+  std::string toolStatusFrameFieldName = std::string(this->FrameTransformNameForValidation) + "Status";
+  status = TrackedFrame::GetStatusFromString( trackedFrame->GetCustomFrameField( toolStatusFrameFieldName.c_str() ) );
+
+  if ( status != TR_OK )
+  {
+    LOG_DEBUG("Tracked frame status validation result: tracked frame status invalid for tool " << this->FrameTransformNameForValidation); 
+    return false;
+  }
+
+  return true;
 }
 
 //----------------------------------------------------------------------------

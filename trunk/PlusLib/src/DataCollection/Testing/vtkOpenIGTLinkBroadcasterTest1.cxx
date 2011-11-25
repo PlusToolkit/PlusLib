@@ -145,10 +145,20 @@ int main( int argc, char** argv )
     return BC_EXIT_FAILURE;
   }
 
+  vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationData(configRootElement);
+
   vtkDataCollector* dataCollector = vtkDataCollector::New();
-  dataCollector->ReadConfiguration( configRootElement );
+
+  vtkDataCollectorHardwareDevice* dataCollectorHardwareDevice = dynamic_cast<vtkDataCollectorHardwareDevice*>(dataCollector);
+  if ( dataCollectorHardwareDevice == NULL )
+  {
+    LOG_ERROR("Failed to create the propertype of data collector!");
+    exit( BC_EXIT_FAILURE );
+  }
+
+  dataCollectorHardwareDevice->ReadConfiguration( configRootElement );
   
-  if ( dataCollector->GetAcquisitionType() == SYNCHRO_VIDEO_SAVEDDATASET )
+  if ( dataCollectorHardwareDevice->GetAcquisitionType() == SYNCHRO_VIDEO_SAVEDDATASET )
   {
     if ( inputVideoBufferMetafile.empty() )
     {
@@ -156,7 +166,7 @@ int main( int argc, char** argv )
       return BC_EXIT_FAILURE;
     }
 
-    vtkSavedDataVideoSource* videoSource = dynamic_cast< vtkSavedDataVideoSource* >( dataCollector->GetVideoSource() );
+    vtkSavedDataVideoSource* videoSource = dynamic_cast< vtkSavedDataVideoSource* >( dataCollectorHardwareDevice->GetVideoSource() );
     if ( videoSource == NULL )
     {
       LOG_ERROR("Invalid saved data video source.");
@@ -166,21 +176,21 @@ int main( int argc, char** argv )
     videoSource->SetReplayEnabled( inputReplay ); 
   }
 
-  if ( dataCollector->GetTrackerType() == TRACKER_SAVEDDATASET )
+  if ( dataCollectorHardwareDevice->GetTrackerType() == TRACKER_SAVEDDATASET )
   {
     if ( inputTrackerBufferMetafile.empty() )
     {
       LOG_ERROR("Tracker source metafile missing.");
       return BC_EXIT_FAILURE;
     }
-    vtkSavedDataTracker* tracker = static_cast< vtkSavedDataTracker* >( dataCollector->GetTracker() );
+    vtkSavedDataTracker* tracker = static_cast< vtkSavedDataTracker* >( dataCollectorHardwareDevice->GetTracker() );
     tracker->SetSequenceMetafile( inputTrackerBufferMetafile.c_str() );
     tracker->SetReplayEnabled( inputReplay ); 
     tracker->Connect();
   }
   
   LOG_INFO("Initializing data collector... ");
-  dataCollector->Connect();
+  dataCollectorHardwareDevice->Connect();
   
   
     // Prepare server to receive messages.
@@ -193,7 +203,7 @@ int main( int argc, char** argv )
   
   vtkOpenIGTLinkBroadcaster::Status broadcasterStatus = vtkOpenIGTLinkBroadcaster::STATUS_NOT_INITIALIZED;
   vtkSmartPointer< vtkOpenIGTLinkBroadcaster > broadcaster = vtkSmartPointer< vtkOpenIGTLinkBroadcaster >::New();
-    broadcaster->SetDataCollector( dataCollector );
+  broadcaster->SetDataCollector( dataCollector );
   
   std::string errorMessage;
   broadcasterStatus = broadcaster->Initialize( errorMessage );
@@ -219,16 +229,16 @@ int main( int argc, char** argv )
     // Starting data collector.
   
   LOG_INFO("Start data collector... ");
-  dataCollector->Start();
+  dataCollectorHardwareDevice->Start();
   
   
     // Determine number of iterations the broadcaster should run for.
   
   unsigned int NUMBER_OF_BROADCASTED_MESSAGES = UINT_MAX;
   
-  if ( dataCollector->GetAcquisitionType() == SYNCHRO_VIDEO_SAVEDDATASET )
+  if ( dataCollectorHardwareDevice->GetAcquisitionType() == SYNCHRO_VIDEO_SAVEDDATASET )
   {
-    NUMBER_OF_BROADCASTED_MESSAGES = dataCollector->GetVideoSource()->GetBuffer()->GetBufferSize();
+    NUMBER_OF_BROADCASTED_MESSAGES = dataCollectorHardwareDevice->GetVideoSource()->GetBuffer()->GetBufferSize();
     if ( inputReplay )
     {
       NUMBER_OF_BROADCASTED_MESSAGES = UINT_MAX; 
@@ -253,7 +263,7 @@ int main( int argc, char** argv )
       }
     
     
-    PrintActualTransforms( dataCollector, inputToolName.c_str() );
+    PrintActualTransforms( dataCollectorHardwareDevice, inputToolName.c_str() );
   }
 
   
@@ -265,7 +275,7 @@ int main( int argc, char** argv )
   
   
   LOG_INFO("Stopping data collector... ");
-  dataCollector->Stop();
+  dataCollectorHardwareDevice->Stop();
   dataCollector->Delete();
   
   return BC_EXIT_SUCCESS;

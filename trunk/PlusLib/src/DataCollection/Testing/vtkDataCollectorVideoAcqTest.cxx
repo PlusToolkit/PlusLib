@@ -13,6 +13,7 @@ See License.txt for details.
 #include "vtkSmartPointer.h"
 #include "vtkDataCollector.h"
 #include "vtkVideoBuffer.h"
+#include "vtkPlusVideoSource.h"
 #include "vtkXMLUtilities.h"
 #include "vtkTimerLog.h"
 #include "vtksys/SystemTools.hxx"
@@ -76,10 +77,10 @@ int main(int argc, char **argv)
 
 	LOG_INFO("Copy video buffer"); 
 	vtkVideoBuffer *buffer = vtkVideoBuffer::New(); 
-	dataCollector->CopyVideoBuffer(buffer); 
+  buffer->DeepCopy(dataCollector->GetVideoSource()->GetBuffer());
 
 	LOG_INFO("write video buffer to " << outputVideoBufferSequenceFileName);
-	dataCollector->WriteVideoBufferToMetafile( buffer, outputFolder.c_str(), outputVideoBufferSequenceFileName.c_str(), true); 
+	buffer->WriteToMetafile(outputFolder.c_str(), outputVideoBufferSequenceFileName.c_str(), true); 
 
 	buffer->Delete(); 
 

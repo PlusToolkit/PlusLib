@@ -17,7 +17,7 @@ See License.txt for details.
 #include "vtkCommand.h"
 #include "vtkRenderWindowInteractor.h"
 #include "vtkRenderer.h"
-#include "vtkDataCollector.h"
+#include "vtkDataCollectorHardwareDevice.h"
 #include "vtkTextProperty.h"
 #include "vtkTextActor.h"
 #include "vtkPlusVideoSource.h"
@@ -42,19 +42,17 @@ public:
     double synchronizedTime(0); 
     vtkSmartPointer<vtkMatrix4x4> tFrame2Tracker = vtkSmartPointer<vtkMatrix4x4>::New(); 
 
-  if ( !ToolName.empty() )
-  {
-    if ( this->DataCollector->GetTracker()->GetToolIteratorBegin() == this->DataCollector->GetTracker()->GetToolIteratorEnd() )
+    if ( !ToolName.empty() )
     {
-      LOG_ERROR("There is no active tool!"); 
-      return; 
+      if ( this->DataCollector->GetTracker()->GetToolIteratorBegin() == this->DataCollector->GetTracker()->GetToolIteratorEnd() )
+      {
+        LOG_ERROR("There is no active tool!"); 
+        return; 
+      }
+
+      // Use the first active tool 
+      ToolName = this->DataCollector->GetTracker()->GetToolIteratorBegin()->second->GetToolName(); 
     }
-
-    // Use the first active tool 
-    ToolName = this->DataCollector->GetTracker()->GetToolIteratorBegin()->second->GetToolName(); 
-  }
-
-
 
     if ( this->DataCollector->GetTrackedFrame(this->RealtimeImage, tFrame2Tracker, status, synchronizedTime, ToolName.c_str()) == PLUS_SUCCESS )
     {
@@ -104,7 +102,7 @@ public:
     this->Iren->CreateTimer(VTKI_TIMER_UPDATE);
   }
 
-  vtkDataCollector* DataCollector; 
+  vtkDataCollectorHardwareDevice* DataCollector; 
   vtkImageViewer *Viewer;
   vtkRenderWindowInteractor *Iren;
   vtkTextActor *StepperTextActor; 
@@ -161,13 +159,23 @@ int main(int argc, char **argv)
     exit( EXIT_FAILURE );
   }
 
+  vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationData(configRootElement);
+
   vtkSmartPointer<vtkDataCollector> dataCollector = vtkSmartPointer<vtkDataCollector>::New(); 
-  dataCollector->ReadConfiguration( configRootElement );
+
+  vtkDataCollectorHardwareDevice* dataCollectorHardwareDevice = dynamic_cast<vtkDataCollectorHardwareDevice*>(dataCollector.GetPointer());
+  if ( dataCollectorHardwareDevice == NULL )
+  {
+    LOG_ERROR("Failed to create the propertype of data collector!");
+    exit( EXIT_FAILURE );
+  }
+
+  dataCollectorHardwareDevice->ReadConfiguration( configRootElement );
 
   if ( ! inputVideoBufferMetafile.empty()
-    && dataCollector->GetAcquisitionType() == SYNCHRO_VIDEO_SAVEDDATASET )
+    && dataCollectorHardwareDevice->GetAcquisitionType() == SYNCHRO_VIDEO_SAVEDDATASET )
   {
-    vtkSavedDataVideoSource* videoSource = dynamic_cast<vtkSavedDataVideoSource*>(dataCollector->GetVideoSource()); 
+    vtkSavedDataVideoSource* videoSource = dynamic_cast<vtkSavedDataVideoSource*>(dataCollectorHardwareDevice->GetVideoSource()); 
     if ( videoSource == NULL )
     {
       LOG_ERROR( "Unable to cast video source to vtkSavedDataVideoSource." );
@@ -178,9 +186,9 @@ int main(int argc, char **argv)
   }
 
   if ( ! inputTrackerBufferMetafile.empty()
-    && dataCollector->GetTrackerType() == TRACKER_SAVEDDATASET )
+    && dataCollectorHardwareDevice->GetTrackerType() == TRACKER_SAVEDDATASET )
   {
-    vtkSavedDataTracker* tracker = dynamic_cast<vtkSavedDataTracker*>(dataCollector->GetTracker()); 
+    vtkSavedDataTracker* tracker = dynamic_cast<vtkSavedDataTracker*>(dataCollectorHardwareDevice->GetTracker()); 
     if ( tracker == NULL )
     {
       LOG_ERROR( "Unable to cast tracker to vtkSavedDataTracker." );
@@ -190,7 +198,7 @@ int main(int argc, char **argv)
     tracker->SetReplayEnabled(inputReplay); 
   }
 
-  dataCollector->Connect(); 
+  dataCollectorHardwareDevice->Connect(); 
 
   vtkSmartPointer<vtkOpenIGTLinkBroadcaster> broadcaster;
   if ( inputEnableBroadcasting && InitBroadcaster(broadcaster, dataCollector) != PLUS_SUCCESS )
@@ -203,7 +211,7 @@ int main(int argc, char **argv)
     }
   }
 
-  dataCollector->Start();
+  dataCollectorHardwareDevice->Start();
 
   if (renderingOff)
   {
@@ -212,7 +220,7 @@ int main(int argc, char **argv)
   else
   {
 
-    int * frameSize = dataCollector->GetVideoSource()->GetFrameSize(); 
+    int * frameSize = dataCollectorHardwareDevice->GetVideoSource()->GetFrameSize(); 
     vtkSmartPointer<vtkImageData> realtimeImage = vtkSmartPointer<vtkImageData>::New(); 
     realtimeImage->SetExtent( 0, frameSize[0] - 1, 0, frameSize[1] - 1, 0, 0); 
     realtimeImage->SetNumberOfScalarComponents(1); 
@@ -247,7 +255,7 @@ int main(int argc, char **argv)
 
     //establish timer event and create timer
     vtkSmartPointer<vtkMyCallback> call = vtkSmartPointer<vtkMyCallback>::New();
-    call->DataCollector=dataCollector; 
+    call->DataCollector=dataCollectorHardwareDevice; 
     call->Viewer=viewer;
     call->Iren=iren;
     call->StepperTextActor=stepperTextActor; 
@@ -262,7 +270,7 @@ int main(int argc, char **argv)
     iren->Start();
   }
 
-  dataCollector->Disconnect();
+  dataCollectorHardwareDevice->Disconnect();
 
   std::cout << "vtkDataCollectorTest1 completed successfully!" << std::endl;
   return EXIT_SUCCESS; 
