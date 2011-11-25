@@ -112,14 +112,14 @@ int main(int argc, char **argv)
 	if ( dataCollector->GetVideoSource() != NULL ) 
 	{
 		LOG_INFO("Copy video buffer ..."); 
-		dataCollector->CopyVideoBuffer(videobuffer); 
+    videobuffer->DeepCopy(dataCollector->GetVideoSource()->GetBuffer()); 
 	}
 
 	vtkSmartPointer<vtkTracker> tracker = vtkSmartPointer<vtkTracker>::New(); 
 	if ( dataCollector->GetTracker() != NULL )
 	{
 		LOG_INFO("Copy tracker ..."); 
-		dataCollector->CopyTracker(tracker); 
+		tracker->DeepCopy(dataCollector->GetTracker()); 
 	}
 
   vtkTrackerTool* tool = NULL;
@@ -190,13 +190,13 @@ int main(int argc, char **argv)
 	if ( dataCollector->GetVideoSource() != NULL ) 
 	{
 		LOG_INFO("Write video buffer to " << outputVideoBufferSequenceFileName);
-		dataCollector->WriteVideoBufferToMetafile( videobuffer, outputFolder.c_str(), outputVideoBufferSequenceFileName.c_str(), false); 
+		dataCollector->GetVideoSource()->GetBuffer()->WriteToMetafile( outputFolder.c_str(), outputVideoBufferSequenceFileName.c_str(), false); 
 	}
 
 	if ( dataCollector->GetTracker() != NULL )
 	{
 		LOG_INFO("Write tracker buffer to " << outputTrackerBufferSequenceFileName);
-		dataCollector->WriteTrackerToMetafile( tracker, outputFolder.c_str(), outputTrackerBufferSequenceFileName.c_str(), false); 
+		tracker->WriteToMetafile( outputFolder.c_str(), outputTrackerBufferSequenceFileName.c_str(), false); 
 	}	
 
 	return EXIT_SUCCESS; 

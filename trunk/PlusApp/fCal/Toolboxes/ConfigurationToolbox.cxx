@@ -132,7 +132,7 @@ void ConfigurationToolbox::ConnectToDevicesByConfigFile(std::string aConfigFile)
 
     vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationData(configRootElement); 
 
-	  // If connection has been successfully created then this action should disconnect
+	  // If connection has been successfully created then start data collection
 	  if (! m_DeviceSetSelectorWidget->GetConnectionSuccessful())
     {
 		  LOG_INFO("Connect to devices"); 

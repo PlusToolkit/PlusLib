@@ -379,7 +379,11 @@ PlusStatus TrackedUltrasoundCapturing::RecordTrackedFrame( const double time /*=
 	}
 	else
 	{
-		status = this->GetDataCollector()->GetTrackedFrameByTime(time, &trackedFrame); 
+    vtkDataCollectorHardwareDevice* dataCollectorHardwareDevice = dynamic_cast<vtkDataCollectorHardwareDevice*>(this->DataCollector);
+    if (dataCollectorHardwareDevice)
+    {
+  		status = dataCollectorHardwareDevice->GetTrackedFrameByTime(time, &trackedFrame); 
+    }
 	}
   
   if ( status == PLUS_FAIL )
@@ -388,7 +392,10 @@ PlusStatus TrackedUltrasoundCapturing::RecordTrackedFrame( const double time /*=
     return PLUS_FAIL; 
   }
 
-	if ( trackedFrame.GetStatus() != TR_OK )
+  TrackerStatus trackerStatus = TR_MISSING;
+  std::string toolStatusFrameFieldName = TrackedUltrasoundCapturing::DefaultFrameTransformName + "Status";
+  trackerStatus = TrackedFrame::GetStatusFromString( trackedFrame.GetCustomFrameField( toolStatusFrameFieldName.c_str() ) );
+  if ( trackerStatus != TR_OK )
 	{
 		LOG_WARNING("Unable to record tracked frame: Tracker out of view!"); 
 	}

@@ -1,7 +1,7 @@
 
 #include "OpenIGTLinkBroadcasterWidget.h"
 
-#include "vtkDataCollector.h"
+#include "vtkDataCollectorHardwareDevice.h"
 #include "vtkOpenIGTLinkBroadcaster.h"
 #include "vtkSavedDataTracker.h"
 #include "vtkSavedDataVideoSource.h"
@@ -74,37 +74,40 @@ void OpenIGTLinkBroadcasterWidget::Initialize( std::string configFileName, std::
   }
   this->m_DataCollector->ReadConfiguration( configRootElement );
   
-    
-  if ( this->m_DataCollector->GetAcquisitionType() == SYNCHRO_VIDEO_SAVEDDATASET )
+  vtkDataCollectorHardwareDevice* dataCollectorHardwareDevice = dynamic_cast<vtkDataCollectorHardwareDevice*>(this->m_DataCollector);
+  if (dataCollectorHardwareDevice)
   {
-    vtkSavedDataVideoSource* videoSource = static_cast< vtkSavedDataVideoSource* >( this->m_DataCollector->GetVideoSource() );
-    
-    if ( ! videoBufferFileName.empty() )
+    if ( dataCollectorHardwareDevice->GetAcquisitionType() == SYNCHRO_VIDEO_SAVEDDATASET )
     {
-      videoSource->SetSequenceMetafile( videoBufferFileName.c_str() );
-    }
-	else
-    {
-      std::cout << "Error: Video buffer file not specified." << std::endl;
-      return;
-    }
-  }
-  
-  if ( this->m_DataCollector->GetTrackerType() == TRACKER_SAVEDDATASET )
-  {
-    vtkSavedDataTracker* tracker = static_cast< vtkSavedDataTracker* >( this->m_DataCollector->GetTracker() );
+      vtkSavedDataVideoSource* videoSource = static_cast< vtkSavedDataVideoSource* >( dataCollectorHardwareDevice->GetVideoSource() );
       
-    if ( ! trackerBufferFileName.empty() )
-    {
-      tracker->SetSequenceMetafile( trackerBufferFileName.c_str() );
+      if ( ! videoBufferFileName.empty() )
+      {
+        videoSource->SetSequenceMetafile( videoBufferFileName.c_str() );
+      }
+	    else
+      {
+        std::cout << "Error: Video buffer file not specified." << std::endl;
+        return;
+      }
     }
-    else
+    
+    if ( dataCollectorHardwareDevice->GetTrackerType() == TRACKER_SAVEDDATASET )
     {
-      std::cout << "Error: Tracker buffer file not specified" << std::endl;
-      return;
+      vtkSavedDataTracker* tracker = static_cast< vtkSavedDataTracker* >( dataCollectorHardwareDevice->GetTracker() );
+        
+      if ( ! trackerBufferFileName.empty() )
+      {
+        tracker->SetSequenceMetafile( trackerBufferFileName.c_str() );
+      }
+      else
+      {
+        std::cout << "Error: Tracker buffer file not specified" << std::endl;
+        return;
+      }
     }
   }
-  
+
   
   LOG_INFO( "Initializing data collector." );
   this->m_DataCollector->Connect();

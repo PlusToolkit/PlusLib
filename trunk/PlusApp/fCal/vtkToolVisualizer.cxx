@@ -25,6 +25,7 @@
 #include "vtkAxesActor.h"
 #include "vtkRenderWindow.h"
 #include "vtkPlusVideoSource.h"
+#include "vtkVideoBuffer.h"
 #include "vtksys/SystemTools.hxx"
 
 #include "vtkRenderWindowInteractor.h"
@@ -63,10 +64,6 @@ vtkToolVisualizer::vtkToolVisualizer()
 
 	// Create timer
   this->AcquisitionTimer = NULL;
-
-	// Create data collector
-	vtkSmartPointer<vtkDataCollector> dataCollector = vtkSmartPointer<vtkDataCollector>::New(); 
-	this->SetDataCollector(dataCollector);
 }
 
 //-----------------------------------------------------------------------------
@@ -84,6 +81,7 @@ vtkToolVisualizer::~vtkToolVisualizer()
   if (this->DataCollector != NULL)
   {
 		this->DataCollector->Stop();
+    this->DataCollector->Disconnect();
 	}
 	this->SetDataCollector(NULL);
 
@@ -268,7 +266,7 @@ PlusStatus vtkToolVisualizer::InitializeDeviceVisualization()
   }
 
   // Connect data collector to image actor
-	if (this->DataCollector->GetAcquisitionType() != SYNCHRO_VIDEO_NONE)
+  if (this->DataCollector->GetVideoEnabled())
   {
 		this->ImageActor->VisibilityOn();
 		this->ImageActor->SetInput(this->DataCollector->GetOutput());
@@ -991,14 +989,18 @@ PlusStatus vtkToolVisualizer::StartDataCollection()
 {
 	LOG_TRACE("vtkToolVisualizer::StartDataCollection"); 
 
-	// Stop data collection if already started
-	if (this->DataCollector == NULL)
+	// Delete data collection if already exists
+	if (this->DataCollector != NULL)
   {
-    LOG_ERROR("Data collector has not been created!");
-    return PLUS_FAIL;
+    this->DataCollector->Stop();
+    this->DataCollector->Disconnect();
+
+    this->SetDataCollector(NULL);
   }
 
-  this->DataCollector->Stop();
+  // Create the proper data collector variant
+	vtkSmartPointer<vtkDataCollector> dataCollector = vtkSmartPointer<vtkDataCollector>::New(); 
+	this->SetDataCollector(dataCollector);
 
 	// Read configuration
   if (this->DataCollector->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS)
@@ -1147,13 +1149,13 @@ PlusStatus vtkToolVisualizer::DumpBuffersToDirectory(const char* aDirectory)
   if ( this->DataCollector->GetVideoSource() != NULL )
   {
     LOG_INFO("Write video buffer to " << outputVideoBufferSequenceFileName);
-    this->DataCollector->WriteVideoBufferToMetafile( this->DataCollector->GetVideoSource()->GetBuffer(), aDirectory, outputVideoBufferSequenceFileName.c_str(), false); 
+    this->DataCollector->GetVideoSource()->GetBuffer()->WriteToMetafile( aDirectory, outputVideoBufferSequenceFileName.c_str(), false); 
   }
 
   if ( this->DataCollector->GetTracker() != NULL )
   {
     LOG_INFO("Write tracker buffer to " << outputTrackerBufferSequenceFileName);
-    this->DataCollector->WriteTrackerToMetafile( this->DataCollector->GetTracker(), aDirectory, outputTrackerBufferSequenceFileName.c_str(), false); 
+    this->DataCollector->GetTracker()->WriteToMetafile( aDirectory, outputTrackerBufferSequenceFileName.c_str(), false); 
   }
 
   return PLUS_SUCCESS;

@@ -183,13 +183,13 @@ int main(int argc, char **argv)
 	if ( dataCollector->GetVideoSource() != NULL ) 
 	{
 		LOG_INFO("Write video buffer to " << outputVideoBufferSequenceFileName);
-		dataCollector->WriteVideoBufferToMetafile( dataCollector->GetVideoSource()->GetBuffer(), outputFolder.c_str(), outputVideoBufferSequenceFileName.c_str(), false); 
+		dataCollector->GetVideoSource()->GetBuffer()->WriteToMetafile( outputFolder.c_str(), outputVideoBufferSequenceFileName.c_str(), false); 
 	}
 
 	if ( dataCollector->GetTracker() != NULL )
 	{
 		LOG_INFO("Write tracker buffer to " << outputTrackerBufferSequenceFileName);
-		dataCollector->WriteTrackerToMetafile( dataCollector->GetTracker(), outputFolder.c_str(), outputTrackerBufferSequenceFileName.c_str(), false); 
+		dataCollector->GetTracker()->WriteToMetafile( outputFolder.c_str(), outputTrackerBufferSequenceFileName.c_str(), false); 
 	}
 
 	dataCollector->Disconnect(); 

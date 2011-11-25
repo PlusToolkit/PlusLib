@@ -244,7 +244,7 @@ PlusStatus DeviceSetSelectorWidget::ParseDirectory(QString aDirectory)
 			
 			// Check if the root element is PlusConfiguration and contains a USDataCollection child
 			if (! docElem.tagName().compare("PlusConfiguration")) {
-				QDomNodeList list = docElem.elementsByTagName("USDataCollection");
+				QDomNodeList list = docElem.elementsByTagName("DataCollection");
 
 				if (list.count() > 0) { // If it has a USDataCollection children then use the first one
 					docElem = list.at(0).toElement();

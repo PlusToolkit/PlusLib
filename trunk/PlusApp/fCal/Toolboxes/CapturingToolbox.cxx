@@ -196,10 +196,13 @@ void CapturingToolbox::TakeSnapshot()
     LOG_ERROR("Failed to get tracked frame for the snapshot!");
     return;
   }
-
-	if ( trackedFrame.GetStatus() != TR_OK )
+  
+  TrackerStatus status = TR_MISSING;
+  std::string toolStatusFrameFieldName = std::string(m_ParentMainWindow->GetToolVisualizer()->GetProbeToolName()) + "Status";
+  status = TrackedFrame::GetStatusFromString( trackedFrame.GetCustomFrameField( toolStatusFrameFieldName.c_str() ) );
+  if ( status != TR_OK )
 	{
-		LOG_WARNING("Unable to record tracked frame: Tracker out of view!"); 
+		LOG_WARNING("Unable to record tracked frame: Probe tool is out of view!"); 
     return;
 	}
 

@@ -562,7 +562,11 @@ void FreehandCalibrationToolbox::CancelTemporal()
   LOG_TRACE("FreehandCalibrationToolbox::CancelTemporal"); 
 
   // Cancel synchronization (temporal calibration) in data collector
-  m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->CancelSyncRequestOn();
+  vtkDataCollectorHardwareDevice* dataCollectorHardwareDevice = dynamic_cast<vtkDataCollectorHardwareDevice*>(m_ParentMainWindow->GetToolVisualizer()->GetDataCollector());
+  if (dataCollectorHardwareDevice)
+  {
+    dataCollectorHardwareDevice->CancelSyncRequestOn();
+  }
 
   m_ParentMainWindow->SetTabsEnabled(true);
 

@@ -1051,7 +1051,7 @@ PlusStatus SegmentationParameterDialog::InitializeVisualization()
   // Create canvas image actor
 	m_CanvasImageActor = vtkImageActor::New();
 
-	if (m_DataCollector->GetAcquisitionType() != SYNCHRO_VIDEO_NONE) {
+	if (m_DataCollector->GetVideoEnabled()) {
 		m_CanvasImageActor->VisibilityOn();
 		//m_CanvasImageActor->SetInput(m_DataCollector->GetOutput()); // Commented because instead of the live image, snapshots are displayed with the overlay (segmented points)
 	} else {

@@ -753,7 +753,11 @@ void TrackedUltrasoundCapturingGUI::SynchronizeButtonClicked()
 void TrackedUltrasoundCapturingGUI::CancelSyncButtonClicked()
 {
   LOG_TRACE("TrackedUltrasoundCapturingGUI::CancelSyncButtonClicked");
-  this->m_USCapturing->GetDataCollector()->CancelSyncRequestOn(); 
+  vtkDataCollectorHardwareDevice* dataCollectorHardwareDevice = dynamic_cast<vtkDataCollectorHardwareDevice*>(this->m_USCapturing->GetDataCollector());
+  if (dataCollectorHardwareDevice)
+  {
+    dataCollectorHardwareDevice->CancelSyncRequestOn(); 
+  }
   this->EnableWizardButtons(); 
   this->GetProgressBar( this->currentId() )->hide(); 
   this->SynchronizeButton->show();
