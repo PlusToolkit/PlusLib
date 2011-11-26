@@ -91,12 +91,15 @@ public:
   virtual void SetVideoOnly(bool) = 0;
 
 public:
-  /*! Get the video source of ultrasound */
+  /*! Get video source of ultrasound */
   virtual vtkPlusVideoSource* GetVideoSource() = 0;
 
-  /*! Get the tracker  */
+  /*! Get tracker  */
   virtual vtkTracker* GetTracker() = 0;
   
+  /*! Get frame size */
+  virtual void GetFrameSize(int aDim[2]) = 0;
+
   /*! Get the Connected flag  */
   vtkGetMacro(Connected,bool);
   

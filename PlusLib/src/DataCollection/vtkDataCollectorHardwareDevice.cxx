@@ -835,11 +835,11 @@ PlusStatus vtkDataCollectorHardwareDevice::GetMostRecentTimestamp(double &ts)
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkDataCollectorHardwareDevice::GetFrameByTime(double time, vtkImageData* vtkFrame, double& frameTimestamp)
+PlusStatus vtkDataCollectorHardwareDevice::GetFrameByTime(double time, vtkImageData* vtkFrame, double& aTimestamp)
 {
   //LOG_TRACE("vtkDataCollectorHardwareDevice::GetFrameByTime"); 
   PlusVideoFrame frame;
-  if ( this->GetFrameByTime(time, frame, frameTimestamp) != PLUS_SUCCESS )
+  if ( this->GetFrameByTime(time, frame, aTimestamp) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to get frame by time: " << std::fixed << time ); 
     return PLUS_FAIL; 
@@ -858,7 +858,7 @@ PlusStatus vtkDataCollectorHardwareDevice::GetFrameByTime(double time, vtkImageD
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkDataCollectorHardwareDevice::GetFrameByTime(double time, PlusVideoFrame& frame, double& frameTimestamp)
+PlusStatus vtkDataCollectorHardwareDevice::GetFrameByTime(double time, PlusVideoFrame& frame, double& aTimestamp)
 {
   //LOG_TRACE("vtkDataCollectorHardwareDevice::GetFrameByTime"); 
   if ( this->GetVideoSource() == NULL ) 
@@ -899,7 +899,7 @@ PlusStatus vtkDataCollectorHardwareDevice::GetFrameByTime(double time, PlusVideo
   frame=currentVideoBufferItem.GetFrame(); 
 
   // Copy frame timestamp 
-  frameTimestamp = currentVideoBufferItem.GetTimestamp( this->GetVideoSource()->GetBuffer()->GetLocalTimeOffset() ); 
+  aTimestamp = currentVideoBufferItem.GetTimestamp( this->GetVideoSource()->GetBuffer()->GetLocalTimeOffset() ); 
   return PLUS_SUCCESS; 
 }
 
@@ -1104,29 +1104,29 @@ PlusStatus vtkDataCollectorHardwareDevice::GetTrackedFrame(vtkImageData* frame, 
 }
 
 //----------------------------------------------------------------------------
-int vtkDataCollectorHardwareDevice::GetNumberOfFramesBetweenTimestamps(double frameTimestampFrom, double frameTimestampTo)
+int vtkDataCollectorHardwareDevice::GetNumberOfFramesBetweenTimestamps(double aTimestampFrom, double aTimestampTo)
 {
-  LOG_TRACE("vtkDataCollectorHardwareDevice::GetNumberOfFramesBetweenTimestamps(" << frameTimestampFrom << ", " << frameTimestampTo << ")");
+  LOG_TRACE("vtkDataCollectorHardwareDevice::GetNumberOfFramesBetweenTimestamps(" << aTimestampFrom << ", " << aTimestampTo << ")");
 
   int numberOfFrames = 0;
 
   if ( this->GetVideoEnabled() )
   {
     VideoBufferItem vFromItem; 
-    if (this->GetVideoSource()->GetBuffer()->GetVideoBufferItemFromTime(frameTimestampFrom, &vFromItem) != ITEM_OK )
+    if (this->VideoSource->GetBuffer()->GetVideoBufferItemFromTime(aTimestampFrom, &vFromItem) != ITEM_OK )
     {
       return 0;
     }
 
     VideoBufferItem vToItem; 
-    if (this->GetVideoSource()->GetBuffer()->GetVideoBufferItemFromTime(frameTimestampTo, &vToItem) != ITEM_OK )
+    if (this->VideoSource->GetBuffer()->GetVideoBufferItemFromTime(aTimestampTo, &vToItem) != ITEM_OK )
     {
       return 0;
     }
 
     numberOfFrames = abs((int)(vToItem.GetUid() - vFromItem.GetUid()));
   }
-  else if ( this->GetTrackingEnabled() )
+  else if ( this->TrackingEnabled )
   {
     // Get the first tool
     vtkTrackerTool* firstActiveTool = NULL; 
@@ -1144,13 +1144,13 @@ int vtkDataCollectorHardwareDevice::GetNumberOfFramesBetweenTimestamps(double fr
     }
 
     TrackerBufferItem tFromItem; 
-    if (trackerBuffer->GetTrackerBufferItem(frameTimestampFrom, &tFromItem) != ITEM_OK )
+    if (trackerBuffer->GetTrackerBufferItem(aTimestampFrom, &tFromItem) != ITEM_OK )
     {
       return 0;
     } 
 
     TrackerBufferItem tToItem; 
-    if (trackerBuffer->GetTrackerBufferItem(frameTimestampTo, &tToItem) != ITEM_OK )
+    if (trackerBuffer->GetTrackerBufferItem(aTimestampTo, &tToItem) != ITEM_OK )
     {
       return 0;
     }
@@ -1162,11 +1162,11 @@ int vtkDataCollectorHardwareDevice::GetNumberOfFramesBetweenTimestamps(double fr
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkDataCollectorHardwareDevice::GetTrackedFrameList(double& frameTimestamp, vtkTrackedFrameList* trackedFrameList, int maxNumberOfFramesToAdd/*=-1*/)
+PlusStatus vtkDataCollectorHardwareDevice::GetTrackedFrameList(double& aTimestamp, vtkTrackedFrameList* aTrackedFrameList, int aMaxNumberOfFramesToAdd/*=-1*/)
 {
-  LOG_TRACE("vtkDataCollectorHardwareDevice::GetTrackedFrameList(" << frameTimestamp << ", " << maxNumberOfFramesToAdd << ")"); 
+  LOG_TRACE("vtkDataCollectorHardwareDevice::GetTrackedFrameList(" << aTimestamp << ", " << aMaxNumberOfFramesToAdd << ")"); 
 
-  if ( trackedFrameList == NULL )
+  if ( aTrackedFrameList == NULL )
   {
     LOG_ERROR("Unable to get tracked frame list - output tracked frmae list is NULL!"); 
     return PLUS_FAIL; 
@@ -1188,9 +1188,9 @@ PlusStatus vtkDataCollectorHardwareDevice::GetTrackedFrameList(double& frameTime
     return PLUS_FAIL; 
   }
 
-  if ( maxNumberOfFramesToAdd > 0 ) 
+  if ( aMaxNumberOfFramesToAdd > 0 ) 
   {
-    if ( this->GetVideoEnabled() )
+    if ( this->VideoEnabled )
     {
       BufferItemUidType mostRecentVideoUid; 
       if ( this->VideoSource->GetBuffer()->GetItemUidFromTime(mostRecentTimestamp, mostRecentVideoUid) != ITEM_OK )
@@ -1198,17 +1198,17 @@ PlusStatus vtkDataCollectorHardwareDevice::GetTrackedFrameList(double& frameTime
         LOG_ERROR("Failed to get video buffer item by timestamp " << mostRecentTimestamp);
         return PLUS_FAIL;
       }
-      if ( mostRecentVideoUid - maxNumberOfFramesToAdd > this->VideoSource->GetBuffer()->GetOldestItemUidInBuffer() )
+      if ( mostRecentVideoUid - aMaxNumberOfFramesToAdd > this->VideoSource->GetBuffer()->GetOldestItemUidInBuffer() )
       {
         // Most recent is needed too
-        mostRecentVideoUid = mostRecentVideoUid - maxNumberOfFramesToAdd + 1; 
+        mostRecentVideoUid = mostRecentVideoUid - aMaxNumberOfFramesToAdd + 1; 
       }
       else
       {
         LOG_WARNING("Number of frames in the buffer is less than maxNumberOfFramesToAdd!"); 
       }
 
-      if ( this->VideoSource->GetBuffer()->GetTimeStamp(mostRecentVideoUid, frameTimestamp ) != ITEM_OK )
+      if ( this->VideoSource->GetBuffer()->GetTimeStamp(mostRecentVideoUid, aTimestamp ) != ITEM_OK )
       {
         LOG_ERROR("Failed to get video buffer timestamp from UID: " << mostRecentVideoUid ); 
         return PLUS_FAIL; 
@@ -1237,17 +1237,17 @@ PlusStatus vtkDataCollectorHardwareDevice::GetTrackedFrameList(double& frameTime
         LOG_ERROR("Failed to get tracked buffer item by timestamp " << mostRecentTimestamp);
         return PLUS_FAIL;
       }
-      if ( mostRecentTrackerUid - maxNumberOfFramesToAdd > trackerBuffer->GetOldestItemUidInBuffer() )
+      if ( mostRecentTrackerUid - aMaxNumberOfFramesToAdd > trackerBuffer->GetOldestItemUidInBuffer() )
       {
         // Most recent is needed too
-        mostRecentTrackerUid = mostRecentTrackerUid - maxNumberOfFramesToAdd + 1; 
+        mostRecentTrackerUid = mostRecentTrackerUid - aMaxNumberOfFramesToAdd + 1; 
       }
       else
       {
         LOG_WARNING("Number of frames in the buffer is less than maxNumberOfFramesToAdd!"); 
       }
 
-      if ( trackerBuffer->GetTimeStamp(mostRecentTrackerUid, frameTimestamp ) != ITEM_OK )
+      if ( trackerBuffer->GetTimeStamp(mostRecentTrackerUid, aTimestamp ) != ITEM_OK )
       {
         LOG_ERROR("Failed to get tracker buffer timestamp from UID: " << mostRecentTrackerUid ); 
         return PLUS_FAIL; 
@@ -1256,22 +1256,22 @@ PlusStatus vtkDataCollectorHardwareDevice::GetTrackedFrameList(double& frameTime
   }
 
   // Check input frameTimestamp to be in a valid range 
-  if ( frameTimestamp < 0.0001 || frameTimestamp > mostRecentTimestamp )
+  if ( aTimestamp < 0.0001 || aTimestamp > mostRecentTimestamp )
   {
-    frameTimestamp = mostRecentTimestamp; 
+    aTimestamp = mostRecentTimestamp; 
   }
-  else if ( oldestTimestamp > frameTimestamp )
+  else if ( oldestTimestamp > aTimestamp )
   {
-    frameTimestamp = oldestTimestamp; 
+    aTimestamp = oldestTimestamp; 
   }
 
   // Determine how many frames to add
-  int numberOfFramesSinceTimestamp = GetNumberOfFramesBetweenTimestamps(frameTimestamp, mostRecentTimestamp);
+  int numberOfFramesSinceTimestamp = GetNumberOfFramesBetweenTimestamps(aTimestamp, mostRecentTimestamp);
 
   int numberOfFramesToAdd = 0;
-  if (maxNumberOfFramesToAdd > 0)
+  if (aMaxNumberOfFramesToAdd > 0)
   {
-    numberOfFramesToAdd = std::min( maxNumberOfFramesToAdd, numberOfFramesSinceTimestamp );
+    numberOfFramesToAdd = std::min( aMaxNumberOfFramesToAdd, numberOfFramesSinceTimestamp );
   }
   else
   {
@@ -1285,14 +1285,14 @@ PlusStatus vtkDataCollectorHardwareDevice::GetTrackedFrameList(double& frameTime
     // Get tracked frame from buffer
     TrackedFrame trackedFrame; 
 
-    if ( this->GetTrackedFrameByTime(frameTimestamp, &trackedFrame) != PLUS_SUCCESS )
+    if ( this->GetTrackedFrameByTime(aTimestamp, &trackedFrame) != PLUS_SUCCESS )
     {
-      LOG_ERROR("Unable to get tracked frame by time: " << std::fixed << frameTimestamp ); 
+      LOG_ERROR("Unable to get tracked frame by time: " << std::fixed << aTimestamp ); 
       return PLUS_FAIL;
     }
 
     // Add tracked frame to the list 
-    if ( trackedFrameList->AddTrackedFrame(&trackedFrame, vtkTrackedFrameList::SKIP_INVALID_FRAME) != PLUS_SUCCESS )
+    if ( aTrackedFrameList->AddTrackedFrame(&trackedFrame, vtkTrackedFrameList::SKIP_INVALID_FRAME) != PLUS_SUCCESS )
     {
       LOG_ERROR("Unable to add tracked frame to the list!" ); 
       return PLUS_FAIL; 
@@ -1302,9 +1302,9 @@ PlusStatus vtkDataCollectorHardwareDevice::GetTrackedFrameList(double& frameTime
     if ( this->GetVideoEnabled() && i < numberOfFramesToAdd - 1 )
     {
       BufferItemUidType videoUid(0); 
-      if ( this->VideoSource->GetBuffer()->GetItemUidFromTime(frameTimestamp, videoUid) != ITEM_OK )
+      if ( this->VideoSource->GetBuffer()->GetItemUidFromTime(aTimestamp, videoUid) != ITEM_OK )
       {
-        LOG_ERROR("Failed to get video buffer item UID from time: " << std::fixed << frameTimestamp ); 
+        LOG_ERROR("Failed to get video buffer item UID from time: " << std::fixed << aTimestamp ); 
         return PLUS_FAIL; 
       }
 
@@ -1315,7 +1315,7 @@ PlusStatus vtkDataCollectorHardwareDevice::GetTrackedFrameList(double& frameTime
       }
 
       // Get the timestamp of the next item in the buffer
-      if ( this->VideoSource->GetBuffer()->GetTimeStamp(++videoUid, frameTimestamp) != ITEM_OK )
+      if ( this->VideoSource->GetBuffer()->GetTimeStamp(++videoUid, aTimestamp) != ITEM_OK )
       {
         LOG_ERROR("Unable to get timestamp from video buffer by UID: " << videoUid); 
         return PLUS_FAIL;
@@ -1339,9 +1339,9 @@ PlusStatus vtkDataCollectorHardwareDevice::GetTrackedFrameList(double& frameTime
       }
 
       BufferItemUidType trackerUid(0); 
-      if ( trackerBuffer->GetItemUidFromTime(frameTimestamp, trackerUid) != ITEM_OK )
+      if ( trackerBuffer->GetItemUidFromTime(aTimestamp, trackerUid) != ITEM_OK )
       {
-        LOG_ERROR("Failed to get tracker buffer item UID from time: " << std::fixed << frameTimestamp ); 
+        LOG_ERROR("Failed to get tracker buffer item UID from time: " << std::fixed << aTimestamp ); 
         return PLUS_FAIL; 
       }
 
@@ -1352,7 +1352,7 @@ PlusStatus vtkDataCollectorHardwareDevice::GetTrackedFrameList(double& frameTime
       }
 
       // Get the timestamp of the next item in the buffer
-      if ( trackerBuffer->GetTimeStamp(++trackerUid, frameTimestamp) != ITEM_OK )
+      if ( trackerBuffer->GetTimeStamp(++trackerUid, aTimestamp) != ITEM_OK )
       {
         LOG_WARNING("Unable to get timestamp from tracker buffer by UID: " << trackerUid); 
         return PLUS_FAIL;
@@ -1365,11 +1365,11 @@ PlusStatus vtkDataCollectorHardwareDevice::GetTrackedFrameList(double& frameTime
 
 //----------------------------------------------------------------------------
 
-PlusStatus vtkDataCollectorHardwareDevice::GetTrackedFrameListSampled(double& frameTimestamp, vtkTrackedFrameList* trackedFrameList, double samplingRateSec)
+PlusStatus vtkDataCollectorHardwareDevice::GetTrackedFrameListSampled(double& aTimestamp, vtkTrackedFrameList* aTrackedFrameList, double aSamplingRateSec)
 {
-  LOG_TRACE("vtkDataCollectorHardwareDevice::GetTrackedFrameListSampled(" << frameTimestamp << ", " << samplingRateSec << ")"); 
+  LOG_TRACE("vtkDataCollectorHardwareDevice::GetTrackedFrameListSampled(" << aTimestamp << ", " << aSamplingRateSec << ")"); 
 
-  if ( trackedFrameList == NULL )
+  if ( aTrackedFrameList == NULL )
   {
     LOG_ERROR("Unable to get tracked frame list - output tracked frmae list is NULL!"); 
     return PLUS_FAIL; 
@@ -1391,18 +1391,18 @@ PlusStatus vtkDataCollectorHardwareDevice::GetTrackedFrameListSampled(double& fr
   }
 
   // Check input frameTimestamp to be in a valid range 
-  if ( frameTimestamp < 0.0001 || frameTimestamp > mostRecentTimestamp )
+  if ( aTimestamp < 0.0001 || aTimestamp > mostRecentTimestamp )
   {
-    frameTimestamp = mostRecentTimestamp; 
+    aTimestamp = mostRecentTimestamp; 
   }
-  else if ( oldestTimestamp > frameTimestamp )
+  else if ( oldestTimestamp > aTimestamp )
   {
-    frameTimestamp = oldestTimestamp; 
+    aTimestamp = oldestTimestamp; 
   }
 
   // Check if there are less frames than it would be needed according to the sampling rate
-  int numberOfFramesSinceTimestamp = GetNumberOfFramesBetweenTimestamps(frameTimestamp, mostRecentTimestamp);
-  int numberOfSampledFrames = (int)((mostRecentTimestamp - frameTimestamp) / samplingRateSec);
+  int numberOfFramesSinceTimestamp = GetNumberOfFramesBetweenTimestamps(aTimestamp, mostRecentTimestamp);
+  int numberOfSampledFrames = (int)((mostRecentTimestamp - aTimestamp) / aSamplingRateSec);
 
   if (numberOfFramesSinceTimestamp < numberOfSampledFrames)
   {
@@ -1410,26 +1410,26 @@ PlusStatus vtkDataCollectorHardwareDevice::GetTrackedFrameListSampled(double& fr
   }
 
   // Add frames to input trackedFrameList
-  while (frameTimestamp + samplingRateSec <= mostRecentTimestamp)
+  while (aTimestamp + aSamplingRateSec <= mostRecentTimestamp)
   {
     // Get tracked frame from buffer
     TrackedFrame trackedFrame; 
 
-    if ( this->GetTrackedFrameByTime(frameTimestamp, &trackedFrame) != PLUS_SUCCESS )
+    if ( this->GetTrackedFrameByTime(aTimestamp, &trackedFrame) != PLUS_SUCCESS )
     {
-      LOG_ERROR("Unable to get tracked frame by time: " << std::fixed << frameTimestamp ); 
+      LOG_ERROR("Unable to get tracked frame by time: " << std::fixed << aTimestamp ); 
       return PLUS_FAIL;
     }
 
     // Add tracked frame to the list 
-    if ( trackedFrameList->AddTrackedFrame(&trackedFrame, vtkTrackedFrameList::SKIP_INVALID_FRAME) != PLUS_SUCCESS )
+    if ( aTrackedFrameList->AddTrackedFrame(&trackedFrame, vtkTrackedFrameList::SKIP_INVALID_FRAME) != PLUS_SUCCESS )
     {
       LOG_ERROR("Unable to add tracked frame to the list!" ); 
       return PLUS_FAIL; 
     }
 
     // Set timestamp to the next sampled one
-    frameTimestamp += samplingRateSec;
+    aTimestamp += aSamplingRateSec;
   }
 
   return PLUS_SUCCESS;
@@ -1532,19 +1532,19 @@ PlusStatus vtkDataCollectorHardwareDevice::GetTrackedFrameByTime(double time, vt
   {
     for ( ToolIteratorType it = this->GetTracker()->GetToolIteratorBegin(); it != this->GetTracker()->GetToolIteratorEnd(); ++it)
     {
-        TrackerStatus trackerStatus = TR_OK; 
-        const char* toolName = it->second->GetToolName(); 
+      TrackerStatus trackerStatus = TR_OK; 
+      const char* toolName = it->second->GetToolName(); 
 
-        vtkSmartPointer<vtkMatrix4x4> toolTransMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
-        this->GetTransformByTimestamp( toolTransMatrix, trackerStatus, synchronizedTime, toolName, calibratedTransform); 
+      vtkSmartPointer<vtkMatrix4x4> toolTransMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
+      this->GetTransformByTimestamp( toolTransMatrix, trackerStatus, synchronizedTime, toolName, calibratedTransform); 
 
-        toolTransMatrix->Register(NULL); 
-        toolTransforms.push_back(toolTransMatrix); 
+      toolTransMatrix->Register(NULL); 
+      toolTransforms.push_back(toolTransMatrix); 
 
-        std::string transformName( toolName ); 
-        toolTransformNames.push_back(transformName); 
+      std::string transformName( toolName ); 
+      toolTransformNames.push_back(transformName); 
 
-        status.push_back(trackerStatus); 
+      status.push_back(trackerStatus); 
     }
   }
 
@@ -2050,4 +2050,17 @@ void vtkDataCollectorHardwareDevice::SetVideoOnly(bool videoOnly)
       this->GetTracker()->StopTracking();
     }
   }
+}
+
+//------------------------------------------------------------------------------
+void vtkDataCollectorHardwareDevice::GetFrameSize(int aDim[2])
+{
+  LOG_TRACE("vtkDataCollectorHardwareDevice::GetFrameSize");
+
+  if (this->VideoSource == NULL)
+  {
+    LOG_ERROR("Video source is invalid!");
+  }
+
+  this->VideoSource->GetFrameSize(aDim);
 }

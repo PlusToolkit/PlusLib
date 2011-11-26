@@ -37,6 +37,8 @@ vtkOpenIGTLinkBroadcaster::Status vtkOpenIGTLinkBroadcaster::SetDataCollector( v
 //----------------------------------------------------------------------------
 PlusStatus vtkOpenIGTLinkBroadcaster::GetSocketInfoFromSendToLink( const char* sendToLink, SocketInfo& socketInfo )
 {
+  LOG_TRACE("vtkOpenIGTLinkBroadcaster::GetSocketInfoFromSendToLink");
+
   if ( sendToLink == NULL )
   {
     LOG_WARNING( "SendTo address could not be parsed if it's NULL!"); 
@@ -89,8 +91,17 @@ PlusStatus vtkOpenIGTLinkBroadcaster::GetSocketInfoFromSendToLink( const char* s
 //----------------------------------------------------------------------------
 vtkOpenIGTLinkBroadcaster::Status vtkOpenIGTLinkBroadcaster::Initialize( std::string &strError )
 {
-  if (    this->DataCollector == NULL
-    || this->DataCollector->GetTracker() == NULL )
+  LOG_TRACE("vtkOpenIGTLinkBroadcaster::Initialize");
+
+  vtkDataCollectorHardwareDevice* dataCollectorHardwareDevice = dynamic_cast<vtkDataCollectorHardwareDevice*>(this->DataCollector);
+  if ( dataCollectorHardwareDevice == NULL )
+  {
+		LOG_ERROR("Data collector is not the type that uses hardware devices, cannot initialize!");
+    this->InternalStatus = STATUS_NOT_INITIALIZED;
+    return this->InternalStatus;
+  }
+
+  if ( dataCollectorHardwareDevice->GetTracker() == NULL )
   {
     LOG_ERROR( "Tried to initialize vtkOpenIGTLinkBroadcaster without DataCollector." );
     this->InternalStatus = STATUS_NOT_INITIALIZED;
@@ -98,7 +109,7 @@ vtkOpenIGTLinkBroadcaster::Status vtkOpenIGTLinkBroadcaster::Initialize( std::st
   }
 
   // Create a socket for all non-reference tools that need to be broadcasted.
-  for ( ToolIteratorType it = this->DataCollector->GetTracker()->GetToolIteratorBegin(); it != this->DataCollector->GetTracker()->GetToolIteratorEnd(); ++it)
+  for ( ToolIteratorType it = dataCollectorHardwareDevice->GetTracker()->GetToolIteratorBegin(); it != dataCollectorHardwareDevice->GetTracker()->GetToolIteratorEnd(); ++it)
   {
     if ( STRCASECMP(it->second->GetToolName(), "Reference") == 0 )
     {
@@ -133,7 +144,7 @@ vtkOpenIGTLinkBroadcaster::Status vtkOpenIGTLinkBroadcaster::Initialize( std::st
 
 
   // Check image message send to address 
-  const char* imageSendToLink = this->DataCollector->GetVideoSource()->GetSendToLink(); 
+  const char* imageSendToLink = dataCollectorHardwareDevice->GetVideoSource()->GetSendToLink(); 
   if ( imageSendToLink )
   {
     SocketInfo socketInfo; 
@@ -152,8 +163,7 @@ vtkOpenIGTLinkBroadcaster::Status vtkOpenIGTLinkBroadcaster::Initialize( std::st
   return this->InternalStatus;
 }
 
-
-
+//----------------------------------------------------------------------------
 vtkOpenIGTLinkBroadcaster::vtkOpenIGTLinkBroadcaster()
 {
   this->DataCollector = NULL;
@@ -161,8 +171,7 @@ vtkOpenIGTLinkBroadcaster::vtkOpenIGTLinkBroadcaster()
   this->ApplyStylusCalibration = false;
 }
 
-
-
+//----------------------------------------------------------------------------
 vtkOpenIGTLinkBroadcaster::~vtkOpenIGTLinkBroadcaster()
 {
   for ( int i = 0; i < this->SocketInfos.size(); ++ i )
@@ -173,24 +182,25 @@ vtkOpenIGTLinkBroadcaster::~vtkOpenIGTLinkBroadcaster()
   this->SocketInfos.clear();
 }
 
-
-
+//----------------------------------------------------------------------------
 void vtkOpenIGTLinkBroadcaster::PrintSelf( ostream& os, vtkIndent indent )
 {
   this->Superclass::PrintSelf( os, indent );
 }
 
-
-
+//----------------------------------------------------------------------------
 void vtkOpenIGTLinkBroadcaster::SetApplyStylusCalibration( bool apply )
 {
+  LOG_TRACE("vtkOpenIGTLinkBroadcaster::SetApplyStylusCalibration(" << (apply?"TRUE":"FALSE") << ")");
+
   this->ApplyStylusCalibration = apply;
 }
 
-
-
+//----------------------------------------------------------------------------
 vtkOpenIGTLinkBroadcaster::Status vtkOpenIGTLinkBroadcaster::SendMessages()
 {
+  //LOG_TRACE("vtkOpenIGTLinkBroadcaster::SendMessages");
+
   std::string str;
   return SendMessages( str );
 }
@@ -198,6 +208,8 @@ vtkOpenIGTLinkBroadcaster::Status vtkOpenIGTLinkBroadcaster::SendMessages()
 //----------------------------------------------------------------------------
 vtkOpenIGTLinkBroadcaster::Status vtkOpenIGTLinkBroadcaster::SendMessages( std::string strError )
 {
+  //LOG_TRACE("vtkOpenIGTLinkBroadcaster::SendMessages");
+
   // Check status and possible errors.
 
   if ( this->InternalStatus == STATUS_NOT_INITIALIZED )
@@ -325,7 +337,16 @@ vtkOpenIGTLinkBroadcaster::Status vtkOpenIGTLinkBroadcaster::SendMessages( std::
 //----------------------------------------------------------------------------
 void vtkOpenIGTLinkBroadcaster::SendImageMessage( TrackedFrame* trackedFrame, std::string strError )
 {
-  const char* imageSendToLink = this->DataCollector->GetVideoSource()->GetSendToLink(); 
+  //LOG_TRACE("vtkOpenIGTLinkBroadcaster::SendImageMessage");
+
+  vtkDataCollectorHardwareDevice* dataCollectorHardwareDevice = dynamic_cast<vtkDataCollectorHardwareDevice*>(this->DataCollector);
+  if ( dataCollectorHardwareDevice == NULL )
+  {
+    LOG_ERROR("Data collector is not the type that uses hardware devices, cannot send message!");
+    return;
+  }
+
+  const char* imageSendToLink = dataCollectorHardwareDevice->GetVideoSource()->GetSendToLink(); 
   if ( imageSendToLink == NULL )
   {
     LOG_DEBUG( "No SendTo address found for image message." );
@@ -347,7 +368,7 @@ void vtkOpenIGTLinkBroadcaster::SendImageMessage( TrackedFrame* trackedFrame, st
   double timestamp = trackedFrame->GetTimestamp();
   // TrackerStatus status = TR_OK;
   vtkSmartPointer< vtkMatrix4x4 > mProbeToReference = vtkSmartPointer< vtkMatrix4x4 >::New();
-  // PlusStatus pStatus = this->DataCollector->GetTrackedFrame( frameImage, mProbeToReference, status, timestamp, defaultTool, true );
+  // PlusStatus pStatus = dataCollectorHardwareDevice->GetTrackedFrame( frameImage, mProbeToReference, status, timestamp, defaultTool, true );
 
   vtkImageData* frameImage = trackedFrame->GetImageData()->GetVtkImage();
 

@@ -73,6 +73,20 @@ int* TrackedFrame::GetFrameSize()
   return this->FrameSize; 
 }
 
+//----------------------------------------------------------------------------
+void TrackedFrame::GetFrameSize(int dim[2])
+{
+  this->ImageData.GetFrameSize(this->FrameSize);
+  dim[0] = this->FrameSize[0];
+  dim[1] = this->FrameSize[1];
+}
+
+//----------------------------------------------------------------------------
+void TrackedFrame::SetImageData(const PlusVideoFrame &value)
+{
+  this->ImageData = value;
+  this->ImageData.GetFrameSize(this->FrameSize);
+}
 
 //----------------------------------------------------------------------------
 int TrackedFrame::GetNumberOfBitsPerPixel()
@@ -666,7 +680,7 @@ PlusStatus vtkTrackedFrameList::ReadFromSequenceMetafile(const char* trackedSequ
   {		
     LOG_ERROR("Couldn't read sequence metafile: " <<  trackedSequenceDataFileName ); 
     return PLUS_FAIL;
-  }	
+  }
   
   return PLUS_SUCCESS;
 }
