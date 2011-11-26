@@ -19,9 +19,6 @@ Authors include: Danielle Pace
 #include "PlusConfigure.h"
 #include "vtkObject.h"
 
-#include "vtkObjectFactory.h"
-#include "itkImage.h"
-
 #include "PlusVideoFrame.h"
 
 #include "vtkTimestampedCircularBuffer.h"
