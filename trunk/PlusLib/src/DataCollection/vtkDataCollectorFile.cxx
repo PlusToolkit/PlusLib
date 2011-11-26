@@ -279,7 +279,7 @@ PlusStatus vtkDataCollectorFile::GetTrackedFrameByTime(double aTimestamp, Tracke
 
   this->LastAccessedFrameIndex = index;
 
-  trackedFrame = this->TrackedFrameList->GetTrackedFrame(this->LastAccessedFrameIndex);
+  aTrackedFrame = this->TrackedFrameList->GetTrackedFrame(this->LastAccessedFrameIndex);
 
   return PLUS_SUCCESS;
 }
