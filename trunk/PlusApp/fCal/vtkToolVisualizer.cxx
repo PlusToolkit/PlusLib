@@ -922,17 +922,11 @@ PlusStatus vtkToolVisualizer::CalculateImageCameraParameters()
     return PLUS_SUCCESS;
   }
 
-	if (this->DataCollector->GetVideoSource() == NULL)
-  {
-		LOG_WARNING("Data collector has no video source!");
-		return PLUS_FAIL;
-	}
-
 	// Calculate image center
 	double imageCenterX = 0;
 	double imageCenterY = 0;
-	int dimensions[3];
-	this->DataCollector->GetVideoSource()->GetFrameSize(dimensions);
+	int dimensions[2];
+	this->DataCollector->GetFrameSize(dimensions);
 	imageCenterX = dimensions[0] / 2.0;
 	imageCenterY = dimensions[1] / 2.0;
 
@@ -1138,6 +1132,13 @@ PlusStatus vtkToolVisualizer::DumpBuffersToDirectory(const char* aDirectory)
 		return PLUS_FAIL;
 	}
 
+  vtkDataCollectorHardwareDevice* dataCollectorHardwareDevice = dynamic_cast<vtkDataCollectorHardwareDevice*>(this->DataCollector);
+  if ( dataCollectorHardwareDevice == NULL )
+  {
+		LOG_INFO("Data collector is not the type that uses hardware devices, there are no buffers to save");
+		return PLUS_FAIL;
+	}
+
   // Assemble file names
   std::string dateAndTime = vtksys::SystemTools::GetCurrentDateTime("%Y%m%d_%H%M%S");
   std::string outputVideoBufferSequenceFileName = "BufferDump_Video_";
@@ -1146,16 +1147,16 @@ PlusStatus vtkToolVisualizer::DumpBuffersToDirectory(const char* aDirectory)
   outputTrackerBufferSequenceFileName.append(dateAndTime);
 
   // Dump buffers to file 
-  if ( this->DataCollector->GetVideoSource() != NULL )
+  if ( dataCollectorHardwareDevice->GetVideoSource() != NULL )
   {
     LOG_INFO("Write video buffer to " << outputVideoBufferSequenceFileName);
-    this->DataCollector->GetVideoSource()->GetBuffer()->WriteToMetafile( aDirectory, outputVideoBufferSequenceFileName.c_str(), false); 
+    dataCollectorHardwareDevice->GetVideoSource()->GetBuffer()->WriteToMetafile( aDirectory, outputVideoBufferSequenceFileName.c_str(), false); 
   }
 
-  if ( this->DataCollector->GetTracker() != NULL )
+  if ( dataCollectorHardwareDevice->GetTracker() != NULL )
   {
     LOG_INFO("Write tracker buffer to " << outputTrackerBufferSequenceFileName);
-    this->DataCollector->GetTracker()->WriteToMetafile( aDirectory, outputTrackerBufferSequenceFileName.c_str(), false); 
+    dataCollectorHardwareDevice->GetTracker()->WriteToMetafile( aDirectory, outputTrackerBufferSequenceFileName.c_str(), false);
   }
 
   return PLUS_SUCCESS;

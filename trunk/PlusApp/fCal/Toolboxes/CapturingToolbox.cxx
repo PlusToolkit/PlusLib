@@ -9,6 +9,7 @@
 #include "fCalMainWindow.h"
 #include "vtkToolVisualizer.h"
 #include "VolumeReconstructionToolbox.h"
+#include "vtkDataCollectorFile.h"
 
 #include <QFileDialog>
 #include <QMessageBox>
@@ -131,9 +132,8 @@ void CapturingToolbox::SetDisplayAccordingToState()
 
     SamplingRateChanged(ui.horizontalSlider_SamplingRate->value());
 
-    int maxFrameRate = GetMaximumFrameRate();
     ui.label_ActualRecordingFrameRate->setText(tr("0.0"));
-    ui.label_MaximumRecordingFrameRate->setText(QString::number(maxFrameRate));
+    ui.label_MaximumRecordingFrameRate->setText(QString::number( GetMaximumFrameRate() ));
 
     ui.label_NumberOfRecordedFrames->setText("0");
 	}
@@ -163,9 +163,8 @@ void CapturingToolbox::SetDisplayAccordingToState()
 		ui.pushButton_Save->setEnabled(true);
     ui.horizontalSlider_SamplingRate->setEnabled(true);
 
-    int maxFrameRate = m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->GetVideoSource()->GetFrameRate();
     ui.label_ActualRecordingFrameRate->setText(tr("0.0"));
-    ui.label_MaximumRecordingFrameRate->setText(QString::number(maxFrameRate));
+    ui.label_MaximumRecordingFrameRate->setText(QString::number( GetMaximumFrameRate() ));
 
     ui.label_NumberOfRecordedFrames->setText(QString::number(m_RecordedFrames->GetNumberOfTrackedFrames()));
 
@@ -391,18 +390,39 @@ double CapturingToolbox::GetMaximumFrameRate()
     LOG_ERROR("Unable to reach valid data collector object!");
     return 0.0;
   }
-  
-  if ( m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->GetVideoEnabled()
-    && m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->GetVideoSource())
+
+  vtkDataCollectorHardwareDevice* dataCollectorHardwareDevice = dynamic_cast<vtkDataCollectorHardwareDevice*>(m_ParentMainWindow->GetToolVisualizer()->GetDataCollector());
+  if ( dataCollectorHardwareDevice )
   {
-    return m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->GetVideoSource()->GetFrameRate();
+    if ( dataCollectorHardwareDevice->GetVideoEnabled()
+      && dataCollectorHardwareDevice->GetVideoSource())
+    {
+      return dataCollectorHardwareDevice->GetVideoSource()->GetFrameRate();
+    }
+    else if (dataCollectorHardwareDevice->GetTracker())
+    {
+      return dataCollectorHardwareDevice->GetTracker()->GetFrequency();
+    }
+    else
+    {
+      return 0.0;
+    }
   }
-  else if (m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->GetTracker())
+
+  vtkDataCollectorFile* dataCollectorFile = dynamic_cast<vtkDataCollectorFile*>(m_ParentMainWindow->GetToolVisualizer()->GetDataCollector());
+  if ( dataCollectorFile )
   {
-    return m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->GetTracker()->GetFrequency();
+    double frameRate = 0.0;
+    
+    if (dataCollectorFile->GetFrameRate(frameRate) != PLUS_SUCCESS)
+    {
+      return 0.0;
+    }
+
+    return frameRate;
   }
-  else
-  {
-    return 0.0;
-  }
+
+  LOG_ERROR("Unknown data collector type!");
+
+  return 0.0;
 }

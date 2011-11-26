@@ -297,11 +297,17 @@ void FreehandCalibrationToolbox::SetDisplayAccordingToState()
   ShowDevicesToggled(ui.checkBox_ShowDevices->isChecked());
 
   double videoTimeOffset = 0.0;
-  if ((m_ParentMainWindow->GetToolVisualizer()->GetDataCollector() != NULL)
-    && (m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->GetVideoSource() != NULL)
-    && (m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->GetVideoSource()->GetBuffer() != NULL))
+  if (m_ParentMainWindow->GetToolVisualizer()->GetDataCollector() != NULL)
   {
-    videoTimeOffset = m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->GetVideoSource()->GetBuffer()->GetLocalTimeOffset();
+    vtkDataCollectorHardwareDevice* dataCollectorHardwareDevice = dynamic_cast<vtkDataCollectorHardwareDevice*>(m_ParentMainWindow->GetToolVisualizer()->GetDataCollector());
+    if ( dataCollectorHardwareDevice )
+    {
+      if ( (dataCollectorHardwareDevice->GetVideoSource() != NULL)
+        && (dataCollectorHardwareDevice->GetVideoSource()->GetBuffer() != NULL))
+      {
+        videoTimeOffset = dataCollectorHardwareDevice->GetVideoSource()->GetBuffer()->GetLocalTimeOffset();
+      }
+    }
   }
 
   if (m_State == ToolboxState_Uninitialized)

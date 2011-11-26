@@ -105,12 +105,14 @@ void SegmentationParameterDialogTest::ConnectToDevicesByConfigFile(std::string a
 	    QApplication::processEvents();
 
 	    // Connect to devices
-	    if (this->StartDataCollection() != PLUS_SUCCESS) {
+	    if (this->StartDataCollection() != PLUS_SUCCESS)
+      {
 		    LOG_ERROR("Unable to start collecting data!");
 		    m_DeviceSetSelectorWidget->SetConnectionSuccessful(false);
         m_SaveButton->setEnabled(false);
-
-	    } else {
+	    }
+      else
+      {
         // Successful connection
 		    m_DeviceSetSelectorWidget->SetConnectionSuccessful(true);
 
@@ -153,30 +155,33 @@ PlusStatus SegmentationParameterDialogTest::StartDataCollection()
   LOG_TRACE("SegmentationParameterDialogTest::StartDataCollection"); 
 
   // Stop data collection if already started
-  if (m_DataCollector != NULL) {
+  if (m_DataCollector != NULL)
+  {
 	  m_DataCollector->Stop();
-  } else {
+  }
+  else
+  {
 	  m_DataCollector = vtkDataCollector::New();
   }
 
   // Initialize data collector and read configuration
-  if (m_DataCollector->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS) {
+  if (m_DataCollector->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS)
+  {
 	  return PLUS_FAIL;
   }
 
-  if (m_DataCollector->Connect() != PLUS_SUCCESS) {
+  if (m_DataCollector->Connect() != PLUS_SUCCESS)
+  {
 	  return PLUS_FAIL;
   }
 
-  if (m_DataCollector->Start() != PLUS_SUCCESS) {
+  if (m_DataCollector->Start() != PLUS_SUCCESS)
+  {
 	  return PLUS_FAIL;
   }
 
-  if ((m_DataCollector->GetTracker() == NULL) || (m_DataCollector->GetTracker()->GetNumberOfTools() < 1)) {
-	  LOG_INFO("Tracker is not initialized"); 
-  }
-
-  if (! m_DataCollector->GetConnected()) {
+  if (! m_DataCollector->GetConnected())
+  {
 	  LOG_ERROR("Unable to initialize DataCollector!"); 
 	  return PLUS_FAIL;
   }

@@ -72,39 +72,43 @@ void OpenIGTLinkBroadcasterWidget::Initialize( std::string configFileName, std::
     LOG_ERROR("Unable to read configuration from file " << configFileName.c_str()); 
     return;
   }
-  this->m_DataCollector->ReadConfiguration( configRootElement );
   
   vtkDataCollectorHardwareDevice* dataCollectorHardwareDevice = dynamic_cast<vtkDataCollectorHardwareDevice*>(this->m_DataCollector);
-  if (dataCollectorHardwareDevice)
+  if ( dataCollectorHardwareDevice == NULL )
   {
-    if ( dataCollectorHardwareDevice->GetAcquisitionType() == SYNCHRO_VIDEO_SAVEDDATASET )
-    {
-      vtkSavedDataVideoSource* videoSource = static_cast< vtkSavedDataVideoSource* >( dataCollectorHardwareDevice->GetVideoSource() );
-      
-      if ( ! videoBufferFileName.empty() )
-      {
-        videoSource->SetSequenceMetafile( videoBufferFileName.c_str() );
-      }
-	    else
-      {
-        std::cout << "Error: Video buffer file not specified." << std::endl;
-        return;
-      }
-    }
+		LOG_ERROR("Data collector is not the type that uses hardware devices, cannot initialize!");
+    return;
+  }
+
+  dataCollectorHardwareDevice->ReadConfiguration( configRootElement );
+
+  if ( dataCollectorHardwareDevice->GetAcquisitionType() == SYNCHRO_VIDEO_SAVEDDATASET )
+  {
+    vtkSavedDataVideoSource* videoSource = static_cast< vtkSavedDataVideoSource* >( dataCollectorHardwareDevice->GetVideoSource() );
     
-    if ( dataCollectorHardwareDevice->GetTrackerType() == TRACKER_SAVEDDATASET )
+    if ( ! videoBufferFileName.empty() )
     {
-      vtkSavedDataTracker* tracker = static_cast< vtkSavedDataTracker* >( dataCollectorHardwareDevice->GetTracker() );
-        
-      if ( ! trackerBufferFileName.empty() )
-      {
-        tracker->SetSequenceMetafile( trackerBufferFileName.c_str() );
-      }
-      else
-      {
-        std::cout << "Error: Tracker buffer file not specified" << std::endl;
-        return;
-      }
+      videoSource->SetSequenceMetafile( videoBufferFileName.c_str() );
+    }
+    else
+    {
+      std::cout << "Error: Video buffer file not specified." << std::endl;
+      return;
+    }
+  }
+  
+  if ( dataCollectorHardwareDevice->GetTrackerType() == TRACKER_SAVEDDATASET )
+  {
+    vtkSavedDataTracker* tracker = static_cast< vtkSavedDataTracker* >( dataCollectorHardwareDevice->GetTracker() );
+      
+    if ( ! trackerBufferFileName.empty() )
+    {
+      tracker->SetSequenceMetafile( trackerBufferFileName.c_str() );
+    }
+    else
+    {
+      std::cout << "Error: Tracker buffer file not specified" << std::endl;
+      return;
     }
   }
 
@@ -128,9 +132,9 @@ void OpenIGTLinkBroadcasterWidget::Initialize( std::string configFileName, std::
   
     // Determine delay from frequency for the tracker.
   
-  double delayTracking = 1.0 / this->m_DataCollector->GetTracker()->GetFrequency();
+  double delayTracking = 1.0 / dataCollectorHardwareDevice->GetTracker()->GetFrequency();
   
-  LOG_INFO( "Tracker frequency = " << this->m_DataCollector->GetTracker()->GetFrequency() );
+  LOG_INFO( "Tracker frequency = " << dataCollectorHardwareDevice->GetTracker()->GetFrequency() );
   LOG_DEBUG( "Tracker delay = " << delayTracking );
   
   
@@ -184,8 +188,15 @@ void OpenIGTLinkBroadcasterWidget::StylusCalibrationChanged( int newValue )
 
 void OpenIGTLinkBroadcasterWidget::SendMessages()
 {
+  vtkDataCollectorHardwareDevice* dataCollectorHardwareDevice = dynamic_cast<vtkDataCollectorHardwareDevice*>(this->m_DataCollector);
+  if ( dataCollectorHardwareDevice == NULL )
+  {
+		LOG_ERROR("Data collector is not the type that uses hardware devices, cannot send messages!");
+    return;
+  }
+
   vtkTrackerTool* tool = NULL;
-  if (this->m_DataCollector->GetTracker()->GetTool("Probe", tool) != PLUS_SUCCESS) //TODO
+  if (dataCollectorHardwareDevice->GetTracker()->GetTool("Probe", tool) != PLUS_SUCCESS) //TODO
   {
     LOG_ERROR("No probe found!");
     return;
@@ -193,11 +204,11 @@ void OpenIGTLinkBroadcasterWidget::SendMessages()
 
   vtkSmartPointer< vtkMatrix4x4 > mToolToReference = vtkSmartPointer< vtkMatrix4x4 >::New();
   
-  if ( this->m_DataCollector->GetTracker()->IsTracking() )
+  if ( dataCollectorHardwareDevice->GetTracker()->IsTracking() )
   {
     double timeTracker = 0.0;
     TrackerStatus status = TR_OK;
-    this->m_DataCollector->GetTransformWithTimestamp( mToolToReference, timeTracker, status, "Probe" ); //TODO
+    dataCollectorHardwareDevice->GetTransformWithTimestamp( mToolToReference, timeTracker, status, "Probe" ); //TODO
     if ( status == TR_OK )
     {
       LOG_INFO( "Tool position: " << mToolToReference->GetElement( 0, 3 ) << " "

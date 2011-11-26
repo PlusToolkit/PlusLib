@@ -6,7 +6,7 @@
 
 #include "PlusConfigure.h"
 #include "vtksys/CommandLineArguments.hxx"
-#include "vtkDataCollector.h"
+#include "vtkDataCollectorHardwareDevice.h"
 #include "vtkDataCollectorSynchronizer.h"
 #include "vtkTracker.h"
 #include "vtkTrackerTool.h"
@@ -75,22 +75,32 @@ int main(int argc, char **argv)
 
 	//************************************************************************************
 	// Initialize data collector
-	vtkSmartPointer<vtkDataCollector> dataCollector = vtkSmartPointer<vtkDataCollector>::New(); 
-  vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkSmartPointer<vtkXMLDataElement>::Take(
-    vtkXMLUtilities::ReadElementFromFile(inputConfigFileName.c_str()));  
+  vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkSmartPointer<vtkXMLDataElement>::Take(vtkXMLUtilities::ReadElementFromFile(inputConfigFileName.c_str()));
   if ( configRootElement == NULL )
   {	
     LOG_ERROR("Unable to read configuration from file " << inputConfigFileName.c_str()); 
     exit(EXIT_FAILURE); 
   }
-	dataCollector->ReadConfiguration(configRootElement);
-	if ( dataCollector->Connect() != PLUS_SUCCESS )
+
+  vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationData(configRootElement);
+
+	vtkSmartPointer<vtkDataCollector> dataCollector = vtkSmartPointer<vtkDataCollector>::New(); 
+
+  vtkDataCollectorHardwareDevice* dataCollectorHardwareDevice = dynamic_cast<vtkDataCollectorHardwareDevice*>(dataCollector.GetPointer());
+  if ( dataCollectorHardwareDevice == NULL )
+  {
+    LOG_ERROR("Failed to create the propertype of data collector!");
+    exit(EXIT_FAILURE);
+  }
+
+	dataCollectorHardwareDevice->ReadConfiguration(configRootElement);
+	if ( dataCollectorHardwareDevice->Connect() != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to initialize data collector!"); 
     exit(EXIT_FAILURE); 
   }
 
-	if ( dataCollector->Start() != PLUS_SUCCESS )
+	if ( dataCollectorHardwareDevice->Start() != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to start data collection!"); 
     exit(EXIT_FAILURE);
@@ -108,26 +118,26 @@ int main(int argc, char **argv)
 
 	//************************************************************************************
 	// Stop recording
-	if ( dataCollector->GetVideoSource() != NULL ) 
+	if ( dataCollectorHardwareDevice->GetVideoSource() != NULL ) 
 	{
 		LOG_INFO("Stop video recording ..."); 
-		dataCollector->GetVideoSource()->StopRecording(); 
+		dataCollectorHardwareDevice->GetVideoSource()->StopRecording(); 
 	}
 
-	if ( dataCollector->GetTracker() != NULL )
+	if ( dataCollectorHardwareDevice->GetTracker() != NULL )
 	{
 		LOG_INFO("Stop tracking ..."); 
-		dataCollector->GetTracker()->StopTracking(); 
+		dataCollectorHardwareDevice->GetTracker()->StopTracking(); 
 	}
 
 	//************************************************************************************
 	// Print statistics
-	if ( dataCollector->GetVideoSource() != NULL ) 
+	if ( dataCollectorHardwareDevice->GetVideoSource() != NULL ) 
 	{
-		double realVideoFrameRate = dataCollector->GetVideoSource()->GetBuffer()->GetFrameRate();
-		double idealVideoFrameRate = dataCollector->GetVideoSource()->GetBuffer()->GetFrameRate(true);
-		int numOfItems = dataCollector->GetVideoSource()->GetBuffer()->GetNumberOfItems(); 
-		int bufferSize = dataCollector->GetVideoSource()->GetBuffer()->GetBufferSize(); 
+		double realVideoFrameRate = dataCollectorHardwareDevice->GetVideoSource()->GetBuffer()->GetFrameRate();
+		double idealVideoFrameRate = dataCollectorHardwareDevice->GetVideoSource()->GetBuffer()->GetFrameRate(true);
+		int numOfItems = dataCollectorHardwareDevice->GetVideoSource()->GetBuffer()->GetNumberOfItems(); 
+		int bufferSize = dataCollectorHardwareDevice->GetVideoSource()->GetBuffer()->GetBufferSize(); 
 
 		LOG_INFO("Real video frame rate: " << realVideoFrameRate << "fps"); 
 		LOG_INFO("Ideal video frame rate: " << idealVideoFrameRate << "fps"); 
@@ -135,9 +145,9 @@ int main(int argc, char **argv)
 		LOG_INFO("Video buffer size: " << bufferSize); 
 	}
 
-	if ( dataCollector->GetTracker() != NULL )
+	if ( dataCollectorHardwareDevice->GetTracker() != NULL )
 	{
-    for (ToolIteratorType it = dataCollector->GetTracker()->GetToolIteratorBegin(); it != dataCollector->GetTracker()->GetToolIteratorEnd(); ++it)
+    for (ToolIteratorType it = dataCollectorHardwareDevice->GetTracker()->GetToolIteratorBegin(); it != dataCollectorHardwareDevice->GetTracker()->GetToolIteratorEnd(); ++it)
 		{
       vtkTrackerTool* tool = it->second;
 
@@ -164,15 +174,15 @@ int main(int argc, char **argv)
   plotter->SetHideWindow(true); 
 
   // Generate tracking data acq report
-  if ( dataCollector->GetTracker() != NULL )
+  if ( dataCollectorHardwareDevice->GetTracker() != NULL )
   {
-    dataCollector->GetTracker()->GenerateTrackingDataAcquisitionReport(htmlReport, plotter); 
+    dataCollectorHardwareDevice->GetTracker()->GenerateTrackingDataAcquisitionReport(htmlReport, plotter); 
   }
 
   // Generate video data acq report
-  if ( dataCollector->GetVideoSource() != NULL ) 
+  if ( dataCollectorHardwareDevice->GetVideoSource() != NULL ) 
   {
-    dataCollector->GetVideoSource()->GenerateVideoDataAcquisitionReport(htmlReport, plotter); 
+    dataCollectorHardwareDevice->GetVideoSource()->GenerateVideoDataAcquisitionReport(htmlReport, plotter); 
   }
 
   std::string reportFileName = plotter->GetWorkingDirectory() + std::string("/iCALDataCollectionReport.html"); 
@@ -180,19 +190,19 @@ int main(int argc, char **argv)
 
 	//************************************************************************************
 	// Dump buffers to file 
-	if ( dataCollector->GetVideoSource() != NULL ) 
+	if ( dataCollectorHardwareDevice->GetVideoSource() != NULL ) 
 	{
 		LOG_INFO("Write video buffer to " << outputVideoBufferSequenceFileName);
-		dataCollector->GetVideoSource()->GetBuffer()->WriteToMetafile( outputFolder.c_str(), outputVideoBufferSequenceFileName.c_str(), false); 
+		dataCollectorHardwareDevice->GetVideoSource()->GetBuffer()->WriteToMetafile( outputFolder.c_str(), outputVideoBufferSequenceFileName.c_str(), false); 
 	}
 
-	if ( dataCollector->GetTracker() != NULL )
+	if ( dataCollectorHardwareDevice->GetTracker() != NULL )
 	{
 		LOG_INFO("Write tracker buffer to " << outputTrackerBufferSequenceFileName);
-		dataCollector->GetTracker()->WriteToMetafile( outputFolder.c_str(), outputTrackerBufferSequenceFileName.c_str(), false); 
+		dataCollectorHardwareDevice->GetTracker()->WriteToMetafile( outputFolder.c_str(), outputTrackerBufferSequenceFileName.c_str(), false); 
 	}
 
-	dataCollector->Disconnect(); 
+	dataCollectorHardwareDevice->Disconnect(); 
 
 	return EXIT_SUCCESS; 
 }

@@ -177,7 +177,7 @@ public:
       // Compute world coordinates
       int* canvasSize;
       canvasSize = m_ParentDialog->GetCanvasRenderer()->GetRenderWindow()->GetSize();
-      int imageDimensions[3];
+      int imageDimensions[2];
       m_ParentDialog->GetFrameSize(imageDimensions);
 
       double offsetXMonitor = 0.0;
@@ -808,7 +808,7 @@ protected:
     // Get offsets (distance between the canvas edge and the image) and reference lengths
     int* canvasSize;
     canvasSize = m_ParentDialog->GetCanvasRenderer()->GetRenderWindow()->GetSize();
-    int imageDimensions[3];
+    int imageDimensions[2];
     m_ParentDialog->GetFrameSize(imageDimensions);
 
     double offsetXImage = 0.0;
@@ -1320,9 +1320,11 @@ PlusStatus SegmentationParameterDialog::WriteConfiguration()
 
   // Save parameters
   bool ok = true;
-  if (ui.label_SpacingResult->text().indexOf("original") == -1) { // If has been changed
+  if (ui.label_SpacingResult->text().indexOf("original") == -1) // If has been changed
+  {
     segmentationParameters->SetDoubleAttribute("ApproximateSpacingMmPerPixel", ui.label_SpacingResult->text().toDouble(&ok));
-    if (!ok) {
+    if (!ok)
+    {
       LOG_ERROR("ApproximateSpacingMmPerPixel parameter cannot be saved!");
       return PLUS_FAIL;
     }
@@ -1367,13 +1369,18 @@ void SegmentationParameterDialog::GroupBoxROIToggled(bool aOn)
   ui.groupBox_Spacing->setChecked(!aOn);
   ui.groupBox_Spacing->blockSignals(false);
 
-  if (aOn) {
-    if (SwitchToROIMode() != PLUS_SUCCESS) {
+  if (aOn)
+  {
+    if (SwitchToROIMode() != PLUS_SUCCESS)
+    {
       LOG_ERROR("Switch to ROI mode failed!");
       return;
     }
-  } else {
-    if (SwitchToSpacingMode() != PLUS_SUCCESS) {
+  }
+  else
+  {
+    if (SwitchToSpacingMode() != PLUS_SUCCESS)
+    {
       LOG_ERROR("Switch to ROI mode failed!");
       return;
     }
@@ -1390,13 +1397,18 @@ void SegmentationParameterDialog::GroupBoxSpacingToggled(bool aOn)
   ui.groupBox_ROI->setChecked(!aOn);
   ui.groupBox_ROI->blockSignals(false);
 
-  if (aOn) {
-    if (SwitchToSpacingMode() != PLUS_SUCCESS) {
+  if (aOn)
+  {
+    if (SwitchToSpacingMode() != PLUS_SUCCESS)
+    {
       LOG_ERROR("Switch to ROI mode failed!");
       return;
     }
-  } else {
-    if (SwitchToROIMode() != PLUS_SUCCESS) {
+  }
+  else
+  {
+    if (SwitchToROIMode() != PLUS_SUCCESS)
+    {
       LOG_ERROR("Switch to ROI mode failed!");
       return;
     }
@@ -1418,15 +1430,16 @@ PlusStatus SegmentationParameterDialog::CalculateImageCameraParameters()
 {
 	LOG_TRACE("SegmentationParameterDialog::CalculateImageCameraParameters");
 
-  if (m_CanvasRenderer == NULL) {
+  if (m_CanvasRenderer == NULL)
+  {
     return PLUS_FAIL;
   }
 
 	// Calculate image center
 	double imageCenterX = 0;
 	double imageCenterY = 0;
-	int dimensions[3];
-	m_DataCollector->GetVideoSource()->GetFrameSize(dimensions);
+	int dimensions[2];
+	m_DataCollector->GetFrameSize(dimensions);
 	imageCenterX = dimensions[0] / 2.0;
 	imageCenterY = dimensions[1] / 2.0;
 
@@ -1439,10 +1452,13 @@ PlusStatus SegmentationParameterDialog::CalculateImageCameraParameters()
 
 	// Calculate distance of camera from the plane
   QSize size = ui.canvas->size();
-  if ((double)size.width() / (double)size.height() > imageCenterX / imageCenterY) {
+  if ((double)size.width() / (double)size.height() > imageCenterX / imageCenterY) 
+  {
 		// If canvas aspect ratio is more elongenated in the X position then compute the distance according to the Y axis
 		imageCamera->SetParallelScale(imageCenterY);
-	} else {
+	}
+  else
+  {
 		imageCamera->SetParallelScale(imageCenterX * (double)size.height() / (double)size.width());
 	}
 
@@ -1470,7 +1486,8 @@ PlusStatus SegmentationParameterDialog::SegmentCurrentImage()
   LOG_TRACE("SegmentationParameterDialog::SegmentCurrentImage");
 
   // If image is not frozen, then have DataCollector get the latest frame (else it uses the frozen one for segmentation)
-  if (!m_ImageFrozen) {
+  if (!m_ImageFrozen)
+  {
     m_DataCollector->Update();
   }
 
@@ -1480,7 +1497,7 @@ PlusStatus SegmentationParameterDialog::SegmentCurrentImage()
 
   PlusVideoFrame videoFrame;
   int imageSize[2];
-  m_DataCollector->GetVideoSource()->GetFrameSize(imageSize[0], imageSize[1]);
+  m_DataCollector->GetFrameSize(imageSize);
   videoFrame.DeepCopyFrom(currentImage);
 
   TrackedFrame* trackedFrame = new TrackedFrame();
@@ -1494,9 +1511,12 @@ PlusStatus SegmentationParameterDialog::SegmentCurrentImage()
   m_PatternRecognition->RecognizePattern(trackedFrame, segResults);
 
   LOG_DEBUG("Candidate count: " << segResults.GetCandidateFidValues().size());
-  if (segResults.GetFoundDotsCoordinateValue().size() > 0) {
+  if (segResults.GetFoundDotsCoordinateValue().size() > 0)
+  {
     LOG_DEBUG("Segmented point count: " << segResults.GetFoundDotsCoordinateValue().size());
-  } else {
+  }
+  else
+  {
     LOG_DEBUG("Segmentation failed");
   }
 
@@ -1505,7 +1525,8 @@ PlusStatus SegmentationParameterDialog::SegmentCurrentImage()
   candidatePoints->SetNumberOfPoints(segResults.GetCandidateFidValues().size());
 
   std::vector<Dot> candidateDots = segResults.GetCandidateFidValues();
-	for (int i=0; i<candidateDots.size(); ++i) {
+	for (int i=0; i<candidateDots.size(); ++i)
+  {
     candidatePoints->InsertPoint(i, candidateDots[i].GetX(), candidateDots[i].GetY(), -0.3);
 	}
   candidatePoints->Modified();
@@ -1518,7 +1539,8 @@ PlusStatus SegmentationParameterDialog::SegmentCurrentImage()
   segmentedPoints->SetNumberOfPoints(segResults.GetFoundDotsCoordinateValue().size());
 
 	std::vector<std::vector<double>> segmentedDots = segResults.GetFoundDotsCoordinateValue();
-	for (int i=0; i<segmentedDots.size(); ++i) {
+	for (int i=0; i<segmentedDots.size(); ++i)
+  {
 		segmentedPoints->InsertPoint(i, segmentedDots[i][0], segmentedDots[i][1], -0.3);
 	}
 	segmentedPoints->Modified();
@@ -1705,11 +1727,11 @@ PlusStatus SegmentationParameterDialog::DrawUSOrientationIndicators()
 
 //-----------------------------------------------------------------------------
 
-PlusStatus SegmentationParameterDialog::GetFrameSize(int aImageDimensions[3])
+PlusStatus SegmentationParameterDialog::GetFrameSize(int aImageDimensions[2])
 {
   LOG_TRACE("SegmentationParameterDialog::GetFrameSize");
 
-  m_DataCollector->GetVideoSource()->GetFrameSize(aImageDimensions);
+  m_DataCollector->GetFrameSize(aImageDimensions);
 
   return PLUS_SUCCESS;
 }

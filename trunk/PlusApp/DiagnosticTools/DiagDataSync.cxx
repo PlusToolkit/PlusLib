@@ -6,7 +6,7 @@
 
 #include "PlusConfigure.h"
 #include "vtksys/CommandLineArguments.hxx"
-#include "vtkDataCollector.h"
+#include "vtkDataCollectorHardwareDevice.h"
 #include "vtkDataCollectorSynchronizer.h"
 #include "vtkTracker.h"
 #include "vtkTrackerTool.h"
@@ -84,16 +84,26 @@ int main(int argc, char **argv)
 
 	//************************************************************************************
 	// Initialize data collector
-	vtkSmartPointer<vtkDataCollector> dataCollector = vtkSmartPointer<vtkDataCollector>::New(); 
-  vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkSmartPointer<vtkXMLDataElement>::Take(
-    vtkXMLUtilities::ReadElementFromFile(inputConfigFileName.c_str()));
+  vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkSmartPointer<vtkXMLDataElement>::Take(vtkXMLUtilities::ReadElementFromFile(inputConfigFileName.c_str()));
   if (configRootElement == NULL) {	
     LOG_ERROR("Unable to read configuration from file " << inputConfigFileName); 
 		exit(EXIT_FAILURE);
   }
-	dataCollector->ReadConfiguration(configRootElement);
-	dataCollector->Connect();
-	dataCollector->Start();
+
+  vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationData(configRootElement);
+
+  vtkSmartPointer<vtkDataCollector> dataCollector = vtkSmartPointer<vtkDataCollector>::New(); 
+
+  vtkDataCollectorHardwareDevice* dataCollectorHardwareDevice = dynamic_cast<vtkDataCollectorHardwareDevice*>(dataCollector.GetPointer());
+  if ( dataCollectorHardwareDevice == NULL )
+  {
+    LOG_ERROR("Failed to create the propertype of data collector!");
+    exit(EXIT_FAILURE);
+  }
+
+  dataCollectorHardwareDevice->ReadConfiguration(configRootElement);
+	dataCollectorHardwareDevice->Connect();
+	dataCollectorHardwareDevice->Start();
 
 	const double acqStartTime = vtkTimerLog::GetUniversalTime(); 
 
@@ -109,21 +119,21 @@ int main(int argc, char **argv)
 	//************************************************************************************
 	// Copy buffers to local buffer
 	vtkSmartPointer<vtkVideoBuffer> videobuffer = vtkSmartPointer<vtkVideoBuffer>::New(); 
-	if ( dataCollector->GetVideoSource() != NULL ) 
+	if ( dataCollectorHardwareDevice->GetVideoSource() != NULL ) 
 	{
 		LOG_INFO("Copy video buffer ..."); 
-    videobuffer->DeepCopy(dataCollector->GetVideoSource()->GetBuffer()); 
+    videobuffer->DeepCopy(dataCollectorHardwareDevice->GetVideoSource()->GetBuffer()); 
 	}
 
 	vtkSmartPointer<vtkTracker> tracker = vtkSmartPointer<vtkTracker>::New(); 
-	if ( dataCollector->GetTracker() != NULL )
+	if ( dataCollectorHardwareDevice->GetTracker() != NULL )
 	{
 		LOG_INFO("Copy tracker ..."); 
-		tracker->DeepCopy(dataCollector->GetTracker()); 
+		tracker->DeepCopy(dataCollectorHardwareDevice->GetTracker()); 
 	}
 
   vtkTrackerTool* tool = NULL;
-  if (dataCollector->GetTracker()->GetTool(toolName.c_str(), tool) != PLUS_SUCCESS)
+  if (dataCollectorHardwareDevice->GetTracker()->GetTool(toolName.c_str(), tool) != PLUS_SUCCESS)
   {
     LOG_ERROR("No tool found with name '" << toolName << "'");
 		exit(EXIT_FAILURE);
@@ -132,16 +142,16 @@ int main(int argc, char **argv)
 
 	//************************************************************************************
 	// Stop recording
-	if ( dataCollector->GetVideoSource() != NULL ) 
+	if ( dataCollectorHardwareDevice->GetVideoSource() != NULL ) 
 	{
 		LOG_INFO("Stop video recording ..."); 
-		dataCollector->GetVideoSource()->StopRecording(); 
+		dataCollectorHardwareDevice->GetVideoSource()->StopRecording(); 
 	}
 
-	if ( dataCollector->GetTracker() != NULL )
+	if ( dataCollectorHardwareDevice->GetTracker() != NULL )
 	{
 		LOG_INFO("Stop tracking ..."); 
-		dataCollector->GetTracker()->StopTracking(); 
+		dataCollectorHardwareDevice->GetTracker()->StopTracking(); 
 	}
 
 	//************************************************************************************
@@ -178,7 +188,7 @@ int main(int argc, char **argv)
 	tracker->GenerateTrackingDataAcquisitionReport(htmlReport, plotter); 
 
 	// Generate video data acq report
-	dataCollector->GetVideoSource()->GenerateVideoDataAcquisitionReport(htmlReport, plotter); 
+	dataCollectorHardwareDevice->GetVideoSource()->GenerateVideoDataAcquisitionReport(htmlReport, plotter); 
 
 	// Synchronizer Analysis report
 	synchronizer->GenerateSynchronizationReport(htmlReport, plotter); 
@@ -187,13 +197,13 @@ int main(int argc, char **argv)
 	//************************************************************************************
 
 	// Dump buffers to file 
-	if ( dataCollector->GetVideoSource() != NULL ) 
+	if ( dataCollectorHardwareDevice->GetVideoSource() != NULL ) 
 	{
 		LOG_INFO("Write video buffer to " << outputVideoBufferSequenceFileName);
-		dataCollector->GetVideoSource()->GetBuffer()->WriteToMetafile( outputFolder.c_str(), outputVideoBufferSequenceFileName.c_str(), false); 
+		dataCollectorHardwareDevice->GetVideoSource()->GetBuffer()->WriteToMetafile( outputFolder.c_str(), outputVideoBufferSequenceFileName.c_str(), false); 
 	}
 
-	if ( dataCollector->GetTracker() != NULL )
+	if ( dataCollectorHardwareDevice->GetTracker() != NULL )
 	{
 		LOG_INFO("Write tracker buffer to " << outputTrackerBufferSequenceFileName);
 		tracker->WriteToMetafile( outputFolder.c_str(), outputTrackerBufferSequenceFileName.c_str(), false); 

@@ -59,7 +59,7 @@ public:
   * \param Output array for image dimensions
   * \return Success flag
 	*/
-  PlusStatus GetFrameSize(int aImageDimensions[3]);
+  PlusStatus GetFrameSize(int aImageDimensions[2]);
 
 	/*!
 	* Set ROI values to spinBoxes (if a values is -1, it is not set - because usually only 2 values change at a time)
