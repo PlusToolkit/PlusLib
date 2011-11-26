@@ -8,6 +8,7 @@
 #define __vtkDataCollectorFile_h
 
 #include "vtkDataCollector.h"
+//#include "vtkImageData.h"
 
 /*!
   \class vtkDataCollectorFile
@@ -51,19 +52,19 @@ public:
 
   /*!
     Get the tracked frame list from devices since time specified
-    \param frameTimestamp The oldest timestamp we search for in the buffer. If -1 get all frames in the time range since the most recent timestamp. Out parameter - changed to timestamp of last added frame
-    \param trackedFrameList Tracked frame list used to get the newly acquired frames into. The new frames are appended to the tracked frame.
-    \param maxNumberOfFramesToAdd The maximum number of latest frames acquired from the buffers (till most recent timestamp). If -1 get all frames in the time range since frameTimestamp
+    \param aTimestamp The oldest timestamp we search for in the buffer. If -1 get all frames in the time range since the most recent timestamp. Out parameter - changed to timestamp of last added frame
+    \param aTrackedFrameList Tracked frame list used to get the newly acquired frames into. The new frames are appended to the tracked frame.
+    \param aMaxNumberOfFramesToAdd The maximum number of latest frames acquired from the buffers (till most recent timestamp). If -1 get all frames in the time range since frameTimestamp
   */
-  virtual PlusStatus GetTrackedFrameList(double& frameTimestamp, vtkTrackedFrameList* trackedFrameList, int maxNumberOfFramesToAdd = -1); 
+  virtual PlusStatus GetTrackedFrameList(double& aTimestamp, vtkTrackedFrameList* aTrackedFrameList, int aMaxNumberOfFramesToAdd = -1); 
 
   /*!
     Get the tracked frame list from devices since time specified
-    \param frameTimestamp The oldest timestamp we search for in the buffer. If -1 get all frames in the time range since the most recent timestamp. Out parameter - changed to timestamp of last added frame
-    \param trackedFrameList Tracked frame list used to get the newly acquired frames into. The new frames are appended to the tracked frame.
-    \param samplingRateSec Sampling rate for getting the frames in seconds (timestamps are in seconds too)
+    \param aTimestamp The oldest timestamp we search for in the buffer. If -1 get all frames in the time range since the most recent timestamp. Out parameter - changed to timestamp of last added frame
+    \param aTrackedFrameList Tracked frame list used to get the newly acquired frames into. The new frames are appended to the tracked frame.
+    \param aSamplingRateSec Sampling rate for getting the frames in seconds (timestamps are in seconds too)
   */
-  virtual PlusStatus GetTrackedFrameListSampled(double& frameTimestamp, vtkTrackedFrameList* trackedFrameList, double samplingRateMs); 
+  virtual PlusStatus GetTrackedFrameListSampled(double& aTimestamp, vtkTrackedFrameList* aTrackedFrameList, double aSamplingRateSec);
 
   /*! Get the tracked frame from tracked frame list by timestamp */
   virtual PlusStatus GetTrackedFrameByTime(double aTimestamp, TrackedFrame* aTrackedFrame, bool calibratedTransform = false); 
@@ -90,12 +91,18 @@ public:
   /*! Get the tracker  */
   virtual vtkTracker* GetTracker();
 
+  /*! Get frame size */
+  virtual void GetFrameSize(int aDim[2]);
+
+  /*! Get frame rate */
+  virtual PlusStatus GetFrameRate(double &aFrameRate);
+
   /*! Callback function for progress bar refreshing */  
   virtual void SetProgressBarUpdateCallbackFunction(ProgressBarUpdatePtr cb);
 
 protected:
   /*! Compute next timestamp from start time and elapsed time */
-  double GetNextFrameTimestamp();
+  double GetCurrentFrameTimestamp();
 
   /*! Get index of tracked frame in the loaded tracked frame list that corresponds to a given timestamp */
   PlusStatus GetTrackedFrameIndexForTimestamp(double aTimestamp, int &aIndex);
@@ -118,6 +125,11 @@ protected:
 	vtkGetMacro(ReplayEnabled, bool);
   /*! Get replay enabled flag */
 	vtkSetMacro(ReplayEnabled, bool);
+
+  /*! Set output image data */
+	//vtkGetObjectMacro(OutputImageData, vtkImageData);
+  /*! Get output image data */
+	//vtkSetObjectMacro(OutputImageData, vtkImageData);
 
 protected:
   vtkDataCollectorFile();
@@ -143,7 +155,10 @@ protected:
   double                LastTimestamp;
 
   /*! Index of last accessed (returned) tracked frame */
-  double                LastAccessedFrameIndex;
+  int                   LastAccessedFrameIndex;
+
+  /*! Output image data */
+  //vtkImageData*         OutputImageData;
 
 private:
   vtkDataCollectorFile(const vtkDataCollectorFile&);

@@ -103,7 +103,14 @@ PlusStatus vtkMetaImageSequenceIO::SetCustomFrameString(int frameNumber, const c
     LOG_ERROR("Cannot access frame "<<frameNumber);
     return PLUS_FAIL;
   }
-  trackedFrame->SetCustomFrameField( fieldName, fieldValue );     
+
+  trackedFrame->SetCustomFrameField( fieldName, fieldValue ); 
+
+  if ( STRCASECMP(fieldName, "Timestamp") == 0 )
+  {
+    trackedFrame->SetTimestamp(atof(fieldValue));
+  }
+
   return PLUS_SUCCESS; 
 }
 
@@ -137,6 +144,7 @@ void vtkMetaImageSequenceIO::PrintSelf(ostream& os, vtkIndent indent)
   this->TrackedFrameList->PrintSelf(os, indent);
 }
 
+//----------------------------------------------------------------------------
 PlusStatus vtkMetaImageSequenceIO::ReadImageHeader()
 {
   FILE *stream=NULL;
@@ -421,7 +429,7 @@ PlusStatus vtkMetaImageSequenceIO::Write()
   return PLUS_SUCCESS;
 }
 
-
+//----------------------------------------------------------------------------
 void vtkMetaImageSequenceIO::CreateTrackedFrameIfNonExisting(int frameNumber)
 {
   if (frameNumber<this->TrackedFrameList->GetNumberOfTrackedFrames())
@@ -628,7 +636,7 @@ PlusStatus vtkMetaImageSequenceIO::WriteImageHeader()
     {
       std::ostringstream frameIndexStr; 
       frameIndexStr << std::setfill('0') << std::setw(4) << frameNumber; 
-      std::string field="Seq_Frame" + frameIndexStr.str() + "_" + (*it) + " = " + trackedFrame->GetCustomFrameField(it->c_str()) + "\n";
+      std::string field=SEQMETA_FIELD_FRAME_FIELD_PREFIX + frameIndexStr.str() + "_" + (*it) + " = " + trackedFrame->GetCustomFrameField(it->c_str()) + "\n";
       fputs(field.c_str(), stream);
     }
   }
@@ -642,6 +650,7 @@ PlusStatus vtkMetaImageSequenceIO::WriteImageHeader()
   return PLUS_SUCCESS;
 }
 
+//----------------------------------------------------------------------------
 PlusStatus vtkMetaImageSequenceIO::WriteImagePixels()
 {
 

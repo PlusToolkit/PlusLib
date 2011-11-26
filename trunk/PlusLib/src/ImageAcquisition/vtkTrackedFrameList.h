@@ -39,7 +39,7 @@ public:
 
 public:
   /*! Set image data */
-  void SetImageData(const PlusVideoFrame &value) { this->ImageData = value; }; 
+  void SetImageData(const PlusVideoFrame &value); 
 
   /*! Get image data */
   PlusVideoFrame* GetImageData() { return &(this->ImageData); };
@@ -75,8 +75,11 @@ public:
   /*! Get the list of the name of all custom frame fields */
   void GetCustomFrameFieldNameList(std::vector<std::string> &fieldNames);
 
-  /*! Get tracked frame size in pixel. Returns: int[2].  */
+  /*! Get tracked frame size in pixels. Returns: int[2].  */
   int* GetFrameSize(); 
+
+  /*! Get tracked frame size in pixels */
+  void GetFrameSize(int dim[2]);
 
   /*! Get tracked frame pixel size in bits */
   int GetNumberOfBitsPerPixel();

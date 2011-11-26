@@ -95,11 +95,11 @@ public:
 
   /*!
     Get the tracked frame list from devices since time specified
-    \param frameTimestamp The oldest timestamp we search for in the buffer. If -1 get all frames in the time range since the most recent timestamp. Out parameter - changed to timestamp of last added frame
-    \param trackedFrameList Tracked frame list used to get the newly acquired frames into. The new frames are appended to the tracked frame.
-    \param maxNumberOfFramesToAdd The maximum number of latest frames acquired from the buffers (till most recent timestamp). If -1 get all frames in the time range since frameTimestamp
+    \param aTimestamp The oldest timestamp we search for in the buffer. If -1 get all frames in the time range since the most recent timestamp. Out parameter - changed to timestamp of last added frame
+    \param aTrackedFrameList Tracked frame list used to get the newly acquired frames into. The new frames are appended to the tracked frame.
+    \param aMaxNumberOfFramesToAdd The maximum number of latest frames acquired from the buffers (till most recent timestamp). If -1 get all frames in the time range since aTimestamp
   */
-  virtual PlusStatus GetTrackedFrameList(double& frameTimestamp, vtkTrackedFrameList* trackedFrameList, int maxNumberOfFramesToAdd = -1); 
+  virtual PlusStatus GetTrackedFrameList(double& aTimestamp, vtkTrackedFrameList* aTrackedFrameList, int aMaxNumberOfFramesToAdd = -1); 
 
   // TODO only vtkDataCollectorTest1 uses it, make it protected if possible
   /*! Get the most recent tracked frame from devices  */
@@ -107,11 +107,11 @@ public:
 
   /*!
     Get the tracked frame list from devices since time specified
-    \param frameTimestamp The oldest timestamp we search for in the buffer. If -1 get all frames in the time range since the most recent timestamp. Out parameter - changed to timestamp of last added frame
-    \param trackedFrameList Tracked frame list used to get the newly acquired frames into. The new frames are appended to the tracked frame.
-    \param samplingRateSec Sampling rate for getting the frames in seconds (timestamps are in seconds too)
+    \param aTimestamp The oldest timestamp we search for in the buffer. If -1 get all frames in the time range since the most recent timestamp. Out parameter - changed to timestamp of last added frame
+    \param aTrackedFrameList Tracked frame list used to get the newly acquired frames into. The new frames are appended to the tracked frame.
+    \param aSamplingRateSec Sampling rate for getting the frames in seconds (timestamps are in seconds too)
   */
-  virtual PlusStatus GetTrackedFrameListSampled(double& frameTimestamp, vtkTrackedFrameList* trackedFrameList, double samplingRateMs); 
+  virtual PlusStatus GetTrackedFrameListSampled(double& aTimestamp, vtkTrackedFrameList* aTrackedFrameList, double aSamplingRateSec); 
 
   /*! Get the tracked frame from devices by time with each tool transforms */
   virtual PlusStatus GetTrackedFrameByTime(double time, TrackedFrame* trackedFrame, bool calibratedTransform = false); 
@@ -138,19 +138,22 @@ public:
   /*! Get the synchronization type  */
   SYNC_TYPE GetSyncType() { return this->SyncType; }
 
-  /*! Set the video source of ultrasound */
+  /*! Set video source of ultrasound */
   virtual void SetVideoSource(vtkPlusVideoSource* videoSource); 
-  /*! Get the video source of ultrasound */
+  /*! Get video source of ultrasound */
   vtkGetObjectMacro(VideoSource,vtkPlusVideoSource);
 
-  /*! Set the video source of ultrasound */
+  /*! Get frame size */
+  virtual void GetFrameSize(int aDim[2]);
+
+  /*! Set synchronizer */
   virtual void SetSynchronizer(vtkDataCollectorSynchronizer* synchronizer);
-  /*! Get the video source of ultrasound */
+  /*! Get synchronizer */
   vtkGetObjectMacro(Synchronizer,vtkDataCollectorSynchronizer);
 
-  /*! Set the tracker  */
+  /*! Set tracker  */
   virtual void SetTracker(vtkTracker* tracker); 
-  /*! Get the tracker  */
+  /*! Get tracker  */
   vtkGetObjectMacro(Tracker,vtkTracker);
   
   /*! Get the Tracking only flag */
@@ -180,7 +183,7 @@ public:
 
 protected:
   /*! Get number of tracked frames between two given timestamps (inclusive) */
-  int GetNumberOfFramesBetweenTimestamps(double frameTimestampFrom, double frameTimestampTo);
+  int GetNumberOfFramesBetweenTimestamps(double aTimestampFrom, double aTimestampTo);
 
   /*! Get the tracked frame from devices by time with each tool transforms */
   virtual PlusStatus GetTrackedFrameByTime(double time, vtkImageData* frame, std::vector<vtkMatrix4x4*> &toolTransforms, std::vector<std::string> &toolTransformNames, std::vector<TrackerStatus> &status, double& synchronizedTime, bool calibratedTransform = false); 
@@ -192,9 +195,9 @@ protected:
   virtual double GetTransformsByTimeInterval(std::vector<vtkMatrix4x4*> &toolTransMatrixVector, std::vector<TrackerStatus> &statusVector, double startTime, double endTime, const char* aToolName, bool calibratedTransform = false);
 
   /*! Get frame data by time  */
-  virtual PlusStatus GetFrameByTime(double time, vtkImageData* frame, double& frameTimestamp); 
+  virtual PlusStatus GetFrameByTime(double time, vtkImageData* frame, double& aTimestamp); 
   /*! Get frame data by time  */
-  virtual PlusStatus GetFrameByTime(double time, PlusVideoFrame& frame, double& frameTimestamp); 
+  virtual PlusStatus GetFrameByTime(double time, PlusVideoFrame& frame, double& aTimestamp); 
 
   /*! This is called by the superclass. */
   virtual int RequestData(vtkInformation *request, vtkInformationVector** inputVector, vtkInformationVector* outputVector);

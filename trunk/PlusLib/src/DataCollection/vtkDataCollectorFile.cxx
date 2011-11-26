@@ -26,17 +26,22 @@ vtkDataCollectorFile::vtkDataCollectorFile()
 {	
   this->TrackedFrameList = NULL;
   this->SequenceMetafileName = NULL;
+  //this->OutputImageData = NULL;
   this->StartTime = 0.0;
   this->ReplayEnabled = false; 
   this->FirstTimestamp = 0.0;
   this->LastTimestamp = 0.0;
   this->LastAccessedFrameIndex = -1;
+
+  //vtkSmartPointer<vtkImageData> outputImageData = vtkSmartPointer<vtkImageData>::New();
+  //this->SetOutputImageData(outputImageData);
 }
 
 //----------------------------------------------------------------------------
 vtkDataCollectorFile::~vtkDataCollectorFile()
 {
-  this->SetTrackedFrameList(NULL); 
+  this->SetTrackedFrameList(NULL);
+  //this->SetOutputImageData(NULL);
 }
 
 //----------------------------------------------------------------------------
@@ -81,8 +86,15 @@ PlusStatus vtkDataCollectorFile::Connect()
   if (this->FirstTimestamp >= this->LastTimestamp)
   {
     LOG_ERROR("Invalid tracked frame list - timestamps must be ascending!");
+    this->ConnectedOn();
+    this->Disconnect();
     return PLUS_FAIL;
   }
+
+  // Set output connection to output image data
+  //this->SetOutput(this->OutputImageData);
+
+  this->ConnectedOn();
 
   return PLUS_SUCCESS;
 }
@@ -104,7 +116,7 @@ PlusStatus vtkDataCollectorFile::Disconnect()
 
   this->ConnectedOff(); 
 
-  return PLUS_FAIL;
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
@@ -120,7 +132,7 @@ PlusStatus vtkDataCollectorFile::Start()
 
   this->StartTime = vtkAccurateTimer::GetSystemTime();
 
-  return PLUS_FAIL;
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
@@ -131,7 +143,7 @@ PlusStatus vtkDataCollectorFile::Stop()
   this->StartTime = 0.0;
   this->LastAccessedFrameIndex = -1;
 
-  return PLUS_FAIL;
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
@@ -181,7 +193,7 @@ PlusStatus vtkDataCollectorFile::GetMostRecentTimestamp(double &ts)
 
   ts = this->LastTimestamp;
 
-  return PLUS_FAIL;
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
@@ -195,24 +207,118 @@ PlusStatus vtkDataCollectorFile::GetTransformWithTimestamp(vtkMatrix4x4* toolTra
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkDataCollectorFile::GetTrackedFrameList(double& frameTimestamp, vtkTrackedFrameList* trackedFrameList, int maxNumberOfFramesToAdd/*=-1*/)
+PlusStatus vtkDataCollectorFile::GetTrackedFrameList(double& aTimestamp, vtkTrackedFrameList* aTrackedFrameList, int aMaxNumberOfFramesToAdd/*=-1*/)
 {
-  LOG_TRACE("vtkDataCollectorFile::GetTrackedFrameList(" << frameTimestamp << ", " << maxNumberOfFramesToAdd << ")"); 
+  LOG_TRACE("vtkDataCollectorFile::GetTrackedFrameList(" << aTimestamp << ", " << aMaxNumberOfFramesToAdd << ")"); 
 
-  //TODO
+  if ( aTrackedFrameList == NULL )
+  {
+    LOG_ERROR("Unable to get tracked frame list - output tracked frmae list is NULL!"); 
+    return PLUS_FAIL; 
+  }
 
-  return PLUS_FAIL;
+  // Get first and last frame index to add
+  int indexOfFrameBeforeTheFirstToReturn = 0;
+  if (GetTrackedFrameIndexForTimestamp(aTimestamp, indexOfFrameBeforeTheFirstToReturn) != PLUS_SUCCESS)
+  {
+    LOG_ERROR("Unable to get tracked frame index for timestamp " << aTimestamp);
+    return PLUS_FAIL;
+  }
+
+  aTimestamp = GetCurrentFrameTimestamp();
+
+  int indexOfLastFrameToReturn = 0;
+  if (GetTrackedFrameIndexForTimestamp(aTimestamp, indexOfLastFrameToReturn) != PLUS_SUCCESS)
+  {
+    LOG_ERROR("Unable to get tracked frame index for timestamp " << aTimestamp);
+    return PLUS_FAIL;
+  }
+
+  std::deque<int> frameIndicesToAdd;
+
+  for (int i = indexOfLastFrameToReturn; i != indexOfFrameBeforeTheFirstToReturn; --i)
+  {
+    // Break if maximum number of frames added
+    if (aMaxNumberOfFramesToAdd == 0)
+    {
+      break;
+    }
+
+    // Jump to last if begin reached
+    if (i < 0)
+    {
+      i = this->TrackedFrameList->GetNumberOfTrackedFrames() - 1;
+    }
+
+    // Add index to list
+    frameIndicesToAdd.push_front(i);
+
+    aMaxNumberOfFramesToAdd--;
+  }
+
+  // Add tracked frames to the list 
+  for (std::deque<int>::iterator it = frameIndicesToAdd.begin(); it != frameIndicesToAdd.end(); ++it)
+  {
+    if ( aTrackedFrameList->AddTrackedFrame(this->TrackedFrameList->GetTrackedFrame(*it), vtkTrackedFrameList::SKIP_INVALID_FRAME) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Unable to add tracked frame to the list!" ); 
+      return PLUS_FAIL; 
+    }
+  }
+
+  int numberOfFramesSinceTimestamp = (indexOfFrameBeforeTheFirstToReturn < indexOfLastFrameToReturn)
+                                    ? (indexOfLastFrameToReturn - indexOfFrameBeforeTheFirstToReturn)
+                                    : (this->TrackedFrameList->GetNumberOfTrackedFrames() - indexOfLastFrameToReturn + indexOfFrameBeforeTheFirstToReturn);
+  LOG_DEBUG("Number of added frames: " << frameIndicesToAdd.size() << " out of " << numberOfFramesSinceTimestamp);
+
+  this->LastAccessedFrameIndex = indexOfLastFrameToReturn;
+
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
 
-PlusStatus vtkDataCollectorFile::GetTrackedFrameListSampled(double& frameTimestamp, vtkTrackedFrameList* trackedFrameList, double samplingRateSec)
+PlusStatus vtkDataCollectorFile::GetTrackedFrameListSampled(double& aTimestamp, vtkTrackedFrameList* aTrackedFrameList, double aSamplingRateSec)
 {
-  LOG_TRACE("vtkDataCollectorFile::GetTrackedFrameListSampled(" << frameTimestamp << ", " << samplingRateSec << ")"); 
+  LOG_TRACE("vtkDataCollectorFile::GetTrackedFrameListSampled(" << aTimestamp << ", " << aSamplingRateSec << ")"); 
 
-  //TODO
+  if ( aTrackedFrameList == NULL )
+  {
+    LOG_ERROR("Unable to get tracked frame list - output tracked frmae list is NULL!"); 
+    return PLUS_FAIL; 
+  }
 
-  return PLUS_FAIL;
+  double currentFrameTimestamp = GetCurrentFrameTimestamp();
+
+  if (aTimestamp > currentFrameTimestamp)
+  {
+    double loopTime = this->LastTimestamp - this->FirstTimestamp;
+    currentFrameTimestamp += loopTime;
+  }
+
+  while (aTimestamp + aSamplingRateSec <= currentFrameTimestamp)
+  {
+    // Get tracked frame from buffer
+    TrackedFrame trackedFrame; 
+
+    if ( this->GetTrackedFrameByTime(aTimestamp, &trackedFrame) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Unable to get tracked frame by time: " << std::fixed << aTimestamp ); 
+      return PLUS_FAIL;
+    }
+
+    // Add tracked frame to the list 
+    if ( aTrackedFrameList->AddTrackedFrame(&trackedFrame, vtkTrackedFrameList::SKIP_INVALID_FRAME) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Unable to add tracked frame to the list!" ); 
+      return PLUS_FAIL; 
+    }
+
+    // Set timestamp to the next sampled one
+    aTimestamp += aSamplingRateSec;
+  }
+
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
@@ -222,9 +328,9 @@ PlusStatus vtkDataCollectorFile::GetTrackedFrame(TrackedFrame* trackedFrame, boo
 
   // Get tracked frame by computed timestamp
   TrackedFrame outTrackedFrame;
-  if (GetTrackedFrameByTime(GetNextFrameTimestamp(), &outTrackedFrame) != PLUS_SUCCESS)
+  if (GetTrackedFrameByTime(GetCurrentFrameTimestamp(), &outTrackedFrame) != PLUS_SUCCESS)
   {
-    LOG_ERROR("Unable to get tracked frame by timestamp: " << GetNextFrameTimestamp());
+    LOG_ERROR("Unable to get tracked frame by timestamp: " << GetCurrentFrameTimestamp());
     return PLUS_FAIL;
   }
 
@@ -236,10 +342,28 @@ PlusStatus vtkDataCollectorFile::GetTrackedFrame(TrackedFrame* trackedFrame, boo
 //----------------------------------------------------------------------------
 PlusStatus vtkDataCollectorFile::GetTrackedFrameIndexForTimestamp(double aTimestamp, int &aIndex)
 {
-  if (aTimestamp < this->FirstTimestamp || aTimestamp > this->LastTimestamp)
+  //LOG_TRACE("vtkDataCollectorFile::GetTrackedFrameIndexForTimestamp(" << aTimestamp << ")"); 
+
+  if (! this->ReplayEnabled)
   {
-    LOG_ERROR("Unable to get tracked frame by invalid timestamp: " << aTimestamp);
-    return PLUS_FAIL;
+    // If timestamp is smaller the timestamp of the first frame then return the first frame index
+    if (aTimestamp <= this->FirstTimestamp)
+    {
+      aIndex = 0;
+      return PLUS_SUCCESS;
+    }
+
+    // If timestamp is bigger than the timestamp of the last frame then return with the last frame index
+    if (aTimestamp > this->LastTimestamp)
+    {
+      aIndex = this->TrackedFrameList->GetNumberOfTrackedFrames() - 1;
+      return PLUS_SUCCESS;
+    }
+  }
+  else // Compute the corresponding valid timestamp if replay enabled
+  {
+    double loopTime = this->LastTimestamp - this->FirstTimestamp;
+    aTimestamp = this->FirstTimestamp + fmod(aTimestamp, loopTime); 
   }
 
   // Start searching from last accessed tracked frame
@@ -308,9 +432,9 @@ int vtkDataCollectorFile::RequestData( vtkInformation* vtkNotUsed( request ), vt
 
   // Get tracked frame by computed timestamp
   TrackedFrame outTrackedFrame;
-  if (GetTrackedFrameByTime(GetNextFrameTimestamp(), &outTrackedFrame) != PLUS_SUCCESS)
+  if (GetTrackedFrameByTime(GetCurrentFrameTimestamp(), &outTrackedFrame) != PLUS_SUCCESS)
   {
-    LOG_ERROR("Unable to get tracked frame by timestamp: " << GetNextFrameTimestamp());
+    LOG_ERROR("Unable to get tracked frame by timestamp: " << GetCurrentFrameTimestamp());
     return 1;
   }
 
@@ -320,9 +444,9 @@ int vtkDataCollectorFile::RequestData( vtkInformation* vtkNotUsed( request ), vt
 }
 
 //------------------------------------------------------------------------------
-double vtkDataCollectorFile::GetNextFrameTimestamp()
+double vtkDataCollectorFile::GetCurrentFrameTimestamp()
 {
-  //LOG_TRACE("vtkDataCollectorFile::GetNextFrameTimestamp");
+  //LOG_TRACE("vtkDataCollectorFile::GetCurrentFrameTimestamp");
 
   double elapsedTime = vtkAccurateTimer::GetSystemTime() - this->StartTime;
 
@@ -336,7 +460,6 @@ double vtkDataCollectorFile::GetNextFrameTimestamp()
     }
     else
     {
-      // Use the latest frame always
       nextFrameTimestamp = this->LastTimestamp; 
     }
   }
@@ -363,7 +486,7 @@ PlusStatus vtkDataCollectorFile::ReadConfiguration(vtkXMLDataElement* aConfigura
 	}
 
   vtkXMLDataElement* fileConfig = dataCollectionConfig->FindNestedElementWithName("File");
-  if (fileConfig = NULL)
+  if (fileConfig == NULL)
   {
     LOG_ERROR("Cannot find File element in XML tree!");
 		return PLUS_FAIL;
@@ -419,7 +542,7 @@ vtkPlusVideoSource* vtkDataCollectorFile::GetVideoSource()
 {
   LOG_TRACE("vtkDataCollectorFile::GetVideoSource");
 
-  LOG_ERROR("There is no separate video source in simulation mode!");
+  LOG_ERROR("No video source object in simulation mode!");
 
   return NULL;
 }
@@ -429,7 +552,7 @@ vtkTracker* vtkDataCollectorFile::GetTracker()
 {
   LOG_TRACE("vtkDataCollectorFile::GetTracker");
 
-  LOG_ERROR("There is no separate tracker in simulation mode!");
+  LOG_ERROR("No tracker object in simulation mode!");
 
   return NULL;
 }
@@ -440,4 +563,36 @@ void vtkDataCollectorFile::SetProgressBarUpdateCallbackFunction(ProgressBarUpdat
   LOG_TRACE("vtkDataCollectorFile::SetProgressBarUpdateCallbackFunction");
 
   LOG_ERROR("There is no update callback function in simulation mode!");
+}
+
+//------------------------------------------------------------------------------
+void vtkDataCollectorFile::GetFrameSize(int aDim[2])
+{
+  LOG_TRACE("vtkDataCollectorFile::GetFrameSize");
+
+  if (this->Connected == false)
+  {
+    LOG_ERROR("Data collector is not connected!");
+    return;
+  }
+
+  this->TrackedFrameList->GetTrackedFrame(0)->GetFrameSize(aDim);
+}
+
+//------------------------------------------------------------------------------
+PlusStatus vtkDataCollectorFile::GetFrameRate(double &aFrameRate)
+{
+  LOG_TRACE("vtkDataCollectorFile::GetFrameRate");
+
+  if (this->Connected == false)
+  {
+    LOG_ERROR("Data collector is not connected!");
+    return PLUS_FAIL;
+  }
+
+  double loopTime = this->LastTimestamp - this->FirstTimestamp;
+
+  aFrameRate = (double)this->TrackedFrameList->GetNumberOfTrackedFrames() / loopTime;
+
+  return PLUS_SUCCESS;
 }
