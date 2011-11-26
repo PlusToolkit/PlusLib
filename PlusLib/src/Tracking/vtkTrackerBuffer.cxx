@@ -18,6 +18,8 @@
 
 static const double NEGLIGIBLE_TIME_DIFFERENCE=0.00001; // in seconds, used for comparing between exact timestamps
 
+vtkStandardNewMacro(vtkTrackerBuffer);
+
 ///----------------------------------------------------------------------------
 //						TrackerBufferItem
 //----------------------------------------------------------------------------
@@ -110,17 +112,6 @@ PlusStatus TrackerBufferItem::GetMatrix(vtkMatrix4x4* outputMatrix)
 //----------------------------------------------------------------------------
 //						vtkTrackerBuffer
 //----------------------------------------------------------------------------
-vtkTrackerBuffer* vtkTrackerBuffer::New()
-{
-  // First try to create the object from the vtkObjectFactory
-  vtkObject* ret = vtkObjectFactory::CreateInstance("vtkTrackerBuffer");
-  if(ret)
-  {
-    return (vtkTrackerBuffer*)ret;
-  }
-  // If the factory was unable to create the object, then create it here.
-  return new vtkTrackerBuffer;
-}
 
 //----------------------------------------------------------------------------
 vtkTrackerBuffer::vtkTrackerBuffer()

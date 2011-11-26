@@ -66,18 +66,7 @@ POSSIBILITY OF SUCH DAMAGES.
 #include "vtkMutexLock.h"
 #include <sys/timeb.h>
 
-////-------------------------------------------------------------------------
-vtkSignalBox* vtkSignalBox::New()
-{
-  // First try to create the object from the vtkObjectFactory
-  vtkObject* ret = vtkObjectFactory::CreateInstance("vtkSignalBox");
-  if(ret)
-    {
-    return (vtkSignalBox*)ret;
-    }
-  // If the factory was unable to create the object, then create it here.
-  return new vtkSignalBox;
-}
+vtkStandardNewMacro(vtkSignalBox);
 
 //-------------------------------------------------------------------------
 vtkSignalBox::vtkSignalBox()

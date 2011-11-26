@@ -59,18 +59,9 @@ POSSIBILITY OF SUCH DAMAGES.
 #include <sys/timeb.h>
 #include <io.h>
 
-vtkUSBECGBox* vtkUSBECGBox::New()
-{
-  // First try to create the object from the vtkObjectFactory
-  vtkObject* ret = vtkObjectFactory::CreateInstance("vtkUSBECGBox");
-  if(ret)
-    {
-    return (vtkUSBECGBox*)ret;
-    }
-  // If the factory was unable to create the object, then create it here.
-  return new vtkUSBECGBox;
-}
+vtkStandardNewMacro(vtkUSBECGBox);
 
+//-------------------------------------------------------------------------
 vtkUSBECGBox::vtkUSBECGBox()
 {
   this->TotalPhases = 10;
@@ -112,6 +103,7 @@ vtkUSBECGBox::vtkUSBECGBox()
   ADData = (WORD*)cbWinBufAlloc(sampleSize);
 }
 
+//-------------------------------------------------------------------------
 vtkUSBECGBox::~vtkUSBECGBox()
 {
   if (this->ThreadId != -1)
@@ -125,12 +117,14 @@ vtkUSBECGBox::~vtkUSBECGBox()
 
 }
   
+//-------------------------------------------------------------------------
 void vtkUSBECGBox::PrintSelf(ostream& os, vtkIndent indent)
 {
   vtkObject::PrintSelf(os,indent);
 
 }
   
+//-------------------------------------------------------------------------
 static void *vtkUSBECGBoxThread(vtkMultiThreader::ThreadInfo *data)
 {
   vtkUSBECGBox *self = (vtkUSBECGBox *)(data->UserData);
@@ -165,7 +159,7 @@ static void *vtkUSBECGBoxThread(vtkMultiThreader::ThreadInfo *data)
   }
 }
 
-
+//-------------------------------------------------------------------------
 void vtkUSBECGBox::Start()
 {
   int Count=sampleSize;
@@ -197,6 +191,7 @@ void vtkUSBECGBox::Start()
   this->IsStarted=1;
 }
 
+//-------------------------------------------------------------------------
 void vtkUSBECGBox::Stop()
 {
 
@@ -211,7 +206,7 @@ void vtkUSBECGBox::Stop()
 
 }
 
-
+//-------------------------------------------------------------------------
 void vtkUSBECGBox::Update()
 {
   if (!this->IsStarted){
@@ -231,6 +226,7 @@ void vtkUSBECGBox::Update()
 
 }
 
+//-------------------------------------------------------------------------
 int vtkUSBECGBox::GetECG(void) {
 
   short Status = RUNNING;
@@ -293,22 +289,25 @@ int vtkUSBECGBox::GetECG(void) {
 
 }
 
+//-------------------------------------------------------------------------
 void vtkUSBECGBox::SetInvertedOn() {
   this->inverted=true;
   this->rise=false;
 }
 
-
+//-------------------------------------------------------------------------
 void vtkUSBECGBox::SetInvertedOff() {
   this->inverted=false;
   this->rise=true;
 }
 
+//-------------------------------------------------------------------------
 void vtkUSBECGBox::InvertThreshold() {
   this->inverted = !this->inverted; 
   this->rise = !(this->rise);
 }
 
+//-------------------------------------------------------------------------
 void vtkUSBECGBox::CalculateECGRate() {
   if (this->Timestamp <= this->ExpectedSignalTimeStamp) {
     //this->ECGRateBPM = 0;
@@ -334,10 +333,12 @@ void vtkUSBECGBox::CalculateECGRate() {
 
 }
 
+//-------------------------------------------------------------------------
 void vtkUSBECGBox::CalculatePhase() {
   this->ECGPhase = int(((this->ECGRateBPM/60)*this->TotalPhases)*(this->Timestamp-this->StartSignalTimeStamp))%this->TotalPhases;
 }
 
+//-------------------------------------------------------------------------
 void vtkUSBECGBox::UpdateTimestamp() {
   struct _timeb timeTmp;
   _ftime(&timeTmp);  // seconds from Jan. 1, 1970
@@ -346,6 +347,7 @@ void vtkUSBECGBox::UpdateTimestamp() {
   else                 { this->Timestamp = newTimeStamp; }
 }
 
+//-------------------------------------------------------------------------
 void vtkUSBECGBox::ShowSystemDevices() {
   int  BoardType, NumBoards, BaseAdr, i, j,NumBits;
     char BoardNameStr[BOARDNAMELEN];

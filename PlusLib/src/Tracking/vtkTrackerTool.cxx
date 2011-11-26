@@ -13,18 +13,7 @@
 #include "vtkObjectFactory.h"
 #include "vtkXMLUtilities.h"
 
-//----------------------------------------------------------------------------
-vtkTrackerTool* vtkTrackerTool::New()
-{
-	// First try to create the object from the vtkObjectFactory
-	vtkObject* ret = vtkObjectFactory::CreateInstance("vtkTrackerTool");
-	if(ret)
-	{
-		return (vtkTrackerTool*)ret;
-	}
-	// If the factory was unable to create the object, then create it here.
-	return new vtkTrackerTool;
-}
+vtkStandardNewMacro(vtkTrackerTool);
 
 //----------------------------------------------------------------------------
 vtkTrackerTool::vtkTrackerTool()

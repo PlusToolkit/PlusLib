@@ -12,18 +12,7 @@ See License.txt for details.
 #include "vtkTrackerTool.h"
 #include "vtkMinimalStandardRandomSequence.h"
 
-//----------------------------------------------------------------------------
-vtkFakeTracker* vtkFakeTracker::New()
-{
-  // First try to create the object from the vtkObjectFactory
-  vtkObject* ret = vtkObjectFactory::CreateInstance("vtkFakeTracker");
-  if(ret)
-  {
-    return (vtkFakeTracker*)ret;
-  }
-  // If the factory was unable to create the object, then create it here.
-  return new vtkFakeTracker;
-}
+vtkStandardNewMacro(vtkFakeTracker);
 
 //----------------------------------------------------------------------------
 vtkFakeTracker::vtkFakeTracker() 

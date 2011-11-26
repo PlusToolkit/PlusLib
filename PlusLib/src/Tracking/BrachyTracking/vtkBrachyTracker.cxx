@@ -22,19 +22,7 @@ See License.txt for details.
 #include "vtkXMLDataElement.h"
 #include "vtkTrackedFrameList.h"
 
-
-//----------------------------------------------------------------------------
-vtkBrachyTracker* vtkBrachyTracker::New()
-{
-  // First try to create the object from the vtkObjectFactory
-  vtkObject* ret = vtkObjectFactory::CreateInstance("vtkBrachyTracker");
-  if(ret)
-  {
-    return (vtkBrachyTracker*)ret;
-  }
-  // If the factory was unable to create the object, then create it here.
-  return new vtkBrachyTracker;
-}
+vtkStandardNewMacro(vtkBrachyTracker);
 
 //----------------------------------------------------------------------------
 vtkBrachyTracker::vtkBrachyTracker()
