@@ -62,18 +62,7 @@ POSSIBILITY OF SUCH DAMAGES.
 #include <sys/timeb.h>
 #include <io.h>
 
-//-------------------------------------------------------------------------
-vtkHeartSignalBox* vtkHeartSignalBox::New()
-{
-  // First try to create the object from the vtkObjectFactory
-  vtkObject* ret = vtkObjectFactory::CreateInstance("vtkHeartSignalBox");
-  if(ret)
-    {
-    return (vtkHeartSignalBox*)ret;
-    }
-  // If the factory was unable to create the object, then create it here.
-  return new vtkHeartSignalBox;
-}
+vtkStandardNewMacro(vtkHeartSignalBox);
 
 //-------------------------------------------------------------------------
 vtkHeartSignalBox::vtkHeartSignalBox()

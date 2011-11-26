@@ -35,20 +35,9 @@ namespace atc
 #include "vtkTrackerTool.h"
 #include "vtkTrackerBuffer.h"
 
-vtkAscension3DGTracker* vtkAscension3DGTracker::New()
-{
-  // First try to create the object from the vtkObjectFactory
-  vtkObject* ret = vtkObjectFactory::CreateInstance("vtkAscension3DGTracker");
-  if( ret )
-  {
-    return ( vtkAscension3DGTracker* )ret;
-  }
-  // If the factory was unable to create the object, then create it here.
-  return new vtkAscension3DGTracker;
-}
+vtkStandardNewMacro(vtkAscension3DGTracker);
 
-
-
+//-------------------------------------------------------------------------
 vtkAscension3DGTracker::vtkAscension3DGTracker()
 {
   this->LocalTrackerBuffer = NULL;
@@ -58,8 +47,7 @@ vtkAscension3DGTracker::vtkAscension3DGTracker()
   this->NumberOfSensors = 0; 
 }
 
-
-
+//-------------------------------------------------------------------------
 vtkAscension3DGTracker::~vtkAscension3DGTracker() 
 {
   if ( this->Tracking )
@@ -74,15 +62,13 @@ vtkAscension3DGTracker::~vtkAscension3DGTracker()
   }
 }
 
-
-
+//-------------------------------------------------------------------------
 void vtkAscension3DGTracker::PrintSelf( ostream& os, vtkIndent indent )
 {
   vtkTracker::PrintSelf( os, indent );
 }
 
-
-
+//-------------------------------------------------------------------------
 PlusStatus vtkAscension3DGTracker::Connect()
 {
   LOG_TRACE( "vtkAscension3DGTracker::Connect" ); 
@@ -167,16 +153,14 @@ PlusStatus vtkAscension3DGTracker::Connect()
   return PLUS_SUCCESS; 
 }
 
-
-
+//-------------------------------------------------------------------------
 PlusStatus vtkAscension3DGTracker::Disconnect()
 {
   LOG_TRACE( "vtkAscension3DGTracker::Disconnect" ); 
   return this->StopTracking(); 
 }
 
-
-
+//-------------------------------------------------------------------------
 PlusStatus vtkAscension3DGTracker::Probe()
 {
   LOG_TRACE( "vtkAscension3DGTracker::Probe" ); 
@@ -184,7 +168,7 @@ PlusStatus vtkAscension3DGTracker::Probe()
   return PLUS_SUCCESS; 
 } 
 
-
+//-------------------------------------------------------------------------
 PlusStatus vtkAscension3DGTracker::InternalStartTracking()
 {
   LOG_TRACE( "vtkAscension3DGTracker::InternalStartTracking" ); 
@@ -228,8 +212,7 @@ PlusStatus vtkAscension3DGTracker::InternalStartTracking()
   return PLUS_SUCCESS;
 }
 
-
-
+//-------------------------------------------------------------------------
 PlusStatus vtkAscension3DGTracker::InternalStopTracking()
 {
   LOG_TRACE( "vtkAscension3DGTracker::InternalStopTracking" ); 
@@ -245,11 +228,7 @@ PlusStatus vtkAscension3DGTracker::InternalStopTracking()
   return PLUS_SUCCESS;
 }
 
-
-
-/**
-* This function is called by the tracker thread.
-*/
+//-------------------------------------------------------------------------
 PlusStatus vtkAscension3DGTracker::InternalUpdate()
 {
   LOG_TRACE( "vtkAscension3DGTracker::InternalUpdate" ); 
@@ -423,16 +402,14 @@ PlusStatus vtkAscension3DGTracker::InternalUpdate()
   return PLUS_SUCCESS;
 }
 
-
-
+//-------------------------------------------------------------------------
 PlusStatus vtkAscension3DGTracker::InitAscension3DGTracker()
 {
   LOG_TRACE( "vtkAscension3DGTracker::InitAscension3DGTracker" ); 
   return this->Connect(); 
 }
 
-
-
+//-------------------------------------------------------------------------
 PlusStatus vtkAscension3DGTracker::ReadConfiguration( vtkXMLDataElement* config )
 {
   // Read superclass configuration first
@@ -462,8 +439,7 @@ PlusStatus vtkAscension3DGTracker::ReadConfiguration( vtkXMLDataElement* config 
   return PLUS_SUCCESS;
 }
 
-
-
+//-------------------------------------------------------------------------
 PlusStatus vtkAscension3DGTracker::WriteConfiguration( vtkXMLDataElement* config )
 {
   LOG_TRACE( "vtkAscension3DGTracker::WriteConfiguration" ); 
@@ -479,7 +455,7 @@ PlusStatus vtkAscension3DGTracker::WriteConfiguration( vtkXMLDataElement* config
   return PLUS_FAIL;
 }
 
-
+//-------------------------------------------------------------------------
 PlusStatus vtkAscension3DGTracker::CheckReturnStatus( int status )
 {
   if( status != atc::BIRD_ERROR_SUCCESS )
@@ -491,4 +467,3 @@ PlusStatus vtkAscension3DGTracker::CheckReturnStatus( int status )
   }
   return PLUS_SUCCESS;
 }
-

@@ -41,7 +41,7 @@ public:
 	/*! Probe to see if the tracking system is present on the specified serial port. */
 	PlusStatus Probe();
 
-	/*! Get an update from the tracking system and push the new transforms to the tools. */
+	/*! Get an update from the tracking system and push the new transforms to the tools. This function is called by the tracker thread.*/
 	PlusStatus InternalUpdate();
 
 	/*! Read BrachyStepper configuration from xml data */

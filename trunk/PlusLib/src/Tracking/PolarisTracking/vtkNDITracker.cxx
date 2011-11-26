@@ -59,18 +59,7 @@ POSSIBILITY OF SUCH DAMAGES.
 #include <string.h>
 #include "vtkCharArray.h"
 
-//----------------------------------------------------------------------------
-vtkNDITracker* vtkNDITracker::New()
-{
-  // First try to create the object from the vtkObjectFactory
-  vtkObject* ret = vtkObjectFactory::CreateInstance("vtkNDITracker");
-  if(ret)
-  {
-    return (vtkNDITracker*)ret;
-  }
-  // If the factory was unable to create the object, then create it here.
-  return new vtkNDITracker;
-}
+vtkStandardNewMacro(vtkNDITracker);
 
 //----------------------------------------------------------------------------
 vtkNDITracker::vtkNDITracker()

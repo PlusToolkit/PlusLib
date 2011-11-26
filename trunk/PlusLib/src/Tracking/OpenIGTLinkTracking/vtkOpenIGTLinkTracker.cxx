@@ -21,24 +21,16 @@
 #include "vtkTrackerTool.h"
 #include "vtkTrackerBuffer.h"
 
-vtkOpenIGTLinkTracker* vtkOpenIGTLinkTracker::New()
-{
-  // First try to create the object from the vtkObjectFactory
-  vtkObject* ret = vtkObjectFactory::CreateInstance("vtkOpenIGTLinkTracker");
-  if( ret )
-  {
-    return ( vtkOpenIGTLinkTracker* )ret;
-  }
-  // If the factory was unable to create the object, then create it here.
-  return new vtkOpenIGTLinkTracker;
-}
+vtkStandardNewMacro(vtkOpenIGTLinkTracker);
 
+//----------------------------------------------------------------------------
 vtkOpenIGTLinkTracker ::vtkOpenIGTLinkTracker()
 {
   this->FrameNumber = 0;
   this->NumberOfSensors = 0; 
 }
 
+//----------------------------------------------------------------------------
 vtkOpenIGTLinkTracker::~vtkOpenIGTLinkTracker() 
 {
   if ( this->Tracking )
@@ -47,17 +39,13 @@ vtkOpenIGTLinkTracker::~vtkOpenIGTLinkTracker()
   }
 }
 
+//----------------------------------------------------------------------------
 void vtkOpenIGTLinkTracker::PrintSelf( ostream& os, vtkIndent indent )
 {
   vtkTracker::PrintSelf( os, indent );
 }
 
-
-/**
- * Starts up a data receiver thread.
- * Sends the PlusServer a StartTracking command.
- * After that, PlusServer sends tracking data to this client as long as the connection is alive.
- */
+//----------------------------------------------------------------------------
 PlusStatus vtkOpenIGTLinkTracker::Connect()
 {
   LOG_TRACE( "vtkOpenIGTLinkTracker::Connect" ); 
@@ -66,6 +54,7 @@ PlusStatus vtkOpenIGTLinkTracker::Connect()
   return PLUS_SUCCESS; 
 }
 
+//----------------------------------------------------------------------------
 PlusStatus vtkOpenIGTLinkTracker::Disconnect()
 {
   LOG_TRACE( "vtkOpenIGTLinkTracker::Disconnect" ); 
@@ -79,9 +68,7 @@ PlusStatus vtkOpenIGTLinkTracker::Probe()
   return PLUS_SUCCESS; 
 } 
 
-/**
-* @returns 1 on success, 0 on failure.
-*/
+//----------------------------------------------------------------------------
 PlusStatus vtkOpenIGTLinkTracker::InternalStartTracking()
 {
   LOG_TRACE( "vtkOpenIGTLinkTracker::InternalStartTracking" ); 
@@ -99,6 +86,7 @@ PlusStatus vtkOpenIGTLinkTracker::InternalStartTracking()
   return PLUS_SUCCESS;
 }
 
+//----------------------------------------------------------------------------
 PlusStatus vtkOpenIGTLinkTracker::InternalStopTracking()
 {
   LOG_TRACE( "vtkOpenIGTLinkTracker::InternalStopTracking" ); 
@@ -106,9 +94,7 @@ PlusStatus vtkOpenIGTLinkTracker::InternalStopTracking()
   return PLUS_SUCCESS;
 }
 
-/**
-* This function is called by the tracker thread.
-*/
+//----------------------------------------------------------------------------
 PlusStatus vtkOpenIGTLinkTracker::InternalUpdate()
 {
   LOG_TRACE( "vtkOpenIGTLinkTracker::InternalUpdate" ); 
@@ -125,12 +111,14 @@ PlusStatus vtkOpenIGTLinkTracker::InternalUpdate()
   return PLUS_SUCCESS;
 }
 
+//----------------------------------------------------------------------------
 PlusStatus vtkOpenIGTLinkTracker::InitOpenIGTLinkTracker()
 {
   LOG_TRACE( "vtkOpenIGTLinkTracker::InitOpenIGTLinkTracker" ); 
   return this->Connect(); 
 }
 
+//----------------------------------------------------------------------------
 PlusStatus vtkOpenIGTLinkTracker::ReadConfiguration( vtkXMLDataElement* config )
 {
   // Read superclass configuration first
@@ -160,6 +148,7 @@ PlusStatus vtkOpenIGTLinkTracker::ReadConfiguration( vtkXMLDataElement* config )
   return PLUS_SUCCESS;
 }
 
+//----------------------------------------------------------------------------
 PlusStatus vtkOpenIGTLinkTracker::WriteConfiguration( vtkXMLDataElement* config )
 {
   LOG_TRACE( "vtkOpenIGTLinkTracker::WriteConfiguration" ); 

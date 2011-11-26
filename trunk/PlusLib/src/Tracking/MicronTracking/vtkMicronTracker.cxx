@@ -53,19 +53,7 @@ POSSIBILITY OF SUCH DAMAGES.
 
 /****************************************************************************/
 
-
-//----------------------------------------------------------------------------
-vtkMicronTracker* vtkMicronTracker::New()
-{
-  // First try to create the object from the vtkObjectFactory
-  vtkObject* ret = vtkObjectFactory::CreateInstance("vtkMicronTracker");
-  if(ret)
-  {
-    return (vtkMicronTracker*)ret;
-  }
-  // If the factory was unable to create the object, then create it here.
-  return new vtkMicronTracker;
-}
+vtkStandardNewMacro(vtkMicronTracker);
 
 //----------------------------------------------------------------------------
 vtkMicronTracker::vtkMicronTracker()
