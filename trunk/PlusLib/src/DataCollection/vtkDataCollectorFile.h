@@ -65,6 +65,9 @@ public:
   */
   virtual PlusStatus GetTrackedFrameListSampled(double& frameTimestamp, vtkTrackedFrameList* trackedFrameList, double samplingRateMs); 
 
+  /*! Get the tracked frame from tracked frame list by timestamp */
+  virtual PlusStatus GetTrackedFrameByTime(double aTimestamp, TrackedFrame* aTrackedFrame, bool calibratedTransform = false); 
+
   /*! Get transformation with timestamp from tracker  */
   virtual PlusStatus GetTransformWithTimestamp(vtkMatrix4x4* toolTransMatrix, double& transformTimestamp, TrackerStatus& status, const char* aToolName, bool calibratedTransform = false); 
 
@@ -91,14 +94,30 @@ public:
   virtual void SetProgressBarUpdateCallbackFunction(ProgressBarUpdatePtr cb);
 
 protected:
+  /*! Compute next timestamp from start time and elapsed time */
+  double GetNextFrameTimestamp();
+
+  /*! Get index of tracked frame in the loaded tracked frame list that corresponds to a given timestamp */
+  PlusStatus GetTrackedFrameIndexForTimestamp(double aTimestamp, int &aIndex);
+
   /*! This is called by the superclass. */
   virtual int RequestData(vtkInformation *request, vtkInformationVector** inputVector, vtkInformationVector* outputVector);
 
 protected:
-  /*! Set the tracked frame list  */
+  /*! Set tracked frame list */
   virtual void SetTrackedFrameList(vtkTrackedFrameList* trackedFrameList); 
-  /*! Get the tracked frame list  */
+  /*! Get tracked frame list */
   vtkGetObjectMacro(TrackedFrameList, vtkTrackedFrameList);
+
+  /*! Set sequence metafile name */
+	vtkSetStringMacro(SequenceMetafileName);
+  /*! Get sequence metafile name */
+	vtkGetStringMacro(SequenceMetafileName);
+
+  /*! Set replay enabled flag */
+	vtkGetMacro(ReplayEnabled, bool);
+  /*! Get replay enabled flag */
+	vtkSetMacro(ReplayEnabled, bool);
 
 protected:
   vtkDataCollectorFile();
@@ -107,6 +126,24 @@ protected:
 protected:
   /*! Tracked frame list containing the data to be played */
   vtkTrackedFrameList*  TrackedFrameList;
+
+  /*! Name of the used sequence metafile */
+	char*                 SequenceMetafileName;
+
+  /*! Acquisition start time */
+  double                StartTime; 
+
+  /*! Flag indicating if replaying the simulated data is enabled */
+	bool                  ReplayEnabled;
+
+  /*! First timestamp in loaded tracked frame list */
+  double                FirstTimestamp;
+
+  /*! Last timestamp in loaded tracked frame list */
+  double                LastTimestamp;
+
+  /*! Index of last accessed (returned) tracked frame */
+  double                LastAccessedFrameIndex;
 
 private:
   vtkDataCollectorFile(const vtkDataCollectorFile&);

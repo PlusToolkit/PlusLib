@@ -837,6 +837,7 @@ PlusStatus vtkDataCollectorHardwareDevice::GetMostRecentTimestamp(double &ts)
 //----------------------------------------------------------------------------
 PlusStatus vtkDataCollectorHardwareDevice::GetFrameByTime(double time, vtkImageData* vtkFrame, double& frameTimestamp)
 {
+  //LOG_TRACE("vtkDataCollectorHardwareDevice::GetFrameByTime"); 
   PlusVideoFrame frame;
   if ( this->GetFrameByTime(time, frame, frameTimestamp) != PLUS_SUCCESS )
   {
@@ -1070,7 +1071,7 @@ double vtkDataCollectorHardwareDevice::GetTransformsByTimeInterval(std::vector<v
 //----------------------------------------------------------------------------
 PlusStatus vtkDataCollectorHardwareDevice::GetTrackedFrame(vtkImageData* frame, vtkMatrix4x4* toolTransMatrix, TrackerStatus &status, double& synchronizedTime, const char* aToolName, bool calibratedTransform /*= false*/)
 {
-  LOG_TRACE("vtkDataCollectorHardwareDevice::GetTrackedFrame - vtkImageData"); 
+  //LOG_TRACE("vtkDataCollectorHardwareDevice::GetTrackedFrame - vtkImageData"); 
 
   double mostRecentFrameTimestamp(0);
   if (this->GetMostRecentTimestamp(mostRecentFrameTimestamp) != PLUS_SUCCESS) 
@@ -1437,7 +1438,7 @@ PlusStatus vtkDataCollectorHardwareDevice::GetTrackedFrameListSampled(double& fr
 //----------------------------------------------------------------------------
 PlusStatus vtkDataCollectorHardwareDevice::GetTrackedFrame(TrackedFrame* trackedFrame, bool calibratedTransform /*= false*/)
 {
-  LOG_TRACE("vtkDataCollectorHardwareDevice::GetTrackedFrame - TrackedFrame"); 
+  //LOG_TRACE("vtkDataCollectorHardwareDevice::GetTrackedFrame - TrackedFrame"); 
 
   double mostRecentFrameTimestamp(0);
   if (this->GetMostRecentTimestamp(mostRecentFrameTimestamp) != PLUS_SUCCESS) 
@@ -1553,7 +1554,7 @@ PlusStatus vtkDataCollectorHardwareDevice::GetTrackedFrameByTime(double time, vt
 //----------------------------------------------------------------------------
 int vtkDataCollectorHardwareDevice::RequestData( vtkInformation* vtkNotUsed( request ), vtkInformationVector**  inputVector, vtkInformationVector* outputVector )
 {
-  LOG_TRACE("vtkDataCollectorHardwareDevice::RequestData");
+  //LOG_TRACE("vtkDataCollectorHardwareDevice::RequestData");
 
   vtkInformation *outInfo = outputVector->GetInformationObject(0);
   vtkImageData *outData = vtkImageData::SafeDownCast( outInfo->Get(vtkDataObject::DATA_OBJECT()) );

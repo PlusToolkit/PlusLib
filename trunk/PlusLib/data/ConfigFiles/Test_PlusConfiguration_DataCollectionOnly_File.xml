@@ -7,7 +7,7 @@
         Description="Test configuration file for vtkDataCollectorFileTest to use a tracked frame list. The SequenceMetafile names should be defined either from command line argument or from configuration file!" 
         />
 
-    <File SequenceMetafile="fCal_Test_Calibration.mha" />
+    <File SequenceMetafile="fCal_Test_Calibration.mha" ReplayEnabled="TRUE" />
   </DataCollection>
 
 </PlusConfiguration>

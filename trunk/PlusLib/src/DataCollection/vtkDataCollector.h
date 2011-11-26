@@ -75,6 +75,9 @@ public:
   */
   virtual PlusStatus GetTrackedFrameListSampled(double& frameTimestamp, vtkTrackedFrameList* trackedFrameList, double samplingRateMs) = 0; 
 
+  /*! Get the tracked frame from devices by time with each tool transforms */
+  virtual PlusStatus GetTrackedFrameByTime(double time, TrackedFrame* trackedFrame, bool calibratedTransform = false) = 0; 
+
   /*! Get transformation with timestamp from tracker  */
   virtual PlusStatus GetTransformWithTimestamp(vtkMatrix4x4* toolTransMatrix, double& transformTimestamp, TrackerStatus& status, const char* aToolName, bool calibratedTransform = false) = 0; 
 
