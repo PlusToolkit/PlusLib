@@ -129,6 +129,12 @@ public:
   /*! Get number of tools */
   int GetNumberOfTools();
 
+  /*! Set Reference name of the tools */
+	vtkSetStringMacro(ToolReferenceFrameName);
+
+  /*! Get Reference name of the tools */
+	vtkGetStringMacro(ToolReferenceFrameName);
+
   /*! Set buffer size of all available tools */
   void SetToolsBufferSize( int aBufferSize ); 
 
@@ -255,6 +261,9 @@ protected:
 
   /*! Flag used for identifying tracker calibration state */
   bool TrackerCalibrated; 
+
+  /*! Reference name of the tools */
+  char* ToolReferenceFrameName; 
 
 private:
   vtkTracker(const vtkTracker&);

@@ -39,12 +39,15 @@ vtkTracker::vtkTracker()
   this->InternalUpdateRate = 0;
   this->Frequency = 50; 
   this->TrackerCalibratedOff(); 
+  this->ToolReferenceFrameName = NULL; 
 
   // for threaded capture of transformations
   this->Threader = vtkMultiThreader::New();
   this->ThreadId = -1;
   this->UpdateMutex = vtkCriticalSection::New();
   this->RequestUpdateMutex = vtkCriticalSection::New();
+
+  this->SetToolReferenceFrameName("Tracker"); 
 }
 
 //----------------------------------------------------------------------------
@@ -658,6 +661,7 @@ PlusStatus vtkTracker::GetTrackerToolBufferStringList(double timestamp,
 
   for ( ToolIteratorType it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
   {
+    PlusTransformName toolTransformName(it->second->GetToolName(), this->ToolReferenceFrameName ); 
     vtkSmartPointer<vtkMatrix4x4> toolMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
     TrackerStatus trackerStatus = TR_OK; 
 
@@ -696,8 +700,15 @@ PlusStatus vtkTracker::GetTrackerToolBufferStringList(double timestamp,
       }
     }
 
-    toolsBufferMatrices[ it->second->GetToolName() ] = strToolTransform.str(); 
-    toolsStatuses[ it->second->GetToolName() ] = vtkTracker::ConvertTrackerStatusToString( bufferItem.GetStatus() ); 
+    std::string strToolTransformName; 
+    if ( toolTransformName.GetTransformName(strToolTransformName) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Invalid tool transform name!"); 
+      return PLUS_FAIL; 
+    }
+
+    toolsBufferMatrices[ strToolTransformName ] = strToolTransform.str(); 
+    toolsStatuses[ strToolTransformName ] = vtkTracker::ConvertTrackerStatusToString( bufferItem.GetStatus() ); 
   }
 
   return PLUS_SUCCESS; 
@@ -880,7 +891,8 @@ PlusStatus vtkTracker::WriteToMetafile( const char* outputFolder, const char* me
   }
 
   // Set default transform name
-  trackedFrameList->SetDefaultFrameTransformName(firstActiveTool->GetToolName()); 
+  PlusTransformName defaultFrameTransformName(firstActiveTool->GetToolName(), this->ToolReferenceFrameName ); 
+  trackedFrameList->SetDefaultFrameTransformName(defaultFrameTransformName); 
   for ( int i = 0 ; i < numberOfItems; i++ ) 
   {
     //Create fake image 
@@ -933,8 +945,6 @@ PlusStatus vtkTracker::WriteToMetafile( const char* outputFolder, const char* me
     frameNumberFieldValue << std::fixed << bufferItem.GetIndex(); 
     trackedFrame.SetCustomFrameField("FrameNumber", frameNumberFieldValue.str()); 
 
-    // Add main tool status
-    trackedFrame.SetCustomFrameField("Status", vtkTracker::ConvertTrackerStatusToString(bufferItem.GetStatus()) ); 
 
     // Add transforms
     for ( ToolIteratorType it = this->ToolContainer.begin(); it != this->ToolContainer.end(); ++it)
@@ -952,8 +962,12 @@ PlusStatus vtkTracker::WriteToMetafile( const char* outputFolder, const char* me
         LOG_ERROR("Failed to get toolMatrix"); 
         return PLUS_FAIL; 
       }
+  
+      PlusTransformName toolToTrackerTransform(it->second->GetToolName(), this->ToolReferenceFrameName ); 
+      trackedFrame.SetCustomFrameTransform(toolToTrackerTransform, toolMatrix ); 
 
-      trackedFrame.SetCustomFrameTransform(it->second->GetToolName(), toolMatrix ); 
+      // Add tool status
+      trackedFrame.SetCustomFrameTransformStatus(toolToTrackerTransform, vtkTracker::ConvertTrackerStatusToString(toolBufferItem.GetStatus()) ); 
     }
 
     // Add tracked frame to the list

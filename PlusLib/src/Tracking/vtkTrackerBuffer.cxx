@@ -666,12 +666,12 @@ double vtkTrackerBuffer::GetLocalTimeOffset()
 //-----------------------------------------------------------------------------
 PlusStatus vtkTrackerBuffer::CopyDefaultTransformFromTrackedFrameList(vtkTrackedFrameList *sourceTrackedFrameList, TIMESTAMP_FILTERING_OPTION timestampFiltering)
 {
-  std::string defaultTransformName=sourceTrackedFrameList->GetDefaultFrameTransformName();  
-  return CopyTransformFromTrackedFrameList(sourceTrackedFrameList, timestampFiltering, defaultTransformName.c_str());
+  PlusTransformName defaultTransformName=sourceTrackedFrameList->GetDefaultFrameTransformName();  
+  return CopyTransformFromTrackedFrameList(sourceTrackedFrameList, timestampFiltering, defaultTransformName);
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkTrackerBuffer::CopyTransformFromTrackedFrameList(vtkTrackedFrameList *sourceTrackedFrameList, TIMESTAMP_FILTERING_OPTION timestampFiltering, const char* transformName)
+PlusStatus vtkTrackerBuffer::CopyTransformFromTrackedFrameList(vtkTrackedFrameList *sourceTrackedFrameList, TIMESTAMP_FILTERING_OPTION timestampFiltering, PlusTransformName& transformName)
 {
   int numberOfErrors=0;
 
@@ -731,19 +731,15 @@ PlusStatus vtkTrackerBuffer::CopyTransformFromTrackedFrameList(vtkTrackedFrameLi
     }
 
     // read status
-    const char* cFlag = sourceTrackedFrameList->GetTrackedFrame(frameNumber)->GetCustomFrameField("Status"); 
     TrackerStatus status = TR_OK;
-    if ( cFlag != NULL )
-    {
-      status=TrackedFrame::GetStatusFromString(cFlag);      
-    }
-    else if (requireFrameStatus)
+    if ( sourceTrackedFrameList->GetTrackedFrame(frameNumber)->GetCustomFrameTransformStatus(transformName, status) != PLUS_SUCCESS
+      && requireFrameStatus )
     {
       LOG_ERROR("Unable to read Status field of frame #" << frameNumber); 
       numberOfErrors++; 
       continue; 
     }
-
+    
     // read frame number
     const char* strFrameNumber = sourceTrackedFrameList->GetTrackedFrame(frameNumber)->GetCustomFrameField("FrameNumber"); 
     unsigned long frmnum(0); 
@@ -761,7 +757,9 @@ PlusStatus vtkTrackerBuffer::CopyTransformFromTrackedFrameList(vtkTrackedFrameLi
     double copiedTransform[16]; 
     if ( !sourceTrackedFrameList->GetTrackedFrame(frameNumber)->GetCustomFrameTransform(transformName, copiedTransform) )
     {
-      LOG_ERROR("Unable to get the "<<transformName<<" frame transform for frame #" << frameNumber); 
+      std::string strTransformName; 
+      transformName.GetTransformName(strTransformName); 
+      LOG_ERROR("Unable to get the "<<strTransformName<<" frame transform for frame #" << frameNumber); 
       numberOfErrors++; 
       continue; 
     }

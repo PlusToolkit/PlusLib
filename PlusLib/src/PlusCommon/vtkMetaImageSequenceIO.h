@@ -54,8 +54,8 @@ public:
   vtkGetObjectMacro(TrackedFrameList, vtkTrackedFrameList); 
 
   // Set/get the default frame transform name 
-  const char* GetDefaultFrameTransformName();
-  void SetDefaultFrameTransformName(const std::string& strTransform);
+  PlusTransformName GetDefaultFrameTransformName();
+  void SetDefaultFrameTransformName(PlusTransformName& aTransformName);
 
   // Set/get the ultrasound image orientation for file storage.
   // Note that the image data is always stored in MF orientation in the TrackedFrameList.

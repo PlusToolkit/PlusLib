@@ -290,7 +290,7 @@ PlusStatus vtkCenterOfRotationCalibAlgo::UpdateReportTable()
 
   const double sX = this->Spacing[0]; 
   const double sY = this->Spacing[1]; 
-  std::string defaultFrameTransformName=this->TrackedFrameList->GetDefaultFrameTransformName();
+  PlusTransformName defaultFrameTransformName=this->TrackedFrameList->GetDefaultFrameTransformName();
   std::vector<std::vector<double>> wireRadiusVector(4); 
   std::vector<std::vector<double>> wirePositions(8); 
 
@@ -314,7 +314,7 @@ PlusStatus vtkCenterOfRotationCalibAlgo::UpdateReportTable()
     }
 #ifdef PLUS_USE_BRACHY_TRACKER
     double probePos(0), probeRot(0), templatePos(0); 
-    if ( !vtkBrachyTracker::GetStepperEncoderValues(frame, probePos, probeRot, templatePos, defaultFrameTransformName.c_str()) )
+    if ( !vtkBrachyTracker::GetStepperEncoderValues(frame, probePos, probeRot, templatePos, defaultFrameTransformName) )
     {
       LOG_WARNING("Unable to get probe position from tracked frame info for frame #" << frameNumber); 
       continue; 

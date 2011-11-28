@@ -64,7 +64,7 @@ public:
     \param defaultTransformName Name of the default transform (which will be used for the calibration)
     \param nWires NWire structure that contains the computed imaginary intersections. It used to determine the computed position
 	*/
-  virtual PlusStatus Calibrate( vtkTrackedFrameList* validationTrackedFrameList, int validationStartFrame, int validationEndFrame, vtkTrackedFrameList* calibrationTrackedFrameList, int calibrationStartFrame, int calibrationEndFrame, const char* defaultTransformName, std::vector<NWire> &nWires ); 
+  virtual PlusStatus Calibrate( vtkTrackedFrameList* validationTrackedFrameList, int validationStartFrame, int validationEndFrame, vtkTrackedFrameList* calibrationTrackedFrameList, int calibrationStartFrame, int calibrationEndFrame, PlusTransformName& defaultTransformName, std::vector<NWire> &nWires ); 
 
   /*!
     Run calibration algorithm on the two input frame lists (uses every frame in the two sequences)
@@ -73,7 +73,7 @@ public:
     \param defaultTransformName Name of the default transform (which will be used for the calibration)
     \param nWires NWire structure that contains the computed imaginary intersections. It used to determine the computed position
 	*/
-  virtual PlusStatus Calibrate( vtkTrackedFrameList* validationTrackedFrameList, vtkTrackedFrameList* calibrationTrackedFrameList, const char* defaultTransformName, std::vector<NWire> &nWires ); 
+  virtual PlusStatus Calibrate( vtkTrackedFrameList* validationTrackedFrameList, vtkTrackedFrameList* calibrationTrackedFrameList, PlusTransformName& defaultTransformName, std::vector<NWire> &nWires ); 
 
   /*!
     Calculate and add positions of an individual image for calibration or validation
@@ -82,7 +82,7 @@ public:
     \param nWires NWire structure that contains the computed imaginary intersections. It used to determine the computed position
     \param isValidation Flag whether the added data is for calibration or validation
   */
-	virtual PlusStatus AddPositionsPerImage( TrackedFrame* trackedFrame, const char* defaultTransformName, std::vector<NWire> &nWires, bool isValidation );
+	virtual PlusStatus AddPositionsPerImage( TrackedFrame* trackedFrame, PlusTransformName& defaultTransformName, std::vector<NWire> &nWires, bool isValidation );
 	
 	/*! Get Phantom to Reference transform */
 	vtkGetObjectMacro(PhantomToReferenceTransform, vtkTransform);

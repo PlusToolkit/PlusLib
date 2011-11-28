@@ -9,27 +9,21 @@ OPTION (PLUS_USE_VFW_VIDEO "Provide support for the Video-for-Windows video digi
 # Sources
 
 SET (ImageAcquisition_SRCS
-  vtkMetaImageSequenceIO.cxx 
   itkFcsvReader.cxx
   itkFcsvWriter.cxx
   vtkVideoBuffer.cxx 
   vtkPlusVideoSource.cxx 
-  vtkTrackedFrameList.cxx 
   vtkSavedDataVideoSource.cxx
-  PlusVideoFrame.cxx
   )
 	
 SET (ImageAcquisition_HDRS)
 if (WIN32)	
 	SET (ImageAcquisition_HDRS
-    vtkMetaImageSequenceIO.h
     itkFcsvReader.h
     itkFcsvWriter.h
     vtkVideoBuffer.h 
     vtkPlusVideoSource.h 
-    vtkTrackedFrameList.h
     vtkSavedDataVideoSource.h 
-    PlusVideoFrame.h
     )
 endif (WIN32)	
 

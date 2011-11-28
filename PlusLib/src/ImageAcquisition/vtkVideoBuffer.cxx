@@ -639,8 +639,8 @@ PlusStatus vtkVideoBuffer::WriteToMetafile( const char* outputFolder, const char
   PlusStatus status = PLUS_SUCCESS;
 
   // Set default transform name
-  std::string defaulTransformName="IdentityTransform";
-  trackedFrameList->SetDefaultFrameTransformName(defaulTransformName.c_str());
+  PlusTransformName defaulTransformName("Image", "Image"); 
+  trackedFrameList->SetDefaultFrameTransformName(defaulTransformName);
   for ( BufferItemUidType frameUid = this->GetOldestItemUidInBuffer(); frameUid <= this->GetLatestItemUidInBuffer(); ++frameUid )
   {
     VideoBufferItem videoItem;

@@ -2,6 +2,7 @@
 # Sources
 
 SET (PlusCommon_SRCS 
+  PlusCommon.cxx
   vtkAccurateTimer.cxx 
   vtkPlusLogger.cxx
   vtkHTMLGenerator.cxx 
@@ -9,6 +10,9 @@ SET (PlusCommon_SRCS
   vtkPlusConfig.cxx
   PlusMath.cxx 
   vtkTransformRepository.cxx
+  PlusVideoFrame.cxx
+  vtkTrackedFrameList.cxx
+  vtkMetaImageSequenceIO.cxx
   )
 
 SET (PlusCommon_HDRS)
@@ -25,6 +29,9 @@ if (WIN32)
     vtkPlusConfig.h
     PlusMath.h
     vtkTransformRepository.h
+    vtkTrackedFrameList.h
+    PlusVideoFrame.h
+    vtkMetaImageSequenceIO.h
     )
 endif (WIN32)	
 
@@ -33,7 +40,7 @@ SET (PlusCommon_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} CACHE INTERNAL "" FORCE
 # --------------------------------------------------------------------------
 # Build the library
 
-SET (PlusCommon_LIBS ITKIO vtkCommon vtkHybrid vtkFiltering ${PlusCommon_LIBS} )
+SET (PlusCommon_LIBS ITKIO ITKBasicFilters vtkCommon vtkHybrid vtkFiltering ${PlusCommon_LIBS} )
 
 if (WIN32)	
   SET (PlusCommon_LIBS ${PlusCommon_LIBS} Winmm )

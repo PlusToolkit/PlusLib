@@ -14,6 +14,14 @@ ADD_TEST(vtkPlusLoggerTest
   --verbose=5
   )
 
+ #--------------------------------------------------------------------------------------------
+ADD_EXECUTABLE(PlusCommonTest PlusCommonTest.cxx )
+TARGET_LINK_LIBRARIES(PlusCommonTest vtkPlusCommon )
+
+ADD_TEST(PlusCommonTest 
+  ${EXECUTABLE_OUTPUT_PATH}/PlusCommonTest
+  )
+
 #--------------------------------------------------------------------------------------------
 ADD_EXECUTABLE(PlusMathTest PlusMathTest.cxx )
 TARGET_LINK_LIBRARIES(PlusMathTest vtkPlusCommon )

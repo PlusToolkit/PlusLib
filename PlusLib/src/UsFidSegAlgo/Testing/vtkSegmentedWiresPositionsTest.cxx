@@ -128,15 +128,15 @@ int main (int argc, char* argv[])
 			continue; 
 		}
 
-    std::string defaultTransformName = trackedFrameList->GetDefaultFrameTransformName(); 
+    PlusTransformName defaultTransformName = trackedFrameList->GetDefaultFrameTransformName(); 
 
 
     if ( segResults.GetDotsFound() )
 		{
       double defaultTransform[16]={0}; 
-      if ( trackedFrameList->GetTrackedFrame(imgNumber)->GetCustomFrameTransform(defaultTransformName.c_str(), defaultTransform) != PLUS_SUCCESS )
+      if ( trackedFrameList->GetTrackedFrame(imgNumber)->GetCustomFrameTransform(defaultTransformName, defaultTransform) != PLUS_SUCCESS )
       {
-        LOG_ERROR("Failed to get default frame transform (" << defaultTransformName << ") from tracked frame #" << imgNumber); 
+        LOG_ERROR("Failed to get default frame transform from tracked frame #" << imgNumber); 
         continue; 
       }
 

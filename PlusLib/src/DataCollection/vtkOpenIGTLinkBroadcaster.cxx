@@ -259,30 +259,31 @@ vtkOpenIGTLinkBroadcaster::Status vtkOpenIGTLinkBroadcaster::SendMessages( std::
     // debug
     double c[ 16 ] = { 0 };
     double n[ 16 ] = { 0 };
-    trackedFrameCalibrated.GetCustomFrameTransform( toolName, c );
-    trackedFrame.GetCustomFrameTransform( toolName, n );
+
+    PlusTransformName toolTransformName(toolName, this->DataCollector->GetTracker()->GetToolReferenceFrameName() ); 
+
+    trackedFrameCalibrated.GetCustomFrameTransform( toolTransformName, c );
+    trackedFrame.GetCustomFrameTransform( toolTransformName, n );
     
     
     if ( this->ApplyStylusCalibration && strcmp( toolName, "Stylus" ) == 0 )
     {
-      trackedFrameCalibrated.GetCustomFrameTransform( toolName, transform );
+      trackedFrameCalibrated.GetCustomFrameTransform( toolTransformName, transform );
     }
     else
     {
-      trackedFrame.GetCustomFrameTransform( toolName, transform );
+      trackedFrame.GetCustomFrameTransform( toolTransformName, transform );
     }
 
 
     TrackerStatus status = TR_MISSING;
-    std::string toolStatusFrameFieldName = std::string(toolName) + "Status";
-    status = TrackedFrame::GetStatusFromString( trackedFrame.GetCustomFrameField( toolStatusFrameFieldName.c_str() ) );
+    trackedFrame.GetCustomFrameTransformStatus(toolTransformName, status); 
 
 		if ( status != TR_OK )
     {
-      LOG_INFO( "Tracking data invalid for tool: " << toolPortName );
+      LOG_INFO( "Tracking data invalid for tool: " << toolName );
       continue;
     }
-
 
     // Prepare the igtl matrix and timestamp.
 
@@ -371,31 +372,6 @@ void vtkOpenIGTLinkBroadcaster::SendImageMessage( TrackedFrame* trackedFrame, st
   // PlusStatus pStatus = dataCollectorHardwareDevice->GetTrackedFrame( frameImage, mProbeToReference, status, timestamp, defaultTool, true );
 
   vtkImageData* frameImage = trackedFrame->GetImageData()->GetVtkImage();
-
-  bool allToolStatusesInvalid = true;
-  for (std::vector< IgtToolInfo >::iterator it = this->NonReferenceToolInfos.begin(); it != this->NonReferenceToolInfos.end(); ++it)
-  {
-    TrackerStatus status = TR_MISSING;
-    std::string toolStatusFrameFieldName = it->ToolName + "Status";
-    status = TrackedFrame::GetStatusFromString( trackedFrame->GetCustomFrameField( toolStatusFrameFieldName.c_str() ) );
-
-    if ( status != TR_OK )
-    {
-      LOG_INFO( "Tracking data invalid for tool: " << it->ToolName );
-    }
-    else
-    {
-      allToolStatusesInvalid = false;
-    }
-  }
-
-  if (allToolStatusesInvalid)
-  {
-    LOG_INFO("All tool statuses are invalid!");
-    this->InternalStatus = STATUS_MISSING_DEFAULT_TOOL;
-    return;
-  }
-
 
   igtl::TimeStamp::Pointer igtlFrameTime = igtl::TimeStamp::New();
   igtlFrameTime->SetTime( timestamp );

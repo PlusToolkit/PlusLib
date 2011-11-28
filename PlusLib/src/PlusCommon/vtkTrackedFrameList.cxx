@@ -121,6 +121,17 @@ const char* TrackedFrame::GetCustomFrameField(const char* fieldName)
 }
 
 //----------------------------------------------------------------------------
+bool TrackedFrame::IsCustomFrameTransformNameDefined(PlusTransformName& transformName)
+{
+  std::string toolTransformName; 
+  if ( transformName.GetTransformName(toolTransformName) != PLUS_SUCCESS )
+  {
+    return false; 
+  }
+  return this->IsCustomFrameFieldDefined(toolTransformName.c_str()); 
+}
+
+//----------------------------------------------------------------------------
 bool TrackedFrame::IsCustomFrameFieldDefined(const char* fieldName)
 {
   if (fieldName == NULL )
@@ -141,18 +152,19 @@ bool TrackedFrame::IsCustomFrameFieldDefined(const char* fieldName)
 }
 
 //----------------------------------------------------------------------------
-PlusStatus TrackedFrame::GetCustomFrameTransform(const char* frameTransformName, double transform[16]) 
+PlusStatus TrackedFrame::GetCustomFrameTransform(PlusTransformName& frameTransformName, double transform[16]) 
 {
-  if (frameTransformName == NULL )
+  std::string transformName; 
+  if ( frameTransformName.GetTransformName(transformName) != PLUS_SUCCESS )
   {
-    LOG_ERROR("Unable to get custom transform, transform name is NULL!"); 
+    LOG_ERROR("Unable to get custom transform, transform name is wrong!"); 
     return PLUS_FAIL; 
   }
-
-  const char *frameTransformStr=GetCustomFrameField(frameTransformName);
+  
+  const char* frameTransformStr = GetCustomFrameField(transformName.c_str());
   if (frameTransformStr == NULL )
   {
-    LOG_ERROR("Unable to get custom transform from name: " << frameTransformName); 
+    LOG_ERROR("Unable to get custom transform from name: " << transformName); 
     return PLUS_FAIL; 
   }
 
@@ -168,7 +180,7 @@ PlusStatus TrackedFrame::GetCustomFrameTransform(const char* frameTransformName,
 }
 
 //----------------------------------------------------------------------------
-PlusStatus TrackedFrame::GetCustomFrameTransform( const char* frameTransformName, vtkMatrix4x4* transformMatrix )
+PlusStatus TrackedFrame::GetCustomFrameTransform( PlusTransformName& frameTransformName, vtkMatrix4x4* transformMatrix )
 {
   double transform[16] = { 1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1 };
   const PlusStatus retValue = this->GetCustomFrameTransform(frameTransformName, transform); 
@@ -178,31 +190,80 @@ PlusStatus TrackedFrame::GetCustomFrameTransform( const char* frameTransformName
 }
 
 //----------------------------------------------------------------------------
-void TrackedFrame::SetCustomFrameTransform(std::string frameTransformName, double transform[16]) 
+PlusStatus TrackedFrame::GetCustomFrameTransformStatus(PlusTransformName& frameTransformName, TrackerStatus& status)
+{
+  status = TR_MISSING; 
+  std::string transformName; 
+  if ( frameTransformName.GetTransformName(transformName) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Unable to get custom transform status, transform name is wrong!"); 
+    return PLUS_FAIL; 
+  }
+  
+  std::string toolStatusFrameFieldName = transformName + std::string("Status");
+  const char* strStatus = this->GetCustomFrameField(toolStatusFrameFieldName.c_str()); 
+  if (strStatus == NULL )
+  {
+    LOG_ERROR("Unable to get custom transform status from name: " << toolStatusFrameFieldName); 
+    return PLUS_FAIL; 
+  }
+
+  status = TrackedFrame::GetStatusFromString( strStatus );
+
+  return PLUS_SUCCESS; 
+}
+
+//----------------------------------------------------------------------------
+PlusStatus TrackedFrame::SetCustomFrameTransformStatus(PlusTransformName& frameTransformName, std::string status)
+{
+  std::string transformName; 
+  if ( frameTransformName.GetTransformName(transformName) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Unable to set custom transform status, transform name is wrong!"); 
+    return PLUS_FAIL; 
+  }
+  
+  std::string toolStatusFrameFieldName = transformName + std::string("Status");
+  this->SetCustomFrameField(toolStatusFrameFieldName, status ); 
+
+  return PLUS_SUCCESS; 
+}
+//----------------------------------------------------------------------------
+PlusStatus TrackedFrame::SetCustomFrameTransform(PlusTransformName& frameTransformName, double transform[16]) 
 {
   std::ostringstream strTransform; 
   for ( int i = 0; i < 16; ++i )
   {
     strTransform << transform[ i ] << " ";
   }
-  SetCustomFrameField(frameTransformName, strTransform.str());
+
+  std::string transformName; 
+  if ( frameTransformName.GetTransformName(transformName) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Unable to get custom transform, transform name is wrong!"); 
+    return PLUS_FAIL; 
+  }
+
+  SetCustomFrameField(transformName, strTransform.str());
+
+  return PLUS_SUCCESS; 
 }
 
 //----------------------------------------------------------------------------
-void TrackedFrame::SetCustomFrameTransform(std::string frameTransformName, vtkMatrix4x4* transform) 
+PlusStatus TrackedFrame::SetCustomFrameTransform(PlusTransformName& frameTransformName, vtkMatrix4x4* transform) 
 {
   double dTransform[ 16 ];
   vtkMatrix4x4::DeepCopy( dTransform, transform );
-  SetCustomFrameTransform(frameTransformName, dTransform); 
+  return SetCustomFrameTransform(frameTransformName, dTransform); 
 }
 
 //----------------------------------------------------------------------------
 TrackerStatus TrackedFrame::GetStatusFromString(const char* statusStr) 
 {
-  if (statusStr == NULL)
+  if ( statusStr == NULL ) 
   {
-    LOG_ERROR("Input status string is invalid!");
-    return TR_MISSING;
+    LOG_ERROR("Failed to get status from string if it's NULL!"); 
+    return TR_MISSING; 
   }
 
   TrackerStatus status = TR_OK;
@@ -307,7 +368,6 @@ vtkTrackedFrameList::vtkTrackedFrameList()
   this->MinRequiredAngleDifferenceDeg=0.0;
   this->MaxAllowedTranslationSpeedMmPerSec=0.0;
   this->MaxAllowedRotationSpeedDegPerSec=0.0;
-  this->FrameTransformNameForValidation = NULL; 
   this->ValidationRequirements = 0; 
 
 }
@@ -443,7 +503,7 @@ bool vtkTrackedFrameList::ValidateData(TrackedFrame* trackedFrame )
       return false;
     }
   }
-
+  
   if ( this->ValidationRequirements & REQUIRE_CHANGED_TRANSFORM )
   {
     if (! this->ValidateTransform(trackedFrame))
@@ -546,19 +606,20 @@ bool vtkTrackedFrameList::ValidateTransform(TrackedFrame* trackedFrame)
 //----------------------------------------------------------------------------
 bool vtkTrackedFrameList::ValidateStatus(TrackedFrame* trackedFrame)
 {
-  if (this->FrameTransformNameForValidation == NULL)
+  TrackerStatus status = TR_MISSING;
+  std::string transformName; 
+  if ( this->FrameTransformNameForValidation.GetTransformName(transformName) != PLUS_SUCCESS )
   {
-    LOG_ERROR("No transform name is set for validation!");
-    return false;
+    LOG_WARNING("Failed to validate transform status - transform name for validation is incorrect!"); 
+    return false; 
   }
 
-  TrackerStatus status = TR_MISSING;
-  std::string toolStatusFrameFieldName = std::string(this->FrameTransformNameForValidation) + "Status";
+  std::string toolStatusFrameFieldName = transformName + std::string("Status");
   status = TrackedFrame::GetStatusFromString( trackedFrame->GetCustomFrameField( toolStatusFrameFieldName.c_str() ) );
 
   if ( status != TR_OK )
   {
-    LOG_DEBUG("Tracked frame status validation result: tracked frame status invalid for tool " << this->FrameTransformNameForValidation); 
+    LOG_DEBUG("Tracked frame status validation result: tracked frame status invalid for tool " << transformName); 
     return false;
   }
 
@@ -568,15 +629,8 @@ bool vtkTrackedFrameList::ValidateStatus(TrackedFrame* trackedFrame)
 //----------------------------------------------------------------------------
 bool vtkTrackedFrameList::ValidateSpeed(TrackedFrame* trackedFrame)
 {
-  if ( this->TrackedFrameList.size() < 1 )
-  {
+  if ( this->TrackedFrameList.size() < 1 ) {
     return true;
-  }
-
-  if (this->FrameTransformNameForValidation == NULL)
-  {
-    LOG_ERROR("No transform name is set for validation!");
-    return false;
   }
 
   TrackedFrameListType::iterator latestFrameInList = this->TrackedFrameList.end() - 1;
@@ -659,15 +713,28 @@ int vtkTrackedFrameList::GetNumberOfBitsPerPixel()
 }
 
 //----------------------------------------------------------------------------
-std::string vtkTrackedFrameList::GetDefaultFrameTransformName()
+PlusTransformName vtkTrackedFrameList::GetDefaultFrameTransformName()
 {
-  return this->CustomFields["DefaultFrameTransformName"];
+  PlusTransformName defaultTransformName; 
+  if( defaultTransformName.SetTransformName(this->CustomFields["DefaultFrameTransformName"].c_str()) != PLUS_SUCCESS )
+  {
+    LOG_WARNING("Default transform name is not valid: " << this->CustomFields["DefaultFrameTransformName"] ); 
+  }
+  return defaultTransformName;
 }
 
 //----------------------------------------------------------------------------
-void vtkTrackedFrameList::SetDefaultFrameTransformName(const char* name)
+PlusStatus vtkTrackedFrameList::SetDefaultFrameTransformName(PlusTransformName& name)
 {
-  this->CustomFields["DefaultFrameTransformName"]=name;
+  std::string transformName; 
+  if ( name.GetTransformName(transformName) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to set default frame transform name - name is invalid (From: '" << name.From() << "'  To: '" << name.To() << "')" ); 
+    return PLUS_FAIL; 
+  }
+
+  this->CustomFields["DefaultFrameTransformName"]=transformName;
+  return PLUS_SUCCESS;
 } 
 
 //----------------------------------------------------------------------------
@@ -680,7 +747,7 @@ PlusStatus vtkTrackedFrameList::ReadFromSequenceMetafile(const char* trackedSequ
   {		
     LOG_ERROR("Couldn't read sequence metafile: " <<  trackedSequenceDataFileName ); 
     return PLUS_FAIL;
-  }
+  }	
   
   return PLUS_SUCCESS;
 }

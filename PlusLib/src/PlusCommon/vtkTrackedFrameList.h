@@ -62,20 +62,32 @@ public:
   */
   bool IsCustomFrameFieldDefined(const char* fieldName);
 
+  /*! 
+    Check if a custom frame transform name field is defined or not 
+    \return true, if the field is defined; false, if the field is not defined
+  */
+  bool IsCustomFrameTransformNameDefined(PlusTransformName& transformName); 
+
   /*! Get custom frame transform */
-  PlusStatus GetCustomFrameTransform(const char* frameTransformName, double transform[16]); 
-  PlusStatus GetCustomFrameTransform(const char* frameTransformName, vtkMatrix4x4* transformMatrix); 
+  PlusStatus GetCustomFrameTransform(PlusTransformName& frameTransformName, double transform[16]); 
+  /*! Get custom frame transform */
+  PlusStatus GetCustomFrameTransform(PlusTransformName& frameTransformName, vtkMatrix4x4* transformMatrix); 
+  
+  /*! Get custom frame status */
+  PlusStatus GetCustomFrameTransformStatus(PlusTransformName& frameTransformName, TrackerStatus& status); 
+  /*! Set custom frame status */
+  PlusStatus SetCustomFrameTransformStatus(PlusTransformName& frameTransformName, std::string status); 
 
   /*! Set custom frame transform */
-  void SetCustomFrameTransform(std::string frameTransformName, double transform[16]); 
+  PlusStatus SetCustomFrameTransform(PlusTransformName& frameTransformName, double transform[16]); 
 
   /*! Set custom frame transform */
-  void SetCustomFrameTransform(std::string frameTransformName, vtkMatrix4x4* transform); 
+  PlusStatus SetCustomFrameTransform(PlusTransformName& frameTransformName, vtkMatrix4x4* transform); 
 
   /*! Get the list of the name of all custom frame fields */
   void GetCustomFrameFieldNameList(std::vector<std::string> &fieldNames);
 
-  /*! Get tracked frame size in pixels. Returns: int[2].  */
+  /*! Get tracked frame size in pixel. Returns: int[2].  */
   int* GetFrameSize(); 
 
   /*! Get tracked frame size in pixels */
@@ -278,19 +290,12 @@ public:
 class TrackedFrameTransformFinder
 {	
 public:
-  TrackedFrameTransformFinder(TrackedFrame* frame, const char* frameTransformName, double minRequiredTranslationDifferenceMm /*= 0.5*/, double minRequiredAngleDifferenceDeg /*= 0.2*/)
+  TrackedFrameTransformFinder(TrackedFrame* frame, PlusTransformName& frameTransformName, double minRequiredTranslationDifferenceMm /*= 0.5*/, double minRequiredAngleDifferenceDeg /*= 0.2*/)
     : mTrackedFrame(frame), 
     mMinRequiredTranslationDifferenceMm(minRequiredTranslationDifferenceMm),
-    mMinRequiredAngleDifferenceDeg(minRequiredAngleDifferenceDeg)
+    mMinRequiredAngleDifferenceDeg(minRequiredAngleDifferenceDeg),
+    mFrameTransformName(frameTransformName)
   {
-    if (frameTransformName)
-    {
-      mFrameTransformName = frameTransformName;
-    }
-    else
-    {
-      mFrameTransformName.empty();
-    }
   }
 
   /*! Predicate unary function for std::find_if to validate transform 
@@ -306,7 +311,7 @@ public:
 
     vtkSmartPointer<vtkTransform> baseTransform = vtkSmartPointer<vtkTransform>::New(); 
     double baseTransMatrix[16]={0}; 
-    if ( mTrackedFrame->GetCustomFrameTransform(mFrameTransformName.c_str(), baseTransMatrix) )
+    if ( mTrackedFrame->GetCustomFrameTransform(mFrameTransformName, baseTransMatrix) )
     {
       baseTransform->SetMatrix(baseTransMatrix); 
     }
@@ -318,7 +323,7 @@ public:
 
     vtkSmartPointer<vtkTransform> newTransform = vtkSmartPointer<vtkTransform>::New(); 
     double newTransMatrix[16]={0}; 
-    if ( newFrame->GetCustomFrameTransform(mFrameTransformName.c_str(), newTransMatrix) )
+    if ( newFrame->GetCustomFrameTransform(mFrameTransformName, newTransMatrix) )
     {
       newTransform->SetMatrix(newTransMatrix); 
     }
@@ -343,7 +348,7 @@ public:
   TrackedFrame* mTrackedFrame;
   double mMinRequiredTranslationDifferenceMm;
   double mMinRequiredAngleDifferenceDeg;
-  std::string mFrameTransformName;  
+  PlusTransformName mFrameTransformName;  
 
 };
 
@@ -412,10 +417,10 @@ public:
   virtual void Clear(); 
 
   /*! Get default frame transform name */
-  virtual std::string GetDefaultFrameTransformName(); 
+  virtual PlusTransformName GetDefaultFrameTransformName(); 
 
   /*! Set default frame transform name */
-  virtual void SetDefaultFrameTransformName(const char* name); 
+  virtual PlusStatus SetDefaultFrameTransformName(PlusTransformName& name); 
 
   /*! Set the number of following unique frames needed in the tracked frame list */
   vtkSetMacro(NumberOfUniqueFrames, int); 
@@ -458,10 +463,16 @@ public:
   vtkGetMacro(ValidationRequirements, long); 
   
   /*! Set frame transform name used for transform validation */
-  vtkSetStringMacro(FrameTransformNameForValidation); 
+  void SetFrameTransformNameForValidation(const PlusTransformName& aTransformName)
+  {
+    this->FrameTransformNameForValidation = aTransformName; 
+  }
 
   /*! Get frame transform name used for transform validation */
-  vtkGetStringMacro(FrameTransformNameForValidation); 
+  PlusTransformName GetFrameTransformNameForValidation()
+  {
+    return this->FrameTransformNameForValidation; 
+  }
   
   /*! Get tracked frame pixel size in bits */
   virtual int GetNumberOfBitsPerPixel(); 
@@ -515,8 +526,8 @@ protected:
   virtual bool ValidateData(TrackedFrame* trackedFrame); 
 
   bool ValidateTimestamp(TrackedFrame* trackedFrame); 
-  bool ValidateStatus(TrackedFrame* trackedFrame); 
   bool ValidateTransform(TrackedFrame* trackedFrame); 
+  bool ValidateStatus(TrackedFrame* trackedFrame);
   bool ValidateEncoderPosition(TrackedFrame* trackedFrame);
   bool ValidateSpeed(TrackedFrame* trackedFrame);
 
@@ -534,7 +545,7 @@ protected:
   double MaxAllowedRotationSpeedDegPerSec;
 
   long ValidationRequirements; 
-  char* FrameTransformNameForValidation;  
+  PlusTransformName FrameTransformNameForValidation;  
 
 private:
   vtkTrackedFrameList(const vtkTrackedFrameList&);

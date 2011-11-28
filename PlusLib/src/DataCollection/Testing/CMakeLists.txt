@@ -102,7 +102,7 @@ IF (PLUS_USE_OpenIGTLink )
     --input-config-file=${ConfigFilesDir}/Test_PlusConfiguration_OpenIGTLinkTest.xml
     --input-video-buffer-metafile=${TestDataDir}/SyntheticVideoBuffer20.mha 
     --input-tracker-buffer-metafile=${TestDataDir}/SyntheticTrackerBuffer20.mha
-    --input-tool-name=ToolToTrackerTransform
+    --input-tool-name=Tool
     )
   SET_TESTS_PROPERTIES( vtkOpenIGTLinkBroadcasterTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR" )
 ENDIF (PLUS_USE_OpenIGTLink )
