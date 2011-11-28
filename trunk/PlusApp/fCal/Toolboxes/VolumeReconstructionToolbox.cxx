@@ -331,7 +331,7 @@ PlusStatus VolumeReconstructionToolbox::ReconstructVolumeFromInputImage()
   m_VolumeReconstructor->SetOutputExtentFromFrameList(trackedFrameList);
 
 	const int numberOfFrames = trackedFrameList->GetNumberOfTrackedFrames(); 
-  std::string defaultFrameTransformName=trackedFrameList->GetDefaultFrameTransformName();
+  PlusTransformName defaultFrameTransformName=trackedFrameList->GetDefaultFrameTransformName();
 	for ( int imgNumber = 0; imgNumber < numberOfFrames; ++imgNumber ) 
   {
 		// Set progress
@@ -339,7 +339,7 @@ PlusStatus VolumeReconstructionToolbox::ReconstructVolumeFromInputImage()
     RefreshContent();
 
 		// Add this tracked frame to the reconstructor
-    m_VolumeReconstructor->AddTrackedFrame(trackedFrameList->GetTrackedFrame(imgNumber), defaultFrameTransformName.c_str());
+    m_VolumeReconstructor->AddTrackedFrame(trackedFrameList->GetTrackedFrame(imgNumber), defaultFrameTransformName);
 	}
 	
 	m_ParentMainWindow->SetStatusBarProgress(0);

@@ -7,9 +7,9 @@ SET (SequenceMetaFileConverter_LIBS
     vtkCommon
     vtkFiltering
     vtkHybrid
+    vtkPlusCommon
     vtkImageAcquisition
-	vtkPlusCommon
-    ITKIO
+	  ITKIO
     )
 
 ADD_EXECUTABLE(SequenceMetaFileConverter SequenceMetaFileConverter.cxx )

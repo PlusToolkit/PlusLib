@@ -5,6 +5,7 @@
 =========================================================Plus=header=end*/
 
 #include "PlusConfigure.h"
+#include "PlusCommon.h"
 #include <iostream>
 
 #include "vtksys/CommandLineArguments.hxx" 
@@ -90,7 +91,7 @@ void SaveImages( vtkTrackedFrameList* trackedFrameList, SAVING_METHOD savingMeth
 void SaveImageToMetaFile( TrackedFrame* trackedFrame, const std::string &defaultFrameTransformName, const std::string &metaFileName, bool useCompression);
 void SaveImageToBitmap( const ImageType::Pointer& image, std::string bitmapFileName, int savingMethod ); 
 
-void SaveTransformToFile(TrackedFrame* trackedFrame, std::string imageFileName, std::string toolToReferenceTransformName, std::string referenceToTrackerTransformName); 
+void SaveTransformToFile(TrackedFrame* trackedFrame, std::string imageFileName, std::string& toolToReferenceTransformName, std::string& referenceToTrackerTransformName); 
 
 // convert internal MF oriented image into the desired image orientation 
 PlusStatus GetOrientedImage( const ImageType::Pointer& inMFOrientedImage, US_IMAGE_ORIENTATION desiredUsImageOrientation, ImageType::Pointer& outOrientedImage ); 
@@ -316,7 +317,8 @@ void ConvertFromBitmap(SAVING_METHOD savingMethod)
 {
   LOG_INFO("Converting bitmap images..."); 
   vtkSmartPointer<vtkTrackedFrameList> trackedFrameContainer = vtkSmartPointer<vtkTrackedFrameList>::New(); 
-  trackedFrameContainer->SetDefaultFrameTransformName("ToolToReferenceTransform"); 
+  PlusTransformName toolToReferenceTransformName("Tool", "Reference"); 
+  trackedFrameContainer->SetDefaultFrameTransformName(toolToReferenceTransformName); 
 
   int numberOfImagesWritten(0); 
   int frameNumber(0); 
@@ -488,7 +490,7 @@ void SaveImages( vtkTrackedFrameList* trackedFrameList, SAVING_METHOD savingMeth
         LOG_INFO("Saving metafiles..."); 
       }
 
-      std::string defaultFrameTransformName=trackedFrameList->GetDefaultFrameTransformName();
+      PlusTransformName defaultFrameTransformName=trackedFrameList->GetDefaultFrameTransformName();
       for ( int imgNumber = 0; imgNumber < numberOfFrames; imgNumber++ )
       {
         if ( numberOfFrames > 1 )
@@ -498,8 +500,9 @@ void SaveImages( vtkTrackedFrameList* trackedFrameList, SAVING_METHOD savingMeth
 
         std::ostringstream fileName; 
         fileName << outputFolder << "/Frame" << std::setfill('0') << std::setw(4) << numberOfImagesWritten + imgNumber << ".mha" << std::ends;
-
-        SaveImageToMetaFile(trackedFrameList->GetTrackedFrame(imgNumber), defaultFrameTransformName, fileName.str(), inputUseCompression ); 
+        std::string strTransformName; 
+        defaultFrameTransformName.GetTransformName(strTransformName); 
+        SaveImageToMetaFile(trackedFrameList->GetTrackedFrame(imgNumber), strTransformName, fileName.str(), inputUseCompression ); 
       }
 
       if ( numberOfFrames > 1 )
@@ -606,19 +609,37 @@ void SaveImageToBitmap( const ImageType::Pointer& image, std::string bitmapFileN
 
 
 //-------------------------------------------------------------------------------
-void SaveTransformToFile(TrackedFrame* trackedFrame, std::string imageFileName, std::string toolToReferenceTransformName, std::string referenceToTrackerTransformName)
+void SaveTransformToFile(TrackedFrame* trackedFrame, std::string imageFileName, std::string& toolToReferenceName, std::string& referenceToTrackerName)
 {
-  double toolToReferenceMatrix[16]; 
-  if ( !trackedFrame->GetCustomFrameTransform(toolToReferenceTransformName.c_str(), toolToReferenceMatrix) )
+  PlusTransformName toolToReferenceTransformName; 
+  if ( toolToReferenceTransformName.SetTransformName(toolToReferenceName.c_str()) != PLUS_SUCCESS )
   {
-    LOG_ERROR("Unable to find tool to reference transform with name: " << toolToReferenceTransformName); 
+    LOG_ERROR(toolToReferenceName << " transform name is invalid"); 
+    return; 
+  }
+
+  PlusTransformName referenceToTrackerTransformName; 
+  if ( referenceToTrackerTransformName.SetTransformName(referenceToTrackerName.c_str()) != PLUS_SUCCESS )
+  {
+    LOG_ERROR(referenceToTrackerName << " transform name is invalid"); 
+    return; 
+  }
+
+  double toolToReferenceMatrix[16]; 
+  if ( !trackedFrame->GetCustomFrameTransform(toolToReferenceTransformName, toolToReferenceMatrix) )
+  {
+    std::string strTransformName; 
+    toolToReferenceTransformName.GetTransformName(strTransformName);
+    LOG_ERROR("Unable to find tool to reference transform with name: " << strTransformName); 
     return; 
   }
 
   double referenceToTrackerMatrix[16]; 
-  if ( !trackedFrame->GetCustomFrameTransform(referenceToTrackerTransformName.c_str(), referenceToTrackerMatrix) )
+  if ( !trackedFrame->GetCustomFrameTransform(referenceToTrackerTransformName, referenceToTrackerMatrix) )
   {
-    LOG_ERROR("Unable to find reference to tracker transform with name: " << referenceToTrackerTransformName); 
+    std::string strTransformName; 
+    referenceToTrackerTransformName.GetTransformName(strTransformName);
+    LOG_ERROR("Unable to find reference to tracker transform with name: " << strTransformName); 
     return;
   }
 
@@ -702,7 +723,13 @@ void SaveImageToMetaFile( TrackedFrame* trackedFrame, const std::string &default
   writer->GetTrackedFrameList()->AddTrackedFrame(trackedFrame);
 
   vtkSmartPointer<vtkMatrix4x4> transformMatrix=vtkSmartPointer<vtkMatrix4x4>::New(); 
-  trackedFrame->GetCustomFrameTransform(defaultFrameTransformName.c_str(), transformMatrix); 
+  PlusTransformName transformName; 
+  if ( transformName.SetTransformName(defaultFrameTransformName.c_str()) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Invalid transform name: " << defaultFrameTransformName); 
+    exit(EXIT_FAILURE);
+  }
+  trackedFrame->GetCustomFrameTransform(transformName, transformMatrix); 
   writer->GetTrackedFrameList()->SetGlobalTransform(transformMatrix);
 
   if (writer->Write()!=PLUS_SUCCESS)
@@ -717,7 +744,8 @@ void ConvertFromMetafile(SAVING_METHOD savingMethod)
 {
   LOG_INFO("Converting metafile images..."); 
   vtkSmartPointer<vtkTrackedFrameList> trackedFrameContainer = vtkSmartPointer<vtkTrackedFrameList>::New(); 
-  trackedFrameContainer->SetDefaultFrameTransformName("ToolToReferenceTransform"); 
+  PlusTransformName toolToReferenceTransformName("Tool", "Reference"); 
+  trackedFrameContainer->SetDefaultFrameTransformName(toolToReferenceTransformName); 
 
   int numberOfImagesWritten(0); 
   int frameNumber(0); 
@@ -771,7 +799,7 @@ void ConvertFromMetafile(SAVING_METHOD savingMethod)
     for ( int frameIndex = 0; frameIndex < numberOfFrames; ++frameIndex )
     {
       TrackedFrame* frame = reader->GetTrackedFrameList()->GetTrackedFrame( frameIndex );           
-      frame->SetCustomFrameTransform("ToolToReferenceTransform", tToolToReference ); 
+      frame->SetCustomFrameTransform(toolToReferenceTransformName, tToolToReference ); 
       trackedFrameContainer->AddTrackedFrame(frame);
     }
 
@@ -925,7 +953,8 @@ void ReadDRBTransformFile( const std::string TransformFileNameWithPath, TrackedF
   tToolToTracker->Translate( pToolToTracker[ 4 ] * 1000.0, pToolToTracker[ 5 ] * 1000.0, pToolToTracker[ 6 ] * 1000.0 );
   tToolToTracker->Update();
 
-  trackedFrame->SetCustomFrameTransform("ToolToTrackerTransform", tToolToTracker->GetMatrix() ); 
+  PlusTransformName toolToTrackerTransformName("Tool", "Tracker"); 
+  trackedFrame->SetCustomFrameTransform(toolToTrackerTransformName, tToolToTracker->GetMatrix() ); 
 
 
   // FROM THE DRB REFERENCE FRAME TO THE TRACKER FRAME
@@ -952,7 +981,8 @@ void ReadDRBTransformFile( const std::string TransformFileNameWithPath, TrackedF
 
   tReferenceToTracker->Update();
 
-  trackedFrame->SetCustomFrameTransform("ReferenceToTrackerTransform", tReferenceToTracker->GetMatrix() ); 
+  PlusTransformName referenceToTrackerTransformName("Reference", "Tracker"); 
+  trackedFrame->SetCustomFrameTransform(referenceToTrackerTransformName, tReferenceToTracker->GetMatrix() ); 
 
 
   // tToolToReference = inv( tReferenceToTracker ) * tProbeToTracker
@@ -971,7 +1001,8 @@ void ReadDRBTransformFile( const std::string TransformFileNameWithPath, TrackedF
   tToolToReference->Concatenate( tTrackerToReference);
   tToolToReference->Update();
 
-  trackedFrame->SetCustomFrameTransform("ToolToReferenceTransform", tToolToReference->GetMatrix() ); 
+  PlusTransformName toolToReferenceTransformName("Tool", "Reference"); 
+  trackedFrame->SetCustomFrameTransform(toolToReferenceTransformName, tToolToReference->GetMatrix() ); 
 }
 
 

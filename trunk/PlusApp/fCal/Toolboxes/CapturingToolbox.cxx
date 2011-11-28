@@ -37,7 +37,8 @@ CapturingToolbox::CapturingToolbox(fCalMainWindow* aParentMainWindow, Qt::WFlags
 
   // Create tracked frame list
   m_RecordedFrames = vtkTrackedFrameList::New();
-  m_RecordedFrames->SetDefaultFrameTransformName(m_DefaultFrameTransformName.c_str());
+  PlusTransformName defaultTransformName(m_DefaultFrameTransformName.c_str(), "Tracker"); 
+  m_RecordedFrames->SetDefaultFrameTransformName(defaultTransformName);
   m_RecordedFrames->SetValidationRequirements(REQUIRE_UNIQUE_TIMESTAMP | REQUIRE_TRACKING_OK); 
 
   // Connect events

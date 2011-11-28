@@ -141,7 +141,7 @@ public:
     void SetProgressBarUpdateCallbackFunction(ProgressBarUpdatePtr cb) { ProgressBarUpdateCallbackFunction = cb; } 
 
 
-  static std::string DefaultFrameTransformName;
+  static PlusTransformName DefaultFrameTransformName;
 
 protected: 
 	TrackedUltrasoundCapturing();

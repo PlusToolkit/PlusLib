@@ -50,11 +50,12 @@ FreehandCalibrationToolbox::FreehandCalibrationToolbox(fCalMainWindow* aParentMa
 
   // Create tracked frame lists
   m_CalibrationData = vtkTrackedFrameList::New();
-  m_CalibrationData->SetFrameTransformNameForValidation("Probe");
+  PlusTransformName transformNameForValidation("Probe", "Tracker"); 
+  m_CalibrationData->SetFrameTransformNameForValidation(transformNameForValidation);
   m_CalibrationData->SetValidationRequirements(REQUIRE_UNIQUE_TIMESTAMP | REQUIRE_TRACKING_OK); 
 
   m_ValidationData = vtkTrackedFrameList::New();
-  m_ValidationData->SetFrameTransformNameForValidation("Probe");
+  m_ValidationData->SetFrameTransformNameForValidation(transformNameForValidation);
   m_ValidationData->SetValidationRequirements(REQUIRE_UNIQUE_TIMESTAMP | REQUIRE_TRACKING_OK); 
 
   // Change result display properties
@@ -643,7 +644,9 @@ void FreehandCalibrationToolbox::DoSpatialCalibration()
   {
     LOG_INFO("Segmentation success rate: " << m_NumberOfSegmentedCalibrationImages + m_NumberOfSegmentedValidationImages << " out of " << m_CalibrationData->GetNumberOfTrackedFrames() + m_ValidationData->GetNumberOfTrackedFrames() << " (" << (int)(((double)(m_NumberOfSegmentedCalibrationImages + m_NumberOfSegmentedValidationImages) / (double)(m_CalibrationData->GetNumberOfTrackedFrames() + m_ValidationData->GetNumberOfTrackedFrames())) * 100.0 + 0.49) << " percent)");
 
-    if (m_Calibration->Calibrate( m_ValidationData, m_CalibrationData, "Probe", m_PatternRecognition->GetFidLineFinder()->GetNWires() ) != PLUS_SUCCESS)
+    // TODO: read it from config file
+    PlusTransformName transformNameForCalibration("Probe", "Tracker"); 
+    if (m_Calibration->Calibrate( m_ValidationData, m_CalibrationData, transformNameForCalibration, m_PatternRecognition->GetFidLineFinder()->GetNWires() ) != PLUS_SUCCESS)
     {
       LOG_ERROR("Calibration failed!");
       CancelSpatial();

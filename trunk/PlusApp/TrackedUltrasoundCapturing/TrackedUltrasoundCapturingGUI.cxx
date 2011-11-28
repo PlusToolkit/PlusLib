@@ -915,7 +915,7 @@ void TrackedUltrasoundCapturingGUI::ConnectToDevicesByConfigFile(std::string aCo
     {
       if ( this->m_USCapturing->GetDataCollector()->GetTrackingEnabled() )
       {
-        this->m_USCapturing->DefaultFrameTransformName = "Probe";
+        this->m_USCapturing->DefaultFrameTransformName = PlusTransformName("Probe", "Tracker");
       }
 
       m_DeviceSetSelectorWidget->SetConnectionSuccessful(true);

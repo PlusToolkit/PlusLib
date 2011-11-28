@@ -59,7 +59,7 @@
 };
 */
 
-std::string TrackedUltrasoundCapturing::DefaultFrameTransformName = "Probe";
+PlusTransformName TrackedUltrasoundCapturing::DefaultFrameTransformName("Probe", "Tracker");
 
 //----------------------------------------------------------------------------
 vtkCxxRevisionMacro(TrackedUltrasoundCapturing, "$Revision: 1.0 $");
@@ -199,8 +199,9 @@ PlusStatus TrackedUltrasoundCapturing::Initialize()
       // If we don't have tracking device, we don't need to validate status and position
       this->TrackedFrameContainer->SetValidationRequirements( REQUIRE_UNIQUE_TIMESTAMP | REQUIRE_SPEED_BELOW_THRESHOLD ); 
     }
-	this->TrackedFrameContainer->SetFrameTransformNameForValidation("Probe"); 
 
+    PlusTransformName transformNameForValidation("Probe", "Tracker"); 
+	  this->TrackedFrameContainer->SetFrameTransformNameForValidation(transformNameForValidation); 
 	}
 
 	vtkSmartPointer<vtkImageActor> realtimeImageActor = vtkSmartPointer<vtkImageActor>::New();
@@ -272,11 +273,7 @@ void TrackedUltrasoundCapturing::AddTrackedFrame( TrackedFrame* trackedFrame )
 		(*UpdateRequestCallbackFunction)();
 	}
 
-  if ( this->TrackedFrameContainer->GetDefaultFrameTransformName() != DefaultFrameTransformName )
-  {
-    this->TrackedFrameContainer->SetDefaultFrameTransformName(DefaultFrameTransformName.c_str()); 
-  }
-
+  this->TrackedFrameContainer->SetDefaultFrameTransformName(DefaultFrameTransformName); 
 	this->TrackedFrameContainer->AddTrackedFrame(trackedFrame, vtkTrackedFrameList::SKIP_INVALID_FRAME); 
 }
 
@@ -396,8 +393,7 @@ PlusStatus TrackedUltrasoundCapturing::RecordTrackedFrame( const double time /*=
   }
 
   TrackerStatus trackerStatus = TR_MISSING;
-  std::string toolStatusFrameFieldName = TrackedUltrasoundCapturing::DefaultFrameTransformName + "Status";
-  trackerStatus = TrackedFrame::GetStatusFromString( trackedFrame.GetCustomFrameField( toolStatusFrameFieldName.c_str() ) );
+  trackedFrame.GetCustomFrameTransformStatus(TrackedUltrasoundCapturing::DefaultFrameTransformName, trackerStatus);
   if ( trackerStatus != TR_OK )
 	{
 		LOG_WARNING("Unable to record tracked frame: Tracker out of view!"); 
