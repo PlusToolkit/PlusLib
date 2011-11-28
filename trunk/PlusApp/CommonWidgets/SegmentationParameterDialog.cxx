@@ -1488,6 +1488,7 @@ PlusStatus SegmentationParameterDialog::SegmentCurrentImage()
   // If image is not frozen, then have DataCollector get the latest frame (else it uses the frozen one for segmentation)
   if (!m_ImageFrozen)
   {
+    m_DataCollector->Modified();
     m_DataCollector->Update();
   }
 
@@ -1496,8 +1497,6 @@ PlusStatus SegmentationParameterDialog::SegmentCurrentImage()
   currentImage->DeepCopy(m_DataCollector->GetOutput());
 
   PlusVideoFrame videoFrame;
-  int imageSize[2];
-  m_DataCollector->GetFrameSize(imageSize);
   videoFrame.DeepCopyFrom(currentImage);
 
   TrackedFrame* trackedFrame = new TrackedFrame();
