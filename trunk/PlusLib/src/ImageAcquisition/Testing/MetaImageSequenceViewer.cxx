@@ -202,7 +202,7 @@ int main(int argc, char **argv)
   LOG_INFO("Adding frames to actors...");
 
   std::vector<vtkTransform*> imageTransforms; 
-  std::string defaultFrameTransformName=trackedFrameList->GetDefaultFrameTransformName();
+  PlusTransformName defaultFrameTransformName=trackedFrameList->GetDefaultFrameTransformName();
 	for ( int imgNumber = 0; imgNumber < numberOfFrames; imgNumber++ )
 	{
 		vtkPlusLogger::PrintProgressbar( (100.0 * imgNumber) / numberOfFrames ); 
@@ -210,7 +210,7 @@ int main(int argc, char **argv)
 
 
 		vtkSmartPointer<vtkMatrix4x4> imageTransMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
-    reader->GetTrackedFrame(imgNumber)->GetCustomFrameTransform(defaultFrameTransformName.c_str(), imageTransMatrix);
+    reader->GetTrackedFrame(imgNumber)->GetCustomFrameTransform(defaultFrameTransformName, imageTransMatrix);
 		vtkSmartPointer<vtkTransform> imageTransform = vtkSmartPointer<vtkTransform>::New(); 
 		imageTransform->SetMatrix(imageTransMatrix); 
 		imageTransform->Update(); 

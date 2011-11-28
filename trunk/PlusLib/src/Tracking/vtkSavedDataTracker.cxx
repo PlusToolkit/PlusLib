@@ -28,6 +28,7 @@ vtkSavedDataTracker::vtkSavedDataTracker()
   this->LoopStartTime = 0.0; 
   this->LoopTime = 0.0; 
   this->FrameNumber = 0; 
+  
 }
 
 //----------------------------------------------------------------------------
@@ -105,12 +106,17 @@ PlusStatus vtkSavedDataTracker::Connect()
       // no tool name is available, don't connect it to any transform in the savedDataBuffer
       continue;
     }        
-    if (!frame->IsCustomFrameFieldDefined(tool->GetToolName()))
+    
+    PlusTransformName toolTransformName(tool->GetToolName(), this->ToolReferenceFrameName ); 
+    if (!frame->IsCustomFrameTransformNameDefined(toolTransformName) )
     {
-      // this tool has no matching transform in the file
+      std::string strTransformName; 
+      toolTransformName.GetTransformName(strTransformName); 
+      LOG_WARNING("Tool '" << tool->GetToolName() << "' has no matching transform in the file with name: " << strTransformName ); 
       continue;
     }
-    if (frame->GetCustomFrameTransform(tool->GetToolName(), transformMatrix)!=PLUS_SUCCESS)
+    
+    if (frame->GetCustomFrameTransform(toolTransformName, transformMatrix)!=PLUS_SUCCESS)
     {
       LOG_WARNING("Cannot convert the custom frame field ( for tool "<<tool->GetToolName()<<") to a transform");
       continue;
@@ -121,8 +127,7 @@ PlusStatus vtkSavedDataTracker::Connect()
     vtkTrackerBuffer* buffer=vtkTrackerBuffer::New();
     // Copy all the settings from the default tool buffer 
     buffer->DeepCopy( tool->GetBuffer() ); 
-    
-    if (buffer->CopyTransformFromTrackedFrameList(savedDataBuffer, vtkTrackerBuffer::READ_FILTERED_IGNORE_UNFILTERED_TIMESTAMPS, tool->GetToolName())!=PLUS_SUCCESS)
+    if (buffer->CopyTransformFromTrackedFrameList(savedDataBuffer, vtkTrackerBuffer::READ_FILTERED_IGNORE_UNFILTERED_TIMESTAMPS, toolTransformName)!=PLUS_SUCCESS)
     {
       LOG_ERROR("Failed to retrieve tracking data from tracked frame list for tool "<<tool->GetToolName());
       return PLUS_FAIL;

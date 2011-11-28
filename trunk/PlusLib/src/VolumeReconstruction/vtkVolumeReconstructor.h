@@ -58,7 +58,7 @@ public:
 
   // Description:
   // Inserts the tracked frame into the volume.
-  virtual PlusStatus AddTrackedFrame(TrackedFrame* frame, const char* toolToReferenceTransformName);
+  virtual PlusStatus AddTrackedFrame(TrackedFrame* frame, PlusTransformName& toolToReferenceTransformName);
 
   // Description:
   // Returns the reconstructed volume.
@@ -77,7 +77,7 @@ public:
   // Get the image to reference transform (the image frame pose in the reference coordinate system)
   // from the tool to reference transform (the transform provided by the tracked, which is different for each frame)
   PlusStatus GetImageToReferenceTransformMatrix(vtkMatrix4x4* toolToReferenceTransformMatrix, vtkMatrix4x4* imageToReferenceTransformMatrix);
-  PlusStatus GetImageToReferenceTransformMatrix(TrackedFrame* frame, const char* toolToReferenceTransformName, vtkMatrix4x4* imageToReferenceTransformMatrix);
+  PlusStatus GetImageToReferenceTransformMatrix(TrackedFrame* frame, PlusTransformName& toolToReferenceTransformName, vtkMatrix4x4* imageToReferenceTransformMatrix);
 
 protected: 
   vtkVolumeReconstructor();

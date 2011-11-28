@@ -81,7 +81,14 @@ int main(int argc, char **argv)
 	}
 
 	LOG_INFO("Test GetDefaultFrameTransformName method ..."); 
-  if ( strcmp(trackedFrameList->GetDefaultFrameTransformName().c_str(), defaultTransformName) > 0 )
+  std::string strDefaultTransformName; 
+  if ( trackedFrameList->GetDefaultFrameTransformName().GetTransformName(strDefaultTransformName) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Default transform name is invalid!"); 
+    numberOfFailures++; 
+  }
+
+  if ( strcmp(strDefaultTransformName.c_str(), defaultTransformName) > 0 )
 	{
 		LOG_ERROR("Unable to get default frame transform name!"); 
 		numberOfFailures++; 
@@ -104,7 +111,8 @@ int main(int argc, char **argv)
 	writer->UseCompressionOn();
 
 	LOG_INFO("Test SetDefaultFrameTransform method ..."); 
-	writer->SetDefaultFrameTransformName("DefaultTransform"); 
+  PlusTransformName defaultTransformToTracker("DefaultTransform", "Tracker"); 
+	writer->SetDefaultFrameTransformName(defaultTransformToTracker); 
 
 	LOG_INFO("Test SetFrameTransform method ..."); 
 	// Add the transformation matrix to metafile
@@ -119,13 +127,12 @@ int main(int argc, char **argv)
 	}
 
 	LOG_INFO("Test SetCustomFrameTransform method ..."); 
+  PlusTransformName customTransformName("CustomTransform", "Tracker"); 
 	for ( int i = 0 ; i < numberOfFrames; i++ ) 
 	{
 		vtkSmartPointer<vtkMatrix4x4> transMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
 		transMatrix->SetElement(0,0,i); 
-    writer->GetTrackedFrame(i)->SetCustomFrameTransform(
-      "CustomTransform",
-      transMatrix); 
+    writer->GetTrackedFrame(i)->SetCustomFrameTransform(customTransformName, transMatrix); 
 	}
 		
 	LOG_INFO("Test SetCustomTransform method ..."); 
@@ -139,6 +146,9 @@ int main(int argc, char **argv)
   	return EXIT_FAILURE;
 	}	
 
+
+  PlusTransformName defaultName = writer->GetDefaultFrameTransformName(); 
+
 	LOG_INFO("Test GetFrameTransform method ..."); 
 	for ( int i = 0; i < numberOfFrames; i++ )
 	{
@@ -146,13 +156,13 @@ int main(int argc, char **argv)
 		vtkSmartPointer<vtkMatrix4x4> readerMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
 		
     if ( !reader->GetTrackedFrameList()->GetTrackedFrame(i)->GetCustomFrameTransform(
-      reader->GetTrackedFrameList()->GetDefaultFrameTransformName().c_str(), readerMatrix) )
+      reader->GetTrackedFrameList()->GetDefaultFrameTransformName(), readerMatrix) )
 		{
 			LOG_ERROR("Unable to get default frame transform to frame #" << i); 
 			numberOfFailures++; 
 		}
 
-    if ( !writer->GetTrackedFrame(i)->GetCustomFrameTransform(defaultTransformName, writerMatrix) )
+    if ( !writer->GetTrackedFrame(i)->GetCustomFrameTransform(defaultName, writerMatrix) )
 		{
 			LOG_ERROR("Unable to get default frame transform to frame #" << i); 
 			numberOfFailures++; 

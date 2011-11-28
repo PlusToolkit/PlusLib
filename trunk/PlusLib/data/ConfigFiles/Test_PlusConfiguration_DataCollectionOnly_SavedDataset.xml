@@ -8,7 +8,7 @@
         />
 
     <Tracker Type="SavedDataset" BufferSize="200" Frequency="10" LocalTimeOffset="0.0" DefaultToolName="Probe" SequenceMetafile="" AveragedItemsForFiltering="20" >
-      <Tool Name="ToolToTrackerTransform" Type="Probe" PortName="0" />
+      <Tool Name="Tool" PortName="0" />
     </Tracker>
 
     <ImageAcquisition Type="SavedDataset" 

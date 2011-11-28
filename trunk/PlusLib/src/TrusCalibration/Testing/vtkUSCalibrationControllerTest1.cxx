@@ -40,6 +40,7 @@ int main (int argc, char* argv[])
 
 	std::string inputConfigFileName;
 	std::string inputBaselineFileName;
+  std::string inputProbeToReferenceTransformName("ProbeToReference"); 
 	double inputTranslationErrorThreshold(0); 
 	double inputRotationErrorThreshold(0); 
 
@@ -52,6 +53,7 @@ int main (int argc, char* argv[])
 	cmdargs.AddArgument("--input-random-stepper-motion-2-sequence-metafile", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputRandomStepperMotion2SeqMetafile, "Sequence metafile name of saved random stepper motion 2 dataset.");
 	cmdargs.AddArgument("--input-probe-rotation-sequence-metafile", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputProbeRotationSeqMetafile, "Sequence metafile name of saved probe rotation dataset.");
 	
+  cmdargs.AddArgument("--input-probe-to-reference-transform-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputProbeToReferenceTransformName, "Name of the probe to reference transform (Default: ProbeToTracker)");
 	cmdargs.AddArgument("--input-config-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "Configuration file name");
 	
 	cmdargs.AddArgument("--input-baseline-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputBaselineFileName, "Name of file storing baseline calibration results");
@@ -193,8 +195,15 @@ int main (int argc, char* argv[])
 
   LOG_INFO("Segmentation success rate of validation images: " << numberOfSuccessfullySegmentedValidationImages << " out of " << validationTrackedFrameList->GetNumberOfTrackedFrames());
 
+  PlusTransformName probeToReferenceTransformName; 
+  if ( probeToReferenceTransformName.SetTransformName( inputProbeToReferenceTransformName.c_str() ) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Invalid transform name: " << inputProbeToReferenceTransformName ); 
+    return EXIT_FAILURE; 
+  }
+
   // Calibrate
-  if (probeCal->Calibrate( validationTrackedFrameList, calibrationTrackedFrameList, "Probe", patternRecognition.GetFidLineFinder()->GetNWires()) != PLUS_SUCCESS)
+  if (probeCal->Calibrate( validationTrackedFrameList, calibrationTrackedFrameList, probeToReferenceTransformName, patternRecognition.GetFidLineFinder()->GetNWires()) != PLUS_SUCCESS)
   {
     LOG_ERROR("Calibration failed!");
 		return EXIT_FAILURE;

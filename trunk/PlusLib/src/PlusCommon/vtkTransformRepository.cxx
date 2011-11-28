@@ -8,6 +8,7 @@
 #include "vtkTransformRepository.h"
 #include "vtkObjectFactory.h"
 #include "vtkTransform.h"
+#include "vtkTrackedFrameList.h"
 
 vtkStandardNewMacro(vtkTransformRepository);
 
@@ -17,6 +18,8 @@ vtkTransformRepository::TransformInfo::TransformInfo()
   m_Transform=vtkTransform::New();
   m_IsValid=true;
   m_IsComputed=false;
+  m_IsPersistent=false; 
+  m_Error=0.0; 
 }
 
 //----------------------------------------------------------------------------
@@ -39,6 +42,10 @@ vtkTransformRepository::TransformInfo::TransformInfo(const TransformInfo& obj)
   }
   m_IsComputed=obj.m_IsComputed;
   m_IsValid=obj.m_IsValid;
+  m_IsPersistent=obj.m_IsPersistent; 
+  m_Date=obj.m_Date; 
+  m_Error=obj.m_Error; 
+
 }
 //----------------------------------------------------------------------------
 vtkTransformRepository::TransformInfo& vtkTransformRepository::TransformInfo::operator=(const TransformInfo& obj) 
@@ -55,6 +62,9 @@ vtkTransformRepository::TransformInfo& vtkTransformRepository::TransformInfo::op
   }
   m_IsComputed=obj.m_IsComputed;
   m_IsValid=obj.m_IsValid;
+  m_IsPersistent=obj.m_IsPersistent; 
+  m_Date=obj.m_Date; 
+  m_Error=obj.m_Error;
   return *this;
 }
 
@@ -80,6 +90,7 @@ void vtkTransformRepository::PrintSelf(ostream& os, vtkIndent indent)
     {
       os << indent << "  To " << transformInfo->first << ": " 
         << (transformInfo->second.m_IsValid?"valid":"invalid") << ", " 
+        << (transformInfo->second.m_IsPersistent?"persistent":"non-persistent") << ", " 
         << (transformInfo->second.m_IsComputed?"computed":"original") << "\n";
       if (transformInfo->second.m_Transform!=NULL && transformInfo->second.m_Transform->GetMatrix()!=NULL)
       {
@@ -98,13 +109,13 @@ void vtkTransformRepository::PrintSelf(ostream& os, vtkIndent indent)
 }
 
 //----------------------------------------------------------------------------
-vtkTransformRepository::TransformInfo* vtkTransformRepository::GetInputTransform(const char* fromCoordFrameName, const char* toCoordFrameName)
+vtkTransformRepository::TransformInfo* vtkTransformRepository::GetOriginalTransform(PlusTransformName& aTransformName)
 {
-  CoordFrameToTransformMapType& fromCoordFrame=this->CoordinateFrames[fromCoordFrameName];
-  CoordFrameToTransformMapType& toCoordFrame=this->CoordinateFrames[toCoordFrameName];
+  CoordFrameToTransformMapType& fromCoordFrame=this->CoordinateFrames[aTransformName.From()];
+  CoordFrameToTransformMapType& toCoordFrame=this->CoordinateFrames[aTransformName.To()];
 
   // Check if the transform already exist
-  CoordFrameToTransformMapType::iterator fromToTransformInfoIt=fromCoordFrame.find(toCoordFrameName);
+  CoordFrameToTransformMapType::iterator fromToTransformInfoIt=fromCoordFrame.find(aTransformName.To());
   if (fromToTransformInfoIt!=fromCoordFrame.end())
   {
     // transform is found
@@ -115,29 +126,31 @@ vtkTransformRepository::TransformInfo* vtkTransformRepository::GetInputTransform
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkTransformRepository::SetTransform(const char* fromCoordFrameName, const char* toCoordFrameName, vtkMatrix4x4* matrix, TransformStatus status /* = KEEP_CURRENT_STATUS*/ )
+PlusStatus vtkTransformRepository::SetTransforms(TrackedFrame& trackedFrame)
 {
-  if (fromCoordFrameName==NULL)
+  LOG_WARNING("Not yet implemented!"); 
+  return PLUS_SUCCESS; 
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkTransformRepository::SetTransform(PlusTransformName& aTransformName, vtkMatrix4x4* matrix, bool isValid/*=true*/ )
+{
+  if ( ! aTransformName.IsValid() )
   {
-    LOG_ERROR("From coordinate frame name is invalid");
-    return PLUS_FAIL;
-  }
-  if (toCoordFrameName==NULL)
-  {
-    LOG_ERROR("To coordinate frame name is invalid");
+    LOG_ERROR("Transform name is invalid");
     return PLUS_FAIL;
   }
 
   // Check if the transform already exist
-  TransformInfo* fromToTransformInfo=GetInputTransform(fromCoordFrameName, toCoordFrameName);
+  TransformInfo* fromToTransformInfo=GetOriginalTransform(aTransformName);
   if (fromToTransformInfo!=NULL)
   {
     // Transform already exists
     if (fromToTransformInfo->m_IsComputed)
     {
       // The transform already exists and it is computed (not original), so reject the transformation update
-      LOG_ERROR("The "<<fromCoordFrameName<<"To"<<toCoordFrameName<<" transform cannot be set, as the inverse ("
-        <<toCoordFrameName<<"To"<<fromCoordFrameName<<") transform already exists");
+      LOG_ERROR("The "<<aTransformName.From()<<"To"<<aTransformName.To()<<" transform cannot be set, as the inverse ("
+        <<aTransformName.To()<<"To"<<aTransformName.From()<<") transform already exists");
       return PLUS_FAIL;
     }
     // This is an original transform that already exists, just update it
@@ -146,79 +159,68 @@ PlusStatus vtkTransformRepository::SetTransform(const char* fromCoordFrameName, 
     {
       fromToTransformInfo->m_Transform->SetMatrix(matrix);
     }
-    // Update the status
-    if (status!=KEEP_CURRENT_STATUS)
+    // Set the status of the original transform
+    fromToTransformInfo->m_IsValid=isValid;
+
+    // Set the same status for the computed inverse transform
+    TransformInfo* toFromTransformInfo=GetOriginalTransform(aTransformName);
+    if (toFromTransformInfo==NULL)
     {
-      // Set the status of the original transform
-      fromToTransformInfo->m_IsValid=(status==TRANSFORM_VALID);
-      // Set the same status for the computed inverse transform
-      TransformInfo* toFromTransformInfo=GetInputTransform(toCoordFrameName, fromCoordFrameName);
-      if (toFromTransformInfo==NULL)
-      {
-        LOG_ERROR("The computed "<<toCoordFrameName<<"To"<<fromCoordFrameName<<" transform is missing. Cannot set its status");
-        return PLUS_FAIL;
-      }
-      toFromTransformInfo->m_IsValid=(status==TRANSFORM_VALID);      
+      LOG_ERROR("The computed "<<aTransformName.To()<<"To"<<aTransformName.From()<<" transform is missing. Cannot set its status");
+      return PLUS_FAIL;
     }
+    toFromTransformInfo->m_IsValid=isValid;
     return PLUS_SUCCESS;
   }
   // The transform does not exist yet, add it now
 
   TransformInfoListType transformInfoList;
-  if (FindPath(fromCoordFrameName, toCoordFrameName, transformInfoList, NULL, true /*silent*/)==PLUS_SUCCESS)
+  if (FindPath(aTransformName, transformInfoList, NULL, true /*silent*/)==PLUS_SUCCESS)
   {
     // a path already exist between the two coordinate frames
     // adding a new transform between these would result in a circle
-    LOG_ERROR("A transform path already exists between "<<fromCoordFrameName<<" and "<<toCoordFrameName);
+    LOG_ERROR("A transform path already exists between "<<aTransformName.From()<<" and "<<aTransformName.To());
     return PLUS_FAIL;
   }
 
   // Create the from->to transform
-  CoordFrameToTransformMapType& fromCoordFrame=this->CoordinateFrames[fromCoordFrameName];
-  fromCoordFrame[toCoordFrameName].m_IsComputed=false;
+  CoordFrameToTransformMapType& fromCoordFrame=this->CoordinateFrames[aTransformName.From()];
+  fromCoordFrame[aTransformName.To()].m_IsComputed=false;
   if (matrix!=NULL)
   {
-    fromCoordFrame[toCoordFrameName].m_Transform->SetMatrix(matrix);
+    fromCoordFrame[aTransformName.To()].m_Transform->SetMatrix(matrix);
   }
-  if (status!=KEEP_CURRENT_STATUS)
-  {
-    fromCoordFrame[toCoordFrameName].m_IsValid=(status==TRANSFORM_VALID);
-  }
+
+  fromCoordFrame[aTransformName.To()].m_IsValid=isValid; 
+
   // Create the to->from inverse transform
-  CoordFrameToTransformMapType& toCoordFrame=this->CoordinateFrames[toCoordFrameName];
-  toCoordFrame[fromCoordFrameName].m_IsComputed=true;
-  toCoordFrame[fromCoordFrameName].m_Transform->SetInput(fromCoordFrame[toCoordFrameName].m_Transform);
-  toCoordFrame[fromCoordFrameName].m_Transform->Inverse();
-  if (status!=KEEP_CURRENT_STATUS)
-  {
-    toCoordFrame[toCoordFrameName].m_IsValid=(status==TRANSFORM_VALID);
-  }
+  CoordFrameToTransformMapType& toCoordFrame=this->CoordinateFrames[aTransformName.To()];
+  toCoordFrame[aTransformName.From()].m_IsComputed=true;
+  toCoordFrame[aTransformName.From()].m_Transform->SetInput(fromCoordFrame[aTransformName.To()].m_Transform);
+  toCoordFrame[aTransformName.From()].m_Transform->Inverse();
+  toCoordFrame[aTransformName.From()].m_IsValid=isValid;
   return PLUS_SUCCESS;
 }
   
 //----------------------------------------------------------------------------
-PlusStatus vtkTransformRepository::SetTransformStatus(const char* fromCoordFrameName, const char* toCoordFrameName, TransformStatus status)
+PlusStatus vtkTransformRepository::SetTransformValid(PlusTransformName& aTransformName, bool isValid)
 {
-  return SetTransform(fromCoordFrameName, toCoordFrameName, NULL, status);
+  return SetTransform(aTransformName, NULL, isValid);
 }
   
 //----------------------------------------------------------------------------
-PlusStatus vtkTransformRepository::GetTransform(const char* fromCoordFrameName, const char* toCoordFrameName, vtkMatrix4x4* matrix, TransformStatus* status /*=NULL*/ )
+PlusStatus vtkTransformRepository::GetTransform(PlusTransformName& aTransformName, vtkMatrix4x4* matrix, bool* isValid /*=NULL*/ )
 {
-  if (fromCoordFrameName==NULL)
+  if ( !aTransformName.IsValid() )
   {
-    LOG_ERROR("From coordinate frame name is invalid");
+    LOG_ERROR("Transform name is invalid");
     return PLUS_FAIL;
   }
-  if (toCoordFrameName==NULL)
-  {
-    LOG_ERROR("To coordinate frame name is invalid");
-    return PLUS_FAIL;
-  }
+
   // Check if we can find the transform by combining the input transforms
   // To improve performance the already found paths could be stored in a map of transform name -> transformInfoList
   TransformInfoListType transformInfoList;
-  if (FindPath(fromCoordFrameName, toCoordFrameName, transformInfoList)!=PLUS_SUCCESS)
+  if (FindPath(aTransformName, transformInfoList)!=PLUS_SUCCESS)
   {
     // the transform cannot be computed, error has been already logged by FindPath
     return PLUS_FAIL;
@@ -226,6 +228,7 @@ PlusStatus vtkTransformRepository::GetTransform(const char* fromCoordFrameName, 
   // Create transform chain and compute transform status
   vtkSmartPointer<vtkTransform> combinedTransform=vtkSmartPointer<vtkTransform>::New();
   bool combinedTransformValid=true;
+  bool combinedTransformPersistent=true;
   for (TransformInfoListType::iterator transformInfo=transformInfoList.begin(); transformInfo!=transformInfoList.end(); ++transformInfo)
   {
     combinedTransform->Concatenate((*transformInfo)->m_Transform);
@@ -239,22 +242,51 @@ PlusStatus vtkTransformRepository::GetTransform(const char* fromCoordFrameName, 
   {
     matrix->DeepCopy(combinedTransform->GetMatrix());
   }
-  if (status!=NULL)
+
+  if (isValid!=NULL)
   {
-    (*status)=combinedTransformValid?TRANSFORM_VALID:TRANSFORM_INVALID;
+    (*isValid) = combinedTransformValid; 
   }
+
   return PLUS_SUCCESS;
 }
   
 //----------------------------------------------------------------------------
-PlusStatus vtkTransformRepository::GetTransformStatus(const char* fromCoordFrameName, const char* toCoordFrameName, TransformStatus &status)
+PlusStatus vtkTransformRepository::GetTransformValid(PlusTransformName& aTransformName, bool &isValid)
 {
-  return GetTransform(fromCoordFrameName, toCoordFrameName, NULL, &status);
+  return GetTransform(aTransformName, NULL, &isValid);
 }
 
-PlusStatus vtkTransformRepository::FindPath(const char* fromCoordFrameName, const char* toCoordFrameName, TransformInfoListType &transformInfoList, const char* skipCoordFrameName /*=NULL*/, bool silent /*=false*/)
+//----------------------------------------------------------------------------
+PlusStatus vtkTransformRepository::SetTransformPersistent(PlusTransformName& aTransformName, bool isPersistent)
 {
-  TransformInfo* fromToTransformInfo=GetInputTransform(fromCoordFrameName, toCoordFrameName);
+  TransformInfo* fromToTransformInfo=GetOriginalTransform(aTransformName);
+  if (fromToTransformInfo!=NULL)
+  {
+    fromToTransformInfo->m_IsPersistent = isPersistent; 
+    return PLUS_SUCCESS; 
+  }
+  LOG_ERROR("The original "<<aTransformName.From()<<"To"<<aTransformName.To()<<" transform is missing. Cannot set its persistent status");
+  return PLUS_FAIL;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkTransformRepository::GetTransformPersistent(PlusTransformName& aTransformName, bool &isPersistent)
+{
+  TransformInfo* fromToTransformInfo=GetOriginalTransform(aTransformName);
+  if (fromToTransformInfo!=NULL)
+  {
+    isPersistent = fromToTransformInfo->m_IsPersistent; 
+    return PLUS_SUCCESS; 
+  }
+  LOG_ERROR("The original "<<aTransformName.From()<<"To"<<aTransformName.To()<<" transform is missing. Cannot get its persistent status");
+  return PLUS_FAIL;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkTransformRepository::FindPath(PlusTransformName& aTransformName, TransformInfoListType &transformInfoList, const char* skipCoordFrameName /*=NULL*/, bool silent /*=false*/)
+{
+  TransformInfo* fromToTransformInfo=GetOriginalTransform(aTransformName);
   if (fromToTransformInfo!=NULL)
   {
     // found a transform
@@ -262,7 +294,7 @@ PlusStatus vtkTransformRepository::FindPath(const char* fromCoordFrameName, cons
     return PLUS_SUCCESS;
   }
   // not found, so try to find a path through all the connected coordinate frames
-  CoordFrameToTransformMapType& fromCoordFrame=this->CoordinateFrames[fromCoordFrameName];
+  CoordFrameToTransformMapType& fromCoordFrame=this->CoordinateFrames[aTransformName.From()];
   for (CoordFrameToTransformMapType::iterator transformInfoIt=fromCoordFrame.begin(); transformInfoIt!=fromCoordFrame.end(); ++transformInfoIt)
   {
     if (skipCoordFrameName!=NULL && transformInfoIt->first.compare(skipCoordFrameName)==0)
@@ -271,7 +303,8 @@ PlusStatus vtkTransformRepository::FindPath(const char* fromCoordFrameName, cons
       // (probably it would just go back to the previous coordinate frame where we come from)
       continue;
     }
-    if (FindPath(transformInfoIt->first.c_str(), toCoordFrameName, transformInfoList, fromCoordFrameName, true /*silent*/)==PLUS_SUCCESS)
+    PlusTransformName newTransformName(transformInfoIt->first, aTransformName.To()); 
+    if (FindPath(newTransformName, transformInfoList, aTransformName.From().c_str(), true /*silent*/)==PLUS_SUCCESS)
     {
       transformInfoList.push_back(&(transformInfoIt->second));
       return PLUS_SUCCESS;      
@@ -279,16 +312,16 @@ PlusStatus vtkTransformRepository::FindPath(const char* fromCoordFrameName, cons
   }
   if (!silent)
   {
-    LOG_ERROR("Path not found from "<<fromCoordFrameName<<" to "<<toCoordFrameName);
+    LOG_ERROR("Path not found from "<<aTransformName.From()<<" to "<<aTransformName.To());
   }
   return PLUS_FAIL;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkTransformRepository::DeleteTransform(const char* fromCoordFrameName, const char* toCoordFrameName)
+PlusStatus vtkTransformRepository::DeleteTransform(PlusTransformName& aTransformName)
 {
-  CoordFrameToTransformMapType& fromCoordFrame=this->CoordinateFrames[fromCoordFrameName];
-  CoordFrameToTransformMapType::iterator fromToTransformInfoIt=fromCoordFrame.find(toCoordFrameName);
+  CoordFrameToTransformMapType& fromCoordFrame=this->CoordinateFrames[aTransformName.From()];
+  CoordFrameToTransformMapType::iterator fromToTransformInfoIt=fromCoordFrame.find(aTransformName.To());
   
   if (fromToTransformInfoIt!=fromCoordFrame.end())
   {
@@ -296,22 +329,22 @@ PlusStatus vtkTransformRepository::DeleteTransform(const char* fromCoordFrameNam
     if (fromToTransformInfoIt->second.m_IsComputed)
     {
       // this is not an original transform (has not been set by the user)
-      LOG_ERROR("The "<<fromCoordFrameName<<" to "<<toCoordFrameName
+      LOG_ERROR("The "<<aTransformName.From()<<" to "<<aTransformName.To()
         <<" transform cannot be deleted, only the inverse of the transform has been set in the repository ("
-        <<fromCoordFrameName<<" to "<<toCoordFrameName<<")");
+        <<aTransformName.From()<<" to "<<aTransformName.To()<<")");
       return PLUS_FAIL;
     }
     fromCoordFrame.erase(fromToTransformInfoIt);
   }
   else
   {
-    LOG_ERROR("Delete transform failed: could not find the "<<fromCoordFrameName<<" to "<<toCoordFrameName<<" transform");
+    LOG_ERROR("Delete transform failed: could not find the "<<aTransformName.From()<<" to "<<aTransformName.To()<<" transform");
     // don't return yet, try to delete the inverse
     return PLUS_FAIL;
   }
   
-  CoordFrameToTransformMapType& toCoordFrame=this->CoordinateFrames[toCoordFrameName];
-  CoordFrameToTransformMapType::iterator toFromTransformInfoIt=toCoordFrame.find(fromCoordFrameName);
+  CoordFrameToTransformMapType& toCoordFrame=this->CoordinateFrames[aTransformName.To()];
+  CoordFrameToTransformMapType::iterator toFromTransformInfoIt=toCoordFrame.find(aTransformName.From());
   if (toFromTransformInfoIt!=toCoordFrame.end())
   {
     // to->from transform is found
@@ -319,7 +352,7 @@ PlusStatus vtkTransformRepository::DeleteTransform(const char* fromCoordFrameNam
   }
   else
   {
-    LOG_ERROR("Delete transform failed: could not find the "<<toCoordFrameName<<" to "<<fromCoordFrameName<<" transform");
+    LOG_ERROR("Delete transform failed: could not find the "<<aTransformName.To()<<" to "<<aTransformName.From()<<" transform");
     return PLUS_FAIL;
   }
   return PLUS_SUCCESS;
@@ -330,3 +363,18 @@ void vtkTransformRepository::Clear()
 {
   this->CoordinateFrames.clear();
 }
+
+//----------------------------------------------------------------------------
+PlusStatus vtkTransformRepository::ReadConfiguration(vtkXMLDataElement* configRootElement)
+{
+  LOG_WARNING("Not yet implemented!"); 
+  return PLUS_SUCCESS; 
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkTransformRepository::WriteConfiguration(vtkXMLDataElement* configRootElement)
+{
+  LOG_WARNING("Not yet implemented!"); 
+  return PLUS_SUCCESS; 
+}
+

@@ -181,7 +181,7 @@ public:
   will be copied to the tracker buffer. If useFilteredTimestamps is false, then only unfiltered timestamps
   will be copied to the tracker buffer and the tracker buffer will compute the filtered timestamps.
   */
-  PlusStatus CopyTransformFromTrackedFrameList(vtkTrackedFrameList *sourceTrackedFrameList, TIMESTAMP_FILTERING_OPTION timestampFiltering, const char* transformName);
+  PlusStatus CopyTransformFromTrackedFrameList(vtkTrackedFrameList *sourceTrackedFrameList, TIMESTAMP_FILTERING_OPTION timestampFiltering, PlusTransformName& transformName);
 
 protected:
   vtkTrackerBuffer();

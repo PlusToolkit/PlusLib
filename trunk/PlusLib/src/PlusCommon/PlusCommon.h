@@ -125,4 +125,68 @@ namespace PlusCommon
   typedef int VTKScalarPixelType;
 };
 
+
+/*!
+  \class PlusTransformName 
+  \brief Stores the from and to coordinate frame names for transforms 
+
+  The PlusTransformName stores and generates the from and to coordinate frame names for transforms. 
+
+  Example usage:
+  
+  PlusTransformName tnImageToProbe("Image", "Probe"); 
+  ... or
+
+  PlusTransformName tnImageToProbe; 
+  if ( tnImageToProbe->SetTransformName("ImageToProbe") != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to set transform name!"); 
+  }
+
+  std::string fromFrame = tnImageToProbe->GetFrom(); 
+  std::string toFrame = tnImageToProbe->GetFrom(); 
+  std::string strImageToProbe; 
+  if ( tnImageToProbe->GetTransformName(strImageToProbe) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to get transform name!"); 
+  }
+
+  \ingroup PlusLibCommon
+*/
+class VTK_EXPORT PlusTransformName
+{
+public:
+  PlusTransformName(); 
+  ~PlusTransformName(); 
+  PlusTransformName(std::string aFrom, std::string aTo ); 
+
+  /*! 
+    Set 'From' and 'To' coordinate frame names from a combined transform name with the following format [FrameFrom]To[FrameTo]. 
+    The combined transform name might contain only one 'To' phrase followed by a capital letter (e.g. ImageToToProbe is not allowed) 
+    and the coordiante frame names should be in camel case format starting with capitalized letters. 
+  */
+  PlusStatus SetTransformName(const char* aTransformName); 
+
+  /*! Return combined transform name between 'From' and 'To' coordinate frames: [From]To[To] */
+  PlusStatus GetTransformName(std::string& aTransformName); 
+
+  /*! Return 'From' coordinate frame name, give a warning if it's not capitalized and capitalize it*/ 
+  std::string From(); 
+
+  /*! Return 'To' coordinate frame name, give a warning if it's not capitalized and capitalize it */ 
+  std::string To(); 
+
+  /*! Check if the current transform name is valid */ 
+  bool IsValid(); 
+
+private: 
+
+  /*! Check if the input string is capitalized, if not capitalize it */ 
+  void Capitalize(std::string& aString ); 
+
+  std::string m_From; /*! From coordinate frame name */
+  std::string m_To; /*! To coordinate frame name */
+}; 
+
+
 #endif //__PlusCommon_h

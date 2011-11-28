@@ -61,7 +61,7 @@ public:
     \param indices Tracked frame indices that the algoritm should use during calibration
     \param spacing Image spacing (mm/pixel)
   */
-  virtual void SetInputs( vtkTrackedFrameList* trackedFrameList, std::vector<int> &indices, double spacing[2]); 
+  virtual void SetInputs( vtkTrackedFrameList* trackedFrameList,  std::vector<int> &indices, double spacing[2]); 
 
   /*! Get the computed center of rotation position in pixel */
   virtual PlusStatus GetCenterOfRotationPx( double centerOfRotationPx[2] ); 

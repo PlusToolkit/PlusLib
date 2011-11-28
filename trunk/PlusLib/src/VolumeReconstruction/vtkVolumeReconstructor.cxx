@@ -294,7 +294,7 @@ PlusStatus vtkVolumeReconstructor::GetImageToReferenceTransformMatrix(vtkMatrix4
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkVolumeReconstructor::GetImageToReferenceTransformMatrix(TrackedFrame* frame, const char* toolToReferenceTransformName, vtkMatrix4x4* imageToReferenceTransformMatrix)
+PlusStatus vtkVolumeReconstructor::GetImageToReferenceTransformMatrix(TrackedFrame* frame, PlusTransformName& toolToReferenceTransformName, vtkMatrix4x4* imageToReferenceTransformMatrix)
 {
   vtkSmartPointer<vtkMatrix4x4> toolToReferenceTransformMatrix=vtkSmartPointer<vtkMatrix4x4>::New();
   if ( frame->GetCustomFrameTransform(toolToReferenceTransformName, toolToReferenceTransformMatrix)!= PLUS_SUCCESS )		
@@ -354,7 +354,7 @@ PlusStatus vtkVolumeReconstructor::SetOutputExtentFromFrameList(vtkTrackedFrameL
     VTK_DOUBLE_MAX, VTK_DOUBLE_MIN
   };
 
-  std::string toolToReferenceTransformName=trackedFrameList->GetDefaultFrameTransformName();
+  PlusTransformName toolToReferenceTransformName=trackedFrameList->GetDefaultFrameTransformName();
   const int numberOfFrames = trackedFrameList->GetNumberOfTrackedFrames(); 
   for (int frameIndex = 0; frameIndex < numberOfFrames; ++frameIndex )
   {
@@ -362,7 +362,7 @@ PlusStatus vtkVolumeReconstructor::SetOutputExtentFromFrameList(vtkTrackedFrameL
 
     // Get transform
     vtkSmartPointer<vtkMatrix4x4> imageToReferenceTransformMatrix=vtkSmartPointer<vtkMatrix4x4>::New();
-    if ( GetImageToReferenceTransformMatrix(frame, toolToReferenceTransformName.c_str(), imageToReferenceTransformMatrix)!=PLUS_SUCCESS )		
+    if ( GetImageToReferenceTransformMatrix(frame, toolToReferenceTransformName, imageToReferenceTransformMatrix)!=PLUS_SUCCESS )		
     {
       LOG_ERROR("Unable to get image to reference transform for frame #" << frameIndex); 
       continue; 
@@ -404,7 +404,7 @@ PlusStatus vtkVolumeReconstructor::SetOutputExtentFromFrameList(vtkTrackedFrameL
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkVolumeReconstructor::AddTrackedFrame(TrackedFrame* frame, const char* toolToReferenceTransformName)
+PlusStatus vtkVolumeReconstructor::AddTrackedFrame(TrackedFrame* frame, PlusTransformName& toolToReferenceTransformName)
 {
   vtkSmartPointer<vtkMatrix4x4> imageToReferenceTransformMatrix=vtkSmartPointer<vtkMatrix4x4>::New();
   if ( GetImageToReferenceTransformMatrix(frame, toolToReferenceTransformName, imageToReferenceTransformMatrix)!=PLUS_SUCCESS )		
