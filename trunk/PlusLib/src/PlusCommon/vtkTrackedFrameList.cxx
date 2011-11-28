@@ -85,6 +85,8 @@ void TrackedFrame::GetFrameSize(int dim[2])
 void TrackedFrame::SetImageData(const PlusVideoFrame &value)
 {
   this->ImageData = value;
+
+  // Set frame size too
   this->ImageData.GetFrameSize(this->FrameSize);
 }
 

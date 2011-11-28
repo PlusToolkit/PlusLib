@@ -444,7 +444,7 @@ int vtkPlusVideoSource::RequestInformation(vtkInformation * vtkNotUsed(request),
                     vtkInformationVector **vtkNotUsed(inputVector),
                     vtkInformationVector *outputVector)
 {
-  LOG_TRACE("vtkPlusVideoSource::RequestInformation");
+  //LOG_TRACE("vtkPlusVideoSource::RequestInformation");
 
   if (!this->Connected)
   {
@@ -455,7 +455,7 @@ int vtkPlusVideoSource::RequestInformation(vtkInformation * vtkNotUsed(request),
   vtkInformation* outInfo = outputVector->GetInformationObject(0);
 
   // Set extent
-    int extent[6] = {0, this->Buffer->GetFrameSize()[0] - 1, 0, this->Buffer->GetFrameSize()[1] - 1, 0, 0 };
+  int extent[6] = {0, this->Buffer->GetFrameSize()[0] - 1, 0, this->Buffer->GetFrameSize()[1] - 1, 0, 0 };
   outInfo->Set(vtkStreamingDemandDrivenPipeline::WHOLE_EXTENT(),extent,6);
 
   // Set the origin and spacing. The video source provides raw pixel output, therefore the spacing is (1,1,1) and the origin is (0,0)

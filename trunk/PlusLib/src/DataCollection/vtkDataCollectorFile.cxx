@@ -12,6 +12,7 @@ See License.txt for details.
 #include "vtkInformationVector.h"
 #include "vtkInformation.h"
 #include "vtkImageData.h"
+#include "vtkStreamingDemandDrivenPipeline.h"
 
 //----------------------------------------------------------------------------
 
@@ -26,22 +27,19 @@ vtkDataCollectorFile::vtkDataCollectorFile()
 {	
   this->TrackedFrameList = NULL;
   this->SequenceMetafileName = NULL;
-  //this->OutputImageData = NULL;
   this->StartTime = 0.0;
   this->ReplayEnabled = false; 
   this->FirstTimestamp = 0.0;
   this->LastTimestamp = 0.0;
   this->LastAccessedFrameIndex = -1;
 
-  //vtkSmartPointer<vtkImageData> outputImageData = vtkSmartPointer<vtkImageData>::New();
-  //this->SetOutputImageData(outputImageData);
+  this->SetNumberOfInputPorts(0);
 }
 
 //----------------------------------------------------------------------------
 vtkDataCollectorFile::~vtkDataCollectorFile()
 {
   this->SetTrackedFrameList(NULL);
-  //this->SetOutputImageData(NULL);
 }
 
 //----------------------------------------------------------------------------
@@ -90,9 +88,6 @@ PlusStatus vtkDataCollectorFile::Connect()
     this->Disconnect();
     return PLUS_FAIL;
   }
-
-  // Set output connection to output image data
-  //this->SetOutput(this->OutputImageData);
 
   this->ConnectedOn();
 
@@ -370,7 +365,7 @@ PlusStatus vtkDataCollectorFile::GetTrackedFrameIndexForTimestamp(double aTimest
   aIndex = this->LastAccessedFrameIndex;
 
   // If requested timestamp is before the timestamp of the last accessed tracked frame then start from the beginning
-  if (aTimestamp < this->TrackedFrameList->GetTrackedFrame(aIndex)->GetTimestamp())
+  if (aIndex >= 0 && aTimestamp < this->TrackedFrameList->GetTrackedFrame(aIndex)->GetTimestamp())
   {
     aIndex = -1;
   }
@@ -401,20 +396,50 @@ PlusStatus vtkDataCollectorFile::GetTrackedFrameByTime(double aTimestamp, Tracke
     return PLUS_FAIL;
   }
 
-  this->LastAccessedFrameIndex = index;
+  (*aTrackedFrame) = (*this->TrackedFrameList->GetTrackedFrame(index));
 
-  aTrackedFrame = this->TrackedFrameList->GetTrackedFrame(this->LastAccessedFrameIndex);
+  this->LastAccessedFrameIndex = index;
 
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-int vtkDataCollectorFile::RequestData( vtkInformation* vtkNotUsed( request ), vtkInformationVector**  inputVector, vtkInformationVector* outputVector )
+int vtkDataCollectorFile::RequestInformation(vtkInformation *vtkNotUsed(request), vtkInformationVector **vtkNotUsed(inputVector), vtkInformationVector *outputVector)
+{
+  //LOG_TRACE("vtkDataCollectorFile::RequestInformation");
+
+  if (!this->Connected)
+  {
+    return 1;
+  }
+
+  // Get the info objects
+  vtkInformation* outInfo = outputVector->GetInformationObject(0);
+
+  // Set extent
+  int frameSize[2];
+  GetFrameSize(frameSize);
+  int extent[6] = {0, frameSize[0] - 1, 0, frameSize[1] - 1, 0, 0 };
+  outInfo->Set(vtkStreamingDemandDrivenPipeline::WHOLE_EXTENT(),extent,6);
+
+  // Set the origin and spacing. The video source provides raw pixel output, therefore the spacing is (1,1,1) and the origin is (0,0)
+  double spacing[3]={1,1,1};
+  outInfo->Set(vtkDataObject::SPACING(),spacing,3);
+  double origin[3]={0,0,0};
+  outInfo->Set(vtkDataObject::ORIGIN(),origin,3);
+
+  // Set default data type - unsigned char and number of components 1
+  vtkDataObject::SetPointDataActiveScalarInfo(outInfo, this->TrackedFrameList->GetTrackedFrame(0)->GetImageData()->GetVTKScalarPixelType(), 1);
+
+  return 1;
+}
+
+//----------------------------------------------------------------------------
+int vtkDataCollectorFile::RequestData(vtkInformation *vtkNotUsed(request), vtkInformationVector **vtkNotUsed(inputVector), vtkInformationVector *vtkNotUsed(outputVector))
 {
   //LOG_TRACE("vtkDataCollectorFile::RequestData");
 
-  vtkInformation *outInfo = outputVector->GetInformationObject(0);
-  vtkImageData *outData = vtkImageData::SafeDownCast( outInfo->Get(vtkDataObject::DATA_OBJECT()) );
+  vtkImageData *outData = this->AllocateOutputData(this->GetOutput());
 
   if (this->TrackedFrameList == NULL || this->TrackedFrameList->GetNumberOfTrackedFrames() < 1)
   {

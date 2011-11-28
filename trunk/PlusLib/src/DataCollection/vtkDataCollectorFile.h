@@ -8,7 +8,7 @@
 #define __vtkDataCollectorFile_h
 
 #include "vtkDataCollector.h"
-//#include "vtkImageData.h"
+#include "vtkImageData.h" //TODO
 
 /*!
   \class vtkDataCollectorFile
@@ -107,8 +107,11 @@ protected:
   /*! Get index of tracked frame in the loaded tracked frame list that corresponds to a given timestamp */
   PlusStatus GetTrackedFrameIndexForTimestamp(double aTimestamp, int &aIndex);
 
-  /*! This is called by the superclass. */
+  /*! Prepares output data. This is called by the superclass */
   virtual int RequestData(vtkInformation *request, vtkInformationVector** inputVector, vtkInformationVector* outputVector);
+
+  /*! This method returns the largest data that can be generated. This is called by the superclass */
+  virtual int RequestInformation(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
 
 protected:
   /*! Set tracked frame list */
@@ -122,14 +125,9 @@ protected:
 	vtkGetStringMacro(SequenceMetafileName);
 
   /*! Set replay enabled flag */
-	vtkGetMacro(ReplayEnabled, bool);
-  /*! Get replay enabled flag */
 	vtkSetMacro(ReplayEnabled, bool);
-
-  /*! Set output image data */
-	//vtkGetObjectMacro(OutputImageData, vtkImageData);
-  /*! Get output image data */
-	//vtkSetObjectMacro(OutputImageData, vtkImageData);
+  /*! Get replay enabled flag */
+	vtkGetMacro(ReplayEnabled, bool);
 
 protected:
   vtkDataCollectorFile();
@@ -156,9 +154,6 @@ protected:
 
   /*! Index of last accessed (returned) tracked frame */
   int                   LastAccessedFrameIndex;
-
-  /*! Output image data */
-  //vtkImageData*         OutputImageData;
 
 private:
   vtkDataCollectorFile(const vtkDataCollectorFile&);
