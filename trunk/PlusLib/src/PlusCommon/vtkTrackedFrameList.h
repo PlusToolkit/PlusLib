@@ -87,6 +87,9 @@ public:
   /*! Get the list of the name of all custom frame fields */
   void GetCustomFrameFieldNameList(std::vector<std::string> &fieldNames);
 
+  /*! Get the list of the transform name of all custom frame transforms*/
+  void GetCustomFrameTransformNameList(std::vector<PlusTransformName> &transformNames); 
+
   /*! Get tracked frame size in pixel. Returns: int[2].  */
   int* GetFrameSize(); 
 

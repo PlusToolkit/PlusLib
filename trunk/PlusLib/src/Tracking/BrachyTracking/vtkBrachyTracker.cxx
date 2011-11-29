@@ -564,71 +564,66 @@ PlusStatus vtkBrachyTracker::InitializeStepper( std::string &calibMsg )
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkBrachyTracker::GetTrackerToolBufferStringList(double timestamp, 
-                                                            std::map<std::string, std::string> &toolsBufferMatrices, 
-                                                            std::map<std::string, std::string> &toolsStatuses,
-                                                            bool calibratedTransform /*= false*/)
+PlusStatus vtkBrachyTracker::GetAllTransforms(double timestamp, TrackedFrame* aTrackedFrame )
 {
-  toolsBufferMatrices.clear(); 
-  toolsStatuses.clear(); 
 
   // PROBEHOME_TO_PROBE_TRANSFORM
   TrackerStatus probehome2probeStatus = TR_OK; 
   vtkSmartPointer<vtkMatrix4x4> probehome2probeMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
-  if ( this->GetProbeHomeToProbeTransform(timestamp, probehome2probeMatrix, probehome2probeStatus, calibratedTransform) != PLUS_SUCCESS )
+  if ( this->GetProbeHomeToProbeTransform(timestamp, probehome2probeMatrix, probehome2probeStatus) != PLUS_SUCCESS )
   { 
     LOG_ERROR("Failed to get probe home to probe transform from buffer!"); 
     return PLUS_FAIL; 
   }
-
-  std::ostringstream strProbeHomeToProbeTransform; 
-  for ( int r = 0; r < 4; ++r )
-  {
-    for ( int c = 0; c < 4; ++c )
-    {
-      strProbeHomeToProbeTransform << probehome2probeMatrix->GetElement(r,c) << " ";
-    }
-  }
-
+  
   PlusTransformName probeToReferenceTransformName(this->GetBrachyToolName(PROBEHOME_TO_PROBE_TRANSFORM), this->ToolReferenceFrameName ); 
-  std::string probeTransformToolName; 
-  if ( probeToReferenceTransformName.GetTransformName(probeTransformToolName) != PLUS_SUCCESS )
+  if ( !probeToReferenceTransformName.IsValid())
   {
-    LOG_ERROR("Invalid tranform name!"); 
+    LOG_ERROR("Invalid probe to reference tranform name!"); 
     return PLUS_FAIL; 
   }
 
-  toolsBufferMatrices[ probeTransformToolName ] = strProbeHomeToProbeTransform.str(); 
-  toolsStatuses[ probeTransformToolName ] = vtkTracker::ConvertTrackerStatusToString(probehome2probeStatus); 
+  if ( aTrackedFrame->SetCustomFrameTransform(probeToReferenceTransformName, probehome2probeMatrix) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to set transform for tool " << this->GetBrachyToolName(PROBEHOME_TO_PROBE_TRANSFORM) ); 
+    return PLUS_FAIL; 
+  }
+
+  if ( aTrackedFrame->SetCustomFrameTransformStatus(probeToReferenceTransformName, vtkTracker::ConvertTrackerStatusToString(probehome2probeStatus) ) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to set transform status for tool " << this->GetBrachyToolName(PROBEHOME_TO_PROBE_TRANSFORM) ); 
+    return PLUS_FAIL; 
+  }
+
 
   // TEMPLATEHOME_TO_TEMPLATE_TRANSFORM
   TrackerStatus templhome2templStatus = TR_OK; 
   vtkSmartPointer<vtkMatrix4x4> templhome2templMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-  if ( this->GetTemplateHomeToTemplateTransform(timestamp, templhome2templMatrix, templhome2templStatus, calibratedTransform) != PLUS_SUCCESS )
+  if ( this->GetTemplateHomeToTemplateTransform(timestamp, templhome2templMatrix, templhome2templStatus ) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to get template home to template transform from buffer!"); 
     return PLUS_FAIL; 
   }
 
-  std::ostringstream strTemplHomeToTemplTransform; 
-  for ( int r = 0; r < 4; ++r )
-  {
-    for ( int c = 0; c < 4; ++c )
-    {
-      strTemplHomeToTemplTransform << templhome2templMatrix->GetElement(r,c) << " ";
-    }
-  }
-
   PlusTransformName templateToReferenceTransformName(this->GetBrachyToolName(TEMPLATEHOME_TO_TEMPLATE_TRANSFORM), this->ToolReferenceFrameName ); 
-  std::string templateTransformToolName; 
-  if ( templateToReferenceTransformName.GetTransformName(templateTransformToolName) != PLUS_SUCCESS )
+  if ( !templateToReferenceTransformName.IsValid())
   {
-    LOG_ERROR("Invalid tranform name!"); 
+    LOG_ERROR("Invalid template to reference tranform name!"); 
     return PLUS_FAIL; 
   }
 
-  toolsBufferMatrices[ templateTransformToolName ] = strTemplHomeToTemplTransform.str(); 
-  toolsStatuses[ templateTransformToolName ] = vtkTracker::ConvertTrackerStatusToString(templhome2templStatus); 
+  if ( aTrackedFrame->SetCustomFrameTransform(templateToReferenceTransformName, templhome2templMatrix) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to set transform for tool " << this->GetBrachyToolName(TEMPLATEHOME_TO_TEMPLATE_TRANSFORM) ); 
+    return PLUS_FAIL;  
+  }
+
+  if ( aTrackedFrame->SetCustomFrameTransformStatus(templateToReferenceTransformName, vtkTracker::ConvertTrackerStatusToString(templhome2templStatus) ) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to set transform status for tool " << this->GetBrachyToolName(TEMPLATEHOME_TO_TEMPLATE_TRANSFORM) ); 
+    return PLUS_FAIL;  
+  }
+
 
   // RAW_ENCODER_VALUES
   TrackerStatus rawEncoderValuesStatus = TR_OK; 
@@ -639,25 +634,24 @@ PlusStatus vtkBrachyTracker::GetTrackerToolBufferStringList(double timestamp,
     return PLUS_FAIL; 
   }
 
-  std::ostringstream strRawEncoderValuesTransform; 
-  for ( int r = 0; r < 4; ++r )
+  PlusTransformName encoderToReferenceTransformName(this->GetBrachyToolName(RAW_ENCODER_VALUES), this->ToolReferenceFrameName ); 
+  if ( !encoderToReferenceTransformName.IsValid())
   {
-    for ( int c = 0; c < 4; ++c )
-    {
-      strRawEncoderValuesTransform << rawEncoderValuesMatrix->GetElement(r,c) << " ";
-    }
-  }
-
-  PlusTransformName encoderToReferenceTransformName(this->GetBrachyToolName(TEMPLATEHOME_TO_TEMPLATE_TRANSFORM), this->ToolReferenceFrameName ); 
-  std::string encoderTransformToolName; 
-  if ( encoderToReferenceTransformName.GetTransformName(encoderTransformToolName) != PLUS_SUCCESS )
-  {
-    LOG_ERROR("Invalid tranform name!"); 
+    LOG_ERROR("Invalid encoder to reference tranform name!"); 
     return PLUS_FAIL; 
   }
 
-  toolsBufferMatrices[ encoderTransformToolName ] = strRawEncoderValuesTransform.str(); 
-  toolsStatuses[ encoderTransformToolName ] = vtkTracker::ConvertTrackerStatusToString(rawEncoderValuesStatus); 
+  if ( aTrackedFrame->SetCustomFrameTransform(encoderToReferenceTransformName, rawEncoderValuesMatrix) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to set transform for tool " << this->GetBrachyToolName(RAW_ENCODER_VALUES) ); 
+    return PLUS_FAIL; 
+  }
+
+  if ( aTrackedFrame->SetCustomFrameTransformStatus(encoderToReferenceTransformName, vtkTracker::ConvertTrackerStatusToString(rawEncoderValuesStatus) ) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to set transform status for tool " << this->GetBrachyToolName(RAW_ENCODER_VALUES) ); 
+    return PLUS_FAIL; 
+  }
 
   // Get value for PROBE_POSITION, PROBE_ROTATION, TEMPLATE_POSITION tools
   TrackerStatus encoderStatus = TR_OK; 
@@ -671,20 +665,17 @@ PlusStatus vtkBrachyTracker::GetTrackerToolBufferStringList(double timestamp,
   // PROBE_POSITION
   std::ostringstream strProbePos; 
   strProbePos << probePos; 
-  toolsBufferMatrices[ "ProbePosition" ] = strProbePos.str(); 
-  toolsStatuses[ "ProbePosition" ] = vtkTracker::ConvertTrackerStatusToString(encoderStatus); 
+  aTrackedFrame->SetCustomFrameField("ProbePosition", strProbePos.str()); 
 
   // PROBE_ROTATION
   std::ostringstream strProbeRot; 
   strProbeRot << probeRot; 
-  toolsBufferMatrices[ "ProbeRotation" ] = strProbeRot.str(); 
-  toolsStatuses[ "ProbeRotation" ] = vtkTracker::ConvertTrackerStatusToString(encoderStatus); 
+  aTrackedFrame->SetCustomFrameField("ProbeRotation", strProbeRot.str()); 
 
   // TEMPLATE_POSITION
   std::ostringstream strTemplatePos; 
   strTemplatePos << templatePos; 
-  toolsBufferMatrices[ "TemplatePosition" ] = strTemplatePos.str(); 
-  toolsStatuses[ "TemplatePosition" ] = vtkTracker::ConvertTrackerStatusToString(encoderStatus); 
+  aTrackedFrame->SetCustomFrameField("TemplatePosition", strTemplatePos.str()); 
 
   return PLUS_SUCCESS; 
 }

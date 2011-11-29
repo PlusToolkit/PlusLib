@@ -62,11 +62,8 @@ public:
   /*! Initialize the stepper with the factory specified init process. */
   PlusStatus InitializeStepper( std::string &calibMsg );
 
-  /*! Get the buffer element values for each tool in a string list by timestamp */
-  virtual PlusStatus GetTrackerToolBufferStringList(double timestamp, 
-    std::map<std::string, std::string> &toolsBufferMatrices, 
-    std::map<std::string, std::string> &toolsStatuses,
-    bool calibratedTransform = false); 
+   /*! Get all transforms from buffer element values of each tool by timestamp. */
+  virtual PlusStatus GetAllTransforms(double timestamp, TrackedFrame* aTrackedFrame ); 
 
   /*! Get the calibration matrices for all tools in a string */
   virtual PlusStatus GetTrackerToolCalibrationMatrixStringList(std::map<std::string, std::string> &toolsCalibrationMatrices); 

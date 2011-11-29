@@ -128,8 +128,41 @@ vtkTransformRepository::TransformInfo* vtkTransformRepository::GetOriginalTransf
 //----------------------------------------------------------------------------
 PlusStatus vtkTransformRepository::SetTransforms(TrackedFrame& trackedFrame)
 {
-  LOG_WARNING("Not yet implemented!"); 
-  return PLUS_SUCCESS; 
+  std::vector<PlusTransformName> transformNames; 
+  trackedFrame.GetCustomFrameTransformNameList(transformNames); 
+
+  int numberOfErrors(0); 
+
+  for ( std::vector<PlusTransformName>::iterator it = transformNames.begin(); it != transformNames.end(); ++it)
+  {
+    std::string trName; 
+    it->GetTransformName(trName); 
+
+    vtkSmartPointer<vtkMatrix4x4> matrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
+    if ( trackedFrame.GetCustomFrameTransform( *it, matrix) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Failed to get custom frame transform from tracked frame: " << trName ); 
+      numberOfErrors++; 
+      continue; 
+    }
+
+    TrackerStatus status = TR_MISSING; 
+    if ( trackedFrame.GetCustomFrameTransformStatus( *it, status) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Failed to get custom frame transform from tracked frame: " << trName ); 
+      numberOfErrors++; 
+      continue; 
+    }
+
+    if ( this->SetTransform(*it, matrix, status == TR_OK ) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Failed to set transform to repository: " << trName ); 
+      numberOfErrors++; 
+      continue; 
+    }
+  }
+  
+  return (numberOfErrors == 0 ? PLUS_SUCCESS : PLUS_FAIL ); 
 }
 
 //----------------------------------------------------------------------------
