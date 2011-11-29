@@ -7,7 +7,6 @@ See License.txt for details.
 #include "vtkDataCollectorHardwareDevice.h"
 
 #include "vtkXMLUtilities.h"
-#include "vtkTrackerTool.h"
 #include "vtkInformationVector.h"
 #include "vtkInformation.h"
 #include "vtkXMLDataElement.h"
@@ -17,6 +16,7 @@ See License.txt for details.
 #include "vtkTrackedFrameList.h"
 #include "vtkDataCollectorSynchronizer.h"
 #include "vtkTracker.h"
+#include "vtkTrackerTool.h"
 #include "vtkPlusVideoSource.h"
 
 //----------------------------------------------------------------------------
@@ -904,30 +904,31 @@ PlusStatus vtkDataCollectorHardwareDevice::GetFrameByTime(double time, PlusVideo
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkDataCollectorHardwareDevice::GetTransformWithTimestamp(vtkMatrix4x4* toolTransMatrix, double& transformTimestamp, TrackerStatus& status, const char* aToolName, bool calibratedTransform /*= false*/ )
+PlusStatus vtkDataCollectorHardwareDevice::GetTransformWithTimestamp(vtkMatrix4x4* toolTransMatrix, double& transformTimestamp, TrackerStatus& status, PlusTransformName transformName )
 {
-  LOG_TRACE("vtkDataCollectorHardwareDevice::GetTransformWithTimestamp"); 
+  LOG_TRACE("vtkDataCollectorHardwareDevice::GetTransformWithTimestamp");
+
   if ( this->GetTracker() == NULL ) 
   {	
     LOG_ERROR("Unable to get transform - there is no tracker selected!"); 
     return PLUS_FAIL; 
   }
 
-  if ( aToolName == NULL )
+  if ( toolTransMatrix == NULL )
   {
-    LOG_ERROR("Unable to get transform - tool name is NULL!"); 
+    LOG_ERROR("Unable to get transform - tool transform matrix is NULL!"); 
     return PLUS_FAIL; 
   }
 
   vtkTrackerTool* tool = NULL; 
-  if ( this->GetTracker()->GetTool(aToolName, tool) != PLUS_SUCCESS)
+  if ( this->GetTracker()->GetTool(transformName.From().c_str(), tool) != PLUS_SUCCESS)
   {
-    LOG_ERROR("Unable to get transform for tool " << aToolName); 
+    LOG_ERROR("Unable to get transform for tool " << transformName.From()); 
     return PLUS_FAIL; 
   }  
 
   TrackerBufferItem bufferItem; 
-  if ( tool->GetBuffer()->GetLatestTrackerBufferItem(&bufferItem, calibratedTransform) != ITEM_OK )
+  if ( tool->GetBuffer()->GetLatestTrackerBufferItem(&bufferItem) != ITEM_OK )
   { 
     LOG_ERROR("Failed to get latest tracker buffer item from buffer!"); 
     return PLUS_FAIL; 
@@ -947,7 +948,7 @@ PlusStatus vtkDataCollectorHardwareDevice::GetTransformWithTimestamp(vtkMatrix4x
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkDataCollectorHardwareDevice::GetTransformByTimestamp(vtkMatrix4x4* toolTransMatrix, TrackerStatus& status, double synchronizedTime, const char* aToolName, bool calibratedTransform /*= false*/)
+PlusStatus vtkDataCollectorHardwareDevice::GetTransformByTimestamp(vtkMatrix4x4* toolTransMatrix, TrackerStatus& status, double synchronizedTime, PlusTransformName transformName)
 {
   LOG_TRACE("vtkDataCollectorHardwareDevice::GetTransformByTimestamp"); 
   if ( this->GetTracker() == NULL ) 
@@ -956,21 +957,15 @@ PlusStatus vtkDataCollectorHardwareDevice::GetTransformByTimestamp(vtkMatrix4x4*
     return PLUS_FAIL; 
   }
 
-  if ( aToolName == NULL )
-  {
-    LOG_ERROR("Unable to get transform - tool name is NULL!"); 
-    return PLUS_FAIL; 
-  }
-
   vtkTrackerTool* tool = NULL; 
-  if ( this->GetTracker()->GetTool(aToolName, tool) != PLUS_SUCCESS )
+  if ( this->GetTracker()->GetTool(transformName.From().c_str(), tool) != PLUS_SUCCESS )
   {
-    LOG_ERROR("Unable to get transform for tool " << aToolName); 
+    LOG_ERROR("Unable to get transform for tool " << transformName.From()); 
     return PLUS_FAIL; 
   }
 
   TrackerBufferItem bufferItem; 
-  if ( tool->GetBuffer()->GetTrackerBufferItemFromTime(synchronizedTime, &bufferItem, vtkTrackerBuffer::INTERPOLATED, calibratedTransform) != ITEM_OK )
+  if ( tool->GetBuffer()->GetTrackerBufferItemFromTime(synchronizedTime, &bufferItem, vtkTrackerBuffer::INTERPOLATED) != ITEM_OK )
   { 
     LOG_ERROR("Failed to get tracker buffer item from time: " << std::fixed << synchronizedTime); 
     return PLUS_FAIL; 
@@ -988,33 +983,32 @@ PlusStatus vtkDataCollectorHardwareDevice::GetTransformByTimestamp(vtkMatrix4x4*
 }
 
 //----------------------------------------------------------------------------
-double vtkDataCollectorHardwareDevice::GetTransformsByTimeInterval(std::vector<vtkMatrix4x4*> &toolTransMatrixVector, std::vector<TrackerStatus> &statusVector, double startTime, double endTime, const char* aToolName, bool calibratedTransform /*= false*/)
+double vtkDataCollectorHardwareDevice::GetTransformsByTimeInterval(std::vector<vtkMatrix4x4*> &toolTransMatrixVector, std::vector<TrackerStatus> &statusVector, double startTime, double endTime, PlusTransformName transformName)
 {
   //LOG_TRACE("vtkDataCollectorHardwareDevice::GetTransformsByTimeInterval"); 
+
   if ( this->GetTracker() == NULL ) 
   {	
     LOG_ERROR("Unable to get transforms - there is no tracker selected!"); 
     return -1.0; 
   }
 
-  for (std::vector<vtkMatrix4x4*>::iterator it = toolTransMatrixVector.begin(); it != toolTransMatrixVector.end(); ++it) {
-    if ((*it) != NULL) {
+  for (std::vector<vtkMatrix4x4*>::iterator it = toolTransMatrixVector.begin(); it != toolTransMatrixVector.end(); ++it)
+  {
+    if ((*it) != NULL)
+    {
       (*it)->Delete();
     }
   }
   toolTransMatrixVector.clear();
   statusVector.clear();
 
-  if ( aToolName == NULL )
-  {
-    LOG_ERROR("Unable to get transforms - tool name is NULL!"); 
-    return PLUS_FAIL; 
-  }
-
   vtkTrackerTool* tool = NULL; 
-  if ( this->GetTracker()->GetTool(aToolName, tool) != PLUS_SUCCESS )
+  if ( this->GetTracker()->GetTool(transformName.From().c_str(), tool) != PLUS_SUCCESS )
   {
-    LOG_ERROR("Unable to get transforms for tool " << aToolName); 
+    std::string transformNameStr;
+    transformName.GetTransformName(transformNameStr);
+    LOG_ERROR("Unable to get transforms for tool " << transformNameStr.c_str()); 
     return PLUS_FAIL; 
   }
 
@@ -1048,7 +1042,7 @@ double vtkDataCollectorHardwareDevice::GetTransformsByTimeInterval(std::vector<v
   for (int i=frameBufferStartIndex; i<=frameBufferEndIndex; ++i) 
   {
     TrackerBufferItem bufferItem; 
-    if ( buffer->GetTrackerBufferItem(i, &bufferItem, calibratedTransform) != ITEM_OK )
+    if ( buffer->GetTrackerBufferItem(i, &bufferItem) != ITEM_OK )
     {
       LOG_ERROR("Failed to get tracker buffer item with UID: " << i ); 
       continue; 
@@ -1069,7 +1063,7 @@ double vtkDataCollectorHardwareDevice::GetTransformsByTimeInterval(std::vector<v
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkDataCollectorHardwareDevice::GetTrackedFrame(vtkImageData* frame, vtkMatrix4x4* toolTransMatrix, TrackerStatus &status, double& synchronizedTime, const char* aToolName, bool calibratedTransform /*= false*/)
+PlusStatus vtkDataCollectorHardwareDevice::GetTrackedFrame(vtkImageData* frame, vtkMatrix4x4* toolTransMatrix, TrackerStatus &status, double& synchronizedTime, PlusTransformName transformName)
 {
   //LOG_TRACE("vtkDataCollectorHardwareDevice::GetTrackedFrame - vtkImageData"); 
 
@@ -1093,7 +1087,7 @@ PlusStatus vtkDataCollectorHardwareDevice::GetTrackedFrame(vtkImageData* frame, 
 
   if ( this->GetTrackingEnabled() )
   {
-    if ( this->GetTransformByTimestamp( toolTransMatrix, status, synchronizedTime, aToolName, calibratedTransform) != PLUS_SUCCESS )
+    if ( this->GetTransformByTimestamp( toolTransMatrix, status, synchronizedTime, transformName) != PLUS_SUCCESS )
     {
       LOG_ERROR("Failed to get transform bt timestamp: " << std::fixed << synchronizedTime ); 
       return PLUS_FAIL; 
@@ -1436,7 +1430,7 @@ PlusStatus vtkDataCollectorHardwareDevice::GetTrackedFrameListSampled(double& aT
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkDataCollectorHardwareDevice::GetTrackedFrame(TrackedFrame* trackedFrame, bool calibratedTransform /*= false*/)
+PlusStatus vtkDataCollectorHardwareDevice::GetTrackedFrame(TrackedFrame* trackedFrame)
 {
   //LOG_TRACE("vtkDataCollectorHardwareDevice::GetTrackedFrame - TrackedFrame"); 
 
@@ -1447,11 +1441,11 @@ PlusStatus vtkDataCollectorHardwareDevice::GetTrackedFrame(TrackedFrame* tracked
     return PLUS_FAIL;
   }
 
-  return this->GetTrackedFrameByTime(mostRecentFrameTimestamp, trackedFrame, calibratedTransform); 
+  return this->GetTrackedFrameByTime(mostRecentFrameTimestamp, trackedFrame); 
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkDataCollectorHardwareDevice::GetTrackedFrameByTime(double time, TrackedFrame* trackedFrame, bool calibratedTransform /*= false*/)
+PlusStatus vtkDataCollectorHardwareDevice::GetTrackedFrameByTime(double time, TrackedFrame* trackedFrame)
 {
   //LOG_TRACE("vtkDataCollectorHardwareDevice::GetTrackedFrameByTime - TrackedFrame");
   double synchronizedTime(0); 
@@ -1497,9 +1491,10 @@ PlusStatus vtkDataCollectorHardwareDevice::GetTrackedFrameByTime(double time, Tr
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkDataCollectorHardwareDevice::GetTrackedFrameByTime(double time, vtkImageData* frame, std::vector<vtkMatrix4x4*> &toolTransforms, std::vector<std::string> &toolTransformNames, std::vector<TrackerStatus> &status, double& synchronizedTime, bool calibratedTransform /*= false*/)
+PlusStatus vtkDataCollectorHardwareDevice::GetTrackedFrameByTime(double time, vtkImageData* frame, std::vector<vtkMatrix4x4*> &toolTransforms, std::vector<PlusTransformName> &toolTransformNames, std::vector<TrackerStatus> &status, double& synchronizedTime)
 {
   //LOG_TRACE("vtkDataCollectorHardwareDevice::GetTrackedFrameByTime - vtkImageData");
+
   toolTransforms.clear(); 
   toolTransformNames.clear(); 
   status.clear(); 
@@ -1512,18 +1507,21 @@ PlusStatus vtkDataCollectorHardwareDevice::GetTrackedFrameByTime(double time, vt
 
   if ( this->GetTracker() != NULL )
   {
-    for ( ToolIteratorType it = this->GetTracker()->GetToolIteratorBegin(); it != this->GetTracker()->GetToolIteratorEnd(); ++it)
+    std::string toolReferenceFrameName( this->GetTracker()->GetToolReferenceFrameName() );
+
+    for ( ToolIteratorType it = this->GetTracker()->GetToolIteratorBegin(); it != this->GetTracker()->GetToolIteratorEnd(); ++it )
     {
       TrackerStatus trackerStatus = TR_OK; 
-      const char* toolName = it->second->GetToolName(); 
+      std::string toolName( it->second->GetToolName() );
+
+      PlusTransformName transformName(toolName, toolReferenceFrameName);
 
       vtkSmartPointer<vtkMatrix4x4> toolTransMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
-      this->GetTransformByTimestamp( toolTransMatrix, trackerStatus, synchronizedTime, toolName, calibratedTransform); 
+      this->GetTransformByTimestamp( toolTransMatrix, trackerStatus, synchronizedTime, transformName); 
 
       toolTransMatrix->Register(NULL); 
       toolTransforms.push_back(toolTransMatrix); 
 
-      std::string transformName( toolName ); 
       toolTransformNames.push_back(transformName); 
 
       status.push_back(trackerStatus); 

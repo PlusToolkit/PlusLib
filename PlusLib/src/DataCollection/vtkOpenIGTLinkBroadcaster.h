@@ -16,8 +16,7 @@
 #include "igtlPositionMessage.h"
 #include "igtlClientSocket.h"
 
-#include "vtkDataCollectorHardwareDevice.h"
-#include "vtkTrackedFrameList.h"
+#include "vtkDataCollector.h"
 
 
 /*!

@@ -12,6 +12,7 @@ See License.txt for details.
 #include "vtkInformationVector.h"
 #include "vtkInformation.h"
 #include "vtkImageData.h"
+#include "vtkTrackerTool.h"
 #include "vtkStreamingDemandDrivenPipeline.h"
 
 //----------------------------------------------------------------------------
@@ -19,13 +20,13 @@ See License.txt for details.
 vtkCxxRevisionMacro(vtkDataCollectorFile, "$Revision: 1.0 $");
 vtkStandardNewMacro(vtkDataCollectorFile);
 
-vtkCxxSetObjectMacro(vtkDataCollectorFile, TrackedFrameList, vtkTrackedFrameList);
+vtkCxxSetObjectMacro(vtkDataCollectorFile, TrackedFrameBuffer, vtkTrackedFrameList);
 
 //----------------------------------------------------------------------------
 vtkDataCollectorFile::vtkDataCollectorFile()
   : vtkDataCollector()
 {	
-  this->TrackedFrameList = NULL;
+  this->TrackedFrameBuffer = NULL;
   this->SequenceMetafileName = NULL;
   this->StartTime = 0.0;
   this->ReplayEnabled = false; 
@@ -39,7 +40,7 @@ vtkDataCollectorFile::vtkDataCollectorFile()
 //----------------------------------------------------------------------------
 vtkDataCollectorFile::~vtkDataCollectorFile()
 {
-  this->SetTrackedFrameList(NULL);
+  this->SetTrackedFrameBuffer(NULL);
 }
 
 //----------------------------------------------------------------------------
@@ -47,10 +48,10 @@ void vtkDataCollectorFile::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os,indent);
 
-  if ( this->GetTrackedFrameList() != NULL )
+  if ( this->GetTrackedFrameBuffer() != NULL )
   {
-    os << indent << "TrackedFrameList: " << std::endl; 
-    this->TrackedFrameList->PrintSelf(os, indent); 
+    os << indent << "TrackedFrameBuffer: " << std::endl; 
+    this->TrackedFrameBuffer->PrintSelf(os, indent); 
   }
 }
 
@@ -59,27 +60,27 @@ PlusStatus vtkDataCollectorFile::Connect()
 {
   LOG_TRACE("vtkDataCollectorFile::Connect"); 
 
-  vtkSmartPointer<vtkTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New(); 
+  vtkSmartPointer<vtkTrackedFrameList> trackedFrameBuffer = vtkSmartPointer<vtkTrackedFrameList>::New(); 
 
   // Read metafile
-  if ( trackedFrameList->ReadFromSequenceMetafile(this->SequenceMetafileName) != PLUS_SUCCESS )
+  if ( trackedFrameBuffer->ReadFromSequenceMetafile(this->SequenceMetafileName) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to read sequence metafile!"); 
     return PLUS_FAIL; 
   }
 
-  if ( trackedFrameList->GetNumberOfTrackedFrames() < 1 ) 
+  if ( trackedFrameBuffer->GetNumberOfTrackedFrames() < 1 ) 
   {
     LOG_ERROR("Failed to connect - there is no frame in the sequence metafile!"); 
     return PLUS_FAIL; 
   }
 
   // Set tracked frame list
-  this->SetTrackedFrameList(trackedFrameList);
+  this->SetTrackedFrameBuffer(trackedFrameBuffer);
 
   // Set oldest and most recent timestamps
-  this->FirstTimestamp = this->TrackedFrameList->GetTrackedFrame(0)->GetTimestamp();
-  this->LastTimestamp = this->TrackedFrameList->GetTrackedFrame(this->TrackedFrameList->GetNumberOfTrackedFrames() - 1)->GetTimestamp();
+  this->FirstTimestamp = this->TrackedFrameBuffer->GetTrackedFrame(0)->GetTimestamp();
+  this->LastTimestamp = this->TrackedFrameBuffer->GetTrackedFrame(this->TrackedFrameBuffer->GetNumberOfTrackedFrames() - 1)->GetTimestamp();
 
   if (this->FirstTimestamp >= this->LastTimestamp)
   {
@@ -105,7 +106,7 @@ PlusStatus vtkDataCollectorFile::Disconnect()
     return PLUS_SUCCESS; 
   }
 
-  this->SetTrackedFrameList(NULL); 
+  this->SetTrackedFrameBuffer(NULL); 
   this->FirstTimestamp = 0.0;
   this->LastTimestamp = 0.0;
 
@@ -119,7 +120,7 @@ PlusStatus vtkDataCollectorFile::Start()
 {
   LOG_TRACE("vtkDataCollectorFile::Start"); 
 
-  if (this->TrackedFrameList == NULL)
+  if (this->TrackedFrameBuffer == NULL)
   {
     LOG_ERROR("Data collection cannot be started because tracked frame list have not been initialized properly!");
     return PLUS_FAIL;
@@ -146,7 +147,7 @@ PlusStatus vtkDataCollectorFile::Synchronize( const char* bufferOutputFolder /*=
 {
   LOG_TRACE("vtkDataCollectorFile::Synchronize"); 
 
-  LOG_ERROR("Synchronization of simulated data collection is not possible!");
+  LOG_WARNING("Synchronization of simulated data collection is not possible!");
 
   return PLUS_FAIL;
 }
@@ -192,13 +193,39 @@ PlusStatus vtkDataCollectorFile::GetMostRecentTimestamp(double &ts)
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkDataCollectorFile::GetTransformWithTimestamp(vtkMatrix4x4* toolTransMatrix, double& transformTimestamp, TrackerStatus& status, const char* aToolName, bool calibratedTransform /*= false*/ )
+PlusStatus vtkDataCollectorFile::GetTransformWithTimestamp(vtkMatrix4x4* toolTransMatrix, double& transformTimestamp, TrackerStatus& status, PlusTransformName transformName)
 {
   LOG_TRACE("vtkDataCollectorFile::GetTransformWithTimestamp"); 
 
-  LOG_ERROR("Not implemented!");
+  if ( toolTransMatrix == NULL )
+  {
+    LOG_ERROR("Unable to get transform - tool transform matrix is NULL!"); 
+    return PLUS_FAIL; 
+  }
 
-  return PLUS_FAIL;
+  // Get transforms
+  TrackedFrame trackedFrame;
+  GetTrackedFrame(&trackedFrame);
+
+  if (trackedFrame.GetCustomFrameTransform(transformName, toolTransMatrix) != PLUS_SUCCESS )
+  {
+    std::string transformNameStr;
+    transformName.GetTransformName(transformNameStr);
+    LOG_ERROR("Failed to get custom frame transform from tracked frame: " << transformNameStr );
+    return PLUS_FAIL;
+  }
+
+  if (trackedFrame.GetCustomFrameTransformStatus(transformName, status) != PLUS_SUCCESS)
+  {
+    std::string transformNameStr;
+    transformName.GetTransformName(transformNameStr);
+    LOG_ERROR("Unable to get transform status for transform" << transformNameStr);
+    return PLUS_FAIL;
+  }
+
+  transformTimestamp = trackedFrame.GetTimestamp();
+
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
@@ -242,7 +269,7 @@ PlusStatus vtkDataCollectorFile::GetTrackedFrameList(double& aTimestamp, vtkTrac
     // Jump to last if begin reached
     if (i < 0)
     {
-      i = this->TrackedFrameList->GetNumberOfTrackedFrames() - 1;
+      i = this->TrackedFrameBuffer->GetNumberOfTrackedFrames() - 1;
     }
 
     // Add index to list
@@ -254,7 +281,7 @@ PlusStatus vtkDataCollectorFile::GetTrackedFrameList(double& aTimestamp, vtkTrac
   // Add tracked frames to the list 
   for (std::deque<int>::iterator it = frameIndicesToAdd.begin(); it != frameIndicesToAdd.end(); ++it)
   {
-    if ( aTrackedFrameList->AddTrackedFrame(this->TrackedFrameList->GetTrackedFrame(*it), vtkTrackedFrameList::SKIP_INVALID_FRAME) != PLUS_SUCCESS )
+    if ( aTrackedFrameList->AddTrackedFrame(this->TrackedFrameBuffer->GetTrackedFrame(*it), vtkTrackedFrameList::SKIP_INVALID_FRAME) != PLUS_SUCCESS )
     {
       LOG_ERROR("Unable to add tracked frame to the list!" ); 
       return PLUS_FAIL; 
@@ -263,7 +290,7 @@ PlusStatus vtkDataCollectorFile::GetTrackedFrameList(double& aTimestamp, vtkTrac
 
   int numberOfFramesSinceTimestamp = (indexOfFrameBeforeTheFirstToReturn < indexOfLastFrameToReturn)
                                     ? (indexOfLastFrameToReturn - indexOfFrameBeforeTheFirstToReturn)
-                                    : (this->TrackedFrameList->GetNumberOfTrackedFrames() - indexOfLastFrameToReturn + indexOfFrameBeforeTheFirstToReturn);
+                                    : (this->TrackedFrameBuffer->GetNumberOfTrackedFrames() - indexOfLastFrameToReturn + indexOfFrameBeforeTheFirstToReturn);
   LOG_DEBUG("Number of added frames: " << frameIndicesToAdd.size() << " out of " << numberOfFramesSinceTimestamp);
 
   this->LastAccessedFrameIndex = indexOfLastFrameToReturn;
@@ -317,7 +344,7 @@ PlusStatus vtkDataCollectorFile::GetTrackedFrameListSampled(double& aTimestamp, 
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkDataCollectorFile::GetTrackedFrame(TrackedFrame* trackedFrame, bool calibratedTransform /*= false*/)
+PlusStatus vtkDataCollectorFile::GetTrackedFrame(TrackedFrame* trackedFrame)
 {
   //LOG_TRACE("vtkDataCollectorFile::GetTrackedFrame"); 
 
@@ -351,7 +378,7 @@ PlusStatus vtkDataCollectorFile::GetTrackedFrameIndexForTimestamp(double aTimest
     // If timestamp is bigger than the timestamp of the last frame then return with the last frame index
     if (aTimestamp > this->LastTimestamp)
     {
-      aIndex = this->TrackedFrameList->GetNumberOfTrackedFrames() - 1;
+      aIndex = this->TrackedFrameBuffer->GetNumberOfTrackedFrames() - 1;
       return PLUS_SUCCESS;
     }
   }
@@ -365,16 +392,16 @@ PlusStatus vtkDataCollectorFile::GetTrackedFrameIndexForTimestamp(double aTimest
   aIndex = this->LastAccessedFrameIndex;
 
   // If requested timestamp is before the timestamp of the last accessed tracked frame then start from the beginning
-  if (aIndex >= 0 && aTimestamp < this->TrackedFrameList->GetTrackedFrame(aIndex)->GetTimestamp())
+  if (aIndex >= 0 && aTimestamp < this->TrackedFrameBuffer->GetTrackedFrame(aIndex)->GetTimestamp())
   {
     aIndex = -1;
   }
 
-  while (aTimestamp > this->TrackedFrameList->GetTrackedFrame(aIndex + 1)->GetTimestamp())
+  while (aTimestamp > this->TrackedFrameBuffer->GetTrackedFrame(aIndex + 1)->GetTimestamp())
   {
     aIndex++;
 
-    if (aIndex >= this->TrackedFrameList->GetNumberOfTrackedFrames())
+    if (aIndex >= this->TrackedFrameBuffer->GetNumberOfTrackedFrames())
     {
       LOG_ERROR("Error occurred when searching tracked frame index for timestamp!");
       return PLUS_FAIL;
@@ -385,7 +412,7 @@ PlusStatus vtkDataCollectorFile::GetTrackedFrameIndexForTimestamp(double aTimest
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkDataCollectorFile::GetTrackedFrameByTime(double aTimestamp, TrackedFrame* aTrackedFrame, bool calibratedTransform /*= false*/)
+PlusStatus vtkDataCollectorFile::GetTrackedFrameByTime(double aTimestamp, TrackedFrame* aTrackedFrame)
 {
   //LOG_TRACE("vtkDataCollectorFile::GetTrackedFrameByTime");
 
@@ -396,7 +423,7 @@ PlusStatus vtkDataCollectorFile::GetTrackedFrameByTime(double aTimestamp, Tracke
     return PLUS_FAIL;
   }
 
-  (*aTrackedFrame) = (*this->TrackedFrameList->GetTrackedFrame(index));
+  (*aTrackedFrame) = (*this->TrackedFrameBuffer->GetTrackedFrame(index));
 
   this->LastAccessedFrameIndex = index;
 
@@ -429,7 +456,7 @@ int vtkDataCollectorFile::RequestInformation(vtkInformation *vtkNotUsed(request)
   outInfo->Set(vtkDataObject::ORIGIN(),origin,3);
 
   // Set default data type - unsigned char and number of components 1
-  vtkDataObject::SetPointDataActiveScalarInfo(outInfo, this->TrackedFrameList->GetTrackedFrame(0)->GetImageData()->GetVTKScalarPixelType(), 1);
+  vtkDataObject::SetPointDataActiveScalarInfo(outInfo, this->TrackedFrameBuffer->GetTrackedFrame(0)->GetImageData()->GetVTKScalarPixelType(), 1);
 
   return 1;
 }
@@ -441,7 +468,7 @@ int vtkDataCollectorFile::RequestData(vtkInformation *vtkNotUsed(request), vtkIn
 
   vtkImageData *outData = this->AllocateOutputData(this->GetOutput());
 
-  if (this->TrackedFrameList == NULL || this->TrackedFrameList->GetNumberOfTrackedFrames() < 1)
+  if (this->TrackedFrameBuffer == NULL || this->TrackedFrameBuffer->GetNumberOfTrackedFrames() < 1)
   {
     int size[2] = {640, 480};
     outData->SetExtent( 0, size[0] -1, 0, size[1] - 1, 0, 0);
@@ -551,7 +578,7 @@ void vtkDataCollectorFile::SetTrackingOnly(bool trackingOnly)
 {
   LOG_TRACE("vtkDataCollectorFile::SetTrackingOnly");
 
-  LOG_ERROR("Tracking cannot be explicitly turned on or off in case of simulation mode!");
+  LOG_INFO("Tracking cannot be explicitly turned on or off in case of simulation mode!");
 }
 
 //------------------------------------------------------------------------------
@@ -559,27 +586,7 @@ void vtkDataCollectorFile::SetVideoOnly(bool videoOnly)
 {
   LOG_TRACE("vtkDataCollectorFile::SetVideoOnly");
 
-  LOG_ERROR("Video cannot be explicitly turned on or off in case of simulation mode!");
-}
-
-//------------------------------------------------------------------------------
-vtkPlusVideoSource* vtkDataCollectorFile::GetVideoSource()
-{
-  LOG_TRACE("vtkDataCollectorFile::GetVideoSource");
-
-  LOG_ERROR("No video source object in simulation mode!");
-
-  return NULL;
-}
-
-//------------------------------------------------------------------------------
-vtkTracker* vtkDataCollectorFile::GetTracker()
-{
-  LOG_TRACE("vtkDataCollectorFile::GetTracker");
-
-  LOG_ERROR("No tracker object in simulation mode!");
-
-  return NULL;
+  LOG_INFO("Video cannot be explicitly turned on or off in case of simulation mode!");
 }
 
 //------------------------------------------------------------------------------
@@ -587,7 +594,7 @@ void vtkDataCollectorFile::SetProgressBarUpdateCallbackFunction(ProgressBarUpdat
 {
   LOG_TRACE("vtkDataCollectorFile::SetProgressBarUpdateCallbackFunction");
 
-  LOG_ERROR("There is no update callback function in simulation mode!");
+  LOG_INFO("There is no update callback function in simulation mode!");
 }
 
 //------------------------------------------------------------------------------
@@ -601,7 +608,7 @@ void vtkDataCollectorFile::GetFrameSize(int aDim[2])
     return;
   }
 
-  this->TrackedFrameList->GetTrackedFrame(0)->GetFrameSize(aDim);
+  this->TrackedFrameBuffer->GetTrackedFrame(0)->GetFrameSize(aDim);
 }
 
 //------------------------------------------------------------------------------
@@ -617,7 +624,7 @@ PlusStatus vtkDataCollectorFile::GetFrameRate(double &aFrameRate)
 
   double loopTime = this->LastTimestamp - this->FirstTimestamp;
 
-  aFrameRate = (double)this->TrackedFrameList->GetNumberOfTrackedFrames() / loopTime;
+  aFrameRate = (double)this->TrackedFrameBuffer->GetNumberOfTrackedFrames() / loopTime;
 
   return PLUS_SUCCESS;
 }

@@ -11,7 +11,7 @@ See License.txt for details.
 #include "PlusConfigure.h"
 #include "vtksys/CommandLineArguments.hxx"
 #include "vtkSmartPointer.h"
-#include "vtkDataCollector.h"
+#include "vtkDataCollectorHardwareDevice.h"
 #include "vtkVideoBuffer.h"
 #include "vtkPlusVideoSource.h"
 #include "vtkXMLUtilities.h"
@@ -61,7 +61,7 @@ int main(int argc, char **argv)
 		exit(EXIT_FAILURE);
   }
 
-	vtkSmartPointer<vtkDataCollector> dataCollector = vtkSmartPointer<vtkDataCollector>::New(); 
+	vtkSmartPointer<vtkDataCollectorHardwareDevice> dataCollector = vtkSmartPointer<vtkDataCollectorHardwareDevice>::New(); 
   dataCollector->ReadConfiguration( configRootElement );
 	dataCollector->Connect(); 
 	dataCollector->Start();
