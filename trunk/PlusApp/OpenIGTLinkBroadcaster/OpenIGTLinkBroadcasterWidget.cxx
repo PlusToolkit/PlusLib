@@ -1,7 +1,7 @@
 
 #include "OpenIGTLinkBroadcasterWidget.h"
 
-#include "vtkDataCollectorHardwareDevice.h"
+#include "vtkDataCollector.h"
 #include "vtkOpenIGTLinkBroadcaster.h"
 #include "vtkSavedDataTracker.h"
 #include "vtkSavedDataVideoSource.h"
@@ -64,7 +64,7 @@ OpenIGTLinkBroadcasterWidget::~OpenIGTLinkBroadcasterWidget()
 
 
 
-void OpenIGTLinkBroadcasterWidget::Initialize( std::string configFileName, std::string videoBufferFileName, std::string trackerBufferFileName )
+void OpenIGTLinkBroadcasterWidget::Initialize( std::string configFileName )
 {
   vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkXMLUtilities::ReadElementFromFile( configFileName.c_str() );
   if ( configRootElement == NULL )
@@ -73,44 +73,8 @@ void OpenIGTLinkBroadcasterWidget::Initialize( std::string configFileName, std::
     return;
   }
   
-  vtkDataCollectorHardwareDevice* dataCollectorHardwareDevice = dynamic_cast<vtkDataCollectorHardwareDevice*>(this->m_DataCollector);
-  if ( dataCollectorHardwareDevice == NULL )
-  {
-		LOG_ERROR("Data collector is not the type that uses hardware devices, cannot initialize!");
-    return;
-  }
+  this->m_DataCollector->ReadConfiguration( configRootElement );
 
-  dataCollectorHardwareDevice->ReadConfiguration( configRootElement );
-
-  if ( dataCollectorHardwareDevice->GetAcquisitionType() == SYNCHRO_VIDEO_SAVEDDATASET )
-  {
-    vtkSavedDataVideoSource* videoSource = static_cast< vtkSavedDataVideoSource* >( dataCollectorHardwareDevice->GetVideoSource() );
-    
-    if ( ! videoBufferFileName.empty() )
-    {
-      videoSource->SetSequenceMetafile( videoBufferFileName.c_str() );
-    }
-    else
-    {
-      std::cout << "Error: Video buffer file not specified." << std::endl;
-      return;
-    }
-  }
-  
-  if ( dataCollectorHardwareDevice->GetTrackerType() == TRACKER_SAVEDDATASET )
-  {
-    vtkSavedDataTracker* tracker = static_cast< vtkSavedDataTracker* >( dataCollectorHardwareDevice->GetTracker() );
-      
-    if ( ! trackerBufferFileName.empty() )
-    {
-      tracker->SetSequenceMetafile( trackerBufferFileName.c_str() );
-    }
-    else
-    {
-      std::cout << "Error: Tracker buffer file not specified" << std::endl;
-      return;
-    }
-  }
 
   
   LOG_INFO( "Initializing data collector." );
@@ -131,12 +95,16 @@ void OpenIGTLinkBroadcasterWidget::Initialize( std::string configFileName, std::
   
   
     // Determine delay from frequency for the tracker.
-  
+
+  //TODO
+  LOG_ERROR("Tracked frequency and delay are not determined!");
+  double delayTracking = 0.1;
+  /*
   double delayTracking = 1.0 / dataCollectorHardwareDevice->GetTracker()->GetFrequency();
-  
+
   LOG_INFO( "Tracker frequency = " << dataCollectorHardwareDevice->GetTracker()->GetFrequency() );
   LOG_DEBUG( "Tracker delay = " << delayTracking );
-  
+  */
   
     // Start data collection and broadcasting.
   
@@ -188,27 +156,14 @@ void OpenIGTLinkBroadcasterWidget::StylusCalibrationChanged( int newValue )
 
 void OpenIGTLinkBroadcasterWidget::SendMessages()
 {
-  vtkDataCollectorHardwareDevice* dataCollectorHardwareDevice = dynamic_cast<vtkDataCollectorHardwareDevice*>(this->m_DataCollector);
-  if ( dataCollectorHardwareDevice == NULL )
-  {
-		LOG_ERROR("Data collector is not the type that uses hardware devices, cannot send messages!");
-    return;
-  }
-
-  vtkTrackerTool* tool = NULL;
-  if (dataCollectorHardwareDevice->GetTracker()->GetTool("Probe", tool) != PLUS_SUCCESS) //TODO
-  {
-    LOG_ERROR("No probe found!");
-    return;
-  }
-
   vtkSmartPointer< vtkMatrix4x4 > mToolToReference = vtkSmartPointer< vtkMatrix4x4 >::New();
   
-  if ( dataCollectorHardwareDevice->GetTracker()->IsTracking() )
+  if ( m_DataCollector->GetTrackingEnabled() )
   {
     double timeTracker = 0.0;
     TrackerStatus status = TR_OK;
-    dataCollectorHardwareDevice->GetTransformWithTimestamp( mToolToReference, timeTracker, status, "Probe" ); //TODO
+    PlusTransformName transformName("Probe", "Reference");
+    m_DataCollector->GetTransformWithTimestamp( mToolToReference, timeTracker, status, transformName ); //TODO
     if ( status == TR_OK )
     {
       LOG_INFO( "Tool position: " << mToolToReference->GetElement( 0, 3 ) << " "

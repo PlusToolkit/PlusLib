@@ -8,6 +8,7 @@
 #include "vtksys/CommandLineArguments.hxx"
 #include "vtksys/SystemTools.hxx"
 #include "TrackedUltrasoundCapturing.h"
+#include "vtkDataCollectorHardwareDevice.h"
 #include "vtkDataCollectorSynchronizer.h"
 #include "vtkPlusVideoSource.h"
 
@@ -158,9 +159,9 @@ PlusStatus TrackedUltrasoundCapturing::Initialize()
 {
 	LOG_TRACE("TrackedUltrasoundCapturing::Initialize"); 
 
-  vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkSmartPointer<vtkXMLDataElement>::Take(
-    vtkXMLUtilities::ReadElementFromFile(this->GetInputConfigFileName()));  
-  if (configRootElement == NULL) {	
+  vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkSmartPointer<vtkXMLDataElement>::Take(vtkXMLUtilities::ReadElementFromFile(this->GetInputConfigFileName()));  
+  if (configRootElement == NULL)
+  {
     LOG_ERROR("Unable to read configuration from file " << this->GetInputConfigFileName()); 
     return PLUS_FAIL;
   }
@@ -190,7 +191,7 @@ PlusStatus TrackedUltrasoundCapturing::Initialize()
   if ( this->TrackedFrameContainer == NULL )
 	{
 		this->TrackedFrameContainer = vtkTrackedFrameList::New(); 
-    if ( this->GetDataCollector()->GetTracker() != NULL )
+    if ( this->GetDataCollector()->GetTrackingEnabled() )
     {
       this->TrackedFrameContainer->SetValidationRequirements( REQUIRE_UNIQUE_TIMESTAMP | REQUIRE_TRACKING_OK | REQUIRE_SPEED_BELOW_THRESHOLD ); 
     }
@@ -323,21 +324,9 @@ PlusStatus TrackedUltrasoundCapturing::UpdateRecording()
 	double lastTimestamp = this->GetLastRecordedFrameTimestamp(); 
 
   double oldestTimestamp(0); 
-  if ( this->DataCollector->GetVideoEnabled() )
+  if ( this->DataCollector->GetOldestTimestamp(oldestTimestamp) != PLUS_SUCCESS )
   {
-    if ( this->DataCollector->GetVideoSource()->GetBuffer()->GetOldestTimeStamp(oldestTimestamp) != ITEM_OK )
-    {
-      LOG_WARNING("Failed to get oldest frame timestamp from video buffer"); 
-    }
-  }
-  else if ( this->DataCollector->GetTrackingEnabled() )
-  {
-    vtkTrackerTool* tool = NULL;
-    if ( this->DataCollector->GetTracker()->GetFirstActiveTool(tool) == PLUS_SUCCESS 
-      && tool->GetBuffer()->GetOldestTimeStamp(oldestTimestamp) != ITEM_OK )
-    {
-      LOG_WARNING("Failed to get oldest frame timestamp from tracker buffer"); 
-    }
+    LOG_WARNING("Failed to get oldest frame timestamp from data collector"); 
   }
 
   if ( oldestTimestamp < 0.0001 || lastTimestamp < 0.0001 )
@@ -379,11 +368,7 @@ PlusStatus TrackedUltrasoundCapturing::RecordTrackedFrame( const double time /*=
 	}
 	else
 	{
-    vtkDataCollectorHardwareDevice* dataCollectorHardwareDevice = dynamic_cast<vtkDataCollectorHardwareDevice*>(this->DataCollector);
-    if (dataCollectorHardwareDevice)
-    {
-  		status = dataCollectorHardwareDevice->GetTrackedFrameByTime(time, &trackedFrame); 
-    }
+		status = this->DataCollector->GetTrackedFrameByTime(time, &trackedFrame); 
 	}
   
   if ( status == PLUS_FAIL )
@@ -432,9 +417,13 @@ void TrackedUltrasoundCapturing::SetLocalTimeOffset(double videoOffset, double t
 double TrackedUltrasoundCapturing::GetVideoOffsetMs()
 {
 	LOG_TRACE("TrackedUltrasoundCapturing::GetVideoOffsetMs");
-	if (this->DataCollector->GetVideoSource() != NULL) {
-		return (1000 * this->DataCollector->GetVideoSource()->GetBuffer()->GetLocalTimeOffset() ); 
-	} else {
+  vtkDataCollectorHardwareDevice* dataCollectorHardwareDevice = dynamic_cast<vtkDataCollectorHardwareDevice*>(this->DataCollector);
+  if ( (dataCollectorHardwareDevice) && (dataCollectorHardwareDevice->GetVideoSource() != NULL))
+  {
+		return (1000 * dataCollectorHardwareDevice->GetVideoSource()->GetBuffer()->GetLocalTimeOffset() ); 
+	}
+  else
+  {
 		return 0.0;
 	}
 }

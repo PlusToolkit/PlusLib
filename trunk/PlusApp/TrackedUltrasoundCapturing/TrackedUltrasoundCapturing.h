@@ -9,7 +9,7 @@
 
 #include "PlusConfigure.h"
 #include "vtkObject.h"
-#include "vtkDataCollectorHardwareDevice.h"
+#include "vtkDataCollector.h"
 #include "vtkImageActor.h" 
 #include "vtkRenderer.h"
 #include "vtkMultiThreader.h"

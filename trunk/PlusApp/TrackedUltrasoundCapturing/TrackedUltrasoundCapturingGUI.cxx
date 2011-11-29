@@ -9,6 +9,7 @@
 #include "TrackedUltrasoundCapturing.h"
 #include "vtksys/SystemTools.hxx"
 #include "vtkTrackerTool.h"
+#include "vtkDataCollectorHardwareDevice.h"
 #include "vtkCommand.h"
 #include "vtkRenderWindow.h"
 #include <string>
@@ -359,8 +360,15 @@ int TrackedUltrasoundCapturingGUI::nextId() const
     return this->currentPage()->nextId(); 
   }
 
+  vtkDataCollectorHardwareDevice* dataCollectorHardwareDevice = dynamic_cast<vtkDataCollectorHardwareDevice*>(this->m_USCapturing->GetDataCollector());
+  if (dataCollectorHardwareDevice == NULL)
+  {
+    LOG_ERROR("Wrong DataCollector type!");
+    return this->currentPage()->nextId(); 
+  }
+
   // if we don't have tracking skip SynchronizationPage
-  vtkTracker* tracker = this->m_USCapturing->GetDataCollector()->GetTracker(); 
+  vtkTracker* tracker = dataCollectorHardwareDevice->GetTracker(); 
   if ( this->currentPage() == this->SettingsPage && tracker == NULL ) 
   {
     return this->SynchronizationPage->nextId(); 
@@ -415,8 +423,8 @@ void TrackedUltrasoundCapturingGUI::UpdateWidgets()
   // Update transform matrix 
   if ( this->m_USCapturing->GetDataCollector() != NULL )
   {
-    vtkTracker* tracker = this->m_USCapturing->GetDataCollector()->GetTracker(); 
-    if ( tracker == NULL || !tracker->IsTracking() )
+    vtkDataCollectorHardwareDevice* dataCollectorHardwareDevice = dynamic_cast<vtkDataCollectorHardwareDevice*>(this->m_USCapturing->GetDataCollector());
+    if ( (!dataCollectorHardwareDevice) || (dataCollectorHardwareDevice->GetTracker() == NULL) || (!dataCollectorHardwareDevice->GetTracker()->IsTracking()) )
     {
       this->SyncTrackerMatrix->hide(); 
       this->CapturingTrackerMatrix->hide(); 
@@ -427,7 +435,7 @@ void TrackedUltrasoundCapturingGUI::UpdateWidgets()
       this->CapturingTrackerMatrix->show(); 
 
       vtkTrackerTool* tool = NULL;
-      if (tracker->GetTool("Probe", tool) != PLUS_SUCCESS) //TODO
+      if (dataCollectorHardwareDevice->GetTracker()->GetTool("Probe", tool) != PLUS_SUCCESS) //TODO
       {
         LOG_ERROR("No probe found!");
         this->SyncTrackerMatrix->hide(); 

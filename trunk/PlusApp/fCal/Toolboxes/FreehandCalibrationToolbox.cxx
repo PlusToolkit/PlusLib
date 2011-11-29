@@ -10,6 +10,7 @@ See License.txt for details.
 #include "vtkPhantomRegistrationAlgo.h"
 #include "vtkPlusVideoSource.h"
 #include "vtkVideoBuffer.h"
+#include "vtkDataCollectorHardwareDevice.h"
 
 #include "PhantomRegistrationToolbox.h"
 #include "ConfigFileSaverDialog.h"
@@ -211,20 +212,23 @@ PlusStatus FreehandCalibrationToolbox::ReadConfiguration(vtkXMLDataElement* aCon
   m_ProbeToolName = std::string(probeToolName);
 
   // Check if a tool with the specified name exists
-  if (m_ParentMainWindow->GetToolVisualizer()->GetDataCollector() == NULL)
+  if (m_ParentMainWindow->GetToolVisualizer()->GetDataCollector() == NULL || m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->GetTrackingEnabled() == false)
   {
-    LOG_ERROR("Data collector object is invalid!");
+    LOG_ERROR("Data collector object is invalid or not tracking!");
     return PLUS_FAIL;
   }
 
-  if (m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->GetTracker() == NULL)
+  TrackedFrame trackedFrame;
+  if (m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->GetTrackedFrame(&trackedFrame) != PLUS_SUCCESS)
   {
-    LOG_ERROR("Tracker object is invalid!");
+    LOG_ERROR("Unable to get tracked frame from data collector!");
     return PLUS_FAIL;
   }
 
-  vtkTrackerTool* probeTool = NULL;
-  if (m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->GetTracker()->GetTool(m_ProbeToolName.c_str(), probeTool) != PLUS_SUCCESS)
+  // TODO
+  LOG_ERROR("TEMPORARY ISSUE: TransformRepository will check the availability of the stylus tool");
+  bool probeFound = false;
+  if (!probeFound)
   {
     LOG_ERROR("No tool found with the specified name '" << m_ProbeToolName << "'!");
     return PLUS_FAIL;

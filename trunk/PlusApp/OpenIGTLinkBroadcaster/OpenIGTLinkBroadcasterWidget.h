@@ -35,7 +35,7 @@ public:
   */
   ~OpenIGTLinkBroadcasterWidget();
   
-  void Initialize( std::string configFileName, std::string videoBufferFileName, std::string trackerBufferFileName );
+  void Initialize( std::string configFileName );
   
 
 protected slots:

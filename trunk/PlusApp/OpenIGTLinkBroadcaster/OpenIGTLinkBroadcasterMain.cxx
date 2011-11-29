@@ -55,8 +55,6 @@ int main( int argc, char *argv[] )
     // Define command line arguments.
   
   std::string inputConfigFileName;
-  std::string inputVideoBufferMetafile;
-  std::string inputTrackerBufferMetafile;
   int         verboseLevel = vtkPlusLogger::LOG_LEVEL_DEFAULT;
   
   vtksys::CommandLineArguments args;
@@ -64,10 +62,6 @@ int main( int argc, char *argv[] )
   
   args.AddArgument( "--input-config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT,
                       &inputConfigFileName, "Name of the input configuration file." );
-  args.AddArgument( "--input-video-buffer-metafile", vtksys::CommandLineArguments::EQUAL_ARGUMENT,
-                      &inputVideoBufferMetafile, "Video buffer sequence metafile." );
-  args.AddArgument( "--input-tracker-buffer-metafile", vtksys::CommandLineArguments::EQUAL_ARGUMENT,
-                      &inputTrackerBufferMetafile, "Tracker buffer sequence metafile." );
   args.AddArgument( "--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT,
                       &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug 5=trace)" );  
   
@@ -105,7 +99,7 @@ int main( int argc, char *argv[] )
   QApplication app(argc, argv);
 
 	OpenIGTLinkBroadcasterWidget mainWidget;
-	mainWidget.Initialize( inputConfigFileName, inputVideoBufferMetafile, inputTrackerBufferMetafile );
+	mainWidget.Initialize( inputConfigFileName );
 	
 	mainWidget.show();
   

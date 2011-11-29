@@ -10,6 +10,7 @@
 #include "vtkToolVisualizer.h"
 #include "VolumeReconstructionToolbox.h"
 #include "vtkDataCollectorFile.h"
+#include "vtkDataCollectorHardwareDevice.h"
 
 #include <QFileDialog>
 #include <QMessageBox>

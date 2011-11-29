@@ -8,6 +8,7 @@
 
 #include "fCalMainWindow.h"
 #include "vtkToolVisualizer.h"
+#include "vtkDataCollectorHardwareDevice.h"
 
 #include "StylusCalibrationToolbox.h"
 #include "ConfigFileSaverDialog.h"
@@ -15,6 +16,7 @@
 #include "vtkPhantomRegistrationAlgo.h"
 #include "vtkPivotCalibrationAlgo.h"
 #include "vtkFakeTracker.h"
+#include "vtkTrackedFrameList.h"
 
 #include <QFileDialog>
 
@@ -199,20 +201,23 @@ PlusStatus PhantomRegistrationToolbox::ReadConfiguration(vtkXMLDataElement* aCon
   m_StylusToolName = std::string(stylusToolName);
 
   // Check if a tool with the specified name exists
-  if (m_ParentMainWindow->GetToolVisualizer()->GetDataCollector() == NULL)
+  if (m_ParentMainWindow->GetToolVisualizer()->GetDataCollector() == NULL || m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->GetTrackingEnabled() == false)
   {
-    LOG_ERROR("Data collector object is invalid!");
+    LOG_ERROR("Data collector object is invalid or not tracking!");
     return PLUS_FAIL;
   }
 
-  if (m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->GetTracker() == NULL)
+  TrackedFrame trackedFrame;
+  if (m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->GetTrackedFrame(&trackedFrame) != PLUS_SUCCESS)
   {
-    LOG_ERROR("Tracker object is invalid!");
+    LOG_ERROR("Unable to get tracked frame from data collector!");
     return PLUS_FAIL;
   }
 
-  vtkTrackerTool* stylusTool = NULL;
-  if (m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->GetTracker()->GetTool(m_StylusToolName.c_str(), stylusTool) != PLUS_SUCCESS)
+  // TODO
+  LOG_ERROR("TEMPORARY ISSUE: TransformRepository will check the availability of the stylus tool");
+  bool stylusFound = false;
+  if (!stylusFound)
   {
     LOG_ERROR("No tool found with the specified name '" << m_StylusToolName << "'!");
     return PLUS_FAIL;
@@ -493,12 +498,16 @@ void PhantomRegistrationToolbox::RecordPoint()
   LOG_TRACE("PhantomRegistrationToolbox::RecordPoint"); 
 
 	// If tracker is FakeTracker then set counter (trigger position change) and wait for it to apply the new position
-	vtkFakeTracker *fakeTracker = dynamic_cast<vtkFakeTracker*>(m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->GetTracker());
-	if (fakeTracker != NULL)
+  vtkDataCollectorHardwareDevice* dataCollectorHardwareDevice = dynamic_cast<vtkDataCollectorHardwareDevice*>(m_ParentMainWindow->GetToolVisualizer()->GetDataCollector());
+  if (dataCollectorHardwareDevice)
   {
-		fakeTracker->SetCounter(m_CurrentLandmarkIndex);
-		vtkAccurateTimer::Delay(1.1 / fakeTracker->GetFrequency());
-	}
+	  vtkFakeTracker *fakeTracker = dynamic_cast<vtkFakeTracker*>(dataCollectorHardwareDevice->GetTracker());
+	  if (fakeTracker != NULL)
+    {
+		  fakeTracker->SetCounter(m_CurrentLandmarkIndex);
+		  vtkAccurateTimer::Delay(1.1 / fakeTracker->GetFrequency());
+	  }
+  }
 
   // Acquire point and add to registration algorithm
   vtkSmartPointer<vtkMatrix4x4> stylusTipToReferenceMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
@@ -594,11 +603,15 @@ void PhantomRegistrationToolbox::Undo()
   }
 
 	// If tracker is FakeTracker then set counter
-	vtkFakeTracker *fakeTracker = dynamic_cast<vtkFakeTracker*>(m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->GetTracker());
-	if (fakeTracker != NULL)
+  vtkDataCollectorHardwareDevice* dataCollectorHardwareDevice = dynamic_cast<vtkDataCollectorHardwareDevice*>(m_ParentMainWindow->GetToolVisualizer()->GetDataCollector());
+  if (dataCollectorHardwareDevice)
   {
-		fakeTracker->SetCounter(m_CurrentLandmarkIndex);
-	}
+	  vtkFakeTracker *fakeTracker = dynamic_cast<vtkFakeTracker*>(dataCollectorHardwareDevice->GetTracker());
+	  if (fakeTracker != NULL)
+    {
+		  fakeTracker->SetCounter(m_CurrentLandmarkIndex);
+	  }
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -634,9 +647,13 @@ void PhantomRegistrationToolbox::Reset()
   m_ParentMainWindow->GetToolVisualizer()->ShowTool("Reference", false);
 
 	// If tracker is FakeTracker then reset counter
-	vtkFakeTracker *fakeTracker = dynamic_cast<vtkFakeTracker*>(m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->GetTracker());
-	if (fakeTracker != NULL)
+  vtkDataCollectorHardwareDevice* dataCollectorHardwareDevice = dynamic_cast<vtkDataCollectorHardwareDevice*>(m_ParentMainWindow->GetToolVisualizer()->GetDataCollector());
+  if (dataCollectorHardwareDevice)
   {
-		fakeTracker->SetCounter(m_CurrentLandmarkIndex);
-	}
+	  vtkFakeTracker *fakeTracker = dynamic_cast<vtkFakeTracker*>(dataCollectorHardwareDevice->GetTracker());
+	  if (fakeTracker != NULL)
+    {
+		  fakeTracker->SetCounter(m_CurrentLandmarkIndex);
+	  }
+  }
 }

@@ -8,6 +8,7 @@ See License.txt for details.
 
 #include "fCalMainWindow.h"
 #include "vtkToolVisualizer.h"
+#include "vtkTrackedFrameList.h"
 
 #include "vtkPivotCalibrationAlgo.h"
 #include "ConfigFileSaverDialog.h"
@@ -144,20 +145,23 @@ PlusStatus StylusCalibrationToolbox::ReadConfiguration(vtkXMLDataElement* aConfi
   m_StylusToolName = std::string(stylusToolName);
 
   // Check if a tool with the specified name exists
-  if (m_ParentMainWindow->GetToolVisualizer()->GetDataCollector() == NULL)
+  if (m_ParentMainWindow->GetToolVisualizer()->GetDataCollector() == NULL || m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->GetTrackingEnabled() == false)
   {
-    LOG_ERROR("Data collector object is invalid!");
+    LOG_ERROR("Data collector object is invalid or not tracking!");
     return PLUS_FAIL;
   }
 
-  if (m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->GetTracker() == NULL)
+  TrackedFrame trackedFrame;
+  if (m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->GetTrackedFrame(&trackedFrame) != PLUS_SUCCESS)
   {
-    LOG_ERROR("Tracker object is invalid!");
+    LOG_ERROR("Unable to get tracked frame from data collector!");
     return PLUS_FAIL;
   }
 
-  vtkTrackerTool* stylusTool = NULL;
-  if (m_ParentMainWindow->GetToolVisualizer()->GetDataCollector()->GetTracker()->GetTool(m_StylusToolName.c_str(), stylusTool) != PLUS_SUCCESS)
+  // TODO
+  LOG_ERROR("TEMPORARY ISSUE: TransformRepository will check the availability of the stylus tool");
+  bool stylusFound = false;
+  if (!stylusFound)
   {
     LOG_ERROR("No tool found with the specified name '" << m_StylusToolName << "'!");
     return PLUS_FAIL;

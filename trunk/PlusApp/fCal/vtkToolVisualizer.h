@@ -9,7 +9,7 @@
 
 #include "vtkTracker.h"
 #include "vtkTrackerTool.h"
-#include "vtkDataCollectorHardwareDevice.h"
+#include "vtkDataCollector.h"
 
 #include "vtkRenderer.h"
 #include "vtkActor.h"
