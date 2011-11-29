@@ -99,7 +99,7 @@ vtkOpenIGTLinkBroadcaster::Status vtkOpenIGTLinkBroadcaster::Initialize( std::st
   }
 
   // TODO fix this once the SendTo mechanism has been implemented in the new way (with transform repository and these stuff)
-  LOG_ERROR("TEMPORARY ISSUE: Cannot initialize!");
+  LOG_INFO("TEMPORARY ISSUE: Cannot initialize!");
   /*
   // Create a socket for all non-reference tools that need to be broadcasted.
   for ( ToolIteratorType it = dataCollectorHardwareDevice->GetTracker()->GetToolIteratorBegin(); it != dataCollectorHardwareDevice->GetTracker()->GetToolIteratorEnd(); ++it)
@@ -318,7 +318,7 @@ vtkOpenIGTLinkBroadcaster::Status vtkOpenIGTLinkBroadcaster::SendMessages( std::
 
   // If we should broadcast the image slice too, set up the image container.
   // TODO!!!!!
-  LOG_ERROR("TEMPORARY ISSUE: Cannot send message!");
+  LOG_INFO("TEMPORARY ISSUE: Cannot send message!");
   /*
   if ( dataCollectorHardwareDevice->GetVideoSource() != NULL
     && dataCollectorHardwareDevice->GetAcquisitionType() != SYNCHRO_VIDEO_NONE )
