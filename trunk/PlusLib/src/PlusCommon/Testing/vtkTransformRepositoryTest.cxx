@@ -13,6 +13,7 @@
 
 #include "PlusMath.h"
 #include "vtkTransformRepository.h"
+#include "vtkTrackedFrameList.h"
 
 int main(int argc, char **argv)
 {
@@ -48,19 +49,22 @@ int main(int argc, char **argv)
   mxProbeToTracker->Element[1][1]=-0.8;
   transformRepository->SetTransform(PlusTransformName("Probe", "Tracker"), mxProbeToTracker, false );
 
+  TrackedFrame trackedFrame; 
   vtkSmartPointer<vtkMatrix4x4> mxStylusToTracker=vtkSmartPointer<vtkMatrix4x4>::New();  
   mxStylusToTracker->Element[1][3]=25;
   mxStylusToTracker->Element[0][0]=0.1;
   mxStylusToTracker->Element[1][0]=0.2;
   mxStylusToTracker->Element[2][0]=-0.4;
-  transformRepository->SetTransform(PlusTransformName("Stylus", "Tracker"), mxStylusToTracker);
+  trackedFrame.SetCustomFrameTransform(PlusTransformName("Stylus", "Tracker"), mxStylusToTracker); 
+  trackedFrame.SetCustomFrameTransformStatus(PlusTransformName("Stylus", "Tracker"), "OK"); 
 
   vtkSmartPointer<vtkMatrix4x4> mxPhantomToTracker=vtkSmartPointer<vtkMatrix4x4>::New();    
   mxPhantomToTracker->Element[2][2]=-4;
   mxPhantomToTracker->Element[0][3]=2;
   mxPhantomToTracker->Element[1][3]=2;
   mxPhantomToTracker->Element[2][3]=20;
-  transformRepository->SetTransform(PlusTransformName("Phantom", "Tracker"), mxPhantomToTracker);
+  trackedFrame.SetCustomFrameTransform(PlusTransformName("Phantom", "Tracker"), mxPhantomToTracker); 
+  trackedFrame.SetCustomFrameTransformStatus(PlusTransformName("Phantom", "Tracker"), "OK"); 
 
   vtkSmartPointer<vtkMatrix4x4> mxStylusTipToStylus=vtkSmartPointer<vtkMatrix4x4>::New();    
   mxStylusTipToStylus->Element[2][3]=4;
@@ -68,8 +72,15 @@ int main(int argc, char **argv)
   mxStylusTipToStylus->Element[2][0]=-0.2;
   mxStylusTipToStylus->Element[2][1]=0.4;
   mxStylusTipToStylus->Element[2][2]=-0.2;
-  transformRepository->SetTransform(PlusTransformName("StylusTip", "Stylus"), mxStylusTipToStylus);
-  
+  trackedFrame.SetCustomFrameTransform(PlusTransformName("StylusTip", "Stylus"), mxStylusTipToStylus); 
+  trackedFrame.SetCustomFrameTransformStatus(PlusTransformName("StylusTip", "Stylus"), "OK"); 
+
+  if ( transformRepository->SetTransforms(trackedFrame) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to set transforms from tracked frame!");
+    return EXIT_FAILURE;
+  }
+
   transformRepository->PrintSelf(std::cout, vtkIndent() ); 
 
   /////////////////////////////////////////////////////////////////////////////

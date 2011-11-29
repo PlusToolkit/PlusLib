@@ -131,6 +131,13 @@ bool TrackedFrame::IsCustomFrameTransformNameDefined(PlusTransformName& transfor
   {
     return false; 
   }
+  // Append Transform to the end of the transform name
+  vtksys::RegularExpression isTransform("Transform$"); 
+  if ( !isTransform.find(toolTransformName) )
+  {
+    toolTransformName.append("Transform"); 
+  }
+
   return this->IsCustomFrameFieldDefined(toolTransformName.c_str()); 
 }
 
@@ -165,7 +172,11 @@ PlusStatus TrackedFrame::GetCustomFrameTransform(PlusTransformName& frameTransfo
   }
   
   // Append Transform to the end of the transform name
-  transformName.append("Transform"); 
+  vtksys::RegularExpression isTransform("Transform$"); 
+  if ( !isTransform.find(transformName) )
+  {
+    transformName.append("Transform"); 
+  }
 
   const char* frameTransformStr = GetCustomFrameField(transformName.c_str());
   if (frameTransformStr == NULL )
@@ -199,18 +210,29 @@ PlusStatus TrackedFrame::GetCustomFrameTransform( PlusTransformName& frameTransf
 PlusStatus TrackedFrame::GetCustomFrameTransformStatus(PlusTransformName& frameTransformName, TrackerStatus& status)
 {
   status = TR_MISSING; 
-  std::string transformName; 
-  if ( frameTransformName.GetTransformName(transformName) != PLUS_SUCCESS )
+  std::string transformStatusName; 
+  if ( frameTransformName.GetTransformName(transformStatusName) != PLUS_SUCCESS )
   {
     LOG_ERROR("Unable to get custom transform status, transform name is wrong!"); 
     return PLUS_FAIL; 
   }
   
-  std::string toolStatusFrameFieldName = transformName + std::string("TransformStatus");
-  const char* strStatus = this->GetCustomFrameField(toolStatusFrameFieldName.c_str()); 
+  // Append TransformStatus to the end of the transform name
+  vtksys::RegularExpression isTransformStatus("TransformStatus$"); 
+  vtksys::RegularExpression isTransform("Transform$"); 
+  if ( isTransform.find(transformStatusName) )
+  {
+    transformStatusName.append("Status"); 
+  }
+  else if ( !isTransformStatus.find(transformStatusName) )
+  {
+    transformStatusName.append("TransformStatus"); 
+  }
+
+  const char* strStatus = this->GetCustomFrameField(transformStatusName.c_str()); 
   if (strStatus == NULL )
   {
-    LOG_ERROR("Unable to get custom transform status from name: " << toolStatusFrameFieldName); 
+    LOG_ERROR("Unable to get custom transform status from name: " << transformStatusName); 
     return PLUS_FAIL; 
   }
 
@@ -230,7 +252,16 @@ PlusStatus TrackedFrame::SetCustomFrameTransformStatus(PlusTransformName& frameT
   }
   
   // Append TransformStatus to the end of the transform name
-  transformStatusName.append("TransformStatus");
+  vtksys::RegularExpression isTransformStatus("TransformStatus$"); 
+  vtksys::RegularExpression isTransform("Transform$"); 
+  if ( isTransform.find(transformStatusName) )
+  {
+    transformStatusName.append("Status"); 
+  }
+  else if ( !isTransformStatus.find(transformStatusName) )
+  {
+    transformStatusName.append("TransformStatus"); 
+  }
   this->SetCustomFrameField(transformStatusName, status ); 
 
   return PLUS_SUCCESS; 
@@ -252,7 +283,11 @@ PlusStatus TrackedFrame::SetCustomFrameTransform(PlusTransformName& frameTransfo
   }
 
   // Append Transform to the end of the transform name
-  transformName.append("Transform"); 
+  vtksys::RegularExpression isTransform("Transform$"); 
+  if ( !isTransform.find(transformName) )
+  {
+    transformName.append("Transform"); 
+  }
 
   SetCustomFrameField(transformName, strTransform.str());
 

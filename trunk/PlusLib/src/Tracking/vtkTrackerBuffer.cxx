@@ -754,7 +754,7 @@ PlusStatus vtkTrackerBuffer::CopyTransformFromTrackedFrameList(vtkTrackedFrameLi
       continue; 
     }
 
-    double copiedTransform[16]; 
+    double copiedTransform[16]={0}; 
     if ( !sourceTrackedFrameList->GetTrackedFrame(frameNumber)->GetCustomFrameTransform(transformName, copiedTransform) )
     {
       std::string strTransformName; 
