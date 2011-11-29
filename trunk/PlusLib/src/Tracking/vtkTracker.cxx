@@ -88,7 +88,7 @@ ToolIteratorType vtkTracker::GetToolIteratorBegin()
 //----------------------------------------------------------------------------
 ToolIteratorType vtkTracker::GetToolIteratorEnd()
 {
-  return this->ToolContainer.end(); 
+  return this->ToolContainer.end();
 }
 
 //----------------------------------------------------------------------------

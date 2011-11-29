@@ -13,9 +13,8 @@
 class vtkXMLDataElement; 
 class vtkTrackedFrameList; 
 class TrackedFrame; 
-class vtkTracker; 
-class vtkMatrix4x4; 
-class vtkPlusVideoSource; 
+class vtkTrackerTool;
+class vtkMatrix4x4;
 
 /*!
   \class vtkDataCollector 
@@ -57,7 +56,7 @@ public:
   virtual PlusStatus GetOldestTimestamp(double &ts) = 0; 
 
   /*! Get the most recent tracked frame from devices with each tool transforms */
-  virtual PlusStatus GetTrackedFrame(TrackedFrame* trackedFrame, bool calibratedTransform = false) = 0; 
+  virtual PlusStatus GetTrackedFrame(TrackedFrame* trackedFrame) = 0; 
 
   /*!
     Get the tracked frame list from devices since time specified
@@ -76,29 +75,23 @@ public:
   virtual PlusStatus GetTrackedFrameListSampled(double& frameTimestamp, vtkTrackedFrameList* trackedFrameList, double samplingRateMs) = 0; 
 
   /*! Get the tracked frame from devices by time with each tool transforms */
-  virtual PlusStatus GetTrackedFrameByTime(double time, TrackedFrame* trackedFrame, bool calibratedTransform = false) = 0; 
+  virtual PlusStatus GetTrackedFrameByTime(double time, TrackedFrame* trackedFrame) = 0; 
 
   /*! Get transformation with timestamp from tracker  */
-  virtual PlusStatus GetTransformWithTimestamp(vtkMatrix4x4* toolTransMatrix, double& transformTimestamp, TrackerStatus& status, const char* aToolName, bool calibratedTransform = false) = 0; 
+  virtual PlusStatus GetTransformWithTimestamp(vtkMatrix4x4* toolTransMatrix, double& transformTimestamp, TrackerStatus& status, PlusTransformName transformName) = 0; 
 
   /*! Set video and tracker local time offset  */
   virtual void SetLocalTimeOffset(double videoOffset, double trackerOffset) = 0; 
+
+public:
+  /*! Get frame size */
+  virtual void GetFrameSize(int aDim[2]) = 0;
 
   /*! Set the Tracking only flag */
   virtual void SetTrackingOnly(bool) = 0;
 
   /*! Set the Video only flag */
   virtual void SetVideoOnly(bool) = 0;
-
-public:
-  /*! Get video source of ultrasound */
-  virtual vtkPlusVideoSource* GetVideoSource() = 0;
-
-  /*! Get tracker  */
-  virtual vtkTracker* GetTracker() = 0;
-  
-  /*! Get frame size */
-  virtual void GetFrameSize(int aDim[2]) = 0;
 
   /*! Get the Connected flag  */
   vtkGetMacro(Connected,bool);

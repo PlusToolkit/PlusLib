@@ -12,7 +12,7 @@ See License.txt for details.
 #include "PlusConfigure.h"
 #include "vtksys/CommandLineArguments.hxx"
 #include "vtkSmartPointer.h"
-#include "vtkDataCollector.h"
+#include "vtkDataCollectorHardwareDevice.h"
 #include "vtkTrackerBuffer.h"
 #include "vtkXMLUtilities.h"
 #include "vtkTimerLog.h"
@@ -123,7 +123,9 @@ public:
       ss << tool->GetToolName() << ": ";
 
       vtkSmartPointer<vtkMatrix4x4> toolToTrackerTransform=vtkSmartPointer<vtkMatrix4x4>::New(); // a new transform matrix has to be provided to each SetToolToTrackerTransform call
-      if (this->DataCollector->GetTransformWithTimestamp(toolToTrackerTransform, toolToTrackerTransformTimestamp, trackerStatus, tool->GetToolName())!=PLUS_SUCCESS)
+LOG_INFO("TEMPORARY ISSUE: fix here too");
+PlusTransformName transformName(tool->GetToolName(), "Reference");
+      if (this->DataCollector->GetTransformWithTimestamp(toolToTrackerTransform, toolToTrackerTransformTimestamp, trackerStatus, transformName)!=PLUS_SUCCESS)
       {
         ss << "failed to get transform\n";
         SetToolVisible(tool->GetToolName(),false);        
@@ -163,7 +165,7 @@ public:
     this->TimerId=this->Iren->CreateOneShotTimer(100); 
   }
 
-  vtkDataCollector* DataCollector; 
+  vtkDataCollectorHardwareDevice* DataCollector; 
   vtkRenderer *Renderer;
   vtkRenderWindowInteractor *Iren;
   vtkTextActor *StepperTextActor; 
@@ -218,7 +220,7 @@ int main(int argc, char **argv)
 		exit(EXIT_FAILURE);
   }
 
-	vtkSmartPointer<vtkDataCollector> dataCollector = vtkSmartPointer<vtkDataCollector>::New(); 
+	vtkSmartPointer<vtkDataCollectorHardwareDevice> dataCollector = vtkSmartPointer<vtkDataCollectorHardwareDevice>::New(); 
   dataCollector->ReadConfiguration( configRootElement );
 	dataCollector->Connect(); 
 	dataCollector->Start();

@@ -6,6 +6,7 @@
 
 #include "PlusConfigure.h"
 #include "vtkPlusOpenIGTLinkServer.h"
+#include "vtkDataCollector.h"
 
 #include "vtkMultiThreader.h"
 #include "vtkSmartPointer.h"
@@ -44,13 +45,12 @@ int vtkPlusOpenIGTLinkServer::GetBufferedMessageCount()
 //----------------------------------------------------------------------------
 int vtkPlusOpenIGTLinkServer::Initialize( std::string &strError )
 {
-  if (    this->DataCollector == NULL
-       || this->DataCollector->GetTracker() == NULL )
+  if ( this->DataCollector == NULL || this->DataCollector->GetTrackingEnabled() == false )
   {
-    LOG_ERROR( "Tried to initialize vtkPlusOpenIGTLinkServer without DataCollector." );
+    LOG_ERROR( "Tried to initialize vtkPlusOpenIGTLinkServer without proper DataCollector." );
     return 1;
   }
-  
+
   return 0;
 }
 

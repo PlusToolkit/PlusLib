@@ -20,9 +20,9 @@
 #include "igtlPositionMessage.h"
 #include "igtlServerSocket.h"
 
-#include "vtkDataCollector.h"
 #include "vtkIGTLMessageQueue.h"
 
+class vtkDataCollector;
 
 /*!
   \class vtkPlusOpenIGTLinkServer 

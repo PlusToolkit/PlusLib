@@ -54,7 +54,9 @@ public:
       ToolName = this->DataCollector->GetTracker()->GetToolIteratorBegin()->second->GetToolName(); 
     }
 
-    if ( this->DataCollector->GetTrackedFrame(this->RealtimeImage, tFrame2Tracker, status, synchronizedTime, ToolName.c_str()) == PLUS_SUCCESS )
+LOG_INFO("TEMPORARY ISSUE: fix here too");
+PlusTransformName transformName(ToolName.c_str(), "Reference");
+    if ( this->DataCollector->GetTrackedFrame(this->RealtimeImage, tFrame2Tracker, status, synchronizedTime, transformName) == PLUS_SUCCESS )
     {
       this->Viewer->SetInput(this->RealtimeImage); 
       this->Viewer->Modified(); 

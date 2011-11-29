@@ -8,7 +8,6 @@
 #define __vtkDataCollectorFile_h
 
 #include "vtkDataCollector.h"
-#include "vtkImageData.h" //TODO
 
 /*!
   \class vtkDataCollectorFile
@@ -48,7 +47,7 @@ public:
   virtual PlusStatus GetOldestTimestamp(double &ts); 
 
   /*! Get the most recent tracked frame from devices with each tool transforms */
-  virtual PlusStatus GetTrackedFrame(TrackedFrame* trackedFrame, bool calibratedTransform = false); 
+  virtual PlusStatus GetTrackedFrame(TrackedFrame* trackedFrame); 
 
   /*!
     Get the tracked frame list from devices since time specified
@@ -67,10 +66,10 @@ public:
   virtual PlusStatus GetTrackedFrameListSampled(double& aTimestamp, vtkTrackedFrameList* aTrackedFrameList, double aSamplingRateSec);
 
   /*! Get the tracked frame from tracked frame list by timestamp */
-  virtual PlusStatus GetTrackedFrameByTime(double aTimestamp, TrackedFrame* aTrackedFrame, bool calibratedTransform = false); 
+  virtual PlusStatus GetTrackedFrameByTime(double aTimestamp, TrackedFrame* aTrackedFrame); 
 
   /*! Get transformation with timestamp from tracker  */
-  virtual PlusStatus GetTransformWithTimestamp(vtkMatrix4x4* toolTransMatrix, double& transformTimestamp, TrackerStatus& status, const char* aToolName, bool calibratedTransform = false); 
+  virtual PlusStatus GetTransformWithTimestamp(vtkMatrix4x4* toolTransMatrix, double& transformTimestamp, TrackerStatus& status, PlusTransformName transformName); 
 
   /*! Set video and tracker local time offset  */
   virtual void SetLocalTimeOffset(double videoOffset, double trackerOffset); 
@@ -84,12 +83,6 @@ public:
 
   /*! Set the Video only flag */
   void SetVideoOnly(bool);
-
-  /*! Get the video source of ultrasound */
-  virtual vtkPlusVideoSource* GetVideoSource();
-
-  /*! Get the tracker  */
-  virtual vtkTracker* GetTracker();
 
   /*! Get frame size */
   virtual void GetFrameSize(int aDim[2]);
@@ -115,9 +108,9 @@ protected:
 
 protected:
   /*! Set tracked frame list */
-  virtual void SetTrackedFrameList(vtkTrackedFrameList* trackedFrameList); 
+  virtual void SetTrackedFrameBuffer(vtkTrackedFrameList* trackedFrameBuffer); 
   /*! Get tracked frame list */
-  vtkGetObjectMacro(TrackedFrameList, vtkTrackedFrameList);
+  vtkGetObjectMacro(TrackedFrameBuffer, vtkTrackedFrameList);
 
   /*! Set sequence metafile name */
 	vtkSetStringMacro(SequenceMetafileName);
@@ -135,7 +128,7 @@ protected:
 
 protected:
   /*! Tracked frame list containing the data to be played */
-  vtkTrackedFrameList*  TrackedFrameList;
+  vtkTrackedFrameList*  TrackedFrameBuffer;
 
   /*! Name of the used sequence metafile */
 	char*                 SequenceMetafileName;

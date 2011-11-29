@@ -15,10 +15,8 @@ See License.txt for details.
 #include "vtkMatrix4x4.h"
 #include "vtkObjectFactory.h"
 #include "vtkSmartPointer.h"
-#include "vtkPlusVideoSource.h"
 #include "PlusVideoFrame.h"
-
-#include "vtkTrackerTool.h"
+#include "vtkTrackedFrameList.h"
 
 #include "igtlImageMessage.h"
 #include "igtlTransformMessage.h"
@@ -93,21 +91,16 @@ vtkOpenIGTLinkBroadcaster::Status vtkOpenIGTLinkBroadcaster::Initialize( std::st
 {
   LOG_TRACE("vtkOpenIGTLinkBroadcaster::Initialize");
 
-  vtkDataCollectorHardwareDevice* dataCollectorHardwareDevice = dynamic_cast<vtkDataCollectorHardwareDevice*>(this->DataCollector);
-  if ( dataCollectorHardwareDevice == NULL )
+  if ( this->DataCollector == NULL || this->DataCollector->GetTrackingEnabled() == false )
   {
-		LOG_ERROR("Data collector is not the type that uses hardware devices, cannot initialize!");
+    LOG_ERROR( "Tried to initialize vtkOpenIGTLinkBroadcaster without valid DataCollector" );
     this->InternalStatus = STATUS_NOT_INITIALIZED;
     return this->InternalStatus;
   }
 
-  if ( dataCollectorHardwareDevice->GetTracker() == NULL )
-  {
-    LOG_ERROR( "Tried to initialize vtkOpenIGTLinkBroadcaster without DataCollector." );
-    this->InternalStatus = STATUS_NOT_INITIALIZED;
-    return this->InternalStatus;
-  }
-
+  // TODO fix this once the SendTo mechanism has been implemented in the new way (with transform repository and these stuff)
+  LOG_ERROR("TEMPORARY ISSUE: Cannot initialize!");
+  /*
   // Create a socket for all non-reference tools that need to be broadcasted.
   for ( ToolIteratorType it = dataCollectorHardwareDevice->GetTracker()->GetToolIteratorBegin(); it != dataCollectorHardwareDevice->GetTracker()->GetToolIteratorEnd(); ++it)
   {
@@ -153,6 +146,7 @@ vtkOpenIGTLinkBroadcaster::Status vtkOpenIGTLinkBroadcaster::Initialize( std::st
       LOG_ERROR("Failed to get socket info from send to adress for image message (send to link: " << imageSendToLink <<")"); 
     }
   }
+  */
 
   // Everything worked.
 
@@ -220,12 +214,12 @@ vtkOpenIGTLinkBroadcaster::Status vtkOpenIGTLinkBroadcaster::SendMessages( std::
 
   if ( this->DataCollector == NULL )
   {
-    LOG_WARNING( "Tried to send OpenIGTLink messages without specifying a DataCollector." );
+    LOG_WARNING( "Tried to send OpenIGTLink messages without a proper DataCollector." );
     this->InternalStatus = STATUS_NOT_INITIALIZED;
     return this->InternalStatus;
   }
 
-  if ( ! this->DataCollector->GetTracker()->IsTracking() )
+  if ( ! this->DataCollector->GetTrackingEnabled() )
   {
     LOG_WARNING( "Tried to send OpenIGTLink messages without starting the tracker." );
     this->InternalStatus = STATUS_NOT_TRACKING;
@@ -234,9 +228,7 @@ vtkOpenIGTLinkBroadcaster::Status vtkOpenIGTLinkBroadcaster::SendMessages( std::
 
 
   TrackedFrame trackedFrame;
-  TrackedFrame trackedFrameCalibrated;
-  this->DataCollector->GetTrackedFrame( &trackedFrame, false );
-  this->DataCollector->GetTrackedFrame( &trackedFrameCalibrated, true );
+  this->DataCollector->GetTrackedFrame( &trackedFrame );
 
   double timestamp = trackedFrame.GetTimestamp();
 
@@ -260,15 +252,18 @@ vtkOpenIGTLinkBroadcaster::Status vtkOpenIGTLinkBroadcaster::SendMessages( std::
     double c[ 16 ] = { 0 };
     double n[ 16 ] = { 0 };
 
-    PlusTransformName toolTransformName(toolName, this->DataCollector->GetTracker()->GetToolReferenceFrameName() ); 
+    // TODO fix this once the SendTo mechanism has been implemented in the new way (with transform repository and these stuff)
+    LOG_ERROR("TEMPORARY ISSUE: Cannot send message!");
+    /*
+    PlusTransformName toolTransformName(toolName, dataCollectorHardwareDevice->GetTracker()->GetToolReferenceFrameName() ); 
 
-    trackedFrameCalibrated.GetCustomFrameTransform( toolTransformName, c );
     trackedFrame.GetCustomFrameTransform( toolTransformName, n );
-    
-    
+
     if ( this->ApplyStylusCalibration && strcmp( toolName, "Stylus" ) == 0 )
     {
-      trackedFrameCalibrated.GetCustomFrameTransform( toolTransformName, transform );
+      // TODO create the calibrated transform here according to the transforms defined in the device set configuration file
+      trackedFrame.GetCustomFrameTransform( toolTransformName, transform );
+      LOG_ERROR("TEMPORARY ISSUE: Unable to get the calibrated fransform directly! Uncalibrated transform is sent.");
     }
     else
     {
@@ -317,18 +312,20 @@ vtkOpenIGTLinkBroadcaster::Status vtkOpenIGTLinkBroadcaster::SendMessages( std::
     {
       LOG_WARNING( "Could not broadcast tool: " << toolPortName );
     }
+    */
   }
 
 
   // If we should broadcast the image slice too, set up the image container.
-
-  vtkDataCollectorHardwareDevice* dataCollectorHardwareDevice = dynamic_cast<vtkDataCollectorHardwareDevice*>(this->DataCollector);
-  if ( dataCollectorHardwareDevice != NULL
-    && dataCollectorHardwareDevice->GetVideoSource() != NULL
+  // TODO!!!!!
+  LOG_ERROR("TEMPORARY ISSUE: Cannot send message!");
+  /*
+  if ( dataCollectorHardwareDevice->GetVideoSource() != NULL
     && dataCollectorHardwareDevice->GetAcquisitionType() != SYNCHRO_VIDEO_NONE )
   {
     this->SendImageMessage( &trackedFrame, strError );
   }
+  */
 
 
   this->InternalStatus = STATUS_OK;
@@ -340,19 +337,23 @@ void vtkOpenIGTLinkBroadcaster::SendImageMessage( TrackedFrame* trackedFrame, st
 {
   //LOG_TRACE("vtkOpenIGTLinkBroadcaster::SendImageMessage");
 
-  vtkDataCollectorHardwareDevice* dataCollectorHardwareDevice = dynamic_cast<vtkDataCollectorHardwareDevice*>(this->DataCollector);
-  if ( dataCollectorHardwareDevice == NULL )
+  if ( this->DataCollector == NULL )
   {
-    LOG_ERROR("Data collector is not the type that uses hardware devices, cannot send message!");
+    LOG_ERROR("Invalid data collector, cannot send message!");
     return;
   }
 
+  // TODO!!!!!
+  LOG_ERROR("TEMPORARY ISSUE: Cannot send message!");
+  const char* imageSendToLink = NULL;
+  /*
   const char* imageSendToLink = dataCollectorHardwareDevice->GetVideoSource()->GetSendToLink(); 
   if ( imageSendToLink == NULL )
   {
     LOG_DEBUG( "No SendTo address found for image message." );
     return;
   }
+  */
 
   SocketInfo imageSocket; 
   if ( this->GetSocketInfoFromSendToLink(imageSendToLink, imageSocket) != PLUS_SUCCESS )
